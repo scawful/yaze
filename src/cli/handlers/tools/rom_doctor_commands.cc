@@ -4,17 +4,20 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/match.h"
+#include "absl/strings/str_join.h"
 #include "rom/rom.h"
 #include "cli/handlers/tools/diagnostic_types.h"
+#include "rom/hm_support.h"
+#include "app/editor/message/message_data.h"
 
 namespace yaze::cli {
 
 namespace {
 
 // ROM header locations (LoROM)
-constexpr uint32_t kSnesHeaderBase = 0x7FC0;
-constexpr uint32_t kChecksumComplementPos = 0x7FDC;
-constexpr uint32_t kChecksumPos = 0x7FDE;
+// ROM header locations (LoROM)
+// kSnesHeaderBase, kChecksumComplementPos, kChecksumPos defined in diagnostic_types.h
 
 // Expected sizes
 constexpr size_t kVanillaSize = 0x100000;   // 1MB
@@ -38,13 +41,13 @@ RomHeaderInfo ReadRomHeader(Rom* rom) {
   RomHeaderInfo info;
   const auto& data = rom->data();
 
-  if (rom->size() < kSnesHeaderBase + 32) {
+  if (rom->size() < yaze::cli::kSnesHeaderBase + 32) {
     return info;
   }
 
   // Read title (21 bytes)
   for (int i = 0; i < 21; ++i) {
-    char chr = static_cast<char>(data[kSnesHeaderBase + i]);
+    char chr = static_cast<char>(data[yaze::cli::kSnesHeaderBase + i]);
     if (chr >= 32 && chr < 127) {
       info.title += chr;
     }
@@ -55,19 +58,19 @@ RomHeaderInfo ReadRomHeader(Rom* rom) {
     info.title.pop_back();
   }
 
-  info.map_mode = data[kSnesHeaderBase + 21];
-  info.rom_type = data[kSnesHeaderBase + 22];
-  info.rom_size = data[kSnesHeaderBase + 23];
-  info.sram_size = data[kSnesHeaderBase + 24];
-  info.country = data[kSnesHeaderBase + 25];
-  info.license = data[kSnesHeaderBase + 26];
-  info.version = data[kSnesHeaderBase + 27];
+  info.map_mode = data[yaze::cli::kSnesHeaderBase + 21];
+  info.rom_type = data[yaze::cli::kSnesHeaderBase + 22];
+  info.rom_size = data[yaze::cli::kSnesHeaderBase + 23];
+  info.sram_size = data[yaze::cli::kSnesHeaderBase + 24];
+  info.country = data[yaze::cli::kSnesHeaderBase + 25];
+  info.license = data[yaze::cli::kSnesHeaderBase + 26];
+  info.version = data[yaze::cli::kSnesHeaderBase + 27];
 
   // Read checksums
   info.checksum_complement =
-      data[kChecksumComplementPos] | (data[kChecksumComplementPos + 1] << 8);
+      data[yaze::cli::kChecksumComplementPos] | (data[yaze::cli::kChecksumComplementPos + 1] << 8);
   info.checksum =
-      data[kChecksumPos] | (data[kChecksumPos + 1] << 8);
+      data[yaze::cli::kChecksumPos] | (data[yaze::cli::kChecksumPos + 1] << 8);
 
   // Validate checksum (complement XOR checksum should be 0xFFFF)
   info.checksum_valid =
@@ -138,6 +141,143 @@ RomFeatures DetectRomFeaturesLocal(Rom* rom) {
   return features;
 }
 
+void CheckCorruptionHeuristics(Rom* rom, DiagnosticReport& report) {
+  const auto* data = rom->data();
+  size_t size = rom->size();
+  
+  // Check known problematic addresses
+  for (uint32_t addr : kProblemAddresses) {
+    if (addr < size) {
+      // Heuristic: If we find 0x00 or 0xFF in the middle of what should be Tile16 data,
+      // it might be suspicious, but we need a better heuristic.
+      // For now, let's just check if it's a known bad value from a specific bug.
+      // Example: A previous bug wrote 0x00 to these locations.
+      if (data[addr] == 0x00) {
+        DiagnosticFinding finding;
+        finding.id = "known_corruption_pattern";
+        finding.severity = DiagnosticSeverity::kWarning;
+        finding.message = absl::StrFormat("Potential corruption detected at known problematic address 0x%06X", addr);
+        finding.location = absl::StrFormat("0x%06X", addr);
+        finding.suggested_action = "Check if this byte should be 0x00. If not, restore from backup.";
+        finding.fixable = false;
+        report.AddFinding(finding);
+      }
+    }
+  }
+
+  // Check for zero-filled blocks in critical code regions (Bank 00)
+  // 0x0000-0x7FFF is code/data. Large blocks of 0x00 might indicate erasure.
+  // We'll scan a small sample.
+  int zero_run = 0;
+  for (uint32_t i = 0x0000; i < 0x1000; ++i) {
+    if (data[i] == 0x00) zero_run++;
+    else zero_run = 0;
+
+    if (zero_run > 64) {
+      DiagnosticFinding finding;
+      finding.id = "bank00_erasure";
+      finding.severity = DiagnosticSeverity::kCritical;
+      finding.message = "Large block of zeros detected in Bank 00 code region";
+      finding.location = absl::StrFormat("Around 0x%06X", i);
+      finding.suggested_action = "ROM is likely corrupted. Restore from backup.";
+      finding.fixable = false;
+      report.AddFinding(finding);
+      break; 
+    }
+  }
+}
+
+void ValidateExpandedTables(Rom* rom, DiagnosticReport& report) {
+  if (!report.features.has_expanded_tile16) return;
+
+  const auto* data = rom->data();
+  size_t size = rom->size();
+  
+  // Check Tile16 expansion region (0x1E8000 - 0x1F0000)
+  // This region should contain data, not be all empty.
+  if (size >= kMap16TilesExpandedEnd) {
+    bool all_empty = true;
+    for (uint32_t i = kMap16TilesExpanded; i < kMap16TilesExpandedEnd; i += 256) {
+      if (data[i] != 0xFF && data[i] != 0x00) {
+        all_empty = false;
+        break;
+      }
+    }
+
+    if (all_empty) {
+      DiagnosticFinding finding;
+      finding.id = "empty_expanded_tile16";
+      finding.severity = DiagnosticSeverity::kError;
+      finding.message = "Expanded Tile16 region appears to be empty/uninitialized";
+      finding.location = "0x1E8000-0x1F0000";
+      finding.suggested_action = "Re-save Tile16 data from editor or re-apply expansion patch.";
+      finding.fixable = false;
+      report.AddFinding(finding);
+    }
+  }
+}
+
+void CheckParallelWorldsHeuristics(Rom* rom, DiagnosticReport& report) {
+  // 1. Search for "PARALLEL WORLDS" string in decoded messages
+  try {
+    std::vector<uint8_t> rom_data_copy = rom->vector(); // Copy for safety
+    auto messages = yaze::editor::ReadAllTextData(rom_data_copy.data());
+    
+    bool pw_string_found = false;
+    for (const auto& msg : messages) {
+      if (absl::StrContains(msg.ContentsParsed, "PARALLEL WORLDS") || 
+          absl::StrContains(msg.ContentsParsed, "Parallel Worlds")) {
+        pw_string_found = true;
+        break;
+      }
+    }
+
+    if (pw_string_found) {
+      DiagnosticFinding finding;
+      finding.id = "parallel_worlds_string";
+      finding.severity = DiagnosticSeverity::kInfo;
+      finding.message = "Found 'PARALLEL WORLDS' string in message data";
+      finding.location = "Message Data";
+      finding.suggested_action = "Confirmed Parallel Worlds ROM.";
+      finding.fixable = false;
+      report.AddFinding(finding);
+    }
+  } catch (...) {
+    // Ignore parsing errors
+  }
+}
+
+void CheckZScreamHeuristics(Rom* rom, DiagnosticReport& report) {
+  const auto* data = rom->data();
+  size_t size = rom->size();
+
+  bool has_zscustom_features = false;
+  std::vector<std::string> features_found;
+
+  if (kCustomBGEnabledPos < size && data[kCustomBGEnabledPos] != 0x00 && data[kCustomBGEnabledPos] != 0xFF) {
+    has_zscustom_features = true;
+    features_found.push_back("Custom BG");
+  }
+  if (kCustomMainPalettePos < size && data[kCustomMainPalettePos] != 0x00 && data[kCustomMainPalettePos] != 0xFF) {
+    has_zscustom_features = true;
+    features_found.push_back("Custom Palette");
+  }
+
+  if (has_zscustom_features && report.features.is_vanilla) {
+    DiagnosticFinding finding;
+    finding.id = "zscustom_features_detected";
+    finding.severity = DiagnosticSeverity::kInfo;
+    finding.message = absl::StrFormat("ZSCustom features detected despite missing version header: %s", absl::StrJoin(features_found, ", "));
+    finding.location = "ZSCustom Flags";
+    finding.suggested_action = "Treat as ZSCustom ROM.";
+    finding.fixable = false;
+    report.AddFinding(finding);
+    
+    report.features.is_vanilla = false;
+    report.features.zs_custom_version = 0xFE; // Unknown/Detected
+  }
+}
+
 }  // namespace
 
 absl::Status RomDoctorCommandHandler::Execute(
@@ -200,7 +340,7 @@ absl::Status RomDoctorCommandHandler::Execute(
         "Invalid SNES checksum: complement=0x%04X checksum=0x%04X (XOR=0x%04X, expected 0xFFFF)",
         header.checksum_complement, header.checksum,
         header.checksum_complement ^ header.checksum);
-    finding.location = absl::StrFormat("0x%04X", kChecksumComplementPos);
+    finding.location = absl::StrFormat("0x%04X", yaze::cli::kChecksumComplementPos);
     finding.suggested_action = "ROM may be corrupted or modified without checksum update";
     finding.fixable = true;  // Could be fixed by recalculating
     report.AddFinding(finding);
@@ -236,6 +376,40 @@ absl::Status RomDoctorCommandHandler::Execute(
     finding.fixable = false;
     report.AddFinding(finding);
   }
+
+  // 3. Check for corruption heuristics
+  CheckCorruptionHeuristics(rom, report);
+
+  // 4. Hyrule Magic / Parallel Worlds Analysis
+  yaze::rom::HyruleMagicValidator hm_validator(rom);
+  if (hm_validator.IsParallelWorlds()) {
+    DiagnosticFinding finding;
+    finding.id = "parallel_worlds_detected";
+    finding.severity = DiagnosticSeverity::kInfo;
+    finding.message = "Parallel Worlds (1.5MB) detected (Header check)";
+    finding.location = "ROM Header";
+    finding.suggested_action = "Use z3ed for editing. Custom pointer tables are supported.";
+    finding.fixable = false;
+    report.AddFinding(finding);
+  } else if (hm_validator.HasBank00Erasure()) {
+    DiagnosticFinding finding;
+    finding.id = "hm_corruption_detected";
+    finding.severity = DiagnosticSeverity::kCritical;
+    finding.message = "Hyrule Magic corruption detected (Bank 00 erasure)";
+    finding.location = "Bank 00";
+    finding.suggested_action = "ROM is likely unstable. Restore from backup.";
+    finding.fixable = false;
+    report.AddFinding(finding);
+  }
+
+  // Advanced Heuristics
+  CheckParallelWorldsHeuristics(rom, report);
+  CheckZScreamHeuristics(rom, report);
+
+
+
+  // 5. Validate expanded tables
+  ValidateExpandedTables(rom, report);
 
   // Output findings
   formatter.BeginArray("findings");

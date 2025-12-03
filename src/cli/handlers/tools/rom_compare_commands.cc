@@ -88,7 +88,8 @@ std::string GetVersionString(uint8_t version) {
 
 void FindDiffRegions(const std::vector<uint8_t>& target,
                      const std::vector<uint8_t>& baseline,
-                     RomCompareResult& result) {
+                     RomCompareResult& result,
+                     bool smart_diff) {
   size_t min_size = std::min(target.size(), baseline.size());
 
   for (const auto& region : kCriticalRegions) {
@@ -100,6 +101,12 @@ void FindDiffRegions(const std::vector<uint8_t>& target,
     size_t diff_count = 0;
 
     for (uint32_t i = region.start; i < end; ++i) {
+      // Smart diff: Ignore checksum bytes
+      if (smart_diff) {
+        if (i >= yaze::cli::kChecksumComplementPos && i <= yaze::cli::kChecksumPos + 1) continue;
+        // Ignore ZSCustom timestamp/version if needed (optional)
+      }
+
       if (target[i] != baseline[i]) {
         diff_count++;
       }
@@ -245,6 +252,7 @@ absl::Status RomCompareCommandHandler::Execute(
   auto baseline_path = parser.GetString("baseline");
   bool verbose = parser.HasFlag("verbose");
   bool show_diff = parser.HasFlag("show-diff");
+  bool smart_diff = parser.HasFlag("smart");
   bool is_json = formatter.IsJson();
 
   if (!baseline_path.has_value()) {
@@ -287,7 +295,7 @@ absl::Status RomCompareCommandHandler::Execute(
       (result.target.has_expanded_tile32 == result.baseline.has_expanded_tile32);
 
   // Find differences
-  FindDiffRegions(target_data, baseline_data, result);
+  FindDiffRegions(target_data, baseline_data, result, smart_diff);
 
   // JSON output
   OutputRomInfoJson(formatter, "baseline", result.baseline);

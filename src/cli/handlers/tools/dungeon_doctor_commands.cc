@@ -132,6 +132,22 @@ void OutputTextSummary(int total_rooms, int valid_rooms, int warning_rooms,
   std::cout << "╚═══════════════════════════════════════════════════════════════╝\n";
 }
 
+void CheckUnusedRooms(const std::vector<RoomDiagnostic>& diagnostics,
+                      std::vector<DiagnosticFinding>& findings) {
+  for (const auto& diag : diagnostics) {
+    if (diag.object_count == 0 && diag.sprite_count == 0) {
+      DiagnosticFinding finding;
+      finding.id = "unused_room";
+      finding.severity = DiagnosticSeverity::kInfo;
+      finding.message = "Room appears to be empty (0 objects, 0 sprites)";
+      finding.location = absl::StrFormat("Room 0x%02X", diag.room_id);
+      finding.suggested_action = "Verify if this room is intended to be empty.";
+      finding.fixable = false;
+      findings.push_back(finding);
+    }
+  }
+}
+
 }  // namespace
 
 absl::Status DungeonDoctorCommandHandler::Execute(
@@ -139,8 +155,11 @@ absl::Status DungeonDoctorCommandHandler::Execute(
     resources::OutputFormatter& formatter) {
   bool verbose = parser.HasFlag("verbose");
   bool all_rooms = parser.HasFlag("all");
+  bool deep_scan = parser.HasFlag("deep");
   auto room_id_arg = parser.GetInt("room");
   bool is_json = formatter.IsJson();
+
+  if (deep_scan) all_rooms = true;
 
   OutputTextBanner(is_json);
 
@@ -253,6 +272,12 @@ absl::Status DungeonDoctorCommandHandler::Execute(
     }
   }
 
+  // Deep scan analysis
+  std::vector<DiagnosticFinding> deep_findings;
+  if (deep_scan) {
+    CheckUnusedRooms(diagnostics, deep_findings);
+  }
+
   // Output results
   formatter.AddField("total_rooms", static_cast<int>(diagnostics.size()));
   formatter.AddField("valid_rooms", valid_rooms);
@@ -282,6 +307,10 @@ absl::Status DungeonDoctorCommandHandler::Execute(
     for (const auto& finding : diag.findings) {
       all_findings.push_back(finding);
     }
+  }
+  // Add deep scan findings
+  for (const auto& finding : deep_findings) {
+    all_findings.push_back(finding);
   }
 
   formatter.BeginArray("findings");

@@ -230,6 +230,11 @@ struct RomCompareResult {
 // ROM Layout Constants (shared across diagnostic commands)
 // =============================================================================
 
+// ROM header locations (LoROM)
+constexpr uint32_t kSnesHeaderBase = 0x7FC0;
+constexpr uint32_t kChecksumComplementPos = 0x7FDC;
+constexpr uint32_t kChecksumPos = 0x7FDE;
+
 // Tile16 expanded region
 constexpr uint32_t kMap16TilesExpanded = 0x1E8000;
 constexpr uint32_t kMap16TilesExpandedEnd = 0x1F0000;
