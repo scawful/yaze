@@ -135,6 +135,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
       current_map_ = map_id;
       current_world_ =
           map_id / 0x40;  // Calculate which world the map belongs to
+      overworld_.set_current_map(current_map_);
+      overworld_.set_current_world(current_world_);
     }
   }
 
