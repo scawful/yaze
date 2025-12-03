@@ -69,7 +69,7 @@ absl::Status RoomLayout::LoadLayout(int layout_id) {
 
     RoomObject obj = RoomObject::DecodeObjectFromBytes(
         b1, b2, b3, static_cast<uint8_t>(layer));
-    obj.set_rom(rom_);
+    obj.SetRom(rom_);
     obj.EnsureTilesLoaded();
     objects_.push_back(obj);
   }

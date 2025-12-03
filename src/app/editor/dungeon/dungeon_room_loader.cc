@@ -26,6 +26,7 @@ absl::Status DungeonRoomLoader::LoadRoom(int room_id, zelda3::Room& room) {
   }
 
   room = zelda3::LoadRoomFromRom(rom_, room_id);
+  room.SetGameData(game_data_);  // Ensure room has access to GameData
   room.LoadObjects();
 
   return absl::OkStatus();
@@ -75,6 +76,7 @@ absl::Status DungeonRoomLoader::LoadAllRooms(
 
     // Lazy load: Only load header/metadata, not objects/graphics
     rooms[i] = zelda3::LoadRoomHeaderFromRom(rom_, i);
+    rooms[i].SetGameData(game_data_);  // Ensure room has access to GameData
     auto room_size = zelda3::CalculateRoomSize(rom_, i);
     // rooms[i].LoadObjects(); // DEFERRED: Load on demand
 
@@ -125,6 +127,7 @@ absl::Status DungeonRoomLoader::LoadAllRooms(
       for (int i = start_room; i < end_room; ++i) {
         // Lazy load: Only load header/metadata
         rooms[i] = zelda3::LoadRoomHeaderFromRom(rom_, i);
+        rooms[i].SetGameData(game_data_);  // Ensure room has access to GameData
 
         // Calculate room size
         auto room_size = zelda3::CalculateRoomSize(rom_, i);

@@ -1188,15 +1188,11 @@ void ObjectDrawer::DrawRightwards2x4_1to15or26(
       WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 2, tiles[6]);  // col 1, row 2
       WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 3, tiles[7]);  // col 1, row 3
     } else if (tiles.size() >= 4) {
-      // Fallback: repeat first 4 tiles for both columns
+      // Fallback: with 4 tiles we can only draw 1 column (1x4 pattern)
       WriteTile8(bg, obj.x_ + (s * 2), obj.y_, tiles[0]);
       WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 1, tiles[1]);
       WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 2, tiles[2]);
       WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 3, tiles[3]);
-      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_, tiles[0]);
-      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 1, tiles[1]);
-      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 2, tiles[2]);
-      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 3, tiles[3]);
     }
   }
 }
@@ -1226,15 +1222,11 @@ void ObjectDrawer::DrawRightwards2x4spaced4_1to16(
       WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 2, tiles[6]);  // col 1, row 2
       WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 3, tiles[7]);  // col 1, row 3
     } else if (tiles.size() >= 4) {
-      // Fallback: repeat first 4 tiles for both columns
+      // Fallback: with 4 tiles we can only draw 1 column (1x4 pattern)
       WriteTile8(bg, obj.x_ + (s * 6), obj.y_, tiles[0]);
       WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 1, tiles[1]);
       WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 2, tiles[2]);
       WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 3, tiles[3]);
-      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_, tiles[0]);
-      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 1, tiles[1]);
-      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 2, tiles[2]);
-      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 3, tiles[3]);
     }
   }
 }
@@ -1739,41 +1731,30 @@ void ObjectDrawer::DrawDownwards4x2_1to15or26(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: Draws 4x2 tiles downward (objects 0x61-0x62)
-  // This is 4 columns × 2 rows = 8 tiles in COLUMN-MAJOR order
+  // This is 4 columns × 2 rows = 8 tiles in ROW-MAJOR order (per ZScream)
   int size = obj.size_;
   if (size == 0)
     size = 26;  // Special case
 
-  LOG_DEBUG("ObjectDrawer",
-            "DrawDownwards4x2_1to15or26: obj=%04X tiles=%zu size=%d", obj.id_,
-            tiles.size(), size);
-
   for (int s = 0; s < size; s++) {
     if (tiles.size() >= 8) {
-      // Draw 4x2 pattern in COLUMN-MAJOR order (matching assembly)
-      // Column 0 (tiles 0-1)
-      WriteTile8(bg, obj.x_, obj.y_ + (s * 2), tiles[0]);      // col 0, row 0
-      WriteTile8(bg, obj.x_, obj.y_ + (s * 2) + 1, tiles[1]);  // col 0, row 1
-      // Column 1 (tiles 2-3)
-      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 2), tiles[2]);      // col 1, row 0
-      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 2) + 1, tiles[3]);  // col 1, row 1
-      // Column 2 (tiles 4-5)
-      WriteTile8(bg, obj.x_ + 2, obj.y_ + (s * 2), tiles[4]);      // col 2, row 0
-      WriteTile8(bg, obj.x_ + 2, obj.y_ + (s * 2) + 1, tiles[5]);  // col 2, row 1
-      // Column 3 (tiles 6-7)
-      WriteTile8(bg, obj.x_ + 3, obj.y_ + (s * 2), tiles[6]);      // col 3, row 0
-      WriteTile8(bg, obj.x_ + 3, obj.y_ + (s * 2) + 1, tiles[7]);  // col 3, row 1
+      // Draw 4x2 pattern in ROW-MAJOR order (matching ZScream)
+      // Row 0: tiles 0, 1, 2, 3 at x+0, x+1, x+2, x+3
+      WriteTile8(bg, obj.x_, obj.y_ + (s * 2), tiles[0]);
+      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 2), tiles[1]);
+      WriteTile8(bg, obj.x_ + 2, obj.y_ + (s * 2), tiles[2]);
+      WriteTile8(bg, obj.x_ + 3, obj.y_ + (s * 2), tiles[3]);
+      // Row 1: tiles 4, 5, 6, 7 at x+0, x+1, x+2, x+3
+      WriteTile8(bg, obj.x_, obj.y_ + (s * 2) + 1, tiles[4]);
+      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 2) + 1, tiles[5]);
+      WriteTile8(bg, obj.x_ + 2, obj.y_ + (s * 2) + 1, tiles[6]);
+      WriteTile8(bg, obj.x_ + 3, obj.y_ + (s * 2) + 1, tiles[7]);
     } else if (tiles.size() >= 4) {
-      // Fallback: use only first 4 tiles (2 columns) in column-major order
-      WriteTile8(bg, obj.x_, obj.y_ + (s * 2), tiles[0]);      // col 0, row 0
-      WriteTile8(bg, obj.x_, obj.y_ + (s * 2) + 1, tiles[1]);  // col 0, row 1
-      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 2), tiles[2]);      // col 1, row 0
-      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 2) + 1, tiles[3]);  // col 1, row 1
-      // Repeat columns 0-1 for columns 2-3
-      WriteTile8(bg, obj.x_ + 2, obj.y_ + (s * 2), tiles[0]);
-      WriteTile8(bg, obj.x_ + 2, obj.y_ + (s * 2) + 1, tiles[1]);
-      WriteTile8(bg, obj.x_ + 3, obj.y_ + (s * 2), tiles[2]);
-      WriteTile8(bg, obj.x_ + 3, obj.y_ + (s * 2) + 1, tiles[3]);
+      // Fallback: with 4 tiles draw 4x1 row pattern
+      WriteTile8(bg, obj.x_, obj.y_ + (s * 2), tiles[0]);
+      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 2), tiles[1]);
+      WriteTile8(bg, obj.x_ + 2, obj.y_ + (s * 2), tiles[2]);
+      WriteTile8(bg, obj.x_ + 3, obj.y_ + (s * 2), tiles[3]);
     }
   }
 }
@@ -1790,7 +1771,7 @@ void ObjectDrawer::DrawDownwardsDecor4x2spaced4_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: Draws 4x2 decoration downward with spacing (objects 0x65-0x66)
-  // This is 4 columns × 2 rows = 8 tiles in COLUMN-MAJOR order with 4-tile spacing
+  // This is 4 columns × 2 rows = 8 tiles in COLUMN-MAJOR order with 6-tile Y spacing
   int size = obj.size_ & 0x0F;
 
   // Assembly: GetSize_1to16, so count = size + 1
@@ -1798,7 +1779,7 @@ void ObjectDrawer::DrawDownwardsDecor4x2spaced4_1to16(
 
   for (int s = 0; s < count; s++) {
     if (tiles.size() >= 8) {
-      // Draw 4x2 pattern in COLUMN-MAJOR order with spacing
+      // Draw 4x2 pattern in COLUMN-MAJOR order
       // Column 0 (tiles 0-1)
       WriteTile8(bg, obj.x_, obj.y_ + (s * 6), tiles[0]);      // col 0, row 0
       WriteTile8(bg, obj.x_, obj.y_ + (s * 6) + 1, tiles[1]);  // col 0, row 1

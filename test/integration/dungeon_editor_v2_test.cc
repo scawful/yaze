@@ -153,7 +153,7 @@ TEST_F(DungeonEditorV2IntegrationTest, DISABLED_SetRomAfterConstruction) {
   EXPECT_EQ(editor.rom(), nullptr);
 
   // Set ROM
-  editor.set_rom(rom_.get());
+  editor.SetRom(rom_.get());
   EXPECT_EQ(editor.rom(), rom_.get());
   EXPECT_TRUE(editor.IsRomLoaded());
 }
@@ -163,7 +163,7 @@ TEST_F(DungeonEditorV2IntegrationTest, DISABLED_SetRomAndLoad) {
   editor::DungeonEditorV2 editor;
 
   // Set ROM and load
-  editor.set_rom(rom_.get());
+  editor.SetRom(rom_.get());
   editor.Initialize();
   auto status = editor.Load();
 

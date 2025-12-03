@@ -15,7 +15,7 @@ class RoomLayout {
   RoomLayout() = default;
   explicit RoomLayout(Rom* rom) : rom_(rom) {}
 
-  void set_rom(Rom* rom) { rom_ = rom; }
+  void SetRom(Rom* rom) { rom_ = rom; }
 
   absl::Status LoadLayout(int layout_id);
 

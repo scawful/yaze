@@ -119,7 +119,7 @@ std::vector<RoomObject> ObjectTemplateManager::InstantiateTemplate(
     if (obj_x >= 0 && obj_x < 64 && obj_y >= 0 && obj_y < 64) {
       RoomObject obj(t_obj.id, obj_x, obj_y, t_obj.size, t_obj.layer);
       if (rom) {
-        obj.set_rom(rom);
+        obj.SetRom(rom);
         obj.EnsureTilesLoaded();
       }
       new_objects.push_back(obj);

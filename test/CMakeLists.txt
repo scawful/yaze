@@ -115,6 +115,9 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/dungeon_save_test.cc
     unit/zelda3/dungeon/bpp_conversion_test.cc
     unit/zelda3/dungeon/object_dimensions_test.cc
+    unit/zelda3/dungeon/draw_routine_mapping_test.cc
+    unit/zelda3/dungeon/object_drawing_comprehensive_test.cc
+    unit/dungeon_object_drawer_test.cc
     unit/object_selection_test.cc
     # Agent Tools Tests
     unit/tools/build_tool_test.cc
@@ -135,6 +138,7 @@ if(YAZE_BUILD_TESTS)
     integration/zelda3/dungeon_editor_system_integration_test.cc
     integration/zelda3/room_integration_test.cc
     integration/zelda3/dungeon_object_rendering_tests.cc
+    integration/zelda3/dungeon_object_rom_validation_test.cc
     integration/zelda3/dungeon_palette_test.cc
     integration/zelda3/dungeon_room_test.cc
     integration/zelda3/sprite_position_test.cc
@@ -149,6 +153,7 @@ if(YAZE_BUILD_TESTS)
     set(ROM_DEPENDENT_TEST_SOURCES
       integration/asar_rom_test.cc
       integration/zelda3/dungeon_graphics_transparency_test.cc
+      integration/zelda3/dungeon_object_rom_validation_test.cc
       integration/zelda3/music_integration_test.cc
       integration/emulator_object_preview_test.cc
       integration/emulator_render_service_test.cc

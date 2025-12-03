@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <string_view>
 #include <vector>
+#include <memory>
 
 #include "app/gfx/render/background_buffer.h"
 #include "rom/rom.h"
@@ -17,6 +18,8 @@
 
 namespace yaze {
 namespace zelda3 {
+
+class DungeonState;
 
 // ROM addresses moved to dungeon_rom_addresses.h for better organization
 // Use kPrefixedNames for new code (clean naming convention)
@@ -183,9 +186,15 @@ enum TagKey {
 
 class Room {
  public:
-  Room() = default;
-  Room(int room_id, Rom* rom, GameData* game_data = nullptr) 
-      : room_id_(room_id), rom_(rom), game_data_(game_data) {}
+  Room();
+  Room(int room_id, Rom* rom, GameData* game_data = nullptr);
+  ~Room();
+
+  // Move-only type due to unique_ptr
+  Room(Room&&);
+  Room& operator=(Room&&);
+  Room(const Room&) = delete;
+  Room& operator=(const Room&) = delete;
 
   void LoadRoomGraphics(uint8_t entrance_blockset = 0xFF);
   void CopyRoomGraphicsToBuffer();
@@ -432,6 +441,8 @@ class Room {
   auto& object_bg2_buffer() { return object_bg2_buffer_; }
   const auto& object_bg2_buffer() const { return object_bg2_buffer_; }
 
+  DungeonState* GetDungeonState() { return dungeon_state_.get(); }
+
  private:
   Rom* rom_;
   GameData* game_data_ = nullptr;
@@ -506,6 +517,8 @@ class Room {
   destination stair2_;
   destination stair3_;
   destination stair4_;
+
+  std::unique_ptr<DungeonState> dungeon_state_;
 };
 
 // Loads a room from the ROM.

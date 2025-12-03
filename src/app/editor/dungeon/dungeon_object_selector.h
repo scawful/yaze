@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_DUNGEON_DUNGEON_OBJECT_SELECTOR_H
 
 #include "app/editor/agent/agent_ui_theme.h"
+#include "app/editor/editor.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/widgets/asset_browser.h"
@@ -30,10 +31,16 @@ class DungeonObjectSelector {
   void DrawIntegratedEditingPanels();
   void Draw();
 
-  void set_rom(Rom* rom) { rom_ = rom; }
+  // Unified context setter (preferred)
+  void SetContext(EditorContext ctx) {
+    rom_ = ctx.rom;
+    game_data_ = ctx.game_data;
+  }
+  EditorContext context() const { return {rom_, game_data_}; }
+
+  // Individual setters for compatibility
   void SetRom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }
-
   void SetGameData(zelda3::GameData* game_data) { game_data_ = game_data; }
   zelda3::GameData* game_data() const { return game_data_; }
 
