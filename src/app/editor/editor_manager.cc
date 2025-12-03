@@ -785,32 +785,21 @@ void EditorManager::OpenEditorAndCardsFromFlags(const std::string& editor_name,
     }
   }
 
-  // Handle specific cards for the Dungeon Editor
-  if (editor_type_to_open == EditorType::kDungeon && !cards_str.empty()) {
-    if (auto* editor_set = GetCurrentEditorSet()) {
-      std::stringstream ss(cards_str);
-      std::string card_name;
-      while (std::getline(ss, card_name, ',')) {
-        // Trim whitespace
-        card_name.erase(0, card_name.find_first_not_of(" \t"));
-        card_name.erase(card_name.find_last_not_of(" \t") + 1);
+  // Open cards via PanelManager - works for any editor type
+  if (!cards_str.empty()) {
+    std::stringstream ss(cards_str);
+    std::string card_name;
+    while (std::getline(ss, card_name, ',')) {
+      // Trim whitespace
+      card_name.erase(0, card_name.find_first_not_of(" \t"));
+      card_name.erase(card_name.find_last_not_of(" \t") + 1);
 
-        LOG_DEBUG("EditorManager", "Attempting to open card: '%s'",
-                  card_name.c_str());
+      LOG_DEBUG("EditorManager", "Attempting to open card: '%s'",
+                card_name.c_str());
 
-        if (card_name == "Rooms List") {
-          editor_set->GetDungeonEditor()->show_room_selector_ = true;
-        } else if (card_name == "Room Matrix") {
-          editor_set->GetDungeonEditor()->show_room_matrix_ = true;
-        } else if (card_name == "Entrances List") {
-          editor_set->GetDungeonEditor()->show_entrances_list_ = true;
-        } else if (card_name == "Room Graphics") {
-          editor_set->GetDungeonEditor()->show_room_graphics_ = true;
-        } else if (card_name == "Object Editor") {
-          editor_set->GetDungeonEditor()->show_object_editor_ = true;
-        } else if (card_name == "Palette Editor") {
-          editor_set->GetDungeonEditor()->show_palette_editor_ = true;
-        } else if (absl::StartsWith(card_name, "Room ")) {
+      // Special case: "Room <id>" opens a dungeon room
+      if (absl::StartsWith(card_name, "Room ")) {
+        if (auto* editor_set = GetCurrentEditorSet()) {
           try {
             int room_id = std::stoi(card_name.substr(5));
             editor_set->GetDungeonEditor()->add_room(room_id);
@@ -818,10 +807,10 @@ void EditorManager::OpenEditorAndCardsFromFlags(const std::string& editor_name,
             LOG_WARN("EditorManager", "Invalid room ID format: %s",
                      card_name.c_str());
           }
-        } else {
-          LOG_WARN("EditorManager", "Unknown card name for Dungeon Editor: %s",
-                   card_name.c_str());
         }
+      } else {
+        // Let PanelManager handle it directly by card_id
+        panel_manager_.ShowPanel(card_name);
       }
     }
   }
