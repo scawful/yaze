@@ -909,10 +909,171 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
                               gfx::BackgroundBuffer& bg1,
                               gfx::BackgroundBuffer& bg2,
                               [[maybe_unused]] const DungeonState* state) {
-  // Stub implementation - door rendering is complex and WIP
-  // See ZELDA3_DUNGEON_SPEC.md Section 5 for full door system details
-  LOG_DEBUG("ObjectDrawer", "DrawDoor: type=%d dir=%d pos=%d idx=%d",
-            door.type, door.direction, door.position, door_index);
+  // Door rendering based on ZELDA3_DUNGEON_SPEC.md Section 5
+  // Direction: 0=North, 1=South, 2=West, 3=East
+  // Dimensions: North/South = 4x3 tiles, East/West = 3x4 tiles
+
+  if (!rom_ || !rom_->is_loaded()) return;
+
+  auto& bitmap = bg1.bitmap();
+  if (!bitmap.is_active() || bitmap.width() == 0) return;
+
+  // Door position encoding:
+  // The position byte encodes where on the wall edge the door is placed.
+  // For horizontal walls (N/S): position determines X coordinate
+  // For vertical walls (E/W): position determines Y coordinate
+  // Position is in tile units (8 pixels each)
+
+  int tile_x = 0;
+  int tile_y = 0;
+  int door_width = 0;   // in tiles
+  int door_height = 0;  // in tiles
+
+  // Calculate door position based on direction
+  // Position byte encodes door location along the wall
+  switch (door.direction & 0x03) {
+    case 0:  // North (top wall)
+      tile_x = (door.position & 0x1F) * 2;  // X position along top
+      tile_y = 0;                            // At top edge
+      door_width = 4;
+      door_height = 3;
+      break;
+
+    case 1:  // South (bottom wall)
+      tile_x = (door.position & 0x1F) * 2;  // X position along bottom
+      tile_y = 61;                           // Near bottom edge (64-3)
+      door_width = 4;
+      door_height = 3;
+      break;
+
+    case 2:  // West (left wall)
+      tile_x = 0;                            // At left edge
+      tile_y = (door.position & 0x1F) * 2;  // Y position along left
+      door_width = 3;
+      door_height = 4;
+      break;
+
+    case 3:  // East (right wall)
+      tile_x = 61;                           // Near right edge (64-3)
+      tile_y = (door.position & 0x1F) * 2;  // Y position along right
+      door_width = 3;
+      door_height = 4;
+      break;
+  }
+
+  // Get door graphics address based on direction
+  int gfx_base_addr = 0;
+  switch (door.direction & 0x03) {
+    case 0: gfx_base_addr = kDoorGfxUp; break;
+    case 1: gfx_base_addr = kDoorGfxDown; break;
+    case 2: gfx_base_addr = kDoorGfxLeft; break;
+    case 3: gfx_base_addr = kDoorGfxRight; break;
+  }
+
+  // Each door type has a different offset into the graphics table
+  // Door types are stored in upper nibble of byte 2
+  // Graphics are 2 bytes per tile (tile ID word)
+  int type_offset = door.type * (door_width * door_height * 2);
+  int gfx_addr = gfx_base_addr + type_offset;
+
+  // Clamp graphics address to valid ROM range
+  if (gfx_addr < 0 || gfx_addr + (door_width * door_height * 2) >
+      static_cast<int>(rom_->size())) {
+    // Fall back to drawing a simple door indicator
+    DrawDoorIndicator(bitmap, tile_x, tile_y, door_width, door_height,
+                      door.type, door.direction);
+    return;
+  }
+
+  // Draw door tiles from ROM graphics data
+  const auto& rom_data = rom_->data();
+  int tile_idx = 0;
+
+  for (int dy = 0; dy < door_height; dy++) {
+    for (int dx = 0; dx < door_width; dx++) {
+      int addr = gfx_addr + (tile_idx * 2);
+      if (addr + 1 < static_cast<int>(rom_->size())) {
+        uint16_t tile_word = rom_data[addr] | (rom_data[addr + 1] << 8);
+        auto tile_info = gfx::WordToTileInfo(tile_word);
+
+        // Draw tile to bitmap
+        int pixel_x = (tile_x + dx) * 8;
+        int pixel_y = (tile_y + dy) * 8;
+        DrawTileToBitmap(bitmap, tile_info, pixel_x, pixel_y, room_gfx_buffer_);
+      }
+      tile_idx++;
+    }
+  }
+
+  LOG_DEBUG("ObjectDrawer", "DrawDoor: type=%d dir=%d pos=%d at tile(%d,%d) size=%dx%d",
+            door.type, door.direction, door.position, tile_x, tile_y,
+            door_width, door_height);
+}
+
+void ObjectDrawer::DrawDoorIndicator(gfx::Bitmap& bitmap, int tile_x, int tile_y,
+                                      int width, int height, uint8_t type,
+                                      uint8_t direction) {
+  // Draw a simple colored rectangle as door indicator when graphics unavailable
+  // Different colors for different door types
+
+  uint8_t color_idx;
+  switch (type) {
+    case 0x00:  // Regular
+    case 0x02:  // Regular2
+    case 0x40:  // RegularDoor33
+      color_idx = 45;  // Standard door color
+      break;
+
+    case 0x1C:  // SmallKeyDoor
+      color_idx = 60;  // Key door - yellowish
+      break;
+
+    case 0x28:  // BreakableWall
+    case 0x30:  // LgExplosion
+      color_idx = 15;  // Bombable - brownish
+      break;
+
+    case 0x44:  // Shutter
+    case 0x18:  // ShuttersTwoWay
+    case 0x48:  // ShutterTrap
+      color_idx = 30;  // Shutter - greenish
+      break;
+
+    case 0x1A:  // InvisibleDoor
+      color_idx = 5;  // Invisible - faint
+      break;
+
+    default:
+      color_idx = 50;  // Default door color
+      break;
+  }
+
+  int pixel_x = tile_x * 8;
+  int pixel_y = tile_y * 8;
+  int pixel_width = width * 8;
+  int pixel_height = height * 8;
+
+  int bitmap_width = bitmap.width();
+  int bitmap_height = bitmap.height();
+
+  // Draw filled rectangle with border
+  for (int py = 0; py < pixel_height; py++) {
+    for (int px = 0; px < pixel_width; px++) {
+      int dest_x = pixel_x + px;
+      int dest_y = pixel_y + py;
+
+      if (dest_x >= 0 && dest_x < bitmap_width &&
+          dest_y >= 0 && dest_y < bitmap_height) {
+        // Draw border (2 pixel thick) or fill
+        bool is_border = (px < 2 || px >= pixel_width - 2 ||
+                          py < 2 || py >= pixel_height - 2);
+        uint8_t final_color = is_border ? (color_idx + 5) : color_idx;
+
+        int offset = (dest_y * bitmap_width) + dest_x;
+        bitmap.WriteToPixel(offset, final_color);
+      }
+    }
+  }
 }
 
 void ObjectDrawer::DrawChest(const RoomObject& obj, gfx::BackgroundBuffer& bg,
@@ -2108,8 +2269,107 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(const 
 
 void yaze::zelda3::ObjectDrawer::DrawPotItem(uint8_t item_id, int x, int y,
                                              gfx::BackgroundBuffer& bg) {
-  // TODO: Implement pot item visualization
-  // For now, just log it
-  // We could draw a small icon or text here
-  // LOG_DEBUG("ObjectDrawer", "Drawing pot item %d at (%d, %d)", item_id, x, y);
+  // Draw a small colored indicator for pot items
+  // Item types from ZELDA3_DUNGEON_SPEC.md Section 7.2
+  // Uses palette indices that map to recognizable colors
+
+  if (item_id == 0) return;  // Nothing - skip
+
+  auto& bitmap = bg.bitmap();
+  if (!bitmap.is_active() || bitmap.width() == 0) return;
+
+  // Convert tile coordinates to pixel coordinates
+  // Items are drawn offset from pot position (centered on pot)
+  int pixel_x = (x * 8) + 2;  // Offset 2 pixels into the pot tile
+  int pixel_y = (y * 8) + 2;
+
+  // Choose color based on item category
+  // Using palette indices that should be visible in dungeon palettes
+  uint8_t color_idx;
+  switch (item_id) {
+    // Rupees (green/blue/red tones)
+    case 1:   // Green rupee
+    case 7:   // Blue rupee
+    case 12:  // Blue rupee variant
+      color_idx = 30;  // Greenish (palette 2, index 0)
+      break;
+
+    // Hearts (red tones)
+    case 6:   // Heart
+    case 11:  // Heart
+    case 13:  // Heart variant
+      color_idx = 0;  // Should be reddish in dungeon palette
+      break;
+
+    // Keys (yellow/gold)
+    case 8:   // Key*8
+    case 19:  // Key
+      color_idx = 45;  // Yellowish (palette 3)
+      break;
+
+    // Bombs (dark/black)
+    case 5:   // Bomb
+    case 10:  // 1 bomb
+    case 16:  // Bomb refill
+      color_idx = 60;  // Darker color (palette 4)
+      break;
+
+    // Arrows (brown/wood)
+    case 9:   // Arrow
+    case 17:  // Arrow refill
+      color_idx = 15;  // Brownish (palette 1)
+      break;
+
+    // Magic (blue/purple)
+    case 14:  // Small magic
+    case 15:  // Big magic
+      color_idx = 75;  // Bluish (palette 5)
+      break;
+
+    // Fairy (pink/light)
+    case 18:  // Fairy
+    case 20:  // Fairy*8
+      color_idx = 5;  // Pinkish
+      break;
+
+    // Special/Traps (distinct colors)
+    case 2:   // Rock crab
+    case 3:   // Bee
+      color_idx = 20;  // Enemy indicator
+      break;
+
+    case 23:  // Hole
+    case 24:  // Warp
+    case 25:  // Staircase
+      color_idx = 10;  // Transport indicator
+      break;
+
+    case 26:  // Bombable
+    case 27:  // Switch
+      color_idx = 35;  // Interactive indicator
+      break;
+
+    case 4:   // Random
+    default:
+      color_idx = 50;  // Default/random indicator
+      break;
+  }
+
+  // Draw a 4x4 colored square as item indicator
+  int bitmap_width = bitmap.width();
+  int bitmap_height = bitmap.height();
+
+  for (int py = 0; py < 4; py++) {
+    for (int px = 0; px < 4; px++) {
+      int dest_x = pixel_x + px;
+      int dest_y = pixel_y + py;
+
+      // Bounds check
+      if (dest_x >= 0 && dest_x < bitmap_width &&
+          dest_y >= 0 && dest_y < bitmap_height) {
+        int offset = (dest_y * bitmap_width) + dest_x;
+        bitmap.WriteToPixel(offset, color_idx);
+      }
+    }
+  }
 }
