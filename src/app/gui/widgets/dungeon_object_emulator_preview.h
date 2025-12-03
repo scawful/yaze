@@ -40,6 +40,9 @@ class DungeonObjectEmulatorPreview {
   void set_visible(bool visible) { show_window_ = visible; }
   bool is_visible() const { return show_window_; }
 
+  // GameData accessor for post-initialization setting
+  void SetGameData(zelda3::GameData* game_data) { game_data_ = game_data; }
+
  private:
   void RenderControls();
   void RenderObjectBrowser();

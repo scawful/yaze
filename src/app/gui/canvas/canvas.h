@@ -25,6 +25,7 @@
 #include "app/gui/canvas/canvas_utils.h"
 #include "app/gui/widgets/palette_editor_widget.h"
 #include "rom/rom.h"
+#include "zelda3/game_data.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -423,6 +424,8 @@ class Canvas {
 
   void set_rom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }
+  void SetGameData(zelda3::GameData* game_data);
+  zelda3::GameData* game_data() const { return game_data_; }
 
  private:
   void DrawContextMenuItem(const gui::CanvasMenuItem& item);
@@ -460,6 +463,7 @@ class Canvas {
   // Core canvas state
   Bitmap* bitmap_ = nullptr;
   Rom* rom_ = nullptr;
+  zelda3::GameData* game_data_ = nullptr;
   ImDrawList* draw_list_ = nullptr;
 
   // Canvas geometry and interaction state

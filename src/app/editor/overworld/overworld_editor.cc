@@ -182,7 +182,7 @@ absl::Status OverworldEditor::Load() {
 
   // CRITICAL FIX: Initialize tile16 editor with the correct overworld palette
   tile16_editor_.set_palette(palette_);
-  tile16_editor_.set_rom(rom_);
+  tile16_editor_.SetRom(rom_);
 
   // Set up callback for when tile16 changes are committed
   tile16_editor_.set_on_changes_committed([this]() -> absl::Status {

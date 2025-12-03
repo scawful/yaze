@@ -1436,12 +1436,13 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
 
   // Propagate GameData to all editors that need it
   auto* game_data = &current_session->game_data;
-  current_editor_set->GetDungeonEditor()->set_game_data(game_data);
-  current_editor_set->GetOverworldEditor()->set_game_data(game_data);
-  current_editor_set->GetGraphicsEditor()->set_game_data(game_data);
-  current_editor_set->GetScreenEditor()->set_game_data(game_data);
-  current_editor_set->GetPaletteEditor()->set_game_data(game_data);
-  current_editor_set->GetSpriteEditor()->set_game_data(game_data);
+  current_editor_set->GetDungeonEditor()->SetGameData(game_data);
+  current_editor_set->GetOverworldEditor()->SetGameData(game_data);
+  current_editor_set->GetGraphicsEditor()->SetGameData(game_data);
+  current_editor_set->GetScreenEditor()->SetGameData(game_data);
+  current_editor_set->GetPaletteEditor()->SetGameData(game_data);
+  current_editor_set->GetSpriteEditor()->SetGameData(game_data);
+  current_editor_set->GetMessageEditor()->SetGameData(game_data);
 
 #ifdef __EMSCRIPTEN__
   update_progress("Loading overworld...");

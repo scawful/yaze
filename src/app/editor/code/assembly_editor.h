@@ -62,7 +62,7 @@ class AssemblyEditor : public Editor {
   void UpdateErrorMarkers(const core::AsarPatchResult& result);
   void ClearErrorMarkers();
 
-  void set_rom(Rom* rom) { rom_ = rom; }
+  void SetRom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }
 
   // Accessors for Asar state

@@ -23,7 +23,7 @@ class PaletteControlsPanel : public EditorPanel {
                                 zelda3::GameData* game_data = nullptr)
       : state_(state), rom_(rom), game_data_(game_data) {}
   
-  void set_game_data(zelda3::GameData* game_data) { game_data_ = game_data; }
+  void SetGameData(zelda3::GameData* game_data) { game_data_ = game_data; }
 
   // ==========================================================================
   // EditorPanel Identity

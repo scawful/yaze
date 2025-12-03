@@ -41,6 +41,36 @@ class ToastManager;
 class UserSettings;
 
 /**
+ * @struct EditorContext
+ * @brief Lightweight view into the essential runtime context (Rom + GameData)
+ *
+ * This struct provides a bundled view of the two primary dependencies
+ * for Zelda3 editing operations. It can be passed by value and is designed
+ * to replace the pattern of passing rom_ and game_data_ separately.
+ *
+ * Usage:
+ * ```cpp
+ * void SomeComponent::DoWork(EditorContext ctx) {
+ *   if (!ctx.IsValid()) return;
+ *   auto data = ctx.rom->ReadByte(0x1234);
+ *   auto& palettes = ctx.game_data->palette_groups;
+ * }
+ * ```
+ */
+struct EditorContext {
+  Rom* rom = nullptr;
+  zelda3::GameData* game_data = nullptr;
+
+  // Check if context is valid for operations
+  bool IsValid() const { return rom != nullptr && game_data != nullptr; }
+  bool HasRom() const { return rom != nullptr; }
+  bool HasGameData() const { return game_data != nullptr; }
+
+  // Implicit conversion to bool for quick validity checks
+  explicit operator bool() const { return IsValid(); }
+};
+
+/**
  * @struct EditorDependencies
  * @brief Unified dependency container for all editor types
  *
@@ -59,15 +89,16 @@ class UserSettings;
  * ```cpp
  * EditorDependencies deps;
  * deps.rom = current_rom;
+ * deps.game_data = game_data;
  * deps.panel_manager = &panel_manager_;
  * deps.session_id = session_index;
  *
  * // Standard editor
  * OverworldEditor editor(deps);
  *
- * // Specialized editor with renderer
- * deps.renderer = renderer_;
- * DungeonEditor dungeon_editor(deps);
+ * // Get lightweight context for passing to sub-components
+ * auto ctx = deps.context();
+ * sub_component.Initialize(ctx);
  * ```
  */
 struct EditorDependencies {
@@ -100,6 +131,12 @@ struct EditorDependencies {
   emu::Emulator* emulator = nullptr;
 
   void* custom_data = nullptr;
+
+  // Get lightweight context for passing to sub-components
+  EditorContext context() const { return {rom, game_data}; }
+
+  // Check if essential context is available
+  bool HasContext() const { return rom != nullptr && game_data != nullptr; }
 };
 
 enum class EditorType {
@@ -139,7 +176,7 @@ class Editor {
   void SetDependencies(const EditorDependencies& deps) { dependencies_ = deps; }
 
   // Set GameData for Zelda3-specific data access
-  virtual void set_game_data(zelda3::GameData* game_data) {
+  virtual void SetGameData(zelda3::GameData* game_data) {
     dependencies_.game_data = game_data;
   }
 
@@ -181,6 +218,10 @@ class Editor {
   // Accessors for common dependencies
   Rom* rom() const { return dependencies_.rom; }
   zelda3::GameData* game_data() const { return dependencies_.game_data; }
+
+  // Get bundled context for sub-components
+  EditorContext context() const { return dependencies_.context(); }
+  bool HasContext() const { return dependencies_.HasContext(); }
 
  protected:
   bool active_ = false;

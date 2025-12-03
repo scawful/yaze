@@ -386,6 +386,7 @@ void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
 
   // 2. Load room context (graphics, palettes)
   zelda3::Room default_room = zelda3::LoadRoomFromRom(rom_, room_id_);
+  default_room.SetGameData(game_data_);  // Ensure room has access to GameData
 
   // 3. Load palette into CGRAM (full 120 colors including sprite aux)
   if (!game_data_) {
@@ -777,6 +778,7 @@ void DungeonObjectEmulatorPreview::TriggerStaticRender() {
   // Legacy rendering path (when no render service is available)
   // Load room for palette/graphics context
   zelda3::Room room = zelda3::LoadRoomFromRom(rom_, room_id_);
+  room.SetGameData(game_data_);  // Ensure room has access to GameData
 
   // Get dungeon main palette (palettes 0-5, 90 colors)
   if (!game_data_) {
@@ -827,7 +829,7 @@ void DungeonObjectEmulatorPreview::TriggerStaticRender() {
 
   // Create ObjectDrawer with the room's graphics buffer
   object_drawer_ =
-      std::make_unique<zelda3::ObjectDrawer>(rom_, gfx_buffer.data());
+      std::make_unique<zelda3::ObjectDrawer>(rom_, room_id_, gfx_buffer.data());
   object_drawer_->InitializeDrawRoutines();
 
   // Clear background buffers (default 512x512)

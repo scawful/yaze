@@ -255,6 +255,13 @@ void Canvas::InitializePaletteEditor(Rom* rom) {
   }
 }
 
+void Canvas::SetGameData(zelda3::GameData* game_data) {
+  game_data_ = game_data;
+  if (palette_editor_ && game_data) {
+    palette_editor_->Initialize(game_data);
+  }
+}
+
 void Canvas::ShowPaletteEditor() {
   if (palette_editor_ && bitmap_) {
     auto mutable_palette = bitmap_->mutable_palette();

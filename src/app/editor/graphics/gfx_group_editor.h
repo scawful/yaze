@@ -28,9 +28,9 @@ class GfxGroupEditor {
   void SetSelectedSpriteset(uint8_t spriteset) {
     selected_spriteset_ = spriteset;
   }
-  void set_rom(Rom* rom) { rom_ = rom; }
+  void SetRom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }
-  void set_game_data(zelda3::GameData* data) { game_data_ = data; }
+  void SetGameData(zelda3::GameData* data) { game_data_ = data; }
   zelda3::GameData* game_data() const { return game_data_; }
 
  private:

@@ -72,7 +72,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
  public:
   explicit OverworldEditor(Rom* rom) : rom_(rom) {
     type_ = EditorType::kOverworld;
-    gfx_group_editor_.set_rom(rom);
+    gfx_group_editor_.SetRom(rom);
     // MapPropertiesSystem will be initialized after maps_bmp_ and canvas are
     // ready
   }
@@ -82,9 +82,11 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
     dependencies_ = deps;
   }
 
-  void set_game_data(zelda3::GameData* game_data) {
+  void SetGameData(zelda3::GameData* game_data) override {
     game_data_ = game_data;
-    overworld_.set_game_data(game_data);
+    overworld_.SetGameData(game_data);
+    tile16_editor_.SetGameData(game_data);
+    gfx_group_editor_.SetGameData(game_data);
   }
 
   void Initialize() override;

@@ -31,7 +31,7 @@ absl::Status DungeonListSpritesCommandHandler::Execute(
     return room_or.status();
   }
 
-  auto room = room_or.value();
+  auto& room = room_or.value();
 
   // TODO: Implement sprite listing from room data
   formatter.AddField("total_sprites", 0);
@@ -68,7 +68,7 @@ absl::Status DungeonDescribeRoomCommandHandler::Execute(
     return room_or.status();
   }
 
-  auto room = room_or.value();
+  auto& room = room_or.value();
 
   formatter.AddField("status", "success");
   formatter.AddField("name", absl::StrFormat("Room %d", room.id()));
@@ -128,7 +128,7 @@ absl::Status DungeonExportRoomCommandHandler::Execute(
     return room_or.status();
   }
 
-  auto room = room_or.value();
+  auto& room = room_or.value();
 
   // Export room data
   formatter.AddField("status", "success");
@@ -171,7 +171,7 @@ absl::Status DungeonListObjectsCommandHandler::Execute(
     return room_or.status();
   }
 
-  auto room = room_or.value();
+  auto& room = room_or.value();
 
   // Load objects if not already loaded (GetTileObjects might be empty otherwise)
   room.LoadObjects();
@@ -224,7 +224,7 @@ absl::Status DungeonGetRoomTilesCommandHandler::Execute(
     return room_or.status();
   }
 
-  auto room = room_or.value();
+  auto& room = room_or.value();
 
   // TODO: Implement tile data retrieval from room
   formatter.AddField("room_width", "Unknown");

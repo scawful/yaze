@@ -84,6 +84,10 @@ absl::Status GfxGroupEditor::Update() {
 }
 
 void GfxGroupEditor::DrawBlocksetViewer(bool sheet_only) {
+  if (!game_data()) {
+    Text("No game data loaded");
+    return;
+  }
   if (BeginTable("##BlocksetTable", sheet_only ? 1 : 2,
                  ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable,
                  ImVec2(0, 0))) {
@@ -123,6 +127,10 @@ void GfxGroupEditor::DrawBlocksetViewer(bool sheet_only) {
 }
 
 void GfxGroupEditor::DrawRoomsetViewer() {
+  if (!game_data()) {
+    Text("No game data loaded");
+    return;
+  }
   Text("Values - Overwrites 4 of main blockset");
   if (BeginTable("##Roomstable", 3,
                  ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable,
@@ -176,6 +184,10 @@ void GfxGroupEditor::DrawRoomsetViewer() {
 }
 
 void GfxGroupEditor::DrawSpritesetViewer(bool sheet_only) {
+  if (!game_data()) {
+    Text("No game data loaded");
+    return;
+  }
   if (BeginTable("##SpritesTable", sheet_only ? 1 : 2,
                  ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable,
                  ImVec2(0, 0))) {
@@ -236,7 +248,8 @@ void DrawPaletteFromPaletteGroup(gfx::SnesPalette& palette) {
 }  // namespace
 
 void GfxGroupEditor::DrawPaletteViewer() {
-  if (!rom()->is_loaded()) {
+  if (!rom() || !rom()->is_loaded() || !game_data()) {
+    Text("No game data loaded");
     return;
   }
   gui::InputHexByte("Selected Paletteset", &selected_paletteset_);
