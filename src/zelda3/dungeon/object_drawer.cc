@@ -10,15 +10,16 @@
 namespace yaze {
 namespace zelda3 {
 
-ObjectDrawer::ObjectDrawer(Rom* rom, const uint8_t* room_gfx_buffer)
-    : rom_(rom), room_gfx_buffer_(room_gfx_buffer) {
+ObjectDrawer::ObjectDrawer(Rom* rom, int room_id, const uint8_t* room_gfx_buffer)
+    : rom_(rom), room_id_(room_id), room_gfx_buffer_(room_gfx_buffer) {
   InitializeDrawRoutines();
 }
 
 absl::Status ObjectDrawer::DrawObject(const RoomObject& object,
                                       gfx::BackgroundBuffer& bg1,
                                       gfx::BackgroundBuffer& bg2,
-                                      const gfx::PaletteGroup& palette_group) {
+                                      const gfx::PaletteGroup& palette_group,
+                                      [[maybe_unused]] const DungeonState* state) {
   LOG_DEBUG("ObjectDrawer",
             "Drawing object 0x%02X at (%d,%d) size=%d tiles=%zu", object.id_,
             object.x_, object.y_, object.size_, object.tiles().size());
@@ -33,7 +34,7 @@ absl::Status ObjectDrawer::DrawObject(const RoomObject& object,
 
   // Ensure object has tiles loaded
   auto mutable_obj = const_cast<RoomObject&>(object);
-  mutable_obj.set_rom(rom_);
+  mutable_obj.SetRom(rom_);
   mutable_obj.EnsureTilesLoaded();
 
   // Select buffer based on layer
@@ -72,11 +73,11 @@ absl::Status ObjectDrawer::DrawObject(const RoomObject& object,
 
   if (is_both_bg) {
     // Draw to both background layers
-    draw_routines_[routine_id](this, object, bg1, mutable_obj.tiles());
-    draw_routines_[routine_id](this, object, bg2, mutable_obj.tiles());
+    draw_routines_[routine_id](this, object, bg1, mutable_obj.tiles(), state);
+    draw_routines_[routine_id](this, object, bg2, mutable_obj.tiles(), state);
   } else {
     // Execute the appropriate draw routine on target buffer only
-    draw_routines_[routine_id](this, object, target_bg, mutable_obj.tiles());
+    draw_routines_[routine_id](this, object, target_bg, mutable_obj.tiles(), state);
   }
 
   return absl::OkStatus();
@@ -84,10 +85,11 @@ absl::Status ObjectDrawer::DrawObject(const RoomObject& object,
 
 absl::Status ObjectDrawer::DrawObjectList(
     const std::vector<RoomObject>& objects, gfx::BackgroundBuffer& bg1,
-    gfx::BackgroundBuffer& bg2, const gfx::PaletteGroup& palette_group) {
+    gfx::BackgroundBuffer& bg2, const gfx::PaletteGroup& palette_group,
+    [[maybe_unused]] const DungeonState* state) {
   absl::Status status = absl::OkStatus();
   for (const auto& object : objects) {
-    auto s = DrawObject(object, bg1, bg2, palette_group);
+    auto s = DrawObject(object, bg1, bg2, palette_group, state);
     if (!s.ok() && status.ok()) {
       status = s;
     }
@@ -127,11 +129,20 @@ void ObjectDrawer::InitializeDrawRoutines() {
   // The mapping is based on ZScream's DungeonObjectData.cs and the game's
   // assembly code. The order of functions in draw_routines_ MUST match the
   // indices used here.
+  //
+  // ASM Reference (Bank 01):
+  // Subtype 1 Data Offset: $018000 (DrawObjects.type1_subtype_1_data_offset)
+  // Subtype 1 Routine Ptr: $018200 (DrawObjects.type1_subtype_1_routine)
+  // Subtype 2 Data Offset: $0183F0 (DrawObjects.type1_subtype_2_data_offset)
+  // Subtype 2 Routine Ptr: $018470 (DrawObjects.type1_subtype_2_routine)
+  // Subtype 3 Data Offset: $0184F0 (DrawObjects.type1_subtype_3_data_offset)
+  // Subtype 3 Routine Ptr: $0185F0 (DrawObjects.type1_subtype_3_routine)
 
   object_to_routine_map_.clear();
   draw_routines_.clear();
 
   // Subtype 1 Object Mappings (Horizontal)
+  // ASM: Routines $00-$0B from table at $018200
   object_to_routine_map_[0x00] = 0;
   for (int id = 0x01; id <= 0x02; id++) {
     object_to_routine_map_[id] = 1;
@@ -181,8 +192,8 @@ void ObjectDrawer::InitializeDrawRoutines() {
   object_to_routine_map_[0x30] = 24;  // RoomDraw_RightwardsBottomCorners1x2_1to16_plus13
 
   // Custom/Special Objects (0x31-0x3E)
-  object_to_routine_map_[0x31] = 14; // Custom
-  object_to_routine_map_[0x32] = 14; // Custom
+  object_to_routine_map_[0x31] = 38; // Nothing (Logic: RoomDraw_Nothing_A)
+  object_to_routine_map_[0x32] = 38; // Nothing (Logic: RoomDraw_Nothing_A)
   object_to_routine_map_[0x33] = 16; // 4x4 Block
   object_to_routine_map_[0x34] = 25; // Solid 1x1
   object_to_routine_map_[0x35] = 26; // Door Switcher
@@ -224,15 +235,15 @@ void ObjectDrawer::InitializeDrawRoutines() {
   // 0x53: 4 tiles
   object_to_routine_map_[0x53] = 4;   // 2x2
   // 0x54: 1 tile
-  object_to_routine_map_[0x54] = 25;  // 1x1
+  object_to_routine_map_[0x54] = 38;  // Nothing (Logic: RoomDraw_Nothing_B)
   // 0x55-0x56: 8 tiles
   object_to_routine_map_[0x55] = 1;   // 2x4
   object_to_routine_map_[0x56] = 1;
   // 0x57-0x5A: 1 tile each
-  object_to_routine_map_[0x57] = 25;  // 1x1
-  object_to_routine_map_[0x58] = 25;
-  object_to_routine_map_[0x59] = 25;
-  object_to_routine_map_[0x5A] = 25;
+  object_to_routine_map_[0x57] = 38;  // Nothing (Logic: RoomDraw_Nothing_C)
+  object_to_routine_map_[0x58] = 38;
+  object_to_routine_map_[0x59] = 38;
+  object_to_routine_map_[0x5A] = 38;
   // 0x5B-0x5C: 18 tiles
   object_to_routine_map_[0x5B] = 1;   // 2x4
   object_to_routine_map_[0x5C] = 1;
@@ -264,15 +275,15 @@ void ObjectDrawer::InitializeDrawRoutines() {
   object_to_routine_map_[0x6C] = 14;
   object_to_routine_map_[0x6D] = 15;
   // 0x6E-0x6F: 1 tile each
-  object_to_routine_map_[0x6E] = 25;  // 1x1
-  object_to_routine_map_[0x6F] = 25;
+  object_to_routine_map_[0x6E] = 38;  // Nothing (Logic: RoomDraw_Nothing_A)
+  object_to_routine_map_[0x6F] = 38;
 
   // 0x70-0x7F Objects (based on tile counts from kSubtype1TileLengths)
   // 0x70: 16 tiles
   object_to_routine_map_[0x70] = 16;  // 4x4
   // 0x71-0x72: 1 tile each
   object_to_routine_map_[0x71] = 25;  // 1x1
-  object_to_routine_map_[0x72] = 25;
+  object_to_routine_map_[0x72] = 38;  // Nothing (Logic: RoomDraw_Nothing_B)
   // 0x73-0x74: 16 tiles each
   object_to_routine_map_[0x73] = 16;  // 4x4
   object_to_routine_map_[0x74] = 16;
@@ -293,7 +304,7 @@ void ObjectDrawer::InitializeDrawRoutines() {
   // 0x7D: 4 tiles
   object_to_routine_map_[0x7D] = 4;   // 2x2
   // 0x7E: 1 tile
-  object_to_routine_map_[0x7E] = 25;  // 1x1
+  object_to_routine_map_[0x7E] = 38;  // Nothing (Logic: RoomDraw_Nothing_B)
   // 0x7F: 8 tiles
   object_to_routine_map_[0x7F] = 1;   // 2x4
 
@@ -338,13 +349,15 @@ void ObjectDrawer::InitializeDrawRoutines() {
   object_to_routine_map_[0x96] = 11;
   // 0x97-0x9F: 1 tile each
   for (int id = 0x97; id <= 0x9F; id++) {
-    object_to_routine_map_[id] = 25;  // 1x1
+    object_to_routine_map_[id] = 38;  // Nothing (Logic: RoomDraw_Nothing_B)
   }
 
   // 0xA0-0xAF Objects (mostly 1 tile each, except 0xA4 with 24 tiles)
   for (int id = 0xA0; id <= 0xAF; id++) {
     if (id == 0xA4) {
       object_to_routine_map_[id] = 16;  // 4x4 (best fit for 24 tiles)
+    } else if (id >= 0xAD && id <= 0xAF) {
+      object_to_routine_map_[id] = 38;  // Nothing (Logic: RoomDraw_Nothing_B)
     } else {
       object_to_routine_map_[id] = 25;  // 1x1
     }
@@ -373,8 +386,8 @@ void ObjectDrawer::InitializeDrawRoutines() {
   object_to_routine_map_[0xBC] = 11;
   object_to_routine_map_[0xBD] = 11;
   // 0xBE-0xBF: 1 tile each
-  object_to_routine_map_[0xBE] = 25;  // 1x1
-  object_to_routine_map_[0xBF] = 25;
+  object_to_routine_map_[0xBE] = 38;  // Nothing (Logic: RoomDraw_Nothing_B)
+  object_to_routine_map_[0xBF] = 38;
 
   // 0xC0-0xCF Objects (based on tile counts from kSubtype1TileLengths)
   // 0xC0: 1 tile
@@ -384,30 +397,32 @@ void ObjectDrawer::InitializeDrawRoutines() {
   // 0xC2-0xC3: 1 tile each
   object_to_routine_map_[0xC2] = 25;  // 1x1
   object_to_routine_map_[0xC3] = 25;
-  // 0xC4-0xCA: 8 tiles each
-  for (int id = 0xC4; id <= 0xCA; id++) {
+  // 0xC4: Nothing (RoomDraw_Nothing_B)
+  object_to_routine_map_[0xC4] = 38;
+  // 0xC5-0xCA: 8 tiles each
+  for (int id = 0xC5; id <= 0xCA; id++) {
     object_to_routine_map_[id] = 8;   // 4x2
   }
   // 0xCB-0xCC: 1 tile each
-  object_to_routine_map_[0xCB] = 25;  // 1x1
-  object_to_routine_map_[0xCC] = 25;
-  // 0xCD-0xCE: 28 tiles each (large objects)
-  object_to_routine_map_[0xCD] = 16;  // 4x4 fallback
+  object_to_routine_map_[0xCB] = 38;  // Nothing (RoomDraw_Nothing_E)
+  object_to_routine_map_[0xCC] = 38;
+  // 0xCD-0xCE: 28 tiles each (large objects) - Moving Walls
+  object_to_routine_map_[0xCD] = 16;  // 4x4 fallback (TODO: Logic check)
   object_to_routine_map_[0xCE] = 16;
   // 0xCF: 1 tile
-  object_to_routine_map_[0xCF] = 25;  // 1x1
+  object_to_routine_map_[0xCF] = 38;  // Nothing (RoomDraw_Nothing_D)
 
   // 0xD0-0xDF Objects (based on tile counts from kSubtype1TileLengths)
   // 0xD0: 1 tile
-  object_to_routine_map_[0xD0] = 25;  // 1x1
+  object_to_routine_map_[0xD0] = 38;  // Nothing (RoomDraw_Nothing_D)
   // 0xD1-0xD2: 8 tiles each
   object_to_routine_map_[0xD1] = 8;   // 4x2
   object_to_routine_map_[0xD2] = 8;
   // 0xD3-0xD6: 0 tiles (special/empty)
-  object_to_routine_map_[0xD3] = 25;  // fallback 1x1
-  object_to_routine_map_[0xD4] = 25;
-  object_to_routine_map_[0xD5] = 25;
-  object_to_routine_map_[0xD6] = 25;
+  object_to_routine_map_[0xD3] = 38;  // CheckIfWallIsMoved (Logic)
+  object_to_routine_map_[0xD4] = 38;
+  object_to_routine_map_[0xD5] = 38;
+  object_to_routine_map_[0xD6] = 38;
   // 0xD7: 1 tile
   object_to_routine_map_[0xD7] = 25;  // 1x1
   // 0xD8-0xDB: 8 tiles each
@@ -429,14 +444,14 @@ void ObjectDrawer::InitializeDrawRoutines() {
   for (int id = 0xE0; id <= 0xE8; id++) {
     object_to_routine_map_[id] = 8;   // 4x2
   }
-  // 0xE9-0xEF: 1 tile each
+  // 0xE9-0xEF: 1 tile each - Nothing (RoomDraw_Nothing_B)
   for (int id = 0xE9; id <= 0xEF; id++) {
-    object_to_routine_map_[id] = 25;  // 1x1
+    object_to_routine_map_[id] = 38;
   }
 
-  // 0xF0-0xF7 Objects (all 1 tile)
+  // 0xF0-0xF7 Objects (all 1 tile) - Nothing (RoomDraw_Nothing_B)
   for (int id = 0xF0; id <= 0xF7; id++) {
-    object_to_routine_map_[id] = 25;  // 1x1
+    object_to_routine_map_[id] = 38;
   }
 
   // Subtype 2 Object Mappings (0x100-0x1FF)
@@ -519,11 +534,11 @@ void ObjectDrawer::InitializeDrawRoutines() {
 
   // 0x140-0x14F Big Chests -> Map to 4x4 (16)
   for (int id = 0x140; id <= 0x14F; id++) {
-    object_to_routine_map_[id] = 16;
+    object_to_routine_map_[id] = 39; // DrawChest
   }
   // 0x150-0x15F Small Chests -> Map to 2x2 (4)
   for (int id = 0x150; id <= 0x15F; id++) {
-    object_to_routine_map_[id] = 4;
+    object_to_routine_map_[id] = 39; // DrawChest
   }
   // 0x160-0x1FF Misc Objects (Pots, etc.)
   // Pots (0x160-0x16F) -> Map to 1x1 (25)
@@ -539,49 +554,62 @@ void ObjectDrawer::InitializeDrawRoutines() {
     object_to_routine_map_[id] = 16;
   }
 
-  // Subtype 3 Object Mappings (0x200-0x2FF)
-  object_to_routine_map_[0x200] = 34; // Water Face
-  object_to_routine_map_[0x201] = 34;
-  object_to_routine_map_[0x202] = 34;
-  for (int id = 0x203; id <= 0x209; id++) {
+  // Subtype 3 Object Mappings (0xF80-0xFFF)
+  // Type 3 object IDs are 0xF80-0xFFF (128 objects)
+  // Index = (object_id - 0xF80) & 0x7F maps to table indices 0-127
+  object_to_routine_map_[0xF80] = 34; // Water Face (index 0)
+  object_to_routine_map_[0xF81] = 34;
+  object_to_routine_map_[0xF82] = 34;
+  for (int id = 0xF83; id <= 0xF89; id++) {
     object_to_routine_map_[id] = 33; // Somaria Line
   }
-  for (int id = 0x20A; id <= 0x20C; id++) {
+  for (int id = 0xF8A; id <= 0xF8C; id++) {
     object_to_routine_map_[id] = 33;
   }
-  object_to_routine_map_[0x20E] = 33;
-  object_to_routine_map_[0x20F] = 33;
-  for (int id = 0x210; id <= 0x213; id++) {
+  // 0xF8D: PrisonCell -> 1x1 placeholder
+  object_to_routine_map_[0xF8D] = 25;
+  object_to_routine_map_[0xF8E] = 33;
+  object_to_routine_map_[0xF8F] = 33;
+  for (int id = 0xF90; id <= 0xF93; id++) {
     object_to_routine_map_[id] = 16; // 4x4
   }
-  object_to_routine_map_[0x214] = 33; // Somaria Line
-  object_to_routine_map_[0x215] = 16;
-  object_to_routine_map_[0x216] = 16;
-  for (int id = 0x217; id <= 0x21A; id++) {
-    object_to_routine_map_[id] = 16;
+  object_to_routine_map_[0xF94] = 33; // Somaria Line
+  object_to_routine_map_[0xF95] = 16;
+  object_to_routine_map_[0xF96] = 16;
+  for (int id = 0xF97; id <= 0xF9A; id++) {
+    object_to_routine_map_[id] = 39; // DrawChest
   }
-  for (int id = 0x21B; id <= 0x21D; id++) {
+  for (int id = 0xF9B; id <= 0xF9D; id++) {
     object_to_routine_map_[id] = 35; // 4x4 Corner BothBG
   }
-  for (int id = 0x21E; id <= 0x221; id++) {
+  for (int id = 0xF9E; id <= 0xFA1; id++) {
     object_to_routine_map_[id] = 36; // Weird Corner Bottom
   }
-  for (int id = 0x222; id <= 0x225; id++) {
+  for (int id = 0xFA2; id <= 0xFA5; id++) {
     object_to_routine_map_[id] = 37; // Weird Corner Top
   }
-  for (int id = 0x226; id <= 0x229; id++) {
+  for (int id = 0xFA6; id <= 0xFA9; id++) {
     object_to_routine_map_[id] = 4; // Rightwards 2x2
   }
-  object_to_routine_map_[0x22B] = 16;
-  object_to_routine_map_[0x22C] = 16;
-  object_to_routine_map_[0x22F] = 16;
-  object_to_routine_map_[0x230] = 16;
-  object_to_routine_map_[0x231] = 16;
-  object_to_routine_map_[0x232] = 16;
-  object_to_routine_map_[0x233] = 35; // 4x4 Corner BothBG
-  for (int id = 0x234; id <= 0x239; id++) {
+  // 0xFAA: Nothing
+  object_to_routine_map_[0xFAA] = 38;
+  object_to_routine_map_[0xFAB] = 16;
+  object_to_routine_map_[0xFAC] = 16;
+  // 0xFAD-0xFAE: Nothing
+  object_to_routine_map_[0xFAD] = 38;
+  object_to_routine_map_[0xFAE] = 38;
+  object_to_routine_map_[0xFAF] = 16;
+  object_to_routine_map_[0xFB0] = 16;
+  object_to_routine_map_[0xFB1] = 16;
+  object_to_routine_map_[0xFB2] = 16;
+  object_to_routine_map_[0xFB3] = 35; // 4x4 Corner BothBG
+  for (int id = 0xFB4; id <= 0xFB9; id++) {
     object_to_routine_map_[id] = 34; // Water Face
   }
+  // 0xFF3: Nothing (was 0x273)
+  object_to_routine_map_[0xFF3] = 38;
+  // 0xFFF: Nothing (was 0x27F)
+  object_to_routine_map_[0xFFF] = 38;
 
   // Initialize draw routine function array in the correct order
   draw_routines_.reserve(40);
@@ -589,233 +617,277 @@ void ObjectDrawer::InitializeDrawRoutines() {
   // Routine 0
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawRightwards2x2_1to15or32(obj, bg, tiles);
   });
   // Routine 1
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawRightwards2x4_1to15or26(obj, bg, tiles);
   });
   // Routine 2
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawRightwards2x4spaced4_1to16(obj, bg, tiles);
   });
   // Routine 3
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawRightwards2x4spaced4_1to16_BothBG(obj, bg, tiles);
   });
   // Routine 4
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawRightwards2x2_1to16(obj, bg, tiles);
   });
   // Routine 5
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawDiagonalAcute_1to16(obj, bg, tiles);
   });
   // Routine 6
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawDiagonalGrave_1to16(obj, bg, tiles);
   });
   // Routine 7
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawDownwards2x2_1to15or32(obj, bg, tiles);
   });
   // Routine 8
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawDownwards4x2_1to15or26(obj, bg, tiles);
   });
   // Routine 9
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawDownwards4x2_1to16_BothBG(obj, bg, tiles);
   });
   // Routine 10
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawDownwardsDecor4x2spaced4_1to16(obj, bg, tiles);
   });
   // Routine 11
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawDownwards2x2_1to16(obj, bg, tiles);
   });
   // Routine 12
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawDownwardsHasEdge1x1_1to16_plus3(obj, bg, tiles);
   });
   // Routine 13
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawDownwardsEdge1x1_1to16(obj, bg, tiles);
   });
   // Routine 14
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawDownwardsLeftCorners2x1_1to16_plus12(obj, bg, tiles);
   });
   // Routine 15
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawDownwardsRightCorners2x1_1to16_plus12(obj, bg, tiles);
   });
   // Routine 16
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawRightwards4x4_1to16(obj, bg, tiles);
   });
   // Routine 17 - Diagonal Acute BothBG
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawDiagonalAcute_1to16_BothBG(obj, bg, tiles);
   });
   // Routine 18 - Diagonal Grave BothBG
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawDiagonalGrave_1to16_BothBG(obj, bg, tiles);
   });
   // Routine 19 - 4x4 Corner (Type 2 corners)
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawCorner4x4(obj, bg, tiles);
   });
 
   // Routine 20 - Edge objects 1x2 +2
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawRightwards1x2_1to16_plus2(obj, bg, tiles);
   });
   // Routine 21 - Edge with perimeter 1x1 +3
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawRightwardsHasEdge1x1_1to16_plus3(obj, bg, tiles);
   });
   // Routine 22 - Edge variant 1x1 +2
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawRightwardsHasEdge1x1_1to16_plus2(obj, bg, tiles);
   });
   // Routine 23 - Top corners 1x2 +13
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawRightwardsTopCorners1x2_1to16_plus13(obj, bg, tiles);
   });
   // Routine 24 - Bottom corners 1x2 +13
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawRightwardsBottomCorners1x2_1to16_plus13(obj, bg, tiles);
   });
   // Routine 25 - Solid fill 1x1 +3 (floor patterns)
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawRightwards1x1Solid_1to16_plus3(obj, bg, tiles);
   });
   // Routine 26 - Door switcherer
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawDoorSwitcherer(obj, bg, tiles);
   });
   // Routine 27 - Decorations 4x4 spaced 2
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawRightwardsDecor4x4spaced2_1to16(obj, bg, tiles);
   });
   // Routine 28 - Statues 2x3 spaced 2
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawRightwardsStatue2x3spaced2_1to16(obj, bg, tiles);
   });
   // Routine 29 - Pillars 2x4 spaced 4
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawRightwardsPillar2x4spaced4_1to16(obj, bg, tiles);
   });
   // Routine 30 - Decorations 4x3 spaced 4
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawRightwardsDecor4x3spaced4_1to16(obj, bg, tiles);
   });
   // Routine 31 - Doubled 2x2 spaced 2
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawRightwardsDoubled2x2spaced2_1to16(obj, bg, tiles);
   });
   // Routine 32 - Decorations 2x2 spaced 12
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawRightwardsDecor2x2spaced12_1to16(obj, bg, tiles);
   });
   // Routine 33 - Somaria Line
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawSomariaLine(obj, bg, tiles);
   });
   // Routine 34 - Water Face
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawWaterFace(obj, bg, tiles);
   });
   // Routine 35 - 4x4 Corner BothBG
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->Draw4x4Corner_BothBG(obj, bg, tiles);
   });
   // Routine 36 - Weird Corner Bottom BothBG
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawWeirdCornerBottom_BothBG(obj, bg, tiles);
   });
   // Routine 37 - Weird Corner Top BothBG
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
     self->DrawWeirdCornerTop_BothBG(obj, bg, tiles);
   });
-
+  // Routine 38 - Nothing
+  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
+                              gfx::BackgroundBuffer& bg,
+                              std::span<const gfx::TileInfo> tiles,
+                              [[maybe_unused]] const DungeonState* state) {
+    self->DrawNothing(obj, bg, tiles);
+  });
   routines_initialized_ = true;
 }
 
@@ -833,9 +905,69 @@ int ObjectDrawer::GetDrawRoutineId(int16_t object_id) const {
 // Draw Routine Implementations (Based on ZScream patterns)
 // ============================================================================
 
+void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
+                              gfx::BackgroundBuffer& bg1,
+                              gfx::BackgroundBuffer& bg2,
+                              [[maybe_unused]] const DungeonState* state) {
+  // Stub implementation - door rendering is complex and WIP
+  // See ZELDA3_DUNGEON_SPEC.md Section 5 for full door system details
+  LOG_DEBUG("ObjectDrawer", "DrawDoor: type=%d dir=%d pos=%d idx=%d",
+            door.type, door.direction, door.position, door_index);
+}
+
+void ObjectDrawer::DrawChest(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                             std::span<const gfx::TileInfo> tiles,
+                             [[maybe_unused]] const DungeonState* state) {
+  // Determine if chest is open
+  bool is_open = false;
+  if (state) {
+    is_open = state->IsChestOpen(room_id_, current_chest_index_);
+  }
+  
+  // Increment index for next chest
+  current_chest_index_++;
+
+  // Draw logic
+  // Heuristic: If we have extra tiles loaded, assume they are for the open state.
+  // Standard chests are 2x2 (4 tiles). Big chests are 4x4 (16 tiles).
+  // If we have double the tiles, use the second half for open state.
+  
+  if (is_open) {
+    if (tiles.size() >= 32) {
+      // Big chest open tiles (indices 16-31)
+      DrawRightwards4x4_1to16(obj, bg, tiles.subspan(16));
+      return;
+    }
+    if (tiles.size() >= 8 && tiles.size() < 16) {
+      // Small chest open tiles (indices 4-7)
+      DrawRightwards2x2_1to16(obj, bg, tiles.subspan(4));
+      return;
+    }
+    // If no extra tiles, fall through to draw closed chest (better than nothing)
+  }
+
+  // Fallback to standard 4x4 or 2x2 drawing based on tile count
+  if (tiles.size() >= 16) {
+    DrawRightwards4x4_1to16(obj, bg, tiles);
+  } else if (tiles.size() >= 4) {
+    DrawRightwards2x2_1to16(obj, bg, tiles);
+  } else {
+    // Fallback for incomplete data
+    DrawRightwards4x4_1to16(obj, bg, tiles);
+  }
+}
+
+void ObjectDrawer::DrawNothing(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                               std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
+  // Intentionally empty - represents invisible logic objects or placeholders
+  // ASM: RoomDraw_Nothing_A ($0190F2), RoomDraw_Nothing_B ($01932E), etc.
+  // These routines typically just RTS.
+  LOG_DEBUG("ObjectDrawer", "DrawNothing for object 0x%02X (logic/invisible)", obj.id_);
+}
+
 void ObjectDrawer::DrawRightwards2x2_1to15or32(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: Draws 2x2 tiles rightward (object 0x00)
   // Size byte determines how many times to repeat (1-15 or 32)
   // ROM tile order is COLUMN-MAJOR: [col0_row0, col0_row1, col1_row0, col1_row1]
@@ -869,7 +1001,7 @@ void ObjectDrawer::DrawRightwards2x2_1to15or32(
 
 void ObjectDrawer::DrawRightwards2x4_1to15or26(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: Draws 2x4 tiles rightward (objects 0x01-0x02)
   // Uses RoomDraw_Nx4 with N=2, tiles are COLUMN-MAJOR:
   // [col0_row0, col0_row1, col0_row2, col0_row3, col1_row0, col1_row1, col1_row2, col1_row3]
@@ -910,7 +1042,7 @@ void ObjectDrawer::DrawRightwards2x4_1to15or26(
 
 void ObjectDrawer::DrawRightwards2x4spaced4_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: Draws 2x4 tiles rightward with spacing (objects 0x03-0x04)
   // Uses RoomDraw_Nx4 with N=2, tiles are COLUMN-MAJOR, spacing of 4 tiles
   int size = obj.size_ & 0x0F;
@@ -948,7 +1080,7 @@ void ObjectDrawer::DrawRightwards2x4spaced4_1to16(
 
 void ObjectDrawer::DrawRightwards2x4spaced4_1to16_BothBG(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: Same as above but draws to both BG1 and BG2 (objects 0x05-0x06)
   DrawRightwards2x4spaced4_1to16(obj, bg, tiles);
   // Note: BothBG would require access to both buffers - simplified for now
@@ -956,7 +1088,7 @@ void ObjectDrawer::DrawRightwards2x4spaced4_1to16_BothBG(
 
 void ObjectDrawer::DrawRightwards2x2_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: Draws 2x2 tiles rightward (objects 0x07-0x08)
   // ROM tile order is COLUMN-MAJOR: [col0_row0, col0_row1, col1_row0, col1_row1]
   int size = obj.size_ & 0x0F;
@@ -979,7 +1111,7 @@ void ObjectDrawer::DrawRightwards2x2_1to16(
 
 void ObjectDrawer::DrawDiagonalAcute_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: Diagonal acute (/) - draws 5 tiles vertically, moves up-right
   // Based on bank_01.asm RoomDraw_DiagonalAcute_1to16 at $018C58
   // Uses RoomDraw_2x2and1 to draw 5 tiles at rows 0-4, then moves Y -= $7E
@@ -1009,7 +1141,7 @@ void ObjectDrawer::DrawDiagonalAcute_1to16(
 
 void ObjectDrawer::DrawDiagonalGrave_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: Diagonal grave (\) - draws 5 tiles vertically, moves down-right
   // Based on bank_01.asm RoomDraw_DiagonalGrave_1to16 at $018C61
   // Uses RoomDraw_2x2and1 to draw 5 tiles at rows 0-4, then moves Y += $82
@@ -1039,7 +1171,7 @@ void ObjectDrawer::DrawDiagonalGrave_1to16(
 
 void ObjectDrawer::DrawDiagonalAcute_1to16_BothBG(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: Diagonal acute (/) for both BG layers (objects 0x15, 0x18-0x1D, 0x20)
   // Based on bank_01.asm RoomDraw_DiagonalAcute_1to16_BothBG at $018C6A
   // Assembly: LDA #$0006; JSR RoomDraw_GetSize_1to16_timesA
@@ -1065,7 +1197,7 @@ void ObjectDrawer::DrawDiagonalAcute_1to16_BothBG(
 
 void ObjectDrawer::DrawDiagonalGrave_1to16_BothBG(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: Diagonal grave (\) for both BG layers (objects 0x16-0x17, 0x1A-0x1B, 0x1E-0x1F)
   // Based on bank_01.asm RoomDraw_DiagonalGrave_1to16_BothBG at $018CB9
   // Assembly: LDA #$0006; JSR RoomDraw_GetSize_1to16_timesA
@@ -1091,13 +1223,32 @@ void ObjectDrawer::DrawDiagonalGrave_1to16_BothBG(
 
 void ObjectDrawer::DrawCorner4x4(const RoomObject& obj,
                                  gfx::BackgroundBuffer& bg,
-                                 std::span<const gfx::TileInfo> tiles) {
-  // Pattern: 4x4 grid corner (Type 2 corners 0x40-0x4F)
-  // Column-major ordering per ZScream: iterate columns first, then rows
+                                 std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
+  // Pattern: 4x4 grid corner (Type 2 corners 0x40-0x4F, 0x108-0x10F)
+  // Type 2 objects only have 8 tiles, so we need to handle both 16 and 8 tile cases
+
   if (tiles.size() >= 16) {
+    // Full 4x4 pattern - Column-major ordering per ZScream
     int tid = 0;
     for (int xx = 0; xx < 4; xx++) {
       for (int yy = 0; yy < 4; yy++) {
+        WriteTile8(bg, obj.x_ + xx, obj.y_ + yy, tiles[tid++]);
+      }
+    }
+  } else if (tiles.size() >= 8) {
+    // Type 2 objects: 8 tiles arranged in 2x4 column-major pattern
+    // This is the standard Type 2 tile layout
+    int tid = 0;
+    for (int xx = 0; xx < 2; xx++) {
+      for (int yy = 0; yy < 4; yy++) {
+        WriteTile8(bg, obj.x_ + xx, obj.y_ + yy, tiles[tid++]);
+      }
+    }
+  } else if (tiles.size() >= 4) {
+    // Fallback: 2x2 pattern
+    int tid = 0;
+    for (int xx = 0; xx < 2; xx++) {
+      for (int yy = 0; yy < 2; yy++) {
         WriteTile8(bg, obj.x_ + xx, obj.y_ + yy, tiles[tid++]);
       }
     }
@@ -1106,7 +1257,7 @@ void ObjectDrawer::DrawCorner4x4(const RoomObject& obj,
 
 void ObjectDrawer::DrawRightwards1x2_1to16_plus2(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: 1x2 tiles rightward with +2 offset (object 0x21)
   int size = obj.size_ & 0x0F;
 
@@ -1124,7 +1275,7 @@ void ObjectDrawer::DrawRightwards1x2_1to16_plus2(
 
 void ObjectDrawer::DrawRightwardsHasEdge1x1_1to16_plus3(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: 1x1 tiles with edge detection +3 offset (object 0x22)
   int size = obj.size_ & 0x0F;
 
@@ -1141,7 +1292,7 @@ void ObjectDrawer::DrawRightwardsHasEdge1x1_1to16_plus3(
 
 void ObjectDrawer::DrawRightwardsHasEdge1x1_1to16_plus2(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: 1x1 tiles with edge detection +2 offset (objects 0x23-0x2E, 0x3F-0x46)
   int size = obj.size_ & 0x0F;
 
@@ -1158,7 +1309,7 @@ void ObjectDrawer::DrawRightwardsHasEdge1x1_1to16_plus2(
 
 void ObjectDrawer::DrawRightwardsTopCorners1x2_1to16_plus13(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: Top corner 1x2 tiles with +13 offset (object 0x2F)
   int size = obj.size_ & 0x0F;
 
@@ -1176,7 +1327,7 @@ void ObjectDrawer::DrawRightwardsTopCorners1x2_1to16_plus13(
 
 void ObjectDrawer::DrawRightwardsBottomCorners1x2_1to16_plus13(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    const std::span<const gfx::TileInfo> tiles) {
+    const std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: Bottom corner 1x2 tiles with +13 offset (object 0x30)
   int size = obj.size_ & 0x0F;
 
@@ -1193,7 +1344,7 @@ void ObjectDrawer::DrawRightwardsBottomCorners1x2_1to16_plus13(
 }
 
 void ObjectDrawer::CustomDraw(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles) {
+                              std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: Custom draw routine (objects 0x31-0x32)
   // For now, fall back to simple 1x1
   if (tiles.size() >= 1) {
@@ -1204,7 +1355,7 @@ void ObjectDrawer::CustomDraw(const RoomObject& obj, gfx::BackgroundBuffer& bg,
 
 void ObjectDrawer::DrawRightwards4x4_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: 4x4 block rightward (object 0x33)
   int size = obj.size_ & 0x0F;
 
@@ -1226,7 +1377,7 @@ void ObjectDrawer::DrawRightwards4x4_1to16(
 
 void ObjectDrawer::DrawRightwards1x1Solid_1to16_plus3(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: 1x1 solid tiles +3 offset (object 0x34)
   int size = obj.size_ & 0x0F;
 
@@ -1243,18 +1394,26 @@ void ObjectDrawer::DrawRightwards1x1Solid_1to16_plus3(
 
 void ObjectDrawer::DrawDoorSwitcherer(const RoomObject& obj,
                                       gfx::BackgroundBuffer& bg,
-                                      std::span<const gfx::TileInfo> tiles) {
+                                      std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: Door switcher (object 0x35)
-  // Special door logic - simplified for now
-  if (tiles.size() >= 1) {
-    // Use first 8x8 tile from span
-    WriteTile8(bg, obj.x_, obj.y_, tiles[0]);
+  // Special door logic
+  // Check state to decide graphic
+  int tile_index = 0;
+  if (state && state->IsDoorSwitchActive(room_id_)) {
+      // Use active tile if available (assuming 2nd tile is active state)
+      if (tiles.size() >= 2) {
+          tile_index = 1;
+      }
+  }
+
+  if (tiles.size() > tile_index) {
+    WriteTile8(bg, obj.x_, obj.y_, tiles[tile_index]);
   }
 }
 
 void ObjectDrawer::DrawRightwardsDecor4x4spaced2_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: 4x4 decoration with spacing (objects 0x36-0x37)
   int size = obj.size_ & 0x0F;
 
@@ -1275,7 +1434,7 @@ void ObjectDrawer::DrawRightwardsDecor4x4spaced2_1to16(
 
 void ObjectDrawer::DrawRightwardsStatue2x3spaced2_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: 2x3 statue with spacing (object 0x38)
   // 2 columns × 3 rows = 6 tiles in COLUMN-MAJOR order
   int size = obj.size_ & 0x0F;
@@ -1297,7 +1456,7 @@ void ObjectDrawer::DrawRightwardsStatue2x3spaced2_1to16(
 
 void ObjectDrawer::DrawRightwardsPillar2x4spaced4_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: 2x4 pillar with spacing (objects 0x39, 0x3D)
   // 2 columns × 4 rows = 8 tiles in COLUMN-MAJOR order
   int size = obj.size_ & 0x0F;
@@ -1319,7 +1478,7 @@ void ObjectDrawer::DrawRightwardsPillar2x4spaced4_1to16(
 
 void ObjectDrawer::DrawRightwardsDecor4x3spaced4_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: 4x3 decoration with spacing (objects 0x3A-0x3B)
   // 4 columns × 3 rows = 12 tiles in COLUMN-MAJOR order
   int size = obj.size_ & 0x0F;
@@ -1341,7 +1500,7 @@ void ObjectDrawer::DrawRightwardsDecor4x3spaced4_1to16(
 
 void ObjectDrawer::DrawRightwardsDoubled2x2spaced2_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: Doubled 2x2 with spacing (object 0x3C)
   // 4 columns × 2 rows = 8 tiles in COLUMN-MAJOR order
   int size = obj.size_ & 0x0F;
@@ -1363,7 +1522,7 @@ void ObjectDrawer::DrawRightwardsDoubled2x2spaced2_1to16(
 
 void ObjectDrawer::DrawRightwardsDecor2x2spaced12_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: 2x2 decoration with large spacing (object 0x3E)
   int size = obj.size_ & 0x0F;
 
@@ -1391,7 +1550,7 @@ void ObjectDrawer::DrawRightwardsDecor2x2spaced12_1to16(
 
 void ObjectDrawer::DrawDownwards2x2_1to15or32(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: Draws 2x2 tiles downward (object 0x60)
   // Size byte determines how many times to repeat (1-15 or 32)
   int size = obj.size_;
@@ -1417,7 +1576,7 @@ void ObjectDrawer::DrawDownwards2x2_1to15or32(
 
 void ObjectDrawer::DrawDownwards4x2_1to15or26(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: Draws 4x2 tiles downward (objects 0x61-0x62)
   // This is 4 columns × 2 rows = 8 tiles in COLUMN-MAJOR order
   int size = obj.size_;
@@ -1460,7 +1619,7 @@ void ObjectDrawer::DrawDownwards4x2_1to15or26(
 
 void ObjectDrawer::DrawDownwards4x2_1to16_BothBG(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: Same as above but draws to both BG1 and BG2 (objects 0x63-0x64)
   DrawDownwards4x2_1to15or26(obj, bg, tiles);
   // Note: BothBG would require access to both buffers - simplified for now
@@ -1468,7 +1627,7 @@ void ObjectDrawer::DrawDownwards4x2_1to16_BothBG(
 
 void ObjectDrawer::DrawDownwardsDecor4x2spaced4_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: Draws 4x2 decoration downward with spacing (objects 0x65-0x66)
   // This is 4 columns × 2 rows = 8 tiles in COLUMN-MAJOR order with 4-tile spacing
   int size = obj.size_ & 0x0F;
@@ -1497,7 +1656,7 @@ void ObjectDrawer::DrawDownwardsDecor4x2spaced4_1to16(
 
 void ObjectDrawer::DrawDownwards2x2_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: Draws 2x2 tiles downward (objects 0x67-0x68)
   int size = obj.size_ & 0x0F;
 
@@ -1521,7 +1680,7 @@ void ObjectDrawer::DrawDownwards2x2_1to16(
 
 void ObjectDrawer::DrawDownwardsHasEdge1x1_1to16_plus3(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: 1x1 tiles with edge detection +3 offset downward (object 0x69)
   int size = obj.size_ & 0x0F;
 
@@ -1538,7 +1697,7 @@ void ObjectDrawer::DrawDownwardsHasEdge1x1_1to16_plus3(
 
 void ObjectDrawer::DrawDownwardsEdge1x1_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: 1x1 edge tiles downward (objects 0x6A-0x6B)
   int size = obj.size_ & 0x0F;
 
@@ -1555,7 +1714,7 @@ void ObjectDrawer::DrawDownwardsEdge1x1_1to16(
 
 void ObjectDrawer::DrawDownwardsLeftCorners2x1_1to16_plus12(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: Left corner 2x1 tiles with +12 offset downward (object 0x6C)
   int size = obj.size_ & 0x0F;
 
@@ -1573,7 +1732,7 @@ void ObjectDrawer::DrawDownwardsLeftCorners2x1_1to16_plus12(
 
 void ObjectDrawer::DrawDownwardsRightCorners2x1_1to16_plus12(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: Right corner 2x1 tiles with +12 offset downward (object 0x6D)
   int size = obj.size_ & 0x0F;
 
@@ -1725,29 +1884,56 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap,
 
 void ObjectDrawer::DrawSomariaLine(const RoomObject& obj,
                                    gfx::BackgroundBuffer& bg,
-                                   std::span<const gfx::TileInfo> tiles) {
-  // Pattern: Somaria Line (objects 0x203-0x209, etc.)
-  // Draws a line of tiles based on size/direction
-  // Simplified implementation: Draw 1x1 tiles along the path
-  // Real implementation involves complex state machine for path following
-  int length = (obj.size_ & 0x0F) + 1; // Size 0 = 1 tile? Or size+1? Usually size+1.
-  
-  // For now, draw a horizontal line. 
-  // TODO: Determine direction based on ID (0x203=H, 0x204=V, etc.)
-  if (!tiles.empty()) {
-    for (int i = 0; i < length; ++i) {
-      // Use the first tile for the line
-      // Somaria paths usually use the same tile repeated
-      WriteTile8(bg, obj.x_ + i, obj.y_, tiles[0]);
-    }
+                                   std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
+  // Pattern: Somaria Line (objects 0x203-0x20F, 0x214)
+  // Draws a line of tiles based on direction encoded in object ID
+  // Direction mapping based on ZScream reference:
+  //   0x203: Horizontal right
+  //   0x204: Vertical down
+  //   0x205: Diagonal down-right
+  //   0x206: Diagonal down-left
+  //   0x207-0x209: Variations
+  //   0x20A-0x20C: More variations
+  //   0x20E-0x20F: Additional patterns
+  //   0x214: Another line type
+
+  if (tiles.empty()) return;
+
+  int length = (obj.size_ & 0x0F) + 1;
+  int obj_subid = obj.id_ & 0x0F;  // Low nibble determines direction
+
+  // Determine direction based on object sub-ID
+  int dx = 1, dy = 0;  // Default: horizontal right
+  switch (obj_subid) {
+    case 0x03: dx = 1; dy = 0; break;   // Horizontal right
+    case 0x04: dx = 0; dy = 1; break;   // Vertical down
+    case 0x05: dx = 1; dy = 1; break;   // Diagonal down-right
+    case 0x06: dx = -1; dy = 1; break;  // Diagonal down-left
+    case 0x07: dx = 1; dy = 0; break;   // Horizontal (variant)
+    case 0x08: dx = 0; dy = 1; break;   // Vertical (variant)
+    case 0x09: dx = 1; dy = 1; break;   // Diagonal (variant)
+    case 0x0A: dx = 1; dy = 0; break;   // Horizontal
+    case 0x0B: dx = 0; dy = 1; break;   // Vertical
+    case 0x0C: dx = 1; dy = 1; break;   // Diagonal
+    case 0x0E: dx = 1; dy = 0; break;   // Horizontal
+    case 0x0F: dx = 0; dy = 1; break;   // Vertical
+    default: dx = 1; dy = 0; break;     // Default horizontal
+  }
+
+  // Draw tiles along the path using first tile (Somaria uses single tile)
+  for (int i = 0; i < length; ++i) {
+    int tile_idx = i % tiles.size();  // Cycle through tiles if multiple
+    WriteTile8(bg, obj.x_ + (i * dx), obj.y_ + (i * dy), tiles[tile_idx]);
   }
 }
 
 void ObjectDrawer::DrawWaterFace(const RoomObject& obj,
                                  gfx::BackgroundBuffer& bg,
-                                 std::span<const gfx::TileInfo> tiles) {
-  // Pattern: Water Face (objects 0x200-0x202)
+                                 std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
+  // Pattern: Water Face (Type 3 objects 0xF80-0xF82)
   // Draws a 2x2 face in COLUMN-MAJOR order
+  // TODO: Implement state check from RoomDraw_EmptyWaterFace ($019D29)
+  // Checks Room ID ($AF), Room State ($7EF000), Door Flags ($0403) to switch graphic
   if (tiles.size() >= 4) {
     WriteTile8(bg, obj.x_, obj.y_, tiles[0]);      // col 0, row 0
     WriteTile8(bg, obj.x_, obj.y_ + 1, tiles[1]);  // col 0, row 1
@@ -1758,26 +1944,63 @@ void ObjectDrawer::DrawWaterFace(const RoomObject& obj,
 
 void ObjectDrawer::Draw4x4Corner_BothBG(const RoomObject& obj,
                                         gfx::BackgroundBuffer& bg,
-                                        std::span<const gfx::TileInfo> tiles) {
-  // Pattern: 4x4 Corner for Both BG (objects 0x108-0x10F)
-  // Simplified: Draw 4x4 to current BG
-  DrawCorner4x4(obj, bg, tiles);
+                                        std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
+  // Pattern: 4x4 Corner for Both BG (objects 0x108-0x10F for Type 2)
+  // Type 3 objects (0xF9B-0xF9D) only have 8 tiles, draw 2x4 pattern
+  if (tiles.size() >= 16) {
+    DrawCorner4x4(obj, bg, tiles);
+  } else if (tiles.size() >= 8) {
+    // Draw 2x4 corner pattern (column-major)
+    int tid = 0;
+    for (int xx = 0; xx < 2; xx++) {
+      for (int yy = 0; yy < 4; yy++) {
+        WriteTile8(bg, obj.x_ + xx, obj.y_ + yy, tiles[tid++]);
+      }
+    }
+  } else if (tiles.size() >= 4) {
+    // Fallback: 2x2 pattern
+    DrawWaterFace(obj, bg, tiles);
+  }
 }
 
 void ObjectDrawer::DrawWeirdCornerBottom_BothBG(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
-  // Pattern: Weird Corner Bottom (objects 0x110-0x113)
-  // Simplified: Draw 4x4 to current BG
-  DrawCorner4x4(obj, bg, tiles);
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
+  // Pattern: Weird Corner Bottom (objects 0x110-0x113 for Type 2)
+  // Type 3 objects (0xF9E-0xFA1) use 8 tiles in 4x2 bottom corner layout
+  if (tiles.size() >= 16) {
+    DrawCorner4x4(obj, bg, tiles);
+  } else if (tiles.size() >= 8) {
+    // Draw 4x2 bottom corner pattern (row-major for bottom corners)
+    int tid = 0;
+    for (int yy = 0; yy < 2; yy++) {
+      for (int xx = 0; xx < 4; xx++) {
+        WriteTile8(bg, obj.x_ + xx, obj.y_ + yy, tiles[tid++]);
+      }
+    }
+  } else if (tiles.size() >= 4) {
+    DrawWaterFace(obj, bg, tiles);
+  }
 }
 
 void ObjectDrawer::DrawWeirdCornerTop_BothBG(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
-  // Pattern: Weird Corner Top (objects 0x114-0x117)
-  // Simplified: Draw 4x4 to current BG
-  DrawCorner4x4(obj, bg, tiles);
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
+  // Pattern: Weird Corner Top (objects 0x114-0x117 for Type 2)
+  // Type 3 objects (0xFA2-0xFA5) use 8 tiles in 4x2 top corner layout
+  if (tiles.size() >= 16) {
+    DrawCorner4x4(obj, bg, tiles);
+  } else if (tiles.size() >= 8) {
+    // Draw 4x2 top corner pattern (row-major for top corners)
+    int tid = 0;
+    for (int yy = 0; yy < 2; yy++) {
+      for (int xx = 0; xx < 4; xx++) {
+        WriteTile8(bg, obj.x_ + xx, obj.y_ + yy, tiles[tid++]);
+      }
+    }
+  } else if (tiles.size() >= 4) {
+    DrawWaterFace(obj, bg, tiles);
+  }
 }
 
 void ObjectDrawer::DrawLargeCanvasObject(const RoomObject& obj,
@@ -1796,140 +2019,6 @@ void ObjectDrawer::DrawLargeCanvasObject(const RoomObject& obj,
 
 }  // namespace zelda3
 }  // namespace yaze
-
-void yaze::zelda3::ObjectDrawer::DrawDoor(const DoorDef& door,
-                                          gfx::BackgroundBuffer& bg1,
-                                          gfx::BackgroundBuffer& bg2) {
-  if (!rom_ || !rom_->is_loaded()) return;
-
-  // Determine graphics address based on direction
-  int gfx_addr = 0;
-  switch (door.direction) {
-    case 0: gfx_addr = kDoorGfxUp; break;    // North
-    case 1: gfx_addr = kDoorGfxDown; break;  // South
-    case 2: gfx_addr = kDoorGfxLeft; break;  // West
-    case 3: gfx_addr = kDoorGfxRight; break; // East
-    default: return;
-  }
-
-  // Convert to PC address
-  // Door graphics are in bank 01? No, 0x4D9E is bank 00 or 01.
-  // kDoorGfxUp = 0x4D9E. This is likely a PC address or short address in bank 01.
-  // If it's short, it's 01:4D9E -> PC 0x00CD9E?
-  // Let's assume it's a PC address or we need to convert.
-  // dungeon_rom_addresses.h says: kDoorGfxUp = 0x4D9E.
-  // This looks like a SNES address in bank 00/01.
-  // Let's try to use it as an offset in the ROM if it's small, or convert.
-  // 0x4D9E is small.
-  // Actually, let's look at how other addresses are used.
-  // kTileAddress = 0x001B52.
-  // These look like PC addresses (offsets).
-  
-  // Read door tiles
-  // Doors are typically 4x4 or 3x4.
-  // Let's assume 4x4 (16 tiles) for safety.
-  // Each tile is 2 bytes (TileInfo).
-  // So read 32 bytes?
-  // No, graphics pointers usually point to TILE DATA (pixels) or TILE MAP (indices).
-  // In ALTTP, door graphics are usually tile maps.
-  // So we read 16 words (32 bytes).
-  
-  int tile_map_addr = gfx_addr; // + (door.type * ...)?
-  // For now, ignore type and just draw the base door for the direction.
-  
-  // Read door tiles
-  auto tile_data_status = rom_->ReadByteVector(gfx_addr, 32); // 16 tiles * 2 bytes
-  if (!tile_data_status.ok()) return;
-  std::vector<uint8_t> tile_data = tile_data_status.value();
-  if (tile_data.size() < 32) return;
-
-  // Draw 4x4 grid
-  // Door positions are usually in 8x8 units or 16x16?
-  // Spec says "Door position (0-255)".
-  // If it's 0-63 (like objects), it's 16x16 units?
-  // Objects use X/Y in 0-63 range.
-  // Doors use a single byte position.
-  // We need to convert door.position to X/Y.
-  // If position is 0-0x3F, it might be an index into a position table.
-  // kDoorPosUp = 0x197E.
-  // Let's assume we need to look up position.
-  
-  // Position lookup
-  int pos_table_addr = 0;
-  switch (door.direction) {
-    case 0: pos_table_addr = kDoorPosUp; break;
-    case 1: pos_table_addr = kDoorPosDown; break;
-    case 2: pos_table_addr = kDoorPosLeft; break;
-    case 3: pos_table_addr = kDoorPosRight; break;
-  }
-  
-  // Read position from table
-  // Table is likely indexed by door.position
-  // Each entry is 2 bytes (Low/High) for SNES address?
-  // Or just a single byte coordinate?
-  // Spec says "Byte 1: Door position (0-255)".
-  // If it's an index, we read 2 bytes from table?
-  // Let's assume it's a direct coordinate for now, or use the table if we can.
-  // But we don't have the table logic fully reversed here.
-  
-  // Fallback: Decode position from byte 1 like objects?
-  // posX = (b1 & 0xFC) >> 2 ?
-  // Let's try that.
-  int x = (door.position & 0xFC) >> 2; // This is just a guess
-  int y = (door.position & 0xFC) >> 2; // This is definitely wrong
-  
-  // Actually, let's look at the spec again.
-  // "Byte 1: Door position (0-255)"
-  // "kDoorPosUp = 0x197E"
-  // This suggests a table.
-  // Let's try to read from the table.
-  // Table size? 256 entries?
-  // If we read 2 bytes at pos_table_addr + (door.position * 2), we get a word.
-  // That word is likely the VRAM address or Tilemap index.
-  // From that we can get X/Y.
-  // Tilemap index = Y * 32 + X.
-  
-  if (pos_table_addr != 0) {
-      auto pos_word = rom_->ReadWord(pos_table_addr + (door.position * 2));
-      if (pos_word.ok()) {
-          uint16_t addr = pos_word.value();
-          // Convert VRAM address to X/Y
-          // BG1 starts at 0.
-          // Address is usually offset in bytes.
-          // Each tile is 2 bytes.
-          // So tile_index = addr / 2.
-          // x = tile_index % 32;
-          // y = tile_index / 32;
-          int tile_index = addr / 2;
-          x = tile_index % 32; // 0-31 (8x8 tiles)
-          y = tile_index / 32; // 0-31
-          
-          // But wait, objects use 0-63 coordinates which are 16x16?
-          // No, objects use 0-63 which are 8x8?
-          // RoomObject::x_ is 0-63.
-          // If x is 0-31, it's 16x16?
-          // Let's assume x, y are in 16x16 units if they are 0-31.
-          // So multiply by 2 to get 8x8 units.
-          x *= 2;
-          y *= 2;
-      }
-  }
-
-  // Draw tiles
-  int tid = 0;
-  for (int row = 0; row < 4; ++row) {
-    for (int col = 0; col < 4; ++col) {
-      if (tid >= 16) break;
-      
-      uint8_t t1 = tile_data[tid * 2];
-      uint8_t t2 = tile_data[tid * 2 + 1];
-      gfx::TileInfo tile(t1, t2);
-      
-      WriteTile8(bg1, x + col, y + row, tile);
-      tid++;
-    }
-  }
-}
 
 std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(const RoomObject& object) {
   if (!routines_initialized_) {
