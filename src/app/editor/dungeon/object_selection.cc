@@ -316,12 +316,17 @@ std::pair<int, int> ObjectSelection::CanvasToRoomCoordinates(int canvas_x,
 
 std::tuple<int, int, int, int> ObjectSelection::GetObjectBounds(
     const zelda3::RoomObject& object) {
-  // Object position
+  // Use ObjectDimensionTable for accurate dimensions if loaded
+  auto& dim_table = zelda3::ObjectDimensionTable::Get();
+  if (dim_table.IsLoaded()) {
+    // GetHitTestBounds returns (x, y, width_tiles, height_tiles)
+    return dim_table.GetHitTestBounds(object);
+  }
+
+  // Fallback: Object dimensions based on size field
+  // Lower nibble = horizontal size, upper nibble = vertical size
   int x = object.x_;
   int y = object.y_;
-
-  // Object dimensions based on size field
-  // Lower nibble = horizontal size, upper nibble = vertical size
   int size_h = (object.size_ & 0x0F);
   int size_v = (object.size_ >> 4) & 0x0F;
 

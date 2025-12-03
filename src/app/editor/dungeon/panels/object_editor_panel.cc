@@ -31,8 +31,10 @@ ObjectEditorPanel::ObjectEditorPanel(
       [this](const zelda3::RoomObject& obj) {
         preview_object_ = obj;
         has_preview_object_ = true;
-        canvas_viewer_->SetPreviewObject(preview_object_);
-        canvas_viewer_->SetObjectInteractionEnabled(true);
+        if (canvas_viewer_) {
+          canvas_viewer_->SetPreviewObject(preview_object_);
+          canvas_viewer_->SetObjectInteractionEnabled(true);
+        }
         interaction_mode_ = InteractionMode::Place;
 
         // Sync with backend editor if available
@@ -81,7 +83,18 @@ void ObjectEditorPanel::OnSelectionChanged() {
 void ObjectEditorPanel::Draw(bool* p_open) {
   const auto& theme = AgentUI::GetTheme();
 
-  // Static Object Editor at top (if open)
+  // Object Browser (Top priority as per enhancement request)
+  if (ImGui::CollapsingHeader(ICON_MD_LIST " Object Browser",
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
+    // Give it some fixed height so it's always usable
+    ImGui::BeginChild("ObjectBrowserRegion", ImVec2(0, 300), true);
+    DrawObjectSelector();
+    ImGui::EndChild();
+  }
+
+  ImGui::Separator();
+
+  // Static Object Editor (if open)
   if (static_editor_open_) {
     DrawStaticObjectEditor();
     ImGui::Separator();
@@ -93,16 +106,20 @@ void ObjectEditorPanel::Draw(bool* p_open) {
 
   if (ImGui::RadioButton("None", interaction_mode_ == InteractionMode::None)) {
     interaction_mode_ = InteractionMode::None;
-    canvas_viewer_->SetObjectInteractionEnabled(false);
-    canvas_viewer_->ClearPreviewObject();
+    if (canvas_viewer_) {
+      canvas_viewer_->SetObjectInteractionEnabled(false);
+      canvas_viewer_->ClearPreviewObject();
+    }
   }
   ImGui::SameLine();
 
   if (ImGui::RadioButton("Place", interaction_mode_ == InteractionMode::Place)) {
     interaction_mode_ = InteractionMode::Place;
-    canvas_viewer_->SetObjectInteractionEnabled(true);
-    if (has_preview_object_) {
-      canvas_viewer_->SetPreviewObject(preview_object_);
+    if (canvas_viewer_) {
+      canvas_viewer_->SetObjectInteractionEnabled(true);
+      if (has_preview_object_) {
+        canvas_viewer_->SetPreviewObject(preview_object_);
+      }
     }
   }
   ImGui::SameLine();
@@ -110,16 +127,20 @@ void ObjectEditorPanel::Draw(bool* p_open) {
   if (ImGui::RadioButton("Select",
                          interaction_mode_ == InteractionMode::Select)) {
     interaction_mode_ = InteractionMode::Select;
-    canvas_viewer_->SetObjectInteractionEnabled(true);
-    canvas_viewer_->ClearPreviewObject();
+    if (canvas_viewer_) {
+      canvas_viewer_->SetObjectInteractionEnabled(true);
+      canvas_viewer_->ClearPreviewObject();
+    }
   }
   ImGui::SameLine();
 
   if (ImGui::RadioButton("Delete",
                          interaction_mode_ == InteractionMode::Delete)) {
     interaction_mode_ = InteractionMode::Delete;
-    canvas_viewer_->SetObjectInteractionEnabled(true);
-    canvas_viewer_->ClearPreviewObject();
+    if (canvas_viewer_) {
+      canvas_viewer_->SetObjectInteractionEnabled(true);
+      canvas_viewer_->ClearPreviewObject();
+    }
   }
 
   // Current object info
@@ -145,14 +166,6 @@ void ObjectEditorPanel::Draw(bool* p_open) {
     }
     ImGui::EndChild();
     ImGui::PopID();
-  }
-
-  // Object Browser (Collapsible, default open)
-  if (ImGui::CollapsingHeader(ICON_MD_LIST " Object Browser",
-                              ImGuiTreeNodeFlags_DefaultOpen)) {
-    ImGui::BeginChild("ObjectBrowserRegion", ImVec2(0, 0), true);
-    DrawObjectSelector();
-    ImGui::EndChild();
   }
 
   // Draw modals
@@ -281,11 +294,15 @@ void ObjectEditorPanel::DrawDeleteConfirmationModal() {
 
   if (ImGui::BeginPopupModal("Delete Objects?", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    auto& interaction = canvas_viewer_->object_interaction();
-    const auto& selected = interaction.GetSelectedObjectIndices();
+    if (canvas_viewer_) {
+      auto& interaction = canvas_viewer_->object_interaction();
+      const auto& selected = interaction.GetSelectedObjectIndices();
 
-    ImGui::Text("%s Are you sure you want to delete %zu objects?",
-                ICON_MD_WARNING, selected.size());
+      ImGui::Text("%s Are you sure you want to delete %zu objects?",
+                  ICON_MD_WARNING, selected.size());
+    } else {
+      ImGui::Text("Delete selected objects?");
+    }
     ImGui::Separator();
 
     if (ImGui::Button("Delete", ImVec2(120, 0))) {
@@ -391,6 +408,9 @@ void ObjectEditorPanel::OpenStaticObjectEditor(int object_id) {
     preview_obj.EnsureTilesLoaded();
 
     // Create drawer and render
+    // Need a valid GFX source. For now, use current room or fallback?
+    // We can use nullptr for gfx_data if we don't have a specific room context,
+    // but it might fail for some objects.
     zelda3::ObjectDrawer drawer(rom_, current_room_id_, nullptr);
     drawer.InitializeDrawRoutines();
 

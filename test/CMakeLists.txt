@@ -20,6 +20,7 @@ if(YAZE_BUILD_TESTS)
       ${CMAKE_SOURCE_DIR}/src
       ${CMAKE_SOURCE_DIR}/incl
       ${CMAKE_SOURCE_DIR}/test
+      ${CMAKE_SOURCE_DIR}/test/framework
       ${CMAKE_SOURCE_DIR}/ext
       ${CMAKE_SOURCE_DIR}/ext/imgui
       ${CMAKE_SOURCE_DIR}/ext/imgui/backends
@@ -133,6 +134,7 @@ if(YAZE_BUILD_TESTS)
     integration/asar_integration_test.cc
     integration/dungeon_editor_test.cc
     integration/dungeon_editor_v2_test.cc
+    integration/overworld_editor_test.cc
     integration/editor/tile16_editor_test.cc
     # NOTE: editor_integration_test.cc removed - legacy code with Controller dependency
     integration/zelda3/overworld_integration_test.cc

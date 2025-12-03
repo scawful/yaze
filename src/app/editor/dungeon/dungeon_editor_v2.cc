@@ -1,5 +1,9 @@
-#include <algorithm>
 #include <cstdio>
+#include <iterator>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_ui_theme.h"
@@ -15,10 +19,16 @@
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/util/palette_manager.h"
 #include "app/gui/core/icons.h"
-#include "app/gui/core/input.h"
 #include "dungeon_editor_v2.h"
+#include "editor/dungeon/dungeon_canvas_viewer.h"
+#include "emu/render/emulator_render_service.h"
+#include "gfx/backend/irenderer.h"
+#include "absl/status/status.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
+#include "util/macro.h"
+#include "zelda3/dungeon/dungeon_editor_system.h"
+#include "zelda3/dungeon/object_dimensions.h"
 #include "zelda3/dungeon/room.h"
 
 namespace yaze::editor {
@@ -38,51 +48,49 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
   room_window_class_.DockingAllowUnclassed = true;
   room_window_class_.DockingAlwaysTabBar = true;
 
-  show_control_panel_ = true;
-  show_room_selector_ = true;
-
   if (!dependencies_.panel_manager) return;
   auto* panel_manager = dependencies_.panel_manager;
 
-  // Register panels...
+  // Register panels with PanelManager (no boolean flags - visibility is
+  // managed entirely by PanelManager::ShowPanel/HidePanel/IsPanelVisible)
   panel_manager->RegisterPanel(
-      {.card_id = MakeCardId("dungeon.control_panel"),
+      {.card_id = kControlPanelId,
        .display_name = "Dungeon Controls",
        .window_title = " Dungeon Controls",
        .icon = ICON_MD_CASTLE,
        .category = "Dungeon",
        .shortcut_hint = "Ctrl+Shift+D",
-       .visibility_flag = &show_control_panel_,
+       .visibility_flag = nullptr,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
        .disabled_tooltip = "Load a ROM to access dungeon controls",
        .priority = 10});
 
   panel_manager->RegisterPanel(
-      {.card_id = MakeCardId("dungeon.room_selector"),
+      {.card_id = kRoomSelectorId,
        .display_name = "Room List",
        .window_title = " Room List",
        .icon = ICON_MD_LIST,
        .category = "Dungeon",
        .shortcut_hint = "Ctrl+Shift+R",
-       .visibility_flag = &show_room_selector_,
+       .visibility_flag = nullptr,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
        .disabled_tooltip = "Load a ROM to browse dungeon rooms",
        .priority = 20});
 
   panel_manager->RegisterPanel(
-      {.card_id = MakeCardId("dungeon.entrance_list"),
+      {.card_id = kEntranceListId,
        .display_name = "Entrance List",
        .window_title = " Entrance List",
        .icon = ICON_MD_DOOR_FRONT,
        .category = "Dungeon",
        .shortcut_hint = "Ctrl+Shift+E",
-       .visibility_flag = &show_entrances_list_,
+       .visibility_flag = nullptr,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
        .disabled_tooltip = "Load a ROM to browse dungeon entrances",
        .priority = 25});
 
   panel_manager->RegisterPanel(
-      {.card_id = MakeCardId("dungeon.entrance_properties"),
+      {.card_id = "dungeon.entrance_properties",
        .display_name = "Entrance Properties",
        .window_title = " Entrance Properties",
        .icon = ICON_MD_TUNE,
@@ -94,52 +102,56 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
        .priority = 26});
 
   panel_manager->RegisterPanel(
-      {.card_id = MakeCardId("dungeon.room_matrix"),
+      {.card_id = kRoomMatrixId,
        .display_name = "Room Matrix",
        .window_title = " Room Matrix",
        .icon = ICON_MD_GRID_VIEW,
        .category = "Dungeon",
        .shortcut_hint = "Ctrl+Shift+M",
-       .visibility_flag = &show_room_matrix_,
+       .visibility_flag = nullptr,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
        .disabled_tooltip = "Load a ROM to view the room matrix",
        .priority = 30});
 
   panel_manager->RegisterPanel(
-      {.card_id = MakeCardId("dungeon.room_graphics"),
+      {.card_id = kRoomGraphicsId,
        .display_name = "Room Graphics",
        .window_title = " Room Graphics",
        .icon = ICON_MD_IMAGE,
        .category = "Dungeon",
        .shortcut_hint = "Ctrl+Shift+G",
-       .visibility_flag = &show_room_graphics_,
+       .visibility_flag = nullptr,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
        .disabled_tooltip = "Load a ROM to view room graphics",
        .priority = 50});
 
   panel_manager->RegisterPanel(
-      {.card_id = MakeCardId("dungeon.object_tools"),
+      {.card_id = kObjectToolsId,
        .display_name = "Object Tools",
        .window_title = " Object Tools",
        .icon = ICON_MD_CONSTRUCTION,
        .category = "Dungeon",
        .shortcut_hint = "Ctrl+Shift+O",
-       .visibility_flag = &show_object_editor_,
+       .visibility_flag = nullptr,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
        .disabled_tooltip = "Load a ROM to edit dungeon objects",
        .priority = 60});
 
   panel_manager->RegisterPanel(
-      {.card_id = MakeCardId("dungeon.palette_editor"),
+      {.card_id = kPaletteEditorId,
        .display_name = "Palette Editor",
        .window_title = " Palette Editor",
        .icon = ICON_MD_PALETTE,
        .category = "Dungeon",
        .shortcut_hint = "Ctrl+Shift+P",
-       .visibility_flag = &show_palette_editor_,
+       .visibility_flag = nullptr,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
        .disabled_tooltip = "Load a ROM to edit dungeon palettes",
        .priority = 70});
+
+  // Show default panels on startup
+  panel_manager->ShowPanel(kControlPanelId);
+  panel_manager->ShowPanel(kRoomSelectorId);
 
   // Register EditorPanel instances
   panel_manager->RegisterEditorPanel(std::make_unique<DungeonRoomSelectorPanel>(
@@ -169,6 +181,12 @@ void DungeonEditorV2::Initialize() {}
 absl::Status DungeonEditorV2::Load() {
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
+  }
+
+  // Load object dimension table for accurate hit-testing
+  auto& dim_table = zelda3::ObjectDimensionTable::Get();
+  if (!dim_table.IsLoaded()) {
+    RETURN_IF_ERROR(dim_table.LoadFromRom(rom_));
   }
 
   RETURN_IF_ERROR(room_loader_.LoadRoomEntrances(entrances_));
@@ -216,6 +234,10 @@ absl::Status DungeonEditorV2::Load() {
   auto object_editor = std::make_unique<ObjectEditorPanel>(
       renderer_, rom_, nullptr, dungeon_editor_system_->GetObjectEditor());
 
+  // Set rooms and initial palette group for correct preview rendering
+  object_editor->SetRooms(&rooms_);
+  object_editor->SetCurrentPaletteGroup(current_palette_group_);
+
   // Keep raw pointer for later access
   object_editor_panel_ = object_editor.get();
 
@@ -228,6 +250,8 @@ absl::Status DungeonEditorV2::Load() {
   // Panel manager takes ownership
   if (dependencies_.panel_manager) {
     dependencies_.panel_manager->RegisterEditorPanel(std::move(object_editor));
+  } else {
+    owned_object_editor_panel_ = std::move(object_editor);
   }
 
   palette_editor_.SetOnPaletteChanged([this](int /*palette_id*/) {
@@ -502,12 +526,7 @@ void DungeonEditorV2::OnRoomSelected(int room_id) {
   if (object_editor_panel_) {
     object_editor_panel_->SetCurrentRoom(room_id);
     // IMPORTANT: Update the viewer reference!
-    // This assumes we update ObjectEditorPanel to support dynamic viewers or
-    // setter For now, if ObjectEditorPanel::SetCanvasViewer exists (we will add
-    // it) object_editor_panel_->SetCanvasViewer(GetViewerForRoom(room_id));
-    // Since I haven't edited ObjectEditorPanel yet, I'll comment this out for
-    // now and assume I will add SetCanvasViewer in the next step. Actually, I
-    // must add it.
+    object_editor_panel_->SetCanvasViewer(GetViewerForRoom(room_id));
   }
 
   for (int i = 0; i < active_rooms_.Size; i++) {
@@ -564,9 +583,16 @@ void DungeonEditorV2::OnRoomSelected(int room_id) {
               game_data()->palette_groups.dungeon_main;
           if (current_palette_id_ < (int)dungeon_main_pal_group.size()) {
             current_palette_ = dungeon_main_pal_group[current_palette_id_];
-            viewer->SetCurrentPaletteGroup(
-                gfx::CreatePaletteGroupFromLargePalette(current_palette_)
-                    .value());
+            auto result =
+                gfx::CreatePaletteGroupFromLargePalette(current_palette_);
+            if (result.ok()) {
+              current_palette_group_ = result.value();
+              viewer->SetCurrentPaletteGroup(current_palette_group_);
+              if (object_editor_panel_) {
+                object_editor_panel_->SetCurrentPaletteGroup(
+                    current_palette_group_);
+              }
+            }
           }
         }
       }
@@ -593,16 +619,16 @@ void DungeonEditorV2::FocusRoom(int room_id) {
 
 void DungeonEditorV2::SelectObject(int obj_id) {
   if (object_editor_panel_) {
-    show_object_editor_ = true;
+    ShowPanel(kObjectToolsId);
     object_editor_panel_->SelectObject(obj_id);
   }
 }
 
 void DungeonEditorV2::SetAgentMode(bool enabled) {
-  if (enabled) {
-    show_room_selector_ = true;
-    show_object_editor_ = true;
-    show_room_graphics_ = true;
+  if (enabled && dependencies_.panel_manager) {
+    ShowPanel(kRoomSelectorId);
+    ShowPanel(kObjectToolsId);
+    ShowPanel(kRoomGraphicsId);
     if (object_editor_panel_) {
       object_editor_panel_->SetAgentOptimizedLayout(true);
     }
