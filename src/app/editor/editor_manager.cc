@@ -629,9 +629,9 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   panel_manager_.SetShowSettingsCallback([this]() {
     SwitchToEditor(EditorType::kSettings);
   });
-  panel_manager_.SetShowCardBrowserCallback([this]() {
+  panel_manager_.SetShowPanelBrowserCallback([this]() {
     if (ui_coordinator_) {
-      ui_coordinator_->ShowCardBrowser();
+      ui_coordinator_->ShowPanelBrowser();
     }
   });
 
@@ -753,14 +753,14 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   ConfigureMenuShortcuts(shortcut_deps, &shortcut_manager_);
 }
 
-void EditorManager::OpenEditorAndCardsFromFlags(const std::string& editor_name,
-                                                const std::string& cards_str) {
+void EditorManager::OpenEditorAndPanelsFromFlags(const std::string& editor_name,
+                                                 const std::string& panels_str) {
   if (editor_name.empty()) {
     return;
   }
 
-  LOG_INFO("EditorManager", "Processing startup flags: editor='%s', cards='%s'",
-           editor_name.c_str(), cards_str.c_str());
+  LOG_INFO("EditorManager", "Processing startup flags: editor='%s', panels='%s'",
+           editor_name.c_str(), panels_str.c_str());
 
   EditorType editor_type_to_open = EditorType::kUnknown;
   for (int i = 0; i < static_cast<int>(EditorType::kSettings); ++i) {
@@ -785,46 +785,46 @@ void EditorManager::OpenEditorAndCardsFromFlags(const std::string& editor_name,
     }
   }
 
-  // Open cards via PanelManager - works for any editor type
-  if (!cards_str.empty()) {
-    std::stringstream ss(cards_str);
-    std::string card_name;
-    while (std::getline(ss, card_name, ',')) {
+  // Open panels via PanelManager - works for any editor type
+  if (!panels_str.empty()) {
+    std::stringstream ss(panels_str);
+    std::string panel_name;
+    while (std::getline(ss, panel_name, ',')) {
       // Trim whitespace
-      card_name.erase(0, card_name.find_first_not_of(" \t"));
-      card_name.erase(card_name.find_last_not_of(" \t") + 1);
+      panel_name.erase(0, panel_name.find_first_not_of(" \t"));
+      panel_name.erase(panel_name.find_last_not_of(" \t") + 1);
 
-      LOG_DEBUG("EditorManager", "Attempting to open card: '%s'",
-                card_name.c_str());
+      LOG_DEBUG("EditorManager", "Attempting to open panel: '%s'",
+                panel_name.c_str());
 
       // Special case: "Room <id>" opens a dungeon room
-      if (absl::StartsWith(card_name, "Room ")) {
+      if (absl::StartsWith(panel_name, "Room ")) {
         if (auto* editor_set = GetCurrentEditorSet()) {
           try {
-            int room_id = std::stoi(card_name.substr(5));
+            int room_id = std::stoi(panel_name.substr(5));
             editor_set->GetDungeonEditor()->add_room(room_id);
           } catch (const std::exception& e) {
             LOG_WARN("EditorManager", "Invalid room ID format: %s",
-                     card_name.c_str());
+                     panel_name.c_str());
           }
         }
       } else {
-        // Let PanelManager handle it directly by card_id
-        panel_manager_.ShowPanel(card_name);
+        // Let PanelManager handle it directly by panel_id
+        panel_manager_.ShowPanel(panel_name);
       }
     }
   }
 }
 
 void EditorManager::ProcessStartupActions(const AppConfig& config) {
-  // Handle startup editor and cards (existing helper)
+  // Handle startup editor and panels
   if (!config.startup_editor.empty()) {
-    std::string cards_str;
-    for (size_t i = 0; i < config.open_cards.size(); ++i) {
-      if (i > 0) cards_str += ",";
-      cards_str += config.open_cards[i];
+    std::string panels_str;
+    for (size_t i = 0; i < config.open_panels.size(); ++i) {
+      if (i > 0) panels_str += ",";
+      panels_str += config.open_panels[i];
     }
-    OpenEditorAndCardsFromFlags(config.startup_editor, cards_str);
+    OpenEditorAndPanelsFromFlags(config.startup_editor, panels_str);
   }
 
   // Handle jump targets
@@ -912,14 +912,14 @@ absl::Status EditorManager::Update() {
     rom_load_options_dialog_.Draw(&show_rom_load_options_);
   }
 
-  // Draw card browser (managed by UICoordinator)
-  if (ui_coordinator_ && ui_coordinator_->IsCardBrowserVisible()) {
+  // Draw panel browser (managed by UICoordinator)
+  if (ui_coordinator_ && ui_coordinator_->IsPanelBrowserVisible()) {
     bool show = true;
     if (activity_bar_) {
       activity_bar_->DrawCardBrowser(GetCurrentSessionId(), &show);
     }
     if (!show) {
-      ui_coordinator_->SetCardBrowserVisible(false);
+      ui_coordinator_->SetPanelBrowserVisible(false);
     }
   }
 
@@ -956,7 +956,7 @@ absl::Status EditorManager::Update() {
 
   // Draw sidebar BEFORE early return so it appears even when no ROM is loaded
   // This fixes the issue where sidebar/panel drawing was unreachable without ROM
-  if (ui_coordinator_ && ui_coordinator_->IsCardSidebarVisible()) {
+  if (ui_coordinator_ && ui_coordinator_->IsPanelSidebarVisible()) {
     // Get ALL editor categories (static list, always shown)
     auto all_categories = EditorRegistry::GetAllEditorCategories();
 
@@ -1129,7 +1129,7 @@ void EditorManager::DrawMenuBar() {
       ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
     }
 
-    if (ui_coordinator_ && ui_coordinator_->IsCardSidebarVisible()) {
+    if (ui_coordinator_ && ui_coordinator_->IsPanelSidebarVisible()) {
       if (ImGui::SmallButton(ICON_MD_MENU)) {
         panel_manager_.ToggleSidebarVisibility();
       }

@@ -28,7 +28,7 @@ struct AppConfig {
 
   // Startup navigation
   std::string startup_editor;            // Editor to open (e.g., "Dungeon")
-  std::vector<std::string> open_cards;   // Card IDs to show (e.g., "dungeon.room_list")
+  std::vector<std::string> open_panels;  // Panel IDs to show (e.g., "dungeon.room_list")
   
   // Jump targets
   int jump_to_room = -1;  // Dungeon room ID (-1 to ignore)

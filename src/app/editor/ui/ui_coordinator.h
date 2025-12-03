@@ -92,13 +92,12 @@ class UICoordinator {
   void ShowLoadWorkspacePresetDialog() { show_load_workspace_preset_ = true; }
   // Session switcher is now managed by SessionCoordinator
   void ShowSessionSwitcher();
-  void HideCurrentEditorCards();
-  void TogglePanelSidebar() { show_card_sidebar_ = !show_card_sidebar_; }
-  // Legacy alias during Card→Panel rename.
-  void ToggleCardSidebar() { TogglePanelSidebar(); }
+  void HideCurrentEditorPanels();
+  // Sidebar visibility delegates to PanelManager (single source of truth)
+  void TogglePanelSidebar();
   void ShowGlobalSearch() { show_global_search_ = true; }
   void ShowCommandPalette() { show_command_palette_ = true; }
-  void ShowCardBrowser() { show_card_browser_ = true; }
+  void ShowPanelBrowser() { show_panel_browser_ = true; }
 
   // Menu bar visibility (for WASM/web app mode)
   bool IsMenuBarVisible() const { return show_menu_bar_; }
@@ -125,11 +124,10 @@ class UICoordinator {
   bool IsPerformanceDashboardVisible() const {
     return show_performance_dashboard_;
   }
-  bool IsCardBrowserVisible() const { return show_card_browser_; }
+  bool IsPanelBrowserVisible() const { return show_panel_browser_; }
   bool IsCommandPaletteVisible() const { return show_command_palette_; }
-  bool IsPanelSidebarVisible() const { return show_card_sidebar_; }
-  // Legacy alias during Card→Panel rename.
-  bool IsCardSidebarVisible() const { return IsPanelSidebarVisible(); }
+  // Sidebar visibility delegates to PanelManager (single source of truth)
+  bool IsPanelSidebarVisible() const;
   bool IsImGuiDemoVisible() const { return show_imgui_demo_; }
   bool IsImGuiMetricsVisible() const { return show_imgui_metrics_; }
   // Emulator visibility delegates to PanelManager (single source of truth)
@@ -161,13 +159,12 @@ class UICoordinator {
   void SetPerformanceDashboardVisible(bool visible) {
     show_performance_dashboard_ = visible;
   }
-  void SetCardBrowserVisible(bool visible) { show_card_browser_ = visible; }
+  void SetPanelBrowserVisible(bool visible) { show_panel_browser_ = visible; }
   void SetCommandPaletteVisible(bool visible) {
     show_command_palette_ = visible;
   }
-  void SetPanelSidebarVisible(bool visible) { show_card_sidebar_ = visible; }
-  // Legacy alias during Card→Panel rename.
-  void SetCardSidebarVisible(bool visible) { SetPanelSidebarVisible(visible); }
+  // Sidebar visibility delegates to PanelManager (single source of truth)
+  void SetPanelSidebarVisible(bool visible);
   void SetImGuiDemoVisible(bool visible) { show_imgui_demo_ = visible; }
   void SetImGuiMetricsVisible(bool visible) { show_imgui_metrics_ = visible; }
   // Emulator visibility delegates to PanelManager (single source of truth)
@@ -208,9 +205,10 @@ class UICoordinator {
   bool show_imgui_demo_ = false;
   bool show_imgui_metrics_ = false;
   bool show_test_dashboard_ = false;
-  bool show_card_browser_ = false;
+  bool show_panel_browser_ = false;
   bool show_command_palette_ = false;
   // show_emulator_ removed - now managed by PanelManager
+  // show_panel_sidebar_ removed - now managed by PanelManager
   bool show_memory_editor_ = false;
   bool show_asm_editor_ = false;
   bool show_palette_editor_ = false;
@@ -220,7 +218,6 @@ class UICoordinator {
   bool show_proposal_drawer_ = false;
   bool show_save_workspace_preset_ = false;
   bool show_load_workspace_preset_ = false;
-  bool show_card_sidebar_ = true;  // Show sidebar by default
   bool show_menu_bar_ = true;      // Menu bar visible by default
 
   // Command Palette state

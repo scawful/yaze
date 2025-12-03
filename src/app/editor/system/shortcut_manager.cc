@@ -139,6 +139,10 @@ std::vector<ImGuiKey> ParseShortcut(const std::string& shortcut) {
 
 void ExecuteShortcuts(const ShortcutManager& shortcut_manager) {
   // Check for keyboard shortcuts using the shortcut manager
+  // Note: ImGui automatically swaps Cmd/Ctrl on macOS, so io.KeyCtrl is true
+  // when Cmd is pressed on macOS. No platform-specific handling needed here.
+  const ImGuiIO& io = ImGui::GetIO();
+
   for (const auto& shortcut : shortcut_manager.GetShortcuts()) {
     bool modifiers_held = true;
     bool key_pressed = false;
@@ -150,13 +154,13 @@ void ExecuteShortcuts(const ShortcutManager& shortcut_manager) {
           key == ImGuiMod_Shift || key == ImGuiMod_Super) {
         // Check if modifier is held
         if (key == ImGuiMod_Ctrl) {
-          modifiers_held &= ImGui::GetIO().KeyCtrl;
+          modifiers_held &= io.KeyCtrl;
         } else if (key == ImGuiMod_Alt) {
-          modifiers_held &= ImGui::GetIO().KeyAlt;
+          modifiers_held &= io.KeyAlt;
         } else if (key == ImGuiMod_Shift) {
-          modifiers_held &= ImGui::GetIO().KeyShift;
+          modifiers_held &= io.KeyShift;
         } else if (key == ImGuiMod_Super) {
-          modifiers_held &= ImGui::GetIO().KeySuper;
+          modifiers_held &= io.KeySuper;
         }
       } else {
         // This is the main key - use IsKeyPressed for single trigger

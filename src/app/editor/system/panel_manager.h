@@ -261,7 +261,7 @@ class PanelManager {
 
   void TriggerShowEmulator() { if (on_show_emulator_) on_show_emulator_(); }
   void TriggerShowSettings() { if (on_show_settings_) on_show_settings_(); }
-  void TriggerShowCardBrowser() { if (on_show_card_browser_) on_show_card_browser_(); }
+  void TriggerShowPanelBrowser() { if (on_show_panel_browser_) on_show_panel_browser_(); }
   void TriggerSaveRom() { if (on_save_rom_) on_save_rom_(); }
   void TriggerUndo() { if (on_undo_) on_undo_(); }
   void TriggerRedo() { if (on_redo_) on_redo_(); }
@@ -281,8 +281,8 @@ class PanelManager {
   void SetShowSettingsCallback(std::function<void()> cb) {
     on_show_settings_ = std::move(cb);
   }
-  void SetShowCardBrowserCallback(std::function<void()> cb) {
-    on_show_card_browser_ = std::move(cb);
+  void SetShowPanelBrowserCallback(std::function<void()> cb) {
+    on_show_panel_browser_ = std::move(cb);
   }
   void SetSaveRomCallback(std::function<void()> cb) {
     on_save_rom_ = std::move(cb);
@@ -594,7 +594,7 @@ class PanelManager {
   // Utility icon callbacks
   std::function<void()> on_show_emulator_;
   std::function<void()> on_show_settings_;
-  std::function<void()> on_show_card_browser_;
+  std::function<void()> on_show_panel_browser_;
   std::function<void()> on_save_rom_;
   std::function<void()> on_undo_;
   std::function<void()> on_redo_;

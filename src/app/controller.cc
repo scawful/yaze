@@ -56,11 +56,11 @@ absl::Status Controller::OnEntry(std::string filename) {
 }
 
 void Controller::SetStartupEditor(const std::string& editor_name,
-                                  const std::string& cards) {
-  // Process command-line flags for editor and cards
-  // Example: --editor=Dungeon --cards="Rooms List,Room 0,Room 105"
+                                  const std::string& panels) {
+  // Process command-line flags for editor and panels
+  // Example: --editor=Dungeon --open_panels="dungeon.room_list,Room 0"
   if (!editor_name.empty()) {
-    editor_manager_.OpenEditorAndCardsFromFlags(editor_name, cards);
+    editor_manager_.OpenEditorAndPanelsFromFlags(editor_name, panels);
   }
 }
 
