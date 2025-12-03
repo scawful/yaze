@@ -12,6 +12,7 @@
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "util/log.h"
+#include "zelda3/dungeon/editor_dungeon_state.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/sprite/sprite.h"
@@ -170,16 +171,20 @@ RoomSize CalculateRoomSize(Rom* rom, int room_id) {
 }
 
 // Loads a room from the ROM.
+// ASM: Bank 01, Underworld_LoadRoom ($01873A)
 Room LoadRoomFromRom(Rom* rom, int room_id) {
   // Use the header loader to get the base room with properties
+  // ASM: JSR Underworld_LoadHeader ($01873A)
   Room room = LoadRoomHeaderFromRom(rom, room_id);
 
   // Load room objects
+  // ASM: RoomData_ObjectDataPointers ($018742 - reads pointer table)
   int object_pointer = SnesToPc(room_object_pointer);
   int room_address = object_pointer + (room_id * 3);
   int objects_location = SnesToPc(room_address);
 
   // Load sprites
+  // ASM: Bank 09 logic (referenced via long pointers in Bank 01)
   int spr_ptr = 0x040000 | rooms_sprite_pointer;
   int sprite_address = SnesToPc(dungeon_spr_ptrs | spr_ptr + (room_id * 2));
 
@@ -208,6 +213,7 @@ Room LoadRoomHeaderFromRom(Rom* rom, int room_id) {
     return room;
   }
 
+  // ASM: RoomHeader_RoomToPointer table lookup
   int header_pointer = (rom->data()[kRoomHeaderPointer + 2] << 16) +
                        (rom->data()[kRoomHeaderPointer + 1] << 8) +
                        (rom->data()[kRoomHeaderPointer]);
@@ -348,16 +354,32 @@ Room LoadRoomHeaderFromRom(Rom* rom, int room_id) {
   return room;
 }
 
+Room::Room(int room_id, Rom* rom, GameData* game_data)
+    : room_id_(room_id),
+      rom_(rom),
+      game_data_(game_data),
+      dungeon_state_(std::make_unique<EditorDungeonState>(rom, game_data)) {}
+
+Room::Room() = default;
+Room::~Room() = default;
+Room::Room(Room&&) = default;
+Room& Room::operator=(Room&&) = default;
+
 void Room::LoadRoomGraphics(uint8_t entrance_blockset) {
-  const auto& room_gfx = game_data()->room_blockset_ids;
-  const auto& sprite_gfx = game_data()->spriteset_ids;
+  if (!game_data_) {
+    printf("[LoadRoomGraphics] GameData not set for room %d\n", room_id_);
+    return;
+  }
+
+  const auto& room_gfx = game_data_->room_blockset_ids;
+  const auto& sprite_gfx = game_data_->spriteset_ids;
 
   // DEBUG: Log blockset being used
   printf("[LoadRoomGraphics] Room %d: blockset=%d, spriteset=%d, palette=%d\n",
          room_id_, blockset, spriteset, palette);
 
   for (int i = 0; i < 8; i++) {
-    blocks_[i] = game_data()->main_blockset_ids[blockset][i];
+    blocks_[i] = game_data_->main_blockset_ids[blockset][i];
     // Block 6 can be overridden by entrance-specific room graphics (index 3)
     // Note: The "3-6" comment was misleading - only block 6 uses room_gfx
     if (i == 6) {
@@ -577,10 +599,9 @@ void Room::RenderRoomGraphics() {
                           floor2_graphics_);
   }
 
-  // STEP 3: Load layout tiles (walls/structure) ON TOP of floor
-  if (layout_dirty_ || need_floor_draw) {
-    LoadLayoutTilesToBuffer();
-  }
+  // NOTE: Layout tiles are already loaded in STEP 1 above when layout_dirty_
+  // was true. We do NOT call LoadLayoutTilesToBuffer() again here to avoid
+  // duplicate rendering.
 
   // STEP 4: Draw background tiles to buffers
   bool need_bg_draw = was_graphics_dirty || need_floor_draw || layout_dirty_;
@@ -598,9 +619,9 @@ void Room::RenderRoomGraphics() {
   // Use palette indirection table lookup (same as dungeon_canvas_viewer.cc line
   // 854)
   int palette_id = palette;  // Default fallback
-  if (palette < game_data()->paletteset_ids.size() &&
-      !game_data()->paletteset_ids[palette].empty()) {
-    auto dungeon_palette_ptr = game_data()->paletteset_ids[palette][0];
+  if (palette < game_data_->paletteset_ids.size() &&
+      !game_data_->paletteset_ids[palette].empty()) {
+    auto dungeon_palette_ptr = game_data_->paletteset_ids[palette][0];
     auto palette_word = rom()->ReadWord(0xDEC4B + dungeon_palette_ptr);
     if (palette_word.ok()) {
       palette_id =
@@ -634,26 +655,34 @@ void Room::RenderRoomGraphics() {
 
   if (bg1_palette.size() > 0) {
     // Apply FULL 90-color dungeon palette
-    // Define helper to set full dungeon palette with shifted indices
+    // IMPORTANT: Palette colors must NOT be shifted! The drawing code uses:
+    //   final_color = (pixel - 1) + palette_offset
+    // Where pixel 0 is never drawn (transparent), and pixel 1 maps to index 0.
+    // So palette[0] must be the FIRST actual color, not transparent.
     auto set_dungeon_palette = [](gfx::Bitmap& bmp, const gfx::SnesPalette& pal) {
       std::vector<SDL_Color> colors(256);
-      // Index 0 is transparent (will be set by SetColorKey)
-      colors[0] = {0, 0, 0, 0};
-      
-      // Map palette colors to indices 1..N
-      for (size_t i = 0; i < pal.size() && i < 255; ++i) {
+
+      // Map palette colors directly to indices 0..N-1 (NO SHIFT!)
+      // This matches the drawing formula: (pixel - 1) + palette_offset
+      // pixel=1, pal=0 → index 0 = first color
+      for (size_t i = 0; i < pal.size() && i < 256; ++i) {
         ImVec4 rgb = pal[i].rgb();
-        colors[i + 1] = {
+        colors[i] = {
             static_cast<Uint8>(rgb.x),
             static_cast<Uint8>(rgb.y),
             static_cast<Uint8>(rgb.z),
             255 // Opaque
         };
       }
-      
+
+      // Use index 255 as the transparent color key (never used in 90-color palette)
+      // Transparent pixels (pixel=0) are never written, so this is safe
+      colors[255] = {0, 0, 0, 0};
+
       bmp.SetPalette(colors);
       if (bmp.surface()) {
-        SDL_SetColorKey(bmp.surface(), SDL_TRUE, 0);
+        // Set color key to 255 (unused index) for proper alpha blending
+        SDL_SetColorKey(bmp.surface(), SDL_TRUE, 255);
         SDL_SetSurfaceBlendMode(bmp.surface(), SDL_BLENDMODE_BLEND);
       }
     };
@@ -772,12 +801,8 @@ void Room::LoadLayoutTilesToBuffer() {
     return;
   }
 
-  // Clear layout buffers before loading
-  bg1_buffer_.bitmap().Fill(0);
-  bg2_buffer_.bitmap().Fill(0);
-
   // Load layout tiles from ROM if not already loaded
-  layout_.set_rom(rom_);
+  layout_.SetRom(rom_);
   auto layout_status = layout_.LoadLayout(layout);
   if (!layout_status.ok()) {
     LOG_DEBUG("RenderRoomGraphics", "Failed to load layout %d: %s",
@@ -792,33 +817,48 @@ void Room::LoadLayoutTilesToBuffer() {
     return;
   }
 
-  int tiles_written_bg1 = 0;
-  int tiles_written_bg2 = 0;
-  int tiles_skipped = 0;
-
-  for (const auto& layout_obj : layout_objects) {
-    uint8_t x = layout_obj.x();
-    uint8_t y = layout_obj.y();
-
-    auto tile_result = layout_obj.GetTile(0);
-    if (!tile_result.ok()) {
-      tiles_skipped++;
-      continue;
-    }
-    const auto* tile_info = tile_result.value();
-    uint16_t tile_word = gfx::TileInfoToWord(*tile_info);
-
-    if (layout_obj.GetLayerValue() == 1) {
-      bg2_buffer_.SetTileAt(x, y, tile_word);
-      tiles_written_bg2++;
-    } else {
-      bg1_buffer_.SetTileAt(x, y, tile_word);
-      tiles_written_bg1++;
-    }
+  // Use ObjectDrawer to render layout objects properly
+  // Layout objects are the same format as room objects and need draw routines
+  // to render correctly (walls, corners, etc.)
+  if (!game_data_) {
+    LOG_DEBUG("RenderRoomGraphics", "GameData not set, cannot render layout");
+    return;
   }
 
-  LOG_DEBUG("RenderRoomGraphics", "Layout tiles: BG1=%d BG2=%d skipped=%d",
-            tiles_written_bg1, tiles_written_bg2, tiles_skipped);
+  // Get palette for layout rendering
+  auto& dungeon_pal_group = game_data_->palette_groups.dungeon_main;
+  int num_palettes = dungeon_pal_group.size();
+  int palette_id = palette;
+  if (palette < game_data_->paletteset_ids.size() &&
+      !game_data_->paletteset_ids[palette].empty()) {
+    auto dungeon_palette_ptr = game_data_->paletteset_ids[palette][0];
+    auto palette_word = rom()->ReadWord(0xDEC4B + dungeon_palette_ptr);
+    if (palette_word.ok()) {
+      palette_id = palette_word.value() / 180;
+    }
+  }
+  if (palette_id < 0 || palette_id >= num_palettes) {
+    palette_id = 0;
+  }
+
+  auto room_palette = dungeon_pal_group[palette_id];
+  gfx::PaletteGroup palette_group;
+  palette_group.AddPalette(room_palette);
+
+  // Create ObjectDrawer for layout rendering
+  ObjectDrawer drawer(rom_, room_id_, current_gfx16_.data());
+
+  // Draw layout objects using proper draw routines
+  auto status = drawer.DrawObjectList(layout_objects, bg1_buffer_, bg2_buffer_,
+                                       palette_group, dungeon_state_.get());
+
+  if (!status.ok()) {
+    LOG_DEBUG("RenderRoomGraphics", "Layout ObjectDrawer failed: %s",
+              std::string(status.message().data(), status.message().size()).c_str());
+  } else {
+    LOG_DEBUG("RenderRoomGraphics", "Layout rendered with %zu objects",
+              layout_objects.size());
+  }
 }
 
 void Room::RenderObjectsToBackground() {
@@ -856,9 +896,9 @@ void Room::RenderObjectsToBackground() {
 
   // Use palette indirection table lookup
   int palette_id = palette;
-  if (palette < game_data()->paletteset_ids.size() &&
-      !game_data()->paletteset_ids[palette].empty()) {
-    auto dungeon_palette_ptr = game_data()->paletteset_ids[palette][0];
+  if (palette < game_data_->paletteset_ids.size() &&
+      !game_data_->paletteset_ids[palette].empty()) {
+    auto dungeon_palette_ptr = game_data_->paletteset_ids[palette][0];
     auto palette_word = rom()->ReadWord(0xDEC4B + dungeon_palette_ptr);
     if (palette_word.ok()) {
       palette_id = palette_word.value() / 180;
@@ -879,27 +919,31 @@ void Room::RenderObjectsToBackground() {
   // This provides proper wall/object drawing patterns
   // Pass the room-specific graphics buffer (current_gfx16_) so objects use
   // correct tiles
-  ObjectDrawer drawer(rom_, current_gfx16_.data());
+  ObjectDrawer drawer(rom_, room_id_, current_gfx16_.data());
   
   // Clear object buffers before rendering
+  // IMPORTANT: Fill with 255 (transparent color key) so objects overlay correctly
+  // on the floor. We use index 255 as transparent since palette has 90 colors (0-89).
   object_bg1_buffer_.EnsureBitmapInitialized();
   object_bg2_buffer_.EnsureBitmapInitialized();
-  object_bg1_buffer_.bitmap().Fill(0);
-  object_bg2_buffer_.bitmap().Fill(0);
+  object_bg1_buffer_.bitmap().Fill(255);
+  object_bg2_buffer_.bitmap().Fill(255);
   
   // Render objects to appropriate buffers
   // BG1 = Floor/Main (Layer 0, 2)
   // BG2 = Overlay (Layer 1)
   auto status = drawer.DrawObjectList(tile_objects_, object_bg1_buffer_, object_bg2_buffer_,
-                                      palette_group);
+                                      palette_group, dungeon_state_.get());
 
   // Render doors
-  for (const auto& door : doors_) {
+  for (int i = 0; i < doors_.size(); ++i) {
+    const auto& door = doors_[i];
     ObjectDrawer::DoorDef door_def;
     door_def.type = door.type;
     door_def.direction = door.direction;
     door_def.position = door.position;
-    drawer.DrawDoor(door_def, object_bg1_buffer_, object_bg2_buffer_);
+    // Pass door index for state lookup
+    drawer.DrawDoor(door_def, i, object_bg1_buffer_, object_bg2_buffer_, dungeon_state_.get());
   }
 
   // Render pot items
@@ -1117,6 +1161,7 @@ void Room::ParseObjectsFromLocation(int objects_location) {
   bool end_read = false;
 
   // Enhanced parsing loop with bounds checking
+  // ASM: Main object loop logic (implicit in structure)
   while (!end_read && pos < (int)rom_->size()) {
     // Check if we have enough bytes to read
     if (pos + 1 >= (int)rom_->size()) {
@@ -1126,6 +1171,8 @@ void Room::ParseObjectsFromLocation(int objects_location) {
     b1 = rom_data[pos];
     b2 = rom_data[pos + 1];
 
+    // ASM Marker: 0xFF 0xFF - End of Layer
+    // Signals transition from BG2 (Layer 0) -> BG1 (Layer 1) -> BG1 Priority (Layer 2)
     if (b1 == 0xFF && b2 == 0xFF) {
       pos += 2;  // Jump to next layer
       layer++;
@@ -1136,6 +1183,8 @@ void Room::ParseObjectsFromLocation(int objects_location) {
       continue;
     }
 
+    // ASM Marker: 0xF0 0xFF - Start of Door List
+    // See RoomDraw_DoorObject ($018916) logic
     if (b1 == 0xF0 && b2 == 0xFF) {
       pos += 2;  // Jump to door section
       door = true;
@@ -1155,14 +1204,15 @@ void Room::ParseObjectsFromLocation(int objects_location) {
     }
 
     if (!door) {
-      // Use the refactored encoding/decoding functions (Phase 1, Task 1.2)
+      // ASM: RoomDraw_RoomObject ($01893C)
+      // Handles Subtype 1, 2, 3 parsing based on byte values
       RoomObject r = RoomObject::DecodeObjectFromBytes(
           b1, b2, b3, static_cast<uint8_t>(layer));
 
       // Validate object ID before adding to the room
       // Object IDs can be up to 12-bit (0xFFF) to support Type 3 objects
       if (r.id_ >= 0 && r.id_ <= 0xFFF) {
-        r.set_rom(rom_);
+        r.SetRom(rom_);
         tile_objects_.push_back(r);
 
         // Handle special object types (staircases, chests, etc.)
@@ -1170,6 +1220,7 @@ void Room::ParseObjectsFromLocation(int objects_location) {
       }
     } else {
       // Handle door objects
+      // ASM: Door objects are 2 bytes: [Pos+Dir] [Type]
       Door d;
       d.byte1 = b1;
       d.byte2 = b2;
@@ -1647,7 +1698,7 @@ void Room::LoadTorches() {
 
         // Create torch object (ID 0x150)
         RoomObject torch_obj(0x150, px, py, 0, layer);
-        torch_obj.set_rom(rom_);
+        torch_obj.SetRom(rom_);
         torch_obj.set_options(ObjectOption::Torch);
         // Store lit state if needed (may require adding a field to RoomObject)
 
@@ -1735,7 +1786,7 @@ void Room::LoadBlocks() {
 
       // Create block object (ID 0x0E00)
       RoomObject block_obj(0x0E00, px, py, 0, layer);
-      block_obj.set_rom(rom_);
+      block_obj.SetRom(rom_);
       block_obj.set_options(ObjectOption::Block);
 
       tile_objects_.push_back(block_obj);

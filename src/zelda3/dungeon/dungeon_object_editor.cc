@@ -163,7 +163,7 @@ absl::Status DungeonObjectEditor::InsertObject(int x, int y, int object_type,
 
   // Create new object
   RoomObject new_object(object_type, x, y, size, layer);
-  new_object.set_rom(rom_);
+  new_object.SetRom(rom_);
   new_object.EnsureTilesLoaded();
 
   // Check for collisions if validation is enabled
@@ -1232,7 +1232,7 @@ void DungeonObjectEditor::UpdatePreviewObject() {
         RoomObject(editing_state_.current_object_type, editing_state_.preview_x,
                    editing_state_.preview_y, editing_state_.preview_size,
                    editing_state_.current_layer);
-    preview_object_->set_rom(rom_);
+    preview_object_->SetRom(rom_);
     preview_object_->EnsureTilesLoaded();
     preview_visible_ = true;
   } else {
@@ -1781,7 +1781,7 @@ std::vector<ObjectCategory> GetObjectCategories() {
       {"Interactive", {0xF9, 0xFA, 0xFB}, "Interactive objects like chests"},
       {"Stairs", {0x13, 0x14, 0x15, 0x16}, "Staircase objects"},
       {"Doors", {0x17, 0x18, 0x19, 0x1A}, "Door objects"},
-      {"Special", {0x200, 0x201, 0x202, 0x203}, "Special dungeon objects"}};
+      {"Special", {0xF80, 0xF81, 0xF82, 0xF97}, "Special dungeon objects (Type 3)"}};
 }
 
 absl::StatusOr<std::vector<int>> GetObjectsInCategory(
