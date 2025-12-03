@@ -564,21 +564,12 @@ void Room::RenderRoomGraphics() {
     graphics_dirty_ = false;
   }
 
-  // STEP 1: Load layout tiles if needed
-  if (layout_dirty_) {
-    LoadLayoutTilesToBuffer();
-    layout_dirty_ = false;
-  }
-
   // Debug: Log floor graphics values
   LOG_DEBUG("[RenderRoomGraphics]",
             "Room %d: floor1=%d, floor2=%d, blocks_size=%zu", room_id_,
             floor1_graphics_, floor2_graphics_, blocks_.size());
 
-  // LoadGraphicsSheetsIntoArena() removed - using per-room graphics instead
-  // Arena sheets are optional and not needed for room rendering
-
-  // STEP 2: Draw floor tiles to bitmaps (base layer) - if graphics changed OR
+  // STEP 1: Draw floor tiles to bitmaps (base layer) - if graphics changed OR
   // bitmaps not created yet
   bool need_floor_draw = was_graphics_dirty;
   auto& bg1_bmp = bg1_buffer_.bitmap();
@@ -599,15 +590,19 @@ void Room::RenderRoomGraphics() {
                           floor2_graphics_);
   }
 
-  // NOTE: Layout tiles are already loaded in STEP 1 above when layout_dirty_
-  // was true. We do NOT call LoadLayoutTilesToBuffer() again here to avoid
-  // duplicate rendering.
-
-  // STEP 4: Draw background tiles to buffers
-  bool need_bg_draw = was_graphics_dirty || need_floor_draw || layout_dirty_;
+  // STEP 2: Draw background tiles (floor pattern) to bitmap
+  // This converts the floor tile buffer to pixels
+  bool need_bg_draw = was_graphics_dirty || need_floor_draw;
   if (need_bg_draw) {
     bg1_buffer_.DrawBackground(std::span<uint8_t>(current_gfx16_));
     bg2_buffer_.DrawBackground(std::span<uint8_t>(current_gfx16_));
+  }
+
+  // STEP 3: Draw layout objects ON TOP of floor
+  // Layout objects (walls, corners) are drawn after floor so they appear over it
+  if (was_layout_dirty || need_floor_draw) {
+    LoadLayoutTilesToBuffer();
+    layout_dirty_ = false;
   }
 
   // Get and apply palette BEFORE rendering objects (so objects use correct
