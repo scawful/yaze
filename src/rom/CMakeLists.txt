@@ -10,6 +10,7 @@
 set(YAZE_ROM_LIB_SOURCES
   rom.cc
   rom_diagnostics.cc
+  hm_support.cc
 )
 
 add_library(yaze_rom STATIC ${YAZE_ROM_LIB_SOURCES})

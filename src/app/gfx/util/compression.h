@@ -19,8 +19,9 @@ std::vector<uint8_t> HyruleMagicCompress(uint8_t const* const src,
                                          int const oldsize, int* const size,
                                          int const flag);
 
-std::vector<uint8_t> HyruleMagicDecompress(uint8_t const* src, int* const size,
-                                           int const p_big_endian);
+std::vector<uint8_t> HyruleMagicDecompress(
+    uint8_t const* src, int* const size, int const p_big_endian,
+    size_t max_src_size = static_cast<size_t>(-1));
 
 /**
  * @namespace yaze::gfx::lc_lz2
