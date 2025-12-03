@@ -705,8 +705,10 @@ absl::Status Overworld::DecompressAllMapTilesParallel() {
       lowest = p2;
 
     int size1, size2;
-    auto bytes = gfx::HyruleMagicDecompress(rom()->data() + p2, &size1, 1);
-    auto bytes2 = gfx::HyruleMagicDecompress(rom()->data() + p1, &size2, 1);
+    size_t max_size_p2 = rom()->size() - p2;
+    auto bytes = gfx::HyruleMagicDecompress(rom()->data() + p2, &size1, 1, max_size_p2);
+    size_t max_size_p1 = rom()->size() - p1;
+    auto bytes2 = gfx::HyruleMagicDecompress(rom()->data() + p1, &size2, 1, max_size_p1);
 
     // If decompression fails, use blank tiles to keep map index usable
     if (bytes.empty() || bytes2.empty()) {

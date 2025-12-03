@@ -9,13 +9,13 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/editor.h"
+#include "app/editor/system/panel_manager.h"
 #include "app/emu/render/emulator_render_service.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/app/editor_layout.h"
 #include "app/gui/widgets/dungeon_object_emulator_preview.h"
 #include "app/gui/widgets/palette_editor_widget.h"
 #include "dungeon_canvas_viewer.h"
-#include "dungeon_object_selector.h"
 #include "dungeon_room_loader.h"
 #include "dungeon_room_selector.h"
 #include "imgui/imgui.h"
@@ -130,17 +130,21 @@ class DungeonEditorV2 : public Editor {
     return absl::StrFormat("ROM loaded: %s", rom_->title());
   }
 
-  // Card visibility flags - Public for command-line flag access
-  // TODO(scawful): Fix boolean panel access anti-pattern.
-  bool show_room_selector_ = false;  // Room selector/list card
-  bool show_room_matrix_ = false;    // Dungeon matrix layout
-  bool show_entrances_list_ =
-      false;  // Entrance list card (renamed from entrances_matrix_)
-  bool show_room_graphics_ = false;   // Room graphics card
-  bool show_object_editor_ = false;   // Object editor card
-  bool show_palette_editor_ = false;  // Palette editor card
-  bool show_debug_controls_ = false;  // Debug controls card
-  bool show_control_panel_ = true;    // Control panel (visible by default)
+  // Show a panel by its card_id using PanelManager
+  void ShowPanel(const std::string& card_id) {
+    if (dependencies_.panel_manager) {
+      dependencies_.panel_manager->ShowPanel(card_id);
+    }
+  }
+
+  // Panel card IDs for programmatic access
+  static constexpr const char* kControlPanelId = "dungeon.control_panel";
+  static constexpr const char* kRoomSelectorId = "dungeon.room_selector";
+  static constexpr const char* kEntranceListId = "dungeon.entrance_list";
+  static constexpr const char* kRoomMatrixId = "dungeon.room_matrix";
+  static constexpr const char* kRoomGraphicsId = "dungeon.room_graphics";
+  static constexpr const char* kObjectToolsId = "dungeon.object_tools";
+  static constexpr const char* kPaletteEditorId = "dungeon.palette_editor";
 
   // Public accessors for WASM API and automation
   int current_room_id() const { return room_selector_.current_room_id(); }
@@ -203,6 +207,7 @@ class DungeonEditorV2 : public Editor {
 
   gui::PaletteEditorWidget palette_editor_;
   ObjectEditorPanel* object_editor_panel_ = nullptr;  // Owned by PanelManager
+  std::unique_ptr<ObjectEditorPanel> owned_object_editor_panel_;  // Fallback ownership for tests
   std::unique_ptr<zelda3::DungeonEditorSystem> dungeon_editor_system_;
   std::unique_ptr<emu::render::EmulatorRenderService> render_service_;
 

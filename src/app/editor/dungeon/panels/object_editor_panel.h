@@ -79,8 +79,14 @@ class ObjectEditorPanel : public EditorPanel {
   // Context Management
   // ==========================================================================
 
-  void SetCurrentRoom(int room_id) { current_room_id_ = room_id; }
-  void SetCanvasViewer(DungeonCanvasViewer* viewer) { canvas_viewer_ = viewer; }
+  void SetCurrentRoom(int room_id) {
+    current_room_id_ = room_id;
+    object_selector_.set_current_room_id(room_id);
+  }
+  void SetCanvasViewer(DungeonCanvasViewer* viewer) {
+    canvas_viewer_ = viewer;
+    SetupSelectionCallbacks();
+  }
 
   void SetContext(EditorContext ctx) {
     object_selector_.SetContext(ctx);
@@ -91,6 +97,14 @@ class ObjectEditorPanel : public EditorPanel {
   void SetGameData(zelda3::GameData* game_data) {
     object_selector_.SetGameData(game_data);
     emulator_preview_.SetGameData(game_data);
+  }
+
+  void SetRooms(std::array<zelda3::Room, 0x128>* rooms) {
+    object_selector_.set_rooms(rooms);
+  }
+
+  void SetCurrentPaletteGroup(const gfx::PaletteGroup& group) {
+    object_selector_.SetCurrentPaletteGroup(group);
   }
 
   // ==========================================================================

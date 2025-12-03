@@ -7,6 +7,7 @@
 
 #include "app/gui/canvas/canvas.h"
 #include "imgui/imgui.h"
+#include "zelda3/dungeon/object_dimensions.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
 
