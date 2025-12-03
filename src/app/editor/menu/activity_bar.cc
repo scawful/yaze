@@ -165,7 +165,7 @@ void ActivityBar::DrawActivityBarStrip(
           ImGui::PopStyleColor();
         } else {
           ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-          ImGui::TextUnformatted("Click to view cards");
+          ImGui::TextUnformatted("Click to view panels");
           ImGui::PopStyleColor();
         }
         ImGui::EndTooltip();
@@ -235,11 +235,11 @@ void ActivityBar::DrawSidePanel(
 
     // Header Buttons (Right Aligned)
     float avail_width = ImGui::GetContentRegionAvail().x;
-    float button_size = 24.0f;
+    float button_size = 28.0f;
     float spacing = 4.0f;
     float current_x = ImGui::GetCursorPosX() + avail_width - button_size;
 
-    // Collapse Button
+    // Collapse Button (rightmost)
     ImGui::SameLine(current_x);
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 4.0f);
     if (ImGui::Button(ICON_MD_KEYBOARD_DOUBLE_ARROW_LEFT, ImVec2(button_size, button_size))) {
@@ -249,14 +249,24 @@ void ActivityBar::DrawSidePanel(
       ImGui::SetTooltip("Collapse Panel");
     }
 
-    // Close All Button
+    // Close All Panels Button
     current_x -= (button_size + spacing);
     ImGui::SameLine(current_x);
     if (ImGui::Button(ICON_MD_CLOSE_FULLSCREEN, ImVec2(button_size, button_size))) {
       panel_manager_.HideAllPanelsInCategory(session_id, category);
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Close All Cards in Category");
+      ImGui::SetTooltip("Close All Panels");
+    }
+
+    // Expand All Panels Button
+    current_x -= (button_size + spacing);
+    ImGui::SameLine(current_x);
+    if (ImGui::Button(ICON_MD_OPEN_IN_FULL, ImVec2(button_size, button_size))) {
+      panel_manager_.ShowAllPanelsInCategory(session_id, category);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Show All Panels");
     }
 
     ImGui::Spacing();
@@ -515,7 +525,7 @@ void ActivityBar::DrawCardBrowser(size_t session_id, bool* p_open) {
   ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
 
   if (ImGui::Begin(
-          absl::StrFormat("%s Card Browser", ICON_MD_DASHBOARD).c_str(),
+          absl::StrFormat("%s Panel Browser", ICON_MD_DASHBOARD).c_str(),
           p_open)) {
     static char search_filter[256] = "";
     static std::string category_filter = "All";
@@ -524,7 +534,7 @@ void ActivityBar::DrawCardBrowser(size_t session_id, bool* p_open) {
     ImGui::SetNextItemWidth(300);
     ImGui::InputTextWithHint(
         "##Search",
-        absl::StrFormat("%s Search cards...", ICON_MD_SEARCH).c_str(),
+        absl::StrFormat("%s Search panels...", ICON_MD_SEARCH).c_str(),
         search_filter, sizeof(search_filter));
 
     ImGui::SameLine();

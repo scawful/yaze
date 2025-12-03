@@ -90,24 +90,17 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
   auto* popup_manager = deps.popup_manager;
   auto* panel_manager = deps.panel_manager;
 
-  RegisterIfValid(shortcut_manager, "global.toggle_sidebar",
-                  {ImGuiKey_LeftCtrl, ImGuiKey_B},
-                  [ui_coordinator]() {
-                    if (ui_coordinator) {
-                      ui_coordinator->TogglePanelSidebar();
-                    }
-                  },
-                  Shortcut::Scope::kGlobal);
-
-  // Activity bar / side panel visibility
+  // Toggle activity bar (48px icon strip) visibility
   RegisterIfValid(shortcut_manager, "view.toggle_activity_bar",
-                  {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_B},
+                  {ImGuiMod_Ctrl, ImGuiKey_B},
                   [panel_manager]() {
                     if (panel_manager) {
                       panel_manager->ToggleSidebarVisibility();
                     }
                   },
                   Shortcut::Scope::kGlobal);
+
+  // Toggle side panel (250px expanded panel) expansion
   RegisterIfValid(shortcut_manager, "view.toggle_side_panel",
                   {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_E},
                   [panel_manager]() {
@@ -371,13 +364,13 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
   RegisterIfValid(shortcut_manager, "Panel Browser", {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_B},
                   [ui_coordinator]() {
                     if (ui_coordinator) {
-                      ui_coordinator->ShowCardBrowser();
+                      ui_coordinator->ShowPanelBrowser();
                     }
                   }, Shortcut::Scope::kGlobal);
   RegisterIfValid(shortcut_manager, "Panel Browser (Alt)", {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_P},
                   [ui_coordinator]() {
                     if (ui_coordinator) {
-                      ui_coordinator->ShowCardBrowser();
+                      ui_coordinator->ShowPanelBrowser();
                     }
                   }, Shortcut::Scope::kGlobal);
 

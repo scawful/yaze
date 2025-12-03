@@ -739,7 +739,7 @@ void UICoordinator::ShowDisplaySettings() {
   popup_manager_.Show(PopupID::kDisplaySettings);
 }
 
-void UICoordinator::HideCurrentEditorCards() {
+void UICoordinator::HideCurrentEditorPanels() {
   if (!editor_manager_)
     return;
 
@@ -753,6 +753,22 @@ void UICoordinator::HideCurrentEditorCards() {
   panel_manager_.HideAllPanelsInCategory(session_id, category);
 
   LOG_INFO("UICoordinator", "Hid all panels in category: %s", category.c_str());
+}
+
+// ============================================================================
+// Sidebar Visibility (delegates to PanelManager)
+// ============================================================================
+
+void UICoordinator::TogglePanelSidebar() {
+  panel_manager_.ToggleSidebarVisibility();
+}
+
+bool UICoordinator::IsPanelSidebarVisible() const {
+  return panel_manager_.IsSidebarVisible();
+}
+
+void UICoordinator::SetPanelSidebarVisible(bool visible) {
+  panel_manager_.SetSidebarVisible(visible);
 }
 
 void UICoordinator::ShowAllWindows() {

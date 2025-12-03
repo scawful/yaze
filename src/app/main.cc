@@ -37,8 +37,8 @@ DEFINE_FLAG(
 DEFINE_FLAG(std::string, editor, "",
             "The editor to open on startup (e.g., Dungeon, Overworld, Assembly).");
 
-DEFINE_FLAG(std::string, open_cards, "",
-            "Comma-separated list of card IDs to open (e.g. 'dungeon.room_list,emulator.cpu_debugger')");
+DEFINE_FLAG(std::string, open_panels, "",
+            "Comma-separated list of panel IDs to open (e.g. 'dungeon.room_list,emulator.cpu_debugger')");
 
 DEFINE_FLAG(int, room, -1, "Open Dungeon Editor at specific room ID (0-295).");
 DEFINE_FLAG(int, map, -1, "Open Overworld Editor at specific map ID (0-159).");
@@ -149,8 +149,8 @@ int main(int argc, char** argv) {
   config.enable_api = FLAGS_enable_api->Get();
   config.api_port = FLAGS_api_port->Get();
   
-  if (!FLAGS_open_cards->Get().empty()) {
-    config.open_cards = absl::StrSplit(FLAGS_open_cards->Get(), ',');
+  if (!FLAGS_open_panels->Get().empty()) {
+    config.open_panels = absl::StrSplit(FLAGS_open_panels->Get(), ',');
   }
 
 #ifdef YAZE_WITH_GRPC

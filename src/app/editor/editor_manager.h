@@ -85,9 +85,9 @@ class EditorManager {
 
   void Initialize(gfx::IRenderer* renderer, const std::string& filename = "");
 
-  // Processes startup flags to open a specific editor and cards.
-  void OpenEditorAndCardsFromFlags(const std::string& editor_name,
-                                   const std::string& cards_str);
+  // Processes startup flags to open a specific editor and panels.
+  void OpenEditorAndPanelsFromFlags(const std::string& editor_name,
+                                    const std::string& panels_str);
                                    
   // Apply startup actions based on AppConfig
   void ProcessStartupActions(const AppConfig& config);
@@ -115,7 +115,7 @@ class EditorManager {
   // Returns the left margin needed for sidebar (Activity Bar + Side Panel)
   float GetLeftLayoutOffset() const {
     // Global UI toggle override
-    if (!ui_coordinator_ || !ui_coordinator_->IsCardSidebarVisible()) {
+    if (!ui_coordinator_ || !ui_coordinator_->IsPanelSidebarVisible()) {
       return 0.0f;
     }
     
@@ -221,11 +221,11 @@ class EditorManager {
   // Card-based editor registry
   static bool IsCardBasedEditor(EditorType type);
   bool IsSidebarVisible() const {
-    return ui_coordinator_ ? ui_coordinator_->IsCardSidebarVisible() : false;
+    return ui_coordinator_ ? ui_coordinator_->IsPanelSidebarVisible() : false;
   }
   void SetSidebarVisible(bool visible) {
     if (ui_coordinator_) {
-      ui_coordinator_->SetCardSidebarVisible(visible);
+      ui_coordinator_->SetPanelSidebarVisible(visible);
     }
   }
 

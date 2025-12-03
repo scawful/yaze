@@ -13,9 +13,14 @@
 #include "app/editor/ui/layout_presets.h"
 #include "app/editor/menu/menu_builder.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/platform_keys.h"
 #include "rom/rom.h"
 #include "core/features.h"
 #include "zelda3/overworld/overworld_map.h"
+
+// Platform-aware shortcut macros for menu display
+#define SHORTCUT_CTRL(key) gui::FormatCtrlShortcut(ImGuiKey_##key).c_str()
+#define SHORTCUT_CTRL_SHIFT(key) gui::FormatCtrlShiftShortcut(ImGuiKey_##key).c_str()
 
 namespace yaze {
 namespace editor {
@@ -61,9 +66,9 @@ void MenuOrchestrator::AddFileMenuItems() {
   // ROM Operations
   menu_builder_
       .Item(
-          "Open ROM", ICON_MD_FILE_OPEN, [this]() { OnOpenRom(); }, "Ctrl+O")
+          "Open ROM", ICON_MD_FILE_OPEN, [this]() { OnOpenRom(); }, SHORTCUT_CTRL(O))
       .Item(
-          "Save ROM", ICON_MD_SAVE, [this]() { OnSaveRom(); }, "Ctrl+S",
+          "Save ROM", ICON_MD_SAVE, [this]() { OnSaveRom(); }, SHORTCUT_CTRL(S),
           [this]() { return CanSaveRom(); })
       .Item(
           "Save As...", ICON_MD_SAVE_AS, [this]() { OnSaveRomAs(); }, nullptr,
@@ -101,7 +106,7 @@ void MenuOrchestrator::AddFileMenuItems() {
   menu_builder_
       .Item("Settings", ICON_MD_SETTINGS, [this]() { OnShowSettings(); })
       .Separator()
-      .Item("Quit", ICON_MD_EXIT_TO_APP, [this]() { OnQuit(); }, "Ctrl+Q");
+      .Item("Quit", ICON_MD_EXIT_TO_APP, [this]() { OnQuit(); }, SHORTCUT_CTRL(Q));
 }
 
 void MenuOrchestrator::BuildEditMenu() {
@@ -114,29 +119,29 @@ void MenuOrchestrator::AddEditMenuItems() {
   // Undo/Redo operations - delegate to current editor
   menu_builder_
       .Item(
-          "Undo", ICON_MD_UNDO, [this]() { OnUndo(); }, "Ctrl+Z",
+          "Undo", ICON_MD_UNDO, [this]() { OnUndo(); }, SHORTCUT_CTRL(Z),
           [this]() { return HasCurrentEditor(); })
       .Item(
-          "Redo", ICON_MD_REDO, [this]() { OnRedo(); }, "Ctrl+Y",
+          "Redo", ICON_MD_REDO, [this]() { OnRedo(); }, SHORTCUT_CTRL(Y),
           [this]() { return HasCurrentEditor(); })
       .Separator();
 
   // Clipboard operations - delegate to current editor
   menu_builder_
       .Item(
-          "Cut", ICON_MD_CONTENT_CUT, [this]() { OnCut(); }, "Ctrl+X",
+          "Cut", ICON_MD_CONTENT_CUT, [this]() { OnCut(); }, SHORTCUT_CTRL(X),
           [this]() { return HasCurrentEditor(); })
       .Item(
-          "Copy", ICON_MD_CONTENT_COPY, [this]() { OnCopy(); }, "Ctrl+C",
+          "Copy", ICON_MD_CONTENT_COPY, [this]() { OnCopy(); }, SHORTCUT_CTRL(C),
           [this]() { return HasCurrentEditor(); })
       .Item(
-          "Paste", ICON_MD_CONTENT_PASTE, [this]() { OnPaste(); }, "Ctrl+V",
+          "Paste", ICON_MD_CONTENT_PASTE, [this]() { OnPaste(); }, SHORTCUT_CTRL(V),
           [this]() { return HasCurrentEditor(); })
       .Separator();
 
   // Search operations (Find in Files moved to Tools > Global Search)
   menu_builder_.Item(
-      "Find", ICON_MD_SEARCH, [this]() { OnFind(); }, "Ctrl+F",
+      "Find", ICON_MD_SEARCH, [this]() { OnFind(); }, SHORTCUT_CTRL(F),
       [this]() { return HasCurrentEditor(); });
 }
 
@@ -151,7 +156,7 @@ void MenuOrchestrator::AddViewMenuItems() {
   menu_builder_
       .Item(
           "Editor Selection", ICON_MD_DASHBOARD,
-          [this]() { OnShowEditorSelection(); }, "Ctrl+E",
+          [this]() { OnShowEditorSelection(); }, SHORTCUT_CTRL(E),
           [this]() { return HasActiveRom(); })
       .Separator();
 
@@ -159,43 +164,43 @@ void MenuOrchestrator::AddViewMenuItems() {
   menu_builder_
       .Item(
           "Overworld", ICON_MD_MAP,
-          [this]() { OnSwitchToEditor(EditorType::kOverworld); }, "Ctrl+1",
+          [this]() { OnSwitchToEditor(EditorType::kOverworld); }, SHORTCUT_CTRL(1),
           [this]() { return HasActiveRom(); })
       .Item(
           "Dungeon", ICON_MD_CASTLE,
-          [this]() { OnSwitchToEditor(EditorType::kDungeon); }, "Ctrl+2",
+          [this]() { OnSwitchToEditor(EditorType::kDungeon); }, SHORTCUT_CTRL(2),
           [this]() { return HasActiveRom(); })
       .Item(
           "Graphics", ICON_MD_IMAGE,
-          [this]() { OnSwitchToEditor(EditorType::kGraphics); }, "Ctrl+3",
+          [this]() { OnSwitchToEditor(EditorType::kGraphics); }, SHORTCUT_CTRL(3),
           [this]() { return HasActiveRom(); })
       .Item(
           "Sprites", ICON_MD_TOYS,
-          [this]() { OnSwitchToEditor(EditorType::kSprite); }, "Ctrl+4",
+          [this]() { OnSwitchToEditor(EditorType::kSprite); }, SHORTCUT_CTRL(4),
           [this]() { return HasActiveRom(); })
       .Item(
           "Messages", ICON_MD_CHAT_BUBBLE,
-          [this]() { OnSwitchToEditor(EditorType::kMessage); }, "Ctrl+5",
+          [this]() { OnSwitchToEditor(EditorType::kMessage); }, SHORTCUT_CTRL(5),
           [this]() { return HasActiveRom(); })
       .Item(
           "Music", ICON_MD_MUSIC_NOTE,
-          [this]() { OnSwitchToEditor(EditorType::kMusic); }, "Ctrl+6",
+          [this]() { OnSwitchToEditor(EditorType::kMusic); }, SHORTCUT_CTRL(6),
           [this]() { return HasActiveRom(); })
       .Item(
           "Palettes", ICON_MD_PALETTE,
-          [this]() { OnSwitchToEditor(EditorType::kPalette); }, "Ctrl+7",
+          [this]() { OnSwitchToEditor(EditorType::kPalette); }, SHORTCUT_CTRL(7),
           [this]() { return HasActiveRom(); })
       .Item(
           "Screens", ICON_MD_TV,
-          [this]() { OnSwitchToEditor(EditorType::kScreen); }, "Ctrl+8",
+          [this]() { OnSwitchToEditor(EditorType::kScreen); }, SHORTCUT_CTRL(8),
           [this]() { return HasActiveRom(); })
       .Item(
           "Assembly", ICON_MD_CODE,
-          [this]() { OnSwitchToEditor(EditorType::kAssembly); }, "Ctrl+9",
+          [this]() { OnSwitchToEditor(EditorType::kAssembly); }, SHORTCUT_CTRL(9),
           [this]() { return HasActiveRom(); })
       .Item(
           "Hex Editor", ICON_MD_DATA_ARRAY, [this]() { OnShowHexEditor(); },
-          "Ctrl+0", [this]() { return HasActiveRom(); })
+          SHORTCUT_CTRL(0), [this]() { return HasActiveRom(); })
       .Separator();
 
   // Special Editors
@@ -203,16 +208,16 @@ void MenuOrchestrator::AddViewMenuItems() {
   menu_builder_
       .Item(
           "AI Agent", ICON_MD_SMART_TOY, [this]() { OnShowAIAgent(); },
-          "Ctrl+Shift+A")
+          SHORTCUT_CTRL_SHIFT(A))
       .Item(
           "Agent Sidebar", ICON_MD_CHAT, [this]() { OnShowChatHistory(); },
-          "Ctrl+H");
+          SHORTCUT_CTRL(H));
 #endif
 
   menu_builder_
       .Item(
           "Emulator", ICON_MD_VIDEOGAME_ASSET, [this]() { OnShowEmulator(); },
-          "Ctrl+Shift+E", [this]() { return HasActiveRom(); })
+          SHORTCUT_CTRL_SHIFT(E), [this]() { return HasActiveRom(); })
       .Separator();
 
   // UI Layout - Using Item with checked callback for toggle behavior
@@ -284,14 +289,14 @@ void MenuOrchestrator::AddPanelsSubmenu() {
   if (ImGui::BeginMenu(absl::StrFormat("%s Panels", ICON_MD_VIEW_SIDEBAR).c_str())) {
 #ifdef YAZE_BUILD_AGENT_UI
     if (ImGui::MenuItem(absl::StrFormat("%s AI Agent", ICON_MD_SMART_TOY).c_str(),
-                        "Ctrl+Shift+A")) {
+                        SHORTCUT_CTRL_SHIFT(A))) {
       OnShowAIAgent();
     }
 #endif
 
 #ifdef YAZE_BUILD_AGENT_UI
     if (ImGui::MenuItem(absl::StrFormat("%s Proposals", ICON_MD_DESCRIPTION).c_str(),
-                        "Ctrl+Shift+R")) {
+                        SHORTCUT_CTRL_SHIFT(R))) {
       OnShowProposalDrawer();
     }
 #endif
@@ -321,10 +326,10 @@ void MenuOrchestrator::AddToolsMenuItems() {
   menu_builder_
       .Item(
           "Global Search", ICON_MD_SEARCH, [this]() { OnShowGlobalSearch(); },
-          "Ctrl+Shift+F")
+          SHORTCUT_CTRL_SHIFT(F))
       .Item(
           "Command Palette", ICON_MD_SEARCH,
-          [this]() { OnShowCommandPalette(); }, "Ctrl+Shift+P")
+          [this]() { OnShowCommandPalette(); }, SHORTCUT_CTRL_SHIFT(P))
       .Item("Resource Label Manager", ICON_MD_LABEL,
             [this]() { OnShowResourceLabelManager(); })
       .Separator();
@@ -386,7 +391,7 @@ void MenuOrchestrator::AddToolsMenuItems() {
   menu_builder_.BeginSubMenu("Testing", ICON_MD_SCIENCE)
       .Item(
           "Test Dashboard", ICON_MD_DASHBOARD,
-          [this]() { OnShowTestDashboard(); }, "Ctrl+T")
+          [this]() { OnShowTestDashboard(); }, SHORTCUT_CTRL(T))
       .Item("Run All Tests", ICON_MD_PLAY_ARROW, [this]() { OnRunAllTests(); })
       .Item("Run Unit Tests", ICON_MD_CHECK_BOX, [this]() { OnRunUnitTests(); })
       .Item("Run Integration Tests", ICON_MD_INTEGRATION_INSTRUCTIONS,
@@ -427,18 +432,18 @@ void MenuOrchestrator::AddWindowMenuItems() {
   menu_builder_.BeginSubMenu("Sessions", ICON_MD_TAB)
       .Item(
           "New Session", ICON_MD_ADD, [this]() { OnCreateNewSession(); },
-          "Ctrl+Shift+N")
+          SHORTCUT_CTRL_SHIFT(N))
       .Item(
           "Duplicate Session", ICON_MD_CONTENT_COPY,
           [this]() { OnDuplicateCurrentSession(); }, nullptr,
           [this]() { return HasActiveRom(); })
       .Item(
           "Close Session", ICON_MD_CLOSE, [this]() { OnCloseCurrentSession(); },
-          "Ctrl+Shift+W", [this]() { return HasMultipleSessions(); })
+          SHORTCUT_CTRL_SHIFT(W), [this]() { return HasMultipleSessions(); })
       .Separator()
       .Item(
           "Session Switcher", ICON_MD_SWITCH_ACCOUNT,
-          [this]() { OnShowSessionSwitcher(); }, "Ctrl+Tab",
+          [this]() { OnShowSessionSwitcher(); }, SHORTCUT_CTRL(Tab),
           [this]() { return HasMultipleSessions(); })
       .Item("Session Manager", ICON_MD_VIEW_LIST,
             [this]() { OnShowSessionManager(); })
@@ -461,10 +466,10 @@ void MenuOrchestrator::AddWindowMenuItems() {
   menu_builder_
       .Item(
           "Save Layout", ICON_MD_SAVE, [this]() { OnSaveWorkspaceLayout(); },
-          "Ctrl+Shift+S")
+          SHORTCUT_CTRL_SHIFT(S))
       .Item(
           "Load Layout", ICON_MD_FOLDER_OPEN,
-          [this]() { OnLoadWorkspaceLayout(); }, "Ctrl+Shift+O")
+          [this]() { OnLoadWorkspaceLayout(); }, SHORTCUT_CTRL_SHIFT(O))
       .Item("Reset Layout", ICON_MD_RESET_TV,
             [this]() { OnResetWorkspaceLayout(); })
       .BeginSubMenu("Layout Presets", ICON_MD_VIEW_QUILT)
@@ -514,7 +519,7 @@ void MenuOrchestrator::AddWindowMenuItems() {
   menu_builder_
       .Item(
           "Panel Browser", ICON_MD_DASHBOARD, [this]() { OnShowPanelBrowser(); },
-          "Ctrl+Shift+B", [this]() { return HasActiveRom(); })
+          SHORTCUT_CTRL_SHIFT(B), [this]() { return HasActiveRom(); })
       .Separator();
 
   // Note: Panel toggle buttons are on the right side of the menu bar
@@ -762,7 +767,7 @@ void MenuOrchestrator::OnShowEmulator() {
 void MenuOrchestrator::OnShowPanelBrowser() {
   if (editor_manager_) {
     if (auto* ui = editor_manager_->ui_coordinator()) {
-      ui->SetCardBrowserVisible(true);
+      ui->SetPanelBrowserVisible(true);
     }
   }
 }
