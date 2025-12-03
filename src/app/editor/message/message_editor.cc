@@ -93,6 +93,8 @@ void MessageEditor::Initialize() {
 
   message_preview_.all_dictionaries_ = BuildDictionaryEntries(rom());
   list_of_texts_ = ReadAllTextData(rom()->mutable_data());
+  LOG_INFO("MessageEditor", "Loaded %zu messages from ROM", list_of_texts_.size());
+
   if (game_data()) {
     font_preview_colors_ = game_data()->palette_groups.hud.palette(0);
   }
@@ -122,9 +124,16 @@ void MessageEditor::Initialize() {
   }
   parsed_messages_ =
       ParseMessageData(list_of_texts_, message_preview_.all_dictionaries_);
-  current_message_ = list_of_texts_[1];
-  message_text_box_.text = parsed_messages_[current_message_.ID];
-  DrawMessagePreview();
+  
+  if (!list_of_texts_.empty()) {
+    // Default to message 1 if available, otherwise 0
+    size_t default_idx = list_of_texts_.size() > 1 ? 1 : 0;
+    current_message_ = list_of_texts_[default_idx];
+    message_text_box_.text = parsed_messages_[current_message_.ID];
+    DrawMessagePreview();
+  } else {
+    LOG_ERROR("MessageEditor", "No messages found in ROM!");
+  }
 }
 
 absl::Status MessageEditor::Load() {
