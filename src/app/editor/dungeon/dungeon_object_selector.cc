@@ -469,8 +469,8 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
     bool is_selected = (selected_object_id_ == obj_id);
     ImVec2 button_size(item_size, item_size);
 
-    if (ImGui::Selectable("", is_selected, ImGuiSelectableFlags_None,
-                          button_size)) {
+    if (ImGui::Selectable("", is_selected,
+                          ImGuiSelectableFlags_AllowDoubleClick, button_size)) {
       selected_object_id_ = obj_id;
 
       // Create and update preview object
@@ -483,9 +483,16 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
       }
       object_loaded_ = true;
 
-      // Notify callback
+      // Notify callbacks
       if (object_selected_callback_) {
         object_selected_callback_(preview_object_);
+      }
+
+      // Handle double-click to open static object editor
+      if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+        if (object_double_click_callback_) {
+          object_double_click_callback_(obj_id);
+        }
       }
     }
 
@@ -502,13 +509,35 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
           obj_color);
     }
 
-    // Draw border
-    ImU32 border_color =
-        is_selected ? ImGui::GetColorU32(theme.dungeon_selection_primary)
-                    : ImGui::GetColorU32(theme.panel_bg_darker);
+    // Draw border with special highlight for static editor object
+    bool is_static_editor_obj = (obj_id == static_editor_object_id_);
+    ImU32 border_color;
+    float border_thickness;
+
+    if (is_static_editor_obj) {
+      // Cyan border for object open in static editor
+      border_color = IM_COL32(0, 200, 255, 255);
+      border_thickness = 3.0f;
+    } else if (is_selected) {
+      border_color = ImGui::GetColorU32(theme.dungeon_selection_primary);
+      border_thickness = 3.0f;
+    } else {
+      border_color = ImGui::GetColorU32(theme.panel_bg_darker);
+      border_thickness = 1.0f;
+    }
+
     draw_list->AddRect(
         button_pos, ImVec2(button_pos.x + item_size, button_pos.y + item_size),
-        border_color, 0.0f, 0, is_selected ? 3.0f : 1.0f);
+        border_color, 0.0f, 0, border_thickness);
+
+    // Add a small indicator icon for static editor object
+    if (is_static_editor_obj) {
+      // Draw a small info icon in the top-right corner
+      ImVec2 icon_pos(button_pos.x + item_size - 14, button_pos.y + 2);
+      draw_list->AddCircleFilled(ImVec2(icon_pos.x + 6, icon_pos.y + 6), 6,
+                                 IM_COL32(0, 200, 255, 200));
+      draw_list->AddText(icon_pos, IM_COL32(255, 255, 255, 255), "i");
+    }
 
     // Draw object ID at bottom
     std::string id_text = absl::StrFormat("%02X", obj_id);
@@ -517,6 +546,18 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
                            button_pos.y + item_size - id_size.y - 2);
     draw_list->AddText(id_pos, ImGui::GetColorU32(theme.text_primary),
                        id_text.c_str());
+
+    // Tooltip with object info and double-click hint
+    if (ImGui::IsItemHovered()) {
+      ImGui::BeginTooltip();
+      ImGui::Text("Object 0x%02X", obj_id);
+      ImGui::Separator();
+      ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f),
+                         "Click to select for placement");
+      ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f),
+                         "Double-click to view details");
+      ImGui::EndTooltip();
+    }
 
     ImGui::PopID();
 

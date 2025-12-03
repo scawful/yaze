@@ -6,6 +6,7 @@ set(
   zelda3/dungeon/dungeon_object_editor.cc
   zelda3/dungeon/dungeon_object_registry.cc
   zelda3/dungeon/dungeon_validator.cc
+  zelda3/dungeon/object_dimensions.cc
   zelda3/dungeon/object_drawer.cc
   zelda3/dungeon/object_parser.cc
   zelda3/dungeon/object_templates.cc
@@ -13,6 +14,13 @@ set(
   zelda3/dungeon/palette_debug.cc
   zelda3/dungeon/room_layout.cc
   zelda3/dungeon/room_object.cc
+  # Draw routine modules (Phase 2 modularization)
+  zelda3/dungeon/draw_routines/draw_routine_types.cc
+  zelda3/dungeon/draw_routines/rightwards_routines.cc
+  zelda3/dungeon/draw_routines/downwards_routines.cc
+  zelda3/dungeon/draw_routines/diagonal_routines.cc
+  zelda3/dungeon/draw_routines/corner_routines.cc
+  zelda3/dungeon/draw_routines/special_routines.cc
   zelda3/formats/offsets.cc
   zelda3/music/asm_exporter.cc
   zelda3/music/asm_importer.cc

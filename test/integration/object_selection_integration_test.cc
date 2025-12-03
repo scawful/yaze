@@ -165,7 +165,7 @@ TEST_F(ObjectSelectionIntegrationTest, DuplicateIndicesAreHandled) {
 TEST_F(ObjectSelectionIntegrationTest, SelectionPersistsAcrossRoomAccess) {
   interaction_.SetSelectedObjects({0, 2});
 
-  // Access room data (simulating what ObjectEditorCard would do)
+  // Access room data (simulating what ObjectEditorPanel would do)
   auto& room = rooms_[0];
   const auto& objects = room.GetTileObjects();
   EXPECT_EQ(objects.size(), 4);

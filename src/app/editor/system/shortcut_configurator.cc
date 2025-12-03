@@ -291,24 +291,24 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
       RegisterIfValid(shortcut_manager, def.id, def.keys,
                       [dungeon_editor, id = def.id]() {
                         if (!dungeon_editor) return;
-                        auto* obj_card = dungeon_editor->object_editor_card();
-                        if (!obj_card) return;
+                        auto* obj_panel = dungeon_editor->object_editor_panel();
+                        if (!obj_panel) return;
                         if (id == "dungeon.object.select_tool") {
-                          obj_card->SetInteractionModeSelect();
+                          obj_panel->SetInteractionModeSelect();
                         } else if (id == "dungeon.object.place_tool") {
-                          obj_card->SetInteractionModePlace();
+                          obj_panel->SetInteractionModePlace();
                         } else if (id == "dungeon.object.delete_tool") {
-                          obj_card->SetInteractionModeDelete();
+                          obj_panel->SetInteractionModeDelete();
                         } else if (id == "dungeon.object.next_object") {
-                          obj_card->CycleObjectSelection(1);
+                          obj_panel->CycleObjectSelection(1);
                         } else if (id == "dungeon.object.prev_object") {
-                          obj_card->CycleObjectSelection(-1);
+                          obj_panel->CycleObjectSelection(-1);
                         } else if (id == "dungeon.object.copy") {
-                          obj_card->CopySelectedObjects();
+                          obj_panel->CopySelectedObjects();
                         } else if (id == "dungeon.object.paste") {
-                          obj_card->PasteObjects();
+                          obj_panel->PasteObjects();
                         } else if (id == "dungeon.object.delete") {
-                          obj_card->DeleteSelectedObjects();
+                          obj_panel->DeleteSelectedObjects();
                         }
                       },
                       Shortcut::Scope::kEditor);

@@ -231,33 +231,91 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       ImGui::EndTable();
     }
 
-    // Layer visibility and merge controls (Global)
+    // Layer visibility controls (4-way: Layout/Objects × BG1/BG2)
     ImGui::Separator();
-    if (ImGui::BeginTable("##LayerControls", 4,
+    ImGui::Text(ICON_MD_LAYERS " Layer Controls");
+
+    auto& layer_mgr = GetRoomLayerManager(room_id);
+
+    // Apply room's layer merging settings
+    layer_mgr.ApplyLayerMerging(room.layer_merging());
+
+    if (ImGui::BeginTable("##LayerControls", 3,
+                          ImGuiTableFlags_SizingStretchSame |
+                              ImGuiTableFlags_BordersInnerV)) {
+      ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 60.0f);
+      ImGui::TableSetupColumn("Layout");
+      ImGui::TableSetupColumn("Objects");
+      ImGui::TableHeadersRow();
+
+      // BG1 row
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("BG1");
+
+      ImGui::TableNextColumn();
+      bool bg1_layout =
+          layer_mgr.IsLayerVisible(zelda3::LayerType::BG1_Layout);
+      if (ImGui::Checkbox("##BG1L", &bg1_layout)) {
+        layer_mgr.SetLayerVisible(zelda3::LayerType::BG1_Layout, bg1_layout);
+      }
+
+      ImGui::TableNextColumn();
+      bool bg1_objects =
+          layer_mgr.IsLayerVisible(zelda3::LayerType::BG1_Objects);
+      if (ImGui::Checkbox("##BG1O", &bg1_objects)) {
+        layer_mgr.SetLayerVisible(zelda3::LayerType::BG1_Objects, bg1_objects);
+      }
+
+      // BG2 row
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("BG2");
+
+      ImGui::TableNextColumn();
+      bool bg2_layout =
+          layer_mgr.IsLayerVisible(zelda3::LayerType::BG2_Layout);
+      if (ImGui::Checkbox("##BG2L", &bg2_layout)) {
+        layer_mgr.SetLayerVisible(zelda3::LayerType::BG2_Layout, bg2_layout);
+      }
+
+      ImGui::TableNextColumn();
+      bool bg2_objects =
+          layer_mgr.IsLayerVisible(zelda3::LayerType::BG2_Objects);
+      if (ImGui::Checkbox("##BG2O", &bg2_objects)) {
+        layer_mgr.SetLayerVisible(zelda3::LayerType::BG2_Objects, bg2_objects);
+      }
+
+      ImGui::EndTable();
+    }
+
+    // Blend mode and merge controls
+    if (ImGui::BeginTable("##BlendControls", 2,
                           ImGuiTableFlags_SizingStretchSame)) {
       ImGui::TableNextRow();
 
       ImGui::TableNextColumn();
-      auto& layer_settings = GetRoomLayerSettings(room_id);
-      ImGui::Checkbox("BG1", &layer_settings.bg1_visible);
-
-      ImGui::TableNextColumn();
-      ImGui::Checkbox("BG2", &layer_settings.bg2_visible);
-
-      ImGui::TableNextColumn();
-      // BG2 layer type
-      const char* bg2_types[] = {"Norm", "Trans", "Add", "Dark", "Off"};
+      // BG2 blend mode
+      const char* blend_modes[] = {"Normal", "Trans", "Add", "Dark", "Off"};
+      int bg2_blend = static_cast<int>(
+          layer_mgr.GetLayerBlendMode(zelda3::LayerType::BG2_Layout));
       ImGui::SetNextItemWidth(-FLT_MIN);
-      ImGui::Combo("##BG2Type", &layer_settings.bg2_layer_type, bg2_types, 5);
+      if (ImGui::Combo("BG2##Blend", &bg2_blend, blend_modes, 5)) {
+        auto mode = static_cast<zelda3::LayerBlendMode>(bg2_blend);
+        layer_mgr.SetLayerBlendMode(zelda3::LayerType::BG2_Layout, mode);
+        layer_mgr.SetLayerBlendMode(zelda3::LayerType::BG2_Objects, mode);
+      }
 
       ImGui::TableNextColumn();
-      // Layer merge type
+      // Layer merge type (ROM property)
       const char* merge_types[] = {"Off",    "Parallax",    "Dark",
                                    "On top", "Translucent", "Addition",
                                    "Normal", "Transparent", "Dark room"};
       int merge_val = room.layer_merging().ID;
-      if (ImGui::Combo("##Merge", &merge_val, merge_types, 9)) {
+      ImGui::SetNextItemWidth(-FLT_MIN);
+      if (ImGui::Combo("Merge##Type", &merge_val, merge_types, 9)) {
         room.SetLayerMerging(zelda3::kLayerMergeTypeList[merge_val]);
+        layer_mgr.ApplyLayerMerging(room.layer_merging());
       }
 
       ImGui::EndTable();
@@ -286,7 +344,6 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
 
   if (rooms_ && rom_->is_loaded()) {
     auto& room = (*rooms_)[room_id];
-    auto& layer_settings = GetRoomLayerSettings(room_id);
 
     // Add object placement option
     canvas_.AddContextMenuItem(gui::CanvasMenuItem(
@@ -301,22 +358,40 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
         "Delete Selected", ICON_MD_DELETE,
         [this]() { object_interaction_.HandleDeleteSelected(); }, "Del"));
 
-    // Add room property quick toggles
-    canvas_.AddContextMenuItem(gui::CanvasMenuItem(
-        " Toggle BG1", ICON_MD_LAYERS,
-        [this, room_id]() {
-          auto& settings = GetRoomLayerSettings(room_id);
-          settings.bg1_visible = !settings.bg1_visible;
-        },
-        "1"));
+    // Add room property quick toggles (4-way layer visibility)
+    gui::CanvasMenuItem layer_menu;
+    layer_menu.label = ICON_MD_LAYERS " Layer Visibility";
 
-    canvas_.AddContextMenuItem(gui::CanvasMenuItem(
-        " Toggle BG2", ICON_MD_LAYERS,
-        [this, room_id]() {
-          auto& settings = GetRoomLayerSettings(room_id);
-          settings.bg2_visible = !settings.bg2_visible;
-        },
-        "2"));
+    layer_menu.subitems.push_back(gui::CanvasMenuItem(
+        "BG1 Layout", [this, room_id]() {
+          auto& mgr = GetRoomLayerManager(room_id);
+          mgr.SetLayerVisible(
+              zelda3::LayerType::BG1_Layout,
+              !mgr.IsLayerVisible(zelda3::LayerType::BG1_Layout));
+        }));
+    layer_menu.subitems.push_back(gui::CanvasMenuItem(
+        "BG1 Objects", [this, room_id]() {
+          auto& mgr = GetRoomLayerManager(room_id);
+          mgr.SetLayerVisible(
+              zelda3::LayerType::BG1_Objects,
+              !mgr.IsLayerVisible(zelda3::LayerType::BG1_Objects));
+        }));
+    layer_menu.subitems.push_back(gui::CanvasMenuItem(
+        "BG2 Layout", [this, room_id]() {
+          auto& mgr = GetRoomLayerManager(room_id);
+          mgr.SetLayerVisible(
+              zelda3::LayerType::BG2_Layout,
+              !mgr.IsLayerVisible(zelda3::LayerType::BG2_Layout));
+        }));
+    layer_menu.subitems.push_back(gui::CanvasMenuItem(
+        "BG2 Objects", [this, room_id]() {
+          auto& mgr = GetRoomLayerManager(room_id);
+          mgr.SetLayerVisible(
+              zelda3::LayerType::BG2_Objects,
+              !mgr.IsLayerVisible(zelda3::LayerType::BG2_Objects));
+        }));
+
+    canvas_.AddContextMenuItem(layer_menu);
 
     // Add re-render option
     canvas_.AddContextMenuItem(gui::CanvasMenuItem(
@@ -461,11 +536,28 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       ImGui::Text("  BG2: %dx%d %s", bg2.width(), bg2.height(),
                   bg2.texture() ? "(has texture)" : "(NO TEXTURE)");
       ImGui::Separator();
-      ImGui::Text("Layers");
-      auto& layer_settings = GetRoomLayerSettings(room_id);
-      ImGui::Checkbox("BG1 Visible", &layer_settings.bg1_visible);
-      ImGui::Checkbox("BG2 Visible", &layer_settings.bg2_visible);
-      ImGui::SliderInt("BG2 Type", &layer_settings.bg2_layer_type, 0, 4);
+      ImGui::Text("Layers (4-way)");
+      auto& layer_mgr = GetRoomLayerManager(room_id);
+      bool bg1l = layer_mgr.IsLayerVisible(zelda3::LayerType::BG1_Layout);
+      bool bg1o = layer_mgr.IsLayerVisible(zelda3::LayerType::BG1_Objects);
+      bool bg2l = layer_mgr.IsLayerVisible(zelda3::LayerType::BG2_Layout);
+      bool bg2o = layer_mgr.IsLayerVisible(zelda3::LayerType::BG2_Objects);
+      if (ImGui::Checkbox("BG1 Layout", &bg1l))
+        layer_mgr.SetLayerVisible(zelda3::LayerType::BG1_Layout, bg1l);
+      if (ImGui::Checkbox("BG1 Objects", &bg1o))
+        layer_mgr.SetLayerVisible(zelda3::LayerType::BG1_Objects, bg1o);
+      if (ImGui::Checkbox("BG2 Layout", &bg2l))
+        layer_mgr.SetLayerVisible(zelda3::LayerType::BG2_Layout, bg2l);
+      if (ImGui::Checkbox("BG2 Objects", &bg2o))
+        layer_mgr.SetLayerVisible(zelda3::LayerType::BG2_Objects, bg2o);
+      int blend = static_cast<int>(
+          layer_mgr.GetLayerBlendMode(zelda3::LayerType::BG2_Layout));
+      if (ImGui::SliderInt("BG2 Blend", &blend, 0, 4)) {
+        layer_mgr.SetLayerBlendMode(zelda3::LayerType::BG2_Layout,
+                                    static_cast<zelda3::LayerBlendMode>(blend));
+        layer_mgr.SetLayerBlendMode(zelda3::LayerType::BG2_Objects,
+                                    static_cast<zelda3::LayerBlendMode>(blend));
+      }
 
       ImGui::Separator();
       ImGui::Text("Layout Override");
@@ -537,23 +629,34 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     ImGui::SetNextWindowPos(
         ImVec2(canvas_.zero_point().x + 580, canvas_.zero_point().y + 10),
         ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(200, 0), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(220, 0), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Layer Info", &show_layer_info_,
                      ImGuiWindowFlags_NoCollapse)) {
       ImGui::Text("Canvas Scale: %.2f", canvas_.global_scale());
       ImGui::Text("Canvas Size: %.0fx%.0f", canvas_.width(), canvas_.height());
-      auto& layer_settings = GetRoomLayerSettings(room_id);
+      auto& layer_mgr = GetRoomLayerManager(room_id);
       ImGui::Separator();
-      ImGui::Text("Layer Visibility:");
-      ImGui::Text("  BG1: %s",
-                  layer_settings.bg1_visible ? "VISIBLE" : "hidden");
-      ImGui::Text("  BG2: %s",
-                  layer_settings.bg2_visible ? "VISIBLE" : "hidden");
-      ImGui::Text("BG2 Type: %d", layer_settings.bg2_layer_type);
-      const char* bg2_type_names[] = {"Normal", "Translucent", "Addition",
-                                      "Dark", "Off"};
-      ImGui::Text("  (%s)",
-                  bg2_type_names[std::min(layer_settings.bg2_layer_type, 4)]);
+      ImGui::Text("Layer Visibility (4-way):");
+
+      // Display each layer with visibility and blend mode
+      for (int i = 0; i < 4; ++i) {
+        auto layer = static_cast<zelda3::LayerType>(i);
+        bool visible = layer_mgr.IsLayerVisible(layer);
+        auto blend = layer_mgr.GetLayerBlendMode(layer);
+        ImGui::Text("  %s: %s (%s)",
+                    zelda3::RoomLayerManager::GetLayerName(layer),
+                    visible ? "VISIBLE" : "hidden",
+                    zelda3::RoomLayerManager::GetBlendModeName(blend));
+      }
+
+      ImGui::Separator();
+      ImGui::Text("Draw Order:");
+      auto draw_order = layer_mgr.GetDrawOrder();
+      for (int i = 0; i < 4; ++i) {
+        ImGui::Text("  %d: %s", i + 1,
+                    zelda3::RoomLayerManager::GetLayerName(draw_order[i]));
+      }
+      ImGui::Text("BG2 On Top: %s", layer_mgr.IsBG2OnTop() ? "YES" : "NO");
     }
     ImGui::End();
   }
@@ -919,113 +1022,58 @@ void DungeonCanvasViewer::DrawRoomBackgroundLayers(int room_id) {
   if (room_id < 0 || room_id >= zelda3::NumberOfRooms || !rooms_) return;
 
   auto& room = (*rooms_)[room_id];
-  auto& layer_settings = GetRoomLayerSettings(room_id);
+  auto& layer_mgr = GetRoomLayerManager(room_id);
 
-  // Use THIS room's own buffers, not global arena!
-  auto& bg1_bitmap = room.bg1_buffer().bitmap();
-  auto& bg2_bitmap = room.bg2_buffer().bitmap();
+  // Apply room's layer merging settings to the manager
+  layer_mgr.ApplyLayerMerging(room.layer_merging());
 
-  // IMPORTANT: Draw BG2 FIRST (background layer), then BG1 (foreground with
-  // objects) BG1 contains the objects drawn by ObjectDrawer and should be on
-  // top
+  float scale = canvas_.global_scale();
 
-  // Determine drawing order based on Layer2OnTop flag
-  bool bg2_on_top = room.layer_merging().Layer2OnTop;
+  // Helper lambda to draw a single layer
+  auto draw_layer = [&](zelda3::LayerType layer_type) {
+    if (!layer_mgr.IsLayerVisible(layer_type)) return;
 
-  auto draw_bg1 = [&]() {
-    if (layer_settings.bg1_visible) {
-      // Draw BG1 Layout
-      if (bg1_bitmap.is_active() && bg1_bitmap.width() > 0 &&
-          bg1_bitmap.height() > 0) {
-        if (!bg1_bitmap.texture()) {
-          gfx::Arena::Get().QueueTextureCommand(
-              gfx::Arena::TextureCommandType::CREATE, &bg1_bitmap);
-        }
+    auto& buffer = zelda3::RoomLayerManager::GetLayerBuffer(room, layer_type);
+    auto& bitmap = buffer.bitmap();
 
-        if (bg1_bitmap.texture()) {
-          float scale = canvas_.global_scale();
-          LOG_DEBUG("DungeonCanvasViewer",
-                    "Drawing BG1 bitmap to canvas with texture %p, scale=%.2f",
-                    bg1_bitmap.texture(), scale);
-          canvas_.DrawBitmap(bg1_bitmap, 0, 0, scale, 255);
-        }
-      }
+    if (!bitmap.is_active() || bitmap.width() == 0 || bitmap.height() == 0)
+      return;
 
-      // Draw BG1 Objects (Layer 0, 2)
-      auto& object_bg1 = room.object_bg1_buffer().bitmap();
-      if (object_bg1.is_active() && object_bg1.width() > 0 &&
-          object_bg1.height() > 0) {
-        if (!object_bg1.texture()) {
-          gfx::Arena::Get().QueueTextureCommand(
-              gfx::Arena::TextureCommandType::CREATE, &object_bg1);
-        }
-
-        if (object_bg1.texture()) {
-          float scale = canvas_.global_scale();
-          canvas_.DrawBitmap(object_bg1, 0, 0, scale, 255);
-        }
-      }
+    // Ensure texture exists
+    if (!bitmap.texture()) {
+      gfx::Arena::Get().QueueTextureCommand(
+          gfx::Arena::TextureCommandType::CREATE, &bitmap);
     }
+
+    if (!bitmap.texture()) return;
+
+    // Get alpha from layer manager
+    uint8_t alpha = layer_mgr.GetLayerAlpha(layer_type);
+
+    LOG_DEBUG("DungeonCanvasViewer",
+              "Drawing %s to canvas with texture %p, alpha=%d, scale=%.2f",
+              zelda3::RoomLayerManager::GetLayerName(layer_type),
+              bitmap.texture(), alpha, scale);
+
+    canvas_.DrawBitmap(bitmap, 0, 0, scale, alpha);
   };
 
-  auto draw_bg2 = [&]() {
-    if (layer_settings.bg2_visible) {
-      // Draw BG2 Layout
-      if (bg2_bitmap.is_active() && bg2_bitmap.width() > 0 &&
-          bg2_bitmap.height() > 0) {
-        if (!bg2_bitmap.texture()) {
-          gfx::Arena::Get().QueueTextureCommand(
-              gfx::Arena::TextureCommandType::CREATE, &bg2_bitmap);
-        }
-
-        if (bg2_bitmap.texture()) {
-          const int bg2_alpha_values[] = {255, 220, 180, 120, 0};
-          int alpha_value =
-              bg2_alpha_values[std::min(layer_settings.bg2_layer_type, 4)];
-          float scale = canvas_.global_scale();
-          LOG_DEBUG("DungeonCanvasViewer",
-                    "Drawing BG2 bitmap to canvas with texture %p, alpha=%d, "
-                    "scale=%.2f",
-                    bg2_bitmap.texture(), alpha_value, scale);
-          canvas_.DrawBitmap(bg2_bitmap, 0, 0, scale, alpha_value);
-        }
-      }
-
-      // Draw BG2 Objects (Layer 1)
-      auto& object_bg2 = room.object_bg2_buffer().bitmap();
-      if (object_bg2.is_active() && object_bg2.width() > 0 &&
-          object_bg2.height() > 0) {
-        if (!object_bg2.texture()) {
-          gfx::Arena::Get().QueueTextureCommand(
-              gfx::Arena::TextureCommandType::CREATE, &object_bg2);
-        }
-
-        if (object_bg2.texture()) {
-          // Apply same alpha as BG2 layout
-          const int bg2_alpha_values[] = {255, 220, 180, 120, 0};
-          int alpha_value =
-              bg2_alpha_values[std::min(layer_settings.bg2_layer_type, 4)];
-          float scale = canvas_.global_scale();
-          canvas_.DrawBitmap(object_bg2, 0, 0, scale, alpha_value);
-        }
-      }
-    }
-  };
-
-  if (bg2_on_top) {
-    draw_bg1();
-    draw_bg2();
-  } else {
-    draw_bg2();
-    draw_bg1();
+  // Draw layers in correct order (back to front)
+  auto draw_order = layer_mgr.GetDrawOrder();
+  for (auto layer_type : draw_order) {
+    draw_layer(layer_type);
   }
 
   // DEBUG: Check if background buffers have content
+  auto& bg1_bitmap = room.bg1_buffer().bitmap();
+  auto& bg2_bitmap = room.bg2_buffer().bitmap();
+
   if (bg1_bitmap.is_active() && bg1_bitmap.width() > 0) {
     LOG_DEBUG("DungeonCanvasViewer",
               "BG1 bitmap: %dx%d, active=%d, visible=%d, texture=%p",
               bg1_bitmap.width(), bg1_bitmap.height(), bg1_bitmap.is_active(),
-              layer_settings.bg1_visible, bg1_bitmap.texture());
+              layer_mgr.IsLayerVisible(zelda3::LayerType::BG1_Layout),
+              bg1_bitmap.texture());
 
     // Check bitmap data content
     auto& bg1_data = bg1_bitmap.mutable_data();
@@ -1039,11 +1087,13 @@ void DungeonCanvasViewer::DrawRoomBackgroundLayers(int room_id) {
               bg1_data.size(), non_zero_pixels);
   }
   if (bg2_bitmap.is_active() && bg2_bitmap.width() > 0) {
+    auto bg2_blend = layer_mgr.GetLayerBlendMode(zelda3::LayerType::BG2_Layout);
     LOG_DEBUG(
         "DungeonCanvasViewer",
-        "BG2 bitmap: %dx%d, active=%d, visible=%d, layer_type=%d, texture=%p",
+        "BG2 bitmap: %dx%d, active=%d, visible=%d, blend=%s, texture=%p",
         bg2_bitmap.width(), bg2_bitmap.height(), bg2_bitmap.is_active(),
-        layer_settings.bg2_visible, layer_settings.bg2_layer_type,
+        layer_mgr.IsLayerVisible(zelda3::LayerType::BG2_Layout),
+        zelda3::RoomLayerManager::GetBlendModeName(bg2_blend),
         bg2_bitmap.texture());
 
     // Check bitmap data content
