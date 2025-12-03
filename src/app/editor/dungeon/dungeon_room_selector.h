@@ -3,10 +3,12 @@
 
 #include <functional>
 
+#include "app/editor/editor.h"
 #include "rom/rom.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
+#include "zelda3/game_data.h"
 
 namespace yaze {
 namespace editor {
@@ -22,8 +24,18 @@ class DungeonRoomSelector {
   void DrawRoomSelector();
   void DrawEntranceSelector();
 
-  void set_rom(Rom* rom) { rom_ = rom; }
+  // Unified context setter (preferred)
+  void SetContext(EditorContext ctx) {
+    rom_ = ctx.rom;
+    game_data_ = ctx.game_data;
+  }
+  EditorContext context() const { return {rom_, game_data_}; }
+
+  // Individual setters for compatibility
+  void SetRom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }
+  void SetGameData(zelda3::GameData* game_data) { game_data_ = game_data; }
+  zelda3::GameData* game_data() const { return game_data_; }
 
   // Room selection
   void set_current_room_id(uint16_t room_id) { current_room_id_ = room_id; }
@@ -57,6 +69,7 @@ class DungeonRoomSelector {
 
  private:
   Rom* rom_ = nullptr;
+  zelda3::GameData* game_data_ = nullptr;
   uint16_t current_room_id_ = 0;
   int current_entrance_id_ = 0;
   ImVector<int> active_rooms_;

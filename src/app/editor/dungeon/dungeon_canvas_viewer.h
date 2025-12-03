@@ -3,12 +3,13 @@
 
 #include <map>
 
+#include "app/editor/editor.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas.h"
-#include "rom/rom.h"
 #include "dungeon_object_interaction.h"
 #include "imgui/imgui.h"
+#include "rom/rom.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/game_data.h"
@@ -18,11 +19,6 @@ namespace editor {
 
 /**
  * @brief Handles the main dungeon canvas rendering and interaction
- *
- * In Link to the Past, dungeon "layers" are not separate visual layers
- * but a game concept where objects exist on different logical levels.
- * Players move between these levels using stair objects that act as
- * transitions between the different object planes.
  */
 enum class ObjectRenderMode {
   Manual,    // Use ObjectDrawer routines
@@ -37,10 +33,15 @@ class DungeonCanvasViewer {
     object_interaction_.SetRom(rom);
   }
 
-  // DrawDungeonTabView() removed - using EditorCard system instead
   void DrawDungeonCanvas(int room_id);
   void Draw(int room_id);
 
+  void SetContext(EditorContext ctx) {
+    rom_ = ctx.rom;
+    game_data_ = ctx.game_data;
+    object_interaction_.SetRom(ctx.rom);
+  }
+  EditorContext context() const { return {rom_, game_data_}; }
   void SetRom(Rom* rom) {
     rom_ = rom;
     object_interaction_.SetRom(rom);
@@ -85,7 +86,9 @@ class DungeonCanvasViewer {
   }
 
   // Set and get the object render mode
-  void SetObjectRenderMode(ObjectRenderMode mode) { object_render_mode_ = mode; }
+  void SetObjectRenderMode(ObjectRenderMode mode) {
+    object_render_mode_ = mode;
+  }
   ObjectRenderMode GetObjectRenderMode() const { return object_render_mode_; }
 
   // Layer visibility controls (per-room)
@@ -201,7 +204,8 @@ class DungeonCanvasViewer {
   bool show_layer_info_ = false;
   int layout_override_ = -1;  // -1 for no override
   int custom_grid_size_ = 8;
-  ObjectRenderMode object_render_mode_ = ObjectRenderMode::Emulator; // Default to emulator rendering
+  ObjectRenderMode object_render_mode_ =
+      ObjectRenderMode::Emulator;  // Default to emulator rendering
 
   // Object outline filtering toggles
   struct ObjectOutlineToggles {
@@ -215,6 +219,12 @@ class DungeonCanvasViewer {
   ObjectOutlineToggles object_outline_toggles_;
 
   gfx::IRenderer* renderer_ = nullptr;
+
+  // Previous room state for change detection (per-viewer)
+  int prev_blockset_ = -1;
+  int prev_palette_ = -1;
+  int prev_layout_ = -1;
+  int prev_spriteset_ = -1;
 };
 
 }  // namespace editor

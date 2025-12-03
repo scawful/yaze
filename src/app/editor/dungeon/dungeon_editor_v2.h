@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_EDITOR_V2_H
 #define YAZE_APP_EDITOR_DUNGEON_EDITOR_V2_H
 
+#include <map>
 #include <memory>
 #include <unordered_map>
 #include <vector>
@@ -24,7 +25,6 @@
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/game_data.h"
-#include "zelda3/dungeon/dungeon_editor_system.h"
 
 namespace yaze {
 namespace editor {
@@ -46,29 +46,33 @@ namespace editor {
 class DungeonEditorV2 : public Editor {
  public:
   explicit DungeonEditorV2(Rom* rom = nullptr)
-      : rom_(rom),
-        room_loader_(rom),
-        room_selector_(rom),
-        canvas_viewer_(rom) {
+      : rom_(rom), room_loader_(rom), room_selector_(rom) {
     type_ = EditorType::kDungeon;
     if (rom) {
-        dungeon_editor_system_ = zelda3::CreateDungeonEditorSystem(rom);
-        for (auto& room : rooms_) {
-          room.SetRom(rom);
-        }
+      dungeon_editor_system_ = zelda3::CreateDungeonEditorSystem(rom);
+      for (auto& room : rooms_) {
+        room.SetRom(rom);
+      }
     }
   }
-  
-  void set_game_data(zelda3::GameData* game_data) {
+
+  void SetGameData(zelda3::GameData* game_data) override {
     game_data_ = game_data;
     dependencies_.game_data = game_data;  // Also set base class dependency
     room_loader_.SetGameData(game_data);
-    canvas_viewer_.SetGameData(game_data);
+    if (object_editor_card_) {
+      object_editor_card_->SetGameData(game_data);
+    }
     if (dungeon_editor_system_) {
-      dungeon_editor_system_->set_game_data(game_data);
+      dungeon_editor_system_->SetGameData(game_data);
     }
     for (auto& room : rooms_) {
       room.SetGameData(game_data);
+    }
+    // Note: Canvas viewer game data is set lazily in GetViewerForRoom
+    // but we should update existing viewers
+    for (auto& [id, viewer] : room_viewers_) {
+      if (viewer) viewer->SetGameData(game_data);
     }
   }
 
@@ -86,12 +90,11 @@ class DungeonEditorV2 : public Editor {
   absl::Status Save() override;
 
   // ROM management
-  void set_rom(Rom* rom) {
+  void SetRom(Rom* rom) {
     rom_ = rom;
     room_loader_ = DungeonRoomLoader(rom);
-    room_selector_.set_rom(rom);
-    canvas_viewer_.SetRom(rom);
-    
+    room_selector_.SetRom(rom);
+
     // Propagate ROM to all rooms
     if (rom) {
       for (auto& room : rooms_) {
@@ -99,12 +102,15 @@ class DungeonEditorV2 : public Editor {
       }
     }
 
+    // Reset viewers on ROM change
+    room_viewers_.clear();
+
     // Create render service if needed
     if (rom && rom->is_loaded() && !render_service_) {
-      render_service_ = std::make_unique<emu::render::EmulatorRenderService>(rom);
+      render_service_ =
+          std::make_unique<emu::render::EmulatorRenderService>(rom);
       render_service_->Initialize();
     }
-
   }
   Rom* rom() const { return rom_; }
 
@@ -119,14 +125,13 @@ class DungeonEditorV2 : public Editor {
   // ROM state
   bool IsRomLoaded() const override { return rom_ && rom_->is_loaded(); }
   std::string GetRomStatus() const override {
-    if (!rom_)
-      return "No ROM loaded";
-    if (!rom_->is_loaded())
-      return "ROM failed to load";
+    if (!rom_) return "No ROM loaded";
+    if (!rom_->is_loaded()) return "ROM failed to load";
     return absl::StrFormat("ROM loaded: %s", rom_->title());
   }
 
   // Card visibility flags - Public for command-line flag access
+  // TODO(scawful): Fix boolean panel access anti-pattern.
   bool show_room_selector_ = false;  // Room selector/list card
   bool show_room_matrix_ = false;    // Dungeon matrix layout
   bool show_entrances_list_ =
@@ -134,20 +139,23 @@ class DungeonEditorV2 : public Editor {
   bool show_room_graphics_ = false;   // Room graphics card
   bool show_object_editor_ = false;   // Object editor card
   bool show_palette_editor_ = false;  // Palette editor card
-  bool show_debug_controls_ = false;   // Debug controls card
-  bool show_control_panel_ = true;     // Control panel (visible by default)
-
+  bool show_debug_controls_ = false;  // Debug controls card
+  bool show_control_panel_ = true;    // Control panel (visible by default)
 
   // Public accessors for WASM API and automation
   int current_room_id() const { return room_selector_.current_room_id(); }
-  const ImVector<int>& active_rooms() const { return room_selector_.active_rooms(); }
-  ObjectEditorCard* object_editor_card() const { return object_editor_card_.get(); }
+  const ImVector<int>& active_rooms() const {
+    return room_selector_.active_rooms();
+  }
+  ObjectEditorCard* object_editor_card() const {
+    return object_editor_card_.get();
+  }
 
  private:
   gfx::IRenderer* renderer_ = nullptr;
 
-  // UI drawing (Phase 4: Static panels now use EditorPanel, only dynamic rooms here)
-  void DrawLayout();
+  // Draw the Room Panels
+  void DrawRoomPanels();
   void DrawRoomTab(int room_id);
 
   // Texture processing (critical for rendering)
@@ -159,6 +167,9 @@ class DungeonEditorV2 : public Editor {
 
   // Object placement callback
   void HandleObjectPlaced(const zelda3::RoomObject& obj);
+
+  // Helper to get or create a viewer for a specific room
+  DungeonCanvasViewer* GetViewerForRoom(int room_id);
 
   // Data
   Rom* rom_;
@@ -187,7 +198,8 @@ class DungeonEditorV2 : public Editor {
   // Components - these do all the work
   DungeonRoomLoader room_loader_;
   DungeonRoomSelector room_selector_;
-  DungeonCanvasViewer canvas_viewer_;
+  // canvas_viewer_ removed in favor of room_viewers_
+  std::map<int, std::unique_ptr<DungeonCanvasViewer>> room_viewers_;
 
   gui::PaletteEditorWidget palette_editor_;
   std::unique_ptr<ObjectEditorCard>

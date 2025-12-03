@@ -48,7 +48,7 @@ class DungeonEditorSystemIntegrationTest : public ::testing::Test {
     for (int room_id : test_rooms_) {
       auto room_result = dungeon_editor_system_->GetRoom(room_id);
       if (room_result.ok()) {
-        rooms_[room_id] = room_result.value();
+        rooms_[room_id] = std::move(room_result.value());
         std::cout << "Loaded room 0x" << std::hex << room_id << std::dec
                   << std::endl;
       }

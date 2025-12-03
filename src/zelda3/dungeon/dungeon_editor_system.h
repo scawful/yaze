@@ -156,7 +156,7 @@ class DungeonEditorSystem {
   explicit DungeonEditorSystem(Rom* rom, GameData* game_data = nullptr);
   ~DungeonEditorSystem() = default;
   
-  void set_game_data(GameData* game_data) { game_data_ = game_data; }
+  void SetGameData(GameData* game_data) { game_data_ = game_data; }
 
   // System initialization and management
   absl::Status Initialize();

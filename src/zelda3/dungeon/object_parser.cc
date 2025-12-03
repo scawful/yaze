@@ -56,6 +56,12 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseObject(
     return absl::InvalidArgumentError("ROM is null");
   }
 
+  // Validate object ID is non-negative
+  if (object_id < 0) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Invalid object ID: %d", object_id));
+  }
+
   int subtype = DetermineSubtype(object_id);
 
   switch (subtype) {
@@ -113,7 +119,9 @@ absl::StatusOr<ObjectSubtypeInfo> ObjectParser::GetObjectSubtype(
       break;
     }
     case 3: {
-      int index = object_id & 0xFF;
+      // Type 3 object IDs are 0xF80-0xFFF (128 objects)
+      // Table index should be 0-127
+      int index = (object_id - 0xF80) & 0x7F;
       info.subtype_ptr = kRoomObjectSubtype3 + (index * 2);
       info.routine_ptr = kRoomObjectSubtype3 + 0x100 + (index * 2);
       info.max_tile_count = 8;
@@ -171,30 +179,35 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype1(
   int16_t offset = (int16_t)((high << 8) | low);  // Signed offset!
   int tile_data_ptr = kRoomObjectTileAddress + offset;
 
-  // DEBUG: Log first few object tile lookups with verification
+  // DEBUG: Always log wall objects 0x61 and 0x62 to verify tile data differs
+  bool is_wall_object = (object_id == 0x61 || object_id == 0x62);
   static int debug_count = 0;
-  if (debug_count < 10) {
-    printf("[ParseSubtype1] obj=0x%02X: tile_ptr=0x%04X (SNES $01:%04X)\n",
-           object_id, tile_ptr, tile_ptr);
+  if (debug_count < 10 || is_wall_object) {
+    printf("[ParseSubtype1] obj=0x%02X%s: tile_ptr=0x%04X (SNES $01:%04X)\n",
+           object_id, is_wall_object ? " (WALL)" : "", tile_ptr, tile_ptr);
     printf("  ROM[0x%04X..0x%04X] = 0x%02X 0x%02X -> offset=%d (0x%04X)\n",
            tile_ptr, tile_ptr+1, low, high, offset, (uint16_t)offset);
     printf("  tile_data_ptr = 0x%04X + 0x%04X = 0x%04X (SNES $00:%04X)\n",
            kRoomObjectTileAddress, (uint16_t)offset, tile_data_ptr,
            tile_data_ptr + 0x8000);
 
-    // Show first 4 tile words at the tile data location
-    if (tile_data_ptr + 8 < (int)rom_->size()) {
+    // Show all 8 tile words for wall objects, first 4 for others
+    int num_tiles = is_wall_object ? 8 : 4;
+    if (tile_data_ptr + (num_tiles * 2) < (int)rom_->size()) {
       printf("  Tile data at 0x%04X: ", tile_data_ptr);
-      for (int i = 0; i < 4; i++) {
+      for (int i = 0; i < num_tiles; i++) {
         uint16_t tw = rom_->data()[tile_data_ptr + i*2] |
                       (rom_->data()[tile_data_ptr + i*2 + 1] << 8);
         uint16_t tid = tw & 0x3FF;
         uint8_t pal = (tw >> 10) & 0x07;
-        printf("$%04X(id=%d,p=%d) ", tw, tid, pal);
+        bool hflip = (tw >> 14) & 0x01;
+        bool vflip = (tw >> 15) & 0x01;
+        printf("$%04X(id=%d,p=%d,h:%d,v:%d) ", tw, tid, pal, hflip, vflip);
+        if (i == 3 && is_wall_object) printf("\n                        ");
       }
       printf("\n");
     }
-    debug_count++;
+    if (!is_wall_object) debug_count++;
   }
 
   // Use lookup table for correct tile count per object ID
@@ -223,7 +236,9 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype2(
 
 absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype3(
     int16_t object_id) {
-  int index = object_id & 0xFF;
+  // Type 3 object IDs are 0xF80-0xFFF (128 objects)
+  // Table index should be 0-127, calculated by subtracting base offset 0xF80
+  int index = (object_id - 0xF80) & 0x7F;
   int tile_ptr = kRoomObjectSubtype3 + (index * 2);
 
   if (tile_ptr + 1 >= (int)rom_->size()) {

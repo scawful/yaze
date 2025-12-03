@@ -64,8 +64,8 @@ class RoomObject {
         height_(16),
         rom_(nullptr) {}
 
-  void set_rom(Rom* rom) { rom_ = rom; }
-  auto rom() { return rom_; }
+  void SetRom(Rom* rom) { rom_ = rom; }
+  Rom* rom() const { return rom_; }
   auto mutable_rom() { return rom_; }
 
   // Position setters and getters

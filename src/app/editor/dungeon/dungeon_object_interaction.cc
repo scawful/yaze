@@ -680,7 +680,7 @@ std::pair<int, int> DungeonObjectInteraction::CalculateObjectBounds(
   // If we have a ROM, use ObjectDrawer to calculate accurate dimensions
   if (rom_) {
     if (!object_drawer_) {
-      object_drawer_ = std::make_unique<zelda3::ObjectDrawer>(rom_);
+      object_drawer_ = std::make_unique<zelda3::ObjectDrawer>(rom_, current_room_id_);
     }
     return object_drawer_->CalculateObjectDimensions(object);
   }

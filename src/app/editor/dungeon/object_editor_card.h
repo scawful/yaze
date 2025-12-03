@@ -5,6 +5,7 @@
 #include <unordered_map>
 
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
+#include "app/editor/editor.h"
 #include "app/editor/dungeon/dungeon_object_selector.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gui/app/editor_layout.h"
@@ -14,6 +15,7 @@
 #include "zelda3/dungeon/room_object.h"
 
 #include "zelda3/dungeon/dungeon_object_editor.h"
+#include "zelda3/game_data.h"
 
 namespace yaze {
 namespace editor {
@@ -46,6 +48,21 @@ class ObjectEditorCard {
 
   // Update current room context
   void SetCurrentRoom(int room_id) { current_room_id_ = room_id; }
+  void SetCanvasViewer(DungeonCanvasViewer* viewer) { canvas_viewer_ = viewer; }
+
+  // Unified context setter (preferred)
+  void SetContext(EditorContext ctx) {
+    object_selector_.SetContext(ctx);
+    emulator_preview_.SetGameData(ctx.game_data);
+    // Store locally if needed
+    rom_ = ctx.rom;
+  }
+
+  // GameData propagation (legacy - use SetContext)
+  void SetGameData(zelda3::GameData* game_data) {
+    object_selector_.SetGameData(game_data);
+    emulator_preview_.SetGameData(game_data);
+  }
 
   // Programmatic controls for agents/automation
   void SelectObject(int obj_id);

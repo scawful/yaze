@@ -40,8 +40,8 @@ class DungeonEditorIntegrationTest : public ::testing::Test {
 
     // Initialize DungeonEditorV2 with ROM and GameData
     dungeon_editor_ = std::make_unique<editor::DungeonEditorV2>();
-    dungeon_editor_->set_rom(rom_.get());
-    dungeon_editor_->set_game_data(game_data_.get());
+    dungeon_editor_->SetRom(rom_.get());
+    dungeon_editor_->SetGameData(game_data_.get());
 
     // Load editor data
     auto load_status = dungeon_editor_->Load();

@@ -54,7 +54,7 @@ class DungeonEditorV2IntegrationTest : public ::testing::Test {
 
     // Create V2 editor with ROM and GameData
     dungeon_editor_v2_ = std::make_unique<editor::DungeonEditorV2>(rom_.get());
-    dungeon_editor_v2_->set_game_data(game_data_.get());
+    dungeon_editor_v2_->SetGameData(game_data_.get());
   }
 
   void TearDown() override {

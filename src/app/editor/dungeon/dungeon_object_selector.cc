@@ -407,7 +407,7 @@ void DungeonObjectSelector::SelectObject(int obj_id) {
 
   // Create and update preview object
   preview_object_ = zelda3::RoomObject(obj_id, 0, 0, 0x12, 0);
-  preview_object_.set_rom(rom_);
+  preview_object_.SetRom(rom_);
   if (game_data_) {
     auto palette =
         game_data_->palette_groups.dungeon_main[current_palette_group_id_];
@@ -475,7 +475,7 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
 
       // Create and update preview object
       preview_object_ = zelda3::RoomObject(obj_id, 0, 0, 0x12, 0);
-      preview_object_.set_rom(rom_);
+      preview_object_.SetRom(rom_);
       if (game_data_) {
         auto palette =
             game_data_->palette_groups.dungeon_main[current_palette_group_id_];
@@ -979,7 +979,7 @@ void DungeonObjectSelector::EnsureRegistryInitialized() {
 
 zelda3::RoomObject DungeonObjectSelector::MakePreviewObject(int obj_id) const {
   zelda3::RoomObject obj(obj_id, 0, 0, 0x12, 0);
-  obj.set_rom(rom_);
+  obj.SetRom(rom_);
   obj.EnsureTilesLoaded();
   return obj;
 }
@@ -993,8 +993,8 @@ bool DungeonObjectSelector::DrawObjectPreview(
   gfx::BackgroundBuffer preview_bg(static_cast<int>(size),
                                    static_cast<int>(size));
   zelda3::ObjectDrawer drawer(
-      rom_, rooms_ ? (*rooms_)[current_room_id_].get_gfx_buffer().data()
-                   : nullptr);
+      rom_, current_room_id_,
+      rooms_ ? (*rooms_)[current_room_id_].get_gfx_buffer().data() : nullptr);
   drawer.InitializeDrawRoutines();
   auto status =
       drawer.DrawObject(object, preview_bg, preview_bg, current_palette_group_);

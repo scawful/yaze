@@ -97,7 +97,7 @@ TEST_F(DungeonEditorIntegrationTest, AddObjectToRoom) {
 
   // Add a new object (Type 1, so size must be <= 15)
   zelda3::RoomObject new_obj(0x20, 10, 10, 5, 0);
-  new_obj.set_rom(rom_.get());
+  new_obj.SetRom(rom_.get());
   auto status = room.AddObject(new_obj);
 
   EXPECT_TRUE(status.ok()) << "Failed to add object: " << status.message();
@@ -195,7 +195,7 @@ TEST_F(DungeonEditorIntegrationTest, RenderObjectWithTiles) {
 
   // Ensure tiles are loaded for first object
   auto& obj = room.GetTileObjects()[0];
-  const_cast<zelda3::RoomObject&>(obj).set_rom(rom_.get());
+  const_cast<zelda3::RoomObject&>(obj).SetRom(rom_.get());
   const_cast<zelda3::RoomObject&>(obj).EnsureTilesLoaded();
 
   EXPECT_FALSE(obj.tiles_.empty()) << "Object should have tiles after loading";

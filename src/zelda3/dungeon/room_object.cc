@@ -11,19 +11,25 @@ namespace {
 struct SubtypeTableInfo {
   int base_ptr;    // base address of subtype table in ROM (PC)
   int index_mask;  // mask to apply to object id for index
+  int id_offset;   // offset to subtract from object_id before masking
 
-  SubtypeTableInfo(int base, int mask) : base_ptr(base), index_mask(mask) {}
+  SubtypeTableInfo(int base, int mask, int offset = 0)
+      : base_ptr(base), index_mask(mask), id_offset(offset) {}
 };
 
 SubtypeTableInfo GetSubtypeTable(int object_id) {
   // Heuristic: 0x00-0xFF => subtype1, 0x100-0x1FF => subtype2, >=0xF80 =>
   // subtype3.  Type 3 IDs from decoding are 0xF80-0xFFF (b3 0xF8-0xFF shifted).
   if (object_id >= 0xF80) {
-    return SubtypeTableInfo(kRoomObjectSubtype3, 0xFF);
+    // Type 3: IDs 0xF80-0xFFF map to table indices 0-127
+    // Subtract 0xF80 first, then mask with 0x7F
+    return SubtypeTableInfo(kRoomObjectSubtype3, 0x7F, 0xF80);
   } else if (object_id >= 0x100) {
-    return SubtypeTableInfo(kRoomObjectSubtype2, 0xFF);  // was 0x7F
+    // Type 2: IDs 0x100-0x1FF map to table indices 0-255
+    return SubtypeTableInfo(kRoomObjectSubtype2, 0xFF, 0x100);
   } else {
-    return SubtypeTableInfo(kRoomObjectSubtype1, 0xFF);
+    // Type 1: IDs 0x00-0xFF map directly to table indices
+    return SubtypeTableInfo(kRoomObjectSubtype1, 0xFF, 0);
   }
 }
 }  // namespace
@@ -72,7 +78,8 @@ void RoomObject::EnsureTilesLoaded() {
 
   // Determine which subtype table to use and compute the tile data offset.
   SubtypeTableInfo sti = GetSubtypeTable(id_);
-  int index = (id_ & sti.index_mask);
+  // Apply offset first (for Type 2/3 objects), then mask
+  int index = ((id_ - sti.id_offset) & sti.index_mask);
   int tile_ptr = sti.base_ptr + (index * 2);
 
   // Enhanced bounds checking
@@ -159,17 +166,24 @@ int RoomObject::GetTileCount() const {
 // Object Encoding/Decoding Implementation (Phase 1, Task 1.1)
 // ============================================================================
 
-int RoomObject::DetermineObjectType(uint8_t /* b1 */, uint8_t b3) {
+int RoomObject::DetermineObjectType(uint8_t b1, uint8_t b3) {
+  // IMPORTANT: Check Type 2 FIRST to avoid boundary collision with Type 3.
+  // Type 2 objects with certain Y positions can produce b3 >= 0xF8, which
+  // would incorrectly trigger Type 3 decoding if we checked b3 first.
+  //
+  // Type 2: 111111xx xxxxyyyy yyiiiiii
+  // Discriminator: b1 >= 0xFC (top 6 bits all 1)
+  if (b1 >= 0xFC) {
+    return 2;
+  }
+
   // Type 3: Objects with ID >= 0xF00
   // These have b3 >= 0xF8 (top nibble is 0xF)
   if (b3 >= 0xF8) {
     return 3;
   }
 
-  // Type 1: Standard objects (ID 0x00-0xFF) - check this first
-  // Type 2: Objects with ID >= 0x100 (these have b1 >= 0xFC)
-  // We'll handle Type 2 in the decoding logic after Type 1
-
+  // Type 1: Standard objects (ID 0x00-0xFF)
   return 1;
 }
 

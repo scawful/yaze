@@ -37,7 +37,7 @@ class DungeonObjectRenderingTests : public TestRomManager::BoundRomTest {
 
     // Create dummy graphics buffer
     gfx_buffer_.resize(0x10000, 1); // Fill with 1s so we see something
-    drawer_ = std::make_unique<zelda3::ObjectDrawer>(rom(), gfx_buffer_.data());
+    drawer_ = std::make_unique<zelda3::ObjectDrawer>(rom(), 0, gfx_buffer_.data());
 
     // Create background buffers
     bg1_ = std::make_unique<gfx::BackgroundBuffer>(512, 512);
@@ -76,7 +76,7 @@ class DungeonObjectRenderingTests : public TestRomManager::BoundRomTest {
   zelda3::RoomObject CreateTestObject(int id, int x, int y, int size = 0x12,
                                       int layer = 0) {
     zelda3::RoomObject obj(id, x, y, size, layer);
-    obj.set_rom(rom());
+    obj.SetRom(rom());
     obj.EnsureTilesLoaded();
     
     // Force add a tile if none loaded (for testing without real ROM data)
@@ -251,7 +251,7 @@ TEST_F(DungeonObjectRenderingTests, VariousObjectTypes) {
 // Test error handling
 TEST_F(DungeonObjectRenderingTests, ErrorHandling) {
   // Test with null ROM
-  zelda3::ObjectDrawer null_drawer(nullptr);
+  zelda3::ObjectDrawer null_drawer(nullptr, 0);
   std::vector<zelda3::RoomObject> objects;
   objects.push_back(CreateTestObject(0x10, 5, 5));
 

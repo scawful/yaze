@@ -45,10 +45,14 @@ class TestRomManager {
    * @return Path to the test ROM
    */
   static std::string GetTestRomPath() {
+    // Check environment variable first (set by --rom-path argument)
+    if (const char* env_path = std::getenv("YAZE_TEST_ROM_PATH")) {
+      return env_path;
+    }
 #ifdef YAZE_TEST_ROM_PATH
     return YAZE_TEST_ROM_PATH;
 #else
-    return "zelda3.sfc";
+    return "zelda3.sfc";  // Default fallback
 #endif
   }
 

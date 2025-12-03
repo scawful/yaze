@@ -17,7 +17,7 @@ class DungeonPaletteTest : public ::testing::Test {
     // but ObjectDrawer constructor needs it.
     rom_ = std::make_unique<Rom>();
     game_data_ = std::make_unique<GameData>(rom_.get());
-    drawer_ = std::make_unique<ObjectDrawer>(rom_.get());
+    drawer_ = std::make_unique<ObjectDrawer>(rom_.get(), 0);
   }
 
   std::unique_ptr<Rom> rom_;
@@ -29,7 +29,7 @@ TEST_F(DungeonPaletteTest, PaletteOffsetIsCorrectFor8BPP) {
   // Create a bitmap
   gfx::Bitmap bitmap;
   bitmap.Create(8, 8, 8, std::vector<uint8_t>(64, 0));
-  
+
   // Create dummy tile data (128x128 pixels worth, but we only need enough for one tile)
   // 128 pixels wide = 16 tiles.
   // We will use tile ID 0.
@@ -37,13 +37,13 @@ TEST_F(DungeonPaletteTest, PaletteOffsetIsCorrectFor8BPP) {
   // src_index = (0 + py) * 128 + (0 + px)
   // We need a buffer of size 128 * 8 at least.
   std::vector<uint8_t> tiledata(128 * 8, 0);
-  
+
   // Set some pixels in the tile data
   // Row 0, Col 0: Index 1
   tiledata[0] = 1;
   // Row 0, Col 1: Index 2
   tiledata[1] = 2;
-  
+
   // Create TileInfo with palette index 1
   gfx::TileInfo tile_info;
   tile_info.id_ = 0;
@@ -51,37 +51,38 @@ TEST_F(DungeonPaletteTest, PaletteOffsetIsCorrectFor8BPP) {
   tile_info.horizontal_mirror_ = false;
   tile_info.vertical_mirror_ = false;
   tile_info.over_ = false;
-  
+
   // Draw
   drawer_->DrawTileToBitmap(bitmap, tile_info, 0, 0, tiledata.data());
-  
+
   // Check pixels
-  // Palette offset should be (palette & 0x07) * 8
-  // For palette 1, offset is 8.
-  // Pixel at (0,0) was 1. Result should be 1 + 8 = 9.
-  // Pixel at (1,0) was 2. Result should be 2 + 8 = 10.
-  
+  // Dungeon tiles use 15-color sub-palettes (not 8 like overworld).
+  // Formula: final_color = (pixel - 1) + (palette * 15)
+  // For palette 1, offset is 15.
+  // Pixel at (0,0) was 1. Result should be (1-1) + 15 = 15.
+  // Pixel at (1,0) was 2. Result should be (2-1) + 15 = 16.
+
   const auto& data = bitmap.vector();
   // Bitmap data is row-major.
   // (0,0) is index 0.
-  EXPECT_EQ(data[0], 9);
-  EXPECT_EQ(data[1], 10);
-  
+  EXPECT_EQ(data[0], 15);  // (1-1) + 15 = 15
+  EXPECT_EQ(data[1], 16);  // (2-1) + 15 = 16
+
   // Test with palette 0
   tile_info.palette_ = 0;
   drawer_->DrawTileToBitmap(bitmap, tile_info, 0, 0, tiledata.data());
-  // Offset 0.
-  // Note: DrawTileToBitmap does not clear the bitmap, it overwrites.
-  // Pixel 0 was 9. Now it should be 1.
-  EXPECT_EQ(data[0], 1);
-  EXPECT_EQ(data[1], 2);
-  
-  // Test with palette 7
+  // Offset 0 * 15 = 0.
+  // Pixel 1 -> (1-1) + 0 = 0
+  // Pixel 2 -> (2-1) + 0 = 1
+  EXPECT_EQ(data[0], 0);
+  EXPECT_EQ(data[1], 1);
+
+  // Test with palette 7 (wraps to palette 1 due to 6 sub-palette limit)
   tile_info.palette_ = 7;
   drawer_->DrawTileToBitmap(bitmap, tile_info, 0, 0, tiledata.data());
-  // Offset 7 * 8 = 56.
-  EXPECT_EQ(data[0], 1 + 56);
-  EXPECT_EQ(data[1], 2 + 56);
+  // Palette 7 wraps to 7 % 6 = 1, offset 1 * 15 = 15.
+  EXPECT_EQ(data[0], 15);  // (1-1) + 15 = 15
+  EXPECT_EQ(data[1], 16);  // (2-1) + 15 = 16
 }
 
 TEST_F(DungeonPaletteTest, PaletteOffsetWorksWithConvertedData) {
@@ -89,9 +90,9 @@ TEST_F(DungeonPaletteTest, PaletteOffsetWorksWithConvertedData) {
   bitmap.Create(8, 8, 8, std::vector<uint8_t>(64, 0));
 
   // Create 8BPP unpacked tile data (simulating converted buffer)
-  // Layout: 1024 bytes per tile row, 8 bytes per tile
+  // Layout: 128 bytes per tile row, 8 bytes per tile
   // For tile 0: base_x=0, base_y=0
-  std::vector<uint8_t> tiledata(1024 * 8, 0);
+  std::vector<uint8_t> tiledata(128 * 8, 0);
 
   // Set pixel pair at row 0: pixel 0 = 3, pixel 1 = 5
   tiledata[0] = 3;
@@ -99,7 +100,7 @@ TEST_F(DungeonPaletteTest, PaletteOffsetWorksWithConvertedData) {
 
   gfx::TileInfo tile_info;
   tile_info.id_ = 0;
-  tile_info.palette_ = 2;  // Palette 2 → offset 16
+  tile_info.palette_ = 2;  // Palette 2 → offset 30 (2 * 15)
   tile_info.horizontal_mirror_ = false;
   tile_info.vertical_mirror_ = false;
   tile_info.over_ = false;
@@ -107,10 +108,12 @@ TEST_F(DungeonPaletteTest, PaletteOffsetWorksWithConvertedData) {
   drawer_->DrawTileToBitmap(bitmap, tile_info, 0, 0, tiledata.data());
 
   const auto& data = bitmap.vector();
-  // Pixel 0: 3 + 16 = 19
-  // Pixel 1: 5 + 16 = 21
-  EXPECT_EQ(data[0], 19);
-  EXPECT_EQ(data[1], 21);
+  // Dungeon tiles use 15-color sub-palettes.
+  // Formula: final_color = (pixel - 1) + (palette * 15)
+  // Pixel 3: (3-1) + 30 = 32
+  // Pixel 5: (5-1) + 30 = 34
+  EXPECT_EQ(data[0], 32);
+  EXPECT_EQ(data[1], 34);
 }
 
 TEST_F(DungeonPaletteTest, InspectActualPaletteColors) {

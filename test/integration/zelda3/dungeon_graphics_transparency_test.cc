@@ -215,7 +215,7 @@ TEST_F(DungeonGraphicsTransparencyTest, WallObjectsHaveTiles) {
 
   for (size_t i = 0; i < objects.size() && i < 20; i++) {  // First 20 objects
     auto& obj = objects[i];
-    obj.set_rom(rom_.get());
+    obj.SetRom(rom_.get());
     obj.EnsureTilesLoaded();
 
     printf("[Object %zu] id=0x%03X pos=(%d,%d) size=%d tiles=%zu\n", i, obj.id_,
@@ -279,7 +279,7 @@ TEST_F(DungeonGraphicsTransparencyTest, ObjectsDrawToBitmap) {
   printf("[DrawTest] Room 0 has %zu objects\n", objects.size());
 
   // Create ObjectDrawer with room's graphics buffer
-  ObjectDrawer drawer(rom_.get(), room.get_gfx_buffer().data());
+  ObjectDrawer drawer(rom_.get(), 0, room.get_gfx_buffer().data());
 
   // Create a palette group (needed for draw)
   gfx::PaletteGroup palette_group;

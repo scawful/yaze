@@ -22,7 +22,7 @@ class ObjectDimensionsTest : public ::testing::Test {
 };
 
 TEST_F(ObjectDimensionsTest, CalculatesDimensionsForType1Objects) {
-  ObjectDrawer drawer(rom_.get());
+  ObjectDrawer drawer(rom_.get(), 0);
 
   // Test object 0x00 (horizontal floor tile)
   // Routine 0: DrawRightwards2x2_1to15or32
@@ -42,7 +42,7 @@ TEST_F(ObjectDimensionsTest, CalculatesDimensionsForType1Objects) {
 }
 
 TEST_F(ObjectDimensionsTest, CalculatesDimensionsForDiagonalWalls) {
-  ObjectDrawer drawer(rom_.get());
+  ObjectDrawer drawer(rom_.get(), 0);
 
   // Test object 0x10 (Diagonal Wall /)
   // Routine 17: DrawDiagonalAcute_1to16_BothBG
@@ -62,7 +62,7 @@ TEST_F(ObjectDimensionsTest, CalculatesDimensionsForDiagonalWalls) {
 }
 
 TEST_F(ObjectDimensionsTest, CalculatesDimensionsForType2Corners) {
-  ObjectDrawer drawer(rom_.get());
+  ObjectDrawer drawer(rom_.get(), 0);
 
   // Test object 0x40 (Type 2 Corner)
   // Routine 22: Edge 1x1
@@ -74,7 +74,7 @@ TEST_F(ObjectDimensionsTest, CalculatesDimensionsForType2Corners) {
 }
 
 TEST_F(ObjectDimensionsTest, CalculatesDimensionsForType3Objects) {
-  ObjectDrawer drawer(rom_.get());
+  ObjectDrawer drawer(rom_.get(), 0);
 
   // Test object 0x200 (Water Face)
   // Routine 34: Water Face (2x2 tiles = 16x16 pixels)
@@ -91,7 +91,7 @@ TEST_F(ObjectDimensionsTest, CalculatesDimensionsForType3Objects) {
 }
 
 TEST_F(ObjectDimensionsTest, CalculatesDimensionsForSomariaLine) {
-  ObjectDrawer drawer(rom_.get());
+  ObjectDrawer drawer(rom_.get(), 0);
 
   // Test object 0x203 (Somaria Line) -> Routine 33
   // Routine 33 is handled: width 32, height 32

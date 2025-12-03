@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "app/editor/editor.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
@@ -23,6 +24,16 @@ class DungeonRoomLoader {
  public:
   explicit DungeonRoomLoader(Rom* rom) : rom_(rom) {}
 
+  // Unified context setter (preferred)
+  void SetContext(EditorContext ctx) {
+    rom_ = ctx.rom;
+    game_data_ = ctx.game_data;
+  }
+  EditorContext context() const { return {rom_, game_data_}; }
+
+  // Individual setters for compatibility
+  void SetRom(Rom* rom) { rom_ = rom; }
+  Rom* rom() const { return rom_; }
   void SetGameData(zelda3::GameData* game_data) { game_data_ = game_data; }
   zelda3::GameData* game_data() const { return game_data_; }
 
