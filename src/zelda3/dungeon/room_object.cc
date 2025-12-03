@@ -85,6 +85,9 @@ void RoomObject::EnsureTilesLoaded() {
   // Enhanced bounds checking
   if (tile_ptr < 0 || tile_ptr + 1 >= (int)rom_->size()) {
     // Log error but don't crash
+    LOG_DEBUG("RoomObject", "Tile pointer out of bounds for object %04X", id_);
+    tiles_.clear();
+    tiles_loaded_ = true; // Mark as loaded (empty) to prevent retry
     return;
   }
 
@@ -95,6 +98,9 @@ void RoomObject::EnsureTilesLoaded() {
   // Enhanced bounds checking for tile data
   if (pos < 0 || pos + 7 >= (int)rom_->size()) {
     // Log error but don't crash
+    LOG_DEBUG("RoomObject", "Tile data position out of bounds for object %04X", id_);
+    tiles_.clear();
+    tiles_loaded_ = true; // Mark as loaded (empty) to prevent retry
     return;
   }
 

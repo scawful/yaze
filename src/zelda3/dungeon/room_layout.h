@@ -5,7 +5,10 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "app/gfx/render/background_buffer.h"
+#include "app/gfx/types/snes_palette.h"
 #include "rom/rom.h"
+#include "zelda3/dungeon/editor_dungeon_state.h"
 #include "zelda3/dungeon/room_object.h"
 
 namespace yaze::zelda3 {
@@ -18,6 +21,12 @@ class RoomLayout {
   void SetRom(Rom* rom) { rom_ = rom; }
 
   absl::Status LoadLayout(int layout_id);
+
+  // Render the layout objects into the provided buffers
+  absl::Status Draw(int room_id, const uint8_t* gfx_data,
+                    gfx::BackgroundBuffer& bg1, gfx::BackgroundBuffer& bg2,
+                    const gfx::PaletteGroup& palette_group,
+                    DungeonState* state) const;
 
   const std::vector<RoomObject>& GetObjects() const { return objects_; }
 

@@ -193,7 +193,8 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype1(
 
     // Show all 8 tile words for wall objects, first 4 for others
     int num_tiles = is_wall_object ? 8 : 4;
-    if (tile_data_ptr + (num_tiles * 2) < (int)rom_->size()) {
+    // Fix: Check for negative tile_data_ptr to prevent SIGSEGV on corrupted ROMs
+    if (tile_data_ptr >= 0 && tile_data_ptr + (num_tiles * 2) < (int)rom_->size()) {
       printf("  Tile data at 0x%04X: ", tile_data_ptr);
       for (int i = 0; i < num_tiles; i++) {
         uint16_t tw = rom_->data()[tile_data_ptr + i*2] |
@@ -206,6 +207,8 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype1(
         if (i == 3 && is_wall_object) printf("\n                        ");
       }
       printf("\n");
+    } else {
+      printf("  Tile data at 0x%04X: <OUT OF BOUNDS>\n", tile_data_ptr);
     }
     if (!is_wall_object) debug_count++;
   }

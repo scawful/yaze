@@ -3,16 +3,13 @@
 #include "absl/strings/str_format.h"
 #include "rom/snes.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/object_drawer.h"
 
 namespace yaze::zelda3 {
 
 namespace {
-constexpr uint16_t kLayerTerminator = 0xFFFF;
-
-uint16_t ReadWord(const Rom* rom, int pc_addr) {
-  const auto& data = rom->data();
-  return static_cast<uint16_t>(data[pc_addr] | (data[pc_addr + 1] << 8));
-}
+// kLayerTerminator unused
+// ReadWord unused
 }  // namespace
 
 absl::StatusOr<int> RoomLayout::GetLayoutAddress(int layout_id) const {
@@ -75,6 +72,23 @@ absl::Status RoomLayout::LoadLayout(int layout_id) {
   }
 
   return absl::OkStatus();
+}
+
+absl::Status RoomLayout::Draw(int room_id, const uint8_t* gfx_data,
+                              gfx::BackgroundBuffer& bg1,
+                              gfx::BackgroundBuffer& bg2,
+                              const gfx::PaletteGroup& palette_group,
+                              DungeonState* state) const {
+  if (!rom_ || !rom_->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+
+  if (objects_.empty()) {
+    return absl::OkStatus();
+  }
+
+  ObjectDrawer drawer(rom_, room_id, gfx_data);
+  return drawer.DrawObjectList(objects_, bg1, bg2, palette_group, state);
 }
 
 }  // namespace yaze::zelda3
