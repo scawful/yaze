@@ -17,6 +17,13 @@ class ObjectDimensionTableTest : public ::testing::Test {
     rom_ = std::make_unique<Rom>();
     std::vector<uint8_t> mock_rom_data(1024 * 1024, 0);
     rom_->LoadFromData(mock_rom_data);
+    // Reset singleton before each test
+    ObjectDimensionTable::Get().Reset();
+  }
+
+  void TearDown() override {
+    // Reset singleton after each test to avoid affecting other tests
+    ObjectDimensionTable::Get().Reset();
   }
 
   std::unique_ptr<Rom> rom_;
@@ -100,9 +107,14 @@ class ObjectDimensionsTest : public ::testing::Test {
     // Initialize with minimal ROM data for testing
     std::vector<uint8_t> mock_rom_data(1024 * 1024, 0);  // 1MB mock ROM
     rom_->LoadFromData(mock_rom_data);
+    // Reset dimension table singleton
+    ObjectDimensionTable::Get().Reset();
   }
 
-  void TearDown() override { rom_.reset(); }
+  void TearDown() override {
+    rom_.reset();
+    ObjectDimensionTable::Get().Reset();
+  }
 
   std::unique_ptr<Rom> rom_;
 };

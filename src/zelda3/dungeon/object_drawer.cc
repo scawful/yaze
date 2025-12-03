@@ -104,16 +104,34 @@ absl::Status ObjectDrawer::DrawObjectList(
   if (bg1_bmp.modified() && bg1_bmp.surface() &&
       bg1_bmp.mutable_data().size() > 0) {
     SDL_LockSurface(bg1_bmp.surface());
-    memcpy(bg1_bmp.surface()->pixels, bg1_bmp.mutable_data().data(),
-           bg1_bmp.mutable_data().size());
+    // Safety check: ensure surface can hold the data
+    // Note: This assumes 8bpp surface where pitch >= width
+    size_t surface_size = bg1_bmp.surface()->h * bg1_bmp.surface()->pitch;
+    size_t buffer_size = bg1_bmp.mutable_data().size();
+    
+    if (surface_size >= buffer_size) {
+      // TODO: Handle pitch mismatch properly (copy row by row)
+      // For now, just ensure we don't overflow
+      memcpy(bg1_bmp.surface()->pixels, bg1_bmp.mutable_data().data(),
+             buffer_size);
+    } else {
+      LOG_DEBUG("ObjectDrawer", "BG1 Surface too small: surf=%zu buf=%zu", surface_size, buffer_size);
+    }
     SDL_UnlockSurface(bg1_bmp.surface());
   }
 
   if (bg2_bmp.modified() && bg2_bmp.surface() &&
       bg2_bmp.mutable_data().size() > 0) {
     SDL_LockSurface(bg2_bmp.surface());
-    memcpy(bg2_bmp.surface()->pixels, bg2_bmp.mutable_data().data(),
-           bg2_bmp.mutable_data().size());
+    size_t surface_size = bg2_bmp.surface()->h * bg2_bmp.surface()->pitch;
+    size_t buffer_size = bg2_bmp.mutable_data().size();
+
+    if (surface_size >= buffer_size) {
+      memcpy(bg2_bmp.surface()->pixels, bg2_bmp.mutable_data().data(),
+             buffer_size);
+    } else {
+      LOG_DEBUG("ObjectDrawer", "BG2 Surface too small: surf=%zu buf=%zu", surface_size, buffer_size);
+    }
     SDL_UnlockSurface(bg2_bmp.surface());
   }
 

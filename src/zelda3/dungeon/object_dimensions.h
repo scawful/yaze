@@ -45,6 +45,12 @@ class ObjectDimensionTable {
   // Check if loaded
   bool IsLoaded() const { return loaded_; }
 
+  // Reset state (for testing)
+  void Reset() {
+    dimensions_.clear();
+    loaded_ = false;
+  }
+
  private:
   ObjectDimensionTable() = default;
 

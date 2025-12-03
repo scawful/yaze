@@ -840,16 +840,14 @@ void Room::LoadLayoutTilesToBuffer() {
   gfx::PaletteGroup palette_group;
   palette_group.AddPalette(room_palette);
 
-  // Create ObjectDrawer for layout rendering
-  ObjectDrawer drawer(rom_, room_id_, current_gfx16_.data());
-
-  // Draw layout objects using proper draw routines
-  auto status = drawer.DrawObjectList(layout_objects, bg1_buffer_, bg2_buffer_,
-                                       palette_group, dungeon_state_.get());
+  // Draw layout objects using proper draw routines via RoomLayout
+  auto status = layout_.Draw(room_id_, current_gfx16_.data(), bg1_buffer_,
+                             bg2_buffer_, palette_group, dungeon_state_.get());
 
   if (!status.ok()) {
-    LOG_DEBUG("RenderRoomGraphics", "Layout ObjectDrawer failed: %s",
-              std::string(status.message().data(), status.message().size()).c_str());
+    LOG_DEBUG("RenderRoomGraphics", "Layout Draw failed: %s",
+              std::string(status.message().data(), status.message().size())
+                  .c_str());
   } else {
     LOG_DEBUG("RenderRoomGraphics", "Layout rendered with %zu objects",
               layout_objects.size());
@@ -1380,8 +1378,8 @@ absl::Status Room::SaveSprites() {
   auto rom_data = rom()->vector();
 
   // Calculate sprite pointer table location
-  // Bank 04 + rooms_sprite_pointer
-  int sprite_pointer = (0x04 << 16) +
+  // Bank 09 + rooms_sprite_pointer (was incorrectly 0x04)
+  int sprite_pointer = (0x09 << 16) +
                        (rom_data[rooms_sprite_pointer + 1] << 8) +
                        (rom_data[rooms_sprite_pointer]);
   sprite_pointer = SnesToPc(sprite_pointer);
