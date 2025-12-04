@@ -121,7 +121,27 @@ if(YAZE_BUILD_TESTS)
 endif()
 
 # Code quality targets
-find_program(CLANG_FORMAT NAMES clang-format clang-format-14 clang-format-15 clang-format-16 clang-format-17 clang-format-18)
+if(YAZE_ENABLE_CLANG_TIDY)
+  if(NOT YAZE_CLANG_TIDY_EXE)
+    find_program(YAZE_CLANG_TIDY_EXE NAMES clang-tidy clang-tidy-18 clang-tidy-17 clang-tidy-16)
+  endif()
+
+  if(YAZE_CLANG_TIDY_EXE)
+    message(STATUS "✓ clang-tidy enabled: ${YAZE_CLANG_TIDY_EXE}")
+    set(CMAKE_CXX_CLANG_TIDY "${YAZE_CLANG_TIDY_EXE}")
+  else()
+    message(WARNING "clang-tidy requested but not found")
+  endif()
+endif()
+
+find_program(CLANG_FORMAT
+  NAMES clang-format-18 clang-format
+  HINTS "${HOMEBREW_LLVM_PREFIX}/bin" # Prefer clang-format from Homebrew LLVM
+  NO_DEFAULT_PATH
+)
+if(NOT CLANG_FORMAT) # Fallback to generic search if not found in Homebrew prefix
+  find_program(CLANG_FORMAT NAMES clang-format clang-format-17 clang-format-16 clang-format-15 clang-format-14)
+endif()
 if(CLANG_FORMAT)
   file(GLOB_RECURSE ALL_SOURCE_FILES
        "${CMAKE_SOURCE_DIR}/src/*.cc"
