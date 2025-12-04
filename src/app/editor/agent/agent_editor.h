@@ -305,7 +305,7 @@ class AgentEditor : public Editor {
   bool show_metrics_dashboard_ = false;
   int selected_tab_ = 0;  // 0=Config, 1=Prompts, 2=Bots, 3=History, 4=Metrics
 
-  // Card-based UI visibility flags
+  // Panel-based UI visibility flags
   bool show_config_card_ = true;
   bool show_status_card_ = true;
   bool show_prompt_editor_card_ = false;
@@ -315,7 +315,7 @@ class AgentEditor : public Editor {
   bool show_builder_card_ = false;
   bool show_chat_card_ = true;
 
-  // Card registration helper
+  // Panel registration helper
   void RegisterPanels();
 
   // Chat history viewer state

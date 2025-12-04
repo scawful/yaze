@@ -284,7 +284,7 @@ absl::Status GraphicsEditor::Update() {
   auto* panel_manager = dependencies_.panel_manager;
   const size_t session_id = dependencies_.session_id;
 
-  // --- New Panel-Based Cards (member variables) ---
+  // --- New Panel-Based Panels (member variables) ---
   gfx_card_.SetPosition(gui::PanelWindow::Position::Left);
 
   sheet_browser_v2_card_.SetDefaultSize(350, 600);
@@ -354,13 +354,13 @@ absl::Status GraphicsEditor::Update() {
     polyhedral_card_.End();
   }
 
-  // --- Legacy Cards (member variables) ---
+  // --- Legacy Panels (member variables) ---
   sheet_editor_card_.SetDefaultSize(900, 700);
   sheet_browser_card_.SetDefaultSize(400, 600);
   player_anims_card_.SetDefaultSize(500, 600);
   prototype_card_.SetDefaultSize(600, 500);
 
-  // Sheet Editor Card (Legacy)
+  // Sheet Editor Panel (Legacy)
   bool* sheet_editor_visible =
       panel_manager->GetVisibilityFlag(session_id, "graphics.sheet_editor");
   if (sheet_editor_visible && *sheet_editor_visible) {
@@ -370,7 +370,7 @@ absl::Status GraphicsEditor::Update() {
     sheet_editor_card_.End();
   }
 
-  // Sheet Browser Card (Legacy)
+  // Sheet Browser Panel (Legacy)
   bool* sheet_browser_visible =
       panel_manager->GetVisibilityFlag(session_id, "graphics.sheet_browser");
   if (sheet_browser_visible && *sheet_browser_visible) {
@@ -383,7 +383,7 @@ absl::Status GraphicsEditor::Update() {
     sheet_browser_card_.End();
   }
 
-  // Player Animations Card
+  // Player Animations Panel
   bool* player_anims_visible =
       panel_manager->GetVisibilityFlag(session_id, "graphics.player_animations");
   if (player_anims_visible && *player_anims_visible) {
@@ -393,7 +393,7 @@ absl::Status GraphicsEditor::Update() {
     player_anims_card_.End();
   }
 
-  // Prototype Viewer Card
+  // Prototype Viewer Panel
   bool* prototype_visible =
       panel_manager->GetVisibilityFlag(session_id, "graphics.prototype_viewer");
   if (prototype_visible && *prototype_visible) {

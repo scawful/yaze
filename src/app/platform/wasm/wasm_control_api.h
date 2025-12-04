@@ -91,21 +91,21 @@ class WasmControlApi {
    * @param card_id Panel identifier (e.g., "dungeon.room_selector")
    * @return JSON result with success/error
    */
-  static std::string OpenCard(const std::string& card_id);
+  static std::string OpenPanel(const std::string& card_id);
 
   /**
    * @brief Close/hide a panel by ID
    * @param card_id Panel identifier
    * @return JSON result with success/error
    */
-  static std::string CloseCard(const std::string& card_id);
+  static std::string ClosePanel(const std::string& card_id);
 
   /**
    * @brief Toggle a panel's visibility
    * @param card_id Panel identifier
    * @return JSON result with new visibility state
    */
-  static std::string ToggleCard(const std::string& card_id);
+  static std::string TogglePanel(const std::string& card_id);
 
   /**
    * @brief Get list of currently visible panels
@@ -481,7 +481,7 @@ class WasmControlApi {
   static bool initialized_;
 
   // Helper to get card registry
-  static editor::PanelManager* GetCardRegistry();
+  static editor::PanelManager* GetPanelRegistry();
 
   // Helper to convert EditorType to string
   static std::string EditorTypeToString(int type);
@@ -513,9 +513,9 @@ class WasmControlApi {
   static std::string SwitchEditor(const std::string&) { return "{}"; }
   static std::string GetCurrentEditor() { return "{}"; }
   static std::string GetAvailableEditors() { return "[]"; }
-  static std::string OpenCard(const std::string&) { return "{}"; }
-  static std::string CloseCard(const std::string&) { return "{}"; }
-  static std::string ToggleCard(const std::string&) { return "{}"; }
+  static std::string OpenPanel(const std::string&) { return "{}"; }
+  static std::string ClosePanel(const std::string&) { return "{}"; }
+  static std::string TogglePanel(const std::string&) { return "{}"; }
   static std::string GetVisiblePanels() { return "[]"; }
   static std::string GetAvailablePanels() { return "[]"; }
   static std::string GetPanelsInCategory(const std::string&) { return "[]"; }

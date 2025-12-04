@@ -1,8 +1,15 @@
 #include "session_coordinator.h"
+#include <absl/status/status.h>
+#include <absl/status/statusor.h>
 
-#include <algorithm>
+#include <cstdint>
 #include <cstdio>
+#include <cstring>
 #include <filesystem>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <utility>
 
 #include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
@@ -11,7 +18,13 @@
 #include "app/editor/session_types.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/theme_manager.h"
+#include "core/color.h"
+#include "editor/editor.h"
+#include "editor/system/user_settings.h"
+#include "editor/ui/toast_manager.h"
 #include "imgui/imgui.h"
+#include "util/log.h"
+#include "zelda3/game_data.h"
 
 namespace yaze {
 namespace editor {
@@ -571,10 +584,10 @@ void SessionCoordinator::UpdateSessions() {
         }
 
         // CARD-BASED EDITORS: Don't wrap in Begin/End, they manage own windows
-        bool is_card_based_editor = EditorManager::IsCardBasedEditor(editor->type());
+        bool is_card_based_editor = EditorManager::IsPanelBasedEditor(editor->type());
 
         if (is_card_based_editor) {
-          // Card-based editors create their own top-level windows
+          // Panel-based editors create their own top-level windows
           // No parent wrapper needed - this allows independent docking
           if (editor_manager_) {
             editor_manager_->SetCurrentEditor(editor);

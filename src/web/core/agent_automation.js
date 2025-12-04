@@ -404,11 +404,11 @@
       }
 
       // Get visible cards
-      if (typeof Module !== 'undefined' && Module.controlGetVisibleCards) {
+      if (typeof Module !== 'undefined' && Module.controlGetVisiblePanels) {
         try {
-          const cardsResult = JSON.parse(Module.controlGetVisibleCards());
+          const cardsResult = JSON.parse(Module.controlGetVisiblePanels());
           if (Array.isArray(cardsResult)) {
-            canvas.dataset.visibleCards = cardsResult.join(',');
+            canvas.dataset.visiblePanels = cardsResult.join(',');
           }
         } catch (e) {
           // Silently ignore if not available
@@ -442,7 +442,7 @@
       return {
         success: true,
         editorType: canvas.dataset.editorType,
-        visibleCards: canvas.dataset.visibleCards,
+        visiblePanels: canvas.dataset.visiblePanels,
         romLoaded: canvas.dataset.romLoaded,
         sessionId: canvas.dataset.sessionId
       };
@@ -450,15 +450,15 @@
 
     /**
      * Get all available cards with their metadata
-     * @returns {Object} Cards array with id, name, visible, enabled, etc.
+     * @returns {Object} Panels array with id, name, visible, enabled, etc.
      */
-    getAvailableCards: function() {
-      if (typeof Module === 'undefined' || !Module.controlGetAvailableCards) {
+    getAvailablePanels: function() {
+      if (typeof Module === 'undefined' || !Module.controlGetAvailablePanels) {
         return { error: 'Module not ready', cards: [] };
       }
 
       try {
-        return JSON.parse(Module.controlGetAvailableCards());
+        return JSON.parse(Module.controlGetAvailablePanels());
       } catch (e) {
         return { error: e.message, cards: [] };
       }
@@ -469,13 +469,13 @@
      * @param {string} cardId - The card identifier
      * @returns {Object} Result with success status
      */
-    showCard: function(cardId) {
-      if (typeof Module === 'undefined' || !Module.controlOpenCard) {
+    showPanel: function(cardId) {
+      if (typeof Module === 'undefined' || !Module.controlOpenPanel) {
         return { error: 'Module not ready' };
       }
 
       try {
-        return JSON.parse(Module.controlOpenCard(cardId));
+        return JSON.parse(Module.controlOpenPanel(cardId));
       } catch (e) {
         return { error: e.message };
       }
@@ -486,13 +486,13 @@
      * @param {string} cardId - The card identifier
      * @returns {Object} Result with success status
      */
-    hideCard: function(cardId) {
-      if (typeof Module === 'undefined' || !Module.controlCloseCard) {
+    hidePanel: function(cardId) {
+      if (typeof Module === 'undefined' || !Module.controlClosePanel) {
         return { error: 'Module not ready' };
       }
 
       try {
-        return JSON.parse(Module.controlCloseCard(cardId));
+        return JSON.parse(Module.controlClosePanel(cardId));
       } catch (e) {
         return { error: e.message };
       }

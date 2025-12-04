@@ -864,7 +864,7 @@ void AgentChatWidget::Draw() {
   // Poll for new messages in collaborative sessions
   PollSharedHistory();
 
-  // Note: We assume this is called inside an EditorCard or similar container
+  // Note: We assume this is called inside an EditorPanel or similar container
   // that handles the main window. We just draw the content.
   
   // Simplified menu bar (only if not embedded in sidebar/card that has one)

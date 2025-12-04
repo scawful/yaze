@@ -7,10 +7,10 @@
 
 namespace yaze::editor {
 
-UsageStatisticsCard::UsageStatisticsCard(zelda3::Overworld* overworld)
+UsageStatisticsPanel::UsageStatisticsPanel(zelda3::Overworld* overworld)
     : overworld_(overworld) {}
 
-void UsageStatisticsCard::Draw(bool* p_open) {
+void UsageStatisticsPanel::Draw(bool* p_open) {
   if (!overworld_ || !overworld_->is_loaded()) {
     ImGui::TextDisabled("Overworld not loaded");
     return;
@@ -32,7 +32,7 @@ void UsageStatisticsCard::Draw(bool* p_open) {
   ImGui::End();
 }
 
-void UsageStatisticsCard::DrawUsageGrid() {
+void UsageStatisticsPanel::DrawUsageGrid() {
   // Logic moved from OverworldEditor::DrawUsageGrid
   // Simplified for card layout
   
@@ -58,7 +58,7 @@ void UsageStatisticsCard::DrawUsageGrid() {
   }
 }
 
-void UsageStatisticsCard::DrawUsageStates() {
+void UsageStatisticsPanel::DrawUsageStates() {
   ImGui::Text("Global Usage Statistics");
   ImGui::Separator();
   

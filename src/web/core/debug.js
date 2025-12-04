@@ -161,60 +161,60 @@
   };
 
   // ==========================================================================
-  // UI Component Control (Cards, Sidebar, Panels)
+  // UI Component Control (Panels, Sidebar, Panels)
   // ==========================================================================
 
   window.yazeDebug.cards = {
     show: function(cardId) {
-      if (!window.Module || !window.Module.showCard) return { error: 'Module not ready' };
-      try { return JSON.parse(window.Module.showCard(cardId)); } catch (e) { return { error: e.message }; }
+      if (!window.Module || !window.Module.showPanel) return { error: 'Module not ready' };
+      try { return JSON.parse(window.Module.showPanel(cardId)); } catch (e) { return { error: e.message }; }
     },
     hide: function(cardId) {
-      if (!window.Module || !window.Module.hideCard) return { error: 'Module not ready' };
-      try { return JSON.parse(window.Module.hideCard(cardId)); } catch (e) { return { error: e.message }; }
+      if (!window.Module || !window.Module.hidePanel) return { error: 'Module not ready' };
+      try { return JSON.parse(window.Module.hidePanel(cardId)); } catch (e) { return { error: e.message }; }
     },
     toggle: function(cardId) {
-      if (!window.Module || !window.Module.toggleCard) return { error: 'Module not ready' };
-      try { return JSON.parse(window.Module.toggleCard(cardId)); } catch (e) { return { error: e.message }; }
+      if (!window.Module || !window.Module.togglePanel) return { error: 'Module not ready' };
+      try { return JSON.parse(window.Module.togglePanel(cardId)); } catch (e) { return { error: e.message }; }
     },
     getState: function() {
-      if (!window.Module || !window.Module.getCardState) return { error: 'Module not ready' };
-      try { return JSON.parse(window.Module.getCardState()); } catch (e) { return { error: e.message }; }
+      if (!window.Module || !window.Module.getPanelState) return { error: 'Module not ready' };
+      try { return JSON.parse(window.Module.getPanelState()); } catch (e) { return { error: e.message }; }
     },
     getInCategory: function(category) {
-      if (!window.Module || !window.Module.getCardsInCategory) return { error: 'Module not ready' };
-      try { return JSON.parse(window.Module.getCardsInCategory(category)); } catch (e) { return { error: e.message }; }
+      if (!window.Module || !window.Module.getPanelsInCategory) return { error: 'Module not ready' };
+      try { return JSON.parse(window.Module.getPanelsInCategory(category)); } catch (e) { return { error: e.message }; }
     },
     showGroup: function(groupName) {
-      if (!window.Module || !window.Module.showCardGroup) return { error: 'Module not ready' };
-      try { return JSON.parse(window.Module.showCardGroup(groupName)); } catch (e) { return { error: e.message }; }
+      if (!window.Module || !window.Module.showPanelGroup) return { error: 'Module not ready' };
+      try { return JSON.parse(window.Module.showPanelGroup(groupName)); } catch (e) { return { error: e.message }; }
     },
     hideGroup: function(groupName) {
-      if (!window.Module || !window.Module.hideCardGroup) return { error: 'Module not ready' };
-      try { return JSON.parse(window.Module.hideCardGroup(groupName)); } catch (e) { return { error: e.message }; }
+      if (!window.Module || !window.Module.hidePanelGroup) return { error: 'Module not ready' };
+      try { return JSON.parse(window.Module.hidePanelGroup(groupName)); } catch (e) { return { error: e.message }; }
     },
     getGroups: function() {
-      if (!window.Module || !window.Module.getCardGroups) return { error: 'Module not ready' };
-      try { return JSON.parse(window.Module.getCardGroups()); } catch (e) { return { error: e.message }; }
+      if (!window.Module || !window.Module.getPanelGroups) return { error: 'Module not ready' };
+      try { return JSON.parse(window.Module.getPanelGroups()); } catch (e) { return { error: e.message }; }
     },
 
-    // Card Discovery API
+    // Panel Discovery API
     discover: function() {
       // Get all available cards with full metadata
       var result = {
         timestamp: Date.now(),
         categories: {},
-        allCards: []
+        allPanels: []
       };
 
-      if (!window.Module || !window.Module.getCardState) {
+      if (!window.Module || !window.Module.getPanelState) {
         return { error: 'Module not ready' };
       }
 
       try {
-        var state = JSON.parse(window.Module.getCardState());
+        var state = JSON.parse(window.Module.getPanelState());
         if (state.cards) {
-          result.allCards = state.cards;
+          result.allPanels = state.cards;
           // Group by category
           state.cards.forEach(function(card) {
             var cat = card.category || 'Other';
@@ -236,7 +236,7 @@
       if (discovered.error) return discovered;
 
       var regex = new RegExp(pattern, 'i');
-      var matches = discovered.allCards.filter(function(card) {
+      var matches = discovered.allPanels.filter(function(card) {
         return regex.test(card.id) ||
                regex.test(card.name) ||
                regex.test(card.category || '');
@@ -250,7 +250,7 @@
       var discovered = this.discover();
       if (discovered.error) return discovered;
 
-      return discovered.allCards.filter(function(card) {
+      return discovered.allPanels.filter(function(card) {
         return card.visible === true;
       });
     },
@@ -264,7 +264,7 @@
     },
     _emitVisibilityChange: function(cardId, visible) {
       this._visibilityCallbacks.forEach(function(cb) {
-        try { cb({ cardId: cardId, visible: visible }); } catch (e) { console.error('Card callback error:', e); }
+        try { cb({ cardId: cardId, visible: visible }); } catch (e) { console.error('Panel callback error:', e); }
       });
     }
   };
@@ -303,9 +303,9 @@
 
     // Apply a layout preset
     apply: function(presetName) {
-      if (window.Module && window.Module.setCardLayout) {
+      if (window.Module && window.Module.setPanelLayout) {
         try {
-          return JSON.parse(window.Module.setCardLayout(presetName));
+          return JSON.parse(window.Module.setPanelLayout(presetName));
         } catch (e) {
           return { error: e.message };
         }
@@ -324,7 +324,7 @@
         // Show all available cards
         var discovered = window.yazeDebug.cards.discover();
         if (!discovered.error) {
-          discovered.allCards.forEach(function(card) {
+          discovered.allPanels.forEach(function(card) {
             window.yazeDebug.cards.show(card.id);
           });
         }

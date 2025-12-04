@@ -145,7 +145,7 @@ class GraphicsEditor : public Editor {
   absl::Status DecompressSuperDonkey();
 
   // Member Variables
-  // Card visibility managed by EditorCardManager
+  // Panel visibility managed by EditorPanelManager
 
   ImVec4 current_color_;
   uint16_t current_sheet_ = 0;

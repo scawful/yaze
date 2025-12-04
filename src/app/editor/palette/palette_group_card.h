@@ -65,23 +65,23 @@ struct PaletteGroupMetadata {
  *
  * Derived classes implement specific grid layouts and palette access.
  */
-class PaletteGroupCard {
+class PaletteGroupPanel {
  public:
   /**
-   * @brief Construct a new Palette Group Card
+   * @brief Construct a new Palette Group Panel
    * @param group_name Internal palette group name (e.g., "ow_main",
    * "dungeon_main")
    * @param display_name Human-readable name for UI
    * @param rom ROM instance for reading/writing palettes
    * @param game_data GameData instance for palette access
    */
-  PaletteGroupCard(const std::string& group_name,
+  PaletteGroupPanel(const std::string& group_name,
                    const std::string& display_name, Rom* rom,
                    zelda3::GameData* game_data = nullptr);
   
   void SetGameData(zelda3::GameData* game_data) { game_data_ = game_data; }
 
-  virtual ~PaletteGroupCard() = default;
+  virtual ~PaletteGroupPanel() = default;
 
   // ========== Main Rendering ==========
 
@@ -90,7 +90,7 @@ class PaletteGroupCard {
    */
   void Draw();
 
-  // ========== Card Control ==========
+  // ========== Panel Control ==========
 
   void Show() { show_ = true; }
   void Hide() { show_ = false; }
@@ -269,7 +269,7 @@ class PaletteGroupCard {
 };
 
 // ============================================================================
-// Concrete Palette Card Implementations
+// Concrete Palette Panel Implementations
 // ============================================================================
 
 /**
@@ -280,10 +280,10 @@ class PaletteGroupCard {
  * - Dark World palettes (20-39)
  * - Special World palettes (40-59)
  */
-class OverworldMainPaletteCard : public PaletteGroupCard {
+class OverworldMainPalettePanel : public PaletteGroupPanel {
  public:
-  explicit OverworldMainPaletteCard(Rom* rom, zelda3::GameData* game_data = nullptr);
-  ~OverworldMainPaletteCard() override = default;
+  explicit OverworldMainPalettePanel(Rom* rom, zelda3::GameData* game_data = nullptr);
+  ~OverworldMainPalettePanel() override = default;
 
  protected:
   gfx::PaletteGroup* GetPaletteGroup() override;
@@ -302,10 +302,10 @@ class OverworldMainPaletteCard : public PaletteGroupCard {
  *
  * Manages animated palettes for water, lava, and other effects
  */
-class OverworldAnimatedPaletteCard : public PaletteGroupCard {
+class OverworldAnimatedPalettePanel : public PaletteGroupPanel {
  public:
-  explicit OverworldAnimatedPaletteCard(Rom* rom, zelda3::GameData* game_data = nullptr);
-  ~OverworldAnimatedPaletteCard() override = default;
+  explicit OverworldAnimatedPalettePanel(Rom* rom, zelda3::GameData* game_data = nullptr);
+  ~OverworldAnimatedPalettePanel() override = default;
 
  protected:
   gfx::PaletteGroup* GetPaletteGroup() override;
@@ -324,10 +324,10 @@ class OverworldAnimatedPaletteCard : public PaletteGroupCard {
  *
  * Manages palettes for dungeon rooms (0-19)
  */
-class DungeonMainPaletteCard : public PaletteGroupCard {
+class DungeonMainPalettePanel : public PaletteGroupPanel {
  public:
-  explicit DungeonMainPaletteCard(Rom* rom, zelda3::GameData* game_data = nullptr);
-  ~DungeonMainPaletteCard() override = default;
+  explicit DungeonMainPalettePanel(Rom* rom, zelda3::GameData* game_data = nullptr);
+  ~DungeonMainPalettePanel() override = default;
 
  protected:
   gfx::PaletteGroup* GetPaletteGroup() override;
@@ -349,10 +349,10 @@ class DungeonMainPaletteCard : public PaletteGroupCard {
  * - Each has 60 colors organized as 4 rows of 16 colors
  * - Transparent colors at indices 0, 16, 32, 48
  */
-class SpritePaletteCard : public PaletteGroupCard {
+class SpritePalettePanel : public PaletteGroupPanel {
  public:
-  explicit SpritePaletteCard(Rom* rom, zelda3::GameData* game_data = nullptr);
-  ~SpritePaletteCard() override = default;
+  explicit SpritePalettePanel(Rom* rom, zelda3::GameData* game_data = nullptr);
+  ~SpritePalettePanel() override = default;
 
  protected:
   gfx::PaletteGroup* GetPaletteGroup() override;
@@ -373,10 +373,10 @@ class SpritePaletteCard : public PaletteGroupCard {
  * Manages auxiliary sprite palettes 1
  * - 12 palettes of 8 colors (7 colors + transparent)
  */
-class SpritesAux1PaletteCard : public PaletteGroupCard {
+class SpritesAux1PalettePanel : public PaletteGroupPanel {
  public:
-  explicit SpritesAux1PaletteCard(Rom* rom, zelda3::GameData* game_data = nullptr);
-  ~SpritesAux1PaletteCard() override = default;
+  explicit SpritesAux1PalettePanel(Rom* rom, zelda3::GameData* game_data = nullptr);
+  ~SpritesAux1PalettePanel() override = default;
 
  protected:
   gfx::PaletteGroup* GetPaletteGroup() override;
@@ -396,10 +396,10 @@ class SpritesAux1PaletteCard : public PaletteGroupCard {
  * Manages auxiliary sprite palettes 2
  * - 11 palettes of 8 colors (7 colors + transparent)
  */
-class SpritesAux2PaletteCard : public PaletteGroupCard {
+class SpritesAux2PalettePanel : public PaletteGroupPanel {
  public:
-  explicit SpritesAux2PaletteCard(Rom* rom, zelda3::GameData* game_data = nullptr);
-  ~SpritesAux2PaletteCard() override = default;
+  explicit SpritesAux2PalettePanel(Rom* rom, zelda3::GameData* game_data = nullptr);
+  ~SpritesAux2PalettePanel() override = default;
 
  protected:
   gfx::PaletteGroup* GetPaletteGroup() override;
@@ -419,10 +419,10 @@ class SpritesAux2PaletteCard : public PaletteGroupCard {
  * Manages auxiliary sprite palettes 3
  * - 24 palettes of 8 colors (7 colors + transparent)
  */
-class SpritesAux3PaletteCard : public PaletteGroupCard {
+class SpritesAux3PalettePanel : public PaletteGroupPanel {
  public:
-  explicit SpritesAux3PaletteCard(Rom* rom, zelda3::GameData* game_data = nullptr);
-  ~SpritesAux3PaletteCard() override = default;
+  explicit SpritesAux3PalettePanel(Rom* rom, zelda3::GameData* game_data = nullptr);
+  ~SpritesAux3PalettePanel() override = default;
 
  protected:
   gfx::PaletteGroup* GetPaletteGroup() override;
@@ -441,10 +441,10 @@ class SpritesAux3PaletteCard : public PaletteGroupCard {
  *
  * Manages Link's equipment color palettes (green, blue, red tunics)
  */
-class EquipmentPaletteCard : public PaletteGroupCard {
+class EquipmentPalettePanel : public PaletteGroupPanel {
  public:
-  explicit EquipmentPaletteCard(Rom* rom, zelda3::GameData* game_data = nullptr);
-  ~EquipmentPaletteCard() override = default;
+  explicit EquipmentPalettePanel(Rom* rom, zelda3::GameData* game_data = nullptr);
+  ~EquipmentPalettePanel() override = default;
 
  protected:
   gfx::PaletteGroup* GetPaletteGroup() override;

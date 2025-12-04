@@ -49,8 +49,8 @@ class AgentSessionManager {
  public:
   using SessionCreatedCallback = std::function<void(const std::string& agent_id)>;
   using SessionClosedCallback = std::function<void(const std::string& agent_id)>;
-  using CardOpenedCallback = std::function<void(const std::string& agent_id)>;
-  using CardClosedCallback = std::function<void(const std::string& agent_id)>;
+  using PanelOpenedCallback = std::function<void(const std::string& agent_id)>;
+  using PanelClosedCallback = std::function<void(const std::string& agent_id)>;
 
   AgentSessionManager();
   ~AgentSessionManager() = default;
@@ -108,7 +108,7 @@ class AgentSessionManager {
   const AgentSession* GetSession(const std::string& agent_id) const;
 
   // ============================================================================
-  // Card Management (Pop-out Dockable Cards)
+  // Panel Management (Pop-out Dockable Panels)
   // ============================================================================
 
   /**
@@ -117,7 +117,7 @@ class AgentSessionManager {
    *
    * The card shares state with the sidebar view.
    */
-  void OpenCardForSession(const std::string& agent_id);
+  void OpenPanelForSession(const std::string& agent_id);
 
   /**
    * @brief Close the dockable card for a session
@@ -125,20 +125,20 @@ class AgentSessionManager {
    *
    * The session remains in the sidebar; only the card is closed.
    */
-  void CloseCardForSession(const std::string& agent_id);
+  void ClosePanelForSession(const std::string& agent_id);
 
   /**
    * @brief Check if a session has an open card
    * @param agent_id The session to check
    * @return true if card is open
    */
-  bool IsCardOpenForSession(const std::string& agent_id) const;
+  bool IsPanelOpenForSession(const std::string& agent_id) const;
 
   /**
    * @brief Get list of session IDs with open cards
    * @return Vector of agent_ids that have cards open
    */
-  std::vector<std::string> GetOpenCardSessionIds() const;
+  std::vector<std::string> GetOpenPanelSessionIds() const;
 
   // ============================================================================
   // Iteration
@@ -171,10 +171,10 @@ class AgentSessionManager {
   void SetSessionClosedCallback(SessionClosedCallback cb) {
     on_session_closed_ = std::move(cb);
   }
-  void SetCardOpenedCallback(CardOpenedCallback cb) {
+  void SetPanelOpenedCallback(PanelOpenedCallback cb) {
     on_card_opened_ = std::move(cb);
   }
-  void SetCardClosedCallback(CardClosedCallback cb) {
+  void SetPanelClosedCallback(PanelClosedCallback cb) {
     on_card_closed_ = std::move(cb);
   }
 
@@ -186,8 +186,8 @@ class AgentSessionManager {
   // Callbacks
   SessionCreatedCallback on_session_created_;
   SessionClosedCallback on_session_closed_;
-  CardOpenedCallback on_card_opened_;
-  CardClosedCallback on_card_closed_;
+  PanelOpenedCallback on_card_opened_;
+  PanelClosedCallback on_card_closed_;
 
   /**
    * @brief Generate a unique agent ID

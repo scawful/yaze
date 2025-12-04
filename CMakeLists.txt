@@ -153,12 +153,12 @@ if(CLANG_FORMAT)
   list(FILTER ALL_SOURCE_FILES EXCLUDE REGEX "src/lib/.*")
 
   add_custom_target(yaze-format
-    COMMAND ${CLANG_FORMAT} -i --style=Google ${ALL_SOURCE_FILES}
+    COMMAND ${CLANG_FORMAT} -i --style=file ${ALL_SOURCE_FILES}
     COMMENT "Running clang-format on source files"
   )
 
   add_custom_target(yaze-format-check
-    COMMAND ${CLANG_FORMAT} --dry-run --Werror --style=Google ${ALL_SOURCE_FILES}
+    COMMAND ${CLANG_FORMAT} --dry-run --Werror --style=file ${ALL_SOURCE_FILES}
     COMMENT "Checking code format"
   )
 endif()

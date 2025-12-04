@@ -93,8 +93,6 @@
 namespace yaze {
 namespace editor {
 
-using util::FileDialogWrapper;
-
 namespace {
 
 std::string GetEditorName(EditorType type) {
@@ -104,14 +102,14 @@ std::string GetEditorName(EditorType type) {
 }  // namespace
 
 // Static registry of editors that use the card-based layout system
-// These editors register their cards with EditorCardManager and manage their
+// These editors register their cards with EditorPanelManager and manage their
 // own windows They do NOT need the traditional ImGui::Begin/End wrapper - they
 // create cards internally
-bool EditorManager::IsCardBasedEditor(EditorType type) {
-  return EditorRegistry::IsCardBasedEditor(type);
+bool EditorManager::IsPanelBasedEditor(EditorType type) {
+  return EditorRegistry::IsPanelBasedEditor(type);
 }
 
-void EditorManager::HideCurrentEditorCards() {
+void EditorManager::HideCurrentEditorPanels() {
   if (!current_editor_) {
     return;
   }
@@ -142,7 +140,7 @@ void EditorManager::ResetWorkspaceLayout() {
     if (ui_coordinator_ && ui_coordinator_->IsEmulatorVisible()) {
       layout_manager_->RebuildLayout(EditorType::kEmulator, dockspace_id);
       LOG_INFO("EditorManager", "Emulator layout reset complete");
-    } else if (current_editor_ && IsCardBasedEditor(current_editor_->type())) {
+    } else if (current_editor_ && IsPanelBasedEditor(current_editor_->type())) {
       layout_manager_->RebuildLayout(current_editor_->type(), dockspace_id);
       LOG_INFO("EditorManager", "Editor layout reset complete for type %d",
                static_cast<int>(current_editor_->type()));
@@ -249,7 +247,7 @@ EditorManager::EditorManager()
   // - UICoordinator: UI drawing and state management
   // - RomFileManager: ROM file I/O operations
   // - ProjectManager: Project file operations
-  // - PanelManager: Card-based editor UI management
+  // - PanelManager: Panel-based editor UI management
   // - ShortcutConfigurator: Keyboard shortcut registration
   // - WindowDelegate: Window layout operations
   // - PopupManager: Modal popup/dialog management
@@ -286,7 +284,7 @@ EditorManager::EditorManager()
       this, menu_builder_, rom_file_manager_, project_manager_,
       editor_registry_, *session_coordinator_, toast_manager_, *popup_manager_);
   
-  // Wire up card registry for Cards submenu in View menu
+  // Wire up card registry for Panels submenu in View menu
   menu_orchestrator_->SetPanelManager(&panel_manager_);
   menu_orchestrator_->SetStatusBar(&status_bar_);
   menu_orchestrator_->SetUserSettings(&user_settings_);
@@ -699,7 +697,7 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
     PRINT_IF_ERROR(user_settings_.Save());
   });
 
-  panel_manager_.SetOnCardClickedCallback([this](const std::string& category) {
+  panel_manager_.SetOnPanelClickedCallback([this](const std::string& category) {
     EditorType type = EditorRegistry::GetEditorTypeFromCategory(category);
     // Switch to the editor associated with this card's category
     // This ensures clicking a card opens/focuses the parent editor
@@ -919,7 +917,7 @@ absl::Status EditorManager::Update() {
   if (ui_coordinator_ && ui_coordinator_->IsPanelBrowserVisible()) {
     bool show = true;
     if (activity_bar_) {
-      activity_bar_->DrawCardBrowser(GetCurrentSessionId(), &show);
+      activity_bar_->DrawPanelBrowser(GetCurrentSessionId(), &show);
     }
     if (!show) {
       ui_coordinator_->SetPanelBrowserVisible(false);
@@ -978,7 +976,7 @@ absl::Status EditorManager::Update() {
         }
 
         for (auto* editor : session->editors.active_editors_) {
-          if (*editor->active() && IsCardBasedEditor(editor->type())) {
+          if (*editor->active() && IsPanelBasedEditor(editor->type())) {
             std::string category =
                 EditorRegistry::GetEditorCategory(editor->type());
             active_editor_categories.insert(category);
@@ -1097,7 +1095,7 @@ absl::Status EditorManager::Update() {
   return absl::OkStatus();
 }
 
-// DrawContextSensitiveCardControl removed - card control is now in the sidebar
+// DrawContextSensitivePanelControl removed - card control is now in the sidebar
 
 /**
  * @brief Draw the main menu bar
@@ -1255,7 +1253,7 @@ void EditorManager::DrawMenuBar() {
 
   // NOTE: Editor updates are handled by SessionCoordinator::UpdateSessions()
   // which is called in EditorManager::Update(). Removed duplicate update loop
-  // here that was causing EditorCard::Begin() to be called twice per frame,
+  // here that was causing EditorPanel::Begin() to be called twice per frame,
   // resulting in duplicate rendering detection logs.
 
   if (ui_coordinator_ && ui_coordinator_->IsResourceLabelManagerVisible() &&
@@ -2060,7 +2058,7 @@ void EditorManager::SwitchToEditor(EditorType editor_type, bool force_visible, b
         editor->toggle_active();
       }
 
-      if (IsCardBasedEditor(editor_type)) {
+      if (IsPanelBasedEditor(editor_type)) {
         // Using PanelManager directly
 
         if (*editor->active()) {
@@ -2087,7 +2085,7 @@ void EditorManager::SwitchToEditor(EditorType editor_type, bool force_visible, b
         } else {
           // Editor deactivated - switch to another active card-based editor
           for (auto* other : editor_set->active_editors_) {
-            if (*other->active() && IsCardBasedEditor(other->type()) &&
+            if (*other->active() && IsPanelBasedEditor(other->type()) &&
                 other != editor) {
               std::string old_category = panel_manager_.GetActiveCategory();
               std::string new_category = EditorRegistry::GetEditorCategory(other->type());

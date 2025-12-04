@@ -133,13 +133,13 @@ class LayoutPresets {
    */
   static PanelLayoutPreset GetAudioPreset();
 
-  // Legacy alias to ease Card → Panel migration; prefer PanelLayoutPreset.
-  using CardLayoutPreset = PanelLayoutPreset;
+  // Legacy alias to ease Panel → Panel migration; prefer PanelLayoutPreset.
+  using PanelLayoutPreset = PanelLayoutPreset;
 
   // ============================================================================
-  // Card ID Constants - synced with actual editor registrations
+  // Panel ID Constants - synced with actual editor registrations
   // ============================================================================
-  struct Cards {
+  struct Panels {
     // Overworld cards (overworld_editor.cc)
     static constexpr const char* kOverworldCanvas = "overworld.canvas";
     static constexpr const char* kOverworldTile16Selector = "overworld.tile16_selector";

@@ -429,9 +429,9 @@ async function triggerEmulatorAction(action) {
 // Set layout preset
 async function setLayout(layoutName) {
   closeAllDropdowns();
-  if (window.yaze && window.yaze.control && window.yaze.control.setCardLayout) {
+  if (window.yaze && window.yaze.control && window.yaze.control.setPanelLayout) {
     try {
-      var result = await window.yaze.control.setCardLayout(layoutName);
+      var result = await window.yaze.control.setPanelLayout(layoutName);
       console.log('Set layout:', layoutName, result);
     } catch (e) {
       console.error('Error setting layout:', e);

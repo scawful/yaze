@@ -21,7 +21,7 @@ class ActivityBar {
               const std::unordered_set<std::string>& active_editor_categories,
               std::function<bool()> has_rom);
 
-  void DrawCardBrowser(size_t session_id, bool* p_open);
+  void DrawPanelBrowser(size_t session_id, bool* p_open);
 
  private:
   void DrawUtilityButtons(std::function<bool()> has_rom);

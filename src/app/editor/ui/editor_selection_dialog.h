@@ -94,7 +94,7 @@ class EditorSelectionDialog {
   }
 
  private:
-  void DrawEditorCard(const EditorInfo& info, int index);
+  void DrawEditorPanel(const EditorInfo& info, int index);
   void DrawWelcomeHeader();
   void DrawQuickAccessButtons();
 

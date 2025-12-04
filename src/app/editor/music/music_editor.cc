@@ -326,7 +326,7 @@ absl::Status MusicEditor::Update() {
     
     bool open = true;
 
-    // Get song name for window title (icon is handled by EditorCard)
+    // Get song name for window title (icon is handled by EditorPanel)
     auto* song = music_bank_.GetSong(song_index);
     std::string song_name = song ? song->name : "Unknown";
     std::string card_title =

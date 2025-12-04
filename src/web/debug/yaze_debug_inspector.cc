@@ -397,14 +397,14 @@ std::string getOperationStatus(uint32_t op_id) {
 }
 
 // =============================================================================
-// Card Control API
+// Panel Control API
 // =============================================================================
 
 /**
  * @brief Predefined card groups for common workflows
  */
 static const std::unordered_map<std::string, std::vector<std::string>>
-    kCardGroups = {
+    kPanelGroups = {
         {"dungeon_editing",
          {"dungeon.room_selector", "dungeon.object_editor",
           "dungeon.tile_selector"}},
@@ -421,10 +421,10 @@ static const std::unordered_map<std::string, std::vector<std::string>>
 
 /**
  * @brief Show a card by ID
- * @param card_id Card identifier (e.g., "dungeon.room_selector")
+ * @param card_id Panel identifier (e.g., "dungeon.room_selector")
  * @return JSON with success status
  */
-std::string showCard(std::string card_id) {
+std::string showPanel(std::string card_id) {
   auto* manager = yaze::app::GetGlobalEditorManager();
   if (!manager) {
     return "{\"error\":\"EditorManager not available\"}";
@@ -433,38 +433,38 @@ std::string showCard(std::string card_id) {
   // Access card registry through the member function
   // Note: We need to use the public interface
   auto& card_registry = manager->card_registry();
-  bool success = card_registry.ShowCard(card_id);
+  bool success = card_registry.ShowPanel(card_id);
 
   if (success) {
     return "{\"success\":true,\"card\":\"" + card_id + "\"}";
   } else {
-    return "{\"error\":\"Card not found\",\"card\":\"" + card_id + "\"}";
+    return "{\"error\":\"Panel not found\",\"card\":\"" + card_id + "\"}";
   }
 }
 
 /**
  * @brief Hide a card by ID
  */
-std::string hideCard(std::string card_id) {
+std::string hidePanel(std::string card_id) {
   auto* manager = yaze::app::GetGlobalEditorManager();
   if (!manager) {
     return "{\"error\":\"EditorManager not available\"}";
   }
 
   auto& card_registry = manager->card_registry();
-  bool success = card_registry.HideCard(card_id);
+  bool success = card_registry.HidePanel(card_id);
 
   if (success) {
     return "{\"success\":true,\"card\":\"" + card_id + "\"}";
   } else {
-    return "{\"error\":\"Card not found\",\"card\":\"" + card_id + "\"}";
+    return "{\"error\":\"Panel not found\",\"card\":\"" + card_id + "\"}";
   }
 }
 
 /**
  * @brief Toggle a card's visibility
  */
-std::string toggleCard(std::string card_id) {
+std::string togglePanel(std::string card_id) {
   auto* manager = yaze::app::GetGlobalEditorManager();
   if (!manager) {
     return "{\"error\":\"EditorManager not available\"}";
@@ -473,21 +473,21 @@ std::string toggleCard(std::string card_id) {
   auto& card_registry = manager->card_registry();
 
   // Get current visibility first
-  bool was_visible = card_registry.IsCardVisible(card_id);
+  bool was_visible = card_registry.IsPanelVisible(card_id);
 
   // Toggle
   bool success;
   if (was_visible) {
-    success = card_registry.HideCard(card_id);
+    success = card_registry.HidePanel(card_id);
   } else {
-    success = card_registry.ShowCard(card_id);
+    success = card_registry.ShowPanel(card_id);
   }
 
   if (success) {
     return "{\"success\":true,\"card\":\"" + card_id +
            "\",\"visible\":" + (was_visible ? "false" : "true") + "}";
   } else {
-    return "{\"error\":\"Card not found\",\"card\":\"" + card_id + "\"}";
+    return "{\"error\":\"Panel not found\",\"card\":\"" + card_id + "\"}";
   }
 }
 
@@ -495,7 +495,7 @@ std::string toggleCard(std::string card_id) {
  * @brief Get the visibility state of all cards
  * @return JSON with all cards, their visibility, and categories
  */
-std::string getCardState() {
+std::string getPanelState() {
   auto* manager = yaze::app::GetGlobalEditorManager();
   if (!manager) {
     return "{\"error\":\"EditorManager not available\"}";
@@ -514,7 +514,7 @@ std::string getCardState() {
   bool first_card = true;
 
   for (const auto& category : categories) {
-    auto cards = card_registry.GetCardsInCategory(session_id, category);
+    auto cards = card_registry.GetPanelsInCategory(session_id, category);
     for (const auto& card : cards) {
       if (!first_card) json << ",";
       first_card = false;
@@ -524,7 +524,7 @@ std::string getCardState() {
       json << "\"name\":\"" << card.display_name << "\",";
       json << "\"category\":\"" << card.category << "\",";
       json << "\"visible\":"
-           << (card_registry.IsCardVisible(session_id, card.card_id) ? "true"
+           << (card_registry.IsPanelVisible(session_id, card.card_id) ? "true"
                                                                      : "false");
       json << "}";
     }
@@ -537,7 +537,7 @@ std::string getCardState() {
 /**
  * @brief Get cards in a specific category
  */
-std::string getCardsInCategory(std::string category) {
+std::string getPanelsInCategory(std::string category) {
   auto* manager = yaze::app::GetGlobalEditorManager();
   if (!manager) {
     return "{\"error\":\"EditorManager not available\"}";
@@ -545,7 +545,7 @@ std::string getCardsInCategory(std::string category) {
 
   auto& card_registry = manager->card_registry();
   size_t session_id = manager->GetCurrentSessionId();
-  auto cards = card_registry.GetCardsInCategory(session_id, category);
+  auto cards = card_registry.GetPanelsInCategory(session_id, category);
 
   std::ostringstream json;
   json << "{\"category\":\"" << category << "\",\"cards\":[";
@@ -559,7 +559,7 @@ std::string getCardsInCategory(std::string category) {
     json << "\"id\":\"" << card.card_id << "\",";
     json << "\"name\":\"" << card.display_name << "\",";
     json << "\"visible\":"
-         << (card_registry.IsCardVisible(session_id, card.card_id) ? "true"
+         << (card_registry.IsPanelVisible(session_id, card.card_id) ? "true"
                                                                    : "false");
     json << "}";
   }
@@ -571,14 +571,14 @@ std::string getCardsInCategory(std::string category) {
 /**
  * @brief Show a predefined group of cards
  */
-std::string showCardGroup(std::string group_name) {
+std::string showPanelGroup(std::string group_name) {
   auto* manager = yaze::app::GetGlobalEditorManager();
   if (!manager) {
     return "{\"error\":\"EditorManager not available\"}";
   }
 
-  auto it = kCardGroups.find(group_name);
-  if (it == kCardGroups.end()) {
+  auto it = kPanelGroups.find(group_name);
+  if (it == kPanelGroups.end()) {
     std::ostringstream groups;
     groups << "dungeon_editing, dungeon_debug, overworld_editing, "
               "graphics_editing, minimal";
@@ -591,7 +591,7 @@ std::string showCardGroup(std::string group_name) {
   // Show all cards in the group
   int shown = 0;
   for (const auto& card_id : card_ids) {
-    if (card_registry.ShowCard(card_id)) {
+    if (card_registry.ShowPanel(card_id)) {
       shown++;
     }
   }
@@ -603,14 +603,14 @@ std::string showCardGroup(std::string group_name) {
 /**
  * @brief Hide a predefined group of cards
  */
-std::string hideCardGroup(std::string group_name) {
+std::string hidePanelGroup(std::string group_name) {
   auto* manager = yaze::app::GetGlobalEditorManager();
   if (!manager) {
     return "{\"error\":\"EditorManager not available\"}";
   }
 
-  auto it = kCardGroups.find(group_name);
-  if (it == kCardGroups.end()) {
+  auto it = kPanelGroups.find(group_name);
+  if (it == kPanelGroups.end()) {
     return "{\"error\":\"Unknown group\"}";
   }
 
@@ -626,7 +626,7 @@ std::string hideCardGroup(std::string group_name) {
   // Hide all cards in the group
   int hidden = 0;
   for (const auto& card_id : card_ids) {
-    if (card_registry.HideCard(card_id)) {
+    if (card_registry.HidePanel(card_id)) {
       hidden++;
     }
   }
@@ -638,12 +638,12 @@ std::string hideCardGroup(std::string group_name) {
 /**
  * @brief Get available card groups
  */
-std::string getCardGroups() {
+std::string getPanelGroups() {
   std::ostringstream json;
   json << "{\"groups\":[";
 
   bool first = true;
-  for (const auto& [name, cards] : kCardGroups) {
+  for (const auto& [name, cards] : kPanelGroups) {
     if (!first) json << ",";
     first = false;
 
@@ -1507,15 +1507,15 @@ EMSCRIPTEN_BINDINGS(yaze_debug_inspector) {
   function("switchToEditorAsync", &switchToEditorAsync);
   function("getOperationStatus", &getOperationStatus);
 
-  // Card control API
-  function("showCard", &showCard);
-  function("hideCard", &hideCard);
-  function("toggleCard", &toggleCard);
-  function("getCardState", &getCardState);
-  function("getCardsInCategory", &getCardsInCategory);
-  function("showCardGroup", &showCardGroup);
-  function("hideCardGroup", &hideCardGroup);
-  function("getCardGroups", &getCardGroups);
+  // Panel control API
+  function("showPanel", &showPanel);
+  function("hidePanel", &hidePanel);
+  function("togglePanel", &togglePanel);
+  function("getPanelState", &getPanelState);
+  function("getPanelsInCategory", &getPanelsInCategory);
+  function("showPanelGroup", &showPanelGroup);
+  function("hidePanelGroup", &hidePanelGroup);
+  function("getPanelGroups", &getPanelGroups);
 
   // Sidebar view mode
   function("isTreeViewMode", &isTreeViewMode);

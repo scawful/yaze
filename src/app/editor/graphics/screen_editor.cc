@@ -170,7 +170,7 @@ absl::Status ScreenEditor::Update() {
   title_screen_card.SetDefaultSize(600, 500);
   naming_screen_card.SetDefaultSize(500, 400);
 
-  // Dungeon Maps Card - Check visibility flag exists and is true before
+  // Dungeon Maps Panel - Check visibility flag exists and is true before
   // rendering
   bool* dungeon_maps_visible =
       panel_manager->GetVisibilityFlag("screen.dungeon_maps");
@@ -181,7 +181,7 @@ absl::Status ScreenEditor::Update() {
     dungeon_maps_card.End();
   }
 
-  // Inventory Menu Card - Check visibility flag exists and is true before
+  // Inventory Menu Panel - Check visibility flag exists and is true before
   // rendering
   bool* inventory_menu_visible =
       panel_manager->GetVisibilityFlag("screen.inventory_menu");
@@ -192,7 +192,7 @@ absl::Status ScreenEditor::Update() {
     inventory_menu_card.End();
   }
 
-  // Overworld Map Card - Check visibility flag exists and is true before
+  // Overworld Map Panel - Check visibility flag exists and is true before
   // rendering
   bool* overworld_map_visible =
       panel_manager->GetVisibilityFlag("screen.overworld_map");
@@ -203,7 +203,7 @@ absl::Status ScreenEditor::Update() {
     overworld_map_card.End();
   }
 
-  // Title Screen Card - Check visibility flag exists and is true before
+  // Title Screen Panel - Check visibility flag exists and is true before
   // rendering
   bool* title_screen_visible =
       panel_manager->GetVisibilityFlag("screen.title_screen");
@@ -214,7 +214,7 @@ absl::Status ScreenEditor::Update() {
     title_screen_card.End();
   }
 
-  // Naming Screen Card - Check visibility flag exists and is true before
+  // Naming Screen Panel - Check visibility flag exists and is true before
   // rendering
   bool* naming_screen_visible =
       panel_manager->GetVisibilityFlag("screen.naming_screen");

@@ -100,7 +100,7 @@
       yazeApiReady: !!(window.yaze && window.yaze.control),
       editor: null,
       romLoaded: false,
-      visibleCards: []
+      visiblePanels: []
     };
 
     try {
@@ -111,8 +111,8 @@
         const rom = window.yaze.control.getRomStatus();
         if (rom && !rom.error) state.romLoaded = rom.loaded;
 
-        const cards = window.yaze.control.getVisibleCards();
-        if (Array.isArray(cards)) state.visibleCards = cards;
+        const cards = window.yaze.control.getVisiblePanels();
+        if (Array.isArray(cards)) state.visiblePanels = cards;
       }
     } catch (e) {
       state.stateError = e.message;
@@ -283,7 +283,7 @@ App State:
   API Ready: ${report.appState.yazeApiReady}
   Current Editor: ${report.appState.editor || 'None'}
   ROM Loaded: ${report.appState.romLoaded}
-  Visible Cards: ${report.appState.visibleCards.join(', ') || 'None'}
+  Visible Panels: ${report.appState.visiblePanels.join(', ') || 'None'}
 
 Console Log (recent):
 ${report.recentLogs.map(l => `[${l.type}] ${l.message}`).join('\n')}

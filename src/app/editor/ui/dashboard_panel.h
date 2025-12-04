@@ -45,7 +45,7 @@ class DashboardPanel {
   void DrawWelcomeHeader();
   void DrawRecentEditors();
   void DrawEditorGrid();
-  void DrawEditorCard(const EditorInfo& info, int index);
+  void DrawEditorPanel(const EditorInfo& info, int index);
 
   EditorManager* editor_manager_;
   gui::PanelWindow window_;

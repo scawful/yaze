@@ -210,9 +210,9 @@ std::string ProcessCommandInternal(const std::string& command_str) {
         else if (card_key == "graphics") dungeon_editor->show_room_graphics_ = visible;
         else if (card_key == "debug") dungeon_editor->show_debug_controls_ = visible;
         else return "Unknown card key for Dungeon Editor: " + card_key;
-        return "Card visibility updated";
+        return "Panel visibility updated";
       }
-      return "Card control not supported for current editor";
+      return "Panel control not supported for current editor";
     }
 
     if (args.size() > 2 && args[1] == "debug" && args[2] == "toggle") {

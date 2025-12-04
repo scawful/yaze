@@ -94,6 +94,7 @@ class DungeonObjectInteraction {
   void HandleDeleteSelected();
   void HandleCopySelected();
   void HandlePasteObjects();
+  bool HasClipboardData() const { return has_clipboard_data_; }
 
   // Callbacks
   void SetObjectPlacedCallback(

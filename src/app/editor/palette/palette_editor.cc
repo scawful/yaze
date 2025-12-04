@@ -354,14 +354,14 @@ absl::Status PaletteEditor::Load() {
 
   // Initialize palette card instances NOW (after ROM is loaded)
   // Pass both ROM and GameData to enable full functionality
-  ow_main_card_ = std::make_unique<OverworldMainPaletteCard>(rom_, game_data());
-  ow_animated_card_ = std::make_unique<OverworldAnimatedPaletteCard>(rom_, game_data());
-  dungeon_main_card_ = std::make_unique<DungeonMainPaletteCard>(rom_, game_data());
-  sprite_card_ = std::make_unique<SpritePaletteCard>(rom_, game_data());
-  sprites_aux1_card_ = std::make_unique<SpritesAux1PaletteCard>(rom_, game_data());
-  sprites_aux2_card_ = std::make_unique<SpritesAux2PaletteCard>(rom_, game_data());
-  sprites_aux3_card_ = std::make_unique<SpritesAux3PaletteCard>(rom_, game_data());
-  equipment_card_ = std::make_unique<EquipmentPaletteCard>(rom_, game_data());
+  ow_main_card_ = std::make_unique<OverworldMainPalettePanel>(rom_, game_data());
+  ow_animated_card_ = std::make_unique<OverworldAnimatedPalettePanel>(rom_, game_data());
+  dungeon_main_card_ = std::make_unique<DungeonMainPalettePanel>(rom_, game_data());
+  sprite_card_ = std::make_unique<SpritePalettePanel>(rom_, game_data());
+  sprites_aux1_card_ = std::make_unique<SpritesAux1PalettePanel>(rom_, game_data());
+  sprites_aux2_card_ = std::make_unique<SpritesAux2PalettePanel>(rom_, game_data());
+  sprites_aux3_card_ = std::make_unique<SpritesAux3PalettePanel>(rom_, game_data());
+  equipment_card_ = std::make_unique<EquipmentPalettePanel>(rom_, game_data());
 
   // Register EditorPanel instances with PanelManager (after cards are created)
   if (dependencies_.panel_manager) {
@@ -389,9 +389,9 @@ absl::Status PaletteEditor::Load() {
     panel_manager->RegisterEditorPanel(std::make_unique<PaletteControlPanel>(
         [this]() { DrawControlPanel(); }));
     panel_manager->RegisterEditorPanel(std::make_unique<QuickAccessPalettePanel>(
-        [this]() { DrawQuickAccessCard(); }));
+        [this]() { DrawQuickAccessPanel(); }));
     panel_manager->RegisterEditorPanel(std::make_unique<CustomPalettePanel>(
-        [this]() { DrawCustomPaletteCard(); }));
+        [this]() { DrawCustomPalettePanel(); }));
   }
 
   return absl::OkStatus();
@@ -762,12 +762,12 @@ absl::Status PaletteEditor::ResetColorToOriginal(
 }
 
 // ============================================================================
-// Card-Based UI Methods
+// Panel-Based UI Methods
 // ============================================================================
 
 void PaletteEditor::DrawToolset() {
   // Sidebar is drawn by PanelManager in EditorManager
-  // Cards registered in Initialize() appear in the sidebar automatically
+  // Panels registered in Initialize() appear in the sidebar automatically
 }
 
 void PaletteEditor::DrawControlPanel() {
@@ -789,7 +789,7 @@ void PaletteEditor::DrawControlPanel() {
     ImGui::Separator();
 
     // Modified status indicator
-    ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.0f, 1.0f), "Modified Cards:");
+    ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.0f, 1.0f), "Modified Panels:");
     bool any_modified = false;
 
     if (ow_main_card_ && ow_main_card_->HasUnsavedChanges()) {
@@ -945,19 +945,19 @@ void PaletteEditor::DrawControlPanel() {
     ImGui::Separator();
 
     // Editor Manager Menu Button
-    if (ImGui::Button(ICON_MD_DASHBOARD " Card Manager", ImVec2(-1, 0))) {
+    if (ImGui::Button(ICON_MD_DASHBOARD " Panel Manager", ImVec2(-1, 0))) {
       ImGui::OpenPopup(
           gui::MakePopupId(gui::EditorNames::kPalette,
-                           gui::PopupNames::kPaletteCardManager)
+                           gui::PopupNames::kPalettePanelManager)
               .c_str());
     }
 
     if (ImGui::BeginPopup(
             gui::MakePopupId(gui::EditorNames::kPalette,
-                             gui::PopupNames::kPaletteCardManager)
+                             gui::PopupNames::kPalettePanelManager)
                 .c_str())) {
       ImGui::TextColored(ImVec4(0.7f, 0.9f, 1.0f, 1.0f),
-                         "%s Palette Card Manager", ICON_MD_PALETTE);
+                         "%s Palette Panel Manager", ICON_MD_PALETTE);
       ImGui::Separator();
 
       // View menu section now handled by PanelManager in EditorManager
@@ -979,7 +979,7 @@ void PaletteEditor::DrawControlPanel() {
   ImGui::End();
 }
 
-void PaletteEditor::DrawQuickAccessCard() {
+void PaletteEditor::DrawQuickAccessPanel() {
   gui::PanelWindow card("Quick Access Palette", ICON_MD_COLOR_LENS,
                        &show_quick_access_);
   card.SetDefaultSize(340, 300);
@@ -1038,7 +1038,7 @@ void PaletteEditor::DrawQuickAccessCard() {
   card.End();
 }
 
-void PaletteEditor::DrawCustomPaletteCard() {
+void PaletteEditor::DrawCustomPalettePanel() {
   gui::PanelWindow card("Custom Palette", ICON_MD_BRUSH, &show_custom_palette_);
   card.SetDefaultSize(420, 200);
   card.SetPosition(gui::PanelWindow::Position::Bottom);
@@ -1071,7 +1071,7 @@ void PaletteEditor::DrawCustomPaletteCard() {
           edit_palette_index_ = i;
           ImGui::OpenPopup(
               gui::MakePopupId(gui::EditorNames::kPalette,
-                               "CardCustomPaletteColorEdit")
+                               "PanelCustomPaletteColorEdit")
                   .c_str());
         }
 
@@ -1139,7 +1139,7 @@ void PaletteEditor::DrawCustomPaletteCard() {
 
   // Color picker popup for custom palette editing
   if (ImGui::BeginPopup(gui::MakePopupId(gui::EditorNames::kPalette,
-                                         "CardCustomPaletteColorEdit")
+                                         "PanelCustomPaletteColorEdit")
                             .c_str())) {
     if (edit_palette_index_ >= 0 &&
         edit_palette_index_ < custom_palette_.size()) {

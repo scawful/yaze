@@ -94,7 +94,7 @@ absl::Status AgentUiController::Update() {
   auto status = agent_editor_.Update();
 
   // Step 3: Draw all open pop-out agent cards
-  DrawOpenCards();
+  DrawOpenPanels();
 
   return status;
 }
@@ -235,14 +235,14 @@ void AgentUiController::PopOutAgent(const std::string& agent_id) {
   // Check if card already exists for this agent
   for (const auto& card : open_cards_) {
     if (card->agent_id() == agent_id) {
-      LOG_INFO("AgentUiController", "Card already exists for agent: %s",
+      LOG_INFO("AgentUiController", "Panel already exists for agent: %s",
                agent_id.c_str());
       return;
     }
   }
 
   // Create new pop-out card
-  auto card = std::make_unique<AgentChatCard>(agent_id, &session_manager_);
+  auto card = std::make_unique<AgentChatPanel>(agent_id, &session_manager_);
   card->SetToastManager(toast_manager_);
 
   // Share agent service if available
@@ -251,27 +251,27 @@ void AgentUiController::PopOutAgent(const std::string& agent_id) {
   }
 
   // Mark session as having a card open
-  session_manager_.OpenCardForSession(agent_id);
+  session_manager_.OpenPanelForSession(agent_id);
 
   open_cards_.push_back(std::move(card));
   LOG_INFO("AgentUiController", "Created pop-out card for agent: %s",
            agent_id.c_str());
 }
 
-void AgentUiController::CloseAgentCard(const std::string& agent_id) {
+void AgentUiController::CloseAgentPanel(const std::string& agent_id) {
   auto it = std::remove_if(open_cards_.begin(), open_cards_.end(),
-                           [&agent_id](const std::unique_ptr<AgentChatCard>& card) {
+                           [&agent_id](const std::unique_ptr<AgentChatPanel>& card) {
                              return card->agent_id() == agent_id;
                            });
 
   if (it != open_cards_.end()) {
     open_cards_.erase(it, open_cards_.end());
-    session_manager_.CloseCardForSession(agent_id);
+    session_manager_.ClosePanelForSession(agent_id);
     LOG_INFO("AgentUiController", "Closed card for agent: %s", agent_id.c_str());
   }
 }
 
-void AgentUiController::DrawOpenCards() {
+void AgentUiController::DrawOpenPanels() {
   // Draw all open agent cards, removing any that were closed
   for (auto it = open_cards_.begin(); it != open_cards_.end();) {
     bool open = true;
@@ -279,7 +279,7 @@ void AgentUiController::DrawOpenCards() {
 
     if (!open) {
       // User closed the card window
-      session_manager_.CloseCardForSession((*it)->agent_id());
+      session_manager_.ClosePanelForSession((*it)->agent_id());
       it = open_cards_.erase(it);
     } else {
       ++it;

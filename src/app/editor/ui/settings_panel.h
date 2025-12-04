@@ -34,8 +34,8 @@ class SettingsPanel {
 
   void SetUserSettings(UserSettings* settings) { user_settings_ = settings; }
   void SetPanelManager(PanelManager* registry) { panel_manager_ = registry; }
-  // Legacy alias during Card→Panel rename.
-  void SetCardRegistry(PanelManager* registry) { SetPanelManager(registry); }
+  // Legacy alias during Panel→Panel rename.
+  void SetPanelRegistry(PanelManager* registry) { SetPanelManager(registry); }
   void SetShortcutManager(ShortcutManager* manager) { shortcut_manager_ = manager; }
   void SetStatusBar(StatusBar* bar) { status_bar_ = bar; }
   void SetRom(Rom* rom) { rom_ = rom; }

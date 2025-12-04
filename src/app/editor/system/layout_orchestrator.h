@@ -17,7 +17,7 @@ namespace editor {
  * @brief Coordinates between LayoutManager, PanelManager, and LayoutPresets
  *
  * This class unifies the card and layout systems by:
- * 1. Using CardInfo.window_title for DockBuilder operations
+ * 1. Using PanelInfo.window_title for DockBuilder operations
  * 2. Applying layout presets that show/hide cards appropriately
  * 3. Managing the relationship between card IDs and their window titles
  *
@@ -127,7 +127,7 @@ class LayoutOrchestrator {
   /**
    * @brief Get prefixed card ID for a session
    */
-  std::string GetPrefixedCardId(const std::string& card_id,
+  std::string GetPrefixedPanelId(const std::string& card_id,
                                 size_t session_id) const;
 
   LayoutManager* layout_manager_ = nullptr;
