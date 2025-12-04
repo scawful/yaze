@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_DUNGEON_CANVAS_VIEWER_H
 #define YAZE_APP_EDITOR_DUNGEON_DUNGEON_CANVAS_VIEWER_H
 
+#include <functional>
 #include <map>
 
 #include "app/editor/editor.h"
@@ -65,6 +66,9 @@ class DungeonCanvasViewer {
   void SetCurrentPaletteId(uint64_t id) { current_palette_id_ = id; }
   void SetCurrentPaletteGroup(const gfx::PaletteGroup& group) {
     current_palette_group_ = group;
+  }
+  void SetRoomNavigationCallback(std::function<void(int)> callback) {
+    room_navigation_callback_ = std::move(callback);
   }
 
   // Canvas access
@@ -259,6 +263,7 @@ class DungeonCanvasViewer {
   uint64_t current_palette_group_id_ = 0;
   uint64_t current_palette_id_ = 0;
   gfx::PaletteGroup current_palette_group_;
+  std::function<void(int)> room_navigation_callback_;
 
   // Object rendering cache
   struct ObjectRenderCache {
