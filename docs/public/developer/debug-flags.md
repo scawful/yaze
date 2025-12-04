@@ -1,6 +1,6 @@
 # YAZE Startup Debugging Flags
 
-This guide explains how to use command-line flags to quickly open specific editors and cards during development for faster debugging workflows.
+This guide explains how to use command-line flags to quickly open specific editors and panels during development for faster debugging workflows.
 
 ## Basic Usage
 
@@ -46,10 +46,10 @@ Open a specific editor on startup. This saves time by skipping manual navigation
 ./yaze --rom_file=zelda3.sfc --editor=Dungeon
 ```
 
-### `--cards`
-Open specific cards/panels within an editor. Most useful with the Dungeon editor.
+### `--open_panels`
+Open specific panels within an editor. Most useful with the Dungeon editor.
 
-**Dungeon Editor Cards:**
+**Dungeon Editor Panels:**
 - `Rooms List` - Shows the list of all dungeon rooms
 - `Room Matrix` - Shows the dungeon room layout matrix
 - `Entrances List` - Shows dungeon entrance configurations
@@ -60,7 +60,7 @@ Open specific cards/panels within an editor. Most useful with the Dungeon editor
 
 **Example:**
 ```bash
-./yaze --rom_file=zelda3.sfc --editor=Dungeon --cards="Rooms List,Room 0"
+./yaze --rom_file=zelda3.sfc --editor=Dungeon --open_panels="Rooms List,Room 0"
 ```
 
 ## Common Debugging Scenarios
@@ -69,14 +69,14 @@ Open specific cards/panels within an editor. Most useful with the Dungeon editor
 Open a specific dungeon room for testing:
 
 ```bash
-./yaze --rom_file=zelda3.sfc --editor=Dungeon --cards="Room 0,Room Graphics"
+./yaze --rom_file=zelda3.sfc --editor=Dungeon --open_panels="Room 0,Room Graphics"
 ```
 
 ### 2. Multiple Room Comparison
 Compare multiple rooms side-by-side:
 
 ```bash
-./yaze --rom_file=zelda3.sfc --editor=Dungeon --cards="Room 0,Room 1,Room 105"
+./yaze --rom_file=zelda3.sfc --editor=Dungeon --open_panels="Room 0,Room 1,Room 105"
 ```
 
 ### 3. Full Dungeon Editor Workspace
@@ -84,7 +84,7 @@ Open all dungeon editor tools:
 
 ```bash
 ./yaze --rom_file=zelda3.sfc --editor=Dungeon \
-  --cards="Rooms List,Room Matrix,Room Graphics,Object Editor,Palette Editor"
+  --open_panels="Rooms List,Room Matrix,Room Graphics,Object Editor,Palette Editor"
 ```
 
 ### 4. Debug Mode with Logging
@@ -92,7 +92,7 @@ Enable full debug output while working:
 
 ```bash
 ./yaze --rom_file=zelda3.sfc --debug --log_file=debug.log \
-  --editor=Dungeon --cards="Room 0"
+  --editor=Dungeon --open_panels="Room 0"
 ```
 
 ### 5. Quick Overworld Editing
@@ -123,15 +123,15 @@ All flags can be combined for powerful debugging setups:
   --debug \
   --log_file=room_105_debug.log \
   --editor=Dungeon \
-  --cards="Room 105,Room Graphics,Palette Editor,Object Editor"
+  --open_panels="Room 105,Room Graphics,Palette Editor,Object Editor"
 ```
 
 ## Notes
 
-- Card names are case-sensitive and must match exactly
-- Use quotes around comma-separated card lists
-- Invalid editor or card names will be logged as warnings but won't crash the application
-- The `--cards` flag is currently only implemented for the Dungeon editor
+- Panel names are case-sensitive and must match exactly
+- Use quotes around comma-separated panel lists
+- Invalid editor or panel names will be logged as warnings but won't crash the application
+- The `--open_panels` flag is currently only implemented for the Dungeon editor
 - Room IDs range from 0-319 in the vanilla game
 
 ## Troubleshooting
@@ -141,11 +141,11 @@ All flags can be combined for powerful debugging setups:
 - Verify ROM loaded successfully
 - Check log output with `--debug`
 
-**Cards don't appear:**
+**Panels don't appear:**
 - Ensure editor is set (e.g., `--editor=Dungeon`)
-- Check card name spelling
-- Some cards require a loaded ROM
+- Check panel name spelling
+- Some panels require a loaded ROM
 
-**Want to add more card support?**
-See `EditorManager::OpenEditorAndCardsFromFlags()` in `src/app/editor/editor_manager.cc`
+**Want to add more panel support?**
+See `EditorManager::OpenEditorAndPanelsFromFlags()` in `src/app/editor/editor_manager.cc`
 

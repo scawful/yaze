@@ -4,6 +4,14 @@ This directory contains detailed architectural documentation for the YAZE (Yet A
 
 ## Core Architecture Guides
 
+### ROM and Game Data
+- **[rom_architecture.md](rom_architecture.md)** - Decoupled ROM architecture
+  - Generic SNES ROM container (`src/rom/`)
+  - Zelda3-specific GameData struct (`src/zelda3/game_data.h`)
+  - Editor integration and GameData propagation
+  - Transaction-based ROM access patterns
+  - Migration guide from old architecture
+
 ### Graphics System
 - **[graphics_system_architecture.md](graphics_system_architecture.md)** - Complete guide to the graphics rendering pipeline
   - Arena resource manager for 223 graphics sheets
@@ -77,6 +85,16 @@ This directory contains detailed architectural documentation for the YAZE (Yet A
   - Feature-specific UI adaptation
 
 ## Quick Reference by Component
+
+### ROM (`src/rom/`)
+- See: [rom_architecture.md](rom_architecture.md)
+- Key Classes: Rom, ReadTransaction, WriteTransaction
+- Key Files: `rom.h`, `rom.cc`, `transaction.h`, `snes.h`
+
+### Game Data (`src/zelda3/game_data.h`)
+- See: [rom_architecture.md](rom_architecture.md)
+- Key Struct: GameData
+- Key Functions: LoadGameData(), SaveGameData()
 
 ### Graphics (`src/app/gfx/`)
 - See: [graphics_system_architecture.md](graphics_system_architecture.md)

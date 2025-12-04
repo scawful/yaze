@@ -1,8 +1,18 @@
 # Overworld v3 Padding: Special-World Tail (0xA0–0xBF)
 
-Status: **updated** (validated with `overworld-doctor` and `overworld-validate` CLI tools)  
-Owner: zelda3-hacking-expert  
+Status: **IMPLEMENTED** (TailMapExpansion.asm patch available)
+Owner: zelda3-hacking-expert
 Purpose: make the unused special-world map slots (0xA0–0xBF) safe/editable without corrupting existing expanded data. We place blank map data in verified free space and point the tail of the pointer tables to them.
+
+## Quick Start
+
+```bash
+# Apply tail expansion to a ZSCustomOverworld v3 ROM
+z3ed overworld-doctor --rom=zelda3.sfc --apply-tail-expansion --output=expanded.sfc
+
+# Or apply manually with Asar (after ZSCustomOverworld v3)
+asar assets/patches/Overworld/TailMapExpansion.asm zelda3.sfc
+```
 
 ## ROM Layout (LoROM, no header)
 
@@ -40,72 +50,69 @@ The original padding attempted to use these addresses as "existing custom blocks
 
 The `overworld-doctor` CLI tool can detect and repair this corruption.
 
-## Blank Map Copies (Corrected Location)
+## Pointer Table Expansion (IMPLEMENTED)
 
-Using safe free space in bank $30:
-
-| Data | PC Address | SNES Address | Size |
-|------|------------|--------------|------|
-| Map32 part1 (high) | 0x180000 | $30:8000 | 0xBC (188 bytes) |
-| Map32 part2 (low) | 0x181000 | $30:9000 | 0x04 (4 bytes) |
-
-These addresses are verified to be in the safe free space region (0x1422B2-0x1DFFFF).
-
-## CRITICAL: Pointer Table Limitation
+### Original Problem
 
 **The vanilla pointer tables only have 160 entries (maps 0x00-0x9F).**
 
-### Current Pointer Table Layout
-
 ```
-Low Table:  PC 0x1794D, 160 entries × 3 bytes = 0x1E0 bytes, ends at 0x17B2D
-High Table: PC 0x17B2D, 160 entries × 3 bytes = 0x1E0 bytes, ends at 0x17D0D
+Original High Table: PC 0x1794D (SNES $02:F94D), 160 entries × 3 bytes
+Original Low Table:  PC 0x17B2D (SNES $02:FB2D), 160 entries × 3 bytes
 ```
 
-**Maps 0xA0-0xBF do NOT have pointer table entries!**
+Writing to entries for maps 0xA0+ would overwrite existing data, corrupting Light World maps.
 
-### Why Simple Patching Fails
+### Solution: TailMapExpansion.asm
 
-If you try to write pointers for map 0xA0:
-- `ptr_low_addr = 0x1794D + (3 × 0xA0) = 0x17B2D` ← **This is the HIGH table start!**
+The `TailMapExpansion.asm` patch relocates the pointer tables to safe free space with room for 192 entries:
 
-Writing to "low" pointers for maps 0xA0+ actually **overwrites HIGH pointers for maps 0x00+**, corrupting Light World maps.
+| Component | PC Address | SNES Address | Size |
+|-----------|------------|--------------|------|
+| Detection Marker | 0x1423FF | $28:A3FF | 1 byte (value: 0xEA) |
+| New High Table | 0x142400 | $28:A400 | 576 bytes (192 × 3) |
+| New Low Table | 0x142640 | $28:A640 | 576 bytes (192 × 3) |
+| Blank Map High | 0x180000 | $30:8000 | 188 bytes |
+| Blank Map Low | 0x181000 | $30:9000 | 4 bytes |
 
-### ASM Expansion Required
+### Game Code Patches
 
-To support tail maps (0xA0-0xBF), you MUST:
+The patch updates 8 LDA instructions in bank $02 to use the new table addresses:
 
-1. **Relocate pointer tables** to free space with room for 192 entries:
-   - New Low table: 192 × 3 = 576 bytes (0x240)
-   - New High table: 192 × 3 = 576 bytes (0x240)
-   - Suggested location: 0x1422B2+ (safe free space)
+**Function 1: `Overworld_DecompressAndDrawOneQuadrant`**
 
-2. **Patch all pointer table references** in game code:
-   - Search for `$2F:A94D` (low table) and `$2F:B12D` (high table)
-   - Update to new relocated addresses
+| PC Address | Original | Patched |
+|------------|----------|---------|
+| 0x1F59D | `LDA.l $02F94D,X` | `LDA.l $28A400,X` |
+| 0x1F5A3 | `LDA.l $02F94E,X` | `LDA.l $28A401,X` |
+| 0x1F5C8 | `LDA.l $02FB2D,X` | `LDA.l $28A640,X` |
+| 0x1F5CE | `LDA.l $02FB2E,X` | `LDA.l $28A641,X` |
 
-3. **Copy existing 160 entries** to new tables
+**Function 2: Secondary quadrant loader**
 
-4. **Add marker** to indicate expanded tables are present
+| PC Address | Original | Patched |
+|------------|----------|---------|
+| 0x1F7E3 | `LDA.l $02F94D,X` | `LDA.l $28A400,X` |
+| 0x1F7E9 | `LDA.l $02F94E,X` | `LDA.l $28A401,X` |
+| 0x1F80E | `LDA.l $02FB2D,X` | `LDA.l $28A640,X` |
+| 0x1F814 | `LDA.l $02FB2E,X` | `LDA.l $28A641,X` |
 
-### Recommended New Table Layout
+### Detection
 
+yaze detects expanded pointer tables by checking for the marker byte:
+
+```cpp
+// In src/zelda3/overworld/overworld.h
+bool HasExpandedPointerTables() const {
+  return rom_->data()[0x1423FF] == 0xEA;
+}
 ```
-New Low Table:  PC 0x142400 (SNES $28:A400), 192 entries
-New High Table: PC 0x142640 (SNES $28:A640), 192 entries
-Tail entries:   Initialize to blank map data at $30:8000/$30:9000
-```
 
-## Tail Map Data (When ASM Expansion Is Complete)
-
-Once pointer tables are expanded, tail map pointers should point to:
-
-| Data | PC Address | SNES Address | Size |
-|------|------------|--------------|------|
-| Map32 part1 (high) | 0x180000 | $30:8000 | 0xBC (188 bytes) |
-| Map32 part2 (low) | 0x181000 | $30:9000 | 0x04 (4 bytes) |
+The `overworld-doctor` command reports this status in its diagnostic output.
 
 ## Tail Table Seeding (0xA0–0xBF)
+
+When the expansion patch is applied, tail map entries are initialized to blank data.
 
 All addresses are expanded ZSCustom tables unless noted:
 - `OverworldCustomAreaSpecificBGPalette` 0x140000: 0x0000
@@ -133,24 +140,35 @@ z3ed overworld-validate --rom=file.sfc --check-tile16  # Check tile16 region
 
 ### overworld-doctor
 
-Diagnoses ROM features and detects corruption:
+Diagnoses ROM features, detects corruption, and applies tail expansion:
 
 ```bash
-z3ed overworld-doctor --rom=file.sfc --verbose                    # Diagnose only
-z3ed overworld-doctor --rom=file.sfc --baseline=vanilla.sfc       # Compare with baseline
-z3ed overworld-doctor --rom=file.sfc --fix --output=fixed.sfc     # Apply fixes
+# Diagnose only
+z3ed overworld-doctor --rom=file.sfc --verbose
+
+# Compare with baseline
+z3ed overworld-doctor --rom=file.sfc --baseline=vanilla.sfc
+
+# Apply tile16 fixes
+z3ed overworld-doctor --rom=file.sfc --fix --output=fixed.sfc
+
+# Apply tail map expansion
+z3ed overworld-doctor --rom=file.sfc --apply-tail-expansion --output=expanded.sfc
+
+# Preview tail expansion (dry run)
+z3ed overworld-doctor --rom=file.sfc --apply-tail-expansion --dry-run
 ```
 
 Features detected:
 - ZSCustomOverworld version (vanilla, v2, v3)
 - Expanded tile16/tile32 status
+- **Expanded pointer tables** (tail map support)
 - Custom feature enables (BG colors, palettes, overlays, etc.)
 - Pointer table integrity
 
-Repairs available:
+Repairs/operations available:
 - Zeroes corrupted tile16 entries
-
-**Note:** Tail map padding is NOT available until ASM expansion is implemented.
+- **Applies TailMapExpansion.asm patch**
 
 ### rom-compare
 
@@ -163,10 +181,55 @@ z3ed rom-compare --rom=target.sfc --baseline=vanilla.sfc --verbose --show-diff
 
 ## Current Status
 
-- **Tail maps (0xA0-0xBF)**: NOT FUNCTIONAL - requires ASM expansion
+- **Tail maps (0xA0-0xBF)**: FUNCTIONAL (requires TailMapExpansion.asm patch)
 - **Tile16 repair**: Working
 - **Diagnostics**: Comprehensive feature detection working
 - **Baseline comparison**: Working
+- **Pointer table expansion**: Working via `--apply-tail-expansion`
+
+## Prerequisites
+
+The TailMapExpansion.asm patch requires:
+1. **ZSCustomOverworld v3** must be applied first
+2. ROM must be 2MB (standard expanded size)
+
+The patch will fail with an error if ZSCustomOverworld v3 is not detected.
+
+## Manual Asar Application
+
+If applying the patch manually with Asar:
+
+```bash
+# 1. Ensure ZSCustomOverworld v3 is already applied to your ROM
+# 2. Apply the tail expansion patch
+asar assets/patches/Overworld/TailMapExpansion.asm zelda3.sfc
+```
+
+The patch will print success messages showing the new table locations.
+
+## Implementation Details
+
+### Source Files
+
+| File | Purpose |
+|------|---------|
+| `assets/patches/Overworld/TailMapExpansion.asm` | ASM patch file |
+| `src/zelda3/overworld/overworld.h` | `HasExpandedPointerTables()` method |
+| `src/zelda3/overworld/overworld.cc` | Tail map guards |
+| `src/cli/handlers/tools/overworld_doctor_commands.cc` | CLI apply logic |
+| `src/cli/handlers/tools/diagnostic_types.h` | Constants |
+
+### Guard Logic
+
+The overworld loading code checks BOTH conditions before allowing tail map access:
+
+```cpp
+const bool allow_special_tail =
+    core::FeatureFlags::get().overworld.kEnableSpecialWorldExpansion &&
+    HasExpandedPointerTables();
+```
+
+If either condition is false, tail maps are filled with blank tiles to prevent corruption.
 
 ## Notes / Rationale
 
@@ -174,9 +237,11 @@ z3ed rom-compare --rom=target.sfc --baseline=vanilla.sfc --verbose --show-diff
 - The doctor tool detects tile16 corruption by checking for invalid tile info patterns
 - Safe free space is confirmed between 0x1422B2-0x1DFFFF (before expanded data)
 - The editor/runtime has a safety net: invalid pointers fall back to blank tiles
+- Oracle-of-Secrets ROM map was analyzed to verify safe placement of new tables
 
 ## Follow-up Tests
 
 1) Unit: Construct a ROM buffer with zeroed map32 pointers for 0xA0 and assert `Overworld::Load` fills blank tiles (no crash).
-2) Integration: Load fixed ROM, build map 0xA0 in the editor, and assert a 32×32 all-zero tile16 map is produced without exceptions.
-3) Regression: Run `overworld-validate` and `overworld-doctor` on the fixed ROM to confirm no corruption detected.
+2) Integration: Load expanded ROM, build map 0xA0 in the editor, and assert a 32×32 all-zero tile16 map is produced without exceptions.
+3) Regression: Run `overworld-validate` and `overworld-doctor` on the expanded ROM to confirm no corruption detected.
+4) Full cycle: Apply patch, edit map 0xA0, save, reload, verify changes persist.
