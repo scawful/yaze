@@ -3,11 +3,42 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
+### 2025-12-03 imgui-frontend-engineer – Keyboard Shortcut Audit
+- TASK: Investigate broken Cmd-based shortcuts (sidebar toggle etc.) and standardize shortcut handling across app.
+- SCOPE: shortcut_manager.{h,cc}, shortcut_configurator.cc, platform_keys.cc.
+- STATUS: COMPLETE
+- NOTES: Cmd/Super detection normalized (Cmd+B now works), chord parsing fixed, Proposal Drawer/Test Dashboard bindings corrected, shortcut labels show Cmd/Opt on mac.
+
+### 2025-12-03 imgui-frontend-engineer – Phase 4: Double-Click Object Editing UX
+- TASK: Implement double-click editing for dungeon objects (Phase 4 of object editor refactor)
+- SCOPE: dungeon_object_selector.{h,cc}, panels/object_editor_panel.{h,cc}
+- STATUS: COMPLETE
+- NOTES: Double-click object in browser opens static editor with draw routine info. Added visual indicators (cyan border, info icon) and tooltips. Uses ObjectParser for info lookup. Preview rendering via ObjectDrawer.
+
+### 2025-12-03 imgui-frontend-engineer – Phase 2: Draw Routine Modularization
+- TASK: Split object_drawer.cc into modular draw routine files
+- SCOPE: zelda3/dungeon/draw_routines/*.{h,cc}, zelda3_library.cmake
+- STATUS: COMPLETE
+- NOTES: Created 6 module files (draw_routine_types, rightwards, downwards, diagonal, corner, special). Fixed WriteTile8 utility to use SetTileAt. All routines use DrawContext pattern. Build verified.
+
 ### 2025-11-30 CLAUDE_OPUS – Card→Panel Terminology Refactor (Continuation)
 - TASK: Complete remaining Card→Panel rename across codebase after multi-agent refactor
 - SCOPE: editor_manager.cc, layout_manager.cc, layout_orchestrator.cc/.h, popup_manager.cc, panel_manager.cc
 - STATUS: COMPLETE
 - NOTES: Fixed field renames (default_visible_cards→default_visible_panels, card_positions→panel_positions, optional_cards→optional_panels), method renames (GetDefaultCards→GetDefaultPanels, ShowPresetCards→ShowPresetPanels, GetVisibleCards→GetVisiblePanels, HideOptionalCards→HideOptionalPanels), and call sites. Build successful 510/510.
+
+### 2025-12-02 ai-infra-architect – Doctor Suite & Test CLI Implementation
+- TASK: Implement expanded doctor commands and test CLI infrastructure
+- SCOPE: src/cli/handlers/tools/, src/cli/service/resources/command_handler.cc
+- STATUS: COMPLETE
+- NOTES: Added `dungeon-doctor` (room validation), `rom-doctor` (header/checksum), `test-list`, `test-run`, `test-status`. Fixed `RequiresRom()` check in CommandHandler::Run. All commands use OutputFormatter with JSON/text output.
+
+### 2025-12-01 ai-infra-architect – z3ed CLI UX/TUI Improvement Proposals
+- TASK: Audit z3ed CLI/TUI UX (args, doctor commands, tests/tools) and main app UX; draft improvement docs for agents + humans
+- SCOPE: src/cli/**, test/, tools/, main app UX (separate doc), test binary UX, docs/internal/agents/
+- STATUS: IN_PROGRESS
+- NOTES: Docs: docs/internal/agents/cli-ux-proposals.md (CLI/TUI/tests/tools). Focus on doctor flows, interactive mode coherence, test/tool runners.
+- UPDATE: Doctor suite expanded (dungeon-doctor, rom-doctor). Test CLI added (test-list/run/status). Remaining: TUI consolidation.
 
 ### 2025-11-29 imgui-frontend-engineer – Settings Panel Initialization Fix
 - TASK: Fix Settings panel failing to initialize (empty state) when creating new sessions or switching
