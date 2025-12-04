@@ -13,6 +13,9 @@ namespace yaze {
 namespace editor {
 namespace music {
 
+constexpr int kNativeSampleRate = 32040;  // Actual SPC700 rate
+
+
 MusicPlayer::MusicPlayer(zelda3::music::MusicBank* music_bank)
     : music_bank_(music_bank) {}
 
@@ -78,6 +81,16 @@ void MusicPlayer::Update() {
     } else {
       audio_emulator_->RunFrameOnly();
     }
+
+    // Log Timer 0 fires per frame (Diagnostic)
+    // Note: We can't easily access Timer 0 fires here without modifying APU.
+    //    // static int timer0_log = 0;
+    // if (++timer0_log % 60 == 0) {
+    //   uint64_t apu_cycles = audio_emulator_->snes().apu().GetCycles();
+    //   uint64_t delta = apu_cycles - last_apu_cycles_;
+    //   last_apu_cycles_ = apu_cycles;
+    //   LOG_INFO("MusicPlayer", "APU Cycles/Frame: %llu (Expected ~17000)", delta);
+    // }
 
     // Debug: log audio status periodically
     static int debug_counter = 0;
@@ -150,10 +163,12 @@ bool MusicPlayer::EnsureAudioReady() {
     LOG_INFO("MusicPlayer", "SNES initialized successfully");
   }
 
+  // Force 0.5x speed for testing
+  // playback_speed_ = 0.5f; // Removed diagnostic
+
   // Enable audio stream resampling for proper 32kHz -> 48kHz conversion
   // This is crucial for correct playback speed
   if (auto* audio = audio_emulator_->audio_backend()) {
-    constexpr int kNativeSampleRate = 32040;  // Actual SPC700 rate
     if (audio->SupportsAudioStream()) {
       audio->SetAudioStreamResampling(true, kNativeSampleRate, 2);
     } else {
@@ -212,8 +227,13 @@ void MusicPlayer::InitializeDirectSpc() {
 
   // Upload Driver (Bank 0)
   UploadSoundBankFromRom(GetBankRomOffset(0));
+  // PatchDriver removed - fixing root cause in APU emulation instead
+
   // 4. Start Driver
   apu.BootstrapDirect(kDriverEntryPoint);
+
+  // Initialize song pointers
+  // UploadSongToAram(song_pointers, 0xD000);
 
   // 5. Run init cycles
   for (int i = 0; i < kSpcResetCycles; i++) {
@@ -276,6 +296,15 @@ void MusicPlayer::PlaySong(int song_index) {
   }
 
   if (auto* audio = audio_emulator_->audio_backend()) {
+    // Prime the buffer with silence to prevent immediate underrun
+    // Queue ~6 frames (100ms) of silence
+    constexpr int kPrimeFrames = 6;
+    constexpr int kPrimeSamples = 533 * kPrimeFrames;
+    std::vector<int16_t> silence(kPrimeSamples * 2, 0); // Stereo
+    
+    constexpr int kNativeSampleRate = 32040;
+    audio->QueueSamplesNative(silence.data(), kPrimeSamples, 2, kNativeSampleRate);
+
     if (!audio->GetStatus().is_playing) {
       audio->Play();
     }
@@ -398,6 +427,16 @@ void MusicPlayer::PlaySongDirect(int song_id) {
 
   // Start audio playback
   if (auto* audio = audio_emulator_->audio_backend()) {
+    // Prime the buffer with silence to prevent immediate underrun
+    // Queue ~6 frames (100ms) of silence
+    constexpr int kPrimeFrames = 6;
+    constexpr int kPrimeSamples = 533 * kPrimeFrames;
+    std::vector<int16_t> silence(kPrimeSamples * 2, 0); // Stereo
+    
+    // Use the native rate (32040) so it gets resampled correctly if needed
+    constexpr int kNativeSampleRate = 32040;
+    audio->QueueSamplesNative(silence.data(), kPrimeSamples, 2, kNativeSampleRate);
+
     if (!audio->GetStatus().is_playing) {
       audio->Play();
     }
@@ -448,6 +487,7 @@ void MusicPlayer::Resume() {
   audio_emulator_->set_running(true);
 
   if (auto* audio = audio_emulator_->audio_backend()) {
+    audio->Clear(); // Clear buffer to prevent stale audio
     audio->Play();
   }
 
@@ -586,11 +626,14 @@ uint8_t MusicPlayer::GetSongTempo(const zelda3::music::MusicSong& song) const {
 }
 
 float MusicPlayer::CalculateTicksPerSecond(uint8_t tempo) const {
-  // SNES timer frequency is 8000Hz (Timer 0)
-  // Tempo value sets the timer divider
-  // Ticks per second = 8000 / tempo
-  if (tempo == 0) return 0.0f;
-  return 8000.0f / static_cast<float>(tempo);
+  // The SNES SPC700 driver uses a timer (usually Timer 0) running at 8000Hz.
+  // The timer has a divider (usually 16), resulting in a 500Hz base tick.
+  // The driver accumulates the tempo value every 500Hz tick.
+  // When the accumulator overflows, a music tick is generated.
+  // Formula: Rate = Base_Freq * (Tempo / 256)
+  // Base_Freq = 8000 / Divider (16) = 500Hz
+  
+  return 500.0f * (static_cast<float>(tempo) / 256.0f);
 }
 
 uint32_t MusicPlayer::GetCurrentPlaybackTick() const {

@@ -390,7 +390,7 @@ absl::StatusOr<int> MusicBank::ImportSampleFromWav(const std::string& filepath,
   // Create dummy PCM data (sine wave)
   sample.pcm_data.resize(1000);
   for (int i = 0; i < 1000; ++i) {
-    sample.pcm_data[i] = static_cast<int16_t>(32000.0 * std::sin(i * 0.1));
+    sample.pcm_data[i] = static_cast<int16_t>(32040.0 * std::sin(i * 0.1));
   }
   
   samples_.push_back(std::move(sample));
