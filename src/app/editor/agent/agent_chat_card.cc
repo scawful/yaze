@@ -9,7 +9,7 @@
 namespace yaze {
 namespace editor {
 
-AgentChatPanel::AgentChatPanel(const std::string& agent_id,
+AgentChatCard::AgentChatCard(const std::string& agent_id,
                              AgentSessionManager* session_manager)
     : agent_id_(agent_id), session_manager_(session_manager) {
   // Configure chat view for full (non-compact) mode
@@ -22,20 +22,20 @@ AgentChatPanel::AgentChatPanel(const std::string& agent_id,
     chat_view_.SetProposalCallbacks(session->proposal_callbacks);
   }
 
-  LOG_INFO("AgentChatPanel", "Created card for agent: %s", agent_id_.c_str());
+  LOG_INFO("AgentChatCard", "Created card for agent: %s", agent_id_.c_str());
 }
 
-void AgentChatPanel::SetToastManager(ToastManager* toast_manager) {
+void AgentChatCard::SetToastManager(ToastManager* toast_manager) {
   toast_manager_ = toast_manager;
   chat_view_.SetToastManager(toast_manager);
 }
 
-void AgentChatPanel::SetAgentService(
+void AgentChatCard::SetAgentService(
     cli::agent::ConversationalAgentService* service) {
   chat_view_.SetAgentService(service);
 }
 
-std::string AgentChatPanel::GetWindowTitle() const {
+std::string AgentChatCard::GetWindowTitle() const {
   if (const AgentSession* session = session_manager_->GetSession(agent_id_)) {
     return absl::StrFormat("%s %s###AgentPanel_%s", ICON_MD_SMART_TOY,
                            session->display_name, agent_id_);
@@ -44,7 +44,7 @@ std::string AgentChatPanel::GetWindowTitle() const {
                          agent_id_);
 }
 
-void AgentChatPanel::Draw(bool* p_open) {
+void AgentChatCard::Draw(bool* p_open) {
   if (!p_open || !*p_open) {
     return;
   }
@@ -52,7 +52,7 @@ void AgentChatPanel::Draw(bool* p_open) {
   // Verify session still exists
   AgentSession* session = session_manager_->GetSession(agent_id_);
   if (!session) {
-    LOG_WARN("AgentChatPanel", "Session no longer exists: %s", agent_id_.c_str());
+    LOG_WARN("AgentChatCard", "Session no longer exists: %s", agent_id_.c_str());
     *p_open = false;
     return;
   }

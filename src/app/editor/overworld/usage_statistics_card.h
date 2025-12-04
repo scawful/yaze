@@ -5,10 +5,10 @@
 
 namespace yaze::editor {
 
-class UsageStatisticsPanel {
+class UsageStatisticsCard {
  public:
-  UsageStatisticsPanel(zelda3::Overworld* overworld);
-  ~UsageStatisticsPanel() = default;
+  UsageStatisticsCard(zelda3::Overworld* overworld);
+  ~UsageStatisticsCard() = default;
 
   void Draw(bool* p_open = nullptr);
 

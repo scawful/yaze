@@ -7,7 +7,7 @@ namespace yaze {
 namespace editor {
 
 void DebugWindowPanel::Draw(bool* p_open) {
-  // Delegate to existing debug_window_card
+  // Delegate to existing DebugWindowCard
   if (auto* card = editor_->debug_window_card()) {
     card->Draw(p_open);
   }

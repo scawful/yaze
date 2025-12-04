@@ -8,8 +8,8 @@
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
 #include "app/editor/graphics/gfx_group_editor.h"
-#include "app/editor/palette/palette_group_card.h"
-#include "app/editor/palette/panels/palette_card_panels.h"
+#include "app/editor/palette/palette_group_panel.h"
+
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_palette.h"
 #include "rom/rom.h"
@@ -159,26 +159,27 @@ class PaletteEditor : public Editor {
   bool control_panel_minimized_ = false;
 
   // Palette panel visibility flags
-  bool show_ow_main_card_ = false;
-  bool show_ow_animated_card_ = false;
-  bool show_dungeon_main_card_ = false;
-  bool show_sprite_card_ = false;
-  bool show_sprites_aux1_card_ = false;
-  bool show_sprites_aux2_card_ = false;
-  bool show_sprites_aux3_card_ = false;
-  bool show_equipment_card_ = false;
+  bool show_ow_main_panel_ = false;
+  bool show_ow_animated_panel_ = false;
+  bool show_dungeon_main_panel_ = false;
+  bool show_sprite_panel_ = false;
+  bool show_sprites_aux1_panel_ = false;
+  bool show_sprites_aux2_panel_ = false;
+  bool show_sprites_aux3_panel_ = false;
+  bool show_equipment_panel_ = false;
   bool show_quick_access_ = false;
   bool show_custom_palette_ = false;
 
-  // Palette card instances
-  std::unique_ptr<OverworldMainPalettePanel> ow_main_card_;
-  std::unique_ptr<OverworldAnimatedPalettePanel> ow_animated_card_;
-  std::unique_ptr<DungeonMainPalettePanel> dungeon_main_card_;
-  std::unique_ptr<SpritePalettePanel> sprite_card_;
-  std::unique_ptr<SpritesAux1PalettePanel> sprites_aux1_card_;
-  std::unique_ptr<SpritesAux2PalettePanel> sprites_aux2_card_;
-  std::unique_ptr<SpritesAux3PalettePanel> sprites_aux3_card_;
-  std::unique_ptr<EquipmentPalettePanel> equipment_card_;
+  // Palette Panels (formerly Cards)
+  // We keep raw pointers to the panels which are owned by PanelManager
+  OverworldMainPalettePanel* ow_main_panel_ = nullptr;
+  OverworldAnimatedPalettePanel* ow_anim_panel_ = nullptr;
+  DungeonMainPalettePanel* dungeon_main_panel_ = nullptr;
+  SpritePalettePanel* sprite_global_panel_ = nullptr;
+  SpritesAux1PalettePanel* sprite_aux1_panel_ = nullptr;
+  SpritesAux2PalettePanel* sprite_aux2_panel_ = nullptr;
+  SpritesAux3PalettePanel* sprite_aux3_panel_ = nullptr;
+  EquipmentPalettePanel* equipment_panel_ = nullptr;
 };
 
 }  // namespace editor

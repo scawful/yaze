@@ -3,10 +3,10 @@
 
 namespace yaze::editor {
 
-class DebugWindowPanel {
+class DebugWindowCard {
  public:
-  DebugWindowPanel();
-  ~DebugWindowPanel() = default;
+  DebugWindowCard();
+  ~DebugWindowCard() = default;
 
   void Draw(bool* p_open = nullptr);
 };

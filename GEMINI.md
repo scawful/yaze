@@ -344,15 +344,6 @@ cmake --build build --target clean      # Clean build artifacts
 rm -rf build                            # Full clean (reconfigure needed)
 ```
 
-## Getting Help
-
-If you encounter issues not covered here:
-
-1. Check `docs/public/build/quick-reference.md` - Authoritative build reference
-2. Check `docs/BUILD-TROUBLESHOOTING.md` - Platform-specific fixes
-3. Check `CLAUDE.md` - Overall project architecture and patterns
-4. Ask in GitHub Issues: https://github.com/scawful/yaze/issues
-
 ## Notes for Gemini Specifically
 
 **Key Points to Remember**:
@@ -372,10 +363,3 @@ If you encounter issues not covered here:
 - ❌ Expecting all tests to pass without ROM file
 - ❌ Using wrong preset for your platform
 
-**Pro Tips**:
-
-- Use tab-completion for long paths and preset names
-- Keep a terminal open with build running, another for git
-- Run `--unit` tests frequently (they're fast!)
-- Use `--target` to avoid rebuilding everything
-- Check GitHub Actions logs if local build behaves differently

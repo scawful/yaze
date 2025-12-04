@@ -287,7 +287,7 @@ if (visibility && *visibility) {
 // BEFORE (ui_coordinator.cc):
 auto* current_editor = editor_manager_->GetCurrentEditorSet();
 for (auto* editor : current_editor->active_editors_) {
-  if (*editor->active() && editor_registry_.IsCardBasedEditor(editor->type())) {
+  if (*editor->active() && editor_registry_.IsPanelBasedEditor(editor->type())) {
     active_editor = editor;
     break;  // Not implemented Takes first match, not necessarily focused
   }
@@ -295,7 +295,7 @@ for (auto* editor : current_editor->active_editors_) {
 
 // AFTER:
 auto* active_editor = editor_manager_->GetCurrentEditor();  //  Direct focused editor
-if (!active_editor || !editor_registry_.IsCardBasedEditor(active_editor->type())) {
+if (!active_editor || !editor_registry_.IsPanelBasedEditor(active_editor->type())) {
   return;
 }
 ```
@@ -401,7 +401,7 @@ if (cpu_visible && *cpu_visible) {
 **Solution Applied**: Changed `ui_coordinator.cc` to use `GetCurrentEditor()`:
 ```cpp
 auto* active_editor = editor_manager_->GetCurrentEditor();
-if (!active_editor || !editor_registry_.IsCardBasedEditor(active_editor->type())) {
+if (!active_editor || !editor_registry_.IsPanelBasedEditor(active_editor->type())) {
   return;
 }
 ```

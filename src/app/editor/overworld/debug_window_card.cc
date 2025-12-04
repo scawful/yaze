@@ -5,9 +5,9 @@
 
 namespace yaze::editor {
 
-DebugWindowPanel::DebugWindowPanel() {}
+DebugWindowCard::DebugWindowCard() {}
 
-void DebugWindowPanel::Draw(bool* p_open) {
+void DebugWindowCard::Draw(bool* p_open) {
   if (ImGui::Begin("Debug Window", p_open)) {
     ImGui::Text("Debug Information");
     ImGui::Separator();

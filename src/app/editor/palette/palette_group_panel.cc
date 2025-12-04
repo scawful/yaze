@@ -1,4 +1,4 @@
-#include "palette_group_card.h"
+#include "palette_group_panel.h"
 
 #include <chrono>
 
@@ -31,8 +31,8 @@ PaletteGroupPanel::PaletteGroupPanel(const std::string& group_name,
   // palettes will be loaded on first Draw() call instead.
 }
 
-void PaletteGroupPanel::Draw() {
-  if (!show_ || !rom_ || !rom_->is_loaded()) {
+void PaletteGroupPanel::Draw(bool* p_open) {
+  if (!rom_ || !rom_->is_loaded()) {
     return;
   }
 
@@ -40,48 +40,47 @@ void PaletteGroupPanel::Draw() {
   // No need for local snapshot management anymore
 
   // Main card window
-  if (ImGui::Begin(display_name_.c_str(), &show_)) {
-    DrawToolbar();
+  // Note: Window management is handled by PanelManager/EditorPanel
+  
+  DrawToolbar();
+  ImGui::Separator();
+
+  // Two-column layout: Grid on left, picker on right
+  if (ImGui::BeginTable(
+          "##PalettePanelLayout", 2,
+          ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInnerV)) {
+    ImGui::TableSetupColumn("Grid", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+    ImGui::TableSetupColumn("Editor", ImGuiTableColumnFlags_WidthStretch,
+                            0.4f);
+
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+
+    // Left: Palette selector + grid
+    DrawPaletteSelector();
     ImGui::Separator();
+    DrawPaletteGrid();
 
-    // Two-column layout: Grid on left, picker on right
-    if (ImGui::BeginTable(
-            "##PalettePanelLayout", 2,
-            ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInnerV)) {
-      ImGui::TableSetupColumn("Grid", ImGuiTableColumnFlags_WidthStretch, 0.6f);
-      ImGui::TableSetupColumn("Editor", ImGuiTableColumnFlags_WidthStretch,
-                              0.4f);
+    ImGui::TableNextColumn();
 
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-
-      // Left: Palette selector + grid
-      DrawPaletteSelector();
+    // Right: Color picker + info
+    if (selected_color_ >= 0) {
+      DrawColorPicker();
       ImGui::Separator();
-      DrawPaletteGrid();
-
-      ImGui::TableNextColumn();
-
-      // Right: Color picker + info
-      if (selected_color_ >= 0) {
-        DrawColorPicker();
-        ImGui::Separator();
-        DrawColorInfo();
-        ImGui::Separator();
-        DrawMetadataInfo();
-      } else {
-        ImGui::TextDisabled("Select a color to edit");
-        ImGui::Separator();
-        DrawMetadataInfo();
-      }
-
-      // Custom panels from derived classes
-      DrawCustomPanels();
-
-      ImGui::EndTable();
+      DrawColorInfo();
+      ImGui::Separator();
+      DrawMetadataInfo();
+    } else {
+      ImGui::TextDisabled("Select a color to edit");
+      ImGui::Separator();
+      DrawMetadataInfo();
     }
+
+    // Custom panels from derived classes
+    DrawCustomPanels();
+
+    ImGui::EndTable();
   }
-  ImGui::End();
 
   // Batch operations popup
   DrawBatchOperationsPopup();

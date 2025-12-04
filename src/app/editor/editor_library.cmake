@@ -58,7 +58,7 @@ set(
   app/editor/overworld/tile16_editor.cc
   app/editor/overworld/usage_statistics_card.cc
   app/editor/palette/palette_editor.cc
-  app/editor/palette/palette_group_card.cc
+  app/editor/palette/palette_group_panel.cc
   app/editor/palette/palette_utility.cc
   app/editor/sprite/sprite_drawer.cc
   app/editor/sprite/sprite_editor.cc

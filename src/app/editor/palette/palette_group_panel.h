@@ -14,6 +14,8 @@
 #include "imgui/imgui.h"
 #include "rom/rom.h"
 #include "zelda3/game_data.h"
+#include "app/editor/system/editor_panel.h"
+#include "app/gui/core/icons.h"
 
 namespace yaze {
 namespace editor {
@@ -65,7 +67,7 @@ struct PaletteGroupMetadata {
  *
  * Derived classes implement specific grid layouts and palette access.
  */
-class PaletteGroupPanel {
+class PaletteGroupPanel : public EditorPanel {
  public:
   /**
    * @brief Construct a new Palette Group Panel
@@ -88,7 +90,17 @@ class PaletteGroupPanel {
   /**
    * @brief Draw the card's ImGui UI
    */
-  void Draw();
+  /**
+   * @brief Draw the card's ImGui UI
+   */
+  void Draw(bool* p_open) override;
+
+  // EditorPanel Implementation
+  std::string GetId() const override { return "palette." + group_name_; }
+  std::string GetDisplayName() const override { return display_name_; }
+  std::string GetIcon() const override { return ICON_MD_PALETTE; } // Default, override in derived
+  std::string GetEditorCategory() const override { return "Palette"; }
+  int GetPriority() const override { return 50; } // Default, override in derived
 
   // ========== Panel Control ==========
 
@@ -273,7 +285,7 @@ class PaletteGroupPanel {
 // ============================================================================
 
 /**
- * @brief Overworld Main palette group card
+ * @brief Overworld Main palette group panel
  *
  * Manages palettes used for overworld rendering:
  * - Light World palettes (0-19)
@@ -292,13 +304,17 @@ class OverworldMainPalettePanel : public PaletteGroupPanel {
   void DrawPaletteGrid() override;
   int GetColorsPerRow() const override { return 8; }
 
+  // EditorPanel Overrides
+  std::string GetIcon() const override { return ICON_MD_LANDSCAPE; }
+  int GetPriority() const override { return 20; }
+
  private:
   static PaletteGroupMetadata InitializeMetadata();
   static const PaletteGroupMetadata metadata_;
 };
 
 /**
- * @brief Overworld Animated palette group card
+ * @brief Overworld Animated palette group panel
  *
  * Manages animated palettes for water, lava, and other effects
  */
@@ -314,13 +330,17 @@ class OverworldAnimatedPalettePanel : public PaletteGroupPanel {
   void DrawPaletteGrid() override;
   int GetColorsPerRow() const override { return 8; }
 
+  // EditorPanel Overrides
+  std::string GetIcon() const override { return ICON_MD_WATER; }
+  int GetPriority() const override { return 30; }
+
  private:
   static PaletteGroupMetadata InitializeMetadata();
   static const PaletteGroupMetadata metadata_;
 };
 
 /**
- * @brief Dungeon Main palette group card
+ * @brief Dungeon Main palette group panel
  *
  * Manages palettes for dungeon rooms (0-19)
  */
@@ -336,13 +356,17 @@ class DungeonMainPalettePanel : public PaletteGroupPanel {
   void DrawPaletteGrid() override;
   int GetColorsPerRow() const override { return 16; }
 
+  // EditorPanel Overrides
+  std::string GetIcon() const override { return ICON_MD_CASTLE; }
+  int GetPriority() const override { return 40; }
+
  private:
   static PaletteGroupMetadata InitializeMetadata();
   static const PaletteGroupMetadata metadata_;
 };
 
 /**
- * @brief Global Sprite palette group card
+ * @brief Global Sprite palette group panel
  *
  * Manages global sprite palettes for Light World and Dark World
  * - 2 palettes (LW and DW)
@@ -362,13 +386,19 @@ class SpritePalettePanel : public PaletteGroupPanel {
   int GetColorsPerRow() const override { return 16; }
   void DrawCustomPanels() override;  // Show VRAM info
 
+  // EditorPanel Overrides
+  std::string GetIcon() const override { return ICON_MD_PETS; }
+  int GetPriority() const override { return 50; }
+
+
+
  private:
   static PaletteGroupMetadata InitializeMetadata();
   static const PaletteGroupMetadata metadata_;
 };
 
 /**
- * @brief Sprites Aux1 palette group card
+ * @brief Sprites Aux1 palette group panel
  *
  * Manages auxiliary sprite palettes 1
  * - 12 palettes of 8 colors (7 colors + transparent)
@@ -385,13 +415,17 @@ class SpritesAux1PalettePanel : public PaletteGroupPanel {
   void DrawPaletteGrid() override;
   int GetColorsPerRow() const override { return 8; }
 
+  // EditorPanel Overrides
+  std::string GetIcon() const override { return ICON_MD_FILTER_1; }
+  int GetPriority() const override { return 51; }
+
  private:
   static PaletteGroupMetadata InitializeMetadata();
   static const PaletteGroupMetadata metadata_;
 };
 
 /**
- * @brief Sprites Aux2 palette group card
+ * @brief Sprites Aux2 palette group panel
  *
  * Manages auxiliary sprite palettes 2
  * - 11 palettes of 8 colors (7 colors + transparent)
@@ -408,13 +442,17 @@ class SpritesAux2PalettePanel : public PaletteGroupPanel {
   void DrawPaletteGrid() override;
   int GetColorsPerRow() const override { return 8; }
 
+  // EditorPanel Overrides
+  std::string GetIcon() const override { return ICON_MD_FILTER_2; }
+  int GetPriority() const override { return 52; }
+
  private:
   static PaletteGroupMetadata InitializeMetadata();
   static const PaletteGroupMetadata metadata_;
 };
 
 /**
- * @brief Sprites Aux3 palette group card
+ * @brief Sprites Aux3 palette group panel
  *
  * Manages auxiliary sprite palettes 3
  * - 24 palettes of 8 colors (7 colors + transparent)
@@ -431,13 +469,17 @@ class SpritesAux3PalettePanel : public PaletteGroupPanel {
   void DrawPaletteGrid() override;
   int GetColorsPerRow() const override { return 8; }
 
+  // EditorPanel Overrides
+  std::string GetIcon() const override { return ICON_MD_FILTER_3; }
+  int GetPriority() const override { return 53; }
+
  private:
   static PaletteGroupMetadata InitializeMetadata();
   static const PaletteGroupMetadata metadata_;
 };
 
 /**
- * @brief Equipment/Armor palette group card
+ * @brief Equipment/Armor palette group panel
  *
  * Manages Link's equipment color palettes (green, blue, red tunics)
  */
@@ -452,6 +494,10 @@ class EquipmentPalettePanel : public PaletteGroupPanel {
   const PaletteGroupMetadata& GetMetadata() const override { return metadata_; }
   void DrawPaletteGrid() override;
   int GetColorsPerRow() const override { return 8; }
+
+  // EditorPanel Overrides
+  std::string GetIcon() const override { return ICON_MD_SHIELD; }
+  int GetPriority() const override { return 60; }
 
  private:
   static PaletteGroupMetadata InitializeMetadata();
