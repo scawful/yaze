@@ -13,6 +13,7 @@ option(YAZE_BUILD_TESTS "Build test suite" ON)
 option(YAZE_ENABLE_GRPC "Enable gRPC agent support" ON)
 option(YAZE_ENABLE_JSON "Enable JSON support" ON)
 option(YAZE_ENABLE_AI "Enable AI agent features" OFF)
+option(YAZE_ENABLE_CLANG_TIDY "Enable clang-tidy linting during build" ON)
 option(YAZE_ENABLE_OPENCV "Enable OpenCV for advanced visual analysis" OFF)
 
 # Advanced feature toggles
