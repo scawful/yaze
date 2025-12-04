@@ -99,7 +99,7 @@ void SampleEditorView::DrawProperties(MusicSample& sample) {
   ImGui::Text("BRR Size: %zu bytes", sample.brr_data.size());
   int blocks = static_cast<int>(sample.brr_data.size() / 9);
   ImGui::Text("Blocks: %d", blocks);
-  ImGui::Text("Duration: %.3f s", (blocks * 16) / 32000.0f);
+  ImGui::Text("Duration: %.3f s", (blocks * 16) / 32040.0f);
   
   ImGui::Spacing();
   ImGui::Separator();

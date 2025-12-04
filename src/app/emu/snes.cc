@@ -372,6 +372,8 @@ void Snes::RunCycle() {
               memory_.v_pos() == 263) {
             memory_.set_v_pos(0);
             frames_++;
+            static int frame_log = 0;
+            if (++frame_log % 60 == 0) LOG_INFO("SNES", "Frames incremented 60 times");
           }
         } else {
           // even interlace frame is 313 lines
@@ -380,6 +382,8 @@ void Snes::RunCycle() {
               memory_.v_pos() == 313) {
             memory_.set_v_pos(0);
             frames_++;
+            static int frame_log_pal = 0;
+            if (++frame_log_pal % 60 == 0) LOG_INFO("SNES", "Frames (PAL) incremented 60 times");
           }
         }
 
@@ -542,6 +546,8 @@ uint8_t Snes::ReadReg(uint16_t adr) {
     case 0x421a:
     case 0x421c:
     case 0x421e: {
+      // If transfer is still in progress, data is not yet valid
+      if (auto_joy_timer_ > 0) return 0;
       uint8_t result = port_auto_read_[(adr - 0x4218) / 2] & 0xff;
       return result;
     }
@@ -549,6 +555,8 @@ uint8_t Snes::ReadReg(uint16_t adr) {
     case 0x421b:
     case 0x421d:
     case 0x421f: {
+      // If transfer is still in progress, data is not yet valid
+      if (auto_joy_timer_ > 0) return 0;
       uint8_t result = port_auto_read_[(adr - 0x4219) / 2] >> 8;
 
       return result;
