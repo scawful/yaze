@@ -1,9 +1,14 @@
+// Related header
 #include "dungeon_object_interaction.h"
 
+// C++ standard library headers
 #include <algorithm>
 
-#include "app/editor/agent/agent_ui_theme.h"
+// Third-party library headers
 #include "imgui/imgui.h"
+
+// Project headers
+#include "app/editor/agent/agent_ui_theme.h"
 
 namespace yaze::editor {
 

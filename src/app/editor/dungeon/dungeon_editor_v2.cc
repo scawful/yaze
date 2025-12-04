@@ -1,30 +1,38 @@
+// Related header
+#include "dungeon_editor_v2.h"
+
+// C system headers
 #include <cstdio>
+
+// C++ standard library headers
 #include <iterator>
 #include <memory>
 #include <string>
 #include <utility>
 #include <vector>
 
+// Third-party library headers
+#include "absl/status/status.h"
 #include "absl/strings/str_format.h"
+#include "imgui/imgui.h"
+
+// Project headers
 #include "app/editor/agent/agent_ui_theme.h"
+#include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/panels/dungeon_entrance_list_panel.h"
 #include "app/editor/dungeon/panels/dungeon_entrances_panel.h"
-#include "app/editor/dungeon/panels/object_editor_panel.h"
 #include "app/editor/dungeon/panels/dungeon_palette_editor_panel.h"
 #include "app/editor/dungeon/panels/dungeon_room_graphics_panel.h"
 #include "app/editor/dungeon/panels/dungeon_room_matrix_panel.h"
 #include "app/editor/dungeon/panels/dungeon_room_selector_panel.h"
+#include "app/editor/dungeon/panels/object_editor_panel.h"
 #include "app/editor/system/panel_manager.h"
+#include "app/emu/render/emulator_render_service.h"
+#include "app/gfx/backend/irenderer.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/util/palette_manager.h"
 #include "app/gui/core/icons.h"
-#include "dungeon_editor_v2.h"
-#include "editor/dungeon/dungeon_canvas_viewer.h"
-#include "emu/render/emulator_render_service.h"
-#include "gfx/backend/irenderer.h"
-#include "absl/status/status.h"
-#include "imgui/imgui.h"
 #include "util/log.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
@@ -233,6 +241,14 @@ absl::Status DungeonEditorV2::Load() {
   // Note: Initially passing nullptr for viewer, will be set on selection
   auto object_editor = std::make_unique<ObjectEditorPanel>(
       renderer_, rom_, nullptr, dungeon_editor_system_->GetObjectEditor());
+
+  // Wire up object change callback to trigger room re-rendering
+  dungeon_editor_system_->GetObjectEditor()->SetObjectChangedCallback(
+      [this](size_t /*object_index*/, const zelda3::RoomObject& /*object*/) {
+        if (current_room_id_ >= 0 && current_room_id_ < (int)rooms_.size()) {
+          rooms_[current_room_id_].RenderRoomGraphics();
+        }
+      });
 
   // Set rooms and initial palette group for correct preview rendering
   object_editor->SetRooms(&rooms_);

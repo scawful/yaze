@@ -155,6 +155,53 @@ class DungeonObjectSelector {
   // Object selection state
   int selected_object_id_ = -1;
   int static_editor_object_id_ = -1;  // Object currently open in static editor
+
+  // UI state for placement controls (previously static locals)
+  int place_x_ = 0;
+  int place_y_ = 0;
+
+  // UI state for object browser filter
+  int object_type_filter_ = 0;
+
+  // UI state for compact sprite editor
+  int new_sprite_id_ = 0;
+  int new_sprite_x_ = 0;
+  int new_sprite_y_ = 0;
+
+  // UI state for compact item editor
+  int new_item_id_ = 0;
+  int new_item_x_ = 0;
+  int new_item_y_ = 0;
+
+  // UI state for compact entrance editor
+  int entrance_target_room_id_ = 0;
+  int entrance_source_x_ = 0;
+  int entrance_source_y_ = 0;
+  int entrance_target_x_ = 0;
+  int entrance_target_y_ = 0;
+
+  // UI state for compact door editor
+  int door_x_ = 0;
+  int door_y_ = 0;
+  int door_direction_ = 0;
+  int door_target_room_ = 0;
+
+  // UI state for compact chest editor
+  int chest_x_ = 0;
+  int chest_y_ = 0;
+  int chest_item_id_ = 0;
+  bool chest_big_ = false;
+
+  // UI state for room properties editor
+  char room_name_[128] = {0};
+  int dungeon_id_ = 0;
+  int floor_level_ = 0;
+  bool is_boss_room_ = false;
+  bool is_save_room_ = false;
+  int music_id_ = 0;
+
+  // Registry initialization flag
+  bool registry_initialized_ = false;
 };
 
 }  // namespace editor
