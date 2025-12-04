@@ -8,9 +8,44 @@
 #include "rom/rom.h"
 #include "util/log.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_object.h"
 #include "zelda3/sprite/sprite.h"
 
 namespace yaze::editor {
+
+namespace {
+// Helper to get object name from ID
+std::string GetObjectName(int object_id) {
+  if (object_id < 0x100) {
+    // Type 1: Subtype 1 objects
+    constexpr size_t kType1Count = sizeof(zelda3::Type1RoomObjectNames) /
+                                   sizeof(zelda3::Type1RoomObjectNames[0]);
+    if (object_id < (int)kType1Count) {
+      return zelda3::Type1RoomObjectNames[object_id];
+    }
+    return absl::StrFormat("Unknown Type1 (0x%02X)", object_id);
+  } else if (object_id >= 0x100 && object_id < 0x200) {
+    // Type 2: Subtype 2 objects
+    int idx = object_id - 0x100;
+    constexpr size_t kType2Count = sizeof(zelda3::Type2RoomObjectNames) /
+                                   sizeof(zelda3::Type2RoomObjectNames[0]);
+    if (idx < (int)kType2Count) {
+      return zelda3::Type2RoomObjectNames[idx];
+    }
+    return absl::StrFormat("Unknown Type2 (0x%03X)", object_id);
+  } else if (object_id >= 0xF00) {
+    // Type 3: Doors/special objects
+    int idx = object_id - 0xF00;
+    constexpr size_t kType3Count = sizeof(zelda3::Type3RoomObjectNames) /
+                                   sizeof(zelda3::Type3RoomObjectNames[0]);
+    if (idx < (int)kType3Count) {
+      return zelda3::Type3RoomObjectNames[idx];
+    }
+    return absl::StrFormat("Unknown Type3 (0x%03X)", object_id);
+  }
+  return absl::StrFormat("Unknown (0x%03X)", object_id);
+}
+}  // namespace
 
 void DungeonCanvasViewer::Draw(int room_id) { DrawDungeonCanvas(room_id); }
 
@@ -122,6 +157,9 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       static uint8_t palette_val = 0;
       static uint8_t floor1_val = 0;
       static uint8_t floor2_val = 0;
+      static int effect_val = 0;
+      static uint8_t tag1_val = 0;
+      static uint8_t tag2_val = 0;
 
       // Update cached UI values when room changes
       if (prev_ui_room_id != room_id) {
@@ -130,6 +168,9 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
         palette_val = room.palette;
         floor1_val = room.floor1();
         floor2_val = room.floor2();
+        effect_val = static_cast<int>(room.effect());
+        tag1_val = static_cast<uint8_t>(room.tag1());
+        tag2_val = static_cast<uint8_t>(room.tag2());
         prev_ui_room_id = room_id;
       }
 
@@ -205,27 +246,29 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       static const char* effect_names[] = {
           "Nothing", "One",         "Moving Floor",     "Moving Water",
           "Four",    "Red Flashes", "Torch Show Floor", "Ganon Room"};
-      int effect_val = static_cast<int>(room.effect());
       if (ImGui::Combo("##Effect", &effect_val, effect_names, 8)) {
         room.SetEffect(static_cast<zelda3::EffectKey>(effect_val));
+        if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
       }
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::Text("Tags");
       ImGui::TableNextColumn();
-      int tag1_val = static_cast<int>(room.tag1());
       ImGui::SetNextItemWidth(80);
-      if (gui::InputHexByte("##Tag1Val", (uint8_t*)&tag1_val)) {
+      if (gui::InputHexByte("##Tag1Val", &tag1_val) &&
+          ImGui::IsItemDeactivatedAfterEdit()) {
         room.SetTag1(static_cast<zelda3::TagKey>(tag1_val));
+        if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
       }
       ImGui::SameLine();
       ImGui::Text("Tag 2:");
       ImGui::SameLine();
-      int tag2_val = static_cast<int>(room.tag2());
       ImGui::SetNextItemWidth(80);
-      if (gui::InputHexByte("##Tag2Val", (uint8_t*)&tag2_val)) {
+      if (gui::InputHexByte("##Tag2Val", &tag2_val) &&
+          ImGui::IsItemDeactivatedAfterEdit()) {
         room.SetTag2(static_cast<zelda3::TagKey>(tag2_val));
+        if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
       }
 
       ImGui::EndTable();
@@ -744,9 +787,18 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
 
 void DungeonCanvasViewer::DisplayObjectInfo(const zelda3::RoomObject& object,
                                             int canvas_x, int canvas_y) {
-  // Display object information as text overlay
-  std::string info_text = absl::StrFormat("ID:%d X:%d Y:%d S:%d", object.id_,
-                                          object.x_, object.y_, object.size_);
+  // Display object information as text overlay with hex ID and name
+  std::string name = GetObjectName(object.id_);
+  std::string info_text;
+  if (object.id_ >= 0x100) {
+    info_text = absl::StrFormat("0x%03X %s (X:%d Y:%d S:0x%02X)", object.id_,
+                                name.c_str(), object.x_, object.y_,
+                                object.size_);
+  } else {
+    info_text = absl::StrFormat("0x%02X %s (X:%d Y:%d S:0x%02X)", object.id_,
+                                name.c_str(), object.x_, object.y_,
+                                object.size_);
+  }
 
   // Draw text at the object position
   canvas_.DrawText(info_text, canvas_x, canvas_y - 12);
@@ -949,8 +1001,21 @@ void DungeonCanvasViewer::DrawObjectPositionOutlines(const zelda3::Room& room) {
     // Draw outline rectangle
     canvas_.DrawRect(canvas_x, canvas_y, width, height, outline_color);
 
-    // Draw object ID label (smaller, less obtrusive)
-    std::string label = absl::StrFormat("%02X", obj.id_);
+    // Draw object ID label with hex ID and abbreviated name
+    // Format: "0xNN Name" where name is truncated if needed
+    std::string name = GetObjectName(obj.id_);
+    // Truncate name to fit (approx 12 chars for small objects)
+    if (name.length() > 12) {
+      name = name.substr(0, 10) + "..";
+    }
+    std::string label;
+    if (obj.id_ >= 0x100) {
+      label = absl::StrFormat("0x%03X\n%s\n[%dx%d]", obj.id_, name.c_str(),
+                              width, height);
+    } else {
+      label = absl::StrFormat("0x%02X\n%s\n[%dx%d]", obj.id_, name.c_str(),
+                              width, height);
+    }
     canvas_.DrawText(label, canvas_x + 1, canvas_y + 1);
   }
 }

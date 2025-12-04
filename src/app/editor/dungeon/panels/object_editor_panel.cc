@@ -1,12 +1,16 @@
+// Related header
 #include "object_editor_panel.h"
 
+// Third-party library headers
 #include "absl/strings/str_format.h"
+#include "imgui/imgui.h"
+
+// Project headers
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/ui_helpers.h"
-#include "imgui/imgui.h"
 
 namespace yaze {
 namespace editor {

@@ -84,6 +84,10 @@ class ObjectEditorPanel : public EditorPanel {
     object_selector_.set_current_room_id(room_id);
   }
   void SetCanvasViewer(DungeonCanvasViewer* viewer) {
+    // Reset callback flag when viewer changes so we rewire to the new viewer
+    if (canvas_viewer_ != viewer) {
+      selection_callbacks_setup_ = false;
+    }
     canvas_viewer_ = viewer;
     SetupSelectionCallbacks();
   }

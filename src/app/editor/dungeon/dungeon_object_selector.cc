@@ -1,18 +1,25 @@
+// Related header
 #include "dungeon_object_selector.h"
 
-#include <algorithm>
+// C system headers
 #include <cstring>
+
+// C++ standard library headers
+#include <algorithm>
 #include <iterator>
 
-#include "app/gfx/resource/arena.h"
+// Third-party library headers
+#include "imgui/imgui.h"
+
+// Project headers
+#include "app/editor/agent/agent_ui_theme.h"
 #include "app/gfx/render/background_buffer.h"
+#include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/widgets/asset_browser.h"
 #include "app/platform/window.h"
 #include "rom/rom.h"
-#include "app/editor/agent/agent_ui_theme.h"
-#include "imgui/imgui.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/dungeon_object_editor.h"
 #include "zelda3/dungeon/dungeon_object_registry.h"
@@ -78,12 +85,11 @@ void DungeonObjectSelector::DrawObjectRenderer() {
 
     // Object placement controls
     ImGui::SeparatorText("Object Placement");
-    static int place_x = 0, place_y = 0;
-    ImGui::InputInt("X Position", &place_x);
-    ImGui::InputInt("Y Position", &place_y);
+    ImGui::InputInt("X Position", &place_x_);
+    ImGui::InputInt("Y Position", &place_y_);
 
     if (ImGui::Button("Place Object") && object_loaded_) {
-      PlaceObjectAtPosition(place_x, place_y);
+      PlaceObjectAtPosition(place_x_, place_y_);
     }
 
     ImGui::Separator();
@@ -120,13 +126,11 @@ void DungeonObjectSelector::DrawObjectRenderer() {
     // Add object placement controls
     ImGui::Separator();
     ImGui::Text("Placement Controls:");
-    static int place_x = 0, place_y = 0;
-    ImGui::InputInt("X Position", &place_x);
-    ImGui::InputInt("Y Position", &place_y);
+    ImGui::InputInt("X Position", &place_x_);
+    ImGui::InputInt("Y Position", &place_y_);
 
     if (ImGui::Button("Place Object")) {
-      // TODO: Implement object placement in the main canvas
-      ImGui::Text("Object placed at (%d, %d)", place_x, place_y);
+      PlaceObjectAtPosition(place_x_, place_y_);
     }
 
     ImGui::End();
@@ -430,10 +434,9 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
               ImGui::GetContentRegionAvail().x);
 
   // Object type filter
-  static int object_type_filter = 0;
   const char* object_types[] = {"All",   "Walls",       "Floors", "Chests",
                                 "Doors", "Decorations", "Stairs"};
-  if (ImGui::Combo("Object Type", &object_type_filter, object_types, 7)) {
+  if (ImGui::Combo("Object Type", &object_type_filter_, object_types, 7)) {
     // Filter will be applied in the loop below
   }
 
@@ -454,8 +457,8 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
   // Draw object grid based on filter
   for (int obj_id = 0; obj_id <= 0xFF && items_drawn < 100; ++obj_id) {
     // Apply object type filter
-    if (object_type_filter > 0 &&
-        !MatchesObjectFilter(obj_id, object_type_filter)) {
+    if (object_type_filter_ > 0 &&
+        !MatchesObjectFilter(obj_id, object_type_filter_)) {
       continue;
     }
 
@@ -680,20 +683,16 @@ void DungeonObjectSelector::DrawCompactSpriteEditor() {
   Separator();
   ImGui::Text("Quick Add Sprite");
 
-  static int new_sprite_id = 0;
-  static int new_sprite_x = 0;
-  static int new_sprite_y = 0;
-
-  ImGui::InputInt("ID", &new_sprite_id);
-  ImGui::InputInt("X", &new_sprite_x);
-  ImGui::InputInt("Y", &new_sprite_y);
+  ImGui::InputInt("ID", &new_sprite_id_);
+  ImGui::InputInt("X", &new_sprite_x_);
+  ImGui::InputInt("Y", &new_sprite_y_);
 
   if (ImGui::Button("Add Sprite")) {
     zelda3::DungeonEditorSystem::SpriteData sprite_data;
-    sprite_data.sprite_id = new_sprite_id;
+    sprite_data.sprite_id = new_sprite_id_;
     sprite_data.type = zelda3::DungeonEditorSystem::SpriteType::kEnemy;
-    sprite_data.x = new_sprite_x;
-    sprite_data.y = new_sprite_y;
+    sprite_data.x = new_sprite_x_;
+    sprite_data.y = new_sprite_y_;
     sprite_data.layer = 0;
 
     auto status = system.AddSprite(sprite_data);
@@ -740,20 +739,16 @@ void DungeonObjectSelector::DrawCompactItemEditor() {
   Separator();
   ImGui::Text("Quick Add Item");
 
-  static int new_item_id = 0;
-  static int new_item_x = 0;
-  static int new_item_y = 0;
-
-  ImGui::InputInt("ID", &new_item_id);
-  ImGui::InputInt("X", &new_item_x);
-  ImGui::InputInt("Y", &new_item_y);
+  ImGui::InputInt("ID", &new_item_id_);
+  ImGui::InputInt("X", &new_item_x_);
+  ImGui::InputInt("Y", &new_item_y_);
 
   if (ImGui::Button("Add Item")) {
     zelda3::DungeonEditorSystem::ItemData item_data;
-    item_data.item_id = new_item_id;
+    item_data.item_id = new_item_id_;
     item_data.type = zelda3::DungeonEditorSystem::ItemType::kKey;
-    item_data.x = new_item_x;
-    item_data.y = new_item_y;
+    item_data.x = new_item_x_;
+    item_data.y = new_item_y_;
     item_data.room_id = current_room;
     item_data.is_hidden = false;
 
@@ -796,21 +791,16 @@ void DungeonObjectSelector::DrawCompactEntranceEditor() {
   Separator();
   ImGui::Text("Connect Rooms");
 
-  static int target_room_id = 0;
-  static int source_x = 0;
-  static int source_y = 0;
-  static int target_x = 0;
-  static int target_y = 0;
-
-  ImGui::InputInt("Target Room", &target_room_id);
-  ImGui::InputInt("Source X", &source_x);
-  ImGui::InputInt("Source Y", &source_y);
-  ImGui::InputInt("Target X", &target_x);
-  ImGui::InputInt("Target Y", &target_y);
+  ImGui::InputInt("Target Room", &entrance_target_room_id_);
+  ImGui::InputInt("Source X", &entrance_source_x_);
+  ImGui::InputInt("Source Y", &entrance_source_y_);
+  ImGui::InputInt("Target X", &entrance_target_x_);
+  ImGui::InputInt("Target Y", &entrance_target_y_);
 
   if (ImGui::Button("Connect")) {
-    auto status = system.ConnectRooms(current_room, target_room_id, source_x,
-                                      source_y, target_x, target_y);
+    auto status = system.ConnectRooms(current_room, entrance_target_room_id_,
+                                      entrance_source_x_, entrance_source_y_,
+                                      entrance_target_x_, entrance_target_y_);
     if (!status.ok()) {
       ImGui::Text("Error connecting rooms");
     }
@@ -848,25 +838,20 @@ void DungeonObjectSelector::DrawCompactDoorEditor() {
   Separator();
   ImGui::Text("Add Door");
 
-  static int door_x = 0;
-  static int door_y = 0;
-  static int door_direction = 0;
-  static int door_target_room = 0;
-
-  ImGui::InputInt("X", &door_x);
-  ImGui::InputInt("Y", &door_y);
-  ImGui::SliderInt("Dir", &door_direction, 0, 3);
-  ImGui::InputInt("Target", &door_target_room);
+  ImGui::InputInt("X", &door_x_);
+  ImGui::InputInt("Y", &door_y_);
+  ImGui::SliderInt("Dir", &door_direction_, 0, 3);
+  ImGui::InputInt("Target", &door_target_room_);
 
   if (ImGui::Button("Add Door")) {
     zelda3::DungeonEditorSystem::DoorData door_data;
     door_data.room_id = current_room;
-    door_data.x = door_x;
-    door_data.y = door_y;
-    door_data.direction = door_direction;
-    door_data.target_room_id = door_target_room;
-    door_data.target_x = door_x;
-    door_data.target_y = door_y;
+    door_data.x = door_x_;
+    door_data.y = door_y_;
+    door_data.direction = door_direction_;
+    door_data.target_room_id = door_target_room_;
+    door_data.target_x = door_x_;
+    door_data.target_y = door_y_;
     door_data.is_locked = false;
     door_data.requires_key = false;
     door_data.key_type = 0;
@@ -909,23 +894,18 @@ void DungeonObjectSelector::DrawCompactChestEditor() {
   Separator();
   ImGui::Text("Add Chest");
 
-  static int chest_x = 0;
-  static int chest_y = 0;
-  static int chest_item_id = 0;
-  static bool chest_big = false;
-
-  ImGui::InputInt("X", &chest_x);
-  ImGui::InputInt("Y", &chest_y);
-  ImGui::InputInt("Item ID", &chest_item_id);
-  ImGui::Checkbox("Big", &chest_big);
+  ImGui::InputInt("X", &chest_x_);
+  ImGui::InputInt("Y", &chest_y_);
+  ImGui::InputInt("Item ID", &chest_item_id_);
+  ImGui::Checkbox("Big", &chest_big_);
 
   if (ImGui::Button("Add Chest")) {
     zelda3::DungeonEditorSystem::ChestData chest_data;
     chest_data.room_id = current_room;
-    chest_data.x = chest_x;
-    chest_data.y = chest_y;
-    chest_data.is_big_chest = chest_big;
-    chest_data.item_id = chest_item_id;
+    chest_data.x = chest_x_;
+    chest_data.y = chest_y_;
+    chest_data.is_big_chest = chest_big_;
+    chest_data.item_id = chest_item_id_;
     chest_data.item_quantity = 1;
 
     auto status = system.AddChest(chest_data);
@@ -952,40 +932,34 @@ void DungeonObjectSelector::DrawCompactPropertiesEditor() {
   if (properties_result.ok()) {
     auto properties = properties_result.value();
 
-    static char room_name[128] = {0};
-    static int dungeon_id = 0;
-    static int floor_level = 0;
-    static bool is_boss_room = false;
-    static bool is_save_room = false;
-    static int music_id = 0;
-
-    // Copy current values
+    // Copy current values (only update from ROM data, not every frame)
     // Safe string copy with bounds checking
-    size_t name_len = std::min(properties.name.length(), sizeof(room_name) - 1);
-    std::memcpy(room_name, properties.name.c_str(), name_len);
-    room_name[name_len] = '\0';
-    dungeon_id = properties.dungeon_id;
-    floor_level = properties.floor_level;
-    is_boss_room = properties.is_boss_room;
-    is_save_room = properties.is_save_room;
-    music_id = properties.music_id;
+    size_t name_len =
+        std::min(properties.name.length(), sizeof(room_name_) - 1);
+    std::memcpy(room_name_, properties.name.c_str(), name_len);
+    room_name_[name_len] = '\0';
+    dungeon_id_ = properties.dungeon_id;
+    floor_level_ = properties.floor_level;
+    is_boss_room_ = properties.is_boss_room;
+    is_save_room_ = properties.is_save_room;
+    music_id_ = properties.music_id;
 
-    ImGui::InputText("Name", room_name, sizeof(room_name));
-    ImGui::InputInt("Dungeon ID", &dungeon_id);
-    ImGui::InputInt("Floor", &floor_level);
-    ImGui::InputInt("Music", &music_id);
-    ImGui::Checkbox("Boss Room", &is_boss_room);
-    ImGui::Checkbox("Save Room", &is_save_room);
+    ImGui::InputText("Name", room_name_, sizeof(room_name_));
+    ImGui::InputInt("Dungeon ID", &dungeon_id_);
+    ImGui::InputInt("Floor", &floor_level_);
+    ImGui::InputInt("Music", &music_id_);
+    ImGui::Checkbox("Boss Room", &is_boss_room_);
+    ImGui::Checkbox("Save Room", &is_save_room_);
 
     if (ImGui::Button("Save Properties")) {
       zelda3::DungeonEditorSystem::RoomProperties new_properties;
       new_properties.room_id = current_room;
-      new_properties.name = room_name;
-      new_properties.dungeon_id = dungeon_id;
-      new_properties.floor_level = floor_level;
-      new_properties.is_boss_room = is_boss_room;
-      new_properties.is_save_room = is_save_room;
-      new_properties.music_id = music_id;
+      new_properties.name = room_name_;
+      new_properties.dungeon_id = dungeon_id_;
+      new_properties.floor_level = floor_level_;
+      new_properties.is_boss_room = is_boss_room_;
+      new_properties.is_save_room = is_save_room_;
+      new_properties.music_id = music_id_;
 
       auto status = system.SetRoomProperties(current_room, new_properties);
       if (!status.ok()) {
@@ -1011,11 +985,9 @@ void DungeonObjectSelector::DrawCompactPropertiesEditor() {
 }
 
 void DungeonObjectSelector::EnsureRegistryInitialized() {
-  static bool initialized = false;
-  if (initialized)
-    return;
+  if (registry_initialized_) return;
   object_registry_.RegisterVanillaRange(0x000, 0x1FF);
-  initialized = true;
+  registry_initialized_ = true;
 }
 
 zelda3::RoomObject DungeonObjectSelector::MakePreviewObject(int obj_id) const {

@@ -2218,8 +2218,15 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(const 
       }
       break;
 
-    case 5: // DrawDiagonalAcute_1to16
-    case 6: // DrawDiagonalGrave_1to16
+    case 1:  // 2x4 elongated horizontal
+    case 2:
+    case 3:
+      width = 16;
+      height = 32;
+      break;
+
+    case 5:  // DrawDiagonalAcute_1to16
+    case 6:  // DrawDiagonalGrave_1to16
     case 17: // DrawDiagonalAcute_1to16_BothBG
     case 18: // DrawDiagonalGrave_1to16_BothBG
       // Diagonal patterns (Walls 0x10-0x1F map here)
@@ -2231,26 +2238,97 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(const 
       width = (size + 6) * 8;
       height = (size + 6) * 8;
       break;
-      
+
+    case 8:  // 4x2 (vertical)
+    case 9:
+    case 10:
+      width = 32;
+      height = 16;
+      break;
+
+    case 12: // 2x2 downwards extended
+    case 13:
+    case 14:
+    case 15:
+      // 2x2 base with size extension downward
+      size = size & 0x0F;
+      width = 16;
+      height = 16 + size * 16;
+      break;
+
     case 16: // DrawRightwards4x4_1to16 (Routine 16)
-    case 33: // Somaria Line (Routine 33) - approximated as 4x4 for now
+    case 34: // Water Face (4x4)
     case 35: // 4x4 Corner BothBG
+    case 36: // Weird Corner Bottom
+    case 37: // Weird Corner Top
       // 4x4 tiles (32x32 pixels)
       width = 32;
       height = 32;
       break;
 
-    case 25: // Solid 1x1
     case 20: // Edge 1x2
+      width = 8;
+      height = 16;
+      break;
+
     case 21: // Edge 1x1
     case 22: // Edge 1x1
-      // 1x1 or 1x2
+    case 25: // Solid 1x1
       width = 8;
       height = 8;
-      if (routine_id == 20) height = 16;
       break;
-      
-    // Add more cases as needed for accuracy
+
+    case 23: // RightwardsTopCorners1x2_1to16_plus13
+    case 24: // RightwardsBottomCorners1x2_1to16_plus13
+      size = size & 0x0F;
+      width = 8 + size * 8;
+      height = 16;
+      break;
+
+    case 26: // Door Switcher
+    case 27: // Decor 4x4
+      width = 32;
+      height = 32;
+      break;
+
+    case 28: // Statue 2x3
+      width = 16;
+      height = 24;
+      break;
+
+    case 29: // Pillar 2x4
+      width = 16;
+      height = 32;
+      break;
+
+    case 30: // Decor 4x3
+      width = 32;
+      height = 24;
+      break;
+
+    case 31: // Doubled 2x2
+    case 32: // Decor 2x2
+      width = 16;
+      height = 16;
+      break;
+
+    case 33: // Somaria Line
+      // Variable length, estimate from size
+      size = size & 0x0F;
+      width = 8 + size * 8;
+      height = 8;
+      break;
+
+    case 38: // Nothing (RoomDraw_Nothing)
+      width = 8;
+      height = 8;
+      break;
+
+    case 39: // DrawChest
+      width = 16;
+      height = 16;
+      break;
+
     default:
       // Fallback to naive calculation if not handled
       // Matches DungeonCanvasViewer::DrawRoomObjects logic
