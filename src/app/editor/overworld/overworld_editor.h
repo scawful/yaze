@@ -179,7 +179,19 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void ToggleBrushTool();
   void ActivateFillTool();
   void CycleTileSelection(int delta);
-  
+
+  /**
+   * @brief Handle keyboard shortcuts for the Overworld Editor
+   *
+   * Centralizes all keyboard input handling including:
+   * - Tool shortcuts (1-2 for mode selection)
+   * - Entity editing shortcuts (3-8)
+   * - View shortcuts (F11 for fullscreen)
+   * - Toggle shortcuts (Ctrl+L for map lock, Ctrl+T for Tile16 editor)
+   * - Undo/Redo (Ctrl+Z, Ctrl+Y, Ctrl+Shift+Z)
+   */
+  void HandleKeyboardShortcuts();
+
   // Panel drawing methods (called by panel classes)
   absl::Status DrawAreaGraphics();
   absl::Status DrawTile16Selector();
@@ -198,6 +210,35 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
  private:
   void DrawFullscreenCanvas();
   // void DrawToolset(); // Removed in favor of OverworldToolbar
+
+  // Keyboard shortcut handling helpers
+  void HandleEntityEditingShortcuts();
+  void HandleUndoRedoShortcuts();
+
+  /**
+   * @brief Handle entity interaction in MOUSE mode
+   *
+   * Centralizes all entity interaction logic including:
+   * - Right-click context menus for entity editing
+   * - Double-click actions for navigation
+   * - Entity popup drawing and updates
+   */
+  void HandleEntityInteraction();
+
+  /**
+   * @brief Handle right-click context menus for entities
+   */
+  void HandleEntityContextMenus(zelda3::GameEntity* hovered_entity);
+
+  /**
+   * @brief Handle double-click actions on entities
+   */
+  void HandleEntityDoubleClick(zelda3::GameEntity* hovered_entity);
+
+  /**
+   * @brief Draw entity editor popups and update entity data
+   */
+  void DrawEntityEditorPopups();
 
   void RefreshChildMap(int map_index);
   void RefreshOverworldMap();

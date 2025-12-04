@@ -1,13 +1,17 @@
+// Related header
 #include "app/editor/overworld/overworld_editor.h"
 
 #ifndef IM_PI
 #define IM_PI 3.14159265358979323846f
 #endif
 
-#include <algorithm>
+// C system headers
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+
+// C++ standard library headers
+#include <algorithm>
 #include <exception>
 #include <filesystem>
 #include <iostream>
@@ -20,26 +24,31 @@
 #include <utility>
 #include <vector>
 
+// Third-party library headers
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
+#include "imgui/imgui.h"
+
+// Project headers
 #include "app/editor/overworld/debug_window_card.h"
 #include "app/editor/overworld/entity.h"
 #include "app/editor/overworld/entity_operations.h"
 #include "app/editor/overworld/map_properties.h"
+#include "app/editor/overworld/overworld_entity_renderer.h"
 #include "app/editor/overworld/overworld_sidebar.h"
 #include "app/editor/overworld/overworld_toolbar.h"
 #include "app/editor/overworld/panels/area_graphics_panel.h"
-#include "app/editor/overworld/panels/overworld_canvas_panel.h"
-#include "app/editor/overworld/panels/tile16_selector_panel.h"
-#include "app/editor/overworld/panels/map_properties_panel.h"
-#include "app/editor/overworld/panels/scratch_space_panel.h"
-#include "app/editor/overworld/panels/usage_statistics_panel.h"
-#include "app/editor/overworld/panels/tile8_selector_panel.h"
 #include "app/editor/overworld/panels/debug_window_panel.h"
 #include "app/editor/overworld/panels/gfx_groups_panel.h"
+#include "app/editor/overworld/panels/map_properties_panel.h"
+#include "app/editor/overworld/panels/overworld_canvas_panel.h"
+#include "app/editor/overworld/panels/scratch_space_panel.h"
+#include "app/editor/overworld/panels/tile16_selector_panel.h"
+#include "app/editor/overworld/panels/tile8_selector_panel.h"
+#include "app/editor/overworld/panels/usage_statistics_panel.h"
 #include "app/editor/overworld/panels/v3_settings_panel.h"
 #include "app/editor/overworld/tile16_editor.h"
-#include "app/editor/overworld/debug_window_card.h"
+#include "app/editor/overworld/ui_constants.h"
 #include "app/editor/overworld/usage_statistics_card.h"
 #include "app/editor/system/panel_manager.h"
 #include "app/gfx/core/bitmap.h"
@@ -50,18 +59,16 @@
 #include "app/gui/app/editor_layout.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/canvas/canvas_automation_api.h"
+#include "app/gui/canvas/canvas_usage_tracker.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/popup_id.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/ui_helpers.h"
+#include "app/gui/imgui_memory_editor.h"
 #include "app/gui/widgets/tile_selector_widget.h"
-#include "rom/rom.h"
-#include "canvas/canvas_usage_tracker.h"
 #include "core/asar_wrapper.h"
 #include "core/features.h"
-#include "editor/overworld/overworld_entity_renderer.h"
-#include "imgui/imgui.h"
-#include "app/gui/imgui_memory_editor.h"
+#include "rom/rom.h"
 #include "util/file_util.h"
 #include "util/hex.h"
 #include "util/log.h"
@@ -73,7 +80,6 @@
 #include "zelda3/overworld/overworld_item.h"
 #include "zelda3/overworld/overworld_map.h"
 #include "zelda3/overworld/overworld_version_helper.h"
-#include "app/editor/overworld/ui_constants.h"
 #include "zelda3/sprite/sprite.h"
 
 namespace yaze::editor {
@@ -350,100 +356,9 @@ absl::Status OverworldEditor::Update() {
   }
 
   // ===========================================================================
-  // Centralized Entity Interaction Logic
+  // Centralized Entity Interaction Logic (extracted to dedicated method)
   // ===========================================================================
-  // Get hovered entity from previous frame's rendering pass
-  zelda3::GameEntity* hovered_entity = 
-      entity_renderer_ ? entity_renderer_->hovered_entity() : nullptr;
-
-  // Handle all MOUSE mode interactions here
-  if (current_mode == EditingMode::MOUSE) {
-    // --- CONTEXT MENUS & POPOVERS ---
-    if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-      if (hovered_entity) {
-        current_entity_ = hovered_entity;
-        switch (hovered_entity->entity_type_) {
-          case zelda3::GameEntity::EntityType::kExit:
-            current_exit_ =
-                *static_cast<zelda3::OverworldExit*>(hovered_entity);
-            ImGui::OpenPopup(
-                gui::MakePopupId(gui::EditorNames::kOverworld, "Exit Editor")
-                    .c_str());
-            break;
-          case zelda3::GameEntity::EntityType::kEntrance:
-            current_entrance_ =
-                *static_cast<zelda3::OverworldEntrance*>(hovered_entity);
-            ImGui::OpenPopup(
-                gui::MakePopupId(gui::EditorNames::kOverworld, "Entrance Editor")
-                    .c_str());
-            break;
-          case zelda3::GameEntity::EntityType::kItem:
-            current_item_ =
-                *static_cast<zelda3::OverworldItem*>(hovered_entity);
-            ImGui::OpenPopup(
-                gui::MakePopupId(gui::EditorNames::kOverworld, "Item Editor")
-                    .c_str());
-            break;
-          case zelda3::GameEntity::EntityType::kSprite:
-            current_sprite_ = *static_cast<zelda3::Sprite*>(hovered_entity);
-            ImGui::OpenPopup(
-                gui::MakePopupId(gui::EditorNames::kOverworld, "Sprite Editor")
-                    .c_str());
-            break;
-          default:
-            break;
-        }
-      }
-    }
-
-    // --- DOUBLE-CLICK ACTIONS ---
-    if (hovered_entity && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-      if (hovered_entity->entity_type_ ==
-          zelda3::GameEntity::EntityType::kExit) {
-        jump_to_tab_ =
-            static_cast<zelda3::OverworldExit*>(hovered_entity)->room_id_;
-      } else if (hovered_entity->entity_type_ ==
-                 zelda3::GameEntity::EntityType::kEntrance) {
-        jump_to_tab_ = static_cast<zelda3::OverworldEntrance*>(hovered_entity)
-                           ->entrance_id_;
-      }
-    }
-  }
-
-  // Process any pending entity insertion from context menu
-  // This must be called outside the context menu popup context for OpenPopup to work
-  ProcessPendingEntityInsertion();
-
-  // --- DRAW POPUPS ---
-  if (DrawExitEditorPopup(current_exit_)) {
-    if (current_entity_ && current_entity_->entity_type_ ==
-                               zelda3::GameEntity::EntityType::kExit) {
-      *static_cast<zelda3::OverworldExit*>(current_entity_) = current_exit_;
-      rom_->set_dirty(true);
-    }
-  }
-  if (DrawOverworldEntrancePopup(current_entrance_)) {
-    if (current_entity_ && current_entity_->entity_type_ ==
-                               zelda3::GameEntity::EntityType::kEntrance) {
-      *static_cast<zelda3::OverworldEntrance*>(current_entity_) =
-          current_entrance_;
-      rom_->set_dirty(true);
-    }
-  }
-  if (DrawItemEditorPopup(current_item_)) {
-    if (current_entity_ && current_entity_->entity_type_ ==
-                               zelda3::GameEntity::EntityType::kItem) {
-      *static_cast<zelda3::OverworldItem*>(current_entity_) = current_item_;
-      rom_->set_dirty(true);
-    }
-  }
-  if (DrawSpriteEditorPopup(current_sprite_)) {
-    if (current_entity_ && current_entity_->entity_type_ ==
-                               zelda3::GameEntity::EntityType::kSprite) {
-      *static_cast<zelda3::Sprite*>(current_entity_) = current_sprite_;
-      rom_->set_dirty(true);
-    }
-  }
+  HandleEntityInteraction();
 
   // Entity insertion error popup
   if (ImGui::BeginPopupModal("Entity Insert Error", nullptr,
@@ -518,87 +433,221 @@ absl::Status OverworldEditor::Update() {
   // - Visual Effects Editor (MapPropertiesSystem)
   // - Tile16 Editor, Usage Stats, etc. (EditorCards)
 
-  // Keyboard shortcuts for the Overworld Editor
-  if (!ImGui::IsAnyItemActive()) {
-    using enum EditingMode;
+  // Handle keyboard shortcuts (centralized in dedicated method)
+  HandleKeyboardShortcuts();
 
-    EditingMode old_mode = current_mode;
+  return absl::OkStatus();
+}
 
-    // Tool shortcuts (simplified)
-    if (ImGui::IsKeyDown(ImGuiKey_1)) {
-      current_mode = EditingMode::MOUSE;
-    } else if (ImGui::IsKeyDown(ImGuiKey_2)) {
-      current_mode = EditingMode::DRAW_TILE;
-    }
+void OverworldEditor::HandleKeyboardShortcuts() {
+  // Skip processing if any ImGui item is active (e.g., text input)
+  if (ImGui::IsAnyItemActive()) {
+    return;
+  }
 
-    // Update canvas usage mode when mode changes
-    if (old_mode != current_mode) {
-      if (current_mode == EditingMode::MOUSE) {
-        ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
-      } else if (current_mode == EditingMode::DRAW_TILE) {
-        ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kTilePainting);
-      }
-    }
+  using enum EditingMode;
 
-    // Entity editing shortcuts (3-8)
-    if (ImGui::IsKeyDown(ImGuiKey_3)) {
-      entity_edit_mode_ = EntityEditMode::ENTRANCES;
-      current_mode = EditingMode::MOUSE;
+  // Track mode changes for canvas usage mode updates
+  EditingMode old_mode = current_mode;
+
+  // Tool shortcuts (1-2 for mode selection)
+  if (ImGui::IsKeyDown(ImGuiKey_1)) {
+    current_mode = EditingMode::MOUSE;
+  } else if (ImGui::IsKeyDown(ImGuiKey_2)) {
+    current_mode = EditingMode::DRAW_TILE;
+  }
+
+  // Update canvas usage mode when mode changes
+  if (old_mode != current_mode) {
+    if (current_mode == EditingMode::MOUSE) {
       ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
-    } else if (ImGui::IsKeyDown(ImGuiKey_4)) {
-      entity_edit_mode_ = EntityEditMode::EXITS;
-      current_mode = EditingMode::MOUSE;
-      ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
-    } else if (ImGui::IsKeyDown(ImGuiKey_5)) {
-      entity_edit_mode_ = EntityEditMode::ITEMS;
-      current_mode = EditingMode::MOUSE;
-      ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
-    } else if (ImGui::IsKeyDown(ImGuiKey_6)) {
-      entity_edit_mode_ = EntityEditMode::SPRITES;
-      current_mode = EditingMode::MOUSE;
-      ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
-    } else if (ImGui::IsKeyDown(ImGuiKey_7)) {
-      entity_edit_mode_ = EntityEditMode::TRANSPORTS;
-      current_mode = EditingMode::MOUSE;
-      ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
-    } else if (ImGui::IsKeyDown(ImGuiKey_8)) {
-      entity_edit_mode_ = EntityEditMode::MUSIC;
-      current_mode = EditingMode::MOUSE;
-      ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
-    }
-
-    // View shortcuts
-    if (ImGui::IsKeyDown(ImGuiKey_F11)) {
-      overworld_canvas_fullscreen_ = !overworld_canvas_fullscreen_;
-    }
-
-    // Toggle map lock with L key
-    if (ImGui::IsKeyDown(ImGuiKey_L) && ImGui::IsKeyDown(ImGuiKey_LeftCtrl)) {
-      current_map_lock_ = !current_map_lock_;
-    }
-
-    // Toggle Tile16 editor with T key
-    if (ImGui::IsKeyDown(ImGuiKey_T) && ImGui::IsKeyDown(ImGuiKey_LeftCtrl)) {
-      show_tile16_editor_ = !show_tile16_editor_;
-    }
-
-    // Undo/Redo shortcuts (Ctrl+Z, Ctrl+Y, Ctrl+Shift+Z)
-    if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) ||
-        ImGui::IsKeyDown(ImGuiKey_RightCtrl)) {
-      if (ImGui::IsKeyPressed(ImGuiKey_Z, false)) {
-        if (ImGui::IsKeyDown(ImGuiKey_LeftShift) ||
-            ImGui::IsKeyDown(ImGuiKey_RightShift)) {
-          status_ = Redo();  // Ctrl+Shift+Z = Redo
-        } else {
-          status_ = Undo();  // Ctrl+Z = Undo
-        }
-      }
-      if (ImGui::IsKeyPressed(ImGuiKey_Y, false)) {
-        status_ = Redo();  // Ctrl+Y = Redo (Windows style)
-      }
+    } else if (current_mode == EditingMode::DRAW_TILE) {
+      ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kTilePainting);
     }
   }
-  return absl::OkStatus();
+
+  // Entity editing shortcuts (3-8)
+  HandleEntityEditingShortcuts();
+
+  // View shortcuts
+  if (ImGui::IsKeyDown(ImGuiKey_F11)) {
+    overworld_canvas_fullscreen_ = !overworld_canvas_fullscreen_;
+  }
+
+  // Toggle map lock with Ctrl+L
+  if (ImGui::IsKeyDown(ImGuiKey_L) && ImGui::IsKeyDown(ImGuiKey_LeftCtrl)) {
+    current_map_lock_ = !current_map_lock_;
+  }
+
+  // Toggle Tile16 editor with Ctrl+T
+  if (ImGui::IsKeyDown(ImGuiKey_T) && ImGui::IsKeyDown(ImGuiKey_LeftCtrl)) {
+    show_tile16_editor_ = !show_tile16_editor_;
+  }
+
+  // Undo/Redo shortcuts
+  HandleUndoRedoShortcuts();
+}
+
+void OverworldEditor::HandleEntityEditingShortcuts() {
+  // Entity type selection (3-8 keys)
+  if (ImGui::IsKeyDown(ImGuiKey_3)) {
+    entity_edit_mode_ = EntityEditMode::ENTRANCES;
+    current_mode = EditingMode::MOUSE;
+    ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
+  } else if (ImGui::IsKeyDown(ImGuiKey_4)) {
+    entity_edit_mode_ = EntityEditMode::EXITS;
+    current_mode = EditingMode::MOUSE;
+    ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
+  } else if (ImGui::IsKeyDown(ImGuiKey_5)) {
+    entity_edit_mode_ = EntityEditMode::ITEMS;
+    current_mode = EditingMode::MOUSE;
+    ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
+  } else if (ImGui::IsKeyDown(ImGuiKey_6)) {
+    entity_edit_mode_ = EntityEditMode::SPRITES;
+    current_mode = EditingMode::MOUSE;
+    ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
+  } else if (ImGui::IsKeyDown(ImGuiKey_7)) {
+    entity_edit_mode_ = EntityEditMode::TRANSPORTS;
+    current_mode = EditingMode::MOUSE;
+    ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
+  } else if (ImGui::IsKeyDown(ImGuiKey_8)) {
+    entity_edit_mode_ = EntityEditMode::MUSIC;
+    current_mode = EditingMode::MOUSE;
+    ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
+  }
+}
+
+void OverworldEditor::HandleUndoRedoShortcuts() {
+  // Check for Ctrl key (either left or right)
+  bool ctrl_held =
+      ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl);
+  if (!ctrl_held) {
+    return;
+  }
+
+  // Ctrl+Z: Undo (or Ctrl+Shift+Z: Redo)
+  if (ImGui::IsKeyPressed(ImGuiKey_Z, false)) {
+    bool shift_held = ImGui::IsKeyDown(ImGuiKey_LeftShift) ||
+                      ImGui::IsKeyDown(ImGuiKey_RightShift);
+    if (shift_held) {
+      status_ = Redo();  // Ctrl+Shift+Z = Redo
+    } else {
+      status_ = Undo();  // Ctrl+Z = Undo
+    }
+  }
+
+  // Ctrl+Y: Redo (Windows style)
+  if (ImGui::IsKeyPressed(ImGuiKey_Y, false)) {
+    status_ = Redo();
+  }
+}
+
+void OverworldEditor::HandleEntityInteraction() {
+  // Get hovered entity from previous frame's rendering pass
+  zelda3::GameEntity* hovered_entity =
+      entity_renderer_ ? entity_renderer_->hovered_entity() : nullptr;
+
+  // Handle all MOUSE mode interactions here
+  if (current_mode == EditingMode::MOUSE) {
+    HandleEntityContextMenus(hovered_entity);
+    HandleEntityDoubleClick(hovered_entity);
+  }
+
+  // Process any pending entity insertion from context menu
+  // This must be called outside the context menu popup context for OpenPopup
+  // to work
+  ProcessPendingEntityInsertion();
+
+  // Draw entity editor popups and update entity data
+  DrawEntityEditorPopups();
+}
+
+void OverworldEditor::HandleEntityContextMenus(
+    zelda3::GameEntity* hovered_entity) {
+  if (!ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+    return;
+  }
+
+  if (!hovered_entity) {
+    return;
+  }
+
+  current_entity_ = hovered_entity;
+  switch (hovered_entity->entity_type_) {
+    case zelda3::GameEntity::EntityType::kExit:
+      current_exit_ = *static_cast<zelda3::OverworldExit*>(hovered_entity);
+      ImGui::OpenPopup(
+          gui::MakePopupId(gui::EditorNames::kOverworld, "Exit Editor").c_str());
+      break;
+    case zelda3::GameEntity::EntityType::kEntrance:
+      current_entrance_ =
+          *static_cast<zelda3::OverworldEntrance*>(hovered_entity);
+      ImGui::OpenPopup(
+          gui::MakePopupId(gui::EditorNames::kOverworld, "Entrance Editor")
+              .c_str());
+      break;
+    case zelda3::GameEntity::EntityType::kItem:
+      current_item_ = *static_cast<zelda3::OverworldItem*>(hovered_entity);
+      ImGui::OpenPopup(
+          gui::MakePopupId(gui::EditorNames::kOverworld, "Item Editor").c_str());
+      break;
+    case zelda3::GameEntity::EntityType::kSprite:
+      current_sprite_ = *static_cast<zelda3::Sprite*>(hovered_entity);
+      ImGui::OpenPopup(
+          gui::MakePopupId(gui::EditorNames::kOverworld, "Sprite Editor")
+              .c_str());
+      break;
+    default:
+      break;
+  }
+}
+
+void OverworldEditor::HandleEntityDoubleClick(
+    zelda3::GameEntity* hovered_entity) {
+  if (!hovered_entity || !ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+    return;
+  }
+
+  if (hovered_entity->entity_type_ == zelda3::GameEntity::EntityType::kExit) {
+    jump_to_tab_ =
+        static_cast<zelda3::OverworldExit*>(hovered_entity)->room_id_;
+  } else if (hovered_entity->entity_type_ ==
+             zelda3::GameEntity::EntityType::kEntrance) {
+    jump_to_tab_ =
+        static_cast<zelda3::OverworldEntrance*>(hovered_entity)->entrance_id_;
+  }
+}
+
+void OverworldEditor::DrawEntityEditorPopups() {
+  if (DrawExitEditorPopup(current_exit_)) {
+    if (current_entity_ && current_entity_->entity_type_ ==
+                               zelda3::GameEntity::EntityType::kExit) {
+      *static_cast<zelda3::OverworldExit*>(current_entity_) = current_exit_;
+      rom_->set_dirty(true);
+    }
+  }
+  if (DrawOverworldEntrancePopup(current_entrance_)) {
+    if (current_entity_ && current_entity_->entity_type_ ==
+                               zelda3::GameEntity::EntityType::kEntrance) {
+      *static_cast<zelda3::OverworldEntrance*>(current_entity_) =
+          current_entrance_;
+      rom_->set_dirty(true);
+    }
+  }
+  if (DrawItemEditorPopup(current_item_)) {
+    if (current_entity_ && current_entity_->entity_type_ ==
+                               zelda3::GameEntity::EntityType::kItem) {
+      *static_cast<zelda3::OverworldItem*>(current_entity_) = current_item_;
+      rom_->set_dirty(true);
+    }
+  }
+  if (DrawSpriteEditorPopup(current_sprite_)) {
+    if (current_entity_ && current_entity_->entity_type_ ==
+                               zelda3::GameEntity::EntityType::kSprite) {
+      *static_cast<zelda3::Sprite*>(current_entity_) = current_sprite_;
+      rom_->set_dirty(true);
+    }
+  }
 }
 
 void OverworldEditor::DrawOverworldMaps() {

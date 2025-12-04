@@ -17,6 +17,7 @@
 #include "app/gfx/types/snes_tile.h"
 #include "app/gui/app/editor_layout.h"
 #include "app/gui/canvas/canvas.h"
+#include "app/gui/core/icons.h"
 #include "app/gui/widgets/asset_browser.h"
 #include "rom/rom.h"
 #include "imgui/imgui.h"
@@ -237,6 +238,18 @@ class GraphicsEditor : public Editor {
 
   Rom* rom_;
   zelda3::GameData* game_data_ = nullptr;
+
+  // PanelWindow cards (moved from static locals to member variables)
+  gui::PanelWindow sheet_browser_v2_card_{"Sheet Browser", ICON_MD_VIEW_LIST};
+  gui::PanelWindow pixel_editor_card_{"Pixel Editor", ICON_MD_DRAW};
+  gui::PanelWindow gfx_card_{"Graphics", ICON_MD_IMAGE};
+  gui::PanelWindow palette_controls_card_{"Palette Controls", ICON_MD_PALETTE};
+  gui::PanelWindow polyhedral_card_{"3D Objects", ICON_MD_VIEW_IN_AR};
+  gui::PanelWindow link_sprite_card_{"Link Sprite Editor", ICON_MD_PERSON};
+  gui::PanelWindow sheet_editor_card_{"Sheet Editor", ICON_MD_EDIT};
+  gui::PanelWindow sheet_browser_card_{"Asset Browser", ICON_MD_VIEW_LIST};
+  gui::PanelWindow player_anims_card_{"Player Animations", ICON_MD_PERSON};
+  gui::PanelWindow prototype_card_{"Prototype Viewer", ICON_MD_CONSTRUCTION};
 };
 
 }  // namespace editor

@@ -1,10 +1,12 @@
+// Related header
 #include "editor_manager.h"
 
-#include "cli/service/agent/agent_control_server.h"
+// C system headers
+#include <cstring>
 
+// C++ standard library headers
 #include <algorithm>
 #include <chrono>
-#include <cstring>
 #include <filesystem>
 #include <memory>
 #include <sstream>
@@ -12,21 +14,23 @@
 #include <unordered_set>
 #include <vector>
 
-#ifdef __EMSCRIPTEN__
-#include "app/platform/wasm/wasm_loading_manager.h"
-#endif
-
+// Third-party library headers
 #define IMGUI_DEFINE_MATH_OPERATORS
-
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
+
+// Project headers
 #include "app/application.h"
 #include "app/editor/agent/agent_chat_widget.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
+#include "app/editor/editor.h"
 #include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/graphics/screen_editor.h"
 #include "app/editor/menu/activity_bar.h"
@@ -36,31 +40,43 @@
 #include "app/editor/palette/palette_editor.h"
 #include "app/editor/session_types.h"
 #include "app/editor/sprite/sprite_editor.h"
-#include "app/editor/system/panel_manager.h"
 #include "app/editor/system/editor_registry.h"
-#include "app/editor/ui/popup_manager.h"
+#include "app/editor/system/panel_manager.h"
 #include "app/editor/system/shortcut_configurator.h"
-#include "app/editor/ui/layout_presets.h"
 #include "app/editor/ui/dashboard_panel.h"
+#include "app/editor/ui/layout_presets.h"
+#include "app/editor/ui/popup_manager.h"
+#include "app/editor/ui/settings_panel.h"
+#include "app/editor/ui/toast_manager.h"
 #include "app/editor/ui/ui_coordinator.h"
 #include "app/emu/emulator.h"
+#include "app/gfx/debug/performance/performance_dashboard.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/platform/timing.h"
-#include "rom/rom.h"
-#include "zelda3/game_data.h"
 #include "app/test/test_manager.h"
+#include "cli/service/agent/agent_control_server.h"
 #include "core/features.h"
 #include "core/project.h"
-#include "imgui/imgui.h"
-#include "imgui/imgui_internal.h"
+#include "rom/rom.h"
 #include "util/file_util.h"
 #include "util/log.h"
+#include "util/macro.h"
+#include "yaze_config.h"
+#include "zelda3/game_data.h"
 #include "zelda3/screen/dungeon_map.h"
 
+// Conditional platform headers
+#ifdef __EMSCRIPTEN__
+#include "app/platform/wasm/wasm_control_api.h"
+#include "app/platform/wasm/wasm_loading_manager.h"
+#include "app/platform/wasm/wasm_session_bridge.h"
+#endif
+
+// Conditional test headers
 #ifdef YAZE_ENABLE_TESTING
 #include "app/test/e2e_test_suite.h"
 #include "app/test/integrated_test_suite.h"
@@ -72,20 +88,6 @@
 #endif
 #ifdef YAZE_WITH_GRPC
 #include "app/test/z3ed_test_suite.h"
-#endif
-
-#include "app/editor/editor.h"
-#include "app/editor/ui/toast_manager.h"
-#include "app/editor/ui/settings_panel.h"
-#include "app/gfx/debug/performance/performance_dashboard.h"
-
-#include "imgui/misc/cpp/imgui_stdlib.h"
-#include "util/macro.h"
-#include "yaze_config.h"
-
-#ifdef __EMSCRIPTEN__
-#include "app/platform/wasm/wasm_control_api.h"
-#include "app/platform/wasm/wasm_session_bridge.h"
 #endif
 
 namespace yaze {
