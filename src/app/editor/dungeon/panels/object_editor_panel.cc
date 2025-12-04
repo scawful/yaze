@@ -39,7 +39,6 @@ ObjectEditorPanel::ObjectEditorPanel(
           canvas_viewer_->SetPreviewObject(preview_object_);
           canvas_viewer_->SetObjectInteractionEnabled(true);
         }
-        interaction_mode_ = InteractionMode::Place;
 
         // Sync with backend editor if available
         if (object_editor_) {
@@ -104,46 +103,20 @@ void ObjectEditorPanel::Draw(bool* p_open) {
     ImGui::Separator();
   }
 
-  // Interaction mode controls
-  ImGui::TextColored(theme.text_secondary_gray, "Mode:");
-  ImGui::SameLine();
-
-  if (ImGui::RadioButton("None", interaction_mode_ == InteractionMode::None)) {
-    interaction_mode_ = InteractionMode::None;
-    if (canvas_viewer_) {
-      canvas_viewer_->SetObjectInteractionEnabled(false);
-      canvas_viewer_->ClearPreviewObject();
-    }
-  }
-  ImGui::SameLine();
-
-  if (ImGui::RadioButton("Place", interaction_mode_ == InteractionMode::Place)) {
-    interaction_mode_ = InteractionMode::Place;
-    if (canvas_viewer_) {
-      canvas_viewer_->SetObjectInteractionEnabled(true);
-      if (has_preview_object_) {
-        canvas_viewer_->SetPreviewObject(preview_object_);
+  // Status indicator: show current interaction state
+  {
+    bool is_placing = has_preview_object_ && canvas_viewer_ && 
+                      canvas_viewer_->object_interaction().IsObjectLoaded();
+    if (is_placing) {
+      ImGui::TextColored(theme.status_warning, 
+          ICON_MD_ADD_CIRCLE " Placing: Object 0x%02X", preview_object_.id_);
+      ImGui::SameLine();
+      if (ImGui::SmallButton(ICON_MD_CANCEL " Cancel")) {
+        CancelPlacement();
       }
-    }
-  }
-  ImGui::SameLine();
-
-  if (ImGui::RadioButton("Select",
-                         interaction_mode_ == InteractionMode::Select)) {
-    interaction_mode_ = InteractionMode::Select;
-    if (canvas_viewer_) {
-      canvas_viewer_->SetObjectInteractionEnabled(true);
-      canvas_viewer_->ClearPreviewObject();
-    }
-  }
-  ImGui::SameLine();
-
-  if (ImGui::RadioButton("Delete",
-                         interaction_mode_ == InteractionMode::Delete)) {
-    interaction_mode_ = InteractionMode::Delete;
-    if (canvas_viewer_) {
-      canvas_viewer_->SetObjectInteractionEnabled(true);
-      canvas_viewer_->ClearPreviewObject();
+    } else {
+      ImGui::TextColored(theme.text_secondary_gray,
+          ICON_MD_MOUSE " Selection Mode - Click to select, drag to multi-select");
     }
   }
 
@@ -661,9 +634,22 @@ void ObjectEditorPanel::HandleKeyboardShortcuts() {
     CycleObjectSelection(io.KeyShift ? -1 : 1);
   }
 
-  // Escape: Deselect all
+  // Escape: Cancel placement or deselect all
   if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
-    DeselectAllObjects();
+    if (has_preview_object_ && canvas_viewer_ && 
+        canvas_viewer_->object_interaction().IsObjectLoaded()) {
+      CancelPlacement();
+    } else {
+      DeselectAllObjects();
+    }
+  }
+}
+
+void ObjectEditorPanel::CancelPlacement() {
+  has_preview_object_ = false;
+  if (canvas_viewer_) {
+    canvas_viewer_->ClearPreviewObject();
+    canvas_viewer_->object_interaction().CancelPlacement();
   }
 }
 

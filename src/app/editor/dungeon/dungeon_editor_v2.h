@@ -166,7 +166,7 @@ class DungeonEditorV2 : public Editor {
   void ProcessDeferredTextures();
 
   // Room selection callback
-  void OnRoomSelected(int room_id);
+  void OnRoomSelected(int room_id, bool request_focus = true);
   void OnEntranceSelected(int entrance_id);
 
   // Object placement callback

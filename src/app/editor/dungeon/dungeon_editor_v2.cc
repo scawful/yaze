@@ -420,7 +420,7 @@ void DungeonEditorV2::DrawRoomPanels() {
     if (room_card->Begin(&open)) {
       // Ensure focused room updates selection context
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) {
-        OnRoomSelected(room_id);
+        OnRoomSelected(room_id, /*request_focus=*/false);
       }
       DrawRoomTab(room_id);
     }
@@ -519,7 +519,7 @@ void DungeonEditorV2::DrawRoomTab(int room_id) {
   }
 }
 
-void DungeonEditorV2::OnRoomSelected(int room_id) {
+void DungeonEditorV2::OnRoomSelected(int room_id, bool request_focus) {
   current_room_id_ = room_id;
 
   if (dungeon_editor_system_) {
@@ -535,7 +535,9 @@ void DungeonEditorV2::OnRoomSelected(int room_id) {
 
   for (int i = 0; i < active_rooms_.Size; i++) {
     if (active_rooms_[i] == room_id) {
-      FocusRoom(room_id);
+      if (request_focus) {
+        FocusRoom(room_id);
+      }
       return;
     }
   }

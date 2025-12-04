@@ -57,6 +57,8 @@ class DungeonObjectInteraction {
   // State management
   void SetCurrentRoom(std::array<zelda3::Room, 0x128>* rooms, int room_id);
   void SetPreviewObject(const zelda3::RoomObject& object, bool loaded);
+  bool IsObjectLoaded() const { return object_loaded_; }
+  void CancelPlacement() { object_loaded_ = false; }
 
   // Selection state - delegates to ObjectSelection
   std::vector<size_t> GetSelectedObjectIndices() const {

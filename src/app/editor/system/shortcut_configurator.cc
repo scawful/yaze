@@ -287,11 +287,14 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
                         auto* obj_panel = dungeon_editor->object_editor_panel();
                         if (!obj_panel) return;
                         if (id == "dungeon.object.select_tool") {
-                          obj_panel->SetInteractionModeSelect();
+                          // Unified mode: cancel placement to switch to selection
+                          obj_panel->CancelPlacement();
                         } else if (id == "dungeon.object.place_tool") {
-                          obj_panel->SetInteractionModePlace();
+                          // Unified mode: handled by object selector click
+                          // No-op (mode is controlled by selecting an object)
                         } else if (id == "dungeon.object.delete_tool") {
-                          obj_panel->SetInteractionModeDelete();
+                          // Unified mode: delete selected objects
+                          obj_panel->DeleteSelectedObjects();
                         } else if (id == "dungeon.object.next_object") {
                           obj_panel->CycleObjectSelection(1);
                         } else if (id == "dungeon.object.prev_object") {

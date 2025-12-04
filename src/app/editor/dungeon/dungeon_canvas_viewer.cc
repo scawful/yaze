@@ -143,74 +143,80 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     ImGui::Text(ICON_MD_TUNE " Room Properties");
 
     if (ImGui::BeginTable(
-            "RoomPropsTable", 2,
+            "RoomPropsTable", 4,
             ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchProp)) {
-      ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed,
-                              100.0f);
-      ImGui::TableSetupColumn("Value");
+      ImGui::TableSetupColumn("Prop", ImGuiTableColumnFlags_WidthFixed, 60.0f);
+      ImGui::TableSetupColumn("Val", ImGuiTableColumnFlags_WidthFixed, 50.0f);
+      ImGui::TableSetupColumn("Prop", ImGuiTableColumnFlags_WidthFixed, 60.0f);
+      ImGui::TableSetupColumn("Val", ImGuiTableColumnFlags_WidthFixed, 50.0f);
 
-      // Static UI values need to be updated when switching rooms
-      // Track the room ID to detect room changes
-      static int prev_ui_room_id = -1;
-      static uint8_t blockset_val = 0;
-      static uint8_t spriteset_val = 0;
-      static uint8_t palette_val = 0;
-      static uint8_t floor1_val = 0;
-      static uint8_t floor2_val = 0;
-      static int effect_val = 0;
-      static uint8_t tag1_val = 0;
-      static uint8_t tag2_val = 0;
+      // Read properties directly from room (no static caching)
+      uint8_t blockset_val = room.blockset;
+      uint8_t spriteset_val = room.spriteset;
+      uint8_t palette_val = room.palette;
+      uint8_t floor1_val = room.floor1();
+      uint8_t floor2_val = room.floor2();
+      int effect_val = static_cast<int>(room.effect());
+      uint8_t tag1_val = static_cast<uint8_t>(room.tag1());
+      uint8_t tag2_val = static_cast<uint8_t>(room.tag2());
+      uint8_t layout_val = room.layout;
 
-      // Update cached UI values when room changes
-      if (prev_ui_room_id != room_id) {
-        blockset_val = room.blockset;
-        spriteset_val = room.spriteset;
-        palette_val = room.palette;
-        floor1_val = room.floor1();
-        floor2_val = room.floor2();
-        effect_val = static_cast<int>(room.effect());
-        tag1_val = static_cast<uint8_t>(room.tag1());
-        tag2_val = static_cast<uint8_t>(room.tag2());
-        prev_ui_room_id = room_id;
-      }
-
-      // Graphics Section
+      // Row 1: Blockset & Spriteset
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::Text("Blockset");
       ImGui::TableNextColumn();
+      ImGui::SetNextItemWidth(-FLT_MIN);
       if (gui::InputHexByte("##Blockset", &blockset_val) &&
           ImGui::IsItemDeactivatedAfterEdit()) {
         room.SetBlockset(blockset_val);
         if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
       }
 
-      ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::Text("Spriteset");
       ImGui::TableNextColumn();
+      ImGui::SetNextItemWidth(-FLT_MIN);
       if (gui::InputHexByte("##Spriteset", &spriteset_val) &&
           ImGui::IsItemDeactivatedAfterEdit()) {
         room.SetSpriteset(spriteset_val);
         if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
       }
 
+      // Row 2: Palette & Layout
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::Text("Palette");
       ImGui::TableNextColumn();
+      ImGui::SetNextItemWidth(-FLT_MIN);
       if (gui::InputHexByte("##Palette", &palette_val) &&
           ImGui::IsItemDeactivatedAfterEdit()) {
         room.SetPalette(palette_val);
+        SetCurrentPaletteId(palette_val);
+        
+        // Update palette group for object previews
+        if (game_data_ && rom_) {
+          if (palette_val < game_data_->paletteset_ids.size() && 
+              !game_data_->paletteset_ids[palette_val].empty()) {
+            auto dungeon_palette_ptr = game_data_->paletteset_ids[palette_val][0];
+            auto palette_id_res = rom_->ReadWord(0xDEC4B + dungeon_palette_ptr);
+            if (palette_id_res.ok()) {
+              current_palette_group_id_ = palette_id_res.value() / 180;
+              if (current_palette_group_id_ < game_data_->palette_groups.dungeon_main.size()) {
+                auto full_palette = game_data_->palette_groups.dungeon_main[current_palette_group_id_];
+                auto res = gfx::CreatePaletteGroupFromLargePalette(full_palette, 16);
+                if (res.ok()) current_palette_group_ = res.value();
+              }
+            }
+          }
+        }
         if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
       }
 
-      // Layout Section
-      ImGui::TableNextRow();
       ImGui::TableNextColumn();
-      ImGui::Text("Layout ID");
+      ImGui::Text("Layout");
       ImGui::TableNextColumn();
-      uint8_t layout_val = room.layout;
+      ImGui::SetNextItemWidth(-FLT_MIN);
       if (gui::InputHexByte("##Layout", &layout_val) &&
           ImGui::IsItemDeactivatedAfterEdit()) {
         room.layout = layout_val;
@@ -218,53 +224,43 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
         if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
       }
 
+      // Row 3: Floor 1 & Floor 2
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::Text("Floor 1");
       ImGui::TableNextColumn();
+      ImGui::SetNextItemWidth(-FLT_MIN);
       if (gui::InputHexByte("##Floor1", &floor1_val) &&
           ImGui::IsItemDeactivatedAfterEdit()) {
         room.set_floor1(floor1_val);
         if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
       }
 
-      ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::Text("Floor 2");
       ImGui::TableNextColumn();
+      ImGui::SetNextItemWidth(-FLT_MIN);
       if (gui::InputHexByte("##Floor2", &floor2_val) &&
           ImGui::IsItemDeactivatedAfterEdit()) {
         room.set_floor2(floor2_val);
         if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
       }
 
-      // Advanced Section
+      // Row 4: Tags
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
-      ImGui::Text("Effect");
+      ImGui::Text("Tag 1");
       ImGui::TableNextColumn();
-      static const char* effect_names[] = {
-          "Nothing", "One",         "Moving Floor",     "Moving Water",
-          "Four",    "Red Flashes", "Torch Show Floor", "Ganon Room"};
-      if (ImGui::Combo("##Effect", &effect_val, effect_names, 8)) {
-        room.SetEffect(static_cast<zelda3::EffectKey>(effect_val));
-        if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
-      }
-
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::Text("Tags");
-      ImGui::TableNextColumn();
-      ImGui::SetNextItemWidth(80);
+      ImGui::SetNextItemWidth(-FLT_MIN);
       if (gui::InputHexByte("##Tag1Val", &tag1_val) &&
           ImGui::IsItemDeactivatedAfterEdit()) {
         room.SetTag1(static_cast<zelda3::TagKey>(tag1_val));
         if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
       }
-      ImGui::SameLine();
-      ImGui::Text("Tag 2:");
-      ImGui::SameLine();
-      ImGui::SetNextItemWidth(80);
+      ImGui::TableNextColumn();
+      ImGui::Text("Tag 2");
+      ImGui::TableNextColumn();
+      ImGui::SetNextItemWidth(-FLT_MIN);
       if (gui::InputHexByte("##Tag2Val", &tag2_val) &&
           ImGui::IsItemDeactivatedAfterEdit()) {
         room.SetTag2(static_cast<zelda3::TagKey>(tag2_val));
@@ -272,6 +268,17 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       }
 
       ImGui::EndTable();
+    }
+
+    // Effect dropdown (outside table for width)
+    static const char* effect_names[] = {
+        "Nothing", "One",         "Moving Floor",     "Moving Water",
+        "Four",    "Red Flashes", "Torch Show Floor", "Ganon Room"};
+    int effect_val = static_cast<int>(room.effect());
+    ImGui::SetNextItemWidth(200);
+    if (ImGui::Combo("Effect", &effect_val, effect_names, 8)) {
+      room.SetEffect(static_cast<zelda3::EffectKey>(effect_val));
+      if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
     }
 
     // Layer visibility controls (4-way: Layout/Objects × BG1/BG2)
@@ -367,22 +374,8 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
 
   ImGui::EndGroup();
 
-  // CRITICAL: Draw canvas with explicit size to ensure viewport matches content
-  // Pass the unscaled room size directly to DrawBackground
-  canvas_.DrawBackground(ImVec2(kRoomPixelWidth, kRoomPixelHeight));
-
-  // DEBUG: Log canvas state after DrawBackground
-  if (debug_frame_count % 60 == 1) {
-    LOG_DEBUG("[DungeonCanvas]",
-              "After DrawBackground: canvas_sz=(%.0f,%.0f) "
-              "canvas_p0=(%.0f,%.0f) canvas_p1=(%.0f,%.0f)",
-              canvas_.canvas_size().x, canvas_.canvas_size().y,
-              canvas_.zero_point().x, canvas_.zero_point().y,
-              canvas_.zero_point().x + canvas_.canvas_size().x,
-              canvas_.zero_point().y + canvas_.canvas_size().y);
-  }
-
-  // Add dungeon-specific context menu items
+  // Set up context menu items BEFORE DrawBackground so DrawContextMenu can be
+  // called immediately after (OpenPopupOnItemClick requires this ordering)
   canvas_.ClearContextMenuItems();
 
   if (rooms_ && rom_->is_loaded()) {
@@ -596,8 +589,19 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
           ICON_MD_CONTENT_PASTE " Paste", ICON_MD_CONTENT_PASTE,
           [&interaction]() { interaction.HandlePasteObjects(); }, "Ctrl+V"));
     }
+
+    // Add cancel placement option if placing an object
+    if (interaction.IsObjectLoaded()) {
+      canvas_.AddContextMenuItem(gui::CanvasMenuItem(
+          ICON_MD_CANCEL " Cancel Placement", ICON_MD_CANCEL,
+          [&interaction]() { interaction.CancelPlacement(); }, "Esc"));
+    }
   }
 
+  // CRITICAL: Draw canvas with explicit size to ensure viewport matches content
+  // DrawBackground must be called right before DrawContextMenu so that
+  // OpenPopupOnItemClick targets the canvas's InvisibleButton
+  canvas_.DrawBackground(ImVec2(kRoomPixelWidth, kRoomPixelHeight));
   canvas_.DrawContextMenu();
 
   // Draw persistent debug overlays
@@ -804,6 +808,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       object_interaction_.DrawSelectBox();
       object_interaction_
           .DrawSelectionHighlights();  // Draw selection highlights on top
+      object_interaction_.DrawGhostPreview();  // Draw placement preview
       // Context menu is handled by canvas_.DrawContextMenu() above
     }
   }
