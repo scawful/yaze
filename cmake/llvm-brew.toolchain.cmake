@@ -19,11 +19,28 @@ if(NOT EXISTS "${HOMEBREW_LLVM_PREFIX}")
   message(FATAL_ERROR "Homebrew LLVM not found. Please run 'brew install llvm'. Path: ${HOMEBREW_LLVM_PREFIX}")
 endif()
 
+# Cache this variable so it's available in the main CMakeLists.txt
+set(HOMEBREW_LLVM_PREFIX "${HOMEBREW_LLVM_PREFIX}" CACHE PATH "Path to Homebrew LLVM installation")
+
 message(STATUS "Using Homebrew LLVM from: ${HOMEBREW_LLVM_PREFIX}")
 
 # 3. Set the C and C++ compilers
 set(CMAKE_C_COMPILER "${HOMEBREW_LLVM_PREFIX}/bin/clang")
 set(CMAKE_CXX_COMPILER "${HOMEBREW_LLVM_PREFIX}/bin/clang++")
+
+# 3.5 Find and configure clang-tidy
+find_program(CLANG_TIDY_EXE 
+  NAMES clang-tidy 
+  HINTS "${HOMEBREW_LLVM_PREFIX}/bin" 
+  NO_DEFAULT_PATH
+)
+
+if(CLANG_TIDY_EXE)
+  message(STATUS "Found Homebrew clang-tidy: ${CLANG_TIDY_EXE}")
+  set(YAZE_CLANG_TIDY_EXE "${CLANG_TIDY_EXE}" CACHE FILEPATH "Path to clang-tidy executable")
+else()
+  message(WARNING "clang-tidy not found in ${HOMEBREW_LLVM_PREFIX}/bin")
+endif()
 
 # 4. Set the system root (sysroot) to the macOS SDK
 # This correctly points to the system-level headers and libraries.
