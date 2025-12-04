@@ -748,6 +748,7 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   shortcut_deps.workspace_manager = &workspace_manager_;
   shortcut_deps.popup_manager = popup_manager_.get();
   shortcut_deps.toast_manager = &toast_manager_;
+  shortcut_deps.panel_manager = &panel_manager_;
 
   ConfigureEditorShortcuts(shortcut_deps, &shortcut_manager_);
   ConfigureMenuShortcuts(shortcut_deps, &shortcut_manager_);

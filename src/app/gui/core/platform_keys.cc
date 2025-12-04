@@ -226,7 +226,7 @@ std::string FormatShortcut(const std::vector<ImGuiKey>& keys) {
   if (keys.empty()) return "";
 
   std::string result;
-  bool has_ctrl = false;
+  bool has_primary = false;
   bool has_shift = false;
   bool has_alt = false;
   bool has_super = false;
@@ -234,30 +234,44 @@ std::string FormatShortcut(const std::vector<ImGuiKey>& keys) {
 
   // First pass: identify modifiers and main key
   for (ImGuiKey key : keys) {
-    if (key == ImGuiMod_Ctrl) {
-      has_ctrl = true;
-    } else if (key == ImGuiMod_Shift) {
-      has_shift = true;
-    } else if (key == ImGuiMod_Alt) {
-      has_alt = true;
-    } else if (key == ImGuiMod_Super) {
-      has_super = true;
-    } else {
-      main_key = key;
+    int key_value = static_cast<int>(key);
+    if (key_value & ImGuiMod_Mask_) {
+      if (key_value & ImGuiMod_Ctrl) has_primary = true;
+      if (key_value & ImGuiMod_Shift) has_shift = true;
+      if (key_value & ImGuiMod_Alt) has_alt = true;
+      if (key_value & ImGuiMod_Super) has_super = true;
+      continue;
     }
+    if (key == ImGuiMod_Shortcut) {
+      has_primary = true;
+      continue;
+    }
+    if (key == ImGuiMod_Shift) {
+      has_shift = true;
+      continue;
+    }
+    if (key == ImGuiMod_Alt) {
+      has_alt = true;
+      continue;
+    }
+    if (key == ImGuiMod_Super) {
+      has_super = true;
+      continue;
+    }
+
+    main_key = key;
   }
 
   // Build display string with modifiers in consistent order
-  // On macOS: Ctrl is displayed as "Cmd", Super is displayed as "Ctrl"
-  // On other platforms: Ctrl is "Ctrl", Super is "Win"/"Super"
-
-  if (has_ctrl) {
+  // On macOS: primary modifier displays as "Cmd"
+  // On other platforms: primary modifier displays as "Ctrl"
+  if (has_primary) {
     result += GetCtrlDisplayName();
     result += "+";
   }
   if (has_super) {
-    // Super key (rarely used in shortcuts, but handle it)
-    result += IsMacPlatform() ? "Ctrl" : "Win";
+    // Super key (Cmd on macOS, Win/Super elsewhere)
+    result += IsMacPlatform() ? "Cmd" : "Win";
     result += "+";
   }
   if (has_alt) {

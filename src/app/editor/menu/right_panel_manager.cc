@@ -10,6 +10,7 @@
 #include "app/editor/ui/selection_properties_panel.h"
 #include "app/editor/ui/settings_panel.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/platform_keys.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
@@ -529,13 +530,14 @@ void RightPanelManager::DrawEditorContextHeader() {
 }
 
 void RightPanelManager::DrawGlobalShortcuts() {
+  const char* ctrl = gui::GetCtrlDisplayName();
   DrawPanelLabel("Global");
     ImGui::Indent(8.0f);
-    DrawPanelValue("Ctrl+O", "Open ROM");
-    DrawPanelValue("Ctrl+S", "Save ROM");
-  DrawPanelValue("Ctrl+Z", "Undo");
-  DrawPanelValue("Ctrl+Y", "Redo");
-  DrawPanelValue("Ctrl+B", "Toggle Sidebar");
+    DrawPanelValue(absl::StrFormat("%s+O", ctrl).c_str(), "Open ROM");
+    DrawPanelValue(absl::StrFormat("%s+S", ctrl).c_str(), "Save ROM");
+  DrawPanelValue(absl::StrFormat("%s+Z", ctrl).c_str(), "Undo");
+  DrawPanelValue(absl::StrFormat("%s+Y", ctrl).c_str(), "Redo");
+  DrawPanelValue(absl::StrFormat("%s+B", ctrl).c_str(), "Toggle Sidebar");
   DrawPanelValue("F1", "Help Panel");
   DrawPanelValue("Esc", "Close Panel");
     ImGui::Unindent(8.0f);
@@ -543,6 +545,7 @@ void RightPanelManager::DrawGlobalShortcuts() {
 }
 
 void RightPanelManager::DrawEditorSpecificShortcuts() {
+  const char* ctrl = gui::GetCtrlDisplayName();
   switch (active_editor_type_) {
     case EditorType::kOverworld:
       DrawPanelLabel("Overworld");
@@ -559,7 +562,7 @@ void RightPanelManager::DrawEditorSpecificShortcuts() {
       DrawPanelLabel("Dungeon");
       ImGui::Indent(8.0f);
       DrawPanelValue("Delete", "Remove Object");
-      DrawPanelValue("Ctrl+D", "Duplicate");
+      DrawPanelValue(absl::StrFormat("%s+D", ctrl).c_str(), "Duplicate");
       DrawPanelValue("Arrow Keys", "Move Object");
       DrawPanelValue("G", "Toggle Grid");
       DrawPanelValue("L", "Cycle Layers");
@@ -597,7 +600,7 @@ void RightPanelManager::DrawEditorSpecificShortcuts() {
     case EditorType::kMessage:
       DrawPanelLabel("Message");
       ImGui::Indent(8.0f);
-      DrawPanelValue("Ctrl+Enter", "Insert Line Break");
+      DrawPanelValue(absl::StrFormat("%s+Enter", ctrl).c_str(), "Insert Line Break");
       DrawPanelValue("Up/Down", "Navigate Messages");
       ImGui::Unindent(8.0f);
       break;

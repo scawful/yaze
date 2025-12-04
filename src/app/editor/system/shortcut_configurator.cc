@@ -405,7 +405,7 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
                   });
 
   RegisterIfValid(shortcut_manager, "Proposal Drawer",
-                  {ImGuiMod_Ctrl | ImGuiMod_Shift,
+                  {ImGuiMod_Ctrl, ImGuiMod_Shift,
                    ImGuiKey_R},  // Changed from Ctrl+P to Ctrl+Shift+R
                   [editor_manager]() {
                     if (editor_manager) {
@@ -535,7 +535,9 @@ void ConfigureMenuShortcuts(const ShortcutDependencies& deps,
                   });
 
 #ifdef YAZE_ENABLE_TESTING
-  RegisterIfValid(shortcut_manager, "Test Dashboard", {ImGuiMod_Ctrl, ImGuiKey_T}, menu_orchestrator]() {
+  RegisterIfValid(shortcut_manager, "Test Dashboard",
+                  {ImGuiMod_Ctrl, ImGuiKey_T},
+                  [menu_orchestrator]() {
                     if (menu_orchestrator) {
                       menu_orchestrator->OnShowTestDashboard();
                     }

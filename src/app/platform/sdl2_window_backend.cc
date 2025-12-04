@@ -383,6 +383,13 @@ absl::Status SDL2WindowBackend::InitializeImGui(gfx::IRenderer* renderer) {
   // Note: ViewportsEnable is intentionally NOT set for SDL2 + SDL_Renderer
   // It causes scaling issues on macOS Retina displays
 
+  // Ensure macOS-style behavior (Cmd acts as Ctrl for shortcuts)
+  // ImGui should set this automatically based on __APPLE__, but force it to be safe
+#ifdef __APPLE__
+  io.ConfigMacOSXBehaviors = true;
+  LOG_INFO("SDL2WindowBackend", "Enabled ConfigMacOSXBehaviors for macOS");
+#endif
+
   // Initialize ImGui backends
   SDL_Renderer* sdl_renderer =
       static_cast<SDL_Renderer*>(renderer->GetBackendRenderer());

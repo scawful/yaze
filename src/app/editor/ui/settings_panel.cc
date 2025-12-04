@@ -352,6 +352,7 @@ void SettingsPanel::DrawKeyboardShortcuts() {
       DrawPanelShortcuts();
       ImGui::TreePop();
     }
+    ImGui::TextDisabled("Tip: Use Cmd/Opt labels on macOS or Ctrl/Alt on Windows/Linux. Function keys and symbols (/, -) are supported.");
     ImGui::TreePop();
   }
 }
@@ -484,6 +485,13 @@ void SettingsPanel::DrawPanelShortcuts() {
           current_shortcut = "None";
         }
 
+        // Display platform-aware label
+        std::string display_shortcut = current_shortcut;
+        auto parsed = ParseShortcut(current_shortcut);
+        if (!parsed.empty()) {
+          display_shortcut = PrintShortcut(parsed);
+        }
+
         if (is_editing_shortcut_ && editing_card_id_ == card.card_id) {
             ImGui::SetNextItemWidth(120);
             ImGui::SetKeyboardFocusHere();
@@ -501,11 +509,11 @@ void SettingsPanel::DrawPanelShortcuts() {
             }
             ImGui::SameLine();
             if (ImGui::Button(ICON_MD_CLOSE)) {
-                is_editing_shortcut_ = false;
-                editing_card_id_.clear();
+              is_editing_shortcut_ = false;
+              editing_card_id_.clear();
             }
         } else {
-            if (ImGui::Button(current_shortcut.c_str(), ImVec2(120, 0))) {
+            if (ImGui::Button(display_shortcut.c_str(), ImVec2(120, 0))) {
                 is_editing_shortcut_ = true;
                 editing_card_id_ = card.card_id;
                 strncpy(shortcut_edit_buffer_, current_shortcut.c_str(), sizeof(shortcut_edit_buffer_) - 1);
