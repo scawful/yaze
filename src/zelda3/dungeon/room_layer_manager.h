@@ -157,15 +157,14 @@ class RoomLayerManager {
 
   // Apply layer settings to room from LayerMergeType
   void ApplyLayerMerging(const LayerMergeType& merge_type) {
-    bg2_on_top_ = merge_type.Layer2OnTop;
+    SetBG2OnTop(merge_type.Layer2OnTop);
 
-    // Set BG2 blend mode based on merge type flags
-    if (!merge_type.Layer2Visible) {
-      SetLayerBlendMode(LayerType::BG2_Layout, LayerBlendMode::Off);
-      SetLayerBlendMode(LayerType::BG2_Objects, LayerBlendMode::Off);
-    } else if (merge_type.Layer2Translucent) {
+    if (merge_type.Layer2Translucent) {
       SetLayerBlendMode(LayerType::BG2_Layout, LayerBlendMode::Translucent);
       SetLayerBlendMode(LayerType::BG2_Objects, LayerBlendMode::Translucent);
+    } else if (!merge_type.Layer2Visible) {
+      SetLayerBlendMode(LayerType::BG2_Layout, LayerBlendMode::Off);
+      SetLayerBlendMode(LayerType::BG2_Objects, LayerBlendMode::Off);
     } else {
       SetLayerBlendMode(LayerType::BG2_Layout, LayerBlendMode::Normal);
       SetLayerBlendMode(LayerType::BG2_Objects, LayerBlendMode::Normal);

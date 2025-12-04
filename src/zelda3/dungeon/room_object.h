@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "absl/strings/str_format.h"
 #include "app/gfx/types/snes_tile.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/object_parser.h"
@@ -625,6 +626,47 @@ constexpr static inline const char* Type3RoomObjectNames[] = {
     "Arrow tile →",
     "Nothing",
 };
+
+// Helper function to get object name from ID
+// Works across all three object subtypes
+inline std::string GetObjectName(int object_id) {
+  if (object_id < 0x100) {
+    // Type 1: Subtype 1 objects (0x00-0xFF)
+    constexpr size_t kType1Count =
+        sizeof(Type1RoomObjectNames) / sizeof(Type1RoomObjectNames[0]);
+    if (object_id >= 0 && object_id < static_cast<int>(kType1Count)) {
+      return Type1RoomObjectNames[object_id];
+    }
+    return absl::StrFormat("Unknown Type1 (0x%02X)", object_id);
+  } else if (object_id >= 0x100 && object_id < 0x200) {
+    // Type 2: Subtype 2 objects (0x100-0x1FF)
+    int idx = object_id - 0x100;
+    constexpr size_t kType2Count =
+        sizeof(Type2RoomObjectNames) / sizeof(Type2RoomObjectNames[0]);
+    if (idx >= 0 && idx < static_cast<int>(kType2Count)) {
+      return Type2RoomObjectNames[idx];
+    }
+    return absl::StrFormat("Unknown Type2 (0x%03X)", object_id);
+  } else if (object_id >= 0xF00) {
+    // Type 3: Doors/special objects (0xF00+)
+    int idx = object_id - 0xF00;
+    constexpr size_t kType3Count =
+        sizeof(Type3RoomObjectNames) / sizeof(Type3RoomObjectNames[0]);
+    if (idx >= 0 && idx < static_cast<int>(kType3Count)) {
+      return Type3RoomObjectNames[idx];
+    }
+    return absl::StrFormat("Unknown Type3 (0x%03X)", object_id);
+  }
+  return absl::StrFormat("Unknown (0x%03X)", object_id);
+}
+
+// Helper to get object type/subtype from ID
+inline int GetObjectSubtype(int object_id) {
+  if (object_id < 0x100) return 1;
+  if (object_id < 0x200) return 2;
+  if (object_id >= 0xF00) return 3;
+  return 0;  // Unknown
+}
 
 }  // namespace zelda3
 }  // namespace yaze

@@ -36,6 +36,33 @@ IMGUI_API bool InputHexByte(const char* label, uint8_t* data,
 IMGUI_API bool InputHexByte(const char* label, uint8_t* data, uint8_t max_value,
                             float input_width = 50.f, bool no_step = false);
 
+// Result type for InputHex functions that need to distinguish between
+// immediate changes (button/wheel) and text-edit changes (deferred)
+struct InputHexResult {
+  bool changed;           // Value was modified (any source)
+  bool immediate;         // Change was from button/wheel (apply now)
+  bool text_committed;    // Change was from text edit and committed (deactivated)
+
+  // Convenience: true if change should be applied immediately
+  // Use this instead of: InputHex(...) && IsItemDeactivatedAfterEdit()
+  bool ShouldApply() const { return immediate || text_committed; }
+
+  // Implicit bool conversion for backwards compatibility
+  operator bool() const { return changed; }
+};
+
+// New API that properly reports change source
+IMGUI_API InputHexResult InputHexByteEx(const char* label, uint8_t* data,
+                                        float input_width = 50.f,
+                                        bool no_step = false);
+IMGUI_API InputHexResult InputHexByteEx(const char* label, uint8_t* data,
+                                        uint8_t max_value,
+                                        float input_width = 50.f,
+                                        bool no_step = false);
+IMGUI_API InputHexResult InputHexWordEx(const char* label, uint16_t* data,
+                                        float input_width = 50.f,
+                                        bool no_step = false);
+
 // Custom hex input functions that properly respect width
 IMGUI_API bool InputHexByteCustom(const char* label, uint8_t* data,
                                   float input_width = 50.f);

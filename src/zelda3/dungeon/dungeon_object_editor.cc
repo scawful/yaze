@@ -5,9 +5,11 @@
 #include <cmath>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/agent/agent_ui_theme.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/ui_helpers.h"
 #include "app/platform/window.h"
 #include "imgui/imgui.h"
 
@@ -1451,6 +1453,8 @@ void DungeonObjectEditor::RenderLayerVisualization(gfx::Bitmap& canvas) {
 }
 
 void DungeonObjectEditor::DrawPropertyUI() {
+  const auto& theme = editor::AgentUI::GetTheme();
+
   if (!config_.show_property_panel ||
       selection_state_.selected_objects.empty()) {
     return;
@@ -1461,125 +1465,237 @@ void DungeonObjectEditor::DrawPropertyUI() {
     if (obj_idx < current_room_->GetTileObjectCount()) {
       auto& obj = current_room_->GetTileObject(obj_idx);
 
-      ImGui::Text("Object #%zu", obj_idx);
+      // ========== Identity Section ==========
+      gui::SectionHeader(ICON_MD_TAG, "Identity", theme.text_info);
+      if (gui::BeginPropertyTable("##IdentityProps")) {
+        // Object index
+        gui::PropertyRow("Object #", static_cast<int>(obj_idx));
+
+        // Object ID with name
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("ID");
+        ImGui::TableNextColumn();
+        std::string obj_name = GetObjectName(obj.id_);
+        ImGui::Text("0x%03X", obj.id_);
+        ImGui::SameLine();
+        ImGui::TextColored(theme.text_secondary_gray, "(%s)", obj_name.c_str());
+
+        // Object type/subtype
+        int subtype = GetObjectSubtype(obj.id_);
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Type");
+        ImGui::TableNextColumn();
+        ImGui::Text("Subtype %d", subtype);
+
+        gui::EndPropertyTable();
+      }
+
+      ImGui::Spacing();
+
+      // ========== Position Section ==========
+      gui::SectionHeader(ICON_MD_PLACE, "Position", theme.text_info);
+      if (gui::BeginPropertyTable("##PositionProps")) {
+        // X Position
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("X");
+        ImGui::TableNextColumn();
+        int x = obj.x();
+        ImGui::SetNextItemWidth(-1);
+        if (ImGui::InputInt("##X", &x, 1, 4)) {
+          if (x >= 0 && x < 64) {
+            obj.set_x(x);
+            if (object_changed_callback_) {
+              object_changed_callback_(obj_idx, obj);
+            }
+          }
+        }
+
+        // Y Position
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Y");
+        ImGui::TableNextColumn();
+        int y = obj.y();
+        ImGui::SetNextItemWidth(-1);
+        if (ImGui::InputInt("##Y", &y, 1, 4)) {
+          if (y >= 0 && y < 64) {
+            obj.set_y(y);
+            if (object_changed_callback_) {
+              object_changed_callback_(obj_idx, obj);
+            }
+          }
+        }
+
+        gui::EndPropertyTable();
+      }
+
+      ImGui::Spacing();
+
+      // ========== Appearance Section ==========
+      gui::SectionHeader(ICON_MD_PALETTE, "Appearance", theme.text_info);
+      if (gui::BeginPropertyTable("##AppearanceProps")) {
+        // Size (for Type 1 objects only)
+        if (obj.id_ < 0x100) {
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::Text("Size");
+          ImGui::TableNextColumn();
+          int size = obj.size();
+          ImGui::SetNextItemWidth(-1);
+          if (ImGui::SliderInt("##Size", &size, 0, 15, "0x%02X")) {
+            obj.set_size(size);
+            if (object_changed_callback_) {
+              object_changed_callback_(obj_idx, obj);
+            }
+          }
+        }
+
+        // Object ID (editable)
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Change ID");
+        ImGui::TableNextColumn();
+        int id = obj.id_;
+        ImGui::SetNextItemWidth(-1);
+        if (ImGui::InputInt("##ID", &id, 1, 16,
+                            ImGuiInputTextFlags_CharsHexadecimal)) {
+          if (id >= 0 && id <= 0xFFF) {
+            obj.id_ = id;
+            if (object_changed_callback_) {
+              object_changed_callback_(obj_idx, obj);
+            }
+          }
+        }
+
+        gui::EndPropertyTable();
+      }
+
+      ImGui::Spacing();
+
+      // ========== Layer Section ==========
+      gui::SectionHeader(ICON_MD_LAYERS, "Layer", theme.text_info);
+      if (gui::BeginPropertyTable("##LayerProps")) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Layer");
+        ImGui::TableNextColumn();
+        int layer = obj.GetLayerValue();
+        ImGui::SetNextItemWidth(-1);
+        if (ImGui::Combo("##Layer", &layer,
+                         "BG1 (Floor)\0BG2 (Objects)\0BG3 (Overlay)\0")) {
+          obj.layer_ = static_cast<RoomObject::LayerType>(layer);
+          if (object_changed_callback_) {
+            object_changed_callback_(obj_idx, obj);
+          }
+        }
+
+        gui::EndPropertyTable();
+      }
+
+      ImGui::Spacing();
       ImGui::Separator();
+      ImGui::Spacing();
 
-      // ID (hex)
-      int id = obj.id_;
-      if (ImGui::InputInt("ID (0x)", &id, 1, 16,
-                          ImGuiInputTextFlags_CharsHexadecimal)) {
-        if (id >= 0 && id <= 0xFFF) {
-          obj.id_ = id;
-          if (object_changed_callback_) {
-            object_changed_callback_(obj_idx, obj);
-          }
-        }
-      }
+      // ========== Actions Section ==========
+      float button_width = (ImGui::GetContentRegionAvail().x - 8) / 2;
 
-      // Position
-      int x = obj.x();
-      int y = obj.y();
-      if (ImGui::InputInt("X Position", &x, 1, 4)) {
-        if (x >= 0 && x < 64) {
-          obj.set_x(x);
-          if (object_changed_callback_) {
-            object_changed_callback_(obj_idx, obj);
-          }
-        }
-      }
-      if (ImGui::InputInt("Y Position", &y, 1, 4)) {
-        if (y >= 0 && y < 64) {
-          obj.set_y(y);
-          if (object_changed_callback_) {
-            object_changed_callback_(obj_idx, obj);
-          }
-        }
-      }
-
-      // Size (for Type 1 objects only)
-      if (obj.id_ < 0x100) {
-        int size = obj.size();
-        if (ImGui::SliderInt("Size", &size, 0, 15)) {
-          obj.set_size(size);
-          if (object_changed_callback_) {
-            object_changed_callback_(obj_idx, obj);
-          }
-        }
-      }
-
-      // Layer
-      int layer = obj.GetLayerValue();
-      if (ImGui::Combo("Layer", &layer, "Layer 0\0Layer 1\0Layer 2\0")) {
-        obj.layer_ = static_cast<RoomObject::LayerType>(layer);
-        if (object_changed_callback_) {
-          object_changed_callback_(obj_idx, obj);
-        }
-      }
-
-      ImGui::Separator();
-
-      // Action buttons
-      if (ImGui::Button("Delete Object")) {
+      ImGui::PushStyleColor(ImGuiCol_Button,
+                            ImVec4(theme.status_error.x * 0.7f,
+                                   theme.status_error.y * 0.7f,
+                                   theme.status_error.z * 0.7f, 1.0f));
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, theme.status_error);
+      if (ImGui::Button(ICON_MD_DELETE " Delete", ImVec2(button_width, 0))) {
         auto status = DeleteObject(obj_idx);
-        (void)status;  // Ignore return value for now
+        (void)status;
       }
+      ImGui::PopStyleColor(2);
+
       ImGui::SameLine();
-      if (ImGui::Button("Duplicate")) {
+
+      if (ImGui::Button(ICON_MD_CONTENT_COPY " Duplicate",
+                        ImVec2(button_width, 0))) {
         RoomObject duplicate = obj;
         duplicate.set_x(obj.x() + 1);
         auto status = current_room_->AddObject(duplicate);
-        (void)status;  // Ignore return value for now
+        (void)status;
       }
     }
   } else {
-    // Multiple objects selected
-    ImGui::Text("%zu objects selected",
-                selection_state_.selected_objects.size());
-    ImGui::Separator();
+    // ========== Multiple Selection Mode ==========
+    ImGui::TextColored(theme.text_warning_yellow, ICON_MD_SELECT_ALL " %zu objects selected",
+                       selection_state_.selected_objects.size());
 
-    ImGui::Text(ICON_MD_EDIT " Batch Edit");
-    
-    // Batch Layer
+    ImGui::Spacing();
+
+    // ========== Batch Layer ==========
+    gui::SectionHeader(ICON_MD_LAYERS, "Batch Layer", theme.text_info);
     static int batch_layer = 0;
-    if (ImGui::Combo("Set Layer", &batch_layer, "Layer 0\0Layer 1\0Layer 2\0")) {
+    ImGui::SetNextItemWidth(-1);
+    if (ImGui::Combo("##BatchLayer", &batch_layer,
+                     "BG1 (Floor)\0BG2 (Objects)\0BG3 (Overlay)\0")) {
       BatchChangeObjectLayer(selection_state_.selected_objects, batch_layer);
     }
 
-    // Batch Size
+    ImGui::Spacing();
+
+    // ========== Batch Size ==========
+    gui::SectionHeader(ICON_MD_ASPECT_RATIO, "Batch Size", theme.text_info);
     static int batch_size = 0x12;
-    if (ImGui::InputInt("Set Size", &batch_size, 1, 16, ImGuiInputTextFlags_CharsHexadecimal)) {
-       BatchResizeObjects(selection_state_.selected_objects, batch_size);
+    ImGui::SetNextItemWidth(-1);
+    if (ImGui::InputInt("##BatchSize", &batch_size, 1, 16,
+                        ImGuiInputTextFlags_CharsHexadecimal)) {
+      BatchResizeObjects(selection_state_.selected_objects, batch_size);
     }
 
-    // Batch Nudge
-    ImGui::Text("Nudge:");
-    ImGui::SameLine();
-    if (ImGui::Button(ICON_MD_ARROW_BACK)) {
+    ImGui::Spacing();
+
+    // ========== Nudge Section ==========
+    gui::SectionHeader(ICON_MD_OPEN_WITH, "Nudge", theme.text_info);
+    float nudge_btn_size = (ImGui::GetContentRegionAvail().x - 24) / 4;
+    if (ImGui::Button(ICON_MD_ARROW_BACK, ImVec2(nudge_btn_size, 0))) {
       BatchMoveObjects(selection_state_.selected_objects, -1, 0);
     }
     ImGui::SameLine();
-    if (ImGui::Button(ICON_MD_ARROW_DOWNWARD)) {
-      BatchMoveObjects(selection_state_.selected_objects, 0, 1);
-    }
-    ImGui::SameLine();
-    if (ImGui::Button(ICON_MD_ARROW_UPWARD)) {
+    if (ImGui::Button(ICON_MD_ARROW_UPWARD, ImVec2(nudge_btn_size, 0))) {
       BatchMoveObjects(selection_state_.selected_objects, 0, -1);
     }
     ImGui::SameLine();
-    if (ImGui::Button(ICON_MD_ARROW_FORWARD)) {
+    if (ImGui::Button(ICON_MD_ARROW_DOWNWARD, ImVec2(nudge_btn_size, 0))) {
+      BatchMoveObjects(selection_state_.selected_objects, 0, 1);
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_ARROW_FORWARD, ImVec2(nudge_btn_size, 0))) {
       BatchMoveObjects(selection_state_.selected_objects, 1, 0);
     }
 
+    ImGui::Spacing();
     ImGui::Separator();
+    ImGui::Spacing();
 
-    if (ImGui::Button("Delete All Selected")) {
+    // ========== Actions ==========
+    float button_width = (ImGui::GetContentRegionAvail().x - 8) / 2;
+
+    ImGui::PushStyleColor(ImGuiCol_Button,
+                          ImVec4(theme.status_error.x * 0.7f,
+                                 theme.status_error.y * 0.7f,
+                                 theme.status_error.z * 0.7f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, theme.status_error);
+    if (ImGui::Button(ICON_MD_DELETE_SWEEP " Delete All",
+                      ImVec2(button_width, 0))) {
       auto status = DeleteSelectedObjects();
-      (void)status;  // Ignore return value for now
+      (void)status;
     }
+    ImGui::PopStyleColor(2);
 
-    if (ImGui::Button("Clear Selection")) {
+    ImGui::SameLine();
+
+    if (ImGui::Button(ICON_MD_DESELECT " Clear Selection",
+                      ImVec2(button_width, 0))) {
       auto status = ClearSelection();
-      (void)status;  // Ignore return value for now
+      (void)status;
     }
   }
 }

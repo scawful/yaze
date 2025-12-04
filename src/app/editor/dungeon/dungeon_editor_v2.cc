@@ -733,6 +733,13 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
     if (dungeon_editor_system_) {
       viewer->SetEditorSystem(dungeon_editor_system_.get());
     }
+    viewer->SetRoomNavigationCallback(
+        [this](int target_room) {
+          if (target_room >= 0 &&
+              target_room < static_cast<int>(rooms_.size())) {
+            OnRoomSelected(target_room);
+          }
+        });
 
     room_viewers_[room_id] = std::move(viewer);
     return room_viewers_[room_id].get();

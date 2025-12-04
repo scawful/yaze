@@ -165,6 +165,7 @@ class DungeonObjectSelector {
 
   // UI state for object browser filter
   int object_type_filter_ = 0;
+  int object_subtype_tab_ = 0;  // 0=Type1, 1=Type2, 2=Type3
 
   // UI state for compact sprite editor
   int new_sprite_id_ = 0;
@@ -205,6 +206,9 @@ class DungeonObjectSelector {
 
   // Registry initialization flag
   bool registry_initialized_ = false;
+
+  // Performance: enable/disable graphical preview rendering
+  bool enable_object_previews_ = false;
 };
 
 }  // namespace editor

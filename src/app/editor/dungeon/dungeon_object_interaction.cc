@@ -228,6 +228,9 @@ void DungeonObjectInteraction::PlaceObjectAtPosition(int room_x, int room_y) {
   if (cache_invalidation_callback_) {
     cache_invalidation_callback_();
   }
+
+  // Exit placement mode after placing a single object
+  CancelPlacement();
 }
 
 void DungeonObjectInteraction::DrawSelectBox() {

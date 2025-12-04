@@ -143,9 +143,6 @@ class ObjectEditorPanel : public EditorPanel {
 
   // Drawing methods
   void DrawObjectSelector();
-  void DrawObjectTemplates();
-  void DrawTemplateCreationModal();
-  void DrawDeleteConfirmationModal();
   void DrawEmulatorPreview();
   void DrawSelectedObjectInfo();
   void DrawStaticObjectEditor();
