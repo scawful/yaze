@@ -135,7 +135,7 @@ bool EditorSelectionDialog::Show(bool* p_open) {
         ImGui::TableNextColumn();
 
         EditorType prev_selection = selected_editor_;
-        DrawEditorCard(editors_[i], static_cast<int>(i));
+        DrawEditorPanel(editors_[i], static_cast<int>(i));
 
         // Check if an editor was just selected
         if (selected_editor_ != prev_selection) {
@@ -226,14 +226,14 @@ void EditorSelectionDialog::DrawQuickAccessButtons() {
   ImGui::NewLine();
 }
 
-void EditorSelectionDialog::DrawEditorCard(const EditorInfo& info, int index) {
+void EditorSelectionDialog::DrawEditorPanel(const EditorInfo& info, int index) {
   ImGui::PushID(index);
 
   ImVec2 button_size(180, 120);
   ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-  // Card styling with gradients
+  // Panel styling with gradients
   bool is_recent = std::find(recent_editors_.begin(), recent_editors_.end(),
                              info.type) != recent_editors_.end();
 

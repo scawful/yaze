@@ -73,36 +73,36 @@ EM_JS(void, SetupYazeControlApi, (), {
     },
     
     // Panel control (card naming kept for backward compatibility)
-    openCard: function(cardId) {
-      if (Module.controlOpenCard) {
-        try { return JSON.parse(Module.controlOpenCard(cardId)); }
+    openPanel: function(cardId) {
+      if (Module.controlOpenPanel) {
+        try { return JSON.parse(Module.controlOpenPanel(cardId)); }
         catch(e) { return {error: e.message}; }
       }
       return {error: "API not ready"};
     },
     
-    closeCard: function(cardId) {
-      if (Module.controlCloseCard) {
-        try { return JSON.parse(Module.controlCloseCard(cardId)); }
+    closePanel: function(cardId) {
+      if (Module.controlClosePanel) {
+        try { return JSON.parse(Module.controlClosePanel(cardId)); }
         catch(e) { return {error: e.message}; }
       }
       return {error: "API not ready"};
     },
     
-    toggleCard: function(cardId) {
-      if (Module.controlToggleCard) {
-        try { return JSON.parse(Module.controlToggleCard(cardId)); }
+    togglePanel: function(cardId) {
+      if (Module.controlTogglePanel) {
+        try { return JSON.parse(Module.controlTogglePanel(cardId)); }
         catch(e) { return {error: e.message}; }
       }
       return {error: "API not ready"};
     },
 
     // Panel aliases
-    openPanel: function(panelId) { return this.openCard(panelId); },
-    closePanel: function(panelId) { return this.closeCard(panelId); },
-    togglePanel: function(panelId) { return this.toggleCard(panelId); },
+    openPanel: function(panelId) { return this.openPanel(panelId); },
+    closePanel: function(panelId) { return this.closePanel(panelId); },
+    togglePanel: function(panelId) { return this.togglePanel(panelId); },
     
-    getVisibleCards: function() {
+    getVisiblePanels: function() {
       if (Module.controlGetVisiblePanels) {
         try { return JSON.parse(Module.controlGetVisiblePanels()); }
         catch(e) { return {error: e.message}; }
@@ -110,9 +110,9 @@ EM_JS(void, SetupYazeControlApi, (), {
       return {error: "API not ready"};
     },
 
-    getVisiblePanels: function() { return this.getVisibleCards(); },
+    getVisiblePanels: function() { return this.getVisiblePanels(); },
     
-    getAvailableCards: function() {
+    getAvailablePanels: function() {
       if (Module.controlGetAvailablePanels) {
         try { return JSON.parse(Module.controlGetAvailablePanels()); }
         catch(e) { return {error: e.message}; }
@@ -120,9 +120,9 @@ EM_JS(void, SetupYazeControlApi, (), {
       return {error: "API not ready"};
     },
 
-    getAvailablePanels: function() { return this.getAvailableCards(); },
+    getAvailablePanels: function() { return this.getAvailablePanels(); },
     
-    getCardsInCategory: function(category) {
+    getPanelsInCategory: function(category) {
       if (Module.controlGetPanelsInCategory) {
         try { return JSON.parse(Module.controlGetPanelsInCategory(category)); }
         catch(e) { return {error: e.message}; }
@@ -130,9 +130,9 @@ EM_JS(void, SetupYazeControlApi, (), {
       return {error: "API not ready"};
     },
 
-    getPanelsInCategory: function(category) { return this.getCardsInCategory(category); },
+    getPanelsInCategory: function(category) { return this.getPanelsInCategory(category); },
 
-    showAllCards: function() {
+    showAllPanels: function() {
       if (Module.controlShowAllPanels) {
         try { return JSON.parse(Module.controlShowAllPanels()); }
         catch(e) { return {error: e.message}; }
@@ -140,9 +140,9 @@ EM_JS(void, SetupYazeControlApi, (), {
       return {error: "API not ready"};
     },
 
-    showAllPanels: function() { return this.showAllCards(); },
+    showAllPanels: function() { return this.showAllPanels(); },
     
-    hideAllCards: function() {
+    hideAllPanels: function() {
       if (Module.controlHideAllPanels) {
         try { return JSON.parse(Module.controlHideAllPanels()); }
         catch(e) { return {error: e.message}; }
@@ -150,9 +150,9 @@ EM_JS(void, SetupYazeControlApi, (), {
       return {error: "API not ready"};
     },
 
-    hideAllPanels: function() { return this.hideAllCards(); },
+    hideAllPanels: function() { return this.hideAllPanels(); },
     
-    showAllCardsInCategory: function(category) {
+    showAllPanelsInCategory: function(category) {
       if (Module.controlShowAllPanelsInCategory) {
         try { return JSON.parse(Module.controlShowAllPanelsInCategory(category)); }
         catch(e) { return {error: e.message}; }
@@ -160,9 +160,9 @@ EM_JS(void, SetupYazeControlApi, (), {
       return {error: "API not ready"};
     },
 
-    showAllPanelsInCategory: function(category) { return this.showAllCardsInCategory(category); },
+    showAllPanelsInCategory: function(category) { return this.showAllPanelsInCategory(category); },
     
-    hideAllCardsInCategory: function(category) {
+    hideAllPanelsInCategory: function(category) {
       if (Module.controlHideAllPanelsInCategory) {
         try { return JSON.parse(Module.controlHideAllPanelsInCategory(category)); }
         catch(e) { return {error: e.message}; }
@@ -170,9 +170,9 @@ EM_JS(void, SetupYazeControlApi, (), {
       return {error: "API not ready"};
     },
 
-    hideAllPanelsInCategory: function(category) { return this.hideAllCardsInCategory(category); },
+    hideAllPanelsInCategory: function(category) { return this.hideAllPanelsInCategory(category); },
 
-    showOnlyCard: function(cardId) {
+    showOnlyPanel: function(cardId) {
       if (Module.controlShowOnlyPanel) {
         try { return JSON.parse(Module.controlShowOnlyPanel(cardId)); }
         catch(e) { return {error: e.message}; }
@@ -180,10 +180,10 @@ EM_JS(void, SetupYazeControlApi, (), {
       return {error: "API not ready"};
     },
 
-    showOnlyPanel: function(panelId) { return this.showOnlyCard(panelId); },
+    showOnlyPanel: function(panelId) { return this.showOnlyPanel(panelId); },
     
     // Layout control
-    setCardLayout: function(layoutName) {
+    setPanelLayout: function(layoutName) {
       if (Module.controlSetPanelLayout) {
         try { return JSON.parse(Module.controlSetPanelLayout(layoutName)); }
         catch(e) { return {error: e.message}; }
@@ -191,7 +191,7 @@ EM_JS(void, SetupYazeControlApi, (), {
       return {error: "API not ready"};
     },
 
-    setPanelLayout: function(layoutName) { return this.setCardLayout(layoutName); },
+    setPanelLayout: function(layoutName) { return this.setPanelLayout(layoutName); },
     
     getAvailableLayouts: function() {
       if (Module.controlGetAvailableLayouts) {
@@ -543,7 +543,7 @@ void WasmControlApi::SetupJavaScriptBindings() {
 // Helper Methods
 // ============================================================================
 
-editor::PanelManager* WasmControlApi::GetCardRegistry() {
+editor::PanelManager* WasmControlApi::GetPanelRegistry() {
   if (!IsReady() || !editor_manager_) {
     return nullptr;
   }
@@ -629,10 +629,10 @@ std::string WasmControlApi::GetAvailableEditors() {
 }
 
 // ============================================================================
-// Card Control Implementation
+// Panel Control Implementation
 // ============================================================================
 
-std::string WasmControlApi::OpenCard(const std::string& card_id) {
+std::string WasmControlApi::OpenPanel(const std::string& card_id) {
   nlohmann::json result;
   
   if (!IsReady()) {
@@ -641,7 +641,7 @@ std::string WasmControlApi::OpenCard(const std::string& card_id) {
     return result.dump();
   }
   
-  auto* registry = GetCardRegistry();
+  auto* registry = GetPanelRegistry();
   if (registry) {
     // Use default session ID (0) for WASM single-session mode
     constexpr size_t session_id = 0;
@@ -651,18 +651,18 @@ std::string WasmControlApi::OpenCard(const std::string& card_id) {
     result["card_id"] = card_id;
     result["visible"] = true;
     if (!found) {
-      result["error"] = "Card not found";
+      result["error"] = "Panel not found";
     }
   } else {
     result["success"] = false;
-    result["error"] = "Card registry not available";
+    result["error"] = "Panel registry not available";
   }
   
-  LOG_INFO("WasmControlApi", "OpenCard: %s", card_id.c_str());
+  LOG_INFO("WasmControlApi", "OpenPanel: %s", card_id.c_str());
   return result.dump();
 }
 
-std::string WasmControlApi::CloseCard(const std::string& card_id) {
+std::string WasmControlApi::ClosePanel(const std::string& card_id) {
   nlohmann::json result;
   
   if (!IsReady()) {
@@ -671,7 +671,7 @@ std::string WasmControlApi::CloseCard(const std::string& card_id) {
     return result.dump();
   }
   
-  auto* registry = GetCardRegistry();
+  auto* registry = GetPanelRegistry();
   if (registry) {
     constexpr size_t session_id = 0;
     bool found = registry->HidePanel(session_id, card_id);
@@ -680,18 +680,18 @@ std::string WasmControlApi::CloseCard(const std::string& card_id) {
     result["card_id"] = card_id;
     result["visible"] = false;
     if (!found) {
-      result["error"] = "Card not found";
+      result["error"] = "Panel not found";
     }
   } else {
     result["success"] = false;
-    result["error"] = "Card registry not available";
+    result["error"] = "Panel registry not available";
   }
   
-  LOG_INFO("WasmControlApi", "CloseCard: %s", card_id.c_str());
+  LOG_INFO("WasmControlApi", "ClosePanel: %s", card_id.c_str());
   return result.dump();
 }
 
-std::string WasmControlApi::ToggleCard(const std::string& card_id) {
+std::string WasmControlApi::TogglePanel(const std::string& card_id) {
   nlohmann::json result;
   
   if (!IsReady()) {
@@ -700,7 +700,7 @@ std::string WasmControlApi::ToggleCard(const std::string& card_id) {
     return result.dump();
   }
   
-  auto* registry = GetCardRegistry();
+  auto* registry = GetPanelRegistry();
   if (registry) {
     constexpr size_t session_id = 0;
     bool found = registry->TogglePanel(session_id, card_id);
@@ -708,16 +708,16 @@ std::string WasmControlApi::ToggleCard(const std::string& card_id) {
     result["success"] = found;
     result["card_id"] = card_id;
     if (!found) {
-      result["error"] = "Card not found";
+      result["error"] = "Panel not found";
     } else {
       result["visible"] = registry->IsPanelVisible(session_id, card_id);
     }
   } else {
     result["success"] = false;
-    result["error"] = "Card registry not available";
+    result["error"] = "Panel registry not available";
   }
   
-  LOG_INFO("WasmControlApi", "ToggleCard: %s", card_id.c_str());
+  LOG_INFO("WasmControlApi", "TogglePanel: %s", card_id.c_str());
   return result.dump();
 }
 
@@ -728,7 +728,7 @@ std::string WasmControlApi::GetVisiblePanels() {
     return result.dump();
   }
 
-  auto* registry = GetCardRegistry();
+  auto* registry = GetPanelRegistry();
   if (!registry) {
     return result.dump();
   }
@@ -757,7 +757,7 @@ std::string WasmControlApi::GetAvailablePanels() {
     return result.dump();
   }
 
-  auto* registry = GetCardRegistry();
+  auto* registry = GetPanelRegistry();
   if (!registry) {
     return result.dump();
   }
@@ -797,7 +797,7 @@ std::string WasmControlApi::GetPanelsInCategory(const std::string& category) {
     return result.dump();
   }
 
-  auto* registry = GetCardRegistry();
+  auto* registry = GetPanelRegistry();
   if (!registry) {
     return result.dump();
   }
@@ -830,14 +830,14 @@ std::string WasmControlApi::ShowAllPanels() {
     return result.dump();
   }
   
-  auto* registry = GetCardRegistry();
+  auto* registry = GetPanelRegistry();
   if (registry) {
     constexpr size_t session_id = 0;
     registry->ShowAllPanelsInSession(session_id);
     result["success"] = true;
   } else {
     result["success"] = false;
-    result["error"] = "Card registry not available";
+    result["error"] = "Panel registry not available";
   }
 
   return result.dump();
@@ -852,14 +852,14 @@ std::string WasmControlApi::HideAllPanels() {
     return result.dump();
   }
 
-  auto* registry = GetCardRegistry();
+  auto* registry = GetPanelRegistry();
   if (registry) {
     constexpr size_t session_id = 0;
     registry->HideAllPanelsInSession(session_id);
     result["success"] = true;
   } else {
     result["success"] = false;
-    result["error"] = "Card registry not available";
+    result["error"] = "Panel registry not available";
   }
 
   return result.dump();
@@ -874,7 +874,7 @@ std::string WasmControlApi::ShowAllPanelsInCategory(const std::string& category)
     return result.dump();
   }
 
-  auto* registry = GetCardRegistry();
+  auto* registry = GetPanelRegistry();
   if (registry) {
     constexpr size_t session_id = 0;
     registry->ShowAllPanelsInCategory(session_id, category);
@@ -882,7 +882,7 @@ std::string WasmControlApi::ShowAllPanelsInCategory(const std::string& category)
     result["category"] = category;
   } else {
     result["success"] = false;
-    result["error"] = "Card registry not available";
+    result["error"] = "Panel registry not available";
   }
 
   return result.dump();
@@ -897,7 +897,7 @@ std::string WasmControlApi::HideAllPanelsInCategory(const std::string& category)
     return result.dump();
   }
 
-  auto* registry = GetCardRegistry();
+  auto* registry = GetPanelRegistry();
   if (registry) {
     constexpr size_t session_id = 0;
     registry->HideAllPanelsInCategory(session_id, category);
@@ -905,7 +905,7 @@ std::string WasmControlApi::HideAllPanelsInCategory(const std::string& category)
     result["category"] = category;
   } else {
     result["success"] = false;
-    result["error"] = "Card registry not available";
+    result["error"] = "Panel registry not available";
   }
 
   return result.dump();
@@ -920,7 +920,7 @@ std::string WasmControlApi::ShowOnlyPanel(const std::string& card_id) {
     return result.dump();
   }
 
-  auto* registry = GetCardRegistry();
+  auto* registry = GetPanelRegistry();
   if (registry) {
     constexpr size_t session_id = 0;
     registry->ShowOnlyPanel(session_id, card_id);
@@ -928,7 +928,7 @@ std::string WasmControlApi::ShowOnlyPanel(const std::string& card_id) {
     result["card_id"] = card_id;
   } else {
     result["success"] = false;
-    result["error"] = "Card registry not available";
+    result["error"] = "Panel registry not available";
   }
 
   return result.dump();
@@ -1041,7 +1041,7 @@ std::string WasmControlApi::GetAvailableMenuActions() {
   // View menu
   result.push_back("View.ShowEmulator");
   result.push_back("View.ShowWelcome");
-  result.push_back("View.ShowCardBrowser");
+  result.push_back("View.ShowPanelBrowser");
   result.push_back("View.ShowMemoryEditor");
   result.push_back("View.ShowHexEditor");
   
@@ -1349,7 +1349,7 @@ std::string WasmControlApi::GetCurrentDungeonRoom() {
   result["active_rooms"] = active_rooms;
   result["room_count"] = dungeon->active_rooms().size();
 
-  // Card visibility state
+  // Panel visibility state
   nlohmann::json cards;
   cards["room_selector"] = dungeon->show_room_selector_;
   cards["room_matrix"] = dungeon->show_room_matrix_;
@@ -2341,9 +2341,9 @@ EMSCRIPTEN_BINDINGS(wasm_control_api) {
   emscripten::function("controlSwitchEditor", &WasmControlApi::SwitchEditor);
   emscripten::function("controlGetCurrentEditor", &WasmControlApi::GetCurrentEditor);
   emscripten::function("controlGetAvailableEditors", &WasmControlApi::GetAvailableEditors);
-  emscripten::function("controlOpenCard", &WasmControlApi::OpenCard);
-  emscripten::function("controlCloseCard", &WasmControlApi::CloseCard);
-  emscripten::function("controlToggleCard", &WasmControlApi::ToggleCard);
+  emscripten::function("controlOpenPanel", &WasmControlApi::OpenPanel);
+  emscripten::function("controlClosePanel", &WasmControlApi::ClosePanel);
+  emscripten::function("controlTogglePanel", &WasmControlApi::TogglePanel);
   emscripten::function("controlGetVisiblePanels", &WasmControlApi::GetVisiblePanels);
   emscripten::function("controlGetAvailablePanels", &WasmControlApi::GetAvailablePanels);
   emscripten::function("controlGetPanelsInCategory", &WasmControlApi::GetPanelsInCategory);

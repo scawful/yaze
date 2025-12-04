@@ -229,7 +229,7 @@ class Editor {
   EditorDependencies dependencies_;
 
   // Helper method to create session-aware card titles for multi-session support
-  std::string MakeCardTitle(const std::string& base_title) const {
+  std::string MakePanelTitle(const std::string& base_title) const {
     if (dependencies_.session_id > 0) {
       return absl::StrFormat("%s [S%zu]", base_title, dependencies_.session_id);
     }
@@ -237,7 +237,7 @@ class Editor {
   }
 
   // Helper method to create session-aware card IDs for multi-session support
-  std::string MakeCardId(const std::string& base_id) const {
+  std::string MakePanelId(const std::string& base_id) const {
     if (dependencies_.session_id > 0) {
       return absl::StrFormat("s%zu.%s", dependencies_.session_id, base_id);
     }

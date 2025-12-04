@@ -40,7 +40,7 @@ class AgentSidebar;
  * - AgentSessionManager (multi-agent session management)
  * - AgentEditor (main configuration dashboard)
  * - AgentSidebar (right-side chat panel with tabs)
- * - AgentChatCard (pop-out dockable chat windows)
+ * - AgentChatPanel (pop-out dockable chat windows)
  *
  * It owns the AgentSessionManager and handles state synchronization
  * between components during the Update() call.
@@ -60,7 +60,7 @@ class AgentUiController {
    * Call hierarchy:
    * 1. SyncStateFromEditor() - pull config changes from AgentEditor
    * 2. agent_editor_.Update() - draw editor cards
-   * 3. DrawOpenCards() - draw all pop-out agent chat cards
+   * 3. DrawOpenPanels() - draw all pop-out agent chat cards
    * 4. SyncStateToComponents() - push state to sidebar
    */
   absl::Status Update();
@@ -74,7 +74,7 @@ class AgentUiController {
   // Multi-agent management
   void CreateNewAgent();
   void PopOutAgent(const std::string& agent_id);
-  void CloseAgentCard(const std::string& agent_id);
+  void CloseAgentPanel(const std::string& agent_id);
 
   // Component access (returns nullptr if agent UI disabled)
   AgentEditor* GetAgentEditor();
@@ -105,10 +105,10 @@ class AgentUiController {
   /**
    * @brief Draw all open pop-out agent chat cards
    */
-  void DrawOpenCards();
+  void DrawOpenPanels();
 
   AgentSessionManager session_manager_;
-  std::vector<std::unique_ptr<AgentChatCard>> open_cards_;
+  std::vector<std::unique_ptr<AgentChatPanel>> open_cards_;
 
   AgentChatHistoryPopup chat_history_popup_;
   AgentEditor agent_editor_;
@@ -135,7 +135,7 @@ inline bool AgentUiController::IsAvailable() const { return false; }
 inline void AgentUiController::DrawPopups() {}
 inline void AgentUiController::CreateNewAgent() {}
 inline void AgentUiController::PopOutAgent(const std::string&) {}
-inline void AgentUiController::CloseAgentCard(const std::string&) {}
+inline void AgentUiController::CloseAgentPanel(const std::string&) {}
 inline AgentEditor* AgentUiController::GetAgentEditor() { return nullptr; }
 inline AgentSidebar* AgentUiController::GetAgentSidebar() { return nullptr; }
 #endif

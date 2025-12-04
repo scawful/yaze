@@ -251,7 +251,7 @@ void MenuOrchestrator::AddViewMenuItems() {
                      [this]() { OnShowWelcomeScreen(); });
 }
 
-void MenuOrchestrator::AddCardsSubmenu() {
+void MenuOrchestrator::AddPanelsSubmenu() {
   if (!panel_manager_) {
     return;
   }
@@ -264,7 +264,7 @@ void MenuOrchestrator::AddCardsSubmenu() {
   }
 
   // Using raw ImGui for conditional submenus
-  if (ImGui::BeginMenu(absl::StrFormat("%s Cards", ICON_MD_DASHBOARD).c_str())) {
+  if (ImGui::BeginMenu(absl::StrFormat("%s Panels", ICON_MD_DASHBOARD).c_str())) {
     for (const auto& category : categories) {
       if (ImGui::BeginMenu(category.c_str())) {
         // Draw all cards in this category
@@ -750,7 +750,7 @@ void MenuOrchestrator::OnShowDisplaySettings() {
 }
 
 void MenuOrchestrator::OnShowHexEditor() {
-  // Show hex editor card via EditorCardManager
+  // Show hex editor card via EditorPanelManager
   if (editor_manager_) {
     editor_manager_->panel_manager().ShowPanel(editor_manager_->GetCurrentSessionId(), "Hex Editor");
   }

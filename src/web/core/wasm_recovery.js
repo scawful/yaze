@@ -43,7 +43,7 @@
       timestamp: Date.now(),
       editor: null,
       romPath: lastRomPath,
-      visibleCards: []
+      visiblePanels: []
     };
 
     try {
@@ -51,8 +51,8 @@
         const editor = window.yaze.control.getCurrentEditor();
         if (editor && !editor.error) state.editor = editor.name;
 
-        const cards = window.yaze.control.getVisibleCards();
-        if (Array.isArray(cards)) state.visibleCards = cards;
+        const cards = window.yaze.control.getVisiblePanels();
+        if (Array.isArray(cards)) state.visiblePanels = cards;
       }
     } catch (e) {
       // Module might be dead, ignore

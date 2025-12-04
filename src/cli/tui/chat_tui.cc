@@ -28,7 +28,7 @@ namespace {
 const std::vector<std::string> kSpinnerFrames = {"⠋", "⠙", "⠹", "⠸", "⠼",
                                                  "⠴", "⠦", "⠧", "⠇", "⠏"};
 
-Element RenderPanelCard(const std::string& title,
+Element RenderPanelPanel(const std::string& title,
                         const std::vector<Element>& body, Color border_color,
                         bool highlight = false) {
   auto panel = window(text(title) | bold, vbox(body));
@@ -249,7 +249,7 @@ void ChatTUI::Run() {
                                  : text("✓") | color(Color::GreenLight)});
 
     std::vector<Element> info_cards;
-    info_cards.push_back(RenderPanelCard(
+    info_cards.push_back(RenderPanelPanel(
         "Session",
         {
             RenderMetricLabel("🕒", "Turns",
@@ -269,7 +269,7 @@ void ChatTUI::Run() {
         },
         Color::GrayLight));
 
-    info_cards.push_back(RenderPanelCard(
+    info_cards.push_back(RenderPanelPanel(
         "Latency",
         {RenderMetricLabel("⚡", "Last",
                            absl::StrFormat("%.2fs", last_response_seconds_),
@@ -281,7 +281,7 @@ void ChatTUI::Run() {
          RenderLatencySparkline(latency_history_)},
         Color::Magenta, agent_busy_.load()));
 
-    info_cards.push_back(RenderPanelCard(
+    info_cards.push_back(RenderPanelPanel(
         "Shortcuts",
         {
             text("⌨  Enter ↵ Send") | dim,

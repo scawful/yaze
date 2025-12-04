@@ -1,20 +1,23 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_DUNGEON_OBJECT_SELECTOR_H
 #define YAZE_APP_EDITOR_DUNGEON_DUNGEON_OBJECT_SELECTOR_H
 
-#include "app/editor/agent/agent_ui_theme.h"
+#include <array>
+#include <cstdint>
+#include <functional>
+#include <memory>
+#include <string>
 #include "app/editor/editor.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas.h"
-#include "app/gui/widgets/asset_browser.h"
-#include "app/platform/window.h"
 #include "rom/rom.h"
+#include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_object.h"
 #include "zelda3/game_data.h"
 // object_renderer.h removed - using ObjectDrawer for production rendering
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/dungeon_object_editor.h"
 #include "zelda3/dungeon/dungeon_object_registry.h"
-#include "zelda3/dungeon/object_drawer.h"
 
 namespace yaze {
 namespace editor {
@@ -94,7 +97,9 @@ class DungeonObjectSelector {
   void SelectObject(int obj_id);
 
   // Static editor indicator (highlights which object is being viewed in detail)
-  void SetStaticEditorObjectId(int obj_id) { static_editor_object_id_ = obj_id; }
+  void SetStaticEditorObjectId(int obj_id) {
+    static_editor_object_id_ = obj_id;
+  }
   int GetStaticEditorObjectId() const { return static_editor_object_id_; }
 
  private:
@@ -123,8 +128,6 @@ class DungeonObjectSelector {
   gui::Canvas room_gfx_canvas_{"##RoomGfxCanvas",
                                ImVec2(0x100 + 1, 0x10 * 0x40 + 1)};
   gui::Canvas object_canvas_;
-  // ObjectRenderer removed - using ObjectDrawer in
-  // Room::RenderObjectsToBackground()
 
   // Editor systems
   std::unique_ptr<zelda3::DungeonEditorSystem>* dungeon_editor_system_ =

@@ -12,23 +12,23 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       preset.name = "Overworld Default";
       preset.description = "Main canvas with tile16 editor";
       preset.default_visible_panels = {
-          Cards::kOverworldCanvas,
-          Cards::kOverworldTile16Selector,
+          Panels::kOverworldCanvas,
+          Panels::kOverworldTile16Selector,
       };
       preset.panel_positions = {
-          {Cards::kOverworldCanvas, DockPosition::Center},
-          {Cards::kOverworldTile16Selector, DockPosition::Right},
-          {Cards::kOverworldTile8Selector, DockPosition::Right},
-          {Cards::kOverworldAreaGraphics, DockPosition::Left},
-          {Cards::kOverworldScratch, DockPosition::Bottom},
+          {Panels::kOverworldCanvas, DockPosition::Center},
+          {Panels::kOverworldTile16Selector, DockPosition::Right},
+          {Panels::kOverworldTile8Selector, DockPosition::Right},
+          {Panels::kOverworldAreaGraphics, DockPosition::Left},
+          {Panels::kOverworldScratch, DockPosition::Bottom},
       };
       preset.optional_panels = {
-          Cards::kOverworldTile8Selector,
-          Cards::kOverworldAreaGraphics,
-          Cards::kOverworldScratch,
-          Cards::kOverworldGfxGroups,
-          Cards::kOverworldUsageStats,
-          Cards::kOverworldV3Settings,
+          Panels::kOverworldTile8Selector,
+          Panels::kOverworldAreaGraphics,
+          Panels::kOverworldScratch,
+          Panels::kOverworldGfxGroups,
+          Panels::kOverworldUsageStats,
+          Panels::kOverworldV3Settings,
       };
       break;
 
@@ -36,24 +36,24 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       preset.name = "Dungeon Default";
       preset.description = "Room editor with object palette and properties";
       preset.default_visible_panels = {
-          Cards::kDungeonControlPanel,
-          Cards::kDungeonRoomSelector,
+          Panels::kDungeonControlPanel,
+          Panels::kDungeonRoomSelector,
       };
       preset.panel_positions = {
-          {Cards::kDungeonControlPanel, DockPosition::Center}, // Controls implies canvas usually
-          {Cards::kDungeonRoomSelector, DockPosition::Left},
-          {Cards::kDungeonRoomMatrix, DockPosition::RightTop},
-          {Cards::kDungeonEntrances, DockPosition::RightBottom},
-          {Cards::kDungeonObjectEditor, DockPosition::Right},
-          {Cards::kDungeonPaletteEditor, DockPosition::Bottom},
+          {Panels::kDungeonControlPanel, DockPosition::Center}, // Controls implies canvas usually
+          {Panels::kDungeonRoomSelector, DockPosition::Left},
+          {Panels::kDungeonRoomMatrix, DockPosition::RightTop},
+          {Panels::kDungeonEntrances, DockPosition::RightBottom},
+          {Panels::kDungeonObjectEditor, DockPosition::Right},
+          {Panels::kDungeonPaletteEditor, DockPosition::Bottom},
       };
       preset.optional_panels = {
-          Cards::kDungeonObjectEditor,
-          Cards::kDungeonPaletteEditor,
-          Cards::kDungeonRoomMatrix,
-          Cards::kDungeonEntrances,
-          Cards::kDungeonRoomGraphics,
-          Cards::kDungeonDebugControls,
+          Panels::kDungeonObjectEditor,
+          Panels::kDungeonPaletteEditor,
+          Panels::kDungeonRoomMatrix,
+          Panels::kDungeonEntrances,
+          Panels::kDungeonRoomGraphics,
+          Panels::kDungeonDebugControls,
       };
       break;
 
@@ -61,18 +61,18 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       preset.name = "Graphics Default";
       preset.description = "Sheet browser with editor";
       preset.default_visible_panels = {
-          Cards::kGraphicsSheetBrowser,
-          Cards::kGraphicsSheetEditor,
+          Panels::kGraphicsSheetBrowser,
+          Panels::kGraphicsSheetEditor,
       };
       preset.panel_positions = {
-          {Cards::kGraphicsSheetEditor, DockPosition::Center},
-          {Cards::kGraphicsSheetBrowser, DockPosition::Left},
-          {Cards::kGraphicsPlayerAnimations, DockPosition::Bottom},
-          {Cards::kGraphicsPrototypeViewer, DockPosition::Right},
+          {Panels::kGraphicsSheetEditor, DockPosition::Center},
+          {Panels::kGraphicsSheetBrowser, DockPosition::Left},
+          {Panels::kGraphicsPlayerAnimations, DockPosition::Bottom},
+          {Panels::kGraphicsPrototypeViewer, DockPosition::Right},
       };
       preset.optional_panels = {
-          Cards::kGraphicsPlayerAnimations,
-          Cards::kGraphicsPrototypeViewer,
+          Panels::kGraphicsPlayerAnimations,
+          Panels::kGraphicsPrototypeViewer,
       };
       break;
 
@@ -80,24 +80,24 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       preset.name = "Palette Default";
       preset.description = "Palette groups with editor and preview";
       preset.default_visible_panels = {
-          Cards::kPaletteControlPanel,
-          Cards::kPaletteOwMain,
+          Panels::kPaletteControlPanel,
+          Panels::kPaletteOwMain,
       };
       preset.panel_positions = {
-          {Cards::kPaletteOwMain, DockPosition::Center},
-          {Cards::kPaletteControlPanel, DockPosition::Left},
-          {Cards::kPaletteQuickAccess, DockPosition::Right},
+          {Panels::kPaletteOwMain, DockPosition::Center},
+          {Panels::kPaletteControlPanel, DockPosition::Left},
+          {Panels::kPaletteQuickAccess, DockPosition::Right},
       };
       preset.optional_panels = {
-          Cards::kPaletteQuickAccess,
-          Cards::kPaletteOwAnimated,
-          Cards::kPaletteDungeonMain,
-          Cards::kPaletteSprites,
-          Cards::kPaletteSpritesAux1,
-          Cards::kPaletteSpritesAux2,
-          Cards::kPaletteSpritesAux3,
-          Cards::kPaletteEquipment,
-          Cards::kPaletteCustom,
+          Panels::kPaletteQuickAccess,
+          Panels::kPaletteOwAnimated,
+          Panels::kPaletteDungeonMain,
+          Panels::kPaletteSprites,
+          Panels::kPaletteSpritesAux1,
+          Panels::kPaletteSpritesAux2,
+          Panels::kPaletteSpritesAux3,
+          Panels::kPaletteEquipment,
+          Panels::kPaletteCustom,
       };
       break;
 
@@ -105,14 +105,14 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       preset.name = "Sprite Default";
       preset.description = "Sprite browser with editor";
       preset.default_visible_panels = {
-          Cards::kSpriteVanillaEditor,
+          Panels::kSpriteVanillaEditor,
       };
       preset.panel_positions = {
-          {Cards::kSpriteVanillaEditor, DockPosition::Left},
-          {Cards::kSpriteCustomEditor, DockPosition::Right},
+          {Panels::kSpriteVanillaEditor, DockPosition::Left},
+          {Panels::kSpriteCustomEditor, DockPosition::Right},
       };
       preset.optional_panels = {
-          Cards::kSpriteCustomEditor,
+          Panels::kSpriteCustomEditor,
       };
       break;
 
@@ -120,19 +120,19 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       preset.name = "Screen Default";
       preset.description = "Screen browser with tileset editor";
       preset.default_visible_panels = {
-          Cards::kScreenDungeonMaps,
+          Panels::kScreenDungeonMaps,
       };
       preset.panel_positions = {
-          {Cards::kScreenDungeonMaps, DockPosition::Center},
-          {Cards::kScreenTitleScreen, DockPosition::RightTop},
-          {Cards::kScreenInventoryMenu, DockPosition::RightBottom},
-          {Cards::kScreenNamingScreen, DockPosition::RightBottom},
+          {Panels::kScreenDungeonMaps, DockPosition::Center},
+          {Panels::kScreenTitleScreen, DockPosition::RightTop},
+          {Panels::kScreenInventoryMenu, DockPosition::RightBottom},
+          {Panels::kScreenNamingScreen, DockPosition::RightBottom},
       };
       preset.optional_panels = {
-          Cards::kScreenTitleScreen,
-          Cards::kScreenInventoryMenu,
-          Cards::kScreenOverworldMap,
-          Cards::kScreenNamingScreen,
+          Panels::kScreenTitleScreen,
+          Panels::kScreenInventoryMenu,
+          Panels::kScreenOverworldMap,
+          Panels::kScreenNamingScreen,
       };
       break;
 
@@ -140,22 +140,22 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       preset.name = "Music Default";
       preset.description = "Song browser with playback control and piano roll";
       preset.default_visible_panels = {
-          Cards::kMusicSongBrowser,
-          Cards::kMusicPlaybackControl,
-          Cards::kMusicPianoRoll,
+          Panels::kMusicSongBrowser,
+          Panels::kMusicPlaybackControl,
+          Panels::kMusicPianoRoll,
       };
       preset.panel_positions = {
-          {Cards::kMusicSongBrowser, DockPosition::Left},
-          {Cards::kMusicPlaybackControl, DockPosition::Top},
-          {Cards::kMusicPianoRoll, DockPosition::Center},
-          {Cards::kMusicInstrumentEditor, DockPosition::Right},
-          {Cards::kMusicSampleEditor, DockPosition::RightBottom},
-          {Cards::kMusicAssembly, DockPosition::Bottom},
+          {Panels::kMusicSongBrowser, DockPosition::Left},
+          {Panels::kMusicPlaybackControl, DockPosition::Top},
+          {Panels::kMusicPianoRoll, DockPosition::Center},
+          {Panels::kMusicInstrumentEditor, DockPosition::Right},
+          {Panels::kMusicSampleEditor, DockPosition::RightBottom},
+          {Panels::kMusicAssembly, DockPosition::Bottom},
       };
       preset.optional_panels = {
-          Cards::kMusicInstrumentEditor,
-          Cards::kMusicSampleEditor,
-          Cards::kMusicAssembly,
+          Panels::kMusicInstrumentEditor,
+          Panels::kMusicSampleEditor,
+          Panels::kMusicAssembly,
       };
       break;
 
@@ -163,18 +163,18 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       preset.name = "Message Default";
       preset.description = "Message list with editor and preview";
       preset.default_visible_panels = {
-          Cards::kMessageList,
-          Cards::kMessageEditor,
+          Panels::kMessageList,
+          Panels::kMessageEditor,
       };
       preset.panel_positions = {
-          {Cards::kMessageEditor, DockPosition::Center},
-          {Cards::kMessageList, DockPosition::Left},
-          {Cards::kMessageFontAtlas, DockPosition::RightTop},
-          {Cards::kMessageDictionary, DockPosition::RightBottom},
+          {Panels::kMessageEditor, DockPosition::Center},
+          {Panels::kMessageList, DockPosition::Left},
+          {Panels::kMessageFontAtlas, DockPosition::RightTop},
+          {Panels::kMessageDictionary, DockPosition::RightBottom},
       };
       preset.optional_panels = {
-          Cards::kMessageFontAtlas,
-          Cards::kMessageDictionary,
+          Panels::kMessageFontAtlas,
+          Panels::kMessageDictionary,
       };
       break;
 
@@ -182,14 +182,14 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       preset.name = "Assembly Default";
       preset.description = "Assembly editor with file browser";
       preset.default_visible_panels = {
-          Cards::kAssemblyEditor,
+          Panels::kAssemblyEditor,
       };
       preset.panel_positions = {
-          {Cards::kAssemblyEditor, DockPosition::Left},
-          {Cards::kAssemblyFileBrowser, DockPosition::RightBottom},
+          {Panels::kAssemblyEditor, DockPosition::Left},
+          {Panels::kAssemblyFileBrowser, DockPosition::RightBottom},
       };
       preset.optional_panels = {
-          Cards::kAssemblyFileBrowser,
+          Panels::kAssemblyFileBrowser,
       };
       break;
 
@@ -197,24 +197,24 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       preset.name = "Emulator Default";
       preset.description = "Emulator with debugger tools";
       preset.default_visible_panels = {
-          Cards::kEmulatorPpuViewer,
+          Panels::kEmulatorPpuViewer,
       };
       preset.panel_positions = {
-          {Cards::kEmulatorPpuViewer, DockPosition::Center},
-          {Cards::kEmulatorCpuDebugger, DockPosition::Right},
-          {Cards::kEmulatorMemoryViewer, DockPosition::Bottom},
-          {Cards::kEmulatorAiAgent, DockPosition::RightBottom},
+          {Panels::kEmulatorPpuViewer, DockPosition::Center},
+          {Panels::kEmulatorCpuDebugger, DockPosition::Right},
+          {Panels::kEmulatorMemoryViewer, DockPosition::Bottom},
+          {Panels::kEmulatorAiAgent, DockPosition::RightBottom},
       };
       preset.optional_panels = {
-          Cards::kEmulatorCpuDebugger,
-          Cards::kEmulatorMemoryViewer,
-          Cards::kEmulatorBreakpoints,
-          Cards::kEmulatorPerformance,
-          Cards::kEmulatorAiAgent,
-          Cards::kEmulatorSaveStates,
-          Cards::kEmulatorKeyboardConfig,
-          Cards::kEmulatorApuDebugger,
-          Cards::kEmulatorAudioMixer,
+          Panels::kEmulatorCpuDebugger,
+          Panels::kEmulatorMemoryViewer,
+          Panels::kEmulatorBreakpoints,
+          Panels::kEmulatorPerformance,
+          Panels::kEmulatorAiAgent,
+          Panels::kEmulatorSaveStates,
+          Panels::kEmulatorKeyboardConfig,
+          Panels::kEmulatorApuDebugger,
+          Panels::kEmulatorAudioMixer,
       };
       break;
 
@@ -290,16 +290,16 @@ PanelLayoutPreset LayoutPresets::GetMinimalPreset() {
   preset.editor_type = EditorType::kUnknown;  // Applies to all
   // Core editing cards across editors
   preset.default_visible_panels = {
-      Cards::kOverworldCanvas,
-      Cards::kDungeonControlPanel,
-      Cards::kGraphicsSheetEditor,
-      Cards::kPaletteControlPanel,
-      Cards::kSpriteVanillaEditor,
-      Cards::kMusicSongBrowser,
-      Cards::kMusicPlaybackControl,
-      Cards::kMessageEditor,
-      Cards::kAssemblyEditor,
-      Cards::kEmulatorPpuViewer,
+      Panels::kOverworldCanvas,
+      Panels::kDungeonControlPanel,
+      Panels::kGraphicsSheetEditor,
+      Panels::kPaletteControlPanel,
+      Panels::kSpriteVanillaEditor,
+      Panels::kMusicSongBrowser,
+      Panels::kMusicPlaybackControl,
+      Panels::kMessageEditor,
+      Panels::kAssemblyEditor,
+      Panels::kEmulatorPpuViewer,
   };
   return preset;
 }
@@ -311,20 +311,20 @@ PanelLayoutPreset LayoutPresets::GetDeveloperPreset() {
   preset.editor_type = EditorType::kUnknown;  // Applies to all
   preset.default_visible_panels = {
       // Emulator/debug cards
-      Cards::kEmulatorCpuDebugger,
-      Cards::kEmulatorPpuViewer,
-      Cards::kEmulatorMemoryViewer,
-      Cards::kEmulatorBreakpoints,
-      Cards::kEmulatorPerformance,
-      Cards::kEmulatorApuDebugger,
-      Cards::kMemoryHexEditor,
+      Panels::kEmulatorCpuDebugger,
+      Panels::kEmulatorPpuViewer,
+      Panels::kEmulatorMemoryViewer,
+      Panels::kEmulatorBreakpoints,
+      Panels::kEmulatorPerformance,
+      Panels::kEmulatorApuDebugger,
+      Panels::kMemoryHexEditor,
       // Assembly editing
-      Cards::kAssemblyEditor,
-      Cards::kAssemblyFileBrowser,
+      Panels::kAssemblyEditor,
+      Panels::kAssemblyFileBrowser,
       // Dungeon debug controls
-      Cards::kDungeonDebugControls,
+      Panels::kDungeonDebugControls,
       // AI Agent for debugging assistance
-      Cards::kEmulatorAiAgent,
+      Panels::kEmulatorAiAgent,
   };
   return preset;
 }
@@ -336,23 +336,23 @@ PanelLayoutPreset LayoutPresets::GetDesignerPreset() {
   preset.editor_type = EditorType::kUnknown;  // Applies to all
   preset.default_visible_panels = {
       // Graphics cards
-      Cards::kGraphicsSheetBrowser,
-      Cards::kGraphicsSheetEditor,
-      Cards::kGraphicsPlayerAnimations,
-      Cards::kGraphicsPrototypeViewer,
+      Panels::kGraphicsSheetBrowser,
+      Panels::kGraphicsSheetEditor,
+      Panels::kGraphicsPlayerAnimations,
+      Panels::kGraphicsPrototypeViewer,
       // Palette cards
-      Cards::kPaletteControlPanel,
-      Cards::kPaletteOwMain,
-      Cards::kPaletteOwAnimated,
-      Cards::kPaletteDungeonMain,
-      Cards::kPaletteSprites,
-      Cards::kPaletteQuickAccess,
+      Panels::kPaletteControlPanel,
+      Panels::kPaletteOwMain,
+      Panels::kPaletteOwAnimated,
+      Panels::kPaletteDungeonMain,
+      Panels::kPaletteSprites,
+      Panels::kPaletteQuickAccess,
       // Sprite cards
-      Cards::kSpriteVanillaEditor,
-      Cards::kSpriteCustomEditor,
+      Panels::kSpriteVanillaEditor,
+      Panels::kSpriteCustomEditor,
       // Screen editing for menus/title
-      Cards::kScreenTitleScreen,
-      Cards::kScreenInventoryMenu,
+      Panels::kScreenTitleScreen,
+      Panels::kScreenInventoryMenu,
   };
   return preset;
 }
@@ -364,30 +364,30 @@ PanelLayoutPreset LayoutPresets::GetModderPreset() {
   preset.editor_type = EditorType::kUnknown;  // Applies to all
   preset.default_visible_panels = {
       // Overworld cards
-      Cards::kOverworldCanvas,
-      Cards::kOverworldTile16Selector,
-      Cards::kOverworldTile8Selector,
-      Cards::kOverworldAreaGraphics,
-      Cards::kOverworldGfxGroups,
+      Panels::kOverworldCanvas,
+      Panels::kOverworldTile16Selector,
+      Panels::kOverworldTile8Selector,
+      Panels::kOverworldAreaGraphics,
+      Panels::kOverworldGfxGroups,
       // Dungeon cards
-      Cards::kDungeonControlPanel,
-      Cards::kDungeonRoomSelector,
-      Cards::kDungeonObjectEditor,
-      Cards::kDungeonPaletteEditor,
-      Cards::kDungeonEntrances,
+      Panels::kDungeonControlPanel,
+      Panels::kDungeonRoomSelector,
+      Panels::kDungeonObjectEditor,
+      Panels::kDungeonPaletteEditor,
+      Panels::kDungeonEntrances,
       // Graphics cards
-      Cards::kGraphicsSheetBrowser,
-      Cards::kGraphicsSheetEditor,
+      Panels::kGraphicsSheetBrowser,
+      Panels::kGraphicsSheetEditor,
       // Palette cards
-      Cards::kPaletteControlPanel,
-      Cards::kPaletteOwMain,
+      Panels::kPaletteControlPanel,
+      Panels::kPaletteOwMain,
       // Sprite cards
-      Cards::kSpriteVanillaEditor,
+      Panels::kSpriteVanillaEditor,
       // Message editing
-      Cards::kMessageList,
-      Cards::kMessageEditor,
+      Panels::kMessageList,
+      Panels::kMessageEditor,
       // AI Agent for assistance
-      Cards::kEmulatorAiAgent,
+      Panels::kEmulatorAiAgent,
   };
   return preset;
 }
@@ -399,21 +399,21 @@ PanelLayoutPreset LayoutPresets::GetOverworldExpertPreset() {
   preset.editor_type = EditorType::kOverworld;
   preset.default_visible_panels = {
       // All overworld cards
-      Cards::kOverworldCanvas,
-      Cards::kOverworldTile16Selector,
-      Cards::kOverworldTile8Selector,
-      Cards::kOverworldAreaGraphics,
-      Cards::kOverworldScratch,
-      Cards::kOverworldGfxGroups,
-      Cards::kOverworldUsageStats,
-      Cards::kOverworldV3Settings,
+      Panels::kOverworldCanvas,
+      Panels::kOverworldTile16Selector,
+      Panels::kOverworldTile8Selector,
+      Panels::kOverworldAreaGraphics,
+      Panels::kOverworldScratch,
+      Panels::kOverworldGfxGroups,
+      Panels::kOverworldUsageStats,
+      Panels::kOverworldV3Settings,
       // Palette support
-      Cards::kPaletteControlPanel,
-      Cards::kPaletteOwMain,
-      Cards::kPaletteOwAnimated,
+      Panels::kPaletteControlPanel,
+      Panels::kPaletteOwMain,
+      Panels::kPaletteOwAnimated,
       // Graphics for tile editing
-      Cards::kGraphicsSheetBrowser,
-      Cards::kGraphicsSheetEditor,
+      Panels::kGraphicsSheetBrowser,
+      Panels::kGraphicsSheetEditor,
   };
   return preset;
 }
@@ -425,22 +425,22 @@ PanelLayoutPreset LayoutPresets::GetDungeonExpertPreset() {
   preset.editor_type = EditorType::kDungeon;
   preset.default_visible_panels = {
       // All dungeon cards
-      Cards::kDungeonControlPanel,
-      Cards::kDungeonRoomSelector,
-      Cards::kDungeonRoomMatrix,
-      Cards::kDungeonEntrances,
-      Cards::kDungeonRoomGraphics,
-      Cards::kDungeonObjectEditor,
-      Cards::kDungeonPaletteEditor,
-      Cards::kDungeonDebugControls,
+      Panels::kDungeonControlPanel,
+      Panels::kDungeonRoomSelector,
+      Panels::kDungeonRoomMatrix,
+      Panels::kDungeonEntrances,
+      Panels::kDungeonRoomGraphics,
+      Panels::kDungeonObjectEditor,
+      Panels::kDungeonPaletteEditor,
+      Panels::kDungeonDebugControls,
       // Palette support
-      Cards::kPaletteControlPanel,
-      Cards::kPaletteDungeonMain,
+      Panels::kPaletteControlPanel,
+      Panels::kPaletteDungeonMain,
       // Graphics for room editing
-      Cards::kGraphicsSheetBrowser,
-      Cards::kGraphicsSheetEditor,
+      Panels::kGraphicsSheetBrowser,
+      Panels::kGraphicsSheetEditor,
       // Screen maps for dungeon navigation
-      Cards::kScreenDungeonMaps,
+      Panels::kScreenDungeonMaps,
   };
   return preset;
 }
@@ -452,18 +452,18 @@ PanelLayoutPreset LayoutPresets::GetTestingPreset() {
   preset.editor_type = EditorType::kEmulator;
   preset.default_visible_panels = {
       // Emulator core
-      Cards::kEmulatorPpuViewer,
-      Cards::kEmulatorSaveStates,
-      Cards::kEmulatorKeyboardConfig,
-      Cards::kEmulatorPerformance,
+      Panels::kEmulatorPpuViewer,
+      Panels::kEmulatorSaveStates,
+      Panels::kEmulatorKeyboardConfig,
+      Panels::kEmulatorPerformance,
       // Debug tools
-      Cards::kEmulatorCpuDebugger,
-      Cards::kEmulatorBreakpoints,
-      Cards::kEmulatorMemoryViewer,
+      Panels::kEmulatorCpuDebugger,
+      Panels::kEmulatorBreakpoints,
+      Panels::kEmulatorMemoryViewer,
       // Memory inspection
-      Cards::kMemoryHexEditor,
+      Panels::kMemoryHexEditor,
       // AI Agent for test assistance
-      Cards::kEmulatorAiAgent,
+      Panels::kEmulatorAiAgent,
   };
   return preset;
 }
@@ -475,28 +475,28 @@ PanelLayoutPreset LayoutPresets::GetAudioPreset() {
   preset.editor_type = EditorType::kMusic;
   preset.default_visible_panels = {
       // Music editing
-      Cards::kMusicSongBrowser,
-      Cards::kMusicPlaybackControl,
-      Cards::kMusicPianoRoll,
-      Cards::kMusicInstrumentEditor,
-      Cards::kMusicSampleEditor,
-      Cards::kMusicAssembly,
+      Panels::kMusicSongBrowser,
+      Panels::kMusicPlaybackControl,
+      Panels::kMusicPianoRoll,
+      Panels::kMusicInstrumentEditor,
+      Panels::kMusicSampleEditor,
+      Panels::kMusicAssembly,
       // Audio debugging
-      Cards::kEmulatorApuDebugger,
-      Cards::kEmulatorAudioMixer,
+      Panels::kEmulatorApuDebugger,
+      Panels::kEmulatorAudioMixer,
       // Assembly for custom sound code
-      Cards::kAssemblyEditor,
-      Cards::kAssemblyFileBrowser,
+      Panels::kAssemblyEditor,
+      Panels::kAssemblyFileBrowser,
   };
   preset.panel_positions = {
-      {Cards::kMusicSongBrowser, DockPosition::Left},
-      {Cards::kMusicPlaybackControl, DockPosition::Top},
-      {Cards::kMusicPianoRoll, DockPosition::Center},
-      {Cards::kMusicInstrumentEditor, DockPosition::Right},
-      {Cards::kMusicSampleEditor, DockPosition::RightBottom},
-      {Cards::kMusicAssembly, DockPosition::Bottom},
-      {Cards::kEmulatorApuDebugger, DockPosition::LeftBottom},
-      {Cards::kEmulatorAudioMixer, DockPosition::RightTop},
+      {Panels::kMusicSongBrowser, DockPosition::Left},
+      {Panels::kMusicPlaybackControl, DockPosition::Top},
+      {Panels::kMusicPianoRoll, DockPosition::Center},
+      {Panels::kMusicInstrumentEditor, DockPosition::Right},
+      {Panels::kMusicSampleEditor, DockPosition::RightBottom},
+      {Panels::kMusicAssembly, DockPosition::Bottom},
+      {Panels::kEmulatorApuDebugger, DockPosition::LeftBottom},
+      {Panels::kEmulatorAudioMixer, DockPosition::RightTop},
   };
   return preset;
 }

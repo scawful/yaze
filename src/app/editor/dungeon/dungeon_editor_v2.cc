@@ -134,18 +134,6 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
        .priority = 50});
 
   panel_manager->RegisterPanel(
-      {.card_id = kObjectToolsId,
-       .display_name = "Object Tools",
-       .window_title = " Object Tools",
-       .icon = ICON_MD_CONSTRUCTION,
-       .category = "Dungeon",
-       .shortcut_hint = "Ctrl+Shift+O",
-       .visibility_flag = nullptr,
-       .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-       .disabled_tooltip = "Load a ROM to edit dungeon objects",
-       .priority = 60});
-
-  panel_manager->RegisterPanel(
       {.card_id = kPaletteEditorId,
        .display_name = "Palette Editor",
        .window_title = " Palette Editor",
@@ -413,7 +401,7 @@ void DungeonEditorV2::DrawRoomPanels() {
     }
 
     std::string card_name_str = absl::StrFormat(
-        "%s###RoomCard%d", MakeCardTitle(base_name).c_str(), room_id);
+        "%s###RoomPanel%d", MakePanelTitle(base_name).c_str(), room_id);
 
     if (room_cards_.find(room_id) == room_cards_.end()) {
       room_cards_[room_id] = std::make_shared<gui::PanelWindow>(

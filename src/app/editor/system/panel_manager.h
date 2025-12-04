@@ -39,7 +39,7 @@ enum class EditorType;
 
 /**
  * @struct PanelDescriptor
- * @brief Metadata for an editor panel (formerly CardInfo)
+ * @brief Metadata for an editor panel (formerly PanelInfo)
  */
 struct PanelDescriptor {
   std::string card_id;       // Unique identifier (e.g., "dungeon.room_selector")
@@ -105,7 +105,7 @@ class PanelManager {
   void SetActiveSession(size_t session_id);
 
   // ============================================================================
-  // Card Registration
+  // Panel Registration
   // ============================================================================
 
   void RegisterPanel(size_t session_id, const PanelDescriptor& base_info);
@@ -173,7 +173,7 @@ class PanelManager {
                       const std::string& to_category);
 
   // ============================================================================
-  // Card Control (Programmatic)
+  // Panel Control (Programmatic)
   // ============================================================================
 
   bool ShowPanel(size_t session_id, const std::string& base_card_id);
@@ -217,7 +217,7 @@ class PanelManager {
                                 const std::vector<PanelDescriptor>& cards);
 
   bool SidebarHasFocus() const { return sidebar_has_focus_; }
-  int GetFocusedCardIndex() const { return focused_card_index_; }
+  int GetFocusedPanelIndex() const { return focused_card_index_; }
 
   void ToggleSidebarVisibility() {
     sidebar_visible_ = !sidebar_visible_;
@@ -268,8 +268,8 @@ class PanelManager {
   void TriggerShowSearch() { if (on_show_search_) on_show_search_(); }
   void TriggerShowHelp() { if (on_show_help_) on_show_help_(); }
   void TriggerOpenRom() { if (on_open_rom_) on_open_rom_(); }
-  void TriggerCardClicked(const std::string& category) { if (on_card_clicked_) on_card_clicked_(category); }
-  void TriggerPanelClicked(const std::string& category) { TriggerCardClicked(category); }
+  void TriggerPanelClicked(const std::string& category) { if (on_card_clicked_) on_card_clicked_(category); }
+  void TriggerPanelClicked(const std::string& category) { TriggerPanelClicked(category); }
 
   // ============================================================================
   // Utility Icon Callbacks (for sidebar quick access buttons)
@@ -334,7 +334,7 @@ class PanelManager {
 
   struct WorkspacePreset {
     std::string name;
-    std::vector<std::string> visible_cards;  // Card IDs
+    std::vector<std::string> visible_cards;  // Panel IDs
     std::string description;
   };
 
@@ -344,18 +344,18 @@ class PanelManager {
   std::vector<WorkspacePreset> GetPresets() const;
 
   // ============================================================================
-  // Card Validation (for catching window title mismatches)
+  // Panel Validation (for catching window title mismatches)
   // ============================================================================
 
-  struct CardValidationResult {
+  struct PanelValidationResult {
     std::string card_id;
     std::string expected_title;  // From PanelDescriptor::GetWindowTitle()
     bool found_in_imgui;         // Whether ImGui found a window with this title
     std::string message;         // Human-readable status
   };
 
-  std::vector<CardValidationResult> ValidatePanels() const;
-  CardValidationResult ValidatePanel(const std::string& card_id) const;
+  std::vector<PanelValidationResult> ValidatePanels() const;
+  PanelValidationResult ValidatePanel(const std::string& card_id) const;
 
   // ============================================================================
   // Quick Actions
@@ -420,62 +420,62 @@ class PanelManager {
   }
   void ShowAll() { ShowAll(active_session_); }
   void HideAll() { HideAll(active_session_); }
-  void SetOnCardClickedCallback(std::function<void(const std::string&)> callback) {
+  void SetOnPanelClickedCallback(std::function<void(const std::string&)> callback) {
     on_card_clicked_ = std::move(callback);
   }
 
   // ============================================================================
-  // Card-Named Compatibility Shims (Phase 2 rename support)
+  // Panel-Named Compatibility Shims (Phase 2 rename support)
   // ============================================================================
 
   YAZE_CARD_SHIM_DEPRECATED("Use UnregisterPanel")
-  void UnregisterCard(size_t session_id, const std::string& base_card_id);
+  void UnregisterPanel(size_t session_id, const std::string& base_card_id);
   YAZE_CARD_SHIM_DEPRECATED("Use UnregisterPanelsWithPrefix")
-  void UnregisterCardsWithPrefix(const std::string& prefix);
+  void UnregisterPanelsWithPrefix(const std::string& prefix);
 
   YAZE_CARD_SHIM_DEPRECATED("Use ShowPanel")
-  bool ShowCard(size_t session_id, const std::string& base_card_id);
+  bool ShowPanel(size_t session_id, const std::string& base_card_id);
   YAZE_CARD_SHIM_DEPRECATED("Use HidePanel")
-  bool HideCard(size_t session_id, const std::string& base_card_id);
+  bool HidePanel(size_t session_id, const std::string& base_card_id);
   YAZE_CARD_SHIM_DEPRECATED("Use TogglePanel")
-  bool ToggleCard(size_t session_id, const std::string& base_card_id);
+  bool TogglePanel(size_t session_id, const std::string& base_card_id);
   YAZE_CARD_SHIM_DEPRECATED("Use IsPanelVisible")
-  bool IsCardVisible(size_t session_id,
+  bool IsPanelVisible(size_t session_id,
                      const std::string& base_card_id) const;
 
   YAZE_CARD_SHIM_DEPRECATED("Use ShowPanel")
-  bool ShowCard(const std::string& base_card_id);
+  bool ShowPanel(const std::string& base_card_id);
   YAZE_CARD_SHIM_DEPRECATED("Use HidePanel")
-  bool HideCard(const std::string& base_card_id);
+  bool HidePanel(const std::string& base_card_id);
   YAZE_CARD_SHIM_DEPRECATED("Use TogglePanel")
-  bool ToggleCard(const std::string& base_card_id);
+  bool TogglePanel(const std::string& base_card_id);
   YAZE_CARD_SHIM_DEPRECATED("Use IsPanelVisible")
-  bool IsCardVisible(const std::string& base_card_id) const;
+  bool IsPanelVisible(const std::string& base_card_id) const;
 
   YAZE_CARD_SHIM_DEPRECATED("Use GetPanelsInCategory")
-  std::vector<PanelDescriptor> GetCardsInCategory(
+  std::vector<PanelDescriptor> GetPanelsInCategory(
       size_t session_id, const std::string& category) const;
   YAZE_CARD_SHIM_DEPRECATED("Use GetPanelsInCategory")
-  std::vector<PanelDescriptor> GetCardsInCategory(
+  std::vector<PanelDescriptor> GetPanelsInCategory(
       const std::string& category) const;
   YAZE_CARD_SHIM_DEPRECATED("Use GetPanelDescriptor")
-  const PanelDescriptor* GetCardInfo(size_t session_id,
+  const PanelDescriptor* GetPanelInfo(size_t session_id,
                                      const std::string& base_card_id) const;
   YAZE_CARD_SHIM_DEPRECATED("Use GetPanelDescriptor")
-  const PanelDescriptor* GetCardInfo(const std::string& base_card_id) const;
+  const PanelDescriptor* GetPanelInfo(const std::string& base_card_id) const;
 
   YAZE_CARD_SHIM_DEPRECATED("Use ShowAllPanelsInSession")
-  void ShowAllCardsInSession(size_t session_id);
+  void ShowAllPanelsInSession(size_t session_id);
   YAZE_CARD_SHIM_DEPRECATED("Use HideAllPanelsInSession")
-  void HideAllCardsInSession(size_t session_id);
+  void HideAllPanelsInSession(size_t session_id);
   YAZE_CARD_SHIM_DEPRECATED("Use ShowAllPanelsInCategory")
-  void ShowAllCardsInCategory(size_t session_id, const std::string& category);
+  void ShowAllPanelsInCategory(size_t session_id, const std::string& category);
   YAZE_CARD_SHIM_DEPRECATED("Use HideAllPanelsInCategory")
-  void HideAllCardsInCategory(size_t session_id, const std::string& category);
+  void HideAllPanelsInCategory(size_t session_id, const std::string& category);
   YAZE_CARD_SHIM_DEPRECATED("Use ShowAll")
-  void ShowAllCards();
+  void ShowAllPanels();
   YAZE_CARD_SHIM_DEPRECATED("Use HideAll")
-  void HideAllCards();
+  void HideAllPanels();
 
   // ============================================================================
   // File Browser Integration
@@ -500,8 +500,8 @@ class PanelManager {
   void ToggleFavorite(const std::string& card_id);
   bool IsFavorite(const std::string& card_id) const;
   void AddToRecent(const std::string& card_id);
-  const std::vector<std::string>& GetRecentCards() const { return recent_cards_; }
-  const std::unordered_set<std::string>& GetFavoriteCards() const { return favorite_cards_; }
+  const std::vector<std::string>& GetRecentPanels() const { return recent_cards_; }
+  const std::unordered_set<std::string>& GetFavoritePanels() const { return favorite_cards_; }
 
   // ============================================================================
   // Pinning (Phase 3 scaffold)
@@ -554,7 +554,7 @@ class PanelManager {
   // Favorites and Recent tracking
   std::unordered_set<std::string> favorite_cards_;
   std::vector<std::string> recent_cards_;
-  static constexpr size_t kMaxRecentCards = 10;
+  static constexpr size_t kMaxRecentPanels = 10;
 
   // Centralized visibility flags for cards without external flags
   std::unordered_map<std::string, bool> centralized_visibility_;

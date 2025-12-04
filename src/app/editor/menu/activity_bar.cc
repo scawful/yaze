@@ -294,7 +294,7 @@ void ActivityBar::DrawSidePanel(
 
     // Get pinned and recent panels
     const auto pinned_cards = panel_manager_.GetPinnedPanels();
-    const auto& recent_cards = panel_manager_.GetRecentCards();
+    const auto& recent_cards = panel_manager_.GetRecentPanels();
 
     // --- Pinned Section (panels that persist across editors) ---
     if (sidebar_search[0] == '\0' && !pinned_cards.empty()) {
@@ -327,7 +327,7 @@ void ActivityBar::DrawSidePanel(
             
             ImGui::SameLine();
             
-            // Card Item
+            // Panel Item
             std::string label = absl::StrFormat("%s  %s", card->icon.c_str(), card->display_name.c_str());
             if (ImGui::Selectable(label.c_str(), visible)) {
               panel_manager_.TogglePanel(session_id, card->card_id);
@@ -384,7 +384,7 @@ void ActivityBar::DrawSidePanel(
             ImGui::PopID();
             ImGui::SameLine();
             
-            // Card Item
+            // Panel Item
             std::string label = absl::StrFormat("%s  %s", card->icon.c_str(), card->display_name.c_str());
             if (ImGui::Selectable(label.c_str(), visible)) {
               panel_manager_.TogglePanel(session_id, card->card_id);
@@ -414,7 +414,7 @@ void ActivityBar::DrawSidePanel(
         has_file_browser ? available_height * 0.4f : available_height;
     float file_browser_height = available_height - cards_height - 30.0f;
 
-    // Cards section
+    // Panels section
     ImGui::BeginChild("##PanelContent", ImVec2(0, cards_height), false,
                       ImGuiWindowFlags_None);
     for (const auto& card : cards) {
@@ -457,7 +457,7 @@ void ActivityBar::DrawSidePanel(
       ImGui::PopID();
       ImGui::SameLine();
 
-      // Card Item with Icon
+      // Panel Item with Icon
       std::string label =
           absl::StrFormat("%s  %s", card.icon.c_str(), card.display_name.c_str());
       if (ImGui::Selectable(label.c_str(), visible)) {
@@ -470,7 +470,7 @@ void ActivityBar::DrawSidePanel(
         if (new_visible) {
           panel_manager_.AddToRecent(card.card_id); // Track recent
 
-          // Card was just shown - activate the associated editor
+          // Panel was just shown - activate the associated editor
           panel_manager_.TriggerPanelClicked(card.category);
 
           // Focus the card window so it comes to front
@@ -521,7 +521,7 @@ void ActivityBar::DrawSidePanel(
   ImGui::PopStyleColor(1);
 }
 
-void ActivityBar::DrawCardBrowser(size_t session_id, bool* p_open) {
+void ActivityBar::DrawPanelBrowser(size_t session_id, bool* p_open) {
   ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
 
   if (ImGui::Begin(
@@ -556,8 +556,8 @@ void ActivityBar::DrawCardBrowser(size_t session_id, bool* p_open) {
 
     ImGui::Separator();
 
-    // Card table
-    if (ImGui::BeginTable("##CardTable", 4,
+    // Panel table
+    if (ImGui::BeginTable("##PanelTable", 4,
                           ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg |
                               ImGuiTableFlags_Borders)) {
       ImGui::TableSetupColumn("Visible", ImGuiTableColumnFlags_WidthFixed, 60);

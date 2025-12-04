@@ -573,7 +573,7 @@ bool IconCombo(const char* icon, const char* label, int* current,
   return ImGui::Combo(label, current, items, count);
 }
 
-std::string MakeCardTitle(const std::string& title) {
+std::string MakePanelTitle(const std::string& title) {
   return title;
 }
 

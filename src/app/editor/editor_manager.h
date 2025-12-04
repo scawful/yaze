@@ -218,8 +218,8 @@ class EditorManager {
   void SwitchToEditor(EditorType editor_type, bool force_visible = false,
                       bool from_dialog = false);
 
-  // Card-based editor registry
-  static bool IsCardBasedEditor(EditorType type);
+  // Panel-based editor registry
+  static bool IsPanelBasedEditor(EditorType type);
   bool IsSidebarVisible() const {
     return ui_coordinator_ ? ui_coordinator_->IsPanelSidebarVisible() : false;
   }
@@ -230,7 +230,7 @@ class EditorManager {
   }
 
   // Clean up cards when switching editors
-  void HideCurrentEditorCards();
+  void HideCurrentEditorPanels();
 
   // Session management
   void CreateNewSession();
@@ -259,7 +259,7 @@ class EditorManager {
   void LoadDesignerLayout() { window_delegate_.LoadDesignerLayout(); }
   void LoadModderLayout() { window_delegate_.LoadModderLayout(); }
 
-  // Card layout presets (command palette accessible)
+  // Panel layout presets (command palette accessible)
   void ApplyLayoutPreset(const std::string& preset_name);
   void ResetCurrentEditorLayout();
 
@@ -329,7 +329,7 @@ class EditorManager {
 
  private:
   absl::Status DrawRomSelector() = delete;  // Moved to UICoordinator
-  // DrawContextSensitiveCardControl removed - card control moved to sidebar
+  // DrawContextSensitivePanelControl removed - card control moved to sidebar
 
   // Optional loading_handle for WASM progress tracking (0 = create new)
   absl::Status LoadAssets(uint64_t loading_handle = 0);
@@ -395,7 +395,7 @@ class EditorManager {
   UserSettings user_settings_;
 
   // New delegated components (dependency injection architecture)
-  PanelManager panel_manager_;  // Card management with session awareness
+  PanelManager panel_manager_;  // Panel management with session awareness
   EditorRegistry editor_registry_;
   std::unique_ptr<MenuOrchestrator> menu_orchestrator_;
   ProjectManager project_manager_;

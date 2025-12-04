@@ -9,7 +9,7 @@
 namespace yaze {
 namespace editor {
 
-AgentChatCard::AgentChatCard(const std::string& agent_id,
+AgentChatPanel::AgentChatPanel(const std::string& agent_id,
                              AgentSessionManager* session_manager)
     : agent_id_(agent_id), session_manager_(session_manager) {
   // Configure chat view for full (non-compact) mode
@@ -22,29 +22,29 @@ AgentChatCard::AgentChatCard(const std::string& agent_id,
     chat_view_.SetProposalCallbacks(session->proposal_callbacks);
   }
 
-  LOG_INFO("AgentChatCard", "Created card for agent: %s", agent_id_.c_str());
+  LOG_INFO("AgentChatPanel", "Created card for agent: %s", agent_id_.c_str());
 }
 
-void AgentChatCard::SetToastManager(ToastManager* toast_manager) {
+void AgentChatPanel::SetToastManager(ToastManager* toast_manager) {
   toast_manager_ = toast_manager;
   chat_view_.SetToastManager(toast_manager);
 }
 
-void AgentChatCard::SetAgentService(
+void AgentChatPanel::SetAgentService(
     cli::agent::ConversationalAgentService* service) {
   chat_view_.SetAgentService(service);
 }
 
-std::string AgentChatCard::GetWindowTitle() const {
+std::string AgentChatPanel::GetWindowTitle() const {
   if (const AgentSession* session = session_manager_->GetSession(agent_id_)) {
-    return absl::StrFormat("%s %s###AgentCard_%s", ICON_MD_SMART_TOY,
+    return absl::StrFormat("%s %s###AgentPanel_%s", ICON_MD_SMART_TOY,
                            session->display_name, agent_id_);
   }
-  return absl::StrFormat("%s Agent###AgentCard_%s", ICON_MD_SMART_TOY,
+  return absl::StrFormat("%s Agent###AgentPanel_%s", ICON_MD_SMART_TOY,
                          agent_id_);
 }
 
-void AgentChatCard::Draw(bool* p_open) {
+void AgentChatPanel::Draw(bool* p_open) {
   if (!p_open || !*p_open) {
     return;
   }
@@ -52,7 +52,7 @@ void AgentChatCard::Draw(bool* p_open) {
   // Verify session still exists
   AgentSession* session = session_manager_->GetSession(agent_id_);
   if (!session) {
-    LOG_WARN("AgentChatCard", "Session no longer exists: %s", agent_id_.c_str());
+    LOG_WARN("AgentChatPanel", "Session no longer exists: %s", agent_id_.c_str());
     *p_open = false;
     return;
   }

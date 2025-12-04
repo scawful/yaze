@@ -182,7 +182,7 @@ bool IconCombo(const char* icon, const char* label, int* current,
                const char* const items[], int count);
 
 // Helper to create consistent card titles
-std::string MakeCardTitle(const std::string& title);
+std::string MakePanelTitle(const std::string& title);
 
 }  // namespace gui
 }  // namespace yaze

@@ -26,7 +26,7 @@ class EditorRegistry {
   ~EditorRegistry() = default;
 
   // Editor type management (static methods for global access)
-  static bool IsCardBasedEditor(EditorType type);
+  static bool IsPanelBasedEditor(EditorType type);
   static std::string GetEditorCategory(EditorType type);
   static EditorType GetEditorTypeFromCategory(const std::string& category);
 
@@ -50,9 +50,9 @@ class EditorRegistry {
   }
 
   // Editor card management
-  void HideCurrentEditorCards();
-  void ShowEditorCards(EditorType editor_type);
-  void ToggleEditorCards(EditorType editor_type);
+  void HideCurrentEditorPanels();
+  void ShowEditorPanels(EditorType editor_type);
+  void ToggleEditorPanels(EditorType editor_type);
 
   // Editor information
   std::vector<EditorType> GetEditorsInCategory(
@@ -74,7 +74,7 @@ class EditorRegistry {
   // Editor type mappings
   static const std::unordered_map<EditorType, std::string> kEditorCategories;
   static const std::unordered_map<EditorType, std::string> kEditorNames;
-  static const std::unordered_map<EditorType, bool> kCardBasedEditors;
+  static const std::unordered_map<EditorType, bool> kPanelBasedEditors;
 
   // Registered editors
   std::unordered_map<EditorType, Editor*> registered_editors_;

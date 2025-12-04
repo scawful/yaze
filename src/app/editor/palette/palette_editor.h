@@ -116,8 +116,8 @@ class PaletteEditor : public Editor {
  private:
   void DrawToolset();
   void DrawControlPanel();
-  void DrawQuickAccessCard();
-  void DrawCustomPaletteCard();
+  void DrawQuickAccessPanel();
+  void DrawCustomPalettePanel();
 
   // Category and search UI methods
   void DrawCategorizedPaletteList();
@@ -171,14 +171,14 @@ class PaletteEditor : public Editor {
   bool show_custom_palette_ = false;
 
   // Palette card instances
-  std::unique_ptr<OverworldMainPaletteCard> ow_main_card_;
-  std::unique_ptr<OverworldAnimatedPaletteCard> ow_animated_card_;
-  std::unique_ptr<DungeonMainPaletteCard> dungeon_main_card_;
-  std::unique_ptr<SpritePaletteCard> sprite_card_;
-  std::unique_ptr<SpritesAux1PaletteCard> sprites_aux1_card_;
-  std::unique_ptr<SpritesAux2PaletteCard> sprites_aux2_card_;
-  std::unique_ptr<SpritesAux3PaletteCard> sprites_aux3_card_;
-  std::unique_ptr<EquipmentPaletteCard> equipment_card_;
+  std::unique_ptr<OverworldMainPalettePanel> ow_main_card_;
+  std::unique_ptr<OverworldAnimatedPalettePanel> ow_animated_card_;
+  std::unique_ptr<DungeonMainPalettePanel> dungeon_main_card_;
+  std::unique_ptr<SpritePalettePanel> sprite_card_;
+  std::unique_ptr<SpritesAux1PalettePanel> sprites_aux1_card_;
+  std::unique_ptr<SpritesAux2PalettePanel> sprites_aux2_card_;
+  std::unique_ptr<SpritesAux3PalettePanel> sprites_aux3_card_;
+  std::unique_ptr<EquipmentPalettePanel> equipment_card_;
 };
 
 }  // namespace editor

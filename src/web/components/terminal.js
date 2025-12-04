@@ -1182,8 +1182,8 @@
           this.print(JSON.stringify(edState, null, 2));
           break;
         case 'cards':
-          const cards = window.aiTools.getVisibleCards();
-          this.print('Visible Cards:');
+          const cards = window.aiTools.getVisiblePanels();
+          this.print('Visible Panels:');
           if (Array.isArray(cards)) {
             cards.forEach(c => this.print(' - ' + (c.id || c)));
           } else {

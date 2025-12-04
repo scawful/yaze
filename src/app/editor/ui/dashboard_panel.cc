@@ -163,13 +163,13 @@ void DashboardPanel::DrawEditorGrid() {
   if (ImGui::BeginTable("EditorGrid", columns)) {
     for (size_t i = 0; i < editors_.size(); ++i) {
       ImGui::TableNextColumn();
-      DrawEditorCard(editors_[i], static_cast<int>(i));
+      DrawEditorPanel(editors_[i], static_cast<int>(i));
     }
     ImGui::EndTable();
   }
 }
 
-void DashboardPanel::DrawEditorCard(const EditorInfo& info, int index) {
+void DashboardPanel::DrawEditorPanel(const EditorInfo& info, int index) {
   ImGui::PushID(index);
 
   ImVec2 button_size(180, 120);

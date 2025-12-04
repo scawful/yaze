@@ -49,7 +49,7 @@ void AgentSessionManager::CloseSession(const std::string& agent_id) {
 
   // Close card if open
   if (sessions_[index].has_card_open) {
-    CloseCardForSession(agent_id);
+    ClosePanelForSession(agent_id);
   }
 
   bool was_active = (active_session_id_ == agent_id);
@@ -132,7 +132,7 @@ const AgentSession* AgentSessionManager::GetSession(
   return nullptr;
 }
 
-void AgentSessionManager::OpenCardForSession(const std::string& agent_id) {
+void AgentSessionManager::OpenPanelForSession(const std::string& agent_id) {
   AgentSession* session = GetSession(agent_id);
   if (!session) {
     LOG_WARN("AgentSessionManager",
@@ -142,7 +142,7 @@ void AgentSessionManager::OpenCardForSession(const std::string& agent_id) {
   }
 
   if (session->has_card_open) {
-    LOG_DEBUG("AgentSessionManager", "Card already open for session: %s",
+    LOG_DEBUG("AgentSessionManager", "Panel already open for session: %s",
               agent_id.c_str());
     return;
   }
@@ -156,7 +156,7 @@ void AgentSessionManager::OpenCardForSession(const std::string& agent_id) {
   }
 }
 
-void AgentSessionManager::CloseCardForSession(const std::string& agent_id) {
+void AgentSessionManager::ClosePanelForSession(const std::string& agent_id) {
   AgentSession* session = GetSession(agent_id);
   if (!session) {
     return;
@@ -175,13 +175,13 @@ void AgentSessionManager::CloseCardForSession(const std::string& agent_id) {
   }
 }
 
-bool AgentSessionManager::IsCardOpenForSession(
+bool AgentSessionManager::IsPanelOpenForSession(
     const std::string& agent_id) const {
   const AgentSession* session = GetSession(agent_id);
   return session ? session->has_card_open : false;
 }
 
-std::vector<std::string> AgentSessionManager::GetOpenCardSessionIds() const {
+std::vector<std::string> AgentSessionManager::GetOpenPanelSessionIds() const {
   std::vector<std::string> result;
   for (const auto& session : sessions_) {
     if (session.has_card_open) {

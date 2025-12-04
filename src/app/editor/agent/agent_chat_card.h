@@ -15,7 +15,7 @@ namespace editor {
 class ToastManager;
 
 /**
- * @class AgentChatCard
+ * @class AgentChatPanel
  * @brief A dockable ImGui window for full agent chat interaction
  *
  * This class wraps AgentChatView in a standard ImGui window that can be
@@ -29,16 +29,16 @@ class ToastManager;
  * - Shows agent name in window title
  * - Close button removes the card (session remains in sidebar)
  */
-class AgentChatCard {
+class AgentChatPanel {
  public:
   /**
    * @brief Construct a chat card for a specific agent session
    * @param agent_id The session ID this card represents
    * @param session_manager Manager to retrieve session state from
    */
-  AgentChatCard(const std::string& agent_id,
+  AgentChatPanel(const std::string& agent_id,
                 AgentSessionManager* session_manager);
-  ~AgentChatCard() = default;
+  ~AgentChatPanel() = default;
 
   /**
    * @brief Set the toast manager for notifications

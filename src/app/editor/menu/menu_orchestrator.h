@@ -209,7 +209,7 @@ class MenuOrchestrator {
   void AddHelpMenuItems();
 
   // Auto-generated menu helpers
-  void AddCardsSubmenu();
+  void AddPanelsSubmenu();
   void AddPanelsSubmenu();
 
   // Menu item validation helpers

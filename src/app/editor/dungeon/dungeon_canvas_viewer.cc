@@ -548,6 +548,56 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     canvas_.AddContextMenuItem(debug_menu);
   }
 
+  // Add object interaction menu items to canvas context menu
+  if (object_interaction_enabled_) {
+    auto& interaction = object_interaction_;
+    auto selected = interaction.GetSelectedObjectIndices();
+
+    if (!selected.empty()) {
+      // Show selection info
+      if (selected.size() == 1 && rooms_) {
+        auto& room = (*rooms_)[room_id];
+        const auto& objects = room.GetTileObjects();
+        if (selected[0] < objects.size()) {
+          const auto& obj = objects[selected[0]];
+          std::string name = GetObjectName(obj.id_);
+          canvas_.AddContextMenuItem(gui::CanvasMenuItem::Disabled(
+              absl::StrFormat("Object 0x%02X: %s", obj.id_, name.c_str())));
+        }
+      }
+
+      canvas_.AddContextMenuItem(gui::CanvasMenuItem(
+          ICON_MD_CONTENT_CUT " Cut", ICON_MD_CONTENT_CUT,
+          [&interaction]() {
+            interaction.HandleCopySelected();
+            interaction.HandleDeleteSelected();
+          },
+          "Ctrl+X"));
+
+      canvas_.AddContextMenuItem(gui::CanvasMenuItem(
+          ICON_MD_CONTENT_COPY " Copy", ICON_MD_CONTENT_COPY,
+          [&interaction]() { interaction.HandleCopySelected(); }, "Ctrl+C"));
+
+      canvas_.AddContextMenuItem(gui::CanvasMenuItem(
+          ICON_MD_CONTENT_PASTE " Duplicate", ICON_MD_CONTENT_PASTE,
+          [&interaction]() {
+            interaction.HandleCopySelected();
+            interaction.HandlePasteObjects();
+          },
+          "Ctrl+D"));
+
+      canvas_.AddContextMenuItem(gui::CanvasMenuItem(
+          ICON_MD_DELETE " Delete", ICON_MD_DELETE,
+          [&interaction]() { interaction.HandleDeleteSelected(); }, "Del"));
+    }
+
+    if (interaction.HasClipboardData()) {
+      canvas_.AddContextMenuItem(gui::CanvasMenuItem(
+          ICON_MD_CONTENT_PASTE " Paste", ICON_MD_CONTENT_PASTE,
+          [&interaction]() { interaction.HandlePasteObjects(); }, "Ctrl+V"));
+    }
+  }
+
   canvas_.DrawContextMenu();
 
   // Draw persistent debug overlays
@@ -754,7 +804,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       object_interaction_.DrawSelectBox();
       object_interaction_
           .DrawSelectionHighlights();  // Draw selection highlights on top
-      object_interaction_.ShowContextMenu();  // Show dungeon-aware context menu
+      // Context menu is handled by canvas_.DrawContextMenu() above
     }
   }
 

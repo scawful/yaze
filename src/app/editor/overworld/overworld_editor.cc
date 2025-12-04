@@ -127,8 +127,8 @@ void OverworldEditor::Initialize() {
   // Original initialization code below:
   // Initialize MapPropertiesSystem with canvas and bitmap data
   // Initialize cards
-  usage_stats_card_ = std::make_unique<UsageStatisticsCard>(&overworld_);
-  debug_window_card_ = std::make_unique<DebugWindowCard>();
+  usage_stats_card_ = std::make_unique<UsageStatisticsPanel>(&overworld_);
+  debug_window_card_ = std::make_unique<DebugWindowPanel>();
 
 
 
@@ -422,16 +422,16 @@ absl::Status OverworldEditor::Update() {
     ImGui::EndPopup();
   }
 
-  // All editor windows are now rendered in Update() using either EditorCard
+  // All editor windows are now rendered in Update() using either EditorPanel
   // system or MapPropertiesSystem for map-specific panels. This keeps the
   // toolset clean and prevents ImGui ID stack issues.
 
   // Legacy window code removed - windows rendered in Update() include:
-  // - Graphics Groups (EditorCard)
+  // - Graphics Groups (EditorPanel)
   // - Area Configuration (MapPropertiesSystem)
   // - Background Color Editor (MapPropertiesSystem)
   // - Visual Effects Editor (MapPropertiesSystem)
-  // - Tile16 Editor, Usage Stats, etc. (EditorCards)
+  // - Tile16 Editor, Usage Stats, etc. (EditorPanels)
 
   // Handle keyboard shortcuts (centralized in dedicated method)
   HandleKeyboardShortcuts();

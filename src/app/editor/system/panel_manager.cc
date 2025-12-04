@@ -85,7 +85,7 @@ void PanelManager::SetActiveSession(size_t session_id) {
 }
 
 // ============================================================================
-// Card Registration
+// Panel Registration
 // ============================================================================
 
 void PanelManager::RegisterPanel(size_t session_id,
@@ -97,7 +97,7 @@ void PanelManager::RegisterPanel(size_t session_id,
   // Check if already registered to avoid duplicates
   if (cards_.find(prefixed_id) != cards_.end()) {
     LOG_WARN("PanelManager",
-             "Card '%s' already registered, skipping duplicate",
+             "Panel '%s' already registered, skipping duplicate",
              prefixed_id.c_str());
     return;
   }
@@ -435,7 +435,7 @@ void PanelManager::OnEditorSwitch(const std::string& from_category,
 }
 
 // ============================================================================
-// Card Control (Programmatic, No GUI)
+// Panel Control (Programmatic, No GUI)
 // ============================================================================
 
 bool PanelManager::ShowPanel(size_t session_id,
@@ -783,8 +783,8 @@ void PanelManager::AddToRecent(const std::string& card_id) {
   recent_cards_.insert(recent_cards_.begin(), card_id);
 
   // Trim if needed
-  if (recent_cards_.size() > kMaxRecentCards) {
-    recent_cards_.resize(kMaxRecentCards);
+  if (recent_cards_.size() > kMaxRecentPanels) {
+    recent_cards_.resize(kMaxRecentPanels);
   }
 }
 
@@ -959,7 +959,7 @@ std::string PanelManager::GetPrefixedPanelId(
     return base_id;
   }
 
-  return "";  // Card not found
+  return "";  // Panel not found
 }
 
 void PanelManager::UnregisterSessionPanels(size_t session_id) {
@@ -1196,19 +1196,19 @@ std::vector<std::string> PanelManager::GetPinnedPanels() const {
 
 
 // =============================================================================
-// Card Validation
+// Panel Validation
 // =============================================================================
 
-PanelManager::CardValidationResult PanelManager::ValidatePanel(
+PanelManager::PanelValidationResult PanelManager::ValidatePanel(
     const std::string& card_id) const {
-  CardValidationResult result;
+  PanelValidationResult result;
   result.card_id = card_id;
 
   auto it = cards_.find(card_id);
   if (it == cards_.end()) {
     result.expected_title = "";
     result.found_in_imgui = false;
-    result.message = "Card not registered";
+    result.message = "Panel not registered";
     return result;
   }
 
@@ -1229,9 +1229,9 @@ PanelManager::CardValidationResult PanelManager::ValidatePanel(
 }
 
 
-std::vector<PanelManager::CardValidationResult>
+std::vector<PanelManager::PanelValidationResult>
 PanelManager::ValidatePanels() const {
-  std::vector<CardValidationResult> results;
+  std::vector<PanelValidationResult> results;
   results.reserve(cards_.size());
 
   for (const auto& [card_id, info] : cards_) {

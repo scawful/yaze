@@ -246,7 +246,7 @@ void AssemblyEditor::UpdateCodeView() {
   gui::VerticalSpacing(2.0f);
 
   // Create session-aware card (non-static for multi-session support)
-  gui::PanelWindow file_browser_card(MakeCardTitle("File Browser").c_str(),
+  gui::PanelWindow file_browser_card(MakePanelTitle("File Browser").c_str(),
                                     ICON_MD_FOLDER);
   bool file_browser_open = true;
   if (file_browser_card.Begin(&file_browser_open)) {
@@ -260,7 +260,7 @@ void AssemblyEditor::UpdateCodeView() {
   }
   file_browser_card.End();  // ALWAYS call End after Begin
 
-  // Draw open files as individual, dockable EditorCards
+  // Draw open files as individual, dockable EditorPanels
   for (int i = 0; i < active_files_.Size; i++) {
     int file_id = active_files_[i];
     bool open = true;
@@ -276,7 +276,7 @@ void AssemblyEditor::UpdateCodeView() {
     }
 
     // Create session-aware card title for each file
-    std::string card_name = MakeCardTitle(files_[file_id]);
+    std::string card_name = MakePanelTitle(files_[file_id]);
     gui::PanelWindow file_card(card_name.c_str(), ICON_MD_DESCRIPTION, &open);
     if (file_card.Begin()) {
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {

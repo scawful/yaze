@@ -39,7 +39,7 @@ const std::unordered_map<EditorType, std::string> EditorRegistry::kEditorNames =
      {EditorType::kAgent, "Agent Editor"},
      {EditorType::kSettings, "Settings Editor"}};
 
-const std::unordered_map<EditorType, bool> EditorRegistry::kCardBasedEditors = {
+const std::unordered_map<EditorType, bool> EditorRegistry::kPanelBasedEditors = {
     {EditorType::kDungeon, true},
     {EditorType::kOverworld, true},
     {EditorType::kGraphics, true},
@@ -51,14 +51,14 @@ const std::unordered_map<EditorType, bool> EditorRegistry::kCardBasedEditors = {
     {EditorType::kAssembly, true},
     {EditorType::kEmulator, true},
     {EditorType::kHex, true},
-    {EditorType::kAgent, true},  // Agent: Card-based UI
+    {EditorType::kAgent, true},  // Agent: Panel-based UI
     {EditorType::kSettings,
      false}  // Settings: Sidebar panel
 };
 
-bool EditorRegistry::IsCardBasedEditor(EditorType type) {
-  auto it = kCardBasedEditors.find(type);
-  return it != kCardBasedEditors.end() && it->second;
+bool EditorRegistry::IsPanelBasedEditor(EditorType type) {
+  auto it = kPanelBasedEditors.find(type);
+  return it != kPanelBasedEditors.end() && it->second;
 }
 
 std::string EditorRegistry::GetEditorCategory(EditorType type) {
@@ -141,9 +141,9 @@ void EditorRegistry::SwitchToEditor(EditorType editor_type) {
   }
 }
 
-void EditorRegistry::HideCurrentEditorCards() {
+void EditorRegistry::HideCurrentEditorPanels() {
   for (auto& [type, editor] : registered_editors_) {
-    if (editor && IsCardBasedEditor(type)) {
+    if (editor && IsPanelBasedEditor(type)) {
       // TODO: Hide cards for this editor
       printf("[EditorRegistry] Hiding cards for %s\n",
              GetEditorDisplayName(type).c_str());
@@ -151,20 +151,20 @@ void EditorRegistry::HideCurrentEditorCards() {
   }
 }
 
-void EditorRegistry::ShowEditorCards(EditorType editor_type) {
+void EditorRegistry::ShowEditorPanels(EditorType editor_type) {
   ValidateEditorType(editor_type);
 
-  if (IsCardBasedEditor(editor_type)) {
+  if (IsPanelBasedEditor(editor_type)) {
     // TODO: Show cards for this editor
     printf("[EditorRegistry] Showing cards for %s\n",
            GetEditorDisplayName(editor_type).c_str());
   }
 }
 
-void EditorRegistry::ToggleEditorCards(EditorType editor_type) {
+void EditorRegistry::ToggleEditorPanels(EditorType editor_type) {
   ValidateEditorType(editor_type);
 
-  if (IsCardBasedEditor(editor_type)) {
+  if (IsPanelBasedEditor(editor_type)) {
     // TODO: Toggle cards for this editor
     printf("[EditorRegistry] Toggling cards for %s\n",
            GetEditorDisplayName(editor_type).c_str());

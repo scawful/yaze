@@ -226,7 +226,7 @@ void AgentEditor::DrawDashboard() {
   glitch_timer_ += imgui_io.DeltaTime * 5.0f;
   blink_counter_ = static_cast<int>(pulse_animation_ * 2.0f) % 2;
 
-  // Draw all agent cards as independent EditorCards
+  // Draw all agent cards as independent EditorPanels
   // Panel drawing is now handled centrally by PanelManager::DrawAllVisiblePanels()
   // via the EditorPanel implementations registered in Initialize().
   // No local drawing needed here - this fixes duplicate panel rendering.
@@ -516,8 +516,8 @@ void AgentEditor::DrawConfigurationPanel() {
 void AgentEditor::DrawStatusPanel() {
   // Always visible status cards (no collapsing)
 
-  // Chat Status Card
-  ImGui::BeginChild("ChatStatusCard", ImVec2(0, 120), true);
+  // Chat Status Panel
+  ImGui::BeginChild("ChatStatusPanel", ImVec2(0, 120), true);
   ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f), ICON_MD_CHAT " Chat Status");
   ImGui::Separator();
 
@@ -542,8 +542,8 @@ void AgentEditor::DrawStatusPanel() {
 
   ImGui::Spacing();
 
-  // ROM Context Card
-  ImGui::BeginChild("RomStatusCard", ImVec2(0, 100), true);
+  // ROM Context Panel
+  ImGui::BeginChild("RomStatusPanel", ImVec2(0, 100), true);
   ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f), ICON_MD_GAMEPAD " ROM");
   ImGui::Separator();
 
@@ -561,8 +561,8 @@ void AgentEditor::DrawStatusPanel() {
 
   ImGui::Spacing();
 
-  // Quick Tips Card
-  ImGui::BeginChild("QuickTipsCard", ImVec2(0, 150), true);
+  // Quick Tips Panel
+  ImGui::BeginChild("QuickTipsPanel", ImVec2(0, 150), true);
   ImGui::TextColored(ImVec4(0.196f, 0.6f, 0.8f, 1.0f),
                      ICON_MD_TIPS_AND_UPDATES " Quick Tips");
   ImGui::Separator();

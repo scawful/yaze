@@ -45,7 +45,7 @@
       if (window.yaze && window.yaze.control) {
         state.editor = window.yaze.control.getCurrentEditor();
         state.rom = window.yaze.control.getRomStatus ? window.yaze.control.getRomStatus() : null;
-        state.cards = window.yaze.control.getVisibleCards ? window.yaze.control.getVisibleCards() : null;
+        state.cards = window.yaze.control.getVisiblePanels ? window.yaze.control.getVisiblePanels() : null;
       }
 
       console.log('=== AI Tools: App State ===');
@@ -68,55 +68,55 @@
     },
 
     // List visible cards
-    getVisibleCards: function() {
+    getVisiblePanels: function() {
       closeAllDropdowns();
       var cards = [];
 
-      if (window.yaze && window.yaze.control && window.yaze.control.getVisibleCards) {
-        cards = window.yaze.control.getVisibleCards();
+      if (window.yaze && window.yaze.control && window.yaze.control.getVisiblePanels) {
+        cards = window.yaze.control.getVisiblePanels();
       }
 
-      console.log('=== AI Tools: Visible Cards ===');
+      console.log('=== AI Tools: Visible Panels ===');
       console.log(JSON.stringify(cards, null, 2));
       return cards;
     },
 
     // List all available cards
-    getAvailableCards: function() {
+    getAvailablePanels: function() {
       closeAllDropdowns();
       var cards = [];
 
-      if (window.yaze && window.yaze.control && window.yaze.control.getAvailableCards) {
-        cards = window.yaze.control.getAvailableCards();
+      if (window.yaze && window.yaze.control && window.yaze.control.getAvailablePanels) {
+        cards = window.yaze.control.getAvailablePanels();
       }
 
-      console.log('=== AI Tools: Available Cards ===');
+      console.log('=== AI Tools: Available Panels ===');
       console.log(JSON.stringify(cards, null, 2));
       return cards;
     },
 
     // Show a card by prompting for ID
-    showCard: function() {
+    showPanel: function() {
       closeAllDropdowns();
-      var cards = this.getAvailableCards();
+      var cards = this.getAvailablePanels();
       var cardList = cards.map ? cards.map(function(c) { return c.id || c; }).join(', ') : 'API not ready';
       var cardId = prompt('Enter card ID to show:\n\nAvailable: ' + cardList);
 
-      if (cardId && window.yaze && window.yaze.control && window.yaze.control.openCard) {
-        var result = window.yaze.control.openCard(cardId);
+      if (cardId && window.yaze && window.yaze.control && window.yaze.control.openPanel) {
+        var result = window.yaze.control.openPanel(cardId);
         console.log('Show card:', cardId, result);
       }
     },
 
     // Hide a card by prompting for ID
-    hideCard: function() {
+    hidePanel: function() {
       closeAllDropdowns();
-      var cards = this.getVisibleCards();
+      var cards = this.getVisiblePanels();
       var cardList = cards.map ? cards.map(function(c) { return c.id || c; }).join(', ') : 'API not ready';
       var cardId = prompt('Enter card ID to hide:\n\nVisible: ' + cardList);
 
-      if (cardId && window.yaze && window.yaze.control && window.yaze.control.closeCard) {
-        var result = window.yaze.control.closeCard(cardId);
+      if (cardId && window.yaze && window.yaze.control && window.yaze.control.closePanel) {
+        var result = window.yaze.control.closePanel(cardId);
         console.log('Hide card:', cardId, result);
       }
     },
@@ -216,12 +216,12 @@
               'switchEditor(name) - Switch to editor by name',
               'getCurrentEditor() - Get current active editor',
               'getAvailableEditors() - List all editors',
-              'openCard(id) - Show a card panel',
-              'closeCard(id) - Hide a card panel',
-              'toggleCard(id) - Toggle card visibility',
-              'getVisibleCards() - List open cards',
-              'getAvailableCards() - List all cards',
-              'setCardLayout(name) - Apply layout preset',
+              'openPanel(id) - Show a card panel',
+              'closePanel(id) - Hide a card panel',
+              'togglePanel(id) - Toggle card visibility',
+              'getVisiblePanels() - List open cards',
+              'getAvailablePanels() - List all cards',
+              'setPanelLayout(name) - Apply layout preset',
               'getAvailableLayouts() - List layout presets',
               'triggerMenuAction(path) - Trigger menu action',
               'getRomStatus() - Get ROM loaded state',

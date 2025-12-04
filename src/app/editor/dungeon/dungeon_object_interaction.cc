@@ -9,6 +9,7 @@
 
 // Project headers
 #include "app/editor/agent/agent_ui_theme.h"
+#include "app/gui/core/icons.h"
 
 namespace yaze::editor {
 
@@ -42,18 +43,21 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
     } else {
       // Selection mode: try to select object at cursor
       if (!TrySelectObjectAtCursor()) {
-        // Clicked empty space
+        // Clicked empty space - start rectangle selection
         if (!io.KeyShift && !io.KeyCtrl) {
           // Clear selection unless modifier held
           selection_.ClearSelection();
         }
-      }
-
-      // Start drag if we have selected objects
-      if (selection_.HasSelection()) {
-        is_dragging_ = true;
-        drag_start_pos_ = canvas_mouse_pos;
-        drag_current_pos_ = canvas_mouse_pos;
+        // Begin rectangle selection for multi-select
+        selection_.BeginRectangleSelection(static_cast<int>(canvas_mouse_pos.x),
+                                           static_cast<int>(canvas_mouse_pos.y));
+      } else {
+        // Clicked on an object - start drag if we have selected objects
+        if (selection_.HasSelection()) {
+          is_dragging_ = true;
+          drag_start_pos_ = canvas_mouse_pos;
+          drag_current_pos_ = canvas_mouse_pos;
+        }
       }
     }
   }
@@ -125,24 +129,21 @@ void DungeonObjectInteraction::DrawObjectSelectRect() {
   const ImVec2 mouse_pos =
       ImVec2(io.MousePos.x - canvas_pos.x, io.MousePos.y - canvas_pos.y);
 
-  // Right click to start rectangle selection
-  if (ImGui::IsMouseClicked(ImGuiMouseButton_Right) && !object_loaded_) {
-    selection_.BeginRectangleSelection(static_cast<int>(mouse_pos.x),
-                                       static_cast<int>(mouse_pos.y));
-  }
+  // Rectangle selection is started in HandleCanvasMouseInput on left-click
+  // Here we just update and draw during drag
 
-  // Update rectangle during drag
+  // Update rectangle during left-click drag
   if (selection_.IsRectangleSelectionActive() &&
-      ImGui::IsMouseDragging(ImGuiMouseButton_Right)) {
+      ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
     selection_.UpdateRectangleSelection(static_cast<int>(mouse_pos.x),
                                         static_cast<int>(mouse_pos.y));
     // Use ObjectSelection's drawing (themed, consistent)
     selection_.DrawRectangleSelectionBox(canvas_);
   }
 
-  // Complete selection on mouse release
+  // Complete selection on left mouse release
   if (selection_.IsRectangleSelectionActive() &&
-      !ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
+      !ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
     auto& room = (*rooms_)[current_room_id_];
 
     // Determine selection mode based on modifiers
@@ -352,9 +353,8 @@ void DungeonObjectInteraction::ShowContextMenu() {
   if (!canvas_->IsMouseHovering())
     return;
 
-  // Show context menu on right-click when not dragging and not doing rectangle select
-  if (ImGui::IsMouseClicked(ImGuiMouseButton_Right) && !is_dragging_ &&
-      !selection_.IsRectangleSelectionActive()) {
+  // Show context menu on right-click when not dragging
+  if (ImGui::IsMouseClicked(ImGuiMouseButton_Right) && !is_dragging_) {
     ImGui::OpenPopup("DungeonObjectContextMenu");
   }
 
@@ -426,9 +426,9 @@ void DungeonObjectInteraction::ShowContextMenu() {
         object_loaded_ = false;
       }
     } else if (!selection_.HasSelection()) {
-      ImGui::TextDisabled("Right-click + drag to select");
-      ImGui::TextDisabled("Left-click + drag to move");
-      ImGui::TextDisabled("Scroll wheel to resize");
+      ImGui::TextDisabled("Left-click + drag to multi-select");
+      ImGui::TextDisabled("Click object, then drag to move");
+      ImGui::TextDisabled("Scroll wheel to resize selected");
     }
 
     ImGui::EndPopup();

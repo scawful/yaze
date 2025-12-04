@@ -150,15 +150,15 @@
     TestUtils.assertFunction(control, 'getCurrentEditor', 'getCurrentEditor function exists');
     TestUtils.assertFunction(control, 'getAvailableEditors', 'getAvailableEditors function exists');
 
-    // Card functions
-    TestUtils.assertFunction(control, 'openCard', 'openCard function exists');
-    TestUtils.assertFunction(control, 'closeCard', 'closeCard function exists');
-    TestUtils.assertFunction(control, 'toggleCard', 'toggleCard function exists');
-    TestUtils.assertFunction(control, 'getVisibleCards', 'getVisibleCards function exists');
-    TestUtils.assertFunction(control, 'getAvailableCards', 'getAvailableCards function exists');
+    // Panel functions
+    TestUtils.assertFunction(control, 'openPanel', 'openPanel function exists');
+    TestUtils.assertFunction(control, 'closePanel', 'closePanel function exists');
+    TestUtils.assertFunction(control, 'togglePanel', 'togglePanel function exists');
+    TestUtils.assertFunction(control, 'getVisiblePanels', 'getVisiblePanels function exists');
+    TestUtils.assertFunction(control, 'getAvailablePanels', 'getAvailablePanels function exists');
 
     // Layout functions
-    TestUtils.assertFunction(control, 'setCardLayout', 'setCardLayout function exists');
+    TestUtils.assertFunction(control, 'setPanelLayout', 'setPanelLayout function exists');
     TestUtils.assertFunction(control, 'getAvailableLayouts', 'getAvailableLayouts function exists');
 
     // ROM functions
@@ -212,16 +212,16 @@
       }
     }
 
-    // Test getVisibleCards
-    if (typeof control.getVisibleCards === 'function') {
-      const cards = control.getVisibleCards();
-      TestUtils.assertArray(cards, 'getVisibleCards returns array');
+    // Test getVisiblePanels
+    if (typeof control.getVisiblePanels === 'function') {
+      const cards = control.getVisiblePanels();
+      TestUtils.assertArray(cards, 'getVisiblePanels returns array');
     }
 
-    // Test getAvailableCards
-    if (typeof control.getAvailableCards === 'function') {
-      const cards = control.getAvailableCards();
-      TestUtils.assertArray(cards, 'getAvailableCards returns array');
+    // Test getAvailablePanels
+    if (typeof control.getAvailablePanels === 'function') {
+      const cards = control.getAvailablePanels();
+      TestUtils.assertArray(cards, 'getAvailablePanels returns array');
     }
   }
 
@@ -251,9 +251,9 @@
     TestUtils.assertFunction(gui, 'getCanvasInfo', 'getCanvasInfo function exists');
     TestUtils.assertFunction(gui, 'isReady', 'isReady function exists');
     TestUtils.assertFunction(gui, 'updateCanvasState', 'updateCanvasState function exists');
-    TestUtils.assertFunction(gui, 'getAvailableCards', 'GUI getAvailableCards exists');
-    TestUtils.assertFunction(gui, 'showCard', 'showCard function exists');
-    TestUtils.assertFunction(gui, 'hideCard', 'hideCard function exists');
+    TestUtils.assertFunction(gui, 'getAvailablePanels', 'GUI getAvailablePanels exists');
+    TestUtils.assertFunction(gui, 'showPanel', 'showPanel function exists');
+    TestUtils.assertFunction(gui, 'hidePanel', 'hidePanel function exists');
     TestUtils.assertFunction(gui, 'startAutoUpdate', 'startAutoUpdate function exists');
     TestUtils.assertFunction(gui, 'stopAutoUpdate', 'stopAutoUpdate function exists');
   }
@@ -316,8 +316,8 @@
 
     TestUtils.assertFunction(window.aiTools, 'getAppState', 'getAppState function exists');
     TestUtils.assertFunction(window.aiTools, 'getEditorState', 'getEditorState function exists');
-    TestUtils.assertFunction(window.aiTools, 'getVisibleCards', 'getVisibleCards function exists');
-    TestUtils.assertFunction(window.aiTools, 'getAvailableCards', 'getAvailableCards function exists');
+    TestUtils.assertFunction(window.aiTools, 'getVisiblePanels', 'getVisiblePanels function exists');
+    TestUtils.assertFunction(window.aiTools, 'getAvailablePanels', 'getAvailablePanels function exists');
     TestUtils.assertFunction(window.aiTools, 'navigateTo', 'navigateTo function exists');
     TestUtils.assertFunction(window.aiTools, 'jumpToRoom', 'jumpToRoom function exists');
     TestUtils.assertFunction(window.aiTools, 'jumpToMap', 'jumpToMap function exists');
@@ -409,39 +409,39 @@
     }
   }
 
-  // Test: Card operations (non-destructive)
-  async function testCardOperations() {
-    console.log('\n--- Card Operations Tests ---');
+  // Test: Panel operations (non-destructive)
+  async function testPanelOperations() {
+    console.log('\n--- Panel Operations Tests ---');
 
     if (!window.yaze || !window.yaze.control) {
-      TestUtils.skip('Card operations tests', 'window.yaze.control not available');
+      TestUtils.skip('Panel operations tests', 'window.yaze.control not available');
       return;
     }
 
     const control = window.yaze.control;
 
     // Get initial card state
-    const initialCards = control.getVisibleCards();
-    if (!Array.isArray(initialCards)) {
-      TestUtils.skip('Card operations', 'Cannot get visible cards');
+    const initialPanels = control.getVisiblePanels();
+    if (!Array.isArray(initialPanels)) {
+      TestUtils.skip('Panel operations', 'Cannot get visible cards');
       return;
     }
 
-    // Test toggleCard (if a card is available)
-    const availableCards = control.getAvailableCards();
-    if (Array.isArray(availableCards) && availableCards.length > 0) {
-      const testCard = availableCards[0];
-      const cardId = testCard.id || testCard;
+    // Test togglePanel (if a card is available)
+    const availablePanels = control.getAvailablePanels();
+    if (Array.isArray(availablePanels) && availablePanels.length > 0) {
+      const testPanel = availablePanels[0];
+      const cardId = testPanel.id || testPanel;
 
       // Toggle card
-      const toggleResult = control.toggleCard(cardId);
-      TestUtils.assertObject(toggleResult, 'toggleCard returns object');
+      const toggleResult = control.togglePanel(cardId);
+      TestUtils.assertObject(toggleResult, 'togglePanel returns object');
 
       // Toggle back to restore state
       await new Promise(r => setTimeout(r, 50));
-      control.toggleCard(cardId);
+      control.togglePanel(cardId);
     } else {
-      TestUtils.skip('Card toggle test', 'No available cards');
+      TestUtils.skip('Panel toggle test', 'No available cards');
     }
   }
 
@@ -474,7 +474,7 @@
 
     // Interactive tests (non-destructive)
     await testEditorSwitching();
-    await testCardOperations();
+    await testPanelOperations();
 
     return TestUtils.summary();
   }
@@ -492,7 +492,7 @@
     testAiToolsData: testAiToolsData,
     testYazeDebugAPI: testYazeDebugAPI,
     testEditorSwitching: testEditorSwitching,
-    testCardOperations: testCardOperations,
+    testPanelOperations: testPanelOperations,
     runAll: runAllTests,
 
     // Test groups

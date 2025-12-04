@@ -636,11 +636,11 @@ void WelcomeScreen::DrawRecentProjects() {
     if (i % columns != 0) {
       ImGui::SameLine();
     }
-    DrawProjectCard(recent_projects_[i], i);
+    DrawProjectPanel(recent_projects_[i], i);
   }
 }
 
-void WelcomeScreen::DrawProjectCard(const RecentProject& project, int index) {
+void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index) {
   ImGui::BeginGroup();
 
   ImVec2 card_size(200, 95);  // Compact size
@@ -682,7 +682,7 @@ void WelcomeScreen::DrawProjectCard(const RecentProject& project, int index) {
 
   // Make the card clickable
   ImGui::SetCursorScreenPos(cursor_pos);
-  ImGui::InvisibleButton(absl::StrFormat("ProjectCard_%d", index).c_str(),
+  ImGui::InvisibleButton(absl::StrFormat("ProjectPanel_%d", index).c_str(),
                          card_size);
   bool is_hovered = ImGui::IsItemHovered();
   bool is_clicked = ImGui::IsItemClicked();

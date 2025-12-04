@@ -12,15 +12,15 @@ namespace yaze {
 namespace editor {
 
 // =============================================================================
-// EditorPanel wrappers for PaletteGroupCard classes
+// EditorPanel wrappers for PaletteGroupPanel classes
 // =============================================================================
 
 /**
- * @brief EditorPanel wrapper for OverworldMainPaletteCard
+ * @brief EditorPanel wrapper for OverworldMainPalettePanel
  */
 class OverworldMainPalettePanel : public EditorPanel {
  public:
-  explicit OverworldMainPalettePanel(OverworldMainPaletteCard* card)
+  explicit OverworldMainPalettePanel(OverworldMainPalettePanel* card)
       : card_(card) {}
 
   std::string GetId() const override { return "palette.ow_main"; }
@@ -36,15 +36,15 @@ class OverworldMainPalettePanel : public EditorPanel {
   }
 
  private:
-  OverworldMainPaletteCard* card_;
+  OverworldMainPalettePanel* card_;
 };
 
 /**
- * @brief EditorPanel wrapper for OverworldAnimatedPaletteCard
+ * @brief EditorPanel wrapper for OverworldAnimatedPalettePanel
  */
 class OverworldAnimatedPalettePanel : public EditorPanel {
  public:
-  explicit OverworldAnimatedPalettePanel(OverworldAnimatedPaletteCard* card)
+  explicit OverworldAnimatedPalettePanel(OverworldAnimatedPalettePanel* card)
       : card_(card) {}
 
   std::string GetId() const override { return "palette.ow_animated"; }
@@ -60,15 +60,15 @@ class OverworldAnimatedPalettePanel : public EditorPanel {
   }
 
  private:
-  OverworldAnimatedPaletteCard* card_;
+  OverworldAnimatedPalettePanel* card_;
 };
 
 /**
- * @brief EditorPanel wrapper for DungeonMainPaletteCard
+ * @brief EditorPanel wrapper for DungeonMainPalettePanel
  */
 class DungeonMainPalettePanel : public EditorPanel {
  public:
-  explicit DungeonMainPalettePanel(DungeonMainPaletteCard* card)
+  explicit DungeonMainPalettePanel(DungeonMainPalettePanel* card)
       : card_(card) {}
 
   std::string GetId() const override { return "palette.dungeon_main"; }
@@ -84,15 +84,15 @@ class DungeonMainPalettePanel : public EditorPanel {
   }
 
  private:
-  DungeonMainPaletteCard* card_;
+  DungeonMainPalettePanel* card_;
 };
 
 /**
- * @brief EditorPanel wrapper for SpritePaletteCard
+ * @brief EditorPanel wrapper for SpritePalettePanel
  */
 class SpritePalettePanel : public EditorPanel {
  public:
-  explicit SpritePalettePanel(SpritePaletteCard* card) : card_(card) {}
+  explicit SpritePalettePanel(SpritePalettePanel* card) : card_(card) {}
 
   std::string GetId() const override { return "palette.sprites"; }
   std::string GetDisplayName() const override {
@@ -109,15 +109,15 @@ class SpritePalettePanel : public EditorPanel {
   }
 
  private:
-  SpritePaletteCard* card_;
+  SpritePalettePanel* card_;
 };
 
 /**
- * @brief EditorPanel wrapper for SpritesAux1PaletteCard
+ * @brief EditorPanel wrapper for SpritesAux1PalettePanel
  */
 class SpritesAux1PalettePanel : public EditorPanel {
  public:
-  explicit SpritesAux1PalettePanel(SpritesAux1PaletteCard* card)
+  explicit SpritesAux1PalettePanel(SpritesAux1PalettePanel* card)
       : card_(card) {}
 
   std::string GetId() const override { return "palette.sprites_aux1"; }
@@ -133,15 +133,15 @@ class SpritesAux1PalettePanel : public EditorPanel {
   }
 
  private:
-  SpritesAux1PaletteCard* card_;
+  SpritesAux1PalettePanel* card_;
 };
 
 /**
- * @brief EditorPanel wrapper for SpritesAux2PaletteCard
+ * @brief EditorPanel wrapper for SpritesAux2PalettePanel
  */
 class SpritesAux2PalettePanel : public EditorPanel {
  public:
-  explicit SpritesAux2PalettePanel(SpritesAux2PaletteCard* card)
+  explicit SpritesAux2PalettePanel(SpritesAux2PalettePanel* card)
       : card_(card) {}
 
   std::string GetId() const override { return "palette.sprites_aux2"; }
@@ -157,15 +157,15 @@ class SpritesAux2PalettePanel : public EditorPanel {
   }
 
  private:
-  SpritesAux2PaletteCard* card_;
+  SpritesAux2PalettePanel* card_;
 };
 
 /**
- * @brief EditorPanel wrapper for SpritesAux3PaletteCard
+ * @brief EditorPanel wrapper for SpritesAux3PalettePanel
  */
 class SpritesAux3PalettePanel : public EditorPanel {
  public:
-  explicit SpritesAux3PalettePanel(SpritesAux3PaletteCard* card)
+  explicit SpritesAux3PalettePanel(SpritesAux3PalettePanel* card)
       : card_(card) {}
 
   std::string GetId() const override { return "palette.sprites_aux3"; }
@@ -181,15 +181,15 @@ class SpritesAux3PalettePanel : public EditorPanel {
   }
 
  private:
-  SpritesAux3PaletteCard* card_;
+  SpritesAux3PalettePanel* card_;
 };
 
 /**
- * @brief EditorPanel wrapper for EquipmentPaletteCard
+ * @brief EditorPanel wrapper for EquipmentPalettePanel
  */
 class EquipmentPalettePanel : public EditorPanel {
  public:
-  explicit EquipmentPalettePanel(EquipmentPaletteCard* card) : card_(card) {}
+  explicit EquipmentPalettePanel(EquipmentPalettePanel* card) : card_(card) {}
 
   std::string GetId() const override { return "palette.equipment"; }
   std::string GetDisplayName() const override { return "Equipment Palettes"; }
@@ -204,7 +204,7 @@ class EquipmentPalettePanel : public EditorPanel {
   }
 
  private:
-  EquipmentPaletteCard* card_;
+  EquipmentPalettePanel* card_;
 };
 
 // =============================================================================
