@@ -36,6 +36,7 @@ namespace editor {
  * - Static object editor (opened via double-click)
  * - Emulator-based preview rendering
  * - Object templates for common patterns
+ * - Unified canvas context menu integration (Cut/Copy/Paste/Duplicate/Delete)
  * - Keyboard shortcuts for efficient editing
  *
  * @see EditorPanel - Base interface

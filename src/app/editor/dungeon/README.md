@@ -45,6 +45,7 @@ graph TD
     *   **Selection**: Click (single), Shift+Click (add), Ctrl+Click (toggle), Drag (rectangle).
     *   **Manipulation**: Drag-to-move, Scroll-to-resize.
     *   **Placement**: Placing new objects from the `ObjectEditorPanel`.
+*   **Context Menu Integration**: `DungeonCanvasViewer` registers editor-specific actions with `gui::Canvas` so the right-click menu is unified across panels. Object actions (Cut/Copy/Paste/Duplicate/Delete/Cancel Placement) are always visible but automatically disabled when they do not apply, eliminating the old per-interaction popup.
 *   **`object_selection.cc/h`**: A specialized class that holds the state of selected objects and implements selection logic (sets of indices, rectangle intersection). It is decoupled from the UI to allow for easier testing.
 
 ### Object Management

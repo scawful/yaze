@@ -389,14 +389,10 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
         },
         "Ctrl+P"));
 
-    // Add object deletion for selected objects
-    canvas_.AddContextMenuItem(gui::CanvasMenuItem(
-        "Delete Selected", ICON_MD_DELETE,
-        [this]() { object_interaction_.HandleDeleteSelected(); }, "Del"));
-
     // Add room property quick toggles (4-way layer visibility)
     gui::CanvasMenuItem layer_menu;
-    layer_menu.label = ICON_MD_LAYERS " Layer Visibility";
+    layer_menu.label = "Layer Visibility";
+    layer_menu.icon = ICON_MD_LAYERS;
 
     layer_menu.subitems.push_back(gui::CanvasMenuItem(
         "BG1 Layout", [this, room_id]() {
@@ -431,12 +427,13 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
 
     // Add re-render option
     canvas_.AddContextMenuItem(gui::CanvasMenuItem(
-        " Re-render Room", ICON_MD_REFRESH,
+        "Re-render Room", ICON_MD_REFRESH,
         [&room]() { room.RenderRoomGraphics(); }, "Ctrl+R"));
 
     // Grid Options
     gui::CanvasMenuItem grid_menu;
-    grid_menu.label = ICON_MD_GRID_ON " Grid Options";
+    grid_menu.label = "Grid Options";
+    grid_menu.icon = ICON_MD_GRID_ON;
 
     grid_menu.subitems.push_back(
         gui::CanvasMenuItem("8x8", [this]() { custom_grid_size_ = 8; }));
@@ -449,21 +446,29 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
 
     // === DEBUG MENU ===
     gui::CanvasMenuItem debug_menu;
-    debug_menu.label = ICON_MD_BUG_REPORT " Debug";
+    debug_menu.label = "Debug";
+    debug_menu.icon = ICON_MD_BUG_REPORT;
 
     // Show room info
-    debug_menu.subitems.push_back(gui::CanvasMenuItem(
-        ICON_MD_INFO " Show Room Info", ICON_MD_INFO,
-        [this]() { show_room_debug_info_ = !show_room_debug_info_; }));
+    gui::CanvasMenuItem room_info_item("Show Room Info", ICON_MD_INFO,
+                                       [this]() {
+                                         show_room_debug_info_ =
+                                             !show_room_debug_info_;
+                                       });
+    debug_menu.subitems.push_back(room_info_item);
 
     // Show texture info
-    debug_menu.subitems.push_back(gui::CanvasMenuItem(
-        ICON_MD_IMAGE " Show Texture Debug", ICON_MD_IMAGE,
-        [this]() { show_texture_debug_ = !show_texture_debug_; }));
+    gui::CanvasMenuItem texture_info_item("Show Texture Debug", ICON_MD_IMAGE,
+                                          [this]() {
+                                            show_texture_debug_ =
+                                                !show_texture_debug_;
+                                          });
+    debug_menu.subitems.push_back(texture_info_item);
 
     // Show object bounds with sub-menu for categories
     gui::CanvasMenuItem object_bounds_menu;
-    object_bounds_menu.label = ICON_MD_CROP_SQUARE " Show Object Bounds";
+    object_bounds_menu.label = "Show Object Bounds";
+    object_bounds_menu.icon = ICON_MD_CROP_SQUARE;
     object_bounds_menu.callback = [this]() {
       show_object_bounds_ = !show_object_bounds_;
     };
@@ -511,32 +516,45 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     debug_menu.subitems.push_back(object_bounds_menu);
 
     // Show layer info
-    debug_menu.subitems.push_back(gui::CanvasMenuItem(
-        ICON_MD_LAYERS " Show Layer Info", ICON_MD_LAYERS,
-        [this]() { show_layer_info_ = !show_layer_info_; }));
+    gui::CanvasMenuItem layer_info_item("Show Layer Info", ICON_MD_LAYERS,
+                                        [this]() {
+                                          show_layer_info_ = !show_layer_info_;
+                                        });
+    debug_menu.subitems.push_back(layer_info_item);
 
     // Force reload room
-    debug_menu.subitems.push_back(gui::CanvasMenuItem(
-        ICON_MD_REFRESH " Force Reload", ICON_MD_REFRESH, [&room]() {
-          room.LoadObjects();
-          room.LoadRoomGraphics(room.blockset);
-          room.RenderRoomGraphics();
-        }));
+    gui::CanvasMenuItem force_reload_item("Force Reload", ICON_MD_REFRESH,
+                                          [&room]() {
+                                            room.LoadObjects();
+                                            room.LoadRoomGraphics(
+                                                room.blockset);
+                                            room.RenderRoomGraphics();
+                                          });
+    debug_menu.subitems.push_back(force_reload_item);
 
     // Log room state
-    debug_menu.subitems.push_back(gui::CanvasMenuItem(
-        ICON_MD_PRINT " Log Room State", ICON_MD_PRINT, [&room, room_id]() {
-          LOG_DEBUG("DungeonDebug", "=== Room %03X Debug ===", room_id);
-          LOG_DEBUG("DungeonDebug", "Blockset: %d, Palette: %d, Layout: %d",
-                    room.blockset, room.palette, room.layout);
-          LOG_DEBUG("DungeonDebug", "Objects: %zu, Sprites: %zu",
-                    room.GetTileObjects().size(), room.GetSprites().size());
-          LOG_DEBUG("DungeonDebug", "BG1: %dx%d, BG2: %dx%d",
-                    room.bg1_buffer().bitmap().width(),
-                    room.bg1_buffer().bitmap().height(),
-                    room.bg2_buffer().bitmap().width(),
-                    room.bg2_buffer().bitmap().height());
-        }));
+    gui::CanvasMenuItem log_item("Log Room State", ICON_MD_PRINT,
+                                 [&room, room_id]() {
+                                   LOG_DEBUG("DungeonDebug",
+                                             "=== Room %03X Debug ===",
+                                             room_id);
+                                   LOG_DEBUG(
+                                       "DungeonDebug",
+                                       "Blockset: %d, Palette: %d, Layout: %d",
+                                       room.blockset, room.palette,
+                                       room.layout);
+                                   LOG_DEBUG("DungeonDebug",
+                                             "Objects: %zu, Sprites: %zu",
+                                             room.GetTileObjects().size(),
+                                             room.GetSprites().size());
+                                   LOG_DEBUG("DungeonDebug",
+                                             "BG1: %dx%d, BG2: %dx%d",
+                                             room.bg1_buffer().bitmap().width(),
+                                             room.bg1_buffer().bitmap().height(),
+                                             room.bg2_buffer().bitmap().width(),
+                                             room.bg2_buffer().bitmap().height());
+                                 });
+    debug_menu.subitems.push_back(log_item);
 
     canvas_.AddContextMenuItem(debug_menu);
   }
@@ -545,57 +563,69 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   if (object_interaction_enabled_) {
     auto& interaction = object_interaction_;
     auto selected = interaction.GetSelectedObjectIndices();
+    const bool has_selection = !selected.empty();
+    const bool single_selection = selected.size() == 1;
+    const bool has_clipboard = interaction.HasClipboardData();
+    const bool placing_object = interaction.IsObjectLoaded();
 
-    if (!selected.empty()) {
-      // Show selection info
-      if (selected.size() == 1 && rooms_) {
-        auto& room = (*rooms_)[room_id];
-        const auto& objects = room.GetTileObjects();
-        if (selected[0] < objects.size()) {
-          const auto& obj = objects[selected[0]];
-          std::string name = GetObjectName(obj.id_);
-          canvas_.AddContextMenuItem(gui::CanvasMenuItem::Disabled(
-              absl::StrFormat("Object 0x%02X: %s", obj.id_, name.c_str())));
-        }
+    if (single_selection && rooms_) {
+      auto& room = (*rooms_)[room_id];
+      const auto& objects = room.GetTileObjects();
+      if (selected[0] < objects.size()) {
+        const auto& obj = objects[selected[0]];
+        std::string name = GetObjectName(obj.id_);
+        canvas_.AddContextMenuItem(gui::CanvasMenuItem::Disabled(
+            absl::StrFormat("Object 0x%02X: %s", obj.id_, name.c_str())));
       }
-
-      canvas_.AddContextMenuItem(gui::CanvasMenuItem(
-          ICON_MD_CONTENT_CUT " Cut", ICON_MD_CONTENT_CUT,
-          [&interaction]() {
-            interaction.HandleCopySelected();
-            interaction.HandleDeleteSelected();
-          },
-          "Ctrl+X"));
-
-      canvas_.AddContextMenuItem(gui::CanvasMenuItem(
-          ICON_MD_CONTENT_COPY " Copy", ICON_MD_CONTENT_COPY,
-          [&interaction]() { interaction.HandleCopySelected(); }, "Ctrl+C"));
-
-      canvas_.AddContextMenuItem(gui::CanvasMenuItem(
-          ICON_MD_CONTENT_PASTE " Duplicate", ICON_MD_CONTENT_PASTE,
-          [&interaction]() {
-            interaction.HandleCopySelected();
-            interaction.HandlePasteObjects();
-          },
-          "Ctrl+D"));
-
-      canvas_.AddContextMenuItem(gui::CanvasMenuItem(
-          ICON_MD_DELETE " Delete", ICON_MD_DELETE,
-          [&interaction]() { interaction.HandleDeleteSelected(); }, "Del"));
     }
 
-    if (interaction.HasClipboardData()) {
-      canvas_.AddContextMenuItem(gui::CanvasMenuItem(
-          ICON_MD_CONTENT_PASTE " Paste", ICON_MD_CONTENT_PASTE,
-          [&interaction]() { interaction.HandlePasteObjects(); }, "Ctrl+V"));
-    }
+    auto enabled_if = [](bool enabled) {
+      return [enabled]() { return enabled; };
+    };
 
-    // Add cancel placement option if placing an object
-    if (interaction.IsObjectLoaded()) {
-      canvas_.AddContextMenuItem(gui::CanvasMenuItem(
-          ICON_MD_CANCEL " Cancel Placement", ICON_MD_CANCEL,
-          [&interaction]() { interaction.CancelPlacement(); }, "Esc"));
-    }
+    gui::CanvasMenuItem cut_item(
+        "Cut", ICON_MD_CONTENT_CUT,
+        [&interaction]() {
+          interaction.HandleCopySelected();
+          interaction.HandleDeleteSelected();
+        },
+        "Ctrl+X");
+    cut_item.enabled_condition = enabled_if(has_selection);
+    canvas_.AddContextMenuItem(cut_item);
+
+    gui::CanvasMenuItem copy_item(
+        "Copy", ICON_MD_CONTENT_COPY,
+        [&interaction]() { interaction.HandleCopySelected(); }, "Ctrl+C");
+    copy_item.enabled_condition = enabled_if(has_selection);
+    canvas_.AddContextMenuItem(copy_item);
+
+    gui::CanvasMenuItem duplicate_item(
+        "Duplicate", ICON_MD_CONTENT_PASTE,
+        [&interaction]() {
+          interaction.HandleCopySelected();
+          interaction.HandlePasteObjects();
+        },
+        "Ctrl+D");
+    duplicate_item.enabled_condition = enabled_if(has_selection);
+    canvas_.AddContextMenuItem(duplicate_item);
+
+    gui::CanvasMenuItem delete_item(
+        "Delete", ICON_MD_DELETE,
+        [&interaction]() { interaction.HandleDeleteSelected(); }, "Del");
+    delete_item.enabled_condition = enabled_if(has_selection);
+    canvas_.AddContextMenuItem(delete_item);
+
+    gui::CanvasMenuItem paste_item(
+        "Paste", ICON_MD_CONTENT_PASTE,
+        [&interaction]() { interaction.HandlePasteObjects(); }, "Ctrl+V");
+    paste_item.enabled_condition = enabled_if(has_clipboard);
+    canvas_.AddContextMenuItem(paste_item);
+
+    gui::CanvasMenuItem cancel_item(
+        "Cancel Placement", ICON_MD_CANCEL,
+        [&interaction]() { interaction.CancelPlacement(); }, "Esc");
+    cancel_item.enabled_condition = enabled_if(placing_object);
+    canvas_.AddContextMenuItem(cancel_item);
   }
 
   // CRITICAL: Draw canvas with explicit size to ensure viewport matches content
