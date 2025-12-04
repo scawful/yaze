@@ -210,7 +210,6 @@ class MenuOrchestrator {
 
   // Auto-generated menu helpers
   void AddPanelsSubmenu();
-  void AddPanelsSubmenu();
 
   // Menu item validation helpers
   bool CanSaveRom() const;

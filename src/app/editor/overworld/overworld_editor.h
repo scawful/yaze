@@ -202,8 +202,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void DrawV3Settings();
   
   // Panel component accessors
-  UsageStatisticsPanel* usage_stats_card() { return usage_stats_card_.get(); }
-  DebugWindowPanel* debug_window_card() { return debug_window_card_.get(); }
+  UsageStatisticsCard* usage_stats_card() { return usage_stats_card_.get(); }
+  DebugWindowCard* debug_window_card() { return debug_window_card_.get(); }
 
   void DrawOverworldCanvas();
 
@@ -524,8 +524,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   gui::Canvas scratch_canvas_{"ScratchSpace", ImVec2(320, 480),
                               gui::CanvasGridSize::k32x32};
   // Panels
-  std::unique_ptr<UsageStatisticsPanel> usage_stats_card_;
-  std::unique_ptr<DebugWindowPanel> debug_window_card_;
+  std::unique_ptr<UsageStatisticsCard> usage_stats_card_;
+  std::unique_ptr<DebugWindowCard> debug_window_card_;
 
   absl::Status status_;
 

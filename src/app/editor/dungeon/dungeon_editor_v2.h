@@ -186,9 +186,6 @@ class DungeonEditorV2 : public Editor {
 
   // Active room tabs and card tracking for jump-to
   ImVector<int> active_rooms_;
-  // Panels
-  gui::PanelWindow room_properties_card_{"Room Properties", ICON_MD_TUNE};
-  gui::PanelWindow object_tool_card_{"Object Tools", ICON_MD_BUILD};
   int current_room_id_ = 0;
 
   bool control_panel_minimized_ = false;

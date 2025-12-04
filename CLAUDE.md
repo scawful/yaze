@@ -63,7 +63,7 @@ See `test/README.md` for detailed test organization, presets, and troubleshootin
 - Base `Editor` class defines interface for all editor types
 - Major editors: `OverworldEditor`, `DungeonEditor`, `GraphicsEditor`, `PaletteEditor`
 - `EditorManager` coordinates multiple editor instances
-- Card-based UI system for dockable editor panels
+- Panel-based UI system for dockable editor windows
 
 **Graphics System** (`src/app/gfx/`)
 - `gfx::Bitmap`: Core bitmap class with SDL surface integration
@@ -170,8 +170,8 @@ Jump directly to editors for faster development:
 # Open specific editor with ROM
 ./yaze --rom_file=zelda3.sfc --editor=Dungeon
 
-# Open with specific cards visible
-./yaze --rom_file=zelda3.sfc --editor=Dungeon --cards="Room 0,Room 1,Object Editor"
+# Open with specific panels visible
+./yaze --rom_file=zelda3.sfc --editor=Dungeon --open_panels="Room 0,Room 1,Object Editor"
 
 # Enable debug logging
 ./yaze --debug --log_file=debug.log --rom_file=zelda3.sfc --editor=Overworld

@@ -40,7 +40,7 @@ class AgentSidebar;
  * - AgentSessionManager (multi-agent session management)
  * - AgentEditor (main configuration dashboard)
  * - AgentSidebar (right-side chat panel with tabs)
- * - AgentChatPanel (pop-out dockable chat windows)
+ * - AgentChatCard (pop-out dockable chat windows)
  *
  * It owns the AgentSessionManager and handles state synchronization
  * between components during the Update() call.
@@ -108,7 +108,7 @@ class AgentUiController {
   void DrawOpenPanels();
 
   AgentSessionManager session_manager_;
-  std::vector<std::unique_ptr<AgentChatPanel>> open_cards_;
+  std::vector<std::unique_ptr<AgentChatCard>> open_cards_;
 
   AgentChatHistoryPopup chat_history_popup_;
   AgentEditor agent_editor_;

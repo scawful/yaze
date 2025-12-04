@@ -242,7 +242,7 @@ void AgentUiController::PopOutAgent(const std::string& agent_id) {
   }
 
   // Create new pop-out card
-  auto card = std::make_unique<AgentChatPanel>(agent_id, &session_manager_);
+  auto card = std::make_unique<AgentChatCard>(agent_id, &session_manager_);
   card->SetToastManager(toast_manager_);
 
   // Share agent service if available
@@ -260,7 +260,7 @@ void AgentUiController::PopOutAgent(const std::string& agent_id) {
 
 void AgentUiController::CloseAgentPanel(const std::string& agent_id) {
   auto it = std::remove_if(open_cards_.begin(), open_cards_.end(),
-                           [&agent_id](const std::unique_ptr<AgentChatPanel>& card) {
+                           [&agent_id](const std::unique_ptr<AgentChatCard>& card) {
                              return card->agent_id() == agent_id;
                            });
 

@@ -269,7 +269,6 @@ class PanelManager {
   void TriggerShowHelp() { if (on_show_help_) on_show_help_(); }
   void TriggerOpenRom() { if (on_open_rom_) on_open_rom_(); }
   void TriggerPanelClicked(const std::string& category) { if (on_card_clicked_) on_card_clicked_(category); }
-  void TriggerPanelClicked(const std::string& category) { TriggerPanelClicked(category); }
 
   // ============================================================================
   // Utility Icon Callbacks (for sidebar quick access buttons)
@@ -423,59 +422,6 @@ class PanelManager {
   void SetOnPanelClickedCallback(std::function<void(const std::string&)> callback) {
     on_card_clicked_ = std::move(callback);
   }
-
-  // ============================================================================
-  // Panel-Named Compatibility Shims (Phase 2 rename support)
-  // ============================================================================
-
-  YAZE_CARD_SHIM_DEPRECATED("Use UnregisterPanel")
-  void UnregisterPanel(size_t session_id, const std::string& base_card_id);
-  YAZE_CARD_SHIM_DEPRECATED("Use UnregisterPanelsWithPrefix")
-  void UnregisterPanelsWithPrefix(const std::string& prefix);
-
-  YAZE_CARD_SHIM_DEPRECATED("Use ShowPanel")
-  bool ShowPanel(size_t session_id, const std::string& base_card_id);
-  YAZE_CARD_SHIM_DEPRECATED("Use HidePanel")
-  bool HidePanel(size_t session_id, const std::string& base_card_id);
-  YAZE_CARD_SHIM_DEPRECATED("Use TogglePanel")
-  bool TogglePanel(size_t session_id, const std::string& base_card_id);
-  YAZE_CARD_SHIM_DEPRECATED("Use IsPanelVisible")
-  bool IsPanelVisible(size_t session_id,
-                     const std::string& base_card_id) const;
-
-  YAZE_CARD_SHIM_DEPRECATED("Use ShowPanel")
-  bool ShowPanel(const std::string& base_card_id);
-  YAZE_CARD_SHIM_DEPRECATED("Use HidePanel")
-  bool HidePanel(const std::string& base_card_id);
-  YAZE_CARD_SHIM_DEPRECATED("Use TogglePanel")
-  bool TogglePanel(const std::string& base_card_id);
-  YAZE_CARD_SHIM_DEPRECATED("Use IsPanelVisible")
-  bool IsPanelVisible(const std::string& base_card_id) const;
-
-  YAZE_CARD_SHIM_DEPRECATED("Use GetPanelsInCategory")
-  std::vector<PanelDescriptor> GetPanelsInCategory(
-      size_t session_id, const std::string& category) const;
-  YAZE_CARD_SHIM_DEPRECATED("Use GetPanelsInCategory")
-  std::vector<PanelDescriptor> GetPanelsInCategory(
-      const std::string& category) const;
-  YAZE_CARD_SHIM_DEPRECATED("Use GetPanelDescriptor")
-  const PanelDescriptor* GetPanelInfo(size_t session_id,
-                                     const std::string& base_card_id) const;
-  YAZE_CARD_SHIM_DEPRECATED("Use GetPanelDescriptor")
-  const PanelDescriptor* GetPanelInfo(const std::string& base_card_id) const;
-
-  YAZE_CARD_SHIM_DEPRECATED("Use ShowAllPanelsInSession")
-  void ShowAllPanelsInSession(size_t session_id);
-  YAZE_CARD_SHIM_DEPRECATED("Use HideAllPanelsInSession")
-  void HideAllPanelsInSession(size_t session_id);
-  YAZE_CARD_SHIM_DEPRECATED("Use ShowAllPanelsInCategory")
-  void ShowAllPanelsInCategory(size_t session_id, const std::string& category);
-  YAZE_CARD_SHIM_DEPRECATED("Use HideAllPanelsInCategory")
-  void HideAllPanelsInCategory(size_t session_id, const std::string& category);
-  YAZE_CARD_SHIM_DEPRECATED("Use ShowAll")
-  void ShowAllPanels();
-  YAZE_CARD_SHIM_DEPRECATED("Use HideAll")
-  void HideAllPanels();
 
   // ============================================================================
   // File Browser Integration

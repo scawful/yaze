@@ -127,8 +127,8 @@ void OverworldEditor::Initialize() {
   // Original initialization code below:
   // Initialize MapPropertiesSystem with canvas and bitmap data
   // Initialize cards
-  usage_stats_card_ = std::make_unique<UsageStatisticsPanel>(&overworld_);
-  debug_window_card_ = std::make_unique<DebugWindowPanel>();
+  usage_stats_card_ = std::make_unique<UsageStatisticsCard>(&overworld_);
+  debug_window_card_ = std::make_unique<DebugWindowCard>();
 
 
 

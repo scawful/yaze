@@ -29,16 +29,16 @@ class ToastManager;
  * - Shows agent name in window title
  * - Close button removes the card (session remains in sidebar)
  */
-class AgentChatPanel {
+class AgentChatCard {
  public:
   /**
    * @brief Construct a chat card for a specific agent session
    * @param agent_id The session ID this card represents
    * @param session_manager Manager to retrieve session state from
    */
-  AgentChatPanel(const std::string& agent_id,
+  AgentChatCard(const std::string& agent_id,
                 AgentSessionManager* session_manager);
-  ~AgentChatPanel() = default;
+  ~AgentChatCard() = default;
 
   /**
    * @brief Set the toast manager for notifications

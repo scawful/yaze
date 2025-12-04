@@ -284,36 +284,7 @@ void MenuOrchestrator::AddPanelsSubmenu() {
   }
 }
 
-void MenuOrchestrator::AddPanelsSubmenu() {
-  // Using raw ImGui for panels submenu
-  if (ImGui::BeginMenu(absl::StrFormat("%s Panels", ICON_MD_VIEW_SIDEBAR).c_str())) {
-#ifdef YAZE_BUILD_AGENT_UI
-    if (ImGui::MenuItem(absl::StrFormat("%s AI Agent", ICON_MD_SMART_TOY).c_str(),
-                        SHORTCUT_CTRL_SHIFT(A))) {
-      OnShowAIAgent();
-    }
-#endif
 
-#ifdef YAZE_BUILD_AGENT_UI
-    if (ImGui::MenuItem(absl::StrFormat("%s Proposals", ICON_MD_DESCRIPTION).c_str(),
-                        SHORTCUT_CTRL_SHIFT(R))) {
-      OnShowProposalDrawer();
-    }
-#endif
-
-    if (ImGui::MenuItem(absl::StrFormat("%s Settings", ICON_MD_SETTINGS).c_str())) {
-      OnShowSettings();
-    }
-
-    ImGui::Separator();
-
-    if (ImGui::MenuItem(absl::StrFormat("%s Help", ICON_MD_HELP).c_str(), "F1")) {
-      OnShowAbout();
-    }
-
-    ImGui::EndMenu();
-  }
-}
 
 void MenuOrchestrator::BuildToolsMenu() {
   menu_builder_.BeginMenu("Tools");
