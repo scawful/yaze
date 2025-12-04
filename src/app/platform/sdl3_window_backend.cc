@@ -404,6 +404,11 @@ absl::Status SDL3WindowBackend::InitializeImGui(gfx::IRenderer* renderer) {
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
   io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
+  // Ensure macOS-style behavior (Cmd acts as Ctrl for shortcuts)
+#ifdef __APPLE__
+  io.ConfigMacOSXBehaviors = true;
+#endif
+
   // Initialize ImGui backends for SDL3
   SDL_Renderer* sdl_renderer =
       static_cast<SDL_Renderer*>(renderer->GetBackendRenderer());

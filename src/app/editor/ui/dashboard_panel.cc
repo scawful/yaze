@@ -5,8 +5,10 @@
 #include <sstream>
 
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
 #include "app/editor/editor_manager.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/platform_keys.h"
 #include "app/gui/core/style.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
@@ -23,31 +25,45 @@ DashboardPanel::DashboardPanel(EditorManager* editor_manager)
   window_.SetPosition(gui::PanelWindow::Position::Center);
 
   // Initialize editor list with colors matching EditorSelectionDialog
+  // Use platform-aware shortcut strings (Cmd on macOS, Ctrl elsewhere)
+  const char* ctrl = gui::GetCtrlDisplayName();
   editors_ = {
-      {"Overworld", ICON_MD_MAP, "Edit overworld maps, entrances, and properties", "Ctrl+1",
-       EditorType::kOverworld, ImVec4(0.133f, 0.545f, 0.133f, 1.0f)}, // Hyrule green
-      {"Dungeon", ICON_MD_CASTLE, "Design dungeon rooms, layouts, and mechanics", "Ctrl+2",
-       EditorType::kDungeon, ImVec4(0.502f, 0.0f, 0.502f, 1.0f)}, // Ganon purple
-      {"Graphics", ICON_MD_PALETTE, "Modify tiles, palettes, and graphics sets", "Ctrl+3",
-       EditorType::kGraphics, ImVec4(1.0f, 0.843f, 0.0f, 1.0f)}, // Triforce gold
-      {"Sprites", ICON_MD_EMOJI_EMOTIONS, "Edit sprite graphics and properties", "Ctrl+4",
-       EditorType::kSprite, ImVec4(1.0f, 0.647f, 0.0f, 1.0f)}, // Spirit orange
-      {"Messages", ICON_MD_CHAT_BUBBLE, "Edit dialogue, signs, and text", "Ctrl+5",
-       EditorType::kMessage, ImVec4(0.196f, 0.6f, 0.8f, 1.0f)}, // Master sword blue
-      {"Music", ICON_MD_MUSIC_NOTE, "Configure music and sound effects", "Ctrl+6",
-       EditorType::kMusic, ImVec4(0.416f, 0.353f, 0.804f, 1.0f)}, // Shadow purple
-      {"Palettes", ICON_MD_COLOR_LENS, "Edit color palettes and animations", "Ctrl+7",
-       EditorType::kPalette, ImVec4(0.863f, 0.078f, 0.235f, 1.0f)}, // Heart red
-      {"Screens", ICON_MD_TV, "Edit title screen and ending screens", "Ctrl+8",
-       EditorType::kScreen, ImVec4(0.4f, 0.8f, 1.0f, 1.0f)}, // Sky blue
-      {"Assembly", ICON_MD_CODE, "Write and edit assembly code", "Ctrl+9",
-       EditorType::kAssembly, ImVec4(0.8f, 0.8f, 0.8f, 1.0f)}, // Silver
-      {"Hex Editor", ICON_MD_DATA_ARRAY, "Direct ROM memory editing and comparison", "Ctrl+0",
-       EditorType::kHex, ImVec4(0.2f, 0.8f, 0.4f, 1.0f)}, // Matrix green
-      {"Emulator", ICON_MD_VIDEOGAME_ASSET, "Test and debug your ROM in real-time", "Ctrl+Shift+E",
-       EditorType::kEmulator, ImVec4(0.2f, 0.6f, 1.0f, 1.0f)}, // Emulator blue
-      {"AI Agent", ICON_MD_SMART_TOY, "Configure AI agent, collaboration, and automation", "Ctrl+Shift+A",
-       EditorType::kAgent, ImVec4(0.8f, 0.4f, 1.0f, 1.0f)}, // Purple/magenta
+      {"Overworld", ICON_MD_MAP, "Edit overworld maps, entrances, and properties",
+       absl::StrFormat("%s+1", ctrl), EditorType::kOverworld,
+       ImVec4(0.133f, 0.545f, 0.133f, 1.0f)}, // Hyrule green
+      {"Dungeon", ICON_MD_CASTLE, "Design dungeon rooms, layouts, and mechanics",
+       absl::StrFormat("%s+2", ctrl), EditorType::kDungeon,
+       ImVec4(0.502f, 0.0f, 0.502f, 1.0f)}, // Ganon purple
+      {"Graphics", ICON_MD_PALETTE, "Modify tiles, palettes, and graphics sets",
+       absl::StrFormat("%s+3", ctrl), EditorType::kGraphics,
+       ImVec4(1.0f, 0.843f, 0.0f, 1.0f)}, // Triforce gold
+      {"Sprites", ICON_MD_EMOJI_EMOTIONS, "Edit sprite graphics and properties",
+       absl::StrFormat("%s+4", ctrl), EditorType::kSprite,
+       ImVec4(1.0f, 0.647f, 0.0f, 1.0f)}, // Spirit orange
+      {"Messages", ICON_MD_CHAT_BUBBLE, "Edit dialogue, signs, and text",
+       absl::StrFormat("%s+5", ctrl), EditorType::kMessage,
+       ImVec4(0.196f, 0.6f, 0.8f, 1.0f)}, // Master sword blue
+      {"Music", ICON_MD_MUSIC_NOTE, "Configure music and sound effects",
+       absl::StrFormat("%s+6", ctrl), EditorType::kMusic,
+       ImVec4(0.416f, 0.353f, 0.804f, 1.0f)}, // Shadow purple
+      {"Palettes", ICON_MD_COLOR_LENS, "Edit color palettes and animations",
+       absl::StrFormat("%s+7", ctrl), EditorType::kPalette,
+       ImVec4(0.863f, 0.078f, 0.235f, 1.0f)}, // Heart red
+      {"Screens", ICON_MD_TV, "Edit title screen and ending screens",
+       absl::StrFormat("%s+8", ctrl), EditorType::kScreen,
+       ImVec4(0.4f, 0.8f, 1.0f, 1.0f)}, // Sky blue
+      {"Assembly", ICON_MD_CODE, "Write and edit assembly code",
+       absl::StrFormat("%s+9", ctrl), EditorType::kAssembly,
+       ImVec4(0.8f, 0.8f, 0.8f, 1.0f)}, // Silver
+      {"Hex Editor", ICON_MD_DATA_ARRAY, "Direct ROM memory editing and comparison",
+       absl::StrFormat("%s+0", ctrl), EditorType::kHex,
+       ImVec4(0.2f, 0.8f, 0.4f, 1.0f)}, // Matrix green
+      {"Emulator", ICON_MD_VIDEOGAME_ASSET, "Test and debug your ROM in real-time",
+       absl::StrFormat("%s+Shift+E", ctrl), EditorType::kEmulator,
+       ImVec4(0.2f, 0.6f, 1.0f, 1.0f)}, // Emulator blue
+      {"AI Agent", ICON_MD_SMART_TOY, "Configure AI agent, collaboration, and automation",
+       absl::StrFormat("%s+Shift+A", ctrl), EditorType::kAgent,
+       ImVec4(0.8f, 0.4f, 1.0f, 1.0f)}, // Purple/magenta
   };
 
   LoadRecentEditors();

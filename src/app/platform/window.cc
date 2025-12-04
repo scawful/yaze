@@ -97,6 +97,11 @@ absl::Status CreateWindow(Window& window, gfx::IRenderer* renderer, int flags) {
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
+  // Ensure macOS-style behavior (Cmd acts as Ctrl for shortcuts)
+#ifdef __APPLE__
+  io.ConfigMacOSXBehaviors = true;
+#endif
+
   // Set custom assertion handler to prevent crashes
 #ifdef IMGUI_DISABLE_DEFAULT_ASSERT_HANDLER
   ImGui::SetAssertHandler(ImGuiAssertionHandler);
@@ -205,14 +210,9 @@ absl::Status HandleEvents(Window& window) {
   while (SDL_PollEvent(&event)) {
     ImGui_ImplSDL2_ProcessEvent(&event);
     switch (event.type) {
-      case SDL_KEYDOWN:
-      case SDL_KEYUP: {
-        io.KeyShift = ((SDL_GetModState() & KMOD_SHIFT) != 0);
-        io.KeyCtrl = ((SDL_GetModState() & KMOD_CTRL) != 0);
-        io.KeyAlt = ((SDL_GetModState() & KMOD_ALT) != 0);
-        io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
-        break;
-      }
+      // Note: Keyboard modifiers are handled by ImGui_ImplSDL2_ProcessEvent
+      // which respects ConfigMacOSXBehaviors for Cmd/Ctrl swapping on macOS.
+      // Do NOT manually override io.KeyCtrl/KeySuper here.
       case SDL_WINDOWEVENT:
         switch (event.window.event) {
           case SDL_WINDOWEVENT_CLOSE:
