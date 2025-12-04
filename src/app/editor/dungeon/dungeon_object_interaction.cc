@@ -21,6 +21,12 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
     return;
   }
 
+  // Handle Escape key to cancel placement
+  if (ImGui::IsKeyPressed(ImGuiKey_Escape) && object_loaded_) {
+    CancelPlacement();
+    return;
+  }
+
   // Handle scroll wheel for resizing selected objects
   HandleScrollWheelResize();
 

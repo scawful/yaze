@@ -119,17 +119,13 @@ class ObjectEditorPanel : public EditorPanel {
   void SetAgentOptimizedLayout(bool enabled);
   void SetupSelectionCallbacks();
 
-  // Interaction mode controls
-  void SetInteractionModeSelect() { interaction_mode_ = InteractionMode::Select; }
-  void SetInteractionModePlace() { interaction_mode_ = InteractionMode::Place; }
-  void SetInteractionModeDelete() { interaction_mode_ = InteractionMode::Delete; }
-
   // Object operations
   void CycleObjectSelection(int direction);
   void SelectAllObjects();
   void DeleteSelectedObjects();
   void CopySelectedObjects();
   void PasteObjects();
+  void CancelPlacement();  // Cancel current object placement
 
   // ==========================================================================
   // Static Object Editor (double-click to open)
@@ -185,10 +181,6 @@ class ObjectEditorPanel : public EditorPanel {
   bool show_object_ids_ = false;
   bool show_template_creation_modal_ = false;
   bool show_delete_confirmation_modal_ = false;
-
-  // Object interaction mode
-  enum class InteractionMode { None, Place, Select, Delete };
-  InteractionMode interaction_mode_ = InteractionMode::None;
 
   // Selected object for placement
   zelda3::RoomObject preview_object_{0, 0, 0, 0, 0};
