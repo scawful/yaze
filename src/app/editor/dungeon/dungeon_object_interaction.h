@@ -91,8 +91,6 @@ class DungeonObjectInteraction {
   void HandleScrollWheelResize();  // Resize selected objects with scroll wheel
   size_t GetHoveredObjectIndex() const;  // Get index of object under cursor
 
-  // Context menu
-  void ShowContextMenu();
   void HandleDeleteSelected();
   void HandleCopySelected();
   void HandlePasteObjects();

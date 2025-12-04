@@ -117,6 +117,9 @@ void ObjectEditorPanel::Draw(bool* p_open) {
     } else {
       ImGui::TextColored(theme.text_secondary_gray,
           ICON_MD_MOUSE " Selection Mode - Click to select, drag to multi-select");
+      ImGui::TextColored(
+          theme.text_secondary_gray,
+          ICON_MD_MENU " Right-click the canvas for Cut/Copy/Paste options");
     }
   }
 
