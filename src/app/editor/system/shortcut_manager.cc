@@ -7,6 +7,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/strings/str_split.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/platform_keys.h"
 #include "imgui/imgui.h"

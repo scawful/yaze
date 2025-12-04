@@ -1,10 +1,17 @@
+// Related header
 #include "graphics_editor.h"
 
+// C++ standard library headers
 #include <filesystem>
 
+// Third-party library headers
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
+#include "imgui/imgui.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
+
+// Project headers
 #include "app/editor/system/panel_manager.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
@@ -19,13 +26,11 @@
 #include "app/gui/core/input.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/ui_helpers.h"
+#include "app/gui/imgui_memory_editor.h"
 #include "app/gui/widgets/asset_browser.h"
 #include "app/platform/window.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
-#include "imgui/imgui.h"
-#include "imgui/misc/cpp/imgui_stdlib.h"
-#include "app/gui/imgui_memory_editor.h"
 #include "util/file_util.h"
 #include "util/log.h"
 
@@ -279,135 +284,123 @@ absl::Status GraphicsEditor::Update() {
   auto* panel_manager = dependencies_.panel_manager;
   const size_t session_id = dependencies_.session_id;
 
-  // --- New Panel-Based Cards ---
-  static gui::PanelWindow sheet_browser_v2_card("Sheet Browser", ICON_MD_VIEW_LIST);
-  static gui::PanelWindow pixel_editor_card("Pixel Editor", ICON_MD_DRAW);
-  static gui::PanelWindow gfx_card("Graphics", ICON_MD_IMAGE);
-  gfx_card.SetPosition(gui::PanelWindow::Position::Left);
-  static gui::PanelWindow palette_controls_card("Palette Controls", ICON_MD_PALETTE);
-  static gui::PanelWindow polyhedral_card("3D Objects", ICON_MD_VIEW_IN_AR);
+  // --- New Panel-Based Cards (member variables) ---
+  gfx_card_.SetPosition(gui::PanelWindow::Position::Left);
 
-  sheet_browser_v2_card.SetDefaultSize(350, 600);
-  pixel_editor_card.SetDefaultSize(800, 600);
-  palette_controls_card.SetDefaultSize(300, 500);
-  polyhedral_card.SetDefaultSize(600, 520);
+  sheet_browser_v2_card_.SetDefaultSize(350, 600);
+  pixel_editor_card_.SetDefaultSize(800, 600);
+  palette_controls_card_.SetDefaultSize(300, 500);
+  polyhedral_card_.SetDefaultSize(600, 520);
 
   // Sheet Browser Panel (new)
   bool* sheet_browser_v2_visible =
       panel_manager->GetVisibilityFlag(session_id, "graphics.sheet_browser_v2");
   if (sheet_browser_v2_visible && *sheet_browser_v2_visible) {
-    if (sheet_browser_v2_card.Begin(sheet_browser_v2_visible)) {
+    if (sheet_browser_v2_card_.Begin(sheet_browser_v2_visible)) {
       if (sheet_browser_panel_) {
         status_ = sheet_browser_panel_->Update();
       }
     }
-    sheet_browser_v2_card.End();
+    sheet_browser_v2_card_.End();
   }
 
   // Pixel Editor Panel (new)
   bool* pixel_editor_visible =
       panel_manager->GetVisibilityFlag(session_id, "graphics.pixel_editor");
   if (pixel_editor_visible && *pixel_editor_visible) {
-    if (pixel_editor_card.Begin(pixel_editor_visible)) {
+    if (pixel_editor_card_.Begin(pixel_editor_visible)) {
       if (pixel_editor_panel_) {
         status_ = pixel_editor_panel_->Update();
       }
     }
-    pixel_editor_card.End();
+    pixel_editor_card_.End();
   }
 
   // Palette Controls Panel (new)
   bool* palette_controls_visible =
       panel_manager->GetVisibilityFlag(session_id, "graphics.palette_controls");
   if (palette_controls_visible && *palette_controls_visible) {
-    if (palette_controls_card.Begin(palette_controls_visible)) {
+    if (palette_controls_card_.Begin(palette_controls_visible)) {
       if (palette_controls_panel_) {
         status_ = palette_controls_panel_->Update();
       }
     }
-    palette_controls_card.End();
+    palette_controls_card_.End();
   }
 
   // Link Sprite Editor Panel
-  static gui::PanelWindow link_sprite_card("Link Sprite Editor", ICON_MD_PERSON);
-  link_sprite_card.SetDefaultSize(600, 500);
+  link_sprite_card_.SetDefaultSize(600, 500);
 
   bool* link_sprite_visible =
       panel_manager->GetVisibilityFlag(session_id, "graphics.link_sprite_editor");
   if (link_sprite_visible && *link_sprite_visible) {
-    if (link_sprite_card.Begin(link_sprite_visible)) {
+    if (link_sprite_card_.Begin(link_sprite_visible)) {
       if (link_sprite_panel_) {
         status_ = link_sprite_panel_->Update();
       }
     }
-    link_sprite_card.End();
+    link_sprite_card_.End();
   }
 
   // Polyhedral (3D object) editor
   bool* polyhedral_visible =
       panel_manager->GetVisibilityFlag(session_id, "graphics.polyhedral_editor");
   if (polyhedral_visible && *polyhedral_visible) {
-    if (polyhedral_card.Begin(polyhedral_visible)) {
+    if (polyhedral_card_.Begin(polyhedral_visible)) {
       if (polyhedral_panel_) {
         status_ = polyhedral_panel_->Update();
       }
     }
-    polyhedral_card.End();
+    polyhedral_card_.End();
   }
 
-  // --- Legacy Cards (kept for backward compatibility) ---
-  static gui::PanelWindow sheet_editor_card("Sheet Editor", ICON_MD_EDIT);
-  static gui::PanelWindow sheet_browser_card("Asset Browser", ICON_MD_VIEW_LIST);
-  static gui::PanelWindow player_anims_card("Player Animations", ICON_MD_PERSON);
-  static gui::PanelWindow prototype_card("Prototype Viewer",
-                                        ICON_MD_CONSTRUCTION);
-
-  sheet_editor_card.SetDefaultSize(900, 700);
-  sheet_browser_card.SetDefaultSize(400, 600);
-  player_anims_card.SetDefaultSize(500, 600);
-  prototype_card.SetDefaultSize(600, 500);
+  // --- Legacy Cards (member variables) ---
+  sheet_editor_card_.SetDefaultSize(900, 700);
+  sheet_browser_card_.SetDefaultSize(400, 600);
+  player_anims_card_.SetDefaultSize(500, 600);
+  prototype_card_.SetDefaultSize(600, 500);
 
   // Sheet Editor Card (Legacy)
   bool* sheet_editor_visible =
       panel_manager->GetVisibilityFlag(session_id, "graphics.sheet_editor");
   if (sheet_editor_visible && *sheet_editor_visible) {
-    if (sheet_editor_card.Begin(sheet_editor_visible)) {
+    if (sheet_editor_card_.Begin(sheet_editor_visible)) {
       status_ = UpdateGfxEdit();
     }
-    sheet_editor_card.End();
+    sheet_editor_card_.End();
   }
 
   // Sheet Browser Card (Legacy)
   bool* sheet_browser_visible =
       panel_manager->GetVisibilityFlag(session_id, "graphics.sheet_browser");
   if (sheet_browser_visible && *sheet_browser_visible) {
-    if (sheet_browser_card.Begin(sheet_browser_visible)) {
+    if (sheet_browser_card_.Begin(sheet_browser_visible)) {
       if (asset_browser_.Initialized == false) {
         asset_browser_.Initialize(gfx::Arena::Get().gfx_sheets());
       }
       asset_browser_.Draw(gfx::Arena::Get().gfx_sheets());
     }
-    sheet_browser_card.End();
+    sheet_browser_card_.End();
   }
 
   // Player Animations Card
   bool* player_anims_visible =
       panel_manager->GetVisibilityFlag(session_id, "graphics.player_animations");
   if (player_anims_visible && *player_anims_visible) {
-    if (player_anims_card.Begin(player_anims_visible)) {
+    if (player_anims_card_.Begin(player_anims_visible)) {
       status_ = UpdateLinkGfxView();
     }
-    player_anims_card.End();
+    player_anims_card_.End();
   }
 
   // Prototype Viewer Card
   bool* prototype_visible =
       panel_manager->GetVisibilityFlag(session_id, "graphics.prototype_viewer");
   if (prototype_visible && *prototype_visible) {
-    if (prototype_card.Begin(prototype_visible)) {
+    if (prototype_card_.Begin(prototype_visible)) {
       status_ = UpdateScadView();
     }
-    prototype_card.End();
+    prototype_card_.End();
   }
 
   CLEAR_AND_RETURN_STATUS(status_)
