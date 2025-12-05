@@ -299,6 +299,22 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("BG2 Objects");
 
+    // Composite mode toggle (merge all layers into single bitmap)
+    ImGui::SameLine();
+    ImGui::TextDisabled("|");
+    ImGui::SameLine();
+    if (ImGui::Checkbox("Merge##Composite", &use_composite_mode_)) {
+      // When enabling composite mode, mark all rooms as needing recomposite
+      if (use_composite_mode_ && rooms_) {
+        for (auto& room : *rooms_) {
+          room.MarkCompositeDirty();
+        }
+      }
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Merge all layers into single composite bitmap");
+    }
+
     // === LAYER SELECTION FILTER ===
     // Update merge state in the interaction system
     object_interaction_.SetLayersMerged(layer_mgr.AreLayersMerged());
