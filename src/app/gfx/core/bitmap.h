@@ -168,7 +168,32 @@ class Bitmap {
   void UpdateTextureData();
 
   /**
-   * @brief Set the palette for the bitmap
+   * @brief Set the palette for the bitmap using SNES palette format
+   *
+   * This method stores the palette in the internal `palette_` member AND
+   * applies it to the SDL surface via `ApplyStoredPalette()`.
+   *
+   * @note IMPORTANT: There are two palette storage mechanisms in Bitmap:
+   *
+   * 1. **Internal SnesPalette (`palette_` member)**: Stores the SNES color
+   *    format for serialization and palette editing. Accessible via palette().
+   *
+   * 2. **SDL Surface Palette (`surface_->format->palette`)**: Used by SDL for
+   *    actual rendering. When converting indexed pixels to RGBA for textures,
+   *    SDL uses THIS palette, not the internal one.
+   *
+   * Both are updated when calling SetPalette(SnesPalette). However, some code
+   * paths (like dungeon room rendering) use SetPalette(vector<SDL_Color>)
+   * which ONLY sets the SDL surface palette, leaving the internal palette_
+   * empty.
+   *
+   * When compositing bitmaps or copying palettes between bitmaps, you may need
+   * to extract the palette from the SDL surface directly rather than using
+   * palette() which may be empty. See RoomLayerManager::CompositeToOutput()
+   * for an example of proper palette extraction from SDL surfaces.
+   *
+   * @param palette SNES palette to apply (15-bit RGB format)
+   * @see SetPalette(const std::vector<SDL_Color>&) for direct SDL palette access
    */
   void SetPalette(const SnesPalette& palette);
 
@@ -197,7 +222,29 @@ class Bitmap {
   void UpdateSurfacePixels();
 
   /**
-   * @brief Set the palette using SDL colors
+   * @brief Set the palette using SDL colors (direct surface palette access)
+   *
+   * This method ONLY sets the SDL surface palette for rendering. It does NOT
+   * update the internal `palette_` member (SnesPalette).
+   *
+   * Use this method when:
+   * - You have pre-converted colors in SDL_Color format
+   * - You're copying a palette from another SDL surface
+   * - Performance is critical (avoids SNES→SDL color conversion)
+   * - You don't need to preserve the palette for serialization
+   *
+   * @warning After calling this method, palette() will return an empty or
+   * stale SnesPalette. If you need to copy the palette to another bitmap,
+   * extract it from the SDL surface directly:
+   *
+   * @code
+   * SDL_Palette* pal = src_bitmap.surface()->format->palette;
+   * std::vector<SDL_Color> colors(pal->colors, pal->colors + pal->ncolors);
+   * dst_bitmap.SetPalette(colors);
+   * @endcode
+   *
+   * @param palette Vector of SDL_Color values (256 colors for 8-bit indexed)
+   * @see SetPalette(const SnesPalette&) for full palette storage
    */
   void SetPalette(const std::vector<SDL_Color>& palette);
 
@@ -360,16 +407,51 @@ class Bitmap {
   // Pointer to the pixel data
   uint8_t* pixel_data_ = nullptr;
 
-  // Palette for the bitmap
+  /**
+   * @brief Internal SNES palette storage (may be empty!)
+   *
+   * This stores the palette in SNES 15-bit RGB format for serialization and
+   * palette editing. It is populated by SetPalette(SnesPalette) but NOT by
+   * SetPalette(vector<SDL_Color>).
+   *
+   * @warning This may be EMPTY for bitmaps that had their palette set via
+   * SetPalette(vector<SDL_Color>). To reliably get the active palette, extract
+   * it from the SDL surface: surface_->format->palette->colors
+   *
+   * @see SetPalette(const SnesPalette&) - populates this member
+   * @see SetPalette(const std::vector<SDL_Color>&) - does NOT populate this
+   */
   gfx::SnesPalette palette_;
 
   // Metadata for tracking source format and palette requirements
   BitmapMetadata metadata_;
 
-  // Data for the bitmap
+  // Data for the bitmap (indexed pixel values, 0-255)
   std::vector<uint8_t> data_;
 
-  // Surface for the bitmap (managed by Arena)
+  /**
+   * @brief SDL surface for rendering (contains the authoritative palette)
+   *
+   * For 8-bit indexed bitmaps, the surface contains:
+   * - pixels: Raw indexed pixel data (same as data_ after UpdateSurfacePixels)
+   * - format->palette: The SDL_Palette used for rendering to textures
+   *
+   * The SDL palette (surface_->format->palette) is the authoritative source
+   * for color data when rendering. When SDL converts indexed pixels to RGBA
+   * for texture creation, it uses this palette.
+   *
+   * @note To copy a palette between bitmaps:
+   * @code
+   * SDL_Palette* src_pal = src.surface()->format->palette;
+   * std::vector<SDL_Color> colors(src_pal->ncolors);
+   * for (int i = 0; i < src_pal->ncolors; ++i) {
+   *   colors[i] = src_pal->colors[i];
+   * }
+   * dst.SetPalette(colors);
+   * @endcode
+   *
+   * @see RoomLayerManager::CompositeToOutput() for palette extraction example
+   */
   SDL_Surface* surface_ = nullptr;
 
   // Texture for the bitmap (managed by Arena)

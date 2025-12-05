@@ -36,6 +36,13 @@ constexpr uint32_t kEntranceGfxGroup = 0x5D97;
 // Note: kGfxGroupsPointer defined in zelda3/dungeon/dungeon_rom_addresses.h
 constexpr uint32_t kMaxGraphics = 0x0C3FFF;
 
+// Dungeon palette lookup tables
+// Room headers store a "palette set ID" (0-71), NOT a direct palette index!
+// Two-level lookup: paletteset_ids[room.palette][0] gives a byte offset into
+// kDungeonPalettePointerTable. The word there, divided by 180, is the palette.
+constexpr uint32_t kPalettesetIdsAddress = 0x75460;
+constexpr uint32_t kDungeonPalettePointerTable = 0xDEC4B;
+
 // Link graphics location ($10:8000)
 constexpr uint32_t kLinkGfxOffset = 0x80000;
 constexpr uint16_t kLinkGfxLength = 0x800;
@@ -84,6 +91,11 @@ struct GameData {
   std::array<std::array<uint8_t, 8>, kNumMainBlocksets> main_blockset_ids;
   std::array<std::array<uint8_t, 4>, kNumRoomBlocksets> room_blockset_ids;
   std::array<std::array<uint8_t, 4>, kNumSpritesets> spriteset_ids;
+
+  // Palette set lookup table (72 entries × 4 bytes each)
+  // Entry format: [bg_palette_offset, aux1, aux2, aux3]
+  // NOTE: paletteset_ids[n][0] is a BYTE OFFSET into kDungeonPalettePointerTable,
+  // NOT a direct palette index! See room.cc for correct lookup algorithm.
   std::array<std::array<uint8_t, 4>, kNumPalettesets> paletteset_ids;
 
   // Diagnostics

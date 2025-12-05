@@ -24,17 +24,21 @@ struct RoomObject;
  * pure functions that don't depend on class instance state.
  */
 struct DrawContext {
-  gfx::BackgroundBuffer& target_bg;          // Buffer to draw to
+  gfx::BackgroundBuffer& target_bg;          // Primary buffer to draw to
   const RoomObject& object;                   // Object being drawn
   std::span<const gfx::TileInfo> tiles;       // Tile data for the object
   const DungeonState* state;                  // Dungeon state (chest states, etc.)
   Rom* rom;                                   // ROM for additional data lookup
   int room_id;                                // Current room ID
   const uint8_t* room_gfx_buffer;             // Room-specific graphics buffer
+  gfx::BackgroundBuffer* secondary_bg;       // Secondary BG for dual-layer routines (nullable)
 
   // Canvas dimensions
   static constexpr int kMaxTilesX = 64;
   static constexpr int kMaxTilesY = 64;
+
+  // Helper to check if dual-BG drawing is available
+  bool HasSecondaryBG() const { return secondary_bg != nullptr; }
 };
 
 /**

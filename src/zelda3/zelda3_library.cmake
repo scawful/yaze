@@ -2,6 +2,7 @@ set(
   YAZE_APP_ZELDA3_SRC
   zelda3/common.cc
   zelda3/game_data.cc
+  zelda3/dungeon/door_position.cc
   zelda3/dungeon/dungeon_editor_system.cc
   zelda3/dungeon/dungeon_object_editor.cc
   zelda3/dungeon/dungeon_object_registry.cc

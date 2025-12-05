@@ -10,6 +10,8 @@
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
 #include "rom/rom.h"
+#include "zelda3/dungeon/door_types.h"
+#include "zelda3/dungeon/door_position.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/dungeon/dungeon_state.h"
 
@@ -48,9 +50,19 @@ class ObjectDrawer {
                           const DungeonState* state = nullptr);
 
   struct DoorDef {
-      uint8_t type;
-      uint8_t direction;
+      DoorType type;
+      DoorDirection direction;
       uint8_t position;
+
+      // Helper to get position coordinates using DoorPositionManager
+      std::pair<int, int> GetTileCoords() const {
+        return DoorPositionManager::PositionToTileCoords(position, direction);
+      }
+
+      // Helper to get door dimensions
+      DoorDimensions GetDimensions() const {
+        return GetDoorDimensions(direction);
+      }
   };
 
   // Chest index tracking for state queries
@@ -356,7 +368,7 @@ class ObjectDrawer {
 
   // Door indicator fallback when graphics unavailable
   void DrawDoorIndicator(gfx::Bitmap& bitmap, int tile_x, int tile_y,
-                         int width, int height, uint8_t type, uint8_t direction);
+                         int width, int height, DoorType type, DoorDirection direction);
 
   // Draw routine registry
   std::unordered_map<int16_t, int> object_to_routine_map_;

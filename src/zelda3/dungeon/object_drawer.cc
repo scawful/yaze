@@ -67,11 +67,14 @@ absl::Status ObjectDrawer::DrawObject(const RoomObject& object,
   LOG_DEBUG("ObjectDrawer", "Executing draw routine %d for object %04X",
             routine_id, object.id_);
 
-  // Check if this is a BothBG routine (routines 3, 9, 17, 18)
-  // These routines should draw to both BG1 and BG2
+  // Check if this is a BothBG routine
+  // These routines should draw to both BG1 and BG2:
+  // - 3, 9: diagonal walls (BothBG variants)
+  // - 17, 18: diagonal walls acute/grave (BothBG)
+  // - 97: prison cell (dual-layer bars)
   // We now use the all_bgs flag from the object itself, which is set during decoding
   bool is_both_bg = object.all_bgs_ || (routine_id == 3 || routine_id == 9 ||
-                     routine_id == 17 || routine_id == 18);
+                     routine_id == 17 || routine_id == 18 || routine_id == 97);
 
   if (is_both_bg) {
     // Draw to both background layers
@@ -552,25 +555,26 @@ void ObjectDrawer::InitializeDrawRoutines() {
   object_to_routine_map_[0x12B] = 4;
   // 0x12C 3x6 -> Map to 4x4 (16)
   object_to_routine_map_[0x12C] = 16;
-  // 0x12D-0x12F Stairs -> Map to 4x4 (16)
-  object_to_routine_map_[0x12D] = 16;
-  object_to_routine_map_[0x12E] = 16;
-  object_to_routine_map_[0x12F] = 16;
-  // 0x130-0x133 Stairs -> Map to 4x4 (16)
+  // 0x12D-0x12F InterRoom Fat Stairs (ASM: $01A41B, $01A458, $01A486)
+  object_to_routine_map_[0x12D] = 83;  // InterRoomFatStairsUp
+  object_to_routine_map_[0x12E] = 84;  // InterRoomFatStairsDownA
+  object_to_routine_map_[0x12F] = 85;  // InterRoomFatStairsDownB
+  // 0x130-0x133 Auto Stairs (ASM: RoomDraw_AutoStairs*)
   for (int id = 0x130; id <= 0x133; id++) {
-    object_to_routine_map_[id] = 16;
+    object_to_routine_map_[id] = 86;  // AutoStairs
   }
   // 0x134 Rightwards 2x2 -> Map to 2x2 (4)
   object_to_routine_map_[0x134] = 4;
-  // 0x135-0x136 Water Stairs -> Map to 4x4 (16)
+  // 0x135-0x136 Water Hop Stairs -> Map to 4x4 (16)
   object_to_routine_map_[0x135] = 16;
   object_to_routine_map_[0x136] = 16;
-  // 0x137 Dam -> Map to 4x4 (16)
+  // 0x137 Dam Flood Gate -> Map to 4x4 (16)
   object_to_routine_map_[0x137] = 16;
-  // 0x138-0x13B Spiral Stairs -> Map to 2x2 (4)
-  for (int id = 0x138; id <= 0x13B; id++) {
-    object_to_routine_map_[id] = 4;
-  }
+  // 0x138-0x13B Spiral Stairs (ASM: RoomDraw_SpiralStairs*)
+  object_to_routine_map_[0x138] = 88;  // SpiralStairsGoingUpUpper
+  object_to_routine_map_[0x139] = 89;  // SpiralStairsGoingDownUpper
+  object_to_routine_map_[0x13A] = 90;  // SpiralStairsGoingUpLower
+  object_to_routine_map_[0x13B] = 91;  // SpiralStairsGoingDownLower
   // 0x13C Sanctuary Wall -> Map to 4x4 (16)
   object_to_routine_map_[0x13C] = 16;
   // 0x13D Table 4x3 -> Map to 4x3 (30)
@@ -586,17 +590,19 @@ void ObjectDrawer::InitializeDrawRoutines() {
   // Subtype 3 Object Mappings (0xF80-0xFFF)
   // Type 3 object IDs are 0xF80-0xFFF (128 objects)
   // Index = (object_id - 0xF80) & 0x7F maps to table indices 0-127
-  object_to_routine_map_[0xF80] = 34; // Water Face (index 0)
-  object_to_routine_map_[0xF81] = 34;
-  object_to_routine_map_[0xF82] = 34;
+  // Water Face variants (ASM: 0x200-0x202)
+  object_to_routine_map_[0xF80] = 94;  // EmptyWaterFace
+  object_to_routine_map_[0xF81] = 95;  // SpittingWaterFace
+  object_to_routine_map_[0xF82] = 96;  // DrenchingWaterFace
+  // Somaria Line (0x203-0x20C)
   for (int id = 0xF83; id <= 0xF89; id++) {
-    object_to_routine_map_[id] = 33; // Somaria Line
+    object_to_routine_map_[id] = 33;  // Somaria Line
   }
   for (int id = 0xF8A; id <= 0xF8C; id++) {
     object_to_routine_map_[id] = 33;
   }
-  // 0xF8D: PrisonCell -> 1x1 placeholder
-  object_to_routine_map_[0xF8D] = 25;
+  // 0xF8D (0x20D): PrisonCell - dual-BG drawing with horizontal flip symmetry
+  object_to_routine_map_[0xF8D] = 97;  // Prison cell routine
   object_to_routine_map_[0xF8E] = 33;
   object_to_routine_map_[0xF8F] = 33;
   for (int id = 0xF90; id <= 0xF93; id++) {
@@ -605,7 +611,9 @@ void ObjectDrawer::InitializeDrawRoutines() {
   object_to_routine_map_[0xF94] = 33; // Somaria Line
   object_to_routine_map_[0xF95] = 16;
   object_to_routine_map_[0xF96] = 16;
-  for (int id = 0xF97; id <= 0xF9A; id++) {
+  // 0xF97 (0x217): PrisonCell variant - dual-BG drawing
+  object_to_routine_map_[0xF97] = 97;  // Prison cell routine
+  for (int id = 0xF98; id <= 0xF9A; id++) {
     object_to_routine_map_[id] = 39; // DrawChest
   }
   for (int id = 0xF9B; id <= 0xF9D; id++) {
@@ -641,7 +649,8 @@ void ObjectDrawer::InitializeDrawRoutines() {
   object_to_routine_map_[0xFFF] = 38;
 
   // Initialize draw routine function array in the correct order
-  draw_routines_.reserve(83);  // Routines 0-82 (Phase 4: SuperSquare 56-64, Step 2 variants 65-74, Step 3 diagonal ceilings 75-78, Step 5 special 79-82)
+  // Routines 0-82 (existing), 80-98 (new special routines for stairs, locks, etc.)
+  draw_routines_.reserve(100);
 
   // Routine 0
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
@@ -1279,6 +1288,147 @@ void ObjectDrawer::InitializeDrawRoutines() {
     self->DrawOpenChestPlatform(obj, bg, tiles);
   });
 
+  // ============================================================================
+  // New Special Routines (Phase 5) - Stairs, Locks, Interactive Objects
+  // ============================================================================
+
+  // Routine 83 - InterRoom Fat Stairs Up (object 0x12D)
+  draw_routines_.push_back(
+      []([[maybe_unused]] ObjectDrawer* self, const RoomObject& obj,
+         gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
+         [[maybe_unused]] const DungeonState* state) {
+        DrawContext ctx{bg, obj, tiles, state, nullptr, 0, nullptr};
+        draw_routines::DrawInterRoomFatStairsUp(ctx);
+      });
+
+  // Routine 84 - InterRoom Fat Stairs Down A (object 0x12E)
+  draw_routines_.push_back(
+      []([[maybe_unused]] ObjectDrawer* self, const RoomObject& obj,
+         gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
+         [[maybe_unused]] const DungeonState* state) {
+        DrawContext ctx{bg, obj, tiles, state, nullptr, 0, nullptr};
+        draw_routines::DrawInterRoomFatStairsDownA(ctx);
+      });
+
+  // Routine 85 - InterRoom Fat Stairs Down B (object 0x12F)
+  draw_routines_.push_back(
+      []([[maybe_unused]] ObjectDrawer* self, const RoomObject& obj,
+         gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
+         [[maybe_unused]] const DungeonState* state) {
+        DrawContext ctx{bg, obj, tiles, state, nullptr, 0, nullptr};
+        draw_routines::DrawInterRoomFatStairsDownB(ctx);
+      });
+
+  // Routine 86 - Auto Stairs (objects 0x130-0x133)
+  draw_routines_.push_back(
+      []([[maybe_unused]] ObjectDrawer* self, const RoomObject& obj,
+         gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
+         [[maybe_unused]] const DungeonState* state) {
+        DrawContext ctx{bg, obj, tiles, state, nullptr, 0, nullptr};
+        draw_routines::DrawAutoStairs(ctx);
+      });
+
+  // Routine 87 - Straight InterRoom Stairs (Type 3 objects 0x21E-0x229)
+  draw_routines_.push_back(
+      []([[maybe_unused]] ObjectDrawer* self, const RoomObject& obj,
+         gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
+         [[maybe_unused]] const DungeonState* state) {
+        DrawContext ctx{bg, obj, tiles, state, nullptr, 0, nullptr};
+        draw_routines::DrawStraightInterRoomStairs(ctx);
+      });
+
+  // Routine 88 - Spiral Stairs Going Up Upper (object 0x138)
+  draw_routines_.push_back(
+      []([[maybe_unused]] ObjectDrawer* self, const RoomObject& obj,
+         gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
+         [[maybe_unused]] const DungeonState* state) {
+        DrawContext ctx{bg, obj, tiles, state, nullptr, 0, nullptr};
+        draw_routines::DrawSpiralStairs(ctx, true, true);
+      });
+
+  // Routine 89 - Spiral Stairs Going Down Upper (object 0x139)
+  draw_routines_.push_back(
+      []([[maybe_unused]] ObjectDrawer* self, const RoomObject& obj,
+         gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
+         [[maybe_unused]] const DungeonState* state) {
+        DrawContext ctx{bg, obj, tiles, state, nullptr, 0, nullptr};
+        draw_routines::DrawSpiralStairs(ctx, false, true);
+      });
+
+  // Routine 90 - Spiral Stairs Going Up Lower (object 0x13A)
+  draw_routines_.push_back(
+      []([[maybe_unused]] ObjectDrawer* self, const RoomObject& obj,
+         gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
+         [[maybe_unused]] const DungeonState* state) {
+        DrawContext ctx{bg, obj, tiles, state, nullptr, 0, nullptr};
+        draw_routines::DrawSpiralStairs(ctx, true, false);
+      });
+
+  // Routine 91 - Spiral Stairs Going Down Lower (object 0x13B)
+  draw_routines_.push_back(
+      []([[maybe_unused]] ObjectDrawer* self, const RoomObject& obj,
+         gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
+         [[maybe_unused]] const DungeonState* state) {
+        DrawContext ctx{bg, obj, tiles, state, nullptr, 0, nullptr};
+        draw_routines::DrawSpiralStairs(ctx, false, false);
+      });
+
+  // Routine 92 - Big Key Lock (Type 3 object 0x218)
+  draw_routines_.push_back(
+      []([[maybe_unused]] ObjectDrawer* self, const RoomObject& obj,
+         gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
+         [[maybe_unused]] const DungeonState* state) {
+        DrawContext ctx{bg, obj, tiles, state, nullptr, 0, nullptr};
+        draw_routines::DrawBigKeyLock(ctx);
+      });
+
+  // Routine 93 - Bombable Floor (Type 3 object 0x247)
+  draw_routines_.push_back(
+      []([[maybe_unused]] ObjectDrawer* self, const RoomObject& obj,
+         gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
+         [[maybe_unused]] const DungeonState* state) {
+        DrawContext ctx{bg, obj, tiles, state, nullptr, 0, nullptr};
+        draw_routines::DrawBombableFloor(ctx);
+      });
+
+  // Routine 94 - Empty Water Face (Type 3 object 0x200)
+  draw_routines_.push_back(
+      []([[maybe_unused]] ObjectDrawer* self, const RoomObject& obj,
+         gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
+         [[maybe_unused]] const DungeonState* state) {
+        DrawContext ctx{bg, obj, tiles, state, nullptr, 0, nullptr};
+        draw_routines::DrawEmptyWaterFace(ctx);
+      });
+
+  // Routine 95 - Spitting Water Face (Type 3 object 0x201)
+  draw_routines_.push_back(
+      []([[maybe_unused]] ObjectDrawer* self, const RoomObject& obj,
+         gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
+         [[maybe_unused]] const DungeonState* state) {
+        DrawContext ctx{bg, obj, tiles, state, nullptr, 0, nullptr};
+        draw_routines::DrawSpittingWaterFace(ctx);
+      });
+
+  // Routine 96 - Drenching Water Face (Type 3 object 0x202)
+  draw_routines_.push_back(
+      []([[maybe_unused]] ObjectDrawer* self, const RoomObject& obj,
+         gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
+         [[maybe_unused]] const DungeonState* state) {
+        DrawContext ctx{bg, obj, tiles, state, nullptr, 0, nullptr, nullptr};
+        draw_routines::DrawDrenchingWaterFace(ctx);
+      });
+
+  // Routine 97 - Prison Cell (Type 3 objects 0x20D, 0x217)
+  // This routine draws to both BG1 and BG2 with horizontal flip symmetry
+  // Note: secondary_bg is set in DrawObject() for dual-BG objects
+  draw_routines_.push_back(
+      []([[maybe_unused]] ObjectDrawer* self, const RoomObject& obj,
+         gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
+         [[maybe_unused]] const DungeonState* state) {
+        DrawContext ctx{bg, obj, tiles, state, nullptr, 0, nullptr, nullptr};
+        draw_routines::DrawPrisonCell(ctx);
+      });
+
   routines_initialized_ = true;
 }
 
@@ -1301,70 +1451,33 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
                               gfx::BackgroundBuffer& bg2,
                               [[maybe_unused]] const DungeonState* state) {
   // Door rendering based on ZELDA3_DUNGEON_SPEC.md Section 5
-  // Direction: 0=North, 1=South, 2=West, 3=East
-  // Dimensions: North/South = 4x3 tiles, East/West = 3x4 tiles
+  // Uses DoorType and DoorDirection enums for type safety
+  // Position calculations via DoorPositionManager
 
   if (!rom_ || !rom_->is_loaded()) return;
 
   auto& bitmap = bg1.bitmap();
   if (!bitmap.is_active() || bitmap.width() == 0) return;
 
-  // Door position encoding:
-  // The position byte encodes where on the wall edge the door is placed.
-  // For horizontal walls (N/S): position determines X coordinate
-  // For vertical walls (E/W): position determines Y coordinate
-  // Position is in tile units (8 pixels each)
-
-  int tile_x = 0;
-  int tile_y = 0;
-  int door_width = 0;   // in tiles
-  int door_height = 0;  // in tiles
-
-  // Calculate door position based on direction
-  // Position byte encodes door location along the wall
-  switch (door.direction & 0x03) {
-    case 0:  // North (top wall)
-      tile_x = (door.position & 0x1F) * 2;  // X position along top
-      tile_y = 0;                            // At top edge
-      door_width = 4;
-      door_height = 3;
-      break;
-
-    case 1:  // South (bottom wall)
-      tile_x = (door.position & 0x1F) * 2;  // X position along bottom
-      tile_y = 61;                           // Near bottom edge (64-3)
-      door_width = 4;
-      door_height = 3;
-      break;
-
-    case 2:  // West (left wall)
-      tile_x = 0;                            // At left edge
-      tile_y = (door.position & 0x1F) * 2;  // Y position along left
-      door_width = 3;
-      door_height = 4;
-      break;
-
-    case 3:  // East (right wall)
-      tile_x = 61;                           // Near right edge (64-3)
-      tile_y = (door.position & 0x1F) * 2;  // Y position along right
-      door_width = 3;
-      door_height = 4;
-      break;
-  }
+  // Get door position from DoorPositionManager
+  auto [tile_x, tile_y] = door.GetTileCoords();
+  auto dims = door.GetDimensions();
+  int door_width = dims.width_tiles;
+  int door_height = dims.height_tiles;
 
   // Get door graphics address based on direction
   int gfx_base_addr = 0;
-  switch (door.direction & 0x03) {
-    case 0: gfx_base_addr = kDoorGfxUp; break;
-    case 1: gfx_base_addr = kDoorGfxDown; break;
-    case 2: gfx_base_addr = kDoorGfxLeft; break;
-    case 3: gfx_base_addr = kDoorGfxRight; break;
+  switch (door.direction) {
+    case DoorDirection::North: gfx_base_addr = kDoorGfxUp; break;
+    case DoorDirection::South: gfx_base_addr = kDoorGfxDown; break;
+    case DoorDirection::West:  gfx_base_addr = kDoorGfxLeft; break;
+    case DoorDirection::East:  gfx_base_addr = kDoorGfxRight; break;
   }
 
   // Each door type has a different offset into the graphics table
-  // Door types are stored in upper nibble of byte 2
   // Graphics are 2 bytes per tile (tile ID word)
-  int type_offset = door.type * (door_width * door_height * 2);
+  int type_value = static_cast<int>(door.type);
+  int type_offset = type_value * (door_width * door_height * 2);
   int gfx_addr = gfx_base_addr + type_offset;
 
   // Clamp graphics address to valid ROM range
@@ -1396,42 +1509,61 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
     }
   }
 
-  LOG_DEBUG("ObjectDrawer", "DrawDoor: type=%d dir=%d pos=%d at tile(%d,%d) size=%dx%d",
-            door.type, door.direction, door.position, tile_x, tile_y,
-            door_width, door_height);
+  LOG_DEBUG("ObjectDrawer", "DrawDoor: type=%s dir=%s pos=%d at tile(%d,%d) size=%dx%d",
+            std::string(GetDoorTypeName(door.type)).c_str(),
+            std::string(GetDoorDirectionName(door.direction)).c_str(),
+            door.position, tile_x, tile_y, door_width, door_height);
 }
 
 void ObjectDrawer::DrawDoorIndicator(gfx::Bitmap& bitmap, int tile_x, int tile_y,
-                                      int width, int height, uint8_t type,
-                                      uint8_t direction) {
+                                      int width, int height, DoorType type,
+                                      DoorDirection direction) {
   // Draw a simple colored rectangle as door indicator when graphics unavailable
-  // Different colors for different door types
+  // Different colors for different door types using DoorType enum
 
   uint8_t color_idx;
   switch (type) {
-    case 0x00:  // Regular
-    case 0x02:  // Regular2
-    case 0x40:  // RegularDoor33
-      color_idx = 45;  // Standard door color
+    case DoorType::Open:
+    case DoorType::NormalDoor:
+      color_idx = 45;  // Standard door color (brown)
       break;
 
-    case 0x1C:  // SmallKeyDoor
+    case DoorType::SmallKeyDoor:
+    case DoorType::SmallKeyBlock:
       color_idx = 60;  // Key door - yellowish
       break;
 
-    case 0x28:  // BreakableWall
-    case 0x30:  // LgExplosion
-      color_idx = 15;  // Bombable - brownish
+    case DoorType::BigKeyDoor:
+    case DoorType::BigKeyBlock:
+      color_idx = 58;  // Big key - golden
       break;
 
-    case 0x44:  // Shutter
-    case 0x18:  // ShuttersTwoWay
-    case 0x48:  // ShutterTrap
+    case DoorType::Bombable:
+    case DoorType::ExplodingWall:
+      color_idx = 15;  // Bombable - brownish/cracked
+      break;
+
+    case DoorType::ShutterDoor:
+    case DoorType::DungeonShutter:
+    case DoorType::TrapDoor:
       color_idx = 30;  // Shutter - greenish
       break;
 
-    case 0x1A:  // InvisibleDoor
-      color_idx = 5;  // Invisible - faint
+    case DoorType::SwingingDoor:
+      color_idx = 42;  // Swinging - lighter brown
+      break;
+
+    case DoorType::InvisibleDoor:
+      color_idx = 5;  // Invisible - very faint
+      break;
+
+    case DoorType::SanctuaryDoor:
+      color_idx = 35;  // Sanctuary - special
+      break;
+
+    case DoorType::CaveExitNorth:
+    case DoorType::CaveExitSouth:
+      color_idx = 25;  // Cave exit - dark
       break;
 
     default:

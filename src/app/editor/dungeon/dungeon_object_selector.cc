@@ -22,6 +22,7 @@
 #include "rom/rom.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/dungeon_object_editor.h"
+#include "zelda3/dungeon/door_types.h"
 #include "zelda3/dungeon/dungeon_object_registry.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room.h"
@@ -917,57 +918,128 @@ void DungeonObjectSelector::DrawCompactEntranceEditor() {
 }
 
 void DungeonObjectSelector::DrawCompactDoorEditor() {
-  if (!dungeon_editor_system_ || !*dungeon_editor_system_) {
-    ImGui::Text("Dungeon editor system not initialized");
-    return;
-  }
-
-  auto& system = **dungeon_editor_system_;
+  const auto& theme = AgentUI::GetTheme();
 
   ImGui::Text("Door Editor");
   Separator();
 
-  // Display current room doors
-  auto current_room = system.GetCurrentRoom();
-  auto doors_result = system.GetDoorsByRoom(current_room);
+  // Show doors from the Room data (if available)
+  if (rooms_ && current_room_id_ >= 0 && current_room_id_ < 296) {
+    const auto& room = (*rooms_)[current_room_id_];
+    const auto& doors = room.GetDoors();
 
-  if (doors_result.ok()) {
-    auto doors = doors_result.value();
-    ImGui::Text("Doors: %zu", doors.size());
+    ImGui::Text("Room Doors: %zu", doors.size());
 
-    for (const auto& door : doors) {
-      ImGui::Text("ID:%d (%d,%d) -> Room:%d", door.door_id, door.x, door.y,
-                  door.target_room_id);
+    if (!doors.empty()) {
+      ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.1f, 0.1f, 0.15f, 0.5f));
+      if (ImGui::BeginChild("##DoorList", ImVec2(-1, 120), true)) {
+        for (size_t i = 0; i < doors.size(); ++i) {
+          const auto& door = doors[i];
+          auto [tile_x, tile_y] = door.GetTileCoords();
+
+          ImGui::PushID(static_cast<int>(i));
+
+          // Draw door info with type name
+          std::string type_name(zelda3::GetDoorTypeName(door.type));
+          std::string dir_name(zelda3::GetDoorDirectionName(door.direction));
+          ImGui::Text("[%zu] %s (%s) at tile(%d,%d)",
+                      i, type_name.c_str(), dir_name.c_str(), tile_x, tile_y);
+
+          // Delete button
+          ImGui::SameLine();
+          if (ImGui::SmallButton("X")) {
+            // Remove door (mutable ref needed)
+            auto& mutable_room = (*rooms_)[current_room_id_];
+            mutable_room.RemoveDoor(i);
+          }
+
+          ImGui::PopID();
+        }
+      }
+      ImGui::EndChild();
+      ImGui::PopStyleColor();
     }
+
+    // Door type selector
+    Separator();
+    ImGui::Text("Door Type:");
+    static int selected_door_type = static_cast<int>(zelda3::DoorType::NormalDoor);
+
+    // Build door type combo items
+    constexpr std::array<zelda3::DoorType, 16> door_types = {
+        zelda3::DoorType::Open,
+        zelda3::DoorType::NormalDoor,
+        zelda3::DoorType::ShutterDoor,
+        zelda3::DoorType::SwingingDoor,
+        zelda3::DoorType::Bombable,
+        zelda3::DoorType::ExplodingWall,
+        zelda3::DoorType::SmallKeyDoor,
+        zelda3::DoorType::BigKeyDoor,
+        zelda3::DoorType::SmallKeyBlock,
+        zelda3::DoorType::BigKeyBlock,
+        zelda3::DoorType::InvisibleDoor,
+        zelda3::DoorType::SanctuaryDoor,
+        zelda3::DoorType::DungeonShutter,
+        zelda3::DoorType::TrapDoor,
+        zelda3::DoorType::CaveExitNorth,
+        zelda3::DoorType::CaveExitSouth,
+    };
+
+    if (ImGui::BeginCombo("##DoorType",
+                          std::string(zelda3::GetDoorTypeName(
+                              static_cast<zelda3::DoorType>(selected_door_type))).c_str())) {
+      for (auto door_type : door_types) {
+        bool is_selected = (selected_door_type == static_cast<int>(door_type));
+        if (ImGui::Selectable(std::string(zelda3::GetDoorTypeName(door_type)).c_str(),
+                              is_selected)) {
+          selected_door_type = static_cast<int>(door_type);
+        }
+        if (is_selected) {
+          ImGui::SetItemDefaultFocus();
+        }
+      }
+      ImGui::EndCombo();
+    }
+
+    // Instructions
+    ImGui::TextWrapped("Click on a room wall edge to place a door. Doors snap to valid positions.");
   } else {
-    ImGui::Text("Error loading doors");
+    ImGui::Text("No room selected");
   }
 
-  // Quick door creation
-  Separator();
-  ImGui::Text("Add Door");
+  // Legacy dungeon editor system support (if available)
+  if (dungeon_editor_system_ && *dungeon_editor_system_) {
+    Separator();
+    ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "Advanced Door System:");
 
-  ImGui::InputInt("X", &door_x_);
-  ImGui::InputInt("Y", &door_y_);
-  ImGui::SliderInt("Dir", &door_direction_, 0, 3);
-  ImGui::InputInt("Target", &door_target_room_);
+    auto& system = **dungeon_editor_system_;
+    auto current_room = system.GetCurrentRoom();
+    auto doors_result = system.GetDoorsByRoom(current_room);
 
-  if (ImGui::Button("Add Door")) {
-    zelda3::DungeonEditorSystem::DoorData door_data;
-    door_data.room_id = current_room;
-    door_data.x = door_x_;
-    door_data.y = door_y_;
-    door_data.direction = door_direction_;
-    door_data.target_room_id = door_target_room_;
-    door_data.target_x = door_x_;
-    door_data.target_y = door_y_;
-    door_data.is_locked = false;
-    door_data.requires_key = false;
-    door_data.key_type = 0;
+    if (doors_result.ok()) {
+      auto doors = doors_result.value();
+      ImGui::Text("System Doors: %zu", doors.size());
+    }
 
-    auto status = system.AddDoor(door_data);
-    if (!status.ok()) {
-      ImGui::Text("Error adding door");
+    // Legacy door creation (for target room linking)
+    ImGui::InputInt("Target Room", &door_target_room_);
+    if (ImGui::Button("Link to Room")) {
+      zelda3::DungeonEditorSystem::DoorData door_data;
+      door_data.room_id = current_room;
+      door_data.x = door_x_;
+      door_data.y = door_y_;
+      door_data.direction = door_direction_;
+      door_data.target_room_id = door_target_room_;
+      door_data.target_x = door_x_;
+      door_data.target_y = door_y_;
+      door_data.is_locked = false;
+      door_data.requires_key = false;
+      door_data.key_type = 0;
+
+      auto status = system.AddDoor(door_data);
+      if (!status.ok()) {
+        ImGui::Text("Error linking door to room");
+      }
     }
   }
 }
