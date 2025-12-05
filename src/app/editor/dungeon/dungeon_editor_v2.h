@@ -206,6 +206,8 @@ class DungeonEditorV2 : public Editor {
   gui::PaletteEditorWidget palette_editor_;
   ObjectEditorPanel* object_editor_panel_ = nullptr;  // Owned by PanelManager
   DungeonRoomGraphicsPanel* room_graphics_panel_ = nullptr;  // Owned by PanelManager
+  class SpriteEditorPanel* sprite_editor_panel_ = nullptr;  // Owned by PanelManager
+  class ItemEditorPanel* item_editor_panel_ = nullptr;  // Owned by PanelManager
   std::unique_ptr<ObjectEditorPanel> owned_object_editor_panel_;  // Fallback ownership for tests
   std::unique_ptr<zelda3::DungeonEditorSystem> dungeon_editor_system_;
   std::unique_ptr<emu::render::EmulatorRenderService> render_service_;

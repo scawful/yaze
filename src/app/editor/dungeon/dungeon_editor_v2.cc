@@ -264,11 +264,17 @@ absl::Status DungeonEditorV2::Load() {
   if (dependencies_.panel_manager) {
     dependencies_.panel_manager->RegisterEditorPanel(std::move(object_editor));
     
-    // Register sprite and item editor panels
-    dependencies_.panel_manager->RegisterEditorPanel(
-        std::make_unique<SpriteEditorPanel>(&current_room_id_, &rooms_, nullptr));
-    dependencies_.panel_manager->RegisterEditorPanel(
-        std::make_unique<ItemEditorPanel>(&current_room_id_, &rooms_, nullptr));
+    // Register sprite and item editor panels with canvas viewer = nullptr
+    // They will get the viewer reference in OnRoomSelected when a room is selected
+    auto sprite_panel = std::make_unique<SpriteEditorPanel>(
+        &current_room_id_, &rooms_, nullptr);
+    sprite_editor_panel_ = sprite_panel.get();
+    dependencies_.panel_manager->RegisterEditorPanel(std::move(sprite_panel));
+    
+    auto item_panel = std::make_unique<ItemEditorPanel>(
+        &current_room_id_, &rooms_, nullptr);
+    item_editor_panel_ = item_panel.get();
+    dependencies_.panel_manager->RegisterEditorPanel(std::move(item_panel));
   } else {
     owned_object_editor_panel_ = std::move(object_editor);
   }
@@ -551,6 +557,14 @@ void DungeonEditorV2::OnRoomSelected(int room_id, bool request_focus) {
     object_editor_panel_->SetCurrentRoom(room_id);
     // IMPORTANT: Update the viewer reference!
     object_editor_panel_->SetCanvasViewer(GetViewerForRoom(room_id));
+  }
+
+  // Update sprite and item editor panels with current viewer
+  if (sprite_editor_panel_) {
+    sprite_editor_panel_->SetCanvasViewer(GetViewerForRoom(room_id));
+  }
+  if (item_editor_panel_) {
+    item_editor_panel_->SetCanvasViewer(GetViewerForRoom(room_id));
   }
 
   // Sync palette with current room (must happen before early return for focus changes)

@@ -1405,6 +1405,12 @@ std::optional<SelectedEntity> DungeonObjectInteraction::GetEntityAtPosition(
 
   const auto& room = (*rooms_)[current_room_id_];
   
+  // Convert screen coordinates to room coordinates by accounting for canvas scale
+  float scale = canvas_->global_scale();
+  if (scale <= 0.0f) scale = 1.0f;
+  int room_x = static_cast<int>(canvas_x / scale);
+  int room_y = static_cast<int>(canvas_y / scale);
+  
   // Check doors first (they have higher priority for selection)
   const auto& doors = room.GetDoors();
   for (size_t i = 0; i < doors.size(); ++i) {
@@ -1422,9 +1428,9 @@ std::optional<SelectedEntity> DungeonObjectInteraction::GetEntityAtPosition(
     int door_w = dims.width_tiles * 8;
     int door_h = dims.height_tiles * 8;
     
-    // Check if point is inside door bounds
-    if (canvas_x >= door_x && canvas_x < door_x + door_w &&
-        canvas_y >= door_y && canvas_y < door_y + door_h) {
+    // Check if point is inside door bounds (using room coordinates)
+    if (room_x >= door_x && room_x < door_x + door_w &&
+        room_y >= door_y && room_y < door_y + door_h) {
       return SelectedEntity{EntityType::Door, i};
     }
   }
@@ -1439,9 +1445,9 @@ std::optional<SelectedEntity> DungeonObjectInteraction::GetEntityAtPosition(
     int sprite_x = sprite.x() * 16;
     int sprite_y = sprite.y() * 16;
     
-    // 16x16 hitbox
-    if (canvas_x >= sprite_x && canvas_x < sprite_x + 16 &&
-        canvas_y >= sprite_y && canvas_y < sprite_y + 16) {
+    // 16x16 hitbox (using room coordinates)
+    if (room_x >= sprite_x && room_x < sprite_x + 16 &&
+        room_y >= sprite_y && room_y < sprite_y + 16) {
       return SelectedEntity{EntityType::Sprite, i};
     }
   }
@@ -1456,9 +1462,9 @@ std::optional<SelectedEntity> DungeonObjectInteraction::GetEntityAtPosition(
     int item_x = pot_item.GetPixelX();
     int item_y = pot_item.GetPixelY();
     
-    // 16x16 hitbox
-    if (canvas_x >= item_x && canvas_x < item_x + 16 &&
-        canvas_y >= item_y && canvas_y < item_y + 16) {
+    // 16x16 hitbox (using room coordinates)
+    if (room_x >= item_x && room_x < item_x + 16 &&
+        room_y >= item_y && room_y < item_y + 16) {
       return SelectedEntity{EntityType::Item, i};
     }
   }
@@ -1617,9 +1623,10 @@ void DungeonObjectInteraction::DrawEntitySelectionHighlights() {
       if (is_entity_dragging_) {
         int drag_x = static_cast<int>(entity_drag_current_pos_.x);
         int drag_y = static_cast<int>(entity_drag_current_pos_.y);
-        
+
         zelda3::DoorDirection dir;
-        if (zelda3::DoorPositionManager::DetectWallFromPosition(drag_x, drag_y, dir)) {
+        bool is_inner = false;
+        if (zelda3::DoorPositionManager::DetectWallSection(drag_x, drag_y, dir, is_inner)) {
           uint8_t snap_pos = zelda3::DoorPositionManager::SnapToNearestPosition(drag_x, drag_y, dir);
           auto [snap_x, snap_y] = zelda3::DoorPositionManager::PositionToTileCoords(snap_pos, dir);
           tile_x = snap_x;

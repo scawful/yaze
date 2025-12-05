@@ -2,6 +2,7 @@
 
 #include "absl/strings/str_format.h"
 #include "rom/snes.h"
+#include "util/log.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/object_drawer.h"
 
@@ -44,6 +45,9 @@ absl::Status RoomLayout::LoadLayout(int layout_id) {
   const auto& rom_data = rom_->data();
   int layer = 0;
 
+  LOG_DEBUG("[RoomLayout]", "Loading layout %d from PC address 0x%05X", 
+            layout_id, pos);
+
   while (pos + 2 < static_cast<int>(rom_->size())) {
     uint8_t b1 = rom_data[pos];
     uint8_t b2 = rom_data[pos + 1];
@@ -69,7 +73,16 @@ absl::Status RoomLayout::LoadLayout(int layout_id) {
     obj.SetRom(rom_);
     obj.EnsureTilesLoaded();
     objects_.push_back(obj);
+
+    // Debug logging for layout 7 to identify potential rendering issues
+    if (layout_id == 7) {
+      LOG_DEBUG("[RoomLayout]", "Layout 7 object: id=0x%03X x=%d y=%d size=%d layer=%d",
+                obj.id_, obj.x_, obj.y_, obj.size_, layer);
+    }
   }
+
+  LOG_DEBUG("[RoomLayout]", "Layout %d loaded with %zu objects", 
+            layout_id, objects_.size());
 
   return absl::OkStatus();
 }
