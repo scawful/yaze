@@ -122,6 +122,29 @@ UICoordinator::UICoordinator(
   });
 }
 
+void UICoordinator::SetWelcomeScreenBehavior(StartupVisibility mode) {
+  welcome_behavior_override_ = mode;
+  if (mode == StartupVisibility::kHide) {
+    show_welcome_screen_ = false;
+    welcome_screen_manually_closed_ = true;
+  } else if (mode == StartupVisibility::kShow) {
+    show_welcome_screen_ = true;
+    welcome_screen_manually_closed_ = false;
+  }
+}
+
+void UICoordinator::SetDashboardBehavior(StartupVisibility mode) {
+  if (dashboard_behavior_override_ == mode) {
+    return;
+  }
+  dashboard_behavior_override_ = mode;
+  if (mode == StartupVisibility::kShow) {
+    show_editor_selection_ = true;
+  } else if (mode == StartupVisibility::kHide) {
+    show_editor_selection_ = false;
+  }
+}
+
 void UICoordinator::DrawBackground() {
   if (ImGui::GetCurrentContext()) {
     ImDrawList* bg_draw_list = ImGui::GetBackgroundDrawList();
@@ -627,13 +650,27 @@ void UICoordinator::DrawWelcomeScreen() {
   auto* current_rom = editor_manager_->GetCurrentRom();
   bool rom_is_loaded = current_rom && current_rom->is_loaded();
 
-  // SIMPLIFIED LOGIC: Auto-show when no ROM, auto-hide when ROM loads
-  if (!rom_is_loaded && !welcome_screen_manually_closed_) {
-    show_welcome_screen_ = true;
+  if (welcome_behavior_override_ == StartupVisibility::kHide) {
+    show_welcome_screen_ = false;
+    welcome_screen_manually_closed_ = true;
+    return;
   }
 
-  if (rom_is_loaded && !welcome_screen_manually_closed_) {
-    show_welcome_screen_ = false;
+  const bool force_show_welcome =
+      welcome_behavior_override_ == StartupVisibility::kShow;
+
+  if (force_show_welcome) {
+    show_welcome_screen_ = true;
+    welcome_screen_manually_closed_ = false;
+  } else {
+    // SIMPLIFIED LOGIC: Auto-show when no ROM, auto-hide when ROM loads
+    if (!rom_is_loaded && !welcome_screen_manually_closed_) {
+      show_welcome_screen_ = true;
+    }
+
+    if (rom_is_loaded && !welcome_screen_manually_closed_) {
+      show_welcome_screen_ = false;
+    }
   }
 
   // Don't show if flag is false

@@ -9,6 +9,7 @@
 #include "app/editor/ui/popup_manager.h"
 #include "app/editor/ui/welcome_screen.h"
 #include "app/gui/core/icons.h"
+#include "app/startup_flags.h"
 
 namespace yaze {
 namespace editor {
@@ -155,6 +156,7 @@ class UICoordinator {
   void SetWelcomeScreenManuallyClosed(bool closed) {
     welcome_screen_manually_closed_ = closed;
   }
+  void SetWelcomeScreenBehavior(StartupVisibility mode);
   void SetGlobalSearchVisible(bool visible) { show_global_search_ = visible; }
   void SetPerformanceDashboardVisible(bool visible) {
     show_performance_dashboard_ = visible;
@@ -175,6 +177,7 @@ class UICoordinator {
   void SetResourceLabelManagerVisible(bool visible) {
     show_resource_label_manager_ = visible;
   }
+  void SetDashboardBehavior(StartupVisibility mode);
   void SetAIAgentVisible(bool visible) { show_ai_agent_ = visible; }
   void SetChatHistoryVisible(bool visible) { show_chat_history_ = visible; }
   void SetProposalDrawerVisible(bool visible) { show_proposal_drawer_ = visible; }
@@ -219,6 +222,8 @@ class UICoordinator {
   bool show_save_workspace_preset_ = false;
   bool show_load_workspace_preset_ = false;
   bool show_menu_bar_ = true;      // Menu bar visible by default
+  StartupVisibility welcome_behavior_override_ = StartupVisibility::kAuto;
+  StartupVisibility dashboard_behavior_override_ = StartupVisibility::kAuto;
 
   // Command Palette state
   char command_palette_query_[256] = {};

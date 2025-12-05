@@ -10,6 +10,7 @@
 #include <exception>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <unordered_set>
@@ -20,8 +21,11 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/str_split.h"
+#include "absl/strings/strip.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 
@@ -100,6 +104,30 @@ namespace {
 // TODO: Move to EditorRegistry
 std::string GetEditorName(EditorType type) {
   return kEditorNames[static_cast<int>(type)];
+}
+
+std::optional<EditorType> ParseEditorTypeFromString(
+    absl::string_view name) {
+  const std::string lower = absl::AsciiStrToLower(std::string(name));
+  for (int i = 0; i < static_cast<int>(EditorType::kSettings) + 1; ++i) {
+    const std::string candidate = absl::AsciiStrToLower(
+        std::string(GetEditorName(static_cast<EditorType>(i))));
+    if (candidate == lower) {
+      return static_cast<EditorType>(i);
+    }
+  }
+  return std::nullopt;
+}
+
+std::string StripSessionPrefix(absl::string_view panel_id) {
+  if (panel_id.size() > 2 && panel_id[0] == 's' &&
+      absl::ascii_isdigit(panel_id[1])) {
+    const size_t dot = panel_id.find('.');
+    if (dot != absl::string_view::npos) {
+      return std::string(panel_id.substr(dot + 1));
+    }
+  }
+  return std::string(panel_id);
 }
 
 }  // namespace
@@ -740,7 +768,10 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
 
 void EditorManager::OpenEditorAndPanelsFromFlags(
     const std::string& editor_name, const std::string& panels_str) {
-  if (editor_name.empty()) {
+  const bool has_editor = !editor_name.empty();
+  const bool has_panels = !panels_str.empty();
+
+  if (!has_editor && !has_panels) {
     return;
   }
 
@@ -748,71 +779,153 @@ void EditorManager::OpenEditorAndPanelsFromFlags(
            "Processing startup flags: editor='%s', panels='%s'",
            editor_name.c_str(), panels_str.c_str());
 
-  EditorType editor_type_to_open = EditorType::kUnknown;
-  for (int i = 0; i < static_cast<int>(EditorType::kSettings); ++i) {
-    if (GetEditorName(static_cast<EditorType>(i)) == editor_name) {
-      editor_type_to_open = static_cast<EditorType>(i);
-      break;
-    }
-  }
-
-  if (editor_type_to_open == EditorType::kUnknown) {
+  std::optional<EditorType> editor_type_to_open =
+      has_editor ? ParseEditorTypeFromString(editor_name) : std::nullopt;
+  if (has_editor && !editor_type_to_open.has_value()) {
     LOG_WARN("EditorManager", "Unknown editor specified via flag: %s",
              editor_name.c_str());
-    return;
-  }
-
-  // Activate the main editor window
-  if (auto* editor_set = GetCurrentEditorSet()) {
-    auto* editor =
-        editor_set->active_editors_[static_cast<int>(editor_type_to_open)];
-    if (editor) {
-      editor->set_active(true);
-    }
+  } else if (editor_type_to_open.has_value()) {
+    // Use EditorActivator to ensure layouts and default panels are initialized
+    SwitchToEditor(*editor_type_to_open, true, /*from_dialog=*/true);
   }
 
   // Open panels via PanelManager - works for any editor type
-  if (!panels_str.empty()) {
-    std::stringstream ss(panels_str);
-    std::string panel_name;
-    while (std::getline(ss, panel_name, ',')) {
-      // Trim whitespace
-      panel_name.erase(0, panel_name.find_first_not_of(" \t"));
-      panel_name.erase(panel_name.find_last_not_of(" \t") + 1);
+  if (!has_panels) {
+    return;
+  }
 
-      LOG_DEBUG("EditorManager", "Attempting to open panel: '%s'",
-                panel_name.c_str());
+  const size_t session_id = GetCurrentSessionId();
+  std::string last_known_category = panel_manager_.GetActiveCategory();
+  bool applied_category_from_panel = false;
 
-      // Special case: "Room <id>" opens a dungeon room
-      if (absl::StartsWith(panel_name, "Room ")) {
-        if (auto* editor_set = GetCurrentEditorSet()) {
-          try {
-            int room_id = std::stoi(panel_name.substr(5));
-            editor_set->GetDungeonEditor()->add_room(room_id);
-          } catch (const std::exception& e) {
-            LOG_WARN("EditorManager", "Invalid room ID format: %s",
-                     panel_name.c_str());
-          }
-        }
-      } else {
-        // Let PanelManager handle it directly by panel_id
-        panel_manager_.ShowPanel(panel_name);
+  for (absl::string_view token :
+       absl::StrSplit(panels_str, ',', absl::SkipWhitespace())) {
+    if (token.empty()) {
+      continue;
+    }
+    std::string panel_name = std::string(absl::StripAsciiWhitespace(token));
+    LOG_DEBUG("EditorManager", "Attempting to open panel: '%s'",
+              panel_name.c_str());
+
+    const std::string lower_name = absl::AsciiStrToLower(panel_name);
+    if (lower_name == "welcome" || lower_name == "welcome_screen") {
+      if (ui_coordinator_) {
+        ui_coordinator_->SetWelcomeScreenBehavior(StartupVisibility::kShow);
       }
+      continue;
+    }
+    if (lower_name == "dashboard" || lower_name == "dashboard.main" ||
+        lower_name == "editor_selection") {
+      if (dashboard_panel_) {
+        dashboard_panel_->Show();
+      }
+      if (ui_coordinator_) {
+        ui_coordinator_->SetDashboardBehavior(StartupVisibility::kShow);
+      }
+      panel_manager_.SetActiveCategory(PanelManager::kDashboardCategory);
+      continue;
+    }
+
+    // Special case: "Room <id>" opens a dungeon room
+    if (absl::StartsWith(panel_name, "Room ")) {
+      if (auto* editor_set = GetCurrentEditorSet()) {
+        try {
+          int room_id = std::stoi(panel_name.substr(5));
+          editor_set->GetDungeonEditor()->add_room(room_id);
+        } catch (const std::exception& e) {
+          LOG_WARN("EditorManager", "Invalid room ID format: %s",
+                   panel_name.c_str());
+        }
+      }
+      continue;
+    }
+
+    std::optional<std::string> resolved_panel;
+    if (panel_manager_.GetPanelDescriptor(session_id, panel_name)) {
+      resolved_panel = panel_name;
+    } else {
+      for (const auto& [prefixed_id, descriptor] :
+           panel_manager_.GetAllPanelDescriptors()) {
+        const std::string base_id = StripSessionPrefix(prefixed_id);
+        const std::string card_lower = absl::AsciiStrToLower(base_id);
+        const std::string display_lower =
+            absl::AsciiStrToLower(descriptor.display_name);
+
+        if (card_lower == lower_name || display_lower == lower_name) {
+          resolved_panel = base_id;
+          break;
+        }
+      }
+    }
+
+    if (!resolved_panel.has_value()) {
+      LOG_WARN("EditorManager",
+               "Unknown panel '%s' from --open_panels (known count: %zu)",
+               panel_name.c_str(),
+               panel_manager_.GetAllPanelDescriptors().size());
+      continue;
+    }
+
+    if (panel_manager_.ShowPanel(session_id, *resolved_panel)) {
+      const auto* descriptor =
+          panel_manager_.GetPanelDescriptor(session_id, *resolved_panel);
+      if (descriptor && !applied_category_from_panel &&
+          descriptor->category != PanelManager::kDashboardCategory) {
+        panel_manager_.SetActiveCategory(descriptor->category);
+        applied_category_from_panel = true;
+      } else if (!applied_category_from_panel &&
+                 descriptor && descriptor->category.empty() &&
+                 !last_known_category.empty()) {
+        panel_manager_.SetActiveCategory(last_known_category);
+      }
+    } else {
+      LOG_WARN("EditorManager", "Failed to show panel '%s'",
+               resolved_panel->c_str());
+    }
+  }
+}
+
+void EditorManager::ApplyStartupVisibility(const AppConfig& config) {
+  welcome_mode_override_ = config.welcome_mode;
+  dashboard_mode_override_ = config.dashboard_mode;
+  sidebar_mode_override_ = config.sidebar_mode;
+  ApplyStartupVisibilityOverrides();
+}
+
+void EditorManager::ApplyStartupVisibilityOverrides() {
+  if (ui_coordinator_) {
+    ui_coordinator_->SetWelcomeScreenBehavior(welcome_mode_override_);
+    ui_coordinator_->SetDashboardBehavior(dashboard_mode_override_);
+  }
+
+  if (sidebar_mode_override_ != StartupVisibility::kAuto) {
+    const bool sidebar_visible =
+        sidebar_mode_override_ == StartupVisibility::kShow;
+    panel_manager_.SetSidebarVisible(sidebar_visible);
+    if (ui_coordinator_) {
+      ui_coordinator_->SetPanelSidebarVisible(sidebar_visible);
+    }
+  }
+
+  if (dashboard_panel_) {
+    if (dashboard_mode_override_ == StartupVisibility::kHide) {
+      dashboard_panel_->Hide();
+    } else if (dashboard_mode_override_ == StartupVisibility::kShow) {
+      dashboard_panel_->Show();
     }
   }
 }
 
 void EditorManager::ProcessStartupActions(const AppConfig& config) {
+  ApplyStartupVisibility(config);
   // Handle startup editor and panels
-  if (!config.startup_editor.empty()) {
-    std::string panels_str;
-    for (size_t i = 0; i < config.open_panels.size(); ++i) {
-      if (i > 0)
-        panels_str += ",";
-      panels_str += config.open_panels[i];
-    }
-    OpenEditorAndPanelsFromFlags(config.startup_editor, panels_str);
+  std::string panels_str;
+  for (size_t i = 0; i < config.open_panels.size(); ++i) {
+    if (i > 0)
+      panels_str += ",";
+    panels_str += config.open_panels[i];
   }
+  OpenEditorAndPanelsFromFlags(config.startup_editor, panels_str);
 
   // Handle jump targets
   if (config.jump_to_room >= 0) {
