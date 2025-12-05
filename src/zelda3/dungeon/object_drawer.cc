@@ -643,12 +643,12 @@ void ObjectDrawer::InitializeDrawRoutines() {
   object_to_routine_map_[0xF8D] = 97;  // Prison cell routine
   object_to_routine_map_[0xF8E] = 33;
   object_to_routine_map_[0xF8F] = 33;
-  // 0xF90-0xF93 (ASM 210-213): Rightwards2x2 per bank_01.asm
+  // 0xF90-0xF93 (ASM 210-213): SINGLE 2x2 per bank_01.asm
   // Note: 0xF92 (ASM 212) is RoomDraw_RupeeFloor but uses 2x2 base pattern
-  object_to_routine_map_[0xF90] = 4;  // Rightwards2x2
-  object_to_routine_map_[0xF91] = 4;  // Rightwards2x2
-  object_to_routine_map_[0xF92] = 4;  // RupeeFloor (2x2 pattern)
-  object_to_routine_map_[0xF93] = 4;  // Rightwards2x2
+  object_to_routine_map_[0xF90] = 110;  // Single2x2
+  object_to_routine_map_[0xF91] = 110;  // Single2x2
+  object_to_routine_map_[0xF92] = 110;  // RupeeFloor (2x2 pattern)
+  object_to_routine_map_[0xF93] = 110;  // Single2x2
   // 0xF94 (ASM 214): RoomDraw_TableRock4x3
   object_to_routine_map_[0xF94] = 30; // TableRock4x3 (Decor 4x3)
   // 0xF95 (ASM 215): RoomDraw_KholdstareShell - boss shell routine
@@ -673,9 +673,9 @@ void ObjectDrawer::InitializeDrawRoutines() {
   for (int id = 0xF9E; id <= 0xFA1; id++) {
     object_to_routine_map_[id] = 87;  // StraightInterroomStairs
   }
-  // 0xFA2-0xFA5 (ASM 222-225): Rightwards2x2
+  // 0xFA2-0xFA5 (ASM 222-225): Rightwards2x2 - SINGLE 2x2 (no repetition)
   for (int id = 0xFA2; id <= 0xFA5; id++) {
-    object_to_routine_map_[id] = 4;  // Rightwards2x2
+    object_to_routine_map_[id] = 110;  // Single2x2
   }
   // 0xFA6-0xFA9 (ASM 226-229): StraightInterroomStairs Lower variants
   for (int id = 0xFA6; id <= 0xFA9; id++) {
@@ -683,18 +683,18 @@ void ObjectDrawer::InitializeDrawRoutines() {
   }
   // 0xFAA (22A): RoomDraw_LampCones - use 4x4 base
   object_to_routine_map_[0xFAA] = 16;
-  // 0xFAB (22B): RoomDraw_WeirdGloveRequiredPot - 2x2 pot
-  object_to_routine_map_[0xFAB] = 4;
-  // 0xFAC (22C): RoomDraw_BigGrayRock - 2x2 rock
-  object_to_routine_map_[0xFAC] = 4;
+  // 0xFAB (22B): RoomDraw_WeirdGloveRequiredPot - SINGLE 2x2 pot (no repetition)
+  object_to_routine_map_[0xFAB] = 110;
+  // 0xFAC (22C): RoomDraw_BigGrayRock - SINGLE 2x2 rock (no repetition)
+  object_to_routine_map_[0xFAC] = 110;
   // 0xFAD (22D): RoomDraw_AgahnimsAltar - 4x4
   object_to_routine_map_[0xFAD] = 16;
   // 0xFAE (22E): RoomDraw_AgahnimsWindows - 4x4
   object_to_routine_map_[0xFAE] = 16;
-  // 0xFAF (22F): RoomDraw_SinglePot - 2x2
-  object_to_routine_map_[0xFAF] = 4;
-  // 0xFB0 (230): RoomDraw_WeirdUglyPot - 2x2
-  object_to_routine_map_[0xFB0] = 4;
+  // 0xFAF (22F): RoomDraw_SinglePot - SINGLE 2x2 (no repetition)
+  object_to_routine_map_[0xFAF] = 110;
+  // 0xFB0 (230): RoomDraw_WeirdUglyPot - SINGLE 2x2 (no repetition)
+  object_to_routine_map_[0xFB0] = 110;
   // 0xFB1 (231): RoomDraw_BigChest - 4x3
   object_to_routine_map_[0xFB1] = 30;
   // 0xFB2 (232): RoomDraw_OpenBigChest - 4x3
@@ -711,17 +711,17 @@ void ObjectDrawer::InitializeDrawRoutines() {
   // 0xFBC-0xFBD (23C-23D): HorizontalTurtleRockPipe
   object_to_routine_map_[0xFBC] = 103;  // Horizontal Turtle Rock pipe
   object_to_routine_map_[0xFBD] = 103;
-  // 0xFBE-0xFC6 (23E-246): Various 2x2 objects
+  // 0xFBE-0xFC6 (23E-246): Various SINGLE 2x2 objects (no repetition)
   for (int id = 0xFBE; id <= 0xFC6; id++) {
-    object_to_routine_map_[id] = 4;  // Rightwards2x2
+    object_to_routine_map_[id] = 110;  // Single2x2
   }
   // 0xFC7 (247): RoomDraw_BombableFloor
   object_to_routine_map_[0xFC7] = 93;  // BombableFloor
   // 0xFC8 (248): RoomDraw_4x4
   object_to_routine_map_[0xFC8] = 16;
-  // 0xFC9-0xFCA (249-24A): Rightwards2x2
-  object_to_routine_map_[0xFC9] = 4;
-  object_to_routine_map_[0xFCA] = 4;
+  // 0xFC9-0xFCA (249-24A): SINGLE 2x2 (no repetition)
+  object_to_routine_map_[0xFC9] = 110;
+  object_to_routine_map_[0xFCA] = 110;
   // 0xFCB (24B): RoomDraw_BigWallDecor - 4x4
   object_to_routine_map_[0xFCB] = 16;
   // 0xFCC (24C): RoomDraw_SmithyFurnace - 4x4
@@ -730,17 +730,17 @@ void ObjectDrawer::InitializeDrawRoutines() {
   object_to_routine_map_[0xFCD] = 100;
   // 0xFCE (24E): RoomDraw_TableRock4x3
   object_to_routine_map_[0xFCE] = 30;
-  // 0xFCF-0xFD3 (24F-253): Rightwards2x2
+  // 0xFCF-0xFD3 (24F-253): SINGLE 2x2 (no repetition)
   for (int id = 0xFCF; id <= 0xFD3; id++) {
-    object_to_routine_map_[id] = 4;
+    object_to_routine_map_[id] = 110;
   }
   // 0xFD4 (254): RoomDraw_FortuneTellerRoom - complex, use 4x4
   object_to_routine_map_[0xFD4] = 16;
   // 0xFD5 (255): RoomDraw_Utility3x5 - use dedicated 3x5 routine
   object_to_routine_map_[0xFD5] = 101;
-  // 0xFD6-0xFDA (256-25A): Various 2x2
+  // 0xFD6-0xFDA (256-25A): Various SINGLE 2x2 (no repetition)
   for (int id = 0xFD6; id <= 0xFDA; id++) {
-    object_to_routine_map_[id] = 4;
+    object_to_routine_map_[id] = 110;
   }
   // 0xFDB (25B): RoomDraw_Utility3x5 - use dedicated 3x5 routine
   object_to_routine_map_[0xFDB] = 101;
@@ -748,17 +748,17 @@ void ObjectDrawer::InitializeDrawRoutines() {
   object_to_routine_map_[0xFDC] = 103;
   // 0xFDD (25D): RoomDraw_Utility6x3 - use dedicated 6x3 routine
   object_to_routine_map_[0xFDD] = 100;
-  // 0xFDE-0xFDF (25E-25F): Rightwards2x2
-  object_to_routine_map_[0xFDE] = 4;
-  object_to_routine_map_[0xFDF] = 4;
+  // 0xFDE-0xFDF (25E-25F): SINGLE 2x2 (no repetition)
+  object_to_routine_map_[0xFDE] = 110;
+  object_to_routine_map_[0xFDF] = 110;
   // 0xFE0-0xFE1 (260-261): ArcheryGameTargetDoor - 3x6 door pattern
   object_to_routine_map_[0xFE0] = 108;
   object_to_routine_map_[0xFE1] = 108;
   // 0xFE2 (262): VitreousGooGraphics - 4x4
   object_to_routine_map_[0xFE2] = 16;
-  // 0xFE3-0xFE5 (263-265): Rightwards2x2
+  // 0xFE3-0xFE5 (263-265): SINGLE 2x2 (no repetition)
   for (int id = 0xFE3; id <= 0xFE5; id++) {
-    object_to_routine_map_[id] = 4;
+    object_to_routine_map_[id] = 110;
   }
   // 0xFE6 (266): RoomDraw_4x4
   object_to_routine_map_[0xFE6] = 16;
@@ -786,8 +786,8 @@ void ObjectDrawer::InitializeDrawRoutines() {
   object_to_routine_map_[0xFF3] = 38;
   // 0xFF4 (274): FloorLight - 4x4
   object_to_routine_map_[0xFF4] = 16;
-  // 0xFF5 (275): Rightwards2x2
-  object_to_routine_map_[0xFF5] = 4;
+  // 0xFF5 (275): SINGLE 2x2 (no repetition)
+  object_to_routine_map_[0xFF5] = 110;
   // 0xFF6-0xFF7 (276-277): BigWallDecor - 4x4
   object_to_routine_map_[0xFF6] = 16;
   object_to_routine_map_[0xFF7] = 16;
@@ -799,9 +799,9 @@ void ObjectDrawer::InitializeDrawRoutines() {
   object_to_routine_map_[0xFFA] = 16;
   // 0xFFB (27B): VitreousGooDamage - boss shell routine
   object_to_routine_map_[0xFFB] = 106;
-  // 0xFFC-0xFFE (27C-27E): Rightwards2x2
+  // 0xFFC-0xFFE (27C-27E): SINGLE 2x2 (no repetition)
   for (int id = 0xFFC; id <= 0xFFE; id++) {
-    object_to_routine_map_[id] = 4;
+    object_to_routine_map_[id] = 110;
   }
   // 0xFFF (27F): Nothing
   object_to_routine_map_[0xFFF] = 38;
@@ -1681,6 +1681,14 @@ void ObjectDrawer::InitializeDrawRoutines() {
          gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
          const DungeonState* state) {
         self->DrawGanonTriforceFloorDecor(obj, bg, tiles, state);
+      });
+
+  // Routine 110 - Single 2x2 (pots, statues, single-instance 2x2 objects)
+  draw_routines_.push_back(
+      [](ObjectDrawer* self, const RoomObject& obj,
+         gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
+         const DungeonState* state) {
+        self->DrawSingle2x2(obj, bg, tiles, state);
       });
 
   routines_initialized_ = true;
@@ -3976,27 +3984,38 @@ void ObjectDrawer::DrawArcheryGameTargetDoor(const RoomObject& obj,
                                              std::span<const gfx::TileInfo> tiles,
                                              [[maybe_unused]] const DungeonState* state) {
   // Pattern: Archery Game Target Door - two 3x3 sections stacked vertically
-  // ASM: RoomDraw_1x3N_rightwards with count=3, then offset +0x180 (3 tiles down),
-  //      then RoomDraw_1x3N_rightwards again with count=3
+  // ASM: RoomDraw_ArcheryGameTargetDoor at $01A7A3:
+  //   1. LDA #$0003, JSR RoomDraw_1x3N_rightwards -> 3 columns of 3 tiles (9 tiles)
+  //   2. Y += 0x180 (0x180 / 0x80 = 3 rows down)
+  //   3. LDA #$0003, JMP RoomDraw_1x3N_rightwards -> another 3 columns of 3 tiles
+  //
+  // RoomDraw_1x3N_rightwards draws COLUMN-MAJOR: each column is 3 tiles tall
+  // Tile order: col0[row0,row1,row2], col1[row0,row1,row2], col2[row0,row1,row2]
   // Objects: 0xFE0-0xFE1 (ASM 260-261)
-  // Total: 3 wide x 6 tall (18 tiles)
+  // Total: 3 wide x 6 tall (18 tiles) in column-major order per section
   constexpr int kWidth = 3;
   constexpr int kSectionHeight = 3;
-  constexpr int kTotalHeight = 6;
   
-  if (tiles.size() >= kWidth * kTotalHeight) {
+  if (tiles.size() >= 18) {
     int tid = 0;
-    // Draw in row-major order (3 wide sections going down)
-    for (int y = 0; y < kTotalHeight && tid < static_cast<int>(tiles.size()); ++y) {
-      for (int x = 0; x < kWidth && tid < static_cast<int>(tiles.size()); ++x) {
+    // Section 1: Top 3x3 in COLUMN-MAJOR order
+    for (int x = 0; x < kWidth; ++x) {
+      for (int y = 0; y < kSectionHeight; ++y) {
         WriteTile8(bg, obj.x_ + x, obj.y_ + y, tiles[tid++]);
       }
     }
-  } else if (tiles.size() >= kWidth * kSectionHeight) {
+    
+    // Section 2: Bottom 3x3 in COLUMN-MAJOR order (continues tile data)
+    for (int x = 0; x < kWidth; ++x) {
+      for (int y = 0; y < kSectionHeight; ++y) {
+        WriteTile8(bg, obj.x_ + x, obj.y_ + kSectionHeight + y, tiles[tid++]);
+      }
+    }
+  } else if (tiles.size() >= 9) {
     // Draw just the first section if not enough tiles
     int tid = 0;
-    for (int y = 0; y < kSectionHeight && tid < static_cast<int>(tiles.size()); ++y) {
-      for (int x = 0; x < kWidth && tid < static_cast<int>(tiles.size()); ++x) {
+    for (int x = 0; x < kWidth; ++x) {
+      for (int y = 0; y < kSectionHeight; ++y) {
         WriteTile8(bg, obj.x_ + x, obj.y_ + y, tiles[tid++]);
       }
     }
@@ -4006,39 +4025,73 @@ void ObjectDrawer::DrawArcheryGameTargetDoor(const RoomObject& obj,
   }
 }
 
+void ObjectDrawer::DrawSingle2x2(const RoomObject& obj,
+                                 gfx::BackgroundBuffer& bg,
+                                 std::span<const gfx::TileInfo> tiles,
+                                 [[maybe_unused]] const DungeonState* state) {
+  // Pattern: Single 2x2 block (NO repetition based on size)
+  // Used for pots, statues, and other single-instance 2x2 objects
+  // ASM: RoomDraw_Rightwards2x2 at $019895 draws 4 tiles once
+  // Tile order is COLUMN-MAJOR: [col0_row0, col0_row1, col1_row0, col1_row1]
+  if (tiles.size() >= 4) {
+    WriteTile8(bg, obj.x_, obj.y_, tiles[0]);      // col 0, row 0
+    WriteTile8(bg, obj.x_, obj.y_ + 1, tiles[1]);  // col 0, row 1
+    WriteTile8(bg, obj.x_ + 1, obj.y_, tiles[2]);  // col 1, row 0
+    WriteTile8(bg, obj.x_ + 1, obj.y_ + 1, tiles[3]);  // col 1, row 1
+  }
+}
+
 void ObjectDrawer::DrawGanonTriforceFloorDecor(const RoomObject& obj,
                                                gfx::BackgroundBuffer& bg,
                                                std::span<const gfx::TileInfo> tiles,
                                                [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Ganon's Triforce Floor Decoration - two 4x4 sections
-  // ASM: RoomDraw_4x4, then offset +0x1FC (~4 tiles diagonally), then RoomDraw_4x4 again
-  // Object: 0xFF8 (ASM 278)
-  // The ASM adds 0x1FC to the VRAM position, which is approximately 4 tiles down
-  // and slightly to the side, creating the Triforce pattern on the floor
+  // Pattern: Ganon's Triforce Floor Decoration - THREE 4x4 blocks forming Triforce
+  // ASM: RoomDraw_GanonTriforceFloorDecor at $01A7F0:
+  //   1. JSR RoomDraw_4x4                     -> first block at Y
+  //   2. Y += 0x1FC, JSR RoomDraw_4x4         -> second block (continues tile data)
+  //   3. PHX/PLX restores X, Y += 0x204, JMP RoomDraw_4x4 -> third block (same tiles as first)
+  //
+  // VRAM layout: 0x80 bytes per row (64 tiles @ 2 bytes each = 128 bytes)
+  // 0x1FC = 508 -> 508/128 = 3.97 rows, 508%128 = 124 -> ~4 rows down, -2 cols (wraps)
+  // 0x204 = 516 -> 516/128 = 4.03 rows, 516%128 = 4 -> ~4 rows down, +2 cols
+  //
+  // Visual pattern (Triforce):
+  //   Block 1: Top center (tiles 0-15)
+  //   Block 2: Bottom-left (tiles 16-31)
+  //   Block 3: Bottom-right (tiles 0-15 again, same as block 1)
   constexpr int kBlockSize = 4;
   
   if (tiles.size() >= 32) {
-    // Draw first 4x4 block at original position
+    // Block 1: Top center (offset 0 from base position)
     int tid = 0;
-    for (int y = 0; y < kBlockSize && tid < 16; ++y) {
-      for (int x = 0; x < kBlockSize && tid < 16; ++x) {
-        WriteTile8(bg, obj.x_ + x, obj.y_ + y, tiles[tid++]);
+    for (int y = 0; y < kBlockSize; ++y) {
+      for (int x = 0; x < kBlockSize; ++x) {
+        WriteTile8(bg, obj.x_ + x + 2, obj.y_ + y, tiles[tid++]);
       }
     }
     
-    // Draw second 4x4 block offset by ~4 tiles down (ASM offset 0x1FC / 0x80 ≈ 4 rows)
-    // The 0x1FC offset in VRAM corresponds to approximately 4 tile rows
+    // Block 2: Bottom-left (offset by ~4 rows down, slightly left)
+    // Uses continuation tile data (tiles 16-31)
     tid = 16;
-    for (int y = 0; y < kBlockSize && tid < 32; ++y) {
-      for (int x = 0; x < kBlockSize && tid < 32; ++x) {
+    for (int y = 0; y < kBlockSize; ++y) {
+      for (int x = 0; x < kBlockSize; ++x) {
         WriteTile8(bg, obj.x_ + x, obj.y_ + kBlockSize + y, tiles[tid++]);
       }
     }
+    
+    // Block 3: Bottom-right (same tiles as block 1)
+    // PHX/PLX restores X to original, so tiles 0-15 are reused
+    tid = 0;
+    for (int y = 0; y < kBlockSize; ++y) {
+      for (int x = 0; x < kBlockSize; ++x) {
+        WriteTile8(bg, obj.x_ + x + 4, obj.y_ + kBlockSize + y, tiles[tid++]);
+      }
+    }
   } else if (tiles.size() >= 16) {
-    // Draw just the first 4x4 block if not enough tiles
+    // Draw just one 4x4 block if not enough tiles
     int tid = 0;
-    for (int y = 0; y < kBlockSize && tid < static_cast<int>(tiles.size()); ++y) {
-      for (int x = 0; x < kBlockSize && tid < static_cast<int>(tiles.size()); ++x) {
+    for (int y = 0; y < kBlockSize; ++y) {
+      for (int x = 0; x < kBlockSize; ++x) {
         WriteTile8(bg, obj.x_ + x, obj.y_ + y, tiles[tid++]);
       }
     }
