@@ -176,7 +176,8 @@ bool Emulator::EnsureInitialized(Rom* rom) {
   }
 
   // Initialize audio backend if not already done
-  if (!audio_backend_) {
+  // Skip if using external (shared) audio backend
+  if (!audio_backend_ && !external_audio_backend_) {
 #ifdef __EMSCRIPTEN__
     audio_backend_ = audio::AudioBackendFactory::Create(
         audio::AudioBackendFactory::BackendType::WASM);
@@ -196,6 +197,8 @@ bool Emulator::EnsureInitialized(Rom* rom) {
       return false;
     }
     LOG_INFO("Emulator", "Audio backend initialized for headless mode");
+  } else if (external_audio_backend_) {
+    LOG_INFO("Emulator", "Using external (shared) audio backend");
   }
 
   // Initialize SNES if not already done
@@ -306,8 +309,9 @@ void Emulator::ResetFrameTiming() {
   time_adder = 0.0;
 
   // Clear audio buffer to prevent static from stale data
-  if (audio_backend_) {
-    audio_backend_->Clear();
+  // Use accessor to get correct backend (external or owned)
+  if (auto* backend = audio_backend()) {
+    backend->Clear();
   }
 }
 
@@ -315,14 +319,34 @@ void Emulator::RunAudioFrame() {
   // Simplified audio-focused frame execution for music editor
   // Runs exactly one SNES frame per call - caller controls timing
 
+  // Use accessor to get correct backend (external or owned)
+  auto* backend = audio_backend();
+
+  // DIAGNOSTIC: Always log entry to verify this function is being called
+  static int entry_count = 0;
+  if (entry_count < 5 || entry_count % 300 == 0) {
+    LOG_INFO("Emulator", "RunAudioFrame ENTRY #%d: init=%d, running=%d, backend=%p (external=%p, owned=%p)",
+             entry_count, snes_initialized_, running_,
+             static_cast<void*>(backend),
+             static_cast<void*>(external_audio_backend_),
+             static_cast<void*>(audio_backend_.get()));
+  }
+  entry_count++;
+
   if (!snes_initialized_ || !running_) {
+    static int skip_count = 0;
+    if (skip_count < 5) {
+      LOG_WARN("Emulator", "RunAudioFrame SKIPPED: init=%d, running=%d",
+               snes_initialized_, running_);
+    }
+    skip_count++;
     return;
   }
 
   // Ensure audio stream resampling is configured (32040 Hz -> 48000 Hz)
-  if (audio_backend_ && audio_stream_config_dirty_) {
-    if (use_sdl_audio_stream_ && audio_backend_->SupportsAudioStream()) {
-      audio_backend_->SetAudioStreamResampling(true, kNativeSampleRate, 2);
+  if (backend && audio_stream_config_dirty_) {
+    if (use_sdl_audio_stream_ && backend->SupportsAudioStream()) {
+      backend->SetAudioStreamResampling(true, kNativeSampleRate, 2);
       audio_stream_active_ = true;
     }
     audio_stream_config_dirty_ = false;
@@ -333,11 +357,11 @@ void Emulator::RunAudioFrame() {
   snes_.RunAudioFrame();
 
   // Queue audio samples to backend
-  if (audio_backend_) {
+  if (backend) {
     static int16_t audio_buffer[2048];  // 533 stereo samples max
     snes_.SetSamples(audio_buffer, wanted_samples_);
 
-    bool queued = audio_backend_->QueueSamplesNative(
+    bool queued = backend->QueueSamplesNative(
         audio_buffer, wanted_samples_, 2, kNativeSampleRate);
 
     // Diagnostic: Log first few calls and then periodically
@@ -349,12 +373,12 @@ void Emulator::RunAudioFrame() {
     }
     frame_log_count++;
 
-    if (!queued && audio_backend_->SupportsAudioStream()) {
+    if (!queued && backend->SupportsAudioStream()) {
       // Try to re-enable resampling and retry once
       LOG_INFO("Emulator", "RunAudioFrame: First queue failed, re-enabling resampling");
-      audio_backend_->SetAudioStreamResampling(true, kNativeSampleRate, 2);
+      backend->SetAudioStreamResampling(true, kNativeSampleRate, 2);
       audio_stream_active_ = true;
-      queued = audio_backend_->QueueSamplesNative(
+      queued = backend->QueueSamplesNative(
           audio_buffer, wanted_samples_, 2, kNativeSampleRate);
       LOG_INFO("Emulator", "RunAudioFrame: Retry queued=%s", queued ? "YES" : "NO");
     }

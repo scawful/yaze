@@ -110,7 +110,7 @@ class MusicEditor : public Editor {
   Rom* rom() const { return rom_; }
 
   // Emulator integration for live audio playback
-  void set_emulator(emu::Emulator* emulator) { emulator_ = emulator; }
+  void set_emulator(emu::Emulator* emulator);
   emu::Emulator* emulator() const { return emulator_; }
 
   void SetProject(project::YazeProject* project);
@@ -195,6 +195,10 @@ class MusicEditor : public Editor {
   Rom* rom_;
   emu::Emulator* emulator_ = nullptr;  // For live audio playback
   project::YazeProject* project_ = nullptr;
+
+  // Single shared audio backend - owned here and shared with emulators
+  // This avoids the dual-backend bug where two SDL audio devices conflict
+  std::unique_ptr<emu::audio::IAudioBackend> audio_backend_;
   bool song_browser_auto_shown_ = false;
   bool tracker_auto_shown_ = false;
   bool music_dirty_ = false;

@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.4.1 (December 2025)
+
+### Logging & Diagnostics
+- Added CLI controls for log level/categories and console mirroring (`--log_level`, `--log_categories`, `--log_to_console`); `--debug` now force-enables console logging at debug level.
+- Startup logging now reports the resolved level, categories, and log file destination for easier reproducibility.
+
+### Editor & Panel Launch Controls
+- `--open_panels` matching is case-insensitive and accepts both display names and stable panel IDs (e.g., `dungeon.room_list`, `Room 105`, `welcome`, `dashboard`).
+- New startup visibility overrides (`--startup_welcome`, `--startup_dashboard`, `--startup_sidebar`) let you force panels to show/hide on launch for automation or demos.
+- Welcome and dashboard behavior is coordinated through the UI layer so CLI overrides and in-app toggles stay in sync.
+
+### Documentation & Testing
+- Debugging guides refreshed with the new logging filters and startup panel controls.
+- Startup flag reference and dungeon editor guide now use panel terminology and up-to-date CLI examples for automation setups.
+
+---
+
 ## 0.3.9 (November 2025)
 
 ### AI Agent Infrastructure

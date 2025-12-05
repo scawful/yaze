@@ -81,6 +81,10 @@ class IAudioBackend {
                                         int channels) {}
   virtual bool SupportsAudioStream() const { return false; }
 
+  // Check if audio stream resampling is currently active
+  // Returns true if resampling from native rate to device rate is enabled
+  virtual bool IsAudioStreamEnabled() const { return false; }
+
   // Get backend name for debugging
   virtual std::string GetBackendName() const = 0;
 };
@@ -116,6 +120,7 @@ class SDL2AudioBackend : public IAudioBackend {
   void SetAudioStreamResampling(bool enable, int native_rate,
                                 int channels) override;
   bool SupportsAudioStream() const override { return true; }
+  bool IsAudioStreamEnabled() const override;
 
   std::string GetBackendName() const override { return "SDL2"; }
 
@@ -124,6 +129,7 @@ class SDL2AudioBackend : public IAudioBackend {
   AudioConfig config_;
   bool initialized_ = false;
   float volume_ = 1.0f;
+  int call_count_ = 0;  // Track calls per backend instance
 #ifdef YAZE_USE_SDL3
   SDL_AudioFormat device_format_ = SDL_AUDIO_S16;
 #else
@@ -171,6 +177,7 @@ class NullAudioBackend : public IAudioBackend {
   void SetAudioStreamResampling(bool enable, int native_rate,
                                 int channels) override;
   bool SupportsAudioStream() const override { return true; }
+  bool IsAudioStreamEnabled() const override;
 
   std::string GetBackendName() const override { return "Null"; }
 

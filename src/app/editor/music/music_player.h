@@ -9,6 +9,7 @@
 
 #include "absl/status/status.h"
 #include "app/editor/music/music_constants.h"
+#include "app/emu/audio/audio_backend.h"
 #include "app/emu/emulator.h"
 #include "zelda3/music/music_bank.h"
 #include "zelda3/music/song_data.h"
@@ -125,6 +126,31 @@ class MusicPlayer {
 
   // === Dependency Injection ===
   void SetRom(Rom* rom);
+
+  /**
+   * @brief Set a shared audio backend from the main emulator.
+   *
+   * This allows MusicPlayer to use the same SDL audio device as the main
+   * emulator, avoiding conflicts from multiple audio devices.
+   *
+   * @param backend The audio backend to share (must outlive MusicPlayer)
+   */
+  void SetSharedAudioBackend(emu::audio::IAudioBackend* backend) {
+    shared_audio_backend_ = backend;
+  }
+
+  /**
+   * @brief Set a callback to be called when audio playback starts/stops.
+   *
+   * This allows external systems (like EditorManager) to pause/mute other
+   * audio sources (like the main emulator) when MusicPlayer takes control.
+   *
+   * @param callback Function called with (true) when playback starts,
+   *                 and (false) when playback stops.
+   */
+  void SetAudioExclusivityCallback(std::function<void(bool)> callback) {
+    audio_exclusivity_callback_ = std::move(callback);
+  }
 
   // Access the dedicated audio emulator (for visualization, etc.)
   emu::Emulator* audio_emulator() { return audio_emulator_.get(); }
@@ -308,15 +334,25 @@ class MusicPlayer {
   uint8_t GetSongTempo(const zelda3::music::MusicSong& song) const;
   void TransitionTo(PlaybackMode new_mode);
 
+  /**
+   * @brief Prepare audio pipeline for playback.
+   *
+   * Consolidates the common audio priming pattern used by all playback methods:
+   * - Resets DSP sample buffer
+   * - Runs one audio frame to generate initial samples
+   * - Queues initial samples to audio backend
+   * - Starts audio playback and emulator
+   */
+  void PrepareAudioPlayback();
+
   // === Dependencies ===
   zelda3::music::MusicBank* music_bank_ = nullptr;
   std::unique_ptr<emu::Emulator> audio_emulator_;  // Dedicated emulator for audio playback
   Rom* rom_ = nullptr;
+  emu::audio::IAudioBackend* shared_audio_backend_ = nullptr;  // Shared with main emulator
 
   // === Playback State ===
   PlaybackMode mode_ = PlaybackMode::Stopped;
-  bool is_playing_ = false;   // Legacy compat
-  bool is_paused_ = false;    // Legacy compat
   int playing_song_index_ = -1;
 
   // === Playback Settings ===
@@ -336,6 +372,9 @@ class MusicPlayer {
   uint32_t playback_start_tick_ = 0;
   float ticks_per_second_ = 0.0f;
   int playback_segment_index_ = 0;
+
+  // === Callback for audio exclusivity ===
+  std::function<void(bool)> audio_exclusivity_callback_;
 };
 
 }  // namespace music
