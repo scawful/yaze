@@ -621,12 +621,23 @@ void Room::RenderRoomGraphics() {
   int num_palettes = dungeon_pal_group.size();
   if (num_palettes == 0) return;
 
-  // Prefer palette set mapping (paletteset_ids) to group index; fallback to header
+  // Look up dungeon palette ID using the paletteset_ids table
+  // paletteset_ids[palette][0] contains a BYTE OFFSET into the palette pointer table
+  // at ROM address 0xDEC4B. The word at that offset, divided by 180, gives the palette ID.
+  // This matches how LoadLayoutTilesToBuffer does the lookup.
+  constexpr uint32_t kDungeonPalettePointerTable = 0xDEC4B;
   int palette_id = palette;
-  if (palette < game_data_->paletteset_ids.size()) {
-    palette_id = game_data_->paletteset_ids[palette][0];
+  if (palette < game_data_->paletteset_ids.size() &&
+      !game_data_->paletteset_ids[palette].empty()) {
+    auto dungeon_palette_ptr = game_data_->paletteset_ids[palette][0];
+    auto palette_word = rom()->ReadWord(kDungeonPalettePointerTable + dungeon_palette_ptr);
+    if (palette_word.ok()) {
+      palette_id = palette_word.value() / 180;
+    }
   }
-  palette_id = std::clamp<int>(palette_id, 0, num_palettes - 1);
+  if (palette_id < 0 || palette_id >= num_palettes) {
+    palette_id = 0;
+  }
 
   auto bg1_palette = dungeon_pal_group[palette_id];
 
@@ -878,11 +889,21 @@ void Room::RenderObjectsToBackground() {
   auto& dungeon_pal_group = game_data_->palette_groups.dungeon_main;
   int num_palettes = dungeon_pal_group.size();
 
+  // Look up dungeon palette ID using the paletteset_ids table
+  // (same lookup as RenderRoomGraphics and LoadLayoutTilesToBuffer)
+  constexpr uint32_t kDungeonPalettePointerTable = 0xDEC4B;
   int palette_id = palette;
-  if (palette < game_data_->paletteset_ids.size()) {
-    palette_id = game_data_->paletteset_ids[palette][0];
+  if (palette < game_data_->paletteset_ids.size() &&
+      !game_data_->paletteset_ids[palette].empty()) {
+    auto dungeon_palette_ptr = game_data_->paletteset_ids[palette][0];
+    auto palette_word = rom()->ReadWord(kDungeonPalettePointerTable + dungeon_palette_ptr);
+    if (palette_word.ok()) {
+      palette_id = palette_word.value() / 180;
+    }
   }
-  palette_id = std::clamp<int>(palette_id, 0, num_palettes - 1);
+  if (palette_id < 0 || palette_id >= num_palettes) {
+    palette_id = 0;
+  }
 
   auto room_palette = dungeon_pal_group[palette_id];
   // Dungeon palettes are 90-color palettes for 3BPP graphics (8-color strides)
