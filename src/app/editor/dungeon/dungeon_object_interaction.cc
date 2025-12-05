@@ -216,7 +216,19 @@ void DungeonObjectInteraction::DrawSelectionHighlights() {
       });
 
   // Enhanced hover tooltip showing object info (always visible on hover)
+  // Skip tooltip if cursor is over a door/sprite/item entity
   if (canvas_->IsMouseHovering()) {
+    ImGuiIO& io = ImGui::GetIO();
+    ImVec2 canvas_pos = canvas_->zero_point();
+    int cursor_x = static_cast<int>(io.MousePos.x - canvas_pos.x);
+    int cursor_y = static_cast<int>(io.MousePos.y - canvas_pos.y);
+    auto entity_at_cursor = GetEntityAtPosition(cursor_x, cursor_y);
+    if (entity_at_cursor.has_value()) {
+      // Entity has priority - skip object tooltip, DrawHoverHighlight will also skip
+      DrawHoverHighlight(objects);
+      return;
+    }
+
     size_t hovered_index = GetHoveredObjectIndex();
     if (hovered_index != static_cast<size_t>(-1) &&
         hovered_index < objects.size()) {
@@ -260,12 +272,23 @@ void DungeonObjectInteraction::DrawSelectionHighlights() {
 void DungeonObjectInteraction::DrawHoverHighlight(
     const std::vector<zelda3::RoomObject>& objects) {
   if (!canvas_->IsMouseHovering()) return;
-  
+
+  // Don't show object hover highlight if cursor is over a door/sprite/item entity
+  // Entities take priority over objects for interaction
+  ImGuiIO& io = ImGui::GetIO();
+  ImVec2 canvas_pos = canvas_->zero_point();
+  int cursor_canvas_x = static_cast<int>(io.MousePos.x - canvas_pos.x);
+  int cursor_canvas_y = static_cast<int>(io.MousePos.y - canvas_pos.y);
+  auto entity_at_cursor = GetEntityAtPosition(cursor_canvas_x, cursor_canvas_y);
+  if (entity_at_cursor.has_value()) {
+    return;  // Entity has priority - skip object hover highlight
+  }
+
   size_t hovered_index = GetHoveredObjectIndex();
   if (hovered_index == static_cast<size_t>(-1) || hovered_index >= objects.size()) {
     return;
   }
-  
+
   // Don't draw hover highlight if object is already selected
   if (selection_.IsObjectSelected(hovered_index)) {
     return;
@@ -274,7 +297,7 @@ void DungeonObjectInteraction::DrawHoverHighlight(
   const auto& object = objects[hovered_index];
   const auto& theme = AgentUI::GetTheme();
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  ImVec2 canvas_pos = canvas_->zero_point();
+  // canvas_pos already defined above for entity check
   float scale = canvas_->global_scale();
   
   // Calculate object position and dimensions
