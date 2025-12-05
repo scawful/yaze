@@ -306,16 +306,18 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       ImGui::SameLine();
       ImGui::TextDisabled(ICON_MD_VIEW_MODULE);
       ImGui::SameLine(0, 2);
-      if (auto res = gui::InputHexByteEx("##Blockset", &blockset_val, 32.f, true);
+      // Blockset: max 81 (kNumRoomBlocksets = 82)
+      if (auto res = gui::InputHexByteEx("##Blockset", &blockset_val, 81, 32.f, true);
           res.ShouldApply()) {
         room.SetBlockset(blockset_val);
         if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
       }
-      if (ImGui::IsItemHovered()) ImGui::SetTooltip("Blockset");
+      if (ImGui::IsItemHovered()) ImGui::SetTooltip("Blockset (0-51)");
       ImGui::SameLine();
       ImGui::TextDisabled(ICON_MD_PALETTE);
       ImGui::SameLine(0, 2);
-      if (auto res = gui::InputHexByteEx("##Palette", &palette_val, 32.f, true);
+      // Palette: max 71 (kNumPalettesets = 72)
+      if (auto res = gui::InputHexByteEx("##Palette", &palette_val, 71, 32.f, true);
           res.ShouldApply()) {
         room.SetPalette(palette_val);
         SetCurrentPaletteId(palette_val);
@@ -342,44 +344,48 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
         }
         if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
       }
-      if (ImGui::IsItemHovered()) ImGui::SetTooltip("Palette");
+      if (ImGui::IsItemHovered()) ImGui::SetTooltip("Palette (0-47)");
       ImGui::SameLine();
       ImGui::TextDisabled(ICON_MD_GRID_VIEW);
       ImGui::SameLine(0, 2);
-      if (auto res = gui::InputHexByteEx("##Layout", &layout_val, 32.f, true);
+      // Layout: max 7 (8 layouts, 0-7)
+      if (auto res = gui::InputHexByteEx("##Layout", &layout_val, 7, 32.f, true);
           res.ShouldApply()) {
         room.layout = layout_val;
         room.MarkLayoutDirty();
         if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
       }
-      if (ImGui::IsItemHovered()) ImGui::SetTooltip("Layout");
+      if (ImGui::IsItemHovered()) ImGui::SetTooltip("Layout (0-7)");
       ImGui::SameLine();
       ImGui::TextDisabled(ICON_MD_PEST_CONTROL);
       ImGui::SameLine(0, 2);
-      if (auto res = gui::InputHexByteEx("##Spriteset", &spriteset_val, 32.f, true);
+      // Spriteset: max 143 (kNumSpritesets = 144)
+      if (auto res = gui::InputHexByteEx("##Spriteset", &spriteset_val, 143, 32.f, true);
           res.ShouldApply()) {
         room.SetSpriteset(spriteset_val);
         if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
       }
-      if (ImGui::IsItemHovered()) ImGui::SetTooltip("Spriteset");
+      if (ImGui::IsItemHovered()) ImGui::SetTooltip("Spriteset (0-8F)");
       ImGui::SameLine();
       ImGui::TextDisabled(ICON_MD_SQUARE);
       ImGui::SameLine(0, 2);
-      if (auto res = gui::InputHexByteEx("##Floor1", &floor1_val, 32.f, true);
+      // Floor graphics: max 15 (4-bit value, 0-F)
+      if (auto res = gui::InputHexByteEx("##Floor1", &floor1_val, 15, 32.f, true);
           res.ShouldApply()) {
         room.set_floor1(floor1_val);
         if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
       }
-      if (ImGui::IsItemHovered()) ImGui::SetTooltip("Floor 1");
+      if (ImGui::IsItemHovered()) ImGui::SetTooltip("Floor 1 (0-F)");
       ImGui::SameLine();
       ImGui::TextDisabled(ICON_MD_SQUARE_FOOT);
       ImGui::SameLine(0, 2);
-      if (auto res = gui::InputHexByteEx("##Floor2", &floor2_val, 32.f, true);
+      // Floor graphics: max 15 (4-bit value, 0-F)
+      if (auto res = gui::InputHexByteEx("##Floor2", &floor2_val, 15, 32.f, true);
           res.ShouldApply()) {
         room.set_floor2(floor2_val);
         if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
       }
-      if (ImGui::IsItemHovered()) ImGui::SetTooltip("Floor 2");
+      if (ImGui::IsItemHovered()) ImGui::SetTooltip("Floor 2 (0-F)");
 
       // Row 2: Effect + Tags (all in one flow, not separated by table columns)
       ImGui::TableNextRow();
@@ -1423,10 +1429,17 @@ void DungeonCanvasViewer::DrawRoomBackgroundLayers(int room_id) {
   if (use_composite_mode_) {
     auto& composite = room.GetCompositeBitmap(layer_mgr);
     if (composite.is_active() && composite.width() > 0) {
-      // Ensure texture exists
+      // Ensure texture exists or is updated when bitmap data changes
       if (!composite.texture()) {
         gfx::Arena::Get().QueueTextureCommand(
             gfx::Arena::TextureCommandType::CREATE, &composite);
+        composite.set_modified(false);  // Will be created fresh
+      } else if (composite.modified()) {
+        // CRITICAL: Update texture when bitmap was regenerated
+        // This happens after property changes (blockset, palette, etc.)
+        gfx::Arena::Get().QueueTextureCommand(
+            gfx::Arena::TextureCommandType::UPDATE, &composite);
+        composite.set_modified(false);  // Avoid redundant updates
       }
       if (composite.texture()) {
         canvas_.DrawBitmap(composite, 0, 0, scale, 255);
