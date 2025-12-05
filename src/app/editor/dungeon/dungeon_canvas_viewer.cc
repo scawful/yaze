@@ -348,14 +348,14 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       ImGui::SameLine();
       ImGui::TextDisabled(ICON_MD_GRID_VIEW);
       ImGui::SameLine(0, 2);
-      // Layout: max 7 (8 layouts, 0-7)
-      if (auto res = gui::InputHexByteEx("##Layout", &layout_val, 7, 32.f, true);
+      // Layout: max 6 (7 valid layouts, 0-6; layout 7 is corrupt)
+      if (auto res = gui::InputHexByteEx("##Layout", &layout_val, 6, 32.f, true);
           res.ShouldApply()) {
         room.layout = layout_val;
         room.MarkLayoutDirty();
         if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
       }
-      if (ImGui::IsItemHovered()) ImGui::SetTooltip("Layout (0-7)");
+      if (ImGui::IsItemHovered()) ImGui::SetTooltip("Layout (0-6)");
       ImGui::SameLine();
       ImGui::TextDisabled(ICON_MD_PEST_CONTROL);
       ImGui::SameLine(0, 2);
@@ -569,15 +569,46 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   if (rooms_ && rom_->is_loaded()) {
     auto& room = (*rooms_)[room_id];
 
-    // Add object placement option - shows the Object Tools panel
-    canvas_.AddContextMenuItem(gui::CanvasMenuItem(
-        "Place Object", ICON_MD_ADD,
+    // === Entity Placement Menu ===
+    gui::CanvasMenuItem place_menu;
+    place_menu.label = "Place Entity";
+    place_menu.icon = ICON_MD_ADD;
+    
+    // Place Object option
+    place_menu.subitems.push_back(gui::CanvasMenuItem(
+        "Object", ICON_MD_WIDGETS,
         [this]() {
           if (show_object_panel_callback_) {
             show_object_panel_callback_();
           }
-        },
-        "Ctrl+P"));
+        }));
+    
+    // Place Sprite option
+    place_menu.subitems.push_back(gui::CanvasMenuItem(
+        "Sprite", ICON_MD_PERSON,
+        [this]() {
+          bool active = object_interaction_.IsSpritePlacementActive();
+          object_interaction_.SetSpritePlacementMode(!active, 0x09);
+        }));
+    
+    // Place Item option
+    place_menu.subitems.push_back(gui::CanvasMenuItem(
+        "Item", ICON_MD_INVENTORY,
+        [this]() {
+          bool active = object_interaction_.IsItemPlacementActive();
+          object_interaction_.SetItemPlacementMode(!active, 1);
+        }));
+    
+    // Place Door option
+    place_menu.subitems.push_back(gui::CanvasMenuItem(
+        "Door", ICON_MD_DOOR_FRONT,
+        [this]() {
+          bool active = object_interaction_.IsDoorPlacementActive();
+          object_interaction_.SetDoorPlacementMode(!active, 
+              zelda3::DoorType::NormalDoor);
+        }));
+    
+    canvas_.AddContextMenuItem(place_menu);
 
     // Add room property quick toggles (4-way layer visibility)
     gui::CanvasMenuItem layer_menu;
@@ -641,12 +672,20 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     grid_menu.label = "Grid Options";
     grid_menu.icon = ICON_MD_GRID_ON;
 
+    // Toggle grid visibility
+    gui::CanvasMenuItem toggle_grid_item(
+        show_grid_ ? "Hide Grid" : "Show Grid", 
+        show_grid_ ? ICON_MD_GRID_OFF : ICON_MD_GRID_ON,
+        [this]() { show_grid_ = !show_grid_; }, "G");
+    grid_menu.subitems.push_back(toggle_grid_item);
+
+    // Grid size options (only show if grid is visible)
     grid_menu.subitems.push_back(
-        gui::CanvasMenuItem("8x8", [this]() { custom_grid_size_ = 8; }));
+        gui::CanvasMenuItem("8x8", [this]() { custom_grid_size_ = 8; show_grid_ = true; }));
     grid_menu.subitems.push_back(
-        gui::CanvasMenuItem("16x16", [this]() { custom_grid_size_ = 16; }));
+        gui::CanvasMenuItem("16x16", [this]() { custom_grid_size_ = 16; show_grid_ = true; }));
     grid_menu.subitems.push_back(
-        gui::CanvasMenuItem("32x32", [this]() { custom_grid_size_ = 32; }));
+        gui::CanvasMenuItem("32x32", [this]() { custom_grid_size_ = 32; show_grid_ = true; }));
 
     canvas_.AddContextMenuItem(grid_menu);
 
@@ -913,7 +952,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       static bool enable_override = false;
       ImGui::Checkbox("Enable Override", &enable_override);
       if (enable_override) {
-        ImGui::SliderInt("Layout ID", &layout_override_, 0, 7);
+        ImGui::SliderInt("Layout ID", &layout_override_, 0, 6);
       } else {
         layout_override_ = -1;  // Disable override
       }
@@ -1090,18 +1129,11 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     }
   }
 
-  canvas_.DrawGrid();
-  canvas_.DrawOverlay();
-
-  // Draw layer information overlay
-  if (rooms_ && rom_->is_loaded()) {
-    auto& room = (*rooms_)[room_id];
-    std::string layer_info =
-        absl::StrFormat("Room %03X - Objects: %zu, Sprites: %zu\n", room_id,
-                        room.GetTileObjects().size(), room.GetSprites().size());
-
-    canvas_.DrawText(layer_info, 10, canvas_.height() - 60);
+  // Only draw grid when enabled (off by default for dungeon editor)
+  if (show_grid_) {
+    canvas_.DrawGrid();
   }
+  canvas_.DrawOverlay();
 }
 
 void DungeonCanvasViewer::DisplayObjectInfo(const zelda3::RoomObject& object,

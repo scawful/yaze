@@ -113,6 +113,24 @@ class DungeonObjectInteraction {
     snapped_door_position_ = 0;
   }
 
+  // Sprite placement mode
+  void SetSpritePlacementMode(bool enabled, uint8_t sprite_id = 0);
+  bool IsSpritePlacementActive() const { return sprite_placement_mode_; }
+  void SetPreviewSpriteId(uint8_t id) { preview_sprite_id_ = id; }
+  uint8_t GetPreviewSpriteId() const { return preview_sprite_id_; }
+  void DrawSpriteGhostPreview();  // Draw sprite ghost preview
+  void PlaceSpriteAtPosition(int canvas_x, int canvas_y);
+  void CancelSpritePlacement() { sprite_placement_mode_ = false; }
+
+  // Item placement mode
+  void SetItemPlacementMode(bool enabled, uint8_t item_id = 0);
+  bool IsItemPlacementActive() const { return item_placement_mode_; }
+  void SetPreviewItemId(uint8_t id) { preview_item_id_ = id; }
+  uint8_t GetPreviewItemId() const { return preview_item_id_; }
+  void DrawItemGhostPreview();  // Draw item ghost preview
+  void PlaceItemAtPosition(int canvas_x, int canvas_y);
+  void CancelItemPlacement() { item_placement_mode_ = false; }
+
   // Selection state - delegates to ObjectSelection
   std::vector<size_t> GetSelectedObjectIndices() const {
     return selection_.GetSelectedIndices();
@@ -190,7 +208,8 @@ class DungeonObjectInteraction {
   
   // Draw entity selection highlights
   void DrawEntitySelectionHighlights();
-  
+  void DrawDoorSnapIndicators();  // Show valid snap positions during door drag
+
   // Entity interaction
   bool TrySelectEntityAtCursor();  // Try to select door/sprite/item at cursor
   void HandleEntityDrag();         // Handle dragging selected entity
@@ -246,6 +265,14 @@ class DungeonObjectInteraction {
   zelda3::DoorType preview_door_type_ = zelda3::DoorType::NormalDoor;
   zelda3::DoorDirection detected_door_direction_ = zelda3::DoorDirection::North;
   uint8_t snapped_door_position_ = 0;  // Position along wall (0-31)
+
+  // Sprite placement state
+  bool sprite_placement_mode_ = false;
+  uint8_t preview_sprite_id_ = 0;
+
+  // Item placement state
+  bool item_placement_mode_ = false;
+  uint8_t preview_item_id_ = 0;
 
   // Entity selection state (doors, sprites, items)
   SelectedEntity selected_entity_;

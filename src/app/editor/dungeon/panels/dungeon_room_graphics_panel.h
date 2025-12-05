@@ -6,6 +6,7 @@
 #include "app/editor/system/editor_panel.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
@@ -32,6 +33,15 @@ class DungeonRoomGraphicsPanel : public EditorPanel {
         rooms_(rooms),
         renderer_(renderer),
         room_gfx_canvas_("##RoomGfxCanvasPanel", ImVec2(256 + 1, 256 + 1)) {}
+
+  /**
+   * @brief Set the current palette group for graphics rendering
+   * @param group The palette group from the current room
+   */
+  void SetCurrentPaletteGroup(const gfx::PaletteGroup& group) {
+    current_palette_group_ = group;
+    palette_dirty_ = true;
+  }
 
   // ==========================================================================
   // EditorPanel Identity
@@ -88,12 +98,29 @@ class DungeonRoomGraphicsPanel : public EditorPanel {
       if (block < static_cast<int>(gfx::Arena::Get().gfx_sheets().size())) {
         auto& gfx_sheet = gfx::Arena::Get().gfx_sheets()[block];
 
-        // Create texture if needed
+        // Apply current room's palette to the sheet if dirty
+        if (palette_dirty_ && gfx_sheet.is_active() && 
+            current_palette_group_.size() > 0) {
+          // Use palette index based on block type (simplified: use palette 0)
+          int palette_index = 0;
+          if (current_palette_group_.size() > 0) {
+            gfx_sheet.SetPaletteWithTransparent(
+                current_palette_group_[palette_index], palette_index);
+            gfx_sheet.set_modified(true);
+          }
+        }
+
+        // Create or update texture
         if (!gfx_sheet.texture() && gfx_sheet.is_active() &&
             gfx_sheet.width() > 0) {
           gfx::Arena::Get().QueueTextureCommand(
               gfx::Arena::TextureCommandType::CREATE, &gfx_sheet);
           gfx::Arena::Get().ProcessTextureQueue(renderer_);
+        } else if (gfx_sheet.modified() && gfx_sheet.texture()) {
+          gfx::Arena::Get().QueueTextureCommand(
+              gfx::Arena::TextureCommandType::UPDATE, &gfx_sheet);
+          gfx::Arena::Get().ProcessTextureQueue(renderer_);
+          gfx_sheet.set_modified(false);
         }
 
         int row = current_block / max_blocks_per_row;
@@ -117,6 +144,9 @@ class DungeonRoomGraphicsPanel : public EditorPanel {
       }
       current_block++;
     }
+    
+    // Clear dirty flag after processing all blocks
+    palette_dirty_ = false;
 
     room_gfx_canvas_.DrawGrid(32.0f);
     room_gfx_canvas_.DrawOverlay();
@@ -127,6 +157,10 @@ class DungeonRoomGraphicsPanel : public EditorPanel {
   std::array<zelda3::Room, 0x128>* rooms_ = nullptr;
   gfx::IRenderer* renderer_ = nullptr;
   gui::Canvas room_gfx_canvas_;
+  
+  // Palette tracking for proper sheet coloring
+  gfx::PaletteGroup current_palette_group_;
+  bool palette_dirty_ = true;
 };
 
 }  // namespace editor

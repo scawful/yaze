@@ -25,7 +25,9 @@
 #include "app/editor/dungeon/panels/dungeon_room_graphics_panel.h"
 #include "app/editor/dungeon/panels/dungeon_room_matrix_panel.h"
 #include "app/editor/dungeon/panels/dungeon_room_selector_panel.h"
+#include "app/editor/dungeon/panels/item_editor_panel.h"
 #include "app/editor/dungeon/panels/object_editor_panel.h"
+#include "app/editor/dungeon/panels/sprite_editor_panel.h"
 #include "app/editor/system/panel_manager.h"
 #include "app/emu/render/emulator_render_service.h"
 #include "app/gfx/backend/irenderer.h"
@@ -220,9 +222,10 @@ absl::Status DungeonEditorV2::Load() {
 
   // Register panels that depend on initialized state (renderer, palette_editor_)
   if (dependencies_.panel_manager) {
-    dependencies_.panel_manager->RegisterEditorPanel(
-        std::make_unique<DungeonRoomGraphicsPanel>(&current_room_id_, &rooms_,
-                                                   renderer_));
+    auto graphics_panel = std::make_unique<DungeonRoomGraphicsPanel>(
+        &current_room_id_, &rooms_, renderer_);
+    room_graphics_panel_ = graphics_panel.get();
+    dependencies_.panel_manager->RegisterEditorPanel(std::move(graphics_panel));
     dependencies_.panel_manager->RegisterEditorPanel(
         std::make_unique<DungeonPaletteEditorPanel>(&palette_editor_));
   }
@@ -260,6 +263,12 @@ absl::Status DungeonEditorV2::Load() {
   // Panel manager takes ownership
   if (dependencies_.panel_manager) {
     dependencies_.panel_manager->RegisterEditorPanel(std::move(object_editor));
+    
+    // Register sprite and item editor panels
+    dependencies_.panel_manager->RegisterEditorPanel(
+        std::make_unique<SpriteEditorPanel>(&current_room_id_, &rooms_, nullptr));
+    dependencies_.panel_manager->RegisterEditorPanel(
+        std::make_unique<ItemEditorPanel>(&current_room_id_, &rooms_, nullptr));
   } else {
     owned_object_editor_panel_ = std::move(object_editor);
   }
@@ -413,15 +422,20 @@ void DungeonEditorV2::DrawRoomPanels() {
       room_cards_[room_id] = std::make_shared<gui::PanelWindow>(
           card_name_str.c_str(), ICON_MD_GRID_ON, &open);
       room_cards_[room_id]->SetDefaultSize(700, 600);
-
-      if (active_rooms_.Size == 1) {
-        room_cards_[room_id]->SetPosition(gui::PanelWindow::Position::Floating);
-      }
+      // Note: We no longer set floating position - rooms auto-dock together
     }
 
     auto& room_card = room_cards_[room_id];
 
     ImGui::SetNextWindowClass(&room_window_class_);
+    
+    // Auto-dock room panels together using a shared dock ID
+    // This ensures all room windows tab together in the same dock node
+    if (room_dock_id_ == 0) {
+      // Create a stable dock ID on first use
+      room_dock_id_ = ImGui::GetID("DungeonRoomDock");
+    }
+    ImGui::SetNextWindowDockID(room_dock_id_, ImGuiCond_FirstUseEver);
 
     if (room_card->Begin(&open)) {
       // Ensure focused room updates selection context
@@ -539,6 +553,48 @@ void DungeonEditorV2::OnRoomSelected(int room_id, bool request_focus) {
     object_editor_panel_->SetCanvasViewer(GetViewerForRoom(room_id));
   }
 
+  // Sync palette with current room (must happen before early return for focus changes)
+  if (room_id >= 0 && room_id < (int)rooms_.size()) {
+    auto& room = rooms_[room_id];
+    if (!room.IsLoaded()) {
+      room_loader_.LoadRoom(room_id, room);
+    }
+
+    if (room.IsLoaded()) {
+      current_palette_id_ = room.palette;
+      palette_editor_.SetCurrentPaletteId(current_palette_id_);
+
+      // Update viewer and object editor palette
+      if (auto* viewer = GetViewerForRoom(room_id)) {
+        viewer->SetCurrentPaletteId(current_palette_id_);
+
+        if (game_data()) {
+          auto dungeon_main_pal_group =
+              game_data()->palette_groups.dungeon_main;
+          if (current_palette_id_ < (int)dungeon_main_pal_group.size()) {
+            current_palette_ = dungeon_main_pal_group[current_palette_id_];
+            auto result =
+                gfx::CreatePaletteGroupFromLargePalette(current_palette_);
+            if (result.ok()) {
+              current_palette_group_ = result.value();
+              viewer->SetCurrentPaletteGroup(current_palette_group_);
+              if (object_editor_panel_) {
+                object_editor_panel_->SetCurrentPaletteGroup(
+                    current_palette_group_);
+              }
+              // Sync palette to graphics panel for proper sheet coloring
+              if (room_graphics_panel_) {
+                room_graphics_panel_->SetCurrentPaletteGroup(
+                    current_palette_group_);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Check if room is already open
   for (int i = 0; i < active_rooms_.Size; i++) {
     if (active_rooms_[i] == room_id) {
       if (request_focus) {
@@ -574,41 +630,6 @@ void DungeonEditorV2::OnRoomSelected(int room_id, bool request_focus) {
          .priority = 200 + room_id});
 
     dependencies_.panel_manager->ShowPanel(base_card_id);
-  }
-
-  if (room_id >= 0 && room_id < (int)rooms_.size()) {
-    auto& room = rooms_[room_id];
-    if (!room.IsLoaded()) {
-      room_loader_.LoadRoom(room_id, room);
-    }
-
-    if (room.IsLoaded()) {
-      current_palette_id_ = room.palette;
-      palette_editor_.SetCurrentPaletteId(current_palette_id_);
-
-      // Update viewer palette
-      if (auto* viewer = GetViewerForRoom(room_id)) {
-        viewer->SetCurrentPaletteId(current_palette_id_);
-
-        if (game_data()) {
-          auto dungeon_main_pal_group =
-              game_data()->palette_groups.dungeon_main;
-          if (current_palette_id_ < (int)dungeon_main_pal_group.size()) {
-            current_palette_ = dungeon_main_pal_group[current_palette_id_];
-            auto result =
-                gfx::CreatePaletteGroupFromLargePalette(current_palette_);
-            if (result.ok()) {
-              current_palette_group_ = result.value();
-              viewer->SetCurrentPaletteGroup(current_palette_group_);
-              if (object_editor_panel_) {
-                object_editor_panel_->SetCurrentPaletteGroup(
-                    current_palette_group_);
-              }
-            }
-          }
-        }
-      }
-    }
   }
 }
 

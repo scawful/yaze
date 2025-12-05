@@ -112,7 +112,11 @@ void ObjectEditorPanel::Draw(bool* p_open) {
   float available_height = ImGui::GetContentRegionAvail().y;
   // Reserve space for status indicator at bottom
   float reserved_height = 60.0f;
-  float browser_height = std::max(200.0f, available_height - reserved_height);
+  // Reduce browser height when static editor is open to give it more space
+  if (static_editor_open_) {
+    reserved_height += 200.0f;
+  }
+  float browser_height = std::max(150.0f, available_height - reserved_height);
   
   ImGui::BeginChild("ObjectBrowserRegion", ImVec2(0, browser_height), true);
   DrawObjectSelector();
@@ -186,11 +190,7 @@ void ObjectEditorPanel::DrawObjectSelector() {
 void ObjectEditorPanel::DrawDoorSection() {
   const auto& theme = AgentUI::GetTheme();
 
-  // Door type selector
-  ImGui::Text(ICON_MD_CATEGORY " Door Type:");
-  ImGui::SameLine();
-  
-  // Common door types for the combo
+  // Common door types for the grid
   static constexpr std::array<zelda3::DoorType, 20> kDoorTypes = {{
     zelda3::DoorType::NormalDoor,
     zelda3::DoorType::NormalDoorLower,
@@ -214,44 +214,100 @@ void ObjectEditorPanel::DrawDoorSection() {
     zelda3::DoorType::DungeonSwapMarker,
   }};
 
-  ImGui::SetNextItemWidth(180);
-  if (ImGui::BeginCombo("##DoorType",
-        std::string(zelda3::GetDoorTypeName(selected_door_type_)).c_str())) {
-    for (auto door_type : kDoorTypes) {
-      bool is_selected = (selected_door_type_ == door_type);
-      if (ImGui::Selectable(std::string(zelda3::GetDoorTypeName(door_type)).c_str(),
-                            is_selected)) {
-        selected_door_type_ = door_type;
-      }
-      if (is_selected) {
-        ImGui::SetItemDefaultFocus();
-      }
-    }
-    ImGui::EndCombo();
-  }
-
-  // Place door button
-  ImGui::SameLine();
+  // Placement mode indicator
   if (door_placement_mode_) {
-    if (ImGui::Button(ICON_MD_CANCEL " Cancel##Door")) {
+    ImGui::TextColored(theme.status_warning, 
+        ICON_MD_PLACE " Placing: %s - Click wall to place",
+        std::string(zelda3::GetDoorTypeName(selected_door_type_)).c_str());
+    if (ImGui::SmallButton(ICON_MD_CANCEL " Cancel")) {
       door_placement_mode_ = false;
       if (canvas_viewer_) {
         canvas_viewer_->object_interaction().SetDoorPlacementMode(false, 
             zelda3::DoorType::NormalDoor);
       }
     }
-    ImGui::SameLine();
-    ImGui::TextColored(theme.status_warning, 
-        ICON_MD_PLACE " Click on wall to place");
-  } else {
-    if (ImGui::Button(ICON_MD_ADD " Place Door")) {
+    ImGui::Separator();
+  }
+
+  // Door type selector grid with preview thumbnails
+  ImGui::Text(ICON_MD_CATEGORY " Select Door Type:");
+  
+  constexpr float kPreviewSize = 32.0f;
+  constexpr int kItemsPerRow = 5;
+  float panel_width = ImGui::GetContentRegionAvail().x;
+  int items_per_row = std::max(1, static_cast<int>(panel_width / (kPreviewSize + 8)));
+  
+  ImGui::BeginChild("##DoorTypeGrid", ImVec2(0, 80), true, ImGuiWindowFlags_HorizontalScrollbar);
+  
+  int col = 0;
+  for (size_t i = 0; i < kDoorTypes.size(); ++i) {
+    auto door_type = kDoorTypes[i];
+    bool is_selected = (selected_door_type_ == door_type);
+    
+    ImGui::PushID(static_cast<int>(i));
+    
+    // Color-coded button for door type
+    ImVec4 button_color;
+    // Color-code by door category
+    int type_val = static_cast<int>(door_type);
+    if (type_val <= 0x12) {  // Standard doors
+      button_color = ImVec4(0.3f, 0.5f, 0.7f, 1.0f);  // Blue
+    } else if (type_val <= 0x1E) {  // Shutter/special
+      button_color = ImVec4(0.7f, 0.5f, 0.3f, 1.0f);  // Orange
+    } else {  // Markers
+      button_color = ImVec4(0.5f, 0.7f, 0.3f, 1.0f);  // Green
+    }
+    
+    if (is_selected) {
+      button_color.x += 0.2f;
+      button_color.y += 0.2f;
+      button_color.z += 0.2f;
+    }
+    
+    ImGui::PushStyleColor(ImGuiCol_Button, button_color);
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, 
+        ImVec4(button_color.x + 0.1f, button_color.y + 0.1f, button_color.z + 0.1f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, 
+        ImVec4(button_color.x + 0.2f, button_color.y + 0.2f, button_color.z + 0.2f, 1.0f));
+    
+    // Draw button with door type abbreviation
+    std::string label = absl::StrFormat("%02X", type_val);
+    if (ImGui::Button(label.c_str(), ImVec2(kPreviewSize, kPreviewSize))) {
+      selected_door_type_ = door_type;
       door_placement_mode_ = true;
       if (canvas_viewer_) {
         canvas_viewer_->object_interaction().SetDoorPlacementMode(true, 
             selected_door_type_);
       }
     }
+    
+    ImGui::PopStyleColor(3);
+    
+    // Tooltip with full name
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("%s (0x%02X)\nClick to select for placement",
+          std::string(zelda3::GetDoorTypeName(door_type)).c_str(), type_val);
+    }
+    
+    // Selection highlight
+    if (is_selected) {
+      ImVec2 min = ImGui::GetItemRectMin();
+      ImVec2 max = ImGui::GetItemRectMax();
+      ImGui::GetWindowDrawList()->AddRect(
+          min, max, IM_COL32(255, 255, 0, 255), 0.0f, 0, 2.0f);
+    }
+    
+    ImGui::PopID();
+    
+    col++;
+    if (col < items_per_row && i < kDoorTypes.size() - 1) {
+      ImGui::SameLine();
+    } else {
+      col = 0;
+    }
   }
+  
+  ImGui::EndChild();
 
   // Show current room's doors
   auto* rooms = object_selector_.get_rooms();
@@ -260,10 +316,9 @@ void ObjectEditorPanel::DrawDoorSection() {
     const auto& doors = room.GetDoors();
 
     if (!doors.empty()) {
-      ImGui::Separator();
       ImGui::Text(ICON_MD_LIST " Room Doors (%zu):", doors.size());
       
-      ImGui::BeginChild("##DoorList", ImVec2(0, 100), true);
+      ImGui::BeginChild("##DoorList", ImVec2(0, 80), true);
       for (size_t i = 0; i < doors.size(); ++i) {
         const auto& door = doors[i];
         auto [tile_x, tile_y] = door.GetTileCoords();

@@ -50,6 +50,16 @@ class DungeonPaletteEditorPanel : public EditorPanel {
 
   gui::PaletteEditorWidget* palette_editor() const { return palette_editor_; }
 
+  /**
+   * @brief Set the current palette ID based on the active room
+   * @param palette_id The palette ID from the room
+   */
+  void SetCurrentRoomPalette(int palette_id) {
+    if (palette_editor_) {
+      palette_editor_->SetCurrentPaletteId(palette_id);
+    }
+  }
+
  private:
   gui::PaletteEditorWidget* palette_editor_ = nullptr;
 };
