@@ -1,7 +1,7 @@
-#include "app/editor/ui/layout_manager.h"
+#include "app/editor/layout/layout_manager.h"
 
+#include "app/editor/layout/layout_presets.h"
 #include "app/editor/system/panel_manager.h"
-#include "app/editor/ui/layout_presets.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include "util/log.h"
@@ -213,3 +213,4 @@ std::string LayoutManager::GetWindowTitle(const std::string& card_id) const {
 
 }  // namespace editor
 }  // namespace yaze
+

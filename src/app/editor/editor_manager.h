@@ -4,7 +4,6 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 
 #include <cstddef>
-#include <deque>
 #include <functional>
 #include <memory>
 #include <string>
@@ -21,6 +20,7 @@
 #include "app/editor/menu/status_bar.h"
 #include "app/editor/session_types.h"
 #include "app/editor/system/panel_manager.h"
+#include "app/editor/system/editor_activator.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/ui/popup_manager.h"
 #include "app/editor/system/project_manager.h"
@@ -29,15 +29,16 @@
 #include "app/editor/system/session_coordinator.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/editor/system/user_settings.h"
-#include "app/editor/system/window_delegate.h"
+#include "app/editor/layout/layout_coordinator.h"
+#include "app/editor/layout/layout_manager.h"
+#include "app/editor/layout/window_delegate.h"
 #include "app/editor/ui/dashboard_panel.h"
-#include "app/editor/ui/layout_manager.h"
-#include "app/editor/ui/layout_presets.h"
 #include "app/editor/ui/rom_load_options_dialog.h"
 #include "app/editor/ui/selection_properties_panel.h"
 #include "app/editor/ui/ui_coordinator.h"
 #include "app/editor/ui/welcome_screen.h"
 #include "app/editor/ui/workspace_manager.h"
+#include "app/editor/layout_designer/layout_designer_window.h"
 #include "app/emu/emulator.h"
 #include "rom/rom.h"
 #include "core/project.h"
@@ -75,15 +76,23 @@ namespace editor {
  * PaletteEditor, ScreenEditor, and SpriteEditor. The current_editor_ member
  * variable points to the currently active editor in the tab view.
  *
+ * EditorManager implements SessionObserver to receive notifications about
+ * session lifecycle events and update cross-cutting concerns accordingly.
  */
-class EditorManager {
+class EditorManager : public SessionObserver {
  public:
   // Constructor and destructor must be defined in .cc file for std::unique_ptr
   // with forward-declared types
   EditorManager();
-  ~EditorManager();
+  ~EditorManager() override;
 
   void Initialize(gfx::IRenderer* renderer, const std::string& filename = "");
+
+  // SessionObserver implementation
+  void OnSessionSwitched(size_t new_index, RomSession* session) override;
+  void OnSessionCreated(size_t index, RomSession* session) override;
+  void OnSessionClosed(size_t index) override;
+  void OnSessionRomLoaded(size_t index, RomSession* session) override;
 
   // Processes startup flags to open a specific editor and panels.
   void OpenEditorAndPanelsFromFlags(const std::string& editor_name,
@@ -98,6 +107,8 @@ class EditorManager {
   auto emulator() -> emu::Emulator& { return emulator_; }
   auto quit() const { return quit_; }
   auto version() const { return version_; }
+  
+  void OpenLayoutDesigner() { layout_designer_.Open(); }
 
   MenuBuilder& menu_builder() { return menu_builder_; }
   WorkspaceManager* workspace_manager() { return &workspace_manager_; }
@@ -112,37 +123,15 @@ class EditorManager {
   const PanelManager& card_registry() const { return panel_manager_; }
 
   // Layout offset calculation for dockspace adjustment
-  // Returns the left margin needed for sidebar (Activity Bar + Side Panel)
+  // Delegates to LayoutCoordinator for cleaner separation of concerns
   float GetLeftLayoutOffset() const {
-    // Global UI toggle override
-    if (!ui_coordinator_ || !ui_coordinator_->IsPanelSidebarVisible()) {
-      return 0.0f;
-    }
-    
-    // Check Activity Bar visibility
-    if (!panel_manager_.IsSidebarVisible()) {
-      return 0.0f;
-    }
-    
-    // Base width = Activity Bar
-    float width = PanelManager::GetSidebarWidth(); // 48px
-    
-    // Add Side Panel width if expanded
-    if (panel_manager_.IsPanelExpanded()) {
-      width += PanelManager::GetSidePanelWidth();
-    }
-    
-    return width;
+    return layout_coordinator_.GetLeftLayoutOffset();
   }
-
-  // Returns the right margin needed for panels
   float GetRightLayoutOffset() const {
-    return right_panel_manager_ ? right_panel_manager_->GetPanelWidth() : 0.0f;
+    return layout_coordinator_.GetRightLayoutOffset();
   }
-
-  // Returns the bottom margin needed for status bar
   float GetBottomLayoutOffset() const {
-    return status_bar_.GetHeight();
+    return layout_coordinator_.GetBottomLayoutOffset();
   }
 
   absl::Status SetCurrentRom(Rom* rom);
@@ -402,14 +391,17 @@ class EditorManager {
   RomFileManager rom_file_manager_;
   std::unique_ptr<UICoordinator> ui_coordinator_;
   WindowDelegate window_delegate_;
+  EditorActivator editor_activator_;
   std::unique_ptr<SessionCoordinator> session_coordinator_;
   std::unique_ptr<LayoutManager>
       layout_manager_;  // DockBuilder layout management
+  LayoutCoordinator layout_coordinator_;  // Facade for layout operations
   std::unique_ptr<RightPanelManager>
       right_panel_manager_;  // Right-side panel system
   StatusBar status_bar_;    // Bottom status bar
   std::unique_ptr<ActivityBar> activity_bar_;
   WorkspaceManager workspace_manager_{&toast_manager_};
+  layout_designer::LayoutDesignerWindow layout_designer_;  // WYSIWYG layout designer
 
   emu::input::InputConfig BuildInputConfigFromSettings() const;
   void PersistInputConfig(const emu::input::InputConfig& config);

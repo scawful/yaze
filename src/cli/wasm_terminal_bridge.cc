@@ -204,36 +204,22 @@ std::string ProcessCommandInternal(const std::string& command_str) {
 
       auto* current_editor = editor_manager->GetCurrentEditor();
       if (current_editor && current_editor->type() == yaze::editor::EditorType::kDungeon) {
-        auto* dungeon_editor = static_cast<yaze::editor::DungeonEditorV2*>(current_editor);
-        if (card_key == "object" || card_key == "objects") dungeon_editor->show_object_editor_ = visible;
-        else if (card_key == "room" || card_key == "selector") dungeon_editor->show_room_selector_ = visible;
-        else if (card_key == "graphics") dungeon_editor->show_room_graphics_ = visible;
-        else if (card_key == "debug") dungeon_editor->show_debug_controls_ = visible;
-        else return "Unknown card key for Dungeon Editor: " + card_key;
-        return "Panel visibility updated";
+        // Panel visibility is now controlled via the Layout Designer
+        // These legacy panel toggles are no longer directly accessible
+        if (card_key == "object" || card_key == "objects" ||
+            card_key == "room" || card_key == "selector" ||
+            card_key == "graphics" || card_key == "debug") {
+          return "Panel visibility is now controlled via Layout Designer. Use 'editor layout' commands.";
+        }
+        return "Unknown card key for Dungeon Editor: " + card_key;
       }
       return "Panel control not supported for current editor";
     }
 
     if (args.size() > 2 && args[1] == "debug" && args[2] == "toggle") {
-      // ... legacy support ...
-      auto* editor_manager = yaze::app::GetGlobalEditorManager();
-      if (!editor_manager) {
-        return "Error: Editor manager not available";
-      }
-      
-      auto* editor_set = editor_manager->GetCurrentEditorSet();
-      if (!editor_set) {
-        return "Error: No active editor set (ROM might not be loaded)";
-      }
-      
-      auto* dungeon_editor = editor_set->GetDungeonEditor();
-      if (dungeon_editor) {
-        dungeon_editor->show_debug_controls_ = !dungeon_editor->show_debug_controls_;
-        return std::string("Dungeon debug controls ") + 
-               (dungeon_editor->show_debug_controls_ ? "enabled" : "disabled");
-      }
-      return "Error: Dungeon editor not available";
+      // Legacy command - debug controls are now accessed via Layout Designer
+      return "Debug controls are now accessed via the Layout Designer. "
+             "Use the canvas debug panel or layout commands.";
     }
   }
 

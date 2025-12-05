@@ -20,7 +20,7 @@
 #include "app/editor/system/rom_file_manager.h"
 #include "app/editor/system/session_coordinator.h"
 #include "app/editor/ui/toast_manager.h"
-#include "app/editor/system/window_delegate.h"
+#include "app/editor/layout/window_delegate.h"
 #include "app/editor/ui/welcome_screen.h"
 #include "app/gui/core/background_renderer.h"
 #include "app/gui/core/icons.h"

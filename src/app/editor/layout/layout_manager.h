@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_EDITOR_UI_LAYOUT_MANAGER_H_
-#define YAZE_APP_EDITOR_UI_LAYOUT_MANAGER_H_
+#ifndef YAZE_APP_EDITOR_LAYOUT_LAYOUT_MANAGER_H_
+#define YAZE_APP_EDITOR_LAYOUT_LAYOUT_MANAGER_H_
 
 #include <string>
 #include <unordered_map>
@@ -191,4 +191,5 @@ class LayoutManager {
 }  // namespace editor
 }  // namespace yaze
 
-#endif  // YAZE_APP_EDITOR_UI_LAYOUT_MANAGER_H_
+#endif  // YAZE_APP_EDITOR_LAYOUT_LAYOUT_MANAGER_H_
+

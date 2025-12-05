@@ -3,32 +3,67 @@
  * Handles Emscripten Module integration, UI binding, and PWA features.
  */
 
-// CRITICAL: Early context menu prevention - must run before any async code
-// This prevents the browser context menu from appearing on the canvas area
-// even during the loading phase before the canvas element is fully initialized
+// CRITICAL: Unified context menu prevention system
+// This prevents the browser context menu from appearing anywhere in the yaze app.
+// Uses a single handler with MutationObserver for dynamically created elements.
 (function() {
-  // Block context menu on the entire document for the yaze app
-  // ImGui handles right-click via SDL mouse events (mousedown/mouseup with button=2)
-  // which are separate from the contextmenu event
-  document.addEventListener("contextmenu", function(e) {
-    // Always prevent context menu - yaze is a full-screen app
-    // The browser context menu is never useful here
+  'use strict';
+
+  // Single handler for all context menu events
+  function preventContextMenu(e) {
     e.preventDefault();
     e.stopPropagation();
     e.stopImmediatePropagation();
     return false;
-  }, { capture: true, passive: false });
+  }
 
-  // Also attach directly to window to catch any events that might bubble
-  window.addEventListener("contextmenu", function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-    return false;
-  }, { capture: true, passive: false });
+  // Apply to document with capture phase - catches all events before they bubble
+  document.addEventListener('contextmenu', preventContextMenu, { capture: true, passive: false });
 
-  // Also prevent drag operations on canvas (stops "Copy image" drag)
-  document.addEventListener("dragstart", function(e) {
+  // Also attach to window as a fallback for edge cases
+  window.addEventListener('contextmenu', preventContextMenu, { capture: true, passive: false });
+
+  // MutationObserver to handle dynamically created elements (modals, overlays, dialogs)
+  // This ensures elements added after page load also have context menu prevention
+  function setupMutationObserver() {
+    if (typeof MutationObserver === 'undefined') {
+      console.warn('[yaze] MutationObserver not available, dynamic elements may show context menu');
+      return;
+    }
+
+    var observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        mutation.addedNodes.forEach(function(node) {
+          // Only process element nodes
+          if (node.nodeType === 1) {
+            // Add handler to the new element and all its descendants
+            node.addEventListener('contextmenu', preventContextMenu, { capture: true, passive: false });
+            // Also handle any child elements that might have been added
+            if (node.querySelectorAll) {
+              var children = node.querySelectorAll('*');
+              for (var i = 0; i < children.length; i++) {
+                children[i].addEventListener('contextmenu', preventContextMenu, { capture: true, passive: false });
+              }
+            }
+          }
+        });
+      });
+    });
+
+    // Start observing once body is available
+    if (document.body) {
+      observer.observe(document.body, { childList: true, subtree: true });
+    } else {
+      document.addEventListener('DOMContentLoaded', function() {
+        observer.observe(document.body, { childList: true, subtree: true });
+      });
+    }
+  }
+
+  setupMutationObserver();
+
+  // Prevent drag operations on canvas (stops "Copy image" drag)
+  document.addEventListener('dragstart', function(e) {
     var target = e.target;
     if (!target) return;
     if (target.tagName === 'CANVAS' ||
@@ -40,13 +75,15 @@
   }, { capture: true });
 
   // Visibility change handler for tab switching
-  document.addEventListener("visibilitychange", function() {
+  document.addEventListener('visibilitychange', function() {
     if (document.hidden) {
       console.log('[yaze] Tab hidden');
     } else {
       console.log('[yaze] Tab visible');
     }
   });
+
+  console.log('[yaze] Context menu prevention initialized with MutationObserver');
 })();
 
 var statusElement = document.getElementById('status');
@@ -264,8 +301,8 @@ var Module = {
     var canvas = document.getElementById('canvas');
     canvas.addEventListener("webglcontextlost", function(e) { alert('WebGL context lost. You will need to reload the page.'); e.preventDefault(); }, false);
 
-    // NOTE: Context menu prevention is handled by the early IIFE at the top of this file
-    // (lines 6-22) which uses capture phase to intercept events before any other handlers.
+    // NOTE: Context menu prevention is handled by the unified system at the top of this file
+    // which uses capture phase + MutationObserver for dynamic elements.
     // No additional handlers are needed here.
 
     // WORKAROUND: Ensure all UI events have defined integer properties to prevent

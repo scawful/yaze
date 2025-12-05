@@ -1,13 +1,13 @@
-#ifndef YAZE_APP_EDITOR_SYSTEM_LAYOUT_ORCHESTRATOR_H_
-#define YAZE_APP_EDITOR_SYSTEM_LAYOUT_ORCHESTRATOR_H_
+#ifndef YAZE_APP_EDITOR_LAYOUT_LAYOUT_ORCHESTRATOR_H_
+#define YAZE_APP_EDITOR_LAYOUT_LAYOUT_ORCHESTRATOR_H_
 
 #include <string>
 #include <vector>
 
 #include "app/editor/editor.h"
+#include "app/editor/layout/layout_manager.h"
+#include "app/editor/layout/layout_presets.h"
 #include "app/editor/system/panel_manager.h"
-#include "app/editor/ui/layout_manager.h"
-#include "app/editor/ui/layout_presets.h"
 
 namespace yaze {
 namespace editor {
@@ -138,4 +138,5 @@ class LayoutOrchestrator {
 }  // namespace editor
 }  // namespace yaze
 
-#endif  // YAZE_APP_EDITOR_SYSTEM_LAYOUT_ORCHESTRATOR_H_
+#endif  // YAZE_APP_EDITOR_LAYOUT_LAYOUT_ORCHESTRATOR_H_
+

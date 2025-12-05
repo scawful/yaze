@@ -877,8 +877,8 @@ document.addEventListener('keypress', function(e) {
   }
 }, true);
 
-// NOTE: Context menu prevention is handled by the early IIFE in app.js (lines 6-22)
-// which uses capture phase to intercept events before any other handlers.
+// NOTE: Context menu prevention is handled by the unified system in app.js
+// which uses capture phase + MutationObserver for dynamic elements.
 // No additional handlers are needed here.
 
 // Status bar helpers (called from WASM)

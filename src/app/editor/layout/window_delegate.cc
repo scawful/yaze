@@ -1,4 +1,4 @@
-#include "window_delegate.h"
+#include "app/editor/layout/window_delegate.h"
 
 #include <filesystem>
 #include <fstream>
@@ -324,3 +324,4 @@ void WindowDelegate::ResetWorkspaceLayout() {
 
 }  // namespace editor
 }  // namespace yaze
+

@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_EDITOR_UI_LAYOUT_PRESETS_H_
-#define YAZE_APP_EDITOR_UI_LAYOUT_PRESETS_H_
+#ifndef YAZE_APP_EDITOR_LAYOUT_LAYOUT_PRESETS_H_
+#define YAZE_APP_EDITOR_LAYOUT_LAYOUT_PRESETS_H_
 
 #include <string>
 #include <unordered_map>
@@ -228,4 +228,5 @@ class LayoutPresets {
 }  // namespace editor
 }  // namespace yaze
 
-#endif  // YAZE_APP_EDITOR_UI_LAYOUT_PRESETS_H_
+#endif  // YAZE_APP_EDITOR_LAYOUT_LAYOUT_PRESETS_H_
+
