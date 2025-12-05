@@ -47,6 +47,56 @@ struct ChannelState {
 };
 
 /**
+ * @brief DSP buffer diagnostic status for debug UI.
+ */
+struct DspDebugStatus {
+  uint16_t sample_offset = 0;      // Current write position in ring buffer (0-2047)
+  uint32_t frame_boundary = 0;     // Position of last frame boundary
+  int8_t master_vol_l = 0;         // Master volume left
+  int8_t master_vol_r = 0;         // Master volume right
+  bool mute = false;               // DSP mute flag
+  bool reset = false;              // DSP reset flag
+  bool echo_enabled = false;       // Echo writes enabled
+  uint16_t echo_delay = 0;         // Echo delay setting
+};
+
+/**
+ * @brief APU timing diagnostic status for debug UI.
+ */
+struct ApuDebugStatus {
+  uint64_t cycles = 0;             // Total APU cycles executed
+  // Timer 0
+  bool timer0_enabled = false;
+  uint8_t timer0_counter = 0;
+  uint8_t timer0_target = 0;
+  // Timer 1
+  bool timer1_enabled = false;
+  uint8_t timer1_counter = 0;
+  uint8_t timer1_target = 0;
+  // Timer 2
+  bool timer2_enabled = false;
+  uint8_t timer2_counter = 0;
+  uint8_t timer2_target = 0;
+  // Port state
+  uint8_t port0_in = 0;
+  uint8_t port1_in = 0;
+  uint8_t port0_out = 0;
+  uint8_t port1_out = 0;
+};
+
+/**
+ * @brief Audio queue diagnostic status for debug UI.
+ */
+struct AudioQueueStatus {
+  bool is_playing = false;
+  uint32_t queued_frames = 0;
+  uint32_t queued_bytes = 0;
+  bool has_underrun = false;
+  int sample_rate = 0;
+  std::string backend_name;
+};
+
+/**
  * @brief Playback mode for the music player.
  */
 enum class PlaybackMode {
@@ -199,16 +249,48 @@ class MusicPlayer {
   int GetPlayingSongIndex() const { return playing_song_index_; }
 
   /**
-   * @brief Get the current playback speed.
-   */
-  float GetPlaybackSpeed() const { return playback_speed_; }
-
-  /**
    * @brief Resolve the instrument used at a specific tick in a track.
    */
   const zelda3::music::MusicInstrument* ResolveInstrumentForEvent(
       const zelda3::music::MusicSegment& segment, int channel_index,
       uint16_t tick) const;
+
+  // === Debug Diagnostics ===
+  /**
+   * @brief Get DSP buffer diagnostic status.
+   */
+  DspDebugStatus GetDspStatus() const;
+
+  /**
+   * @brief Get APU timing diagnostic status.
+   */
+  ApuDebugStatus GetApuStatus() const;
+
+  /**
+   * @brief Get audio queue diagnostic status.
+   */
+  AudioQueueStatus GetAudioQueueStatus() const;
+
+  // === Debug Actions ===
+  /**
+   * @brief Clear the audio queue (stops sound immediately).
+   */
+  void ClearAudioQueue();
+
+  /**
+   * @brief Reset the DSP sample buffer.
+   */
+  void ResetDspBuffer();
+
+  /**
+   * @brief Force a DSP NewFrame() call.
+   */
+  void ForceNewFrame();
+
+  /**
+   * @brief Reinitialize the audio system.
+   */
+  void ReinitAudio();
 
  private:
   // === Internal Helpers ===
@@ -239,7 +321,6 @@ class MusicPlayer {
 
   // === Playback Settings ===
   bool use_direct_spc_ = true;
-  float playback_speed_ = 1.0f;
   float volume_ = 1.0f;
   int interpolation_type_ = 2;  // Gaussian (authentic SNES)
 
@@ -251,6 +332,7 @@ class MusicPlayer {
 
   // === Timing ===
   std::chrono::steady_clock::time_point playback_start_time_;
+  std::chrono::steady_clock::time_point last_frame_time_;  // Frame pacing for Update()
   uint32_t playback_start_tick_ = 0;
   float ticks_per_second_ = 0.0f;
   int playback_segment_index_ = 0;

@@ -131,6 +131,14 @@ void Dsp::NewFrame() {
   lastFrameBoundary = sampleOffset;
 }
 
+void Dsp::ResetSampleBuffer() {
+  // Clear the sample ring buffer and reset position tracking
+  // This ensures a clean start for new playback without full DSP reset
+  memset(sampleBuffer, 0, sizeof(sampleBuffer));
+  sampleOffset = 0;
+  lastFrameBoundary = 0;
+}
+
 void Dsp::Cycle() {
   // ========================================================================
   // DSP Mixing Pipeline
@@ -168,9 +176,9 @@ void Dsp::Cycle() {
 
   // 7. Output Stage
   // Store final stereo sample in ring buffer for the APU/Emulator to read
-  sampleBuffer[(sampleOffset & 0x3ff) * 2] = sampleOutL;
-  sampleBuffer[(sampleOffset & 0x3ff) * 2 + 1] = sampleOutR;
-  sampleOffset = (sampleOffset + 1) & 0x3ff;
+  sampleBuffer[(sampleOffset & 0x7ff) * 2] = sampleOutL;
+  sampleBuffer[(sampleOffset & 0x7ff) * 2 + 1] = sampleOutR;
+  sampleOffset = (sampleOffset + 1) & 0x7ff;
 }
 
 static int clamp16(int val) {
@@ -720,20 +728,20 @@ void Dsp::GetSamples(int16_t* sample_data, int samples_per_frame,
   const double step = native_per_frame / static_cast<double>(samples_per_frame);
 
   // Start reading one native frame behind the frame boundary
-  double location = static_cast<double>((lastFrameBoundary + 0x400) & 0x3ff);
+  double location = static_cast<double>((lastFrameBoundary + 0x800) & 0x7ff);
   location -= native_per_frame;
 
   // Ensure location is within valid range
   while (location < 0)
-    location += 0x400;
+    location += 0x800;
 
   for (int i = 0; i < samples_per_frame; i++) {
-    const int idx = static_cast<int>(location) & 0x3ff;
+    const int idx = static_cast<int>(location) & 0x7ff;
     const double frac = location - static_cast<int>(location);
 
     switch (interpolation_type) {
       case InterpolationType::Linear: {
-        const int next_idx = (idx + 1) & 0x3ff;
+        const int next_idx = (idx + 1) & 0x7ff;
 
         // Linear interpolation for left channel
         const int16_t s0_l = sampleBuffer[(idx * 2) + 0];
@@ -749,10 +757,10 @@ void Dsp::GetSamples(int16_t* sample_data, int samples_per_frame,
         break;
       }
       case InterpolationType::Hermite: {
-        const int idx0 = (idx - 1 + 0x400) & 0x3ff;
-        const int idx1 = idx & 0x3ff;
-        const int idx2 = (idx + 1) & 0x3ff;
-        const int idx3 = (idx + 2) & 0x3ff;
+        const int idx0 = (idx - 1 + 0x800) & 0x7ff;
+        const int idx1 = idx & 0x7ff;
+        const int idx2 = (idx + 1) & 0x7ff;
+        const int idx3 = (idx + 2) & 0x7ff;
         // Left channel
         const int16_t p0_l = sampleBuffer[(idx0 * 2) + 0];
         const int16_t p1_l = sampleBuffer[(idx1 * 2) + 0];
@@ -771,10 +779,10 @@ void Dsp::GetSamples(int16_t* sample_data, int samples_per_frame,
       }
       case InterpolationType::Gaussian: {
         const int offset = static_cast<int>(frac * 256.0) & 0xff;
-        const int idx0 = (idx - 1 + 0x400) & 0x3ff;
-        const int idx1 = idx & 0x3ff;
-        const int idx2 = (idx + 1) & 0x3ff;
-        const int idx3 = (idx + 2) & 0x3ff;
+        const int idx0 = (idx - 1 + 0x800) & 0x7ff;
+        const int idx1 = idx & 0x7ff;
+        const int idx2 = (idx + 1) & 0x7ff;
+        const int idx3 = (idx + 2) & 0x7ff;
 
         // Left channel
         const int16_t p0_l = sampleBuffer[(idx0 * 2) + 0];
@@ -802,7 +810,7 @@ void Dsp::GetSamples(int16_t* sample_data, int samples_per_frame,
         break;
       }
       case InterpolationType::Cosine: {
-        const int next_idx = (idx + 1) & 0x3ff;
+        const int next_idx = (idx + 1) & 0x7ff;  // Fixed: use full 2048 buffer
         const int16_t s0_l = sampleBuffer[(idx * 2) + 0];
         const int16_t s1_l = sampleBuffer[(next_idx * 2) + 0];
         sample_data[(i * 2) + 0] = InterpolateCosine(s0_l, s1_l, frac);
@@ -812,10 +820,10 @@ void Dsp::GetSamples(int16_t* sample_data, int samples_per_frame,
         break;
       }
       case InterpolationType::Cubic: {
-        const int idx0 = (idx - 1 + 0x400) & 0x3ff;
-        const int idx1 = idx & 0x3ff;
-        const int idx2 = (idx + 1) & 0x3ff;
-        const int idx3 = (idx + 2) & 0x3ff;
+        const int idx0 = (idx - 1 + 0x800) & 0x7ff;  // Fixed: use full 2048 buffer
+        const int idx1 = idx & 0x7ff;
+        const int idx2 = (idx + 1) & 0x7ff;
+        const int idx3 = (idx + 2) & 0x7ff;
         // Left channel
         const int16_t p0_l = sampleBuffer[(idx0 * 2) + 0];
         const int16_t p1_l = sampleBuffer[(idx1 * 2) + 0];
@@ -846,10 +854,10 @@ int Dsp::CopyNativeFrame(int16_t* sample_data, bool pal_timing) {
   const int total_samples = native_per_frame * 2;
 
   int start_index =
-      static_cast<int>((lastFrameBoundary + 0x400 - native_per_frame) & 0x3ff);
+      static_cast<int>((lastFrameBoundary + 0x800 - native_per_frame) & 0x7ff);
 
   for (int i = 0; i < native_per_frame; ++i) {
-    const int idx = (start_index + i) & 0x3ff;
+    const int idx = (start_index + i) & 0x7ff;  // Fixed: use full 2048 buffer
     sample_data[(i * 2) + 0] = sampleBuffer[(idx * 2) + 0];
     sample_data[(i * 2) + 1] = sampleBuffer[(idx * 2) + 1];
   }

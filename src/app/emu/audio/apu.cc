@@ -42,11 +42,7 @@ static const uint8_t bootRom[0x40] = {
     0xf4, 0x10, 0xeb, 0xba, 0xf6, 0xda, 0x00, 0xba, 0xf4, 0xc4, 0xf4,
     0xdd, 0x5d, 0xd0, 0xdb, 0x1f, 0x00, 0x00, 0xc0, 0xff};
 
-// Helper to reset the cycle tracking on emulator reset
-static uint64_t g_last_master_cycles = 0;
-static void ResetCycleTracking() {
-  g_last_master_cycles = 0;
-}
+
 
 void Apu::Init() {
   ram.resize(0x10000);
@@ -64,10 +60,12 @@ void Apu::Reset() {
   }
   rom_readable_ = true;
   dsp_adr_ = 0;
+  LOG_INFO("APU", "Init: Num=%llu, Den=%llu, Ratio=%.4f", kApuCyclesNumerator, kApuCyclesDenominator, (double)kApuCyclesNumerator / kApuCyclesDenominator);
   cycles_ = 0;
   transfer_size_ = 0;
   in_transfer_ = false;
-  ResetCycleTracking();  // Reset the master cycle delta tracking
+  last_master_cycles_ = 0;  // Reset the master cycle delta tracking
+
   std::fill(in_ports_.begin(), in_ports_.end(), 0);
   std::fill(out_ports_.begin(), out_ports_.end(), 0);
   for (int i = 0; i < 3; i++) {
@@ -89,11 +87,11 @@ void Apu::Reset() {
 
 void Apu::RunCycles(uint64_t master_cycles) {
   // Track master cycle delta (only advance by the difference since last call)
-  uint64_t master_delta = master_cycles - g_last_master_cycles;
-  g_last_master_cycles = master_cycles;
+  uint64_t master_delta = master_cycles - last_master_cycles_;
+  last_master_cycles_ = master_cycles;
 
   // Convert CPU master cycles to APU cycles using fixed-point ratio (no
-  // floating-point drift) 
+  // floating-point drift)
   // Target APU cycle count is derived from master clock ratio:
   // APU Clock (~1.024MHz) / Master Clock (~21.477MHz)
   // target_apu_cycles = cycles_ + (master_delta * numerator) / denominator
@@ -106,10 +104,31 @@ void Apu::RunCycles(uint64_t master_cycles) {
   const uint64_t target_apu_cycles =
       cycles_ + (master_delta * numerator) / denominator;
 
+  // Debug: Log cycle ratio periodically
+  static uint64_t last_debug_log = 0;
+  static uint64_t total_master_delta = 0;
+  static uint64_t total_apu_cycles_run = 0;
+  static int call_count = 0;
+  uint64_t apu_before = cycles_;
+  uint64_t expected_this_call = (master_delta * numerator) / denominator;
+  total_master_delta += master_delta;
+  call_count++;
+
+  // Log first few calls and periodically after
+  static int verbose_log_count = 0;
+  if (verbose_log_count < 10 || (call_count % 1000 == 0)) {
+    LOG_INFO("APU", "RunCycles ENTRY: master_delta=%llu, expected=%llu, cycles_=%llu, target=%llu",
+             master_delta, expected_this_call, cycles_, target_apu_cycles);
+    verbose_log_count++;
+  }
+
   // Watchdog to detect infinite loops
   static uint64_t last_log_cycle = 0;
   static uint16_t last_pc = 0;
   static int stuck_counter = 0;
+  // Log Timer 0 fires per frame (Diagnostic)
+  // static int timer0_fires = 0; // Unused
+  // static int timer0_log = 0;
   static bool logged_transfer_state = false;
 
   while (cycles_ < target_apu_cycles) {
@@ -178,6 +197,30 @@ void Apu::RunCycles(uint64_t master_cycles) {
       Cycle();
     }
   }
+
+  // Debug: track APU cycles actually run vs expected
+  uint64_t apu_actually_run = cycles_ - apu_before;
+  total_apu_cycles_run += apu_actually_run;
+
+  // Log exit for first few calls
+  if (verbose_log_count <= 10) {
+    LOG_INFO("APU", "RunCycles EXIT: ran=%llu, expected=%llu, overshoot=%lld, cycles_=%llu",
+             apu_actually_run, expected_this_call,
+             (int64_t)apu_actually_run - (int64_t)expected_this_call,
+             cycles_);
+  }
+
+  // Log every ~1M APU cycles
+  if (cycles_ - last_debug_log > 1000000) {
+    uint64_t expected_apu = (total_master_delta * numerator) / denominator;
+    double ratio = (double)total_apu_cycles_run / (double)expected_apu;
+    LOG_INFO("APU", "TIMING: calls=%d, master_delta=%llu, expected_apu=%llu, actual_apu=%llu, ratio=%.2fx",
+             call_count, total_master_delta, expected_apu, total_apu_cycles_run, ratio);
+    last_debug_log = cycles_;
+    total_master_delta = 0;
+    total_apu_cycles_run = 0;
+    call_count = 0;
+  }
 }
 
 void Apu::Cycle() {
@@ -203,6 +246,8 @@ void Apu::Cycle() {
   }
 
   cycles_++;
+  
+
 }
 
 uint8_t Apu::Read(uint16_t adr) {
@@ -226,11 +271,11 @@ uint8_t Apu::Read(uint16_t adr) {
     case 0xf6:
     case 0xf7: {
       uint8_t val = in_ports_[adr - 0xf4];
-      port_read_count++;
-      if (port_read_count < 10) {  // Reduced to prevent logging overflow crash
-        LOG_DEBUG("APU", "SPC read port $%04X (F%d) = $%02X at PC=$%04X", adr,
-                  adr - 0xf4 + 4, val, spc700_.PC);
-      }
+      // port_read_count++;
+      // if (port_read_count < 10) {  // Reduced to prevent logging overflow crash
+      //   LOG_DEBUG("APU", "SPC read port $%04X (F%d) = $%02X at PC=$%04X", adr,
+      //             adr - 0xf4 + 4, val, spc700_.PC);
+      // }
       return val;
     }
     case 0xf8:
@@ -347,12 +392,17 @@ void Apu::Write(uint16_t adr, uint8_t val) {
     case 0xf8:
     case 0xf9: {
       // General RAM
+      ram[adr] = val;
       break;
     }
     case 0xfa:
     case 0xfb:
     case 0xfc: {
-      timer_[adr - 0xfa].target = val;
+      int i = adr - 0xfa;
+      timer_[i].target = val;
+      if (i == 0) {
+        LOG_INFO("APU", "Timer 0 Target set to %d ($%02X)", val, val);
+      }
       break;
     }
   }

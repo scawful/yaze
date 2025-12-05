@@ -161,6 +161,10 @@ if(YAZE_BUILD_TESTS)
       integration/emulator_object_preview_test.cc
       integration/emulator_render_service_test.cc
       integration/save_state_generation_test.cc
+      # Audio timing and debugging tests
+      integration/audio/audio_timing_test.cc
+      integration/audio/music_player_headless_test.cc
+      integration/audio/headless_audio_debug_test.cc
       e2e/rom_dependent/e2e_rom_test.cc
       e2e/rom_dependent/graphics_editor_save_test.cc
       e2e/zscustomoverworld/zscustomoverworld_upgrade_test.cc

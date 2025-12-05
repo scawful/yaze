@@ -45,7 +45,7 @@ class Emulator {
   void Run(Rom* rom);
   void Cleanup();
 
-  // Card visibility managed by PanelManager (dependency injection)
+  // Panel visibility managed by PanelManager (dependency injection)
   void set_panel_manager(editor::PanelManager* manager) {
     panel_manager_ = manager;
   }
@@ -79,6 +79,11 @@ class Emulator {
   }
   void set_use_sdl_audio_stream(bool enabled);
   bool use_sdl_audio_stream() const { return use_sdl_audio_stream_; }
+  // Mark audio stream as already configured (prevents RunAudioFrame from overriding)
+  void mark_audio_stream_configured() {
+    audio_stream_config_dirty_ = false;
+    audio_stream_active_ = true;
+  }
   auto wanted_samples() const -> int { return wanted_samples_; }
   void set_renderer(gfx::IRenderer* renderer) { renderer_ = renderer; }
 
@@ -93,10 +98,6 @@ class Emulator {
   // Audio focus mode - use RunAudioFrame() for lower overhead audio playback
   bool is_audio_focus_mode() const { return audio_focus_mode_; }
   void set_audio_focus_mode(bool focus) { audio_focus_mode_ = focus; }
-
-  // Playback speed control (for music editor)
-  float playback_speed() const { return playback_speed_; }
-  void set_playback_speed(float speed) { playback_speed_ = std::clamp(speed, 0.25f, 2.0f); }
 
   // Audio settings
   void set_interpolation_type(int type);
@@ -186,7 +187,6 @@ class Emulator {
 
   float wanted_frames_;
   int wanted_samples_;
-  float playback_speed_ = 1.0f;  // Speed multiplier (1.0 = normal)
 
   uint8_t manual_pb_ = 0;
   uint16_t manual_pc_ = 0;
@@ -235,7 +235,7 @@ class Emulator {
   bool audio_stream_active_ = false;
   bool audio_stream_env_checked_ = false;
 
-  // Card visibility managed by EditorCardManager - no member variables needed!
+  // Panel visibility managed by EditorPanelManager - no member variables needed!
 
   // Debugger infrastructure
   BreakpointManager breakpoint_manager_;

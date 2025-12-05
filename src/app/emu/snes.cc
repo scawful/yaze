@@ -415,10 +415,13 @@ void Snes::RunCycle() {
           // catch up the apu at end of emulated frame (we end frame @ start of
           // vblank)
           CatchUpApu();
-          // notify dsp of frame-end, because sometimes dma will extend much
-          // further past vblank (or even into the next frame) Megaman X2
-          // (titlescreen animation), Tales of Phantasia (game demo), Actraiser
-          // 2 (fade-in @ bootup)
+          // IMPORTANT: This is the ONLY location where NewFrame() should be called
+          // during frame execution. It marks the DSP sample boundary at vblank start,
+          // after CatchUpApu() has synced the APU. Do NOT call NewFrame() from
+          // Emulator::RunAudioFrame() - that causes incorrect frame boundary timing
+          // and results in audio playing at wrong speed (1.5x due to 48000/32040 ratio).
+          // This also handles games where DMA extends past vblank (Megaman X2 titlescreen,
+          // Tales of Phantasia demo, Actraiser 2 fade-in).
           apu_.dsp().NewFrame();
           // we are starting vblank
           ppu_.HandleVblank();

@@ -114,6 +114,16 @@ class Apu {
   bool IsDriverRunning() const { return !rom_readable_; }
 
   /**
+   * @brief Get timer state for debug UI
+   * @param timer_index 0, 1, or 2
+   */
+  const Timer& GetTimer(int timer_index) const {
+    if (timer_index < 0) timer_index = 0;
+    if (timer_index > 2) timer_index = 2;
+    return timer_[timer_index];
+  }
+
+  /**
    * @brief Write directly to DSP register
    * Used for direct instrument/note preview without going through driver
    */
@@ -132,7 +142,8 @@ class Apu {
   bool rom_readable_ = false;
 
   uint8_t dsp_adr_ = 0;
-  uint32_t cycles_ = 0;
+  uint64_t cycles_ = 0;
+  uint64_t last_master_cycles_ = 0;
 
   // IPL ROM transfer tracking for proper termination
   uint8_t transfer_size_ = 0;

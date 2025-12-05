@@ -88,13 +88,22 @@ bool SDL2AudioBackend::Initialize(const AudioConfig& config) {
   SDL_AudioSpec want, have;
   SDL_memset(&want, 0, sizeof(want));
 
-  want.freq = config.sample_rate;
+  // Force 48000Hz request to ensure we get a standard rate that SDL/CoreAudio
+  // handles reliably. We will handle 32kHz -> 48kHz resampling ourselves
+  // using SDL_AudioStream.
+  want.freq = 48000;
   want.format = (config.format == SampleFormat::INT16) ? AUDIO_S16 : AUDIO_F32;
   want.channels = config.channels;
   want.samples = config.buffer_frames;
   want.callback = nullptr;  // Use queue-based audio
 
-  device_id_ = SDL_OpenAudioDevice(nullptr, 0, &want, &have, 0);
+  // Allow SDL to change any parameter to match the hardware.
+  // This is CRITICAL: If we force 32040Hz on a 48000Hz device without allowing changes,
+  // SDL might claim success but playback will be at the wrong speed (chipmunk effect).
+  // By allowing changes, 'have' will contain the REAL hardware spec (e.g. 48000Hz),
+  // which allows us to detect the mismatch and enable our software resampler.
+  device_id_ = SDL_OpenAudioDevice(nullptr, 0, &want, &have,
+                                   SDL_AUDIO_ALLOW_ANY_CHANGE);
 
   if (device_id_ == 0) {
     LOG_ERROR("AudioBackend", "Failed to open SDL audio device: %s",
@@ -190,6 +199,11 @@ bool SDL2AudioBackend::QueueSamples(const int16_t* samples, int num_samples) {
     return false;
 
   // OPTIMIZATION: Skip volume scaling if volume is 100% (common case)
+  static int queue_log = 0;
+  if (++queue_log % 60 == 0) {
+      LOG_INFO("AudioBackend", "QueueSamples: %d samples (Freq: %d)", num_samples, device_freq_);
+  }
+
   if (volume_ == 1.0f) {
     // Fast path: No volume adjustment needed
     int result =
@@ -249,11 +263,26 @@ bool SDL2AudioBackend::QueueSamplesNative(const int16_t* samples,
                                           int frames_per_channel, int channels,
                                           int native_rate) {
   if (!initialized_ || samples == nullptr) {
+    static int init_fail_log = 0;
+    if (++init_fail_log % 60 == 0) {
+      LOG_WARN("AudioBackend", "QueueSamplesNative: FAILED (init=%d, samples=%p)",
+               initialized_, samples);
+    }
     return false;
   }
 
   if (!audio_stream_enabled_ || audio_stream_ == nullptr) {
+    static int stream_fail_log = 0;
+    if (++stream_fail_log % 60 == 0) {
+      LOG_WARN("AudioBackend", "QueueSamplesNative: FAILED (stream_enabled=%d, stream=%p)",
+               audio_stream_enabled_, audio_stream_);
+    }
     return false;
+  }
+
+  static int native_log = 0;
+  if (++native_log % 60 == 0) {
+      LOG_INFO("AudioBackend", "QueueSamplesNative: %d frames (Native: %d, Stream: %d)", frames_per_channel, native_rate, stream_native_rate_);
   }
 
   if (native_rate != stream_native_rate_ || channels != config_.channels) {
@@ -288,10 +317,19 @@ bool SDL2AudioBackend::QueueSamplesNative(const int16_t* samples,
     stream_buffer_.resize(available_samples);
   }
 
-  if (SDL_AudioStreamGet(audio_stream_, stream_buffer_.data(),
-                         available_bytes) < 0) {
+  int bytes_read = SDL_AudioStreamGet(audio_stream_, stream_buffer_.data(),
+                                      available_bytes);
+  if (bytes_read < 0) {
     LOG_ERROR("AudioBackend", "SDL_AudioStreamGet failed: %s", SDL_GetError());
     return false;
+  }
+
+  // Debug resampling ratio once per second
+  static int log_counter = 0;
+  if (++log_counter % 60 == 0) {
+    LOG_INFO("AudioBackend",
+             "Resample trace: In=%d bytes (%dHz), Out=%d bytes (%dHz)", bytes_in,
+             stream_native_rate_, bytes_read, device_freq_);
   }
 
   return QueueSamples(stream_buffer_.data(), available_samples);
@@ -388,6 +426,117 @@ float SDL2AudioBackend::GetVolume() const {
 #endif  // YAZE_USE_SDL3
 
 // ============================================================================
+// NullAudioBackend Implementation (for testing/headless)
+// ============================================================================
+
+bool NullAudioBackend::Initialize(const AudioConfig& config) {
+  config_ = config;
+  initialized_ = true;
+  playing_ = false;
+  total_queued_samples_ = 0;
+  total_queued_frames_ = 0;
+  current_queued_bytes_ = 0;
+  LOG_INFO("AudioBackend", "Null audio backend initialized (%dHz, %d channels)",
+           config.sample_rate, config.channels);
+  return true;
+}
+
+void NullAudioBackend::Shutdown() {
+  initialized_ = false;
+  playing_ = false;
+  LOG_INFO("AudioBackend", "Null audio backend shut down");
+}
+
+void NullAudioBackend::Play() {
+  if (initialized_) playing_ = true;
+}
+
+void NullAudioBackend::Pause() {
+  if (initialized_) playing_ = false;
+}
+
+void NullAudioBackend::Stop() {
+  if (initialized_) {
+    playing_ = false;
+    current_queued_bytes_ = 0;
+  }
+}
+
+void NullAudioBackend::Clear() {
+  current_queued_bytes_ = 0;
+}
+
+bool NullAudioBackend::QueueSamples(const int16_t* samples, int num_samples) {
+  if (!initialized_ || !samples) return false;
+
+  total_queued_samples_ += num_samples;
+  current_queued_bytes_ += num_samples * sizeof(int16_t);
+  return true;
+}
+
+bool NullAudioBackend::QueueSamples(const float* samples, int num_samples) {
+  if (!initialized_ || !samples) return false;
+
+  total_queued_samples_ += num_samples;
+  current_queued_bytes_ += num_samples * sizeof(float);
+  return true;
+}
+
+bool NullAudioBackend::QueueSamplesNative(const int16_t* samples,
+                                          int frames_per_channel, int channels,
+                                          int native_rate) {
+  if (!initialized_ || !samples) return false;
+
+  // Track frames queued (for timing verification)
+  total_queued_frames_ += frames_per_channel;
+  total_queued_samples_ += frames_per_channel * channels;
+  current_queued_bytes_ += frames_per_channel * channels * sizeof(int16_t);
+
+  return true;
+}
+
+AudioStatus NullAudioBackend::GetStatus() const {
+  AudioStatus status;
+  status.is_playing = playing_;
+  status.queued_bytes = static_cast<uint32_t>(current_queued_bytes_);
+  status.queued_frames = static_cast<uint32_t>(current_queued_bytes_ /
+                         (config_.channels * sizeof(int16_t)));
+  status.has_underrun = false;
+  return status;
+}
+
+bool NullAudioBackend::IsInitialized() const {
+  return initialized_;
+}
+
+AudioConfig NullAudioBackend::GetConfig() const {
+  return config_;
+}
+
+void NullAudioBackend::SetVolume(float volume) {
+  volume_ = std::clamp(volume, 0.0f, 1.0f);
+}
+
+float NullAudioBackend::GetVolume() const {
+  return volume_;
+}
+
+void NullAudioBackend::SetAudioStreamResampling(bool enable, int native_rate,
+                                                 int channels) {
+  audio_stream_enabled_ = enable;
+  stream_native_rate_ = native_rate;
+  stream_channels_ = channels;
+  LOG_INFO("AudioBackend", "Null backend: resampling %s (%dHz -> %dHz)",
+           enable ? "enabled" : "disabled", native_rate, config_.sample_rate);
+}
+
+void NullAudioBackend::ResetCounters() {
+  total_queued_samples_ = 0;
+  total_queued_frames_ = 0;
+  current_queued_bytes_ = 0;
+}
+
+// ============================================================================
 // AudioBackendFactory Implementation
 // ============================================================================
 
@@ -418,9 +567,7 @@ std::unique_ptr<IAudioBackend> AudioBackendFactory::Create(BackendType type) {
 #endif
 
     case BackendType::NULL_BACKEND:
-      // TODO: Implement null backend for testing
-      LOG_WARN("AudioBackend", "NULL backend not yet implemented, using SDL2");
-      return std::make_unique<SDL2AudioBackend>();
+      return std::make_unique<NullAudioBackend>();
 
     default:
       LOG_ERROR("AudioBackend", "Unknown backend type, using default backend");

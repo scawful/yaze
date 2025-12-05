@@ -1,6 +1,11 @@
 #ifndef YAZE_APP_EDITOR_MUSIC_PANELS_MUSIC_PLAYBACK_CONTROL_PANEL_H_
 #define YAZE_APP_EDITOR_MUSIC_PANELS_MUSIC_PLAYBACK_CONTROL_PANEL_H_
 
+#include <array>
+#include <chrono>
+#include <cmath>
+#include <cstdint>
+#include <cstdio>
 #include <functional>
 #include <string>
 
@@ -65,6 +70,9 @@ class MusicPlaybackControlPanel : public EditorPanel {
     DrawSongInfo();
     DrawPlaybackStatus();
     DrawQuickActions();
+
+    // Debug controls (collapsed by default)
+    DrawDebugControls();
 
     // Help section (collapsed by default)
     if (ImGui::CollapsingHeader(ICON_MD_KEYBOARD " Keyboard Shortcuts")) {
@@ -252,6 +260,314 @@ class MusicPlaybackControlPanel : public EditorPanel {
       ImGui::SetTooltip("Open piano roll view for this song");
   }
 
+  void DrawDebugControls() {
+    if (!music_player_) return;
+
+    if (!ImGui::CollapsingHeader(ICON_MD_BUG_REPORT " Debug Controls")) return;
+
+    ImGui::Indent();
+
+    // Pause updates checkbox
+    ImGui::Checkbox("Pause Updates", &debug_paused_);
+    ImGui::SameLine();
+    if (ImGui::Button("Snapshot")) {
+      // Force capture current values
+      debug_paused_ = true;
+    }
+    ImGui::SameLine();
+    ImGui::TextDisabled("(Freeze display to read values)");
+
+    // Capture current state (unless paused)
+    if (!debug_paused_) {
+      cached_dsp_ = music_player_->GetDspStatus();
+      cached_audio_ = music_player_->GetAudioQueueStatus();
+      cached_apu_ = music_player_->GetApuStatus();
+      cached_channels_ = music_player_->GetChannelStates();
+
+      // Track statistics using wall-clock time for accuracy
+      if (cached_audio_.is_playing) {
+        auto now = std::chrono::steady_clock::now();
+
+        // Initialize on first call
+        if (last_stats_time_.time_since_epoch().count() == 0) {
+          last_stats_time_ = now;
+          last_cycles_for_rate_ = cached_apu_.cycles;
+          last_queued_for_rate_ = cached_audio_.queued_frames;
+        }
+
+        auto elapsed = std::chrono::duration<double>(now - last_stats_time_).count();
+
+        // Update stats every 0.5 seconds
+        if (elapsed >= 0.5) {
+          uint64_t cycle_delta = cached_apu_.cycles - last_cycles_for_rate_;
+          int32_t queue_delta = static_cast<int32_t>(cached_audio_.queued_frames) -
+                                static_cast<int32_t>(last_queued_for_rate_);
+
+          // Calculate actual rates based on elapsed wall-clock time
+          avg_cycle_rate_ = static_cast<uint64_t>(cycle_delta / elapsed);
+          avg_queue_delta_ = static_cast<int32_t>(queue_delta / elapsed);
+
+          // Reset for next measurement
+          last_stats_time_ = now;
+          last_cycles_for_rate_ = cached_apu_.cycles;
+          last_queued_for_rate_ = cached_audio_.queued_frames;
+        }
+      } else {
+        // Reset when stopped
+        last_stats_time_ = std::chrono::steady_clock::time_point();
+      }
+    }
+
+    // === Quick Summary (always visible) ===
+    ImGui::Separator();
+    ImVec4 status_color = cached_audio_.is_playing
+                              ? ImVec4(0.3f, 0.9f, 0.3f, 1.0f)
+                              : ImVec4(0.6f, 0.6f, 0.6f, 1.0f);
+    ImGui::TextColored(status_color, cached_audio_.is_playing ? "PLAYING" : "STOPPED");
+    ImGui::SameLine();
+    ImGui::Text("| Queue: %u frames", cached_audio_.queued_frames);
+    ImGui::SameLine();
+    ImGui::Text("| DSP: %u/2048", cached_dsp_.sample_offset);
+
+    // Queue trend indicator
+    ImGui::SameLine();
+    if (avg_queue_delta_ > 50) {
+      ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f),
+                         ICON_MD_TRENDING_UP " GROWING (too fast!)");
+    } else if (avg_queue_delta_ < -50) {
+      ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.0f, 1.0f),
+                         ICON_MD_TRENDING_DOWN " DRAINING");
+    } else {
+      ImGui::TextColored(ImVec4(0.5f, 0.8f, 0.5f, 1.0f),
+                         ICON_MD_TRENDING_FLAT " STABLE");
+    }
+
+    // Cycle rate check (should be ~1,024,000/sec)
+    if (avg_cycle_rate_ > 0) {
+      float rate_ratio = avg_cycle_rate_ / 1024000.0f;
+      ImGui::Text("APU Rate: %.2fx expected", rate_ratio);
+      if (rate_ratio > 1.1f) {
+        ImGui::SameLine();
+        ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f),
+                           "(APU running too fast!)");
+      }
+    }
+
+    ImGui::Separator();
+
+    // === DSP Buffer Status ===
+    if (ImGui::TreeNode("DSP Buffer")) {
+      auto& dsp = cached_dsp_;
+
+      ImGui::Text("Sample Offset: %u / 2048", dsp.sample_offset);
+      ImGui::Text("Frame Boundary: %u", dsp.frame_boundary);
+
+      // Buffer fill progress bar
+      float fill = dsp.sample_offset / 2048.0f;
+      char overlay[32];
+      snprintf(overlay, sizeof(overlay), "%.1f%%", fill * 100.0f);
+      ImGui::ProgressBar(fill, ImVec2(-1, 0), overlay);
+
+      // Drift indicator
+      int32_t drift = static_cast<int32_t>(dsp.sample_offset) -
+                      static_cast<int32_t>(dsp.frame_boundary);
+      ImVec4 drift_color = (std::abs(drift) > 100)
+                               ? ImVec4(1.0f, 0.3f, 0.3f, 1.0f)
+                               : ImVec4(0.5f, 0.8f, 0.5f, 1.0f);
+      ImGui::TextColored(drift_color, "Drift: %+d samples", drift);
+
+      ImGui::Text("Master Vol: L=%d R=%d", dsp.master_vol_l, dsp.master_vol_r);
+
+      // Status flags
+      if (dsp.mute) {
+        ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), ICON_MD_VOLUME_OFF " MUTED");
+        ImGui::SameLine();
+      }
+      if (dsp.reset) {
+        ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), ICON_MD_RESTART_ALT " RESET");
+        ImGui::SameLine();
+      }
+      if (dsp.echo_enabled) {
+        ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f),
+                           ICON_MD_SURROUND_SOUND " Echo (delay=%u)", dsp.echo_delay);
+      }
+
+      ImGui::TreePop();
+    }
+
+    // === Audio Queue Status ===
+    if (ImGui::TreeNode("Audio Queue")) {
+      auto& audio = cached_audio_;
+
+      // Status indicator
+      if (audio.is_playing) {
+        ImGui::TextColored(ImVec4(0.3f, 0.9f, 0.3f, 1.0f),
+                           ICON_MD_PLAY_CIRCLE " Playing");
+      } else {
+        ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f),
+                           ICON_MD_STOP_CIRCLE " Stopped");
+      }
+
+      ImGui::Text("Queued: %u frames (%u bytes)",
+                  audio.queued_frames, audio.queued_bytes);
+      ImGui::Text("Sample Rate: %d Hz", audio.sample_rate);
+      ImGui::Text("Backend: %s", audio.backend_name.c_str());
+
+      // Underrun warning
+      if (audio.has_underrun) {
+        ImGui::TextColored(ImVec4(1.0f, 0.2f, 0.2f, 1.0f),
+                           ICON_MD_WARNING " UNDERRUN DETECTED");
+      }
+
+      // Queue level indicator
+      float queue_level = audio.queued_frames / 6000.0f;  // ~100ms worth
+      queue_level = std::clamp(queue_level, 0.0f, 1.0f);
+      ImVec4 queue_color = (queue_level < 0.2f)
+                               ? ImVec4(1.0f, 0.3f, 0.3f, 1.0f)
+                               : ImVec4(0.3f, 0.8f, 0.3f, 1.0f);
+      ImGui::PushStyleColor(ImGuiCol_PlotHistogram, queue_color);
+      ImGui::ProgressBar(queue_level, ImVec2(-1, 0), "Queue Level");
+      ImGui::PopStyleColor();
+
+      ImGui::TreePop();
+    }
+
+    // === APU Timing ===
+    if (ImGui::TreeNode("APU Timing")) {
+      auto& apu = cached_apu_;
+
+      ImGui::Text("Cycles: %llu", static_cast<unsigned long long>(apu.cycles));
+
+      // Timers in a table
+      if (ImGui::BeginTable("Timers", 4, ImGuiTableFlags_Borders)) {
+        ImGui::TableSetupColumn("Timer");
+        ImGui::TableSetupColumn("Enabled");
+        ImGui::TableSetupColumn("Counter");
+        ImGui::TableSetupColumn("Target");
+        ImGui::TableHeadersRow();
+
+        // Timer 0
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn(); ImGui::Text("T0");
+        ImGui::TableNextColumn();
+        ImGui::TextColored(apu.timer0_enabled ? ImVec4(0.3f, 0.9f, 0.3f, 1.0f)
+                                               : ImVec4(0.5f, 0.5f, 0.5f, 1.0f),
+                           apu.timer0_enabled ? "ON" : "off");
+        ImGui::TableNextColumn(); ImGui::Text("%u", apu.timer0_counter);
+        ImGui::TableNextColumn(); ImGui::Text("%u", apu.timer0_target);
+
+        // Timer 1
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn(); ImGui::Text("T1");
+        ImGui::TableNextColumn();
+        ImGui::TextColored(apu.timer1_enabled ? ImVec4(0.3f, 0.9f, 0.3f, 1.0f)
+                                               : ImVec4(0.5f, 0.5f, 0.5f, 1.0f),
+                           apu.timer1_enabled ? "ON" : "off");
+        ImGui::TableNextColumn(); ImGui::Text("%u", apu.timer1_counter);
+        ImGui::TableNextColumn(); ImGui::Text("%u", apu.timer1_target);
+
+        // Timer 2
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn(); ImGui::Text("T2");
+        ImGui::TableNextColumn();
+        ImGui::TextColored(apu.timer2_enabled ? ImVec4(0.3f, 0.9f, 0.3f, 1.0f)
+                                               : ImVec4(0.5f, 0.5f, 0.5f, 1.0f),
+                           apu.timer2_enabled ? "ON" : "off");
+        ImGui::TableNextColumn(); ImGui::Text("%u", apu.timer2_counter);
+        ImGui::TableNextColumn(); ImGui::Text("%u", apu.timer2_target);
+
+        ImGui::EndTable();
+      }
+
+      // Port state
+      ImGui::Text("Ports IN:  [0]=%02X [1]=%02X", apu.port0_in, apu.port1_in);
+      ImGui::Text("Ports OUT: [0]=%02X [1]=%02X", apu.port0_out, apu.port1_out);
+
+      ImGui::TreePop();
+    }
+
+    // === Channel Overview ===
+    if (ImGui::TreeNode("Channels")) {
+      auto& channels = cached_channels_;
+
+      ImGui::Text("Key Status:");
+      ImGui::SameLine();
+      for (int i = 0; i < 8; i++) {
+        ImVec4 color = channels[i].key_on
+                           ? ImVec4(0.2f, 0.9f, 0.2f, 1.0f)
+                           : ImVec4(0.4f, 0.4f, 0.4f, 1.0f);
+        ImGui::TextColored(color, "%d", i);
+        if (i < 7) ImGui::SameLine();
+      }
+
+      // Detailed channel info
+      if (ImGui::BeginTable("ChannelDetails", 6,
+                            ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+        ImGui::TableSetupColumn("Ch", ImGuiTableColumnFlags_WidthFixed, 25);
+        ImGui::TableSetupColumn("Key");
+        ImGui::TableSetupColumn("Sample");
+        ImGui::TableSetupColumn("Pitch");
+        ImGui::TableSetupColumn("Vol L/R");
+        ImGui::TableSetupColumn("ADSR");
+        ImGui::TableHeadersRow();
+
+        const char* adsr_names[] = {"Atk", "Dec", "Sus", "Rel"};
+        for (int i = 0; i < 8; i++) {
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn(); ImGui::Text("%d", i);
+          ImGui::TableNextColumn();
+          ImGui::TextColored(channels[i].key_on ? ImVec4(0.2f, 0.9f, 0.2f, 1.0f)
+                                                 : ImVec4(0.5f, 0.5f, 0.5f, 1.0f),
+                             channels[i].key_on ? "ON" : "--");
+          ImGui::TableNextColumn(); ImGui::Text("%02X", channels[i].sample_index);
+          ImGui::TableNextColumn(); ImGui::Text("%04X", channels[i].pitch);
+          ImGui::TableNextColumn();
+          ImGui::Text("%02X/%02X", channels[i].volume_l, channels[i].volume_r);
+          ImGui::TableNextColumn();
+          int state = channels[i].adsr_state & 0x03;
+          ImGui::Text("%s", adsr_names[state]);
+        }
+
+        ImGui::EndTable();
+      }
+
+      ImGui::TreePop();
+    }
+
+    // === Action Buttons ===
+    ImGui::Separator();
+    ImGui::Text("Actions:");
+
+    if (ImGui::Button(ICON_MD_CLEAR_ALL " Clear Queue")) {
+      music_player_->ClearAudioQueue();
+    }
+    if (ImGui::IsItemHovered())
+      ImGui::SetTooltip("Clear SDL audio queue immediately");
+
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_REFRESH " Reset DSP")) {
+      music_player_->ResetDspBuffer();
+    }
+    if (ImGui::IsItemHovered())
+      ImGui::SetTooltip("Reset DSP sample ring buffer");
+
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_SKIP_NEXT " NewFrame")) {
+      music_player_->ForceNewFrame();
+    }
+    if (ImGui::IsItemHovered())
+      ImGui::SetTooltip("Force DSP NewFrame() call");
+
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_REPLAY " Reinit Audio")) {
+      music_player_->ReinitAudio();
+    }
+    if (ImGui::IsItemHovered())
+      ImGui::SetTooltip("Full audio system reinitialization");
+
+    ImGui::Unindent();
+  }
+
   zelda3::music::MusicBank* music_bank_ = nullptr;
   int* current_song_index_ = nullptr;
   music::MusicPlayer* music_player_ = nullptr;
@@ -259,6 +575,20 @@ class MusicPlaybackControlPanel : public EditorPanel {
 
   std::function<void(int)> on_open_song_;
   std::function<void(int)> on_open_piano_roll_;
+
+  // Debug state
+  bool debug_paused_ = false;
+  music::DspDebugStatus cached_dsp_;
+  music::AudioQueueStatus cached_audio_;
+  music::ApuDebugStatus cached_apu_;
+  std::array<music::ChannelState, 8> cached_channels_;
+  int32_t avg_queue_delta_ = 0;
+  uint64_t avg_cycle_rate_ = 0;
+
+  // Wall-clock timing for rate measurement
+  std::chrono::steady_clock::time_point last_stats_time_;
+  uint64_t last_cycles_for_rate_ = 0;
+  uint32_t last_queued_for_rate_ = 0;
 };
 
 }  // namespace editor
