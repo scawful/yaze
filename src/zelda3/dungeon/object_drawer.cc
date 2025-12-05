@@ -168,10 +168,15 @@ void ObjectDrawer::InitializeDrawRoutines() {
   // Subtype 1 Object Mappings (Horizontal)
   // ASM: Routines $00-$0B from table at $018200
   object_to_routine_map_[0x00] = 0;
-  // Objects 0x01-0x04 all use the 2x4 wall pattern (routine 1)
-  // ASM: These are similar wall variations that draw adjacent 2x4 tiles
-  for (int id = 0x01; id <= 0x04; id++) {
+  // Objects 0x01-0x02 use RoomDraw_Rightwards2x4_1to15or26 (routine 1)
+  // ASM: GetSize_1to15or26 - size defaults to 26 when 0
+  for (int id = 0x01; id <= 0x02; id++) {
     object_to_routine_map_[id] = 1;
+  }
+  // Objects 0x03-0x04 use RoomDraw_Rightwards2x4spaced4_1to16 (routine 2)
+  // ASM: GetSize_1to16 - count = size + 1
+  for (int id = 0x03; id <= 0x04; id++) {
+    object_to_routine_map_[id] = 2;
   }
   for (int id = 0x05; id <= 0x06; id++) {
     object_to_routine_map_[id] = 3;
@@ -665,19 +670,19 @@ void ObjectDrawer::InitializeDrawRoutines() {
                               [[maybe_unused]] const DungeonState* state) {
     self->DrawRightwards2x4_1to15or26(obj, bg, tiles);
   });
-  // Routine 2
+  // Routine 2 - 2x4 tiles with adjacent spacing (s * 2), count = size + 1
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
                               [[maybe_unused]] const DungeonState* state) {
-    self->DrawRightwards2x4spaced4_1to16(obj, bg, tiles);
+    self->DrawRightwards2x4_1to16(obj, bg, tiles);
   });
-  // Routine 3
+  // Routine 3 - Same as routine 2 but draws to both BG1 and BG2
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
                               [[maybe_unused]] const DungeonState* state) {
-    self->DrawRightwards2x4spaced4_1to16_BothBG(obj, bg, tiles);
+    self->DrawRightwards2x4_1to16_BothBG(obj, bg, tiles);
   });
   // Routine 4
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
@@ -1724,11 +1729,11 @@ void ObjectDrawer::DrawRightwards2x4_1to16(
   }
 }
 
-void ObjectDrawer::DrawRightwards2x4spaced4_1to16_BothBG(
+void ObjectDrawer::DrawRightwards2x4_1to16_BothBG(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Same as above but draws to both BG1 and BG2 (objects 0x05-0x06)
-  DrawRightwards2x4spaced4_1to16(obj, bg, tiles);
+  // Pattern: Same as DrawRightwards2x4_1to16 but draws to both BG1 and BG2 (objects 0x05-0x06)
+  DrawRightwards2x4_1to16(obj, bg, tiles);
   // Note: BothBG would require access to both buffers - simplified for now
 }
 

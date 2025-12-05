@@ -76,53 +76,51 @@ void DrawRightwards2x4_1to15or26(const DrawContext& ctx) {
   }
 }
 
-void DrawRightwards2x4spaced4_1to16(const DrawContext& ctx) {
-  // Pattern: Draws 2x4 tiles rightward with spacing (objects 0x03-0x04)
-  // Uses RoomDraw_Nx4 with N=2, tiles are COLUMN-MAJOR, spacing of 4 tiles
+void DrawRightwards2x4_1to16(const DrawContext& ctx) {
+  // Pattern: Draws 2x4 tiles rightward with adjacent spacing (objects 0x03-0x04)
+  // Uses RoomDraw_Nx4 with N=2, tiles are COLUMN-MAJOR
+  // ASM: GetSize_1to16 means count = size + 1
   int size = ctx.object.size_ & 0x0F;
-
-  // Assembly: JSR RoomDraw_GetSize_1to16
-  // GetSize_1to16: count = size + 1
   int count = size + 1;
 
   for (int s = 0; s < count; s++) {
     if (ctx.tiles.size() >= 8) {
-      // Draw 2x4 pattern in COLUMN-MAJOR order with 4-tile spacing
+      // Draw 2x4 pattern in COLUMN-MAJOR order with adjacent spacing (s * 2)
       // Column 0 (tiles 0-3)
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + (s * 6),
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + (s * 2),
                                    ctx.object.y_, ctx.tiles[0]);  // col 0, row 0
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + (s * 6),
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + (s * 2),
                                    ctx.object.y_ + 1, ctx.tiles[1]);  // col 0, row 1
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + (s * 6),
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + (s * 2),
                                    ctx.object.y_ + 2, ctx.tiles[2]);  // col 0, row 2
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + (s * 6),
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + (s * 2),
                                    ctx.object.y_ + 3, ctx.tiles[3]);  // col 0, row 3
       // Column 1 (tiles 4-7)
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + (s * 6) + 1,
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + (s * 2) + 1,
                                    ctx.object.y_, ctx.tiles[4]);  // col 1, row 0
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + (s * 6) + 1,
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + (s * 2) + 1,
                                    ctx.object.y_ + 1, ctx.tiles[5]);  // col 1, row 1
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + (s * 6) + 1,
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + (s * 2) + 1,
                                    ctx.object.y_ + 2, ctx.tiles[6]);  // col 1, row 2
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + (s * 6) + 1,
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + (s * 2) + 1,
                                    ctx.object.y_ + 3, ctx.tiles[7]);  // col 1, row 3
     } else if (ctx.tiles.size() >= 4) {
       // Fallback: with 4 tiles we can only draw 1 column (1x4 pattern)
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + (s * 6),
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + (s * 2),
                                    ctx.object.y_, ctx.tiles[0]);
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + (s * 6),
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + (s * 2),
                                    ctx.object.y_ + 1, ctx.tiles[1]);
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + (s * 6),
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + (s * 2),
                                    ctx.object.y_ + 2, ctx.tiles[2]);
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + (s * 6),
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + (s * 2),
                                    ctx.object.y_ + 3, ctx.tiles[3]);
     }
   }
 }
 
-void DrawRightwards2x4spaced4_1to16_BothBG(const DrawContext& ctx) {
-  // Pattern: Same as above but draws to both BG1 and BG2 (objects 0x05-0x06)
-  DrawRightwards2x4spaced4_1to16(ctx);
+void DrawRightwards2x4_1to16_BothBG(const DrawContext& ctx) {
+  // Pattern: Same as DrawRightwards2x4_1to16 but draws to both BG1 and BG2 (objects 0x05-0x06)
+  DrawRightwards2x4_1to16(ctx);
   // Note: BothBG would require access to both buffers - simplified for now
 }
 
@@ -428,21 +426,21 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
   });
 
   registry.push_back(DrawRoutineInfo{
-      .id = 2,  // RoomDraw_Rightwards2x4spaced4_1to16
-      .name = "Rightwards2x4spaced4_1to16",
-      .function = DrawRightwards2x4spaced4_1to16,
+      .id = 2,  // RoomDraw_Rightwards2x4_1to16
+      .name = "Rightwards2x4_1to16",
+      .function = DrawRightwards2x4_1to16,
       .draws_to_both_bgs = false,
-      .base_width = 6,  // 2 tiles + 4 spacing
+      .base_width = 2,  // Adjacent spacing (s * 2)
       .base_height = 4,
       .category = DrawRoutineInfo::Category::Rightwards,
   });
 
   registry.push_back(DrawRoutineInfo{
-      .id = 3,  // RoomDraw_Rightwards2x4spaced4_1to16_BothBG
-      .name = "Rightwards2x4spaced4_1to16_BothBG",
-      .function = DrawRightwards2x4spaced4_1to16_BothBG,
+      .id = 3,  // RoomDraw_Rightwards2x4_1to16_BothBG
+      .name = "Rightwards2x4_1to16_BothBG",
+      .function = DrawRightwards2x4_1to16_BothBG,
       .draws_to_both_bgs = true,
-      .base_width = 6,  // 2 tiles + 4 spacing
+      .base_width = 2,  // Adjacent spacing (s * 2)
       .base_height = 4,
       .category = DrawRoutineInfo::Category::Rightwards,
   });

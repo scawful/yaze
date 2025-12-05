@@ -154,7 +154,7 @@ class ObjectDrawer {
   void DrawRightwards2x4_1to16(const RoomObject& obj,
                                gfx::BackgroundBuffer& bg,
                                std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawRightwards2x4spaced4_1to16_BothBG(
+  void DrawRightwards2x4_1to16_BothBG(
       const RoomObject& obj, gfx::BackgroundBuffer& bg,
       std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
   void DrawRightwards2x2_1to16(const RoomObject& obj, gfx::BackgroundBuffer& bg,
