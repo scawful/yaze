@@ -100,14 +100,15 @@ void ObjectEditorPanel::OnSelectionChanged() {
 void ObjectEditorPanel::Draw(bool* p_open) {
   const auto& theme = AgentUI::GetTheme();
 
-  // Object Browser (Top priority as per enhancement request)
-  if (ImGui::CollapsingHeader(ICON_MD_LIST " Object Browser",
-                              ImGuiTreeNodeFlags_DefaultOpen)) {
-    // Give it some fixed height so it's always usable
-    ImGui::BeginChild("ObjectBrowserRegion", ImVec2(0, 500), true);
-    DrawObjectSelector();
-    ImGui::EndChild();
-  }
+  // Object Browser - takes up available space
+  float available_height = ImGui::GetContentRegionAvail().y;
+  // Reserve space for status indicator at bottom
+  float reserved_height = 60.0f;
+  float browser_height = std::max(200.0f, available_height - reserved_height);
+  
+  ImGui::BeginChild("ObjectBrowserRegion", ImVec2(0, browser_height), true);
+  DrawObjectSelector();
+  ImGui::EndChild();
 
   ImGui::Separator();
 

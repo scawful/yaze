@@ -783,6 +783,10 @@ void Room::RenderRoomGraphics() {
   // Mark textures as clean after successful queuing
   textures_dirty_ = false;
 
+  // IMPORTANT: Mark composite as dirty after any render work
+  // This ensures GetCompositeBitmap() regenerates the merged output
+  composite_dirty_ = true;
+
   // REMOVED: Don't process texture queue here - let it be batched!
   // Processing happens once per frame in DrawDungeonCanvas()
   // This dramatically improves performance when multiple rooms are open
@@ -1177,7 +1181,10 @@ void Room::ParseObjectsFromLocation(int objects_location) {
     b2 = rom_data[pos + 1];
 
     // ASM Marker: 0xFF 0xFF - End of Layer
-    // Signals transition from BG2 (Layer 0) -> BG1 (Layer 1) -> BG1 Priority (Layer 2)
+    // Signals transition between object layers:
+    //   Layer 0 -> BG1 buffer (main floor/walls)
+    //   Layer 1 -> BG2 buffer (overlay layer)
+    //   Layer 2 -> BG1 buffer with priority (above floor objects)
     if (b1 == 0xFF && b2 == 0xFF) {
       pos += 2;  // Jump to next layer
       layer++;

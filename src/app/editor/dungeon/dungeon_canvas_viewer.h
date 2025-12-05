@@ -71,6 +71,9 @@ class DungeonCanvasViewer {
   void SetRoomNavigationCallback(std::function<void(int)> callback) {
     room_navigation_callback_ = std::move(callback);
   }
+  void SetShowObjectPanelCallback(std::function<void()> callback) {
+    show_object_panel_callback_ = std::move(callback);
+  }
 
   // Canvas access
   gui::Canvas& canvas() { return canvas_; }
@@ -275,6 +278,7 @@ class DungeonCanvasViewer {
   uint64_t current_palette_id_ = 0;
   gfx::PaletteGroup current_palette_group_;
   std::function<void(int)> room_navigation_callback_;
+  std::function<void()> show_object_panel_callback_;
 
   // Object rendering cache
   struct ObjectRenderCache {
@@ -292,7 +296,7 @@ class DungeonCanvasViewer {
   bool show_texture_debug_ = false;
   bool show_object_bounds_ = false;
   bool show_layer_info_ = false;
-  bool use_composite_mode_ = false;  // Use merged composite bitmap vs 4-layer draw
+  bool use_composite_mode_ = true;  // Default to merged view (false = debug 4-layer mode)
   int layout_override_ = -1;  // -1 for no override
   int custom_grid_size_ = 8;
   ObjectRenderMode object_render_mode_ =

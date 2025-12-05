@@ -483,42 +483,24 @@ void DungeonObjectSelector::SelectObject(int obj_id) {
 void DungeonObjectSelector::DrawObjectAssetBrowser() {
   const auto& theme = AgentUI::GetTheme();
 
-  // Subtype tabs
-  if (ImGui::BeginTabBar("##ObjectSubtypeTabs")) {
-    if (ImGui::BeginTabItem("Type 1 (0x00-0xFF)")) {
-      object_subtype_tab_ = 0;
-      ImGui::EndTabItem();
-    }
-    if (ImGui::BeginTabItem("Type 2 (0x100-0x141)")) {
-      object_subtype_tab_ = 1;
-      ImGui::EndTabItem();
-    }
-    if (ImGui::BeginTabItem("Type 3 (0xF80-0xFFF)")) {
-      object_subtype_tab_ = 2;
-      ImGui::EndTabItem();
-    }
-    ImGui::EndTabBar();
-  }
-
-  // Determine ID range based on subtype tab
-  int start_id, end_id;
-  switch (object_subtype_tab_) {
-    case 1:  // Type 2
-      start_id = 0x100;
-      end_id = 0x141;  // ~66 objects
-      break;
-    case 2:  // Type 3
-      start_id = 0xF80;
-      end_id = 0xFFF;  // ~128 objects
-      break;
-    default:  // Type 1
-      start_id = 0x00;
-      end_id = 0xFF;  // 256 objects
-      break;
-  }
+  // Object ranges: Type 1 (0x00-0xFF), Type 2 (0x100-0x141), Type 3 (0xF80-0xFFF)
+  struct ObjectRange {
+    int start;
+    int end;
+    const char* label;
+    ImU32 header_color;
+  };
+  static const ObjectRange ranges[] = {
+      {0x00, 0xFF, "Type 1", IM_COL32(80, 120, 180, 255)},
+      {0x100, 0x141, "Type 2", IM_COL32(120, 80, 180, 255)},
+      {0xF80, 0xFFF, "Type 3", IM_COL32(180, 120, 80, 255)},
+  };
+  
+  // Total object count
+  int total_objects = (0xFF - 0x00 + 1) + (0x141 - 0x100 + 1) + (0xFFF - 0xF80 + 1);
 
   // Preview toggle (disabled by default for performance)
-  ImGui::Checkbox("Show Graphical Previews", &enable_object_previews_);
+  ImGui::Checkbox(ICON_MD_IMAGE " Previews", &enable_object_previews_);
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
         "Enable to show actual object graphics.\n"
@@ -526,28 +508,43 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
         "May impact performance.");
   }
   ImGui::SameLine();
-  ImGui::TextDisabled("(%d objects)", end_id - start_id + 1);
+  ImGui::TextDisabled("(%d objects)", total_objects);
 
   // Create asset browser-style grid
-  const float item_size = 80.0f;
-  const float item_spacing = 8.0f;
+  const float item_size = 72.0f;
+  const float item_spacing = 6.0f;
   const int columns = std::max(
       1, static_cast<int>((ImGui::GetContentRegionAvail().x - item_spacing) /
                           (item_size + item_spacing)));
 
-  // Scrollable child region for grid
-  float child_height = ImGui::GetContentRegionAvail().y - 20;
+  // Scrollable child region for grid - use all available space
+  float child_height = ImGui::GetContentRegionAvail().y;
   if (ImGui::BeginChild("##ObjectGrid", ImVec2(0, child_height), false,
                         ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-    int current_column = 0;
-    int items_drawn = 0;
+    
+    // Iterate through all object ranges
+    for (const auto& range : ranges) {
+      // Section header for each type
+      ImGui::PushStyleColor(ImGuiCol_Header, range.header_color);
+      ImGui::PushStyleColor(ImGuiCol_HeaderHovered, 
+          IM_COL32((range.header_color & 0xFF) + 30,
+                   ((range.header_color >> 8) & 0xFF) + 30,
+                   ((range.header_color >> 16) & 0xFF) + 30, 255));
+      bool section_open = ImGui::CollapsingHeader(
+          absl::StrFormat("%s (0x%03X-0x%03X)", range.label, range.start, range.end).c_str(),
+          ImGuiTreeNodeFlags_DefaultOpen);
+      ImGui::PopStyleColor(2);
+      
+      if (!section_open) continue;
+      
+      int current_column = 0;
+      
+      for (int obj_id = range.start; obj_id <= range.end; ++obj_id) {
+        if (current_column > 0) {
+          ImGui::SameLine();
+        }
 
-    for (int obj_id = start_id; obj_id <= end_id; ++obj_id) {
-      if (current_column > 0) {
-        ImGui::SameLine();
-      }
-
-      ImGui::PushID(obj_id);
+        ImGui::PushID(obj_id);
 
       // Create selectable button for object
       bool is_selected = (selected_object_id_ == obj_id);
@@ -690,15 +687,11 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
       ImGui::PopID();
 
       current_column = (current_column + 1) % columns;
-      items_drawn++;
-    }
+      }  // end object loop
+    }  // end range loop
 
     ImGui::EndChild();
   }
-
-  // Status line
-  ImGui::Text("Range: 0x%03X - 0x%03X (%d objects)", start_id, end_id,
-              end_id - start_id + 1);
 }
 
 bool DungeonObjectSelector::MatchesObjectFilter(int obj_id, int filter_type) {

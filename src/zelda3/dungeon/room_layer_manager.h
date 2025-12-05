@@ -379,6 +379,27 @@ class RoomLayerManager {
     return "Unknown";
   }
 
+  /**
+   * @brief Apply surface color modulation for DarkRoom effect
+   *
+   * In DarkRoom mode (merge type 0x08), surfaces should be darkened to 50%.
+   * This should be called before drawing each layer in separate mode to
+   * match the composite mode appearance.
+   *
+   * @param surface The SDL surface to apply modulation to
+   */
+  void ApplySurfaceColorMod(SDL_Surface* surface) const {
+    if (!surface) return;
+
+    if (current_merge_type_id_ == 0x08) {
+      // DarkRoom: 50% brightness
+      SDL_SetSurfaceColorMod(surface, 128, 128, 128);
+    } else {
+      // Normal: Full brightness
+      SDL_SetSurfaceColorMod(surface, 255, 255, 255);
+    }
+  }
+
   // ============================================================================
   // Layer Compositing
   // ============================================================================
@@ -408,9 +429,15 @@ class RoomLayerManager {
  private:
   /**
    * @brief Check if a pixel index represents transparency
+   *
+   * IMPORTANT: Only treat 255 as transparent (fill color for undrawn areas).
+   * Do NOT treat 0 as transparent! In dungeon rendering:
+   * - Source pixel 1 with palette_offset 0 writes final_color = 0 to the buffer
+   * - This represents palette[0] (actual color), NOT transparency
+   * - Buffers should be initialized to 255, not 0
    */
   static bool IsTransparent(uint8_t pixel) {
-    return pixel == 0 || pixel == 255;
+    return pixel == 255;
   }
 
   /**
