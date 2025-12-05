@@ -39,6 +39,10 @@ class ObjectDimensionTable {
   // Get full dimensions accounting for size parameter
   std::pair<int, int> GetDimensions(int object_id, int size) const;
 
+  // Get dimensions for selection bounds (without size=0 inflation)
+  // This version caps the size and doesn't use 32-when-zero for display
+  std::pair<int, int> GetSelectionDimensions(int object_id, int size) const;
+
   // Get hit-test bounds in tile coordinates (x, y, width, height)
   std::tuple<int, int, int, int> GetHitTestBounds(const RoomObject& obj) const;
 
@@ -58,8 +62,9 @@ class ObjectDimensionTable {
   struct DimensionEntry {
     int base_width = 1;   // Base width in tiles
     int base_height = 1;  // Base height in tiles
-    enum class ExtendDir { None, Horizontal, Vertical, Both } extend_dir = ExtendDir::None;
+    enum class ExtendDir { None, Horizontal, Vertical, Both, Diagonal } extend_dir = ExtendDir::None;
     int extend_multiplier = 1;  // Tiles added per size unit
+    bool use_32_when_zero = false;  // ASM: GetSize_1to15or32 uses 32 when size=0
   };
 
   // Object ID -> dimension entry

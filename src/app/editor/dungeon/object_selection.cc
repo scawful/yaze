@@ -113,9 +113,13 @@ bool ObjectSelection::IsObjectSelected(size_t index) const {
 }
 
 std::vector<size_t> ObjectSelection::GetSelectedIndices() const {
-  // Convert set to vector (already sorted due to set ordering)
-  return std::vector<size_t>(selected_indices_.begin(),
-                             selected_indices_.end());
+  // Safely convert set to vector with bounds checking
+  std::vector<size_t> result;
+  result.reserve(selected_indices_.size());
+  for (size_t idx : selected_indices_) {
+    result.push_back(idx);
+  }
+  return result;
 }
 
 std::optional<size_t> ObjectSelection::GetPrimarySelection() const {
@@ -194,7 +198,6 @@ void ObjectSelection::DrawSelectionHighlights(
     return;
   }
 
-  const auto& theme = AgentUI::GetTheme();
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   ImVec2 canvas_pos = canvas->zero_point();
   float scale = canvas->global_scale();
@@ -235,22 +238,23 @@ void ObjectSelection::DrawSelectionHighlights(
     obj_end.x += margin;
     obj_end.y += margin;
 
-    // Draw pulsing animated border using theme colors
+    // Get color based on object layer and type
+    ImVec4 base_color = GetLayerTypeColor(object);
+    
+    // Draw pulsing animated border
     float pulse =
         0.7f + 0.3f * std::sin(static_cast<float>(ImGui::GetTime()) * 4.0f);
     ImVec4 pulsing_color = ImVec4(
-        theme.dungeon_selection_primary.x * pulse,
-        theme.dungeon_selection_primary.y * pulse,
-        theme.dungeon_selection_primary.z * pulse,
-        0.85f  // Entity visibility standard: high-contrast at 0.85f alpha
+        base_color.x * pulse, base_color.y * pulse, base_color.z * pulse,
+        0.85f  // High-contrast at 0.85f alpha
     );
     ImU32 border_color = ImGui::GetColorU32(pulsing_color);
     draw_list->AddRect(obj_start, obj_end, border_color, 0.0f, 0, 2.5f);
 
-    // Draw corner handles for selected objects
-    // Entity visibility standard: Cyan-white at 0.85f alpha for high contrast
+    // Draw corner handles with matching color
     constexpr float handle_size = 6.0f;
-    ImU32 handle_color = ImGui::GetColorU32(theme.dungeon_selection_handle);
+    ImVec4 handle_col = ImVec4(base_color.x, base_color.y, base_color.z, 0.95f);
+    ImU32 handle_color = ImGui::GetColorU32(handle_col);
 
     // Top-left handle
     draw_list->AddRectFilled(
@@ -276,6 +280,48 @@ void ObjectSelection::DrawSelectionHighlights(
         ImVec2(obj_end.x + handle_size / 2, obj_end.y + handle_size / 2),
         handle_color);
   }
+}
+
+ImVec4 ObjectSelection::GetLayerTypeColor(const zelda3::RoomObject& object) const {
+  // Layer-based primary hue with type-based saturation variation
+  int layer = object.GetLayerValue();
+  int object_type = zelda3::GetObjectSubtype(object.id_);
+  
+  // Layer colors (distinct hues for each layer)
+  // Layer 0 (BG1): Cyan/Teal
+  // Layer 1 (BG2): Orange/Amber  
+  // Layer 2 (BG3): Magenta/Pink
+  ImVec4 base;
+  switch (layer) {
+    case 0:  // BG1 - Cyan
+      base = ImVec4(0.0f, 0.9f, 1.0f, 1.0f);
+      break;
+    case 1:  // BG2 - Orange
+      base = ImVec4(1.0f, 0.6f, 0.0f, 1.0f);
+      break;
+    case 2:  // BG3 - Magenta
+      base = ImVec4(1.0f, 0.3f, 0.8f, 1.0f);
+      break;
+    default:
+      base = ImVec4(0.8f, 0.8f, 0.8f, 1.0f);  // Gray for unknown
+      break;
+  }
+  
+  // Slightly shift color based on object type for additional differentiation
+  switch (object_type) {
+    case 1:  // Type 1 (0x00-0xFF) - walls, floors - base color
+      break;
+    case 2:  // Type 2 (0x100-0x1FF) - doors, interactive - slightly brighter
+      base.x = std::min(1.0f, base.x * 1.1f);
+      base.y = std::min(1.0f, base.y * 1.1f);
+      base.z = std::min(1.0f, base.z * 1.1f);
+      break;
+    case 3:  // Type 3 (0xF00+) - special objects - slightly shifted
+      base.x = std::min(1.0f, base.x + 0.1f);
+      break;
+  }
+  
+  return base;
 }
 
 void ObjectSelection::DrawRectangleSelectionBox(gui::Canvas* canvas) {

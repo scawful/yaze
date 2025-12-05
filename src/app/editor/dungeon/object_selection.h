@@ -187,6 +187,13 @@ class ObjectSelection {
    */
   void DrawRectangleSelectionBox(gui::Canvas* canvas);
 
+  /**
+   * @brief Get selection highlight color based on object layer and type
+   * @param object The room object to get color for
+   * @return Color as ImVec4 (Layer 0=Cyan, Layer 1=Orange, Layer 2=Magenta)
+   */
+  ImVec4 GetLayerTypeColor(const zelda3::RoomObject& object) const;
+
   // ============================================================================
   // Callbacks
   // ============================================================================

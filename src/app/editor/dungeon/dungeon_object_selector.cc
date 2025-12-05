@@ -1219,16 +1219,49 @@ bool DungeonObjectSelector::GetOrCreatePreview(int obj_id, float size,
   auto& room = (*rooms_)[current_room_id_];
   const uint8_t* gfx_data = room.get_gfx_buffer().data();
 
-  auto preview = std::make_unique<gfx::BackgroundBuffer>(
-      static_cast<int>(size), static_cast<int>(size));
+  // Create preview buffer large enough for object
+  // Use a reasonable size based on object dimensions (minimum 64x64)
+  int buffer_size = std::max(static_cast<int>(size), 128);
+  auto preview = std::make_unique<gfx::BackgroundBuffer>(buffer_size, buffer_size);
 
-  // Create object and render it
+  // CRITICAL: Initialize bitmap before drawing
+  preview->EnsureBitmapInitialized();
+
+  // Create object and render it at (0,0) for preview
   zelda3::RoomObject obj(obj_id, 0, 0, 0x12, 0);
   obj.SetRom(rom_);
   obj.EnsureTilesLoaded();
 
   if (obj.tiles().empty()) {
     return false;
+  }
+
+  // Apply palette to bitmap surface (match Room::RenderRoomGraphics approach)
+  auto& bitmap = preview->bitmap();
+  {
+    std::vector<SDL_Color> colors(256);
+    // Flatten palette group into SDL colors
+    // Dungeon palettes have 6 sub-palettes of 15 colors each = 90 colors
+    size_t color_index = 0;
+    for (size_t pal_idx = 0; pal_idx < current_palette_group_.size() && color_index < 256; ++pal_idx) {
+      const auto& pal = current_palette_group_[pal_idx];
+      for (size_t i = 0; i < pal.size() && color_index < 256; ++i) {
+        ImVec4 rgb = pal[i].rgb();
+        colors[color_index++] = {
+            static_cast<Uint8>(rgb.x),
+            static_cast<Uint8>(rgb.y),
+            static_cast<Uint8>(rgb.z),
+            255
+        };
+      }
+    }
+    // Transparent color key at index 255
+    colors[255] = {0, 0, 0, 0};
+    bitmap.SetPalette(colors);
+    if (bitmap.surface()) {
+      SDL_SetColorKey(bitmap.surface(), SDL_TRUE, 255);
+      SDL_SetSurfaceBlendMode(bitmap.surface(), SDL_BLENDMODE_BLEND);
+    }
   }
 
   zelda3::ObjectDrawer drawer(rom_, current_room_id_, gfx_data);
@@ -1240,8 +1273,18 @@ bool DungeonObjectSelector::GetOrCreatePreview(int obj_id, float size,
     return false;
   }
 
+  // Sync bitmap data to SDL surface after drawing
+  if (bitmap.modified() && bitmap.surface() && bitmap.mutable_data().size() > 0) {
+    SDL_LockSurface(bitmap.surface());
+    size_t surface_size = bitmap.surface()->h * bitmap.surface()->pitch;
+    size_t data_size = bitmap.mutable_data().size();
+    if (surface_size >= data_size) {
+      memcpy(bitmap.surface()->pixels, bitmap.mutable_data().data(), data_size);
+    }
+    SDL_UnlockSurface(bitmap.surface());
+  }
+
   // Check if bitmap has content
-  auto& bitmap = preview->bitmap();
   if (bitmap.size() == 0) {
     return false;
   }

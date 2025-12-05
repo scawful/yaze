@@ -168,11 +168,10 @@ void ObjectDrawer::InitializeDrawRoutines() {
   // Subtype 1 Object Mappings (Horizontal)
   // ASM: Routines $00-$0B from table at $018200
   object_to_routine_map_[0x00] = 0;
-  for (int id = 0x01; id <= 0x02; id++) {
+  // Objects 0x01-0x04 all use the 2x4 wall pattern (routine 1)
+  // ASM: These are similar wall variations that draw adjacent 2x4 tiles
+  for (int id = 0x01; id <= 0x04; id++) {
     object_to_routine_map_[id] = 1;
-  }
-  for (int id = 0x03; id <= 0x04; id++) {
-    object_to_routine_map_[id] = 2;
   }
   for (int id = 0x05; id <= 0x06; id++) {
     object_to_routine_map_[id] = 3;
@@ -1465,49 +1464,18 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
   int door_width = dims.width_tiles;
   int door_height = dims.height_tiles;
 
-  // Get door graphics address based on direction
-  int gfx_base_addr = 0;
-  switch (door.direction) {
-    case DoorDirection::North: gfx_base_addr = kDoorGfxUp; break;
-    case DoorDirection::South: gfx_base_addr = kDoorGfxDown; break;
-    case DoorDirection::West:  gfx_base_addr = kDoorGfxLeft; break;
-    case DoorDirection::East:  gfx_base_addr = kDoorGfxRight; break;
-  }
+  // TODO: Door graphics loading needs proper SNES-to-PC address conversion
+  // The kDoorGfxUp/Down/Left/Right addresses are SNES addresses that need
+  // LoROM mapping to file offsets. For now, use colored indicators.
+  //
+  // Future implementation would:
+  // 1. Convert SNES address to PC offset: pc_addr = ((snes_addr & 0x7F0000) >> 1) | (snes_addr & 0x7FFF)
+  // 2. Read door tilemap from ROM
+  // 3. Use tilemap entries with room_gfx_buffer_ to draw actual graphics
 
-  // Each door type has a different offset into the graphics table
-  // Graphics are 2 bytes per tile (tile ID word)
-  int type_value = static_cast<int>(door.type);
-  int type_offset = type_value * (door_width * door_height * 2);
-  int gfx_addr = gfx_base_addr + type_offset;
-
-  // Clamp graphics address to valid ROM range
-  if (gfx_addr < 0 || gfx_addr + (door_width * door_height * 2) >
-      static_cast<int>(rom_->size())) {
-    // Fall back to drawing a simple door indicator
-    DrawDoorIndicator(bitmap, tile_x, tile_y, door_width, door_height,
-                      door.type, door.direction);
-    return;
-  }
-
-  // Draw door tiles from ROM graphics data
-  const auto& rom_data = rom_->data();
-  int tile_idx = 0;
-
-  for (int dy = 0; dy < door_height; dy++) {
-    for (int dx = 0; dx < door_width; dx++) {
-      int addr = gfx_addr + (tile_idx * 2);
-      if (addr + 1 < static_cast<int>(rom_->size())) {
-        uint16_t tile_word = rom_data[addr] | (rom_data[addr + 1] << 8);
-        auto tile_info = gfx::WordToTileInfo(tile_word);
-
-        // Draw tile to bitmap
-        int pixel_x = (tile_x + dx) * 8;
-        int pixel_y = (tile_y + dy) * 8;
-        DrawTileToBitmap(bitmap, tile_info, pixel_x, pixel_y, room_gfx_buffer_);
-      }
-      tile_idx++;
-    }
-  }
+  // Draw door indicator (colored rectangle with type-specific color)
+  DrawDoorIndicator(bitmap, tile_x, tile_y, door_width, door_height,
+                    door.type, door.direction);
 
   LOG_DEBUG("ObjectDrawer", "DrawDoor: type=%s dir=%s pos=%d at tile(%d,%d) size=%dx%d",
             std::string(GetDoorTypeName(door.type)).c_str(),
@@ -1720,36 +1688,38 @@ void ObjectDrawer::DrawRightwards2x4_1to15or26(
   }
 }
 
-void ObjectDrawer::DrawRightwards2x4spaced4_1to16(
+void ObjectDrawer::DrawRightwards2x4_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Draws 2x4 tiles rightward with spacing (objects 0x03-0x04)
-  // Uses RoomDraw_Nx4 with N=2, tiles are COLUMN-MAJOR, spacing of 4 tiles
+  // Pattern: Draws 2x4 tiles rightward with adjacent spacing (objects 0x03-0x04)
+  // Uses RoomDraw_Nx4 with N=2, tiles are COLUMN-MAJOR
+  // ASM: GetSize_1to16 means count = size + 1
   int size = obj.size_ & 0x0F;
-
-  // Assembly: JSR RoomDraw_GetSize_1to16
-  // GetSize_1to16: count = size + 1
   int count = size + 1;
+
+  LOG_DEBUG("ObjectDrawer",
+            "DrawRightwards2x4_1to16: obj=%04X pos=(%d,%d) size=%d count=%d tiles=%zu",
+            obj.id_, obj.x_, obj.y_, size, count, tiles.size());
 
   for (int s = 0; s < count; s++) {
     if (tiles.size() >= 8) {
-      // Draw 2x4 pattern in COLUMN-MAJOR order with 4-tile spacing
+      // Draw 2x4 pattern in COLUMN-MAJOR order with adjacent spacing (s * 2)
       // Column 0 (tiles 0-3)
-      WriteTile8(bg, obj.x_ + (s * 6), obj.y_, tiles[0]);      // col 0, row 0
-      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 1, tiles[1]);  // col 0, row 1
-      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 2, tiles[2]);  // col 0, row 2
-      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 3, tiles[3]);  // col 0, row 3
+      WriteTile8(bg, obj.x_ + (s * 2), obj.y_, tiles[0]);      // col 0, row 0
+      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 1, tiles[1]);  // col 0, row 1
+      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 2, tiles[2]);  // col 0, row 2
+      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 3, tiles[3]);  // col 0, row 3
       // Column 1 (tiles 4-7)
-      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_, tiles[4]);      // col 1, row 0
-      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 1, tiles[5]);  // col 1, row 1
-      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 2, tiles[6]);  // col 1, row 2
-      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 3, tiles[7]);  // col 1, row 3
+      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_, tiles[4]);      // col 1, row 0
+      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 1, tiles[5]);  // col 1, row 1
+      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 2, tiles[6]);  // col 1, row 2
+      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 3, tiles[7]);  // col 1, row 3
     } else if (tiles.size() >= 4) {
       // Fallback: with 4 tiles we can only draw 1 column (1x4 pattern)
-      WriteTile8(bg, obj.x_ + (s * 6), obj.y_, tiles[0]);
-      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 1, tiles[1]);
-      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 2, tiles[2]);
-      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 3, tiles[3]);
+      WriteTile8(bg, obj.x_ + (s * 2), obj.y_, tiles[0]);
+      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 1, tiles[1]);
+      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 2, tiles[2]);
+      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 3, tiles[3]);
     }
   }
 }
