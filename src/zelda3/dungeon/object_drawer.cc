@@ -4,6 +4,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/gfx/types/snes_tile.h"
+#include "rom/snes.h"
 #include "util/log.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_types.h"
 #include "zelda3/dungeon/draw_routines/special_routines.h"
@@ -1454,11 +1455,11 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
                               gfx::BackgroundBuffer& bg1,
                               gfx::BackgroundBuffer& bg2,
                               [[maybe_unused]] const DungeonState* state) {
-  // Door rendering based on ZELDA3_DUNGEON_SPEC.md Section 5
+  // Door rendering based on ZELDA3_DUNGEON_SPEC.md Section 5 and disassembly
   // Uses DoorType and DoorDirection enums for type safety
   // Position calculations via DoorPositionManager
 
-  if (!rom_ || !rom_->is_loaded()) return;
+  if (!rom_ || !rom_->is_loaded() || !room_gfx_buffer_) return;
 
   auto& bitmap = bg1.bitmap();
   if (!bitmap.is_active() || bitmap.width() == 0) return;
@@ -1469,23 +1470,74 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
   int door_width = dims.width_tiles;
   int door_height = dims.height_tiles;
 
-  // TODO: Door graphics loading needs proper SNES-to-PC address conversion
-  // The kDoorGfxUp/Down/Left/Right addresses are SNES addresses that need
-  // LoROM mapping to file offsets. For now, use colored indicators.
-  //
-  // Future implementation would:
-  // 1. Convert SNES address to PC offset: pc_addr = ((snes_addr & 0x7F0000) >> 1) | (snes_addr & 0x7FFF)
-  // 2. Read door tilemap from ROM
-  // 3. Use tilemap entries with room_gfx_buffer_ to draw actual graphics
+  // Door graphics use an indirect addressing scheme:
+  // 1. kDoorGfxUp/Down/Left/Right point to offset tables (DoorGFXDataOffset_*)
+  // 2. Each table entry is a 16-bit offset into RoomDrawObjectData
+  // 3. RoomDrawObjectData base is at PC 0x1B52 (SNES $00:9B52)
+  // 4. Actual tile data = 0x1B52 + offset_from_table
 
-  // Draw door indicator (colored rectangle with type-specific color)
-  DrawDoorIndicator(bitmap, tile_x, tile_y, door_width, door_height,
-                    door.type, door.direction);
+  // Select offset table based on direction
+  int offset_table_addr = 0;
+  switch (door.direction) {
+    case DoorDirection::North: offset_table_addr = kDoorGfxUp; break;    // 0x4D9E
+    case DoorDirection::South: offset_table_addr = kDoorGfxDown; break;  // 0x4E06
+    case DoorDirection::West:  offset_table_addr = kDoorGfxLeft; break;  // 0x4E66
+    case DoorDirection::East:  offset_table_addr = kDoorGfxRight; break; // 0x4EC6
+  }
 
-  LOG_DEBUG("ObjectDrawer", "DrawDoor: type=%s dir=%s pos=%d at tile(%d,%d) size=%dx%d",
+  // Calculate door type index (door types step by 2: 0x00, 0x02, 0x04, ...)
+  int type_value = static_cast<int>(door.type);
+  int type_index = type_value / 2;
+
+  // Read offset from table (each entry is 2 bytes)
+  int table_entry_addr = offset_table_addr + (type_index * 2);
+  if (table_entry_addr + 1 >= static_cast<int>(rom_->size())) {
+    DrawDoorIndicator(bitmap, tile_x, tile_y, door_width, door_height,
+                      door.type, door.direction);
+    return;
+  }
+
+  const auto& rom_data = rom_->data();
+  uint16_t tile_offset = rom_data[table_entry_addr] | 
+                         (rom_data[table_entry_addr + 1] << 8);
+
+  // RoomDrawObjectData base address (PC offset)
+  constexpr int kRoomDrawObjectDataBase = 0x1B52;
+  int tile_data_addr = kRoomDrawObjectDataBase + tile_offset;
+
+  // Validate address range (12 tiles * 2 bytes = 24 bytes)
+  int tiles_per_door = door_width * door_height;  // 12 tiles (4x3 or 3x4)
+  int data_size = tiles_per_door * 2;
+  if (tile_data_addr < 0 || tile_data_addr + data_size > static_cast<int>(rom_->size())) {
+    DrawDoorIndicator(bitmap, tile_x, tile_y, door_width, door_height,
+                      door.type, door.direction);
+    return;
+  }
+
+  // Read and render door tiles
+  // Tile layout is column-major (matching ASM draw routines)
+  int tile_idx = 0;
+  for (int dx = 0; dx < door_width; dx++) {
+    for (int dy = 0; dy < door_height; dy++) {
+      int addr = tile_data_addr + (tile_idx * 2);
+      uint16_t tile_word = rom_data[addr] | (rom_data[addr + 1] << 8);
+
+      auto tile_info = gfx::WordToTileInfo(tile_word);
+      int pixel_x = (tile_x + dx) * 8;
+      int pixel_y = (tile_y + dy) * 8;
+
+      DrawTileToBitmap(bitmap, tile_info, pixel_x, pixel_y, room_gfx_buffer_);
+      tile_idx++;
+    }
+  }
+
+  LOG_DEBUG("ObjectDrawer", 
+            "DrawDoor: type=%s dir=%s pos=%d at tile(%d,%d) size=%dx%d "
+            "offset_table=0x%X tile_offset=0x%X tile_addr=0x%X",
             std::string(GetDoorTypeName(door.type)).c_str(),
             std::string(GetDoorDirectionName(door.direction)).c_str(),
-            door.position, tile_x, tile_y, door_width, door_height);
+            door.position, tile_x, tile_y, door_width, door_height,
+            offset_table_addr, tile_offset, tile_data_addr);
 }
 
 void ObjectDrawer::DrawDoorIndicator(gfx::Bitmap& bitmap, int tile_x, int tile_y,
@@ -3346,14 +3398,23 @@ void ObjectDrawer::DrawWeirdCornerBottom_BothBG(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: Weird Corner Bottom (objects 0x110-0x113 for Type 2)
-  // Type 3 objects (0xF9E-0xFA1) use 8 tiles in 4x2 bottom corner layout
+  // ASM: RoomDraw_WeirdCornerBottom_BothBG sets count=3, uses 4x4Corner pattern
+  // Pattern: 3 columns × 4 rows = 12 tiles, column-major order
   if (tiles.size() >= 16) {
     DrawCorner4x4(obj, bg, tiles);
-  } else if (tiles.size() >= 8) {
-    // Draw 4x2 bottom corner pattern (row-major for bottom corners)
+  } else if (tiles.size() >= 12) {
+    // Draw 3x4 corner pattern (column-major, 3 columns × 4 rows)
     int tid = 0;
-    for (int yy = 0; yy < 2; yy++) {
-      for (int xx = 0; xx < 4; xx++) {
+    for (int xx = 0; xx < 3; xx++) {
+      for (int yy = 0; yy < 4; yy++) {
+        WriteTile8(bg, obj.x_ + xx, obj.y_ + yy, tiles[tid++]);
+      }
+    }
+  } else if (tiles.size() >= 8) {
+    // Fallback: 2x4 column-major pattern
+    int tid = 0;
+    for (int xx = 0; xx < 2; xx++) {
+      for (int yy = 0; yy < 4; yy++) {
         WriteTile8(bg, obj.x_ + xx, obj.y_ + yy, tiles[tid++]);
       }
     }
@@ -3366,14 +3427,23 @@ void ObjectDrawer::DrawWeirdCornerTop_BothBG(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: Weird Corner Top (objects 0x114-0x117 for Type 2)
-  // Type 3 objects (0xFA2-0xFA5) use 8 tiles in 4x2 top corner layout
+  // ASM: RoomDraw_WeirdCornerTop_BothBG draws 4 columns of 3 tiles each
+  // Pattern: 4 columns × 3 rows = 12 tiles, column-major order
   if (tiles.size() >= 16) {
     DrawCorner4x4(obj, bg, tiles);
-  } else if (tiles.size() >= 8) {
-    // Draw 4x2 top corner pattern (row-major for top corners)
+  } else if (tiles.size() >= 12) {
+    // Draw 4x3 corner pattern (column-major, 4 columns × 3 rows)
     int tid = 0;
-    for (int yy = 0; yy < 2; yy++) {
-      for (int xx = 0; xx < 4; xx++) {
+    for (int xx = 0; xx < 4; xx++) {
+      for (int yy = 0; yy < 3; yy++) {
+        WriteTile8(bg, obj.x_ + xx, obj.y_ + yy, tiles[tid++]);
+      }
+    }
+  } else if (tiles.size() >= 8) {
+    // Fallback: 2x4 column-major pattern
+    int tid = 0;
+    for (int xx = 0; xx < 2; xx++) {
+      for (int yy = 0; yy < 4; yy++) {
         WriteTile8(bg, obj.x_ + xx, obj.y_ + yy, tiles[tid++]);
       }
     }

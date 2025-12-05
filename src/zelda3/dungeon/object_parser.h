@@ -163,6 +163,19 @@ class ObjectParser {
   absl::StatusOr<std::vector<gfx::TileInfo>> ReadTileData(int address,
                                                           int tile_count);
 
+  /**
+   * @brief Get tile count for subtype 2 objects
+   *
+   * Different subtype 2 objects have different tile counts:
+   * - 4x4 corners (0x100-0x10F): 16 tiles
+   * - Weird corners (0x110-0x117): 12 tiles
+   * - Others: 8 tiles
+   *
+   * @param object_id The object ID
+   * @return Number of tiles to read
+   */
+  int GetSubtype2TileCount(int16_t object_id) const;
+
   Rom* rom_;
 };
 

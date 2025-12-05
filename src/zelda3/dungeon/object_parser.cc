@@ -237,8 +237,9 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype2(
   uint8_t high = rom_->data()[tile_ptr + 1];
   int tile_data_ptr = kRoomObjectTileAddress + ((high << 8) | low);
 
-  // Read 8 tiles
-  return ReadTileData(tile_data_ptr, 8);
+  // Determine tile count based on object ID
+  int tile_count = GetSubtype2TileCount(object_id);
+  return ReadTileData(tile_data_ptr, tile_count);
 }
 
 absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype3(
@@ -308,6 +309,21 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ReadTileData(
   }
 
   return tiles;
+}
+
+int ObjectParser::GetSubtype2TileCount(int16_t object_id) const {
+  // 4x4 corners (0x100-0x10F): 16 tiles (32 bytes)
+  // These are RoomDraw_4x4 and RoomDraw_4x4Corner_BothBG routines
+  if (object_id >= 0x100 && object_id <= 0x10F) {
+    return 16;
+  }
+  // Weird corners (0x110-0x117): 12 tiles (24 bytes)
+  // These are RoomDraw_WeirdCornerBottom_BothBG and RoomDraw_WeirdCornerTop_BothBG
+  if (object_id >= 0x110 && object_id <= 0x117) {
+    return 12;
+  }
+  // Default: 8 tiles for other subtype 2 objects
+  return 8;
 }
 
 int ObjectParser::DetermineSubtype(int16_t object_id) const {
