@@ -1351,14 +1351,15 @@ std::string WasmControlApi::GetCurrentDungeonRoom() {
 
   // Panel visibility state
   nlohmann::json cards;
-  cards["room_selector"] = dungeon->show_room_selector_;
-  cards["room_matrix"] = dungeon->show_room_matrix_;
-  cards["entrances_list"] = dungeon->show_entrances_list_;
-  cards["room_graphics"] = dungeon->show_room_graphics_;
-  cards["object_editor"] = dungeon->show_object_editor_;
-  cards["palette_editor"] = dungeon->show_palette_editor_;
-  cards["debug_controls"] = dungeon->show_debug_controls_;
-  cards["control_panel"] = dungeon->show_control_panel_;
+  // TODO: Fix editor visibility controls
+  // cards["room_selector"] = dungeon->show_room_selector_;
+  // cards["room_matrix"] = dungeon->show_room_matrix_;
+  // cards["entrances_list"] = dungeon->show_entrances_list_;
+  // cards["room_graphics"] = dungeon->show_room_graphics_;
+  // cards["object_editor"] = dungeon->show_object_editor_;
+  // cards["palette_editor"] = dungeon->show_palette_editor_;
+  // cards["debug_controls"] = dungeon->show_debug_controls_;
+  // cards["control_panel"] = dungeon->show_control_panel_;
   result["visible_cards"] = cards;
 
   return result.dump();

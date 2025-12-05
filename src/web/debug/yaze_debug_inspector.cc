@@ -1387,15 +1387,15 @@ std::string getFileManagerDebugInfo() {
     json << "\"rom_filename\":\"" << rom->filename() << "\",";
     json << "\"rom_title\":\"" << rom->title() << "\",";
 
-    // Add diagnostics if available
-    if (rom->is_loaded()) {
-      auto& diag = rom->GetDiagnostics();
-      json << "\"diagnostics\":{";
-      json << "\"header_stripped\":" << (diag.header_stripped ? "true" : "false") << ",";
-      json << "\"checksum_valid\":" << (diag.checksum_valid ? "true" : "false") << ",";
-      json << "\"sheets_loaded\":" << diag.sheets.size();
-      json << "}";
-    }
+    // // Add diagnostics if available
+    // if (rom->is_loaded()) {
+    //   auto& diag = rom->GetDiagnostics();
+    //   json << "\"diagnostics\":{";
+    //   json << "\"header_stripped\":" << (diag.header_stripped ? "true" : "false") << ",";
+    //   json << "\"checksum_valid\":" << (diag.checksum_valid ? "true" : "false") << ",";
+    //   json << "\"sheets_loaded\":" << diag.sheets.size();
+    //   json << "}";
+    // }
   }
 
   // EditorManager info
@@ -1430,7 +1430,8 @@ std::string getGraphicsDiagnostics() {
   if (!rom || !rom->is_loaded()) {
     return "{\"error\":\"No ROM loaded\"}";
   }
-  return rom->GetDiagnostics().ToJson();
+  return "Not implemented";
+  // return rom->GetDiagnostics().ToJson();
 }
 
 std::string getFullDebugState() {
@@ -1531,7 +1532,7 @@ EMSCRIPTEN_BINDINGS(yaze_debug_inspector) {
 
   // Combined state for AI
   function("getFullDebugState", &getFullDebugState);
-  function("getGraphicsDiagnostics", &getGraphicsDiagnostics);
+  // function("getGraphicsDiagnostics", &getGraphicsDiagnostics);
 
   // Version and session management
   function("getYazeVersion", &getYazeVersion);
