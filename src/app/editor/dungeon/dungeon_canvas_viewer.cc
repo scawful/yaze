@@ -348,14 +348,14 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       ImGui::SameLine();
       ImGui::TextDisabled(ICON_MD_GRID_VIEW);
       ImGui::SameLine(0, 2);
-      // Layout: max 6 (7 valid layouts, 0-6; layout 7 is corrupt)
-      if (auto res = gui::InputHexByteEx("##Layout", &layout_val, 6, 32.f, true);
+      // Layout: 8 valid layouts (0-7)
+      if (auto res = gui::InputHexByteEx("##Layout", &layout_val, 7, 32.f, true);
           res.ShouldApply()) {
         room.layout = layout_val;
         room.MarkLayoutDirty();
         if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
       }
-      if (ImGui::IsItemHovered()) ImGui::SetTooltip("Layout (0-6)");
+      if (ImGui::IsItemHovered()) ImGui::SetTooltip("Layout (0-7)");
       ImGui::SameLine();
       ImGui::TextDisabled(ICON_MD_PEST_CONTROL);
       ImGui::SameLine(0, 2);
@@ -887,6 +887,88 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     layer_menu.subitems.push_back(layer3_item);
 
     canvas_.AddContextMenuItem(layer_menu);
+
+    // === Entity Selection Actions (Doors, Sprites, Items) ===
+    const auto& selected_entity = interaction.GetSelectedEntity();
+    const bool has_entity_selection = interaction.HasEntitySelection();
+    
+    if (has_entity_selection && rooms_) {
+      auto& room = (*rooms_)[room_id];
+      
+      // Show selected entity info header
+      std::string entity_info;
+      switch (selected_entity.type) {
+        case EntityType::Door: {
+          const auto& doors = room.GetDoors();
+          if (selected_entity.index < doors.size()) {
+            const auto& door = doors[selected_entity.index];
+            entity_info = absl::StrFormat(ICON_MD_DOOR_FRONT " Door: %s",
+                std::string(zelda3::GetDoorTypeName(door.type)).c_str());
+          }
+          break;
+        }
+        case EntityType::Sprite: {
+          const auto& sprites = room.GetSprites();
+          if (selected_entity.index < sprites.size()) {
+            const auto& sprite = sprites[selected_entity.index];
+            entity_info = absl::StrFormat(ICON_MD_PERSON " Sprite: %s (0x%02X)",
+                zelda3::ResolveSpriteName(sprite.id()), sprite.id());
+          }
+          break;
+        }
+        case EntityType::Item: {
+          const auto& items = room.GetPotItems();
+          if (selected_entity.index < items.size()) {
+            const auto& item = items[selected_entity.index];
+            entity_info = absl::StrFormat(ICON_MD_INVENTORY " Item: 0x%02X", item.item);
+          }
+          break;
+        }
+        default:
+          break;
+      }
+      
+      if (!entity_info.empty()) {
+        canvas_.AddContextMenuItem(gui::CanvasMenuItem::Disabled(entity_info));
+        
+        // Delete entity action
+        gui::CanvasMenuItem delete_entity_item(
+            "Delete Entity", ICON_MD_DELETE,
+            [this, &room, selected_entity]() {
+              switch (selected_entity.type) {
+                case EntityType::Door: {
+                  auto& doors = room.GetDoors();
+                  if (selected_entity.index < doors.size()) {
+                    doors.erase(doors.begin() + 
+                        static_cast<long>(selected_entity.index));
+                  }
+                  break;
+                }
+                case EntityType::Sprite: {
+                  auto& sprites = room.GetSprites();
+                  if (selected_entity.index < sprites.size()) {
+                    sprites.erase(sprites.begin() + 
+                        static_cast<long>(selected_entity.index));
+                  }
+                  break;
+                }
+                case EntityType::Item: {
+                  auto& items = room.GetPotItems();
+                  if (selected_entity.index < items.size()) {
+                    items.erase(items.begin() + 
+                        static_cast<long>(selected_entity.index));
+                  }
+                  break;
+                }
+                default:
+                  break;
+              }
+              object_interaction_.ClearEntitySelection();
+            },
+            "Del");
+        canvas_.AddContextMenuItem(delete_entity_item);
+      }
+    }
   }
 
   // CRITICAL: Draw canvas with explicit size to ensure viewport matches content
@@ -952,7 +1034,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       static bool enable_override = false;
       ImGui::Checkbox("Enable Override", &enable_override);
       if (enable_override) {
-        ImGui::SliderInt("Layout ID", &layout_override_, 0, 6);
+        ImGui::SliderInt("Layout ID", &layout_override_, 0, 7);
       } else {
         layout_override_ = -1;  // Disable override
       }

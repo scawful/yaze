@@ -147,7 +147,9 @@ class SpriteEditorPanel : public EditorPanel {
       ImGui::PushStyleColor(ImGuiCol_ButtonActive, 
           ImVec4(button_color.x + 0.2f, button_color.y + 0.2f, button_color.z + 0.2f, 1.0f));
       
-      std::string label = absl::StrFormat("%02X", i);
+      // Get category icon based on sprite type
+      const char* icon = GetSpriteTypeIcon(i);
+      std::string label = absl::StrFormat("%s\n%02X", icon, i);
       if (ImGui::Button(label.c_str(), ImVec2(kPreviewSize, kPreviewSize))) {
         selected_sprite_id_ = i;
         placement_mode_ = true;
@@ -159,8 +161,9 @@ class SpriteEditorPanel : public EditorPanel {
       ImGui::PopStyleColor(3);
       
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("%s (0x%02X)\nClick to select for placement",
-            zelda3::ResolveSpriteName(i), i);
+        const char* category = GetSpriteCategoryName(i);
+        ImGui::SetTooltip("%s (0x%02X)\n[%s]\nClick to select for placement",
+            zelda3::ResolveSpriteName(i), i, category);
       }
       
       // Selection highlight
@@ -261,6 +264,29 @@ class SpriteEditorPanel : public EditorPanel {
       return ImVec4(0.7f, 0.7f, 0.3f, 1.0f);  // Yellow for items
     }
     return ImVec4(0.3f, 0.5f, 0.7f, 1.0f);  // Blue for enemies
+  }
+
+  const char* GetSpriteTypeIcon(int sprite_id) {
+    // Return category-appropriate icons
+    if (sprite_id >= 0xC0 && sprite_id <= 0xD8) {
+      return ICON_MD_DANGEROUS;  // Skull for bosses
+    } else if (sprite_id >= 0x80 && sprite_id <= 0xBF) {
+      return ICON_MD_PERSON;  // Person for NPCs
+    } else if (sprite_id >= 0xD9) {
+      return ICON_MD_STAR;  // Star for items
+    }
+    return ICON_MD_PEST_CONTROL;  // Bug for enemies
+  }
+
+  const char* GetSpriteCategoryName(int sprite_id) {
+    if (sprite_id >= 0xC0 && sprite_id <= 0xD8) {
+      return "Boss";
+    } else if (sprite_id >= 0x80 && sprite_id <= 0xBF) {
+      return "NPC";
+    } else if (sprite_id >= 0xD9) {
+      return "Item";
+    }
+    return "Enemy";
   }
 
   int* current_room_id_ = nullptr;

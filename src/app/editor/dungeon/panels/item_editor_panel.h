@@ -167,7 +167,9 @@ class ItemEditorPanel : public EditorPanel {
       ImGui::PushStyleColor(ImGuiCol_ButtonActive, 
           ImVec4(button_color.x + 0.2f, button_color.y + 0.2f, button_color.z + 0.2f, 1.0f));
       
-      std::string label = absl::StrFormat("%02X", static_cast<int>(i));
+      // Get icon and short name for item
+      const char* icon = GetItemTypeIcon(static_cast<int>(i));
+      std::string label = absl::StrFormat("%s\n%02X", icon, static_cast<int>(i));
       if (ImGui::Button(label.c_str(), ImVec2(kPreviewSize, kPreviewSize))) {
         selected_item_id_ = static_cast<int>(i);
         placement_mode_ = true;
@@ -258,6 +260,48 @@ class ItemEditorPanel : public EditorPanel {
       return ImVec4(0.5f, 0.3f, 0.7f, 1.0f);  // Purple for special
     }
     return ImVec4(0.3f, 0.5f, 0.7f, 1.0f);  // Blue default
+  }
+
+  const char* GetItemTypeIcon(int item_id) {
+    // Return item-type-appropriate icons
+    if (item_id == 0 || item_id == 22) {
+      return ICON_MD_BLOCK;  // Nothing
+    } else if (item_id == 1 || item_id == 7) {
+      return ICON_MD_MONETIZATION_ON;  // Rupees (green/blue)
+    } else if (item_id == 4 || item_id == 6 || item_id == 11 || item_id == 19 || item_id == 21) {
+      return ICON_MD_FAVORITE;  // Hearts
+    } else if (item_id == 8) {
+      return ICON_MD_KEY;  // Key
+    } else if (item_id == 5 || item_id == 10) {
+      return ICON_MD_CIRCLE;  // Bombs
+    } else if (item_id == 9) {
+      return ICON_MD_ARROW_UPWARD;  // Arrows
+    } else if (item_id == 12 || item_id == 13) {
+      return ICON_MD_AUTO_AWESOME;  // Magic
+    } else if (item_id == 14) {
+      return ICON_MD_EGG;  // Cucco
+    } else if (item_id >= 15 && item_id <= 17) {
+      return ICON_MD_PERSON;  // Soldiers
+    } else if (item_id == 18) {
+      return ICON_MD_WARNING;  // Landmine
+    } else if (item_id == 20) {
+      return ICON_MD_FLUTTER_DASH;  // Fairy
+    } else if (item_id == 23) {
+      return ICON_MD_TERRAIN;  // Hole
+    } else if (item_id == 24) {
+      return ICON_MD_SWAP_HORIZ;  // Warp
+    } else if (item_id == 25) {
+      return ICON_MD_STAIRS;  // Staircase
+    } else if (item_id == 26) {
+      return ICON_MD_BROKEN_IMAGE;  // Bombable
+    } else if (item_id == 27) {
+      return ICON_MD_TOGGLE_ON;  // Switch
+    } else if (item_id == 2) {
+      return ICON_MD_LANDSCAPE;  // Rock
+    } else if (item_id == 3) {
+      return ICON_MD_BUG_REPORT;  // Bee
+    }
+    return ICON_MD_HELP;  // Unknown
   }
 
   int* current_room_id_ = nullptr;
