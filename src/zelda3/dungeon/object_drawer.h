@@ -388,6 +388,8 @@ class ObjectDrawer {
                                  std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
   void DrawGanonTriforceFloorDecor(const RoomObject& obj, gfx::BackgroundBuffer& bg,
                                    std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
+  void DrawSingle2x2(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                     std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
 
   // Utility methods
   void WriteTile8(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
