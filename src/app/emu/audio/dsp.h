@@ -136,12 +136,26 @@ class Dsp {
   const int16_t* GetSampleBuffer() const { return sampleBuffer; }
   uint16_t GetSampleOffset() const { return sampleOffset; }
 
+  // Reset sample buffer state for clean playback start
+  // Clears the ring buffer and resets position tracking
+  void ResetSampleBuffer();
+
+  // Debug accessors for diagnostic UI
+  uint32_t GetFrameBoundary() const { return lastFrameBoundary; }
+  int8_t GetMasterVolumeL() const { return masterVolumeL; }
+  int8_t GetMasterVolumeR() const { return masterVolumeR; }
+  bool IsMuted() const { return mute; }
+  bool IsReset() const { return reset; }
+  bool IsEchoEnabled() const { return echoWrites; }
+  uint16_t GetEchoDelay() const { return echoDelay; }
+
   // Default to Gaussian for authentic SNES sound
   InterpolationType interpolation_type = InterpolationType::Gaussian;
 
  private:
-  // sample ring buffer (1024 samples, *2 for stereo)
-  int16_t sampleBuffer[0x400 * 2];
+  // sample ring buffer (2048 samples, *2 for stereo)
+  // Increased to 2048 to handle 2-frame updates (~1066 samples) without overflow
+  int16_t sampleBuffer[0x800 * 2];
   uint16_t sampleOffset;  // current offset in samplebuffer
 
   bool debug_mute_channels_[8] = {false};

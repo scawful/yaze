@@ -3,11 +3,9 @@
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
-#include <fstream>
 #include <vector>
 
 #include "app/editor/system/panel_manager.h"
-#include "app/platform/window.h"
 #include "util/log.h"
 
 namespace yaze::core {
@@ -37,6 +35,8 @@ namespace {
 // Using 32040 ensures we generate enough samples to prevent buffer underruns.
 constexpr int kNativeSampleRate = 32040;
 
+constexpr int kMusicEditorSampleRate = 22050;
+
 // Accurate SNES frame rates based on master clock calculations
 // NTSC: 21477272 Hz / (262 * 341) = ~60.0988 Hz
 // PAL:  21281370 Hz / (312 * 341) = ~50.007 Hz
@@ -48,7 +48,7 @@ constexpr double kPalFrameRate = 50.007;
 // Value of 1.0 means no calibration. Values < 1.0 slow down playback.
 // This can be exposed as a user-adjustable setting if needed.
 constexpr double kSpeedCalibration = 1.0;
-}
+}  // namespace
 
 Emulator::~Emulator() {
   // Don't call Cleanup() in destructor - renderer is already destroyed
@@ -95,8 +95,8 @@ void Emulator::ResumeAudio() {
 
 void Emulator::set_interpolation_type(int type) {
   if (!snes_initialized_) return;
-  // Clamp to valid range (0-3)
-  int safe_type = std::clamp(type, 0, 3);
+  // Clamp to valid range (0-4)
+  int safe_type = std::clamp(type, 0, 4);
   snes_.apu().dsp().interpolation_type = static_cast<InterpolationType>(safe_type);
 }
 
@@ -119,7 +119,7 @@ void Emulator::Initialize(gfx::IRenderer* renderer,
     audio_stream_env_checked_ = true;
   }
 
-  // Cards are registered in EditorManager::Initialize() to avoid duplication
+  // Panels are registered in EditorManager::Initialize() to avoid duplication
 
   // Reset state for new ROM
   running_ = false;
@@ -211,7 +211,7 @@ bool Emulator::EnsureInitialized(Rom* rom) {
     // When resampling is enabled (which we just did above), we need to generate
     // samples at the NATIVE rate (32kHz). The backend will resample them to 48kHz.
     // Calculate samples per frame based on actual frame rate for accurate timing.
-    wanted_samples_ = static_cast<int>(kNativeSampleRate / frame_rate + 0.5);
+    wanted_samples_ = static_cast<int>(std::lround(kNativeSampleRate / frame_rate));
     snes_initialized_ = true;
 
     count_frequency = SDL_GetPerformanceFrequency();
@@ -248,9 +248,7 @@ void Emulator::RunFrameOnly() {
   last_count = current_count;
   double seconds = delta / (double)count_frequency;
 
-  // Apply playback speed multiplier to time accumulation
-  // Lower speed = less time added = fewer frames processed = slower playback
-  time_adder += seconds * static_cast<double>(playback_speed_);
+  time_adder += seconds;
 
   // Cap time accumulation to prevent runaway (max 2 frames worth)
   double max_accumulation = wanted_frames_ * 2.0;
@@ -262,23 +260,8 @@ void Emulator::RunFrameOnly() {
   int frames_processed = 0;
   constexpr int kMaxFramesPerUpdate = 2;
 
-  // Local buffer for native sample path
-  // Size increased for Varispeed support (see RunAudioFrame)
-  static int16_t native_audio_buffer[8192];
-
-  // Calculate dynamic sample count for Varispeed (tape effect)
-  // Slow speed -> more samples per frame to stretch audio
-  // Fast speed -> fewer samples per frame to shrink audio
-  // But we need to feed the backend at a constant rate (e.g. 48kHz).
-  // So we adjust the amount of SOURCE data we process per output batch.
-  // Actually, Snes::SetSamples takes OUTPUT count.
-  // We want to output 800 samples (for 48k).
-  // But we want to consume `1/speed` times the source data? No.
-  // If we run at 0.5x speed, we run 30 frames/sec.
-  // We generate 30 batches of audio.
-  // Each batch MUST be 1600 samples (33ms) to fill the 1s buffer.
-  // So: wanted_samples_adjusted = wanted_samples_ / speed.
-  int samples_to_generate = static_cast<int>(wanted_samples_ / playback_speed_);
+  // Local buffer for audio samples (533 stereo samples per frame)
+  static int16_t native_audio_buffer[2048];
 
   while (time_adder >= wanted_frames_ && frames_processed < kMaxFramesPerUpdate) {
     time_adder -= wanted_frames_;
@@ -293,17 +276,23 @@ void Emulator::RunFrameOnly() {
     // Queue audio samples (always resampled to backend rate)
     if (audio_backend_) {
       auto status = audio_backend_->GetStatus();
-      const uint32_t max_buffer = static_cast<uint32_t>(samples_to_generate * 6);
+      const uint32_t max_buffer = static_cast<uint32_t>(wanted_samples_ * 6);
 
       if (status.queued_frames < max_buffer) {
-        snes_.SetSamples(native_audio_buffer, samples_to_generate);
+        snes_.SetSamples(native_audio_buffer, wanted_samples_);
         // Try native rate resampling first (if audio stream is enabled)
         // Falls back to direct queueing if not available
         if (!audio_backend_->QueueSamplesNative(native_audio_buffer,
-                                                samples_to_generate, 2,
+                                                wanted_samples_, 2,
                                                 kNativeSampleRate)) {
-          audio_backend_->QueueSamples(native_audio_buffer,
-                                       samples_to_generate * 2);
+          static int log_counter = 0;
+          if (++log_counter % 60 == 0) {
+            int backend_rate = audio_backend_->GetConfig().sample_rate;
+            LOG_WARN("Emulator",
+                     "Resampling failed (Native=%d, Backend=%d) - Dropping "
+                     "audio to prevent speedup/pitch shift",
+                     kNativeSampleRate, backend_rate);
+          }
         }
       }
     }
@@ -323,118 +312,55 @@ void Emulator::ResetFrameTiming() {
 }
 
 void Emulator::RunAudioFrame() {
-  // Audio-focused frame execution for music editor
-  // Runs CPU+APU without PPU rendering for lower overhead and authentic sound
+  // Simplified audio-focused frame execution for music editor
+  // Runs exactly one SNES frame per call - caller controls timing
 
   if (!snes_initialized_ || !running_) {
     return;
   }
 
   // Ensure audio stream resampling is configured (32040 Hz -> 48000 Hz)
-  // Without this, samples are fed at wrong rate causing 1.5x speedup
   if (audio_backend_ && audio_stream_config_dirty_) {
     if (use_sdl_audio_stream_ && audio_backend_->SupportsAudioStream()) {
       audio_backend_->SetAudioStreamResampling(true, kNativeSampleRate, 2);
       audio_stream_active_ = true;
-    } else {
-      audio_backend_->SetAudioStreamResampling(false, kNativeSampleRate, 2);
-      audio_stream_active_ = false;
     }
     audio_stream_config_dirty_ = false;
   }
 
-  // --- Varispeed Audio Logic ---
-  // Playback speed controls both tempo and pitch (tape-style varispeed).
-  // 1. Frame timing is scaled by playback_speed_ - slower speed = fewer frames/sec
-  // 2. Sample count is inversely scaled - slower speed = more samples per frame
-  // This keeps the audio buffer fed at a consistent rate while changing playback rate.
-  // --- End Varispeed Audio Logic ---
+  // Run exactly one SNES audio frame
+  // Note: NewFrame() is called inside Snes::RunCycle() at vblank start
+  snes_.RunAudioFrame();
 
-  // Calculate timing with high precision
-  uint64_t current_count = SDL_GetPerformanceCounter();
-  uint64_t delta = current_count - last_count;
-  last_count = current_count;
-  
-  // Convert to seconds with calibration factor applied
-  double seconds = (delta / static_cast<double>(count_frequency)) * kSpeedCalibration;
+  // Queue audio samples to backend
+  if (audio_backend_) {
+    static int16_t audio_buffer[2048];  // 533 stereo samples max
+    snes_.SetSamples(audio_buffer, wanted_samples_);
 
-  // Apply playback speed to timing
-  // Effective speed = playback_speed_ (e.g., 0.5x runs at half real-time)
-  time_adder += seconds * static_cast<double>(playback_speed_);
+    bool queued = audio_backend_->QueueSamplesNative(
+        audio_buffer, wanted_samples_, 2, kNativeSampleRate);
 
-  // Cap time accumulation to prevent runaway after pauses or frame drops
-  // Allow up to 2 frames of accumulation to handle minor timing variations
-  const double max_accumulation = wanted_frames_ * 2.0;
-  if (time_adder > max_accumulation) {
-    time_adder = max_accumulation;
-  }
+    // Diagnostic: Log first few calls and then periodically
+    static int frame_log_count = 0;
+    if (frame_log_count < 5 || frame_log_count % 300 == 0) {
+      LOG_INFO("Emulator", "RunAudioFrame: wanted=%d, queued=%s, stream=%s",
+               wanted_samples_, queued ? "YES" : "NO",
+               audio_stream_active_ ? "active" : "inactive");
+    }
+    frame_log_count++;
 
-  // Process frames - limit to 2 frames max per update to prevent audio glitches
-  int frames_processed = 0;
-  constexpr int kMaxFramesPerUpdate = 2;
+    if (!queued && audio_backend_->SupportsAudioStream()) {
+      // Try to re-enable resampling and retry once
+      LOG_INFO("Emulator", "RunAudioFrame: First queue failed, re-enabling resampling");
+      audio_backend_->SetAudioStreamResampling(true, kNativeSampleRate, 2);
+      audio_stream_active_ = true;
+      queued = audio_backend_->QueueSamplesNative(
+          audio_buffer, wanted_samples_, 2, kNativeSampleRate);
+      LOG_INFO("Emulator", "RunAudioFrame: Retry queued=%s", queued ? "YES" : "NO");
+    }
 
-  // Local buffer for native sample path
-  // Size calculation: 32kHz / 60fps ≈ 533 samples/frame base.
-  // At 0.25x speed (slowest), we generate 4x samples = ~2132 samples/frame.
-  // Stereo = 4264 samples. Add safety margin -> 8192.
-  static int16_t native_audio_buffer[8192];
-
-  // Calculate dynamic sample count for Varispeed (tape effect)
-  // At slower speeds, we generate more samples to stretch the audio
-  // At faster speeds, we generate fewer samples to compress the audio
-  int samples_to_generate = static_cast<int>(wanted_samples_ / playback_speed_);
-  
-  // Clamp to reasonable range to prevent buffer issues
-  samples_to_generate = std::clamp(samples_to_generate, 100, 4000);
-
-  while (time_adder >= wanted_frames_ && frames_processed < kMaxFramesPerUpdate) {
-    time_adder -= wanted_frames_;
-    frames_processed++;
-
-    // Mark frame boundary for DSP sample reading (required for GetSamples)
-    snes_.apu().dsp().NewFrame();
-
-    // Run SNES audio-focused frame (skips PPU rendering for performance)
-    snes_.RunAudioFrame();
-
-    // Queue audio samples to backend
-    if (audio_backend_) {
-      auto status = audio_backend_->GetStatus();
-      
-      // Adaptive buffer management: keep buffer reasonably full but not overflowing
-      // Target ~4-6 frames worth of audio for smooth playback without latency
-      const uint32_t target_buffer = static_cast<uint32_t>(samples_to_generate * 5);
-      
-      if (status.queued_frames < target_buffer) {
-        snes_.SetSamples(native_audio_buffer, samples_to_generate);
-        
-        // Dynamic Rate Control (DRC)
-        // Adjust output rate based on buffer fill level to prevent drift
-        // NOTE: effective_rate is ALWAYS the native rate. Speed changes happen
-        // because we generate MORE/LESS data (samples_to_generate) for the same
-        // real-time interval. Multiplying by playback_speed_ here would double-apply
-        // the speed change (once in content generation, once in resampling).
-        int effective_rate = kNativeSampleRate;
-        const uint32_t optimal_buffer = 2048; // ~40ms target latency
-        
-        // Feedback loop:
-        // Buffer too full? -> Play faster (increase rate) -> Drains buffer
-        // Buffer too empty? -> Play slower (decrease rate) -> Fills buffer
-        if (status.queued_frames > optimal_buffer + 512) {
-           effective_rate += 100; // Speed up consumption
-        } else if (status.queued_frames < optimal_buffer - 512) {
-           effective_rate -= 100; // Slow down consumption
-        }
-
-        // Try native rate resampling first (if audio stream is enabled)
-        // Falls back to direct queueing if not available
-        if (!audio_backend_->QueueSamplesNative(native_audio_buffer,
-                                                samples_to_generate, 2,
-                                                effective_rate)) {
-          audio_backend_->QueueSamples(native_audio_buffer,
-                                       samples_to_generate * 2);
-        }
-      }
+    if (!queued) {
+      LOG_WARN("Emulator", "RunAudioFrame: AUDIO DROPPED - resampling not working!");
     }
   }
 }
@@ -529,7 +455,7 @@ void Emulator::Run(Rom* rom) {
     wanted_frames_ = 1.0 / frame_rate;
     // Use native SNES sample rate (32kHz), not backend rate (48kHz)
     // The audio backend handles resampling from 32kHz -> 48kHz
-    wanted_samples_ = static_cast<int>(kNativeSampleRate / frame_rate + 0.5);
+    wanted_samples_ = static_cast<int>(std::lround(kNativeSampleRate / frame_rate));
     snes_initialized_ = true;
 
     count_frequency = SDL_GetPerformanceFrequency();
@@ -675,12 +601,11 @@ void Emulator::Run(Rom* rom) {
             auto audio_status = audio_backend_->GetStatus();
             queued_frames = audio_status.queued_frames;
 
-            // Synchronize DSP frame boundary for resampling
-            snes_.apu().dsp().NewFrame();
+            // Note: NewFrame() is called by RunCycle() at vblank start
+            // Do NOT call it here - that corrupts the DSP ring buffer boundary
 
-            // Target buffer: ~6 frames scaled by playback speed
-            const uint32_t samples_per_frame =
-                static_cast<uint32_t>(wanted_samples_ / playback_speed_);
+            // Target buffer: ~6 frames worth of audio samples
+            const uint32_t samples_per_frame = wanted_samples_;
             const uint32_t max_buffer = samples_per_frame * 6;
 
             if (queued_frames < max_buffer) {
@@ -707,10 +632,8 @@ void Emulator::Run(Rom* rom) {
               };
 
               // Always resample to backend rate for consistent tempo
-              int samples_to_generate =
-                  static_cast<int>(wanted_samples_ / playback_speed_);
-              snes_.SetSamples(audio_buffer_, samples_to_generate);
-              const int num_samples = samples_to_generate * 2;  // Stereo
+              snes_.SetSamples(audio_buffer_, wanted_samples_);
+              const int num_samples = wanted_samples_ * 2;  // Stereo
               compute_rms(num_samples);
               
               // Dynamic Rate Control (DRC)
@@ -725,19 +648,27 @@ void Emulator::Run(Rom* rom) {
                  effective_rate -= 60; // Subtle slow down
               }
 
-              // Try native rate resampling first (if audio stream is enabled)
-              // Falls back to direct queueing if not available
+              // Queue samples using native rate resampling (32040 Hz -> device rate)
+              // CRITICAL: Do NOT fallback to direct QueueSamples() as that would
+              // play 32040 Hz samples at 48000 Hz, causing 1.5x speed bug!
               queue_ok = audio_backend_->QueueSamplesNative(
-                  audio_buffer_, samples_to_generate, 2, effective_rate);
-              if (!queue_ok) {
-                queue_ok = audio_backend_->QueueSamples(audio_buffer_, num_samples);
+                  audio_buffer_, wanted_samples_, 2, effective_rate);
+
+              if (!queue_ok && audio_backend_->SupportsAudioStream()) {
+                // Try to re-enable resampling and retry once
+                audio_backend_->SetAudioStreamResampling(true, kNativeSampleRate, 2);
+                audio_stream_active_ = true;
+                queue_ok = audio_backend_->QueueSamplesNative(
+                    audio_buffer_, wanted_samples_, 2, effective_rate);
               }
 
               if (!queue_ok) {
+                // Drop audio rather than playing at wrong speed
                 static int error_count = 0;
                 if (++error_count % 300 == 0) {
                   LOG_WARN("Emulator",
-                           "Failed to queue audio (count: %d, stream=%s)",
+                           "Resampling failed, dropping audio to prevent 1.5x speed "
+                           "(count: %d, stream=%s)",
                            error_count, use_native_stream ? "SDL" : "manual");
                 }
               }
@@ -883,7 +814,7 @@ std::vector<float> Emulator::RomBankFreeBytes() const {
 void Emulator::RenderEmulatorInterface() {
   try {
     if (!panel_manager_)
-      return;  // Card registry must be injected
+      return;  // Panel registry must be injected
 
     static gui::PanelWindow cpu_card("CPU Debugger", ICON_MD_MEMORY);
     static gui::PanelWindow ppu_card("PPU Viewer", ICON_MD_VIDEOGAME_ASSET);

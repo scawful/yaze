@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 
 #include "app/emu/emulator.h"
 #include "app/emu/audio/audio_backend.h"
@@ -35,7 +36,7 @@ PlaybackState MusicPlayer::GetState() const {
   state.playing_song_index = playing_song_index_;
   state.current_tick = GetCurrentPlaybackTick();
   state.current_segment_index = playback_segment_index_;
-  state.playback_speed = playback_speed_;
+  state.playback_speed = 1.0f;  // Always 1.0x - varispeed removed
   state.ticks_per_second = ticks_per_second_;
   return state;
 }
@@ -75,26 +76,44 @@ void MusicPlayer::Update() {
   // Run audio frame if we're playing and have an initialized emulator
   if (audio_emulator_ && audio_emulator_->is_snes_initialized() &&
       audio_emulator_->running()) {
-    // Use audio-focused frame execution for efficient playback
-    if (audio_emulator_->is_audio_focus_mode()) {
-      audio_emulator_->RunAudioFrame();
-    } else {
-      audio_emulator_->RunFrameOnly();
+    // Simple frame pacing: check if enough time has passed for one frame
+    auto now = std::chrono::steady_clock::now();
+    auto elapsed = std::chrono::duration<double>(now - last_frame_time_).count();
+
+    // NTSC frame time: 1/60.0988 ≈ 16.64ms
+    constexpr double kFrameTime = 1.0 / 60.0988;
+
+    if (elapsed >= kFrameTime) {
+      last_frame_time_ = now;
+
+      // Use simplified audio frame execution (RunAudioFrame processes exactly 1 frame)
+      if (audio_emulator_->is_audio_focus_mode()) {
+        audio_emulator_->RunAudioFrame();
+      } else {
+        audio_emulator_->RunFrameOnly();
+      }
     }
 
-    // Log Timer 0 fires per frame (Diagnostic)
-    // Note: We can't easily access Timer 0 fires here without modifying APU.
-    //    // static int timer0_log = 0;
-    // if (++timer0_log % 60 == 0) {
-    //   uint64_t apu_cycles = audio_emulator_->snes().apu().GetCycles();
-    //   uint64_t delta = apu_cycles - last_apu_cycles_;
-    //   last_apu_cycles_ = apu_cycles;
-    //   LOG_INFO("MusicPlayer", "APU Cycles/Frame: %llu (Expected ~17000)", delta);
-    // }
-
-    // Debug: log audio status periodically
+    // Debug: log APU cycle rate periodically
     static int debug_counter = 0;
+    static uint64_t last_apu_cycles = 0;
+    static auto last_log_time = std::chrono::steady_clock::now();
+
     if (++debug_counter % 60 == 0) {
+      uint64_t apu_cycles = audio_emulator_->snes().apu().GetCycles();
+      auto now_log = std::chrono::steady_clock::now();
+      auto log_elapsed = std::chrono::duration<double>(now_log - last_log_time).count();
+
+      uint64_t cycle_delta = apu_cycles - last_apu_cycles;
+      double cycles_per_sec = cycle_delta / log_elapsed;
+      double rate_ratio = cycles_per_sec / 1024000.0;
+
+      LOG_INFO("MusicPlayer", "APU: %llu cycles in %.2fs = %.0f/sec (%.2fx expected)",
+               cycle_delta, log_elapsed, cycles_per_sec, rate_ratio);
+
+      last_apu_cycles = apu_cycles;
+      last_log_time = now_log;
+
       if (auto* audio = audio_emulator_->audio_backend()) {
         auto status = audio->GetStatus();
         LOG_DEBUG("MusicPlayer", "Audio: playing=%d queued=%u bytes=%u",
@@ -166,17 +185,34 @@ bool MusicPlayer::EnsureAudioReady() {
   // Force 0.5x speed for testing
   // playback_speed_ = 0.5f; // Removed diagnostic
 
+  // CRITICAL: Enable SDL audio stream mode on the emulator FIRST.
+  // This ensures RunAudioFrame() will maintain the resampling configuration
+  // instead of disabling it (which happens when use_sdl_audio_stream_ is false).
+  // Without this, the first call to RunAudioFrame() would see audio_stream_config_dirty_=true
+  // and disable the resampling we're about to set up, causing 1.5x playback speed.
+  audio_emulator_->set_use_sdl_audio_stream(true);
+  LOG_INFO("MusicPlayer", "Set use_sdl_audio_stream=true, wanted_samples=%d",
+           audio_emulator_->wanted_samples());
+
   // Enable audio stream resampling for proper 32kHz -> 48kHz conversion
   // This is crucial for correct playback speed
   if (auto* audio = audio_emulator_->audio_backend()) {
+    auto config = audio->GetConfig();
+    LOG_INFO("MusicPlayer", "Audio backend: %s, config=%dHz/%dch, initialized=%d",
+             audio->GetBackendName().c_str(), config.sample_rate, config.channels,
+             audio->IsInitialized());
+
     if (audio->SupportsAudioStream()) {
+      LOG_INFO("MusicPlayer", "Calling SetAudioStreamResampling(%d Hz -> %d Hz)",
+               kNativeSampleRate, config.sample_rate);
       audio->SetAudioStreamResampling(true, kNativeSampleRate, 2);
+      // Prevent RunAudioFrame() from overriding our configuration
+      audio_emulator_->mark_audio_stream_configured();
+      LOG_INFO("MusicPlayer", "Audio stream resampling enabled: %dHz -> %dHz",
+               kNativeSampleRate, config.sample_rate);
     } else {
-      static bool warned = false;
-      if (!warned) {
-        LOG_WARN("MusicPlayer", "Audio backend does not support resampling stream");
-        warned = true;
-      }
+      LOG_WARN("MusicPlayer", "Audio backend does not support resampling stream - "
+               "AUDIO WILL PLAY AT WRONG SPEED!");
     }
   } else {
     LOG_ERROR("MusicPlayer", "No audio backend available!");
@@ -324,6 +360,9 @@ void MusicPlayer::PlaySong(int song_index) {
   uint8_t tempo = song ? GetSongTempo(*song) : 150;
   ticks_per_second_ = CalculateTicksPerSecond(tempo);
 
+  // Initialize frame timing for Update() loop - CRITICAL for correct playback speed
+  last_frame_time_ = std::chrono::steady_clock::now();
+
   TransitionTo(PlaybackMode::Playing);
 }
 
@@ -402,27 +441,27 @@ void MusicPlayer::PlaySongDirect(int song_id) {
     audio->Clear();
   }
 
-  // Prime the audio buffer: mark frame boundary FIRST, then generate a full
-  // frame of audio. This ensures GetSamples() has valid data to read from.
+  // Reset DSP sample buffer for clean start - prevents stale samples from
+  // previous playback causing timing/position issues on first play
   auto& dsp = audio_emulator_->snes().apu().dsp();
-  dsp.NewFrame();
+  dsp.ResetSampleBuffer();
 
   // Run one full frame worth of audio generation to fill the buffer
-  // This is critical for first-play synchronization
+  // Note: RunAudioFrame() handles NewFrame() internally at vblank
   audio_emulator_->snes().RunAudioFrame();
-  dsp.NewFrame();
 
   // Now reset timing and start playback with buffer already primed
   audio_emulator_->ResetFrameTiming();
-  audio_emulator_->set_playback_speed(playback_speed_);
 
   // Prime the audio queue with initial samples
   constexpr int kNativeSampleRate = 32040;
   constexpr int kInitialSamples = 533;  // ~1 frame worth
   static int16_t prime_buffer[2048];
+  std::memset(prime_buffer, 0, sizeof(prime_buffer));
   audio_emulator_->snes().SetSamples(prime_buffer, kInitialSamples);
   if (auto* audio = audio_emulator_->audio_backend()) {
-    audio->QueueSamplesNative(prime_buffer, kInitialSamples, 2, kNativeSampleRate);
+    bool queued = audio->QueueSamplesNative(prime_buffer, kInitialSamples, 2, kNativeSampleRate);
+    LOG_INFO("MusicPlayer", "Initial samples queued: %s", queued ? "YES" : "NO (RESAMPLING FAILED!)");
   }
 
   // Start audio playback
@@ -432,14 +471,23 @@ void MusicPlayer::PlaySongDirect(int song_id) {
     constexpr int kPrimeFrames = 6;
     constexpr int kPrimeSamples = 533 * kPrimeFrames;
     std::vector<int16_t> silence(kPrimeSamples * 2, 0); // Stereo
-    
-    // Use the native rate (32040) so it gets resampled correctly if needed
-    constexpr int kNativeSampleRate = 32040;
-    audio->QueueSamplesNative(silence.data(), kPrimeSamples, 2, kNativeSampleRate);
 
-    if (!audio->GetStatus().is_playing) {
-      audio->Play();
-    }
+    // Use the native rate (32040) so it gets resampled correctly if needed
+    constexpr int kNativeSampleRate2 = 32040;
+    bool silenceQueued = audio->QueueSamplesNative(silence.data(), kPrimeSamples, 2, kNativeSampleRate2);
+    LOG_INFO("MusicPlayer", "Silence buffer queued: %s", silenceQueued ? "YES" : "NO (RESAMPLING FAILED!)");
+
+    auto status = audio->GetStatus();
+    LOG_INFO("MusicPlayer", "Audio status before Play(): playing=%d, queued_frames=%u",
+             status.is_playing, status.queued_frames);
+
+    // Always call Play() to ensure audio device is ready
+    // SDL's Play() is idempotent - safe to call even if already playing
+    audio->Play();
+
+    status = audio->GetStatus();
+    LOG_INFO("MusicPlayer", "Audio status after Play(): playing=%d, queued_frames=%u",
+             status.is_playing, status.queued_frames);
   }
 
   // Enable audio-focused mode for efficient playback
@@ -455,6 +503,9 @@ void MusicPlayer::PlaySongDirect(int song_id) {
   // Calculate timing for this song
   uint8_t tempo = GetSongTempo(*song);
   ticks_per_second_ = CalculateTicksPerSecond(tempo);
+
+  // Initialize frame timing for Update() loop - CRITICAL for correct playback speed
+  last_frame_time_ = std::chrono::steady_clock::now();
 
   TransitionTo(PlaybackMode::Playing);
   LOG_INFO("MusicPlayer", "Started playing song %d at %.1f ticks/sec",
@@ -493,6 +544,9 @@ void MusicPlayer::Resume() {
 
   // Start counting from where we paused
   playback_start_time_ = std::chrono::steady_clock::now();
+
+  // Initialize frame timing for Update() loop - CRITICAL for correct playback speed
+  last_frame_time_ = std::chrono::steady_clock::now();
 
   TransitionTo(PlaybackMode::Playing);
   LOG_DEBUG("MusicPlayer", "Resumed from tick %u", playback_start_tick_);
@@ -537,11 +591,9 @@ void MusicPlayer::SetVolume(float volume) {
   }
 }
 
-void MusicPlayer::SetPlaybackSpeed(float speed) {
-  playback_speed_ = std::clamp(speed, 0.25f, 2.0f);
-  if (audio_emulator_) {
-    audio_emulator_->set_playback_speed(playback_speed_);
-  }
+void MusicPlayer::SetPlaybackSpeed(float /*speed*/) {
+  // Varispeed removed - always plays at 1.0x speed for correct audio timing
+  // The playback_speed_ member no longer exists
 }
 
 void MusicPlayer::SetInterpolationType(int type) {
@@ -638,13 +690,10 @@ float MusicPlayer::CalculateTicksPerSecond(uint8_t tempo) const {
 
 uint32_t MusicPlayer::GetCurrentPlaybackTick() const {
   if (!is_playing_ || is_paused_) return playback_start_tick_;
-  
+
   auto now = std::chrono::steady_clock::now();
   float elapsed_seconds = std::chrono::duration<float>(now - playback_start_time_).count();
-  
-  // Adjust for playback speed
-  elapsed_seconds *= playback_speed_;
-  
+
   return playback_start_tick_ + static_cast<uint32_t>(elapsed_seconds * ticks_per_second_);
 }
 
@@ -704,8 +753,9 @@ void MusicPlayer::PreviewNote(const zelda3::music::MusicSong& song,
 
   for (int i = 0; i < kSpcPreviewCycles; i++) apu.Cycle();
 
-  // Prime the audio buffer for immediate playback
+  // Reset DSP sample buffer and prime for immediate playback
   auto& dsp = audio_emulator_->snes().apu().dsp();
+  dsp.ResetSampleBuffer();
   dsp.NewFrame();
   audio_emulator_->snes().RunAudioFrame();
   dsp.NewFrame();
@@ -716,6 +766,7 @@ void MusicPlayer::PreviewNote(const zelda3::music::MusicSong& song,
   constexpr int kNativeSampleRate = 32040;
   constexpr int kInitialSamples = 533;
   static int16_t prime_buffer[2048];
+  std::memset(prime_buffer, 0, sizeof(prime_buffer));
   audio_emulator_->snes().SetSamples(prime_buffer, kInitialSamples);
   if (auto* audio = audio_emulator_->audio_backend()) {
     audio->QueueSamplesNative(prime_buffer, kInitialSamples, 2, kNativeSampleRate);
@@ -724,6 +775,9 @@ void MusicPlayer::PreviewNote(const zelda3::music::MusicSong& song,
 
   audio_emulator_->set_audio_focus_mode(true);
   audio_emulator_->set_running(true);
+
+  // Initialize frame timing for Update() loop - CRITICAL for correct playback speed
+  last_frame_time_ = std::chrono::steady_clock::now();
 
   TransitionTo(PlaybackMode::Previewing);
 }
@@ -791,19 +845,20 @@ void MusicPlayer::PreviewSegment(const zelda3::music::MusicSong& song, int segme
   apu.in_ports_[0] = 1;
   apu.in_ports_[1] = trigger;
 
-  // Prime the audio buffer for immediate playback
+  // Reset DSP sample buffer and prime for immediate playback
   auto& dsp = audio_emulator_->snes().apu().dsp();
+  dsp.ResetSampleBuffer();
   dsp.NewFrame();
   audio_emulator_->snes().RunAudioFrame();
   dsp.NewFrame();
 
   audio_emulator_->ResetFrameTiming();
-  audio_emulator_->set_playback_speed(playback_speed_);
 
   // Queue initial samples
   constexpr int kNativeSampleRate = 32040;
   constexpr int kInitialSamples = 533;
   static int16_t prime_buffer[2048];
+  std::memset(prime_buffer, 0, sizeof(prime_buffer));
   audio_emulator_->snes().SetSamples(prime_buffer, kInitialSamples);
   if (auto* audio = audio_emulator_->audio_backend()) {
     audio->QueueSamplesNative(prime_buffer, kInitialSamples, 2, kNativeSampleRate);
@@ -825,6 +880,9 @@ void MusicPlayer::PreviewSegment(const zelda3::music::MusicSong& song, int segme
 
   uint8_t tempo = GetSongTempo(song);
   ticks_per_second_ = CalculateTicksPerSecond(tempo);
+
+  // Initialize frame timing for Update() loop - CRITICAL for correct playback speed
+  last_frame_time_ = std::chrono::steady_clock::now();
 
   // Use Previewing mode to indicate we're in preview, not full playback
   TransitionTo(PlaybackMode::Previewing);
@@ -864,18 +922,20 @@ void MusicPlayer::PreviewInstrument(int instrument_index) {
         apu.WriteToDsp(ch_base + kDspVolR, 0x7F);
   
         apu.WriteToDsp(kDspKeyOn, 1 << ch);
-  
-        // Prime the audio buffer for immediate playback
+
+        // Reset DSP sample buffer and prime for immediate playback
         auto& dsp = audio_emulator_->snes().apu().dsp();
+        dsp.ResetSampleBuffer();
         dsp.NewFrame();
         audio_emulator_->snes().RunAudioFrame();
         dsp.NewFrame();
-  
+
         audio_emulator_->ResetFrameTiming();
   // Queue initial samples
   constexpr int kNativeSampleRate = 32040;
   constexpr int kInitialSamples = 533;
   static int16_t prime_buffer[2048];
+  std::memset(prime_buffer, 0, sizeof(prime_buffer));
   audio_emulator_->snes().SetSamples(prime_buffer, kInitialSamples);
   if (auto* audio = audio_emulator_->audio_backend()) {
     audio->QueueSamplesNative(prime_buffer, kInitialSamples, 2, kNativeSampleRate);
@@ -884,6 +944,9 @@ void MusicPlayer::PreviewInstrument(int instrument_index) {
 
   audio_emulator_->set_audio_focus_mode(true);
   audio_emulator_->set_running(true);
+
+  // Initialize frame timing for Update() loop - CRITICAL for correct playback speed
+  last_frame_time_ = std::chrono::steady_clock::now();
 
   TransitionTo(PlaybackMode::Previewing);
 }
@@ -932,8 +995,9 @@ void MusicPlayer::PreviewSample(int sample_index) {
 
   apu.WriteToDsp(kDspKeyOn, 1 << ch);
 
-  // Prime the audio buffer for immediate playback
+  // Reset DSP sample buffer and prime for immediate playback
   auto& dsp = audio_emulator_->snes().apu().dsp();
+  dsp.ResetSampleBuffer();
   dsp.NewFrame();
   audio_emulator_->snes().RunAudioFrame();
   dsp.NewFrame();
@@ -944,6 +1008,7 @@ void MusicPlayer::PreviewSample(int sample_index) {
   constexpr int kNativeSampleRate = 32040;
   constexpr int kInitialSamples = 533;
   static int16_t prime_buffer[2048];
+  std::memset(prime_buffer, 0, sizeof(prime_buffer));
   audio_emulator_->snes().SetSamples(prime_buffer, kInitialSamples);
   if (auto* audio = audio_emulator_->audio_backend()) {
     audio->QueueSamplesNative(prime_buffer, kInitialSamples, 2, kNativeSampleRate);
@@ -952,6 +1017,9 @@ void MusicPlayer::PreviewSample(int sample_index) {
 
   audio_emulator_->set_audio_focus_mode(true);
   audio_emulator_->set_running(true);
+
+  // Initialize frame timing for Update() loop - CRITICAL for correct playback speed
+  last_frame_time_ = std::chrono::steady_clock::now();
 
   TransitionTo(PlaybackMode::Previewing);
 }
@@ -984,20 +1052,21 @@ void MusicPlayer::PreviewCustomSong(int song_index) {
   // Run APU cycles to start playback
   for (int i = 0; i < kSpcInitCycles; i++) apu.Cycle();
 
-  // Prime the audio buffer for immediate playback
+  // Reset DSP sample buffer and prime for immediate playback
   auto& dsp = audio_emulator_->snes().apu().dsp();
+  dsp.ResetSampleBuffer();
   dsp.NewFrame();
   audio_emulator_->snes().RunAudioFrame();
   dsp.NewFrame();
 
   // Reset frame timing and prime the queue
   audio_emulator_->ResetFrameTiming();
-  audio_emulator_->set_playback_speed(playback_speed_);
 
   // Queue initial samples
   constexpr int kNativeSampleRate = 32040;
   constexpr int kInitialSamples = 533;
   static int16_t prime_buffer[2048];
+  std::memset(prime_buffer, 0, sizeof(prime_buffer));
   audio_emulator_->snes().SetSamples(prime_buffer, kInitialSamples);
   if (auto* audio = audio_emulator_->audio_backend()) {
     audio->QueueSamplesNative(prime_buffer, kInitialSamples, 2, kNativeSampleRate);
@@ -1015,6 +1084,9 @@ void MusicPlayer::PreviewCustomSong(int song_index) {
 
   uint8_t tempo = GetSongTempo(*song);
   ticks_per_second_ = CalculateTicksPerSecond(tempo);
+
+  // Initialize frame timing for Update() loop - CRITICAL for correct playback speed
+  last_frame_time_ = std::chrono::steady_clock::now();
 
   TransitionTo(PlaybackMode::Previewing);
 }
@@ -1053,20 +1125,139 @@ const zelda3::music::MusicInstrument* MusicPlayer::ResolveInstrumentForEvent(
     const zelda3::music::MusicSegment& segment, int channel_index,
     uint16_t tick) const {
   if (channel_index < 0 || channel_index >= 8) return nullptr;
-  
+
   int instrument_index = -1;
   const auto& track = segment.tracks[channel_index];
-  
+
   for (const auto& evt : track.events) {
     if (evt.tick > tick) break;
-    if (evt.type == zelda3::music::TrackEvent::Type::Command && 
+    if (evt.type == zelda3::music::TrackEvent::Type::Command &&
         evt.command.opcode == 0xE0) { // SetInstrument
       instrument_index = evt.command.params[0];
     }
   }
-  
+
   if (instrument_index == -1) return nullptr;
   return music_bank_->GetInstrument(instrument_index);
+}
+
+// === Debug Diagnostics ===
+
+DspDebugStatus MusicPlayer::GetDspStatus() const {
+  DspDebugStatus status;
+  if (!audio_emulator_ || !audio_emulator_->is_snes_initialized()) {
+    return status;
+  }
+
+  const auto& dsp = audio_emulator_->snes().apu().dsp();
+  status.sample_offset = dsp.GetSampleOffset();
+  status.frame_boundary = dsp.GetFrameBoundary();
+  status.master_vol_l = dsp.GetMasterVolumeL();
+  status.master_vol_r = dsp.GetMasterVolumeR();
+  status.mute = dsp.IsMuted();
+  status.reset = dsp.IsReset();
+  status.echo_enabled = dsp.IsEchoEnabled();
+  status.echo_delay = dsp.GetEchoDelay();
+  return status;
+}
+
+ApuDebugStatus MusicPlayer::GetApuStatus() const {
+  ApuDebugStatus status;
+  if (!audio_emulator_ || !audio_emulator_->is_snes_initialized()) {
+    return status;
+  }
+
+  const auto& apu = audio_emulator_->snes().apu();
+  status.cycles = apu.GetCycles();
+
+  // Timer 0
+  const auto& t0 = apu.GetTimer(0);
+  status.timer0_enabled = t0.enabled;
+  status.timer0_counter = t0.counter;
+  status.timer0_target = t0.target;
+
+  // Timer 1
+  const auto& t1 = apu.GetTimer(1);
+  status.timer1_enabled = t1.enabled;
+  status.timer1_counter = t1.counter;
+  status.timer1_target = t1.target;
+
+  // Timer 2
+  const auto& t2 = apu.GetTimer(2);
+  status.timer2_enabled = t2.enabled;
+  status.timer2_counter = t2.counter;
+  status.timer2_target = t2.target;
+
+  // Port state
+  status.port0_in = apu.in_ports_[0];
+  status.port1_in = apu.in_ports_[1];
+  status.port0_out = apu.out_ports_[0];
+  status.port1_out = apu.out_ports_[1];
+
+  return status;
+}
+
+AudioQueueStatus MusicPlayer::GetAudioQueueStatus() const {
+  AudioQueueStatus status;
+  if (!audio_emulator_) {
+    return status;
+  }
+
+  if (auto* audio = audio_emulator_->audio_backend()) {
+    auto backend_status = audio->GetStatus();
+    status.is_playing = backend_status.is_playing;
+    status.queued_frames = backend_status.queued_frames;
+    status.queued_bytes = backend_status.queued_bytes;
+    status.has_underrun = backend_status.has_underrun;
+
+    auto config = audio->GetConfig();
+    status.sample_rate = config.sample_rate;
+    status.backend_name = audio->GetBackendName();
+  }
+
+  return status;
+}
+
+// === Debug Actions ===
+
+void MusicPlayer::ClearAudioQueue() {
+  if (!audio_emulator_) return;
+
+  if (auto* audio = audio_emulator_->audio_backend()) {
+    audio->Clear();
+    LOG_INFO("MusicPlayer", "Audio queue cleared");
+  }
+}
+
+void MusicPlayer::ResetDspBuffer() {
+  if (!audio_emulator_ || !audio_emulator_->is_snes_initialized()) return;
+
+  auto& dsp = audio_emulator_->snes().apu().dsp();
+  dsp.ResetSampleBuffer();
+  LOG_INFO("MusicPlayer", "DSP buffer reset");
+}
+
+void MusicPlayer::ForceNewFrame() {
+  if (!audio_emulator_ || !audio_emulator_->is_snes_initialized()) return;
+
+  auto& dsp = audio_emulator_->snes().apu().dsp();
+  dsp.NewFrame();
+  LOG_INFO("MusicPlayer", "Forced DSP NewFrame()");
+}
+
+void MusicPlayer::ReinitAudio() {
+  if (!audio_emulator_) return;
+
+  // Stop current playback
+  Stop();
+
+  // Reset SPC initialization state to force reinit on next play
+  spc_initialized_ = false;
+  preview_initialized_ = false;
+  audio_ready_ = false;
+  current_spc_bank_ = 0xFF;
+
+  LOG_INFO("MusicPlayer", "Audio system marked for reinitialization");
 }
 
 } // namespace music

@@ -124,11 +124,21 @@ int main(int argc, char** argv) {
   audio_config.buffer_frames = 1024;
   audio_config.format = yaze::emu::audio::SampleFormat::INT16;
 
+  // Native SNES audio sample rate (SPC700)
+  constexpr int kNativeSampleRate = 32040;
+
   if (!audio_backend->Initialize(audio_config)) {
     printf("Failed to initialize audio backend\n");
     // Continue without audio
   } else {
     printf("Audio initialized: %s\n", audio_backend->GetBackendName().c_str());
+    // Enable audio stream resampling (32040 Hz -> 48000 Hz)
+    // CRITICAL: Without this, audio plays at 1.5x speed (48000/32040 = 1.498)
+    if (audio_backend->SupportsAudioStream()) {
+      audio_backend->SetAudioStreamResampling(true, kNativeSampleRate, 2);
+      printf("Audio resampling enabled: %dHz -> %dHz\n",
+             kNativeSampleRate, audio_config.sample_rate);
+    }
   }
 
   // Allocate audio buffer using unique_ptr for automatic cleanup
@@ -187,9 +197,9 @@ int main(int argc, char** argv) {
     const bool is_pal = snes_.memory().pal_timing();
     const double refresh_rate = is_pal ? 50.0 : 60.0;
     wanted_frame_time = 1.0 / refresh_rate;
-    // Use actual sample rate from backend if available
-    int sample_rate = audio_backend->IsInitialized() ? audio_backend->GetConfig().sample_rate : 48000;
-    wanted_samples = sample_rate / static_cast<int>(refresh_rate);
+    // Use NATIVE sample rate (32040 Hz), not device rate
+    // Audio stream resampling handles conversion to device rate
+    wanted_samples = kNativeSampleRate / static_cast<int>(refresh_rate);
 
     printf("Emulator initialized: %s mode (%.1f Hz)\n", is_pal ? "PAL" : "NTSC",
            refresh_rate);
@@ -207,8 +217,9 @@ int main(int argc, char** argv) {
             const bool is_pal = snes_.memory().pal_timing();
             const double refresh_rate = is_pal ? 50.0 : 60.0;
             wanted_frame_time = 1.0 / refresh_rate;
-            int sample_rate = audio_backend->IsInitialized() ? audio_backend->GetConfig().sample_rate : 48000;
-            wanted_samples = sample_rate / static_cast<int>(refresh_rate);
+            // Use NATIVE sample rate (32040 Hz), not device rate (48000 Hz)
+            // Audio stream resampling handles conversion to device rate
+            wanted_samples = kNativeSampleRate / static_cast<int>(refresh_rate);
 
             printf("Loaded new ROM via drag-and-drop: %s\n", event.dropped_file.c_str());
             frame_count = 0;  // Reset frame counter
@@ -277,14 +288,24 @@ int main(int argc, char** argv) {
           break;  // Exit inner loop immediately
         }
 
-        // Generate audio samples and queue them
+        // Generate audio samples at native rate (32040 Hz)
         snes_.SetSamples(audio_buffer.get(), wanted_samples);
-        
+
         if (audio_backend && audio_backend->IsInitialized()) {
           auto status = audio_backend->GetStatus();
           // Keep up to 6 frames queued
           if (status.queued_frames <= static_cast<uint32_t>(wanted_samples * 6)) {
-             audio_backend->QueueSamples(audio_buffer.get(), wanted_samples * 2);
+            // Use QueueSamplesNative for proper resampling (32040 Hz -> device rate)
+            // DO NOT use QueueSamples directly - that causes 1.5x speed bug!
+            if (!audio_backend->QueueSamplesNative(audio_buffer.get(), wanted_samples,
+                                                    2, kNativeSampleRate)) {
+              // If resampling failed, try to re-enable and retry once
+              if (audio_backend->SupportsAudioStream()) {
+                audio_backend->SetAudioStreamResampling(true, kNativeSampleRate, 2);
+                audio_backend->QueueSamplesNative(audio_buffer.get(), wanted_samples,
+                                                   2, kNativeSampleRate);
+              }
+            }
           }
         }
 
