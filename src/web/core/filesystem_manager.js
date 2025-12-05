@@ -355,13 +355,15 @@ var FilesystemManager = {
         }
       });
 
-      // 5. Call C++ ROM loader
+      // 5. Call C++ ROM loader (must use async: true to properly handle Asyncify operations)
+      // The C++ code may internally call idb_load_string or other async functions during ROM loading
       if (Module.ccall) {
-        // Use ccall for safer string handling (preferred method)
-        Module.ccall('LoadRomFromWeb', null, ['string'], [filename]);
-        console.log('[FilesystemManager] LoadRomFromWeb called via ccall');
+        // Use ccall with async:true for proper Asyncify handling
+        await Module.ccall('LoadRomFromWeb', null, ['string'], [filename], {async: true});
+        console.log('[FilesystemManager] LoadRomFromWeb completed via async ccall');
       } else if (Module._LoadRomFromWeb) {
         // Fallback: Properly allocate and convert string for direct function call
+        // Note: This path may still have async issues if C++ triggers Asyncify
         var len = Module.lengthBytesUTF8(filename) + 1;
         var filenamePtr = Module._malloc(len);
         if (!filenamePtr) {
@@ -380,15 +382,19 @@ var FilesystemManager = {
         return false;
       }
 
-      // 6. Track as recent file for quick access
-      self.addRecentFile(filename, 'rom');
+      // 6. Track as recent file for quick access (skip sync - we handle it below)
+      self.addRecentFile(filename, 'rom', true);
 
-      // 7. Persist recent files update to IndexedDB
-      if (self.ready) {
-        FS.syncfs(false, function(err) {
-          if (err) console.warn('[FilesystemManager] FS sync after ROM load failed:', err);
-        });
-      }
+      // 7. Defer persistence to avoid overlapping with any pending Asyncify operations
+      // The C++ side handles its own IndexedDB persistence; we just need to sync the recent files
+      // Using setTimeout to ensure any C++ async operations have fully completed
+      setTimeout(function() {
+        if (self.ready && typeof FS !== 'undefined' && FS.syncfs) {
+          FS.syncfs(false, function(err) {
+            if (err) console.warn('[FilesystemManager] FS sync after ROM load failed:', err);
+          });
+        }
+      }, 100);
 
       return true;
 
@@ -681,8 +687,9 @@ var FilesystemManager = {
    * Adds a file to recent files list.
    * @param {string} filename - Full path or name of the file
    * @param {string} type - Type of file ('rom', 'project', etc.)
+   * @param {boolean} skipSync - If true, skip the syncAll call (caller will handle sync)
    */
-  addRecentFile: function(filename, type) {
+  addRecentFile: function(filename, type, skipSync) {
     if (!this.ensureReady()) return;
     try {
       var recentPath = this.directories.recent + '/recent.json';
@@ -710,7 +717,10 @@ var FilesystemManager = {
       }
 
       FS.writeFile(recentPath, JSON.stringify(recent, null, 2));
-      this.syncAll();
+      // Only sync if not explicitly skipped (caller may defer sync to avoid Asyncify conflicts)
+      if (!skipSync) {
+        this.syncAll();
+      }
     } catch (e) {
       console.error('[FilesystemManager] Failed to update recent files:', e);
     }
