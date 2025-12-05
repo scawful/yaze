@@ -193,9 +193,16 @@ class RoomLayerManager {
       SetLayerBlendMode(LayerType::BG2_Objects, LayerBlendMode::Normal);
     }
 
-    // BG1 always uses normal blend mode
-    SetLayerBlendMode(LayerType::BG1_Layout, LayerBlendMode::Normal);
-    SetLayerBlendMode(LayerType::BG1_Objects, LayerBlendMode::Normal);
+    // BG1 blend mode depends on merge type
+    // DarkRoom (ID 0x08) should darken BG1 to simulate unlit room
+    if (merge_type.ID == 0x08) {
+      // Dark room - BG1 is dimmed (reduced brightness)
+      SetLayerBlendMode(LayerType::BG1_Layout, LayerBlendMode::Dark);
+      SetLayerBlendMode(LayerType::BG1_Objects, LayerBlendMode::Dark);
+    } else {
+      SetLayerBlendMode(LayerType::BG1_Layout, LayerBlendMode::Normal);
+      SetLayerBlendMode(LayerType::BG1_Objects, LayerBlendMode::Normal);
+    }
   }
 
   /**

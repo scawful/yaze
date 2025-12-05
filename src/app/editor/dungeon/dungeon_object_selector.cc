@@ -965,24 +965,28 @@ void DungeonObjectSelector::DrawCompactDoorEditor() {
     ImGui::Text("Door Type:");
     static int selected_door_type = static_cast<int>(zelda3::DoorType::NormalDoor);
 
-    // Build door type combo items
-    constexpr std::array<zelda3::DoorType, 16> door_types = {
-        zelda3::DoorType::Open,
+    // Build door type combo items (common types)
+    constexpr std::array<zelda3::DoorType, 20> door_types = {
         zelda3::DoorType::NormalDoor,
-        zelda3::DoorType::ShutterDoor,
-        zelda3::DoorType::SwingingDoor,
-        zelda3::DoorType::Bombable,
-        zelda3::DoorType::ExplodingWall,
+        zelda3::DoorType::NormalDoorLower,
+        zelda3::DoorType::CaveExit,
+        zelda3::DoorType::DoubleSidedShutter,
+        zelda3::DoorType::EyeWatchDoor,
         zelda3::DoorType::SmallKeyDoor,
         zelda3::DoorType::BigKeyDoor,
-        zelda3::DoorType::SmallKeyBlock,
-        zelda3::DoorType::BigKeyBlock,
-        zelda3::DoorType::InvisibleDoor,
-        zelda3::DoorType::SanctuaryDoor,
-        zelda3::DoorType::DungeonShutter,
-        zelda3::DoorType::TrapDoor,
-        zelda3::DoorType::CaveExitNorth,
-        zelda3::DoorType::CaveExitSouth,
+        zelda3::DoorType::SmallKeyStairsUp,
+        zelda3::DoorType::SmallKeyStairsDown,
+        zelda3::DoorType::DashWall,
+        zelda3::DoorType::BombableDoor,
+        zelda3::DoorType::ExplodingWall,
+        zelda3::DoorType::CurtainDoor,
+        zelda3::DoorType::BottomSidedShutter,
+        zelda3::DoorType::TopSidedShutter,
+        zelda3::DoorType::FancyDungeonExit,
+        zelda3::DoorType::WaterfallDoor,
+        zelda3::DoorType::ExitMarker,
+        zelda3::DoorType::LayerSwapMarker,
+        zelda3::DoorType::DungeonSwapMarker,
     };
 
     if (ImGui::BeginCombo("##DoorType",

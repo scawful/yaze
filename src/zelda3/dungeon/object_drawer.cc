@@ -68,14 +68,9 @@ absl::Status ObjectDrawer::DrawObject(const RoomObject& object,
   LOG_DEBUG("ObjectDrawer", "Executing draw routine %d for object %04X",
             routine_id, object.id_);
 
-  // Check if this is a BothBG routine
-  // These routines should draw to both BG1 and BG2:
-  // - 3, 9: diagonal walls (BothBG variants)
-  // - 17, 18: diagonal walls acute/grave (BothBG)
-  // - 97: prison cell (dual-layer bars)
-  // We now use the all_bgs flag from the object itself, which is set during decoding
-  bool is_both_bg = object.all_bgs_ || (routine_id == 3 || routine_id == 9 ||
-                     routine_id == 17 || routine_id == 18 || routine_id == 97);
+  // Check if this should draw to both BG layers
+  // Priority: object's all_bgs_ flag (set during decoding) > routine metadata
+  bool is_both_bg = object.all_bgs_ || RoutineDrawsToBothBGs(routine_id);
 
   if (is_both_bg) {
     // Draw to both background layers
@@ -143,6 +138,38 @@ absl::Status ObjectDrawer::DrawObjectList(
   }
 
   return status;
+}
+
+// ============================================================================
+// Metadata-based BothBG Detection
+// ============================================================================
+
+bool ObjectDrawer::RoutineDrawsToBothBGs(int routine_id) {
+  // Routines that should draw to both BG1 and BG2 layers.
+  // This replaces hardcoded routine ID checks with a centralized lookup.
+  //
+  // ASM Reference:
+  // - Routines 3, 9: Diagonal walls (use VRAM tilemap for both layers)
+  // - Routines 17, 18: Diagonal walls acute/grave (BothBG variants)
+  // - Routine 97: Prison cell (dual-layer bars for 3D effect)
+  //
+  // These routines are identified from:
+  // - diagonal_routines.cc: draws_to_both_bgs = true for routines 17, 18
+  // - corner_routines.cc: draws_to_both_bgs = true for 4x4 corners
+  // - rightwards_routines.cc: draws_to_both_bgs = true for prison cell
+  //
+  static constexpr int kBothBGRoutines[] = {
+      3,   // Diagonal wall variant 1
+      9,   // Diagonal wall variant 2
+      17,  // Diagonal acute (upper-left)
+      18,  // Diagonal grave (upper-right)
+      97,  // Prison cell bars
+  };
+
+  for (int id : kBothBGRoutines) {
+    if (routine_id == id) return true;
+  }
+  return false;
 }
 
 // ============================================================================
@@ -1535,7 +1562,8 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
   }
 
   // Read and render door tiles
-  // Tile layout is column-major (matching ASM draw routines)
+  // All directions use column-major tile order (matching ASM draw routines)
+  // The ROM stores tiles in column-major order for all door directions
   printf("[DrawDoor] Reading %d tiles from 0x%X:\n", tiles_per_door, tile_data_addr);
   int tile_idx = 0;
   for (int dx = 0; dx < door_width; dx++) {
@@ -1574,47 +1602,60 @@ void ObjectDrawer::DrawDoorIndicator(gfx::Bitmap& bitmap, int tile_x, int tile_y
 
   uint8_t color_idx;
   switch (type) {
-    case DoorType::Open:
     case DoorType::NormalDoor:
+    case DoorType::NormalDoorLower:
       color_idx = 45;  // Standard door color (brown)
       break;
 
     case DoorType::SmallKeyDoor:
-    case DoorType::SmallKeyBlock:
+    case DoorType::SmallKeyStairsUp:
+    case DoorType::SmallKeyStairsDown:
+    case DoorType::SmallKeyStairsUpLower:
+    case DoorType::SmallKeyStairsDownLower:
       color_idx = 60;  // Key door - yellowish
       break;
 
     case DoorType::BigKeyDoor:
-    case DoorType::BigKeyBlock:
+    case DoorType::UnopenableBigKeyDoor:
       color_idx = 58;  // Big key - golden
       break;
 
-    case DoorType::Bombable:
+    case DoorType::BombableDoor:
+    case DoorType::BombableCaveExit:
     case DoorType::ExplodingWall:
-      color_idx = 15;  // Bombable - brownish/cracked
+    case DoorType::DashWall:
+      color_idx = 15;  // Bombable/destructible - brownish/cracked
       break;
 
-    case DoorType::ShutterDoor:
-    case DoorType::DungeonShutter:
-    case DoorType::TrapDoor:
+    case DoorType::DoubleSidedShutter:
+    case DoorType::DoubleSidedShutterLower:
+    case DoorType::BottomSidedShutter:
+    case DoorType::TopSidedShutter:
+    case DoorType::BottomShutterLower:
+    case DoorType::TopShutterLower:
       color_idx = 30;  // Shutter - greenish
       break;
 
-    case DoorType::SwingingDoor:
-      color_idx = 42;  // Swinging - lighter brown
+    case DoorType::EyeWatchDoor:
+      color_idx = 42;  // Eye watch - lighter brown
       break;
 
-    case DoorType::InvisibleDoor:
-      color_idx = 5;  // Invisible - very faint
+    case DoorType::CurtainDoor:
+      color_idx = 35;  // Curtain - special
       break;
 
-    case DoorType::SanctuaryDoor:
-      color_idx = 35;  // Sanctuary - special
+    case DoorType::CaveExit:
+    case DoorType::FancyDungeonExit:
+    case DoorType::FancyDungeonExitLower:
+    case DoorType::WaterfallDoor:
+    case DoorType::LitCaveExitLower:
+      color_idx = 25;  // Cave/dungeon exit - dark
       break;
 
-    case DoorType::CaveExitNorth:
-    case DoorType::CaveExitSouth:
-      color_idx = 25;  // Cave exit - dark
+    case DoorType::ExitMarker:
+    case DoorType::DungeonSwapMarker:
+    case DoorType::LayerSwapMarker:
+      color_idx = 5;  // Markers - very faint
       break;
 
     default:

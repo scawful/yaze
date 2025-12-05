@@ -108,6 +108,17 @@ void RoomLayerManager::CompositeToOutput(Room& room,
   // Sync pixel data to SDL surface for texture creation
   output.UpdateSurfacePixels();
 
+  // Apply DarkRoom effect if merge type is 0x08
+  // This simulates the SNES master brightness reduction for unlit rooms
+  if (current_merge_type_id_ == 0x08 && output.surface()) {
+    // Apply color modulation to darken the output (50% brightness)
+    // This affects the entire composite, simulating unlit dungeon rooms
+    SDL_SetSurfaceColorMod(output.surface(), 128, 128, 128);
+  } else if (output.surface()) {
+    // Reset to full brightness for non-dark rooms
+    SDL_SetSurfaceColorMod(output.surface(), 255, 255, 255);
+  }
+
   // Mark output as modified for texture update
   output.set_modified(true);
 }
