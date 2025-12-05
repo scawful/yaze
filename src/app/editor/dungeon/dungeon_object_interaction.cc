@@ -55,25 +55,35 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
                                   static_cast<int>(canvas_mouse_pos.y));
       PlaceObjectAtPosition(room_x, room_y);
     } else {
-      // Selection mode: try to select object at cursor
-      if (!TrySelectObjectAtCursor()) {
-        // Clicked empty space - start rectangle selection
-        if (!io.KeyShift && !io.KeyCtrl) {
-          // Clear selection unless modifier held
-          selection_.ClearSelection();
-        }
-        // Begin rectangle selection for multi-select
-        selection_.BeginRectangleSelection(static_cast<int>(canvas_mouse_pos.x),
-                                           static_cast<int>(canvas_mouse_pos.y));
-      } else {
-        // Clicked on an object - start drag if we have selected objects
-        if (selection_.HasSelection()) {
-          is_dragging_ = true;
-          drag_start_pos_ = canvas_mouse_pos;
-          drag_current_pos_ = canvas_mouse_pos;
+      // Selection mode: try to select entity (door/sprite/item) first, then objects
+      if (!TrySelectEntityAtCursor()) {
+        // No entity - try to select object at cursor
+        if (!TrySelectObjectAtCursor()) {
+          // Clicked empty space - start rectangle selection
+          if (!io.KeyShift && !io.KeyCtrl) {
+            // Clear selection unless modifier held
+            selection_.ClearSelection();
+            ClearEntitySelection();
+          }
+          // Begin rectangle selection for multi-select
+          selection_.BeginRectangleSelection(static_cast<int>(canvas_mouse_pos.x),
+                                             static_cast<int>(canvas_mouse_pos.y));
+        } else {
+          // Clicked on an object - start drag if we have selected objects
+          ClearEntitySelection();  // Clear entity selection when selecting object
+          if (selection_.HasSelection()) {
+            is_dragging_ = true;
+            drag_start_pos_ = canvas_mouse_pos;
+            drag_current_pos_ = canvas_mouse_pos;
+          }
         }
       }
     }
+  }
+
+  // Handle entity drag if active
+  if (is_entity_dragging_) {
+    HandleEntityDrag();
   }
 
   // Handle drag in progress
@@ -1115,6 +1125,331 @@ void DungeonObjectInteraction::PlaceDoorAtPosition(int canvas_x, int canvas_y) {
   if (cache_invalidation_callback_) {
     cache_invalidation_callback_();
   }
+}
+
+// ============================================================================
+// Entity Selection Methods (Doors, Sprites, Items)
+// ============================================================================
+
+void DungeonObjectInteraction::SelectEntity(EntityType type, size_t index) {
+  // Clear object selection when selecting an entity
+  if (type != EntityType::Object) {
+    selection_.ClearSelection();
+  }
+  
+  selected_entity_.type = type;
+  selected_entity_.index = index;
+  
+  if (entity_changed_callback_) {
+    entity_changed_callback_();
+  }
+}
+
+void DungeonObjectInteraction::ClearEntitySelection() {
+  selected_entity_.type = EntityType::None;
+  selected_entity_.index = 0;
+  is_entity_dragging_ = false;
+}
+
+std::optional<SelectedEntity> DungeonObjectInteraction::GetEntityAtPosition(
+    int canvas_x, int canvas_y) const {
+  if (!rooms_ || current_room_id_ < 0 || current_room_id_ >= 296)
+    return std::nullopt;
+
+  const auto& room = (*rooms_)[current_room_id_];
+  
+  // Check doors first (they have higher priority for selection)
+  const auto& doors = room.GetDoors();
+  for (size_t i = 0; i < doors.size(); ++i) {
+    const auto& door = doors[i];
+    
+    // Get door position in tile coordinates
+    auto [tile_x, tile_y] = door.GetTileCoords();
+    
+    // Get door dimensions
+    auto dims = zelda3::GetDoorDimensions(door.direction);
+    
+    // Convert to pixel coordinates
+    int door_x = tile_x * 8;
+    int door_y = tile_y * 8;
+    int door_w = dims.width_tiles * 8;
+    int door_h = dims.height_tiles * 8;
+    
+    // Check if point is inside door bounds
+    if (canvas_x >= door_x && canvas_x < door_x + door_w &&
+        canvas_y >= door_y && canvas_y < door_y + door_h) {
+      return SelectedEntity{EntityType::Door, i};
+    }
+  }
+  
+  // Check sprites (16x16 hitbox)
+  // NOTE: Sprite coordinates are in 16-pixel units (0-31 range = 512 pixels)
+  const auto& sprites = room.GetSprites();
+  for (size_t i = 0; i < sprites.size(); ++i) {
+    const auto& sprite = sprites[i];
+    
+    // Sprites use 16-pixel coordinate system
+    int sprite_x = sprite.x() * 16;
+    int sprite_y = sprite.y() * 16;
+    
+    // 16x16 hitbox
+    if (canvas_x >= sprite_x && canvas_x < sprite_x + 16 &&
+        canvas_y >= sprite_y && canvas_y < sprite_y + 16) {
+      return SelectedEntity{EntityType::Sprite, i};
+    }
+  }
+  
+  // Check pot items - they have their own position data from ROM
+  const auto& pot_items = room.GetPotItems();
+  
+  for (size_t i = 0; i < pot_items.size(); ++i) {
+    const auto& pot_item = pot_items[i];
+    
+    // Get pixel coordinates from PotItem
+    int item_x = pot_item.GetPixelX();
+    int item_y = pot_item.GetPixelY();
+    
+    // 16x16 hitbox
+    if (canvas_x >= item_x && canvas_x < item_x + 16 &&
+        canvas_y >= item_y && canvas_y < item_y + 16) {
+      return SelectedEntity{EntityType::Item, i};
+    }
+  }
+  
+  return std::nullopt;
+}
+
+bool DungeonObjectInteraction::TrySelectEntityAtCursor() {
+  if (!canvas_->IsMouseHovering())
+    return false;
+
+  const ImGuiIO& io = ImGui::GetIO();
+  ImVec2 canvas_pos = canvas_->zero_point();
+  int canvas_x = static_cast<int>(io.MousePos.x - canvas_pos.x);
+  int canvas_y = static_cast<int>(io.MousePos.y - canvas_pos.y);
+  
+  auto entity = GetEntityAtPosition(canvas_x, canvas_y);
+  if (entity.has_value()) {
+    // Clear previous object selection
+    selection_.ClearSelection();
+    
+    SelectEntity(entity->type, entity->index);
+    
+    // Start drag
+    is_entity_dragging_ = true;
+    entity_drag_start_pos_ = ImVec2(static_cast<float>(canvas_x), 
+                                     static_cast<float>(canvas_y));
+    entity_drag_current_pos_ = entity_drag_start_pos_;
+    
+    return true;
+  }
+  
+  // No entity at cursor - clear entity selection
+  ClearEntitySelection();
+  return false;
+}
+
+void DungeonObjectInteraction::HandleEntityDrag() {
+  if (!is_entity_dragging_ || selected_entity_.type == EntityType::None)
+    return;
+    
+  const ImGuiIO& io = ImGui::GetIO();
+  
+  if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+    // Mouse released - complete the drag
+    if (selected_entity_.type == EntityType::Door) {
+      // For doors, snap to valid wall position
+      ImVec2 canvas_pos = canvas_->zero_point();
+      int canvas_x = static_cast<int>(io.MousePos.x - canvas_pos.x);
+      int canvas_y = static_cast<int>(io.MousePos.y - canvas_pos.y);
+      
+      // Detect wall
+      zelda3::DoorDirection direction;
+      if (zelda3::DoorPositionManager::DetectWallFromPosition(canvas_x, canvas_y, direction)) {
+        // Snap to nearest valid position
+        uint8_t position = zelda3::DoorPositionManager::SnapToNearestPosition(
+            canvas_x, canvas_y, direction);
+        
+        if (zelda3::DoorPositionManager::IsValidPosition(position, direction)) {
+          // Update door position
+          if (rooms_ && current_room_id_ >= 0 && current_room_id_ < 296) {
+            auto& room = (*rooms_)[current_room_id_];
+            auto& doors = room.GetDoors();
+            if (selected_entity_.index < doors.size()) {
+              if (mutation_hook_) {
+                mutation_hook_();
+              }
+              
+              doors[selected_entity_.index].position = position;
+              doors[selected_entity_.index].direction = direction;
+              
+              // Re-encode bytes
+              auto [b1, b2] = doors[selected_entity_.index].EncodeBytes();
+              doors[selected_entity_.index].byte1 = b1;
+              doors[selected_entity_.index].byte2 = b2;
+              
+              // Mark room dirty
+              room.MarkObjectsDirty();
+              
+              if (cache_invalidation_callback_) {
+                cache_invalidation_callback_();
+              }
+            }
+          }
+        }
+      }
+    } else if (selected_entity_.type == EntityType::Sprite) {
+      // Move sprite to new position
+      ImVec2 canvas_pos = canvas_->zero_point();
+      int canvas_x = static_cast<int>(io.MousePos.x - canvas_pos.x);
+      int canvas_y = static_cast<int>(io.MousePos.y - canvas_pos.y);
+      
+      // Convert to sprite coordinates (16-pixel units)
+      int tile_x = canvas_x / 16;
+      int tile_y = canvas_y / 16;
+      
+      // Clamp to room bounds (sprites use 0-31 range)
+      tile_x = std::clamp(tile_x, 0, 31);
+      tile_y = std::clamp(tile_y, 0, 31);
+      
+      if (rooms_ && current_room_id_ >= 0 && current_room_id_ < 296) {
+        auto& room = (*rooms_)[current_room_id_];
+        auto& sprites = room.GetSprites();
+        if (selected_entity_.index < sprites.size()) {
+          if (mutation_hook_) {
+            mutation_hook_();
+          }
+          
+          sprites[selected_entity_.index].set_x(tile_x);
+          sprites[selected_entity_.index].set_y(tile_y);
+          
+          if (entity_changed_callback_) {
+            entity_changed_callback_();
+          }
+        }
+      }
+    }
+    
+    is_entity_dragging_ = false;
+    return;
+  }
+  
+  // Update drag position
+  ImVec2 canvas_pos = canvas_->zero_point();
+  entity_drag_current_pos_ = ImVec2(io.MousePos.x - canvas_pos.x,
+                                     io.MousePos.y - canvas_pos.y);
+}
+
+void DungeonObjectInteraction::DrawEntitySelectionHighlights() {
+  if (selected_entity_.type == EntityType::None)
+    return;
+    
+  if (!rooms_ || current_room_id_ < 0 || current_room_id_ >= 296)
+    return;
+
+  const auto& room = (*rooms_)[current_room_id_];
+  const auto& theme = AgentUI::GetTheme();
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
+  ImVec2 canvas_pos = canvas_->zero_point();
+  float scale = canvas_->global_scale();
+  
+  ImVec2 pos, size;
+  ImU32 color;
+  const char* label = "";
+  
+  switch (selected_entity_.type) {
+    case EntityType::Door: {
+      const auto& doors = room.GetDoors();
+      if (selected_entity_.index >= doors.size()) return;
+      
+      const auto& door = doors[selected_entity_.index];
+      auto [tile_x, tile_y] = door.GetTileCoords();
+      auto dims = zelda3::GetDoorDimensions(door.direction);
+      
+      // If dragging, use current drag position for door preview
+      if (is_entity_dragging_) {
+        int drag_x = static_cast<int>(entity_drag_current_pos_.x);
+        int drag_y = static_cast<int>(entity_drag_current_pos_.y);
+        
+        zelda3::DoorDirection dir;
+        if (zelda3::DoorPositionManager::DetectWallFromPosition(drag_x, drag_y, dir)) {
+          uint8_t snap_pos = zelda3::DoorPositionManager::SnapToNearestPosition(drag_x, drag_y, dir);
+          auto [snap_x, snap_y] = zelda3::DoorPositionManager::PositionToTileCoords(snap_pos, dir);
+          tile_x = snap_x;
+          tile_y = snap_y;
+          dims = zelda3::GetDoorDimensions(dir);
+        }
+      }
+      
+      pos = ImVec2(canvas_pos.x + tile_x * 8 * scale,
+                   canvas_pos.y + tile_y * 8 * scale);
+      size = ImVec2(dims.width_tiles * 8 * scale, dims.height_tiles * 8 * scale);
+      color = IM_COL32(255, 165, 0, 180);  // Orange
+      label = "Door";
+      break;
+    }
+    
+    case EntityType::Sprite: {
+      const auto& sprites = room.GetSprites();
+      if (selected_entity_.index >= sprites.size()) return;
+      
+      const auto& sprite = sprites[selected_entity_.index];
+      // Sprites use 16-pixel coordinate system
+      int pixel_x = sprite.x() * 16;
+      int pixel_y = sprite.y() * 16;
+      
+      // If dragging, use current drag position (snapped to 16-pixel grid)
+      if (is_entity_dragging_) {
+        int tile_x = static_cast<int>(entity_drag_current_pos_.x) / 16;
+        int tile_y = static_cast<int>(entity_drag_current_pos_.y) / 16;
+        tile_x = std::clamp(tile_x, 0, 31);
+        tile_y = std::clamp(tile_y, 0, 31);
+        pixel_x = tile_x * 16;
+        pixel_y = tile_y * 16;
+      }
+      
+      pos = ImVec2(canvas_pos.x + pixel_x * scale,
+                   canvas_pos.y + pixel_y * scale);
+      size = ImVec2(16 * scale, 16 * scale);
+      color = IM_COL32(0, 255, 0, 180);  // Green
+      label = "Sprite";
+      break;
+    }
+    
+    case EntityType::Item: {
+      // Pot items have their own position data from ROM
+      const auto& pot_items = room.GetPotItems();
+      
+      if (selected_entity_.index >= pot_items.size()) return;
+      
+      const auto& pot_item = pot_items[selected_entity_.index];
+      int pixel_x = pot_item.GetPixelX();
+      int pixel_y = pot_item.GetPixelY();
+      
+      pos = ImVec2(canvas_pos.x + pixel_x * scale,
+                   canvas_pos.y + pixel_y * scale);
+      size = ImVec2(16 * scale, 16 * scale);
+      color = IM_COL32(255, 255, 0, 180);  // Yellow
+      label = "Item";
+      break;
+    }
+    
+    default:
+      return;
+  }
+  
+  // Draw selection rectangle with animated border
+  static float pulse = 0.0f;
+  pulse += ImGui::GetIO().DeltaTime * 3.0f;
+  float alpha = 0.5f + 0.3f * sinf(pulse);
+  
+  ImU32 fill_color = (color & 0x00FFFFFF) | (static_cast<ImU32>(alpha * 100) << 24);
+  draw_list->AddRectFilled(pos, ImVec2(pos.x + size.x, pos.y + size.y), fill_color);
+  draw_list->AddRect(pos, ImVec2(pos.x + size.x, pos.y + size.y), color, 0.0f, 0, 2.0f);
+  
+  // Draw label
+  ImVec2 text_pos(pos.x, pos.y - 14 * scale);
+  draw_list->AddText(text_pos, IM_COL32(255, 255, 255, 220), label);
 }
 
 }  // namespace yaze::editor

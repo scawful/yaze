@@ -48,13 +48,17 @@ struct ObjectTranslucency {
 };
 
 /**
- * @brief Object priority for rendering order within merged layers
+ * @brief Object metadata for tracking layer assignment
+ * 
+ * Note: In SNES Mode 1, BG1 is always above BG2 by default.
+ * The "priority" field here refers to object layer (0, 1, 2),
+ * not visual Z-order, which is fixed by the SNES PPU.
  */
 struct ObjectPriority {
   size_t object_index = 0;
-  int layer = 0;          // Object's layer (0, 1, 2)
-  int priority = 0;       // Render priority (higher = on top)
-  bool is_bg2_object = false;  // True if object renders to BG2
+  int layer = 0;          // Object's layer (0=BG1, 1=BG2, 2=BG1 priority)
+  int priority = 0;       // Object layer value (not visual Z-order)
+  bool is_bg2_object = false;  // True if object renders to BG2 buffer
 };
 
 /**
@@ -163,29 +167,34 @@ class RoomLayerManager {
 
   void ClearObjectTranslucency() { object_translucency_.clear(); }
 
-  // BG2 ordering (from LayerMergeType)
+  // Color math participation flag (from LayerMergeType.Layer2OnTop)
+  // NOTE: This does NOT affect draw order - BG1 is always above BG2.
+  // This flag controls whether BG2 participates in sub-screen color math
+  // effects like transparency and additive blending.
+  void SetBG2ColorMathEnabled(bool enabled) { bg2_on_top_ = enabled; }
+  bool IsBG2ColorMathEnabled() const { return bg2_on_top_; }
+  
+  // Legacy aliases for compatibility
   void SetBG2OnTop(bool on_top) { bg2_on_top_ = on_top; }
   bool IsBG2OnTop() const { return bg2_on_top_; }
 
   // Apply layer settings to room from LayerMergeType
-  // NOTE: This only affects blend modes and ordering, NOT visibility.
+  // NOTE: This affects BLEND MODES and COLOR MATH, not draw order.
+  // SNES Mode 1 always renders BG1 above BG2 - this is hardware behavior.
   // Layer visibility checkboxes remain independent of merge type.
   void ApplyLayerMerging(const LayerMergeType& merge_type) {
     // Store the current merge type for queries
     current_merge_type_id_ = merge_type.ID;
     layers_merged_ = (merge_type.ID != 0);  // ID 0 = "Off" = not merged
 
-    // Set BG2 ordering (on top or below BG1)
-    SetBG2OnTop(merge_type.Layer2OnTop);
+    // Set BG2 color math participation (does NOT change draw order)
+    SetBG2ColorMathEnabled(merge_type.Layer2OnTop);
 
     // Apply blend mode based on merge type
-    // Layer2Visible = false means BG2 should not be composited (hidden by ROM)
+    // NOTE: Layer2Visible from ROM is informational only - user can still
+    // enable/disable layers via checkboxes. We only set blend modes here.
     // Layer2Translucent = true means BG2 should use translucent blend
-    if (!merge_type.Layer2Visible) {
-      // ROM says BG2 is disabled for this merge type
-      SetLayerBlendMode(LayerType::BG2_Layout, LayerBlendMode::Off);
-      SetLayerBlendMode(LayerType::BG2_Objects, LayerBlendMode::Off);
-    } else if (merge_type.Layer2Translucent) {
+    if (merge_type.Layer2Translucent) {
       SetLayerBlendMode(LayerType::BG2_Layout, LayerBlendMode::Translucent);
       SetLayerBlendMode(LayerType::BG2_Objects, LayerBlendMode::Translucent);
     } else {
@@ -241,35 +250,32 @@ class RoomLayerManager {
   uint8_t GetMergeTypeId() const { return current_merge_type_id_; }
 
   // ============================================================================
-  // Object Priority for Merged Layers
+  // Object Layer Assignment
   // ============================================================================
 
   /**
-   * @brief Calculate object priority for render ordering
+   * @brief Get object layer value for buffer assignment
    *
-   * When layers are merged, objects need priority ordering to ensure
-   * proper visibility. BG2 objects should render above BG1 objects
-   * when BG2 is on top.
+   * Objects are assigned to buffers based on their layer value:
+   * - Layer 0: BG1 buffer (main floor/walls)
+   * - Layer 1: BG2 buffer (background details)
+   * - Layer 2: BG1 buffer with priority (overlays on BG1)
+   *
+   * NOTE: Visual Z-order is fixed by SNES Mode 1 hardware (BG1 > BG2).
+   * This layer value only determines which buffer the object draws to,
+   * not the visual stacking order.
    *
    * @param object_layer The object's layer value (0, 1, 2)
-   * @return Priority value (higher = renders on top)
+   * @return Layer value (same as input - used for buffer routing)
    */
+  int GetObjectLayerValue(int object_layer) const {
+    return object_layer;
+  }
+  
+  // Legacy function - kept for API compatibility
+  // No longer affects visual order since SNES Mode 1 is fixed (BG1 > BG2)
   int CalculateObjectPriority(int object_layer) const {
-    // Base priority from object layer
-    int priority = object_layer * 10;
-
-    // If BG2 is on top and this is a layer 1 (BG2) object, boost priority
-    if (bg2_on_top_ && object_layer == 1) {
-      priority += 100;
-    }
-
-    // If layers are merged, layer 0 and 2 objects (BG1) get lower priority
-    // when BG2 is on top
-    if (layers_merged_ && bg2_on_top_ && (object_layer == 0 || object_layer == 2)) {
-      priority -= 50;
-    }
-
-    return priority;
+    return object_layer * 10;
   }
 
   /**
@@ -296,17 +302,20 @@ class RoomLayerManager {
    * @brief Get the draw order for layers
    *
    * Returns layers in the order they should be drawn (back to front).
-   * BG2 layers are drawn either before or after BG1 based on bg2_on_top_.
-   * Within each BG, layout is drawn before objects.
+   * 
+   * SNES Mode 1 default priority: BG1 > BG2 (BG1 on top)
+   * The "Layer2OnTop" flag from ROM controls COLOR MATH effects
+   * (sub-screen participation for transparency/additive blend),
+   * NOT the actual Z-order of opaque pixels.
+   * 
+   * Draw order is ALWAYS: BG2 (back) -> BG1 (front)
+   * Blend modes handle the visual effects separately.
    */
   std::array<LayerType, 4> GetDrawOrder() const {
-    if (bg2_on_top_) {
-      return {LayerType::BG1_Layout, LayerType::BG1_Objects,
-              LayerType::BG2_Layout, LayerType::BG2_Objects};
-    } else {
-      return {LayerType::BG2_Layout, LayerType::BG2_Objects,
-              LayerType::BG1_Layout, LayerType::BG1_Objects};
-    }
+    // Standard SNES Mode 1 order: BG2 behind BG1
+    // bg2_on_top_ affects blend modes, not draw order
+    return {LayerType::BG2_Layout, LayerType::BG2_Objects,
+            LayerType::BG1_Layout, LayerType::BG1_Objects};
   }
 
   /**
@@ -449,6 +458,10 @@ class RoomLayerManager {
   std::array<LayerBlendMode, 4> layer_blend_mode_;
   std::array<uint8_t, 4> layer_alpha_;
   std::vector<ObjectTranslucency> object_translucency_;
+  
+  // Color math participation flag (from ROM's Layer2OnTop)
+  // NOTE: Does NOT affect draw order - BG1 is always above BG2 per SNES Mode 1.
+  // This controls whether BG2 participates in sub-screen color math effects.
   bool bg2_on_top_ = false;
 
   // Merge state tracking

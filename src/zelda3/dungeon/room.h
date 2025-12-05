@@ -89,10 +89,18 @@ struct LayerMergeType {
   }
 };
 
-const static LayerMergeType LayerMerge00{0x00, "Off", false, false, false};
+// LayerMergeType(id, name, Layer2Visible, Layer2OnTop, Layer2Translucent)
+// 
+// SNES Mode 1 Layer Priority: BG1 is ALWAYS rendered on top of BG2 by default.
+// The flags control COLOR MATH effects, not Z-order:
+// - Layer2Visible: Whether BG2 is enabled on main screen
+// - Layer2OnTop: Whether BG2 participates in sub-screen color math effects
+//   (transparency, additive blending) - does NOT change draw order
+// - Layer2Translucent: Whether color math creates transparency effect
+const static LayerMergeType LayerMerge00{0x00, "Off", true, false, false};
 const static LayerMergeType LayerMerge01{0x01, "Parallax", true, false, false};
 const static LayerMergeType LayerMerge02{0x02, "Dark", true, true, true};
-const static LayerMergeType LayerMerge03{0x03, "On top", true, true, false};
+const static LayerMergeType LayerMerge03{0x03, "On top", false, true, false};
 const static LayerMergeType LayerMerge04{0x04, "Translucent", true, true, true};
 const static LayerMergeType LayerMerge05{0x05, "Addition", true, true, true};
 const static LayerMergeType LayerMerge06{0x06, "Normal", true, false, false};
@@ -120,6 +128,22 @@ enum EffectKey {
   Red_Flashes,
   Torch_Show_Floor,
   Ganon_Room,
+};
+
+// Pot item - items hidden under pots, rocks, skulls etc.
+// Each item has its own position from ROM data
+struct PotItem {
+  uint16_t position = 0;  // Raw position word from ROM
+  uint8_t item = 0;       // Item type (0 = nothing)
+  
+  // Decode pixel coordinates from position word
+  // Format: high byte * 16 = Y, low byte * 4 = X
+  int GetPixelX() const { return (position & 0xFF) * 4; }
+  int GetPixelY() const { return ((position >> 8) & 0xFF) * 16; }
+  
+  // Get tile coordinates (8-pixel tiles)
+  int GetTileX() const { return GetPixelX() / 8; }
+  int GetTileY() const { return GetPixelY() / 8; }
 };
 
 enum TagKey {
@@ -313,8 +337,8 @@ class Room {
   }
 
   // Public getters for pot items (items hidden under pots/bushes)
-  const std::vector<uint8_t>& GetPotItems() const { return pot_items_; }
-  std::vector<uint8_t>& GetPotItems() { return pot_items_; }
+  const std::vector<PotItem>& GetPotItems() const { return pot_items_; }
+  std::vector<PotItem>& GetPotItems() { return pot_items_; }
 
   const RoomLayout& GetLayout() const { return layout_; }
 
@@ -597,7 +621,7 @@ class Room {
   std::vector<staircase> z3_staircases_;
   std::vector<chest_data> chests_in_room_;
   std::vector<Door> doors_;
-  std::vector<uint8_t> pot_items_;
+  std::vector<PotItem> pot_items_;
   RoomLayout layout_;
 
   LayerMergeType layer_merging_;

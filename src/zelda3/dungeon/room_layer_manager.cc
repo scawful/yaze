@@ -58,7 +58,7 @@ void RoomLayerManager::CompositeToOutput(Room& room,
     output.Fill(255);
   }
 
-  // Get draw order (respects bg2_on_top_ setting)
+  // Get draw order (SNES Mode 1: BG2 behind, BG1 on top)
   auto draw_order = GetDrawOrder();
 
   // Track if we've copied the palette yet

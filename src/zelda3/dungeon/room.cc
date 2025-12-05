@@ -943,32 +943,33 @@ void Room::RenderObjectsToBackground() {
                                       palette_group, dungeon_state_.get());
 
   // Render doors using DoorDef struct with enum types
-  // Doors are drawn to the LAYOUT buffer (bg1_buffer_), not object buffer
-  // In the game, doors are part of the room tilemap, not overlaid objects
-  for (int i = 0; i < doors_.size(); ++i) {
+  // Doors are drawn to the OBJECT buffer for layer visibility control
+  // This allows doors to remain visible when toggling BG1_Layout off
+  for (int i = 0; i < static_cast<int>(doors_.size()); ++i) {
     const auto& door = doors_[i];
     ObjectDrawer::DoorDef door_def;
     door_def.type = door.type;
     door_def.direction = door.direction;
     door_def.position = door.position;
-    // Pass door index for state lookup - use bg1_buffer_ for layout integration
-    drawer.DrawDoor(door_def, i, bg1_buffer_, bg2_buffer_, dungeon_state_.get());
+    // Draw doors to object buffers (not layout buffers) so they remain visible
+    // when BG1_Layout is hidden. Doors are objects, not layout tiles.
+    drawer.DrawDoor(door_def, i, object_bg1_buffer_, object_bg2_buffer_,
+                    dungeon_state_.get());
+  }
+  // Mark object buffer as modified so texture gets updated
+  if (!doors_.empty()) {
+    object_bg1_buffer_.bitmap().set_modified(true);
   }
 
   // Render pot items
-  // Iterate objects to find pots/bushes and assign items
-  int item_idx = 0;
-  for (const auto& obj : tile_objects_) {
-    // Check if object is a pot (0x11E) or bush (0x11F)
-    // TODO: Verify exact IDs for liftable objects
-    if (obj.id_ == 0x11E || obj.id_ == 0x11F) {
-      if (item_idx < (int)pot_items_.size()) {
-        uint8_t item = pot_items_[item_idx];
-        // Draw item visualization over the object
-        // Use BG1 buffer for now
-        drawer.DrawPotItem(item, obj.x_, obj.y_, object_bg1_buffer_);
-        item_idx++;
-      }
+  // Pot items now have their own position from ROM data
+  // No need to match to objects - each item has exact coordinates
+  for (const auto& pot_item : pot_items_) {
+    if (pot_item.item != 0) {  // Skip "Nothing" items
+      // PotItem provides pixel coordinates, convert to tile coords
+      int tile_x = pot_item.GetTileX();
+      int tile_y = pot_item.GetTileY();
+      drawer.DrawPotItem(pot_item.item, tile_x, tile_y, object_bg1_buffer_);
     }
   }
 
@@ -1184,7 +1185,7 @@ void Room::ParseObjectsFromLocation(int objects_location) {
     // Signals transition between object layers:
     //   Layer 0 -> BG1 buffer (main floor/walls)
     //   Layer 1 -> BG2 buffer (overlay layer)
-    //   Layer 2 -> BG1 buffer with priority (above floor objects)
+    //   Layer 2 -> BG1 buffer (priority objects, still on BG1)
     if (b1 == 0xFF && b2 == 0xFF) {
       pos += 2;  // Jump to next layer
       layer++;
@@ -1655,8 +1656,9 @@ void Room::LoadDoors() {
   // Doors are loaded as part of the object stream in LoadObjects()
   // When the parser encounters 0xF0 0xFF, it enters door mode
   // Door objects have format: b1 (position/direction), b2 (type)
-  // Door encoding: b1 = (door_pos << 3) + door_dir
-  //                b2 = door_type
+  // Door encoding: b1 = (door_pos << 4) | (door_dir & 0x03)
+  //                     position in bits 4-7, direction in bits 0-1
+  //                b2 = door_type (full byte, values 0x00, 0x02, 0x04, etc.)
   // This is already handled in ParseObjectsFromLocation()
 
   LOG_DEBUG("Room",
@@ -1816,26 +1818,44 @@ void Room::LoadPotItems() {
   auto rom_data = rom()->vector();
 
   // Load pot items
-  // kRoomItemsPointers is a table of pointers (2 bytes) indexed by room ID
-  int table_addr = kRoomItemsPointers; // 0x01DB69
+  // Format per ASM analysis (bank_01.asm):
+  //   - Pointer table at kRoomItemsPointers (0x01DB69)
+  //   - Each room has a pointer to item data
+  //   - Item data format: 3 bytes per item
+  //     - 2 bytes: position word (Y_hi, X_lo encoding)
+  //     - 1 byte: item type
+  //   - Terminated by 0xFFFF position word
+  
+  int table_addr = kRoomItemsPointers;  // 0x01DB69
   
   // Read pointer for this room
-  // Address is table_addr + room_id * 2
   int ptr_addr = table_addr + (room_id_ * 2);
-  if (ptr_addr + 1 >= (int)rom_data.size()) return;
+  if (ptr_addr + 1 >= static_cast<int>(rom_data.size())) return;
   
   uint16_t item_ptr = (rom_data[ptr_addr + 1] << 8) | rom_data[ptr_addr];
   
   // Convert to PC address (Bank 01 offset)
-  int item_addr = SnesToPc(0x010000 | item_ptr); 
+  int item_addr = SnesToPc(0x010000 | item_ptr);
   
-  // Read items until 0xFF
   pot_items_.clear();
-  while (item_addr < (int)rom_data.size()) {
-    uint8_t item = rom_data[item_addr];
-    if (item == 0xFF) break;
-    pot_items_.push_back(item);
-    item_addr++;
+  
+  // Read 3-byte entries until 0xFFFF terminator
+  while (item_addr + 2 < static_cast<int>(rom_data.size())) {
+    // Read position word (little endian)
+    uint16_t position = (rom_data[item_addr + 1] << 8) | rom_data[item_addr];
+    
+    // Check for terminator
+    if (position == 0xFFFF) break;
+    
+    // Read item type (3rd byte)
+    uint8_t item_type = rom_data[item_addr + 2];
+    
+    PotItem pot_item;
+    pot_item.position = position;
+    pot_item.item = item_type;
+    pot_items_.push_back(pot_item);
+    
+    item_addr += 3;  // Move to next entry
   }
 }
 

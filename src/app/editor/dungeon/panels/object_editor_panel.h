@@ -14,6 +14,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/widgets/dungeon_object_emulator_preview.h"
 #include "rom/rom.h"
+#include "zelda3/dungeon/door_types.h"
 #include "zelda3/dungeon/dungeon_object_editor.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/object_parser.h"
@@ -143,6 +144,7 @@ class ObjectEditorPanel : public EditorPanel {
 
   // Drawing methods
   void DrawObjectSelector();
+  void DrawDoorSection();
   void DrawEmulatorPreview();
   void DrawSelectedObjectInfo();
   void DrawStaticObjectEditor();
@@ -199,6 +201,10 @@ class ObjectEditorPanel : public EditorPanel {
   std::unique_ptr<zelda3::ObjectParser> object_parser_;
   gfx::BackgroundBuffer static_preview_buffer_{128, 128};
   bool static_preview_rendered_ = false;
+
+  // Door placement state
+  zelda3::DoorType selected_door_type_ = zelda3::DoorType::NormalDoor;
+  bool door_placement_mode_ = false;
 };
 
 }  // namespace editor

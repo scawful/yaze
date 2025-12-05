@@ -1972,12 +1972,23 @@ void ObjectDrawer::DrawNothing(const RoomObject& obj, gfx::BackgroundBuffer& bg,
 void ObjectDrawer::DrawRightwards2x2_1to15or32(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Draws 2x2 tiles rightward (object 0x00)
+  // Pattern: Draws 2x2 tiles rightward (object 0x00 = ceiling, 0xB8-0xB9)
   // Size byte determines how many times to repeat (1-15 or 32)
   // ROM tile order is COLUMN-MAJOR: [col0_row0, col0_row1, col1_row0, col1_row1]
   int size = obj.size_;
   if (size == 0)
     size = 32;  // Special case for object 0x00
+
+  // Debug: Log ceiling objects (0x00, 0xB8, 0xB9)
+  bool is_ceiling = (obj.id_ == 0x00 || obj.id_ == 0xB8 || obj.id_ == 0xB9);
+  if (is_ceiling && tiles.size() >= 4) {
+    printf("[Ceiling Draw] obj=0x%02X pos=(%d,%d) size=%d tiles=%zu\n",
+           obj.id_, obj.x_, obj.y_, size, tiles.size());
+    printf("  Tile IDs: [%d, %d, %d, %d]\n",
+           tiles[0].id_, tiles[1].id_, tiles[2].id_, tiles[3].id_);
+    printf("  Palettes: [%d, %d, %d, %d]\n",
+           tiles[0].palette_, tiles[1].palette_, tiles[2].palette_, tiles[3].palette_);
+  }
 
   LOG_DEBUG("ObjectDrawer",
             "DrawRightwards2x2: obj=%04X pos=(%d,%d) size=%d tiles=%zu",
@@ -2354,11 +2365,21 @@ void ObjectDrawer::CustomDraw(const RoomObject& obj, gfx::BackgroundBuffer& bg,
 void ObjectDrawer::DrawRightwards4x4_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
-  // Pattern: 4x4 block rightward (object 0x33)
+  // Pattern: 4x4 block rightward (objects 0x33, 0xBA = large ceiling, etc.)
   int size = obj.size_ & 0x0F;
 
   // Assembly: GetSize_1to16, so count = size + 1
   int count = size + 1;
+
+  // Debug: Log large ceiling objects (0xBA)
+  if (obj.id_ == 0xBA && tiles.size() >= 16) {
+    printf("[Large Ceiling Draw] obj=0x%02X pos=(%d,%d) size=%d tiles=%zu\n",
+           obj.id_, obj.x_, obj.y_, size, tiles.size());
+    printf("  First 4 Tile IDs: [%d, %d, %d, %d]\n",
+           tiles[0].id_, tiles[1].id_, tiles[2].id_, tiles[3].id_);
+    printf("  First 4 Palettes: [%d, %d, %d, %d]\n",
+           tiles[0].palette_, tiles[1].palette_, tiles[2].palette_, tiles[3].palette_);
+  }
 
   for (int s = 0; s < count; s++) {
     if (tiles.size() >= 16) {
@@ -3090,6 +3111,18 @@ void ObjectDrawer::DrawDownwardsDecor2x4spaced8_1to16(
   int size = obj.size_ & 0x0F;
   int count = size + 1;
 
+  // Debug: Log vertical ceiling objects (0x80)
+  if (obj.id_ == 0x80 && tiles.size() >= 8) {
+    printf("[Vertical Ceiling Draw] obj=0x%02X pos=(%d,%d) size=%d tiles=%zu\n",
+           obj.id_, obj.x_, obj.y_, size, tiles.size());
+    printf("  Tile IDs: [%d, %d, %d, %d, %d, %d, %d, %d]\n",
+           tiles[0].id_, tiles[1].id_, tiles[2].id_, tiles[3].id_,
+           tiles[4].id_, tiles[5].id_, tiles[6].id_, tiles[7].id_);
+    printf("  Palettes: [%d, %d, %d, %d, %d, %d, %d, %d]\n",
+           tiles[0].palette_, tiles[1].palette_, tiles[2].palette_, tiles[3].palette_,
+           tiles[4].palette_, tiles[5].palette_, tiles[6].palette_, tiles[7].palette_);
+  }
+
   for (int s = 0; s < count; s++) {
     if (tiles.size() >= 8) {
       // Draw 2x4 pattern in COLUMN-MAJOR order with 10-tile Y spacing
@@ -3319,7 +3352,14 @@ void ObjectDrawer::DrawDiagonalCeilingTopLeft(
   int size = obj.size_ & 0x0F;
   int count = size + 4;
 
-  if (tiles.empty()) return;
+  if (tiles.empty()) {
+    LOG_DEBUG("ObjectDrawer", "DiagonalCeilingTopLeft: No tiles for obj 0x%02X", obj.id_);
+    return;
+  }
+
+  LOG_DEBUG("ObjectDrawer", 
+            "DiagonalCeilingTopLeft: obj=0x%02X pos=(%d,%d) size=%d count=%d tile_id=%d pal=%d",
+            obj.id_, obj.x_, obj.y_, size, count, tiles[0].id_, tiles[0].palette_);
 
   for (int s = 0; s < count; s++) {
     // Assembly: ADC #$0080 = move down 1 row
@@ -4047,22 +4087,23 @@ void ObjectDrawer::DrawGanonTriforceFloorDecor(const RoomObject& obj,
                                                [[maybe_unused]] const DungeonState* state) {
   // Pattern: Ganon's Triforce Floor Decoration - THREE 4x4 blocks forming Triforce
   // ASM: RoomDraw_GanonTriforceFloorDecor at $01A7F0:
-  //   1. JSR RoomDraw_4x4                     -> first block at Y
-  //   2. Y += 0x1FC, JSR RoomDraw_4x4         -> second block (continues tile data)
-  //   3. PHX/PLX restores X, Y += 0x204, JMP RoomDraw_4x4 -> third block (same tiles as first)
+  //   1. JSR RoomDraw_4x4           -> Block 1 at Y, X advances to tiles 16
+  //   2. PHX                        -> Save X (now at tiles 16)
+  //   3. Y += 0x1FC, JSR RoomDraw_4x4 -> Block 2 with tiles 16-31
+  //   4. PLX                        -> Restore X back to tiles 16
+  //   5. Y += 0x204, JMP RoomDraw_4x4 -> Block 3 with tiles 16-31 (SAME as block 2!)
   //
   // VRAM layout: 0x80 bytes per row (64 tiles @ 2 bytes each = 128 bytes)
-  // 0x1FC = 508 -> 508/128 = 3.97 rows, 508%128 = 124 -> ~4 rows down, -2 cols (wraps)
-  // 0x204 = 516 -> 516/128 = 4.03 rows, 516%128 = 4 -> ~4 rows down, +2 cols
+  // 0x1FC = 508 -> ~4 rows down, -2 cols (124 mod 128 = wraps left)
+  // 0x204 = 516 -> ~4 rows down, +2 cols
   //
   // Visual pattern (Triforce):
-  //   Block 1: Top center (tiles 0-15)
-  //   Block 2: Bottom-left (tiles 16-31)
-  //   Block 3: Bottom-right (tiles 0-15 again, same as block 1)
+  //       [Block 1]          <- Top center (tiles 0-15)
+  //   [Block 2][Block 3]     <- Bottom row (BOTH use tiles 16-31!)
   constexpr int kBlockSize = 4;
   
   if (tiles.size() >= 32) {
-    // Block 1: Top center (offset 0 from base position)
+    // Block 1: Top center (tiles 0-15)
     int tid = 0;
     for (int y = 0; y < kBlockSize; ++y) {
       for (int x = 0; x < kBlockSize; ++x) {
@@ -4070,8 +4111,7 @@ void ObjectDrawer::DrawGanonTriforceFloorDecor(const RoomObject& obj,
       }
     }
     
-    // Block 2: Bottom-left (offset by ~4 rows down, slightly left)
-    // Uses continuation tile data (tiles 16-31)
+    // Block 2: Bottom-left (tiles 16-31)
     tid = 16;
     for (int y = 0; y < kBlockSize; ++y) {
       for (int x = 0; x < kBlockSize; ++x) {
@@ -4079,9 +4119,8 @@ void ObjectDrawer::DrawGanonTriforceFloorDecor(const RoomObject& obj,
       }
     }
     
-    // Block 3: Bottom-right (same tiles as block 1)
-    // PHX/PLX restores X to original, so tiles 0-15 are reused
-    tid = 0;
+    // Block 3: Bottom-right (SAME tiles 16-31, per PLX restoring X)
+    tid = 16;
     for (int y = 0; y < kBlockSize; ++y) {
       for (int x = 0; x < kBlockSize; ++x) {
         WriteTile8(bg, obj.x_ + x + 4, obj.y_ + kBlockSize + y, tiles[tid++]);
