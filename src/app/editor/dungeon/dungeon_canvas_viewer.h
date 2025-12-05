@@ -55,6 +55,7 @@ class DungeonCanvasViewer {
 
   // Room data access
   void SetRooms(std::array<zelda3::Room, 0x128>* rooms) { rooms_ = rooms; }
+  bool HasRooms() const { return rooms_ != nullptr; }
   // Used by overworld editor when double-clicking entrances
   void set_active_rooms(const ImVector<int>& rooms) { active_rooms_ = rooms; }
   void set_current_active_room_tab(int tab) { current_active_room_tab_ = tab; }

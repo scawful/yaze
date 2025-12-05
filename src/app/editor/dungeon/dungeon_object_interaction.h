@@ -47,6 +47,7 @@ class DungeonObjectInteraction {
   void DrawObjectSelectRect();
   void SelectObjectsInRect();
   void DrawSelectionHighlights();  // Draw highlights for selected objects
+  void DrawHoverHighlight(const std::vector<zelda3::RoomObject>& objects);  // Draw hover indicator
 
   // Drag and select box functionality
   void DrawSelectBox();

@@ -159,8 +159,8 @@ class ObjectEditorPanel : public EditorPanel {
   // Member Variables
   // ==========================================================================
 
-  Rom* rom_;
-  DungeonCanvasViewer* canvas_viewer_;
+  Rom* rom_ = nullptr;
+  DungeonCanvasViewer* canvas_viewer_ = nullptr;
   int current_room_id_ = 0;
 
   // Components

@@ -193,8 +193,8 @@ void ObjectEditorPanel::DrawEmulatorPreview() {
 void ObjectEditorPanel::DrawSelectedObjectInfo() {
   const auto& theme = AgentUI::GetTheme();
 
-  // Show selection state at top
-  if (canvas_viewer_) {
+  // Show selection state at top - with extra safety checks
+  if (canvas_viewer_ && canvas_viewer_->HasRooms()) {
     auto& interaction = canvas_viewer_->object_interaction();
     auto selected = interaction.GetSelectedObjectIndices();
 

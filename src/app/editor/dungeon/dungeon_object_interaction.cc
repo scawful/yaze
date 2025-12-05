@@ -191,10 +191,11 @@ void DungeonObjectInteraction::DrawSelectionHighlights() {
   // Use ObjectSelection's rendering (handles pulsing border, corner handles)
   selection_.DrawSelectionHighlights(
       canvas_, objects, [this](const zelda3::RoomObject& obj) {
-        // Prefer ObjectDimensionTable (tile units) for consistent hit testing
+        // Use GetSelectionDimensions for accurate visual bounds
+        // (doesn't inflate size=0 to 32 like the game's GetSize_1to15or32)
         auto& dim_table = zelda3::ObjectDimensionTable::Get();
         if (dim_table.IsLoaded()) {
-          auto [w_tiles, h_tiles] = dim_table.GetDimensions(obj.id_, obj.size_);
+          auto [w_tiles, h_tiles] = dim_table.GetSelectionDimensions(obj.id_, obj.size_);
           return std::make_pair(w_tiles * 8, h_tiles * 8);
         }
         // Fallback to drawer (aligns with render) if table not loaded
@@ -204,16 +205,117 @@ void DungeonObjectInteraction::DrawSelectionHighlights() {
         return std::make_pair(16, 16);  // Safe fallback
       });
 
-  // Interaction-specific: size tooltip when hovering over selected object
+  // Enhanced hover tooltip showing object info (always visible on hover)
   if (canvas_->IsMouseHovering()) {
     size_t hovered_index = GetHoveredObjectIndex();
-    if (selection_.IsObjectSelected(hovered_index) &&
+    if (hovered_index != static_cast<size_t>(-1) &&
         hovered_index < objects.size()) {
       const auto& object = objects[hovered_index];
-      ImGui::SetTooltip("Size: %d (0x%02X)\nScroll wheel to resize",
-                        object.size_, object.size_);
+      std::string object_name = zelda3::GetObjectName(object.id_);
+      int subtype = zelda3::GetObjectSubtype(object.id_);
+      int layer = object.GetLayerValue();
+      
+      // Get subtype name
+      const char* subtype_names[] = {"Unknown", "Type 1", "Type 2", "Type 3"};
+      const char* subtype_name = (subtype >= 0 && subtype <= 3) 
+                                  ? subtype_names[subtype] : "Unknown";
+      
+      // Build informative tooltip
+      std::string tooltip;
+      tooltip += object_name;
+      tooltip += " (" + std::string(subtype_name) + ")";
+      tooltip += "\n";
+      tooltip += "ID: 0x" + absl::StrFormat("%03X", object.id_);
+      tooltip += " | Layer: " + std::to_string(layer + 1);
+      tooltip += " | Pos: (" + std::to_string(object.x_) + ", " + 
+                 std::to_string(object.y_) + ")";
+      tooltip += "\nSize: " + std::to_string(object.size_) + 
+                 " (0x" + absl::StrFormat("%02X", object.size_) + ")";
+      
+      if (selection_.IsObjectSelected(hovered_index)) {
+        tooltip += "\n" ICON_MD_MOUSE " Scroll wheel to resize";
+        tooltip += "\n" ICON_MD_DRAG_INDICATOR " Drag to move";
+      } else {
+        tooltip += "\n" ICON_MD_TOUCH_APP " Click to select";
+      }
+      
+      ImGui::SetTooltip("%s", tooltip.c_str());
     }
   }
+  
+  // Draw hover highlight for non-selected objects
+  DrawHoverHighlight(objects);
+}
+
+void DungeonObjectInteraction::DrawHoverHighlight(
+    const std::vector<zelda3::RoomObject>& objects) {
+  if (!canvas_->IsMouseHovering()) return;
+  
+  size_t hovered_index = GetHoveredObjectIndex();
+  if (hovered_index == static_cast<size_t>(-1) || hovered_index >= objects.size()) {
+    return;
+  }
+  
+  // Don't draw hover highlight if object is already selected
+  if (selection_.IsObjectSelected(hovered_index)) {
+    return;
+  }
+  
+  const auto& object = objects[hovered_index];
+  const auto& theme = AgentUI::GetTheme();
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
+  ImVec2 canvas_pos = canvas_->zero_point();
+  float scale = canvas_->global_scale();
+  
+  // Calculate object position and dimensions
+  auto [obj_x, obj_y] = selection_.RoomToCanvasCoordinates(object.x_, object.y_);
+  
+  int pixel_width, pixel_height;
+  auto& dim_table = zelda3::ObjectDimensionTable::Get();
+  if (dim_table.IsLoaded()) {
+    auto [w_tiles, h_tiles] = dim_table.GetSelectionDimensions(object.id_, object.size_);
+    pixel_width = w_tiles * 8;
+    pixel_height = h_tiles * 8;
+  } else if (object_drawer_) {
+    auto dims = object_drawer_->CalculateObjectDimensions(object);
+    pixel_width = dims.first;
+    pixel_height = dims.second;
+  } else {
+    pixel_width = 16;
+    pixel_height = 16;
+  }
+  
+  // Apply scale and canvas offset
+  ImVec2 obj_start(canvas_pos.x + obj_x * scale,
+                   canvas_pos.y + obj_y * scale);
+  ImVec2 obj_end(obj_start.x + pixel_width * scale,
+                 obj_start.y + pixel_height * scale);
+  
+  // Expand slightly for visibility
+  constexpr float margin = 2.0f;
+  obj_start.x -= margin;
+  obj_start.y -= margin;
+  obj_end.x += margin;
+  obj_end.y += margin;
+  
+  // Get layer-based color for consistent highlighting
+  ImVec4 layer_color = selection_.GetLayerTypeColor(object);
+  
+  // Draw subtle hover highlight with layer-based color
+  ImVec4 hover_fill = ImVec4(
+      layer_color.x, layer_color.y, layer_color.z,
+      0.15f  // Very subtle fill
+  );
+  ImVec4 hover_border = ImVec4(
+      layer_color.x, layer_color.y, layer_color.z,
+      0.6f  // Visible but not as prominent as selection
+  );
+  
+  // Draw filled background for better visibility
+  draw_list->AddRectFilled(obj_start, obj_end, ImGui::GetColorU32(hover_fill));
+  
+  // Draw dashed-style border (simulated with thinner line)
+  draw_list->AddRect(obj_start, obj_end, ImGui::GetColorU32(hover_border), 0.0f, 0, 1.5f);
 }
 
 void DungeonObjectInteraction::PlaceObjectAtPosition(int room_x, int room_y) {

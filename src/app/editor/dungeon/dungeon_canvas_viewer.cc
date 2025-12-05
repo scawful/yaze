@@ -201,9 +201,82 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     uint8_t tag2_val = static_cast<uint8_t>(room.tag2());
     uint8_t layout_val = room.layout;
 
+    // Effect names matching RoomEffect array in room.cc
     const char* effect_names[] = {
-        "Nothing", "One",         "Moving Floor",     "Moving Water",
-        "Four",    "Red Flashes", "Torch Show Floor", "Ganon Room"};
+        "Nothing",         "Moving Floor",        "Moving Water",
+        "Trinexx Shell",   "Red Flashes",         "Light Torch to See",
+        "Ganon's Darkness"};
+    
+    // Tag names matching RoomTag array in room.cc
+    const char* tag_names[] = {
+        "Nothing",                    // 0
+        "NW Kill Enemy to Open",      // 1
+        "NE Kill Enemy to Open",      // 2
+        "SW Kill Enemy to Open",      // 3
+        "SE Kill Enemy to Open",      // 4
+        "W Kill Enemy to Open",       // 5
+        "E Kill Enemy to Open",       // 6
+        "N Kill Enemy to Open",       // 7
+        "S Kill Enemy to Open",       // 8
+        "Clear Quadrant to Open",     // 9
+        "Clear Full Tile to Open",    // 10
+        "NW Push Block to Open",      // 11
+        "NE Push Block to Open",      // 12
+        "SW Push Block to Open",      // 13
+        "SE Push Block to Open",      // 14
+        "W Push Block to Open",       // 15
+        "E Push Block to Open",       // 16
+        "N Push Block to Open",       // 17
+        "S Push Block to Open",       // 18
+        "Push Block to Open",         // 19
+        "Pull Lever to Open",         // 20
+        "Collect Prize to Open",      // 21
+        "Hold Switch Open Door",      // 22
+        "Toggle Switch to Open",      // 23
+        "Turn off Water",             // 24
+        "Turn on Water",              // 25
+        "Water Gate",                 // 26
+        "Water Twin",                 // 27
+        "Moving Wall Right",          // 28
+        "Moving Wall Left",           // 29
+        "Crash (30)",                 // 30
+        "Crash (31)",                 // 31
+        "Push Switch Exploding Wall", // 32
+        "Holes 0",                    // 33
+        "Open Chest (Holes 0)",       // 34
+        "Holes 1",                    // 35
+        "Holes 2",                    // 36
+        "Defeat Boss for Prize",      // 37
+        "SE Kill Enemy Push Block",   // 38
+        "Trigger Switch Chest",       // 39
+        "Pull Lever Exploding Wall",  // 40
+        "NW Kill Enemy for Chest",    // 41
+        "NE Kill Enemy for Chest",    // 42
+        "SW Kill Enemy for Chest",    // 43
+        "SE Kill Enemy for Chest",    // 44
+        "W Kill Enemy for Chest",     // 45
+        "E Kill Enemy for Chest",     // 46
+        "N Kill Enemy for Chest",     // 47
+        "S Kill Enemy for Chest",     // 48
+        "Clear Quadrant for Chest",   // 49
+        "Clear Full Tile for Chest",  // 50
+        "Light Torches to Open",      // 51
+        "Holes 3",                    // 52
+        "Holes 4",                    // 53
+        "Holes 5",                    // 54
+        "Holes 6",                    // 55
+        "Agahnim Room",               // 56
+        "Holes 7",                    // 57
+        "Holes 8",                    // 58
+        "Open Chest for Holes 8",     // 59
+        "Push Block for Chest",       // 60
+        "Clear Room for Triforce",    // 61
+        "Light Torches for Chest",    // 62
+        "Kill Boss Again",            // 63
+        "64 (Unused)"                 // 64
+    };
+    constexpr int kNumTags = IM_ARRAYSIZE(tag_names);
+    
     const char* merge_types[] = {"Off",    "Parallax",    "Dark",
                                  "On top", "Translucent", "Addition",
                                  "Normal", "Transparent", "Dark room"};
@@ -212,22 +285,22 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     ImGui::BeginGroup();
     draw_navigation();
 
-    // Compact room header with ID
+    // ========================================================================
+    // ROOM HEADER - ID and basic graphics settings
+    // ========================================================================
     ImGui::Text(ICON_MD_TUNE " Room 0x%03X", room_id);
-    ImGui::Separator();
-
-    // === GRAPHICS (always visible, compact) ===
-    ImGui::Text(ICON_MD_IMAGE " Graphics");
-    ImGui::PushItemWidth(60);
-    ImGui::SameLine();
+    ImGui::SameLine(0, 20);
+    
+    // Inline graphics controls
+    ImGui::PushItemWidth(50);
     if (auto res = gui::InputHexByteEx("##Blockset", &blockset_val);
         res.ShouldApply()) {
       room.SetBlockset(blockset_val);
       if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
     }
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Blockset");
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Blockset (tileset graphics)");
     ImGui::SameLine();
-    ImGui::Text("BLK");
+    ImGui::TextDisabled("BLK");
     ImGui::SameLine();
     if (auto res = gui::InputHexByteEx("##Palette", &palette_val);
         res.ShouldApply()) {
@@ -258,7 +331,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Palette");
     ImGui::SameLine();
-    ImGui::Text("PAL");
+    ImGui::TextDisabled("PAL");
     ImGui::SameLine();
     if (auto res = gui::InputHexByteEx("##Layout", &layout_val);
         res.ShouldApply()) {
@@ -266,12 +339,115 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       room.MarkLayoutDirty();
       if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
     }
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Layout");
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Layout template");
     ImGui::SameLine();
-    ImGui::Text("LAY");
+    ImGui::TextDisabled("LAY");
+    ImGui::SameLine();
+    if (auto res = gui::InputHexByteEx("##Spriteset", &spriteset_val);
+        res.ShouldApply()) {
+      room.SetSpriteset(spriteset_val);
+      if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
+    }
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Spriteset (enemy graphics)");
+    ImGui::SameLine();
+    ImGui::TextDisabled("SPR");
+    ImGui::SameLine();
+    if (auto res = gui::InputHexByteEx("##Floor1", &floor1_val);
+        res.ShouldApply()) {
+      room.set_floor1(floor1_val);
+      if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
+    }
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Floor 1 collision type");
+    ImGui::SameLine();
+    ImGui::TextDisabled("F1");
+    ImGui::SameLine();
+    if (auto res = gui::InputHexByteEx("##Floor2", &floor2_val);
+        res.ShouldApply()) {
+      room.set_floor2(floor2_val);
+      if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
+    }
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Floor 2 collision type");
+    ImGui::SameLine();
+    ImGui::TextDisabled("F2");
     ImGui::PopItemWidth();
 
-    // === LAYER VISIBILITY (compact row of checkboxes) ===
+    ImGui::Separator();
+
+    // ========================================================================
+    // EFFECT & TAGS ROW
+    // ========================================================================
+    // Clamp effect_val to valid range
+    constexpr int kNumEffects = IM_ARRAYSIZE(effect_names);
+    if (effect_val < 0) effect_val = 0;
+    if (effect_val >= kNumEffects) effect_val = kNumEffects - 1;
+    
+    ImGui::PushItemWidth(140);
+    if (ImGui::BeginCombo("##EffectMain", effect_names[effect_val])) {
+      for (int i = 0; i < kNumEffects; i++) {
+        bool is_selected = (effect_val == i);
+        if (ImGui::Selectable(effect_names[i], is_selected)) {
+          effect_val = i;
+          room.SetEffect(static_cast<zelda3::EffectKey>(effect_val));
+          if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
+        }
+        if (is_selected) ImGui::SetItemDefaultFocus();
+      }
+      ImGui::EndCombo();
+    }
+    ImGui::PopItemWidth();
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Room Effect");
+    ImGui::SameLine();
+    ImGui::TextDisabled(ICON_MD_AUTO_AWESOME);
+
+    ImGui::SameLine(0, 15);
+    
+    // Tag 1 dropdown - properly clamped
+    int tag1_idx = static_cast<int>(tag1_val);
+    if (tag1_idx < 0) tag1_idx = 0;
+    if (tag1_idx >= kNumTags) tag1_idx = kNumTags - 1;
+    ImGui::PushItemWidth(180);
+    if (ImGui::BeginCombo("##Tag1Combo", tag_names[tag1_idx])) {
+      for (int i = 0; i < kNumTags; i++) {
+        bool is_selected = (tag1_idx == i);
+        if (ImGui::Selectable(tag_names[i], is_selected)) {
+          room.SetTag1(static_cast<zelda3::TagKey>(i));
+          if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
+        }
+        if (is_selected) ImGui::SetItemDefaultFocus();
+      }
+      ImGui::EndCombo();
+    }
+    ImGui::PopItemWidth();
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Tag 1 (room trigger/event)");
+    ImGui::SameLine();
+    ImGui::TextDisabled(ICON_MD_LABEL " T1");
+
+    ImGui::SameLine(0, 15);
+    
+    // Tag 2 dropdown - properly clamped
+    int tag2_idx = static_cast<int>(tag2_val);
+    if (tag2_idx < 0) tag2_idx = 0;
+    if (tag2_idx >= kNumTags) tag2_idx = kNumTags - 1;
+    ImGui::PushItemWidth(180);
+    if (ImGui::BeginCombo("##Tag2Combo", tag_names[tag2_idx])) {
+      for (int i = 0; i < kNumTags; i++) {
+        bool is_selected = (tag2_idx == i);
+        if (ImGui::Selectable(tag_names[i], is_selected)) {
+          room.SetTag2(static_cast<zelda3::TagKey>(i));
+          if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
+        }
+        if (is_selected) ImGui::SetItemDefaultFocus();
+      }
+      ImGui::EndCombo();
+    }
+    ImGui::PopItemWidth();
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Tag 2 (secondary trigger)");
+    ImGui::SameLine();
+    ImGui::TextDisabled(ICON_MD_LABEL " T2");
+
+    // ========================================================================
+    // LAYER VISIBILITY & BLEND ROW
+    // ========================================================================
     bool bg1_layout = layer_mgr.IsLayerVisible(zelda3::LayerType::BG1_Layout);
     bool bg1_objects = layer_mgr.IsLayerVisible(zelda3::LayerType::BG1_Objects);
     bool bg2_layout = layer_mgr.IsLayerVisible(zelda3::LayerType::BG2_Layout);
@@ -282,7 +458,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     if (ImGui::Checkbox("BG1##Lay", &bg1_layout)) {
       layer_mgr.SetLayerVisible(zelda3::LayerType::BG1_Layout, bg1_layout);
     }
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("BG1 Layout");
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("BG1 Layout tiles");
     ImGui::SameLine();
     if (ImGui::Checkbox("Obj1##Obj", &bg1_objects)) {
       layer_mgr.SetLayerVisible(zelda3::LayerType::BG1_Objects, bg1_objects);
@@ -292,40 +468,62 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     if (ImGui::Checkbox("BG2##Lay2", &bg2_layout)) {
       layer_mgr.SetLayerVisible(zelda3::LayerType::BG2_Layout, bg2_layout);
     }
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("BG2 Layout");
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("BG2 Layout tiles");
     ImGui::SameLine();
     if (ImGui::Checkbox("Obj2##Obj2", &bg2_objects)) {
       layer_mgr.SetLayerVisible(zelda3::LayerType::BG2_Objects, bg2_objects);
     }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("BG2 Objects");
-
-    // Composite mode toggle (merge all layers into single bitmap)
     ImGui::SameLine();
     ImGui::TextDisabled("|");
     ImGui::SameLine();
     if (ImGui::Checkbox("Merge##Composite", &use_composite_mode_)) {
-      // When enabling composite mode, mark all rooms as needing recomposite
       if (use_composite_mode_ && rooms_) {
-        for (auto& room : *rooms_) {
-          room.MarkCompositeDirty();
+        for (auto& r : *rooms_) {
+          r.MarkCompositeDirty();
         }
       }
     }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Merge all layers into single composite bitmap");
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Merge layers into single bitmap");
+
+    // Blend & Merge controls inline
+    ImGui::SameLine(0, 15);
+    ImGui::PushItemWidth(70);
+    int bg2_blend = static_cast<int>(
+        layer_mgr.GetLayerBlendMode(zelda3::LayerType::BG2_Layout));
+    if (ImGui::Combo("##BG2BlendCombo", &bg2_blend, blend_modes,
+                     IM_ARRAYSIZE(blend_modes))) {
+      auto mode = static_cast<zelda3::LayerBlendMode>(bg2_blend);
+      layer_mgr.SetLayerBlendMode(zelda3::LayerType::BG2_Layout, mode);
+      layer_mgr.SetLayerBlendMode(zelda3::LayerType::BG2_Objects, mode);
     }
-
-    // === LAYER SELECTION FILTER ===
-    // Update merge state in the interaction system
-    object_interaction_.SetLayersMerged(layer_mgr.AreLayersMerged());
-
-    ImGui::Text(ICON_MD_SELECT_ALL " Select:");
+    ImGui::PopItemWidth();
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("BG2 blend mode");
     ImGui::SameLine();
+    ImGui::TextDisabled("BLD");
 
-    // Get current filter
+    ImGui::SameLine(0, 10);
+    ImGui::PushItemWidth(85);
+    int merge_val = room.layer_merging().ID;
+    if (ImGui::Combo("##LayerMergeCombo", &merge_val, merge_types,
+                     IM_ARRAYSIZE(merge_types))) {
+      room.SetLayerMerging(zelda3::kLayerMergeTypeList[merge_val]);
+      layer_mgr.ApplyLayerMergingPreserveVisibility(room.layer_merging());
+      if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
+    }
+    ImGui::PopItemWidth();
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Layer merge type (game behavior)");
+    ImGui::SameLine();
+    ImGui::TextDisabled("MRG");
+
+    // ========================================================================
+    // SELECTION FILTER ROW
+    // ========================================================================
+    object_interaction_.SetLayersMerged(layer_mgr.AreLayersMerged());
     int current_filter = object_interaction_.GetLayerFilter();
 
-    // Radio buttons for layer filter
+    ImGui::Text(ICON_MD_SELECT_ALL);
+    ImGui::SameLine();
     if (ImGui::RadioButton("All", current_filter == ObjectSelection::kLayerAll)) {
       object_interaction_.SetLayerFilter(ObjectSelection::kLayerAll);
     }
@@ -334,133 +532,32 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     if (ImGui::RadioButton("L1", current_filter == ObjectSelection::kLayer1)) {
       object_interaction_.SetLayerFilter(ObjectSelection::kLayer1);
     }
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select from Layer 1 (BG1) only");
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select Layer 1 only");
     ImGui::SameLine();
     if (ImGui::RadioButton("L2", current_filter == ObjectSelection::kLayer2)) {
       object_interaction_.SetLayerFilter(ObjectSelection::kLayer2);
     }
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select from Layer 2 (BG2) only");
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select Layer 2 only");
     ImGui::SameLine();
     if (ImGui::RadioButton("L3", current_filter == ObjectSelection::kLayer3)) {
       object_interaction_.SetLayerFilter(ObjectSelection::kLayer3);
     }
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select from Layer 3 (BG3) only");
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select Layer 3 only");
 
-    // Show indicator if layer filter is active
     if (object_interaction_.IsLayerFilterActive()) {
       ImGui::SameLine();
       ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), ICON_MD_FILTER_ALT);
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Layer filter active: %s\nOnly objects on this layer can be selected.",
-                          object_interaction_.GetLayerFilterName());
+        ImGui::SetTooltip("Layer filter: %s", object_interaction_.GetLayerFilterName());
       }
     }
-
-    // Show merge status if layers are merged
     if (layer_mgr.AreLayersMerged()) {
       ImGui::SameLine();
       ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f), ICON_MD_MERGE_TYPE);
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Layers are merged. Use layer filter to select from specific layers.");
-      }
+      if (ImGui::IsItemHovered()) ImGui::SetTooltip("Layers merged");
     }
 
-    // === ADVANCED SETTINGS (collapsible) ===
-    if (ImGui::CollapsingHeader(ICON_MD_SETTINGS " Advanced")) {
-      ImGui::Indent();
-
-      // Spriteset & Effect
-      ImGui::Text("Spriteset:");
-      ImGui::SameLine();
-      ImGui::PushItemWidth(50);
-      if (auto res = gui::InputHexByteEx("##Spriteset", &spriteset_val);
-          res.ShouldApply()) {
-        room.SetSpriteset(spriteset_val);
-        if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
-      }
-      ImGui::PopItemWidth();
-      ImGui::SameLine();
-      ImGui::Text("Effect:");
-      ImGui::SameLine();
-      ImGui::PushItemWidth(100);
-      if (ImGui::Combo("##EffectCombo", &effect_val, effect_names,
-                       IM_ARRAYSIZE(effect_names))) {
-        room.SetEffect(static_cast<zelda3::EffectKey>(effect_val));
-        if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
-      }
-      ImGui::PopItemWidth();
-
-      // Floors & Tags
-      ImGui::Text("Floor:");
-      ImGui::SameLine();
-      ImGui::PushItemWidth(40);
-      if (auto res = gui::InputHexByteEx("##Floor1", &floor1_val);
-          res.ShouldApply()) {
-        room.set_floor1(floor1_val);
-        if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
-      }
-      ImGui::SameLine();
-      ImGui::Text("1");
-      ImGui::SameLine();
-      if (auto res = gui::InputHexByteEx("##Floor2", &floor2_val);
-          res.ShouldApply()) {
-        room.set_floor2(floor2_val);
-        if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
-      }
-      ImGui::SameLine();
-      ImGui::Text("2");
-      ImGui::PopItemWidth();
-      ImGui::SameLine();
-      ImGui::Text("Tag:");
-      ImGui::SameLine();
-      ImGui::PushItemWidth(40);
-      if (auto res = gui::InputHexByteEx("##Tag1", &tag1_val);
-          res.ShouldApply()) {
-        room.SetTag1(static_cast<zelda3::TagKey>(tag1_val));
-        if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
-      }
-      ImGui::SameLine();
-      ImGui::Text("1");
-      ImGui::SameLine();
-      if (auto res = gui::InputHexByteEx("##Tag2", &tag2_val);
-          res.ShouldApply()) {
-        room.SetTag2(static_cast<zelda3::TagKey>(tag2_val));
-        if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
-      }
-      ImGui::SameLine();
-      ImGui::Text("2");
-      ImGui::PopItemWidth();
-
-      // Layer Merge & Blend
-      ImGui::Text("BG2 Blend:");
-      ImGui::SameLine();
-      ImGui::PushItemWidth(80);
-      int bg2_blend = static_cast<int>(
-          layer_mgr.GetLayerBlendMode(zelda3::LayerType::BG2_Layout));
-      if (ImGui::Combo("##BG2BlendCombo", &bg2_blend, blend_modes,
-                       IM_ARRAYSIZE(blend_modes))) {
-        auto mode = static_cast<zelda3::LayerBlendMode>(bg2_blend);
-        layer_mgr.SetLayerBlendMode(zelda3::LayerType::BG2_Layout, mode);
-        layer_mgr.SetLayerBlendMode(zelda3::LayerType::BG2_Objects, mode);
-      }
-      ImGui::PopItemWidth();
-      ImGui::SameLine();
-      ImGui::Text("Merge:");
-      ImGui::SameLine();
-      ImGui::PushItemWidth(90);
-      int merge_val = room.layer_merging().ID;
-      if (ImGui::Combo("##LayerMergeCombo", &merge_val, merge_types,
-                       IM_ARRAYSIZE(merge_types))) {
-        room.SetLayerMerging(zelda3::kLayerMergeTypeList[merge_val]);
-        // Use preserve-visibility version so layer checkboxes remain independent
-        layer_mgr.ApplyLayerMergingPreserveVisibility(room.layer_merging());
-        if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
-      }
-      ImGui::PopItemWidth();
-
-      ImGui::Unindent();
-    }
-
+    ImGui::Separator();
     ImGui::EndGroup();
   }
 
