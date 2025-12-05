@@ -197,15 +197,21 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     uint8_t floor1_val = room.floor1();
     uint8_t floor2_val = room.floor2();
     int effect_val = static_cast<int>(room.effect());
-    uint8_t tag1_val = static_cast<uint8_t>(room.tag1());
-    uint8_t tag2_val = static_cast<uint8_t>(room.tag2());
+    int tag1_val = static_cast<int>(room.tag1());
+    int tag2_val = static_cast<int>(room.tag2());
     uint8_t layout_val = room.layout;
 
-    // Effect names matching RoomEffect array in room.cc
+    // Effect names matching RoomEffect array in room.cc (8 entries, 0-7)
     const char* effect_names[] = {
-        "Nothing",         "Moving Floor",        "Moving Water",
-        "Trinexx Shell",   "Red Flashes",         "Light Torch to See",
-        "Ganon's Darkness"};
+        "Nothing",              // 0
+        "Nothing (1)",          // 1 - unused but exists in ROM
+        "Moving Floor",         // 2
+        "Moving Water",         // 3
+        "Trinexx Shell",        // 4
+        "Red Flashes",          // 5
+        "Light Torch to See",   // 6
+        "Ganon's Darkness"      // 7
+    };
     
     // Tag names matching RoomTag array in room.cc
     const char* tag_names[] = {
@@ -402,7 +408,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     ImGui::SameLine(0, 15);
     
     // Tag 1 dropdown - properly clamped
-    int tag1_idx = static_cast<int>(tag1_val);
+    int tag1_idx = tag1_val;
     if (tag1_idx < 0) tag1_idx = 0;
     if (tag1_idx >= kNumTags) tag1_idx = kNumTags - 1;
     ImGui::PushItemWidth(180);
@@ -425,7 +431,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     ImGui::SameLine(0, 15);
     
     // Tag 2 dropdown - properly clamped
-    int tag2_idx = static_cast<int>(tag2_val);
+    int tag2_idx = tag2_val;
     if (tag2_idx < 0) tag2_idx = 0;
     if (tag2_idx >= kNumTags) tag2_idx = kNumTags - 1;
     ImGui::PushItemWidth(180);

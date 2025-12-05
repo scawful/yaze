@@ -30,23 +30,24 @@ void DrawRightwards2x2_1to15or32(const DrawContext& ctx);
 void DrawRightwards2x4_1to15or26(const DrawContext& ctx);
 
 /**
- * @brief Draw 2x4 tiles rightward with spacing (1-16 repetitions)
+ * @brief Draw 2x4 tiles rightward with adjacent spacing (1-16 repetitions)
  *
- * Pattern: Draws 2x4 tiles rightward with spacing (objects 0x03-0x04)
- * Uses RoomDraw_Nx4 with N=2, tiles are COLUMN-MAJOR, spacing of 4 tiles
+ * Pattern: Draws 2x4 tiles rightward with adjacent spacing (objects 0x03-0x04)
+ * Uses RoomDraw_Nx4 with N=2, tiles are COLUMN-MAJOR
+ * ASM: GetSize_1to16 means count = size + 1
  *
  * @param ctx Draw context containing object, tiles, and target buffer
  */
-void DrawRightwards2x4spaced4_1to16(const DrawContext& ctx);
+void DrawRightwards2x4_1to16(const DrawContext& ctx);
 
 /**
- * @brief Draw 2x4 tiles rightward with spacing to both BG layers
+ * @brief Draw 2x4 tiles rightward with adjacent spacing to both BG layers
  *
- * Pattern: Same as above but draws to both BG1 and BG2 (objects 0x05-0x06)
+ * Pattern: Same as DrawRightwards2x4_1to16 but draws to both BG1 and BG2 (objects 0x05-0x06)
  *
  * @param ctx Draw context containing object, tiles, and target buffer
  */
-void DrawRightwards2x4spaced4_1to16_BothBG(const DrawContext& ctx);
+void DrawRightwards2x4_1to16_BothBG(const DrawContext& ctx);
 
 /**
  * @brief Draw 2x2 tiles rightward (1-16 repetitions)
