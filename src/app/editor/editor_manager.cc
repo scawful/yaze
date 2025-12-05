@@ -1428,6 +1428,11 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
   RETURN_IF_ERROR(current_editor_set->GetScreenEditor()->Load());
 
 #ifdef __EMSCRIPTEN__
+  update_progress("Loading graphics editor...");
+#endif
+  RETURN_IF_ERROR(current_editor_set->GetGraphicsEditor()->Load());
+
+#ifdef __EMSCRIPTEN__
   update_progress("Loading settings...");
 #endif
   // Settings panel doesn't need Load()

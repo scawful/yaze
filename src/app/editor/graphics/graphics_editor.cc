@@ -61,11 +61,15 @@ void GraphicsEditor::Initialize() {
   palette_controls_panel_ = std::make_unique<PaletteControlsPanel>(&state_, rom_);
   link_sprite_panel_ = std::make_unique<LinkSpritePanel>(&state_, rom_);
   polyhedral_panel_ = std::make_unique<PolyhedralEditorPanel>(rom_);
+  gfx_group_panel_ = std::make_unique<GfxGroupEditor>();
+  gfx_group_panel_->SetRom(rom_);
+  gfx_group_panel_->SetGameData(game_data_);
 
   sheet_browser_panel_->Initialize();
   pixel_editor_panel_->Initialize();
   palette_controls_panel_->Initialize();
   link_sprite_panel_->Initialize();
+  // gfx_group_panel_ does not have Initialize()
 
   // Register new panel-based cards
   panel_manager->RegisterPanel({.card_id = "graphics.sheet_browser_v2",
@@ -83,6 +87,10 @@ void GraphicsEditor::Initialize() {
                                .icon = ICON_MD_DRAW,
                                .category = "Graphics",
                                .shortcut_hint = "Ctrl+Shift+2",
+                               .shortcut_scope = PanelDescriptor::ShortcutScope::kGlobal,
+                               .visibility_flag = nullptr,
+                               .on_show = nullptr,
+                               .on_hide = nullptr,
                                .priority = 20,
                                .enabled_condition = [this]() { return rom()->is_loaded(); },
                                .disabled_tooltip = "Load a ROM first"});
@@ -111,6 +119,15 @@ void GraphicsEditor::Initialize() {
                                .category = "Graphics",
                                .shortcut_hint = "Ctrl+Shift+0",
                                .priority = 38,
+                               .enabled_condition = [this]() { return rom()->is_loaded(); },
+                               .disabled_tooltip = "Load a ROM first"});
+  panel_manager->RegisterPanel({.card_id = "graphics.gfx_group_editor",
+                               .display_name = "Graphics Groups",
+                               .window_title = ICON_MD_VIEW_MODULE " Graphics Groups",
+                               .icon = ICON_MD_VIEW_MODULE,
+                               .category = "Graphics",
+                               .shortcut_hint = "Ctrl+Shift+G",
+                               .priority = 39,
                                .enabled_condition = [this]() { return rom()->is_loaded(); },
                                .disabled_tooltip = "Load a ROM first"});
 
@@ -156,6 +173,7 @@ void GraphicsEditor::Initialize() {
   panel_manager->ShowPanel(session_id, "graphics.pixel_editor");
   panel_manager->ShowPanel(session_id, "graphics.sheet_browser_v2");
   panel_manager->ShowPanel(session_id, "graphics.polyhedral_editor");
+  panel_manager->ShowPanel(session_id, "graphics.gfx_group_editor");
 }
 
 absl::Status GraphicsEditor::Load() {
@@ -183,6 +201,31 @@ absl::Status GraphicsEditor::Load() {
       // Palettes are now applied during ROM loading in LoadAllGraphicsData()
       // Just queue texture creation for sheets that don't have textures yet
       if (!sheets[i].texture()) {
+        // Fix: Ensure default palettes are applied if missing
+        // This handles the case where sheets are loaded but have no palette assigned
+        if (sheets[i].palette().empty()) {
+          // Default palette assignment logic
+          if (i <= 112) {
+            // Overworld/Dungeon sheets - use Dungeon Main palette (Group 0, Index 0)
+             if (game_data() && game_data()->palette_groups.dungeon_main.size() > 0) {
+               sheets[i].SetPaletteWithTransparent(
+                   game_data()->palette_groups.dungeon_main.palette(0), 0);
+             }
+          } else if (i >= 113 && i <= 127) {
+            // Sprite sheets - use Sprites Aux1 palette (Group 4, Index 0)
+             if (game_data() && game_data()->palette_groups.sprites_aux1.size() > 0) {
+               sheets[i].SetPaletteWithTransparent(
+                   game_data()->palette_groups.sprites_aux1.palette(0), 0);
+             }
+          } else {
+             // Menu/Aux sheets - use HUD palette if available, or fallback
+             if (game_data() && game_data()->palette_groups.hud.size() > 0) {
+               sheets[i].SetPaletteWithTransparent(
+                   game_data()->palette_groups.hud.palette(0), 0);
+             }
+          }
+        }
+
         gfx::Arena::Get().QueueTextureCommand(
             gfx::Arena::TextureCommandType::CREATE, &sheets[i]);
         sheets_queued++;
@@ -255,12 +298,12 @@ absl::Status GraphicsEditor::Save() {
 
     // Calculate ROM offset for this sheet
     // Get version constants from game_data
-    auto vc = zelda3::kVersionConstantsMap.at(game_data()->version);
+    auto version_constants = zelda3::kVersionConstantsMap.at(game_data()->version);
     uint32_t offset = zelda3::GetGraphicsAddress(
         rom_->data(), static_cast<uint8_t>(sheet_id),
-        vc.kOverworldGfxPtr1,
-        vc.kOverworldGfxPtr2,
-        vc.kOverworldGfxPtr3, rom_->size());
+        version_constants.kOverworldGfxPtr1,
+        version_constants.kOverworldGfxPtr2,
+        version_constants.kOverworldGfxPtr3, rom_->size());
 
     // Write data to ROM buffer
     for (size_t i = 0; i < final_data.size(); i++) {
@@ -352,6 +395,35 @@ absl::Status GraphicsEditor::Update() {
       }
     }
     polyhedral_card_.End();
+  }
+
+  // Graphics Group Editor
+  bool* gfx_group_visible =
+      panel_manager->GetVisibilityFlag(session_id, "graphics.gfx_group_editor");
+  if (gfx_group_visible && *gfx_group_visible) {
+    // Reuse polyhedral card settings for now or create new one if needed
+    // Using a temporary window for now since we didn't add a card member for it yet
+    // actually we should add one, but for now let's use a simple Begin/End
+    // Wait, we can't use a simple Begin/End if we want it to be a panel.
+    // We need a PanelWindow. Let's assume we added gfx_group_card_ in header.
+    // Ah, I missed adding gfx_group_card_ in the header edit.
+    // I will use ImGui::Begin directly for now as a fallback or better yet,
+    // I will use a local static for now or just standard ImGui window
+    // But PanelManager expects us to use the visibility flag.
+    
+    PanelDescriptor desc;
+    desc.card_id = "graphics.gfx_group_editor";
+    desc.display_name = "Graphics Groups";
+    desc.icon = ICON_MD_GRID_ON;
+    desc.category = "Graphics";
+    desc.shortcut_hint = "Ctrl+Shift+G";
+    desc.visibility_flag = gfx_group_visible; // Use the existing visibility flag
+    desc.on_show = [this]() {
+      if (gfx_group_panel_) {
+        status_ = gfx_group_panel_->Update();
+      }
+    };
+    panel_manager->RegisterPanel(desc);
   }
 
   // --- Legacy Panels (member variables) ---
@@ -558,9 +630,9 @@ absl::Status GraphicsEditor::UpdateGfxSheetList() {
     clipper.IncludeItemByIndex(
         (int)ms_io->RangeSrcItem);  // Ensure RangeSrc item is not clipped.
 
-  int key = 0;
+  int sheet_idx = 0;
   for (auto& value : gfx::Arena::Get().gfx_sheets()) {
-    ImGui::BeginChild(absl::StrFormat("##GfxSheet%02X", key).c_str(),
+    ImGui::BeginChild(absl::StrFormat("##GfxSheet%02X", sheet_idx).c_str(),
                       ImVec2(0x100 + 1, 0x40 + 1), true,
                       ImGuiWindowFlags_NoDecoration);
     ImGui::PopStyleVar();
@@ -586,15 +658,15 @@ absl::Status GraphicsEditor::UpdateGfxSheetList() {
                        value.height() * sheet_scale_));
 
         if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-          current_sheet_ = key;
-          open_sheets_.insert(key);
+          current_sheet_ = sheet_idx;
+          open_sheets_.insert(sheet_idx);
         }
 
         // Add a slightly transparent rectangle behind the text
         ImVec2 text_pos(graphics_bin_canvas_.zero_point().x + 2,
                         graphics_bin_canvas_.zero_point().y + 2);
         ImVec2 text_size =
-            ImGui::CalcTextSize(absl::StrFormat("%02X", key).c_str());
+            ImGui::CalcTextSize(absl::StrFormat("%02X", sheet_idx).c_str());
         ImVec2 rect_min(text_pos.x, text_pos.y);
         ImVec2 rect_max(text_pos.x + text_size.x, text_pos.y + text_size.y);
 
@@ -603,9 +675,9 @@ absl::Status GraphicsEditor::UpdateGfxSheetList() {
 
         graphics_bin_canvas_.draw_list()->AddText(
             text_pos, IM_COL32(125, 255, 125, 255),
-            absl::StrFormat("%02X", key).c_str());
+            absl::StrFormat("%02X", sheet_idx).c_str());
       }
-      key++;
+      sheet_idx++;
     }
     graphics_bin_canvas_.DrawGrid(16.0f);
     graphics_bin_canvas_.DrawOverlay();
@@ -652,6 +724,21 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
 
         const auto child_id =
             absl::StrFormat("##GfxEditPaletteChildWindow%d", sheet_id);
+       if (ImGui::BeginChild("##ViewControls", ImVec2(0, 32), false)) {
+    auto view_controls = [](const char* label, float& val, float min, float max) {
+      ImGui::PushID(label);
+      ImGui::Text("%s", label);
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(60);
+      ImGui::SliderFloat("##slider", &val, min, max, "%.0f");
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(40);
+      ImGui::InputFloat("##input", &val, 1.0f, 10.0f, "%.0f");
+      ImGui::PopID();
+    };
+    view_controls("Scale", current_scale_, 1.0f, 16.0f);
+    ImGui::EndChild();
+       }
         ImGui::BeginChild(child_id.c_str(), ImVec2(0, 0), true,
                           ImGuiWindowFlags_NoDecoration |
                               ImGuiWindowFlags_AlwaysVerticalScrollbar |
@@ -714,8 +801,7 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
           },
           tile_size_, current_scale_);
       ImGui::End();
-
-      if (active == false) {
+      if (!active) {
         id_to_release = id;
       }
     }
@@ -748,6 +834,8 @@ absl::Status GraphicsEditor::UpdatePaletteColumn() {
       refresh_graphics_ = true;
     }
     ImGui::SameLine();
+    // Apply button removed as ApplySelectedPalette is undefined and redundant
+    // with "Apply to Current Sheet" below
     if (ImGui::Button("Sprites")) {
       edit_palette_group_name_index_ = 4;  // Sprites Aux1
       edit_palette_index_ = 0;

@@ -12,6 +12,7 @@
 #include "app/editor/graphics/palette_controls_panel.h"
 #include "app/editor/graphics/pixel_editor_panel.h"
 #include "app/editor/graphics/sheet_browser_panel.h"
+#include "app/editor/graphics/gfx_group_editor.h"
 #include "app/editor/palette/palette_editor.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_tile.h"
@@ -114,6 +115,7 @@ class GraphicsEditor : public Editor {
   std::unique_ptr<PaletteControlsPanel> palette_controls_panel_;
   std::unique_ptr<LinkSpritePanel> link_sprite_panel_;
   std::unique_ptr<PolyhedralEditorPanel> polyhedral_panel_;
+  std::unique_ptr<GfxGroupEditor> gfx_group_panel_;
 
   // Graphics Editor Tab
   absl::Status UpdateGfxEdit();
