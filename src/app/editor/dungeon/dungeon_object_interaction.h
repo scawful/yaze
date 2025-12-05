@@ -250,6 +250,7 @@ class DungeonObjectInteraction {
   // Entity selection state (doors, sprites, items)
   SelectedEntity selected_entity_;
   bool is_entity_dragging_ = false;
+  bool is_entity_mode_ = false;  // When true, suppress all object interactions
   ImVec2 entity_drag_start_pos_;
   ImVec2 entity_drag_current_pos_;
   std::function<void()> entity_changed_callback_;
