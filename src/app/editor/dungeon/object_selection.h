@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_OBJECT_SELECTION_H
 #define YAZE_APP_EDITOR_DUNGEON_OBJECT_SELECTION_H
 
+#include <cstdint>
 #include <functional>
 #include <set>
 #include <vector>
@@ -23,6 +24,7 @@ namespace editor {
  * - Rectangle selection (drag)
  * - Select all (Ctrl+A)
  * - Selection highlighting and visual feedback
+ * - Layer-aware selection with filter toggles
  *
  * Design Philosophy:
  * - Single Responsibility: Only manages selection state and operations
@@ -37,6 +39,12 @@ class ObjectSelection {
     Toggle,     // Toggle object in selection (Ctrl)
     Rectangle,  // Rectangle drag selection
   };
+
+  // Layer filter constants
+  static constexpr int kLayerAll = -1;    // Select from all layers
+  static constexpr int kLayer1 = 0;       // BG1 (Layer 0)
+  static constexpr int kLayer2 = 1;       // BG2 (Layer 1)
+  static constexpr int kLayer3 = 2;       // BG3 (Layer 2)
 
   explicit ObjectSelection() = default;
 
@@ -68,8 +76,16 @@ class ObjectSelection {
   /**
    * @brief Select all objects in the current room
    * @param object_count Total number of objects in the room
+   * @note This version doesn't respect layer filtering - use the overload
+   *       with objects list for layer-aware selection
    */
   void SelectAll(size_t object_count);
+
+  /**
+   * @brief Select all objects in the current room respecting layer filter
+   * @param objects Object list to select from
+   */
+  void SelectAll(const std::vector<zelda3::RoomObject>& objects);
 
   /**
    * @brief Clear all selections
@@ -183,6 +199,66 @@ class ObjectSelection {
   }
 
   // ============================================================================
+  // Layer Filtering
+  // ============================================================================
+
+  /**
+   * @brief Set the active layer filter for selection
+   * @param layer Layer to filter by (kLayerAll, kLayer1, kLayer2, kLayer3)
+   *
+   * When a layer filter is active, only objects on that layer can be selected.
+   * Use kLayerAll (-1) to disable filtering and select from all layers.
+   */
+  void SetLayerFilter(int layer) { active_layer_filter_ = layer; }
+
+  /**
+   * @brief Get the current active layer filter
+   * @return Current layer filter value
+   */
+  int GetLayerFilter() const { return active_layer_filter_; }
+
+  /**
+   * @brief Check if a specific layer is enabled for selection
+   * @param layer Layer to check (0, 1, or 2)
+   * @return true if objects on this layer can be selected
+   */
+  bool IsLayerEnabled(int layer) const {
+    return active_layer_filter_ == kLayerAll || active_layer_filter_ == layer;
+  }
+
+  /**
+   * @brief Check if layer filtering is active
+   * @return true if filtering to a specific layer
+   */
+  bool IsLayerFilterActive() const { return active_layer_filter_ != kLayerAll; }
+
+  /**
+   * @brief Get the name of the current layer filter for display
+   * @return Human-readable layer name
+   */
+  const char* GetLayerFilterName() const {
+    switch (active_layer_filter_) {
+      case kLayer1: return "Layer 1 (BG1)";
+      case kLayer2: return "Layer 2 (BG2)";
+      case kLayer3: return "Layer 3 (BG3)";
+      default: return "All Layers";
+    }
+  }
+
+  /**
+   * @brief Set whether layers are currently merged in the room
+   *
+   * When layers are merged, this information helps the UI provide
+   * appropriate feedback about which objects can be selected.
+   */
+  void SetLayersMerged(bool merged) { layers_merged_ = merged; }
+
+  /**
+   * @brief Check if layers are currently merged
+   */
+  bool AreLayersMerged() const { return layers_merged_; }
+
+  // ============================================================================
   // Utility Functions
   // ============================================================================
 
@@ -222,6 +298,10 @@ class ObjectSelection {
   int rect_end_x_ = 0;
   int rect_end_y_ = 0;
 
+  // Layer filtering state
+  int active_layer_filter_ = kLayerAll;  // -1 = all layers, 0/1/2 = specific layer
+  bool layers_merged_ = false;           // Whether room has merged layers
+
   // Callbacks
   std::function<void()> selection_changed_callback_;
 
@@ -229,6 +309,7 @@ class ObjectSelection {
   void NotifySelectionChanged();
   bool IsObjectInRectangle(const zelda3::RoomObject& object, int min_x,
                            int min_y, int max_x, int max_y) const;
+  bool PassesLayerFilter(const zelda3::RoomObject& object) const;
 };
 
 }  // namespace editor

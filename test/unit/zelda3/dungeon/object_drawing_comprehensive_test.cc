@@ -246,16 +246,22 @@ TEST_F(ObjectDrawingComprehensiveTest, TileCountLookupTable_SpecialCases) {
 // Draw Routine Mapping Tests
 // ============================================================================
 
+// TODO(Phase 4): Update routine ID range check
+// Phase 4 added SuperSquare routines (IDs 56-64), so the upper bound should be 64.
+// Remaining Phase 4 work will add more routines (simple variants, diagonal ceilings,
+// special/logic-dependent) bringing the total higher.
+
 TEST_F(ObjectDrawingComprehensiveTest, DrawRoutineMapping_AllSubtype1ObjectsHaveRoutines) {
   ObjectDrawer drawer(rom_.get(), 0);
 
   // Verify all Type 1 objects (0x00-0xF7) have valid routine mappings
   for (int id = 0; id <= 0xF7; ++id) {
     int routine_id = drawer.GetDrawRoutineId(id);
-    // Should return valid routine (0-38) or -1 for unmapped
-    // After Gemini's updates, all should be mapped
+    // Should return valid routine (0-82) or -1 for unmapped
+    // Phase 4 added: SuperSquare routines 56-64, Step 2 variants 65-74,
+    // Step 3 diagonal ceilings 75-78, Step 5 special routines 79-82
     EXPECT_GE(routine_id, -1) << "ID 0x" << std::hex << id;
-    EXPECT_LE(routine_id, 38) << "ID 0x" << std::hex << id;
+    EXPECT_LE(routine_id, 82) << "ID 0x" << std::hex << id;
   }
 }
 
@@ -290,18 +296,26 @@ TEST_F(ObjectDrawingComprehensiveTest, DrawRoutineMapping_DiagonalWalls) {
   }
 }
 
+// TODO(Phase 4): Update NothingRoutines test
+// Phase 4 corrected mappings for several objects that were incorrectly mapped to "Nothing":
+// - 0xC4 now maps to routine 59 (Draw4x4FloorOneIn4x4SuperSquare)
+// - 0xCB, 0xCC, 0xCF, 0xD0 need verification against assembly ground truth
+// - 0xD3-0xD6 are logic-only (CheckIfWallIsMoved) and correctly remain as Nothing
+
 TEST_F(ObjectDrawingComprehensiveTest, DrawRoutineMapping_NothingRoutines) {
   ObjectDrawer drawer(rom_.get(), 0);
 
   // Objects that map to "Nothing" (routine 38) are invisible/logic objects
+  // NOTE: Phase 4 removed some objects from this list as they now have proper routines
   std::vector<int> nothing_objects = {
       0x31, 0x32,  // Custom/logic
       0x54, 0x57, 0x58, 0x59, 0x5A,  // Logic objects
       0x6E, 0x6F,  // End of vertical section
       0x72, 0x7E,  // Logic objects
       0xBE, 0xBF,  // Logic objects
-      0xC4, 0xCB, 0xCC, 0xCF, 0xD0,  // Logic objects
-      0xD3, 0xD4, 0xD5, 0xD6,  // Wall moved checks
+      // 0xC4 removed - now maps to Draw4x4FloorOneIn4x4SuperSquare (routine 59)
+      0xCB, 0xCC, 0xCF, 0xD0,  // Logic objects (verify against ASM)
+      0xD3, 0xD4, 0xD5, 0xD6,  // Wall moved checks (logic-only, no tiles)
   };
 
   for (int id : nothing_objects) {

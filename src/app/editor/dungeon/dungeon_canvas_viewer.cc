@@ -16,10 +16,12 @@
 #include "canvas/canvas_menu.h"
 #include "core/icons.h"
 #include "absl/status/status.h"
+#include "editor/dungeon/object_selection.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
 #include "util/log.h"
 #include "util/macro.h"
+#include "zelda3/dungeon/object_dimensions.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_layer_manager.h"
@@ -297,6 +299,56 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("BG2 Objects");
 
+    // === LAYER SELECTION FILTER ===
+    // Update merge state in the interaction system
+    object_interaction_.SetLayersMerged(layer_mgr.AreLayersMerged());
+
+    ImGui::Text(ICON_MD_SELECT_ALL " Select:");
+    ImGui::SameLine();
+
+    // Get current filter
+    int current_filter = object_interaction_.GetLayerFilter();
+
+    // Radio buttons for layer filter
+    if (ImGui::RadioButton("All", current_filter == ObjectSelection::kLayerAll)) {
+      object_interaction_.SetLayerFilter(ObjectSelection::kLayerAll);
+    }
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select from all layers");
+    ImGui::SameLine();
+    if (ImGui::RadioButton("L1", current_filter == ObjectSelection::kLayer1)) {
+      object_interaction_.SetLayerFilter(ObjectSelection::kLayer1);
+    }
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select from Layer 1 (BG1) only");
+    ImGui::SameLine();
+    if (ImGui::RadioButton("L2", current_filter == ObjectSelection::kLayer2)) {
+      object_interaction_.SetLayerFilter(ObjectSelection::kLayer2);
+    }
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select from Layer 2 (BG2) only");
+    ImGui::SameLine();
+    if (ImGui::RadioButton("L3", current_filter == ObjectSelection::kLayer3)) {
+      object_interaction_.SetLayerFilter(ObjectSelection::kLayer3);
+    }
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select from Layer 3 (BG3) only");
+
+    // Show indicator if layer filter is active
+    if (object_interaction_.IsLayerFilterActive()) {
+      ImGui::SameLine();
+      ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), ICON_MD_FILTER_ALT);
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Layer filter active: %s\nOnly objects on this layer can be selected.",
+                          object_interaction_.GetLayerFilterName());
+      }
+    }
+
+    // Show merge status if layers are merged
+    if (layer_mgr.AreLayersMerged()) {
+      ImGui::SameLine();
+      ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f), ICON_MD_MERGE_TYPE);
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Layers are merged. Use layer filter to select from specific layers.");
+      }
+    }
+
     // === ADVANCED SETTINGS (collapsible) ===
     if (ImGui::CollapsingHeader(ICON_MD_SETTINGS " Advanced")) {
       ImGui::Indent();
@@ -447,6 +499,22 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
         }));
 
     canvas_.AddContextMenuItem(layer_menu);
+
+    // Entity Visibility menu
+    gui::CanvasMenuItem entity_menu;
+    entity_menu.label = "Entity Visibility";
+    entity_menu.icon = ICON_MD_PERSON;
+
+    entity_menu.subitems.push_back(
+        gui::CanvasMenuItem("Show Sprites", [this]() {
+          entity_visibility_.show_sprites = !entity_visibility_.show_sprites;
+        }));
+    entity_menu.subitems.push_back(
+        gui::CanvasMenuItem("Show Pot Items", [this]() {
+          entity_visibility_.show_pot_items = !entity_visibility_.show_pot_items;
+        }));
+
+    canvas_.AddContextMenuItem(entity_menu);
 
     // Add re-render option
     canvas_.AddContextMenuItem(gui::CanvasMenuItem(
@@ -639,6 +707,32 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
         [&interaction]() { interaction.CancelPlacement(); }, "Esc");
     cancel_item.enabled_condition = enabled_if(placing_object);
     canvas_.AddContextMenuItem(cancel_item);
+
+    // Send to Layer submenu
+    gui::CanvasMenuItem layer_menu;
+    layer_menu.label = "Send to Layer";
+    layer_menu.icon = ICON_MD_LAYERS;
+    layer_menu.enabled_condition = enabled_if(has_selection);
+
+    gui::CanvasMenuItem layer1_item(
+        "Layer 1 (BG1)", ICON_MD_LOOKS_ONE,
+        [&interaction]() { interaction.SendSelectedToLayer(0); }, "1");
+    layer1_item.enabled_condition = enabled_if(has_selection);
+    layer_menu.subitems.push_back(layer1_item);
+
+    gui::CanvasMenuItem layer2_item(
+        "Layer 2 (BG2)", ICON_MD_LOOKS_TWO,
+        [&interaction]() { interaction.SendSelectedToLayer(1); }, "2");
+    layer2_item.enabled_condition = enabled_if(has_selection);
+    layer_menu.subitems.push_back(layer2_item);
+
+    gui::CanvasMenuItem layer3_item(
+        "Layer 3 (BG3)", ICON_MD_LOOKS_3,
+        [&interaction]() { interaction.SendSelectedToLayer(2); }, "3");
+    layer3_item.enabled_condition = enabled_if(has_selection);
+    layer_menu.subitems.push_back(layer3_item);
+
+    canvas_.AddContextMenuItem(layer_menu);
   }
 
   // CRITICAL: Draw canvas with explicit size to ensure viewport matches content
@@ -840,9 +934,9 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     // Room::RenderObjectsToBackground()
     DrawRoomBackgroundLayers(room_id);
 
-    // Render sprites as simple 16x16 squares with labels
-    // (Sprites are not part of the background buffers)
-    RenderSprites(room);
+    // Render entity overlays (sprites, pot items) as colored squares with labels
+    // (Entities are not part of the background buffers)
+    RenderEntityOverlay(room);
 
     // Handle object interaction if enabled
     if (object_interaction_enabled_) {
@@ -903,14 +997,19 @@ void DungeonCanvasViewer::DisplayObjectInfo(const zelda3::RoomObject& object,
 }
 
 void DungeonCanvasViewer::RenderSprites(const zelda3::Room& room) {
+  // Skip if sprites are not visible
+  if (!entity_visibility_.show_sprites) {
+    return;
+  }
+
   const auto& theme = AgentUI::GetTheme();
 
-  // Render sprites as simple 8x8 squares with sprite name/ID
+  // Render sprites as 16x16 colored squares with sprite name/ID
   for (const auto& sprite : room.GetSprites()) {
     auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(sprite.x(), sprite.y());
 
-    if (IsWithinCanvasBounds(canvas_x, canvas_y, 8)) {
-      // Draw 8x8 square for sprite
+    if (IsWithinCanvasBounds(canvas_x, canvas_y, 16)) {
+      // Draw 16x16 square for sprite (like overworld entities)
       ImVec4 sprite_color;
 
       // Color-code sprites based on layer
@@ -920,10 +1019,8 @@ void DungeonCanvasViewer::RenderSprites(const zelda3::Room& room) {
         sprite_color = theme.dungeon_sprite_layer1;  // Blue for layer 1
       }
 
-      canvas_.DrawRect(canvas_x, canvas_y, 8, 8, sprite_color);
-
-      // Draw sprite border
-      canvas_.DrawRect(canvas_x, canvas_y, 8, 8, theme.panel_border_color);
+      // Draw filled square
+      canvas_.DrawRect(canvas_x, canvas_y, 16, 16, sprite_color);
 
       // Draw sprite ID and name
       std::string sprite_text;
@@ -935,11 +1032,11 @@ void DungeonCanvasViewer::RenderSprites(const zelda3::Room& room) {
             space_pos < full_name.length() - 1) {
           std::string sprite_name = full_name.substr(space_pos + 1);
           // Truncate long names
-          if (sprite_name.length() > 8) {
-            sprite_name = sprite_name.substr(0, 8) + "...";
+          if (sprite_name.length() > 10) {
+            sprite_name = sprite_name.substr(0, 8) + "..";
           }
           sprite_text =
-              absl::StrFormat("%02X\n%s", sprite.id(), sprite_name.c_str());
+              absl::StrFormat("%02X %s", sprite.id(), sprite_name.c_str());
         } else {
           sprite_text = absl::StrFormat("%02X", sprite.id());
         }
@@ -947,9 +1044,99 @@ void DungeonCanvasViewer::RenderSprites(const zelda3::Room& room) {
         sprite_text = absl::StrFormat("%02X", sprite.id());
       }
 
-      canvas_.DrawText(sprite_text, canvas_x + 18, canvas_y);
+      canvas_.DrawText(sprite_text, canvas_x, canvas_y);
     }
   }
+}
+
+void DungeonCanvasViewer::RenderPotItems(const zelda3::Room& room) {
+  // Skip if pot items are not visible
+  if (!entity_visibility_.show_pot_items) {
+    return;
+  }
+
+  const auto& theme = AgentUI::GetTheme();
+  const auto& pot_items = room.GetPotItems();
+  const auto& objects = room.GetTileObjects();
+
+  // Pot item names (from overworld_item.h kSecretItemNames)
+  static const char* kPotItemNames[] = {
+      "Nothing",        // 0
+      "Green Rupee",    // 1
+      "Rock",           // 2
+      "Bee",            // 3
+      "Health",         // 4
+      "Bomb",           // 5
+      "Heart",          // 6
+      "Blue Rupee",     // 7
+      "Key",            // 8
+      "Arrow",          // 9
+      "Bomb",           // 10
+      "Heart",          // 11
+      "Magic",          // 12
+      "Full Magic",     // 13
+      "Cucco",          // 14
+      "Green Soldier",  // 15
+      "Bush Stal",      // 16
+      "Blue Soldier",   // 17
+      "Landmine",       // 18
+      "Heart",          // 19
+      "Fairy",          // 20
+      "Heart",          // 21
+      "Nothing",        // 22
+      "Hole",           // 23
+      "Warp",           // 24
+      "Staircase",      // 25
+      "Bombable",       // 26
+      "Switch"          // 27
+  };
+  constexpr size_t kPotItemNameCount = sizeof(kPotItemNames) / sizeof(kPotItemNames[0]);
+
+  // Find pots and bushes and render their items
+  // Pot object ID: 0xF2F (Type 3), Bush: varies
+  int item_idx = 0;
+  for (const auto& obj : objects) {
+    // Check if object is a pot (0x11E in Type 2 = 0x11E) or similar liftable
+    // Pot types: 0x11E (block), 0xF2F (pot from Type3)
+    bool is_pot = (obj.id_ == 0x11E || obj.id_ == 0x11F ||
+                   obj.id_ == 0xF2F || obj.id_ == 0x135);
+
+    if (is_pot && item_idx < static_cast<int>(pot_items.size())) {
+      uint8_t item = pot_items[item_idx];
+
+      // Only render if item is not "Nothing" (0)
+      if (item != 0) {
+        auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(obj.x_, obj.y_);
+
+        if (IsWithinCanvasBounds(canvas_x, canvas_y, 16)) {
+          // Draw 16x16 yellow square for pot item
+          ImVec4 pot_item_color = ImVec4(1.0f, 0.85f, 0.2f, 0.75f);  // Yellow
+
+          canvas_.DrawRect(canvas_x, canvas_y, 16, 16, pot_item_color);
+
+          // Get item name
+          std::string item_name;
+          if (item < kPotItemNameCount) {
+            item_name = kPotItemNames[item];
+          } else {
+            item_name = "???";
+          }
+
+          // Draw item ID and name
+          std::string item_text = absl::StrFormat("%02X %s", item, item_name.c_str());
+          canvas_.DrawText(item_text, canvas_x, canvas_y);
+        }
+      }
+
+      item_idx++;
+    }
+  }
+}
+
+void DungeonCanvasViewer::RenderEntityOverlay(const zelda3::Room& room) {
+  // Render all entity overlays
+  RenderSprites(room);
+  RenderPotItems(room);
 }
 
 // Coordinate conversion helper functions
@@ -992,44 +1179,6 @@ bool DungeonCanvasViewer::IsWithinCanvasBounds(int canvas_x, int canvas_y,
           canvas_x <= canvas_width + margin &&
           canvas_y <= canvas_height + margin);
 }
-
-void DungeonCanvasViewer::CalculateWallDimensions(
-    const zelda3::RoomObject& object, int& width, int& height) {
-  // Default base size
-  width = 8;
-  height = 8;
-
-  // For walls, use the size field to determine length and orientation
-  if (object.id_ >= 0x10 && object.id_ <= 0x1F) {
-    // Wall objects: size determines length and orientation
-    uint8_t size_x = object.size_ & 0x0F;
-    uint8_t size_y = (object.size_ >> 4) & 0x0F;
-
-    // Walls can be horizontal or vertical based on size parameters
-    if (size_x > size_y) {
-      // Horizontal wall
-      width = 8 + size_x * 8;  // Each unit adds 8 pixels
-      height = 8;
-    } else if (size_y > size_x) {
-      // Vertical wall
-      width = 8;
-      height = 8 + size_y * 8;
-    } else {
-      // Square wall or corner
-      width = 8 + size_x * 4;
-      height = 8 + size_y * 4;
-    }
-  } else {
-    // For other objects, use standard size calculation
-    width = 8 + (object.size_ & 0x0F) * 4;
-    height = 8 + ((object.size_ >> 4) & 0x0F) * 4;
-  }
-
-  // Clamp to reasonable limits
-  width = std::min(width, 256);
-  height = std::min(height, 256);
-}
-
 // Room layout visualization
 
 // Object visualization methods
@@ -1079,9 +1228,19 @@ void DungeonCanvasViewer::DrawObjectPositionOutlines(const zelda3::Room& room) {
     // (UNSCALED)
     auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(obj.x(), obj.y());
 
-    // Calculate object dimensions using ObjectDrawer for game-accurate sizes
-    // This uses the same draw routine mapping as the actual rendering
-    auto [width, height] = drawer.CalculateObjectDimensions(obj);
+    // Calculate object dimensions using the shared dimension table when loaded
+    int width = 16;
+    int height = 16;
+    auto& dim_table = zelda3::ObjectDimensionTable::Get();
+    if (dim_table.IsLoaded()) {
+      auto [w_tiles, h_tiles] = dim_table.GetDimensions(obj.id_, obj.size_);
+      width = w_tiles * 8;
+      height = h_tiles * 8;
+    } else {
+      auto [w, h] = drawer.CalculateObjectDimensions(obj);
+      width = w;
+      height = h;
+    }
 
     // IMPORTANT: Do NOT apply canvas scale here - DrawRect handles it
     // Clamp to reasonable sizes (in logical space)
@@ -1153,24 +1312,22 @@ absl::Status DungeonCanvasViewer::LoadAndRenderRoomGraphics(int room_id) {
     LOG_ERROR("[LoadAndRender]", "GameData not available");
     return absl::FailedPreconditionError("GameData not available");
   }
-  if (room.palette < game_data_->paletteset_ids.size() &&
-      !game_data_->paletteset_ids[room.palette].empty()) {
-    auto dungeon_palette_ptr = game_data_->paletteset_ids[room.palette][0];
-    auto palette_id = rom_->ReadWord(0xDEC4B + dungeon_palette_ptr);
-    if (palette_id.ok()) {
-      current_palette_group_id_ = palette_id.value() / 180;
-      if (current_palette_group_id_ <
-          game_data_->palette_groups.dungeon_main.size()) {
-        auto full_palette =
-            game_data_->palette_groups.dungeon_main[current_palette_group_id_];
-        // TODO: Fix palette assignment to buffer.
-        ASSIGN_OR_RETURN(
-            current_palette_group_,
-            gfx::CreatePaletteGroupFromLargePalette(full_palette, 16));
-        LOG_DEBUG("[LoadAndRender]", "Palette loaded: group_id=%zu",
-                  current_palette_group_id_);
-      }
+  const auto& dungeon_main = game_data_->palette_groups.dungeon_main;
+  if (!dungeon_main.empty()) {
+    int palette_id = room.palette;
+    if (room.palette < game_data_->paletteset_ids.size()) {
+      palette_id = game_data_->paletteset_ids[room.palette][0];
     }
+    current_palette_group_id_ =
+        std::min<uint64_t>(std::max(0, palette_id),
+                           static_cast<int>(dungeon_main.size() - 1));
+
+    auto full_palette = dungeon_main[current_palette_group_id_];
+    ASSIGN_OR_RETURN(
+        current_palette_group_,
+        gfx::CreatePaletteGroupFromLargePalette(full_palette, 16));
+    LOG_DEBUG("[LoadAndRender]", "Palette loaded: group_id=%zu",
+              current_palette_group_id_);
   }
 
   // Render the room graphics (self-contained - handles all palette application)
@@ -1195,6 +1352,23 @@ void DungeonCanvasViewer::DrawRoomBackgroundLayers(int room_id) {
 
   float scale = canvas_.global_scale();
 
+  // Composite mode: Use single merged bitmap instead of 4-layer sequential draw
+  if (use_composite_mode_) {
+    auto& composite = room.GetCompositeBitmap(layer_mgr);
+    if (composite.is_active() && composite.width() > 0) {
+      // Ensure texture exists
+      if (!composite.texture()) {
+        gfx::Arena::Get().QueueTextureCommand(
+            gfx::Arena::TextureCommandType::CREATE, &composite);
+      }
+      if (composite.texture()) {
+        canvas_.DrawBitmap(composite, 0, 0, scale, 255);
+      }
+    }
+    return;
+  }
+
+  // Standard mode: Draw 4 layers sequentially (back to front)
   // Helper lambda to draw a single layer
   auto draw_layer = [&](zelda3::LayerType layer_type) {
     if (!layer_mgr.IsLayerVisible(layer_type))

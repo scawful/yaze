@@ -458,7 +458,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
   });
 
   registry.push_back(DrawRoutineInfo{
-      .id = 21,  // RoomDraw_Rightwards1x2_1to16_plus2
+      .id = 20,  // RoomDraw_Rightwards1x2_1to16_plus2
       .name = "Rightwards1x2_1to16_plus2",
       .function = DrawRightwards1x2_1to16_plus2,
       .draws_to_both_bgs = false,
@@ -468,7 +468,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
   });
 
   registry.push_back(DrawRoutineInfo{
-      .id = 22,  // RoomDraw_RightwardsHasEdge1x1_1to16_plus3
+      .id = 21,  // RoomDraw_RightwardsHasEdge1x1_1to16_plus3
       .name = "RightwardsHasEdge1x1_1to16_plus3",
       .function = DrawRightwardsHasEdge1x1_1to16_plus3,
       .draws_to_both_bgs = false,
@@ -478,7 +478,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
   });
 
   registry.push_back(DrawRoutineInfo{
-      .id = 23,  // RoomDraw_RightwardsHasEdge1x1_1to16_plus2
+      .id = 22,  // RoomDraw_RightwardsHasEdge1x1_1to16_plus2
       .name = "RightwardsHasEdge1x1_1to16_plus2",
       .function = DrawRightwardsHasEdge1x1_1to16_plus2,
       .draws_to_both_bgs = false,
@@ -488,7 +488,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
   });
 
   registry.push_back(DrawRoutineInfo{
-      .id = 24,  // RoomDraw_RightwardsTopCorners1x2_1to16_plus13
+      .id = 23,  // RoomDraw_RightwardsTopCorners1x2_1to16_plus13
       .name = "RightwardsTopCorners1x2_1to16_plus13",
       .function = DrawRightwardsTopCorners1x2_1to16_plus13,
       .draws_to_both_bgs = false,
@@ -498,12 +498,12 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
   });
 
   registry.push_back(DrawRoutineInfo{
-      .id = 25,  // RoomDraw_RightwardsBottomCorners1x2_1to16_plus13
+      .id = 24,  // RoomDraw_RightwardsBottomCorners1x2_1to16_plus13
       .name = "RightwardsBottomCorners1x2_1to16_plus13",
       .function = DrawRightwardsBottomCorners1x2_1to16_plus13,
       .draws_to_both_bgs = false,
       .base_width = 1,
-      .base_height = 3,  // y+1 to y+2
+      .base_height = 2,  // spans y+1 to y+2
       .category = DrawRoutineInfo::Category::Rightwards,
   });
 
@@ -518,7 +518,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
   });
 
   registry.push_back(DrawRoutineInfo{
-      .id = 26,  // RoomDraw_Rightwards1x1Solid_1to16_plus3
+      .id = 25,  // RoomDraw_Rightwards1x1Solid_1to16_plus3
       .name = "Rightwards1x1Solid_1to16_plus3",
       .function = DrawRightwards1x1Solid_1to16_plus3,
       .draws_to_both_bgs = false,

@@ -723,6 +723,7 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
     viewer->object_interaction().SetCacheInvalidationCallback(
         [this, room_id]() {
           if (room_id >= 0 && room_id < static_cast<int>(rooms_.size())) {
+            rooms_[room_id].MarkObjectsDirty();
             rooms_[room_id].RenderRoomGraphics();
           }
         });

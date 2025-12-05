@@ -67,14 +67,24 @@ void BackgroundBuffer::DrawTile(const TileInfo& tile, uint8_t* canvas,
   int tile_base_x = tile_col_idx * 8;    // 8 pixels wide (8 bytes)
   int tile_base_y = tile_row_idx * 1024; // 8 rows * 128 bytes stride (sheet width)
 
-  // Palette handling - aligned with ObjectDrawer::DrawTileToBitmap
-  // Dungeon palettes have 6 groups of 15 colors (90 total).
-  // Palette index from tile (3 bits, 0-7) may exceed valid range 0-5.
+  // Palette offset calculation based on SNES CGRAM layout from ASM analysis:
+  // - PaletteLoad_UnderworldSet loads dungeon palette to CGRAM starting at 0x0042
+  // - CGRAM 0x42 = color index 33 = row 2, position 1
+  // - Dungeon tiles use palette bits 2-7, mapping to CGRAM rows 2-7
+  // - Each CGRAM row has 16 colors; ROM stores 15 colors per row (index 0 = transparent)
+  // - 6 rows × 15 colors = 90 colors in ROM, loaded to CGRAM indices 33-47, 49-63, etc.
+  //
+  // Tile palette bits → ROM palette offset:
+  //   2 → 0-14, 3 → 15-29, 4 → 30-44, 5 → 45-59, 6 → 60-74, 7 → 75-89
   uint8_t pal = tile.palette_ & 0x07;
-  if (pal > 5) {
-    pal = pal % 6;  // Wrap palettes 6,7 to 0,1
+  uint8_t palette_offset;
+  if (pal >= 2 && pal <= 7) {
+    // Dungeon BG tiles use palette bits 2-7, mapping to ROM indices 0-89
+    palette_offset = (pal - 2) * 15;
+  } else {
+    // Palette 0-1 are for HUD/other - fallback to first sub-palette
+    palette_offset = 0;
   }
-  uint8_t palette_offset = pal * 15;
 
   // Pre-calculate max valid destination index
   int max_dest = width_ * height_;

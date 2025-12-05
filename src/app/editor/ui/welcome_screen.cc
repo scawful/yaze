@@ -464,31 +464,49 @@ void WelcomeScreen::RefreshRecentProjects() {
   recent_projects_.clear();
 
   // Use the ProjectManager singleton to get recent files
-  auto& recent_files =
-      project::RecentFilesManager::GetInstance().GetRecentFiles();
+  auto& manager = project::RecentFilesManager::GetInstance();
+  auto recent_files = manager.GetRecentFiles();  // Copy to allow modification
+
+  std::vector<std::string> files_to_remove;
 
   for (const auto& filepath : recent_files) {
     if (recent_projects_.size() >= kMaxRecentProjects)
       break;
 
+    std::filesystem::path path(filepath);
+
+    // Skip and mark for removal if file doesn't exist
+    if (!std::filesystem::exists(path)) {
+      files_to_remove.push_back(filepath);
+      continue;
+    }
+
     RecentProject project;
     project.filepath = filepath;
-
-    // Extract filename
-    std::filesystem::path path(filepath);
     project.name = path.filename().string();
 
-    // Get file modification time if it exists
-    if (std::filesystem::exists(path)) {
+    // Get file modification time
+    try {
       auto ftime = std::filesystem::last_write_time(path);
       project.last_modified = GetRelativeTimeString(ftime);
       project.rom_title = "ALTTP ROM";
-    } else {
-      project.last_modified = "File not found";
-      project.rom_title = "Missing";
+    } catch (const std::filesystem::filesystem_error&) {
+      // File became inaccessible between exists() check and last_write_time()
+      files_to_remove.push_back(filepath);
+      continue;
     }
 
     recent_projects_.push_back(project);
+  }
+
+  // Remove missing files from the recent files manager
+  for (const auto& missing_file : files_to_remove) {
+    manager.RemoveFile(missing_file);
+  }
+
+  // Save updated list if we removed any files
+  if (!files_to_remove.empty()) {
+    manager.Save();
   }
 }
 

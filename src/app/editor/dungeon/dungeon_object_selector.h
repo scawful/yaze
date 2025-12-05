@@ -4,6 +4,7 @@
 #include <array>
 #include <cstdint>
 #include <functional>
+#include <map>
 #include <memory>
 #include <string>
 #include "app/editor/editor.h"
@@ -209,6 +210,16 @@ class DungeonObjectSelector {
 
   // Performance: enable/disable graphical preview rendering
   bool enable_object_previews_ = false;
+
+  // Preview cache for object selector grid
+  // Key: object_id, Value: BackgroundBuffer with rendered preview
+  std::map<int, std::unique_ptr<gfx::BackgroundBuffer>> preview_cache_;
+  uint8_t cached_preview_blockset_ = 0xFF;
+  uint8_t cached_preview_palette_ = 0xFF;
+  int cached_preview_room_id_ = -1;
+
+  void InvalidatePreviewCache();
+  bool GetOrCreatePreview(int obj_id, float size, gfx::BackgroundBuffer** out);
 };
 
 }  // namespace editor

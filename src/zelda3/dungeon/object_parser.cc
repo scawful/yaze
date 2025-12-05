@@ -112,9 +112,12 @@ absl::StatusOr<ObjectSubtypeInfo> ObjectParser::GetObjectSubtype(
       break;
     }
     case 2: {
-      int index = (object_id - 0x100) & 0xFF;  // was: object_id & 0x7F
+      // Type 2 objects: 0x100-0x13F (64 objects only)
+      // Index mask 0x3F ensures we stay within 64-entry table bounds
+      int index = (object_id - 0x100) & 0x3F;
       info.subtype_ptr = kRoomObjectSubtype2 + (index * 2);
-      info.routine_ptr = kRoomObjectSubtype2 + 0x100 + (index * 2);  // adjusted for 256 entries
+      // Routine table starts 128 bytes (64 entries * 2 bytes) after data table
+      info.routine_ptr = kRoomObjectSubtype2 + 0x80 + (index * 2);
       info.max_tile_count = 8;
       break;
     }
@@ -220,7 +223,8 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype1(
 
 absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype2(
     int16_t object_id) {
-  int index = (object_id - 0x100) & 0xFF;  // was: object_id & 0x7F
+  // Type 2 objects: 0x100-0x13F (64 objects only)
+  int index = (object_id - 0x100) & 0x3F;
   int tile_ptr = kRoomObjectSubtype2 + (index * 2);
 
   if (tile_ptr + 1 >= (int)rom_->size()) {
