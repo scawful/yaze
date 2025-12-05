@@ -724,6 +724,11 @@ void Room::RenderRoomGraphics() {
     }
 
     // Apply Layer Merge effects (Transparency/Blending) to BG2
+    // NOTE: These SDL blend settings are for direct SDL rendering paths.
+    // RoomLayerManager::CompositeToOutput uses manual pixel compositing and
+    // handles blend modes separately via its layer_blend_mode_ array.
+    // TODO(scawful): Consolidate blend handling - either implement proper
+    // blending in CompositeLayer or ensure SDL path uses RoomLayerManager.
     if (layer_merging_.Layer2Translucent) {
       // Set alpha mod for translucency (50%)
       if (bg2_bmp.surface()) {

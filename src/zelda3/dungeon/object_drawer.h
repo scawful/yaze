@@ -366,6 +366,10 @@ class ObjectDrawer {
                   const gfx::TileInfo& tile_info);
   bool IsValidTilePosition(int tile_x, int tile_y) const;
 
+  // Check if a draw routine should render to both BG1 and BG2
+  // Uses metadata instead of hardcoded routine IDs
+  static bool RoutineDrawsToBothBGs(int routine_id);
+
   // Door indicator fallback when graphics unavailable
   void DrawDoorIndicator(gfx::Bitmap& bitmap, int tile_x, int tile_y,
                          int width, int height, DoorType type, DoorDirection direction);
