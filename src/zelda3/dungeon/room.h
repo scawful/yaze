@@ -280,13 +280,21 @@ class Room {
     }
 
     /// Create a door from raw ROM bytes
+    /// Format (from ASM RoomDraw_DoorObject):
+    ///   b1: bits 4-7 = position index, bits 0-1 = direction
+    ///   b2: door type (full byte, values 0x00, 0x02, 0x04, etc.)
     static Door FromRomBytes(uint8_t b1, uint8_t b2) {
       Door door;
       door.byte1 = b1;
       door.byte2 = b2;
-      door.position = b1;
-      door.type = DoorTypeFromRaw((b2 >> 4) & 0x0F);
-      door.direction = DoorDirectionFromRaw(b2 & 0x0F);
+      // Position index is in bits 4-7 of b1
+      // ASM does: (b1 & 0xF0) >> 3 which gives index * 2 for table lookup
+      // We store the raw index (0-15, typically 0-5)
+      door.position = (b1 >> 4) & 0x0F;
+      // Direction is in bits 0-1 of b1
+      door.direction = DoorDirectionFromRaw(b1 & 0x03);
+      // Door type is the full second byte
+      door.type = DoorTypeFromRaw(b2);
       return door;
     }
   };
