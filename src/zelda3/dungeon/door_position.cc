@@ -49,25 +49,42 @@ uint8_t DoorPositionManager::SnapToNearestPosition(int canvas_x, int canvas_y,
 
 std::pair<int, int> DoorPositionManager::PositionToTileCoords(
     uint8_t position, DoorDirection direction) {
-  // Decode position: tile_offset = (position & 0x1F) * 2
-  int tile_offset = (position & 0x1F) * 2;
+  // Door positions are indices (0-5) into lookup tables
+  // These tables are derived from VRAM tilemap offsets in the ASM
+  // (DoorTilemapPositions_NorthWall, etc.)
+  //
+  // VRAM offset to tile: tile_x = (offset % 0x80) / 2, tile_y = offset / 0x80
+  // The room uses a scrolling tilemap, so there's a base offset of ~4 tiles
+
+  // Clamp position index to valid range (0-5 for most walls)
+  int pos_idx = position & 0x0F;
+  if (pos_idx > 5) pos_idx = 5;
+
+  // Door X positions for North/South walls (6 positions)
+  // Derived from VRAM offsets: $021C→14, $023C→30, $025C→46, $039C→14, etc.
+  // These correspond to door slots in the room's quadrant layout
+  static constexpr int kDoorXPositions[] = {14, 30, 46, 14, 30, 46};
+  
+  // Door Y positions for West/East walls (6 positions)
+  // Derived from VRAM offsets for West: $0784, $0F84, $1784, $078A, $0F8A, $178A
+  static constexpr int kDoorYPositions[] = {15, 31, 47, 15, 31, 47};
 
   switch (direction) {
     case DoorDirection::North:
-      // North wall: door at top edge, X varies
-      return {tile_offset, 0};
+      // North wall: doors at top of room (y=0)
+      return {kDoorXPositions[pos_idx], 0};
 
     case DoorDirection::South:
-      // South wall: door at bottom edge (accounting for 3-tile height)
-      return {tile_offset, kRoomHeightTiles - 3};
+      // South wall: doors at bottom (y = 64 - 3 = 61)
+      return {kDoorXPositions[pos_idx], kRoomHeightTiles - 3};
 
     case DoorDirection::West:
-      // West wall: door at left edge, Y varies
-      return {0, tile_offset};
+      // West wall: doors at left edge (x=0)
+      return {0, kDoorYPositions[pos_idx]};
 
     case DoorDirection::East:
-      // East wall: door at right edge (accounting for 3-tile width)
-      return {kRoomWidthTiles - 3, tile_offset};
+      // East wall: doors at right edge (x = 64 - 3 = 61)
+      return {kRoomWidthTiles - 3, kDoorYPositions[pos_idx]};
   }
 
   return {0, 0};

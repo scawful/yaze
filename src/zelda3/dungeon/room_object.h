@@ -647,9 +647,9 @@ inline std::string GetObjectName(int object_id) {
       return Type2RoomObjectNames[idx];
     }
     return absl::StrFormat("Unknown Type2 (0x%03X)", object_id);
-  } else if (object_id >= 0xF00) {
-    // Type 3: Doors/special objects (0xF00+)
-    int idx = object_id - 0xF00;
+  } else if (object_id >= 0xF80) {
+    // Type 3: Special objects (0xF80-0xFFF, decoded from ASM 0x200-0x27F)
+    int idx = object_id - 0xF80;
     constexpr size_t kType3Count =
         sizeof(Type3RoomObjectNames) / sizeof(Type3RoomObjectNames[0]);
     if (idx >= 0 && idx < static_cast<int>(kType3Count)) {
@@ -664,7 +664,7 @@ inline std::string GetObjectName(int object_id) {
 inline int GetObjectSubtype(int object_id) {
   if (object_id < 0x100) return 1;
   if (object_id < 0x200) return 2;
-  if (object_id >= 0xF00) return 3;
+  if (object_id >= 0xF80) return 3;
   return 0;  // Unknown
 }
 
