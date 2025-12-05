@@ -27,7 +27,7 @@ target_link_libraries(yaze_rom PUBLIC
   yaze_core
   yaze_gfx
   ${ABSL_TARGETS}
-  SDL2::SDL2
+  ${YAZE_SDL2_TARGETS}
 )
 
 target_precompile_headers(yaze_rom PRIVATE

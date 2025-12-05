@@ -9,7 +9,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/resource_panel.h"
-#include "app/editor/ui/layout_presets.h"
+#include "app/editor/layout/layout_presets.h"
 #include "app/gui/app/editor_layout.h"
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"

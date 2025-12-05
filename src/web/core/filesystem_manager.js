@@ -294,13 +294,16 @@ var FilesystemManager = {
 
   /**
    * Internal: Execute the actual ROM load (called after UI yield)
+   * Uses async flow to ensure filesystem is synced before C++ access.
    * @param {string} filename - Path to the ROM file
+   * @returns {Promise<boolean>} - Resolves true on success, false on failure
    * @private
    */
-  _executeRomLoad: function(filename) {
+  _executeRomLoad: async function(filename) {
     var self = this;
+    
     try {
-      // Check if file exists before trying to load
+      // 1. Check if file exists before trying to load
       if (!this.fileExists(filename)) {
         console.warn('[FilesystemManager] ROM file not found:', filename);
         alert('ROM file not found: ' + filename.split('/').pop() +
@@ -308,50 +311,121 @@ var FilesystemManager = {
         return false;
       }
 
+      // 2. Read file data for validation
+      var data;
+      try {
+        data = FS.readFile(filename);
+      } catch (readErr) {
+        console.error('[FilesystemManager] Failed to read ROM file:', readErr);
+        alert('Failed to read ROM file: ' + readErr.message);
+        return false;
+      }
+
+      // 3. Validate ROM data before passing to C++
+      var validation = this.validateRomData(data, filename);
+      if (!validation.valid) {
+        console.error('[FilesystemManager] ROM validation failed:', validation.error);
+        alert('Invalid ROM file: ' + validation.error);
+        
+        // Report to crash reporter if available
+        if (typeof window.yazeAddProblem === 'function') {
+          window.yazeAddProblem(
+            'ROM validation failed: ' + validation.error,
+            'ROM',
+            'error'
+          );
+        }
+        return false;
+      }
+
+      console.log('[FilesystemManager] ROM validated successfully:', validation.info);
+
+      // 4. Ensure filesystem is fully synced before C++ access
+      // This prevents race conditions where C++ reads stale or incomplete data
+      await new Promise(function(resolve) {
+        if (typeof FS !== 'undefined' && FS.syncfs) {
+          FS.syncfs(false, function(err) {
+            if (err) {
+              console.warn('[FilesystemManager] FS sync before load failed:', err);
+            }
+            resolve();
+          });
+        } else {
+          resolve();
+        }
+      });
+
+      // 5. Call C++ ROM loader
       if (Module.ccall) {
-        // Use null (not 'null' string) for void return type
+        // Use ccall for safer string handling (preferred method)
         Module.ccall('LoadRomFromWeb', null, ['string'], [filename]);
-        console.log("LoadRomFromWeb called via ccall");
+        console.log('[FilesystemManager] LoadRomFromWeb called via ccall');
       } else if (Module._LoadRomFromWeb) {
-        // Properly allocate and convert string for direct function call
+        // Fallback: Properly allocate and convert string for direct function call
         var len = Module.lengthBytesUTF8(filename) + 1;
         var filenamePtr = Module._malloc(len);
         if (!filenamePtr) {
-          throw new Error("Failed to allocate memory for filename");
+          throw new Error('Failed to allocate memory for filename');
         }
-        Module.stringToUTF8(filename, filenamePtr, len);
-        Module._LoadRomFromWeb(filenamePtr);
-        Module._free(filenamePtr);
-        console.log("LoadRomFromWeb called via direct function");
+        try {
+          Module.stringToUTF8(filename, filenamePtr, len);
+          Module._LoadRomFromWeb(filenamePtr);
+          console.log('[FilesystemManager] LoadRomFromWeb called via direct function');
+        } finally {
+          Module._free(filenamePtr);
+        }
       } else {
-        console.error("LoadRomFromWeb function not available");
-        alert("ROM loading not ready yet. Please wait for the app to initialize.");
-        return;
+        console.error('[FilesystemManager] LoadRomFromWeb function not available');
+        alert('ROM loading not ready yet. Please wait for the app to initialize.');
+        return false;
       }
 
-      // Track as recent file for quick access
+      // 6. Track as recent file for quick access
       self.addRecentFile(filename, 'rom');
 
-      // Persist to IndexedDB (includes recent files update)
+      // 7. Persist recent files update to IndexedDB
       if (self.ready) {
         FS.syncfs(false, function(err) {
-          if (err) console.warn('FS sync (push) failed after ROM load:', err);
+          if (err) console.warn('[FilesystemManager] FS sync after ROM load failed:', err);
         });
       }
+
+      return true;
+
     } catch (wasmErr) {
-      console.error("WASM error loading ROM:", wasmErr);
-      var errorMsg = "Failed to load ROM: ";
+      console.error('[FilesystemManager] WASM error loading ROM:', wasmErr);
+      
+      // Build detailed error message
+      var errorMsg = 'Failed to load ROM: ';
       if (wasmErr.message) {
         errorMsg += wasmErr.message;
+        
+        // Check for specific error patterns
+        if (wasmErr.message.includes('out of bounds') || wasmErr.message.includes('memory access')) {
+          errorMsg += '\n\nThis may indicate ROM data corruption or an incompatible ROM format.';
+        }
       } else if (wasmErr.toString) {
         errorMsg += wasmErr.toString();
       } else {
-        errorMsg += "Memory access error (ROM may be corrupted or invalid)";
+        errorMsg += 'Memory access error (ROM may be corrupted or invalid)';
       }
+      
+      // Report to crash reporter
+      if (typeof window.yazeAddProblem === 'function') {
+        window.yazeAddProblem(
+          'ROM load error: ' + (wasmErr.message || wasmErr.toString()),
+          'WASM',
+          'error'
+        );
+      }
+      
       alert(errorMsg);
+      
       if (wasmErr.stack) {
-        console.error("Stack trace:", wasmErr.stack);
+        console.error('[FilesystemManager] Stack trace:', wasmErr.stack);
       }
+      
+      return false;
     }
   },
 
@@ -723,6 +797,109 @@ var FilesystemManager = {
     } catch (e) {
       return false;
     }
+  },
+
+  /**
+   * Validates ROM file data before passing to C++.
+   * Checks file size, format, and basic integrity.
+   * @param {Uint8Array} data - ROM file data
+   * @param {string} filename - Original filename for extension detection
+   * @returns {Object} - { valid: boolean, error: string|null, info: Object }
+   */
+  validateRomData: function(data, filename) {
+    var result = {
+      valid: false,
+      error: null,
+      info: {
+        size: data ? data.length : 0,
+        hasHeader: false,
+        headerSize: 0,
+        mappingMode: 'unknown'
+      }
+    };
+
+    // Check if data exists
+    if (!data) {
+      result.error = 'ROM data is null or undefined';
+      return result;
+    }
+
+    // Check minimum size (32KB for smallest valid SNES ROM)
+    if (data.length < 0x8000) {
+      result.error = 'ROM file too small: ' + data.length + ' bytes (minimum 32KB required)';
+      return result;
+    }
+
+    // Get file extension
+    var ext = filename.split('.').pop().toLowerCase();
+
+    // For SFC/SMC files, perform SNES-specific validation
+    if (ext === 'sfc' || ext === 'smc') {
+      // Check for SMC header (512 bytes)
+      // SMC header present if (size % 1024) == 512
+      var hasSmcHeader = (data.length % 1024) === 512;
+      result.info.hasHeader = hasSmcHeader;
+      result.info.headerSize = hasSmcHeader ? 512 : 0;
+
+      // Get actual ROM size without header
+      var romSize = hasSmcHeader ? data.length - 512 : data.length;
+
+      // ALTTP ROM should be 1MB (0x100000) without header
+      // But allow variations (0.5MB to 6MB for hacked ROMs)
+      if (romSize < 0x80000) {
+        result.error = 'ROM too small: ' + (romSize / 1024).toFixed(0) + 'KB (minimum 512KB for SNES ROM)';
+        return result;
+      }
+
+      if (romSize > 0x600000) {
+        result.error = 'ROM too large: ' + (romSize / 1024 / 1024).toFixed(1) + 'MB (maximum 6MB supported)';
+        return result;
+      }
+
+      // Try to detect mapping mode from header
+      var headerOffset = hasSmcHeader ? 512 : 0;
+
+      // Check LoROM header at 0x7FC0 or HiROM header at 0xFFC0
+      var loRomOffset = headerOffset + 0x7FC0;
+      var hiRomOffset = headerOffset + 0xFFC0;
+
+      // Validate offsets are within bounds
+      if (loRomOffset + 32 <= data.length) {
+        // Check for valid LoROM mapping byte at 0x7FD5
+        var loMappingByte = data[headerOffset + 0x7FD5];
+        if ((loMappingByte & 0x01) === 0) {
+          result.info.mappingMode = 'LoROM';
+        }
+      }
+
+      if (hiRomOffset + 32 <= data.length) {
+        // Check for valid HiROM mapping byte at 0xFFD5
+        var hiMappingByte = data[headerOffset + 0xFFD5];
+        if ((hiMappingByte & 0x01) === 1) {
+          result.info.mappingMode = 'HiROM';
+        }
+      }
+
+      // ALTTP is LoROM, 1MB
+      if (result.info.mappingMode === 'unknown') {
+        console.warn('[ROM] Could not detect mapping mode, assuming LoROM');
+        result.info.mappingMode = 'LoROM';
+      }
+    }
+
+    // Check for ZIP files (not directly loadable)
+    if (ext === 'zip') {
+      // Check ZIP magic bytes (PK\x03\x04)
+      if (data.length >= 4 && data[0] === 0x50 && data[1] === 0x4B && data[2] === 0x03 && data[3] === 0x04) {
+        result.error = 'ZIP files must be extracted first. Please upload the .sfc or .smc file inside.';
+        return result;
+      }
+    }
+
+    // All checks passed
+    result.valid = true;
+    console.log('[ROM] Validation passed:', result.info);
+    return result;
   },
 
   /**

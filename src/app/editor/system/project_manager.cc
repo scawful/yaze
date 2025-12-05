@@ -6,6 +6,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/ui/toast_manager.h"
 #include "core/project.h"
+#include "util/macro.h"
 
 namespace yaze {
 namespace editor {
@@ -121,14 +122,28 @@ absl::Status ProjectManager::ImportProject(const std::string& project_path) {
   }
 #endif
 
-  // TODO: Implement project import logic
-  // This would typically copy project files and update paths
+  project::YazeProject imported_project;
 
-  if (toast_manager_) {
-    toast_manager_->Show(absl::StrFormat("Project imported: %s", project_path),
-                         ToastType::kSuccess);
+  // Handle ZScream project imports (.zsproj files)
+  if (project_path.ends_with(".zsproj")) {
+    RETURN_IF_ERROR(imported_project.ImportZScreamProject(project_path));
+    if (toast_manager_) {
+      toast_manager_->Show(
+          "ZScream project imported successfully. Please configure ROM and "
+          "folders.",
+          ToastType::kInfo, 5.0f);
+    }
+  } else {
+    // Standard yaze project import
+    RETURN_IF_ERROR(imported_project.Open(project_path));
+    if (toast_manager_) {
+      toast_manager_->Show(
+          absl::StrFormat("Project imported: %s", project_path),
+          ToastType::kSuccess);
+    }
   }
 
+  current_project_ = std::move(imported_project);
   return absl::OkStatus();
 }
 

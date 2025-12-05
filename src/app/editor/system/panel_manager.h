@@ -55,7 +55,6 @@ struct PanelDescriptor {
   std::string shortcut_hint; // Display hint (e.g., "Ctrl+Shift+R")
   ShortcutScope shortcut_scope = ShortcutScope::kPanel;
   bool* visibility_flag;          // Pointer to bool controlling visibility
-  gui::PanelWindow* card_instance;  // Pointer to actual panel window (optional)
   std::function<void()> on_show;  // Callback when card is shown
   std::function<void()> on_hide;  // Callback when card is hidden
   int priority;                   // Display priority for menus (lower = higher)
@@ -202,6 +201,15 @@ class PanelManager {
   std::vector<std::string> GetAllCategories(size_t session_id) const;
   const PanelDescriptor* GetPanelDescriptor(size_t session_id,
                               const std::string& base_card_id) const;
+
+  /**
+   * @brief Get all panel descriptors (for layout designer, panel browser, etc.)
+   * @return Map of panel_id -> PanelDescriptor
+   */
+  const std::unordered_map<std::string, PanelDescriptor>& GetAllPanelDescriptors() const {
+    return cards_;
+  }
+
   std::vector<std::string> GetAllCategories() const;
 
   static constexpr float GetSidebarWidth() { return 48.0f; }

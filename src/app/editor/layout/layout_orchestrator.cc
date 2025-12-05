@@ -1,4 +1,4 @@
-#include "app/editor/system/layout_orchestrator.h"
+#include "app/editor/layout/layout_orchestrator.h"
 
 #include "absl/strings/str_format.h"
 
@@ -176,3 +176,4 @@ std::string LayoutOrchestrator::GetPrefixedPanelId(
 
 }  // namespace editor
 }  // namespace yaze
+

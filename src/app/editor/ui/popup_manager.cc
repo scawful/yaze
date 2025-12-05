@@ -4,7 +4,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/editor_manager.h"
-#include "app/editor/ui/layout_presets.h"
+#include "app/editor/layout/layout_presets.h"
 #include "app/gui/app/feature_flags_menu.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"

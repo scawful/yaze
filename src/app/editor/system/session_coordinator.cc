@@ -2,6 +2,7 @@
 #include <absl/status/status.h>
 #include <absl/status/statusor.h>
 
+#include <algorithm>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
@@ -36,6 +37,45 @@ SessionCoordinator::SessionCoordinator(PanelManager* panel_manager,
       toast_manager_(toast_manager),
       user_settings_(user_settings) {}
 
+void SessionCoordinator::AddObserver(SessionObserver* observer) {
+  if (observer) {
+    observers_.push_back(observer);
+  }
+}
+
+void SessionCoordinator::RemoveObserver(SessionObserver* observer) {
+  observers_.erase(
+      std::remove(observers_.begin(), observers_.end(), observer),
+      observers_.end());
+}
+
+void SessionCoordinator::NotifySessionSwitched(size_t index,
+                                               RomSession* session) {
+  for (auto* observer : observers_) {
+    observer->OnSessionSwitched(index, session);
+  }
+}
+
+void SessionCoordinator::NotifySessionCreated(size_t index,
+                                              RomSession* session) {
+  for (auto* observer : observers_) {
+    observer->OnSessionCreated(index, session);
+  }
+}
+
+void SessionCoordinator::NotifySessionClosed(size_t index) {
+  for (auto* observer : observers_) {
+    observer->OnSessionClosed(index);
+  }
+}
+
+void SessionCoordinator::NotifySessionRomLoaded(size_t index,
+                                                RomSession* session) {
+  for (auto* observer : observers_) {
+    observer->OnSessionRomLoaded(index, session);
+  }
+}
+
 void SessionCoordinator::CreateNewSession() {
   if (session_count_ >= kMaxSessions) {
     ShowSessionLimitWarning();
@@ -52,17 +92,14 @@ void SessionCoordinator::CreateNewSession() {
   // Configure the new session
   if (editor_manager_) {
     auto& session = sessions_.back();
-    // We need to access EditorManager::ConfigureEditorDependencies.
-    // Since it's private, we should expose a public method or friend SessionCoordinator.
-    // For now, let's assume we can call a public method ConfigureSession.
-    // editor_manager_->ConfigureSession(session.get());
-    // Actually, EditorManager::CreateNewSession used to do this.
-    // We will add ConfigureSession to EditorManager public interface.
     editor_manager_->ConfigureSession(session.get());
   }
 
   LOG_INFO("SessionCoordinator", "Created new session %zu (total: %zu)",
            active_session_index_, session_count_);
+
+  // Notify observers
+  NotifySessionCreated(active_session_index_, sessions_.back().get());
 
   ShowSessionOperationResult("Create Session", true);
 }
@@ -94,6 +131,9 @@ void SessionCoordinator::DuplicateCurrentSession() {
   LOG_INFO("SessionCoordinator", "Duplicated session %zu (total: %zu)",
            active_session_index_, session_count_);
 
+  // Notify observers
+  NotifySessionCreated(active_session_index_, sessions_.back().get());
+
   ShowSessionOperationResult("Duplicate Session", true);
 }
 
@@ -119,6 +159,9 @@ void SessionCoordinator::CloseSession(size_t index) {
     panel_manager_->UnregisterSession(index);
   }
 
+  // Notify observers before removal
+  NotifySessionClosed(index);
+
   // Remove session (safe now with unique_ptr!)
   sessions_.erase(sessions_.begin() + index);
   UpdateSessionCount();
@@ -142,10 +185,16 @@ void SessionCoordinator::SwitchToSession(size_t index) {
   if (!IsValidSessionIndex(index))
     return;
 
+  size_t old_index = active_session_index_;
   active_session_index_ = index;
 
   if (panel_manager_) {
-    panel_manager_->SetActiveSession(index); // Assuming new_session_id was a typo and meant index
+    panel_manager_->SetActiveSession(index);
+  }
+
+  // Only notify if actually switching to a different session
+  if (old_index != index) {
+    NotifySessionSwitched(index, sessions_[index].get());
   }
 }
 
@@ -722,6 +771,10 @@ absl::StatusOr<RomSession*> SessionCoordinator::CreateSessionFromRom(
 
   UpdateSessionCount();
   SwitchToSession(new_session_id);
+
+  // Notify observers
+  NotifySessionCreated(new_session_id, session.get());
+  NotifySessionRomLoaded(new_session_id, session.get());
 
   return session.get();
 }

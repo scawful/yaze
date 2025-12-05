@@ -1,7 +1,8 @@
-#ifndef YAZE_APP_EDITOR_SYSTEM_WINDOW_DELEGATE_H_
-#define YAZE_APP_EDITOR_SYSTEM_WINDOW_DELEGATE_H_
+#ifndef YAZE_APP_EDITOR_LAYOUT_WINDOW_DELEGATE_H_
+#define YAZE_APP_EDITOR_LAYOUT_WINDOW_DELEGATE_H_
 
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -103,4 +104,5 @@ class WindowDelegate {
 }  // namespace editor
 }  // namespace yaze
 
-#endif  // YAZE_APP_EDITOR_SYSTEM_WINDOW_DELEGATE_H_
+#endif  // YAZE_APP_EDITOR_LAYOUT_WINDOW_DELEGATE_H_
+

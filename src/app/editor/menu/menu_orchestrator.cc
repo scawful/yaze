@@ -10,7 +10,7 @@
 #include "app/editor/system/rom_file_manager.h"
 #include "app/editor/system/session_coordinator.h"
 #include "app/editor/ui/toast_manager.h"
-#include "app/editor/ui/layout_presets.h"
+#include "app/editor/layout/layout_presets.h"
 #include "app/editor/menu/menu_builder.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/platform_keys.h"
@@ -303,6 +303,8 @@ void MenuOrchestrator::AddToolsMenuItems() {
           [this]() { OnShowCommandPalette(); }, SHORTCUT_CTRL_SHIFT(P))
       .Item("Resource Label Manager", ICON_MD_LABEL,
             [this]() { OnShowResourceLabelManager(); })
+      .Item("Layout Designer", ICON_MD_DASHBOARD,
+            [this]() { OnShowLayoutDesigner(); }, SHORTCUT_CTRL(L))
       .Separator();
 
   // ROM Analysis (moved from Debug menu)
@@ -748,6 +750,13 @@ void MenuOrchestrator::OnShowWelcomeScreen() {
     if (auto* ui = editor_manager_->ui_coordinator()) {
       ui->SetWelcomeScreenVisible(true);
     }
+  }
+}
+
+void MenuOrchestrator::OnShowLayoutDesigner() {
+  // Open the WYSIWYG layout designer
+  if (editor_manager_) {
+    editor_manager_->OpenLayoutDesigner();
   }
 }
 

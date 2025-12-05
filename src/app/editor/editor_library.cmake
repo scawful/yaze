@@ -62,27 +62,29 @@ set(
   app/editor/palette/palette_utility.cc
   app/editor/sprite/sprite_drawer.cc
   app/editor/sprite/sprite_editor.cc
+  app/editor/layout/layout_coordinator.cc
+  app/editor/layout/layout_manager.cc
+  app/editor/layout/layout_orchestrator.cc
+  app/editor/layout/layout_presets.cc
+  app/editor/layout/window_delegate.cc
   app/editor/system/command_manager.cc
   app/editor/system/command_palette.cc
+  app/editor/system/editor_activator.cc
   app/editor/system/panel_manager.cc
   app/editor/system/file_browser.cc
   app/editor/system/editor_registry.cc
   app/editor/system/extension_manager.cc
-  app/editor/system/layout_orchestrator.cc
-  app/editor/menu/menu_orchestrator.cc
-  app/editor/ui/popup_manager.cc
   app/editor/system/project_manager.cc
   app/editor/system/proposal_drawer.cc
   app/editor/system/rom_file_manager.cc
   app/editor/system/shortcut_manager.cc
   app/editor/system/session_coordinator.cc
   app/editor/system/user_settings.cc
-  app/editor/system/window_delegate.cc
   app/editor/system/shortcut_configurator.cc
+  app/editor/menu/menu_orchestrator.cc
+  app/editor/ui/popup_manager.cc
   app/editor/ui/dashboard_panel.cc
   app/editor/ui/editor_selection_dialog.cc
-  app/editor/ui/layout_manager.cc
-  app/editor/ui/layout_presets.cc
   app/editor/menu/right_panel_manager.cc
   app/editor/menu/status_bar.cc
   app/editor/ui/settings_panel.cc
@@ -93,6 +95,14 @@ set(
   app/editor/ui/ui_coordinator.cc
   app/editor/ui/welcome_screen.cc
   app/editor/ui/workspace_manager.cc
+
+  app/editor/layout_designer/layout_designer_window.cc
+  app/editor/layout_designer/layout_serialization.cc
+  app/editor/layout_designer/layout_definition.cc
+  app/editor/layout_designer/widget_definition.cc
+  app/editor/layout_designer/widget_code_generator.cc
+  app/editor/layout_designer/theme_properties.cc
+  app/editor/layout_designer/yaze_widgets.cc
 )
 
 # Agent UI Theme is always needed (used by dungeon editor, etc.)
