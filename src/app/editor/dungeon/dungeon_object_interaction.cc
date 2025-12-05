@@ -9,6 +9,7 @@
 
 // Project headers
 #include "app/editor/agent/agent_ui_theme.h"
+#include "app/editor/dungeon/dungeon_coordinates.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
 
@@ -488,9 +489,12 @@ bool DungeonObjectInteraction::IsWithinCanvasBounds(int canvas_x, int canvas_y,
 }
 
 void DungeonObjectInteraction::SetCurrentRoom(
-    std::array<zelda3::Room, 0x128>* rooms, int room_id) {
+    std::array<zelda3::Room, dungeon_coords::kRoomCount>* rooms, int room_id) {
   rooms_ = rooms;
   current_room_id_ = room_id;
+  interaction_context_.rooms = rooms;
+  interaction_context_.current_room_id = room_id;
+  entity_coordinator_.SetContext(&interaction_context_);
 }
 
 void DungeonObjectInteraction::SetPreviewObject(

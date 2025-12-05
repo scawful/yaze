@@ -7,6 +7,9 @@
 #include <utility>
 #include <vector>
 
+#include "app/editor/dungeon/dungeon_coordinates.h"
+#include "app/editor/dungeon/interaction/interaction_context.h"
+#include "app/editor/dungeon/interaction/interaction_coordinator.h"
 #include "app/editor/dungeon/object_selection.h"
 #include "app/gfx/render/background_buffer.h"
 #include "app/gfx/types/snes_palette.h"
@@ -20,7 +23,6 @@
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/sprite/sprite.h"
 
-// Remove duplicate room.h include
 #include "rom/rom.h"
 
 namespace yaze {
@@ -59,9 +61,44 @@ struct SelectedEntity {
  */
 class DungeonObjectInteraction {
  public:
-  explicit DungeonObjectInteraction(gui::Canvas* canvas) : canvas_(canvas) {}
-  
-  void SetRom(Rom* rom) { rom_ = rom; }
+  explicit DungeonObjectInteraction(gui::Canvas* canvas) : canvas_(canvas) {
+    // Set up initial context
+    interaction_context_.canvas = canvas;
+    entity_coordinator_.SetContext(&interaction_context_);
+  }
+
+  // ========================================================================
+  // Context and Configuration
+  // ========================================================================
+
+  /**
+   * @brief Set the unified interaction context
+   *
+   * This is the preferred method for configuring the interaction handler.
+   * It propagates context to all sub-handlers.
+   */
+  void SetContext(const InteractionContext& ctx) {
+    interaction_context_ = ctx;
+    interaction_context_.canvas = canvas_;  // Always use our canvas
+    entity_coordinator_.SetContext(&interaction_context_);
+  }
+
+  /**
+   * @brief Get the interaction coordinator for entity handling
+   *
+   * Use this for advanced entity operations (doors, sprites, items).
+   */
+  InteractionCoordinator& entity_coordinator() { return entity_coordinator_; }
+  const InteractionCoordinator& entity_coordinator() const {
+    return entity_coordinator_;
+  }
+
+  // Legacy setter - kept for backwards compatibility
+  void SetRom(Rom* rom) {
+    rom_ = rom;
+    interaction_context_.rom = rom;
+    entity_coordinator_.SetContext(&interaction_context_);
+  }
 
   // Main interaction handling
   void HandleCanvasMouseInput();
@@ -87,10 +124,13 @@ class DungeonObjectInteraction {
   bool IsWithinCanvasBounds(int canvas_x, int canvas_y, int margin = 32) const;
 
   // State management
-  void SetCurrentRoom(std::array<zelda3::Room, 0x128>* rooms, int room_id);
+  void SetCurrentRoom(std::array<zelda3::Room, dungeon_coords::kRoomCount>* rooms,
+                      int room_id);
   void SetPreviewObject(const zelda3::RoomObject& object, bool loaded);
   void SetCurrentPaletteGroup(const gfx::PaletteGroup& group) {
     current_palette_group_ = group;
+    interaction_context_.current_palette_group = group;
+    entity_coordinator_.SetContext(&interaction_context_);
   }
   bool IsObjectLoaded() const { return object_loaded_; }
   void CancelPlacement() {
@@ -195,9 +235,13 @@ class DungeonObjectInteraction {
   }
   void SetCacheInvalidationCallback(std::function<void()> callback) {
     cache_invalidation_callback_ = callback;
+    interaction_context_.on_invalidate_cache = callback;
+    entity_coordinator_.SetContext(&interaction_context_);
   }
   void SetMutationHook(std::function<void()> callback) {
     mutation_hook_ = std::move(callback);
+    interaction_context_.on_mutation = callback;
+    entity_coordinator_.SetContext(&interaction_context_);
   }
 
   void SetEditorSystem(zelda3::DungeonEditorSystem* system) {
@@ -224,15 +268,21 @@ class DungeonObjectInteraction {
   // Callbacks for entity changes
   void SetEntityChangedCallback(std::function<void()> callback) {
     entity_changed_callback_ = std::move(callback);
+    interaction_context_.on_entity_changed = callback;
+    entity_coordinator_.SetContext(&interaction_context_);
   }
 
  private:
   gui::Canvas* canvas_;
   zelda3::DungeonEditorSystem* editor_system_ = nullptr;
-  std::array<zelda3::Room, 0x128>* rooms_ = nullptr;
+  std::array<zelda3::Room, dungeon_coords::kRoomCount>* rooms_ = nullptr;
   int current_room_id_ = 0;
   Rom* rom_ = nullptr;
   std::unique_ptr<zelda3::ObjectDrawer> object_drawer_;
+
+  // Unified interaction context and coordinator for entity handling
+  InteractionContext interaction_context_;
+  InteractionCoordinator entity_coordinator_;
 
   // Helper to calculate object bounds
   std::pair<int, int> CalculateObjectBounds(const zelda3::RoomObject& object);

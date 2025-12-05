@@ -41,8 +41,33 @@ namespace editor {
  * - DungeonRoomSelector handles room selection UI
  * - DungeonCanvasViewer handles canvas rendering and display
  * - DungeonObjectSelector handles object selection and preview
+ * - InteractionCoordinator manages entity (door/sprite/item) interactions
  *
  * The editor acts as a coordinator, not an implementer.
+ *
+ * ## Ownership Model
+ *
+ * OWNED by DungeonEditorV2 (use unique_ptr or direct member):
+ * - rooms_ (std::array) - full ownership
+ * - entrances_ (std::array) - full ownership
+ * - room_viewers_ (map of unique_ptr) - owns canvas viewers per room
+ * - dungeon_editor_system_ (unique_ptr) - owns editor system
+ * - render_service_ (unique_ptr) - owns emulator render service
+ * - room_loader_, room_selector_, palette_editor_ - direct members
+ *
+ * EXTERNALLY OWNED (raw pointers, lifetime managed elsewhere):
+ * - rom_ - owned by Application, passed via SetRom()
+ * - game_data_ - owned by Application, passed via SetGameData()
+ * - renderer_ - owned by Application, passed via Initialize()
+ *
+ * OWNED BY PanelManager (registered EditorPanels):
+ * - object_editor_panel_ - registered via RegisterEditorPanel()
+ * - room_graphics_panel_ - registered via RegisterEditorPanel()
+ * - sprite_editor_panel_ - registered via RegisterEditorPanel()
+ * - item_editor_panel_ - registered via RegisterEditorPanel()
+ *
+ * Panel pointers are stored for convenience access but should NOT be
+ * deleted by this class. PanelManager owns them.
  */
 class DungeonEditorV2 : public Editor {
  public:
@@ -204,11 +229,16 @@ class DungeonEditorV2 : public Editor {
   std::map<int, std::unique_ptr<DungeonCanvasViewer>> room_viewers_;
 
   gui::PaletteEditorWidget palette_editor_;
-  ObjectEditorPanel* object_editor_panel_ = nullptr;  // Owned by PanelManager
-  DungeonRoomGraphicsPanel* room_graphics_panel_ = nullptr;  // Owned by PanelManager
-  class SpriteEditorPanel* sprite_editor_panel_ = nullptr;  // Owned by PanelManager
-  class ItemEditorPanel* item_editor_panel_ = nullptr;  // Owned by PanelManager
-  std::unique_ptr<ObjectEditorPanel> owned_object_editor_panel_;  // Fallback ownership for tests
+  // Panel pointers - these are owned by PanelManager when available.
+  // Store pointers for direct access to panel methods.
+  ObjectEditorPanel* object_editor_panel_ = nullptr;
+  DungeonRoomGraphicsPanel* room_graphics_panel_ = nullptr;
+  class SpriteEditorPanel* sprite_editor_panel_ = nullptr;
+  class ItemEditorPanel* item_editor_panel_ = nullptr;
+
+  // Fallback ownership for tests when PanelManager is not available.
+  // In production, this remains nullptr and panels are owned by PanelManager.
+  std::unique_ptr<ObjectEditorPanel> owned_object_editor_panel_;
   std::unique_ptr<zelda3::DungeonEditorSystem> dungeon_editor_system_;
   std::unique_ptr<emu::render::EmulatorRenderService> render_service_;
 
