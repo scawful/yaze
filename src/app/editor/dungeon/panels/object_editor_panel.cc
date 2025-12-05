@@ -19,6 +19,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/ui_helpers.h"
 #include "rom/rom.h"
+#include "zelda3/dungeon/door_types.h"
 #include "zelda3/dungeon/dungeon_object_editor.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/object_parser.h"
@@ -100,6 +101,13 @@ void ObjectEditorPanel::OnSelectionChanged() {
 void ObjectEditorPanel::Draw(bool* p_open) {
   const auto& theme = AgentUI::GetTheme();
 
+  // Door Section (Collapsible)
+  if (ImGui::CollapsingHeader(ICON_MD_DOOR_FRONT " Doors", ImGuiTreeNodeFlags_DefaultOpen)) {
+    DrawDoorSection();
+  }
+
+  ImGui::Separator();
+
   // Object Browser - takes up available space
   float available_height = ImGui::GetContentRegionAvail().y;
   // Reserve space for status indicator at bottom
@@ -173,6 +181,116 @@ void ObjectEditorPanel::SetAgentOptimizedLayout(bool enabled) {
 void ObjectEditorPanel::DrawObjectSelector() {
   // Delegate to the DungeonObjectSelector component
   object_selector_.DrawObjectAssetBrowser();
+}
+
+void ObjectEditorPanel::DrawDoorSection() {
+  const auto& theme = AgentUI::GetTheme();
+
+  // Door type selector
+  ImGui::Text(ICON_MD_CATEGORY " Door Type:");
+  ImGui::SameLine();
+  
+  // Common door types for the combo
+  static constexpr std::array<zelda3::DoorType, 20> kDoorTypes = {{
+    zelda3::DoorType::NormalDoor,
+    zelda3::DoorType::NormalDoorLower,
+    zelda3::DoorType::CaveExit,
+    zelda3::DoorType::DoubleSidedShutter,
+    zelda3::DoorType::EyeWatchDoor,
+    zelda3::DoorType::SmallKeyDoor,
+    zelda3::DoorType::BigKeyDoor,
+    zelda3::DoorType::SmallKeyStairsUp,
+    zelda3::DoorType::SmallKeyStairsDown,
+    zelda3::DoorType::DashWall,
+    zelda3::DoorType::BombableDoor,
+    zelda3::DoorType::ExplodingWall,
+    zelda3::DoorType::CurtainDoor,
+    zelda3::DoorType::BottomSidedShutter,
+    zelda3::DoorType::TopSidedShutter,
+    zelda3::DoorType::FancyDungeonExit,
+    zelda3::DoorType::WaterfallDoor,
+    zelda3::DoorType::ExitMarker,
+    zelda3::DoorType::LayerSwapMarker,
+    zelda3::DoorType::DungeonSwapMarker,
+  }};
+
+  ImGui::SetNextItemWidth(180);
+  if (ImGui::BeginCombo("##DoorType",
+        std::string(zelda3::GetDoorTypeName(selected_door_type_)).c_str())) {
+    for (auto door_type : kDoorTypes) {
+      bool is_selected = (selected_door_type_ == door_type);
+      if (ImGui::Selectable(std::string(zelda3::GetDoorTypeName(door_type)).c_str(),
+                            is_selected)) {
+        selected_door_type_ = door_type;
+      }
+      if (is_selected) {
+        ImGui::SetItemDefaultFocus();
+      }
+    }
+    ImGui::EndCombo();
+  }
+
+  // Place door button
+  ImGui::SameLine();
+  if (door_placement_mode_) {
+    if (ImGui::Button(ICON_MD_CANCEL " Cancel##Door")) {
+      door_placement_mode_ = false;
+      if (canvas_viewer_) {
+        canvas_viewer_->object_interaction().SetDoorPlacementMode(false, 
+            zelda3::DoorType::NormalDoor);
+      }
+    }
+    ImGui::SameLine();
+    ImGui::TextColored(theme.status_warning, 
+        ICON_MD_PLACE " Click on wall to place");
+  } else {
+    if (ImGui::Button(ICON_MD_ADD " Place Door")) {
+      door_placement_mode_ = true;
+      if (canvas_viewer_) {
+        canvas_viewer_->object_interaction().SetDoorPlacementMode(true, 
+            selected_door_type_);
+      }
+    }
+  }
+
+  // Show current room's doors
+  auto* rooms = object_selector_.get_rooms();
+  if (rooms && current_room_id_ >= 0 && current_room_id_ < 296) {
+    const auto& room = (*rooms)[current_room_id_];
+    const auto& doors = room.GetDoors();
+
+    if (!doors.empty()) {
+      ImGui::Separator();
+      ImGui::Text(ICON_MD_LIST " Room Doors (%zu):", doors.size());
+      
+      ImGui::BeginChild("##DoorList", ImVec2(0, 100), true);
+      for (size_t i = 0; i < doors.size(); ++i) {
+        const auto& door = doors[i];
+        auto [tile_x, tile_y] = door.GetTileCoords();
+
+        ImGui::PushID(static_cast<int>(i));
+        
+        std::string type_name(zelda3::GetDoorTypeName(door.type));
+        std::string dir_name(zelda3::GetDoorDirectionName(door.direction));
+        
+        ImGui::Text("[%zu] %s (%s)", i, type_name.c_str(), dir_name.c_str());
+        ImGui::SameLine();
+        ImGui::TextColored(theme.text_secondary_gray, "@ (%d,%d)", tile_x, tile_y);
+        
+        ImGui::SameLine();
+        if (ImGui::SmallButton(ICON_MD_DELETE "##Del")) {
+          auto& mutable_room = (*rooms)[current_room_id_];
+          mutable_room.RemoveDoor(i);
+        }
+        
+        ImGui::PopID();
+      }
+      ImGui::EndChild();
+    } else {
+      ImGui::TextColored(theme.text_secondary_gray, 
+          ICON_MD_INFO " No doors in this room");
+    }
+  }
 }
 
 void ObjectEditorPanel::DrawEmulatorPreview() {

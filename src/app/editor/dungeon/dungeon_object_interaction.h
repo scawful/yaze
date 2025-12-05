@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <memory>
+#include <optional>
 #include <utility>
 #include <vector>
 
@@ -17,12 +18,36 @@
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/dungeon/object_drawer.h"
+#include "zelda3/sprite/sprite.h"
 
 // Remove duplicate room.h include
 #include "rom/rom.h"
 
 namespace yaze {
 namespace editor {
+
+/**
+ * @brief Type of entity that can be selected in the dungeon editor
+ */
+enum class EntityType {
+  None,
+  Object,   // Room tile objects
+  Door,     // Door entities
+  Sprite,   // Enemy/NPC sprites
+  Item      // Pot items
+};
+
+/**
+ * @brief Represents a selected entity in the dungeon editor
+ */
+struct SelectedEntity {
+  EntityType type = EntityType::None;
+  size_t index = 0;  // Index into the respective container
+  
+  bool operator==(const SelectedEntity& other) const {
+    return type == other.type && index == other.index;
+  }
+};
 
 /**
  * @brief Handles object selection, placement, and interaction within the
@@ -154,6 +179,27 @@ class DungeonObjectInteraction {
     editor_system_ = system;
   }
 
+  // Entity selection (doors, sprites, items)
+  void SelectEntity(EntityType type, size_t index);
+  void ClearEntitySelection();
+  bool HasEntitySelection() const { return selected_entity_.type != EntityType::None; }
+  const SelectedEntity& GetSelectedEntity() const { return selected_entity_; }
+  
+  // Entity hit detection
+  std::optional<SelectedEntity> GetEntityAtPosition(int canvas_x, int canvas_y) const;
+  
+  // Draw entity selection highlights
+  void DrawEntitySelectionHighlights();
+  
+  // Entity interaction
+  bool TrySelectEntityAtCursor();  // Try to select door/sprite/item at cursor
+  void HandleEntityDrag();         // Handle dragging selected entity
+  
+  // Callbacks for entity changes
+  void SetEntityChangedCallback(std::function<void()> callback) {
+    entity_changed_callback_ = std::move(callback);
+  }
+
  private:
   gui::Canvas* canvas_;
   zelda3::DungeonEditorSystem* editor_system_ = nullptr;
@@ -200,6 +246,13 @@ class DungeonObjectInteraction {
   zelda3::DoorType preview_door_type_ = zelda3::DoorType::NormalDoor;
   zelda3::DoorDirection detected_door_direction_ = zelda3::DoorDirection::North;
   uint8_t snapped_door_position_ = 0;  // Position along wall (0-31)
+
+  // Entity selection state (doors, sprites, items)
+  SelectedEntity selected_entity_;
+  bool is_entity_dragging_ = false;
+  ImVec2 entity_drag_start_pos_;
+  ImVec2 entity_drag_current_pos_;
+  std::function<void()> entity_changed_callback_;
 };
 
 }  // namespace editor

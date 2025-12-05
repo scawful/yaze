@@ -451,29 +451,33 @@ void DrawTableRock4x4_1to16(const DrawContext& ctx) {
 
 void DrawWaterOverlay8x8_1to16(const DrawContext& ctx) {
   // ASM: RoomDraw_WaterOverlayA8x8_1to16 ($0195D6) / RoomDraw_WaterOverlayB8x8
-  // Water overlay pattern that draws 8x8 tile areas
+  // NOTE: In the original game, this is an HDMA control object that sets up
+  // the wavy water distortion effect. It doesn't draw tiles directly.
+  // For the editor, we draw the available tile data as a visual indicator.
+  
   int size_x = (ctx.object.size_ & 0x0F) + 1;
   int size_y = ((ctx.object.size_ >> 4) & 0x0F) + 1;
 
-  if (ctx.tiles.size() < 16) return;
+  // Handle case where we have fewer tiles than expected
+  // Water objects load 8 tiles, we'll use what we have
+  if (ctx.tiles.empty()) return;
 
+  size_t num_tiles = ctx.tiles.size();
+  
   for (int sy = 0; sy < size_y; ++sy) {
     for (int sx = 0; sx < size_x; ++sx) {
       int base_x = ctx.object.x_ + (sx * 8);
       int base_y = ctx.object.y_ + (sy * 8);
 
-      // Draw repeating 4x4 pattern to fill 8x8 area
-      for (int by = 0; by < 2; ++by) {
-        for (int bx = 0; bx < 2; ++bx) {
-          for (int y = 0; y < 4; ++y) {
-            for (int x = 0; x < 4; ++x) {
-              size_t tile_idx = static_cast<size_t>(y * 4 + x);
-              DrawRoutineUtils::WriteTile8(ctx.target_bg,
-                                           base_x + (bx * 4) + x,
-                                           base_y + (by * 4) + y,
-                                           ctx.tiles[tile_idx]);
-            }
-          }
+      // Draw 8x8 area using available tiles with wrapping
+      for (int y = 0; y < 8; ++y) {
+        for (int x = 0; x < 8; ++x) {
+          // Wrap tile index to available tiles
+          size_t tile_idx = static_cast<size_t>((y * 8 + x) % num_tiles);
+          DrawRoutineUtils::WriteTile8(ctx.target_bg,
+                                       base_x + x,
+                                       base_y + y,
+                                       ctx.tiles[tile_idx]);
         }
       }
     }

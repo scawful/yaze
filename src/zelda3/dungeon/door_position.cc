@@ -8,26 +8,27 @@ namespace yaze {
 namespace zelda3 {
 
 // ROM addresses for door position tables (PC addresses, bank $00)
-// These tables contain 6 VRAM tilemap offsets per direction
-// Format: Each entry is a 16-bit VRAM offset
+// Each direction has TWO consecutive tables for a total of 12 positions:
+//   - Positions 0-5: Wall table (outer edges of room)
+//   - Positions 6-11: Middle table (internal seams between quadrants)
 //
-// SNES Address → PC Address:
-//   $00:997E → 0x197E (DoorTilemapPositions_North)
-//   $00:998A → 0x198A (DoorTilemapPositions_South)
-//   $00:9996 → 0x1996 (DoorTilemapPositions_West)
-//   $00:99A2 → 0x19A2 (DoorTilemapPositions_East)
+// Table layout in ROM (consecutive in memory):
+//   NorthWall ($997E): $021C,$023C,$025C,$039C,$03BC,$03DC (6 entries)
+//   NorthMiddle ($998A): $121C,$123C,$125C,$139C,$13BC,$13DC (6 entries)
+//   SouthMiddle ($9996): $0D1C,$0D3C,$0D5C,$0B9C,$0BBC,$0BDC,$1D1C,$1D3C,$1D5C (9 entries)
+//   LowerLayerEntrance ($99A8): $1B9C,$1BBC,$1BDC (3 entries)
+//   WestWall ($99AE): $0784,$0F84,$1784,$078A,$0F8A,$178A (6 entries)
+//   WestMiddle ($99BA): $07C4,$0FC4,$17C4,$07CA,$0FCA,$17CA (6 entries)
+//   EastMiddle ($99C6): $07B4,$0FB4,$17B4,$07AE,$0FAE,$17AE (6 entries)
+//   EastWall ($99D2): $07F4,$0FF4,$17F4,$07EE,$0FEE,$17EE (6 entries)
 //
-// VRAM offset to tile coordinate conversion:
-//   tile_x = (offset % 0x80) / 2
-//   tile_y = offset / 0x80
-//   room_x = tile_x - 2 (VRAM has 2-tile left margin)
-//   room_y = tile_y - 4 (VRAM has 4-tile top margin)
+// VRAM offset to room tile conversion:
+//   room_x = (offset % 0x80) / 2 - 2  (subtract 2-tile left margin)
+//   room_y = (offset / 0x80) - 4      (subtract 4-tile top margin)
 //
-// North wall VRAM offsets: $021C, $023C, $025C, $039C, $03BC, $03DC
-//   → room X positions: 12, 28, 44, 12, 28, 44
-// South wall offsets are similar, adjusted for bottom edge
-// West wall VRAM offsets give Y positions: 11, 27, 43, 11, 27, 43
-// East wall offsets are similar, adjusted for right edge
+// Room layout: 64x64 tiles divided into 4 quadrants (32x32 each)
+// X positions: 12, 28, 44 divide room into thirds
+// Y positions for East/West: 11, 27, 43 (distributed across 64 tiles)
 [[maybe_unused]] constexpr int kDoorPosNorthAddr = 0x197E;
 [[maybe_unused]] constexpr int kDoorPosSouthAddr = 0x198A;
 [[maybe_unused]] constexpr int kDoorPosWestAddr = 0x1996;
@@ -75,54 +76,92 @@ uint8_t DoorPositionManager::SnapToNearestPosition(int canvas_x, int canvas_y,
 
 std::pair<int, int> DoorPositionManager::PositionToTileCoords(
     uint8_t position, DoorDirection direction) {
-  // Door positions are indices (0-5) into lookup tables from ROM.
-  // These values are derived from DoorTilemapPositions_* tables at:
-  //   North: $00:997E (PC 0x197E)
-  //   South: $00:998A (PC 0x198A)
-  //   West:  $00:9996 (PC 0x1996)
-  //   East:  $00:99A2 (PC 0x19A2)
+  // Door positions are indices (0-11+) into lookup tables from ROM.
+  // Tables are laid out consecutively so position 6+ reads into the next table.
   //
-  // VRAM tilemap offsets are converted to room tile coordinates:
-  //   tile_x = (offset % 0x80) / 2 - 2  (subtract VRAM left margin)
-  //   tile_y = (offset / 0x80) - 4      (subtract VRAM top margin)
+  // Room layout: 64x64 tiles (512x512 pixels), divided into 4 quadrants
+  // Each quadrant is 32x32 tiles. Doors can be on:
+  //   - Outer walls (positions 0-5): edges of the room
+  //   - Middle seams (positions 6-11): between quadrants
   //
-  // North wall positions (from ROM $00:997E):
-  //   VRAM: $021C, $023C, $025C, $039C, $03BC, $03DC
-  //   → room X: 12, 28, 44, 12, 28, 44 (Y fixed at wall edge)
-  //   Positions 0-2 are for normal/small rooms
-  //   Positions 3-5 are for large rooms (second row of doors)
+  // Table layout in ROM (consecutive in memory):
+  //   North: NorthWall (6) + NorthMiddle (6) = 12 positions
+  //   South: SouthMiddle (9) + LowerLayerEntrance (3) = 12 positions
+  //   West:  WestWall (6) + WestMiddle (6) = 12 positions
+  //   East:  EastMiddle (6) + EastWall (6) = 12 positions
   //
-  // West/East wall positions similarly give Y coordinates:
-  //   → room Y: 11, 27, 43, 11, 27, 43 (X fixed at wall edge)
+  // VRAM offset to room tile conversion:
+  //   room_x = (offset % 0x80) / 2 - 2  (subtract VRAM left margin)
+  //   room_y = (offset / 0x80) - 4      (subtract VRAM top margin)
 
-  // Clamp position index to valid range (0-5 for most walls)
   int pos_idx = position & 0x0F;
-  if (pos_idx > 5) pos_idx = 5;
 
-  // Door X positions for North/South walls (derived from ROM)
-  // VRAM cols 14, 30, 46 → room cols 12, 28, 44
-  static constexpr int kDoorXPositions[] = {12, 28, 44, 12, 28, 44};
+  // Extended tables with 12 positions each (wall + middle seam)
+  // X positions: 12, 28, 44 divide the 64-tile room into thirds
+  // Y positions for N/S: edge vs middle seam
+  // X positions for E/W: edge vs middle seam
 
-  // Door Y positions for West/East walls (derived from ROM)
-  // VRAM rows 15, 31, 47 → room rows 11, 27, 43
-  static constexpr int kDoorYPositions[] = {11, 27, 43, 11, 27, 43};
+  // North door positions (NorthWall + NorthMiddle):
+  // Positions 0-5: Outer north wall (Y=0 for upper layer, Y=3 for lower layer)
+  // Positions 6-11: Middle horizontal seam (Y=32 for upper, Y=35 for lower)
+  // X positions: 12, 28, 44 (left/center/right on wall)
+  static constexpr int kNorthDoorX[] = {12, 28, 44, 12, 28, 44,
+                                        12, 28, 44, 12, 28, 44};
+  static constexpr int kNorthDoorY[] = {0, 0, 0, 3, 3, 3,
+                                        32, 32, 32, 35, 35, 35};
+
+  // South door positions (SouthMiddle + LowerLayerEntrance):
+  // In ALTTP, south doors use SouthMiddle table which gives positions
+  // relative to the current quadrant. For the 64-tile room:
+  // Positions 0-2: Upper quadrant south doors (Y=22 from quadrant top)
+  // Positions 3-5: Same, slightly higher (Y=19)
+  // Positions 6-8: Lower quadrant south doors (Y=54 in full room)
+  // Positions 9-11: Lower layer entrance (Y=51)
+  // For most single-screen rooms, positions 0-5 map to the actual south wall
+  // which should be at Y ≈ 60 in our 64-tile bitmap.
+  static constexpr int kSouthDoorX[] = {12, 28, 44, 12, 28, 44,
+                                        12, 28, 44, 12, 28, 44};
+  // Map to correct Y based on quadrant:
+  // Pos 0-2: Y=22 (for upper quadrant, but most rooms use this as south wall)
+  // For a standard room, south wall should be at bottom: Y≈60
+  // We use 22 for upper quadrant seam, 60 for actual south edge
+  static constexpr int kSouthDoorY[] = {22, 22, 22, 19, 19, 19,
+                                        60, 60, 60, 57, 57, 57};
+
+  // West door positions (WestWall + WestMiddle):
+  // Positions 0-5: Outer west wall (X=0 for upper, X=3 for lower layer)
+  // Positions 6-11: Middle vertical seam (X=32 for upper, X=35 for lower)
+  // Y positions: 11, 27, 43 (evenly distributed vertically)
+  static constexpr int kWestDoorX[] = {0, 0, 0, 3, 3, 3,
+                                       32, 32, 32, 35, 35, 35};
+  static constexpr int kWestDoorY[] = {11, 27, 43, 11, 27, 43,
+                                       11, 27, 43, 11, 27, 43};
+
+  // East door positions (EastMiddle + EastWall):
+  // Note: East uses EastMiddle FIRST, then EastWall!
+  // Positions 0-5: Middle vertical seam (X=24 for upper, X=21 for lower)
+  // Positions 6-11: Outer east wall (X=56 for upper, X=53 for lower)
+  // Y positions: 11, 27, 43 (evenly distributed vertically)
+  static constexpr int kEastDoorX[] = {24, 24, 24, 21, 21, 21,
+                                       56, 56, 56, 53, 53, 53};
+  static constexpr int kEastDoorY[] = {11, 27, 43, 11, 27, 43,
+                                       11, 27, 43, 11, 27, 43};
+
+  // Clamp to valid range (0-11)
+  if (pos_idx > 11) pos_idx = 11;
 
   switch (direction) {
     case DoorDirection::North:
-      // North wall: doors at top edge of room
-      return {kDoorXPositions[pos_idx], 0};
+      return {kNorthDoorX[pos_idx], kNorthDoorY[pos_idx]};
 
     case DoorDirection::South:
-      // South wall: doors at bottom edge (64 - 3 = 61)
-      return {kDoorXPositions[pos_idx], kRoomHeightTiles - 3};
+      return {kSouthDoorX[pos_idx], kSouthDoorY[pos_idx]};
 
     case DoorDirection::West:
-      // West wall: doors at left edge
-      return {0, kDoorYPositions[pos_idx]};
+      return {kWestDoorX[pos_idx], kWestDoorY[pos_idx]};
 
     case DoorDirection::East:
-      // East wall: doors at right edge (64 - 3 = 61)
-      return {kRoomWidthTiles - 3, kDoorYPositions[pos_idx]};
+      return {kEastDoorX[pos_idx], kEastDoorY[pos_idx]};
   }
 
   return {0, 0};
@@ -208,12 +247,14 @@ bool DoorPositionManager::DetectWallFromPosition(int canvas_x, int canvas_y,
 
 std::pair<uint8_t, uint8_t> DoorPositionManager::EncodeDoorBytes(
     uint8_t position, DoorType type, DoorDirection direction) {
-  // Byte 1: position value (full byte, only 5 bits used for coords)
-  uint8_t byte1 = position;
+  // Byte 1: position in bits 4-7, direction in bits 0-1
+  // This matches FromRomBytes decoding: position = (b1 >> 4) & 0x0F,
+  //                                      direction = b1 & 0x03
+  uint8_t byte1 = ((position & 0x0F) << 4) |
+                  (static_cast<uint8_t>(direction) & 0x03);
 
-  // Byte 2: (type << 4) | direction
-  uint8_t byte2 = (static_cast<uint8_t>(type) << 4) |
-                  (static_cast<uint8_t>(direction) & 0x0F);
+  // Byte 2: door type (full byte, values 0x00, 0x02, 0x04, etc.)
+  uint8_t byte2 = static_cast<uint8_t>(type);
 
   return {byte1, byte2};
 }

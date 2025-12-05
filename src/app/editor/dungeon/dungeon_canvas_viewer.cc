@@ -446,25 +446,60 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       bool bg1_objects = layer_mgr.IsLayerVisible(zelda3::LayerType::BG1_Objects);
       bool bg2_layout = layer_mgr.IsLayerVisible(zelda3::LayerType::BG2_Layout);
       bool bg2_objects = layer_mgr.IsLayerVisible(zelda3::LayerType::BG2_Objects);
-      if (ImGui::Checkbox("BG1##L", &bg1_layout))
-        layer_mgr.SetLayerVisible(zelda3::LayerType::BG1_Layout, bg1_layout);
-      ImGui::SameLine();
-      if (ImGui::Checkbox("O1##O", &bg1_objects))
-        layer_mgr.SetLayerVisible(zelda3::LayerType::BG1_Objects, bg1_objects);
-      ImGui::SameLine();
-      if (ImGui::Checkbox("BG2##L2", &bg2_layout))
-        layer_mgr.SetLayerVisible(zelda3::LayerType::BG2_Layout, bg2_layout);
-      ImGui::SameLine();
-      if (ImGui::Checkbox("O2##O2", &bg2_objects))
-        layer_mgr.SetLayerVisible(zelda3::LayerType::BG2_Objects, bg2_objects);
-      ImGui::SameLine();
-      if (ImGui::Checkbox("M##Comp", &use_composite_mode_)) {
-        if (use_composite_mode_ && rooms_) {
-          for (auto& r : *rooms_) r.MarkCompositeDirty();
+      
+      // Helper to mark layer bitmaps as needing texture update
+      auto mark_layers_dirty = [&]() {
+        if (rooms_) {
+          auto& r = (*rooms_)[room_id];
+          r.bg1_buffer().bitmap().set_modified(true);
+          r.bg2_buffer().bitmap().set_modified(true);
+          r.object_bg1_buffer().bitmap().set_modified(true);
+          r.object_bg2_buffer().bitmap().set_modified(true);
+          r.MarkCompositeDirty();
         }
+      };
+      
+      if (ImGui::Checkbox("BG1##L", &bg1_layout)) {
+        layer_mgr.SetLayerVisible(zelda3::LayerType::BG1_Layout, bg1_layout);
+        mark_layers_dirty();
       }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Merge layers (uncheck for debug 4-layer view)");
+        ImGui::SetTooltip("BG1 Layout: Main floor tiles (rendered on top of BG2)");
+      }
+      ImGui::SameLine();
+      if (ImGui::Checkbox("O1##O", &bg1_objects)) {
+        layer_mgr.SetLayerVisible(zelda3::LayerType::BG1_Objects, bg1_objects);
+        mark_layers_dirty();
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("BG1 Objects: Walls, pots, interactive objects (topmost layer)");
+      }
+      ImGui::SameLine();
+      if (ImGui::Checkbox("BG2##L2", &bg2_layout)) {
+        layer_mgr.SetLayerVisible(zelda3::LayerType::BG2_Layout, bg2_layout);
+        mark_layers_dirty();
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("BG2 Layout: Background floor patterns (behind BG1)");
+      }
+      ImGui::SameLine();
+      if (ImGui::Checkbox("O2##O2", &bg2_objects)) {
+        layer_mgr.SetLayerVisible(zelda3::LayerType::BG2_Objects, bg2_objects);
+        mark_layers_dirty();
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("BG2 Objects: Background details (behind BG1)");
+      }
+      ImGui::SameLine();
+      if (ImGui::Checkbox("M##Comp", &use_composite_mode_)) {
+        // Mark everything dirty when switching composite modes
+        mark_layers_dirty();
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(
+            "Merge Mode: Composite all layers into single output.\n"
+            "Layer order (SNES Mode 1): BG2 behind, BG1 on top.\n"
+            "Uncheck for debug view of individual layer buffers.");
       }
       ImGui::SameLine();
       ImGui::SetNextItemWidth(60);
@@ -475,7 +510,14 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
         layer_mgr.SetLayerBlendMode(zelda3::LayerType::BG2_Layout, mode);
         layer_mgr.SetLayerBlendMode(zelda3::LayerType::BG2_Objects, mode);
       }
-      if (ImGui::IsItemHovered()) ImGui::SetTooltip("BG2 blend");
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(
+            "BG2 Blend Mode (color math effect):\n"
+            "- Normal: Opaque pixels\n"
+            "- Translucent: 50% alpha\n"
+            "- Addition: Additive blending\n"
+            "Does not change layer order (BG1 always on top)");
+      }
       ImGui::SameLine();
       ImGui::SetNextItemWidth(70);
       int merge_val = room.layer_merging().ID;
@@ -994,6 +1036,16 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     if (room.GetTileObjects().empty()) {
       room.LoadObjects();
     }
+    
+    // Load sprites if not already loaded
+    if (room.GetSprites().empty()) {
+      room.LoadSprites();
+    }
+    
+    // Load pot items if not already loaded
+    if (room.GetPotItems().empty()) {
+      room.LoadPotItems();
+    }
 
     // CRITICAL: Process texture queue BEFORE drawing to ensure textures are
     // ready This must happen before DrawRoomBackgroundLayers() attempts to draw
@@ -1017,7 +1069,9 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       object_interaction_.CheckForObjectSelection();
       object_interaction_.DrawSelectBox();
       object_interaction_
-          .DrawSelectionHighlights();  // Draw selection highlights on top
+          .DrawSelectionHighlights();  // Draw object selection highlights
+      object_interaction_
+          .DrawEntitySelectionHighlights();  // Draw door/sprite/item selection
       object_interaction_.DrawGhostPreview();  // Draw placement preview
       // Context menu is handled by canvas_.DrawContextMenu() above
     }
@@ -1078,8 +1132,12 @@ void DungeonCanvasViewer::RenderSprites(const zelda3::Room& room) {
   const auto& theme = AgentUI::GetTheme();
 
   // Render sprites as 16x16 colored squares with sprite name/ID
+  // NOTE: Sprite coordinates are in 16-pixel units (0-31 range = 512 pixels)
+  // unlike object coordinates which are in 8-pixel tile units
   for (const auto& sprite : room.GetSprites()) {
-    auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(sprite.x(), sprite.y());
+    // Sprites use 16-pixel coordinate system
+    int canvas_x = sprite.x() * 16;
+    int canvas_y = sprite.y() * 16;
 
     if (IsWithinCanvasBounds(canvas_x, canvas_y, 16)) {
       // Draw 16x16 square for sprite (like overworld entities)
@@ -1128,11 +1186,14 @@ void DungeonCanvasViewer::RenderPotItems(const zelda3::Room& room) {
     return;
   }
 
-  const auto& theme = AgentUI::GetTheme();
   const auto& pot_items = room.GetPotItems();
-  const auto& objects = room.GetTileObjects();
+  
+  // If no pot items in this room, nothing to render
+  if (pot_items.empty()) {
+    return;
+  }
 
-  // Pot item names (from overworld_item.h kSecretItemNames)
+  // Pot item names
   static const char* kPotItemNames[] = {
       "Nothing",        // 0
       "Green Rupee",    // 1
@@ -1165,43 +1226,39 @@ void DungeonCanvasViewer::RenderPotItems(const zelda3::Room& room) {
   };
   constexpr size_t kPotItemNameCount = sizeof(kPotItemNames) / sizeof(kPotItemNames[0]);
 
-  // Find pots and bushes and render their items
-  // Pot object ID: 0xF2F (Type 3), Bush: varies
-  int item_idx = 0;
-  for (const auto& obj : objects) {
-    // Check if object is a pot (0x11E in Type 2 = 0x11E) or similar liftable
-    // Pot types: 0x11E (block), 0xF2F (pot from Type3)
-    bool is_pot = (obj.id_ == 0x11E || obj.id_ == 0x11F ||
-                   obj.id_ == 0xF2F || obj.id_ == 0x135);
+  // Pot items now have their own position data from ROM
+  // No need to match to objects - each item has exact pixel coordinates
+  for (const auto& pot_item : pot_items) {
+    // Get pixel coordinates from PotItem structure
+    int pixel_x = pot_item.GetPixelX();
+    int pixel_y = pot_item.GetPixelY();
+    
+    // Convert to canvas coordinates (already in pixels, just need offset)
+    // Note: pot item coords are already in full room pixel space
+    auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(pixel_x / 8, pixel_y / 8);
 
-    if (is_pot && item_idx < static_cast<int>(pot_items.size())) {
-      uint8_t item = pot_items[item_idx];
-
-      // Only render if item is not "Nothing" (0)
-      if (item != 0) {
-        auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(obj.x_, obj.y_);
-
-        if (IsWithinCanvasBounds(canvas_x, canvas_y, 16)) {
-          // Draw 16x16 yellow square for pot item
-          ImVec4 pot_item_color = ImVec4(1.0f, 0.85f, 0.2f, 0.75f);  // Yellow
-
-          canvas_.DrawRect(canvas_x, canvas_y, 16, 16, pot_item_color);
-
-          // Get item name
-          std::string item_name;
-          if (item < kPotItemNameCount) {
-            item_name = kPotItemNames[item];
-          } else {
-            item_name = "???";
-          }
-
-          // Draw item ID and name
-          std::string item_text = absl::StrFormat("%02X %s", item, item_name.c_str());
-          canvas_.DrawText(item_text, canvas_x, canvas_y);
-        }
+    if (IsWithinCanvasBounds(canvas_x, canvas_y, 16)) {
+      // Draw colored square
+      ImVec4 pot_item_color;
+      if (pot_item.item == 0) {
+        pot_item_color = ImVec4(0.5f, 0.5f, 0.5f, 0.5f);  // Gray for Nothing
+      } else {
+        pot_item_color = ImVec4(1.0f, 0.85f, 0.2f, 0.75f);  // Yellow for items
       }
 
-      item_idx++;
+      canvas_.DrawRect(canvas_x, canvas_y, 16, 16, pot_item_color);
+
+      // Get item name
+      std::string item_name;
+      if (pot_item.item < kPotItemNameCount) {
+        item_name = kPotItemNames[pot_item.item];
+      } else {
+        item_name = absl::StrFormat("Unk%02X", pot_item.item);
+      }
+
+      // Draw label above the box
+      std::string item_text = absl::StrFormat("%02X %s", pot_item.item, item_name.c_str());
+      canvas_.DrawText(item_text, canvas_x, canvas_y - 10);
     }
   }
 }
@@ -1460,10 +1517,16 @@ void DungeonCanvasViewer::DrawRoomBackgroundLayers(int room_id) {
     if (!bitmap.is_active() || bitmap.width() == 0 || bitmap.height() == 0)
       return;
 
-    // Ensure texture exists
+    // Ensure texture exists and is up-to-date
     if (!bitmap.texture()) {
       gfx::Arena::Get().QueueTextureCommand(
           gfx::Arena::TextureCommandType::CREATE, &bitmap);
+      bitmap.set_modified(false);
+    } else if (bitmap.modified()) {
+      // Update texture when bitmap data has changed (e.g., after doors rendered)
+      gfx::Arena::Get().QueueTextureCommand(
+          gfx::Arena::TextureCommandType::UPDATE, &bitmap);
+      bitmap.set_modified(false);
     }
 
     if (!bitmap.texture())

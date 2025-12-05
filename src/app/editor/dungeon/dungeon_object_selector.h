@@ -59,6 +59,7 @@ class DungeonObjectSelector {
 
   // Room data access
   void set_rooms(std::array<zelda3::Room, 0x128>* rooms) { rooms_ = rooms; }
+  std::array<zelda3::Room, 0x128>* get_rooms() { return rooms_; }
   void set_current_room_id(int room_id) { current_room_id_ = room_id; }
 
   // Palette access

@@ -8,6 +8,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "imgui/imgui.h"
+#include "zelda3/common.h"
 #include "zelda3/dungeon/room_entrance.h"
 
 namespace yaze {
@@ -108,16 +109,32 @@ class DungeonEntrancesPanel : public EditorPanel {
     ImGui::Separator();
 
     // Entrance list
+    // Array layout (from LoadRoomEntrances):
+    //   indices 0-6 (0x00-0x06): Spawn points (7 entries)
+    //   indices 7-139 (0x07-0x8B): Regular entrances (133 entries)
+    constexpr int kNumSpawnPoints = 7;
+    constexpr int kNumEntrances = 133;
+    constexpr int kTotalEntries = 140;
+
     if (ImGui::BeginChild("##EntrancesList", ImVec2(0, 0), true,
                           ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-      for (int i = 0; i < 0x8C; i++) {
+      for (int i = 0; i < kTotalEntries; i++) {
         std::string entrance_name;
-        if (i < 0x85) {
-          entrance_name = std::string(zelda3::kEntranceNames[i]);
-        } else {
+        if (i < kNumSpawnPoints) {
+          // Spawn points at indices 0-6
           char buf[32];
-          snprintf(buf, sizeof(buf), "Spawn Point %d", i - 0x85);
+          snprintf(buf, sizeof(buf), "Spawn Point %d", i);
           entrance_name = buf;
+        } else {
+          // Regular entrances at indices 7-139, mapped to kEntranceNames[0-132]
+          int name_idx = i - kNumSpawnPoints;
+          if (name_idx < kNumEntrances) {
+            entrance_name = std::string(zelda3::kEntranceNames[name_idx]);
+          } else {
+            char buf[32];
+            snprintf(buf, sizeof(buf), "Unknown %d", i);
+            entrance_name = buf;
+          }
         }
 
         int room_id = (*entrances_)[i].room_;
@@ -128,8 +145,8 @@ class DungeonEntrancesPanel : public EditorPanel {
         }
 
         char label[256];
-        snprintf(label, sizeof(label), "[%02X] %s -> %s", i,
-                 entrance_name.c_str(), room_name.c_str());
+        snprintf(label, sizeof(label), "[%02X] %s -> %s (%03X)", i,
+                 entrance_name.c_str(), room_name.c_str(), room_id);
 
         bool is_selected = (*current_entrance_id_ == i);
         if (ImGui::Selectable(label, is_selected)) {
