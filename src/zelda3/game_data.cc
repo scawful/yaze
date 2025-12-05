@@ -16,7 +16,7 @@ namespace zelda3 {
 namespace {
 
 constexpr uint32_t kUncompressedSheetSize = 0x0800;
-constexpr uint32_t kTile16Ptr = 0x78000;
+// constexpr uint32_t kTile16Ptr = 0x78000;
 
 // Helper to get address from bytes
 uint32_t AddressFromBytes(uint8_t bank, uint8_t high, uint8_t low) {
@@ -29,9 +29,9 @@ uint32_t SnesToPc(uint32_t snes_addr) {
 }
 
 // Helper to convert PC to SNES address
-uint32_t PcToSnes(uint32_t pc_addr) {
-  return ((pc_addr & 0x7FFF) | 0x8000) | ((pc_addr & 0x3F8000) << 1);
-}
+// uint32_t PcToSnes(uint32_t pc_addr) {
+//   return ((pc_addr & 0x7FFF) | 0x8000) | ((pc_addr & 0x3F8000) << 1);
+// }
 
 // ============================================================================
 // Graphics Address Resolution
@@ -167,7 +167,7 @@ absl::Status LoadGfxGroups(Rom& rom, GameData& data) {
     return absl::FailedPreconditionError("Unsupported ROM version");
   }
 
-  auto vc = kVersionConstantsMap.at(data.version);
+  auto version_constants = kVersionConstantsMap.at(data.version);
 
   // Load Main Blocksets
   auto main_ptr_res = rom.ReadWord(kGfxGroupsPointer);
@@ -192,7 +192,7 @@ absl::Status LoadGfxGroups(Rom& rom, GameData& data) {
   // Load Sprite Blocksets
   for (uint32_t i = 0; i < kNumSpritesets; i++) {
     for (int j = 0; j < 4; j++) {
-      auto val = rom.ReadByte(vc.kSpriteBlocksetPointer + (i * 4) + j);
+      auto val = rom.ReadByte(version_constants.kSpriteBlocksetPointer + (i * 4) + j);
       if (val.ok()) data.spriteset_ids[i][j] = *val;
     }
   }
@@ -200,7 +200,7 @@ absl::Status LoadGfxGroups(Rom& rom, GameData& data) {
   // Load Palette Sets
   for (uint32_t i = 0; i < kNumPalettesets; i++) {
     for (int j = 0; j < 4; j++) {
-      auto val = rom.ReadByte(vc.kDungeonPalettesGroups + (i * 4) + j);
+      auto val = rom.ReadByte(version_constants.kDungeonPalettesGroups + (i * 4) + j);
       if (val.ok()) data.paletteset_ids[i][j] = *val;
     }
   }
@@ -209,7 +209,7 @@ absl::Status LoadGfxGroups(Rom& rom, GameData& data) {
 }
 
 absl::Status SaveGfxGroups(Rom& rom, const GameData& data) {
-  auto vc = kVersionConstantsMap.at(data.version);
+  auto version_constants = kVersionConstantsMap.at(data.version);
   
   ASSIGN_OR_RETURN(auto main_ptr, rom.ReadWord(kGfxGroupsPointer));
   main_ptr = SnesToPc(main_ptr);
@@ -233,7 +233,7 @@ absl::Status SaveGfxGroups(Rom& rom, const GameData& data) {
   // Save Sprite Blocksets
   for (uint32_t i = 0; i < kNumSpritesets; i++) {
     for (int j = 0; j < 4; j++) {
-      RETURN_IF_ERROR(rom.WriteByte(vc.kSpriteBlocksetPointer + (i * 4) + j,
+      RETURN_IF_ERROR(rom.WriteByte(version_constants.kSpriteBlocksetPointer + (i * 4) + j,
                                     data.spriteset_ids[i][j]));
     }
   }
@@ -241,7 +241,7 @@ absl::Status SaveGfxGroups(Rom& rom, const GameData& data) {
   // Save Palette Sets
   for (uint32_t i = 0; i < kNumPalettesets; i++) {
     for (int j = 0; j < 4; j++) {
-      RETURN_IF_ERROR(rom.WriteByte(vc.kDungeonPalettesGroups + (i * 4) + j,
+      RETURN_IF_ERROR(rom.WriteByte(version_constants.kDungeonPalettesGroups + (i * 4) + j,
                                     data.paletteset_ids[i][j]));
     }
   }
@@ -286,7 +286,7 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
   if (kVersionConstantsMap.find(data.version) == kVersionConstantsMap.end()) {
     return absl::FailedPreconditionError("Unsupported ROM version for graphics");
   }
-  auto vc = kVersionConstantsMap.at(data.version);
+  auto version_constants = kVersionConstantsMap.at(data.version);
 
   data.graphics_buffer.clear();
   
@@ -297,9 +297,9 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
   // Initialize Diagnostics
   auto& diag = data.diagnostics;
   diag.rom_size = rom.size();
-  diag.ptr1_loc = vc.kOverworldGfxPtr1;
-  diag.ptr2_loc = vc.kOverworldGfxPtr2;
-  diag.ptr3_loc = vc.kOverworldGfxPtr3;
+  diag.ptr1_loc = version_constants.kOverworldGfxPtr1;
+  diag.ptr2_loc = version_constants.kOverworldGfxPtr2;
+  diag.ptr3_loc = version_constants.kOverworldGfxPtr3;
 
   for (uint32_t i = 0; i < kNumGfxSheets; i++) {
 #ifdef __EMSCRIPTEN__
@@ -314,7 +314,7 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
     // Uncompressed 3BPP (115-126)
     if (i >= 115 && i <= 126) {
       diag.sheets[i].is_compressed = false;
-      offset = GetGraphicsAddress(rom.data(), i, vc.kOverworldGfxPtr1, vc.kOverworldGfxPtr2, vc.kOverworldGfxPtr3, rom.size());
+      offset = GetGraphicsAddress(rom.data(), i, version_constants.kOverworldGfxPtr1, version_constants.kOverworldGfxPtr2, version_constants.kOverworldGfxPtr3, rom.size());
       diag.sheets[i].pc_offset = offset;
       
       auto read_res = rom.ReadByteVector(offset, zelda3::kUncompressedSheetSize);
@@ -335,7 +335,7 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
     // Compressed 3BPP (Standard)
     else {
       diag.sheets[i].is_compressed = true;
-      offset = GetGraphicsAddress(rom.data(), i, vc.kOverworldGfxPtr1, vc.kOverworldGfxPtr2, vc.kOverworldGfxPtr3, rom.size());
+      offset = GetGraphicsAddress(rom.data(), i, version_constants.kOverworldGfxPtr1, version_constants.kOverworldGfxPtr2, version_constants.kOverworldGfxPtr3, rom.size());
       diag.sheets[i].pc_offset = offset;
 
       if (offset < rom.size()) {
@@ -373,21 +373,46 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
         } else if (data.palette_groups.hud.size() > 0) {
           default_palette = data.palette_groups.hud.palette(0);
         }
+        
         if (!default_palette.empty()) {
           data.gfx_bitmaps[i].SetPalette(default_palette);
+        } else {
+          // Fallback to grayscale if no palette found
+          std::vector<gfx::SnesColor> grayscale;
+          for (int color_idx = 0; color_idx < 16; ++color_idx) {
+            float val = color_idx / 15.0f;
+            grayscale.emplace_back(ImVec4(val, val, val, 1.0f));
+          }
+          // Ensure index 0 is transparent for SNES compatibility
+          if (!grayscale.empty()) {
+            grayscale[0].set_transparent(true);
+          }
+          data.gfx_bitmaps[i].SetPalette(gfx::SnesPalette(grayscale));
         }
+      } else {
+        // Fallback to grayscale if no palette groups loaded
+        std::vector<gfx::SnesColor> grayscale;
+        for (int color_idx = 0; color_idx < 16; ++color_idx) {
+          float val = color_idx / 15.0f;
+          grayscale.emplace_back(ImVec4(val, val, val, 1.0f));
+        }
+        // Ensure index 0 is transparent for SNES compatibility
+        if (!grayscale.empty()) {
+          grayscale[0].set_transparent(true);
+        }
+        data.gfx_bitmaps[i].SetPalette(gfx::SnesPalette(grayscale));
       }
 
       data.graphics_buffer.insert(data.graphics_buffer.end(), 
                                   data.gfx_bitmaps[i].data(), 
                                   data.gfx_bitmaps[i].data() + data.gfx_bitmaps[i].size());
     } else {
-      // Placeholder
-      std::vector<uint8_t> placeholder(4096, 0xFF);
+      // Placeholder - Fill with 0 (transparent) instead of 0xFF (white)
+      std::vector<uint8_t> placeholder(4096, 0);
       data.raw_gfx_sheets[i] = placeholder;
       data.gfx_bitmaps[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight, 
                                  gfx::kTilesheetDepth, placeholder);
-      data.graphics_buffer.resize(data.graphics_buffer.size() + 4096, 0xFF);
+      data.graphics_buffer.resize(data.graphics_buffer.size() + 4096, 0);
     }
   }
 
@@ -415,6 +440,8 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumLinkSheets>> LoadLinkGraphics(
       return link_sheet_data_result.status();
     }
     auto link_sheet_8bpp = gfx::SnesTo8bppSheet(*link_sheet_data_result, /*bpp=*/4);
+    if (link_sheet_8bpp.size() != 4096) link_sheet_8bpp.resize(4096, 0);
+    
     link_graphics[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
                             gfx::kTilesheetDepth, link_sheet_8bpp);
     // Palette is applied by the caller since GameData may not be available here
@@ -431,13 +458,13 @@ absl::StatusOr<std::vector<uint8_t>> Load2BppGraphics(const Rom& rom) {
   const uint8_t sheets[] = {0x71, 0x72, 0xDA, 0xDB, 0xDC, 0xDD, 0xDE};
   
   // Get version constants - default to US if we don't know
-  auto vc = kVersionConstantsMap.at(zelda3_version::US);
+  auto version_constants = kVersionConstantsMap.at(zelda3_version::US);
   
   for (const auto& sheet_id : sheets) {
     auto offset = GetGraphicsAddress(rom.data(), sheet_id,
-                                     vc.kOverworldGfxPtr1,
-                                     vc.kOverworldGfxPtr2,
-                                     vc.kOverworldGfxPtr3,
+                                     version_constants.kOverworldGfxPtr1,
+                                     version_constants.kOverworldGfxPtr2,
+                                     version_constants.kOverworldGfxPtr3,
                                      rom.size());
 
     if (offset >= rom.size()) {
@@ -487,7 +514,7 @@ absl::StatusOr<gfx::Bitmap> LoadFontGraphics(const Rom& rom) {
 // ============================================================================
 
 absl::Status SaveAllGraphicsData(
-    Rom& rom, const std::array<gfx::Bitmap, kNumGfxSheets>& sheets) {
+    [[maybe_unused]] Rom& rom, [[maybe_unused]] const std::array<gfx::Bitmap, kNumGfxSheets>& sheets) {
   // For now, return OK status - full implementation would write sheets back
   // to ROM at their respective addresses with proper compression
   LOG_INFO("SaveAllGraphicsData", "Graphics save not yet fully implemented");

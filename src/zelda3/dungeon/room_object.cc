@@ -63,6 +63,11 @@ void RoomObject::EnsureTilesLoaded() {
   }
 
   if (rom_ == nullptr) {
+    // DEBUG: Use printf for wall/corner objects (LOG_DEBUG may be filtered)
+    if (id_ == 0x001 || id_ == 0x002 || id_ == 0x061 || id_ == 0x062 ||
+        (id_ >= 0x100 && id_ <= 0x103)) {
+      printf("[EnsureTilesLoaded] obj=0x%03X: ROM is NULL!\n", id_);
+    }
     return;
   }
 
@@ -70,7 +75,20 @@ void RoomObject::EnsureTilesLoaded() {
   auto parser_status = LoadTilesWithParser();
   if (parser_status.ok()) {
     tiles_loaded_ = true;
+    // DEBUG: Use printf for wall/corner objects
+    if (id_ == 0x001 || id_ == 0x002 || id_ == 0x061 || id_ == 0x062 ||
+        (id_ >= 0x100 && id_ <= 0x103)) {
+      printf("[EnsureTilesLoaded] obj=0x%03X: Loaded %zu tiles via parser\n", 
+             id_, tiles_.size());
+    }
     return;
+  }
+  
+  // DEBUG: Log parser failure for wall/corner objects
+  if (id_ == 0x001 || id_ == 0x002 || id_ == 0x061 || id_ == 0x062 ||
+      (id_ >= 0x100 && id_ <= 0x103)) {
+    printf("[EnsureTilesLoaded] obj=0x%03X: Parser failed: %s, trying legacy\n", 
+           id_, std::string(parser_status.message()).c_str());
   }
 
   // Fallback to legacy method for compatibility with enhanced validation

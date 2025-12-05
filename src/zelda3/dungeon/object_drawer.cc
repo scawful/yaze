@@ -23,10 +23,6 @@ absl::Status ObjectDrawer::DrawObject(const RoomObject& object,
                                       gfx::BackgroundBuffer& bg2,
                                       const gfx::PaletteGroup& palette_group,
                                       [[maybe_unused]] const DungeonState* state) {
-  LOG_DEBUG("ObjectDrawer",
-            "Drawing object 0x%02X at (%d,%d) size=%d tiles=%zu", object.id_,
-            object.x_, object.y_, object.size_, object.tiles().size());
-
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
@@ -45,18 +41,49 @@ absl::Status ObjectDrawer::DrawObject(const RoomObject& object,
 
   // Skip objects that don't have tiles loaded
   if (mutable_obj.tiles().empty()) {
+    // DEBUG: Use printf for wall/corner objects to trace tile loading issues
+    if (object.id_ == 0x001 || object.id_ == 0x002 || 
+        object.id_ == 0x061 || object.id_ == 0x062 ||
+        (object.id_ >= 0x100 && object.id_ <= 0x103)) {
+      printf("[DrawObject] Object 0x%03X at (%d,%d) has NO TILES - skipping!\n",
+             object.id_, object.x_, object.y_);
+    }
+    LOG_DEBUG("ObjectDrawer", "Object 0x%03X at (%d,%d) has NO TILES - skipping",
+              object.id_, object.x_, object.y_);
     return absl::OkStatus();
   }
 
   // Look up draw routine for this object
   int routine_id = GetDrawRoutineId(object.id_);
 
-  LOG_DEBUG("ObjectDrawer", "Object %04X -> routine_id=%d", object.id_,
-            routine_id);
+  // DEBUG: Use printf for wall/corner objects (LOG_DEBUG may be filtered)
+  if (object.id_ == 0x001 || object.id_ == 0x002 || 
+      object.id_ == 0x061 || object.id_ == 0x062 ||
+      (object.id_ >= 0x100 && object.id_ <= 0x103)) {
+    printf("[DrawObject] obj=0x%03X pos=(%d,%d) size=%d -> routine=%d tiles=%zu\n",
+           object.id_, object.x_, object.y_, object.size_, routine_id, 
+           mutable_obj.tiles().size());
+    fflush(stdout);  // Ensure output is visible
+  }
+
+  // Enhanced logging: show tile IDs for first few tiles
+  std::string tile_ids;
+  for (size_t i = 0; i < std::min(size_t(4), mutable_obj.tiles().size()); i++) {
+    tile_ids += absl::StrFormat("0x%03X,", mutable_obj.tiles()[i].id_);
+  }
+  if (mutable_obj.tiles().size() > 4) tile_ids += "...";
+  
+  LOG_DEBUG("ObjectDrawer", 
+            "Object 0x%03X at (%d,%d) size=%d -> routine=%d tiles=[%s] (count=%zu)",
+            object.id_, object.x_, object.y_, object.size_, routine_id,
+            tile_ids.c_str(), mutable_obj.tiles().size());
 
   if (routine_id < 0 || routine_id >= static_cast<int>(draw_routines_.size())) {
-    LOG_DEBUG("ObjectDrawer", "Using fallback 1x1 drawing for object %04X",
-              object.id_);
+    printf("[DrawObject] Object 0x%03X: NO ROUTINE (id=%d, max=%zu) - using fallback 1x1\n",
+           object.id_, routine_id, draw_routines_.size());
+    LOG_DEBUG("ObjectDrawer", 
+              "Object 0x%03X: NO ROUTINE (id=%d, max=%zu) - using fallback 1x1",
+              object.id_, routine_id, draw_routines_.size());
     // Fallback to simple 1x1 drawing using first 8x8 tile
     if (!mutable_obj.tiles().empty()) {
       const auto& tile_info = mutable_obj.tiles()[0];
@@ -64,9 +91,6 @@ absl::Status ObjectDrawer::DrawObject(const RoomObject& object,
     }
     return absl::OkStatus();
   }
-
-  LOG_DEBUG("ObjectDrawer", "Executing draw routine %d for object %04X",
-            routine_id, object.id_);
 
   // Check if this should draw to both BG layers
   // Priority: object's all_bgs_ flag (set during decoding) > routine metadata
@@ -149,27 +173,42 @@ bool ObjectDrawer::RoutineDrawsToBothBGs(int routine_id) {
   // This replaces hardcoded routine ID checks with a centralized lookup.
   //
   // ASM Reference:
+  // - Routines 1, 8: Layout walls (horizontal and vertical)
+  // - Routine 19: Layout corners (concave corners 0x100-0x103)
   // - Routines 3, 9: Diagonal walls (use VRAM tilemap for both layers)
   // - Routines 17, 18: Diagonal walls acute/grave (BothBG variants)
   // - Routines 35, 36, 37: Corner objects (4x4 corners, weird corners)
   // - Routine 97: Prison cell (dual-layer bars for 3D effect)
   //
+  // Layout objects (walls, corners) MUST draw to both BG layers because
+  // they form the room structure. The layout "layer" field in ROM is for
+  // quadrant configuration, NOT SNES BG layer separation.
+  //
   // These routines are identified from:
+  // - Routine 1: DrawRightwards2x4_1to15or26 (layout walls 0x001, 0x002)
+  // - Routine 8: DrawDownwards4x2_1to15or26 (layout walls 0x061, 0x062)
+  // - Routine 19: DrawCorner4x4 (layout corners 0x100-0x103)
   // - rightwards_routines.cc: routine 3 (Rightwards2x4_1to16_BothBG)
   // - downwards_routines.cc: routine 9 (Downwards4x2_1to16_BothBG)
   // - diagonal_routines.cc: routines 17, 18 (DiagonalAcute/Grave_BothBG)
   // - corner_routines.cc: routines 35, 36, 37 (4x4Corner, WeirdCorner BothBG)
   // - special_routines.cc: routine 97 (PrisonCell - draws internally to both)
   //
+  // Layout structural objects must draw to both BG layers for correct rendering.
+  // The original game draws these to both tilemaps simultaneously.
   static constexpr int kBothBGRoutines[] = {
+      0,   // DrawRightwards2x2_1to15or32 (ceiling 0x00)
+      1,   // DrawRightwards2x4_1to15or26 (layout walls 0x001, 0x002)
+      8,   // DrawDownwards4x2_1to15or26 (layout walls 0x061, 0x062)
+      19,  // DrawCorner4x4 (layout corners 0x100-0x103)
       3,   // Rightwards2x4_1to16_BothBG (diagonal walls)
       9,   // Downwards4x2_1to16_BothBG (diagonal walls)
       17,  // DiagonalAcute_1to16_BothBG (upper-left diagonal)
       18,  // DiagonalGrave_1to16_BothBG (upper-right diagonal)
-      35,  // 4x4Corner_BothBG (Type 2: 0x108-0x10F, Type 3: 0xF9B-0xF9D, 0xFB3)
-      36,  // WeirdCornerBottom_BothBG (Type 2: 0x110-0x113, Type 3: 0xF9E-0xFA1)
-      37,  // WeirdCornerTop_BothBG (Type 2: 0x114-0x117, Type 3: 0xFA2-0xFA5)
-      97,  // PrisonCell (Type 3: 0xF8D, 0xF97 - dual-layer bars)
+      35,  // 4x4Corner_BothBG (Type 2: 0x108-0x10F)
+      36,  // WeirdCornerBottom_BothBG (Type 2: 0x110-0x113)
+      37,  // WeirdCornerTop_BothBG (Type 2: 0x114-0x117)
+      97,  // PrisonCell (dual-layer bars)
   };
 
   for (int id : kBothBGRoutines) {
@@ -544,11 +583,22 @@ void ObjectDrawer::InitializeDrawRoutines() {
   }
 
   // Subtype 2 Object Mappings (0x100-0x1FF)
-  for (int id = 0x100; id <= 0x107; id++) {
-    object_to_routine_map_[id] = 16; // 4x4
+  // LAYOUT CORNERS: 0x100-0x103 are the concave corners used in room layouts
+  // These must use DrawCorner4x4 (routine 19) NOT DrawRightwards4x4 (routine 16)
+  // ASM Reference: bank_01.asm RoomDraw_4x4Corner routine
+  // 0x100 = Corner (top, concave) ▛ (upper-left)
+  // 0x101 = Corner (top, concave) ▙ (lower-left)
+  // 0x102 = Corner (top, concave) ▜ (upper-right)
+  // 0x103 = Corner (top, concave) ▟ (lower-right)
+  for (int id = 0x100; id <= 0x103; id++) {
+    object_to_routine_map_[id] = 19;  // DrawCorner4x4 for layout corners
+  }
+  // 0x104-0x107: Other 4x4 patterns (non-corner)
+  for (int id = 0x104; id <= 0x107; id++) {
+    object_to_routine_map_[id] = 16;  // Rightwards 4x4
   }
   for (int id = 0x108; id <= 0x10F; id++) {
-    object_to_routine_map_[id] = 35; // 4x4 Corner BothBG
+    object_to_routine_map_[id] = 35;  // 4x4 Corner BothBG
   }
   for (int id = 0x110; id <= 0x113; id++) {
     object_to_routine_map_[id] = 36; // Weird Corner Bottom
@@ -2024,6 +2074,10 @@ void ObjectDrawer::DrawRightwards2x4_1to15or26(
   if (size == 0)
     size = 26;  // Special case
 
+  // DEBUG: Use printf for visibility (LOG_DEBUG may be filtered)
+  printf("[Wall Draw 2x4] obj=0x%03X pos=(%d,%d) size=%d tiles=%zu\n",
+         obj.id_, obj.x_, obj.y_, size, tiles.size());
+  fflush(stdout);  // Ensure output is visible
   LOG_DEBUG("ObjectDrawer",
             "DrawRightwards2x4: obj=%04X pos=(%d,%d) size=%d tiles=%zu",
             obj.id_, obj.x_, obj.y_, size, tiles.size());
@@ -2233,8 +2287,12 @@ void ObjectDrawer::DrawDiagonalGrave_1to16_BothBG(
 void ObjectDrawer::DrawCorner4x4(const RoomObject& obj,
                                  gfx::BackgroundBuffer& bg,
                                  std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
-  // Pattern: 4x4 grid corner (Type 2 corners 0x40-0x4F, 0x108-0x10F)
-  // Type 2 objects only have 8 tiles, so we need to handle both 16 and 8 tile cases
+  // Pattern: 4x4 grid corner for Type 2 objects
+  // LAYOUT CORNERS: 0x100-0x103 (upper-left, lower-left, upper-right, lower-right)
+  //   - These are the concave corners used in room layouts
+  //   - GetSubtype2TileCount returns 16 tiles for these (32 bytes of tile data)
+  // OTHER CORNERS: 0x108-0x10F (BothBG variants handled by routine 35)
+  // Type 2 objects may have 8 or 16 tiles depending on the specific object
 
   if (tiles.size() >= 16) {
     // Full 4x4 pattern - Column-major ordering per ZScream
@@ -2805,6 +2863,11 @@ void ObjectDrawer::DrawDownwards4x2_1to15or26(
   int size = obj.size_;
   if (size == 0)
     size = 26;  // Special case
+
+  // DEBUG: Use printf for visibility (LOG_DEBUG may be filtered)
+  printf("[Wall Draw 4x2 Vertical] obj=0x%03X pos=(%d,%d) size=%d tiles=%zu\n",
+         obj.id_, obj.x_, obj.y_, size, tiles.size());
+  fflush(stdout);  // Ensure output is visible
 
   for (int s = 0; s < size; s++) {
     if (tiles.size() >= 8) {

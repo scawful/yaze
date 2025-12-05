@@ -45,20 +45,26 @@ absl::Status RoomLayout::LoadLayout(int layout_id) {
   const auto& rom_data = rom_->data();
   int layer = 0;
 
+  // DEBUG: Use printf for visibility (LOG_DEBUG may be filtered)
+  printf("[RoomLayout] Loading layout %d from PC address 0x%05X\n", 
+         layout_id, pos);
+  fflush(stdout);  // Ensure output is visible
   LOG_DEBUG("[RoomLayout]", "Loading layout %d from PC address 0x%05X", 
             layout_id, pos);
 
+  int obj_index = 0;
   while (pos + 2 < static_cast<int>(rom_->size())) {
     uint8_t b1 = rom_data[pos];
     uint8_t b2 = rom_data[pos + 1];
 
     if (b1 == 0xFF && b2 == 0xFF) {
-      layer++;
-      pos += 2;
-      if (layer >= 3) {
-        break;
-      }
-      continue;
+      // $FF $FF is the END terminator for this layout
+      // Each RoomLayout_XX in ROM is a single block terminated by $FF $FF
+      // We should NOT continue reading - that would read the NEXT layout's data
+      printf("[RoomLayout] Layout %d terminated at pos=0x%05X after %d objects\n",
+             layout_id, pos, obj_index);
+      fflush(stdout);
+      break;
     }
 
     if (pos + 2 >= static_cast<int>(rom_->size())) {
@@ -74,13 +80,26 @@ absl::Status RoomLayout::LoadLayout(int layout_id) {
     obj.EnsureTilesLoaded();
     objects_.push_back(obj);
 
-    // Debug logging for layout 7 to identify potential rendering issues
-    if (layout_id == 7) {
-      LOG_DEBUG("[RoomLayout]", "Layout 7 object: id=0x%03X x=%d y=%d size=%d layer=%d",
-                obj.id_, obj.x_, obj.y_, obj.size_, layer);
+    // Enhanced debug logging for ALL layouts to trace rendering issues
+    // DEBUG: Use printf for wall/corner objects (LOG_DEBUG may be filtered)
+    if (obj.id_ == 0x001 || obj.id_ == 0x002 || 
+        obj.id_ == 0x061 || obj.id_ == 0x062 ||
+        (obj.id_ >= 0x100 && obj.id_ <= 0x103)) {
+      printf("[RoomLayout] Layout %d obj[%d]: bytes=[%02X,%02X,%02X] -> id=0x%03X x=%d y=%d size=%d layer=%d tiles=%zu\n",
+             layout_id, obj_index, b1, b2, b3,
+             obj.id_, obj.x_, obj.y_, obj.size_, layer, obj.tiles().size());
+      fflush(stdout);  // Ensure output is visible
     }
+    LOG_DEBUG("[RoomLayout]", 
+              "Layout %d obj[%d]: bytes=[%02X,%02X,%02X] -> id=0x%03X x=%d y=%d size=%d layer=%d tiles=%zu",
+              layout_id, obj_index, b1, b2, b3,
+              obj.id_, obj.x_, obj.y_, obj.size_, layer, obj.tiles().size());
+    obj_index++;
   }
 
+  printf("[RoomLayout] Layout %d loaded with %zu objects\n", 
+         layout_id, objects_.size());
+  fflush(stdout);  // Ensure output is visible
   LOG_DEBUG("[RoomLayout]", "Layout %d loaded with %zu objects", 
             layout_id, objects_.size());
 
