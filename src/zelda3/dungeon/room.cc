@@ -934,14 +934,16 @@ void Room::RenderObjectsToBackground() {
                                       palette_group, dungeon_state_.get());
 
   // Render doors using DoorDef struct with enum types
+  // Doors are drawn to the LAYOUT buffer (bg1_buffer_), not object buffer
+  // In the game, doors are part of the room tilemap, not overlaid objects
   for (int i = 0; i < doors_.size(); ++i) {
     const auto& door = doors_[i];
     ObjectDrawer::DoorDef door_def;
     door_def.type = door.type;
     door_def.direction = door.direction;
     door_def.position = door.position;
-    // Pass door index for state lookup
-    drawer.DrawDoor(door_def, i, object_bg1_buffer_, object_bg2_buffer_, dungeon_state_.get());
+    // Pass door index for state lookup - use bg1_buffer_ for layout integration
+    drawer.DrawDoor(door_def, i, bg1_buffer_, bg2_buffer_, dungeon_state_.get());
   }
 
   // Render pot items
@@ -1218,11 +1220,14 @@ void Room::ParseObjectsFromLocation(int objects_location) {
       }
     } else {
       // Handle door objects
-      // ASM: Door objects are 2 bytes: [Position] [Type+Direction]
-      // Position: encoded as 5-bit value (position & 0x1F) * 2 = tile offset
-      // Type: upper nibble of byte2
-      // Direction: lower nibble of byte2 (0=N, 1=S, 2=W, 3=E)
-      doors_.push_back(Door::FromRomBytes(b1, b2));
+      // ASM format (from RoomDraw_DoorObject):
+      //   b1: bits 4-7 = position index, bits 0-1 = direction
+      //   b2: door type (full byte)
+      auto door = Door::FromRomBytes(b1, b2);
+      printf("[ParseDoor] room=%d b1=0x%02X b2=0x%02X -> pos=%d dir=%d type=%d\n",
+             room_id_, b1, b2, door.position, static_cast<int>(door.direction), 
+             static_cast<int>(door.type));
+      doors_.push_back(door);
     }
   }
 }

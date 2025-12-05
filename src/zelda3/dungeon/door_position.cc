@@ -49,41 +49,47 @@ uint8_t DoorPositionManager::SnapToNearestPosition(int canvas_x, int canvas_y,
 
 std::pair<int, int> DoorPositionManager::PositionToTileCoords(
     uint8_t position, DoorDirection direction) {
-  // Door positions are indices (0-5) into lookup tables
-  // These tables are derived from VRAM tilemap offsets in the ASM
-  // (DoorTilemapPositions_NorthWall, etc.)
+  // Door positions are indices (0-5) into lookup tables derived from
+  // DoorTilemapPositions_* in the ASM.
   //
-  // VRAM offset to tile: tile_x = (offset % 0x80) / 2, tile_y = offset / 0x80
-  // The room uses a scrolling tilemap, so there's a base offset of ~4 tiles
+  // VRAM tilemap offsets converted to tile coords:
+  //   tile_x = (offset % 0x80) / 2
+  //   tile_y = offset / 0x80
+  // 
+  // North wall VRAM offsets ($021C, $023C, $025C, $039C, $03BC, $03DC):
+  //   Positions 0-2: row 4, cols 14, 30, 46 (upper half)
+  //   Positions 3-5: row 7, cols 14, 30, 46 (lower half - for large rooms)
+  //
+  // The tilemap has a 4-row offset, so subtract 4 from y to get room coords.
+  // Similarly for x positions, subtract 2 for the left margin.
 
   // Clamp position index to valid range (0-5 for most walls)
   int pos_idx = position & 0x0F;
   if (pos_idx > 5) pos_idx = 5;
 
-  // Door X positions for North/South walls (6 positions)
-  // Derived from VRAM offsets: $021C→14, $023C→30, $025C→46, $039C→14, etc.
-  // These correspond to door slots in the room's quadrant layout
-  static constexpr int kDoorXPositions[] = {14, 30, 46, 14, 30, 46};
+  // Door X positions for North/South walls (adjusted for room origin)
+  // VRAM cols 14, 30, 46 → room cols 12, 28, 44
+  static constexpr int kDoorXPositions[] = {12, 28, 44, 12, 28, 44};
   
-  // Door Y positions for West/East walls (6 positions)
-  // Derived from VRAM offsets for West: $0784, $0F84, $1784, $078A, $0F8A, $178A
-  static constexpr int kDoorYPositions[] = {15, 31, 47, 15, 31, 47};
+  // Door Y positions for West/East walls (adjusted for room origin)
+  // VRAM rows 15, 31, 47 → room rows 11, 27, 43
+  static constexpr int kDoorYPositions[] = {11, 27, 43, 11, 27, 43};
 
   switch (direction) {
     case DoorDirection::North:
-      // North wall: doors at top of room (y=0)
+      // North wall: doors at top edge of room
       return {kDoorXPositions[pos_idx], 0};
 
     case DoorDirection::South:
-      // South wall: doors at bottom (y = 64 - 3 = 61)
+      // South wall: doors at bottom edge (64 - 3 = 61)
       return {kDoorXPositions[pos_idx], kRoomHeightTiles - 3};
 
     case DoorDirection::West:
-      // West wall: doors at left edge (x=0)
+      // West wall: doors at left edge
       return {0, kDoorYPositions[pos_idx]};
 
     case DoorDirection::East:
-      // East wall: doors at right edge (x = 64 - 3 = 61)
+      // East wall: doors at right edge (64 - 3 = 61)
       return {kRoomWidthTiles - 3, kDoorYPositions[pos_idx]};
   }
 

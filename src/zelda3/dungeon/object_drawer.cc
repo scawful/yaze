@@ -1461,16 +1461,30 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
   // Uses DoorType and DoorDirection enums for type safety
   // Position calculations via DoorPositionManager
 
-  if (!rom_ || !rom_->is_loaded() || !room_gfx_buffer_) return;
+  printf("[DrawDoor] idx=%d type=%d dir=%d pos=%d\n", 
+         door_index, static_cast<int>(door.type), 
+         static_cast<int>(door.direction), door.position);
+
+  if (!rom_ || !rom_->is_loaded() || !room_gfx_buffer_) {
+    printf("[DrawDoor] SKIPPED - rom=%p loaded=%d gfx=%p\n",
+           (void*)rom_, rom_ ? rom_->is_loaded() : 0, (void*)room_gfx_buffer_);
+    return;
+  }
 
   auto& bitmap = bg1.bitmap();
-  if (!bitmap.is_active() || bitmap.width() == 0) return;
+  if (!bitmap.is_active() || bitmap.width() == 0) {
+    printf("[DrawDoor] SKIPPED - bitmap not active or zero width\n");
+    return;
+  }
 
   // Get door position from DoorPositionManager
   auto [tile_x, tile_y] = door.GetTileCoords();
   auto dims = door.GetDimensions();
   int door_width = dims.width_tiles;
   int door_height = dims.height_tiles;
+  
+  printf("[DrawDoor] tile_pos=(%d,%d) dims=%dx%d\n", 
+         tile_x, tile_y, door_width, door_height);
 
   // Door graphics use an indirect addressing scheme:
   // 1. kDoorGfxUp/Down/Left/Right point to offset tables (DoorGFXDataOffset_*)
@@ -1507,10 +1521,14 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
   constexpr int kRoomDrawObjectDataBase = 0x1B52;
   int tile_data_addr = kRoomDrawObjectDataBase + tile_offset;
 
+  printf("[DrawDoor] offset_table=0x%X type_idx=%d tile_offset=0x%X tile_addr=0x%X\n",
+         offset_table_addr, type_index, tile_offset, tile_data_addr);
+
   // Validate address range (12 tiles * 2 bytes = 24 bytes)
   int tiles_per_door = door_width * door_height;  // 12 tiles (4x3 or 3x4)
   int data_size = tiles_per_door * 2;
   if (tile_data_addr < 0 || tile_data_addr + data_size > static_cast<int>(rom_->size())) {
+    printf("[DrawDoor] INVALID ADDRESS - falling back to indicator\n");
     DrawDoorIndicator(bitmap, tile_x, tile_y, door_width, door_height,
                       door.type, door.direction);
     return;
@@ -1518,6 +1536,7 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
 
   // Read and render door tiles
   // Tile layout is column-major (matching ASM draw routines)
+  printf("[DrawDoor] Reading %d tiles from 0x%X:\n", tiles_per_door, tile_data_addr);
   int tile_idx = 0;
   for (int dx = 0; dx < door_width; dx++) {
     for (int dy = 0; dy < door_height; dy++) {
@@ -1527,6 +1546,11 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
       auto tile_info = gfx::WordToTileInfo(tile_word);
       int pixel_x = (tile_x + dx) * 8;
       int pixel_y = (tile_y + dy) * 8;
+
+      if (tile_idx < 4) {
+        printf("  [%d] word=0x%04X id=%d pal=%d pixel=(%d,%d)\n",
+               tile_idx, tile_word, tile_info.id_, tile_info.palette_, pixel_x, pixel_y);
+      }
 
       DrawTileToBitmap(bitmap, tile_info, pixel_x, pixel_y, room_gfx_buffer_);
       tile_idx++;
