@@ -1707,12 +1707,16 @@ void DungeonObjectInteraction::DrawDoorSnapIndicators() {
   if (!is_entity_dragging_ || selected_entity_.type != EntityType::Door)
     return;
 
-  // Detect wall direction from drag position
+  // Detect wall direction and section (outer wall vs inner seam) from drag position
   zelda3::DoorDirection direction;
+  bool is_inner = false;
   int drag_x = static_cast<int>(entity_drag_current_pos_.x);
   int drag_y = static_cast<int>(entity_drag_current_pos_.y);
-  if (!zelda3::DoorPositionManager::DetectWallFromPosition(drag_x, drag_y, direction))
+  if (!zelda3::DoorPositionManager::DetectWallSection(drag_x, drag_y, direction, is_inner))
     return;
+
+  // Get the starting position index for this section
+  uint8_t start_pos = zelda3::DoorPositionManager::GetSectionStartPosition(direction, is_inner);
 
   // Get the nearest snap position
   uint8_t nearest_snap = zelda3::DoorPositionManager::SnapToNearestPosition(
@@ -1724,9 +1728,11 @@ void DungeonObjectInteraction::DrawDoorSnapIndicators() {
   const auto& theme = AgentUI::GetTheme();
   auto dims = zelda3::GetDoorDimensions(direction);
 
-  // Draw indicators for positions 0, 1, 2 (the 3 main snap positions per wall)
-  for (uint8_t i = 0; i < 3; ++i) {
-    auto [tile_x, tile_y] = zelda3::DoorPositionManager::PositionToTileCoords(i, direction);
+  // Draw indicators for 6 positions in this section (3 X positions × 2 Y offsets)
+  // Positions are: start_pos+0,1,2 (one Y offset) and start_pos+3,4,5 (other Y offset)
+  for (uint8_t i = 0; i < 6; ++i) {
+    uint8_t pos = start_pos + i;
+    auto [tile_x, tile_y] = zelda3::DoorPositionManager::PositionToTileCoords(pos, direction);
     float pixel_x = tile_x * 8.0f;
     float pixel_y = tile_y * 8.0f;
 
@@ -1735,7 +1741,7 @@ void DungeonObjectInteraction::DrawDoorSnapIndicators() {
     ImVec2 snap_end(snap_start.x + dims.width_pixels() * scale,
                     snap_start.y + dims.height_pixels() * scale);
 
-    if (i == nearest_snap) {
+    if (pos == nearest_snap) {
       // Highlighted nearest position - brighter with thicker border
       ImVec4 highlight = ImVec4(theme.dungeon_selection_primary.x,
                                 theme.dungeon_selection_primary.y,

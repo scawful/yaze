@@ -118,6 +118,37 @@ class DoorPositionManager {
                                       DoorDirection& out_direction);
 
   /**
+   * @brief Detect wall with inner/outer section information
+   *
+   * Extended version that also detects middle seams and indicates
+   * whether the position is on the outer wall or inner seam.
+   *
+   * Position ranges per direction:
+   * - North: Outer (0-5), Inner (6-11)
+   * - South: Inner (0-5), Outer (6-11)
+   * - West:  Outer (0-5), Inner (6-11)
+   * - East:  Inner (0-5), Outer (6-11)
+   *
+   * @param canvas_x X coordinate on canvas (pixels)
+   * @param canvas_y Y coordinate on canvas (pixels)
+   * @param out_direction Output: detected direction
+   * @param out_is_inner Output: true if at inner seam, false if outer wall
+   * @return true if near any wall or seam
+   */
+  static bool DetectWallSection(int canvas_x, int canvas_y,
+                                 DoorDirection& out_direction,
+                                 bool& out_is_inner);
+
+  /**
+   * @brief Get the starting position index for outer/inner section
+   *
+   * @param direction Door direction
+   * @param is_inner Whether at inner seam (vs outer wall)
+   * @return Starting position index (0 or 6)
+   */
+  static uint8_t GetSectionStartPosition(DoorDirection direction, bool is_inner);
+
+  /**
    * @brief Encode door data for ROM storage
    *
    * @param position Encoded position (0-31)

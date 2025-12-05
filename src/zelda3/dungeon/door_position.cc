@@ -62,6 +62,17 @@ std::vector<int> DoorPositionManager::GetSnapPositions(
 
 uint8_t DoorPositionManager::SnapToNearestPosition(int canvas_x, int canvas_y,
                                                     DoorDirection direction) {
+  // First detect which section (outer wall vs inner seam) we're on
+  DoorDirection detected_dir;
+  bool is_inner = false;
+  if (!DetectWallSection(canvas_x, canvas_y, detected_dir, is_inner)) {
+    // Fallback: use outer wall positions
+    is_inner = false;
+  }
+
+  // Get the starting position index for this section
+  uint8_t start_pos = GetSectionStartPosition(direction, is_inner);
+
   // Convert canvas pixels to tile coordinates
   int tile_x = canvas_x / kTileSize;
   int tile_y = canvas_y / kTileSize;
@@ -77,10 +88,10 @@ uint8_t DoorPositionManager::SnapToNearestPosition(int canvas_x, int canvas_y,
   // Get valid snap positions for this direction
   auto valid_positions = GetSnapPositions(direction);
   if (valid_positions.empty()) {
-    return 0;  // Fallback
+    return start_pos;  // Fallback
   }
 
-  // Find the nearest valid position
+  // Find the nearest valid X/Y position (index 0, 1, or 2)
   int nearest_idx = 0;
   int min_dist = std::abs(coord - valid_positions[0]);
   for (size_t i = 1; i < valid_positions.size(); ++i) {
@@ -91,9 +102,10 @@ uint8_t DoorPositionManager::SnapToNearestPosition(int canvas_x, int canvas_y,
     }
   }
 
-  // Return the position index (0, 1, or 2 for left/center/right or top/middle/bottom)
-  // This maps to door position encoding where index corresponds to the ROM table entry
-  return static_cast<uint8_t>(nearest_idx);
+  // Return position index offset by section start
+  // Positions 0,1,2 and 3,4,5 have same X coords but different Y for layer variation
+  // For simplicity, we return the base position (0,1,2 offset by start_pos)
+  return static_cast<uint8_t>(start_pos + nearest_idx);
 }
 
 std::pair<int, int> DoorPositionManager::PositionToTileCoords(
@@ -267,6 +279,95 @@ bool DoorPositionManager::DetectWallFromPosition(int canvas_x, int canvas_y,
   }
 
   return false;
+}
+
+bool DoorPositionManager::DetectWallSection(int canvas_x, int canvas_y,
+                                             DoorDirection& out_direction,
+                                             bool& out_is_inner) {
+  // Convert to tile coordinates
+  int tile_x = canvas_x / kTileSize;
+  int tile_y = canvas_y / kTileSize;
+
+  // Room is 64x64 tiles, divided into 4 quadrants at tile 32
+  constexpr int kMiddleSeam = 32;
+  constexpr int kSeamThreshold = 6;  // Detection range around seam
+  int threshold = kWallDetectionThreshold;
+
+  // Check outer walls first (edges of room)
+  // North wall (top edge)
+  if (tile_y < threshold) {
+    out_direction = DoorDirection::North;
+    out_is_inner = false;
+    return true;
+  }
+
+  // South wall (bottom edge)
+  if (tile_y >= kRoomHeightTiles - threshold) {
+    out_direction = DoorDirection::South;
+    out_is_inner = false;  // South outer wall = positions 6-11
+    return true;
+  }
+
+  // West wall (left edge)
+  if (tile_x < threshold) {
+    out_direction = DoorDirection::West;
+    out_is_inner = false;
+    return true;
+  }
+
+  // East wall (right edge)
+  if (tile_x >= kRoomWidthTiles - threshold) {
+    out_direction = DoorDirection::East;
+    out_is_inner = false;  // East outer wall = positions 6-11
+    return true;
+  }
+
+  // Check inner seams (middle of room between quadrants)
+  // Horizontal seam at Y=32 (between top and bottom quadrants)
+  if (std::abs(tile_y - kMiddleSeam) < kSeamThreshold) {
+    // Determine if North or South based on which side of seam
+    if (tile_y < kMiddleSeam) {
+      out_direction = DoorDirection::North;
+    } else {
+      out_direction = DoorDirection::South;
+    }
+    out_is_inner = true;
+    return true;
+  }
+
+  // Vertical seam at X=32 (between left and right quadrants)
+  if (std::abs(tile_x - kMiddleSeam) < kSeamThreshold) {
+    // Determine if West or East based on which side of seam
+    if (tile_x < kMiddleSeam) {
+      out_direction = DoorDirection::West;
+    } else {
+      out_direction = DoorDirection::East;
+    }
+    out_is_inner = true;
+    return true;
+  }
+
+  return false;
+}
+
+uint8_t DoorPositionManager::GetSectionStartPosition(DoorDirection direction,
+                                                      bool is_inner) {
+  // Position ranges per direction:
+  // - North: Outer (0-5), Inner (6-11)
+  // - South: Inner (0-5), Outer (6-11)  <- inverted!
+  // - West:  Outer (0-5), Inner (6-11)
+  // - East:  Inner (0-5), Outer (6-11)  <- inverted!
+  switch (direction) {
+    case DoorDirection::North:
+    case DoorDirection::West:
+      return is_inner ? 6 : 0;
+
+    case DoorDirection::South:
+    case DoorDirection::East:
+      // South/East have inverted mapping
+      return is_inner ? 0 : 6;
+  }
+  return 0;
 }
 
 std::pair<uint8_t, uint8_t> DoorPositionManager::EncodeDoorBytes(
