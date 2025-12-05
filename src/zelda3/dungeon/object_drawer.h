@@ -361,6 +361,34 @@ class ObjectDrawer {
                              std::span<const gfx::TileInfo> tiles, int width,
                              int height);
 
+  // Type 2 Special Object Routines (0x122, 0x12C, 0x13E, etc.)
+  void DrawBed4x5(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                  std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
+  void DrawRightwards3x6(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                         std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
+  void DrawUtility6x3(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                      std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
+  void DrawUtility3x5(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                      std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
+
+  // Type 3 Special Object Routines (pipes, shells, lighting, etc.)
+  void DrawVerticalTurtleRockPipe(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                                  std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
+  void DrawHorizontalTurtleRockPipe(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                                    std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
+  void DrawLightBeam(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                     std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
+  void DrawBigLightBeam(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                        std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
+  void DrawBossShell4x4(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                        std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
+  void DrawSolidWallDecor3x4(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                             std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
+  void DrawArcheryGameTargetDoor(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                                 std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
+  void DrawGanonTriforceFloorDecor(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                                   std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
+
   // Utility methods
   void WriteTile8(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
                   const gfx::TileInfo& tile_info);
