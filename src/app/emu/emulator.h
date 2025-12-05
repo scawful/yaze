@@ -71,8 +71,16 @@ class Emulator {
   void ResetFrameTiming();
 
   // Audio backend access
-  audio::IAudioBackend* audio_backend() { return audio_backend_.get(); }
+  audio::IAudioBackend* audio_backend() {
+    return external_audio_backend_ ? external_audio_backend_ : audio_backend_.get();
+  }
   void ResumeAudio(); // For WASM/WebAudio context resumption
+
+  // Set an external audio backend (for sharing between emulator instances)
+  // When set, this backend is used instead of the internal one
+  void SetExternalAudioBackend(audio::IAudioBackend* backend) {
+    external_audio_backend_ = backend;
+  }
   void set_audio_buffer(int16_t* audio_buffer) { audio_buffer_ = audio_buffer; }
   auto set_audio_device_id(SDL_AudioDeviceID audio_device) {
     audio_device_ = audio_device;
@@ -223,6 +231,7 @@ class Emulator {
 
   // Audio backend abstraction
   std::unique_ptr<audio::IAudioBackend> audio_backend_;
+  audio::IAudioBackend* external_audio_backend_ = nullptr;  // Shared backend (not owned)
 
   Snes snes_;
   bool initialized_ = false;

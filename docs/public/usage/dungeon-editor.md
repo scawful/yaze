@@ -1,21 +1,21 @@
 # F2: Dungeon Editor v2 Guide
 
-**Scope**: DungeonEditorV2 (card-based UI), DungeonEditorSystem, dungeon canvases  
+**Scope**: DungeonEditorV2 (panel-based UI), DungeonEditorSystem, dungeon canvases  
 **Related**: [Architecture Overview](../developer/architecture.md), [Canvas System](../developer/canvas-system.md)
 
 ---
 
 ## 1. Overview
 
-The Dungeon Editor ships with the multi-card workspace introduced in the 0.3.x releases.
+The Dungeon Editor ships with the multi-panel workspace introduced in the 0.3.x releases.
 Self-contained room buffers keep graphics, objects, and palettes isolated so you can switch between
 rooms without invalidating the entire renderer.
 
 ### Key Features
 - 512×512 canvas per room with pan/zoom, grid, and collision overlays.
 - Layer-specific visualization (BG1/BG2 toggles, colored object outlines, slot labels).
-- Modular cards for rooms, objects, palettes, entrances, and toolsets.
-- Undo/Redo shared across cards via `DungeonEditorSystem`.
+- Modular panels for rooms, objects, palettes, entrances, and toolsets.
+- Undo/Redo shared across panels via `DungeonEditorSystem`.
 - Tight overworld integration: double-click an entrance to open the linked dungeon room.
 
 ---
@@ -24,7 +24,7 @@ rooms without invalidating the entire renderer.
 
 ```
 DungeonEditorV2 (UI)
-├─ Cards & docking
+├─ Panels & docking
 ├─ Canvas presenter
 └─ Menu + toolbar actions
 
@@ -61,13 +61,13 @@ that room.
 
 ### Opening Rooms
 1. Launch `yaze` with a ROM (`./build/bin/yaze --rom_file=zelda3.sfc`).
-2. Use the **Room Matrix** or **Rooms List** card to choose a room. The toolbar “+” button also opens
+2. Use the **Room Matrix** or **Rooms List** panel to choose a room. The toolbar “+” button also opens
    the selector.
-3. Pin multiple rooms by opening them in separate cards; each card maintains its own canvas state.
+3. Pin multiple rooms by opening them in separate panels; each panel maintains its own canvas state.
 
-### Working with Cards
+### Working with Panels
 
-| Card | Purpose |
+| Panel | Purpose |
 |------|---------|
 | **Room Graphics** | Primary canvas, BG toggles, collision/grid switches. |
 | **Object Editor** | Filter by type/layer, edit coordinates, duplicate/delete objects. |
@@ -75,7 +75,7 @@ that room.
 | **Entrances List** | Jump between overworld entrances and their mapped rooms. |
 | **Room Matrix** | Visual grid of all rooms grouped per dungeon for quick navigation. |
 
-Cards can be docked, detached, or saved as workspace presets; use the sidebar to store favorite
+Panels can be docked, detached, or saved as workspace presets; use the sidebar to store favorite
 layouts (e.g., Room Graphics + Object Editor + Palette).
 
 ### Canvas Interactions
@@ -89,7 +89,7 @@ layouts (e.g., Room Graphics + Object Editor + Palette).
 
 ### Saving & Undo
 - The editor queues every change through `DungeonEditorSystem`. Use `Cmd/Ctrl+Z` and `Cmd/Ctrl+Shift+Z`
-  to undo/redo across cards.
+  to undo/redo across panels.
 - Saving writes back the room buffers, door metadata, and palettes for the active session. Keep
   backups enabled (`File → Options → Experiment Flags`) for safety.
 
@@ -104,7 +104,7 @@ layouts (e.g., Room Graphics + Object Editor + Palette).
 - **Door alignment**: Use the entrance/door inspector popup (right-click a door marker) to verify
   leads-to IDs without leaving the canvas.
 - **Performance**: Large ROMs with many rooms can accumulate textures. If the editor feels sluggish,
-  close unused room cards; each card releases its textures when closed.
+  close unused room panels; each panel releases its textures when closed.
 
 ---
 
@@ -113,4 +113,4 @@ layouts (e.g., Room Graphics + Object Editor + Palette).
 - [Canvas System Guide](../developer/canvas-system.md) – detailed explanation of canvas usage,
   context menus, and popups.
 - [Debugging Guide](../developer/debugging-guide.md) – startup flags and logging tips (e.g.,
-  `--editor=Dungeon --cards="Room 0"` for focused debugging).
+  `--editor=Dungeon --open_panels="Room 0"` for focused debugging).

@@ -9,6 +9,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/music/panels/music_assembly_panel.h"
+#include "app/editor/music/panels/music_audio_debug_panel.h"
 #include "app/editor/music/panels/music_help_panel.h"
 #include "app/editor/music/panels/music_instrument_editor_panel.h"
 #include "app/editor/music/panels/music_piano_roll_panel.h"
@@ -37,18 +38,83 @@
 namespace yaze {
 namespace editor {
 
-
-
 void MusicEditor::Initialize() {
+  LOG_INFO("MusicEditor", "Initialize() START: rom_=%p, emulator_=%p",
+           static_cast<void*>(rom_), static_cast<void*>(emulator_));
+
   // Note: song_window_class_ initialization is deferred to first Update() call
   // because ImGui::GetID() requires a valid window context which doesn't exist
   // during Initialize()
   song_window_class_.DockingAllowUnclassed = true;
   song_window_class_.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_None;
 
+  // ==========================================================================
+  // Create SINGLE audio backend - owned here and shared with all emulators
+  // This eliminates the dual-backend bug entirely
+  // ==========================================================================
+  if (!audio_backend_) {
+#ifdef __EMSCRIPTEN__
+    audio_backend_ = emu::audio::AudioBackendFactory::Create(
+        emu::audio::AudioBackendFactory::BackendType::WASM);
+#else
+    audio_backend_ = emu::audio::AudioBackendFactory::Create(
+        emu::audio::AudioBackendFactory::BackendType::SDL2);
+#endif
+
+    emu::audio::AudioConfig config;
+    config.sample_rate = 48000;
+    config.channels = 2;
+    config.buffer_frames = 1024;
+    config.format = emu::audio::SampleFormat::INT16;
+
+    if (audio_backend_->Initialize(config)) {
+      LOG_INFO("MusicEditor", "Created shared audio backend: %s @ %dHz",
+               audio_backend_->GetBackendName().c_str(), config.sample_rate);
+    } else {
+      LOG_ERROR("MusicEditor", "Failed to initialize audio backend!");
+      audio_backend_.reset();
+    }
+  }
+
+  // Share the audio backend with the main emulator (if available)
+  if (audio_backend_ && emulator_) {
+    emulator_->SetExternalAudioBackend(audio_backend_.get());
+    LOG_INFO("MusicEditor", "Shared audio backend with main emulator");
+  } else {
+    LOG_WARN("MusicEditor", "Cannot share with main emulator: backend=%p, emulator=%p",
+             static_cast<void*>(audio_backend_.get()), static_cast<void*>(emulator_));
+  }
+
   music_player_ = std::make_unique<editor::music::MusicPlayer>(&music_bank_);
-  // MusicPlayer now owns its own dedicated emulator for audio playback
-  if (rom_) music_player_->SetRom(rom_);
+  if (rom_) {
+    music_player_->SetRom(rom_);
+    LOG_INFO("MusicEditor", "Set ROM on MusicPlayer");
+  } else {
+    LOG_WARN("MusicEditor", "No ROM available for MusicPlayer!");
+  }
+
+  // Share the SAME audio backend with MusicPlayer
+  if (audio_backend_) {
+    music_player_->SetSharedAudioBackend(audio_backend_.get());
+    LOG_INFO("MusicEditor", "Shared audio backend with MusicPlayer");
+  } else {
+    LOG_ERROR("MusicEditor", "No audio backend to share with MusicPlayer!");
+  }
+
+  // Audio exclusivity callback - pause main emulator when MusicPlayer plays
+  // With shared backend, we need to stop the main emulator from generating
+  // samples that would mix with MusicPlayer's audio
+  music_player_->SetAudioExclusivityCallback([this](bool music_player_active) {
+    if (emulator_) {
+      if (music_player_active) {
+        LOG_INFO("MusicEditor", "MusicPlayer active - pausing main emulator");
+        emulator_->set_running(false);  // Stop main emulator from generating audio
+      } else {
+        LOG_INFO("MusicEditor", "MusicPlayer stopped");
+        // Don't auto-resume - let the main emulator manage its own state
+      }
+    }
+  });
 
   if (!dependencies_.panel_manager)
     return;
@@ -97,6 +163,13 @@ void MusicEditor::Initialize() {
                                 .category = "Music",
                                 .shortcut_hint = "Ctrl+Shift+A",
                                 .priority = 30});
+  panel_manager->RegisterPanel({.card_id = "music.audio_debug",
+                                .display_name = "Audio Debug",
+                                .window_title = " Audio Debug",
+                                .icon = ICON_MD_BUG_REPORT,
+                                .category = "Music",
+                                .shortcut_hint = "",
+                                .priority = 95});
   panel_manager->RegisterPanel({.card_id = "music.help",
                                 .display_name = "Help",
                                 .window_title = " Music Editor Help",
@@ -143,9 +216,24 @@ void MusicEditor::Initialize() {
   auto assembly = std::make_unique<MusicAssemblyPanel>(&assembly_editor_);
   panel_manager->RegisterEditorPanel(std::move(assembly));
 
+  // Audio Debug Panel
+  auto audio_debug = std::make_unique<MusicAudioDebugPanel>(music_player_.get());
+  panel_manager->RegisterEditorPanel(std::move(audio_debug));
+
   // Help Panel
   auto help = std::make_unique<MusicHelpPanel>();
   panel_manager->RegisterEditorPanel(std::move(help));
+}
+
+void MusicEditor::set_emulator(emu::Emulator* emulator) {
+  LOG_INFO("MusicEditor", "set_emulator(%p): audio_backend_=%p",
+           static_cast<void*>(emulator), static_cast<void*>(audio_backend_.get()));
+  emulator_ = emulator;
+  // Share our audio backend with the main emulator (single backend architecture)
+  if (emulator_ && audio_backend_) {
+    emulator_->SetExternalAudioBackend(audio_backend_.get());
+    LOG_INFO("MusicEditor", "Shared audio backend with main emulator (deferred)");
+  }
 }
 
 void MusicEditor::SetProject(project::YazeProject* project) {
@@ -183,8 +271,14 @@ absl::Status MusicEditor::Load() {
 #endif
 
   if (rom_) {
-    if (music_player_) music_player_->SetRom(rom_);
+    if (music_player_) {
+      music_player_->SetRom(rom_);
+      LOG_INFO("MusicEditor", "Load(): Set ROM on MusicPlayer, IsAudioReady=%d",
+               music_player_->IsAudioReady());
+    }
     return music_bank_.LoadFromRom(*rom_);
+  } else {
+    LOG_WARN("MusicEditor", "Load(): No ROM available!");
   }
   return absl::OkStatus();
 }
@@ -1227,41 +1321,39 @@ void MusicEditor::DrawToolset() {
     ImGui::EndTable();
   }
 
-  // Audio Debug Settings (collapsed by default)
-  if (ImGui::CollapsingHeader(ICON_MD_BUG_REPORT " Audio Debug")) {
+  // Quick audio status (detailed debug in Audio Debug panel)
+  if (ImGui::CollapsingHeader(ICON_MD_BUG_REPORT " Audio Status")) {
     emu::Emulator* debug_emu = music_player_ ? music_player_->audio_emulator() : nullptr;
     if (debug_emu && debug_emu->is_snes_initialized()) {
       auto* audio_backend = debug_emu->audio_backend();
       if (audio_backend) {
         auto status = audio_backend->GetStatus();
         auto config = audio_backend->GetConfig();
+        bool resampling = audio_backend->IsAudioStreamEnabled();
 
-        ImGui::Text("Audio Backend: %s", audio_backend->GetBackendName().c_str());
-        ImGui::Text("Device Rate: %d Hz", config.sample_rate);
-        ImGui::Text("Native Rate: 32040 Hz (SPC700)");
-        ImGui::Text("Channels: %d", config.channels);
-        ImGui::Text("Buffer Frames: %d", config.buffer_frames);
+        // Compact status line
+        ImGui::Text("Backend: %s @ %dHz | Queue: %u frames",
+                    audio_backend->GetBackendName().c_str(),
+                    config.sample_rate, status.queued_frames);
 
-        ImGui::Separator();
-        ImGui::Text("Status: %s", status.is_playing ? "Playing" : "Stopped");
-        ImGui::Text("Queued Frames: %u", status.queued_frames);
-        ImGui::Text("Queued Bytes: %u", status.queued_bytes);
-        if (status.has_underrun) {
-          ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "Underrun detected!");
+        // Resampling indicator with warning if disabled
+        if (resampling) {
+          ImGui::TextColored(ImVec4(0.3f, 0.9f, 0.3f, 1.0f),
+                             "Resampling: 32040 -> %d Hz", config.sample_rate);
+        } else {
+          ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f),
+                             ICON_MD_WARNING " Resampling DISABLED - 1.5x speed bug!");
         }
 
-        ImGui::Separator();
-        ImGui::Text("Resampling: %s",
-                    audio_backend->SupportsAudioStream() ? "Enabled (32040->48000)" : "Disabled");
+        if (status.has_underrun) {
+          ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f),
+                             ICON_MD_WARNING " Buffer underrun");
+        }
 
-        // Playback speed info
-        auto player_state = music_player_ ? music_player_->GetState() : editor::music::PlaybackState{};
-        ImGui::Text("Playback Speed: %.2fx", player_state.playback_speed);
-        ImGui::Text("Effective Rate: %.0f Hz", 32040.0f * player_state.playback_speed);
+        ImGui::TextDisabled("Open Audio Debug panel for full diagnostics");
       }
     } else {
-      ImGui::TextDisabled("Audio emulator not initialized");
-      ImGui::TextDisabled("Play a song to initialize audio");
+      ImGui::TextDisabled("Play a song to see audio status");
     }
   }
 }
@@ -1340,10 +1432,6 @@ void MusicEditor::DrawChannelOverview() {
 // ============================================================================
 // Audio Control Methods (Emulator Integration)
 // ============================================================================
-
-
-
-
 
 void MusicEditor::SeekToSegment(int segment_index) {
   if (music_player_) music_player_->SeekToSegment(segment_index);
@@ -1463,10 +1551,6 @@ bool MusicEditor::ImportAsmBufferToSong(int song_index) {
 // ============================================================================
 // Custom Song Preview (In-Memory Playback)
 // ============================================================================
-
-
-
-
 
 void MusicEditor::DrawAsmPopups() {
   if (show_asm_export_popup_) {

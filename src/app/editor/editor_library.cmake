@@ -13,6 +13,10 @@ set(
   app/editor/dungeon/dungeon_room_selector.cc
   app/editor/dungeon/dungeon_toolset.cc
   app/editor/dungeon/dungeon_usage_tracker.cc
+  app/editor/dungeon/interaction/door_interaction_handler.cc
+  app/editor/dungeon/interaction/item_interaction_handler.cc
+  app/editor/dungeon/interaction/sprite_interaction_handler.cc
+  app/editor/dungeon/interaction/interaction_coordinator.cc
   app/editor/dungeon/panels/object_editor_panel.cc
   app/editor/editor_manager.cc
   app/editor/session_types.cc
