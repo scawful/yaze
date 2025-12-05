@@ -944,6 +944,11 @@ void Room::RenderObjectsToBackground() {
   object_bg1_buffer_.bitmap().Fill(255);
   object_bg2_buffer_.bitmap().Fill(255);
   
+  // IMPORTANT: Clear priority buffers when clearing object buffers
+  // Otherwise, old priority values persist and cause incorrect Z-ordering
+  object_bg1_buffer_.ClearPriorityBuffer();
+  object_bg2_buffer_.ClearPriorityBuffer();
+  
   // Render objects to appropriate buffers
   // BG1 = Floor/Main (Layer 0, 2)
   // BG2 = Overlay (Layer 1)

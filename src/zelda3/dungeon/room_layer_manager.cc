@@ -58,47 +58,70 @@ void RoomLayerManager::CompositeToOutput(Room& room,
     output.Fill(255);
   }
 
-  // Get draw order (SNES Mode 1: BG2 behind, BG1 on top)
-  auto draw_order = GetDrawOrder();
-
   // Track if we've copied the palette yet
   bool palette_copied = false;
 
-  // Process each layer in order (back to front)
-  for (auto layer_type : draw_order) {
-    // Skip invisible layers
-    if (!IsLayerVisible(layer_type)) {
-      continue;
-    }
+  // Get all 4 layer buffers
+  auto& bg1_layout = GetLayerBuffer(room, LayerType::BG1_Layout);
+  auto& bg1_objects = GetLayerBuffer(room, LayerType::BG1_Objects);
+  auto& bg2_layout = GetLayerBuffer(room, LayerType::BG2_Layout);
+  auto& bg2_objects = GetLayerBuffer(room, LayerType::BG2_Objects);
 
-    // Get layer buffer
-    auto& buffer = GetLayerBuffer(room, layer_type);
-    const auto& src_bitmap = buffer.bitmap();
-
-    // Skip if bitmap not active or empty
-    if (!src_bitmap.is_active() || src_bitmap.width() == 0) {
-      continue;
-    }
-
-    // Get blend mode for this layer
-    LayerBlendMode blend_mode = GetLayerBlendMode(layer_type);
-
-    // Skip if layer is completely hidden
-    if (blend_mode == LayerBlendMode::Off) {
-      continue;
-    }
-
-    // Copy SDL palette from first visible layer's surface to output bitmap
-    // Room applies palettes via SetPalette(vector<SDL_Color>) which only sets
-    // SDL surface palette, NOT the internal SnesPalette member
+  // Copy palette from first available visible layer
+  auto CopyPaletteIfNeeded = [&](const gfx::Bitmap& src_bitmap) {
     if (!palette_copied && src_bitmap.surface()) {
       ApplySDLPaletteToBitmap(src_bitmap.surface(), output);
       palette_copied = true;
     }
+  };
 
-    // Composite this layer onto output
-    CompositeLayer(src_bitmap, output, blend_mode);
-  }
+  // Helper to composite a single layer using simple back-to-front ordering
+  // Based on SNES ASM analysis: BG2 is drawn first, then BG1 overwrites on top
+  // This matches the SNES tilemap buffer architecture:
+  //   $7E4000 = Lower layer (BG2) - drawn first
+  //   $7E2000 = Upper layer (BG1) - drawn on top
+  auto CompositeLayer = [&](gfx::BackgroundBuffer& buffer, LayerType layer_type) {
+    if (!IsLayerVisible(layer_type)) return;
+    
+    const auto& src_bitmap = buffer.bitmap();
+    if (!src_bitmap.is_active() || src_bitmap.width() == 0) return;
+    
+    LayerBlendMode blend_mode = GetLayerBlendMode(layer_type);
+    if (blend_mode == LayerBlendMode::Off) return;
+    
+    CopyPaletteIfNeeded(src_bitmap);
+    
+    const auto& src_data = src_bitmap.data();
+    auto& dst_data = output.mutable_data();
+    
+    // Simple back-to-front compositing: later layers overwrite earlier layers
+    // Non-transparent pixels always overwrite whatever is beneath them
+    for (int idx = 0; idx < kPixelCount; ++idx) {
+      uint8_t src_pixel = src_data[idx];
+      
+      // Skip transparent pixels (255 = fill color for undrawn areas)
+      if (IsTransparent(src_pixel)) continue;
+      
+      // Overwrite destination pixel
+      dst_data[idx] = src_pixel;
+    }
+  };
+
+  // Process all layers in back-to-front order (matching SNES hardware)
+  // BG2 is the lower/background layer, BG1 is the upper/foreground layer
+  // This is the standard SNES Mode 1 rendering order
+  
+  // 1. BG2 Layout (floor tiles, background)
+  CompositeLayer(bg2_layout, LayerType::BG2_Layout);
+  
+  // 2. BG2 Objects (objects drawn to background layer)
+  CompositeLayer(bg2_objects, LayerType::BG2_Objects);
+  
+  // 3. BG1 Layout (main room structure) - overwrites BG2
+  CompositeLayer(bg1_layout, LayerType::BG1_Layout);
+  
+  // 4. BG1 Objects (objects drawn to foreground layer) - overwrites all
+  CompositeLayer(bg1_objects, LayerType::BG1_Objects);
 
   // If no palette was copied from layers, try to get it from bg1_buffer directly
   if (!palette_copied) {
@@ -131,37 +154,6 @@ void RoomLayerManager::CompositeToOutput(Room& room,
 
   // Mark output as modified for texture update
   output.set_modified(true);
-}
-
-void RoomLayerManager::CompositeLayer(const gfx::Bitmap& src,
-                                       gfx::Bitmap& dst,
-                                       LayerBlendMode mode) const {
-  const int width = std::min(src.width(), dst.width());
-  const int height = std::min(src.height(), dst.height());
-
-  auto& dst_data = dst.mutable_data();
-  const auto& src_data = src.data();
-
-  // Simple pixel-by-pixel compositing
-  // For indexed color, all blend modes use simple replacement
-  // since true blending requires expensive RGB palette lookups.
-  // The visual blend effect is handled at display time via alpha.
-  for (int y = 0; y < height; ++y) {
-    const int row_offset = y * width;
-    for (int x = 0; x < width; ++x) {
-      const int idx = row_offset + x;
-      const uint8_t src_pixel = src_data[idx];
-
-      // Skip transparent pixels (index 0 = SNES transparent, 255 = fill color)
-      if (IsTransparent(src_pixel)) {
-        continue;
-      }
-
-      // Replace destination pixel with source
-      // Blend mode effects are visual-only (handled at display time)
-      dst_data[idx] = src_pixel;
-    }
-  }
 }
 
 }  // namespace zelda3

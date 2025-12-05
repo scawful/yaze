@@ -491,17 +491,6 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
         ImGui::SetTooltip("BG2 Objects: Background details (behind BG1)");
       }
       ImGui::SameLine();
-      if (ImGui::Checkbox("M##Comp", &use_composite_mode_)) {
-        // Mark everything dirty when switching composite modes
-        mark_layers_dirty();
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(
-            "Merge Mode: Composite all layers into single output.\n"
-            "Layer order (SNES Mode 1): BG2 behind, BG1 on top.\n"
-            "Uncheck for debug view of individual layer buffers.");
-      }
-      ImGui::SameLine();
       ImGui::SetNextItemWidth(60);
       int bg2_blend = static_cast<int>(
           layer_mgr.GetLayerBlendMode(zelda3::LayerType::BG2_Layout));
@@ -887,6 +876,38 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     layer_menu.subitems.push_back(layer3_item);
 
     canvas_.AddContextMenuItem(layer_menu);
+
+    // Arrange submenu (object draw order)
+    gui::CanvasMenuItem arrange_menu;
+    arrange_menu.label = "Arrange";
+    arrange_menu.icon = ICON_MD_SWAP_VERT;
+    arrange_menu.enabled_condition = enabled_if(has_selection);
+
+    gui::CanvasMenuItem bring_front_item(
+        "Bring to Front", ICON_MD_FLIP_TO_FRONT,
+        [&interaction]() { interaction.SendSelectedToFront(); }, "Ctrl+Shift+]");
+    bring_front_item.enabled_condition = enabled_if(has_selection);
+    arrange_menu.subitems.push_back(bring_front_item);
+
+    gui::CanvasMenuItem send_back_item(
+        "Send to Back", ICON_MD_FLIP_TO_BACK,
+        [&interaction]() { interaction.SendSelectedToBack(); }, "Ctrl+Shift+[");
+    send_back_item.enabled_condition = enabled_if(has_selection);
+    arrange_menu.subitems.push_back(send_back_item);
+
+    gui::CanvasMenuItem bring_forward_item(
+        "Bring Forward", ICON_MD_ARROW_UPWARD,
+        [&interaction]() { interaction.BringSelectedForward(); }, "Ctrl+]");
+    bring_forward_item.enabled_condition = enabled_if(has_selection);
+    arrange_menu.subitems.push_back(bring_forward_item);
+
+    gui::CanvasMenuItem send_backward_item(
+        "Send Backward", ICON_MD_ARROW_DOWNWARD,
+        [&interaction]() { interaction.SendSelectedBackward(); }, "Ctrl+[");
+    send_backward_item.enabled_condition = enabled_if(has_selection);
+    arrange_menu.subitems.push_back(send_backward_item);
+
+    canvas_.AddContextMenuItem(arrange_menu);
 
     // === Entity Selection Actions (Doors, Sprites, Items) ===
     const auto& selected_entity = interaction.GetSelectedEntity();
@@ -1596,131 +1617,25 @@ void DungeonCanvasViewer::DrawRoomBackgroundLayers(int room_id) {
 
   float scale = canvas_.global_scale();
 
-  // Composite mode: Use single merged bitmap instead of 4-layer sequential draw
-  if (use_composite_mode_) {
-    auto& composite = room.GetCompositeBitmap(layer_mgr);
-    if (composite.is_active() && composite.width() > 0) {
-      // Ensure texture exists or is updated when bitmap data changes
-      if (!composite.texture()) {
-        gfx::Arena::Get().QueueTextureCommand(
-            gfx::Arena::TextureCommandType::CREATE, &composite);
-        composite.set_modified(false);  // Will be created fresh
-      } else if (composite.modified()) {
-        // CRITICAL: Update texture when bitmap was regenerated
-        // This happens after property changes (blockset, palette, etc.)
-        gfx::Arena::Get().QueueTextureCommand(
-            gfx::Arena::TextureCommandType::UPDATE, &composite);
-        composite.set_modified(false);  // Avoid redundant updates
-      }
-      if (composite.texture()) {
-        canvas_.DrawBitmap(composite, 0, 0, scale, 255);
-      }
-    }
-    return;
-  }
-
-  // Standard mode: Draw 4 layers sequentially (back to front)
-  // Helper lambda to draw a single layer
-  auto draw_layer = [&](zelda3::LayerType layer_type) {
-    if (!layer_mgr.IsLayerVisible(layer_type))
-      return;
-
-    auto& buffer = zelda3::RoomLayerManager::GetLayerBuffer(room, layer_type);
-    auto& bitmap = buffer.bitmap();
-
-    if (!bitmap.is_active() || bitmap.width() == 0 || bitmap.height() == 0)
-      return;
-
-    // Ensure texture exists and is up-to-date
-    if (!bitmap.texture()) {
+  // Always use composite mode: single merged bitmap with back-to-front layer order
+  // This matches SNES hardware behavior where BG2 is drawn first, then BG1 on top
+  auto& composite = room.GetCompositeBitmap(layer_mgr);
+  if (composite.is_active() && composite.width() > 0) {
+    // Ensure texture exists or is updated when bitmap data changes
+    if (!composite.texture()) {
       gfx::Arena::Get().QueueTextureCommand(
-          gfx::Arena::TextureCommandType::CREATE, &bitmap);
-      bitmap.set_modified(false);
-    } else if (bitmap.modified()) {
-      // Update texture when bitmap data has changed (e.g., after doors rendered)
+          gfx::Arena::TextureCommandType::CREATE, &composite);
+      composite.set_modified(false);
+    } else if (composite.modified()) {
+      // Update texture when bitmap was regenerated
       gfx::Arena::Get().QueueTextureCommand(
-          gfx::Arena::TextureCommandType::UPDATE, &bitmap);
-      bitmap.set_modified(false);
+          gfx::Arena::TextureCommandType::UPDATE, &composite);
+      composite.set_modified(false);
     }
-
-    if (!bitmap.texture())
-      return;
-
-    // Apply DarkRoom color modulation to match composite mode appearance
-    // This ensures separate layer mode looks the same as merged mode
-    layer_mgr.ApplySurfaceColorMod(bitmap.surface());
-
-    // Get alpha from layer manager
-    uint8_t alpha = layer_mgr.GetLayerAlpha(layer_type);
-
-    LOG_DEBUG("DungeonCanvasViewer",
-              "Drawing %s to canvas with texture %p, alpha=%d, scale=%.2f",
-              zelda3::RoomLayerManager::GetLayerName(layer_type),
-              bitmap.texture(), alpha, scale);
-
-    canvas_.DrawBitmap(bitmap, 0, 0, scale, alpha);
-  };
-
-  // Draw layers in correct order (back to front)
-  auto draw_order = layer_mgr.GetDrawOrder();
-  for (auto layer_type : draw_order) {
-    draw_layer(layer_type);
-  }
-
-  // DEBUG: Check if background buffers have content
-  auto& bg1_bitmap = room.bg1_buffer().bitmap();
-  auto& bg2_bitmap = room.bg2_buffer().bitmap();
-
-  if (bg1_bitmap.is_active() && bg1_bitmap.width() > 0) {
-    LOG_DEBUG("DungeonCanvasViewer",
-              "BG1 bitmap: %dx%d, active=%d, visible=%d, texture=%p",
-              bg1_bitmap.width(), bg1_bitmap.height(), bg1_bitmap.is_active(),
-              layer_mgr.IsLayerVisible(zelda3::LayerType::BG1_Layout),
-              bg1_bitmap.texture());
-
-    // Check bitmap data content
-    auto& bg1_data = bg1_bitmap.mutable_data();
-    int non_zero_pixels = 0;
-    for (size_t i = 0; i < bg1_data.size();
-         i += 100) {  // Sample every 100th pixel
-      if (bg1_data[i] != 0)
-        non_zero_pixels++;
+    if (composite.texture()) {
+      canvas_.DrawBitmap(composite, 0, 0, scale, 255);
     }
-    LOG_DEBUG("DungeonCanvasViewer",
-              "BG1 bitmap data: %zu pixels, ~%d non-zero samples",
-              bg1_data.size(), non_zero_pixels);
   }
-  if (bg2_bitmap.is_active() && bg2_bitmap.width() > 0) {
-    auto bg2_blend = layer_mgr.GetLayerBlendMode(zelda3::LayerType::BG2_Layout);
-    LOG_DEBUG("DungeonCanvasViewer",
-              "BG2 bitmap: %dx%d, active=%d, visible=%d, blend=%s, texture=%p",
-              bg2_bitmap.width(), bg2_bitmap.height(), bg2_bitmap.is_active(),
-              layer_mgr.IsLayerVisible(zelda3::LayerType::BG2_Layout),
-              zelda3::RoomLayerManager::GetBlendModeName(bg2_blend),
-              bg2_bitmap.texture());
-
-    // Check bitmap data content
-    auto& bg2_data = bg2_bitmap.mutable_data();
-    int non_zero_pixels = 0;
-    for (size_t i = 0; i < bg2_data.size();
-         i += 100) {  // Sample every 100th pixel
-      if (bg2_data[i] != 0)
-        non_zero_pixels++;
-    }
-    LOG_DEBUG("DungeonCanvasViewer",
-              "BG2 bitmap data: %zu pixels, ~%d non-zero samples",
-              bg2_data.size(), non_zero_pixels);
-  }
-
-  // DEBUG: Show canvas and bitmap info
-  LOG_DEBUG("DungeonCanvasViewer",
-            "Canvas pos: (%.1f, %.1f), Canvas size: (%.1f, %.1f)",
-            canvas_.zero_point().x, canvas_.zero_point().y, canvas_.width(),
-            canvas_.height());
-  LOG_DEBUG("DungeonCanvasViewer",
-            "BG1 bitmap size: %dx%d, BG2 bitmap size: %dx%d",
-            bg1_bitmap.width(), bg1_bitmap.height(), bg2_bitmap.width(),
-            bg2_bitmap.height());
 }
 
 }  // namespace yaze::editor

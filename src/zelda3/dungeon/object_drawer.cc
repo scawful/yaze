@@ -1844,6 +1844,9 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
   // The ROM stores tiles in column-major order for all door directions
   printf("[DrawDoor] Reading %d tiles from 0x%X:\n", tiles_per_door, tile_data_addr);
   int tile_idx = 0;
+  auto& priority_buffer = bg1.mutable_priority_data();
+  int bitmap_width = bitmap.width();
+  
   for (int dx = 0; dx < door_width; dx++) {
     for (int dy = 0; dy < door_height; dy++) {
       int addr = tile_data_addr + (tile_idx * 2);
@@ -1859,6 +1862,24 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
       }
 
       DrawTileToBitmap(bitmap, tile_info, pixel_x, pixel_y, room_gfx_buffer_);
+      
+      // Update priority buffer for this tile
+      uint8_t priority = tile_info.over_ ? 1 : 0;
+      const auto& bitmap_data = bitmap.vector();
+      for (int py = 0; py < 8; py++) {
+        int dest_y = pixel_y + py;
+        if (dest_y < 0 || dest_y >= bitmap.height()) continue;
+        for (int px = 0; px < 8; px++) {
+          int dest_x = pixel_x + px;
+          if (dest_x < 0 || dest_x >= bitmap_width) continue;
+          int dest_index = dest_y * bitmap_width + dest_x;
+          if (dest_index < static_cast<int>(bitmap_data.size()) &&
+              bitmap_data[dest_index] != 255) {
+            priority_buffer[dest_index] = priority;
+          }
+        }
+      }
+      
       tile_idx++;
     }
   }
@@ -3592,6 +3613,34 @@ void ObjectDrawer::WriteTile8(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
 
   // Draw single 8x8 tile directly to bitmap
   DrawTileToBitmap(bitmap, tile_info, tile_x * 8, tile_y * 8, gfx_data);
+  
+  // Also update priority buffer with tile's priority bit
+  // Priority (over_) affects Z-ordering in SNES Mode 1 compositing
+  uint8_t priority = tile_info.over_ ? 1 : 0;
+  int pixel_x = tile_x * 8;
+  int pixel_y = tile_y * 8;
+  auto& priority_buffer = bg.mutable_priority_data();
+  int width = bitmap.width();
+  
+  // Update priority for each pixel in the 8x8 tile
+  const auto& bitmap_data = bitmap.vector();
+  for (int py = 0; py < 8; py++) {
+    int dest_y = pixel_y + py;
+    if (dest_y < 0 || dest_y >= bitmap.height()) continue;
+    
+    for (int px = 0; px < 8; px++) {
+      int dest_x = pixel_x + px;
+      if (dest_x < 0 || dest_x >= width) continue;
+      
+      int dest_index = dest_y * width + dest_x;
+      // Only set priority for non-transparent pixels
+      // Check if this pixel was actually drawn (not transparent)
+      if (dest_index < static_cast<int>(bitmap_data.size()) &&
+          bitmap_data[dest_index] != 255) {
+        priority_buffer[dest_index] = priority;
+      }
+    }
+  }
 }
 
 bool ObjectDrawer::IsValidTilePosition(int tile_x, int tile_y) const {

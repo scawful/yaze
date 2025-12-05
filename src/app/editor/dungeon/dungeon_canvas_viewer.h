@@ -100,10 +100,6 @@ class DungeonCanvasViewer {
   }
   ObjectRenderMode GetObjectRenderMode() const { return object_render_mode_; }
 
-  // Composite mode: use merged bitmap instead of 4-layer draw
-  void SetCompositeMode(bool enabled) { use_composite_mode_ = enabled; }
-  bool IsCompositeMode() const { return use_composite_mode_; }
-
   // Layer visibility controls (per-room) using RoomLayerManager
   void SetLayerVisible(int room_id, zelda3::LayerType layer, bool visible) {
     GetRoomLayerManager(room_id).SetLayerVisible(layer, visible);
@@ -297,7 +293,6 @@ class DungeonCanvasViewer {
   bool show_object_bounds_ = false;
   bool show_layer_info_ = false;
   bool show_grid_ = false;  // Grid off by default for dungeon editor
-  bool use_composite_mode_ = true;  // Default to merged view (false = debug 4-layer mode)
   int layout_override_ = -1;  // -1 for no override
   int custom_grid_size_ = 8;
   ObjectRenderMode object_render_mode_ =
