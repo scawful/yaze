@@ -7,6 +7,7 @@
 
 #include "absl/status/status.h"
 #include "app/controller.h"
+#include "app/startup_flags.h"
 #include "yaze_config.h"
 
 #ifdef YAZE_WITH_GRPC
@@ -25,6 +26,9 @@ struct AppConfig {
   std::string log_file;
   bool debug = false;
   std::string log_categories;
+  StartupVisibility welcome_mode = StartupVisibility::kAuto;
+  StartupVisibility dashboard_mode = StartupVisibility::kAuto;
+  StartupVisibility sidebar_mode = StartupVisibility::kAuto;
 
   // Startup navigation
   std::string startup_editor;            // Editor to open (e.g., "Dungeon")
@@ -98,4 +102,3 @@ class Application {
 }  // namespace yaze
 
 #endif  // YAZE_APP_APPLICATION_H_
-

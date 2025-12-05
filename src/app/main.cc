@@ -9,9 +9,14 @@
 #endif
 
 #define IMGUI_DEFINE_MATH_OPERATORS
+#include <set>
+
 #include "absl/debugging/symbolize.h"
+#include "absl/strings/ascii.h"
 #include "absl/strings/str_split.h"
+#include "absl/strings/strip.h"
 #include "app/application.h"
+#include "app/startup_flags.h"
 #include "app/controller.h"
 #include "cli/service/api/http_server.h"
 #include "core/features.h"
@@ -26,6 +31,10 @@
 DEFINE_FLAG(std::string, log_file, "", "Output log file path for debugging.");
 DEFINE_FLAG(std::string, rom_file, "", "ROM file to load on startup.");
 DEFINE_FLAG(bool, debug, false, "Enable debug logging and verbose output.");
+DEFINE_FLAG(std::string, log_level, "info",
+            "Minimum log level: debug, info, warn, error, or fatal.");
+DEFINE_FLAG(bool, log_to_console, false,
+            "Mirror logs to stderr even when writing to a file.");
 DEFINE_FLAG(
     std::string, log_categories, "",
     "Comma-separated list of log categories to enable or disable. "
@@ -39,6 +48,14 @@ DEFINE_FLAG(std::string, editor, "",
 
 DEFINE_FLAG(std::string, open_panels, "",
             "Comma-separated list of panel IDs to open (e.g. 'dungeon.room_list,emulator.cpu_debugger')");
+
+// UI visibility flags
+DEFINE_FLAG(std::string, startup_welcome, "auto",
+            "Welcome screen behavior at startup: auto, show, or hide.");
+DEFINE_FLAG(std::string, startup_dashboard, "auto",
+            "Dashboard panel behavior at startup: auto, show, or hide.");
+DEFINE_FLAG(std::string, startup_sidebar, "auto",
+            "Panel sidebar visibility at startup: auto, show, or hide.");
 
 DEFINE_FLAG(int, room, -1, "Open Dungeon Editor at specific room ID (0-295).");
 DEFINE_FLAG(int, map, -1, "Open Overworld Editor at specific map ID (0-159).");
@@ -88,6 +105,70 @@ yaze::editor::EditorManager* GetGlobalEditorManager() {
 
 }  // namespace yaze::app
 
+namespace {
+
+yaze::util::LogLevel ParseLogLevelFlag(const std::string& raw_level,
+                                       bool debug_flag) {
+  if (debug_flag) {
+    return yaze::util::LogLevel::YAZE_DEBUG;
+  }
+
+  const std::string lower = absl::AsciiStrToLower(raw_level);
+  if (lower == "debug") {
+    return yaze::util::LogLevel::YAZE_DEBUG;
+  }
+  if (lower == "warn" || lower == "warning") {
+    return yaze::util::LogLevel::WARNING;
+  }
+  if (lower == "error") {
+    return yaze::util::LogLevel::ERROR;
+  }
+  if (lower == "fatal") {
+    return yaze::util::LogLevel::FATAL;
+  }
+  return yaze::util::LogLevel::INFO;
+}
+
+std::set<std::string> ParseLogCategories(const std::string& raw) {
+  std::set<std::string> categories;
+  for (absl::string_view token :
+       absl::StrSplit(raw, ',', absl::SkipWhitespace())) {
+    if (!token.empty()) {
+      categories.insert(std::string(absl::StripAsciiWhitespace(token)));
+    }
+  }
+  return categories;
+}
+
+const char* LogLevelToString(yaze::util::LogLevel level) {
+  switch (level) {
+    case yaze::util::LogLevel::YAZE_DEBUG:
+      return "debug";
+    case yaze::util::LogLevel::INFO:
+      return "info";
+    case yaze::util::LogLevel::WARNING:
+      return "warn";
+    case yaze::util::LogLevel::ERROR:
+      return "error";
+    case yaze::util::LogLevel::FATAL:
+      return "fatal";
+  }
+  return "info";
+}
+
+std::vector<std::string> ParseCommaList(const std::string& raw) {
+  std::vector<std::string> tokens;
+  for (absl::string_view token :
+       absl::StrSplit(raw, ',', absl::SkipWhitespace())) {
+    if (!token.empty()) {
+      tokens.emplace_back(absl::StripAsciiWhitespace(token));
+    }
+  }
+  return tokens;
+}
+
+}  // namespace
+
 void TickFrame() {
   yaze::Application::Instance().Tick();
 }
@@ -104,22 +185,12 @@ int main(int argc, char** argv) {
   RETURN_IF_EXCEPTION(parser.Parse(argc, argv));
 
   // Set up logging
-  yaze::util::LogLevel log_level = FLAGS_debug->Get() 
-                                       ? yaze::util::LogLevel::YAZE_DEBUG 
-                                       : yaze::util::LogLevel::INFO;
-
-  std::set<std::string> log_categories;
-  const std::string& categories_str = FLAGS_log_categories->Get();
-  if (!categories_str.empty()) {
-    size_t start = 0;
-    size_t end = categories_str.find(',');
-    while (end != std::string::npos) {
-      log_categories.insert(categories_str.substr(start, end - start));
-      start = end + 1;
-      end = categories_str.find(',', start);
-    }
-    log_categories.insert(categories_str.substr(start));
-  }
+  const bool debug_flag = FLAGS_debug->Get();
+  const bool log_to_console_flag = FLAGS_log_to_console->Get();
+  yaze::util::LogLevel log_level =
+      ParseLogLevelFlag(FLAGS_log_level->Get(), debug_flag);
+  std::set<std::string> log_categories =
+      ParseLogCategories(FLAGS_log_categories->Get());
 
   std::string log_path = FLAGS_log_file->Get();
   if (log_path.empty()) {
@@ -132,16 +203,24 @@ int main(int argc, char** argv) {
   yaze::util::LogManager::instance().configure(log_level, log_path,
                                                log_categories);
 
-  if (FLAGS_debug->Get()) {
+  if (debug_flag || log_to_console_flag) {
     yaze::core::FeatureFlags::get().kLogToConsole = true;
+  }
+  if (debug_flag) {
     LOG_INFO("Main", "🚀 YAZE started in debug mode");
   }
+  LOG_INFO("Main",
+           "Logging configured (level=%s, file=%s, console=%s, categories=%zu)",
+           LogLevelToString(log_level),
+           log_path.empty() ? "<stderr>" : log_path.c_str(),
+           (debug_flag || log_to_console_flag) ? "on" : "off",
+           log_categories.size());
 
   // Build AppConfig from flags
   yaze::AppConfig config;
   config.rom_file = FLAGS_rom_file->Get();
   config.log_file = log_path;
-  config.debug = FLAGS_debug->Get();
+  config.debug = (log_level == yaze::util::LogLevel::YAZE_DEBUG);
   config.log_categories = FLAGS_log_categories->Get();
   config.startup_editor = FLAGS_editor->Get();
   config.jump_to_room = FLAGS_room->Get();
@@ -149,8 +228,15 @@ int main(int argc, char** argv) {
   config.enable_api = FLAGS_enable_api->Get();
   config.api_port = FLAGS_api_port->Get();
   
+  config.welcome_mode =
+      yaze::StartupVisibilityFromString(FLAGS_startup_welcome->Get());
+  config.dashboard_mode =
+      yaze::StartupVisibilityFromString(FLAGS_startup_dashboard->Get());
+  config.sidebar_mode =
+      yaze::StartupVisibilityFromString(FLAGS_startup_sidebar->Get());
+
   if (!FLAGS_open_panels->Get().empty()) {
-    config.open_panels = absl::StrSplit(FLAGS_open_panels->Get(), ',');
+    config.open_panels = ParseCommaList(FLAGS_open_panels->Get());
   }
 
 #ifdef YAZE_WITH_GRPC

@@ -94,6 +94,10 @@ void Application::Initialize(const AppConfig& config) {
   } else {
      LOG_INFO("App", "Controller initialized successfully. Active: %s", controller_->IsActive() ? "Yes" : "No");
      
+     if (controller_->editor_manager()) {
+       controller_->editor_manager()->ApplyStartupVisibility(config_);
+     }
+     
      // If we successfully loaded a ROM at startup, run startup actions
      if (!start_path.empty() && controller_->editor_manager()) {
          RunStartupActions();

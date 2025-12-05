@@ -40,6 +40,7 @@
 #include "app/editor/ui/workspace_manager.h"
 #include "app/editor/layout_designer/layout_designer_window.h"
 #include "app/emu/emulator.h"
+#include "app/startup_flags.h"
 #include "rom/rom.h"
 #include "core/project.h"
 #include "imgui/imgui.h"
@@ -100,6 +101,7 @@ class EditorManager : public SessionObserver {
                                    
   // Apply startup actions based on AppConfig
   void ProcessStartupActions(const AppConfig& config);
+  void ApplyStartupVisibility(const AppConfig& config);
                                    
   absl::Status Update();
   void DrawMenuBar();
@@ -325,6 +327,7 @@ class EditorManager : public SessionObserver {
 
   // Testing system
   void InitializeTestSuites();
+  void ApplyStartupVisibilityOverrides();
 
   bool quit_ = false;
 
@@ -355,6 +358,9 @@ class EditorManager : public SessionObserver {
   WelcomeScreen welcome_screen_;
   RomLoadOptionsDialog rom_load_options_dialog_;
   bool show_rom_load_options_ = false;
+  StartupVisibility welcome_mode_override_ = StartupVisibility::kAuto;
+  StartupVisibility dashboard_mode_override_ = StartupVisibility::kAuto;
+  StartupVisibility sidebar_mode_override_ = StartupVisibility::kAuto;
 
   // Properties panel for selection editing
   SelectionPropertiesPanel selection_properties_panel_;
