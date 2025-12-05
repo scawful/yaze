@@ -621,16 +621,16 @@ void Room::RenderRoomGraphics() {
   int num_palettes = dungeon_pal_group.size();
   if (num_palettes == 0) return;
 
-  // Look up dungeon palette ID using the paletteset_ids table
-  // paletteset_ids[palette][0] contains a BYTE OFFSET into the palette pointer table
-  // at ROM address 0xDEC4B. The word at that offset, divided by 180, gives the palette ID.
-  // This matches how LoadLayoutTilesToBuffer does the lookup.
-  constexpr uint32_t kDungeonPalettePointerTable = 0xDEC4B;
+  // Look up dungeon palette ID using the two-level paletteset_ids table.
+  // paletteset_ids[palette][0] contains a BYTE OFFSET into the palette pointer
+  // table at kDungeonPalettePointerTable. The word at that offset, divided by
+  // 180 (bytes per palette), gives the actual palette index (0-19).
   int palette_id = palette;
   if (palette < game_data_->paletteset_ids.size() &&
       !game_data_->paletteset_ids[palette].empty()) {
     auto dungeon_palette_ptr = game_data_->paletteset_ids[palette][0];
-    auto palette_word = rom()->ReadWord(kDungeonPalettePointerTable + dungeon_palette_ptr);
+    auto palette_word =
+        rom()->ReadWord(kDungeonPalettePointerTable + dungeon_palette_ptr);
     if (palette_word.ok()) {
       palette_id = palette_word.value() / 180;
     }
@@ -822,6 +822,7 @@ void Room::LoadLayoutTilesToBuffer() {
   }
 
   // Get palette for layout rendering
+  // Get palette for layout rendering using two-level lookup
   auto& dungeon_pal_group = game_data_->palette_groups.dungeon_main;
   int num_palettes = dungeon_pal_group.size();
   if (num_palettes == 0) return;
@@ -829,7 +830,8 @@ void Room::LoadLayoutTilesToBuffer() {
   if (palette < game_data_->paletteset_ids.size() &&
       !game_data_->paletteset_ids[palette].empty()) {
     auto dungeon_palette_ptr = game_data_->paletteset_ids[palette][0];
-    auto palette_word = rom()->ReadWord(0xDEC4B + dungeon_palette_ptr);
+    auto palette_word =
+        rom()->ReadWord(kDungeonPalettePointerTable + dungeon_palette_ptr);
     if (palette_word.ok()) {
       palette_id = palette_word.value() / 180;
     }
@@ -889,14 +891,14 @@ void Room::RenderObjectsToBackground() {
   auto& dungeon_pal_group = game_data_->palette_groups.dungeon_main;
   int num_palettes = dungeon_pal_group.size();
 
-  // Look up dungeon palette ID using the paletteset_ids table
+  // Look up dungeon palette ID using the two-level paletteset_ids table.
   // (same lookup as RenderRoomGraphics and LoadLayoutTilesToBuffer)
-  constexpr uint32_t kDungeonPalettePointerTable = 0xDEC4B;
   int palette_id = palette;
   if (palette < game_data_->paletteset_ids.size() &&
       !game_data_->paletteset_ids[palette].empty()) {
     auto dungeon_palette_ptr = game_data_->paletteset_ids[palette][0];
-    auto palette_word = rom()->ReadWord(kDungeonPalettePointerTable + dungeon_palette_ptr);
+    auto palette_word =
+        rom()->ReadWord(kDungeonPalettePointerTable + dungeon_palette_ptr);
     if (palette_word.ok()) {
       palette_id = palette_word.value() / 180;
     }
@@ -931,7 +933,7 @@ void Room::RenderObjectsToBackground() {
   auto status = drawer.DrawObjectList(tile_objects_, object_bg1_buffer_, object_bg2_buffer_,
                                       palette_group, dungeon_state_.get());
 
-  // Render doors
+  // Render doors using DoorDef struct with enum types
   for (int i = 0; i < doors_.size(); ++i) {
     const auto& door = doors_[i];
     ObjectDrawer::DoorDef door_def;
@@ -1216,14 +1218,11 @@ void Room::ParseObjectsFromLocation(int objects_location) {
       }
     } else {
       // Handle door objects
-      // ASM: Door objects are 2 bytes: [Pos+Dir] [Type]
-      Door d;
-      d.byte1 = b1;
-      d.byte2 = b2;
-      d.position = b1;
-      d.type = (b2 & 0xF0) >> 4;
-      d.direction = b2 & 0x0F;
-      doors_.push_back(d);
+      // ASM: Door objects are 2 bytes: [Position] [Type+Direction]
+      // Position: encoded as 5-bit value (position & 0x1F) * 2 = tile offset
+      // Type: upper nibble of byte2
+      // Direction: lower nibble of byte2 (0=N, 1=S, 2=W, 3=E)
+      doors_.push_back(Door::FromRomBytes(b1, b2));
     }
   }
 }

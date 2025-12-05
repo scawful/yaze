@@ -12,10 +12,13 @@
 #include "app/gui/canvas/canvas.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
-#include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/door_position.h"
+#include "zelda3/dungeon/door_types.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/dungeon/object_drawer.h"
+
+// Remove duplicate room.h include
 #include "rom/rom.h"
 
 namespace yaze {
@@ -68,6 +71,20 @@ class DungeonObjectInteraction {
     object_loaded_ = false;
     preview_object_ = zelda3::RoomObject{0, 0, 0, 0, 0};
     ghost_preview_buffer_.reset();
+    CancelDoorPlacement();
+  }
+
+  // Door placement mode
+  void SetDoorPlacementMode(bool enabled, zelda3::DoorType type = zelda3::DoorType::NormalDoor);
+  bool IsDoorPlacementActive() const { return door_placement_mode_; }
+  void SetPreviewDoorType(zelda3::DoorType type) { preview_door_type_ = type; }
+  zelda3::DoorType GetPreviewDoorType() const { return preview_door_type_; }
+  void DrawDoorGhostPreview();  // Draw door ghost preview with wall snapping
+  void PlaceDoorAtPosition(int canvas_x, int canvas_y);  // Place door at snapped position
+  void CancelDoorPlacement() {
+    door_placement_mode_ = false;
+    detected_door_direction_ = zelda3::DoorDirection::North;
+    snapped_door_position_ = 0;
   }
 
   // Selection state - delegates to ObjectSelection
@@ -176,6 +193,12 @@ class DungeonObjectInteraction {
   // Clipboard for copy/paste
   std::vector<zelda3::RoomObject> clipboard_;
   bool has_clipboard_data_ = false;
+
+  // Door placement state
+  bool door_placement_mode_ = false;
+  zelda3::DoorType preview_door_type_ = zelda3::DoorType::NormalDoor;
+  zelda3::DoorDirection detected_door_direction_ = zelda3::DoorDirection::North;
+  uint8_t snapped_door_position_ = 0;  // Position along wall (0-31)
 };
 
 }  // namespace editor

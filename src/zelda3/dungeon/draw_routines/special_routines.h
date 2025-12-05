@@ -189,6 +189,183 @@ void DrawTableRock4x4_1to16(const DrawContext& ctx);
  */
 void DrawWaterOverlay8x8_1to16(const DrawContext& ctx);
 
+// ============================================================================
+// Stair Routines (matching assembly)
+// ============================================================================
+
+/**
+ * @brief Draw inter-room fat stairs going up (Type 2 object 0x12D)
+ *
+ * ASM: RoomDraw_InterRoomFatStairsUp ($01A41B)
+ * Registers stair position in game state $06B0.
+ * Draws 4x4 stair pattern.
+ *
+ * @param ctx Draw context
+ */
+void DrawInterRoomFatStairsUp(const DrawContext& ctx);
+
+/**
+ * @brief Draw inter-room fat stairs going down A (Type 2 object 0x12E)
+ *
+ * ASM: RoomDraw_InterRoomFatStairsDownA ($01A458)
+ * Registers stair position and draws 4x4 pattern.
+ *
+ * @param ctx Draw context
+ */
+void DrawInterRoomFatStairsDownA(const DrawContext& ctx);
+
+/**
+ * @brief Draw inter-room fat stairs going down B (Type 2 object 0x12F)
+ *
+ * ASM: RoomDraw_InterRoomFatStairsDownB ($01A486)
+ *
+ * @param ctx Draw context
+ */
+void DrawInterRoomFatStairsDownB(const DrawContext& ctx);
+
+/**
+ * @brief Draw spiral stairs (Type 2 objects 0x138-0x13B)
+ *
+ * ASM: RoomDraw_SpiralStairs* routines
+ * Handles upper/lower variants for going up/down.
+ *
+ * @param ctx Draw context
+ * @param going_up True if stairs go up, false if down
+ * @param is_upper True if upper portion, false if lower
+ */
+void DrawSpiralStairs(const DrawContext& ctx, bool going_up, bool is_upper);
+
+/**
+ * @brief Draw auto stairs (Type 2/3 objects 0x130-0x133, 0x21B-0x21D, 0x233)
+ *
+ * ASM: RoomDraw_AutoStairs* routines
+ * Multi-layer or merged layer variants.
+ *
+ * @param ctx Draw context
+ */
+void DrawAutoStairs(const DrawContext& ctx);
+
+/**
+ * @brief Draw straight inter-room stairs (Type 3 objects 0x21E-0x229)
+ *
+ * ASM: RoomDraw_StraightInterroomStairs* routines
+ * North/South, Up/Down, Upper/Lower variants.
+ *
+ * @param ctx Draw context
+ */
+void DrawStraightInterRoomStairs(const DrawContext& ctx);
+
+// ============================================================================
+// Interactive Object Routines
+// ============================================================================
+
+/**
+ * @brief Draw prison cell with bars (Type 3 objects 0x20D, 0x217)
+ *
+ * ASM: RoomDraw_PrisonCell ($019C44)
+ * Draws to BOTH BG1 and BG2 with horizontal flip for symmetry.
+ * Uses ctx.secondary_bg for dual-layer drawing when available.
+ *
+ * @param ctx Draw context with optional secondary_bg for dual-BG drawing
+ */
+void DrawPrisonCell(const DrawContext& ctx);
+
+/**
+ * @brief Draw big key lock (Type 3 object 0x218)
+ *
+ * ASM: RoomDraw_BigKeyLock ($0198AE)
+ * Registers lock position in $06E0.
+ * Checks room flags to determine if already opened.
+ *
+ * @param ctx Draw context
+ */
+void DrawBigKeyLock(const DrawContext& ctx);
+
+/**
+ * @brief Draw bombable floor (Type 3 object 0x247)
+ *
+ * ASM: RoomDraw_BombableFloor ($019B7A)
+ * Registers floor position for bombing interaction.
+ * Checks if already bombed via room flags.
+ *
+ * @param ctx Draw context
+ */
+void DrawBombableFloor(const DrawContext& ctx);
+
+/**
+ * @brief Draw moving wall (Type 1 objects 0xCD, 0xCE)
+ *
+ * ASM: RoomDraw_MovingWallWest ($019316), RoomDraw_MovingWallEast ($01935C)
+ * Checks game state to determine if wall has moved.
+ *
+ * @param ctx Draw context
+ * @param is_west True for west wall (0xCD), false for east wall (0xCE)
+ */
+void DrawMovingWall(const DrawContext& ctx, bool is_west);
+
+// ============================================================================
+// Water Face Variants (based on room state)
+// ============================================================================
+
+/**
+ * @brief Draw empty water face (Type 3 object 0x200)
+ *
+ * ASM: RoomDraw_EmptyWaterFace ($019D29)
+ *
+ * @param ctx Draw context
+ */
+void DrawEmptyWaterFace(const DrawContext& ctx);
+
+/**
+ * @brief Draw spitting water face (Type 3 object 0x201)
+ *
+ * ASM: RoomDraw_SpittingWaterFace ($019D64)
+ *
+ * @param ctx Draw context
+ */
+void DrawSpittingWaterFace(const DrawContext& ctx);
+
+/**
+ * @brief Draw drenching water face (Type 3 object 0x202)
+ *
+ * ASM: RoomDraw_DrenchingWaterFace ($019D83)
+ *
+ * @param ctx Draw context
+ */
+void DrawDrenchingWaterFace(const DrawContext& ctx);
+
+// ============================================================================
+// Chest Platform Multi-Part Routines
+// ============================================================================
+
+/**
+ * @brief Draw closed chest platform (Type 1 object 0xC1)
+ *
+ * ASM: RoomDraw_ClosedChestPlatform ($018CC7)
+ * Complex multi-part structure with horizontal wall, vertical walls, corners.
+ *
+ * @param ctx Draw context
+ */
+void DrawClosedChestPlatform(const DrawContext& ctx);
+
+/**
+ * @brief Draw chest platform horizontal wall section
+ *
+ * ASM: RoomDraw_ChestPlatformHorizontalWallWithCorners ($018D0D)
+ *
+ * @param ctx Draw context
+ */
+void DrawChestPlatformHorizontalWall(const DrawContext& ctx);
+
+/**
+ * @brief Draw chest platform vertical wall section
+ *
+ * ASM: RoomDraw_ChestPlatformVerticalWall ($019E70)
+ *
+ * @param ctx Draw context
+ */
+void DrawChestPlatformVerticalWall(const DrawContext& ctx);
+
 /**
  * @brief Register all special/miscellaneous draw routines to the registry
  *

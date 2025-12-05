@@ -4,12 +4,16 @@
 #include <yaze.h>
 
 #include <cstdint>
-#include <string_view>
-#include <vector>
 #include <memory>
+#include <string_view>
+#include <tuple>
+#include <utility>
+#include <vector>
 
 #include "app/gfx/render/background_buffer.h"
 #include "rom/rom.h"
+#include "zelda3/dungeon/door_position.h"
+#include "zelda3/dungeon/door_types.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/game_data.h"
 #include "zelda3/dungeon/room_layout.h"
@@ -226,16 +230,79 @@ class Room {
   const std::vector<staircase>& GetStairs() const { return z3_staircases_; }
   std::vector<staircase>& GetStairs() { return z3_staircases_; }
 
+  /**
+   * @brief Represents a door in a dungeon room
+   *
+   * Doors connect rooms and can have various types (locked, bombable, etc.)
+   * They are placed at fixed positions along room walls.
+   */
   struct Door {
-    uint8_t position;
-    uint8_t type;
-    uint8_t direction;
-    uint8_t byte1; // Original byte 1
-    uint8_t byte2; // Original byte 2
+    uint8_t position;       ///< Encoded position (5-bit, 0-31)
+    DoorType type;          ///< Door type (determines appearance/behavior)
+    DoorDirection direction; ///< Which wall the door is on
+
+    uint8_t byte1;  ///< Original ROM byte 1 (position data)
+    uint8_t byte2;  ///< Original ROM byte 2 (type + direction)
+
+    /// Get tile coordinates for this door
+    std::pair<int, int> GetTileCoords() const {
+      return DoorPositionManager::PositionToTileCoords(position, direction);
+    }
+
+    /// Get pixel coordinates for this door
+    std::pair<int, int> GetPixelCoords() const {
+      return DoorPositionManager::PositionToPixelCoords(position, direction);
+    }
+
+    /// Get door dimensions in tiles
+    DoorDimensions GetDimensions() const {
+      return GetDoorDimensions(direction);
+    }
+
+    /// Get bounding rectangle (x, y, width, height in pixels)
+    std::tuple<int, int, int, int> GetBounds() const {
+      return DoorPositionManager::GetDoorBounds(position, direction);
+    }
+
+    /// Get human-readable type name
+    std::string_view GetTypeName() const {
+      return zelda3::GetDoorTypeName(type);
+    }
+
+    /// Get human-readable direction name
+    std::string_view GetDirectionName() const {
+      return zelda3::GetDoorDirectionName(direction);
+    }
+
+    /// Encode door data for ROM storage
+    std::pair<uint8_t, uint8_t> EncodeBytes() const {
+      return DoorPositionManager::EncodeDoorBytes(position, type, direction);
+    }
+
+    /// Create a door from raw ROM bytes
+    static Door FromRomBytes(uint8_t b1, uint8_t b2) {
+      Door door;
+      door.byte1 = b1;
+      door.byte2 = b2;
+      door.position = b1;
+      door.type = DoorTypeFromRaw((b2 >> 4) & 0x0F);
+      door.direction = DoorDirectionFromRaw(b2 & 0x0F);
+      return door;
+    }
   };
 
   const std::vector<Door>& GetDoors() const { return doors_; }
   std::vector<Door>& GetDoors() { return doors_; }
+  void AddDoor(const Door& door) {
+    doors_.push_back(door);
+    MarkObjectsDirty();
+  }
+  void RemoveDoor(size_t index) {
+    if (index < doors_.size()) {
+      doors_.erase(doors_.begin() + index);
+      MarkObjectsDirty();
+    }
+  }
 
   // Public getters for pot items (items hidden under pots/bushes)
   const std::vector<uint8_t>& GetPotItems() const { return pot_items_; }

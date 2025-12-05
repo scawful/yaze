@@ -52,14 +52,85 @@ struct PaletteGroupMap {
 #### Structure
 - **20 dungeon palettes** in the `dungeon_main` group
 - **90 colors per palette** (full SNES palette for BG layers)
-- **ROM Location**: `kDungeonMainPalettes` (check `snes_palette.cc` for exact address)
+- **180 bytes per palette** (90 colors × 2 bytes per color)
+- **ROM Location**: `kDungeonMainPalettes = 0xDD734`
 
-#### Usage
+#### Palette Lookup System (CRITICAL)
+
+**IMPORTANT**: Room headers store a "palette set ID" (0-71), NOT a direct palette index!
+
+The game uses a **two-level lookup system** to convert room palette properties to actual
+dungeon palette indices:
+
+1. **Palette Set Table** (`paletteset_ids` at ROM `0x75460`)
+   - 72 entries, each 4 bytes: `[bg_palette_offset, aux1, aux2, aux3]`
+   - The first byte is a **byte offset** into the palette pointer table
+
+2. **Palette Pointer Table** (ROM `0xDEC4B`)
+   - Contains 16-bit words that, when divided by 180, give the palette index
+   - Each word = ROM offset into dungeon palette data
+
+**Correct Lookup Algorithm**:
 ```cpp
-// Loading a dungeon palette
+constexpr uint32_t kPalettesetIds = 0x75460;
+constexpr uint32_t kDungeonPalettePointerTable = 0xDEC4B;
+
+// room.palette is 0-71 (palette set ID, NOT palette index!)
+uint8_t byte_offset = paletteset_ids[room.palette][0];  // Step 1
+uint16_t word = rom.ReadWord(kDungeonPalettePointerTable + byte_offset);  // Step 2  
+int palette_id = word / 180;  // Step 3: convert ROM offset to palette index
+```
+
+**Example Lookup**:
+```
+Room palette property = 16
+→ paletteset_ids[16][0] = 0x10 (byte offset 16)
+→ Word at 0xDEC4B + 16 = 0x05A0 (1440)
+→ Palette ID = 1440 / 180 = 8
+→ Use dungeon_main[8], NOT dungeon_main[16]!
+```
+
+**The Pointer Table (0xDEC4B)**:
+| Offset | Word   | Palette ID |
+|--------|--------|------------|
+| 0      | 0x0000 | 0          |
+| 2      | 0x00B4 | 1          |
+| 4      | 0x0168 | 2          |
+| 6      | 0x021C | 3          |
+| ...    | ...    | ...        |
+| 38     | 0x0D5C | 19         |
+
+#### Common Pitfall: Direct Palette ID Usage
+
+**WRONG** (causes purple/wrong colors for palette sets 16+):
+```cpp
+// BUG: Uses byte offset directly as palette ID!
+palette_id = paletteset_ids[room.palette][0];
+```
+
+**CORRECT**:
+```cpp
+auto offset = paletteset_ids[room.palette][0];
+auto word = rom->ReadWord(0xDEC4B + offset);
+palette_id = word.value() / 180;
+```
+
+#### Standard Usage
+```cpp
+// Loading a dungeon palette (with proper lookup)
 auto& dungeon_pal_group = rom->palette_group().dungeon_main;
 int num_palettes = dungeon_pal_group.size();  // Should be 20
-int palette_id = room.palette;  // Room's palette ID (0-19)
+
+// Perform the two-level lookup
+constexpr uint32_t kDungeonPalettePointerTable = 0xDEC4B;
+int palette_id = room.palette;  // Default fallback
+if (room.palette < paletteset_ids.size()) {
+  auto offset = paletteset_ids[room.palette][0];
+  auto word = rom->ReadWord(kDungeonPalettePointerTable + offset);
+  if (word.ok()) {
+    palette_id = word.value() / 180;
+  }
+}
 
 // IMPORTANT: Use operator[] not palette() method!
 auto palette = dungeon_pal_group[palette_id];  // Returns reference
@@ -302,6 +373,10 @@ constexpr uint32_t kDungeonMainPalettes = 0xDD734;
 constexpr uint32_t kHardcodedGrassLW = 0x5FEA9;
 constexpr uint32_t kTriforcePalette = 0xF4CD0;
 constexpr uint32_t kOverworldMiniMapPalettes = 0x55B27;
+
+// Dungeon palette lookup tables (critical for room rendering!)
+constexpr uint32_t kPalettesetIds = 0x75460;           // 72 entries × 4 bytes
+constexpr uint32_t kDungeonPalettePointerTable = 0xDEC4B;  // Palette ROM offsets
 ```
 
 ## Graphics Sheet Palette Application
@@ -351,3 +426,103 @@ bitmap.mutable_data() = new_data;
 // CORRECT - Updates both vector and surface
 bitmap.set_data(new_data);
 ```
+
+## Bitmap Dual Palette System
+
+### Understanding the Two Palette Storage Mechanisms
+
+The `Bitmap` class has **two separate palette storage locations**, which can cause confusion:
+
+| Storage | Location | Populated By | Used For |
+|---------|----------|--------------|----------|
+| Internal SnesPalette | `bitmap.palette_` | `SetPalette(SnesPalette)` | Serialization, palette editing |
+| SDL Surface Palette | `surface_->format->palette` | Both `SetPalette` overloads | Actual rendering to textures |
+
+### The Problem: Empty palette() Returns
+
+When dungeon rooms apply palettes to their layer buffers, they use `SetPalette(vector<SDL_Color>)`:
+
+```cpp
+// In room.cc - CreateAllGraphicsLayers()
+auto set_dungeon_palette = [](gfx::Bitmap& bmp, const gfx::SnesPalette& pal) {
+  std::vector<SDL_Color> colors(256);
+  for (size_t i = 0; i < pal.size() && i < 256; ++i) {
+    ImVec4 rgb = pal[i].rgb();
+    colors[i] = { static_cast<Uint8>(rgb.x), static_cast<Uint8>(rgb.y),
+                  static_cast<Uint8>(rgb.z), 255 };
+  }
+  colors[255] = {0, 0, 0, 0};  // Transparent
+  bmp.SetPalette(colors);  // Uses SDL_Color overload!
+};
+```
+
+This means `bitmap.palette().size()` returns **0** even though the bitmap renders correctly!
+
+### Solution: Extract Palette from SDL Surface
+
+When you need to copy a palette between bitmaps (e.g., for layer compositing), extract it from the SDL surface:
+
+```cpp
+void CopyPaletteBetweenBitmaps(const gfx::Bitmap& src, gfx::Bitmap& dst) {
+  SDL_Surface* src_surface = src.surface();
+  if (!src_surface || !src_surface->format) return;
+
+  SDL_Palette* src_pal = src_surface->format->palette;
+  if (!src_pal || src_pal->ncolors == 0) return;
+
+  // Extract palette colors into a vector
+  std::vector<SDL_Color> colors(256);
+  int colors_to_copy = std::min(src_pal->ncolors, 256);
+  for (int i = 0; i < colors_to_copy; ++i) {
+    colors[i] = src_pal->colors[i];
+  }
+
+  // Apply to destination bitmap
+  dst.SetPalette(colors);
+}
+```
+
+### Layer Compositing with Correct Palettes
+
+When merging multiple layers into a single composite bitmap (as done in `RoomLayerManager::CompositeToOutput()`), the correct approach is:
+
+1. Create/clear the output bitmap
+2. For each visible layer:
+   - Extract the SDL palette from the first layer with a valid surface
+   - Apply it to the output bitmap using `SetPalette(vector<SDL_Color>)`
+   - Composite the pixel data (skip transparent indices 0 and 255)
+3. Sync pixel data to surface with `UpdateSurfacePixels()`
+4. Mark as modified for texture update
+
+**Example from RoomLayerManager**:
+```cpp
+void RoomLayerManager::CompositeToOutput(Room& room, gfx::Bitmap& output) const {
+  // Create output bitmap
+  output.Create(512, 512, 8, std::vector<uint8_t>(512*512, 255));
+
+  bool palette_copied = false;
+  for (auto layer_type : GetDrawOrder()) {
+    auto& buffer = GetLayerBuffer(room, layer_type);
+    const auto& src_bitmap = buffer.bitmap();
+
+    // Copy palette from first visible layer
+    if (!palette_copied && src_bitmap.surface()) {
+      ApplySDLPaletteToBitmap(src_bitmap.surface(), output);
+      palette_copied = true;
+    }
+
+    // Composite pixels...
+  }
+
+  output.UpdateSurfacePixels();
+  output.set_modified(true);
+}
+```
+
+### Best Practices for Palette Handling
+
+1. **Don't assume palette() has data**: Always check `palette().size() > 0` before using it
+2. **Use SDL surface as authoritative source**: For rendering-related palette operations
+3. **Use SetPalette(SnesPalette) for persistence**: When the palette needs to be saved or edited
+4. **Use SetPalette(vector<SDL_Color>) for performance**: When you already have SDL colors
+5. **Always call UpdateSurfacePixels()**: After modifying pixel data and before rendering

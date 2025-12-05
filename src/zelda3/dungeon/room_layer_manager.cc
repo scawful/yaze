@@ -1,9 +1,44 @@
 #include "zelda3/dungeon/room_layer_manager.h"
 
 #include <algorithm>
+#include <vector>
+
+#include "SDL.h"
+#include "app/gfx/types/snes_palette.h"
 
 namespace yaze {
 namespace zelda3 {
+
+namespace {
+
+// Helper to copy SDL palette from source surface to destination bitmap
+// Uses vector extraction + SetPalette for reliable palette application
+void ApplySDLPaletteToBitmap(SDL_Surface* src_surface, gfx::Bitmap& dst_bitmap) {
+  if (!src_surface || !src_surface->format) return;
+
+  SDL_Palette* src_pal = src_surface->format->palette;
+  if (!src_pal || src_pal->ncolors == 0) return;
+
+  // Extract palette colors into a vector
+  std::vector<SDL_Color> colors(256);
+  int colors_to_copy = std::min(src_pal->ncolors, 256);
+  for (int i = 0; i < colors_to_copy; ++i) {
+    colors[i] = src_pal->colors[i];
+  }
+
+  // Fill remaining with transparent black
+  for (int i = colors_to_copy; i < 256; ++i) {
+    colors[i] = {0, 0, 0, 0};
+  }
+
+  // Ensure index 255 is transparent (used as fill color)
+  colors[255] = {0, 0, 0, 0};
+
+  // Apply palette to destination bitmap using the reliable method
+  dst_bitmap.SetPalette(colors);
+}
+
+}  // namespace
 
 void RoomLayerManager::CompositeToOutput(Room& room,
                                           gfx::Bitmap& output) const {
@@ -22,6 +57,9 @@ void RoomLayerManager::CompositeToOutput(Room& room,
 
   // Get draw order (respects bg2_on_top_ setting)
   auto draw_order = GetDrawOrder();
+
+  // Track if we've copied the palette yet
+  bool palette_copied = false;
 
   // Process each layer in order (back to front)
   for (auto layer_type : draw_order) {
@@ -47,9 +85,28 @@ void RoomLayerManager::CompositeToOutput(Room& room,
       continue;
     }
 
+    // Copy SDL palette from first visible layer's surface to output bitmap
+    // Room applies palettes via SetPalette(vector<SDL_Color>) which only sets
+    // SDL surface palette, NOT the internal SnesPalette member
+    if (!palette_copied && src_bitmap.surface()) {
+      ApplySDLPaletteToBitmap(src_bitmap.surface(), output);
+      palette_copied = true;
+    }
+
     // Composite this layer onto output
     CompositeLayer(src_bitmap, output, blend_mode);
   }
+
+  // If no palette was copied from layers, try to get it from bg1_buffer directly
+  if (!palette_copied) {
+    const auto& bg1_bitmap = room.bg1_buffer().bitmap();
+    if (bg1_bitmap.surface()) {
+      ApplySDLPaletteToBitmap(bg1_bitmap.surface(), output);
+    }
+  }
+
+  // Sync pixel data to SDL surface for texture creation
+  output.UpdateSurfacePixels();
 
   // Mark output as modified for texture update
   output.set_modified(true);

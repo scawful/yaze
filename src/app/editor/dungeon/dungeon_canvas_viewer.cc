@@ -452,7 +452,8 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       if (ImGui::Combo("##LayerMergeCombo", &merge_val, merge_types,
                        IM_ARRAYSIZE(merge_types))) {
         room.SetLayerMerging(zelda3::kLayerMergeTypeList[merge_val]);
-        layer_mgr.ApplyLayerMerging(room.layer_merging());
+        // Use preserve-visibility version so layer checkboxes remain independent
+        layer_mgr.ApplyLayerMergingPreserveVisibility(room.layer_merging());
         if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
       }
       ImGui::PopItemWidth();

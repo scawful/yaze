@@ -480,6 +480,338 @@ void DrawWaterOverlay8x8_1to16(const DrawContext& ctx) {
   }
 }
 
+// ============================================================================
+// Stair Routines
+// ============================================================================
+
+void DrawInterRoomFatStairsUp(const DrawContext& ctx) {
+  // ASM: RoomDraw_InterRoomFatStairsUp ($01A41B)
+  // Uses tile data at obj1088, draws 4x4 pattern
+  // In original game, registers position in $06B0 for transition handling
+  // For editor display, we just draw the visual representation
+
+  if (ctx.tiles.size() < 16) return;
+
+  // Draw 4x4 stair pattern
+  for (int y = 0; y < 4; ++y) {
+    for (int x = 0; x < 4; ++x) {
+      size_t tile_idx = static_cast<size_t>(y * 4 + x);
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
+                                   ctx.object.y_ + y, ctx.tiles[tile_idx]);
+    }
+  }
+}
+
+void DrawInterRoomFatStairsDownA(const DrawContext& ctx) {
+  // ASM: RoomDraw_InterRoomFatStairsDownA ($01A458)
+  // Uses tile data at obj10A8
+  DrawInterRoomFatStairsUp(ctx);  // Same visual structure
+}
+
+void DrawInterRoomFatStairsDownB(const DrawContext& ctx) {
+  // ASM: RoomDraw_InterRoomFatStairsDownB ($01A486)
+  // Uses tile data at obj10A8
+  DrawInterRoomFatStairsUp(ctx);  // Same visual structure
+}
+
+void DrawSpiralStairs(const DrawContext& ctx, bool going_up, bool is_upper) {
+  // ASM: RoomDraw_SpiralStairsGoingUpUpper, etc.
+  // Spiral stairs have offset positioning based on variant
+  (void)going_up;
+  (void)is_upper;
+
+  if (ctx.tiles.size() < 16) return;
+
+  // Draw 4x4 pattern (visual representation)
+  for (int y = 0; y < 4; ++y) {
+    for (int x = 0; x < 4; ++x) {
+      size_t tile_idx = static_cast<size_t>(y * 4 + x);
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
+                                   ctx.object.y_ + y, ctx.tiles[tile_idx]);
+    }
+  }
+}
+
+void DrawAutoStairs(const DrawContext& ctx) {
+  // ASM: RoomDraw_AutoStairs* routines
+  // Multi-layer or merged layer stair patterns
+  if (ctx.tiles.size() < 16) return;
+
+  for (int y = 0; y < 4; ++y) {
+    for (int x = 0; x < 4; ++x) {
+      size_t tile_idx = static_cast<size_t>(y * 4 + x);
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
+                                   ctx.object.y_ + y, ctx.tiles[tile_idx]);
+    }
+  }
+}
+
+void DrawStraightInterRoomStairs(const DrawContext& ctx) {
+  // ASM: RoomDraw_StraightInterroomStairs* routines
+  // North/South, Up/Down variants
+  if (ctx.tiles.size() < 16) return;
+
+  for (int y = 0; y < 4; ++y) {
+    for (int x = 0; x < 4; ++x) {
+      size_t tile_idx = static_cast<size_t>(y * 4 + x);
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
+                                   ctx.object.y_ + y, ctx.tiles[tile_idx]);
+    }
+  }
+}
+
+// ============================================================================
+// Interactive Object Routines
+// ============================================================================
+
+void DrawPrisonCell(const DrawContext& ctx) {
+  // ASM: RoomDraw_PrisonCell ($019C44)
+  // Draws prison cell bars to BOTH BG layers with horizontal flip for symmetry
+  // The ASM writes to $7E2xxx (BG1) and also uses ORA #$4000 for horizontal flip
+  // Pattern: 5 iterations drawing a complex bar pattern
+
+  if (ctx.tiles.size() < 6) return;
+
+  // Prison cell layout based on ASM analysis:
+  // The routine draws 5 columns of bars, each with specific tile patterns
+  // Tiles at positions: (x, y), (x+7, y) for outer bars
+  // Middle bars with horizontal flip on one side
+
+  int base_x = ctx.object.x_;
+  int base_y = ctx.object.y_;
+
+  // Draw the prison cell pattern - 5 vertical bar segments
+  for (int col = 0; col < 5; ++col) {
+    int x_offset = col;
+
+    // Each column has 4 rows of tiles
+    for (int row = 0; row < 4; ++row) {
+      size_t tile_idx = (row < static_cast<int>(ctx.tiles.size())) ? row : 0;
+
+      // Left side bar
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x_offset,
+                                   base_y + row, ctx.tiles[tile_idx]);
+
+      // Right side bar (mirrored horizontally)
+      auto mirrored_tile = ctx.tiles[tile_idx];
+      mirrored_tile.horizontal_mirror_ = !mirrored_tile.horizontal_mirror_;
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 9 - x_offset,
+                                   base_y + row, mirrored_tile);
+    }
+  }
+
+  // If we have a secondary BG buffer, draw the same pattern there
+  // This ensures the prison bars appear on both background layers
+  if (ctx.HasSecondaryBG()) {
+    for (int col = 0; col < 5; ++col) {
+      int x_offset = col;
+
+      for (int row = 0; row < 4; ++row) {
+        size_t tile_idx = (row < static_cast<int>(ctx.tiles.size())) ? row : 0;
+
+        // Left side bar
+        DrawRoutineUtils::WriteTile8(*ctx.secondary_bg, base_x + x_offset,
+                                     base_y + row, ctx.tiles[tile_idx]);
+
+        // Right side bar (mirrored)
+        auto mirrored_tile = ctx.tiles[tile_idx];
+        mirrored_tile.horizontal_mirror_ = !mirrored_tile.horizontal_mirror_;
+        DrawRoutineUtils::WriteTile8(*ctx.secondary_bg, base_x + 9 - x_offset,
+                                     base_y + row, mirrored_tile);
+      }
+    }
+  }
+}
+
+void DrawBigKeyLock(const DrawContext& ctx) {
+  // ASM: RoomDraw_BigKeyLock ($0198AE)
+  // Checks room flags via RoomFlagMask to see if lock is already opened
+  // For editor, we draw the closed state by default
+
+  bool is_opened = false;
+  if (ctx.state) {
+    // Check if this specific lock has been opened via door state
+    is_opened = ctx.state->IsDoorOpen(ctx.room_id, 0);  // Lock uses door slot 0
+  }
+
+  if (is_opened) {
+    // Draw open lock (if different tiles available)
+    if (ctx.tiles.size() >= 8) {
+      // Use second set of tiles for open state
+      for (int y = 0; y < 2; ++y) {
+        for (int x = 0; x < 2; ++x) {
+          DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
+                                       ctx.object.y_ + y,
+                                       ctx.tiles[4 + y * 2 + x]);
+        }
+      }
+      return;
+    }
+  }
+
+  // Draw closed lock (2x2 pattern)
+  if (ctx.tiles.size() >= 4) {
+    for (int y = 0; y < 2; ++y) {
+      for (int x = 0; x < 2; ++x) {
+        DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
+                                     ctx.object.y_ + y, ctx.tiles[y * 2 + x]);
+      }
+    }
+  }
+}
+
+void DrawBombableFloor(const DrawContext& ctx) {
+  // ASM: RoomDraw_BombableFloor ($019B7A)
+  // Checks room flags to see if floor has been bombed
+
+  bool is_bombed = false;
+  if (ctx.state) {
+    is_bombed = ctx.state->IsFloorBombable(ctx.room_id);
+  }
+
+  if (is_bombed) {
+    // Draw hole (use second tile set if available)
+    if (ctx.tiles.size() >= 8) {
+      for (int y = 0; y < 2; ++y) {
+        for (int x = 0; x < 2; ++x) {
+          DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
+                                       ctx.object.y_ + y,
+                                       ctx.tiles[4 + y * 2 + x]);
+        }
+      }
+      return;
+    }
+  }
+
+  // Draw intact floor (2x2 pattern)
+  if (ctx.tiles.size() >= 4) {
+    for (int y = 0; y < 2; ++y) {
+      for (int x = 0; x < 2; ++x) {
+        DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
+                                     ctx.object.y_ + y, ctx.tiles[y * 2 + x]);
+      }
+    }
+  }
+}
+
+void DrawMovingWall(const DrawContext& ctx, bool is_west) {
+  // ASM: RoomDraw_MovingWallWest ($019316), RoomDraw_MovingWallEast ($01935C)
+  // Checks if wall has moved based on game state
+  (void)is_west;  // Direction affects which way wall moves
+
+  bool has_moved = false;
+  if (ctx.state) {
+    has_moved = ctx.state->IsWallMoved(ctx.room_id);
+  }
+
+  // Draw wall in current position
+  // Size determines wall length
+  int size = (ctx.object.size_ & 0x0F) + 1;
+
+  if (ctx.tiles.size() < 4) return;
+
+  for (int s = 0; s < size; ++s) {
+    int offset = has_moved ? 2 : 0;  // Offset position if wall has moved
+    int x = ctx.object.x_ + offset;
+    int y = ctx.object.y_ + (s * 2);
+
+    // Draw 2x2 wall segment
+    for (int dy = 0; dy < 2; ++dy) {
+      for (int dx = 0; dx < 2; ++dx) {
+        DrawRoutineUtils::WriteTile8(ctx.target_bg, x + dx, y + dy,
+                                     ctx.tiles[dy * 2 + dx]);
+      }
+    }
+  }
+}
+
+// ============================================================================
+// Water Face Variants
+// ============================================================================
+
+void DrawEmptyWaterFace(const DrawContext& ctx) {
+  // ASM: RoomDraw_EmptyWaterFace ($019D29)
+  // No water spout, just the face
+  DrawWaterFace(ctx);
+}
+
+void DrawSpittingWaterFace(const DrawContext& ctx) {
+  // ASM: RoomDraw_SpittingWaterFace ($019D64)
+  // Face with periodic water spout
+  DrawWaterFace(ctx);
+}
+
+void DrawDrenchingWaterFace(const DrawContext& ctx) {
+  // ASM: RoomDraw_DrenchingWaterFace ($019D83)
+  // Face with continuous water stream
+  DrawWaterFace(ctx);
+}
+
+// ============================================================================
+// Chest Platform Multi-Part Routines
+// ============================================================================
+
+void DrawClosedChestPlatform(const DrawContext& ctx) {
+  // ASM: RoomDraw_ClosedChestPlatform ($018CC7)
+  // Complex structure: horizontal wall top, vertical walls sides
+
+  int size_x = (ctx.object.size_ & 0x0F) + 4;  // Width is size + 4
+  int size_y = ((ctx.object.size_ >> 4) & 0x0F) + 1;
+
+  if (ctx.tiles.size() < 16) return;
+
+  // Draw top horizontal wall with corners
+  for (int x = 0; x < size_x; ++x) {
+    // Top row
+    size_t tile_idx = (x == 0) ? 0 : ((x == size_x - 1) ? 2 : 1);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
+                                 ctx.object.y_, ctx.tiles[tile_idx]);
+  }
+
+  // Draw vertical walls on sides
+  for (int y = 1; y < size_y + 1; ++y) {
+    // Left wall
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_,
+                                 ctx.object.y_ + y, ctx.tiles[3]);
+    // Right wall
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + size_x - 1,
+                                 ctx.object.y_ + y, ctx.tiles[4]);
+  }
+
+  // Draw bottom horizontal wall with corners
+  int bottom_y = ctx.object.y_ + size_y + 1;
+  for (int x = 0; x < size_x; ++x) {
+    size_t tile_idx = (x == 0) ? 5 : ((x == size_x - 1) ? 7 : 6);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x, bottom_y,
+                                 ctx.tiles[tile_idx]);
+  }
+}
+
+void DrawChestPlatformHorizontalWall(const DrawContext& ctx) {
+  // ASM: RoomDraw_ChestPlatformHorizontalWallWithCorners ($018D0D)
+  int width = (ctx.object.size_ & 0x0F) + 1;
+
+  if (ctx.tiles.size() < 3) return;
+
+  for (int x = 0; x < width; ++x) {
+    size_t tile_idx = (x == 0) ? 0 : ((x == width - 1) ? 2 : 1);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
+                                 ctx.object.y_, ctx.tiles[tile_idx]);
+  }
+}
+
+void DrawChestPlatformVerticalWall(const DrawContext& ctx) {
+  // ASM: RoomDraw_ChestPlatformVerticalWall ($019E70)
+  int height = (ctx.object.size_ & 0x0F) + 1;
+
+  if (ctx.tiles.empty()) return;
+
+  for (int y = 0; y < height; ++y) {
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_,
+                                 ctx.object.y_ + y, ctx.tiles[0]);
+  }
+}
+
 void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
   // Note: Routine IDs are assigned based on the assembly routine table
   // These special routines handle chests, doors, and other non-standard objects
@@ -536,6 +868,185 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 2,
       .base_height = 2,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  // Stair routines (IDs 83-88)
+  registry.push_back(DrawRoutineInfo{
+      .id = 83,  // DrawInterRoomFatStairsUp
+      .name = "InterRoomFatStairsUp",
+      .function = DrawInterRoomFatStairsUp,
+      .draws_to_both_bgs = false,
+      .base_width = 4,
+      .base_height = 4,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = 84,  // DrawInterRoomFatStairsDownA
+      .name = "InterRoomFatStairsDownA",
+      .function = DrawInterRoomFatStairsDownA,
+      .draws_to_both_bgs = false,
+      .base_width = 4,
+      .base_height = 4,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = 85,  // DrawInterRoomFatStairsDownB
+      .name = "InterRoomFatStairsDownB",
+      .function = DrawInterRoomFatStairsDownB,
+      .draws_to_both_bgs = false,
+      .base_width = 4,
+      .base_height = 4,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = 86,  // DrawAutoStairs
+      .name = "AutoStairs",
+      .function = DrawAutoStairs,
+      .draws_to_both_bgs = false,
+      .base_width = 4,
+      .base_height = 4,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = 87,  // DrawStraightInterRoomStairs
+      .name = "StraightInterRoomStairs",
+      .function = DrawStraightInterRoomStairs,
+      .draws_to_both_bgs = false,
+      .base_width = 4,
+      .base_height = 4,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  // Spiral stairs variants (IDs 88-91)
+  registry.push_back(DrawRoutineInfo{
+      .id = 88,  // DrawSpiralStairsGoingUpUpper
+      .name = "SpiralStairsGoingUpUpper",
+      .function =
+          [](const DrawContext& ctx) { DrawSpiralStairs(ctx, true, true); },
+      .draws_to_both_bgs = false,
+      .base_width = 4,
+      .base_height = 4,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = 89,  // DrawSpiralStairsGoingDownUpper
+      .name = "SpiralStairsGoingDownUpper",
+      .function =
+          [](const DrawContext& ctx) { DrawSpiralStairs(ctx, false, true); },
+      .draws_to_both_bgs = false,
+      .base_width = 4,
+      .base_height = 4,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = 90,  // DrawSpiralStairsGoingUpLower
+      .name = "SpiralStairsGoingUpLower",
+      .function =
+          [](const DrawContext& ctx) { DrawSpiralStairs(ctx, true, false); },
+      .draws_to_both_bgs = false,
+      .base_width = 4,
+      .base_height = 4,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = 91,  // DrawSpiralStairsGoingDownLower
+      .name = "SpiralStairsGoingDownLower",
+      .function =
+          [](const DrawContext& ctx) { DrawSpiralStairs(ctx, false, false); },
+      .draws_to_both_bgs = false,
+      .base_width = 4,
+      .base_height = 4,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  // Interactive object routines (IDs 92-95)
+  registry.push_back(DrawRoutineInfo{
+      .id = 92,  // DrawBigKeyLock
+      .name = "BigKeyLock",
+      .function = DrawBigKeyLock,
+      .draws_to_both_bgs = false,
+      .base_width = 2,
+      .base_height = 2,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = 93,  // DrawBombableFloor
+      .name = "BombableFloor",
+      .function = DrawBombableFloor,
+      .draws_to_both_bgs = false,
+      .base_width = 2,
+      .base_height = 2,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  // Water face variants (IDs 94-96)
+  registry.push_back(DrawRoutineInfo{
+      .id = 94,  // DrawEmptyWaterFace
+      .name = "EmptyWaterFace",
+      .function = DrawEmptyWaterFace,
+      .draws_to_both_bgs = false,
+      .base_width = 2,
+      .base_height = 2,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = 95,  // DrawSpittingWaterFace
+      .name = "SpittingWaterFace",
+      .function = DrawSpittingWaterFace,
+      .draws_to_both_bgs = false,
+      .base_width = 2,
+      .base_height = 2,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = 96,  // DrawDrenchingWaterFace
+      .name = "DrenchingWaterFace",
+      .function = DrawDrenchingWaterFace,
+      .draws_to_both_bgs = false,
+      .base_width = 2,
+      .base_height = 2,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  // Chest platform routines (IDs 97-99)
+  registry.push_back(DrawRoutineInfo{
+      .id = 97,  // DrawClosedChestPlatform
+      .name = "ClosedChestPlatform",
+      .function = DrawClosedChestPlatform,
+      .draws_to_both_bgs = false,
+      .base_width = 0,  // Variable
+      .base_height = 0,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = 98,  // DrawChestPlatformHorizontalWall
+      .name = "ChestPlatformHorizontalWall",
+      .function = DrawChestPlatformHorizontalWall,
+      .draws_to_both_bgs = false,
+      .base_width = 0,  // Variable
+      .base_height = 1,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = 99,  // DrawChestPlatformVerticalWall
+      .name = "ChestPlatformVerticalWall",
+      .function = DrawChestPlatformVerticalWall,
+      .draws_to_both_bgs = false,
+      .base_width = 1,
+      .base_height = 0,  // Variable
       .category = DrawRoutineInfo::Category::Special,
   });
 }

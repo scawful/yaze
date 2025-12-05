@@ -168,29 +168,57 @@ class RoomLayerManager {
   bool IsBG2OnTop() const { return bg2_on_top_; }
 
   // Apply layer settings to room from LayerMergeType
+  // NOTE: This only affects blend modes and ordering, NOT visibility.
+  // Layer visibility checkboxes remain independent of merge type.
   void ApplyLayerMerging(const LayerMergeType& merge_type) {
     // Store the current merge type for queries
     current_merge_type_id_ = merge_type.ID;
     layers_merged_ = (merge_type.ID != 0);  // ID 0 = "Off" = not merged
 
-    // Align visibility with merge flags
-    SetLayerVisible(LayerType::BG2_Layout, merge_type.Layer2Visible);
-    SetLayerVisible(LayerType::BG2_Objects, merge_type.Layer2Visible);
-    SetLayerVisible(LayerType::BG1_Layout, true);
-    SetLayerVisible(LayerType::BG1_Objects, true);
-
+    // Set BG2 ordering (on top or below BG1)
     SetBG2OnTop(merge_type.Layer2OnTop);
 
-    if (merge_type.Layer2Translucent) {
-      SetLayerBlendMode(LayerType::BG2_Layout, LayerBlendMode::Translucent);
-      SetLayerBlendMode(LayerType::BG2_Objects, LayerBlendMode::Translucent);
-    } else if (!merge_type.Layer2Visible) {
+    // Apply blend mode based on merge type
+    // Layer2Visible = false means BG2 should not be composited (hidden by ROM)
+    // Layer2Translucent = true means BG2 should use translucent blend
+    if (!merge_type.Layer2Visible) {
+      // ROM says BG2 is disabled for this merge type
       SetLayerBlendMode(LayerType::BG2_Layout, LayerBlendMode::Off);
       SetLayerBlendMode(LayerType::BG2_Objects, LayerBlendMode::Off);
+    } else if (merge_type.Layer2Translucent) {
+      SetLayerBlendMode(LayerType::BG2_Layout, LayerBlendMode::Translucent);
+      SetLayerBlendMode(LayerType::BG2_Objects, LayerBlendMode::Translucent);
     } else {
       SetLayerBlendMode(LayerType::BG2_Layout, LayerBlendMode::Normal);
       SetLayerBlendMode(LayerType::BG2_Objects, LayerBlendMode::Normal);
     }
+
+    // BG1 always uses normal blend mode
+    SetLayerBlendMode(LayerType::BG1_Layout, LayerBlendMode::Normal);
+    SetLayerBlendMode(LayerType::BG1_Objects, LayerBlendMode::Normal);
+  }
+
+  /**
+   * @brief Apply layer merge settings without changing visibility
+   * 
+   * Use this when you want to update blend/ordering from ROM data
+   * but preserve the user's manual visibility overrides.
+   */
+  void ApplyLayerMergingPreserveVisibility(const LayerMergeType& merge_type) {
+    // Store visibility before applying
+    bool bg1_layout_vis = IsLayerVisible(LayerType::BG1_Layout);
+    bool bg1_objects_vis = IsLayerVisible(LayerType::BG1_Objects);
+    bool bg2_layout_vis = IsLayerVisible(LayerType::BG2_Layout);
+    bool bg2_objects_vis = IsLayerVisible(LayerType::BG2_Objects);
+
+    // Apply merge settings
+    ApplyLayerMerging(merge_type);
+
+    // Restore visibility
+    SetLayerVisible(LayerType::BG1_Layout, bg1_layout_vis);
+    SetLayerVisible(LayerType::BG1_Objects, bg1_objects_vis);
+    SetLayerVisible(LayerType::BG2_Layout, bg2_layout_vis);
+    SetLayerVisible(LayerType::BG2_Objects, bg2_objects_vis);
   }
 
   /**
@@ -356,8 +384,17 @@ class RoomLayerManager {
    * Transparency is detected via palette index 0 (SNES standard) or 255
    * (object buffer fill color).
    *
+   * @note PALETTE HANDLING: Room layer buffers have their palettes applied
+   * via SetPalette(vector<SDL_Color>), which means their internal SnesPalette
+   * (accessible via bitmap.palette()) is EMPTY. This method extracts the
+   * palette directly from the first visible layer's SDL surface and applies
+   * it to the output bitmap. See the "Bitmap Dual Palette System" section in
+   * docs/public/developer/palette-system-overview.md for details.
+   *
    * @param room The room containing the layer buffers
    * @param output Output bitmap to receive composited result (512x512)
+   *
+   * @see ApplySDLPaletteToBitmap() for the palette extraction implementation
    */
   void CompositeToOutput(Room& room, gfx::Bitmap& output) const;
 

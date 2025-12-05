@@ -44,8 +44,12 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
 
   // Handle left mouse click
   if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-    if (object_loaded_) {
-      // Place mode: add object at clicked position
+    if (door_placement_mode_) {
+      // Door placement mode: place door at snapped position
+      PlaceDoorAtPosition(static_cast<int>(canvas_mouse_pos.x),
+                          static_cast<int>(canvas_mouse_pos.y));
+    } else if (object_loaded_) {
+      // Object place mode: add object at clicked position
       auto [room_x, room_y] =
           CanvasToRoomCoordinates(static_cast<int>(canvas_mouse_pos.x),
                                   static_cast<int>(canvas_mouse_pos.y));
@@ -862,6 +866,152 @@ void DungeonObjectInteraction::HandleLayerKeyboardShortcuts() {
     } else if (ImGui::IsKeyPressed(ImGuiKey_3)) {
       SendSelectedToLayer(2);  // Layer 3 (BG3)
     }
+  }
+}
+
+// ============================================================================
+// Door Placement Methods
+// ============================================================================
+
+void DungeonObjectInteraction::SetDoorPlacementMode(bool enabled,
+                                                     zelda3::DoorType type) {
+  door_placement_mode_ = enabled;
+  preview_door_type_ = type;
+  if (!enabled) {
+    CancelDoorPlacement();
+  }
+  // Cancel any regular object placement when entering door mode
+  if (enabled) {
+    object_loaded_ = false;
+    ghost_preview_buffer_.reset();
+  }
+}
+
+void DungeonObjectInteraction::DrawDoorGhostPreview() {
+  // Only draw if door placement mode is active
+  if (!door_placement_mode_)
+    return;
+
+  // Check if mouse is over the canvas
+  if (!canvas_->IsMouseHovering())
+    return;
+
+  const ImGuiIO& io = ImGui::GetIO();
+  ImVec2 canvas_pos = canvas_->zero_point();
+  ImVec2 mouse_pos = io.MousePos;
+
+  // Convert mouse position to canvas coordinates (in pixels)
+  int canvas_x = static_cast<int>(mouse_pos.x - canvas_pos.x);
+  int canvas_y = static_cast<int>(mouse_pos.y - canvas_pos.y);
+
+  // Detect which wall the cursor is near
+  zelda3::DoorDirection direction;
+  if (!zelda3::DoorPositionManager::DetectWallFromPosition(canvas_x, canvas_y,
+                                                           direction)) {
+    // Not near a wall - don't show preview
+    return;
+  }
+
+  // Snap to nearest valid door position
+  uint8_t position =
+      zelda3::DoorPositionManager::SnapToNearestPosition(canvas_x, canvas_y, direction);
+
+  // Store detected values for placement
+  detected_door_direction_ = direction;
+  snapped_door_position_ = position;
+
+  // Get door position in tile coordinates
+  auto [tile_x, tile_y] =
+      zelda3::DoorPositionManager::PositionToTileCoords(position, direction);
+
+  // Get door dimensions
+  auto dims = zelda3::GetDoorDimensions(direction);
+  int door_width_px = dims.width_tiles * 8;
+  int door_height_px = dims.height_tiles * 8;
+
+  // Convert to canvas pixel coordinates
+  auto [snap_canvas_x, snap_canvas_y] = RoomToCanvasCoordinates(tile_x, tile_y);
+
+  // Draw ghost preview
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
+  float scale = canvas_->global_scale();
+
+  ImVec2 preview_start(canvas_pos.x + snap_canvas_x * scale,
+                       canvas_pos.y + snap_canvas_y * scale);
+  ImVec2 preview_end(preview_start.x + door_width_px * scale,
+                     preview_start.y + door_height_px * scale);
+
+  const auto& theme = AgentUI::GetTheme();
+
+  // Draw semi-transparent filled rectangle
+  ImU32 fill_color = IM_COL32(theme.dungeon_selection_primary.x * 255,
+                               theme.dungeon_selection_primary.y * 255,
+                               theme.dungeon_selection_primary.z * 255,
+                               80);  // Semi-transparent
+  draw_list->AddRectFilled(preview_start, preview_end, fill_color);
+
+  // Draw outline
+  ImVec4 outline_color = ImVec4(theme.dungeon_selection_primary.x,
+                                 theme.dungeon_selection_primary.y,
+                                 theme.dungeon_selection_primary.z, 0.9f);
+  draw_list->AddRect(preview_start, preview_end,
+                     ImGui::GetColorU32(outline_color), 0.0f, 0, 2.0f);
+
+  // Draw door type label
+  const char* type_name = std::string(zelda3::GetDoorTypeName(preview_door_type_)).c_str();
+  const char* dir_name = std::string(zelda3::GetDoorDirectionName(direction)).c_str();
+  char label[64];
+  snprintf(label, sizeof(label), "%s (%s)", type_name, dir_name);
+
+  ImVec2 text_pos(preview_start.x, preview_start.y - 16 * scale);
+  draw_list->AddText(text_pos, IM_COL32(255, 255, 255, 200), label);
+}
+
+void DungeonObjectInteraction::PlaceDoorAtPosition(int canvas_x, int canvas_y) {
+  if (!door_placement_mode_ || !rooms_)
+    return;
+
+  if (current_room_id_ < 0 || current_room_id_ >= 296)
+    return;
+
+  // Detect wall from position
+  zelda3::DoorDirection direction;
+  if (!zelda3::DoorPositionManager::DetectWallFromPosition(canvas_x, canvas_y,
+                                                           direction)) {
+    // Not near a wall - can't place door
+    return;
+  }
+
+  // Snap to nearest valid door position
+  uint8_t position =
+      zelda3::DoorPositionManager::SnapToNearestPosition(canvas_x, canvas_y, direction);
+
+  // Validate position
+  if (!zelda3::DoorPositionManager::IsValidPosition(position, direction)) {
+    return;
+  }
+
+  if (mutation_hook_) {
+    mutation_hook_();
+  }
+
+  // Create the door
+  zelda3::Room::Door new_door;
+  new_door.position = position;
+  new_door.type = preview_door_type_;
+  new_door.direction = direction;
+  // Encode bytes for ROM storage
+  auto [byte1, byte2] = new_door.EncodeBytes();
+  new_door.byte1 = byte1;
+  new_door.byte2 = byte2;
+
+  // Add door to room
+  auto& room = (*rooms_)[current_room_id_];
+  room.AddDoor(new_door);
+
+  // Trigger cache invalidation
+  if (cache_invalidation_callback_) {
+    cache_invalidation_callback_();
   }
 }
 
