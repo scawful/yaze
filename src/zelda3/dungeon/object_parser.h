@@ -176,6 +176,20 @@ class ObjectParser {
    */
   int GetSubtype2TileCount(int16_t object_id) const;
 
+  /**
+   * @brief Get tile count for subtype 3 objects
+   *
+   * Different subtype 3 objects have different tile counts:
+   * - BigChest/OpenBigChest (0xFB1-0xFB2): 12 tiles (4x3)
+   * - TableRock4x3 variants: 12 tiles
+   * - 4x4 objects: 16 tiles
+   * - Most others: 8 tiles
+   *
+   * @param object_id The object ID
+   * @return Number of tiles to read
+   */
+  int GetSubtype3TileCount(int16_t object_id) const;
+
   Rom* rom_;
 };
 

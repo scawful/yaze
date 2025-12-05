@@ -642,8 +642,10 @@ void ObjectDrawer::InitializeDrawRoutines() {
   object_to_routine_map_[0xFAE] = 38;
   object_to_routine_map_[0xFAF] = 16;
   object_to_routine_map_[0xFB0] = 16;
-  object_to_routine_map_[0xFB1] = 16;
-  object_to_routine_map_[0xFB2] = 16;
+  // BigChest (0xFB1 = ASM 0x231) and OpenBigChest (0xFB2 = ASM 0x232)
+  // Use 4x3 pattern (RoomDraw_1x3N_rightwards with N=4)
+  object_to_routine_map_[0xFB1] = 30;  // Decor 4x3 (BigChest)
+  object_to_routine_map_[0xFB2] = 30;  // Decor 4x3 (OpenBigChest)
   object_to_routine_map_[0xFB3] = 35; // 4x4 Corner BothBG
   for (int id = 0xFB4; id <= 0xFB9; id++) {
     object_to_routine_map_[id] = 34; // Water Face
