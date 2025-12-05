@@ -91,7 +91,14 @@ class RoomLayerManager {
     bg2_on_top_ = false;
     layers_merged_ = false;
     current_merge_type_id_ = 0;
+    use_priority_compositing_ = true;  // Default to accurate SNES behavior
   }
+
+  // Priority compositing control
+  // When enabled (default): Uses SNES Mode 1 per-tile priority for Z-ordering
+  // When disabled: Simple back-to-front layer order (BG2 behind, BG1 in front)
+  void SetPriorityCompositing(bool enabled) { use_priority_compositing_ = enabled; }
+  bool IsPriorityCompositingEnabled() const { return use_priority_compositing_; }
 
   // Layer visibility
   void SetLayerVisible(LayerType layer, bool visible) {
@@ -416,10 +423,21 @@ class RoomLayerManager {
   /**
    * @brief Composite all visible layers into a single output bitmap
    *
-   * Merges layers in correct draw order based on GetDrawOrder().
+   * Implements SNES Mode 1 per-tile priority compositing. Each tile's priority
+   * bit affects its effective Z-order:
+   *
+   * | Layer | Priority | Effective Order |
+   * |-------|----------|-----------------|
+   * | BG1   | 0        | 0 (back)        |
+   * | BG2   | 0        | 1               |
+   * | BG2   | 1        | 2               |
+   * | BG1   | 1        | 3 (front)       |
+   *
+   * This allows BG2 tiles with priority 1 to appear above BG1 tiles with
+   * priority 0, matching authentic SNES hardware behavior.
+   *
    * Applies per-layer visibility and blend modes at pixel level.
-   * Transparency is detected via palette index 0 (SNES standard) or 255
-   * (object buffer fill color).
+   * Transparency is detected via palette index 255 (object buffer fill color).
    *
    * @note PALETTE HANDLING: Room layer buffers have their palettes applied
    * via SetPalette(vector<SDL_Color>), which means their internal SnesPalette
@@ -432,6 +450,7 @@ class RoomLayerManager {
    * @param output Output bitmap to receive composited result (512x512)
    *
    * @see ApplySDLPaletteToBitmap() for the palette extraction implementation
+   * @see docs/internal/agents/composite-layer-system.md for full documentation
    */
   void CompositeToOutput(Room& room, gfx::Bitmap& output) const;
 
@@ -449,11 +468,6 @@ class RoomLayerManager {
     return pixel == 255;
   }
 
-  /**
-   * @brief Composite a single layer onto the output bitmap
-   */
-  void CompositeLayer(const gfx::Bitmap& src, gfx::Bitmap& dst,
-                      LayerBlendMode mode) const;
   std::array<bool, 4> layer_visible_;
   std::array<LayerBlendMode, 4> layer_blend_mode_;
   std::array<uint8_t, 4> layer_alpha_;
@@ -467,6 +481,13 @@ class RoomLayerManager {
   // Merge state tracking
   bool layers_merged_ = false;
   uint8_t current_merge_type_id_ = 0;
+  
+  // DEPRECATED: Priority compositing is no longer used.
+  // The correct SNES behavior uses simple back-to-front layer ordering:
+  // BG2 (background) first, then BG1 (foreground) on top.
+  // Per-tile priority is encoded in the tile data itself.
+  // Kept for API compatibility.
+  bool use_priority_compositing_ = false;
 };
 
 }  // namespace zelda3

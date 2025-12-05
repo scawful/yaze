@@ -1019,20 +1019,239 @@ void DungeonObjectInteraction::SendSelectedToLayer(int target_layer) {
   }
 }
 
+void DungeonObjectInteraction::SendSelectedToFront() {
+  auto indices = selection_.GetSelectedIndices();
+  if (indices.empty() || !rooms_)
+    return;
+  if (current_room_id_ < 0 || current_room_id_ >= 296)
+    return;
+
+  if (mutation_hook_) {
+    mutation_hook_();
+  }
+
+  auto& room = (*rooms_)[current_room_id_];
+  auto& objects = room.GetTileObjects();
+
+  // Move selected objects to the end of the list (drawn last = appears on top)
+  // Process in reverse order to maintain relative order of selected objects
+  std::vector<zelda3::RoomObject> selected_objects;
+  std::vector<zelda3::RoomObject> other_objects;
+
+  for (size_t i = 0; i < objects.size(); ++i) {
+    if (std::find(indices.begin(), indices.end(), i) != indices.end()) {
+      selected_objects.push_back(objects[i]);
+    } else {
+      other_objects.push_back(objects[i]);
+    }
+  }
+
+  // Rebuild: other objects first, then selected objects at end
+  objects.clear();
+  objects.insert(objects.end(), other_objects.begin(), other_objects.end());
+  objects.insert(objects.end(), selected_objects.begin(), selected_objects.end());
+
+  // Update selection to new indices (at end of list)
+  selection_.ClearSelection();
+  for (size_t i = 0; i < selected_objects.size(); ++i) {
+    selection_.SelectObject(other_objects.size() + i, ObjectSelection::SelectionMode::Add);
+  }
+
+  room.MarkObjectsDirty();
+
+  if (cache_invalidation_callback_) {
+    cache_invalidation_callback_();
+  }
+}
+
+void DungeonObjectInteraction::SendSelectedToBack() {
+  auto indices = selection_.GetSelectedIndices();
+  if (indices.empty() || !rooms_)
+    return;
+  if (current_room_id_ < 0 || current_room_id_ >= 296)
+    return;
+
+  if (mutation_hook_) {
+    mutation_hook_();
+  }
+
+  auto& room = (*rooms_)[current_room_id_];
+  auto& objects = room.GetTileObjects();
+
+  // Move selected objects to the beginning of the list (drawn first = appears behind)
+  std::vector<zelda3::RoomObject> selected_objects;
+  std::vector<zelda3::RoomObject> other_objects;
+
+  for (size_t i = 0; i < objects.size(); ++i) {
+    if (std::find(indices.begin(), indices.end(), i) != indices.end()) {
+      selected_objects.push_back(objects[i]);
+    } else {
+      other_objects.push_back(objects[i]);
+    }
+  }
+
+  // Rebuild: selected objects first, then other objects
+  objects.clear();
+  objects.insert(objects.end(), selected_objects.begin(), selected_objects.end());
+  objects.insert(objects.end(), other_objects.begin(), other_objects.end());
+
+  // Update selection to new indices (at start of list)
+  selection_.ClearSelection();
+  for (size_t i = 0; i < selected_objects.size(); ++i) {
+    selection_.SelectObject(i, ObjectSelection::SelectionMode::Add);
+  }
+
+  room.MarkObjectsDirty();
+
+  if (cache_invalidation_callback_) {
+    cache_invalidation_callback_();
+  }
+}
+
+void DungeonObjectInteraction::BringSelectedForward() {
+  auto indices = selection_.GetSelectedIndices();
+  if (indices.empty() || !rooms_)
+    return;
+  if (current_room_id_ < 0 || current_room_id_ >= 296)
+    return;
+
+  auto& room = (*rooms_)[current_room_id_];
+  auto& objects = room.GetTileObjects();
+
+  // Move each selected object up one position (towards end of list)
+  // Process from end to start to avoid shifting issues
+  std::sort(indices.begin(), indices.end());
+  
+  // Check if any selected object is already at the end
+  bool all_at_end = true;
+  for (size_t idx : indices) {
+    if (idx < objects.size() - 1) {
+      all_at_end = false;
+      break;
+    }
+  }
+  if (all_at_end) return;
+
+  if (mutation_hook_) {
+    mutation_hook_();
+  }
+
+  // Track new indices after moves
+  std::vector<size_t> new_indices;
+  
+  // Process from end to avoid index shifting issues
+  for (auto it = indices.rbegin(); it != indices.rend(); ++it) {
+    size_t idx = *it;
+    if (idx < objects.size() - 1) {
+      // Swap with next object
+      std::swap(objects[idx], objects[idx + 1]);
+      new_indices.push_back(idx + 1);
+    } else {
+      new_indices.push_back(idx);
+    }
+  }
+
+  // Update selection
+  selection_.ClearSelection();
+  for (size_t idx : new_indices) {
+    selection_.SelectObject(idx, ObjectSelection::SelectionMode::Add);
+  }
+
+  room.MarkObjectsDirty();
+
+  if (cache_invalidation_callback_) {
+    cache_invalidation_callback_();
+  }
+}
+
+void DungeonObjectInteraction::SendSelectedBackward() {
+  auto indices = selection_.GetSelectedIndices();
+  if (indices.empty() || !rooms_)
+    return;
+  if (current_room_id_ < 0 || current_room_id_ >= 296)
+    return;
+
+  auto& room = (*rooms_)[current_room_id_];
+  auto& objects = room.GetTileObjects();
+
+  // Move each selected object down one position (towards start of list)
+  // Process from start to end to avoid shifting issues
+  std::sort(indices.begin(), indices.end());
+  
+  // Check if any selected object is already at the start
+  bool all_at_start = true;
+  for (size_t idx : indices) {
+    if (idx > 0) {
+      all_at_start = false;
+      break;
+    }
+  }
+  if (all_at_start) return;
+
+  if (mutation_hook_) {
+    mutation_hook_();
+  }
+
+  // Track new indices after moves
+  std::vector<size_t> new_indices;
+  
+  // Process from start to avoid index shifting issues
+  for (size_t idx : indices) {
+    if (idx > 0) {
+      // Swap with previous object
+      std::swap(objects[idx], objects[idx - 1]);
+      new_indices.push_back(idx - 1);
+    } else {
+      new_indices.push_back(idx);
+    }
+  }
+
+  // Update selection
+  selection_.ClearSelection();
+  for (size_t idx : new_indices) {
+    selection_.SelectObject(idx, ObjectSelection::SelectionMode::Add);
+  }
+
+  room.MarkObjectsDirty();
+
+  if (cache_invalidation_callback_) {
+    cache_invalidation_callback_();
+  }
+}
+
 void DungeonObjectInteraction::HandleLayerKeyboardShortcuts() {
   // Only process if we have selected objects
   if (!selection_.HasSelection())
     return;
 
-  // Check for layer assignment shortcuts (1, 2, 3 keys)
   // Only when not typing in a text field
-  if (!ImGui::IsAnyItemActive()) {
-    if (ImGui::IsKeyPressed(ImGuiKey_1)) {
-      SendSelectedToLayer(0);  // Layer 1 (BG1)
-    } else if (ImGui::IsKeyPressed(ImGuiKey_2)) {
-      SendSelectedToLayer(1);  // Layer 2 (BG2)
-    } else if (ImGui::IsKeyPressed(ImGuiKey_3)) {
-      SendSelectedToLayer(2);  // Layer 3 (BG3)
+  if (ImGui::IsAnyItemActive())
+    return;
+
+  // Check for layer assignment shortcuts (1, 2, 3 keys)
+  if (ImGui::IsKeyPressed(ImGuiKey_1)) {
+    SendSelectedToLayer(0);  // Layer 1 (BG1)
+  } else if (ImGui::IsKeyPressed(ImGuiKey_2)) {
+    SendSelectedToLayer(1);  // Layer 2 (BG2)
+  } else if (ImGui::IsKeyPressed(ImGuiKey_3)) {
+    SendSelectedToLayer(2);  // Layer 3 (BG3)
+  }
+
+  // Object ordering shortcuts
+  // Ctrl+Shift+] = Bring to Front, Ctrl+Shift+[ = Send to Back
+  // Ctrl+] = Bring Forward, Ctrl+[ = Send Backward
+  auto& io = ImGui::GetIO();
+  if (io.KeyCtrl && io.KeyShift) {
+    if (ImGui::IsKeyPressed(ImGuiKey_RightBracket)) {
+      SendSelectedToFront();
+    } else if (ImGui::IsKeyPressed(ImGuiKey_LeftBracket)) {
+      SendSelectedToBack();
+    }
+  } else if (io.KeyCtrl) {
+    if (ImGui::IsKeyPressed(ImGuiKey_RightBracket)) {
+      BringSelectedForward();
+    } else if (ImGui::IsKeyPressed(ImGuiKey_LeftBracket)) {
+      SendSelectedBackward();
     }
   }
 }

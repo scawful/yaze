@@ -170,6 +170,13 @@ class DungeonObjectInteraction {
   // Layer assignment for selected objects
   void SendSelectedToLayer(int target_layer);
 
+  // Object ordering (changes draw order within the layer)
+  // SNES draws objects in list order - first objects appear behind, last on top
+  void SendSelectedToFront();   // Move to end of list (drawn last, appears on top)
+  void SendSelectedToBack();    // Move to start of list (drawn first, appears behind)
+  void BringSelectedForward();  // Move up one position in list
+  void SendSelectedBackward();  // Move down one position in list
+
   // Layer filter access (delegates to ObjectSelection)
   void SetLayerFilter(int layer) { selection_.SetLayerFilter(layer); }
   int GetLayerFilter() const { return selection_.GetLayerFilter(); }
