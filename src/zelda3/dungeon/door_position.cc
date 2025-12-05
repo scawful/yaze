@@ -148,26 +148,26 @@ std::pair<int, int> DoorPositionManager::PositionToTileCoords(
                                         14, 30, 46, 14, 30, 46};
   // Y positions: +4 offset from raw VRAM, clamped to 61 max (room is 64 tiles, door is 3 tiles)
   // Pos 0-2: Quadrant seam (Y=26), Pos 3-5: Slightly higher (Y=23)
-  // Pos 6-11: Outer south wall (Y=61, clamped from 64)
+  // Pos 6-8: Outer south wall (Y=58), Pos 9-11: Slightly higher (Y=55)
   static constexpr int kSouthDoorY[] = {26, 26, 26, 23, 23, 23,
-                                        61, 61, 61, 61, 61, 61};
+                                        58, 58, 58, 55, 55, 55};
 
   // West door positions (WestWall + WestMiddle):
-  // Positions 0-5: Outer west wall (X=0 for upper, X=3 for lower layer)
-  // Positions 6-11: Middle vertical seam (X=32 for upper, X=35 for lower)
+  // Positions 0-5: Outer west wall (X=2 for upper, X=5 for lower layer)
+  // Positions 6-11: Middle vertical seam (X=34 for upper, X=37 for lower)
   // Y positions: 15, 31, 47 (+4 offset from raw VRAM)
-  static constexpr int kWestDoorX[] = {0, 0, 0, 3, 3, 3,
-                                       32, 32, 32, 35, 35, 35};
+  static constexpr int kWestDoorX[] = {2, 2, 2, 5, 5, 5,
+                                       34, 34, 34, 37, 37, 37};
   static constexpr int kWestDoorY[] = {15, 31, 47, 15, 31, 47,
                                        15, 31, 47, 15, 31, 47};
 
   // East door positions (EastMiddle + EastWall):
   // Note: East uses EastMiddle FIRST, then EastWall!
-  // Positions 0-5: Middle vertical seam (X=28 for upper, X=25 for lower) (+4 offset)
-  // Positions 6-11: Outer east wall (X=60 for upper, X=57 for lower) (+4 offset)
+  // Positions 0-5: Middle vertical seam (X=26 for upper, X=23 for lower)
+  // Positions 6-11: Outer east wall (X=58 for upper, X=55 for lower)
   // Y positions: 15, 31, 47 (+4 offset from raw VRAM)
-  static constexpr int kEastDoorX[] = {28, 28, 28, 25, 25, 25,
-                                       60, 60, 60, 57, 57, 57};
+  static constexpr int kEastDoorX[] = {26, 26, 26, 23, 23, 23,
+                                       58, 58, 58, 55, 55, 55};
   static constexpr int kEastDoorY[] = {15, 31, 47, 15, 31, 47,
                                        15, 31, 47, 15, 31, 47};
 

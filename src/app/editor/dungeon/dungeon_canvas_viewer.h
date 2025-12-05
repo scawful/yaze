@@ -296,6 +296,7 @@ class DungeonCanvasViewer {
   bool show_texture_debug_ = false;
   bool show_object_bounds_ = false;
   bool show_layer_info_ = false;
+  bool show_grid_ = false;  // Grid off by default for dungeon editor
   bool use_composite_mode_ = true;  // Default to merged view (false = debug 4-layer mode)
   int layout_override_ = -1;  // -1 for no override
   int custom_grid_size_ = 8;

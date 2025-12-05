@@ -48,6 +48,14 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
       // Door placement mode: place door at snapped position
       PlaceDoorAtPosition(static_cast<int>(canvas_mouse_pos.x),
                           static_cast<int>(canvas_mouse_pos.y));
+    } else if (sprite_placement_mode_) {
+      // Sprite placement mode: place sprite at clicked position
+      PlaceSpriteAtPosition(static_cast<int>(canvas_mouse_pos.x),
+                            static_cast<int>(canvas_mouse_pos.y));
+    } else if (item_placement_mode_) {
+      // Item placement mode: place item at clicked position
+      PlaceItemAtPosition(static_cast<int>(canvas_mouse_pos.x),
+                          static_cast<int>(canvas_mouse_pos.y));
     } else if (object_loaded_) {
       // Object place mode: add object at clicked position
       auto [room_x, room_y] =
@@ -675,7 +683,21 @@ void DungeonObjectInteraction::HandlePasteObjects() {
 }
 
 void DungeonObjectInteraction::DrawGhostPreview() {
-  // Only draw ghost preview when an object is loaded for placement
+  // Draw entity-specific ghost previews
+  if (door_placement_mode_) {
+    DrawDoorGhostPreview();
+    return;
+  }
+  if (sprite_placement_mode_) {
+    DrawSpriteGhostPreview();
+    return;
+  }
+  if (item_placement_mode_) {
+    DrawItemGhostPreview();
+    return;
+  }
+
+  // Only draw object ghost preview when an object is loaded for placement
   if (!object_loaded_ || preview_object_.id_ < 0)
     return;
 
@@ -1162,6 +1184,193 @@ void DungeonObjectInteraction::PlaceDoorAtPosition(int canvas_x, int canvas_y) {
 }
 
 // ============================================================================
+// Sprite Placement Methods
+// ============================================================================
+
+void DungeonObjectInteraction::SetSpritePlacementMode(bool enabled, uint8_t sprite_id) {
+  sprite_placement_mode_ = enabled;
+  preview_sprite_id_ = sprite_id;
+  // Cancel other placement modes when entering sprite mode
+  if (enabled) {
+    object_loaded_ = false;
+    ghost_preview_buffer_.reset();
+    CancelDoorPlacement();
+    CancelItemPlacement();
+  }
+}
+
+void DungeonObjectInteraction::DrawSpriteGhostPreview() {
+  if (!sprite_placement_mode_)
+    return;
+
+  if (!canvas_->IsMouseHovering())
+    return;
+
+  const ImGuiIO& io = ImGui::GetIO();
+  ImVec2 canvas_pos = canvas_->zero_point();
+  ImVec2 mouse_pos = io.MousePos;
+  float scale = canvas_->global_scale();
+
+  // Convert to room coordinates (sprites use 16-pixel grid)
+  int canvas_x = static_cast<int>((mouse_pos.x - canvas_pos.x) / scale);
+  int canvas_y = static_cast<int>((mouse_pos.y - canvas_pos.y) / scale);
+  
+  // Snap to 16-pixel grid (sprite coordinate system)
+  int snapped_x = (canvas_x / 16) * 16;
+  int snapped_y = (canvas_y / 16) * 16;
+
+  // Draw ghost rectangle for sprite preview
+  ImVec2 rect_min(canvas_pos.x + snapped_x * scale,
+                  canvas_pos.y + snapped_y * scale);
+  ImVec2 rect_max(rect_min.x + 16 * scale, rect_min.y + 16 * scale);
+
+  // Semi-transparent green for sprites
+  ImU32 fill_color = IM_COL32(50, 200, 50, 100);
+  ImU32 outline_color = IM_COL32(50, 255, 50, 200);
+
+  canvas_->draw_list()->AddRectFilled(rect_min, rect_max, fill_color);
+  canvas_->draw_list()->AddRect(rect_min, rect_max, outline_color, 0.0f, 0, 2.0f);
+
+  // Draw sprite ID label
+  std::string label = absl::StrFormat("%02X", preview_sprite_id_);
+  canvas_->draw_list()->AddText(rect_min, IM_COL32(255, 255, 255, 255), label.c_str());
+}
+
+void DungeonObjectInteraction::PlaceSpriteAtPosition(int canvas_x, int canvas_y) {
+  if (!sprite_placement_mode_ || !rooms_)
+    return;
+
+  if (current_room_id_ < 0 || current_room_id_ >= 296)
+    return;
+
+  float scale = canvas_->global_scale();
+  if (scale <= 0.0f) scale = 1.0f;
+
+  // Convert to sprite coordinates (16-pixel units)
+  int sprite_x = canvas_x / static_cast<int>(16 * scale);
+  int sprite_y = canvas_y / static_cast<int>(16 * scale);
+
+  // Clamp to valid range (0-31 for each axis in a 512x512 room)
+  sprite_x = std::clamp(sprite_x, 0, 31);
+  sprite_y = std::clamp(sprite_y, 0, 31);
+
+  if (mutation_hook_) {
+    mutation_hook_();
+  }
+
+  // Create the sprite
+  zelda3::Sprite new_sprite(preview_sprite_id_, 
+                            static_cast<uint8_t>(sprite_x),
+                            static_cast<uint8_t>(sprite_y), 
+                            0, 0);
+
+  // Add sprite to room
+  auto& room = (*rooms_)[current_room_id_];
+  room.GetSprites().push_back(new_sprite);
+
+  // Trigger cache invalidation
+  if (cache_invalidation_callback_) {
+    cache_invalidation_callback_();
+  }
+}
+
+// ============================================================================
+// Item Placement Methods
+// ============================================================================
+
+void DungeonObjectInteraction::SetItemPlacementMode(bool enabled, uint8_t item_id) {
+  item_placement_mode_ = enabled;
+  preview_item_id_ = item_id;
+  // Cancel other placement modes when entering item mode
+  if (enabled) {
+    object_loaded_ = false;
+    ghost_preview_buffer_.reset();
+    CancelDoorPlacement();
+    CancelSpritePlacement();
+  }
+}
+
+void DungeonObjectInteraction::DrawItemGhostPreview() {
+  if (!item_placement_mode_)
+    return;
+
+  if (!canvas_->IsMouseHovering())
+    return;
+
+  const ImGuiIO& io = ImGui::GetIO();
+  ImVec2 canvas_pos = canvas_->zero_point();
+  ImVec2 mouse_pos = io.MousePos;
+  float scale = canvas_->global_scale();
+
+  // Convert to room coordinates (items use 8-pixel grid for fine positioning)
+  int canvas_x = static_cast<int>((mouse_pos.x - canvas_pos.x) / scale);
+  int canvas_y = static_cast<int>((mouse_pos.y - canvas_pos.y) / scale);
+  
+  // Snap to 8-pixel grid
+  int snapped_x = (canvas_x / 8) * 8;
+  int snapped_y = (canvas_y / 8) * 8;
+
+  // Draw ghost rectangle for item preview
+  ImVec2 rect_min(canvas_pos.x + snapped_x * scale,
+                  canvas_pos.y + snapped_y * scale);
+  ImVec2 rect_max(rect_min.x + 16 * scale, rect_min.y + 16 * scale);
+
+  // Semi-transparent yellow for items
+  ImU32 fill_color = IM_COL32(200, 200, 50, 100);
+  ImU32 outline_color = IM_COL32(255, 255, 50, 200);
+
+  canvas_->draw_list()->AddRectFilled(rect_min, rect_max, fill_color);
+  canvas_->draw_list()->AddRect(rect_min, rect_max, outline_color, 0.0f, 0, 2.0f);
+
+  // Draw item ID label
+  std::string label = absl::StrFormat("%02X", preview_item_id_);
+  canvas_->draw_list()->AddText(rect_min, IM_COL32(255, 255, 255, 255), label.c_str());
+}
+
+void DungeonObjectInteraction::PlaceItemAtPosition(int canvas_x, int canvas_y) {
+  if (!item_placement_mode_ || !rooms_)
+    return;
+
+  if (current_room_id_ < 0 || current_room_id_ >= 296)
+    return;
+
+  float scale = canvas_->global_scale();
+  if (scale <= 0.0f) scale = 1.0f;
+
+  // Convert to pixel coordinates
+  int pixel_x = canvas_x / static_cast<int>(scale);
+  int pixel_y = canvas_y / static_cast<int>(scale);
+
+  // PotItem position encoding: 
+  // high byte * 16 = Y, low byte * 4 = X
+  // So: X = pixel_x / 4, Y = pixel_y / 16
+  int encoded_x = pixel_x / 4;
+  int encoded_y = pixel_y / 16;
+  
+  // Clamp to valid range
+  encoded_x = std::clamp(encoded_x, 0, 255);
+  encoded_y = std::clamp(encoded_y, 0, 255);
+
+  if (mutation_hook_) {
+    mutation_hook_();
+  }
+
+  // Create the pot item
+  zelda3::PotItem new_item;
+  new_item.position = static_cast<uint16_t>((encoded_y << 8) | encoded_x);
+  new_item.item = preview_item_id_;
+
+  // Add item to room
+  auto& room = (*rooms_)[current_room_id_];
+  room.GetPotItems().push_back(new_item);
+
+  // Trigger cache invalidation
+  if (cache_invalidation_callback_) {
+    cache_invalidation_callback_();
+  }
+}
+
+// ============================================================================
 // Entity Selection Methods (Doors, Sprites, Items)
 // ============================================================================
 
@@ -1488,6 +1697,56 @@ void DungeonObjectInteraction::DrawEntitySelectionHighlights() {
   // Draw label
   ImVec2 text_pos(pos.x, pos.y - 14 * scale);
   draw_list->AddText(text_pos, IM_COL32(255, 255, 255, 220), label);
+
+  // Draw snap position indicators when dragging a door
+  DrawDoorSnapIndicators();
+}
+
+void DungeonObjectInteraction::DrawDoorSnapIndicators() {
+  // Only show snap indicators when dragging a door entity
+  if (!is_entity_dragging_ || selected_entity_.type != EntityType::Door)
+    return;
+
+  // Detect wall direction from drag position
+  zelda3::DoorDirection direction;
+  int drag_x = static_cast<int>(entity_drag_current_pos_.x);
+  int drag_y = static_cast<int>(entity_drag_current_pos_.y);
+  if (!zelda3::DoorPositionManager::DetectWallFromPosition(drag_x, drag_y, direction))
+    return;
+
+  // Get the nearest snap position
+  uint8_t nearest_snap = zelda3::DoorPositionManager::SnapToNearestPosition(
+      drag_x, drag_y, direction);
+
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
+  ImVec2 canvas_pos = canvas_->zero_point();
+  float scale = canvas_->global_scale();
+  const auto& theme = AgentUI::GetTheme();
+  auto dims = zelda3::GetDoorDimensions(direction);
+
+  // Draw indicators for positions 0, 1, 2 (the 3 main snap positions per wall)
+  for (uint8_t i = 0; i < 3; ++i) {
+    auto [tile_x, tile_y] = zelda3::DoorPositionManager::PositionToTileCoords(i, direction);
+    float pixel_x = tile_x * 8.0f;
+    float pixel_y = tile_y * 8.0f;
+
+    ImVec2 snap_start(canvas_pos.x + pixel_x * scale,
+                      canvas_pos.y + pixel_y * scale);
+    ImVec2 snap_end(snap_start.x + dims.width_pixels() * scale,
+                    snap_start.y + dims.height_pixels() * scale);
+
+    if (i == nearest_snap) {
+      // Highlighted nearest position - brighter with thicker border
+      ImVec4 highlight = ImVec4(theme.dungeon_selection_primary.x,
+                                theme.dungeon_selection_primary.y,
+                                theme.dungeon_selection_primary.z, 0.75f);
+      draw_list->AddRect(snap_start, snap_end, ImGui::GetColorU32(highlight), 0.0f, 0, 2.5f);
+    } else {
+      // Ghosted other positions - semi-transparent thin border
+      ImVec4 ghost = ImVec4(1.0f, 1.0f, 1.0f, 0.25f);
+      draw_list->AddRect(snap_start, snap_end, ImGui::GetColorU32(ghost), 0.0f, 0, 1.0f);
+    }
+  }
 }
 
 }  // namespace yaze::editor

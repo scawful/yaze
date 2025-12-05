@@ -19,6 +19,7 @@
 #include "dungeon_room_loader.h"
 #include "dungeon_room_selector.h"
 #include "imgui/imgui.h"
+#include "panels/dungeon_room_graphics_panel.h"
 #include "panels/object_editor_panel.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
@@ -204,6 +205,7 @@ class DungeonEditorV2 : public Editor {
 
   gui::PaletteEditorWidget palette_editor_;
   ObjectEditorPanel* object_editor_panel_ = nullptr;  // Owned by PanelManager
+  DungeonRoomGraphicsPanel* room_graphics_panel_ = nullptr;  // Owned by PanelManager
   std::unique_ptr<ObjectEditorPanel> owned_object_editor_panel_;  // Fallback ownership for tests
   std::unique_ptr<zelda3::DungeonEditorSystem> dungeon_editor_system_;
   std::unique_ptr<emu::render::EmulatorRenderService> render_service_;
@@ -212,6 +214,9 @@ class DungeonEditorV2 : public Editor {
 
   // Docking class for room windows to dock together
   ImGuiWindowClass room_window_class_;
+  
+  // Shared dock ID for all room panels to auto-dock together
+  ImGuiID room_dock_id_ = 0;
 
   // Dynamic room cards - created per open room
   std::unordered_map<int, std::shared_ptr<gui::PanelWindow>> room_cards_;
