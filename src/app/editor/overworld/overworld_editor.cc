@@ -1889,6 +1889,14 @@ absl::Status OverworldEditor::LoadGraphics() {
   }
   palette_ = overworld_.current_area_palette();
 
+  // Fix: Set transparency for the first color of each 16-color subpalette
+  // This ensures the background color (backdrop) shows through
+  for (size_t i = 0; i < palette_.size(); i += 16) {
+    if (i < palette_.size()) {
+      palette_[i].set_transparent(true);
+    }
+  }
+
   LOG_DEBUG("OverworldEditor", "Loading overworld graphics (optimized).");
 
   // Phase 1: Create bitmaps without textures for faster loading

@@ -19,22 +19,25 @@ BackgroundBuffer::BackgroundBuffer(int width, int height)
   // with Arena::Get(). Call EnsureBitmapInitialized() before accessing bitmap().
 }
 
-void BackgroundBuffer::SetTileAt(int x, int y, uint16_t value) {
-  if (x < 0 || y < 0)
+void BackgroundBuffer::SetTileAt(int x_pos, int y_pos, uint16_t value) {
+  if (x_pos < 0 || y_pos < 0) {
     return;
+  }
   int tiles_w = width_ / 8;
   int tiles_h = height_ / 8;
-  if (x >= tiles_w || y >= tiles_h)
+  if (x_pos >= tiles_w || y_pos >= tiles_h) {
     return;
-  buffer_[y * tiles_w + x] = value;
+  }
+  buffer_[y_pos * tiles_w + x_pos] = value;
 }
 
-uint16_t BackgroundBuffer::GetTileAt(int x, int y) const {
+uint16_t BackgroundBuffer::GetTileAt(int x_pos, int y_pos) const {
   int tiles_w = width_ / 8;
   int tiles_h = height_ / 8;
-  if (x < 0 || y < 0 || x >= tiles_w || y >= tiles_h)
+  if (x_pos < 0 || y_pos < 0 || x_pos >= tiles_w || y_pos >= tiles_h) {
     return 0;
-  return buffer_[y * tiles_w + x];
+  }
+  return buffer_[y_pos * tiles_w + x_pos];
 }
 
 void BackgroundBuffer::ClearBuffer() {
@@ -48,6 +51,22 @@ void BackgroundBuffer::EnsureBitmapInitialized() {
     // Only 255 is treated as transparent by IsTransparent().
     bitmap_.Create(width_, height_, 8,
                    std::vector<uint8_t>(width_ * height_, 255));
+    
+    // Fix: Set index 255 to be transparent so the background is actually transparent
+    // instead of white (default SDL palette index 255)
+    std::vector<SDL_Color> palette(256);
+    // Initialize with grayscale for debugging
+    for (int i = 0; i < 256; i++) {
+      palette[i] = {static_cast<Uint8>(i), static_cast<Uint8>(i), static_cast<Uint8>(i), 255};
+    }
+    // Set index 255 to transparent
+    palette[255] = {0, 0, 0, 0};
+    bitmap_.SetPalette(palette);
+    
+    // Enable blending
+    if (bitmap_.surface()) {
+      SDL_SetSurfaceBlendMode(bitmap_.surface(), SDL_BLENDMODE_BLEND);
+    }
   }
 }
 
@@ -139,21 +158,21 @@ void BackgroundBuffer::DrawBackground(std::span<uint8_t> gfx16_data) {
   }
 
   // For each tile on the tile buffer
-  int drawn_count = 0;
-  int skipped_count = 0;
+  // int drawn_count = 0;
+  // int skipped_count = 0;
   for (int yy = 0; yy < tiles_h; yy++) {
     for (int xx = 0; xx < tiles_w; xx++) {
       uint16_t word = buffer_[xx + yy * tiles_w];
 
       // Skip empty tiles (0xFFFF) - these show the floor
       if (word == 0xFFFF) {
-        skipped_count++;
+        // skipped_count++;
         continue;
       }
 
       // Skip zero tiles - also show the floor
       if (word == 0) {
-        skipped_count++;
+        // skipped_count++;
         continue;
       }
 
@@ -174,7 +193,7 @@ void BackgroundBuffer::DrawBackground(std::span<uint8_t> gfx16_data) {
       int tile_offset = (yy * 8 * width_) + (xx * 8);
       DrawTile(tile, bitmap_.mutable_data().data(), gfx16_data.data(),
                tile_offset);
-      drawn_count++;
+      // drawn_count++;
     }
   }
   // CRITICAL: Sync bitmap data back to SDL surface!
@@ -206,26 +225,26 @@ void BackgroundBuffer::DrawFloor(const std::vector<uint8_t>& rom_data,
               bitmap_.is_active(), bitmap_.width(), bitmap_.height());
   }
 
-  auto f = (uint8_t)(floor_graphics << 4);
+  auto floor_offset = static_cast<uint8_t>(floor_graphics << 4);
 
   // Create floor tiles from ROM data
-  gfx::TileInfo floorTile1(rom_data[tile_address + f],
-                           rom_data[tile_address + f + 1]);
-  gfx::TileInfo floorTile2(rom_data[tile_address + f + 2],
-                           rom_data[tile_address + f + 3]);
-  gfx::TileInfo floorTile3(rom_data[tile_address + f + 4],
-                           rom_data[tile_address + f + 5]);
-  gfx::TileInfo floorTile4(rom_data[tile_address + f + 6],
-                           rom_data[tile_address + f + 7]);
+  gfx::TileInfo floorTile1(rom_data[tile_address + floor_offset],
+                           rom_data[tile_address + floor_offset + 1]);
+  gfx::TileInfo floorTile2(rom_data[tile_address + floor_offset + 2],
+                           rom_data[tile_address + floor_offset + 3]);
+  gfx::TileInfo floorTile3(rom_data[tile_address + floor_offset + 4],
+                           rom_data[tile_address + floor_offset + 5]);
+  gfx::TileInfo floorTile4(rom_data[tile_address + floor_offset + 6],
+                           rom_data[tile_address + floor_offset + 7]);
 
-  gfx::TileInfo floorTile5(rom_data[tile_address_floor + f],
-                           rom_data[tile_address_floor + f + 1]);
-  gfx::TileInfo floorTile6(rom_data[tile_address_floor + f + 2],
-                           rom_data[tile_address_floor + f + 3]);
-  gfx::TileInfo floorTile7(rom_data[tile_address_floor + f + 4],
-                           rom_data[tile_address_floor + f + 5]);
-  gfx::TileInfo floorTile8(rom_data[tile_address_floor + f + 6],
-                           rom_data[tile_address_floor + f + 7]);
+  gfx::TileInfo floorTile5(rom_data[tile_address_floor + floor_offset],
+                           rom_data[tile_address_floor + floor_offset + 1]);
+  gfx::TileInfo floorTile6(rom_data[tile_address_floor + floor_offset + 2],
+                           rom_data[tile_address_floor + floor_offset + 3]);
+  gfx::TileInfo floorTile7(rom_data[tile_address_floor + floor_offset + 4],
+                           rom_data[tile_address_floor + floor_offset + 5]);
+  gfx::TileInfo floorTile8(rom_data[tile_address_floor + floor_offset + 6],
+                           rom_data[tile_address_floor + floor_offset + 7]);
 
   // Floor tiles specify which 8-color sub-palette from the 90-color dungeon
   // palette e.g., palette 6 = colors 48-55 (6 * 8 = 48)

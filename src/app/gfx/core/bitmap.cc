@@ -77,6 +77,11 @@ Bitmap::Bitmap(const Bitmap& other)
       SDL_LockSurface(surface_);
       memcpy(surface_->pixels, pixel_data_, data_.size());
       SDL_UnlockSurface(surface_);
+
+      // Apply the copied palette to the new SDL surface
+      if (!palette_.empty()) {
+        ApplyStoredPalette();
+      }
     }
   }
 }
@@ -113,6 +118,11 @@ Bitmap& Bitmap::operator=(const Bitmap& other) {
         SDL_LockSurface(surface_);
         memcpy(surface_->pixels, pixel_data_, data_.size());
         SDL_UnlockSurface(surface_);
+
+        // Apply the copied palette to the new SDL surface
+        if (!palette_.empty()) {
+          ApplyStoredPalette();
+        }
       }
     }
     texture_ = nullptr;  // Will be recreated on demand
@@ -250,7 +260,8 @@ void Bitmap::Create(int width, int height, int depth, int format,
   // malloc errors on shutdown
   if (surface_ && data_.size() > 0) {
     SDL_LockSurface(surface_);
-    memcpy(surface_->pixels, pixel_data_, data_.size());
+    size_t copy_size = std::min(data_.size(), static_cast<size_t>(surface_->pitch * surface_->h));
+    memcpy(surface_->pixels, pixel_data_, copy_size);
     SDL_UnlockSurface(surface_);
   }
   active_ = true;
@@ -269,7 +280,8 @@ void Bitmap::Reformat(int format) {
   // assignment
   if (surface_ && data_.size() > 0) {
     SDL_LockSurface(surface_);
-    memcpy(surface_->pixels, pixel_data_, data_.size());
+    size_t copy_size = std::min(data_.size(), static_cast<size_t>(surface_->pitch * surface_->h));
+    memcpy(surface_->pixels, pixel_data_, copy_size);
     SDL_UnlockSurface(surface_);
   }
   active_ = true;
@@ -344,6 +356,10 @@ void Bitmap::ApplyStoredPalette() {
   // This prevents breaking systems that use small palettes (8-16 colors)
   SDL_SetPaletteColors(sdl_palette, colors.data(), 0,
                        static_cast<int>(palette_.size()));
+
+  // CRITICAL FIX: Enable blending so SDL respects the alpha channel in the palette
+  // Without this, indexed surfaces may ignore transparency
+  SDL_SetSurfaceBlendMode(surface_, SDL_BLENDMODE_BLEND);
 
   SDL_LockSurface(surface_);
 }

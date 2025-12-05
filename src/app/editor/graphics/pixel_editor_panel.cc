@@ -61,7 +61,7 @@ absl::Status PixelEditorPanel::Update() {
   ImGui::BeginChild("##PixelEditorContent", ImVec2(0, -24), false);
 
   // Color picker on the left
-  ImGui::BeginChild("##ColorPickerSide", ImVec2(120, 0), true);
+  ImGui::BeginChild("##ColorPickerSide", ImVec2(200, 0), true);
   DrawColorPicker();
   ImGui::Separator();
   DrawMiniMap();
