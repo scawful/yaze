@@ -259,8 +259,9 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype3(
   uint8_t high = rom_->data()[tile_ptr + 1];
   int tile_data_ptr = kRoomObjectTileAddress + ((high << 8) | low);
 
-  // Read 8 tiles
-  return ReadTileData(tile_data_ptr, 8);
+  // Determine tile count based on object ID
+  int tile_count = GetSubtype3TileCount(object_id);
+  return ReadTileData(tile_data_ptr, tile_count);
 }
 
 absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ReadTileData(
@@ -323,6 +324,28 @@ int ObjectParser::GetSubtype2TileCount(int16_t object_id) const {
     return 12;
   }
   // Default: 8 tiles for other subtype 2 objects
+  return 8;
+}
+
+int ObjectParser::GetSubtype3TileCount(int16_t object_id) const {
+  // BigChest (0xFB1 = ASM 0x231) and OpenBigChest (0xFB2 = ASM 0x232): 12 tiles
+  // These use RoomDraw_1x3N_rightwards with N=4 (4 columns × 3 rows)
+  if (object_id == 0xFB1 || object_id == 0xFB2) {
+    return 12;
+  }
+  // TableRock4x3 variants (0xF94, 0xFCE, 0xFE7-0xFE8, 0xFEC-0xFED): 12 tiles
+  if (object_id == 0xF94 || object_id == 0xFCE ||
+      (object_id >= 0xFE7 && object_id <= 0xFE8) ||
+      (object_id >= 0xFEC && object_id <= 0xFED)) {
+    return 12;
+  }
+  // 4x4 pattern objects: 16 tiles
+  // (0xFC8 = 0x248, 0xFE6 = 0x266, 0xFEB = 0x26B, 0xFFA = 0x27A)
+  if (object_id == 0xFC8 || object_id == 0xFE6 ||
+      object_id == 0xFEB || object_id == 0xFFA) {
+    return 16;
+  }
+  // Default: 8 tiles for most subtype 3 objects
   return 8;
 }
 
