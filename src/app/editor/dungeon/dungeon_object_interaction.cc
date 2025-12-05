@@ -216,8 +216,13 @@ void DungeonObjectInteraction::DrawSelectionHighlights() {
       });
 
   // Enhanced hover tooltip showing object info (always visible on hover)
-  // Skip tooltip if cursor is over a door/sprite/item entity
+  // Skip completely in exclusive entity mode (door/sprite/item selected)
+  if (is_entity_mode_) {
+    return;  // Entity mode active - no object tooltips or hover
+  }
+
   if (canvas_->IsMouseHovering()) {
+    // Also skip tooltip if cursor is over a door/sprite/item entity (not selected yet)
     ImGuiIO& io = ImGui::GetIO();
     ImVec2 canvas_pos = canvas_->zero_point();
     int cursor_x = static_cast<int>(io.MousePos.x - canvas_pos.x);
@@ -272,6 +277,9 @@ void DungeonObjectInteraction::DrawSelectionHighlights() {
 void DungeonObjectInteraction::DrawHoverHighlight(
     const std::vector<zelda3::RoomObject>& objects) {
   if (!canvas_->IsMouseHovering()) return;
+
+  // Skip all object hover in exclusive entity mode (door/sprite/item selected)
+  if (is_entity_mode_) return;
 
   // Don't show object hover highlight if cursor is over a door/sprite/item entity
   // Entities take priority over objects for interaction
@@ -547,6 +555,9 @@ void DungeonObjectInteraction::ClearSelection() {
 }
 
 bool DungeonObjectInteraction::TrySelectObjectAtCursor() {
+  // Don't attempt object selection in exclusive entity mode
+  if (is_entity_mode_) return false;
+
   size_t hovered = GetHoveredObjectIndex();
   if (hovered == static_cast<size_t>(-1)) {
     return false;
@@ -1159,9 +1170,12 @@ void DungeonObjectInteraction::SelectEntity(EntityType type, size_t index) {
   if (type != EntityType::Object) {
     selection_.ClearSelection();
   }
-  
+
   selected_entity_.type = type;
   selected_entity_.index = index;
+
+  // Enter exclusive entity mode - suppresses all object interactions
+  is_entity_mode_ = (type != EntityType::None && type != EntityType::Object);
   
   if (entity_changed_callback_) {
     entity_changed_callback_();
@@ -1172,6 +1186,7 @@ void DungeonObjectInteraction::ClearEntitySelection() {
   selected_entity_.type = EntityType::None;
   selected_entity_.index = 0;
   is_entity_dragging_ = false;
+  is_entity_mode_ = false;  // Exit exclusive entity mode
 }
 
 std::optional<SelectedEntity> DungeonObjectInteraction::GetEntityAtPosition(
