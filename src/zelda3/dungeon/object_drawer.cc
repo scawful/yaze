@@ -151,19 +151,25 @@ bool ObjectDrawer::RoutineDrawsToBothBGs(int routine_id) {
   // ASM Reference:
   // - Routines 3, 9: Diagonal walls (use VRAM tilemap for both layers)
   // - Routines 17, 18: Diagonal walls acute/grave (BothBG variants)
+  // - Routines 35, 36, 37: Corner objects (4x4 corners, weird corners)
   // - Routine 97: Prison cell (dual-layer bars for 3D effect)
   //
   // These routines are identified from:
-  // - diagonal_routines.cc: draws_to_both_bgs = true for routines 17, 18
-  // - corner_routines.cc: draws_to_both_bgs = true for 4x4 corners
-  // - rightwards_routines.cc: draws_to_both_bgs = true for prison cell
+  // - rightwards_routines.cc: routine 3 (Rightwards2x4_1to16_BothBG)
+  // - downwards_routines.cc: routine 9 (Downwards4x2_1to16_BothBG)
+  // - diagonal_routines.cc: routines 17, 18 (DiagonalAcute/Grave_BothBG)
+  // - corner_routines.cc: routines 35, 36, 37 (4x4Corner, WeirdCorner BothBG)
+  // - special_routines.cc: routine 97 (PrisonCell - draws internally to both)
   //
   static constexpr int kBothBGRoutines[] = {
-      3,   // Diagonal wall variant 1
-      9,   // Diagonal wall variant 2
-      17,  // Diagonal acute (upper-left)
-      18,  // Diagonal grave (upper-right)
-      97,  // Prison cell bars
+      3,   // Rightwards2x4_1to16_BothBG (diagonal walls)
+      9,   // Downwards4x2_1to16_BothBG (diagonal walls)
+      17,  // DiagonalAcute_1to16_BothBG (upper-left diagonal)
+      18,  // DiagonalGrave_1to16_BothBG (upper-right diagonal)
+      35,  // 4x4Corner_BothBG (Type 2: 0x108-0x10F, Type 3: 0xF9B-0xF9D, 0xFB3)
+      36,  // WeirdCornerBottom_BothBG (Type 2: 0x110-0x113, Type 3: 0xF9E-0xFA1)
+      37,  // WeirdCornerTop_BothBG (Type 2: 0x114-0x117, Type 3: 0xFA2-0xFA5)
+      97,  // PrisonCell (Type 3: 0xF8D, 0xF97 - dual-layer bars)
   };
 
   for (int id : kBothBGRoutines) {

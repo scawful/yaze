@@ -165,11 +165,8 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
       &entrances_, &current_entrance_id_,
       [this](int entrance_id) { OnEntranceSelected(entrance_id); }));
 
-  panel_manager->RegisterEditorPanel(
-      std::make_unique<DungeonRoomGraphicsPanel>(&current_room_id_, &rooms_));
-
-  panel_manager->RegisterEditorPanel(
-      std::make_unique<DungeonPaletteEditorPanel>(&palette_editor_));
+  // Note: DungeonRoomGraphicsPanel and DungeonPaletteEditorPanel are registered
+  // in Load() after their dependencies (renderer_, palette_editor_) are initialized
 }
 
 void DungeonEditorV2::Initialize() {}
@@ -220,6 +217,15 @@ absl::Status DungeonEditorV2::Load() {
   }
 
   palette_editor_.Initialize(game_data());
+
+  // Register panels that depend on initialized state (renderer, palette_editor_)
+  if (dependencies_.panel_manager) {
+    dependencies_.panel_manager->RegisterEditorPanel(
+        std::make_unique<DungeonRoomGraphicsPanel>(&current_room_id_, &rooms_,
+                                                   renderer_));
+    dependencies_.panel_manager->RegisterEditorPanel(
+        std::make_unique<DungeonPaletteEditorPanel>(&palette_editor_));
+  }
 
   dungeon_editor_system_ = std::make_unique<zelda3::DungeonEditorSystem>(rom_);
   (void)dungeon_editor_system_->Initialize();
@@ -741,6 +747,9 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
             OnRoomSelected(target_room);
           }
         });
+    viewer->SetShowObjectPanelCallback([this]() {
+      ShowPanel(kObjectToolsId);
+    });
 
     room_viewers_[room_id] = std::move(viewer);
     return room_viewers_[room_id].get();

@@ -192,6 +192,9 @@ class Canvas {
   CanvasMenuDefinition& editor_menu() { return editor_menu_; }
   const CanvasMenuDefinition& editor_menu() const { return editor_menu_; }
   void SetContextMenuEnabled(bool enabled) { context_menu_enabled_ = enabled; }
+  void SetShowBuiltinContextMenu(bool show) {
+    config_.show_builtin_context_menu = show;
+  }
 
   // Persistent popup management for context menu actions
   void OpenPersistentPopup(const std::string& popup_id,

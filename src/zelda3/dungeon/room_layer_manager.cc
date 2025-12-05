@@ -26,12 +26,15 @@ void ApplySDLPaletteToBitmap(SDL_Surface* src_surface, gfx::Bitmap& dst_bitmap) 
     colors[i] = src_pal->colors[i];
   }
 
-  // Fill remaining with transparent black
+  // Fill remaining with transparent black (prevents undefined colors)
   for (int i = colors_to_copy; i < 256; ++i) {
     colors[i] = {0, 0, 0, 0};
   }
 
-  // Ensure index 255 is transparent (used as fill color)
+  // IMPORTANT: Do NOT force palette[0] to transparent!
+  // In the dungeon system, pixel value 0 is never drawn (skipped in IsTransparent),
+  // but palette[0] contains the FIRST actual color. Pixel value 1 maps to palette[0].
+  // Only index 255 needs to be transparent (fill color for empty areas).
   colors[255] = {0, 0, 0, 0};
 
   // Apply palette to destination bitmap using the reliable method
@@ -108,15 +111,22 @@ void RoomLayerManager::CompositeToOutput(Room& room,
   // Sync pixel data to SDL surface for texture creation
   output.UpdateSurfacePixels();
 
-  // Apply DarkRoom effect if merge type is 0x08
-  // This simulates the SNES master brightness reduction for unlit rooms
-  if (current_merge_type_id_ == 0x08 && output.surface()) {
-    // Apply color modulation to darken the output (50% brightness)
-    // This affects the entire composite, simulating unlit dungeon rooms
-    SDL_SetSurfaceColorMod(output.surface(), 128, 128, 128);
-  } else if (output.surface()) {
-    // Reset to full brightness for non-dark rooms
-    SDL_SetSurfaceColorMod(output.surface(), 255, 255, 255);
+  // Set up transparency and effects for the composite output
+  if (output.surface()) {
+    // IMPORTANT: Use the same transparency setup as room.cc's set_dungeon_palette
+    // Color key on index 255 (unused in 90-color dungeon palette)
+    SDL_SetColorKey(output.surface(), SDL_TRUE, 255);
+    SDL_SetSurfaceBlendMode(output.surface(), SDL_BLENDMODE_BLEND);
+
+    // Apply DarkRoom effect if merge type is 0x08
+    // This simulates the SNES master brightness reduction for unlit rooms
+    if (current_merge_type_id_ == 0x08) {
+      // Apply color modulation to darken the output (50% brightness)
+      SDL_SetSurfaceColorMod(output.surface(), 128, 128, 128);
+    } else {
+      // Reset to full brightness for non-dark rooms
+      SDL_SetSurfaceColorMod(output.surface(), 255, 255, 255);
+    }
   }
 
   // Mark output as modified for texture update

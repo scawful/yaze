@@ -4,6 +4,7 @@
 #include <string>
 
 #include "app/editor/system/editor_panel.h"
+#include "app/gfx/backend/irenderer.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/icons.h"
@@ -25,9 +26,11 @@ namespace editor {
 class DungeonRoomGraphicsPanel : public EditorPanel {
  public:
   DungeonRoomGraphicsPanel(int* current_room_id,
-                           std::array<zelda3::Room, 0x128>* rooms)
+                           std::array<zelda3::Room, 0x128>* rooms,
+                           gfx::IRenderer* renderer = nullptr)
       : current_room_id_(current_room_id),
         rooms_(rooms),
+        renderer_(renderer),
         room_gfx_canvas_("##RoomGfxCanvasPanel", ImVec2(256 + 1, 256 + 1)) {}
 
   // ==========================================================================
@@ -90,7 +93,7 @@ class DungeonRoomGraphicsPanel : public EditorPanel {
             gfx_sheet.width() > 0) {
           gfx::Arena::Get().QueueTextureCommand(
               gfx::Arena::TextureCommandType::CREATE, &gfx_sheet);
-          gfx::Arena::Get().ProcessTextureQueue(nullptr);
+          gfx::Arena::Get().ProcessTextureQueue(renderer_);
         }
 
         int row = current_block / max_blocks_per_row;
@@ -122,6 +125,7 @@ class DungeonRoomGraphicsPanel : public EditorPanel {
  private:
   int* current_room_id_ = nullptr;
   std::array<zelda3::Room, 0x128>* rooms_ = nullptr;
+  gfx::IRenderer* renderer_ = nullptr;
   gui::Canvas room_gfx_canvas_;
 };
 

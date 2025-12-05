@@ -26,6 +26,7 @@ struct CanvasConfig {
   bool enable_hex_labels = false;
   bool enable_custom_labels = false;
   bool enable_context_menu = true;
+  bool show_builtin_context_menu = true;  // Show built-in canvas debug items
   bool is_draggable = false;
   bool auto_resize = false;
   bool clamp_rect_to_local_maps =

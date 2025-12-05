@@ -43,8 +43,11 @@ void BackgroundBuffer::ClearBuffer() {
 
 void BackgroundBuffer::EnsureBitmapInitialized() {
   if (!bitmap_.is_active() || bitmap_.width() == 0) {
+    // IMPORTANT: Initialize to 255 (transparent fill), NOT 0!
+    // In dungeon rendering, pixel value 0 represents palette[0] (actual color).
+    // Only 255 is treated as transparent by IsTransparent().
     bitmap_.Create(width_, height_, 8,
-                   std::vector<uint8_t>(width_ * height_, 0));
+                   std::vector<uint8_t>(width_ * height_, 255));
   }
 }
 
@@ -128,10 +131,11 @@ void BackgroundBuffer::DrawBackground(std::span<uint8_t> gfx16_data) {
   }
 
   // NEVER recreate bitmap here - it should be created by DrawFloor or
-  // initialized earlier If bitmap doesn't exist, create it ONCE with zeros
+  // initialized earlier. If bitmap doesn't exist, create it ONCE with 255 fill
+  // IMPORTANT: Use 255 (transparent), NOT 0! Pixel value 0 = palette[0] (actual color)
   if (!bitmap_.is_active() || bitmap_.width() == 0) {
     bitmap_.Create(width_, height_, 8,
-                   std::vector<uint8_t>(width_ * height_, 0));
+                   std::vector<uint8_t>(width_ * height_, 255));
   }
 
   // For each tile on the tile buffer
@@ -188,11 +192,12 @@ void BackgroundBuffer::DrawFloor(const std::vector<uint8_t>& rom_data,
                                  int tile_address, int tile_address_floor,
                                  uint8_t floor_graphics) {
   // Create bitmap ONCE at the start if it doesn't exist
+  // IMPORTANT: Use 255 (transparent fill), NOT 0! Pixel value 0 = palette[0] (actual color)
   if (!bitmap_.is_active() || bitmap_.width() == 0) {
     LOG_DEBUG("[DrawFloor]", "Creating bitmap: %dx%d, active=%d, width=%d",
               width_, height_, bitmap_.is_active(), bitmap_.width());
     bitmap_.Create(width_, height_, 8,
-                   std::vector<uint8_t>(width_ * height_, 0));
+                   std::vector<uint8_t>(width_ * height_, 255));
     LOG_DEBUG("[DrawFloor]", "After Create: active=%d, width=%d, height=%d",
               bitmap_.is_active(), bitmap_.width(), bitmap_.height());
   } else {
