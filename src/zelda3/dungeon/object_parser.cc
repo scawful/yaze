@@ -239,6 +239,31 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype2(
 
   // Determine tile count based on object ID
   int tile_count = GetSubtype2TileCount(object_id);
+  
+  // DEBUG: Log corner tile loading (0x100-0x103)
+  bool is_corner = (object_id >= 0x100 && object_id <= 0x103);
+  if (is_corner) {
+    printf("[ParseSubtype2] CORNER obj=0x%03X: index=%d tile_ptr=0x%04X\n",
+           object_id, index, tile_ptr);
+    printf("  ROM[0x%04X..0x%04X] = 0x%02X 0x%02X -> offset=0x%04X\n",
+           tile_ptr, tile_ptr+1, low, high, (high << 8) | low);
+    printf("  tile_data_ptr = 0x%04X + 0x%04X = 0x%04X (tile_count=%d)\n",
+           kRoomObjectTileAddress, (high << 8) | low, tile_data_ptr, tile_count);
+    
+    // Show first 4 tile words
+    if (tile_data_ptr >= 0 && tile_data_ptr + 8 < (int)rom_->size()) {
+      printf("  First 4 tiles: ");
+      for (int i = 0; i < 4; i++) {
+        uint16_t tw = rom_->data()[tile_data_ptr + i*2] |
+                      (rom_->data()[tile_data_ptr + i*2 + 1] << 8);
+        uint16_t tid = tw & 0x3FF;
+        printf("$%04X(id=%d) ", tw, tid);
+      }
+      printf("\n");
+    }
+    fflush(stdout);
+  }
+  
   return ReadTileData(tile_data_ptr, tile_count);
 }
 

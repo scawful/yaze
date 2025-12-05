@@ -798,10 +798,14 @@ void Room::RenderRoomGraphics() {
 
 
 void Room::LoadLayoutTilesToBuffer() {
+  // DEBUG: Use printf for visibility
+  printf("[LoadLayoutTilesToBuffer] START for room %d, layout=%d\n", room_id_, layout);
+  fflush(stdout);  // Ensure output is visible
   LOG_DEBUG("RenderRoomGraphics", "LoadLayoutTilesToBuffer START for room %d",
             room_id_);
 
   if (!rom_ || !rom_->is_loaded()) {
+    printf("[LoadLayoutTilesToBuffer] ROM not loaded, aborting\n");
     LOG_DEBUG("RenderRoomGraphics", "ROM not loaded, aborting");
     return;
   }
@@ -810,12 +814,16 @@ void Room::LoadLayoutTilesToBuffer() {
   layout_.SetRom(rom_);
   auto layout_status = layout_.LoadLayout(layout);
   if (!layout_status.ok()) {
+    printf("[LoadLayoutTilesToBuffer] Failed to load layout %d: %s\n",
+           layout, std::string(layout_status.message()).c_str());
     LOG_DEBUG("RenderRoomGraphics", "Failed to load layout %d: %s",
               layout, layout_status.message().data());
     return;
   }
 
   const auto& layout_objects = layout_.GetObjects();
+  printf("[LoadLayoutTilesToBuffer] Layout %d has %zu objects\n", layout, layout_objects.size());
+  fflush(stdout);  // Ensure output is visible
   LOG_DEBUG("RenderRoomGraphics", "Layout has %zu objects",
             layout_objects.size());
   if (layout_objects.empty()) {
