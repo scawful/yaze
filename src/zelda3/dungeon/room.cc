@@ -2,6 +2,7 @@
 
 #include <yaze.h>
 
+#include <algorithm>
 #include <cstdint>
 #include <vector>
 
@@ -14,6 +15,7 @@
 #include "util/log.h"
 #include "zelda3/dungeon/editor_dungeon_state.h"
 #include "zelda3/dungeon/object_drawer.h"
+#include "zelda3/dungeon/room_layer_manager.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/sprite/sprite.h"
 #include "zelda3/dungeon/palette_debug.h"
@@ -505,6 +507,14 @@ void Room::CopyRoomGraphicsToBuffer() {
   LoadAnimatedGraphics();
 }
 
+gfx::Bitmap& Room::GetCompositeBitmap(RoomLayerManager& layer_mgr) {
+  if (composite_dirty_) {
+    layer_mgr.CompositeToOutput(*this, composite_bitmap_);
+    composite_dirty_ = false;
+  }
+  return composite_bitmap_;
+}
+
 void Room::RenderRoomGraphics() {
   // PERFORMANCE OPTIMIZATION: Check if room properties have changed
   bool properties_changed = false;
@@ -605,32 +615,18 @@ void Room::RenderRoomGraphics() {
     layout_dirty_ = false;
   }
 
-  // Get and apply palette BEFORE rendering objects (so objects use correct
-  // colors)
+  // Get and apply palette BEFORE rendering objects (so objects use correct colors)
   if (!game_data_) return;
   auto& dungeon_pal_group = game_data_->palette_groups.dungeon_main;
   int num_palettes = dungeon_pal_group.size();
+  if (num_palettes == 0) return;
 
-  // Use palette indirection table lookup (same as dungeon_canvas_viewer.cc line
-  // 854)
-  int palette_id = palette;  // Default fallback
-  if (palette < game_data_->paletteset_ids.size() &&
-      !game_data_->paletteset_ids[palette].empty()) {
-    auto dungeon_palette_ptr = game_data_->paletteset_ids[palette][0];
-    auto palette_word = rom()->ReadWord(0xDEC4B + dungeon_palette_ptr);
-    if (palette_word.ok()) {
-      palette_id =
-          palette_word.value() / 180;  // Divide by 180 to get group index
-      LOG_DEBUG("[RenderRoomGraphics]",
-                "Palette lookup: byte=0x%02X → group_id=%d", palette,
-                palette_id);
-    }
+  // Prefer palette set mapping (paletteset_ids) to group index; fallback to header
+  int palette_id = palette;
+  if (palette < game_data_->paletteset_ids.size()) {
+    palette_id = game_data_->paletteset_ids[palette][0];
   }
-
-  // Clamp to valid range
-  if (palette_id < 0 || palette_id >= num_palettes) {
-    palette_id = palette_id % num_palettes;
-  }
+  palette_id = std::clamp<int>(palette_id, 0, num_palettes - 1);
 
   auto bg1_palette = dungeon_pal_group[palette_id];
 
@@ -745,34 +741,28 @@ void Room::RenderRoomGraphics() {
   RenderObjectsToBackground();
 
   // PERFORMANCE OPTIMIZATION: Queue texture commands but DON'T process
-  // immediately This allows multiple rooms to batch their texture updates
-  // together The dungeon_canvas_viewer.cc:552 will process all queued textures
-  // once per frame
-  if (bg1_bmp.texture()) {
-    // Texture exists - UPDATE it with new object data
-    LOG_DEBUG("[RenderRoomGraphics]",
-              "Queueing UPDATE for existing textures (deferred)");
-    gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::UPDATE, &bg1_bmp);
-    gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::UPDATE, &bg2_bmp);
-    gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::UPDATE, &object_bg1_buffer_.bitmap());
-    gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::UPDATE, &object_bg2_buffer_.bitmap());
-  } else {
-    // No texture yet - CREATE it
-    LOG_DEBUG("[RenderRoomGraphics]",
-              "Queueing CREATE for new textures (deferred)");
-    gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::CREATE, &bg1_bmp);
-    gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::CREATE, &bg2_bmp);
-    gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::CREATE, &object_bg1_buffer_.bitmap());
-    gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::CREATE, &object_bg2_buffer_.bitmap());
-  }
+  // immediately. This allows multiple rooms to batch their texture updates
+  // together. Processing happens in DrawDungeonCanvas() once per frame.
+  //
+  // IMPORTANT: Check each buffer INDIVIDUALLY for existing texture.
+  // Layout and object buffers may have different states (e.g., layout rendered
+  // but objects added later need CREATE, not UPDATE).
+  auto queue_texture = [](gfx::Bitmap* bitmap, const char* name) {
+    if (bitmap->texture()) {
+      LOG_DEBUG("[RenderRoomGraphics]", "Queueing UPDATE for %s", name);
+      gfx::Arena::Get().QueueTextureCommand(
+          gfx::Arena::TextureCommandType::UPDATE, bitmap);
+    } else {
+      LOG_DEBUG("[RenderRoomGraphics]", "Queueing CREATE for %s", name);
+      gfx::Arena::Get().QueueTextureCommand(
+          gfx::Arena::TextureCommandType::CREATE, bitmap);
+    }
+  };
+
+  queue_texture(&bg1_bmp, "bg1_buffer");
+  queue_texture(&bg2_bmp, "bg2_buffer");
+  queue_texture(&object_bg1_buffer_.bitmap(), "object_bg1_buffer");
+  queue_texture(&object_bg2_buffer_.bitmap(), "object_bg2_buffer");
 
   // Mark textures as clean after successful queuing
   textures_dirty_ = false;
@@ -823,6 +813,7 @@ void Room::LoadLayoutTilesToBuffer() {
   // Get palette for layout rendering
   auto& dungeon_pal_group = game_data_->palette_groups.dungeon_main;
   int num_palettes = dungeon_pal_group.size();
+  if (num_palettes == 0) return;
   int palette_id = palette;
   if (palette < game_data_->paletteset_ids.size() &&
       !game_data_->paletteset_ids[palette].empty()) {
@@ -887,20 +878,11 @@ void Room::RenderObjectsToBackground() {
   auto& dungeon_pal_group = game_data_->palette_groups.dungeon_main;
   int num_palettes = dungeon_pal_group.size();
 
-  // Use palette indirection table lookup
   int palette_id = palette;
-  if (palette < game_data_->paletteset_ids.size() &&
-      !game_data_->paletteset_ids[palette].empty()) {
-    auto dungeon_palette_ptr = game_data_->paletteset_ids[palette][0];
-    auto palette_word = rom()->ReadWord(0xDEC4B + dungeon_palette_ptr);
-    if (palette_word.ok()) {
-      palette_id = palette_word.value() / 180;
-    }
+  if (palette < game_data_->paletteset_ids.size()) {
+    palette_id = game_data_->paletteset_ids[palette][0];
   }
-
-  if (palette_id < 0 || palette_id >= num_palettes) {
-    palette_id = 0;
-  }
+  palette_id = std::clamp<int>(palette_id, 0, num_palettes - 1);
 
   auto room_palette = dungeon_pal_group[palette_id];
   // Dungeon palettes are 90-color palettes for 3BPP graphics (8-color strides)
@@ -1457,6 +1439,7 @@ absl::Status Room::AddObject(const RoomObject& object) {
 
   // Add to internal list
   tile_objects_.push_back(object);
+  MarkObjectsDirty();
 
   return absl::OkStatus();
 }
@@ -1467,6 +1450,7 @@ absl::Status Room::RemoveObject(size_t index) {
   }
 
   tile_objects_.erase(tile_objects_.begin() + index);
+  MarkObjectsDirty();
 
   return absl::OkStatus();
 }
@@ -1481,6 +1465,7 @@ absl::Status Room::UpdateObject(size_t index, const RoomObject& object) {
   }
 
   tile_objects_[index] = object;
+  MarkObjectsDirty();
 
   return absl::OkStatus();
 }

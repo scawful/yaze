@@ -443,6 +443,62 @@ inline int GetSurfaceBitsPerPixel(SDL_Surface* surface) {
 }
 
 /**
+ * @brief Ensure the surface has a proper 256-color palette for indexed formats.
+ * 
+ * For 8-bit indexed surfaces, this creates and attaches a 256-color palette
+ * if one doesn't exist or if the existing palette is too small.
+ * 
+ * @param surface The surface to check/fix
+ * @return true if surface now has a valid 256-color palette, false on error
+ */
+inline bool EnsureSurfacePalette256(SDL_Surface* surface) {
+  if (!surface) return false;
+  
+  SDL_Palette* existing = GetSurfacePalette(surface);
+  if (existing && existing->ncolors >= 256) {
+    return true;  // Already has proper palette
+  }
+  
+  // Check if this is an indexed format that needs a palette
+  int bpp = GetSurfaceBitsPerPixel(surface);
+  if (bpp != 8) {
+    return true;  // Not an indexed format, no palette needed
+  }
+  
+  // Create a new 256-color palette (SDL2: SDL_AllocPalette, SDL3: SDL_CreatePalette)
+#ifdef YAZE_USE_SDL3
+  SDL_Palette* new_palette = SDL_CreatePalette(256);
+#else
+  SDL_Palette* new_palette = SDL_AllocPalette(256);
+#endif
+  if (!new_palette) {
+    SDL_Log("Warning: Failed to create 256-color palette: %s", SDL_GetError());
+    return false;
+  }
+  
+  // Initialize with grayscale as a safe default
+  SDL_Color colors[256];
+  for (int i = 0; i < 256; i++) {
+    colors[i].r = colors[i].g = colors[i].b = static_cast<Uint8>(i);
+    colors[i].a = 255;
+  }
+  SDL_SetPaletteColors(new_palette, colors, 0, 256);
+  
+  // Attach to surface
+  if (SDL_SetSurfacePalette(surface, new_palette) != 0) {
+    SDL_Log("Warning: Failed to set surface palette: %s", SDL_GetError());
+#ifdef YAZE_USE_SDL3
+    SDL_DestroyPalette(new_palette);
+#else
+    SDL_FreePalette(new_palette);
+#endif
+    return false;
+  }
+  
+  return true;
+}
+
+/**
  * @brief Get bytes per pixel from a surface.
  *
  * SDL2: surface->format->BytesPerPixel

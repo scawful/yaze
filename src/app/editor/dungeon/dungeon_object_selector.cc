@@ -721,37 +721,22 @@ bool DungeonObjectSelector::MatchesObjectFilter(int obj_id, int filter_type) {
 
 void DungeonObjectSelector::CalculateObjectDimensions(
     const zelda3::RoomObject& object, int& width, int& height) {
-  // Default base size
-  width = 16;
-  height = 16;
+  // Size is a single 4-bit value (0-15), NOT two separate nibbles
+  // Size represents repetition count for the object's draw routine
+  int size = object.size_ & 0x0F;
 
-  // For walls, use the size field to determine length
-  if (object.id_ >= 0x10 && object.id_ <= 0x1F) {
-    // Wall objects: size determines length and orientation
-    uint8_t size_x = object.size_ & 0x0F;
-    uint8_t size_y = (object.size_ >> 4) & 0x0F;
-
-    // Walls can be horizontal or vertical based on size parameters
-    if (size_x > size_y) {
-      // Horizontal wall
-      width = 16 + size_x * 16;  // Each unit adds 16 pixels
-      height = 16;
-    } else if (size_y > size_x) {
-      // Vertical wall
-      width = 16;
-      height = 16 + size_y * 16;
-    } else {
-      // Square wall or corner
-      width = 16 + size_x * 8;
-      height = 16 + size_y * 8;
-    }
+  // Base 16x16 (2x2 tiles), extension depends on object orientation
+  // Most objects extend horizontally, some (0x60-0x7F) extend vertically
+  if (object.id_ >= 0x60 && object.id_ <= 0x7F) {
+    // Vertical objects
+    width = 16;
+    height = 16 + size * 16;
   } else {
-    // For other objects, use standard size calculation
-    width = 16 + (object.size_ & 0x0F) * 8;
-    height = 16 + ((object.size_ >> 4) & 0x0F) * 8;
+    // Horizontal objects (default)
+    width = 16 + size * 16;
+    height = 16;
   }
 
-  // Clamp to reasonable limits
   width = std::min(width, 256);
   height = std::min(height, 256);
 }
@@ -1121,64 +1106,102 @@ zelda3::RoomObject DungeonObjectSelector::MakePreviewObject(int obj_id) const {
   return obj;
 }
 
-bool DungeonObjectSelector::DrawObjectPreview(
-    const zelda3::RoomObject& object, ImVec2 top_left, float size) {
+void DungeonObjectSelector::InvalidatePreviewCache() {
+  preview_cache_.clear();
+}
+
+bool DungeonObjectSelector::GetOrCreatePreview(int obj_id, float size,
+                                                gfx::BackgroundBuffer** out) {
   if (!rom_ || !rom_->is_loaded()) {
     return false;
   }
 
-  // Check if we have valid graphics data from a loaded room
-  const uint8_t* gfx_data = nullptr;
+  // Check if room context changed - invalidate cache if so
   if (rooms_ && current_room_id_ < static_cast<int>(rooms_->size())) {
     const auto& room = (*rooms_)[current_room_id_];
-    // Room must be loaded (graphics populated) to use its gfx buffer
-    if (room.IsLoaded()) {
-      gfx_data = room.get_gfx_buffer().data();
+    if (!room.IsLoaded()) {
+      return false;  // Can't render without loaded room
     }
-  }
 
-  // If no room graphics available (room not loaded), we can't render a preview
-  if (!gfx_data) {
+    // Invalidate cache if room/palette/blockset changed
+    if (current_room_id_ != cached_preview_room_id_ ||
+        room.blockset != cached_preview_blockset_ ||
+        room.palette != cached_preview_palette_) {
+      InvalidatePreviewCache();
+      cached_preview_room_id_ = current_room_id_;
+      cached_preview_blockset_ = room.blockset;
+      cached_preview_palette_ = room.palette;
+    }
+  } else {
     return false;
   }
 
-  // Check if tiles were loaded
-  if (object.tiles().empty()) {
+  // Check if already in cache
+  auto it = preview_cache_.find(obj_id);
+  if (it != preview_cache_.end()) {
+    *out = it->second.get();
+    return (*out)->bitmap().texture() != nullptr;
+  }
+
+  // Create new preview buffer
+  auto& room = (*rooms_)[current_room_id_];
+  const uint8_t* gfx_data = room.get_gfx_buffer().data();
+
+  auto preview = std::make_unique<gfx::BackgroundBuffer>(
+      static_cast<int>(size), static_cast<int>(size));
+
+  // Create object and render it
+  zelda3::RoomObject obj(obj_id, 0, 0, 0x12, 0);
+  obj.SetRom(rom_);
+  obj.EnsureTilesLoaded();
+
+  if (obj.tiles().empty()) {
     return false;
   }
 
-  // Create preview buffer with proper size
-  gfx::BackgroundBuffer preview_bg(static_cast<int>(size),
-                                   static_cast<int>(size));
-
-  // Initialize drawer and render object
   zelda3::ObjectDrawer drawer(rom_, current_room_id_, gfx_data);
   drawer.InitializeDrawRoutines();
 
   auto status =
-      drawer.DrawObject(object, preview_bg, preview_bg, current_palette_group_);
+      drawer.DrawObject(obj, *preview, *preview, current_palette_group_);
   if (!status.ok()) {
     return false;
   }
 
-  // Get bitmap and ensure it has valid data
-  auto& bitmap = preview_bg.bitmap();
+  // Check if bitmap has content
+  auto& bitmap = preview->bitmap();
   if (bitmap.size() == 0) {
     return false;
   }
 
-  // Create texture if needed
-  if (!bitmap.texture()) {
-    gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::CREATE, &bitmap);
-    gfx::Arena::Get().ProcessTextureQueue(nullptr);
-  }
+  // Create texture
+  gfx::Arena::Get().QueueTextureCommand(
+      gfx::Arena::TextureCommandType::CREATE, &bitmap);
+  gfx::Arena::Get().ProcessTextureQueue(nullptr);
 
   if (!bitmap.texture()) {
     return false;
   }
 
-  // Draw the preview image
+  // Store in cache and return
+  *out = preview.get();
+  preview_cache_[obj_id] = std::move(preview);
+  return true;
+}
+
+bool DungeonObjectSelector::DrawObjectPreview(
+    const zelda3::RoomObject& object, ImVec2 top_left, float size) {
+  gfx::BackgroundBuffer* preview = nullptr;
+  if (!GetOrCreatePreview(object.id_, size, &preview)) {
+    return false;
+  }
+
+  // Draw the cached preview image
+  auto& bitmap = preview->bitmap();
+  if (!bitmap.texture()) {
+    return false;
+  }
+
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   ImVec2 bottom_right(top_left.x + size, top_left.y + size);
   draw_list->AddImage((ImTextureID)(intptr_t)bitmap.texture(), top_left,

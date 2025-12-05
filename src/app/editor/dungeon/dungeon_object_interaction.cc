@@ -9,6 +9,7 @@
 
 // Project headers
 #include "app/editor/agent/agent_ui_theme.h"
+#include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
 
 namespace yaze::editor {
@@ -29,6 +30,9 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
 
   // Handle scroll wheel for resizing selected objects
   HandleScrollWheelResize();
+
+  // Handle layer assignment keyboard shortcuts (1, 2, 3 keys)
+  HandleLayerKeyboardShortcuts();
 
   // Get mouse position relative to canvas
   ImVec2 mouse_pos = io.MousePos;
@@ -110,6 +114,9 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
           }
         }
 
+        // Ensure renderers refresh after positional change
+        room.MarkObjectsDirty();
+
         // Trigger cache invalidation and re-render
         if (cache_invalidation_callback_) {
           cache_invalidation_callback_();
@@ -180,11 +187,17 @@ void DungeonObjectInteraction::DrawSelectionHighlights() {
   // Use ObjectSelection's rendering (handles pulsing border, corner handles)
   selection_.DrawSelectionHighlights(
       canvas_, objects, [this](const zelda3::RoomObject& obj) {
+        // Prefer ObjectDimensionTable (tile units) for consistent hit testing
+        auto& dim_table = zelda3::ObjectDimensionTable::Get();
+        if (dim_table.IsLoaded()) {
+          auto [w_tiles, h_tiles] = dim_table.GetDimensions(obj.id_, obj.size_);
+          return std::make_pair(w_tiles * 8, h_tiles * 8);
+        }
+        // Fallback to drawer (aligns with render) if table not loaded
         if (object_drawer_) {
           return object_drawer_->CalculateObjectDimensions(obj);
         }
-        // Fallback if no drawer available
-        return std::make_pair(16, 16);
+        return std::make_pair(16, 16);  // Safe fallback
       });
 
   // Interaction-specific: size tooltip when hovering over selected object
@@ -264,11 +277,8 @@ void DungeonObjectInteraction::DrawDragPreview() {
       const auto& object = objects[index];
       auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(object.x_, object.y_);
 
-      // Calculate object size
-      int obj_width = 8 + (object.size_ & 0x0F) * 4;
-      int obj_height = 8 + ((object.size_ >> 4) & 0x0F) * 4;
-      obj_width = std::min(obj_width, 64);
-      obj_height = std::min(obj_height, 64);
+      // Calculate object size using shared dimension logic
+      auto [obj_width, obj_height] = CalculateObjectBounds(object);
 
       // Draw semi-transparent preview at new position
       ImVec2 preview_start(canvas_pos.x + canvas_x + drag_delta.x,
@@ -332,6 +342,64 @@ void DungeonObjectInteraction::SetPreviewObject(
     const zelda3::RoomObject& object, bool loaded) {
   preview_object_ = object;
   object_loaded_ = loaded;
+
+  // Render ghost preview bitmap when object is loaded
+  if (loaded && object.id_ >= 0) {
+    RenderGhostPreviewBitmap();
+  } else {
+    ghost_preview_buffer_.reset();
+  }
+}
+
+void DungeonObjectInteraction::RenderGhostPreviewBitmap() {
+  if (!rom_ || !rom_->is_loaded()) {
+    ghost_preview_buffer_.reset();
+    return;
+  }
+
+  // Need room graphics to render the object
+  if (!rooms_ || current_room_id_ < 0 ||
+      current_room_id_ >= static_cast<int>(rooms_->size())) {
+    ghost_preview_buffer_.reset();
+    return;
+  }
+
+  auto& room = (*rooms_)[current_room_id_];
+  if (!room.IsLoaded()) {
+    ghost_preview_buffer_.reset();
+    return;
+  }
+
+  // Calculate object dimensions
+  auto [width, height] = CalculateObjectBounds(preview_object_);
+  width = std::max(width, 16);
+  height = std::max(height, 16);
+
+  // Create or resize the buffer
+  ghost_preview_buffer_ =
+      std::make_unique<gfx::BackgroundBuffer>(width, height);
+
+  // Get graphics data from the room
+  const uint8_t* gfx_data = room.get_gfx_buffer().data();
+
+  // Render the preview object
+  zelda3::ObjectDrawer drawer(rom_, current_room_id_, gfx_data);
+  drawer.InitializeDrawRoutines();
+
+  auto status = drawer.DrawObject(preview_object_, *ghost_preview_buffer_,
+                                   *ghost_preview_buffer_, current_palette_group_);
+  if (!status.ok()) {
+    ghost_preview_buffer_.reset();
+    return;
+  }
+
+  // Create texture for the preview
+  auto& bitmap = ghost_preview_buffer_->bitmap();
+  if (bitmap.size() > 0) {
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::CREATE, &bitmap);
+    gfx::Arena::Get().ProcessTextureQueue(nullptr);
+  }
 }
 
 void DungeonObjectInteraction::ClearSelection() {
@@ -486,8 +554,18 @@ void DungeonObjectInteraction::DrawGhostPreview() {
   auto [snap_canvas_x, snap_canvas_y] = RoomToCanvasCoordinates(room_x, room_y);
 
   // Calculate object dimensions
-  int obj_width = 8 + (preview_object_.size_ & 0x0F) * 4;
-  int obj_height = 8 + ((preview_object_.size_ >> 4) & 0x0F) * 4;
+  // Size is a single 4-bit value (0-15), NOT two separate nibbles
+  int size = preview_object_.size_ & 0x0F;
+  int obj_width, obj_height;
+  if (preview_object_.id_ >= 0x60 && preview_object_.id_ <= 0x7F) {
+    // Vertical objects
+    obj_width = 16;
+    obj_height = 16 + size * 16;
+  } else {
+    // Horizontal objects (default)
+    obj_width = 16 + size * 16;
+    obj_height = 16;
+  }
   obj_width = std::min(obj_width, 256);
   obj_height = std::min(obj_height, 256);
 
@@ -502,28 +580,63 @@ void DungeonObjectInteraction::DrawGhostPreview() {
                      preview_start.y + obj_height * scale);
 
   const auto& theme = AgentUI::GetTheme();
+  bool drew_bitmap = false;
 
-  // Draw semi-transparent filled rectangle (ghost effect)
-  ImVec4 preview_fill = ImVec4(theme.dungeon_selection_primary.x,
-                               theme.dungeon_selection_primary.y,
-                               theme.dungeon_selection_primary.z,
-                               0.25f);  // Semi-transparent
-  draw_list->AddRectFilled(preview_start, preview_end,
-                           ImGui::GetColorU32(preview_fill));
+  // Try to draw the rendered object preview bitmap
+  if (ghost_preview_buffer_) {
+    auto& bitmap = ghost_preview_buffer_->bitmap();
+    if (bitmap.texture()) {
+      // Draw the actual object graphics with transparency
+      ImVec2 bitmap_end(preview_start.x + bitmap.width() * scale,
+                        preview_start.y + bitmap.height() * scale);
 
-  // Draw solid outline for visibility
-  ImVec4 preview_outline = ImVec4(theme.dungeon_selection_primary.x,
-                                  theme.dungeon_selection_primary.y,
-                                  theme.dungeon_selection_primary.z,
-                                  0.78f);  // More visible
-  draw_list->AddRect(preview_start, preview_end,
-                     ImGui::GetColorU32(preview_outline), 0.0f, 0, 2.0f);
+      // Draw with semi-transparency (ghost effect)
+      draw_list->AddImage((ImTextureID)(intptr_t)bitmap.texture(),
+                          preview_start, bitmap_end, ImVec2(0, 0), ImVec2(1, 1),
+                          IM_COL32(255, 255, 255, 180));  // Semi-transparent
+
+      // Draw outline around the bitmap
+      ImVec4 preview_outline = ImVec4(theme.dungeon_selection_primary.x,
+                                      theme.dungeon_selection_primary.y,
+                                      theme.dungeon_selection_primary.z,
+                                      0.78f);  // More visible
+      draw_list->AddRect(preview_start, bitmap_end,
+                         ImGui::GetColorU32(preview_outline), 0.0f, 0, 2.0f);
+      drew_bitmap = true;
+    }
+  }
+
+  // Fallback: draw colored rectangle if no bitmap available
+  if (!drew_bitmap) {
+    // Draw semi-transparent filled rectangle (ghost effect)
+    ImVec4 preview_fill = ImVec4(theme.dungeon_selection_primary.x,
+                                 theme.dungeon_selection_primary.y,
+                                 theme.dungeon_selection_primary.z,
+                                 0.25f);  // Semi-transparent
+    draw_list->AddRectFilled(preview_start, preview_end,
+                             ImGui::GetColorU32(preview_fill));
+
+    // Draw solid outline for visibility
+    ImVec4 preview_outline = ImVec4(theme.dungeon_selection_primary.x,
+                                    theme.dungeon_selection_primary.y,
+                                    theme.dungeon_selection_primary.z,
+                                    0.78f);  // More visible
+    draw_list->AddRect(preview_start, preview_end,
+                       ImGui::GetColorU32(preview_outline), 0.0f, 0, 2.0f);
+  }
 
   // Draw object ID text at corner
   std::string id_text = absl::StrFormat("0x%02X", preview_object_.id_);
   ImVec2 text_pos(preview_start.x + 2, preview_start.y + 2);
-  draw_list->AddText(text_pos, ImGui::GetColorU32(theme.text_primary),
-                     id_text.c_str());
+
+  // Draw text background for readability
+  ImVec2 text_size = ImGui::CalcTextSize(id_text.c_str());
+  draw_list->AddRectFilled(text_pos,
+                           ImVec2(text_pos.x + text_size.x + 4,
+                                  text_pos.y + text_size.y + 2),
+                           IM_COL32(0, 0, 0, 180));
+  draw_list->AddText(ImVec2(text_pos.x + 2, text_pos.y + 1),
+                     ImGui::GetColorU32(theme.text_primary), id_text.c_str());
 
   // Draw crosshair at placement position
   constexpr float crosshair_size = 8.0f;
@@ -597,6 +710,8 @@ void DungeonObjectInteraction::HandleScrollWheelResize() {
     object.size_ = static_cast<uint8_t>(new_size);
   }
 
+  room.MarkObjectsDirty();
+
   // Trigger cache invalidation and re-render
   if (cache_invalidation_callback_) {
     cache_invalidation_callback_();
@@ -605,20 +720,35 @@ void DungeonObjectInteraction::HandleScrollWheelResize() {
 
 std::pair<int, int> DungeonObjectInteraction::CalculateObjectBounds(
     const zelda3::RoomObject& object) {
+  // Try dimension table first for consistency with selection/highlights
+  auto& dim_table = zelda3::ObjectDimensionTable::Get();
+  if (dim_table.IsLoaded()) {
+    auto [w_tiles, h_tiles] = dim_table.GetDimensions(object.id_, object.size_);
+    return {w_tiles * 8, h_tiles * 8};
+  }
+
   // If we have a ROM, use ObjectDrawer to calculate accurate dimensions
   if (rom_) {
     if (!object_drawer_) {
-      object_drawer_ = std::make_unique<zelda3::ObjectDrawer>(rom_, current_room_id_);
+      object_drawer_ =
+          std::make_unique<zelda3::ObjectDrawer>(rom_, current_room_id_);
     }
     return object_drawer_->CalculateObjectDimensions(object);
   }
 
-  // Fallback to naive calculation if no ROM available
-  // Matches DungeonCanvasViewer::DrawRoomObjects logic
-  int size_h = (object.size_ & 0x0F);
-  int size_v = (object.size_ >> 4) & 0x0F;
-  int width = (size_h + 1) * 8;
-  int height = (size_v + 1) * 8;
+  // Fallback to simplified calculation if no ROM available
+  // Size is a single 4-bit value (0-15), NOT two separate nibbles
+  int size = object.size_ & 0x0F;
+  int width, height;
+  if (object.id_ >= 0x60 && object.id_ <= 0x7F) {
+    // Vertical objects
+    width = 16;
+    height = 16 + size * 16;
+  } else {
+    // Horizontal objects (default)
+    width = 16 + size * 16;
+    height = 16;
+  }
   return {width, height};
 }
 
@@ -680,6 +810,59 @@ size_t DungeonObjectInteraction::GetHoveredObjectIndex() const {
   }
 
   return static_cast<size_t>(-1);
+}
+
+void DungeonObjectInteraction::SendSelectedToLayer(int target_layer) {
+  auto indices = selection_.GetSelectedIndices();
+  if (indices.empty() || !rooms_)
+    return;
+  if (current_room_id_ < 0 || current_room_id_ >= 296)
+    return;
+
+  // Validate target layer
+  if (target_layer < 0 || target_layer > 2) {
+    return;
+  }
+
+  if (mutation_hook_) {
+    mutation_hook_();
+  }
+
+  auto& room = (*rooms_)[current_room_id_];
+  auto& objects = room.GetTileObjects();
+
+  // Update layer for all selected objects
+  for (size_t index : indices) {
+    if (index < objects.size()) {
+      objects[index].layer_ =
+          static_cast<zelda3::RoomObject::LayerType>(target_layer);
+    }
+  }
+
+  room.MarkObjectsDirty();
+
+  // Trigger cache invalidation and re-render
+  if (cache_invalidation_callback_) {
+    cache_invalidation_callback_();
+  }
+}
+
+void DungeonObjectInteraction::HandleLayerKeyboardShortcuts() {
+  // Only process if we have selected objects
+  if (!selection_.HasSelection())
+    return;
+
+  // Check for layer assignment shortcuts (1, 2, 3 keys)
+  // Only when not typing in a text field
+  if (!ImGui::IsAnyItemActive()) {
+    if (ImGui::IsKeyPressed(ImGuiKey_1)) {
+      SendSelectedToLayer(0);  // Layer 1 (BG1)
+    } else if (ImGui::IsKeyPressed(ImGuiKey_2)) {
+      SendSelectedToLayer(1);  // Layer 2 (BG2)
+    } else if (ImGui::IsKeyPressed(ImGuiKey_3)) {
+      SendSelectedToLayer(2);  // Layer 3 (BG3)
+    }
+  }
 }
 
 }  // namespace yaze::editor

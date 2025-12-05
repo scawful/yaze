@@ -96,6 +96,10 @@ class DungeonCanvasViewer {
   }
   ObjectRenderMode GetObjectRenderMode() const { return object_render_mode_; }
 
+  // Composite mode: use merged bitmap instead of 4-layer draw
+  void SetCompositeMode(bool enabled) { use_composite_mode_ = enabled; }
+  bool IsCompositeMode() const { return use_composite_mode_; }
+
   // Layer visibility controls (per-room) using RoomLayerManager
   void SetLayerVisible(int room_id, zelda3::LayerType layer, bool visible) {
     GetRoomLayerManager(room_id).SetLayerVisible(layer, visible);
@@ -206,6 +210,8 @@ class DungeonCanvasViewer {
 
   // Set the object to be placed
   void SetPreviewObject(const zelda3::RoomObject& object) {
+    // Pass palette group first so ghost preview can render correctly
+    object_interaction_.SetCurrentPaletteGroup(current_palette_group_);
     object_interaction_.SetPreviewObject(object, true);
   }
   void ClearPreviewObject() {
@@ -216,19 +222,23 @@ class DungeonCanvasViewer {
   // Object manipulation
   void DeleteSelectedObjects() { object_interaction_.HandleDeleteSelected(); }
 
+  // Entity visibility controls
+  void SetSpritesVisible(bool visible) { entity_visibility_.show_sprites = visible; }
+  bool AreSpritesVisible() const { return entity_visibility_.show_sprites; }
+  void SetPotItemsVisible(bool visible) { entity_visibility_.show_pot_items = visible; }
+  bool ArePotItemsVisible() const { return entity_visibility_.show_pot_items; }
+
  private:
   void DisplayObjectInfo(const zelda3::RoomObject& object, int canvas_x,
                          int canvas_y);
   void RenderSprites(const zelda3::Room& room);
+  void RenderPotItems(const zelda3::Room& room);
+  void RenderEntityOverlay(const zelda3::Room& room);
 
   // Coordinate conversion helpers
   std::pair<int, int> RoomToCanvasCoordinates(int room_x, int room_y) const;
   std::pair<int, int> CanvasToRoomCoordinates(int canvas_x, int canvas_y) const;
   bool IsWithinCanvasBounds(int canvas_x, int canvas_y, int margin = 32) const;
-
-  // Object dimension calculation
-  void CalculateWallDimensions(const zelda3::RoomObject& object, int& width,
-                               int& height);
 
   // Visualization
   void DrawObjectPositionOutlines(const zelda3::Room& room);
@@ -281,6 +291,7 @@ class DungeonCanvasViewer {
   bool show_texture_debug_ = false;
   bool show_object_bounds_ = false;
   bool show_layer_info_ = false;
+  bool use_composite_mode_ = false;  // Use merged composite bitmap vs 4-layer draw
   int layout_override_ = -1;  // -1 for no override
   int custom_grid_size_ = 8;
   ObjectRenderMode object_render_mode_ =
@@ -296,6 +307,14 @@ class DungeonCanvasViewer {
     bool show_layer2_objects = true;  // Layer 2 (BG3)
   };
   ObjectOutlineToggles object_outline_toggles_;
+
+  // Entity overlay visibility toggles
+  struct EntityVisibility {
+    bool show_sprites = true;      // Show sprite entities
+    bool show_pot_items = true;    // Show pot item entities
+    bool show_chests = true;       // Show chest entities (future)
+  };
+  EntityVisibility entity_visibility_;
 
   gfx::IRenderer* renderer_ = nullptr;
 

@@ -11,7 +11,7 @@ graph TD
     Editor[DungeonEditorV2] --> Loader[DungeonRoomLoader]
     Editor --> Selector[DungeonRoomSelector]
     Editor --> Panels[Panel System]
-    
+
     subgraph "Panel System (src/app/editor/dungeon/panels/)"
         Panels --> RoomPanel[DungeonRoomPanel]
         Panels --> ObjectPanel[ObjectEditorPanel]
@@ -23,13 +23,13 @@ graph TD
     RoomPanel --> Viewer[DungeonCanvasViewer]
     Viewer --> Canvas[gui::Canvas]
     Viewer --> Interaction[DungeonObjectInteraction]
-    
+
     Interaction --> Selection[ObjectSelection]
     Interaction -.-> System[DungeonEditorSystem]
-    
+
     ObjectPanel --> ObjSelector[DungeonObjectSelector]
     ObjectPanel --> EmuPreview[DungeonObjectEmulatorPreview]
-    
+
     Loader --> RomData[zelda3::Room]
 ```
 
@@ -69,7 +69,6 @@ Located in `src/app/editor/dungeon/panels/`:
 
 ### 1. Object Dimension Logic Redundancy
 There are multiple implementations for calculating the visual bounds of an object:
-*   `DungeonCanvasViewer::CalculateWallDimensions`
 *   `DungeonObjectInteraction::CalculateObjectBounds` (uses `ObjectDrawer` if available, falls back to naive logic)
 *   `DungeonObjectSelector::CalculateObjectDimensions` (naive logic)
 *   `ObjectSelection::GetObjectBounds` (uses `ObjectDimensionTable`)

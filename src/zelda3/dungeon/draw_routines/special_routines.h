@@ -92,6 +92,103 @@ void DrawWaterFace(const DrawContext& ctx);
  */
 void DrawLargeCanvasObject(const DrawContext& ctx, int width, int height);
 
+// ============================================================================
+// SuperSquare Routines (Phase 4)
+// ============================================================================
+
+/**
+ * @brief Draw 4x4 solid blocks in a super square grid
+ *
+ * ASM: RoomDraw_4x4BlocksIn4x4SuperSquare ($018B94)
+ * Objects: 0xC0, 0xC2
+ * Draws solid 4x4 blocks using a single tile, repeated in a grid pattern.
+ *
+ * @param ctx Draw context containing object, tiles, and target buffer
+ */
+void Draw4x4BlocksIn4x4SuperSquare(const DrawContext& ctx);
+
+/**
+ * @brief Draw 3x3 floor pattern in super square units
+ *
+ * ASM: RoomDraw_3x3FloorIn4x4SuperSquare ($018D8A)
+ * Objects: 0xC3, 0xD7
+ *
+ * @param ctx Draw context containing object, tiles, and target buffer
+ */
+void Draw3x3FloorIn4x4SuperSquare(const DrawContext& ctx);
+
+/**
+ * @brief Draw 4x4 floor pattern in super square units
+ *
+ * ASM: RoomDraw_4x4FloorIn4x4SuperSquare ($018FA5)
+ * Objects: 0xC5-0xCA, 0xD1-0xD2, 0xD9, 0xDF-0xE8
+ * Most common floor pattern in dungeons.
+ *
+ * @param ctx Draw context containing object, tiles, and target buffer
+ */
+void Draw4x4FloorIn4x4SuperSquare(const DrawContext& ctx);
+
+/**
+ * @brief Draw single 4x4 floor pattern variant
+ *
+ * ASM: RoomDraw_4x4FloorOneIn4x4SuperSquare ($018FA2)
+ * Object: 0xC4
+ *
+ * @param ctx Draw context containing object, tiles, and target buffer
+ */
+void Draw4x4FloorOneIn4x4SuperSquare(const DrawContext& ctx);
+
+/**
+ * @brief Draw two 4x4 floor pattern variant
+ *
+ * ASM: RoomDraw_4x4FloorTwoIn4x4SuperSquare ($018F9D)
+ * Object: 0xDB
+ *
+ * @param ctx Draw context containing object, tiles, and target buffer
+ */
+void Draw4x4FloorTwoIn4x4SuperSquare(const DrawContext& ctx);
+
+/**
+ * @brief Draw 4x4 big hole pattern
+ *
+ * Object: 0xA4
+ * Draws a 4x4 hole pattern that repeats based on size.
+ *
+ * @param ctx Draw context containing object, tiles, and target buffer
+ */
+void DrawBigHole4x4_1to16(const DrawContext& ctx);
+
+/**
+ * @brief Draw 2x2 spike pattern in super square units
+ *
+ * ASM: RoomDraw_Spike2x2In4x4SuperSquare ($019708)
+ * Object: 0xDE
+ *
+ * @param ctx Draw context containing object, tiles, and target buffer
+ */
+void DrawSpike2x2In4x4SuperSquare(const DrawContext& ctx);
+
+/**
+ * @brief Draw 4x4 table rock pattern
+ *
+ * Object: 0xDD
+ * Draws a 4x4 rock pattern that repeats horizontally.
+ *
+ * @param ctx Draw context containing object, tiles, and target buffer
+ */
+void DrawTableRock4x4_1to16(const DrawContext& ctx);
+
+/**
+ * @brief Draw water overlay 8x8 pattern
+ *
+ * ASM: RoomDraw_WaterOverlayA8x8_1to16 ($0195D6)
+ * Objects: 0xD8, 0xDA
+ * Semi-transparent water overlay.
+ *
+ * @param ctx Draw context containing object, tiles, and target buffer
+ */
+void DrawWaterOverlay8x8_1to16(const DrawContext& ctx);
+
 /**
  * @brief Register all special/miscellaneous draw routines to the registry
  *

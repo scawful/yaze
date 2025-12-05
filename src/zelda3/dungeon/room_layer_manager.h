@@ -48,6 +48,16 @@ struct ObjectTranslucency {
 };
 
 /**
+ * @brief Object priority for rendering order within merged layers
+ */
+struct ObjectPriority {
+  size_t object_index = 0;
+  int layer = 0;          // Object's layer (0, 1, 2)
+  int priority = 0;       // Render priority (higher = on top)
+  bool is_bg2_object = false;  // True if object renders to BG2
+};
+
+/**
  * @brief RoomLayerManager - Manages layer visibility and compositing
  *
  * This class provides:
@@ -75,6 +85,8 @@ class RoomLayerManager {
     }
     object_translucency_.clear();
     bg2_on_top_ = false;
+    layers_merged_ = false;
+    current_merge_type_id_ = 0;
   }
 
   // Layer visibility
@@ -157,6 +169,16 @@ class RoomLayerManager {
 
   // Apply layer settings to room from LayerMergeType
   void ApplyLayerMerging(const LayerMergeType& merge_type) {
+    // Store the current merge type for queries
+    current_merge_type_id_ = merge_type.ID;
+    layers_merged_ = (merge_type.ID != 0);  // ID 0 = "Off" = not merged
+
+    // Align visibility with merge flags
+    SetLayerVisible(LayerType::BG2_Layout, merge_type.Layer2Visible);
+    SetLayerVisible(LayerType::BG2_Objects, merge_type.Layer2Visible);
+    SetLayerVisible(LayerType::BG1_Layout, true);
+    SetLayerVisible(LayerType::BG1_Objects, true);
+
     SetBG2OnTop(merge_type.Layer2OnTop);
 
     if (merge_type.Layer2Translucent) {
@@ -169,6 +191,70 @@ class RoomLayerManager {
       SetLayerBlendMode(LayerType::BG2_Layout, LayerBlendMode::Normal);
       SetLayerBlendMode(LayerType::BG2_Objects, LayerBlendMode::Normal);
     }
+  }
+
+  /**
+   * @brief Check if layers are currently merged
+   * @return true if any layer merging is active
+   */
+  bool AreLayersMerged() const { return layers_merged_; }
+
+  /**
+   * @brief Get the current merge type ID
+   * @return The LayerMergeType ID (0-8)
+   */
+  uint8_t GetMergeTypeId() const { return current_merge_type_id_; }
+
+  // ============================================================================
+  // Object Priority for Merged Layers
+  // ============================================================================
+
+  /**
+   * @brief Calculate object priority for render ordering
+   *
+   * When layers are merged, objects need priority ordering to ensure
+   * proper visibility. BG2 objects should render above BG1 objects
+   * when BG2 is on top.
+   *
+   * @param object_layer The object's layer value (0, 1, 2)
+   * @return Priority value (higher = renders on top)
+   */
+  int CalculateObjectPriority(int object_layer) const {
+    // Base priority from object layer
+    int priority = object_layer * 10;
+
+    // If BG2 is on top and this is a layer 1 (BG2) object, boost priority
+    if (bg2_on_top_ && object_layer == 1) {
+      priority += 100;
+    }
+
+    // If layers are merged, layer 0 and 2 objects (BG1) get lower priority
+    // when BG2 is on top
+    if (layers_merged_ && bg2_on_top_ && (object_layer == 0 || object_layer == 2)) {
+      priority -= 50;
+    }
+
+    return priority;
+  }
+
+  /**
+   * @brief Check if an object on a given layer should render to BG2
+   * @param object_layer The object's layer value
+   * @return true if object renders to BG2 buffer
+   */
+  static bool IsObjectOnBG2(int object_layer) {
+    // Layer 1 objects render to BG2, layers 0 and 2 render to BG1
+    return object_layer == 1;
+  }
+
+  /**
+   * @brief Get the appropriate background layer type for an object
+   * @param object_layer The object's layer value (0, 1, 2)
+   * @return The LayerType for this object's background
+   */
+  static LayerType GetObjectLayerType(int object_layer) {
+    return IsObjectOnBG2(object_layer) ? LayerType::BG2_Objects
+                                       : LayerType::BG1_Objects;
   }
 
   /**
@@ -258,12 +344,45 @@ class RoomLayerManager {
     return "Unknown";
   }
 
+  // ============================================================================
+  // Layer Compositing
+  // ============================================================================
+
+  /**
+   * @brief Composite all visible layers into a single output bitmap
+   *
+   * Merges layers in correct draw order based on GetDrawOrder().
+   * Applies per-layer visibility and blend modes at pixel level.
+   * Transparency is detected via palette index 0 (SNES standard) or 255
+   * (object buffer fill color).
+   *
+   * @param room The room containing the layer buffers
+   * @param output Output bitmap to receive composited result (512x512)
+   */
+  void CompositeToOutput(Room& room, gfx::Bitmap& output) const;
+
  private:
+  /**
+   * @brief Check if a pixel index represents transparency
+   */
+  static bool IsTransparent(uint8_t pixel) {
+    return pixel == 0 || pixel == 255;
+  }
+
+  /**
+   * @brief Composite a single layer onto the output bitmap
+   */
+  void CompositeLayer(const gfx::Bitmap& src, gfx::Bitmap& dst,
+                      LayerBlendMode mode) const;
   std::array<bool, 4> layer_visible_;
   std::array<LayerBlendMode, 4> layer_blend_mode_;
   std::array<uint8_t, 4> layer_alpha_;
   std::vector<ObjectTranslucency> object_translucency_;
   bool bg2_on_top_ = false;
+
+  // Merge state tracking
+  bool layers_merged_ = false;
+  uint8_t current_merge_type_id_ = 0;
 };
 
 }  // namespace zelda3

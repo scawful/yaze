@@ -137,7 +137,7 @@ void RegisterDiagonalRoutines(std::vector<DrawRoutineInfo>& registry) {
   // These diagonal routines are part of the core 40 draw routines
 
   registry.push_back(DrawRoutineInfo{
-      .id = 10,  // RoomDraw_DiagonalAcute_1to16
+      .id = 5,  // RoomDraw_DiagonalAcute_1to16
       .name = "DiagonalAcute_1to16",
       .function = DrawDiagonalAcute_1to16,
       .draws_to_both_bgs = false,
@@ -147,7 +147,7 @@ void RegisterDiagonalRoutines(std::vector<DrawRoutineInfo>& registry) {
   });
 
   registry.push_back(DrawRoutineInfo{
-      .id = 11,  // RoomDraw_DiagonalGrave_1to16
+      .id = 6,  // RoomDraw_DiagonalGrave_1to16
       .name = "DiagonalGrave_1to16",
       .function = DrawDiagonalGrave_1to16,
       .draws_to_both_bgs = false,
@@ -157,7 +157,7 @@ void RegisterDiagonalRoutines(std::vector<DrawRoutineInfo>& registry) {
   });
 
   registry.push_back(DrawRoutineInfo{
-      .id = 12,  // RoomDraw_DiagonalAcute_1to16_BothBG
+      .id = 17,  // RoomDraw_DiagonalAcute_1to16_BothBG
       .name = "DiagonalAcute_1to16_BothBG",
       .function = DrawDiagonalAcute_1to16_BothBG,
       .draws_to_both_bgs = true,
@@ -167,7 +167,7 @@ void RegisterDiagonalRoutines(std::vector<DrawRoutineInfo>& registry) {
   });
 
   registry.push_back(DrawRoutineInfo{
-      .id = 13,  // RoomDraw_DiagonalGrave_1to16_BothBG
+      .id = 18,  // RoomDraw_DiagonalGrave_1to16_BothBG
       .name = "DiagonalGrave_1to16_BothBG",
       .function = DrawDiagonalGrave_1to16_BothBG,
       .draws_to_both_bgs = true,

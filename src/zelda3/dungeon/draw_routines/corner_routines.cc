@@ -126,17 +126,7 @@ void RegisterCornerRoutines(std::vector<DrawRoutineInfo>& registry) {
   // These corner routines are part of the core 40 draw routines
 
   registry.push_back(DrawRoutineInfo{
-      .id = 14,  // DrawWaterFace (used as helper, not direct routine)
-      .name = "WaterFace",
-      .function = DrawWaterFace,
-      .draws_to_both_bgs = false,
-      .base_width = 2,
-      .base_height = 2,
-      .category = DrawRoutineInfo::Category::Corner,
-  });
-
-  registry.push_back(DrawRoutineInfo{
-      .id = 15,  // DrawCorner4x4
+      .id = 19,  // DrawCorner4x4
       .name = "Corner4x4",
       .function = DrawCorner4x4,
       .draws_to_both_bgs = false,
@@ -146,7 +136,7 @@ void RegisterCornerRoutines(std::vector<DrawRoutineInfo>& registry) {
   });
 
   registry.push_back(DrawRoutineInfo{
-      .id = 16,  // Draw4x4Corner_BothBG
+      .id = 35,  // Draw4x4Corner_BothBG
       .name = "4x4Corner_BothBG",
       .function = Draw4x4Corner_BothBG,
       .draws_to_both_bgs = true,
@@ -156,7 +146,7 @@ void RegisterCornerRoutines(std::vector<DrawRoutineInfo>& registry) {
   });
 
   registry.push_back(DrawRoutineInfo{
-      .id = 17,  // DrawWeirdCornerBottom_BothBG
+      .id = 36,  // DrawWeirdCornerBottom_BothBG
       .name = "WeirdCornerBottom_BothBG",
       .function = DrawWeirdCornerBottom_BothBG,
       .draws_to_both_bgs = true,
@@ -166,7 +156,7 @@ void RegisterCornerRoutines(std::vector<DrawRoutineInfo>& registry) {
   });
 
   registry.push_back(DrawRoutineInfo{
-      .id = 18,  // DrawWeirdCornerTop_BothBG
+      .id = 37,  // DrawWeirdCornerTop_BothBG
       .name = "WeirdCornerTop_BothBG",
       .function = DrawWeirdCornerTop_BothBG,
       .draws_to_both_bgs = true,

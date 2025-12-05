@@ -2,10 +2,13 @@
 #define YAZE_APP_EDITOR_DUNGEON_DUNGEON_OBJECT_INTERACTION_H
 
 #include <functional>
+#include <memory>
 #include <utility>
 #include <vector>
 
 #include "app/editor/dungeon/object_selection.h"
+#include "app/gfx/render/background_buffer.h"
+#include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
@@ -57,10 +60,14 @@ class DungeonObjectInteraction {
   // State management
   void SetCurrentRoom(std::array<zelda3::Room, 0x128>* rooms, int room_id);
   void SetPreviewObject(const zelda3::RoomObject& object, bool loaded);
+  void SetCurrentPaletteGroup(const gfx::PaletteGroup& group) {
+    current_palette_group_ = group;
+  }
   bool IsObjectLoaded() const { return object_loaded_; }
   void CancelPlacement() {
     object_loaded_ = false;
     preview_object_ = zelda3::RoomObject{0, 0, 0, 0, 0};
+    ghost_preview_buffer_.reset();
   }
 
   // Selection state - delegates to ObjectSelection
@@ -99,6 +106,20 @@ class DungeonObjectInteraction {
   void HandlePasteObjects();
   bool HasClipboardData() const { return has_clipboard_data_; }
 
+  // Layer assignment for selected objects
+  void SendSelectedToLayer(int target_layer);
+
+  // Layer filter access (delegates to ObjectSelection)
+  void SetLayerFilter(int layer) { selection_.SetLayerFilter(layer); }
+  int GetLayerFilter() const { return selection_.GetLayerFilter(); }
+  bool IsLayerFilterActive() const { return selection_.IsLayerFilterActive(); }
+  const char* GetLayerFilterName() const { return selection_.GetLayerFilterName(); }
+  void SetLayersMerged(bool merged) { selection_.SetLayersMerged(merged); }
+  bool AreLayersMerged() const { return selection_.AreLayersMerged(); }
+
+  // Check keyboard shortcuts for layer operations
+  void HandleLayerKeyboardShortcuts();
+
   // Callbacks
   void SetObjectPlacedCallback(
       std::function<void(const zelda3::RoomObject&)> callback) {
@@ -129,6 +150,11 @@ class DungeonObjectInteraction {
   // Preview object state
   zelda3::RoomObject preview_object_{0, 0, 0, 0, 0};
   bool object_loaded_ = false;
+
+  // Ghost preview bitmap (persists across frames for placement preview)
+  std::unique_ptr<gfx::BackgroundBuffer> ghost_preview_buffer_;
+  gfx::PaletteGroup current_palette_group_;
+  void RenderGhostPreviewBitmap();
 
   // Unified selection system - replaces legacy selection state
   ObjectSelection selection_;

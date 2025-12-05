@@ -117,8 +117,9 @@ void ObjectDimensionTable::InitializeDefaults() {
   }
 
   // Chests - fixed 2x2
-  dimensions_[0xF9] = {2, 2, Dir::None, 0};
-  dimensions_[0xFB] = {2, 2, Dir::None, 0};
+  for (int id : {0xF9, 0xFA, 0xFB, 0xFC, 0xFD}) {
+    dimensions_[id] = {2, 2, Dir::None, 0};
+  }
 
   // Subtype 2 objects (0x100-0x1FF)
   // Large decorative objects - mostly 4x4

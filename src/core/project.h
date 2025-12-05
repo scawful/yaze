@@ -307,6 +307,13 @@ class RecentFilesManager {
     }
   }
 
+  void RemoveFile(const std::string& file_path) {
+    auto it = std::find(recent_files_.begin(), recent_files_.end(), file_path);
+    if (it != recent_files_.end()) {
+      recent_files_.erase(it);
+    }
+  }
+
   void Save();
 
   void Load();

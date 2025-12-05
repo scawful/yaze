@@ -88,6 +88,17 @@ void ObjectSelection::SelectAll(size_t object_count) {
   NotifySelectionChanged();
 }
 
+void ObjectSelection::SelectAll(const std::vector<zelda3::RoomObject>& objects) {
+  selected_indices_.clear();
+  for (size_t i = 0; i < objects.size(); ++i) {
+    // Only select objects that pass the layer filter
+    if (PassesLayerFilter(objects[i])) {
+      selected_indices_.insert(i);
+    }
+  }
+  NotifySelectionChanged();
+}
+
 void ObjectSelection::ClearSelection() {
   if (selected_indices_.empty()) {
     return;  // No change
@@ -350,6 +361,11 @@ void ObjectSelection::NotifySelectionChanged() {
 bool ObjectSelection::IsObjectInRectangle(const zelda3::RoomObject& object,
                                           int min_x, int min_y, int max_x,
                                           int max_y) const {
+  // Check layer filter first
+  if (!PassesLayerFilter(object)) {
+    return false;
+  }
+
   // Get object bounds
   auto [obj_x, obj_y, obj_width, obj_height] = GetObjectBounds(object);
 
@@ -365,6 +381,16 @@ bool ObjectSelection::IsObjectInRectangle(const zelda3::RoomObject& object,
   bool y_overlap = (obj_min_y <= max_y) && (obj_max_y >= min_y);
 
   return x_overlap && y_overlap;
+}
+
+bool ObjectSelection::PassesLayerFilter(const zelda3::RoomObject& object) const {
+  // If no layer filter is active, all objects pass
+  if (active_layer_filter_ == kLayerAll) {
+    return true;
+  }
+
+  // Check if the object's layer matches the filter
+  return object.GetLayerValue() == static_cast<uint8_t>(active_layer_filter_);
 }
 
 }  // namespace yaze::editor

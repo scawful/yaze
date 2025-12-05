@@ -20,6 +20,7 @@ namespace yaze {
 namespace zelda3 {
 
 class DungeonState;
+class RoomLayerManager;
 
 // ROM addresses moved to dungeon_rom_addresses.h for better organization
 // Use kPrefixedNames for new code (clean naming convention)
@@ -84,7 +85,7 @@ struct LayerMergeType {
   }
 };
 
-const static LayerMergeType LayerMerge00{0x00, "Off", true, false, false};
+const static LayerMergeType LayerMerge00{0x00, "Off", false, false, false};
 const static LayerMergeType LayerMerge01{0x01, "Parallax", true, false, false};
 const static LayerMergeType LayerMerge02{0x02, "Dark", true, true, true};
 const static LayerMergeType LayerMerge03{0x03, "On top", true, true, false};
@@ -236,6 +237,10 @@ class Room {
   const std::vector<Door>& GetDoors() const { return doors_; }
   std::vector<Door>& GetDoors() { return doors_; }
 
+  // Public getters for pot items (items hidden under pots/bushes)
+  const std::vector<uint8_t>& GetPotItems() const { return pot_items_; }
+  std::vector<uint8_t>& GetPotItems() { return pot_items_; }
+
   const RoomLayout& GetLayout() const { return layout_; }
 
   // Public getters and manipulators for tile objects
@@ -262,14 +267,17 @@ class Room {
   void MarkObjectsDirty() {
     objects_dirty_ = true;
     textures_dirty_ = true;
+    composite_dirty_ = true;
   }
   void MarkGraphicsDirty() {
     graphics_dirty_ = true;
     textures_dirty_ = true;
+    composite_dirty_ = true;
   }
   void MarkLayoutDirty() {
     layout_dirty_ = true;
     textures_dirty_ = true;
+    composite_dirty_ = true;
   }
   void RemoveTileObject(size_t index) {
     if (index < tile_objects_.size()) {
@@ -441,6 +449,14 @@ class Room {
   auto& object_bg2_buffer() { return object_bg2_buffer_; }
   const auto& object_bg2_buffer() const { return object_bg2_buffer_; }
 
+  /// Get a composite bitmap of all layers merged
+  gfx::Bitmap& GetCompositeBitmap(RoomLayerManager& layer_mgr);
+  const gfx::Bitmap& composite_bitmap() const { return composite_bitmap_; }
+
+  /// Mark composite bitmap as needing regeneration
+  void MarkCompositeDirty() { composite_dirty_ = true; }
+  bool IsCompositeDirty() const { return composite_dirty_; }
+
   DungeonState* GetDungeonState() { return dungeon_state_.get(); }
 
  private:
@@ -455,6 +471,10 @@ class Room {
   gfx::BackgroundBuffer bg2_buffer_{512, 512};
   gfx::BackgroundBuffer object_bg1_buffer_{512, 512};
   gfx::BackgroundBuffer object_bg2_buffer_{512, 512};
+
+  // Composite bitmap for merged layer output
+  mutable gfx::Bitmap composite_bitmap_;
+  mutable bool composite_dirty_ = true;
 
   bool is_light_;
   bool is_loaded_ = false;

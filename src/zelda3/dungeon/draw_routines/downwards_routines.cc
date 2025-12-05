@@ -228,89 +228,85 @@ void DrawDownwardsRightCorners2x1_1to16_plus12(const DrawContext& ctx) {
 void RegisterDownwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
   using Category = DrawRoutineInfo::Category;
 
-  // Note: These routine IDs need to be verified against the actual mapping
-  // in object_drawer.cc The IDs below are placeholders and should be updated
-  // to match the correct draw routine table indices.
-
   registry.push_back(DrawRoutineInfo{
-      .id = 0x60,  // Placeholder ID - update based on actual table
+      .id = 7,  // RoomDraw_Downwards2x2_1to15or32
       .name = "Downwards2x2_1to15or32",
       .function = DrawDownwards2x2_1to15or32,
       .draws_to_both_bgs = false,
       .base_width = 2,
-      .base_height = 0,  // Variable based on size
+      .base_height = 2,
       .category = Category::Downwards});
 
   registry.push_back(DrawRoutineInfo{
-      .id = 0x61,  // Placeholder ID
+      .id = 8,  // RoomDraw_Downwards4x2_1to15or26
       .name = "Downwards4x2_1to15or26",
       .function = DrawDownwards4x2_1to15or26,
       .draws_to_both_bgs = false,
       .base_width = 4,
-      .base_height = 0,  // Variable based on size
+      .base_height = 2,
       .category = Category::Downwards});
 
   registry.push_back(DrawRoutineInfo{
-      .id = 0x62,  // Placeholder ID
+      .id = 9,  // RoomDraw_Downwards4x2_1to16_BothBG
       .name = "Downwards4x2_1to16_BothBG",
       .function = DrawDownwards4x2_1to16_BothBG,
       .draws_to_both_bgs = true,
       .base_width = 4,
-      .base_height = 0,  // Variable based on size
+      .base_height = 2,
       .category = Category::Downwards});
 
   registry.push_back(DrawRoutineInfo{
-      .id = 0x63,  // Placeholder ID
+      .id = 10,  // RoomDraw_DownwardsDecor4x2spaced4_1to16
       .name = "DownwardsDecor4x2spaced4_1to16",
       .function = DrawDownwardsDecor4x2spaced4_1to16,
       .draws_to_both_bgs = false,
       .base_width = 4,
-      .base_height = 0,  // Variable based on size
+      .base_height = 2,
       .category = Category::Downwards});
 
   registry.push_back(DrawRoutineInfo{
-      .id = 0x64,  // Placeholder ID
+      .id = 11,  // RoomDraw_Downwards2x2_1to16
       .name = "Downwards2x2_1to16",
       .function = DrawDownwards2x2_1to16,
       .draws_to_both_bgs = false,
       .base_width = 2,
-      .base_height = 0,  // Variable based on size
+      .base_height = 2,
       .category = Category::Downwards});
 
   registry.push_back(DrawRoutineInfo{
-      .id = 0x65,  // Placeholder ID
+      .id = 12,  // RoomDraw_DownwardsHasEdge1x1_1to16_plus3
       .name = "DownwardsHasEdge1x1_1to16_plus3",
       .function = DrawDownwardsHasEdge1x1_1to16_plus3,
       .draws_to_both_bgs = false,
       .base_width = 1,
-      .base_height = 0,  // Variable based on size
+      .base_height = 1,
       .category = Category::Downwards});
 
   registry.push_back(DrawRoutineInfo{
-      .id = 0x66,  // Placeholder ID
+      .id = 13,  // RoomDraw_DownwardsEdge1x1_1to16
       .name = "DownwardsEdge1x1_1to16",
       .function = DrawDownwardsEdge1x1_1to16,
       .draws_to_both_bgs = false,
       .base_width = 1,
-      .base_height = 0,  // Variable based on size
+      .base_height = 1,
       .category = Category::Downwards});
 
   registry.push_back(DrawRoutineInfo{
-      .id = 0x67,  // Placeholder ID
+      .id = 14,  // RoomDraw_DownwardsLeftCorners2x1_1to16_plus12
       .name = "DownwardsLeftCorners2x1_1to16_plus12",
       .function = DrawDownwardsLeftCorners2x1_1to16_plus12,
       .draws_to_both_bgs = false,
       .base_width = 2,
-      .base_height = 0,  // Variable based on size
+      .base_height = 1,
       .category = Category::Downwards});
 
   registry.push_back(DrawRoutineInfo{
-      .id = 0x68,  // Placeholder ID
+      .id = 15,  // RoomDraw_DownwardsRightCorners2x1_1to16_plus12
       .name = "DownwardsRightCorners2x1_1to16_plus12",
       .function = DrawDownwardsRightCorners2x1_1to16_plus12,
       .draws_to_both_bgs = false,
       .base_width = 2,
-      .base_height = 0,  // Variable based on size
+      .base_height = 1,
       .category = Category::Downwards});
 }
 

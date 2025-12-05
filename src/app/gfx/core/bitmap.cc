@@ -239,6 +239,12 @@ void Bitmap::Create(int width, int height, int depth, int format,
     return;
   }
 
+  // Ensure indexed surfaces have a proper 256-color palette
+  // This fixes issues where SDL3 creates surfaces with smaller default palettes
+  if (format == static_cast<int>(BitmapFormat::kIndexed)) {
+    platform::EnsureSurfacePalette256(surface_);
+  }
+
   // CRITICAL FIX: Use proper SDL surface operations instead of direct pointer
   // assignment Direct assignment breaks SDL's memory management and causes
   // malloc errors on shutdown
@@ -515,22 +521,42 @@ void Bitmap::SetPalette(const std::vector<SDL_Color>& palette) {
     return;
   }
 
+  // Ensure surface has a proper 256-color palette before setting colors
+  // This fixes issues where SDL creates surfaces with smaller default palettes
+  platform::EnsureSurfacePalette256(surface_);
+
   SDL_Palette* sdl_palette = platform::GetSurfacePalette(surface_);
   if (!sdl_palette) {
+    SDL_Log("Warning: SetPalette - surface has no palette!");
     return;
   }
+  
   int max_colors = sdl_palette->ncolors;
+  int colors_to_set = static_cast<int>(palette.size());
+  
+  // Debug: Check if palette capacity is sufficient (should be 256 after EnsureSurfacePalette256)
+  if (max_colors < colors_to_set) {
+    SDL_Log("Warning: SetPalette - SDL palette has %d colors, trying to set %d. "
+            "Colors above %d may not display correctly.",
+            max_colors, colors_to_set, max_colors);
+    colors_to_set = max_colors;  // Clamp to available space
+  }
 
   SDL_UnlockSurface(surface_);
-  for (size_t i = 0; i < palette.size(); ++i) {
-    // Bounds check: don't write beyond palette capacity
-    if (static_cast<int>(i) >= max_colors) break;
-
-    sdl_palette->colors[i].r = palette[i].r;
-    sdl_palette->colors[i].g = palette[i].g;
-    sdl_palette->colors[i].b = palette[i].b;
-    sdl_palette->colors[i].a = palette[i].a;
+  
+  // Use SDL_SetPaletteColors for proper palette setting
+  // This is more reliable than direct array access
+  if (SDL_SetPaletteColors(sdl_palette, palette.data(), 0, colors_to_set) != 0) {
+    SDL_Log("Warning: SDL_SetPaletteColors failed: %s", SDL_GetError());
+    // Fall back to manual setting
+    for (int i = 0; i < colors_to_set; ++i) {
+      sdl_palette->colors[i].r = palette[i].r;
+      sdl_palette->colors[i].g = palette[i].g;
+      sdl_palette->colors[i].b = palette[i].b;
+      sdl_palette->colors[i].a = palette[i].a;
+    }
   }
+  
   SDL_LockSurface(surface_);
 }
 
