@@ -4,9 +4,12 @@
 #include <string>
 #include <vector>
 
+#include "core/project.h"
+#include "core/version_manager.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "app/editor/system/panel_manager.h"
+#include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/text_editor.h"
@@ -317,6 +320,11 @@ void AssemblyEditor::DrawToolset() {
 }
 
 void AssemblyEditor::DrawCurrentFolder() {
+  // Lazy load project folder if not already loaded
+  if (current_folder_.name.empty() && dependencies_.project && !dependencies_.project->code_folder.empty()) {
+    OpenFolder(dependencies_.project->GetAbsolutePath(dependencies_.project->code_folder));
+  }
+
   if (ImGui::BeginChild("##current_folder", ImVec2(0, 0), true,
                         ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
     if (ImGui::BeginTable("##file_table", 2,
@@ -585,21 +593,24 @@ void AssemblyEditor::UpdateErrorMarkers(const core::AsarPatchResult& result) {
   TextEditor::ErrorMarkers markers;
 
   // Parse error messages to extract line numbers
+  // Example Asar output: "asm/main.asm:42: error: Unknown command."
   for (const auto& error : result.errors) {
-    // Asar error format is typically: "filename:line:column: message"
-    size_t first_colon = error.find(':');
-    if (first_colon != std::string::npos) {
-      size_t second_colon = error.find(':', first_colon + 1);
-      if (second_colon != std::string::npos) {
-        std::string line_str =
-            error.substr(first_colon + 1, second_colon - first_colon - 1);
-        try {
+    try {
+      // Simple parsing: look for first two colons numbers
+      size_t first_colon = error.find(':');
+      if (first_colon != std::string::npos) {
+        size_t second_colon = error.find(':', first_colon + 1);
+        if (second_colon != std::string::npos) {
+          std::string line_str = error.substr(first_colon + 1, second_colon - (first_colon + 1));
           int line = std::stoi(line_str);
+          
+          // Adjust for 1-based line numbers if necessary (ImGuiColorTextEdit usually uses 1-based in UI but 0-based internally? Or vice versa?)
+          // Assuming standard compiler output 1-based, editor usually takes 1-based for markers key.
           markers[line] = error;
-        } catch (...) {
-          // Not a valid line number
         }
       }
+    } catch (...) {
+      // Ignore parsing errors
     }
   }
 
@@ -638,6 +649,31 @@ void AssemblyEditor::DrawAssembleMenu() {
       }
     }
 
+    if (ImGui::MenuItem(ICON_MD_FILE_UPLOAD " Load External Symbols", nullptr, false)) {
+      if (dependencies_.project) {
+        std::string sym_file = dependencies_.project->symbols_filename;
+        if (!sym_file.empty()) {
+          std::string abs_path = dependencies_.project->GetAbsolutePath(sym_file);
+          auto status = asar_.LoadSymbolsFromFile(abs_path);
+          if (status.ok()) {
+            // Copy symbols to local map for display
+            symbols_ = asar_.GetSymbolTable();
+            if (dependencies_.toast_manager) {
+              dependencies_.toast_manager->Show("Successfully loaded external symbols from " + sym_file, ToastType::kSuccess);
+            }
+          } else {
+            if (dependencies_.toast_manager) {
+              dependencies_.toast_manager->Show("Failed to load symbols: " + std::string(status.message()), ToastType::kError);
+            }
+          }
+        } else {
+           if (dependencies_.toast_manager) {
+              dependencies_.toast_manager->Show("Project does not specify a symbols file.", ToastType::kWarning);
+            }
+        }
+      }
+    }
+
     ImGui::Separator();
 
     if (ImGui::MenuItem(ICON_MD_LIST " Show Symbols", nullptr, show_symbol_panel_)) {
@@ -649,6 +685,44 @@ void AssemblyEditor::DrawAssembleMenu() {
     // Show last error/warning count
     ImGui::TextDisabled("Errors: %zu, Warnings: %zu", last_errors_.size(),
                         last_warnings_.size());
+
+    ImGui::EndMenu();
+  }
+
+  if (ImGui::BeginMenu("Version")) {
+    bool has_version_manager = (dependencies_.version_manager != nullptr);
+    if (ImGui::MenuItem(ICON_MD_CAMERA_ALT " Create Snapshot", nullptr, false, has_version_manager)) {
+        if (has_version_manager) {
+            ImGui::OpenPopup("Create Snapshot");
+        }
+    }
+    
+    // Snapshot Dialog
+    if (ImGui::BeginPopupModal("Create Snapshot", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        static char message[256] = "";
+        ImGui::InputText("Message", message, sizeof(message));
+        
+        if (ImGui::Button("Create", ImVec2(120, 0))) {
+            auto result = dependencies_.version_manager->CreateSnapshot(message);
+            if (result.ok() && result->success) {
+                if (dependencies_.toast_manager) {
+                    dependencies_.toast_manager->Show("Snapshot Created: " + result->commit_hash, ToastType::kSuccess);
+                }
+            } else {
+                if (dependencies_.toast_manager) {
+                    std::string err = result.ok() ? result->message : std::string(result.status().message());
+                    dependencies_.toast_manager->Show("Snapshot Failed: " + err, ToastType::kError);
+                }
+            }
+            ImGui::CloseCurrentPopup();
+            message[0] = '\0'; // Reset
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
 
     ImGui::EndMenu();
   }

@@ -1186,6 +1186,11 @@ absl::Status EditorManager::Update() {
   // Update ROM context for agent UI
   if (current_rom && current_rom->is_loaded()) {
     agent_ui_.SetRomContext(current_rom);
+    agent_ui_.SetProjectContext(&current_project_);
+    // Pass AsarWrapper instance from AssemblyEditor
+    if (auto* editor_set = GetCurrentEditorSet()) {
+      agent_ui_.SetAsarWrapperContext(editor_set->GetAssemblyEditor()->asar_wrapper());
+    }
   }
 
   // Draw SessionCoordinator UI components
@@ -1601,8 +1606,12 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
 
   // Set up RightPanelManager with session's settings editor
   if (right_panel_manager_) {
-    right_panel_manager_->SetSettingsPanel(
-        current_editor_set->GetSettingsPanel());
+    auto* settings = current_editor_set->GetSettingsPanel();
+    right_panel_manager_->SetSettingsPanel(settings);
+    // Also update project context for settings panel
+    if (settings) {
+        settings->SetProject(&current_project_);
+    }
   }
 
   // Set up StatusBar reference on settings panel for live toggling
@@ -1724,6 +1733,11 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
 
   if (absl::StrContains(filename, ".yaze")) {
     RETURN_IF_ERROR(current_project_.Open(filename));
+    
+    // Initialize VersionManager for the project
+    version_manager_ = std::make_unique<core::VersionManager>(&current_project_);
+    version_manager_->InitializeGit(); // Try to init git if configured
+
     RETURN_IF_ERROR(OpenProject());
   } else {
 #ifdef __EMSCRIPTEN__
@@ -2158,6 +2172,7 @@ void EditorManager::ConfigureEditorDependencies(EditorSet* editor_set, Rom* rom,
   deps.shared_clipboard = &shared_clipboard_;
   deps.user_settings = &user_settings_;
   deps.project = &current_project_;
+  deps.version_manager = version_manager_.get();
   deps.renderer = renderer_;
   deps.emulator = &emulator_;
 

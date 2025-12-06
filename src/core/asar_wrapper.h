@@ -75,6 +75,8 @@ class AsarWrapper {
       const std::string& asm_path,
       const std::vector<std::string>& include_paths = {});
 
+  absl::Status LoadSymbolsFromFile(const std::string& symbol_path);
+
   std::map<std::string, AsarSymbol> GetSymbolTable() const;
   std::optional<AsarSymbol> FindSymbol(const std::string& name) const;
   std::vector<AsarSymbol> GetSymbolsAtAddress(uint32_t address) const;

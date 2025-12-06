@@ -249,8 +249,16 @@ void PanelManager::RegisterEditorPanel(std::unique_ptr<EditorPanel> panel) {
   descriptor.visibility_flag = nullptr;  // Will be created by RegisterPanel
   descriptor.window_title = panel->GetIcon() + " " + panel->GetDisplayName();
 
+  // Check if panel should be visible by default
+  bool visible_by_default = panel->IsVisibleByDefault();
+
   // Register the descriptor (creates visibility flag)
   RegisterPanel(active_session_, descriptor);
+
+  // Set initial visibility if panel should be visible by default
+  if (visible_by_default) {
+    ShowPanel(active_session_, panel_id);
+  }
 
   // Store the EditorPanel instance
   panel_instances_[panel_id] = std::move(panel);
@@ -383,6 +391,12 @@ void PanelManager::DrawAllVisiblePanels() {
     // Create PanelWindow and draw content
     gui::PanelWindow window(display_name.c_str(), panel->GetIcon().c_str(),
                             visibility_flag);
+
+    // Use preferred width from EditorPanel if specified
+    float preferred_width = panel->GetPreferredWidth();
+    if (preferred_width > 0.0f) {
+      window.SetDefaultSize(preferred_width, 0);  // 0 height = auto
+    }
 
     // Enable pin functionality for cross-editor persistence
     window.SetPinnable(true);

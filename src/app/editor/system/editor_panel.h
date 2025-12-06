@@ -175,6 +175,24 @@ class EditorPanel {
    */
   virtual int GetPriority() const { return 50; }
 
+  /**
+   * @brief Get preferred width for this panel (optional)
+   * @return Preferred width in pixels, or 0 to use default (250px)
+   *
+   * Override this to specify content-based sizing. For example, a tile
+   * selector with 8 tiles at 16px × 2.0 scale would return ~276px.
+   */
+  virtual float GetPreferredWidth() const { return 0.0f; }
+
+  /**
+   * @brief Whether this panel should be visible by default
+   * @return true if panel should be visible when editor first opens
+   *
+   * Override this to set panels as visible by default.
+   * Most panels default to hidden to reduce UI clutter.
+   */
+  virtual bool IsVisibleByDefault() const { return false; }
+
   // ==========================================================================
   // Relationships (Optional)
   // ==========================================================================

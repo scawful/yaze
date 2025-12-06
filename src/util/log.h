@@ -2,14 +2,10 @@
 #define YAZE_UTIL_LOG_H
 
 #include <atomic>
-#include <chrono>
 #include <fstream>
-#include <iostream>
-#include <memory>
 #include <set>
 #include <string>
 #include <utility>
-#include <vector>
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"

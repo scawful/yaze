@@ -6,6 +6,7 @@
 #include "app/editor/menu/status_bar.h"
 #include "app/editor/system/user_settings.h"
 #include "core/patch/patch_manager.h"
+#include "core/project.h"
 
 namespace yaze {
 
@@ -27,6 +28,7 @@ class ShortcutManager;
  * - Performance
  * - AI Agent
  * - Keyboard shortcuts
+ * - Project configuration
  */
 class SettingsPanel {
  public:
@@ -39,6 +41,7 @@ class SettingsPanel {
   void SetShortcutManager(ShortcutManager* manager) { shortcut_manager_ = manager; }
   void SetStatusBar(StatusBar* bar) { status_bar_ = bar; }
   void SetRom(Rom* rom) { rom_ = rom; }
+  void SetProject(project::YazeProject* project) { project_ = project; }
 
   // Main draw entry point
   void Draw();
@@ -54,6 +57,7 @@ class SettingsPanel {
   void DrawEditorShortcuts();
   void DrawPanelShortcuts();
   void DrawPatchSettings();
+  void DrawProjectSettings(); // New method
   void DrawPatchList(const std::string& folder);
   void DrawPatchDetails();
   void DrawParameterWidget(core::PatchParameter* param);
@@ -63,6 +67,7 @@ class SettingsPanel {
   ShortcutManager* shortcut_manager_ = nullptr;
   StatusBar* status_bar_ = nullptr;
   Rom* rom_ = nullptr;
+  project::YazeProject* project_ = nullptr; // Project reference
 
   // Shortcut editing state
   char shortcut_edit_buffer_[64] = {};
