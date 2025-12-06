@@ -816,6 +816,7 @@ void Canvas::ResetView() {
   config_.global_scale = 1.0f;
   global_scale_ = 1.0f;  // Legacy compatibility
   scrolling_ = ImVec2(0, 0);
+  config_.scrolling = ImVec2(0, 0);  // Sync config for persistence
 }
 
 void Canvas::ApplyConfigSnapshot(const CanvasConfig& snapshot) {
