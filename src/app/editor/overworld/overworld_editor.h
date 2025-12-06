@@ -2,7 +2,6 @@
 #define YAZE_APP_EDITOR_OVERWORLDEDITOR_H
 
 #include <chrono>
-#include <mutex>
 #include <optional>
 
 #include "absl/status/status.h"
@@ -265,6 +264,11 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status DrawAreaGraphics();
   absl::Status DrawTile16Selector();
   void DrawMapProperties();
+
+  /// @brief Invalidate cached graphics for a specific map or all maps
+  /// @param map_id The map to invalidate (-1 to invalidate all maps)
+  /// Call this when palette or graphics settings change.
+  void InvalidateGraphicsCache(int map_id = -1);
   absl::Status DrawScratchSpace();
   void DrawTile8Selector();
   absl::Status UpdateGfxGroupEditor();
@@ -465,37 +469,29 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   std::vector<int> selected_tile16_ids_;
 
   // ===========================================================================
-  // Loading and Visibility State
+  // Loading State
   // ===========================================================================
 
   bool all_gfx_loaded_ = false;
   bool map_blockset_loaded_ = false;
-  bool selected_tile_loaded_ = false;
-  bool show_tile16_editor_ = false;
-  bool show_gfx_group_editor_ = false;
-  bool show_properties_editor_ = false;
+
+  // ===========================================================================
+  // Canvas Interaction State
+  // ===========================================================================
 
   bool overworld_canvas_fullscreen_ = false;
-  bool middle_mouse_dragging_ = false;
   bool is_dragging_entity_ = false;
   bool dragged_entity_free_movement_ = false;
   bool current_map_lock_ = false;
+
+  // ===========================================================================
+  // Property Windows (Standalone, Not PanelManager)
+  // ===========================================================================
+
   bool show_custom_bg_color_editor_ = false;
   bool show_overlay_editor_ = false;
-  bool use_area_specific_bg_color_ = false;
   bool show_map_properties_panel_ = false;
   bool show_overlay_preview_ = false;
-
-  // Panel visibility (managed by PanelManager)
-  bool show_overworld_canvas_ = true;
-  bool show_tile16_selector_ = false;
-  bool show_tile8_selector_ = false;
-  bool show_area_gfx_ = false;
-  bool show_scratch_ = false;
-  bool show_gfx_groups_ = false;
-  bool show_usage_stats_ = false;
-  bool show_v3_settings_ = false;
-  bool show_debug_window_ = false;
 
   // ===========================================================================
   // Performance Optimization State

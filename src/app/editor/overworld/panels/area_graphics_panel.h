@@ -25,6 +25,10 @@ class AreaGraphicsPanel : public EditorPanel {
   std::string GetDisplayName() const override { return "Area Graphics"; }
   std::string GetIcon() const override { return ICON_MD_IMAGE; }
   std::string GetEditorCategory() const override { return "Overworld"; }
+  float GetPreferredWidth() const override {
+    // 128px × 2.0 scale + padding = 276px
+    return 128 * 2.0f + 20.0f;
+  }
   void Draw(bool* p_open) override;
 
  private:
