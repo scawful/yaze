@@ -66,6 +66,7 @@ UICoordinator::UICoordinator(
       }
     });
     // Don't hide welcome screen yet - it will be hidden when ROM loads
+    // (DrawWelcomeScreen auto-transitions to Dashboard on ROM load)
 #else
     if (editor_manager_) {
       auto status = editor_manager_->LoadRom();
@@ -74,9 +75,8 @@ UICoordinator::UICoordinator(
             absl::StrFormat("Failed to load ROM: %s", status.message()),
             ToastType::kError);
       } else {
-        // Hide welcome screen on successful ROM load
-        show_welcome_screen_ = false;
-        welcome_screen_manually_closed_ = true;
+        // Transition to Dashboard on successful ROM load
+        SetStartupSurface(StartupSurface::kDashboard);
       }
     }
 #endif
@@ -90,9 +90,8 @@ UICoordinator::UICoordinator(
             absl::StrFormat("Failed to create project: %s", status.message()),
             ToastType::kError);
       } else {
-        // Hide welcome screen on successful project creation
-        show_welcome_screen_ = false;
-        welcome_screen_manually_closed_ = true;
+        // Transition to Dashboard on successful project creation
+        SetStartupSurface(StartupSurface::kDashboard);
       }
     }
   });
@@ -105,9 +104,8 @@ UICoordinator::UICoordinator(
             absl::StrFormat("Failed to open project: %s", status.message()),
             ToastType::kError);
       } else {
-        // Hide welcome screen on successful project open
-        show_welcome_screen_ = false;
-        welcome_screen_manually_closed_ = true;
+        // Transition to Dashboard on successful project open
+        SetStartupSurface(StartupSurface::kDashboard);
       }
     }
   });
@@ -125,11 +123,14 @@ UICoordinator::UICoordinator(
 void UICoordinator::SetWelcomeScreenBehavior(StartupVisibility mode) {
   welcome_behavior_override_ = mode;
   if (mode == StartupVisibility::kHide) {
-    show_welcome_screen_ = false;
     welcome_screen_manually_closed_ = true;
+    // If hiding welcome, transition to appropriate state
+    if (current_startup_surface_ == StartupSurface::kWelcome) {
+      SetStartupSurface(StartupSurface::kDashboard);
+    }
   } else if (mode == StartupVisibility::kShow) {
-    show_welcome_screen_ = true;
     welcome_screen_manually_closed_ = false;
+    SetStartupSurface(StartupSurface::kWelcome);
   }
 }
 
@@ -139,9 +140,15 @@ void UICoordinator::SetDashboardBehavior(StartupVisibility mode) {
   }
   dashboard_behavior_override_ = mode;
   if (mode == StartupVisibility::kShow) {
-    show_editor_selection_ = true;
+    // Only transition to dashboard if we're not in welcome
+    if (current_startup_surface_ != StartupSurface::kWelcome) {
+      SetStartupSurface(StartupSurface::kDashboard);
+    }
   } else if (mode == StartupVisibility::kHide) {
-    show_editor_selection_ = false;
+    // If hiding dashboard, transition to editor state
+    if (current_startup_surface_ == StartupSurface::kDashboard) {
+      SetStartupSurface(StartupSurface::kEditor);
+    }
   }
 }
 
@@ -628,11 +635,11 @@ void UICoordinator::DrawLayoutPresets() {
 
 void UICoordinator::DrawWelcomeScreen() {
   // ============================================================================
-  // SIMPLIFIED WELCOME SCREEN LOGIC
+  // CENTRALIZED WELCOME SCREEN LOGIC (using StartupSurface state)
   // ============================================================================
-  // Auto-show: When no ROM is loaded (unless manually closed this session)
-  // Auto-hide: When ROM is loaded
-  // Manual control: Can be opened via Help > Welcome Screen menu
+  // Uses ShouldShowWelcome() as single source of truth
+  // Auto-transitions to Dashboard on ROM load
+  // Activity Bar hidden when welcome is visible
   // ============================================================================
 
   if (!editor_manager_) {
@@ -646,35 +653,24 @@ void UICoordinator::DrawWelcomeScreen() {
     return;
   }
 
-  // Check ROM state
+  // Check ROM state and update startup surface accordingly
   auto* current_rom = editor_manager_->GetCurrentRom();
   bool rom_is_loaded = current_rom && current_rom->is_loaded();
 
-  if (welcome_behavior_override_ == StartupVisibility::kHide) {
-    show_welcome_screen_ = false;
-    welcome_screen_manually_closed_ = true;
-    return;
+  // Auto-transition: ROM loaded -> Dashboard (unless manually closed)
+  if (rom_is_loaded && current_startup_surface_ == StartupSurface::kWelcome &&
+      !welcome_screen_manually_closed_) {
+    SetStartupSurface(StartupSurface::kDashboard);
   }
 
-  const bool force_show_welcome =
-      welcome_behavior_override_ == StartupVisibility::kShow;
-
-  if (force_show_welcome) {
-    show_welcome_screen_ = true;
-    welcome_screen_manually_closed_ = false;
-  } else {
-    // SIMPLIFIED LOGIC: Auto-show when no ROM, auto-hide when ROM loads
-    if (!rom_is_loaded && !welcome_screen_manually_closed_) {
-      show_welcome_screen_ = true;
-    }
-
-    if (rom_is_loaded && !welcome_screen_manually_closed_) {
-      show_welcome_screen_ = false;
-    }
+  // Auto-transition: ROM unloaded -> Welcome (reset to welcome state)
+  if (!rom_is_loaded && current_startup_surface_ != StartupSurface::kWelcome &&
+      !welcome_screen_manually_closed_) {
+    SetStartupSurface(StartupSurface::kWelcome);
   }
 
-  // Don't show if flag is false
-  if (!show_welcome_screen_) {
+  // Use centralized visibility check
+  if (!ShouldShowWelcome()) {
     return;
   }
 
@@ -685,7 +681,8 @@ void UICoordinator::DrawWelcomeScreen() {
   welcome_screen_->RefreshRecentProjects();
 
   // Pass layout offsets so welcome screen centers within dockspace region
-  float left_offset = editor_manager_->GetLeftLayoutOffset();
+  // Note: Activity Bar is hidden when welcome is shown, so left_offset = 0
+  float left_offset = ShouldShowActivityBar() ? editor_manager_->GetLeftLayoutOffset() : 0.0f;
   float right_offset = editor_manager_->GetRightLayoutOffset();
   welcome_screen_->SetLayoutOffsets(left_offset, right_offset);
 
@@ -693,14 +690,14 @@ void UICoordinator::DrawWelcomeScreen() {
   bool is_open = true;
   welcome_screen_->Show(&is_open);
 
-  // If user closed it via X button, respect that
+  // If user closed it via X button, respect that and transition to appropriate state
   if (!is_open) {
-    show_welcome_screen_ = false;
     welcome_screen_manually_closed_ = true;
+    // Transition to Dashboard if ROM loaded, stay in Editor state otherwise
+    if (rom_is_loaded) {
+      SetStartupSurface(StartupSurface::kDashboard);
+    }
   }
-
-  // If an action was taken (ROM loaded, project opened), the welcome screen
-  // will auto-hide next frame when rom_is_loaded becomes true
 }
 
 void UICoordinator::DrawProjectHelp() {
@@ -1227,7 +1224,82 @@ void UICoordinator::DrawGlobalSearch() {
   }
 }
 
+// ============================================================================
+// Startup Surface Management (Single Source of Truth)
+// ============================================================================
 
+void UICoordinator::SetStartupSurface(StartupSurface surface) {
+  StartupSurface old_surface = current_startup_surface_;
+  current_startup_surface_ = surface;
+
+  // Log state transitions for debugging
+  const char* surface_names[] = {"Welcome", "Dashboard", "Editor"};
+  LOG_INFO("UICoordinator", "Startup surface: %s -> %s",
+           surface_names[static_cast<int>(old_surface)],
+           surface_names[static_cast<int>(surface)]);
+
+  // Update dependent visibility flags
+  switch (surface) {
+    case StartupSurface::kWelcome:
+      show_welcome_screen_ = true;
+      show_editor_selection_ = false;  // Dashboard hidden
+      // Activity Bar will be hidden (checked via ShouldShowActivityBar)
+      break;
+    case StartupSurface::kDashboard:
+      show_welcome_screen_ = false;
+      show_editor_selection_ = true;  // Dashboard shown
+      break;
+    case StartupSurface::kEditor:
+      show_welcome_screen_ = false;
+      show_editor_selection_ = false;  // Dashboard hidden
+      break;
+  }
+}
+
+bool UICoordinator::ShouldShowWelcome() const {
+  // Respect CLI overrides
+  if (welcome_behavior_override_ == StartupVisibility::kHide) {
+    return false;
+  }
+  if (welcome_behavior_override_ == StartupVisibility::kShow) {
+    return true;
+  }
+
+  // Default: show welcome only when in welcome state and not manually closed
+  return current_startup_surface_ == StartupSurface::kWelcome &&
+         !welcome_screen_manually_closed_;
+}
+
+bool UICoordinator::ShouldShowDashboard() const {
+  // Respect CLI overrides
+  if (dashboard_behavior_override_ == StartupVisibility::kHide) {
+    return false;
+  }
+  if (dashboard_behavior_override_ == StartupVisibility::kShow) {
+    return true;
+  }
+
+  // Default: show dashboard only when in dashboard state
+  return current_startup_surface_ == StartupSurface::kDashboard;
+}
+
+bool UICoordinator::ShouldShowActivityBar() const {
+  // Activity Bar hidden on cold start (welcome screen)
+  // Only show after ROM is loaded
+  if (current_startup_surface_ == StartupSurface::kWelcome) {
+    return false;
+  }
+
+  // Check if ROM is actually loaded
+  if (editor_manager_) {
+    auto* current_rom = editor_manager_->GetCurrentRom();
+    if (!current_rom || !current_rom->is_loaded()) {
+      return false;
+    }
+  }
+
+  return true;
+}
 
 }  // namespace editor
 }  // namespace yaze

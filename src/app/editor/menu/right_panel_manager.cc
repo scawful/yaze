@@ -412,18 +412,6 @@ void RightPanelManager::DrawAgentChatPanel() {
     ImGui::Spacing();
     DrawPanelValue("Status", chat_active ? "Active" : "Inactive");
     DrawPanelValue("Provider", "Configured via Agent Editor");
-
-    ImGui::Spacing();
-    ImGui::PushStyleColor(ImGuiCol_Button, gui::GetPrimaryVec4());
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                          gui::GetPrimaryHoverVec4());
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                          gui::GetPrimaryActiveVec4());
-    if (ImGui::Button(ICON_MD_OPEN_IN_NEW " Focus Agent Chat",
-                      ImVec2(-1, 0))) {
-      agent_chat_->set_active(true);
-    }
-    ImGui::PopStyleColor(3);
   }
   ImGui::EndChild();
   ImGui::PopStyleVar();
@@ -432,45 +420,55 @@ void RightPanelManager::DrawAgentChatPanel() {
   ImGui::Spacing();
   agent_chat_->set_active(true);
 
-  const float footer_height = ImGui::GetFrameHeightWithSpacing() * 2.5f;
+  const float footer_height = ImGui::GetFrameHeightWithSpacing() * 3.5f;
   float content_height =
       std::max(120.0f, ImGui::GetContentRegionAvail().y - footer_height);
 
-  // Quick toggles row
-  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6.0f);
-  ImGui::PushStyleColor(ImGuiCol_FrameBg, gui::GetSurfaceContainerVec4());
-  ImGui::PushStyleColor(ImGuiCol_FrameBgHovered,
-                        gui::GetSurfaceContainerHighVec4());
-  ImGui::PushStyleColor(ImGuiCol_FrameBgActive,
-                        gui::GetSurfaceContainerHighestVec4());
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetOnSurfaceVec4());
-
-  bool auto_scroll = agent_chat_->auto_scroll();
-  bool show_ts = agent_chat_->show_timestamps();
-  bool show_reasoning = agent_chat_->show_reasoning();
-
-  if (ImGui::Checkbox("Auto-scroll", &auto_scroll)) {
-    agent_chat_->set_auto_scroll(auto_scroll);
-  }
-  ImGui::SameLine();
-  if (ImGui::Checkbox("Timestamps", &show_ts)) {
-    agent_chat_->set_show_timestamps(show_ts);
-  }
-  ImGui::SameLine();
-  if (ImGui::Checkbox("Reasoning", &show_reasoning)) {
-    agent_chat_->set_show_reasoning(show_reasoning);
+  static int active_tab = 0;  // 0 = Chat, 1 = Quick Config
+  if (ImGui::BeginTabBar("AgentSidebarTabs")) {
+    if (ImGui::BeginTabItem(ICON_MD_CHAT " Chat")) {
+      active_tab = 0;
+      ImGui::EndTabItem();
+    }
+    if (ImGui::BeginTabItem(ICON_MD_SETTINGS " Quick Config")) {
+      active_tab = 1;
+      ImGui::EndTabItem();
+    }
+    ImGui::EndTabBar();
   }
 
-  ImGui::PopStyleColor(4);
-  ImGui::PopStyleVar();
+  if (active_tab == 0) {
+    if (ImGui::BeginChild("AgentChatBody", ImVec2(0, content_height), true)) {
+      agent_chat_->Draw(content_height);
+    }
+    ImGui::EndChild();
+  } else {
+    if (ImGui::BeginChild("AgentQuickConfig", ImVec2(0, content_height), true)) {
+      bool auto_scroll = agent_chat_->auto_scroll();
+      bool show_ts = agent_chat_->show_timestamps();
+      bool show_reasoning = agent_chat_->show_reasoning();
 
-  // Chat body
-  if (ImGui::BeginChild("AgentChatBody", ImVec2(0, content_height), true)) {
-    agent_chat_->Draw(content_height);
+      ImGui::TextColored(accent, "%s Display", ICON_MD_TUNE);
+      if (ImGui::Checkbox("Auto-scroll", &auto_scroll)) {
+        agent_chat_->set_auto_scroll(auto_scroll);
+      }
+      if (ImGui::Checkbox("Show timestamps", &show_ts)) {
+        agent_chat_->set_show_timestamps(show_ts);
+      }
+      if (ImGui::Checkbox("Show reasoning traces", &show_reasoning)) {
+        agent_chat_->set_show_reasoning(show_reasoning);
+      }
+
+      ImGui::Separator();
+      ImGui::TextColored(accent, "%s Provider", ICON_MD_SMART_TOY);
+      DrawPanelDescription(
+          "Change provider/model in the main Agent Editor. This sidebar shows "
+          "active chat controls.");
+    }
+    ImGui::EndChild();
   }
-  ImGui::EndChild();
 
-  // Footer actions
+  // Footer actions (always visible, not clipped)
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6, 6));
   ImGui::PushStyleColor(ImGuiCol_Button, gui::GetPrimaryVec4());
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered, gui::GetPrimaryHoverVec4());
@@ -481,16 +479,17 @@ void RightPanelManager::DrawAgentChatPanel() {
   }
   ImGui::PopStyleColor(3);
 
+  ImVec2 half_width(ImGui::GetContentRegionAvail().x / 2 - 4, 0);
   ImGui::PushStyleColor(ImGuiCol_Button, gui::GetSurfaceContainerVec4());
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
                         gui::GetSurfaceContainerHighVec4());
   ImGui::PushStyleColor(ImGuiCol_ButtonActive,
                         gui::GetSurfaceContainerHighestVec4());
-  if (ImGui::Button(ICON_MD_DELETE_FOREVER " Clear", ImVec2(ImGui::GetContentRegionAvail().x / 2 - 4, 0))) {
+  if (ImGui::Button(ICON_MD_DELETE_FOREVER " Clear", half_width)) {
     agent_chat_->ClearHistory();
   }
   ImGui::SameLine();
-  if (ImGui::Button(ICON_MD_FILE_DOWNLOAD " Save", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+  if (ImGui::Button(ICON_MD_FILE_DOWNLOAD " Save", half_width)) {
     agent_chat_->SaveHistory(".yaze/agent_chat_history.json");
   }
   ImGui::PopStyleColor(3);
