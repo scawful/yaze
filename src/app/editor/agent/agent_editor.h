@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_AGENT_AGENT_EDITOR_H_
 
 #include <filesystem>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
@@ -96,6 +97,7 @@ class AgentEditor : public Editor {
     std::string model;
     std::string ollama_host = "http://localhost:11434";
     std::string gemini_api_key;
+    std::string openai_api_key;
     std::string system_prompt;
     bool verbose = false;
     bool show_reasoning = true;
@@ -120,6 +122,7 @@ class AgentEditor : public Editor {
     std::string model;
     std::string ollama_host = "http://localhost:11434";
     std::string gemini_api_key;
+    std::string openai_api_key;
     bool verbose = false;
     bool show_reasoning = true;
     int max_tool_iterations = 4;
@@ -182,6 +185,12 @@ class AgentEditor : public Editor {
   void SetChatActive(bool active);
   void ToggleChat();
   void OpenChatWindow();
+
+  // Knowledge panel callback (set by AgentUiController)
+  using KnowledgePanelCallback = std::function<void()>;
+  void SetKnowledgePanelCallback(KnowledgePanelCallback callback) {
+    knowledge_panel_callback_ = std::move(callback);
+  }
 
   // Collaboration and session management
   enum class CollaborationMode {
@@ -320,6 +329,9 @@ class AgentEditor : public Editor {
   // Chat history viewer state
   std::vector<cli::agent::ChatMessage> cached_history_;
   bool history_needs_refresh_ = true;
+
+  // Knowledge panel callback (set by AgentUiController)
+  KnowledgePanelCallback knowledge_panel_callback_;
 };
 
 }  // namespace editor

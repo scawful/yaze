@@ -39,6 +39,7 @@ AgentUITheme AgentUITheme::FromCurrentTheme() {
   t.provider_ollama = gui::ConvertColorToImVec4(theme.chat.provider_ollama);
   t.provider_gemini = gui::ConvertColorToImVec4(theme.chat.provider_gemini);
   t.provider_mock = gui::ConvertColorToImVec4(theme.chat.provider_mock);
+  t.provider_openai = gui::ConvertColorToImVec4(theme.chat.provider_openai);
 
   // Collaboration colors
   t.collaboration_active = gui::ConvertColorToImVec4(theme.success);
@@ -156,6 +157,8 @@ void RenderProviderBadge(const char* provider) {
     color = theme.provider_ollama;
   } else if (strcmp(provider, "gemini") == 0) {
     color = theme.provider_gemini;
+  } else if (strcmp(provider, "openai") == 0) {
+    color = theme.provider_openai;
   }
 
   ImGui::PushStyleColor(ImGuiCol_Text, color);

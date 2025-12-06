@@ -228,6 +228,11 @@ void AgentChat::RenderMessage(const cli::agent::ChatMessage& msg, int index) {
     if (!is_user) {
       RenderProposalQuickActions(msg, index);
     }
+
+    // Render tool execution timeline if metadata is available
+    if (!is_user) {
+      RenderToolTimeline(msg);
+    }
   }
   ImGui::EndChild();
 
@@ -396,6 +401,51 @@ void AgentChat::RenderTableData(const cli::agent::ChatMessage::TableData& table)
 
     ImGui::EndTable();
   }
+}
+
+void AgentChat::RenderToolTimeline(const cli::agent::ChatMessage& msg) {
+  // Check if we have model metadata with tool information
+  if (!msg.model_metadata.has_value()) {
+    return;
+  }
+
+  const auto& meta = msg.model_metadata.value();
+
+  // Only render if tools were called
+  if (meta.tool_names.empty() && meta.tool_iterations == 0) {
+    return;
+  }
+
+  ImGui::Separator();
+  ImGui::Spacing();
+
+  // Tool timeline header - collapsible
+  ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.15f, 0.15f, 0.18f, 1.0f));
+  ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.2f, 0.2f, 0.25f, 1.0f));
+
+  std::string header = absl::StrFormat("%s Tools (%d calls, %.2fs)", ICON_MD_BUILD_CIRCLE,
+                                       meta.tool_iterations, meta.latency_seconds);
+
+  if (ImGui::TreeNode("##ToolTimeline", "%s", header.c_str())) {
+    // List tool names
+    if (!meta.tool_names.empty()) {
+      ImGui::TextDisabled("Tools called:");
+      for (const auto& tool : meta.tool_names) {
+        ImGui::BulletText("%s", tool.c_str());
+      }
+    }
+
+    // Provider/model info
+    ImGui::Spacing();
+    ImGui::TextDisabled("Provider: %s", meta.provider.c_str());
+    if (!meta.model.empty()) {
+      ImGui::TextDisabled("Model: %s", meta.model.c_str());
+    }
+
+    ImGui::TreePop();
+  }
+
+  ImGui::PopStyleColor(2);
 }
 
 absl::Status AgentChat::LoadHistory(const std::string& filepath) {

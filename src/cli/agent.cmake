@@ -240,7 +240,10 @@ if(YAZE_ENABLE_REMOTE_AUTOMATION)
 endif()
 
 if(YAZE_ENABLE_AI_RUNTIME AND YAZE_ENABLE_JSON)
-  list(APPEND YAZE_AGENT_SOURCES cli/service/ai/gemini_ai_service.cc)
+  list(APPEND YAZE_AGENT_SOURCES
+    cli/service/ai/gemini_ai_service.cc
+    cli/service/ai/openai_ai_service.cc
+  )
 endif()
 
 add_library(yaze_agent STATIC ${YAZE_AGENT_SOURCES})

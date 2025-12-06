@@ -90,6 +90,7 @@ class AgentChat {
   void RenderProposalQuickActions(const cli::agent::ChatMessage& msg, int index);
   void RenderCodeBlock(const std::string& code, const std::string& language, int msg_index);
   void RenderTableData(const cli::agent::ChatMessage::TableData& table);
+  void RenderToolTimeline(const cli::agent::ChatMessage& msg);
 
   // Helpers
   struct ContentBlock {
