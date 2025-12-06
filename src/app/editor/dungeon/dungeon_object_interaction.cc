@@ -23,8 +23,8 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
     return;
   }
 
-  // Handle Escape key to cancel placement
-  if (ImGui::IsKeyPressed(ImGuiKey_Escape) && object_loaded_) {
+  // Handle Escape key to cancel any active placement mode
+  if (ImGui::IsKeyPressed(ImGuiKey_Escape) && mode_manager_.IsPlacementActive()) {
     CancelPlacement();
     return;
   }
@@ -43,79 +43,93 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
   ImVec2 canvas_mouse_pos =
       ImVec2(mouse_pos.x - canvas_pos.x, mouse_pos.y - canvas_pos.y);
 
-  // Handle left mouse click
+  // Handle left mouse click based on current mode
   if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-    if (door_placement_mode_) {
-      // Door placement mode: place door at snapped position
-      PlaceDoorAtPosition(static_cast<int>(canvas_mouse_pos.x),
-                          static_cast<int>(canvas_mouse_pos.y));
-    } else if (sprite_placement_mode_) {
-      // Sprite placement mode: place sprite at clicked position
-      PlaceSpriteAtPosition(static_cast<int>(canvas_mouse_pos.x),
+    switch (mode_manager_.GetMode()) {
+      case InteractionMode::PlaceDoor:
+        PlaceDoorAtPosition(static_cast<int>(canvas_mouse_pos.x),
                             static_cast<int>(canvas_mouse_pos.y));
-    } else if (item_placement_mode_) {
-      // Item placement mode: place item at clicked position
-      PlaceItemAtPosition(static_cast<int>(canvas_mouse_pos.x),
-                          static_cast<int>(canvas_mouse_pos.y));
-    } else if (object_loaded_) {
-      // Object place mode: add object at clicked position
-      auto [room_x, room_y] =
-          CanvasToRoomCoordinates(static_cast<int>(canvas_mouse_pos.x),
-                                  static_cast<int>(canvas_mouse_pos.y));
-      PlaceObjectAtPosition(room_x, room_y);
-    } else {
-      // Selection mode: try to select entity (door/sprite/item) first, then objects
-      if (!TrySelectEntityAtCursor()) {
-        // No entity - try to select object at cursor
-        if (!TrySelectObjectAtCursor()) {
-          // Clicked empty space - start rectangle selection
-          if (!io.KeyShift && !io.KeyCtrl) {
-            // Clear selection unless modifier held
-            selection_.ClearSelection();
-            ClearEntitySelection();
-          }
-          // Begin rectangle selection for multi-select
-          selection_.BeginRectangleSelection(static_cast<int>(canvas_mouse_pos.x),
-                                             static_cast<int>(canvas_mouse_pos.y));
-        } else {
-          // Clicked on an object - start drag if we have selected objects
-          ClearEntitySelection();  // Clear entity selection when selecting object
-          if (selection_.HasSelection()) {
-            is_dragging_ = true;
-            drag_start_pos_ = canvas_mouse_pos;
-            drag_current_pos_ = canvas_mouse_pos;
+        break;
+
+      case InteractionMode::PlaceSprite:
+        PlaceSpriteAtPosition(static_cast<int>(canvas_mouse_pos.x),
+                              static_cast<int>(canvas_mouse_pos.y));
+        break;
+
+      case InteractionMode::PlaceItem:
+        PlaceItemAtPosition(static_cast<int>(canvas_mouse_pos.x),
+                            static_cast<int>(canvas_mouse_pos.y));
+        break;
+
+      case InteractionMode::PlaceObject: {
+        auto [room_x, room_y] =
+            CanvasToRoomCoordinates(static_cast<int>(canvas_mouse_pos.x),
+                                    static_cast<int>(canvas_mouse_pos.y));
+        PlaceObjectAtPosition(room_x, room_y);
+        break;
+      }
+
+      case InteractionMode::Select:
+      default:
+        // Selection mode: try to select entity (door/sprite/item) first, then objects
+        if (!TrySelectEntityAtCursor()) {
+          // No entity - try to select object at cursor
+          if (!TrySelectObjectAtCursor()) {
+            // Clicked empty space - start rectangle selection
+            if (!io.KeyShift && !io.KeyCtrl) {
+              // Clear selection unless modifier held
+              selection_.ClearSelection();
+              ClearEntitySelection();
+            }
+            // Begin rectangle selection for multi-select
+            mode_manager_.SetMode(InteractionMode::RectangleSelect);
+            auto& state = mode_manager_.GetModeState();
+            state.rect_start_x = static_cast<int>(canvas_mouse_pos.x);
+            state.rect_start_y = static_cast<int>(canvas_mouse_pos.y);
+            state.rect_end_x = state.rect_start_x;
+            state.rect_end_y = state.rect_start_y;
+            selection_.BeginRectangleSelection(state.rect_start_x, state.rect_start_y);
+          } else {
+            // Clicked on an object - start drag if we have selected objects
+            ClearEntitySelection();  // Clear entity selection when selecting object
+            if (selection_.HasSelection()) {
+              mode_manager_.SetMode(InteractionMode::DraggingObjects);
+              auto& state = mode_manager_.GetModeState();
+              state.drag_start = canvas_mouse_pos;
+              state.drag_current = canvas_mouse_pos;
+            }
           }
         }
-      }
+        break;
     }
   }
 
   // Handle entity drag if active
-  if (is_entity_dragging_) {
+  if (mode_manager_.GetMode() == InteractionMode::DraggingEntity) {
     HandleEntityDrag();
   }
 
   // Handle drag in progress
-  if (is_dragging_ && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
-    drag_current_pos_ = canvas_mouse_pos;
+  if (mode_manager_.GetMode() == InteractionMode::DraggingObjects &&
+      ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+    mode_manager_.GetModeState().drag_current = canvas_mouse_pos;
     DrawDragPreview();
   }
 
   // Handle mouse release - complete drag operation
-  if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && is_dragging_) {
-    is_dragging_ = false;
+  if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) &&
+      mode_manager_.GetMode() == InteractionMode::DraggingObjects) {
+    auto& state = mode_manager_.GetModeState();
 
     // Apply drag transformation to selected objects
     auto selected_indices = selection_.GetSelectedIndices();
     if (!selected_indices.empty() && rooms_ && current_room_id_ >= 0 &&
         current_room_id_ < 296) {
-      if (mutation_hook_) {
-        mutation_hook_();
-      }
+      interaction_context_.NotifyMutation();
 
       auto& room = (*rooms_)[current_room_id_];
-      ImVec2 drag_delta = ImVec2(drag_current_pos_.x - drag_start_pos_.x,
-                                 drag_current_pos_.y - drag_start_pos_.y);
+      ImVec2 drag_delta = ImVec2(state.drag_current.x - state.drag_start.x,
+                                 state.drag_current.y - state.drag_start.y);
 
       // Convert pixel delta to tile delta
       int tile_delta_x = static_cast<int>(drag_delta.x) / 8;
@@ -141,11 +155,12 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
         room.MarkObjectsDirty();
 
         // Trigger cache invalidation and re-render
-        if (cache_invalidation_callback_) {
-          cache_invalidation_callback_();
-        }
+        interaction_context_.NotifyInvalidateCache();
       }
     }
+
+    // Return to select mode
+    mode_manager_.SetMode(InteractionMode::Select);
   }
 }
 
@@ -369,15 +384,13 @@ void DungeonObjectInteraction::DrawHoverHighlight(
 }
 
 void DungeonObjectInteraction::PlaceObjectAtPosition(int room_x, int room_y) {
-  if (!object_loaded_ || preview_object_.id_ < 0 || !rooms_)
+  if (!mode_manager_.IsObjectPlacementActive() || preview_object_.id_ < 0 || !rooms_)
     return;
 
   if (current_room_id_ < 0 || current_room_id_ >= 296)
     return;
 
-  if (mutation_hook_) {
-    mutation_hook_();
-  }
+  interaction_context_.NotifyMutation();
 
   // Create new object at the specified position
   auto new_object = preview_object_;
@@ -394,9 +407,7 @@ void DungeonObjectInteraction::PlaceObjectAtPosition(int room_x, int room_y) {
   }
 
   // Trigger cache invalidation
-  if (cache_invalidation_callback_) {
-    cache_invalidation_callback_();
-  }
+  interaction_context_.NotifyInvalidateCache();
 
   // Exit placement mode after placing a single object
   CancelPlacement();
@@ -413,7 +424,8 @@ void DungeonObjectInteraction::DrawSelectBox() {
 void DungeonObjectInteraction::DrawDragPreview() {
   const auto& theme = AgentUI::GetTheme();
   auto selected_indices = selection_.GetSelectedIndices();
-  if (!is_dragging_ || selected_indices.empty() || !rooms_)
+  if (mode_manager_.GetMode() != InteractionMode::DraggingObjects ||
+      selected_indices.empty() || !rooms_)
     return;
   if (current_room_id_ < 0 || current_room_id_ >= 296)
     return;
@@ -421,8 +433,9 @@ void DungeonObjectInteraction::DrawDragPreview() {
   // Draw drag preview for selected objects
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   ImVec2 canvas_pos = canvas_->zero_point();
-  ImVec2 drag_delta = ImVec2(drag_current_pos_.x - drag_start_pos_.x,
-                             drag_current_pos_.y - drag_start_pos_.y);
+  const auto& state = mode_manager_.GetModeState();
+  ImVec2 drag_delta = ImVec2(state.drag_current.x - state.drag_start.x,
+                             state.drag_current.y - state.drag_start.y);
 
   auto& room = (*rooms_)[current_room_id_];
   const auto& objects = room.GetTileObjects();
@@ -500,12 +513,17 @@ void DungeonObjectInteraction::SetCurrentRoom(
 void DungeonObjectInteraction::SetPreviewObject(
     const zelda3::RoomObject& object, bool loaded) {
   preview_object_ = object;
-  object_loaded_ = loaded;
 
-  // Render ghost preview bitmap when object is loaded
   if (loaded && object.id_ >= 0) {
+    // Enter object placement mode
+    mode_manager_.SetMode(InteractionMode::PlaceObject);
+    mode_manager_.GetModeState().preview_object = object;
     RenderGhostPreviewBitmap();
   } else {
+    // Exit placement mode if not loaded
+    if (mode_manager_.GetMode() == InteractionMode::PlaceObject) {
+      mode_manager_.SetMode(InteractionMode::Select);
+    }
     ghost_preview_buffer_.reset();
   }
 }
@@ -563,7 +581,9 @@ void DungeonObjectInteraction::RenderGhostPreviewBitmap() {
 
 void DungeonObjectInteraction::ClearSelection() {
   selection_.ClearSelection();
-  is_dragging_ = false;
+  if (mode_manager_.GetMode() == InteractionMode::DraggingObjects) {
+    mode_manager_.SetMode(InteractionMode::Select);
+  }
 }
 
 bool DungeonObjectInteraction::TrySelectObjectAtCursor() {
@@ -595,9 +615,7 @@ void DungeonObjectInteraction::HandleDeleteSelected() {
   if (current_room_id_ < 0 || current_room_id_ >= 296)
     return;
 
-  if (mutation_hook_) {
-    mutation_hook_();
-  }
+  interaction_context_.NotifyMutation();
 
   auto& room = (*rooms_)[current_room_id_];
 
@@ -613,9 +631,7 @@ void DungeonObjectInteraction::HandleDeleteSelected() {
   selection_.ClearSelection();
 
   // Trigger cache invalidation and re-render
-  if (cache_invalidation_callback_) {
-    cache_invalidation_callback_();
-  }
+  interaction_context_.NotifyInvalidateCache();
 }
 
 void DungeonObjectInteraction::HandleCopySelected() {
@@ -645,9 +661,7 @@ void DungeonObjectInteraction::HandlePasteObjects() {
   if (current_room_id_ < 0 || current_room_id_ >= 296)
     return;
 
-  if (mutation_hook_) {
-    mutation_hook_();
-  }
+  interaction_context_.NotifyMutation();
 
   auto& room = (*rooms_)[current_room_id_];
 
@@ -680,29 +694,31 @@ void DungeonObjectInteraction::HandlePasteObjects() {
     }
 
     // Trigger cache invalidation and re-render
-    if (cache_invalidation_callback_) {
-      cache_invalidation_callback_();
-    }
+    interaction_context_.NotifyInvalidateCache();
   }
 }
 
 void DungeonObjectInteraction::DrawGhostPreview() {
-  // Draw entity-specific ghost previews
-  if (door_placement_mode_) {
-    DrawDoorGhostPreview();
-    return;
-  }
-  if (sprite_placement_mode_) {
-    DrawSpriteGhostPreview();
-    return;
-  }
-  if (item_placement_mode_) {
-    DrawItemGhostPreview();
-    return;
+  // Draw entity-specific ghost previews based on current mode
+  switch (mode_manager_.GetMode()) {
+    case InteractionMode::PlaceDoor:
+      DrawDoorGhostPreview();
+      return;
+    case InteractionMode::PlaceSprite:
+      DrawSpriteGhostPreview();
+      return;
+    case InteractionMode::PlaceItem:
+      DrawItemGhostPreview();
+      return;
+    case InteractionMode::PlaceObject:
+      // Continue below to draw object ghost preview
+      break;
+    default:
+      return;  // No ghost preview in other modes
   }
 
-  // Only draw object ghost preview when an object is loaded for placement
-  if (!object_loaded_ || preview_object_.id_ < 0)
+  // Only draw object ghost preview when in object placement mode
+  if (preview_object_.id_ < 0)
     return;
 
   // Check if mouse is over the canvas
@@ -837,8 +853,8 @@ void DungeonObjectInteraction::HandleScrollWheelResize() {
   if (io.MouseWheel == 0.0f)
     return;
 
-  // Don't resize if placing an object
-  if (object_loaded_)
+  // Don't resize if in any placement mode
+  if (mode_manager_.IsPlacementActive())
     return;
 
   // Check if cursor is over a selected object
@@ -857,9 +873,7 @@ void DungeonObjectInteraction::HandleScrollWheelResize() {
     return;
 
   // Call mutation hook before changes
-  if (mutation_hook_) {
-    mutation_hook_();
-  }
+  interaction_context_.NotifyMutation();
 
   auto& room = (*rooms_)[current_room_id_];
   auto& objects = room.GetTileObjects();
@@ -889,9 +903,7 @@ void DungeonObjectInteraction::HandleScrollWheelResize() {
   room.MarkObjectsDirty();
 
   // Trigger cache invalidation and re-render
-  if (cache_invalidation_callback_) {
-    cache_invalidation_callback_();
-  }
+  interaction_context_.NotifyInvalidateCache();
 }
 
 std::pair<int, int> DungeonObjectInteraction::CalculateObjectBounds(
@@ -1000,9 +1012,7 @@ void DungeonObjectInteraction::SendSelectedToLayer(int target_layer) {
     return;
   }
 
-  if (mutation_hook_) {
-    mutation_hook_();
-  }
+  interaction_context_.NotifyMutation();
 
   auto& room = (*rooms_)[current_room_id_];
   auto& objects = room.GetTileObjects();
@@ -1018,9 +1028,7 @@ void DungeonObjectInteraction::SendSelectedToLayer(int target_layer) {
   room.MarkObjectsDirty();
 
   // Trigger cache invalidation and re-render
-  if (cache_invalidation_callback_) {
-    cache_invalidation_callback_();
-  }
+  interaction_context_.NotifyInvalidateCache();
 }
 
 void DungeonObjectInteraction::SendSelectedToFront() {
@@ -1030,9 +1038,7 @@ void DungeonObjectInteraction::SendSelectedToFront() {
   if (current_room_id_ < 0 || current_room_id_ >= 296)
     return;
 
-  if (mutation_hook_) {
-    mutation_hook_();
-  }
+  interaction_context_.NotifyMutation();
 
   auto& room = (*rooms_)[current_room_id_];
   auto& objects = room.GetTileObjects();
@@ -1063,9 +1069,7 @@ void DungeonObjectInteraction::SendSelectedToFront() {
 
   room.MarkObjectsDirty();
 
-  if (cache_invalidation_callback_) {
-    cache_invalidation_callback_();
-  }
+  interaction_context_.NotifyInvalidateCache();
 }
 
 void DungeonObjectInteraction::SendSelectedToBack() {
@@ -1075,9 +1079,7 @@ void DungeonObjectInteraction::SendSelectedToBack() {
   if (current_room_id_ < 0 || current_room_id_ >= 296)
     return;
 
-  if (mutation_hook_) {
-    mutation_hook_();
-  }
+  interaction_context_.NotifyMutation();
 
   auto& room = (*rooms_)[current_room_id_];
   auto& objects = room.GetTileObjects();
@@ -1107,9 +1109,7 @@ void DungeonObjectInteraction::SendSelectedToBack() {
 
   room.MarkObjectsDirty();
 
-  if (cache_invalidation_callback_) {
-    cache_invalidation_callback_();
-  }
+  interaction_context_.NotifyInvalidateCache();
 }
 
 void DungeonObjectInteraction::BringSelectedForward() {
@@ -1136,9 +1136,7 @@ void DungeonObjectInteraction::BringSelectedForward() {
   }
   if (all_at_end) return;
 
-  if (mutation_hook_) {
-    mutation_hook_();
-  }
+  interaction_context_.NotifyMutation();
 
   // Track new indices after moves
   std::vector<size_t> new_indices;
@@ -1163,9 +1161,7 @@ void DungeonObjectInteraction::BringSelectedForward() {
 
   room.MarkObjectsDirty();
 
-  if (cache_invalidation_callback_) {
-    cache_invalidation_callback_();
-  }
+  interaction_context_.NotifyInvalidateCache();
 }
 
 void DungeonObjectInteraction::SendSelectedBackward() {
@@ -1192,9 +1188,7 @@ void DungeonObjectInteraction::SendSelectedBackward() {
   }
   if (all_at_start) return;
 
-  if (mutation_hook_) {
-    mutation_hook_();
-  }
+  interaction_context_.NotifyMutation();
 
   // Track new indices after moves
   std::vector<size_t> new_indices;
@@ -1218,9 +1212,7 @@ void DungeonObjectInteraction::SendSelectedBackward() {
 
   room.MarkObjectsDirty();
 
-  if (cache_invalidation_callback_) {
-    cache_invalidation_callback_();
-  }
+  interaction_context_.NotifyInvalidateCache();
 }
 
 void DungeonObjectInteraction::HandleLayerKeyboardShortcuts() {
@@ -1266,21 +1258,20 @@ void DungeonObjectInteraction::HandleLayerKeyboardShortcuts() {
 
 void DungeonObjectInteraction::SetDoorPlacementMode(bool enabled,
                                                      zelda3::DoorType type) {
-  door_placement_mode_ = enabled;
-  preview_door_type_ = type;
-  if (!enabled) {
-    CancelDoorPlacement();
-  }
-  // Cancel any regular object placement when entering door mode
   if (enabled) {
-    object_loaded_ = false;
-    ghost_preview_buffer_.reset();
+    mode_manager_.SetMode(InteractionMode::PlaceDoor);
+    mode_manager_.GetModeState().preview_door_type = type;
+    ghost_preview_buffer_.reset();  // Clear object ghost preview
+  } else {
+    if (mode_manager_.GetMode() == InteractionMode::PlaceDoor) {
+      mode_manager_.SetMode(InteractionMode::Select);
+    }
   }
 }
 
 void DungeonObjectInteraction::DrawDoorGhostPreview() {
   // Only draw if door placement mode is active
-  if (!door_placement_mode_)
+  if (mode_manager_.GetMode() != InteractionMode::PlaceDoor)
     return;
 
   // Check if mouse is over the canvas
@@ -1308,8 +1299,9 @@ void DungeonObjectInteraction::DrawDoorGhostPreview() {
       zelda3::DoorPositionManager::SnapToNearestPosition(canvas_x, canvas_y, direction);
 
   // Store detected values for placement
-  detected_door_direction_ = direction;
-  snapped_door_position_ = position;
+  auto& state = mode_manager_.GetModeState();
+  state.detected_door_direction = direction;
+  state.snapped_door_position = position;
 
   // Get door position in tile coordinates
   auto [tile_x, tile_y] =
@@ -1349,7 +1341,7 @@ void DungeonObjectInteraction::DrawDoorGhostPreview() {
                      ImGui::GetColorU32(outline_color), 0.0f, 0, 2.0f);
 
   // Draw door type label
-  const char* type_name = std::string(zelda3::GetDoorTypeName(preview_door_type_)).c_str();
+  const char* type_name = std::string(zelda3::GetDoorTypeName(GetPreviewDoorType())).c_str();
   const char* dir_name = std::string(zelda3::GetDoorDirectionName(direction)).c_str();
   char label[64];
   snprintf(label, sizeof(label), "%s (%s)", type_name, dir_name);
@@ -1359,7 +1351,7 @@ void DungeonObjectInteraction::DrawDoorGhostPreview() {
 }
 
 void DungeonObjectInteraction::PlaceDoorAtPosition(int canvas_x, int canvas_y) {
-  if (!door_placement_mode_ || !rooms_)
+  if (mode_manager_.GetMode() != InteractionMode::PlaceDoor || !rooms_)
     return;
 
   if (current_room_id_ < 0 || current_room_id_ >= 296)
@@ -1382,14 +1374,12 @@ void DungeonObjectInteraction::PlaceDoorAtPosition(int canvas_x, int canvas_y) {
     return;
   }
 
-  if (mutation_hook_) {
-    mutation_hook_();
-  }
+  interaction_context_.NotifyMutation();
 
   // Create the door
   zelda3::Room::Door new_door;
   new_door.position = position;
-  new_door.type = preview_door_type_;
+  new_door.type = GetPreviewDoorType();
   new_door.direction = direction;
   // Encode bytes for ROM storage
   auto [byte1, byte2] = new_door.EncodeBytes();
@@ -1401,9 +1391,7 @@ void DungeonObjectInteraction::PlaceDoorAtPosition(int canvas_x, int canvas_y) {
   room.AddDoor(new_door);
 
   // Trigger cache invalidation
-  if (cache_invalidation_callback_) {
-    cache_invalidation_callback_();
-  }
+  interaction_context_.NotifyInvalidateCache();
 }
 
 // ============================================================================
@@ -1411,19 +1399,19 @@ void DungeonObjectInteraction::PlaceDoorAtPosition(int canvas_x, int canvas_y) {
 // ============================================================================
 
 void DungeonObjectInteraction::SetSpritePlacementMode(bool enabled, uint8_t sprite_id) {
-  sprite_placement_mode_ = enabled;
-  preview_sprite_id_ = sprite_id;
-  // Cancel other placement modes when entering sprite mode
   if (enabled) {
-    object_loaded_ = false;
-    ghost_preview_buffer_.reset();
-    CancelDoorPlacement();
-    CancelItemPlacement();
+    mode_manager_.SetMode(InteractionMode::PlaceSprite);
+    mode_manager_.GetModeState().preview_sprite_id = sprite_id;
+    ghost_preview_buffer_.reset();  // Clear object ghost preview
+  } else {
+    if (mode_manager_.GetMode() == InteractionMode::PlaceSprite) {
+      mode_manager_.SetMode(InteractionMode::Select);
+    }
   }
 }
 
 void DungeonObjectInteraction::DrawSpriteGhostPreview() {
-  if (!sprite_placement_mode_)
+  if (mode_manager_.GetMode() != InteractionMode::PlaceSprite)
     return;
 
   if (!canvas_->IsMouseHovering())
@@ -1455,12 +1443,12 @@ void DungeonObjectInteraction::DrawSpriteGhostPreview() {
   canvas_->draw_list()->AddRect(rect_min, rect_max, outline_color, 0.0f, 0, 2.0f);
 
   // Draw sprite ID label
-  std::string label = absl::StrFormat("%02X", preview_sprite_id_);
+  std::string label = absl::StrFormat("%02X", GetPreviewSpriteId());
   canvas_->draw_list()->AddText(rect_min, IM_COL32(255, 255, 255, 255), label.c_str());
 }
 
 void DungeonObjectInteraction::PlaceSpriteAtPosition(int canvas_x, int canvas_y) {
-  if (!sprite_placement_mode_ || !rooms_)
+  if (mode_manager_.GetMode() != InteractionMode::PlaceSprite || !rooms_)
     return;
 
   if (current_room_id_ < 0 || current_room_id_ >= 296)
@@ -1477,14 +1465,12 @@ void DungeonObjectInteraction::PlaceSpriteAtPosition(int canvas_x, int canvas_y)
   sprite_x = std::clamp(sprite_x, 0, 31);
   sprite_y = std::clamp(sprite_y, 0, 31);
 
-  if (mutation_hook_) {
-    mutation_hook_();
-  }
+  interaction_context_.NotifyMutation();
 
   // Create the sprite
-  zelda3::Sprite new_sprite(preview_sprite_id_, 
+  zelda3::Sprite new_sprite(GetPreviewSpriteId(),
                             static_cast<uint8_t>(sprite_x),
-                            static_cast<uint8_t>(sprite_y), 
+                            static_cast<uint8_t>(sprite_y),
                             0, 0);
 
   // Add sprite to room
@@ -1492,9 +1478,7 @@ void DungeonObjectInteraction::PlaceSpriteAtPosition(int canvas_x, int canvas_y)
   room.GetSprites().push_back(new_sprite);
 
   // Trigger cache invalidation
-  if (cache_invalidation_callback_) {
-    cache_invalidation_callback_();
-  }
+  interaction_context_.NotifyInvalidateCache();
 }
 
 // ============================================================================
@@ -1502,19 +1486,19 @@ void DungeonObjectInteraction::PlaceSpriteAtPosition(int canvas_x, int canvas_y)
 // ============================================================================
 
 void DungeonObjectInteraction::SetItemPlacementMode(bool enabled, uint8_t item_id) {
-  item_placement_mode_ = enabled;
-  preview_item_id_ = item_id;
-  // Cancel other placement modes when entering item mode
   if (enabled) {
-    object_loaded_ = false;
-    ghost_preview_buffer_.reset();
-    CancelDoorPlacement();
-    CancelSpritePlacement();
+    mode_manager_.SetMode(InteractionMode::PlaceItem);
+    mode_manager_.GetModeState().preview_item_id = item_id;
+    ghost_preview_buffer_.reset();  // Clear object ghost preview
+  } else {
+    if (mode_manager_.GetMode() == InteractionMode::PlaceItem) {
+      mode_manager_.SetMode(InteractionMode::Select);
+    }
   }
 }
 
 void DungeonObjectInteraction::DrawItemGhostPreview() {
-  if (!item_placement_mode_)
+  if (mode_manager_.GetMode() != InteractionMode::PlaceItem)
     return;
 
   if (!canvas_->IsMouseHovering())
@@ -1546,12 +1530,12 @@ void DungeonObjectInteraction::DrawItemGhostPreview() {
   canvas_->draw_list()->AddRect(rect_min, rect_max, outline_color, 0.0f, 0, 2.0f);
 
   // Draw item ID label
-  std::string label = absl::StrFormat("%02X", preview_item_id_);
+  std::string label = absl::StrFormat("%02X", GetPreviewItemId());
   canvas_->draw_list()->AddText(rect_min, IM_COL32(255, 255, 255, 255), label.c_str());
 }
 
 void DungeonObjectInteraction::PlaceItemAtPosition(int canvas_x, int canvas_y) {
-  if (!item_placement_mode_ || !rooms_)
+  if (mode_manager_.GetMode() != InteractionMode::PlaceItem || !rooms_)
     return;
 
   if (current_room_id_ < 0 || current_room_id_ >= 296)
@@ -1574,23 +1558,19 @@ void DungeonObjectInteraction::PlaceItemAtPosition(int canvas_x, int canvas_y) {
   encoded_x = std::clamp(encoded_x, 0, 255);
   encoded_y = std::clamp(encoded_y, 0, 255);
 
-  if (mutation_hook_) {
-    mutation_hook_();
-  }
+  interaction_context_.NotifyMutation();
 
   // Create the pot item
   zelda3::PotItem new_item;
   new_item.position = static_cast<uint16_t>((encoded_y << 8) | encoded_x);
-  new_item.item = preview_item_id_;
+  new_item.item = GetPreviewItemId();
 
   // Add item to room
   auto& room = (*rooms_)[current_room_id_];
   room.GetPotItems().push_back(new_item);
 
   // Trigger cache invalidation
-  if (cache_invalidation_callback_) {
-    cache_invalidation_callback_();
-  }
+  interaction_context_.NotifyInvalidateCache();
 }
 
 // ============================================================================
@@ -1608,16 +1588,16 @@ void DungeonObjectInteraction::SelectEntity(EntityType type, size_t index) {
 
   // Enter exclusive entity mode - suppresses all object interactions
   is_entity_mode_ = (type != EntityType::None && type != EntityType::Object);
-  
-  if (entity_changed_callback_) {
-    entity_changed_callback_();
-  }
+
+  interaction_context_.NotifyEntityChanged();
 }
 
 void DungeonObjectInteraction::ClearEntitySelection() {
   selected_entity_.type = EntityType::None;
   selected_entity_.index = 0;
-  is_entity_dragging_ = false;
+  if (mode_manager_.GetMode() == InteractionMode::DraggingEntity) {
+    mode_manager_.SetMode(InteractionMode::Select);
+  }
   is_entity_mode_ = false;  // Exit exclusive entity mode
 }
 
@@ -1708,15 +1688,16 @@ bool DungeonObjectInteraction::TrySelectEntityAtCursor() {
   if (entity.has_value()) {
     // Clear previous object selection
     selection_.ClearSelection();
-    
+
     SelectEntity(entity->type, entity->index);
-    
+
     // Start drag
-    is_entity_dragging_ = true;
-    entity_drag_start_pos_ = ImVec2(static_cast<float>(canvas_x), 
-                                     static_cast<float>(canvas_y));
-    entity_drag_current_pos_ = entity_drag_start_pos_;
-    
+    mode_manager_.SetMode(InteractionMode::DraggingEntity);
+    auto& state = mode_manager_.GetModeState();
+    state.entity_drag_start = ImVec2(static_cast<float>(canvas_x),
+                                      static_cast<float>(canvas_y));
+    state.entity_drag_current = state.entity_drag_start;
+
     return true;
   }
   
@@ -1726,11 +1707,13 @@ bool DungeonObjectInteraction::TrySelectEntityAtCursor() {
 }
 
 void DungeonObjectInteraction::HandleEntityDrag() {
-  if (!is_entity_dragging_ || selected_entity_.type == EntityType::None)
+  if (mode_manager_.GetMode() != InteractionMode::DraggingEntity ||
+      selected_entity_.type == EntityType::None)
     return;
-    
+
   const ImGuiIO& io = ImGui::GetIO();
-  
+  auto& state = mode_manager_.GetModeState();
+
   if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
     // Mouse released - complete the drag
     if (selected_entity_.type == EntityType::Door) {
@@ -1738,38 +1721,34 @@ void DungeonObjectInteraction::HandleEntityDrag() {
       ImVec2 canvas_pos = canvas_->zero_point();
       int canvas_x = static_cast<int>(io.MousePos.x - canvas_pos.x);
       int canvas_y = static_cast<int>(io.MousePos.y - canvas_pos.y);
-      
+
       // Detect wall
       zelda3::DoorDirection direction;
       if (zelda3::DoorPositionManager::DetectWallFromPosition(canvas_x, canvas_y, direction)) {
         // Snap to nearest valid position
         uint8_t position = zelda3::DoorPositionManager::SnapToNearestPosition(
             canvas_x, canvas_y, direction);
-        
+
         if (zelda3::DoorPositionManager::IsValidPosition(position, direction)) {
           // Update door position
           if (rooms_ && current_room_id_ >= 0 && current_room_id_ < 296) {
             auto& room = (*rooms_)[current_room_id_];
             auto& doors = room.GetDoors();
             if (selected_entity_.index < doors.size()) {
-              if (mutation_hook_) {
-                mutation_hook_();
-              }
-              
+              interaction_context_.NotifyMutation();
+
               doors[selected_entity_.index].position = position;
               doors[selected_entity_.index].direction = direction;
-              
+
               // Re-encode bytes
               auto [b1, b2] = doors[selected_entity_.index].EncodeBytes();
               doors[selected_entity_.index].byte1 = b1;
               doors[selected_entity_.index].byte2 = b2;
-              
+
               // Mark room dirty
               room.MarkObjectsDirty();
-              
-              if (cache_invalidation_callback_) {
-                cache_invalidation_callback_();
-              }
+
+              interaction_context_.NotifyInvalidateCache();
             }
           }
         }
@@ -1779,41 +1758,38 @@ void DungeonObjectInteraction::HandleEntityDrag() {
       ImVec2 canvas_pos = canvas_->zero_point();
       int canvas_x = static_cast<int>(io.MousePos.x - canvas_pos.x);
       int canvas_y = static_cast<int>(io.MousePos.y - canvas_pos.y);
-      
+
       // Convert to sprite coordinates (16-pixel units)
       int tile_x = canvas_x / 16;
       int tile_y = canvas_y / 16;
-      
+
       // Clamp to room bounds (sprites use 0-31 range)
       tile_x = std::clamp(tile_x, 0, 31);
       tile_y = std::clamp(tile_y, 0, 31);
-      
+
       if (rooms_ && current_room_id_ >= 0 && current_room_id_ < 296) {
         auto& room = (*rooms_)[current_room_id_];
         auto& sprites = room.GetSprites();
         if (selected_entity_.index < sprites.size()) {
-          if (mutation_hook_) {
-            mutation_hook_();
-          }
-          
+          interaction_context_.NotifyMutation();
+
           sprites[selected_entity_.index].set_x(tile_x);
           sprites[selected_entity_.index].set_y(tile_y);
-          
-          if (entity_changed_callback_) {
-            entity_changed_callback_();
-          }
+
+          interaction_context_.NotifyEntityChanged();
         }
       }
     }
-    
-    is_entity_dragging_ = false;
+
+    // Return to select mode
+    mode_manager_.SetMode(InteractionMode::Select);
     return;
   }
-  
+
   // Update drag position
   ImVec2 canvas_pos = canvas_->zero_point();
-  entity_drag_current_pos_ = ImVec2(io.MousePos.x - canvas_pos.x,
-                                     io.MousePos.y - canvas_pos.y);
+  state.entity_drag_current = ImVec2(io.MousePos.x - canvas_pos.x,
+                                      io.MousePos.y - canvas_pos.y);
 }
 
 void DungeonObjectInteraction::DrawEntitySelectionHighlights() {
@@ -1843,9 +1819,10 @@ void DungeonObjectInteraction::DrawEntitySelectionHighlights() {
       auto dims = zelda3::GetDoorDimensions(door.direction);
       
       // If dragging, use current drag position for door preview
-      if (is_entity_dragging_) {
-        int drag_x = static_cast<int>(entity_drag_current_pos_.x);
-        int drag_y = static_cast<int>(entity_drag_current_pos_.y);
+      if (mode_manager_.GetMode() == InteractionMode::DraggingEntity) {
+        const auto& state = mode_manager_.GetModeState();
+        int drag_x = static_cast<int>(state.entity_drag_current.x);
+        int drag_y = static_cast<int>(state.entity_drag_current.y);
 
         zelda3::DoorDirection dir;
         bool is_inner = false;
@@ -1876,9 +1853,10 @@ void DungeonObjectInteraction::DrawEntitySelectionHighlights() {
       int pixel_y = sprite.y() * 16;
       
       // If dragging, use current drag position (snapped to 16-pixel grid)
-      if (is_entity_dragging_) {
-        int tile_x = static_cast<int>(entity_drag_current_pos_.x) / 16;
-        int tile_y = static_cast<int>(entity_drag_current_pos_.y) / 16;
+      if (mode_manager_.GetMode() == InteractionMode::DraggingEntity) {
+        const auto& state = mode_manager_.GetModeState();
+        int tile_x = static_cast<int>(state.entity_drag_current.x) / 16;
+        int tile_y = static_cast<int>(state.entity_drag_current.y) / 16;
         tile_x = std::clamp(tile_x, 0, 31);
         tile_y = std::clamp(tile_y, 0, 31);
         pixel_x = tile_x * 16;
@@ -1934,14 +1912,16 @@ void DungeonObjectInteraction::DrawEntitySelectionHighlights() {
 
 void DungeonObjectInteraction::DrawDoorSnapIndicators() {
   // Only show snap indicators when dragging a door entity
-  if (!is_entity_dragging_ || selected_entity_.type != EntityType::Door)
+  if (mode_manager_.GetMode() != InteractionMode::DraggingEntity ||
+      selected_entity_.type != EntityType::Door)
     return;
 
   // Detect wall direction and section (outer wall vs inner seam) from drag position
+  const auto& state = mode_manager_.GetModeState();
   zelda3::DoorDirection direction;
   bool is_inner = false;
-  int drag_x = static_cast<int>(entity_drag_current_pos_.x);
-  int drag_y = static_cast<int>(entity_drag_current_pos_.y);
+  int drag_x = static_cast<int>(state.entity_drag_current.x);
+  int drag_y = static_cast<int>(state.entity_drag_current.y);
   if (!zelda3::DoorPositionManager::DetectWallSection(drag_x, drag_y, direction, is_inner))
     return;
 

@@ -197,7 +197,7 @@ absl::Status DungeonEditorV2::Load() {
   room_selector_.set_rooms(&rooms_);
   room_selector_.set_entrances(&entrances_);
   room_selector_.set_active_rooms(active_rooms_);
-  room_selector_.set_room_selected_callback(
+  room_selector_.SetRoomSelectedCallback(
       [this](int room_id) { OnRoomSelected(room_id); });
 
   // Canvas viewers are lazily created in GetViewerForRoom

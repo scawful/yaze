@@ -10,6 +10,7 @@
 #include "app/editor/dungeon/dungeon_coordinates.h"
 #include "app/editor/dungeon/interaction/interaction_context.h"
 #include "app/editor/dungeon/interaction/interaction_coordinator.h"
+#include "app/editor/dungeon/interaction/interaction_mode.h"
 #include "app/editor/dungeon/object_selection.h"
 #include "app/gfx/render/background_buffer.h"
 #include "app/gfx/types/snes_palette.h"
@@ -132,44 +133,78 @@ class DungeonObjectInteraction {
     interaction_context_.current_palette_group = group;
     entity_coordinator_.SetContext(&interaction_context_);
   }
-  bool IsObjectLoaded() const { return object_loaded_; }
+
+  // Mode manager access
+  InteractionModeManager& mode_manager() { return mode_manager_; }
+  const InteractionModeManager& mode_manager() const { return mode_manager_; }
+
+  // Mode queries - delegate to mode manager
+  bool IsObjectLoaded() const {
+    return mode_manager_.GetMode() == InteractionMode::PlaceObject;
+  }
+
   void CancelPlacement() {
-    object_loaded_ = false;
-    preview_object_ = zelda3::RoomObject{0, 0, 0, 0, 0};
+    mode_manager_.CancelCurrentMode();
     ghost_preview_buffer_.reset();
-    CancelDoorPlacement();
   }
 
   // Door placement mode
   void SetDoorPlacementMode(bool enabled, zelda3::DoorType type = zelda3::DoorType::NormalDoor);
-  bool IsDoorPlacementActive() const { return door_placement_mode_; }
-  void SetPreviewDoorType(zelda3::DoorType type) { preview_door_type_ = type; }
-  zelda3::DoorType GetPreviewDoorType() const { return preview_door_type_; }
+  bool IsDoorPlacementActive() const {
+    return mode_manager_.GetMode() == InteractionMode::PlaceDoor;
+  }
+  void SetPreviewDoorType(zelda3::DoorType type) {
+    mode_manager_.GetModeState().preview_door_type = type;
+  }
+  zelda3::DoorType GetPreviewDoorType() const {
+    return mode_manager_.GetModeState().preview_door_type.value_or(
+        zelda3::DoorType::NormalDoor);
+  }
   void DrawDoorGhostPreview();  // Draw door ghost preview with wall snapping
   void PlaceDoorAtPosition(int canvas_x, int canvas_y);  // Place door at snapped position
   void CancelDoorPlacement() {
-    door_placement_mode_ = false;
-    detected_door_direction_ = zelda3::DoorDirection::North;
-    snapped_door_position_ = 0;
+    if (mode_manager_.GetMode() == InteractionMode::PlaceDoor) {
+      mode_manager_.CancelCurrentMode();
+    }
   }
 
   // Sprite placement mode
   void SetSpritePlacementMode(bool enabled, uint8_t sprite_id = 0);
-  bool IsSpritePlacementActive() const { return sprite_placement_mode_; }
-  void SetPreviewSpriteId(uint8_t id) { preview_sprite_id_ = id; }
-  uint8_t GetPreviewSpriteId() const { return preview_sprite_id_; }
+  bool IsSpritePlacementActive() const {
+    return mode_manager_.GetMode() == InteractionMode::PlaceSprite;
+  }
+  void SetPreviewSpriteId(uint8_t id) {
+    mode_manager_.GetModeState().preview_sprite_id = id;
+  }
+  uint8_t GetPreviewSpriteId() const {
+    return mode_manager_.GetModeState().preview_sprite_id.value_or(0);
+  }
   void DrawSpriteGhostPreview();  // Draw sprite ghost preview
   void PlaceSpriteAtPosition(int canvas_x, int canvas_y);
-  void CancelSpritePlacement() { sprite_placement_mode_ = false; }
+  void CancelSpritePlacement() {
+    if (mode_manager_.GetMode() == InteractionMode::PlaceSprite) {
+      mode_manager_.CancelCurrentMode();
+    }
+  }
 
   // Item placement mode
   void SetItemPlacementMode(bool enabled, uint8_t item_id = 0);
-  bool IsItemPlacementActive() const { return item_placement_mode_; }
-  void SetPreviewItemId(uint8_t id) { preview_item_id_ = id; }
-  uint8_t GetPreviewItemId() const { return preview_item_id_; }
+  bool IsItemPlacementActive() const {
+    return mode_manager_.GetMode() == InteractionMode::PlaceItem;
+  }
+  void SetPreviewItemId(uint8_t id) {
+    mode_manager_.GetModeState().preview_item_id = id;
+  }
+  uint8_t GetPreviewItemId() const {
+    return mode_manager_.GetModeState().preview_item_id.value_or(0);
+  }
   void DrawItemGhostPreview();  // Draw item ghost preview
   void PlaceItemAtPosition(int canvas_x, int canvas_y);
-  void CancelItemPlacement() { item_placement_mode_ = false; }
+  void CancelItemPlacement() {
+    if (mode_manager_.GetMode() == InteractionMode::PlaceItem) {
+      mode_manager_.CancelCurrentMode();
+    }
+  }
 
   // Selection state - delegates to ObjectSelection
   std::vector<size_t> GetSelectedObjectIndices() const {
@@ -228,20 +263,23 @@ class DungeonObjectInteraction {
   // Check keyboard shortcuts for layer operations
   void HandleLayerKeyboardShortcuts();
 
-  // Callbacks
+  // Callbacks - stored in interaction_context_ (single source of truth)
   void SetObjectPlacedCallback(
       std::function<void(const zelda3::RoomObject&)> callback) {
-    object_placed_callback_ = callback;
+    object_placed_callback_ = std::move(callback);
   }
   void SetCacheInvalidationCallback(std::function<void()> callback) {
-    cache_invalidation_callback_ = callback;
-    interaction_context_.on_invalidate_cache = callback;
+    interaction_context_.on_invalidate_cache = std::move(callback);
     entity_coordinator_.SetContext(&interaction_context_);
   }
-  void SetMutationHook(std::function<void()> callback) {
-    mutation_hook_ = std::move(callback);
-    interaction_context_.on_mutation = callback;
+  void SetMutationCallback(std::function<void()> callback) {
+    interaction_context_.on_mutation = std::move(callback);
     entity_coordinator_.SetContext(&interaction_context_);
+  }
+  // Backward compatibility alias
+  [[deprecated("Use SetMutationCallback() instead")]]
+  void SetMutationHook(std::function<void()> callback) {
+    SetMutationCallback(std::move(callback));
   }
 
   void SetEditorSystem(zelda3::DungeonEditorSystem* system) {
@@ -267,8 +305,7 @@ class DungeonObjectInteraction {
   
   // Callbacks for entity changes
   void SetEntityChangedCallback(std::function<void()> callback) {
-    entity_changed_callback_ = std::move(callback);
-    interaction_context_.on_entity_changed = callback;
+    interaction_context_.on_entity_changed = std::move(callback);
     entity_coordinator_.SetContext(&interaction_context_);
   }
 
@@ -284,12 +321,14 @@ class DungeonObjectInteraction {
   InteractionContext interaction_context_;
   InteractionCoordinator entity_coordinator_;
 
+  // Unified mode state machine - replaces scattered boolean flags
+  InteractionModeManager mode_manager_;
+
   // Helper to calculate object bounds
   std::pair<int, int> CalculateObjectBounds(const zelda3::RoomObject& object);
 
-  // Preview object state
+  // Preview object state (used by ModeState but kept here for ghost bitmap)
   zelda3::RoomObject preview_object_{0, 0, 0, 0, 0};
-  bool object_loaded_ = false;
 
   // Ghost preview bitmap (persists across frames for placement preview)
   std::unique_ptr<gfx::BackgroundBuffer> ghost_preview_buffer_;
@@ -299,45 +338,20 @@ class DungeonObjectInteraction {
   // Unified selection system - replaces legacy selection state
   ObjectSelection selection_;
 
-  // Drag infrastructure
-  bool is_dragging_ = false;
-  ImVec2 drag_start_pos_;
-  ImVec2 drag_current_pos_;
-
   // Hover detection for resize
   size_t hovered_object_index_ = static_cast<size_t>(-1);
   bool has_hovered_object_ = false;
 
-  // Callbacks
+  // Callbacks - stored only in interaction_context_ (no duplication)
   std::function<void(const zelda3::RoomObject&)> object_placed_callback_;
-  std::function<void()> cache_invalidation_callback_;
-  std::function<void()> mutation_hook_;
 
   // Clipboard for copy/paste
   std::vector<zelda3::RoomObject> clipboard_;
   bool has_clipboard_data_ = false;
 
-  // Door placement state
-  bool door_placement_mode_ = false;
-  zelda3::DoorType preview_door_type_ = zelda3::DoorType::NormalDoor;
-  zelda3::DoorDirection detected_door_direction_ = zelda3::DoorDirection::North;
-  uint8_t snapped_door_position_ = 0;  // Position along wall (0-31)
-
-  // Sprite placement state
-  bool sprite_placement_mode_ = false;
-  uint8_t preview_sprite_id_ = 0;
-
-  // Item placement state
-  bool item_placement_mode_ = false;
-  uint8_t preview_item_id_ = 0;
-
   // Entity selection state (doors, sprites, items)
   SelectedEntity selected_entity_;
-  bool is_entity_dragging_ = false;
   bool is_entity_mode_ = false;  // When true, suppress all object interactions
-  ImVec2 entity_drag_start_pos_;
-  ImVec2 entity_drag_current_pos_;
-  std::function<void()> entity_changed_callback_;
 };
 
 }  // namespace editor
