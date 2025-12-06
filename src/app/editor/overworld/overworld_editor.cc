@@ -1420,15 +1420,19 @@ void OverworldEditor::DrawOverworldCanvas() {
   frame_opts.render_popups = true;
   frame_opts.use_child_window = false;  // CRITICAL: Canvas has own pan logic
 
-  // Wrap in child window for scrollbars (matches legacy layout)
+  // Wrap in child window for scrollbars
   gui::BeginNoPadding();
   gui::BeginChildBothScrollbars(7);
+
+  // Keep canvas scroll at 0 - ImGui's child window handles all scrolling
+  // The scrollbars scroll the child window which moves the entire canvas
+  ow_map_canvas_.set_scrolling(ImVec2(0, 0));
 
   // Begin canvas frame - this handles DrawBackground + DrawContextMenu
   auto canvas_rt = gui::BeginCanvas(ow_map_canvas_, frame_opts);
   gui::EndNoPadding();
 
-  // Handle pan and zoom (works in all modes)
+  // Handle pan via ImGui scrolling (instead of canvas internal scroll)
   HandleOverworldPan();
   HandleOverworldZoom();
 

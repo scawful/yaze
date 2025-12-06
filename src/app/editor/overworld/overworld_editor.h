@@ -378,6 +378,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void HandleOverworldZoom();  // No-op, use ZoomIn/ZoomOut instead
   void ZoomIn();
   void ZoomOut();
+  void ClampOverworldScroll();  // Re-clamp scroll to valid bounds
   void ResetOverworldView();
   void CenterOverworldView();
 

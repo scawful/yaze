@@ -28,21 +28,21 @@ void OverworldEditor::HandleOverworldPan() {
     return;
   }
 
+  // Pan by adjusting ImGui's scroll position (scrollbars handle actual scroll)
   ImVec2 delta = ImGui::GetIO().MouseDelta;
-  ImVec2 new_scroll = ImVec2(ow_map_canvas_.scrolling().x + delta.x,
-                             ow_map_canvas_.scrolling().y + delta.y);
+  float new_scroll_x = ImGui::GetScrollX() - delta.x;
+  float new_scroll_y = ImGui::GetScrollY() - delta.y;
 
-  // Clamp to content bounds (scaled content vs viewport)
-  float scale = ow_map_canvas_.global_scale();
-  if (scale <= 0.0f) scale = 1.0f;
+  // Get scroll limits from ImGui
+  float max_scroll_x = ImGui::GetScrollMaxX();
+  float max_scroll_y = ImGui::GetScrollMaxY();
 
-  ImVec2 content_px = ImVec2(kOverworldCanvasSize.x * scale,
-                             kOverworldCanvasSize.y * scale);
-  ImVec2 viewport_px = ImGui::GetContentRegionAvail();
+  // Clamp to valid scroll range
+  new_scroll_x = std::clamp(new_scroll_x, 0.0f, max_scroll_x);
+  new_scroll_y = std::clamp(new_scroll_y, 0.0f, max_scroll_y);
 
-  // Clamp scroll to prevent scrolling beyond map bounds
-  new_scroll = gui::ClampScroll(new_scroll, content_px, viewport_px);
-  ow_map_canvas_.set_scrolling(new_scroll);
+  ImGui::SetScrollX(new_scroll_x);
+  ImGui::SetScrollY(new_scroll_y);
 }
 
 void OverworldEditor::HandleOverworldZoom() {
@@ -54,16 +54,25 @@ void OverworldEditor::ZoomIn() {
   float new_scale = std::min(kOverworldMaxZoom,
                              ow_map_canvas_.global_scale() + kOverworldZoomStep);
   ow_map_canvas_.set_global_scale(new_scale);
+  // Scroll will be clamped automatically by ImGui on next frame
 }
 
 void OverworldEditor::ZoomOut() {
   float new_scale = std::max(kOverworldMinZoom,
                              ow_map_canvas_.global_scale() - kOverworldZoomStep);
   ow_map_canvas_.set_global_scale(new_scale);
+  // Scroll will be clamped automatically by ImGui on next frame
+}
+
+void OverworldEditor::ClampOverworldScroll() {
+  // ImGui handles scroll clamping automatically via GetScrollMaxX/Y
+  // This function is now a no-op but kept for API compatibility
 }
 
 void OverworldEditor::ResetOverworldView() {
-  ow_map_canvas_.set_scrolling(ImVec2(0, 0));
+  // Reset ImGui scroll to top-left
+  ImGui::SetScrollX(0);
+  ImGui::SetScrollY(0);
   ow_map_canvas_.set_global_scale(1.0f);
 }
 
@@ -80,18 +89,19 @@ void OverworldEditor::CenterOverworldView() {
   // Get viewport size
   ImVec2 viewport_px = ImGui::GetContentRegionAvail();
 
-  // Calculate scroll to center the current map
+  // Calculate scroll to center the current map (in ImGui's positive scroll space)
   float center_x = (map_x + kOverworldMapSize / 2.0f) * scale;
   float center_y = (map_y + kOverworldMapSize / 2.0f) * scale;
 
-  ImVec2 new_scroll = ImVec2(viewport_px.x / 2.0f - center_x,
-                             viewport_px.y / 2.0f - center_y);
+  float scroll_x = center_x - viewport_px.x / 2.0f;
+  float scroll_y = center_y - viewport_px.y / 2.0f;
 
-  // Clamp scroll to valid bounds
-  ImVec2 content_px = ImVec2(kOverworldCanvasSize.x * scale,
-                             kOverworldCanvasSize.y * scale);
-  new_scroll = gui::ClampScroll(new_scroll, content_px, viewport_px);
-  ow_map_canvas_.set_scrolling(new_scroll);
+  // Clamp to valid scroll range
+  scroll_x = std::clamp(scroll_x, 0.0f, ImGui::GetScrollMaxX());
+  scroll_y = std::clamp(scroll_y, 0.0f, ImGui::GetScrollMaxY());
+
+  ImGui::SetScrollX(scroll_x);
+  ImGui::SetScrollY(scroll_y);
 }
 
 }  // namespace yaze::editor

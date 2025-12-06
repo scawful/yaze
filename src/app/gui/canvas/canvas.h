@@ -443,7 +443,10 @@ class Canvas {
   auto zero_point() const { return canvas_p0_; }
   ImVec2 ToCanvasPos(ImVec2 local) const;
   auto scrolling() const { return scrolling_; }
-  void set_scrolling(ImVec2 scroll) { scrolling_ = scroll; }
+  void set_scrolling(ImVec2 scroll) {
+    scrolling_ = scroll;
+    config_.scrolling = scroll;  // Sync to config for persistence
+  }
   auto drawn_tile_position() const { return drawn_tile_pos_; }
   auto canvas_size() const { return canvas_sz_; }
   // COMPAT: prefer CanvasRuntime.scale for per-frame scale control
