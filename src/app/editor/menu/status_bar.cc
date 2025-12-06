@@ -10,6 +10,36 @@
 namespace yaze {
 namespace editor {
 
+void StatusBar::Initialize(GlobalEditorContext* context) {
+  context_ = context;
+  if (context_) {
+    context_->GetEventBus().Subscribe<StatusUpdateEvent>(
+        [this](const StatusUpdateEvent& e) { HandleStatusUpdate(e); });
+  }
+}
+
+void StatusBar::HandleStatusUpdate(const StatusUpdateEvent& event) {
+  switch (event.type) {
+    case StatusUpdateEvent::Type::Cursor:
+      SetCursorPosition(event.x, event.y, event.text.empty() ? nullptr : event.text.c_str());
+      break;
+    case StatusUpdateEvent::Type::Selection:
+      SetSelection(event.count, event.width, event.height);
+      break;
+    case StatusUpdateEvent::Type::Zoom:
+      SetZoom(event.zoom);
+      break;
+    case StatusUpdateEvent::Type::Mode:
+      SetEditorMode(event.text);
+      break;
+    case StatusUpdateEvent::Type::Clear:
+      ClearAllContext();
+      break;
+    default:
+      break;
+  }
+}
+
 void StatusBar::SetSessionInfo(size_t session_id, size_t total_sessions) {
   session_id_ = session_id;
   total_sessions_ = total_sessions;
