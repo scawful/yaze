@@ -38,7 +38,7 @@ class DungeonRoomSelectorPanel : public EditorPanel {
       : selector_(selector), on_room_selected_(std::move(on_room_selected)) {
     // Wire up the callback directly to the selector
     if (selector_ && on_room_selected_) {
-      selector_->set_room_selected_callback(on_room_selected_);
+      selector_->SetRoomSelectedCallback(on_room_selected_);
     }
   }
 
@@ -74,7 +74,7 @@ class DungeonRoomSelectorPanel : public EditorPanel {
   void SetRoomSelectedCallback(std::function<void(int)> callback) {
     on_room_selected_ = std::move(callback);
     if (selector_) {
-      selector_->set_room_selected_callback(on_room_selected_);
+      selector_->SetRoomSelectedCallback(on_room_selected_);
     }
   }
 

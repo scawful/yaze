@@ -40,7 +40,7 @@ class DungeonEntranceListPanel : public EditorPanel {
         on_entrance_selected_(std::move(on_entrance_selected)) {
     // Wire up the callback directly to the selector
     if (selector_ && on_entrance_selected_) {
-      selector_->set_entrance_selected_callback(on_entrance_selected_);
+      selector_->SetEntranceSelectedCallback(on_entrance_selected_);
     }
   }
 
@@ -76,7 +76,7 @@ class DungeonEntranceListPanel : public EditorPanel {
   void SetEntranceSelectedCallback(std::function<void(int)> callback) {
     on_entrance_selected_ = std::move(callback);
     if (selector_) {
-      selector_->set_entrance_selected_callback(on_entrance_selected_);
+      selector_->SetEntranceSelectedCallback(on_entrance_selected_);
     }
   }
 
