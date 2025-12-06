@@ -183,6 +183,7 @@ struct Theme {
     Color provider_ollama;
     Color provider_gemini;
     Color provider_mock;
+    Color provider_openai;
     Color proposal_panel_bg;
     Color proposal_accent;
     Color button_copy;
