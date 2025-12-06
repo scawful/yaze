@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "app/gfx/types/snes_tile.h"
+#include "app/gui/canvas/canvas.h"
 #include "imgui/imgui.h"
 #include "zelda3/common.h"
 #include "zelda3/overworld/diggable_tiles.h"
@@ -28,6 +29,15 @@ namespace editor {
 bool IsMouseHoveringOverEntity(const zelda3::GameEntity& entity,
                                ImVec2 canvas_p0, ImVec2 scrolling,
                                float scale = 1.0f);
+
+/**
+ * @brief Check if mouse is hovering over an entity (CanvasRuntime version)
+ * @param entity The entity to check
+ * @param rt The canvas runtime with geometry info
+ * @return true if mouse is over the entity bounds
+ */
+bool IsMouseHoveringOverEntity(const zelda3::GameEntity& entity,
+                               const gui::CanvasRuntime& rt);
 
 /**
  * @brief Move entity to grid-aligned position based on mouse

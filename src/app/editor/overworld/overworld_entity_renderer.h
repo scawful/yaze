@@ -30,7 +30,20 @@ class OverworldEntityRenderer {
         canvas_(canvas),
         sprite_previews_(sprite_previews) {}
 
-  // Main rendering methods
+  // ==========================================================================
+  // Modern CanvasRuntime-based rendering methods (Phase 2)
+  // ==========================================================================
+  // These methods accept a CanvasRuntime reference and use stateless helpers.
+
+  void DrawEntrances(const gui::CanvasRuntime& rt, int current_world);
+  void DrawExits(const gui::CanvasRuntime& rt, int current_world);
+  void DrawItems(const gui::CanvasRuntime& rt, int current_world);
+  void DrawSprites(const gui::CanvasRuntime& rt, int current_world,
+                   int game_state);
+
+  // ==========================================================================
+  // Legacy rendering methods (kept for backward compatibility)
+  // ==========================================================================
   void DrawEntrances(ImVec2 canvas_p0, ImVec2 scrolling, int current_world,
                      int current_mode);
   void DrawExits(ImVec2 canvas_p0, ImVec2 scrolling, int current_world,

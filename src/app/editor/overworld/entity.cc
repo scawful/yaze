@@ -40,6 +40,24 @@ bool IsMouseHoveringOverEntity(const zelda3::GameEntity& entity,
          mouse_pos.y >= scaled_y && mouse_pos.y <= scaled_y + scaled_size;
 }
 
+bool IsMouseHoveringOverEntity(const zelda3::GameEntity& entity,
+                               const gui::CanvasRuntime& rt) {
+  // Use runtime geometry to compute mouse position relative to canvas
+  const ImGuiIO& io = ImGui::GetIO();
+  const ImVec2 origin(rt.canvas_p0.x + rt.scrolling.x,
+                      rt.canvas_p0.y + rt.scrolling.y);
+  const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
+
+  // Scale entity bounds to match canvas zoom level
+  float scaled_x = entity.x_ * rt.scale;
+  float scaled_y = entity.y_ * rt.scale;
+  float scaled_size = 16.0f * rt.scale;
+
+  // Check if the mouse is hovering over the scaled entity bounds
+  return mouse_pos.x >= scaled_x && mouse_pos.x <= scaled_x + scaled_size &&
+         mouse_pos.y >= scaled_y && mouse_pos.y <= scaled_y + scaled_size;
+}
+
 void MoveEntityOnGrid(zelda3::GameEntity* entity, ImVec2 canvas_p0,
                       ImVec2 scrolling, bool free_movement, float scale) {
   // Get the mouse position relative to the canvas

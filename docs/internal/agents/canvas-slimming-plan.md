@@ -1,7 +1,7 @@
 ## Canvas Slimming Plan
 
 Owner: imgui-frontend-engineer  
-Status: In Progress (Phases 1, 2, 3, 4, 5-High/Dungeon Complete)
+Status: In Progress (Phases 1-5 Complete for Dungeon + Overworld; Phase 6 Pending)
 Scope: `src/app/gui/canvas/` + editor call-sites  
 Goal: Reduce `gui::Canvas` bloat, align lifecycle with ImGui-style, and enable safer per-frame usage without hidden state mutation.
 
@@ -56,7 +56,7 @@ Goal: Reduce `gui::Canvas` bloat, align lifecycle with ImGui-style, and enable s
      - Extensions only allocated on first use of optional features
      - All Show* methods and GetAutomationAPI() delegate to EnsureExtensions()
 
-5) **Call-site migration** [IN PROGRESS]
+5) **Call-site migration** [COMPLETE]
    - [x] Update low-risk previews first: graphics thumbnails (`sheet_browser_panel`), small previews (`object_editor_panel`, `link_sprite_panel`).
    - [x] Medium: screen/inventory canvases, sprite/tileset selectors.
      - `DrawInventoryMenuEditor`: migrated to `BeginCanvas/EndCanvas` + stateless `DrawBitmap`
@@ -66,7 +66,12 @@ Goal: Reduce `gui::Canvas` bloat, align lifecycle with ImGui-style, and enable s
      - Entity rendering functions updated to accept `CanvasRuntime&` parameter
      - All `canvas_.DrawRect/DrawText` calls replaced with `gui::DrawRect(rt, ...)` / `gui::DrawText(rt, ...)`
      - Grid visibility controlled via `frame_opts.draw_grid = show_grid_`
-   - [ ] High/complex - Overworld Editor: main canvas migration pending (follow dungeon pattern).
+   - [x] High/complex - Overworld Editor: `DrawOverworldCanvas` and secondary canvases migrated
+     - Main canvas uses `BeginCanvas/EndCanvas` with `CanvasFrameOptions`
+     - Entity renderer (`OverworldEntityRenderer`) updated with `CanvasRuntime`-based methods
+     - Scroll bounds implemented via `ClampScroll()` helper in `HandleOverworldPan()`
+     - Secondary canvases migrated: `scratch_canvas_`, `current_gfx_canvas_`, `graphics_bin_canvas_`
+     - Zoom support deferred (documented in code); positions not yet scaled with global_scale
 
 6) **Cleanup & deprecations** [PENDING]
    - [ ] Remove deprecated ctors/fields after call-sites are migrated.
@@ -89,27 +94,31 @@ Goal: Reduce `gui::Canvas` bloat, align lifecycle with ImGui-style, and enable s
 
 ### Editor-Specific Strategies (for later phases)
 
-- **Overworld Editor (high complexity)** [PENDING - follow dungeon pattern]
+- **Overworld Editor (high complexity)** [MIGRATED]
   - Surfaces: main overworld canvas (tile painting, selection, multi-layer), scratch space, tile16 selector, property info grids.
-  - **Recommended Migration Order (based on dungeon learnings):**
-    1. Start with panel canvases (tile16 selector, scratch space) - these are similar to object_editor_panel
-    2. Then tile8 selector and property grids
-    3. Finally the main overworld canvas
-  - **Approach:**
-    - Set up `CanvasFrameOptions` with `use_child_window = false` (critical for proper sizing)
-    - Context menu items must be registered BEFORE `BeginCanvas` call
-    - Entity overlay functions should accept `const gui::CanvasRuntime&` and use `gui::DrawRect/DrawText`
-    - Keep `CanvasSelection` for persistence; per-frame hover/click lives in runtime
-    - Existing interaction handlers using `canvas_` pointer will still work
-  - **Key differences from dungeon:**
-    - Overworld has multiple map layers - ensure layer drawing uses runtime scale
-    - Tile16 system uses different coordinate math than dungeon 8x8 tiles
-    - Scratch space canvas has different sizing needs
-  - **Testing focus:**
-    - Selection rect correctness after migration
-    - Zoom/scroll behavior preserved
-    - Context menu actions still work
-    - Entity highlights render at correct positions
+  - **Completed Migration:**
+    - `DrawOverworldCanvas`: Uses `BeginCanvas(ow_map_canvas_, frame_opts)` / `EndCanvas()` pattern
+    - `OverworldEntityRenderer`: Added `CanvasRuntime`-based methods (`DrawEntrances(rt, world)`, `DrawExits(rt, world)`, etc.)
+    - `HandleOverworldPan`: Now clamps scrolling via `gui::ClampScroll()` to prevent scrolling outside map bounds
+    - `CenterOverworldView`: Properly centers on current map with clamped scroll
+    - `DrawScratchSpace`: Migrated to `BeginCanvas/EndCanvas` pattern
+    - `DrawAreaGraphics`: Migrated `current_gfx_canvas_` to new pattern
+    - `DrawTile8Selector`: Migrated `graphics_bin_canvas_` to new pattern
+  - **Key Implementation Details:**
+    - Context menu setup happens BEFORE `BeginCanvas` via `map_properties_system_->SetupCanvasContextMenu()`
+    - Entity drag/drop uses `canvas_rt.scale` and `canvas_rt.canvas_p0` from runtime
+    - Hover detection uses `canvas_rt.hovered` instead of `ow_map_canvas_.IsMouseHovering()`
+    - `IsMouseHoveringOverEntity(entity, rt)` overload added for runtime-based entity detection
+  - **Deferred - Zoom Support:**
+    - Zoom is not yet working due to multi-bitmap positioning math
+    - Positions in `DrawOverworldMaps()` need to be scaled with `global_scale_`
+    - See TODO comment in `DrawOverworldMaps()` for fix approach
+  - **Testing Focus:**
+    - [x] Pan respects canvas bounds (can't scroll outside map)
+    - [x] Entity hover detection works
+    - [x] Entity drag/drop positioning correct
+    - [x] Context menu opens in correct mode
+    - [ ] Zoom scales bitmaps and positions correctly (deferred)
 
 - **Dungeon Editor** [MIGRATED]
   - Surfaces: room graphics viewer, object selector preview, integrated editor panels, room canvases with palettes/blocks.
@@ -137,7 +146,7 @@ Goal: Reduce `gui::Canvas` bloat, align lifecycle with ImGui-style, and enable s
   - Leave automation API untouched until core migration is stable. When ready, have it consume `CanvasRuntime` so tests don’t depend on hidden members.
 
 ### Testing Focus per Editor
-- Overworld: selection rect correctness, tile ID math, zoom/scroll invariants, context menu actions, persistent popups.
+- Overworld [VALIDATED]: scroll bounds ✓, entity hover ✓, entity drag/drop ✓, context menu ✓, tile painting ✓. Zoom deferred.
 - Dungeon [VALIDATED]: grid alignment ✓, object interaction ✓, entity overlays ✓, context menu ✓, layer visibility ✓.
 - Screen/Inventory: zoom buttons, grid overlay alignment, selectors.
 - Graphics panels: texture creation on demand, grid overlay spacing, tooltip/selection hits.
@@ -183,6 +192,21 @@ Goal: Reduce `gui::Canvas` bloat, align lifecycle with ImGui-style, and enable s
 **Interaction Systems:**
 - Systems like `DungeonObjectInteraction` that hold a `canvas_` pointer still work because canvas internal state is valid after `BeginCanvas`.
 - The runtime provides read-only geometry; interaction systems can still read canvas state directly.
+
+**Scroll Bounds (Overworld Lesson):**
+- Large canvases (4096x4096) need explicit scroll clamping to prevent users from panning beyond content bounds.
+- Use `ClampScroll(scroll, content_px * scale, viewport_px)` after computing new scroll position.
+- The overworld's `HandleOverworldPan()` now demonstrates this pattern with `gui::ClampScroll()`.
+
+**Multi-Bitmap Canvases (Overworld Lesson):**
+- When a canvas renders multiple bitmaps (e.g., 64 map tiles), positions must be scaled with `global_scale_` for zoom to work.
+- The overworld's zoom is deferred because bitmap positions are not yet scaled (see TODO in `DrawOverworldMaps()`).
+- Fix approach: `map_x = static_cast<int>(xx * kOverworldMapSize * scale)` and pass `scale` to `DrawBitmap`.
+
+**Entity Renderer Refactoring:**
+- Separate entity renderers (like `OverworldEntityRenderer`) should accept `const gui::CanvasRuntime&` for stateless rendering.
+- Legacy methods can be kept as thin wrappers that build runtime from canvas state.
+- The `IsMouseHoveringOverEntity(entity, rt)` overload demonstrates runtime-based hit testing.
 
 ### Design Principles to Follow
 - ImGui-like: options-as-arguments at `Begin`, minimal persistent mutation, small POD contexts for draw helpers.
@@ -241,6 +265,10 @@ Goal: Reduce `gui::Canvas` bloat, align lifecycle with ImGui-style, and enable s
 - Deprecations to remove after migration: `custom_step_`, `global_scale_` duplicates, legacy `enable_*` mirrors, direct `draw_list_` access in callers.
 - Testing hints: pure helpers for tests (`TileIndexAt`, `ComputeZoomToFit`, `ClampScroll`). Manual checks per editor: grid alignment, tile hit correctness, zoom/fit, context menu actions, popup render, texture creation (`ensure_texture`).
 - Risk order: low (previews/thumbnails) → medium (selectors, inventory/screen) → high (overworld main, dungeon main). Start low, validate patterns, then proceed.
+- **Scroll & Zoom Helpers (Phase 0 - Infrastructure):**
+  - `ClampScroll(scroll, content_px, canvas_px)` → clamps scroll to valid bounds `[-max_scroll, 0]`
+  - `ComputeZoomToFit(content_px, canvas_px, padding_px)` → returns `ZoomToFitResult{scale, scroll}` to fit content
+  - `IsMouseHoveringOverEntity(entity, rt)` → runtime-based entity hover detection for overworld
 
 ### Future Feature Ideas (for follow-on work)
 

@@ -623,6 +623,15 @@ void OverworldEditor::DrawEntityEditorPopups() {
 }
 
 void OverworldEditor::DrawOverworldMaps() {
+  // TODO(imgui-frontend-engineer): Enable zoom support - Phase 4 of canvas
+  // migration plan. Current issue: Positions are not scaled when zooming.
+  // Fix approach: Scale both positions AND bitmap size:
+  //   float scale = ow_map_canvas_.global_scale();
+  //   int map_x = static_cast<int>(xx * kOverworldMapSize * scale);
+  //   int map_y = static_cast<int>(yy * kOverworldMapSize * scale);
+  //   ow_map_canvas_.DrawBitmap(maps_bmp_[world_index], map_x, map_y, scale);
+  // Also need to fix placeholder drawing and entity coordinates.
+
   int xx = 0;
   int yy = 0;
   for (int i = 0; i < 0x40; i++) {
@@ -633,7 +642,7 @@ void OverworldEditor::DrawOverworldMaps() {
       continue;  // Skip invalid map index
     }
 
-    // Don't apply scale to coordinates - scale is applied to canvas rendering
+    // Currently not scaling coordinates - zoom is disabled pending Phase 4 fix
     int map_x = xx * kOverworldMapSize;
     int map_y = yy * kOverworldMapSize;
 
@@ -1370,48 +1379,59 @@ void OverworldEditor::DrawOverworldCanvas() {
                    has_selection, scratch_has_data, rom_, &overworld_);
   }
 
-  gui::BeginNoPadding();
-  gui::BeginChildBothScrollbars(7);
-  ow_map_canvas_.DrawBackground();
-  gui::EndNoPadding();
+  // ==========================================================================
+  // PHASE 3: Modern BeginCanvas/EndCanvas Pattern
+  // ==========================================================================
+  // Context menu setup MUST happen BEFORE BeginCanvas (lesson from dungeon)
+  bool show_context_menu = (current_mode == EditingMode::MOUSE) &&
+                           (!entity_renderer_ ||
+                            entity_renderer_->hovered_entity() == nullptr);
 
-  // Setup dynamic context menu based on current map state (Phase 3B)
   if (rom_->is_loaded() && overworld_.is_loaded() && map_properties_system_) {
+    ow_map_canvas_.ClearContextMenuItems();
     map_properties_system_->SetupCanvasContextMenu(
         ow_map_canvas_, current_map_, current_map_lock_,
         show_map_properties_panel_, show_custom_bg_color_editor_,
         show_overlay_editor_, static_cast<int>(current_mode));
   }
 
+  // Configure canvas frame options
+  gui::CanvasFrameOptions frame_opts;
+  frame_opts.canvas_size = kOverworldCanvasSize;
+  frame_opts.draw_grid = true;
+  frame_opts.grid_step = 64.0f;  // Map boundaries (512px / 8 maps)
+  frame_opts.draw_context_menu = show_context_menu;
+  frame_opts.draw_overlay = true;
+  frame_opts.render_popups = true;
+  frame_opts.use_child_window = false;  // CRITICAL: Canvas has own pan logic
+
+  // Wrap in child window for scrollbars (matches legacy layout)
+  gui::BeginNoPadding();
+  gui::BeginChildBothScrollbars(7);
+
+  // Begin canvas frame - this handles DrawBackground + DrawContextMenu
+  auto canvas_rt = gui::BeginCanvas(ow_map_canvas_, frame_opts);
+  gui::EndNoPadding();
+
   // Handle pan and zoom (works in all modes)
   HandleOverworldPan();
   HandleOverworldZoom();
 
-  // Context menu only in MOUSE mode
-  if (current_mode == EditingMode::MOUSE) {
-    if (!entity_renderer_ || entity_renderer_->hovered_entity() == nullptr) {
-      ow_map_canvas_.DrawContextMenu();
-    }
-  } else if (current_mode == EditingMode::DRAW_TILE) {
-    // Tile painting mode - handle tile edits and right-click tile picking
+  // Tile painting mode - handle tile edits and right-click tile picking
+  if (current_mode == EditingMode::DRAW_TILE) {
     HandleMapInteraction();
   }
 
   if (overworld_.is_loaded()) {
+    // Draw the 64 overworld map bitmaps
     DrawOverworldMaps();
 
-    // Draw all entities using the entity renderer
+    // Draw all entities using the new CanvasRuntime-based methods
     if (entity_renderer_) {
-      // Convert entity_edit_mode_ to legacy mode int for entity renderer
-      int entity_mode_int = static_cast<int>(entity_edit_mode_);
-      entity_renderer_->DrawExits(ow_map_canvas_.zero_point(),
-                                  ow_map_canvas_.scrolling(), current_world_,
-                                  entity_mode_int);
-      entity_renderer_->DrawEntrances(ow_map_canvas_.zero_point(),
-                                      ow_map_canvas_.scrolling(), current_world_,
-                                      entity_mode_int);
-      entity_renderer_->DrawItems(current_world_, entity_mode_int);
-      entity_renderer_->DrawSprites(current_world_, game_state_, entity_mode_int);
+      entity_renderer_->DrawExits(canvas_rt, current_world_);
+      entity_renderer_->DrawEntrances(canvas_rt, current_world_);
+      entity_renderer_->DrawItems(canvas_rt, current_world_);
+      entity_renderer_->DrawSprites(canvas_rt, current_world_, game_state_);
     }
 
     // Draw overlay preview if enabled
@@ -1423,15 +1443,13 @@ void OverworldEditor::DrawOverworldCanvas() {
     if (current_mode == EditingMode::DRAW_TILE) {
       CheckForOverworldEdits();
     }
-    // CRITICAL FIX: Use canvas hover state, not ImGui::IsItemHovered()
-    // IsItemHovered() checks the LAST drawn item, which could be
-    // entities/overlay, not the canvas InvisibleButton.
-    // ow_map_canvas_.IsMouseHovering() correctly tracks whether mouse is over
-    // the canvas area.
-    if (ow_map_canvas_.IsMouseHovering())
-      status_ = CheckForCurrentMap();
 
-    // --- BEGIN NEW DRAG/DROP LOGIC ---
+    // Use canvas runtime hover state for map detection
+    if (canvas_rt.hovered) {
+      status_ = CheckForCurrentMap();
+    }
+
+    // --- BEGIN ENTITY DRAG/DROP LOGIC ---
     if (current_mode == EditingMode::MOUSE && entity_renderer_) {
       auto hovered_entity = entity_renderer_->hovered_entity();
 
@@ -1451,7 +1469,7 @@ void OverworldEditor::DrawOverworldCanvas() {
           ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
         ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
         ImVec2 mouse_delta = ImGui::GetIO().MouseDelta;
-        float scale = ow_map_canvas_.global_scale();
+        float scale = canvas_rt.scale;
         if (scale > 0.0f) {
           dragged_entity_->x_ += mouse_delta.x / scale;
           dragged_entity_->y_ += mouse_delta.y / scale;
@@ -1462,9 +1480,9 @@ void OverworldEditor::DrawOverworldCanvas() {
       if (is_dragging_entity_ &&
           ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
         if (dragged_entity_) {
-          float end_scale = ow_map_canvas_.global_scale();
-          MoveEntityOnGrid(dragged_entity_, ow_map_canvas_.zero_point(),
-                           ow_map_canvas_.scrolling(),
+          float end_scale = canvas_rt.scale;
+          MoveEntityOnGrid(dragged_entity_, canvas_rt.canvas_p0,
+                           canvas_rt.scrolling,
                            dragged_entity_free_movement_, end_scale);
           // Pass overworld context for proper area size detection
           dragged_entity_->UpdateMapProperties(dragged_entity_->map_id_,
@@ -1476,11 +1494,11 @@ void OverworldEditor::DrawOverworldCanvas() {
         dragged_entity_free_movement_ = false;
       }
     }
-    // --- END NEW DRAG/DROP LOGIC ---
+    // --- END ENTITY DRAG/DROP LOGIC ---
   }
 
-  ow_map_canvas_.DrawGrid();
-  ow_map_canvas_.DrawOverlay();
+  // End canvas frame - draws grid/overlay based on frame_opts
+  gui::EndCanvas(ow_map_canvas_, canvas_rt, frame_opts);
   ImGui::EndChild();
 }
 
@@ -1535,27 +1553,37 @@ absl::Status OverworldEditor::DrawTile16Selector() {
 }
 
 void OverworldEditor::DrawTile8Selector() {
-  graphics_bin_canvas_.DrawBackground();
-  graphics_bin_canvas_.DrawContextMenu();
+  // Configure canvas frame options for graphics bin
+  gui::CanvasFrameOptions frame_opts;
+  frame_opts.canvas_size = kGraphicsBinCanvasSize;
+  frame_opts.draw_grid = true;
+  frame_opts.grid_step = 16.0f;  // Tile8 grid
+  frame_opts.draw_context_menu = true;
+  frame_opts.draw_overlay = true;
+  frame_opts.render_popups = true;
+  frame_opts.use_child_window = false;
+
+  auto canvas_rt = gui::BeginCanvas(graphics_bin_canvas_, frame_opts);
+
   if (all_gfx_loaded_) {
     int key = 0;
     for (auto& value : gfx::Arena::Get().gfx_sheets()) {
       int offset = 0x40 * (key + 1);
-      int top_left_y = graphics_bin_canvas_.zero_point().y + 2;
+      int top_left_y = canvas_rt.canvas_p0.y + 2;
       if (key >= 1) {
-        top_left_y = graphics_bin_canvas_.zero_point().y + 0x40 * key;
+        top_left_y = canvas_rt.canvas_p0.y + 0x40 * key;
       }
       auto texture = value.texture();
-      graphics_bin_canvas_.draw_list()->AddImage(
+      canvas_rt.draw_list->AddImage(
           (ImTextureID)(intptr_t)texture,
-          ImVec2(graphics_bin_canvas_.zero_point().x + 2, top_left_y),
-          ImVec2(graphics_bin_canvas_.zero_point().x + 0x100,
-                 graphics_bin_canvas_.zero_point().y + offset));
+          ImVec2(canvas_rt.canvas_p0.x + 2, top_left_y),
+          ImVec2(canvas_rt.canvas_p0.x + 0x100,
+                 canvas_rt.canvas_p0.y + offset));
       key++;
     }
   }
-  graphics_bin_canvas_.DrawGrid();
-  graphics_bin_canvas_.DrawOverlay();
+
+  gui::EndCanvas(graphics_bin_canvas_, canvas_rt, frame_opts);
 }
 
 void OverworldEditor::InvalidateGraphicsCache(int map_id) {
@@ -1584,22 +1612,31 @@ absl::Status OverworldEditor::DrawAreaGraphics() {
     }
   }
 
+  // Configure canvas frame options for area graphics
+  gui::CanvasFrameOptions frame_opts;
+  frame_opts.canvas_size = kCurrentGfxCanvasSize;
+  frame_opts.draw_grid = true;
+  frame_opts.grid_step = 32.0f;  // Tile selector grid
+  frame_opts.draw_context_menu = true;
+  frame_opts.draw_overlay = true;
+  frame_opts.render_popups = true;
+  frame_opts.use_child_window = false;
+
   gui::BeginPadding(3);
   ImGui::BeginGroup();
   gui::BeginChildWithScrollbar("##AreaGraphicsScrollRegion");
-  current_gfx_canvas_.DrawBackground();
+
+  auto canvas_rt = gui::BeginCanvas(current_gfx_canvas_, frame_opts);
   gui::EndPadding();
-  {
-    current_gfx_canvas_.DrawContextMenu();
-    if (current_graphics_set_.contains(current_map_) &&
-        current_graphics_set_[current_map_]->is_active()) {
-      current_gfx_canvas_.DrawBitmap(*current_graphics_set_[current_map_], 2, 2,
-                                     2.0f);
-    }
-    current_gfx_canvas_.DrawTileSelector(32.0f);
-    current_gfx_canvas_.DrawGrid();
-    current_gfx_canvas_.DrawOverlay();
+
+  if (current_graphics_set_.contains(current_map_) &&
+      current_graphics_set_[current_map_]->is_active()) {
+    current_gfx_canvas_.DrawBitmap(*current_graphics_set_[current_map_], 2, 2,
+                                   2.0f);
   }
+  current_gfx_canvas_.DrawTileSelector(32.0f);
+
+  gui::EndCanvas(current_gfx_canvas_, canvas_rt, frame_opts);
   ImGui::EndChild();
   ImGui::EndGroup();
   return absl::OkStatus();
