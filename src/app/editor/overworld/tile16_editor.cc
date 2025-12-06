@@ -569,10 +569,18 @@ void Tile16Editor::DrawContextMenu() {
 absl::Status Tile16Editor::UpdateBlockset() {
   gui::BeginPadding(2);
   gui::BeginChildWithScrollbar("##Tile16EditorBlocksetScrollRegion");
-  blockset_canvas_.DrawBackground();
-  gui::EndPadding();
 
-  blockset_canvas_.DrawContextMenu();
+  // Configure canvas frame options for blockset view
+  gui::CanvasFrameOptions frame_opts;
+  frame_opts.draw_grid = true;
+  frame_opts.grid_step = 32.0f;  // Tile16 grid
+  frame_opts.draw_context_menu = true;
+  frame_opts.draw_overlay = true;
+  frame_opts.render_popups = true;
+  frame_opts.use_child_window = false;
+
+  auto canvas_rt = gui::BeginCanvas(blockset_canvas_, frame_opts);
+  gui::EndPadding();
 
   // Ensure selector is synced with current selection
   if (blockset_selector_.GetSelectedTileID() != current_tile16_) {
@@ -588,6 +596,7 @@ absl::Status Tile16Editor::UpdateBlockset() {
     util::logf("Selected Tile16 from blockset: %d", result.selected_tile);
   }
 
+  gui::EndCanvas(blockset_canvas_, canvas_rt, frame_opts);
   EndChild();
 
   return absl::OkStatus();
@@ -1190,8 +1199,17 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
         ImGui::SetScrollY(tile_y);
         scroll_to_current_ = false;
       }
-      blockset_canvas_.DrawBackground();
-      blockset_canvas_.DrawContextMenu();
+
+      // Configure canvas frame options for blockset
+      gui::CanvasFrameOptions blockset_frame_opts;
+      blockset_frame_opts.draw_grid = true;
+      blockset_frame_opts.grid_step = 32.0f;
+      blockset_frame_opts.draw_context_menu = true;
+      blockset_frame_opts.draw_overlay = true;
+      blockset_frame_opts.render_popups = true;
+      blockset_frame_opts.use_child_window = false;
+
+      auto blockset_rt = gui::BeginCanvas(blockset_canvas_, blockset_frame_opts);
 
       // Handle tile selection from blockset
       bool tile_selected = false;
@@ -1222,8 +1240,8 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
       }
 
       blockset_canvas_.DrawBitmap(tile16_blockset_bmp_, 0, true, 2);
-      blockset_canvas_.DrawGrid();
-      blockset_canvas_.DrawOverlay();
+
+      gui::EndCanvas(blockset_canvas_, blockset_rt, blockset_frame_opts);
     }
     EndChild();
     ImGui::EndGroup();
@@ -1239,8 +1257,16 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     // Scrollable tile8 source
     if (BeginChild("##Tile8SourceScrollable", ImVec2(0, 0), true,
                    ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-      tile8_source_canvas_.DrawBackground();
-      tile8_source_canvas_.DrawContextMenu();
+      // Configure canvas frame options for tile8 source
+      gui::CanvasFrameOptions tile8_frame_opts;
+      tile8_frame_opts.draw_grid = true;
+      tile8_frame_opts.grid_step = 32.0f;  // Tile8 grid (8px * 4 scale)
+      tile8_frame_opts.draw_context_menu = true;
+      tile8_frame_opts.draw_overlay = true;
+      tile8_frame_opts.render_popups = true;
+      tile8_frame_opts.use_child_window = false;
+
+      auto tile8_rt = gui::BeginCanvas(tile8_source_canvas_, tile8_frame_opts);
 
       // Tile8 selection with improved feedback
       bool tile8_selected = false;
@@ -1278,8 +1304,8 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
 
       tile8_source_canvas_.DrawBitmap(current_gfx_bmp_, 2, 2,
                                       kTile8DisplayScale);
-      tile8_source_canvas_.DrawGrid();
-      tile8_source_canvas_.DrawOverlay();
+
+      gui::EndCanvas(tile8_source_canvas_, tile8_rt, tile8_frame_opts);
     }
     EndChild();
     ImGui::EndGroup();
@@ -1292,8 +1318,17 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     if (ImGui::BeginChild("##Tile16FixedCanvas", ImVec2(90, 90), true,
                           ImGuiWindowFlags_NoScrollbar |
                               ImGuiWindowFlags_NoScrollWithMouse)) {
-      tile16_edit_canvas_.DrawBackground(ImVec2(64, 64));
-      tile16_edit_canvas_.DrawContextMenu();
+      // Configure canvas frame options for tile16 editor
+      gui::CanvasFrameOptions tile16_edit_frame_opts;
+      tile16_edit_frame_opts.canvas_size = ImVec2(64, 64);
+      tile16_edit_frame_opts.draw_grid = true;
+      tile16_edit_frame_opts.grid_step = 8.0f;  // 8x8 grid for tile8 placement
+      tile16_edit_frame_opts.draw_context_menu = true;
+      tile16_edit_frame_opts.draw_overlay = true;
+      tile16_edit_frame_opts.render_popups = true;
+      tile16_edit_frame_opts.use_child_window = false;
+
+      auto tile16_edit_rt = gui::BeginCanvas(tile16_edit_canvas_, tile16_edit_frame_opts);
 
       // Draw current tile16 bitmap with dynamic zoom
       if (current_tile16_bmp_.is_active()) {
@@ -1431,8 +1466,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
         }
       }
 
-      tile16_edit_canvas_.DrawGrid(8.0F);  // Scale grid with zoom
-      tile16_edit_canvas_.DrawOverlay();
+      gui::EndCanvas(tile16_edit_canvas_, tile16_edit_rt, tile16_edit_frame_opts);
     }
     ImGui::EndChild();
 

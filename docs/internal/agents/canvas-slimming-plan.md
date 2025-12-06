@@ -109,16 +109,16 @@ Goal: Reduce `gui::Canvas` bloat, align lifecycle with ImGui-style, and enable s
     - Entity drag/drop uses `canvas_rt.scale` and `canvas_rt.canvas_p0` from runtime
     - Hover detection uses `canvas_rt.hovered` instead of `ow_map_canvas_.IsMouseHovering()`
     - `IsMouseHoveringOverEntity(entity, rt)` overload added for runtime-based entity detection
-  - **Deferred - Zoom Support:**
-    - Zoom is not yet working due to multi-bitmap positioning math
-    - Positions in `DrawOverworldMaps()` need to be scaled with `global_scale_`
-    - See TODO comment in `DrawOverworldMaps()` for fix approach
+  - **Zoom Support:** [IMPLEMENTED]
+    - `DrawOverworldMaps()` now applies `global_scale()` to both bitmap positions and scale
+    - Placeholder rectangles for unloaded maps also scaled correctly
+    - Entity rendering already uses `rt.scale` via stateless helpers - alignment works automatically
   - **Testing Focus:**
     - [x] Pan respects canvas bounds (can't scroll outside map)
     - [x] Entity hover detection works
     - [x] Entity drag/drop positioning correct
     - [x] Context menu opens in correct mode
-    - [ ] Zoom scales bitmaps and positions correctly (deferred)
+    - [x] Zoom scales bitmaps and positions correctly
 
 - **Dungeon Editor** [MIGRATED]
   - Surfaces: room graphics viewer, object selector preview, integrated editor panels, room canvases with palettes/blocks.
@@ -142,11 +142,18 @@ Goal: Reduce `gui::Canvas` bloat, align lifecycle with ImGui-style, and enable s
 - **Graphics/Pixels Panels**
   - Low risk; continue to replace manual `draw_list` usage with `DrawBitmapPreview` and runtime-aware helpers. Ensure `ensure_texture=true` for arena-backed bitmaps.
 
+- **Tile16Editor** [MIGRATED]
+  - Three canvases migrated from `DrawBackground()/DrawContextMenu()/DrawGrid()/DrawOverlay()` to `BeginCanvas/EndCanvas`:
+    - `blockset_canvas_`: Two usages in `UpdateBlockset()` and `DrawContent()` now use `CanvasFrameOptions`
+    - `tile8_source_canvas_`: Tile8 source selector now uses `BeginCanvas/EndCanvas` with grid step 32.0f
+    - `tile16_edit_canvas_`: Tile16 edit canvas now uses `BeginCanvas/EndCanvas` with grid step 8.0f
+  - Tile selection and painting logic preserved; only frame management changed
+
 - **Automation/Testing Surfaces**
-  - Leave automation API untouched until core migration is stable. When ready, have it consume `CanvasRuntime` so tests don’t depend on hidden members.
+  - Leave automation API untouched until core migration is stable. When ready, have it consume `CanvasRuntime` so tests don't depend on hidden members.
 
 ### Testing Focus per Editor
-- Overworld [VALIDATED]: scroll bounds ✓, entity hover ✓, entity drag/drop ✓, context menu ✓, tile painting ✓. Zoom deferred.
+- Overworld [VALIDATED]: scroll bounds ✓, entity hover ✓, entity drag/drop ✓, context menu ✓, tile painting ✓, zoom ✓.
 - Dungeon [VALIDATED]: grid alignment ✓, object interaction ✓, entity overlays ✓, context menu ✓, layer visibility ✓.
 - Screen/Inventory: zoom buttons, grid overlay alignment, selectors.
 - Graphics panels: texture creation on demand, grid overlay spacing, tooltip/selection hits.

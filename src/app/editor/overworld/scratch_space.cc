@@ -234,6 +234,7 @@ absl::Status OverworldEditor::SaveCurrentSelectionToScratch() {
       !ow_map_canvas_.selected_tiles().empty()) {
     const auto& selected_points = ow_map_canvas_.selected_points();
     if (selected_points.size() >= 2) {
+      // selected_points are now stored in world coordinates
       const auto start = selected_points[0];
       const auto end = selected_points[1];
 
