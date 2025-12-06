@@ -36,6 +36,7 @@ set(CANVAS_SRC
   app/gui/canvas/canvas.cc
   app/gui/canvas/canvas_automation_api.cc
   app/gui/canvas/canvas_context_menu.cc
+  app/gui/canvas/canvas_extensions.cc
   app/gui/canvas/canvas_geometry.cc
   app/gui/canvas/canvas_interaction.cc
   app/gui/canvas/canvas_interaction_handler.cc
