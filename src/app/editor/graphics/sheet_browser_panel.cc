@@ -150,30 +150,44 @@ void SheetBrowserPanel::DrawSheetThumbnail(int sheet_id, gfx::Bitmap& bitmap) {
                     ImVec2(thumb_width + 8, thumb_height + 24), true,
                     ImGuiWindowFlags_NoScrollbar);
 
-  // Draw thumbnail background
-  thumbnail_canvas_.DrawBackground(ImVec2(thumb_width + 1, thumb_height + 1));
+  gui::BitmapPreviewOptions preview_opts;
+  preview_opts.canvas_size = ImVec2(thumb_width + 1, thumb_height + 1);
+  preview_opts.dest_pos = ImVec2(2, 2);
+  preview_opts.dest_size = ImVec2(thumb_width - 2, thumb_height - 2);
+  preview_opts.grid_step = 8.0f * thumbnail_scale_;
+  preview_opts.draw_context_menu = false;
+  preview_opts.ensure_texture = true;
 
-  if (bitmap.is_active()) {
-    // Ensure texture exists
-    if (!bitmap.texture() && bitmap.surface()) {
-      gfx::Arena::Get().QueueTextureCommand(
-          gfx::Arena::TextureCommandType::CREATE, &bitmap);
+  gui::CanvasFrameOptions frame_opts;
+  frame_opts.canvas_size = preview_opts.canvas_size;
+  frame_opts.draw_context_menu = preview_opts.draw_context_menu;
+  frame_opts.draw_grid = preview_opts.draw_grid;
+  frame_opts.grid_step = preview_opts.grid_step;
+  frame_opts.draw_overlay = preview_opts.draw_overlay;
+  frame_opts.render_popups = preview_opts.render_popups;
+
+  {
+    auto rt = gui::BeginCanvas(thumbnail_canvas_, frame_opts);
+    gui::DrawBitmapPreview(rt, bitmap, preview_opts);
+
+    // Sheet label with modification indicator
+    std::string label = absl::StrFormat("%02X", sheet_id);
+    if (is_modified) {
+      label += "*";
     }
 
-    auto texture = bitmap.texture();
-    if (texture) {
-      thumbnail_canvas_.draw_list()->AddImage(
-          (ImTextureID)(intptr_t)texture,
-          ImVec2(thumbnail_canvas_.zero_point().x + 2,
-                 thumbnail_canvas_.zero_point().y + 2),
-          ImVec2(thumbnail_canvas_.zero_point().x + thumb_width,
-                 thumbnail_canvas_.zero_point().y + thumb_height));
-    }
+    // Draw label with background
+    ImVec2 text_pos = ImGui::GetCursorScreenPos();
+    ImVec2 text_size = ImGui::CalcTextSize(label.c_str());
+    thumbnail_canvas_.AddRectFilledAt(
+        ImVec2(2, 2), ImVec2(text_size.x + 4, text_size.y + 2),
+        is_modified ? IM_COL32(180, 100, 0, 200) : IM_COL32(0, 100, 0, 180));
+
+    thumbnail_canvas_.AddTextAt(ImVec2(4, 2), label,
+                                is_modified ? IM_COL32(255, 200, 100, 255)
+                                            : IM_COL32(150, 255, 150, 255));
+    gui::EndCanvas(thumbnail_canvas_, rt, frame_opts);
   }
-
-  // Draw grid overlay
-  thumbnail_canvas_.DrawGrid(8.0f * thumbnail_scale_);
-  thumbnail_canvas_.DrawOverlay();
 
   // Click handling
   if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
@@ -194,28 +208,6 @@ void SheetBrowserPanel::DrawSheetThumbnail(int sheet_id, gfx::Bitmap& bitmap) {
   if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
     state_->open_sheets.insert(static_cast<uint16_t>(sheet_id));
   }
-
-  // Sheet label with modification indicator
-  std::string label = absl::StrFormat("%02X", sheet_id);
-  if (is_modified) {
-    label += "*";
-  }
-
-  // Draw label with background
-  ImVec2 text_pos = ImGui::GetCursorScreenPos();
-  ImVec2 text_size = ImGui::CalcTextSize(label.c_str());
-  thumbnail_canvas_.draw_list()->AddRectFilled(
-      ImVec2(thumbnail_canvas_.zero_point().x + 2,
-             thumbnail_canvas_.zero_point().y + 2),
-      ImVec2(thumbnail_canvas_.zero_point().x + text_size.x + 6,
-             thumbnail_canvas_.zero_point().y + text_size.y + 4),
-      is_modified ? IM_COL32(180, 100, 0, 200) : IM_COL32(0, 100, 0, 180));
-
-  thumbnail_canvas_.draw_list()->AddText(
-      ImVec2(thumbnail_canvas_.zero_point().x + 4,
-             thumbnail_canvas_.zero_point().y + 2),
-      is_modified ? IM_COL32(255, 200, 100, 255) : IM_COL32(150, 255, 150, 255),
-      label.c_str());
 
   ImGui::EndChild();
 

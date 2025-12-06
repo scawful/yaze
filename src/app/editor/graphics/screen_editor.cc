@@ -150,81 +150,9 @@ absl::Status ScreenEditor::Load() {
 }
 
 absl::Status ScreenEditor::Update() {
-  if (!dependencies_.panel_manager)
-    return absl::OkStatus();
-  auto* panel_manager = dependencies_.panel_manager;
-
-  static gui::PanelWindow dungeon_maps_card("Dungeon Maps", ICON_MD_MAP);
-  static gui::PanelWindow inventory_menu_card("Inventory Menu",
-                                             ICON_MD_INVENTORY);
-  static gui::PanelWindow overworld_map_card("Overworld Map", ICON_MD_PUBLIC);
-  static gui::PanelWindow screen_card("Screen", ICON_MD_DESKTOP_MAC);
-  screen_card.SetPosition(gui::PanelWindow::Position::Floating);
-  static gui::PanelWindow title_screen_card("Title Screen", ICON_MD_TITLE);
-  static gui::PanelWindow naming_screen_card("Naming Screen",
-                                            ICON_MD_EDIT_ATTRIBUTES);
-
-  dungeon_maps_card.SetDefaultSize(800, 600);
-  inventory_menu_card.SetDefaultSize(800, 600);
-  overworld_map_card.SetDefaultSize(600, 500);
-  title_screen_card.SetDefaultSize(600, 500);
-  naming_screen_card.SetDefaultSize(500, 400);
-
-  // Dungeon Maps Panel - Check visibility flag exists and is true before
-  // rendering
-  bool* dungeon_maps_visible =
-      panel_manager->GetVisibilityFlag("screen.dungeon_maps");
-  if (dungeon_maps_visible && *dungeon_maps_visible) {
-    if (dungeon_maps_card.Begin(dungeon_maps_visible)) {
-      DrawDungeonMapsEditor();
-    }
-    dungeon_maps_card.End();
-  }
-
-  // Inventory Menu Panel - Check visibility flag exists and is true before
-  // rendering
-  bool* inventory_menu_visible =
-      panel_manager->GetVisibilityFlag("screen.inventory_menu");
-  if (inventory_menu_visible && *inventory_menu_visible) {
-    if (inventory_menu_card.Begin(inventory_menu_visible)) {
-      DrawInventoryMenuEditor();
-    }
-    inventory_menu_card.End();
-  }
-
-  // Overworld Map Panel - Check visibility flag exists and is true before
-  // rendering
-  bool* overworld_map_visible =
-      panel_manager->GetVisibilityFlag("screen.overworld_map");
-  if (overworld_map_visible && *overworld_map_visible) {
-    if (overworld_map_card.Begin(overworld_map_visible)) {
-      DrawOverworldMapEditor();
-    }
-    overworld_map_card.End();
-  }
-
-  // Title Screen Panel - Check visibility flag exists and is true before
-  // rendering
-  bool* title_screen_visible =
-      panel_manager->GetVisibilityFlag("screen.title_screen");
-  if (title_screen_visible && *title_screen_visible) {
-    if (title_screen_card.Begin(title_screen_visible)) {
-      DrawTitleScreenEditor();
-    }
-    title_screen_card.End();
-  }
-
-  // Naming Screen Panel - Check visibility flag exists and is true before
-  // rendering
-  bool* naming_screen_visible =
-      panel_manager->GetVisibilityFlag("screen.naming_screen");
-  if (naming_screen_visible && *naming_screen_visible) {
-    if (naming_screen_card.Begin(naming_screen_visible)) {
-      DrawNamingScreenEditor();
-    }
-    naming_screen_card.End();
-  }
-
+  // Panel drawing is handled centrally by PanelManager::DrawAllVisiblePanels()
+  // via the EditorPanel implementations registered in Initialize().
+  // No local drawing needed here - this fixes duplicate panel rendering.
   return status_;
 }
 
@@ -257,18 +185,27 @@ void ScreenEditor::DrawInventoryMenuEditor() {
     ImGui::TableHeadersRow();
 
     ImGui::TableNextColumn();
-    screen_canvas_.DrawBackground();
-    screen_canvas_.DrawContextMenu();
-    screen_canvas_.DrawBitmap(inventory_.bitmap(), 2, create);
-    screen_canvas_.DrawGrid(32.0f);
-    screen_canvas_.DrawOverlay();
+    {
+      gui::CanvasFrameOptions frame_opts;
+      frame_opts.draw_grid = true;
+      frame_opts.grid_step = 32.0f;
+      frame_opts.render_popups = true;
+      auto runtime = gui::BeginCanvas(screen_canvas_, frame_opts);
+      gui::DrawBitmap(runtime, inventory_.bitmap(), 2, create ? 1.0f : 0.0f);
+      gui::EndCanvas(screen_canvas_, runtime, frame_opts);
+    }
 
     ImGui::TableNextColumn();
-    tilesheet_canvas_.DrawBackground(ImVec2(128 * 2 + 2, (192 * 2) + 4));
-    tilesheet_canvas_.DrawContextMenu();
-    tilesheet_canvas_.DrawBitmap(inventory_.tilesheet(), 2, create);
-    tilesheet_canvas_.DrawGrid(16.0f);
-    tilesheet_canvas_.DrawOverlay();
+    {
+      gui::CanvasFrameOptions frame_opts;
+      frame_opts.canvas_size = ImVec2(128 * 2 + 2, (192 * 2) + 4);
+      frame_opts.draw_grid = true;
+      frame_opts.grid_step = 16.0f;
+      frame_opts.render_popups = true;
+      auto runtime = gui::BeginCanvas(tilesheet_canvas_, frame_opts);
+      gui::DrawBitmap(runtime, inventory_.tilesheet(), 2, create ? 1.0f : 0.0f);
+      gui::EndCanvas(tilesheet_canvas_, runtime, frame_opts);
+    }
 
     ImGui::TableNextColumn();
     DrawInventoryItemIcons();
@@ -566,24 +503,42 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
   gfx::ScopedTimer timer("screen_editor_draw_dungeon_maps_room_gfx");
 
   if (ImGui::BeginChild("##DungeonMapTiles", ImVec2(0, 0), true)) {
-    // Enhanced tilesheet canvas with improved tile selection
-    tilesheet_canvas_.DrawBackground(ImVec2((256 * 2) + 2, (192 * 2) + 4));
-    tilesheet_canvas_.DrawContextMenu();
+    // Enhanced tilesheet canvas with BeginCanvas/EndCanvas pattern
+    {
+      gui::CanvasFrameOptions tilesheet_opts;
+      tilesheet_opts.canvas_size = ImVec2((256 * 2) + 2, (192 * 2) + 4);
+      tilesheet_opts.draw_grid = true;
+      tilesheet_opts.grid_step = 32.0f;
+      tilesheet_opts.render_popups = true;
 
-    // Interactive tile16 selector with grid snapping
-    if (tilesheet_canvas_.DrawTileSelector(32.f)) {
-      selected_tile16_ = tilesheet_canvas_.points().front().x / 32 +
-                         (tilesheet_canvas_.points().front().y / 32) * 16;
+      auto tilesheet_rt = gui::BeginCanvas(tilesheet_canvas_, tilesheet_opts);
 
-      // Render selected tile16 and cache tile metadata
-      gfx::RenderTile16(nullptr, tile16_blockset_, selected_tile16_);
-      std::ranges::copy(tile16_blockset_.tile_info[selected_tile16_],
-                        current_tile16_info.begin());
+      // Interactive tile16 selector with grid snapping
+      ImVec2 selected_pos;
+      if (gui::DrawTileSelector(tilesheet_rt, 32, 0, &selected_pos)) {
+        // Double-click detected - handle tile confirmation if needed
+      }
+
+      // Check for single-click selection (legacy compatibility)
+      if (tilesheet_canvas_.IsMouseHovering() &&
+          ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+        if (!tilesheet_canvas_.points().empty()) {
+          selected_tile16_ =
+              static_cast<int>(tilesheet_canvas_.points().front().x / 32 +
+                               (tilesheet_canvas_.points().front().y / 32) * 16);
+
+          // Render selected tile16 and cache tile metadata
+          gfx::RenderTile16(nullptr, tile16_blockset_, selected_tile16_);
+          std::ranges::copy(tile16_blockset_.tile_info[selected_tile16_],
+                            current_tile16_info.begin());
+        }
+      }
+
+      // Use stateless bitmap rendering for tilesheet
+      gui::DrawBitmap(tilesheet_rt, tile16_blockset_.atlas, 1, 1, 2.0F, 255);
+
+      gui::EndCanvas(tilesheet_canvas_, tilesheet_rt, tilesheet_opts);
     }
-    // Use direct bitmap rendering for tilesheet
-    tilesheet_canvas_.DrawBitmap(tile16_blockset_.atlas, 1, 1, 2.0F, 255);
-    tilesheet_canvas_.DrawGrid(32.f);
-    tilesheet_canvas_.DrawOverlay();
 
     if (!tilesheet_canvas_.points().empty() &&
         !screen_canvas_.points().empty()) {
@@ -593,73 +548,84 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
     }
 
     ImGui::Separator();
-    current_tile_canvas_.DrawBackground();  // ImVec2(64 * 2 + 2, 64 * 2 + 4));
-    current_tile_canvas_.DrawContextMenu();
 
-    // Get tile8 from cache on-demand (only create texture when needed)
-    if (selected_tile8_ >= 0 && selected_tile8_ < 256) {
-      auto* cached_tile8 = tile8_tilemap_.tile_cache.GetTile(selected_tile8_);
+    // Current tile canvas with BeginCanvas/EndCanvas pattern
+    {
+      gui::CanvasFrameOptions current_tile_opts;
+      current_tile_opts.draw_grid = true;
+      current_tile_opts.grid_step = 16.0f;
+      current_tile_opts.render_popups = true;
 
-      if (!cached_tile8) {
-        // Extract tile from atlas and cache it
-        const int tiles_per_row =
-            tile8_tilemap_.atlas.width() / 8;  // 128 / 8 = 16
-        const int tile_x = (selected_tile8_ % tiles_per_row) * 8;
-        const int tile_y = (selected_tile8_ / tiles_per_row) * 8;
+      auto current_tile_rt =
+          gui::BeginCanvas(current_tile_canvas_, current_tile_opts);
 
-        // Extract 8x8 tile data from atlas
-        std::vector<uint8_t> tile_data(64);
-        for (int py = 0; py < 8; py++) {
-          for (int px = 0; px < 8; px++) {
-            int src_x = tile_x + px;
-            int src_y = tile_y + py;
-            int src_index = src_y * tile8_tilemap_.atlas.width() + src_x;
-            int dst_index = py * 8 + px;
+      // Get tile8 from cache on-demand (only create texture when needed)
+      if (selected_tile8_ >= 0 && selected_tile8_ < 256) {
+        auto* cached_tile8 = tile8_tilemap_.tile_cache.GetTile(selected_tile8_);
 
-            if (src_index < tile8_tilemap_.atlas.size() && dst_index < 64) {
-              tile_data[dst_index] = tile8_tilemap_.atlas.data()[src_index];
+        if (!cached_tile8) {
+          // Extract tile from atlas and cache it
+          const int tiles_per_row =
+              tile8_tilemap_.atlas.width() / 8;  // 128 / 8 = 16
+          const int tile_x = (selected_tile8_ % tiles_per_row) * 8;
+          const int tile_y = (selected_tile8_ / tiles_per_row) * 8;
+
+          // Extract 8x8 tile data from atlas
+          std::vector<uint8_t> tile_data(64);
+          for (int py = 0; py < 8; py++) {
+            for (int px = 0; px < 8; px++) {
+              int src_x = tile_x + px;
+              int src_y = tile_y + py;
+              int src_index = src_y * tile8_tilemap_.atlas.width() + src_x;
+              int dst_index = py * 8 + px;
+
+              if (src_index < tile8_tilemap_.atlas.size() && dst_index < 64) {
+                tile_data[dst_index] = tile8_tilemap_.atlas.data()[src_index];
+              }
             }
           }
+
+          gfx::Bitmap new_tile8(8, 8, 8, tile_data);
+          new_tile8.SetPalette(tile8_tilemap_.atlas.palette());
+          tile8_tilemap_.tile_cache.CacheTile(selected_tile8_,
+                                              std::move(new_tile8));
+          cached_tile8 = tile8_tilemap_.tile_cache.GetTile(selected_tile8_);
         }
 
-        gfx::Bitmap new_tile8(8, 8, 8, tile_data);
-        new_tile8.SetPalette(tile8_tilemap_.atlas.palette());
-        tile8_tilemap_.tile_cache.CacheTile(selected_tile8_,
-                                            std::move(new_tile8));
-        cached_tile8 = tile8_tilemap_.tile_cache.GetTile(selected_tile8_);
+        if (cached_tile8 && cached_tile8->is_active()) {
+          // Create texture on-demand only when needed
+          if (!cached_tile8->texture()) {
+            gfx::Arena::Get().QueueTextureCommand(
+                gfx::Arena::TextureCommandType::CREATE, cached_tile8);
+          }
+
+          // DrawTilePainter still uses member function (not yet migrated)
+          if (current_tile_canvas_.DrawTilePainter(*cached_tile8, 16)) {
+            // Modify the tile16 based on the selected tile and
+            // current_tile16_info
+            gfx::ModifyTile16(tile16_blockset_, game_data()->graphics_buffer,
+                              current_tile16_info[0], current_tile16_info[1],
+                              current_tile16_info[2], current_tile16_info[3],
+                              212, selected_tile16_);
+            gfx::UpdateTile16(nullptr, tile16_blockset_, selected_tile16_);
+          }
+        }
       }
 
-      if (cached_tile8 && cached_tile8->is_active()) {
-        // Create texture on-demand only when needed
-        if (!cached_tile8->texture()) {
+      // Get selected tile from cache and draw with stateless helper
+      auto* selected_tile =
+          tile16_blockset_.tile_cache.GetTile(selected_tile16_);
+      if (selected_tile && selected_tile->is_active()) {
+        // Ensure the selected tile has a valid texture
+        if (!selected_tile->texture()) {
           gfx::Arena::Get().QueueTextureCommand(
-              gfx::Arena::TextureCommandType::CREATE, cached_tile8);
+              gfx::Arena::TextureCommandType::CREATE, selected_tile);
         }
+        gui::DrawBitmap(current_tile_rt, *selected_tile, 2, 2, 4.0f, 255);
+      }
 
-        if (current_tile_canvas_.DrawTilePainter(*cached_tile8, 16)) {
-          // Modify the tile16 based on the selected tile and
-          // current_tile16_info
-          gfx::ModifyTile16(tile16_blockset_, game_data()->graphics_buffer,
-                            current_tile16_info[0], current_tile16_info[1],
-                            current_tile16_info[2], current_tile16_info[3], 212,
-                            selected_tile16_);
-          gfx::UpdateTile16(nullptr, tile16_blockset_, selected_tile16_);
-        }
-      }
+      gui::EndCanvas(current_tile_canvas_, current_tile_rt, current_tile_opts);
     }
-    // Get selected tile from cache
-    auto* selected_tile = tile16_blockset_.tile_cache.GetTile(selected_tile16_);
-    if (selected_tile && selected_tile->is_active()) {
-      // Ensure the selected tile has a valid texture
-      if (!selected_tile->texture()) {
-        // Queue texture creation via Arena's deferred system
-        gfx::Arena::Get().QueueTextureCommand(
-            gfx::Arena::TextureCommandType::CREATE, selected_tile);
-      }
-      current_tile_canvas_.DrawBitmap(*selected_tile, 2, 2, 4.0f, 255);
-    }
-    current_tile_canvas_.DrawGrid(16.f);
-    current_tile_canvas_.DrawOverlay();
 
     gui::InputTileInfo("TL", &current_tile16_info[0]);
     ImGui::SameLine();

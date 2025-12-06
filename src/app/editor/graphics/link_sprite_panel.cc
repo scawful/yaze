@@ -215,20 +215,27 @@ void LinkSpritePanel::DrawPreviewCanvas() {
   float canvas_height = canvas_width / 4;  // 4:1 aspect ratio (128x32)
 
   preview_canvas_.SetCanvasSize(ImVec2(canvas_width, canvas_height));
-  preview_canvas_.DrawBackground();
+  const float grid_step = 8.0f * (canvas_width / 128.0f);
+  {
+    gui::CanvasFrameOptions frame_opts;
+    frame_opts.canvas_size = ImVec2(canvas_width, canvas_height);
+    frame_opts.draw_context_menu = false;
+    frame_opts.draw_grid = true;
+    frame_opts.grid_step = grid_step;
+    
+    auto rt = gui::BeginCanvas(preview_canvas_, frame_opts);
 
-  auto& sheet = link_sheets_[selected_sheet_];
-  if (sheet.is_active() && sheet.texture()) {
-    preview_canvas_.draw_list()->AddImage(
-        (ImTextureID)(intptr_t)sheet.texture(),
-        ImVec2(preview_canvas_.zero_point().x,
-               preview_canvas_.zero_point().y),
-        ImVec2(preview_canvas_.zero_point().x + canvas_width,
-               preview_canvas_.zero_point().y + canvas_height));
+    auto& sheet = link_sheets_[selected_sheet_];
+    if (sheet.is_active() && sheet.texture()) {
+      gui::BitmapDrawOpts draw_opts;
+      draw_opts.dest_pos = ImVec2(0, 0);
+      draw_opts.dest_size = ImVec2(canvas_width, canvas_height);
+      draw_opts.ensure_texture = false;
+      gui::DrawBitmap(rt, sheet, draw_opts);
+    }
+    
+    gui::EndCanvas(preview_canvas_, rt, frame_opts);
   }
-
-  preview_canvas_.DrawGrid(8.0f * (canvas_width / 128.0f));
-  preview_canvas_.DrawOverlay();
 
   ImGui::Spacing();
 
