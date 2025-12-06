@@ -12,6 +12,13 @@
 #include "app/editor/ui/popup_manager.h"
 #include "app/editor/system/shortcut_manager.h"
 
+// Forward declaration in yaze::core namespace
+namespace yaze {
+namespace core {
+class VersionManager;
+}
+}
+
 namespace yaze {
 
 // Forward declarations
@@ -125,6 +132,7 @@ struct EditorDependencies {
   SharedClipboard* shared_clipboard = nullptr;
   UserSettings* user_settings = nullptr;
   project::YazeProject* project = nullptr;
+  core::VersionManager* version_manager = nullptr;
   size_t session_id = 0;
 
   gfx::IRenderer* renderer = nullptr;

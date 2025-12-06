@@ -333,40 +333,31 @@
   if (self.completionHandler) {
     if (selectedFileURL) {
       self.completionHandler(selectedFileURL.path);
-      std::string fileName = std::string([selectedFileURL.path UTF8String]);
-
-      // Extract the data from the file
-      [selectedFileURL startAccessingSecurityScopedResource];
-
-      auto data = [NSData dataWithContentsOfURL:selectedFileURL];
-      uint8_t *bytes = (uint8_t *)[data bytes];
-      size_t size = [data length];
-
-      std::vector<uint8_t> rom_data;
-      rom_data.resize(size);
-      std::copy(bytes, bytes + size, rom_data.begin());
-
-      // Load ROM using modern API via Application singleton
-      auto& app = yaze::Application::Instance();
-      if (app.IsReady() && app.GetController()) {
-        // Access the controller's EditorManager to get the current ROM
-        auto* current_rom = app.GetController()->GetCurrentRom();
-        if (current_rom) {
-          auto load_status = current_rom->LoadFromData(rom_data);
-          if (load_status.ok()) {
-            current_rom->set_filename(fileName);
-            NSLog(@"ROM loaded successfully from %s", fileName.c_str());
-          } else {
-            NSLog(@"Failed to load ROM: %s", load_status.message().data());
-          }
-        } else {
-          NSLog(@"No ROM instance available");
-        }
-      } else {
-        NSLog(@"Controller not available");
-      }
       
+      // Create a temporary file path
+      NSString *tempDir = NSTemporaryDirectory();
+      NSString *fileName = [selectedFileURL lastPathComponent];
+      NSString *tempPath = [tempDir stringByAppendingPathComponent:fileName];
+      NSURL *tempURL = [NSURL fileURLWithPath:tempPath];
+      
+      // Copy the file to the temporary location
+      NSError *error = nil;
+      [[NSFileManager defaultManager] removeItemAtURL:tempURL error:nil]; // Remove if exists
+      
+      [selectedFileURL startAccessingSecurityScopedResource];
+      BOOL success = [[NSFileManager defaultManager] copyItemAtURL:selectedFileURL toURL:tempURL error:&error];
       [selectedFileURL stopAccessingSecurityScopedResource];
+      
+      if (success) {
+        std::string cppPath = std::string([tempPath UTF8String]);
+        NSLog(@"ROM copied to temporary path: %s", cppPath.c_str());
+        
+        // Load ROM using modern API via Application singleton
+        // This triggers the full editor loading pipeline (sessions, startup actions, etc.)
+        yaze::Application::Instance().LoadRom(cppPath);
+      } else {
+        NSLog(@"Failed to copy ROM to temp directory: %@", error);
+      }
     } else {
       self.completionHandler(@"");
     }

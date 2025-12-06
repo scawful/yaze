@@ -41,6 +41,14 @@ void SettingsPanel::Draw() {
     ImGui::Spacing();
   }
 
+  // Add Project Settings section
+  if (ImGui::CollapsingHeader(ICON_MD_FOLDER " Project Configuration")) {
+    ImGui::Indent();
+    DrawProjectSettings();
+    ImGui::Unindent();
+    ImGui::Spacing();
+  }
+
   if (ImGui::CollapsingHeader(ICON_MD_PALETTE " Appearance")) {
     ImGui::Indent();
     DrawAppearanceSettings();
@@ -113,6 +121,55 @@ void SettingsPanel::DrawGeneralSettings() {
   if (ImGui::TreeNode(ICON_MD_FOLDER_SPECIAL " Resource Flags")) {
     flags.DrawResourceFlags();
     ImGui::TreePop();
+  }
+}
+
+void SettingsPanel::DrawProjectSettings() {
+  if (!project_) {
+    ImGui::TextDisabled("No active project.");
+    return;
+  }
+
+  ImGui::Text("%s Project Info", ICON_MD_INFO);
+  ImGui::Separator();
+  
+  ImGui::Text("Name: %s", project_->name.c_str());
+  ImGui::Text("Path: %s", project_->filepath.c_str());
+  
+  ImGui::Spacing();
+  ImGui::Text("%s Paths", ICON_MD_FOLDER_OPEN);
+  ImGui::Separator();
+
+  // Output Folder
+  std::string output_folder = project_->output_folder;
+  if (ImGui::InputText("Output Folder", &output_folder)) {
+    project_->output_folder = output_folder;
+    project_->Save();
+  }
+
+  // Git Repository
+  std::string git_repo = project_->git_repository;
+  if (ImGui::InputText("Git Repository", &git_repo)) {
+    project_->git_repository = git_repo;
+    project_->Save();
+  }
+
+  ImGui::Spacing();
+  ImGui::Text("%s Build", ICON_MD_BUILD);
+  ImGui::Separator();
+
+  // Build Target
+  std::string build_target = project_->build_target;
+  if (ImGui::InputText("Build Target (ROM)", &build_target)) {
+    project_->build_target = build_target;
+    project_->Save();
+  }
+
+  // Symbols File
+  std::string symbols_file = project_->symbols_filename;
+  if (ImGui::InputText("Symbols File", &symbols_file)) {
+    project_->symbols_filename = symbols_file;
+    project_->Save();
   }
 }
 

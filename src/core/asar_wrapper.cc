@@ -382,7 +382,8 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchWithBinary(
   for (const auto& include_path : include_paths) {
     cmd << " -I\"" << include_path << "\"";
   }
-  cmd << " \"" << patch_name.string() << "\" \"" << temp_rom.string() << "\"";
+  // Capture stderr
+  cmd << " \"" << patch_name.string() << "\" \"" << temp_rom.string() << "\" 2>&1";
 
   // Run in patch directory so relative incsrc paths resolve naturally
   std::error_code ec;
@@ -391,17 +392,42 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchWithBinary(
     fs::current_path(patch_dir, ec);
   }
 
-  int rc = std::system(cmd.str().c_str());
+  // Execute using popen to capture output
+  std::array<char, 128> buffer;
+  std::string output;
+  std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.str().c_str(), "r"), pclose);
+  if (!pipe) {
+    fs::remove(temp_rom, ec);
+    if (!patch_dir.empty()) fs::current_path(original_cwd, ec);
+    return absl::InternalError("popen() failed for Asar CLI");
+  }
+  while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+    output += buffer.data();
+  }
+  
+  // Note: pclose returns exit status
+  // But we can't rely solely on it if popen failed differently.
+  // Assuming standard behavior.
 
   if (!patch_dir.empty()) {
     fs::current_path(original_cwd, ec);
   }
 
-  if (rc != 0) {
-    last_errors_.push_back(
-        absl::StrFormat("Asar CLI failed with exit code %d", rc));
+  // Parse output for errors/warnings
+  // Asar format: "file.asm:line: error: message"
+  std::istringstream output_stream(output);
+  std::string line;
+  while (std::getline(output_stream, line)) {
+    if (line.find("error: ") != std::string::npos || line.find(": error:") != std::string::npos) {
+      last_errors_.push_back(line);
+    } else if (line.find("warning: ") != std::string::npos) {
+      last_warnings_.push_back(line);
+    }
+  }
+
+  if (!last_errors_.empty()) {
     fs::remove(temp_rom, ec);
-    return absl::InternalError(last_errors_.back());
+    return absl::InternalError("Asar CLI reported errors during assembly");
   }
 
   // Read patched ROM back into memory
@@ -447,6 +473,55 @@ std::optional<std::string> AsarWrapper::ResolveAsarBinary() const {
 
   // Fallback to system asar in PATH
   return std::string("asar");
+}
+
+absl::Status AsarWrapper::LoadSymbolsFromFile(const std::string& symbol_path) {
+  std::ifstream file(symbol_path);
+  if (!file.is_open()) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Cannot open symbol file: %s", symbol_path));
+  }
+
+  symbol_table_.clear();
+  std::string line;
+  while (std::getline(file, line)) {
+    // WLA format: bank:addr label
+    // Example: 00:8000 Reset
+    
+    // Skip sections or comments
+    if (line.empty() || line[0] == '[' || line[0] == ';') continue;
+
+    size_t colon_pos = line.find(':');
+    if (colon_pos == std::string::npos || colon_pos != 2) continue;
+
+    size_t space_pos = line.find(' ', colon_pos);
+    if (space_pos == std::string::npos) continue;
+
+    try {
+      std::string bank_str = line.substr(0, colon_pos);
+      std::string addr_str = line.substr(colon_pos + 1, space_pos - (colon_pos + 1));
+      std::string name = line.substr(space_pos + 1);
+
+      // Trim name
+      name.erase(0, name.find_first_not_of(" \t\r\n"));
+      name.erase(name.find_last_not_of(" \t\r\n") + 1);
+
+      int bank = std::stoi(bank_str, nullptr, 16);
+      int addr = std::stoi(addr_str, nullptr, 16);
+      uint32_t full_addr = (bank << 16) | addr;
+
+      AsarSymbol symbol;
+      symbol.name = name;
+      symbol.address = full_addr;
+      
+      symbol_table_[name] = symbol;
+    } catch (...) {
+      // Parse error, skip line
+      continue;
+    }
+  }
+
+  return absl::OkStatus();
 }
 
 void AsarWrapper::ExtractSymbolsFromLastOperation() {

@@ -70,6 +70,7 @@ class AssemblyEditor : public Editor {
   const std::map<std::string, core::AsarSymbol>& symbols() const {
     return symbols_;
   }
+  core::AsarWrapper* asar_wrapper() { return &asar_; }
 
  private:
   void DrawFileMenu();

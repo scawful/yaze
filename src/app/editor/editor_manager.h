@@ -45,6 +45,7 @@
 #include "app/startup_flags.h"
 #include "rom/rom.h"
 #include "core/project.h"
+#include "core/version_manager.h"
 #include "imgui/imgui.h"
 #include "yaze_config.h"
 #include "zelda3/overworld/overworld.h"
@@ -384,6 +385,7 @@ class EditorManager : public SessionObserver {
   gfx::IRenderer* renderer_ = nullptr;
 
   project::YazeProject current_project_;
+  std::unique_ptr<core::VersionManager> version_manager_;
   EditorDependencies::SharedClipboard shared_clipboard_;
   std::unique_ptr<PopupManager> popup_manager_;
   ToastManager toast_manager_;
