@@ -623,14 +623,9 @@ void OverworldEditor::DrawEntityEditorPopups() {
 }
 
 void OverworldEditor::DrawOverworldMaps() {
-  // TODO(imgui-frontend-engineer): Enable zoom support - Phase 4 of canvas
-  // migration plan. Current issue: Positions are not scaled when zooming.
-  // Fix approach: Scale both positions AND bitmap size:
-  //   float scale = ow_map_canvas_.global_scale();
-  //   int map_x = static_cast<int>(xx * kOverworldMapSize * scale);
-  //   int map_y = static_cast<int>(yy * kOverworldMapSize * scale);
-  //   ow_map_canvas_.DrawBitmap(maps_bmp_[world_index], map_x, map_y, scale);
-  // Also need to fix placeholder drawing and entity coordinates.
+  // Get the current zoom scale for positioning and sizing
+  float scale = ow_map_canvas_.global_scale();
+  if (scale <= 0.0f) scale = 1.0f;
 
   int xx = 0;
   int yy = 0;
@@ -642,9 +637,9 @@ void OverworldEditor::DrawOverworldMaps() {
       continue;  // Skip invalid map index
     }
 
-    // Currently not scaling coordinates - zoom is disabled pending Phase 4 fix
-    int map_x = xx * kOverworldMapSize;
-    int map_y = yy * kOverworldMapSize;
+    // Apply scale to positions for proper zoom support
+    int map_x = static_cast<int>(xx * kOverworldMapSize * scale);
+    int map_y = static_cast<int>(yy * kOverworldMapSize * scale);
 
     // Check if the map has a texture, if not, ensure it gets loaded
     if (!maps_bmp_[world_index].texture() &&
@@ -659,15 +654,20 @@ void OverworldEditor::DrawOverworldMaps() {
                     maps_bmp_[world_index].is_active();
 
     if (can_draw) {
-      // Draw without applying scale here - canvas handles zoom uniformly
-      ow_map_canvas_.DrawBitmap(maps_bmp_[world_index], map_x, map_y, 1.0f);
+      // Draw bitmap at scaled position with scale applied to size
+      ow_map_canvas_.DrawBitmap(maps_bmp_[world_index], map_x, map_y, scale);
     } else {
       // Draw a placeholder for maps that haven't loaded yet
       ImDrawList* draw_list = ImGui::GetWindowDrawList();
       ImVec2 canvas_pos = ow_map_canvas_.zero_point();
+      ImVec2 scrolling = ow_map_canvas_.scrolling();
+      // Apply scrolling offset and use already-scaled map_x/map_y
       ImVec2 placeholder_pos =
-          ImVec2(canvas_pos.x + map_x, canvas_pos.y + map_y);
-      ImVec2 placeholder_size = ImVec2(kOverworldMapSize, kOverworldMapSize);
+          ImVec2(canvas_pos.x + scrolling.x + map_x,
+                 canvas_pos.y + scrolling.y + map_y);
+      // Scale the placeholder size to match zoomed maps
+      float scaled_size = kOverworldMapSize * scale;
+      ImVec2 placeholder_size = ImVec2(scaled_size, scaled_size);
 
       // Modern loading indicator with theme colors
       draw_list->AddRectFilled(
@@ -676,18 +676,18 @@ void OverworldEditor::DrawOverworldMaps() {
                  placeholder_pos.y + placeholder_size.y),
           IM_COL32(32, 32, 32, 128));  // Dark gray with transparency
 
-      // Animated loading spinner
+      // Animated loading spinner - scale spinner radius with zoom
       ImVec2 spinner_pos = ImVec2(placeholder_pos.x + placeholder_size.x / 2,
                                   placeholder_pos.y + placeholder_size.y / 2);
 
-      const float spinner_radius = 8.0f;
+      const float spinner_radius = 8.0f * scale;
       const float rotation = static_cast<float>(ImGui::GetTime()) * 3.0f;
       const float start_angle = rotation;
       const float end_angle = rotation + IM_PI * 1.5f;
 
       draw_list->PathArcTo(spinner_pos, spinner_radius, start_angle, end_angle,
                            12);
-      draw_list->PathStroke(IM_COL32(100, 180, 100, 255), 0, 2.5f);
+      draw_list->PathStroke(IM_COL32(100, 180, 100, 255), 0, 2.5f * scale);
     }
 
     xx++;
@@ -700,10 +700,17 @@ void OverworldEditor::DrawOverworldMaps() {
 
 void OverworldEditor::DrawOverworldEdits() {
   // Determine which overworld map the user is currently editing.
-  auto mouse_position = ow_map_canvas_.drawn_tile_position();
+  // drawn_tile_position() returns scaled coordinates, need to unscale
+  auto scaled_position = ow_map_canvas_.drawn_tile_position();
+  float scale = ow_map_canvas_.global_scale();
+  if (scale <= 0.0f) scale = 1.0f;
 
-  int map_x = mouse_position.x / kOverworldMapSize;
-  int map_y = mouse_position.y / kOverworldMapSize;
+  // Convert scaled position to world coordinates
+  ImVec2 mouse_position = ImVec2(scaled_position.x / scale,
+                                  scaled_position.y / scale);
+
+  int map_x = static_cast<int>(mouse_position.x) / kOverworldMapSize;
+  int map_y = static_cast<int>(mouse_position.y) / kOverworldMapSize;
   current_map_ = map_x + map_y * 8;
   if (current_world_ == 1) {
     current_map_ += 0x40;
@@ -735,8 +742,8 @@ void OverworldEditor::DrawOverworldEdits() {
   // Calculate the correct superX and superY values
   int superY = current_map_ / 8;
   int superX = current_map_ % 8;
-  int mouse_x = mouse_position.x;
-  int mouse_y = mouse_position.y;
+  int mouse_x = static_cast<int>(mouse_position.x);
+  int mouse_y = static_cast<int>(mouse_position.y);
   // Calculate the correct tile16_x and tile16_y positions
   int tile16_x = (mouse_x % kOverworldMapSize) / (kOverworldMapSize / 32);
   int tile16_y = (mouse_y % kOverworldMapSize) / (kOverworldMapSize / 32);
@@ -862,7 +869,7 @@ void OverworldEditor::CheckForOverworldEdits() {
           : (current_world_ == 1)
               ? overworld_.mutable_map_tiles()->dark_world
               : overworld_.mutable_map_tiles()->special_world;
-      // new_start_pos and new_end_pos
+      // selected_points are now stored in world coordinates
       auto start = ow_map_canvas_.selected_points()[0];
       auto end = ow_map_canvas_.selected_points()[1];
 
@@ -975,7 +982,10 @@ void OverworldEditor::CheckForOverworldEdits() {
 }
 
 void OverworldEditor::CheckForSelectRectangle() {
-  ow_map_canvas_.DrawSelectRect(current_map_);
+  // Pass the canvas scale for proper zoom handling
+  float scale = ow_map_canvas_.global_scale();
+  if (scale <= 0.0f) scale = 1.0f;
+  ow_map_canvas_.DrawSelectRect(current_map_, 0x10, scale);
 
   // Single tile case
   if (ow_map_canvas_.selected_tile_pos().x != -1) {
@@ -1014,6 +1024,7 @@ absl::Status OverworldEditor::Copy() {
   if (ow_map_canvas_.select_rect_active() &&
       !ow_map_canvas_.selected_points().empty()) {
     std::vector<int> ids;
+    // selected_points are now stored in world coordinates
     const auto start = ow_map_canvas_.selected_points()[0];
     const auto end = ow_map_canvas_.selected_points()[1];
     const int start_x =
@@ -1065,7 +1076,11 @@ absl::Status OverworldEditor::Paste() {
   }
 
   // Determine paste anchor position (use current mouse drawn tile position)
-  const ImVec2 anchor = ow_map_canvas_.drawn_tile_position();
+  // Unscale coordinates to get world position
+  const ImVec2 scaled_anchor = ow_map_canvas_.drawn_tile_position();
+  float scale = ow_map_canvas_.global_scale();
+  if (scale <= 0.0f) scale = 1.0f;
+  const ImVec2 anchor = ImVec2(scaled_anchor.x / scale, scaled_anchor.y / scale);
 
   // Compute anchor in tile16 grid within the current map
   const int tile16_x =
@@ -1111,17 +1126,17 @@ absl::Status OverworldEditor::Paste() {
 
 absl::Status OverworldEditor::CheckForCurrentMap() {
   // 4096x4096, 512x512 maps and some are larges maps 1024x1024
-  // CRITICAL FIX: Use canvas hover position (not raw ImGui mouse) for proper
-  // coordinate sync hover_mouse_pos() already returns canvas-local coordinates
-  // (world space, not screen space)
-  const auto mouse_position = ow_map_canvas_.hover_mouse_pos();
+  // hover_mouse_pos() returns canvas-local coordinates but they're scaled
+  // Unscale to get world coordinates for map detection
+  const auto scaled_position = ow_map_canvas_.hover_mouse_pos();
+  float scale = ow_map_canvas_.global_scale();
+  if (scale <= 0.0f) scale = 1.0f;
   const int large_map_size = 1024;
 
   // Calculate which small map the mouse is currently over
-  // No need to subtract canvas_zero_point - mouse_position is already in world
-  // coordinates
-  int map_x = mouse_position.x / kOverworldMapSize;
-  int map_y = mouse_position.y / kOverworldMapSize;
+  // Unscale coordinates to get world position
+  int map_x = static_cast<int>(scaled_position.x / scale) / kOverworldMapSize;
+  int map_y = static_cast<int>(scaled_position.y / scale) / kOverworldMapSize;
 
   // Bounds check to prevent out-of-bounds access
   if (map_x < 0 || map_x >= 8 || map_y < 0 || map_y >= 8) {
@@ -2850,10 +2865,12 @@ void OverworldEditor::HandleMapInteraction() {
   // Handle middle-click for map interaction instead of right-click
   if (ImGui::IsMouseClicked(ImGuiMouseButton_Middle) &&
       ImGui::IsItemHovered()) {
-    // Get the current map from mouse position
-    auto mouse_position = ow_map_canvas_.drawn_tile_position();
-    int map_x = mouse_position.x / kOverworldMapSize;
-    int map_y = mouse_position.y / kOverworldMapSize;
+    // Get the current map from mouse position (unscale coordinates)
+    auto scaled_position = ow_map_canvas_.drawn_tile_position();
+    float scale = ow_map_canvas_.global_scale();
+    if (scale <= 0.0f) scale = 1.0f;
+    int map_x = static_cast<int>(scaled_position.x / scale) / kOverworldMapSize;
+    int map_y = static_cast<int>(scaled_position.y / scale) / kOverworldMapSize;
     int hovered_map = map_x + map_y * 8;
     if (current_world_ == 1) {
       hovered_map += 0x40;

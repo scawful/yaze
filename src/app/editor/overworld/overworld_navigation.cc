@@ -6,7 +6,25 @@
 namespace yaze::editor {
 
 void OverworldEditor::HandleOverworldPan() {
-  if (!ImGui::IsMouseDragging(ImGuiMouseButton_Middle)) {
+  // Determine if panning should occur:
+  // 1. Middle-click drag always pans (all modes)
+  // 2. Left-click drag pans in mouse mode when not hovering over an entity
+  bool should_pan = false;
+
+  if (ImGui::IsMouseDragging(ImGuiMouseButton_Middle)) {
+    should_pan = true;
+  } else if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) &&
+             current_mode == EditingMode::MOUSE) {
+    // In mouse mode, left-click pans unless hovering over an entity
+    bool over_entity = entity_renderer_ &&
+                       entity_renderer_->hovered_entity() != nullptr;
+    // Also don't pan if we're currently dragging an entity
+    if (!over_entity && !is_dragging_entity_) {
+      should_pan = true;
+    }
+  }
+
+  if (!should_pan) {
     return;
   }
 

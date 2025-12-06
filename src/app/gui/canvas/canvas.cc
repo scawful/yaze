@@ -1151,7 +1151,7 @@ void Canvas::DrawOutlineWithColor(int x, int y, int w, int h, uint32_t color) {
 }
 
 void Canvas::DrawBitmapGroup(std::vector<int>& group, gfx::Tilemap& tilemap,
-                             int tile_size, float scale, int local_map_size,
+                             int tile_size, float /*scale*/, int local_map_size,
                              ImVec2 total_map_size) {
   if (selected_points_.size() != 2) {
     // points_ should contain exactly two points
@@ -1161,6 +1161,11 @@ void Canvas::DrawBitmapGroup(std::vector<int>& group, gfx::Tilemap& tilemap,
     // group should not be empty
     return;
   }
+
+  // CRITICAL: Use config_.global_scale for consistency with DrawOverlay
+  // which also uses config_.global_scale for the selection rectangle outline.
+  // Using the passed 'scale' parameter would cause misalignment if they differ.
+  const float effective_scale = config_.global_scale;
 
   // OPTIMIZATION: Use optimized rendering for large groups to improve
   // performance
@@ -1173,22 +1178,23 @@ void Canvas::DrawBitmapGroup(std::vector<int>& group, gfx::Tilemap& tilemap,
   const float large_map_height = total_map_size.y;
 
   // Pre-calculate common values to avoid repeated computation
-  const float tile_scale = tile_size * scale;
+  const float tile_scale = tile_size * effective_scale;
   const int atlas_tiles_per_row = tilemap.atlas.width() / tilemap.tile_size.x;
 
-  // Top-left and bottom-right corners of the rectangle
+  // Top-left and bottom-right corners of the rectangle (in world coordinates)
   ImVec2 rect_top_left = selected_points_[0];
   ImVec2 rect_bottom_right = selected_points_[1];
 
   // Calculate the start and end tiles in the grid
+  // selected_points are now in world coordinates, so divide by tile_size only
   int start_tile_x =
-      static_cast<int>(std::floor(rect_top_left.x / (tile_size * scale)));
+      static_cast<int>(std::floor(rect_top_left.x / tile_size));
   int start_tile_y =
-      static_cast<int>(std::floor(rect_top_left.y / (tile_size * scale)));
+      static_cast<int>(std::floor(rect_top_left.y / tile_size));
   int end_tile_x =
-      static_cast<int>(std::floor(rect_bottom_right.x / (tile_size * scale)));
+      static_cast<int>(std::floor(rect_bottom_right.x / tile_size));
   int end_tile_y =
-      static_cast<int>(std::floor(rect_bottom_right.y / (tile_size * scale)));
+      static_cast<int>(std::floor(rect_bottom_right.y / tile_size));
 
   if (start_tile_x > end_tile_x)
     std::swap(start_tile_x, end_tile_x);
@@ -1216,8 +1222,8 @@ void Canvas::DrawBitmapGroup(std::vector<int>& group, gfx::Tilemap& tilemap,
       auto tilemap_size = tilemap.map_size.x;
       if (tile_id >= 0 && tile_id < tilemap_size) {
         // Calculate the position of the tile within the rectangle
-        int tile_pos_x = (x + start_tile_x) * tile_size * scale;
-        int tile_pos_y = (y + start_tile_y) * tile_size * scale;
+        int tile_pos_x = (x + start_tile_x) * tile_size * effective_scale;
+        int tile_pos_y = (y + start_tile_y) * tile_size * effective_scale;
 
         // OPTIMIZATION: Use pre-calculated values for better performance with
         // large selections
@@ -1244,8 +1250,8 @@ void Canvas::DrawBitmapGroup(std::vector<int>& group, gfx::Tilemap& tilemap,
             // Calculate screen positions
             float screen_x = canvas_p0_.x + scrolling_.x + tile_pos_x;
             float screen_y = canvas_p0_.y + scrolling_.y + tile_pos_y;
-            float screen_w = tilemap.tile_size.x * scale;
-            float screen_h = tilemap.tile_size.y * scale;
+            float screen_w = tilemap.tile_size.x * effective_scale;
+            float screen_h = tilemap.tile_size.y * effective_scale;
 
             // Use higher alpha for large selections to make them more visible
             uint32_t alpha_color = use_optimized_rendering
@@ -1311,19 +1317,23 @@ void Canvas::DrawBitmapGroup(std::vector<int>& group, gfx::Tilemap& tilemap,
     }
   }
 
-  // Now grid-align the clamped position
-  auto new_start_pos = AlignPosToGrid(clamped_mouse_pos, tile_size * scale);
+  // Now grid-align the clamped position (in screen coords)
+  auto new_start_pos_screen = AlignPosToGrid(clamped_mouse_pos, tile_size * effective_scale);
 
-  // Additional safety: clamp to overall map bounds
-  new_start_pos.x =
-      std::clamp(new_start_pos.x, 0.0f, large_map_width - rect_width);
-  new_start_pos.y =
-      std::clamp(new_start_pos.y, 0.0f, large_map_height - rect_height);
+  // Convert to world coordinates for storage (selected_points_ stores world coords)
+  ImVec2 new_start_pos_world(new_start_pos_screen.x / effective_scale,
+                              new_start_pos_screen.y / effective_scale);
+
+  // Additional safety: clamp to overall map bounds (in world coordinates)
+  new_start_pos_world.x =
+      std::clamp(new_start_pos_world.x, 0.0f, large_map_width - rect_width);
+  new_start_pos_world.y =
+      std::clamp(new_start_pos_world.y, 0.0f, large_map_height - rect_height);
 
   selected_points_.clear();
-  selected_points_.push_back(new_start_pos);
+  selected_points_.push_back(new_start_pos_world);
   selected_points_.push_back(
-      ImVec2(new_start_pos.x + rect_width, new_start_pos.y + rect_height));
+      ImVec2(new_start_pos_world.x + rect_width, new_start_pos_world.y + rect_height));
   select_rect_active_ = true;
 }
 
@@ -2316,11 +2326,12 @@ void DrawSelectRect(const CanvasRuntime& rt, int current_map, int tile_size,
   // Handle right click for single tile selection
   if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
     ImVec2 painter_pos = AlignPosToGridHelper(mouse_pos, scaled_size);
-    int painter_x = static_cast<int>(painter_pos.x);
-    int painter_y = static_cast<int>(painter_pos.y);
+    // Unscale to get world coordinates for tile calculation
+    int world_x = static_cast<int>(painter_pos.x / scale);
+    int world_y = static_cast<int>(painter_pos.y / scale);
 
-    auto tile16_x = (painter_x % small_map_size) / (small_map_size / 0x20);
-    auto tile16_y = (painter_y % small_map_size) / (small_map_size / 0x20);
+    auto tile16_x = (world_x % small_map_size) / (small_map_size / 0x20);
+    auto tile16_y = (world_y % small_map_size) / (small_map_size / 0x20);
 
     int index_x = superX * 0x20 + tile16_x;
     int index_y = superY * 0x20 + tile16_y;
@@ -2337,8 +2348,9 @@ void DrawSelectRect(const CanvasRuntime& rt, int current_map, int tile_size,
   if (ImGui::IsMouseDragging(ImGuiMouseButton_Right)) {
     auto start =
         ImVec2(origin.x + drag_start_pos.x, origin.y + drag_start_pos.y);
-    auto end = ImVec2(origin.x + drag_end_pos.x + tile_size,
-                      origin.y + drag_end_pos.y + tile_size);
+    // Use scaled_size for visual rectangle to match zoom level
+    auto end = ImVec2(origin.x + drag_end_pos.x + scaled_size,
+                      origin.y + drag_end_pos.y + scaled_size);
     rt.draw_list->AddRect(start, end, kWhite);
     dragging = true;
   }
@@ -2347,6 +2359,7 @@ void DrawSelectRect(const CanvasRuntime& rt, int current_map, int tile_size,
     dragging = false;
 
     constexpr int tile16_size = 16;
+    // Convert from scaled screen coords to world tile coords
     int start_x = static_cast<int>(std::floor(drag_start_pos.x / scaled_size)) * tile16_size;
     int start_y = static_cast<int>(std::floor(drag_start_pos.y / scaled_size)) * tile16_size;
     int end_x = static_cast<int>(std::floor(drag_end_pos.x / scaled_size)) * tile16_size;
@@ -2375,9 +2388,13 @@ void DrawSelectRect(const CanvasRuntime& rt, int current_map, int tile_size,
       }
     }
 
+    // Store world coordinates (unscaled) so they work correctly at any zoom level
+    // Divide by scale to convert from screen coords to world coords
     selection.selected_points.clear();
-    selection.selected_points.push_back(drag_start_pos);
-    selection.selected_points.push_back(drag_end_pos);
+    selection.selected_points.push_back(
+        ImVec2(drag_start_pos.x / scale, drag_start_pos.y / scale));
+    selection.selected_points.push_back(
+        ImVec2(drag_end_pos.x / scale, drag_end_pos.y / scale));
     selection.select_rect_active = true;
   }
 }
