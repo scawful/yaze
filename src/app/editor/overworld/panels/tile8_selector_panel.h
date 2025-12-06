@@ -22,6 +22,10 @@ class Tile8SelectorPanel : public EditorPanel {
   std::string GetDisplayName() const override { return "Tile8 Selector"; }
   std::string GetIcon() const override { return ICON_MD_GRID_3X3; }
   std::string GetEditorCategory() const override { return "Overworld"; }
+  float GetPreferredWidth() const override {
+    // Graphics bin width (256px) + padding = 276px
+    return 256.0f + 20.0f;
+  }
   void Draw(bool* p_open) override;
 
  private:

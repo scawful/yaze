@@ -43,6 +43,7 @@
 #include "app/editor/overworld/panels/map_properties_panel.h"
 #include "app/editor/overworld/panels/overworld_canvas_panel.h"
 #include "app/editor/overworld/panels/scratch_space_panel.h"
+#include "app/editor/overworld/panels/tile16_editor_panel.h"
 #include "app/editor/overworld/panels/tile16_selector_panel.h"
 #include "app/editor/overworld/panels/tile8_selector_panel.h"
 #include "app/editor/overworld/panels/usage_statistics_panel.h"
@@ -97,12 +98,12 @@ void OverworldEditor::Initialize() {
   // Register Overworld Canvas (main canvas panel with toolset)
   
   // Register EditorPanel instances (new architecture)
-  // Note: Tile16EditorPanel is NOT registered here because it requires
-  // ImGuiWindowFlags_MenuBar and is drawn directly in Update() instead
   panel_manager->RegisterEditorPanel(
       std::make_unique<AreaGraphicsPanel>(this));
   panel_manager->RegisterEditorPanel(
       std::make_unique<Tile16SelectorPanel>(this));
+  panel_manager->RegisterEditorPanel(
+      std::make_unique<Tile16EditorPanel>(&tile16_editor_));
   panel_manager->RegisterEditorPanel(
       std::make_unique<MapPropertiesPanel>(this));
   panel_manager->RegisterEditorPanel(
@@ -156,6 +157,9 @@ void OverworldEditor::Initialize() {
   // Initialize Toolbar
   toolbar_ = std::make_unique<OverworldToolbar>();
   toolbar_->on_refresh_graphics = [this]() {
+    // Invalidate cached graphics for the current map area to force re-render
+    // with potentially new palette/graphics settings
+    InvalidateGraphicsCache(current_map_);
     RefreshSiblingMapGraphics(current_map_, true);
   };
   toolbar_->on_refresh_map = [this]() { RefreshOverworldMap(); };
@@ -284,48 +288,6 @@ absl::Status OverworldEditor::Update() {
   // EditorPanel/PanelManager and drawn automatically. This section only
   // handles the main canvas and toolbar.
   
-  // Main canvas (full width when cards are docked)
-  // Main canvas (full width when cards are docked)
-  // Now handled by OverworldCanvasPanel
-  /*
-  if (show_overworld_canvas_) {
-    // TEMPORARILY USING LOCAL FLAG TO ISOLATE CRASH
-    // Use the registered panel ID for visibility management
-    //bool* p_open = dependencies_.panel_manager
-    //                   ? dependencies_.panel_manager->GetVisibilityFlag(
-    //                         dependencies_.session_id, "overworld.canvas")
-    //                   : &show_overworld_canvas_;
-    bool* p_open = &show_overworld_canvas_;
-
-    if (p_open && *p_open) {
-      if (toolbar_) {
-        bool has_selection = ow_map_canvas_.select_rect_active() &&
-                             !ow_map_canvas_.selected_tiles().empty();
-        // Check if current scratch slot has data
-        bool scratch_has_data = false;
-        if (current_scratch_slot_ >= 0 && current_scratch_slot_ < 4) {
-          for(int x=0; x<32; ++x) {
-            for(int y=0; y<32; ++y) {
-              if(scratch_spaces_[current_scratch_slot_].tile_data[x][y] != 0) {
-                scratch_has_data = true;
-                break;
-              }
-            }
-            if(scratch_has_data) break;
-          }
-        }
-
-        toolbar_->Draw(current_world_, current_map_, current_map_lock_,
-                       current_mode, entity_edit_mode_,
-                       show_map_properties_panel_, show_scratch_,
-                       current_scratch_slot_, has_selection, scratch_has_data,
-                       rom_, &overworld_);
-      }
-      DrawOverworldCanvas();
-    }
-  }
-  */
-
   // ===========================================================================
   // Non-Panel Windows (not managed by EditorPanel system)
   // ===========================================================================
@@ -359,18 +321,8 @@ absl::Status OverworldEditor::Update() {
     ImGui::End();
   }
 
-  // Tile16 Editor Window (handles its own menu bar)
-  if (show_tile16_editor_) {
-    ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin(ICON_MD_EDIT " Tile16 Editor###Tile16Editor",
-                     &show_tile16_editor_, ImGuiWindowFlags_MenuBar)) {
-      auto status = tile16_editor_.Update();
-      if (!status.ok()) {
-        util::logf("Tile16 Editor error: %s", status.message().data());
-      }
-    }
-    ImGui::End();
-  }
+  // Note: Tile16 Editor is now managed as an EditorPanel (Tile16EditorPanel)
+  // It uses UpdateAsPanel() which provides a context menu instead of MenuBar
 
   // ===========================================================================
   // Centralized Entity Interaction Logic (extracted to dedicated method)
@@ -498,7 +450,10 @@ void OverworldEditor::HandleKeyboardShortcuts() {
 
   // Toggle Tile16 editor with Ctrl+T
   if (ImGui::IsKeyDown(ImGuiKey_T) && ImGui::IsKeyDown(ImGuiKey_LeftCtrl)) {
-    show_tile16_editor_ = !show_tile16_editor_;
+    if (dependencies_.panel_manager) {
+      dependencies_.panel_manager->TogglePanel(
+          0, OverworldPanelIds::kTile16Editor);
+    }
   }
 
   // Undo/Redo shortcuts
@@ -1409,19 +1364,10 @@ void OverworldEditor::DrawOverworldCanvas() {
     // Check if scratch space has data
     bool scratch_has_data = scratch_space_.in_use;
 
-    // Create panel state for toolbar
-    ToolbarPanelState panel_state{show_tile16_editor_,
-                                  show_tile16_selector_,
-                                  show_tile8_selector_,
-                                  show_area_gfx_,
-                                  show_gfx_groups_,
-                                  show_usage_stats_,
-                                  show_scratch_,
-                                  show_map_properties_panel_};
-
+    // Pass PanelManager to toolbar for panel visibility management
     toolbar_->Draw(current_world_, current_map_, current_map_lock_,
-                   current_mode, entity_edit_mode_, panel_state, has_selection,
-                   scratch_has_data, rom_, &overworld_);
+                   current_mode, entity_edit_mode_, dependencies_.panel_manager,
+                   has_selection, scratch_has_data, rom_, &overworld_);
   }
 
   gui::BeginNoPadding();
@@ -1578,7 +1524,9 @@ absl::Status OverworldEditor::DrawTile16Selector() {
   }
 
   if (result.tile_double_clicked) {
-    show_tile16_editor_ = true;
+    if (dependencies_.panel_manager) {
+      dependencies_.panel_manager->ShowPanel(OverworldPanelIds::kTile16Editor);
+    }
   }
 
   ImGui::EndChild();
@@ -1608,6 +1556,16 @@ void OverworldEditor::DrawTile8Selector() {
   }
   graphics_bin_canvas_.DrawGrid();
   graphics_bin_canvas_.DrawOverlay();
+}
+
+void OverworldEditor::InvalidateGraphicsCache(int map_id) {
+  if (map_id < 0) {
+    // Invalidate all maps
+    current_graphics_set_.clear();
+  } else {
+    // Invalidate specific map
+    current_graphics_set_.erase(map_id);
+  }
 }
 
 absl::Status OverworldEditor::DrawAreaGraphics() {

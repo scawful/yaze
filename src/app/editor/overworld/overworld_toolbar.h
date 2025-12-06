@@ -13,16 +13,21 @@
 
 namespace yaze::editor {
 
-/// @brief Panel visibility state for toolbar toggles
-struct ToolbarPanelState {
-  bool& show_tile16_editor;
-  bool& show_tile16_selector;
-  bool& show_tile8_selector;
-  bool& show_area_graphics;
-  bool& show_gfx_groups;
-  bool& show_usage_stats;
-  bool& show_scratch_space;
-  bool& show_map_properties;
+class PanelManager;
+
+/// @brief Panel IDs for overworld editor panels
+struct OverworldPanelIds {
+  static constexpr const char* kCanvas = "overworld.canvas";
+  static constexpr const char* kTile16Editor = "overworld.tile16_editor";
+  static constexpr const char* kTile16Selector = "overworld.tile16_selector";
+  static constexpr const char* kTile8Selector = "overworld.tile8_selector";
+  static constexpr const char* kAreaGraphics = "overworld.area_gfx";
+  static constexpr const char* kGfxGroups = "overworld.gfx_groups";
+  static constexpr const char* kUsageStats = "overworld.usage_stats";
+  static constexpr const char* kScratchSpace = "overworld.scratch";
+  static constexpr const char* kMapProperties = "overworld.properties";
+  static constexpr const char* kV3Settings = "overworld.v3_settings";
+  static constexpr const char* kDebugWindow = "overworld.debug_window";
 };
 
 class OverworldToolbar {
@@ -31,7 +36,7 @@ class OverworldToolbar {
 
   void Draw(int& current_world, int& current_map, bool& current_map_lock,
             EditingMode& current_mode, EntityEditMode& entity_edit_mode,
-            ToolbarPanelState& panel_state, bool has_selection,
+            PanelManager* panel_manager, bool has_selection,
             bool scratch_has_data, Rom* rom, zelda3::Overworld* overworld);
 
   // Callback for when properties change

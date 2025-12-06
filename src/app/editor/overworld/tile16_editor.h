@@ -116,6 +116,22 @@ class Tile16Editor : public gfx::GfxContext {
 
   absl::Status Update();
 
+  /**
+   * @brief Update the editor content without MenuBar (for EditorPanel usage)
+   *
+   * This is the panel-friendly version that doesn't require ImGuiWindowFlags_MenuBar.
+   * Menu items are available through the context menu instead.
+   */
+  absl::Status UpdateAsPanel();
+
+  /**
+   * @brief Draw context menu with editor actions
+   *
+   * Contains the same actions as the MenuBar but in context menu form.
+   * Call this when right-clicking or from a menu button.
+   */
+  void DrawContextMenu();
+
   void DrawTile16Editor();
   absl::Status UpdateBlockset();
 

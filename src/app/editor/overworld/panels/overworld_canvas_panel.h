@@ -26,7 +26,8 @@ class OverworldCanvasPanel : public EditorPanel {
   std::string GetEditorCategory() const override { return "Overworld"; }
   std::string GetShortcutHint() const override { return "Ctrl+Shift+O"; }
   int GetPriority() const override { return 5; } // Show first
-  
+  bool IsVisibleByDefault() const override { return true; }
+
   void Draw(bool* p_open) override;
 
  private:

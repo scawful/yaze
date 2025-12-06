@@ -1,6 +1,8 @@
 #include "app/editor/overworld/overworld_editor.h"
 
 #include "app/editor/overworld/entity_operations.h"
+#include "app/editor/overworld/overworld_toolbar.h"
+#include "app/editor/system/panel_manager.h"
 #include "app/gui/canvas/canvas_automation_api.h"
 #include "app/gui/core/popup_id.h"
 
@@ -218,7 +220,9 @@ void OverworldEditor::HandleTile16Edit() {
 
   // Simply open the tile16 editor - don't try to switch tiles here
   // The tile16 editor will use its current tile, user can select a different one
-  show_tile16_editor_ = true;
+  if (dependencies_.panel_manager) {
+    dependencies_.panel_manager->ShowPanel(OverworldPanelIds::kTile16Editor);
+  }
 }
 
 }  // namespace yaze::editor

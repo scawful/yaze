@@ -337,6 +337,235 @@ void Tile16Editor::DrawTile16Editor() {
   status_ = UpdateTile16Edit();
 }
 
+absl::Status Tile16Editor::UpdateAsPanel() {
+  if (!map_blockset_loaded_) {
+    return absl::InvalidArgumentError("Blockset not initialized, open a ROM.");
+  }
+
+  // Menu button for context menu
+  if (Button(ICON_MD_MENU " Menu")) {
+    OpenPopup("##Tile16EditorContextMenu");
+  }
+  SameLine();
+  TextDisabled("Right-click for more options");
+
+  // Context menu
+  DrawContextMenu();
+
+  // About popup
+  if (BeginPopupModal("About Tile16 Editor", NULL,
+                      ImGuiWindowFlags_AlwaysAutoResize)) {
+    Text("Tile16 Editor for Link to the Past");
+    Text("This editor allows you to edit 16x16 tiles used in the game.");
+    Text("Features:");
+    BulletText("Edit Tile16 graphics by placing 8x8 tiles in the quadrants");
+    BulletText("Copy and paste Tile16 graphics");
+    BulletText("Save and load Tile16 graphics to/from scratch space");
+    BulletText("Preview Tile16 graphics at a larger size");
+    Separator();
+    if (Button("Close")) {
+      CloseCurrentPopup();
+    }
+    EndPopup();
+  }
+
+  // Unsaved changes confirmation dialog
+  if (show_unsaved_changes_dialog_) {
+    OpenPopup("Unsaved Changes##Tile16Editor");
+  }
+  if (BeginPopupModal("Unsaved Changes##Tile16Editor", NULL,
+                      ImGuiWindowFlags_AlwaysAutoResize)) {
+    Text("Tile %d has unsaved changes.", current_tile16_);
+    Text("What would you like to do?");
+    Separator();
+
+    PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.6f, 0.2f, 1.0f));
+    PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.7f, 0.3f, 1.0f));
+    if (Button("Save & Continue", ImVec2(120, 0))) {
+      if (auto* tile_data = GetCurrentTile16Data()) {
+        auto status = rom_->WriteTile16(current_tile16_, zelda3::kTile16Ptr, *tile_data);
+        if (status.ok()) {
+          pending_tile16_changes_.erase(current_tile16_);
+          pending_tile16_bitmaps_.erase(current_tile16_);
+          RefreshTile16Blockset();
+          if (pending_tile_switch_target_ >= 0) {
+            SetCurrentTile(pending_tile_switch_target_);
+          }
+        }
+      }
+      pending_tile_switch_target_ = -1;
+      show_unsaved_changes_dialog_ = false;
+      CloseCurrentPopup();
+    }
+    PopStyleColor(2);
+
+    SameLine();
+
+    PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.2f, 0.2f, 1.0f));
+    PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.7f, 0.3f, 0.3f, 1.0f));
+    if (Button("Discard & Continue", ImVec2(130, 0))) {
+      pending_tile16_changes_.erase(current_tile16_);
+      pending_tile16_bitmaps_.erase(current_tile16_);
+      if (pending_tile_switch_target_ >= 0) {
+        SetCurrentTile(pending_tile_switch_target_);
+      }
+      pending_tile_switch_target_ = -1;
+      show_unsaved_changes_dialog_ = false;
+      CloseCurrentPopup();
+    }
+    PopStyleColor(2);
+
+    SameLine();
+
+    if (Button("Cancel", ImVec2(80, 0))) {
+      pending_tile_switch_target_ = -1;
+      show_unsaved_changes_dialog_ = false;
+      CloseCurrentPopup();
+    }
+
+    EndPopup();
+  }
+
+  // Handle keyboard shortcuts (same as Update())
+  if (!ImGui::IsAnyItemActive()) {
+    if (ImGui::IsKeyPressed(ImGuiKey_Delete)) {
+      status_ = ClearTile16();
+    }
+    if (ImGui::IsKeyPressed(ImGuiKey_H)) {
+      status_ = FlipTile16Horizontal();
+    }
+    if (ImGui::IsKeyPressed(ImGuiKey_V)) {
+      status_ = FlipTile16Vertical();
+    }
+    if (ImGui::IsKeyPressed(ImGuiKey_R)) {
+      status_ = RotateTile16();
+    }
+    if (ImGui::IsKeyPressed(ImGuiKey_F)) {
+      if (current_tile8_ >= 0 &&
+          current_tile8_ < static_cast<int>(current_gfx_individual_.size())) {
+        status_ = FillTile16WithTile8(current_tile8_);
+      }
+    }
+    if (ImGui::IsKeyPressed(ImGuiKey_Q)) {
+      status_ = CyclePalette(false);
+    }
+    if (ImGui::IsKeyPressed(ImGuiKey_E)) {
+      status_ = CyclePalette(true);
+    }
+    for (int i = 0; i < 8; ++i) {
+      if (ImGui::IsKeyPressed(static_cast<ImGuiKey>(ImGuiKey_1 + i))) {
+        current_palette_ = i;
+        status_ = CyclePalette(true);
+        status_ = CyclePalette(false);
+        current_palette_ = i;
+      }
+    }
+    if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) ||
+        ImGui::IsKeyDown(ImGuiKey_RightCtrl)) {
+      if (ImGui::IsKeyPressed(ImGuiKey_Z)) {
+        status_ = Undo();
+      }
+      if (ImGui::IsKeyPressed(ImGuiKey_Y)) {
+        status_ = Redo();
+      }
+      if (ImGui::IsKeyPressed(ImGuiKey_C)) {
+        status_ = CopyTile16ToClipboard(current_tile16_);
+      }
+      if (ImGui::IsKeyPressed(ImGuiKey_V)) {
+        status_ = PasteTile16FromClipboard();
+      }
+      if (ImGui::IsKeyPressed(ImGuiKey_S)) {
+        if (ImGui::IsKeyDown(ImGuiKey_LeftShift) ||
+            ImGui::IsKeyDown(ImGuiKey_RightShift)) {
+          status_ = CommitChangesToBlockset();
+        } else {
+          status_ = SaveTile16ToROM();
+        }
+      }
+    }
+  }
+
+  DrawTile16Editor();
+  DrawPaletteSettings();
+  RETURN_IF_ERROR(UpdateLivePreview());
+
+  return absl::OkStatus();
+}
+
+void Tile16Editor::DrawContextMenu() {
+  if (BeginPopup("##Tile16EditorContextMenu")) {
+    if (BeginMenu("View")) {
+      Checkbox("Show Collision Types",
+               tile8_source_canvas_.custom_labels_enabled());
+      EndMenu();
+    }
+
+    if (BeginMenu("Edit")) {
+      if (MenuItem("Copy Current Tile16", "Ctrl+C")) {
+        status_ = CopyTile16ToClipboard(current_tile16_);
+      }
+      if (MenuItem("Paste to Current Tile16", "Ctrl+V")) {
+        status_ = PasteTile16FromClipboard();
+      }
+      Separator();
+      if (MenuItem("Flip Horizontal", "H")) {
+        status_ = FlipTile16Horizontal();
+      }
+      if (MenuItem("Flip Vertical", "V")) {
+        status_ = FlipTile16Vertical();
+      }
+      if (MenuItem("Rotate", "R")) {
+        status_ = RotateTile16();
+      }
+      if (MenuItem("Clear", "Delete")) {
+        status_ = ClearTile16();
+      }
+      EndMenu();
+    }
+
+    if (BeginMenu("File")) {
+      if (MenuItem("Save Changes to ROM", "Ctrl+S")) {
+        status_ = SaveTile16ToROM();
+      }
+      if (MenuItem("Commit to Blockset", "Ctrl+Shift+S")) {
+        status_ = CommitChangesToBlockset();
+      }
+      Separator();
+      bool live_preview = live_preview_enabled_;
+      if (MenuItem("Live Preview", nullptr, &live_preview)) {
+        EnableLivePreview(live_preview);
+      }
+      EndMenu();
+    }
+
+    if (BeginMenu("Scratch Space")) {
+      for (int i = 0; i < 4; i++) {
+        std::string slot_name = "Slot " + std::to_string(i + 1);
+        if (scratch_space_used_[i]) {
+          if (MenuItem((slot_name + " (Load)").c_str())) {
+            status_ = LoadTile16FromScratchSpace(i);
+          }
+          if (MenuItem((slot_name + " (Save)").c_str())) {
+            status_ = SaveTile16ToScratchSpace(i);
+          }
+          if (MenuItem((slot_name + " (Clear)").c_str())) {
+            status_ = ClearScratchSpace(i);
+          }
+        } else {
+          if (MenuItem((slot_name + " (Save)").c_str())) {
+            status_ = SaveTile16ToScratchSpace(i);
+          }
+        }
+        if (i < 3)
+          Separator();
+      }
+      EndMenu();
+    }
+
+    EndPopup();
+  }
+}
+
 absl::Status Tile16Editor::UpdateBlockset() {
   gui::BeginPadding(2);
   gui::BeginChildWithScrollbar("##Tile16EditorBlocksetScrollRegion");
