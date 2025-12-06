@@ -82,6 +82,8 @@ class DungeonEditorV2 : public Editor {
     }
   }
 
+  ~DungeonEditorV2() override;
+
   void SetGameData(zelda3::GameData* game_data) override {
     game_data_ = game_data;
     dependencies_.game_data = game_data;  // Also set base class dependency
