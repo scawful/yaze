@@ -3,6 +3,49 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
+### 2025-12-06 ai-infra-architect – Overworld Editor Refactoring Phase 2
+- TASK: Critical bug fixes and Tile16 Editor polish
+- SCOPE: src/app/editor/overworld/, src/app/gfx/render/
+- STATUS: COMPLETE (Phase 2 - Bug Fixes & Polish)
+- NOTES: Fixed tile cache (copy vs move), centralized zoom constants, re-enabled live preview, scaled entity hit detection, restored Tile16 Editor window, fixed SNES palette offset (+1), added palette remapping for source canvas viewing, visual sheet/palette indicators, diagnostic function. Simplified scratch space to single slot. Added toolbar panel toggles.
+- NEXT: Phase 2 Week 2 - Toolset improvements (eyedropper, flood fill, eraser tools)
+
+### 2025-12-05 snes-emulator-expert – MusicEditor 1.5x Audio Speed Bug
+- TASK: Fix audio playing at 1.5x speed in MusicEditor (48000/32040 ratio indicates missing resampling)
+- SCOPE: src/app/editor/music/, src/app/emu/audio/, src/app/emu/emulator.cc
+- STATUS: HANDOFF - See docs/internal/handoffs/music-editor-audio-speed-bug.md
+- NOTES: Verified APU timing, DSP rate, SDL resampling all correct. Fixed shared backend, RunAudioFrame accessor. Bug persists. Need to trace actual audio path at runtime.
+
+### 2025-12-05 docs-janitor – Documentation cleanup + 0.4.1 changelog
+- TASK: Align docs with new logging/panel startup flags; prep changelog for v0.4.1
+- SCOPE: docs/public/reference/changelog.md, docs/public/developer/, related release notes
+- STATUS: COMPLETE
+- NOTES: Updated logging/panel flag docs, panel terminology, and added 0.4.1 changelog entry.
+
+### 2025-12-05 docs-janitor – Layout designer doc consolidation
+- TASK: Collapse layout designer doc sprawl into a single canonical guide
+- SCOPE: docs/internal/architecture/layout-designer.md, remove stale layout-designer* docs
+- STATUS: COMPLETE
+- NOTES: New consolidated doc with current code status + backlog; deleted legacy phase/memo files.
+
+### 2025-12-04 zelda3-hacking-expert – Dungeon object draw routine fixes
+- TASK: Review dungeon object draw routines (editor + usdasm) and patch bugs in dungeon rendering.
+- SCOPE: src/app/editor/dungeon/, src/zelda3/dungeon/, assets/usdasm/bank_01.asm.
+- STATUS: COMPLETE
+- NOTES: Fixed draw routine registry IDs (0–39) to match bank_01.asm, removed invalid placeholders, and registered chest routine so chest objects render instead of falling back.
+
+### 2025-12-05 imgui-frontend-engineer – Panel launch/log filtering UX
+- TASK: Upgrade logging/test affordances to filter logs and launch editors/panels; audit welcome/dashboard show/dismiss control.
+- SCOPE: panel/layout orchestration, welcome/dashboard panels, CLI command triggers for panel visibility, logging/test runners.
+- STATUS: IN_PROGRESS
+- NOTES: Ensure panels can be driven from CLI (appear/dismiss) and logs are filterable for targeted startup flows.
+
+### 2025-12-04 zelda3-hacking-expert – Dungeon layer merge & palette correctness
+- TASK: Fix BG1/BG2 layer merging, object palette correctness, and live re-render pipeline so object drags update immediately.
+- SCOPE: src/app/editor/dungeon/, src/zelda3/dungeon/, palette/layer merge handling.
+- STATUS: IN_PROGRESS
+- NOTES: Auditing layer merging semantics, palette lookup, and object dirty/refresh logic (BG ordering, translucent flags, shared palette bug e.g. Ganon room 000 yellow ceiling).
+
 ### 2025-12-03 imgui-frontend-engineer – Keyboard Shortcut Audit
 - TASK: Investigate broken Cmd-based shortcuts (sidebar toggle etc.) and standardize shortcut handling across app.
 - SCOPE: shortcut_manager.{h,cc}, shortcut_configurator.cc, platform_keys.cc.

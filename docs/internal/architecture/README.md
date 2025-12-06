@@ -32,6 +32,7 @@ This directory contains detailed architectural documentation for the YAZE (Yet A
   - Card validation system for development debugging
   - Session-aware card ID prefixing
   - Workspace preset save/load
+- **[layout-designer.md](layout-designer.md)** - WYSIWYG layout designer (panel & widget modes), integration points, and current limitations
 
 ### Editors
 

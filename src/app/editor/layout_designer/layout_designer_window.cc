@@ -3,6 +3,9 @@
 
 #include <algorithm>
 #include <map>
+#include <optional>
+#include <unordered_map>
+#include <unordered_set>
 
 #include "absl/strings/str_format.h"
 #include "app/editor/layout_designer/layout_serialization.h"
@@ -17,9 +20,17 @@ namespace yaze {
 namespace editor {
 namespace layout_designer {
 
-void LayoutDesignerWindow::Initialize(PanelManager* panel_manager) {
+namespace {
+constexpr const char kPanelPayloadType[] = "PANEL_ID";
+}
+
+void LayoutDesignerWindow::Initialize(PanelManager* panel_manager,
+                                      LayoutManager* layout_manager,
+                                      EditorManager* editor_manager) {
   panel_manager_ = panel_manager;
-  LOG_INFO("LayoutDesigner", "Initialized with PanelManager");
+  layout_manager_ = layout_manager;
+  editor_manager_ = editor_manager;
+  LOG_INFO("LayoutDesigner", "Initialized with PanelManager and LayoutManager");
 }
 
 void LayoutDesignerWindow::Open() {
@@ -381,14 +392,19 @@ void LayoutDesignerWindow::DrawPalette() {
         
         // Drag source - use stable pointer to panel in vector
         if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
-          // Store pointer to panel (stable because category_panels is local)
-          const PalettePanel* panel_ptr = &panel;
-          ImGui::SetDragDropPayload("PANEL_PALETTE", &panel_ptr, sizeof(PalettePanel*));
+          // Copy metadata into persistent drag state and send panel ID payload
+          dragging_panel_ = panel;
+          is_dragging_panel_ = true;
+          ImGui::SetDragDropPayload(kPanelPayloadType,
+                                    panel.id.c_str(),
+                                    panel.id.size() + 1);  // include null terminator
           ImGui::Text("%s %s", panel.icon.c_str(), panel.name.c_str());
           ImGui::TextDisabled("Drag to canvas");
           ImGui::EndDragDropSource();
           
           LOG_INFO("DragDrop", "Drag started: %s", panel.name.c_str());
+        } else {
+          is_dragging_panel_ = false;
         }
         
         ImGui::PopID();
@@ -418,6 +434,8 @@ void LayoutDesignerWindow::DrawCanvas() {
   
   // Debug: Show drag state
   const ImGuiPayload* drag_payload = ImGui::GetDragDropPayload();
+  is_dragging_panel_ = drag_payload && drag_payload->DataType &&
+                       strcmp(drag_payload->DataType, kPanelPayloadType) == 0;
   if (drag_payload && drag_payload->DataType) {
     ImGui::SameLine();
     ImGui::TextColored(ImVec4(0, 1, 0, 1), 
@@ -443,6 +461,7 @@ void LayoutDesignerWindow::DrawCanvas() {
       current_layout_->canvas_size.y * canvas_zoom_);
   
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
+  const ImU32 grid_color = ImGui::GetColorU32(ImGuiCol_TableBorderStrong);
   
   // Background grid
   const float grid_step = 50.0f * canvas_zoom_;
@@ -450,18 +469,17 @@ void LayoutDesignerWindow::DrawCanvas() {
     draw_list->AddLine(
         ImVec2(canvas_pos.x + x_pos, canvas_pos.y),
         ImVec2(canvas_pos.x + x_pos, canvas_pos.y + scaled_size.y),
-        IM_COL32(40, 40, 40, 255));
+        grid_color);
   }
   for (float y_pos = 0; y_pos < scaled_size.y; y_pos += grid_step) {
     draw_list->AddLine(
         ImVec2(canvas_pos.x, canvas_pos.y + y_pos),
         ImVec2(canvas_pos.x + scaled_size.x, canvas_pos.y + y_pos),
-        IM_COL32(40, 40, 40, 255));
+        grid_color);
   }
   
   // Reset drop state at start of frame
-  drop_target_node_ = nullptr;
-  drop_direction_ = ImGuiDir_None;
+  ResetDropState();
   
   // Draw dock nodes recursively (this sets drop_target_node_)
   DrawDockNode(current_layout_->root.get(), canvas_pos, scaled_size);
@@ -475,70 +493,19 @@ void LayoutDesignerWindow::DrawCanvas() {
   if (ImGui::BeginDragDropTarget()) {
     // Show preview while dragging
     const ImGuiPayload* preview = ImGui::GetDragDropPayload();
-    if (preview && strcmp(preview->DataType, "PANEL_PALETTE") == 0) {
+    if (preview && strcmp(preview->DataType, kPanelPayloadType) == 0) {
       // We're dragging - drop zones should have been shown in DrawDockNode
     }
     
     if (const ImGuiPayload* payload =
-            ImGui::AcceptDragDropPayload("PANEL_PALETTE")) {
-      // Retrieve panel pointer from payload
-      const PalettePanel* const* panel_ptr_ptr = 
-          static_cast<const PalettePanel* const*>(payload->Data);
-      const PalettePanel* panel = *panel_ptr_ptr;
-      
-      LOG_INFO("DragDrop", "Payload accepted! Panel: %s", panel->name.c_str());
-      
-      // Add panel to the layout
-      if (drop_target_node_) {
-        LayoutPanel new_panel;
-        new_panel.panel_id = panel->id;
-        new_panel.display_name = panel->name;
-        new_panel.icon = panel->icon;
-        new_panel.priority = panel->priority;
-        new_panel.visible_by_default = true;
-        new_panel.closable = true;
-        new_panel.pinnable = true;
-        
-        LOG_INFO("DragDrop", "Creating panel: %s, target node type: %s",
-                 new_panel.display_name.c_str(),
-                 drop_target_node_->IsLeaf() ? "Leaf" : "Split");
-        
-        // If dropping on an empty root, just add the panel
-        if (drop_target_node_->IsLeaf() && drop_target_node_->panels.empty()) {
-          drop_target_node_->AddPanel(new_panel);
-          LOG_INFO("LayoutDesigner", "✓ Added panel '%s' to empty root",
-                   panel->name.c_str());
-        } else if (drop_direction_ != ImGuiDir_None) {
-          // Split the target node and add panel to the appropriate side
-          float split_ratio = 0.3f;  // Default 30% for new panel
-          
-          // Adjust ratio based on drop direction
-          if (drop_direction_ == ImGuiDir_Right || 
-              drop_direction_ == ImGuiDir_Down) {
-            split_ratio = 0.7f;  // Put new panel on right/bottom (30%)
-          }
-          
-          LOG_INFO("DragDrop", "Splitting node: dir=%d, ratio=%.2f",
-                   drop_direction_, split_ratio);
-          
-          drop_target_node_->Split(drop_direction_, split_ratio);
-          
-          // Add panel to the appropriate child
-          if (drop_direction_ == ImGuiDir_Left || 
-              drop_direction_ == ImGuiDir_Up) {
-            drop_target_node_->child_left->AddPanel(new_panel);
-            LOG_INFO("LayoutDesigner", "✓ Added panel to LEFT/TOP child");
-          } else {
-            drop_target_node_->child_right->AddPanel(new_panel);
-            LOG_INFO("LayoutDesigner", "✓ Added panel to RIGHT/BOTTOM child");
-          }
-        } else {
-          LOG_WARN("DragDrop", "No valid drop direction set!");
-        }
-        
-        current_layout_->Touch();
+            ImGui::AcceptDragDropPayload(kPanelPayloadType)) {
+      const char* panel_id_cstr = static_cast<const char*>(payload->Data);
+      std::string panel_id = panel_id_cstr ? panel_id_cstr : "";
+      auto resolved = ResolvePanelById(panel_id);
+      if (!resolved.has_value()) {
+        LOG_WARN("DragDrop", "Unknown panel payload: %s", panel_id.c_str());
       } else {
-        LOG_WARN("DragDrop", "No drop target node set!");
+        AddPanelToTarget(*resolved);
       }
     }
     ImGui::EndDragDropTarget();
@@ -552,30 +519,35 @@ void LayoutDesignerWindow::DrawDockNode(DockNode* node,
   
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   ImVec2 rect_max = ImVec2(pos.x + size.x, pos.y + size.y);
+  auto alpha_color = [](ImU32 base, float alpha_scale) {
+    ImVec4 c = ImGui::ColorConvertU32ToFloat4(base);
+    c.w *= alpha_scale;
+    return ImGui::ColorConvertFloat4ToU32(c);
+  };
   
   // Check if we're dragging a panel
   const ImGuiPayload* drag_payload = ImGui::GetDragDropPayload();
   bool is_drag_active = drag_payload != nullptr &&
                         drag_payload->DataType != nullptr &&
-                        strcmp(drag_payload->DataType, "PANEL_PALETTE") == 0;
+                        strcmp(drag_payload->DataType, "PANEL_ID") == 0;
   
   if (node->IsLeaf()) {
     // Draw leaf node with panels
-    ImU32 border_color = IM_COL32(100, 100, 150, 255);
+    ImU32 border_color = ImGui::GetColorU32(ImGuiCol_Border);
     
     // Highlight if selected
     bool is_selected = (selected_node_ == node);
     if (is_selected) {
-      border_color = IM_COL32(255, 200, 100, 255);  // Orange for selection
+      border_color = ImGui::GetColorU32(ImGuiCol_CheckMark);
     }
     
     // Highlight if mouse is over this node during drag
     if (is_drag_active) {
       if (IsMouseOverRect(pos, rect_max)) {
         if (node->flags & ImGuiDockNodeFlags_NoDockingOverMe) {
-          border_color = IM_COL32(255, 100, 100, 255);  // Red for no docking
+          border_color = ImGui::GetColorU32(ImGuiCol_TextDisabled);
         } else {
-          border_color = IM_COL32(100, 200, 255, 255);  // Blue highlight
+          border_color = ImGui::GetColorU32(ImGuiCol_HeaderHovered);
           // Show drop zones and update drop state
           DrawDropZones(pos, size, node);
         }
@@ -593,17 +565,39 @@ void LayoutDesignerWindow::DrawDockNode(DockNode* node,
                node->panels.size());
     }
     
-    // Draw panel names
-    ImVec2 text_pos = ImVec2(pos.x + 10, pos.y + 10);
+    // Draw panel capsules for clarity
+    const float panel_padding = 8.0f;
+    const float capsule_height = 26.0f;
+    ImVec2 capsule_pos = ImVec2(pos.x + panel_padding, pos.y + panel_padding);
     for (const auto& panel : node->panels) {
+      ImVec2 capsule_min = capsule_pos;
+      ImVec2 capsule_max = ImVec2(rect_max.x - panel_padding,
+                                  capsule_pos.y + capsule_height);
+      ImU32 capsule_fill = alpha_color(ImGui::GetColorU32(ImGuiCol_Header), 0.7f);
+      ImU32 capsule_border = ImGui::GetColorU32(ImGuiCol_HeaderActive);
+      draw_list->AddRectFilled(capsule_min, capsule_max, capsule_fill, 6.0f);
+      draw_list->AddRect(capsule_min, capsule_max, capsule_border, 6.0f, 0, 1.5f);
+
       std::string label = absl::StrFormat("%s %s", panel.icon, panel.display_name);
-      
-      // Append flags info
-      if (panel.flags & ImGuiWindowFlags_NoTitleBar) label += " [NoTitle]";
-      if (panel.flags & ImGuiWindowFlags_NoResize) label += " [NoResize]";
-      
-      draw_list->AddText(text_pos, IM_COL32(255, 255, 255, 255), label.c_str());
-      text_pos.y += 20;
+      draw_list->AddText(ImVec2(capsule_min.x + 8, capsule_min.y + 5),
+                         ImGui::GetColorU32(ImGuiCol_Text), label.c_str());
+
+      // Secondary line for ID
+      std::string sub = absl::StrFormat("ID: %s", panel.panel_id.c_str());
+      draw_list->AddText(ImVec2(capsule_min.x + 8, capsule_min.y + 5 + 12),
+                         alpha_color(ImGui::GetColorU32(ImGuiCol_Text), 0.7f),
+                         sub.c_str());
+
+      // Tooltip on hover
+      ImRect capsule_rect(capsule_min, capsule_max);
+      if (capsule_rect.Contains(ImGui::GetMousePos())) {
+        ImGui::BeginTooltip();
+        ImGui::TextUnformatted(label.c_str());
+        ImGui::TextDisabled("%s", panel.panel_id.c_str());
+        ImGui::EndTooltip();
+      }
+
+      capsule_pos.y += capsule_height + 6.0f;
     }
     
     // Draw Node Flags
@@ -616,7 +610,8 @@ void LayoutDesignerWindow::DrawDockNode(DockNode* node,
     if (!node_flags_str.empty()) {
       ImVec2 flags_size = ImGui::CalcTextSize(node_flags_str.c_str());
       draw_list->AddText(ImVec2(rect_max.x - flags_size.x - 5, pos.y + 5), 
-                         IM_COL32(200, 200, 200, 200), node_flags_str.c_str());
+                         alpha_color(ImGui::GetColorU32(ImGuiCol_Text), 0.8f),
+                         node_flags_str.c_str());
     }
     
     if (node->panels.empty()) {
@@ -628,7 +623,7 @@ void LayoutDesignerWindow::DrawDockNode(DockNode* node,
       draw_list->AddText(
           ImVec2(pos.x + (size.x - text_size.x) / 2, 
                  pos.y + (size.y - text_size.y) / 2),
-          IM_COL32(150, 150, 150, 255), empty_text);
+          ImGui::GetColorU32(ImGuiCol_TextDisabled), empty_text);
     }
   } else if (node->IsSplit()) {
     // Draw split node
@@ -1379,8 +1374,76 @@ void LayoutDesignerWindow::ExportCode(const std::string& filepath) {
 }
 
 void LayoutDesignerWindow::PreviewLayout() {
-  LOG_INFO("LayoutDesigner", "Previewing layout");
-  // TODO(scawful): Apply layout to main application
+  if (!current_layout_ || !current_layout_->root) {
+    LOG_WARN("LayoutDesigner", "No layout loaded; cannot preview");
+    return;
+  }
+  if (!layout_manager_ || !panel_manager_) {
+    LOG_WARN("LayoutDesigner", "Preview requires LayoutManager and PanelManager");
+    return;
+  }
+
+  ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
+  if (dockspace_id == 0) {
+    LOG_WARN("LayoutDesigner", "MainDockSpace not found; cannot preview");
+    return;
+  }
+
+  // Clear existing layout on the dockspace
+  ImGui::DockBuilderRemoveNode(dockspace_id);
+  ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
+  ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->WorkSize);
+
+  // Recursively build dock tree
+  std::function<void(DockNode*, ImGuiID)> build_tree =
+      [&](DockNode* node, ImGuiID node_id) {
+        if (!node) return;
+        if (node->IsSplit() && node->child_left && node->child_right) {
+          ImGuiID split_dir_id = node_id;
+          ImGuiID remainder_id = 0;
+          ImGui::DockBuilderSplitNode(node_id, node->split_dir, node->split_ratio,
+                                      &split_dir_id, &remainder_id);
+
+          // Map children based on split direction
+          DockNode* first = node->child_left.get();
+          DockNode* second = node->child_right.get();
+          ImGuiID first_id = split_dir_id;
+          ImGuiID second_id = remainder_id;
+
+          if (node->split_dir == ImGuiDir_Right || node->split_dir == ImGuiDir_Down) {
+            // Swap when split direction places new node on right/bottom
+            first = node->child_right.get();
+            second = node->child_left.get();
+          }
+
+          build_tree(first, first_id);
+          build_tree(second, second_id);
+          return;
+        }
+
+        // Leaf/root: dock panels here
+        for (const auto& panel : node->panels) {
+          std::string window_title;
+          if (auto* desc = panel_manager_->GetPanelDescriptor(0, panel.panel_id)) {
+            window_title = desc->GetWindowTitle();
+          }
+          if (window_title.empty()) {
+            LOG_WARN("LayoutDesigner", "Skipping panel '%s' (no window title)",
+                     panel.panel_id.c_str());
+            continue;
+          }
+
+          // Ensure visibility before docking
+          panel_manager_->ShowPanel(panel.panel_id);
+          ImGui::DockBuilderDockWindow(window_title.c_str(), node_id);
+        }
+      };
+
+  build_tree(current_layout_->root.get(), dockspace_id);
+  ImGui::DockBuilderFinish(dockspace_id);
+
+  last_drop_node_for_preview_ = current_layout_->root.get();
+  LOG_INFO("LayoutDesigner", "Preview applied to dockspace %u", dockspace_id);
 }
 
 void LayoutDesignerWindow::DrawDropZones(const ImVec2& pos, const ImVec2& size,
@@ -1394,6 +1457,11 @@ void LayoutDesignerWindow::DrawDropZones(const ImVec2& pos, const ImVec2& size,
   ImVec2 mouse_pos = ImGui::GetMousePos();
   ImVec2 rect_min = pos;
   ImVec2 rect_max = ImVec2(pos.x + size.x, pos.y + size.y);
+  auto alpha_color = [](ImU32 base, float alpha_scale) {
+    ImVec4 c = ImGui::ColorConvertU32ToFloat4(base);
+    c.w *= alpha_scale;
+    return ImGui::ColorConvertFloat4ToU32(c);
+  };
   
   // Determine which drop zone the mouse is in
   ImGuiDir zone = GetDropZone(mouse_pos, rect_min, rect_max);
@@ -1436,13 +1504,14 @@ void LayoutDesignerWindow::DrawDropZones(const ImVec2& pos, const ImVec2& size,
   // Draw drop zones
   for (const auto& drop_zone : zones) {
     bool is_hovered = (zone == drop_zone.dir);
+    ImU32 base_zone = ImGui::GetColorU32(ImGuiCol_Header);
     ImU32 color = is_hovered 
-        ? IM_COL32(100, 150, 255, 120)  // Bright blue when hovered
-        : IM_COL32(100, 150, 255, 40);  // Subtle blue otherwise
+        ? alpha_color(base_zone, 0.8f)
+        : alpha_color(base_zone, 0.35f);
     
     draw_list->AddRectFilled(drop_zone.min, drop_zone.max, color, 4.0f);
     draw_list->AddRect(drop_zone.min, drop_zone.max,
-                       IM_COL32(100, 150, 255, 200), 4.0f, 0, 1.0f);
+                       ImGui::GetColorU32(ImGuiCol_HeaderActive), 4.0f, 0, 1.0f);
     
     if (is_hovered) {
       // Store the target for when drop happens
@@ -1479,7 +1548,7 @@ void LayoutDesignerWindow::DrawDropZones(const ImVec2& pos, const ImVec2& size,
 }
 
 bool LayoutDesignerWindow::IsMouseOverRect(const ImVec2& rect_min,
-                                            const ImVec2& rect_max) const {
+                                           const ImVec2& rect_max) const {
   ImVec2 mouse_pos = ImGui::GetMousePos();
   return mouse_pos.x >= rect_min.x && mouse_pos.x <= rect_max.x &&
          mouse_pos.y >= rect_min.y && mouse_pos.y <= rect_max.y;
@@ -1513,6 +1582,101 @@ ImGuiDir LayoutDesignerWindow::GetDropZone(const ImVec2& mouse_pos,
   
   // Center zone (tab addition)
   return ImGuiDir_None;
+}
+
+void LayoutDesignerWindow::ResetDropState() {
+  drop_target_node_ = nullptr;
+  drop_direction_ = ImGuiDir_None;
+}
+
+std::optional<LayoutDesignerWindow::PalettePanel>
+LayoutDesignerWindow::ResolvePanelById(const std::string& panel_id) const {
+  if (panel_id.empty()) {
+    return std::nullopt;
+  }
+
+  if (panel_manager_) {
+    const auto& descriptors = panel_manager_->GetAllPanelDescriptors();
+    auto it = descriptors.find(panel_id);
+    if (it != descriptors.end()) {
+      PalettePanel panel;
+      panel.id = panel_id;
+      panel.name = it->second.display_name;
+      panel.icon = it->second.icon;
+      panel.category = it->second.category;
+      panel.priority = it->second.priority;
+      return panel;
+    }
+  }
+
+  // Fallback: cached palette
+  auto available = GetAvailablePanels();
+  for (const auto& cached : available) {
+    if (cached.id == panel_id) {
+      return cached;
+    }
+  }
+
+  return std::nullopt;
+}
+
+void LayoutDesignerWindow::AddPanelToTarget(const PalettePanel& panel) {
+  if (!current_layout_) {
+    LOG_WARN("LayoutDesigner", "No active layout; cannot add panel");
+    return;
+  }
+
+  DockNode* target = drop_target_node_;
+  if (!target) {
+    target = current_layout_->root.get();
+  }
+
+  LayoutPanel new_panel;
+  new_panel.panel_id = panel.id;
+  new_panel.display_name = panel.name;
+  new_panel.icon = panel.icon;
+  new_panel.priority = panel.priority;
+  new_panel.visible_by_default = true;
+  new_panel.closable = true;
+  new_panel.pinnable = true;
+
+  LOG_INFO("DragDrop", "Creating panel: %s, target node type: %s",
+           new_panel.display_name.c_str(),
+           target->IsLeaf() ? "Leaf" : "Split");
+
+  // Empty leaf/root: drop directly
+  if (target->IsLeaf() && target->panels.empty()) {
+    target->AddPanel(new_panel);
+    current_layout_->Touch();
+    ResetDropState();
+    LOG_INFO("LayoutDesigner", "✓ Added panel '%s' to leaf/root", panel.name.c_str());
+    return;
+  }
+
+  // Otherwise require a drop direction to split
+  if (drop_direction_ == ImGuiDir_None) {
+    LOG_WARN("DragDrop", "No drop direction set; ignoring drop");
+    return;
+  }
+
+  float split_ratio = (drop_direction_ == ImGuiDir_Right || drop_direction_ == ImGuiDir_Down)
+                          ? 0.7f
+                          : 0.3f;
+
+  target->Split(drop_direction_, split_ratio);
+
+  DockNode* child = (drop_direction_ == ImGuiDir_Left || drop_direction_ == ImGuiDir_Up)
+                        ? target->child_left.get()
+                        : target->child_right.get();
+  if (child) {
+    child->AddPanel(new_panel);
+    LOG_INFO("LayoutDesigner", "✓ Added panel to split child (dir=%d)", drop_direction_);
+  } else {
+    LOG_WARN("LayoutDesigner", "Split child missing; drop ignored");
+  }
+
+  current_layout_->Touch();
+  ResetDropState();
 }
 
 // ============================================================================
@@ -1897,4 +2061,3 @@ void LayoutDesignerWindow::DrawThemeProperties() {
 }  // namespace layout_designer
 }  // namespace editor
 }  // namespace yaze
-

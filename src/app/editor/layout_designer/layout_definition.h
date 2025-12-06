@@ -85,7 +85,7 @@ struct DockNode {
   
   // Helper methods
   bool IsSplit() const { return type == DockNodeType::Split; }
-  bool IsLeaf() const { return type == DockNodeType::Leaf; }
+  bool IsLeaf() const { return type == DockNodeType::Leaf || type == DockNodeType::Root; }
   bool IsRoot() const { return type == DockNodeType::Root; }
   
   // Add a panel to this leaf node
@@ -166,4 +166,3 @@ struct LayoutDefinition {
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_LAYOUT_DESIGNER_LAYOUT_DEFINITION_H_
-
