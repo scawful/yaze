@@ -66,18 +66,28 @@ absl::Status OverworldEditor::DrawScratchSpace() {
     }
   }
 
-  // Draw the scratch space canvas
+  // Draw the scratch space canvas using modern BeginCanvas/EndCanvas pattern
   gui::BeginPadding(3);
   ImGui::BeginGroup();
 
   ImVec2 scratch_content_size(scratch_space_.width * 16 + 4,
                               scratch_space_.height * 16 + 4);
+
+  // Configure canvas frame options
+  gui::CanvasFrameOptions frame_opts;
+  frame_opts.canvas_size = scratch_content_size;
+  frame_opts.draw_grid = true;
+  frame_opts.grid_step = 32.0f;  // Tile16 grid (32px = 2x tile scale)
+  frame_opts.draw_context_menu = false;  // No context menu for scratch
+  frame_opts.draw_overlay = true;
+  frame_opts.render_popups = false;
+  frame_opts.use_child_window = false;
+
   gui::BeginChildWithScrollbar("##ScratchSpaceScrollRegion",
                                scratch_content_size);
-  scratch_canvas_.DrawBackground();
-  gui::EndPadding();
 
-  scratch_canvas_.SetContextMenuEnabled(false);
+  auto canvas_rt = gui::BeginCanvas(scratch_canvas_, frame_opts);
+  gui::EndPadding();
 
   if (scratch_space_.scratch_bitmap.is_active()) {
     scratch_canvas_.DrawBitmap(scratch_space_.scratch_bitmap, 2, 2, 1.0f);
@@ -87,11 +97,8 @@ absl::Status OverworldEditor::DrawScratchSpace() {
     scratch_canvas_.DrawTileSelector(32.0f);
   }
 
-  scratch_canvas_.DrawGrid();
-  scratch_canvas_.DrawOverlay();
-
-  // Handle Interactions
-  if (scratch_canvas_.IsMouseHovering()) {
+  // Handle Interactions using runtime hover state
+  if (canvas_rt.hovered) {
     if (ow_map_canvas_.select_rect_active() &&
         !ow_map_canvas_.selected_tiles().empty()) {
       if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
@@ -103,6 +110,7 @@ absl::Status OverworldEditor::DrawScratchSpace() {
     }
   }
 
+  gui::EndCanvas(scratch_canvas_, canvas_rt, frame_opts);
   EndChild();
   ImGui::EndGroup();
 

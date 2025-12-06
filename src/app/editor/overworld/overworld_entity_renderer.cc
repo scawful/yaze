@@ -35,6 +35,103 @@ ImVec4 GetDiggableTileColor() {
 }  // Semi-transparent brown for diggable ground
 }  // namespace
 
+// =============================================================================
+// Modern CanvasRuntime-based rendering methods (Phase 2)
+// =============================================================================
+
+void OverworldEntityRenderer::DrawEntrances(const gui::CanvasRuntime& rt,
+                                            int current_world) {
+  // Don't reset hovered_entity_ here - DrawExits resets it (called first)
+  for (auto& each : overworld_->entrances()) {
+    if (each.map_id_ < 0x40 + (current_world * 0x40) &&
+        each.map_id_ >= (current_world * 0x40) && !each.deleted) {
+      ImVec4 entrance_color = GetEntranceColor();
+      if (each.is_hole_) {
+        entrance_color.w = 0.78f;
+      }
+      gui::DrawRect(rt, each.x_, each.y_, 16, 16, entrance_color);
+      if (IsMouseHoveringOverEntity(each, rt)) {
+        hovered_entity_ = &each;
+      }
+      std::string str = util::HexByte(each.entrance_id_);
+      gui::DrawText(rt, str, each.x_, each.y_);
+    }
+  }
+}
+
+void OverworldEntityRenderer::DrawExits(const gui::CanvasRuntime& rt,
+                                        int current_world) {
+  // Reset hover state at the start of entity rendering (DrawExits is called first)
+  hovered_entity_ = nullptr;
+
+  int i = 0;
+  for (auto& each : *overworld_->mutable_exits()) {
+    if (each.map_id_ < 0x40 + (current_world * 0x40) &&
+        each.map_id_ >= (current_world * 0x40) && !each.deleted_) {
+      gui::DrawRect(rt, each.x_, each.y_, 16, 16, GetExitColor());
+      if (IsMouseHoveringOverEntity(each, rt)) {
+        hovered_entity_ = &each;
+      }
+      each.entity_id_ = i;
+      std::string str = util::HexByte(i);
+      gui::DrawText(rt, str, each.x_, each.y_);
+    }
+    i++;
+  }
+}
+
+void OverworldEntityRenderer::DrawItems(const gui::CanvasRuntime& rt,
+                                        int current_world) {
+  for (auto& item : *overworld_->mutable_all_items()) {
+    if (item.room_map_id_ < 0x40 + (current_world * 0x40) &&
+        item.room_map_id_ >= (current_world * 0x40) && !item.deleted) {
+      gui::DrawRect(rt, item.x_, item.y_, 16, 16, GetItemColor());
+      if (IsMouseHoveringOverEntity(item, rt)) {
+        hovered_entity_ = &item;
+      }
+      std::string item_name = "";
+      if (item.id_ < zelda3::kSecretItemNames.size()) {
+        item_name = zelda3::kSecretItemNames[item.id_];
+      } else {
+        item_name = absl::StrFormat("0x%02X", item.id_);
+      }
+      gui::DrawText(rt, item_name, item.x_, item.y_);
+    }
+  }
+}
+
+void OverworldEntityRenderer::DrawSprites(const gui::CanvasRuntime& rt,
+                                          int current_world, int game_state) {
+  for (auto& sprite : *overworld_->mutable_sprites(game_state)) {
+    if (!sprite.deleted() && sprite.map_id() < 0x40 + (current_world * 0x40) &&
+        sprite.map_id() >= (current_world * 0x40)) {
+      int sprite_x = sprite.x_;
+      int sprite_y = sprite.y_;
+
+      gui::DrawRect(rt, sprite_x, sprite_y, 16, 16, GetSpriteColor());
+      if (IsMouseHoveringOverEntity(sprite, rt)) {
+        hovered_entity_ = &sprite;
+      }
+
+      if (core::FeatureFlags::get().overworld.kDrawOverworldSprites) {
+        if ((*sprite_previews_)[sprite.id()].is_active()) {
+          // For bitmap drawing, we still use the canvas pointer for now
+          // as runtime-based bitmap drawing needs the texture
+          canvas_->DrawBitmap((*sprite_previews_)[sprite.id()], sprite_x,
+                              sprite_y, 2.0f);
+        }
+      }
+
+      gui::DrawText(rt, absl::StrFormat("%s", sprite.name()), sprite_x,
+                    sprite_y);
+    }
+  }
+}
+
+// =============================================================================
+// Legacy rendering methods (kept for backward compatibility)
+// =============================================================================
+
 void OverworldEntityRenderer::DrawEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
                                             int current_world,
                                             int current_mode) {

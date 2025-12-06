@@ -1568,6 +1568,56 @@ void EndCanvas(gui::Canvas& canvas, CanvasRuntime& /*runtime*/,
   }
 }
 
+// =============================================================================
+// Scroll and Zoom Helpers
+// =============================================================================
+
+ZoomToFitResult ComputeZoomToFit(ImVec2 content_px, ImVec2 canvas_px,
+                                 float padding_px) {
+  ZoomToFitResult result;
+  result.scale = 1.0f;
+  result.scroll = ImVec2(0, 0);
+
+  if (content_px.x <= 0 || content_px.y <= 0) {
+    return result;
+  }
+
+  // Calculate available space after padding
+  float available_x = canvas_px.x - padding_px * 2;
+  float available_y = canvas_px.y - padding_px * 2;
+
+  if (available_x <= 0 || available_y <= 0) {
+    return result;
+  }
+
+  // Compute scale to fit content in available space
+  float scale_x = available_x / content_px.x;
+  float scale_y = available_y / content_px.y;
+  result.scale = std::min(scale_x, scale_y);
+
+  // Center the content
+  float scaled_w = content_px.x * result.scale;
+  float scaled_h = content_px.y * result.scale;
+  result.scroll.x = (canvas_px.x - scaled_w) / 2.0f;
+  result.scroll.y = (canvas_px.y - scaled_h) / 2.0f;
+
+  return result;
+}
+
+ImVec2 ClampScroll(ImVec2 scroll, ImVec2 content_px, ImVec2 canvas_px) {
+  // Scrolling is typically negative (content moves left/up as you scroll)
+  // max_scroll is how far we can scroll before content edge leaves viewport
+  float max_scroll_x = std::max(0.0f, content_px.x - canvas_px.x);
+  float max_scroll_y = std::max(0.0f, content_px.y - canvas_px.y);
+
+  // Clamp scroll to valid range: [-max_scroll, 0]
+  // At scroll=0, content top-left is at viewport top-left
+  // At scroll=-max_scroll, content bottom-right is at viewport bottom-right
+  return ImVec2(
+      std::clamp(scroll.x, -max_scroll_x, 0.0f),
+      std::clamp(scroll.y, -max_scroll_y, 0.0f));
+}
+
 void GraphicsBinCanvasPipeline(int width, int height, int tile_size,
                                int num_sheets_to_load, int canvas_id,
                                bool is_loaded, gfx::BitmapTable& graphics_bin) {
