@@ -1229,6 +1229,12 @@ PanelManager::PanelValidationResult PanelManager::ValidatePanel(
   const PanelDescriptor& info = it->second;
   result.expected_title = info.GetWindowTitle();
 
+  if (result.expected_title.empty()) {
+    result.found_in_imgui = false;
+    result.message = "FAIL - Missing window title";
+    return result;
+  }
+
   // Check if ImGui has a window with this title
   ImGuiWindow* window = ImGui::FindWindowByName(result.expected_title.c_str());
   result.found_in_imgui = (window != nullptr);

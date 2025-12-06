@@ -439,6 +439,8 @@ class PanelManager {
     on_card_clicked_ = std::move(callback);
   }
 
+  size_t GetActiveSessionId() const { return active_session_; }
+
   // ============================================================================
   // File Browser Integration
   // ============================================================================

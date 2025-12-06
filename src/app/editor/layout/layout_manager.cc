@@ -101,49 +101,180 @@ void LayoutManager::RebuildLayout(EditorType type, ImGuiID dockspace_id) {
            static_cast<int>(type));
 }
 
+namespace {
+
+struct DockSplitConfig {
+  float left = 0.22f;
+  float right = 0.25f;
+  float bottom = 0.25f;
+  float top = 0.18f;
+  float vertical_split = 0.50f;
+};
+
+struct DockNodeIds {
+  ImGuiID center = 0;
+  ImGuiID left = 0;
+  ImGuiID right = 0;
+  ImGuiID bottom = 0;
+  ImGuiID top = 0;
+  ImGuiID left_top = 0;
+  ImGuiID left_bottom = 0;
+  ImGuiID right_top = 0;
+  ImGuiID right_bottom = 0;
+};
+
+struct DockSplitNeeds {
+  bool left = false;
+  bool right = false;
+  bool bottom = false;
+  bool top = false;
+  bool left_top = false;
+  bool left_bottom = false;
+  bool right_top = false;
+  bool right_bottom = false;
+};
+
+DockSplitNeeds ComputeSplitNeeds(const PanelLayoutPreset& preset) {
+  DockSplitNeeds needs{};
+  for (const auto& [_, pos] : preset.panel_positions) {
+    switch (pos) {
+      case DockPosition::Left:
+        needs.left = true;
+        break;
+      case DockPosition::Right:
+        needs.right = true;
+        break;
+      case DockPosition::Bottom:
+        needs.bottom = true;
+        break;
+      case DockPosition::Top:
+        needs.top = true;
+        break;
+      case DockPosition::LeftTop:
+        needs.left = true;
+        needs.left_top = true;
+        break;
+      case DockPosition::LeftBottom:
+        needs.left = true;
+        needs.left_bottom = true;
+        break;
+      case DockPosition::RightTop:
+        needs.right = true;
+        needs.right_top = true;
+        break;
+      case DockPosition::RightBottom:
+        needs.right = true;
+        needs.right_bottom = true;
+        break;
+      case DockPosition::Center:
+      default:
+        break;
+    }
+  }
+  return needs;
+}
+
+DockNodeIds BuildDockTree(ImGuiID dockspace_id, const DockSplitNeeds& needs,
+                          const DockSplitConfig& cfg) {
+  DockNodeIds ids{};
+  ids.center = dockspace_id;
+
+  if (needs.left) {
+    ids.left = ImGui::DockBuilderSplitNode(ids.center, ImGuiDir_Left, cfg.left,
+                                           nullptr, &ids.center);
+  }
+  if (needs.right) {
+    ids.right = ImGui::DockBuilderSplitNode(ids.center, ImGuiDir_Right,
+                                            cfg.right, nullptr, &ids.center);
+  }
+  if (needs.bottom) {
+    ids.bottom = ImGui::DockBuilderSplitNode(ids.center, ImGuiDir_Down,
+                                             cfg.bottom, nullptr, &ids.center);
+  }
+  if (needs.top) {
+    ids.top = ImGui::DockBuilderSplitNode(ids.center, ImGuiDir_Up, cfg.top,
+                                          nullptr, &ids.center);
+  }
+
+  if (ids.left && (needs.left_top || needs.left_bottom)) {
+    ids.left_bottom = ImGui::DockBuilderSplitNode(
+        ids.left, ImGuiDir_Down, cfg.vertical_split, nullptr, &ids.left_top);
+  }
+
+  if (ids.right && (needs.right_top || needs.right_bottom)) {
+    ids.right_bottom = ImGui::DockBuilderSplitNode(
+        ids.right, ImGuiDir_Down, cfg.vertical_split, nullptr, &ids.right_top);
+  }
+
+  return ids;
+}
+
+}  // namespace
+
 void LayoutManager::BuildLayoutFromPreset(EditorType type, ImGuiID dockspace_id) {
   auto preset = LayoutPresets::GetDefaultPreset(type);
-  
-  // Define standard splits
-  ImGuiID dock_center = dockspace_id;
-  ImGuiID dock_left = ImGui::DockBuilderSplitNode(dock_center, ImGuiDir_Left, 0.20f, nullptr, &dock_center);
-  ImGuiID dock_right = ImGui::DockBuilderSplitNode(dock_center, ImGuiDir_Right, 0.25f, nullptr, &dock_center);
-  ImGuiID dock_bottom = ImGui::DockBuilderSplitNode(dock_center, ImGuiDir_Down, 0.25f, nullptr, &dock_center);
-  ImGuiID dock_top = ImGui::DockBuilderSplitNode(dock_center, ImGuiDir_Up, 0.20f, nullptr, &dock_center);
-  
-  // Secondary splits for more complex layouts
-  ImGuiID dock_left_top = 0;
-  ImGuiID dock_left_bottom = ImGui::DockBuilderSplitNode(dock_left, ImGuiDir_Down, 0.5f, nullptr, &dock_left_top);
-  
-  ImGuiID dock_right_top = 0;
-  ImGuiID dock_right_bottom = ImGui::DockBuilderSplitNode(dock_right, ImGuiDir_Down, 0.5f, nullptr, &dock_right_top);
-  
-  // Assign initial values if split failed or wasn't needed? 
-  // Actually DockBuilderSplitNode handles creating new nodes.
-  // We need to be careful about order of splitting to preserve the center.
 
-  // Map DockPosition to ImGuiID
+  if (!panel_manager_) {
+    LOG_WARN("LayoutManager",
+             "PanelManager not available, skipping dock layout for type %d",
+             static_cast<int>(type));
+    return;
+  }
+
+  const size_t session_id =
+      panel_manager_ ? panel_manager_->GetActiveSessionId() : 0;
+
+  DockSplitNeeds needs = ComputeSplitNeeds(preset);
+  DockSplitConfig cfg;
+  DockNodeIds ids = BuildDockTree(dockspace_id, needs, cfg);
+
   auto get_dock_id = [&](DockPosition pos) -> ImGuiID {
     switch (pos) {
-      case DockPosition::Center: return dock_center;
-      case DockPosition::Left: return dock_left;
-      case DockPosition::Right: return dock_right;
-      case DockPosition::Bottom: return dock_bottom;
-      case DockPosition::Top: return dock_top;
-      case DockPosition::LeftTop: return dock_left_top ? dock_left_top : dock_left; // Fallback
-      case DockPosition::LeftBottom: return dock_left_bottom;
-      case DockPosition::RightTop: return dock_right_top ? dock_right_top : dock_right; // Fallback
-      case DockPosition::RightBottom: return dock_right_bottom;
-      default: return dock_center;
+      case DockPosition::Left:
+        return ids.left ? ids.left : ids.center;
+      case DockPosition::Right:
+        return ids.right ? ids.right : ids.center;
+      case DockPosition::Bottom:
+        return ids.bottom ? ids.bottom : ids.center;
+      case DockPosition::Top:
+        return ids.top ? ids.top : ids.center;
+      case DockPosition::LeftTop:
+        return ids.left_top ? ids.left_top
+                            : (ids.left ? ids.left : ids.center);
+      case DockPosition::LeftBottom:
+        return ids.left_bottom ? ids.left_bottom
+                               : (ids.left ? ids.left : ids.center);
+      case DockPosition::RightTop:
+        return ids.right_top ? ids.right_top
+                             : (ids.right ? ids.right : ids.center);
+      case DockPosition::RightBottom:
+        return ids.right_bottom ? ids.right_bottom
+                                : (ids.right ? ids.right : ids.center);
+      case DockPosition::Center:
+      default:
+        return ids.center;
     }
   };
 
   // Iterate through positioned panels and dock them
   for (const auto& [panel_id, position] : preset.panel_positions) {
-    std::string window_title = GetWindowTitle(panel_id);
+    const PanelDescriptor* desc =
+        panel_manager_
+            ? panel_manager_->GetPanelDescriptor(session_id, panel_id)
+            : nullptr;
+    if (!desc) {
+      LOG_WARN("LayoutManager",
+               "Preset references panel '%s' that is not registered (session "
+               "%zu)",
+               panel_id.c_str(), session_id);
+      continue;
+    }
+
+    std::string window_title = desc->GetWindowTitle();
     if (window_title.empty()) {
-      // If we can't find the title, try to infer it or skip
-      // For now, we skip as we need the title for DockBuilder
+      LOG_WARN("LayoutManager",
+               "Cannot dock panel '%s': missing window title (session %zu)",
+               panel_id.c_str(), session_id);
       continue;
     }
 
@@ -203,8 +334,9 @@ std::string LayoutManager::GetWindowTitle(const std::string& card_id) const {
     return "";
   }
 
+  const size_t session_id = panel_manager_->GetActiveSessionId();
   // Look up the panel descriptor in the manager (session 0 by default)
-  auto* info = panel_manager_->GetPanelDescriptor(0, card_id);
+  auto* info = panel_manager_->GetPanelDescriptor(session_id, card_id);
   if (info) {
     return info->GetWindowTitle();
   }
@@ -213,4 +345,3 @@ std::string LayoutManager::GetWindowTitle(const std::string& card_id) const {
 
 }  // namespace editor
 }  // namespace yaze
-

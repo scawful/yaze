@@ -54,6 +54,7 @@ void LayoutOrchestrator::ApplyNamedPreset(const std::string& preset_name,
   }
 
   ShowPresetPanels(preset, session_id, EditorType::kUnknown);
+  RequestLayoutRebuild();
 }
 
 void LayoutOrchestrator::ResetToDefault(EditorType type, size_t session_id) {
@@ -176,4 +177,3 @@ std::string LayoutOrchestrator::GetPrefixedPanelId(
 
 }  // namespace editor
 }  // namespace yaze
-

@@ -2,6 +2,7 @@
 #include "app/editor/layout_designer/layout_designer_window.h"
 
 #include <algorithm>
+#include <functional>
 #include <map>
 #include <optional>
 #include <unordered_map>
@@ -22,7 +23,133 @@ namespace layout_designer {
 
 namespace {
 constexpr const char kPanelPayloadType[] = "PANEL_ID";
+
+struct DockSplitResult {
+  ImGuiID first = 0;
+  ImGuiID second = 0;
+};
+
+// Thin wrapper around ImGui DockBuilder calls so we can swap implementations
+// in one place if the API changes.
+class DockBuilderFacade {
+ public:
+  explicit DockBuilderFacade(ImGuiID dockspace_id) : dockspace_id_(dockspace_id) {}
+
+  bool Reset(const ImVec2& size) const {
+    if (dockspace_id_ == 0) {
+      return false;
+    }
+    ImGui::DockBuilderRemoveNode(dockspace_id_);
+    ImGui::DockBuilderAddNode(dockspace_id_, ImGuiDockNodeFlags_DockSpace);
+    ImGui::DockBuilderSetNodeSize(dockspace_id_, size);
+    return true;
+  }
+
+  DockSplitResult Split(ImGuiID node_id, ImGuiDir dir, float ratio) const {
+    DockSplitResult result;
+    result.first = node_id;
+    ImGui::DockBuilderSplitNode(node_id, dir, ratio, &result.first,
+                                &result.second);
+    return result;
+  }
+
+  void DockWindow(const std::string& title, ImGuiID node_id) const {
+    if (!title.empty()) {
+      ImGui::DockBuilderDockWindow(title.c_str(), node_id);
+    }
+  }
+
+  void Finish() const { ImGui::DockBuilderFinish(dockspace_id_); }
+
+  ImGuiID dockspace_id() const { return dockspace_id_; }
+
+ private:
+  ImGuiID dockspace_id_ = 0;
+};
+
+bool ClearDockspace(ImGuiID dockspace_id) {
+  if (dockspace_id == 0) {
+    return false;
+  }
+  ImGui::DockBuilderRemoveNode(dockspace_id);
+  ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
+  ImGui::DockBuilderFinish(dockspace_id);
+  return true;
 }
+
+bool ApplyLayoutToDockspace(LayoutDefinition* layout_def,
+                            PanelManager* panel_manager,
+                            size_t session_id,
+                            ImGuiID dockspace_id) {
+  if (!layout_def || !layout_def->root) {
+    LOG_WARN("LayoutDesigner", "No layout definition to apply");
+    return false;
+  }
+  if (!panel_manager) {
+    LOG_WARN("LayoutDesigner", "PanelManager not available for docking");
+    return false;
+  }
+
+  DockBuilderFacade facade(dockspace_id);
+  if (!facade.Reset(ImGui::GetMainViewport()->WorkSize)) {
+    LOG_WARN("LayoutDesigner", "Failed to reset dockspace %u", dockspace_id);
+    return false;
+  }
+
+  std::function<void(DockNode*, ImGuiID)> build_tree =
+      [&](DockNode* node, ImGuiID node_id) {
+        if (!node) return;
+
+        if (node->IsSplit() && node->child_left && node->child_right) {
+          DockSplitResult split = facade.Split(node_id, node->split_dir,
+                                               node->split_ratio);
+
+          DockNode* first = node->child_left.get();
+          DockNode* second = node->child_right.get();
+          ImGuiID first_id = split.first;
+          ImGuiID second_id = split.second;
+
+          // Preserve the visual intent for Right/Down splits
+          if (node->split_dir == ImGuiDir_Right ||
+              node->split_dir == ImGuiDir_Down) {
+            first = node->child_right.get();
+            second = node->child_left.get();
+          }
+
+          build_tree(first, first_id);
+          build_tree(second, second_id);
+          return;
+        }
+
+        // Leaf/root: dock panels here
+        for (const auto& panel : node->panels) {
+          const PanelDescriptor* desc =
+              panel_manager->GetPanelDescriptor(session_id, panel.panel_id);
+          if (!desc) {
+            LOG_WARN("LayoutDesigner",
+                     "Skipping panel '%s' (descriptor not found for session %zu)",
+                     panel.panel_id.c_str(), session_id);
+            continue;
+          }
+
+          std::string window_title = desc->GetWindowTitle();
+          if (window_title.empty()) {
+            LOG_WARN("LayoutDesigner",
+                     "Skipping panel '%s' (missing window title)",
+                     panel.panel_id.c_str());
+            continue;
+          }
+
+          panel_manager->ShowPanel(session_id, panel.panel_id);
+          facade.DockWindow(window_title, node_id);
+        }
+      };
+
+  build_tree(layout_def->root.get(), dockspace_id);
+  facade.Finish();
+  return true;
+}
+}  // namespace
 
 void LayoutDesignerWindow::Initialize(PanelManager* panel_manager,
                                       LayoutManager* layout_manager,
@@ -264,6 +391,16 @@ void LayoutDesignerWindow::DrawToolbar() {
   
   if (ImGui::Button(ICON_MD_PLAY_ARROW " Preview")) {
     PreviewLayout();
+  }
+  ImGui::SameLine();
+
+  if (ImGui::Button(ICON_MD_RESET_TV " Clear Dockspace")) {
+    ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
+    if (ClearDockspace(dockspace_id)) {
+      LOG_INFO("LayoutDesigner", "Cleared dockspace %u", dockspace_id);
+    } else {
+      LOG_WARN("LayoutDesigner", "Failed to clear dockspace %u", dockspace_id);
+    }
   }
   ImGui::SameLine();
   
@@ -1389,61 +1526,16 @@ void LayoutDesignerWindow::PreviewLayout() {
     return;
   }
 
-  // Clear existing layout on the dockspace
-  ImGui::DockBuilderRemoveNode(dockspace_id);
-  ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
-  ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->WorkSize);
-
-  // Recursively build dock tree
-  std::function<void(DockNode*, ImGuiID)> build_tree =
-      [&](DockNode* node, ImGuiID node_id) {
-        if (!node) return;
-        if (node->IsSplit() && node->child_left && node->child_right) {
-          ImGuiID split_dir_id = node_id;
-          ImGuiID remainder_id = 0;
-          ImGui::DockBuilderSplitNode(node_id, node->split_dir, node->split_ratio,
-                                      &split_dir_id, &remainder_id);
-
-          // Map children based on split direction
-          DockNode* first = node->child_left.get();
-          DockNode* second = node->child_right.get();
-          ImGuiID first_id = split_dir_id;
-          ImGuiID second_id = remainder_id;
-
-          if (node->split_dir == ImGuiDir_Right || node->split_dir == ImGuiDir_Down) {
-            // Swap when split direction places new node on right/bottom
-            first = node->child_right.get();
-            second = node->child_left.get();
-          }
-
-          build_tree(first, first_id);
-          build_tree(second, second_id);
-          return;
-        }
-
-        // Leaf/root: dock panels here
-        for (const auto& panel : node->panels) {
-          std::string window_title;
-          if (auto* desc = panel_manager_->GetPanelDescriptor(0, panel.panel_id)) {
-            window_title = desc->GetWindowTitle();
-          }
-          if (window_title.empty()) {
-            LOG_WARN("LayoutDesigner", "Skipping panel '%s' (no window title)",
-                     panel.panel_id.c_str());
-            continue;
-          }
-
-          // Ensure visibility before docking
-          panel_manager_->ShowPanel(panel.panel_id);
-          ImGui::DockBuilderDockWindow(window_title.c_str(), node_id);
-        }
-      };
-
-  build_tree(current_layout_->root.get(), dockspace_id);
-  ImGui::DockBuilderFinish(dockspace_id);
-
-  last_drop_node_for_preview_ = current_layout_->root.get();
-  LOG_INFO("LayoutDesigner", "Preview applied to dockspace %u", dockspace_id);
+  const size_t session_id = panel_manager_->GetActiveSessionId();
+  if (ApplyLayoutToDockspace(current_layout_.get(), panel_manager_, session_id,
+                             dockspace_id)) {
+    last_drop_node_for_preview_ = current_layout_->root.get();
+    LOG_INFO("LayoutDesigner", "Preview applied to dockspace %u (session %zu)",
+             dockspace_id, session_id);
+  } else {
+    LOG_WARN("LayoutDesigner", "Preview failed to apply to dockspace %u",
+             dockspace_id);
+  }
 }
 
 void LayoutDesignerWindow::DrawDropZones(const ImVec2& pos, const ImVec2& size,

@@ -128,6 +128,11 @@ void LayoutCoordinator::ApplyLayoutPreset(const std::string& preset_name,
     panel_manager_->ShowPanel(session_id, panel_id);
   }
 
+  // Request a dock rebuild so the preset positions are applied
+  if (layout_manager_) {
+    layout_manager_->RequestRebuild();
+  }
+
   LOG_INFO("LayoutCoordinator", "Applied layout preset: %s",
            preset_name.c_str());
   if (toast_manager_) {
@@ -150,6 +155,12 @@ void LayoutCoordinator::ResetCurrentEditorLayout(EditorType editor_type,
 
   // Reset panels to defaults
   panel_manager_->ResetToDefaults(session_id, editor_type);
+
+  // Rebuild dock layout for this editor on next frame
+  if (layout_manager_) {
+    layout_manager_->ResetToDefaultLayout(editor_type);
+    layout_manager_->RequestRebuild();
+  }
 
   LOG_INFO("LayoutCoordinator", "Reset editor layout to defaults for type %d",
            static_cast<int>(editor_type));
@@ -231,4 +242,3 @@ void LayoutCoordinator::ProcessDeferredActions() {
 
 }  // namespace editor
 }  // namespace yaze
-
