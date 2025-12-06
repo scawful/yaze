@@ -3,8 +3,7 @@
 #include <chrono>
 
 #include "absl/strings/str_format.h"
-#include "app/editor/agent/agent_chat_widget.h"
-#include "app/editor/agent/agent_sidebar.h"
+#include "app/editor/agent/agent_chat.h"
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/editor/ui/selection_properties_panel.h"
@@ -382,13 +381,9 @@ void RightPanelManager::DrawPanelDescription(const char* text) {
 
 void RightPanelManager::DrawAgentChatPanel() {
 #ifdef YAZE_BUILD_AGENT_UI
-  // Prefer AgentSidebar if available (cleaner UI for sidebar)
-  if (agent_sidebar_) {
-    agent_sidebar_->Draw();
-  } else if (agent_chat_widget_) {
-    // Fallback to full AgentChatWidget
-    agent_chat_widget_->set_active(true);
-    agent_chat_widget_->Draw();
+  if (agent_chat_) {
+    agent_chat_->set_active(true);
+    agent_chat_->Draw();
   } else {
     ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
     ImGui::Text(ICON_MD_SMART_TOY " AI Agent Not Available");

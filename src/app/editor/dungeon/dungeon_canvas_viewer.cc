@@ -190,6 +190,11 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     };
 
     auto& layer_mgr = GetRoomLayerManager(room_id);
+    // TODO(zelda3-hacking-expert): The SNES path allows BG merge flags and
+    // layer types to coexist (four object streams with BothBG routines); make
+    // sure UI toggles here don’t enforce mutual exclusivity. See
+    // docs/internal/agents/dungeon-object-rendering-spec.md for the expected
+    // layering/merge semantics from bank_01.asm.
     layer_mgr.ApplyLayerMerging(room.layer_merging());
 
     uint8_t blockset_val = room.blockset;

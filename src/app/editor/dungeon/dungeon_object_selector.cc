@@ -97,9 +97,12 @@ void DungeonObjectSelector::DrawObjectRenderer() {
     ImGui::Separator();
 
     // Preview canvas
-    object_canvas_.DrawBackground(ImVec2(256 + 1, 0x10 * 0x40 + 1));
-    object_canvas_.DrawContextMenu();
-    object_canvas_.DrawGrid(32.0f);
+    gui::CanvasFrameOptions frame_opts;
+    frame_opts.canvas_size = ImVec2(256 + 1, 0x10 * 0x40 + 1);
+    frame_opts.draw_grid = true;
+    frame_opts.grid_step = 32.0f;
+    frame_opts.render_popups = true;
+    gui::CanvasFrame frame(object_canvas_, frame_opts);
 
     // Render selected object preview with primitive fallback
     if (object_loaded_ && preview_object_.id_ >= 0) {
@@ -112,7 +115,6 @@ void DungeonObjectSelector::DrawObjectRenderer() {
       RenderObjectPrimitive(preview_object_, preview_x, preview_y);
     }
 
-    object_canvas_.DrawOverlay();
     ImGui::EndChild();
     ImGui::EndTable();
   }
@@ -165,8 +167,11 @@ void DungeonObjectSelector::Draw() {
 
 void DungeonObjectSelector::DrawRoomGraphics() {
   const auto height = 0x40;
-  room_gfx_canvas_.DrawBackground();
-  room_gfx_canvas_.DrawContextMenu();
+  gui::CanvasFrameOptions frame_opts;
+  frame_opts.draw_grid = true;
+  frame_opts.grid_step = 32.0f;
+  frame_opts.render_popups = true;
+  gui::CanvasFrame frame(room_gfx_canvas_, frame_opts);
   room_gfx_canvas_.DrawTileSelector(32);
 
   if (rom_ && rom_->is_loaded() && rooms_) {
@@ -198,27 +203,21 @@ void DungeonObjectSelector::DrawRoomGraphics() {
         int row = current_block / max_blocks_per_row;
         int col = current_block % max_blocks_per_row;
 
-        int x = room_gfx_canvas_.zero_point().x + 2 + (col * block_width);
-        int y = room_gfx_canvas_.zero_point().y + 2 + (row * block_height);
+        ImVec2 local_pos(2 + (col * block_width), 2 + (row * block_height));
 
         // Ensure we don't exceed canvas bounds
-        if (x + block_width <=
-                room_gfx_canvas_.zero_point().x + room_gfx_canvas_.width() &&
-            y + block_height <=
-                room_gfx_canvas_.zero_point().y + room_gfx_canvas_.height()) {
-          // Only draw if the texture is valid
+        if (local_pos.x + block_width <= room_gfx_canvas_.width() &&
+            local_pos.y + block_height <= room_gfx_canvas_.height()) {
           if (gfx_sheet.texture() != 0) {
-            room_gfx_canvas_.draw_list()->AddImage(
-                (ImTextureID)(intptr_t)gfx_sheet.texture(), ImVec2(x, y),
-                ImVec2(x + block_width, y + block_height));
+            room_gfx_canvas_.AddImageAt(
+                (ImTextureID)(intptr_t)gfx_sheet.texture(), local_pos,
+                ImVec2(block_width, block_height));
           }
         }
       }
       current_block += 1;
     }
   }
-  room_gfx_canvas_.DrawGrid(32.0f);
-  room_gfx_canvas_.DrawOverlay();
 }
 
 void DungeonObjectSelector::DrawIntegratedEditingPanels() {
