@@ -229,11 +229,13 @@ class DungeonCanvasViewer {
   bool ArePotItemsVisible() const { return entity_visibility_.show_pot_items; }
 
  private:
-  void DisplayObjectInfo(const zelda3::RoomObject& object, int canvas_x,
+  void DisplayObjectInfo(const gui::CanvasRuntime& rt,
+                         const zelda3::RoomObject& object, int canvas_x,
                          int canvas_y);
-  void RenderSprites(const zelda3::Room& room);
-  void RenderPotItems(const zelda3::Room& room);
-  void RenderEntityOverlay(const zelda3::Room& room);
+  void RenderSprites(const gui::CanvasRuntime& rt, const zelda3::Room& room);
+  void RenderPotItems(const gui::CanvasRuntime& rt, const zelda3::Room& room);
+  void RenderEntityOverlay(const gui::CanvasRuntime& rt,
+                           const zelda3::Room& room);
 
   // Coordinate conversion helpers
   std::pair<int, int> RoomToCanvasCoordinates(int room_x, int room_y) const;
@@ -241,7 +243,8 @@ class DungeonCanvasViewer {
   bool IsWithinCanvasBounds(int canvas_x, int canvas_y, int margin = 32) const;
 
   // Visualization
-  void DrawObjectPositionOutlines(const zelda3::Room& room);
+  void DrawObjectPositionOutlines(const gui::CanvasRuntime& rt,
+                                  const zelda3::Room& room);
 
   // Room graphics management
   // Load: Read from ROM, Render: Process pixels, Draw: Display on canvas

@@ -7,6 +7,7 @@
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/util/bpp_format_manager.h"
 #include "app/gui/canvas/canvas_automation_api.h"
+#include "app/gui/canvas/canvas_extensions.h"
 #include "app/gui/canvas/canvas_utils.h"
 #include "app/gui/core/style.h"
 #include "imgui/imgui.h"
@@ -98,6 +99,38 @@ Canvas::Canvas(gfx::IRenderer* renderer, const std::string& id,
 
 Canvas::~Canvas() = default;
 
+void Canvas::Init(const CanvasConfig& config) {
+  config_ = config;
+  canvas_sz_ = config.canvas_size;
+  custom_step_ = config.grid_step;
+  global_scale_ = config.global_scale;
+  enable_grid_ = config.enable_grid;
+  enable_hex_tile_labels_ = config.enable_hex_labels;
+  enable_custom_labels_ = config.enable_custom_labels;
+  enable_context_menu_ = config.enable_context_menu;
+  draggable_ = config.is_draggable;
+  custom_canvas_size_ = config.custom_canvas_size;
+  scrolling_ = config.scrolling;
+}
+
+void Canvas::Init(const std::string& id, ImVec2 canvas_size) {
+  canvas_id_ = id;
+  context_id_ = id + "Context";
+  if (canvas_size.x > 0 || canvas_size.y > 0) {
+    config_.canvas_size = canvas_size;
+    config_.custom_canvas_size = true;
+    canvas_sz_ = canvas_size;
+  }
+  interaction_handler_.Initialize(canvas_id_);
+}
+
+CanvasExtensions& Canvas::EnsureExtensions() {
+  if (!extensions_) {
+    extensions_ = std::make_unique<CanvasExtensions>();
+  }
+  return *extensions_;
+}
+
 using ImGui::GetContentRegionAvail;
 using ImGui::GetCursorScreenPos;
 using ImGui::GetIO;
@@ -139,8 +172,7 @@ void Canvas::InitializeDefaults() {
   // Initialize selection state
   selection_.Clear();
 
-  // Initialize palette editor
-  palette_editor_ = std::make_unique<PaletteEditorWidget>();
+  // Note: palette_editor is now in CanvasExtensions (lazy-initialized)
 
   // Initialize interaction handler
   interaction_handler_.Initialize(canvas_id_);
@@ -162,7 +194,12 @@ void Canvas::InitializeDefaults() {
 }
 
 void Canvas::Cleanup() {
-  palette_editor_.reset();
+  // Cleanup extensions (if initialized)
+  if (extensions_) {
+    extensions_->Cleanup();
+  }
+  extensions_.reset();
+
   selection_.Clear();
 
   // Stop performance monitoring before cleanup to prevent segfault
@@ -170,16 +207,14 @@ void Canvas::Cleanup() {
     performance_integration_->StopMonitoring();
   }
 
-  // Cleanup enhanced components
-  modals_.reset();
+  // Cleanup enhanced components (non-extension ones)
   context_menu_.reset();
   usage_tracker_.reset();
   performance_integration_.reset();
 }
 
 void Canvas::InitializeEnhancedComponents() {
-  // Initialize modals system
-  modals_ = std::make_unique<CanvasModals>();
+  // Note: modals is now in CanvasExtensions (lazy-initialized on first use)
 
   // Initialize context menu system
   context_menu_ = std::make_unique<CanvasContextMenu>();
@@ -229,57 +264,64 @@ void Canvas::ShowPerformanceUI() {
 void Canvas::ShowUsageReport() {
   if (usage_tracker_) {
     std::string report = usage_tracker_->ExportUsageReport();
-    // Show report in a modal or window
-    if (modals_) {
-      // Create a simple text display modal
-      ImGui::OpenPopup("Canvas Usage Report");
-      if (ImGui::BeginPopupModal("Canvas Usage Report", nullptr,
-                                 ImGuiWindowFlags_AlwaysAutoResize)) {
-        ImGui::Text("Canvas Usage Report");
-        ImGui::Separator();
-        ImGui::TextWrapped("%s", report.c_str());
-        ImGui::Separator();
-        if (ImGui::Button("Close")) {
-          ImGui::CloseCurrentPopup();
-        }
-        ImGui::EndPopup();
+    // Show report in a modal or window (uses ImGui directly, no modals_ needed)
+    ImGui::OpenPopup("Canvas Usage Report");
+    if (ImGui::BeginPopupModal("Canvas Usage Report", nullptr,
+                               ImGuiWindowFlags_AlwaysAutoResize)) {
+      ImGui::Text("Canvas Usage Report");
+      ImGui::Separator();
+      ImGui::TextWrapped("%s", report.c_str());
+      ImGui::Separator();
+      if (ImGui::Button("Close")) {
+        ImGui::CloseCurrentPopup();
       }
+      ImGui::EndPopup();
     }
   }
 }
 
 void Canvas::InitializePaletteEditor(Rom* rom) {
   rom_ = rom;
-  if (palette_editor_) {
-    palette_editor_->Initialize(rom);
+  auto& ext = EnsureExtensions();
+  ext.InitializePaletteEditor();
+  if (ext.palette_editor) {
+    ext.palette_editor->Initialize(rom);
   }
 }
 
 void Canvas::SetGameData(zelda3::GameData* game_data) {
   game_data_ = game_data;
-  if (palette_editor_ && game_data) {
-    palette_editor_->Initialize(game_data);
+  if (extensions_ && extensions_->palette_editor && game_data) {
+    extensions_->palette_editor->Initialize(game_data);
   }
 }
 
 void Canvas::ShowPaletteEditor() {
-  if (palette_editor_ && bitmap_) {
-    auto mutable_palette = bitmap_->mutable_palette();
-    palette_editor_->ShowPaletteEditor(*mutable_palette,
-                                       "Canvas Palette Editor");
+  if (bitmap_) {
+    auto& ext = EnsureExtensions();
+    ext.InitializePaletteEditor();
+    if (ext.palette_editor) {
+      auto mutable_palette = bitmap_->mutable_palette();
+      ext.palette_editor->ShowPaletteEditor(*mutable_palette,
+                                            "Canvas Palette Editor");
+    }
   }
 }
 
 void Canvas::ShowColorAnalysis() {
-  if (palette_editor_ && bitmap_) {
-    palette_editor_->ShowColorAnalysis(*bitmap_, "Canvas Color Analysis");
+  if (bitmap_) {
+    auto& ext = EnsureExtensions();
+    ext.InitializePaletteEditor();
+    if (ext.palette_editor) {
+      ext.palette_editor->ShowColorAnalysis(*bitmap_, "Canvas Color Analysis");
+    }
   }
 }
 
 bool Canvas::ApplyROMPalette(int group_index, int palette_index) {
-  if (palette_editor_ && bitmap_) {
-    return palette_editor_->ApplyROMPalette(bitmap_, group_index,
-                                            palette_index);
+  if (bitmap_ && extensions_ && extensions_->palette_editor) {
+    return extensions_->palette_editor->ApplyROMPalette(bitmap_, group_index,
+                                                        palette_index);
   }
   return false;
 }
@@ -310,10 +352,11 @@ bool Canvas::BeginTableCanvas(const std::string& label) {
   std::string child_id = canvas_id_ + "_TableChild";
   ImVec2 child_size = config_.auto_resize ? ImVec2(0, 0) : config_.canvas_size;
 
+  // Use NoScrollbar - canvas handles its own scrolling via internal mechanism
   bool result =
       ImGui::BeginChild(child_id.c_str(), child_size,
                         true,  // Always show border for table integration
-                        ImGuiWindowFlags_AlwaysVerticalScrollbar);
+                        ImGuiWindowFlags_NoScrollbar);
 
   if (!label.empty()) {
     ImGui::Text("%s", label.c_str());
@@ -323,6 +366,63 @@ bool Canvas::BeginTableCanvas(const std::string& label) {
 }
 
 void Canvas::EndTableCanvas() {
+  ImGui::EndChild();
+}
+
+CanvasRuntime Canvas::BeginInTable(const std::string& label,
+                                   const CanvasFrameOptions& options) {
+  // Calculate child size from options or auto-resize
+  ImVec2 child_size = options.canvas_size;
+  if (child_size.x <= 0 || child_size.y <= 0) {
+    child_size = config_.auto_resize ? GetPreferredSize() : config_.canvas_size;
+  }
+
+  if (config_.auto_resize && child_size.x > 0 && child_size.y > 0) {
+    CanvasUtils::SetNextCanvasSize(child_size, true);
+  }
+
+  // Begin child window for table integration
+  // Use NoScrollbar - canvas handles its own scrolling via internal mechanism
+  std::string child_id = canvas_id_ + "_TableChild";
+  ImGuiWindowFlags child_flags = ImGuiWindowFlags_NoScrollbar;
+  if (options.show_scrollbar) {
+    child_flags = ImGuiWindowFlags_AlwaysVerticalScrollbar;
+  }
+  ImGui::BeginChild(child_id.c_str(), child_size, true, child_flags);
+
+  if (!label.empty()) {
+    ImGui::Text("%s", label.c_str());
+  }
+
+  // Draw background and set up canvas state
+  Begin(options);
+
+  // Build and return runtime
+  CanvasRuntime rt = BuildCurrentRuntime();
+  if (options.grid_step.has_value()) {
+    rt.grid_step = options.grid_step.value();
+  }
+  return rt;
+}
+
+void Canvas::EndInTable(CanvasRuntime& runtime,
+                        const CanvasFrameOptions& options) {
+  // Draw grid if enabled
+  if (options.draw_grid) {
+    float step = options.grid_step.value_or(config_.grid_step);
+    DrawGrid(step);
+  }
+
+  // Draw overlay
+  if (options.draw_overlay) {
+    DrawOverlay();
+  }
+
+  // Render persistent popups if enabled
+  if (options.render_popups) {
+    RenderPersistentPopups();
+  }
+
   ImGui::EndChild();
 }
 
@@ -369,18 +469,24 @@ void Canvas::End() {
 void Canvas::Begin(const CanvasFrameOptions& options) {
   gui::BeginPadding(1);
 
-  // Calculate effective size
-  ImVec2 effective_size = options.canvas_size;
-  if (effective_size.x == 0 && effective_size.y == 0) {
-    if (IsAutoResize()) {
-      effective_size = GetPreferredSize();
-    } else {
-      effective_size = GetCurrentSize();
+  // Only wrap in child window if explicitly requested
+  if (options.use_child_window) {
+    // Calculate effective size
+    ImVec2 effective_size = options.canvas_size;
+    if (effective_size.x == 0 && effective_size.y == 0) {
+      if (IsAutoResize()) {
+        effective_size = GetPreferredSize();
+      } else {
+        effective_size = GetCurrentSize();
+      }
     }
-  }
 
-  ImGui::BeginChild(canvas_id().c_str(), effective_size, true,
-                    ImGuiWindowFlags_AlwaysVerticalScrollbar);
+    ImGuiWindowFlags child_flags = ImGuiWindowFlags_None;
+    if (options.show_scrollbar) {
+      child_flags |= ImGuiWindowFlags_AlwaysVerticalScrollbar;
+    }
+    ImGui::BeginChild(canvas_id().c_str(), effective_size, true, child_flags);
+  }
 
   // Apply grid step from options if specified
   if (options.grid_step.has_value()) {
@@ -405,7 +511,10 @@ void Canvas::End(const CanvasFrameOptions& options) {
   if (options.render_popups) {
     RenderPersistentPopups();
   }
-  ImGui::EndChild();
+  // Only end child if we started one
+  if (options.use_child_window) {
+    ImGui::EndChild();
+  }
 }
 
 // ==================== Legacy Interface ====================
@@ -577,32 +686,40 @@ void Canvas::DrawContextMenu() {
               global_scale_ = config_.global_scale;
               break;
             case CanvasContextMenu::Command::kOpenAdvancedProperties:
-              if (modals_) {
-                CanvasConfig modal_config = updated_config;
-                modal_config.on_config_changed =
-                    [this](const CanvasConfig& cfg) {
-                      ApplyConfigSnapshot(cfg);
-                    };
-                modal_config.on_scale_changed =
-                    [this](const CanvasConfig& cfg) {
-                      ApplyScaleSnapshot(cfg);
-                    };
-                modals_->ShowAdvancedProperties(canvas_id_, modal_config,
-                                                bitmap_);
+              {
+                auto& ext = EnsureExtensions();
+                ext.InitializeModals();
+                if (ext.modals) {
+                  CanvasConfig modal_config = updated_config;
+                  modal_config.on_config_changed =
+                      [this](const CanvasConfig& cfg) {
+                        ApplyConfigSnapshot(cfg);
+                      };
+                  modal_config.on_scale_changed =
+                      [this](const CanvasConfig& cfg) {
+                        ApplyScaleSnapshot(cfg);
+                      };
+                  ext.modals->ShowAdvancedProperties(canvas_id_, modal_config,
+                                                     bitmap_);
+                }
               }
               break;
             case CanvasContextMenu::Command::kOpenScalingControls:
-              if (modals_) {
-                CanvasConfig modal_config = updated_config;
-                modal_config.on_config_changed =
-                    [this](const CanvasConfig& cfg) {
-                      ApplyConfigSnapshot(cfg);
-                    };
-                modal_config.on_scale_changed =
-                    [this](const CanvasConfig& cfg) {
-                      ApplyScaleSnapshot(cfg);
-                    };
-                modals_->ShowScalingControls(canvas_id_, modal_config, bitmap_);
+              {
+                auto& ext = EnsureExtensions();
+                ext.InitializeModals();
+                if (ext.modals) {
+                  CanvasConfig modal_config = updated_config;
+                  modal_config.on_config_changed =
+                      [this](const CanvasConfig& cfg) {
+                        ApplyConfigSnapshot(cfg);
+                      };
+                  modal_config.on_scale_changed =
+                      [this](const CanvasConfig& cfg) {
+                        ApplyScaleSnapshot(cfg);
+                      };
+                  ext.modals->ShowScalingControls(canvas_id_, modal_config, bitmap_);
+                }
               }
               break;
             default:
@@ -611,8 +728,8 @@ void Canvas::DrawContextMenu() {
         },
         snapshot, this);  // Phase 4: Pass Canvas* for editor menu integration
 
-    if (modals_) {
-      modals_->Render();
+    if (extensions_ && extensions_->modals) {
+      extensions_->modals->Render();
     }
 
     return;
@@ -1369,8 +1486,10 @@ void BeginCanvas(Canvas& canvas, ImVec2 child_size) {
     }
   }
 
+  // Use NoScrollbar by default - content should fit in the child window
+  // Scrolling is handled by the canvas's internal scrolling mechanism
   ImGui::BeginChild(canvas.canvas_id().c_str(), effective_size, true,
-                    ImGuiWindowFlags_AlwaysVerticalScrollbar);
+                    ImGuiWindowFlags_NoScrollbar);
   canvas.DrawBackground();
   gui::EndPadding();
   canvas.DrawContextMenu();
@@ -1386,18 +1505,25 @@ CanvasRuntime BeginCanvas(gui::Canvas& canvas,
                           const CanvasFrameOptions& options) {
   gui::BeginPadding(1);
 
-  // Calculate effective size
-  ImVec2 effective_size = options.canvas_size;
-  if (effective_size.x == 0 && effective_size.y == 0) {
-    if (canvas.IsAutoResize()) {
-      effective_size = canvas.GetPreferredSize();
-    } else {
-      effective_size = canvas.GetCurrentSize();
+  // Only wrap in child window if explicitly requested
+  if (options.use_child_window) {
+    // Calculate effective size
+    ImVec2 effective_size = options.canvas_size;
+    if (effective_size.x == 0 && effective_size.y == 0) {
+      if (canvas.IsAutoResize()) {
+        effective_size = canvas.GetPreferredSize();
+      } else {
+        effective_size = canvas.GetCurrentSize();
+      }
     }
-  }
 
-  ImGui::BeginChild(canvas.canvas_id().c_str(), effective_size, true,
-                    ImGuiWindowFlags_AlwaysVerticalScrollbar);
+    ImGuiWindowFlags child_flags = ImGuiWindowFlags_None;
+    if (options.show_scrollbar) {
+      child_flags |= ImGuiWindowFlags_AlwaysVerticalScrollbar;
+    }
+    ImGui::BeginChild(canvas.canvas_id().c_str(), effective_size, true,
+                      child_flags);
+  }
 
   // Apply grid step from options if specified
   if (options.grid_step.has_value()) {
@@ -1436,7 +1562,10 @@ void EndCanvas(gui::Canvas& canvas, CanvasRuntime& /*runtime*/,
   if (options.render_popups) {
     canvas.RenderPersistentPopups();
   }
-  ImGui::EndChild();
+  // Only end child if we started one
+  if (options.use_child_window) {
+    ImGui::EndChild();
+  }
 }
 
 void GraphicsBinCanvasPipeline(int width, int height, int tile_size,
@@ -1536,8 +1665,10 @@ void TableCanvasPipeline(gui::Canvas& canvas, gfx::Bitmap& bitmap,
 }
 
 void Canvas::ShowAdvancedCanvasProperties() {
-  // Use the new modal system if available
-  if (modals_) {
+  // Use the new modal system (lazy-initialized via extensions)
+  auto& ext = EnsureExtensions();
+  ext.InitializeModals();
+  if (ext.modals) {
     CanvasConfig modal_config;
     modal_config.canvas_size = canvas_sz_;
     modal_config.content_size = config_.content_size;
@@ -1562,7 +1693,7 @@ void Canvas::ShowAdvancedCanvasProperties() {
       scrolling_ = updated_config.scrolling;
     };
 
-    modals_->ShowAdvancedProperties(canvas_id_, modal_config, bitmap_);
+    ext.modals->ShowAdvancedProperties(canvas_id_, modal_config, bitmap_);
     return;
   }
 
@@ -1658,8 +1789,10 @@ void Canvas::ShowAdvancedCanvasProperties() {
 // Old ShowPaletteManager method removed - now handled by PaletteWidget
 
 void Canvas::ShowScalingControls() {
-  // Use the new modal system if available
-  if (modals_) {
+  // Use the new modal system (lazy-initialized via extensions)
+  auto& ext = EnsureExtensions();
+  ext.InitializeModals();
+  if (ext.modals) {
     CanvasConfig modal_config;
     modal_config.canvas_size = canvas_sz_;
     modal_config.content_size = config_.content_size;
@@ -1687,7 +1820,7 @@ void Canvas::ShowScalingControls() {
       scrolling_ = updated_config.scrolling;
     };
 
-    modals_->ShowScalingControls(canvas_id_, modal_config);
+    ext.modals->ShowScalingControls(canvas_id_, modal_config);
     return;
   }
 
@@ -1792,44 +1925,43 @@ void Canvas::ShowScalingControls() {
 
 // BPP format management methods
 void Canvas::ShowBppFormatSelector() {
-  if (!bpp_format_ui_) {
-    bpp_format_ui_ =
-        std::make_unique<gui::BppFormatUI>(canvas_id_ + "_bpp_format");
-  }
+  auto& ext = EnsureExtensions();
+  ext.InitializeBppUI(canvas_id_);
 
-  if (bitmap_) {
-    bpp_format_ui_->RenderFormatSelector(
+  if (bitmap_ && ext.bpp_format_ui) {
+    ext.bpp_format_ui->RenderFormatSelector(
         bitmap_, bitmap_->palette(),
         [this](gfx::BppFormat format) { ConvertBitmapFormat(format); });
   }
 }
 
 void Canvas::ShowBppAnalysis() {
-  if (!bpp_format_ui_) {
-    bpp_format_ui_ =
-        std::make_unique<gui::BppFormatUI>(canvas_id_ + "_bpp_format");
-  }
+  auto& ext = EnsureExtensions();
+  ext.InitializeBppUI(canvas_id_);
 
-  if (bitmap_) {
-    bpp_format_ui_->RenderAnalysisPanel(*bitmap_, bitmap_->palette());
+  if (bitmap_ && ext.bpp_format_ui) {
+    ext.bpp_format_ui->RenderAnalysisPanel(*bitmap_, bitmap_->palette());
   }
 }
 
 void Canvas::ShowBppConversionDialog() {
-  if (!bpp_conversion_dialog_) {
-    bpp_conversion_dialog_ = std::make_unique<gui::BppConversionDialog>(
+  auto& ext = EnsureExtensions();
+  if (!ext.bpp_conversion_dialog) {
+    ext.bpp_conversion_dialog = std::make_unique<gui::BppConversionDialog>(
         canvas_id_ + "_bpp_conversion");
   }
 
-  if (bitmap_) {
-    bpp_conversion_dialog_->Show(
+  if (bitmap_ && ext.bpp_conversion_dialog) {
+    ext.bpp_conversion_dialog->Show(
         *bitmap_, bitmap_->palette(),
         [this](gfx::BppFormat format, bool /*preserve_palette*/) {
           ConvertBitmapFormat(format);
         });
   }
 
-  bpp_conversion_dialog_->Render();
+  if (ext.bpp_conversion_dialog) {
+    ext.bpp_conversion_dialog->Render();
+  }
 }
 
 bool Canvas::ConvertBitmapFormat(gfx::BppFormat target_format) {
@@ -1870,10 +2002,9 @@ gfx::BppFormat Canvas::GetCurrentBppFormat() const {
 
 // Phase 4A: Canvas Automation API
 CanvasAutomationAPI* Canvas::GetAutomationAPI() {
-  if (!automation_api_) {
-    automation_api_ = std::make_unique<CanvasAutomationAPI>(this);
-  }
-  return automation_api_.get();
+  auto& ext = EnsureExtensions();
+  ext.InitializeAutomation(this);
+  return ext.automation_api.get();
 }
 
 // Stateless Canvas Helpers
@@ -1981,6 +2112,30 @@ bool RenderPreviewPanel(const CanvasRuntime& rt, gfx::Bitmap& bmp,
                static_cast<int>(opts.dest_pos.y), 1.0f, 255);
   }
   return true;
+}
+
+// ============================================================================
+// Stateless DrawRect/DrawText/DrawOutline Helpers
+// ============================================================================
+
+void DrawRect(const CanvasRuntime& rt, int x, int y, int w, int h,
+              ImVec4 color) {
+  if (!rt.draw_list) return;
+  CanvasUtils::DrawCanvasRect(rt.draw_list, rt.canvas_p0, rt.scrolling, x, y, w,
+                              h, color, rt.scale);
+}
+
+void DrawText(const CanvasRuntime& rt, const std::string& text, int x, int y) {
+  if (!rt.draw_list) return;
+  CanvasUtils::DrawCanvasText(rt.draw_list, rt.canvas_p0, rt.scrolling, text, x,
+                              y, rt.scale);
+}
+
+void DrawOutline(const CanvasRuntime& rt, int x, int y, int w, int h,
+                 ImU32 color) {
+  if (!rt.draw_list) return;
+  CanvasUtils::DrawCanvasOutline(rt.draw_list, rt.canvas_p0, rt.scrolling, x, y,
+                                 w, h, color);
 }
 
 // ============================================================================

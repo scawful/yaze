@@ -99,9 +99,16 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   constexpr int kRoomPixelHeight = 512;
   constexpr int kDungeonTileSize = 8;  // Dungeon tiles are 8x8 pixels
 
-  // Configure canvas for dungeon display
-  canvas_.SetCanvasSize(ImVec2(kRoomPixelWidth, kRoomPixelHeight));
-  canvas_.SetCustomGridStep(static_cast<float>(custom_grid_size_));
+  // Configure canvas frame options for the new BeginCanvas/EndCanvas pattern
+  gui::CanvasFrameOptions frame_opts;
+  frame_opts.canvas_size = ImVec2(kRoomPixelWidth, kRoomPixelHeight);
+  frame_opts.draw_grid = show_grid_;
+  frame_opts.grid_step = static_cast<float>(custom_grid_size_);
+  frame_opts.draw_context_menu = true;
+  frame_opts.draw_overlay = true;
+  frame_opts.render_popups = true;
+
+  // Legacy configuration for context menu and interaction systems
   canvas_.SetShowBuiltinContextMenu(false);  // Hide default canvas debug items
 
   // DEBUG: Log canvas configuration
@@ -997,11 +1004,9 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     }
   }
 
-  // CRITICAL: Draw canvas with explicit size to ensure viewport matches content
-  // DrawBackground must be called right before DrawContextMenu so that
-  // OpenPopupOnItemClick targets the canvas's InvisibleButton
-  canvas_.DrawBackground(ImVec2(kRoomPixelWidth, kRoomPixelHeight));
-  canvas_.DrawContextMenu();
+  // CRITICAL: Begin canvas frame using modern BeginCanvas/EndCanvas pattern
+  // This replaces DrawBackground + DrawContextMenu with a unified frame
+  auto canvas_rt = gui::BeginCanvas(canvas_, frame_opts);
 
   // Draw persistent debug overlays
   if (show_room_debug_info_ && rooms_ && rom_->is_loaded()) {
@@ -1208,7 +1213,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
 
     // Render entity overlays (sprites, pot items) as colored squares with labels
     // (Entities are not part of the background buffers)
-    RenderEntityOverlay(room);
+    RenderEntityOverlay(canvas_rt, room);
 
     // Handle object interaction if enabled
     if (object_interaction_enabled_) {
@@ -1220,7 +1225,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       object_interaction_
           .DrawEntitySelectionHighlights();  // Draw door/sprite/item selection
       object_interaction_.DrawGhostPreview();  // Draw placement preview
-      // Context menu is handled by canvas_.DrawContextMenu() above
+      // Context menu is handled by BeginCanvas via frame_opts.draw_context_menu
     }
   }
 
@@ -1233,18 +1238,16 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     // VISUALIZATION: Draw object position rectangles (for debugging)
     // This shows where objects are placed regardless of whether graphics render
     if (show_object_bounds_) {
-      DrawObjectPositionOutlines(room);
+      DrawObjectPositionOutlines(canvas_rt, room);
     }
   }
 
-  // Only draw grid when enabled (off by default for dungeon editor)
-  if (show_grid_) {
-    canvas_.DrawGrid();
-  }
-  canvas_.DrawOverlay();
+  // End canvas frame - this draws grid/overlay based on frame_opts
+  gui::EndCanvas(canvas_, canvas_rt, frame_opts);
 }
 
-void DungeonCanvasViewer::DisplayObjectInfo(const zelda3::RoomObject& object,
+void DungeonCanvasViewer::DisplayObjectInfo(const gui::CanvasRuntime& rt,
+                                            const zelda3::RoomObject& object,
                                             int canvas_x, int canvas_y) {
   // Display object information as text overlay with hex ID and name
   std::string name = GetObjectName(object.id_);
@@ -1259,11 +1262,12 @@ void DungeonCanvasViewer::DisplayObjectInfo(const zelda3::RoomObject& object,
                         name.c_str(), object.x_, object.y_, object.size_);
   }
 
-  // Draw text at the object position
-  canvas_.DrawText(info_text, canvas_x, canvas_y - 12);
+  // Draw text at the object position using runtime-based helper
+  gui::DrawText(rt, info_text, canvas_x, canvas_y - 12);
 }
 
-void DungeonCanvasViewer::RenderSprites(const zelda3::Room& room) {
+void DungeonCanvasViewer::RenderSprites(const gui::CanvasRuntime& rt,
+                                        const zelda3::Room& room) {
   // Skip if sprites are not visible
   if (!entity_visibility_.show_sprites) {
     return;
@@ -1290,8 +1294,8 @@ void DungeonCanvasViewer::RenderSprites(const zelda3::Room& room) {
         sprite_color = theme.dungeon_sprite_layer1;  // Blue for layer 1
       }
 
-      // Draw filled square
-      canvas_.DrawRect(canvas_x, canvas_y, 16, 16, sprite_color);
+      // Draw filled square using runtime-based helper
+      gui::DrawRect(rt, canvas_x, canvas_y, 16, 16, sprite_color);
 
       // Draw sprite ID and name
       std::string sprite_text;
@@ -1315,19 +1319,20 @@ void DungeonCanvasViewer::RenderSprites(const zelda3::Room& room) {
         sprite_text = absl::StrFormat("%02X", sprite.id());
       }
 
-      canvas_.DrawText(sprite_text, canvas_x, canvas_y);
+      gui::DrawText(rt, sprite_text, canvas_x, canvas_y);
     }
   }
 }
 
-void DungeonCanvasViewer::RenderPotItems(const zelda3::Room& room) {
+void DungeonCanvasViewer::RenderPotItems(const gui::CanvasRuntime& rt,
+                                         const zelda3::Room& room) {
   // Skip if pot items are not visible
   if (!entity_visibility_.show_pot_items) {
     return;
   }
 
   const auto& pot_items = room.GetPotItems();
-  
+
   // If no pot items in this room, nothing to render
   if (pot_items.empty()) {
     return;
@@ -1364,7 +1369,8 @@ void DungeonCanvasViewer::RenderPotItems(const zelda3::Room& room) {
       "Bombable",       // 26
       "Switch"          // 27
   };
-  constexpr size_t kPotItemNameCount = sizeof(kPotItemNames) / sizeof(kPotItemNames[0]);
+  constexpr size_t kPotItemNameCount =
+      sizeof(kPotItemNames) / sizeof(kPotItemNames[0]);
 
   // Pot items now have their own position data from ROM
   // No need to match to objects - each item has exact pixel coordinates
@@ -1372,10 +1378,11 @@ void DungeonCanvasViewer::RenderPotItems(const zelda3::Room& room) {
     // Get pixel coordinates from PotItem structure
     int pixel_x = pot_item.GetPixelX();
     int pixel_y = pot_item.GetPixelY();
-    
+
     // Convert to canvas coordinates (already in pixels, just need offset)
     // Note: pot item coords are already in full room pixel space
-    auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(pixel_x / 8, pixel_y / 8);
+    auto [canvas_x, canvas_y] =
+        RoomToCanvasCoordinates(pixel_x / 8, pixel_y / 8);
 
     if (IsWithinCanvasBounds(canvas_x, canvas_y, 16)) {
       // Draw colored square
@@ -1386,7 +1393,7 @@ void DungeonCanvasViewer::RenderPotItems(const zelda3::Room& room) {
         pot_item_color = ImVec4(1.0f, 0.85f, 0.2f, 0.75f);  // Yellow for items
       }
 
-      canvas_.DrawRect(canvas_x, canvas_y, 16, 16, pot_item_color);
+      gui::DrawRect(rt, canvas_x, canvas_y, 16, 16, pot_item_color);
 
       // Get item name
       std::string item_name;
@@ -1397,16 +1404,18 @@ void DungeonCanvasViewer::RenderPotItems(const zelda3::Room& room) {
       }
 
       // Draw label above the box
-      std::string item_text = absl::StrFormat("%02X %s", pot_item.item, item_name.c_str());
-      canvas_.DrawText(item_text, canvas_x, canvas_y - 10);
+      std::string item_text =
+          absl::StrFormat("%02X %s", pot_item.item, item_name.c_str());
+      gui::DrawText(rt, item_text, canvas_x, canvas_y - 10);
     }
   }
 }
 
-void DungeonCanvasViewer::RenderEntityOverlay(const zelda3::Room& room) {
-  // Render all entity overlays
-  RenderSprites(room);
-  RenderPotItems(room);
+void DungeonCanvasViewer::RenderEntityOverlay(const gui::CanvasRuntime& rt,
+                                              const zelda3::Room& room) {
+  // Render all entity overlays using runtime-based helpers
+  RenderSprites(rt, room);
+  RenderPotItems(rt, room);
 }
 
 // Coordinate conversion helper functions
@@ -1452,7 +1461,8 @@ bool DungeonCanvasViewer::IsWithinCanvasBounds(int canvas_x, int canvas_y,
 // Room layout visualization
 
 // Object visualization methods
-void DungeonCanvasViewer::DrawObjectPositionOutlines(const zelda3::Room& room) {
+void DungeonCanvasViewer::DrawObjectPositionOutlines(
+    const gui::CanvasRuntime& rt, const zelda3::Room& room) {
   // Draw colored rectangles showing object positions
   // This helps visualize object placement even if graphics don't render
   // correctly
@@ -1462,7 +1472,8 @@ void DungeonCanvasViewer::DrawObjectPositionOutlines(const zelda3::Room& room) {
 
   // Create ObjectDrawer for accurate dimension calculation
   // ObjectDrawer uses game-accurate draw routine mapping to determine sizes
-  // Note: const_cast needed because rom() accessor is non-const, but we don't modify ROM
+  // Note: const_cast needed because rom() accessor is non-const, but we don't
+  // modify ROM
   zelda3::ObjectDrawer drawer(const_cast<zelda3::Room&>(room).rom(), room.id(),
                               nullptr);
 
@@ -1527,8 +1538,8 @@ void DungeonCanvasViewer::DrawObjectPositionOutlines(const zelda3::Room& room) {
       outline_color = theme.dungeon_outline_layer2;  // Blue for layer 2
     }
 
-    // Draw outline rectangle
-    canvas_.DrawRect(canvas_x, canvas_y, width, height, outline_color);
+    // Draw outline rectangle using runtime-based helper
+    gui::DrawRect(rt, canvas_x, canvas_y, width, height, outline_color);
 
     // Draw object ID label with hex ID and abbreviated name
     // Format: "0xNN Name" where name is truncated if needed
@@ -1545,7 +1556,7 @@ void DungeonCanvasViewer::DrawObjectPositionOutlines(const zelda3::Room& room) {
       label = absl::StrFormat("0x%02X\n%s\n[%dx%d]", obj.id_, name.c_str(),
                               width, height);
     }
-    canvas_.DrawText(label, canvas_x + 1, canvas_y + 1);
+    gui::DrawText(rt, label, canvas_x + 1, canvas_y + 1);
   }
 }
 

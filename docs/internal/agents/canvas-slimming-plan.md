@@ -1,7 +1,7 @@
 ## Canvas Slimming Plan
 
 Owner: imgui-frontend-engineer  
-Status: In Progress (Phases 1, 3, 5-Medium Complete)
+Status: In Progress (Phases 1, 2, 3, 4, 5-High/Dungeon Complete)
 Scope: `src/app/gui/canvas/` + editor call-sites  
 Goal: Reduce `gui::Canvas` bloat, align lifecycle with ImGui-style, and enable safer per-frame usage without hidden state mutation.
 
@@ -28,10 +28,15 @@ Goal: Reduce `gui::Canvas` bloat, align lifecycle with ImGui-style, and enable s
      - Implemented `EndCanvas(Canvas&, CanvasRuntime&, CanvasFrameOptions)` handling grid/overlay/popups
    - [ ] Deprecate internal legacy mirrors (`custom_step_`, `global_scale_`, enable_* duplicates); keep sync shims temporarily.
 
-2) **API narrowing** [PENDING]
-   - [ ] Collapse ctors to a single default + `Init(config)`.
-   - [ ] Mark setters that mutate per-frame state (`SetCanvasSize`, `SetGridSize`, etc.) as "compat; prefer frame options."
-   - [ ] Add `BeginInTable(label, CanvasFrameOptions)` that wraps child sizing and returns a runtime-aware frame.
+2) **API narrowing** [COMPLETE]
+   - [x] Collapse ctors to a single default + `Init(config)`.
+     - Added `Init(const CanvasConfig& config)` and `Init(const std::string& id, ImVec2 canvas_size)` methods
+     - Legacy constructors marked with `[[deprecated("Use default ctor + Init() instead")]]`
+   - [x] Mark setters that mutate per-frame state (`SetCanvasSize`, `SetGridSize`, etc.) as "compat; prefer frame options."
+     - Added COMPAT comments to `SetGridSize`, `SetCustomGridStep`, `SetCanvasSize`, `SetGlobalScale`, `set_global_scale`
+   - [x] Add `BeginInTable(label, CanvasFrameOptions)` that wraps child sizing and returns a runtime-aware frame.
+     - Implemented `BeginInTable(label, CanvasFrameOptions)` returning `CanvasRuntime`
+     - Implemented `EndInTable(CanvasRuntime&, CanvasFrameOptions)` handling grid/overlay/popups
 
 3) **Helper refactor** [COMPLETE]
    - [x] Change helper signatures to accept `CanvasRuntime&`: `DrawBitmap`, `DrawBitmapPreview`, `RenderPreviewPanel`.
@@ -42,20 +47,34 @@ Goal: Reduce `gui::Canvas` bloat, align lifecycle with ImGui-style, and enable s
      - Added `Canvas::BuildCurrentRuntime()` private helper
    - [x] Added `DrawBitmap(CanvasRuntime&, Bitmap&, BitmapDrawOpts)` overload for options-based drawing.
 
-4) **Optional modules split** [PENDING]
-   - [ ] Move bpp dialogs, palette editor, modals, automation into an extension struct (`CanvasExtensions`) held by unique_ptr on demand.
-   - [ ] Core `Canvas` remains lean even when extensions are absent.
+4) **Optional modules split** [COMPLETE]
+   - [x] Move bpp dialogs, palette editor, modals, automation into an extension struct (`CanvasExtensions`) held by unique_ptr on demand.
+     - Created `canvas_extensions.h` with `CanvasExtensions` struct containing: `bpp_format_ui`, `bpp_conversion_dialog`, `bpp_comparison_tool`, `modals`, `palette_editor`, `automation_api`
+     - Created `canvas_extensions.cc` with lazy initialization helpers: `InitializeModals()`, `InitializePaletteEditor()`, `InitializeBppUI()`, `InitializeAutomation()`
+     - Canvas now uses single `std::unique_ptr<CanvasExtensions> extensions_` with `EnsureExtensions()` lazy accessor
+   - [x] Core `Canvas` remains lean even when extensions are absent.
+     - Extensions only allocated on first use of optional features
+     - All Show* methods and GetAutomationAPI() delegate to EnsureExtensions()
 
 5) **Call-site migration** [IN PROGRESS]
    - [x] Update low-risk previews first: graphics thumbnails (`sheet_browser_panel`), small previews (`object_editor_panel`, `link_sprite_panel`).
    - [x] Medium: screen/inventory canvases, sprite/tileset selectors.
      - `DrawInventoryMenuEditor`: migrated to `BeginCanvas/EndCanvas` + stateless `DrawBitmap`
      - `DrawDungeonMapsRoomGfx`: migrated tilesheet and current_tile canvases to new pattern
-   - [ ] High/complex: overworld/dungeon main canvases; migrate last after patterns are stable.
+   - [x] High/complex - Dungeon Editor: `DungeonCanvasViewer::DrawDungeonCanvas` migrated
+     - Uses `BeginCanvas(canvas_, frame_opts)` / `EndCanvas(canvas_, canvas_rt, frame_opts)` pattern
+     - Entity rendering functions updated to accept `CanvasRuntime&` parameter
+     - All `canvas_.DrawRect/DrawText` calls replaced with `gui::DrawRect(rt, ...)` / `gui::DrawText(rt, ...)`
+     - Grid visibility controlled via `frame_opts.draw_grid = show_grid_`
+   - [ ] High/complex - Overworld Editor: main canvas migration pending (follow dungeon pattern).
 
 6) **Cleanup & deprecations** [PENDING]
    - [ ] Remove deprecated ctors/fields after call-sites are migrated.
    - [ ] Document "per-frame opts" pattern and add brief usage examples in `canvas.h`.
+   - [ ] Remove legacy `BeginCanvas(Canvas&, ImVec2)` overload (only used by `message_editor.cc`)
+   - [ ] Audit remaining `AlwaysVerticalScrollbar` usage in `GraphicsBinCanvasPipeline`/`BitmapCanvasPipeline`
+   - [ ] Remove `custom_step_`, `global_scale_` duplicates once all editors use `CanvasFrameOptions`
+   - [ ] Consider making `CanvasRuntime` a first-class return from all `Begin` variants
 
 ### Where to Start (low risk, high leverage)
 - **COMPLETED (Phase 1 - Low Risk):** Migrated low-risk graphics thumbnails and previews:
@@ -70,22 +89,41 @@ Goal: Reduce `gui::Canvas` bloat, align lifecycle with ImGui-style, and enable s
 
 ### Editor-Specific Strategies (for later phases)
 
-- **Overworld Editor (high complexity)**
+- **Overworld Editor (high complexity)** [PENDING - follow dungeon pattern]
   - Surfaces: main overworld canvas (tile painting, selection, multi-layer), scratch space, tile16 selector, property info grids.
-  - Approach:
-    - Keep **main canvas last**. Start with property/info grids and selectors already close to preview patterns.
-    - For the main canvas: preserve selection and drag behavior. Move interaction state into `CanvasRuntime` (hover, click positions) and keep `CanvasSelection` for persistence. Ensure grid step matches map tile size; pass via frame options.
-    - Use helpers instead of `draw_list` math for overlays (entity highlights, selection rects) by feeding `CanvasRuntime` into overlay helpers.
-    - Context menus/persistent popups are important; leave `render_popups` enabled. Verify zoom/scroll (use runtime geometry).
-    - Property canvases using `UpdateInfoGrid` can stay; when converting, ensure label rendering uses context-aware helpers.
+  - **Recommended Migration Order (based on dungeon learnings):**
+    1. Start with panel canvases (tile16 selector, scratch space) - these are similar to object_editor_panel
+    2. Then tile8 selector and property grids
+    3. Finally the main overworld canvas
+  - **Approach:**
+    - Set up `CanvasFrameOptions` with `use_child_window = false` (critical for proper sizing)
+    - Context menu items must be registered BEFORE `BeginCanvas` call
+    - Entity overlay functions should accept `const gui::CanvasRuntime&` and use `gui::DrawRect/DrawText`
+    - Keep `CanvasSelection` for persistence; per-frame hover/click lives in runtime
+    - Existing interaction handlers using `canvas_` pointer will still work
+  - **Key differences from dungeon:**
+    - Overworld has multiple map layers - ensure layer drawing uses runtime scale
+    - Tile16 system uses different coordinate math than dungeon 8x8 tiles
+    - Scratch space canvas has different sizing needs
+  - **Testing focus:**
+    - Selection rect correctness after migration
+    - Zoom/scroll behavior preserved
+    - Context menu actions still work
+    - Entity highlights render at correct positions
 
-- **Dungeon Editor**
+- **Dungeon Editor** [MIGRATED]
   - Surfaces: room graphics viewer, object selector preview, integrated editor panels, room canvases with palettes/blocks.
-  - Approach:
-    - Keep the **room canvas** migration after the previews already done. Room canvas relies on textures from `gfx::Arena`; keep `ensure_texture` paths when drawing bitmaps/tiles.
-    - Use `CanvasRuntime` for grid-aligned draws; set grid step to the block/tile size (32). Replace manual `zero_point()` math with `AddImageAt` equivalents that accept runtime/context.
-    - Selection/placement: keep `CanvasSelection` persistent; per-frame hover/click lives in runtime to avoid hidden state drift.
-    - Context menu/popup flows are used; keep `render_popups` true.
+  - **Completed Migration:**
+    - `DungeonCanvasViewer::DrawDungeonCanvas`: Uses `BeginCanvas/EndCanvas` with `CanvasFrameOptions`
+    - Entity rendering functions (`RenderSprites`, `RenderPotItems`, `DrawObjectPositionOutlines`) accept `const gui::CanvasRuntime&`
+    - All drawing calls use stateless helpers: `gui::DrawRect(rt, ...)`, `gui::DrawText(rt, ...)`
+    - `DungeonObjectSelector`: Already used `CanvasFrame` pattern (no changes needed)
+    - `ObjectEditorPanel`: Already used `BeginCanvas/EndCanvas` pattern (no changes needed)
+  - **Key Lessons:**
+    - Context menu setup (`ClearContextMenuItems`, `AddContextMenuItem`) must happen BEFORE `BeginCanvas`
+    - The `DungeonObjectInteraction` class still uses `canvas_` pointer internally - this works because canvas state is set up by `BeginCanvas`
+    - Debug overlay windows (`ImGui::Begin/End`) work fine inside the canvas frame since they're separate ImGui windows
+    - Grid visibility is now controlled via `frame_opts.draw_grid` instead of manual `if (show_grid_) { canvas_.DrawGrid(); }`
 
 - **Screen/Inventory Editors** [MIGRATED]
   - `DrawInventoryMenuEditor` and `DrawDungeonMapsRoomGfx` now use `BeginCanvas/EndCanvas` with `CanvasFrameOptions`.
@@ -100,7 +138,7 @@ Goal: Reduce `gui::Canvas` bloat, align lifecycle with ImGui-style, and enable s
 
 ### Testing Focus per Editor
 - Overworld: selection rect correctness, tile ID math, zoom/scroll invariants, context menu actions, persistent popups.
-- Dungeon: grid alignment for blocks/objects, palette-application correctness, texture creation/update via `Arena`.
+- Dungeon [VALIDATED]: grid alignment ✓, object interaction ✓, entity overlays ✓, context menu ✓, layer visibility ✓.
 - Screen/Inventory: zoom buttons, grid overlay alignment, selectors.
 - Graphics panels: texture creation on demand, grid overlay spacing, tooltip/selection hits.
 
@@ -128,13 +166,32 @@ Goal: Reduce `gui::Canvas` bloat, align lifecycle with ImGui-style, and enable s
   - `host.AddItem("Custom", "Ctrl+K", []{ ... });`
   - `RenderContextMenu(host, runtime, config);`
 
+### Critical Insights (Lessons Learned)
+
+**Child Window & Scrollbar Behavior:**
+- The canvas has its own internal scrolling mechanism via `scrolling_` state and pan handling in `DrawBackground()`.
+- Wrapping in `ImGui::BeginChild()` with scrollbars is **redundant** and causes visual issues.
+- `CanvasFrameOptions.use_child_window` defaults to `false` to match legacy `DrawBackground()` behavior.
+- Only use `use_child_window = true` when you explicitly need a scrollable container (rare).
+- All `BeginChild` calls in canvas code now use `ImGuiWindowFlags_NoScrollbar` by default.
+
+**Context Menu Ordering:**
+- Context menu setup (`ClearContextMenuItems`, `AddContextMenuItem`) must happen BEFORE `BeginCanvas`.
+- The menu items are state on the canvas object, not per-frame data.
+- `BeginCanvas` calls `DrawBackground` + `DrawContextMenu`, so items must be registered first.
+
+**Interaction Systems:**
+- Systems like `DungeonObjectInteraction` that hold a `canvas_` pointer still work because canvas internal state is valid after `BeginCanvas`.
+- The runtime provides read-only geometry; interaction systems can still read canvas state directly.
+
 ### Design Principles to Follow
 - ImGui-like: options-as-arguments at `Begin`, minimal persistent mutation, small POD contexts for draw helpers.
 - Keep the core type thin; optional features live in extensions, not the base.
 - Maintain compatibility shims temporarily, but mark them and plan removal once editors are migrated.
+- **Avoid child window wrappers** unless truly needed for scrollable regions.
 
 ### Quick Reference for Future Agents
-- Core files to touch: `src/app/gui/canvas/canvas.{h,cc}`, `canvas_menu.{h,cc}`, `canvas_context_menu.{h,cc}`, `canvas_menu_builder.{h,cc}`, `canvas_utils.{h,cc}`. Common call-sites: `screen_editor.cc`, `link_sprite_panel.cc`, `sheet_browser_panel.cc`, `object_editor_panel.cc`, `dungeon_object_selector.cc`, overworld/dungeon editors.
+- Core files to touch: `src/app/gui/canvas/canvas.{h,cc}`, `canvas_extensions.{h,cc}`, `canvas_menu.{h,cc}`, `canvas_context_menu.{h,cc}`, `canvas_menu_builder.{h,cc}`, `canvas_utils.{h,cc}`. Common call-sites: `screen_editor.cc`, `link_sprite_panel.cc`, `sheet_browser_panel.cc`, `object_editor_panel.cc`, `dungeon_object_selector.cc`, overworld/dungeon editors.
 - Avoid legacy patterns: direct `draw_list()` math in callers, `custom_step_`/`global_scale_` duplicates, scattered `DrawBackground/DrawGrid/DrawOverlay` chains, implicit menu stacking in `DrawContextMenu`.
 - Naming/API standardization:
   - Per-frame context: `CanvasRuntime`; pass it to helpers.
@@ -147,9 +204,32 @@ Goal: Reduce `gui::Canvas` bloat, align lifecycle with ImGui-style, and enable s
     - `DrawTilemapPainter(rt, tilemap, current_tile, out_drawn_pos)` - returns drawn position via output param
     - `DrawTileSelector(rt, size, size_y, out_selected_pos)` - returns selection via output param
     - `DrawSelectRect(rt, current_map, tile_size, scale, CanvasSelection&)` - updates selection struct
+    - `DrawRect(rt, x, y, w, h, color)` - draws filled rectangle (added for entity overlays)
+    - `DrawText(rt, text, x, y)` - draws text at position (added for entity labels)
+    - `DrawOutline(rt, x, y, w, h, color)` - draws outline rectangle
   - **Frame management:**
     - `BeginCanvas(canvas, CanvasFrameOptions)` → returns `CanvasRuntime`
     - `EndCanvas(canvas, runtime, CanvasFrameOptions)` → draws grid/overlay/popups based on options
+    - `BeginInTable(label, CanvasFrameOptions)` → table-aware begin returning `CanvasRuntime`
+    - `EndInTable(runtime, CanvasFrameOptions)` → table-aware end with grid/overlay/popups
+  - **CanvasFrameOptions fields:**
+    - `canvas_size` - size of canvas content (0,0 = auto from config)
+    - `draw_context_menu` - whether to call DrawContextMenu (default true)
+    - `draw_grid` - whether to draw grid overlay (default true)
+    - `grid_step` - optional grid step override
+    - `draw_overlay` - whether to draw selection overlay (default true)
+    - `render_popups` - whether to render persistent popups (default true)
+    - `use_child_window` - wrap in ImGui::BeginChild (default **false** - important!)
+    - `show_scrollbar` - show scrollbar when use_child_window is true (default false)
+  - **Initialization (Phase 2):**
+    - `Canvas()` → default constructor (preferred)
+    - `Init(const CanvasConfig& config)` → post-construction initialization with full config
+    - `Init(const std::string& id, ImVec2 canvas_size)` → simple initialization
+    - Legacy constructors deprecated with `[[deprecated]]` attribute
+  - **Extensions (Phase 4):**
+    - `CanvasExtensions` struct holds optional modules: bpp_format_ui, bpp_conversion_dialog, bpp_comparison_tool, modals, palette_editor, automation_api
+    - `EnsureExtensions()` → lazy accessor (private, creates extensions on first use)
+    - Extensions only allocated when Show* or GetAutomationAPI() methods are called
   - **Legacy delegation:** Member functions delegate to stateless helpers via `Canvas::BuildCurrentRuntime()`
   - Context menu flow: host.Clear → optional `RegisterDefaultCanvasMenu(host, rt, cfg)` → caller adds items → `RenderContextMenu(host, rt, cfg)` once per frame.
 - Migration checklist (per call-site):

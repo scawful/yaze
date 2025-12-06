@@ -40,8 +40,9 @@ namespace yaze {
  */
 namespace gui {
 
-// Forward declaration (full include would cause circular dependency)
+// Forward declarations (full includes would cause circular dependency or bloat)
 class CanvasAutomationAPI;
+struct CanvasExtensions;
 
 using gfx::Bitmap;
 using gfx::BitmapTable;
@@ -69,6 +70,11 @@ struct CanvasFrameOptions {
   std::optional<float> grid_step;
   bool draw_overlay = true;
   bool render_popups = true;
+  // When true, wraps canvas in ImGui::BeginChild for scrollable container
+  // Default false to match legacy DrawBackground behavior
+  bool use_child_window = false;
+  // Only applies when use_child_window is true
+  bool show_scrollbar = false;
 };
 
 struct BitmapPreviewOptions {
@@ -147,21 +153,37 @@ class Canvas {
   Canvas();
   ~Canvas();
 
-  // Legacy constructors (renderer is optional for backward compatibility)
+  /**
+   * @brief Initialize canvas with configuration (post-construction)
+   * Preferred over constructor parameters for new code.
+   */
+  void Init(const CanvasConfig& config);
+  void Init(const std::string& id, ImVec2 canvas_size = ImVec2(0, 0));
+
+  // COMPAT: Legacy constructors - prefer default ctor + Init() for new code
+  [[deprecated("Use default ctor + Init(id, size) instead")]]
   explicit Canvas(const std::string& id);
+  [[deprecated("Use default ctor + Init(id, size) instead")]]
   explicit Canvas(const std::string& id, ImVec2 canvas_size);
+  [[deprecated("Use default ctor + Init(config) instead")]]
   explicit Canvas(const std::string& id, ImVec2 canvas_size,
                   CanvasGridSize grid_size);
+  [[deprecated("Use default ctor + Init(config) instead")]]
   explicit Canvas(const std::string& id, ImVec2 canvas_size,
                   CanvasGridSize grid_size, float global_scale);
 
-  // New constructors with renderer support (for migration to IRenderer pattern)
+  // COMPAT: Legacy constructors with renderer - prefer default ctor + Init()
+  [[deprecated("Use default ctor + SetRenderer() + Init() instead")]]
   explicit Canvas(gfx::IRenderer* renderer);
+  [[deprecated("Use default ctor + SetRenderer() + Init(id, size) instead")]]
   explicit Canvas(gfx::IRenderer* renderer, const std::string& id);
+  [[deprecated("Use default ctor + SetRenderer() + Init(id, size) instead")]]
   explicit Canvas(gfx::IRenderer* renderer, const std::string& id,
                   ImVec2 canvas_size);
+  [[deprecated("Use default ctor + SetRenderer() + Init(config) instead")]]
   explicit Canvas(gfx::IRenderer* renderer, const std::string& id,
                   ImVec2 canvas_size, CanvasGridSize grid_size);
+  [[deprecated("Use default ctor + SetRenderer() + Init(config) instead")]]
   explicit Canvas(gfx::IRenderer* renderer, const std::string& id,
                   ImVec2 canvas_size, CanvasGridSize grid_size,
                   float global_scale);
@@ -170,6 +192,7 @@ class Canvas {
   void SetRenderer(gfx::IRenderer* renderer) { renderer_ = renderer; }
   gfx::IRenderer* renderer() const { return renderer_; }
 
+  // COMPAT: prefer CanvasFrameOptions.grid_step for per-frame grid control
   void SetGridSize(CanvasGridSize grid_size) {
     switch (grid_size) {
       case CanvasGridSize::k8x8:
@@ -188,12 +211,13 @@ class Canvas {
     custom_step_ = config_.grid_step;
   }
 
+  // COMPAT: prefer CanvasFrameOptions.grid_step for per-frame grid control
   void SetCustomGridStep(float step) {
     config_.grid_step = step;
     custom_step_ = step;
   }
 
-  // Legacy compatibility
+  // COMPAT: prefer CanvasFrameOptions.grid_step for per-frame grid control
   void SetCanvasGridSize(CanvasGridSize grid_size) { SetGridSize(grid_size); }
 
   CanvasGridSize grid_size() const {
@@ -261,13 +285,7 @@ class Canvas {
   // Phase 4: Use unified menu item definition from canvas_menu.h
   using CanvasMenuItem = gui::CanvasMenuItem;
 
-  // BPP format UI components
-  std::unique_ptr<gui::BppFormatUI> bpp_format_ui_;
-  std::unique_ptr<gui::BppConversionDialog> bpp_conversion_dialog_;
-  std::unique_ptr<gui::BppComparisonTool> bpp_comparison_tool_;
-
-  // Enhanced canvas components
-  std::unique_ptr<CanvasModals> modals_;
+  // Enhanced canvas components (non-optional, used every frame)
   std::unique_ptr<CanvasContextMenu> context_menu_;
   std::shared_ptr<CanvasUsageTracker> usage_tracker_;
   std::shared_ptr<CanvasPerformanceIntegration> performance_integration_;
@@ -357,6 +375,15 @@ class Canvas {
   bool BeginTableCanvas(const std::string& label = "");
   void EndTableCanvas();
 
+  /**
+   * @brief Begin canvas in table cell with frame options (modern API)
+   * Returns CanvasRuntime for stateless helper usage.
+   * Handles child sizing, scrollbars, and table integration.
+   */
+  CanvasRuntime BeginInTable(const std::string& label,
+                             const CanvasFrameOptions& options);
+  void EndInTable(CanvasRuntime& runtime, const CanvasFrameOptions& options);
+
   // Improved interaction detection
   bool HasValidSelection() const;
   bool WasClicked(ImGuiMouseButton button = ImGuiMouseButton_Left) const;
@@ -419,6 +446,7 @@ class Canvas {
   void set_scrolling(ImVec2 scroll) { scrolling_ = scroll; }
   auto drawn_tile_position() const { return drawn_tile_pos_; }
   auto canvas_size() const { return canvas_sz_; }
+  // COMPAT: prefer CanvasRuntime.scale for per-frame scale control
   void set_global_scale(float scale) {
     global_scale_ = scale;
     config_.global_scale = scale;
@@ -434,11 +462,13 @@ class Canvas {
   void SetSelectedTilePos(ImVec2 pos) { selected_tile_pos_ = pos; }
 
   // Configuration accessors
+  // COMPAT: prefer CanvasFrameOptions.canvas_size for per-frame size control
   void SetCanvasSize(ImVec2 canvas_size) {
     config_.canvas_size = canvas_size;
     config_.custom_canvas_size = true;
   }
   float GetGlobalScale() const { return config_.global_scale; }
+  // COMPAT: prefer CanvasRuntime.scale for per-frame scale control
   void SetGlobalScale(float scale) { config_.global_scale = scale; }
   bool* GetCustomLabelsEnabled() { return &config_.enable_custom_labels; }
   float GetGridStep() const { return config_.grid_step; }
@@ -556,13 +586,15 @@ class Canvas {
   gfx::IRenderer* renderer_ = nullptr;
   CanvasConfig config_;
   CanvasSelection selection_;
-  std::unique_ptr<PaletteEditorWidget> palette_editor_;
+
+  // Phase 4: Optional extensions (lazy-initialized on first use)
+  // Contains: bpp_format_ui, bpp_conversion_dialog, bpp_comparison_tool,
+  //           modals, palette_editor, automation_api
+  std::unique_ptr<CanvasExtensions> extensions_;
+  CanvasExtensions& EnsureExtensions();
 
   // Phase 1: Consolidated state (gradually replacing scattered members)
   CanvasState state_;
-
-  // Automation API (lazy-initialized on first access)
-  std::unique_ptr<CanvasAutomationAPI> automation_api_;
 
   // Core canvas state
   bool is_hovered_ = false;
@@ -666,6 +698,13 @@ void DrawTileHighlight(const CanvasRuntime& rt, const ImVec2& tile_pos_px,
                        const ImVec2& tile_size_px, ImU32 color);
 void DrawTileLabel(const CanvasRuntime& rt, const ImVec2& tile_pos_px,
                    const char* text, ImU32 color);
+
+// Stateless DrawRect/DrawText helpers (CanvasRuntime-based)
+void DrawRect(const CanvasRuntime& rt, int x, int y, int w, int h,
+              ImVec4 color);
+void DrawText(const CanvasRuntime& rt, const std::string& text, int x, int y);
+void DrawOutline(const CanvasRuntime& rt, int x, int y, int w, int h,
+                 ImU32 color = IM_COL32(255, 255, 255, 200));
 
 bool DrawBitmap(gui::Canvas& canvas, CanvasRuntime& rt, gfx::Bitmap& bmp,
                 const BitmapDrawOpts& opts);
