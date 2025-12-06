@@ -224,11 +224,25 @@ bool Emulator::EnsureInitialized(Rom* rom) {
     LOG_INFO("Emulator", "SNES initialized for headless mode");
   }
 
+  // Always update timing constants based on current ROM region
+  // This ensures MusicPlayer gets correct timing even if ROM changed
+  if (snes_initialized_) {
+    const double frame_rate = snes_.memory().pal_timing() ? kPalFrameRate : kNtscFrameRate;
+    wanted_frames_ = 1.0 / frame_rate;
+    wanted_samples_ = static_cast<int>(std::lround(kNativeSampleRate / frame_rate));
+  }
+
   return true;
 }
 
 void Emulator::RunFrameOnly() {
   if (!snes_initialized_ || !running_) {
+    return;
+  }
+
+  // If audio focus mode is active (Music Editor), skip standard frame processing
+  // because MusicPlayer drives the emulator via RunAudioFrame()
+  if (audio_focus_mode_) {
     return;
   }
 

@@ -104,8 +104,12 @@ bool SDL2AudioBackend::Initialize(const AudioConfig& config) {
   // SDL might claim success but playback will be at the wrong speed (chipmunk effect).
   // By allowing changes, 'have' will contain the REAL hardware spec (e.g. 48000Hz),
   // which allows us to detect the mismatch and enable our software resampler.
-  device_id_ = SDL_OpenAudioDevice(nullptr, 0, &want, &have,
-                                   SDL_AUDIO_ALLOW_ANY_CHANGE);
+  // Allow format and channel changes, but FORCE frequency to 48000Hz.
+  // This prevents issues where SDL reports a weird frequency (e.g. 32040Hz)
+  // but the hardware actually runs at 48000Hz, causing pitch/speed issues.
+  // SDL will handle internal resampling if the hardware doesn't support 48000Hz.
+  int allowed_changes = SDL_AUDIO_ALLOW_FORMAT_CHANGE | SDL_AUDIO_ALLOW_CHANNELS_CHANGE;
+  device_id_ = SDL_OpenAudioDevice(nullptr, 0, &want, &have, allowed_changes);
 
   if (device_id_ == 0) {
     LOG_ERROR("AudioBackend", "Failed to open SDL audio device: %s",
