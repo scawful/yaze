@@ -38,61 +38,6 @@ void ActivityBar::Render(
   }
 }
 
-void ActivityBar::DrawUtilityButtons(std::function<bool()> has_rom) {
-  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
-  bool rom_loaded = has_rom ? has_rom() : false;
-
-  // Save ROM button
-  {
-    if (gui::TransparentIconButton(ICON_MD_FOLDER_OPEN, ImVec2(48.0f, 40.0f),
-                                   "Open ROM (Ctrl+O)", false)) {
-      panel_manager_.TriggerOpenRom();
-    }
-
-    if (gui::TransparentIconButton(ICON_MD_SAVE, ImVec2(48.0f, 40.0f),
-                                   "Save ROM (Ctrl+S)", false)) {
-      if (rom_loaded)
-        panel_manager_.TriggerSaveRom();
-    }
-
-    // Undo
-    if (gui::TransparentIconButton(ICON_MD_UNDO, ImVec2(48.0f, 40.0f),
-                                   "Undo (Ctrl+Z)", false)) {
-      if (rom_loaded)
-        panel_manager_.TriggerUndo();
-    }
-
-    // Redo
-    if (gui::TransparentIconButton(ICON_MD_REDO, ImVec2(48.0f, 40.0f),
-                                   "Redo (Ctrl+Y)", false)) {
-      if (rom_loaded)
-        panel_manager_.TriggerRedo();
-    }
-
-    // Search
-    if (gui::TransparentIconButton(ICON_MD_SEARCH, ImVec2(48.0f, 40.0f),
-                                   "Global Search (Ctrl+Shift+F)", false)) {
-      panel_manager_.TriggerShowSearch();
-    }
-
-    // Help
-    if (gui::TransparentIconButton(ICON_MD_HELP_OUTLINE, ImVec2(48.0f, 40.0f),
-                                   "Help (F1)", false)) {
-      panel_manager_.TriggerShowHelp();
-    }
-  }
-
-  // Separator line between utility buttons and editor categories
-  ImGui::Spacing();
-  ImVec2 sep_p1 = ImGui::GetCursorScreenPos();
-  ImVec2 sep_p2 = ImVec2(sep_p1.x + 48.0f, sep_p1.y);
-  ImGui::GetWindowDrawList()->AddLine(
-      sep_p1, sep_p2,
-      ImGui::ColorConvertFloat4ToU32(gui::ConvertColorToImVec4(theme.border)),
-      1.0f);
-  ImGui::Spacing();
-}
-
 void ActivityBar::DrawActivityBarStrip(
     size_t session_id, const std::string& active_category,
     const std::vector<std::string>& all_categories,
@@ -121,12 +66,26 @@ void ActivityBar::DrawActivityBarStrip(
   ImGui::PushStyleColor(ImGuiCol_WindowBg, bar_bg);
   ImGui::PushStyleColor(ImGuiCol_Border, bar_border);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 8.0f));
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 4.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 8.0f)); // Increased spacing
   ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
 
   if (ImGui::Begin("##ActivityBar", nullptr, flags)) {
-    // Draw utility action buttons at the top
-    DrawUtilityButtons(has_rom);
+    
+    // Global Search / Command Palette at top
+    if (gui::TransparentIconButton(ICON_MD_SEARCH, ImVec2(48.0f, 40.0f),
+                                   "Global Search (Ctrl+Shift+F)", false)) {
+      panel_manager_.TriggerShowSearch();
+    }
+
+    // Separator
+    ImGui::Spacing();
+    ImVec2 sep_p1 = ImGui::GetCursorScreenPos();
+    ImVec2 sep_p2 = ImVec2(sep_p1.x + 48.0f, sep_p1.y);
+    ImGui::GetWindowDrawList()->AddLine(
+        sep_p1, sep_p2,
+        ImGui::ColorConvertFloat4ToU32(gui::ConvertColorToImVec4(theme.border)),
+        1.0f);
+    ImGui::Spacing();
 
     bool rom_loaded = has_rom ? has_rom() : false;
 
@@ -139,14 +98,24 @@ void ActivityBar::DrawActivityBarStrip(
       // Emulator is always available, others require ROM
       bool category_enabled = rom_loaded || (cat == "Emulator");
 
-      // Active Indicator (Left Border) - shown when category is selected
+      // Active Indicator
       if (is_selected && category_enabled) {
+        // Left accent border
         ImGui::GetWindowDrawList()->AddRectFilled(
             ImGui::GetCursorScreenPos(),
             ImVec2(ImGui::GetCursorScreenPos().x + 3.0f,
                    ImGui::GetCursorScreenPos().y + 40.0f),
             ImGui::ColorConvertFloat4ToU32(
                 gui::ConvertColorToImVec4(theme.primary)));
+        
+        // Background highlight (Expressive colorful appearance)
+        ImVec4 highlight = gui::ConvertColorToImVec4(theme.primary);
+        highlight.w = 0.15f; // Subtle tint
+        ImGui::GetWindowDrawList()->AddRectFilled(
+            ImGui::GetCursorScreenPos(),
+            ImVec2(ImGui::GetCursorScreenPos().x + 48.0f,
+                   ImGui::GetCursorScreenPos().y + 40.0f),
+            ImGui::ColorConvertFloat4ToU32(highlight));
       }
 
       std::string icon = PanelManager::GetCategoryIcon(cat);
@@ -194,14 +163,18 @@ void ActivityBar::DrawActivityBarStrip(
   }
 
   if (ImGui::BeginPopup("ActivityBarMoreMenu")) {
+    if (ImGui::MenuItem(ICON_MD_TERMINAL " Command Palette")) {
+        panel_manager_.TriggerShowCommandPalette();
+    }
+    if (ImGui::MenuItem(ICON_MD_KEYBOARD " Keyboard Shortcuts")) {
+        panel_manager_.TriggerShowShortcuts();
+    }
+    ImGui::Separator();
     if (ImGui::MenuItem(ICON_MD_FOLDER_OPEN " Open ROM")) {
       panel_manager_.TriggerOpenRom();
     }
     if (ImGui::MenuItem(ICON_MD_SETTINGS " Settings")) {
       panel_manager_.TriggerShowSettings();
-    }
-    if (ImGui::MenuItem(ICON_MD_HELP_OUTLINE " Help")) {
-      panel_manager_.TriggerShowHelp();
     }
     ImGui::Separator();
     if (ImGui::MenuItem("Reset Layout")) {

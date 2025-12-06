@@ -690,6 +690,19 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
     }
   });
 
+  panel_manager_.SetShowShortcutsCallback([this]() {
+    if (ui_coordinator_) {
+      // Shortcut configuration is part of Settings
+      SwitchToEditor(EditorType::kSettings);
+    }
+  });
+
+  panel_manager_.SetShowCommandPaletteCallback([this]() {
+    if (ui_coordinator_) {
+      ui_coordinator_->ShowCommandPalette();
+    }
+  });
+
   panel_manager_.SetShowHelpCallback([this]() {
     if (popup_manager_) {
       popup_manager_->Show(PopupID::kAbout);
@@ -909,6 +922,13 @@ void EditorManager::ApplyStartupVisibilityOverrides() {
     if (ui_coordinator_) {
       ui_coordinator_->SetPanelSidebarVisible(sidebar_visible);
     }
+  }
+
+  // Force sidebar panel to collapse if Welcome Screen or Dashboard is explicitly shown
+  // This prevents visual overlap/clutter on startup
+  if (welcome_mode_override_ == StartupVisibility::kShow ||
+      dashboard_mode_override_ == StartupVisibility::kShow) {
+    panel_manager_.SetPanelExpanded(false);
   }
 
   if (dashboard_panel_) {

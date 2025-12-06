@@ -274,6 +274,8 @@ class PanelManager {
   void TriggerUndo() { if (on_undo_) on_undo_(); }
   void TriggerRedo() { if (on_redo_) on_redo_(); }
   void TriggerShowSearch() { if (on_show_search_) on_show_search_(); }
+  void TriggerShowShortcuts() { if (on_show_shortcuts_) on_show_shortcuts_(); }
+  void TriggerShowCommandPalette() { if (on_show_command_palette_) on_show_command_palette_(); }
   void TriggerShowHelp() { if (on_show_help_) on_show_help_(); }
   void TriggerOpenRom() { if (on_open_rom_) on_open_rom_(); }
   void TriggerPanelClicked(const std::string& category) { if (on_card_clicked_) on_card_clicked_(category); }
@@ -302,6 +304,12 @@ class PanelManager {
   }
   void SetShowSearchCallback(std::function<void()> cb) {
     on_show_search_ = std::move(cb);
+  }
+  void SetShowShortcutsCallback(std::function<void()> cb) {
+    on_show_shortcuts_ = std::move(cb);
+  }
+  void SetShowCommandPaletteCallback(std::function<void()> cb) {
+    on_show_command_palette_ = std::move(cb);
   }
   void SetShowHelpCallback(std::function<void()> cb) {
     on_show_help_ = std::move(cb);
@@ -553,6 +561,8 @@ class PanelManager {
   std::function<void()> on_undo_;
   std::function<void()> on_redo_;
   std::function<void()> on_show_search_;
+  std::function<void()> on_show_shortcuts_;
+  std::function<void()> on_show_command_palette_;
   std::function<void()> on_show_help_;
   std::function<void()> on_open_rom_;
 
