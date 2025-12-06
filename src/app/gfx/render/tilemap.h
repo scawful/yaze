@@ -59,11 +59,12 @@ struct TileCache {
   }
 
   /**
-   * @brief Cache a tile bitmap
+   * @brief Cache a tile bitmap by copying it
    * @param tile_id Tile identifier
-   * @param bitmap Tile bitmap to cache
+   * @param bitmap Tile bitmap to cache (copied, not moved)
+   * @note Uses copy semantics to ensure the original bitmap remains valid
    */
-  void CacheTile(int tile_id, Bitmap&& bitmap) {
+  void CacheTile(int tile_id, const Bitmap& bitmap) {
     if (cache_.size() >= MAX_CACHE_SIZE) {
       // Remove least recently used tile
       int lru_tile = access_order_.back();
@@ -71,7 +72,7 @@ struct TileCache {
       cache_.erase(lru_tile);
     }
 
-    cache_[tile_id] = std::make_unique<Bitmap>(std::move(bitmap));
+    cache_[tile_id] = std::make_unique<Bitmap>(bitmap);  // Copy, not move
     access_order_.push_front(tile_id);
   }
 

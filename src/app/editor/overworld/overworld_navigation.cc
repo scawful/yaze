@@ -1,7 +1,5 @@
 #include "app/editor/overworld/overworld_editor.h"
 
-#include <algorithm>
-
 #include "app/gui/canvas/canvas.h"
 
 namespace yaze::editor {
@@ -16,18 +14,8 @@ void OverworldEditor::HandleOverworldPan() {
 }
 
 void OverworldEditor::HandleOverworldZoom() {
-  // Scroll wheel zoom when hovering over canvas
-  if (!ow_map_canvas_.IsMouseHovering()) {
-    return;
-  }
-
-  float wheel = ImGui::GetIO().MouseWheel;
-  if (wheel != 0.0f) {
-    float new_scale = std::clamp(
-        ow_map_canvas_.global_scale() + wheel * kOverworldZoomStep,
-        kOverworldMinZoom, kOverworldMaxZoom);
-    ow_map_canvas_.set_global_scale(new_scale);
-  }
+  // Scroll wheel is reserved for canvas navigation/panning
+  // Use toolbar buttons or context menu for zoom control
 }
 
 void OverworldEditor::ZoomIn() {

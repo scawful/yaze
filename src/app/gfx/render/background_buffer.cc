@@ -15,6 +15,9 @@ BackgroundBuffer::BackgroundBuffer(int width, int height)
   // Initialize buffer with size for SNES layers
   const int total_tiles = (width / 8) * (height / 8);
   buffer_.resize(total_tiles, 0);
+  // Initialize priority buffer for per-pixel priority tracking
+  // Uses 0xFF as "no priority set" (transparent/empty pixel)
+  priority_buffer_.resize(width * height, 0xFF);
   // Note: bitmap_ is NOT initialized here to avoid circular dependency
   // with Arena::Get(). Call EnsureBitmapInitialized() before accessing bitmap().
 }
@@ -42,6 +45,26 @@ uint16_t BackgroundBuffer::GetTileAt(int x_pos, int y_pos) const {
 
 void BackgroundBuffer::ClearBuffer() {
   std::ranges::fill(buffer_, 0);
+  ClearPriorityBuffer();
+}
+
+void BackgroundBuffer::ClearPriorityBuffer() {
+  // 0xFF indicates no priority set (transparent/empty pixel)
+  std::ranges::fill(priority_buffer_, 0xFF);
+}
+
+uint8_t BackgroundBuffer::GetPriorityAt(int x, int y) const {
+  if (x < 0 || y < 0 || x >= width_ || y >= height_) {
+    return 0xFF;  // Out of bounds = no priority
+  }
+  return priority_buffer_[y * width_ + x];
+}
+
+void BackgroundBuffer::SetPriorityAt(int x, int y, uint8_t priority) {
+  if (x < 0 || y < 0 || x >= width_ || y >= height_) {
+    return;
+  }
+  priority_buffer_[y * width_ + x] = priority;
 }
 
 void BackgroundBuffer::EnsureBitmapInitialized() {
@@ -67,6 +90,11 @@ void BackgroundBuffer::EnsureBitmapInitialized() {
     if (bitmap_.surface()) {
       SDL_SetSurfaceBlendMode(bitmap_.surface(), SDL_BLENDMODE_BLEND);
     }
+  }
+  
+  // Ensure priority buffer is properly sized
+  if (priority_buffer_.size() != static_cast<size_t>(width_ * height_)) {
+    priority_buffer_.resize(width_ * height_, 0xFF);
   }
 }
 
@@ -110,6 +138,9 @@ void BackgroundBuffer::DrawTile(const TileInfo& tile, uint8_t* canvas,
 
   // Pre-calculate max valid destination index
   int max_dest = width_ * height_;
+  
+  // Get priority bit from tile (over_ = priority bit in SNES tilemap)
+  uint8_t priority = tile.over_ ? 1 : 0;
 
   // Copy 8x8 pixels
   for (int py = 0; py < 8; py++) {
@@ -136,6 +167,8 @@ void BackgroundBuffer::DrawTile(const TileInfo& tile, uint8_t* canvas,
         // Bounds check destination
         if (dest_index >= 0 && dest_index < max_dest) {
           canvas[dest_index] = final_color;
+          // Also store priority for this pixel
+          priority_buffer_[dest_index] = priority;
         }
       }
     }
@@ -155,6 +188,11 @@ void BackgroundBuffer::DrawBackground(std::span<uint8_t> gfx16_data) {
   if (!bitmap_.is_active() || bitmap_.width() == 0) {
     bitmap_.Create(width_, height_, 8,
                    std::vector<uint8_t>(width_ * height_, 255));
+  }
+  
+  // Ensure priority buffer is properly sized
+  if (priority_buffer_.size() != static_cast<size_t>(width_ * height_)) {
+    priority_buffer_.resize(width_ * height_, 0xFF);
   }
 
   // For each tile on the tile buffer

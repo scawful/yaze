@@ -39,6 +39,7 @@ void OverworldEntityRenderer::DrawEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
                                             int current_world,
                                             int current_mode) {
   // Don't reset hovered_entity_ here - DrawExits resets it (called first)
+  float scale = canvas_->global_scale();
   int i = 0;
   for (auto& each : overworld_->entrances()) {
     if (each.map_id_ < 0x40 + (current_world * 0x40) &&
@@ -50,7 +51,7 @@ void OverworldEntityRenderer::DrawEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
         entrance_color.w = 0.78f;  // 200/255 alpha
       }
       canvas_->DrawRect(each.x_, each.y_, 16, 16, entrance_color);
-      if (IsMouseHoveringOverEntity(each, canvas_p0, scrolling)) {
+      if (IsMouseHoveringOverEntity(each, canvas_p0, scrolling, scale)) {
         hovered_entity_ = &each;
       }
       std::string str = util::HexByte(each.entrance_id_);
@@ -66,6 +67,7 @@ void OverworldEntityRenderer::DrawExits(ImVec2 canvas_p0, ImVec2 scrolling,
   // Reset hover state at the start of entity rendering (DrawExits is called
   // first)
   hovered_entity_ = nullptr;
+  float scale = canvas_->global_scale();
 
   int i = 0;
   for (auto& each : *overworld_->mutable_exits()) {
@@ -73,7 +75,7 @@ void OverworldEntityRenderer::DrawExits(ImVec2 canvas_p0, ImVec2 scrolling,
         each.map_id_ >= (current_world * 0x40) && !each.deleted_) {
       canvas_->DrawRect(each.x_, each.y_, 16, 16, GetExitColor());
 
-      if (IsMouseHoveringOverEntity(each, canvas_p0, scrolling)) {
+      if (IsMouseHoveringOverEntity(each, canvas_p0, scrolling, scale)) {
         hovered_entity_ = &each;
       }
       each.entity_id_ = i;
@@ -86,6 +88,7 @@ void OverworldEntityRenderer::DrawExits(ImVec2 canvas_p0, ImVec2 scrolling,
 }
 
 void OverworldEntityRenderer::DrawItems(int current_world, int current_mode) {
+  float scale = canvas_->global_scale();
   int i = 0;
   for (auto& item : *overworld_->mutable_all_items()) {
     // Get the item's bitmap and real X and Y positions
@@ -94,7 +97,7 @@ void OverworldEntityRenderer::DrawItems(int current_world, int current_mode) {
       canvas_->DrawRect(item.x_, item.y_, 16, 16, GetItemColor());
 
       if (IsMouseHoveringOverEntity(item, canvas_->zero_point(),
-                                    canvas_->scrolling())) {
+                                    canvas_->scrolling(), scale)) {
         hovered_entity_ = &item;
       }
 
@@ -112,6 +115,7 @@ void OverworldEntityRenderer::DrawItems(int current_world, int current_mode) {
 
 void OverworldEntityRenderer::DrawSprites(int current_world, int game_state,
                                           int current_mode) {
+  float scale = canvas_->global_scale();
   int i = 0;
   for (auto& sprite : *overworld_->mutable_sprites(game_state)) {
     // Filter sprites by current world - only show sprites for the current world
@@ -128,7 +132,7 @@ void OverworldEntityRenderer::DrawSprites(int current_world, int game_state,
 
       canvas_->DrawRect(sprite_x, sprite_y, 16, 16, GetSpriteColor());
       if (IsMouseHoveringOverEntity(sprite, canvas_->zero_point(),
-                                    canvas_->scrolling())) {
+                                    canvas_->scrolling(), scale)) {
         hovered_entity_ = &sprite;
       }
 

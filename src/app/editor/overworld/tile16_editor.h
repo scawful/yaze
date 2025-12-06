@@ -296,6 +296,18 @@ class Tile16Editor : public gfx::GfxContext {
   /// @return Palette slot based on current_tile8_ and current_palette_
   int GetActualPaletteSlotForCurrentTile16() const;
 
+  /// @brief Create a remapped palette for viewing with user-selected palette
+  /// @param source Full 256-color palette
+  /// @param target_row User-selected palette row (0-7 maps to rows 2-9)
+  /// @return Remapped 256-color palette where all pixels map to target row
+  gfx::SnesPalette CreateRemappedPaletteForViewing(
+      const gfx::SnesPalette& source, int target_row) const;
+
+  /// @brief Get the encoded palette row for a pixel value
+  /// @param pixel_value Raw pixel value from the graphics buffer
+  /// @return Palette row (0-15) that this pixel would use
+  int GetEncodedPaletteRow(uint8_t pixel_value) const;
+
   // ROM data access and modification
   absl::Status UpdateROMTile16Data();
   absl::Status RefreshTile16Blockset();
@@ -356,6 +368,9 @@ class Tile16Editor : public gfx::GfxContext {
   }
   int current_tile16() const { return current_tile16_; }
   int current_tile8() const { return current_tile8_; }
+
+  // Diagnostic function to analyze tile8 source data format
+  void AnalyzeTile8SourceData() const;
 
  private:
   Rom* rom_ = nullptr;
