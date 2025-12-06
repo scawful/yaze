@@ -11,8 +11,8 @@ namespace layout_designer {
 // ============================================================================
 
 void DockNode::AddPanel(const LayoutPanel& panel) {
-  if (type != DockNodeType::Leaf) {
-    // Can only add panels to leaf nodes
+  if (type == DockNodeType::Split) {
+    // Can only add panels to leaf/root nodes
     return;
   }
   panels.push_back(panel);
@@ -65,7 +65,7 @@ LayoutPanel* DockNode::FindPanel(const std::string& panel_id) {
 }
 
 size_t DockNode::CountPanels() const {
-  if (type == DockNodeType::Leaf) {
+  if (type == DockNodeType::Leaf || type == DockNodeType::Root) {
     return panels.size();
   }
   
@@ -230,4 +230,3 @@ void LayoutDefinition::Touch() {
 }  // namespace layout_designer
 }  // namespace editor
 }  // namespace yaze
-
