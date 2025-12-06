@@ -16,8 +16,7 @@ namespace editor {
 // Forward declarations
 class ProposalDrawer;
 class ToastManager;
-class AgentChatWidget;
-class AgentSidebar;
+class AgentChat;
 class SettingsPanel;
 class SelectionPropertiesPanel;
 
@@ -34,7 +33,7 @@ class SelectionPropertiesPanel;
  * Usage:
  * ```cpp
  * RightPanelManager panel_manager;
- * panel_manager.SetAgentChatWidget(&agent_chat);
+ * panel_manager.SetAgentChat(&agent_chat);
  * panel_manager.SetProposalDrawer(&proposal_drawer);
  * panel_manager.TogglePanel(PanelType::kAgentChat);
  * panel_manager.Draw();
@@ -63,8 +62,7 @@ class RightPanelManager {
   // Configuration
   // ============================================================================
 
-  void SetAgentChatWidget(AgentChatWidget* widget) { agent_chat_widget_ = widget; }
-  void SetAgentSidebar(AgentSidebar* sidebar) { agent_sidebar_ = sidebar; }
+  void SetAgentChat(AgentChat* chat) { agent_chat_ = chat; }
   void SetProposalDrawer(ProposalDrawer* drawer) { proposal_drawer_ = drawer; }
   void SetSettingsPanel(SettingsPanel* panel) { settings_panel_ = panel; }
   void SetPropertiesPanel(SelectionPropertiesPanel* panel) {
@@ -160,8 +158,7 @@ class RightPanelManager {
   // Panel-specific accessors
   // ============================================================================
 
-  AgentChatWidget* agent_chat_widget() const { return agent_chat_widget_; }
-  AgentSidebar* agent_sidebar() const { return agent_sidebar_; }
+  AgentChat* agent_chat() const { return agent_chat_; }
   ProposalDrawer* proposal_drawer() const { return proposal_drawer_; }
   SettingsPanel* settings_panel() const { return settings_panel_; }
   SelectionPropertiesPanel* properties_panel() const { return properties_panel_; }
@@ -207,8 +204,7 @@ class RightPanelManager {
   float properties_width_ = 320.0f;  // Narrower for properties
 
   // Component references (not owned)
-  AgentChatWidget* agent_chat_widget_ = nullptr;
-  AgentSidebar* agent_sidebar_ = nullptr;
+  AgentChat* agent_chat_ = nullptr;
   ProposalDrawer* proposal_drawer_ = nullptr;
   SettingsPanel* settings_panel_ = nullptr;
   SelectionPropertiesPanel* properties_panel_ = nullptr;

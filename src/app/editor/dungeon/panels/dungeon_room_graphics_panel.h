@@ -75,8 +75,11 @@ class DungeonRoomGraphicsPanel : public EditorPanel {
     ImGui::Text("Blockset: %02X", room.blockset);
     ImGui::Separator();
 
-    room_gfx_canvas_.DrawBackground();
-    room_gfx_canvas_.DrawContextMenu();
+    gui::CanvasFrameOptions frame_opts;
+    frame_opts.draw_grid = true;
+    frame_opts.grid_step = 32.0f;
+    frame_opts.render_popups = true;
+    gui::CanvasFrame frame(room_gfx_canvas_, frame_opts);
     room_gfx_canvas_.DrawTileSelector(32);
 
     auto blocks = room.blocks();
@@ -126,20 +129,19 @@ class DungeonRoomGraphicsPanel : public EditorPanel {
         int row = current_block / max_blocks_per_row;
         int col = current_block % max_blocks_per_row;
 
-        int x = room_gfx_canvas_.zero_point().x + 2 + (col * block_width);
-        int y = room_gfx_canvas_.zero_point().y + 2 + (row * block_height);
+        ImVec2 local_pos(2 + (col * block_width), 2 + (row * block_height));
 
         if (gfx_sheet.texture() != 0) {
-          room_gfx_canvas_.draw_list()->AddImage(
-              (ImTextureID)(intptr_t)gfx_sheet.texture(), ImVec2(x, y),
-              ImVec2(x + block_width, y + block_height));
+          room_gfx_canvas_.AddImageAt(
+              (ImTextureID)(intptr_t)gfx_sheet.texture(), local_pos,
+              ImVec2(block_width, block_height));
         } else {
-          room_gfx_canvas_.draw_list()->AddRectFilled(
-              ImVec2(x, y), ImVec2(x + block_width, y + block_height),
+          room_gfx_canvas_.AddRectFilledAt(
+              local_pos, ImVec2(block_width, block_height),
               IM_COL32(40, 40, 40, 255));
-          room_gfx_canvas_.draw_list()->AddText(
-              ImVec2(x + 10, y + 10), IM_COL32(255, 255, 255, 255),
-              "No Graphics");
+          room_gfx_canvas_.AddTextAt(ImVec2(local_pos.x + 10, local_pos.y + 10),
+                                     "No Graphics",
+                                     IM_COL32(255, 255, 255, 255));
         }
       }
       current_block++;
@@ -147,9 +149,6 @@ class DungeonRoomGraphicsPanel : public EditorPanel {
     
     // Clear dirty flag after processing all blocks
     palette_dirty_ = false;
-
-    room_gfx_canvas_.DrawGrid(32.0f);
-    room_gfx_canvas_.DrawOverlay();
   }
 
  private:

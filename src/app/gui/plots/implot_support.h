@@ -33,12 +33,12 @@ struct PlotConfig {
 };
 
 void EnsureImPlotContext();
-ImPlotStyle BuildStyleFromTheme(const EnhancedTheme& theme,
+ImPlotStyle BuildStyleFromTheme(const Theme& theme,
                                 const PlotStyleConfig& config = {});
 
 class PlotStyleScope {
  public:
- PlotStyleScope(const EnhancedTheme& theme,
+ PlotStyleScope(const Theme& theme,
                  const PlotStyleConfig& config = {});
   ~PlotStyleScope();
 

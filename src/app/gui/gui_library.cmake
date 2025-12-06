@@ -70,7 +70,6 @@ set(GUI_AUTOMATION_SRC
 
 # build_cleaner:auto-maintain
 set(GUI_APP_SRC
-  app/gui/app/agent_chat_widget.cc
   app/gui/app/editor_layout.cc
 )
 

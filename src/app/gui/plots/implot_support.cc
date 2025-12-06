@@ -18,7 +18,7 @@ ImVec2 ScaledSpacing(float multiplier) {
   return ImVec2(spacing * multiplier, spacing * multiplier);
 }
 
-ImPlotStyle BuildBaseStyle(const EnhancedTheme& theme,
+ImPlotStyle BuildBaseStyle(const Theme& theme,
                            const PlotStyleConfig& config) {
   ImPlotStyle style;
   style.LineWeight = config.line_weight;
@@ -104,13 +104,13 @@ void EnsureImPlotContext() {
   }
 }
 
-ImPlotStyle BuildStyleFromTheme(const EnhancedTheme& theme,
+ImPlotStyle BuildStyleFromTheme(const Theme& theme,
                                 const PlotStyleConfig& config) {
   EnsureImPlotContext();
   return BuildBaseStyle(theme, config);
 }
 
-PlotStyleScope::PlotStyleScope(const EnhancedTheme& theme,
+PlotStyleScope::PlotStyleScope(const Theme& theme,
                                const PlotStyleConfig& config)
     : previous_style_() {
   EnsureImPlotContext();

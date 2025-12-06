@@ -382,6 +382,11 @@ std::tuple<int, int, int, int> ObjectSelection::GetObjectBounds(
 
   // Fallback: Object dimensions based on size field
   // Lower nibble = horizontal size, upper nibble = vertical size
+  // TODO(zelda3-hacking-expert): This fallback ignores SNES size helpers
+  // (1to16 vs 1to15or26/32 and diagonal +4 bases) plus fixed 4x4/super-square
+  // footprints and BothBG dual-layer objects. Align with the rules captured in
+  // docs/internal/agents/dungeon-object-rendering-spec.md so outlines match
+  // the real draw extents when the dimension table is unavailable.
   int x = object.x_;
   int y = object.y_;
   int size_h = (object.size_ & 0x0F);

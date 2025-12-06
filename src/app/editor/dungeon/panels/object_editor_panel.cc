@@ -575,35 +575,35 @@ void ObjectEditorPanel::DrawStaticObjectEditor() {
       {
         ImGui::TextColored(theme.text_secondary_gray, "Preview:");
 
-        // Draw preview canvas with the rendered object
-        static_preview_canvas_.DrawBackground();
-        static_preview_canvas_.DrawContextMenu();
+        gui::PreviewPanelOpts preview_opts;
+        preview_opts.canvas_size = ImVec2(128, 128);
+        preview_opts.render_popups = false;
+        preview_opts.grid_step = 0.0f;
+        preview_opts.ensure_texture = true;
 
-        // Draw the preview bitmap if available
+        gui::CanvasFrameOptions frame_opts;
+        frame_opts.canvas_size = preview_opts.canvas_size;
+        frame_opts.draw_context_menu = false;
+        frame_opts.draw_grid = preview_opts.grid_step > 0.0f;
+        if (preview_opts.grid_step > 0.0f) {
+          frame_opts.grid_step = preview_opts.grid_step;
+        }
+        frame_opts.draw_overlay = true;
+        frame_opts.render_popups = preview_opts.render_popups;
+
+        auto rt = gui::BeginCanvas(static_preview_canvas_, frame_opts);
+
         if (static_preview_rendered_) {
           auto& bitmap = static_preview_buffer_.bitmap();
-          if (bitmap.texture()) {
-            ImVec2 canvas_pos = static_preview_canvas_.zero_point();
-            ImGui::GetWindowDrawList()->AddImage(
-                (ImTextureID)(intptr_t)bitmap.texture(), canvas_pos,
-                ImVec2(canvas_pos.x + 128, canvas_pos.y + 128));
-          } else {
-            // Queue texture creation if needed
-            gfx::Arena::Get().QueueTextureCommand(
-                gfx::Arena::TextureCommandType::CREATE, &bitmap);
-          }
+          gui::RenderPreviewPanel(rt, bitmap, preview_opts);
         } else {
-          // Show placeholder when no preview
-          ImVec2 center = static_preview_canvas_.zero_point();
-          center.x += 64;
-          center.y += 64;
-          ImGui::GetWindowDrawList()->AddText(
-              ImVec2(center.x - 40, center.y - 8),
-              ImGui::GetColorU32(theme.text_secondary_gray),
-              "No preview available");
+          gui::RenderPreviewPanel(rt, static_preview_buffer_.bitmap(),
+                                  preview_opts);
+          static_preview_canvas_.AddTextAt(
+              ImVec2(24, 56), "No preview available",
+              ImGui::GetColorU32(theme.text_secondary_gray));
         }
-
-        static_preview_canvas_.DrawOverlay();
+        gui::EndCanvas(static_preview_canvas_, rt, frame_opts);
 
         // Usage hint
         ImGui::Spacing();
