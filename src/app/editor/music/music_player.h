@@ -128,16 +128,13 @@ class MusicPlayer {
   void SetRom(Rom* rom);
 
   /**
-   * @brief Set a shared audio backend from the main emulator.
+   * @brief Set the main emulator instance to use for playback.
    *
-   * This allows MusicPlayer to use the same SDL audio device as the main
-   * emulator, avoiding conflicts from multiple audio devices.
+   * MusicPlayer controls this emulator directly for audio playback.
    *
-   * @param backend The audio backend to share (must outlive MusicPlayer)
+   * @param emulator The emulator instance (must outlive MusicPlayer)
    */
-  void SetSharedAudioBackend(emu::audio::IAudioBackend* backend) {
-    shared_audio_backend_ = backend;
-  }
+  void SetEmulator(emu::Emulator* emulator);
 
   /**
    * @brief Set a callback to be called when audio playback starts/stops.
@@ -152,8 +149,8 @@ class MusicPlayer {
     audio_exclusivity_callback_ = std::move(callback);
   }
 
-  // Access the dedicated audio emulator (for visualization, etc.)
-  emu::Emulator* audio_emulator() { return audio_emulator_.get(); }
+  // Access the emulator
+  emu::Emulator* emulator() { return emulator_; }
 
   // === Main Update Loop ===
   /**
@@ -347,9 +344,8 @@ class MusicPlayer {
 
   // === Dependencies ===
   zelda3::music::MusicBank* music_bank_ = nullptr;
-  std::unique_ptr<emu::Emulator> audio_emulator_;  // Dedicated emulator for audio playback
+  emu::Emulator* emulator_ = nullptr;  // Injected main emulator
   Rom* rom_ = nullptr;
-  emu::audio::IAudioBackend* shared_audio_backend_ = nullptr;  // Shared with main emulator
 
   // === Playback State ===
   PlaybackMode mode_ = PlaybackMode::Stopped;
@@ -363,7 +359,6 @@ class MusicPlayer {
   // === Internal State ===
   bool spc_initialized_ = false;
   bool preview_initialized_ = false;
-  bool audio_ready_ = false;
   uint8_t current_spc_bank_ = 0xFF;
 
   // === Timing ===

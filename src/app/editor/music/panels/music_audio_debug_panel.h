@@ -47,7 +47,7 @@ class MusicAudioDebugPanel : public EditorPanel {
       return;
     }
 
-    emu::Emulator* debug_emu = player_->audio_emulator();
+    emu::Emulator* debug_emu = player_->emulator();
     if (!debug_emu || !debug_emu->is_snes_initialized()) {
       ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.4f, 1.0f),
                          ICON_MD_INFO " Play a song to initialize audio");

@@ -93,28 +93,13 @@ void MusicEditor::Initialize() {
     LOG_WARN("MusicEditor", "No ROM available for MusicPlayer!");
   }
 
-  // Share the SAME audio backend with MusicPlayer
-  if (audio_backend_) {
-    music_player_->SetSharedAudioBackend(audio_backend_.get());
-    LOG_INFO("MusicEditor", "Shared audio backend with MusicPlayer");
+  // Inject the main emulator into MusicPlayer
+  if (emulator_) {
+    music_player_->SetEmulator(emulator_);
+    LOG_INFO("MusicEditor", "Injected main emulator into MusicPlayer");
   } else {
-    LOG_ERROR("MusicEditor", "No audio backend to share with MusicPlayer!");
+    LOG_WARN("MusicEditor", "No emulator available to inject into MusicPlayer!");
   }
-
-  // Audio exclusivity callback - pause main emulator when MusicPlayer plays
-  // With shared backend, we need to stop the main emulator from generating
-  // samples that would mix with MusicPlayer's audio
-  music_player_->SetAudioExclusivityCallback([this](bool music_player_active) {
-    if (emulator_) {
-      if (music_player_active) {
-        LOG_INFO("MusicEditor", "MusicPlayer active - pausing main emulator");
-        emulator_->set_running(false);  // Stop main emulator from generating audio
-      } else {
-        LOG_INFO("MusicEditor", "MusicPlayer stopped");
-        // Don't auto-resume - let the main emulator manage its own state
-      }
-    }
-  });
 
   if (!dependencies_.panel_manager)
     return;
@@ -234,6 +219,11 @@ void MusicEditor::set_emulator(emu::Emulator* emulator) {
     emulator_->SetExternalAudioBackend(audio_backend_.get());
     LOG_INFO("MusicEditor", "Shared audio backend with main emulator (deferred)");
   }
+  
+  // Inject emulator into MusicPlayer
+  if (music_player_) {
+    music_player_->SetEmulator(emulator_);
+  }
 }
 
 void MusicEditor::SetProject(project::YazeProject* project) {
@@ -322,9 +312,8 @@ absl::Status MusicEditor::Update() {
     song_window_class_.ClassId = ImGui::GetID("SongTrackerWindowClass");
   }
 
-  // Update MusicPlayer - this runs the dedicated audio emulator's frame
-  // to generate audio samples. MusicPlayer has its own emulator instance
-  // separate from the main emulator, so no conflict with EditorManager.
+  // Update MusicPlayer - this runs the emulator's audio frame
+  // MusicPlayer now controls the main emulator directly for playback.
   if (music_player_) music_player_->Update();
 
 #ifdef __EMSCRIPTEN__
@@ -1235,8 +1224,8 @@ void MusicEditor::DrawToolset() {
 
     // Master Oscilloscope (Column 0)
     ImGui::TableSetColumnIndex(0);
-    // Use MusicPlayer's dedicated audio emulator for visualization
-    emu::Emulator* audio_emu = music_player_ ? music_player_->audio_emulator() : nullptr;
+    // Use MusicPlayer's emulator for visualization
+    emu::Emulator* audio_emu = music_player_ ? music_player_->emulator() : nullptr;
     if (audio_emu && audio_emu->is_snes_initialized()) {
       auto& dsp = audio_emu->snes().apu().dsp();
 
@@ -1323,7 +1312,7 @@ void MusicEditor::DrawToolset() {
 
   // Quick audio status (detailed debug in Audio Debug panel)
   if (ImGui::CollapsingHeader(ICON_MD_BUG_REPORT " Audio Status")) {
-    emu::Emulator* debug_emu = music_player_ ? music_player_->audio_emulator() : nullptr;
+    emu::Emulator* debug_emu = music_player_ ? music_player_->emulator() : nullptr;
     if (debug_emu && debug_emu->is_snes_initialized()) {
       auto* audio_backend = debug_emu->audio_backend();
       if (audio_backend) {
@@ -1365,7 +1354,7 @@ void MusicEditor::DrawChannelOverview() {
   }
 
   // Check if audio emulator is initialized (created on first play)
-  auto* audio_emu = music_player_->audio_emulator();
+  auto* audio_emu = music_player_->emulator();
   if (!audio_emu || !audio_emu->is_snes_initialized()) {
     ImGui::TextDisabled("Play a song to see channel activity");
     return;

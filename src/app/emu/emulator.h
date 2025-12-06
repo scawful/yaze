@@ -93,6 +93,7 @@ class Emulator {
     audio_stream_active_ = true;
   }
   auto wanted_samples() const -> int { return wanted_samples_; }
+  auto wanted_frames() const -> float { return wanted_frames_; }
   void set_renderer(gfx::IRenderer* renderer) { renderer_ = renderer; }
 
   // Render access
