@@ -28,20 +28,83 @@ struct GameData;
 
 namespace editor {
 
-// Constants for tile editing
-constexpr int kTile16Size = 16;
-constexpr int kTile8Size = 8;
-constexpr int kTilesheetEditorWidth = 0x100;
-constexpr int kTilesheetEditorHeight = 0x4000;
-constexpr int kTile16CanvasSize = 0x20;
-constexpr int kTile8CanvasHeight = 0x175;
-constexpr int kNumScratchSlots = 4;
-constexpr int kNumPalettes = 8;
-constexpr int kTile8PixelCount = 64;
-constexpr int kTile16PixelCount = 256;
+// ============================================================================
+// Tile16 Editor Constants
+// ============================================================================
+
+constexpr int kTile16Size = 16;                    // 16x16 pixel tile
+constexpr int kTile8Size = 8;                      // 8x8 pixel sub-tile
+constexpr int kTilesheetEditorWidth = 0x100;       // 256 pixels wide
+constexpr int kTilesheetEditorHeight = 0x4000;     // 16384 pixels tall
+constexpr int kTile16CanvasSize = 0x20;            // 32 pixels
+constexpr int kTile8CanvasHeight = 0x175;          // 373 pixels
+constexpr int kNumScratchSlots = 4;                // 4 scratch space slots
+constexpr int kNumPalettes = 8;                    // 8 palette buttons (0-7)
+constexpr int kTile8PixelCount = 64;               // 8x8 = 64 pixels
+constexpr int kTile16PixelCount = 256;             // 16x16 = 256 pixels
+
+// ============================================================================
+// Tile16 Editor
+// ============================================================================
+//
+// ARCHITECTURE OVERVIEW:
+// ----------------------
+// The Tile16Editor provides a popup window for editing individual 16x16 tiles
+// used in the overworld tileset. Each Tile16 is composed of four 8x8 sub-tiles
+// (Tile8) arranged in a 2x2 grid.
+//
+// EDITING WORKFLOW:
+// -----------------
+// 1. Select a Tile16 from the blockset canvas (left panel)
+// 2. Edit by clicking on the tile8 source canvas to select sub-tiles
+// 3. Place selected tile8s into the four quadrants of the Tile16
+// 4. Changes are held as "pending" until explicitly committed or discarded
+// 5. Commit saves to ROM; Discard reverts to original
+//
+// PENDING CHANGES SYSTEM:
+// -----------------------
+// To prevent accidental ROM modifications, all edits are staged:
+//   - pending_tile16_changes_: Maps tile ID -> modified Tile16 data
+//   - pending_tile16_bitmaps_: Maps tile ID -> preview bitmap
+//   - has_pending_changes(): Returns true if any tiles are modified
+//   - CommitAllChanges(): Writes all pending changes to ROM
+//   - DiscardAllChanges(): Reverts all pending changes
+//
+// PALETTE COORDINATION:
+// ---------------------
+// The overworld uses a 256-color palette organized as 16 rows of 16 colors.
+// Different graphics sheets map to different palette regions:
+//
+//   Sheet Index | Palette Region | Purpose
+//   ------------|----------------|------------------------
+//   0, 3, 4     | AUX1 (row 10+) | Main blockset graphics
+//   1, 2        | MAIN (row 2+)  | Main area graphics
+//   5, 6        | AUX2 (row 10+) | Secondary blockset
+//   7           | ANIMATED       | Animated tiles
+//
+// Key palette methods:
+//   - GetPaletteSlotForSheet(): Get base palette slot for a sheet
+//   - GetActualPaletteSlot(): Combine palette button + sheet to get final slot
+//   - GetActualPaletteSlotForCurrentTile16(): Get slot for current editing tile
+//   - ApplyPaletteToCurrentTile16Bitmap(): Apply correct colors to preview
+//
+// INTEGRATION WITH OVERWORLD:
+// ---------------------------
+// The Tile16Editor communicates with OverworldEditor via:
+//   - set_palette(): Called when overworld area changes (updates colors)
+//   - on_changes_committed_: Callback invoked after CommitAllChanges()
+//   - The callback triggers RefreshTile16Blockset() and RefreshOverworldMap()
+//
+// See README.md in this directory for complete documentation.
+// ============================================================================
 
 /**
  * @brief Popup window to edit Tile16 data
+ *
+ * Provides visual editing of 16x16 tiles composed of four 8x8 sub-tiles.
+ * Uses a pending changes system to prevent accidental ROM modifications.
+ *
+ * @see README.md for architecture overview and workflow documentation
  */
 class Tile16Editor : public gfx::GfxContext {
  public:
@@ -111,46 +174,126 @@ class Tile16Editor : public gfx::GfxContext {
   absl::Status ValidateTile16Data();
   bool IsTile16Valid(int tile_id) const;
 
-  // Integration with overworld system
+  // ===========================================================================
+  // Integration with Overworld System
+  // ===========================================================================
+  // These methods handle the connection between tile editing and ROM data.
+  // The workflow is: Edit -> Pending -> Commit -> ROM
+  
+  /// @brief Write current tile16 data directly to ROM (bypasses pending system)
   absl::Status SaveTile16ToROM();
+  
+  /// @brief Update the overworld tilemap to reflect tile changes
   absl::Status UpdateOverworldTilemap();
+  
+  /// @brief Commit pending changes to the blockset atlas
   absl::Status CommitChangesToBlockset();
+  
+  /// @brief Full commit workflow: ROM + blockset + notify parent
   absl::Status CommitChangesToOverworld();
+  
+  /// @brief Discard current tile's changes (single tile)
   absl::Status DiscardChanges();
 
-  // Pending changes system for batch preview/commit workflow
+  // ===========================================================================
+  // Pending Changes System
+  // ===========================================================================
+  // All tile edits are staged in memory before being written to ROM.
+  // This prevents accidental modifications and allows preview before commit.
+  //
+  // Usage:
+  //   1. Edit tiles normally (changes go to pending_tile16_changes_)
+  //   2. Check has_pending_changes() to show save/discard UI
+  //   3. User clicks Save -> CommitAllChanges()
+  //   4. User clicks Discard -> DiscardAllChanges()
+  //
+  // The on_changes_committed_ callback notifies OverworldEditor to refresh.
+  
+  /// @brief Check if any tiles have uncommitted changes
   bool has_pending_changes() const { return !pending_tile16_changes_.empty(); }
+  
+  /// @brief Get count of tiles with pending changes
   int pending_changes_count() const {
     return static_cast<int>(pending_tile16_changes_.size());
   }
+  
+  /// @brief Check if a specific tile has pending changes
   bool is_tile_modified(int tile_id) const {
     return pending_tile16_changes_.find(tile_id) != pending_tile16_changes_.end();
   }
+  
+  /// @brief Get preview bitmap for a pending tile (nullptr if not modified)
   const gfx::Bitmap* GetPendingTileBitmap(int tile_id) const {
     auto it = pending_tile16_bitmaps_.find(tile_id);
     return it != pending_tile16_bitmaps_.end() ? &it->second : nullptr;
   }
+  
+  /// @brief Write all pending changes to ROM and notify parent
   absl::Status CommitAllChanges();
+  
+  /// @brief Discard all pending changes (revert to ROM state)
   void DiscardAllChanges();
+  
+  /// @brief Discard only the current tile's pending changes
   void DiscardCurrentTileChanges();
+  
+  /// @brief Mark the current tile as having pending changes
   void MarkCurrentTileModified();
 
-  // Helper methods for palette management
+  // ===========================================================================
+  // Palette Coordination System
+  // ===========================================================================
+  // The overworld uses a 256-color palette organized as 16 rows of 16 colors.
+  // Different graphics sheets map to different palette regions based on how
+  // the SNES PPU organizes tile graphics.
+  //
+  // Palette Structure (256 colors = 16 rows × 16 colors):
+  //   Row 0:     Transparent/system colors
+  //   Row 1:     HUD colors (0x10-0x1F)
+  //   Rows 2-6:  MAIN/BG palettes for main graphics (sheets 1-2)
+  //   Rows 7:    ANIMATED palette (sheet 7)
+  //   Rows 10+:  AUX palettes for blockset graphics (sheets 0, 3-6)
+  //
+  // The palette button (0-7) selects which of the 8 available sub-palettes
+  // to use, and the sheet index determines the base offset.
+  
+  /// @brief Update palette for a specific tile8
   absl::Status UpdateTile8Palette(int tile8_id);
+  
+  /// @brief Refresh all tile8 palettes after a palette change
   absl::Status RefreshAllPalettes();
+  
+  /// @brief Draw palette settings UI
   void DrawPaletteSettings();
 
-  // Get the appropriate palette slot for current graphics sheet
+  /// @brief Get base palette slot for a graphics sheet
+  /// @param sheet_index Graphics sheet index (0-7)
+  /// @return Base palette offset (e.g., 10 for AUX, 2 for MAIN)
   int GetPaletteSlotForSheet(int sheet_index) const;
 
-  // NEW: Core palette mapping methods for fixing color alignment
+  /// @brief Calculate actual palette slot from button + sheet
+  /// @param palette_button User-selected palette (0-7)
+  /// @param sheet_index Graphics sheet the tile8 belongs to
+  /// @return Final palette slot index in 256-color palette
+  /// 
+  /// This is the core palette mapping function. It combines:
+  ///   - palette_button: Which of 8 sub-palettes user selected
+  ///   - sheet_index: Which graphics sheet contains the tile8
+  /// To produce the actual 256-color palette index.
   int GetActualPaletteSlot(int palette_button, int sheet_index) const;
 
-  // Get palette base row for a graphics sheet (0-7 range for 256-color palette)
-  // Returns the base row index in the 16-row palette structure
+  /// @brief Get palette base row for a graphics sheet
+  /// @param sheet_index Graphics sheet index (0-7)
+  /// @return Base row index in the 16-row palette structure
   int GetPaletteBaseForSheet(int sheet_index) const;
 
+  /// @brief Determine which graphics sheet contains a tile8
+  /// @param tile8_id Tile8 ID from the graphics buffer
+  /// @return Sheet index (0-7) based on tile position
   int GetSheetIndexForTile8(int tile8_id) const;
+  
+  /// @brief Get the palette slot for the current tile being edited
+  /// @return Palette slot based on current_tile8_ and current_palette_
   int GetActualPaletteSlotForCurrentTile16() const;
 
   // ROM data access and modification

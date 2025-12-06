@@ -22,6 +22,76 @@
 #include "zelda3/overworld/overworld_map.h"
 #include "zelda3/sprite/sprite.h"
 
+// =============================================================================
+// Overworld Data Layer
+// =============================================================================
+//
+// ARCHITECTURE OVERVIEW:
+// ----------------------
+// The Overworld class is the central data manager for A Link to the Past's
+// overworld system. It handles 160 map screens across three worlds:
+//   - Light World: Maps 0x00-0x3F (64 maps)
+//   - Dark World: Maps 0x40-0x7F (64 maps)
+//   - Special World: Maps 0x80-0x9F (32 maps, expandable to 0xBF with patches)
+//
+// DATA ORGANIZATION:
+// ------------------
+// The overworld uses a hierarchical tile system:
+//   - Tile32: 32x32 pixel blocks composed of four Tile16s
+//   - Tile16: 16x16 pixel blocks composed of four Tile8s
+//   - Tile8: 8x8 pixel base tiles from graphics sheets
+//
+// Map tile data is stored as arrays of Tile16 IDs in OverworldBlockset:
+//   - map_tiles_.light_world: 64 maps of 32x32 tile16 IDs each
+//   - map_tiles_.dark_world: 64 maps of 32x32 tile16 IDs each
+//   - map_tiles_.special_world: 32+ maps of 32x32 tile16 IDs each
+//
+// SAVE SYSTEM DOCUMENTATION:
+// --------------------------
+// The save workflow is controlled by feature flags in OverworldEditor::Save().
+// Each component saves independently but some have ordering dependencies.
+//
+// SAVE ORDER AND DEPENDENCIES:
+//
+// 1. TILE DEFINITIONS (must be saved first, others depend on these IDs):
+//    - CreateTile32Tilemap(): Build tile32 from current tile16 data
+//    - SaveMap32Tiles(): Write tile32 definitions to ROM
+//    - SaveMap16Tiles(): Write tile16 definitions to ROM
+//    - SaveOverworldMaps(): Write compressed map tile data
+//
+// 2. ENTITIES (independent, can save in any order):
+//    - SaveEntrances(): Entrance warps to underworld
+//    - SaveExits(): Exit points returning from underworld
+//    - SaveItems(): Hidden items on overworld
+//
+// 3. PROPERTIES (independent, can save in any order):
+//    - SaveMapProperties(): Graphics, palettes, messages per area
+//    - SaveMusic(): Music IDs per area and game state
+//    - SaveAreaSizes(): Area size enum for v3+ ROMs
+//
+// 4. CUSTOM FEATURES (v2+/v3+ only):
+//    - SaveCustomOverworldASM(): Custom feature enable flags
+//    - SaveAreaSpecificBGColors(): Per-area background colors (v2+)
+//    - SaveMapOverlays(): Interactive overlay data
+//
+// TESTING SAVE FUNCTIONALITY:
+// ---------------------------
+// To test individual save components:
+//   1. Enable only one feature flag at a time in core::FeatureFlags
+//   2. Make changes to that component in the editor
+//   3. Save ROM and verify changes in an emulator
+//   4. Check for corruption by loading saved ROM back into editor
+//
+// Round-trip testing:
+//   1. Load vanilla ROM
+//   2. Make changes to all components
+//   3. Save ROM
+//   4. Close and reopen ROM
+//   5. Verify all changes persisted correctly
+//
+// See app/editor/overworld/README.md for complete workflow documentation.
+// =============================================================================
+
 namespace yaze::zelda3 {
 
 constexpr int GravesYTilePos = 0x49968;          // short (0x0F entries)
@@ -136,6 +206,13 @@ constexpr int kNumMapsPerWorld = 0x40;
  *
  * This class is responsible for loading and saving the overworld data,
  * as well as creating the tilesets and tilemaps for the overworld.
+ *
+ * The Overworld manages 160 map screens across three worlds and provides
+ * the data layer that the OverworldEditor UI operates on.
+ *
+ * @see OverworldMap for individual map data
+ * @see OverworldEditor for the UI layer
+ * @see overworld_version_helper.h for version detection
  */
 class Overworld {
  public:
@@ -144,89 +221,173 @@ class Overworld {
 
   void SetGameData(GameData* game_data) { game_data_ = game_data; }
   
-  // Helper to get version constants from game_data or default to US
+  /// @brief Get version-specific ROM addresses
   zelda3_version_pointers version_constants() const {
     return kVersionConstantsMap.at(game_data_ ? game_data_->version : zelda3_version::US);
   }
+
+  // ===========================================================================
+  // Loading Methods
+  // ===========================================================================
   
+  /// @brief Load all overworld data from ROM
   absl::Status Load(Rom* rom);
+  
+  /// @brief Load overworld map tile data
   absl::Status LoadOverworldMaps();
+  
+  /// @brief Load tile type collision data
   void LoadTileTypes();
 
+  /// @brief Load sprite data for all game states
   absl::Status LoadSprites();
+  
+  /// @brief Load sprites from a specific map range
   absl::Status LoadSpritesFromMap(int sprite_start, int sprite_count,
                                   int sprite_index);
+
+  // ===========================================================================
+  // Lazy Loading / Caching
+  // ===========================================================================
 
   /**
    * @brief Build a map on-demand if it hasn't been built yet
    *
-   * This method checks if the specified map needs to be built and builds it
-   * if necessary. Used for lazy loading optimization.
+   * Used for lazy loading optimization. Maps are built when first accessed
+   * rather than all at once during Load().
    */
   absl::Status EnsureMapBuilt(int map_index);
 
-  /**
-   * @brief Compute hash of graphics configuration for cache lookup
-   */
+  /// @brief Compute hash of graphics configuration for cache lookup
   uint64_t ComputeGraphicsConfigHash(int map_index);
 
-  /**
-   * @brief Try to get cached tileset data for a graphics configuration
-   * @return nullptr if not cached, pointer to cached data if available
-   */
+  /// @brief Try to get cached tileset data for a graphics configuration
+  /// @return nullptr if not cached, pointer to cached data if available
   const std::vector<uint8_t>* GetCachedTileset(uint64_t config_hash);
 
-  /**
-   * @brief Cache tileset data for future reuse
-   */
+  /// @brief Cache tileset data for future reuse
   void CacheTileset(uint64_t config_hash, const std::vector<uint8_t>& tileset);
 
+  // ===========================================================================
+  // Save Methods - Tile Data (Order Matters!)
+  // ===========================================================================
+  // These methods must be called in order because later saves depend on
+  // tile definitions being written first.
+  //
+  // Required order:
+  //   1. CreateTile32Tilemap() - Build tile32 from tile16 data
+  //   2. SaveMap32Tiles() - Write tile32 definitions
+  //   3. SaveMap16Tiles() - Write tile16 definitions
+  //   4. SaveOverworldMaps() - Write compressed map data
+  
+  /// @brief Master save method (calls sub-methods in correct order)
   absl::Status Save(Rom* rom);
+  
+  /// @brief Save compressed map tile data to ROM
   absl::Status SaveOverworldMaps();
+  
+  /// @brief Save large map parent/sibling relationships
   absl::Status SaveLargeMaps();
+  
+  /// @brief Save expanded large map data (v1+ ROMs)
   absl::Status SaveLargeMapsExpanded();
+  
+  /// @brief Save screen transition data for small (1x1) areas
   absl::Status SaveSmallAreaTransitions(
       int i, int parent_x_pos, int parent_y_pos, int transition_target_north,
       int transition_target_west, int transition_pos_x, int transition_pos_y,
       int screen_change_1, int screen_change_2, int screen_change_3,
       int screen_change_4);
+      
+  /// @brief Save screen transition data for large (2x2) areas
   absl::Status SaveLargeAreaTransitions(
       int i, int parent_x_pos, int parent_y_pos, int transition_target_north,
       int transition_target_west, int transition_pos_x, int transition_pos_y,
       int screen_change_1, int screen_change_2, int screen_change_3,
       int screen_change_4);
+      
+  /// @brief Save screen transition data for wide (2x1) areas (v3+ only)
   absl::Status SaveWideAreaTransitions(
       int i, int parent_x_pos, int parent_y_pos, int transition_target_north,
       int transition_target_west, int transition_pos_x, int transition_pos_y,
       int screen_change_1, int screen_change_2, int screen_change_3,
       int screen_change_4);
+      
+  /// @brief Save screen transition data for tall (1x2) areas (v3+ only)
   absl::Status SaveTallAreaTransitions(
       int i, int parent_x_pos, int parent_y_pos, int transition_target_north,
       int transition_target_west, int transition_pos_x, int transition_pos_y,
       int screen_change_1, int screen_change_2, int screen_change_3,
       int screen_change_4);
+
+  // ===========================================================================
+  // Save Methods - Entities (Independent, any order)
+  // ===========================================================================
+  
+  /// @brief Save entrance warp points to ROM
   absl::Status SaveEntrances();
+  
+  /// @brief Save exit return points to ROM
   absl::Status SaveExits();
+  
+  /// @brief Save hidden overworld items to ROM
   absl::Status SaveItems();
+  
+  /// @brief Save interactive overlay data to ROM
   absl::Status SaveMapOverlays();
+  
+  /// @brief Save tile type collision data to ROM
   absl::Status SaveOverworldTilesType();
+
+  // ===========================================================================
+  // Save Methods - Custom Features (v2+/v3+)
+  // ===========================================================================
+  
+  /// @brief Save custom ASM feature enable flags
   absl::Status SaveCustomOverworldASM(bool enable_bg_color,
                                       bool enable_main_palette,
                                       bool enable_mosaic,
                                       bool enable_gfx_groups,
                                       bool enable_subscreen_overlay,
                                       bool enable_animated);
+  
+  /// @brief Save per-area background colors (v2+)
   absl::Status SaveAreaSpecificBGColors();
 
+  // ===========================================================================
+  // Save Methods - Tile Definitions
+  // ===========================================================================
+  
+  /// @brief Build tile32 tilemap from current tile16 data
+  /// @note Must be called before SaveMap32Tiles()
   absl::Status CreateTile32Tilemap();
+  
+  /// @brief Save expanded tile16 definitions (v1+ ROMs)
   absl::Status SaveMap16Expanded();
+  
+  /// @brief Save tile16 definitions to ROM
   absl::Status SaveMap16Tiles();
+  
+  /// @brief Save expanded tile32 definitions (v1+ ROMs)
   absl::Status SaveMap32Expanded();
+  
+  /// @brief Save tile32 definitions to ROM
   absl::Status SaveMap32Tiles();
 
+  // ===========================================================================
+  // Save Methods - Properties
+  // ===========================================================================
+  
+  /// @brief Save per-area graphics, palettes, and messages
   absl::Status SaveMapProperties();
+  
+  /// @brief Save per-area music IDs
   absl::Status SaveMusic();
+  
+  /// @brief Save area size enum data (v3+ only)
   absl::Status SaveAreaSizes();
+  
+  /// @brief Assign map sizes based on area size enum (v3+)
   void AssignMapSizes(std::vector<OverworldMap>& maps);
 
   /**
