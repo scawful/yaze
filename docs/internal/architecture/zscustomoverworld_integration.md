@@ -44,9 +44,40 @@ The editor detects the ZSO version present in the ROM to enable/disable features
 
 ### Version Detection
 - **Source**: `overworld_version_helper.h` - Contains version detection logic
-- **Check Point**: ROM header byte `asm_version` indicates which ZSO version is installed
-- **Supported Versions**: v1, v2, v3 (with v3 being the most feature-rich)
+- **Check Point**: ROM header byte `asm_version` at `0x140145` indicates which ZSO version is installed
+- **Supported Versions**: Vanilla (0xFF), v1, v2, v3 (with v3 being the most feature-rich)
 - **Key Method**: `OverworldMap::SetupCustomTileset(uint8_t asm_version)` - Initializes custom properties based on detected version
+
+### Version Feature Matrix
+
+| Feature | Address | Vanilla | v1 | v2 | v3 |
+|---------|---------|---------|----|----|-----|
+| Custom BG Colors | 0x140000 | No | No | Yes | Yes |
+| Main Palette Array | 0x140040 | No | No | Yes | Yes |
+| Area Enum (Wide/Tall) | 0x1417F8 | No | No | No | Yes |
+| Diggable Tiles | 0x140980 | No | No | No | Yes |
+| Custom Tile GFX | 0x1409B0 | No | No | No | Yes |
+
+### Version Checking in Save Operations
+
+**CRITICAL**: All save functions that write to custom ASM address space (0x140000+) must check ROM version before writing. This prevents vanilla ROM corruption.
+
+**Correct Pattern:**
+```cpp
+absl::Status Overworld::SaveAreaSpecificBGColors() {
+  auto version = OverworldVersionHelper::GetVersion(*rom_);
+  if (!OverworldVersionHelper::SupportsCustomBGColors(version)) {
+    return absl::OkStatus();  // Vanilla/v1 ROM - skip custom address writes
+  }
+  // ... proceed with writing to 0x140000+
+}
+```
+
+**Functions with Version Checks:**
+- `SaveAreaSpecificBGColors()` - Requires v2+ (custom BG colors)
+- `SaveCustomOverworldASM()` - Gates v2+ and v3+ features separately
+- `SaveDiggableTiles()` - Requires v3+ (diggable tiles)
+- `SaveAreaSizes()` - Requires v3+ (area enum support)
 
 ### UI Adaptation
 - `MapPropertiesSystem` shows/hides ZSO-specific controls based on detected version

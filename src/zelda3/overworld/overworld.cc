@@ -2822,6 +2822,12 @@ absl::Status Overworld::LoadDiggableTiles() {
 }
 
 absl::Status Overworld::SaveDiggableTiles() {
+  // Diggable tiles require v3+ (custom table at 0x140980+)
+  auto version = OverworldVersionHelper::GetVersion(*rom_);
+  if (!OverworldVersionHelper::SupportsAreaEnum(version)) {
+    return absl::OkStatus();  // Skip for vanilla/v1/v2
+  }
+
   util::logf("Saving Diggable Tiles");
 
   // Write enable flag
@@ -2864,73 +2870,92 @@ absl::Status Overworld::SaveCustomOverworldASM(bool enable_bg_color,
                                                bool enable_gfx_groups,
                                                bool enable_subscreen_overlay,
                                                bool enable_animated) {
+  // Check ROM version - this function requires at least v2 for basic features
+  auto version = OverworldVersionHelper::GetVersion(*rom_);
+  if (version == OverworldVersion::kVanilla ||
+      version == OverworldVersion::kZSCustomV1) {
+    return absl::OkStatus();  // Cannot apply custom ASM settings to vanilla/v1
+  }
+
   util::logf("Applying Custom Overworld ASM");
 
-  // Set the enable/disable settings
-  uint8_t enable_value = enable_bg_color ? 0xFF : 0x00;
-  RETURN_IF_ERROR(
-      rom()->WriteByte(OverworldCustomAreaSpecificBGEnabled, enable_value));
-
-  enable_value = enable_main_palette ? 0xFF : 0x00;
-  RETURN_IF_ERROR(
-      rom()->WriteByte(OverworldCustomMainPaletteEnabled, enable_value));
-
-  enable_value = enable_mosaic ? 0xFF : 0x00;
-  RETURN_IF_ERROR(rom()->WriteByte(OverworldCustomMosaicEnabled, enable_value));
-
-  enable_value = enable_gfx_groups ? 0xFF : 0x00;
-  RETURN_IF_ERROR(
-      rom()->WriteByte(OverworldCustomTileGFXGroupEnabled, enable_value));
-
-  enable_value = enable_animated ? 0xFF : 0x00;
-  RETURN_IF_ERROR(
-      rom()->WriteByte(OverworldCustomAnimatedGFXEnabled, enable_value));
-
-  enable_value = enable_subscreen_overlay ? 0xFF : 0x00;
-  RETURN_IF_ERROR(
-      rom()->WriteByte(OverworldCustomSubscreenOverlayEnabled, enable_value));
-
-  // Write the main palette table
-  for (int i = 0; i < kNumOverworldMaps; i++) {
-    RETURN_IF_ERROR(rom()->WriteByte(OverworldCustomMainPaletteArray + i,
-                                     overworld_maps_[i].main_palette()));
-  }
-
-  // Write the mosaic table
-  for (int i = 0; i < kNumOverworldMaps; i++) {
-    const auto& mosaic = overworld_maps_[i].mosaic_expanded();
-    // .... udlr bit format
-    uint8_t mosaic_byte = (mosaic[0] ? 0x08 : 0x00) |  // up
-                          (mosaic[1] ? 0x04 : 0x00) |  // down
-                          (mosaic[2] ? 0x02 : 0x00) |  // left
-                          (mosaic[3] ? 0x01 : 0x00);   // right
-
+  // v2+ features: BG color, main palette enable flags
+  if (OverworldVersionHelper::SupportsCustomBGColors(version)) {
+    uint8_t enable_value = enable_bg_color ? 0xFF : 0x00;
     RETURN_IF_ERROR(
-        rom()->WriteByte(OverworldCustomMosaicArray + i, mosaic_byte));
-  }
+        rom()->WriteByte(OverworldCustomAreaSpecificBGEnabled, enable_value));
 
-  // Write the main and animated gfx tiles table
-  for (int i = 0; i < kNumOverworldMaps; i++) {
-    for (int j = 0; j < 8; j++) {
-      RETURN_IF_ERROR(
-          rom()->WriteByte(OverworldCustomTileGFXGroupArray + (i * 8) + j,
-                           overworld_maps_[i].custom_tileset(j)));
+    enable_value = enable_main_palette ? 0xFF : 0x00;
+    RETURN_IF_ERROR(
+        rom()->WriteByte(OverworldCustomMainPaletteEnabled, enable_value));
+
+    // Write the main palette table
+    for (int i = 0; i < kNumOverworldMaps; i++) {
+      RETURN_IF_ERROR(rom()->WriteByte(OverworldCustomMainPaletteArray + i,
+                                       overworld_maps_[i].main_palette()));
     }
-    RETURN_IF_ERROR(rom()->WriteByte(OverworldCustomAnimatedGFXArray + i,
-                                     overworld_maps_[i].animated_gfx()));
   }
 
-  // Write the subscreen overlay table
-  for (int i = 0; i < kNumOverworldMaps; i++) {
+  // v3+ features: mosaic, gfx groups, animated, overlays
+  if (OverworldVersionHelper::SupportsAreaEnum(version)) {
+    uint8_t enable_value = enable_mosaic ? 0xFF : 0x00;
     RETURN_IF_ERROR(
-        rom()->WriteShort(OverworldCustomSubscreenOverlayArray + (i * 2),
-                          overworld_maps_[i].subscreen_overlay()));
+        rom()->WriteByte(OverworldCustomMosaicEnabled, enable_value));
+
+    enable_value = enable_gfx_groups ? 0xFF : 0x00;
+    RETURN_IF_ERROR(
+        rom()->WriteByte(OverworldCustomTileGFXGroupEnabled, enable_value));
+
+    enable_value = enable_animated ? 0xFF : 0x00;
+    RETURN_IF_ERROR(
+        rom()->WriteByte(OverworldCustomAnimatedGFXEnabled, enable_value));
+
+    enable_value = enable_subscreen_overlay ? 0xFF : 0x00;
+    RETURN_IF_ERROR(
+        rom()->WriteByte(OverworldCustomSubscreenOverlayEnabled, enable_value));
+
+    // Write the mosaic table
+    for (int i = 0; i < kNumOverworldMaps; i++) {
+      const auto& mosaic = overworld_maps_[i].mosaic_expanded();
+      // .... udlr bit format
+      uint8_t mosaic_byte = (mosaic[0] ? 0x08 : 0x00) |  // up
+                            (mosaic[1] ? 0x04 : 0x00) |  // down
+                            (mosaic[2] ? 0x02 : 0x00) |  // left
+                            (mosaic[3] ? 0x01 : 0x00);   // right
+
+      RETURN_IF_ERROR(
+          rom()->WriteByte(OverworldCustomMosaicArray + i, mosaic_byte));
+    }
+
+    // Write the main and animated gfx tiles table
+    for (int i = 0; i < kNumOverworldMaps; i++) {
+      for (int j = 0; j < 8; j++) {
+        RETURN_IF_ERROR(
+            rom()->WriteByte(OverworldCustomTileGFXGroupArray + (i * 8) + j,
+                             overworld_maps_[i].custom_tileset(j)));
+      }
+      RETURN_IF_ERROR(rom()->WriteByte(OverworldCustomAnimatedGFXArray + i,
+                                       overworld_maps_[i].animated_gfx()));
+    }
+
+    // Write the subscreen overlay table
+    for (int i = 0; i < kNumOverworldMaps; i++) {
+      RETURN_IF_ERROR(
+          rom()->WriteShort(OverworldCustomSubscreenOverlayArray + (i * 2),
+                            overworld_maps_[i].subscreen_overlay()));
+    }
   }
 
   return absl::OkStatus();
 }
 
 absl::Status Overworld::SaveAreaSpecificBGColors() {
+  // Only write to custom address space for v2+ ROMs
+  auto version = OverworldVersionHelper::GetVersion(*rom_);
+  if (!OverworldVersionHelper::SupportsCustomBGColors(version)) {
+    return absl::OkStatus();  // Vanilla/v1 ROM - skip custom address writes
+  }
+
   util::logf("Saving Area Specific Background Colors");
 
   // Write area-specific background colors if enabled

@@ -268,6 +268,23 @@ export YAZE_SKIP_ROM_TESTS=1
 export YAZE_ENABLE_UI_TESTS=1
 ```
 
+## ROM Auto-Discovery
+
+The test framework automatically discovers ROMs without requiring environment variables. It searches for common ROM filenames in these locations (relative to working directory):
+
+**Search Paths:** `.`, `roms/`, `../roms/`, `../../roms/`
+
+**ROM Filenames:** `zelda3.sfc`, `alttp_vanilla.sfc`, `vanilla.sfc`, `Legend of Zelda, The - A Link to the Past (USA).sfc`
+
+This means you can simply place your ROM in the `roms/` directory and run tests without setting `YAZE_TEST_ROM_PATH`:
+
+```bash
+# Just works if you have roms/zelda3.sfc
+./build/bin/Debug/yaze_test_stable
+```
+
+The environment variable still takes precedence if set.
+
 ## Running Tests from Command Line
 
 ### Traditional Approach (Single Binary)

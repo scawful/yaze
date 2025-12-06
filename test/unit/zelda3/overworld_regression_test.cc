@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "rom/rom.h"
+#include "zelda3/overworld/diggable_tiles.h"
 #include "zelda3/overworld/overworld_map.h"
 #include "zelda3/overworld/overworld_version_helper.h"
 
@@ -158,6 +159,161 @@ TEST_F(OverworldRegressionTest, DeathMountainPaletteUsesExactParents) {
   OverworldMap non_dm_map(0x04, rom_.get());
   non_dm_map.LoadAreaGraphics();
   EXPECT_EQ(non_dm_map.static_graphics(7), 0x5B);
+}
+
+// =============================================================================
+// Save Function Version Check Tests
+// These tests verify that save functions check ROM version before writing
+// to custom address space (0x140000+) to prevent vanilla ROM corruption.
+// =============================================================================
+
+TEST_F(OverworldRegressionTest, SaveAreaSpecificBGColors_VanillaRom_SkipsWrite) {
+  // Set version to Vanilla (0xFF)
+  (*rom_)[OverworldCustomASMHasBeenApplied] = 0xFF;
+
+  // Record original data at custom address
+  uint8_t original_byte = (*rom_)[OverworldCustomAreaSpecificBGPalette];
+
+  // Call save - should be a no-op for vanilla
+  auto status = overworld_->SaveAreaSpecificBGColors();
+  ASSERT_TRUE(status.ok());
+
+  // Verify data was NOT modified
+  EXPECT_EQ((*rom_)[OverworldCustomAreaSpecificBGPalette], original_byte);
+}
+
+TEST_F(OverworldRegressionTest, SaveAreaSpecificBGColors_V1Rom_SkipsWrite) {
+  // Set version to v1
+  (*rom_)[OverworldCustomASMHasBeenApplied] = 0x01;
+
+  // Record original data at custom address
+  uint8_t original_byte = (*rom_)[OverworldCustomAreaSpecificBGPalette];
+
+  // Call save - should be a no-op for v1 (only v2+ supports custom BG colors)
+  auto status = overworld_->SaveAreaSpecificBGColors();
+  ASSERT_TRUE(status.ok());
+
+  // Verify data was NOT modified
+  EXPECT_EQ((*rom_)[OverworldCustomAreaSpecificBGPalette], original_byte);
+}
+
+TEST_F(OverworldRegressionTest, SaveAreaSpecificBGColors_V2Rom_Writes) {
+  // Set version to v2 (supports custom BG colors)
+  (*rom_)[OverworldCustomASMHasBeenApplied] = 0x02;
+
+  // Create a standalone map and set its BG color
+  OverworldMap test_map(0, rom_.get());
+  test_map.set_area_specific_bg_color(0x7FFF);
+
+  // We can't easily test full write without loading overworld.
+  // Instead, verify that version check passes for v2
+  auto version = OverworldVersionHelper::GetVersion(*rom_);
+  EXPECT_TRUE(OverworldVersionHelper::SupportsCustomBGColors(version));
+}
+
+TEST_F(OverworldRegressionTest, SaveCustomOverworldASM_VanillaRom_SkipsWrite) {
+  // Set version to Vanilla
+  (*rom_)[OverworldCustomASMHasBeenApplied] = 0xFF;
+
+  // Record original data at custom enable flag address
+  uint8_t original_byte = (*rom_)[OverworldCustomAreaSpecificBGEnabled];
+
+  // Call save - should be a no-op for vanilla
+  auto status = overworld_->SaveCustomOverworldASM(true, true, true, true, true, true);
+  ASSERT_TRUE(status.ok());
+
+  // Verify enable flags were NOT modified
+  EXPECT_EQ((*rom_)[OverworldCustomAreaSpecificBGEnabled], original_byte);
+}
+
+TEST_F(OverworldRegressionTest, SaveDiggableTiles_VanillaRom_SkipsWrite) {
+  // Set version to Vanilla
+  (*rom_)[OverworldCustomASMHasBeenApplied] = 0xFF;
+
+  // Record original data at diggable tiles enable address
+  uint8_t original_byte = (*rom_)[kOverworldCustomDiggableTilesEnabled];
+
+  // Call save - should be a no-op for vanilla
+  auto status = overworld_->SaveDiggableTiles();
+  ASSERT_TRUE(status.ok());
+
+  // Verify enable flag was NOT modified
+  EXPECT_EQ((*rom_)[kOverworldCustomDiggableTilesEnabled], original_byte);
+}
+
+TEST_F(OverworldRegressionTest, SaveDiggableTiles_V2Rom_SkipsWrite) {
+  // Set version to v2 (diggable tiles require v3+)
+  (*rom_)[OverworldCustomASMHasBeenApplied] = 0x02;
+
+  // Record original data at diggable tiles enable address
+  uint8_t original_byte = (*rom_)[kOverworldCustomDiggableTilesEnabled];
+
+  // Call save - should be a no-op for v2
+  auto status = overworld_->SaveDiggableTiles();
+  ASSERT_TRUE(status.ok());
+
+  // Verify enable flag was NOT modified
+  EXPECT_EQ((*rom_)[kOverworldCustomDiggableTilesEnabled], original_byte);
+}
+
+TEST_F(OverworldRegressionTest, SaveDiggableTiles_V3Rom_Writes) {
+  // Set version to v3 (supports diggable tiles)
+  (*rom_)[OverworldCustomASMHasBeenApplied] = 0x03;
+
+  // Call save - should write for v3+
+  auto status = overworld_->SaveDiggableTiles();
+  ASSERT_TRUE(status.ok());
+
+  // Verify enable flag WAS set to 0xFF
+  EXPECT_EQ((*rom_)[kOverworldCustomDiggableTilesEnabled], 0xFF);
+}
+
+TEST_F(OverworldRegressionTest, SupportsCustomBGColors_VersionMatrix) {
+  // Test the feature support matrix for custom BG colors
+
+  // Vanilla - should NOT support
+  (*rom_)[OverworldCustomASMHasBeenApplied] = 0xFF;
+  EXPECT_FALSE(OverworldVersionHelper::SupportsCustomBGColors(
+      OverworldVersionHelper::GetVersion(*rom_)));
+
+  // v1 - should NOT support
+  (*rom_)[OverworldCustomASMHasBeenApplied] = 0x01;
+  EXPECT_FALSE(OverworldVersionHelper::SupportsCustomBGColors(
+      OverworldVersionHelper::GetVersion(*rom_)));
+
+  // v2 - should support
+  (*rom_)[OverworldCustomASMHasBeenApplied] = 0x02;
+  EXPECT_TRUE(OverworldVersionHelper::SupportsCustomBGColors(
+      OverworldVersionHelper::GetVersion(*rom_)));
+
+  // v3 - should support
+  (*rom_)[OverworldCustomASMHasBeenApplied] = 0x03;
+  EXPECT_TRUE(OverworldVersionHelper::SupportsCustomBGColors(
+      OverworldVersionHelper::GetVersion(*rom_)));
+}
+
+TEST_F(OverworldRegressionTest, SupportsAreaEnum_VersionMatrix) {
+  // Test the feature support matrix for area enum (v3+ features)
+
+  // Vanilla - should NOT support
+  (*rom_)[OverworldCustomASMHasBeenApplied] = 0xFF;
+  EXPECT_FALSE(OverworldVersionHelper::SupportsAreaEnum(
+      OverworldVersionHelper::GetVersion(*rom_)));
+
+  // v1 - should NOT support
+  (*rom_)[OverworldCustomASMHasBeenApplied] = 0x01;
+  EXPECT_FALSE(OverworldVersionHelper::SupportsAreaEnum(
+      OverworldVersionHelper::GetVersion(*rom_)));
+
+  // v2 - should NOT support
+  (*rom_)[OverworldCustomASMHasBeenApplied] = 0x02;
+  EXPECT_FALSE(OverworldVersionHelper::SupportsAreaEnum(
+      OverworldVersionHelper::GetVersion(*rom_)));
+
+  // v3 - should support
+  (*rom_)[OverworldCustomASMHasBeenApplied] = 0x03;
+  EXPECT_TRUE(OverworldVersionHelper::SupportsAreaEnum(
+      OverworldVersionHelper::GetVersion(*rom_)));
 }
 
 }  // namespace zelda3
