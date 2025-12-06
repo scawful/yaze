@@ -366,6 +366,48 @@ void Canvas::End() {
   RenderPersistentPopups();
 }
 
+void Canvas::Begin(const CanvasFrameOptions& options) {
+  gui::BeginPadding(1);
+
+  // Calculate effective size
+  ImVec2 effective_size = options.canvas_size;
+  if (effective_size.x == 0 && effective_size.y == 0) {
+    if (IsAutoResize()) {
+      effective_size = GetPreferredSize();
+    } else {
+      effective_size = GetCurrentSize();
+    }
+  }
+
+  ImGui::BeginChild(canvas_id().c_str(), effective_size, true,
+                    ImGuiWindowFlags_AlwaysVerticalScrollbar);
+
+  // Apply grid step from options if specified
+  if (options.grid_step.has_value()) {
+    SetCustomGridStep(options.grid_step.value());
+  }
+
+  DrawBackground(options.canvas_size);
+  gui::EndPadding();
+
+  if (options.draw_context_menu) {
+    DrawContextMenu();
+  }
+}
+
+void Canvas::End(const CanvasFrameOptions& options) {
+  if (options.draw_grid) {
+    DrawGrid(options.grid_step.value_or(GetGridStep()));
+  }
+  if (options.draw_overlay) {
+    DrawOverlay();
+  }
+  if (options.render_popups) {
+    RenderPersistentPopups();
+  }
+  ImGui::EndChild();
+}
+
 // ==================== Legacy Interface ====================
 
 void Canvas::UpdateColorPainter(gfx::IRenderer* /*renderer*/,
@@ -736,73 +778,41 @@ bool Canvas::DrawTilePainter(const Bitmap& bitmap, int size, float scale) {
 }
 
 bool Canvas::DrawTilemapPainter(gfx::Tilemap& tilemap, int current_tile) {
-  const ImGuiIO& io = GetIO();
-  const bool is_hovered = IsItemHovered();
-  is_hovered_ = is_hovered;
-  const ImVec2 origin(canvas_p0_.x + scrolling_.x, canvas_p0_.y + scrolling_.y);
-  const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
+  // Update hover state for backward compatibility
+  is_hovered_ = IsItemHovered();
 
-  // Safety check: ensure tilemap is properly initialized
-  if (!tilemap.atlas.is_active() || tilemap.tile_size.x <= 0) {
-    return false;
-  }
-
-  const auto scaled_size = tilemap.tile_size.x * global_scale_;
-
-  if (!is_hovered) {
+  // Clear points if not hovered (legacy behavior)
+  if (!is_hovered_) {
     points_.clear();
     return false;
   }
 
-  if (!points_.empty()) {
+  // Build runtime and delegate to stateless helper
+  CanvasRuntime rt = BuildCurrentRuntime();
+  ImVec2 drawn_pos;
+  bool result = gui::DrawTilemapPainter(rt, tilemap, current_tile, &drawn_pos);
+
+  // Sync legacy state from stateless call
+  if (is_hovered_) {
+    const ImGuiIO& io = GetIO();
+    const ImVec2 origin(canvas_p0_.x + scrolling_.x,
+                        canvas_p0_.y + scrolling_.y);
+    const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
+    const float scaled_size = tilemap.tile_size.x * global_scale_;
+    ImVec2 paint_pos = AlignPosToGrid(mouse_pos, scaled_size);
+    mouse_pos_in_canvas_ = paint_pos;
+
     points_.clear();
+    points_.push_back(paint_pos);
+    points_.push_back(
+        ImVec2(paint_pos.x + scaled_size, paint_pos.y + scaled_size));
   }
 
-  ImVec2 paint_pos = AlignPosToGrid(mouse_pos, scaled_size);
-  mouse_pos_in_canvas_ = paint_pos;
-
-  points_.push_back(paint_pos);
-  points_.push_back(
-      ImVec2(paint_pos.x + scaled_size, paint_pos.y + scaled_size));
-
-  // Performance optimization: Draw preview tile directly from atlas texture
-  // This avoids cache overhead for transient preview rendering
-  if (tilemap.atlas.is_active() && tilemap.atlas.texture()) {
-    // Draw the tile directly from the atlas without caching
-    int tiles_per_row = tilemap.atlas.width() / tilemap.tile_size.x;
-    if (tiles_per_row > 0) {
-      int tile_x = (current_tile % tiles_per_row) * tilemap.tile_size.x;
-      int tile_y = (current_tile / tiles_per_row) * tilemap.tile_size.y;
-
-      // Simple bounds check
-      if (tile_x >= 0 && tile_x < tilemap.atlas.width() && tile_y >= 0 &&
-          tile_y < tilemap.atlas.height()) {
-        // Draw directly from atlas texture
-        ImVec2 uv0 =
-            ImVec2(static_cast<float>(tile_x) / tilemap.atlas.width(),
-                   static_cast<float>(tile_y) / tilemap.atlas.height());
-        ImVec2 uv1 = ImVec2(static_cast<float>(tile_x + tilemap.tile_size.x) /
-                                tilemap.atlas.width(),
-                            static_cast<float>(tile_y + tilemap.tile_size.y) /
-                                tilemap.atlas.height());
-
-        draw_list_->AddImage(
-            (ImTextureID)(intptr_t)tilemap.atlas.texture(),
-            ImVec2(origin.x + paint_pos.x, origin.y + paint_pos.y),
-            ImVec2(origin.x + paint_pos.x + scaled_size,
-                   origin.y + paint_pos.y + scaled_size),
-            uv0, uv1);
-      }
-    }
+  if (result) {
+    drawn_tile_pos_ = drawn_pos;
   }
 
-  if (IsMouseClicked(ImGuiMouseButton_Left) ||
-      ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
-    drawn_tile_pos_ = paint_pos;
-    return true;
-  }
-
-  return false;
+  return result;
 }
 
 bool Canvas::DrawSolidTilePainter(const ImVec4& color, int tile_size) {
@@ -881,144 +891,66 @@ void Canvas::DrawTileOnBitmap(int tile_size, gfx::Bitmap* bitmap,
 }
 
 bool Canvas::DrawTileSelector(int size, int size_y) {
-  const ImGuiIO& io = GetIO();
-  const bool is_hovered = IsItemHovered();
-  is_hovered_ = is_hovered;
-  const ImVec2 origin(canvas_p0_.x + scrolling_.x, canvas_p0_.y + scrolling_.y);
-  const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
+  // Update hover state for backward compatibility
+  is_hovered_ = IsItemHovered();
+
   if (size_y == 0) {
     size_y = size;
   }
 
-  if (is_hovered && IsMouseClicked(ImGuiMouseButton_Left)) {
-    if (!points_.empty()) {
-      points_.clear();
-    }
-    ImVec2 painter_pos = AlignPosToGrid(mouse_pos, size);
+  // Build runtime and delegate to stateless helper
+  CanvasRuntime rt = BuildCurrentRuntime();
+  ImVec2 selected_pos;
+  bool double_clicked = gui::DrawTileSelector(rt, size, size_y, &selected_pos);
 
+  // Sync legacy state: update points_ on click
+  if (is_hovered_ && IsMouseClicked(ImGuiMouseButton_Left)) {
+    const ImGuiIO& io = GetIO();
+    const ImVec2 origin(canvas_p0_.x + scrolling_.x,
+                        canvas_p0_.y + scrolling_.y);
+    const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
+    ImVec2 painter_pos = AlignPosToGrid(mouse_pos, static_cast<float>(size));
+
+    points_.clear();
     points_.push_back(painter_pos);
     points_.push_back(ImVec2(painter_pos.x + size, painter_pos.y + size_y));
     mouse_pos_in_canvas_ = painter_pos;
   }
 
-  if (is_hovered && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-    return true;
-  }
-
-  return false;
+  return double_clicked;
 }
 
 void Canvas::DrawSelectRect(int current_map, int tile_size, float scale) {
   gfx::ScopedTimer timer("canvas_select_rect");
 
-  const ImGuiIO& io = GetIO();
-  const ImVec2 origin(canvas_p0_.x + scrolling_.x, canvas_p0_.y + scrolling_.y);
-  const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
-  static ImVec2 drag_start_pos;
-  const float scaled_size = tile_size * scale;
-  static bool dragging = false;
-  constexpr int small_map_size = 0x200;
-
-  // Only handle mouse events if the canvas is hovered
-  const bool is_hovered = IsItemHovered();
-  if (!is_hovered) {
+  // Update hover state
+  is_hovered_ = IsItemHovered();
+  if (!is_hovered_) {
     return;
   }
 
-  // Calculate superX and superY accounting for world offset
-  int superY, superX;
-  if (current_map < 0x40) {
-    // Light World
-    superY = current_map / 8;
-    superX = current_map % 8;
-  } else if (current_map < 0x80) {
-    // Dark World
-    superY = (current_map - 0x40) / 8;
-    superX = (current_map - 0x40) % 8;
-  } else {
-    // Special World
-    superY = (current_map - 0x80) / 8;
-    superX = (current_map - 0x80) % 8;
+  // Build runtime and delegate to stateless helper
+  CanvasRuntime rt = BuildCurrentRuntime();
+  rt.scale = scale;  // Use the passed scale, not global_scale_
+
+  // Use a temporary selection to capture output from stateless helper
+  CanvasSelection temp_selection;
+  temp_selection.selected_tiles = selected_tiles_;
+  temp_selection.selected_tile_pos = selected_tile_pos_;
+  temp_selection.select_rect_active = select_rect_active_;
+  for (int i = 0; i < selected_points_.size(); ++i) {
+    temp_selection.selected_points.push_back(selected_points_[i]);
   }
 
-  // Handle right click for single tile selection
-  if (IsMouseClicked(ImGuiMouseButton_Right)) {
-    ImVec2 painter_pos = AlignPosToGrid(mouse_pos, scaled_size);
-    int painter_x = painter_pos.x;
-    int painter_y = painter_pos.y;
+  gui::DrawSelectRect(rt, current_map, tile_size, scale, temp_selection);
 
-    auto tile16_x = (painter_x % small_map_size) / (small_map_size / 0x20);
-    auto tile16_y = (painter_y % small_map_size) / (small_map_size / 0x20);
-
-    int index_x = superX * 0x20 + tile16_x;
-    int index_y = superY * 0x20 + tile16_y;
-    selected_tile_pos_ = ImVec2(index_x, index_y);
-    selected_points_.clear();
-    select_rect_active_ = false;
-
-    // Start drag position for rectangle selection
-    drag_start_pos = AlignPosToGrid(mouse_pos, scaled_size);
-  }
-
-  // Calculate the rectangle's top-left and bottom-right corners
-  ImVec2 drag_end_pos = AlignPosToGrid(mouse_pos, scaled_size);
-  if (ImGui::IsMouseDragging(ImGuiMouseButton_Right)) {
-    // FIX: Origin used to be canvas_p0_, revert if there is regression.
-    auto start =
-        ImVec2(origin.x + drag_start_pos.x, origin.y + drag_start_pos.y);
-    auto end = ImVec2(origin.x + drag_end_pos.x + tile_size,
-                      origin.y + drag_end_pos.y + tile_size);
-    draw_list_->AddRect(start, end, kWhiteColor);
-    dragging = true;
-  }
-
-  if (dragging && !ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
-    // Release dragging mode
-    dragging = false;
-
-    // Calculate the bounds of the rectangle in terms of 16x16 tile indices
-    constexpr int tile16_size = 16;
-    int start_x = std::floor(drag_start_pos.x / scaled_size) * tile16_size;
-    int start_y = std::floor(drag_start_pos.y / scaled_size) * tile16_size;
-    int end_x = std::floor(drag_end_pos.x / scaled_size) * tile16_size;
-    int end_y = std::floor(drag_end_pos.y / scaled_size) * tile16_size;
-
-    // Swap the start and end positions if they are in the wrong order
-    if (start_x > end_x)
-      std::swap(start_x, end_x);
-    if (start_y > end_y)
-      std::swap(start_y, end_y);
-
-    selected_tiles_.clear();
-    selected_tiles_.reserve(((end_x - start_x) / tile16_size + 1) *
-                            ((end_y - start_y) / tile16_size + 1));
-
-    // Number of tiles per local map (since each tile is 16x16)
-    constexpr int tiles_per_local_map = small_map_size / 16;
-
-    // Loop through the tiles in the rectangle and store their positions
-    for (int y = start_y; y <= end_y; y += tile16_size) {
-      for (int x = start_x; x <= end_x; x += tile16_size) {
-        // Determine which local map (512x512) the tile is in
-        int local_map_x = (x / small_map_size) % 8;
-        int local_map_y = (y / small_map_size) % 8;
-
-        // Calculate the tile's position within its local map
-        int tile16_x = (x % small_map_size) / tile16_size;
-        int tile16_y = (y % small_map_size) / tile16_size;
-
-        // Calculate the index within the overall map structure
-        int index_x = local_map_x * tiles_per_local_map + tile16_x;
-        int index_y = local_map_y * tiles_per_local_map + tile16_y;
-
-        selected_tiles_.emplace_back(index_x, index_y);
-      }
-    }
-    // Clear and add the calculated rectangle points
-    selected_points_.clear();
-    selected_points_.push_back(drag_start_pos);
-    selected_points_.push_back(drag_end_pos);
-    select_rect_active_ = true;
+  // Sync back to legacy members
+  selected_tiles_ = temp_selection.selected_tiles;
+  selected_tile_pos_ = temp_selection.selected_tile_pos;
+  select_rect_active_ = temp_selection.select_rect_active;
+  selected_points_.clear();
+  for (const auto& pt : temp_selection.selected_points) {
+    selected_points_.push_back(pt);
   }
 }
 
@@ -1447,6 +1379,63 @@ void BeginCanvas(Canvas& canvas, ImVec2 child_size) {
 void EndCanvas(Canvas& canvas) {
   canvas.DrawGrid();
   canvas.DrawOverlay();
+  ImGui::EndChild();
+}
+
+CanvasRuntime BeginCanvas(gui::Canvas& canvas,
+                          const CanvasFrameOptions& options) {
+  gui::BeginPadding(1);
+
+  // Calculate effective size
+  ImVec2 effective_size = options.canvas_size;
+  if (effective_size.x == 0 && effective_size.y == 0) {
+    if (canvas.IsAutoResize()) {
+      effective_size = canvas.GetPreferredSize();
+    } else {
+      effective_size = canvas.GetCurrentSize();
+    }
+  }
+
+  ImGui::BeginChild(canvas.canvas_id().c_str(), effective_size, true,
+                    ImGuiWindowFlags_AlwaysVerticalScrollbar);
+
+  // Apply grid step from options if specified
+  if (options.grid_step.has_value()) {
+    canvas.SetCustomGridStep(options.grid_step.value());
+  }
+
+  canvas.DrawBackground(options.canvas_size);
+  gui::EndPadding();
+
+  if (options.draw_context_menu) {
+    canvas.DrawContextMenu();
+  }
+
+  // Build and return runtime
+  CanvasRuntime runtime;
+  runtime.draw_list = canvas.draw_list();
+  runtime.canvas_p0 = canvas.zero_point();
+  runtime.canvas_sz = canvas.canvas_size();
+  runtime.scrolling = canvas.scrolling();
+  runtime.hovered = canvas.IsMouseHovering();
+  runtime.grid_step = options.grid_step.value_or(canvas.GetGridStep());
+  runtime.scale = canvas.GetGlobalScale();
+  runtime.content_size = canvas.GetCurrentSize();
+
+  return runtime;
+}
+
+void EndCanvas(gui::Canvas& canvas, CanvasRuntime& /*runtime*/,
+               const CanvasFrameOptions& options) {
+  if (options.draw_grid) {
+    canvas.DrawGrid(options.grid_step.value_or(canvas.GetGridStep()));
+  }
+  if (options.draw_overlay) {
+    canvas.DrawOverlay();
+  }
+  if (options.render_popups) {
+    canvas.RenderPersistentPopups();
+  }
   ImGui::EndChild();
 }
 
@@ -1887,4 +1876,368 @@ CanvasAutomationAPI* Canvas::GetAutomationAPI() {
   return automation_api_.get();
 }
 
+// Stateless Canvas Helpers
+
+namespace {
+CanvasGeometry GetGeometryFromRuntime(const CanvasRuntime& rt) {
+  CanvasGeometry geom;
+  geom.canvas_p0 = rt.canvas_p0;
+  geom.canvas_sz = rt.canvas_sz;
+  geom.scrolling = rt.scrolling;
+  geom.scaled_size =
+      ImVec2(rt.canvas_sz.x * rt.scale, rt.canvas_sz.y * rt.scale);
+  geom.canvas_p1 = ImVec2(geom.canvas_p0.x + geom.canvas_sz.x,
+                          geom.canvas_p0.y + geom.canvas_sz.y);
+  return geom;
+}
+}  // namespace
+
+void DrawBitmap(const CanvasRuntime& rt, gfx::Bitmap& bitmap, int border_offset,
+                float scale) {
+  if (!rt.draw_list) return;
+  CanvasGeometry geom = GetGeometryFromRuntime(rt);
+  RenderBitmapOnCanvas(rt.draw_list, geom, bitmap, border_offset, scale);
+}
+
+void DrawBitmap(const CanvasRuntime& rt, gfx::Bitmap& bitmap, int x_offset,
+                int y_offset, float scale, int alpha) {
+  if (!rt.draw_list) return;
+  CanvasGeometry geom = GetGeometryFromRuntime(rt);
+  RenderBitmapOnCanvas(rt.draw_list, geom, bitmap, x_offset, y_offset, scale,
+                       alpha);
+}
+
+void DrawBitmap(const CanvasRuntime& rt, gfx::Bitmap& bitmap, ImVec2 dest_pos,
+                ImVec2 dest_size, ImVec2 src_pos, ImVec2 src_size) {
+  if (!rt.draw_list) return;
+  CanvasGeometry geom = GetGeometryFromRuntime(rt);
+  RenderBitmapOnCanvas(rt.draw_list, geom, bitmap, dest_pos, dest_size, src_pos,
+                       src_size);
+}
+
+void DrawBitmap(const CanvasRuntime& rt, gfx::Bitmap& bitmap,
+                const BitmapDrawOpts& opts) {
+  if (!rt.draw_list) return;
+
+  // Ensure texture if requested
+  if (opts.ensure_texture && !bitmap.texture() && bitmap.surface()) {
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::CREATE, &bitmap);
+  }
+
+  // Determine which overload to use based on options
+  if (opts.dest_size.x > 0 && opts.dest_size.y > 0) {
+    ImVec2 src_size = opts.src_size;
+    if (src_size.x <= 0 || src_size.y <= 0) {
+      src_size = ImVec2(static_cast<float>(bitmap.width()),
+                        static_cast<float>(bitmap.height()));
+    }
+    DrawBitmap(rt, bitmap, opts.dest_pos, opts.dest_size, opts.src_pos,
+               src_size);
+  } else {
+    DrawBitmap(rt, bitmap, static_cast<int>(opts.dest_pos.x),
+               static_cast<int>(opts.dest_pos.y), opts.scale, opts.alpha);
+  }
+}
+
+void DrawBitmapPreview(const CanvasRuntime& rt, gfx::Bitmap& bitmap,
+                       const BitmapPreviewOptions& options) {
+  if (options.ensure_texture && !bitmap.texture() && bitmap.surface()) {
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::CREATE, &bitmap);
+  }
+
+  if (options.dest_size.x > 0 && options.dest_size.y > 0) {
+    ImVec2 src_size = options.src_size;
+    if (src_size.x <= 0 || src_size.y <= 0) {
+      src_size = ImVec2(bitmap.width(), bitmap.height());
+    }
+    DrawBitmap(rt, bitmap, options.dest_pos, options.dest_size, options.src_pos,
+               src_size);
+  } else {
+    DrawBitmap(rt, bitmap, static_cast<int>(options.dest_pos.x),
+               static_cast<int>(options.dest_pos.y), options.scale,
+               options.alpha);
+  }
+}
+
+bool RenderPreviewPanel(const CanvasRuntime& rt, gfx::Bitmap& bmp,
+                        const PreviewPanelOpts& opts) {
+  if (!rt.draw_list) return false;
+
+  // Ensure texture if requested
+  if (opts.ensure_texture && !bmp.texture() && bmp.surface()) {
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::CREATE, &bmp);
+  }
+
+  // Draw the bitmap using existing helpers
+  if (opts.dest_size.x > 0 && opts.dest_size.y > 0) {
+    DrawBitmap(rt, bmp, opts.dest_pos, opts.dest_size, ImVec2(0, 0),
+               ImVec2(static_cast<float>(bmp.width()),
+                      static_cast<float>(bmp.height())));
+  } else {
+    DrawBitmap(rt, bmp, static_cast<int>(opts.dest_pos.x),
+               static_cast<int>(opts.dest_pos.y), 1.0f, 255);
+  }
+  return true;
+}
+
+// ============================================================================
+// Stateless Interaction Helpers
+// ============================================================================
+
+namespace {
+ImVec2 AlignPosToGridHelper(ImVec2 pos, float scale) {
+  return ImVec2(std::floor(pos.x / scale) * scale,
+                std::floor(pos.y / scale) * scale);
+}
+}  // namespace
+
+bool DrawTilemapPainter(const CanvasRuntime& rt, gfx::Tilemap& tilemap,
+                        int current_tile, ImVec2* out_drawn_pos) {
+  if (!rt.draw_list) return false;
+
+  const ImGuiIO& io = ImGui::GetIO();
+  const ImVec2 origin(rt.canvas_p0.x + rt.scrolling.x,
+                      rt.canvas_p0.y + rt.scrolling.y);
+  const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
+
+  // Safety check: ensure tilemap is properly initialized
+  if (!tilemap.atlas.is_active() || tilemap.tile_size.x <= 0) {
+    return false;
+  }
+
+  const float scaled_size = tilemap.tile_size.x * rt.scale;
+
+  if (!rt.hovered) {
+    return false;
+  }
+
+  ImVec2 paint_pos = AlignPosToGridHelper(mouse_pos, scaled_size);
+
+  // Performance optimization: Draw preview tile directly from atlas texture
+  if (tilemap.atlas.is_active() && tilemap.atlas.texture()) {
+    int tiles_per_row = tilemap.atlas.width() / tilemap.tile_size.x;
+    if (tiles_per_row > 0) {
+      int tile_x = (current_tile % tiles_per_row) * tilemap.tile_size.x;
+      int tile_y = (current_tile / tiles_per_row) * tilemap.tile_size.y;
+
+      // Simple bounds check
+      if (tile_x >= 0 && tile_x < tilemap.atlas.width() && tile_y >= 0 &&
+          tile_y < tilemap.atlas.height()) {
+        ImVec2 uv0 =
+            ImVec2(static_cast<float>(tile_x) / tilemap.atlas.width(),
+                   static_cast<float>(tile_y) / tilemap.atlas.height());
+        ImVec2 uv1 = ImVec2(static_cast<float>(tile_x + tilemap.tile_size.x) /
+                                tilemap.atlas.width(),
+                            static_cast<float>(tile_y + tilemap.tile_size.y) /
+                                tilemap.atlas.height());
+
+        rt.draw_list->AddImage(
+            (ImTextureID)(intptr_t)tilemap.atlas.texture(),
+            ImVec2(origin.x + paint_pos.x, origin.y + paint_pos.y),
+            ImVec2(origin.x + paint_pos.x + scaled_size,
+                   origin.y + paint_pos.y + scaled_size),
+            uv0, uv1);
+      }
+    }
+  }
+
+  if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) ||
+      ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+    if (out_drawn_pos) *out_drawn_pos = paint_pos;
+    return true;
+  }
+
+  return false;
+}
+
+bool DrawTileSelector(const CanvasRuntime& rt, int size, int size_y,
+                      ImVec2* out_selected_pos) {
+  const ImGuiIO& io = ImGui::GetIO();
+  const ImVec2 origin(rt.canvas_p0.x + rt.scrolling.x,
+                      rt.canvas_p0.y + rt.scrolling.y);
+  const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
+
+  if (size_y == 0) {
+    size_y = size;
+  }
+
+  if (rt.hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+    ImVec2 painter_pos = AlignPosToGridHelper(mouse_pos, static_cast<float>(size));
+    if (out_selected_pos) *out_selected_pos = painter_pos;
+  }
+
+  // Return true on double-click for "confirm selection" semantics
+  if (rt.hovered && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+    return true;
+  }
+
+  return false;
+}
+
+void DrawSelectRect(const CanvasRuntime& rt, int current_map, int tile_size,
+                    float scale, CanvasSelection& selection) {
+  if (!rt.draw_list) return;
+
+  const ImGuiIO& io = ImGui::GetIO();
+  const ImVec2 origin(rt.canvas_p0.x + rt.scrolling.x,
+                      rt.canvas_p0.y + rt.scrolling.y);
+  const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
+  static ImVec2 drag_start_pos;
+  const float scaled_size = tile_size * scale;
+  static bool dragging = false;
+  constexpr int small_map_size = 0x200;
+  constexpr uint32_t kWhite = IM_COL32(255, 255, 255, 255);
+
+  if (!rt.hovered) {
+    return;
+  }
+
+  // Calculate superX and superY accounting for world offset
+  int superY, superX;
+  if (current_map < 0x40) {
+    superY = current_map / 8;
+    superX = current_map % 8;
+  } else if (current_map < 0x80) {
+    superY = (current_map - 0x40) / 8;
+    superX = (current_map - 0x40) % 8;
+  } else {
+    superY = (current_map - 0x80) / 8;
+    superX = (current_map - 0x80) % 8;
+  }
+
+  // Handle right click for single tile selection
+  if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+    ImVec2 painter_pos = AlignPosToGridHelper(mouse_pos, scaled_size);
+    int painter_x = static_cast<int>(painter_pos.x);
+    int painter_y = static_cast<int>(painter_pos.y);
+
+    auto tile16_x = (painter_x % small_map_size) / (small_map_size / 0x20);
+    auto tile16_y = (painter_y % small_map_size) / (small_map_size / 0x20);
+
+    int index_x = superX * 0x20 + tile16_x;
+    int index_y = superY * 0x20 + tile16_y;
+    selection.selected_tile_pos = ImVec2(static_cast<float>(index_x),
+                                         static_cast<float>(index_y));
+    selection.selected_points.clear();
+    selection.select_rect_active = false;
+
+    drag_start_pos = AlignPosToGridHelper(mouse_pos, scaled_size);
+  }
+
+  // Calculate the rectangle's top-left and bottom-right corners
+  ImVec2 drag_end_pos = AlignPosToGridHelper(mouse_pos, scaled_size);
+  if (ImGui::IsMouseDragging(ImGuiMouseButton_Right)) {
+    auto start =
+        ImVec2(origin.x + drag_start_pos.x, origin.y + drag_start_pos.y);
+    auto end = ImVec2(origin.x + drag_end_pos.x + tile_size,
+                      origin.y + drag_end_pos.y + tile_size);
+    rt.draw_list->AddRect(start, end, kWhite);
+    dragging = true;
+  }
+
+  if (dragging && !ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
+    dragging = false;
+
+    constexpr int tile16_size = 16;
+    int start_x = static_cast<int>(std::floor(drag_start_pos.x / scaled_size)) * tile16_size;
+    int start_y = static_cast<int>(std::floor(drag_start_pos.y / scaled_size)) * tile16_size;
+    int end_x = static_cast<int>(std::floor(drag_end_pos.x / scaled_size)) * tile16_size;
+    int end_y = static_cast<int>(std::floor(drag_end_pos.y / scaled_size)) * tile16_size;
+
+    if (start_x > end_x) std::swap(start_x, end_x);
+    if (start_y > end_y) std::swap(start_y, end_y);
+
+    selection.selected_tiles.clear();
+    selection.selected_tiles.reserve(
+        static_cast<size_t>(((end_x - start_x) / tile16_size + 1) *
+                            ((end_y - start_y) / tile16_size + 1)));
+
+    constexpr int tiles_per_local_map = small_map_size / 16;
+
+    for (int y = start_y; y <= end_y; y += tile16_size) {
+      for (int x = start_x; x <= end_x; x += tile16_size) {
+        int local_map_x = (x / small_map_size) % 8;
+        int local_map_y = (y / small_map_size) % 8;
+        int tile16_x = (x % small_map_size) / tile16_size;
+        int tile16_y = (y % small_map_size) / tile16_size;
+        int index_x = local_map_x * tiles_per_local_map + tile16_x;
+        int index_y = local_map_y * tiles_per_local_map + tile16_y;
+        selection.selected_tiles.emplace_back(static_cast<float>(index_x),
+                                              static_cast<float>(index_y));
+      }
+    }
+
+    selection.selected_points.clear();
+    selection.selected_points.push_back(drag_start_pos);
+    selection.selected_points.push_back(drag_end_pos);
+    selection.select_rect_active = true;
+  }
+}
+
+// =============================================================================
+// Canvas::AddXxxAt Methods
+// =============================================================================
+
+void Canvas::AddImageAt(ImTextureID texture, ImVec2 local_top_left, ImVec2 size) {
+  if (draw_list_ == nullptr) return;
+  ImVec2 screen_pos(canvas_p0_.x + local_top_left.x * global_scale_,
+                    canvas_p0_.y + local_top_left.y * global_scale_);
+  ImVec2 screen_end(screen_pos.x + size.x * global_scale_,
+                    screen_pos.y + size.y * global_scale_);
+  draw_list_->AddImage(texture, screen_pos, screen_end);
+}
+
+void Canvas::AddRectFilledAt(ImVec2 local_top_left, ImVec2 size, uint32_t color) {
+  if (draw_list_ == nullptr) return;
+  ImVec2 screen_pos(canvas_p0_.x + local_top_left.x * global_scale_,
+                    canvas_p0_.y + local_top_left.y * global_scale_);
+  ImVec2 screen_end(screen_pos.x + size.x * global_scale_,
+                    screen_pos.y + size.y * global_scale_);
+  draw_list_->AddRectFilled(screen_pos, screen_end, color);
+}
+
+void Canvas::AddTextAt(ImVec2 local_pos, const std::string& text, uint32_t color) {
+  if (draw_list_ == nullptr) return;
+  ImVec2 screen_pos(canvas_p0_.x + local_pos.x * global_scale_,
+                    canvas_p0_.y + local_pos.y * global_scale_);
+  draw_list_->AddText(screen_pos, color, text.c_str());
+}
+
+// =============================================================================
+// CanvasFrame RAII Class
+// =============================================================================
+
+CanvasFrame::CanvasFrame(Canvas& canvas, CanvasFrameOptions options)
+    : canvas_(&canvas), options_(options), active_(true) {
+  canvas_->Begin(options_);
+}
+
+CanvasFrame::~CanvasFrame() {
+  if (active_) {
+    canvas_->End(options_);
+  }
+}
+
+CanvasFrame::CanvasFrame(CanvasFrame&& other) noexcept
+    : canvas_(other.canvas_), options_(other.options_), active_(other.active_) {
+  other.active_ = false;
+}
+
+CanvasFrame& CanvasFrame::operator=(CanvasFrame&& other) noexcept {
+  if (this != &other) {
+    if (active_) {
+      canvas_->End(options_);
+    }
+    canvas_ = other.canvas_;
+    options_ = other.options_;
+    active_ = other.active_;
+    other.active_ = false;
+  }
+  return *this;
+}
+
 }  // namespace yaze::gui
+

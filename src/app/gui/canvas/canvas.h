@@ -7,8 +7,12 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
+#include <string_view>
+#include <vector>
 
+#include "absl/types/span.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/util/bpp_format_manager.h"
 #include "app/gui/canvas/bpp_format_ui.h"
@@ -45,6 +49,86 @@ using gfx::BitmapTable;
 enum class CanvasType { kTile, kBlock, kMap };
 enum class CanvasMode { kPaint, kSelect };
 enum class CanvasGridSize { k8x8, k16x16, k32x32, k64x64 };
+
+struct CanvasRuntime {
+  ImDrawList* draw_list = nullptr;
+  ImVec2 canvas_p0 = ImVec2(0, 0);
+  ImVec2 canvas_sz = ImVec2(0, 0);
+  ImVec2 scrolling = ImVec2(0, 0);
+  ImVec2 mouse_pos_local = ImVec2(0, 0);
+  bool hovered = false;
+  float grid_step = 16.0f;
+  float scale = 1.0f;
+  ImVec2 content_size = ImVec2(0, 0);
+};
+
+struct CanvasFrameOptions {
+  ImVec2 canvas_size = ImVec2(0, 0);
+  bool draw_context_menu = true;
+  bool draw_grid = true;
+  std::optional<float> grid_step;
+  bool draw_overlay = true;
+  bool render_popups = true;
+};
+
+struct BitmapPreviewOptions {
+  ImVec2 canvas_size = ImVec2(0, 0);
+  ImVec2 dest_pos = ImVec2(0, 0);
+  ImVec2 dest_size = ImVec2(0, 0);
+  ImVec2 src_pos = ImVec2(0, 0);
+  ImVec2 src_size = ImVec2(0, 0);
+  float scale = 1.0f;
+  int alpha = 255;
+  bool draw_context_menu = false;
+  bool draw_grid = true;
+  std::optional<float> grid_step;
+  bool draw_overlay = true;
+  bool render_popups = true;
+  bool ensure_texture = false;
+  int selector_tile_size = 0;
+  int selector_tile_size_y = 0;
+};
+
+struct TileHit {
+  int tile_index = -1;
+  ImVec2 tile_origin = ImVec2(0, 0);
+  ImVec2 tile_size = ImVec2(0, 0);
+};
+
+struct BitmapDrawOpts {
+  ImVec2 dest_pos = ImVec2(0, 0);
+  ImVec2 dest_size = ImVec2(0, 0);
+  ImVec2 src_pos = ImVec2(0, 0);
+  ImVec2 src_size = ImVec2(0, 0);
+  float scale = 1.0f;
+  int alpha = 255;
+  bool ensure_texture = true;
+};
+
+struct SelectorPanelOpts {
+  ImVec2 canvas_size = ImVec2(0, 0);
+  float grid_step = 16.0f;
+  bool show_grid = true;
+  bool show_overlay = true;
+  bool render_popups = true;
+  bool ensure_texture = true;
+  int tile_selector_size = 0;
+  int tile_selector_size_y = 0;
+};
+
+struct PreviewPanelOpts {
+  ImVec2 canvas_size = ImVec2(0, 0);
+  ImVec2 dest_pos = ImVec2(0, 0);
+  ImVec2 dest_size = ImVec2(0, 0);
+  float grid_step = 0.0f;  // 0 = no grid
+  bool render_popups = false;
+  bool ensure_texture = true;
+};
+
+struct ZoomToFitResult {
+  float scale;
+  ImVec2 scroll;
+};
 
 /**
  * @class Canvas
@@ -101,10 +185,12 @@ class Canvas {
         config_.grid_step = 64.0f;
         break;
     }
+    custom_step_ = config_.grid_step;
   }
 
   void SetCustomGridStep(float step) {
     config_.grid_step = step;
+    custom_step_ = step;
   }
 
   // Legacy compatibility
@@ -150,6 +236,7 @@ class Canvas {
    * ```
    */
   void Begin(ImVec2 canvas_size = ImVec2(0, 0));
+  void Begin(const CanvasFrameOptions& options);
 
   /**
    * @brief End canvas rendering (ImGui-style)
@@ -158,6 +245,7 @@ class Canvas {
    * Automatically draws grid and overlay if enabled.
    */
   void End();
+  void End(const CanvasFrameOptions& options);
 
   // ==================== Legacy Interface (Backward Compatible)
   // ====================
@@ -297,10 +385,18 @@ class Canvas {
   int GetTileIdFromMousePos() {
     float x = mouse_pos_in_canvas_.x;
     float y = mouse_pos_in_canvas_.y;
-    int num_columns = (canvas_sz_.x / global_scale_) / custom_step_;
-    int num_rows = (canvas_sz_.y / global_scale_) / custom_step_;
-    int tile_id = (x / custom_step_) + (y / custom_step_) * num_columns;
-    tile_id = tile_id / global_scale_;
+    float step = custom_step_ != 0.0f ? custom_step_ : config_.grid_step;
+    float scale = config_.global_scale != 0.0f ? config_.global_scale : 1.0f;
+    if (step <= 0.0f) {
+      return -1;
+    }
+    int num_columns = (canvas_sz_.x / scale) / step;
+    int num_rows = (canvas_sz_.y / scale) / step;
+    if (num_columns <= 0 || num_rows <= 0) {
+      return -1;
+    }
+    int tile_id =
+        static_cast<int>((x / step) + (y / step) * static_cast<float>(num_columns));
     if (tile_id >= num_columns * num_rows) {
       tile_id = -1;  // Invalid tile ID
     }
@@ -318,6 +414,7 @@ class Canvas {
   auto push_back(ImVec2 pos) { points_.push_back(pos); }
   auto draw_list() const { return draw_list_; }
   auto zero_point() const { return canvas_p0_; }
+  ImVec2 ToCanvasPos(ImVec2 local) const;
   auto scrolling() const { return scrolling_; }
   void set_scrolling(ImVec2 scroll) { scrolling_ = scroll; }
   auto drawn_tile_position() const { return drawn_tile_pos_; }
@@ -392,6 +489,8 @@ class Canvas {
                        int tile_size, float scale = 1.0f,
                        int local_map_size = 0x200,
                        ImVec2 total_map_size = ImVec2(0x1000, 0x1000));
+  void DrawBitmapPreview(Bitmap& bitmap,
+                         const BitmapPreviewOptions& options);
   bool DrawTilemapPainter(gfx::Tilemap& tilemap, int current_tile);
   void DrawSelectRect(int current_map, int tile_size = 0x10,
                       float scale = 1.0f);
@@ -430,8 +529,28 @@ class Canvas {
   void SetGameData(zelda3::GameData* game_data);
   zelda3::GameData* game_data() const { return game_data_; }
 
+  void AddImageAt(ImTextureID texture, ImVec2 local_top_left, ImVec2 size);
+  void AddRectFilledAt(ImVec2 local_top_left, ImVec2 size, uint32_t color);
+  void AddTextAt(ImVec2 local_pos, const std::string& text, uint32_t color);
+
  private:
   void DrawContextMenuItem(const gui::CanvasMenuItem& item);
+
+  // Helper to build CanvasRuntime from current state (for delegation to
+  // stateless helpers)
+  CanvasRuntime BuildCurrentRuntime() const {
+    CanvasRuntime rt;
+    rt.draw_list = draw_list_;
+    rt.canvas_p0 = canvas_p0_;
+    rt.canvas_sz = canvas_sz_;
+    rt.scrolling = scrolling_;
+    rt.mouse_pos_local = mouse_pos_in_canvas_;
+    rt.hovered = is_hovered_;
+    rt.grid_step = custom_step_;
+    rt.scale = global_scale_;
+    rt.content_size = config_.content_size;
+    return rt;
+  }
 
   // Modular configuration and state
   gfx::IRenderer* renderer_ = nullptr;
@@ -517,6 +636,79 @@ void BitmapCanvasPipeline(gui::Canvas& canvas, gfx::Bitmap& bitmap, int width,
 void TableCanvasPipeline(gui::Canvas& canvas, gfx::Bitmap& bitmap,
                          const std::string& label = "",
                          bool auto_resize = true);
+
+// ---------- Optional helper APIs ----------
+CanvasRuntime BeginCanvas(gui::Canvas& canvas,
+                          const CanvasFrameOptions& options);
+void EndCanvas(gui::Canvas& canvas, CanvasRuntime& runtime,
+               const CanvasFrameOptions& options);
+
+// New Stateless Drawing Helpers (CanvasRuntime-based)
+void DrawBitmap(const CanvasRuntime& rt, gfx::Bitmap& bitmap, int border_offset = 2, float scale = 1.0f);
+void DrawBitmap(const CanvasRuntime& rt, gfx::Bitmap& bitmap, int x_offset, int y_offset, float scale = 1.0f, int alpha = 255);
+void DrawBitmap(const CanvasRuntime& rt, gfx::Bitmap& bitmap, ImVec2 dest_pos, ImVec2 dest_size, ImVec2 src_pos, ImVec2 src_size);
+void DrawBitmap(const CanvasRuntime& rt, gfx::Bitmap& bitmap, const BitmapDrawOpts& opts);
+
+// New Stateless Preview Helpers
+void DrawBitmapPreview(const CanvasRuntime& rt, gfx::Bitmap& bitmap, const BitmapPreviewOptions& options);
+bool RenderPreviewPanel(const CanvasRuntime& rt, gfx::Bitmap& bmp, const PreviewPanelOpts& opts);
+
+bool DrawTilemapPainter(const CanvasRuntime& rt, gfx::Tilemap& tilemap, int current_tile, ImVec2* out_drawn_pos);
+bool DrawTileSelector(const CanvasRuntime& rt, int size, int size_y, ImVec2* out_selected_pos);
+void DrawSelectRect(const CanvasRuntime& rt, int current_map, int tile_size, float scale, CanvasSelection& selection);
+
+TileHit TileIndexAt(const ImVec2& local_pos, float grid_step, float scale,
+                    const ImVec2& canvas_px);
+
+void DrawTileOutline(const CanvasRuntime& rt, const ImVec2& tile_pos_px,
+                     const ImVec2& tile_size_px, ImU32 color);
+void DrawTileHighlight(const CanvasRuntime& rt, const ImVec2& tile_pos_px,
+                       const ImVec2& tile_size_px, ImU32 color);
+void DrawTileLabel(const CanvasRuntime& rt, const ImVec2& tile_pos_px,
+                   const char* text, ImU32 color);
+
+bool DrawBitmap(gui::Canvas& canvas, CanvasRuntime& rt, gfx::Bitmap& bmp,
+                const BitmapDrawOpts& opts);
+
+bool DrawTilemapRegion(gui::Canvas& canvas, CanvasRuntime& rt,
+                       gfx::Tilemap& tilemap, absl::Span<const int> tile_ids,
+                       int tile_size, float scale, ImVec2 clamp_px);
+
+bool RenderSelectorPanel(gui::Canvas& canvas, gfx::Bitmap& bmp,
+                         const SelectorPanelOpts& opts, TileHit* out_hit);
+
+bool RenderPreviewPanel(gui::Canvas& canvas, gfx::Bitmap& bmp,
+                        const PreviewPanelOpts& opts);
+
+ZoomToFitResult ComputeZoomToFit(ImVec2 content_px, ImVec2 canvas_px,
+                                 float padding_px);
+ImVec2 ClampScroll(ImVec2 scroll, ImVec2 content_px, ImVec2 canvas_px);
+
+struct CanvasMenuAction {
+  std::string id;
+  std::string label;
+  std::string shortcut;
+  std::function<bool()> enabled;
+  std::function<void()> on_click;
+};
+
+class CanvasMenuActionHost {
+ public:
+  void Clear() { items_.clear(); }
+  void AddItem(CanvasMenuAction item) { items_.push_back(std::move(item)); }
+  absl::Span<const CanvasMenuAction> items() const { return items_; }
+  const std::string& popup_id() const { return popup_id_; }
+  void set_popup_id(std::string id) { popup_id_ = std::move(id); }
+
+ private:
+  std::vector<CanvasMenuAction> items_;
+  std::string popup_id_ = "CanvasMenuHost";
+};
+
+void RegisterDefaultCanvasMenu(CanvasMenuActionHost& host,
+                               const CanvasRuntime& rt, CanvasConfig& cfg);
+void RenderContextMenu(CanvasMenuActionHost& host, const CanvasRuntime& rt,
+                       CanvasConfig& cfg);
 
 /**
  * @class ScopedCanvas
@@ -619,6 +811,40 @@ class ScopedCanvas {
  private:
   Canvas* canvas_;
   bool owned_;
+  bool active_;
+};
+
+/**
+ * @class CanvasFrame
+ * @brief Lightweight RAII guard for existing Canvas instances.
+ *
+ * Usage:
+ * ```cpp
+ * CanvasFrameOptions opts;
+ * opts.grid_step = 32.0f;
+ * gui::CanvasFrame frame(canvas, opts);
+ * canvas.DrawBitmap(bitmap, 2, 2, 1.0f);
+ * // Grid/overlay/persistent popups auto-render on destruction.
+ * ```
+ */
+class CanvasFrame {
+ public:
+  CanvasFrame(Canvas& canvas,
+              CanvasFrameOptions options = CanvasFrameOptions());
+  ~CanvasFrame();
+
+  CanvasFrame(const CanvasFrame&) = delete;
+  CanvasFrame& operator=(const CanvasFrame&) = delete;
+
+  CanvasFrame(CanvasFrame&& other) noexcept;
+  CanvasFrame& operator=(CanvasFrame&& other) noexcept;
+
+  Canvas* operator->() { return canvas_; }
+  const Canvas* operator->() const { return canvas_; }
+
+ private:
+  Canvas* canvas_;
+  CanvasFrameOptions options_;
   bool active_;
 };
 
