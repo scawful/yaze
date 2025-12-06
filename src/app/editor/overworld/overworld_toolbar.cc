@@ -33,8 +33,8 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
                             80.0f);  // Mouse/Paint
     ImGui::TableSetupColumn("Entity",
                             ImGuiTableColumnFlags_WidthStretch);  // Entity status
-    ImGui::TableSetupColumn("Panels", ImGuiTableColumnFlags_WidthFixed, 200.0f);
-    ImGui::TableSetupColumn("Sidebar", ImGuiTableColumnFlags_WidthFixed, 40.0f);
+    ImGui::TableSetupColumn("Panels", ImGuiTableColumnFlags_WidthFixed, 320.0f);
+    ImGui::TableSetupColumn("Sidebar", ImGuiTableColumnFlags_WidthFixed, 50.0f);
 
     TableNextColumn();
     ImGui::SetNextItemWidth(kComboWorldWidth);
@@ -95,23 +95,23 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
 
     TableNextColumn();
     // Mode Controls
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 0));
     if (gui::ToggleButton(ICON_MD_MOUSE, current_mode == EditingMode::MOUSE,
-                          ImVec2(30, 0))) {
+                          ImVec2(kIconButtonWidth, 0))) {
       current_mode = EditingMode::MOUSE;
     }
     HOVER_HINT("Mouse Mode (1)\nNavigate, pan, and manage entities");
 
     ImGui::SameLine();
     if (gui::ToggleButton(ICON_MD_DRAW, current_mode == EditingMode::DRAW_TILE,
-                          ImVec2(30, 0))) {
+                          ImVec2(kIconButtonWidth, 0))) {
       current_mode = EditingMode::DRAW_TILE;
     }
     HOVER_HINT("Tile Paint Mode (2)\nDraw tiles on the map");
     ImGui::PopStyleVar();
 
     TableNextColumn();
-    // Entity Status
+    // Entity Status or Version Badge
     if (entity_edit_mode != EntityEditMode::NONE) {
       const char* entity_icon = "";
       const char* entity_label = "";
@@ -145,15 +145,58 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
       }
       ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "%s %s", entity_icon,
                          entity_label);
+    } else {
+      // Show ROM version badge when no entity mode is active
+      const char* version_label = "Vanilla";
+      ImVec4 version_color = ImVec4(0.6f, 0.6f, 0.6f, 1.0f);  // Gray for vanilla
+      bool show_upgrade = false;
+
+      switch (rom_version) {
+        case zelda3::OverworldVersion::kVanilla:
+          version_label = "Vanilla";
+          version_color = ImVec4(0.7f, 0.7f, 0.5f, 1.0f);  // Muted yellow
+          show_upgrade = true;
+          break;
+        case zelda3::OverworldVersion::kZSCustomV1:
+          version_label = "ZSCustom v1";
+          version_color = ImVec4(0.5f, 0.7f, 0.9f, 1.0f);  // Light blue
+          show_upgrade = true;
+          break;
+        case zelda3::OverworldVersion::kZSCustomV2:
+          version_label = "ZSCustom v2";
+          version_color = ImVec4(0.5f, 0.9f, 0.7f, 1.0f);  // Light green
+          show_upgrade = true;
+          break;
+        case zelda3::OverworldVersion::kZSCustomV3:
+          version_label = "ZSCustom v3";
+          version_color = ImVec4(0.3f, 1.0f, 0.5f, 1.0f);  // Bright green
+          break;
+      }
+
+      ImGui::TextColored(version_color, ICON_MD_INFO " %s", version_label);
+      HOVER_HINT("ROM version determines available overworld features.\n"
+                 "v2+: Custom BG colors, main palettes\n"
+                 "v3+: Wide/Tall maps, custom tile GFX, animated GFX");
+
+      if (show_upgrade && on_upgrade_rom_version) {
+        ImGui::SameLine();
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.5f, 0.8f, 1.0f));
+        if (ImGui::SmallButton(ICON_MD_UPGRADE " Upgrade")) {
+          on_upgrade_rom_version(3);  // Upgrade to v3
+        }
+        ImGui::PopStyleColor();
+        HOVER_HINT("Upgrade ROM to ZSCustomOverworld v3\n"
+                   "Enables all advanced features");
+      }
     }
 
     TableNextColumn();
     // Panel Toggle Controls
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 0));
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 0));
 
     // Tile16 Editor toggle (Ctrl+T)
     if (gui::ToggleButton(ICON_MD_EDIT, panel_state.show_tile16_editor,
-                          ImVec2(25, 0))) {
+                          ImVec2(kPanelToggleButtonWidth, 0))) {
       panel_state.show_tile16_editor = !panel_state.show_tile16_editor;
     }
     HOVER_HINT("Tile16 Editor (Ctrl+T)");
@@ -162,7 +205,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
 
     // Tile16 Selector toggle
     if (gui::ToggleButton(ICON_MD_GRID_ON, panel_state.show_tile16_selector,
-                          ImVec2(25, 0))) {
+                          ImVec2(kPanelToggleButtonWidth, 0))) {
       panel_state.show_tile16_selector = !panel_state.show_tile16_selector;
     }
     HOVER_HINT("Tile16 Selector");
@@ -171,7 +214,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
 
     // Tile8 Selector toggle
     if (gui::ToggleButton(ICON_MD_GRID_VIEW, panel_state.show_tile8_selector,
-                          ImVec2(25, 0))) {
+                          ImVec2(kPanelToggleButtonWidth, 0))) {
       panel_state.show_tile8_selector = !panel_state.show_tile8_selector;
     }
     HOVER_HINT("Tile8 Selector");
@@ -180,7 +223,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
 
     // Area Graphics toggle
     if (gui::ToggleButton(ICON_MD_IMAGE, panel_state.show_area_graphics,
-                          ImVec2(25, 0))) {
+                          ImVec2(kPanelToggleButtonWidth, 0))) {
       panel_state.show_area_graphics = !panel_state.show_area_graphics;
     }
     HOVER_HINT("Area Graphics");
@@ -189,7 +232,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
 
     // GFX Groups toggle
     if (gui::ToggleButton(ICON_MD_LAYERS, panel_state.show_gfx_groups,
-                          ImVec2(25, 0))) {
+                          ImVec2(kPanelToggleButtonWidth, 0))) {
       panel_state.show_gfx_groups = !panel_state.show_gfx_groups;
     }
     HOVER_HINT("GFX Groups");
@@ -198,7 +241,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
 
     // Usage Stats toggle
     if (gui::ToggleButton(ICON_MD_ANALYTICS, panel_state.show_usage_stats,
-                          ImVec2(25, 0))) {
+                          ImVec2(kPanelToggleButtonWidth, 0))) {
       panel_state.show_usage_stats = !panel_state.show_usage_stats;
     }
     HOVER_HINT("Usage Statistics");
@@ -207,7 +250,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
 
     // Scratch Space toggle
     if (gui::ToggleButton(ICON_MD_BRUSH, panel_state.show_scratch_space,
-                          ImVec2(25, 0))) {
+                          ImVec2(kPanelToggleButtonWidth, 0))) {
       panel_state.show_scratch_space = !panel_state.show_scratch_space;
     }
     HOVER_HINT("Scratch Workspace");
@@ -217,7 +260,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
     TableNextColumn();
     // Sidebar Toggle (Map Properties)
     if (gui::ToggleButton(ICON_MD_TUNE, panel_state.show_map_properties,
-                          ImVec2(40, 0))) {
+                          ImVec2(kIconButtonWidth, 0))) {
       panel_state.show_map_properties = !panel_state.show_map_properties;
     }
     HOVER_HINT("Toggle Map Properties Sidebar");

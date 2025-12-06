@@ -43,6 +43,9 @@ class OverworldToolbar {
   // Scratch space callbacks
   std::function<void()> on_save_to_scratch;
   std::function<void()> on_load_from_scratch;
+
+  // ROM version upgrade callback
+  std::function<void(int)> on_upgrade_rom_version;
 };
 
 }  // namespace yaze::editor
