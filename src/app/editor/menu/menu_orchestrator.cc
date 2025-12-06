@@ -152,75 +152,7 @@ void MenuOrchestrator::BuildViewMenu() {
 }
 
 void MenuOrchestrator::AddViewMenuItems() {
-  // Editor Selection (requires ROM)
-  menu_builder_
-      .Item(
-          "Editor Selection", ICON_MD_DASHBOARD,
-          [this]() { OnShowEditorSelection(); }, SHORTCUT_CTRL(E),
-          [this]() { return HasActiveRom(); })
-      .Separator();
-
-  // Individual Editor Shortcuts (require ROM)
-  menu_builder_
-      .Item(
-          "Overworld", ICON_MD_MAP,
-          [this]() { OnSwitchToEditor(EditorType::kOverworld); }, SHORTCUT_CTRL(1),
-          [this]() { return HasActiveRom(); })
-      .Item(
-          "Dungeon", ICON_MD_CASTLE,
-          [this]() { OnSwitchToEditor(EditorType::kDungeon); }, SHORTCUT_CTRL(2),
-          [this]() { return HasActiveRom(); })
-      .Item(
-          "Graphics", ICON_MD_IMAGE,
-          [this]() { OnSwitchToEditor(EditorType::kGraphics); }, SHORTCUT_CTRL(3),
-          [this]() { return HasActiveRom(); })
-      .Item(
-          "Sprites", ICON_MD_TOYS,
-          [this]() { OnSwitchToEditor(EditorType::kSprite); }, SHORTCUT_CTRL(4),
-          [this]() { return HasActiveRom(); })
-      .Item(
-          "Messages", ICON_MD_CHAT_BUBBLE,
-          [this]() { OnSwitchToEditor(EditorType::kMessage); }, SHORTCUT_CTRL(5),
-          [this]() { return HasActiveRom(); })
-      .Item(
-          "Music", ICON_MD_MUSIC_NOTE,
-          [this]() { OnSwitchToEditor(EditorType::kMusic); }, SHORTCUT_CTRL(6),
-          [this]() { return HasActiveRom(); })
-      .Item(
-          "Palettes", ICON_MD_PALETTE,
-          [this]() { OnSwitchToEditor(EditorType::kPalette); }, SHORTCUT_CTRL(7),
-          [this]() { return HasActiveRom(); })
-      .Item(
-          "Screens", ICON_MD_TV,
-          [this]() { OnSwitchToEditor(EditorType::kScreen); }, SHORTCUT_CTRL(8),
-          [this]() { return HasActiveRom(); })
-      .Item(
-          "Assembly", ICON_MD_CODE,
-          [this]() { OnSwitchToEditor(EditorType::kAssembly); }, SHORTCUT_CTRL(9),
-          [this]() { return HasActiveRom(); })
-      .Item(
-          "Hex Editor", ICON_MD_DATA_ARRAY, [this]() { OnShowHexEditor(); },
-          SHORTCUT_CTRL(0), [this]() { return HasActiveRom(); })
-      .Separator();
-
-  // Special Editors
-#ifdef YAZE_BUILD_AGENT_UI
-  menu_builder_
-      .Item(
-          "AI Agent", ICON_MD_SMART_TOY, [this]() { OnShowAIAgent(); },
-          SHORTCUT_CTRL_SHIFT(A))
-      .Item(
-          "Agent Sidebar", ICON_MD_CHAT, [this]() { OnShowChatHistory(); },
-          SHORTCUT_CTRL(H));
-#endif
-
-  menu_builder_
-      .Item(
-          "Emulator", ICON_MD_VIDEOGAME_ASSET, [this]() { OnShowEmulator(); },
-          SHORTCUT_CTRL_SHIFT(E), [this]() { return HasActiveRom(); })
-      .Separator();
-
-  // UI Layout - Using Item with checked callback for toggle behavior
+  // UI Layout
   menu_builder_
       .Item("Show Sidebar", ICON_MD_VIEW_SIDEBAR,
             [this]() { if (panel_manager_) panel_manager_->ToggleSidebarVisibility(); },
@@ -244,11 +176,27 @@ void MenuOrchestrator::AddViewMenuItems() {
   menu_builder_
       .Item("Display Settings", ICON_MD_DISPLAY_SETTINGS,
             [this]() { OnShowDisplaySettings(); })
+      .Item("Welcome Screen", ICON_MD_HOME,
+            [this]() { OnShowWelcomeScreen(); })
       .Separator();
 
-  // Additional UI Elements
-  menu_builder_.Item("Welcome Screen", ICON_MD_HOME,
-                     [this]() { OnShowWelcomeScreen(); });
+  // Panel Browser
+  menu_builder_
+      .Item(
+          "Panel Browser", ICON_MD_DASHBOARD, [this]() { OnShowPanelBrowser(); },
+          SHORTCUT_CTRL_SHIFT(B), [this]() { return HasActiveRom(); })
+      .Separator();
+
+  // Editor Selection (Switch Editor)
+  menu_builder_
+      .Item(
+          "Switch Editor...", ICON_MD_SWAP_HORIZ,
+          [this]() { OnShowEditorSelection(); }, SHORTCUT_CTRL(E),
+          [this]() { return HasActiveRom(); })
+      .Separator();
+
+  // Dynamically added panels
+  AddPanelsSubmenu();
 }
 
 void MenuOrchestrator::AddPanelsSubmenu() {
