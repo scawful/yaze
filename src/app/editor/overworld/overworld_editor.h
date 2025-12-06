@@ -98,6 +98,11 @@ constexpr absl::string_view kWorldList =
 
 constexpr absl::string_view kGamePartComboString = "Part 0\0Part 1\0Part 2\0";
 
+// Zoom/pan constants - centralized for consistency across all zoom controls
+constexpr float kOverworldMinZoom = 0.1f;
+constexpr float kOverworldMaxZoom = 5.0f;
+constexpr float kOverworldZoomStep = 0.25f;
+
 constexpr absl::string_view kOWMapTable = "#MapSettingsTable";
 
 /**
@@ -271,6 +276,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   /// @brief Access debug window card for panel
   DebugWindowCard* debug_window_card() { return debug_window_card_.get(); }
 
+  /// @brief Access the Tile16 Editor for panel integration
+  Tile16Editor& tile16_editor() { return tile16_editor_; }
+
   /// @brief Draw the main overworld canvas
   void DrawOverworldCanvas();
 
@@ -384,14 +392,13 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // ===========================================================================
   // Workspace for planning tile layouts before placing them on the map.
 
-  absl::Status SaveCurrentSelectionToScratch(int slot);
-  absl::Status LoadScratchToSelection(int slot);
-  absl::Status ClearScratchSpace(int slot);
+  absl::Status SaveCurrentSelectionToScratch();
+  absl::Status LoadScratchToSelection();
+  absl::Status ClearScratchSpace();
   void DrawScratchSpaceEdits();
   void DrawScratchSpacePattern();
   void DrawScratchSpaceSelection();
-  void UpdateScratchBitmapTile(int tile_x, int tile_y, int tile_id,
-                               int slot = -1);
+  void UpdateScratchBitmapTile(int tile_x, int tile_y, int tile_id);
 
   // ===========================================================================
   // Background Map Pre-loading
@@ -513,22 +520,21 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   std::unique_ptr<OverworldToolbar> toolbar_;
 
   // ===========================================================================
-  // Scratch Space System
+  // Scratch Space System (Unified Single Workspace)
   // ===========================================================================
 
-  struct ScratchSpaceSlot {
+  struct ScratchSpace {
     gfx::Bitmap scratch_bitmap;
-    std::array<std::array<int, 32>, 32> tile_data;
+    std::array<std::array<int, 32>, 32> tile_data{};
     bool in_use = false;
-    std::string name = "Empty";
+    std::string name = "Scratch Space";
     int width = 16;
     int height = 16;
     std::vector<ImVec2> selected_tiles;
     std::vector<ImVec2> selected_points;
     bool select_rect_active = false;
   };
-  std::array<ScratchSpaceSlot, 4> scratch_spaces_;
-  int current_scratch_slot_ = 0;
+  ScratchSpace scratch_space_;
 
   // ===========================================================================
   // Core Data References

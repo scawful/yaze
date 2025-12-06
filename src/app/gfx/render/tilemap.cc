@@ -58,13 +58,19 @@ void RenderTile(IRenderer* renderer, Tilemap& tilemap, int tile_id) {
     return;
   }
 
-  // Get tile data without using problematic tile cache
-  auto tile_data = GetTilemapData(tilemap, tile_id);
-  if (tile_data.empty()) {
-    return;
+  // Try cache first, then fall back to fresh render
+  Bitmap* cached_tile = tilemap.tile_cache.GetTile(tile_id);
+  if (!cached_tile) {
+    auto tile_data = GetTilemapData(tilemap, tile_id);
+    if (tile_data.empty()) {
+      return;
+    }
+    // Cache uses copy semantics - safe to use
+    gfx::Bitmap new_tile = gfx::Bitmap(
+        tilemap.tile_size.x, tilemap.tile_size.y, 8,
+        tile_data, tilemap.atlas.palette());
+    tilemap.tile_cache.CacheTile(tile_id, new_tile);
   }
-
-  // Note: Tile cache disabled to prevent std::move() related crashes
 }
 
 void RenderTile16(IRenderer* renderer, Tilemap& tilemap, int tile_id) {
@@ -91,7 +97,19 @@ void RenderTile16(IRenderer* renderer, Tilemap& tilemap, int tile_id) {
     return;
   }
 
-  // Note: Tile cache disabled to prevent std::move() related crashes
+  // Try cache first, then fall back to fresh render
+  Bitmap* cached_tile = tilemap.tile_cache.GetTile(tile_id);
+  if (!cached_tile) {
+    auto tile_data = GetTilemapData(tilemap, tile_id);
+    if (tile_data.empty()) {
+      return;
+    }
+    // Cache uses copy semantics - safe to use
+    gfx::Bitmap new_tile = gfx::Bitmap(
+        tilemap.tile_size.x, tilemap.tile_size.y, 8,
+        tile_data, tilemap.atlas.palette());
+    tilemap.tile_cache.CacheTile(tile_id, new_tile);
+  }
 }
 
 void UpdateTile16(IRenderer* renderer, Tilemap& tilemap, int tile_id) {
@@ -366,11 +384,11 @@ void RenderTilesBatch(IRenderer* renderer, Tilemap& tilemap,
     // Try to get tile from cache first
     Bitmap* cached_tile = tilemap.tile_cache.GetTile(tile_id);
     if (!cached_tile) {
-      // Create and cache the tile if not found
+      // Create and cache the tile if not found (copy semantics for safety)
       gfx::Bitmap new_tile = gfx::Bitmap(
           tilemap.tile_size.x, tilemap.tile_size.y, 8,
           gfx::GetTilemapData(tilemap, tile_id), tilemap.atlas.palette());
-      tilemap.tile_cache.CacheTile(tile_id, std::move(new_tile));
+      tilemap.tile_cache.CacheTile(tile_id, new_tile);  // Copies bitmap
       cached_tile = tilemap.tile_cache.GetTile(tile_id);
       if (cached_tile) {
         cached_tile->CreateTexture();

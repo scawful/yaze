@@ -7,11 +7,23 @@
 #include "app/editor/overworld/ui_constants.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/ui_helpers.h"
-#include "rom/rom.h"
 #include "imgui/imgui.h"
+#include "rom/rom.h"
 #include "zelda3/overworld/overworld.h"
 
 namespace yaze::editor {
+
+/// @brief Panel visibility state for toolbar toggles
+struct ToolbarPanelState {
+  bool& show_tile16_editor;
+  bool& show_tile16_selector;
+  bool& show_tile8_selector;
+  bool& show_area_graphics;
+  bool& show_gfx_groups;
+  bool& show_usage_stats;
+  bool& show_scratch_space;
+  bool& show_map_properties;
+};
 
 class OverworldToolbar {
  public:
@@ -19,8 +31,7 @@ class OverworldToolbar {
 
   void Draw(int& current_world, int& current_map, bool& current_map_lock,
             EditingMode& current_mode, EntityEditMode& entity_edit_mode,
-            bool& show_map_properties_panel, bool& show_scratch_space,
-            int& current_scratch_slot, bool has_selection,
+            ToolbarPanelState& panel_state, bool has_selection,
             bool scratch_has_data, Rom* rom, zelda3::Overworld* overworld);
 
   // Callback for when properties change
@@ -28,7 +39,7 @@ class OverworldToolbar {
   std::function<void()> on_refresh_graphics;
   std::function<void()> on_refresh_palette;
   std::function<void()> on_refresh_map;
-  
+
   // Scratch space callbacks
   std::function<void()> on_save_to_scratch;
   std::function<void()> on_load_from_scratch;

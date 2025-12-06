@@ -12,9 +12,8 @@ using ImGui::TableNextColumn;
 void OverworldToolbar::Draw(int& current_world, int& current_map,
                             bool& current_map_lock, EditingMode& current_mode,
                             EntityEditMode& entity_edit_mode,
-                            bool& show_map_properties_panel,
-                            bool& show_scratch_space, int& current_scratch_slot,
-                            bool has_selection, bool scratch_has_data, Rom* rom,
+                            ToolbarPanelState& panel_state, bool has_selection,
+                            bool scratch_has_data, Rom* rom,
                             zelda3::Overworld* overworld) {
   if (!overworld || !overworld->is_loaded()) return;
 
@@ -34,7 +33,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
                             80.0f);  // Mouse/Paint
     ImGui::TableSetupColumn("Entity",
                             ImGuiTableColumnFlags_WidthStretch);  // Entity status
-    ImGui::TableSetupColumn("Scratch", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+    ImGui::TableSetupColumn("Panels", ImGuiTableColumnFlags_WidthFixed, 200.0f);
     ImGui::TableSetupColumn("Sidebar", ImGuiTableColumnFlags_WidthFixed, 40.0f);
 
     TableNextColumn();
@@ -100,7 +99,6 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
     if (gui::ToggleButton(ICON_MD_MOUSE, current_mode == EditingMode::MOUSE,
                           ImVec2(30, 0))) {
       current_mode = EditingMode::MOUSE;
-      // Note: Canvas mode update handled by editor
     }
     HOVER_HINT("Mouse Mode (1)\nNavigate, pan, and manage entities");
 
@@ -108,7 +106,6 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
     if (gui::ToggleButton(ICON_MD_DRAW, current_mode == EditingMode::DRAW_TILE,
                           ImVec2(30, 0))) {
       current_mode = EditingMode::DRAW_TILE;
-      // Note: Canvas mode update handled by editor
     }
     HOVER_HINT("Tile Paint Mode (2)\nDraw tiles on the map");
     ImGui::PopStyleVar();
@@ -151,50 +148,77 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
     }
 
     TableNextColumn();
-    // Scratch Space Controls
+    // Panel Toggle Controls
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 0));
-    
-    // Toggle visibility
-    if (gui::ToggleButton(ICON_MD_BRUSH, show_scratch_space, ImVec2(25, 0))) {
-      show_scratch_space = !show_scratch_space;
-    }
-    HOVER_HINT("Toggle Scratch Space Window");
 
-    ImGui::SameLine();
-    
-    // Slot selector (cycle)
-    std::string slot_label = absl::StrFormat("%d", current_scratch_slot + 1);
-    if (ImGui::Button(slot_label.c_str(), ImVec2(20, 0))) {
-      current_scratch_slot = (current_scratch_slot + 1) % 4;
+    // Tile16 Editor toggle (Ctrl+T)
+    if (gui::ToggleButton(ICON_MD_EDIT, panel_state.show_tile16_editor,
+                          ImVec2(25, 0))) {
+      panel_state.show_tile16_editor = !panel_state.show_tile16_editor;
     }
-    HOVER_HINT("Current Scratch Slot (Click to cycle 1-4)");
+    HOVER_HINT("Tile16 Editor (Ctrl+T)");
 
     ImGui::SameLine();
 
-    // Quick Save (only if selection active)
-    if (has_selection) {
-      if (ImGui::Button(ICON_MD_DOWNLOAD, ImVec2(25, 0))) {
-        if (on_save_to_scratch) on_save_to_scratch();
-      }
-      HOVER_HINT("Save Selection to Scratch Slot");
-    } else if (scratch_has_data) {
-      // Quick Load (only if slot has data and no selection active)
-      if (ImGui::Button(ICON_MD_UPLOAD, ImVec2(25, 0))) {
-        if (on_load_from_scratch) on_load_from_scratch();
-      }
-      HOVER_HINT("Load from Scratch Slot");
-    } else {
-      // Placeholder spacing
-      ImGui::Dummy(ImVec2(25, 0));
+    // Tile16 Selector toggle
+    if (gui::ToggleButton(ICON_MD_GRID_ON, panel_state.show_tile16_selector,
+                          ImVec2(25, 0))) {
+      panel_state.show_tile16_selector = !panel_state.show_tile16_selector;
     }
-    
+    HOVER_HINT("Tile16 Selector");
+
+    ImGui::SameLine();
+
+    // Tile8 Selector toggle
+    if (gui::ToggleButton(ICON_MD_GRID_VIEW, panel_state.show_tile8_selector,
+                          ImVec2(25, 0))) {
+      panel_state.show_tile8_selector = !panel_state.show_tile8_selector;
+    }
+    HOVER_HINT("Tile8 Selector");
+
+    ImGui::SameLine();
+
+    // Area Graphics toggle
+    if (gui::ToggleButton(ICON_MD_IMAGE, panel_state.show_area_graphics,
+                          ImVec2(25, 0))) {
+      panel_state.show_area_graphics = !panel_state.show_area_graphics;
+    }
+    HOVER_HINT("Area Graphics");
+
+    ImGui::SameLine();
+
+    // GFX Groups toggle
+    if (gui::ToggleButton(ICON_MD_LAYERS, panel_state.show_gfx_groups,
+                          ImVec2(25, 0))) {
+      panel_state.show_gfx_groups = !panel_state.show_gfx_groups;
+    }
+    HOVER_HINT("GFX Groups");
+
+    ImGui::SameLine();
+
+    // Usage Stats toggle
+    if (gui::ToggleButton(ICON_MD_ANALYTICS, panel_state.show_usage_stats,
+                          ImVec2(25, 0))) {
+      panel_state.show_usage_stats = !panel_state.show_usage_stats;
+    }
+    HOVER_HINT("Usage Statistics");
+
+    ImGui::SameLine();
+
+    // Scratch Space toggle
+    if (gui::ToggleButton(ICON_MD_BRUSH, panel_state.show_scratch_space,
+                          ImVec2(25, 0))) {
+      panel_state.show_scratch_space = !panel_state.show_scratch_space;
+    }
+    HOVER_HINT("Scratch Workspace");
+
     ImGui::PopStyleVar();
 
     TableNextColumn();
-    // Sidebar Toggle
-    if (gui::ToggleButton(ICON_MD_TUNE, show_map_properties_panel,
+    // Sidebar Toggle (Map Properties)
+    if (gui::ToggleButton(ICON_MD_TUNE, panel_state.show_map_properties,
                           ImVec2(40, 0))) {
-      show_map_properties_panel = !show_map_properties_panel;
+      panel_state.show_map_properties = !panel_state.show_map_properties;
     }
     HOVER_HINT("Toggle Map Properties Sidebar");
 

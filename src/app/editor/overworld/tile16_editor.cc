@@ -1101,12 +1101,15 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
           int sheet_index = GetSheetIndexForTile8(current_tile8_);
           int palette_slot = GetActualPaletteSlot(current_palette_, sheet_index);
 
+          // SNES palette offset fix: pixel value N maps to sub-palette color N
+          // Color 0 is handled by SetPaletteWithTransparent (transparent)
+          // Colors 1-15 need to come from palette[slot+1] through palette[slot+15]
           if (palette_slot >= 0 &&
-              static_cast<size_t>(palette_slot + 15) <= display_palette->size()) {
+              static_cast<size_t>(palette_slot + 16) <= display_palette->size()) {
             tile8_preview_bmp_.SetPaletteWithTransparent(
-                *display_palette, static_cast<size_t>(palette_slot), 15);
+                *display_palette, static_cast<size_t>(palette_slot + 1), 15);
           } else {
-            tile8_preview_bmp_.SetPaletteWithTransparent(*display_palette, 0, 15);
+            tile8_preview_bmp_.SetPaletteWithTransparent(*display_palette, 1, 15);
           }
         }
 
@@ -1155,33 +1158,41 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
           ImVec2 mouse_pos = ImVec2(io.MousePos.x - canvas_pos.x,
                                     io.MousePos.y - canvas_pos.y);
 
-          // Convert canvas coordinates to tile16 coordinates with dynamic zoom
-          int tile_x = static_cast<int>(mouse_pos.x / kTile8DisplayScale);
-          int tile_y = static_cast<int>(mouse_pos.y / kTile8DisplayScale);
+          // Convert canvas coordinates to tile16 coordinates
+          // Account for bitmap offset (2,2) and scale (4x)
+          constexpr float kBitmapOffset = 2.0f;
+          constexpr float kBitmapScale = 4.0f;
+          int tile_x = static_cast<int>((mouse_pos.x - kBitmapOffset) / kBitmapScale);
+          int tile_y = static_cast<int>((mouse_pos.y - kBitmapOffset) / kBitmapScale);
 
-          // Clamp to valid range
+          // Clamp to valid range (0-15 for 16x16 tile)
           tile_x = std::max(0, std::min(15, tile_x));
           tile_y = std::max(0, std::min(15, tile_y));
 
           util::logf("Tile16 canvas click: (%.2f, %.2f) -> Tile16: (%d, %d)",
                      mouse_pos.x, mouse_pos.y, tile_x, tile_y);
 
-          RETURN_IF_ERROR(
-              DrawToCurrentTile16(ImVec2(tile_x, tile_y), &tile8_preview_bmp_));
+          // Pass nullptr to let DrawToCurrentTile16 handle flipping and store
+          // correct TileInfo metadata. The preview bitmap is pre-flipped for
+          // display only.
+          RETURN_IF_ERROR(DrawToCurrentTile16(ImVec2(tile_x, tile_y), nullptr));
         }
 
-        // CRITICAL FIX: Right-click to pick tile8 from tile16
+        // Right-click to pick tile8 from tile16
         if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
           const ImGuiIO& io = ImGui::GetIO();
           ImVec2 canvas_pos = tile16_edit_canvas_.zero_point();
           ImVec2 mouse_pos = ImVec2(io.MousePos.x - canvas_pos.x,
                                     io.MousePos.y - canvas_pos.y);
 
-          // Convert with dynamic zoom
-          int tile_x = static_cast<int>(mouse_pos.x / kTile8DisplayScale);
-          int tile_y = static_cast<int>(mouse_pos.y / kTile8DisplayScale);
+          // Convert canvas coordinates to tile16 coordinates
+          // Account for bitmap offset (2,2) and scale (4x)
+          constexpr float kBitmapOffset = 2.0f;
+          constexpr float kBitmapScale = 4.0f;
+          int tile_x = static_cast<int>((mouse_pos.x - kBitmapOffset) / kBitmapScale);
+          int tile_y = static_cast<int>((mouse_pos.y - kBitmapOffset) / kBitmapScale);
 
-          // Clamp to valid range
+          // Clamp to valid range (0-15 for 16x16 tile)
           tile_x = std::max(0, std::min(15, tile_x));
           tile_y = std::max(0, std::min(15, tile_y));
 
@@ -1209,6 +1220,41 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
       auto* tile8_texture = current_gfx_individual_[current_tile8_].texture();
       if (tile8_texture) {
         ImGui::Image((ImTextureID)(intptr_t)tile8_texture, ImVec2(24, 24));
+      }
+      
+      // Show encoded palette row indicator
+      // This shows which palette row the tile is encoded to use in the ROM
+      int sheet_idx = GetSheetIndexForTile8(current_tile8_);
+      int encoded_row = -1;
+      
+      // Determine encoded row based on sheet and ProcessGraphicsBuffer behavior
+      // Sheets 0, 3, 4, 5 have 0x88 added (row 8-9)
+      // Other sheets have raw values (row 0)
+      switch (sheet_idx) {
+        case 0:
+        case 3:
+        case 4:
+        case 5:
+          encoded_row = 8;  // 0x88 offset = row 8
+          break;
+        default:
+          encoded_row = 0;  // Raw values = row 0
+          break;
+      }
+      
+      // Visual indicator showing sheet and encoded row
+      ImGui::SameLine();
+      ImGui::TextDisabled("S%d", sheet_idx);
+      if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip();
+        ImGui::Text("Sheet: %d", sheet_idx);
+        ImGui::Text("Encoded Palette Row: %d", encoded_row);
+        ImGui::Separator();
+        ImGui::TextWrapped(
+            "Graphics sheets have different palette encodings:\n"
+            "- Sheets 0,3,4,5: Row 8 (offset 0x88)\n"
+            "- Sheets 1,2,6,7: Row 0 (raw)");
+        ImGui::EndTooltip();
       }
     }
 
@@ -1354,6 +1400,11 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
       if (Button("Palette Settings", ImVec2(-1, 0))) {
         show_palette_settings_ = !show_palette_settings_;
       }
+
+      if (Button("Analyze Data", ImVec2(-1, 0))) {
+        AnalyzeTile8SourceData();
+      }
+      HOVER_HINT("Analyze tile8 source data format and palette state");
 
       if (Button("Manual Edit", ImVec2(-1, 0))) {
         ImGui::OpenPopup("ManualTile8Editor");
@@ -1619,8 +1670,10 @@ absl::Status Tile16Editor::SetCurrentTile(int tile_id) {
   // CRITICAL FIX: Validate palette before attempting to use it
   if (!display_palette.empty()) {
     const int palette_slot = GetActualPaletteSlotForCurrentTile16();
+    // SNES palette offset fix: pixel value N maps to sub-palette color N
+    // Add 1 to skip the transparent color slot (color 0 of each sub-palette)
     size_t palette_offset =
-        palette_slot >= 0 ? static_cast<size_t>(palette_slot) : 0;
+        palette_slot >= 0 ? static_cast<size_t>(palette_slot + 1) : 1;
 
     // Ensure the palette offset is within bounds
     // SNES 4BPP uses 16 colors total (transparent + 15)
@@ -1629,11 +1682,11 @@ absl::Status Tile16Editor::SetCurrentTile(int tile_id) {
       current_tile16_bmp_.SetPaletteWithTransparent(display_palette,
                                                     palette_offset, 15);
     } else {
-      // Fallback: use offset 0 if calculated offset exceeds palette size
+      // Fallback: use offset 1 if calculated offset exceeds palette size
       util::logf(
-          "Warning: palette offset %zu exceeds palette size %zu, using offset 0",
+          "Warning: palette offset %zu exceeds palette size %zu, using offset 1",
           palette_offset, display_palette.size());
-      current_tile16_bmp_.SetPaletteWithTransparent(display_palette, 0, 15);
+      current_tile16_bmp_.SetPaletteWithTransparent(display_palette, 1, 15);
     }
   } else {
     util::logf("Warning: No valid palette available for Tile16 %d, skipping palette setup", tile_id);
@@ -2478,6 +2531,56 @@ int Tile16Editor::GetPaletteBaseForSheet(int sheet_index) const {
   }
 }
 
+gfx::SnesPalette Tile16Editor::CreateRemappedPaletteForViewing(
+    const gfx::SnesPalette& source, int target_row) const {
+  // Create a remapped 256-color palette where all pixel values (0-255)
+  // are mapped to the target palette row based on their low nibble.
+  //
+  // This allows the source bitmap (which has pre-encoded palette offsets)
+  // to be viewed with the user-selected palette row.
+  //
+  // For each palette index i:
+  //   - Extract the color index: low_nibble = i & 0x0F
+  //   - Map to target row: target_row * 16 + low_nibble
+  //   - Copy the color from source palette at that position
+
+  gfx::SnesPalette remapped;
+  
+  // Target row is palette button + 2 (since rows 0-1 are HUD)
+  int actual_target_row = 2 + std::clamp(target_row, 0, 7);
+  
+  for (int i = 0; i < 256; ++i) {
+    int low_nibble = i & 0x0F;
+    int target_index = (actual_target_row * 16) + low_nibble;
+    
+    // Make color 0 of each row transparent
+    if (low_nibble == 0) {
+      // Use transparent color (alpha = 0)
+      remapped.AddColor(gfx::SnesColor(0));
+    } else if (target_index < static_cast<int>(source.size())) {
+      remapped.AddColor(source[target_index]);
+    } else {
+      // Fallback to black if out of bounds
+      remapped.AddColor(gfx::SnesColor(0));
+    }
+  }
+  
+  return remapped;
+}
+
+int Tile16Editor::GetEncodedPaletteRow(uint8_t pixel_value) const {
+  // Determine which palette row a pixel value encodes
+  // ProcessGraphicsBuffer adds 0x88 (136) to sheets 0, 3, 4, 5
+  // So pixel values map to rows as follows:
+  //   0x00-0x0F (0-15): Row 0
+  //   0x10-0x1F (16-31): Row 1
+  //   ...
+  //   0x80-0x8F (128-143): Row 8
+  //   0x90-0x9F (144-159): Row 9
+  //   etc.
+  return pixel_value / 16;
+}
+
 void Tile16Editor::ApplyPaletteToCurrentTile16Bitmap() {
   if (!current_tile16_bmp_.is_active()) {
     return;
@@ -2499,13 +2602,14 @@ void Tile16Editor::ApplyPaletteToCurrentTile16Bitmap() {
   const int palette_slot = GetActualPaletteSlotForCurrentTile16();
 
   // Apply sub-palette with transparent color 0 using computed slot
+  // SNES palette offset fix: add 1 to skip transparent color slot
   // SNES 4BPP uses 16 colors (transparent + 15)
   if (palette_slot >= 0 &&
-      static_cast<size_t>(palette_slot + 15) <= display_palette->size()) {
+      static_cast<size_t>(palette_slot + 16) <= display_palette->size()) {
     current_tile16_bmp_.SetPaletteWithTransparent(
-        *display_palette, static_cast<size_t>(palette_slot), 15);
+        *display_palette, static_cast<size_t>(palette_slot + 1), 15);
   } else {
-    current_tile16_bmp_.SetPaletteWithTransparent(*display_palette, 0, 15);
+    current_tile16_bmp_.SetPaletteWithTransparent(*display_palette, 1, 15);
   }
 
   current_tile16_bmp_.set_modified(true);
@@ -2615,36 +2719,40 @@ absl::Status Tile16Editor::RefreshAllPalettes() {
     return absl::FailedPreconditionError("Display palette empty");
   }
 
-  // CRITICAL FIX: Use the full 256-color palette for the source bitmap.
-  // The source bitmap contains ALL graphics sheets (0-7) with raw pixel values 0-15.
-  // Different sheets need different palette regions (MAIN, AUX1, AUX2, ANIMATED),
-  // but a single bitmap can only have one palette. We apply the full 256-color
-  // palette so the bitmap displays consistently. The individual tile8 bitmaps
-  // (current_gfx_individual_) use per-tile subpalettes for correct per-sheet colors.
-
+  // The source bitmap (current_gfx_bmp_) contains 8bpp indexed pixel data
+  // with palette offsets already encoded (e.g., pixel 0x89 = row 8, color 9).
+  // 
+  // To make the source bitmap respond to palette selection, we create a
+  // remapped palette where all pixel values (regardless of their encoded row)
+  // map to colors from the user-selected palette row.
   if (current_gfx_bmp_.is_active()) {
-    // Apply the full 256-color palette to the source bitmap
-    // Raw pixel values 0-15 will use colors 0-15 from the palette
-    current_gfx_bmp_.SetPalette(display_palette);
+    // Create a remapped palette for viewing with the selected palette
+    gfx::SnesPalette remapped_palette = 
+        CreateRemappedPaletteForViewing(display_palette, current_palette_);
+    
+    // Apply the remapped palette to the source bitmap
+    current_gfx_bmp_.SetPalette(remapped_palette);
 
     current_gfx_bmp_.set_modified(true);
     // Queue texture update via Arena's deferred system
     gfx::Arena::Get().QueueTextureCommand(
         gfx::Arena::TextureCommandType::UPDATE, &current_gfx_bmp_);
-    util::logf("Applied full 256-color palette to source bitmap");
+    util::logf("Applied remapped palette (row %d) to source bitmap", 
+               current_palette_ + 2);
   }
 
   // Update current tile16 being edited with sheet-aware palette offset
   if (current_tile16_bmp_.is_active()) {
     // Use sheet-aware palette slot for current tile16
+    // SNES palette offset fix: add 1 to skip transparent color slot
     int palette_slot = GetActualPaletteSlotForCurrentTile16();
 
     if (palette_slot >= 0 &&
-        static_cast<size_t>(palette_slot + 15) <= display_palette.size()) {
+        static_cast<size_t>(palette_slot + 16) <= display_palette.size()) {
       current_tile16_bmp_.SetPaletteWithTransparent(
-          display_palette, static_cast<size_t>(palette_slot), 15);
+          display_palette, static_cast<size_t>(palette_slot + 1), 15);
     } else {
-      current_tile16_bmp_.SetPaletteWithTransparent(display_palette, 0, 15);
+      current_tile16_bmp_.SetPaletteWithTransparent(display_palette, 1, 15);
     }
 
     current_tile16_bmp_.set_modified(true);
@@ -2662,14 +2770,15 @@ absl::Status Tile16Editor::RefreshAllPalettes() {
       int palette_slot = GetActualPaletteSlot(current_palette_, sheet_index);
 
       // Apply sub-palette with transparent color 0
-      // Extract 15 colors from display_palette starting at palette_slot
+      // SNES palette offset fix: add 1 to skip transparent color slot
+      // Pixel value N should map to sub-palette color N
       if (palette_slot >= 0 &&
-          static_cast<size_t>(palette_slot + 15) <= display_palette.size()) {
+          static_cast<size_t>(palette_slot + 16) <= display_palette.size()) {
         current_gfx_individual_[i].SetPaletteWithTransparent(
-            display_palette, static_cast<size_t>(palette_slot), 15);
+            display_palette, static_cast<size_t>(palette_slot + 1), 15);
       } else {
-        // Fallback to slot 0 if computed slot exceeds palette bounds
-        current_gfx_individual_[i].SetPaletteWithTransparent(display_palette, 0,
+        // Fallback to slot 1 if computed slot exceeds palette bounds
+        current_gfx_individual_[i].SetPaletteWithTransparent(display_palette, 1,
                                                              15);
       }
 
@@ -2681,10 +2790,117 @@ absl::Status Tile16Editor::RefreshAllPalettes() {
   }
 
   util::logf(
-      "Successfully refreshed all palettes in tile16 editor using complete "
-      "256-color palette "
-      "(same as overworld system)");
+      "Successfully refreshed all palettes in tile16 editor with palette %d",
+      current_palette_);
   return absl::OkStatus();
+}
+
+void Tile16Editor::AnalyzeTile8SourceData() const {
+  util::logf("=== TILE8 SOURCE DATA ANALYSIS ===");
+  
+  // Analyze current_gfx_bmp_
+  util::logf("current_gfx_bmp_:");
+  util::logf("  - Active: %s", current_gfx_bmp_.is_active() ? "yes" : "no");
+  util::logf("  - Size: %dx%d", current_gfx_bmp_.width(), current_gfx_bmp_.height());
+  util::logf("  - Depth: %d bpp", current_gfx_bmp_.depth());
+  util::logf("  - Data size: %zu bytes", current_gfx_bmp_.size());
+  util::logf("  - Palette size: %zu colors", current_gfx_bmp_.palette().size());
+  
+  // Analyze pixel value distribution in first 64 pixels (first tile8)
+  if (current_gfx_bmp_.data() && current_gfx_bmp_.size() >= 64) {
+    std::map<uint8_t, int> pixel_counts;
+    for (size_t i = 0; i < 64; ++i) {
+      uint8_t val = current_gfx_bmp_.data()[i];
+      pixel_counts[val]++;
+    }
+    util::logf("  - First tile8 (Sheet 0) pixel distribution:");
+    for (const auto& [val, count] : pixel_counts) {
+      int row = GetEncodedPaletteRow(val);
+      int col = val & 0x0F;
+      util::logf("    Value 0x%02X (%3d) = Row %d, Col %d: %d pixels", 
+                 val, val, row, col, count);
+    }
+    
+    // Check if values are in expected 4bpp range
+    bool all_4bpp = true;
+    for (const auto& [val, count] : pixel_counts) {
+      if (val > 15) {
+        all_4bpp = false;
+        break;
+      }
+    }
+    util::logf("  - Values in raw 4bpp range (0-15): %s", all_4bpp ? "yes" : "NO (pre-encoded)");
+    
+    // Show what the remapping does
+    util::logf("  - Palette remapping for viewing:");
+    util::logf("    Selected palette: %d (row %d)", current_palette_, current_palette_ + 2);
+    util::logf("    Pixels are remapped: (value & 0x0F) + (selected_row * 16)");
+  }
+  
+  // Analyze current_gfx_individual_
+  util::logf("current_gfx_individual_:");
+  util::logf("  - Count: %zu tiles", current_gfx_individual_.size());
+  
+  if (!current_gfx_individual_.empty() && current_gfx_individual_[0].is_active()) {
+    const auto& first_tile = current_gfx_individual_[0];
+    util::logf("  - First tile:");
+    util::logf("    - Size: %dx%d", first_tile.width(), first_tile.height());
+    util::logf("    - Depth: %d bpp", first_tile.depth());
+    util::logf("    - Palette size: %zu colors", first_tile.palette().size());
+    
+    if (first_tile.data() && first_tile.size() >= 64) {
+      std::map<uint8_t, int> pixel_counts;
+      for (size_t i = 0; i < 64; ++i) {
+        uint8_t val = first_tile.data()[i];
+        pixel_counts[val]++;
+      }
+      util::logf("    - Pixel distribution:");
+      for (const auto& [val, count] : pixel_counts) {
+        util::logf("      Value 0x%02X (%3d): %d pixels", val, val, count);
+      }
+    }
+  }
+  
+  // Analyze palette state
+  util::logf("Palette state:");
+  util::logf("  - current_palette_: %d", current_palette_);
+  util::logf("  - overworld_palette_ size: %zu", overworld_palette_.size());
+  util::logf("  - palette_ size: %zu", palette_.size());
+  
+  // Calculate expected palette slot
+  int palette_slot = GetActualPaletteSlot(current_palette_, 0);
+  util::logf("  - GetActualPaletteSlot(%d, 0) = %d", current_palette_, palette_slot);
+  util::logf("  - Expected palette offset for SetPaletteWithTransparent: %d",
+             palette_slot + 1);
+  
+  // Show first 16 colors of the overworld palette
+  if (overworld_palette_.size() >= 16) {
+    util::logf("  - First 16 palette colors (row 0):");
+    for (int i = 0; i < 16; ++i) {
+      auto color = overworld_palette_[i];
+      util::logf("    [%2d] SNES: 0x%04X RGB: (%d,%d,%d)",
+                 i, color.snes(),
+                 static_cast<int>(color.rgb().x),
+                 static_cast<int>(color.rgb().y),
+                 static_cast<int>(color.rgb().z));
+    }
+  }
+  
+  // Show colors at the selected palette slot
+  if (overworld_palette_.size() >= static_cast<size_t>(palette_slot + 16)) {
+    util::logf("  - Colors at palette slot %d (row %d):",
+               palette_slot, palette_slot / 16);
+    for (int i = 0; i < 16; ++i) {
+      auto color = overworld_palette_[palette_slot + i];
+      util::logf("    [%2d] SNES: 0x%04X RGB: (%d,%d,%d)",
+                 i, color.snes(),
+                 static_cast<int>(color.rgb().x),
+                 static_cast<int>(color.rgb().y),
+                 static_cast<int>(color.rgb().z));
+    }
+  }
+  
+  util::logf("=== END ANALYSIS ===");
 }
 
 void Tile16Editor::DrawPaletteSettings() {

@@ -498,7 +498,8 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
   gui::CanvasMenuItem zoom_in_item;
   zoom_in_item.label = ICON_MD_ZOOM_IN " Zoom In";
   zoom_in_item.callback = [&canvas]() {
-    float scale = std::min(2.0f, canvas.global_scale() + 0.25f);
+    float scale = std::min(kOverworldMaxZoom,
+                           canvas.global_scale() + kOverworldZoomStep);
     canvas.set_global_scale(scale);
   };
   canvas.AddContextMenuItem(zoom_in_item);
@@ -506,7 +507,8 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
   gui::CanvasMenuItem zoom_out_item;
   zoom_out_item.label = ICON_MD_ZOOM_OUT " Zoom Out";
   zoom_out_item.callback = [&canvas]() {
-    float scale = std::max(0.25f, canvas.global_scale() - 0.25f);
+    float scale = std::max(kOverworldMinZoom,
+                           canvas.global_scale() - kOverworldZoomStep);
     canvas.set_global_scale(scale);
   };
   canvas.AddContextMenuItem(zoom_out_item);
@@ -1686,13 +1688,15 @@ void MapPropertiesSystem::DrawViewPopup() {
 
     // Horizontal layout for view controls
     if (ImGui::Button(ICON_MD_ZOOM_OUT, ImVec2(kIconButtonWidth, 0))) {
-      float new_scale = std::max(0.1f, canvas_->global_scale() - 0.25f);
+      float new_scale = std::max(kOverworldMinZoom,
+                                 canvas_->global_scale() - kOverworldZoomStep);
       canvas_->set_global_scale(new_scale);
     }
     HOVER_HINT("Zoom out on the canvas");
     ImGui::SameLine();
     if (ImGui::Button(ICON_MD_ZOOM_IN, ImVec2(kIconButtonWidth, 0))) {
-      float new_scale = std::min(5.0f, canvas_->global_scale() + 0.25f);
+      float new_scale = std::min(kOverworldMaxZoom,
+                                 canvas_->global_scale() + kOverworldZoomStep);
       canvas_->set_global_scale(new_scale);
     }
     HOVER_HINT("Zoom in on the canvas");

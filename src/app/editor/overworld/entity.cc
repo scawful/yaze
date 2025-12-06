@@ -23,31 +23,38 @@ using ImGui::Text;
 constexpr float kInputFieldSize = 30.f;
 
 bool IsMouseHoveringOverEntity(const zelda3::GameEntity& entity,
-                               ImVec2 canvas_p0, ImVec2 scrolling) {
+                               ImVec2 canvas_p0, ImVec2 scrolling,
+                               float scale) {
   // Get the mouse position relative to the canvas
   const ImGuiIO& io = ImGui::GetIO();
   const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y);
   const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
 
-  // Check if the mouse is hovering over the entity
-  return mouse_pos.x >= entity.x_ && mouse_pos.x <= entity.x_ + 16 &&
-         mouse_pos.y >= entity.y_ && mouse_pos.y <= entity.y_ + 16;
+  // Scale entity bounds to match canvas zoom level
+  float scaled_x = entity.x_ * scale;
+  float scaled_y = entity.y_ * scale;
+  float scaled_size = 16.0f * scale;
+
+  // Check if the mouse is hovering over the scaled entity bounds
+  return mouse_pos.x >= scaled_x && mouse_pos.x <= scaled_x + scaled_size &&
+         mouse_pos.y >= scaled_y && mouse_pos.y <= scaled_y + scaled_size;
 }
 
 void MoveEntityOnGrid(zelda3::GameEntity* entity, ImVec2 canvas_p0,
-                      ImVec2 scrolling, bool free_movement) {
+                      ImVec2 scrolling, bool free_movement, float scale) {
   // Get the mouse position relative to the canvas
   const ImGuiIO& io = ImGui::GetIO();
   const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y);
   const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
 
-  // Calculate the new position on the 16x16 grid
-  int new_x = static_cast<int>(mouse_pos.x) / 16 * 16;
-  int new_y = static_cast<int>(mouse_pos.y) / 16 * 16;
-  if (free_movement) {
-    new_x = static_cast<int>(mouse_pos.x) / 8 * 8;
-    new_y = static_cast<int>(mouse_pos.y) / 8 * 8;
-  }
+  // Convert screen position to world position accounting for scale
+  float world_x = mouse_pos.x / scale;
+  float world_y = mouse_pos.y / scale;
+
+  // Calculate the new position on the 16x16 or 8x8 grid (in world coordinates)
+  int grid_size = free_movement ? 8 : 16;
+  int new_x = static_cast<int>(world_x) / grid_size * grid_size;
+  int new_y = static_cast<int>(world_y) / grid_size * grid_size;
 
   // Update the entity position
   entity->set_x(new_x);

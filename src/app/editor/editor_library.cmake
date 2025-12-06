@@ -17,6 +17,7 @@ set(
   app/editor/dungeon/interaction/item_interaction_handler.cc
   app/editor/dungeon/interaction/sprite_interaction_handler.cc
   app/editor/dungeon/interaction/interaction_coordinator.cc
+  app/editor/dungeon/interaction/interaction_mode.cc
   app/editor/dungeon/panels/object_editor_panel.cc
   app/editor/editor_manager.cc
   app/editor/session_types.cc
