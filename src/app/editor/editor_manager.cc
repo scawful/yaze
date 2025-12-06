@@ -726,6 +726,14 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
     }
   });
 
+  // Handle Activity Bar category selection - dismisses dashboard
+  panel_manager_.SetOnCategorySelectedCallback([this](const std::string& category) {
+    // Transition startup surface to Editor state (dismisses dashboard)
+    if (ui_coordinator_) {
+      ui_coordinator_->SetStartupSurface(StartupSurface::kEditor);
+    }
+  });
+
   // Enable file browser for Assembly category
   panel_manager_.EnableFileBrowser("Assembly");
 
@@ -1102,7 +1110,8 @@ absl::Status EditorManager::Update() {
     };
 
     // Draw VSCode-style sidebar with ALL categories (highlighting active ones)
-    if (activity_bar_) {
+    // Activity Bar is hidden until ROM is loaded (per startup flow design)
+    if (activity_bar_ && ui_coordinator_->ShouldShowActivityBar()) {
       activity_bar_->Render(GetCurrentSessionId(), sidebar_category,
                             all_categories, active_editor_categories,
                             has_rom_callback);

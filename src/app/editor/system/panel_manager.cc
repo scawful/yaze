@@ -43,6 +43,72 @@ std::string PanelManager::GetCategoryIcon(const std::string& category) {
 }
 
 // ============================================================================
+// Category Theme Colors (Expressive Icon Theming)
+// ============================================================================
+
+PanelManager::CategoryTheme PanelManager::GetCategoryTheme(
+    const std::string& category) {
+  // Expressive colors for each category - vibrant when active
+  // Format: {icon_r, icon_g, icon_b, icon_a, glow_r, glow_g, glow_b}
+
+  if (category == "Dungeon") {
+    // Castle gold - warm, regal
+    return {0.95f, 0.75f, 0.20f, 1.0f, 0.95f, 0.75f, 0.20f};
+  }
+  if (category == "Overworld") {
+    // Forest green - natural, expansive
+    return {0.30f, 0.85f, 0.45f, 1.0f, 0.30f, 0.85f, 0.45f};
+  }
+  if (category == "Graphics") {
+    // Image blue - creative, visual
+    return {0.40f, 0.70f, 0.95f, 1.0f, 0.40f, 0.70f, 0.95f};
+  }
+  if (category == "Palette") {
+    // Rainbow pink/magenta - colorful, artistic
+    return {0.90f, 0.40f, 0.70f, 1.0f, 0.90f, 0.40f, 0.70f};
+  }
+  if (category == "Sprite") {
+    // Character cyan - lively, animated
+    return {0.30f, 0.85f, 0.85f, 1.0f, 0.30f, 0.85f, 0.85f};
+  }
+  if (category == "Music") {
+    // Note purple - creative, rhythmic
+    return {0.70f, 0.40f, 0.90f, 1.0f, 0.70f, 0.40f, 0.90f};
+  }
+  if (category == "Message") {
+    // Text yellow - communicative, bright
+    return {0.95f, 0.90f, 0.40f, 1.0f, 0.95f, 0.90f, 0.40f};
+  }
+  if (category == "Screen") {
+    // TV white/silver - display, clean
+    return {0.90f, 0.92f, 0.95f, 1.0f, 0.90f, 0.92f, 0.95f};
+  }
+  if (category == "Emulator") {
+    // Game red - playful, active
+    return {0.90f, 0.35f, 0.40f, 1.0f, 0.90f, 0.35f, 0.40f};
+  }
+  if (category == "Assembly") {
+    // Code green - technical, precise
+    return {0.40f, 0.90f, 0.50f, 1.0f, 0.40f, 0.90f, 0.50f};
+  }
+  if (category == "Settings") {
+    // Gear gray/blue - utility, system
+    return {0.60f, 0.70f, 0.80f, 1.0f, 0.60f, 0.70f, 0.80f};
+  }
+  if (category == "Memory") {
+    // Memory orange - data, technical
+    return {0.95f, 0.60f, 0.25f, 1.0f, 0.95f, 0.60f, 0.25f};
+  }
+  if (category == "Agent") {
+    // AI purple/violet - intelligent, futuristic
+    return {0.60f, 0.40f, 0.95f, 1.0f, 0.60f, 0.40f, 0.95f};
+  }
+
+  // Default - neutral blue
+  return {0.50f, 0.60f, 0.80f, 1.0f, 0.50f, 0.60f, 0.80f};
+}
+
+// ============================================================================
 // Session Lifecycle Management
 // ============================================================================
 

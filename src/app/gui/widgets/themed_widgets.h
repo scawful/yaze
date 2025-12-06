@@ -27,10 +27,19 @@ bool ThemedIconButton(const char* icon, const char* tooltip = nullptr,
 
 /**
  * @brief Draw a transparent icon button (hover effect only).
+ *
+ * @param icon The icon string (e.g., ICON_MD_SETTINGS)
+ * @param size The size of the button
+ * @param tooltip Optional tooltip text
+ * @param is_active Whether the button is in an active/toggled state
+ * @param active_color Optional custom color for active state icon
+ *                     If alpha is 0, uses theme.primary instead
+ * @return true if clicked
  */
 bool TransparentIconButton(const char* icon, const ImVec2& size,
                            const char* tooltip = nullptr,
-                           bool is_active = false);
+                           bool is_active = false,
+                           const ImVec4& active_color = ImVec4(0, 0, 0, 0));
 
 /**
  * @brief Draw a standard text button with theme colors.

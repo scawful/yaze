@@ -14,6 +14,20 @@
 namespace yaze {
 namespace editor {
 
+/**
+ * @brief Represents the current startup surface state
+ *
+ * Single source of truth for startup UI visibility:
+ * - kWelcome: No ROM loaded, showing onboarding screen
+ * - kDashboard: ROM loaded, no active editor (editor chooser)
+ * - kEditor: Active editor/category selected
+ */
+enum class StartupSurface {
+  kWelcome,    // No ROM, showing onboarding
+  kDashboard,  // ROM loaded, no active editor
+  kEditor,     // Active editor/category
+};
+
 // Forward declarations to avoid circular dependencies
 class EditorManager;
 class RomFileManager;
@@ -179,6 +193,13 @@ class UICoordinator {
   }
   void SetDashboardBehavior(StartupVisibility mode);
   void SetAIAgentVisible(bool visible) { show_ai_agent_ = visible; }
+
+  // Startup surface management (single source of truth)
+  StartupSurface GetCurrentStartupSurface() const { return current_startup_surface_; }
+  void SetStartupSurface(StartupSurface surface);
+  bool ShouldShowWelcome() const;
+  bool ShouldShowDashboard() const;
+  bool ShouldShowActivityBar() const;
   void SetChatHistoryVisible(bool visible) { show_chat_history_ = visible; }
   void SetProposalDrawerVisible(bool visible) { show_proposal_drawer_ = visible; }
 
@@ -224,6 +245,9 @@ class UICoordinator {
   bool show_menu_bar_ = true;      // Menu bar visible by default
   StartupVisibility welcome_behavior_override_ = StartupVisibility::kAuto;
   StartupVisibility dashboard_behavior_override_ = StartupVisibility::kAuto;
+
+  // Single source of truth for startup surface state
+  StartupSurface current_startup_surface_ = StartupSurface::kWelcome;
 
   // Command Palette state
   char command_palette_query_[256] = {};

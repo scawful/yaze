@@ -219,6 +219,17 @@ class PanelManager {
   static std::string GetCategoryIcon(const std::string& category);
 
   /**
+   * @brief Get the expressive theme color for a category
+   * @param category The category name
+   * @return ImVec4 color for the category (used for active icon/glow effects)
+   */
+  struct CategoryTheme {
+    float r, g, b, a;  // Icon color when active
+    float glow_r, glow_g, glow_b;  // Glow/accent color (same hue)
+  };
+  static CategoryTheme GetCategoryTheme(const std::string& category);
+
+  /**
    * @brief Handle keyboard navigation in sidebar (click-to-focus modal)
    */
   void HandleSidebarKeyboardNav(size_t session_id,
@@ -279,6 +290,7 @@ class PanelManager {
   void TriggerShowHelp() { if (on_show_help_) on_show_help_(); }
   void TriggerOpenRom() { if (on_open_rom_) on_open_rom_(); }
   void TriggerPanelClicked(const std::string& category) { if (on_card_clicked_) on_card_clicked_(category); }
+  void TriggerCategorySelected(const std::string& category) { if (on_category_selected_) on_category_selected_(category); }
 
   // ============================================================================
   // Utility Icon Callbacks (for sidebar quick access buttons)
@@ -438,6 +450,9 @@ class PanelManager {
   void SetOnPanelClickedCallback(std::function<void(const std::string&)> callback) {
     on_card_clicked_ = std::move(callback);
   }
+  void SetOnCategorySelectedCallback(std::function<void(const std::string&)> callback) {
+    on_category_selected_ = std::move(callback);
+  }
 
   size_t GetActiveSessionId() const { return active_session_; }
 
@@ -546,7 +561,7 @@ class PanelManager {
 
   // Sidebar state
   bool sidebar_visible_ = false;    // Controls Activity Bar visibility (0px vs 48px)
-  bool panel_expanded_ = true;     // Controls Side Panel visibility (0px vs 250px)
+  bool panel_expanded_ = false;     // Controls Side Panel visibility (0px vs 250px) - starts collapsed
 
   // Keyboard navigation state (click-to-focus modal)
   int focused_card_index_ = -1;    // Currently focused card index (-1 = none)
@@ -572,6 +587,7 @@ class PanelManager {
   std::function<void(bool visible, bool expanded)> on_sidebar_state_changed_;
   std::function<void(const std::string&)> on_category_changed_;
   std::function<void(const std::string&)> on_card_clicked_;
+  std::function<void(const std::string&)> on_category_selected_;  // Activity Bar icon clicked
   std::function<void(bool)> on_emulator_visibility_changed_;
   std::function<void(const std::string&, const std::string&)> on_file_clicked_;
 

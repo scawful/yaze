@@ -32,6 +32,11 @@ float LayoutCoordinator::GetLeftLayoutOffset() const {
     return 0.0f;
   }
 
+  // Check startup surface state - Activity Bar hidden on cold start
+  if (!ui_coordinator_->ShouldShowActivityBar()) {
+    return 0.0f;
+  }
+
   // Check Activity Bar visibility
   if (!panel_manager_ || !panel_manager_->IsSidebarVisible()) {
     return 0.0f;

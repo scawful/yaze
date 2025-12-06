@@ -35,17 +35,27 @@ bool ThemedIconButton(const char* icon, const char* tooltip,
 }
 
 bool TransparentIconButton(const char* icon, const ImVec2& size,
-                           const char* tooltip, bool is_active) {
+                           const char* tooltip, bool is_active,
+                           const ImVec4& active_color) {
   const auto& theme = ThemeManager::Get().GetCurrentTheme();
 
   // Transparent background
   ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ConvertColorToImVec4(theme.header_hovered));
   ImGui::PushStyleColor(ImGuiCol_ButtonActive, ConvertColorToImVec4(theme.header_active));
-  
+
   // Text color based on state
-  ImVec4 text_color = is_active ? ConvertColorToImVec4(theme.primary)
-                                : ConvertColorToImVec4(theme.text_secondary);
+  // If active and custom color provided (alpha > 0), use that; otherwise use theme.primary
+  ImVec4 text_color;
+  if (is_active) {
+    if (active_color.w > 0.0f) {
+      text_color = active_color;  // Use category-specific color
+    } else {
+      text_color = ConvertColorToImVec4(theme.primary);  // Default to theme primary
+    }
+  } else {
+    text_color = ConvertColorToImVec4(theme.text_secondary);
+  }
   ImGui::PushStyleColor(ImGuiCol_Text, text_color);
 
   bool clicked = ImGui::Button(icon, size);

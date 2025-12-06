@@ -98,37 +98,52 @@ void ActivityBar::DrawActivityBarStrip(
       // Emulator is always available, others require ROM
       bool category_enabled = rom_loaded || (cat == "Emulator");
 
-      // Active Indicator
+      // Get category-specific theme colors for expressive appearance
+      auto cat_theme = PanelManager::GetCategoryTheme(cat);
+      ImVec4 cat_color(cat_theme.r, cat_theme.g, cat_theme.b, cat_theme.a);
+      ImVec4 glow_color(cat_theme.glow_r, cat_theme.glow_g, cat_theme.glow_b, 1.0f);
+
+      // Active Indicator with category-specific colors
       if (is_selected && category_enabled) {
-        // Left accent border
+        ImVec2 pos = ImGui::GetCursorScreenPos();
+
+        // Outer glow shadow (subtle, category color at 15% opacity)
+        ImVec4 outer_glow = glow_color;
+        outer_glow.w = 0.15f;
         ImGui::GetWindowDrawList()->AddRectFilled(
-            ImGui::GetCursorScreenPos(),
-            ImVec2(ImGui::GetCursorScreenPos().x + 3.0f,
-                   ImGui::GetCursorScreenPos().y + 40.0f),
-            ImGui::ColorConvertFloat4ToU32(
-                gui::ConvertColorToImVec4(theme.primary)));
-        
-        // Background highlight (Expressive colorful appearance)
-        ImVec4 highlight = gui::ConvertColorToImVec4(theme.primary);
-        highlight.w = 0.15f; // Subtle tint
+            ImVec2(pos.x - 1.0f, pos.y - 1.0f),
+            ImVec2(pos.x + 49.0f, pos.y + 41.0f),
+            ImGui::ColorConvertFloat4ToU32(outer_glow), 4.0f);
+
+        // Background highlight (category glow at 30% opacity)
+        ImVec4 highlight = glow_color;
+        highlight.w = 0.30f;
         ImGui::GetWindowDrawList()->AddRectFilled(
-            ImGui::GetCursorScreenPos(),
-            ImVec2(ImGui::GetCursorScreenPos().x + 48.0f,
-                   ImGui::GetCursorScreenPos().y + 40.0f),
-            ImGui::ColorConvertFloat4ToU32(highlight));
+            pos,
+            ImVec2(pos.x + 48.0f, pos.y + 40.0f),
+            ImGui::ColorConvertFloat4ToU32(highlight), 2.0f);
+
+        // Left accent border (4px wide, category-specific color)
+        ImGui::GetWindowDrawList()->AddRectFilled(
+            pos,
+            ImVec2(pos.x + 4.0f, pos.y + 40.0f),
+            ImGui::ColorConvertFloat4ToU32(cat_color));
       }
 
       std::string icon = PanelManager::GetCategoryIcon(cat);
 
-      // Use ThemedWidgets for consistent styling
+      // Use ThemedWidgets with category-specific color when active
+      ImVec4 icon_color = is_selected ? cat_color : ImVec4(0, 0, 0, 0);  // 0 = use default
       if (gui::TransparentIconButton(icon.c_str(), ImVec2(48.0f, 40.0f),
-                                     nullptr, is_selected)) {
+                                     nullptr, is_selected, icon_color)) {
         if (category_enabled) {
           if (cat == active_category && panel_manager_.IsPanelExpanded()) {
             panel_manager_.TogglePanelExpanded();
           } else {
             panel_manager_.SetActiveCategory(cat);
             panel_manager_.SetPanelExpanded(true);
+            // Notify that a category was selected (dismisses dashboard)
+            panel_manager_.TriggerCategorySelected(cat);
           }
         }
       }
