@@ -303,6 +303,7 @@ void ThemeManager::CreateFallbackYazeClassic() {
   theme.chat.provider_ollama = RGBA(230, 230, 230, 255);
   theme.chat.provider_gemini = RGBA(77, 153, 230, 255);
   theme.chat.provider_mock = RGBA(128, 128, 128, 255);
+  theme.chat.provider_openai = RGBA(51, 204, 153, 255);  // Teal/green for OpenAI
   theme.chat.proposal_panel_bg = RGBA(38, 38, 46, 255);
   theme.chat.proposal_accent = RGBA(102, 153, 230, 255);
   theme.chat.button_copy = RGBA(77, 77, 89, 255);

@@ -127,6 +127,7 @@ if(YAZE_BUILD_AGENT_UI)
     app/editor/agent/automation_bridge.cc
     app/editor/agent/network_collaboration_coordinator.cc
     app/editor/agent/panels/agent_editor_panels.cc
+    app/editor/agent/panels/agent_knowledge_panel.cc
   )
 endif()
 

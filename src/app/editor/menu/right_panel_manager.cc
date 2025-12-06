@@ -381,19 +381,120 @@ void RightPanelManager::DrawPanelDescription(const char* text) {
 
 void RightPanelManager::DrawAgentChatPanel() {
 #ifdef YAZE_BUILD_AGENT_UI
-  if (agent_chat_) {
-    agent_chat_->set_active(true);
-    agent_chat_->Draw();
-  } else {
+  const ImVec4 header_bg = gui::GetSurfaceContainerHighVec4();
+  const ImVec4 hero_text = gui::GetOnSurfaceVec4();
+  const ImVec4 accent = gui::GetPrimaryVec4();
+
+  if (!agent_chat_) {
     ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
     ImGui::Text(ICON_MD_SMART_TOY " AI Agent Not Available");
     ImGui::PopStyleColor();
-
     ImGui::Spacing();
     DrawPanelDescription(
         "The AI Agent is not initialized. "
         "Open the AI Agent from View menu or use Ctrl+Shift+A.");
+    return;
   }
+
+  bool chat_active = *agent_chat_->active();
+
+  ImGui::PushStyleColor(ImGuiCol_ChildBg, header_bg);
+  ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 8.0f);
+  if (ImGui::BeginChild("AgentHero", ImVec2(0, 110), true)) {
+    ImGui::PushStyleColor(ImGuiCol_Text, hero_text);
+    ImGui::TextColored(accent, "%s AI Agent", ICON_MD_SMART_TOY);
+    ImGui::PopStyleColor();
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
+    ImGui::Text("Right Sidebar");
+    ImGui::PopStyleColor();
+
+    ImGui::Spacing();
+    DrawPanelValue("Status", chat_active ? "Active" : "Inactive");
+    DrawPanelValue("Provider", "Configured via Agent Editor");
+
+    ImGui::Spacing();
+    ImGui::PushStyleColor(ImGuiCol_Button, gui::GetPrimaryVec4());
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                          gui::GetPrimaryHoverVec4());
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                          gui::GetPrimaryActiveVec4());
+    if (ImGui::Button(ICON_MD_OPEN_IN_NEW " Focus Agent Chat",
+                      ImVec2(-1, 0))) {
+      agent_chat_->set_active(true);
+    }
+    ImGui::PopStyleColor(3);
+  }
+  ImGui::EndChild();
+  ImGui::PopStyleVar();
+  ImGui::PopStyleColor();
+
+  ImGui::Spacing();
+  agent_chat_->set_active(true);
+
+  const float footer_height = ImGui::GetFrameHeightWithSpacing() * 2.5f;
+  float content_height =
+      std::max(120.0f, ImGui::GetContentRegionAvail().y - footer_height);
+
+  // Quick toggles row
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6.0f);
+  ImGui::PushStyleColor(ImGuiCol_FrameBg, gui::GetSurfaceContainerVec4());
+  ImGui::PushStyleColor(ImGuiCol_FrameBgHovered,
+                        gui::GetSurfaceContainerHighVec4());
+  ImGui::PushStyleColor(ImGuiCol_FrameBgActive,
+                        gui::GetSurfaceContainerHighestVec4());
+  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetOnSurfaceVec4());
+
+  bool auto_scroll = agent_chat_->auto_scroll();
+  bool show_ts = agent_chat_->show_timestamps();
+  bool show_reasoning = agent_chat_->show_reasoning();
+
+  if (ImGui::Checkbox("Auto-scroll", &auto_scroll)) {
+    agent_chat_->set_auto_scroll(auto_scroll);
+  }
+  ImGui::SameLine();
+  if (ImGui::Checkbox("Timestamps", &show_ts)) {
+    agent_chat_->set_show_timestamps(show_ts);
+  }
+  ImGui::SameLine();
+  if (ImGui::Checkbox("Reasoning", &show_reasoning)) {
+    agent_chat_->set_show_reasoning(show_reasoning);
+  }
+
+  ImGui::PopStyleColor(4);
+  ImGui::PopStyleVar();
+
+  // Chat body
+  if (ImGui::BeginChild("AgentChatBody", ImVec2(0, content_height), true)) {
+    agent_chat_->Draw(content_height);
+  }
+  ImGui::EndChild();
+
+  // Footer actions
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6, 6));
+  ImGui::PushStyleColor(ImGuiCol_Button, gui::GetPrimaryVec4());
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, gui::GetPrimaryHoverVec4());
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive, gui::GetPrimaryActiveVec4());
+  if (ImGui::Button(ICON_MD_OPEN_IN_NEW " Focus Agent Chat", ImVec2(-1, 0))) {
+    agent_chat_->set_active(true);
+    agent_chat_->ScrollToBottom();
+  }
+  ImGui::PopStyleColor(3);
+
+  ImGui::PushStyleColor(ImGuiCol_Button, gui::GetSurfaceContainerVec4());
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                        gui::GetSurfaceContainerHighVec4());
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                        gui::GetSurfaceContainerHighestVec4());
+  if (ImGui::Button(ICON_MD_DELETE_FOREVER " Clear", ImVec2(ImGui::GetContentRegionAvail().x / 2 - 4, 0))) {
+    agent_chat_->ClearHistory();
+  }
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_FILE_DOWNLOAD " Save", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+    agent_chat_->SaveHistory(".yaze/agent_chat_history.json");
+  }
+  ImGui::PopStyleColor(3);
+  ImGui::PopStyleVar();
 #else
   ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
   ImGui::Text(ICON_MD_SMART_TOY " AI Agent Not Available");
@@ -959,11 +1060,9 @@ bool RightPanelManager::DrawPanelToggleButtons() {
     }
   };
 
-#ifdef YAZE_WITH_GRPC
   // Agent Chat button
   DrawPanelButton(ICON_MD_SMART_TOY, "AI Agent Panel", PanelType::kAgentChat);
   ImGui::SameLine();
-#endif
 
   // Help button
   DrawPanelButton(ICON_MD_HELP_OUTLINE, "Help Panel (F1)", PanelType::kHelp);
@@ -981,4 +1080,3 @@ bool RightPanelManager::DrawPanelToggleButtons() {
 
 }  // namespace editor
 }  // namespace yaze
-
