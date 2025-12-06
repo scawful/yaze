@@ -7,6 +7,7 @@
 #include <string>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gui/core/icons.h"
@@ -84,9 +85,10 @@ class SpriteEditorPanel : public EditorPanel {
 
  private:
   void DrawPlacementControls() {
+    const auto& theme = AgentUI::GetTheme();
     // Placement mode indicator
     if (placement_mode_) {
-      ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f),
+      ImGui::TextColored(theme.status_warning,
           ICON_MD_PLACE " Placing: %s (0x%02X)",
           zelda3::ResolveSpriteName(selected_sprite_id_), selected_sprite_id_);
       if (ImGui::SmallButton(ICON_MD_CANCEL " Cancel")) {
@@ -96,14 +98,15 @@ class SpriteEditorPanel : public EditorPanel {
         }
       }
     } else {
-      ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f),
+      ImGui::TextColored(theme.text_secondary_gray,
           ICON_MD_INFO " Select a sprite to place");
     }
   }
 
   void DrawSpriteSelector() {
+    const auto& theme = AgentUI::GetTheme();
     ImGui::Text(ICON_MD_PERSON " Select Sprite:");
-    
+
     // Filter by category
     static const char* kCategories[] = {
         "All", "Enemies", "NPCs", "Bosses", "Items"
@@ -111,71 +114,82 @@ class SpriteEditorPanel : public EditorPanel {
     ImGui::SetNextItemWidth(100);
     ImGui::Combo("##Category", &selected_category_, kCategories, IM_ARRAYSIZE(kCategories));
     ImGui::SameLine();
-    
+
     // Search filter
     ImGui::SetNextItemWidth(120);
     ImGui::InputTextWithHint("##Search", "Search...", search_filter_, sizeof(search_filter_));
-    
-    // Sprite grid
-    constexpr float kPreviewSize = 32.0f;
+
+    // Sprite grid with responsive sizing
+    float available_height = ImGui::GetContentRegionAvail().y;
+    // Reserve space for room sprites section
+    float reserved_height = 180.0f;
+    // Calculate grid height: at least 120px, responsive to available space
+    float grid_height = std::max(120.0f, std::min(300.0f, available_height - reserved_height));
+
+    // Responsive sprite size based on panel width
     float panel_width = ImGui::GetContentRegionAvail().x;
-    int items_per_row = std::max(1, static_cast<int>(panel_width / (kPreviewSize + 8)));
-    
-    ImGui::BeginChild("##SpriteGrid", ImVec2(0, 200), true, 
+    float sprite_size = std::max(28.0f, std::min(40.0f, (panel_width - 40.0f) / 8.0f));
+    int items_per_row = std::max(1, static_cast<int>(panel_width / (sprite_size + 6)));
+
+    ImGui::BeginChild("##SpriteGrid", ImVec2(0, grid_height), true,
                       ImGuiWindowFlags_HorizontalScrollbar);
-    
+
     int col = 0;
     for (int i = 0; i < 256; ++i) {
       // Apply filters
       if (!MatchesFilter(i)) continue;
-      
+
       bool is_selected = (selected_sprite_id_ == i);
-      
+
       ImGui::PushID(i);
-      
-      // Color-coded button based on sprite type
-      ImVec4 button_color = GetSpriteTypeColor(i);
+
+      // Color-coded button based on sprite type using theme colors
+      ImVec4 button_color = GetSpriteTypeColor(i, theme);
       if (is_selected) {
-        button_color.x += 0.2f;
-        button_color.y += 0.2f;
-        button_color.z += 0.2f;
+        button_color.x = std::min(1.0f, button_color.x + 0.2f);
+        button_color.y = std::min(1.0f, button_color.y + 0.2f);
+        button_color.z = std::min(1.0f, button_color.z + 0.2f);
       }
-      
+
       ImGui::PushStyleColor(ImGuiCol_Button, button_color);
-      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, 
-          ImVec4(button_color.x + 0.1f, button_color.y + 0.1f, button_color.z + 0.1f, 1.0f));
-      ImGui::PushStyleColor(ImGuiCol_ButtonActive, 
-          ImVec4(button_color.x + 0.2f, button_color.y + 0.2f, button_color.z + 0.2f, 1.0f));
-      
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+          ImVec4(std::min(1.0f, button_color.x + 0.1f),
+                 std::min(1.0f, button_color.y + 0.1f),
+                 std::min(1.0f, button_color.z + 0.1f), 1.0f));
+      ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+          ImVec4(std::min(1.0f, button_color.x + 0.2f),
+                 std::min(1.0f, button_color.y + 0.2f),
+                 std::min(1.0f, button_color.z + 0.2f), 1.0f));
+
       // Get category icon based on sprite type
       const char* icon = GetSpriteTypeIcon(i);
       std::string label = absl::StrFormat("%s\n%02X", icon, i);
-      if (ImGui::Button(label.c_str(), ImVec2(kPreviewSize, kPreviewSize))) {
+      if (ImGui::Button(label.c_str(), ImVec2(sprite_size, sprite_size))) {
         selected_sprite_id_ = i;
         placement_mode_ = true;
         if (canvas_viewer_) {
           canvas_viewer_->object_interaction().SetSpritePlacementMode(true, i);
         }
       }
-      
+
       ImGui::PopStyleColor(3);
-      
+
       if (ImGui::IsItemHovered()) {
         const char* category = GetSpriteCategoryName(i);
         ImGui::SetTooltip("%s (0x%02X)\n[%s]\nClick to select for placement",
             zelda3::ResolveSpriteName(i), i, category);
       }
-      
-      // Selection highlight
+
+      // Selection highlight using theme color
       if (is_selected) {
         ImVec2 min = ImGui::GetItemRectMin();
         ImVec2 max = ImGui::GetItemRectMax();
-        ImGui::GetWindowDrawList()->AddRect(
-            min, max, IM_COL32(255, 255, 0, 255), 0.0f, 0, 2.0f);
+        ImU32 sel_color = ImGui::ColorConvertFloat4ToU32(theme.dungeon_selection_primary);
+        ImGui::GetWindowDrawList()->AddRect(min, max, sel_color, 0.0f, 0, 2.0f);
       }
-      
+
       ImGui::PopID();
-      
+
       col++;
       if (col < items_per_row) {
         ImGui::SameLine();
@@ -183,41 +197,44 @@ class SpriteEditorPanel : public EditorPanel {
         col = 0;
       }
     }
-    
+
     ImGui::EndChild();
   }
 
   void DrawRoomSprites() {
+    const auto& theme = AgentUI::GetTheme();
     auto& room = (*rooms_)[*current_room_id_];
     const auto& sprites = room.GetSprites();
-    
+
     ImGui::Text(ICON_MD_LIST " Room Sprites (%zu):", sprites.size());
-    
+
     if (sprites.empty()) {
-      ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f),
+      ImGui::TextColored(theme.text_secondary_gray,
           ICON_MD_INFO " No sprites in this room");
       return;
     }
-    
-    ImGui::BeginChild("##SpriteList", ImVec2(0, 120), true);
+
+    // Responsive list height - use remaining available space
+    float list_height = std::max(80.0f, ImGui::GetContentRegionAvail().y - 10.0f);
+    ImGui::BeginChild("##SpriteList", ImVec2(0, list_height), true);
     for (size_t i = 0; i < sprites.size(); ++i) {
       const auto& sprite = sprites[i];
-      
+
       ImGui::PushID(static_cast<int>(i));
-      
-      ImGui::Text("[%zu] %s (0x%02X)", i, 
+
+      ImGui::Text("[%zu] %s (0x%02X)", i,
           zelda3::ResolveSpriteName(sprite.id()), sprite.id());
       ImGui::SameLine();
-      ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), 
+      ImGui::TextColored(theme.text_secondary_gray,
           "@ (%d,%d) L%d", sprite.x(), sprite.y(), sprite.layer());
-      
+
       ImGui::SameLine();
       if (ImGui::SmallButton(ICON_MD_DELETE "##Del")) {
         auto& mutable_room = (*rooms_)[*current_room_id_];
         mutable_room.GetSprites().erase(
             mutable_room.GetSprites().begin() + static_cast<long>(i));
       }
-      
+
       ImGui::PopID();
     }
     ImGui::EndChild();
@@ -254,16 +271,16 @@ class SpriteEditorPanel : public EditorPanel {
     return true;
   }
 
-  ImVec4 GetSpriteTypeColor(int sprite_id) {
-    // Color-code based on sprite type
+  ImVec4 GetSpriteTypeColor(int sprite_id, const AgentUITheme& theme) {
+    // Color-code based on sprite type using theme colors
     if (sprite_id >= 0xC0 && sprite_id <= 0xD8) {
-      return ImVec4(0.7f, 0.3f, 0.3f, 1.0f);  // Red for bosses
+      return theme.status_error;              // Red for bosses
     } else if (sprite_id >= 0x80 && sprite_id <= 0xBF) {
-      return ImVec4(0.3f, 0.7f, 0.3f, 1.0f);  // Green for NPCs
+      return theme.dungeon_sprite_layer0;     // Green for NPCs
     } else if (sprite_id >= 0xD9) {
-      return ImVec4(0.7f, 0.7f, 0.3f, 1.0f);  // Yellow for items
+      return theme.dungeon_object_chest;      // Gold for items
     }
-    return ImVec4(0.3f, 0.5f, 0.7f, 1.0f);  // Blue for enemies
+    return theme.dungeon_sprite_layer1;       // Blue for enemies
   }
 
   const char* GetSpriteTypeIcon(int sprite_id) {

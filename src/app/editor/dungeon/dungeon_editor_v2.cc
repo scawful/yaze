@@ -43,6 +43,21 @@
 
 namespace yaze::editor {
 
+DungeonEditorV2::~DungeonEditorV2() {
+  // Clear viewer references in panels BEFORE room_viewers_ is destroyed.
+  // Panels are owned by PanelManager and outlive this editor, so they need
+  // to have their viewer pointers cleared to prevent dangling pointer access.
+  if (object_editor_panel_) {
+    object_editor_panel_->SetCanvasViewer(nullptr);
+  }
+  if (sprite_editor_panel_) {
+    sprite_editor_panel_->SetCanvasViewer(nullptr);
+  }
+  if (item_editor_panel_) {
+    item_editor_panel_->SetCanvasViewer(nullptr);
+  }
+}
+
 void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
   renderer_ = renderer;
   rom_ = rom;
@@ -161,7 +176,8 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
 
   panel_manager->RegisterEditorPanel(std::make_unique<DungeonRoomMatrixPanel>(
       &current_room_id_, &active_rooms_,
-      [this](int room_id) { OnRoomSelected(room_id); }));
+      [this](int room_id) { OnRoomSelected(room_id); },
+      &rooms_));
 
   panel_manager->RegisterEditorPanel(std::make_unique<DungeonEntrancesPanel>(
       &entrances_, &current_entrance_id_,

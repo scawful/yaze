@@ -7,6 +7,7 @@
 #include <string>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gui/core/icons.h"
@@ -117,12 +118,13 @@ class ItemEditorPanel : public EditorPanel {
   static constexpr size_t kPotItemCount = sizeof(kPotItemNames) / sizeof(kPotItemNames[0]);
 
   void DrawPlacementControls() {
+    const auto& theme = AgentUI::GetTheme();
     // Placement mode indicator
     if (placement_mode_) {
-      const char* item_name = (selected_item_id_ < kPotItemCount) 
-          ? kPotItemNames[selected_item_id_] 
+      const char* item_name = (selected_item_id_ < kPotItemCount)
+          ? kPotItemNames[selected_item_id_]
           : "Unknown";
-      ImGui::TextColored(ImVec4(1.0f, 0.85f, 0.2f, 1.0f),
+      ImGui::TextColored(theme.status_warning,
           ICON_MD_PLACE " Placing: %s (0x%02X)", item_name, selected_item_id_);
       if (ImGui::SmallButton(ICON_MD_CANCEL " Cancel")) {
         placement_mode_ = false;
@@ -131,46 +133,58 @@ class ItemEditorPanel : public EditorPanel {
         }
       }
     } else {
-      ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f),
+      ImGui::TextColored(theme.text_secondary_gray,
           ICON_MD_INFO " Select an item to place");
     }
   }
 
   void DrawItemSelector() {
+    const auto& theme = AgentUI::GetTheme();
     ImGui::Text(ICON_MD_INVENTORY " Select Item:");
-    
-    // Item grid
-    constexpr float kPreviewSize = 48.0f;
+
+    // Item grid with responsive sizing
+    float available_height = ImGui::GetContentRegionAvail().y;
+    // Reserve space for room items section (header + list + some margin)
+    float reserved_height = 180.0f;
+    // Calculate grid height: at least 100px, but responsive to available space
+    float grid_height = std::max(100.0f, std::min(250.0f, available_height - reserved_height));
+
+    // Responsive item size based on panel width
     float panel_width = ImGui::GetContentRegionAvail().x;
-    int items_per_row = std::max(1, static_cast<int>(panel_width / (kPreviewSize + 8)));
-    
-    ImGui::BeginChild("##ItemGrid", ImVec2(0, 160), true, 
+    float item_size = std::max(36.0f, std::min(48.0f, (panel_width - 40.0f) / 6.0f));
+    int items_per_row = std::max(1, static_cast<int>(panel_width / (item_size + 8)));
+
+    ImGui::BeginChild("##ItemGrid", ImVec2(0, grid_height), true,
                       ImGuiWindowFlags_HorizontalScrollbar);
     
     int col = 0;
     for (size_t i = 0; i < kPotItemCount; ++i) {
       bool is_selected = (selected_item_id_ == static_cast<int>(i));
-      
+
       ImGui::PushID(static_cast<int>(i));
-      
-      // Color-coded button based on item type
-      ImVec4 button_color = GetItemTypeColor(static_cast<int>(i));
+
+      // Color-coded button based on item type using theme colors
+      ImVec4 button_color = GetItemTypeColor(static_cast<int>(i), theme);
       if (is_selected) {
-        button_color.x += 0.2f;
-        button_color.y += 0.2f;
-        button_color.z += 0.2f;
+        button_color.x = std::min(1.0f, button_color.x + 0.2f);
+        button_color.y = std::min(1.0f, button_color.y + 0.2f);
+        button_color.z = std::min(1.0f, button_color.z + 0.2f);
       }
-      
+
       ImGui::PushStyleColor(ImGuiCol_Button, button_color);
-      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, 
-          ImVec4(button_color.x + 0.1f, button_color.y + 0.1f, button_color.z + 0.1f, 1.0f));
-      ImGui::PushStyleColor(ImGuiCol_ButtonActive, 
-          ImVec4(button_color.x + 0.2f, button_color.y + 0.2f, button_color.z + 0.2f, 1.0f));
-      
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+          ImVec4(std::min(1.0f, button_color.x + 0.1f),
+                 std::min(1.0f, button_color.y + 0.1f),
+                 std::min(1.0f, button_color.z + 0.1f), 1.0f));
+      ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+          ImVec4(std::min(1.0f, button_color.x + 0.2f),
+                 std::min(1.0f, button_color.y + 0.2f),
+                 std::min(1.0f, button_color.z + 0.2f), 1.0f));
+
       // Get icon and short name for item
       const char* icon = GetItemTypeIcon(static_cast<int>(i));
       std::string label = absl::StrFormat("%s\n%02X", icon, static_cast<int>(i));
-      if (ImGui::Button(label.c_str(), ImVec2(kPreviewSize, kPreviewSize))) {
+      if (ImGui::Button(label.c_str(), ImVec2(item_size, item_size))) {
         selected_item_id_ = static_cast<int>(i);
         placement_mode_ = true;
         if (canvas_viewer_) {
@@ -186,12 +200,12 @@ class ItemEditorPanel : public EditorPanel {
             kPotItemNames[i], static_cast<int>(i));
       }
       
-      // Selection highlight
+      // Selection highlight using theme color
       if (is_selected) {
         ImVec2 min = ImGui::GetItemRectMin();
         ImVec2 max = ImGui::GetItemRectMax();
-        ImGui::GetWindowDrawList()->AddRect(
-            min, max, IM_COL32(255, 255, 0, 255), 0.0f, 0, 2.0f);
+        ImU32 sel_color = ImGui::ColorConvertFloat4ToU32(theme.dungeon_selection_primary);
+        ImGui::GetWindowDrawList()->AddRect(min, max, sel_color, 0.0f, 0, 2.0f);
       }
       
       ImGui::PopID();
@@ -208,58 +222,61 @@ class ItemEditorPanel : public EditorPanel {
   }
 
   void DrawRoomItems() {
+    const auto& theme = AgentUI::GetTheme();
     auto& room = (*rooms_)[*current_room_id_];
     const auto& items = room.GetPotItems();
-    
+
     ImGui::Text(ICON_MD_LIST " Room Items (%zu):", items.size());
-    
+
     if (items.empty()) {
-      ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f),
+      ImGui::TextColored(theme.text_secondary_gray,
           ICON_MD_INFO " No items in this room");
       return;
     }
-    
-    ImGui::BeginChild("##ItemList", ImVec2(0, 120), true);
+
+    // Responsive list height - use remaining available space
+    float list_height = std::max(80.0f, ImGui::GetContentRegionAvail().y - 10.0f);
+    ImGui::BeginChild("##ItemList", ImVec2(0, list_height), true);
     for (size_t i = 0; i < items.size(); ++i) {
       const auto& item = items[i];
-      
+
       ImGui::PushID(static_cast<int>(i));
-      
-      const char* item_name = (item.item < kPotItemCount) 
-          ? kPotItemNames[item.item] 
+
+      const char* item_name = (item.item < kPotItemCount)
+          ? kPotItemNames[item.item]
           : "Unknown";
-      
+
       ImGui::Text("[%zu] %s (0x%02X)", i, item_name, item.item);
       ImGui::SameLine();
-      ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), 
+      ImGui::TextColored(theme.text_secondary_gray,
           "@ (%d,%d)", item.GetTileX(), item.GetTileY());
-      
+
       ImGui::SameLine();
       if (ImGui::SmallButton(ICON_MD_DELETE "##Del")) {
         auto& mutable_room = (*rooms_)[*current_room_id_];
         mutable_room.GetPotItems().erase(
             mutable_room.GetPotItems().begin() + static_cast<long>(i));
       }
-      
+
       ImGui::PopID();
     }
     ImGui::EndChild();
   }
 
-  ImVec4 GetItemTypeColor(int item_id) {
-    // Color-code based on item type
+  ImVec4 GetItemTypeColor(int item_id, const AgentUITheme& theme) {
+    // Color-code based on item type using theme colors
     if (item_id == 0 || item_id == 22) {
-      return ImVec4(0.4f, 0.4f, 0.4f, 1.0f);  // Gray for "Nothing"
+      return theme.dungeon_object_default;  // Gray for "Nothing"
     } else if (item_id >= 1 && item_id <= 7) {
-      return ImVec4(0.3f, 0.7f, 0.3f, 1.0f);  // Green for rupees/items
+      return theme.dungeon_sprite_layer0;   // Green for rupees/items
     } else if (item_id == 8) {
-      return ImVec4(0.7f, 0.7f, 0.3f, 1.0f);  // Yellow for key
+      return theme.dungeon_object_chest;    // Gold for key
     } else if (item_id >= 15 && item_id <= 17) {
-      return ImVec4(0.7f, 0.3f, 0.3f, 1.0f);  // Red for enemies
+      return theme.status_error;            // Red for enemies
     } else if (item_id >= 23 && item_id <= 27) {
-      return ImVec4(0.5f, 0.3f, 0.7f, 1.0f);  // Purple for special
+      return theme.dungeon_object_stairs;   // Yellow for special
     }
-    return ImVec4(0.3f, 0.5f, 0.7f, 1.0f);  // Blue default
+    return theme.dungeon_object_pot;        // Pot color for default
   }
 
   const char* GetItemTypeIcon(int item_id) {
