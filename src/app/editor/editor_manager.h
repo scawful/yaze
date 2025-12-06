@@ -14,6 +14,8 @@
 #include "app/editor/code/project_file_editor.h"
 #include "app/editor/editor.h"
 #include "app/editor/menu/activity_bar.h"
+#include "app/editor/core/editor_context.h"
+#include "app/editor/core/event_bus.h"
 #include "app/editor/menu/menu_builder.h"
 #include "app/editor/menu/menu_orchestrator.h"
 #include "app/editor/menu/right_panel_manager.h"
@@ -416,6 +418,10 @@ class EditorManager : public SessionObserver {
 
   // Deferred action queue - executed at the start of each frame
   std::vector<std::function<void()>> deferred_actions_;
+
+  // Core Event Bus and Context
+  EventBus event_bus_;
+  std::unique_ptr<GlobalEditorContext> editor_context_;
 
 #ifdef YAZE_WITH_GRPC
   CanvasAutomationServiceImpl* canvas_automation_service_ = nullptr;

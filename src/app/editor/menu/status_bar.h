@@ -4,6 +4,9 @@
 #include <string>
 #include <unordered_map>
 
+#include "app/editor/core/editor_context.h"
+#include "app/editor/events/ui_events.h"
+
 namespace yaze {
 
 class Rom;
@@ -22,23 +25,22 @@ namespace editor {
  * - Zoom level
  * - Current editor mode/tool
  *
- * Each editor can update its relevant segments by calling the Set* methods.
- * The StatusBar renders in a fixed position at the bottom of the viewport.
+ * Each editor can update its relevant segments by calling the Set* methods or 
+ * publishing StatusUpdateEvents to the event bus.
  *
  * Usage:
  * ```cpp
- * status_bar_.SetRom(current_rom);
- * status_bar_.SetSessionInfo(session_id, total_sessions);
- * status_bar_.SetCursorPosition(tile_x, tile_y);
- * status_bar_.SetZoom(2.0f);
- * status_bar_.SetEditorMode("Tile Paint");
- * status_bar_.Draw();
+ * status_bar_.Initialize(&editor_context);
+ * // ... 
+ * editor_context.GetEventBus().Publish(StatusUpdateEvent::Cursor(x, y));
  * ```
  */
 class StatusBar {
  public:
   StatusBar() = default;
   ~StatusBar() = default;
+
+  void Initialize(GlobalEditorContext* context);
 
   // ============================================================================
   // Configuration
@@ -152,6 +154,8 @@ class StatusBar {
   static constexpr float kStatusBarHeight = 24.0f;
 
  private:
+  void HandleStatusUpdate(const StatusUpdateEvent& event);
+
   void DrawRomSegment();
   void DrawSessionSegment();
   void DrawCursorSegment();
@@ -161,6 +165,7 @@ class StatusBar {
   void DrawCustomSegments();
   void DrawSeparator();
 
+  GlobalEditorContext* context_ = nullptr;
   bool enabled_ = false;
   Rom* rom_ = nullptr;
 

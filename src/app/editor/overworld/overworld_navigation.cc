@@ -1,5 +1,7 @@
 #include "app/editor/overworld/overworld_editor.h"
 
+#include <algorithm>
+
 #include "app/gui/canvas/canvas.h"
 
 namespace yaze::editor {
@@ -14,18 +16,29 @@ void OverworldEditor::HandleOverworldPan() {
 }
 
 void OverworldEditor::HandleOverworldZoom() {
-  // Scroll wheel zoom disabled - use toolbar buttons or context menu instead
-  // Context menu provides: Zoom In, Zoom Out, Reset View
-  // Toolbar provides: zoom buttons
+  // Scroll wheel zoom when hovering over canvas
+  if (!ow_map_canvas_.IsMouseHovering()) {
+    return;
+  }
+
+  float wheel = ImGui::GetIO().MouseWheel;
+  if (wheel != 0.0f) {
+    float new_scale = std::clamp(
+        ow_map_canvas_.global_scale() + wheel * kOverworldZoomStep,
+        kOverworldMinZoom, kOverworldMaxZoom);
+    ow_map_canvas_.set_global_scale(new_scale);
+  }
 }
 
 void OverworldEditor::ZoomIn() {
-  float new_scale = std::min(5.0f, ow_map_canvas_.global_scale() + 0.25f);
+  float new_scale = std::min(kOverworldMaxZoom,
+                             ow_map_canvas_.global_scale() + kOverworldZoomStep);
   ow_map_canvas_.set_global_scale(new_scale);
 }
 
 void OverworldEditor::ZoomOut() {
-  float new_scale = std::max(0.1f, ow_map_canvas_.global_scale() - 0.25f);
+  float new_scale = std::max(kOverworldMinZoom,
+                             ow_map_canvas_.global_scale() - kOverworldZoomStep);
   ow_map_canvas_.set_global_scale(new_scale);
 }
 

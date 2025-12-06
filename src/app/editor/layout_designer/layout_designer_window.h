@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <optional>
 
 #include "app/editor/layout_designer/layout_definition.h"
 #include "app/editor/layout_designer/widget_definition.h"
@@ -12,6 +13,8 @@
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "imgui/imgui.h"
+
+namespace yaze { namespace editor { class LayoutManager; class EditorManager; } }
 
 namespace yaze {
 namespace editor {
@@ -40,12 +43,18 @@ enum class DesignMode {
 class LayoutDesignerWindow {
  public:
   LayoutDesignerWindow() = default;
+  explicit LayoutDesignerWindow(yaze::editor::LayoutManager* layout_manager,
+                                PanelManager* panel_manager,
+                                yaze::editor::EditorManager* editor_manager)
+      : layout_manager_(layout_manager),
+        editor_manager_(editor_manager),
+        panel_manager_(panel_manager) {}
   
   /**
-   * @brief Initialize the designer with panel manager reference
+   * @brief Initialize the designer with manager references
    * @param panel_manager Reference to PanelManager for importing panels
    */
-  void Initialize(PanelManager* panel_manager);
+  void Initialize(PanelManager* panel_manager, yaze::editor::LayoutManager* layout_manager = nullptr, yaze::editor::EditorManager* editor_manager = nullptr);
   
   /**
    * @brief Open the designer window
@@ -104,6 +113,16 @@ class LayoutDesignerWindow {
   void PreviewLayout();
   
  private:
+  // Panel palette
+  struct PalettePanel {
+    std::string id;
+    std::string name;
+    std::string icon;
+    std::string category;
+    std::string description;
+    int priority;
+  };
+
   // UI Components
   void DrawMenuBar();
   void DrawToolbar();
@@ -130,6 +149,9 @@ class LayoutDesignerWindow {
   bool IsMouseOverRect(const ImVec2& rect_min, const ImVec2& rect_max) const;
   ImGuiDir GetDropZone(const ImVec2& mouse_pos, const ImVec2& rect_min, 
                        const ImVec2& rect_max) const;
+  void ResetDropState();
+  std::optional<PalettePanel> ResolvePanelById(const std::string& panel_id) const;
+  void AddPanelToTarget(const PalettePanel& panel);
   
   // Properties
   void DrawPanelProperties(LayoutPanel* panel);
@@ -156,15 +178,6 @@ class LayoutDesignerWindow {
   std::vector<std::unique_ptr<LayoutDefinition>> redo_stack_;
   static constexpr size_t kMaxUndoSteps = 50;
   
-  // Panel palette
-  struct PalettePanel {
-    std::string id;
-    std::string name;
-    std::string icon;
-    std::string category;
-    std::string description;
-    int priority;
-  };
   std::vector<PalettePanel> GetAvailablePanels() const;
   void RefreshPanelCache();
   bool MatchesSearchFilter(const PalettePanel& panel) const;
@@ -192,6 +205,7 @@ class LayoutDesignerWindow {
   // Selection state (Panel Layout Mode)
   LayoutPanel* selected_panel_ = nullptr;
   DockNode* selected_node_ = nullptr;
+  DockNode* last_drop_node_for_preview_ = nullptr;
   
   // Selection state (Widget Design Mode)
   WidgetDefinition* selected_widget_ = nullptr;
@@ -203,7 +217,10 @@ class LayoutDesignerWindow {
   ImVec2 drop_zone_size_;
   ImGuiDir drop_direction_ = ImGuiDir_None;
   DockNode* drop_target_node_ = nullptr;
-  
+
+  // Preview/application hooks
+  yaze::editor::LayoutManager* layout_manager_ = nullptr;
+  yaze::editor::EditorManager* editor_manager_ = nullptr;
   // Panel manager reference (for importing panels)
   PanelManager* panel_manager_ = nullptr;
   
@@ -229,4 +246,3 @@ class LayoutDesignerWindow {
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_LAYOUT_DESIGNER_LAYOUT_DESIGNER_WINDOW_H_
-
