@@ -179,6 +179,7 @@ struct AgentConfigState {
   std::string ai_model;
   std::string ollama_host = "http://localhost:11434";
   std::string gemini_api_key;
+  std::string openai_api_key;
   bool verbose = false;
   bool show_reasoning = true;
   int max_tool_iterations = 4;
@@ -198,6 +199,7 @@ struct AgentConfigState {
   char model_buffer[128] = {};
   char ollama_host_buffer[256] = "http://localhost:11434";
   char gemini_key_buffer[256] = {};
+  char openai_key_buffer[256] = {};
 };
 
 // ============================================================================
@@ -227,6 +229,51 @@ struct Z3EDCommandState {
   std::string command_output;
   bool command_running = false;
   char command_input_buffer[512] = {};
+};
+
+// ============================================================================
+// Knowledge Base State
+// ============================================================================
+
+/**
+ * @brief State for learned knowledge management (CLI integration)
+ */
+struct KnowledgeState {
+  bool initialized = false;
+  bool pretraining_enabled = false;
+  bool context_injection_enabled = true;
+  absl::Time last_refresh = absl::InfinitePast();
+
+  // Cached stats for display
+  int preference_count = 0;
+  int pattern_count = 0;
+  int project_count = 0;
+  int memory_count = 0;
+};
+
+// ============================================================================
+// Tool Execution State
+// ============================================================================
+
+/**
+ * @brief Single tool execution entry for timeline display
+ */
+struct ToolExecutionEntry {
+  std::string tool_name;
+  std::string arguments;
+  std::string result_preview;
+  double duration_ms = 0.0;
+  bool success = true;
+  absl::Time executed_at = absl::InfinitePast();
+};
+
+/**
+ * @brief State for tool execution timeline display
+ */
+struct ToolExecutionState {
+  std::vector<ToolExecutionEntry> recent_executions;
+  bool show_timeline = false;
+  int max_entries = 50;
 };
 
 // ============================================================================
@@ -341,6 +388,14 @@ class AgentUIContext {
   ProposalState& proposal_state() { return proposal_state_; }
   const ProposalState& proposal_state() const { return proposal_state_; }
 
+  KnowledgeState& knowledge_state() { return knowledge_state_; }
+  const KnowledgeState& knowledge_state() const { return knowledge_state_; }
+
+  ToolExecutionState& tool_execution_state() { return tool_execution_state_; }
+  const ToolExecutionState& tool_execution_state() const {
+    return tool_execution_state_;
+  }
+
   // ROM context
   void SetRom(Rom* rom) { rom_ = rom; }
   Rom* GetRom() const { return rom_; }
@@ -377,6 +432,8 @@ class AgentUIContext {
   Z3EDCommandState z3ed_command_state_;
   PersonaProfile persona_profile_;
   ProposalState proposal_state_;
+  KnowledgeState knowledge_state_;
+  ToolExecutionState tool_execution_state_;
 
   Rom* rom_ = nullptr;
   project::YazeProject* project_ = nullptr; // Project context

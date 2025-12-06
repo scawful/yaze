@@ -36,6 +36,59 @@ void AgentUiController::Initialize(ToastManager* toast_manager,
   agent_editor_.InitializeWithDependencies(toast_manager, proposal_drawer,
                                            /*rom=*/nullptr);
 
+  // Wire agent/chat into the right sidebar experience
+  if (right_panel_manager_) {
+    right_panel_manager_->SetAgentChat(agent_editor_.GetAgentChat());
+    right_panel_manager_->SetProposalDrawer(proposal_drawer);
+    right_panel_manager_->SetToastManager(toast_manager);
+  }
+
+  // Initialize knowledge service if available
+#if defined(Z3ED_AI)
+  InitializeKnowledge();
+
+  // Set up knowledge panel callback
+  agent_editor_.SetKnowledgePanelCallback([this, toast_manager]() {
+    AgentKnowledgePanel::Callbacks callbacks;
+    callbacks.set_preference = [this](const std::string& key,
+                                      const std::string& value) {
+      if (knowledge_initialized_) {
+        learned_knowledge_.SetPreference(key, value);
+        learned_knowledge_.SaveAll();
+        SyncKnowledgeToContext();
+      }
+    };
+    callbacks.remove_preference = [this](const std::string& key) {
+      if (knowledge_initialized_) {
+        learned_knowledge_.RemovePreference(key);
+        learned_knowledge_.SaveAll();
+        SyncKnowledgeToContext();
+      }
+    };
+    callbacks.clear_all_knowledge = [this]() {
+      if (knowledge_initialized_) {
+        learned_knowledge_.ClearAll();
+        SyncKnowledgeToContext();
+      }
+    };
+    callbacks.export_knowledge = [this, toast_manager]() {
+      if (knowledge_initialized_) {
+        auto json_or = learned_knowledge_.ExportToJSON();
+        if (json_or.ok()) {
+          // TODO: Save to file or clipboard
+          if (toast_manager) {
+            toast_manager->Show("Knowledge exported", ToastType::kSuccess);
+          }
+        }
+      }
+    };
+    callbacks.refresh_knowledge = [this]() { SyncKnowledgeToContext(); };
+
+    knowledge_panel_.Draw(GetContext(), GetKnowledgeService(), callbacks,
+                          toast_manager_);
+  });
+#endif
+
   // Initial state sync from editor to context
   SyncStateFromEditor();
 }
@@ -143,6 +196,56 @@ const AgentUIContext* AgentUiController::GetContext() const {
   // Fall back to legacy context
   return &agent_ui_context_;
 }
+
+#if defined(Z3ED_AI)
+cli::agent::LearnedKnowledgeService* AgentUiController::GetKnowledgeService() {
+  if (!knowledge_initialized_) {
+    return nullptr;
+  }
+  return &learned_knowledge_;
+}
+
+bool AgentUiController::IsKnowledgeServiceAvailable() const {
+  return knowledge_initialized_;
+}
+
+void AgentUiController::InitializeKnowledge() {
+  if (knowledge_initialized_) {
+    return;
+  }
+
+  auto status = learned_knowledge_.Initialize();
+  if (status.ok()) {
+    knowledge_initialized_ = true;
+    SyncKnowledgeToContext();
+    LOG_INFO("AgentUiController", "LearnedKnowledgeService initialized successfully");
+  } else {
+    LOG_ERROR("AgentUiController", "Failed to initialize LearnedKnowledgeService: %s", status.message().data());
+  }
+}
+
+void AgentUiController::SyncKnowledgeToContext() {
+  if (!knowledge_initialized_) {
+    return;
+  }
+
+  // Update knowledge state in context with stats from service
+  auto stats = learned_knowledge_.GetStats();
+  auto& knowledge_state = agent_ui_context_.knowledge_state();
+
+  knowledge_state.initialized = true;
+  knowledge_state.preference_count = stats.preference_count;
+  knowledge_state.pattern_count = stats.pattern_count;
+  knowledge_state.project_count = stats.project_count;
+  knowledge_state.memory_count = stats.memory_count;
+  knowledge_state.last_refresh = absl::Now();
+
+  // Also update active session context
+  if (AgentSession* session = session_manager_.GetActiveSession()) {
+    session->context.knowledge_state() = knowledge_state;
+  }
+}
+#endif  // defined(Z3ED_AI)
 
 }  // namespace editor
 }  // namespace yaze

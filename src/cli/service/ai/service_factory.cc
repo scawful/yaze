@@ -14,6 +14,7 @@
 
 #ifdef YAZE_WITH_JSON
 #include "cli/service/ai/gemini_ai_service.h"
+#include "cli/service/ai/openai_ai_service.h"
 #endif
 
 ABSL_DECLARE_FLAG(std::string, ai_provider);
@@ -148,9 +149,15 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
       return absl::FailedPreconditionError(
           "OpenAI API key not provided. Set OPENAI_API_KEY.");
     }
-    // Native OpenAI client not wired; browser path handles this provider.
-    return absl::FailedPreconditionError(
-        "OpenAI provider is only supported in browser/WASM builds.");
+    OpenAIConfig openai_config(config.openai_api_key);
+    if (!config.model.empty()) {
+      openai_config.model = config.model;
+    }
+    openai_config.prompt_version = absl::GetFlag(FLAGS_prompt_version);
+    openai_config.use_function_calling =
+        absl::GetFlag(FLAGS_use_function_calling);
+    openai_config.verbose = config.verbose;
+    return std::make_unique<OpenAIAIService>(openai_config);
   }
 #else
   if (provider == "gemini") {

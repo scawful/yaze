@@ -121,6 +121,7 @@ void AgentConfigurationPanel::RenderModelConfigControls(
   provider_button(ICON_MD_SETTINGS " Mock", "mock", theme.provider_mock);
   provider_button(ICON_MD_CLOUD " Ollama", "ollama", theme.provider_ollama);
   provider_button(ICON_MD_SMART_TOY " Gemini", "gemini", theme.provider_gemini);
+  provider_button(ICON_MD_AUTO_AWESOME " OpenAI", "openai", theme.provider_openai);
   ImGui::NewLine();
   ImGui::NewLine();
 
@@ -144,7 +145,7 @@ void AgentConfigurationPanel::RenderModelConfigControls(
     config.gemini_api_key = config.gemini_key_buffer;
   }
   ImGui::SameLine();
-  if (ImGui::SmallButton(ICON_MD_SYNC " Env")) {
+  if (ImGui::SmallButton(ICON_MD_SYNC " Env##gemini")) {
     const char* env_key = std::getenv("GEMINI_API_KEY");
     if (env_key) {
       std::snprintf(config.gemini_key_buffer, sizeof(config.gemini_key_buffer),
@@ -156,6 +157,31 @@ void AgentConfigurationPanel::RenderModelConfigControls(
       }
     } else if (toast_manager) {
       toast_manager->Show("GEMINI_API_KEY not set", ToastType::kWarning, 2.0f);
+    }
+  }
+
+  ImGui::Text("OpenAI Key:");
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 60.0f);
+  if (ImGui::InputTextWithHint("##openai_key", "API key...",
+                               config.openai_key_buffer,
+                               IM_ARRAYSIZE(config.openai_key_buffer),
+                               ImGuiInputTextFlags_Password)) {
+    config.openai_api_key = config.openai_key_buffer;
+  }
+  ImGui::SameLine();
+  if (ImGui::SmallButton(ICON_MD_SYNC " Env##openai")) {
+    const char* env_key = std::getenv("OPENAI_API_KEY");
+    if (env_key) {
+      std::snprintf(config.openai_key_buffer, sizeof(config.openai_key_buffer),
+                    "%s", env_key);
+      config.openai_api_key = env_key;
+      if (toast_manager) {
+        toast_manager->Show("Loaded OPENAI_API_KEY from environment",
+                            ToastType::kInfo, 2.0f);
+      }
+    } else if (toast_manager) {
+      toast_manager->Show("OPENAI_API_KEY not set", ToastType::kWarning, 2.0f);
     }
   }
 
@@ -197,9 +223,7 @@ void AgentConfigurationPanel::RenderModelConfigControls(
     auto get_provider_color = [&theme](const std::string& provider) -> ImVec4 {
       if (provider == "ollama") return theme.provider_ollama;
       if (provider == "gemini") return theme.provider_gemini;
-#if defined(__EMSCRIPTEN__)
-      if (provider == "openai") return theme.provider_gemini;
-#endif
+      if (provider == "openai") return theme.provider_openai;
       return theme.provider_mock;
     };
 
@@ -400,6 +424,7 @@ void AgentConfigurationPanel::RenderModelConfigControls(
         ImVec4 badge_color = theme.provider_mock;
         if (provider_name == "ollama") badge_color = theme.provider_ollama;
         else if (provider_name == "gemini") badge_color = theme.provider_gemini;
+        else if (provider_name == "openai") badge_color = theme.provider_openai;
         ImGui::PushStyleColor(ImGuiCol_Button, badge_color);
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(3, 1));

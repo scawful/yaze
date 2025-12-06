@@ -201,6 +201,35 @@ class AgentBuilderPanel : public EditorPanel {
 };
 
 /**
+ * @brief EditorPanel for Knowledge Base panel
+ *
+ * Displays learned patterns, preferences, project contexts, and conversation
+ * memories from the LearnedKnowledgeService.
+ */
+class AgentKnowledgeBasePanel : public EditorPanel {
+ public:
+  using DrawCallback = std::function<void()>;
+
+  explicit AgentKnowledgeBasePanel(DrawCallback draw_callback)
+      : draw_callback_(std::move(draw_callback)) {}
+
+  std::string GetId() const override { return "agent.knowledge"; }
+  std::string GetDisplayName() const override { return "Knowledge Base"; }
+  std::string GetIcon() const override { return ICON_MD_PSYCHOLOGY; }
+  std::string GetEditorCategory() const override { return "Agent"; }
+  int GetPriority() const override { return 25; }  // Between Status and Prompt
+
+  void Draw(bool* p_open) override {
+    if (draw_callback_) {
+      draw_callback_();
+    }
+  }
+
+ private:
+  DrawCallback draw_callback_;
+};
+
+/**
  * @brief EditorPanel for Agent Chat panel
  */
 class AgentChatPanel : public EditorPanel {

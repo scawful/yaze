@@ -12,6 +12,12 @@
 #include "app/editor/agent/agent_editor.h"
 #include "app/editor/agent/agent_session.h"
 #include "app/editor/agent/agent_state.h"
+#include "app/editor/agent/panels/agent_knowledge_panel.h"
+#endif
+
+// LearnedKnowledgeService requires Z3ED_AI build
+#if defined(Z3ED_AI)
+#include "cli/service/agent/learned_knowledge_service.h"
 #endif
 
 namespace yaze {
@@ -67,6 +73,15 @@ class AgentUiController {
   // Direct access to active session's context (legacy compatibility)
   AgentUIContext* GetContext();
   const AgentUIContext* GetContext() const;
+
+  // Knowledge service access (requires Z3ED_AI build)
+#if defined(Z3ED_AI)
+  cli::agent::LearnedKnowledgeService* GetKnowledgeService();
+  bool IsKnowledgeServiceAvailable() const;
+  void InitializeKnowledge();
+  void SyncKnowledgeToContext();
+  AgentKnowledgePanel& GetKnowledgePanel() { return knowledge_panel_; }
+#endif
 #endif
 
  private:
@@ -80,6 +95,12 @@ class AgentUiController {
   AgentConfigState last_synced_config_;
   RightPanelManager* right_panel_manager_ = nullptr;
   ToastManager* toast_manager_ = nullptr;
+
+#if defined(Z3ED_AI)
+  cli::agent::LearnedKnowledgeService learned_knowledge_;
+  bool knowledge_initialized_ = false;
+  AgentKnowledgePanel knowledge_panel_;
+#endif
 #endif
 };
 
