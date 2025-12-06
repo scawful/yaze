@@ -31,7 +31,6 @@
 
 // Project headers
 #include "app/application.h"
-#include "app/editor/agent/agent_chat_widget.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/editor.h"
@@ -172,13 +171,7 @@ void EditorManager::ResetCurrentEditorLayout() {
 void EditorManager::ShowAIAgent() {
   // Apply saved agent settings from the current project when opening the Agent
   // UI to respect the user's preferred provider/model.
-  if (current_project_.project_opened()) {
-    if (auto* agent_editor = agent_ui_.GetAgentEditor()) {
-      if (auto* chat_widget = agent_editor->GetChatWidget()) {
-        chat_widget->LoadAgentSettingsFromProject(current_project_);
-      }
-    }
-  }
+  // TODO: Implement LoadAgentSettingsFromProject in AgentChat or AgentEditor
   agent_ui_.ShowAgent();
 }
 

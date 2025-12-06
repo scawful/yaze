@@ -11,7 +11,7 @@
 #include <string>
 
 #include "absl/synchronization/mutex.h"
-#include "app/editor/agent/agent_chat_widget.h"
+#include "app/editor/agent/agent_chat.h"
 #include "app/test/test_manager.h"
 
 namespace yaze {
@@ -22,9 +22,9 @@ class AutomationBridge : public test::HarnessListener {
   AutomationBridge() = default;
   ~AutomationBridge() override = default;
 
-  void SetChatWidget(AgentChatWidget* widget) {
+  void SetAgentChat(AgentChat* chat) {
     absl::MutexLock lock(&mutex_);
-    chat_widget_ = widget;
+    agent_chat_ = chat;
   }
 
   void OnHarnessTestUpdated(
@@ -34,7 +34,7 @@ class AutomationBridge : public test::HarnessListener {
 
  private:
   absl::Mutex mutex_;
-  AgentChatWidget* chat_widget_ ABSL_GUARDED_BY(mutex_) = nullptr;
+  AgentChat* agent_chat_ ABSL_GUARDED_BY(mutex_) = nullptr;
 };
 
 }  // namespace editor

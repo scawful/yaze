@@ -168,6 +168,8 @@ set(YAZE_AGENT_CORE_SOURCES
   cli/service/agent/simple_chat_session.cc
   cli/service/agent/todo_manager.cc
   cli/service/agent/tool_dispatcher.cc
+  cli/service/agent/tool_registration.cc
+  cli/service/agent/tool_registry.cc
   cli/service/agent/tools/build_tool.cc
   cli/service/agent/tools/code_gen_tool.cc
   cli/service/agent/tools/filesystem_tool.cc
@@ -199,9 +201,9 @@ set(YAZE_AGENT_CORE_SOURCES
   cli/service/api/http_server.cc
   cli/service/api/api_handlers.cc
   
-  # Advanced features
-  # CommandHandler-based implementations
-  # ROM commands
+  app/editor/agent/agent_chat.cc # New unified chat component
+  app/editor/agent/agent_editor.cc
+  app/editor/agent/panels/agent_editor_panels.cc
 )
 
 # AI runtime sources

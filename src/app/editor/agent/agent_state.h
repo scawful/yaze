@@ -11,6 +11,8 @@
 #include "absl/status/statusor.h"
 #include "absl/time/time.h"
 #include "imgui/imgui.h"
+#include "core/project.h"
+#include "core/asar_wrapper.h"
 
 namespace yaze {
 
@@ -344,6 +346,16 @@ class AgentUIContext {
   Rom* GetRom() const { return rom_; }
   bool HasRom() const { return rom_ != nullptr; }
 
+  // Project context
+  void SetProject(project::YazeProject* project) { project_ = project; }
+  project::YazeProject* GetProject() const { return project_; }
+  bool HasProject() const { return project_ != nullptr; }
+
+  // Asar wrapper context
+  void SetAsarWrapper(core::AsarWrapper* asar_wrapper) { asar_wrapper_ = asar_wrapper; }
+  core::AsarWrapper* GetAsarWrapper() const { return asar_wrapper_; }
+  bool HasAsarWrapper() const { return asar_wrapper_ != nullptr; }
+
   // Change notification for observers
   using ChangeCallback = std::function<void()>;
   void AddChangeListener(ChangeCallback callback) {
@@ -367,6 +379,8 @@ class AgentUIContext {
   ProposalState proposal_state_;
 
   Rom* rom_ = nullptr;
+  project::YazeProject* project_ = nullptr; // Project context
+  core::AsarWrapper* asar_wrapper_ = nullptr; // AsarWrapper context
   std::vector<ChangeCallback> change_listeners_;
 };
 
@@ -409,6 +423,7 @@ struct AutomationCallbacks {
   std::function<void()> replay_last_plan;
   std::function<void(const std::string&)> focus_proposal;
   std::function<void()> show_active_tests;
+  std::function<void()> poll_status;
 };
 
 /**

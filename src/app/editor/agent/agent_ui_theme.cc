@@ -9,85 +9,93 @@ AgentUITheme AgentUITheme::FromCurrentTheme() {
   AgentUITheme t;
   const auto& theme = yaze::gui::ThemeManager::Get().GetCurrentTheme();
 
-  // Message colors
-  t.user_message_color = ImVec4(0.4f, 0.7f, 1.0f, 1.0f);
-  t.agent_message_color = ImVec4(0.4f, 0.9f, 0.4f, 1.0f);
-  t.system_message_color = ImVec4(0.7f, 0.7f, 0.7f, 1.0f);
+  // Message colors - derived from theme.chat
+  t.user_message_color = gui::ConvertColorToImVec4(theme.chat.user_message);
+  t.agent_message_color = gui::ConvertColorToImVec4(theme.chat.agent_message);
+  t.system_message_color = gui::ConvertColorToImVec4(theme.chat.system_message);
 
-  t.text_secondary_color = theme.text_secondary;
+  t.text_secondary_color = gui::ConvertColorToImVec4(theme.text_secondary);
 
-  // Content colors
-  t.json_text_color = ImVec4(0.9f, 0.7f, 0.4f, 1.0f);
-  t.command_text_color = ImVec4(0.9f, 0.4f, 0.4f, 1.0f);
-  t.code_bg_color = ImVec4(0.1f, 0.1f, 0.12f, 1.0f);
+  // Content colors - derived from theme.chat
+  t.json_text_color = gui::ConvertColorToImVec4(theme.chat.json_text);
+  t.command_text_color = gui::ConvertColorToImVec4(theme.chat.command_text);
+  t.code_bg_color = gui::ConvertColorToImVec4(theme.chat.code_background);
 
-  // UI element colors
-  t.panel_bg_color = theme.window_bg;
+  // UI element colors - derived from base theme
+  t.panel_bg_color = gui::ConvertColorToImVec4(theme.window_bg);
   t.panel_bg_darker = ImVec4(theme.window_bg.red * 0.8f, theme.window_bg.green * 0.8f,
                              theme.window_bg.blue * 0.8f, 1.0f);
-  t.panel_border_color = theme.border;
-  t.accent_color = theme.primary;
+  t.panel_border_color = gui::ConvertColorToImVec4(theme.border);
+  t.accent_color = gui::ConvertColorToImVec4(theme.primary);
 
-  // Status colors
-  t.status_active = theme.success;
-  t.status_inactive = theme.text_disabled;
-  t.status_success = theme.success;
-  t.status_warning = theme.warning;
-  t.status_error = theme.error;
+  // Status colors - derived from base theme
+  t.status_active = gui::ConvertColorToImVec4(theme.success);
+  t.status_inactive = gui::ConvertColorToImVec4(theme.text_disabled);
+  t.status_success = gui::ConvertColorToImVec4(theme.success);
+  t.status_warning = gui::ConvertColorToImVec4(theme.warning);
+  t.status_error = gui::ConvertColorToImVec4(theme.error);
 
-  // Provider colors
-  t.provider_ollama = ImVec4(0.9f, 0.9f, 0.9f, 1.0f);
-  t.provider_gemini = ImVec4(0.3f, 0.6f, 0.9f, 1.0f);
-  t.provider_mock = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
+  // Provider colors - derived from theme.chat
+  t.provider_ollama = gui::ConvertColorToImVec4(theme.chat.provider_ollama);
+  t.provider_gemini = gui::ConvertColorToImVec4(theme.chat.provider_gemini);
+  t.provider_mock = gui::ConvertColorToImVec4(theme.chat.provider_mock);
 
   // Collaboration colors
-  t.collaboration_active = theme.success;
-  t.collaboration_inactive = theme.text_disabled;
+  t.collaboration_active = gui::ConvertColorToImVec4(theme.success);
+  t.collaboration_inactive = gui::ConvertColorToImVec4(theme.text_disabled);
 
-  // Proposal colors
-  t.proposal_panel_bg = ImVec4(0.15f, 0.15f, 0.18f, 1.0f);
-  t.proposal_accent = ImVec4(0.4f, 0.6f, 0.9f, 1.0f);
+  // Proposal colors - derived from theme.chat
+  t.proposal_panel_bg = gui::ConvertColorToImVec4(theme.chat.proposal_panel_bg);
+  t.proposal_accent = gui::ConvertColorToImVec4(theme.chat.proposal_accent);
 
-  // Button colors
-  t.button_copy = ImVec4(0.3f, 0.3f, 0.35f, 1.0f);
-  t.button_copy_hover = ImVec4(0.4f, 0.4f, 0.45f, 1.0f);
+  // Button colors - derived from theme.chat
+  t.button_copy = gui::ConvertColorToImVec4(theme.chat.button_copy);
+  t.button_copy_hover = gui::ConvertColorToImVec4(theme.chat.button_copy_hover);
 
-  // Dungeon editor colors
-  t.dungeon_selection_primary = ImVec4(1.0f, 0.9f, 0.2f, 0.6f);    // Yellow
-  t.dungeon_selection_secondary = ImVec4(0.2f, 0.9f, 1.0f, 0.6f);  // Cyan
-  t.dungeon_selection_pulsing = ImVec4(1.0f, 1.0f, 1.0f, 0.8f);    // White pulse
-  t.dungeon_selection_handle = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);     // White handle
-  t.dungeon_drag_preview = ImVec4(0.5f, 0.5f, 1.0f, 0.4f);         // Blueish
-  t.dungeon_drag_preview_outline = ImVec4(0.6f, 0.6f, 1.0f, 0.8f);
-  t.dungeon_object_wall = ImVec4(0.6f, 0.6f, 0.6f, 1.0f);
-  t.dungeon_object_floor = ImVec4(0.4f, 0.4f, 0.4f, 1.0f);
-  t.dungeon_object_chest = ImVec4(1.0f, 0.84f, 0.0f, 1.0f);
-  t.dungeon_object_door = ImVec4(0.55f, 0.27f, 0.07f, 1.0f);
-  t.dungeon_object_pot = ImVec4(0.8f, 0.4f, 0.2f, 1.0f);
-  t.dungeon_object_stairs = ImVec4(0.9f, 0.9f, 0.3f, 1.0f);
-  t.dungeon_object_decoration = ImVec4(0.6f, 0.8f, 0.6f, 1.0f);
-  t.dungeon_object_default = ImVec4(0.8f, 0.8f, 0.8f, 1.0f);
-  t.dungeon_grid_cell_highlight = ImVec4(0.3f, 0.8f, 0.3f, 0.3f);
-  t.dungeon_grid_cell_selected = ImVec4(0.2f, 0.7f, 0.2f, 0.5f);
-  t.dungeon_grid_cell_border = ImVec4(0.4f, 0.4f, 0.4f, 0.5f);
-  t.dungeon_grid_text = ImVec4(1.0f, 1.0f, 1.0f, 0.8f);
-  t.dungeon_room_border = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
-  t.dungeon_room_border_dark = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
-  t.dungeon_sprite_layer0 = ImVec4(0.3f, 0.8f, 0.3f, 1.0f);
-  t.dungeon_sprite_layer1 = ImVec4(0.3f, 0.3f, 0.8f, 1.0f);
-  t.dungeon_sprite_layer2 = ImVec4(0.3f, 0.3f, 0.8f, 1.0f);
-  t.dungeon_outline_layer0 = ImVec4(1.0f, 0.2f, 0.2f, 1.0f);
-  t.dungeon_outline_layer1 = ImVec4(0.2f, 1.0f, 0.2f, 1.0f);
-  t.dungeon_outline_layer2 = ImVec4(0.2f, 0.2f, 1.0f, 1.0f);
-  t.text_primary = theme.text_primary;
-  t.text_secondary_gray = theme.text_secondary;
-  t.text_info = theme.primary;
-  t.text_warning_yellow = theme.warning;
-  t.text_error_red = theme.error;
-  t.text_success_green = theme.success;
-  t.box_bg_dark = theme.window_bg;
-  t.box_border = theme.border;
-  t.box_text = theme.text_primary;
+  // Gradient colors - derived from theme.chat
+  t.gradient_top = gui::ConvertColorToImVec4(theme.chat.gradient_top);
+  t.gradient_bottom = gui::ConvertColorToImVec4(theme.chat.gradient_bottom);
+
+  // Dungeon editor colors - derived from theme.dungeon
+  t.dungeon_selection_primary = gui::ConvertColorToImVec4(theme.dungeon.selection_primary);
+  t.dungeon_selection_secondary = gui::ConvertColorToImVec4(theme.dungeon.selection_secondary);
+  t.dungeon_selection_pulsing = gui::ConvertColorToImVec4(theme.dungeon.selection_pulsing);
+  t.dungeon_selection_handle = gui::ConvertColorToImVec4(theme.dungeon.selection_handle);
+  t.dungeon_drag_preview = gui::ConvertColorToImVec4(theme.dungeon.drag_preview);
+  t.dungeon_drag_preview_outline = gui::ConvertColorToImVec4(theme.dungeon.drag_preview_outline);
+  t.dungeon_object_wall = gui::ConvertColorToImVec4(theme.dungeon.object_wall);
+  t.dungeon_object_floor = gui::ConvertColorToImVec4(theme.dungeon.object_floor);
+  t.dungeon_object_chest = gui::ConvertColorToImVec4(theme.dungeon.object_chest);
+  t.dungeon_object_door = gui::ConvertColorToImVec4(theme.dungeon.object_door);
+  t.dungeon_object_pot = gui::ConvertColorToImVec4(theme.dungeon.object_pot);
+  t.dungeon_object_stairs = gui::ConvertColorToImVec4(theme.dungeon.object_stairs);
+  t.dungeon_object_decoration = gui::ConvertColorToImVec4(theme.dungeon.object_decoration);
+  t.dungeon_object_default = gui::ConvertColorToImVec4(theme.dungeon.object_default);
+  t.dungeon_grid_cell_highlight = gui::ConvertColorToImVec4(theme.dungeon.grid_cell_highlight);
+  t.dungeon_grid_cell_selected = gui::ConvertColorToImVec4(theme.dungeon.grid_cell_selected);
+  t.dungeon_grid_cell_border = gui::ConvertColorToImVec4(theme.dungeon.grid_cell_border);
+  t.dungeon_grid_text = gui::ConvertColorToImVec4(theme.dungeon.grid_text);
+  t.dungeon_room_border = gui::ConvertColorToImVec4(theme.dungeon.room_border);
+  t.dungeon_room_border_dark = gui::ConvertColorToImVec4(theme.dungeon.room_border_dark);
+  t.dungeon_sprite_layer0 = gui::ConvertColorToImVec4(theme.dungeon.sprite_layer0);
+  t.dungeon_sprite_layer1 = gui::ConvertColorToImVec4(theme.dungeon.sprite_layer1);
+  t.dungeon_sprite_layer2 = gui::ConvertColorToImVec4(theme.dungeon.sprite_layer2);
+  t.dungeon_outline_layer0 = gui::ConvertColorToImVec4(theme.dungeon.outline_layer0);
+  t.dungeon_outline_layer1 = gui::ConvertColorToImVec4(theme.dungeon.outline_layer1);
+  t.dungeon_outline_layer2 = gui::ConvertColorToImVec4(theme.dungeon.outline_layer2);
+
+  // Text colors - derived from base theme
+  t.text_primary = gui::ConvertColorToImVec4(theme.text_primary);
+  t.text_secondary_gray = gui::ConvertColorToImVec4(theme.text_secondary);
+  t.text_info = gui::ConvertColorToImVec4(theme.primary);
+  t.text_warning_yellow = gui::ConvertColorToImVec4(theme.warning);
+  t.text_error_red = gui::ConvertColorToImVec4(theme.error);
+  t.text_success_green = gui::ConvertColorToImVec4(theme.success);
+
+  // Box colors - derived from base theme
+  t.box_bg_dark = gui::ConvertColorToImVec4(theme.window_bg);
+  t.box_border = gui::ConvertColorToImVec4(theme.border);
+  t.box_text = gui::ConvertColorToImVec4(theme.text_primary);
 
   return t;
 }

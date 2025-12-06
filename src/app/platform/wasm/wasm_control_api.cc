@@ -2083,10 +2083,10 @@ std::string WasmControlApi::AgentSendMessage(const std::string& message) {
     return result.dump();
   }
 
-  auto* chat_widget = agent_editor->GetChatWidget();
-  if (!chat_widget) {
+  auto* agent_chat = agent_editor->GetAgentChat();
+  if (!agent_chat) {
     result["success"] = false;
-    result["error"] = "Chat widget not available";
+    result["error"] = "Agent chat not available";
     return result.dump();
   }
 
@@ -2096,7 +2096,7 @@ std::string WasmControlApi::AgentSendMessage(const std::string& message) {
   result["status"] = "queued";
   result["message"] = message;
 
-  // Note: Actual message sending will be handled by the chat widget
+  // Note: Actual message sending will be handled by the agent chat
   // This API provides the interface for web-based agents to interact
 
   return result.dump();
@@ -2114,14 +2114,14 @@ std::string WasmControlApi::AgentGetChatHistory() {
     return result.dump();
   }
 
-  auto* chat_widget = agent_editor->GetChatWidget();
-  if (!chat_widget) {
+  auto* agent_chat = agent_editor->GetAgentChat();
+  if (!agent_chat) {
     return result.dump();
   }
 
-  // Get chat history from the widget
+  // Get chat history from the agent chat
   // For now, return empty array - full implementation requires
-  // AgentChatWidget to expose history via a public method
+  // AgentChat to expose history via a public method
 
   return result.dump();
 }

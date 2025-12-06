@@ -5,13 +5,12 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "core/project.h"
+#include "core/asar_wrapper.h"
 
 #if defined(YAZE_BUILD_AGENT_UI)
-#include "app/editor/agent/agent_chat_card.h"
-#include "app/editor/agent/agent_chat_history_popup.h"
 #include "app/editor/agent/agent_editor.h"
 #include "app/editor/agent/agent_session.h"
-#include "app/editor/agent/agent_sidebar.h"
 #include "app/editor/agent/agent_state.h"
 #endif
 
@@ -29,21 +28,14 @@ class PanelManager;
 // Forward declarations for when YAZE_BUILD_AGENT_UI is not defined
 #if !defined(YAZE_BUILD_AGENT_UI)
 class AgentEditor;
-class AgentSidebar;
 #endif
 
 /**
  * @class AgentUiController
  * @brief Central coordinator for all agent UI components
  *
- * This class serves as the single point of coordination for:
- * - AgentSessionManager (multi-agent session management)
- * - AgentEditor (main configuration dashboard)
- * - AgentSidebar (right-side chat panel with tabs)
- * - AgentChatCard (pop-out dockable chat windows)
- *
- * It owns the AgentSessionManager and handles state synchronization
- * between components during the Update() call.
+ * Manages the lifecycle of AgentEditor and shared Agent state.
+ * Simplified to remove legacy sidebar/card logic.
  */
 class AgentUiController {
  public:
@@ -53,16 +45,9 @@ class AgentUiController {
                   PanelManager* panel_manager);
 
   void SetRomContext(Rom* rom);
+  void SetProjectContext(project::YazeProject* project);
+  void SetAsarWrapperContext(core::AsarWrapper* asar_wrapper);
 
-  /**
-   * @brief Main update loop - handles all agent component updates and syncing
-   *
-   * Call hierarchy:
-   * 1. SyncStateFromEditor() - pull config changes from AgentEditor
-   * 2. agent_editor_.Update() - draw editor cards
-   * 3. DrawOpenPanels() - draw all pop-out agent chat cards
-   * 4. SyncStateToComponents() - push state to sidebar
-   */
   absl::Status Update();
 
   // UI visibility controls
@@ -71,14 +56,8 @@ class AgentUiController {
   bool IsAvailable() const;
   void DrawPopups();
 
-  // Multi-agent management
-  void CreateNewAgent();
-  void PopOutAgent(const std::string& agent_id);
-  void CloseAgentPanel(const std::string& agent_id);
-
-  // Component access (returns nullptr if agent UI disabled)
+  // Component access
   AgentEditor* GetAgentEditor();
-  AgentSidebar* GetAgentSidebar();
 
 #if defined(YAZE_BUILD_AGENT_UI)
   // Direct access to session manager for advanced use cases
@@ -92,28 +71,12 @@ class AgentUiController {
 
  private:
 #if defined(YAZE_BUILD_AGENT_UI)
-  /**
-   * @brief Sync config from AgentEditor to shared context
-   */
   void SyncStateFromEditor();
-
-  /**
-   * @brief Sync shared context to other components (sidebar, etc.)
-   */
   void SyncStateToComponents();
 
-  /**
-   * @brief Draw all open pop-out agent chat cards
-   */
-  void DrawOpenPanels();
-
   AgentSessionManager session_manager_;
-  std::vector<std::unique_ptr<AgentChatCard>> open_cards_;
-
-  AgentChatHistoryPopup chat_history_popup_;
   AgentEditor agent_editor_;
-  AgentSidebar agent_sidebar_;
-  AgentUIContext agent_ui_context_;  // Legacy fallback
+  AgentUIContext agent_ui_context_;
   AgentConfigState last_synced_config_;
   RightPanelManager* right_panel_manager_ = nullptr;
   ToastManager* toast_manager_ = nullptr;
@@ -128,16 +91,14 @@ inline void AgentUiController::Initialize(ToastManager*, ProposalDrawer*,
                                           RightPanelManager*,
                                           PanelManager*) {}
 inline void AgentUiController::SetRomContext(Rom*) {}
+inline void AgentUiController::SetProjectContext(project::YazeProject*) {}
+inline void AgentUiController::SetAsarWrapperContext(core::AsarWrapper*) {}
 inline absl::Status AgentUiController::Update() { return absl::OkStatus(); }
 inline void AgentUiController::ShowAgent() {}
 inline void AgentUiController::ShowChatHistory() {}
 inline bool AgentUiController::IsAvailable() const { return false; }
 inline void AgentUiController::DrawPopups() {}
-inline void AgentUiController::CreateNewAgent() {}
-inline void AgentUiController::PopOutAgent(const std::string&) {}
-inline void AgentUiController::CloseAgentPanel(const std::string&) {}
 inline AgentEditor* AgentUiController::GetAgentEditor() { return nullptr; }
-inline AgentSidebar* AgentUiController::GetAgentSidebar() { return nullptr; }
 #endif
 
 }  // namespace editor
