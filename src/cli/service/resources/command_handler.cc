@@ -6,7 +6,7 @@ namespace resources {
 
 CommandHandler::Descriptor CommandHandler::Describe() const {
   Descriptor descriptor;
-  descriptor.display_name = GetUsage();
+  descriptor.display_name = GetName(); // Use GetName() for display
   descriptor.summary = "Command summary not provided.";
   descriptor.todo_reference = "todo#unassigned";
   return descriptor;

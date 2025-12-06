@@ -7,6 +7,9 @@
 
 #include "absl/status/statusor.h"
 #include "cli/service/ai/common.h"
+#include "cli/service/agent/tool_registry.h"  // For ToolDefinition
+#include "core/asar_wrapper.h" // For AsarWrapper
+#include "core/project.h"      // For YazeProject
 
 namespace yaze {
 
@@ -15,111 +18,18 @@ class Rom;
 namespace cli {
 namespace agent {
 
-enum class ToolCallType {
-  kUnknown,
-  // Meta-tools for discoverability
-  kToolsList,
-  kToolsDescribe,
-  kToolsSearch,
-  // Resources
-  kResourceList,
-  kResourceSearch,
-  // Dungeon
-  kDungeonListSprites,
-  kDungeonDescribeRoom,
-  kDungeonExportRoom,
-  kDungeonListObjects,
-  kDungeonGetRoomTiles,
-  kDungeonSetRoomProperty,
-  // Overworld
-  kOverworldFindTile,
-  kOverworldDescribeMap,
-  kOverworldListWarps,
-  kOverworldListSprites,
-  kOverworldGetEntrance,
-  kOverworldTileStats,
-  // Messages & Dialogue
-  kMessageList,
-  kMessageRead,
-  kMessageSearch,
-  kDialogueList,
-  kDialogueRead,
-  kDialogueSearch,
-  // GUI Automation
-  kGuiPlaceTile,
-  kGuiClick,
-  kGuiDiscover,
-  kGuiScreenshot,
-  // Music
-  kMusicList,
-  kMusicInfo,
-  kMusicTracks,
-  // Sprites
-  kSpriteList,
-  kSpriteProperties,
-  kSpritePalette,
-  // Emulator & Debugger
-  kEmulatorStep,
-  kEmulatorRun,
-  kEmulatorPause,
-  kEmulatorReset,
-  kEmulatorGetState,
-  kEmulatorSetBreakpoint,
-  kEmulatorClearBreakpoint,
-  kEmulatorListBreakpoints,
-  kEmulatorReadMemory,
-  kEmulatorWriteMemory,
-  kEmulatorGetRegisters,
-  kEmulatorGetMetrics,
-  // Filesystem
-  kFilesystemList,
-  kFilesystemRead,
-  kFilesystemExists,
-  kFilesystemInfo,
-  // Build Tools
-  kBuildConfigure,
-  kBuildCompile,
-  kBuildTest,
-  kBuildStatus,
-  // Memory Inspector Tools
-  kMemoryAnalyze,
-  kMemorySearch,
-  kMemoryCompare,
-  kMemoryCheck,
-  kMemoryRegions,
-  // Test Helper Tools
-  kToolsHelperList,
-  kToolsHarnessState,
-  kToolsExtractValues,
-  kToolsExtractGolden,
-  kToolsPatchV3,
-  // Visual Analysis
-  kVisualFindSimilarTiles,
-  kVisualAnalyzeSpritesheet,
-  kVisualPaletteUsage,
-  kVisualTileHistogram,
-  // Code Generation
-  kCodeGenAsmHook,
-  kCodeGenFreespacePatch,
-  kCodeGenSpriteTemplate,
-  kCodeGenEventHandler,
-  // Project Management
-  kProjectStatus,
-  kProjectSnapshot,
-  kProjectRestore,
-  kProjectExport,
-  kProjectImport,
-  kProjectDiff,
-};
+// ToolCallType enum (moved to ToolRegistry for better cohesion)
+// Removed here.
 
 class ToolDispatcher {
  public:
+  // ToolPreferences (remains here)
   struct ToolPreferences {
     bool resources = true;
     bool dungeon = true;
     bool overworld = true;
     bool messages = true;
-    bool dialogue = true;
+    bool dialogue = true; // Added missing dialogue
     bool gui = true;
     bool music = true;
     bool sprite = true;
@@ -129,13 +39,13 @@ class ToolDispatcher {
     bool emulator = false;
 #endif
     bool filesystem = true;
-    bool build = true;
+    bool build = true; // Placeholder for future build tools
     bool memory_inspector = true;
     bool test_helpers = true;
     bool meta_tools = true;  // tools-list, tools-describe, tools-search
     bool visual_analysis = true;
     bool code_gen = true;
-    bool project = true;
+    bool project = true; // Project management tools
   };
 
   /**
@@ -148,6 +58,7 @@ class ToolDispatcher {
     std::string usage;
     std::vector<std::string> examples;
     bool requires_rom;
+    bool requires_project; // New: distinguish project vs ROM dependency
   };
 
   /**
@@ -196,17 +107,24 @@ class ToolDispatcher {
 
   // Execute a tool call and return the result as a string.
   absl::StatusOr<std::string> Dispatch(const ::yaze::cli::ToolCall& tool_call);
-  // Provide a ROM context for tool calls that require ROM access.
+  
+  // Provide ROM, Project, and Asar contexts for tool calls.
   void SetRomContext(Rom* rom) { rom_context_ = rom; }
+  void SetProjectContext(project::YazeProject* project) { project_context_ = project; }
+  void SetAsarWrapper(core::AsarWrapper* asar_wrapper) { asar_wrapper_ = asar_wrapper; }
+
   void SetToolPreferences(const ToolPreferences& prefs) {
     preferences_ = prefs;
   }
   const ToolPreferences& preferences() const { return preferences_; }
 
  private:
-  bool IsToolEnabled(ToolCallType type) const;
+  // Check if a tool is enabled based on preferences and its category
+  bool IsToolEnabled(const ToolDefinition& def) const;
 
   Rom* rom_context_ = nullptr;
+  project::YazeProject* project_context_ = nullptr; // New: Project context
+  core::AsarWrapper* asar_wrapper_ = nullptr;       // New: Asar wrapper context
   ToolPreferences preferences_;
 };
 

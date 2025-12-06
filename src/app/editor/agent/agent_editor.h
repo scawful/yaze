@@ -25,7 +25,7 @@ namespace editor {
 
 class ToastManager;
 class ProposalDrawer;
-class AgentChatWidget;
+class AgentChat;
 class AgentCollaborationCoordinator;
 
 #ifdef YAZE_WITH_GRPC
@@ -177,7 +177,7 @@ class AgentEditor : public Editor {
   absl::Status ImportProfile(const std::filesystem::path& path);
 
   // Chat widget access (for EditorManager)
-  AgentChatWidget* GetChatWidget() { return chat_widget_.get(); }
+  AgentChat* GetAgentChat() { return agent_chat_.get(); }
   bool IsChatActive() const;
   void SetChatActive(bool active);
   void ToggleChat();
@@ -249,7 +249,6 @@ class AgentEditor : public Editor {
   void DrawAgentBuilderPanel();
 
   // Setup callbacks
-  void SetupChatWidgetCallbacks();
   void SetupMultimodalCallbacks();
   void SetupAutomationCallbacks();
 
@@ -262,7 +261,7 @@ class AgentEditor : public Editor {
   absl::Status LoadBuilderBlueprint(const std::filesystem::path& path);
 
   // Internal state
-  std::unique_ptr<AgentChatWidget> chat_widget_;  // Owned by AgentEditor
+  std::unique_ptr<AgentChat> agent_chat_;  // Owned by AgentEditor
   std::unique_ptr<AgentCollaborationCoordinator> local_coordinator_;
 #ifdef YAZE_WITH_GRPC
   std::unique_ptr<NetworkCollaborationCoordinator> network_coordinator_;

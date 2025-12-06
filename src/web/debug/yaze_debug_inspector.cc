@@ -27,7 +27,7 @@
 #include "app/editor/editor.h"
 #include "app/editor/agent/agent_session.h"
 #include "app/editor/agent/agent_editor.h"
-#include "app/editor/agent/agent_chat_widget.h"
+#include "app/editor/agent/agent_chat.h"
 #include "cli/service/agent/conversational_agent_service.h"
 #include "cli/service/ai/common.h"
 #include "nlohmann/json.hpp"
@@ -115,19 +115,19 @@ std::string registerExternalAiDriver() {
     session = &all_sessions[0];
   }
   
-  // Access agent service through AgentEditor -> AgentChatWidget
+  // Access agent service through AgentEditor -> AgentChat
   // The new architecture doesn't store agent_service directly in AgentSession
   auto* agent_editor = manager->GetAgentEditor();
   if (!agent_editor) {
     return "{\"error\":\"AgentEditor not available\"}";
   }
-  
-  auto* chat_widget = agent_editor->GetChatWidget();
-  if (!chat_widget) {
-    return "{\"error\":\"AgentChatWidget not available\"}";
+
+  auto* agent_chat = agent_editor->GetAgentChat();
+  if (!agent_chat) {
+    return "{\"error\":\"AgentChat not available\"}";
   }
-  
-  auto* agent_service = chat_widget->GetAgentService();
+
+  auto* agent_service = agent_chat->GetAgentService();
   if (!agent_service) {
     return "{\"error\":\"AgentService not available\"}";
   }
@@ -158,14 +158,14 @@ void onExternalAiResponse(std::string response_json) {
   auto* session = sessions.GetSession("default");
   if (!session) return;
 
-  // Access agent service through AgentEditor -> AgentChatWidget
+  // Access agent service through AgentEditor -> AgentChat
   auto* agent_editor = manager->GetAgentEditor();
   if (!agent_editor) return;
-  
-  auto* chat_widget = agent_editor->GetChatWidget();
-  if (!chat_widget) return;
-  
-  auto* agent_service = chat_widget->GetAgentService();
+
+  auto* agent_chat = agent_editor->GetAgentChat();
+  if (!agent_chat) return;
+
+  auto* agent_service = agent_chat->GetAgentService();
   if (!agent_service) return;
 
   try {

@@ -11,7 +11,7 @@ namespace yaze {
 namespace editor {
 
 // Forward declaration
-class AgentChatWidget;
+class AgentChat;
 
 // =============================================================================
 // EditorPanel wrappers for AgentEditor panels
@@ -205,8 +205,8 @@ class AgentBuilderPanel : public EditorPanel {
  */
 class AgentChatPanel : public EditorPanel {
  public:
-  explicit AgentChatPanel(AgentChatWidget* chat_widget)
-      : chat_widget_(chat_widget) {}
+  explicit AgentChatPanel(AgentChat* chat)
+      : chat_(chat) {}
 
   std::string GetId() const override { return "agent.chat"; }
   std::string GetDisplayName() const override { return "Agent Chat"; }
@@ -217,7 +217,7 @@ class AgentChatPanel : public EditorPanel {
   void Draw(bool* p_open) override;
 
  private:
-  AgentChatWidget* chat_widget_;
+  AgentChat* chat_;
 };
 
 }  // namespace editor
