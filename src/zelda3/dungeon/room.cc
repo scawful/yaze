@@ -610,6 +610,13 @@ void Room::RenderRoomGraphics() {
 
   // STEP 3: Draw layout objects ON TOP of floor
   // Layout objects (walls, corners) are drawn after floor so they appear over it
+  // TODO(zelda3-hacking-expert): Mirror the SNES four-pass pipeline from
+  // assets/asm/usdasm/bank_01.asm (documented in
+  // docs/internal/agents/dungeon-object-rendering-spec.md): layout list,
+  // main list, BG2 overlay list, BG1 overlay list, with BothBG routines
+  // writing simultaneously. Today we only emit one layout pass + one object
+  // list, so BG overlays and dual-layer draws can end up wrong (layout objects
+  // rendering above later passes or BG merge treated as exclusive).
   if (was_layout_dirty || need_floor_draw) {
     LoadLayoutTilesToBuffer();
     layout_dirty_ = false;
@@ -680,6 +687,9 @@ void Room::RenderRoomGraphics() {
       // Use index 255 as the transparent color key (never used in 90-color palette)
       // Transparent pixels (pixel=0) are never written, so this is safe
       colors[255] = {0, 0, 0, 0};
+      // TODO(zelda3-hacking-expert): Rebuild this per chunk (16-color banks),
+      // not linear “90-color”; chunk n goes to [n*16..n*16+15] with 0 as
+      // transparent/colorkey. See docs/internal/agents/dungeon-palette-fix-plan.md.
 
       bmp.SetPalette(colors);
       if (bmp.surface()) {
@@ -860,6 +870,11 @@ void Room::LoadLayoutTilesToBuffer() {
   auto room_palette = dungeon_pal_group[palette_id];
   gfx::PaletteGroup palette_group;
   palette_group.AddPalette(room_palette);
+  // TODO(zelda3-hacking-expert): Align palette chunking with 16-color banks
+  // per docs/internal/agents/dungeon-palette-fix-plan.md. SDL palette should
+  // map each subpalette to indices [n*16..n*16+15] with index 0 transparent,
+  // using the same palette for bg1/bg2/object buffers. Add assertions/logging
+  // for palette_id/pointer mismatch against usdasm ($0DEC4B pointers).
 
   // Draw layout objects using proper draw routines via RoomLayout
   auto status = layout_.Draw(room_id_, current_gfx16_.data(), bg1_buffer_,
@@ -935,6 +950,12 @@ void Room::RenderObjectsToBackground() {
   // Pass the room-specific graphics buffer (current_gfx16_) so objects use
   // correct tiles
   ObjectDrawer drawer(rom_, room_id_, current_gfx16_.data());
+  // TODO(zelda3-hacking-expert): When we split the object stream into the
+  // four ASM layers, ensure DrawObjectList is invoked per stream with proper
+  // target buffers so BothBG routines (ceiling corners, merged stairs, etc.)
+  // land on both BG1/BG2 as in bank_01.asm. See
+  // docs/internal/agents/dungeon-object-rendering-spec.md for the expected
+  // order and dual-layer handling.
   
   // Clear object buffers before rendering
   // IMPORTANT: Fill with 255 (transparent color key) so objects overlay correctly
