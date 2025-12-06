@@ -205,27 +205,54 @@ void MenuOrchestrator::AddPanelsSubmenu() {
   }
 
   const size_t session_id = session_coordinator_.GetActiveSessionIndex();
+  
+  // Get active category
+  std::string active_category = panel_manager_->GetActiveCategory();
+  
   // Get all categories from registry
-  auto categories = panel_manager_->GetAllCategories(session_id);
-  if (categories.empty()) {
+  auto all_categories = panel_manager_->GetAllCategories(session_id);
+  if (all_categories.empty()) {
     return;
   }
 
-  // Using raw ImGui for conditional submenus
   if (ImGui::BeginMenu(absl::StrFormat("%s Panels", ICON_MD_DASHBOARD).c_str())) {
-    for (const auto& category : categories) {
-      if (ImGui::BeginMenu(category.c_str())) {
-        // Draw all cards in this category
-        auto cards = panel_manager_->GetPanelsInCategory(session_id, category);
-        for (const auto& card : cards) {
-          bool is_visible = panel_manager_->IsPanelVisible(session_id, card.card_id);
-          const char* shortcut = card.shortcut_hint.empty() ? nullptr : card.shortcut_hint.c_str();
-          if (ImGui::MenuItem(card.display_name.c_str(), shortcut, &is_visible)) {
-            panel_manager_->TogglePanel(session_id, card.card_id);
-          }
+    
+    // 1. Active Category (Prominent)
+    if (!active_category.empty()) {
+        auto cards = panel_manager_->GetPanelsInCategory(session_id, active_category);
+        if (!cards.empty()) {
+            ImGui::TextDisabled("%s", active_category.c_str());
+            for (const auto& card : cards) {
+                bool is_visible = panel_manager_->IsPanelVisible(session_id, card.card_id);
+                const char* shortcut = card.shortcut_hint.empty() ? nullptr : card.shortcut_hint.c_str();
+                if (ImGui::MenuItem(card.display_name.c_str(), shortcut, &is_visible)) {
+                    panel_manager_->TogglePanel(session_id, card.card_id);
+                }
+            }
+            ImGui::Separator();
+        }
+    }
+
+    // 2. Other Categories
+    if (ImGui::BeginMenu("All Categories")) {
+        for (const auto& category : all_categories) {
+            // Skip active category if it was already shown above? 
+            // Actually, keeping it here too is fine for completeness, or we can filter.
+            // Let's keep it simple and just list all.
+            
+            if (ImGui::BeginMenu(category.c_str())) {
+                auto cards = panel_manager_->GetPanelsInCategory(session_id, category);
+                for (const auto& card : cards) {
+                    bool is_visible = panel_manager_->IsPanelVisible(session_id, card.card_id);
+                    const char* shortcut = card.shortcut_hint.empty() ? nullptr : card.shortcut_hint.c_str();
+                    if (ImGui::MenuItem(card.display_name.c_str(), shortcut, &is_visible)) {
+                        panel_manager_->TogglePanel(session_id, card.card_id);
+                    }
+                }
+                ImGui::EndMenu();
+            }
         }
         ImGui::EndMenu();
-      }
     }
 
     ImGui::EndMenu();
