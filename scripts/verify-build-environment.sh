@@ -139,8 +139,8 @@ function test_agent_folder_structure() {
     local agent_files=(
         "src/app/editor/agent/agent_editor.h"
         "src/app/editor/agent/agent_editor.cc"
-        "src/app/editor/agent/agent_chat_widget.h"
-        "src/app/editor/agent/agent_chat_widget.cc"
+        "src/app/editor/agent/agent_chat.h"
+        "src/app/editor/agent/agent_chat.cc"
         "src/app/editor/agent/agent_chat_history_codec.h"
         "src/app/editor/agent/agent_chat_history_codec.cc"
         "src/app/editor/agent/agent_collaboration_coordinator.h"
@@ -148,9 +148,9 @@ function test_agent_folder_structure() {
         "src/app/editor/agent/network_collaboration_coordinator.h"
         "src/app/editor/agent/network_collaboration_coordinator.cc"
     )
-    
+
     local old_system_files=(
-        "src/app/editor/agent/agent_chat_widget.h"
+        "src/app/gui/app/agent_chat_widget.h"
         "src/app/editor/agent/agent_collaboration_coordinator.h"
     )
     
