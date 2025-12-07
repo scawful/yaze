@@ -174,6 +174,30 @@ class PixelEditorPanel : public EditorPanel {
    */
   ImVec2 PixelToScreen(int x, int y);
 
+  // ==========================================================================
+  // Overlay Drawing
+  // ==========================================================================
+
+  /**
+   * @brief Draw checkerboard pattern for transparent pixels
+   */
+  void DrawTransparencyGrid(float canvas_width, float canvas_height);
+
+  /**
+   * @brief Draw crosshair at cursor position
+   */
+  void DrawCursorCrosshair();
+
+  /**
+   * @brief Draw brush size preview circle
+   */
+  void DrawBrushPreview();
+
+  /**
+   * @brief Draw tooltip with pixel information
+   */
+  void DrawPixelInfoTooltip(const gfx::Bitmap& sheet);
+
   GraphicsEditorState* state_;
   Rom* rom_;
   gui::Canvas canvas_{"PixelEditorCanvas", ImVec2(128, 32),

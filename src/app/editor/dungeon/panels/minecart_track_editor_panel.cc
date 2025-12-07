@@ -3,7 +3,11 @@
 #include "absl/strings/str_split.h"
 #include "absl/strings/str_format.h"
 #include <fstream>
+#include <iomanip>
 #include <sstream>
+
+#include "app/gui/core/input.h"
+#include "util/log.h"
 #include <filesystem>
 #include <iostream>
 #include <regex>
@@ -48,40 +52,34 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
     ImGui::TableSetupColumn("Room ID (Hex)", ImGuiTableColumnFlags_WidthFixed, 80.0f);
     ImGui::TableSetupColumn("Start X (Hex)", ImGuiTableColumnFlags_WidthFixed, 80.0f);
     ImGui::TableSetupColumn("Start Y (Hex)", ImGuiTableColumnFlags_WidthFixed, 80.0f);
-    ImGui::TableSetupColumn("Description", ImGuiTableColumnFlags_WidthStretch);
     ImGui::TableHeadersRow();
 
     for (auto& track : tracks_) {
-      ImGui::PushID(track.id);
       ImGui::TableNextRow();
       
-      ImGui::TableSetColumnIndex(0);
-      ImGui::Text("%02X", track.id);
-
-      ImGui::TableSetColumnIndex(1);
-      int room = track.room_id;
-      if (ImGui::InputInt("##Room", &room, 0, 0, ImGuiInputTextFlags_CharsHexadecimal)) {
-        track.room_id = room & 0xFFFF;
-      }
-
-      ImGui::TableSetColumnIndex(2);
-      int sx = track.start_x;
-      if (ImGui::InputInt("##X", &sx, 0, 0, ImGuiInputTextFlags_CharsHexadecimal)) {
-        track.start_x = sx & 0xFFFF;
-      }
-
-      ImGui::TableSetColumnIndex(3);
-      int sy = track.start_y;
-      if (ImGui::InputInt("##Y", &sy, 0, 0, ImGuiInputTextFlags_CharsHexadecimal)) {
-        track.start_y = sy & 0xFFFF;
+      ImGui::TableNextColumn();
+      ImGui::Text("%d", track.id);
+      
+      ImGui::TableNextColumn();
+      // Cast to uint16_t* because InputHexWordCustom expects uint16_t* but track fields are int
+      uint16_t room_id = static_cast<uint16_t>(track.room_id);
+      if (yaze::gui::InputHexWordCustom(absl::StrFormat("##Room%d", track.id).c_str(), &room_id, 60.0f)) {
+          track.room_id = room_id;
       }
       
-      ImGui::TableSetColumnIndex(4);
-      // Optional description or notes
-      ImGui::TextDisabled("Track %d", track.id);
-
-      ImGui::PopID();
+      ImGui::TableNextColumn();
+      uint16_t start_x = static_cast<uint16_t>(track.start_x);
+      if (yaze::gui::InputHexWordCustom(absl::StrFormat("##StartX%d", track.id).c_str(), &start_x, 60.0f)) {
+          track.start_x = start_x;
+      }
+      
+      ImGui::TableNextColumn();
+      uint16_t start_y = static_cast<uint16_t>(track.start_y);
+      if (yaze::gui::InputHexWordCustom(absl::StrFormat("##StartY%d", track.id).c_str(), &start_y, 60.0f)) {
+          track.start_y = start_y;
+      }
     }
+    
     ImGui::EndTable();
   }
 }

@@ -73,8 +73,28 @@ const std::vector<EditorShortcutDef> kOverworldShortcuts = {
 };
 
 const std::vector<EditorShortcutDef> kGraphicsShortcuts = {
+    // Sheet navigation
     {"graphics.next_sheet", {ImGuiKey_PageDown}, "Next sheet"},
     {"graphics.prev_sheet", {ImGuiKey_PageUp}, "Previous sheet"},
+
+    // Tool selection shortcuts
+    {"graphics.tool.select", {ImGuiKey_V}, "Select tool"},
+    {"graphics.tool.pencil", {ImGuiKey_B}, "Pencil tool"},
+    {"graphics.tool.brush", {ImGuiKey_P}, "Brush tool"},
+    {"graphics.tool.eraser", {ImGuiKey_E}, "Eraser tool"},
+    {"graphics.tool.fill", {ImGuiKey_G}, "Fill tool"},
+    {"graphics.tool.line", {ImGuiKey_L}, "Line tool"},
+    {"graphics.tool.rectangle", {ImGuiKey_R}, "Rectangle tool"},
+    {"graphics.tool.eyedropper", {ImGuiKey_I}, "Eyedropper tool"},
+
+    // Zoom controls
+    {"graphics.zoom_in", {ImGuiKey_Equal}, "Zoom in"},
+    {"graphics.zoom_in_keypad", {ImGuiKey_KeypadAdd}, "Zoom in (keypad)"},
+    {"graphics.zoom_out", {ImGuiKey_Minus}, "Zoom out"},
+    {"graphics.zoom_out_keypad", {ImGuiKey_KeypadSubtract}, "Zoom out (keypad)"},
+
+    // View toggles
+    {"graphics.toggle_grid", {ImGuiMod_Ctrl, ImGuiKey_G}, "Toggle grid"},
 };
 
 }  // namespace

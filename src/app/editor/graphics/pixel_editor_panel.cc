@@ -188,9 +188,21 @@ void PixelEditorPanel::DrawViewControls() {
   ImGui::Text("|");
   ImGui::SameLine();
 
-  // Grid toggle
+  // View overlay toggles
   ImGui::Checkbox(ICON_MD_GRID_ON, &state_->show_grid);
-  HOVER_HINT("Toggle grid");
+  HOVER_HINT("Toggle grid (Ctrl+G)");
+  ImGui::SameLine();
+
+  ImGui::Checkbox(ICON_MD_ADD, &state_->show_cursor_crosshair);
+  HOVER_HINT("Toggle cursor crosshair");
+  ImGui::SameLine();
+
+  ImGui::Checkbox(ICON_MD_BRUSH, &state_->show_brush_preview);
+  HOVER_HINT("Toggle brush preview");
+  ImGui::SameLine();
+
+  ImGui::Checkbox(ICON_MD_TEXTURE, &state_->show_transparency_grid);
+  HOVER_HINT("Toggle transparency grid");
 }
 
 void PixelEditorPanel::DrawCanvas() {
@@ -232,6 +244,11 @@ void PixelEditorPanel::DrawCanvas() {
 
         // Draw canvas background
         canvas_.DrawBackground(ImVec2(canvas_width, canvas_height));
+
+        // Draw transparency checkerboard background if enabled
+        if (state_->show_transparency_grid) {
+          DrawTransparencyGrid(canvas_width, canvas_height);
+        }
 
         // Draw the sheet texture
         if (sheet.texture()) {
@@ -277,10 +294,27 @@ void PixelEditorPanel::DrawCanvas() {
           }
         }
 
+        // Draw cursor crosshair overlay if enabled and cursor in canvas
+        if (state_->show_cursor_crosshair && cursor_in_canvas_) {
+          DrawCursorCrosshair();
+        }
+
+        // Draw brush preview if using brush/eraser tool
+        if (state_->show_brush_preview && cursor_in_canvas_ &&
+            (state_->current_tool == PixelTool::kBrush ||
+             state_->current_tool == PixelTool::kEraser)) {
+          DrawBrushPreview();
+        }
+
         canvas_.DrawOverlay();
 
         // Handle mouse input
         HandleCanvasInput();
+
+        // Show pixel info tooltip if enabled
+        if (state_->show_pixel_info_tooltip && cursor_in_canvas_) {
+          DrawPixelInfoTooltip(sheet);
+        }
 
         ImGui::EndTabItem();
       }
@@ -297,6 +331,110 @@ void PixelEditorPanel::DrawCanvas() {
 
     ImGui::EndTabBar();
   }
+}
+
+void PixelEditorPanel::DrawTransparencyGrid(float canvas_width,
+                                            float canvas_height) {
+  const float cell_size = 8.0f;  // Checkerboard cell size
+  const ImU32 color1 = IM_COL32(180, 180, 180, 255);
+  const ImU32 color2 = IM_COL32(220, 220, 220, 255);
+
+  ImVec2 origin = canvas_.zero_point();
+  int cols = static_cast<int>(canvas_width / cell_size) + 1;
+  int rows = static_cast<int>(canvas_height / cell_size) + 1;
+
+  for (int row = 0; row < rows; row++) {
+    for (int col = 0; col < cols; col++) {
+      bool is_light = (row + col) % 2 == 0;
+      ImVec2 p_min(origin.x + col * cell_size, origin.y + row * cell_size);
+      ImVec2 p_max(std::min(p_min.x + cell_size, origin.x + canvas_width),
+                   std::min(p_min.y + cell_size, origin.y + canvas_height));
+      canvas_.draw_list()->AddRectFilled(p_min, p_max,
+                                         is_light ? color1 : color2);
+    }
+  }
+}
+
+void PixelEditorPanel::DrawCursorCrosshair() {
+  ImVec2 cursor_screen = PixelToScreen(cursor_x_, cursor_y_);
+  float pixel_size = state_->zoom_level;
+
+  // Vertical line through cursor pixel
+  ImVec2 v_start(cursor_screen.x + pixel_size / 2,
+                 canvas_.zero_point().y);
+  ImVec2 v_end(cursor_screen.x + pixel_size / 2,
+               canvas_.zero_point().y + canvas_.canvas_size().y);
+  canvas_.draw_list()->AddLine(v_start, v_end, IM_COL32(255, 100, 100, 100),
+                               1.0f);
+
+  // Horizontal line through cursor pixel
+  ImVec2 h_start(canvas_.zero_point().x,
+                 cursor_screen.y + pixel_size / 2);
+  ImVec2 h_end(canvas_.zero_point().x + canvas_.canvas_size().x,
+               cursor_screen.y + pixel_size / 2);
+  canvas_.draw_list()->AddLine(h_start, h_end, IM_COL32(255, 100, 100, 100),
+                               1.0f);
+
+  // Highlight current pixel with a bright outline
+  ImVec2 pixel_min = cursor_screen;
+  ImVec2 pixel_max(cursor_screen.x + pixel_size, cursor_screen.y + pixel_size);
+  canvas_.draw_list()->AddRect(pixel_min, pixel_max,
+                               IM_COL32(255, 255, 255, 200), 0.0f, 0, 2.0f);
+}
+
+void PixelEditorPanel::DrawBrushPreview() {
+  ImVec2 cursor_screen = PixelToScreen(cursor_x_, cursor_y_);
+  float pixel_size = state_->zoom_level;
+  int brush = state_->brush_size;
+  int half = brush / 2;
+
+  // Draw preview of brush area
+  ImVec2 brush_min(cursor_screen.x - half * pixel_size,
+                   cursor_screen.y - half * pixel_size);
+  ImVec2 brush_max(cursor_screen.x + (brush - half) * pixel_size,
+                   cursor_screen.y + (brush - half) * pixel_size);
+
+  // Fill with semi-transparent color preview
+  ImU32 preview_color = (state_->current_tool == PixelTool::kEraser)
+                            ? IM_COL32(255, 0, 0, 50)
+                            : IM_COL32(0, 255, 0, 50);
+  canvas_.draw_list()->AddRectFilled(brush_min, brush_max, preview_color);
+
+  // Outline
+  ImU32 outline_color = (state_->current_tool == PixelTool::kEraser)
+                            ? IM_COL32(255, 100, 100, 200)
+                            : IM_COL32(100, 255, 100, 200);
+  canvas_.draw_list()->AddRect(brush_min, brush_max, outline_color, 0.0f, 0,
+                               1.0f);
+}
+
+void PixelEditorPanel::DrawPixelInfoTooltip(const gfx::Bitmap& sheet) {
+  if (cursor_x_ < 0 || cursor_x_ >= sheet.width() || cursor_y_ < 0 ||
+      cursor_y_ >= sheet.height()) {
+    return;
+  }
+
+  uint8_t color_index = sheet.GetPixel(cursor_x_, cursor_y_);
+  auto palette = sheet.palette();
+
+  ImGui::BeginTooltip();
+  ImGui::Text("Pos: %d, %d", cursor_x_, cursor_y_);
+  ImGui::Text("Tile: %d, %d", cursor_x_ / 8, cursor_y_ / 8);
+  ImGui::Text("Index: %d", color_index);
+
+  if (color_index < palette.size()) {
+    ImGui::Text("SNES: $%04X", palette[color_index].snes());
+    ImVec4 color(palette[color_index].rgb().x / 255.0f,
+                 palette[color_index].rgb().y / 255.0f,
+                 palette[color_index].rgb().z / 255.0f, 1.0f);
+    ImGui::ColorButton("##ColorPreview", color, ImGuiColorEditFlags_NoTooltip,
+                       ImVec2(24, 24));
+    if (color_index == 0) {
+      ImGui::SameLine();
+      ImGui::TextDisabled("(Transparent)");
+    }
+  }
+  ImGui::EndTooltip();
 }
 
 void PixelEditorPanel::DrawColorPicker() {

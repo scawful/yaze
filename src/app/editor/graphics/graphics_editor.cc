@@ -12,6 +12,7 @@
 #include "imgui/misc/cpp/imgui_stdlib.h"
 
 // Project headers
+#include "app/editor/graphics/panels/graphics_editor_panels.h"
 #include "app/editor/system/panel_manager.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
@@ -42,18 +43,11 @@ using ImGui::Button;
 using ImGui::InputInt;
 using ImGui::InputText;
 using ImGui::SameLine;
-using ImGui::TableNextColumn;
-
-constexpr ImGuiTableFlags kGfxEditTableFlags =
-    ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable |
-    ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable |
-    ImGuiTableFlags_SizingFixedFit;
 
 void GraphicsEditor::Initialize() {
   if (!dependencies_.panel_manager)
     return;
   auto* panel_manager = dependencies_.panel_manager;
-  const size_t session_id = dependencies_.session_id;
 
   // Initialize panel components
   sheet_browser_panel_ = std::make_unique<SheetBrowserPanel>(&state_);
@@ -64,116 +58,71 @@ void GraphicsEditor::Initialize() {
   gfx_group_panel_ = std::make_unique<GfxGroupEditor>();
   gfx_group_panel_->SetRom(rom_);
   gfx_group_panel_->SetGameData(game_data_);
+  paletteset_panel_ = std::make_unique<PalettesetEditorPanel>();
+  paletteset_panel_->SetRom(rom_);
+  paletteset_panel_->SetGameData(game_data_);
 
   sheet_browser_panel_->Initialize();
   pixel_editor_panel_->Initialize();
   palette_controls_panel_->Initialize();
   link_sprite_panel_->Initialize();
-  // gfx_group_panel_ does not have Initialize()
 
-  // Register new panel-based cards
-  panel_manager->RegisterPanel({.card_id = "graphics.sheet_browser_v2",
-                               .display_name = "Sheet Browser",
-                               .window_title = ICON_MD_VIEW_LIST " Sheet Browser",
-                               .icon = ICON_MD_VIEW_LIST,
-                               .category = "Graphics",
-                               .shortcut_hint = "Ctrl+Shift+1",
-                               .priority = 10,
-                               .enabled_condition = [this]() { return rom()->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first"});
-  panel_manager->RegisterPanel({.card_id = "graphics.pixel_editor",
-                               .display_name = "Pixel Editor",
-                               .window_title = ICON_MD_DRAW " Pixel Editor",
-                               .icon = ICON_MD_DRAW,
-                               .category = "Graphics",
-                               .shortcut_hint = "Ctrl+Shift+2",
-                               .shortcut_scope = PanelDescriptor::ShortcutScope::kGlobal,
-                               .visibility_flag = nullptr,
-                               .on_show = nullptr,
-                               .on_hide = nullptr,
-                               .priority = 20,
-                               .enabled_condition = [this]() { return rom()->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first"});
-  panel_manager->RegisterPanel({.card_id = "graphics.palette_controls",
-                               .display_name = "Palette Controls",
-                               .window_title = ICON_MD_PALETTE " Palette Controls",
-                               .icon = ICON_MD_PALETTE,
-                               .category = "Graphics",
-                               .shortcut_hint = "Ctrl+Shift+3",
-                               .priority = 30,
-                               .enabled_condition = [this]() { return rom()->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first"});
-  panel_manager->RegisterPanel({.card_id = "graphics.link_sprite_editor",
-                               .display_name = "Link Sprite Editor",
-                               .window_title = ICON_MD_PERSON " Link Sprite Editor",
-                               .icon = ICON_MD_PERSON,
-                               .category = "Graphics",
-                               .shortcut_hint = "Ctrl+Shift+L",
-                               .priority = 35,
-                               .enabled_condition = [this]() { return rom()->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first"});
-  panel_manager->RegisterPanel({.card_id = "graphics.polyhedral_editor",
-                               .display_name = "3D Objects",
-                               .window_title = ICON_MD_VIEW_IN_AR " 3D Objects",
-                               .icon = ICON_MD_VIEW_IN_AR,
-                               .category = "Graphics",
-                               .shortcut_hint = "Ctrl+Shift+0",
-                               .priority = 38,
-                               .enabled_condition = [this]() { return rom()->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first"});
-  panel_manager->RegisterPanel({.card_id = "graphics.gfx_group_editor",
-                               .display_name = "Graphics Groups",
-                               .window_title = ICON_MD_VIEW_MODULE " Graphics Groups",
-                               .icon = ICON_MD_VIEW_MODULE,
-                               .category = "Graphics",
-                               .shortcut_hint = "Ctrl+Shift+G",
-                               .priority = 39,
-                               .enabled_condition = [this]() { return rom()->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first"});
+  // Register panels using EditorPanel system with callbacks
+  panel_manager->RegisterEditorPanel(
+      std::make_unique<GraphicsSheetBrowserPanel>([this]() {
+        if (sheet_browser_panel_) {
+          status_ = sheet_browser_panel_->Update();
+        }
+      }));
 
-  // Legacy cards (kept for backward compatibility)
-  panel_manager->RegisterPanel({.card_id = "graphics.sheet_editor",
-                               .display_name = "Sheet Editor (Legacy)",
-                               .window_title = " Sheet Editor",
-                               .icon = ICON_MD_EDIT,
-                               .category = "Graphics",
-                               .shortcut_hint = "",
-                               .priority = 100,
-                               .enabled_condition = [this]() { return rom()->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first"});
-  panel_manager->RegisterPanel({.card_id = "graphics.sheet_browser",
-                               .display_name = "Asset Browser (Legacy)",
-                               .window_title = " GFX Sheets",
-                               .icon = ICON_MD_VIEW_LIST,
-                               .category = "Graphics",
-                               .shortcut_hint = "",
-                               .priority = 101,
-                               .enabled_condition = [this]() { return rom()->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first"});
-  panel_manager->RegisterPanel({.card_id = "graphics.player_animations",
-                               .display_name = "Player Animations",
-                               .window_title = " Animations",
-                               .icon = ICON_MD_PERSON,
-                               .category = "Graphics",
-                               .shortcut_hint = "Ctrl+Shift+4",
-                               .priority = 40,
-                               .enabled_condition = [this]() { return rom()->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first"});
-  panel_manager->RegisterPanel({.card_id = "graphics.prototype_viewer",
-                               .display_name = "Prototype Viewer",
-                               .window_title = " Prototype",
-                               .icon = ICON_MD_CONSTRUCTION,
-                               .category = "Graphics",
-                               .shortcut_hint = "Ctrl+Shift+5",
-                               .priority = 50,
-                               .enabled_condition = [this]() { return rom()->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first"});
+  panel_manager->RegisterEditorPanel(
+      std::make_unique<GraphicsPixelEditorPanel>([this]() {
+        if (pixel_editor_panel_) {
+          status_ = pixel_editor_panel_->Update();
+        }
+      }));
 
-  // Show new pixel editor by default when Graphics Editor is activated
-  panel_manager->ShowPanel(session_id, "graphics.pixel_editor");
-  panel_manager->ShowPanel(session_id, "graphics.sheet_browser_v2");
-  panel_manager->ShowPanel(session_id, "graphics.polyhedral_editor");
-  panel_manager->ShowPanel(session_id, "graphics.gfx_group_editor");
+  panel_manager->RegisterEditorPanel(
+      std::make_unique<GraphicsPaletteControlsPanel>([this]() {
+        if (palette_controls_panel_) {
+          status_ = palette_controls_panel_->Update();
+        }
+      }));
+
+  panel_manager->RegisterEditorPanel(
+      std::make_unique<GraphicsLinkSpritePanel>([this]() {
+        if (link_sprite_panel_) {
+          status_ = link_sprite_panel_->Update();
+        }
+      }));
+
+  panel_manager->RegisterEditorPanel(
+      std::make_unique<GraphicsPolyhedralPanel>([this]() {
+        if (polyhedral_panel_) {
+          status_ = polyhedral_panel_->Update();
+        }
+      }));
+
+  panel_manager->RegisterEditorPanel(
+      std::make_unique<GraphicsGfxGroupPanel>([this]() {
+        if (gfx_group_panel_) {
+          status_ = gfx_group_panel_->Update();
+        }
+      }));
+
+  // Paletteset editor panel (separated from GfxGroupEditor for better UX)
+  panel_manager->RegisterEditorPanel(
+      std::make_unique<GraphicsPalettesetPanel>([this]() {
+        if (paletteset_panel_) {
+          status_ = paletteset_panel_->Update();
+        }
+      }));
+
+  // Prototype viewer for Super Donkey and dev format imports
+  panel_manager->RegisterEditorPanel(
+      std::make_unique<GraphicsPrototypeViewerPanel>([this]() {
+        DrawPrototypeViewer();
+      }));
 }
 
 absl::Status GraphicsEditor::Load() {
@@ -322,620 +271,73 @@ absl::Status GraphicsEditor::Save() {
 }
 
 absl::Status GraphicsEditor::Update() {
-  if (!dependencies_.panel_manager)
-    return absl::OkStatus();
-  auto* panel_manager = dependencies_.panel_manager;
-  const size_t session_id = dependencies_.session_id;
+  // Panels are now drawn via PanelManager::DrawAllVisiblePanels()
+  // This Update() only handles editor-level state and keyboard shortcuts
 
-  // --- New Panel-Based Panels (member variables) ---
-  gfx_card_.SetPosition(gui::PanelWindow::Position::Left);
-
-  sheet_browser_v2_card_.SetDefaultSize(350, 600);
-  pixel_editor_card_.SetDefaultSize(800, 600);
-  palette_controls_card_.SetDefaultSize(300, 500);
-  polyhedral_card_.SetDefaultSize(600, 520);
-
-  // Sheet Browser Panel (new)
-  bool* sheet_browser_v2_visible =
-      panel_manager->GetVisibilityFlag(session_id, "graphics.sheet_browser_v2");
-  if (sheet_browser_v2_visible && *sheet_browser_v2_visible) {
-    if (sheet_browser_v2_card_.Begin(sheet_browser_v2_visible)) {
-      if (sheet_browser_panel_) {
-        status_ = sheet_browser_panel_->Update();
-      }
-    }
-    sheet_browser_v2_card_.End();
-  }
-
-  // Pixel Editor Panel (new)
-  bool* pixel_editor_visible =
-      panel_manager->GetVisibilityFlag(session_id, "graphics.pixel_editor");
-  if (pixel_editor_visible && *pixel_editor_visible) {
-    if (pixel_editor_card_.Begin(pixel_editor_visible)) {
-      if (pixel_editor_panel_) {
-        status_ = pixel_editor_panel_->Update();
-      }
-    }
-    pixel_editor_card_.End();
-  }
-
-  // Palette Controls Panel (new)
-  bool* palette_controls_visible =
-      panel_manager->GetVisibilityFlag(session_id, "graphics.palette_controls");
-  if (palette_controls_visible && *palette_controls_visible) {
-    if (palette_controls_card_.Begin(palette_controls_visible)) {
-      if (palette_controls_panel_) {
-        status_ = palette_controls_panel_->Update();
-      }
-    }
-    palette_controls_card_.End();
-  }
-
-  // Link Sprite Editor Panel
-  link_sprite_card_.SetDefaultSize(600, 500);
-
-  bool* link_sprite_visible =
-      panel_manager->GetVisibilityFlag(session_id, "graphics.link_sprite_editor");
-  if (link_sprite_visible && *link_sprite_visible) {
-    if (link_sprite_card_.Begin(link_sprite_visible)) {
-      if (link_sprite_panel_) {
-        status_ = link_sprite_panel_->Update();
-      }
-    }
-    link_sprite_card_.End();
-  }
-
-  // Polyhedral (3D object) editor
-  bool* polyhedral_visible =
-      panel_manager->GetVisibilityFlag(session_id, "graphics.polyhedral_editor");
-  if (polyhedral_visible && *polyhedral_visible) {
-    if (polyhedral_card_.Begin(polyhedral_visible)) {
-      if (polyhedral_panel_) {
-        status_ = polyhedral_panel_->Update();
-      }
-    }
-    polyhedral_card_.End();
-  }
-
-  // Graphics Group Editor
-  bool* gfx_group_visible =
-      panel_manager->GetVisibilityFlag(session_id, "graphics.gfx_group_editor");
-  if (gfx_group_visible && *gfx_group_visible) {
-    // Reuse polyhedral card settings for now or create new one if needed
-    // Using a temporary window for now since we didn't add a card member for it yet
-    // actually we should add one, but for now let's use a simple Begin/End
-    // Wait, we can't use a simple Begin/End if we want it to be a panel.
-    // We need a PanelWindow. Let's assume we added gfx_group_card_ in header.
-    // Ah, I missed adding gfx_group_card_ in the header edit.
-    // I will use ImGui::Begin directly for now as a fallback or better yet,
-    // I will use a local static for now or just standard ImGui window
-    // But PanelManager expects us to use the visibility flag.
-    
-    PanelDescriptor desc;
-    desc.card_id = "graphics.gfx_group_editor";
-    desc.display_name = "Graphics Groups";
-    desc.icon = ICON_MD_GRID_ON;
-    desc.category = "Graphics";
-    desc.shortcut_hint = "Ctrl+Shift+G";
-    desc.visibility_flag = gfx_group_visible; // Use the existing visibility flag
-    desc.on_show = [this]() {
-      if (gfx_group_panel_) {
-        status_ = gfx_group_panel_->Update();
-      }
-    };
-    panel_manager->RegisterPanel(desc);
-  }
-
-  // --- Legacy Panels (member variables) ---
-  sheet_editor_card_.SetDefaultSize(900, 700);
-  sheet_browser_card_.SetDefaultSize(400, 600);
-  player_anims_card_.SetDefaultSize(500, 600);
-  prototype_card_.SetDefaultSize(600, 500);
-
-  // Sheet Editor Panel (Legacy)
-  bool* sheet_editor_visible =
-      panel_manager->GetVisibilityFlag(session_id, "graphics.sheet_editor");
-  if (sheet_editor_visible && *sheet_editor_visible) {
-    if (sheet_editor_card_.Begin(sheet_editor_visible)) {
-      status_ = UpdateGfxEdit();
-    }
-    sheet_editor_card_.End();
-  }
-
-  // Sheet Browser Panel (Legacy)
-  bool* sheet_browser_visible =
-      panel_manager->GetVisibilityFlag(session_id, "graphics.sheet_browser");
-  if (sheet_browser_visible && *sheet_browser_visible) {
-    if (sheet_browser_card_.Begin(sheet_browser_visible)) {
-      if (asset_browser_.Initialized == false) {
-        asset_browser_.Initialize(gfx::Arena::Get().gfx_sheets());
-      }
-      asset_browser_.Draw(gfx::Arena::Get().gfx_sheets());
-    }
-    sheet_browser_card_.End();
-  }
-
-  // Player Animations Panel
-  bool* player_anims_visible =
-      panel_manager->GetVisibilityFlag(session_id, "graphics.player_animations");
-  if (player_anims_visible && *player_anims_visible) {
-    if (player_anims_card_.Begin(player_anims_visible)) {
-      status_ = UpdateLinkGfxView();
-    }
-    player_anims_card_.End();
-  }
-
-  // Prototype Viewer Panel
-  bool* prototype_visible =
-      panel_manager->GetVisibilityFlag(session_id, "graphics.prototype_viewer");
-  if (prototype_visible && *prototype_visible) {
-    if (prototype_card_.Begin(prototype_visible)) {
-      status_ = UpdateScadView();
-    }
-    prototype_card_.End();
-  }
+  // Handle editor-level keyboard shortcuts
+  HandleEditorShortcuts();
 
   CLEAR_AND_RETURN_STATUS(status_)
   return absl::OkStatus();
 }
 
-absl::Status GraphicsEditor::UpdateGfxEdit() {
-  if (ImGui::BeginTable("##GfxEditTable", 3, kGfxEditTableFlags,
-                        ImVec2(0, 0))) {
-    for (const auto& name :
-         {"Tilesheets", "Current Graphics", "Palette Controls"})
-      ImGui::TableSetupColumn(name);
-
-    ImGui::TableHeadersRow();
-    ImGui::TableNextColumn();
-    status_ = UpdateGfxSheetList();
-
-    ImGui::TableNextColumn();
-    if (rom()->is_loaded()) {
-      DrawGfxEditToolset();
-      status_ = UpdateGfxTabView();
-    }
-
-    ImGui::TableNextColumn();
-    if (rom()->is_loaded()) {
-      status_ = UpdatePaletteColumn();
-    }
+void GraphicsEditor::HandleEditorShortcuts() {
+  // Skip if ImGui wants keyboard input
+  if (ImGui::GetIO().WantTextInput) {
+    return;
   }
-  ImGui::EndTable();
 
-  return absl::OkStatus();
-}
+  // Tool shortcuts (only when graphics editor is active)
+  if (ImGui::IsKeyPressed(ImGuiKey_V, false)) {
+    state_.SetTool(PixelTool::kSelect);
+  }
+  if (ImGui::IsKeyPressed(ImGuiKey_B, false)) {
+    state_.SetTool(PixelTool::kPencil);
+  }
+  if (ImGui::IsKeyPressed(ImGuiKey_E, false)) {
+    state_.SetTool(PixelTool::kEraser);
+  }
+  if (ImGui::IsKeyPressed(ImGuiKey_G, false) && !ImGui::GetIO().KeyCtrl) {
+    state_.SetTool(PixelTool::kFill);
+  }
+  if (ImGui::IsKeyPressed(ImGuiKey_I, false)) {
+    state_.SetTool(PixelTool::kEyedropper);
+  }
+  if (ImGui::IsKeyPressed(ImGuiKey_L, false) && !ImGui::GetIO().KeyCtrl) {
+    state_.SetTool(PixelTool::kLine);
+  }
+  if (ImGui::IsKeyPressed(ImGuiKey_R, false) && !ImGui::GetIO().KeyCtrl) {
+    state_.SetTool(PixelTool::kRectangle);
+  }
 
-/**
- * @brief Draw the graphics editing toolset with enhanced ROM hacking features
- *
- * Enhanced Features:
- * - Multi-tool selection for different editing modes
- * - Real-time zoom controls for precise pixel editing
- * - Sheet copy/paste operations for ROM graphics management
- * - Color picker integration with SNES palette system
- * - Tile size controls for 8x8 and 16x16 SNES tiles
- *
- * Performance Notes:
- * - Toolset updates are batched to minimize ImGui overhead
- * - Color buttons use cached palette data for fast rendering
- * - Zoom controls update canvas scaling without full redraw
- */
-void GraphicsEditor::DrawGfxEditToolset() {
-  if (ImGui::BeginTable("##GfxEditToolset", 9, ImGuiTableFlags_SizingFixedFit,
-                        ImVec2(0, 0))) {
-    for (const auto& name :
-         {"Select", "Pencil", "Fill", "Copy Sheet", "Paste Sheet", "Zoom Out",
-          "Zoom In", "Current Color", "Tile Size"})
-      ImGui::TableSetupColumn(name);
+  // Zoom shortcuts
+  if (ImGui::IsKeyPressed(ImGuiKey_Equal, false) ||
+      ImGui::IsKeyPressed(ImGuiKey_KeypadAdd, false)) {
+    state_.ZoomIn();
+  }
+  if (ImGui::IsKeyPressed(ImGuiKey_Minus, false) ||
+      ImGui::IsKeyPressed(ImGuiKey_KeypadSubtract, false)) {
+    state_.ZoomOut();
+  }
 
-    TableNextColumn();
-    if (Button(ICON_MD_SELECT_ALL)) {
-      gfx_edit_mode_ = GfxEditMode::kSelect;
-    }
+  // Grid toggle (Ctrl+G)
+  if (ImGui::GetIO().KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_G, false)) {
+    state_.show_grid = !state_.show_grid;
+  }
 
-    TableNextColumn();
-    if (Button(ICON_MD_DRAW)) {
-      gfx_edit_mode_ = GfxEditMode::kPencil;
-    }
-    HOVER_HINT("Draw with current color");
-
-    TableNextColumn();
-    if (Button(ICON_MD_FORMAT_COLOR_FILL)) {
-      gfx_edit_mode_ = GfxEditMode::kFill;
-    }
-    HOVER_HINT("Fill with current color");
-
-    TableNextColumn();
-    if (Button(ICON_MD_CONTENT_COPY)) {
-      status_ = absl::UnimplementedError("PNG export functionality removed");
-    }
-    HOVER_HINT("Copy to Clipboard");
-
-    TableNextColumn();
-    if (Button(ICON_MD_CONTENT_PASTE)) {
-      status_ = absl::UnimplementedError("PNG import functionality removed");
-    }
-    HOVER_HINT("Paste from Clipboard");
-
-    TableNextColumn();
-    if (Button(ICON_MD_ZOOM_OUT)) {
-      if (current_scale_ >= 0.0f) {
-        current_scale_ -= 1.0f;
-      }
-    }
-
-    TableNextColumn();
-    if (Button(ICON_MD_ZOOM_IN)) {
-      if (current_scale_ <= 16.0f) {
-        current_scale_ += 1.0f;
-      }
-    }
-
-    TableNextColumn();
-    // Enhanced palette color picker with SNES-specific features
-    auto bitmap = gfx::Arena::Get().gfx_sheets()[current_sheet_];
-    auto palette = bitmap.palette();
-
-    // Display palette colors in a grid layout for better ROM hacking workflow
-    for (int i = 0; i < palette.size(); i++) {
-      if (i > 0 && i % 8 == 0) {
-        ImGui::NewLine();  // New row every 8 colors (SNES palette standard)
-      }
-      ImGui::SameLine();
-
-      // Convert SNES color to ImGui format with proper scaling
-      auto color =
-          ImVec4(palette[i].rgb().x / 255.0f, palette[i].rgb().y / 255.0f,
-                 palette[i].rgb().z / 255.0f, 1.0f);
-
-      // Enhanced color button with tooltip showing SNES color value
-      if (ImGui::ColorButton(absl::StrFormat("Palette Color %d", i).c_str(),
-                             color, ImGuiColorEditFlags_NoTooltip)) {
-        current_color_ = color;
-      }
-
-      // Add tooltip with SNES color information
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("SNES Color: $%04X\nRGB: (%d, %d, %d)",
-                          palette[i].snes(),
-                          static_cast<int>(palette[i].rgb().x),
-                          static_cast<int>(palette[i].rgb().y),
-                          static_cast<int>(palette[i].rgb().z));
-      }
-    }
-
-    TableNextColumn();
-    gui::InputHexByte("Tile Size", &tile_size_);
-
-    ImGui::EndTable();
+  // Sheet navigation
+  if (ImGui::IsKeyPressed(ImGuiKey_PageDown, false)) {
+    NextSheet();
+  }
+  if (ImGui::IsKeyPressed(ImGuiKey_PageUp, false)) {
+    PrevSheet();
   }
 }
 
-absl::Status GraphicsEditor::UpdateGfxSheetList() {
-  ImGui::BeginChild(
-      "##GfxEditChild", ImVec2(0, 0), true,
-      ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysVerticalScrollbar);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-  // TODO: Update the interaction for multi select on sheets
-  static ImGuiSelectionBasicStorage selection;
-  ImGuiMultiSelectFlags flags =
-      ImGuiMultiSelectFlags_ClearOnEscape | ImGuiMultiSelectFlags_BoxSelect1d;
-  ImGuiMultiSelectIO* ms_io =
-      ImGui::BeginMultiSelect(flags, selection.Size, zelda3::kNumGfxSheets);
-  selection.ApplyRequests(ms_io);
-  ImGuiListClipper clipper;
-  clipper.Begin(zelda3::kNumGfxSheets);
-  if (ms_io->RangeSrcItem != -1)
-    clipper.IncludeItemByIndex(
-        (int)ms_io->RangeSrcItem);  // Ensure RangeSrc item is not clipped.
-
-  int sheet_idx = 0;
-  for (auto& value : gfx::Arena::Get().gfx_sheets()) {
-    ImGui::BeginChild(absl::StrFormat("##GfxSheet%02X", sheet_idx).c_str(),
-                      ImVec2(0x100 + 1, 0x40 + 1), true,
-                      ImGuiWindowFlags_NoDecoration);
-    ImGui::PopStyleVar();
-
-    graphics_bin_canvas_.DrawBackground(ImVec2(0x100 + 1, 0x40 + 1));
-    graphics_bin_canvas_.DrawContextMenu();
-    if (value.is_active()) {
-      // Ensure texture exists for active sheets
-      if (!value.texture() && value.surface()) {
-        gfx::Arena::Get().QueueTextureCommand(
-            gfx::Arena::TextureCommandType::CREATE, &value);
-      }
-
-      auto texture = value.texture();
-      if (texture) {
-        graphics_bin_canvas_.draw_list()->AddImage(
-            (ImTextureID)(intptr_t)texture,
-            ImVec2(graphics_bin_canvas_.zero_point().x + 2,
-                   graphics_bin_canvas_.zero_point().y + 2),
-            ImVec2(graphics_bin_canvas_.zero_point().x +
-                       value.width() * sheet_scale_,
-                   graphics_bin_canvas_.zero_point().y +
-                       value.height() * sheet_scale_));
-
-        if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-          current_sheet_ = sheet_idx;
-          open_sheets_.insert(sheet_idx);
-        }
-
-        // Add a slightly transparent rectangle behind the text
-        ImVec2 text_pos(graphics_bin_canvas_.zero_point().x + 2,
-                        graphics_bin_canvas_.zero_point().y + 2);
-        ImVec2 text_size =
-            ImGui::CalcTextSize(absl::StrFormat("%02X", sheet_idx).c_str());
-        ImVec2 rect_min(text_pos.x, text_pos.y);
-        ImVec2 rect_max(text_pos.x + text_size.x, text_pos.y + text_size.y);
-
-        graphics_bin_canvas_.draw_list()->AddRectFilled(
-            rect_min, rect_max, IM_COL32(0, 125, 0, 128));
-
-        graphics_bin_canvas_.draw_list()->AddText(
-            text_pos, IM_COL32(125, 255, 125, 255),
-            absl::StrFormat("%02X", sheet_idx).c_str());
-      }
-      sheet_idx++;
-    }
-    graphics_bin_canvas_.DrawGrid(16.0f);
-    graphics_bin_canvas_.DrawOverlay();
-
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-    ImGui::EndChild();
-  }
-  ImGui::PopStyleVar();
-  ms_io = ImGui::EndMultiSelect();
-  selection.ApplyRequests(ms_io);
-  ImGui::EndChild();
-  return absl::OkStatus();
-}
-
-absl::Status GraphicsEditor::UpdateGfxTabView() {
-  gfx::ScopedTimer timer("graphics_editor_update_gfx_tab_view");
-
-  static int next_tab_id = 0;
-  constexpr ImGuiTabBarFlags kGfxEditTabBarFlags =
-      ImGuiTabBarFlags_AutoSelectNewTabs | ImGuiTabBarFlags_Reorderable |
-      ImGuiTabBarFlags_FittingPolicyResizeDown |
-      ImGuiTabBarFlags_TabListPopupButton;
-
-  if (ImGui::BeginTabBar("##GfxEditTabBar", kGfxEditTabBarFlags)) {
-    if (ImGui::TabItemButton(ICON_MD_ADD, ImGuiTabItemFlags_Trailing |
-                                              ImGuiTabItemFlags_NoTooltip)) {
-      open_sheets_.insert(next_tab_id++);
-    }
-
-    for (auto& sheet_id : open_sheets_) {
-      bool open = true;
-      if (ImGui::BeginTabItem(absl::StrFormat("%d", sheet_id).c_str(), &open,
-                              ImGuiTabItemFlags_None)) {
-        current_sheet_ = sheet_id;
-        if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-          release_queue_.push(sheet_id);
-        }
-        if (ImGui::IsItemHovered()) {
-          if (ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
-            release_queue_.push(sheet_id);
-            child_window_sheets_.insert(sheet_id);
-          }
-        }
-
-        const auto child_id =
-            absl::StrFormat("##GfxEditPaletteChildWindow%d", sheet_id);
-       if (ImGui::BeginChild("##ViewControls", ImVec2(0, 32), false)) {
-    auto view_controls = [](const char* label, float& val, float min, float max) {
-      ImGui::PushID(label);
-      ImGui::Text("%s", label);
-      ImGui::SameLine();
-      ImGui::SetNextItemWidth(60);
-      ImGui::SliderFloat("##slider", &val, min, max, "%.0f");
-      ImGui::SameLine();
-      ImGui::SetNextItemWidth(40);
-      ImGui::InputFloat("##input", &val, 1.0f, 10.0f, "%.0f");
-      ImGui::PopID();
-    };
-    view_controls("Scale", current_scale_, 1.0f, 16.0f);
-    ImGui::EndChild();
-       }
-        ImGui::BeginChild(child_id.c_str(), ImVec2(0, 0), true,
-                          ImGuiWindowFlags_NoDecoration |
-                              ImGuiWindowFlags_AlwaysVerticalScrollbar |
-                              ImGuiWindowFlags_AlwaysHorizontalScrollbar);
-
-        gfx::Bitmap& current_bitmap =
-            gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id);
-
-        auto draw_tile_event = [&]() {
-          current_sheet_canvas_.DrawTileOnBitmap(tile_size_, &current_bitmap,
-                                                 current_color_);
-          // Notify Arena that this sheet has been modified for cross-editor
-          // synchronization
-          gfx::Arena::Get().NotifySheetModified(sheet_id);
-        };
-
-        current_sheet_canvas_.UpdateColorPainter(
-            nullptr, gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id),
-            current_color_, draw_tile_event, tile_size_, current_scale_);
-
-        // Notify Arena that this sheet has been modified for cross-editor
-        // synchronization
-        gfx::Arena::Get().NotifySheetModified(sheet_id);
-
-        ImGui::EndChild();
-        ImGui::EndTabItem();
-      }
-
-      if (!open)
-        release_queue_.push(sheet_id);
-    }
-
-    ImGui::EndTabBar();
-  }
-
-  // Release any tabs that were closed
-  while (!release_queue_.empty()) {
-    auto sheet_id = release_queue_.top();
-    open_sheets_.erase(sheet_id);
-    release_queue_.pop();
-  }
-
-  // Draw any child windows that were created
-  if (!child_window_sheets_.empty()) {
-    int id_to_release = -1;
-    for (const auto& id : child_window_sheets_) {
-      bool active = true;
-      ImGui::SetNextWindowPos(ImGui::GetIO().MousePos, ImGuiCond_Once);
-      ImGui::SetNextWindowSize(ImVec2(0x100 + 1 * 16, 0x40 + 1 * 16),
-                               ImGuiCond_Once);
-      ImGui::Begin(absl::StrFormat("##GfxEditPaletteChildWindow%d", id).c_str(),
-                   &active, ImGuiWindowFlags_AlwaysUseWindowPadding);
-      current_sheet_ = id;
-      //  ImVec2(0x100, 0x40),
-      current_sheet_canvas_.UpdateColorPainter(
-          nullptr, gfx::Arena::Get().mutable_gfx_sheets()->at(id),
-          current_color_,
-          [&]() {
-
-          },
-          tile_size_, current_scale_);
-      ImGui::End();
-      if (!active) {
-        id_to_release = id;
-      }
-    }
-    if (id_to_release != -1) {
-      child_window_sheets_.erase(id_to_release);
-    }
-  }
-
-  return absl::OkStatus();
-}
-
-absl::Status GraphicsEditor::UpdatePaletteColumn() {
-  if (rom()->is_loaded() && game_data()) {
-    auto palette_group = *game_data()->palette_groups.get_group(
-        kPaletteGroupAddressesKeys[edit_palette_group_name_index_]);
-    auto palette = palette_group.palette(edit_palette_index_);
-    gui::TextWithSeparators("ROM Palette Management");
-
-    // Quick palette presets for common SNES graphics types
-    ImGui::Text("Quick Presets:");
-    if (ImGui::Button("Overworld")) {
-      edit_palette_group_name_index_ = 0;  // Dungeon Main
-      edit_palette_index_ = 0;
-      refresh_graphics_ = true;
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Dungeon")) {
-      edit_palette_group_name_index_ = 0;  // Dungeon Main
-      edit_palette_index_ = 1;
-      refresh_graphics_ = true;
-    }
-    ImGui::SameLine();
-    // Apply button removed as ApplySelectedPalette is undefined and redundant
-    // with "Apply to Current Sheet" below
-    if (ImGui::Button("Sprites")) {
-      edit_palette_group_name_index_ = 4;  // Sprites Aux1
-      edit_palette_index_ = 0;
-      refresh_graphics_ = true;
-    }
-    ImGui::Separator();
-
-    // Apply current palette to current sheet
-    if (ImGui::Button("Apply to Current Sheet") && !open_sheets_.empty()) {
-      refresh_graphics_ = true;
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Apply to All Sheets")) {
-      // Apply current palette to all active sheets
-      for (int i = 0; i < zelda3::kNumGfxSheets; i++) {
-        auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->data()[i];
-        if (sheet.is_active() && sheet.surface()) {
-          sheet.SetPaletteWithTransparent(palette, edit_palette_sub_index_);
-          // Notify Arena that this sheet has been modified
-          gfx::Arena::Get().NotifySheetModified(i);
-        }
-      }
-    }
-    ImGui::Separator();
-
-    ImGui::SetNextItemWidth(150.f);
-    ImGui::Combo("Palette Group", (int*)&edit_palette_group_name_index_,
-                 kPaletteGroupAddressesKeys,
-                 IM_ARRAYSIZE(kPaletteGroupAddressesKeys));
-    ImGui::SetNextItemWidth(100.f);
-    gui::InputHex("Palette Index", &edit_palette_index_);
-    ImGui::SetNextItemWidth(100.f);
-    gui::InputHex("Sub-Palette", &edit_palette_sub_index_);
-
-    gui::SelectablePalettePipeline(edit_palette_sub_index_, refresh_graphics_,
-                                   palette);
-
-    if (refresh_graphics_ && !open_sheets_.empty()) {
-      auto& current =
-          gfx::Arena::Get().mutable_gfx_sheets()->data()[current_sheet_];
-      if (current.is_active() && current.surface()) {
-        current.SetPaletteWithTransparent(palette, edit_palette_sub_index_);
-        // Notify Arena that this sheet has been modified
-        gfx::Arena::Get().NotifySheetModified(current_sheet_);
-      }
-      refresh_graphics_ = false;
-    }
-  }
-  return absl::OkStatus();
-}
-
-absl::Status GraphicsEditor::UpdateLinkGfxView() {
-  if (ImGui::BeginTable("##PlayerAnimationTable", 3, kGfxEditTableFlags,
-                        ImVec2(0, 0))) {
-    for (const auto& name : {"Canvas", "Animation Steps", "Properties"})
-      ImGui::TableSetupColumn(name);
-
-    ImGui::TableHeadersRow();
-
-    ImGui::TableNextColumn();
-    link_canvas_.DrawBackground();
-    link_canvas_.DrawGrid(16.0f);
-
-    int i = 0;
-    for (auto& link_sheet : link_sheets_) {
-      int x_offset = 0;
-      int y_offset = gfx::kTilesheetHeight * i * 4;
-      link_canvas_.DrawContextMenu();
-      link_canvas_.DrawBitmap(link_sheet, x_offset, y_offset, 4);
-      i++;
-    }
-    link_canvas_.DrawOverlay();
-    link_canvas_.DrawGrid();
-
-    ImGui::TableNextColumn();
-    ImGui::Text("Placeholder");
-
-    ImGui::TableNextColumn();
-    if (ImGui::Button("Load Link Graphics (Experimental)")) {
-      if (rom()->is_loaded() && game_data()) {
-        // Load Links graphics from the ROM
-        link_sheets_ = game_data()->link_graphics;
-
-        // Split it into the pose data frames
-        // Create an animation step display for the poses
-        // Allow the user to modify the frames used in an anim step
-        // LinkOAM_AnimationSteps:
-        // #_0D85FB
-      }
-    }
-  }
-  ImGui::EndTable();
-
-  return absl::OkStatus();
-}
-
-absl::Status GraphicsEditor::UpdateScadView() {
+void GraphicsEditor::DrawPrototypeViewer() {
   if (open_memory_editor_) {
     ImGui::Begin("Memory Editor", &open_memory_editor_);
-    RETURN_IF_ERROR(DrawMemoryEditor())
+    status_ = DrawMemoryEditor();
     ImGui::End();
   }
 
@@ -968,18 +370,16 @@ absl::Status GraphicsEditor::UpdateScadView() {
 
   NEXT_COLUMN()
   if (super_donkey_) {
-    // TODO: Implement the Super Donkey 1 graphics decompression
-    // if (refresh_graphics_) {
-    //   for (int i = 0; i < zelda3::kNumGfxSheets; i++) {
-    //     status_ = graphics_bin_[i].SetPalette(
-    //         col_file_palette_group_[current_palette_index_]);
-    //     Renderer::Get().UpdateBitmap(&graphics_bin_[i]);
-    //   }
-    //   refresh_graphics_ = false;
-    // }
-    // Load the full graphics space from `super_donkey_1.bin`
-    // gui::GraphicsBinCanvasPipeline(0x100, 0x40, 0x20, num_sheets_to_load_, 3,
-    //                                super_donkey_, graphics_bin_);
+    // Super Donkey prototype graphics
+    for (size_t i = 0; i < num_sheets_to_load_ && i < gfx_sheets_.size(); i++) {
+      if (gfx_sheets_[i].is_active() && gfx_sheets_[i].texture()) {
+        ImGui::Image((ImTextureID)(intptr_t)gfx_sheets_[i].texture(),
+                     ImVec2(128, 32));
+        if ((i + 1) % 4 != 0) {
+          ImGui::SameLine();
+        }
+      }
+    }
   } else if (cgx_loaded_ && col_file_) {
     // Load the CGX graphics
     gui::BitmapCanvasPipeline(import_canvas_, cgx_bitmap_, 0x100, 16384, 0x20,
@@ -990,9 +390,11 @@ absl::Status GraphicsEditor::UpdateScadView() {
                               gfx_loaded_, true, 2);
   }
   END_TABLE()
-
-  return absl::OkStatus();
 }
+
+// =============================================================================
+// Prototype Viewer Import Methods
+// =============================================================================
 
 absl::Status GraphicsEditor::DrawCgxImport() {
   gui::TextWithSeparators("Cgx Import");

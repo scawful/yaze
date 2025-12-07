@@ -91,6 +91,12 @@ class GraphicsEditorState {
   bool show_tile_boundaries = true; // 16x16 tile boundaries
   ImVec2 pan_offset = {0, 0};       // Canvas pan offset
 
+  // --- Overlay State (for enhanced UX) ---
+  bool show_cursor_crosshair = true;    // Crosshair at cursor position
+  bool show_brush_preview = true;       // Preview circle for brush/eraser
+  bool show_transparency_grid = true;   // Checkerboard for transparent pixels
+  bool show_pixel_info_tooltip = true;  // Tooltip with pixel info on hover
+
   // --- Palette State ---
   uint64_t palette_group_index = 0;
   uint64_t palette_index = 0;

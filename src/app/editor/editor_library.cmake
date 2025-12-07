@@ -27,6 +27,7 @@ set(
   app/editor/graphics/link_sprite_panel.cc
   app/editor/graphics/polyhedral_editor_panel.cc
   app/editor/graphics/palette_controls_panel.cc
+  app/editor/graphics/paletteset_editor_panel.cc
   app/editor/graphics/pixel_editor_panel.cc
   app/editor/graphics/screen_editor.cc
   app/editor/graphics/sheet_browser_panel.cc
