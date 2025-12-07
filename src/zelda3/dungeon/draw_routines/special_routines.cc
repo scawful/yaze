@@ -520,18 +520,19 @@ void DrawInterRoomFatStairsDownB(const DrawContext& ctx) {
 
 void DrawSpiralStairs(const DrawContext& ctx, bool going_up, bool is_upper) {
   // ASM: RoomDraw_SpiralStairsGoingUpUpper, etc.
-  // Spiral stairs have offset positioning based on variant
+  // Calls RoomDraw_1x3N_rightwards with A=4 -> 4 columns x 3 rows = 12 tiles
+  // Tile order is COLUMN-MAJOR (down first, then right)
   (void)going_up;
   (void)is_upper;
 
-  if (ctx.tiles.size() < 16) return;
+  if (ctx.tiles.size() < 12) return;
 
-  // Draw 4x4 pattern (visual representation)
-  for (int y = 0; y < 4; ++y) {
-    for (int x = 0; x < 4; ++x) {
-      size_t tile_idx = static_cast<size_t>(y * 4 + x);
+  // Draw 4x3 pattern in COLUMN-MAJOR order (matching ASM)
+  int tid = 0;
+  for (int x = 0; x < 4; ++x) {
+    for (int y = 0; y < 3; ++y) {
       DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
-                                   ctx.object.y_ + y, ctx.tiles[tile_idx]);
+                                   ctx.object.y_ + y, ctx.tiles[tid++]);
     }
   }
 }
@@ -934,7 +935,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
           [](const DrawContext& ctx) { DrawSpiralStairs(ctx, true, true); },
       .draws_to_both_bgs = false,
       .base_width = 4,
-      .base_height = 4,
+      .base_height = 3,  // 4x3 pattern
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -945,7 +946,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
           [](const DrawContext& ctx) { DrawSpiralStairs(ctx, false, true); },
       .draws_to_both_bgs = false,
       .base_width = 4,
-      .base_height = 4,
+      .base_height = 3,  // 4x3 pattern
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -956,7 +957,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
           [](const DrawContext& ctx) { DrawSpiralStairs(ctx, true, false); },
       .draws_to_both_bgs = false,
       .base_width = 4,
-      .base_height = 4,
+      .base_height = 3,  // 4x3 pattern
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -967,7 +968,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
           [](const DrawContext& ctx) { DrawSpiralStairs(ctx, false, false); },
       .draws_to_both_bgs = false,
       .base_width = 4,
-      .base_height = 4,
+      .base_height = 3,  // 4x3 pattern
       .category = DrawRoutineInfo::Category::Special,
   });
 

@@ -390,6 +390,14 @@ class ObjectDrawer {
                                    std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
   void DrawSingle2x2(const RoomObject& obj, gfx::BackgroundBuffer& bg,
                      std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
+  void DrawSingle4x4(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                     std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
+  void DrawSingle4x3(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                     std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
+  void DrawRupeeFloor(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                      std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
+  void DrawActual4x4(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                     std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
 
   // Utility methods
   void WriteTile8(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,

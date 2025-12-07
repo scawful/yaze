@@ -312,9 +312,10 @@ void ObjectDrawer::InitializeDrawRoutines() {
   for (int id = 0x3F; id <= 0x46; id++) {
     object_to_routine_map_[id] = 22;
   }
-  // 0x47-0x48 Waterfalls - map to 1x1 for now or custom if implemented
-  object_to_routine_map_[0x47] = 25;
-  object_to_routine_map_[0x48] = 25;
+  // 0x47-0x48 Waterfalls - use dedicated waterfall routines
+  // ASM: RoomDraw_Waterfall47 and RoomDraw_Waterfall48
+  object_to_routine_map_[0x47] = 111;  // Waterfall47 (1x5 columns)
+  object_to_routine_map_[0x48] = 112;  // Waterfall48 (1x3 columns)
   // 0x49-0x4A Floor Tile 4x2 - Verified against bank_01.asm RoomDraw_RightwardsFloorTile4x2_1to16
   object_to_routine_map_[0x49] = 40;  // Rightwards4x2 (4 cols × 2 rows, horizontal spacing)
   object_to_routine_map_[0x4A] = 40;
@@ -694,10 +695,10 @@ void ObjectDrawer::InitializeDrawRoutines() {
   object_to_routine_map_[0xF8E] = 33;
   object_to_routine_map_[0xF8F] = 33;
   // 0xF90-0xF93 (ASM 210-213): SINGLE 2x2 per bank_01.asm
-  // Note: 0xF92 (ASM 212) is RoomDraw_RupeeFloor but uses 2x2 base pattern
+  // Note: 0xF92 (ASM 212) is RoomDraw_RupeeFloor - special 6x8 pattern
   object_to_routine_map_[0xF90] = 110;  // Single2x2
   object_to_routine_map_[0xF91] = 110;  // Single2x2
-  object_to_routine_map_[0xF92] = 110;  // RupeeFloor (2x2 pattern)
+  object_to_routine_map_[0xF92] = 115;  // RupeeFloor (special 6x8 pattern)
   object_to_routine_map_[0xF93] = 110;  // Single2x2
   // 0xF94 (ASM 214): RoomDraw_TableRock4x3
   object_to_routine_map_[0xF94] = 30; // TableRock4x3 (Decor 4x3)
@@ -745,10 +746,10 @@ void ObjectDrawer::InitializeDrawRoutines() {
   object_to_routine_map_[0xFAF] = 110;
   // 0xFB0 (230): RoomDraw_WeirdUglyPot - SINGLE 2x2 (no repetition)
   object_to_routine_map_[0xFB0] = 110;
-  // 0xFB1 (231): RoomDraw_BigChest - 4x3
-  object_to_routine_map_[0xFB1] = 30;
-  // 0xFB2 (232): RoomDraw_OpenBigChest - 4x3
-  object_to_routine_map_[0xFB2] = 30;
+  // 0xFB1 (231): RoomDraw_BigChest - SINGLE 4x3 (no repetition)
+  object_to_routine_map_[0xFB1] = 114;  // Single4x3
+  // 0xFB2 (232): RoomDraw_OpenBigChest - SINGLE 4x3 (no repetition)
+  object_to_routine_map_[0xFB2] = 114;  // Single4x3
   // 0xFB3 (233): RoomDraw_AutoStairsSouthMergedLayer - shared AutoStairs routine
   object_to_routine_map_[0xFB3] = 86;
   // 0xFB4-0xFB9 (234-239): ChestPlatformVerticalWall and DrawRightwards3x6 variants
@@ -810,19 +811,19 @@ void ObjectDrawer::InitializeDrawRoutines() {
   for (int id = 0xFE3; id <= 0xFE5; id++) {
     object_to_routine_map_[id] = 110;
   }
-  // 0xFE6 (266): RoomDraw_4x4
-  object_to_routine_map_[0xFE6] = 16;
+  // 0xFE6 (266): RoomDraw_4x4 - actual 4x4 tile8 pattern (32x32 pixels)
+  object_to_routine_map_[0xFE6] = 116;  // DrawActual4x4
   // 0xFE7-0xFE8 (267-268): TableRock4x3
   object_to_routine_map_[0xFE7] = 30;
   object_to_routine_map_[0xFE8] = 30;
   // 0xFE9-0xFEA (269-26A): SolidWallDecor3x4
   object_to_routine_map_[0xFE9] = 107;
   object_to_routine_map_[0xFEA] = 107;
-  // 0xFEB (26B): RoomDraw_4x4
-  object_to_routine_map_[0xFEB] = 16;
-  // 0xFEC-0xFED (26C-26D): TableRock4x3
-  object_to_routine_map_[0xFEC] = 30;
-  object_to_routine_map_[0xFED] = 30;
+  // 0xFEB (26B): RoomDraw_4x4 - SINGLE 4x4 (no repetition)
+  object_to_routine_map_[0xFEB] = 113;  // Single4x4
+  // 0xFEC-0xFED (26C-26D): RoomDraw_TableRock4x3 - SINGLE 4x3 (no repetition)
+  object_to_routine_map_[0xFEC] = 114;  // Single4x3
+  object_to_routine_map_[0xFED] = 114;  // Single4x3
   // 0xFEE-0xFEF (26E-26F): SolidWallDecor3x4
   object_to_routine_map_[0xFEE] = 107;
   object_to_routine_map_[0xFEF] = 107;
@@ -1741,6 +1742,112 @@ void ObjectDrawer::InitializeDrawRoutines() {
         self->DrawSingle2x2(obj, bg, tiles, state);
       });
 
+  // Routine 111 - Waterfall47 (object 0x47)
+  // ASM: RoomDraw_Waterfall47 - draws 1x5 columns, count = (size+1)*2
+  draw_routines_.push_back(
+      [](ObjectDrawer* self, const RoomObject& obj,
+         gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
+         [[maybe_unused]] const DungeonState* state) {
+        int size = obj.size_ & 0x0F;
+        int count = (size + 1) * 2;  // ASM: ASL $B2
+
+        if (tiles.size() < 5) return;
+
+        // Draw first 1x5 column
+        for (int row = 0; row < 5; row++) {
+          self->WriteTile8(bg, obj.x_, obj.y_ + row, tiles[row]);
+        }
+
+        // Draw middle columns
+        for (int s = 0; s < count; s++) {
+          int col_x = obj.x_ + 1 + s;
+          for (int row = 0; row < 5; row++) {
+            // Use tiles at offset 10 for middle columns
+            size_t tile_idx = std::min(size_t(5 + row), tiles.size() - 1);
+            self->WriteTile8(bg, col_x, obj.y_ + row, tiles[tile_idx]);
+          }
+        }
+
+        // Draw last 1x5 column
+        int last_x = obj.x_ + 1 + count;
+        for (int row = 0; row < 5; row++) {
+          size_t tile_idx = std::min(size_t(10 + row), tiles.size() - 1);
+          self->WriteTile8(bg, last_x, obj.y_ + row, tiles[tile_idx]);
+        }
+      });
+
+  // Routine 112 - Waterfall48 (object 0x48)
+  // ASM: RoomDraw_Waterfall48 - draws 1x3 columns, count = (size+1)*2
+  draw_routines_.push_back(
+      [](ObjectDrawer* self, const RoomObject& obj,
+         gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
+         [[maybe_unused]] const DungeonState* state) {
+        int size = obj.size_ & 0x0F;
+        int count = (size + 1) * 2;  // ASM: ASL $B2
+
+        if (tiles.size() < 3) return;
+
+        // Draw first 1x3 column
+        for (int row = 0; row < 3; row++) {
+          self->WriteTile8(bg, obj.x_, obj.y_ + row, tiles[row]);
+        }
+
+        // Draw middle columns
+        for (int s = 0; s < count; s++) {
+          int col_x = obj.x_ + 1 + s;
+          for (int row = 0; row < 3; row++) {
+            self->WriteTile8(bg, col_x, obj.y_ + row, tiles[row]);
+          }
+        }
+
+        // Draw last 1x3 column using different tiles
+        int last_x = obj.x_ + 1 + count;
+        for (int row = 0; row < 3; row++) {
+          size_t tile_idx = std::min(size_t(3 + row), tiles.size() - 1);
+          self->WriteTile8(bg, last_x, obj.y_ + row, tiles[tile_idx]);
+        }
+      });
+
+  // Routine 113 - Single 4x4 (NO repetition)
+  // ASM: RoomDraw_4x4 - draws a single 4x4 pattern (16 tiles)
+  // Used for: 0xFEB (large decor), and other single 4x4 objects
+  draw_routines_.push_back(
+      [](ObjectDrawer* self, const RoomObject& obj,
+         gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
+         [[maybe_unused]] const DungeonState* state) {
+        self->DrawSingle4x4(obj, bg, tiles, state);
+      });
+
+  // Routine 114 - Single 4x3 (NO repetition)
+  // ASM: RoomDraw_TableRock4x3 - draws a single 4x3 pattern (12 tiles)
+  // Used for: 0xFED (water grate), 0xFB1 (big chest), etc.
+  draw_routines_.push_back(
+      [](ObjectDrawer* self, const RoomObject& obj,
+         gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
+         [[maybe_unused]] const DungeonState* state) {
+        self->DrawSingle4x3(obj, bg, tiles, state);
+      });
+
+  // Routine 115 - RupeeFloor (special pattern for 0xF92)
+  // ASM: RoomDraw_RupeeFloor - draws 3 columns of 2-tile pairs at 3 Y positions
+  // Pattern: 6 tiles wide, 8 rows tall with gaps (rows 2 and 5 are empty)
+  draw_routines_.push_back(
+      [](ObjectDrawer* self, const RoomObject& obj,
+         gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
+         [[maybe_unused]] const DungeonState* state) {
+        self->DrawRupeeFloor(obj, bg, tiles, state);
+      });
+
+  // Routine 116 - Actual 4x4 tile8 pattern (32x32 pixels, NO repetition)
+  // ASM: RoomDraw_4x4 - draws exactly 4 columns x 4 rows = 16 tiles
+  // Used for: 0xFE6 (pit)
+  draw_routines_.push_back(
+      [](ObjectDrawer* self, const RoomObject& obj,
+         gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
+         [[maybe_unused]] const DungeonState* state) {
+        self->DrawActual4x4(obj, bg, tiles, state);
+      });
+
   routines_initialized_ = true;
 }
 
@@ -1993,6 +2100,10 @@ void ObjectDrawer::DrawDoorIndicator(gfx::Bitmap& bitmap, int tile_x, int tile_y
 void ObjectDrawer::DrawChest(const RoomObject& obj, gfx::BackgroundBuffer& bg,
                              std::span<const gfx::TileInfo> tiles,
                              [[maybe_unused]] const DungeonState* state) {
+  // ASM: RoomDraw_Chest - draws a SINGLE chest (2x2) without size-based repetition
+  // 0xF99 = closed chest, 0xF9A = open chest
+  // The size byte is NOT used for repetition
+  
   // Determine if chest is open
   bool is_open = false;
   if (state) {
@@ -2002,33 +2113,27 @@ void ObjectDrawer::DrawChest(const RoomObject& obj, gfx::BackgroundBuffer& bg,
   // Increment index for next chest
   current_chest_index_++;
 
-  // Draw logic
-  // Heuristic: If we have extra tiles loaded, assume they are for the open state.
-  // Standard chests are 2x2 (4 tiles). Big chests are 4x4 (16 tiles).
-  // If we have double the tiles, use the second half for open state.
+  // Draw SINGLE chest - no repetition based on size
+  // Standard chests are 2x2 (4 tiles)
+  // If we have extra tiles loaded, the second 4 are for open state
   
-  if (is_open) {
-    if (tiles.size() >= 32) {
-      // Big chest open tiles (indices 16-31)
-      DrawRightwards4x4_1to16(obj, bg, tiles.subspan(16));
-      return;
+  if (is_open && tiles.size() >= 8) {
+    // Small chest open tiles (indices 4-7) - SINGLE 2x2 draw
+    if (tiles.size() >= 8) {
+      WriteTile8(bg, obj.x_, obj.y_, tiles[4]);       // top-left
+      WriteTile8(bg, obj.x_, obj.y_ + 1, tiles[5]);   // bottom-left
+      WriteTile8(bg, obj.x_ + 1, obj.y_, tiles[6]);   // top-right
+      WriteTile8(bg, obj.x_ + 1, obj.y_ + 1, tiles[7]); // bottom-right
     }
-    if (tiles.size() >= 8 && tiles.size() < 16) {
-      // Small chest open tiles (indices 4-7)
-      DrawRightwards2x2_1to16(obj, bg, tiles.subspan(4));
       return;
-    }
-    // If no extra tiles, fall through to draw closed chest (better than nothing)
   }
 
-  // Fallback to standard 4x4 or 2x2 drawing based on tile count
-  if (tiles.size() >= 16) {
-    DrawRightwards4x4_1to16(obj, bg, tiles);
-  } else if (tiles.size() >= 4) {
-    DrawRightwards2x2_1to16(obj, bg, tiles);
-  } else {
-    // Fallback for incomplete data
-    DrawRightwards4x4_1to16(obj, bg, tiles);
+  // Draw closed chest - SINGLE 2x2 pattern (column-major order)
+  if (tiles.size() >= 4) {
+    WriteTile8(bg, obj.x_, obj.y_, tiles[0]);       // top-left
+    WriteTile8(bg, obj.x_, obj.y_ + 1, tiles[1]);   // bottom-left
+    WriteTile8(bg, obj.x_ + 1, obj.y_, tiles[2]);   // top-right
+    WriteTile8(bg, obj.x_ + 1, obj.y_ + 1, tiles[3]); // bottom-right
   }
 }
 
@@ -2364,35 +2469,57 @@ void ObjectDrawer::DrawRightwards1x2_1to16_plus2(
 void ObjectDrawer::DrawRightwardsHasEdge1x1_1to16_plus3(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
-  // Pattern: 1x1 tiles with edge detection +3 offset (object 0x22)
+   // Pattern: Rail with corner check (object 0x22 small rails)
+  // ASM: RoomDraw_RightwardsHasEdge1x1_1to16_plus3
+  // Uses GetSize_1to16_timesA(2), count = (size & 0x0F + 1) * 2
+  // Structure: [CORNER if needed] -> [MIDDLE * count] -> [END]
   int size = obj.size_ & 0x0F;
+  int count = (size + 1) * 2;  // timesA with A=2
 
-  // Assembly: GetSize_1to16_timesA(2), so count = size + 2
-  int count = size + 2;
+  if (tiles.size() < 3) return;
 
+  int x = obj.x_;
+  
+  // Draw corner tile (tile 0) - in editor we always draw it
+  WriteTile8(bg, x, obj.y_, tiles[0]);
+  x++;
+  
+  // Draw middle tiles (tile 1) repeated
   for (int s = 0; s < count; s++) {
-    if (tiles.size() >= 1) {
-      // Use first 8x8 tile from span
-      WriteTile8(bg, obj.x_ + s + 3, obj.y_, tiles[0]);
-    }
+    WriteTile8(bg, x, obj.y_, tiles[1]);
+    x++;
   }
+  
+  // Draw end tile (tile 2)
+  WriteTile8(bg, x, obj.y_, tiles[2]);
 }
 
 void ObjectDrawer::DrawRightwardsHasEdge1x1_1to16_plus2(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
-  // Pattern: 1x1 tiles with edge detection +2 offset (objects 0x23-0x2E, 0x3F-0x46)
+  // Pattern: Rail with corner check (objects 0x23-0x2E carpet trim, 0x3F-0x46)
+  // ASM: RoomDraw_RightwardsHasEdge1x1_1to16_plus2
+  // Uses GetSize_1to16, count = size + 1
+  // Structure: [CORNER if needed] -> [MIDDLE * count] -> [END]
   int size = obj.size_ & 0x0F;
-
-  // Assembly: GetSize_1to16, so count = size + 1
   int count = size + 1;
 
+  if (tiles.size() < 3) return;
+
+  int x = obj.x_;
+  
+  // Draw corner tile (tile 0) - in editor we always draw it
+  WriteTile8(bg, x, obj.y_, tiles[0]);
+  x++;
+  
+  // Draw middle tiles (tile 1) repeated
   for (int s = 0; s < count; s++) {
-    if (tiles.size() >= 1) {
-      // Use first 8x8 tile from span
-      WriteTile8(bg, obj.x_ + s + 2, obj.y_, tiles[0]);
-    }
+    WriteTile8(bg, x, obj.y_, tiles[1]);
+    x++;
   }
+  
+  // Draw end tile (tile 2)
+  WriteTile8(bg, x, obj.y_, tiles[2]);
 }
 
 void ObjectDrawer::DrawRightwardsTopCorners1x2_1to16_plus13(
@@ -2557,6 +2684,8 @@ void ObjectDrawer::DrawRightwardsPillar2x4spaced4_1to16(
     std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: 2x4 pillar with spacing (objects 0x39, 0x3D)
   // 2 columns × 4 rows = 8 tiles in COLUMN-MAJOR order
+  // ASM: ADC #$0008 = 8 bytes = 4 tiles spacing between starts
+  // Object is 2 tiles wide, so gap is 2 tiles
   int size = obj.size_ & 0x0F;
 
   // Assembly: GetSize_1to16, so count = size + 1
@@ -2565,9 +2694,10 @@ void ObjectDrawer::DrawRightwardsPillar2x4spaced4_1to16(
   for (int s = 0; s < count; s++) {
     if (tiles.size() >= 8) {
       // Draw 2x4 pattern in COLUMN-MAJOR order (matching assembly)
+      // Spacing: 4 tiles between starts (object width 2 + gap 2) per ASM ADC #$0008
       for (int x = 0; x < 2; ++x) {
         for (int y = 0; y < 4; ++y) {
-          WriteTile8(bg, obj.x_ + (s * 6) + x, obj.y_ + y, tiles[x * 4 + y]);
+          WriteTile8(bg, obj.x_ + (s * 4) + x, obj.y_ + y, tiles[x * 4 + y]);
         }
       }
     }
@@ -2579,6 +2709,8 @@ void ObjectDrawer::DrawRightwardsDecor4x3spaced4_1to16(
     std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: 4x3 decoration with spacing (objects 0x3A-0x3B)
   // 4 columns × 3 rows = 12 tiles in COLUMN-MAJOR order
+  // ASM: ADC #$0008 to Y = 8-byte advance = 4 tiles per iteration
+  // Total spacing: 4 (object width) + 4 (gap) = 8 tiles between starts
   int size = obj.size_ & 0x0F;
 
   // Assembly: GetSize_1to16, so count = size + 1
@@ -2587,9 +2719,10 @@ void ObjectDrawer::DrawRightwardsDecor4x3spaced4_1to16(
   for (int s = 0; s < count; s++) {
     if (tiles.size() >= 12) {
       // Draw 4x3 pattern in COLUMN-MAJOR order (matching assembly)
+      // Spacing: 8 tiles (4 object + 4 gap) per ASM ADC #$0008
       for (int x = 0; x < 4; ++x) {
         for (int y = 0; y < 3; ++y) {
-          WriteTile8(bg, obj.x_ + (s * 6) + x, obj.y_ + y, tiles[x * 3 + y]);
+          WriteTile8(bg, obj.x_ + (s * 8) + x, obj.y_ + y, tiles[x * 3 + y]);
         }
       }
     }
@@ -2672,26 +2805,20 @@ void ObjectDrawer::DrawRightwards4x2_1to16(
 void ObjectDrawer::DrawRightwardsDecor4x2spaced8_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Draws 4x2 tiles rightward with spacing (objects 0x55-0x56)
-  // Assembly: RoomDraw_RightwardsDecor4x2spaced8_1to16 -> spacing $0018 = 12 tile columns
-  // This is 4 columns × 2 rows = 8 tiles in ROW-MAJOR order with 12-column spacing
+  // Pattern: Draws 1x8 column tiles rightward with spacing (objects 0x55-0x56 wall torches)
+  // Assembly: RoomDraw_RightwardsDecor4x2spaced8_1to16 -> RoomDraw_Downwards4x2VariableSpacing
+  // ASM writes to 8 consecutive row buffers ([$BF] through [$D4]) = 1 column × 8 rows
+  // Spacing = 0x18 = 24 bytes = 12 tile columns between repetitions
   int size = obj.size_ & 0x0F;
   int count = size + 1;  // GetSize_1to16
 
+  if (tiles.size() < 8) return;
+
   for (int s = 0; s < count; s++) {
-    if (tiles.size() >= 8) {
-      // Draw 4x2 pattern in ROW-MAJOR order with 12-tile horizontal spacing
-      int base_x = obj.x_ + (s * 12);  // spacing of 12 columns
-      // Row 0
-      WriteTile8(bg, base_x, obj.y_, tiles[0]);
-      WriteTile8(bg, base_x + 1, obj.y_, tiles[1]);
-      WriteTile8(bg, base_x + 2, obj.y_, tiles[2]);
-      WriteTile8(bg, base_x + 3, obj.y_, tiles[3]);
-      // Row 1
-      WriteTile8(bg, base_x, obj.y_ + 1, tiles[4]);
-      WriteTile8(bg, base_x + 1, obj.y_ + 1, tiles[5]);
-      WriteTile8(bg, base_x + 2, obj.y_ + 1, tiles[6]);
-      WriteTile8(bg, base_x + 3, obj.y_ + 1, tiles[7]);
+    // Draw 1x8 column pattern with 12-tile horizontal spacing
+    int base_x = obj.x_ + (s * 12);  // spacing of 12 columns
+    for (int row = 0; row < 8; row++) {
+      WriteTile8(bg, base_x, obj.y_ + row, tiles[row]);
     }
   }
 }
@@ -2811,37 +2938,67 @@ void ObjectDrawer::DrawRightwardsShelf4x4_1to16(
 void ObjectDrawer::DrawRightwardsBigRail1x3_1to16plus5(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
-  // Pattern: 1x3 big rail rightward with +5 modifier (object 0x5D)
+  // Pattern: Big rail with LEFT CAP (2x3) + MIDDLE (1x3 repeated) + RIGHT CAP (2x3)
   // Assembly: RoomDraw_RightwardsBigRail1x3_1to16plus5
-  // Draws 3 rows, extending rightward
+  // Tile layout: [6 tiles for left cap] [3 tiles for middle] [6 tiles for right cap]
+  // Left cap: 2 columns x 3 rows in COLUMN-MAJOR order
+  // Middle: 1 column x 3 rows, repeated (size + 2) times
+  // Right cap: 2 columns x 3 rows in COLUMN-MAJOR order
+  
   int size = obj.size_ & 0x0F;
-  int count = size + 6;  // +5 gives +6 iterations total
-
-  for (int s = 0; s < count; s++) {
-    if (tiles.size() >= 3) {
-      WriteTile8(bg, obj.x_ + s, obj.y_, tiles[0]);
-      WriteTile8(bg, obj.x_ + s, obj.y_ + 1, tiles[1]);
-      WriteTile8(bg, obj.x_ + s, obj.y_ + 2, tiles[2]);
-    }
+  int middle_count = size + 2;  // ASM: INC B2 after GetSize_1to16 = (size+1)+1 = size+2
+  
+  if (tiles.size() < 15) return;  // Need 6+3+6=15 tiles minimum
+  
+  int x = obj.x_;
+  
+  // Draw LEFT CAP: 2 columns x 3 rows (tiles 0-5 in column-major order)
+  // Column 0
+  WriteTile8(bg, x, obj.y_, tiles[0]);
+  WriteTile8(bg, x, obj.y_ + 1, tiles[1]);
+  WriteTile8(bg, x, obj.y_ + 2, tiles[2]);
+  // Column 1
+  WriteTile8(bg, x + 1, obj.y_, tiles[3]);
+  WriteTile8(bg, x + 1, obj.y_ + 1, tiles[4]);
+  WriteTile8(bg, x + 1, obj.y_ + 2, tiles[5]);
+  x += 2;
+  
+  // Draw MIDDLE: 1 column x 3 rows (tiles 6-8), repeated middle_count times
+  for (int s = 0; s < middle_count; s++) {
+    WriteTile8(bg, x + s, obj.y_, tiles[6]);
+    WriteTile8(bg, x + s, obj.y_ + 1, tiles[7]);
+    WriteTile8(bg, x + s, obj.y_ + 2, tiles[8]);
   }
+  x += middle_count;
+  
+  // Draw RIGHT CAP: 2 columns x 3 rows (tiles 9-14 in column-major order)
+  // Column 0
+  WriteTile8(bg, x, obj.y_, tiles[9]);
+  WriteTile8(bg, x, obj.y_ + 1, tiles[10]);
+  WriteTile8(bg, x, obj.y_ + 2, tiles[11]);
+  // Column 1
+  WriteTile8(bg, x + 1, obj.y_, tiles[12]);
+  WriteTile8(bg, x + 1, obj.y_ + 1, tiles[13]);
+  WriteTile8(bg, x + 1, obj.y_ + 2, tiles[14]);
 }
 
 void ObjectDrawer::DrawRightwardsBlock2x2spaced2_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: 2x2 block rightward with 4-tile X spacing (object 0x5E)
-  // Assembly: RoomDraw_RightwardsBlock2x2spaced2_1to16 - adds $0004 to X per iteration
+  // Assembly: RoomDraw_RightwardsBlock2x2spaced2_1to16 - uses RoomDraw_Rightwards2x2
+  // Tiles are in COLUMN-MAJOR order: [top-left, bottom-left, top-right, bottom-right]
   int size = obj.size_ & 0x0F;
   int count = size + 1;
 
   for (int s = 0; s < count; s++) {
     if (tiles.size() >= 4) {
-      int base_x = obj.x_ + (s * 4);  // 4-tile X spacing
-      // Draw 2x2 pattern
-      WriteTile8(bg, base_x, obj.y_, tiles[0]);
-      WriteTile8(bg, base_x + 1, obj.y_, tiles[1]);
-      WriteTile8(bg, base_x, obj.y_ + 1, tiles[2]);
-      WriteTile8(bg, base_x + 1, obj.y_ + 1, tiles[3]);
+      int base_x = obj.x_ + (s * 4);  // 4-tile X spacing (INY x4 = 2 tiles)
+      // Draw 2x2 pattern in COLUMN-MAJOR order (matching ASM)
+      WriteTile8(bg, base_x, obj.y_, tiles[0]);       // top-left
+      WriteTile8(bg, base_x, obj.y_ + 1, tiles[1]);   // bottom-left
+      WriteTile8(bg, base_x + 1, obj.y_, tiles[2]);   // top-right
+      WriteTile8(bg, base_x + 1, obj.y_ + 1, tiles[3]); // bottom-right
     }
   }
 }
@@ -3248,20 +3405,45 @@ void ObjectDrawer::DrawDownwardsDecor3x4spaced2_1to16(
 void ObjectDrawer::DrawDownwardsBigRail3x1_1to16plus5(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Big rail 3x1 downward with +5 modifier (object 0x88)
-  // Vertical version of RightwardsBigRail1x3_1to16plus5
+  // Pattern: Big rail with TOP CAP (2x2) + MIDDLE (2x1 repeated) + BOTTOM CAP (2x3)
   // Assembly: RoomDraw_DownwardsBigRail3x1_1to16plus5
+  // Tile layout: [4 tiles for top cap 2x2] [2 tiles for middle] [6 tiles for bottom cap 2x3]
+  // Top cap: 2x2 in COLUMN-MAJOR order
+  // Middle: 2 tiles wide (1 row), repeated (size + 1) times
+  // Bottom cap: 2 columns x 3 rows in COLUMN-MAJOR order
+  
   int size = obj.size_ & 0x0F;
-  int count = size + 6;  // +5 gives +6 iterations total
-
-  for (int s = 0; s < count; s++) {
-    if (tiles.size() >= 3) {
-      // Draw 3x1 column pattern
-      WriteTile8(bg, obj.x_, obj.y_ + s, tiles[0]);
-      WriteTile8(bg, obj.x_ + 1, obj.y_ + s, tiles[1]);
-      WriteTile8(bg, obj.x_ + 2, obj.y_ + s, tiles[2]);
-    }
+  int middle_count = size + 1;  // GetSize_1to16 = size + 1
+  
+  if (tiles.size() < 12) return;  // Need 4+2+6=12 tiles minimum
+  
+  int y = obj.y_;
+  
+  // Draw TOP CAP: 2x2 block (tiles 0-3 in column-major order)
+  // Column 0
+  WriteTile8(bg, obj.x_, y, tiles[0]);
+  WriteTile8(bg, obj.x_, y + 1, tiles[1]);
+  // Column 1
+  WriteTile8(bg, obj.x_ + 1, y, tiles[2]);
+  WriteTile8(bg, obj.x_ + 1, y + 1, tiles[3]);
+  y += 2;
+  
+  // Draw MIDDLE: 2 tiles wide x 1 row (tiles 4-5), repeated middle_count times
+  for (int s = 0; s < middle_count; s++) {
+    WriteTile8(bg, obj.x_, y + s, tiles[4]);
+    WriteTile8(bg, obj.x_ + 1, y + s, tiles[5]);
   }
+  y += middle_count;
+  
+  // Draw BOTTOM CAP: 2 columns x 3 rows (tiles 6-11 in column-major order)
+  // Column 0
+  WriteTile8(bg, obj.x_, y, tiles[6]);
+  WriteTile8(bg, obj.x_, y + 1, tiles[7]);
+  WriteTile8(bg, obj.x_, y + 2, tiles[8]);
+  // Column 1
+  WriteTile8(bg, obj.x_ + 1, y, tiles[9]);
+  WriteTile8(bg, obj.x_ + 1, y + 1, tiles[10]);
+  WriteTile8(bg, obj.x_ + 1, y + 2, tiles[11]);
 }
 
 void ObjectDrawer::DrawDownwardsBlock2x2spaced2_1to16(
@@ -3429,12 +3611,10 @@ void ObjectDrawer::DrawRightwardsHammerPegs2x2_1to16(
 void ObjectDrawer::DrawDiagonalCeilingTopLeft(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Diagonal ceiling top-left (objects 0xA0, 0xA5, 0xA9)
-  // Assembly: RoomDraw_DiagonalCeilingTopLeftA/B
-  // Draws 1x1 tiles going DOWN (Y+1 each iteration)
-  // Count formula: LDA #$0004; JSR GetSize_1to16_timesA -> count = size + 4
-  int size = obj.size_ & 0x0F;
-  int count = size + 4;
+  // Pattern: Diagonal ceiling top-left - TRIANGLE shape (objects 0xA0, 0xA5, 0xA9)
+  // Assembly: RoomDraw_DiagonalCeilingTopLeftA/B with GetSize_1to16_timesA(4)
+  // count = (size & 0x0F) + 4 per ASM
+  int count = (obj.size_ & 0x0F) + 4;
 
   if (tiles.empty()) {
     LOG_DEBUG("ObjectDrawer", "DiagonalCeilingTopLeft: No tiles for obj 0x%02X", obj.id_);
@@ -3442,71 +3622,75 @@ void ObjectDrawer::DrawDiagonalCeilingTopLeft(
   }
 
   LOG_DEBUG("ObjectDrawer", 
-            "DiagonalCeilingTopLeft: obj=0x%02X pos=(%d,%d) size=%d count=%d tile_id=%d pal=%d",
-            obj.id_, obj.x_, obj.y_, size, count, tiles[0].id_, tiles[0].palette_);
+            "DiagonalCeilingTopLeft: obj=0x%02X pos=(%d,%d) size=%d count=%d",
+            obj.id_, obj.x_, obj.y_, obj.size_, count);
 
-  for (int s = 0; s < count; s++) {
-    // Assembly: ADC #$0080 = move down 1 row
-    WriteTile8(bg, obj.x_, obj.y_ + s, tiles[0]);
+  // Each row: starts with 'count' tiles, then count-1, count-2, etc.
+  int tiles_in_row = count;
+  for (int row = 0; row < count && tiles_in_row > 0; row++) {
+    for (int col = 0; col < tiles_in_row; col++) {
+      WriteTile8(bg, obj.x_ + col, obj.y_ + row, tiles[0]);
+    }
+    tiles_in_row--;  // One fewer tile each row (DEC $B2)
   }
 }
 
 void ObjectDrawer::DrawDiagonalCeilingBottomLeft(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Diagonal ceiling bottom-left (objects 0xA1, 0xA6, 0xAA)
-  // Assembly: RoomDraw_DiagonalCeilingBottomLeftA/B
-  // Draws increasing number of 1x1 tiles per row, going DOWN
-  // Count formula: LDA #$0004; JSR GetSize_1to16_timesA -> count = size + 4
-  int size = obj.size_ & 0x0F;
-  int count = size + 4;
+  // Pattern: Diagonal ceiling bottom-left - TRIANGLE shape (objects 0xA1, 0xA6, 0xAA)
+  // Assembly: RoomDraw_DiagonalCeilingBottomLeftA/B with GetSize_1to16_timesA(4)
+  // count = (size & 0x0F) + 4 per ASM
+  int count = (obj.size_ & 0x0F) + 4;
 
   if (tiles.empty()) return;
 
-  // Assembly increments B4 counter before each iteration
-  // This creates a widening diagonal pattern
-  int tile_count = 1;
-  for (int s = 0; s < count; s++) {
-    for (int t = 0; t < tile_count; t++) {
-      WriteTile8(bg, obj.x_ - t, obj.y_ + s, tiles[0]);
+  // Row 0: 1 tile, Row 1: 2 tiles, ..., Row count-1: count tiles
+  for (int row = 0; row < count; row++) {
+    int tiles_in_row = row + 1;
+    for (int col = 0; col < tiles_in_row; col++) {
+      WriteTile8(bg, obj.x_ + col, obj.y_ + row, tiles[0]);
     }
-    tile_count++;
   }
 }
 
 void ObjectDrawer::DrawDiagonalCeilingTopRight(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Diagonal ceiling top-right (objects 0xA2, 0xA7, 0xAB)
-  // Assembly: RoomDraw_DiagonalCeilingTopRightA/B
-  // Draws 1x1 tiles going DOWN-RIGHT diagonal (Y+1, X+1 each iteration)
-  // Count formula: LDA #$0004; JSR GetSize_1to16_timesA -> count = size + 4
-  int size = obj.size_ & 0x0F;
-  int count = size + 4;
+  // Pattern: Diagonal ceiling top-right - TRIANGLE shape (objects 0xA2, 0xA7, 0xAB)
+  // Assembly: RoomDraw_DiagonalCeilingTopRightA/B with GetSize_1to16_timesA(4)
+  // count = (size & 0x0F) + 4 per ASM
+  int count = (obj.size_ & 0x0F) + 4;
 
   if (tiles.empty()) return;
 
-  for (int s = 0; s < count; s++) {
-    // Assembly: ADC #$0082 = move down 1 row + right 1 tile
-    WriteTile8(bg, obj.x_ + s, obj.y_ + s, tiles[0]);
+  // Row 0 at (x,y): count tiles, Row 1 at (x+1,y+1): count-1 tiles, etc.
+  int tiles_in_row = count;
+  for (int row = 0; row < count && tiles_in_row > 0; row++) {
+    for (int col = 0; col < tiles_in_row; col++) {
+      WriteTile8(bg, obj.x_ + row + col, obj.y_ + row, tiles[0]);
+    }
+    tiles_in_row--;
   }
 }
 
 void ObjectDrawer::DrawDiagonalCeilingBottomRight(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Diagonal ceiling bottom-right (objects 0xA3, 0xA8, 0xAC)
-  // Assembly: RoomDraw_DiagonalCeilingBottomRightA/B
-  // Draws 1x1 tiles going UP-RIGHT diagonal (Y-1, X+1 each iteration)
-  // Count formula: LDA #$0004; JSR GetSize_1to16_timesA -> count = size + 4
-  int size = obj.size_ & 0x0F;
-  int count = size + 4;
+  // Pattern: Diagonal ceiling bottom-right - TRIANGLE shape (objects 0xA3, 0xA8, 0xAC)
+  // Assembly: RoomDraw_DiagonalCeilingBottomRightA/B with GetSize_1to16_timesA(4)
+  // count = (size & 0x0F) + 4 per ASM
+  int count = (obj.size_ & 0x0F) + 4;
 
   if (tiles.empty()) return;
 
-  for (int s = 0; s < count; s++) {
-    // Assembly: SEC; SBC #$007E = move up 1 row + right 1 tile
-    WriteTile8(bg, obj.x_ + s, obj.y_ - s, tiles[0]);
+  // Row 0 at (x, y): count tiles, Row 1 at (x+1, y-1): count-1 tiles, etc.
+  int tiles_in_row = count;
+  for (int row = 0; row < count && tiles_in_row > 0; row++) {
+    for (int col = 0; col < tiles_in_row; col++) {
+      WriteTile8(bg, obj.x_ + row + col, obj.y_ - row, tiles[0]);
+    }
+    tiles_in_row--;
   }
 }
 
@@ -4193,6 +4377,108 @@ void ObjectDrawer::DrawSingle2x2(const RoomObject& obj,
   }
 }
 
+void ObjectDrawer::DrawSingle4x4(const RoomObject& obj,
+                                 gfx::BackgroundBuffer& bg,
+                                 std::span<const gfx::TileInfo> tiles,
+                                 [[maybe_unused]] const DungeonState* state) {
+  // Pattern: Single 4x4 block in TILE16 terms = 8x8 in TILE8 terms
+  // ASM: RoomDraw_4x4 draws in TILE16 units (each tile16 is 2x2 tile8s)
+  // So 4x4 tile16 = 8x8 tile8 = 64x64 pixels
+  // Tile order is COLUMN-MAJOR: tiles advance down each column, then right
+  
+  // For 8x8 pattern (64 tiles needed), or use available tiles with wrapping
+  int tid = 0;
+  int num_tiles = static_cast<int>(tiles.size());
+  if (num_tiles == 0) return;
+  
+  for (int x = 0; x < 8; ++x) {
+    for (int y = 0; y < 8; ++y) {
+      // Wrap tile index if not enough tiles
+      WriteTile8(bg, obj.x_ + x, obj.y_ + y, tiles[tid % num_tiles]);
+      tid++;
+    }
+  }
+}
+
+void ObjectDrawer::DrawSingle4x3(const RoomObject& obj,
+                                 gfx::BackgroundBuffer& bg,
+                                 std::span<const gfx::TileInfo> tiles,
+                                 [[maybe_unused]] const DungeonState* state) {
+  // Pattern: Single 4x3 block (NO repetition based on size)
+  // ASM: RoomDraw_TableRock4x3 at $0199E6 - draws 4 columns of 3 rows (12 tiles)
+  // Calls RoomDraw_1x3N_rightwards with A=4, which draws 4 columns of 3 rows
+  // Tile order is COLUMN-MAJOR: tiles advance down each column, then right
+  if (tiles.size() >= 12) {
+    int tid = 0;
+    for (int x = 0; x < 4; ++x) {
+      for (int y = 0; y < 3; ++y) {
+        WriteTile8(bg, obj.x_ + x, obj.y_ + y, tiles[tid++]);
+      }
+    }
+  }
+}
+
+void ObjectDrawer::DrawRupeeFloor(const RoomObject& obj,
+                                  gfx::BackgroundBuffer& bg,
+                                  std::span<const gfx::TileInfo> tiles,
+                                  [[maybe_unused]] const DungeonState* state) {
+  // ASM: RoomDraw_RupeeFloor at $019AA9
+  // Draws 3 columns of tile pairs, each pair drawn at 3 Y positions:
+  //   Row 0-1: First pair
+  //   Row 3-4: Second pair (row 2 is skipped)
+  //   Row 6-7: Third pair (row 5 is skipped)
+  // Uses 2 tiles per column (tile 0 and tile 1), drawn 3 times each
+  // Total visual: 6 tiles wide x 8 tiles tall (with gaps at rows 2 and 5)
+  
+  // Note: Original ASM checks room flags to hide if rupees collected
+  // For editor preview, we always draw the pattern
+  
+  if (tiles.size() < 2) return;
+  
+  // Draw 3 columns (INX x4 = 2 tiles per iteration, 3 iterations)
+  for (int col = 0; col < 3; ++col) {
+    int x = obj.x_ + (col * 2);  // 2 tiles per column (left and right of pair)
+    
+    // Draw the tile pair at 3 Y positions
+    // Rows 0-1
+    WriteTile8(bg, x, obj.y_, tiles[0]);
+    WriteTile8(bg, x + 1, obj.y_, tiles[0]);
+    WriteTile8(bg, x, obj.y_ + 1, tiles[1]);
+    WriteTile8(bg, x + 1, obj.y_ + 1, tiles[1]);
+    
+    // Rows 3-4 (skip row 2)
+    WriteTile8(bg, x, obj.y_ + 3, tiles[0]);
+    WriteTile8(bg, x + 1, obj.y_ + 3, tiles[0]);
+    WriteTile8(bg, x, obj.y_ + 4, tiles[1]);
+    WriteTile8(bg, x + 1, obj.y_ + 4, tiles[1]);
+    
+    // Rows 6-7 (skip row 5)
+    WriteTile8(bg, x, obj.y_ + 6, tiles[0]);
+    WriteTile8(bg, x + 1, obj.y_ + 6, tiles[0]);
+    WriteTile8(bg, x, obj.y_ + 7, tiles[1]);
+    WriteTile8(bg, x + 1, obj.y_ + 7, tiles[1]);
+  }
+}
+
+void ObjectDrawer::DrawActual4x4(const RoomObject& obj,
+                                 gfx::BackgroundBuffer& bg,
+                                 std::span<const gfx::TileInfo> tiles,
+                                 [[maybe_unused]] const DungeonState* state) {
+  // ASM: RoomDraw_4x4 at $0197ED - draws exactly 4 columns x 4 rows = 16 tiles
+  // This is an actual 4x4 tile8 pattern (32x32 pixels), NO repetition
+  // Used for: 0xFE6 (pit) and other single 4x4 objects
+  // Tile order is COLUMN-MAJOR: tiles advance down each column, then right
+  
+  if (tiles.size() < 16) return;
+  
+  int tid = 0;
+  for (int x = 0; x < 4; ++x) {
+    for (int y = 0; y < 4; ++y) {
+      WriteTile8(bg, obj.x_ + x, obj.y_ + y, tiles[tid++]);
+    }
+  }
+}
+
 void ObjectDrawer::DrawGanonTriforceFloorDecor(const RoomObject& obj,
                                                gfx::BackgroundBuffer& bg,
                                                std::span<const gfx::TileInfo> tiles,
@@ -4293,32 +4579,72 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(const 
       }
       break;
 
-    case 1:  // 2x4 elongated horizontal
-    case 2:
-    case 3:
-      width = 16;
-      height = 32;
+    case 1:  // RoomDraw_Rightwards2x4_1to15or26 (layout walls 0x01-0x02)
+    {
+      // ASM: GetSize_1to15or26 - defaults to 26 when size is 0
+      int effective_size = (size == 0) ? 26 : (size & 0x0F);
+      // Draws 2x4 tiles repeated 'effective_size' times horizontally
+      width = effective_size * 16;  // 2 tiles wide per repetition
+      height = 32;  // 4 tiles tall
       break;
+    }
+    case 2:  // RoomDraw_Rightwards2x4spaced4_1to16 (objects 0x03-0x04)
+    case 3:  // RoomDraw_Rightwards2x4spaced4_1to16_BothBG (objects 0x05-0x06)
+    {
+      // ASM: GetSize_1to16, draws 2x4 tiles with 4-tile adjacent spacing
+      size = size & 0x0F;
+      int count = size + 1;
+      width = count * 16;  // 2 tiles wide per repetition (adjacent)
+      height = 32;  // 4 tiles tall
+      break;
+    }
 
     case 5:  // DrawDiagonalAcute_1to16
     case 6:  // DrawDiagonalGrave_1to16
+    {
+      // ASM: RoomDraw_DiagonalAcute/Grave_1to16
+      // Uses LDA #$0007; JSR RoomDraw_GetSize_1to16_timesA
+      // count = size + 7
+      // Each iteration draws 5 tiles vertically (RoomDraw_2x2and1 pattern)
+      // Width = count tiles, Height = 5 tiles base + (count-1) diagonal offset
+      size = size & 0x0F;
+      int count = size + 7;
+      width = count * 8;
+      height = (count + 4) * 8;  // 5 tiles + (count-1) = count + 4
+      break;
+    }
     case 17: // DrawDiagonalAcute_1to16_BothBG
     case 18: // DrawDiagonalGrave_1to16_BothBG
-      // Diagonal patterns (Walls 0x10-0x1F map here)
-      // Actual draw routines use count = size + 7 iterations
-      // Each step advances X by 1 tile, Y changes by 1 tile (up or down)
-      // Total width/height = (size + 7) * 8 pixels
+    {
+      // ASM: RoomDraw_DiagonalAcute/Grave_1to16_BothBG
+      // Uses LDA #$0006; JSR RoomDraw_GetSize_1to16_timesA
+      // count = size + 6 (one less than non-BothBG)
       size = size & 0x0F;
-      width = (size + 7) * 8;
-      height = (size + 7) * 8;
+      int count = size + 6;
+      width = count * 8;
+      height = (count + 4) * 8;  // 5 tiles + (count-1) = count + 4
       break;
+    }
 
-    case 8:  // 4x2 (vertical)
-    case 9:
-    case 10:
-      width = 32;
-      height = 16;
+    case 8:  // RoomDraw_Downwards4x2_1to15or26 (layout walls 0x61-0x62)
+    {
+      // ASM: GetSize_1to15or26 - defaults to 26 when size is 0
+      int effective_size = (size == 0) ? 26 : (size & 0x0F);
+      // Draws 4x2 tiles repeated 'effective_size' times vertically
+      width = 32;  // 4 tiles wide
+      height = effective_size * 16;  // 2 tiles tall per repetition
       break;
+    }
+    case 9:  // RoomDraw_Downwards4x2_1to16_BothBG (objects 0x63-0x64)
+    case 10: // RoomDraw_DownwardsDecor4x2spaced4_1to16 (objects 0x65-0x66)
+    {
+      // ASM: GetSize_1to16, draws 4x2 tiles with spacing
+      size = size & 0x0F;
+      int count = size + 1;
+      width = 32;  // 4 tiles wide
+      height = count * 16;  // 2 tiles tall per repetition (adjacent)
+      break;
+    }
 
     case 12: // 2x2 downwards extended
     case 13:
@@ -4331,6 +4657,7 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(const 
       break;
 
     case 16: // DrawRightwards4x4_1to16 (Routine 16)
+    case 19: // DrawCorner4x4 (Type 2 corners 0x100-0x103)
     case 34: // Water Face (4x4)
     case 35: // 4x4 Corner BothBG
     case 36: // Weird Corner Bottom
@@ -4350,17 +4677,44 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(const 
       break;
     }
 
-    case 20: // Edge 1x2
-      width = 8;
+    case 20: // Edge 1x2 (RoomDraw_Rightwards1x2_1to16_plus2)
+    {
+      // ASM: count = (size * 2) + 1, draws 1x2 tiles
+      size = size & 0x0F;
+      int count = (size * 2) + 1;
+      width = count * 8;
       height = 16;
       break;
+    }
 
-    case 21: // Edge 1x1
-    case 22: // Edge 1x1
-    case 25: // Solid 1x1
-      width = 8;
+    case 21: // RoomDraw_RightwardsHasEdge1x1_1to16_plus3 (small rails 0x22)
+    {
+      // ASM: GetSize_1to16_timesA(2), count = (size + 1) * 2
+      // Plus corner (1) + end (1) = count + 2 total width
+      size = size & 0x0F;
+      int count = (size + 1) * 2;
+      width = (count + 2) * 8;  // corner + middle*count + end
       height = 8;
       break;
+    }
+    case 22: // RoomDraw_RightwardsHasEdge1x1_1to16_plus2 (carpet trim 0x23-0x2E)
+    {
+      // ASM: GetSize_1to16, count = size + 1
+      // Plus corner (1) + end (1) = count + 2 total width
+      size = size & 0x0F;
+      int count = size + 1;
+      width = (count + 2) * 8;  // corner + middle*count + end
+      height = 8;
+      break;
+    }
+    case 25: // RoomDraw_Rightwards1x1Solid_1to16_plus3
+    {
+      // ASM: GetSize_1to16_timesA(4), so count = size + 4
+      size = size & 0x0F;
+      width = (size + 4) * 8;
+      height = 8;
+      break;
+    }
 
     case 23: // RightwardsTopCorners1x2_1to16_plus13
     case 24: // RightwardsBottomCorners1x2_1to16_plus13
@@ -4370,31 +4724,80 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(const 
       break;
 
     case 26: // Door Switcher
-    case 27: // Decor 4x4
       width = 32;
       height = 32;
       break;
 
-    case 28: // Statue 2x3
-      width = 16;
-      height = 24;
+    case 27: // RoomDraw_RightwardsDecor4x4spaced2_1to16
+    {
+      // 4x4 tiles with 6-tile X spacing per repetition
+      // ASM: s * 6 spacing, count = size + 1
+      size = size & 0x0F;
+      int count = size + 1;
+      // Total width = (count - 1) * 6 (spacing) + 4 (last block)
+      width = ((count - 1) * 6 + 4) * 8;
+      height = 32;  // 4 tiles
       break;
+    }
 
-    case 29: // Pillar 2x4
-      width = 16;
-      height = 32;
+    case 28: // RoomDraw_RightwardsStatue2x3spaced2_1to16
+    {
+      // 2x3 tiles with 4-tile X spacing per repetition
+      // ASM: s * 4 spacing, count = size + 1
+      size = size & 0x0F;
+      int count = size + 1;
+      // Total width = (count - 1) * 4 (spacing) + 2 (last block)
+      width = ((count - 1) * 4 + 2) * 8;
+      height = 24;  // 3 tiles
       break;
+    }
 
-    case 30: // Decor 4x3
-      width = 32;
-      height = 24;
+    case 29: // RoomDraw_RightwardsPillar2x4spaced4_1to16
+    {
+      // 2x4 tiles with 4-tile X spacing per repetition
+      // ASM: ADC #$0008 = 4 tiles between starts
+      size = size & 0x0F;
+      int count = size + 1;
+      // Total width = (count - 1) * 4 (spacing) + 2 (last block)
+      width = ((count - 1) * 4 + 2) * 8;
+      height = 32;  // 4 tiles
       break;
+    }
 
-    case 31: // Doubled 2x2
-    case 32: // Decor 2x2
-      width = 16;
-      height = 16;
+    case 30: // RoomDraw_RightwardsDecor4x3spaced4_1to16
+    {
+      // 4x3 tiles with 8-tile X spacing per repetition
+      // ASM: ADC #$0008 = 8-byte advance = 4 tiles gap between 4-tile objects
+      size = size & 0x0F;
+      int count = size + 1;
+      // Total width = (count - 1) * 8 (spacing) + 4 (last block)
+      width = ((count - 1) * 8 + 4) * 8;
+      height = 24;  // 3 tiles
       break;
+    }
+
+    case 31: // RoomDraw_RightwardsDoubled2x2spaced2_1to16
+    {
+      // 4x2 tiles (doubled 2x2) with 6-tile X spacing
+      // ASM: s * 6 spacing, count = size + 1
+      size = size & 0x0F;
+      int count = size + 1;
+      // Total width = (count - 1) * 6 (spacing) + 4 (last block)
+      width = ((count - 1) * 6 + 4) * 8;
+      height = 16;  // 2 tiles
+      break;
+    }
+    case 32: // RoomDraw_RightwardsDecor2x2spaced12_1to16
+    {
+      // 2x2 tiles with 14-tile X spacing per repetition
+      // ASM: s * 14 spacing, count = size + 1
+      size = size & 0x0F;
+      int count = size + 1;
+      // Total width = (count - 1) * 14 (spacing) + 2 (last block)
+      width = ((count - 1) * 14 + 2) * 8;
+      height = 16;  // 2 tiles
+      break;
+    }
 
     case 33: // Somaria Line
       // Variable length, estimate from size
@@ -4406,6 +4809,426 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(const 
     case 38: // Nothing (RoomDraw_Nothing)
       width = 8;
       height = 8;
+      break;
+
+    case 40: // Rightwards 4x2 (FloorTile)
+    {
+      // 4 cols x 2 rows, GetSize_1to16
+      size = size & 0x0F;
+      int count = size + 1;
+      width = count * 4 * 8;  // 4 tiles per repetition
+      height = 16;  // 2 tiles
+      break;
+    }
+
+    case 41: // Rightwards Decor 1x8 spaced 12 (wall torches 0x55-0x56)
+    {
+      // ASM: 1 column x 8 rows with 12-tile horizontal spacing
+      size = size & 0x0F;
+      int count = size + 1;
+      width = ((count - 1) * 12 + 1) * 8;  // 1 tile wide per block
+      height = 64;  // 8 tiles tall
+      break;
+    }
+
+    case 42: // Rightwards Cannon Hole 4x3
+    {
+      // 4x3 tiles, GetSize_1to16
+      size = size & 0x0F;
+      int count = size + 1;
+      width = count * 4 * 8;
+      height = 24;
+      break;
+    }
+
+    case 43: // Downwards Floor 4x4
+    {
+      // 4x4 tiles, GetSize_1to16
+      size = size & 0x0F;
+      int count = size + 1;
+      width = 32;
+      height = count * 4 * 8;
+      break;
+    }
+
+    case 44: // Downwards 1x1 Solid +3
+    {
+      size = size & 0x0F;
+      width = 8;
+      height = (size + 4) * 8;
+      break;
+    }
+
+    case 45: // Downwards Decor 4x4 spaced 2
+    {
+      size = size & 0x0F;
+      int count = size + 1;
+      width = 32;
+      height = ((count - 1) * 6 + 4) * 8;
+      break;
+    }
+
+    case 46: // Downwards Pillar 2x4 spaced 2
+    {
+      size = size & 0x0F;
+      int count = size + 1;
+      width = 16;
+      height = ((count - 1) * 6 + 4) * 8;
+      break;
+    }
+
+    case 47: // Downwards Decor 3x4 spaced 4
+    {
+      size = size & 0x0F;
+      int count = size + 1;
+      width = 24;
+      height = ((count - 1) * 6 + 4) * 8;
+      break;
+    }
+
+    case 48: // Downwards Decor 2x2 spaced 12
+    {
+      size = size & 0x0F;
+      int count = size + 1;
+      width = 16;
+      height = ((count - 1) * 14 + 2) * 8;
+      break;
+    }
+
+    case 49: // Downwards Line 1x1 +1
+    {
+      size = size & 0x0F;
+      width = 8;
+      height = (size + 2) * 8;
+      break;
+    }
+
+    case 50: // Downwards Decor 2x4 spaced 8
+    {
+      size = size & 0x0F;
+      int count = size + 1;
+      width = 16;
+      height = ((count - 1) * 12 + 4) * 8;
+      break;
+    }
+
+    case 51: // Rightwards Line 1x1 +1
+    {
+      size = size & 0x0F;
+      width = (size + 2) * 8;
+      height = 8;
+      break;
+    }
+
+    case 52: // Rightwards Bar 4x3
+    {
+      size = size & 0x0F;
+      int count = size + 1;
+      width = ((count - 1) * 6 + 4) * 8;
+      height = 24;
+      break;
+    }
+
+    case 53: // Rightwards Shelf 4x4
+    {
+      size = size & 0x0F;
+      int count = size + 1;
+      width = ((count - 1) * 6 + 4) * 8;
+      height = 32;
+      break;
+    }
+
+    case 54: // Rightwards Big Rail 1x3 +5
+    {
+      size = size & 0x0F;
+      width = (size + 6) * 8;
+      height = 24;
+      break;
+    }
+
+    case 55: // Rightwards Block 2x2 spaced 2
+    {
+      size = size & 0x0F;
+      int count = size + 1;
+      width = ((count - 1) * 4 + 2) * 8;
+      height = 16;
+      break;
+    }
+
+    // Routines 56-64: SuperSquare patterns
+    // ASM: These routines use size_x = (size & 0x0F) + 1, size_y = ((size >> 4) & 0x0F) + 1
+    // Each super square unit is 4 tiles (32 pixels) in each dimension
+    case 56: // 4x4BlocksIn4x4SuperSquare
+    case 57: // 3x3FloorIn4x4SuperSquare
+    case 58: // 4x4FloorIn4x4SuperSquare
+    case 59: // 4x4FloorOneIn4x4SuperSquare
+    case 60: // 4x4FloorTwoIn4x4SuperSquare
+    case 62: // Spike2x2In4x4SuperSquare
+    {
+      int size_x = (size & 0x0F) + 1;
+      int size_y = ((size >> 4) & 0x0F) + 1;
+      width = size_x * 32;   // 4 tiles per super square
+      height = size_y * 32;  // 4 tiles per super square
+      break;
+    }
+    case 61: // BigHole4x4
+    case 63: // TableRock4x4
+    case 64: // WaterOverlay8x8
+      width = 32;
+      height = 32;
+      break;
+
+    // Routines 65-74: Various downwards/rightwards patterns
+    case 65: // DownwardsDecor3x4spaced2
+    {
+      size = size & 0x0F;
+      int count = size + 1;
+      width = 24;
+      height = ((count - 1) * 5 + 4) * 8;
+      break;
+    }
+
+    case 66: // DownwardsBigRail3x1 +5
+    {
+      // Top cap (2x2) + Middle (2x1 x count) + Bottom cap (2x3)
+      // Total: 2 tiles wide, 2 + (size+1) + 3 = size + 6 tiles tall
+      size = size & 0x0F;
+      width = 16;  // 2 tiles wide
+      height = (size + 6) * 8;
+      break;
+    }
+
+    case 67: // DownwardsBlock2x2spaced2
+    {
+      size = size & 0x0F;
+      int count = size + 1;
+      width = 16;
+      height = ((count - 1) * 4 + 2) * 8;
+      break;
+    }
+
+    case 68: // DownwardsCannonHole3x6
+    {
+      size = size & 0x0F;
+      int count = size + 1;
+      width = 24;
+      height = count * 6 * 8;
+      break;
+    }
+
+    case 69: // DownwardsBar2x3
+    {
+      size = size & 0x0F;
+      int count = size + 1;
+      width = 16;
+      height = ((count - 1) * 3 + 3) * 8;
+      break;
+    }
+
+    case 70: // DownwardsPots2x2
+    case 71: // DownwardsHammerPegs2x2
+    {
+      size = size & 0x0F;
+      int count = size + 1;
+      width = 16;
+      height = count * 2 * 8;
+      break;
+    }
+
+    case 72: // RightwardsEdge1x1 +7
+    {
+      size = size & 0x0F;
+      width = (size + 8) * 8;
+      height = 8;
+      break;
+    }
+
+    case 73: // RightwardsPots2x2
+    case 74: // RightwardsHammerPegs2x2
+    {
+      size = size & 0x0F;
+      int count = size + 1;
+      width = count * 2 * 8;
+      height = 16;
+      break;
+    }
+
+    // Diagonal ceilings (75-78) - TRIANGLE shapes
+    // Draw uses count = (size & 0x0F) + 4
+    // Outline uses smaller size since triangle only fills half the square area
+    case 75: // DiagonalCeilingTopLeft - triangle at origin
+    case 76: // DiagonalCeilingBottomLeft - triangle at origin
+    {
+      // Smaller outline for triangle - use half the drawn area
+      int count = (size & 0x0F) + 2;
+      width = count * 8;
+      height = count * 8;
+      break;
+    }
+    case 77: // DiagonalCeilingTopRight - triangle shifts diagonally
+    case 78: // DiagonalCeilingBottomRight - triangle shifts diagonally
+    {
+      // Smaller outline for diagonal triangles
+      int count = (size & 0x0F) + 2;
+      width = count * 8;
+      height = count * 8;
+      break;
+    }
+
+    // Special platform routines (79-82)
+    case 79: // ClosedChestPlatform
+    case 80: // MovingWallWest
+    case 81: // MovingWallEast
+    case 82: // OpenChestPlatform
+      width = 64;  // 8 tiles wide
+      height = 64;  // 8 tiles tall
+      break;
+
+    // Stair and special routines (83-110)
+    case 83: // InterRoomFatStairsUp
+    case 84: // InterRoomFatStairsDownA
+    case 85: // InterRoomFatStairsDownB
+    case 86: // AutoStairs
+    case 87: // StraightInterroomStairs
+    case 88: // SpiralStairsGoingUpUpper
+    case 89: // SpiralStairsGoingDownUpper
+    case 90: // SpiralStairsGoingUpLower
+    case 91: // SpiralStairsGoingDownLower
+      // ASM: RoomDraw_1x3N_rightwards with A=4 -> 4 columns x 3 rows
+      width = 32;   // 4 tiles
+      height = 24;  // 3 tiles
+      break;
+
+    case 92: // BigKeyLock
+      width = 16;
+      height = 24;
+      break;
+
+    case 93: // BombableFloor
+      width = 32;
+      height = 32;
+      break;
+
+    case 94: // EmptyWaterFace
+    case 95: // SpittingWaterFace
+    case 96: // DrenchingWaterFace
+      width = 32;
+      height = 32;
+      break;
+
+    case 97: // PrisonCell
+      width = 32;
+      height = 48;
+      break;
+
+    case 98: // Bed4x5
+      width = 32;
+      height = 40;
+      break;
+
+    case 99: // Rightwards3x6
+      width = 24;
+      height = 48;
+      break;
+
+    case 100: // Utility6x3
+      width = 48;
+      height = 24;
+      break;
+
+    case 101: // Utility3x5
+      width = 24;
+      height = 40;
+      break;
+
+    case 102: // VerticalTurtleRockPipe
+      width = 16;
+      height = 48;
+      break;
+
+    case 103: // HorizontalTurtleRockPipe
+      width = 48;
+      height = 16;
+      break;
+
+    case 104: // LightBeam
+      width = 16;
+      height = 32;
+      break;
+
+    case 105: // BigLightBeam
+      width = 32;
+      height = 64;
+      break;
+
+    case 106: // BossShell4x4
+      width = 32;
+      height = 32;
+      break;
+
+    case 107: // SolidWallDecor3x4
+      width = 24;
+      height = 32;
+      break;
+
+    case 108: // ArcheryGameTargetDoor
+      width = 24;
+      height = 48;
+      break;
+
+    case 109: // GanonTriforceFloorDecor
+      width = 32;
+      height = 64;
+      break;
+
+    case 110: // Single2x2
+      width = 16;
+      height = 16;
+      break;
+
+    case 111: // Waterfall47 (object 0x47)
+    {
+      // ASM: count = (size+1)*2, draws 1x5 columns
+      // Width = first column + middle columns + last column = 2 + count tiles
+      size = size & 0x0F;
+      int count = (size + 1) * 2;
+      width = (2 + count) * 8;
+      height = 40;  // 5 tiles
+      break;
+    }
+    case 112: // Waterfall48 (object 0x48)
+    {
+      // ASM: count = (size+1)*2, draws 1x3 columns
+      // Width = first column + middle columns + last column = 2 + count tiles
+      size = size & 0x0F;
+      int count = (size + 1) * 2;
+      width = (2 + count) * 8;
+      height = 24;  // 3 tiles
+      break;
+    }
+
+    case 113: // Single4x4 (no repetition) - 4x4 TILE16 = 8x8 TILE8
+      // 4 tile16 wide x 4 tile16 tall = 8 tile8 x 8 tile8 = 64x64 pixels
+      width = 64;
+      height = 64;
+      break;
+
+    case 114: // Single4x3 (no repetition)
+      // 4 tiles wide x 3 tiles tall = 32x24 pixels
+      width = 32;
+      height = 24;
+      break;
+
+    case 115: // RupeeFloor (special pattern)
+      // 6 tiles wide (3 columns x 2 tiles) x 8 tiles tall = 48x64 pixels
+      width = 48;
+      height = 64;
+      break;
+
+    case 116: // Actual4x4 (true 4x4 tile8 pattern, no repetition)
+      // 4 tile8s x 4 tile8s = 32x32 pixels
+      width = 32;
+      height = 32;
       break;
 
     default:
