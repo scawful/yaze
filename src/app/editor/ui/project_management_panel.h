@@ -42,11 +42,15 @@ class ProjectManagementPanel {
   using SwapRomCallback = std::function<void()>;
   using ReloadRomCallback = std::function<void()>;
   using SaveProjectCallback = std::function<void()>;
+  using BrowseFolderCallback = std::function<void(const std::string& type)>;
 
   void SetSwapRomCallback(SwapRomCallback cb) { swap_rom_callback_ = cb; }
   void SetReloadRomCallback(ReloadRomCallback cb) { reload_rom_callback_ = cb; }
   void SetSaveProjectCallback(SaveProjectCallback cb) {
     save_project_callback_ = cb;
+  }
+  void SetBrowseFolderCallback(BrowseFolderCallback cb) {
+    browse_folder_callback_ = cb;
   }
 
   // Main draw entry point
@@ -68,6 +72,7 @@ class ProjectManagementPanel {
   SwapRomCallback swap_rom_callback_;
   ReloadRomCallback reload_rom_callback_;
   SaveProjectCallback save_project_callback_;
+  BrowseFolderCallback browse_folder_callback_;
 
   // Snapshot creation UI state
   char snapshot_message_[256] = {};
@@ -76,6 +81,9 @@ class ProjectManagementPanel {
   // History cache
   std::vector<std::string> history_cache_;
   bool history_dirty_ = true;
+
+  // Project edit state
+  bool project_dirty_ = false;
 };
 
 }  // namespace editor

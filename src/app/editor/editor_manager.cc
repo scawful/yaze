@@ -300,6 +300,26 @@ EditorManager::EditorManager()
           ToastType::kError);
     }
   });
+  project_management_panel_->SetBrowseFolderCallback(
+      [this](const std::string& type) {
+        auto folder_path = util::FileDialogWrapper::ShowOpenFolderDialog();
+        if (!folder_path.empty()) {
+          if (type == "code") {
+            current_project_.code_folder = folder_path;
+            // Update assembly editor path
+            if (auto* editor_set = GetCurrentEditorSet()) {
+              editor_set->GetAssemblyEditor()->OpenFolder(folder_path);
+              panel_manager_.SetFileBrowserPath("Assembly", folder_path);
+            }
+          } else if (type == "assets") {
+            current_project_.assets_folder = folder_path;
+          }
+          toast_manager_.Show(
+              absl::StrFormat("%s folder set: %s", type.c_str(),
+                              folder_path.c_str()),
+              ToastType::kSuccess);
+        }
+      });
   right_panel_manager_->SetProjectManagementPanel(project_management_panel_.get());
 
   // STEP 4.6.1: Initialize LayoutCoordinator (facade for layout operations)

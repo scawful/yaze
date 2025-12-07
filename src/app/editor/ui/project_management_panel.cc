@@ -36,18 +36,12 @@ void ProjectManagementPanel::DrawProjectOverview() {
   ImGui::PopStyleColor();
   ImGui::Spacing();
 
-  // Project name
-  ImGui::TextColored(gui::GetTextSecondaryVec4(), "Name:");
-  ImGui::SameLine();
-  ImGui::Text("%s", project_->GetDisplayName().c_str());
-
-  // Project file path
+  // Project file path (read-only, click to copy)
   ImGui::TextColored(gui::GetTextSecondaryVec4(), "Path:");
   ImGui::SameLine();
   if (ImGui::Selectable(project_->filepath.c_str(), false,
                         ImGuiSelectableFlags_None,
                         ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
-    // Could copy to clipboard or open in file manager
     ImGui::SetClipboardText(project_->filepath.c_str());
     if (toast_manager_) {
       toast_manager_->Show("Path copied to clipboard", ToastType::kInfo);
@@ -57,16 +51,45 @@ void ProjectManagementPanel::DrawProjectOverview() {
     ImGui::SetTooltip("Click to copy path");
   }
 
-  // Metadata
-  if (!project_->metadata.author.empty()) {
-    ImGui::TextColored(gui::GetTextSecondaryVec4(), "Author:");
-    ImGui::SameLine();
-    ImGui::Text("%s", project_->metadata.author.c_str());
+  ImGui::Spacing();
+
+  // Editable Project Name
+  ImGui::TextColored(gui::GetTextSecondaryVec4(), "Project Name:");
+  static char name_buffer[256] = {};
+  if (name_buffer[0] == '\0' && !project_->name.empty()) {
+    strncpy(name_buffer, project_->name.c_str(), sizeof(name_buffer) - 1);
+  }
+  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+  if (ImGui::InputText("##project_name", name_buffer, sizeof(name_buffer))) {
+    project_->name = name_buffer;
+    project_dirty_ = true;
   }
 
-  if (!project_->metadata.description.empty()) {
-    ImGui::TextColored(gui::GetTextSecondaryVec4(), "Description:");
-    ImGui::TextWrapped("%s", project_->metadata.description.c_str());
+  // Editable Author
+  ImGui::TextColored(gui::GetTextSecondaryVec4(), "Author:");
+  static char author_buffer[256] = {};
+  if (author_buffer[0] == '\0' && !project_->metadata.author.empty()) {
+    strncpy(author_buffer, project_->metadata.author.c_str(),
+            sizeof(author_buffer) - 1);
+  }
+  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+  if (ImGui::InputText("##author", author_buffer, sizeof(author_buffer))) {
+    project_->metadata.author = author_buffer;
+    project_dirty_ = true;
+  }
+
+  // Editable Description
+  ImGui::TextColored(gui::GetTextSecondaryVec4(), "Description:");
+  static char desc_buffer[1024] = {};
+  if (desc_buffer[0] == '\0' && !project_->metadata.description.empty()) {
+    strncpy(desc_buffer, project_->metadata.description.c_str(),
+            sizeof(desc_buffer) - 1);
+  }
+  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+  if (ImGui::InputTextMultiline("##description", desc_buffer,
+                                sizeof(desc_buffer), ImVec2(0, 60))) {
+    project_->metadata.description = desc_buffer;
+    project_dirty_ = true;
   }
 
   ImGui::Spacing();
@@ -268,30 +291,93 @@ void ProjectManagementPanel::DrawQuickActions() {
 
   float button_width = ImGui::GetContentRegionAvail().x;
 
+  // Show unsaved indicator
+  if (project_dirty_) {
+    const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+    ImGui::TextColored(gui::ConvertColorToImVec4(theme.warning),
+                       "%s Project has unsaved changes", ICON_MD_EDIT);
+    ImGui::Spacing();
+  }
+
   if (ImGui::Button(ICON_MD_SAVE " Save Project", ImVec2(button_width, 0))) {
     if (save_project_callback_) {
       save_project_callback_();
+      project_dirty_ = false;
     }
   }
 
-  // Code folder
-  if (!project_->code_folder.empty()) {
-    ImGui::Spacing();
-    ImGui::TextColored(gui::GetTextSecondaryVec4(), "Code Folder:");
-    ImGui::Text("%s", project_->code_folder.c_str());
+  ImGui::Spacing();
+
+  // Editable Code folder
+  ImGui::TextColored(gui::GetTextSecondaryVec4(), "Code Folder:");
+  static char code_buffer[512] = {};
+  if (code_buffer[0] == '\0' && !project_->code_folder.empty()) {
+    strncpy(code_buffer, project_->code_folder.c_str(),
+            sizeof(code_buffer) - 1);
+  }
+  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 32);
+  if (ImGui::InputText("##code_folder", code_buffer, sizeof(code_buffer))) {
+    project_->code_folder = code_buffer;
+    project_dirty_ = true;
+  }
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_FOLDER_OPEN "##browse_code")) {
+    if (browse_folder_callback_) {
+      browse_folder_callback_("code");
+    }
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Browse for code folder");
   }
 
-  // Assets folder
-  if (!project_->assets_folder.empty()) {
-    ImGui::TextColored(gui::GetTextSecondaryVec4(), "Assets:");
-    ImGui::Text("%s", project_->assets_folder.c_str());
+  // Editable Assets folder
+  ImGui::TextColored(gui::GetTextSecondaryVec4(), "Assets Folder:");
+  static char assets_buffer[512] = {};
+  if (assets_buffer[0] == '\0' && !project_->assets_folder.empty()) {
+    strncpy(assets_buffer, project_->assets_folder.c_str(),
+            sizeof(assets_buffer) - 1);
+  }
+  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 32);
+  if (ImGui::InputText("##assets_folder", assets_buffer,
+                       sizeof(assets_buffer))) {
+    project_->assets_folder = assets_buffer;
+    project_dirty_ = true;
+  }
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_FOLDER_OPEN "##browse_assets")) {
+    if (browse_folder_callback_) {
+      browse_folder_callback_("assets");
+    }
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Browse for assets folder");
   }
 
-  // Build configuration
-  if (!project_->build_target.empty()) {
-    ImGui::Spacing();
-    ImGui::TextColored(gui::GetTextSecondaryVec4(), "Build Target:");
-    ImGui::Text("%s", project_->build_target.c_str());
+  // Editable Build target
+  ImGui::TextColored(gui::GetTextSecondaryVec4(), "Build Target:");
+  static char build_buffer[256] = {};
+  if (build_buffer[0] == '\0' && !project_->build_target.empty()) {
+    strncpy(build_buffer, project_->build_target.c_str(),
+            sizeof(build_buffer) - 1);
+  }
+  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+  if (ImGui::InputText("##build_target", build_buffer, sizeof(build_buffer))) {
+    project_->build_target = build_buffer;
+    project_dirty_ = true;
+  }
+
+  // Build script
+  ImGui::TextColored(gui::GetTextSecondaryVec4(), "Build Script:");
+  static char script_buffer[512] = {};
+  if (script_buffer[0] == '\0' && !project_->build_script.empty()) {
+    strncpy(script_buffer, project_->build_script.c_str(),
+            sizeof(script_buffer) - 1);
+  }
+  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+  if (ImGui::InputText("##build_script", script_buffer,
+                       sizeof(script_buffer))) {
+    project_->build_script = script_buffer;
+    project_dirty_ = true;
   }
 }
 
