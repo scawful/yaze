@@ -795,6 +795,35 @@ absl::Status Overworld::LoadOverworldMaps() {
         world_type = 2;
       }
 
+      // CRITICAL: Set game_state_ BEFORE LoadAreaGraphics() because
+      // LoadSpritesBlocksets() uses game_state_ to determine static_graphics_[12-15]
+      overworld_maps_[i].set_game_state(game_state_);
+      
+      // Apply large map child handling BEFORE computing hash
+      // Must match LoadAreaInfo() logic exactly for SW maps
+      auto* map = &overworld_maps_[i];
+      if (map->is_large_map() && version == OverworldVersion::kVanilla) {
+        if (map->parent() != i && !map->is_initialized()) {
+          if (i >= kSpecialWorldMapIdStart && i <= 0x8A && i != 0x88) {
+            // Zora's Domain children - also set sprite_graphics
+            map->set_sprite_graphics(0, 0x0E);
+            map->set_sprite_graphics(1, 0x0E);
+            map->set_sprite_graphics(2, 0x0E);
+            map->set_area_graphics(
+                (*rom_)[kOverworldSpecialGfxGroup + (map->parent() - kSpecialWorldMapIdStart)]);
+            map->set_area_palette((*rom_)[kOverworldSpecialPalGroup + 1]);
+          } else if (i == 0x88) {
+            map->set_area_graphics(0x51);
+            map->set_area_palette(0x00);
+          } else if (i < kSpecialWorldMapIdStart) {
+            // LW/DW large map child - use parent's graphics
+            map->set_area_graphics((*rom_)[kAreaGfxIdPtr + map->parent()]);
+            map->set_area_palette((*rom_)[kOverworldMapPaletteIds + map->parent()]);
+          }
+          // Note: Other SW maps (>0x8A) keep their LoadAreaInfo values
+        }
+      }
+      
       // Reuse cached tilesets to reduce load time on WASM
       overworld_maps_[i].LoadAreaGraphics();
       uint64_t config_hash = ComputeGraphicsConfigHash(i);
@@ -905,6 +934,40 @@ absl::Status Overworld::EnsureMapBuilt(int map_index) {
     world_type = 2;
   }
 
+  // CRITICAL: Set game_state_ BEFORE LoadAreaGraphics() because
+  // LoadSpritesBlocksets() uses game_state_ to determine static_graphics_[12-15]
+  overworld_maps_[map_index].set_game_state(game_state_);
+  
+  // Apply large map child handling BEFORE computing hash
+  // This mirrors the logic in BuildMapWithCache that modifies area_graphics_
+  // for large map children in vanilla ROMs - must happen before hash
+  auto* map = &overworld_maps_[map_index];
+  auto version = OverworldVersionHelper::GetVersion(*rom_);
+  if (map->is_large_map() && version == OverworldVersion::kVanilla) {
+    if (map->parent() != map_index && !map->is_initialized()) {
+      // Large map child in vanilla ROM - apply special graphics handling
+      // Must match LoadAreaInfo() logic exactly for SW maps
+      if (map_index >= kSpecialWorldMapIdStart && map_index <= 0x8A &&
+          map_index != 0x88) {
+        // Zora's Domain children - also set sprite_graphics
+        map->set_sprite_graphics(0, 0x0E);
+        map->set_sprite_graphics(1, 0x0E);
+        map->set_sprite_graphics(2, 0x0E);
+        map->set_area_graphics(
+            (*rom_)[kOverworldSpecialGfxGroup + (map->parent() - kSpecialWorldMapIdStart)]);
+        map->set_area_palette((*rom_)[kOverworldSpecialPalGroup + 1]);
+      } else if (map_index == 0x88) {
+        map->set_area_graphics(0x51);
+        map->set_area_palette(0x00);
+      } else if (map_index < kSpecialWorldMapIdStart) {
+        // LW/DW large map child - use parent's graphics
+        map->set_area_graphics((*rom_)[kAreaGfxIdPtr + map->parent()]);
+        map->set_area_palette((*rom_)[kOverworldMapPaletteIds + map->parent()]);
+      }
+      // Note: Other SW maps (>0x8A) keep their LoadAreaInfo values
+    }
+  }
+  
   // Prepare graphics config to check cache (must call LoadAreaGraphics first)
   overworld_maps_[map_index].LoadAreaGraphics();
   uint64_t config_hash = ComputeGraphicsConfigHash(map_index);
@@ -940,6 +1003,17 @@ uint64_t Overworld::ComputeGraphicsConfigHash(int map_index) {
   const auto* map = &overworld_maps_[map_index];
   uint64_t hash = 0;
 
+  // CRITICAL: Include explicit world type to absolutely prevent cross-world sharing
+  // LW=0, DW=1, SW=2 - this is the strongest disambiguation
+  int world_type = 0;
+  if (map_index >= kDarkWorldMapIdStart && map_index < kSpecialWorldMapIdStart) {
+    world_type = 1;
+  } else if (map_index >= kSpecialWorldMapIdStart) {
+    world_type = 2;
+  }
+  hash ^= static_cast<uint64_t>(world_type) << 62;
+  hash *= 0x517cc1b727220a95ULL;
+
   // Hash the first 12 static graphics IDs (main blocksets)
   // Note: static_graphics_[12-15] are sprite sheets loaded using game_state_
   // which may be stale at hash time, so we handle them separately below
@@ -954,10 +1028,12 @@ uint64_t Overworld::ComputeGraphicsConfigHash(int map_index) {
   hash ^= static_cast<uint64_t>(game_state_) << 60;
   hash *= 0x517cc1b727220a95ULL;
 
-  // Include sprite_graphics values for the current game state
-  // These determine static_graphics_[12-15] which load from different blocksets
-  hash ^= static_cast<uint64_t>(map->sprite_graphics(game_state_)) << 52;
-  hash *= 0x517cc1b727220a95ULL;
+  // Include ALL sprite_graphics values since SW maps (especially Zora's Domain)
+  // have different sprite graphics (0x0E) than LW/DW maps
+  for (int i = 0; i < 3; ++i) {
+    hash ^= static_cast<uint64_t>(map->sprite_graphics(i)) << (52 + i * 4);
+    hash *= 0x517cc1b727220a95ULL;
+  }
 
   // Include area_graphics for complete config
   hash ^= static_cast<uint64_t>(map->area_graphics()) << 48;

@@ -172,6 +172,9 @@ class OverworldMap : public gfx::GfxContext {
   auto animated_gfx() const { return animated_gfx_; }
   void set_animated_gfx(uint8_t gfx) { animated_gfx_ = gfx; }
 
+  auto game_state() const { return game_state_; }
+  void set_game_state(int state) { game_state_ = state; }
+
   auto custom_tileset(int index) const { return custom_gfx_ids_[index]; }
 
   // Overlay accessors (interactive overlays)
