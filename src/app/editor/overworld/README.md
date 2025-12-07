@@ -219,15 +219,20 @@ The vanilla parent table at `0x125EC` (`kOverworldMapParentId`) only contains 64
 
 **Graphics Cache Hash:**
 
-The tileset cache uses a hash that includes:
-- `static_graphics[0-15]` - The 16 graphics sheet IDs
+The tileset cache uses a comprehensive hash that includes:
+- `static_graphics[0-11]` - Main blockset sheet IDs (excluding sprite sheets 12-15)
+- `game_state` - Game state (Beginning=0, Zelda=1, Master Sword=2, Agahnim=3) - affects sprite sheets
+- `sprite_graphics[game_state]` - Sprite graphics config for current game state
+- `area_graphics` - Area-specific graphics group ID
 - `main_gfx_id` - World-specific graphics group (LW=0x20, DW=0x21, SW=0x20/0x24)
 - `parent` - Parent map ID for sibling coordination
+- `map_index` - **Critical for SW**: Unique hardcoded configs per map (0x80 Master Sword, 0x88/0x93 Triforce, 0x95 DM clone, etc.)
 - `main_palette` - World palette (LW=0, DW=1, Death Mountain=2/3, Triforce=4)
 - `animated_gfx` - Death Mountain (0x59) vs normal water/clouds (0x5B)
 - `area_palette` - Area-specific palette configuration
+- `subscreen_overlay` - Visual effects (fog, curtains, sky, lava)
 
-This prevents cache collisions between maps that might share similar graphics configurations but belong to different worlds.
+**Important:** `static_graphics[12-15]` (sprite sheets) are loaded using `sprite_graphics_[game_state_]`, which may be stale at hash computation time. The hash includes `game_state` and `sprite_graphics` directly to avoid collisions.
 
 **Refresh Coordination:**
 

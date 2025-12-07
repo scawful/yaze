@@ -940,11 +940,24 @@ uint64_t Overworld::ComputeGraphicsConfigHash(int map_index) {
   const auto* map = &overworld_maps_[map_index];
   uint64_t hash = 0;
 
-  // Hash the 16 static graphics IDs that define the tileset configuration
-  for (int i = 0; i < 16; ++i) {
+  // Hash the first 12 static graphics IDs (main blocksets)
+  // Note: static_graphics_[12-15] are sprite sheets loaded using game_state_
+  // which may be stale at hash time, so we handle them separately below
+  for (int i = 0; i < 12; ++i) {
     hash ^= static_cast<uint64_t>(map->static_graphics(i)) << ((i % 8) * 8);
     hash *= 0x517cc1b727220a95ULL;  // FNV-like mixing
   }
+
+  // Include game_state_ to distinguish sprite sheet configurations
+  // static_graphics_[12-15] are loaded using sprite_graphics_[game_state_]
+  // which varies by game state (Beginning, Zelda Rescued, Master Sword, Agahnim)
+  hash ^= static_cast<uint64_t>(game_state_) << 60;
+  hash *= 0x517cc1b727220a95ULL;
+
+  // Include sprite_graphics values for the current game state
+  // These determine static_graphics_[12-15] which load from different blocksets
+  hash ^= static_cast<uint64_t>(map->sprite_graphics(game_state_)) << 52;
+  hash *= 0x517cc1b727220a95ULL;
 
   // Include area_graphics for complete config
   hash ^= static_cast<uint64_t>(map->area_graphics()) << 48;
@@ -956,8 +969,14 @@ uint64_t Overworld::ComputeGraphicsConfigHash(int map_index) {
   hash *= 0x517cc1b727220a95ULL;
 
   // Include parent ID to prevent cache collisions between sibling maps
-  // that might have different palette/graphics requirements based on position
   hash ^= static_cast<uint64_t>(map->parent()) << 40;
+  hash *= 0x517cc1b727220a95ULL;
+
+  // CRITICAL: Include map index for Special World disambiguation
+  // SW maps have many unique hardcoded configurations based on index:
+  // 0x80 (Master Sword), 0x88/0x93 (Triforce), 0x94, 0x95, 0x96, 0x9C
+  // These must not share cached tilesets even if other properties match
+  hash ^= static_cast<uint64_t>(map_index) << 8;
   hash *= 0x517cc1b727220a95ULL;
 
   // Include main_palette to distinguish world palettes (LW=0, DW=1, DM=2/3, etc.)
@@ -970,6 +989,11 @@ uint64_t Overworld::ComputeGraphicsConfigHash(int map_index) {
 
   // Include area_palette for final disambiguation
   hash ^= static_cast<uint64_t>(map->area_palette()) << 32;
+  hash *= 0x517cc1b727220a95ULL;
+
+  // Include subscreen overlay for visual consistency (fog, curtains, sky, lava)
+  // Different overlays can affect which tiles are visible/rendered
+  hash ^= static_cast<uint64_t>(map->subscreen_overlay());
   hash *= 0x517cc1b727220a95ULL;
 
   return hash;
