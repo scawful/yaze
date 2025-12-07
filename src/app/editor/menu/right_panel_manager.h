@@ -11,6 +11,14 @@ namespace yaze {
 
 class Rom;
 
+namespace project {
+struct YazeProject;
+}
+
+namespace core {
+class VersionManager;
+}
+
 namespace editor {
 
 // Forward declarations
@@ -19,6 +27,7 @@ class ToastManager;
 class AgentChat;
 class SettingsPanel;
 class SelectionPropertiesPanel;
+class ProjectManagementPanel;
 
 /**
  * @class RightPanelManager
@@ -48,7 +57,8 @@ class RightPanelManager {
     kSettings,
     kHelp,
     kNotifications,  // Full notification history panel
-    kProperties      // Full-editing properties panel
+    kProperties,     // Full-editing properties panel
+    kProject         // Project management panel
   };
 
   RightPanelManager() = default;
@@ -67,6 +77,9 @@ class RightPanelManager {
   void SetSettingsPanel(SettingsPanel* panel) { settings_panel_ = panel; }
   void SetPropertiesPanel(SelectionPropertiesPanel* panel) {
     properties_panel_ = panel;
+  }
+  void SetProjectManagementPanel(ProjectManagementPanel* panel) {
+    project_panel_ = panel;
   }
   void SetToastManager(ToastManager* manager) { toast_manager_ = manager; }
   void SetRom(Rom* rom) { rom_ = rom; }
@@ -162,6 +175,7 @@ class RightPanelManager {
   ProposalDrawer* proposal_drawer() const { return proposal_drawer_; }
   SettingsPanel* settings_panel() const { return settings_panel_; }
   SelectionPropertiesPanel* properties_panel() const { return properties_panel_; }
+  ProjectManagementPanel* project_panel() const { return project_panel_; }
 
  private:
   void DrawPanelHeader(const char* title, const char* icon);
@@ -171,6 +185,7 @@ class RightPanelManager {
   void DrawHelpPanel();
   void DrawNotificationsPanel();
   void DrawPropertiesPanel();
+  void DrawProjectPanel();
 
   // Help panel helpers for context-aware content
   void DrawEditorContextHeader();
@@ -202,12 +217,14 @@ class RightPanelManager {
   float help_width_ = 380.0f;        // Wider for better readability
   float notifications_width_ = 420.0f;
   float properties_width_ = 320.0f;  // Narrower for properties
+  float project_width_ = 380.0f;     // Project management panel
 
   // Component references (not owned)
   AgentChat* agent_chat_ = nullptr;
   ProposalDrawer* proposal_drawer_ = nullptr;
   SettingsPanel* settings_panel_ = nullptr;
   SelectionPropertiesPanel* properties_panel_ = nullptr;
+  ProjectManagementPanel* project_panel_ = nullptr;
   ToastManager* toast_manager_ = nullptr;
   Rom* rom_ = nullptr;
 

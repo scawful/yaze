@@ -48,6 +48,7 @@
 #include "app/editor/system/shortcut_configurator.h"
 #include "app/editor/ui/dashboard_panel.h"
 #include "app/editor/ui/popup_manager.h"
+#include "app/editor/ui/project_management_panel.h"
 #include "app/editor/ui/settings_panel.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/editor/ui/ui_coordinator.h"
@@ -260,6 +261,46 @@ EditorManager::EditorManager()
   right_panel_manager_->SetToastManager(&toast_manager_);
   right_panel_manager_->SetProposalDrawer(&proposal_drawer_);
   right_panel_manager_->SetPropertiesPanel(&selection_properties_panel_);
+
+  // Initialize ProjectManagementPanel for project/version management
+  project_management_panel_ = std::make_unique<ProjectManagementPanel>();
+  project_management_panel_->SetToastManager(&toast_manager_);
+  project_management_panel_->SetSwapRomCallback([this]() {
+    // Prompt user to select a new ROM for the project
+    auto rom_path = util::FileDialogWrapper::ShowOpenFileDialog();
+    if (!rom_path.empty()) {
+      current_project_.rom_filename = rom_path;
+      auto status = current_project_.Save();
+      if (status.ok()) {
+        toast_manager_.Show("Project ROM updated. Reload to apply changes.",
+                            ToastType::kSuccess);
+      } else {
+        toast_manager_.Show("Failed to update project ROM", ToastType::kError);
+      }
+    }
+  });
+  project_management_panel_->SetReloadRomCallback([this]() {
+    if (current_project_.project_opened() &&
+        !current_project_.rom_filename.empty()) {
+      auto status = LoadProjectWithRom();
+      if (!status.ok()) {
+        toast_manager_.Show(
+            absl::StrFormat("Failed to reload ROM: %s", status.message()),
+            ToastType::kError);
+      }
+    }
+  });
+  project_management_panel_->SetSaveProjectCallback([this]() {
+    auto status = SaveProject();
+    if (status.ok()) {
+      toast_manager_.Show("Project saved", ToastType::kSuccess);
+    } else {
+      toast_manager_.Show(
+          absl::StrFormat("Failed to save project: %s", status.message()),
+          ToastType::kError);
+    }
+  });
+  right_panel_manager_->SetProjectManagementPanel(project_management_panel_.get());
 
   // STEP 4.6.1: Initialize LayoutCoordinator (facade for layout operations)
   LayoutCoordinator::Dependencies layout_deps;
@@ -1422,6 +1463,11 @@ absl::Status EditorManager::LoadRom() {
     return absl::OkStatus();
   }
 
+  // Check if this is a project file - route to project loading
+  if (absl::StrContains(file_name, ".yaze")) {
+    return OpenRomOrProject(file_name);
+  }
+
   if (session_coordinator_->HasDuplicateSession(file_name)) {
     toast_manager_.Show("ROM already open in another session",
                         editor::ToastType::kWarning);
@@ -1734,13 +1780,15 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
 #endif
 
   if (absl::StrContains(filename, ".yaze")) {
+    // Open the project file
     RETURN_IF_ERROR(current_project_.Open(filename));
     
     // Initialize VersionManager for the project
     version_manager_ = std::make_unique<core::VersionManager>(&current_project_);
     version_manager_->InitializeGit(); // Try to init git if configured
 
-    RETURN_IF_ERROR(OpenProject());
+    // Load ROM directly from project - don't prompt user
+    return LoadProjectWithRom();
   } else {
 #ifdef __EMSCRIPTEN__
     app::platform::WasmLoadingManager::UpdateProgress(loading_handle, 0.05f);
@@ -1843,53 +1891,88 @@ absl::Status EditorManager::OpenProject() {
 
   current_project_ = std::move(new_project);
 
-  // Load ROM if specified in project
-  if (!current_project_.rom_filename.empty()) {
-    Rom temp_rom;
-    RETURN_IF_ERROR(
-        rom_file_manager_.LoadRom(&temp_rom, current_project_.rom_filename));
+  // Initialize VersionManager for the project
+  version_manager_ = std::make_unique<core::VersionManager>(&current_project_);
+  version_manager_->InitializeGit();
 
-    auto session_or = session_coordinator_->CreateSessionFromRom(
-        std::move(temp_rom), current_project_.rom_filename);
-    if (!session_or.ok()) {
-      return session_or.status();
+  return LoadProjectWithRom();
+}
+
+absl::Status EditorManager::LoadProjectWithRom() {
+  // Check if project has a ROM file specified
+  if (current_project_.rom_filename.empty()) {
+    // No ROM specified - prompt user to select one
+    toast_manager_.Show("Project has no ROM file configured. Please select a ROM.",
+                        editor::ToastType::kInfo);
+    auto rom_path = util::FileDialogWrapper::ShowOpenFileDialog();
+    if (rom_path.empty()) {
+      return absl::OkStatus();
     }
-    RomSession* session = *session_or;
+    current_project_.rom_filename = rom_path;
+    // Save updated project
+    RETURN_IF_ERROR(current_project_.Save());
+  }
 
-    ConfigureEditorDependencies(GetCurrentEditorSet(), GetCurrentRom(),
-                                GetCurrentSessionId());
+  // Load ROM from project
+  Rom temp_rom;
+  auto load_status = rom_file_manager_.LoadRom(&temp_rom, current_project_.rom_filename);
+  if (!load_status.ok()) {
+    // ROM file not found or invalid - prompt user to select new ROM
+    toast_manager_.Show(
+        absl::StrFormat("Could not load ROM '%s': %s. Please select a new ROM.",
+                        current_project_.rom_filename, load_status.message()),
+        editor::ToastType::kWarning, 5.0f);
+    
+    auto rom_path = util::FileDialogWrapper::ShowOpenFileDialog();
+    if (rom_path.empty()) {
+      return absl::OkStatus();
+    }
+    current_project_.rom_filename = rom_path;
+    RETURN_IF_ERROR(current_project_.Save());
+    RETURN_IF_ERROR(rom_file_manager_.LoadRom(&temp_rom, rom_path));
+  }
 
-    // Apply project feature flags to both session and global singleton
-    session->feature_flags = current_project_.feature_flags;
-    core::FeatureFlags::get() = current_project_.feature_flags;
+  auto session_or = session_coordinator_->CreateSessionFromRom(
+      std::move(temp_rom), current_project_.rom_filename);
+  if (!session_or.ok()) {
+    return session_or.status();
+  }
+  RomSession* session = *session_or;
 
-    // Update test manager with current ROM for ROM-dependent tests (only when
-    // tests are enabled)
+  ConfigureEditorDependencies(GetCurrentEditorSet(), GetCurrentRom(),
+                              GetCurrentSessionId());
+
+  // Apply project feature flags to both session and global singleton
+  session->feature_flags = current_project_.feature_flags;
+  core::FeatureFlags::get() = current_project_.feature_flags;
+
+  // Update test manager with current ROM for ROM-dependent tests (only when
+  // tests are enabled)
 #ifdef YAZE_ENABLE_TESTING
-    LOG_DEBUG("EditorManager", "Setting ROM in TestManager - %p ('%s')",
-              (void*)GetCurrentRom(),
-              GetCurrentRom() ? GetCurrentRom()->title().c_str() : "null");
-    test::TestManager::Get().SetCurrentRom(GetCurrentRom());
+  LOG_DEBUG("EditorManager", "Setting ROM in TestManager - %p ('%s')",
+            (void*)GetCurrentRom(),
+            GetCurrentRom() ? GetCurrentRom()->title().c_str() : "null");
+  test::TestManager::Get().SetCurrentRom(GetCurrentRom());
 #endif
 
-    if (auto* editor_set = GetCurrentEditorSet();
-        editor_set && !current_project_.code_folder.empty()) {
-      editor_set->GetAssemblyEditor()->OpenFolder(current_project_.code_folder);
-      // Also set the sidebar file browser path
-      panel_manager_.SetFileBrowserPath("Assembly",
-                                        current_project_.code_folder);
-    }
-
-    RETURN_IF_ERROR(LoadAssets());
-
-    // Hide welcome screen and show editor selection when project ROM is loaded
-    ui_coordinator_->SetWelcomeScreenVisible(false);
-    // dashboard_panel_->ClearRecentEditors();
-    ui_coordinator_->SetEditorSelectionVisible(true);
-
-    // Set Dashboard category to suppress panel drawing until user selects an editor
-    panel_manager_.SetActiveCategory(PanelManager::kDashboardCategory);
+  if (auto* editor_set = GetCurrentEditorSet();
+      editor_set && !current_project_.code_folder.empty()) {
+    editor_set->GetAssemblyEditor()->OpenFolder(current_project_.code_folder);
+    // Also set the sidebar file browser path
+    panel_manager_.SetFileBrowserPath("Assembly",
+                                      current_project_.code_folder);
   }
+
+  RETURN_IF_ERROR(LoadAssets());
+
+  // Hide welcome screen and show editor selection when project ROM is loaded
+  if (ui_coordinator_) {
+    ui_coordinator_->SetWelcomeScreenVisible(false);
+    ui_coordinator_->SetEditorSelectionVisible(true);
+  }
+
+  // Set Dashboard category to suppress panel drawing until user selects an editor
+  panel_manager_.SetActiveCategory(PanelManager::kDashboardCategory);
 
   // Apply workspace settings
   user_settings_.prefs().font_global_scale =
@@ -1904,6 +1987,13 @@ absl::Status EditorManager::OpenProject() {
   auto& manager = project::RecentFilesManager::GetInstance();
   manager.AddFile(current_project_.filepath);
   manager.Save();
+
+  // Update project management panel with loaded project
+  if (project_management_panel_) {
+    project_management_panel_->SetProject(&current_project_);
+    project_management_panel_->SetVersionManager(version_manager_.get());
+    project_management_panel_->SetRom(GetCurrentRom());
+  }
 
   toast_manager_.Show(absl::StrFormat("Project '%s' loaded successfully",
                                       current_project_.GetDisplayName()),
@@ -2160,6 +2250,18 @@ bool EditorManager::HasDuplicateSession(const std::string& filepath) {
  * - renderer: For graphics operations (dungeon/overworld editors)
  * - emulator: For accessing emulator functionality (music editor playback)
  */
+void EditorManager::ShowProjectManagement() {
+  if (right_panel_manager_) {
+    // Update project panel context before showing
+    if (project_management_panel_) {
+      project_management_panel_->SetProject(&current_project_);
+      project_management_panel_->SetVersionManager(version_manager_.get());
+      project_management_panel_->SetRom(GetCurrentRom());
+    }
+    right_panel_manager_->TogglePanel(RightPanelManager::PanelType::kProject);
+  }
+}
+
 void EditorManager::ConfigureEditorDependencies(EditorSet* editor_set, Rom* rom,
                                                 size_t session_id) {
   if (!editor_set) {

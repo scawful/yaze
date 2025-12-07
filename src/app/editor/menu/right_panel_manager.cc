@@ -5,9 +5,10 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_chat.h"
 #include "app/editor/system/proposal_drawer.h"
-#include "app/editor/ui/toast_manager.h"
+#include "app/editor/ui/project_management_panel.h"
 #include "app/editor/ui/selection_properties_panel.h"
 #include "app/editor/ui/settings_panel.h"
+#include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/platform_keys.h"
 #include "app/gui/core/style.h"
@@ -33,6 +34,8 @@ const char* GetPanelTypeName(RightPanelManager::PanelType type) {
       return "Notifications";
     case RightPanelManager::PanelType::kProperties:
       return "Properties";
+    case RightPanelManager::PanelType::kProject:
+      return "Project";
     default:
       return "Unknown";
   }
@@ -54,6 +57,8 @@ const char* GetPanelTypeIcon(RightPanelManager::PanelType type) {
       return ICON_MD_NOTIFICATIONS;
     case RightPanelManager::PanelType::kProperties:
       return ICON_MD_LIST_ALT;
+    case RightPanelManager::PanelType::kProject:
+      return ICON_MD_FOLDER_SPECIAL;
     default:
       return ICON_MD_HELP;
   }
@@ -97,6 +102,8 @@ float RightPanelManager::GetPanelWidth() const {
       return notifications_width_;
     case PanelType::kProperties:
       return properties_width_;
+    case PanelType::kProject:
+      return project_width_;
     default:
       return 0.0f;
   }
@@ -121,6 +128,9 @@ void RightPanelManager::SetPanelWidth(PanelType type, float width) {
       break;
     case PanelType::kProperties:
       properties_width_ = width;
+      break;
+    case PanelType::kProject:
+      project_width_ = width;
       break;
     default:
       break;
@@ -193,6 +203,9 @@ void RightPanelManager::Draw() {
         break;
       case PanelType::kProperties:
         DrawPropertiesPanel();
+        break;
+      case PanelType::kProject:
+        DrawProjectPanel();
         break;
       default:
         break;
@@ -1028,6 +1041,46 @@ void RightPanelManager::DrawPropertiesPanel() {
   }
 }
 
+void RightPanelManager::DrawProjectPanel() {
+  if (project_panel_) {
+    project_panel_->Draw();
+  } else {
+    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
+    ImGui::Text(ICON_MD_FOLDER_SPECIAL " No Project Loaded");
+    ImGui::PopStyleColor();
+
+    ImGui::Spacing();
+    DrawPanelDescription(
+        "Open a .yaze project file to access project management features "
+        "including ROM versioning, snapshots, and configuration.");
+
+    DrawPanelDivider();
+
+    // Placeholder for project features
+    if (BeginPanelSection("Quick Start", ICON_MD_ROCKET_LAUNCH, true)) {
+      ImGui::Bullet();
+      ImGui::TextWrapped("Create a new project via File > New Project");
+      ImGui::Bullet();
+      ImGui::TextWrapped("Open existing .yaze project files");
+      ImGui::Bullet();
+      ImGui::TextWrapped("Projects track ROM versions and settings");
+      EndPanelSection();
+    }
+
+    if (BeginPanelSection("Features", ICON_MD_CHECKLIST, false)) {
+      ImGui::Bullet();
+      ImGui::TextWrapped("Version snapshots with Git integration");
+      ImGui::Bullet();
+      ImGui::TextWrapped("ROM backup and restore");
+      ImGui::Bullet();
+      ImGui::TextWrapped("Project-specific settings");
+      ImGui::Bullet();
+      ImGui::TextWrapped("Assembly code folder integration");
+      EndPanelSection();
+    }
+  }
+}
+
 bool RightPanelManager::DrawPanelToggleButtons() {
   bool clicked = false;
 
@@ -1058,6 +1111,10 @@ bool RightPanelManager::DrawPanelToggleButtons() {
       ImGui::SetTooltip("%s", tooltip);
     }
   };
+
+  // Project button
+  DrawPanelButton(ICON_MD_FOLDER_SPECIAL, "Project Panel", PanelType::kProject);
+  ImGui::SameLine();
 
   // Agent Chat button
   DrawPanelButton(ICON_MD_SMART_TOY, "AI Agent Panel", PanelType::kAgentChat);

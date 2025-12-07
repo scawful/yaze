@@ -87,6 +87,10 @@ void MenuOrchestrator::AddFileMenuItems() {
           "Save Project As...", ICON_MD_SAVE_AS,
           [this]() { OnSaveProjectAs(); }, nullptr,
           [this]() { return CanSaveProject(); })
+      .Item(
+          "Project Management...", ICON_MD_FOLDER_SPECIAL,
+          [this]() { OnShowProjectManagement(); }, nullptr,
+          [this]() { return CanSaveProject(); })
       .Separator();
 
   // ROM Information and Validation
@@ -589,6 +593,13 @@ void MenuOrchestrator::OnSaveProjectAs() {
           absl::StrFormat("Failed to save project as: %s", status.message()),
           ToastType::kError);
     }
+  }
+}
+
+void MenuOrchestrator::OnShowProjectManagement() {
+  // Show project management panel in right sidebar
+  if (editor_manager_) {
+    editor_manager_->ShowProjectManagement();
   }
 }
 

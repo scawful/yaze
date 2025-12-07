@@ -36,6 +36,7 @@
 #include "app/editor/layout/window_delegate.h"
 #include "app/editor/ui/dashboard_panel.h"
 #include "app/editor/ui/rom_load_options_dialog.h"
+#include "app/editor/ui/project_management_panel.h"
 #include "app/editor/ui/selection_properties_panel.h"
 #include "app/editor/ui/ui_coordinator.h"
 #include "app/editor/ui/welcome_screen.h"
@@ -321,6 +322,15 @@ class EditorManager : public SessionObserver {
   absl::Status ImportProject(const std::string& project_path);
   absl::Status RepairCurrentProject();
 
+  // Project management
+  absl::Status LoadProjectWithRom();
+  project::YazeProject* GetCurrentProject() { return &current_project_; }
+  const project::YazeProject* GetCurrentProject() const { return &current_project_; }
+  core::VersionManager* GetVersionManager() { return version_manager_.get(); }
+  
+  // Show project management panel in right sidebar
+  void ShowProjectManagement();
+
  private:
   absl::Status DrawRomSelector() = delete;  // Moved to UICoordinator
   // DrawContextSensitivePanelControl removed - card control moved to sidebar
@@ -367,6 +377,9 @@ class EditorManager : public SessionObserver {
 
   // Properties panel for selection editing
   SelectionPropertiesPanel selection_properties_panel_;
+
+  // Project management panel for version control and ROM management
+  std::unique_ptr<ProjectManagementPanel> project_management_panel_;
 
 #ifdef YAZE_WITH_GRPC
   std::unique_ptr<yaze::agent::AgentControlServer> agent_control_server_;

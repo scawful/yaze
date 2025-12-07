@@ -79,6 +79,7 @@ class MenuOrchestrator {
   void OnOpenProject();
   void OnSaveProject();
   void OnSaveProjectAs();
+  void OnShowProjectManagement();
 
   // Edit menu actions (delegate to current editor)
   void OnUndo();

@@ -96,6 +96,7 @@ set(
   app/editor/menu/status_bar.cc
   app/editor/ui/settings_panel.cc
   app/editor/ui/selection_properties_panel.cc
+  app/editor/ui/project_management_panel.cc
   app/editor/menu/menu_builder.cc
   app/editor/menu/activity_bar.cc
   app/editor/ui/rom_load_options_dialog.cc
