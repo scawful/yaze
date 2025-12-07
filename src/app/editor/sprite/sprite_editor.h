@@ -10,12 +10,11 @@
 #include "app/editor/sprite/panels/sprite_editor_panels.h"
 #include "app/editor/sprite/sprite_drawer.h"
 #include "app/editor/sprite/zsprite.h"
-#include "zelda3/sprite/sprite_oam_tables.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_palette.h"
-#include "app/gui/app/editor_layout.h"
 #include "app/gui/canvas/canvas.h"
 #include "rom/rom.h"
+#include "zelda3/sprite/sprite_oam_tables.h"
 
 namespace yaze {
 namespace editor {
@@ -62,6 +61,11 @@ class SpriteEditor : public Editor {
   Rom* rom() const { return rom_; }
 
  private:
+  // ============================================================
+  // Editor-Level Methods
+  // ============================================================
+  void HandleEditorShortcuts();
+
   // ============================================================
   // Vanilla Sprite Editor Methods
   // ============================================================

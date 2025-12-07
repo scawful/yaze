@@ -16,6 +16,9 @@ namespace editor {
 
 /**
  * @brief EditorPanel for Vanilla Sprite Editor
+ *
+ * Displays the vanilla sprite browser and editor for ROM sprites.
+ * Includes sprite list, canvas preview, and tile selector.
  */
 class VanillaSpriteEditorPanel : public EditorPanel {
  public:
@@ -29,6 +32,8 @@ class VanillaSpriteEditorPanel : public EditorPanel {
   std::string GetIcon() const override { return ICON_MD_SMART_TOY; }
   std::string GetEditorCategory() const override { return "Sprite"; }
   int GetPriority() const override { return 10; }
+  bool IsVisibleByDefault() const override { return true; }
+  float GetPreferredWidth() const override { return 900.0f; }
 
   void Draw(bool* p_open) override {
     if (draw_callback_) {
@@ -42,6 +47,9 @@ class VanillaSpriteEditorPanel : public EditorPanel {
 
 /**
  * @brief EditorPanel for Custom Sprite Editor (ZSM format)
+ *
+ * Allows creating and editing custom sprites in ZSM format.
+ * Includes animation editor, properties panel, and user routines.
  */
 class CustomSpriteEditorPanel : public EditorPanel {
  public:
@@ -55,6 +63,7 @@ class CustomSpriteEditorPanel : public EditorPanel {
   std::string GetIcon() const override { return ICON_MD_ADD_CIRCLE; }
   std::string GetEditorCategory() const override { return "Sprite"; }
   int GetPriority() const override { return 20; }
+  float GetPreferredWidth() const override { return 1000.0f; }
 
   void Draw(bool* p_open) override {
     if (draw_callback_) {

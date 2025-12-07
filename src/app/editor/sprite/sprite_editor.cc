@@ -34,32 +34,19 @@ void SpriteEditor::Initialize() {
     return;
   auto* panel_manager = dependencies_.panel_manager;
 
-  panel_manager->RegisterPanel({.card_id = "sprite.vanilla_editor",
-                               .display_name = "Vanilla Sprites",
-                               .window_title = " Vanilla Sprites",
-                               .icon = ICON_MD_SMART_TOY,
-                               .category = "Sprite",
-                               .shortcut_hint = "Alt+Shift+1",
-                               .priority = 10,
-                               .enabled_condition = [this]() { return rom_->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first"});
-  panel_manager->RegisterPanel({.card_id = "sprite.custom_editor",
-                               .display_name = "Custom Sprites",
-                               .window_title = " Custom Sprites",
-                               .icon = ICON_MD_ADD_CIRCLE,
-                               .category = "Sprite",
-                               .shortcut_hint = "Alt+Shift+2",
-                               .priority = 20,
-                               .enabled_condition = [this]() { return rom_->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first"});
-
-  // Register EditorPanel implementations
+  // Register EditorPanel implementations with callbacks
+  // EditorPanels provide both metadata (icon, name, priority) and drawing logic
   panel_manager->RegisterEditorPanel(std::make_unique<VanillaSpriteEditorPanel>(
-      [this]() { DrawVanillaSpriteEditor(); }));
+      [this]() {
+        if (rom_ && rom_->is_loaded()) {
+          DrawVanillaSpriteEditor();
+        } else {
+          ImGui::TextDisabled("Load a ROM to view vanilla sprites");
+        }
+      }));
+
   panel_manager->RegisterEditorPanel(std::make_unique<CustomSpriteEditorPanel>(
       [this]() { DrawCustomSprites(); }));
-
-  panel_manager->ShowPanel(0, "sprite.vanilla_editor");
 }
 
 absl::Status SpriteEditor::Load() {
@@ -72,43 +59,50 @@ absl::Status SpriteEditor::Update() {
     sheets_loaded_ = true;
   }
 
-  // Update animation playback
+  // Update animation playback for custom sprites
   float current_time = ImGui::GetTime();
   float delta_time = current_time - last_frame_time_;
   last_frame_time_ = current_time;
   UpdateAnimationPlayback(delta_time);
 
-  if (!dependencies_.panel_manager)
-    return absl::OkStatus();
-  auto* panel_manager = dependencies_.panel_manager;
+  // Handle editor-level shortcuts
+  HandleEditorShortcuts();
 
-  static gui::PanelWindow sprite_card("Sprites", ICON_MD_BUG_REPORT);
-  sprite_card.SetPosition(gui::PanelWindow::Position::Left);
-  static gui::PanelWindow custom_card("Custom Sprites", ICON_MD_ADD_CIRCLE);
-  custom_card.SetPosition(gui::PanelWindow::Position::Left);
-
-  sprite_card.SetDefaultSize(900, 700);
-  custom_card.SetDefaultSize(1000, 700);
-
-  bool* vanilla_visible =
-      panel_manager->GetVisibilityFlag(0, "sprite.vanilla_editor");
-  if (vanilla_visible && *vanilla_visible) {
-    if (sprite_card.Begin(vanilla_visible)) {
-      DrawVanillaSpriteEditor();
-    }
-    sprite_card.End();
-  }
-
-  bool* custom_visible =
-      panel_manager->GetVisibilityFlag(0, "sprite.custom_editor");
-  if (custom_visible && *custom_visible) {
-    if (custom_card.Begin(custom_visible)) {
-      DrawCustomSprites();
-    }
-    custom_card.End();
-  }
+  // Panel drawing is handled by PanelManager via registered EditorPanels
+  // Each panel's Draw() callback invokes the appropriate draw method
 
   return status_.ok() ? absl::OkStatus() : status_;
+}
+
+void SpriteEditor::HandleEditorShortcuts() {
+  // Animation playback shortcuts (when custom sprite panel is active)
+  if (ImGui::IsKeyPressed(ImGuiKey_Space, false) && !ImGui::GetIO().WantTextInput) {
+    animation_playing_ = !animation_playing_;
+  }
+
+  // Frame navigation
+  if (ImGui::IsKeyPressed(ImGuiKey_LeftBracket, false)) {
+    if (current_frame_ > 0) {
+      current_frame_--;
+      preview_needs_update_ = true;
+    }
+  }
+  if (ImGui::IsKeyPressed(ImGuiKey_RightBracket, false)) {
+    current_frame_++;
+    preview_needs_update_ = true;
+  }
+
+  // Sprite navigation
+  if (ImGui::GetIO().KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_UpArrow, false)) {
+    if (current_sprite_id_ > 0) {
+      current_sprite_id_--;
+      vanilla_preview_needs_update_ = true;
+    }
+  }
+  if (ImGui::GetIO().KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_DownArrow, false)) {
+    current_sprite_id_++;
+    vanilla_preview_needs_update_ = true;
+  }
 }
 
 absl::Status SpriteEditor::Save() {
