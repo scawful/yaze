@@ -189,10 +189,15 @@ void Overworld::FetchLargeMaps() {
         
         // Mark siblings as checked and set their quadrants
         // Use the ROM parent value for all siblings
+        // Ensure siblings stay within the same world to prevent cross-world issues
         std::array<int, 4> siblings = {parent, parent + 1, parent + 8, parent + 9};
+        int world_start = world_offset;
+        int world_end = world_offset + 64;
         for (int q = 0; q < 4; q++) {
           int sibling = siblings[q];
-          if (sibling >= 0 && sibling < kNumOverworldMaps && !map_checked[sibling]) {
+          // Check sibling is within the same world (LW: 0-63, DW: 64-127)
+          if (sibling >= world_start && sibling < world_end && 
+              !map_checked[sibling]) {
             overworld_maps_[sibling].SetAsLargeMap(parent, q);
             map_checked[sibling] = true;
           }
@@ -930,8 +935,8 @@ void Overworld::LoadTileTypes() {
 }
 
 uint64_t Overworld::ComputeGraphicsConfigHash(int map_index) {
-  // Compute a hash from the static_graphics array (16 bytes)
-  // This determines which graphics sheets are used for this map's tileset
+  // Compute a comprehensive hash that distinguishes tileset configurations
+  // across different worlds (LW/DW/SW) and map types
   const auto* map = &overworld_maps_[map_index];
   uint64_t hash = 0;
 
@@ -941,8 +946,30 @@ uint64_t Overworld::ComputeGraphicsConfigHash(int map_index) {
     hash *= 0x517cc1b727220a95ULL;  // FNV-like mixing
   }
 
-  // Also include the area_graphics and main_gfx_id for complete config
+  // Include area_graphics for complete config
   hash ^= static_cast<uint64_t>(map->area_graphics()) << 48;
+  hash *= 0x517cc1b727220a95ULL;
+
+  // Include main_gfx_id to distinguish between worlds
+  // LW=0x20, DW=0x21, SW=0x20/0x24 - prevents cache collisions between LW/SW
+  hash ^= static_cast<uint64_t>(map->main_gfx_id()) << 56;
+  hash *= 0x517cc1b727220a95ULL;
+
+  // Include parent ID to prevent cache collisions between sibling maps
+  // that might have different palette/graphics requirements based on position
+  hash ^= static_cast<uint64_t>(map->parent()) << 40;
+  hash *= 0x517cc1b727220a95ULL;
+
+  // Include main_palette to distinguish world palettes (LW=0, DW=1, DM=2/3, etc.)
+  hash ^= static_cast<uint64_t>(map->main_palette()) << 24;
+  hash *= 0x517cc1b727220a95ULL;
+
+  // Include animated_gfx to distinguish between Death Mountain (0x59) and normal (0x5B)
+  hash ^= static_cast<uint64_t>(map->animated_gfx()) << 16;
+  hash *= 0x517cc1b727220a95ULL;
+
+  // Include area_palette for final disambiguation
+  hash ^= static_cast<uint64_t>(map->area_palette()) << 32;
   hash *= 0x517cc1b727220a95ULL;
 
   return hash;

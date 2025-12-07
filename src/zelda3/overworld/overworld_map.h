@@ -156,6 +156,7 @@ class OverworldMap : public gfx::GfxContext {
   auto static_graphics(int i) const { return static_graphics_[i]; }
   auto large_index() const { return large_index_; }
   auto area_size() const { return area_size_; }
+  auto main_gfx_id() const { return main_gfx_id_; }
 
   auto main_palette() const { return main_palette_; }
   void set_main_palette(uint8_t palette) { main_palette_ = palette; }

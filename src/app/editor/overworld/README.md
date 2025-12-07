@@ -206,6 +206,29 @@ For a parent at index `P`:
 - **Wide (2x1):** Siblings are P, P+1
 - **Tall (1x2):** Siblings are P, P+8
 
+**Parent ID Loading (Version-Specific):**
+
+The vanilla parent table at `0x125EC` (`kOverworldMapParentId`) only contains 64 entries for Light World maps. Different worlds require different handling:
+
+| Version | Light World (0x00-0x3F) | Dark World (0x40-0x7F) | Special World (0x80-0x9F) |
+|---------|-------------------------|------------------------|---------------------------|
+| v3+ | Expanded table (0x140998) with 160 entries | Same expanded table | Same expanded table |
+| Vanilla/v1/v2 | Direct lookup from 64-entry table | Mirror LW parent + 0x40 offset | Hardcoded (Zora's Domain = 0x81, others = self) |
+
+**Example:** DW map 0x43's parent = LW map 0x03's parent (0x03) + 0x40 = 0x43
+
+**Graphics Cache Hash:**
+
+The tileset cache uses a hash that includes:
+- `static_graphics[0-15]` - The 16 graphics sheet IDs
+- `main_gfx_id` - World-specific graphics group (LW=0x20, DW=0x21, SW=0x20/0x24)
+- `parent` - Parent map ID for sibling coordination
+- `main_palette` - World palette (LW=0, DW=1, Death Mountain=2/3, Triforce=4)
+- `animated_gfx` - Death Mountain (0x59) vs normal water/clouds (0x5B)
+- `area_palette` - Area-specific palette configuration
+
+This prevents cache collisions between maps that might share similar graphics configurations but belong to different worlds.
+
 **Refresh Coordination:**
 
 When any map in a multi-area group is modified, all siblings must be refreshed to maintain visual consistency. Key methods:
@@ -213,7 +236,9 @@ When any map in a multi-area group is modified, all siblings must be refreshed t
 - `InvalidateSiblingMapCaches()` - Clears graphics cache for all siblings
 - `RefreshSiblingMapGraphics()` - Forces immediate refresh of sibling bitmaps
 
-**Important:** Parent IDs are loaded from ROM in `OverworldMap` constructor for all versions. This ensures custom parent mappings in hand-edited ROMs are respected.
+**World Boundary Protection:**
+
+Sibling calculations in `FetchLargeMaps()` verify that siblings stay within the same world (LW: 0-63, DW: 64-127, SW: 128-159) to prevent cross-world corruption.
 
 **Upgrade Workflow (in `overworld_editor.cc`):**
 ```cpp

@@ -29,13 +29,31 @@ OverworldMap::OverworldMap(int index, Rom* rom, GameData* game_data)
   // This is critical for proper large map sibling coordination
   auto version = OverworldVersionHelper::GetVersion(*rom_);
   if (version >= OverworldVersion::kZSCustomV3) {
-    // For v3+, parent ID is stored in expanded table (0x140998)
+    // For v3+, parent ID is stored in expanded table (0x140998) with 160 entries
     parent_ = (*rom_)[kOverworldMapParentIdExpanded + index_];
   } else {
-    // For vanilla/v1/v2, parent ID is stored in vanilla table (0x125EC)
-    // This fixes the bug where child maps had parent_=index_ instead of 
-    // the actual parent, breaking sibling coordination in RefreshMultiAreaMapsSafely
-    parent_ = (*rom_)[kOverworldMapParentId + index_];
+    // For vanilla/v1/v2, parent ID table at 0x125EC only has 64 entries (LW only)
+    // DW maps mirror LW parents with +0x40 offset
+    // SW maps use hardcoded parent values based on vanilla game behavior
+    if (index_ < kDarkWorldMapIdStart) {
+      // Light World: direct lookup from 64-entry table
+      parent_ = (*rom_)[kOverworldMapParentId + index_];
+    } else if (index_ < kSpecialWorldMapIdStart) {
+      // Dark World: mirror LW parent structure with +0x40 offset
+      // DW map 0x43's parent = LW map 0x03's parent (from table) + 0x40
+      uint8_t lw_equivalent = index_ - kDarkWorldMapIdStart;
+      uint8_t lw_parent = (*rom_)[kOverworldMapParentId + lw_equivalent];
+      parent_ = lw_parent + kDarkWorldMapIdStart;
+    } else {
+      // Special World: hardcoded parents for vanilla compatibility
+      // Zora's Domain (0x81, 0x82, 0x89, 0x8A) is a large area with parent 0x81
+      if (index_ == 0x81 || index_ == 0x82 || index_ == 0x89 || index_ == 0x8A) {
+        parent_ = 0x81;
+      } else {
+        // All other SW maps are small areas - parent is self
+        parent_ = index_;
+      }
+    }
   }
 
   if (version != OverworldVersion::kVanilla) {
@@ -1201,11 +1219,11 @@ absl::Status OverworldMap::BuildTileset() {
     }
   }
 
-  // Process animated graphics if available (slot 16)
-  if (static_graphics_[16] != 0) {
-    ProcessGraphicsBuffer(7, static_graphics_[16], 0x1000,
-                          game_data_->graphics_buffer.data());
-  }
+  // NOTE: Previously there was code here accessing static_graphics_[16], but
+  // the array is only size 16 (indices 0-15). This was undefined behavior
+  // that read random memory and sometimes corrupted the animated graphics
+  // slot (7), causing flaky water/cloud rendering. The animated graphics
+  // are already correctly set in static_graphics_[7] by LoadDeathMountainGFX().
 
   return absl::OkStatus();
 }
