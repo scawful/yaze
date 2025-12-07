@@ -1760,8 +1760,9 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
     ConfigureEditorDependencies(GetCurrentEditorSet(), GetCurrentRom(),
                                 GetCurrentSessionId());
 
-    // Apply project feature flags to the session
+    // Apply project feature flags to both session and global singleton
     session->feature_flags = current_project_.feature_flags;
+    core::FeatureFlags::get() = current_project_.feature_flags;
 
     // Update test manager with current ROM for ROM-dependent tests (only when
     // tests are enabled)
@@ -1858,8 +1859,9 @@ absl::Status EditorManager::OpenProject() {
     ConfigureEditorDependencies(GetCurrentEditorSet(), GetCurrentRom(),
                                 GetCurrentSessionId());
 
-    // Apply project feature flags to the session
+    // Apply project feature flags to both session and global singleton
     session->feature_flags = current_project_.feature_flags;
+    core::FeatureFlags::get() = current_project_.feature_flags;
 
     // Update test manager with current ROM for ROM-dependent tests (only when
     // tests are enabled)

@@ -76,6 +76,21 @@ struct FlagsMenu {
 
   void DrawDungeonFlags() {
     Checkbox("Save Dungeon Maps", &core::FeatureFlags::get().kSaveDungeonMaps);
+    Checkbox("Enable Custom Objects", &core::FeatureFlags::get().kEnableCustomObjects);
+    ImGui::SameLine();
+    if (ImGui::Button("?##CustomObjHelp")) {
+      ImGui::OpenPopup("CustomObjectsHelp");
+    }
+    if (ImGui::BeginPopup("CustomObjectsHelp")) {
+      ImGui::Text("Enables custom dungeon object support:");
+      ImGui::BulletText("Minecart track editor panel");
+      ImGui::BulletText("Custom object graphics (0x31, 0x32)");
+      ImGui::Spacing();
+      ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), "REQUIRES:");
+      ImGui::BulletText("custom_objects_folder set in project file");
+      ImGui::BulletText("Custom object .bin files in that folder");
+      ImGui::EndPopup();
+    }
   }
 
   void DrawResourceFlags() {

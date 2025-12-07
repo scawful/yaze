@@ -8,6 +8,8 @@
 #include "util/log.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_types.h"
 #include "zelda3/dungeon/draw_routines/special_routines.h"
+#include <filesystem>
+#include "rom/rom.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 
 namespace yaze {
@@ -111,10 +113,18 @@ absl::Status ObjectDrawer::DrawObject(const RoomObject& object,
   // This matches SNES behavior where Layer 1 objects only write to BG2 tilemap.
   if (object.layer_ == RoomObject::LayerType::BG2 && !is_both_bg) {
     auto [pixel_width, pixel_height] = CalculateObjectDimensions(object);
+    
+    // DEBUG: Log BG2 mask propagation
+    printf("[BG2 Mask] Object 0x%03X at (%d,%d) size=%d -> marking %dx%d pixels transparent\n",
+           object.id_, object.x_, object.y_, object.size_, pixel_width, pixel_height);
+    fflush(stdout);
+    
     // Mark the object buffer BG1 as transparent
     MarkBG1Transparent(bg1, object.x_, object.y_, pixel_width, pixel_height);
     // Also mark the layout buffer (floor tiles) as transparent if provided
     if (layout_bg1 != nullptr) {
+      printf("[BG2 Mask] Also marking layout buffer transparent for object 0x%03X\n", object.id_);
+      fflush(stdout);
       MarkBG1Transparent(*layout_bg1, object.x_, object.y_, pixel_width,
                          pixel_height);
     }
@@ -3798,6 +3808,8 @@ void ObjectDrawer::MarkBG1Transparent(gfx::BackgroundBuffer& bg1, int tile_x,
                                        int pixel_height) {
   auto& bitmap = bg1.bitmap();
   if (!bitmap.is_active() || bitmap.width() == 0) {
+    printf("[MarkBG1Transparent] Bitmap not ready, skipping\n");
+    fflush(stdout);
     return;  // Bitmap not ready
   }
 
@@ -3807,6 +3819,8 @@ void ObjectDrawer::MarkBG1Transparent(gfx::BackgroundBuffer& bg1, int tile_x,
   int canvas_height = bitmap.height();
   auto& data = bitmap.mutable_data();
 
+  int pixels_marked = 0;
+  
   // Mark pixels as transparent (255) where BG2 overlay objects are drawn
   // This creates "holes" in BG1 that allow BG2 content to show through
   for (int py = start_py; py < start_py + pixel_height && py < canvas_height;
@@ -3818,10 +3832,16 @@ void ObjectDrawer::MarkBG1Transparent(gfx::BackgroundBuffer& bg1, int tile_x,
       int idx = py * canvas_width + px;
       if (idx >= 0 && idx < static_cast<int>(data.size())) {
         data[idx] = 255;  // 255 = transparent in our compositing system
+        pixels_marked++;
       }
     }
   }
   bitmap.set_modified(true);
+  
+  // DEBUG: Log all BG2 masking calls
+  printf("[MarkBG1Transparent] Marked %d pixels transparent at tile(%d,%d) pixel(%d,%d) size(%d,%d)\n",
+         pixels_marked, tile_x, tile_y, start_px, start_py, pixel_width, pixel_height);
+  fflush(stdout);
 }
 
 void ObjectDrawer::WriteTile8(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
@@ -4704,12 +4724,20 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(const 
       break;
 
     case 16: // DrawRightwards4x4_1to16 (Routine 16)
+    {
+      // 4x4 block repeated horizontally based on size
+      // ASM: GetSize_1to16, count = (size & 0x0F) + 1
+      int count = (size & 0x0F) + 1;
+      width = 32 * count;  // 4 tiles * 8 pixels * count
+      height = 32;         // 4 tiles * 8 pixels
+      break;
+    }
     case 19: // DrawCorner4x4 (Type 2 corners 0x100-0x103)
     case 34: // Water Face (4x4)
     case 35: // 4x4 Corner BothBG
     case 36: // Weird Corner Bottom
     case 37: // Weird Corner Top
-      // 4x4 tiles (32x32 pixels)
+      // 4x4 tiles (32x32 pixels) - fixed size, no repetition
       width = 32;
       height = 32;
       break;
@@ -5131,16 +5159,23 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(const 
       height = 64;  // 8 tiles tall
       break;
 
-    // Stair and special routines (83-110)
-    case 83: // InterRoomFatStairsUp
-    case 84: // InterRoomFatStairsDownA
-    case 85: // InterRoomFatStairsDownB
-    case 86: // AutoStairs
-    case 87: // StraightInterroomStairs
-    case 88: // SpiralStairsGoingUpUpper
-    case 89: // SpiralStairsGoingDownUpper
-    case 90: // SpiralStairsGoingUpLower
-    case 91: // SpiralStairsGoingDownLower
+    // Stair routines - different sizes for different types
+    
+    // 4x4 stair patterns (32x32 pixels)
+    case 83: // InterRoomFatStairsUp (0x12D)
+    case 84: // InterRoomFatStairsDownA (0x12E)
+    case 85: // InterRoomFatStairsDownB (0x12F)
+    case 86: // AutoStairs (0x130-0x133)
+    case 87: // StraightInterroomStairs (0xF9E-0xFA9)
+      width = 32;   // 4 tiles
+      height = 32;  // 4 tiles (4x4 pattern)
+      break;
+    
+    // 4x3 stair patterns (32x24 pixels)
+    case 88: // SpiralStairsGoingUpUpper (0x138)
+    case 89: // SpiralStairsGoingDownUpper (0x139)
+    case 90: // SpiralStairsGoingUpLower (0x13A)
+    case 91: // SpiralStairsGoingDownLower (0x13B)
       // ASM: RoomDraw_1x3N_rightwards with A=4 -> 4 columns x 3 rows
       width = 32;   // 4 tiles
       height = 24;  // 3 tiles
@@ -5291,6 +5326,43 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(const 
   }
 
   return {width, height};
+}
+
+void yaze::zelda3::ObjectDrawer::DrawCustomObject(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                                    [[maybe_unused]] std::span<const gfx::TileInfo> tiles,
+                                    [[maybe_unused]] const DungeonState* state) {
+  // CustomObjectManager should be initialized by DungeonEditorV2 with the 
+  // project's custom_objects_folder path before any objects are drawn
+  auto& manager = CustomObjectManager::Get();
+
+  int subtype = obj.size_ & 0x1F;
+  auto result = manager.GetObjectInternal(obj.id_, subtype);
+  if (!result.ok()) {
+    LOG_DEBUG("ObjectDrawer", "Custom object 0x%03X subtype %d not found: %s",
+              obj.id_, subtype, result.status().message().data());
+    return;
+  }
+
+  auto custom_obj = result.value();
+  if (!custom_obj || custom_obj->IsEmpty()) return;
+
+  int tile_y = obj.y_;
+  int tile_x = obj.x_;
+
+  for (const auto& row : custom_obj->rows) {
+    int x_offset = 0;
+    for (const auto& tile : row.tiles) {
+      // Write each 8x8 tile from the custom object data
+      WriteTile8(bg, tile_x + x_offset, tile_y, tile);
+      x_offset++;  // Move to next tile position (tiles, not pixels)
+    }
+    
+    // Stride 0x80 = move down one tile row in VRAM tilemap buffer
+    // The stride is in bytes, and tilemap entries are 2 bytes each
+    // So stride / 2 = number of tilemap entries, and width is typically 64 tiles
+    // Stride 0x80 = 128 bytes = 64 tilemap entries = 1 full row
+    tile_y++;
+  }
 }
 
 void yaze::zelda3::ObjectDrawer::DrawPotItem(uint8_t item_id, int x, int y,

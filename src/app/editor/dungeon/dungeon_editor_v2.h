@@ -30,6 +30,8 @@
 namespace yaze {
 namespace editor {
 
+class MinecartTrackEditorPanel;
+
 /**
  * @brief DungeonEditorV2 - Simplified dungeon editor using component delegation
  *
@@ -240,6 +242,7 @@ class DungeonEditorV2 : public Editor {
   DungeonRoomGraphicsPanel* room_graphics_panel_ = nullptr;
   class SpriteEditorPanel* sprite_editor_panel_ = nullptr;
   class ItemEditorPanel* item_editor_panel_ = nullptr;
+  class MinecartTrackEditorPanel* minecart_track_editor_panel_ = nullptr;
 
   // Fallback ownership for tests when PanelManager is not available.
   // In production, this remains nullptr and panels are owned by PanelManager.

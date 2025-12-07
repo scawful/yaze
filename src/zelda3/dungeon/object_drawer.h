@@ -14,6 +14,7 @@
 #include "zelda3/dungeon/door_position.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/dungeon/dungeon_state.h"
+#include "zelda3/dungeon/custom_object.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -402,6 +403,10 @@ class ObjectDrawer {
                       std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
   void DrawActual4x4(const RoomObject& obj, gfx::BackgroundBuffer& bg,
                      std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
+                     
+  // Custom Object Routine
+  void DrawCustomObject(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                        std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
 
   // Utility methods
   void WriteTile8(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,

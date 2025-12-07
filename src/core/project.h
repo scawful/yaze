@@ -95,6 +95,7 @@ struct YazeProject {
   std::string patches_folder;
   std::string labels_filename;
   std::string symbols_filename;
+  std::string custom_objects_folder;  // Folder containing custom object .bin files
 
   // Consolidated settings (previously scattered across multiple files)
   core::FeatureFlags::Flags feature_flags;

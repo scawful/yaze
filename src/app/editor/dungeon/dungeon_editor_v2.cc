@@ -37,6 +37,10 @@
 #include "app/gui/core/icons.h"
 #include "util/log.h"
 #include "util/macro.h"
+#include "core/project.h"
+#include "app/editor/dungeon/panels/minecart_track_editor_panel.h"
+#include "core/features.h"
+#include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/object_dimensions.h"
 #include "zelda3/dungeon/room.h"
@@ -291,6 +295,29 @@ absl::Status DungeonEditorV2::Load() {
         &current_room_id_, &rooms_, nullptr);
     item_editor_panel_ = item_panel.get();
     dependencies_.panel_manager->RegisterEditorPanel(std::move(item_panel));
+
+    // Feature Flag: Custom Objects / Minecart Tracks
+    if (core::FeatureFlags::get().kEnableCustomObjects) {
+      if (!minecart_track_editor_panel_) {
+        auto minecart_panel = std::make_unique<MinecartTrackEditorPanel>();
+        minecart_track_editor_panel_ = minecart_panel.get();
+        dependencies_.panel_manager->RegisterEditorPanel(std::move(minecart_panel));
+      }
+      
+      if (dependencies_.project) {
+        // Update project root for track editor
+        if (minecart_track_editor_panel_) {
+          minecart_track_editor_panel_->SetProjectRoot(
+              dependencies_.project->code_folder);
+        }
+        
+        // Initialize custom object manager with project-configured path
+        if (!dependencies_.project->custom_objects_folder.empty()) {
+          zelda3::CustomObjectManager::Get().Initialize(
+              dependencies_.project->custom_objects_folder);
+        }
+      }
+    }
   } else {
     owned_object_editor_panel_ = std::move(object_editor);
   }

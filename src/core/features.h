@@ -43,6 +43,9 @@ class FeatureFlags {
     // Enable the new tiered graphics architecture.
     bool kEnableTieredGfxArchitecture = true;
 
+    // Enable custom object panels (Custom Objects, Minecart Editor)
+    bool kEnableCustomObjects = false;
+
     // Use NFD (Native File Dialog) instead of bespoke file dialog
     // implementation.
 #if defined(YAZE_ENABLE_NFD) && YAZE_ENABLE_NFD
@@ -127,6 +130,8 @@ class FeatureFlags {
         "\n";
     result += "kEnableTieredGfxArchitecture: " +
               std::to_string(get().kEnableTieredGfxArchitecture) + "\n";
+    result += "kEnableCustomObjects: " +
+              std::to_string(get().kEnableCustomObjects) + "\n";
     return result;
   }
 };

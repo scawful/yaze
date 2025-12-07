@@ -255,6 +255,7 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
   file << "labels_filename=" << GetRelativePath(labels_filename) << "\n";
   file << "symbols_filename=" << GetRelativePath(symbols_filename) << "\n";
   file << "output_folder=" << GetRelativePath(output_folder) << "\n";
+  file << "custom_objects_folder=" << GetRelativePath(custom_objects_folder) << "\n";
   file << "additional_roms=" << absl::StrJoin(additional_roms, ",") << "\n\n";
 
   // Feature flags section
@@ -269,7 +270,9 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
   file << "save_dungeon_maps="
        << (feature_flags.kSaveDungeonMaps ? "true" : "false") << "\n";
   file << "save_graphics_sheet="
-       << (feature_flags.kSaveGraphicsSheet ? "true" : "false") << "\n\n";
+       << (feature_flags.kSaveGraphicsSheet ? "true" : "false") << "\n";
+  file << "enable_custom_objects="
+       << (feature_flags.kEnableCustomObjects ? "true" : "false") << "\n\n";
 
   // Workspace settings section
   file << "[workspace]\n";
@@ -462,6 +465,8 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         symbols_filename = value;
       else if (key == "output_folder")
         output_folder = value;
+      else if (key == "custom_objects_folder")
+        custom_objects_folder = value;
       else if (key == "additional_roms")
         additional_roms = ParseStringList(value);
     } else if (current_section == "feature_flags") {
@@ -473,6 +478,8 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         feature_flags.kSaveDungeonMaps = ParseBool(value);
       else if (key == "save_graphics_sheet")
         feature_flags.kSaveGraphicsSheet = ParseBool(value);
+      else if (key == "enable_custom_objects")
+        feature_flags.kEnableCustomObjects = ParseBool(value);
     } else if (current_section == "workspace") {
       if (key == "font_global_scale")
         workspace_settings.font_global_scale = ParseFloat(value);

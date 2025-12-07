@@ -12,13 +12,10 @@
 #include "imgui/imgui.h"
 
 // Project headers
-#include "app/editor/agent/agent_ui_theme.h"
-#include "app/gfx/render/background_buffer.h"
-#include "app/gfx/resource/arena.h"
-#include "app/gfx/types/snes_palette.h"
-#include "app/gui/canvas/canvas.h"
 #include "app/gui/widgets/asset_browser.h"
 #include "app/platform/window.h"
+#include "app/editor/agent/agent_ui_theme.h"
+#include "core/features.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/dungeon_object_editor.h"
@@ -26,7 +23,9 @@
 #include "zelda3/dungeon/dungeon_object_registry.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"  // For GetObjectName()
+#include "zelda3/dungeon/custom_object.h" // For CustomObjectManager
 
 namespace yaze::editor {
 
@@ -270,6 +269,7 @@ void DungeonObjectSelector::DrawIntegratedEditingPanels() {
       ImGui::EndTabItem();
     }
 
+    // Minecart Editor Tab
     ImGui::EndTabBar();
   }
 }
@@ -689,8 +689,102 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
       }  // end object loop
     }  // end range loop
 
-    ImGui::EndChild();
+    // Custom Objects Section
+    ImGui::PushStyleColor(ImGuiCol_Header, IM_COL32(100, 180, 120, 255));
+    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, IM_COL32(130, 210, 150, 255));
+    bool custom_open = ImGui::CollapsingHeader("Custom Objects", ImGuiTreeNodeFlags_DefaultOpen);
+    ImGui::PopStyleColor(2);
+
+    if (custom_open) {
+      int custom_col = 0;
+      auto& obj_manager = zelda3::CustomObjectManager::Get();
+      
+      // Initialize if needed (hacky lazy init if drawer hasn't done it yet)
+      // Ideally should be initialized by system. 
+      // We'll skip init here and assume ObjectDrawer did it or will do it.
+      // But we need counts. If uninitialized, counts might be wrong?
+      // GetSubtypeCount checks static lists, so it's safe even if not fully init with paths.
+
+      for (int obj_id : {0x31, 0x32}) {
+         int subtype_count = obj_manager.GetSubtypeCount(obj_id);
+         for (int subtype = 0; subtype < subtype_count; ++subtype) {
+            if (custom_col > 0) ImGui::SameLine();
+            
+            ImGui::PushID(obj_id * 1000 + subtype);
+            
+            bool is_selected = (selected_object_id_ == obj_id && (preview_object_.size_ & 0x1F) == subtype);
+            ImVec2 button_size(item_size, item_size);
+            
+            if (ImGui::Selectable("", is_selected, ImGuiSelectableFlags_AllowDoubleClick, button_size)) {
+                SelectObject(obj_id);
+                // Update size to subtype
+                preview_object_.size_ = subtype;
+                
+                if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+                   if (object_double_click_callback_) object_double_click_callback_(obj_id);
+                }
+            }
+            
+            // Draw Preview
+            ImVec2 button_pos = ImGui::GetItemRectMin();
+            ImDrawList* draw_list = ImGui::GetWindowDrawList();
+            
+            bool rendered = false;
+            // Native preview requires loaded ROM and correct pathing, might fail if not init.
+            // But we can try constructing a temp object with correct subtype.
+            if (enable_object_previews_) {
+               auto temp_obj = MakePreviewObject(obj_id);
+               temp_obj.size_ = subtype; 
+               rendered = DrawObjectPreview(temp_obj, button_pos, item_size);
+            }
+            
+            if (!rendered) {
+               // Fallback visuals
+               ImU32 obj_color = IM_COL32(100, 180, 120, 255);
+                ImU32 darker_color = IM_COL32(60, 100, 70, 255);
+
+                draw_list->AddRectFilledMultiColor(
+                    button_pos,
+                    ImVec2(button_pos.x + item_size, button_pos.y + item_size),
+                    darker_color, darker_color, obj_color, obj_color);
+
+                std::string symbol = (obj_id == 0x31) ? "Trk" : "Cus";
+                // Subtype
+                std::string sub_text = absl::StrFormat("%02X", subtype);
+                ImVec2 sub_size = ImGui::CalcTextSize(sub_text.c_str());
+                 ImVec2 sub_pos(button_pos.x + (item_size - sub_size.x) / 2,
+                                  button_pos.y + (item_size - sub_size.y) / 2);
+                draw_list->AddText(sub_pos, IM_COL32(255, 255, 255, 220), sub_text.c_str());
+            }
+            
+            // Border
+            bool is_static_editor_obj = (obj_id == static_editor_object_id_ && static_editor_object_id_ != -1); 
+            // Static editor doesn't track subtype currently, so highlighting all subtypes of 0x31 is correct 
+            // if we are editing 0x31 generic. But maybe we only edit specific subtype?
+            // Static editor usually edits the code/logic common to ID.
+             ImU32 border_color = is_selected ? ImGui::GetColorU32(theme.dungeon_selection_primary) : ImGui::GetColorU32(theme.panel_bg_darker);
+            float border_thickness = is_selected ? 3.0f : 1.0f;
+             draw_list->AddRect(
+              button_pos,
+              ImVec2(button_pos.x + item_size, button_pos.y + item_size),
+              border_color, 0.0f, 0, border_thickness);
+
+            // Name/ID
+            std::string id_text = absl::StrFormat("%02X:%02X", obj_id, subtype);
+            ImVec2 id_size = ImGui::CalcTextSize(id_text.c_str());
+            ImVec2 id_pos = ImVec2(button_pos.x + (item_size - id_size.x) / 2,
+                                     button_pos.y + item_size - id_size.y - 2);
+              draw_list->AddText(id_pos, ImGui::GetColorU32(theme.text_primary),
+                                 id_text.c_str());
+            
+            ImGui::PopID();
+            custom_col = (custom_col + 1) % columns;
+          }
+      }
+    }
   }
+
+  ImGui::EndChild();
 }
 
 bool DungeonObjectSelector::MatchesObjectFilter(int obj_id, int filter_type) {

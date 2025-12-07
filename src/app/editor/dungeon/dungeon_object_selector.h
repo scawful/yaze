@@ -18,7 +18,10 @@
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/dungeon_object_editor.h"
+#include "zelda3/dungeon/dungeon_editor_system.h"
+#include "zelda3/dungeon/dungeon_object_editor.h"
 #include "zelda3/dungeon/dungeon_object_registry.h"
+#include "app/editor/dungeon/panels/minecart_track_editor_panel.h"
 
 namespace yaze {
 namespace editor {
@@ -221,6 +224,8 @@ class DungeonObjectSelector {
 
   void InvalidatePreviewCache();
   bool GetOrCreatePreview(int obj_id, float size, gfx::BackgroundBuffer** out);
+
+  MinecartTrackEditorPanel minecart_track_editor_;
 };
 
 }  // namespace editor
