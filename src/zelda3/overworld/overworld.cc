@@ -125,73 +125,82 @@ absl::Status Overworld::Load(Rom* rom) {
 }
 
 void Overworld::FetchLargeMaps() {
-  for (int i = 128; i < 145; i++) {
-    overworld_maps_[i].SetAsSmallMap(0);
+  // For vanilla/v1/v2 ROMs, parent IDs are already loaded from ROM in the
+  // OverworldMap constructor. This function now uses those ROM values instead
+  // of recalculating them, ensuring custom parent mappings are respected.
+  //
+  // The function determines large_index_ (quadrant) based on the relationship
+  // between map index and its parent, rather than grid-walking.
+  
+  // First pass: Set up special world maps using ROM data
+  for (int i = 128; i < kNumOverworldMaps; i++) {
+    int parent = overworld_maps_[i].parent();
+    
+    if (overworld_maps_[i].is_large_map()) {
+      // Calculate quadrant based on position relative to parent
+      int quadrant = 0;
+      if (i == parent) {
+        quadrant = 0;  // Top-left (parent itself)
+      } else if (i == parent + 1) {
+        quadrant = 1;  // Top-right
+      } else if (i == parent + 8) {
+        quadrant = 2;  // Bottom-left
+      } else if (i == parent + 9) {
+        quadrant = 3;  // Bottom-right
+      }
+      // Use SetAsLargeMap but pass the ROM parent value, not a calculated one
+      overworld_maps_[i].SetAsLargeMap(parent, quadrant);
+    } else {
+      overworld_maps_[i].SetAsSmallMap(i);
+    }
   }
 
-  overworld_maps_[129].SetAsLargeMap(129, 0);
-  overworld_maps_[130].SetAsLargeMap(129, 1);
-  overworld_maps_[137].SetAsLargeMap(129, 2);
-  overworld_maps_[138].SetAsLargeMap(129, 3);
-  overworld_maps_[136].SetAsSmallMap();
-
-  // Track visited maps across both worlds. Using kNumMapsPerWorld (64) here
-  // caused stack corruption when writing siblings at +64/+72/+73.
+  // Track visited maps across LW/DW (0x00-0x7F)
   std::array<bool, kNumOverworldMaps> map_checked{};
   std::ranges::fill(map_checked, false);
 
-  int xx = 0;
-  int yy = 0;
-  while (true) {
-    if (int i = xx + (yy * 8); map_checked[i] == false) {
+  // Second pass: Process LW/DW maps using ROM parent values
+  for (int world_offset = 0; world_offset < 128; world_offset += 64) {
+    for (int local = 0; local < 64; local++) {
+      int i = world_offset + local;
+      
+      if (map_checked[i]) continue;
+      
+      int parent = overworld_maps_[i].parent();
+      
       if (overworld_maps_[i].is_large_map()) {
+        // This map is part of a large area - set up all 4 quadrants
+        // The parent value from ROM tells us which map is the parent
+        
+        // Calculate quadrant based on position relative to parent
+        int quadrant = 0;
+        if (i == parent) {
+          quadrant = 0;  // This IS the parent (top-left)
+        } else if (i == parent + 1) {
+          quadrant = 1;  // Top-right
+        } else if (i == parent + 8) {
+          quadrant = 2;  // Bottom-left
+        } else if (i == parent + 9) {
+          quadrant = 3;  // Bottom-right
+        }
+        
+        overworld_maps_[i].SetAsLargeMap(parent, quadrant);
         map_checked[i] = true;
-        overworld_maps_[i].SetAsLargeMap(i, 0);
-        if (i + 64 < kNumOverworldMaps) {
-          map_checked[i + 64] = true;
-          overworld_maps_[i + 64].SetAsLargeMap(i + 64, 0);
+        
+        // Mark siblings as checked and set their quadrants
+        // Use the ROM parent value for all siblings
+        std::array<int, 4> siblings = {parent, parent + 1, parent + 8, parent + 9};
+        for (int q = 0; q < 4; q++) {
+          int sibling = siblings[q];
+          if (sibling >= 0 && sibling < kNumOverworldMaps && !map_checked[sibling]) {
+            overworld_maps_[sibling].SetAsLargeMap(parent, q);
+            map_checked[sibling] = true;
+          }
         }
-
-        if (i + 1 < kNumOverworldMaps) {
-          map_checked[i + 1] = true;
-          overworld_maps_[i + 1].SetAsLargeMap(i, 1);
-        }
-        if (i + 65 < kNumOverworldMaps) {
-          map_checked[i + 65] = true;
-          overworld_maps_[i + 65].SetAsLargeMap(i + 64, 1);
-        }
-
-        if (i + 8 < kNumOverworldMaps) {
-          map_checked[i + 8] = true;
-          overworld_maps_[i + 8].SetAsLargeMap(i, 2);
-        }
-        if (i + 72 < kNumOverworldMaps) {
-          map_checked[i + 72] = true;
-          overworld_maps_[i + 72].SetAsLargeMap(i + 64, 2);
-        }
-
-        if (i + 9 < kNumOverworldMaps) {
-          map_checked[i + 9] = true;
-          overworld_maps_[i + 9].SetAsLargeMap(i, 3);
-        }
-        if (i + 73 < kNumOverworldMaps) {
-          map_checked[i + 73] = true;
-          overworld_maps_[i + 73].SetAsLargeMap(i + 64, 3);
-        }
-        xx++;
       } else {
-        overworld_maps_[i].SetAsSmallMap();
-        overworld_maps_[i + 64].SetAsSmallMap();
+        // Small map - parent should be itself
+        overworld_maps_[i].SetAsSmallMap(i);
         map_checked[i] = true;
-      }
-    }
-
-    xx++;
-    if (xx >= 8) {
-      xx = 0;
-      yy += 1;
-      if (yy >= 8) {
-        break;
       }
     }
   }
@@ -965,6 +974,69 @@ void Overworld::CacheTileset(uint64_t config_hash,
 
   // Cache the tileset
   gfx_config_cache_[config_hash] = {tileset, 1};
+}
+
+void Overworld::InvalidateMapCache(int map_index) {
+  if (map_index < 0 || map_index >= kNumOverworldMaps) {
+    return;
+  }
+  
+  // Compute the hash for this map's graphics configuration and remove it
+  uint64_t config_hash = ComputeGraphicsConfigHash(map_index);
+  gfx_config_cache_.erase(config_hash);
+  
+  // Also mark the map as needing rebuild
+  if (static_cast<size_t>(map_index) < overworld_maps_.size()) {
+    overworld_maps_[map_index].SetNotBuilt();
+  }
+}
+
+void Overworld::InvalidateSiblingMapCaches(int map_index) {
+  if (map_index < 0 || map_index >= kNumOverworldMaps) {
+    return;
+  }
+  
+  auto* map = mutable_overworld_map(map_index);
+  if (!map) return;
+  
+  // Get parent and determine all sibling maps
+  int parent_id = map->parent();
+  std::vector<int> siblings;
+  
+  auto version = OverworldVersionHelper::GetVersion(*rom_);
+  bool use_v3_sizes = OverworldVersionHelper::SupportsAreaEnum(version);
+  
+  if (use_v3_sizes) {
+    // v3: Use area_size enum
+    switch (map->area_size()) {
+      case AreaSizeEnum::LargeArea:
+        siblings = {parent_id, parent_id + 1, parent_id + 8, parent_id + 9};
+        break;
+      case AreaSizeEnum::WideArea:
+        siblings = {parent_id, parent_id + 1};
+        break;
+      case AreaSizeEnum::TallArea:
+        siblings = {parent_id, parent_id + 8};
+        break;
+      default:
+        siblings = {map_index};  // Small area - just this map
+        break;
+    }
+  } else {
+    // Vanilla/v1/v2: Use large_map flag
+    if (map->is_large_map()) {
+      siblings = {parent_id, parent_id + 1, parent_id + 8, parent_id + 9};
+    } else {
+      siblings = {map_index};  // Small area - just this map
+    }
+  }
+  
+  // Invalidate cache for all siblings
+  for (int sibling : siblings) {
+    if (sibling >= 0 && sibling < kNumOverworldMaps) {
+      InvalidateMapCache(sibling);
+    }
+  }
 }
 
 absl::Status Overworld::LoadSprites() {

@@ -24,12 +24,18 @@ namespace yaze::zelda3 {
 OverworldMap::OverworldMap(int index, Rom* rom, GameData* game_data)
     : index_(index), parent_(index), rom_(rom), game_data_(game_data) {
   LoadAreaInfo();
-  // Load parent ID from ROM data if available (for custom ASM versions)
+  
+  // Load parent ID from ROM data for all versions
+  // This is critical for proper large map sibling coordination
   auto version = OverworldVersionHelper::GetVersion(*rom_);
-  if (version != OverworldVersion::kVanilla &&
-      version >= OverworldVersion::kZSCustomV3) {
-    // For v3+, parent ID is stored in expanded table
+  if (version >= OverworldVersion::kZSCustomV3) {
+    // For v3+, parent ID is stored in expanded table (0x140998)
     parent_ = (*rom_)[kOverworldMapParentIdExpanded + index_];
+  } else {
+    // For vanilla/v1/v2, parent ID is stored in vanilla table (0x125EC)
+    // This fixes the bug where child maps had parent_=index_ instead of 
+    // the actual parent, breaking sibling coordination in RefreshMultiAreaMapsSafely
+    parent_ = (*rom_)[kOverworldMapParentId + index_];
   }
 
   if (version != OverworldVersion::kVanilla) {
@@ -309,21 +315,23 @@ void OverworldMap::LoadAreaInfo() {
 
 void OverworldMap::LoadCustomOverworldData() {
   // Set the main palette values based on ZScream logic
-  if (index_ < 0x40 || index_ == 0x95) {  // LW
+  // Use parent_ to ensure all sibling maps in a large area share the same palette
+  if (parent_ < 0x40 || parent_ == 0x95) {  // LW
     main_palette_ = 0;
-  } else if ((index_ >= 0x40 && index_ < 0x80) || index_ == 0x96) {  // DW
+  } else if ((parent_ >= 0x40 && parent_ < 0x80) || parent_ == 0x96) {  // DW
     main_palette_ = 1;
-  } else if (index_ >= 0x80 && index_ < 0xA0) {  // SW
+  } else if (parent_ >= 0x80 && parent_ < 0xA0) {  // SW
     main_palette_ = 0;
   }
 
-  if (index_ == 0x03 || index_ == 0x05 ||
-      index_ == 0x07) {  // LW Death Mountain
+  // Death Mountain / special overrides - use parent_ so siblings get correct palette
+  if (parent_ == 0x03 || parent_ == 0x05 ||
+      parent_ == 0x07) {  // LW Death Mountain
     main_palette_ = 2;
-  } else if (index_ == 0x43 || index_ == 0x45 ||
-             index_ == 0x47) {  // DW Death Mountain
+  } else if (parent_ == 0x43 || parent_ == 0x45 ||
+             parent_ == 0x47) {  // DW Death Mountain
     main_palette_ = 3;
-  } else if (index_ == 0x88 || index_ == 0x93) {  // Triforce room
+  } else if (parent_ == 0x88 || parent_ == 0x93) {  // Triforce room
     main_palette_ = 4;
   }
 
@@ -405,9 +413,10 @@ void OverworldMap::LoadCustomOverworldData() {
     custom_gfx_ids_[6] = 0xFF;
   }
 
-  // Set the animated GFX values
-  if (index_ == 0x03 || index_ == 0x05 || index_ == 0x07 || index_ == 0x43 ||
-      index_ == 0x45 || index_ == 0x47 || index_ == 0x95) {
+  // Set the animated GFX values - use parent_ so siblings get correct animated sheet
+  // Death Mountain uses sheet 0x59, others use 0x5B
+  if (parent_ == 0x03 || parent_ == 0x05 || parent_ == 0x07 || parent_ == 0x43 ||
+      parent_ == 0x45 || parent_ == 0x47 || parent_ == 0x95) {
     animated_gfx_ = 0x59;
   } else {
     animated_gfx_ = 0x5B;
@@ -445,22 +454,25 @@ void OverworldMap::LoadCustomOverworldData() {
 uint8_t OverworldMap::ComputeWorldBasedMainPalette() const {
   uint8_t palette = 0;
 
-  // Base world selection
-  if (index_ < 0x40 || index_ == 0x95) {  // LW
+  // Base world selection - use parent_ to ensure siblings share the same palette
+  if (parent_ < 0x40 || parent_ == 0x95) {  // LW
     palette = 0;
-  } else if ((index_ >= 0x40 && index_ < 0x80) || index_ == 0x96) {  // DW
+  } else if ((parent_ >= 0x40 && parent_ < 0x80) || parent_ == 0x96) {  // DW
     palette = 1;
-  } else if (index_ >= 0x80 && index_ < 0xA0) {  // SW
+  } else if (parent_ >= 0x80 && parent_ < 0xA0) {  // SW
     palette = 0;
   }
 
-  // Death Mountain / special overrides
-  if (index_ == 0x03 || index_ == 0x05 || index_ == 0x07) {
-    palette = 2;
-  } else if (index_ == 0x43 || index_ == 0x45 || index_ == 0x47) {
-    palette = 3;
-  } else if (index_ == 0x88 || index_ == 0x93) {
-    palette = 4;
+  // Death Mountain / special overrides - use parent_ to ensure all siblings
+  // in a large area get the correct palette (brown grass for DM)
+  // LW DM parents: 0x03, 0x05, 0x07 (children: 0x04, 0x06, 0x0B-0x0E)
+  // DW DM parents: 0x43, 0x45, 0x47 (children: 0x44, 0x46, 0x4B-0x4E)
+  if (parent_ == 0x03 || parent_ == 0x05 || parent_ == 0x07) {
+    palette = 2;  // LW Death Mountain
+  } else if (parent_ == 0x43 || parent_ == 0x45 || parent_ == 0x47) {
+    palette = 3;  // DW Death Mountain
+  } else if (parent_ == 0x88 || parent_ == 0x93) {
+    palette = 4;  // Triforce room
   }
 
   return palette;
@@ -526,8 +538,9 @@ void OverworldMap::SetupCustomTileset(uint8_t asm_version) {
     animated_gfx_ = (*rom_)[OverworldCustomAnimatedGFXArray + index_];
   } else {
     // Death mountain uses 0x59, others use 0x5B
-    if (index_ == 0x03 || index_ == 0x05 || index_ == 0x07 || index_ == 0x43 ||
-        index_ == 0x45 || index_ == 0x47 || index_ == 0x95) {
+    // Use parent_ to ensure siblings in large areas share the same animated sheet
+    if (parent_ == 0x03 || parent_ == 0x05 || parent_ == 0x07 || parent_ == 0x43 ||
+        parent_ == 0x45 || parent_ == 0x47 || parent_ == 0x95) {
       animated_gfx_ = 0x59;
     } else {
       animated_gfx_ = 0x5B;

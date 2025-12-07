@@ -176,6 +176,45 @@ static bool SupportsSubscreenOverlay(OverworldVersion version); // v3+
 | v2 | + Custom BG colors per area, Main palette selection |
 | v3 | + Area size enum (Wide 2x1, Tall 1x2), Mosaic, Animated GFX, Subscreen overlays, Tile GFX groups |
 
+### 4. Large Map / Multi-Area System
+
+The overworld uses a parent-child system to manage multi-area maps (Large 2x2, Wide 2x1, Tall 1x2).
+
+**Version-Specific Parent ID Loading:**
+
+| Version | Parent ID Source | Area Size Source |
+|---------|------------------|------------------|
+| Vanilla | `kOverworldMapParentId` (0x125EC) | `kOverworldScreenSize + (index & 0x3F)` |
+| v1 | `kOverworldMapParentId` (0x125EC) | `kOverworldScreenSize + (index & 0x3F)` |
+| v2 | `kOverworldMapParentId` (0x125EC) | `kOverworldScreenSize + (index & 0x3F)` |
+| v3+ | `kOverworldMapParentIdExpanded` (0x140998) | `kOverworldScreenSize + index` |
+
+**Area Size Enum (v3+ only):**
+```cpp
+enum class AreaSizeEnum {
+  SmallArea = 0,  // 1x1 (512x512 pixels)
+  LargeArea = 1,  // 2x2 (1024x1024 pixels)
+  WideArea = 2,   // 2x1 (1024x512 pixels) - v3 only
+  TallArea = 3,   // 1x2 (512x1024 pixels) - v3 only
+};
+```
+
+**Sibling Map Calculation:**
+
+For a parent at index `P`:
+- **Large (2x2):** Siblings are P, P+1, P+8, P+9
+- **Wide (2x1):** Siblings are P, P+1
+- **Tall (1x2):** Siblings are P, P+8
+
+**Refresh Coordination:**
+
+When any map in a multi-area group is modified, all siblings must be refreshed to maintain visual consistency. Key methods:
+- `RefreshMultiAreaMapsSafely()` - Coordinates refresh from parent perspective
+- `InvalidateSiblingMapCaches()` - Clears graphics cache for all siblings
+- `RefreshSiblingMapGraphics()` - Forces immediate refresh of sibling bitmaps
+
+**Important:** Parent IDs are loaded from ROM in `OverworldMap` constructor for all versions. This ensures custom parent mappings in hand-edited ROMs are respected.
+
 **Upgrade Workflow (in `overworld_editor.cc`):**
 ```cpp
 // Apply ZScustom ASM patch
@@ -354,6 +393,10 @@ Paint operations within 500ms are batched together to avoid creating too many un
 3. **Graphics Config Caching:**
    - Maps with identical graphics configurations share tileset data
    - `ComputeGraphicsConfigHash()` identifies identical configs
+   - Cache invalidation for sibling maps:
+     - `InvalidateSiblingMapCaches()` clears cache for all maps in a multi-area group
+     - Called when graphics properties change on any map
+     - Ensures stale tilesets aren't reused after palette/graphics changes
 
 4. **Hover Debouncing:**
    - Map building during rapid hover is delayed by 150ms

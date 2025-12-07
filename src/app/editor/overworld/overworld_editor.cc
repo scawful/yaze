@@ -18,7 +18,6 @@
 #include <memory>
 #include <new>
 #include <ostream>
-#include <set>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -1607,11 +1606,13 @@ void OverworldEditor::DrawTile8Selector() {
 
 void OverworldEditor::InvalidateGraphicsCache(int map_id) {
   if (map_id < 0) {
-    // Invalidate all maps
+    // Invalidate all maps - clear both editor cache and Overworld's tileset cache
     current_graphics_set_.clear();
+    overworld_.ClearGraphicsConfigCache();
   } else {
-    // Invalidate specific map
+    // Invalidate specific map and its siblings in the Overworld's tileset cache
     current_graphics_set_.erase(map_id);
+    overworld_.InvalidateSiblingMapCaches(map_id);
   }
 }
 
@@ -1707,9 +1708,11 @@ void OverworldEditor::DrawMapProperties() {
   // Draw popups if triggered from sidebar
   if (show_custom_bg_color_editor) {
     ImGui::OpenPopup("CustomBGColorEditor");
+    show_custom_bg_color_editor = false;  // Reset after opening
   }
   if (show_overlay_editor) {
     ImGui::OpenPopup("OverlayEditor");
+    show_overlay_editor = false;  // Reset after opening
   }
 
   if (ImGui::BeginPopup("CustomBGColorEditor")) {
@@ -2354,69 +2357,63 @@ void OverworldEditor::RefreshChildMapOnDemand(int map_index) {
  *
  * This function handles the coordination of large, wide, and tall area maps
  * by using a non-recursive approach with explicit map list processing.
- * It respects the ZScream area size logic and prevents infinite recursion.
+ * It always works from the parent perspective to ensure consistent behavior
+ * whether the trigger map is the parent or a child.
+ *
+ * Key improvements:
+ * - Uses parameter-based recursion guard instead of static set
+ * - Always works from parent perspective for consistent sibling coordination
+ * - Respects ZScream area size logic for v3+ ROMs
+ * - Falls back to large_map flag for vanilla/v2 ROMs
  */
 void OverworldEditor::RefreshMultiAreaMapsSafely(int map_index,
                                                  zelda3::OverworldMap* map) {
   using zelda3::AreaSizeEnum;
-
-  // Skip if this is already a processed sibling to avoid double-processing
-  static std::set<int> currently_processing;
-  if (currently_processing.count(map_index)) {
-    return;
-  }
 
   auto area_size = map->area_size();
   if (area_size == AreaSizeEnum::SmallArea) {
     return;  // No siblings to coordinate
   }
 
+  // Always work from parent perspective for consistent coordination
+  int parent_id = map->parent();
+  
+  // If we're not the parent, get the parent map to work from
+  auto* parent_map = overworld_.mutable_overworld_map(parent_id);
+  if (!parent_map) {
+    LOG_WARN("OverworldEditor",
+             "RefreshMultiAreaMapsSafely: Could not get parent map %d for map %d",
+             parent_id, map_index);
+    return;
+  }
+
   LOG_DEBUG(
       "OverworldEditor",
-      "RefreshMultiAreaMapsSafely: Processing %s area map %d (parent: %d)",
+      "RefreshMultiAreaMapsSafely: Processing %s area from parent %d (trigger: %d)",
       (area_size == AreaSizeEnum::LargeArea)  ? "large"
       : (area_size == AreaSizeEnum::WideArea) ? "wide"
                                               : "tall",
-      map_index, map->parent());
+      parent_id, map_index);
 
   // Determine all maps that are part of this multi-area structure
+  // based on the parent's position and area size
   std::vector<int> sibling_maps;
-  int parent_id = map->parent();
 
-  // Use the same logic as ZScream for area coordination
   switch (area_size) {
-    case AreaSizeEnum::LargeArea: {
+    case AreaSizeEnum::LargeArea:
       // Large Area: 2x2 grid (4 maps total)
-      // Parent is top-left (quadrant 0), siblings are:
-      // +1 (top-right, quadrant 1), +8 (bottom-left, quadrant 2), +9
-      // (bottom-right, quadrant 3)
       sibling_maps = {parent_id, parent_id + 1, parent_id + 8, parent_id + 9};
-      LOG_DEBUG(
-          "OverworldEditor",
-          "RefreshMultiAreaMapsSafely: Large area siblings: %d, %d, %d, %d",
-          parent_id, parent_id + 1, parent_id + 8, parent_id + 9);
       break;
-    }
 
-    case AreaSizeEnum::WideArea: {
+    case AreaSizeEnum::WideArea:
       // Wide Area: 2x1 grid (2 maps total, horizontally adjacent)
-      // Parent is left, sibling is +1 (right)
       sibling_maps = {parent_id, parent_id + 1};
-      LOG_DEBUG("OverworldEditor",
-                "RefreshMultiAreaMapsSafely: Wide area siblings: %d, %d",
-                parent_id, parent_id + 1);
       break;
-    }
 
-    case AreaSizeEnum::TallArea: {
+    case AreaSizeEnum::TallArea:
       // Tall Area: 1x2 grid (2 maps total, vertically adjacent)
-      // Parent is top, sibling is +8 (bottom)
       sibling_maps = {parent_id, parent_id + 8};
-      LOG_DEBUG("OverworldEditor",
-                "RefreshMultiAreaMapsSafely: Tall area siblings: %d, %d",
-                parent_id, parent_id + 8);
       break;
-    }
 
     default:
       LOG_WARN("OverworldEditor",
@@ -2425,15 +2422,13 @@ void OverworldEditor::RefreshMultiAreaMapsSafely(int map_index,
       return;
   }
 
-  // Mark all siblings as being processed to prevent recursion
+  // Refresh all siblings (including self if different from trigger)
+  // The trigger map (map_index) was already processed by the caller,
+  // so we skip it to avoid double-processing
   for (int sibling : sibling_maps) {
-    currently_processing.insert(sibling);
-  }
-
-  // Only refresh siblings that are visible/current and need updating
-  for (int sibling : sibling_maps) {
+    // Skip the trigger map - it was already processed by RefreshChildMapOnDemand
     if (sibling == map_index) {
-      continue;  // Skip self (already processed above)
+      continue;
     }
 
     // Bounds check
@@ -2441,77 +2436,70 @@ void OverworldEditor::RefreshMultiAreaMapsSafely(int map_index,
       continue;
     }
 
-    // Only refresh if it's visible or current
+    // Check visibility - only immediately refresh visible maps
     bool is_current_map = (sibling == current_map_);
     bool is_current_world = (sibling / 0x40 == current_world_);
-    bool needs_refresh = maps_bmp_[sibling].modified();
+    
+    // Always mark sibling as needing refresh to ensure consistency
+    maps_bmp_[sibling].set_modified(true);
 
-    if ((is_current_map || is_current_world) && needs_refresh) {
+    if (is_current_map || is_current_world) {
       LOG_DEBUG("OverworldEditor",
-                "RefreshMultiAreaMapsSafely: Refreshing %s area sibling map %d "
-                "(parent: %d)",
-                (area_size == AreaSizeEnum::LargeArea)  ? "large"
-                : (area_size == AreaSizeEnum::WideArea) ? "wide"
-                                                        : "tall",
-                sibling, parent_id);
+                "RefreshMultiAreaMapsSafely: Refreshing sibling map %d", sibling);
 
-      // Direct refresh without calling RefreshChildMapOnDemand to avoid
-      // recursion
+      // Direct refresh for visible siblings
       auto* sibling_map = overworld_.mutable_overworld_map(sibling);
-      if (sibling_map && maps_bmp_[sibling].modified()) {
-        sibling_map->LoadAreaGraphics();
+      if (!sibling_map) continue;
+      
+      sibling_map->LoadAreaGraphics();
 
-        auto status = sibling_map->BuildTileset();
-        if (status.ok()) {
-          status = sibling_map->BuildTiles16Gfx(*overworld_.mutable_tiles16(),
-                                                overworld_.tiles16().size());
-          if (status.ok()) {
-            // Load palette for the sibling map
-            status = sibling_map->LoadPalette();
-            if (status.ok()) {
-              status = sibling_map->BuildBitmap(
-                  overworld_.GetMapTiles(current_world_));
-              if (status.ok()) {
-                maps_bmp_[sibling].set_data(sibling_map->bitmap_data());
-
-                // SAFETY: Only set palette if bitmap has a valid surface
-                // Use sibling map's own loaded palette, not current map's
-                if (maps_bmp_[sibling].is_active() &&
-                    maps_bmp_[sibling].surface()) {
-                  maps_bmp_[sibling].SetPalette(sibling_map->current_palette());
-                }
-                maps_bmp_[sibling].set_modified(false);
-
-                // Queue texture update/creation
-                if (maps_bmp_[sibling].texture()) {
-                  gfx::Arena::Get().QueueTextureCommand(
-                      gfx::Arena::TextureCommandType::UPDATE,
-                      &maps_bmp_[sibling]);
-                } else {
-                  EnsureMapTexture(sibling);
-                }
-              }
-            }
-          }
-        }
-
-        if (!status.ok()) {
-          LOG_ERROR(
-              "OverworldEditor",
-              "RefreshMultiAreaMapsSafely: Failed to refresh sibling map %d: "
-              "%s",
-              sibling, status.message().data());
-        }
+      auto status = sibling_map->BuildTileset();
+      if (!status.ok()) {
+        LOG_ERROR("OverworldEditor", "Failed to build tileset for sibling %d: %s",
+                  sibling, status.message().data());
+        continue;
       }
-    } else if (!is_current_map && !is_current_world) {
-      // Mark non-visible siblings for deferred refresh
-      maps_bmp_[sibling].set_modified(true);
-    }
-  }
+      
+      status = sibling_map->BuildTiles16Gfx(*overworld_.mutable_tiles16(),
+                                            overworld_.tiles16().size());
+      if (!status.ok()) {
+        LOG_ERROR("OverworldEditor", "Failed to build tiles16 for sibling %d: %s",
+                  sibling, status.message().data());
+        continue;
+      }
+      
+      status = sibling_map->LoadPalette();
+      if (!status.ok()) {
+        LOG_ERROR("OverworldEditor", "Failed to load palette for sibling %d: %s",
+                  sibling, status.message().data());
+        continue;
+      }
+      
+      status = sibling_map->BuildBitmap(overworld_.GetMapTiles(current_world_));
+      if (!status.ok()) {
+        LOG_ERROR("OverworldEditor", "Failed to build bitmap for sibling %d: %s",
+                  sibling, status.message().data());
+        continue;
+      }
 
-  // Clear processing set after completion
-  for (int sibling : sibling_maps) {
-    currently_processing.erase(sibling);
+      // Update bitmap data
+      maps_bmp_[sibling].set_data(sibling_map->bitmap_data());
+
+      // Set palette if bitmap has a valid surface
+      if (maps_bmp_[sibling].is_active() && maps_bmp_[sibling].surface()) {
+        maps_bmp_[sibling].SetPalette(sibling_map->current_palette());
+      }
+      maps_bmp_[sibling].set_modified(false);
+
+      // Queue texture update/creation
+      if (maps_bmp_[sibling].texture()) {
+        gfx::Arena::Get().QueueTextureCommand(
+            gfx::Arena::TextureCommandType::UPDATE, &maps_bmp_[sibling]);
+      } else {
+        EnsureMapTexture(sibling);
+      }
+    }
+    // Non-visible siblings remain marked as modified for deferred refresh
   }
 }
 
@@ -2614,6 +2602,10 @@ void OverworldEditor::ForceRefreshGraphics(int map_index) {
 
     // Clear blockset cache
     current_blockset_ = 0xFF;
+    
+    // Invalidate Overworld's tileset cache for this map and siblings
+    // This ensures stale cached tilesets aren't reused after property changes
+    overworld_.InvalidateSiblingMapCaches(map_index);
 
     LOG_DEBUG("OverworldEditor",
               "ForceRefreshGraphics: Map %d marked for refresh", map_index);
@@ -3030,8 +3022,6 @@ void OverworldEditor::DrawOverworldProperties() {
     gui::EndWindowWithDisplaySettings();
   }
 }
-
-
 
 absl::Status OverworldEditor::Clear() {
   // Unregister palette listener

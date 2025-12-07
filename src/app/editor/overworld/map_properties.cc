@@ -279,13 +279,13 @@ void MapPropertiesSystem::DrawOverlayEditor(int current_map,
   Separator();
 
   if (rom_version == zelda3::OverworldVersion::kVanilla) {
-    ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.4f, 1.0f), ICON_MD_WARNING
-                       " Subscreen overlays require ZSCustomOverworld v1+");
+    ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.4f, 1.0f), ICON_MD_INFO
+                       " Enhanced overlay editing requires ZSCustomOverworld v1+");
     ImGui::Separator();
     ImGui::TextWrapped(
-        "To use visual effect overlays, you need to upgrade your ROM to "
-        "ZSCustomOverworld. This feature allows you to add atmospheric effects "
-        "like fog, rain, forest canopy, and sky backgrounds to your maps.");
+        "Subscreen overlays are a vanilla feature used for atmospheric effects "
+        "like fog, rain, and forest canopy. ZSCustomOverworld expands this by "
+        "allowing per-area overlay configuration and additional customization.");
     return;
   }
 

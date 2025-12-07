@@ -268,6 +268,18 @@ class Overworld {
   /// @brief Cache tileset data for future reuse
   void CacheTileset(uint64_t config_hash, const std::vector<uint8_t>& tileset);
 
+  /// @brief Clear entire graphics config cache
+  /// Call when palette or graphics settings change globally
+  void ClearGraphicsConfigCache() { gfx_config_cache_.clear(); }
+
+  /// @brief Invalidate cached tileset for a specific map
+  /// @param map_index The map whose cache entry should be invalidated
+  void InvalidateMapCache(int map_index);
+
+  /// @brief Invalidate cached tilesets for a map and all its siblings
+  /// @param map_index Any map in a multi-area group
+  void InvalidateSiblingMapCaches(int map_index);
+
   // ===========================================================================
   // Save Methods - Tile Data (Order Matters!)
   // ===========================================================================
