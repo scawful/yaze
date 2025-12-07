@@ -26,17 +26,15 @@ namespace zelda3 {
  * Repeats until Header is 0x0000.
  */
 struct CustomObject {
-  struct TileRow {
-    uint8_t count;
-    uint8_t stride; // In bytes (usually 0x80 for 1 row down)
-    std::vector<gfx::TileInfo> tiles;
+  struct TileMapEntry {
+    int rel_x;
+    int rel_y;
+    uint16_t tile_data; // vhopppcc cccccccc
   };
-
-  std::vector<TileRow> rows;
-  int width = 0;
-  int height = 0;
   
-  bool IsEmpty() const { return rows.empty(); }
+  std::vector<TileMapEntry> tiles;
+  
+  bool IsEmpty() const { return tiles.empty(); }
 };
 
 /**

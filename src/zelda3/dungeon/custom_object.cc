@@ -42,10 +42,10 @@ CustomObjectManager& CustomObjectManager::Get() {
 void CustomObjectManager::Initialize(const std::string& custom_objects_folder) {
   base_path_ = custom_objects_folder;
   cache_.clear();
-  LOG_INFO("CustomObjectManager", "Initialized with custom objects folder: %s", base_path_.c_str());
 }
 
-absl::StatusOr<std::shared_ptr<CustomObject>> CustomObjectManager::LoadObject(const std::string& filename) {
+absl::StatusOr<std::shared_ptr<CustomObject>> CustomObjectManager::LoadObject(
+    const std::string& filename) {
   if (cache_.contains(filename)) {
     return cache_[filename];
   }
@@ -53,18 +53,15 @@ absl::StatusOr<std::shared_ptr<CustomObject>> CustomObjectManager::LoadObject(co
   // base_path_ should be the full path to the custom objects folder (e.g., Dungeons/Objects/Data)
   std::filesystem::path full_path = std::filesystem::path(base_path_) / filename;
   
-  std::ifstream file(full_path, std::ios::binary | std::ios::ate);
-  if (!file.is_open()) {
+  std::ifstream file(full_path, std::ios::binary);
+  if (!file) {
+    LOG_ERROR("CustomObjectManager", "Failed to open file: %s", full_path.c_str());
     return absl::NotFoundError("Could not open file: " + full_path.string());
   }
 
-  std::streamsize size = file.tellg();
-  file.seekg(0, std::ios::beg);
-
-  std::vector<uint8_t> buffer(size);
-  if (!file.read(reinterpret_cast<char*>(buffer.data()), size)) {
-    return absl::InternalError("Failed to read file: " + full_path.string());
-  }
+  // Read entire file into buffer
+  std::vector<uint8_t> buffer((std::istreambuf_iterator<char>(file)),
+                              std::istreambuf_iterator<char>());
 
   auto object_or_error = ParseBinaryData(buffer);
   if (!object_or_error.ok()) {
@@ -79,75 +76,46 @@ absl::StatusOr<std::shared_ptr<CustomObject>> CustomObjectManager::LoadObject(co
 
 absl::StatusOr<CustomObject> CustomObjectManager::ParseBinaryData(const std::vector<uint8_t>& data) {
   CustomObject obj;
-  size_t offset = 0;
-  
-  while (offset + 1 < data.size()) {
-    // Read Header (Little Endian)
-    uint16_t header = data[offset] | (data[offset + 1] << 8);
-    offset += 2;
+  size_t cursor = 0;
+  int current_buffer_pos = 0; // Relative byte offset in tilemap buffer (stride 64 = 32 tiles)
 
-    if (header == 0) break; // End of list
-
-    uint8_t count = header & 0x1F;
-    uint8_t stride = (header >> 8) & 0xFF; // Usually 0x80
-
-    CustomObject::TileRow row;
-    row.count = count;
-    row.stride = stride;
-
-    // Read `count` tiles
-    for (int i = 0; i < count; ++i) {
-      if (offset + 1 >= data.size()) {
-        return absl::OutOfRangeError("Unexpected end of file while reading tiles");
-      }
-
-      uint16_t word = data[offset] | (data[offset + 1] << 8);
-      offset += 2;
-
-      // Decode tile attributes: vhopppcc cccccccc
-      // c: tile ID (10 bits)
-      // p: palette (3 bits)
-      // o: priority (1 bit)
-      // h: h-flip (1 bit)
-      // v: v-flip (1 bit)
-      
-      gfx::TileInfo tile;
-      tile.id_ = word & 0x01FF; // 9-bit tile ID? Or 10-bit? snes_tile.h says 10-bit ID is bits 0-9.
-      // Standard SNES format: vhopppcc cccccccc
-      // c = tile ID (10 bits)
-      // p = palette (3 bits)
-      // o = priority (1 bit)
-      // h = h flip (1 bit)
-      // v = v flip (1 bit)
-      
-      // But here `word` is raw tile info.
-      // Re-reading snes_tile.h TileInfo constructor:
-      // id_ = (uint16_t)(((b2 & 0x03) << 8) | b1);
-      // So if 'word' is the 16-bit value:
-      tile.id_ = word & 0x03FF;
-      tile.palette_ = (word >> 10) & 0x07;
-      tile.over_ = (word & 0x2000) != 0;
-      tile.horizontal_mirror_ = (word & 0x4000) != 0;
-      tile.vertical_mirror_ = (word & 0x8000) != 0;
-      
-      row.tiles.push_back(tile);
-    }
-    obj.rows.push_back(row);
+  // Safety check for empty data
+  if (data.empty()) {
+    return obj;
   }
 
-  // Calculate generic bounding box
-  // This is a rough estimation assuming Stride 0x80 = 1 line down (16 pixels? 8 pixels?)
-  // Stride 0x80 bytes = 128 bytes. 
-  // SNES tile 4bpp = 32 bytes provided we are drawing to VRAM?
-  // No, `CustomObjectHandler` writes to RAM tilemap buffer which is usually 2 bytes per tile.
-  // So 0x80 bytes = 64 tiles.
-  // If tilemap width is 64 tiles (64 * 8 = 512 pixels), then 0x80 is one full row of tiles.
-  // So Stride 0x80 = y + 8 pixels.
-  // Actually, let's assume standard VRAM tilemap buffer layout.
-  
-  if (!obj.rows.empty()) {
-    obj.width = 16; // Minimum
-    obj.height = obj.rows.size() * 8; // Maybe?
+  while (cursor + 1 < data.size()) {
+    // Read Header (little endian)
+    uint16_t header = data[cursor] | (data[cursor + 1] << 8);
+    cursor += 2;
+
+    if (header == 0) break;
+
+    int count = header & 0x001F;
+    int jump_offset = (header >> 8) & 0xFF;
+
+    // Line Loop
+    for (int i = 0; i < count; ++i) {
+      if (cursor + 1 >= data.size()) {
+        LOG_WARN("CustomObjectManager", "Unexpected end of file parsing object");
+        break;
+      }
+
+      uint16_t tile_data = data[cursor] | (data[cursor + 1] << 8);
+      cursor += 2;
+
+      // Calculate relative X/Y from current buffer position
+      // Standard Screen Buffer Stride = 64 bytes (32 tiles)
+      int rel_y = current_buffer_pos / 64; 
+      int rel_x = (current_buffer_pos % 64) / 2; // 2 bytes per tile
+
+      obj.tiles.push_back({rel_x, rel_y, tile_data});
+
+      current_buffer_pos += 2; // Advance 1 tile in buffer
+    }
+
+    // Advance buffer position for next segment
+    current_buffer_pos += jump_offset;
   }
 
   return obj;

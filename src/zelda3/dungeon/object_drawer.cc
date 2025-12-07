@@ -5346,22 +5346,14 @@ void yaze::zelda3::ObjectDrawer::DrawCustomObject(const RoomObject& obj, gfx::Ba
   auto custom_obj = result.value();
   if (!custom_obj || custom_obj->IsEmpty()) return;
 
-  int tile_y = obj.y_;
   int tile_x = obj.x_;
+  int tile_y = obj.y_;
 
-  for (const auto& row : custom_obj->rows) {
-    int x_offset = 0;
-    for (const auto& tile : row.tiles) {
-      // Write each 8x8 tile from the custom object data
-      WriteTile8(bg, tile_x + x_offset, tile_y, tile);
-      x_offset++;  // Move to next tile position (tiles, not pixels)
-    }
+  for (const auto& entry : custom_obj->tiles) {
+    // entry.tile_data is vhopppcc cccccccc
+    // We write directly to the background buffer's tilemap
     
-    // Stride 0x80 = move down one tile row in VRAM tilemap buffer
-    // The stride is in bytes, and tilemap entries are 2 bytes each
-    // So stride / 2 = number of tilemap entries, and width is typically 64 tiles
-    // Stride 0x80 = 128 bytes = 64 tilemap entries = 1 full row
-    tile_y++;
+    bg.SetTileAt(tile_x + entry.rel_x, tile_y + entry.rel_y, entry.tile_data);
   }
 }
 
