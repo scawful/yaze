@@ -4,15 +4,16 @@
 #include <string>
 #include <vector>
 
-#include "core/project.h"
-#include "core/version_manager.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
+#include "app/editor/code/panels/assembly_editor_panels.h"
 #include "app/editor/system/panel_manager.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/text_editor.h"
+#include "core/project.h"
+#include "core/version_manager.h"
 #include "util/file_util.h"
 
 namespace yaze::editor {
@@ -180,23 +181,30 @@ FolderItem LoadFolder(const std::string& folder) {
 void AssemblyEditor::Initialize() {
   text_editor_.SetLanguageDefinition(GetAssemblyLanguageDef());
 
-  // Register panels with PanelManager
+  // Register panels with PanelManager using EditorPanel instances
   if (!dependencies_.panel_manager)
     return;
   auto* panel_manager = dependencies_.panel_manager;
 
-  panel_manager->RegisterPanel({.card_id = "assembly.editor",
-                                .display_name = "Assembly Editor",
-                                .window_title = " Assembly Editor",
-                                .icon = ICON_MD_CODE,
-                                .category = "Assembly",
-                                .priority = 10});
-  panel_manager->RegisterPanel({.card_id = "assembly.file_browser",
-                                .display_name = "File Browser",
-                                .window_title = " File Browser",
-                                .icon = ICON_MD_FOLDER_OPEN,
-                                .category = "Assembly",
-                                .priority = 20});
+  // Register Code Editor panel - main text editing
+  panel_manager->RegisterEditorPanel(
+      std::make_unique<AssemblyCodeEditorPanel>([this]() { DrawCodeEditor(); }));
+
+  // Register File Browser panel - project file navigation
+  panel_manager->RegisterEditorPanel(
+      std::make_unique<AssemblyFileBrowserPanel>([this]() { DrawFileBrowser(); }));
+
+  // Register Symbols panel - symbol table viewer
+  panel_manager->RegisterEditorPanel(
+      std::make_unique<AssemblySymbolsPanel>([this]() { DrawSymbolsContent(); }));
+
+  // Register Build Output panel - errors/warnings
+  panel_manager->RegisterEditorPanel(
+      std::make_unique<AssemblyBuildOutputPanel>([this]() { DrawBuildOutput(); }));
+
+  // Register Toolbar panel - quick actions
+  panel_manager->RegisterEditorPanel(
+      std::make_unique<AssemblyToolbarPanel>([this]() { DrawToolbarContent(); }));
 }
 
 absl::Status AssemblyEditor::Load() {
@@ -208,8 +216,12 @@ void AssemblyEditor::OpenFolder(const std::string& folder_path) {
   current_folder_ = LoadFolder(folder_path);
 }
 
-void AssemblyEditor::Update(bool& is_loaded) {
-  ImGui::Begin("Assembly Editor", &is_loaded);
+// =============================================================================
+// Panel Content Drawing (EditorPanel System)
+// =============================================================================
+
+void AssemblyEditor::DrawCodeEditor() {
+  // Menu bar for file operations
   if (ImGui::BeginMenuBar()) {
     DrawFileMenu();
     DrawEditMenu();
@@ -217,9 +229,7 @@ void AssemblyEditor::Update(bool& is_loaded) {
     ImGui::EndMenuBar();
   }
 
-  // Draw symbol panel if visible
-  DrawSymbolPanel();
-
+  // Status line
   auto cpos = text_editor_.GetCursorPosition();
   ImGui::Text("%6d/%-6d %6d lines  | %s | %s | %s | %s", cpos.mLine + 1,
               cpos.mColumn + 1, text_editor_.GetTotalLines(),
@@ -228,8 +238,237 @@ void AssemblyEditor::Update(bool& is_loaded) {
               text_editor_.GetLanguageDefinition().mName.c_str(),
               current_file_.c_str());
 
-  text_editor_.Render("##asm_editor");
+  // Main text editor
+  text_editor_.Render("##asm_editor", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()));
+
+  // Draw open file tabs at bottom
+  DrawFileTabView();
+}
+
+void AssemblyEditor::DrawFileBrowser() {
+  // Lazy load project folder if not already loaded
+  if (current_folder_.name.empty() && dependencies_.project &&
+      !dependencies_.project->code_folder.empty()) {
+    OpenFolder(
+        dependencies_.project->GetAbsolutePath(dependencies_.project->code_folder));
+  }
+
+  // Open folder button if no folder loaded
+  if (current_folder_.name.empty()) {
+    if (ImGui::Button(ICON_MD_FOLDER_OPEN " Open Folder",
+                      ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+      current_folder_ = LoadFolder(FileDialogWrapper::ShowOpenFolderDialog());
+    }
+    ImGui::Spacing();
+    ImGui::TextDisabled("No folder opened");
+    return;
+  }
+
+  // Folder path display
+  ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "%s",
+                     current_folder_.name.c_str());
+  ImGui::Separator();
+
+  // File tree
+      DrawCurrentFolder();
+}
+
+void AssemblyEditor::DrawSymbolsContent() {
+  if (symbols_.empty()) {
+    ImGui::TextDisabled("No symbols loaded.");
+    ImGui::Spacing();
+    ImGui::TextWrapped("Apply a patch or load external symbols to populate this list.");
+    return;
+  }
+
+  // Search filter
+  static char filter[256] = "";
+  ImGui::SetNextItemWidth(-1);
+  ImGui::InputTextWithHint("##symbol_filter", ICON_MD_SEARCH " Filter symbols...",
+                           filter, sizeof(filter));
+  ImGui::Separator();
+
+  // Symbol list
+  if (ImGui::BeginChild("##symbol_list", ImVec2(0, 0), false)) {
+    for (const auto& [name, symbol] : symbols_) {
+      // Apply filter
+      if (filter[0] != '\0' && name.find(filter) == std::string::npos) {
+        continue;
+      }
+
+      ImGui::PushID(name.c_str());
+      if (ImGui::Selectable(name.c_str())) {
+        // Could jump to symbol definition if line info is available
+      }
+      ImGui::SameLine(ImGui::GetContentRegionAvail().x - 60);
+      ImGui::TextDisabled("$%06X", symbol.address);
+      ImGui::PopID();
+    }
+  }
+  ImGui::EndChild();
+}
+
+void AssemblyEditor::DrawBuildOutput() {
+  // Error/warning counts
+  ImGui::Text("Errors: %zu  Warnings: %zu", last_errors_.size(),
+              last_warnings_.size());
+  ImGui::Separator();
+
+  // Build buttons
+  bool has_active_file =
+      (active_file_id_ != -1 && active_file_id_ < open_files_.size());
+  bool has_rom = (rom_ && rom_->is_loaded());
+
+  if (ImGui::Button(ICON_MD_CHECK_CIRCLE " Validate", ImVec2(120, 0))) {
+    if (has_active_file) {
+      auto status = ValidateCurrentFile();
+      if (status.ok() && dependencies_.toast_manager) {
+        dependencies_.toast_manager->Show("Validation passed!", ToastType::kSuccess);
+      }
+    }
+  }
+  ImGui::SameLine();
+  ImGui::BeginDisabled(!has_rom || !has_active_file);
+  if (ImGui::Button(ICON_MD_BUILD " Apply to ROM", ImVec2(140, 0))) {
+    auto status = ApplyPatchToRom();
+    if (status.ok() && dependencies_.toast_manager) {
+      dependencies_.toast_manager->Show("Patch applied!", ToastType::kSuccess);
+    }
+  }
+  ImGui::EndDisabled();
+
+  ImGui::Separator();
+
+  // Output log
+  if (ImGui::BeginChild("##build_log", ImVec2(0, 0), true)) {
+    // Show errors in red
+    for (const auto& error : last_errors_) {
+      ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.4f, 0.4f, 1.0f));
+      ImGui::TextWrapped("%s %s", ICON_MD_ERROR, error.c_str());
+      ImGui::PopStyleColor();
+    }
+    // Show warnings in yellow
+    for (const auto& warning : last_warnings_) {
+      ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.8f, 0.2f, 1.0f));
+      ImGui::TextWrapped("%s %s", ICON_MD_WARNING, warning.c_str());
+      ImGui::PopStyleColor();
+    }
+    if (last_errors_.empty() && last_warnings_.empty()) {
+      ImGui::TextDisabled("No build output");
+    }
+  }
+  ImGui::EndChild();
+}
+
+void AssemblyEditor::DrawToolbarContent() {
+  float button_size = 32.0f;
+
+  if (ImGui::Button(ICON_MD_FOLDER_OPEN, ImVec2(button_size, button_size))) {
+        current_folder_ = LoadFolder(FileDialogWrapper::ShowOpenFolderDialog());
+      }
+  if (ImGui::IsItemHovered()) ImGui::SetTooltip("Open Folder");
+
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_FILE_OPEN, ImVec2(button_size, button_size))) {
+    auto filename = FileDialogWrapper::ShowOpenFileDialog();
+    if (!filename.empty()) {
+      ChangeActiveFile(filename);
+    }
+  }
+  if (ImGui::IsItemHovered()) ImGui::SetTooltip("Open File");
+
+  ImGui::SameLine();
+  bool can_save = (active_file_id_ != -1 && active_file_id_ < open_files_.size());
+  ImGui::BeginDisabled(!can_save);
+  if (ImGui::Button(ICON_MD_SAVE, ImVec2(button_size, button_size))) {
+    Save();
+  }
+  ImGui::EndDisabled();
+  if (ImGui::IsItemHovered()) ImGui::SetTooltip("Save File");
+
+  ImGui::SameLine();
+  ImGui::Text("|");  // Visual separator
+  ImGui::SameLine();
+
+  // Build actions
+  ImGui::BeginDisabled(!can_save);
+  if (ImGui::Button(ICON_MD_CHECK_CIRCLE, ImVec2(button_size, button_size))) {
+    ValidateCurrentFile();
+  }
+  ImGui::EndDisabled();
+  if (ImGui::IsItemHovered()) ImGui::SetTooltip("Validate (Ctrl+B)");
+
+  ImGui::SameLine();
+  bool can_apply = can_save && rom_ && rom_->is_loaded();
+  ImGui::BeginDisabled(!can_apply);
+  if (ImGui::Button(ICON_MD_BUILD, ImVec2(button_size, button_size))) {
+    ApplyPatchToRom();
+  }
+  ImGui::EndDisabled();
+  if (ImGui::IsItemHovered()) ImGui::SetTooltip("Apply to ROM (Ctrl+Shift+B)");
+}
+
+void AssemblyEditor::DrawFileTabView() {
+  if (active_files_.empty()) {
+    return;
+  }
+
+  if (ImGui::BeginTabBar("##OpenFileTabs", ImGuiTabBarFlags_Reorderable |
+                                               ImGuiTabBarFlags_AutoSelectNewTabs |
+                                               ImGuiTabBarFlags_FittingPolicyScroll)) {
+  for (int i = 0; i < active_files_.Size; i++) {
+    int file_id = active_files_[i];
+      if (file_id >= files_.size()) continue;
+
+      // Extract just the filename from the path
+      std::string filename = files_[file_id];
+      size_t pos = filename.find_last_of("/\\");
+      if (pos != std::string::npos) {
+        filename = filename.substr(pos + 1);
+      }
+
+      bool is_active = (active_file_id_ == file_id);
+      ImGuiTabItemFlags flags = is_active ? ImGuiTabItemFlags_SetSelected : 0;
+      bool tab_open = true;
+
+      if (ImGui::BeginTabItem(filename.c_str(), &tab_open, flags)) {
+        // When tab is selected, update active file
+        if (!is_active) {
+        active_file_id_ = file_id;
+          text_editor_ = open_files_[file_id];
+      }
+        ImGui::EndTabItem();
+    }
+
+      // Handle tab close
+      if (!tab_open) {
+      active_files_.erase(active_files_.Data + i);
+        if (active_file_id_ == file_id) {
+          active_file_id_ = active_files_.empty() ? -1 : active_files_[0];
+          if (active_file_id_ >= 0 && active_file_id_ < open_files_.size()) {
+            text_editor_ = open_files_[active_file_id_];
+          }
+        }
+      i--;
+    }
+  }
+    ImGui::EndTabBar();
+  }
+}
+
+// =============================================================================
+// Legacy Update Methods (kept for backward compatibility)
+// =============================================================================
+
+void AssemblyEditor::Update(bool& is_loaded) {
+  // Legacy window-based update - kept for backward compatibility
+  // New code should use the panel system via DrawCodeEditor()
+  ImGui::Begin("Assembly Editor", &is_loaded, ImGuiWindowFlags_MenuBar);
+  DrawCodeEditor();
   ImGui::End();
+
+  // Draw symbol panel as separate window if visible (legacy)
+  DrawSymbolPanel();
 }
 
 void AssemblyEditor::InlineUpdate() {
@@ -245,55 +484,11 @@ void AssemblyEditor::InlineUpdate() {
 }
 
 void AssemblyEditor::UpdateCodeView() {
-  DrawToolset();
-  gui::VerticalSpacing(2.0f);
-
-  // Create session-aware card (non-static for multi-session support)
-  gui::PanelWindow file_browser_card(MakePanelTitle("File Browser").c_str(),
-                                    ICON_MD_FOLDER);
-  bool file_browser_open = true;
-  if (file_browser_card.Begin(&file_browser_open)) {
-    if (current_folder_.name != "") {
-      DrawCurrentFolder();
-    } else {
-      if (ImGui::Button("Open Folder")) {
-        current_folder_ = LoadFolder(FileDialogWrapper::ShowOpenFolderDialog());
-      }
-    }
-  }
-  file_browser_card.End();  // ALWAYS call End after Begin
-
-  // Draw open files as individual, dockable EditorPanels
-  for (int i = 0; i < active_files_.Size; i++) {
-    int file_id = active_files_[i];
-    bool open = true;
-
-    // Ensure we have a TextEditor instance for this file
-    if (file_id >= open_files_.size()) {
-      open_files_.resize(file_id + 1);
-    }
-    if (file_id >= files_.size()) {
-      // This can happen if a file was closed and its ID is being reused.
-      // For now, we just skip it.
-      continue;
-    }
-
-    // Create session-aware card title for each file
-    std::string card_name = MakePanelTitle(files_[file_id]);
-    gui::PanelWindow file_card(card_name.c_str(), ICON_MD_DESCRIPTION, &open);
-    if (file_card.Begin()) {
-      if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
-        active_file_id_ = file_id;
-      }
-      open_files_[file_id].Render(absl::StrCat("##", card_name).c_str());
-    }
-    file_card.End();  // ALWAYS call End after Begin
-
-    if (!open) {
-      active_files_.erase(active_files_.Data + i);
-      i--;
-    }
-  }
+  // Deprecated: Use the EditorPanel system instead
+  // This method is kept for backward compatibility during transition
+  DrawToolbarContent();
+  ImGui::Separator();
+  DrawFileBrowser();
 }
 
 absl::Status AssemblyEditor::Save() {

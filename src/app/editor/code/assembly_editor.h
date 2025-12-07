@@ -73,9 +73,19 @@ class AssemblyEditor : public Editor {
   core::AsarWrapper* asar_wrapper() { return &asar_; }
 
  private:
+  // Panel content drawing (called by EditorPanel instances)
+  void DrawCodeEditor();
+  void DrawFileBrowser();
+  void DrawSymbolsContent();
+  void DrawBuildOutput();
+  void DrawToolbarContent();
+
+  // Menu drawing
   void DrawFileMenu();
   void DrawEditMenu();
   void DrawAssembleMenu();
+
+  // Helper drawing
   void DrawCurrentFolder();
   void DrawFileTabView();
   void DrawToolset();
