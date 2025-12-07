@@ -165,8 +165,18 @@ if(YAZE_BUILD_TESTS)
       integration/audio/audio_timing_test.cc
       integration/audio/music_player_headless_test.cc
       integration/audio/headless_audio_debug_test.cc
+      # E2E ROM-dependent editor save tests
       e2e/rom_dependent/e2e_rom_test.cc
       e2e/rom_dependent/graphics_editor_save_test.cc
+      e2e/rom_dependent/tile16_editor_save_test.cc
+      e2e/rom_dependent/dungeon_editor_save_test.cc
+      e2e/rom_dependent/palette_editor_save_test.cc
+      e2e/rom_dependent/screen_editor_save_test.cc
+      e2e/rom_dependent/rom_version_test.cc
+      e2e/rom_dependent/zscustomoverworld_save_test.cc
+      e2e/rom_dependent/cross_editor_integrity_test.cc
+      # Overworld E2E tests
+      e2e/overworld/overworld_e2e_test.cc
       e2e/zscustomoverworld/zscustomoverworld_upgrade_test.cc
     )
     yaze_add_test_suite(yaze_test_rom_dependent "rom_dependent" OFF ${ROM_DEPENDENT_TEST_SOURCES})
