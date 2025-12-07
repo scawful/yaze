@@ -147,6 +147,7 @@ class PanelWindow {
   void SetDockingAllowed(bool allowed) { docking_allowed_ = allowed; }
   void SetIconCollapsible(bool collapsible) { icon_collapsible_ = collapsible; }
   void SetPinnable(bool pinnable) { pinnable_ = pinnable; }
+  void SetSaveSettings(bool save) { save_settings_ = save; }
 
   // Custom Title Bar Buttons (e.g., Pin, Help, Settings)
   // These will be drawn in the window header or top-right corner.
@@ -201,6 +202,9 @@ class PanelWindow {
   bool pinnable_ = false;
   bool pinned_ = false;
   std::function<void(bool)> on_pin_changed_;
+  
+  // Settings persistence
+  bool save_settings_ = true;  // If false, uses ImGuiWindowFlags_NoSavedSettings
   
   // Header buttons
   struct HeaderButton {

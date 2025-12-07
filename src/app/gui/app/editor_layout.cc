@@ -308,6 +308,11 @@ bool PanelWindow::Begin(bool* p_open) {
     flags |= ImGuiWindowFlags_NoDocking;
   }
 
+  // Prevent persisting window settings (position, size, docking state)
+  if (!save_settings_) {
+    flags |= ImGuiWindowFlags_NoSavedSettings;
+  }
+
   // Set initial position based on position enum
   if (first_draw_) {
     float display_width = ImGui::GetIO().DisplaySize.x;

@@ -148,7 +148,9 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     ImGui::Separator();
 
     auto draw_navigation = [&]() {
-      if (!room_navigation_callback_)
+      // Use swap callback (swaps room in current panel) if available,
+      // otherwise fall back to navigation callback (opens new panel)
+      if (!room_swap_callback_ && !room_navigation_callback_)
         return;
 
       const int col = room_id % kRoomMatrixCols;
@@ -174,9 +176,13 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
         const bool enabled = target.has_value();
         if (!enabled)
           ImGui::BeginDisabled();
-        if (ImGui::ArrowButton(id, dir) && enabled &&
-            room_navigation_callback_) {
-          room_navigation_callback_(*target);
+        if (ImGui::ArrowButton(id, dir) && enabled) {
+          // Prefer swap callback (swaps room in current panel)
+          if (room_swap_callback_) {
+            room_swap_callback_(room_id, *target);
+          } else if (room_navigation_callback_) {
+            room_navigation_callback_(*target);
+          }
         }
         if (!enabled)
           ImGui::EndDisabled();
@@ -407,7 +413,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       constexpr int kNumEffects = IM_ARRAYSIZE(effect_names);
       if (effect_val < 0) effect_val = 0;
       if (effect_val >= kNumEffects) effect_val = kNumEffects - 1;
-      ImGui::SetNextItemWidth(100);
+      ImGui::SetNextItemWidth(150);
       if (ImGui::BeginCombo("##Effect", effect_names[effect_val])) {
         for (int i = 0; i < kNumEffects; i++) {
           if (ImGui::Selectable(effect_names[i], effect_val == i)) {
@@ -422,7 +428,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       ImGui::TextDisabled(ICON_MD_LABEL);
       ImGui::SameLine(0, 2);
       int tag1_idx = std::clamp(tag1_val, 0, kNumTags - 1);
-      ImGui::SetNextItemWidth(120);
+      ImGui::SetNextItemWidth(180);
       if (ImGui::BeginCombo("##Tag1", tag_names[tag1_idx])) {
         for (int i = 0; i < kNumTags; i++) {
           if (ImGui::Selectable(tag_names[i], tag1_idx == i)) {
@@ -437,7 +443,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       ImGui::TextDisabled(ICON_MD_LABEL_OUTLINE);
       ImGui::SameLine(0, 2);
       int tag2_idx = std::clamp(tag2_val, 0, kNumTags - 1);
-      ImGui::SetNextItemWidth(120);
+      ImGui::SetNextItemWidth(180);
       if (ImGui::BeginCombo("##Tag2", tag_names[tag2_idx])) {
         for (int i = 0; i < kNumTags; i++) {
           if (ImGui::Selectable(tag_names[i], tag2_idx == i)) {
@@ -547,7 +553,20 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       ImGui::SameLine();
       if (ImGui::RadioButton("L3", current_filter == ObjectSelection::kLayer3))
         object_interaction_.SetLayerFilter(ObjectSelection::kLayer3);
-      if (object_interaction_.IsLayerFilterActive()) {
+      ImGui::SameLine();
+      // Mask mode: filter to BG2/Layer 1 overlay objects only (platforms, statues, etc.)
+      bool is_mask_mode = current_filter == ObjectSelection::kMaskLayer;
+      if (is_mask_mode) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4f, 0.8f, 1.0f, 1.0f));
+      if (ImGui::RadioButton("Mask", is_mask_mode))
+        object_interaction_.SetLayerFilter(ObjectSelection::kMaskLayer);
+      if (is_mask_mode) ImGui::PopStyleColor();
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(
+            "Mask Selection Mode\n"
+            "Only select BG2/Layer 1 overlay objects (platforms, statues, stairs)\n"
+            "These are the objects that create transparency holes in BG1");
+      }
+      if (object_interaction_.IsLayerFilterActive() && !is_mask_mode) {
         ImGui::SameLine();
         ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), ICON_MD_FILTER_ALT);
       }
@@ -558,6 +577,61 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
 
       ImGui::EndTable();
     }
+
+    // === Quick Access Toolbar for Entity Pickers ===
+    ImGui::Spacing();
+    ImGui::BeginGroup();
+    ImGui::TextDisabled(ICON_MD_ADD_CIRCLE " Place:");
+    ImGui::SameLine();
+
+    // Object picker button
+    if (ImGui::Button(ICON_MD_WIDGETS " Object")) {
+      if (show_object_panel_callback_) {
+        show_object_panel_callback_();
+      }
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Open Object Editor panel to select objects for placement");
+    }
+    ImGui::SameLine();
+
+    // Sprite picker button
+    if (ImGui::Button(ICON_MD_PERSON " Sprite")) {
+      if (show_sprite_panel_callback_) {
+        show_sprite_panel_callback_();
+      }
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Open Sprite Editor panel to select sprites for placement");
+    }
+    ImGui::SameLine();
+
+    // Item picker button
+    if (ImGui::Button(ICON_MD_INVENTORY " Item")) {
+      if (show_item_panel_callback_) {
+        show_item_panel_callback_();
+      }
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Open Item Editor panel to select items for placement");
+    }
+    ImGui::SameLine();
+
+    // Door placement toggle (inline)
+    bool door_mode = object_interaction_.IsDoorPlacementActive();
+    if (door_mode) {
+      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.6f, 0.9f, 1.0f));
+    }
+    if (ImGui::Button(ICON_MD_DOOR_FRONT " Door")) {
+      object_interaction_.SetDoorPlacementMode(!door_mode, zelda3::DoorType::NormalDoor);
+    }
+    if (door_mode) {
+      ImGui::PopStyleColor();
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(door_mode ? "Click to cancel door placement" : "Click to place doors");
+    }
+    ImGui::EndGroup();
     ImGui::Separator();
   }
 
@@ -1211,6 +1285,12 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     // Room::RenderObjectsToBackground()
     DrawRoomBackgroundLayers(room_id);
 
+    // Draw mask highlights when mask selection mode is active
+    // This helps visualize which objects are BG2 overlays
+    if (object_interaction_.IsMaskModeActive()) {
+      DrawMaskHighlights(canvas_rt, room);
+    }
+
     // Render entity overlays (sprites, pot items) as colored squares with labels
     // (Entities are not part of the background buffers)
     RenderEntityOverlay(canvas_rt, room);
@@ -1651,6 +1731,53 @@ void DungeonCanvasViewer::DrawRoomBackgroundLayers(int room_id) {
     if (composite.texture()) {
       canvas_.DrawBitmap(composite, 0, 0, scale, 255);
     }
+  }
+}
+
+void DungeonCanvasViewer::DrawMaskHighlights(const gui::CanvasRuntime& rt,
+                                              const zelda3::Room& room) {
+  // Draw semi-transparent blue overlay on BG2/Layer 1 objects when mask mode
+  // is active. This helps identify which objects are the "overlay" content
+  // (platforms, statues, stairs) that create transparency holes in BG1.
+  const auto& objects = room.GetTileObjects();
+
+  // Create ObjectDrawer for dimension calculation
+  zelda3::ObjectDrawer drawer(const_cast<zelda3::Room&>(room).rom(), room.id(),
+                              nullptr);
+
+  // Mask highlight color: semi-transparent cyan/blue
+  // DrawRect draws a filled rectangle with a black outline
+  ImVec4 mask_color(0.2f, 0.6f, 1.0f, 0.4f);  // Light blue, 40% opacity
+
+  for (const auto& obj : objects) {
+    // Only highlight Layer 1 (BG2) objects - these are the mask/overlay objects
+    if (obj.GetLayerValue() != 1) {
+      continue;
+    }
+
+    // Convert object position to canvas coordinates
+    auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(obj.x(), obj.y());
+
+    // Calculate object dimensions
+    int width = 16;
+    int height = 16;
+    auto& dim_table = zelda3::ObjectDimensionTable::Get();
+    if (dim_table.IsLoaded()) {
+      auto [w_tiles, h_tiles] = dim_table.GetDimensions(obj.id_, obj.size_);
+      width = w_tiles * 8;
+      height = h_tiles * 8;
+    } else {
+      auto [w, h] = drawer.CalculateObjectDimensions(obj);
+      width = w;
+      height = h;
+    }
+
+    // Clamp to reasonable sizes
+    width = std::min(width, 512);
+    height = std::min(height, 512);
+
+    // Draw filled rectangle with semi-transparent overlay (includes black outline)
+    gui::DrawRect(rt, canvas_x, canvas_y, width, height, mask_color);
   }
 }
 

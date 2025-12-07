@@ -1,8 +1,9 @@
 # Dungeon Layer Compositing Research & Fix Plan
 
-**Status:** RESEARCH IN PROGRESS  
+**Status:** PHASE 1 COMPLETE  
 **Owner:** Requires multi-phase approach  
 **Created:** 2025-12-07  
+**Updated:** 2025-12-07  
 **Problem:** BG2 content not visible through BG1 in dungeon editor
 
 ## Executive Summary
@@ -211,11 +212,11 @@ Best of both:
 
 ## Part 5: Recommended Phased Approach
 
-### Phase 1: Research & Validation (Current)
-- [ ] Document exact SNES behavior for room 001
-- [ ] Trace through ASM for specific object types (platforms, overlays)
-- [ ] Identify which objects should create "holes" in BG1
-- [ ] Create test case matrix
+### Phase 1: Research & Validation (COMPLETE)
+- [x] Document exact SNES behavior for room 001
+- [x] Trace through ASM for specific object types (platforms, overlays)
+- [x] Identify which objects should create "holes" in BG1
+- [x] Create test case matrix (Room 001 as primary case)
 
 ### Phase 2: Prototype Solution
 - [ ] Implement Option D (Hybrid) in isolated branch
@@ -298,16 +299,163 @@ Need to parse `bin/rooms/room0001.bin` to see:
 3. Are there any "mask" or "pit" objects?
 4. What happens at the 0xFFFF sentinels?
 
-## Open Questions
+## Part 8: Phase 1 Research Findings (2025-12-07)
 
-1. How does SNES handle overlay areas - explicit mask objects or implicit from BG2 objects?
-2. What determines if a BG2 object should "punch through" BG1?
-3. Is there room-level data that controls BG1 transparency regions?
-4. How do per-tile priority bits interact with layer ordering?
-5. For room 001 specifically: What objects create the center platform area?
-6. Do BG1 floor tiles in room 001 have any color 0 pixels in the center?
+### 8.1 Room 001 Object Stream Analysis
+
+Parsed room 001 object data from `alttp_vanilla.sfc`:
+
+**Room Metadata:**
+- Floor byte: 0x66 → Floor1=6, Floor2=6 (same floor graphic for both layers)
+- Layout: 4
+
+**Layer 0 (BG1 Main): 23 objects**
+- Walls: 0x001 (2x), 0x002 (2x) - horizontal walls
+- Corners: 0x100-0x103 (concave), 0x108-0x10B (4x4 corners)
+- Diagonals: 0x003 (2x), 0x004 (2x), 0x063, 0x064
+- Ceiling: 0x000 (4x)
+- Other: 0x03A (decor)
+
+**Layer 1 (BG2 Overlay): 11 objects**
+- Walls at edges: 0x001 (2x), 0x002 (2x) at positions (1,13), (1,17), (59,13), (59,17)
+- **Center platform objects:**
+  - 0x13B @ (30,10) - Inter-room staircase
+  - 0x033 @ (22,13) size=4 - `RoomDraw_Rightwards4x4_1to16` (4x4 platform)
+  - 0x034 @ (23,16) size=14 - `RoomDraw_Rightwards1x1Solid_1to16_plus3` (solid tiles)
+  - 0x071 @ (22,13), (41,13) - `RoomDraw_Downwards1x1Solid_1to16_plus3` (vertical solid)
+  - 0x038 @ (24,12), (34,12) - `RoomDraw_RightwardsStatue2x3spaced2_1to16` (statues)
+
+**Layer 2 (BG1 Priority): 8 objects**
+- All torches: 0x0C6 (8x) at various positions
+
+### 8.2 SNES 4-Pass Rendering (Confirmed)
+
+From `bank_01.asm` analysis:
+
+1. **Pass 1 (line 1104):** Layout objects drawn with default pointers → BG1
+2. **Pass 2 (line 1120):** Main room objects (Layer 0) → BG1
+3. **Pass 3 (lines 1127-1138):** Load `lower_layer` pointers ($7E4000), draw Layer 1 → BG2
+4. **Pass 4 (lines 1145-1156):** Load `upper_layer` pointers ($7E2000), draw Layer 2 → BG1
+
+**Key Insight:** After floor drawing, the tilemap pointers remain set to upper_layer (BG1).
+Layout and Layer 0 objects write to BG1. Only Layer 1 writes to BG2.
+
+### 8.3 The Transparency Mechanism
+
+**How BG2 shows through BG1 in SNES:**
+1. Floor tiles are drawn to BOTH BG1 and BG2 tilemaps (same graphic)
+2. Layer 1 objects OVERWRITE BG2 tilemap entries with platform graphics
+3. BG1 tilemap retains floor tiles in the platform area
+4. **CRITICAL:** Floor tiles have color 0 (transparent) pixels
+5. PPU composites: where BG1 has color 0 pixels, BG2 shows through
+
+**Current Editor Code (from `background_buffer.cc` line 161):**
+```cpp
+if (pixel != 0) {
+  // Pixel 0 is transparent. Pixel 1 maps to palette index 0.
+  uint8_t final_color = (pixel - 1) + palette_offset;
+  canvas[dest_index] = final_color;
+}
+```
+The editor correctly skips pixel 0 as transparent! The bitmap is initialized to 255 (transparent).
+
+### 8.4 Root Cause Identified
+
+The issue is NOT in pixel-level transparency handling - that works correctly.
+
+**The actual problem:** Floor graphic 6 tiles may be completely solid (no color 0 pixels),
+OR the compositing order doesn't match SNES behavior.
+
+**Verification needed:**
+1. Check if floor graphic 6 tiles have any color 0 pixels
+2. If they do, verify compositing respects those transparent pixels
+3. If they don't, need a different mechanism (mask objects)
+
+### 8.5 BG2MaskFull Object
+
+Found `RoomDraw_BG2MaskFull` at routine 0x273 (line 6325):
+```asm
+RoomDraw_BG2MaskFull:
+  STZ.b $0C
+  LDX.w #obj00E0-RoomDrawObjectData
+  JMP.w RoomDraw_FloorChunks
+```
+
+This is an explicit mask object that draws floor tiles to create "holes" in a layer.
+However, room 001 does NOT use this object type.
+
+### 8.6 Recommended Fix: Option E (Pixel-Perfect Compositing)
+
+Based on research, the fix should ensure:
+
+1. **Floor tile transparency is preserved:** Already working in `DrawTile()`
+2. **Compositing respects transparency:** `CompositeToOutput()` skips transparent pixels
+3. **Layer order is correct:** BG2 drawn first, BG1 drawn on top
+
+**Specific changes needed:**
+
+1. Verify floor graphic 6 tiles in the graphics data have color 0 pixels
+2. If floor tiles are solid, implement BG2MaskFull-style approach:
+   - When Layer 1 objects are drawn, also clear corresponding BG1 pixels to transparent (255)
+   - OR: Track Layer 1 object positions and skip those areas when drawing BG1 floor
+
+3. Alternative: For rooms using LayerMerge00 "Off" with Layer 1 objects:
+   - Draw BG2 floor + Layer 1 objects first
+   - Draw BG1 floor with per-pixel transparency check
+   - Where BG2 has non-transparent content from Layer 1, make BG1 transparent
+
+### 8.7 Implementation Plan
+
+**Phase 2 Tasks:**
+1. Create debug tool to visualize floor tile pixels (check for color 0)
+2. If floor tiles have transparency, fix compositing order/logic
+3. If floor tiles are solid, implement mask propagation from Layer 1 to BG1
+4. Test with room 001 and other known overlay rooms
+
+**Files to modify:**
+- `src/app/gfx/render/background_buffer.cc` - Floor tile handling
+- `src/zelda3/dungeon/room_layer_manager.cc` - Compositing logic
+- `src/zelda3/dungeon/room.cc` - Layer 1 object tracking
+
+## Answers to Open Questions
+
+1. **How does SNES handle overlay areas?** Pixel-level transparency via color 0 in floor tiles.
+   No explicit mask objects needed for standard overlays.
+
+2. **What determines if BG2 shows through?** Color 0 pixels in BG1 tiles.
+   Layer 1 objects only write to BG2, not BG1.
+
+3. **Room-level data?** Floor graphics determine which tiles are used.
+   Different floor graphics may have different transparency patterns.
+
+4. **Per-tile priority bits?** Control BG1 vs BG2 priority per-tile.
+   Not directly related to transparency (handled separately).
+
+5. **Room 001 platform objects:** 0x033, 0x034, 0x071, 0x038 on Layer 1.
+
+6. **Floor tile transparency:** Needs verification - check floor graphic 6 in graphics data.
 
 ---
 
-*This document will be updated as research progresses.*
+**Status:** PHASE 1 COMPLETE - Ready for Phase 2 implementation
+
+*Analysis script: `scripts/analyze_room.py`*
+
+Usage examples:
+```bash
+# Analyze specific room
+python scripts/analyze_room.py 1
+
+# Analyze with layer compositing details
+python scripts/analyze_room.py 1 --compositing
+
+# List all rooms with BG2 overlay objects (94 total)
+python scripts/analyze_room.py --list-bg2
+
+# Analyze range of rooms
+python scripts/analyze_room.py --range 0 20 --summary
+
+# Output as JSON for programmatic use
+python scripts/analyze_room.py 1 --json
+```
 

@@ -335,6 +335,10 @@ absl::Status DungeonEditorV2::Update() {
     }
   }
 
+  // Process any pending room swaps after all drawing is complete
+  // This prevents ImGui state corruption from modifying collections mid-frame
+  ProcessPendingSwap();
+
   return absl::OkStatus();
 }
 
@@ -444,7 +448,7 @@ void DungeonEditorV2::DrawRoomPanels() {
       room_cards_[room_id] = std::make_shared<gui::PanelWindow>(
           card_name_str.c_str(), ICON_MD_GRID_ON, &open);
       room_cards_[room_id]->SetDefaultSize(700, 600);
-      // Note: We no longer set floating position - rooms auto-dock together
+      // Note: Room panels use default save settings to preserve docking state
     }
 
     auto& room_card = room_cards_[room_id];
@@ -627,6 +631,11 @@ void DungeonEditorV2::OnRoomSelected(int room_id, bool request_focus) {
   // Check if room is already open
   for (int i = 0; i < active_rooms_.Size; i++) {
     if (active_rooms_[i] == room_id) {
+      // Always ensure panel is visible, even if already in active_rooms_
+      if (dependencies_.panel_manager) {
+        std::string card_id = absl::StrFormat("dungeon.room_%d", room_id);
+        dependencies_.panel_manager->ShowPanel(card_id);
+      }
       if (request_focus) {
         FocusRoom(room_id);
       }
@@ -764,6 +773,85 @@ absl::Status DungeonEditorV2::RestoreFromSnapshot(
 
 void DungeonEditorV2::ClearRedo(int room_id) { redo_history_[room_id].clear(); }
 
+void DungeonEditorV2::SwapRoomInPanel(int old_room_id, int new_room_id) {
+  // Defer the swap until after the current frame's draw phase completes
+  // This prevents modifying data structures while ImGui is still using them
+  if (new_room_id < 0 || new_room_id >= static_cast<int>(rooms_.size())) {
+    return;
+  }
+  pending_swap_.old_room_id = old_room_id;
+  pending_swap_.new_room_id = new_room_id;
+  pending_swap_.pending = true;
+}
+
+void DungeonEditorV2::ProcessPendingSwap() {
+  if (!pending_swap_.pending) {
+    return;
+  }
+
+  int old_room_id = pending_swap_.old_room_id;
+  int new_room_id = pending_swap_.new_room_id;
+  pending_swap_.pending = false;
+
+  // Find the position of old_room in active_rooms_
+  int swap_index = -1;
+  for (int i = 0; i < active_rooms_.Size; i++) {
+    if (active_rooms_[i] == old_room_id) {
+      swap_index = i;
+      break;
+    }
+  }
+
+  if (swap_index < 0) {
+    // Old room not found in active rooms, just select the new one
+    OnRoomSelected(new_room_id);
+    return;
+  }
+
+  // Replace old room with new room in active_rooms_
+  active_rooms_[swap_index] = new_room_id;
+  room_selector_.set_active_rooms(active_rooms_);
+
+  // Unregister old panel
+  if (dependencies_.panel_manager) {
+    std::string old_card_id = absl::StrFormat("dungeon.room_%d", old_room_id);
+    dependencies_.panel_manager->UnregisterPanel(old_card_id);
+  }
+
+  // Clean up old room's card and viewer
+  room_cards_.erase(old_room_id);
+  room_viewers_.erase(old_room_id);
+
+  // Register new panel
+  if (dependencies_.panel_manager) {
+    std::string new_room_name;
+    if (new_room_id >= 0 &&
+        static_cast<size_t>(new_room_id) < std::size(zelda3::kRoomNames)) {
+      new_room_name = absl::StrFormat("[%03X] %s", new_room_id,
+                                      zelda3::kRoomNames[new_room_id].data());
+    } else {
+      new_room_name = absl::StrFormat("Room %03X", new_room_id);
+    }
+
+    std::string new_card_id = absl::StrFormat("dungeon.room_%d", new_room_id);
+
+    dependencies_.panel_manager->RegisterPanel(
+        {.card_id = new_card_id,
+         .display_name = new_room_name,
+         .window_title = ICON_MD_GRID_ON " " + new_room_name,
+         .icon = ICON_MD_GRID_ON,
+         .category = "Dungeon",
+         .shortcut_hint = "",
+         .visibility_flag = nullptr,
+         .priority = 200 + new_room_id});
+
+    dependencies_.panel_manager->ShowPanel(new_card_id);
+  }
+
+  // Update current selection
+  OnRoomSelected(new_room_id, /*request_focus=*/false);
+}
+
 DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
   auto it = room_viewers_.find(room_id);
   if (it == room_viewers_.end()) {
@@ -798,8 +886,19 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
             OnRoomSelected(target_room);
           }
         });
+    // Swap callback swaps the room in the current panel instead of opening new
+    viewer->SetRoomSwapCallback(
+        [this](int old_room, int new_room) {
+          SwapRoomInPanel(old_room, new_room);
+        });
     viewer->SetShowObjectPanelCallback([this]() {
       ShowPanel(kObjectToolsId);
+    });
+    viewer->SetShowSpritePanelCallback([this]() {
+      ShowPanel("dungeon.sprite_editor");
+    });
+    viewer->SetShowItemPanelCallback([this]() {
+      ShowPanel("dungeon.item_editor");
     });
 
     room_viewers_[room_id] = std::move(viewer);

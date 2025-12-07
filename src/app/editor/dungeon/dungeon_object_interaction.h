@@ -256,6 +256,7 @@ class DungeonObjectInteraction {
   void SetLayerFilter(int layer) { selection_.SetLayerFilter(layer); }
   int GetLayerFilter() const { return selection_.GetLayerFilter(); }
   bool IsLayerFilterActive() const { return selection_.IsLayerFilterActive(); }
+  bool IsMaskModeActive() const { return selection_.IsMaskModeActive(); }
   const char* GetLayerFilterName() const { return selection_.GetLayerFilterName(); }
   void SetLayersMerged(bool merged) { selection_.SetLayersMerged(merged); }
   bool AreLayersMerged() const { return selection_.AreLayersMerged(); }

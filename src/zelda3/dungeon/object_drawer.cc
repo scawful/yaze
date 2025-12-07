@@ -22,7 +22,8 @@ absl::Status ObjectDrawer::DrawObject(const RoomObject& object,
                                       gfx::BackgroundBuffer& bg1,
                                       gfx::BackgroundBuffer& bg2,
                                       const gfx::PaletteGroup& palette_group,
-                                      [[maybe_unused]] const DungeonState* state) {
+                                      [[maybe_unused]] const DungeonState* state,
+                                      gfx::BackgroundBuffer* layout_bg1) {
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
@@ -105,17 +106,32 @@ absl::Status ObjectDrawer::DrawObject(const RoomObject& object,
     draw_routines_[routine_id](this, object, target_bg, mutable_obj.tiles(), state);
   }
 
+  // BG2 Mask Propagation: When a Layer 1 (BG2) object is drawn, mark the
+  // corresponding BG1 area as transparent so BG2 content shows through.
+  // This matches SNES behavior where Layer 1 objects only write to BG2 tilemap.
+  if (object.layer_ == RoomObject::LayerType::BG2 && !is_both_bg) {
+    auto [pixel_width, pixel_height] = CalculateObjectDimensions(object);
+    // Mark the object buffer BG1 as transparent
+    MarkBG1Transparent(bg1, object.x_, object.y_, pixel_width, pixel_height);
+    // Also mark the layout buffer (floor tiles) as transparent if provided
+    if (layout_bg1 != nullptr) {
+      MarkBG1Transparent(*layout_bg1, object.x_, object.y_, pixel_width,
+                         pixel_height);
+    }
+  }
+
   return absl::OkStatus();
 }
 
 absl::Status ObjectDrawer::DrawObjectList(
     const std::vector<RoomObject>& objects, gfx::BackgroundBuffer& bg1,
     gfx::BackgroundBuffer& bg2, const gfx::PaletteGroup& palette_group,
-    [[maybe_unused]] const DungeonState* state) {
+    [[maybe_unused]] const DungeonState* state,
+    gfx::BackgroundBuffer* layout_bg1) {
   ResetChestIndex();
   absl::Status status = absl::OkStatus();
   for (const auto& object : objects) {
-    auto s = DrawObject(object, bg1, bg2, palette_group, state);
+    auto s = DrawObject(object, bg1, bg2, palette_group, state, layout_bg1);
     if (!s.ok() && status.ok()) {
       status = s;
     }
@@ -3776,6 +3792,37 @@ void ObjectDrawer::DrawOpenChestPlatform(
 // ============================================================================
 // Utility Methods
 // ============================================================================
+
+void ObjectDrawer::MarkBG1Transparent(gfx::BackgroundBuffer& bg1, int tile_x,
+                                       int tile_y, int pixel_width,
+                                       int pixel_height) {
+  auto& bitmap = bg1.bitmap();
+  if (!bitmap.is_active() || bitmap.width() == 0) {
+    return;  // Bitmap not ready
+  }
+
+  int start_px = tile_x * 8;
+  int start_py = tile_y * 8;
+  int canvas_width = bitmap.width();
+  int canvas_height = bitmap.height();
+  auto& data = bitmap.mutable_data();
+
+  // Mark pixels as transparent (255) where BG2 overlay objects are drawn
+  // This creates "holes" in BG1 that allow BG2 content to show through
+  for (int py = start_py; py < start_py + pixel_height && py < canvas_height;
+       py++) {
+    if (py < 0) continue;
+    for (int px = start_px; px < start_px + pixel_width && px < canvas_width;
+         px++) {
+      if (px < 0) continue;
+      int idx = py * canvas_width + px;
+      if (idx >= 0 && idx < static_cast<int>(data.size())) {
+        data[idx] = 255;  // 255 = transparent in our compositing system
+      }
+    }
+  }
+  bitmap.set_modified(true);
+}
 
 void ObjectDrawer::WriteTile8(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
                               const gfx::TileInfo& tile_info) {

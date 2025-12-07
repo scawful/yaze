@@ -39,15 +39,17 @@ class ObjectDrawer {
   /**
    * @brief Draw a room object to background buffers
    * @param object The object to draw
-   * @param bg1 Background layer 1 buffer
-   * @param bg2 Background layer 2 buffer
+   * @param bg1 Background layer 1 buffer (object buffer)
+   * @param bg2 Background layer 2 buffer (object buffer)
    * @param palette_group Current palette group for color mapping
+   * @param layout_bg1 Optional layout buffer to mask for BG2 object transparency
    * @return Status of the drawing operation
    */
   absl::Status DrawObject(const RoomObject& object, gfx::BackgroundBuffer& bg1,
                           gfx::BackgroundBuffer& bg2,
                           const gfx::PaletteGroup& palette_group,
-                          const DungeonState* state = nullptr);
+                          const DungeonState* state = nullptr,
+                          gfx::BackgroundBuffer* layout_bg1 = nullptr);
 
   struct DoorDef {
       DoorType type;
@@ -89,16 +91,18 @@ class ObjectDrawer {
   /**
    * @brief Draw all objects in a room
    * @param objects Vector of room objects
-   * @param bg1 Background layer 1 buffer
-   * @param bg2 Background layer 2 buffer
+   * @param bg1 Background layer 1 buffer (object buffer)
+   * @param bg2 Background layer 2 buffer (object buffer)
    * @param palette_group Current palette group for color mapping
+   * @param layout_bg1 Optional layout buffer to mask for BG2 object transparency
    * @return Status of the drawing operation
    */
   absl::Status DrawObjectList(const std::vector<RoomObject>& objects,
                               gfx::BackgroundBuffer& bg1,
                               gfx::BackgroundBuffer& bg2,
                               const gfx::PaletteGroup& palette_group,
-                              const DungeonState* state = nullptr);
+                              const DungeonState* state = nullptr,
+                              gfx::BackgroundBuffer* layout_bg1 = nullptr);
 
   /**
    * @brief Get draw routine ID for an object
@@ -407,6 +411,21 @@ class ObjectDrawer {
   // Check if a draw routine should render to both BG1 and BG2
   // Uses metadata instead of hardcoded routine IDs
   static bool RoutineDrawsToBothBGs(int routine_id);
+
+  /**
+   * @brief Mark BG1 pixels as transparent where BG2 overlay objects are drawn
+   *
+   * This creates "holes" in BG1 that allow BG2 content to show through,
+   * matching SNES behavior where Layer 1 objects only write to BG2 tilemap.
+   *
+   * @param bg1 Background layer 1 buffer to mark transparent
+   * @param tile_x Object X position in tiles
+   * @param tile_y Object Y position in tiles
+   * @param pixel_width Width of the object in pixels
+   * @param pixel_height Height of the object in pixels
+   */
+  void MarkBG1Transparent(gfx::BackgroundBuffer& bg1, int tile_x, int tile_y,
+                          int pixel_width, int pixel_height);
 
   // Door indicator fallback when graphics unavailable
   void DrawDoorIndicator(gfx::Bitmap& bitmap, int tile_x, int tile_y,

@@ -440,6 +440,11 @@ bool ObjectSelection::PassesLayerFilter(const zelda3::RoomObject& object) const 
     return true;
   }
 
+  // Mask mode: only allow BG2/Layer 1 objects (overlay content like platforms)
+  if (active_layer_filter_ == kMaskLayer) {
+    return object.GetLayerValue() == kLayer2;  // Layer 1 = BG2 = overlay
+  }
+
   // Check if the object's layer matches the filter
   return object.GetLayerValue() == static_cast<uint8_t>(active_layer_filter_);
 }

@@ -145,9 +145,9 @@ class ItemEditorPanel : public EditorPanel {
     // Item grid with responsive sizing
     float available_height = ImGui::GetContentRegionAvail().y;
     // Reserve space for room items section (header + list + some margin)
-    float reserved_height = 180.0f;
-    // Calculate grid height: at least 100px, but responsive to available space
-    float grid_height = std::max(100.0f, std::min(250.0f, available_height - reserved_height));
+    float reserved_height = 120.0f;
+    // Calculate grid height: at least 150px, but responsive to available space
+    float grid_height = std::max(150.0f, std::min(400.0f, available_height - reserved_height));
 
     // Responsive item size based on panel width
     float panel_width = ImGui::GetContentRegionAvail().x;
@@ -235,7 +235,7 @@ class ItemEditorPanel : public EditorPanel {
     }
 
     // Responsive list height - use remaining available space
-    float list_height = std::max(80.0f, ImGui::GetContentRegionAvail().y - 10.0f);
+    float list_height = std::max(120.0f, ImGui::GetContentRegionAvail().y - 10.0f);
     ImGui::BeginChild("##ItemList", ImVec2(0, list_height), true);
     for (size_t i = 0; i < items.size(); ++i) {
       const auto& item = items[i];

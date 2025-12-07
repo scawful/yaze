@@ -197,6 +197,9 @@ class DungeonEditorV2 : public Editor {
   void OnRoomSelected(int room_id, bool request_focus = true);
   void OnEntranceSelected(int entrance_id);
 
+  // Swap room in current panel (for arrow navigation)
+  void SwapRoomInPanel(int old_room_id, int new_room_id);
+
   // Object placement callback
   void HandleObjectPlaced(const zelda3::RoomObject& obj);
 
@@ -261,10 +264,19 @@ class DungeonEditorV2 : public Editor {
   std::unordered_map<int, std::vector<std::vector<zelda3::RoomObject>>>
       redo_history_;
 
+  // Pending room swap (deferred until after draw phase completes)
+  struct PendingSwap {
+    int old_room_id = -1;
+    int new_room_id = -1;
+    bool pending = false;
+  };
+  PendingSwap pending_swap_;
+
   void PushUndoSnapshot(int room_id);
   absl::Status RestoreFromSnapshot(int room_id,
                                    std::vector<zelda3::RoomObject> snapshot);
   void ClearRedo(int room_id);
+  void ProcessPendingSwap();  // Process deferred swap after draw
 };
 
 }  // namespace editor

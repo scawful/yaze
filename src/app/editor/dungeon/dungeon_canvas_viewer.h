@@ -71,8 +71,18 @@ class DungeonCanvasViewer {
   void SetRoomNavigationCallback(std::function<void(int)> callback) {
     room_navigation_callback_ = std::move(callback);
   }
+  // Callback to swap the current room in-place (for arrow navigation)
+  void SetRoomSwapCallback(std::function<void(int, int)> callback) {
+    room_swap_callback_ = std::move(callback);
+  }
   void SetShowObjectPanelCallback(std::function<void()> callback) {
     show_object_panel_callback_ = std::move(callback);
+  }
+  void SetShowSpritePanelCallback(std::function<void()> callback) {
+    show_sprite_panel_callback_ = std::move(callback);
+  }
+  void SetShowItemPanelCallback(std::function<void()> callback) {
+    show_item_panel_callback_ = std::move(callback);
   }
 
   // Canvas access
@@ -246,6 +256,10 @@ class DungeonCanvasViewer {
   void DrawObjectPositionOutlines(const gui::CanvasRuntime& rt,
                                   const zelda3::Room& room);
 
+  // Draw semi-transparent overlay on BG2/Layer 1 objects when mask mode is active
+  void DrawMaskHighlights(const gui::CanvasRuntime& rt,
+                          const zelda3::Room& room);
+
   // Room graphics management
   // Load: Read from ROM, Render: Process pixels, Draw: Display on canvas
   absl::Status LoadAndRenderRoomGraphics(int room_id);
@@ -277,7 +291,10 @@ class DungeonCanvasViewer {
   uint64_t current_palette_id_ = 0;
   gfx::PaletteGroup current_palette_group_;
   std::function<void(int)> room_navigation_callback_;
+  std::function<void(int, int)> room_swap_callback_;  // (old_room_id, new_room_id)
   std::function<void()> show_object_panel_callback_;
+  std::function<void()> show_sprite_panel_callback_;
+  std::function<void()> show_item_panel_callback_;
 
   // Object rendering cache
   struct ObjectRenderCache {

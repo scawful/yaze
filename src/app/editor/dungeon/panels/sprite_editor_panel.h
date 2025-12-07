@@ -122,9 +122,9 @@ class SpriteEditorPanel : public EditorPanel {
     // Sprite grid with responsive sizing
     float available_height = ImGui::GetContentRegionAvail().y;
     // Reserve space for room sprites section
-    float reserved_height = 180.0f;
-    // Calculate grid height: at least 120px, responsive to available space
-    float grid_height = std::max(120.0f, std::min(300.0f, available_height - reserved_height));
+    float reserved_height = 120.0f;
+    // Calculate grid height: at least 150px, responsive to available space
+    float grid_height = std::max(150.0f, std::min(400.0f, available_height - reserved_height));
 
     // Responsive sprite size based on panel width
     float panel_width = ImGui::GetContentRegionAvail().x;
@@ -215,7 +215,7 @@ class SpriteEditorPanel : public EditorPanel {
     }
 
     // Responsive list height - use remaining available space
-    float list_height = std::max(80.0f, ImGui::GetContentRegionAvail().y - 10.0f);
+    float list_height = std::max(120.0f, ImGui::GetContentRegionAvail().y - 10.0f);
     ImGui::BeginChild("##SpriteList", ImVec2(0, list_height), true);
     for (size_t i = 0; i < sprites.size(); ++i) {
       const auto& sprite = sprites[i];

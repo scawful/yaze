@@ -42,8 +42,9 @@ class ObjectSelection {
 
   // Layer filter constants
   static constexpr int kLayerAll = -1;    // Select from all layers
+  static constexpr int kMaskLayer = -2;   // Mask mode: only BG2/Layer 1 objects (overlays)
   static constexpr int kLayer1 = 0;       // BG1 (Layer 0)
-  static constexpr int kLayer2 = 1;       // BG2 (Layer 1)
+  static constexpr int kLayer2 = 1;       // BG2 (Layer 1) - overlay objects
   static constexpr int kLayer3 = 2;       // BG3 (Layer 2)
 
   explicit ObjectSelection() = default;
@@ -245,12 +246,19 @@ class ObjectSelection {
    */
   const char* GetLayerFilterName() const {
     switch (active_layer_filter_) {
+      case kMaskLayer: return "Mask Mode (BG2 Overlays)";
       case kLayer1: return "Layer 1 (BG1)";
       case kLayer2: return "Layer 2 (BG2)";
       case kLayer3: return "Layer 3 (BG3)";
       default: return "All Layers";
     }
   }
+
+  /**
+   * @brief Check if mask selection mode is active
+   * @return true if only BG2/Layer 1 objects can be selected
+   */
+  bool IsMaskModeActive() const { return active_layer_filter_ == kMaskLayer; }
 
   /**
    * @brief Set whether layers are currently merged in the room

@@ -973,8 +973,11 @@ void Room::RenderObjectsToBackground() {
   // Render objects to appropriate buffers
   // BG1 = Floor/Main (Layer 0, 2)
   // BG2 = Overlay (Layer 1)
+  // Pass bg1_buffer_ for BG2 object masking - this creates "holes" in the floor
+  // so BG2 overlay content (platforms, statues) shows through BG1 floor tiles
   auto status = drawer.DrawObjectList(tile_objects_, object_bg1_buffer_, object_bg2_buffer_,
-                                      palette_group, dungeon_state_.get());
+                                      palette_group, dungeon_state_.get(),
+                                      &bg1_buffer_);
 
   // Render doors using DoorDef struct with enum types
   // Doors are drawn to the OBJECT buffer for layer visibility control

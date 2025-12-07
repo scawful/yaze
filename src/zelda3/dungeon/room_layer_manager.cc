@@ -75,11 +75,21 @@ void RoomLayerManager::CompositeToOutput(Room& room,
     }
   };
 
-  // Helper to composite a single layer using simple back-to-front ordering
+  // Helper to composite a single layer with blend mode support
   // Based on SNES ASM analysis: BG2 is drawn first, then BG1 overwrites on top
   // This matches the SNES tilemap buffer architecture:
   //   $7E4000 = Lower layer (BG2) - drawn first
   //   $7E2000 = Upper layer (BG1) - drawn on top
+  //
+  // Blend Modes (from LayerMergeType):
+  // - Normal: Opaque pixels overwrite destination (standard)
+  // - Translucent: 50% alpha blend with destination
+  // - Addition: Additive color blending (SNES color math)
+  // - Dark: Darkened blend (reduced brightness)
+  // - Off: Layer is hidden
+  //
+  // IMPORTANT: Transparent pixels (255) in BG1 layers ALWAYS reveal BG2 beneath.
+  // This is how pits work: mask objects write 255 to BG1, allowing BG2 to show.
   auto CompositeLayer = [&](gfx::BackgroundBuffer& buffer, LayerType layer_type) {
     if (!IsLayerVisible(layer_type)) return;
     
@@ -94,16 +104,55 @@ void RoomLayerManager::CompositeToOutput(Room& room,
     const auto& src_data = src_bitmap.data();
     auto& dst_data = output.mutable_data();
     
-    // Simple back-to-front compositing: later layers overwrite earlier layers
-    // Non-transparent pixels always overwrite whatever is beneath them
+    // Get layer alpha for translucent/dark blending
+    uint8_t layer_alpha = GetLayerAlpha(layer_type);
+    
     for (int idx = 0; idx < kPixelCount; ++idx) {
       uint8_t src_pixel = src_data[idx];
       
       // Skip transparent pixels (255 = fill color for undrawn areas)
+      // This is CRITICAL for pits: transparent BG1 pixels reveal BG2 beneath
       if (IsTransparent(src_pixel)) continue;
       
-      // Overwrite destination pixel
-      dst_data[idx] = src_pixel;
+      // Apply blend mode
+      switch (blend_mode) {
+        case LayerBlendMode::Normal:
+          // Standard opaque overwrite
+          dst_data[idx] = src_pixel;
+          break;
+          
+        case LayerBlendMode::Translucent:
+          // 50% alpha blend: only overwrite if destination is transparent,
+          // otherwise blend colors using palette index averaging (simplified)
+          // For indexed color mode, we can't truly blend - use alpha threshold
+          if (IsTransparent(dst_data[idx]) || layer_alpha > 180) {
+            dst_data[idx] = src_pixel;
+          }
+          // If layer_alpha <= 180, destination shows through (simplified blend)
+          break;
+          
+        case LayerBlendMode::Addition:
+          // Additive blending: in indexed mode, just use source if visible
+          // True additive would need RGB values from palette
+          if (IsTransparent(dst_data[idx])) {
+            dst_data[idx] = src_pixel;
+          }
+          // Non-transparent dest + source: in indexed mode, just overwrite
+          // (True additive blend would require palette lookup and RGB math)
+          else {
+            dst_data[idx] = src_pixel;
+          }
+          break;
+          
+        case LayerBlendMode::Dark:
+          // Darkened blend: overwrite but surface will be color-modulated later
+          dst_data[idx] = src_pixel;
+          break;
+          
+        case LayerBlendMode::Off:
+          // Layer hidden - should not reach here due to early return
+          break;
+      }
     }
   };
 
