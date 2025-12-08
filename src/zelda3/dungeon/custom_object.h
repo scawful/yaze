@@ -17,13 +17,17 @@ namespace zelda3 {
 /**
  * @brief Represents a decoded custom object (from binary format)
  * 
- * Format:
- * Header (2 bytes):
- *   Low 5 bits: Tile Count
- *   High Byte: Row Stride (offset to add to Y pointer after drawing row)
+ * Binary Format (matches Oracle-of-Secrets object_handler.asm):
+ * Header (2 bytes, little-endian):
+ *   Low 5 bits: Tile Count (number of tiles in this segment)
+ *   High Byte: Jump Offset (added to row start position for next segment)
  * Data (Tile Count * 2 bytes):
- *   Word: vhopppcc cccccccc (attributes + tile ID)
+ *   Word: vhopppcc cccccccc (SNES tilemap entry: flip, priority, palette, tile ID)
  * Repeats until Header is 0x0000.
+ * 
+ * Buffer Layout:
+ *   Stride = 128 bytes (64 tiles per row, 2 bytes per tile)
+ *   Jump offset of 0x80 (128) advances by 1 row
  */
 struct CustomObject {
   struct TileMapEntry {

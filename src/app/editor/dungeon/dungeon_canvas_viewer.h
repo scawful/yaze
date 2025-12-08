@@ -313,6 +313,7 @@ class DungeonCanvasViewer {
   bool show_object_bounds_ = false;
   bool show_layer_info_ = false;
   bool show_grid_ = false;  // Grid off by default for dungeon editor
+  bool show_coordinate_overlay_ = true;  // Show camera coordinates on hover
   int layout_override_ = -1;  // -1 for no override
   int custom_grid_size_ = 8;
   ObjectRenderMode object_render_mode_ =

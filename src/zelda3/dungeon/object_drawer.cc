@@ -56,6 +56,24 @@ absl::Status ObjectDrawer::DrawObject(const RoomObject& object,
     return absl::OkStatus();
   }
 
+  // Check for custom object override first
+  // We check this BEFORE routine lookup to allow overriding vanilla objects
+  int subtype = object.size_ & 0x1F;
+  if (CustomObjectManager::Get().GetObjectInternal(object.id_, subtype).ok()) {
+    // Custom objects default to drawing on the target layer only, unless all_bgs_ is set
+    // Mask propagation is difficult without dimensions, so we rely on explicit transparency in the custom object tiles if needed
+    
+    // Draw to target layer
+    DrawCustomObject(object, target_bg, mutable_obj.tiles(), state);
+
+    // If marked for both BGs, draw to the other layer too
+    if (object.all_bgs_) {
+      auto& other_bg = (object.layer_ == RoomObject::LayerType::BG2) ? bg1 : bg2;
+      DrawCustomObject(object, other_bg, mutable_obj.tiles(), state);
+    }
+    // return absl::OkStatus();
+  }
+
   // Look up draw routine for this object
   int routine_id = GetDrawRoutineId(object.id_);
 
@@ -5350,10 +5368,11 @@ void yaze::zelda3::ObjectDrawer::DrawCustomObject(const RoomObject& obj, gfx::Ba
   int tile_y = obj.y_;
 
   for (const auto& entry : custom_obj->tiles) {
-    // entry.tile_data is vhopppcc cccccccc
-    // We write directly to the background buffer's tilemap
-    
-    bg.SetTileAt(tile_x + entry.rel_x, tile_y + entry.rel_y, entry.tile_data);
+    // entry.tile_data is vhopppcc cccccccc (SNES tilemap word format)
+    // Convert to TileInfo and render using WriteTile8 (not SetTileAt which
+    // only stores to buffer without rendering)
+    gfx::TileInfo tile_info = gfx::WordToTileInfo(entry.tile_data);
+    WriteTile8(bg, tile_x + entry.rel_x, tile_y + entry.rel_y, tile_info);
   }
 }
 

@@ -13,6 +13,7 @@
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/core/input.h"
 #include "dungeon_canvas_viewer.h"
+#include "dungeon_coordinates.h"
 #include "canvas/canvas_menu.h"
 #include "core/icons.h"
 #include "absl/status/status.h"
@@ -781,6 +782,13 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
         [this]() { show_texture_debug_ = !show_texture_debug_; });
     debug_menu.subitems.push_back(texture_info_item);
 
+    // Toggle coordinate overlay
+    gui::CanvasMenuItem coord_overlay_item(
+        show_coordinate_overlay_ ? "Hide Coordinates" : "Show Coordinates", 
+        ICON_MD_MY_LOCATION,
+        [this]() { show_coordinate_overlay_ = !show_coordinate_overlay_; });
+    debug_menu.subitems.push_back(coord_overlay_item);
+
     // Show object bounds with sub-menu for categories
     gui::CanvasMenuItem object_bounds_menu;
     object_bounds_menu.label = "Show Object Bounds";
@@ -1319,6 +1327,57 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     // This shows where objects are placed regardless of whether graphics render
     if (show_object_bounds_) {
       DrawObjectPositionOutlines(canvas_rt, room);
+    }
+  }
+
+  // Draw coordinate overlay when hovering over canvas
+  if (show_coordinate_overlay_ && canvas_.IsMouseHovering()) {
+    ImVec2 mouse_pos = ImGui::GetMousePos();
+    ImVec2 canvas_pos = canvas_.zero_point();
+    float scale = canvas_.global_scale();
+    if (scale <= 0.0f) scale = 1.0f;
+    
+    // Calculate canvas-relative position
+    int canvas_x = static_cast<int>((mouse_pos.x - canvas_pos.x) / scale);
+    int canvas_y = static_cast<int>((mouse_pos.y - canvas_pos.y) / scale);
+    
+    // Only show if within bounds
+    if (canvas_x >= 0 && canvas_x < kRoomPixelWidth && 
+        canvas_y >= 0 && canvas_y < kRoomPixelHeight) {
+      // Calculate tile coordinates
+      int tile_x = canvas_x / kDungeonTileSize;
+      int tile_y = canvas_y / kDungeonTileSize;
+      
+      // Calculate camera/world coordinates (for minecart tracks, sprites, etc.)
+      auto [camera_x, camera_y] = dungeon_coords::TileToCameraCoords(room_id, tile_x, tile_y);
+      
+      // Calculate sprite coordinates (16-pixel units)
+      int sprite_x = canvas_x / dungeon_coords::kSpriteTileSize;
+      int sprite_y = canvas_y / dungeon_coords::kSpriteTileSize;
+      
+      // Draw coordinate info box at mouse position
+      ImVec2 overlay_pos = ImVec2(mouse_pos.x + 15, mouse_pos.y + 15);
+      
+      // Build coordinate text
+      std::string coord_text = absl::StrFormat(
+          "Tile: (%d, %d)\n"
+          "Pixel: (%d, %d)\n"
+          "Camera: ($%04X, $%04X)\n"
+          "Sprite: (%d, %d)",
+          tile_x, tile_y,
+          canvas_x, canvas_y,
+          camera_x, camera_y,
+          sprite_x, sprite_y);
+      
+      // Draw background box
+      ImVec2 text_size = ImGui::CalcTextSize(coord_text.c_str());
+      ImVec2 box_min = ImVec2(overlay_pos.x - 4, overlay_pos.y - 2);
+      ImVec2 box_max = ImVec2(overlay_pos.x + text_size.x + 8, overlay_pos.y + text_size.y + 4);
+      
+      ImDrawList* draw_list = ImGui::GetWindowDrawList();
+      draw_list->AddRectFilled(box_min, box_max, IM_COL32(0, 0, 0, 200), 4.0f);
+      draw_list->AddRect(box_min, box_max, IM_COL32(100, 100, 100, 255), 4.0f);
+      draw_list->AddText(overlay_pos, IM_COL32(255, 255, 255, 255), coord_text.c_str());
     }
   }
 

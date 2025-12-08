@@ -7,6 +7,7 @@
 #include <sstream>
 
 #include "app/gui/core/input.h"
+#include "app/gui/core/icons.h"
 #include "util/log.h"
 #include <filesystem>
 #include <iostream>
@@ -21,6 +22,40 @@ void MinecartTrackEditorPanel::SetProjectRoot(const std::string& root) {
   }
 }
 
+void MinecartTrackEditorPanel::SetPickedCoordinates(int room_id, uint16_t camera_x, uint16_t camera_y) {
+  if (picking_mode_ && picking_track_index_ >= 0 && 
+      picking_track_index_ < static_cast<int>(tracks_.size())) {
+    tracks_[picking_track_index_].room_id = room_id;
+    tracks_[picking_track_index_].start_x = camera_x;
+    tracks_[picking_track_index_].start_y = camera_y;
+    
+    last_picked_x_ = camera_x;
+    last_picked_y_ = camera_y;
+    has_picked_coords_ = true;
+    
+    status_message_ = absl::StrFormat("Track %d: Set to Room $%04X, Pos ($%04X, $%04X)",
+                                       picking_track_index_, room_id, camera_x, camera_y);
+    show_success_ = true;
+  }
+  
+  // Exit picking mode
+  picking_mode_ = false;
+  picking_track_index_ = -1;
+}
+
+void MinecartTrackEditorPanel::StartCoordinatePicking(int track_index) {
+  picking_mode_ = true;
+  picking_track_index_ = track_index;
+  status_message_ = absl::StrFormat("Click on the dungeon canvas to set Track %d position", track_index);
+  show_success_ = false;
+}
+
+void MinecartTrackEditorPanel::CancelCoordinatePicking() {
+  picking_mode_ = false;
+  picking_track_index_ = -1;
+  status_message_ = "";
+}
+
 void MinecartTrackEditorPanel::Draw(bool* p_open) {
   if (project_root_.empty()) {
     ImGui::TextColored(ImVec4(1, 0, 0, 1), "Project root not set.");
@@ -32,36 +67,54 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
   }
 
   ImGui::Text("Minecart Track Editor");
-  if (ImGui::Button("Save Tracks")) {
+  if (ImGui::Button(ICON_MD_SAVE " Save Tracks")) {
     SaveTracks();
   }
   
-  if (!status_message_.empty()) {
+  // Show picking mode indicator
+  if (picking_mode_) {
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_CANCEL " Cancel Pick")) {
+      CancelCoordinatePicking();
+    }
+    ImGui::SameLine();
+    ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), 
+                       ICON_MD_MY_LOCATION " Picking for Track %d...", picking_track_index_);
+  }
+  
+  if (!status_message_.empty() && !picking_mode_) {
     ImGui::SameLine();
     ImGui::TextColored(show_success_ ? ImVec4(0, 1, 0, 1) : ImVec4(1, 0, 0, 1), "%s", status_message_.c_str());
-    if (show_success_) {
-       // Simple timer logic handled by UI redraw or just fade out manually
-       // For now, just show it.
-    }
   }
 
   ImGui::Separator();
+  
+  // Coordinate format help
+  ImGui::TextDisabled("Camera coordinates use $1XXX format (base $1000 + room offset + local position)");
+  ImGui::TextDisabled("Hover over dungeon canvas to see coordinates, or click 'Pick' button.");
+  ImGui::Separator();
 
-  if (ImGui::BeginTable("TracksTable", 5, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable)) {
+  if (ImGui::BeginTable("TracksTable", 6, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable)) {
     ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 30.0f);
-    ImGui::TableSetupColumn("Room ID (Hex)", ImGuiTableColumnFlags_WidthFixed, 80.0f);
-    ImGui::TableSetupColumn("Start X (Hex)", ImGuiTableColumnFlags_WidthFixed, 80.0f);
-    ImGui::TableSetupColumn("Start Y (Hex)", ImGuiTableColumnFlags_WidthFixed, 80.0f);
+    ImGui::TableSetupColumn("Room ID", ImGuiTableColumnFlags_WidthFixed, 80.0f);
+    ImGui::TableSetupColumn("Camera X", ImGuiTableColumnFlags_WidthFixed, 80.0f);
+    ImGui::TableSetupColumn("Camera Y", ImGuiTableColumnFlags_WidthFixed, 80.0f);
+    ImGui::TableSetupColumn("Pick", ImGuiTableColumnFlags_WidthFixed, 50.0f);
+    ImGui::TableSetupColumn("Go", ImGuiTableColumnFlags_WidthFixed, 40.0f);
     ImGui::TableHeadersRow();
 
     for (auto& track : tracks_) {
       ImGui::TableNextRow();
       
+      // Highlight the row being picked
+      if (picking_mode_ && track.id == picking_track_index_) {
+        ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, IM_COL32(80, 80, 0, 100));
+      }
+      
       ImGui::TableNextColumn();
       ImGui::Text("%d", track.id);
       
       ImGui::TableNextColumn();
-      // Cast to uint16_t* because InputHexWordCustom expects uint16_t* but track fields are int
       uint16_t room_id = static_cast<uint16_t>(track.room_id);
       if (yaze::gui::InputHexWordCustom(absl::StrFormat("##Room%d", track.id).c_str(), &room_id, 60.0f)) {
           track.room_id = room_id;
@@ -78,6 +131,41 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
       if (yaze::gui::InputHexWordCustom(absl::StrFormat("##StartY%d", track.id).c_str(), &start_y, 60.0f)) {
           track.start_y = start_y;
       }
+      
+      // Pick button to select coordinates from canvas
+      ImGui::TableNextColumn();
+      ImGui::PushID(track.id);
+      bool is_picking_this = picking_mode_ && picking_track_index_ == track.id;
+      if (is_picking_this) {
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8f, 0.6f, 0.0f, 1.0f));
+      }
+      if (ImGui::SmallButton(ICON_MD_MY_LOCATION)) {
+        if (is_picking_this) {
+          CancelCoordinatePicking();
+        } else {
+          StartCoordinatePicking(track.id);
+        }
+      }
+      if (is_picking_this) {
+        ImGui::PopStyleColor();
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(is_picking_this ? "Cancel picking" : "Pick coordinates from canvas");
+      }
+      ImGui::PopID();
+      
+      // Go to room button
+      ImGui::TableNextColumn();
+      ImGui::PushID(track.id + 1000);
+      if (ImGui::SmallButton(ICON_MD_ARROW_FORWARD)) {
+        if (room_navigation_callback_) {
+          room_navigation_callback_(track.room_id);
+        }
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Navigate to room $%04X", track.room_id);
+      }
+      ImGui::PopID();
     }
     
     ImGui::EndTable();

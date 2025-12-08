@@ -77,12 +77,17 @@ absl::StatusOr<std::shared_ptr<CustomObject>> CustomObjectManager::LoadObject(
 absl::StatusOr<CustomObject> CustomObjectManager::ParseBinaryData(const std::vector<uint8_t>& data) {
   CustomObject obj;
   size_t cursor = 0;
-  int current_buffer_pos = 0; // Relative byte offset in tilemap buffer (stride 64 = 32 tiles)
+  int current_buffer_pos = 0;
 
   // Safety check for empty data
   if (data.empty()) {
     return obj;
   }
+
+  // Dungeon room tilemap buffer stride = 128 bytes (64 tiles per row, 2 bytes per tile).
+  // This matches the SNES dungeon room buffer layout where rooms can be up to 64 tiles wide.
+  // The jump offset of 0x80 (128) advances by exactly 1 row.
+  constexpr int kBufferStride = 128;
 
   while (cursor + 1 < data.size()) {
     // Read Header (little endian)
@@ -93,6 +98,11 @@ absl::StatusOr<CustomObject> CustomObjectManager::ParseBinaryData(const std::vec
 
     int count = header & 0x001F;
     int jump_offset = (header >> 8) & 0xFF;
+
+    // ASM behavior: PHY saves the row start position, tiles are drawn at
+    // incrementing positions, then PLA restores the original position and
+    // the jump offset is added to that original position (not the post-tile position).
+    int row_start_pos = current_buffer_pos;
 
     // Line Loop
     for (int i = 0; i < count; ++i) {
@@ -105,17 +115,18 @@ absl::StatusOr<CustomObject> CustomObjectManager::ParseBinaryData(const std::vec
       cursor += 2;
 
       // Calculate relative X/Y from current buffer position
-      // Standard Screen Buffer Stride = 64 bytes (32 tiles)
-      int rel_y = current_buffer_pos / 64; 
-      int rel_x = (current_buffer_pos % 64) / 2; // 2 bytes per tile
+      // Buffer stride = 128 bytes (64 tiles per row)
+      int rel_y = current_buffer_pos / kBufferStride; 
+      int rel_x = (current_buffer_pos % kBufferStride) / 2; // 2 bytes per tile
 
       obj.tiles.push_back({rel_x, rel_y, tile_data});
 
       current_buffer_pos += 2; // Advance 1 tile in buffer
     }
 
-    // Advance buffer position for next segment
-    current_buffer_pos += jump_offset;
+    // Advance buffer position for next segment from the ROW START, not current position.
+    // This matches the ASM: PLA (restore original Y) then ADC jump_offset.
+    current_buffer_pos = row_start_pos + jump_offset;
   }
 
   return obj;
@@ -123,23 +134,41 @@ absl::StatusOr<CustomObject> CustomObjectManager::ParseBinaryData(const std::vec
 
 absl::StatusOr<std::shared_ptr<CustomObject>> CustomObjectManager::GetObjectInternal(int object_id, int subtype) {
   const std::vector<std::string>* list = nullptr;
+  int index = subtype;
+
   if (object_id == 0x31) {
     list = &kSubtype1Filenames;
   } else if (object_id == 0x32) {
     list = &kSubtype2Filenames;
+  } else if (object_id >= 0x100 && object_id <= 0x103) {
+    // Minecart Track Override for standard corners
+    // 0x100 = TL -> index 2 (track_corner_TL.bin)
+    // 0x101 = BL -> index 4 (track_corner_BL.bin)
+    // 0x102 = TR -> index 3 (track_corner_TR.bin)
+    // 0x103 = BR -> index 5 (track_corner_BR.bin)
+    switch(object_id) {
+      case 0x100: index = 2; break;
+      case 0x101: index = 4; break;
+      case 0x102: index = 3; break;
+      case 0x103: index = 5; break;
+    }
+    list = &kSubtype1Filenames;
   } else {
-    return absl::InvalidArgumentError("Invalid object ID for CustomObjectManager");
+    // Not a supported custom object ID
+    return absl::NotFoundError("Object ID not mapped to custom object");
   }
 
-  if (subtype < 0 || subtype >= static_cast<int>(list->size())) {
+  if (index < 0 || index >= static_cast<int>(list->size())) {
     return absl::OutOfRangeError("Subtype index out of range");
   }
 
-  return LoadObject((*list)[subtype]);
+  return LoadObject((*list)[index]);
 }
 
 int CustomObjectManager::GetSubtypeCount(int object_id) const {
-  if (object_id == 0x31) return kSubtype1Filenames.size();
+  if (object_id == 0x31 || (object_id >= 0x100 && object_id <= 0x103)) {
+     return kSubtype1Filenames.size();
+  }
   if (object_id == 0x32) return kSubtype2Filenames.size();
   return 0;
 }
