@@ -216,10 +216,10 @@ bool SDL2AudioBackend::QueueSamples(const int16_t* samples, int num_samples) {
   if (!initialized_ || !samples)
     return false;
 
-  // Periodic logging
+  // Periodic logging (debug only, very infrequent)
   static int queue_log = 0;
-  if (++queue_log % 300 == 0) {
-    LOG_INFO("AudioBackend", "QueueSamples: %d samples to device %u", num_samples, device_id_);
+  if (++queue_log % 2000 == 0) {
+    LOG_DEBUG("AudioBackend", "QueueSamples: %d samples to device %u", num_samples, device_id_);
   }
 
   if (volume_ == 1.0f) {
@@ -227,7 +227,10 @@ bool SDL2AudioBackend::QueueSamples(const int16_t* samples, int num_samples) {
     int result =
         SDL_QueueAudio(device_id_, samples, num_samples * sizeof(int16_t));
     if (result < 0) {
-      LOG_ERROR("AudioBackend", "SDL_QueueAudio failed: %s", SDL_GetError());
+      static int error_log = 0;
+      if (++error_log % 60 == 0) {
+        LOG_ERROR("AudioBackend", "SDL_QueueAudio failed: %s", SDL_GetError());
+      }
       return false;
     }
     return true;
@@ -256,7 +259,10 @@ bool SDL2AudioBackend::QueueSamples(const int16_t* samples, int num_samples) {
   int result = SDL_QueueAudio(device_id_, scaled_samples.data(),
                               num_samples * sizeof(int16_t));
   if (result < 0) {
-    LOG_ERROR("AudioBackend", "SDL_QueueAudio failed: %s", SDL_GetError());
+    static int error_log = 0;
+    if (++error_log % 60 == 0) {
+      LOG_ERROR("AudioBackend", "SDL_QueueAudio failed: %s", SDL_GetError());
+    }
     return false;
   }
 
@@ -282,18 +288,18 @@ bool SDL2AudioBackend::QueueSamplesNative(const int16_t* samples,
                                           int native_rate) {
   // DIAGNOSTIC: Track which backend instance is calling (per-instance, not static)
   call_count_++;
-  if (call_count_ <= 5 || call_count_ % 300 == 0) {
-    LOG_INFO("AudioBackend",
-             "QueueSamplesNative [device=%u]: frames=%d, ch=%d, native=%dHz, "
-             "stream_enabled=%d, stream=%p, device_freq=%dHz, calls=%d",
-             device_id_, frames_per_channel, channels, native_rate,
-             audio_stream_enabled_, static_cast<void*>(audio_stream_), device_freq_,
-             call_count_);
+  if (call_count_ <= 2 || call_count_ % 1000 == 0) {
+    LOG_DEBUG("AudioBackend",
+              "QueueSamplesNative [device=%u]: frames=%d, ch=%d, native=%dHz, "
+              "stream_enabled=%d, stream=%p, device_freq=%dHz, calls=%d",
+              device_id_, frames_per_channel, channels, native_rate,
+              audio_stream_enabled_, static_cast<void*>(audio_stream_), device_freq_,
+              call_count_);
   }
 
   if (!initialized_ || samples == nullptr) {
     static int init_fail_log = 0;
-    if (++init_fail_log % 60 == 0) {
+    if (++init_fail_log % 300 == 0) {
       LOG_WARN("AudioBackend", "QueueSamplesNative: FAILED (init=%d, samples=%p)",
                initialized_, samples);
     }
@@ -302,7 +308,7 @@ bool SDL2AudioBackend::QueueSamplesNative(const int16_t* samples,
 
   if (!audio_stream_enabled_ || audio_stream_ == nullptr) {
     static int stream_fail_log = 0;
-    if (++stream_fail_log % 60 == 0) {
+    if (++stream_fail_log % 600 == 0) {
       LOG_WARN("AudioBackend", "QueueSamplesNative: STREAM DISABLED (enabled=%d, stream=%p) - Audio will play at WRONG SPEED!",
                audio_stream_enabled_, static_cast<void*>(audio_stream_));
     }
@@ -310,8 +316,8 @@ bool SDL2AudioBackend::QueueSamplesNative(const int16_t* samples,
   }
 
   static int native_log = 0;
-  if (++native_log % 60 == 0) {
-      LOG_INFO("AudioBackend", "QueueSamplesNative: %d frames (Native: %d, Stream: %d)", frames_per_channel, native_rate, stream_native_rate_);
+  if (++native_log % 300 == 0) {
+      LOG_DEBUG("AudioBackend", "QueueSamplesNative: %d frames (Native: %d, Stream: %d)", frames_per_channel, native_rate, stream_native_rate_);
   }
 
   if (native_rate != stream_native_rate_ || channels != config_.channels) {
@@ -325,14 +331,20 @@ bool SDL2AudioBackend::QueueSamplesNative(const int16_t* samples,
       frames_per_channel * channels * static_cast<int>(sizeof(int16_t));
 
   if (SDL_AudioStreamPut(audio_stream_, samples, bytes_in) < 0) {
-    LOG_ERROR("AudioBackend", "SDL_AudioStreamPut failed: %s", SDL_GetError());
+    static int put_log = 0;
+    if (++put_log % 60 == 0) {
+      LOG_ERROR("AudioBackend", "SDL_AudioStreamPut failed: %s", SDL_GetError());
+    }
     return false;
   }
 
   const int available_bytes = SDL_AudioStreamAvailable(audio_stream_);
   if (available_bytes < 0) {
-    LOG_ERROR("AudioBackend", "SDL_AudioStreamAvailable failed: %s",
-              SDL_GetError());
+    static int avail_log = 0;
+    if (++avail_log % 60 == 0) {
+      LOG_ERROR("AudioBackend", "SDL_AudioStreamAvailable failed: %s",
+                SDL_GetError());
+    }
     return false;
   }
 
@@ -349,16 +361,19 @@ bool SDL2AudioBackend::QueueSamplesNative(const int16_t* samples,
   int bytes_read = SDL_AudioStreamGet(audio_stream_, stream_buffer_.data(),
                                       available_bytes);
   if (bytes_read < 0) {
-    LOG_ERROR("AudioBackend", "SDL_AudioStreamGet failed: %s", SDL_GetError());
+    static int get_log = 0;
+    if (++get_log % 60 == 0) {
+      LOG_ERROR("AudioBackend", "SDL_AudioStreamGet failed: %s", SDL_GetError());
+    }
     return false;
   }
 
-  // Debug resampling ratio once per second
+  // Debug resampling ratio occasionally
   static int log_counter = 0;
-  if (++log_counter % 60 == 0) {
-    LOG_INFO("AudioBackend",
-             "Resample trace: In=%d bytes (%dHz), Out=%d bytes (%dHz)", bytes_in,
-             stream_native_rate_, bytes_read, device_freq_);
+  if (++log_counter % 600 == 0) {
+    LOG_DEBUG("AudioBackend",
+              "Resample trace: In=%d bytes (%dHz), Out=%d bytes (%dHz)", bytes_in,
+              stream_native_rate_, bytes_read, device_freq_);
   }
 
   return QueueSamples(stream_buffer_.data(), available_samples);
@@ -382,10 +397,12 @@ AudioStatus SDL2AudioBackend::GetStatus() const {
   // Check for underrun (queue too low while playing)
   if (status.is_playing && status.queued_frames < 100) {
     status.has_underrun = true;
+    static int underrun_log = 0;
+    if (++underrun_log % 300 == 0) {
+      LOG_WARN("AudioBackend", "Audio underrun risk: queued_frames=%u (device=%u)",
+               status.queued_frames, device_id_);
+    }
   }
-
-  LOG_INFO("AudioBackend", "GetStatus() device=%u: playing=%d, queued_bytes=%u, queued_frames=%u",
-           device_id_, status.is_playing, status.queued_bytes, status.queued_frames);
 
   return status;
 }

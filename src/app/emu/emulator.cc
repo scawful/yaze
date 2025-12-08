@@ -599,6 +599,103 @@ void Emulator::Run(Rom* rom) {
           snes_.RunFrame();
         }
 
+        // Queue audio for every emulated frame (not just the rendered one) to
+        // avoid starving the SDL queue when we process multiple frames while
+        // behind.
+        if (audio_backend_) {
+          int16_t temp_audio_buffer[2048];
+          int16_t* frame_buffer = audio_buffer_ ? audio_buffer_ : temp_audio_buffer;
+
+          if (audio_stream_config_dirty_) {
+            if (use_sdl_audio_stream_ && audio_backend_->SupportsAudioStream()) {
+              LOG_INFO("Emulator", "Enabling audio stream resampling (32040Hz -> Device Rate)");
+              audio_backend_->SetAudioStreamResampling(true, kNativeSampleRate, 2);
+              audio_stream_active_ = true;
+            } else {
+              LOG_INFO("Emulator", "Disabling audio stream resampling");
+              audio_backend_->SetAudioStreamResampling(false, kNativeSampleRate, 2);
+              audio_stream_active_ = false;
+            }
+            audio_stream_config_dirty_ = false;
+          }
+
+          auto audio_status = audio_backend_->GetStatus();
+          queued_frames = audio_status.queued_frames;
+
+          const uint32_t samples_per_frame = wanted_samples_;
+          const uint32_t max_buffer = samples_per_frame * 6;
+          const uint32_t optimal_buffer = 2048;  // ~40ms target
+
+          if (queued_frames < max_buffer) {
+            // Generate samples for this emulated frame
+            snes_.SetSamples(frame_buffer, wanted_samples_);
+
+            if (should_render) {
+              // Compute RMS only once per rendered frame for metrics
+              const int num_samples = wanted_samples_ * 2;  // Stereo
+              auto compute_rms = [&](int total_samples) {
+                if (total_samples <= 0 || frame_buffer == nullptr) {
+                  audio_rms_left = 0.0f;
+                  audio_rms_right = 0.0f;
+                  return;
+                }
+                double sum_l = 0.0;
+                double sum_r = 0.0;
+                const int frames = total_samples / 2;
+                for (int s = 0; s < frames; ++s) {
+                  const float l = static_cast<float>(frame_buffer[2 * s]);
+                  const float r = static_cast<float>(frame_buffer[2 * s + 1]);
+                  sum_l += l * l;
+                  sum_r += r * r;
+                }
+                audio_rms_left =
+                    frames > 0 ? std::sqrt(sum_l / frames) / 32768.0f : 0.0f;
+                audio_rms_right =
+                    frames > 0 ? std::sqrt(sum_r / frames) / 32768.0f : 0.0f;
+              };
+              compute_rms(num_samples);
+            }
+
+            // Dynamic Rate Control (DRC)
+            int effective_rate = kNativeSampleRate;
+            if (queued_frames > optimal_buffer + 256) {
+              effective_rate += 60;  // subtle speed up
+            } else if (queued_frames < optimal_buffer - 256) {
+              effective_rate -= 60;  // subtle slow down
+            }
+
+            bool queue_ok = audio_backend_->QueueSamplesNative(
+                frame_buffer, wanted_samples_, 2, effective_rate);
+
+            if (!queue_ok && audio_backend_->SupportsAudioStream()) {
+              // Try to re-enable resampling and retry once
+              audio_backend_->SetAudioStreamResampling(true, kNativeSampleRate, 2);
+              audio_stream_active_ = true;
+              queue_ok = audio_backend_->QueueSamplesNative(
+                  frame_buffer, wanted_samples_, 2, effective_rate);
+            }
+
+            if (!queue_ok) {
+              // Drop audio rather than playing at wrong speed
+              static int error_count = 0;
+              if (++error_count % 300 == 0) {
+                LOG_WARN("Emulator",
+                         "Resampling failed, dropping audio to prevent 1.5x speed "
+                         "(count: %d)",
+                         error_count);
+              }
+            }
+          } else {
+            // Buffer overflow - skip this frame's audio
+            static int overflow_count = 0;
+            if (++overflow_count % 60 == 0) {
+              LOG_WARN("Emulator",
+                       "Audio buffer overflow (count: %d, queued: %u)",
+                       overflow_count, queued_frames);
+            }
+          }
+        }
+
         // Track FPS
         frame_count_++;
         fps_timer_ += wanted_frames_;
@@ -608,119 +705,8 @@ void Emulator::Run(Rom* rom) {
           fps_timer_ = 0.0;
         }
 
-        // Only render and handle audio on the last frame
+        // Only render UI/texture on the last frame
         if (should_render) {
-          // SMOOTH AUDIO BUFFERING
-          // Strategy: Always queue samples, never drop. Use dynamic rate
-          // control to keep buffer at target level. This prevents pops and
-          // glitches.
-
-          if (audio_backend_) {
-            if (audio_stream_config_dirty_) {
-              if (use_sdl_audio_stream_ &&
-                  audio_backend_->SupportsAudioStream()) {
-                LOG_INFO("Emulator", "Enabling audio stream resampling (32040Hz -> Device Rate)");
-                audio_backend_->SetAudioStreamResampling(true,
-                                                         kNativeSampleRate, 2);
-                audio_stream_active_ = true;
-              } else {
-                LOG_INFO("Emulator", "Disabling audio stream resampling");
-                audio_backend_->SetAudioStreamResampling(false,
-                                                         kNativeSampleRate, 2);
-                audio_stream_active_ = false;
-              }
-              audio_stream_config_dirty_ = false;
-            }
-
-            const bool use_native_stream =
-                use_sdl_audio_stream_ && audio_stream_active_ &&
-                audio_backend_->SupportsAudioStream();
-
-            auto audio_status = audio_backend_->GetStatus();
-            queued_frames = audio_status.queued_frames;
-
-            // Note: NewFrame() is called by RunCycle() at vblank start
-            // Do NOT call it here - that corrupts the DSP ring buffer boundary
-
-            // Target buffer: ~6 frames worth of audio samples
-            const uint32_t samples_per_frame = wanted_samples_;
-            const uint32_t max_buffer = samples_per_frame * 6;
-
-            if (queued_frames < max_buffer) {
-              bool queue_ok = true;
-              auto compute_rms = [&](int total_samples) {
-                if (total_samples <= 0 || audio_buffer_ == nullptr) {
-                  audio_rms_left = 0.0f;
-                  audio_rms_right = 0.0f;
-                  return;
-                }
-                double sum_l = 0.0;
-                double sum_r = 0.0;
-                const int frames = total_samples / 2;
-                for (int s = 0; s < frames; ++s) {
-                  const float l = static_cast<float>(audio_buffer_[2 * s]);
-                  const float r = static_cast<float>(audio_buffer_[2 * s + 1]);
-                  sum_l += l * l;
-                  sum_r += r * r;
-                }
-                audio_rms_left =
-                    frames > 0 ? std::sqrt(sum_l / frames) / 32768.0f : 0.0f;
-                audio_rms_right =
-                    frames > 0 ? std::sqrt(sum_r / frames) / 32768.0f : 0.0f;
-              };
-
-              // Always resample to backend rate for consistent tempo
-              snes_.SetSamples(audio_buffer_, wanted_samples_);
-              const int num_samples = wanted_samples_ * 2;  // Stereo
-              compute_rms(num_samples);
-              
-              // Dynamic Rate Control (DRC)
-              // NOTE: effective_rate is ALWAYS the native rate. Speed changes happen
-              // because we generate MORE/LESS data for the same real-time interval.
-              int effective_rate = kNativeSampleRate;
-              const uint32_t optimal_buffer = 2048; // ~40ms
-              
-              if (queued_frames > optimal_buffer + 256) {
-                 effective_rate += 60; // Subtle speed up
-              } else if (queued_frames < optimal_buffer - 256) {
-                 effective_rate -= 60; // Subtle slow down
-              }
-
-              // Queue samples using native rate resampling (32040 Hz -> device rate)
-              // CRITICAL: Do NOT fallback to direct QueueSamples() as that would
-              // play 32040 Hz samples at 48000 Hz, causing 1.5x speed bug!
-              queue_ok = audio_backend_->QueueSamplesNative(
-                  audio_buffer_, wanted_samples_, 2, effective_rate);
-
-              if (!queue_ok && audio_backend_->SupportsAudioStream()) {
-                // Try to re-enable resampling and retry once
-                audio_backend_->SetAudioStreamResampling(true, kNativeSampleRate, 2);
-                audio_stream_active_ = true;
-                queue_ok = audio_backend_->QueueSamplesNative(
-                    audio_buffer_, wanted_samples_, 2, effective_rate);
-              }
-
-              if (!queue_ok) {
-                // Drop audio rather than playing at wrong speed
-                static int error_count = 0;
-                if (++error_count % 300 == 0) {
-                  LOG_WARN("Emulator",
-                           "Resampling failed, dropping audio to prevent 1.5x speed "
-                           "(count: %d, stream=%s)",
-                           error_count, use_native_stream ? "SDL" : "manual");
-                }
-              }
-            } else {
-              // Buffer overflow - skip this frame's audio
-              static int overflow_count = 0;
-              if (++overflow_count % 60 == 0) {
-                LOG_WARN("Emulator",
-                         "Audio buffer overflow (count: %d, queued: %u)",
-                         overflow_count, queued_frames);
-              }
-            }
-          }
-
           // Record frame timing and audio queue depth for plots
           {
             const uint64_t frame_end = SDL_GetPerformanceCounter();

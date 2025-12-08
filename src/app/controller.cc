@@ -11,6 +11,7 @@
 #include "app/gui/automation/widget_id_registry.h"
 #include "app/gui/core/background_renderer.h"
 #include "app/gui/core/theme_manager.h"
+#include "app/emu/emulator.h"
 #include "app/platform/iwindow.h"
 #include "app/platform/timing.h"
 #include "imgui/imgui.h"
@@ -78,6 +79,12 @@ void Controller::OnInput() {
         // Other events are handled by ImGui via ProcessNativeEvent
         // which is called inside PollEvent
         break;
+    }
+
+    // Forward native SDL events to emulator input for event-based paths
+    if (event.has_native_event) {
+      editor_manager_.emulator().input_manager().ProcessEvent(
+          static_cast<void*>(&event.native_event));
     }
   }
 }

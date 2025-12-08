@@ -72,19 +72,8 @@ class SDL2InputBackend : public IInputBackend {
       // Continuous polling mode (for games)
       platform::KeyboardState keyboard_state = SDL_GetKeyboardState(nullptr);
 
-      // Only block input when actively typing in text fields AND not overridden
-      // Check if ImGui context exists (may not exist in standalone emulator)
-      if (ImGui::GetCurrentContext() != nullptr) {
-        ImGuiIO& io = ImGui::GetIO();
-        if (io.WantTextInput && !config_.ignore_imgui_text_input) {
-          static int block_count = 0;
-          if (block_count++ % 300 == 0) {
-            LOG_DEBUG("InputBackend", "Input BLOCKED by WantTextInput=%d ignore=%d",
-                      io.WantTextInput ? 1 : 0, config_.ignore_imgui_text_input ? 1 : 0);
-          }
-          return ControllerState{};
-        }
-      }
+      // Do NOT block emulator input when ImGui wants text; games rely on edge detection
+      // and we don't want UI focus to interfere with controller state.
 
       // Map keyboard to SNES buttons
       state.SetButton(SnesButton::B,

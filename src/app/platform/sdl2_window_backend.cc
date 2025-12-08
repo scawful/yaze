@@ -155,6 +155,8 @@ bool SDL2WindowBackend::PollEvent(WindowEvent& out_event) {
 
     // Convert to platform-agnostic event
     out_event = ConvertSDL2Event(sdl_event);
+    out_event.has_native_event = true;
+    out_event.native_event = sdl_event;
     return true;
   }
   return false;

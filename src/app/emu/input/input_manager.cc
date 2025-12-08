@@ -98,6 +98,18 @@ InputConfig InputManager::GetConfig() const {
 
 void InputManager::SetConfig(const InputConfig& config) {
   config_ = config;
+  if (!config_.continuous_polling) {
+    LOG_WARN("InputManager",
+             "continuous_polling disabled in config; forcing it ON to keep edge "
+             "detection working for menus (event-based path is not wired)");
+    config_.continuous_polling = true;
+  }
+  // Always ignore ImGui text input capture for game controls to avoid blocking
+  if (!config_.ignore_imgui_text_input) {
+    LOG_WARN("InputManager",
+             "ignore_imgui_text_input was false; forcing true so game input is not blocked");
+    config_.ignore_imgui_text_input = true;
+  }
   ApplyDefaultKeyBindings(config_);
   if (backend_) {
     backend_->SetConfig(config_);

@@ -10,6 +10,7 @@
 
 #include "absl/status/status.h"
 #include "app/gfx/backend/irenderer.h"
+#include "app/platform/sdl_compat.h"
 
 // Forward declarations to avoid SDL header dependency in interface
 struct SDL_Window;
@@ -83,6 +84,10 @@ struct WindowEvent {
 
   // Drop file data
   std::string dropped_file;
+
+  // Native event copy (SDL2/SDL3). Only valid when has_native_event is true.
+  bool has_native_event = false;
+  SDL_Event native_event{};
 };
 
 /**
