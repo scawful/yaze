@@ -1317,13 +1317,15 @@ bool DungeonObjectSelector::GetOrCreatePreview(int obj_id, float size,
   // CRITICAL: Initialize bitmap before drawing
   preview->EnsureBitmapInitialized();
 
-  // Create object and render it at (0,0) for preview
-  zelda3::RoomObject obj(obj_id, 0, 0, 0x12, 0);
+  // Create object and render it at (1,1) for preview with small margin
+  // This places the object at pixel (8,8) giving some padding from edges
+  zelda3::RoomObject obj(obj_id, 1, 1, 0x12, 0);
   obj.SetRom(rom_);
   obj.EnsureTilesLoaded();
 
   if (obj.tiles().empty()) {
-    return false;
+    // Try to render even without tiles (some objects may still work)
+    // Fall through to drawer which has fallback handling
   }
 
   // Apply palette to bitmap surface (match Room::RenderRoomGraphics approach)

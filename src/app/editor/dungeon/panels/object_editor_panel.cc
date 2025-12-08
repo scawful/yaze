@@ -444,27 +444,87 @@ void ObjectEditorPanel::OpenStaticObjectEditor(int object_id) {
   }
 
   // Render the object preview using ObjectDrawer
-  if (rom_ && rom_->is_loaded()) {
-    // Clear preview buffer
+  auto* rooms = object_selector_.get_rooms();
+  if (rom_ && rom_->is_loaded() && rooms && current_room_id_ >= 0 && 
+      current_room_id_ < static_cast<int>(rooms->size())) {
+    auto& room = (*rooms)[current_room_id_];
+    
+    // Ensure room graphics are loaded
+    if (!room.IsLoaded()) {
+      room.LoadRoomGraphics(room.blockset);
+    }
+    
+    // Clear preview buffer and initialize bitmap
     static_preview_buffer_.ClearBuffer();
+    static_preview_buffer_.EnsureBitmapInitialized();
 
-    // Create a preview object at center of canvas
-    zelda3::RoomObject preview_obj(object_id, 32, 32, 0x12, 0);
+    // Create a preview object at top-left of canvas (tile 2,2 = pixel 16,16)
+    // to fit within the 128x128 preview area with some margin
+    zelda3::RoomObject preview_obj(object_id, 2, 2, 0x12, 0);
     preview_obj.SetRom(rom_);
     preview_obj.EnsureTilesLoaded();
 
-    // Create drawer and render
-    // Need a valid GFX source. For now, use current room or fallback?
-    // We can use nullptr for gfx_data if we don't have a specific room context,
-    // but it might fail for some objects.
-    zelda3::ObjectDrawer drawer(rom_, current_room_id_, nullptr);
+    if (preview_obj.tiles().empty()) {
+      return;  // No tiles to draw
+    }
+
+    // Get room graphics data
+    const uint8_t* gfx_data = room.get_gfx_buffer().data();
+    
+    // Apply palette to bitmap
+    auto& bitmap = static_preview_buffer_.bitmap();
+    gfx::PaletteGroup palette_group;
+    auto* game_data = object_selector_.game_data();
+    if (game_data && !game_data->palette_groups.dungeon_main.empty()) {
+      // Use the entire dungeon_main palette group
+      palette_group = game_data->palette_groups.dungeon_main;
+      
+      std::vector<SDL_Color> colors(256);
+      size_t color_index = 0;
+      for (size_t pal_idx = 0; pal_idx < palette_group.size() && color_index < 256; ++pal_idx) {
+        const auto& pal = palette_group[pal_idx];
+        for (size_t i = 0; i < pal.size() && color_index < 256; ++i) {
+          ImVec4 rgb = pal[i].rgb();
+          colors[color_index++] = {
+              static_cast<Uint8>(rgb.x),
+              static_cast<Uint8>(rgb.y),
+              static_cast<Uint8>(rgb.z),
+              255
+          };
+        }
+      }
+      colors[255] = {0, 0, 0, 0};  // Transparent
+      bitmap.SetPalette(colors);
+      if (bitmap.surface()) {
+        SDL_SetColorKey(bitmap.surface(), SDL_TRUE, 255);
+        SDL_SetSurfaceBlendMode(bitmap.surface(), SDL_BLENDMODE_BLEND);
+      }
+    }
+
+    // Create drawer with room's graphics data
+    zelda3::ObjectDrawer drawer(rom_, current_room_id_, gfx_data);
     drawer.InitializeDrawRoutines();
 
-    gfx::PaletteGroup palette_group;
     auto status = drawer.DrawObject(preview_obj, static_preview_buffer_,
                                     static_preview_buffer_, palette_group);
     if (status.ok()) {
-      static_preview_rendered_ = true;
+      // Sync bitmap data to SDL surface
+      if (bitmap.modified() && bitmap.surface() && bitmap.mutable_data().size() > 0) {
+        SDL_LockSurface(bitmap.surface());
+        size_t surface_size = bitmap.surface()->h * bitmap.surface()->pitch;
+        size_t data_size = bitmap.mutable_data().size();
+        if (surface_size >= data_size) {
+          memcpy(bitmap.surface()->pixels, bitmap.mutable_data().data(), data_size);
+        }
+        SDL_UnlockSurface(bitmap.surface());
+      }
+      
+      // Create texture
+      gfx::Arena::Get().QueueTextureCommand(
+          gfx::Arena::TextureCommandType::CREATE, &bitmap);
+      gfx::Arena::Get().ProcessTextureQueue(renderer_);
+      
+      static_preview_rendered_ = bitmap.texture() != nullptr;
     }
   }
 }
