@@ -18,6 +18,7 @@
 #include "util/platform_paths.h"
 #include "util/macro.h"
 #include "yaze_config.h"
+#include "zelda3/resource_labels.h"
 
 
 #ifdef __EMSCRIPTEN__
@@ -290,6 +291,8 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
        << (workspace_settings.show_grid ? "true" : "false") << "\n";
   file << "show_collision="
        << (workspace_settings.show_collision ? "true" : "false") << "\n";
+  file << "prefer_hmagic_names="
+       << (workspace_settings.prefer_hmagic_names ? "true" : "false") << "\n";
   file << "last_layout_preset=" << workspace_settings.last_layout_preset
        << "\n";
   file << "saved_layouts="
@@ -497,6 +500,8 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         workspace_settings.show_grid = ParseBool(value);
       else if (key == "show_collision")
         workspace_settings.show_collision = ParseBool(value);
+      else if (key == "prefer_hmagic_names")
+        workspace_settings.prefer_hmagic_names = ParseBool(value);
       else if (key == "last_layout_preset")
         workspace_settings.last_layout_preset = value;
       else if (key == "saved_layouts")
@@ -1398,6 +1403,60 @@ std::string YazeProject::GetLabel(const std::string& resource_type, int id,
 
   return default_value.empty() ? resource_type + "_" + std::to_string(id)
                                : default_value;
+}
+
+absl::Status YazeProject::ImportLabelsFromZScream(const std::string& filepath) {
+#ifdef __EMSCRIPTEN__
+  (void)filepath;
+  return absl::UnimplementedError(
+      "File-based label import is not supported in the web build");
+#else
+  std::ifstream file(filepath);
+  if (!file.is_open()) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Cannot open labels file: %s", filepath));
+  }
+
+  std::stringstream buffer;
+  buffer << file.rdbuf();
+  file.close();
+
+  return ImportLabelsFromZScreamContent(buffer.str());
+#endif
+}
+
+absl::Status YazeProject::ImportLabelsFromZScreamContent(
+    const std::string& content) {
+  // Initialize the global provider with our labels
+  auto& provider = zelda3::GetResourceLabels();
+  provider.SetProjectLabels(&resource_labels);
+  provider.SetPreferHMagicNames(workspace_settings.prefer_hmagic_names);
+
+  // Use the provider to parse ZScream format
+  auto status = provider.ImportFromZScreamFormat(content);
+  if (!status.ok()) {
+    return status;
+  }
+
+  LOG_DEBUG("Project", "Imported ZScream labels:");
+  LOG_DEBUG("Project", "   - %d sprite labels", resource_labels["sprite"].size());
+  LOG_DEBUG("Project", "   - %d room labels", resource_labels["room"].size());
+  LOG_DEBUG("Project", "   - %d item labels", resource_labels["item"].size());
+  LOG_DEBUG("Project", "   - %d room tag labels",
+            resource_labels["room_tag"].size());
+
+  return absl::OkStatus();
+}
+
+void YazeProject::InitializeResourceLabelProvider() {
+  auto& provider = zelda3::GetResourceLabels();
+  provider.SetProjectLabels(&resource_labels);
+  provider.SetPreferHMagicNames(workspace_settings.prefer_hmagic_names);
+
+  LOG_DEBUG("Project",
+            "Initialized ResourceLabelProvider with project labels");
+  LOG_DEBUG("Project", "   - prefer_hmagic_names: %s",
+            workspace_settings.prefer_hmagic_names ? "true" : "false");
 }
 
 // ============================================================================

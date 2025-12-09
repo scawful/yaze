@@ -73,6 +73,7 @@
 #include "util/macro.h"
 #include "yaze_config.h"
 #include "zelda3/game_data.h"
+#include "zelda3/resource_labels.h"
 #include "zelda3/screen/dungeon_map.h"
 #include "zelda3/sprite/sprite.h"
 
@@ -1507,6 +1508,13 @@ absl::Status EditorManager::LoadRom() {
   ConfigureEditorDependencies(GetCurrentEditorSet(), GetCurrentRom(),
                               GetCurrentSessionId());
 
+  // Initialize resource labels for LoadRom() - use defaults with current project settings
+  auto& label_provider = zelda3::GetResourceLabels();
+  label_provider.SetProjectLabels(&current_project_.resource_labels);
+  label_provider.SetPreferHMagicNames(
+      current_project_.workspace_settings.prefer_hmagic_names);
+  LOG_INFO("EditorManager", "Initialized ResourceLabelProvider for LoadRom");
+
 #ifdef YAZE_ENABLE_TESTING
   test::TestManager::Get().SetCurrentRom(GetCurrentRom());
 #endif
@@ -1832,6 +1840,14 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
     session->feature_flags = current_project_.feature_flags;
     core::FeatureFlags::get() = current_project_.feature_flags;
 
+    // Initialize resource labels for ROM-only loading (use defaults)
+    // This ensures labels are available before any editors access them
+    auto& label_provider = zelda3::GetResourceLabels();
+    label_provider.SetProjectLabels(&current_project_.resource_labels);
+    label_provider.SetPreferHMagicNames(
+        current_project_.workspace_settings.prefer_hmagic_names);
+    LOG_INFO("EditorManager", "Initialized ResourceLabelProvider for ROM-only load");
+
     // Update test manager with current ROM for ROM-dependent tests (only when
     // tests are enabled)
 #ifdef YAZE_ENABLE_TESTING
@@ -2002,6 +2018,10 @@ absl::Status EditorManager::LoadProjectWithRom() {
   user_settings_.prefs().autosave_interval =
       current_project_.workspace_settings.autosave_interval_secs;
   ImGui::GetIO().FontGlobalScale = user_settings_.prefs().font_global_scale;
+
+  // Initialize resource labels early - before any editors access them
+  current_project_.InitializeResourceLabelProvider();
+  LOG_INFO("EditorManager", "Initialized ResourceLabelProvider with project labels");
 
   // Add to recent files
   auto& manager = project::RecentFilesManager::GetInstance();
@@ -2280,6 +2300,23 @@ void EditorManager::ShowProjectManagement() {
     }
     right_panel_manager_->TogglePanel(RightPanelManager::PanelType::kProject);
   }
+}
+
+void EditorManager::ShowProjectFileEditor() {
+  // Load the current project file into the editor
+  if (!current_project_.filepath.empty()) {
+    auto status = project_file_editor_.LoadFile(current_project_.filepath);
+    if (!status.ok()) {
+      toast_manager_.Show(
+          absl::StrFormat("Failed to load project file: %s", status.message()),
+          ToastType::kError);
+      return;
+    }
+  }
+  // Set the project pointer for label import functionality
+  project_file_editor_.SetProject(&current_project_);
+  // Activate the editor window
+  project_file_editor_.set_active(true);
 }
 
 void EditorManager::ConfigureEditorDependencies(EditorSet* editor_set, Rom* rom,

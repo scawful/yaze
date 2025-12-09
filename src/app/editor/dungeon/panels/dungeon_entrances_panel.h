@@ -10,6 +10,7 @@
 #include "imgui/imgui.h"
 #include "zelda3/common.h"
 #include "zelda3/dungeon/room_entrance.h"
+#include "zelda3/resource_labels.h"
 
 namespace yaze {
 namespace editor {
@@ -127,9 +128,10 @@ class DungeonEntrancesPanel : public EditorPanel {
           entrance_name = buf;
         } else {
           // Regular entrances at indices 7-139, mapped to kEntranceNames[0-132]
-          int name_idx = i - kNumSpawnPoints;
-          if (name_idx < kNumEntrances) {
-            entrance_name = std::string(zelda3::kEntranceNames[name_idx]);
+          int entrance_id = i - kNumSpawnPoints;
+          if (entrance_id < kNumEntrances) {
+            // Use unified ResourceLabelProvider for entrance names
+            entrance_name = zelda3::GetEntranceLabel(entrance_id);
           } else {
             char buf[32];
             snprintf(buf, sizeof(buf), "Unknown %d", i);
@@ -138,11 +140,8 @@ class DungeonEntrancesPanel : public EditorPanel {
         }
 
         int room_id = (*entrances_)[i].room_;
-        std::string room_name = "Unknown";
-        if (room_id >= 0 &&
-            room_id < static_cast<int>(std::size(zelda3::kRoomNames))) {
-          room_name = std::string(zelda3::kRoomNames[room_id]);
-        }
+        // Use unified ResourceLabelProvider for room names
+        std::string room_name = zelda3::GetRoomLabel(room_id);
 
         char label[256];
         snprintf(label, sizeof(label), "[%02X] %s -> %s (%03X)", i,

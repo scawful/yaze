@@ -11,6 +11,7 @@
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/resource_labels.h"
 
 namespace yaze {
 namespace editor {
@@ -149,11 +150,8 @@ class DungeonRoomMatrixPanel : public EditorPanel {
           // Tooltip with more info
           if (ImGui::IsItemHovered()) {
             ImGui::BeginTooltip();
-            if (room_id < static_cast<int>(std::size(zelda3::kRoomNames))) {
-              ImGui::Text("%s", zelda3::kRoomNames[room_id].data());
-            } else {
-              ImGui::Text("Room %03X", room_id);
-            }
+            // Use unified ResourceLabelProvider for room names
+            ImGui::Text("%s", zelda3::GetRoomLabel(room_id).c_str());
             // Show palette info if room is loaded
             if (rooms_ && (*rooms_)[room_id].IsLoaded()) {
               ImGui::TextDisabled("Palette: %d", (*rooms_)[room_id].palette);

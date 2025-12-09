@@ -250,12 +250,13 @@ void UICoordinator::DrawMenuBarExtras() {
   const float true_viewport_right = viewport->WorkPos.x + viewport->WorkSize.x;
 
   // Calculate panel toggle region width
+  // Buttons: Project, Agent (GRPC only), Help, Settings, Properties
   int panel_button_count = 0;
   if (editor_manager_->right_panel_manager()) {
 #ifdef YAZE_WITH_GRPC
-    panel_button_count = 3;  // Agent, Settings, Properties
+    panel_button_count = 5;  // Project, Agent, Help, Settings, Properties
 #else
-    panel_button_count = 2;  // Settings, Properties
+    panel_button_count = 4;  // Project, Help, Settings, Properties
 #endif
   }
 

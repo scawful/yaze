@@ -39,7 +39,7 @@ void ProjectFileEditor::Draw() {
   }
 
   // Toolbar
-  if (ImGui::BeginTable("ProjectEditorToolbar", 8,
+  if (ImGui::BeginTable("ProjectEditorToolbar", 10,
                         ImGuiTableFlags_SizingFixedFit)) {
     ImGui::TableNextColumn();
     if (ImGui::Button(absl::StrFormat("%s New", ICON_MD_NOTE_ADD).c_str())) {
@@ -91,6 +91,23 @@ void ProjectFileEditor::Draw() {
 
     ImGui::TableNextColumn();
     ImGui::Text("|");
+
+    ImGui::TableNextColumn();
+    // Import ZScream Labels button
+    if (ImGui::Button(
+            absl::StrFormat("%s Import Labels", ICON_MD_LABEL).c_str())) {
+      auto status = ImportLabelsFromZScream();
+      if (status.ok() && toast_manager_) {
+        toast_manager_->Show("Labels imported successfully", ToastType::kSuccess);
+      } else if (!status.ok() && toast_manager_) {
+        toast_manager_->Show(
+            std::string(status.message().data(), status.message().size()),
+            ToastType::kError);
+      }
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Import labels from ZScream DefaultNames.txt");
+    }
 
     ImGui::TableNextColumn();
     if (ImGui::Button(
@@ -353,6 +370,44 @@ void ProjectFileEditor::ShowValidationErrors() {
   for (const auto& error : validation_errors_) {
     ImGui::BulletText("%s", error.c_str());
   }
+}
+
+absl::Status ProjectFileEditor::ImportLabelsFromZScream() {
+#ifdef __EMSCRIPTEN__
+  return absl::UnimplementedError(
+      "File-based label import is not supported in the web build");
+#else
+  if (!project_) {
+    return absl::FailedPreconditionError(
+        "No project loaded. Open a project first.");
+  }
+
+  // Show file dialog for DefaultNames.txt
+  auto file = util::FileDialogWrapper::ShowOpenFileDialog();
+  if (file.empty()) {
+    return absl::CancelledError("No file selected");
+  }
+
+  // Read the file contents
+  std::ifstream input_file(file);
+  if (!input_file.is_open()) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Cannot open file: %s", file));
+  }
+
+  std::stringstream buffer;
+  buffer << input_file.rdbuf();
+  input_file.close();
+
+  // Import using the project's method
+  auto status = project_->ImportLabelsFromZScreamContent(buffer.str());
+  if (!status.ok()) {
+    return status;
+  }
+
+  // Save the project to persist the imported labels
+  return project_->Save();
+#endif
 }
 
 }  // namespace editor

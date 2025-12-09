@@ -330,6 +330,9 @@ class EditorManager : public SessionObserver {
   
   // Show project management panel in right sidebar
   void ShowProjectManagement();
+  
+  // Show project file editor
+  void ShowProjectFileEditor();
 
  private:
   absl::Status DrawRomSelector() = delete;  // Moved to UICoordinator

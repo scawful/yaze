@@ -44,6 +44,7 @@
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/object_dimensions.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/resource_labels.h"
 
 namespace yaze::editor {
 
@@ -459,14 +460,9 @@ void DungeonEditorV2::DrawRoomPanels() {
 
     bool open = true;
 
-    std::string base_name;
-    if (room_id >= 0 &&
-        static_cast<size_t>(room_id) < std::size(zelda3::kRoomNames)) {
-      base_name = absl::StrFormat("[%03X] %s", room_id,
-                                  zelda3::kRoomNames[room_id].data());
-    } else {
-      base_name = absl::StrFormat("Room %03X", room_id);
-    }
+    // Use unified ResourceLabelProvider for room names
+    std::string base_name = absl::StrFormat("[%03X] %s", room_id,
+                                            zelda3::GetRoomLabel(room_id).c_str());
 
     std::string card_name_str = absl::StrFormat(
         "%s###RoomPanel%d", MakePanelTitle(base_name).c_str(), room_id);
@@ -674,14 +670,9 @@ void DungeonEditorV2::OnRoomSelected(int room_id, bool request_focus) {
   room_selector_.set_active_rooms(active_rooms_);
 
   if (dependencies_.panel_manager) {
-    std::string room_name;
-    if (room_id >= 0 &&
-        static_cast<size_t>(room_id) < std::size(zelda3::kRoomNames)) {
-      room_name = absl::StrFormat("[%03X] %s", room_id,
-                                  zelda3::kRoomNames[room_id].data());
-    } else {
-      room_name = absl::StrFormat("Room %03X", room_id);
-    }
+    // Use unified ResourceLabelProvider for room names
+    std::string room_name = absl::StrFormat("[%03X] %s", room_id,
+                                            zelda3::GetRoomLabel(room_id).c_str());
 
     std::string base_card_id = absl::StrFormat("dungeon.room_%d", room_id);
 
@@ -851,14 +842,9 @@ void DungeonEditorV2::ProcessPendingSwap() {
 
   // Register new panel
   if (dependencies_.panel_manager) {
-    std::string new_room_name;
-    if (new_room_id >= 0 &&
-        static_cast<size_t>(new_room_id) < std::size(zelda3::kRoomNames)) {
-      new_room_name = absl::StrFormat("[%03X] %s", new_room_id,
-                                      zelda3::kRoomNames[new_room_id].data());
-    } else {
-      new_room_name = absl::StrFormat("Room %03X", new_room_id);
-    }
+    // Use unified ResourceLabelProvider for room names
+    std::string new_room_name = absl::StrFormat(
+        "[%03X] %s", new_room_id, zelda3::GetRoomLabel(new_room_id).c_str());
 
     std::string new_card_id = absl::StrFormat("dungeon.room_%d", new_room_id);
 

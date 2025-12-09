@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <iostream>
 
+#include "zelda3/resource_labels.h"
+
 namespace yaze {
 namespace zelda3 {
 
@@ -267,19 +269,22 @@ const std::string kSpriteDefaultNames[256] = {
     "FF",
 };
 
-static bool g_prefer_hmagic_sprite_names = true;
+// Legacy global state - now delegates to ResourceLabelProvider
+void SetPreferHmagicSpriteNames(bool prefer) {
+  GetResourceLabels().SetPreferHMagicNames(prefer);
+}
 
-void SetPreferHmagicSpriteNames(bool prefer) { g_prefer_hmagic_sprite_names = prefer; }
-bool PreferHmagicSpriteNames() { return g_prefer_hmagic_sprite_names; }
+bool PreferHmagicSpriteNames() {
+  return GetResourceLabels().PreferHMagicNames();
+}
+
+// Thread-local storage for the resolved name (for C-string return compatibility)
+static thread_local std::string g_resolved_sprite_name;
 
 const char* ResolveSpriteName(uint16_t id) {
-  if (g_prefer_hmagic_sprite_names && id < kSpriteNameCount) {
-    return kSpriteNames[id];
-  }
-  if (id < 256) {
-    return kSpriteDefaultNames[id].c_str();
-  }
-  return "Unknown";
+  // Use the unified ResourceLabelProvider for resolution
+  g_resolved_sprite_name = GetResourceLabels().GetLabel(ResourceType::kSprite, id);
+  return g_resolved_sprite_name.c_str();
 }
 
 // hmagic-derived expanded names (0x11c entries), see tools/decode_sprname.py.

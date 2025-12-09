@@ -91,6 +91,10 @@ void MenuOrchestrator::AddFileMenuItems() {
           "Project Management...", ICON_MD_FOLDER_SPECIAL,
           [this]() { OnShowProjectManagement(); }, nullptr,
           [this]() { return CanSaveProject(); })
+      .Item(
+          "Edit Project File...", ICON_MD_DESCRIPTION,
+          [this]() { OnShowProjectFileEditor(); }, nullptr,
+          [this]() { return HasProjectFile(); })
       .Separator();
 
   // ROM Information and Validation
@@ -603,6 +607,13 @@ void MenuOrchestrator::OnShowProjectManagement() {
   }
 }
 
+void MenuOrchestrator::OnShowProjectFileEditor() {
+  // Open the project file editor with the current project file
+  if (editor_manager_) {
+    editor_manager_->ShowProjectFileEditor();
+  }
+}
+
 // Edit menu actions - delegate to current editor
 void MenuOrchestrator::OnUndo() {
   if (editor_manager_) {
@@ -1066,6 +1077,13 @@ bool MenuOrchestrator::HasActiveRom() const {
 
 bool MenuOrchestrator::HasActiveProject() const {
   return project_manager_.HasActiveProject();
+}
+
+bool MenuOrchestrator::HasProjectFile() const {
+  // Check if EditorManager has a project with a valid filepath
+  // This is separate from HasActiveProject which checks ProjectManager
+  const auto* project = editor_manager_ ? editor_manager_->GetCurrentProject() : nullptr;
+  return project && !project->filepath.empty();
 }
 
 bool MenuOrchestrator::HasCurrentEditor() const {

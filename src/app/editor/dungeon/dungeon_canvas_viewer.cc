@@ -27,6 +27,7 @@
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_layer_manager.h"
 #include "zelda3/dungeon/room_object.h"
+#include "zelda3/resource_labels.h"
 #include "zelda3/sprite/sprite.h"
 
 namespace yaze::editor {
@@ -1436,26 +1437,15 @@ void DungeonCanvasViewer::RenderSprites(const gui::CanvasRuntime& rt,
       // Draw filled square using runtime-based helper
       gui::DrawRect(rt, canvas_x, canvas_y, 16, 16, sprite_color);
 
-      // Draw sprite ID and name
+      // Draw sprite ID and name using unified ResourceLabelProvider
+      std::string full_name = zelda3::GetSpriteLabel(sprite.id());
       std::string sprite_text;
-      if (sprite.id() >= 0) {  // sprite.id() is uint8_t so always < 256
-        // Extract just the sprite name part (remove ID prefix)
-        std::string full_name = zelda3::kSpriteDefaultNames[sprite.id()];
-        auto space_pos = full_name.find(' ');
-        if (space_pos != std::string::npos &&
-            space_pos < full_name.length() - 1) {
-          std::string sprite_name = full_name.substr(space_pos + 1);
-          // Truncate long names
-          if (sprite_name.length() > 10) {
-            sprite_name = sprite_name.substr(0, 8) + "..";
-          }
-          sprite_text =
-              absl::StrFormat("%02X %s", sprite.id(), sprite_name.c_str());
-        } else {
-          sprite_text = absl::StrFormat("%02X", sprite.id());
-        }
+      // Truncate long names for display
+      if (full_name.length() > 12) {
+        sprite_text = absl::StrFormat("%02X %s..", sprite.id(),
+                                      full_name.substr(0, 8).c_str());
       } else {
-        sprite_text = absl::StrFormat("%02X", sprite.id());
+        sprite_text = absl::StrFormat("%02X %s", sprite.id(), full_name.c_str());
       }
 
       gui::DrawText(rt, sprite_text, canvas_x, canvas_y);

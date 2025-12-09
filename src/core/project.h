@@ -11,6 +11,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
 #include "core/features.h"
+#include "zelda3/resource_labels.h"
 
 namespace yaze {
 namespace project {
@@ -66,6 +67,9 @@ struct WorkspaceSettings {
   bool backup_on_save = true;
   bool show_grid = true;
   bool show_collision = false;
+
+  // Label preferences
+  bool prefer_hmagic_names = true;  // Prefer Hyrule Magic sprite names
 
   // Advanced settings
   std::map<std::string, std::string> custom_keybindings;
@@ -185,6 +189,25 @@ struct YazeProject {
           labels);  // Load all default Zelda3 labels
   std::string GetLabel(const std::string& resource_type, int id,
                        const std::string& default_value = "") const;
+
+  /**
+   * @brief Import labels from a ZScream DefaultNames.txt file
+   * @param filepath Path to the DefaultNames.txt file
+   * @return Status indicating success or parse errors
+   */
+  absl::Status ImportLabelsFromZScream(const std::string& filepath);
+
+  /**
+   * @brief Import labels from ZScream format content directly
+   * @param content The file content to parse
+   * @return Status indicating success or parse errors
+   */
+  absl::Status ImportLabelsFromZScreamContent(const std::string& content);
+
+  /**
+   * @brief Initialize the global ResourceLabelProvider with this project's labels
+   */
+  void InitializeResourceLabelProvider();
 
   // Validation and integrity
   absl::Status Validate() const;

@@ -11,6 +11,7 @@
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/resource_labels.h"
 
 namespace yaze {
 namespace editor {
@@ -61,12 +62,9 @@ class DungeonRoomPanel : public ResourcePanel {
   std::string GetResourceType() const override { return "room"; }
 
   std::string GetResourceName() const override {
-    if (room_id_ >= 0 &&
-        static_cast<size_t>(room_id_) < std::size(zelda3::kRoomNames)) {
-      return absl::StrFormat("[%03X] %s", room_id_,
-                             zelda3::kRoomNames[room_id_].data());
-    }
-    return absl::StrFormat("Room %03X", room_id_);
+    // Use unified ResourceLabelProvider for room names
+    return absl::StrFormat("[%03X] %s", room_id_,
+                           zelda3::GetRoomLabel(room_id_).c_str());
   }
 
   std::string GetIcon() const override { return ICON_MD_GRID_ON; }

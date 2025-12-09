@@ -80,6 +80,7 @@ class MenuOrchestrator {
   void OnSaveProject();
   void OnSaveProjectAs();
   void OnShowProjectManagement();
+  void OnShowProjectFileEditor();
 
   // Edit menu actions (delegate to current editor)
   void OnUndo();
@@ -218,6 +219,7 @@ class MenuOrchestrator {
   bool CanSaveProject() const;
   bool HasActiveRom() const;
   bool HasActiveProject() const;
+  bool HasProjectFile() const;
   bool HasCurrentEditor() const;
   bool HasMultipleSessions() const;
 

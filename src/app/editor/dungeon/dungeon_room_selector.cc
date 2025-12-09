@@ -6,6 +6,7 @@
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
+#include "zelda3/resource_labels.h"
 
 namespace yaze::editor {
 
@@ -38,12 +39,9 @@ void DungeonRoomSelector::DrawRoomSelector() {
     ImGui::TableHeadersRow();
 
     // Use kNumberOfRooms (296) as limit - rooms_ array is 0x128 elements
-    // kRoomNames has 297 entries but room 296 has no actual room data
     for (int i = 0; i < zelda3::kNumberOfRooms; ++i) {
-      std::string_view room_name = (static_cast<size_t>(i) < zelda3::kRoomNames.size())
-          ? zelda3::kRoomNames[i] : "Unknown";
-      std::string display_name = rom_->resource_label()->CreateOrGetLabel(
-          "Dungeon Room Names", util::HexWord(i), std::string(room_name));
+      // Use unified ResourceLabelProvider for room names
+      std::string display_name = zelda3::GetRoomLabel(i);
 
       if (room_filter_.PassFilter(display_name.c_str())) {
         ImGui::TableNextRow();
@@ -156,23 +154,21 @@ void DungeonRoomSelector::DrawEntranceSelector() {
     ImGui::TableHeadersRow();
 
     for (int i = 0; i < kTotalEntries; i++) {
-      std::string default_name;
+      std::string display_name;
       
       if (i < kNumSpawnPoints) {
         // Spawn points are at indices 0-6
-        default_name = absl::StrFormat("Spawn Point %d", i);
+        display_name = absl::StrFormat("Spawn Point %d", i);
       } else {
-        // Regular entrances are at indices 7-139, mapped to kEntranceNames[0-132]
-        int entrance_name_idx = i - kNumSpawnPoints;
-        if (entrance_name_idx < kNumEntrances) {
-          default_name = std::string(zelda3::kEntranceNames[entrance_name_idx]);
+        // Regular entrances are at indices 7-139, mapped to entrance IDs 0-132
+        int entrance_id = i - kNumSpawnPoints;
+        if (entrance_id < kNumEntrances) {
+          // Use unified ResourceLabelProvider for entrance names
+          display_name = zelda3::GetEntranceLabel(entrance_id);
         } else {
-          default_name = absl::StrFormat("Unknown Entrance %d", i);
+          display_name = absl::StrFormat("Unknown Entrance %d", i);
         }
       }
-
-      std::string display_name = rom_->resource_label()->CreateOrGetLabel(
-          "Dungeon Entrance Names", util::HexByte(i), default_name);
 
       // Get room ID for this entrance
       int room_id = (i < static_cast<int>(entrances_->size())) 
