@@ -84,8 +84,84 @@ window.yazeDebug.graphics.getDiagnostics();
 window.yazeDebug.memory.getUsage();
 ```
 
-## 7. Common Issues & Solutions
+## 7. Debugging Memory Access Errors
+
+### Quick Methods to Find Out-of-Bounds Accesses
+
+#### Method 1: Enable Emscripten SAFE_HEAP (Easiest)
+
+Add `-s SAFE_HEAP=1` to your Emscripten flags. This adds bounds checking to all memory accesses and will give you a precise error location.
+
+In `CMakePresets.json`, add to `CMAKE_CXX_FLAGS`:
+```json
+"CMAKE_CXX_FLAGS": "... -s SAFE_HEAP=1 -s ASSERTIONS=2"
+```
+
+**Pros**: Catches all out-of-bounds accesses automatically
+**Cons**: Slower execution (debugging only)
+
+#### Method 2: Map WASM Function Number to Source
+
+The error shows `wasm-function[3704]`. You can map this to source:
+
+1. Build with source maps: Add `-g4 -s SOURCE_MAP_BASE='http://localhost:8080/'` to linker flags
+2. Use `wasm-objdump` to list functions:
+   ```bash
+   wasm-objdump -x build-wasm/bin/yaze.wasm | grep -A 5 "func\[3704\]"
+   ```
+3. Or use browser DevTools: The stack trace should show function names if source maps are enabled
+
+#### Method 3: Add Logging Wrapper
+
+Create a ROM access wrapper that logs all accesses:
+
+```cpp
+#ifdef __EMSCRIPTEN__
+class DebugRomAccess {
+public:
+  static bool CheckAccess(const uint8_t* data, size_t offset, size_t size,
+                          size_t rom_size, const char* func_name) {
+    if (offset + size > rom_size) {
+      emscripten_log(EM_LOG_ERROR,
+        "OUT OF BOUNDS: %s accessing offset %zu + %zu (ROM size: %zu)",
+        func_name, offset, size, rom_size);
+      return false;
+    }
+    return true;
+  }
+};
+#endif
+```
+
+### Common Pitfalls When Adding Bounds Checking
+
+#### Pitfall 1: DecompressV2 Size Parameter
+
+The `DecompressV2` function has an early-exit when `size == 0`. Always pass `0x800` for the size parameter, not `0`.
+
+```cpp
+// CORRECT
+DecompressV2(rom.data(), offset, 0x800, 1, rom.size())
+
+// BROKEN - returns empty immediately
+DecompressV2(rom.data(), offset, 0, 1, rom.size())
+```
+
+#### Pitfall 2: SMC Header Detection
+
+The SMC header detection must use modulo 1MB, not 32KB:
+
+```cpp
+// CORRECT
+size % 1048576 == 512
+
+// BROKEN - causes false positives
+size % 0x8000 == 512
+```
+
+## 8. Common Issues & Solutions
 
 *   **"SharedArrayBuffer is not defined"**: Ensure you are running the server with `serve-wasm.sh` to set the correct headers.
 *   **ROM not loading**: Check the browser console for errors. Ensure the file is a valid SNES ROM.
 *   **Canvas blank**: Try resizing the window or toggling fullscreen to force a redraw.
+*   **Out of bounds memory access**: Enable SAFE_HEAP (see Section 7) to get precise error locations.

@@ -1,14 +1,16 @@
-# A1 - Testing Guide
+# Testing Guide
 
-This guide provides a comprehensive overview of the testing framework for the yaze project, including the test organization, execution methods, and the end-to-end GUI automation system.
+This guide covers the testing framework for YAZE, including test organization, execution, and the GUI automation system.
 
-## 1. Test Organization
+---
 
-The test suite is organized into a clear directory structure that separates tests by their purpose and dependencies. This is the primary way to understand the nature of a test.
+## Test Organization
+
+Tests are organized by purpose and dependencies:
 
 ```
 test/
-├── unit/                    # Unit tests for individual components
+├── unit/                    # Isolated component tests
 │   ├── core/                # Core functionality (asar, hex utils)
 │   ├── cli/                 # Command-line interface tests
 │   ├── emu/                 # Emulator component tests
@@ -16,138 +18,132 @@ test/
 │   ├── gui/                 # GUI widget tests
 │   ├── rom/                 # ROM data structure tests
 │   └── zelda3/              # Game-specific logic tests
-├── integration/             # Tests for interactions between components
-│   ├── ai/                  # AI agent and vision tests
+├── integration/             # Component interaction tests
+│   ├── ai/                  # AI agent tests
 │   ├── editor/              # Editor integration tests
-│   └── zelda3/              # Game-specific integration tests (ROM-dependent)
-├── e2e/                     # End-to-end user workflow tests (GUI-driven)
+│   └── zelda3/              # ROM-dependent integration tests
+├── e2e/                     # End-to-end GUI workflow tests
 │   ├── rom_dependent/       # E2E tests requiring a ROM
-│   └── zscustomoverworld/   # ZSCustomOverworld upgrade E2E tests
+│   └── zscustomoverworld/   # ZSCustomOverworld upgrade tests
 ├── benchmarks/              # Performance benchmarks
-├── mocks/                   # Mock objects for isolating tests
-└── assets/                  # Test assets (patches, data)
+├── mocks/                   # Mock objects
+└── assets/                  # Test data and patches
 ```
 
-## 2. Test Categories
+---
 
-Based on the directory structure, tests fall into the following categories:
+## Test Categories
 
-### Unit Tests (`unit/`)
-- **Purpose**: To test individual classes or functions in isolation.
-- **Characteristics**:
-    - Fast, self-contained, and reliable.
-    - No external dependencies (e.g., ROM files, running GUI).
-    - Form the core of the CI/CD validation pipeline.
+| Category | Purpose | Dependencies | Speed |
+|----------|---------|--------------|-------|
+| **Unit** | Test individual classes/functions | None | Fast |
+| **Integration** | Test component interactions | May require ROM | Medium |
+| **E2E** | Simulate user workflows | GUI + ROM | Slow |
+| **Benchmarks** | Measure performance | None | Variable |
 
-### Integration Tests (`integration/`)
-- **Purpose**: To verify that different components of the application work together correctly.
-- **Characteristics**:
-    - May require a real ROM file (especially those in `integration/zelda3/`). These are considered "ROM-dependent".
-    - Test interactions between modules, such as the `asar` wrapper and the `Rom` class, or AI services with the GUI controller.
-    - Slower than unit tests but crucial for catching bugs at module boundaries.
+### Unit Tests
 
-### End-to-End (E2E) Tests (`e2e/`)
-- **Purpose**: To simulate a full user workflow from start to finish.
-- **Characteristics**:
-    - Driven by the **ImGui Test Engine**.
-    - Almost always require a running GUI and often a real ROM.
-    - The slowest but most comprehensive tests, validating the user experience.
-    - Includes smoke tests, canvas interactions, and complex workflows like ZSCustomOverworld upgrades.
+Fast, isolated tests with no external dependencies. Run in CI on every commit.
 
-### Benchmarks (`benchmarks/`)
-- **Purpose**: To measure and track the performance of critical code paths, particularly in the graphics system.
-- **Characteristics**:
-    - Not focused on correctness but on speed and efficiency.
-    - Run manually or in specialized CI jobs to prevent performance regressions.
+### Integration Tests
 
-## 3. Running Tests
+Test module interactions (e.g., `asar` wrapper with `Rom` class). Some require a ROM file.
 
-> 💡 Need a refresher on presets/commands? See the [Build & Test Quick Reference](../build/quick-reference.md)
-> for the canonical `cmake`, `ctest`, and helper script usage before running the commands below.
+### E2E Tests
 
-### Using the Enhanced Test Runner (`yaze_test`)
+GUI-driven tests using ImGui Test Engine. Validate complete user workflows.
 
-The most flexible way to run tests is by using the `yaze_test` executable directly. It provides flags to filter tests by category, which is ideal for development and AI agent workflows.
+### Benchmarks
+
+Performance measurement for critical paths. Run manually or in specialized CI jobs.
+
+---
+
+## Running Tests
+
+> See the [Build and Test Quick Reference](../build/quick-reference.md) for full command reference.
+
+### Using yaze_test Executable
 
 ```bash
-# First, build the test executable
+# Build
 cmake --build build_ai --target yaze_test
 
 # Run all tests
 ./build_ai/bin/yaze_test
 
-# Run only unit tests
+# Run by category
 ./build_ai/bin/yaze_test --unit
-
-# Run only integration tests
 ./build_ai/bin/yaze_test --integration
-
-# Run E2E tests (requires a GUI)
 ./build_ai/bin/yaze_test --e2e --show-gui
 
-# Run ROM-dependent tests with a specific ROM
+# Run ROM-dependent tests
 ./build_ai/bin/yaze_test --rom-dependent --rom-path /path/to/zelda3.sfc
 
-# Run tests matching a specific pattern (e.g., all Asar tests)
+# Run by pattern
 ./build_ai/bin/yaze_test "*Asar*"
 
-# Get a full list of options
+# Show all options
 ./build_ai/bin/yaze_test --help
 ```
 
-### Using CTest and CMake Presets
-
-For CI/CD or a more traditional workflow, you can use `ctest` with CMake presets.
+### Using CTest
 
 ```bash
-# Configure a development build (enables ROM-dependent tests)
-cmake --preset mac-dev -DYAZE_TEST_ROM_PATH=/path/to/your/zelda3.sfc
+# Configure with ROM tests
+cmake --preset mac-dev -DYAZE_TEST_ROM_PATH=/path/to/zelda3.sfc
 
-# Build the tests
+# Build
 cmake --build --preset mac-dev --target yaze_test
 
-# Run stable tests (fast, primarily unit tests)
-ctest --preset dev
-
-# Run all tests, including ROM-dependent and E2E
-ctest --preset all
+# Run tests
+ctest --preset dev          # Stable tests
+ctest --preset all          # All tests
 ```
 
-## 4. Writing Tests
+---
 
-When adding new tests, place them in the appropriate directory based on their purpose and dependencies.
+## Writing Tests
 
-- **New class `MyClass`?** Add `test/unit/my_class_test.cc`.
-- **Testing `MyClass` with a real ROM?** Add `test/integration/my_class_rom_test.cc`.
-- **Testing a full UI workflow involving `MyClass`?** Add `test/e2e/my_class_workflow_test.cc`.
+Place tests based on their purpose:
 
-## 5. E2E GUI Testing Framework
+| Test Type | File Location |
+|-----------|---------------|
+| Unit test for `MyClass` | `test/unit/my_class_test.cc` |
+| Integration with ROM | `test/integration/my_class_rom_test.cc` |
+| UI workflow test | `test/e2e/my_class_workflow_test.cc` |
 
-The E2E framework uses `ImGuiTestEngine` to automate UI interactions.
+---
 
-### Architecture
+## E2E GUI Testing
 
-- **`test/yaze_test.cc`**: The main test runner that can initialize a GUI for E2E tests.
-- **`test/e2e/`**: Contains all E2E test files, such as:
-    - `framework_smoke_test.cc`: Basic infrastructure verification.
-    - `canvas_selection_test.cc`: Canvas interaction tests.
-    - `dungeon_editor_tests.cc`: UI tests for the dungeon editor.
-- **`test/test_utils.h`**: Provides high-level helper functions for common actions like loading a ROM (`LoadRomInTest`) or opening an editor (`OpenEditorInTest`).
+The E2E framework uses ImGui Test Engine for UI automation.
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `test/yaze_test.cc` | Main test runner with GUI initialization |
+| `test/e2e/framework_smoke_test.cc` | Infrastructure verification |
+| `test/e2e/canvas_selection_test.cc` | Canvas interaction tests |
+| `test/e2e/dungeon_editor_tests.cc` | Dungeon editor UI tests |
+| `test/test_utils.h` | Helper functions (LoadRomInTest, OpenEditorInTest) |
 
 ### Running GUI Tests
 
-To run E2E tests and see the GUI interactions, use the `--show-gui` flag.
-
 ```bash
-# Run all E2E tests with the GUI visible
+# Run all E2E tests with visible GUI
 ./build_ai/bin/yaze_test --e2e --show-gui
 
-# Run a specific E2E test by name
+# Run specific test
 ./build_ai/bin/yaze_test --show-gui --gtest_filter="*DungeonEditorSmokeTest"
 ```
 
-### Widget Discovery and AI Integration
+### AI Integration
 
-The GUI testing framework is designed for AI agent automation. All major UI elements are registered with stable IDs, allowing an agent to "discover" and interact with them programmatically via the `z3ed` CLI.
+UI elements are registered with stable IDs for programmatic access via `z3ed`:
+- `z3ed gui discover` - List available widgets
+- `z3ed gui click` - Interact with widgets
+- `z3ed agent test replay` - Replay recorded tests
 
-Refer to the `z3ed` agent guide for details on using commands like `z3ed gui discover`, `z3ed gui click`, and `z3ed agent test replay`.
+See the [z3ed CLI Guide](../usage/z3ed-cli.md) for more details.
