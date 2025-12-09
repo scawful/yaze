@@ -3,8 +3,8 @@
 **Status:** Active  
 **Owner:** dungeon-rendering-specialist  
 **Created:** 2025-12-07  
-**Last Reviewed:** 2025-12-07  
-**Next Review:** 2025-12-21  
+**Last Reviewed:** 2025-12-09  
+**Next Review:** 2025-12-23  
 
 ---
 
@@ -14,7 +14,18 @@ This document is the single source of truth for dungeon object draw routine impl
 
 ---
 
-## Recent Changes (2025-12-07)
+## Recent Changes (2025-12-09)
+
+| Change | Details |
+|--------|---------|
+| Unified draw routine registry | Created `DrawRoutineRegistry` singleton for ObjectDrawer/ObjectGeometry parity |
+| BG1 mask rectangle API | Added `GeometryBounds::GetBG1MaskRect()` and `RequiresBG1Mask()` for 94 affected rooms |
+| Fixed vertical rails 0x8A-0x8C | Applied CORNER+MIDDLE+END pattern matching horizontal rail 0x22 |
+| Custom objects 0x31/0x32 | Registered with routine 130 for Oracle of Secrets minecart tracks |
+| Selection bounds for diagonals | Added `selection_bounds` field for tighter hit testing on 0xA0-0xA3 |
+| Audited 0x233 staircase | Confirmed 32x32 (4x4 tile) dimensions correct per ASM |
+
+## Previous Changes (2025-12-07)
 
 | Change | Details |
 |--------|---------|
@@ -48,6 +59,10 @@ This document is the single source of truth for dungeon object draw routine impl
 | 0x12D-0x12F | InterRoom Fat Stairs | Wrong dimensions (32x24) | Fixed to 32x32 (4x4 tiles) |
 | 0x130-0x133 | Auto Stairs | Wrong dimensions (32x24) | Fixed to 32x32 (4x4 tiles) |
 | 0xF9E-0xFA9 | Straight InterRoom Stairs | Wrong dimensions (32x24) | Fixed to 32x32 (4x4 tiles) |
+| 0x8A-0x8C | Vertical Rails | Using wrong horizontal routine | Fixed CORNER+MIDDLE+END pattern |
+| 0x31/0x32 | Custom Objects | Not registered in draw routine map | Registered with routine 130 |
+| 0x233 | AutoStairsSouthMergedLayer | Need audit | Confirmed 32x32 (4x4 tiles) correct |
+| 0xDC | OpenChestPlatform | Layer check missing | Added layer handling documentation |
 
 ---
 
@@ -68,11 +83,9 @@ This document is the single source of truth for dungeon object draw routine impl
 
 | Object ID | Name | Issue | Priority |
 |-----------|------|-------|----------|
-| 0xDC | Chest Platform | Complex routine not working | High |
-| 0x233 | Staircase | Need audit | Medium |
 | Pit Edges | Various | Single tile thin based on direction | Low |
 
-**Note:** Staircase objects 0x12D-0x137 (Fat/Auto Stairs) and Type 3 stairs (0xF9E-0xFA9) have been audited and fixed as of 2025-12-07.
+**Note:** Staircase objects 0x12D-0x137 (Fat/Auto Stairs), Type 3 stairs (0xF9E-0xFA9), and 0x233 (AutoStairsSouthMergedLayer) have been audited as of 2025-12-09. All use 32x32 (4x4 tile) dimensions matching the ASM.
 
 ---
 

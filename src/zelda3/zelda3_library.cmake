@@ -20,6 +20,7 @@ set(
   zelda3/dungeon/room_object.cc
   # Draw routine modules (Phase 2 modularization)
   zelda3/dungeon/draw_routines/draw_routine_types.cc
+  zelda3/dungeon/draw_routines/draw_routine_registry.cc
   zelda3/dungeon/draw_routines/rightwards_routines.cc
   zelda3/dungeon/draw_routines/downwards_routines.cc
   zelda3/dungeon/draw_routines/diagonal_routines.cc

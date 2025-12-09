@@ -10,6 +10,18 @@
 - NOTES: Fixed tile cache (copy vs move), centralized zoom constants, re-enabled live preview, scaled entity hit detection, restored Tile16 Editor window, fixed SNES palette offset (+1), added palette remapping for source canvas viewing, visual sheet/palette indicators, diagnostic function. Simplified scratch space to single slot. Added toolbar panel toggles.
 - NEXT: Phase 2 Week 2 - Toolset improvements (eyedropper, flood fill, eraser tools)
 
+### 2025-12-07 snes-emulator-expert – ALTTP input/audio regression triage
+- TASK: Investigate SDL2/ImGui input pipeline and LakeSnes-based core for ALTTP A-button edge detection failure on naming screen + audio stutter on title screen
+- SCOPE: src/app/emu/input/, src/app/emu/, SDL2 backend, Link to the Past behavior (usdasm reference)
+- STATUS: IN_PROGRESS
+- NOTES: Repro: A works on file select, fails on naming screen; audio degrades during CPU-heavy scenes.
+
+### 2025-12-06 zelda3-hacking-expert – Dungeon object render/selection spec
+- TASK: Spec accurate dungeon layout/object rendering + selection semantics from usdasm (ceilings/corners/BG merge/layer types/outlines).
+- SCOPE: assets/asm/usdasm bank_01.asm rooms.asm; dungeon rendering/selection docs; editor render paths.
+- STATUS: IN_PROGRESS
+- NOTES: Producing canonical rendering rules + object iconography map (arrows/4x4 growth) and BG merge/layer ordering; spec: docs/internal/agents/dungeon-object-rendering-spec.md.
+
 ### 2025-12-05 snes-emulator-expert – MusicEditor 1.5x Audio Speed Bug
 - TASK: Fix audio playing at 1.5x speed in MusicEditor (48000/32040 ratio indicates missing resampling)
 - SCOPE: src/app/editor/music/, src/app/emu/audio/, src/app/emu/emulator.cc
@@ -40,10 +52,22 @@
 - STATUS: IN_PROGRESS
 - NOTES: Ensure panels can be driven from CLI (appear/dismiss) and logs are filterable for targeted startup flows.
 
+### 2025-12-07 dungeon-rendering-specialist – Custom Objects System Integration
+- TASK: Integrate custom object and minecart track support for Oracle of Secrets project
+- SCOPE: core/project.{h,cc}, zelda3/dungeon/custom_object.{h,cc}, object_drawer.cc, dungeon_editor_v2.cc, feature_flags_menu.h
+- STATUS: PARTIAL → HANDOFF for draw routine fixes
+- NOTES: Added `custom_objects_folder` project config, UI flag checkbox, project flag sync to global. MinecartTrackEditorPanel works. Draw routine NOT registered - custom objects don't render. See docs/internal/hand-off/HANDOFF_CUSTOM_OBJECTS.md
+
+### 2025-12-07 zelda3-hacking-expert – BG2 Masking Research (Phase 1 Complete)
+- TASK: Research why BG2 overlay content is hidden under BG1 floor tiles.
+- SCOPE: scripts/analyze_room.py, docs/internal/plans/dungeon-layer-compositing-research.md
+- STATUS: COMPLETE (Research) → HANDOFF for implementation
+- NOTES: Analyzed SNES 4-pass rendering, Room 001 objects, found 94 rooms affected. Root cause: BG1 floor has no transparent pixels where BG2 content exists. Fix: propagate Layer 1 object masks to BG1. See docs/internal/hand-off/HANDOFF_BG2_MASKING_FIX.md
+
 ### 2025-12-04 zelda3-hacking-expert – Dungeon layer merge & palette correctness
 - TASK: Fix BG1/BG2 layer merging, object palette correctness, and live re-render pipeline so object drags update immediately.
 - SCOPE: src/app/editor/dungeon/, src/zelda3/dungeon/, palette/layer merge handling.
-- STATUS: IN_PROGRESS
+- STATUS: IN_PROGRESS (blocked by BG2 masking fix above)
 - NOTES: Auditing layer merging semantics, palette lookup, and object dirty/refresh logic (BG ordering, translucent flags, shared palette bug e.g. Ganon room 000 yellow ceiling).
 
 ### 2025-12-03 imgui-frontend-engineer – Keyboard Shortcut Audit

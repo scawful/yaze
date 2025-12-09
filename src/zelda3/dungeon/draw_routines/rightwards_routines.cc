@@ -1,5 +1,6 @@
 #include "rightwards_routines.h"
 
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
@@ -404,9 +405,10 @@ void DrawRightwardsDecor2x2spaced12_1to16(const DrawContext& ctx) {
 void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
   // Note: Routine IDs are assigned based on the assembly routine table
   // These rightwards routines are part of the core 40 draw routines
+  // Uses canonical IDs from DrawRoutineIds namespace
 
   registry.push_back(DrawRoutineInfo{
-      .id = 0,  // RoomDraw_Rightwards2x2_1to15or32
+      .id = DrawRoutineIds::kRightwards2x2_1to15or32,
       .name = "Rightwards2x2_1to15or32",
       .function = DrawRightwards2x2_1to15or32,
       .draws_to_both_bgs = false,
@@ -416,7 +418,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
   });
 
   registry.push_back(DrawRoutineInfo{
-      .id = 1,  // RoomDraw_Rightwards2x4_1to15or26
+      .id = DrawRoutineIds::kRightwards2x4_1to15or26,
       .name = "Rightwards2x4_1to15or26",
       .function = DrawRightwards2x4_1to15or26,
       .draws_to_both_bgs = false,
@@ -426,7 +428,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
   });
 
   registry.push_back(DrawRoutineInfo{
-      .id = 2,  // RoomDraw_Rightwards2x4_1to16
+      .id = DrawRoutineIds::kRightwards2x4_1to16,
       .name = "Rightwards2x4_1to16",
       .function = DrawRightwards2x4_1to16,
       .draws_to_both_bgs = false,
@@ -436,7 +438,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
   });
 
   registry.push_back(DrawRoutineInfo{
-      .id = 3,  // RoomDraw_Rightwards2x4_1to16_BothBG
+      .id = DrawRoutineIds::kRightwards2x4_1to16_BothBG,
       .name = "Rightwards2x4_1to16_BothBG",
       .function = DrawRightwards2x4_1to16_BothBG,
       .draws_to_both_bgs = true,
@@ -446,7 +448,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
   });
 
   registry.push_back(DrawRoutineInfo{
-      .id = 4,  // RoomDraw_Rightwards2x2_1to16
+      .id = DrawRoutineIds::kRightwards2x2_1to16,
       .name = "Rightwards2x2_1to16",
       .function = DrawRightwards2x2_1to16,
       .draws_to_both_bgs = false,
@@ -456,7 +458,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
   });
 
   registry.push_back(DrawRoutineInfo{
-      .id = 20,  // RoomDraw_Rightwards1x2_1to16_plus2
+      .id = DrawRoutineIds::kRightwards1x2_1to16_plus2,
       .name = "Rightwards1x2_1to16_plus2",
       .function = DrawRightwards1x2_1to16_plus2,
       .draws_to_both_bgs = false,
@@ -466,7 +468,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
   });
 
   registry.push_back(DrawRoutineInfo{
-      .id = 21,  // RoomDraw_RightwardsHasEdge1x1_1to16_plus3
+      .id = DrawRoutineIds::kRightwardsHasEdge1x1_1to16_plus3,
       .name = "RightwardsHasEdge1x1_1to16_plus3",
       .function = DrawRightwardsHasEdge1x1_1to16_plus3,
       .draws_to_both_bgs = false,
@@ -476,7 +478,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
   });
 
   registry.push_back(DrawRoutineInfo{
-      .id = 22,  // RoomDraw_RightwardsHasEdge1x1_1to16_plus2
+      .id = DrawRoutineIds::kRightwardsHasEdge1x1_1to16_plus2,
       .name = "RightwardsHasEdge1x1_1to16_plus2",
       .function = DrawRightwardsHasEdge1x1_1to16_plus2,
       .draws_to_both_bgs = false,
@@ -486,7 +488,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
   });
 
   registry.push_back(DrawRoutineInfo{
-      .id = 23,  // RoomDraw_RightwardsTopCorners1x2_1to16_plus13
+      .id = DrawRoutineIds::kRightwardsTopCorners1x2_1to16_plus13,
       .name = "RightwardsTopCorners1x2_1to16_plus13",
       .function = DrawRightwardsTopCorners1x2_1to16_plus13,
       .draws_to_both_bgs = false,
@@ -496,7 +498,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
   });
 
   registry.push_back(DrawRoutineInfo{
-      .id = 24,  // RoomDraw_RightwardsBottomCorners1x2_1to16_plus13
+      .id = DrawRoutineIds::kRightwardsBottomCorners1x2_1to16_plus13,
       .name = "RightwardsBottomCorners1x2_1to16_plus13",
       .function = DrawRightwardsBottomCorners1x2_1to16_plus13,
       .draws_to_both_bgs = false,
@@ -506,7 +508,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
   });
 
   registry.push_back(DrawRoutineInfo{
-      .id = 16,  // RoomDraw_Rightwards4x4_1to16
+      .id = DrawRoutineIds::kRightwards4x4_1to16,
       .name = "Rightwards4x4_1to16",
       .function = DrawRightwards4x4_1to16,
       .draws_to_both_bgs = false,
@@ -516,7 +518,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
   });
 
   registry.push_back(DrawRoutineInfo{
-      .id = 25,  // RoomDraw_Rightwards1x1Solid_1to16_plus3
+      .id = DrawRoutineIds::kRightwards1x1Solid_1to16_plus3,
       .name = "Rightwards1x1Solid_1to16_plus3",
       .function = DrawRightwards1x1Solid_1to16_plus3,
       .draws_to_both_bgs = false,
@@ -526,7 +528,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
   });
 
   registry.push_back(DrawRoutineInfo{
-      .id = 27,  // RoomDraw_RightwardsDecor4x4spaced2_1to16
+      .id = DrawRoutineIds::kRightwardsDecor4x4spaced2_1to16,
       .name = "RightwardsDecor4x4spaced2_1to16",
       .function = DrawRightwardsDecor4x4spaced2_1to16,
       .draws_to_both_bgs = false,
@@ -536,7 +538,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
   });
 
   registry.push_back(DrawRoutineInfo{
-      .id = 28,  // RoomDraw_RightwardsStatue2x3spaced2_1to16
+      .id = DrawRoutineIds::kRightwardsStatue2x3spaced2_1to16,
       .name = "RightwardsStatue2x3spaced2_1to16",
       .function = DrawRightwardsStatue2x3spaced2_1to16,
       .draws_to_both_bgs = false,
@@ -546,7 +548,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
   });
 
   registry.push_back(DrawRoutineInfo{
-      .id = 29,  // RoomDraw_RightwardsPillar2x4spaced4_1to16
+      .id = DrawRoutineIds::kRightwardsPillar2x4spaced4_1to16,
       .name = "RightwardsPillar2x4spaced4_1to16",
       .function = DrawRightwardsPillar2x4spaced4_1to16,
       .draws_to_both_bgs = false,
@@ -556,7 +558,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
   });
 
   registry.push_back(DrawRoutineInfo{
-      .id = 30,  // RoomDraw_RightwardsDecor4x3spaced4_1to16
+      .id = DrawRoutineIds::kRightwardsDecor4x3spaced4_1to16,
       .name = "RightwardsDecor4x3spaced4_1to16",
       .function = DrawRightwardsDecor4x3spaced4_1to16,
       .draws_to_both_bgs = false,
@@ -566,7 +568,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
   });
 
   registry.push_back(DrawRoutineInfo{
-      .id = 31,  // RoomDraw_RightwardsDoubled2x2spaced2_1to16
+      .id = DrawRoutineIds::kRightwardsDoubled2x2spaced2_1to16,
       .name = "RightwardsDoubled2x2spaced2_1to16",
       .function = DrawRightwardsDoubled2x2spaced2_1to16,
       .draws_to_both_bgs = false,
@@ -576,7 +578,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
   });
 
   registry.push_back(DrawRoutineInfo{
-      .id = 32,  // RoomDraw_RightwardsDecor2x2spaced12_1to16
+      .id = DrawRoutineIds::kRightwardsDecor2x2spaced12_1to16,
       .name = "RightwardsDecor2x2spaced12_1to16",
       .function = DrawRightwardsDecor2x2spaced12_1to16,
       .draws_to_both_bgs = false,

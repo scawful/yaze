@@ -7,11 +7,7 @@
 #include "absl/strings/str_format.h"
 #include "app/gfx/render/background_buffer.h"
 #include "app/gfx/types/snes_tile.h"
-#include "zelda3/dungeon/draw_routines/corner_routines.h"
-#include "zelda3/dungeon/draw_routines/diagonal_routines.h"
-#include "zelda3/dungeon/draw_routines/downwards_routines.h"
-#include "zelda3/dungeon/draw_routines/rightwards_routines.h"
-#include "zelda3/dungeon/draw_routines/special_routines.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -63,12 +59,10 @@ void ObjectGeometry::BuildRegistry() {
   routines_.clear();
   routine_map_.clear();
 
-  // Populate routine metadata from the existing draw routine registry.
-  draw_routines::RegisterRightwardsRoutines(routines_);
-  draw_routines::RegisterDownwardsRoutines(routines_);
-  draw_routines::RegisterDiagonalRoutines(routines_);
-  draw_routines::RegisterCornerRoutines(routines_);
-  draw_routines::RegisterSpecialRoutines(routines_);
+  // Use the unified DrawRoutineRegistry to ensure consistent routine IDs
+  // between ObjectGeometry and ObjectDrawer
+  const auto& registry = DrawRoutineRegistry::Get();
+  routines_ = registry.GetAllRoutines();
 
   for (const auto& info : routines_) {
     routine_map_[info.id] = info;
@@ -150,7 +144,78 @@ absl::StatusOr<GeometryBounds> ObjectGeometry::MeasureRoutine(
   bounds.min_y_tiles = min_y - anchor_y;
   bounds.width_tiles = (max_x - min_x) + 1;
   bounds.height_tiles = (max_y - min_y) + 1;
+  bounds.is_bg2_overlay = false;  // Default, set by MeasureForLayerCompositing
   return bounds;
+}
+
+absl::StatusOr<GeometryBounds> ObjectGeometry::MeasureForLayerCompositing(
+    int routine_id, const RoomObject& object) const {
+  auto result = MeasureByRoutineId(routine_id, object);
+  if (!result.ok()) {
+    return result;
+  }
+
+  GeometryBounds bounds = *result;
+  
+  // Mark as BG2 overlay if the object's layer indicates Layer 1 (BG2)
+  // Layer 1 objects write to the lower tilemap (BG2) and need BG1 transparency
+  bounds.is_bg2_overlay = (object.layer_ == RoomObject::LayerType::BG2);
+  
+  return bounds;
+}
+
+bool ObjectGeometry::IsLayerOneRoutine(int routine_id) {
+  // Layer 1 routines are those that explicitly draw to BG2 only.
+  // Most objects draw to the current layer pointer; this list is for
+  // routines that have special BG2-only behavior.
+  //
+  // From ASM analysis:
+  // - Objects decoded with $BF == $4000 (lower_layer) are Layer 1/BG2
+  // - The routine itself doesn't determine the layer; the object's position
+  //   in the room data determines which layer pointer it uses
+  //
+  // This method is primarily for documentation; actual layer determination
+  // comes from the object's layer_ field set during room loading.
+  (void)routine_id;  // Currently unused - layer determined by object, not routine
+  return false;
+}
+
+bool ObjectGeometry::IsDiagonalCeilingRoutine(int routine_id) {
+  // Diagonal ceiling routines from draw_routine_registry.h
+  // kDiagonalCeilingTopLeft = 75
+  // kDiagonalCeilingBottomLeft = 76
+  // kDiagonalCeilingTopRight = 77
+  // kDiagonalCeilingBottomRight = 78
+  return routine_id >= 75 && routine_id <= 78;
+}
+
+GeometryBounds ObjectGeometry::ApplySelectionBounds(GeometryBounds render_bounds,
+                                                     int routine_id) {
+  if (!IsDiagonalCeilingRoutine(routine_id)) {
+    // Not a diagonal ceiling - return render bounds unchanged
+    return render_bounds;
+  }
+
+  // For diagonal ceilings, compute a tighter selection box.
+  // The visual triangle fills roughly 50% of the bounding box area.
+  // We use a selection rectangle that's 70% of the size, centered,
+  // to provide a reasonable hit target without excessive false positives.
+  
+  int reduced_width = std::max(1, (render_bounds.width_tiles * 7) / 10);
+  int reduced_height = std::max(1, (render_bounds.height_tiles * 7) / 10);
+  
+  // Center the reduced selection box within the render bounds
+  int offset_x = (render_bounds.width_tiles - reduced_width) / 2;
+  int offset_y = (render_bounds.height_tiles - reduced_height) / 2;
+
+  SelectionRect selection;
+  selection.x_tiles = render_bounds.min_x_tiles + offset_x;
+  selection.y_tiles = render_bounds.min_y_tiles + offset_y;
+  selection.width_tiles = reduced_width;
+  selection.height_tiles = reduced_height;
+
+  render_bounds.selection_bounds = selection;
+  return render_bounds;
 }
 
 }  // namespace zelda3

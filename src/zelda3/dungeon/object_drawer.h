@@ -257,6 +257,9 @@ class ObjectDrawer {
   void DrawDownwardsHasEdge1x1_1to16_plus3(
       const RoomObject& obj, gfx::BackgroundBuffer& bg,
       std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
+  void DrawDownwardsHasEdge1x1_1to16_plus23(
+      const RoomObject& obj, gfx::BackgroundBuffer& bg,
+      std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
   void DrawDownwardsEdge1x1_1to16(const RoomObject& obj,
                                   gfx::BackgroundBuffer& bg,
                                   std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);

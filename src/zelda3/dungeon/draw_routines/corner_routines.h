@@ -7,16 +7,7 @@ namespace yaze {
 namespace zelda3 {
 namespace draw_routines {
 
-/**
- * @brief Draw a 2x2 water face pattern in column-major order
- *
- * Based on bank_01.asm RoomDraw_EmptyWaterFace at $019D29
- * Used by Type 3 objects 0xF80-0xF82
- * TODO: Implement state check for room ID, room state, door flags
- *
- * @param ctx Draw context containing object, tiles, and target buffer
- */
-void DrawWaterFace(const DrawContext& ctx);
+// Note: DrawWaterFace is declared in special_routines.h
 
 /**
  * @brief Draw a 4x4 grid corner pattern

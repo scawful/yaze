@@ -1,5 +1,6 @@
 #include "downwards_routines.h"
 
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/room_object.h"
 
 namespace yaze {

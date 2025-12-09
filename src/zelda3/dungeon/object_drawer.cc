@@ -1,15 +1,16 @@
 #include "object_drawer.h"
 
 #include <cstdio>
+#include <filesystem>
 
 #include "absl/strings/str_format.h"
 #include "app/gfx/types/snes_tile.h"
+#include "rom/rom.h"
 #include "rom/snes.h"
 #include "util/log.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_types.h"
 #include "zelda3/dungeon/draw_routines/special_routines.h"
-#include <filesystem>
-#include "rom/rom.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 
 namespace yaze {
@@ -213,46 +214,32 @@ absl::Status ObjectDrawer::DrawObjectList(
 // ============================================================================
 
 bool ObjectDrawer::RoutineDrawsToBothBGs(int routine_id) {
-  // Routines that should draw to both BG1 and BG2 layers.
-  // This replaces hardcoded routine ID checks with a centralized lookup.
+  // Use the unified DrawRoutineRegistry for BothBG metadata.
+  // This ensures consistency between ObjectDrawer and ObjectGeometry.
   //
-  // ASM Reference:
-  // - Routines 1, 8: Layout walls (horizontal and vertical)
-  // - Routine 19: Layout corners (concave corners 0x100-0x103)
-  // - Routines 3, 9: Diagonal walls (use VRAM tilemap for both layers)
-  // - Routines 17, 18: Diagonal walls acute/grave (BothBG variants)
-  // - Routines 35, 36, 37: Corner objects (4x4 corners, weird corners)
-  // - Routine 97: Prison cell (dual-layer bars for 3D effect)
-  //
-  // Layout objects (walls, corners) MUST draw to both BG layers because
-  // they form the room structure. The layout "layer" field in ROM is for
-  // quadrant configuration, NOT SNES BG layer separation.
-  //
-  // These routines are identified from:
-  // - Routine 1: DrawRightwards2x4_1to15or26 (layout walls 0x001, 0x002)
-  // - Routine 8: DrawDownwards4x2_1to15or26 (layout walls 0x061, 0x062)
-  // - Routine 19: DrawCorner4x4 (layout corners 0x100-0x103)
-  // - rightwards_routines.cc: routine 3 (Rightwards2x4_1to16_BothBG)
-  // - downwards_routines.cc: routine 9 (Downwards4x2_1to16_BothBG)
-  // - diagonal_routines.cc: routines 17, 18 (DiagonalAcute/Grave_BothBG)
-  // - corner_routines.cc: routines 35, 36, 37 (4x4Corner, WeirdCorner BothBG)
-  // - special_routines.cc: routine 97 (PrisonCell - draws internally to both)
-  //
-  // Layout structural objects must draw to both BG layers for correct rendering.
-  // The original game draws these to both tilemaps simultaneously.
+  // Fallback to hardcoded list for routines not yet in the registry,
+  // particularly layout structural objects that MUST draw to both BG layers.
+  
+  // First check the unified registry
+  if (DrawRoutineRegistry::Get().RoutineDrawsToBothBGs(routine_id)) {
+    return true;
+  }
+  
+  // Fallback: Layout structural objects that must draw to both BG layers
+  // even if not explicitly marked in registry metadata.
+  // These form the room structure (walls, corners, ceilings).
   static constexpr int kBothBGRoutines[] = {
-      0,   // DrawRightwards2x2_1to15or32 (ceiling 0x00)
-      1,   // DrawRightwards2x4_1to15or26 (layout walls 0x001, 0x002)
-      8,   // DrawDownwards4x2_1to15or26 (layout walls 0x061, 0x062)
-      19,  // DrawCorner4x4 (layout corners 0x100-0x103)
-      3,   // Rightwards2x4_1to16_BothBG (diagonal walls)
-      9,   // Downwards4x2_1to16_BothBG (diagonal walls)
-      17,  // DiagonalAcute_1to16_BothBG (upper-left diagonal)
-      18,  // DiagonalGrave_1to16_BothBG (upper-right diagonal)
-      35,  // 4x4Corner_BothBG (Type 2: 0x108-0x10F)
-      36,  // WeirdCornerBottom_BothBG (Type 2: 0x110-0x113)
-      37,  // WeirdCornerTop_BothBG (Type 2: 0x114-0x117)
-      97,  // PrisonCell (dual-layer bars)
+      DrawRoutineIds::kRightwards2x2_1to15or32,     // 0: ceiling
+      DrawRoutineIds::kRightwards2x4_1to15or26,     // 1: layout walls
+      DrawRoutineIds::kDownwards4x2_1to15or26,      // 8: layout walls
+      DrawRoutineIds::kCorner4x4,                   // 19: layout corners
+      DrawRoutineIds::kRightwards2x4_1to16_BothBG,  // 3: diagonal walls
+      DrawRoutineIds::kDownwards4x2_1to16_BothBG,   // 9: diagonal walls
+      DrawRoutineIds::kDiagonalAcute_1to16_BothBG,  // 17: upper-left diagonal
+      DrawRoutineIds::kDiagonalGrave_1to16_BothBG,  // 18: upper-right diagonal
+      DrawRoutineIds::kCorner4x4_BothBG,            // 35: 4x4 corners
+      DrawRoutineIds::kWeirdCornerBottom_BothBG,    // 36: weird corners
+      DrawRoutineIds::kWeirdCornerTop_BothBG,       // 37: weird corners
   };
 
   for (int id : kBothBGRoutines) {
@@ -336,9 +323,11 @@ void ObjectDrawer::InitializeDrawRoutines() {
   object_to_routine_map_[0x2F] = 23;  // RoomDraw_RightwardsTopCorners1x2_1to16_plus13
   object_to_routine_map_[0x30] = 24;  // RoomDraw_RightwardsBottomCorners1x2_1to16_plus13
 
-  // Custom/Special Objects (0x31-0x3E)
-  object_to_routine_map_[0x31] = 38; // Nothing (Logic: RoomDraw_Nothing_A)
-  object_to_routine_map_[0x32] = 38; // Nothing (Logic: RoomDraw_Nothing_A)
+  // Custom Objects (0x31-0x32) - Oracle of Secrets minecart tracks and furniture
+  // These use external binary files instead of ROM tile data.
+  // Requires CustomObjectManager initialization and enable_custom_objects feature flag.
+  object_to_routine_map_[0x31] = DrawRoutineIds::kCustomObject;  // Custom tracks
+  object_to_routine_map_[0x32] = DrawRoutineIds::kCustomObject;  // Custom furniture
   object_to_routine_map_[0x33] = 16; // 4x4 Block
   object_to_routine_map_[0x34] = 25; // Solid 1x1
   object_to_routine_map_[0x35] = 26; // Door Switcher
@@ -472,10 +461,11 @@ void ObjectDrawer::InitializeDrawRoutines() {
   object_to_routine_map_[0x88] = 66;  // DownwardsBigRail3x1_1to16plus5
   // 0x89: RoomDraw_DownwardsBlock2x2spaced2_1to16 (4 tiles)
   object_to_routine_map_[0x89] = 67;  // DownwardsBlock2x2spaced2_1to16
-  // 0x8A-0x8C: 3 tiles each
-  object_to_routine_map_[0x8A] = 22;  // edge 1x1
-  object_to_routine_map_[0x8B] = 22;
-  object_to_routine_map_[0x8C] = 22;
+  // 0x8A-0x8C: Vertical rails with CORNER+MIDDLE+END pattern (3 tiles each)
+  // ASM: RoomDraw_DownwardsHasEdge1x1_1to16_plus23 - matches horizontal 0x22
+  object_to_routine_map_[0x8A] = DrawRoutineIds::kDownwardsHasEdge1x1_1to16_plus23;
+  object_to_routine_map_[0x8B] = DrawRoutineIds::kDownwardsHasEdge1x1_1to16_plus23;
+  object_to_routine_map_[0x8C] = DrawRoutineIds::kDownwardsHasEdge1x1_1to16_plus23;
   // 0x8D-0x8E: RoomDraw_DownwardsEdge1x1_1to16
   object_to_routine_map_[0x8D] = 13;  // DownwardsEdge1x1_1to16
   object_to_routine_map_[0x8E] = 13;
@@ -1892,6 +1882,54 @@ void ObjectDrawer::InitializeDrawRoutines() {
         self->DrawActual4x4(obj, bg, tiles, state);
       });
 
+  // Fill gaps between 116 and 130 with Nothing routines
+  // This ensures the routine vector is large enough for custom object ID 130
+  while (draw_routines_.size() < 130) {
+    draw_routines_.push_back(
+        [](ObjectDrawer* self, const RoomObject& obj,
+           gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
+           [[maybe_unused]] const DungeonState* state) {
+          self->DrawNothing(obj, bg, tiles, state);
+        });
+  }
+
+  // Routine 117 - Vertical rails with CORNER+MIDDLE+END pattern (0x8A-0x8C)
+  // ASM: RoomDraw_DownwardsHasEdge1x1_1to16_plus23 - matches horizontal 0x22
+  while (draw_routines_.size() < 117) {
+    draw_routines_.push_back(
+        [](ObjectDrawer* self, const RoomObject& obj,
+           gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
+           [[maybe_unused]] const DungeonState* state) {
+          self->DrawNothing(obj, bg, tiles, state);
+        });
+  }
+  draw_routines_.push_back(
+      [](ObjectDrawer* self, const RoomObject& obj,
+         gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
+         [[maybe_unused]] const DungeonState* state) {
+        self->DrawDownwardsHasEdge1x1_1to16_plus23(obj, bg, tiles, state);
+      });
+
+  // Fill to routine 130
+  while (draw_routines_.size() < 130) {
+    draw_routines_.push_back(
+        [](ObjectDrawer* self, const RoomObject& obj,
+           gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
+           [[maybe_unused]] const DungeonState* state) {
+          self->DrawNothing(obj, bg, tiles, state);
+        });
+  }
+
+  // Routine 130 - Custom Object (Oracle of Secrets 0x31, 0x32)
+  // Uses external binary files instead of ROM tile data.
+  // Requires CustomObjectManager initialization and enable_custom_objects flag.
+  draw_routines_.push_back(
+      [](ObjectDrawer* self, const RoomObject& obj,
+         gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
+         [[maybe_unused]] const DungeonState* state) {
+        self->DrawCustomObject(obj, bg, tiles, state);
+      });
+
   routines_initialized_ = true;
 }
 
@@ -3192,6 +3230,34 @@ void ObjectDrawer::DrawDownwardsHasEdge1x1_1to16_plus3(
   }
 }
 
+void ObjectDrawer::DrawDownwardsHasEdge1x1_1to16_plus23(
+    const RoomObject& obj, gfx::BackgroundBuffer& bg,
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
+  // Pattern: Vertical rail with CORNER+MIDDLE+END pattern (objects 0x8A-0x8C)
+  // ASM: RoomDraw_DownwardsHasEdge1x1_1to16_plus23 ($019314)
+  // Matches horizontal rail 0x22 but in vertical orientation
+  // Structure: [CORNER if needed] -> [MIDDLE * count] -> [END]
+  int size = obj.size_ & 0x0F;
+  int count = (size + 1) * 2;  // Same calculation as horizontal rails
+
+  if (tiles.size() < 3) return;
+
+  int tile_y = obj.y_;
+  
+  // Draw corner tile (tile 0) - always draw in editor
+  WriteTile8(bg, obj.x_, tile_y, tiles[0]);
+  tile_y++;
+  
+  // Draw middle tiles (tile 1) repeated
+  for (int s = 0; s < count; s++) {
+    WriteTile8(bg, obj.x_, tile_y, tiles[1]);
+    tile_y++;
+  }
+  
+  // Draw end tile (tile 2)
+  WriteTile8(bg, obj.x_, tile_y, tiles[2]);
+}
+
 void ObjectDrawer::DrawDownwardsEdge1x1_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
@@ -3746,18 +3812,37 @@ void ObjectDrawer::DrawClosedChestPlatform(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles) {
   // ASM: RoomDraw_ClosedChestPlatform ($018CC7)
-  // 68 tiles: frame + carpet pattern
-  // Width: B2 + 4, Height: B4 + 1
+  //
+  // Structure:
+  //   LDA.b $B2         ; Width size
+  //   CLC
+  //   ADC.w #$0004      ; width = B2 + 4
+  //   STA.b $B2
+  //   STA.b $0A
+  //   INC.b $B4         ; height = B4 + 1
+  //   JSR RoomDraw_ChestPlatformHorizontalWallWithCorners
+  //   ... vertical walls on sides ...
+  //
+  // The platform has 68 tiles forming a frame + carpet pattern.
+  // Layer handling uses same $BF check as OpenChestPlatform.
+  
   if (tiles.size() < 16) return;
 
+  // width = B2 + 4, height = B4 + 1
   int width = (obj.size_ & 0x0F) + 4;
   int height = ((obj.size_ >> 4) & 0x0F) + 1;
 
+  // DEBUG: Log the dimensions
+  printf("[DrawClosedChestPlatform] obj=0x%03X pos=(%d,%d) size=0x%02X -> width=%d height=%d\n",
+         obj.id_, obj.x_, obj.y_, obj.size_, width, height);
+  fflush(stdout);
+
   // Draw outer frame + interior carpet pattern
+  // The routine builds a rectangular platform with walls and floor
   size_t tile_idx = 0;
-  for (int y = 0; y < height * 3; ++y) {
-    for (int x = 0; x < width * 2; ++x) {
-      WriteTile8(bg, obj.x_ + x, obj.y_ + y, tiles[tile_idx % tiles.size()]);
+  for (int row = 0; row < height * 3; ++row) {
+    for (int col = 0; col < width * 2; ++col) {
+      WriteTile8(bg, obj.x_ + col, obj.y_ + row, tiles[tile_idx % tiles.size()]);
       tile_idx++;
     }
   }
@@ -3802,18 +3887,60 @@ void ObjectDrawer::DrawOpenChestPlatform(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles) {
   // ASM: RoomDraw_OpenChestPlatform ($019733)
-  // 21 tiles, multi-segment pattern
+  // 
+  // Layer handling from ASM:
+  //   LDA.b $BF         ; Load current layer pointer
+  //   CMP.w #$4000      ; Compare with lower_layer ($4000)
+  //   BNE .upper_layer  ; Skip if upper layer
+  //   TYA
+  //   ORA.w #$2000      ; Set BG2 priority bit for lower layer
+  //   TAY
+  //
+  // In the editor, layer handling is done via the object's layer_ field
+  // and the DrawObject() method routes to the appropriate buffer.
+  // The BG2 priority bit is not directly applicable here since we use
+  // separate bitmaps for compositing.
+
   if (tiles.size() < 8) return;
 
+  // width = B2 + 1 (ASM: INC.b $B2)
   int width = (obj.size_ & 0x0F) + 1;
+  
+  // segments = (B4 * 2) + 5 (ASM: LDA.b $B4; ASL A; CLC; ADC.w #$0005)
   int segments = ((obj.size_ >> 4) & 0x0F) * 2 + 5;
 
-  // Draw segments
+  // DEBUG: Log the dimensions being calculated
+  printf("[DrawOpenChestPlatform] obj=0x%03X pos=(%d,%d) size=0x%02X -> width=%d segments=%d\n",
+         obj.id_, obj.x_, obj.y_, obj.size_, width, segments);
+  fflush(stdout);
+
+  // ASM: obj0AB4 is the tile data source (21 tiles total)
+  // The routine draws segments, each segment is a row of 'width' tiles
+  // Then draws two additional segments at the end (INY INY; JSR .draw_segment; INY INY)
+  
+  // Draw the main segments
+  int tile_offset = 0;
   for (int seg = 0; seg < segments; ++seg) {
-    for (int x = 0; x < width + 1; ++x) {
-      size_t tile_idx = (seg * width + x) % tiles.size();
-      WriteTile8(bg, obj.x_ + x, obj.y_ + seg, tiles[tile_idx]);
+    for (int col = 0; col < width; ++col) {
+      size_t tile_idx = tile_offset % tiles.size();
+      WriteTile8(bg, obj.x_ + col, obj.y_ + seg, tiles[tile_idx]);
+      tile_offset++;
     }
+  }
+  
+  // Draw final two segments (ASM: INY INY; JSR .draw_segment; INY INY; JSR .draw_segment)
+  // These use tiles at offset +2 and +4 from the current position
+  tile_offset += 2;
+  for (int col = 0; col < width; ++col) {
+    size_t tile_idx = tile_offset % tiles.size();
+    WriteTile8(bg, obj.x_ + col, obj.y_ + segments, tiles[tile_idx]);
+    tile_offset++;
+  }
+  tile_offset += 2;
+  for (int col = 0; col < width; ++col) {
+    size_t tile_idx = tile_offset % tiles.size();
+    WriteTile8(bg, obj.x_ + col, obj.y_ + segments + 1, tiles[tile_idx]);
+    tile_offset++;
   }
 }
 

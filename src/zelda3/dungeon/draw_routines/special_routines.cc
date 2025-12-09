@@ -1,5 +1,6 @@
 #include "special_routines.h"
 
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/dungeon_state.h"
 #include "zelda3/dungeon/room_object.h"
 
@@ -1024,34 +1025,120 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .category = DrawRoutineInfo::Category::Special,
   });
 
-  // Chest platform routines (IDs 97-99)
+  // Chest platform routines - use canonical IDs from DrawRoutineIds
   registry.push_back(DrawRoutineInfo{
-      .id = 97,  // DrawClosedChestPlatform
+      .id = DrawRoutineIds::kClosedChestPlatform,  // 79
       .name = "ClosedChestPlatform",
       .function = DrawClosedChestPlatform,
       .draws_to_both_bgs = false,
-      .base_width = 0,  // Variable
-      .base_height = 0,
+      .base_width = 0,  // Variable: width = (size & 0x0F) + 4
+      .base_height = 0, // Variable: height = ((size >> 4) & 0x0F) + 1
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  // Moving wall routines
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kMovingWallWest,  // 80
+      .name = "MovingWallWest",
+      .function = [](const DrawContext& ctx) {
+        // Placeholder - actual logic in ObjectDrawer
+        DrawNothing(ctx);
+      },
+      .draws_to_both_bgs = false,
+      .base_width = 4,
+      .base_height = 8,
       .category = DrawRoutineInfo::Category::Special,
   });
 
   registry.push_back(DrawRoutineInfo{
-      .id = 98,  // DrawChestPlatformHorizontalWall
-      .name = "ChestPlatformHorizontalWall",
-      .function = DrawChestPlatformHorizontalWall,
+      .id = DrawRoutineIds::kMovingWallEast,  // 81
+      .name = "MovingWallEast",
+      .function = [](const DrawContext& ctx) {
+        // Placeholder - actual logic in ObjectDrawer
+        DrawNothing(ctx);
+      },
+      .draws_to_both_bgs = false,
+      .base_width = 4,
+      .base_height = 8,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kOpenChestPlatform,  // 82
+      .name = "OpenChestPlatform",
+      .function = [](const DrawContext& ctx) {
+        // Open chest platform - draws multi-segment pattern
+        // Size: width = (size & 0x0F) + 1, segments = ((size >> 4) & 0x0F) * 2 + 5
+        int width = (ctx.object.size_ & 0x0F) + 1;
+        int segments = ((ctx.object.size_ >> 4) & 0x0F) * 2 + 5;
+        // For geometry purposes, just set reasonable bounds
+        for (int s = 0; s < segments && s < 8; ++s) {
+          for (int x = 0; x < width && x < 8; ++x) {
+            if (ctx.tiles.size() > 0) {
+              size_t idx = (s * width + x) % ctx.tiles.size();
+              DrawRoutineUtils::WriteTile8(ctx.target_bg, 
+                  ctx.object.x_ + x, ctx.object.y_ + s, ctx.tiles[idx]);
+            }
+          }
+        }
+      },
       .draws_to_both_bgs = false,
       .base_width = 0,  // Variable
-      .base_height = 1,
+      .base_height = 0, // Variable
       .category = DrawRoutineInfo::Category::Special,
   });
 
+  // Vertical rails with CORNER+MIDDLE+END pattern (ID 117) - objects 0x8A-0x8C
+  // Matches horizontal rail 0x22 but in vertical orientation
   registry.push_back(DrawRoutineInfo{
-      .id = 99,  // DrawChestPlatformVerticalWall
-      .name = "ChestPlatformVerticalWall",
-      .function = DrawChestPlatformVerticalWall,
+      .id = DrawRoutineIds::kDownwardsHasEdge1x1_1to16_plus23,  // 117
+      .name = "DownwardsHasEdge1x1_1to16_plus23",
+      .function = [](const DrawContext& ctx) {
+        // CORNER+MIDDLE+END pattern vertically
+        int size = ctx.object.size_ & 0x0F;
+        int count = (size + 1) * 2;
+        if (ctx.tiles.size() < 3) return;
+        
+        int tile_y = ctx.object.y_;
+        // Corner
+        DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, tile_y, ctx.tiles[0]);
+        tile_y++;
+        // Middle tiles
+        for (int s = 0; s < count; s++) {
+          DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, tile_y, ctx.tiles[1]);
+          tile_y++;
+        }
+        // End tile
+        DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, tile_y, ctx.tiles[2]);
+      },
       .draws_to_both_bgs = false,
       .base_width = 1,
-      .base_height = 0,  // Variable
+      .base_height = 0,  // Variable: count + 2
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  // Custom Object routine (ID 130) - Oracle of Secrets objects 0x31, 0x32
+  // These use external binary files instead of ROM tile data.
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kCustomObject,  // 130
+      .name = "CustomObject",
+      .function = [](const DrawContext& ctx) {
+        // Custom objects use external binary files
+        // Geometry: dimensions depend on the binary file content
+        // For now, assume a 4x4 tile pattern as reasonable default
+        for (int row = 0; row < 4 && row < 4; ++row) {
+          for (int col = 0; col < 4 && col < 4; ++col) {
+            if (static_cast<size_t>(row * 4 + col) < ctx.tiles.size()) {
+              DrawRoutineUtils::WriteTile8(ctx.target_bg,
+                  ctx.object.x_ + col, ctx.object.y_ + row,
+                  ctx.tiles[row * 4 + col]);
+            }
+          }
+        }
+      },
+      .draws_to_both_bgs = false,
+      .base_width = 4,   // Default: 4x4 tiles
+      .base_height = 4,
       .category = DrawRoutineInfo::Category::Special,
   });
 }

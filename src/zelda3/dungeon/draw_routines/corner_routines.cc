@@ -1,31 +1,15 @@
 #include "corner_routines.h"
 
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
+#include "zelda3/dungeon/draw_routines/special_routines.h"
 #include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
 namespace zelda3 {
 namespace draw_routines {
 
-void DrawWaterFace(const DrawContext& ctx) {
-  // Pattern: Water Face (Type 3 objects 0xF80-0xF82)
-  // Draws a 2x2 face in COLUMN-MAJOR order
-  // TODO: Implement state check from RoomDraw_EmptyWaterFace ($019D29)
-  // Checks Room ID ($AF), Room State ($7EF000), Door Flags ($0403) to switch
-  // graphic
-  if (ctx.tiles.size() >= 4) {
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, ctx.object.y_,
-                                 ctx.tiles[0]);  // col 0, row 0
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_,
-                                 ctx.object.y_ + 1,
-                                 ctx.tiles[1]);  // col 0, row 1
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1,
-                                 ctx.object.y_,
-                                 ctx.tiles[2]);  // col 1, row 0
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1,
-                                 ctx.object.y_ + 1,
-                                 ctx.tiles[3]);  // col 1, row 1
-  }
-}
+// Note: DrawWaterFace is defined in special_routines.cc along with other
+// water face variants (Empty, Spitting, Drenching)
 
 void DrawCorner4x4(const DrawContext& ctx) {
   // Pattern: 4x4 grid corner (Type 2 corners 0x40-0x4F, 0x108-0x10F)
