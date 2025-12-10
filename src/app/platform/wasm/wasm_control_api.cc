@@ -97,11 +97,6 @@ EM_JS(void, SetupYazeControlApi, (), {
       return {error: "API not ready"};
     },
 
-    // Panel aliases
-    openPanel: function(panelId) { return this.openPanel(panelId); },
-    closePanel: function(panelId) { return this.closePanel(panelId); },
-    togglePanel: function(panelId) { return this.togglePanel(panelId); },
-    
     getVisiblePanels: function() {
       if (Module.controlGetVisiblePanels) {
         try { return JSON.parse(Module.controlGetVisiblePanels()); }
@@ -110,8 +105,6 @@ EM_JS(void, SetupYazeControlApi, (), {
       return {error: "API not ready"};
     },
 
-    getVisiblePanels: function() { return this.getVisiblePanels(); },
-    
     getAvailablePanels: function() {
       if (Module.controlGetAvailablePanels) {
         try { return JSON.parse(Module.controlGetAvailablePanels()); }
@@ -120,8 +113,6 @@ EM_JS(void, SetupYazeControlApi, (), {
       return {error: "API not ready"};
     },
 
-    getAvailablePanels: function() { return this.getAvailablePanels(); },
-    
     getPanelsInCategory: function(category) {
       if (Module.controlGetPanelsInCategory) {
         try { return JSON.parse(Module.controlGetPanelsInCategory(category)); }
@@ -129,8 +120,6 @@ EM_JS(void, SetupYazeControlApi, (), {
       }
       return {error: "API not ready"};
     },
-
-    getPanelsInCategory: function(category) { return this.getPanelsInCategory(category); },
 
     showAllPanels: function() {
       if (Module.controlShowAllPanels) {
@@ -140,8 +129,6 @@ EM_JS(void, SetupYazeControlApi, (), {
       return {error: "API not ready"};
     },
 
-    showAllPanels: function() { return this.showAllPanels(); },
-    
     hideAllPanels: function() {
       if (Module.controlHideAllPanels) {
         try { return JSON.parse(Module.controlHideAllPanels()); }
@@ -150,8 +137,6 @@ EM_JS(void, SetupYazeControlApi, (), {
       return {error: "API not ready"};
     },
 
-    hideAllPanels: function() { return this.hideAllPanels(); },
-    
     showAllPanelsInCategory: function(category) {
       if (Module.controlShowAllPanelsInCategory) {
         try { return JSON.parse(Module.controlShowAllPanelsInCategory(category)); }
@@ -160,8 +145,6 @@ EM_JS(void, SetupYazeControlApi, (), {
       return {error: "API not ready"};
     },
 
-    showAllPanelsInCategory: function(category) { return this.showAllPanelsInCategory(category); },
-    
     hideAllPanelsInCategory: function(category) {
       if (Module.controlHideAllPanelsInCategory) {
         try { return JSON.parse(Module.controlHideAllPanelsInCategory(category)); }
@@ -169,8 +152,6 @@ EM_JS(void, SetupYazeControlApi, (), {
       }
       return {error: "API not ready"};
     },
-
-    hideAllPanelsInCategory: function(category) { return this.hideAllPanelsInCategory(category); },
 
     showOnlyPanel: function(cardId) {
       if (Module.controlShowOnlyPanel) {
@@ -180,8 +161,6 @@ EM_JS(void, SetupYazeControlApi, (), {
       return {error: "API not ready"};
     },
 
-    showOnlyPanel: function(panelId) { return this.showOnlyPanel(panelId); },
-    
     // Layout control
     setPanelLayout: function(layoutName) {
       if (Module.controlSetPanelLayout) {
@@ -190,8 +169,6 @@ EM_JS(void, SetupYazeControlApi, (), {
       }
       return {error: "API not ready"};
     },
-
-    setPanelLayout: function(layoutName) { return this.setPanelLayout(layoutName); },
     
     getAvailableLayouts: function() {
       if (Module.controlGetAvailableLayouts) {
@@ -940,17 +917,56 @@ std::string WasmControlApi::ShowOnlyPanel(const std::string& card_id) {
 
 std::string WasmControlApi::SetPanelLayout(const std::string& layout_name) {
   nlohmann::json result;
-  
+
   if (!IsReady()) {
     result["success"] = false;
     result["error"] = "Control API not initialized";
     return result.dump();
   }
-  
-  // TODO: Implement layout presets
+
+  auto* registry = GetPanelRegistry();
+  if (!registry) {
+    result["success"] = false;
+    result["error"] = "Panel registry not available";
+    return result.dump();
+  }
+
+  size_t session_id = registry->GetActiveSessionId();
+
+  // Apply built-in layout presets
+  if (layout_name == "overworld_default") {
+    registry->HideAllPanelsInSession(session_id);
+    registry->ShowAllPanelsInCategory(session_id, "Overworld");
+    registry->SetActiveCategory("Overworld");
+  } else if (layout_name == "dungeon_default") {
+    registry->HideAllPanelsInSession(session_id);
+    registry->ShowAllPanelsInCategory(session_id, "Dungeon");
+    registry->SetActiveCategory("Dungeon");
+  } else if (layout_name == "graphics_default") {
+    registry->HideAllPanelsInSession(session_id);
+    registry->ShowAllPanelsInCategory(session_id, "Graphics");
+    registry->SetActiveCategory("Graphics");
+  } else if (layout_name == "debug_default") {
+    registry->HideAllPanelsInSession(session_id);
+    registry->ShowAllPanelsInCategory(session_id, "Debug");
+    registry->SetActiveCategory("Debug");
+  } else if (layout_name == "minimal") {
+    registry->HideAllPanelsInSession(session_id);
+    // Minimal layout - just hide everything
+  } else if (layout_name == "all_cards") {
+    registry->ShowAllPanelsInSession(session_id);
+  } else {
+    // Try loading as a user-defined preset
+    if (!registry->LoadPreset(layout_name)) {
+      result["success"] = false;
+      result["error"] = "Unknown layout: " + layout_name;
+      return result.dump();
+    }
+  }
+
   result["success"] = true;
   result["layout"] = layout_name;
-  
+
   LOG_INFO("WasmControlApi", "SetPanelLayout: %s", layout_name.c_str());
   return result.dump();
 }
@@ -991,33 +1007,123 @@ std::string WasmControlApi::SaveCurrentLayout(const std::string& layout_name) {
 
 std::string WasmControlApi::TriggerMenuAction(const std::string& action_path) {
   nlohmann::json result;
-  
+
   if (!IsReady()) {
     result["success"] = false;
     result["error"] = "Control API not initialized";
     return result.dump();
   }
-  
-  // Parse action path (e.g., "File.Save", "Edit.Undo")
-  // TODO: Map to actual menu callbacks
-  
+
+  auto* registry = GetPanelRegistry();
+
+  // File menu actions
   if (action_path == "File.Save") {
     auto status = editor_manager_->SaveRom();
     result["success"] = status.ok();
     if (!status.ok()) {
       result["error"] = status.ToString();
     }
-  } else if (action_path == "View.ShowEmulator") {
+  } else if (action_path == "File.Open") {
+    if (registry) {
+      registry->TriggerOpenRom();
+      result["success"] = true;
+    } else {
+      result["success"] = false;
+      result["error"] = "Panel registry not available";
+    }
+  }
+  // Edit menu actions
+  else if (action_path == "Edit.Undo") {
+    if (registry) {
+      registry->TriggerUndo();
+      result["success"] = true;
+    } else {
+      result["success"] = false;
+      result["error"] = "Panel registry not available";
+    }
+  } else if (action_path == "Edit.Redo") {
+    if (registry) {
+      registry->TriggerRedo();
+      result["success"] = true;
+    } else {
+      result["success"] = false;
+      result["error"] = "Panel registry not available";
+    }
+  }
+  // View menu actions
+  else if (action_path == "View.ShowEmulator") {
     editor_manager_->ui_coordinator()->SetEmulatorVisible(true);
     result["success"] = true;
+  } else if (action_path == "View.HideEmulator") {
+    editor_manager_->ui_coordinator()->SetEmulatorVisible(false);
+    result["success"] = true;
+  } else if (action_path == "View.ToggleEmulator") {
+    auto* ui = editor_manager_->ui_coordinator();
+    ui->SetEmulatorVisible(!ui->IsEmulatorVisible());
+    result["success"] = true;
+    result["visible"] = ui->IsEmulatorVisible();
   } else if (action_path == "View.ShowWelcome") {
     editor_manager_->ui_coordinator()->SetWelcomeScreenVisible(true);
     result["success"] = true;
-  } else {
+  } else if (action_path == "View.ShowPanelBrowser") {
+    if (registry) {
+      registry->TriggerShowPanelBrowser();
+      result["success"] = true;
+    } else {
+      result["success"] = false;
+      result["error"] = "Panel registry not available";
+    }
+  } else if (action_path == "View.ShowSettings") {
+    if (registry) {
+      registry->TriggerShowSettings();
+      result["success"] = true;
+    } else {
+      result["success"] = false;
+      result["error"] = "Panel registry not available";
+    }
+  }
+  // Tools menu actions
+  else if (action_path == "Tools.GlobalSearch") {
+    if (registry) {
+      registry->TriggerShowSearch();
+      result["success"] = true;
+    } else {
+      result["success"] = false;
+      result["error"] = "Panel registry not available";
+    }
+  } else if (action_path == "Tools.CommandPalette") {
+    if (registry) {
+      registry->TriggerShowCommandPalette();
+      result["success"] = true;
+    } else {
+      result["success"] = false;
+      result["error"] = "Panel registry not available";
+    }
+  } else if (action_path == "Tools.ShowShortcuts") {
+    if (registry) {
+      registry->TriggerShowShortcuts();
+      result["success"] = true;
+    } else {
+      result["success"] = false;
+      result["error"] = "Panel registry not available";
+    }
+  }
+  // Help menu actions
+  else if (action_path == "Help.ShowHelp") {
+    if (registry) {
+      registry->TriggerShowHelp();
+      result["success"] = true;
+    } else {
+      result["success"] = false;
+      result["error"] = "Panel registry not available";
+    }
+  }
+  // Unknown action
+  else {
     result["success"] = false;
     result["error"] = "Unknown action: " + action_path;
   }
-  
+
   return result.dump();
 }
 

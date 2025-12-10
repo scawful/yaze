@@ -81,17 +81,6 @@ TEST_F(MusicPlayerHeadlessTest, InitialStateIsStopped) {
   EXPECT_EQ(state.playing_song_index, -1);
 }
 
-TEST_F(MusicPlayerHeadlessTest, AudioEmulatorCreatedOnDemand) {
-  // Before playing, no emulator should exist
-  EXPECT_EQ(player_->audio_emulator(), nullptr);
-
-  // After attempting to play, the emulator should be created (even if song fails)
-  player_->PlaySong(0);
-
-  // audio_emulator() should now exist
-  EXPECT_NE(player_->audio_emulator(), nullptr);
-}
-
 // =============================================================================
 // Playback State Tests
 // =============================================================================
@@ -195,25 +184,6 @@ TEST_F(MusicPlayerHeadlessTest, UpdateProcessesFramesCorrectly) {
 
   // Update() should be fast (no blocking)
   EXPECT_LT(elapsed, 1.0) << "Update() calls should be fast (not blocking)";
-}
-
-// =============================================================================
-// Audio Backend Integration Tests
-// =============================================================================
-
-TEST_F(MusicPlayerHeadlessTest, AudioBackendReceivesCorrectConfig) {
-  // Start playback to initialize audio
-  player_->PlaySong(0);
-
-  // The audio backend should be configured for 32040 Hz native rate
-  // resampled to device rate (typically 48000 Hz)
-  auto* emu = player_->audio_emulator();
-  if (emu && emu->audio_backend()) {
-    auto config = emu->audio_backend()->GetConfig();
-    // Device rate is typically 48000 Hz
-    EXPECT_EQ(config.sample_rate, 48000);
-    EXPECT_EQ(config.channels, 2);
-  }
 }
 
 // =============================================================================

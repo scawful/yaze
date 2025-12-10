@@ -601,6 +601,9 @@ class Overworld {
   int current_map_ = 0;
   int current_world_ = 0;
 
+  // Cached ROM version to avoid repeated detection during loading
+  OverworldVersion cached_version_ = OverworldVersion::kVanilla;
+
   OverworldMapTiles map_tiles_;
 
   // Thread safety for parallel operations
@@ -620,11 +623,12 @@ class Overworld {
   };
   std::unordered_map<uint64_t, GraphicsConfigCache> gfx_config_cache_;
 #ifdef __EMSCRIPTEN__
-  // WASM: Smaller cache to reduce memory pressure (4 × 64KB = 256KB)
-  static constexpr int kMaxCachedConfigs = 4;
-#else
-  // Native: Larger cache for better performance (8 × 64KB = 512KB)
+  // WASM: Increased cache for Special World maps (8 × 64KB = 512KB)
+  // Special World alone needs 6+ unique graphics configs
   static constexpr int kMaxCachedConfigs = 8;
+#else
+  // Native: Larger cache for better performance (12 × 64KB = 768KB)
+  static constexpr int kMaxCachedConfigs = 12;
 #endif
 
   std::vector<OverworldMap> overworld_maps_;

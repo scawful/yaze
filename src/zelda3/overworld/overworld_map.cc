@@ -85,11 +85,17 @@ absl::Status OverworldMap::BuildMapWithCache(
 
   // For large maps in vanilla ROMs, we need to handle special world graphics
   // This ensures proper rendering of special overworld areas like Zora's Domain
+  // NOTE: Callers (LoadOverworldMaps, EnsureMapBuilt) also handle this and call
+  // LoadAreaGraphics() before BuildMapWithCache. This block is kept for the
+  // native async path which calls BuildMap() -> BuildMapWithCache() directly.
   if (large_map_ && (version == OverworldVersion::kVanilla)) {
     if (parent_ != index_ && !initialized_) {
       if (index_ >= kSpecialWorldMapIdStart && index_ <= 0x8A &&
           index_ != 0x88) {
-        // Most special world areas use the special graphics group
+        // Zora's Domain children - set sprite_graphics and area graphics
+        sprite_graphics_[0] = 0x0E;
+        sprite_graphics_[1] = 0x0E;
+        sprite_graphics_[2] = 0x0E;
         area_graphics_ = (*rom_)[kOverworldSpecialGfxGroup +
                                  (parent_ - kSpecialWorldMapIdStart)];
         area_palette_ = (*rom_)[kOverworldSpecialPalGroup + 1];
@@ -97,11 +103,12 @@ absl::Status OverworldMap::BuildMapWithCache(
         // Triforce room has special hardcoded values
         area_graphics_ = 0x51;
         area_palette_ = 0x00;
-      } else {
-        // Fallback to standard area graphics
+      } else if (index_ < kSpecialWorldMapIdStart) {
+        // LW/DW large map child - use parent's graphics
         area_graphics_ = (*rom_)[kAreaGfxIdPtr + parent_];
         area_palette_ = (*rom_)[kOverworldMapPaletteIds + parent_];
       }
+      // Note: Other SW maps (>0x8A) keep their LoadAreaInfo values
 
       initialized_ = true;
     }

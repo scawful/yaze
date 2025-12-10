@@ -41,6 +41,9 @@ absl::Status Overworld::Load(Rom* rom) {
   }
   rom_ = rom;
 
+  // Cache ROM version to avoid repeated detection (called 160+ times otherwise)
+  cached_version_ = OverworldVersionHelper::GetVersion(*rom_);
+
   // Phase 1: Tile Assembly (can be parallelized)
   {
     gfx::ScopedTimer assembly_timer("AssembleTiles");
@@ -66,10 +69,8 @@ absl::Status Overworld::Load(Rom* rom) {
     }
   }
 
-  // Phase 4: Map Configuration
-  // Phase 4: Map Configuration
-  auto version = OverworldVersionHelper::GetVersion(*rom_);
-  if (OverworldVersionHelper::SupportsAreaEnum(version)) {
+  // Phase 4: Map Configuration (uses cached_version_ for performance)
+  if (OverworldVersionHelper::SupportsAreaEnum(cached_version_)) {
     AssignMapSizes(overworld_maps_);
   } else {
     FetchLargeMaps();
@@ -314,9 +315,8 @@ absl::Status Overworld::ConfigureMultiAreaMap(int parent_index,
   // - Vanilla (0xFF): Supports Small and Large only
   // - v1-v2: Supports Small and Large only
   // - v3+: Supports all 4 sizes (Small, Large, Wide, Tall)
-  auto version = OverworldVersionHelper::GetVersion(*rom_);
   if ((size == AreaSizeEnum::WideArea || size == AreaSizeEnum::TallArea) &&
-      !OverworldVersionHelper::SupportsAreaEnum(version)) {
+      !OverworldVersionHelper::SupportsAreaEnum(cached_version_)) {
     return absl::FailedPreconditionError(
         "Wide and Tall areas require ZSCustomOverworld v3+");
   }
@@ -327,7 +327,7 @@ absl::Status Overworld::ConfigureMultiAreaMap(int parent_index,
             parent_index,
             static_cast<int>(overworld_maps_[parent_index].area_size()),
             static_cast<int>(size),
-            OverworldVersionHelper::GetVersionName(version));
+            OverworldVersionHelper::GetVersionName(cached_version_));
 
   // CRITICAL: First, get OLD siblings (before changing) so we can reset them
   std::vector<int> old_siblings;
@@ -409,7 +409,7 @@ absl::Status Overworld::ConfigureMultiAreaMap(int parent_index,
     all_affected.insert(sibling);
   }
 
-  if (OverworldVersionHelper::SupportsAreaEnum(version)) {
+  if (OverworldVersionHelper::SupportsAreaEnum(cached_version_)) {
     // v3+: Update expanded tables
     for (int sibling : all_affected) {
       if (sibling < 0 || sibling >= kNumOverworldMaps)
@@ -421,7 +421,7 @@ absl::Status Overworld::ConfigureMultiAreaMap(int parent_index,
           kOverworldScreenSize + sibling,
           static_cast<uint8_t>(overworld_maps_[sibling].area_size())));
     }
-  } else if (OverworldVersionHelper::SupportsExpandedSpace(version)) {
+  } else if (OverworldVersionHelper::SupportsExpandedSpace(cached_version_)) {
     // v1/v2: Update basic parent table
     for (int sibling : all_affected) {
       if (sibling < 0 || sibling >= kNumOverworldMaps)
@@ -482,14 +482,10 @@ absl::Status Overworld::AssembleMap32Tiles() {
   // Check if expanded tile32 data is actually present in ROM
   // The flag position should contain 0x04 for vanilla, something else for
   // expanded
-  // Check if expanded tile32 data is actually present in ROM
-  // The flag position should contain 0x04 for vanilla, something else for
-  // expanded
-  auto version = OverworldVersionHelper::GetVersion(*rom_);
   uint8_t expanded_flag = rom()->data()[kMap32ExpandedFlagPos];
   util::logf("Expanded tile32 flag: %d", expanded_flag);
   if (expanded_flag != 0x04 ||
-      OverworldVersionHelper::SupportsAreaEnum(version)) {
+      OverworldVersionHelper::SupportsAreaEnum(cached_version_)) {
     // ROM has expanded tile32 data - use expanded addresses
     map32address[0] = version_constants().kMap32TileTL;
     map32address[1] = kMap32TileTRExpanded;
@@ -543,14 +539,10 @@ absl::Status Overworld::AssembleMap16Tiles() {
   // Check if expanded tile16 data is actually present in ROM
   // The flag position should contain 0x0F for vanilla, something else for
   // expanded
-  // Check if expanded tile16 data is actually present in ROM
-  // The flag position should contain 0x0F for vanilla, something else for
-  // expanded
-  auto version = OverworldVersionHelper::GetVersion(*rom_);
   uint8_t expanded_flag = rom()->data()[kMap16ExpandedFlagPos];
   util::logf("Expanded tile16 flag: %d", expanded_flag);
   if (rom()->data()[kMap16ExpandedFlagPos] == 0x0F ||
-      OverworldVersionHelper::SupportsAreaEnum(version)) {
+      OverworldVersionHelper::SupportsAreaEnum(cached_version_)) {
     // ROM has expanded tile16 data - use expanded addresses
     tpos = kMap16TilesExpanded;
     num_tile16 = NumberOfMap16Ex;
@@ -802,7 +794,7 @@ absl::Status Overworld::LoadOverworldMaps() {
       // Apply large map child handling BEFORE computing hash
       // Must match LoadAreaInfo() logic exactly for SW maps
       auto* map = &overworld_maps_[i];
-      if (map->is_large_map() && version == OverworldVersion::kVanilla) {
+      if (map->is_large_map() && cached_version_ == OverworldVersion::kVanilla) {
         if (map->parent() != i && !map->is_initialized()) {
           if (i >= kSpecialWorldMapIdStart && i <= 0x8A && i != 0x88) {
             // Zora's Domain children - also set sprite_graphics
@@ -920,6 +912,8 @@ absl::Status Overworld::EnsureMapBuilt(int map_index) {
   while (static_cast<int>(built_map_lru_.size()) >= kMaxBuiltMaps) {
     int oldest_map = built_map_lru_.back();
     built_map_lru_.pop_back();
+    // Invalidate graphics cache for evicted map to prevent stale tileset refs
+    InvalidateMapCache(oldest_map);
     // Destroy the oldest map to free memory
     overworld_maps_[oldest_map].Destroy();
   }
@@ -942,8 +936,7 @@ absl::Status Overworld::EnsureMapBuilt(int map_index) {
   // This mirrors the logic in BuildMapWithCache that modifies area_graphics_
   // for large map children in vanilla ROMs - must happen before hash
   auto* map = &overworld_maps_[map_index];
-  auto version = OverworldVersionHelper::GetVersion(*rom_);
-  if (map->is_large_map() && version == OverworldVersion::kVanilla) {
+  if (map->is_large_map() && cached_version_ == OverworldVersion::kVanilla) {
     if (map->parent() != map_index && !map->is_initialized()) {
       // Large map child in vanilla ROM - apply special graphics handling
       // Must match LoadAreaInfo() logic exactly for SW maps
@@ -1129,9 +1122,8 @@ void Overworld::InvalidateSiblingMapCaches(int map_index) {
   // Get parent and determine all sibling maps
   int parent_id = map->parent();
   std::vector<int> siblings;
-  
-  auto version = OverworldVersionHelper::GetVersion(*rom_);
-  bool use_v3_sizes = OverworldVersionHelper::SupportsAreaEnum(version);
+
+  bool use_v3_sizes = OverworldVersionHelper::SupportsAreaEnum(cached_version_);
   
   if (use_v3_sizes) {
     // v3: Use area_size enum
@@ -1168,11 +1160,10 @@ void Overworld::InvalidateSiblingMapCaches(int map_index) {
 
 absl::Status Overworld::LoadSprites() {
   // Determine sprite table locations based on actual ASM version in ROM
-  auto version = OverworldVersionHelper::GetVersion(*rom_);
 
 #ifdef __EMSCRIPTEN__
   // WASM: Sequential loading to avoid Web Worker explosion
-  if (OverworldVersionHelper::SupportsAreaEnum(version)) {
+  if (OverworldVersionHelper::SupportsAreaEnum(cached_version_)) {
     RETURN_IF_ERROR(LoadSpritesFromMap(overworldSpritesBeginingExpanded, 64, 0));
     RETURN_IF_ERROR(LoadSpritesFromMap(overworldSpritesZeldaExpanded, 144, 1));
     RETURN_IF_ERROR(LoadSpritesFromMap(overworldSpritesAgahnimExpanded, 144, 2));
@@ -1185,7 +1176,7 @@ absl::Status Overworld::LoadSprites() {
   // Native: Parallel loading for performance
   std::vector<std::future<absl::Status>> futures;
 
-  if (OverworldVersionHelper::SupportsAreaEnum(version)) {
+  if (OverworldVersionHelper::SupportsAreaEnum(cached_version_)) {
     // v3: Use expanded sprite tables
     futures.emplace_back(std::async(std::launch::async, [this]() {
       return LoadSpritesFromMap(overworldSpritesBeginingExpanded, 64, 0);
@@ -1425,10 +1416,8 @@ absl::Status Overworld::SaveLargeMaps() {
   util::logf("Saving Large Maps");
 
   // Check if this is a v3+ ROM to use expanded transition system
-  uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
-  auto version = OverworldVersionHelper::GetVersion(*rom_);
   bool use_expanded_transitions =
-      OverworldVersionHelper::SupportsAreaEnum(version);
+      OverworldVersionHelper::SupportsAreaEnum(cached_version_);
 
   if (use_expanded_transitions) {
     // Use new v3+ complex transition system with neighbor awareness
@@ -3022,8 +3011,7 @@ absl::Status Overworld::LoadDiggableTiles() {
 
 absl::Status Overworld::SaveDiggableTiles() {
   // Diggable tiles require v3+ (custom table at 0x140980+)
-  auto version = OverworldVersionHelper::GetVersion(*rom_);
-  if (!OverworldVersionHelper::SupportsAreaEnum(version)) {
+  if (!OverworldVersionHelper::SupportsAreaEnum(cached_version_)) {
     return absl::OkStatus();  // Skip for vanilla/v1/v2
   }
 
@@ -3070,16 +3058,15 @@ absl::Status Overworld::SaveCustomOverworldASM(bool enable_bg_color,
                                                bool enable_subscreen_overlay,
                                                bool enable_animated) {
   // Check ROM version - this function requires at least v2 for basic features
-  auto version = OverworldVersionHelper::GetVersion(*rom_);
-  if (version == OverworldVersion::kVanilla ||
-      version == OverworldVersion::kZSCustomV1) {
+  if (cached_version_ == OverworldVersion::kVanilla ||
+      cached_version_ == OverworldVersion::kZSCustomV1) {
     return absl::OkStatus();  // Cannot apply custom ASM settings to vanilla/v1
   }
 
   util::logf("Applying Custom Overworld ASM");
 
   // v2+ features: BG color, main palette enable flags
-  if (OverworldVersionHelper::SupportsCustomBGColors(version)) {
+  if (OverworldVersionHelper::SupportsCustomBGColors(cached_version_)) {
     uint8_t enable_value = enable_bg_color ? 0xFF : 0x00;
     RETURN_IF_ERROR(
         rom()->WriteByte(OverworldCustomAreaSpecificBGEnabled, enable_value));
@@ -3096,7 +3083,7 @@ absl::Status Overworld::SaveCustomOverworldASM(bool enable_bg_color,
   }
 
   // v3+ features: mosaic, gfx groups, animated, overlays
-  if (OverworldVersionHelper::SupportsAreaEnum(version)) {
+  if (OverworldVersionHelper::SupportsAreaEnum(cached_version_)) {
     uint8_t enable_value = enable_mosaic ? 0xFF : 0x00;
     RETURN_IF_ERROR(
         rom()->WriteByte(OverworldCustomMosaicEnabled, enable_value));
@@ -3150,8 +3137,7 @@ absl::Status Overworld::SaveCustomOverworldASM(bool enable_bg_color,
 
 absl::Status Overworld::SaveAreaSpecificBGColors() {
   // Only write to custom address space for v2+ ROMs
-  auto version = OverworldVersionHelper::GetVersion(*rom_);
-  if (!OverworldVersionHelper::SupportsCustomBGColors(version)) {
+  if (!OverworldVersionHelper::SupportsCustomBGColors(cached_version_)) {
     return absl::OkStatus();  // Vanilla/v1 ROM - skip custom address writes
   }
 
