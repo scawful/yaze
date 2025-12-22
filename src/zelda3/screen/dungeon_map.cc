@@ -3,6 +3,7 @@
 #include <fstream>
 #include <vector>
 
+#include "absl/strings/str_format.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"
@@ -77,22 +78,91 @@ absl::StatusOr<std::vector<DungeonMap>> LoadDungeonMaps(
 }
 
 absl::Status SaveDungeonMaps(Rom& rom, std::vector<DungeonMap>& dungeon_maps) {
-  for (int d = 0; d < kNumDungeons; d++) {
-    int ptr = kDungeonMapRoomsPtr + (d * 2);
-    int ptr_gfx = kDungeonMapGfxPtr + (d * 2);
-    int pc_ptr = SnesToPc(ptr);
-    int pc_ptr_gfx = SnesToPc(ptr_gfx);
+  int pos = kDungeonMapDataStart;
 
-    const int nbr_floors = dungeon_maps[d].nbr_of_floor;
-    const int nbr_basements = dungeon_maps[d].nbr_of_basement;
-    for (int i = 0; i < nbr_floors + nbr_basements; i++) {
-      for (int j = 0; j < kNumRooms; j++) {
-        RETURN_IF_ERROR(rom.WriteByte(pc_ptr + j + (i * kNumRooms),
-                                      dungeon_maps[d].floor_rooms[i][j]));
-        RETURN_IF_ERROR(rom.WriteByte(pc_ptr_gfx + j + (i * kNumRooms),
-                                      dungeon_maps[d].floor_gfx[i][j]));
-        pc_ptr_gfx++;
+  for (int d = 0; d < kNumDungeons; d++) {
+    if (d >= static_cast<int>(dungeon_maps.size())) {
+      break;
+    }
+
+    auto& map = dungeon_maps[d];
+    const int total_floors = map.nbr_of_floor + map.nbr_of_basement;
+
+    uint16_t floors = (map.nbr_of_floor << 4) | map.nbr_of_basement;
+    RETURN_IF_ERROR(rom.WriteWord(kDungeonMapFloors + (d * 2), floors));
+    RETURN_IF_ERROR(rom.WriteWord(kDungeonMapBossRooms + (d * 2),
+                                  map.boss_room));
+
+    bool search_boss = map.boss_room != 0x000F;
+    if (!search_boss) {
+      RETURN_IF_ERROR(
+          rom.WriteWord(kDungeonMapBossFloors + (d * 2), 0xFFFF));
+    }
+
+    RETURN_IF_ERROR(
+        rom.WriteWord(kDungeonMapRoomsPtr + (d * 2), PcToSnes(pos)));
+
+    bool restart = false;
+    for (int f = 0; f < total_floors; f++) {
+      for (int r = 0; r < kNumRooms; r++) {
+        if (search_boss && map.floor_rooms[f][r] == map.boss_room) {
+          RETURN_IF_ERROR(
+              rom.WriteWord(kDungeonMapBossFloors + (d * 2), f));
+          search_boss = false;
+        }
+
+        RETURN_IF_ERROR(rom.WriteByte(pos, map.floor_rooms[f][r]));
+        pos++;
+
+        if (pos >= kDungeonMapDataReservedStart &&
+            pos <= kDungeonMapDataReservedEnd) {
+          pos = kDungeonMapDataReservedEnd + 1;
+          restart = true;
+          break;
+        }
       }
+      if (restart) break;
+    }
+
+    if (restart) {
+      d--;
+      continue;
+    }
+
+    RETURN_IF_ERROR(
+        rom.WriteWord(kDungeonMapGfxPtr + (d * 2), PcToSnes(pos)));
+    for (int f = 0; f < total_floors; f++) {
+      for (int r = 0; r < kNumRooms; r++) {
+        if (map.floor_rooms[f][r] != 0x0F) {
+          RETURN_IF_ERROR(rom.WriteByte(pos, map.floor_gfx[f][r]));
+          pos++;
+
+          if (pos >= kDungeonMapDataReservedStart &&
+              pos <= kDungeonMapDataReservedEnd) {
+            pos = kDungeonMapDataReservedEnd + 1;
+            RETURN_IF_ERROR(rom.WriteWord(kDungeonMapGfxPtr + (d * 2),
+                                          PcToSnes(pos)));
+            restart = true;
+            break;
+          }
+        }
+      }
+      if (restart) break;
+    }
+
+    if (pos >= kDungeonMapDataLimit) {
+      return absl::OutOfRangeError(
+          "Dungeon map data exceeds reserved space");
+    }
+
+    if (restart) {
+      d--;
+      continue;
+    }
+
+    if (search_boss) {
+      return absl::NotFoundError(
+          absl::StrFormat("Boss room not found for dungeon %d", d));
     }
   }
 
