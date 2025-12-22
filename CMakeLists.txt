@@ -110,7 +110,6 @@ set(BUILD_SHARED_LIBS OFF)
 add_subdirectory(src)
 
 # Tools
-option(YAZE_BUILD_TOOLS "Build development utility tools" OFF)
 if(YAZE_BUILD_TOOLS)
   message(STATUS "Building development tools")
   add_subdirectory(tools)

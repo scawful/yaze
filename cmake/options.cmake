@@ -8,6 +8,7 @@ option(YAZE_BUILD_Z3ED "Build z3ed CLI executable" ON)
 option(YAZE_BUILD_EMU "Build emulator components" ON)
 option(YAZE_BUILD_LIB "Build static library" ON)
 option(YAZE_BUILD_TESTS "Build test suite" ON)
+option(YAZE_BUILD_TOOLS "Build development utility tools" ${YAZE_BUILD_TESTS})
 
 # Feature flags
 option(YAZE_ENABLE_GRPC "Enable gRPC agent support" ON)
@@ -149,4 +150,3 @@ message(STATUS "Sanitizers: ${YAZE_ENABLE_SANITIZERS}")
 message(STATUS "Coverage: ${YAZE_ENABLE_COVERAGE}")
 message(STATUS "OpenCV Visual Analysis: ${YAZE_ENABLE_OPENCV}")
 message(STATUS "=================================")
-

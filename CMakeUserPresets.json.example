@@ -4,17 +4,32 @@
     {
       "name": "dev-local",
       "inherits": "dev",
-      "binaryDir": "$env{YAZE_BUILD_ROOT}/build"
+      "binaryDir": "$env{YAZE_BUILD_ROOT}/build",
+      "environment": {
+        "CPM_SOURCE_CACHE": "$env{HOME}/.cpm-cache",
+        "VCPKG_DOWNLOADS": "$env{HOME}/.cache/vcpkg/downloads",
+        "VCPKG_BINARY_SOURCES": "clear;files,$env{HOME}/.cache/vcpkg/bincache,readwrite"
+      }
     },
     {
       "name": "wasm-debug-local",
       "inherits": "wasm-debug",
-      "binaryDir": "$env{YAZE_BUILD_ROOT}/build-wasm"
+      "binaryDir": "$env{YAZE_BUILD_ROOT}/build-wasm",
+      "environment": {
+        "CPM_SOURCE_CACHE": "$env{HOME}/.cpm-cache",
+        "VCPKG_DOWNLOADS": "$env{HOME}/.cache/vcpkg/downloads",
+        "VCPKG_BINARY_SOURCES": "clear;files,$env{HOME}/.cache/vcpkg/bincache,readwrite"
+      }
     },
     {
       "name": "wasm-release-local",
       "inherits": "wasm-release",
-      "binaryDir": "$env{YAZE_BUILD_ROOT}/build-wasm"
+      "binaryDir": "$env{YAZE_BUILD_ROOT}/build-wasm",
+      "environment": {
+        "CPM_SOURCE_CACHE": "$env{HOME}/.cpm-cache",
+        "VCPKG_DOWNLOADS": "$env{HOME}/.cache/vcpkg/downloads",
+        "VCPKG_BINARY_SOURCES": "clear;files,$env{HOME}/.cache/vcpkg/bincache,readwrite"
+      }
     }
   ],
   "buildPresets": [

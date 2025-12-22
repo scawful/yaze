@@ -14,9 +14,24 @@ set(_YAZE_USE_SYSTEM_GTEST ${YAZE_USE_SYSTEM_DEPS})
 
 # Detect Homebrew installation automatically (helps offline builds)
 if(APPLE AND NOT _YAZE_USE_SYSTEM_GTEST)
-  set(_YAZE_GTEST_PREFIX_CANDIDATES
-    /opt/homebrew/opt/googletest
-    /usr/local/opt/googletest)
+  set(_YAZE_GTEST_PREFIX_CANDIDATES)
+  set(_YAZE_HOST_ARCH "${CMAKE_SYSTEM_PROCESSOR}")
+  if(NOT _YAZE_HOST_ARCH)
+    execute_process(
+      COMMAND uname -m
+      OUTPUT_VARIABLE _YAZE_HOST_ARCH
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      ERROR_QUIET)
+  endif()
+
+  if(_YAZE_HOST_ARCH STREQUAL "arm64")
+    list(APPEND _YAZE_GTEST_PREFIX_CANDIDATES
+      /opt/homebrew/opt/googletest)
+  else()
+    list(APPEND _YAZE_GTEST_PREFIX_CANDIDATES
+      /usr/local/opt/googletest
+      /opt/homebrew/opt/googletest)
+  endif()
 
   foreach(_prefix IN LISTS _YAZE_GTEST_PREFIX_CANDIDATES)
     if(EXISTS "${_prefix}")
@@ -37,9 +52,13 @@ if(APPLE AND NOT _YAZE_USE_SYSTEM_GTEST)
         RESULT_VARIABLE HOMEBREW_GTEST_RESULT
         ERROR_QUIET)
       if(HOMEBREW_GTEST_RESULT EQUAL 0 AND EXISTS "${HOMEBREW_GTEST_PREFIX}")
+        if(_YAZE_HOST_ARCH STREQUAL "arm64" AND NOT HOMEBREW_GTEST_PREFIX MATCHES "^/opt/homebrew")
+          message(STATUS "Skipping Homebrew googletest prefix on arm64: ${HOMEBREW_GTEST_PREFIX}")
+        else()
         list(APPEND CMAKE_PREFIX_PATH "${HOMEBREW_GTEST_PREFIX}")
         message(STATUS "Added Homebrew googletest prefix: ${HOMEBREW_GTEST_PREFIX}")
         set(_YAZE_USE_SYSTEM_GTEST ON)
+        endif()
       endif()
     endif()
   endif()

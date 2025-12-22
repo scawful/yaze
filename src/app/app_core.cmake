@@ -109,8 +109,9 @@ if(APPLE)
     )
 
     if(YAZE_ENABLE_JSON)
-      target_include_directories(yaze_app_objcxx PUBLIC
-        ${CMAKE_SOURCE_DIR}/ext/json/include)
+      if(TARGET nlohmann_json::nlohmann_json)
+        target_link_libraries(yaze_app_objcxx PUBLIC nlohmann_json::nlohmann_json)
+      endif()
       target_compile_definitions(yaze_app_objcxx PUBLIC YAZE_WITH_JSON)
     endif()
 
@@ -121,7 +122,7 @@ if(APPLE)
     if(NOT COCOA_LIBRARY)
         message(FATAL_ERROR "Cocoa not found")
     endif()
-    set(CMAKE_EXE_LINKER_FLAGS "-framework ServiceManagement -framework Foundation -framework Cocoa")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -framework ServiceManagement -framework Foundation -framework Cocoa")
 endif()
 
 # Create the application core library
@@ -139,13 +140,13 @@ target_include_directories(yaze_app_core_lib PUBLIC
   ${CMAKE_SOURCE_DIR}/src/app
   ${CMAKE_SOURCE_DIR}/ext
   ${CMAKE_SOURCE_DIR}/ext/imgui
-  ${CMAKE_SOURCE_DIR}/ext/json/include
   ${CMAKE_SOURCE_DIR}/incl
   ${SDL2_INCLUDE_DIR}
   ${PROJECT_BINARY_DIR}
 )
 
 if(YAZE_ENABLE_JSON)
+  target_link_libraries(yaze_app_core_lib PUBLIC nlohmann_json::nlohmann_json)
   target_compile_definitions(yaze_app_core_lib PUBLIC YAZE_WITH_JSON)
 endif()
 
@@ -174,8 +175,6 @@ endif()
 
 # gRPC Services (Optional)
 if(YAZE_WITH_GRPC)
-  target_include_directories(yaze_app_core_lib PRIVATE
-    ${CMAKE_SOURCE_DIR}/ext/json/include)
   target_compile_definitions(yaze_app_core_lib PRIVATE YAZE_WITH_JSON)
   # Link to consolidated gRPC support library
   target_link_libraries(yaze_app_core_lib PUBLIC yaze_grpc_support)

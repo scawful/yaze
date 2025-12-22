@@ -60,8 +60,6 @@ function Test-GitSubmodules {
         "src/lib/abseil-cpp",
         "ext/asar",
         "ext/imgui",
-        "ext/json",
-        "ext/httplib",
         "ext/imgui_test_engine",
         "ext/nativefiledialog-extended"
     )

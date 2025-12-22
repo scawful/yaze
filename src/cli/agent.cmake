@@ -87,7 +87,6 @@ if(EMSCRIPTEN)
 
   # Add JSON support for API communication
   if(YAZE_ENABLE_JSON)
-    target_include_directories(yaze_agent PUBLIC ${CMAKE_SOURCE_DIR}/ext/json/include)
     target_link_libraries(yaze_agent PUBLIC nlohmann_json::nlohmann_json)
     target_compile_definitions(yaze_agent PUBLIC YAZE_WITH_JSON)
   endif()
@@ -288,6 +287,10 @@ endif()
 
 target_link_libraries(yaze_agent PUBLIC ${_yaze_agent_link_targets})
 
+if(NOT EMSCRIPTEN AND YAZE_HTTPLIB_TARGETS)
+  target_link_libraries(yaze_agent PUBLIC ${YAZE_HTTPLIB_TARGETS})
+endif()
+
 # Ensure yaml-cpp include paths propagate even when using system packages
 if(YAZE_ENABLE_AI_RUNTIME)
   set(_yaml_targets_to_check ${YAZE_YAML_TARGETS} yaml-cpp yaml-cpp::yaml-cpp)
@@ -306,24 +309,21 @@ target_include_directories(yaze_agent
   PUBLIC
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/incl
-    ${CMAKE_SOURCE_DIR}/ext/httplib
     ${CMAKE_SOURCE_DIR}/src/lib
     ${CMAKE_SOURCE_DIR}/src/cli/handlers
     ${CMAKE_BINARY_DIR}/gens
 )
 
-if(YAZE_ENABLE_AI_RUNTIME AND YAZE_ENABLE_JSON)
-  target_include_directories(yaze_agent PUBLIC ${CMAKE_SOURCE_DIR}/ext/json/include)
-endif()
-
 if(SDL2_INCLUDE_DIR)
   target_include_directories(yaze_agent PUBLIC ${SDL2_INCLUDE_DIR})
 endif()
 
-if(YAZE_ENABLE_AI_RUNTIME AND YAZE_ENABLE_JSON)
+if(YAZE_ENABLE_JSON)
   target_link_libraries(yaze_agent PUBLIC nlohmann_json::nlohmann_json)
   target_compile_definitions(yaze_agent PUBLIC YAZE_WITH_JSON)
+endif()
 
+if(YAZE_ENABLE_AI_RUNTIME AND YAZE_ENABLE_JSON)
   # Only link OpenSSL if gRPC is NOT enabled (to avoid duplicate symbol errors)
   # When gRPC is enabled, it brings its own OpenSSL which we'll use instead
   if(NOT YAZE_ENABLE_REMOTE_AUTOMATION)

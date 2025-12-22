@@ -76,7 +76,6 @@ target_include_directories(yaze_zelda3 PUBLIC
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/src/lib
   ${CMAKE_SOURCE_DIR}/incl
-  ${CMAKE_SOURCE_DIR}/ext/json/include
   ${PROJECT_BINARY_DIR}
 )
 

@@ -45,8 +45,6 @@ target_link_libraries(yaze_test_support PUBLIC
 
 # Add gRPC dependencies if test harness is enabled
 if(YAZE_WITH_GRPC)
-  target_include_directories(yaze_test_support PRIVATE
-    ${CMAKE_SOURCE_DIR}/ext/json/include)
   target_compile_definitions(yaze_test_support PRIVATE YAZE_WITH_JSON)
   
   # Link to consolidated gRPC support library
