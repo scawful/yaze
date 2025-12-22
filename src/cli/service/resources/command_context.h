@@ -144,6 +144,7 @@ class OutputFormatter {
    * @brief Add a key-value pair
    */
   void AddField(const std::string& key, const std::string& value);
+  void AddField(const std::string& key, const char* value);
   void AddField(const std::string& key, int value);
   void AddField(const std::string& key, uint64_t value);
   void AddField(const std::string& key, bool value);

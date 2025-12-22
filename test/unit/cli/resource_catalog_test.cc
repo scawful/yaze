@@ -35,12 +35,27 @@ TEST(ResourceCatalogTest, RomSchemaExposesActionsAndMetadata) {
   ASSERT_TRUE(rom_schema.ok());
 
   const auto& actions = rom_schema->actions;
-  ASSERT_EQ(actions.size(), 3);
-  EXPECT_EQ(actions[0].name, "validate");
-  EXPECT_FALSE(actions[0].effects.empty());
-  EXPECT_FALSE(actions[0].returns.empty());
-  EXPECT_EQ(actions[1].name, "diff");
-  EXPECT_EQ(actions[2].name, "generate-golden");
+  ASSERT_EQ(actions.size(), 4);
+  auto has_info = std::find_if(
+      actions.begin(), actions.end(),
+      [](const auto& action) { return action.name == "info"; });
+  EXPECT_NE(has_info, actions.end());
+  auto has_validate = std::find_if(
+      actions.begin(), actions.end(),
+      [](const auto& action) { return action.name == "validate"; });
+  EXPECT_NE(has_validate, actions.end());
+  if (has_validate != actions.end()) {
+    EXPECT_FALSE(has_validate->effects.empty());
+    EXPECT_FALSE(has_validate->returns.empty());
+  }
+  auto has_diff = std::find_if(
+      actions.begin(), actions.end(),
+      [](const auto& action) { return action.name == "diff"; });
+  EXPECT_NE(has_diff, actions.end());
+  auto has_generate = std::find_if(
+      actions.begin(), actions.end(),
+      [](const auto& action) { return action.name == "generate-golden"; });
+  EXPECT_NE(has_generate, actions.end());
 }
 
 TEST(ResourceCatalogTest, PatchSchemaIncludesAsarAndCreateActions) {

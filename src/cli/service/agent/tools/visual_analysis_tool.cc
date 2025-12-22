@@ -212,6 +212,13 @@ int VisualAnalysisBase::GetTileCountForSheet(int sheet_index) const {
 std::string VisualAnalysisBase::FormatMatchesAsJson(
     const std::vector<TileSimilarityMatch>& matches) const {
   std::ostringstream json;
+  if (matches.empty()) {
+    json << "{\n  \"matches\": [],\n";
+    json << "  \"total_matches\": 0\n";
+    json << "}\n";
+    return json.str();
+  }
+
   json << "{\n  \"matches\": [\n";
 
   for (size_t i = 0; i < matches.size(); ++i) {
@@ -238,6 +245,14 @@ std::string VisualAnalysisBase::FormatMatchesAsJson(
 std::string VisualAnalysisBase::FormatRegionsAsJson(
     const std::vector<UnusedRegion>& regions) const {
   std::ostringstream json;
+  if (regions.empty()) {
+    json << "{\n  \"unused_regions\": [],\n";
+    json << "  \"total_regions\": 0,\n";
+    json << "  \"total_free_tiles\": 0\n";
+    json << "}\n";
+    return json.str();
+  }
+
   json << "{\n  \"unused_regions\": [\n";
 
   for (size_t i = 0; i < regions.size(); ++i) {
@@ -939,4 +954,3 @@ double ComputeSSIM(const std::vector<uint8_t>& tile_a,
 }  // namespace agent
 }  // namespace cli
 }  // namespace yaze
-

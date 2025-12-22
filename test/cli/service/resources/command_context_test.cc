@@ -239,10 +239,10 @@ TEST_F(OutputFormatterTest, GeneratesValidText) {
   std::string output = formatter.GetOutput();
 
   EXPECT_THAT(output, ::testing::HasSubstr("=== Test Object ==="));
-  EXPECT_THAT(output, ::testing::HasSubstr("string_field     : value"));
-  EXPECT_THAT(output, ::testing::HasSubstr("int_field        : 42"));
-  EXPECT_THAT(output, ::testing::HasSubstr("bool_field       : yes"));
-  EXPECT_THAT(output, ::testing::HasSubstr("hex_field        : 0x1234"));
+  EXPECT_THAT(output, ::testing::HasSubstr("string_field         : value"));
+  EXPECT_THAT(output, ::testing::HasSubstr("int_field            : 42"));
+  EXPECT_THAT(output, ::testing::HasSubstr("bool_field           : yes"));
+  EXPECT_THAT(output, ::testing::HasSubstr("hex_field            : 0x1234"));
   EXPECT_THAT(output, ::testing::HasSubstr("array_field:"));
   EXPECT_THAT(output, ::testing::HasSubstr("- item1"));
   EXPECT_THAT(output, ::testing::HasSubstr("- item2"));

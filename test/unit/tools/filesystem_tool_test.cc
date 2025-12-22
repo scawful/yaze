@@ -26,12 +26,25 @@ namespace {
 using ::testing::HasSubstr;
 using ::testing::Not;
 
+std::filesystem::path FindProjectRoot() {
+  std::filesystem::path root = std::filesystem::current_path();
+  while (!root.empty() && root != root.root_path()) {
+    if (std::filesystem::exists(root / "CMakeLists.txt") &&
+        std::filesystem::exists(root / "src" / "cli")) {
+      return root;
+    }
+    root = root.parent_path();
+  }
+  return std::filesystem::current_path();
+}
+
 // Test fixture for FileSystemTool tests
 class FileSystemToolTest : public ::testing::Test {
  protected:
   void SetUp() override {
     // Create test directories and files
-    test_dir_ = std::filesystem::temp_directory_path() / "yaze_fs_tool_test";
+    test_dir_ =
+        FindProjectRoot() / "test_temp" / "yaze_fs_tool_test";
     std::filesystem::create_directories(test_dir_ / "subdir");
 
     // Create test files

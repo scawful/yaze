@@ -270,8 +270,15 @@ void OutputFormatter::BeginObject(const std::string& title) {
 
 void OutputFormatter::EndObject() {
   if (IsJson()) {
-    buffer_ += "\n";
     indent_level_--;
+    if (first_field_) {
+      if (!buffer_.empty() && buffer_.back() == '\n') {
+        buffer_.pop_back();
+      }
+      buffer_ += "}";
+      return;
+    }
+    buffer_ += "\n";
     AddIndent();
     buffer_ += "}";
   }
@@ -290,6 +297,10 @@ void OutputFormatter::AddField(const std::string& key,
   } else {
     buffer_ += absl::StrFormat("  %-20s : %s\n", key, value);
   }
+}
+
+void OutputFormatter::AddField(const std::string& key, const char* value) {
+  AddField(key, value != nullptr ? std::string(value) : std::string());
 }
 
 void OutputFormatter::AddField(const std::string& key, int value) {
@@ -368,8 +379,15 @@ void OutputFormatter::EndArray() {
   in_array_ = false;
 
   if (IsJson()) {
-    buffer_ += "\n";
     indent_level_--;
+    if (array_item_count_ == 0) {
+      if (!buffer_.empty() && buffer_.back() == '\n') {
+        buffer_.pop_back();
+      }
+      buffer_ += "]";
+      return;
+    }
+    buffer_ += "\n";
     AddIndent();
     buffer_ += "]";
   }

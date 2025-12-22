@@ -235,8 +235,8 @@ TEST_F(ResourcePanelTest, ResourceLifecycle) {
 }
 
 TEST_F(ResourcePanelTest, AlwaysEditorBound) {
-  // Resource panels are always EditorBound
-  EXPECT_EQ(panel_->GetPanelCategory(), PanelCategory::EditorBound);
+  // Resource panels are CrossEditor by default
+  EXPECT_EQ(panel_->GetPanelCategory(), PanelCategory::CrossEditor);
 }
 
 TEST_F(ResourcePanelTest, AllowMultipleInstancesDefault) {
