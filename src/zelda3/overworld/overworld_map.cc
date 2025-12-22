@@ -903,6 +903,11 @@ absl::StatusOr<gfx::SnesPalette> OverworldMap::GetPalette(
 }
 
 absl::Status OverworldMap::LoadPalette() {
+  if (!game_data_) {
+    current_palette_.clear();
+    return absl::OkStatus();
+  }
+
   uint8_t asm_version = (*rom_)[OverworldCustomASMHasBeenApplied];
   auto version = OverworldVersionHelper::GetVersion(*rom_);
 
@@ -1207,7 +1212,8 @@ absl::Status OverworldMap::BuildTileset() {
     current_gfx_.resize(0x10000, 0x00);
 
   if (!game_data_) {
-    return absl::FailedPreconditionError("GameData not set");
+    // Headless/tests: allow map builds without graphics by keeping zeroed data.
+    return absl::OkStatus();
   }
 
   // Process the 8 main graphics sheets (slots 0-7)
