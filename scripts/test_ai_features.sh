@@ -15,7 +15,7 @@ NC='\033[0m'
 # Configuration
 YAZE_BIN="${YAZE_BIN:-./build/bin/yaze}"
 Z3ED_BIN="${Z3ED_BIN:-./build/bin/z3ed}"
-TEST_ROM="${TEST_ROM:-./zelda3.sfc}"
+TEST_ROM="${TEST_ROM:-${YAZE_TEST_ROM_VANILLA:-./roms/alttp_vanilla.sfc}}"
 GEMINI_API_KEY="${GEMINI_API_KEY:-}"
 SCREENSHOTS_DIR="./test_screenshots"
 

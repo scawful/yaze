@@ -12,7 +12,9 @@ The yaze test suite has been reorganized to improve CI performance and developer
 | `YAZE_ENABLE_ROM_TESTS` | **OFF** | Enable tests requiring ROM files | ROM-dependent tests |
 | `YAZE_ENABLE_AI_RUNTIME` | **OFF** | Enable AI runtime integration tests | Experimental AI tests |
 | `YAZE_ENABLE_BENCHMARK_TESTS` | **OFF** | Enable performance benchmarks | Benchmark suite |
-| `YAZE_TEST_ROM_PATH` | `build/bin/zelda3.sfc` | Path to test ROM file | ROM-dependent tests |
+| `YAZE_TEST_ROM_VANILLA_PATH` | *(empty)* | Path to vanilla test ROM file | ROM-dependent tests |
+| `YAZE_TEST_ROM_EXPANDED_PATH` | *(empty)* | Path to expanded test ROM file | Expanded ROM tests |
+| `YAZE_TEST_ROM_PATH` | *(legacy)* | Legacy vanilla ROM path | ROM-dependent tests |
 
 ## Test Categories and Labels
 
@@ -65,7 +67,7 @@ ctest --test-dir build -L stable
 ### With ROM-Dependent Tests
 ```bash
 # Configure with ROM tests enabled
-cmake --preset mac-dbg -DYAZE_ENABLE_ROM_TESTS=ON -DYAZE_TEST_ROM_PATH=~/zelda3.sfc
+cmake --preset mac-dbg -DYAZE_ENABLE_ROM_TESTS=ON -DYAZE_TEST_ROM_VANILLA_PATH=~/roms/alttp_vanilla.sfc
 cmake --build build
 ctest --test-dir build -L rom_dependent
 ```
@@ -97,7 +99,8 @@ cmake --preset mac-dbg \
   -DYAZE_ENABLE_ROM_TESTS=ON \
   -DYAZE_ENABLE_AI_RUNTIME=ON \
   -DYAZE_ENABLE_BENCHMARK_TESTS=ON \
-  -DYAZE_TEST_ROM_PATH=~/zelda3.sfc
+  -DYAZE_TEST_ROM_VANILLA_PATH=~/roms/alttp_vanilla.sfc \
+  -DYAZE_TEST_ROM_EXPANDED_PATH=~/roms/oos168.sfc
 cmake --build build
 ctest --test-dir build
 ```
@@ -194,6 +197,6 @@ Ensure:
 
 ### ROM Tests Failing
 Verify:
-- ROM file exists at `YAZE_TEST_ROM_PATH`
+- ROM file exists at `YAZE_TEST_ROM_VANILLA` (or `YAZE_TEST_ROM_EXPANDED` for v3 tests)
 - ROM is valid Zelda3 US version
 - Path is absolute, not relative

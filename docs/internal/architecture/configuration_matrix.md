@@ -44,7 +44,7 @@ This document defines all CMake configuration flags, their interactions, and the
 
 | Flag | Default | Purpose | Notes |
 |------|---------|---------|-------|
-| `YAZE_ENABLE_ROM_TESTS` | OFF | Enable ROM-dependent tests | Requires `zelda3.sfc` file |
+| `YAZE_ENABLE_ROM_TESTS` | OFF | Enable ROM-dependent tests | Requires vanilla ROM (`alttp_vanilla.sfc`) via `YAZE_TEST_ROM_VANILLA` |
 | `YAZE_MINIMAL_BUILD` | OFF | Minimal CI build (skip optional features) | Used in resource-constrained CI |
 | `YAZE_SUPPRESS_WARNINGS` | ON | Suppress compiler warnings | Use OFF for verbose builds |
 

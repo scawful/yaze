@@ -72,7 +72,7 @@ Board: docs/internal/agents/coordination-board.md (2025-12-01 ai-infra-architect
 - Agent-side test commands (`agent test run/list/status/...`) print ad-hoc logs and lack `OutputFormatter`/metadata, making automation fragile; no JSON status, exit codes, or artifacts paths surfaced.
 - Test helper tools (`tools-*/` commands, `tools/test_helpers/*`) mix stdout banners with file emission and manual path requirements; they are not discoverable via TUI or CommandRegistry-driven palettes and do not expose dry-run/plan outputs.
 - TUI/editor have no test surface: no panel to run `stable/gui/rom_dependent/experimental` suites, inspect failing cases, or attach ROM paths/presets; quick actions and history are missing.
-- Build/preset coupling is implicit—no guided flow to pick `mac-test/mac-ai/mac-dev`, enable ROM/AI flags, or attach `YAZE_TEST_ROM_PATH`; agents/humans can misconfigure and get empty test sets.
+- Build/preset coupling is implicit—no guided flow to pick `mac-test/mac-ai/mac-dev`, enable ROM/AI flags, or attach `YAZE_TEST_ROM_VANILLA`; agents/humans can misconfigure and get empty test sets.
 
 ### Proposed Improvements
 - **Unified test CLI/TUI API**

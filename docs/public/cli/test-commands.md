@@ -152,6 +152,8 @@ z3ed test-status --format json
 ### Sample Output (JSON)
 ```json
 {
+  "rom_vanilla": "not set",
+  "rom_expanded": "not set",
   "rom_path": "not set",
   "skip_rom_tests": false,
   "ui_tests_enabled": false,
@@ -167,7 +169,9 @@ The test commands respect these environment variables:
 
 | Variable | Description |
 |----------|-------------|
-| `YAZE_TEST_ROM_PATH` | Path to Zelda3 ROM for ROM-dependent tests |
+| `YAZE_TEST_ROM_VANILLA` | Path to vanilla Zelda3 ROM for ROM-dependent tests |
+| `YAZE_TEST_ROM_EXPANDED` | Path to expanded Zelda3 ROM (ZSCustom/OOS) |
+| `YAZE_TEST_ROM_PATH` | Legacy ROM path (vanilla fallback) |
 | `YAZE_SKIP_ROM_TESTS` | Set to `1` to skip ROM tests |
 | `YAZE_ENABLE_UI_TESTS` | Set to `1` to enable UI tests |
 
@@ -200,7 +204,7 @@ if [ $? -eq 0 ]; then echo "All tests passed"; fi
 ### With ROM Tests
 ```bash
 # Set ROM path
-export YAZE_TEST_ROM_PATH=/path/to/zelda3.sfc
+export YAZE_TEST_ROM_VANILLA=/path/to/alttp_vanilla.sfc
 
 # Configure with ROM tests enabled
 cmake --preset mac-dev -DYAZE_ENABLE_ROM_TESTS=ON

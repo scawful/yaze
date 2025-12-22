@@ -66,8 +66,8 @@ Run the **complete test suite** before pushing if:
 # Run all tests (may take 5+ minutes)
 ./build/bin/yaze_test
 
-# Include ROM-dependent tests (requires zelda3.sfc)
-./build/bin/yaze_test --rom-dependent --rom-path /path/to/zelda3.sfc
+# Include ROM-dependent tests (requires alttp_vanilla.sfc)
+./build/bin/yaze_test --rom-dependent --rom-vanilla /path/to/alttp_vanilla.sfc
 
 # Run E2E GUI tests (headless)
 ./build/bin/yaze_test --e2e
@@ -107,10 +107,10 @@ cmake --build build --target yaze_test
 **Fix**:
 ```bash
 # Set environment variable
-export YAZE_TEST_ROM_PATH=/path/to/zelda3.sfc
+export YAZE_TEST_ROM_VANILLA=/path/to/alttp_vanilla.sfc
 
 # Or pass directly to test runner
-./build/bin/yaze_test --rom-path /path/to/zelda3.sfc
+./build/bin/yaze_test --rom-vanilla /path/to/alttp_vanilla.sfc
 ```
 
 ### 4. E2E/GUI Test Failures
@@ -177,7 +177,7 @@ git push
 
 ```bash
 # Run everything including ROM tests and E2E
-./build/bin/yaze_test --rom-dependent --rom-path zelda3.sfc
+./build/bin/yaze_test --rom-dependent --rom-vanilla roms/alttp_vanilla.sfc
 ./build/bin/yaze_test --e2e
 
 # Check code formatting
@@ -238,7 +238,8 @@ Customize test behavior with these environment variables:
 
 ```bash
 # Path to test ROM file
-export YAZE_TEST_ROM_PATH=/path/to/zelda3.sfc
+export YAZE_TEST_ROM_VANILLA=/path/to/alttp_vanilla.sfc
+export YAZE_TEST_ROM_EXPANDED=/path/to/oos168.sfc
 
 # Skip ROM-dependent tests entirely
 export YAZE_SKIP_ROM_TESTS=1

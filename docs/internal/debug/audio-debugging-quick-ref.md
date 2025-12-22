@@ -21,7 +21,7 @@ Before investigating audio issues, verify these values are correct:
 # Build with ROM tests enabled
 cmake --preset mac-dbg \
   -DYAZE_ENABLE_ROM_TESTS=ON \
-  -DYAZE_TEST_ROM_PATH=~/zelda3.sfc
+  -DYAZE_TEST_ROM_VANILLA_PATH=~/roms/alttp_vanilla.sfc
 
 cmake --build --preset mac-dbg
 
@@ -29,7 +29,7 @@ cmake --build --preset mac-dbg
 ctest --test-dir build -L audio -V
 
 # Run specific test with verbose output
-YAZE_TEST_ROM_PATH=~/zelda3.sfc ./build/bin/Debug/yaze_test_rom_dependent \
+YAZE_TEST_ROM_VANILLA=~/roms/alttp_vanilla.sfc ./build/bin/Debug/yaze_test_rom_dependent \
   --gtest_filter="*AudioTiming*" 2>&1 | tee audio_debug.log
 
 # Generate timing report
@@ -101,7 +101,7 @@ Start yaze with debug flags for audio investigation:
 
 ```bash
 ./yaze --debug --log_file=audio_debug.log \
-  --rom_file=zelda3.sfc --editor=Music
+  --rom_file=roms/alttp_vanilla.sfc --editor=Music
 ```
 
 ## Test Output Files

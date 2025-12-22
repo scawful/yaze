@@ -89,9 +89,9 @@ Options:
   --cleanup            Clean up test files after completion
 
 Examples:
-  $0 zelda3.sfc
-  $0 zelda3.sfc --generate-report --cleanup
-  $0 /path/to/rom.sfc --skip-unit-tests
+  $0 roms/alttp_vanilla.sfc
+  $0 roms/alttp_vanilla.sfc --generate-report --cleanup
+  $0 /path/to/alttp_vanilla.sfc --skip-unit-tests
 EOF
 }
 
@@ -233,6 +233,7 @@ run_unit_tests() {
     cd "$PROJECT_ROOT"
     
     # Set environment variable for ROM path
+    export YAZE_TEST_ROM_VANILLA="$ROM_PATH"
     export YAZE_TEST_ROM_PATH="$ROM_PATH"
     
     # Run unit tests
@@ -258,6 +259,7 @@ run_integration_tests() {
     cd "$PROJECT_ROOT"
     
     # Set environment variable for ROM path
+    export YAZE_TEST_ROM_VANILLA="$ROM_PATH"
     export YAZE_TEST_ROM_PATH="$ROM_PATH"
     
     # Run integration tests
@@ -283,6 +285,7 @@ run_e2e_tests() {
     cd "$PROJECT_ROOT"
     
     # Set environment variable for ROM path
+    export YAZE_TEST_ROM_VANILLA="$ROM_PATH"
     export YAZE_TEST_ROM_PATH="$ROM_PATH"
     
     # Run E2E tests
