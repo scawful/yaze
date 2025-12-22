@@ -20,6 +20,9 @@ constexpr int kDungeonMapGfxPtr = 0x57BE4;  // 14 pointers of gfx data
 
 // data start for floors/gfx MUST skip 575D9 to 57621 (pointers)
 constexpr int kDungeonMapDataStart = 0x57039;
+constexpr int kDungeonMapDataReservedStart = 0x575D9;
+constexpr int kDungeonMapDataReservedEnd = 0x57620;
+constexpr int kDungeonMapDataLimit = 0x57CE0;
 
 // IF Byte = 0xB9 dungeon maps are not expanded
 constexpr int kDungeonMapExpCheck = 0x56652;         // $0A:E652
@@ -28,6 +31,7 @@ constexpr int kDungeonMapTile16Expanded = 0x109010;  // $21:9010
 
 // 14 words values 0x000F = no boss
 constexpr int kDungeonMapBossRooms = 0x56807;
+constexpr int kDungeonMapBossFloors = 0x56E79;
 constexpr int kTriforceVertices = 0x04FFD2;  // group of 3, X, Y ,Z
 constexpr int kTriforceFaces = 0x04FFE4;     // group of 5
 
