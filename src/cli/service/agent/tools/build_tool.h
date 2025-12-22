@@ -33,26 +33,26 @@ class BuildTool {
  public:
   // Build operation results
   struct BuildResult {
-    bool success;
+    bool success = false;
     std::string output;
     std::string error_output;
-    int exit_code;
-    std::chrono::seconds duration;
+    int exit_code = 0;
+    std::chrono::seconds duration{0};
     std::string command_executed;
   };
 
   // Build status information
   struct BuildStatus {
-    bool is_running;
+    bool is_running = false;
     std::string current_operation;
     std::string last_result_summary;
-    std::chrono::system_clock::time_point start_time;
-    int progress_percent;  // -1 if unknown
+    std::chrono::system_clock::time_point start_time{};
+    int progress_percent = 0;  // -1 if unknown
   };
 
   // Build configuration
   struct BuildConfig {
-    std::string build_directory = "build_ai";  // Default AI agent build dir
+    std::string build_directory = "build";  // Override via YAZE_BUILD_DIR
     std::chrono::seconds timeout = std::chrono::seconds(600);  // 10 min default
     bool capture_output = true;
     bool verbose = false;

@@ -42,8 +42,10 @@ Select a preset that matches your platform and workflow:
 |----------|---------|
 | Debug builds | `mac-dbg`, `lin-dbg`, `win-dbg` |
 | AI-enabled builds | `mac-ai`, `lin-ai`, `win-ai` |
+| AI + system gRPC (macOS) | `mac-ai-fast` |
 | Release builds | `mac-rel`, `lin-rel`, `win-rel` |
 | Development (ROM tests) | `mac-dev`, `lin-dev`, `win-dev` |
+| Fast test builds | `mac-test`, `lin-test`, `win-test` |
 
 **Build Commands:**
 ```bash
@@ -54,6 +56,20 @@ cmake --build --preset <name> --target yaze  # Build
 Add `-v` suffix (e.g., `mac-dbg-v`) to enable verbose compiler warnings.
 
 See the [CMake Presets Guide](presets.md) for the complete preset reference.
+
+---
+
+## Build Directory Policy
+
+By default, native builds live in `build/` and WASM builds live in `build-wasm/`. Keep additional build directories outside the repo to avoid size creep:
+
+```bash
+cp CMakeUserPresets.json.example CMakeUserPresets.json
+export YAZE_BUILD_ROOT="$HOME/.cache/yaze"
+cmake --preset dev-local
+```
+
+For scripts and agent-driven builds, set `YAZE_BUILD_DIR` to an external path (for example, `$HOME/.cache/yaze/build`).
 
 ---
 
@@ -117,6 +133,21 @@ brew install yaml-cpp googletest
 
 > **Note:** In sandboxed environments, install yaml-cpp and googletest via Homebrew to avoid network fetch failures. The build system auto-detects Homebrew installations at `/opt/homebrew/opt/` (Apple Silicon) or `/usr/local/opt/` (Intel).
 
+#### Toolchain Options (macOS)
+
+AppleClang (`/usr/bin/clang`) is the default and most reliable. If you want Homebrew LLVM, use the provided toolchain file so libc++ headers and rpaths are consistent:
+
+```bash
+# AppleClang (recommended)
+cmake --preset mac-dbg --fresh -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++
+
+# Homebrew LLVM
+brew install llvm
+cmake --preset mac-dbg --fresh -DCMAKE_TOOLCHAIN_FILE=cmake/llvm-brew.toolchain.cmake
+```
+
+`mac-ai-fast` expects Homebrew gRPC/protobuf/abseil (`brew install grpc protobuf abseil`).
+
 ### Linux (Ubuntu/Debian)
 
 ```bash
@@ -152,13 +183,13 @@ The easiest way to run tests is with `ctest` presets.
 
 ```bash
 # Configure a development build (enables ROM-dependent tests)
-cmake --preset mac-dev -DYAZE_TEST_ROM_PATH=/path/to/your/zelda3.sfc
+cmake --preset mac-dev -DYAZE_TEST_ROM_VANILLA_PATH="$PWD/roms/alttp_vanilla.sfc"
 
 # Build the tests
 cmake --build --preset mac-dev --target yaze_test
 
 # Run stable tests (fast, run in CI)
-ctest --preset dev
+ctest --preset stable
 
 # Run all tests, including ROM-dependent and experimental
 ctest --preset all
@@ -169,8 +200,11 @@ ctest --preset all
 You can also run tests by invoking the test executable directly or using CTest with labels.
 
 ```bash
-# Run all tests via the executable
-./build/bin/yaze_test
+# Run tests via the executables (multi-config paths on macOS/Windows)
+./build/bin/Debug/yaze_emu_test --emu_test_rom=roms/alttp_vanilla.sfc
+./build/bin/Debug/yaze_test_stable --rom=roms/alttp_vanilla.sfc
+./build/bin/Debug/yaze_test_gui --rom=roms/alttp_vanilla.sfc
+./build/bin/Debug/yaze_test_benchmark --rom=roms/alttp_vanilla.sfc
 
 # Run only stable tests using CTest labels
 ctest --test-dir build --label-regex "STABLE"
@@ -329,10 +363,10 @@ After pulling major changes or switching branches, your build directory can beco
 ### Common Issues
 
 #### "nlohmann/json.hpp: No such file or directory"
-**Cause**: You are building code that requires AI features without using an AI-enabled preset, or your Git submodules are not initialized.
+**Cause**: You are building code that requires AI features without using an AI-enabled preset, or CMake has not fetched CPM dependencies yet.
 **Solution**:
 1.  Use an AI preset like `win-ai` or `mac-ai`.
-2.  Ensure submodules are present by running `git submodule update --init --recursive`.
+2.  Reconfigure to fetch dependencies: `cmake --preset <preset>` (or delete the build folder and re-run).
 
 #### "Cannot open file 'yaze.exe': Permission denied"
 **Cause**: A previous instance of `yaze.exe` is still running in the background.

@@ -60,26 +60,26 @@ All bundled third-party code (SDL, ImGui, ImGui Test Engine, Asar, nlohmann/json
 - **`./build/bin/yaze`** – full GUI editor with multi-session dockspace, theming, and ROM patching.
 - **Web App (Preview)** – browser-based editor at your deployed instance; see [`docs/public/usage/web-app.md`](docs/public/usage/web-app.md) for details and limitations.
 - **`./build/bin/z3ed --tui`** – CLI/TUI companion for scripting, AI-assisted edits, and Asar workflows.
-- **`./build_ai/bin/yaze_test --unit|--integration|--e2e`** – structured test runner for quick regression checks.
+- **`ctest --test-dir build -L unit|integration|e2e`** – structured test runner for quick regression checks.
 - **`z3ed` + macOS automation** – pair the CLI with sketchybar/yabai/skhd or Emacs/Spacemacs to drive ROM workflows without opening the GUI.
 
 Typical commands:
 ```bash
 # Launch GUI with a ROM
-./build/bin/yaze zelda3.sfc
+./build/bin/yaze roms/alttp_vanilla.sfc
 
 # Apply a patch via CLI
-./build/bin/z3ed asar patch.asm --rom zelda3.sfc
+./build/bin/z3ed asar patch.asm --rom roms/alttp_vanilla.sfc
 
 # Run focused tests
 cmake --build --preset mac-ai --target yaze_test
-./build_ai/bin/yaze_test --unit
+ctest --test-dir build -L unit
 ```
 
 ## Testing
-- `./build_ai/bin/yaze_test --unit` for fast checks; add `--integration` or `--e2e --show-gui` for broader coverage.
+- `ctest --test-dir build -L unit` for fast checks; add `-L integration` or `-L e2e --output-on-failure` for broader coverage.
 - `ctest --preset dev` mirrors CI’s stable set; `ctest --preset all` runs the full matrix.
-- Set `YAZE_TEST_ROM_PATH` or pass `--rom-path` when a test needs a real ROM image.
+- Set `YAZE_TEST_ROM_VANILLA` or pass `--rom-vanilla` when a test needs a real ROM image (legacy `--rom-path` still works).
 
 ## Documentation
 - Human-readable docs live under `docs/public/` with an entry point at [`docs/public/index.md`](docs/public/index.md).

@@ -1,12 +1,13 @@
 # YAZE Build Troubleshooting Guide
 
-**Last Updated**: October 2025
-**Related Docs**: BUILD-GUIDE.md, ci-cd/CI-SETUP.md
+**Last Updated**: December 2025
+**Related Docs**: quick-reference.md, build-from-source.md, presets.md
 
 ## Table of Contents
 - [gRPC ARM64 Issues](#grpc-arm64-issues)
 - [Windows Build Issues](#windows-build-issues)
 - [macOS Issues](#macos-issues)
+- [Disk Usage and Build Directory Bloat](#disk-usage-and-build-directory-bloat)
 - [Linux Issues](#linux-issues)
 - [Common Build Errors](#common-build-errors)
 
@@ -14,126 +15,42 @@
 
 ## gRPC ARM64 Issues
 
-### Status: Known Issue with Workarounds
+### Preferred Path: System gRPC on macOS
 
-The ARM64 macOS build has persistent issues with Abseil's random number generation targets when building gRPC from source. This issue has been ongoing through multiple attempts to fix.
+On Apple Silicon, the fastest and most reliable setup is Homebrew's gRPC stack:
 
-### The Problem
-
-**Error**:
-```
-clang++: error: unsupported option '-msse4.1' for target 'arm64-apple-darwin25.0.0'
-```
-
-**Target**: `absl_random_internal_randen_hwaes_impl`
-
-**Root Cause**: Abseil's random number generation targets are being built with x86-specific compiler flags (`-msse4.1`, `-maes`, `-msse4.2`) on ARM64 macOS.
-
-### Working Configuration
-
-**gRPC Version**: v1.67.1 (tested and stable)
-**Protobuf Version**: 3.28.1 (bundled with gRPC)
-**Abseil Version**: 20240116.0 (bundled with gRPC)
-
-### Solution Approaches Tried
-
-#### ❌ Failed Attempts
-1. **CMake flag configuration** - Abseil variables being overridden by gRPC
-2. **Global CMAKE_CXX_FLAGS** - Flags set at target level, not global
-3. **Pre-configuration Abseil settings** - gRPC overrides them
-4. **Different gRPC versions** - v1.62.0, v1.68.0, v1.60.0, v1.58.0 all have issues
-
-#### ✅ Working Approach: Target Property Manipulation
-
-The working solution involves manipulating target properties after gRPC is configured:
-
-```cmake
-# In cmake/grpc.cmake (from working commit 6db7ba4782)
-if(APPLE AND CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
-  # List of Abseil targets with x86-specific flags
-  set(_absl_targets_with_x86_flags
-    absl_random_internal_randen_hwaes_impl
-    absl_random_internal_randen_hwaes
-    absl_crc_internal_cpu_detect
-  )
-
-  foreach(_absl_target IN LISTS _absl_targets_with_x86_flags)
-    if(TARGET ${_absl_target})
-      get_target_property(_absl_opts ${_absl_target} COMPILE_OPTIONS)
-      if(_absl_opts)
-        # Remove SSE flags: -maes, -msse4.1, -msse2, -Xarch_x86_64
-        list(FILTER _absl_opts EXCLUDE REGEX "^-m(aes|sse)")
-        list(FILTER _absl_opts EXCLUDE REGEX "^-Xarch_x86_64")
-        set_property(TARGET ${_absl_target} PROPERTY COMPILE_OPTIONS ${_absl_opts})
-      endif()
-    endif()
-  endforeach()
-endif()
-```
-
-### Current Workaround
-
-**Option 1**: Use the bundled Abseil with target property manipulation (as above)
-
-**Option 2**: Disable gRPC for ARM64 development
-```cmake
-if(APPLE AND CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
-  set(YAZE_WITH_GRPC OFF CACHE BOOL "" FORCE)
-  message(STATUS "ARM64: Disabling gRPC due to build issues")
-endif()
-```
-
-**Option 3**: Use pre-built vcpkg packages (Windows-style approach for macOS)
 ```bash
 brew install grpc protobuf abseil
-# Then use find_package instead of FetchContent
+cmake --preset mac-ai-fast
 ```
 
-### Environment Configuration
+You can also force it in any preset with `-DYAZE_PREFER_SYSTEM_GRPC=ON`.
 
-**Homebrew LLVM Configuration**:
-- **Toolchain**: `cmake/llvm-brew.toolchain.cmake`
-- **SDK**: `/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk`
-- **C++ Standard Library**: Homebrew's libc++ (not system libstdc++)
+### If You Must Build gRPC From Source
 
-### Build Commands for Testing
+When building gRPC/Abseil from source on ARM64, x86-only SSE flags can still surface. If you see errors like:
+
+```
+clang++: error: unsupported option '-msse4.1' for target 'arm64-apple-darwin...'
+```
+
+switch to system gRPC (`YAZE_PREFER_SYSTEM_GRPC=ON`) or disable gRPC for that build:
 
 ```bash
-# Clean build
-rm -rf build/_deps/grpc-build
-
-# Test configuration
-cmake --preset mac-dbg
-
-# Test build
-cmake --build --preset mac-dbg --target protoc
+cmake --preset mac-dbg -DYAZE_ENABLE_GRPC=OFF
 ```
 
-### Success Criteria
+### Toolchain Consistency (AppleClang vs Homebrew LLVM)
 
-The build succeeds when:
+If Homebrew LLVM is on your PATH, SDK headers can be picked up in the wrong order and cause missing type errors. Either:
+
 ```bash
-cmake --build --preset mac-dbg --target protoc
-# Returns exit code 0 (no SSE flag errors)
+# Force AppleClang
+cmake --preset mac-dbg --fresh -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++
+
+# Or use the Homebrew LLVM toolchain file
+cmake --preset mac-dbg --fresh -DCMAKE_TOOLCHAIN_FILE=cmake/llvm-brew.toolchain.cmake
 ```
-
-### Files to Monitor
-
-**Critical Files**:
-- `cmake/grpc.cmake` - Main gRPC configuration
-- `build/_deps/grpc-build/third_party/abseil-cpp/` - Abseil build output
-- `build/_deps/grpc-build/third_party/abseil-cpp/absl/random/CMakeFiles/` - Random target build files
-
-**Log Files**:
-- CMake configuration output (look for Abseil configuration messages)
-- Build output (look for compiler flag errors)
-- `build/_deps/grpc-build/CMakeCache.txt` - Check if ARM64 flags are set
-
-### Additional Resources
-
-- **gRPC ARM64 Issues**: https://github.com/grpc/grpc/issues (search for ARM64, macOS, Abseil)
-- **Abseil Random Documentation**: https://abseil.io/docs/cpp/guides/random
-- **CMake FetchContent**: https://cmake.org/cmake/help/latest/module/FetchContent.html
 
 ---
 
@@ -279,6 +196,18 @@ codesign --force --deep --sign - build/bin/yaze.app
 ```bash
 sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
 ```
+
+---
+
+## Disk Usage and Build Directory Bloat
+
+If the repository grows unexpectedly large, check for extra build directories in the repo root. The supported in-repo directories are `build/` and `build-wasm/`. Move any additional builds to an external path via `CMakeUserPresets.json` or `YAZE_BUILD_DIR`, then delete the old folders:
+
+```bash
+rm -rf build_agent build_agent_llvm build_agent_ninja build_gemini
+```
+
+Keeping CPM/vcpkg caches in `~/.cache` or `~/.cpm-cache` prevents re-downloading after cleanups.
 
 ---
 

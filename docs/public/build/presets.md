@@ -49,45 +49,82 @@ cmake --build --preset win-arm
 
 ### macOS Presets
 
-| Preset | Description | Arch | Warnings | Features |
-|--------|-------------|------|----------|----------|
-| `mac-dbg` | Debug build | ARM64 | Off | Basic |
-| `mac-dbg-v` | Debug verbose | ARM64 | On | Basic |
-| `mac-rel` | Release | ARM64 | Off | Basic |
-| `mac-x64` | Debug x86_64 | x86_64 | Off | Basic |
-| `mac-uni` | Universal binary | Both | Off | Basic |
-| `mac-dev` | Development | ARM64 | Off | ROM tests |
-| `mac-ai` | AI development | ARM64 | Off | z3ed, JSON, gRPC, ROM tests |
-| `mac-z3ed` | z3ed CLI | ARM64 | Off | AI agent support |
-| `mac-rooms` | Dungeon editor | ARM64 | Off | Minimal build for room editing |
+| Preset | Description | Arch | Warnings | Notes |
+|--------|-------------|------|----------|-------|
+| `mac-dbg` | Debug build | Host | Off | Tests enabled |
+| `mac-dbg-v` | Debug build (verbose) | Host | On | Extra warnings |
+| `mac-rel` | Release build | Host | Off | LTO enabled |
+| `mac-dev` | Development build | Host | Off | ROM tests enabled |
+| `mac-ai` | AI + gRPC dev | Host | Off | Agent UI + automation |
+| `mac-ai-fast` | AI dev (system gRPC) | Host | Off | `brew install grpc protobuf abseil` |
+| `mac-uni` | Universal binary | arm64 + x86_64 | Off | Release packaging |
+| `mac-sdl3` | SDL3 build | Host | Off | Experimental |
+| `mac-test` | Fast test build | Host | Off | RelWithDebInfo |
 
 ### Windows Presets
 
-| Preset | Description | Arch | Warnings | Features |
-|--------|-------------|------|----------|----------|
-| `win-dbg` | Debug build | x64 | Off | Basic |
-| `win-dbg-v` | Debug verbose | x64 | On | Basic |
-| `win-rel` | Release | x64 | Off | Basic |
-| `win-arm` | Debug ARM64 | ARM64 | Off | Basic |
-| `win-arm-rel` | Release ARM64 | ARM64 | Off | Basic |
-| `win-dev` | Development | x64 | Off | ROM tests |
-| `win-ai` | AI development | x64 | Off | z3ed, JSON, gRPC, ROM tests |
-| `win-z3ed` | z3ed CLI | x64 | Off | AI agent support |
+| Preset | Description | Arch | Generator | Notes |
+|--------|-------------|------|-----------|-------|
+| `win-dbg` | Debug build | x64 | Ninja | Tests enabled |
+| `win-dbg-v` | Debug build (verbose) | x64 | Ninja | Extra warnings |
+| `win-rel` | Release build | x64 | Ninja | LTO enabled |
+| `win-dev` | Development build | x64 | Ninja | ROM tests enabled |
+| `win-ai` | AI + gRPC dev | x64 | Ninja | Agent UI + automation |
+| `win-z3ed` | z3ed CLI | x64 | Ninja | CLI stack only |
+| `win-arm` | Debug ARM64 | ARM64 | Ninja | |
+| `win-arm-rel` | Release ARM64 | ARM64 | Ninja | |
+| `win-vs-dbg` | Debug build | x64 | Visual Studio | |
+| `win-vs-rel` | Release build | x64 | Visual Studio | |
+| `win-vs-ai` | AI + gRPC dev | x64 | Visual Studio | |
+| `win-sdl3` | SDL3 build | x64 | Ninja | Experimental |
+| `win-test` | Fast test build | x64 | Ninja | RelWithDebInfo |
 
 ### Linux Presets
 
-| Preset | Description | Compiler | Warnings |
-|--------|-------------|----------|----------|
-| `lin-dbg` | Debug | GCC | Off |
-| `lin-clang` | Debug | Clang | Off |
+| Preset | Description | Compiler | Notes |
+|--------|-------------|----------|-------|
+| `lin-dbg` | Debug build | GCC/Clang | Tests enabled |
+| `lin-dbg-v` | Debug build (verbose) | GCC/Clang | Extra warnings |
+| `lin-rel` | Release build | GCC/Clang | LTO enabled |
+| `lin-dev` | Development build | GCC/Clang | ROM tests enabled |
+| `lin-ai` | AI + gRPC dev | GCC/Clang | Agent UI + automation |
+| `lin-sdl3` | SDL3 build | GCC/Clang | Experimental |
+| `lin-test` | Fast test build | GCC/Clang | RelWithDebInfo |
 
-### Special Purpose
+### CI Presets
 
 | Preset | Description |
 |--------|-------------|
-| `ci` | Continuous integration (no ROM tests) |
-| `asan` | AddressSanitizer build |
-| `coverage` | Code coverage build |
+| `ci-linux` | Linux CI build |
+| `ci-macos` | macOS CI build |
+| `ci-windows` | Windows CI build |
+| `ci-windows-ai` | Windows AI/automation CI build |
+
+### WASM Presets
+
+| Preset | Description |
+|--------|-------------|
+| `wasm-debug` | WebAssembly debug build |
+| `wasm-release` | WebAssembly release build |
+| `wasm-crash-repro` | Minimal repro build |
+| `wasm-ai` | WebAssembly AI build |
+
+### Test Presets
+
+Run with `ctest --preset <name>`.
+
+| Preset | Description |
+|--------|-------------|
+| `all` | All tests (including ROM-dependent) |
+| `stable` | Stable tests only |
+| `unit` | Unit tests only |
+| `integration` | Integration tests only |
+| `fast` | macOS fast test preset |
+| `fast-win` | Windows fast test preset |
+| `fast-lin` | Linux fast test preset |
+| `stable-ai` | Stable tests against `ci-windows-ai` |
+| `unit-ai` | Unit tests against `ci-windows-ai` |
+| `integration-ai` | Integration tests against `ci-windows-ai` |
 
 ## Warning Control
 
@@ -104,9 +141,9 @@ By default, all presets suppress compiler warnings with `-w` for a cleaner build
 ## Architecture Support
 
 ### macOS
-- **ARM64 (Apple Silicon)**: `mac-dbg`, `mac-rel`, `mac-ai`, etc.
-- **x86_64 (Intel)**: `mac-x64`
-- **Universal Binary**: `mac-uni` (both ARM64 + x86_64)
+- **Apple Silicon (arm64)**: `mac-dbg`, `mac-rel`, `mac-ai`, `mac-dev`, etc.
+- **Intel (x86_64)**: Use the same `mac-*` presets (they target the host arch).
+- **Universal Binary**: `mac-uni` (arm64 + x86_64)
 
 ### Windows
 - **x64**: `win-dbg`, `win-rel`, `win-ai`, etc.
@@ -114,7 +151,19 @@ By default, all presets suppress compiler warnings with `-w` for a cleaner build
 
 ## Build Directories
 
-Most presets use `build/`. WASM presets use `build-wasm/`. Use `CMakeUserPresets.json` for custom directories.
+Most presets use `build/`. WASM presets use `build-wasm/`. Keep only these two build directories in the repo to avoid bloat. For isolated agent builds, point `binaryDir` to a path outside the repo via `CMakeUserPresets.json`.
+
+### Shared Dependency Caches
+
+To avoid re-downloading dependencies after cleaning build dirs, set shared caches via `CMakeUserPresets.json` (see `CMakeUserPresets.json.example`) or environment variables:
+
+```bash
+export CPM_SOURCE_CACHE="$HOME/.cpm-cache"
+export VCPKG_DOWNLOADS="$HOME/.cache/vcpkg/downloads"
+export VCPKG_BINARY_SOURCES="clear;files,$HOME/.cache/vcpkg/bincache,readwrite"
+```
+
+For scripts and the agent build tool, you can also set `YAZE_BUILD_DIR` to an external path (e.g., `$HOME/.cache/yaze/build`) to keep the working tree clean.
 
 ## Feature Flags
 
@@ -123,28 +172,29 @@ Common CMake options you can override:
 ```bash
 # Enable/disable components
 -DYAZE_BUILD_TESTS=ON/OFF
--DYAZE_BUILD_Z3ED=ON/OFF
--DYAZE_BUILD_EMU=ON/OFF
--DYAZE_BUILD_APP=ON/OFF
+-DYAZE_BUILD_AGENT_UI=ON/OFF
 
 # AI features
--DZ3ED_AI=ON/OFF
--DYAZE_WITH_JSON=ON/OFF
--DYAZE_WITH_GRPC=ON/OFF
+-DYAZE_ENABLE_AI=ON/OFF
+-DYAZE_ENABLE_AI_RUNTIME=ON/OFF
+-DYAZE_ENABLE_GRPC=ON/OFF
+-DYAZE_PREFER_SYSTEM_GRPC=ON/OFF
+-DYAZE_ENABLE_JSON=ON/OFF
+-DYAZE_ENABLE_REMOTE_AUTOMATION=ON/OFF
 
 # Testing
 -DYAZE_ENABLE_ROM_TESTS=ON/OFF
--DYAZE_TEST_ROM_PATH=/path/to/zelda3.sfc
-
-# Build optimization
--DYAZE_MINIMAL_BUILD=ON/OFF
+-DYAZE_TEST_ROM_VANILLA_PATH=/path/to/alttp_vanilla.sfc
+-DYAZE_TEST_ROM_EXPANDED_PATH=/path/to/oos168.sfc
+-DYAZE_USE_SDL3=ON/OFF
+-DYAZE_ENABLE_LTO=ON/OFF
 ```
 
 ## Examples
 
 ### Development with AI features and verbose warnings
 ```bash
-cmake --preset mac-dbg-v -DZ3ED_AI=ON -DYAZE_WITH_GRPC=ON
+cmake --preset mac-dbg-v -DYAZE_ENABLE_AI=ON -DYAZE_ENABLE_GRPC=ON -DYAZE_BUILD_AGENT_UI=ON
 cmake --build --preset mac-dbg-v
 ```
 
@@ -157,7 +207,7 @@ cpack --preset mac-uni
 
 ### Quick minimal build for testing
 ```bash
-cmake --preset mac-dbg -DYAZE_MINIMAL_BUILD=ON
+cmake --preset mac-dbg -DYAZE_ENABLE_AI=OFF -DYAZE_ENABLE_GRPC=OFF -DYAZE_BUILD_AGENT_UI=OFF
 cmake --build --preset mac-dbg -j12
 ```
 
@@ -181,12 +231,10 @@ Old preset names have been simplified:
 | `macos-debug` | `mac-dbg` |
 | `macos-release` | `mac-rel` |
 | `macos-debug-universal` | `mac-uni` |
-| `macos-dungeon-dev` | `mac-rooms` |
 | `windows-debug` | `win-dbg` |
 | `windows-release` | `win-rel` |
 | `windows-arm64-debug` | `win-arm` |
 | `linux-debug` | `lin-dbg` |
-| `linux-clang` | `lin-clang` |
 
 ## Troubleshooting
 
@@ -201,5 +249,6 @@ Old preset names have been simplified:
 - Restart your IDE or LSP server
 
 ### Build fails with missing dependencies
-- Ensure submodules are initialized: `git submodule update --init --recursive`
+- Re-run configure to fetch CPM dependencies: `cmake --preset <your-preset>`
+- If offline, set `CPM_SOURCE_CACHE` to a populated cache directory
 - For AI features, make sure you have OpenSSL: `brew install openssl` (macOS)
