@@ -77,12 +77,28 @@ Bitmap::Bitmap(const Bitmap& other)
       SDL_LockSurface(surface_);
       memcpy(surface_->pixels, pixel_data_, data_.size());
       SDL_UnlockSurface(surface_);
+
+      // Apply the copied palette to the new SDL surface
+      if (!palette_.empty()) {
+        ApplyStoredPalette();
+      }
     }
   }
 }
 
 Bitmap& Bitmap::operator=(const Bitmap& other) {
   if (this != &other) {
+    // CRITICAL: Release old resources before replacing to prevent leaks
+    // Queue texture destruction if we have one
+    if (texture_) {
+      Arena::Get().QueueTextureCommand(Arena::TextureCommandType::DESTROY, this);
+    }
+    // Free old surface through Arena
+    if (surface_) {
+      Arena::Get().FreeSurface(surface_);
+      surface_ = nullptr;
+    }
+
     width_ = other.width_;
     height_ = other.height_;
     depth_ = other.depth_;
@@ -90,6 +106,8 @@ Bitmap& Bitmap::operator=(const Bitmap& other) {
     modified_ = other.modified_;
     palette_ = other.palette_;
     data_ = other.data_;
+    // Assign new generation since this is effectively a new bitmap
+    generation_ = next_generation_++;
 
     // Copy the data and recreate surface/texture
     pixel_data_ = data_.data();
@@ -100,8 +118,14 @@ Bitmap& Bitmap::operator=(const Bitmap& other) {
         SDL_LockSurface(surface_);
         memcpy(surface_->pixels, pixel_data_, data_.size());
         SDL_UnlockSurface(surface_);
+
+        // Apply the copied palette to the new SDL surface
+        if (!palette_.empty()) {
+          ApplyStoredPalette();
+        }
       }
     }
+    texture_ = nullptr;  // Will be recreated on demand
   }
   return *this;
 }
@@ -112,6 +136,7 @@ Bitmap::Bitmap(Bitmap&& other) noexcept
       depth_(other.depth_),
       active_(other.active_),
       modified_(other.modified_),
+      generation_(other.generation_),
       texture_pixels(other.texture_pixels),
       pixel_data_(other.pixel_data_),
       palette_(std::move(other.palette_)),
@@ -124,6 +149,7 @@ Bitmap::Bitmap(Bitmap&& other) noexcept
   other.depth_ = 0;
   other.active_ = false;
   other.modified_ = false;
+  other.generation_ = 0;
   other.texture_pixels = nullptr;
   other.pixel_data_ = nullptr;
   other.surface_ = nullptr;
@@ -132,11 +158,22 @@ Bitmap::Bitmap(Bitmap&& other) noexcept
 
 Bitmap& Bitmap::operator=(Bitmap&& other) noexcept {
   if (this != &other) {
+    // CRITICAL: Release old resources before taking ownership of new ones
+    // Note: We can't queue texture destruction in noexcept move, so we rely on
+    // the Arena's deferred command system to handle stale textures via generation
+    // checking. The old texture will be orphaned but won't cause crashes.
+    // For proper cleanup, prefer copy assignment when explicit resource release
+    // is needed.
+    if (surface_) {
+      Arena::Get().FreeSurface(surface_);
+    }
+
     width_ = other.width_;
     height_ = other.height_;
     depth_ = other.depth_;
     active_ = other.active_;
     modified_ = other.modified_;
+    generation_ = other.generation_;  // Preserve generation from source
     texture_pixels = other.texture_pixels;
     pixel_data_ = other.pixel_data_;
     palette_ = std::move(other.palette_);
@@ -150,6 +187,7 @@ Bitmap& Bitmap::operator=(Bitmap&& other) noexcept {
     other.depth_ = 0;
     other.active_ = false;
     other.modified_ = false;
+    other.generation_ = 0;
     other.texture_pixels = nullptr;
     other.pixel_data_ = nullptr;
     other.surface_ = nullptr;
@@ -190,6 +228,8 @@ void Bitmap::Create(int width, int height, int depth, int format,
     return;
   }
   active_ = true;
+  // Assign new generation for staleness detection in deferred texture commands
+  generation_ = next_generation_++;
   width_ = width;
   height_ = height;
   depth_ = depth;
@@ -209,12 +249,19 @@ void Bitmap::Create(int width, int height, int depth, int format,
     return;
   }
 
+  // Ensure indexed surfaces have a proper 256-color palette
+  // This fixes issues where SDL3 creates surfaces with smaller default palettes
+  if (format == static_cast<int>(BitmapFormat::kIndexed)) {
+    platform::EnsureSurfacePalette256(surface_);
+  }
+
   // CRITICAL FIX: Use proper SDL surface operations instead of direct pointer
   // assignment Direct assignment breaks SDL's memory management and causes
   // malloc errors on shutdown
   if (surface_ && data_.size() > 0) {
     SDL_LockSurface(surface_);
-    memcpy(surface_->pixels, pixel_data_, data_.size());
+    size_t copy_size = std::min(data_.size(), static_cast<size_t>(surface_->pitch * surface_->h));
+    memcpy(surface_->pixels, pixel_data_, copy_size);
     SDL_UnlockSurface(surface_);
   }
   active_ = true;
@@ -233,7 +280,8 @@ void Bitmap::Reformat(int format) {
   // assignment
   if (surface_ && data_.size() > 0) {
     SDL_LockSurface(surface_);
-    memcpy(surface_->pixels, pixel_data_, data_.size());
+    size_t copy_size = std::min(data_.size(), static_cast<size_t>(surface_->pitch * surface_->h));
+    memcpy(surface_->pixels, pixel_data_, copy_size);
     SDL_UnlockSurface(surface_);
   }
   active_ = true;
@@ -265,21 +313,15 @@ void Bitmap::UpdateTexture() {
  * - We cast these directly to Uint8 for SDL
  */
 void Bitmap::ApplyStoredPalette() {
-  if (surface_ == nullptr) {
-    return;  // Can't apply without surface
-  }
-  if (surface_->format == nullptr) {
-    return;  // Invalid surface format
-  }
-  if (palette_.empty()) {
-    return;  // No palette to apply
+  if (!surface_ || palette_.empty()) {
+    return;  // Can't apply without surface or palette
   }
 
   // Invalidate palette cache when palette changes
   InvalidatePaletteCache();
 
   // For indexed surfaces, ensure palette exists
-  SDL_Palette* sdl_palette = surface_->format->palette;
+  SDL_Palette* sdl_palette = platform::GetSurfacePalette(surface_);
   if (sdl_palette == nullptr) {
     // Non-indexed surface or palette not created - can't apply palette
     SDL_Log("Warning: Bitmap surface has no palette (non-indexed format?)\n");
@@ -314,6 +356,10 @@ void Bitmap::ApplyStoredPalette() {
   // This prevents breaking systems that use small palettes (8-16 colors)
   SDL_SetPaletteColors(sdl_palette, colors.data(), 0,
                        static_cast<int>(palette_.size()));
+
+  // CRITICAL FIX: Enable blending so SDL respects the alpha channel in the palette
+  // Without this, indexed surfaces may ignore transparency
+  SDL_SetSurfaceBlendMode(surface_, SDL_BLENDMODE_BLEND);
 
   SDL_LockSurface(surface_);
 }
@@ -420,24 +466,26 @@ void Bitmap::SetPaletteWithTransparent(const SnesPalette& palette, size_t index,
     throw std::invalid_argument("Invalid palette index");
   }
 
-  if (length < 0 || length > 7) {
+  if (length < 0 || length > 15) {
     throw std::invalid_argument(
-        "Invalid palette length (must be 0-7 for SNES palettes)");
+        "Invalid palette length (must be 0-15 for SNES palettes)");
   }
 
   if (index + length > palette.size()) {
     throw std::invalid_argument("Palette index + length exceeds size");
   }
 
-  // Build 8-color SNES sub-palette
+  // Build SNES sub-palette (up to 16 colors: transparent + length entries)
   std::vector<ImVec4> colors;
 
   // Color 0: Transparent (SNES hardware requirement)
   colors.push_back(ImVec4(0, 0, 0, 0));  // Transparent black
 
-  // Colors 1-7: Extract from source palette
+  // Colors 1-15: Extract from source palette
   // NOTE: palette[i].rgb() returns 0-255 values in ImVec4 (unconventional!)
-  for (size_t i = 0; i < 7 && (index + i) < palette.size(); ++i) {
+  for (size_t i = 0; i < static_cast<size_t>(length) &&
+                     (index + i) < palette.size();
+       ++i) {
     const auto& pal_color = palette[index + i];
     ImVec4 rgb_255 = pal_color.rgb();  // 0-255 range (unconventional storage)
 
@@ -446,41 +494,85 @@ void Bitmap::SetPaletteWithTransparent(const SnesPalette& palette, size_t index,
                             rgb_255.z / 255.0f, 1.0f));  // Always opaque
   }
 
-  // Ensure we have exactly 8 colors
-  while (colors.size() < 8) {
+  // Ensure we have exactly 1 + length colors (transparent + requested entries)
+  while (colors.size() < static_cast<size_t>(length + 1)) {
     colors.push_back(ImVec4(0, 0, 0, 1.0f));  // Fill with opaque black
   }
 
   // Update palette cache with full palette (for color lookup)
   InvalidatePaletteCache();
 
-  // Apply the 8-color SNES sub-palette to SDL surface
+  // Apply the SNES sub-palette to SDL surface (supports 3bpp=8 and 4bpp=16)
   SDL_UnlockSurface(surface_);
-  for (int color_index = 0;
-       color_index < 8 && color_index < static_cast<int>(colors.size());
-       ++color_index) {
-    if (color_index < surface_->format->palette->ncolors) {
-      surface_->format->palette->colors[color_index].r =
+  SDL_Palette* sdl_palette = platform::GetSurfacePalette(surface_);
+  if (!sdl_palette) {
+    SDL_Log("Warning: Bitmap surface has no palette (non-indexed format?)\n");
+    SDL_LockSurface(surface_);
+    return;
+  }
+  const int num_colors = static_cast<int>(colors.size());
+  for (int color_index = 0; color_index < num_colors; ++color_index) {
+    if (color_index < sdl_palette->ncolors) {
+      sdl_palette->colors[color_index].r =
           static_cast<Uint8>(colors[color_index].x * 255.0f);
-      surface_->format->palette->colors[color_index].g =
+      sdl_palette->colors[color_index].g =
           static_cast<Uint8>(colors[color_index].y * 255.0f);
-      surface_->format->palette->colors[color_index].b =
+      sdl_palette->colors[color_index].b =
           static_cast<Uint8>(colors[color_index].z * 255.0f);
-      surface_->format->palette->colors[color_index].a =
+      sdl_palette->colors[color_index].a =
           static_cast<Uint8>(colors[color_index].w * 255.0f);
     }
   }
   SDL_LockSurface(surface_);
+
+  // CRITICAL FIX: Enable RLE acceleration and set color key for transparency
+  // SDL ignores palette alpha for INDEX8 unless color key is set or blending is enabled
+  SDL_SetColorKey(surface_, SDL_TRUE, 0);
+  SDL_SetSurfaceBlendMode(surface_, SDL_BLENDMODE_BLEND);
 }
 
 void Bitmap::SetPalette(const std::vector<SDL_Color>& palette) {
-  SDL_UnlockSurface(surface_);
-  for (size_t i = 0; i < palette.size(); ++i) {
-    surface_->format->palette->colors[i].r = palette[i].r;
-    surface_->format->palette->colors[i].g = palette[i].g;
-    surface_->format->palette->colors[i].b = palette[i].b;
-    surface_->format->palette->colors[i].a = palette[i].a;
+  // CRITICAL: Validate surface and palette before accessing
+  if (!surface_) {
+    return;
   }
+
+  // Ensure surface has a proper 256-color palette before setting colors
+  // This fixes issues where SDL creates surfaces with smaller default palettes
+  platform::EnsureSurfacePalette256(surface_);
+
+  SDL_Palette* sdl_palette = platform::GetSurfacePalette(surface_);
+  if (!sdl_palette) {
+    SDL_Log("Warning: SetPalette - surface has no palette!");
+    return;
+  }
+  
+  int max_colors = sdl_palette->ncolors;
+  int colors_to_set = static_cast<int>(palette.size());
+  
+  // Debug: Check if palette capacity is sufficient (should be 256 after EnsureSurfacePalette256)
+  if (max_colors < colors_to_set) {
+    SDL_Log("Warning: SetPalette - SDL palette has %d colors, trying to set %d. "
+            "Colors above %d may not display correctly.",
+            max_colors, colors_to_set, max_colors);
+    colors_to_set = max_colors;  // Clamp to available space
+  }
+
+  SDL_UnlockSurface(surface_);
+  
+  // Use SDL_SetPaletteColors for proper palette setting
+  // This is more reliable than direct array access
+  if (SDL_SetPaletteColors(sdl_palette, palette.data(), 0, colors_to_set) != 0) {
+    SDL_Log("Warning: SDL_SetPaletteColors failed: %s", SDL_GetError());
+    // Fall back to manual setting
+    for (int i = 0; i < colors_to_set; ++i) {
+      sdl_palette->colors[i].r = palette[i].r;
+      sdl_palette->colors[i].g = palette[i].g;
+      sdl_palette->colors[i].b = palette[i].b;
+      sdl_palette->colors[i].a = palette[i].a;
+    }
+  }
+  
   SDL_LockSurface(surface_);
 }
 
@@ -547,7 +639,7 @@ void Bitmap::WriteColor(int position, const ImVec4& color) {
   }
 
   // Safety check: ensure surface exists and is valid
-  if (!surface_ || !surface_->pixels || !surface_->format) {
+  if (!surface_ || !surface_->pixels) {
     return;
   }
 
@@ -559,8 +651,8 @@ void Bitmap::WriteColor(int position, const ImVec4& color) {
   sdl_color.a = static_cast<Uint8>(color.w * 255);
 
   // Map SDL_Color to the nearest color index in the surface's palette
-  Uint8 index =
-      SDL_MapRGB(surface_->format, sdl_color.r, sdl_color.g, sdl_color.b);
+  Uint8 index = static_cast<Uint8>(
+      platform::MapRGB(surface_, sdl_color.r, sdl_color.g, sdl_color.b));
 
   // CRITICAL FIX: Update both data_ and surface_ properly
   if (pixel_data_ == nullptr) {

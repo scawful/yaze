@@ -14,10 +14,10 @@ namespace yaze {
 namespace gui {
 
 /**
- * @struct EnhancedTheme
+ * @struct Theme
  * @brief Comprehensive theme structure for YAZE
  */
-struct EnhancedTheme {
+struct Theme {
   std::string name;
   std::string description;
   std::string author;
@@ -142,6 +142,56 @@ struct EnhancedTheme {
   Color item_color;
   Color sprite_color;
 
+  // Nested struct for dungeon editor colors
+  struct DungeonColors {
+    Color selection_primary;       // Yellow selection
+    Color selection_secondary;     // Cyan selection
+    Color selection_pulsing;       // Animated pulse
+    Color selection_handle;        // Corner handles
+    Color drag_preview;            // Semi-transparent drag
+    Color drag_preview_outline;    // Drag preview outline
+    Color object_wall;
+    Color object_floor;
+    Color object_chest;            // Gold
+    Color object_door;
+    Color object_pot;
+    Color object_stairs;
+    Color object_decoration;
+    Color object_default;
+    Color grid_cell_highlight;
+    Color grid_cell_selected;
+    Color grid_cell_border;
+    Color grid_text;
+    Color room_border;
+    Color room_border_dark;
+    Color sprite_layer0;           // Green
+    Color sprite_layer1;           // Blue
+    Color sprite_layer2;
+    Color outline_layer0;          // Red
+    Color outline_layer1;          // Green
+    Color outline_layer2;          // Blue
+  } dungeon;
+
+  // Nested struct for chat/agent colors
+  struct ChatColors {
+    Color user_message;
+    Color agent_message;
+    Color system_message;
+    Color json_text;
+    Color command_text;
+    Color code_background;
+    Color provider_ollama;
+    Color provider_gemini;
+    Color provider_mock;
+    Color provider_openai;
+    Color proposal_panel_bg;
+    Color proposal_accent;
+    Color button_copy;
+    Color button_copy_hover;
+    Color gradient_top;
+    Color gradient_bottom;
+  } chat;
+
   // Style parameters
   float window_rounding = 0.0f;
   float frame_rounding = 5.0f;
@@ -184,10 +234,10 @@ class ThemeManager {
 
   // Theme management
   absl::Status LoadTheme(const std::string& theme_name);
-  absl::Status SaveTheme(const EnhancedTheme& theme,
+  absl::Status SaveTheme(const Theme& theme,
                          const std::string& filename);
   absl::Status LoadThemeFromFile(const std::string& filepath);
-  absl::Status SaveThemeToFile(const EnhancedTheme& theme,
+  absl::Status SaveThemeToFile(const Theme& theme,
                                const std::string& filepath) const;
 
   // Dynamic theme discovery - replaces hardcoded theme lists with automatic
@@ -200,17 +250,17 @@ class ThemeManager {
   // Built-in themes
   void InitializeBuiltInThemes();
   std::vector<std::string> GetAvailableThemes() const;
-  const EnhancedTheme* GetTheme(const std::string& name) const;
-  const EnhancedTheme& GetCurrentTheme() const { return current_theme_; }
+  const Theme* GetTheme(const std::string& name) const;
+  const Theme& GetCurrentTheme() const { return current_theme_; }
   const std::string& GetCurrentThemeName() const { return current_theme_name_; }
 
   // Theme application
   void ApplyTheme(const std::string& theme_name);
-  void ApplyTheme(const EnhancedTheme& theme);
+  void ApplyTheme(const Theme& theme);
   void ApplyClassicYazeTheme();  // Apply original ColorsYaze() function
 
   // Theme creation and editing
-  EnhancedTheme CreateCustomTheme(const std::string& name);
+  Theme CreateCustomTheme(const std::string& name);
   void ShowThemeEditor(bool* p_open);
   void ShowThemeSelector(bool* p_open);
   void ShowSimpleThemeEditor(bool* p_open);
@@ -219,6 +269,9 @@ class ThemeManager {
   Color GetWelcomeScreenBackground() const;
   Color GetWelcomeScreenBorder() const;
   Color GetWelcomeScreenAccent() const;
+
+  // Export current theme as JSON string for Web/WASM sync
+  std::string ExportCurrentThemeJson() const;
 
   // Convenient theme color access interface
   Color GetThemeColor(const std::string& color_name) const;
@@ -247,14 +300,14 @@ class ThemeManager {
  private:
   ThemeManager() { InitializeBuiltInThemes(); }
 
-  std::map<std::string, EnhancedTheme> themes_;
-  EnhancedTheme current_theme_;
+  std::map<std::string, Theme> themes_;
+  Theme current_theme_;
   std::string current_theme_name_ = "Classic YAZE";
 
   void CreateFallbackYazeClassic();
-  absl::Status ParseThemeFile(const std::string& content, EnhancedTheme& theme);
+  absl::Status ParseThemeFile(const std::string& content, Theme& theme);
   Color ParseColorFromString(const std::string& color_str) const;
-  std::string SerializeTheme(const EnhancedTheme& theme) const;
+  std::string SerializeTheme(const Theme& theme) const;
 
   // Helper methods for path resolution
   std::vector<std::string> GetThemeSearchPaths() const;

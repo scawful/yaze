@@ -1,7 +1,7 @@
 #include "cli/service/agent/agent_pretraining.h"
 
 #include "absl/strings/str_format.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "zelda3/overworld/overworld.h"
 
 namespace yaze {

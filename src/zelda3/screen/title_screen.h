@@ -6,7 +6,8 @@
 #include "app/gfx/render/tilemap.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
-#include "app/rom.h"
+#include "rom/rom.h"
+#include "zelda3/game_data.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -26,8 +27,9 @@ class TitleScreen {
   /**
    * @brief Initialize and load title screen data from ROM
    * @param rom ROM instance to read data from
+   * @param game_data GameData instance for palette access
    */
-  absl::Status Create(Rom* rom);
+  absl::Status Create(Rom* rom, GameData* game_data = nullptr);
 
   // Accessors for layer data
   auto& bg1_buffer() { return tiles_bg1_buffer_; }
@@ -99,6 +101,7 @@ class TitleScreen {
 
   gfx::Tilemap tile16_blockset_;  // 16x16 tile blockset
   gfx::SnesPalette palette_;      // Title screen palette
+  GameData* game_data_ = nullptr; // GameData for palette access
 };
 
 }  // namespace zelda3

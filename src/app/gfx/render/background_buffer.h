@@ -28,12 +28,26 @@ class BackgroundBuffer {
   void DrawFloor(const std::vector<uint8_t>& rom_data, int tile_address,
                  int tile_address_floor, uint8_t floor_graphics);
 
+  // Ensure bitmap is initialized before accessing
+  // Call this before using bitmap() if the buffer was created standalone
+  void EnsureBitmapInitialized();
+
+  // Priority buffer methods for per-tile priority support
+  // SNES Mode 1 uses priority bits to control Z-ordering between layers
+  void ClearPriorityBuffer();
+  uint8_t GetPriorityAt(int x, int y) const;
+  void SetPriorityAt(int x, int y, uint8_t priority);
+  const std::vector<uint8_t>& priority_data() const { return priority_buffer_; }
+  std::vector<uint8_t>& mutable_priority_data() { return priority_buffer_; }
+
   // Accessors
   auto buffer() { return buffer_; }
   auto& bitmap() { return bitmap_; }
+  const gfx::Bitmap& bitmap() const { return bitmap_; }
 
  private:
   std::vector<uint16_t> buffer_;
+  std::vector<uint8_t> priority_buffer_;  // Per-pixel priority (0 or 1)
   gfx::Bitmap bitmap_;
   int width_;
   int height_;

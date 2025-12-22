@@ -13,7 +13,7 @@
 #include <cstdio>
 #include <vector>
 
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "util/hyrule_magic.h"
 #include "util/macro.h"
 

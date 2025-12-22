@@ -1,4 +1,8 @@
-# G5 - GUI Consistency and Card-Based Architecture Guide
+# G5 - GUI Consistency and Panel-Based Architecture Guide
+
+> Note: The project is migrating from **Card** terminology to **Panel**
+> (`PanelWindow`, `PanelManager`, `PanelDescriptor`). This guide still shows
+> legacy names; mentally substitute Panel for Card while Phase 2 lands.
 
 This guide establishes standards for GUI consistency across all yaze editors, focusing on the modern card-based architecture, theming system, and layout patterns.
 
@@ -11,13 +15,14 @@ This guide establishes standards for GUI consistency across all yaze editors, fo
 5. [GUI Library Architecture](#5-gui-library-architecture)
 6. [Themed Widget System](#6-themed-widget-system)
 7. [Begin/End Patterns](#7-beginend-patterns)
-8. [Currently Integrated Editors](#8-currently-integrated-editors)
-9. [Layout Helpers](#9-layout-helpers)
-10. [Workspace Management](#10-workspace-management)
-11. [Future Editor Improvements](#11-future-editor-improvements)
-12. [Migration Checklist](#12-migration-checklist)
-13. [Code Examples](#13-code-examples)
-14. [Common Pitfalls](#14-common-pitfalls)
+8. [Avoiding Duplicate Rendering](#8-avoiding-duplicate-rendering)
+9. [Currently Integrated Editors](#9-currently-integrated-editors)
+10. [Layout Helpers](#10-layout-helpers)
+11. [Workspace Management](#11-workspace-management)
+12. [Future Editor Improvements](#12-future-editor-improvements)
+13. [Migration Checklist](#13-migration-checklist)
+14. [Code Examples](#14-code-examples)
+15. [Common Pitfalls](#15-common-pitfalls)
 
 ## 1. Introduction
 
@@ -532,16 +537,42 @@ if (ImGui::BeginTable("##MyTable", 3, ImGuiTableFlags_Borders)) {
 }
 ```
 
-**Child Window Pattern:**
+**Child Window Pattern (CRITICAL):**
+
+⚠️ **This is the most commonly misused pattern.** Unlike tables, `EndChild()` must ALWAYS be called after `BeginChild()`, regardless of the return value.
+
 ```cpp
+// ✅ CORRECT: EndChild OUTSIDE the if block
 if (ImGui::BeginChild("##ScrollRegion", ImVec2(0, 200), true)) {
-  // Scrollable content
+  // Scrollable content - only drawn when visible
   for (int i = 0; i < 100; i++) {
     ImGui::Text("Item %d", i);
   }
 }
-ImGui::EndChild();
+ImGui::EndChild();  // ALWAYS called, even if BeginChild returned false
+
+// ❌ WRONG: EndChild INSIDE the if block - causes state corruption!
+if (ImGui::BeginChild("##ScrollRegion", ImVec2(0, 200), true)) {
+  for (int i = 0; i < 100; i++) {
+    ImGui::Text("Item %d", i);
+  }
+  ImGui::EndChild();  // BUG: Not called when BeginChild returns false!
+}
 ```
+
+**Why this matters:** When `BeginChild()` returns false (child window is clipped or not visible), ImGui still expects `EndChild()` to be called to properly clean up internal state. Failing to call it corrupts ImGui's window stack, which can cause seemingly unrelated errors like table assertions or missing UI elements.
+
+**Pattern Comparison:**
+
+| Function | Call End when Begin returns false? |
+|----------|-----------------------------------|
+| `BeginChild()` / `EndChild()` | ✅ **YES - ALWAYS** |
+| `Begin()` / `End()` (windows) | ✅ **YES - ALWAYS** |
+| `BeginTable()` / `EndTable()` | ❌ **NO - only if Begin returned true** |
+| `BeginTabBar()` / `EndTabBar()` | ❌ **NO - only if Begin returned true** |
+| `BeginTabItem()` / `EndTabItem()` | ❌ **NO - only if Begin returned true** |
+| `BeginPopup()` / `EndPopup()` | ❌ **NO - only if Begin returned true** |
+| `BeginMenu()` / `EndMenu()` | ❌ **NO - only if Begin returned true** |
 
 ### Toolset Begin/End
 
@@ -582,7 +613,169 @@ struct ScopedCard {
 };
 ```
 
-## 8. Currently Integrated Editors
+## 8. Avoiding Duplicate Rendering
+
+### Overview
+
+Duplicate rendering occurs when the same UI content is drawn multiple times per frame. This wastes GPU resources and can cause visual glitches, flickering, or assertion errors in ImGui.
+
+### Common Causes
+
+1. **Calling draw functions from multiple places**
+2. **Forgetting to check visibility flags**
+3. **Shared functions called by different cards**
+4. **Rendering in callbacks that fire every frame**
+
+### Pattern 1: Shared Draw Functions
+
+When multiple cards need similar content, don't call the same draw function from multiple places:
+
+```cpp
+// ❌ WRONG: DrawMetadata called twice when both cards are visible
+void DrawCardA() {
+  gui::EditorCard card("Card A", ICON_MD_A);
+  if (card.Begin()) {
+    DrawCanvas();
+    DrawMetadata();  // Called here...
+  }
+  card.End();
+}
+
+void DrawCardB() {
+  gui::EditorCard card("Card B", ICON_MD_B);
+  if (card.Begin()) {
+    DrawMetadata();  // ...AND here! Duplicate!
+    DrawCanvas();
+  }
+  card.End();
+}
+
+// ✅ CORRECT: Each card has its own content
+void DrawCardA() {
+  gui::EditorCard card("Card A", ICON_MD_A);
+  if (card.Begin()) {
+    DrawCanvas();
+    // Card A specific content only
+  }
+  card.End();
+}
+
+void DrawCardB() {
+  gui::EditorCard card("Card B", ICON_MD_B);
+  if (card.Begin()) {
+    DrawMetadata();  // Card B specific content only
+  }
+  card.End();
+}
+```
+
+### Pattern 2: Nested Function Calls
+
+Watch out for functions that call other functions with overlapping content:
+
+```cpp
+// ❌ WRONG: DrawSpriteCanvas calls DrawMetadata, then DrawCustomSprites
+// also calls DrawMetadata AND DrawSpriteCanvas
+void DrawSpriteCanvas() {
+  // ... canvas code ...
+  DrawAnimationFrames();
+  DrawCustomSpritesMetadata();  // BUG: This shouldn't be here!
+}
+
+void DrawCustomSprites() {
+  if (BeginTable(...)) {
+    TableNextColumn();
+    DrawCustomSpritesMetadata();  // First call
+    TableNextColumn();
+    DrawSpriteCanvas();           // Calls DrawCustomSpritesMetadata again!
+    EndTable();
+  }
+}
+
+// ✅ CORRECT: Each function has clear, non-overlapping responsibilities
+void DrawSpriteCanvas() {
+  // ... canvas code ...
+  DrawAnimationFrames();
+  // NO DrawCustomSpritesMetadata here!
+}
+
+void DrawCustomSprites() {
+  if (BeginTable(...)) {
+    TableNextColumn();
+    DrawCustomSpritesMetadata();  // Only place it's called
+    TableNextColumn();
+    DrawSpriteCanvas();           // Just draws the canvas
+    EndTable();
+  }
+}
+```
+
+### Pattern 3: Expensive Per-Frame Operations
+
+Don't call expensive rendering operations every frame unless necessary:
+
+```cpp
+// ❌ WRONG: RenderRoomGraphics called every frame when card is visible
+void DrawRoomGraphicsCard() {
+  if (graphics_card.Begin()) {
+    auto& room = rooms_[current_room_id_];
+    room.RenderRoomGraphics();  // Expensive! Called every frame!
+    DrawRoomGfxCanvas();
+  }
+  graphics_card.End();
+}
+
+// ✅ CORRECT: Only render when room data changes
+void DrawRoomGraphicsCard() {
+  if (graphics_card.Begin()) {
+    auto& room = rooms_[current_room_id_];
+    // RenderRoomGraphics is called in DrawRoomTab when room loads
+    // or when data changes - NOT every frame here
+    DrawRoomGfxCanvas();  // Just displays already-rendered data
+  }
+  graphics_card.End();
+}
+```
+
+### Pattern 4: Visibility Flag Checks
+
+Always check visibility before drawing:
+
+```cpp
+// ❌ WRONG: Card drawn without visibility check
+void Update() {
+  DrawMyCard();  // Always called!
+}
+
+// ✅ CORRECT: Check visibility first
+void Update() {
+  if (show_my_card_) {
+    DrawMyCard();
+  }
+}
+```
+
+### Debugging Duplicate Rendering
+
+1. **Add logging to draw functions:**
+   ```cpp
+   void DrawMyContent() {
+     LOG_DEBUG("UI", "DrawMyContent called");  // Count calls per frame
+     // ...
+   }
+   ```
+
+2. **Check for multiple card instances:**
+   ```cpp
+   // Search for multiple cards with similar names
+   grep -n "EditorCard.*MyCard" src/app/editor/
+   ```
+
+3. **Trace call hierarchy:**
+   - Use a debugger or add call stack logging
+   - Look for functions that call each other unexpectedly
+
+## 9. Currently Integrated Editors
 
 The card system is integrated across 11 of 13 editors:
 
@@ -604,7 +797,7 @@ The card system is integrated across 11 of 13 editors:
 - **SettingsEditor** - Monolithic settings window, low usage frequency
 - **AgentEditor** - Complex AI agent UI, under active development
 
-## 9. Layout Helpers
+## 10. Layout Helpers
 
 ### Overview
 
@@ -691,7 +884,7 @@ if (ImGui::BeginTable("##Grid", 2, ImGuiTableFlags_SizingStretchSame)) {
 }
 ```
 
-## 10. Workspace Management
+## 11. Workspace Management
 
 The workspace manager provides comprehensive window and layout operations:
 
@@ -712,7 +905,7 @@ workspace_manager_.ExecuteWorkspaceCommand(command_id);
 // Supports: w.s (show all), w.h (hide all), l.s (save layout), etc.
 ```
 
-## 11. Future Editor Improvements
+## 12. Future Editor Improvements
 
 This section outlines remaining improvements for editors not yet fully integrated.
 
@@ -734,7 +927,7 @@ This section outlines remaining improvements for editors not yet fully integrate
 2. Integrate with EditorCardManager
 3. Add keyboard shortcuts for common operations
 
-## 12. Migration Checklist
+## 13. Migration Checklist
 
 Use this checklist when converting an editor to the card-based architecture:
 
@@ -811,7 +1004,7 @@ Use this checklist when converting an editor to the card-based architecture:
 - [ ] Add example to this guide if pattern is novel
 - [ ] Update CLAUDE.md if editor behavior changed significantly
 
-## 13. Code Examples
+## 14. Code Examples
 
 ### Complete Editor Implementation
 
@@ -1093,7 +1286,7 @@ void MyEditor::DrawPropertiesCard() {
 }  // namespace yaze
 ```
 
-## 14. Common Pitfalls
+## 15. Common Pitfalls
 
 ### 1. Forgetting Bidirectional Visibility Sync
 
@@ -1195,6 +1388,113 @@ if (card.Begin()) {
   DrawContent();
 }
 card.End();  // ALWAYS called
+```
+
+### 5a. BeginChild/EndChild Mismatch (Most Common Bug!)
+
+**Problem:** `EndTable() call should only be done while in BeginTable() scope` assertion, or other strange ImGui crashes.
+
+**Cause:** `EndChild()` placed inside the if block instead of outside.
+
+**Why it's confusing:** Unlike `BeginTable()`, the `BeginChild()` function requires `EndChild()` to be called regardless of the return value. Many developers assume all Begin/End pairs work the same way.
+
+**Solution:**
+```cpp
+// ❌ WRONG - EndChild inside if block
+void DrawList() {
+  if (ImGui::BeginChild("##List", ImVec2(0, 0), true)) {
+    for (int i = 0; i < items.size(); i++) {
+      ImGui::Selectable(items[i].c_str());
+    }
+    ImGui::EndChild();  // BUG! Not called when BeginChild returns false!
+  }
+}
+
+// ✅ CORRECT - EndChild outside if block
+void DrawList() {
+  if (ImGui::BeginChild("##List", ImVec2(0, 0), true)) {
+    for (int i = 0; i < items.size(); i++) {
+      ImGui::Selectable(items[i].c_str());
+    }
+  }
+  ImGui::EndChild();  // ALWAYS called!
+}
+```
+
+**Files where this bug was found and fixed:**
+- `sprite_editor.cc` - `DrawSpriteCanvas()`, `DrawSpritesList()`
+- `dungeon_editor_v2.cc` - `DrawRoomsListCard()`, `DrawEntrancesListCard()`
+- `assembly_editor.cc` - `DrawCurrentFolder()`
+- `object_editor_card.cc` - `DrawTemplatesTab()`
+
+### 5b. Duplicate Rendering in Shared Functions
+
+**Problem:** UI elements appear twice, performance degradation, visual glitches.
+
+**Cause:** A draw function is called from multiple places, or a function calls another function that draws the same content.
+
+**Example of the bug:**
+```cpp
+// DrawSpriteCanvas was calling DrawCustomSpritesMetadata
+// DrawCustomSprites was also calling DrawCustomSpritesMetadata AND DrawSpriteCanvas
+// Result: DrawCustomSpritesMetadata rendered twice!
+
+void DrawSpriteCanvas() {
+  // ... canvas drawing ...
+  DrawAnimationFrames();
+  DrawCustomSpritesMetadata();  // ❌ BUG: Also called by DrawCustomSprites!
+}
+
+void DrawCustomSprites() {
+  TableNextColumn();
+  DrawCustomSpritesMetadata();  // First call
+  TableNextColumn();
+  DrawSpriteCanvas();           // ❌ Calls DrawCustomSpritesMetadata AGAIN!
+}
+```
+
+**Solution:** Each function should have clear, non-overlapping responsibilities:
+```cpp
+void DrawSpriteCanvas() {
+  // ... canvas drawing ...
+  DrawAnimationFrames();
+  // NO DrawCustomSpritesMetadata here - it belongs in DrawCustomSprites only
+}
+
+void DrawCustomSprites() {
+  TableNextColumn();
+  DrawCustomSpritesMetadata();  // Only place it's called
+  TableNextColumn();
+  DrawSpriteCanvas();           // Just draws canvas + animations
+}
+```
+
+### 5c. Expensive Operations Called Every Frame
+
+**Problem:** Low FPS, high CPU usage when certain cards are visible.
+
+**Cause:** Expensive operations like `RenderRoomGraphics()` called unconditionally every frame.
+
+**Solution:**
+```cpp
+// ❌ WRONG - Renders every frame
+void DrawRoomGraphicsCard() {
+  if (graphics_card.Begin()) {
+    room.RenderRoomGraphics();  // Expensive! Called 60x per second!
+    DrawCanvas();
+  }
+  graphics_card.End();
+}
+
+// ✅ CORRECT - Only render when needed
+void DrawRoomGraphicsCard() {
+  if (graphics_card.Begin()) {
+    // RenderRoomGraphics is called in DrawRoomTab when room loads,
+    // or when room data changes - NOT every frame
+    DrawCanvas();  // Just displays already-rendered data
+  }
+  graphics_card.End();
+}
 ```
 
 ### 6. Not Testing Minimize-to-Icon
@@ -1329,4 +1629,4 @@ For questions or suggestions about GUI consistency, please open an issue on GitH
 
 ---
 
-**Last Updated**: October 13, 2025
+**Last Updated**: November 26, 2025

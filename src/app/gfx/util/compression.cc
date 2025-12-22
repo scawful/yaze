@@ -1,12 +1,13 @@
 #include "compression.h"
 
+#include <climits>
 #include <iostream>
 #include <memory>
 #include <string>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "util/hyrule_magic.h"
 #include "util/macro.h"
 
@@ -171,8 +172,10 @@ std::vector<uint8_t> HyruleMagicCompress(uint8_t const* const src,
 }
 
 std::vector<uint8_t> HyruleMagicDecompress(uint8_t const* src, int* const size,
-                                           int const p_big_endian) {
+                                           int const p_big_endian,
+                                           size_t max_src_size) {
   unsigned char* b2 = (unsigned char*)malloc(1024);
+  const uint8_t* const src_start = src;
 
   int bd = 0, bs = 1024;
 
@@ -181,6 +184,14 @@ std::vector<uint8_t> HyruleMagicDecompress(uint8_t const* src, int* const size,
   unsigned short c, d;
 
   for (;;) {
+    // Bounds check: Ensure we can read at least one byte (command)
+    if (max_src_size != static_cast<size_t>(-1) &&
+        (size_t)(src - src_start) >= max_src_size) {
+      std::cerr << "HyruleMagicDecompress: Reached end of buffer unexpectedly."
+                << std::endl;
+      break;
+    }
+
     // retrieve a uint8_t from the buffer.
     a = *(src++);
 
@@ -198,6 +209,15 @@ std::vector<uint8_t> HyruleMagicDecompress(uint8_t const* src, int* const size,
 
       // get bits 0b 0000 0011, multiply by 256, OR with the next byte.
       c = ((a & 0x0003) << 8);
+
+      // Bounds check: Ensure we can read the next byte
+      if (max_src_size != static_cast<size_t>(-1) &&
+          (size_t)(src - src_start) >= max_src_size) {
+        std::cerr
+            << "HyruleMagicDecompress: Reached end of buffer reading extended len"
+            << std::endl;
+        break;
+      }
       c |= *(src++);
     } else
       // or get bits 0b 0001 1111
@@ -208,7 +228,18 @@ std::vector<uint8_t> HyruleMagicDecompress(uint8_t const* src, int* const size,
     if ((bd + c) > (bs - 512)) {
       // need to increase the buffer size.
       bs += 1024;
-      b2 = (uint8_t*)realloc(b2, bs);
+      // Safety check for excessive allocation
+      if (bs > 1024 * 1024 * 16) { // 16MB limit
+          std::cerr << "HyruleMagicDecompress: Excessive allocation detected." << std::endl;
+          free(b2);
+          return std::vector<uint8_t>();
+      }
+      unsigned char* new_b2 = (unsigned char*)realloc(b2, bs);
+      if (!new_b2) {
+          free(b2);
+          return std::vector<uint8_t>();
+      }
+      b2 = new_b2;
     }
 
     // 7 was handled, here we handle other decompression codes.
@@ -217,6 +248,14 @@ std::vector<uint8_t> HyruleMagicDecompress(uint8_t const* src, int* const size,
       case 0:  // 0b 000
 
         // raw copy
+
+        // Bounds check: Ensure we can read c bytes
+        if (max_src_size != static_cast<size_t>(-1) &&
+            (size_t)(src - src_start + c) > max_src_size) {
+          std::cerr << "HyruleMagicDecompress: Raw copy exceeds buffer."
+                    << std::endl;
+          goto end_decompression;
+        }
 
         // copy info from the src buffer to our new buffer,
         // at offset bd (which we'll be increasing;
@@ -233,6 +272,14 @@ std::vector<uint8_t> HyruleMagicDecompress(uint8_t const* src, int* const size,
 
         // rle copy
 
+        // Bounds check: Ensure we can read 1 byte
+        if (max_src_size != static_cast<size_t>(-1) &&
+            (size_t)(src - src_start) >= max_src_size) {
+          std::cerr << "HyruleMagicDecompress: RLE copy exceeds buffer."
+                    << std::endl;
+          goto end_decompression;
+        }
+
         // make c duplicates of one byte, inc the src pointer.
         memset(b2 + bd, *(src++), c);
 
@@ -244,6 +291,14 @@ std::vector<uint8_t> HyruleMagicDecompress(uint8_t const* src, int* const size,
       case 2:  // 0b 010
 
         // rle 16-bit alternating copy
+
+        // Bounds check: Ensure we can read 2 bytes
+        if (max_src_size != static_cast<size_t>(-1) &&
+            (size_t)(src - src_start + 2) > max_src_size) {
+          std::cerr << "HyruleMagicDecompress: RLE 16-bit copy exceeds buffer."
+                    << std::endl;
+          goto end_decompression;
+        }
 
         d = zelda3::ldle16b(src);
 
@@ -266,6 +321,14 @@ std::vector<uint8_t> HyruleMagicDecompress(uint8_t const* src, int* const size,
 
         // incrementing copy
 
+        // Bounds check: Ensure we can read 1 byte
+        if (max_src_size != static_cast<size_t>(-1) &&
+            (size_t)(src - src_start) >= max_src_size) {
+          std::cerr << "HyruleMagicDecompress: Inc copy exceeds buffer."
+                    << std::endl;
+          goto end_decompression;
+        }
+
         // get the current src byte.
         a = *(src++);
 
@@ -281,14 +344,54 @@ std::vector<uint8_t> HyruleMagicDecompress(uint8_t const* src, int* const size,
 
         // lz copy
 
+        // Bounds check: Ensure we can read 2 bytes
+        if (max_src_size != static_cast<size_t>(-1) &&
+            (size_t)(src - src_start + 2) > max_src_size) {
+          std::cerr << "HyruleMagicDecompress: LZ copy exceeds buffer."
+                    << std::endl;
+          goto end_decompression;
+        }
+
         if (p_big_endian) {
           d = (*src << 8) + src[1];
         } else {
           d = zelda3::ldle16b(src);
         }
 
+        // Safety check for LZ back-reference
+        if (d >= bd) {
+             // This is technically allowed in some LZ variants (referencing future bytes that are 0 initialized)
+             // but usually indicates corruption in this context if d is way out.
+             // However, standard LZ references previous data.
+             // If d is an absolute offset in the buffer, it must be < bd?
+             // Wait, b2[d++] implies d is an index into b2.
+             // If d >= bd, we are reading uninitialized data or data we haven't written yet.
+             // But if it's a sliding window, d could be relative?
+             // The code says `b2[d++]`. This looks like absolute offset in output buffer.
+             // If d > bd, it's definitely suspicious, but maybe valid if it wraps?
+             // But this implementation reallocs b2, so it's a linear buffer.
+             // Let's just check if d + c > bs (buffer size) or something?
+             // Actually, if d points to garbage, we just copy garbage.
+             // But if d exceeds allocated memory, we crash.
+             // We realloc b2 to `bs`. So we must ensure `d + c <= bs`?
+             // No, `d` increments.
+             // We need to ensure `d` stays within valid `b2` range.
+             // Since we are writing to `bd`, `d` should probably be < `bd` usually.
+             // But let's just ensure `d < bs`.
+        }
+
         while (c--) {
           // copy from a different location in the buffer.
+          if (d >= bs) {
+             // Expand buffer if needed? Or just clamp?
+             // If we are reading past buffer size, it's bad.
+             // But we might have realloced b2 to be larger than bd.
+             // So d < bs is the hard limit.
+             if (d >= bs) {
+                 std::cerr << "HyruleMagicDecompress: LZ ref out of bounds." << std::endl;
+                 goto end_decompression;
+             }
+          }
           b2[bd++] = b2[d++];
         }
 
@@ -296,6 +399,7 @@ std::vector<uint8_t> HyruleMagicDecompress(uint8_t const* src, int* const size,
     }
   }
 
+end_decompression:
   b2 = (unsigned char*)realloc(b2, bd);
 
   if (size)
@@ -768,7 +872,8 @@ absl::Status ValidateCompressionResult(CompressionPiecePointer& chain_head,
     RETURN_IF_ERROR(
         temp_rom.LoadFromData(CreateCompressionString(chain_head->next, mode)))
     ASSIGN_OR_RETURN(auto decomp_data,
-                     DecompressV2(temp_rom.data(), 0, temp_rom.size()));
+                     DecompressV2(temp_rom.data(), 0, temp_rom.size(), 1,
+                                  temp_rom.size()));
     if (!std::equal(decomp_data.begin() + start, decomp_data.end(),
                     temp_rom.begin())) {
       return absl::InternalError(absl::StrFormat(
@@ -1188,7 +1293,8 @@ absl::Status ValidateCompressionResultV3(const CompressionContext& context) {
     Rom temp_rom;
     RETURN_IF_ERROR(temp_rom.LoadFromData(context.compressed_data));
     ASSIGN_OR_RETURN(auto decomp_data,
-                     DecompressV2(temp_rom.data(), 0, temp_rom.size()));
+                     DecompressV2(temp_rom.data(), 0, temp_rom.size(), 1,
+                                  temp_rom.size()));
 
     if (!std::equal(decomp_data.begin() + context.start, decomp_data.end(),
                     temp_rom.begin())) {
@@ -1380,20 +1486,47 @@ void memfill(const uint8_t* data, std::vector<uint8_t>& buffer, int buffer_pos,
 
 absl::StatusOr<std::vector<uint8_t>> DecompressV2(const uint8_t* data,
                                                   int offset, int size,
-                                                  int mode) {
+                                                  int mode, size_t rom_size) {
   if (size == 0) {
     return std::vector<uint8_t>();
+  }
+
+  // Validate initial offset is within bounds (if rom_size provided)
+  // rom_size == static_cast<size_t>(-1) means "no bounds checking"
+  if (rom_size != static_cast<size_t>(-1) && (offset < 0 || static_cast<size_t>(offset) >= rom_size)) {
+    return absl::OutOfRangeError(
+        absl::StrFormat("DecompressV2: Initial offset %d exceeds ROM size %zu",
+                        offset, rom_size));
   }
 
   std::vector<uint8_t> buffer(size, 0);
   unsigned int length = 0;
   unsigned int buffer_pos = 0;
   uint8_t command = 0;
+
+  // Bounds check before initial header read
+  if (rom_size != static_cast<size_t>(-1) && static_cast<size_t>(offset) >= rom_size) {
+    return absl::OutOfRangeError(
+        absl::StrFormat("DecompressV2: Initial offset %d exceeds ROM size %zu",
+                        offset, rom_size));
+  }
   uint8_t header = data[offset];
 
   while (header != kSnesByteMax) {
+    // Bounds check before reading command (if rom_size provided)
+    if (rom_size != static_cast<size_t>(-1) && static_cast<size_t>(offset) >= rom_size) {
+      return absl::OutOfRangeError(
+          absl::StrFormat("DecompressV2: Offset %d exceeds ROM size %zu while reading command",
+                          offset, rom_size));
+    }
+
     if ((header & kExpandedMod) == kExpandedMod) {
-      // Expanded Command
+      // Expanded Command - needs 2 bytes
+      if (rom_size != static_cast<size_t>(-1) && static_cast<size_t>(offset + 1) >= rom_size) {
+        return absl::OutOfRangeError(
+            absl::StrFormat("DecompressV2: Offset %d+1 exceeds ROM size %zu for expanded command",
+                            offset, rom_size));
+      }
       command = ((header >> 2) & kCommandMod);
       length = (((header << 8) | data[offset + 1]) & kExpandedLengthMod);
       offset += 2;  // Advance 2 bytes in ROM
@@ -1405,31 +1538,84 @@ absl::StatusOr<std::vector<uint8_t>> DecompressV2(const uint8_t* data,
     }
     length += 1;  // each commands is at least of size 1 even if index 00
 
+    // CRITICAL: Check and resize buffer BEFORE any command writes
+    // This prevents WASM "index out of bounds" errors
+    // The buffer may need to grow if decompressed data exceeds initial size
+    if (buffer_pos + length > static_cast<unsigned int>(size)) {
+      // Double the buffer size (with overflow protection)
+      int new_size = size;
+      while (buffer_pos + length > static_cast<unsigned int>(new_size)) {
+        if (new_size > INT_MAX / 2) {
+          return absl::ResourceExhaustedError(
+              absl::StrFormat("DecompressV2: Buffer size overflow at pos %u, length %u",
+                              buffer_pos, length));
+        }
+        new_size *= 2;
+      }
+      size = new_size;
+      buffer.resize(size);
+    }
+
     switch (command) {
       case kCommandDirectCopy:  // Does not advance in the ROM
+        // Bounds check for direct copy
+        if (rom_size != static_cast<size_t>(-1) &&
+            static_cast<size_t>(offset + length) > rom_size) {
+          return absl::OutOfRangeError(
+              absl::StrFormat("DecompressV2: DirectCopy offset %d + length %u exceeds ROM size %zu",
+                              offset, length, rom_size));
+        }
         memcpy(buffer.data() + buffer_pos, data + offset, length);
         buffer_pos += length;
         offset += length;
         break;
       case kCommandByteFill:
+        // Bounds check for byte fill
+        if (rom_size != static_cast<size_t>(-1) &&
+            static_cast<size_t>(offset) >= rom_size) {
+          return absl::OutOfRangeError(
+              absl::StrFormat("DecompressV2: ByteFill offset %d exceeds ROM size %zu",
+                              offset, rom_size));
+        }
         memset(buffer.data() + buffer_pos, (int)(data[offset]), length);
         buffer_pos += length;
         offset += 1;  // Advances 1 byte in the ROM
         break;
       case kCommandWordFill:
+        // Bounds check for word fill (needs 2 bytes)
+        if (rom_size != static_cast<size_t>(-1) &&
+            static_cast<size_t>(offset + 1) >= rom_size) {
+          return absl::OutOfRangeError(
+              absl::StrFormat("DecompressV2: WordFill offset %d+1 exceeds ROM size %zu",
+                              offset, rom_size));
+        }
         memfill(data, buffer, buffer_pos, offset, length);
         buffer_pos += length;
         offset += 2;  // Advance 2 byte in the ROM
         break;
       case kCommandIncreasingFill: {
+        // Bounds check for increasing fill
+        if (rom_size != static_cast<size_t>(-1) &&
+            static_cast<size_t>(offset) >= rom_size) {
+          return absl::OutOfRangeError(
+              absl::StrFormat("DecompressV2: IncreasingFill offset %d exceeds ROM size %zu",
+                              offset, rom_size));
+        }
         auto inc_byte = data[offset];
-        for (int i = 0; i < length; i++) {
+        for (unsigned int i = 0; i < length; i++) {
           buffer[buffer_pos] = inc_byte++;
           buffer_pos++;
         }
         offset += 1;  // Advance 1 byte in the ROM
       } break;
       case kCommandRepeatingBytes: {
+        // Bounds check for repeating bytes (needs 2 bytes)
+        if (rom_size != static_cast<size_t>(-1) &&
+            static_cast<size_t>(offset + 1) >= rom_size) {
+          return absl::OutOfRangeError(
+              absl::StrFormat("DecompressV2: RepeatingBytes offset %d+1 exceeds ROM size %zu",
+                              offset, rom_size));
+        }
         uint16_t s1 = ((data[offset + 1] & kSnesByteMax) << 8);
         uint16_t s2 = (data[offset] & kSnesByteMax);
         int addr = (s1 | s2);
@@ -1445,10 +1631,7 @@ absl::StatusOr<std::vector<uint8_t>> DecompressV2(const uint8_t* data,
                               "(Offset : %#04x | Pos : %#06x)\n",
                               addr, offset));
         }
-        if (buffer_pos + length >= size) {
-          size *= 2;
-          buffer.resize(size);
-        }
+        // Buffer resize already done above, no need to check again
         memcpy(buffer.data() + buffer_pos, buffer.data() + addr, length);
         buffer_pos += length;
         offset += 2;
@@ -1459,7 +1642,13 @@ absl::StatusOr<std::vector<uint8_t>> DecompressV2(const uint8_t* data,
             offset, command);
       } break;
     }
-    // check next byte
+    // Bounds check before reading next header byte
+    if (rom_size != static_cast<size_t>(-1) &&
+        static_cast<size_t>(offset) >= rom_size) {
+      return absl::OutOfRangeError(
+          absl::StrFormat("DecompressV2: Offset %d exceeds ROM size %zu while reading next header",
+                          offset, rom_size));
+    }
     header = data[offset];
   }
 

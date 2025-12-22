@@ -46,6 +46,8 @@ uint16_t ConvertRgbToSnes(const ImVec4& color) {
 }
 
 SnesColor ReadColorFromRom(int offset, const uint8_t* rom) {
+  // Note: Bounds checking should be done by caller before calling this function
+  // This function assumes valid offset and rom pointer
   short color = (uint16_t)((rom[offset + 1]) << 8) | rom[offset];
   snes_color new_color;
   new_color.red = (color & 0x1F) * 8;

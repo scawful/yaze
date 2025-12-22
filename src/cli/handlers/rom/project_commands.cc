@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <iostream>
 
+#include "core/asar_wrapper.h"
 #include "core/project.h"
 #include "util/bps.h"
 #include "util/file_util.h"
@@ -89,10 +90,47 @@ absl::Status ProjectBuildCommandHandler::Execute(
     // No asm files
   }
 
-  // TODO: Implement ASM patching functionality
-  // for (const auto& asm_file : asm_files) {
-  //   // Apply ASM patches here
-  // }
+  // Apply ASM patches using Asar
+  if (!asm_files.empty()) {
+    core::AsarWrapper asar;
+    auto init_status = asar.Initialize();
+    if (!init_status.ok()) {
+      formatter.AddField("warning",
+                         "Asar not available, skipping ASM patches: " +
+                             std::string(init_status.message()));
+    } else {
+      for (const auto& asm_file : asm_files) {
+        auto rom_data = build_rom.vector();
+        auto result = asar.ApplyPatch(asm_file, rom_data);
+
+        if (!result.ok()) {
+          return absl::InternalError(
+              "ASM patch failed for " + asm_file + ": " +
+              std::string(result.status().message()));
+        }
+
+        if (result->success) {
+          build_rom.LoadFromData(rom_data);
+          formatter.AddField("asm_applied", asm_file);
+
+          // Log extracted symbols count
+          if (!result->symbols.empty()) {
+            formatter.AddField(
+                "symbols_" + fs::path(asm_file).stem().string(),
+                std::to_string(result->symbols.size()) + " symbols");
+          }
+        } else {
+          // Log errors but continue with other patches
+          std::string error_msg = "Errors in " + asm_file + ":";
+          for (const auto& error : result->errors) {
+            error_msg += "\n  " + error;
+          }
+          formatter.AddField("error", error_msg);
+          return absl::InternalError(error_msg);
+        }
+      }
+    }
+  }
 
   std::string output_file = project.name + ".sfc";
   status = build_rom.SaveToFile({.save_new = true, .filename = output_file});

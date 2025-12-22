@@ -5,9 +5,10 @@
 #include <fstream>
 
 #include "absl/strings/str_format.h"
-#include "app/editor/system/toast_manager.h"
-#include "app/rom.h"
+#include "app/editor/ui/toast_manager.h"
+#include "rom/rom.h"
 #include "util/file_util.h"
+#include "zelda3/game_data.h"
 
 namespace yaze::editor {
 
@@ -32,7 +33,7 @@ absl::Status RomFileManager::SaveRom(Rom* rom) {
   Rom::SaveSettings settings;
   settings.backup = true;
   settings.save_new = false;
-  settings.z3_save = true;
+  // settings.z3_save = true; // Deprecated: Handled by save callback or controller
 
   auto status = rom->SaveToFile(settings);
   if (!status.ok() && toast_manager_) {
@@ -57,7 +58,7 @@ absl::Status RomFileManager::SaveRomAs(Rom* rom, const std::string& filename) {
   settings.backup = false;
   settings.save_new = true;
   settings.filename = filename;
-  settings.z3_save = true;
+  // settings.z3_save = true; // Deprecated
 
   auto status = rom->SaveToFile(settings);
   if (!status.ok() && toast_manager_) {
@@ -99,7 +100,7 @@ absl::Status RomFileManager::CreateBackup(Rom* rom) {
   Rom::SaveSettings settings;
   settings.backup = true;
   settings.filename = backup_filename;
-  settings.z3_save = true;
+  // settings.z3_save = true; // Deprecated
 
   auto status = rom->SaveToFile(settings);
   if (!status.ok() && toast_manager_) {
@@ -162,6 +163,11 @@ absl::Status RomFileManager::LoadRomFromFile(Rom* rom,
     return status;
   }
 
+  // IMPORTANT: Game data loading is now decoupled and should be handled
+  // by the caller (EditorManager) or a higher-level orchestration layer
+  // that manages both the generic Rom and the Zelda3::GameData.
+  // This class is strictly for generic ROM file operations.
+
   if (toast_manager_) {
     toast_manager_->Show(absl::StrFormat("ROM loaded: %s", rom->title()),
                          ToastType::kSuccess);
@@ -191,7 +197,9 @@ bool RomFileManager::IsValidRomFile(const std::string& filename) const {
   }
 
   auto file_size = std::filesystem::file_size(filename);
-  if (file_size < 1024 * 1024 || file_size > 8 * 1024 * 1024) {
+  // Zelda 3 ROMs are 1MB (0x100000 = 1,048,576 bytes), possibly with 512-byte
+  // SMC header. Allow ROMs from 512KB to 8MB to be safe.
+  if (file_size < 512 * 1024 || file_size > 8 * 1024 * 1024) {
     return false;
   }
 

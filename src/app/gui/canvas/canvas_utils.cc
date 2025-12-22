@@ -34,13 +34,13 @@ int GetTileIdFromPosition(ImVec2 mouse_pos, float tile_size, float scale,
   return tile_x + (tile_y * tiles_per_row);
 }
 
-bool LoadROMPaletteGroups(Rom* rom, CanvasPaletteManager& palette_manager) {
-  if (!rom || palette_manager.palettes_loaded) {
+bool LoadROMPaletteGroups(zelda3::GameData* game_data, CanvasPaletteManager& palette_manager) {
+  if (!game_data || palette_manager.palettes_loaded) {
     return palette_manager.palettes_loaded;
   }
 
   try {
-    const auto& palette_groups = rom->palette_group();
+    const auto& palette_groups = game_data->palette_groups;
     palette_manager.rom_palette_groups.clear();
     palette_manager.palette_group_names.clear();
 
@@ -342,8 +342,9 @@ void DrawCanvasOverlay(const CanvasRenderContext& ctx,
                        const ImVector<ImVec2>& selected_points) {
   const ImVec2 origin(ctx.canvas_p0.x + ctx.scrolling.x,
                       ctx.canvas_p0.y + ctx.scrolling.y);
+  const float scale = ctx.global_scale;
 
-  // Draw hover points
+  // Draw hover points (already in screen coordinates)
   for (int n = 0; n < points.Size; n += 2) {
     ctx.draw_list->AddRect(
         ImVec2(origin.x + points[n].x, origin.y + points[n].y),
@@ -351,13 +352,18 @@ void DrawCanvasOverlay(const CanvasRenderContext& ctx,
         IM_COL32(255, 255, 255, 255), 1.0f);
   }
 
-  // Draw selection rectangles
+  // Draw selection rectangles (selected_points are in world coordinates)
+  // Scale world coordinates to screen coordinates for proper display
   if (!selected_points.empty()) {
+    constexpr float kTile16Size = 16.0f;
+    const float scaled_tile_offset = kTile16Size * scale;
     for (int n = 0; n < selected_points.size(); n += 2) {
-      ctx.draw_list->AddRect(ImVec2(origin.x + selected_points[n].x,
-                                    origin.y + selected_points[n].y),
-                             ImVec2(origin.x + selected_points[n + 1].x + 0x10,
-                                    origin.y + selected_points[n + 1].y + 0x10),
+      // Convert world coordinates to screen coordinates by multiplying by scale
+      float start_x = origin.x + selected_points[n].x * scale;
+      float start_y = origin.y + selected_points[n].y * scale;
+      float end_x = origin.x + (selected_points[n + 1].x + kTile16Size) * scale;
+      float end_y = origin.y + (selected_points[n + 1].y + kTile16Size) * scale;
+      ctx.draw_list->AddRect(ImVec2(start_x, start_y), ImVec2(end_x, end_y),
                              IM_COL32(255, 255, 255, 255), 1.0f);
     }
   }

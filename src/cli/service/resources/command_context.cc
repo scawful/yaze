@@ -11,6 +11,7 @@
 #include "absl/strings/str_join.h"
 #include "cli/handlers/rom/mock_rom.h"
 #include "core/project.h"
+#include "zelda3/zelda3_labels.h"
 
 ABSL_DECLARE_FLAG(std::string, rom);
 ABSL_DECLARE_FLAG(bool, mock_rom);
@@ -103,7 +104,8 @@ absl::Status CommandContext::EnsureLabelsLoaded(Rom* rom) {
       rom->resource_label()->labels_.empty()) {
     project::YazeProject project;
     project.use_embedded_labels = true;
-    auto labels_status = project.InitializeEmbeddedLabels();
+    auto labels_status = project.InitializeEmbeddedLabels(
+        zelda3::Zelda3Labels::ToResourceLabels());
     if (labels_status.ok()) {
       rom->resource_label()->labels_ = project.resource_labels;
       rom->resource_label()->labels_loaded_ = true;

@@ -8,10 +8,11 @@
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
 #include "app/editor/graphics/gfx_group_editor.h"
-#include "app/editor/palette/palette_group_card.h"
+#include "app/editor/palette/palette_group_panel.h"
+
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_palette.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -91,13 +92,19 @@ class PaletteEditor : public Editor {
   absl::Status Cut() override { return absl::OkStatus(); }
   absl::Status Copy() override { return absl::OkStatus(); }
   absl::Status Paste() override { return absl::OkStatus(); }
-  absl::Status Undo() override { return absl::OkStatus(); }
-  absl::Status Redo() override { return absl::OkStatus(); }
+  absl::Status Undo() override;
+  absl::Status Redo() override;
   absl::Status Find() override { return absl::OkStatus(); }
-  absl::Status Save() override { return absl::UnimplementedError("Save"); }
+  absl::Status Save() override;
 
   void set_rom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }
+
+  // Override to propagate game_data to embedded components
+  void SetGameData(zelda3::GameData* game_data) override {
+    Editor::SetGameData(game_data);
+    gfx_group_editor_.SetGameData(game_data);
+  }
 
   /**
    * @brief Jump to a specific palette by group and index
@@ -109,8 +116,14 @@ class PaletteEditor : public Editor {
  private:
   void DrawToolset();
   void DrawControlPanel();
-  void DrawQuickAccessCard();
-  void DrawCustomPaletteCard();
+  void DrawQuickAccessPanel();
+  void DrawCustomPalettePanel();
+
+  // Category and search UI methods
+  void DrawCategorizedPaletteList();
+  void DrawSearchBar();
+  bool PassesSearchFilter(const std::string& group_name) const;
+  bool* GetShowFlagForGroup(const std::string& group_name);
 
   // Legacy methods (for backward compatibility if needed)
   void DrawQuickAccessTab();
@@ -138,29 +151,35 @@ class PaletteEditor : public Editor {
 
   Rom* rom_;
 
-  // Card visibility flags (registered with EditorCardManager)
+  // Search filter for palette groups
+  char search_buffer_[256] = "";
+
+  // Panel visibility flags (legacy; superseded by PanelManager visibility)
   bool show_control_panel_ = true;
-  bool show_ow_main_card_ = false;
-  bool show_ow_animated_card_ = false;
-  bool show_dungeon_main_card_ = false;
-  bool show_sprite_card_ = false;
-  bool show_sprites_aux1_card_ = false;
-  bool show_sprites_aux2_card_ = false;
-  bool show_sprites_aux3_card_ = false;
-  bool show_equipment_card_ = false;
-  bool show_quick_access_ = false;
-  bool show_custom_palette_ = false;
   bool control_panel_minimized_ = false;
 
-  // Palette card instances
-  std::unique_ptr<OverworldMainPaletteCard> ow_main_card_;
-  std::unique_ptr<OverworldAnimatedPaletteCard> ow_animated_card_;
-  std::unique_ptr<DungeonMainPaletteCard> dungeon_main_card_;
-  std::unique_ptr<SpritePaletteCard> sprite_card_;
-  std::unique_ptr<SpritesAux1PaletteCard> sprites_aux1_card_;
-  std::unique_ptr<SpritesAux2PaletteCard> sprites_aux2_card_;
-  std::unique_ptr<SpritesAux3PaletteCard> sprites_aux3_card_;
-  std::unique_ptr<EquipmentPaletteCard> equipment_card_;
+  // Palette panel visibility flags
+  bool show_ow_main_panel_ = false;
+  bool show_ow_animated_panel_ = false;
+  bool show_dungeon_main_panel_ = false;
+  bool show_sprite_panel_ = false;
+  bool show_sprites_aux1_panel_ = false;
+  bool show_sprites_aux2_panel_ = false;
+  bool show_sprites_aux3_panel_ = false;
+  bool show_equipment_panel_ = false;
+  bool show_quick_access_ = false;
+  bool show_custom_palette_ = false;
+
+  // Palette Panels (formerly Cards)
+  // We keep raw pointers to the panels which are owned by PanelManager
+  OverworldMainPalettePanel* ow_main_panel_ = nullptr;
+  OverworldAnimatedPalettePanel* ow_anim_panel_ = nullptr;
+  DungeonMainPalettePanel* dungeon_main_panel_ = nullptr;
+  SpritePalettePanel* sprite_global_panel_ = nullptr;
+  SpritesAux1PalettePanel* sprite_aux1_panel_ = nullptr;
+  SpritesAux2PalettePanel* sprite_aux2_panel_ = nullptr;
+  SpritesAux3PalettePanel* sprite_aux3_panel_ = nullptr;
+  EquipmentPalettePanel* equipment_panel_ = nullptr;
 };
 
 }  // namespace editor

@@ -75,6 +75,8 @@ class AsarWrapper {
       const std::string& asm_path,
       const std::vector<std::string>& include_paths = {});
 
+  absl::Status LoadSymbolsFromFile(const std::string& symbol_path);
+
   std::map<std::string, AsarSymbol> GetSymbolTable() const;
   std::optional<AsarSymbol> FindSymbol(const std::string& name) const;
   std::vector<AsarSymbol> GetSymbolsAtAddress(uint32_t address) const;
@@ -91,7 +93,18 @@ class AsarWrapper {
   absl::Status ValidateAssembly(const std::string& asm_path);
 
  private:
+  absl::StatusOr<AsarPatchResult> ApplyPatchWithBinary(
+      const std::string& patch_path, std::vector<uint8_t>& rom_data,
+      const std::vector<std::string>& include_paths);
+
+  absl::StatusOr<AsarPatchResult> ApplyPatchWithLibrary(
+      const std::string& patch_path, std::vector<uint8_t>& rom_data,
+      const std::vector<std::string>& include_paths);
+
+  std::optional<std::string> ResolveAsarBinary() const;
+
   bool initialized_;
+  bool library_enabled_;
   std::map<std::string, AsarSymbol> symbol_table_;
   std::vector<std::string> last_errors_;
   std::vector<std::string> last_warnings_;

@@ -26,9 +26,16 @@ UserSettings::UserSettings() {
 
 absl::Status UserSettings::Load() {
   try {
+    // If file doesn't exist, save defaults immediately
+    if (!util::PlatformPaths::Exists(settings_file_path_)) {
+      LOG_INFO("UserSettings", "Settings file not found, creating defaults at: %s", 
+               settings_file_path_.c_str());
+      return Save();
+    }
+
     auto data = util::LoadFile(settings_file_path_);
     if (data.empty()) {
-      return absl::OkStatus();  // No settings file yet, use defaults.
+      return absl::OkStatus();  // Empty file, use defaults.
     }
 
     std::istringstream ss(data);
@@ -62,6 +69,8 @@ absl::Status UserSettings::Load() {
         prefs_.show_welcome_on_startup = (val == "1");
       } else if (key == "restore_last_session") {
         prefs_.restore_last_session = (val == "1");
+      } else if (key == "prefer_hmagic_sprite_names") {
+        prefs_.prefer_hmagic_sprite_names = (val == "1");
       }
       // Editor Behavior
       else if (key == "backup_before_save") {
@@ -113,6 +122,28 @@ absl::Status UserSettings::Load() {
       } else if (key == "log_proposals") {
         prefs_.log_proposals = (val == "1");
       }
+      // Panel Shortcuts (format: panel_shortcut.panel_id=shortcut)
+      else if (key.substr(0, 15) == "panel_shortcut.") {
+        std::string panel_id = key.substr(15);
+        prefs_.panel_shortcuts[panel_id] = val;
+      }
+      // Backward compatibility for card_shortcut
+      else if (key.substr(0, 14) == "card_shortcut.") {
+        std::string panel_id = key.substr(14);
+        prefs_.panel_shortcuts[panel_id] = val;
+      }
+      // Sidebar State
+      else if (key == "sidebar_visible") {
+        prefs_.sidebar_visible = (val == "1");
+      } else if (key == "sidebar_panel_expanded") {
+        prefs_.sidebar_panel_expanded = (val == "1");
+      } else if (key == "sidebar_active_category") {
+        prefs_.sidebar_active_category = val;
+      }
+      // Status Bar
+      else if (key == "show_status_bar") {
+        prefs_.show_status_bar = (val == "1");
+      }
     }
     ImGui::GetIO().FontGlobalScale = prefs_.font_global_scale;
   } catch (const std::exception& e) {
@@ -137,6 +168,8 @@ absl::Status UserSettings::Save() {
     ss << "show_welcome_on_startup=" << (prefs_.show_welcome_on_startup ? 1 : 0)
        << "\n";
     ss << "restore_last_session=" << (prefs_.restore_last_session ? 1 : 0)
+       << "\n";
+    ss << "prefer_hmagic_sprite_names=" << (prefs_.prefer_hmagic_sprite_names ? 1 : 0)
        << "\n";
 
     // Editor Behavior
@@ -167,6 +200,19 @@ absl::Status UserSettings::Save() {
     ss << "log_rom_operations=" << (prefs_.log_rom_operations ? 1 : 0) << "\n";
     ss << "log_gui_automation=" << (prefs_.log_gui_automation ? 1 : 0) << "\n";
     ss << "log_proposals=" << (prefs_.log_proposals ? 1 : 0) << "\n";
+
+    // Panel Shortcuts
+    for (const auto& [panel_id, shortcut] : prefs_.panel_shortcuts) {
+      ss << "panel_shortcut." << panel_id << "=" << shortcut << "\n";
+    }
+
+    // Sidebar State
+    ss << "sidebar_visible=" << (prefs_.sidebar_visible ? 1 : 0) << "\n";
+    ss << "sidebar_panel_expanded=" << (prefs_.sidebar_panel_expanded ? 1 : 0) << "\n";
+    ss << "sidebar_active_category=" << prefs_.sidebar_active_category << "\n";
+
+    // Status Bar
+    ss << "show_status_bar=" << (prefs_.show_status_bar ? 1 : 0) << "\n";
 
     util::SaveFile(settings_file_path_, ss.str());
   } catch (const std::exception& e) {

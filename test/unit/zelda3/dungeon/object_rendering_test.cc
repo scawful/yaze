@@ -20,7 +20,7 @@
 #include "absl/status/status.h"
 #include "app/gfx/render/background_buffer.h"
 #include "app/gfx/types/snes_palette.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "gtest/gtest.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/object_parser.h"
@@ -69,7 +69,7 @@ class ObjectRenderingTest : public ::testing::Test {
 
 // Test object drawer initialization
 TEST_F(ObjectRenderingTest, ObjectDrawerInitializesCorrectly) {
-  ObjectDrawer drawer(rom_.get());
+  ObjectDrawer drawer(rom_.get(), 0);
 
   // Test that drawer can be created without errors
   EXPECT_NE(rom_.get(), nullptr);
@@ -108,7 +108,7 @@ TEST_F(ObjectRenderingTest, ObjectParserDetectsDrawRoutines) {
 
 // Test object drawer with various object types
 TEST_F(ObjectRenderingTest, ObjectDrawerHandlesVariousObjectTypes) {
-  ObjectDrawer drawer(rom_.get());
+  ObjectDrawer drawer(rom_.get(), 0);
   auto palette_group = CreateTestPaletteGroup();
 
   // Test object 0x00 (horizontal floor tile)
@@ -120,14 +120,14 @@ TEST_F(ObjectRenderingTest, ObjectDrawerHandlesVariousObjectTypes) {
 
   // Test object 0x09 (diagonal stairs)
   RoomObject stair_object(0x09, 15, 15, 5, 0);
-  stair_object.set_rom(rom_.get());
+  stair_object.SetRom(rom_.get());
 
   status = drawer.DrawObject(stair_object, bg1_, bg2_, palette_group);
   EXPECT_TRUE(status.ok() || status.code() == absl::StatusCode::kOk);
 
   // Test object 0x34 (solid block)
   RoomObject block_object(0x34, 20, 20, 1, 0);
-  block_object.set_rom(rom_.get());
+  block_object.SetRom(rom_.get());
 
   status = drawer.DrawObject(block_object, bg1_, bg2_, palette_group);
   EXPECT_TRUE(status.ok() || status.code() == absl::StatusCode::kOk);
@@ -135,19 +135,19 @@ TEST_F(ObjectRenderingTest, ObjectDrawerHandlesVariousObjectTypes) {
 
 // Test object drawer with different layers
 TEST_F(ObjectRenderingTest, ObjectDrawerHandlesDifferentLayers) {
-  ObjectDrawer drawer(rom_.get());
+  ObjectDrawer drawer(rom_.get(), 0);
   auto palette_group = CreateTestPaletteGroup();
 
   // Test BG1 layer object
   RoomObject bg1_object(0x00, 5, 5, 2, 0);  // Layer 0 = BG1
-  bg1_object.set_rom(rom_.get());
+  bg1_object.SetRom(rom_.get());
 
   auto status = drawer.DrawObject(bg1_object, bg1_, bg2_, palette_group);
   EXPECT_TRUE(status.ok() || status.code() == absl::StatusCode::kOk);
 
   // Test BG2 layer object
   RoomObject bg2_object(0x01, 10, 10, 2, 1);  // Layer 1 = BG2
-  bg2_object.set_rom(rom_.get());
+  bg2_object.SetRom(rom_.get());
 
   status = drawer.DrawObject(bg2_object, bg1_, bg2_, palette_group);
   EXPECT_TRUE(status.ok() || status.code() == absl::StatusCode::kOk);
@@ -155,26 +155,26 @@ TEST_F(ObjectRenderingTest, ObjectDrawerHandlesDifferentLayers) {
 
 // Test object drawer with size variations
 TEST_F(ObjectRenderingTest, ObjectDrawerHandlesSizeVariations) {
-  ObjectDrawer drawer(rom_.get());
+  ObjectDrawer drawer(rom_.get(), 0);
   auto palette_group = CreateTestPaletteGroup();
 
   // Test small object
   RoomObject small_object(0x00, 5, 5, 1, 0);  // Size = 1
-  small_object.set_rom(rom_.get());
+  small_object.SetRom(rom_.get());
 
   auto status = drawer.DrawObject(small_object, bg1_, bg2_, palette_group);
   EXPECT_TRUE(status.ok() || status.code() == absl::StatusCode::kOk);
 
   // Test large object
   RoomObject large_object(0x00, 10, 10, 15, 0);  // Size = 15
-  large_object.set_rom(rom_.get());
+  large_object.SetRom(rom_.get());
 
   status = drawer.DrawObject(large_object, bg1_, bg2_, palette_group);
   EXPECT_TRUE(status.ok() || status.code() == absl::StatusCode::kOk);
 
   // Test maximum size object
   RoomObject max_object(0x00, 15, 15, 31, 0);  // Size = 31 (0x1F)
-  max_object.set_rom(rom_.get());
+  max_object.SetRom(rom_.get());
 
   status = drawer.DrawObject(max_object, bg1_, bg2_, palette_group);
   EXPECT_TRUE(status.ok() || status.code() == absl::StatusCode::kOk);
@@ -182,26 +182,26 @@ TEST_F(ObjectRenderingTest, ObjectDrawerHandlesSizeVariations) {
 
 // Test object drawer with edge cases
 TEST_F(ObjectRenderingTest, ObjectDrawerHandlesEdgeCases) {
-  ObjectDrawer drawer(rom_.get());
+  ObjectDrawer drawer(rom_.get(), 0);
   auto palette_group = CreateTestPaletteGroup();
 
   // Test object at origin
   RoomObject origin_object(0x34, 0, 0, 1, 0);
-  origin_object.set_rom(rom_.get());
+  origin_object.SetRom(rom_.get());
 
   auto status = drawer.DrawObject(origin_object, bg1_, bg2_, palette_group);
   EXPECT_TRUE(status.ok() || status.code() == absl::StatusCode::kOk);
 
   // Test object with zero size
   RoomObject zero_size_object(0x34, 10, 10, 0, 0);
-  zero_size_object.set_rom(rom_.get());
+  zero_size_object.SetRom(rom_.get());
 
   status = drawer.DrawObject(zero_size_object, bg1_, bg2_, palette_group);
   EXPECT_TRUE(status.ok() || status.code() == absl::StatusCode::kOk);
 
   // Test object with maximum coordinates
   RoomObject max_coord_object(0x34, 63, 63, 1, 0);  // Near buffer edge
-  max_coord_object.set_rom(rom_.get());
+  max_coord_object.SetRom(rom_.get());
 
   status = drawer.DrawObject(max_coord_object, bg1_, bg2_, palette_group);
   EXPECT_TRUE(status.ok() || status.code() == absl::StatusCode::kOk);
@@ -209,7 +209,7 @@ TEST_F(ObjectRenderingTest, ObjectDrawerHandlesEdgeCases) {
 
 // Test object drawer with multiple objects
 TEST_F(ObjectRenderingTest, ObjectDrawerHandlesMultipleObjects) {
-  ObjectDrawer drawer(rom_.get());
+  ObjectDrawer drawer(rom_.get(), 0);
   auto palette_group = CreateTestPaletteGroup();
 
   std::vector<RoomObject> objects;
@@ -222,7 +222,7 @@ TEST_F(ObjectRenderingTest, ObjectDrawerHandlesMultipleObjects) {
 
   // Set ROM for all objects
   for (auto& obj : objects) {
-    obj.set_rom(rom_.get());
+    obj.SetRom(rom_.get());
   }
 
   auto status = drawer.DrawObjectList(objects, bg1_, bg2_, palette_group);
@@ -231,26 +231,26 @@ TEST_F(ObjectRenderingTest, ObjectDrawerHandlesMultipleObjects) {
 
 // Test specific draw routines
 TEST_F(ObjectRenderingTest, DrawRoutinesWorkCorrectly) {
-  ObjectDrawer drawer(rom_.get());
+  ObjectDrawer drawer(rom_.get(), 0);
   auto palette_group = CreateTestPaletteGroup();
 
   // Test rightward patterns
   RoomObject rightward_obj(0x00, 5, 5, 5, 0);
-  rightward_obj.set_rom(rom_.get());
+  rightward_obj.SetRom(rom_.get());
 
   auto status = drawer.DrawObject(rightward_obj, bg1_, bg2_, palette_group);
   EXPECT_TRUE(status.ok() || status.code() == absl::StatusCode::kOk);
 
   // Test diagonal patterns
   RoomObject diagonal_obj(0x09, 10, 10, 6, 0);
-  diagonal_obj.set_rom(rom_.get());
+  diagonal_obj.SetRom(rom_.get());
 
   status = drawer.DrawObject(diagonal_obj, bg1_, bg2_, palette_group);
   EXPECT_TRUE(status.ok() || status.code() == absl::StatusCode::kOk);
 
   // Test solid block patterns
   RoomObject solid_obj(0x34, 15, 15, 8, 0);
-  solid_obj.set_rom(rom_.get());
+  solid_obj.SetRom(rom_.get());
 
   status = drawer.DrawObject(solid_obj, bg1_, bg2_, palette_group);
   EXPECT_TRUE(status.ok() || status.code() == absl::StatusCode::kOk);
@@ -300,7 +300,7 @@ TEST_F(ObjectRenderingTest, ObjectParserHandlesVariousObjectIDs) {
 
 // Test object drawer performance with many objects
 TEST_F(ObjectRenderingTest, ObjectDrawerPerformanceTest) {
-  ObjectDrawer drawer(rom_.get());
+  ObjectDrawer drawer(rom_.get(), 0);
   auto palette_group = CreateTestPaletteGroup();
 
   std::vector<RoomObject> objects;
@@ -314,7 +314,7 @@ TEST_F(ObjectRenderingTest, ObjectDrawerPerformanceTest) {
     int layer = i % 2;       // Alternate layers
 
     objects.emplace_back(id, x, y, size, layer);
-    objects.back().set_rom(rom_.get());
+    objects.back().SetRom(rom_.get());
   }
 
   // Time the drawing operation

@@ -5,9 +5,11 @@
 #include <vector>
 
 #include "absl/status/status.h"
-#include "app/rom.h"
+#include "app/editor/editor.h"
+#include "rom/rom.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
+#include "zelda3/game_data.h"
 
 namespace yaze {
 namespace editor {
@@ -21,6 +23,19 @@ namespace editor {
 class DungeonRoomLoader {
  public:
   explicit DungeonRoomLoader(Rom* rom) : rom_(rom) {}
+
+  // Unified context setter (preferred)
+  void SetContext(EditorContext ctx) {
+    rom_ = ctx.rom;
+    game_data_ = ctx.game_data;
+  }
+  EditorContext context() const { return {rom_, game_data_}; }
+
+  // Individual setters for compatibility
+  void SetRom(Rom* rom) { rom_ = rom; }
+  Rom* rom() const { return rom_; }
+  void SetGameData(zelda3::GameData* game_data) { game_data_ = game_data; }
+  zelda3::GameData* game_data() const { return game_data_; }
 
   // Room loading
   absl::Status LoadRoom(int room_id, zelda3::Room& room);
@@ -50,6 +65,7 @@ class DungeonRoomLoader {
 
  private:
   Rom* rom_;
+  zelda3::GameData* game_data_ = nullptr;
 
   std::vector<int64_t> room_size_pointers_;
   std::vector<int64_t> room_sizes_;

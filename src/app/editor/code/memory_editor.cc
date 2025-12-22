@@ -8,7 +8,46 @@
 namespace yaze {
 namespace editor {
 
-void MemoryEditorWithDiffChecker::DrawToolbar() {
+void MemoryEditor::Update(bool& show_memory_editor) {
+  DrawToolbar();
+  ImGui::Separator();
+  
+  ImGui::Begin("Hex Editor", &show_memory_editor);
+  if (ImGui::Button("Compare Rom")) {
+    auto file_name = util::FileDialogWrapper::ShowOpenFileDialog();
+    PRINT_IF_ERROR(comparison_rom_.LoadFromFile(file_name));
+    show_compare_rom_ = true;
+  }
+
+  static uint64_t convert_address = 0;
+  gui::InputHex("SNES to PC", (int*)&convert_address, 6, 200.f);
+  SameLine();
+  Text("%x", SnesToPc(convert_address));
+
+  BEGIN_TABLE("Memory Comparison", 2, ImGuiTableFlags_Resizable);
+  SETUP_COLUMN("Source")
+  SETUP_COLUMN("Dest")
+
+  NEXT_COLUMN()
+  Text("%s", rom()->filename().data());
+  memory_widget_.DrawContents((void*)&(*rom()), rom()->size());
+
+  NEXT_COLUMN()
+  if (show_compare_rom_) {
+    comparison_widget_.SetComparisonData((void*)&(*rom()));
+    ImGui::BeginGroup();
+    ImGui::BeginChild("Comparison ROM");
+    Text("%s", comparison_rom_.filename().data());
+    comparison_widget_.DrawContents((void*)&(comparison_rom_), comparison_rom_.size());
+    ImGui::EndChild();
+    ImGui::EndGroup();
+  }
+  END_TABLE()
+
+  ImGui::End();
+}
+
+void MemoryEditor::DrawToolbar() {
   // Modern compact toolbar with icon-only buttons
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 4));
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 4));
@@ -54,7 +93,7 @@ void MemoryEditorWithDiffChecker::DrawToolbar() {
   DrawBookmarksPopup();
 }
 
-void MemoryEditorWithDiffChecker::DrawJumpToAddressPopup() {
+void MemoryEditor::DrawJumpToAddressPopup() {
   if (ImGui::BeginPopupModal("JumpToAddress", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
     ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f),
@@ -71,6 +110,7 @@ void MemoryEditorWithDiffChecker::DrawJumpToAddressPopup() {
       unsigned int addr;
       if (sscanf(jump_address_, "%X", &addr) == 1) {
         current_address_ = addr;
+        memory_widget_.GotoAddrAndHighlight(addr, addr + 1);
         ImGui::CloseCurrentPopup();
       }
     }
@@ -84,6 +124,7 @@ void MemoryEditorWithDiffChecker::DrawJumpToAddressPopup() {
       unsigned int addr;
       if (sscanf(jump_address_, "%X", &addr) == 1) {
         current_address_ = addr;
+        memory_widget_.GotoAddrAndHighlight(addr, addr + 1);
       }
       ImGui::CloseCurrentPopup();
     }
@@ -95,7 +136,7 @@ void MemoryEditorWithDiffChecker::DrawJumpToAddressPopup() {
   }
 }
 
-void MemoryEditorWithDiffChecker::DrawSearchPopup() {
+void MemoryEditor::DrawSearchPopup() {
   if (ImGui::BeginPopupModal("SearchPattern", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
     ImGui::TextColored(ImVec4(0.4f, 0.8f, 0.4f, 1.0f),
@@ -143,7 +184,7 @@ void MemoryEditorWithDiffChecker::DrawSearchPopup() {
   }
 }
 
-void MemoryEditorWithDiffChecker::DrawBookmarksPopup() {
+void MemoryEditor::DrawBookmarksPopup() {
   if (ImGui::BeginPopupModal("Bookmarks", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
     ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f),
@@ -187,6 +228,7 @@ void MemoryEditorWithDiffChecker::DrawBookmarksPopup() {
           if (ImGui::Selectable(bm.name.c_str(), false,
                                 ImGuiSelectableFlags_SpanAllColumns)) {
             current_address_ = bm.address;
+            memory_widget_.GotoAddrAndHighlight(bm.address, bm.address + 1);
             ImGui::CloseCurrentPopup();
           }
 

@@ -10,6 +10,7 @@ namespace emu {
 enum class InterpolationType {
   Linear,
   Hermite,  // Used by bsnes/Snes9x - better quality than linear
+  Gaussian, // SNES hardware accurate
   Cosine,
   Cubic,
 };
@@ -91,6 +92,9 @@ class Dsp {
   void NewFrame();
 
   void Reset();
+  
+  void SaveState(std::ostream& stream);
+  void LoadState(std::istream& stream);
 
   void Cycle();
 
@@ -112,12 +116,49 @@ class Dsp {
   void GetSamples(int16_t* sample_data, int samples_per_frame, bool pal_timing);
   int CopyNativeFrame(int16_t* sample_data, bool pal_timing);
 
-  InterpolationType interpolation_type = InterpolationType::Linear;
+  void SetChannelMute(int ch, bool mute) {
+    if (ch >= 0 && ch < 8) debug_mute_channels_[ch] = mute;
+  }
+  bool GetChannelMute(int ch) const {
+    if (ch >= 0 && ch < 8) return debug_mute_channels_[ch];
+    return false;
+  }
+
+  // Accessor for visualization
+  const DspChannel& GetChannel(int ch) const {
+    // Safety clamp
+    if (ch < 0) ch = 0;
+    if (ch > 7) ch = 7;
+    return channel[ch];
+  }
+
+  // Accessor for master buffer (for oscilloscope)
+  const int16_t* GetSampleBuffer() const { return sampleBuffer; }
+  uint16_t GetSampleOffset() const { return sampleOffset; }
+
+  // Reset sample buffer state for clean playback start
+  // Clears the ring buffer and resets position tracking
+  void ResetSampleBuffer();
+
+  // Debug accessors for diagnostic UI
+  uint32_t GetFrameBoundary() const { return lastFrameBoundary; }
+  int8_t GetMasterVolumeL() const { return masterVolumeL; }
+  int8_t GetMasterVolumeR() const { return masterVolumeR; }
+  bool IsMuted() const { return mute; }
+  bool IsReset() const { return reset; }
+  bool IsEchoEnabled() const { return echoWrites; }
+  uint16_t GetEchoDelay() const { return echoDelay; }
+
+  // Default to Gaussian for authentic SNES sound
+  InterpolationType interpolation_type = InterpolationType::Gaussian;
 
  private:
-  // sample ring buffer (1024 samples, *2 for stereo)
-  int16_t sampleBuffer[0x400 * 2];
+  // sample ring buffer (2048 samples, *2 for stereo)
+  // Increased to 2048 to handle 2-frame updates (~1066 samples) without overflow
+  int16_t sampleBuffer[0x800 * 2];
   uint16_t sampleOffset;  // current offset in samplebuffer
+
+  bool debug_mute_channels_[8] = {false};
 
   std::vector<uint8_t>& aram_;
 

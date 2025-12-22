@@ -8,7 +8,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/gfx/core/bitmap.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 
 namespace yaze {
 namespace cli {

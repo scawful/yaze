@@ -9,7 +9,8 @@ RED='\033[0;31m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-Z3ED="./build_test/bin/z3ed"
+BUILD_DIR="${YAZE_BUILD_DIR:-./build}"
+Z3ED="${BUILD_DIR}/bin/z3ed"
 RESULTS_FILE="/tmp/z3ed_ai_test_results.txt"
 USE_MOCK_ROM=true  # Set to false if you want to test with a real ROM
 OLLAMA_MODEL="${OLLAMA_MODEL:-qwen2.5-coder:0.5b}"
@@ -148,7 +149,7 @@ fi
 # Check binary exists
 if [ ! -f "$Z3ED" ]; then
     echo -e "${RED}✗ z3ed binary not found at: $Z3ED${NC}"
-    echo "Run: cmake --build build_test"
+    echo "Run: cmake --build $BUILD_DIR"
     exit 1
 fi
 echo "✅ z3ed binary found"

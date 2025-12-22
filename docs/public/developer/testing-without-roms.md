@@ -151,8 +151,8 @@ jobs:
       
       - name: Build z3ed
         run: |
-          cmake -B build_test
-          cmake --build build_test --parallel
+          cmake -B build
+          cmake --build build --parallel
       
       - name: Run Agent Tests (Mock ROM)
         run: |

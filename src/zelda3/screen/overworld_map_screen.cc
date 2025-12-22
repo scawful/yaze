@@ -4,8 +4,8 @@
 
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_color.h"
-#include "app/rom.h"
-#include "app/snes.h"
+#include "rom/rom.h"
+#include "rom/snes.h"
 
 namespace yaze {
 namespace zelda3 {

@@ -3,7 +3,7 @@
 #include <optional>
 #include <string>
 
-#include "app/snes.h"
+#include "rom/snes.h"
 #include "util/hex.h"
 #include "util/log.h"
 
@@ -56,7 +56,15 @@ ParsedElement FindMatchingElement(const std::string& str) {
     if (match.size() > 0) {
       if (text_element.HasArgument) {
         std::string arg = match[1].str().substr(1);
-        return ParsedElement(text_element, std::stoi(arg, nullptr, 16));
+        try {
+          return ParsedElement(text_element, std::stoi(arg, nullptr, 16));
+        } catch (const std::invalid_argument& e) {
+          util::logf("Error parsing argument for %s: %s", text_element.GenericToken.c_str(), arg.c_str());
+          return ParsedElement(text_element, 0);
+        } catch (const std::out_of_range& e) {
+           util::logf("Argument out of range for %s: %s", text_element.GenericToken.c_str(), arg.c_str());
+           return ParsedElement(text_element, 0);
+        }
       } else {
         return ParsedElement(text_element, 0);
       }
@@ -68,8 +76,13 @@ ParsedElement FindMatchingElement(const std::string& str) {
 
   match = dictionary_element.MatchMe(str);
   if (match.size() > 0) {
-    return ParsedElement(dictionary_element,
-                         DICTOFF + std::stoi(match[1].str(), nullptr, 16));
+    try {
+      return ParsedElement(dictionary_element,
+                           DICTOFF + std::stoi(match[1].str(), nullptr, 16));
+    } catch (const std::exception& e) {
+      util::logf("Error parsing dictionary token: %s", match[1].str().c_str());
+      return ParsedElement();
+    }
   }
   return ParsedElement();
 }
@@ -437,7 +450,7 @@ absl::Status LoadExpandedMessages(std::string& expanded_message_path,
                                   std::vector<MessageData>& expanded_messages,
                                   std::vector<DictionaryEntry>& dictionary) {
   static Rom expanded_message_rom;
-  if (!expanded_message_rom.LoadFromFile(expanded_message_path, false).ok()) {
+  if (!expanded_message_rom.LoadFromFile(expanded_message_path).ok()) {
     return absl::InternalError("Failed to load expanded message ROM");
   }
   expanded_messages = ReadAllTextData(expanded_message_rom.mutable_data(), 0);
@@ -448,6 +461,34 @@ absl::Status LoadExpandedMessages(std::string& expanded_message_path,
     parsed_messages.push_back(parsed_expanded_messages[expanded_message.ID]);
   }
   return absl::OkStatus();
+}
+
+nlohmann::json SerializeMessagesToJson(const std::vector<MessageData>& messages) {
+  nlohmann::json j = nlohmann::json::array();
+  for (const auto& msg : messages) {
+    j.push_back({
+        {"id", msg.ID},
+        {"address", msg.Address},
+        {"raw_string", msg.RawString},
+        {"parsed_string", msg.ContentsParsed}
+    });
+  }
+  return j;
+}
+
+absl::Status ExportMessagesToJson(const std::string& path,
+                                  const std::vector<MessageData>& messages) {
+  try {
+    nlohmann::json j = SerializeMessagesToJson(messages);
+    std::ofstream file(path);
+    if (!file.is_open()) {
+      return absl::InternalError(absl::StrFormat("Failed to open file for writing: %s", path));
+    }
+    file << j.dump(2); // Pretty print with 2-space indent
+    return absl::OkStatus();
+  } catch (const std::exception& e) {
+    return absl::InternalError(absl::StrFormat("JSON export failed: %s", e.what()));
+  }
 }
 
 }  // namespace editor

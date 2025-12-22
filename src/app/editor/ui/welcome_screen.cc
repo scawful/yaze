@@ -157,12 +157,19 @@ bool WelcomeScreen::Show(bool* p_open) {
 
   bool action_taken = false;
 
-  // Center the window with responsive size (80% of viewport, max 1400x900)
+  // Center the window within the dockspace region (accounting for sidebars)
   ImGuiViewport* viewport = ImGui::GetMainViewport();
-  ImVec2 center = viewport->GetCenter();
-  ImVec2 viewport_size = viewport->Size;
+  ImVec2 viewport_size = viewport->WorkSize;
 
-  float width = std::min(viewport_size.x * 0.8f, 1400.0f);
+  // Calculate the dockspace region (excluding sidebars)
+  float dockspace_x = viewport->WorkPos.x + left_offset_;
+  float dockspace_width = viewport_size.x - left_offset_ - right_offset_;
+  float dockspace_center_x = dockspace_x + dockspace_width / 2.0f;
+  float dockspace_center_y = viewport->WorkPos.y + viewport_size.y / 2.0f;
+  ImVec2 center(dockspace_center_x, dockspace_center_y);
+
+  // Size based on dockspace region, not full viewport
+  float width = std::min(dockspace_width * 0.85f, 1400.0f);
   float height = std::min(viewport_size.y * 0.85f, 900.0f);
 
   ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
@@ -173,13 +180,16 @@ bool WelcomeScreen::Show(bool* p_open) {
   // even when our logic says the window should be visible
   if (first_show_attempt_) {
     ImGui::SetNextWindowCollapsed(false);  // Force window to be expanded
-    ImGui::SetNextWindowFocus();           // Bring window to front
+    // Don't steal focus - allow menu bar to remain clickable
     first_show_attempt_ = false;
   }
 
+  // Window flags: allow menu bar to be clickable by not bringing to front
   ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoCollapse |
                                   ImGuiWindowFlags_NoResize |
-                                  ImGuiWindowFlags_NoMove;
+                                  ImGuiWindowFlags_NoMove |
+                                  ImGuiWindowFlags_NoBringToFrontOnFocus |
+                                  ImGuiWindowFlags_NoTitleBar;
 
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20, 20));
 
@@ -454,31 +464,49 @@ void WelcomeScreen::RefreshRecentProjects() {
   recent_projects_.clear();
 
   // Use the ProjectManager singleton to get recent files
-  auto& recent_files =
-      project::RecentFilesManager::GetInstance().GetRecentFiles();
+  auto& manager = project::RecentFilesManager::GetInstance();
+  auto recent_files = manager.GetRecentFiles();  // Copy to allow modification
+
+  std::vector<std::string> files_to_remove;
 
   for (const auto& filepath : recent_files) {
     if (recent_projects_.size() >= kMaxRecentProjects)
       break;
 
+    std::filesystem::path path(filepath);
+
+    // Skip and mark for removal if file doesn't exist
+    if (!std::filesystem::exists(path)) {
+      files_to_remove.push_back(filepath);
+      continue;
+    }
+
     RecentProject project;
     project.filepath = filepath;
-
-    // Extract filename
-    std::filesystem::path path(filepath);
     project.name = path.filename().string();
 
-    // Get file modification time if it exists
-    if (std::filesystem::exists(path)) {
+    // Get file modification time
+    try {
       auto ftime = std::filesystem::last_write_time(path);
       project.last_modified = GetRelativeTimeString(ftime);
       project.rom_title = "ALTTP ROM";
-    } else {
-      project.last_modified = "File not found";
-      project.rom_title = "Missing";
+    } catch (const std::filesystem::filesystem_error&) {
+      // File became inaccessible between exists() check and last_write_time()
+      files_to_remove.push_back(filepath);
+      continue;
     }
 
     recent_projects_.push_back(project);
+  }
+
+  // Remove missing files from the recent files manager
+  for (const auto& missing_file : files_to_remove) {
+    manager.RemoveFile(missing_file);
+  }
+
+  // Save updated list if we removed any files
+  if (!files_to_remove.empty()) {
+    manager.Save();
   }
 }
 
@@ -582,6 +610,17 @@ void WelcomeScreen::DrawQuickActions() {
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(ICON_MD_INFO " Create a new ROM hacking project");
   }
+
+  ImGui::Spacing();
+
+  // AI Agent button - Purple like magic
+  if (draw_action_button(ICON_MD_SMART_TOY, "AI Agent", kGanonPurple, true,
+                         open_agent_callback_)) {
+    // Handled by callback
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(ICON_MD_INFO " Open AI Agent for natural language ROM editing");
+  }
 }
 
 void WelcomeScreen::DrawRecentProjects() {
@@ -615,11 +654,11 @@ void WelcomeScreen::DrawRecentProjects() {
     if (i % columns != 0) {
       ImGui::SameLine();
     }
-    DrawProjectCard(recent_projects_[i], i);
+    DrawProjectPanel(recent_projects_[i], i);
   }
 }
 
-void WelcomeScreen::DrawProjectCard(const RecentProject& project, int index) {
+void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index) {
   ImGui::BeginGroup();
 
   ImVec2 card_size(200, 95);  // Compact size
@@ -661,7 +700,7 @@ void WelcomeScreen::DrawProjectCard(const RecentProject& project, int index) {
 
   // Make the card clickable
   ImGui::SetCursorScreenPos(cursor_pos);
-  ImGui::InvisibleButton(absl::StrFormat("ProjectCard_%d", index).c_str(),
+  ImGui::InvisibleButton(absl::StrFormat("ProjectPanel_%d", index).c_str(),
                          card_size);
   bool is_hovered = ImGui::IsItemHovered();
   bool is_clicked = ImGui::IsItemClicked();
@@ -747,7 +786,7 @@ void WelcomeScreen::DrawProjectCard(const RecentProject& project, int index) {
 void WelcomeScreen::DrawTemplatesSection() {
   // Header with visual settings button
   float content_width = ImGui::GetContentRegionAvail().x;
-  ImGui::TextColored(kGanonPurple, ICON_MD_LAYERS " Templates");
+  ImGui::TextColored(kGanonPurple, ICON_MD_LAYERS " Project Templates");
   ImGui::SameLine(content_width - 25);
   if (ImGui::SmallButton(show_triforce_settings_ ? ICON_MD_CLOSE
                                                  : ICON_MD_TUNE)) {
@@ -802,15 +841,25 @@ void WelcomeScreen::DrawTemplatesSection() {
   struct Template {
     const char* icon;
     const char* name;
+    const char* description;
+    const char* template_id;
     ImVec4 color;
   };
 
   Template templates[] = {
-      {ICON_MD_COTTAGE, "Vanilla ALTTP", kHyruleGreen},
-      {ICON_MD_MAP, "ZSCustomOverworld v3", kMasterSwordBlue},
+      {ICON_MD_COTTAGE, "Vanilla ROM Hack",
+       "Standard editing without custom ASM", "Vanilla ROM Hack", kHyruleGreen},
+      {ICON_MD_MAP, "ZSCustomOverworld v3",
+       "Full overworld expansion features", "ZSCustomOverworld v3 (Recommended)",
+       kMasterSwordBlue},
+      {ICON_MD_LAYERS, "ZSCustomOverworld v2",
+       "Basic overworld expansion", "ZSCustomOverworld v2", kShadowPurple},
+      {ICON_MD_SHUFFLE, "Randomizer Compatible",
+       "Minimal custom features for rando", "Randomizer Compatible",
+       kSpiritOrange},
   };
 
-  for (int i = 0; i < 2; ++i) {
+  for (int i = 0; i < 4; ++i) {
     bool is_selected = (selected_template_ == i);
 
     // Subtle selection highlight (no animation)
@@ -833,22 +882,41 @@ void WelcomeScreen::DrawTemplatesSection() {
     }
 
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(ICON_MD_STAR " Start with a %s template",
-                        templates[i].name);
+      ImGui::SetTooltip("%s %s\n%s", ICON_MD_INFO, templates[i].name,
+                        templates[i].description);
     }
   }
 
   ImGui::Spacing();
+
+  // Use Template button - enabled and functional
   ImGui::PushStyleColor(ImGuiCol_Button,
                         ImVec4(kSpiritOrange.x * 0.6f, kSpiritOrange.y * 0.6f,
                                kSpiritOrange.z * 0.6f, 0.8f));
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered, kSpiritOrange);
-  ImGui::BeginDisabled(true);
-  ImGui::Button(
-      absl::StrFormat("%s Use Template", ICON_MD_ROCKET_LAUNCH).c_str(),
-      ImVec2(-1, 30));  // Reduced from 35 to 30
-  ImGui::EndDisabled();
-  ImGui::PopStyleColor(2);
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                        ImVec4(kSpiritOrange.x * 1.2f, kSpiritOrange.y * 1.2f,
+                               kSpiritOrange.z * 1.2f, 1.0f));
+
+  if (ImGui::Button(
+          absl::StrFormat("%s Use Template", ICON_MD_ROCKET_LAUNCH).c_str(),
+          ImVec2(-1, 30))) {
+    // Trigger template-based project creation
+    if (new_project_with_template_callback_) {
+      new_project_with_template_callback_(templates[selected_template_].template_id);
+    } else if (new_project_callback_) {
+      // Fallback to regular new project if template callback not set
+      new_project_callback_();
+    }
+  }
+
+  ImGui::PopStyleColor(3);
+
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("%s Create new project with '%s' template\nThis will "
+                      "open a ROM and apply the template settings.",
+                      ICON_MD_INFO, templates[selected_template_].name);
+  }
 }
 
 void WelcomeScreen::DrawTipsSection() {
@@ -895,16 +963,16 @@ void WelcomeScreen::DrawWhatsNew() {
   };
 
   Feature features[] = {
+      {ICON_MD_MUSIC_NOTE, "Music Editor",
+       "Complete SPC music editing with piano roll and tracker views", kTriforceGold},
+      {ICON_MD_PIANO, "Piano Roll & Playback",
+       "Visual note editing with authentic N-SPC audio preview", kMasterSwordBlue},
+      {ICON_MD_SPEAKER, "Instrument Editor",
+       "Edit ADSR envelopes, samples, and instrument banks", kHyruleGreen},
       {ICON_MD_PSYCHOLOGY, "AI Agent Integration",
        "Natural language ROM editing with z3ed agent", kGanonPurple},
-      {ICON_MD_CLOUD_SYNC, "Collaboration Features",
-       "Real-time ROM collaboration via yaze-server", kMasterSwordBlue},
-      {ICON_MD_HISTORY, "Version Management",
-       "ROM snapshots, rollback, corruption detection", kHyruleGreen},
-      {ICON_MD_PALETTE, "Enhanced Palette Editor",
-       "Advanced color tools with ROM palette browser", kSpiritOrange},
       {ICON_MD_SPEED, "Performance Improvements",
-       "Faster dungeon loading with parallel processing", kTriforceGold},
+       "Improved graphics arena and faster loading", kSpiritOrange},
   };
 
   for (const auto& feature : features) {

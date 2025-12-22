@@ -137,6 +137,9 @@ class Spc700 {
   }
 
   void Reset(bool hard = false);
+  
+  void SaveState(std::ostream& stream);
+  void LoadState(std::istream& stream);
 
   void RunOpcode();
 

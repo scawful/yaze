@@ -4,21 +4,25 @@
 #include "absl/strings/str_cat.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
+#include "app/gfx/types/snes_tile.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/color.h"
+#include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
-#include "app/rom.h"
 #include "imgui/imgui.h"
+#include "rom/rom.h"
 
 namespace yaze {
 namespace editor {
 
 using ImGui::BeginChild;
+using ImGui::BeginCombo;
 using ImGui::BeginGroup;
 using ImGui::BeginTabBar;
 using ImGui::BeginTabItem;
 using ImGui::BeginTable;
 using ImGui::EndChild;
+using ImGui::EndCombo;
 using ImGui::EndGroup;
 using ImGui::EndTabBar;
 using ImGui::EndTabItem;
@@ -29,8 +33,10 @@ using ImGui::IsItemClicked;
 using ImGui::PopID;
 using ImGui::PushID;
 using ImGui::SameLine;
+using ImGui::Selectable;
 using ImGui::Separator;
 using ImGui::SetNextItemWidth;
+using ImGui::SliderFloat;
 using ImGui::TableHeadersRow;
 using ImGui::TableNextColumn;
 using ImGui::TableNextRow;
@@ -40,11 +46,50 @@ using ImGui::Text;
 using gfx::kPaletteGroupNames;
 using gfx::PaletteCategory;
 
+namespace {
+
+// Constants for sheet display
+constexpr int kSheetDisplayWidth = 256;  // 2x scale from 128px sheets
+constexpr int kSheetDisplayHeight = 64;  // 2x scale from 32px sheets
+constexpr float kDefaultScale = 2.0f;
+constexpr int kTileSize = 16;  // 8px tiles at 2x scale
+
+// Draw a single sheet with proper scaling and unique ID
+void DrawScaledSheet(gui::Canvas& canvas, gfx::Bitmap& sheet, int unique_id,
+                     float scale = kDefaultScale) {
+  PushID(unique_id);
+
+  // Calculate scaled dimensions
+  int display_width =
+      static_cast<int>(gfx::kTilesheetWidth * scale);
+  int display_height =
+      static_cast<int>(gfx::kTilesheetHeight * scale);
+
+  // Draw canvas background
+  canvas.DrawBackground(ImVec2(display_width + 1, display_height + 1));
+  canvas.DrawContextMenu();
+
+  // Draw bitmap with proper scale
+  canvas.DrawBitmap(sheet, 2, scale);
+
+  // Draw grid at scaled tile size
+  canvas.DrawGrid(static_cast<int>(8 * scale));
+  canvas.DrawOverlay();
+
+  PopID();
+}
+
+}  // namespace
+
 absl::Status GfxGroupEditor::Update() {
-  if (BeginTabBar("GfxGroupEditor")) {
-    if (BeginTabItem("Main")) {
+  // Palette controls at top for all tabs
+  DrawPaletteControls();
+  Separator();
+
+  if (BeginTabBar("##GfxGroupEditorTabs")) {
+    if (BeginTabItem("Blocksets")) {
       gui::InputHexByte("Selected Blockset", &selected_blockset_,
-                        (uint8_t)0x24);
+                        static_cast<uint8_t>(0x24));
       rom()->resource_label()->SelectableLabelWithNameEdit(
           false, "blockset", "0x" + std::to_string(selected_blockset_),
           "Blockset " + std::to_string(selected_blockset_));
@@ -52,8 +97,9 @@ absl::Status GfxGroupEditor::Update() {
       EndTabItem();
     }
 
-    if (BeginTabItem("Rooms")) {
-      gui::InputHexByte("Selected Blockset", &selected_roomset_, (uint8_t)81);
+    if (BeginTabItem("Roomsets")) {
+      gui::InputHexByte("Selected Roomset", &selected_roomset_,
+                        static_cast<uint8_t>(81));
       rom()->resource_label()->SelectableLabelWithNameEdit(
           false, "roomset", "0x" + std::to_string(selected_roomset_),
           "Roomset " + std::to_string(selected_roomset_));
@@ -61,19 +107,13 @@ absl::Status GfxGroupEditor::Update() {
       EndTabItem();
     }
 
-    if (BeginTabItem("Sprites")) {
+    if (BeginTabItem("Spritesets")) {
       gui::InputHexByte("Selected Spriteset", &selected_spriteset_,
-                        (uint8_t)143);
+                        static_cast<uint8_t>(143));
       rom()->resource_label()->SelectableLabelWithNameEdit(
           false, "spriteset", "0x" + std::to_string(selected_spriteset_),
           "Spriteset " + std::to_string(selected_spriteset_));
-      Text("Values");
       DrawSpritesetViewer();
-      EndTabItem();
-    }
-
-    if (BeginTabItem("Palettes")) {
-      DrawPaletteViewer();
       EndTabItem();
     }
 
@@ -84,6 +124,13 @@ absl::Status GfxGroupEditor::Update() {
 }
 
 void GfxGroupEditor::DrawBlocksetViewer(bool sheet_only) {
+  if (!game_data()) {
+    Text("No game data loaded");
+    return;
+  }
+
+  PushID("BlocksetViewer");
+
   if (BeginTable("##BlocksetTable", sheet_only ? 1 : 2,
                  ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable,
                  ImVec2(0, 0))) {
@@ -92,90 +139,125 @@ void GfxGroupEditor::DrawBlocksetViewer(bool sheet_only) {
                        GetContentRegionAvail().x);
     }
 
-    TableSetupColumn("Sheets", ImGuiTableColumnFlags_WidthFixed, 256);
+    TableSetupColumn("Sheets", ImGuiTableColumnFlags_WidthFixed,
+                     kSheetDisplayWidth + 16);
     TableHeadersRow();
     TableNextRow();
+
     if (!sheet_only) {
       TableNextColumn();
-      {
-        BeginGroup();
-        for (int i = 0; i < 8; i++) {
-          SetNextItemWidth(100.f);
-          gui::InputHexByte(("0x" + std::to_string(i)).c_str(),
-                            &rom()->main_blockset_ids[selected_blockset_][i]);
-        }
-        EndGroup();
-      }
-    }
-    TableNextColumn();
-    {
       BeginGroup();
-      for (int i = 0; i < 8; i++) {
-        int sheet_id = rom()->main_blockset_ids[selected_blockset_][i];
-        auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id);
-        gui::BitmapCanvasPipeline(blockset_canvas_, sheet, 256, 0x10 * 0x04,
-                                  0x20, true, false, 22);
+      for (int idx = 0; idx < 8; idx++) {
+        SetNextItemWidth(100.f);
+        gui::InputHexByte(
+            ("Slot " + std::to_string(idx)).c_str(),
+            &game_data()->main_blockset_ids[selected_blockset_][idx]);
       }
       EndGroup();
     }
+
+    TableNextColumn();
+    BeginGroup();
+    for (int idx = 0; idx < 8; idx++) {
+      int sheet_id = game_data()->main_blockset_ids[selected_blockset_][idx];
+      auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id);
+
+      // Apply current palette if selected
+      if (use_custom_palette_ && current_palette_) {
+        sheet.SetPalette(*current_palette_);
+        gfx::Arena::Get().NotifySheetModified(sheet_id);
+      }
+
+      // Unique ID combining blockset, slot, and sheet
+      int unique_id = (selected_blockset_ << 16) | (idx << 8) | sheet_id;
+      DrawScaledSheet(blockset_canvases_[idx], sheet, unique_id, view_scale_);
+    }
+    EndGroup();
     EndTable();
   }
+
+  PopID();
 }
 
 void GfxGroupEditor::DrawRoomsetViewer() {
-  Text("Values - Overwrites 4 of main blockset");
-  if (BeginTable("##Roomstable", 3,
+  if (!game_data()) {
+    Text("No game data loaded");
+    return;
+  }
+
+  PushID("RoomsetViewer");
+  Text("Roomsets overwrite slots 4-7 of the main blockset");
+
+  if (BeginTable("##RoomsTable", 3,
                  ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable,
                  ImVec2(0, 0))) {
-    TableSetupColumn("List", ImGuiTableColumnFlags_WidthFixed, 100);
+    TableSetupColumn("List", ImGuiTableColumnFlags_WidthFixed, 120);
     TableSetupColumn("Inputs", ImGuiTableColumnFlags_WidthStretch,
                      GetContentRegionAvail().x);
-    TableSetupColumn("Sheets", ImGuiTableColumnFlags_WidthFixed, 256);
+    TableSetupColumn("Sheets", ImGuiTableColumnFlags_WidthFixed,
+                     kSheetDisplayWidth + 16);
     TableHeadersRow();
     TableNextRow();
 
+    // Roomset list column
     TableNextColumn();
-    {
-      BeginChild("##RoomsetList");
-      for (int i = 0; i < 0x51; i++) {
-        BeginGroup();
-        std::string roomset_label = absl::StrFormat("0x%02X", i);
-        rom()->resource_label()->SelectableLabelWithNameEdit(
-            false, "roomset", roomset_label, "Roomset " + roomset_label);
-        if (IsItemClicked()) {
-          selected_roomset_ = i;
+    if (BeginChild("##RoomsetListChild", ImVec2(0, 300))) {
+      for (int idx = 0; idx < 0x51; idx++) {
+        PushID(idx);
+        std::string roomset_label = absl::StrFormat("0x%02X", idx);
+        bool is_selected = (selected_roomset_ == idx);
+        if (Selectable(roomset_label.c_str(), is_selected)) {
+          selected_roomset_ = idx;
         }
-        EndGroup();
+        PopID();
       }
-      EndChild();
     }
+    EndChild();
 
+    // Inputs column
     TableNextColumn();
-    {
-      BeginGroup();
-      for (int i = 0; i < 4; i++) {
-        SetNextItemWidth(100.f);
-        gui::InputHexByte(("0x" + std::to_string(i)).c_str(),
-                          &rom()->room_blockset_ids[selected_roomset_][i]);
-      }
-      EndGroup();
+    BeginGroup();
+    Text("Sheet IDs (overwrites slots 4-7):");
+    for (int idx = 0; idx < 4; idx++) {
+      SetNextItemWidth(100.f);
+      gui::InputHexByte(
+          ("Slot " + std::to_string(idx + 4)).c_str(),
+          &game_data()->room_blockset_ids[selected_roomset_][idx]);
     }
+    EndGroup();
+
+    // Sheets column
     TableNextColumn();
-    {
-      BeginGroup();
-      for (int i = 0; i < 4; i++) {
-        int sheet_id = rom()->room_blockset_ids[selected_roomset_][i];
-        auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id);
-        gui::BitmapCanvasPipeline(roomset_canvas_, sheet, 256, 0x10 * 0x04,
-                                  0x20, true, false, 23);
+    BeginGroup();
+    for (int idx = 0; idx < 4; idx++) {
+      int sheet_id = game_data()->room_blockset_ids[selected_roomset_][idx];
+      auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id);
+
+      // Apply current palette if selected
+      if (use_custom_palette_ && current_palette_) {
+        sheet.SetPalette(*current_palette_);
+        gfx::Arena::Get().NotifySheetModified(sheet_id);
       }
-      EndGroup();
+
+      // Unique ID combining roomset, slot, and sheet
+      int unique_id = (0x1000) | (selected_roomset_ << 8) | (idx << 4) | sheet_id;
+      DrawScaledSheet(roomset_canvases_[idx], sheet, unique_id, view_scale_);
     }
+    EndGroup();
     EndTable();
   }
+
+  PopID();
 }
 
 void GfxGroupEditor::DrawSpritesetViewer(bool sheet_only) {
+  if (!game_data()) {
+    Text("No game data loaded");
+    return;
+  }
+
+  PushID("SpritesetViewer");
+
   if (BeginTable("##SpritesTable", sheet_only ? 1 : 2,
                  ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable,
                  ImVec2(0, 0))) {
@@ -183,35 +265,47 @@ void GfxGroupEditor::DrawSpritesetViewer(bool sheet_only) {
       TableSetupColumn("Inputs", ImGuiTableColumnFlags_WidthStretch,
                        GetContentRegionAvail().x);
     }
-    TableSetupColumn("Sheets", ImGuiTableColumnFlags_WidthFixed, 256);
+    TableSetupColumn("Sheets", ImGuiTableColumnFlags_WidthFixed,
+                     kSheetDisplayWidth + 16);
     TableHeadersRow();
     TableNextRow();
+
     if (!sheet_only) {
       TableNextColumn();
-      {
-        BeginGroup();
-        for (int i = 0; i < 4; i++) {
-          SetNextItemWidth(100.f);
-          gui::InputHexByte(("0x" + std::to_string(i)).c_str(),
-                            &rom()->spriteset_ids[selected_spriteset_][i]);
-        }
-        EndGroup();
-      }
-    }
-    TableNextColumn();
-    {
       BeginGroup();
-      for (int i = 0; i < 4; i++) {
-        int sheet_id = rom()->spriteset_ids[selected_spriteset_][i];
-        auto& sheet =
-            gfx::Arena::Get().mutable_gfx_sheets()->at(115 + sheet_id);
-        gui::BitmapCanvasPipeline(spriteset_canvas_, sheet, 256, 0x10 * 0x04,
-                                  0x20, true, false, 24);
+      Text("Sprite sheet IDs (base 115+):");
+      for (int idx = 0; idx < 4; idx++) {
+        SetNextItemWidth(100.f);
+        gui::InputHexByte(
+            ("Slot " + std::to_string(idx)).c_str(),
+            &game_data()->spriteset_ids[selected_spriteset_][idx]);
       }
       EndGroup();
     }
+
+    TableNextColumn();
+    BeginGroup();
+    for (int idx = 0; idx < 4; idx++) {
+      int sheet_offset = game_data()->spriteset_ids[selected_spriteset_][idx];
+      int sheet_id = 115 + sheet_offset;
+      auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id);
+
+      // Apply current palette if selected
+      if (use_custom_palette_ && current_palette_) {
+        sheet.SetPalette(*current_palette_);
+        gfx::Arena::Get().NotifySheetModified(sheet_id);
+      }
+
+      // Unique ID combining spriteset, slot, and sheet
+      int unique_id =
+          (0x2000) | (selected_spriteset_ << 8) | (idx << 4) | sheet_offset;
+      DrawScaledSheet(spriteset_canvases_[idx], sheet, unique_id, view_scale_);
+    }
+    EndGroup();
     EndTable();
   }
+
+  PopID();
 }
 
 namespace {
@@ -219,84 +313,137 @@ void DrawPaletteFromPaletteGroup(gfx::SnesPalette& palette) {
   if (palette.empty()) {
     return;
   }
-  for (size_t n = 0; n < palette.size(); n++) {
-    PushID(n);
-    if ((n % 8) != 0)
+  for (size_t color_idx = 0; color_idx < palette.size(); color_idx++) {
+    PushID(static_cast<int>(color_idx));
+    if ((color_idx % 8) != 0) {
       SameLine(0.0f, GetStyle().ItemSpacing.y);
+    }
 
     // Small icon of the color in the palette
-    if (gui::SnesColorButton(absl::StrCat("Palette", n), palette[n],
-                             ImGuiColorEditFlags_NoAlpha |
-                                 ImGuiColorEditFlags_NoPicker |
-                                 ImGuiColorEditFlags_NoTooltip)) {}
+    gui::SnesColorButton(absl::StrCat("Palette", color_idx), palette[color_idx],
+                         ImGuiColorEditFlags_NoAlpha |
+                             ImGuiColorEditFlags_NoPicker |
+                             ImGuiColorEditFlags_NoTooltip);
 
     PopID();
   }
 }
 }  // namespace
 
-void GfxGroupEditor::DrawPaletteViewer() {
-  if (!rom()->is_loaded()) {
+void GfxGroupEditor::DrawPaletteControls() {
+  if (!game_data()) {
     return;
   }
-  gui::InputHexByte("Selected Paletteset", &selected_paletteset_);
-  if (selected_paletteset_ >= 71) {
-    selected_paletteset_ = 71;
+
+  // View scale control
+  Text(ICON_MD_ZOOM_IN " View");
+  SameLine();
+  SetNextItemWidth(100.f);
+  SliderFloat("##ViewScale", &view_scale_, 1.0f, 4.0f, "%.1fx");
+  SameLine();
+
+  // Palette category selector
+  Text(ICON_MD_PALETTE " Palette");
+  SameLine();
+  SetNextItemWidth(150.f);
+
+  // Use the category names array for display
+  static constexpr int kNumPaletteCategories = 14;
+  if (BeginCombo("##PaletteCategory",
+                 gfx::kPaletteCategoryNames[selected_palette_category_].data())) {
+    for (int cat = 0; cat < kNumPaletteCategories; cat++) {
+      auto category = static_cast<PaletteCategory>(cat);
+      bool is_selected = (selected_palette_category_ == category);
+      if (Selectable(gfx::kPaletteCategoryNames[category].data(), is_selected)) {
+        selected_palette_category_ = category;
+        selected_palette_index_ = 0;
+        UpdateCurrentPalette();
+      }
+      if (is_selected) {
+        ImGui::SetItemDefaultFocus();
+      }
+    }
+    EndCombo();
   }
-  rom()->resource_label()->SelectableLabelWithNameEdit(
-      false, "paletteset", "0x" + std::to_string(selected_paletteset_),
-      "Paletteset " + std::to_string(selected_paletteset_));
 
-  uint8_t& dungeon_main_palette_val =
-      rom()->paletteset_ids[selected_paletteset_][0];
-  uint8_t& dungeon_spr_pal_1_val =
-      rom()->paletteset_ids[selected_paletteset_][1];
-  uint8_t& dungeon_spr_pal_2_val =
-      rom()->paletteset_ids[selected_paletteset_][2];
-  uint8_t& dungeon_spr_pal_3_val =
-      rom()->paletteset_ids[selected_paletteset_][3];
-
-  gui::InputHexByte("Dungeon Main", &dungeon_main_palette_val);
-
-  rom()->resource_label()->SelectableLabelWithNameEdit(
-      false, kPaletteGroupNames[PaletteCategory::kDungeons].data(),
-      std::to_string(dungeon_main_palette_val), "Unnamed dungeon palette");
-  auto& palette = *rom()->mutable_palette_group()->dungeon_main.mutable_palette(
-      rom()->paletteset_ids[selected_paletteset_][0]);
-  DrawPaletteFromPaletteGroup(palette);
-  Separator();
-
-  gui::InputHexByte("Dungeon Spr Pal 1", &dungeon_spr_pal_1_val);
-  auto& spr_aux_pal1 =
-      *rom()->mutable_palette_group()->sprites_aux1.mutable_palette(
-          rom()->paletteset_ids[selected_paletteset_][1]);
-  DrawPaletteFromPaletteGroup(spr_aux_pal1);
   SameLine();
-  rom()->resource_label()->SelectableLabelWithNameEdit(
-      false, kPaletteGroupNames[PaletteCategory::kSpritesAux1].data(),
-      std::to_string(dungeon_spr_pal_1_val), "Dungeon Spr Pal 1");
-  Separator();
+  SetNextItemWidth(80.f);
+  if (gui::InputHexByte("##PaletteIndex", &selected_palette_index_)) {
+    UpdateCurrentPalette();
+  }
 
-  gui::InputHexByte("Dungeon Spr Pal 2", &dungeon_spr_pal_2_val);
-  auto& spr_aux_pal2 =
-      *rom()->mutable_palette_group()->sprites_aux2.mutable_palette(
-          rom()->paletteset_ids[selected_paletteset_][2]);
-  DrawPaletteFromPaletteGroup(spr_aux_pal2);
   SameLine();
-  rom()->resource_label()->SelectableLabelWithNameEdit(
-      false, kPaletteGroupNames[PaletteCategory::kSpritesAux2].data(),
-      std::to_string(dungeon_spr_pal_2_val), "Dungeon Spr Pal 2");
-  Separator();
+  ImGui::Checkbox("Apply", &use_custom_palette_);
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Apply selected palette to sheet previews");
+  }
 
-  gui::InputHexByte("Dungeon Spr Pal 3", &dungeon_spr_pal_3_val);
-  auto& spr_aux_pal3 =
-      *rom()->mutable_palette_group()->sprites_aux3.mutable_palette(
-          rom()->paletteset_ids[selected_paletteset_][3]);
-  DrawPaletteFromPaletteGroup(spr_aux_pal3);
-  SameLine();
-  rom()->resource_label()->SelectableLabelWithNameEdit(
-      false, kPaletteGroupNames[PaletteCategory::kSpritesAux3].data(),
-      std::to_string(dungeon_spr_pal_3_val), "Dungeon Spr Pal 3");
+  // Show current palette preview
+  if (current_palette_ && !current_palette_->empty()) {
+    SameLine();
+    DrawPaletteFromPaletteGroup(*current_palette_);
+  }
+}
+
+void GfxGroupEditor::UpdateCurrentPalette() {
+  if (!game_data()) {
+    current_palette_ = nullptr;
+    return;
+  }
+
+  auto& groups = game_data()->palette_groups;
+  switch (selected_palette_category_) {
+    case PaletteCategory::kSword:
+      current_palette_ = groups.swords.mutable_palette(selected_palette_index_);
+      break;
+    case PaletteCategory::kShield:
+      current_palette_ = groups.shields.mutable_palette(selected_palette_index_);
+      break;
+    case PaletteCategory::kClothes:
+      current_palette_ = groups.armors.mutable_palette(selected_palette_index_);
+      break;
+    case PaletteCategory::kWorldColors:
+      current_palette_ =
+          groups.overworld_main.mutable_palette(selected_palette_index_);
+      break;
+    case PaletteCategory::kAreaColors:
+      current_palette_ =
+          groups.overworld_aux.mutable_palette(selected_palette_index_);
+      break;
+    case PaletteCategory::kGlobalSprites:
+      current_palette_ =
+          groups.global_sprites.mutable_palette(selected_palette_index_);
+      break;
+    case PaletteCategory::kSpritesAux1:
+      current_palette_ =
+          groups.sprites_aux1.mutable_palette(selected_palette_index_);
+      break;
+    case PaletteCategory::kSpritesAux2:
+      current_palette_ =
+          groups.sprites_aux2.mutable_palette(selected_palette_index_);
+      break;
+    case PaletteCategory::kSpritesAux3:
+      current_palette_ =
+          groups.sprites_aux3.mutable_palette(selected_palette_index_);
+      break;
+    case PaletteCategory::kDungeons:
+      current_palette_ =
+          groups.dungeon_main.mutable_palette(selected_palette_index_);
+      break;
+    case PaletteCategory::kWorldMap:
+    case PaletteCategory::kDungeonMap:
+      current_palette_ =
+          groups.overworld_mini_map.mutable_palette(selected_palette_index_);
+      break;
+    case PaletteCategory::kTriforce:
+    case PaletteCategory::kCrystal:
+      current_palette_ =
+          groups.object_3d.mutable_palette(selected_palette_index_);
+      break;
+    default:
+      current_palette_ = nullptr;
+      break;
+  }
 }
 
 }  // namespace editor

@@ -8,14 +8,16 @@
 # Dependencies: yaze_util, yaze_zelda3, asar, absl
 # ==============================================================================
 
-# Add ASAR library subdirectory
-# TODO: Fix ASAR CMakeLists.txt macro errors
-# add_subdirectory(${CMAKE_SOURCE_DIR}/ext/asar/src/asar ${CMAKE_BINARY_DIR}/asar)
+# Include Asar configuration
+include(${CMAKE_SOURCE_DIR}/cmake/asar.cmake)
 
 # Core library sources
 set(YAZE_CORE_LIB_SOURCES
-  asar_wrapper.cc  # Has stub implementations until ASAR build is fixed
+  asar_wrapper.cc
   project.cc
+  version_manager.cc
+  patch/asm_patch.cc
+  patch/patch_manager.cc
 )
 
 # Create the static library
@@ -39,11 +41,28 @@ target_include_directories(yaze_core_lib PUBLIC
 # Link dependencies - minimal set
 target_link_libraries(yaze_core_lib PUBLIC
   yaze_util          # Logging, file I/O, platform paths
-  yaze_zelda3        # Zelda3 labels for embedded project labels
-  # asar-static      # Assembly patching - TODO: Fix ASAR build
   ${ABSL_TARGETS}    # Abseil for Status/StatusOr
   ${CMAKE_DL_LIBS}   # Dynamic library loading
 )
+
+# JSON support for project serialization
+if(TARGET nlohmann_json::nlohmann_json)
+  target_link_libraries(yaze_core_lib PUBLIC nlohmann_json::nlohmann_json)
+  target_include_directories(yaze_core_lib PUBLIC
+    ${CMAKE_SOURCE_DIR}/ext/json/include
+  )
+endif()
+
+# Add Asar support (links asar-static and adds YAZE_ENABLE_ASAR definition)
+if(ASAR_FOUND)
+  yaze_add_asar_support(yaze_core_lib)
+  if(TARGET asar-standalone)
+    add_dependencies(yaze_core_lib asar-standalone)
+    # Embed the bundled Asar CLI path for fallback patching
+    target_compile_definitions(yaze_core_lib PRIVATE
+      YAZE_ASAR_STANDALONE_PATH=\"$<TARGET_FILE:asar-standalone>\")
+  endif()
+endif()
 
 # Precompiled headers for faster builds
 target_precompile_headers(yaze_core_lib PRIVATE
@@ -67,4 +86,3 @@ elseif(WIN32)
 endif()
 
 message(STATUS "✓ yaze_core_lib configured (foundational project management)")
-

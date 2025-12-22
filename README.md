@@ -6,18 +6,19 @@
 [![Release](https://github.com/scawful/yaze/workflows/Release/badge.svg)](https://github.com/scawful/yaze/actions)
 [![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE)
 
-A cross-platform Zelda 3 ROM editor with a modern C++ GUI, Asar 65816 assembler integration, and an automation-friendly CLI (`z3ed`). YAZE bundles its toolchain, offers AI-assisted editing flows, and targets reproducible builds on Windows, macOS, and Linux.
+A cross-platform Zelda 3 ROM editor with a modern C++ GUI, Asar 65816 assembler integration, and an automation-friendly CLI (`z3ed`). YAZE bundles its toolchain, offers AI-assisted editing flows, and targets reproducible builds on Windows, macOS, and Linux. A preview web version is also available for browser-based editing.
 
 ## Highlights
 - **All-in-one editing**: Overworld, dungeon, sprite, palette, and messaging tools with live previews.
 - **Assembler-first workflow**: Built-in Asar integration, symbol extraction, and patch validation.
 - **Automation & AI**: `z3ed` exposes CLI/TUI automation, proposal workflows, and optional AI agents.
+- **Web preview**: Experimental browser-based editor (WASM) - see [Web App Guide](docs/public/usage/web-app.md).
 - **Testing & CI hooks**: CMake presets, ROM-less test fixtures, and gRPC-based GUI automation support.
 - **Cross-platform toolchains**: Single source tree targeting MSVC, Clang, and GCC with identical presets.
 - **Modular AI stack**: Toggle agent UI (`YAZE_BUILD_AGENT_UI`), remote automation/gRPC (`YAZE_ENABLE_REMOTE_AUTOMATION`), and AI runtimes (`YAZE_ENABLE_AI_RUNTIME`) per preset.
 
 ## Project Status
-`0.3.x` builds are in active development. Release automation is being reworked, so packaged builds may lag behind main. Follow `develop` for the most accurate view of current functionality.
+`0.5.0-alpha` builds are in active development, focusing on the new Music Editor, Web Assembly port, and SDL3 migration. See [`docs/public/release-notes.md`](docs/public/release-notes.md) for details.
 
 ## Quick Start
 
@@ -57,6 +58,7 @@ All bundled third-party code (SDL, ImGui, ImGui Test Engine, Asar, nlohmann/json
 
 ## Applications & Workflows
 - **`./build/bin/yaze`** – full GUI editor with multi-session dockspace, theming, and ROM patching.
+- **Web App (Preview)** – browser-based editor at your deployed instance; see [`docs/public/usage/web-app.md`](docs/public/usage/web-app.md) for details and limitations.
 - **`./build/bin/z3ed --tui`** – CLI/TUI companion for scripting, AI-assisted edits, and Asar workflows.
 - **`./build_ai/bin/yaze_test --unit|--integration|--e2e`** – structured test runner for quick regression checks.
 - **`z3ed` + macOS automation** – pair the CLI with sketchybar/yabai/skhd or Emacs/Spacemacs to drive ROM workflows without opening the GUI.

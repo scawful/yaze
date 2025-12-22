@@ -2,6 +2,7 @@
 
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
+#include "app/gui/core/popup_id.h"
 #include "app/gui/core/style.h"
 #include "imgui.h"
 #include "util/hex.h"
@@ -22,31 +23,56 @@ using ImGui::Text;
 constexpr float kInputFieldSize = 30.f;
 
 bool IsMouseHoveringOverEntity(const zelda3::GameEntity& entity,
-                               ImVec2 canvas_p0, ImVec2 scrolling) {
+                               ImVec2 canvas_p0, ImVec2 scrolling,
+                               float scale) {
   // Get the mouse position relative to the canvas
   const ImGuiIO& io = ImGui::GetIO();
   const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y);
   const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
 
-  // Check if the mouse is hovering over the entity
-  return mouse_pos.x >= entity.x_ && mouse_pos.x <= entity.x_ + 16 &&
-         mouse_pos.y >= entity.y_ && mouse_pos.y <= entity.y_ + 16;
+  // Scale entity bounds to match canvas zoom level
+  float scaled_x = entity.x_ * scale;
+  float scaled_y = entity.y_ * scale;
+  float scaled_size = 16.0f * scale;
+
+  // Check if the mouse is hovering over the scaled entity bounds
+  return mouse_pos.x >= scaled_x && mouse_pos.x <= scaled_x + scaled_size &&
+         mouse_pos.y >= scaled_y && mouse_pos.y <= scaled_y + scaled_size;
+}
+
+bool IsMouseHoveringOverEntity(const zelda3::GameEntity& entity,
+                               const gui::CanvasRuntime& rt) {
+  // Use runtime geometry to compute mouse position relative to canvas
+  const ImGuiIO& io = ImGui::GetIO();
+  const ImVec2 origin(rt.canvas_p0.x + rt.scrolling.x,
+                      rt.canvas_p0.y + rt.scrolling.y);
+  const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
+
+  // Scale entity bounds to match canvas zoom level
+  float scaled_x = entity.x_ * rt.scale;
+  float scaled_y = entity.y_ * rt.scale;
+  float scaled_size = 16.0f * rt.scale;
+
+  // Check if the mouse is hovering over the scaled entity bounds
+  return mouse_pos.x >= scaled_x && mouse_pos.x <= scaled_x + scaled_size &&
+         mouse_pos.y >= scaled_y && mouse_pos.y <= scaled_y + scaled_size;
 }
 
 void MoveEntityOnGrid(zelda3::GameEntity* entity, ImVec2 canvas_p0,
-                      ImVec2 scrolling, bool free_movement) {
+                      ImVec2 scrolling, bool free_movement, float scale) {
   // Get the mouse position relative to the canvas
   const ImGuiIO& io = ImGui::GetIO();
   const ImVec2 origin(canvas_p0.x + scrolling.x, canvas_p0.y + scrolling.y);
   const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
 
-  // Calculate the new position on the 16x16 grid
-  int new_x = static_cast<int>(mouse_pos.x) / 16 * 16;
-  int new_y = static_cast<int>(mouse_pos.y) / 16 * 16;
-  if (free_movement) {
-    new_x = static_cast<int>(mouse_pos.x) / 8 * 8;
-    new_y = static_cast<int>(mouse_pos.y) / 8 * 8;
-  }
+  // Convert screen position to world position accounting for scale
+  float world_x = mouse_pos.x / scale;
+  float world_y = mouse_pos.y / scale;
+
+  // Calculate the new position on the 16x16 or 8x8 grid (in world coordinates)
+  int grid_size = free_movement ? 8 : 16;
+  int new_x = static_cast<int>(world_x) / grid_size * grid_size;
+  int new_y = static_cast<int>(world_y) / grid_size * grid_size;
 
   // Update the entity position
   entity->set_x(new_x);
@@ -60,6 +86,10 @@ bool DrawEntranceInserterPopup() {
   }
   if (ImGui::BeginPopup("Entrance Inserter")) {
     static int entrance_id = 0;
+    if (ImGui::IsWindowAppearing()) {
+      entrance_id = 0;
+    }
+
     gui::InputHex("Entrance ID", &entrance_id);
 
     if (Button(ICON_MD_DONE)) {
@@ -84,8 +114,14 @@ bool DrawOverworldEntrancePopup(zelda3::OverworldEntrance& entrance) {
     return true;
   }
 
-  if (ImGui::BeginPopupModal("Entrance Editor", NULL,
-                             ImGuiWindowFlags_AlwaysAutoResize)) {
+  if (ImGui::BeginPopupModal(
+          gui::MakePopupId(gui::EditorNames::kOverworld, "Entrance Editor")
+              .c_str(),
+          NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+    if (ImGui::IsWindowAppearing()) {
+      // Reset state if needed
+    }
+
     ImGui::Text("Entrance ID: %d", entrance.entrance_id_);
     ImGui::Separator();
 
@@ -126,6 +162,13 @@ void DrawExitInserterPopup() {
     static int x_pos = 0;
     static int y_pos = 0;
 
+    if (ImGui::IsWindowAppearing()) {
+      exit_id = 0;
+      room_id = 0;
+      x_pos = 0;
+      y_pos = 0;
+    }
+
     ImGui::Text("Insert New Exit");
     ImGui::Separator();
 
@@ -155,12 +198,13 @@ bool DrawExitEditorPopup(zelda3::OverworldExit& exit) {
     set_done = false;
     return true;
   }
-  if (ImGui::BeginPopupModal("Exit editor", NULL,
-                             ImGuiWindowFlags_AlwaysAutoResize)) {
+  if (ImGui::BeginPopupModal(
+          gui::MakePopupId(gui::EditorNames::kOverworld, "Exit Editor").c_str(),
+          NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
     // Normal door: None = 0, Wooden = 1, Bombable = 2
-    static int doorType = exit.door_type_1_;
+    static int doorType = 0;
     // Fancy door: None = 0, Sanctuary = 1, Palace = 2
-    static int fancyDoorType = exit.door_type_2_;
+    static int fancyDoorType = 0;
 
     static int xPos = 0;
     static int yPos = 0;
@@ -180,6 +224,24 @@ bool DrawExitEditorPopup(zelda3::OverworldExit& exit) {
     static int left = 0;
     static int right = 0;
     static int leftEdgeOfMap = 0;
+    static bool special_exit = false;
+    static bool show_properties = false;
+
+    if (ImGui::IsWindowAppearing()) {
+      // Reset state from entity
+      doorType = exit.door_type_1_;
+      fancyDoorType = exit.door_type_2_;
+      xPos = 0; // Unknown mapping
+      yPos = 0; // Unknown mapping
+      
+      // Reset other static vars to avoid pollution
+      centerY = 0; centerX = 0; unk1 = 0; unk2 = 0;
+      linkPosture = 0; spriteGFX = 0; bgGFX = 0;
+      palette = 0; sprPal = 0; top = 0; bottom = 0;
+      left = 0; right = 0; leftEdgeOfMap = 0;
+      special_exit = false;
+      show_properties = false;
+    }
 
     gui::InputHexWord("Room", &exit.room_id_);
     SameLine();
@@ -202,7 +264,6 @@ bool DrawExitEditorPopup(zelda3::OverworldExit& exit) {
 
     ImGui::Separator();
 
-    static bool show_properties = false;
     Checkbox("Show properties", &show_properties);
     if (show_properties) {
       Text("Deleted? %s", exit.deleted_ ? "true" : "false");
@@ -215,22 +276,24 @@ bool DrawExitEditorPopup(zelda3::OverworldExit& exit) {
 
     gui::TextWithSeparators("Unimplemented below");
 
-    ImGui::RadioButton("None", &doorType, 0);
+    if (ImGui::RadioButton("None", &doorType, 0)) exit.door_type_1_ = doorType;
     SameLine();
-    ImGui::RadioButton("Wooden", &doorType, 1);
+    if (ImGui::RadioButton("Wooden", &doorType, 1)) exit.door_type_1_ = doorType;
     SameLine();
-    ImGui::RadioButton("Bombable", &doorType, 2);
+    if (ImGui::RadioButton("Bombable", &doorType, 2)) exit.door_type_1_ = doorType;
+
     // If door type is not None, input positions
     if (doorType != 0) {
       gui::InputHex("Door X pos", &xPos);
       gui::InputHex("Door Y pos", &yPos);
     }
 
-    ImGui::RadioButton("None##Fancy", &fancyDoorType, 0);
+    if (ImGui::RadioButton("None##Fancy", &fancyDoorType, 0)) exit.door_type_2_ = fancyDoorType;
     SameLine();
-    ImGui::RadioButton("Sanctuary", &fancyDoorType, 1);
+    if (ImGui::RadioButton("Sanctuary", &fancyDoorType, 1)) exit.door_type_2_ = fancyDoorType;
     SameLine();
-    ImGui::RadioButton("Palace", &fancyDoorType, 2);
+    if (ImGui::RadioButton("Palace", &fancyDoorType, 2)) exit.door_type_2_ = fancyDoorType;
+
     // If fancy door type is not None, input positions
     if (fancyDoorType != 0) {
       // Placeholder for fancy door's X position
@@ -239,7 +302,6 @@ bool DrawExitEditorPopup(zelda3::OverworldExit& exit) {
       gui::InputHex("Fancy Door Y pos", &yPos);
     }
 
-    static bool special_exit = false;
     Checkbox("Special exit", &special_exit);
     if (special_exit) {
       gui::InputHex("Center X", &centerX);
@@ -318,13 +380,10 @@ void DrawItemInsertPopup() {
 
 // TODO: Implement deleting OverworldItem objects, currently only hides them
 bool DrawItemEditorPopup(zelda3::OverworldItem& item) {
-  static bool set_done = false;
-  if (set_done) {
-    set_done = false;
-    return true;
-  }
-  if (ImGui::BeginPopupModal("Item editor", NULL,
-                             ImGuiWindowFlags_AlwaysAutoResize)) {
+  bool set_done = false;
+  if (ImGui::BeginPopupModal(
+          gui::MakePopupId(gui::EditorNames::kOverworld, "Item Editor").c_str(),
+          NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
     BeginChild("ScrollRegion", ImVec2(150, 150), true,
                ImGuiWindowFlags_AlwaysVerticalScrollbar);
     ImGui::BeginGroup();
@@ -339,18 +398,17 @@ bool DrawItemEditorPopup(zelda3::OverworldItem& item) {
     EndChild();
 
     if (Button(ICON_MD_DONE)) {
-      set_done = true;  // FIX: Save changes when Done is clicked
+      set_done = true;
       ImGui::CloseCurrentPopup();
     }
     SameLine();
     if (Button(ICON_MD_CLOSE)) {
-      // FIX: Discard changes - don't set set_done
       ImGui::CloseCurrentPopup();
     }
     SameLine();
     if (Button(ICON_MD_DELETE)) {
       item.deleted = true;
-      set_done = true;  // FIX: Save deletion when Delete is clicked
+      set_done = true;
       ImGui::CloseCurrentPopup();
     }
 
@@ -361,9 +419,8 @@ bool DrawItemEditorPopup(zelda3::OverworldItem& item) {
 
 const ImGuiTableSortSpecs* SpriteItem::s_current_sort_specs = nullptr;
 
-void DrawSpriteTable(std::function<void(int)> onSpriteSelect) {
+void DrawSpriteTable(std::function<void(int)> onSpriteSelect, int& selected_id) {
   static ImGuiTextFilter filter;
-  static int selected_id = 0;
   static std::vector<SpriteItem> items;
 
   // Initialize items if empty
@@ -414,13 +471,19 @@ void DrawSpriteInserterPopup() {
     static int new_sprite_id = 0;
     static int x_pos = 0;
     static int y_pos = 0;
+    
+    if (ImGui::IsWindowAppearing()) {
+      new_sprite_id = 0;
+      x_pos = 0;
+      y_pos = 0;
+    }
 
     ImGui::Text("Add New Sprite");
     ImGui::Separator();
 
     BeginChild("ScrollRegion", ImVec2(250, 200), true,
                ImGuiWindowFlags_AlwaysVerticalScrollbar);
-    DrawSpriteTable([](int selected_id) { new_sprite_id = selected_id; });
+    DrawSpriteTable([](int selected_id) { new_sprite_id = selected_id; }, new_sprite_id);
     EndChild();
 
     ImGui::Separator();
@@ -452,17 +515,24 @@ bool DrawSpriteEditorPopup(zelda3::Sprite& sprite) {
     set_done = false;
     return true;
   }
-  if (ImGui::BeginPopupModal("Sprite editor", NULL,
-                             ImGuiWindowFlags_AlwaysAutoResize)) {
+  if (ImGui::BeginPopupModal(
+          gui::MakePopupId(gui::EditorNames::kOverworld, "Sprite Editor")
+              .c_str(),
+          NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+    static int selected_id = 0;
+    if (ImGui::IsWindowAppearing()) {
+      selected_id = sprite.id();
+    }
+
     BeginChild("ScrollRegion", ImVec2(350, 350), true,
                ImGuiWindowFlags_AlwaysVerticalScrollbar);
     ImGui::BeginGroup();
     Text("%s", sprite.name().c_str());
 
-    DrawSpriteTable([&sprite](int selected_id) {
-      sprite.set_id(selected_id);
+    DrawSpriteTable([&sprite](int id) {
+      sprite.set_id(id);
       sprite.UpdateMapProperties(sprite.map_id(), nullptr);
-    });
+    }, selected_id);
     ImGui::EndGroup();
     EndChild();
 
@@ -484,6 +554,186 @@ bool DrawSpriteEditorPopup(zelda3::Sprite& sprite) {
 
     ImGui::EndPopup();
   }
+  return set_done;
+}
+
+bool DrawDiggableTilesEditorPopup(
+    zelda3::DiggableTiles* diggable_tiles,
+    const std::vector<gfx::Tile16>& tiles16,
+    const std::array<uint8_t, 0x200>& all_tiles_types) {
+  static bool set_done = false;
+  if (set_done) {
+    set_done = false;
+    return true;
+  }
+
+  if (ImGui::BeginPopupModal(
+          gui::MakePopupId(gui::EditorNames::kOverworld, "Diggable Tiles Editor")
+              .c_str(),
+          NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+    static ImGuiTextFilter filter;
+    static int patch_mode = 0;  // 0=Vanilla, 1=ZS Compatible, 2=Custom
+    static zelda3::DiggableTilesPatchConfig patch_config;
+
+    // Stats header
+    int diggable_count = diggable_tiles->GetDiggableCount();
+    Text("Diggable Tiles: %d / 512", diggable_count);
+    ImGui::Separator();
+
+    // Filter
+    filter.Draw("Filter by Tile ID", 200);
+    SameLine();
+    if (Button("Clear Filter")) {
+      filter.Clear();
+    }
+
+    // Scrollable tile list
+    BeginChild("TileList", ImVec2(400, 300), true,
+               ImGuiWindowFlags_AlwaysVerticalScrollbar);
+
+    // Display tiles in a grid-like format
+    int cols = 8;
+    int col = 0;
+    for (uint16_t tile_id = 0;
+         tile_id < zelda3::kMaxDiggableTileId && tile_id < tiles16.size();
+         ++tile_id) {
+      char id_str[16];
+      snprintf(id_str, sizeof(id_str), "$%03X", tile_id);
+
+      if (!filter.PassFilter(id_str)) {
+        continue;
+      }
+
+      bool is_diggable = diggable_tiles->IsDiggable(tile_id);
+      bool would_be_diggable = zelda3::DiggableTiles::IsTile16Diggable(
+          tiles16[tile_id], all_tiles_types);
+
+      // Color coding: green if auto-detected, yellow if manually set
+      if (is_diggable) {
+        if (would_be_diggable) {
+          ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.2f, 0.8f, 0.2f, 1.0f));
+        } else {
+          ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.8f, 0.8f, 0.2f, 1.0f));
+        }
+      }
+
+      if (Checkbox(id_str, &is_diggable)) {
+        diggable_tiles->SetDiggable(tile_id, is_diggable);
+      }
+
+      if (is_diggable) {
+        ImGui::PopStyleColor();
+      }
+
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Tile $%03X - %s",
+                          tile_id,
+                          would_be_diggable ? "Auto-detected as diggable"
+                                            : "Manually configured");
+      }
+
+      col++;
+      if (col < cols) {
+        SameLine();
+      } else {
+        col = 0;
+      }
+    }
+
+    EndChild();
+
+    ImGui::Separator();
+
+    // Action buttons
+    if (Button(ICON_MD_AUTO_FIX_HIGH " Auto-Detect")) {
+      diggable_tiles->Clear();
+      for (uint16_t tile_id = 0;
+           tile_id < zelda3::kMaxDiggableTileId && tile_id < tiles16.size();
+           ++tile_id) {
+        if (zelda3::DiggableTiles::IsTile16Diggable(tiles16[tile_id],
+                                                    all_tiles_types)) {
+          diggable_tiles->SetDiggable(tile_id, true);
+        }
+      }
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          "Set diggable status based on tile types.\n"
+          "A tile is diggable if all 4 component tiles\n"
+          "have type 0x48 or 0x4A (diggable ground).");
+    }
+
+    SameLine();
+    if (Button(ICON_MD_RESTART_ALT " Vanilla Defaults")) {
+      diggable_tiles->SetVanillaDefaults();
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Reset to vanilla diggable tiles:\n$034, $035, $071, "
+                        "$0DA, $0E1, $0E2, $0F8, $10D, $10E, $10F");
+    }
+
+    SameLine();
+    if (Button(ICON_MD_CLEAR " Clear All")) {
+      diggable_tiles->Clear();
+    }
+
+    ImGui::Separator();
+
+    // Patch export section
+    if (ImGui::CollapsingHeader("ASM Patch Export")) {
+      ImGui::Indent();
+
+      Text("Patch Mode:");
+      ImGui::RadioButton("Vanilla", &patch_mode, 0);
+      SameLine();
+      ImGui::RadioButton("ZS Compatible", &patch_mode, 1);
+      SameLine();
+      ImGui::RadioButton("Custom", &patch_mode, 2);
+
+      patch_config.use_zs_compatible_mode = (patch_mode == 1);
+
+      if (patch_mode == 2) {
+        // Custom address inputs
+        static int hook_addr = patch_config.hook_address;
+        static int table_addr = patch_config.table_address;
+        static int freespace_addr = patch_config.freespace_address;
+
+        gui::InputHex("Hook Address", &hook_addr);
+        gui::InputHex("Table Address", &table_addr);
+        gui::InputHex("Freespace", &freespace_addr);
+
+        patch_config.hook_address = hook_addr;
+        patch_config.table_address = table_addr;
+        patch_config.freespace_address = freespace_addr;
+      }
+
+      if (Button(ICON_MD_FILE_DOWNLOAD " Export .asm Patch")) {
+        // TODO: Open file dialog and export
+        // For now, generate to a default location
+        std::string patch_content =
+            zelda3::DiggableTilesPatch::GeneratePatch(*diggable_tiles,
+                                                      patch_config);
+        // Would normally open a save dialog here
+      }
+
+      ImGui::Unindent();
+    }
+
+    ImGui::Separator();
+
+    // Save/Cancel buttons
+    if (Button(ICON_MD_DONE " Save")) {
+      set_done = true;
+      ImGui::CloseCurrentPopup();
+    }
+    SameLine();
+    if (Button(ICON_MD_CANCEL " Cancel")) {
+      ImGui::CloseCurrentPopup();
+    }
+
+    ImGui::EndPopup();
+  }
+
   return set_done;
 }
 

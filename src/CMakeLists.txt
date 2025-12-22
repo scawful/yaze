@@ -33,12 +33,20 @@ set(
   app/emu/ui/emulator_ui.cc
   app/emu/ui/input_handler.cc
   app/emu/video/ppu.cc
+  app/emu/render/render_context.cc
+  app/emu/render/emulator_render_service.cc
+  app/emu/render/save_state_manager.cc
 )
 
 # Add SDL3-specific backends when SDL3 is enabled
 if(YAZE_USE_SDL3)
   list(APPEND YAZE_APP_EMU_SRC app/emu/input/sdl3_input_backend.cc)
   list(APPEND YAZE_APP_EMU_SRC app/emu/audio/sdl3_audio_backend.cc)
+endif()
+
+# Add WASM-specific backends when building for Emscripten
+if(EMSCRIPTEN)
+  list(APPEND YAZE_APP_EMU_SRC app/emu/platform/wasm/wasm_audio.cc)
 endif()
 
 # Define resource files for bundling
@@ -68,14 +76,22 @@ endforeach()
 
 # Include modular libraries
 include(util/util.cmake)
-include(zelda3/zelda3_library.cmake)
 
 # Add foundational core library (project management, asar wrapper)
 add_subdirectory(core)
 
+# Add ROM library (generic SNES ROM handling)
+add_subdirectory(rom)
+
+# Add Zelda3-specific game logic (depends on yaze_rom)
+include(zelda3/zelda3_library.cmake)
+
 # App-specific libraries
 include(app/gfx/gfx_library.cmake)
+
+# Include net library for all builds (has WASM support now)
 include(app/net/net_library.cmake)
+
 include(app/gui/gui_library.cmake)
 # NOTE: app/core/core_library.cmake merged into app/app.cmake
 
@@ -121,6 +137,7 @@ if (YAZE_BUILD_LIB)
   add_library(yaze_core INTERFACE)
   target_link_libraries(yaze_core INTERFACE
     yaze_util
+    yaze_rom
     yaze_gfx
     yaze_gui
     yaze_zelda3

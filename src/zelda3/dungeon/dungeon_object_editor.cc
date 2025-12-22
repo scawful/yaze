@@ -5,8 +5,11 @@
 #include <cmath>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/agent/agent_ui_theme.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
+#include "app/gui/core/icons.h"
+#include "app/gui/core/ui_helpers.h"
 #include "app/platform/window.h"
 #include "imgui/imgui.h"
 
@@ -37,7 +40,12 @@ absl::Status DungeonObjectEditor::InitializeEditor() {
   editing_state_.preview_size = kDefaultObjectSize;
 
   // Initialize empty room
-  current_room_ = std::make_unique<Room>(0, rom_);
+  owned_room_ = std::make_unique<Room>(0, rom_);
+  current_room_ = owned_room_.get();
+
+  // Load templates
+  // TODO: Make this path configurable or platform-aware
+  template_manager_.LoadTemplates("assets/templates/dungeon");
 
   return absl::OkStatus();
 }
@@ -58,7 +66,8 @@ absl::Status DungeonObjectEditor::LoadRoom(int room_id) {
   }
 
   // Load room from ROM
-  current_room_ = std::make_unique<Room>(room_id, rom_);
+  owned_room_ = std::make_unique<Room>(room_id, rom_);
+  current_room_ = owned_room_.get();
 
   // Clear selection
   ClearSelection();
@@ -83,9 +92,13 @@ absl::Status DungeonObjectEditor::SaveRoom() {
 
   // Validate room before saving
   if (config_.validate_objects) {
-    auto validation_status = ValidateRoom();
-    if (!validation_status.ok()) {
-      return validation_status;
+    auto validation_result = ValidateRoom();
+    if (!validation_result.is_valid) {
+      std::string error_msg = "Validation failed";
+      if (!validation_result.errors.empty()) {
+        error_msg += ": " + validation_result.errors[0];
+      }
+      return absl::FailedPreconditionError(error_msg);
     }
   }
 
@@ -125,7 +138,8 @@ absl::Status DungeonObjectEditor::InsertObject(int x, int y, int object_type,
   }
 
   // Validate parameters
-  if (object_type < 0 || object_type > 0x3FF) {
+  // Object IDs can be up to 12-bit (0xFFF) to support Type 3 objects
+  if (object_type < 0 || object_type > 0xFFF) {
     return absl::InvalidArgumentError("Invalid object type");
   }
 
@@ -151,7 +165,7 @@ absl::Status DungeonObjectEditor::InsertObject(int x, int y, int object_type,
 
   // Create new object
   RoomObject new_object(object_type, x, y, size, layer);
-  new_object.set_rom(rom_);
+  new_object.SetRom(rom_);
   new_object.EnsureTilesLoaded();
 
   // Check for collisions if validation is enabled
@@ -357,6 +371,455 @@ absl::Status DungeonObjectEditor::ResizeObject(size_t object_index,
   object.set_size(new_size);
 
   // Notify callbacks
+  if (object_changed_callback_) {
+    object_changed_callback_(object_index, object);
+  }
+
+  if (room_changed_callback_) {
+    room_changed_callback_();
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status DungeonObjectEditor::BatchMoveObjects(
+    const std::vector<size_t>& indices, int dx, int dy) {
+  if (current_room_ == nullptr) {
+    return absl::FailedPreconditionError("No room loaded");
+  }
+
+  if (indices.empty()) {
+    return absl::OkStatus();
+  }
+
+  // Create single undo point for the batch operation
+  auto status = CreateUndoPoint();
+  if (!status.ok()) {
+    return status;
+  }
+
+  // Apply moves
+  for (size_t index : indices) {
+    if (index >= current_room_->GetTileObjectCount()) continue;
+
+    auto& object = current_room_->GetTileObject(index);
+    int new_x = object.x() + dx;
+    int new_y = object.y() + dy;
+
+    // Clamp to room bounds
+    new_x = std::max(0, std::min(63, new_x));
+    new_y = std::max(0, std::min(63, new_y));
+
+    object.set_x(new_x);
+    object.set_y(new_y);
+
+    if (object_changed_callback_) {
+      object_changed_callback_(index, object);
+    }
+  }
+
+  if (room_changed_callback_) {
+    room_changed_callback_();
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status DungeonObjectEditor::BatchChangeObjectLayer(
+    const std::vector<size_t>& indices, int new_layer) {
+  if (current_room_ == nullptr) {
+    return absl::FailedPreconditionError("No room loaded");
+  }
+
+  if (new_layer < kMinLayer || new_layer > kMaxLayer) {
+    return absl::InvalidArgumentError("Invalid layer");
+  }
+
+  // Create undo point
+  auto status = CreateUndoPoint();
+  if (!status.ok()) {
+    return status;
+  }
+
+  for (size_t index : indices) {
+    if (index >= current_room_->GetTileObjectCount()) continue;
+
+    auto& object = current_room_->GetTileObject(index);
+    object.layer_ = static_cast<RoomObject::LayerType>(new_layer);
+
+    if (object_changed_callback_) {
+      object_changed_callback_(index, object);
+    }
+  }
+
+  if (room_changed_callback_) {
+    room_changed_callback_();
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status DungeonObjectEditor::BatchResizeObjects(
+    const std::vector<size_t>& indices, int new_size) {
+  if (current_room_ == nullptr) {
+    return absl::FailedPreconditionError("No room loaded");
+  }
+
+  if (new_size < kMinObjectSize || new_size > kMaxObjectSize) {
+    return absl::InvalidArgumentError("Invalid object size");
+  }
+
+  // Create undo point
+  auto status = CreateUndoPoint();
+  if (!status.ok()) {
+    return status;
+  }
+
+  for (size_t index : indices) {
+    if (index >= current_room_->GetTileObjectCount()) continue;
+
+    auto& object = current_room_->GetTileObject(index);
+    // Only Type 1 objects typically support arbitrary sizing, but we allow it
+    // for all here as the validation logic might vary.
+    object.set_size(new_size);
+
+    if (object_changed_callback_) {
+      object_changed_callback_(index, object);
+    }
+  }
+
+  if (room_changed_callback_) {
+    room_changed_callback_();
+  }
+
+  return absl::OkStatus();
+}
+
+std::optional<size_t> DungeonObjectEditor::DuplicateObject(size_t object_index, int offset_x, int offset_y) {
+  if (current_room_ == nullptr) {
+    return std::nullopt;
+  }
+
+  if (object_index >= current_room_->GetTileObjectCount()) {
+    return std::nullopt;
+  }
+
+  // Create undo point
+  CreateUndoPoint();
+
+  auto object = current_room_->GetTileObject(object_index);
+  
+  // Offset position
+  int new_x = object.x() + offset_x;
+  int new_y = object.y() + offset_y;
+  
+  // Clamp
+  new_x = std::max(0, std::min(63, new_x));
+  new_y = std::max(0, std::min(63, new_y));
+  
+  object.set_x(new_x);
+  object.set_y(new_y);
+
+  // Add object
+  if (current_room_->AddObject(object).ok()) {
+    size_t new_index = current_room_->GetTileObjectCount() - 1;
+    
+    if (room_changed_callback_) {
+      room_changed_callback_();
+    }
+    
+    return new_index;
+  }
+
+  return std::nullopt;
+}
+
+void DungeonObjectEditor::CopySelectedObjects(const std::vector<size_t>& indices) {
+  if (current_room_ == nullptr) return;
+
+  clipboard_.clear();
+  
+  for (size_t index : indices) {
+    if (index < current_room_->GetTileObjectCount()) {
+      clipboard_.push_back(current_room_->GetTileObject(index));
+    }
+  }
+}
+
+std::vector<size_t> DungeonObjectEditor::PasteObjects() {
+  if (current_room_ == nullptr || clipboard_.empty()) {
+    return {};
+  }
+
+  // Create undo point
+  CreateUndoPoint();
+
+  std::vector<size_t> new_indices;
+  size_t start_index = current_room_->GetTileObjectCount();
+
+  for (const auto& obj : clipboard_) {
+    // Paste with slight offset to make it visible
+    RoomObject new_obj = obj;
+    
+    // Logic to ensure it stays in bounds if we were to support mouse-position pasting
+    // For now, just paste at original location + offset, or perhaps center of screen
+    // Let's do original + 1,1 for now to match duplicate behavior if we just copy/paste
+    // But better might be to keep relative positions if we had a "cursor" position.
+    
+    int new_x = std::min(63, new_obj.x() + 1);
+    int new_y = std::min(63, new_obj.y() + 1);
+    new_obj.set_x(new_x);
+    new_obj.set_y(new_y);
+
+    if (current_room_->AddObject(new_obj).ok()) {
+      new_indices.push_back(start_index++);
+    }
+  }
+
+  if (room_changed_callback_) {
+    room_changed_callback_();
+  }
+
+  return new_indices;
+}
+
+absl::Status DungeonObjectEditor::ChangeObjectType(size_t object_index,
+                                                   int new_type) {
+  if (current_room_ == nullptr) {
+    return absl::FailedPreconditionError("No room loaded");
+  }
+
+  if (object_index >= current_room_->GetTileObjectCount()) {
+    return absl::OutOfRangeError("Object index out of range");
+  }
+
+  // Object IDs can be up to 12-bit (0xFFF) to support Type 3 objects
+  if (new_type < 0 || new_type > 0xFFF) {
+    return absl::InvalidArgumentError("Invalid object type");
+  }
+
+  // Create undo point
+  auto status = CreateUndoPoint();
+  if (!status.ok()) {
+    return status;
+  }
+
+  auto& object = current_room_->GetTileObject(object_index);
+  object.id_ = new_type;
+
+  if (object_changed_callback_) {
+    object_changed_callback_(object_index, object);
+  }
+
+  if (room_changed_callback_) {
+    room_changed_callback_();
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status DungeonObjectEditor::InsertTemplate(const ObjectTemplate& tmpl,
+                                                 int x, int y) {
+  if (current_room_ == nullptr) {
+    return absl::FailedPreconditionError("No room loaded");
+  }
+
+  // Snap coordinates to grid if enabled
+  if (config_.snap_to_grid) {
+    x = SnapToGrid(x);
+    y = SnapToGrid(y);
+  }
+
+  // Create undo point
+  auto status = CreateUndoPoint();
+  if (!status.ok()) {
+    return status;
+  }
+
+  // Instantiate template objects
+  std::vector<RoomObject> new_objects =
+      template_manager_.InstantiateTemplate(tmpl, x, y, rom_);
+
+  // Check for collisions if enabled
+  if (config_.validate_objects) {
+    for (const auto& new_obj : new_objects) {
+      for (const auto& existing_obj : current_room_->GetTileObjects()) {
+        if (ObjectsCollide(new_obj, existing_obj)) {
+          return absl::FailedPreconditionError(
+              "Template placement would cause collision");
+        }
+      }
+    }
+  }
+
+  // Add objects to room
+  for (const auto& obj : new_objects) {
+    current_room_->AddObject(obj);
+  }
+
+  // Select the new objects
+  ClearSelection();
+  size_t count = current_room_->GetTileObjectCount();
+  size_t added_count = new_objects.size();
+  for (size_t i = 0; i < added_count; ++i) {
+    selection_state_.selected_objects.push_back(count - added_count + i);
+  }
+  if (!selection_state_.selected_objects.empty()) {
+    selection_state_.is_multi_select = true;
+  }
+
+  if (room_changed_callback_) {
+    room_changed_callback_();
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status DungeonObjectEditor::CreateTemplateFromSelection(
+    const std::string& name, const std::string& description) {
+  if (selection_state_.selected_objects.empty()) {
+    return absl::FailedPreconditionError("No objects selected");
+  }
+
+  std::vector<RoomObject> objects;
+  int min_x = 64, min_y = 64;
+
+  // Collect selected objects and find bounds
+  for (size_t index : selection_state_.selected_objects) {
+    if (index < current_room_->GetTileObjectCount()) {
+      const auto& obj = current_room_->GetTileObject(index);
+      objects.push_back(obj);
+      if (obj.x() < min_x) min_x = obj.x();
+      if (obj.y() < min_y) min_y = obj.y();
+    }
+  }
+
+  // Create template
+  ObjectTemplate tmpl = ObjectTemplateManager::CreateFromObjects(
+      name, description, objects, min_x, min_y);
+
+  // Save template
+  return template_manager_.SaveTemplate(tmpl, "assets/templates/dungeon");
+}
+
+const std::vector<ObjectTemplate>& DungeonObjectEditor::GetTemplates() const {
+  return template_manager_.GetTemplates();
+}
+
+absl::Status DungeonObjectEditor::AlignSelectedObjects(Alignment alignment) {
+  if (current_room_ == nullptr) {
+    return absl::FailedPreconditionError("No room loaded");
+  }
+
+  if (selection_state_.selected_objects.size() < 2) {
+    return absl::OkStatus(); // Nothing to align
+  }
+
+  // Create undo point
+  auto status = CreateUndoPoint();
+  if (!status.ok()) {
+    return status;
+  }
+
+  // Find reference value (min/max/avg)
+  int ref_val = 0;
+  const auto& indices = selection_state_.selected_objects;
+  
+  if (alignment == Alignment::Left || alignment == Alignment::Top) {
+    ref_val = 64; // Max possible
+  } else if (alignment == Alignment::Right || alignment == Alignment::Bottom) {
+    ref_val = 0; // Min possible
+  }
+
+  // First pass: calculate reference
+  int sum = 0;
+  int count = 0;
+
+  for (size_t index : indices) {
+    if (index >= current_room_->GetTileObjectCount()) continue;
+    const auto& obj = current_room_->GetTileObject(index);
+    
+    switch (alignment) {
+      case Alignment::Left:
+        if (obj.x() < ref_val) ref_val = obj.x();
+        break;
+      case Alignment::Right:
+        if (obj.x() > ref_val) ref_val = obj.x();
+        break;
+      case Alignment::Top:
+        if (obj.y() < ref_val) ref_val = obj.y();
+        break;
+      case Alignment::Bottom:
+        if (obj.y() > ref_val) ref_val = obj.y();
+        break;
+      case Alignment::CenterX:
+        sum += obj.x();
+        count++;
+        break;
+      case Alignment::CenterY:
+        sum += obj.y();
+        count++;
+        break;
+    }
+  }
+
+  if (alignment == Alignment::CenterX || alignment == Alignment::CenterY) {
+    if (count > 0) ref_val = sum / count;
+  }
+
+  // Second pass: apply alignment
+  for (size_t index : indices) {
+    if (index >= current_room_->GetTileObjectCount()) continue;
+    auto& obj = current_room_->GetTileObject(index);
+    
+    switch (alignment) {
+      case Alignment::Left:
+      case Alignment::Right:
+      case Alignment::CenterX:
+        obj.set_x(ref_val);
+        break;
+      case Alignment::Top:
+      case Alignment::Bottom:
+      case Alignment::CenterY:
+        obj.set_y(ref_val);
+        break;
+    }
+
+    if (object_changed_callback_) {
+      object_changed_callback_(index, obj);
+    }
+  }
+
+  if (room_changed_callback_) {
+    room_changed_callback_();
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status DungeonObjectEditor::ChangeObjectLayer(size_t object_index,
+                                                    int new_layer) {
+  if (current_room_ == nullptr) {
+    return absl::FailedPreconditionError("No room loaded");
+  }
+
+  if (object_index >= current_room_->GetTileObjectCount()) {
+    return absl::OutOfRangeError("Object index out of range");
+  }
+
+  if (new_layer < kMinLayer || new_layer > kMaxLayer) {
+    return absl::InvalidArgumentError("Invalid layer");
+  }
+
+  // Create undo point
+  auto status = CreateUndoPoint();
+  if (!status.ok()) {
+    return status;
+  }
+
+  auto& object = current_room_->GetTileObject(object_index);
+  object.layer_ = static_cast<RoomObject::LayerType>(new_layer);
+
   if (object_changed_callback_) {
     object_changed_callback_(object_index, object);
   }
@@ -659,7 +1122,8 @@ void DungeonObjectEditor::SetCurrentLayer(int layer) {
 }
 
 void DungeonObjectEditor::SetCurrentObjectType(int object_type) {
-  if (object_type >= 0 && object_type <= 0x3FF) {
+  // Object IDs can be up to 12-bit (0xFFF) to support Type 3 objects
+  if (object_type >= 0 && object_type <= 0xFFF) {
     editing_state_.current_object_type = object_type;
     UpdatePreviewObject();
   }
@@ -770,7 +1234,7 @@ void DungeonObjectEditor::UpdatePreviewObject() {
         RoomObject(editing_state_.current_object_type, editing_state_.preview_x,
                    editing_state_.preview_y, editing_state_.preview_size,
                    editing_state_.current_layer);
-    preview_object_->set_rom(rom_);
+    preview_object_->SetRom(rom_);
     preview_object_->EnsureTilesLoaded();
     preview_visible_ = true;
   } else {
@@ -988,107 +1452,252 @@ void DungeonObjectEditor::RenderLayerVisualization(gfx::Bitmap& canvas) {
   }
 }
 
-void DungeonObjectEditor::RenderObjectPropertyPanel() {
+void DungeonObjectEditor::DrawPropertyUI() {
+  const auto& theme = editor::AgentUI::GetTheme();
+
   if (!config_.show_property_panel ||
       selection_state_.selected_objects.empty()) {
     return;
   }
-
-  ImGui::Begin("Object Properties", &config_.show_property_panel);
 
   if (selection_state_.selected_objects.size() == 1) {
     size_t obj_idx = selection_state_.selected_objects[0];
     if (obj_idx < current_room_->GetTileObjectCount()) {
       auto& obj = current_room_->GetTileObject(obj_idx);
 
-      ImGui::Text("Object #%zu", obj_idx);
+      // ========== Identity Section ==========
+      gui::SectionHeader(ICON_MD_TAG, "Identity", theme.text_info);
+      if (gui::BeginPropertyTable("##IdentityProps")) {
+        // Object index
+        gui::PropertyRow("Object #", static_cast<int>(obj_idx));
+
+        // Object ID with name
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("ID");
+        ImGui::TableNextColumn();
+        std::string obj_name = GetObjectName(obj.id_);
+        ImGui::Text("0x%03X", obj.id_);
+        ImGui::SameLine();
+        ImGui::TextColored(theme.text_secondary_gray, "(%s)", obj_name.c_str());
+
+        // Object type/subtype
+        int subtype = GetObjectSubtype(obj.id_);
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Type");
+        ImGui::TableNextColumn();
+        ImGui::Text("Subtype %d", subtype);
+
+        gui::EndPropertyTable();
+      }
+
+      ImGui::Spacing();
+
+      // ========== Position Section ==========
+      gui::SectionHeader(ICON_MD_PLACE, "Position", theme.text_info);
+      if (gui::BeginPropertyTable("##PositionProps")) {
+        // X Position
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("X");
+        ImGui::TableNextColumn();
+        int x = obj.x();
+        ImGui::SetNextItemWidth(-1);
+        if (ImGui::InputInt("##X", &x, 1, 4)) {
+          if (x >= 0 && x < 64) {
+            obj.set_x(x);
+            if (object_changed_callback_) {
+              object_changed_callback_(obj_idx, obj);
+            }
+          }
+        }
+
+        // Y Position
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Y");
+        ImGui::TableNextColumn();
+        int y = obj.y();
+        ImGui::SetNextItemWidth(-1);
+        if (ImGui::InputInt("##Y", &y, 1, 4)) {
+          if (y >= 0 && y < 64) {
+            obj.set_y(y);
+            if (object_changed_callback_) {
+              object_changed_callback_(obj_idx, obj);
+            }
+          }
+        }
+
+        gui::EndPropertyTable();
+      }
+
+      ImGui::Spacing();
+
+      // ========== Appearance Section ==========
+      gui::SectionHeader(ICON_MD_PALETTE, "Appearance", theme.text_info);
+      if (gui::BeginPropertyTable("##AppearanceProps")) {
+        // Size (for Type 1 objects only)
+        if (obj.id_ < 0x100) {
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::Text("Size");
+          ImGui::TableNextColumn();
+          int size = obj.size();
+          ImGui::SetNextItemWidth(-1);
+          if (ImGui::SliderInt("##Size", &size, 0, 15, "0x%02X")) {
+            obj.set_size(size);
+            if (object_changed_callback_) {
+              object_changed_callback_(obj_idx, obj);
+            }
+          }
+        }
+
+        // Object ID (editable)
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Change ID");
+        ImGui::TableNextColumn();
+        int id = obj.id_;
+        ImGui::SetNextItemWidth(-1);
+        if (ImGui::InputInt("##ID", &id, 1, 16,
+                            ImGuiInputTextFlags_CharsHexadecimal)) {
+          if (id >= 0 && id <= 0xFFF) {
+            obj.id_ = id;
+            if (object_changed_callback_) {
+              object_changed_callback_(obj_idx, obj);
+            }
+          }
+        }
+
+        gui::EndPropertyTable();
+      }
+
+      ImGui::Spacing();
+
+      // ========== Layer Section ==========
+      gui::SectionHeader(ICON_MD_LAYERS, "Layer", theme.text_info);
+      if (gui::BeginPropertyTable("##LayerProps")) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Layer");
+        ImGui::TableNextColumn();
+        int layer = obj.GetLayerValue();
+        ImGui::SetNextItemWidth(-1);
+        if (ImGui::Combo("##Layer", &layer,
+                         "BG1 (Floor)\0BG2 (Objects)\0BG3 (Overlay)\0")) {
+          obj.layer_ = static_cast<RoomObject::LayerType>(layer);
+          if (object_changed_callback_) {
+            object_changed_callback_(obj_idx, obj);
+          }
+        }
+
+        gui::EndPropertyTable();
+      }
+
+      ImGui::Spacing();
       ImGui::Separator();
+      ImGui::Spacing();
 
-      // ID (hex)
-      int id = obj.id_;
-      if (ImGui::InputInt("ID (0x)", &id, 1, 16,
-                          ImGuiInputTextFlags_CharsHexadecimal)) {
-        if (id >= 0 && id <= 0xFFF) {
-          obj.id_ = id;
-          if (object_changed_callback_) {
-            object_changed_callback_(obj_idx, obj);
-          }
-        }
-      }
+      // ========== Actions Section ==========
+      float button_width = (ImGui::GetContentRegionAvail().x - 8) / 2;
 
-      // Position
-      int x = obj.x();
-      int y = obj.y();
-      if (ImGui::InputInt("X Position", &x, 1, 4)) {
-        if (x >= 0 && x < 64) {
-          obj.set_x(x);
-          if (object_changed_callback_) {
-            object_changed_callback_(obj_idx, obj);
-          }
-        }
-      }
-      if (ImGui::InputInt("Y Position", &y, 1, 4)) {
-        if (y >= 0 && y < 64) {
-          obj.set_y(y);
-          if (object_changed_callback_) {
-            object_changed_callback_(obj_idx, obj);
-          }
-        }
-      }
-
-      // Size (for Type 1 objects only)
-      if (obj.id_ < 0x100) {
-        int size = obj.size();
-        if (ImGui::SliderInt("Size", &size, 0, 15)) {
-          obj.set_size(size);
-          if (object_changed_callback_) {
-            object_changed_callback_(obj_idx, obj);
-          }
-        }
-      }
-
-      // Layer
-      int layer = obj.GetLayerValue();
-      if (ImGui::Combo("Layer", &layer, "Layer 0\0Layer 1\0Layer 2\0")) {
-        obj.layer_ = static_cast<RoomObject::LayerType>(layer);
-        if (object_changed_callback_) {
-          object_changed_callback_(obj_idx, obj);
-        }
-      }
-
-      ImGui::Separator();
-
-      // Action buttons
-      if (ImGui::Button("Delete Object")) {
+      ImGui::PushStyleColor(ImGuiCol_Button,
+                            ImVec4(theme.status_error.x * 0.7f,
+                                   theme.status_error.y * 0.7f,
+                                   theme.status_error.z * 0.7f, 1.0f));
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, theme.status_error);
+      if (ImGui::Button(ICON_MD_DELETE " Delete", ImVec2(button_width, 0))) {
         auto status = DeleteObject(obj_idx);
-        (void)status;  // Ignore return value for now
+        (void)status;
       }
+      ImGui::PopStyleColor(2);
+
       ImGui::SameLine();
-      if (ImGui::Button("Duplicate")) {
+
+      if (ImGui::Button(ICON_MD_CONTENT_COPY " Duplicate",
+                        ImVec2(button_width, 0))) {
         RoomObject duplicate = obj;
         duplicate.set_x(obj.x() + 1);
         auto status = current_room_->AddObject(duplicate);
-        (void)status;  // Ignore return value for now
+        (void)status;
       }
     }
   } else {
-    // Multiple objects selected
-    ImGui::Text("%zu objects selected",
-                selection_state_.selected_objects.size());
-    ImGui::Separator();
+    // ========== Multiple Selection Mode ==========
+    ImGui::TextColored(theme.text_warning_yellow, ICON_MD_SELECT_ALL " %zu objects selected",
+                       selection_state_.selected_objects.size());
 
-    if (ImGui::Button("Delete All Selected")) {
-      auto status = DeleteSelectedObjects();
-      (void)status;  // Ignore return value for now
+    ImGui::Spacing();
+
+    // ========== Batch Layer ==========
+    gui::SectionHeader(ICON_MD_LAYERS, "Batch Layer", theme.text_info);
+    static int batch_layer = 0;
+    ImGui::SetNextItemWidth(-1);
+    if (ImGui::Combo("##BatchLayer", &batch_layer,
+                     "BG1 (Floor)\0BG2 (Objects)\0BG3 (Overlay)\0")) {
+      BatchChangeObjectLayer(selection_state_.selected_objects, batch_layer);
     }
 
-    if (ImGui::Button("Clear Selection")) {
+    ImGui::Spacing();
+
+    // ========== Batch Size ==========
+    gui::SectionHeader(ICON_MD_ASPECT_RATIO, "Batch Size", theme.text_info);
+    static int batch_size = 0x12;
+    ImGui::SetNextItemWidth(-1);
+    if (ImGui::InputInt("##BatchSize", &batch_size, 1, 16,
+                        ImGuiInputTextFlags_CharsHexadecimal)) {
+      BatchResizeObjects(selection_state_.selected_objects, batch_size);
+    }
+
+    ImGui::Spacing();
+
+    // ========== Nudge Section ==========
+    gui::SectionHeader(ICON_MD_OPEN_WITH, "Nudge", theme.text_info);
+    float nudge_btn_size = (ImGui::GetContentRegionAvail().x - 24) / 4;
+    if (ImGui::Button(ICON_MD_ARROW_BACK, ImVec2(nudge_btn_size, 0))) {
+      BatchMoveObjects(selection_state_.selected_objects, -1, 0);
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_ARROW_UPWARD, ImVec2(nudge_btn_size, 0))) {
+      BatchMoveObjects(selection_state_.selected_objects, 0, -1);
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_ARROW_DOWNWARD, ImVec2(nudge_btn_size, 0))) {
+      BatchMoveObjects(selection_state_.selected_objects, 0, 1);
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_ARROW_FORWARD, ImVec2(nudge_btn_size, 0))) {
+      BatchMoveObjects(selection_state_.selected_objects, 1, 0);
+    }
+
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    // ========== Actions ==========
+    float button_width = (ImGui::GetContentRegionAvail().x - 8) / 2;
+
+    ImGui::PushStyleColor(ImGuiCol_Button,
+                          ImVec4(theme.status_error.x * 0.7f,
+                                 theme.status_error.y * 0.7f,
+                                 theme.status_error.z * 0.7f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, theme.status_error);
+    if (ImGui::Button(ICON_MD_DELETE_SWEEP " Delete All",
+                      ImVec2(button_width, 0))) {
+      auto status = DeleteSelectedObjects();
+      (void)status;
+    }
+    ImGui::PopStyleColor(2);
+
+    ImGui::SameLine();
+
+    if (ImGui::Button(ICON_MD_DESELECT " Clear Selection",
+                      ImVec2(button_width, 0))) {
       auto status = ClearSelection();
-      (void)status;  // Ignore return value for now
+      (void)status;
     }
   }
-
-  ImGui::End();
 }
 
 void DungeonObjectEditor::RenderLayerControls() {
@@ -1194,10 +1803,13 @@ absl::Status DungeonObjectEditor::HandleDragOperation(int current_x,
   return absl::OkStatus();
 }
 
-absl::Status DungeonObjectEditor::ValidateRoom() {
+ValidationResult DungeonObjectEditor::ValidateRoom() {
   if (current_room_ == nullptr) {
-    return absl::FailedPreconditionError("No room loaded for validation");
+    return {false, {}, {"No room loaded"}};
   }
+
+  // Use the dedicated validator
+  ValidationResult result = validator_.ValidateRoom(*current_room_);
 
   // Validate objects don't overlap if collision checking is enabled
   if (config_.validate_objects) {
@@ -1205,14 +1817,23 @@ absl::Status DungeonObjectEditor::ValidateRoom() {
     for (size_t i = 0; i < objects.size(); i++) {
       for (size_t j = i + 1; j < objects.size(); j++) {
         if (ObjectsCollide(objects[i], objects[j])) {
-          return absl::FailedPreconditionError(
+          result.errors.push_back(
               absl::StrFormat("Objects at indices %d and %d collide", i, j));
+          result.is_valid = false;
         }
       }
     }
   }
 
-  return absl::OkStatus();
+  return result;
+}
+
+std::vector<std::string> DungeonObjectEditor::GetValidationErrors() {
+  auto result = ValidateRoom();
+  std::vector<std::string> all_issues = result.errors;
+  all_issues.insert(all_issues.end(), result.warnings.begin(),
+                    result.warnings.end());
+  return all_issues;
 }
 
 void DungeonObjectEditor::SetObjectChangedCallback(
@@ -1239,6 +1860,27 @@ void DungeonObjectEditor::SetROM(Rom* rom) {
   InitializeEditor();
 }
 
+void DungeonObjectEditor::SetExternalRoom(Room* room) {
+  // Set the current room pointer to the external room
+  current_room_ = room;
+
+  // Reset editing state for new room
+  editing_state_.current_layer = 0;
+  editing_state_.is_editing_size = false;
+  editing_state_.is_editing_position = false;
+
+  // Clear selection as it's invalid for the new room
+  ClearSelection();
+
+  // Clear undo history as it applies to the previous room
+  ClearHistory();
+
+  // Notify callbacks
+  if (room_changed_callback_) {
+    room_changed_callback_();
+  }
+}
+
 // Factory function
 std::unique_ptr<DungeonObjectEditor> CreateDungeonObjectEditor(Rom* rom) {
   return std::make_unique<DungeonObjectEditor>(rom);
@@ -1255,7 +1897,7 @@ std::vector<ObjectCategory> GetObjectCategories() {
       {"Interactive", {0xF9, 0xFA, 0xFB}, "Interactive objects like chests"},
       {"Stairs", {0x13, 0x14, 0x15, 0x16}, "Staircase objects"},
       {"Doors", {0x17, 0x18, 0x19, 0x1A}, "Door objects"},
-      {"Special", {0x200, 0x201, 0x202, 0x203}, "Special dungeon objects"}};
+      {"Special", {0xF80, 0xF81, 0xF82, 0xF97}, "Special dungeon objects (Type 3)"}};
 }
 
 absl::StatusOr<std::vector<int>> GetObjectsInCategory(

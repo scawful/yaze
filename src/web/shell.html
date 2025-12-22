@@ -1,0 +1,811 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="description" content="A modern, cross-platform ROM editor for The Legend of Zelda: A Link to the Past">
+
+    <!-- COI service worker for SharedArrayBuffer support (must be at root for proper scope) -->
+    <script src="coi-serviceworker.js"></script>
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#0d0d0d">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="yaze">
+    <!-- Collaboration server URL (can be configured at build time) -->
+    <meta name="yaze-collab-server" content="">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="./pwa/manifest.json">
+    <link rel="icon" type="image/x-icon" href="./icons/favicon.ico">
+    <link rel="apple-touch-icon" href="./icons/icon-192x192.png">
+
+    <!-- Styles -->
+    <!-- Preconnect for fonts (must be before stylesheet for best performance) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Material Symbols - with fallback if CDN fails -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/shortcuts_overlay.css">
+    <link rel="stylesheet" href="styles/touch_gestures.css">
+    <link rel="stylesheet" href="styles/collab_console.css">
+    <link rel="stylesheet" href="styles/terminal.css">
+    <link rel="stylesheet" href="styles/drop_zone.css">
+    <link rel="stylesheet" href="styles/loading_indicator.css">
+    <link rel="stylesheet" href="styles/error_handler.css">
+
+    <title>yaze</title>
+  </head>
+  <body>
+    <div id="header">
+      <div class="header-left">
+        <img src="assets/yaze.png" alt="yaze" class="logo-icon" style="height: 20px; width: 20px; margin-right: 8px;">
+        <span class="logo">yaze</span>
+        <span id="version-badge" class="version-badge" title="Click for debug info">v0.4.0</span>
+        <div class="toolbar-divider"></div>
+        <div class="toolbar-group">
+          <button class="nav-btn" onclick="document.getElementById('rom-input').click()" title="Open ROM (Ctrl+O)">
+            <span class="material-symbols-outlined">folder_open</span>
+          </button>
+          <!-- ROM Files Dropdown -->
+          <div class="dropdown rom-dropdown">
+            <button class="nav-btn" onclick="toggleRomFilesMenu(event)" title="ROM Files">
+              <span class="material-symbols-outlined">description</span>
+              <span class="material-symbols-outlined" style="font-size: 12px; margin-left: -4px;">arrow_drop_down</span>
+            </button>
+            <div id="rom-files-menu" class="dropdown-content rom-files-dropdown">
+              <div style="padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">ROM Files</div>
+              <div id="rom-files-list" style="max-height: 200px; overflow-y: auto;">
+                <div style="padding: 8px 12px; color: var(--text-muted); font-style: italic;">No ROM loaded</div>
+              </div>
+              <div class="dropdown-divider"></div>
+              <div style="padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Recent Files</div>
+              <div id="recent-files-list" style="max-height: 150px; overflow-y: auto;">
+                <div style="padding: 8px 12px; color: var(--text-muted); font-style: italic;">No recent files</div>
+              </div>
+              <div class="dropdown-divider"></div>
+              <a href="#" onclick="event.stopPropagation(); fileManager.show(); closeAllDropdowns(); return false;">
+                <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">folder_managed</span>
+                File Manager
+              </a>
+              <div class="dropdown-divider"></div>
+              <div style="padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Debug Info</div>
+              <a href="#" onclick="event.stopPropagation(); showFileManagerDebug(); closeAllDropdowns(); return false;">
+                <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">bug_report</span>
+                File Manager Status
+              </a>
+              <a href="#" onclick="event.stopPropagation(); showRomDiagnostics(); closeAllDropdowns(); return false;">
+                <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">memory</span>
+                Graphics Diagnostics
+              </a>
+              <a href="#" onclick="event.stopPropagation(); dumpDebugState(); closeAllDropdowns(); return false;">
+                <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">download</span>
+                Dump Full State (Console)
+              </a>
+            </div>
+          </div>
+          <button class="nav-btn" onclick="if(Module && Module._saveRom) Module._saveRom()" title="Save ROM (Ctrl+S)">
+            <span class="material-symbols-outlined">save</span>
+          </button>
+          <button class="nav-btn" onclick="downloadSaves()" title="Download Saves">
+            <span class="material-symbols-outlined">download</span>
+          </button>
+          <input type="file" id="rom-input" accept=".sfc,.smc">
+        </div>
+      </div>
+      
+      <!-- Editor Switcher Dropdown -->
+      <div class="dropdown editor-dropdown">
+        <button class="nav-btn" onclick="toggleEditorMenu(event)" title="Switch Editor" id="editor-switcher-btn">
+          <span class="material-symbols-outlined">dashboard</span>
+          <span id="current-editor-name" style="font-size: 11px; margin-left: 4px;">Editor</span>
+          <span class="material-symbols-outlined" style="font-size: 12px; margin-left: -2px;">arrow_drop_down</span>
+        </button>
+        <div id="editor-menu" class="dropdown-content editor-menu-dropdown">
+          <div style="padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Editors</div>
+          <a href="#" class="editor-item" data-editor="Overworld" onclick="event.stopPropagation(); switchToEditor('Overworld'); return false;">
+            <span class="material-symbols-outlined">map</span> Overworld
+          </a>
+          <a href="#" class="editor-item" data-editor="Dungeon" onclick="event.stopPropagation(); switchToEditor('Dungeon'); return false;">
+            <span class="material-symbols-outlined">door_open</span> Dungeon
+          </a>
+          <a href="#" class="editor-item" data-editor="Graphics" onclick="event.stopPropagation(); switchToEditor('Graphics'); return false;">
+            <span class="material-symbols-outlined">image</span> Graphics
+          </a>
+          <a href="#" class="editor-item" data-editor="Palette" onclick="event.stopPropagation(); switchToEditor('Palette'); return false;">
+            <span class="material-symbols-outlined">palette</span> Palette
+          </a>
+          <a href="#" class="editor-item" data-editor="Sprite" onclick="event.stopPropagation(); switchToEditor('Sprite'); return false;">
+            <span class="material-symbols-outlined">animation</span> Sprite
+          </a>
+          <a href="#" class="editor-item" data-editor="Screen" onclick="event.stopPropagation(); switchToEditor('Screen'); return false;">
+            <span class="material-symbols-outlined">grid_view</span> Screen
+          </a>
+          <div class="dropdown-divider"></div>
+          <a href="#" class="editor-item" data-editor="Assembly" onclick="event.stopPropagation(); switchToEditor('Assembly'); return false;">
+            <span class="material-symbols-outlined">code</span> Assembly
+          </a>
+          <a href="#" class="editor-item" data-editor="Music" onclick="event.stopPropagation(); switchToEditor('Music'); return false;">
+            <span class="material-symbols-outlined">music_note</span> Music
+          </a>
+          <a href="#" class="editor-item" data-editor="Message" onclick="event.stopPropagation(); switchToEditor('Message'); return false;">
+            <span class="material-symbols-outlined">chat</span> Message
+          </a>
+          <div class="dropdown-divider"></div>
+          <a href="#" class="editor-item" data-editor="Hex" onclick="event.stopPropagation(); switchToEditor('Hex'); return false;">
+            <span class="material-symbols-outlined">data_object</span> Hex Editor
+          </a>
+          <a href="#" class="editor-item" data-editor="Settings" onclick="event.stopPropagation(); switchToEditor('Settings'); return false;">
+            <span class="material-symbols-outlined">settings</span> Settings
+          </a>
+        </div>
+      </div>
+
+      <div class="header-center" id="header-status">
+        Ready
+      </div>
+
+      <div class="header-right">
+        <!-- Emulator Controls -->
+        <div class="dropdown emulator-dropdown">
+          <button class="nav-btn" onclick="toggleEmulatorMenu(event)" title="Emulator Controls" id="emulator-btn">
+            <span class="material-symbols-outlined">sports_esports</span>
+            <span class="material-symbols-outlined" style="font-size: 12px; margin-left: -4px;">arrow_drop_down</span>
+          </button>
+          <div id="emulator-menu" class="dropdown-content emulator-menu-dropdown">
+            <div style="padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Emulator</div>
+            <a href="#" onclick="event.stopPropagation(); triggerEmulatorAction('show'); return false;">
+              <span class="material-symbols-outlined">open_in_new</span> Show Emulator Window
+            </a>
+            <div class="dropdown-divider"></div>
+            <div style="padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Controls</div>
+            <a href="#" onclick="event.stopPropagation(); triggerEmulatorAction('run'); return false;">
+              <span class="material-symbols-outlined">play_arrow</span> Run
+            </a>
+            <a href="#" onclick="event.stopPropagation(); triggerEmulatorAction('pause'); return false;">
+              <span class="material-symbols-outlined">pause</span> Pause
+            </a>
+            <a href="#" onclick="event.stopPropagation(); triggerEmulatorAction('step'); return false;">
+              <span class="material-symbols-outlined">skip_next</span> Step Frame
+            </a>
+            <a href="#" onclick="event.stopPropagation(); triggerEmulatorAction('reset'); return false;">
+              <span class="material-symbols-outlined">restart_alt</span> Reset
+            </a>
+            <div class="dropdown-divider"></div>
+            <div style="padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Debug Views</div>
+            <a href="#" onclick="event.stopPropagation(); triggerEmulatorAction('memory'); return false;">
+              <span class="material-symbols-outlined">memory</span> Memory Viewer
+            </a>
+            <a href="#" onclick="event.stopPropagation(); triggerEmulatorAction('disassembly'); return false;">
+              <span class="material-symbols-outlined">list_alt</span> Disassembly
+            </a>
+          </div>
+        </div>
+
+        <!-- Layouts Dropdown -->
+        <div class="dropdown layout-dropdown">
+          <button class="nav-btn" onclick="toggleLayoutMenu(event)" title="Layout Presets">
+            <span class="material-symbols-outlined">view_quilt</span>
+            <span class="material-symbols-outlined" style="font-size: 12px; margin-left: -4px;">arrow_drop_down</span>
+          </button>
+          <div id="layout-menu" class="dropdown-content layout-menu-dropdown">
+            <div style="padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Layout Presets</div>
+            <a href="#" onclick="event.stopPropagation(); setLayout('overworld_default'); return false;">
+              <span class="material-symbols-outlined">map</span> Overworld Default
+            </a>
+            <a href="#" onclick="event.stopPropagation(); setLayout('dungeon_default'); return false;">
+              <span class="material-symbols-outlined">door_open</span> Dungeon Default
+            </a>
+            <a href="#" onclick="event.stopPropagation(); setLayout('graphics_default'); return false;">
+              <span class="material-symbols-outlined">image</span> Graphics Default
+            </a>
+            <a href="#" onclick="event.stopPropagation(); setLayout('debug_default'); return false;">
+              <span class="material-symbols-outlined">bug_report</span> Debug Default
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="#" onclick="event.stopPropagation(); setLayout('minimal'); return false;">
+              <span class="material-symbols-outlined">minimize</span> Minimal
+            </a>
+            <a href="#" onclick="event.stopPropagation(); setLayout('all_cards'); return false;">
+              <span class="material-symbols-outlined">grid_view</span> All Panels
+            </a>
+            <div class="dropdown-divider"></div>
+            <div style="padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Panels</div>
+            <a href="#" onclick="event.stopPropagation(); toggleTerminal(); closeAllDropdowns(); return false;">
+              <span class="material-symbols-outlined">terminal</span> Terminal
+            </a>
+            <a href="#" onclick="event.stopPropagation(); toggleCollabConsole(); closeAllDropdowns(); return false;">
+              <span class="material-symbols-outlined">group</span> Collaboration
+            </a>
+            <a href="#" onclick="event.stopPropagation(); pixelInspector.toggle(); closeAllDropdowns(); return false;">
+              <span class="material-symbols-outlined">colorize</span> Pixel Inspector
+            </a>
+          </div>
+        </div>
+
+        <!-- AI Tools Dropdown (for Gemini Antigravity) -->
+        <div class="dropdown ai-tools-dropdown">
+          <button class="nav-btn" onclick="toggleAIToolsMenu(event)" title="AI Assistant Tools" id="ai-tools-btn">
+            <span class="material-symbols-outlined">smart_toy</span>
+            <span class="material-symbols-outlined" style="font-size: 12px; margin-left: -4px;">arrow_drop_down</span>
+          </button>
+          <div id="ai-tools-menu" class="dropdown-content ai-tools-menu-dropdown">
+            <div style="padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">AI Assistant Tools</div>
+            <a href="#" onclick="event.stopPropagation(); aiTools.getAppState(); return false;">
+              <span class="material-symbols-outlined">analytics</span> Get App State
+            </a>
+            <a href="#" onclick="event.stopPropagation(); aiTools.getEditorState(); return false;">
+              <span class="material-symbols-outlined">description</span> Get Editor State
+            </a>
+            <a href="#" onclick="event.stopPropagation(); aiTools.getVisiblePanels(); return false;">
+              <span class="material-symbols-outlined">dashboard</span> List Visible Panels
+            </a>
+            <a href="#" onclick="event.stopPropagation(); aiTools.getAvailablePanels(); return false;">
+              <span class="material-symbols-outlined">widgets</span> List All Panels
+            </a>
+            <div class="dropdown-divider"></div>
+            <div style="padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Quick Actions</div>
+            <a href="#" onclick="event.stopPropagation(); aiTools.showPanel(); return false;">
+              <span class="material-symbols-outlined">add_box</span> Show Panel...
+            </a>
+            <a href="#" onclick="event.stopPropagation(); aiTools.hidePanel(); return false;">
+              <span class="material-symbols-outlined">disabled_visible</span> Hide Panel...
+            </a>
+            <a href="#" onclick="event.stopPropagation(); aiTools.navigateTo(); return false;">
+              <span class="material-symbols-outlined">navigation</span> Navigate To...
+            </a>
+            <div class="dropdown-divider"></div>
+            <div style="padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Data Access</div>
+            <a href="#" onclick="event.stopPropagation(); aiTools.getRoomData(); return false;">
+              <span class="material-symbols-outlined">meeting_room</span> Get Room Data
+            </a>
+            <a href="#" onclick="event.stopPropagation(); aiTools.getMapData(); return false;">
+              <span class="material-symbols-outlined">public</span> Get Map Data
+            </a>
+            <a href="#" onclick="event.stopPropagation(); aiTools.dumpAPIReference(); return false;">
+              <span class="material-symbols-outlined">api</span> Dump API Reference
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="#" onclick="event.stopPropagation(); showAiSetup(); closeAllDropdowns(); return false;">
+              <span class="material-symbols-outlined">settings_input_component</span> Setup AI (BYOK)
+            </a>
+          </div>
+        </div>
+
+        <div class="toolbar-divider"></div>
+        <div class="toolbar-group">
+          <button class="nav-btn" onclick="palette.show()" title="Command Palette (Ctrl+K / Cmd+K)">
+            <span class="material-symbols-outlined">keyboard_command_key</span>
+          </button>
+          <button class="nav-btn panel-toggle" data-panel="terminal" onclick="panels.toggle('terminal')" title="Toggle Terminal (`)">
+            <span class="material-symbols-outlined">terminal</span>
+          </button>
+          <button class="nav-btn panel-toggle" data-panel="problems" onclick="panels.toggle('problems')" title="Toggle Problems Panel">
+            <span class="material-symbols-outlined">bug_report</span>
+          </button>
+          <button class="nav-btn" onclick="pixelInspector.toggle()" title="Toggle Pixel Inspector (Debug)" id="pixel-inspector-btn">
+            <span class="material-symbols-outlined">colorize</span>
+          </button>
+          <button class="nav-btn" onclick="toggleCollabConsole()" title="Collaboration">
+            <span class="material-symbols-outlined">group</span>
+          </button>
+          <button class="nav-btn" onclick="toggleFullscreen()" title="Fullscreen (F11)" id="fullscreen-btn">
+            <span class="material-symbols-outlined">fullscreen</span>
+          </button>
+        </div>
+        <div class="toolbar-divider"></div>
+        <div class="dropdown">
+          <button class="nav-btn" onclick="toggleHelpMenu(event)" title="Menu">
+            <span class="material-symbols-outlined">menu</span>
+          </button>
+          <div id="help-menu" class="dropdown-content">
+            <a href="#" onclick="event.stopPropagation(); showSettings(); closeAllDropdowns(); return false;">
+              <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">settings</span>
+              Settings
+            </a>
+            <div class="dropdown-divider"></div>
+            <div style="padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Links</div>
+            <a href="https://halext.org" target="_blank" rel="noopener" onclick="event.stopPropagation(); closeAllDropdowns();">halext.org</a>
+            <a href="./docs/" target="_blank" rel="noopener" onclick="event.stopPropagation(); closeAllDropdowns();">Documentation</a>
+            <a href="https://github.com/scawful/yaze" target="_blank" rel="noopener" onclick="event.stopPropagation(); closeAllDropdowns();">GitHub</a>
+            <a href="https://github.com/scawful/yaze/issues" target="_blank" rel="noopener" onclick="event.stopPropagation(); closeAllDropdowns();">Report Bugs / Feedback</a>
+            <div class="dropdown-divider"></div>
+            <a href="#" onclick="event.stopPropagation(); hardResetApplication(); closeAllDropdowns(); return false;">Reset Application</a>
+            <a href="#" onclick="event.stopPropagation(); showShortcuts(); closeAllDropdowns(); return false;">Shortcuts</a>
+            <a href="#" onclick="event.stopPropagation(); showAbout(); closeAllDropdowns(); return false;">About</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Removed old status bar to save space -->
+
+    <!-- Update notification -->
+    <div id="update-notification">
+      <span>Update available</span>
+      <button class="nav-btn" onclick="updateServiceWorker()" style="height: 24px; font-size: 11px;">Reload</button>
+      <button class="nav-btn" onclick="dismissUpdate()" style="height: 24px; font-size: 11px;">Dismiss</button>
+    </div>
+
+    <div id="canvas-container">
+      <div id="loading-overlay" style="display: flex;">
+        <div class="loading-content">
+          <div class="spinner" id="spinner"></div>
+          <div id="status">Initializing...</div>
+          <progress value="0" max="100" id="progress" hidden=1></progress>
+        </div>
+      </div>
+
+      <!-- Canvas is always visible, loading overlay covers it during init -->
+      <!-- Data attributes updated by agent_automation.js for agent discoverability -->
+      <canvas class="emscripten yaze-main-canvas" id="canvas"
+              tabindex=-1
+              data-editor-type=""
+              data-active-card=""
+              data-zoom-level="1.0"
+              data-visible-cards=""
+              data-session-id="0"
+              data-rom-loaded="false"></canvas>
+
+      <!-- Pixel Inspector Overlay -->
+      <div id="pixel-inspector" class="pixel-inspector" style="display: none;">
+        <div class="pixel-inspector-header">
+          <span>Pixel Inspector</span>
+          <button class="pixel-inspector-close" onclick="pixelInspector.toggle()">×</button>
+        </div>
+        <div class="pixel-inspector-content">
+          <div class="pixel-inspector-row">
+            <span class="pixel-inspector-label">Position:</span>
+            <span id="inspector-xy">-</span>
+          </div>
+          <div class="pixel-inspector-row">
+            <span class="pixel-inspector-label">Palette Index:</span>
+            <span id="inspector-index">-</span>
+          </div>
+          <div class="pixel-inspector-row">
+            <span class="pixel-inspector-label">Actual:</span>
+            <span id="inspector-actual-rgb">-</span>
+            <div id="inspector-actual-swatch" class="color-swatch"></div>
+          </div>
+          <div class="pixel-inspector-row">
+            <span class="pixel-inspector-label">Expected:</span>
+            <span id="inspector-expected-rgb">-</span>
+            <div id="inspector-expected-swatch" class="color-swatch"></div>
+          </div>
+          <div class="pixel-inspector-row">
+            <span class="pixel-inspector-label">Status:</span>
+            <span id="inspector-status">-</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VSCode-style bottom panel -->
+    <div id="panel-container" class="panel-container panel-collapsed">
+      <div class="panel-resize-handle" id="panel-resize-handle"></div>
+      <div class="panel-header">
+        <div class="panel-tabs">
+          <button class="panel-tab active" data-panel="terminal" onclick="panels.switchTab('terminal')">Terminal</button>
+          <button class="panel-tab" data-panel="problems" onclick="panels.switchTab('problems')">Problems</button>
+          <button class="panel-tab" data-panel="output" onclick="panels.switchTab('output')">Output</button>
+        </div>
+        <div class="panel-actions">
+          <button class="panel-action-btn" onclick="panels.clear()" title="Clear">Clear</button>
+          <button class="panel-action-btn" onclick="panels.maximize()" title="Maximize">Max</button>
+          <button class="panel-action-btn" onclick="panels.close()" title="Close Panel">×</button>
+        </div>
+      </div>
+      <div class="panel-content">
+        <!-- Terminal panel -->
+        <div class="panel-view active" id="panel-terminal">
+          <div class="terminal-output" id="terminal-output"></div>
+          <div class="terminal-input-line">
+            <span class="terminal-prompt">$</span>
+            <input type="text" id="terminal-input" class="terminal-input" autocomplete="off" spellcheck="false" placeholder="Enter command...">
+          </div>
+        </div>
+        <!-- Problems panel -->
+        <div class="panel-view" id="panel-problems">
+          <div class="problems-list" id="problems-list">
+            <div class="problems-empty">No problems detected</div>
+          </div>
+        </div>
+        <!-- Output panel -->
+        <div class="panel-view" id="panel-output">
+          <div class="output-log" id="output-log"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Command palette (Ctrl+K) -->
+    <div id="command-palette" class="modal" style="display: none;">
+      <div class="palette-container">
+        <input type="text" id="palette-input" class="palette-input" placeholder="Type a command..." autocomplete="off">
+        <div id="palette-results" class="palette-results">
+          <div class="palette-item" data-action="open-rom">Open ROM</div>
+          <div class="palette-item" data-action="save">Save ROM</div>
+          <div class="palette-item" data-action="file-manager">File Manager</div>
+          <div class="palette-item" data-action="settings">Settings</div>
+          <div class="palette-item" data-action="fullscreen">Toggle Fullscreen</div>
+          <div class="palette-item" data-action="terminal">Toggle Terminal</div>
+          <div class="palette-item" data-action="collab">Toggle Collaboration</div>
+          <div class="palette-item" data-action="shortcuts">Keyboard Shortcuts</div>
+          <div class="palette-item" data-action="theme-default">Theme: Hacker Green</div>
+          <div class="palette-item" data-action="theme-halext">Theme: Halext Purple</div>
+          <div class="palette-item" data-action="docs">Documentation</div>
+          <div class="palette-item" data-action="about">About yaze</div>
+          <!-- Editor switching -->
+          <div class="palette-item" data-action="editor-overworld">Editor: Overworld</div>
+          <div class="palette-item" data-action="editor-dungeon">Editor: Dungeon</div>
+          <div class="palette-item" data-action="editor-graphics">Editor: Graphics</div>
+          <div class="palette-item" data-action="editor-palette">Editor: Palette</div>
+          <div class="palette-item" data-action="editor-sprite">Editor: Sprite</div>
+          <div class="palette-item" data-action="editor-screen">Editor: Screen</div>
+          <div class="palette-item" data-action="editor-assembly">Editor: Assembly</div>
+          <div class="palette-item" data-action="editor-music">Editor: Music</div>
+          <div class="palette-item" data-action="editor-message">Editor: Message</div>
+          <div class="palette-item" data-action="editor-hex">Editor: Hex</div>
+          <!-- Emulator -->
+          <div class="palette-item" data-action="emulator-show">Emulator: Show</div>
+          <div class="palette-item" data-action="emulator-run">Emulator: Run</div>
+          <div class="palette-item" data-action="emulator-pause">Emulator: Pause</div>
+          <div class="palette-item" data-action="emulator-reset">Emulator: Reset</div>
+          <!-- AI Tools -->
+          <div class="palette-item" data-action="ai-app-state">AI: Get App State</div>
+          <div class="palette-item" data-action="ai-editor-state">AI: Get Editor State</div>
+          <div class="palette-item" data-action="ai-api-ref">AI: Dump API Reference</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- About modal -->
+    <div id="about-modal" class="modal" style="display: none;">
+      <div class="modal-content">
+        <h2>yaze - Yet Another Zelda3 Editor</h2>
+        <p>A modern ROM editor for The Legend of Zelda: A Link to the Past</p>
+        <p class="version-info">Web Build v0.8 | WASM + WebGL</p>
+        <div class="about-links">
+          <a href="https://halext.org" target="_blank">halext.org</a>
+          <a href="https://alttphacking.net/" target="_blank">alttphacking.net</a>
+          <a href="https://github.com/scawful/yaze" target="_blank">GitHub</a>
+          <a href="./docs/" target="_blank">Docs</a>
+        </div>
+        <button class="toolbar-btn" onclick="hideAbout()">Close</button>
+      </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal" style="display: none;">
+      <div class="modal-content settings-content">
+        <div class="modal-header">
+          <h2>Settings</h2>
+          <button class="nav-btn" onclick="hideSettings()"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <div class="settings-body">
+          <!-- Appearance Settings -->
+          <div class="setting-section">
+            <h3 class="setting-section-title">Appearance</h3>
+            <div class="setting-group">
+              <label for="settings-theme">Theme</label>
+              <div style="display: flex; gap: 8px;">
+                <select id="settings-theme" onchange="applyThemeSetting(this.value)" style="flex: 1;">
+                  <option value="default">Hacker Green</option>
+                  <option value="modern">Modern Dark</option>
+                  <option value="halext">Halext Purple</option>
+                  <option value="synced">Synced from App</option>
+                </select>
+                <button class="nav-btn" onclick="syncTheme()" title="Sync from C++ App">
+                  <span class="material-symbols-outlined">sync</span>
+                </button>
+              </div>
+            </div>
+            <div class="setting-group">
+              <label for="settings-font-size">Font Size</label>
+              <div class="setting-input-with-label">
+                <input type="range" id="settings-font-size" min="10" max="16" value="12" step="1" oninput="applyFontSizeSetting(this.value)">
+                <span id="font-size-display">12px</span>
+              </div>
+            </div>
+            <div class="setting-group">
+              <label>Custom Font</label>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="file" id="font-input" accept=".ttf,.otf" style="display: none;" onchange="document.getElementById('font-filename').textContent = this.files[0].name">
+                <button class="nav-btn" onclick="document.getElementById('font-input').click()">Select File</button>
+                <span id="font-filename" style="font-size: 11px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100px;">No file selected</span>
+                <button class="nav-btn" onclick="loadUserFont()" title="Load Font">Load</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel Settings -->
+          <div class="setting-section">
+            <h3 class="setting-section-title">Panels</h3>
+            <div class="setting-group">
+              <label for="settings-terminal-height">Terminal Height (pixels)</label>
+              <div class="setting-input-with-label">
+                <input type="range" id="settings-terminal-height" min="150" max="600" value="250" step="50" oninput="applyTerminalHeightSetting(this.value)">
+                <span id="terminal-height-display">250px</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Interface Settings -->
+          <div class="setting-section">
+            <h3 class="setting-section-title">Interface</h3>
+            <div class="setting-group">
+              <div class="checkbox-row">
+                <input type="checkbox" id="setting-touch" onchange="applyTouchModeSetting(this.checked)">
+                <label for="setting-touch">Force Touch Mode</label>
+              </div>
+              <div class="checkbox-row">
+                <input type="checkbox" id="setting-pixel-grid" onchange="applyPixelGridSetting(this.checked)">
+                <label for="setting-pixel-grid">Show Pixel Grid</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="nav-btn" onclick="resetSettings()" style="margin-right: auto;">Reset to Defaults</button>
+          <button class="nav-btn" onclick="hideSettings()">Done</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- File Manager Modal -->
+    <div id="file-manager-modal" class="modal" style="display: none;">
+      <div class="modal-content file-manager-content">
+        <div class="modal-header">
+          <h2>File Manager</h2>
+          <button class="nav-btn" onclick="fileManager.hide()"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <div class="file-manager-body">
+          <!-- Category Tabs -->
+          <div class="file-manager-tabs">
+            <button class="file-tab active" data-category="roms" onclick="fileManager.switchCategory('roms')">
+              <span class="material-symbols-outlined">memory</span> ROMs
+            </button>
+            <button class="file-tab" data-category="projects" onclick="fileManager.switchCategory('projects')">
+              <span class="material-symbols-outlined">folder</span> Projects
+            </button>
+            <button class="file-tab" data-category="saves" onclick="fileManager.switchCategory('saves')">
+              <span class="material-symbols-outlined">save</span> Saves
+            </button>
+            <button class="file-tab" data-category="recent" onclick="fileManager.switchCategory('recent')">
+              <span class="material-symbols-outlined">history</span> Recent
+            </button>
+          </div>
+          <!-- Storage Info -->
+          <div class="storage-info">
+            <span class="storage-label">Storage:</span>
+            <div class="storage-bar-container">
+              <div class="storage-bar" id="storage-bar" style="width: 0%;"></div>
+            </div>
+            <span class="storage-text" id="storage-text">Calculating...</span>
+          </div>
+          <!-- File List -->
+          <div class="file-list-header">
+            <span class="file-col-name">Name</span>
+            <span class="file-col-size">Size</span>
+            <span class="file-col-date">Modified</span>
+            <span class="file-col-actions">Actions</span>
+          </div>
+          <div class="file-list" id="file-list">
+            <div class="file-list-empty">No files found</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="nav-btn" onclick="document.getElementById('file-upload-input').click()">
+            <span class="material-symbols-outlined">upload</span> Upload File
+          </button>
+          <input type="file" id="file-upload-input" style="display: none;" accept=".sfc,.smc,.srm,.sav,.yproj">
+          <button class="nav-btn" onclick="fileManager.hide()">Done</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Setup Modal -->
+    <div id="ai-setup-modal" class="modal" style="display: none;">
+      <div class="modal-content settings-content" style="width: 600px;">
+        <div class="modal-header">
+          <h2>Setup AI (Bring Your Own Key)</h2>
+          <button class="nav-btn" onclick="hideAiSetup()"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <div class="settings-body">
+          <p style="color: var(--text-secondary);">
+            YAZE supports using your own Google Gemini quota directly from the browser. 
+            This requires a Google Cloud Project with the Gemini API enabled.
+          </p>
+          
+          <div class="setting-section">
+            <h3 class="setting-section-title">Prerequisites</h3>
+            <ol style="font-size: 12px; color: var(--text-secondary); margin-left: 20px; padding: 0;">
+              <li>Create a project in <a href="https://console.cloud.google.com" target="_blank" style="color: var(--accent-primary);">Google Cloud Console</a>.</li>
+              <li>Enable the <strong>Generative Language API</strong> (search for it in the API Library).</li>
+              <li>Go to <strong>APIs & Services > Credentials</strong>.</li>
+              <li>Click <strong>+ Create Credentials > OAuth client ID</strong>.</li>
+              <li>For "Application type", select <strong>Desktop App</strong>.</li>
+              <li>Give it a descriptive name (e.g., "YAZE Desktop Client").</li>
+              <li>Click <strong>Create</strong>. You will be given a <strong>Client ID</strong>.</li>
+              <li>Copy this <strong>Client ID</strong>.</li>
+            </ol>
+          </div>
+
+          <div class="setting-section">
+            <h3 class="setting-section-title">Configuration</h3>
+            <div class="setting-group">
+              <label for="ai-client-id">OAuth 2.0 Client ID</label>
+              <input type="text" id="ai-client-id" placeholder="e.g., 123456789-abc...apps.googleusercontent.com" style="width: 100%;">
+            </div>
+          </div>
+
+          <div class="setting-section">
+            <h3 class="setting-section-title">Usage</h3>
+            <p style="font-size: 12px; color: var(--text-secondary);">
+              Once configured, open the Terminal and type <code>/login</code> to authenticate.
+            </p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="nav-btn" onclick="saveAiConfig()">Save & Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Dialog -->
+    <div id="delete-confirm-dialog" class="modal" style="display: none;">
+      <div class="modal-content confirm-dialog-content">
+        <div class="confirm-dialog-icon">
+          <span class="material-symbols-outlined">warning</span>
+        </div>
+        <h3>Delete File?</h3>
+        <p id="delete-confirm-message">Are you sure you want to delete this file? This action cannot be undone.</p>
+        <div class="confirm-dialog-buttons">
+          <button class="nav-btn" onclick="fileManager.cancelDelete()">Cancel</button>
+          <button class="nav-btn danger-btn" onclick="fileManager.confirmDelete()">Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rename Dialog -->
+    <div id="rename-dialog" class="modal" style="display: none;">
+      <div class="modal-content rename-dialog-content">
+        <h3>Rename File</h3>
+        <input type="text" id="rename-input" class="rename-input" placeholder="Enter new name">
+        <div class="confirm-dialog-buttons">
+          <button class="nav-btn" onclick="fileManager.cancelRename()">Cancel</button>
+          <button class="nav-btn" onclick="fileManager.confirmRename()">Rename</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <!-- Core infrastructure (namespace.js MUST load first) -->
+    <script src="core/namespace.js"></script>
+    <script src="core/config.js"></script>
+    <script src="core/theme_definitions.js"></script>
+    <script src="core/filesystem_manager.js"></script>
+    <script src="core/loading_indicator.js"></script>
+    <script src="core/error_handler.js"></script>
+    <script src="core/crash_reporter.js"></script>
+    <script src="core/wasm_recovery.js"></script>
+    <script src="core/debug.js"></script>
+    <!-- Agent automation and accessibility -->
+    <script src="core/widget_overlay.js"></script>
+    <script src="core/agent_automation.js"></script>
+    <script src="core/ai_tools.js"></script>
+    <script src="core/ai_manager.js"></script>
+    <!-- Async queue for WASM Asyncify operations (must load before app.js) -->
+    <script src="core/async_queue.js"></script>
+    <!-- Main application -->
+    <script src="app.js"></script>
+    <!-- UI Components -->
+    <script src="components/shortcuts_overlay.js"></script>
+    <script src="components/touch_gestures.js"></script>
+    <script src="components/collab_console.js"></script>
+    <script src="components/terminal.js"></script>
+    <script src="components/drop_zone.js"></script>
+    <script src="components/pixel_inspector.js"></script>
+    <script src="components/panels.js"></script>
+    <script src="components/command_palette.js"></script>
+    <script src="components/file_manager_ui.js"></script>
+        <script src="shell_ui.js"></script>
+    
+        <script>
+          // Register AI Driver when WASM is ready
+          if (window.yaze && window.yaze.core && window.yaze.core.ready) {
+            window.yaze.core.ready().then(() => {
+              console.log('[AI] Registering external driver...');
+              if (window.Module && window.Module.registerExternalAiDriver) {
+                const result = window.Module.registerExternalAiDriver();
+                console.log('[AI] Registration result:', result);
+              }
+            });
+          }
+        </script>
+                                                                                        
+        <!-- Hold the generated WASM loader script until SharedArrayBuffer is available 
+    -->
+    <template id="yaze-wasm-script">
+    {{{ SCRIPT }}}
+    </template>
+    <script>
+      // Wait for COOP/COEP (or the COI service worker) before loading the WASM bundle.
+      // Prevents the "SharedArrayBuffer is not defined" crash on the first load.
+      (function loadWasmWhenIsolated() {
+        const template = document.getElementById('yaze-wasm-script');
+        const statusEl = document.getElementById('status');
+        const maxAttempts = 40;
+        const retryDelayMs = 250;
+        let attempts = 0;
+
+        function showWaiting() {
+          if (statusEl) statusEl.textContent = 'Initializing secure context...';
+        }
+
+        function showFailure(message) {
+          console.error('[WASM] ' + message);
+          if (typeof showFatalError === 'function') {
+            showFatalError('SharedArrayBuffer unavailable', message);
+          } else if (statusEl) {
+            statusEl.textContent = message;
+            statusEl.style.color = '#f44';
+          }
+        }
+
+        function injectWasmScript() {
+          if (!template) {
+            showFailure('WASM loader template missing');
+            return;
+          }
+
+          const scriptEl = template.content.querySelector('script');
+          if (!scriptEl) {
+            showFailure('WASM script tag missing from template');
+            return;
+          }
+
+          const clone = scriptEl.cloneNode(true);
+          clone.addEventListener('error', (e) => {
+            showFailure('Failed to load WASM bundle: ' + (e && e.message ? e.message : e.type || 'unknown error'));
+          });
+
+          document.body.appendChild(clone);
+          console.log('[WASM] yaze.js injection complete (SharedArrayBuffer ready)');
+        }
+
+        function tryLoad() {
+          const hasSAB = typeof SharedArrayBuffer !== 'undefined';
+          const isolated = typeof crossOriginIsolated === 'undefined' ? true : crossOriginIsolated === true;
+          const coiFailed = window.YAZE_COI_FAILED;
+
+          if (hasSAB && isolated) {
+            injectWasmScript();
+            return;
+          }
+
+          if (coiFailed) {
+            showFailure('Cross-origin isolation failed; SharedArrayBuffer is unavailable.');
+            return;
+          }
+
+          if (attempts === 0) {
+            showWaiting();
+          }
+
+          if (++attempts > maxAttempts) {
+            showFailure('Timed out waiting for SharedArrayBuffer. Check COOP/COEP or service worker settings.');
+            return;
+          }
+
+          setTimeout(tryLoad, retryDelayMs);
+        }
+
+        tryLoad();
+      })();
+    </script>
+  </body>
+</html>

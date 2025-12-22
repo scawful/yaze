@@ -4,6 +4,7 @@
 #include "app/gfx/util/scad_format.h"
 #include "cli/cli.h"
 #include "cli/tui/palette_editor.h"
+#include "zelda3/game_data.h"
 
 ABSL_DECLARE_FLAG(std::string, rom);
 
@@ -77,7 +78,14 @@ absl::Status HandlePaletteExportLegacy(
     return absl::AbortedError("Failed to load ROM.");
   }
 
-  auto palette_group = rom.palette_group().get_group(group_name);
+  // Load game data for palette access
+  zelda3::GameData game_data;
+  auto load_status = zelda3::LoadGameData(rom, game_data);
+  if (!load_status.ok()) {
+    return absl::AbortedError("Failed to load game data.");
+  }
+
+  auto palette_group = game_data.palette_groups.get_group(group_name);
   if (!palette_group) {
     return absl::NotFoundError("Palette group not found.");
   }
@@ -143,6 +151,13 @@ absl::Status HandlePaletteImportLegacy(
     return absl::AbortedError("Failed to load ROM.");
   }
 
+  // Load game data for palette access
+  zelda3::GameData game_data;
+  auto load_status = zelda3::LoadGameData(rom, game_data);
+  if (!load_status.ok()) {
+    return absl::AbortedError("Failed to load game data.");
+  }
+
   auto sdl_palette = gfx::DecodeColFile(input_file);
   if (sdl_palette.empty()) {
     return absl::AbortedError("Failed to load palette file.");
@@ -154,7 +169,7 @@ absl::Status HandlePaletteImportLegacy(
         gfx::SnesColor(sdl_color.r, sdl_color.g, sdl_color.b));
   }
 
-  auto palette_group = rom.palette_group().get_group(group_name);
+  auto* palette_group = game_data.palette_groups.get_group(group_name);
   if (!palette_group) {
     return absl::NotFoundError("Palette group not found.");
   }

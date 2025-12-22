@@ -121,7 +121,7 @@ absl::Status PromptBuilder::LoadResourceCatalogue(
   (void)yaml_path;  // Suppress unused parameter warning
   std::cerr
       << "⚠️  PromptBuilder requires JSON and yaml-cpp support for catalogue loading\n"
-      << "   Build with -DZ3ED_AI=ON and install yaml-cpp\n"
+      << "   Build with -DYAZE_WITH_JSON=ON (mac-ai preset already does) and install yaml-cpp\n"
       << "   AI features will use basic prompts without tool definitions\n";
   return absl::OkStatus();  // Don't fail, just skip catalogue loading
 #else

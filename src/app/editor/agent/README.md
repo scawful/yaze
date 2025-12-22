@@ -24,25 +24,21 @@ The main manager class that coordinates all agent-related functionality:
 - Integration with toast notifications and proposal drawer
 - Agent Builder workspace for persona, tool-stack, automation, and validation planning
 
-#### AgentChatWidget (`agent_chat_widget.h/cc`)
-ImGui-based chat interface for interacting with AI agents:
+#### AgentChat (`agent_chat.h/cc`)
+Unified ImGui-based chat interface for interacting with AI agents:
 - Real-time conversation with AI assistant
-- Message history with persistence
+- Message history with JSON persistence (Save/Load)
 - Proposal preview and quick actions
-- Collaboration panel with session controls
-- Multimodal panel for screenshot capture and Gemini queries
+- Toolbar with auto-scroll, timestamps, and reasoning toggles
+- Table data visualization for structured responses
 
 **Features:**
-- Split-panel layout (session details + chat history)
-- Auto-scrolling chat with timestamps
+- Auto-scrolling chat with timestamps (togglable)
 - JSON response formatting
-- Table data visualization
+- Table data visualization (TableData support)
 - Proposal metadata display
-- Provider/model telemetry badges with latency + tool counts
-- Built-in Ollama model roster with favorites, filtering, and chain modes
-- Model Deck with persistent presets (host/model/tags) synced via chat history
-- Persona summary + automation hooks surfaced directly in the chat controls
-- Tool configuration matrix (resources/dungeon/overworld/dialogue/etc.) akin to OpenWebUI
+- Code block rendering with syntax highlighting
+- Automation telemetry support for test harness integration
 
 #### AgentChatHistoryCodec (`agent_chat_history_codec.h/cc`)
 Serialization/deserialization for chat history:
@@ -90,11 +86,8 @@ agent_editor_.Initialize(&toast_manager_, &proposal_drawer_);
 // Set up ROM context
 agent_editor_.SetRomContext(current_rom_);
 
-// Optional: Configure multimodal callbacks
-AgentChatWidget::MultimodalCallbacks callbacks;
-callbacks.capture_snapshot = [](std::filesystem::path* out) { /* ... */ };
-callbacks.send_to_gemini = [](const std::filesystem::path& img, const std::string& prompt) { /* ... */ };
-agent_editor_.GetChatWidget()->SetMultimodalCallbacks(callbacks);
+// Access the agent chat component
+agent_editor_.GetAgentChat();
 ```
 
 ### Drawing
@@ -153,7 +146,7 @@ The `Agent Builder` tab inside AgentEditor walks you through five phases:
 4. **Validation** – document success criteria and testing notes.
 5. **E2E Checklist** – track readiness (automation toggles, persona, ROM sync) before triggering full end-to-end harness runs. Builder stages can be exported/imported as JSON blueprints (`~/.yaze/agent/blueprints/*.json`) for reuse across projects.
 
-Builder plans can be applied directly to `AgentChatWidget::AgentConfigState` so that UI and CLI automation stay in sync.
+Builder plans can be applied directly to the agent configuration state so that UI and CLI automation stay in sync.
 
 ## File Structure
 
@@ -162,14 +155,20 @@ agent/
 ├── README.md                               (this file)
 ├── agent_editor.h                          Main manager class
 ├── agent_editor.cc
-├── agent_chat_widget.h                     ImGui chat interface
-├── agent_chat_widget.cc
+├── agent_chat.h                            Unified chat interface
+├── agent_chat.cc
+├── agent_ui_controller.h                   UI coordination
+├── agent_ui_controller.cc
+├── agent_ui_theme.h                        Theme colors for agent UI
+├── agent_ui_theme.cc
 ├── agent_chat_history_codec.h              History serialization
 ├── agent_chat_history_codec.cc
 ├── agent_collaboration_coordinator.h       Local file-based collaboration
 ├── agent_collaboration_coordinator.cc
 ├── network_collaboration_coordinator.h     WebSocket collaboration
-└── network_collaboration_coordinator.cc
+├── network_collaboration_coordinator.cc
+└── panels/                                 Agent editor panels
+    └── agent_editor_panels.h/cc
 ```
 
 ## Build Configuration

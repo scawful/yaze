@@ -130,6 +130,42 @@ absl::Status ReloadPackageFont(const FontConfig& config) {
   return absl::OkStatus();
 }
 
+absl::Status LoadFontFromMemory(const std::string& name,
+                                const std::string& data, float size_pixels) {
+  ImGuiIO& imgui_io = ImGui::GetIO();
+
+  // ImGui takes ownership of the data and will free it
+  void* font_data = ImGui::MemAlloc(data.size());
+  if (!font_data) {
+    return absl::InternalError("Failed to allocate memory for font data");
+  }
+  std::memcpy(font_data, data.data(), data.size());
+
+  ImFontConfig config;
+  std::strncpy(config.Name, name.c_str(), sizeof(config.Name) - 1);
+  config.Name[sizeof(config.Name) - 1] = 0;
+
+  if (!imgui_io.Fonts->AddFontFromMemoryTTF(font_data,
+                                            static_cast<int>(data.size()),
+                                            size_pixels, &config)) {
+    ImGui::MemFree(font_data);
+    return absl::InternalError("Failed to load font from memory");
+  }
+
+  // We also need to add icons and Japanese characters to this new font
+  // Note: This is a simplified version of AddIconFont/AddJapaneseFont that
+  // works with the current font being added (since we can't easily merge into
+  // a font that's just been added without rebuilding atlas immediately)
+  // For now, we'll just load the base font. Merging requires more complex logic.
+
+  // Important: We must rebuild the font atlas!
+  // This is usually done by the backend, but since we changed fonts at runtime...
+  // Ideally, this should be done before NewFrame().
+  // If called during a frame, changes won't appear until texture is rebuilt.
+
+  return absl::OkStatus();
+}
+
 #ifdef __linux__
 void LoadSystemFonts() {
   // Load Linux System Fonts into ImGui

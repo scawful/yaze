@@ -11,6 +11,16 @@ YAZE includes two primary AI assistance modes:
 
 Both modes use the same underlying AI service (Ollama or Gemini) and tool infrastructure, but target different workflows.
 
+## Choosing the right agent persona
+- Personas live in `.claude/agents/<agent-id>.md`; open the matching file as your system prompt before a session (available to all agents, not just Claude).
+- **ai-infra-architect**: AI/agent infra, MCP/gRPC, z3ed tooling, model plumbing.
+- **backend-infra-engineer**: Build/packaging/toolchains, CI reliability, release plumbing.
+- **imgui-frontend-engineer**: ImGui/editor UI, renderer/backends, canvas/docking UX.
+- **snes-emulator-expert**: Emulator core (CPU/APU/PPU), performance/accuracy/debugging.
+- **zelda3-hacking-expert**: Gameplay/ROM logic, data formats, hacking workflows.
+- **test-infrastructure-expert**: Test harnesses, CTest/gMock infra, flake/bloat triage.
+- **docs-janitor**: Docs/process hygiene, onboarding, checklists.
+
 ## Prerequisites
 
 ### Build Requirements
@@ -78,7 +88,7 @@ cmake --build --preset mac-ai --target z3ed
 
 ```bash
 # You encounter a compilation error
-cmake --build build_ai
+cmake --build build
 # [ERROR] src/app/gfx/snes_color.cc:45: error: 'Arena' was not declared
 
 # Use z3ed to analyze and suggest fixes
@@ -141,7 +151,7 @@ The agent automatically analyzes compilation failures:
 
 ```bash
 z3ed agent chat --rom zelda3.sfc
-> cmake --build build_ai failed with:
+> cmake --build build failed with:
 >   error: 'gfx::Arena' has not been declared in snes_color.cc:45
 
 # AI will:

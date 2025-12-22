@@ -392,32 +392,12 @@ void DockSpaceRenderer::BeginEnhancedDockSpace(ImGuiID dockspace_id,
   last_dockspace_pos_ = ImGui::GetWindowPos();
   last_dockspace_size_ = ImGui::GetWindowSize();
 
-  // Create the actual dockspace first
+  // Create the actual dockspace
   ImGui::DockSpace(dockspace_id, size, flags);
 
-  // NOW draw the background effects on the foreground draw list so they're
-  // visible
-  if (background_enabled_) {
-    ImDrawList* fg_draw_list = ImGui::GetForegroundDrawList();
-    auto& theme_manager = ThemeManager::Get();
-    auto current_theme = theme_manager.GetCurrentTheme();
-
-    if (grid_enabled_) {
-      auto& bg_renderer = BackgroundRenderer::Get();
-      // Use the main viewport for full-screen grid
-      const ImGuiViewport* viewport = ImGui::GetMainViewport();
-      ImVec2 grid_pos = viewport->WorkPos;
-      ImVec2 grid_size = viewport->WorkSize;
-
-      // Use subtle grid color that doesn't distract
-      Color subtle_grid_color = current_theme.primary;
-      // Use the grid settings opacity for consistency
-      subtle_grid_color.alpha = bg_renderer.GetGridSettings().opacity;
-
-      bg_renderer.RenderGridBackground(fg_draw_list, grid_pos, grid_size,
-                                       subtle_grid_color);
-    }
-  }
+  // NOTE: Grid background is rendered by UICoordinator::DrawBackground()
+  // on the background draw list. Do NOT render here on foreground draw list
+  // as that causes duplicate grid rendering (one behind content, one in front).
 }
 
 void DockSpaceRenderer::EndEnhancedDockSpace() {

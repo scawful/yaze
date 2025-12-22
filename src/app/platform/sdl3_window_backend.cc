@@ -18,10 +18,16 @@
 #include "util/log.h"
 
 namespace yaze {
+
+// Forward reference to the global resize flag defined in window.cc
+namespace core {
+extern bool g_window_is_resizing;
+}
+
 namespace platform {
 
-// Global flag for window resize state (used by emulator to pause)
-extern bool g_window_is_resizing;
+// Alias to core's resize flag for compatibility
+#define g_window_is_resizing yaze::core::g_window_is_resizing
 
 SDL3WindowBackend::~SDL3WindowBackend() {
   if (initialized_) {
@@ -148,6 +154,8 @@ bool SDL3WindowBackend::PollEvent(WindowEvent& out_event) {
 
     // Convert to platform-agnostic event
     out_event = ConvertSDL3Event(sdl_event);
+    out_event.has_native_event = true;
+    out_event.native_event = sdl_event;
     return true;
   }
   return false;
@@ -396,6 +404,12 @@ absl::Status SDL3WindowBackend::InitializeImGui(gfx::IRenderer* renderer) {
   ImGuiIO& io = ImGui::GetIO();
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+  io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+
+  // Ensure macOS-style behavior (Cmd acts as Ctrl for shortcuts)
+#ifdef __APPLE__
+  io.ConfigMacOSXBehaviors = true;
+#endif
 
   // Initialize ImGui backends for SDL3
   SDL_Renderer* sdl_renderer =
@@ -448,6 +462,30 @@ void SDL3WindowBackend::NewImGuiFrame() {
 
   ImGui_ImplSDLRenderer3_NewFrame();
   ImGui_ImplSDL3_NewFrame();
+}
+
+void SDL3WindowBackend::RenderImGui(gfx::IRenderer* renderer) {
+  if (!imgui_initialized_) {
+    return;
+  }
+
+  // Finalize ImGui frame and render draw data
+  ImGui::Render();
+  
+  if (renderer) {
+    SDL_Renderer* sdl_renderer =
+        static_cast<SDL_Renderer*>(renderer->GetBackendRenderer());
+    if (sdl_renderer) {
+      ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), sdl_renderer);
+    }
+  }
+
+  // Multi-viewport support
+  ImGuiIO& io = ImGui::GetIO();
+  if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+    ImGui::UpdatePlatformWindows();
+    ImGui::RenderPlatformWindowsDefault();
+  }
 }
 
 }  // namespace platform

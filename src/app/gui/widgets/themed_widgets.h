@@ -1,230 +1,80 @@
-#ifndef YAZE_APP_GUI_THEMED_WIDGETS_H
-#define YAZE_APP_GUI_THEMED_WIDGETS_H
+#ifndef YAZE_APP_GUI_WIDGETS_THEMED_WIDGETS_H_
+#define YAZE_APP_GUI_WIDGETS_THEMED_WIDGETS_H_
 
-#include "app/gui/core/color.h"
-#include "app/gui/core/layout_helpers.h"
-#include "app/gui/core/theme_manager.h"
+#include <string>
 #include "imgui/imgui.h"
 
 namespace yaze {
 namespace gui {
 
+// Standardized themed widgets that automatically respect the current theme.
+// These abstract away the repetitive PushStyleColor/PopStyleColor calls.
+
 /**
- * @brief Theme-aware widget library
- *
- * All widgets in this file automatically use the current theme from
- * ThemeManager. These are drop-in replacements for standard ImGui widgets with
- * automatic theming.
- *
- * Usage:
- * ```cpp
- * using namespace yaze::gui;
- *
- * if (ThemedButton("Save")) {
- *     // Button uses theme colors automatically
- * }
- *
- * SectionHeader("Settings");  // Themed section header
- *
- * ThemedCard("Properties", [&]() {
- *     // Content inside themed card
- * });
- * ```
+ * @brief Draw a standard icon button with theme-aware colors.
+ * 
+ * @param icon The icon string (e.g., ICON_MD_SETTINGS)
+ * @param tooltip Optional tooltip text
+ * @param size The size of the button (default: 0,0 = auto)
+ * @param is_active Whether the button is in an active/toggled state
+ * @param is_disabled Whether the button is disabled
+ * @return true if clicked
  */
-
-// ============================================================================
-// Buttons
-// ============================================================================
+bool ThemedIconButton(const char* icon, const char* tooltip = nullptr,
+                      const ImVec2& size = ImVec2(0, 0), 
+                      bool is_active = false, 
+                      bool is_disabled = false);
 
 /**
- * @brief Themed button with automatic color application
+ * @brief Draw a transparent icon button (hover effect only).
+ *
+ * @param icon The icon string (e.g., ICON_MD_SETTINGS)
+ * @param size The size of the button
+ * @param tooltip Optional tooltip text
+ * @param is_active Whether the button is in an active/toggled state
+ * @param active_color Optional custom color for active state icon
+ *                     If alpha is 0, uses theme.primary instead
+ * @return true if clicked
+ */
+bool TransparentIconButton(const char* icon, const ImVec2& size,
+                           const char* tooltip = nullptr,
+                           bool is_active = false,
+                           const ImVec4& active_color = ImVec4(0, 0, 0, 0));
+
+/**
+ * @brief Draw a standard text button with theme colors.
  */
 bool ThemedButton(const char* label, const ImVec2& size = ImVec2(0, 0));
 
 /**
- * @brief Themed button with icon (Material Design Icons)
- */
-bool ThemedIconButton(const char* icon, const char* tooltip = nullptr);
-
-/**
- * @brief Primary action button (uses accent color)
+ * @brief Draw a primary action button (accented color).
  */
 bool PrimaryButton(const char* label, const ImVec2& size = ImVec2(0, 0));
 
 /**
- * @brief Danger/destructive action button (uses error color)
+ * @brief Draw a danger action button (error color).
  */
 bool DangerButton(const char* label, const ImVec2& size = ImVec2(0, 0));
 
-// ============================================================================
-// Headers & Sections
-// ============================================================================
-
 /**
- * @brief Themed section header with accent color
+ * @brief Draw a section header.
  */
 void SectionHeader(const char* label);
 
 /**
- * @brief Collapsible section with themed header
+ * @brief Draw a palette color button.
  */
-bool ThemedCollapsingHeader(const char* label, ImGuiTreeNodeFlags flags = 0);
-
-// ============================================================================
-// Cards & Panels
-// ============================================================================
+bool PaletteColorButton(const char* id, const struct SnesColor& color, 
+                        bool is_selected, bool is_modified, 
+                        const ImVec2& size);
 
 /**
- * @brief Themed card with rounded corners and shadow
- * @param label Unique ID for the card
- * @param content Callback function to render card content
- * @param size Card size (0, 0 for auto-size)
+ * @brief Draw a panel header with consistent styling.
  */
-void ThemedCard(const char* label, std::function<void()> content,
-                const ImVec2& size = ImVec2(0, 0));
-
-/**
- * @brief Begin themed panel (manual version of ThemedCard)
- */
-void BeginThemedPanel(const char* label, const ImVec2& size = ImVec2(0, 0));
-
-/**
- * @brief End themed panel
- */
-void EndThemedPanel();
-
-// ============================================================================
-// Inputs
-// ============================================================================
-
-/**
- * @brief Themed text input
- */
-bool ThemedInputText(const char* label, char* buf, size_t buf_size,
-                     ImGuiInputTextFlags flags = 0);
-
-/**
- * @brief Themed integer input
- */
-bool ThemedInputInt(const char* label, int* v, int step = 1,
-                    int step_fast = 100, ImGuiInputTextFlags flags = 0);
-
-/**
- * @brief Themed float input
- */
-bool ThemedInputFloat(const char* label, float* v, float step = 0.0f,
-                      float step_fast = 0.0f, const char* format = "%.3f",
-                      ImGuiInputTextFlags flags = 0);
-
-/**
- * @brief Themed checkbox
- */
-bool ThemedCheckbox(const char* label, bool* v);
-
-/**
- * @brief Themed combo box
- */
-bool ThemedCombo(const char* label, int* current_item,
-                 const char* const items[], int items_count,
-                 int popup_max_height_in_items = -1);
-
-// ============================================================================
-// Tables
-// ============================================================================
-
-/**
- * @brief Begin themed table with automatic styling
- */
-bool BeginThemedTable(const char* str_id, int columns,
-                      ImGuiTableFlags flags = 0,
-                      const ImVec2& outer_size = ImVec2(0, 0),
-                      float inner_width = 0.0f);
-
-/**
- * @brief End themed table
- */
-void EndThemedTable();
-
-// ============================================================================
-// Tooltips & Help
-// ============================================================================
-
-/**
- * @brief Themed help marker with tooltip
- */
-void ThemedHelpMarker(const char* desc);
-
-/**
- * @brief Begin themed tooltip
- */
-void BeginThemedTooltip();
-
-/**
- * @brief End themed tooltip
- */
-void EndThemedTooltip();
-
-// ============================================================================
-// Status & Feedback
-// ============================================================================
-
-enum class StatusType { kSuccess, kWarning, kError, kInfo };
-/**
- * @brief Themed status text (success, warning, error, info)
- */
-void ThemedStatusText(const char* text, StatusType type);
-
-/**
- * @brief Themed progress bar
- */
-void ThemedProgressBar(float fraction, const ImVec2& size = ImVec2(-1, 0),
-                       const char* overlay = nullptr);
-
-// ============================================================================
-// Palette Editor Widgets
-// ============================================================================
-
-// NOTE: PaletteColorButton moved to color.h for consistency with other color
-// utilities
-
-/**
- * @brief Display color information with copy-to-clipboard functionality
- * @param color SNES color to display info for
- * @param show_snes_format Show SNES $xxxx format
- * @param show_hex_format Show #xxxxxx hex format
- */
-void ColorInfoPanel(const yaze::gfx::SnesColor& color,
-                    bool show_snes_format = true, bool show_hex_format = true);
-
-/**
- * @brief Modified indicator badge (displayed as text with icon)
- * @param is_modified Whether to show the badge
- * @param text Optional text to display after badge
- */
-void ModifiedBadge(bool is_modified, const char* text = nullptr);
-
-// ============================================================================
-// Utility
-// ============================================================================
-
-/**
- * @brief Get current theme (shortcut)
- */
-inline const EnhancedTheme& GetTheme() {
-  return ThemeManager::Get().GetCurrentTheme();
-}
-
-/**
- * @brief Apply theme colors to next widget
- */
-void PushThemedWidgetColors();
-
-/**
- * @brief Restore previous colors
- */
-void PopThemedWidgetColors();
+void PanelHeader(const char* title, const char* icon = nullptr,
+                 bool* p_open = nullptr);
 
 }  // namespace gui
 }  // namespace yaze
 
-#endif  // YAZE_APP_GUI_THEMED_WIDGETS_H
+#endif  // YAZE_APP_GUI_WIDGETS_THEMED_WIDGETS_H_

@@ -257,5 +257,17 @@ Tile Data:
 
 ---
 
-**Last Updated**: October 13, 2025
+## Additional Format Documentation
+
+For more detailed format specifications, see:
+
+- [SNES Graphics Format](SNES_GRAPHICS.md) - Tile and sprite format specifications
+- [SNES Compression](SNES_COMPRESSION.md) - Detailed LC-LZ2 compression algorithm
+- [Symbol Format](SYMBOL_FORMAT.md) - Assembler symbol file format
+- [ZSM Format](ZSM_FORMAT.md) - Music and sound effect format
+- [Save State Format](SAVE_STATE_FORMAT.md) - Emulator save state specifications
+
+---
+
+**Last Updated**: November 27, 2025
 

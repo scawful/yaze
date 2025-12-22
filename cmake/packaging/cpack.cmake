@@ -74,6 +74,7 @@ elseif(WIN32)
         DESTINATION .
         COMPONENT yaze)
 
+    # Bundle MSVC/UCRT runtime dependencies if detected
     if(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS)
         install(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
             DESTINATION .

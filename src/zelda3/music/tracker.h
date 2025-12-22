@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "util/macro.h"
 
 namespace yaze {

@@ -119,6 +119,13 @@ class ConversationalAgentService {
 
   void ReplaceHistory(std::vector<ChatMessage> history);
 
+  // External Driver Support (for WASM/JS Integration)
+  using ExternalDriverCallback =
+      std::function<void(const std::vector<ChatMessage>& history)>;
+  void SetExternalDriver(ExternalDriverCallback driver);
+  // Called by external driver when a response is ready
+  void HandleExternalResponse(const AgentResponse& response);
+
 #ifdef Z3ED_AI
   // Advanced Features Access (only when Z3ED_AI=ON)
   LearnedKnowledgeService& learned_knowledge() { return learned_knowledge_; }
@@ -163,6 +170,10 @@ class ConversationalAgentService {
   Rom* rom_context_ = nullptr;
   AgentConfig config_;
   InternalMetrics metrics_;
+
+  // External driver state
+  bool has_external_driver_ = false;
+  ExternalDriverCallback external_driver_;
 
 #ifdef Z3ED_AI
   // Advanced features (only when Z3ED_AI=ON)

@@ -4,6 +4,7 @@
 # Canvas core components
 set(CANVAS_SOURCES
   bpp_format_ui.cc
+  canvas_extensions.cc
   canvas_modals.cc
   canvas_context_menu.cc
   canvas_usage_tracker.cc
@@ -14,6 +15,7 @@ set(CANVAS_SOURCES
 
 set(CANVAS_HEADERS
   bpp_format_ui.h
+  canvas_extensions.h
   canvas_modals.h
   canvas_context_menu.h
   canvas_usage_tracker.h

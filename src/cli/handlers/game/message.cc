@@ -14,7 +14,7 @@
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/message/message_data.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "util/macro.h"
 
 ABSL_DECLARE_FLAG(std::string, rom);

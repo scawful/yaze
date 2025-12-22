@@ -8,6 +8,8 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/layout_helpers.h"
+#include "app/gui/core/popup_id.h"
+#include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
 #include "zelda3/overworld/overworld_map.h"
 #include "zelda3/overworld/overworld_version_helper.h"
@@ -23,16 +25,18 @@ using ImGui::Text;
 
 // Using centralized UI constants
 
-void MapPropertiesSystem::DrawSimplifiedMapSettings(
+void MapPropertiesSystem::DrawCanvasToolbar(
     int& current_world, int& current_map, bool& current_map_lock,
     bool& show_map_properties_panel, bool& show_custom_bg_color_editor,
     bool& show_overlay_editor, bool& show_overlay_preview, int& game_state,
-    int& current_mode) {
+    EditingMode& current_mode, EntityEditMode& entity_edit_mode) {
   (void)show_overlay_editor;  // Reserved for future use
-  (void)current_mode;         // Reserved for future use
-  // Enhanced settings table with popup buttons for quick access and integrated
-  // toolset
-  if (BeginTable("SimplifiedMapSettings", 9,
+  (void)show_custom_bg_color_editor; // Now handled by sidebar
+  (void)game_state; // Now handled by sidebar
+  (void)show_overlay_preview; // Reserved
+
+  // Simplified canvas toolbar - Navigation and Mode controls
+  if (BeginTable("CanvasToolbar", 7,
                  ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit,
                  ImVec2(0, 0), -1)) {
     ImGui::TableSetupColumn("World", ImGuiTableColumnFlags_WidthFixed,
@@ -43,16 +47,10 @@ void MapPropertiesSystem::DrawSimplifiedMapSettings(
                             kTableColumnAreaSize);
     ImGui::TableSetupColumn("Lock", ImGuiTableColumnFlags_WidthFixed,
                             kTableColumnLock);
-    ImGui::TableSetupColumn("Graphics", ImGuiTableColumnFlags_WidthFixed,
-                            kTableColumnGraphics);
-    ImGui::TableSetupColumn("Palettes", ImGuiTableColumnFlags_WidthFixed,
-                            kTableColumnPalettes);
-    ImGui::TableSetupColumn("Properties", ImGuiTableColumnFlags_WidthFixed,
-                            kTableColumnProperties);
-    ImGui::TableSetupColumn("View", ImGuiTableColumnFlags_WidthFixed,
-                            kTableColumnView);
-    ImGui::TableSetupColumn("Quick", ImGuiTableColumnFlags_WidthFixed,
-                            kTableColumnQuick);
+    ImGui::TableSetupColumn("Mode", ImGuiTableColumnFlags_WidthFixed,
+                            80.0f); // Mouse/Paint
+    ImGui::TableSetupColumn("Entity", ImGuiTableColumnFlags_WidthStretch); // Entity status
+    ImGui::TableSetupColumn("Sidebar", ImGuiTableColumnFlags_WidthFixed, 40.0f);
 
     TableNextColumn();
     ImGui::SetNextItemWidth(kComboWorldWidth);
@@ -112,87 +110,45 @@ void MapPropertiesSystem::DrawSimplifiedMapSettings(
     HOVER_HINT(current_map_lock ? "Unlock Map" : "Lock Map");
 
     TableNextColumn();
-    if (ImGui::Button(ICON_MD_IMAGE " GFX", ImVec2(kTableButtonGraphics, 0))) {
-      ImGui::OpenPopup("GraphicsPopup");
+    // Mode Controls
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+    if (gui::ToggleButton(ICON_MD_MOUSE, current_mode == EditingMode::MOUSE, ImVec2(30, 0))) {
+      current_mode = EditingMode::MOUSE;
+      canvas_->SetUsageMode(gui::CanvasUsage::kEntityManipulation);
     }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(
-          "Graphics Settings\n\n"
-          "Configure:\n"
-          "  • Area graphics (tileset)\n"
-          "  • Sprite graphics sheets\n"
-          "  • Animated graphics (v3+)\n"
-          "  • Custom tile16 sheets (8 slots)");
+    HOVER_HINT("Mouse Mode (1)\nNavigate, pan, and manage entities");
+    
+    ImGui::SameLine();
+    if (gui::ToggleButton(ICON_MD_DRAW, current_mode == EditingMode::DRAW_TILE, ImVec2(30, 0))) {
+      current_mode = EditingMode::DRAW_TILE;
+      canvas_->SetUsageMode(gui::CanvasUsage::kTilePainting);
     }
-    DrawGraphicsPopup(current_map, game_state);
+    HOVER_HINT("Tile Paint Mode (2)\nDraw tiles on the map");
+    ImGui::PopStyleVar();
 
     TableNextColumn();
-    if (ImGui::Button(ICON_MD_PALETTE " Palettes",
-                      ImVec2(kTableButtonPalettes, 0))) {
-      ImGui::OpenPopup("PalettesPopup");
+    // Entity Status
+    if (entity_edit_mode != EntityEditMode::NONE) {
+      const char* entity_icon = "";
+      const char* entity_label = "";
+      switch (entity_edit_mode) {
+        case EntityEditMode::ENTRANCES: entity_icon = ICON_MD_DOOR_FRONT; entity_label = "Entrances"; break;
+        case EntityEditMode::EXITS: entity_icon = ICON_MD_DOOR_BACK; entity_label = "Exits"; break;
+        case EntityEditMode::ITEMS: entity_icon = ICON_MD_GRASS; entity_label = "Items"; break;
+        case EntityEditMode::SPRITES: entity_icon = ICON_MD_PEST_CONTROL_RODENT; entity_label = "Sprites"; break;
+        case EntityEditMode::TRANSPORTS: entity_icon = ICON_MD_ADD_LOCATION; entity_label = "Transports"; break;
+        case EntityEditMode::MUSIC: entity_icon = ICON_MD_MUSIC_NOTE; entity_label = "Music"; break;
+        default: break;
+      }
+      ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "%s %s", entity_icon, entity_label);
     }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(
-          "Palette Settings\n\n"
-          "Configure:\n"
-          "  • Area palette (background colors)\n"
-          "  • Main palette (v2+)\n"
-          "  • Sprite palettes\n"
-          "  • Custom background colors");
-    }
-    DrawPalettesPopup(current_map, game_state, show_custom_bg_color_editor);
 
     TableNextColumn();
-    if (ImGui::Button(ICON_MD_TUNE " Config",
-                      ImVec2(kTableButtonProperties, 0))) {
-      ImGui::OpenPopup("ConfigPopup");
+    // Sidebar Toggle
+    if (ImGui::Button(ICON_MD_TUNE, ImVec2(40, 0))) {
+      show_map_properties_panel = !show_map_properties_panel;
     }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(
-          "Area Configuration\n\n"
-          "Quick access to:\n"
-          "  • Message ID\n"
-          "  • Game state settings\n"
-          "  • Area size (v3+)\n"
-          "  • Mosaic effects\n"
-          "  • Visual effect overlays\n"
-          "  • Map overlay info\n\n"
-          "Click 'Full Configuration Panel' for\n"
-          "comprehensive editing with all tabs.");
-    }
-    DrawPropertiesPopup(current_map, show_map_properties_panel,
-                        show_overlay_preview, game_state);
-
-    TableNextColumn();
-    // View Controls
-    if (ImGui::Button(ICON_MD_VISIBILITY " View",
-                      ImVec2(kTableButtonView, 0))) {
-      ImGui::OpenPopup("ViewPopup");
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(
-          "View Controls\n\n"
-          "Canvas controls:\n"
-          "  • Zoom in/out\n"
-          "  • Toggle fullscreen\n"
-          "  • Reset view");
-    }
-    DrawViewPopup();
-
-    TableNextColumn();
-    // Quick Access Tools
-    if (ImGui::Button(ICON_MD_BOLT " Quick", ImVec2(kTableButtonQuick, 0))) {
-      ImGui::OpenPopup("QuickPopup");
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(
-          "Quick Access Tools\n\n"
-          "Shortcuts to:\n"
-          "  • Tile16 editor (Ctrl+T)\n"
-          "  • Copy current map\n"
-          "  • Lock/unlock map (Ctrl+L)");
-    }
-    DrawQuickAccessPopup();
+    HOVER_HINT("Toggle Map Properties Sidebar");
 
     ImGui::EndTable();
   }
@@ -269,13 +225,14 @@ void MapPropertiesSystem::DrawCustomBackgroundColorEditor(
   Text("Custom Background Color Editor");
   Separator();
 
-  // Enable/disable area-specific background color
-  static bool use_area_specific_bg_color = false;
+  // Read enable flag from ROM (not static - must reflect current ROM state)
+  bool use_area_specific_bg_color =
+      (*rom_)[zelda3::OverworldCustomAreaSpecificBGEnabled] != 0x00;
   if (ImGui::Checkbox("Use Area-Specific Background Color",
                       &use_area_specific_bg_color)) {
-    // Update ROM data
+    // Update ROM data when checkbox is toggled
     (*rom_)[zelda3::OverworldCustomAreaSpecificBGEnabled] =
-        use_area_specific_bg_color ? 1 : 0;
+        use_area_specific_bg_color ? 0x01 : 0x00;
   }
 
   if (use_area_specific_bg_color) {
@@ -322,13 +279,13 @@ void MapPropertiesSystem::DrawOverlayEditor(int current_map,
   Separator();
 
   if (rom_version == zelda3::OverworldVersion::kVanilla) {
-    ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.4f, 1.0f), ICON_MD_WARNING
-                       " Subscreen overlays require ZSCustomOverworld v1+");
+    ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.4f, 1.0f), ICON_MD_INFO
+                       " Enhanced overlay editing requires ZSCustomOverworld v1+");
     ImGui::Separator();
     ImGui::TextWrapped(
-        "To use visual effect overlays, you need to upgrade your ROM to "
-        "ZSCustomOverworld. This feature allows you to add atmospheric effects "
-        "like fog, rain, forest canopy, and sky backgrounds to your maps.");
+        "Subscreen overlays are a vanilla feature used for atmospheric effects "
+        "like fog, rain, and forest canopy. ZSCustomOverworld expands this by "
+        "allowing per-area overlay configuration and additional customization.");
     return;
   }
 
@@ -352,13 +309,14 @@ void MapPropertiesSystem::DrawOverlayEditor(int current_map,
     ImGui::Separator();
   }
 
-  // Enable/disable subscreen overlay
-  static bool use_subscreen_overlay = false;
+  // Read enable flag from ROM (not static - must reflect current ROM state)
+  bool use_subscreen_overlay =
+      (*rom_)[zelda3::OverworldCustomSubscreenOverlayEnabled] != 0x00;
   if (ImGui::Checkbox(ICON_MD_VISIBILITY " Enable Visual Effect for This Area",
                       &use_subscreen_overlay)) {
-    // Update ROM data
+    // Update ROM data when checkbox is toggled
     (*rom_)[zelda3::OverworldCustomSubscreenOverlayEnabled] =
-        use_subscreen_overlay ? 1 : 0;
+        use_subscreen_overlay ? 0x01 : 0x00;
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Enable/disable visual effect overlay for this map area");
@@ -478,6 +436,18 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
     entity_menu.subitems.push_back(sprite_item);
 
     canvas.AddContextMenuItem(entity_menu);
+
+    // Add "Edit Tile16" option in MOUSE mode
+    if (edit_tile16_callback_) {
+      gui::CanvasMenuItem tile16_edit_item;
+      tile16_edit_item.label = ICON_MD_GRID_VIEW " Edit Tile16";
+      tile16_edit_item.callback = [this]() {
+        if (edit_tile16_callback_) {
+          edit_tile16_callback_();
+        }
+      };
+      canvas.AddContextMenuItem(tile16_edit_item);
+    }
   }
 
   // Add overworld-specific context menu items
@@ -528,7 +498,8 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
   gui::CanvasMenuItem zoom_in_item;
   zoom_in_item.label = ICON_MD_ZOOM_IN " Zoom In";
   zoom_in_item.callback = [&canvas]() {
-    float scale = std::min(2.0f, canvas.global_scale() + 0.25f);
+    float scale = std::min(kOverworldMaxZoom,
+                           canvas.global_scale() + kOverworldZoomStep);
     canvas.set_global_scale(scale);
   };
   canvas.AddContextMenuItem(zoom_in_item);
@@ -536,7 +507,8 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
   gui::CanvasMenuItem zoom_out_item;
   zoom_out_item.label = ICON_MD_ZOOM_OUT " Zoom Out";
   zoom_out_item.callback = [&canvas]() {
-    float scale = std::max(0.25f, canvas.global_scale() - 0.25f);
+    float scale = std::max(kOverworldMinZoom,
+                           canvas.global_scale() - kOverworldZoomStep);
     canvas.set_global_scale(scale);
   };
   canvas.AddContextMenuItem(zoom_out_item);
@@ -544,7 +516,10 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
 
 // Private method implementations
 void MapPropertiesSystem::DrawGraphicsPopup(int current_map, int game_state) {
-  if (ImGui::BeginPopup("GraphicsPopup")) {
+  if (ImGui::BeginPopup(
+          gui::MakePopupId(gui::EditorNames::kOverworld,
+                           gui::PopupNames::kGraphicsPopup)
+              .c_str())) {
     ImGui::PushID("GraphicsPopup");  // Fix ImGui duplicate ID warnings
 
     // Use theme-aware spacing instead of hardcoded constants
@@ -653,7 +628,10 @@ void MapPropertiesSystem::DrawGraphicsPopup(int current_map, int game_state) {
 
 void MapPropertiesSystem::DrawPalettesPopup(int current_map, int game_state,
                                             bool& show_custom_bg_color_editor) {
-  if (ImGui::BeginPopup("PalettesPopup")) {
+  if (ImGui::BeginPopup(
+          gui::MakePopupId(gui::EditorNames::kOverworld,
+                           gui::PopupNames::kPalettesPopup)
+              .c_str())) {
     ImGui::PushID("PalettesPopup");  // Fix ImGui duplicate ID warnings
 
     // Use theme-aware spacing instead of hardcoded constants
@@ -720,7 +698,10 @@ void MapPropertiesSystem::DrawPropertiesPopup(int current_map,
                                               bool& show_map_properties_panel,
                                               bool& show_overlay_preview,
                                               int& game_state) {
-  if (ImGui::BeginPopup("ConfigPopup")) {
+  if (ImGui::BeginPopup(
+          gui::MakePopupId(gui::EditorNames::kOverworld,
+                           gui::PopupNames::kConfigPopup)
+              .c_str())) {
     ImGui::PushID("ConfigPopup");  // Fix ImGui duplicate ID warnings
 
     // Use theme-aware spacing instead of hardcoded constants
@@ -1427,10 +1408,16 @@ void MapPropertiesSystem::DrawOverlayControls(int current_map,
                        ICON_MD_HELP_OUTLINE " Visual Effects Overview");
     ImGui::SameLine();
     if (ImGui::Button(ICON_MD_INFO "##HelpButton")) {
-      ImGui::OpenPopup("OverlayTypesHelp");
+      ImGui::OpenPopup(
+          gui::MakePopupId(gui::EditorNames::kOverworld,
+                           gui::PopupNames::kOverlayTypesHelp)
+              .c_str());
     }
 
-    if (ImGui::BeginPopup("OverlayTypesHelp")) {
+    if (ImGui::BeginPopup(
+            gui::MakePopupId(gui::EditorNames::kOverworld,
+                             gui::PopupNames::kOverlayTypesHelp)
+                .c_str())) {
       ImGui::Text(ICON_MD_HELP " Understanding Overlay Types");
       ImGui::Separator();
 
@@ -1516,9 +1503,15 @@ void MapPropertiesSystem::DrawOverlayControls(int current_map,
                          ICON_MD_EDIT_NOTE " Map Overlay (Interactive)");
       ImGui::SameLine();
       if (ImGui::Button(ICON_MD_INFO "##MapOverlayHelp")) {
-        ImGui::OpenPopup("InteractiveOverlayHelp");
+        ImGui::OpenPopup(
+            gui::MakePopupId(gui::EditorNames::kOverworld,
+                             gui::PopupNames::kInteractiveOverlayHelp)
+                .c_str());
       }
-      if (ImGui::BeginPopup("InteractiveOverlayHelp")) {
+      if (ImGui::BeginPopup(
+              gui::MakePopupId(gui::EditorNames::kOverworld,
+                               gui::PopupNames::kInteractiveOverlayHelp)
+                  .c_str())) {
         ImGui::Text(ICON_MD_HELP " Map Overlays (Interactive Tile Changes)");
         ImGui::Separator();
         ImGui::TextWrapped(
@@ -1640,7 +1633,7 @@ void MapPropertiesSystem::DrawOverlayPreviewOnMap(int current_map,
 
   // Get the subscreen overlay map's bitmap
   const auto& overlay_bitmap = (*maps_bmp_)[overlay_map_index];
-  if (!overlay_bitmap.is_active())
+  if (!overlay_bitmap.is_active() || !overlay_bitmap.texture())
     return;
 
   // Calculate position for subscreen overlay preview on the current map
@@ -1678,7 +1671,10 @@ void MapPropertiesSystem::DrawOverlayPreviewOnMap(int current_map,
 }
 
 void MapPropertiesSystem::DrawViewPopup() {
-  if (ImGui::BeginPopup("ViewPopup")) {
+  if (ImGui::BeginPopup(
+          gui::MakePopupId(gui::EditorNames::kOverworld,
+                           gui::PopupNames::kViewPopup)
+              .c_str())) {
     ImGui::PushID("ViewPopup");  // Fix ImGui duplicate ID warnings
 
     // Use theme-aware spacing instead of hardcoded constants
@@ -1692,22 +1688,23 @@ void MapPropertiesSystem::DrawViewPopup() {
 
     // Horizontal layout for view controls
     if (ImGui::Button(ICON_MD_ZOOM_OUT, ImVec2(kIconButtonWidth, 0))) {
-      // This would need to be connected to the canvas zoom function
-      // For now, just show the option
+      float new_scale = std::max(kOverworldMinZoom,
+                                 canvas_->global_scale() - kOverworldZoomStep);
+      canvas_->set_global_scale(new_scale);
     }
     HOVER_HINT("Zoom out on the canvas");
     ImGui::SameLine();
     if (ImGui::Button(ICON_MD_ZOOM_IN, ImVec2(kIconButtonWidth, 0))) {
-      // This would need to be connected to the canvas zoom function
-      // For now, just show the option
+      float new_scale = std::min(kOverworldMaxZoom,
+                                 canvas_->global_scale() + kOverworldZoomStep);
+      canvas_->set_global_scale(new_scale);
     }
     HOVER_HINT("Zoom in on the canvas");
     ImGui::SameLine();
     if (ImGui::Button(ICON_MD_OPEN_IN_FULL, ImVec2(kIconButtonWidth, 0))) {
-      // This would need to be connected to the fullscreen toggle
-      // For now, just show the option
+      canvas_->set_global_scale(1.0f);
     }
-    HOVER_HINT("Toggle fullscreen canvas (F11)");
+    HOVER_HINT("Reset zoom to 100%");
 
     ImGui::PopStyleVar(2);  // Pop the 2 style variables we pushed
     ImGui::PopID();         // Pop ViewPopup ID scope
@@ -1716,7 +1713,10 @@ void MapPropertiesSystem::DrawViewPopup() {
 }
 
 void MapPropertiesSystem::DrawQuickAccessPopup() {
-  if (ImGui::BeginPopup("QuickPopup")) {
+  if (ImGui::BeginPopup(
+          gui::MakePopupId(gui::EditorNames::kOverworld,
+                           gui::PopupNames::kQuickPopup)
+              .c_str())) {
     ImGui::PushID("QuickPopup");  // Fix ImGui duplicate ID warnings
 
     // Use theme-aware spacing instead of hardcoded constants

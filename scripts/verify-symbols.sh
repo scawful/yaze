@@ -63,7 +63,7 @@ OPTIONS:
 
 EXAMPLES:
     $0                          # Scan default build directory
-    $0 --build-dir build_test   # Scan specific build directory
+    $0 --build-dir build   # Scan specific build directory
     $0 --verbose                # Show detailed output
     $0 --show-all               # Show all symbols (verbose)
 

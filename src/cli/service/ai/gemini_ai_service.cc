@@ -199,18 +199,22 @@ absl::StatusOr<std::vector<ModelInfo>> GeminiAIService::ListAvailableModels() {
   if (config_.api_key.empty()) {
     // Return default known models if API key is missing
     std::vector<ModelInfo> defaults = {
-        {.name = "gemini-2.0-flash-exp",
-         .display_name = "Gemini 2.0 Flash",
+        {.name = "gemini-3.0-preview",
+         .display_name = "Gemini 3.0 Preview",
          .provider = "gemini",
-         .description = "Fastest multimodal model"},
-        {.name = "gemini-1.5-flash",
-         .display_name = "Gemini 1.5 Flash",
+         .description = "Cutting-edge model, currently in preview"},
+        {.name = "gemini-3.0-flash-preview",
+         .display_name = "Gemini 3.0 Flash Preview",
          .provider = "gemini",
-         .description = "Balanced performance and speed"},
-        {.name = "gemini-1.5-pro",
-         .display_name = "Gemini 1.5 Pro",
+         .description = "Fastest preview model"},
+        {.name = "gemini-2.5-pro",
+         .display_name = "Gemini 2.5 Pro",
          .provider = "gemini",
-         .description = "High intelligence for complex tasks"}};
+         .description = "High intelligence for complex tasks"},
+        {.name = "gemini-2.5-flash",
+         .display_name = "Gemini 2.5 Flash",
+         .provider = "gemini",
+         .description = "Fastest multimodal model"}};
     return defaults;
   }
 
@@ -255,7 +259,7 @@ absl::StatusOr<std::vector<ModelInfo>> GeminiAIService::ListAvailableModels() {
 
     if (!models_json.contains("models")) {
       // Return defaults on error
-      std::vector<ModelInfo> defaults = {{.name = "gemini-2.0-flash-exp",
+      std::vector<ModelInfo> defaults = {{.name = "gemini-2.5-flash",
                                           .display_name = "Gemini 2.0 Flash",
                                           .provider = "gemini"},
                                          {.name = "gemini-1.5-flash",

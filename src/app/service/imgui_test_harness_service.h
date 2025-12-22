@@ -27,6 +27,8 @@
 // Forward declarations to avoid including gRPC headers in public interface
 namespace grpc {
 class ServerContext;
+class Service;
+class Server;
 }  // namespace grpc
 
 namespace yaze {
@@ -39,7 +41,6 @@ class TestManager;
 class PingRequest;
 class PingResponse;
 class ClickRequest;
-class ClickResponse;
 class TypeRequest;
 class TypeResponse;
 class WaitRequest;
@@ -58,8 +59,8 @@ class DiscoverWidgetsRequest;
 class DiscoverWidgetsResponse;
 class StartRecordingRequest;
 class StartRecordingResponse;
-class StopRecordingRequest;
 class StopRecordingResponse;
+class StopRecordingRequest;
 class ReplayTestRequest;
 class ReplayTestResponse;
 
@@ -120,8 +121,13 @@ class ImGuiTestHarnessServiceImpl {
   TestRecorder test_recorder_;
 };
 
-// Forward declaration of the gRPC service wrapper
-class ImGuiTestHarnessServiceGrpc;
+/**
+ * @brief Factory function to create the gRPC service wrapper
+ * This allows unified_grpc_server.cc to create the wrapper without
+ * seeing the private gRPC headers.
+ */
+std::unique_ptr<::grpc::Service> CreateImGuiTestHarnessServiceGrpc(
+    ImGuiTestHarnessServiceImpl* impl);
 
 // Singleton server managing the gRPC service
 // This class manages the lifecycle of the gRPC server
@@ -154,9 +160,9 @@ class ImGuiTestHarnessServer {
   ImGuiTestHarnessServer(const ImGuiTestHarnessServer&) = delete;
   ImGuiTestHarnessServer& operator=(const ImGuiTestHarnessServer&) = delete;
 
-  std::unique_ptr<grpc::Server> server_;
+  std::unique_ptr<::grpc::Server> server_;
   std::unique_ptr<ImGuiTestHarnessServiceImpl> service_;
-  std::unique_ptr<ImGuiTestHarnessServiceGrpc> grpc_service_;
+  std::unique_ptr<::grpc::Service> grpc_service_;
   int port_ = 0;
 };
 

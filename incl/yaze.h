@@ -4,12 +4,12 @@
 /**
  * @file yaze.h
  * @brief Yet Another Zelda3 Editor (YAZE) - Public C API
- * 
+ *
  * This header provides the main C API for YAZE, a modern ROM editor for
  * The Legend of Zelda: A Link to the Past. This API allows external
  * applications to interact with YAZE's functionality.
- * 
- * @version 0.3.8
+ *
+ * @version 0.3.9
  * @author YAZE Team
  */
 
@@ -32,16 +32,16 @@ extern "C" {
  *   - YAZE_VERSION_MAJOR
  *   - YAZE_VERSION_MINOR
  *   - YAZE_VERSION_PATCH
- *   - YAZE_VERSION_STRING (e.g., "0.3.8")
- *   - YAZE_VERSION_NUMBER (e.g., 308)
+ *   - YAZE_VERSION_STRING (e.g., "0.3.9")
+ *   - YAZE_VERSION_NUMBER (e.g., 309)
  *
  * Single source of truth: project(yaze VERSION X.Y.Z) in CMakeLists.txt
  */
 
 #ifndef YAZE_VERSION_STRING
 /* Fallback if yaze_config.h not included - will be overridden by build */
-#define YAZE_VERSION_STRING "0.3.8"
-#define YAZE_VERSION_NUMBER 308
+#define YAZE_VERSION_STRING "0.4.0"
+#define YAZE_VERSION_NUMBER 400
 #endif
 
 /** @} */
@@ -58,7 +58,7 @@ typedef struct yaze_editor_context {
 
 /**
  * @brief Status codes returned by YAZE functions
- * 
+ *
  * All YAZE functions that can fail return a status code to indicate
  * success or the type of error that occurred.
  */
@@ -75,7 +75,7 @@ typedef enum yaze_status {
 
 /**
  * @brief Convert a status code to a human-readable string
- * 
+ *
  * @param status The status code to convert
  * @return A null-terminated string describing the status
  */
@@ -83,17 +83,17 @@ const char* yaze_status_to_string(yaze_status status);
 
 /**
  * @brief Initialize the YAZE library
- * 
+ *
  * This function must be called before using any other YAZE functions.
  * It initializes internal subsystems and prepares the library for use.
- * 
+ *
  * @return YAZE_OK on success, error code on failure
  */
 yaze_status yaze_library_init(void);
 
 /**
  * @brief Shutdown the YAZE library
- * 
+ *
  * This function cleans up resources allocated by yaze_library_init().
  * After calling this function, no other YAZE functions should be called
  * until yaze_library_init() is called again.
@@ -102,7 +102,7 @@ void yaze_library_shutdown(void);
 
 /**
  * @brief Main entry point for the YAZE application
- * 
+ *
  * @param argc Number of command line arguments
  * @param argv Array of command line argument strings
  * @return Exit code (0 for success, non-zero for error)
@@ -111,7 +111,7 @@ int yaze_app_main(int argc, char** argv);
 
 /**
  * @brief Check if the current YAZE version is compatible with the expected version
- * 
+ *
  * @param expected_version Expected version string (e.g., "0.3.2")
  * @return true if compatible, false otherwise
  */
@@ -119,38 +119,38 @@ bool yaze_check_version_compatibility(const char* expected_version);
 
 /**
  * @brief Get the current YAZE version string
- * 
+ *
  * @return A null-terminated string containing the version
  */
 const char* yaze_get_version_string(void);
 
 /**
  * @brief Get the current YAZE version number
- * 
+ *
  * @return Version number (major * 10000 + minor * 100 + patch)
  */
 int yaze_get_version_number(void);
 
 /**
  * @brief Initialize a YAZE editor context
- * 
+ *
  * Creates and initializes an editor context for working with ROM files.
  * The context manages the ROM data and provides access to editing functions.
- * 
+ *
  * @param context Pointer to context structure to initialize
  * @param rom_filename Path to the ROM file to load (can be NULL to create empty context)
  * @return YAZE_OK on success, error code on failure
- * 
+ *
  * @note The caller is responsible for calling yaze_shutdown() to clean up the context
  */
 yaze_status yaze_init(yaze_editor_context* context, const char* rom_filename);
 
 /**
  * @brief Shutdown and clean up a YAZE editor context
- * 
+ *
  * Releases all resources associated with the context, including ROM data.
  * After calling this function, the context should not be used.
- * 
+ *
  * @param context Pointer to context to shutdown
  * @return YAZE_OK on success, error code on failure
  */
@@ -165,7 +165,7 @@ yaze_status yaze_shutdown(yaze_editor_context* context);
 
 /**
  * @brief Bitmap data structure
- * 
+ *
  * Represents a bitmap image with pixel data and metadata.
  */
 typedef struct yaze_bitmap {
@@ -177,31 +177,31 @@ typedef struct yaze_bitmap {
 
 /**
  * @brief Load a bitmap from file
- * 
+ *
  * Loads a bitmap image from the specified file. Supports common
  * image formats and SNES-specific formats.
- * 
+ *
  * @param filename Path to the image file
  * @return Bitmap structure with loaded data, or empty bitmap on error
- * 
+ *
  * @note The caller is responsible for freeing the data pointer
  */
 yaze_bitmap yaze_load_bitmap(const char* filename);
 
 /**
  * @brief Free bitmap data
- * 
+ *
  * Releases memory allocated for bitmap pixel data.
- * 
+ *
  * @param bitmap Pointer to bitmap structure to free
  */
 void yaze_free_bitmap(yaze_bitmap* bitmap);
 
 /**
  * @brief Create an empty bitmap
- * 
+ *
  * Allocates a new bitmap with the specified dimensions.
- * 
+ *
  * @param width Width in pixels
  * @param height Height in pixels
  * @param bpp Bits per pixel
@@ -211,7 +211,7 @@ yaze_bitmap yaze_create_bitmap(int width, int height, uint8_t bpp);
 
 /**
  * @brief SNES color in 15-bit RGB format (BGR555)
- * 
+ *
  * Represents a color in the SNES native format. Colors are stored
  * as 8-bit values but only the lower 5 bits are used by the SNES.
  */
@@ -223,7 +223,7 @@ typedef struct snes_color {
 
 /**
  * @brief Convert RGB888 color to SNES color
- * 
+ *
  * @param r Red component (0-255)
  * @param g Green component (0-255)
  * @param b Blue component (0-255)
@@ -233,7 +233,7 @@ snes_color yaze_rgb_to_snes_color(uint8_t r, uint8_t g, uint8_t b);
 
 /**
  * @brief Convert SNES color to RGB888
- * 
+ *
  * @param color SNES color to convert
  * @param r Pointer to store red component (0-255)
  * @param g Pointer to store green component (0-255)
@@ -243,7 +243,7 @@ void yaze_snes_color_to_rgb(snes_color color, uint8_t* r, uint8_t* g, uint8_t* b
 
 /**
  * @brief SNES color palette
- * 
+ *
  * Represents a color palette used by the SNES. Each palette contains
  * up to 256 colors, though most modes use fewer colors per palette.
  */
@@ -255,7 +255,7 @@ typedef struct snes_palette {
 
 /**
  * @brief Create an empty palette
- * 
+ *
  * @param id Palette ID
  * @param size Number of colors to allocate
  * @return Initialized palette structure, or NULL on error
@@ -264,14 +264,14 @@ snes_palette* yaze_create_palette(uint16_t id, uint16_t size);
 
 /**
  * @brief Free palette memory
- * 
+ *
  * @param palette Pointer to palette to free
  */
 void yaze_free_palette(snes_palette* palette);
 
 /**
  * @brief Load palette from ROM
- * 
+ *
  * @param rom ROM to load palette from
  * @param palette_id ID of palette to load
  * @return Loaded palette, or NULL on error
@@ -280,7 +280,7 @@ snes_palette* yaze_load_palette_from_rom(const zelda3_rom* rom, uint16_t palette
 
 /**
  * @brief 8x8 SNES tile data
- * 
+ *
  * Represents an 8x8 pixel tile with indexed color data.
  * Each pixel value is an index into a palette.
  */
@@ -292,7 +292,7 @@ typedef struct snes_tile8 {
 
 /**
  * @brief Load tile data from ROM
- * 
+ *
  * @param rom ROM to load from
  * @param tile_id ID of tile to load
  * @param bpp Bits per pixel (1, 2, 4, 8)
@@ -302,7 +302,7 @@ snes_tile8 yaze_load_tile_from_rom(const zelda3_rom* rom, uint32_t tile_id, uint
 
 /**
  * @brief Convert tile data between different bit depths
- * 
+ *
  * @param tile Source tile data
  * @param from_bpp Source bits per pixel
  * @param to_bpp Target bits per pixel
@@ -338,21 +338,21 @@ typedef struct snes_tile32 {
 
 /**
  * @brief Load a ROM file
- * 
+ *
  * Loads a Zelda 3 ROM file and validates its format.
- * 
+ *
  * @param filename Path to ROM file (.sfc, .smc, etc.)
  * @return Pointer to ROM structure, or NULL on error
- * 
+ *
  * @note Caller must call yaze_unload_rom() to free memory
  */
 zelda3_rom* yaze_load_rom_file(const char* filename);
 
 /**
  * @brief Validate ROM integrity
- * 
+ *
  * Checks if the ROM data is valid and uncorrupted.
- * 
+ *
  * @param rom ROM to validate
  * @return YAZE_OK if valid, error code if corrupted
  */
@@ -360,7 +360,7 @@ yaze_status yaze_validate_rom(const zelda3_rom* rom);
 
 /**
  * @brief Get ROM information
- * 
+ *
  * @param rom ROM to query
  * @param version Pointer to store detected ROM version
  * @param size Pointer to store ROM size in bytes
@@ -398,21 +398,21 @@ snes_color yaze_get_color_from_paletteset(const zelda3_rom* rom,
  *
  * @param rom The ROM to load the overworld from
  * @return Pointer to overworld structure, or NULL on error
- * 
+ *
  * @note Caller must free the returned pointer when done
  */
 zelda3_overworld* yaze_load_overworld(const zelda3_rom* rom);
 
 /**
  * @brief Free overworld data
- * 
+ *
  * @param overworld Pointer to overworld to free
  */
 void yaze_free_overworld(zelda3_overworld* overworld);
 
 /**
  * @brief Get overworld map by index
- * 
+ *
  * @param overworld Overworld data
  * @param map_index Map index (0-159 for most ROMs)
  * @return Pointer to map data, or NULL if invalid index
@@ -421,7 +421,7 @@ const zelda3_overworld_map* yaze_get_overworld_map(const zelda3_overworld* overw
 
 /**
  * @brief Get total number of overworld maps
- * 
+ *
  * @param overworld Overworld data
  * @return Number of maps available
  */
@@ -442,14 +442,14 @@ int yaze_get_overworld_map_count(const zelda3_overworld* overworld);
  * @param rom The ROM to load rooms from
  * @param room_count Pointer to store the number of rooms loaded
  * @return Array of room structures, or NULL on error
- * 
+ *
  * @note Caller must free the returned array when done
  */
 zelda3_dungeon_room* yaze_load_all_rooms(const zelda3_rom* rom, int* room_count);
 
 /**
  * @brief Load a specific dungeon room
- * 
+ *
  * @param rom ROM to load from
  * @param room_id Room ID to load (0-295 for most ROMs)
  * @return Pointer to room data, or NULL on error
@@ -458,7 +458,7 @@ const zelda3_dungeon_room* yaze_load_room(const zelda3_rom* rom, int room_id);
 
 /**
  * @brief Free dungeon room data
- * 
+ *
  * @param rooms Array of rooms to free
  * @param room_count Number of rooms in array
  */
@@ -480,14 +480,14 @@ void yaze_free_rooms(zelda3_dungeon_room* rooms, int room_count);
  * @param messages Pointer to store array of messages
  * @param message_count Pointer to store number of messages loaded
  * @return YAZE_OK on success, error code on failure
- * 
+ *
  * @note Caller must free the messages array when done
  */
 yaze_status yaze_load_messages(const zelda3_rom* rom, zelda3_message** messages, int* message_count);
 
 /**
  * @brief Get a specific message by ID
- * 
+ *
  * @param rom ROM to load from
  * @param message_id Message ID to retrieve
  * @return Pointer to message data, or NULL if not found
@@ -496,7 +496,7 @@ const zelda3_message* yaze_get_message(const zelda3_rom* rom, int message_id);
 
 /**
  * @brief Free message data
- * 
+ *
  * @param messages Array of messages to free
  * @param message_count Number of messages in array
  */
@@ -568,7 +568,7 @@ typedef struct yaze_extension {
 
 /**
  * @brief Register an extension with YAZE
- * 
+ *
  * @param extension Extension to register
  * @return YAZE_OK on success, error code on failure
  */
@@ -576,7 +576,7 @@ yaze_status yaze_register_extension(const yaze_extension* extension);
 
 /**
  * @brief Unregister an extension
- * 
+ *
  * @param name Name of extension to unregister
  * @return YAZE_OK on success, error code on failure
  */

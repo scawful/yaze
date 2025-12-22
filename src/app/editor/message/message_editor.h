@@ -8,12 +8,13 @@
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
 #include "app/editor/message/message_data.h"
+#include "app/editor/message/panels/message_editor_panels.h"
 #include "app/editor/message/message_preview.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gui/app/editor_layout.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/style.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 
 namespace yaze {
 namespace editor {
@@ -91,8 +92,9 @@ class MessageEditor : public Editor {
   gui::TextBox message_text_box_;
   Rom* rom_;
   Rom expanded_message_bin_;
+  std::string expanded_message_path_;
 
-  // Card visibility states
+  // Panel visibility states
   bool show_message_list_ = false;
   bool show_message_editor_ = false;
   bool show_font_atlas_ = false;

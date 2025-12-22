@@ -10,6 +10,7 @@
 
 #include "absl/status/status.h"
 #include "app/gfx/backend/irenderer.h"
+#include "app/platform/sdl_compat.h"
 
 // Forward declarations to avoid SDL header dependency in interface
 struct SDL_Window;
@@ -28,7 +29,7 @@ struct WindowConfig {
   bool resizable = true;
   bool maximized = false;
   bool fullscreen = false;
-  bool high_dpi = true;
+  bool high_dpi = false;  // Disabled by default - causes issues on macOS Retina with SDL_Renderer
 };
 
 /**
@@ -83,6 +84,10 @@ struct WindowEvent {
 
   // Drop file data
   std::string dropped_file;
+
+  // Native event copy (SDL2/SDL3). Only valid when has_native_event is true.
+  bool has_native_event = false;
+  SDL_Event native_event{};
 };
 
 /**
@@ -225,6 +230,12 @@ class IWindowBackend {
    * @brief Start a new ImGui frame
    */
   virtual void NewImGuiFrame() = 0;
+
+  /**
+   * @brief Render ImGui draw data (and viewports if enabled)
+   * @param renderer The renderer to use for drawing (needed to get backend renderer)
+   */
+  virtual void RenderImGui(gfx::IRenderer* renderer) = 0;
 
   // =========================================================================
   // Audio Support (Legacy compatibility)

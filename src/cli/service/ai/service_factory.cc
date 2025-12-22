@@ -9,15 +9,19 @@
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_format.h"
 #include "cli/service/ai/ai_service.h"
+#include "cli/service/ai/local_gemini_cli_service.h"
 #include "cli/service/ai/ollama_ai_service.h"
 
 #ifdef YAZE_WITH_JSON
 #include "cli/service/ai/gemini_ai_service.h"
+#include "cli/service/ai/openai_ai_service.h"
+#include "cli/service/ai/anthropic_ai_service.h"
 #endif
 
 ABSL_DECLARE_FLAG(std::string, ai_provider);
 ABSL_DECLARE_FLAG(std::string, ai_model);
 ABSL_DECLARE_FLAG(std::string, gemini_api_key);
+ABSL_DECLARE_FLAG(std::string, anthropic_api_key);
 ABSL_DECLARE_FLAG(std::string, ollama_host);
 ABSL_DECLARE_FLAG(std::string, prompt_version);
 ABSL_DECLARE_FLAG(bool, use_function_calling);
@@ -31,6 +35,7 @@ std::unique_ptr<AIService> CreateAIService() {
   config.provider = absl::AsciiStrToLower(absl::GetFlag(FLAGS_ai_provider));
   config.model = absl::GetFlag(FLAGS_ai_model);
   config.gemini_api_key = absl::GetFlag(FLAGS_gemini_api_key);
+  config.anthropic_api_key = absl::GetFlag(FLAGS_anthropic_api_key);
   config.ollama_host = absl::GetFlag(FLAGS_ollama_host);
 
   // Fall back to environment variables if flags not set
@@ -38,6 +43,17 @@ std::unique_ptr<AIService> CreateAIService() {
     const char* env_key = std::getenv("GEMINI_API_KEY");
     if (env_key)
       config.gemini_api_key = env_key;
+  }
+  if (config.anthropic_api_key.empty()) {
+    const char* env_key = std::getenv("ANTHROPIC_API_KEY");
+    if (env_key)
+      config.anthropic_api_key = env_key;
+  }
+  if (config.openai_api_key.empty()) {
+    const char* openai_key = std::getenv("OPENAI_API_KEY");
+    if (openai_key) {
+      config.openai_api_key = openai_key;
+    }
   }
   if (config.model.empty()) {
     const char* env_model = std::getenv("OLLAMA_MODEL");
@@ -60,27 +76,23 @@ std::unique_ptr<AIService> CreateAIService(const AIServiceConfig& config) {
       std::cout << "🤖 Auto-detecting AI provider...\n";
       std::cout << "   Found Gemini API key, using Gemini\n";
       effective_config.provider = "gemini";
+    } else if (!effective_config.anthropic_api_key.empty()) {
+      std::cout << "🤖 Auto-detecting AI provider...\n";
+      std::cout << "   Found Anthropic API key, using Anthropic\n";
+      effective_config.provider = "anthropic";
+    } else if (!effective_config.openai_api_key.empty()) {
+      std::cout << "🤖 Auto-detecting AI provider...\n";
+      std::cout << "   Found OpenAI API key, using OpenAI\n";
+      effective_config.provider = "openai";
+      if (effective_config.model.empty()) {
+        effective_config.model = "gpt-4o-mini";
+      }
     } else
 #endif
     {
-      OllamaConfig test_config;
-      test_config.base_url = effective_config.ollama_host;
-      if (!effective_config.model.empty()) {
-        test_config.model = effective_config.model;
-      }
-      auto tester = std::make_unique<OllamaAIService>(test_config);
-      if (tester->CheckAvailability().ok()) {
-        std::cout << "🤖 Auto-detecting AI provider...\n";
-        std::cout << "   Ollama available, using Ollama\n";
-        effective_config.provider = "ollama";
-        if (effective_config.model.empty()) {
-          effective_config.model = test_config.model;
-        }
-      } else {
-        std::cout << "🤖 No AI provider configured, using MockAIService\n";
-        std::cout << "   Tip: Set GEMINI_API_KEY or start Ollama for real AI\n";
-        effective_config.provider = "mock";
-      }
+      std::cout << "🤖 No AI provider configured, using MockAIService\n";
+      std::cout << "   Tip: Set GEMINI_API_KEY, ANTHROPIC_API_KEY, or OPENAI_API_KEY\n";
+      effective_config.provider = "mock";
     }
   }
 
@@ -119,12 +131,12 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
       ollama_config.model = env_model;
     }
 
-    auto service = std::make_unique<OllamaAIService>(ollama_config);
-    auto status = service->CheckAvailability();
-    if (!status.ok()) {
-      return status;
-    }
-    return service;
+    return std::make_unique<OllamaAIService>(ollama_config);
+  }
+
+  if (provider == "gemini-cli" || provider == "local-gemini") {
+    return std::make_unique<LocalGeminiCliService>(
+        config.model.empty() ? "gemini-2.5-flash" : config.model);
   }
 
 #ifdef YAZE_WITH_JSON
@@ -144,10 +156,41 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
     gemini_config.verbose = config.verbose;
     return std::make_unique<GeminiAIService>(gemini_config);
   }
+  if (provider == "anthropic") {
+    if (config.anthropic_api_key.empty()) {
+      return absl::FailedPreconditionError(
+          "Anthropic API key not provided. Set --anthropic_api_key or "
+          "ANTHROPIC_API_KEY.");
+    }
+    AnthropicConfig anthropic_config(config.anthropic_api_key);
+    if (!config.model.empty()) {
+      anthropic_config.model = config.model;
+    }
+    anthropic_config.prompt_version = absl::GetFlag(FLAGS_prompt_version);
+    anthropic_config.use_function_calling =
+        absl::GetFlag(FLAGS_use_function_calling);
+    anthropic_config.verbose = config.verbose;
+    return std::make_unique<AnthropicAIService>(anthropic_config);
+  }
+  if (provider == "openai") {
+    if (config.openai_api_key.empty()) {
+      return absl::FailedPreconditionError(
+          "OpenAI API key not provided. Set OPENAI_API_KEY.");
+    }
+    OpenAIConfig openai_config(config.openai_api_key);
+    if (!config.model.empty()) {
+      openai_config.model = config.model;
+    }
+    openai_config.prompt_version = absl::GetFlag(FLAGS_prompt_version);
+    openai_config.use_function_calling =
+        absl::GetFlag(FLAGS_use_function_calling);
+    openai_config.verbose = config.verbose;
+    return std::make_unique<OpenAIAIService>(openai_config);
+  }
 #else
-  if (provider == "gemini") {
+  if (provider == "gemini" || provider == "anthropic") {
     return absl::FailedPreconditionError(
-        "Gemini support not available: rebuild with YAZE_WITH_JSON=ON");
+        "AI support not available: rebuild with YAZE_WITH_JSON=ON");
   }
 #endif
 

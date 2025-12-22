@@ -3,8 +3,10 @@
 #include "app/gui/core/input.h"
 #include "imgui/imgui.h"
 #include "util/hex.h"
+#include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
+#include "zelda3/resource_labels.h"
 
 namespace yaze::editor {
 
@@ -13,17 +15,9 @@ using ImGui::EndChild;
 using ImGui::SameLine;
 
 void DungeonRoomSelector::Draw() {
-  if (ImGui::BeginTabBar("##DungeonRoomTabBar")) {
-    if (ImGui::BeginTabItem("Rooms")) {
-      DrawRoomSelector();
-      ImGui::EndTabItem();
-    }
-    if (ImGui::BeginTabItem("Entrances")) {
-      DrawEntranceSelector();
-      ImGui::EndTabItem();
-    }
-    ImGui::EndTabBar();
-  }
+  // Legacy combined view - prefer using DrawRoomSelector() and 
+  // DrawEntranceSelector() separately via their own EditorPanels
+  DrawRoomSelector();
 }
 
 void DungeonRoomSelector::DrawRoomSelector() {
@@ -33,26 +27,42 @@ void DungeonRoomSelector::DrawRoomSelector() {
   }
 
   gui::InputHexWord("Room ID", &current_room_id_, 50.f, true);
+  ImGui::Separator();
 
-  if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)9);
-      BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
-                 ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-    int i = 0;
-    for (const auto each_room_name : zelda3::kRoomNames) {
-      rom_->resource_label()->SelectableLabelWithNameEdit(
-          current_room_id_ == i, "Dungeon Room Names", util::HexByte(i),
-          each_room_name.data());
-      if (ImGui::IsItemClicked()) {
-        current_room_id_ = i;
-        // Notify the dungeon editor about room selection
-        if (room_selected_callback_) {
-          room_selected_callback_(i);
+  room_filter_.Draw("Filter", ImGui::GetContentRegionAvail().x);
+
+  if (ImGui::BeginTable("RoomList", 2,
+                        ImGuiTableFlags_ScrollY | ImGuiTableFlags_Borders |
+                            ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable)) {
+    ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 40.0f);
+    ImGui::TableSetupColumn("Name");
+    ImGui::TableHeadersRow();
+
+    // Use kNumberOfRooms (296) as limit - rooms_ array is 0x128 elements
+    for (int i = 0; i < zelda3::kNumberOfRooms; ++i) {
+      // Use unified ResourceLabelProvider for room names
+      std::string display_name = zelda3::GetRoomLabel(i);
+
+      if (room_filter_.PassFilter(display_name.c_str())) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+
+        char label[32];
+        snprintf(label, sizeof(label), "%03X", i);
+        if (ImGui::Selectable(label, current_room_id_ == i,
+                              ImGuiSelectableFlags_SpanAllColumns)) {
+          current_room_id_ = i;
+          if (room_selected_callback_) {
+            room_selected_callback_(i);
+          }
         }
+
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted(display_name.c_str());
       }
-      i += 1;
     }
+    ImGui::EndTable();
   }
-  EndChild();
 }
 
 void DungeonRoomSelector::DrawEntranceSelector() {
@@ -67,80 +77,136 @@ void DungeonRoomSelector::DrawEntranceSelector() {
   }
 
   auto current_entrance = (*entrances_)[current_entrance_id_];
-  gui::InputHexWord("Entrance ID", &current_entrance.entrance_id_);
-  gui::InputHexWord("Room ID", &current_entrance.room_);
-  SameLine();
 
-  gui::InputHexByte("Dungeon ID", &current_entrance.dungeon_id_, 50.f, true);
-  gui::InputHexByte("Blockset", &current_entrance.blockset_, 50.f, true);
-  SameLine();
+  // Organized Properties Table
+  if (ImGui::BeginTable("EntranceProps", 4, ImGuiTableFlags_Borders)) {
+    ImGui::TableSetupColumn("Core", ImGuiTableColumnFlags_WidthStretch);
+    ImGui::TableSetupColumn("Position", ImGuiTableColumnFlags_WidthStretch);
+    ImGui::TableSetupColumn("Camera", ImGuiTableColumnFlags_WidthStretch);
+    ImGui::TableSetupColumn("Scroll", ImGuiTableColumnFlags_WidthStretch);
+    ImGui::TableHeadersRow();
 
-  gui::InputHexByte("Music", &current_entrance.music_, 50.f, true);
-  SameLine();
-  gui::InputHexByte("Floor", &current_entrance.floor_);
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    gui::InputHexWord("Entr ID", &current_entrance.entrance_id_);
+    gui::InputHexWord("Room ID", &current_entrance.room_);
+    gui::InputHexByte("Dungeon", &current_entrance.dungeon_id_);
+    gui::InputHexByte("Music", &current_entrance.music_);
+
+    ImGui::TableNextColumn();
+    gui::InputHexWord("Player X", &current_entrance.x_position_);
+    gui::InputHexWord("Player Y", &current_entrance.y_position_);
+    gui::InputHexByte("Blockset", &current_entrance.blockset_);
+    gui::InputHexByte("Floor", &current_entrance.floor_);
+
+    ImGui::TableNextColumn();
+    gui::InputHexWord("Cam Trg X", &current_entrance.camera_trigger_x_);
+    gui::InputHexWord("Cam Trg Y", &current_entrance.camera_trigger_y_);
+    gui::InputHexWord("Exit", &current_entrance.exit_);
+
+    ImGui::TableNextColumn();
+    gui::InputHexWord("Scroll X", &current_entrance.camera_x_);
+    gui::InputHexWord("Scroll Y", &current_entrance.camera_y_);
+
+    ImGui::EndTable();
+  }
+
+  ImGui::Separator();
+  if (ImGui::CollapsingHeader("Camera Boundaries")) {
+    ImGui::Text("                North   East    South   West");
+    ImGui::Text("Quadrant      ");
+    SameLine();
+    gui::InputHexByte("##QN", &current_entrance.camera_boundary_qn_, 40.f);
+    SameLine();
+    gui::InputHexByte("##QE", &current_entrance.camera_boundary_qe_, 40.f);
+    SameLine();
+    gui::InputHexByte("##QS", &current_entrance.camera_boundary_qs_, 40.f);
+    SameLine();
+    gui::InputHexByte("##QW", &current_entrance.camera_boundary_qw_, 40.f);
+
+    ImGui::Text("Full Room     ");
+    SameLine();
+    gui::InputHexByte("##FN", &current_entrance.camera_boundary_fn_, 40.f);
+    SameLine();
+    gui::InputHexByte("##FE", &current_entrance.camera_boundary_fe_, 40.f);
+    SameLine();
+    gui::InputHexByte("##FS", &current_entrance.camera_boundary_fs_, 40.f);
+    SameLine();
+    gui::InputHexByte("##FW", &current_entrance.camera_boundary_fw_, 40.f);
+  }
   ImGui::Separator();
 
-  gui::InputHexWord("Player X   ", &current_entrance.x_position_);
-  SameLine();
-  gui::InputHexWord("Player Y   ", &current_entrance.y_position_);
+  entrance_filter_.Draw("Filter", ImGui::GetContentRegionAvail().x);
 
-  gui::InputHexWord("Camera X", &current_entrance.camera_trigger_x_);
-  SameLine();
-  gui::InputHexWord("Camera Y", &current_entrance.camera_trigger_y_);
+  // Entrance array layout (from LoadRoomEntrances):
+  //   indices 0-6 (0x00-0x06): Spawn points (7 entries)
+  //   indices 7-139 (0x07-0x8B): Regular entrances (133 entries, IDs 0x00-0x84)
+  constexpr int kNumSpawnPoints = 7;      // 0x07
+  constexpr int kNumEntrances = 133;      // 0x85
+  constexpr int kTotalEntries = 140;      // 0x8C
 
-  gui::InputHexWord("Scroll X    ", &current_entrance.camera_x_);
-  SameLine();
-  gui::InputHexWord("Scroll Y    ", &current_entrance.camera_y_);
+  if (ImGui::BeginTable("EntranceList", 3,
+                        ImGuiTableFlags_ScrollY | ImGuiTableFlags_Borders |
+                            ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable)) {
+    ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 40.0f);
+    ImGui::TableSetupColumn("Room", ImGuiTableColumnFlags_WidthFixed, 50.0f);
+    ImGui::TableSetupColumn("Name");
+    ImGui::TableHeadersRow();
 
-  gui::InputHexWord("Exit", &current_entrance.exit_, 50.f, true);
-
-  ImGui::Separator();
-  ImGui::Text("Camera Boundaries");
-  ImGui::Separator();
-  ImGui::Text("\t\t\t\t\tNorth         East         South         West");
-  gui::InputHexByte("Quadrant", &current_entrance.camera_boundary_qn_, 50.f,
-                    true);
-  SameLine();
-  gui::InputHexByte("", &current_entrance.camera_boundary_qe_, 50.f, true);
-  SameLine();
-  gui::InputHexByte("", &current_entrance.camera_boundary_qs_, 50.f, true);
-  SameLine();
-  gui::InputHexByte("", &current_entrance.camera_boundary_qw_, 50.f, true);
-
-  gui::InputHexByte("Full room", &current_entrance.camera_boundary_fn_, 50.f,
-                    true);
-  SameLine();
-  gui::InputHexByte("", &current_entrance.camera_boundary_fe_, 50.f, true);
-  SameLine();
-  gui::InputHexByte("", &current_entrance.camera_boundary_fs_, 50.f, true);
-  SameLine();
-  gui::InputHexByte("", &current_entrance.camera_boundary_fw_, 50.f, true);
-
-  if (BeginChild("EntranceSelector", ImVec2(0, 0), true,
-                 ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-    for (int i = 0; i < 0x8C; i++) {
-      // The last seven are the spawn points
-      auto entrance_name = absl::StrFormat("Spawn Point %d", i - 0x85);
-      if (i < 0x85) {
-        entrance_name = std::string(zelda3::kEntranceNames[i]);
-      }
-      rom_->resource_label()->SelectableLabelWithNameEdit(
-          current_entrance_id_ == i, "Dungeon Entrance Names", util::HexByte(i),
-          entrance_name);
-
-      if (ImGui::IsItemClicked()) {
-        current_entrance_id_ = i;
-        if (i < entrances_->size()) {
-          int room_id = (*entrances_)[i].room_;
-          // Notify the dungeon editor about room selection
-          if (room_selected_callback_) {
-            room_selected_callback_(room_id);
-          }
+    for (int i = 0; i < kTotalEntries; i++) {
+      std::string display_name;
+      
+      if (i < kNumSpawnPoints) {
+        // Spawn points are at indices 0-6
+        display_name = absl::StrFormat("Spawn Point %d", i);
+      } else {
+        // Regular entrances are at indices 7-139, mapped to entrance IDs 0-132
+        int entrance_id = i - kNumSpawnPoints;
+        if (entrance_id < kNumEntrances) {
+          // Use unified ResourceLabelProvider for entrance names
+          display_name = zelda3::GetEntranceLabel(entrance_id);
+        } else {
+          display_name = absl::StrFormat("Unknown Entrance %d", i);
         }
       }
+
+      // Get room ID for this entrance
+      int room_id = (i < static_cast<int>(entrances_->size())) 
+          ? (*entrances_)[i].room_ : 0;
+
+      // Include room ID in filter matching
+      char filter_text[256];
+      snprintf(filter_text, sizeof(filter_text), "%s %03X", 
+               display_name.c_str(), room_id);
+
+      if (entrance_filter_.PassFilter(filter_text)) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+
+        char label[32];
+        snprintf(label, sizeof(label), "%02X", i);
+        if (ImGui::Selectable(label, current_entrance_id_ == i,
+                              ImGuiSelectableFlags_SpanAllColumns)) {
+          current_entrance_id_ = i;
+          if (i < static_cast<int>(entrances_->size())) {
+            // Use entrance callback if set, otherwise fall back to room callback
+            if (entrance_selected_callback_) {
+              entrance_selected_callback_(i);
+            } else if (room_selected_callback_) {
+              room_selected_callback_(room_id);
+            }
+          }
+        }
+
+        ImGui::TableNextColumn();
+        ImGui::Text("%03X", room_id);
+        
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted(display_name.c_str());
+      }
     }
+    ImGui::EndTable();
   }
-  EndChild();
 }
 
 }  // namespace yaze::editor

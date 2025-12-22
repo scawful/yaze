@@ -53,11 +53,26 @@ class WelcomeScreen {
   }
 
   /**
+   * @brief Set callback for creating project with template
+   */
+  void SetNewProjectWithTemplateCallback(
+      std::function<void(const std::string&)> callback) {
+    new_project_with_template_callback_ = callback;
+  }
+
+  /**
    * @brief Set callback for opening project
    */
   void SetOpenProjectCallback(
       std::function<void(const std::string&)> callback) {
     open_project_callback_ = callback;
+  }
+
+  /**
+   * @brief Set callback for opening AI Agent
+   */
+  void SetOpenAgentCallback(std::function<void()> callback) {
+    open_agent_callback_ = callback;
   }
 
   /**
@@ -85,11 +100,21 @@ class WelcomeScreen {
    */
   void ResetFirstShow() { first_show_attempt_ = true; }
 
+  /**
+   * @brief Set layout offsets for sidebar awareness
+   * @param left Left sidebar width (0 if hidden)
+   * @param right Right panel width (0 if hidden)
+   */
+  void SetLayoutOffsets(float left, float right) {
+    left_offset_ = left;
+    right_offset_ = right;
+  }
+
  private:
   void DrawHeader();
   void DrawQuickActions();
   void DrawRecentProjects();
-  void DrawProjectCard(const RecentProject& project, int index);
+  void DrawProjectPanel(const RecentProject& project, int index);
   void DrawTemplatesSection();
   void DrawTipsSection();
   void DrawWhatsNew();
@@ -102,6 +127,8 @@ class WelcomeScreen {
   std::function<void()> open_rom_callback_;
   std::function<void()> new_project_callback_;
   std::function<void(const std::string&)> open_project_callback_;
+  std::function<void(const std::string&)> new_project_with_template_callback_;
+  std::function<void()> open_agent_callback_;
 
   // UI state
   int selected_template_ = 0;
@@ -139,6 +166,10 @@ class WelcomeScreen {
   bool triforce_mouse_repel_enabled_ = true;
   bool particles_enabled_ = true;
   float particle_spawn_rate_ = 2.0f;  // Particles per second
+
+  // Layout offsets for sidebar awareness (so welcome screen centers in dockspace)
+  float left_offset_ = 0.0f;
+  float right_offset_ = 0.0f;
 };
 
 }  // namespace editor

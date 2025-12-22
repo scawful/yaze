@@ -2,6 +2,7 @@
 #define YAZE_GFX_TILEMAP_H
 
 #include <list>
+#include <memory>
 #include <unordered_map>
 
 #include "absl/container/flat_hash_map.h"
@@ -28,16 +29,23 @@ struct Pair {
  * - Configurable cache size to balance memory usage and performance
  * - O(1) tile access and insertion
  * - Automatic cache management with minimal overhead
+ *
+ * Memory Safety:
+ * - Uses unique_ptr<Bitmap> to ensure stable pointers across map rehashing
+ * - Returned Bitmap* pointers remain valid until explicitly evicted or cleared
  */
 struct TileCache {
   static constexpr size_t MAX_CACHE_SIZE = 1024;
-  std::unordered_map<int, Bitmap> cache_;
+  // Use unique_ptr to ensure stable Bitmap* pointers across rehashing
+  std::unordered_map<int, std::unique_ptr<Bitmap>> cache_;
   std::list<int> access_order_;
 
   /**
    * @brief Get a cached tile by ID
    * @param tile_id Tile identifier
    * @return Pointer to cached tile bitmap or nullptr if not cached
+   * @note Returned pointer is stable and won't be invalidated by subsequent
+   *       CacheTile calls (unless this specific tile is evicted)
    */
   Bitmap* GetTile(int tile_id) {
     auto it = cache_.find(tile_id);
@@ -45,17 +53,18 @@ struct TileCache {
       // Move to front of access order (most recently used)
       access_order_.remove(tile_id);
       access_order_.push_front(tile_id);
-      return &it->second;
+      return it->second.get();
     }
     return nullptr;
   }
 
   /**
-   * @brief Cache a tile bitmap
+   * @brief Cache a tile bitmap by copying it
    * @param tile_id Tile identifier
-   * @param bitmap Tile bitmap to cache
+   * @param bitmap Tile bitmap to cache (copied, not moved)
+   * @note Uses copy semantics to ensure the original bitmap remains valid
    */
-  void CacheTile(int tile_id, Bitmap&& bitmap) {
+  void CacheTile(int tile_id, const Bitmap& bitmap) {
     if (cache_.size() >= MAX_CACHE_SIZE) {
       // Remove least recently used tile
       int lru_tile = access_order_.back();
@@ -63,7 +72,7 @@ struct TileCache {
       cache_.erase(lru_tile);
     }
 
-    cache_[tile_id] = std::move(bitmap);
+    cache_[tile_id] = std::make_unique<Bitmap>(bitmap);  // Copy, not move
     access_order_.push_front(tile_id);
   }
 

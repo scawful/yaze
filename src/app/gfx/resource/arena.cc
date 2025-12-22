@@ -7,6 +7,7 @@
 #include "app/gfx/backend/irenderer.h"
 #include "util/log.h"
 #include "util/sdl_deleter.h"
+#include "zelda3/dungeon/palette_debug.h"
 
 namespace yaze {
 namespace gfx {
@@ -31,7 +32,79 @@ Arena::~Arena() {
 }
 
 void Arena::QueueTextureCommand(TextureCommandType type, Bitmap* bitmap) {
-  texture_command_queue_.push_back({type, bitmap});
+  // Store generation at queue time for staleness detection
+  uint32_t gen = bitmap ? bitmap->generation() : 0;
+  texture_command_queue_.push_back({type, bitmap, gen});
+}
+
+bool Arena::ProcessSingleTexture(IRenderer* renderer) {
+  IRenderer* active_renderer = renderer ? renderer : renderer_;
+  if (!active_renderer || texture_command_queue_.empty()) {
+    return false;
+  }
+
+  auto it = texture_command_queue_.begin();
+  const auto& command = *it;
+  bool processed = false;
+
+  // Skip stale commands where bitmap was reallocated since queuing
+  if (command.bitmap && command.bitmap->generation() != command.generation) {
+    LOG_DEBUG("Arena", "Skipping stale texture command (gen %u != %u)",
+              command.generation, command.bitmap->generation());
+    texture_command_queue_.erase(it);
+    return false;
+  }
+
+  switch (command.type) {
+    case TextureCommandType::CREATE: {
+      if (command.bitmap && command.bitmap->surface() &&
+          command.bitmap->surface()->format && command.bitmap->is_active() &&
+          command.bitmap->width() > 0 && command.bitmap->height() > 0) {
+        try {
+          auto texture = active_renderer->CreateTexture(
+              command.bitmap->width(), command.bitmap->height());
+          if (texture) {
+            command.bitmap->set_texture(texture);
+            active_renderer->UpdateTexture(texture, *command.bitmap);
+            processed = true;
+          }
+        } catch (...) {
+          LOG_ERROR("Arena", "Exception during single texture creation");
+        }
+      }
+      break;
+    }
+    case TextureCommandType::UPDATE: {
+      if (command.bitmap && command.bitmap->texture() &&
+          command.bitmap->surface() && command.bitmap->surface()->format &&
+          command.bitmap->is_active()) {
+        try {
+          active_renderer->UpdateTexture(command.bitmap->texture(),
+                                         *command.bitmap);
+          processed = true;
+        } catch (...) {
+          LOG_ERROR("Arena", "Exception during single texture update");
+        }
+      }
+      break;
+    }
+    case TextureCommandType::DESTROY: {
+      if (command.bitmap && command.bitmap->texture()) {
+        try {
+          active_renderer->DestroyTexture(command.bitmap->texture());
+          command.bitmap->set_texture(nullptr);
+          processed = true;
+        } catch (...) {
+          LOG_ERROR("Arena", "Exception during single texture destruction");
+        }
+      }
+      break;
+    }
+  }
+
+  // Always remove the command after attempting (whether successful or not)
+  texture_command_queue_.erase(it);
+  return processed;
 }
 
 void Arena::ProcessTextureQueue(IRenderer* renderer) {
@@ -58,6 +131,14 @@ void Arena::ProcessTextureQueue(IRenderer* renderer) {
     const auto& command = *it;
     bool should_remove = true;
 
+    // Skip stale commands where bitmap was reallocated since queuing
+    if (command.bitmap && command.bitmap->generation() != command.generation) {
+      LOG_DEBUG("Arena", "Skipping stale texture command (gen %u != %u)",
+                command.generation, command.bitmap->generation());
+      it = texture_command_queue_.erase(it);
+      continue;
+    }
+
     // CRITICAL: Replicate the exact short-circuit evaluation from working code
     // We MUST check command.bitmap AND command.bitmap->surface() in one
     // expression to avoid dereferencing invalid pointers
@@ -68,20 +149,62 @@ void Arena::ProcessTextureQueue(IRenderer* renderer) {
         // Use short-circuit evaluation - if bitmap is invalid, never call
         // ->surface()
         if (command.bitmap && command.bitmap->surface() &&
-            command.bitmap->surface()->format && command.bitmap->is_active() &&
-            command.bitmap->width() > 0 && command.bitmap->height() > 0) {
+            command.bitmap->is_active() && command.bitmap->width() > 0 &&
+            command.bitmap->height() > 0) {
+
+          // DEBUG: Log texture creation with palette validation
+          auto* surf = command.bitmap->surface();
+          SDL_Palette* palette = platform::GetSurfacePalette(surf);
+          bool has_palette = palette != nullptr;
+          int color_count = has_palette ? palette->ncolors : 0;
+
+          // Log detailed surface state for debugging
+          zelda3::PaletteDebugger::Get().LogSurfaceState(
+              "Arena::ProcessTextureQueue (CREATE)", surf);
+          zelda3::PaletteDebugger::Get().LogTextureCreation(
+              "Arena::ProcessTextureQueue", has_palette, color_count);
+
+          // WARNING: Creating texture without proper palette will produce wrong
+          // colors
+          if (!has_palette) {
+            LOG_WARN("Arena",
+                     "Creating texture from surface WITHOUT palette - "
+                     "colors will be incorrect!");
+            zelda3::PaletteDebugger::Get().LogPaletteApplication(
+                "Arena::ProcessTextureQueue", 0, false, "Surface has NO palette");
+          } else if (color_count < 90) {
+            LOG_WARN("Arena",
+                     "Creating texture with only %d palette colors (expected "
+                     "90 for dungeon)",
+                     color_count);
+            zelda3::PaletteDebugger::Get().LogPaletteApplication(
+                "Arena::ProcessTextureQueue", 0, false,
+                absl::StrFormat("Low color count: %d", color_count));
+          }
+
           try {
+            zelda3::PaletteDebugger::Get().LogPaletteApplication(
+                "Arena::ProcessTextureQueue", 0, true, "Calling CreateTexture...");
+            
             auto texture = active_renderer->CreateTexture(
                 command.bitmap->width(), command.bitmap->height());
+            
             if (texture) {
+              zelda3::PaletteDebugger::Get().LogPaletteApplication(
+                  "Arena::ProcessTextureQueue", 0, true, "CreateTexture SUCCESS");
+              
               command.bitmap->set_texture(texture);
               active_renderer->UpdateTexture(texture, *command.bitmap);
               processed++;
             } else {
+              zelda3::PaletteDebugger::Get().LogPaletteApplication(
+                  "Arena::ProcessTextureQueue", 0, false, "CreateTexture returned NULL");
               should_remove = false;  // Retry next frame
             }
           } catch (...) {
             LOG_ERROR("Arena", "Exception during texture creation");
+            zelda3::PaletteDebugger::Get().LogPaletteApplication(
+                "Arena::ProcessTextureQueue", 0, false, "EXCEPTION during texture creation");
             should_remove = true;  // Remove bad command
           }
         }
@@ -89,8 +212,9 @@ void Arena::ProcessTextureQueue(IRenderer* renderer) {
       }
       case TextureCommandType::UPDATE: {
         // Update existing texture with current bitmap data
-        if (command.bitmap->texture() && command.bitmap->surface() &&
-            command.bitmap->surface()->format && command.bitmap->is_active()) {
+        if (command.bitmap && command.bitmap->texture() &&
+            command.bitmap->surface() && command.bitmap->surface()->format &&
+            command.bitmap->is_active()) {
           try {
             active_renderer->UpdateTexture(command.bitmap->texture(),
                                            *command.bitmap);
@@ -102,7 +226,7 @@ void Arena::ProcessTextureQueue(IRenderer* renderer) {
         break;
       }
       case TextureCommandType::DESTROY: {
-        if (command.bitmap->texture()) {
+        if (command.bitmap && command.bitmap->texture()) {
           try {
             active_renderer->DestroyTexture(command.bitmap->texture());
             command.bitmap->set_texture(nullptr);
@@ -140,7 +264,7 @@ SDL_Surface* Arena::AllocateSurface(int width, int height, int depth,
   // Create new surface if none available in pool
   Uint32 sdl_format = GetSnesPixelFormat(format);
   SDL_Surface* surface =
-      SDL_CreateRGBSurfaceWithFormat(0, width, height, depth, sdl_format);
+      platform::CreateSurface(width, height, depth, sdl_format);
 
   if (surface) {
     auto surface_ptr =
@@ -211,6 +335,40 @@ void Arena::NotifySheetModified(int sheet_index) {
     QueueTextureCommand(TextureCommandType::CREATE, &sheet);
     LOG_DEBUG("Arena", "Queued texture creation for modified sheet %d",
               sheet_index);
+  }
+}
+
+// ========== Palette Change Notification System ==========
+
+void Arena::NotifyPaletteModified(const std::string& group_name,
+                                  int palette_index) {
+  LOG_DEBUG("Arena", "Palette modified: group='%s', palette=%d",
+            group_name.c_str(), palette_index);
+
+  // Notify all registered listeners
+  for (const auto& [id, callback] : palette_listeners_) {
+    try {
+      callback(group_name, palette_index);
+    } catch (const std::exception& e) {
+      LOG_ERROR("Arena", "Exception in palette listener %d: %s", id, e.what());
+    }
+  }
+
+  LOG_DEBUG("Arena", "Notified %zu palette listeners", palette_listeners_.size());
+}
+
+int Arena::RegisterPaletteListener(PaletteChangeCallback callback) {
+  int id = next_palette_listener_id_++;
+  palette_listeners_[id] = std::move(callback);
+  LOG_DEBUG("Arena", "Registered palette listener with ID %d", id);
+  return id;
+}
+
+void Arena::UnregisterPaletteListener(int listener_id) {
+  auto it = palette_listeners_.find(listener_id);
+  if (it != palette_listeners_.end()) {
+    palette_listeners_.erase(it);
+    LOG_DEBUG("Arena", "Unregistered palette listener with ID %d", listener_id);
   }
 }
 

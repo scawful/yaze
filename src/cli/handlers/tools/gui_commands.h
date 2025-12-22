@@ -74,6 +74,14 @@ class GuiDiscoverToolCommandHandler : public resources::CommandHandler {
 };
 
 /**
+ * @brief Command handler for summarizing GUI widgets
+ */
+class GuiSummarizeWidgetsCommandHandler : public GuiDiscoverToolCommandHandler {
+ public:
+  std::string GetName() const override { return "gui-summarize-widgets"; }
+};
+
+/**
  * @brief Command handler for taking screenshots
  */
 class GuiScreenshotCommandHandler : public resources::CommandHandler {

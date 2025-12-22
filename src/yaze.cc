@@ -1,16 +1,17 @@
 // C API implementation - no heavy GUI/editor dependencies
-#include "yaze.h"
-
 #include <cstring>
 #include <memory>
-#include <stdexcept>
 #include <string>
 #include <vector>
 
 #include "app/editor/message/message_data.h"
-#include "app/rom.h"
+#include "rom/rom.h"
+#include "yaze.h"
 #include "yaze_config.h"
+#include "zelda3/game_data.h"
 #include "zelda3/overworld/overworld.h"
+
+extern "C" {
 
 // Static variables for library state
 static bool g_library_initialized = false;
@@ -60,13 +61,9 @@ const char* yaze_status_to_string(yaze_status status) {
   }
 }
 
-const char* yaze_get_version_string() {
-  return YAZE_VERSION_STRING;
-}
+const char* yaze_get_version_string() { return YAZE_VERSION_STRING; }
 
-int yaze_get_version_number() {
-  return YAZE_VERSION_NUMBER;
-}
+int yaze_get_version_number() { return YAZE_VERSION_NUMBER; }
 
 bool yaze_check_version_compatibility(const char* expected_version) {
   if (expected_version == nullptr) {
@@ -125,9 +122,17 @@ zelda3_rom* yaze_load_rom(const char* filename) {
     return nullptr;
   }
 
+  // Create and load GameData
+  auto internal_game_data = std::make_unique<yaze::zelda3::GameData>();
+  auto load_status = yaze::zelda3::LoadGameData(*internal_rom, *internal_game_data);
+  if (!load_status.ok()) {
+    return nullptr;
+  }
+
   auto* rom = new zelda3_rom();
   rom->filename = filename;
   rom->impl = internal_rom.release();  // Transfer ownership
+  rom->game_data = internal_game_data.release();  // Transfer ownership
   rom->data = const_cast<uint8_t*>(static_cast<yaze::Rom*>(rom->impl)->data());
   rom->size = static_cast<yaze::Rom*>(rom->impl)->size();
   rom->version = ZELDA3_VERSION_US;  // Default, should be detected
@@ -143,6 +148,11 @@ void yaze_unload_rom(zelda3_rom* rom) {
   if (rom->impl != nullptr) {
     delete static_cast<yaze::Rom*>(rom->impl);
     rom->impl = nullptr;
+  }
+
+  if (rom->game_data != nullptr) {
+    delete static_cast<yaze::zelda3::GameData*>(rom->game_data);
+    rom->game_data = nullptr;
   }
 
   delete rom;
@@ -186,10 +196,10 @@ snes_color yaze_get_color_from_paletteset(const zelda3_rom* rom,
   color_struct.green = 0;
   color_struct.blue = 0;
 
-  if (rom->impl) {
-    yaze::Rom* internal_rom = static_cast<yaze::Rom*>(rom->impl);
+  if (rom->game_data) {
+    auto* game_data = static_cast<yaze::zelda3::GameData*>(rom->game_data);
     auto get_color =
-        internal_rom->palette_group()
+        game_data->palette_groups
             .get_group(yaze::gfx::kPaletteGroupAddressesKeys[palette_set])
             ->palette(palette)[color];
     color_struct = get_color.rom_color();
@@ -206,7 +216,8 @@ zelda3_overworld* yaze_load_overworld(const zelda3_rom* rom) {
   }
 
   yaze::Rom* internal_rom = static_cast<yaze::Rom*>(rom->impl);
-  auto internal_overworld = new yaze::zelda3::Overworld(internal_rom);
+  auto* game_data = static_cast<yaze::zelda3::GameData*>(rom->game_data);
+  auto internal_overworld = new yaze::zelda3::Overworld(internal_rom, game_data);
   if (!internal_overworld->Load(internal_rom).ok()) {
     return nullptr;
   }
@@ -265,8 +276,8 @@ yaze_status yaze_load_messages(const zelda3_rom* rom, zelda3_message** messages,
                   msg.ContentsParsed.length());
       (*messages)[i].parsed_text[msg.ContentsParsed.length()] = '\0';
 
-      (*messages)[i].is_compressed = false;  // TODO: Detect compression
-      (*messages)[i].encoding_type = 0;      // TODO: Detect encoding
+      (*messages)[i].is_compressed = msg.Data.size() != msg.DataParsed.size();
+      (*messages)[i].encoding_type = 1;  // ALttP standard encoding
     }
   } catch (const std::exception& e) {
     return YAZE_ERROR_MEMORY;
@@ -314,22 +325,47 @@ snes_color yaze_rgb_to_snes_color(uint8_t r, uint8_t g, uint8_t b) {
 
 void yaze_snes_color_to_rgb(snes_color color, uint8_t* r, uint8_t* g,
                             uint8_t* b) {
-  if (r != nullptr)
-    *r = static_cast<uint8_t>(color.red);
-  if (g != nullptr)
-    *g = static_cast<uint8_t>(color.green);
-  if (b != nullptr)
-    *b = static_cast<uint8_t>(color.blue);
+  if (r != nullptr) *r = static_cast<uint8_t>(color.red);
+  if (g != nullptr) *g = static_cast<uint8_t>(color.green);
+  if (b != nullptr) *b = static_cast<uint8_t>(color.blue);
 }
 
 // Version detection functions
 zelda3_version zelda3_detect_version(const uint8_t* rom_data, size_t size) {
-  if (rom_data == nullptr || size < 0x100000) {
+  if (rom_data == nullptr || size < 0x8000) {
     return ZELDA3_VERSION_UNKNOWN;
   }
 
-  // TODO: Implement proper version detection based on ROM header
-  return ZELDA3_VERSION_US;  // Default assumption
+  // SNES LoROM header titles at 0x7FC0 (PC offset)
+  // Titles are 21 bytes long
+  std::string title;
+  for (int i = 0; i < 21; ++i) {
+    char c = static_cast<char>(rom_data[0x7FC0 + i]);
+    if (c >= 0x20 && c < 0x7F) {
+      title += c;
+    }
+  }
+
+  if (absl::StrContains(title, "THE LEGEND OF ZELDA")) {
+    // US or EU version often share this title
+    // Check destination code at 0x7FD9: 0x01 = USA, 0x02+ = PAL regions
+    uint8_t region = rom_data[0x7FD9];
+    if (region == 0x00) return ZELDA3_VERSION_JP;
+    if (region == 0x01) return ZELDA3_VERSION_US;
+    return ZELDA3_VERSION_EU;
+  }
+
+  if (absl::StrContains(title, "ZELDA NO DENSETSU")) {
+    return ZELDA3_VERSION_JP;
+  }
+
+  // Fallback: Check for common randomizer indicators
+  if (absl::StrContains(title, "VT RANDO") ||
+      absl::StrContains(title, "Z3 RANDOMIZER")) {
+    return ZELDA3_VERSION_RANDOMIZER;
+  }
+
+  return ZELDA3_VERSION_US;  // Default assumption for ALttP clones/hacks
 }
 
 const char* zelda3_version_to_string(zelda3_version version) {
@@ -360,3 +396,4 @@ const zelda3_version_pointers* zelda3_get_version_pointers(
       return &zelda3_us_pointers;  // Default fallback
   }
 }
+}  // extern "C"

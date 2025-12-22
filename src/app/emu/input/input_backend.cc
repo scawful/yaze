@@ -12,6 +12,21 @@ namespace yaze {
 namespace emu {
 namespace input {
 
+void ApplyDefaultKeyBindings(InputConfig& config) {
+  if (config.key_a == 0) config.key_a = platform::kKeyX;
+  if (config.key_b == 0) config.key_b = platform::kKeyZ;
+  if (config.key_x == 0) config.key_x = platform::kKeyS;
+  if (config.key_y == 0) config.key_y = platform::kKeyA;
+  if (config.key_l == 0) config.key_l = platform::kKeyD;
+  if (config.key_r == 0) config.key_r = platform::kKeyC;
+  if (config.key_start == 0) config.key_start = platform::kKeyReturn;
+  if (config.key_select == 0) config.key_select = platform::kKeyRShift;
+  if (config.key_up == 0) config.key_up = platform::kKeyUp;
+  if (config.key_down == 0) config.key_down = platform::kKeyDown;
+  if (config.key_left == 0) config.key_left = platform::kKeyLeft;
+  if (config.key_right == 0) config.key_right = platform::kKeyRight;
+}
+
 /**
  * @brief SDL2 input backend implementation
  */
@@ -28,21 +43,7 @@ class SDL2InputBackend : public IInputBackend {
 
     config_ = config;
 
-    // Set default SDL2 keycodes if not configured
-    if (config_.key_a == 0) {
-      config_.key_a = SDLK_x;
-      config_.key_b = SDLK_z;
-      config_.key_x = SDLK_s;
-      config_.key_y = SDLK_a;
-      config_.key_l = SDLK_d;
-      config_.key_r = SDLK_c;
-      config_.key_start = SDLK_RETURN;
-      config_.key_select = SDLK_RSHIFT;
-      config_.key_up = SDLK_UP;
-      config_.key_down = SDLK_DOWN;
-      config_.key_left = SDLK_LEFT;
-      config_.key_right = SDLK_RIGHT;
-    }
+    ApplyDefaultKeyBindings(config_);
 
     initialized_ = true;
     LOG_INFO("InputBackend", "SDL2 Input Backend initialized");
@@ -63,53 +64,52 @@ class SDL2InputBackend : public IInputBackend {
     ControllerState state;
 
     if (config_.continuous_polling) {
+      // Pump events to update keyboard state - critical for edge detection
+      // when multiple emulated frames run per host frame
+      SDL_PumpEvents();
+
       // Continuous polling mode (for games)
-      const uint8_t* keyboard_state = SDL_GetKeyboardState(nullptr);
+      // Continuous polling mode (for games)
+      platform::KeyboardState keyboard_state = SDL_GetKeyboardState(nullptr);
 
-      // IMPORTANT: Only block input when actively typing in text fields
-      // Allow game input even when ImGui windows are open/focused
-      ImGuiIO& io = ImGui::GetIO();
-
-      // Only block if user is actively typing in a text input field
-      // WantTextInput is true only when an InputText widget is active
-      if (io.WantTextInput) {
-        // User is typing in a text field
-        // Return empty state to prevent game from processing input
-        static int text_input_log_count = 0;
-        if (text_input_log_count++ < 5) {
-          LOG_DEBUG("InputBackend", "Blocking game input - WantTextInput=true");
-        }
-        return ControllerState{};
-      }
+      // Do NOT block emulator input when ImGui wants text; games rely on edge detection
+      // and we don't want UI focus to interfere with controller state.
 
       // Map keyboard to SNES buttons
       state.SetButton(SnesButton::B,
-                      keyboard_state[SDL_GetScancodeFromKey(config_.key_b)]);
+                      keyboard_state[platform::GetScancodeFromKey(config_.key_b)]);
       state.SetButton(SnesButton::Y,
-                      keyboard_state[SDL_GetScancodeFromKey(config_.key_y)]);
+                      keyboard_state[platform::GetScancodeFromKey(config_.key_y)]);
       state.SetButton(
           SnesButton::SELECT,
-          keyboard_state[SDL_GetScancodeFromKey(config_.key_select)]);
+          keyboard_state[platform::GetScancodeFromKey(config_.key_select)]);
       state.SetButton(
           SnesButton::START,
-          keyboard_state[SDL_GetScancodeFromKey(config_.key_start)]);
+          keyboard_state[platform::GetScancodeFromKey(config_.key_start)]);
       state.SetButton(SnesButton::UP,
-                      keyboard_state[SDL_GetScancodeFromKey(config_.key_up)]);
+                      keyboard_state[platform::GetScancodeFromKey(config_.key_up)]);
       state.SetButton(SnesButton::DOWN,
-                      keyboard_state[SDL_GetScancodeFromKey(config_.key_down)]);
+                      keyboard_state[platform::GetScancodeFromKey(config_.key_down)]);
       state.SetButton(SnesButton::LEFT,
-                      keyboard_state[SDL_GetScancodeFromKey(config_.key_left)]);
+                      keyboard_state[platform::GetScancodeFromKey(config_.key_left)]);
       state.SetButton(
           SnesButton::RIGHT,
-          keyboard_state[SDL_GetScancodeFromKey(config_.key_right)]);
+          keyboard_state[platform::GetScancodeFromKey(config_.key_right)]);
       state.SetButton(SnesButton::A,
-                      keyboard_state[SDL_GetScancodeFromKey(config_.key_a)]);
+                      keyboard_state[platform::GetScancodeFromKey(config_.key_a)]);
       state.SetButton(SnesButton::X,
-                      keyboard_state[SDL_GetScancodeFromKey(config_.key_x)]);
+                      keyboard_state[platform::GetScancodeFromKey(config_.key_x)]);
       state.SetButton(SnesButton::L,
-                      keyboard_state[SDL_GetScancodeFromKey(config_.key_l)]);
+                      keyboard_state[platform::GetScancodeFromKey(config_.key_l)]);
       state.SetButton(SnesButton::R,
-                      keyboard_state[SDL_GetScancodeFromKey(config_.key_r)]);
+                      keyboard_state[platform::GetScancodeFromKey(config_.key_r)]);
+
+      // Debug: Log when any button is pressed
+      static int button_log_count = 0;
+      if (state.buttons != 0 && button_log_count++ < 100) {
+        LOG_INFO("InputBackend", "SDL2 Poll: buttons=0x%04X (keyboard detected)",
+                  state.buttons);
+      }
     } else {
       // Event-based mode (use cached event state)
       state = event_state_;
@@ -128,10 +128,10 @@ class SDL2InputBackend : public IInputBackend {
     SDL_Event* sdl_event = static_cast<SDL_Event*>(event);
 
     // Cache keyboard events for event-based mode
-    if (sdl_event->type == SDL_KEYDOWN) {
-      UpdateEventState(sdl_event->key.keysym.sym, true);
-    } else if (sdl_event->type == SDL_KEYUP) {
-      UpdateEventState(sdl_event->key.keysym.sym, false);
+    if (sdl_event->type == platform::kEventKeyDown) {
+      UpdateEventState(platform::GetKeyFromEvent(*sdl_event), true);
+    } else if (sdl_event->type == platform::kEventKeyUp) {
+      UpdateEventState(platform::GetKeyFromEvent(*sdl_event), false);
     }
 
     // TODO: Handle gamepad events
@@ -186,6 +186,7 @@ class NullInputBackend : public IInputBackend {
  public:
   bool Initialize(const InputConfig& config) override {
     config_ = config;
+    ApplyDefaultKeyBindings(config_);
     return true;
   }
   void Shutdown() override {}

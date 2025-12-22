@@ -7,6 +7,13 @@ namespace yaze {
 namespace emu {
 namespace input {
 
+InputManager::InputManager() {
+  config_.continuous_polling = true;
+  config_.enable_gamepad = false;
+  config_.gamepad_index = 0;
+  ApplyDefaultKeyBindings(config_);
+}
+
 bool InputManager::Initialize(InputBackendFactory::BackendType type) {
   backend_ = InputBackendFactory::Create(type);
   if (!backend_) {
@@ -14,14 +21,14 @@ bool InputManager::Initialize(InputBackendFactory::BackendType type) {
     return false;
   }
 
-  InputConfig config;
-  config.continuous_polling = true;
-  config.enable_gamepad = false;
+  ApplyDefaultKeyBindings(config_);
 
-  if (!backend_->Initialize(config)) {
+  if (!backend_->Initialize(config_)) {
     LOG_ERROR("InputManager", "Failed to initialize input backend");
     return false;
   }
+
+  config_ = backend_->GetConfig();
 
   LOG_INFO("InputManager", "Initialized with backend: %s",
            backend_->GetBackendName().c_str());
@@ -32,6 +39,11 @@ void InputManager::Initialize(std::unique_ptr<IInputBackend> backend) {
   backend_ = std::move(backend);
 
   if (backend_) {
+    if (!backend_->IsInitialized()) {
+      ApplyDefaultKeyBindings(config_);
+      backend_->Initialize(config_);
+    }
+    config_ = backend_->GetConfig();
     LOG_INFO("InputManager", "Initialized with custom backend: %s",
              backend_->GetBackendName().c_str());
   }
@@ -65,8 +77,9 @@ void InputManager::Poll(Snes* snes, int player) {
 
   // Debug: Log complete button state when any button is pressed
   static int poll_log_count = 0;
-  if (final_state.buttons != 0 && poll_log_count++ < 30) {
-    LOG_DEBUG("InputManager", "Poll: buttons=0x%04X", final_state.buttons);
+  if (final_state.buttons != 0 && poll_log_count++ < 50) {
+    LOG_INFO("InputManager", "Poll: buttons=0x%04X (passed to SetButtonState)",
+             final_state.buttons);
   }
 }
 
@@ -80,12 +93,27 @@ InputConfig InputManager::GetConfig() const {
   if (backend_) {
     return backend_->GetConfig();
   }
-  return InputConfig{};
+  return config_;
 }
 
 void InputManager::SetConfig(const InputConfig& config) {
+  config_ = config;
+  if (!config_.continuous_polling) {
+    LOG_WARN("InputManager",
+             "continuous_polling disabled in config; forcing it ON to keep edge "
+             "detection working for menus (event-based path is not wired)");
+    config_.continuous_polling = true;
+  }
+  // Always ignore ImGui text input capture for game controls to avoid blocking
+  if (!config_.ignore_imgui_text_input) {
+    LOG_WARN("InputManager",
+             "ignore_imgui_text_input was false; forcing true so game input is not blocked");
+    config_.ignore_imgui_text_input = true;
+  }
+  ApplyDefaultKeyBindings(config_);
   if (backend_) {
-    backend_->SetConfig(config);
+    backend_->SetConfig(config_);
+    config_ = backend_->GetConfig();
   }
 }
 

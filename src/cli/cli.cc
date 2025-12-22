@@ -1,13 +1,16 @@
 #include "cli/cli.h"
 
+#include <iostream>
+
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
 #include "cli/handlers/command_handlers.h"
 #include "cli/service/command_registry.h"
-#include "cli/tui/chat_tui.h"
-#include "cli/z3ed_ascii_logo.h"
+#ifndef __EMSCRIPTEN__
 #include "ftxui/dom/elements.hpp"
 #include "ftxui/dom/table.hpp"
+#endif
+#include "cli/z3ed_ascii_logo.h"
 
 namespace yaze {
 namespace cli {
@@ -32,24 +35,17 @@ absl::Status ModernCLI::Run(int argc, char* argv[]) {
     args.push_back(argv[i]);
   }
 
-  // Handle --tui flag
-  if (args[0] == "--tui") {
-    Rom rom;
-    // Attempt to load a ROM from the current directory or a well-known path
-    auto rom_status = rom.LoadFromFile("zelda3.sfc");
-    if (!rom_status.ok()) {
-      // Try assets directory as a fallback
-      rom_status = rom.LoadFromFile("assets/zelda3.sfc");
-    }
-
-    tui::ChatTUI chat_tui(rom.is_loaded() ? &rom : nullptr);
-    chat_tui.Run();
-    return absl::OkStatus();
-  }
-
   if (args[0] == "help") {
     if (args.size() > 1) {
-      ShowCategoryHelp(args[1]);
+      const std::string& target = args[1];
+      auto& registry = CommandRegistry::Instance();
+      if (target == "all") {
+        std::cout << registry.GenerateCompleteHelp() << "\n";
+      } else if (registry.HasCommand(target)) {
+        std::cout << registry.GenerateHelp(target) << "\n";
+      } else {
+        ShowCategoryHelp(target);
+      }
     } else {
       ShowHelp();
     }
@@ -76,9 +72,11 @@ absl::Status ModernCLI::Run(int argc, char* argv[]) {
 }
 
 void ModernCLI::ShowHelp() {
-  using namespace ftxui;
   auto& registry = CommandRegistry::Instance();
   auto categories = registry.GetCategories();
+
+#ifndef __EMSCRIPTEN__
+  using namespace ftxui;
 
   auto banner = text("🎮 Z3ED - AI-Powered ROM Editor CLI") | bold | center;
 
@@ -132,16 +130,31 @@ void ModernCLI::ShowHelp() {
   auto screen = Screen::Create(Dimension::Full(), Dimension::Fit(layout));
   Render(screen, layout);
   screen.Print();
+#else
+  // Simple text output for WASM builds
+  std::cout << yaze::cli::GetColoredLogo() << "\n";
+  std::cout << "Z3ED - AI-Powered ROM Editor CLI\n\n";
+  std::cout << "Categories:\n";
+  std::cout << "  agent       - AI conversational agent + debugging tools\n";
+  for (const auto& category : categories) {
+    auto commands = registry.GetCommandsInCategory(category);
+    std::cout << "  " << category << " - " << commands.size() << " commands\n";
+  }
+  std::cout << "\nTotal: " << registry.Count() << " commands\n";
+  std::cout << "Use 'help <category>' for more details.\n";
+#endif
 }
 
 void ModernCLI::ShowCategoryHelp(const std::string& category) const {
-  using namespace ftxui;
   auto& registry = CommandRegistry::Instance();
+  auto commands = registry.GetCommandsInCategory(category);
+
+#ifndef __EMSCRIPTEN__
+  using namespace ftxui;
 
   std::vector<std::vector<std::string>> rows;
   rows.push_back({"Command", "Description", "Requirements"});
 
-  auto commands = registry.GetCommandsInCategory(category);
   for (const auto& cmd_name : commands) {
     auto* metadata = registry.GetMetadata(cmd_name);
     if (metadata) {
@@ -174,16 +187,31 @@ void ModernCLI::ShowCategoryHelp(const std::string& category) const {
   auto screen = Screen::Create(Dimension::Full(), Dimension::Fit(layout));
   Render(screen, layout);
   screen.Print();
+#else
+  // Simple text output for WASM builds
+  std::cout << "Category: " << category << "\n\n";
+  for (const auto& cmd_name : commands) {
+    auto* metadata = registry.GetMetadata(cmd_name);
+    if (metadata) {
+      std::cout << "  " << cmd_name << " - " << metadata->description << "\n";
+    }
+  }
+  if (commands.empty()) {
+    std::cout << "  No commands in this category.\n";
+  }
+#endif
 }
 
 void ModernCLI::ShowCommandSummary() const {
-  using namespace ftxui;
   auto& registry = CommandRegistry::Instance();
+  auto categories = registry.GetCategories();
+
+#ifndef __EMSCRIPTEN__
+  using namespace ftxui;
 
   std::vector<std::vector<std::string>> rows;
   rows.push_back({"Command", "Category", "Description"});
 
-  auto categories = registry.GetCategories();
   for (const auto& category : categories) {
     auto commands = registry.GetCommandsInCategory(category);
     for (const auto& cmd_name : commands) {
@@ -214,6 +242,22 @@ void ModernCLI::ShowCommandSummary() const {
   auto screen = Screen::Create(Dimension::Full(), Dimension::Fit(layout));
   Render(screen, layout);
   screen.Print();
+#else
+  // Simple text output for WASM builds
+  std::cout << "Z3ED Command Summary\n\n";
+  for (const auto& category : categories) {
+    auto commands = registry.GetCommandsInCategory(category);
+    for (const auto& cmd_name : commands) {
+      auto* metadata = registry.GetMetadata(cmd_name);
+      if (metadata) {
+        std::cout << "  " << cmd_name << " [" << metadata->category << "] - "
+                  << metadata->description << "\n";
+      }
+    }
+  }
+  std::cout << "\nTotal: " << registry.Count() << " commands across "
+            << categories.size() << " categories\n";
+#endif
 }
 
 void ModernCLI::PrintTopLevelHelp() const {

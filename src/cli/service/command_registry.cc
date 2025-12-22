@@ -1,5 +1,8 @@
 #include "cli/service/command_registry.h"
 
+#include <algorithm>
+#include <sstream>
+
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
@@ -7,6 +10,45 @@
 
 namespace yaze {
 namespace cli {
+
+namespace {
+std::string EscapeJson(const std::string& input) {
+  std::string escaped;
+  escaped.reserve(input.size());
+  for (char c : input) {
+    switch (c) {
+      case '\\\\':
+        escaped.append("\\\\");
+        break;
+      case '\"':
+        escaped.append("\\\"");
+        break;
+      case '\n':
+        escaped.append("\\n");
+        break;
+      case '\r':
+        escaped.append("\\r");
+        break;
+      case '\t':
+        escaped.append("\\t");
+        break;
+      default:
+        escaped.push_back(c);
+    }
+  }
+  return escaped;
+}
+
+void AppendStringArray(std::ostringstream& out,
+                       const std::vector<std::string>& values) {
+  out << "[";
+  for (size_t i = 0; i < values.size(); ++i) {
+    if (i > 0) out << ", ";
+    out << "\"" << EscapeJson(values[i]) << "\"";
+  }
+  out << "]";
+}
+}  // namespace
 
 CommandRegistry& CommandRegistry::Instance() {
   static CommandRegistry instance;
@@ -100,9 +142,42 @@ std::vector<std::string> CommandRegistry::GetAgentCommands() const {
 }
 
 std::string CommandRegistry::ExportFunctionSchemas() const {
-  // TODO: Generate JSON function schemas from metadata
-  // This would replace manual function_schemas.json maintenance
-  return "{}";  // Placeholder
+  std::ostringstream out;
+  out << "{\n  \"commands\": [\n";
+
+  bool first = true;
+  for (const auto& [_, metadata] : metadata_) {
+    if (!first) out << ",\n";
+    first = false;
+
+    out << "    {\n";
+    out << "      \"name\": \"" << EscapeJson(metadata.name) << "\",\n";
+    out << "      \"category\": \"" << EscapeJson(metadata.category) << "\",\n";
+    out << "      \"description\": \"" << EscapeJson(metadata.description) << "\",\n";
+    out << "      \"usage\": \"" << EscapeJson(metadata.usage) << "\",\n";
+    out << "      \"available_to_agent\": "
+        << (metadata.available_to_agent ? "true" : "false") << ",\n";
+    out << "      \"requires_rom\": " << (metadata.requires_rom ? "true" : "false")
+        << ",\n";
+    out << "      \"requires_grpc\": "
+        << (metadata.requires_grpc ? "true" : "false") << ",\n";
+    if (!metadata.todo_reference.empty()) {
+      out << "      \"todo_reference\": \""
+          << EscapeJson(metadata.todo_reference) << "\",\n";
+    } else {
+      out << "      \"todo_reference\": \"\",\n";
+    }
+    out << "      \"aliases\": ";
+    AppendStringArray(out, metadata.aliases);
+    out << ",\n";
+    out << "      \"examples\": ";
+    AppendStringArray(out, metadata.examples);
+    out << "\n";
+    out << "    }";
+  }
+
+  out << "\n  ]\n}";
+  return out.str();
 }
 
 std::string CommandRegistry::GenerateHelp(const std::string& name) const {
@@ -179,13 +254,14 @@ std::string CommandRegistry::GenerateCompleteHelp() const {
 
 absl::Status CommandRegistry::Execute(const std::string& name,
                                       const std::vector<std::string>& args,
-                                      Rom* rom_context) {
+                                      Rom* rom_context,
+                                      std::string* captured_output) {
   auto* handler = Get(name);
   if (!handler) {
     return absl::NotFoundError(absl::StrFormat("Command '%s' not found", name));
   }
 
-  return handler->Run(args, rom_context);
+  return handler->Run(args, rom_context, captured_output);
 }
 
 bool CommandRegistry::HasCommand(const std::string& name) const {
@@ -200,11 +276,12 @@ void CommandRegistry::RegisterAllCommands() {
     std::string name = handler->GetName();
 
     // Build metadata from handler
+    auto descriptor = handler->Describe();
     CommandMetadata metadata;
     metadata.name = name;
     metadata.usage = handler->GetUsage();
     metadata.available_to_agent = true;  // Most commands available to agent
-    metadata.requires_rom = true;        // Most commands need ROM
+    metadata.requires_rom = handler->RequiresRom();
     metadata.requires_grpc = false;
 
     // Categorize and enhance metadata based on command type
@@ -266,9 +343,45 @@ void CommandRegistry::RegisterAllCommands() {
       metadata.examples = {
           "z3ed simple-chat --rom=zelda3.sfc",
           "z3ed simple-chat \"What dungeons exist?\" --rom=zelda3.sfc"};
+    } else if (name.find("tools-") == 0) {
+      metadata.category = "tools";
+      if (name == "tools-list") {
+        metadata.description = "List available test helper tools";
+        metadata.requires_rom = false;
+        metadata.available_to_agent = true;
+      } else if (name == "tools-harness-state") {
+        metadata.description = "Generate WRAM state for test harnesses";
+        metadata.examples = {
+            "z3ed tools-harness-state --rom=zelda3.sfc --output=state.h"};
+      } else if (name == "tools-extract-values") {
+        metadata.description = "Extract vanilla ROM values";
+        metadata.examples = {"z3ed tools-extract-values --rom=zelda3.sfc"};
+      } else if (name == "tools-extract-golden") {
+        metadata.description = "Extract comprehensive golden data for testing";
+        metadata.examples = {
+            "z3ed tools-extract-golden --rom=zelda3.sfc --output=golden.h"};
+      } else if (name == "tools-patch-v3") {
+        metadata.description = "Create v3 ZSCustomOverworld patched ROM";
+        metadata.examples = {
+            "z3ed tools-patch-v3 --rom=zelda3.sfc --output=patched.sfc"};
+      } else {
+        metadata.description = "Test helper tool";
+      }
     } else {
       metadata.category = "misc";
       metadata.description = "Miscellaneous command";
+    }
+
+    // Prefer handler-provided summary if present
+    if (!descriptor.summary.empty() &&
+        descriptor.summary != "Command summary not provided.") {
+      metadata.description = descriptor.summary;
+    }
+
+    // Keep TODO reference if supplied by handler
+    if (!descriptor.todo_reference.empty() &&
+        descriptor.todo_reference != "todo#unassigned") {
+      metadata.todo_reference = descriptor.todo_reference;
     }
 
     Register(std::move(handler), metadata);

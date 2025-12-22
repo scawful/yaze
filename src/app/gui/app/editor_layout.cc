@@ -15,6 +15,14 @@ namespace yaze {
 namespace gui {
 
 // ============================================================================
+// PanelWindow Static Variables (for duplicate rendering detection)
+// ============================================================================
+int PanelWindow::last_frame_count_ = 0;
+std::vector<std::string> PanelWindow::panels_begun_this_frame_;
+bool PanelWindow::duplicate_detected_ = false;
+std::string PanelWindow::duplicate_panel_name_;
+
+// ============================================================================
 // Toolset Implementation
 // ============================================================================
 
@@ -223,34 +231,62 @@ bool Toolset::AddUsageStatsButton(const char* tooltip) {
 }
 
 // ============================================================================
-// EditorCard Implementation
+// PanelWindow Implementation
 // ============================================================================
 
-EditorCard::EditorCard(const char* title, const char* icon)
+PanelWindow::PanelWindow(const char* title, const char* icon)
     : title_(title), icon_(icon ? icon : ""), default_size_(400, 300) {
   window_name_ = icon_.empty() ? title_ : icon_ + " " + title_;
 }
 
-EditorCard::EditorCard(const char* title, const char* icon, bool* p_open)
+PanelWindow::PanelWindow(const char* title, const char* icon, bool* p_open)
     : title_(title), icon_(icon ? icon : ""), default_size_(400, 300) {
   p_open_ = p_open;
   window_name_ = icon_.empty() ? title_ : icon_ + " " + title_;
 }
 
-void EditorCard::SetDefaultSize(float width, float height) {
+void PanelWindow::SetDefaultSize(float width, float height) {
   default_size_ = ImVec2(width, height);
 }
 
-void EditorCard::SetPosition(Position pos) {
+void PanelWindow::SetPosition(Position pos) {
   position_ = pos;
 }
 
-bool EditorCard::Begin(bool* p_open) {
-  // Check visibility flag first - if provided and false, don't show the card
+void PanelWindow::AddHeaderButton(const char* icon, const char* tooltip, std::function<void()> callback) {
+  header_buttons_.push_back({icon, tooltip, callback});
+}
+
+bool PanelWindow::Begin(bool* p_open) {
+  // Check visibility flag first - if provided and false, don't show the panel
   if (p_open && !*p_open) {
     imgui_begun_ = false;
     return false;
   }
+
+  // === DEBUG: Track duplicate rendering ===
+  int current_frame = ImGui::GetFrameCount();
+  if (current_frame != last_frame_count_) {
+    // New frame - reset tracking
+    last_frame_count_ = current_frame;
+    panels_begun_this_frame_.clear();
+    duplicate_detected_ = false;
+    duplicate_panel_name_.clear();
+  }
+
+  // Check if this panel was already begun this frame
+  for (const auto& panel_name : panels_begun_this_frame_) {
+    if (panel_name == window_name_) {
+      duplicate_detected_ = true;
+      duplicate_panel_name_ = window_name_;
+      // Log the duplicate detection
+      fprintf(stderr, "[PanelWindow] DUPLICATE DETECTED: '%s' Begin() called twice in frame %d\n",
+              window_name_.c_str(), current_frame);
+      break;
+    }
+  }
+  panels_begun_this_frame_.push_back(window_name_);
+  // === END DEBUG ===
 
   // Handle icon-collapsed state
   if (icon_collapsible_ && collapsed_to_icon_) {
@@ -272,6 +308,11 @@ bool EditorCard::Begin(bool* p_open) {
     flags |= ImGuiWindowFlags_NoDocking;
   }
 
+  // Prevent persisting window settings (position, size, docking state)
+  if (!save_settings_) {
+    flags |= ImGuiWindowFlags_NoSavedSettings;
+  }
+
   // Set initial position based on position enum
   if (first_draw_) {
     float display_width = ImGui::GetIO().DisplaySize.x;
@@ -291,6 +332,9 @@ bool EditorCard::Begin(bool* p_open) {
             ImVec2(10, display_height - default_size_.y - 10),
             ImGuiCond_FirstUseEver);
         break;
+      case Position::Top:
+        ImGui::SetNextWindowPos(ImVec2(10, 30), ImGuiCond_FirstUseEver);
+        break;
       case Position::Floating:
       case Position::Free:
         ImGui::SetNextWindowPos(
@@ -307,7 +351,7 @@ bool EditorCard::Begin(bool* p_open) {
   // Create window title with icon
   std::string window_title = icon_.empty() ? title_ : icon_ + " " + title_;
 
-  // Modern card styling
+  // Modern panel styling
   ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10, 10));
   ImGui::PushStyleColor(ImGuiCol_TitleBg, GetThemeColor(ImGuiCol_TitleBg));
@@ -323,18 +367,23 @@ bool EditorCard::Begin(bool* p_open) {
   // Mark that ImGui::Begin() was called - End() must always be called now
   imgui_begun_ = true;
 
-  // Register card window for test automation
+  // Draw custom header buttons if visible
+  if (visible) {
+    DrawHeaderButtons();
+  }
+
+  // Register panel window for test automation
   if (ImGui::GetCurrentWindow() && ImGui::GetCurrentWindow()->ID != 0) {
-    std::string card_path = absl::StrFormat("EditorCard:%s", title_.c_str());
+    std::string panel_path = absl::StrFormat("PanelWindow:%s", title_.c_str());
     WidgetIdRegistry::Instance().RegisterWidget(
-        card_path, "window", ImGui::GetCurrentWindow()->ID,
-        absl::StrFormat("Editor card: %s", title_.c_str()));
+        panel_path, "window", ImGui::GetCurrentWindow()->ID,
+        absl::StrFormat("Editor panel: %s", title_.c_str()));
   }
 
   return visible;
 }
 
-void EditorCard::End() {
+void PanelWindow::End() {
   // Only call ImGui::End() and pop styles if ImGui::Begin() was called
   if (imgui_begun_) {
     // Check if window was focused this frame
@@ -347,13 +396,13 @@ void EditorCard::End() {
   }
 }
 
-void EditorCard::Focus() {
+void PanelWindow::Focus() {
   // Set window focus using ImGui's focus system
   ImGui::SetWindowFocus(window_name_.c_str());
   focused_ = true;
 }
 
-void EditorCard::DrawFloatingIconButton() {
+void PanelWindow::DrawFloatingIconButton() {
   // Draw a small floating button with the icon
   ImGui::SetNextWindowPos(saved_icon_pos_, ImGuiCond_Always);
   ImGui::SetNextWindowSize(ImVec2(50, 50));
@@ -385,6 +434,20 @@ void EditorCard::DrawFloatingIconButton() {
   ImGui::End();
 }
 
+void PanelWindow::DrawHeaderButtons() {
+  // Note: Drawing buttons in docked window title bars is problematic with ImGui's
+  // docking system. The pin functionality is better managed through the Activity Bar
+  // sidebar where each panel entry can have a pin toggle. This avoids layout issues
+  // with docked windows and provides a cleaner UI.
+  //
+  // For now, pin state is tracked internally but the button is not rendered.
+  // Right-click context menu in Activity Bar can be used for pinning.
+  
+  // Skip drawing header buttons in content area - they interfere with docking
+  // and take up vertical space. The pin state is still tracked and used by
+  // PanelManager for category filtering.
+}
+
 // ============================================================================
 // EditorLayout Implementation
 // ============================================================================
@@ -408,8 +471,8 @@ void EditorLayout::EndMainCanvas() {
   ImGui::EndChild();
 }
 
-void EditorLayout::RegisterCard(EditorCard* card) {
-  cards_.push_back(card);
+void EditorLayout::RegisterPanel(PanelWindow* panel) {
+  panels_.push_back(panel);
 }
 
 }  // namespace gui

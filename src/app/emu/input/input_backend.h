@@ -71,9 +71,20 @@ struct InputConfig {
   bool continuous_polling = true;
 
   // Enable gamepad support
-  bool enable_gamepad = true;
+  bool enable_gamepad = false;
   int gamepad_index = 0;  // Which gamepad to use (0-3)
+
+  // Allow game input even when ImGui text widgets request keyboard focus
+  // Default true since SNES buttons use non-typing keys (arrows, X, Z, etc.)
+  bool ignore_imgui_text_input = true;
 };
+
+/**
+ * @brief Apply default keyboard bindings if unset
+ *
+ * Sets SNES buttons to a sensible keyboard layout when keycodes are 0.
+ */
+void ApplyDefaultKeyBindings(InputConfig& config);
 
 /**
  * @brief Abstract input backend interface

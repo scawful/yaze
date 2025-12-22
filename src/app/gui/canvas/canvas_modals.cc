@@ -141,13 +141,13 @@ void CanvasModals::RenderAdvancedPropertiesModal(const std::string& canvas_id,
                                 ImGuiTreeNodeFlags_DefaultOpen)) {
       ImGui::Columns(2, "CanvasInfo");
 
-      RenderMetricCard(
+      RenderMetricPanel(
           "Canvas Size",
           std::to_string(static_cast<int>(config.canvas_size.x)) + " x " +
               std::to_string(static_cast<int>(config.canvas_size.y)),
           ICON_MD_STRAIGHTEN, ImVec4(0.2F, 0.8F, 1.0F, 1.0F));
 
-      RenderMetricCard(
+      RenderMetricPanel(
           "Content Size",
           std::to_string(static_cast<int>(config.content_size.x)) + " x " +
               std::to_string(static_cast<int>(config.content_size.y)),
@@ -155,12 +155,12 @@ void CanvasModals::RenderAdvancedPropertiesModal(const std::string& canvas_id,
 
       ImGui::NextColumn();
 
-      RenderMetricCard(
+      RenderMetricPanel(
           "Global Scale",
           std::to_string(static_cast<int>(config.global_scale * 100)) + "%",
           ICON_MD_ZOOM_IN, ImVec4(1.0F, 0.8F, 0.2F, 1.0F));
 
-      RenderMetricCard(
+      RenderMetricPanel(
           "Grid Step",
           std::to_string(static_cast<int>(config.grid_step)) + "px",
           ICON_MD_GRID_ON, ImVec4(0.2F, 1.0F, 0.2F, 1.0F));
@@ -250,11 +250,11 @@ void CanvasModals::RenderAdvancedPropertiesModal(const std::string& canvas_id,
       auto canvas_stats = profiler.GetStats("canvas_operations");
       auto draw_stats = profiler.GetStats("canvas_draw");
 
-      RenderMetricCard("Canvas Operations",
+      RenderMetricPanel("Canvas Operations",
                        std::to_string(canvas_stats.sample_count) + " ops",
                        "speed", ImVec4(0.2F, 1.0F, 0.2F, 1.0F));
 
-      RenderMetricCard("Average Time",
+      RenderMetricPanel("Average Time",
                        std::to_string(draw_stats.avg_time_us / 1000.0) + " ms",
                        "timer", ImVec4(1.0F, 0.8F, 0.2F, 1.0F));
 
@@ -491,9 +491,9 @@ void CanvasModals::RenderPerformanceModal(const std::string& canvas_id,
     ImGui::Separator();
 
     // Performance metrics
-    RenderMetricCard("Operation", options.operation_name, "speed",
+    RenderMetricPanel("Operation", options.operation_name, "speed",
                      ImVec4(0.2f, 1.0f, 0.2f, 1.0f));
-    RenderMetricCard("Time", std::to_string(options.operation_time_ms) + " ms",
+    RenderMetricPanel("Time", std::to_string(options.operation_time_ms) + " ms",
                      "timer", ImVec4(1.0f, 0.8f, 0.2f, 1.0f));
 
     // Get overall performance stats
@@ -501,10 +501,10 @@ void CanvasModals::RenderPerformanceModal(const std::string& canvas_id,
     auto canvas_stats = profiler.GetStats("canvas_operations");
     auto draw_stats = profiler.GetStats("canvas_draw");
 
-    RenderMetricCard("Total Operations",
+    RenderMetricPanel("Total Operations",
                      std::to_string(canvas_stats.sample_count), "functions",
                      ImVec4(0.2F, 0.8F, 1.0F, 1.0F));
-    RenderMetricCard("Average Time",
+    RenderMetricPanel("Average Time",
                      std::to_string(draw_stats.avg_time_us / 1000.0) + " ms",
                      "schedule", ImVec4(0.8F, 0.2F, 1.0F, 1.0F));
 
@@ -587,7 +587,7 @@ void CanvasModals::RenderMaterialIcon(const std::string& icon_name,
   }
 }
 
-void CanvasModals::RenderMetricCard(const std::string& title,
+void CanvasModals::RenderMetricPanel(const std::string& title,
                                     const std::string& value,
                                     const std::string& icon,
                                     const ImVec4& color) {

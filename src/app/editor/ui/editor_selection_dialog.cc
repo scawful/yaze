@@ -5,7 +5,9 @@
 #include <sstream>
 
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/platform_keys.h"
 #include "app/gui/core/style.h"
 #include "imgui/imgui.h"
 #include "util/file_util.h"
@@ -15,59 +17,68 @@ namespace editor {
 
 EditorSelectionDialog::EditorSelectionDialog() {
   // Initialize editor metadata with distinct colors
+  // Use platform-aware shortcut strings (Cmd on macOS, Ctrl elsewhere)
+  const char* ctrl = gui::GetCtrlDisplayName();
   editors_ = {
       {EditorType::kOverworld, "Overworld", ICON_MD_MAP,
-       "Edit overworld maps, entrances, and properties", "Ctrl+1", false, true,
+       "Edit overworld maps, entrances, and properties",
+       absl::StrFormat("%s+1", ctrl), false, true,
        ImVec4(0.133f, 0.545f, 0.133f, 1.0f)},  // Hyrule green
 
       {EditorType::kDungeon, "Dungeon", ICON_MD_CASTLE,
-       "Design dungeon rooms, layouts, and mechanics", "Ctrl+2", false, true,
+       "Design dungeon rooms, layouts, and mechanics",
+       absl::StrFormat("%s+2", ctrl), false, true,
        ImVec4(0.502f, 0.0f, 0.502f, 1.0f)},  // Ganon purple
 
       {EditorType::kGraphics, "Graphics", ICON_MD_PALETTE,
-       "Modify tiles, palettes, and graphics sets", "Ctrl+3", false, true,
+       "Modify tiles, palettes, and graphics sets",
+       absl::StrFormat("%s+3", ctrl), false, true,
        ImVec4(1.0f, 0.843f, 0.0f, 1.0f)},  // Triforce gold
 
       {EditorType::kSprite, "Sprites", ICON_MD_EMOJI_EMOTIONS,
-       "Edit sprite graphics and properties", "Ctrl+4", false, true,
+       "Edit sprite graphics and properties",
+       absl::StrFormat("%s+4", ctrl), false, true,
        ImVec4(1.0f, 0.647f, 0.0f, 1.0f)},  // Spirit orange
 
       {EditorType::kMessage, "Messages", ICON_MD_CHAT_BUBBLE,
-       "Edit dialogue, signs, and text", "Ctrl+5", false, true,
+       "Edit dialogue, signs, and text",
+       absl::StrFormat("%s+5", ctrl), false, true,
        ImVec4(0.196f, 0.6f, 0.8f, 1.0f)},  // Master sword blue
 
       {EditorType::kMusic, "Music", ICON_MD_MUSIC_NOTE,
-       "Configure music and sound effects", "Ctrl+6", false, true,
+       "Configure music and sound effects",
+       absl::StrFormat("%s+6", ctrl), false, true,
        ImVec4(0.416f, 0.353f, 0.804f, 1.0f)},  // Shadow purple
 
       {EditorType::kPalette, "Palettes", ICON_MD_COLOR_LENS,
-       "Edit color palettes and animations", "Ctrl+7", false, true,
+       "Edit color palettes and animations",
+       absl::StrFormat("%s+7", ctrl), false, true,
        ImVec4(0.863f, 0.078f, 0.235f, 1.0f)},  // Heart red
 
       {EditorType::kScreen, "Screens", ICON_MD_TV,
-       "Edit title screen and ending screens", "Ctrl+8", false, true,
+       "Edit title screen and ending screens",
+       absl::StrFormat("%s+8", ctrl), false, true,
        ImVec4(0.4f, 0.8f, 1.0f, 1.0f)},  // Sky blue
 
       {EditorType::kAssembly, "Assembly", ICON_MD_CODE,
-       "Write and edit assembly code", "Ctrl+9", false, false,
+       "Write and edit assembly code",
+       absl::StrFormat("%s+9", ctrl), false, false,
        ImVec4(0.8f, 0.8f, 0.8f, 1.0f)},  // Silver
 
       {EditorType::kHex, "Hex Editor", ICON_MD_DATA_ARRAY,
-       "Direct ROM memory editing and comparison", "Ctrl+0", false, true,
+       "Direct ROM memory editing and comparison",
+       absl::StrFormat("%s+0", ctrl), false, true,
        ImVec4(0.2f, 0.8f, 0.4f, 1.0f)},  // Matrix green
 
       {EditorType::kEmulator, "Emulator", ICON_MD_VIDEOGAME_ASSET,
        "Test and debug your ROM in real-time with live debugging",
-       "Ctrl+Shift+E", false, true,
+       absl::StrFormat("%s+Shift+E", ctrl), false, true,
        ImVec4(0.2f, 0.6f, 1.0f, 1.0f)},  // Emulator blue
 
       {EditorType::kAgent, "AI Agent", ICON_MD_SMART_TOY,
-       "Configure AI agent, collaboration, and automation", "Ctrl+Shift+A",
-       false, false, ImVec4(0.8f, 0.4f, 1.0f, 1.0f)},  // Purple/magenta
-
-      {EditorType::kSettings, "Settings", ICON_MD_SETTINGS,
-       "Configure ROM and project settings", "", false, true,
-       ImVec4(0.6f, 0.6f, 0.6f, 1.0f)},  // Gray
+       "Configure AI agent, collaboration, and automation",
+       absl::StrFormat("%s+Shift+A", ctrl), false, false,
+       ImVec4(0.8f, 0.4f, 1.0f, 1.0f)},  // Purple/magenta
   };
 
   LoadRecentEditors();
@@ -124,7 +135,7 @@ bool EditorSelectionDialog::Show(bool* p_open) {
         ImGui::TableNextColumn();
 
         EditorType prev_selection = selected_editor_;
-        DrawEditorCard(editors_[i], static_cast<int>(i));
+        DrawEditorPanel(editors_[i], static_cast<int>(i));
 
         // Check if an editor was just selected
         if (selected_editor_ != prev_selection) {
@@ -132,6 +143,11 @@ bool EditorSelectionDialog::Show(bool* p_open) {
           MarkRecentlyUsed(selected_editor_);
           if (selection_callback_) {
             selection_callback_(selected_editor_);
+          }
+          // Auto-dismiss after selection
+          is_open_ = false;
+          if (p_open) {
+            *p_open = false;
           }
         }
       }
@@ -145,11 +161,8 @@ bool EditorSelectionDialog::Show(bool* p_open) {
     is_open_ = false;
   }
 
-  if (editor_selected) {
-    is_open_ = false;
-    if (p_open)
-      *p_open = false;
-  }
+  // DO NOT auto-dismiss here. Let the callback/EditorManager handle it.
+  // This allows the dialog to be used as a persistent switcher if desired.
 
   return editor_selected;
 }
@@ -213,14 +226,14 @@ void EditorSelectionDialog::DrawQuickAccessButtons() {
   ImGui::NewLine();
 }
 
-void EditorSelectionDialog::DrawEditorCard(const EditorInfo& info, int index) {
+void EditorSelectionDialog::DrawEditorPanel(const EditorInfo& info, int index) {
   ImGui::PushID(index);
 
   ImVec2 button_size(180, 120);
   ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-  // Card styling with gradients
+  // Panel styling with gradients
   bool is_recent = std::find(recent_editors_.begin(), recent_editors_.end(),
                              info.type) != recent_editors_.end();
 
@@ -297,10 +310,10 @@ void EditorSelectionDialog::DrawEditorCard(const EditorInfo& info, int index) {
   ImGui::PopTextWrapPos();
 
   // Draw shortcut hint if available
-  if (info.shortcut && info.shortcut[0]) {
+  if (!info.shortcut.empty()) {
     ImGui::SetCursorScreenPos(
         ImVec2(cursor_pos.x + 10, cursor_pos.y + button_size.y - 20));
-    ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "%s", info.shortcut);
+    ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "%s", info.shortcut.c_str());
   }
 
   // Hover glow effect
@@ -325,9 +338,9 @@ void EditorSelectionDialog::DrawEditorCard(const EditorInfo& info, int index) {
     ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + 280);
     ImGui::TextWrapped("%s", info.description);
     ImGui::PopTextWrapPos();
-    if (info.shortcut && info.shortcut[0]) {
+    if (!info.shortcut.empty()) {
       ImGui::Spacing();
-      ImGui::TextColored(base_color, ICON_MD_KEYBOARD " %s", info.shortcut);
+      ImGui::TextColored(base_color, ICON_MD_KEYBOARD " %s", info.shortcut.c_str());
     }
     if (is_recent) {
       ImGui::Spacing();

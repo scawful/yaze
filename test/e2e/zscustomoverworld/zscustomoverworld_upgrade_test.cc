@@ -6,8 +6,9 @@
 #include <string>
 #include <vector>
 
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "testing.h"
+#include "util/macro.h"
 
 namespace yaze {
 namespace test {

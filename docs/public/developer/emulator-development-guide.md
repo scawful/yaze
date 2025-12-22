@@ -1248,8 +1248,8 @@ class MusicEditor {
 
 ```bash
 cd /Users/scawful/Code/yaze
-cmake --build build_ai --target yaze -j12
-./build_ai/bin/yaze.app/Contents/MacOS/yaze
+cmake --build build --target yaze -j12
+./build/bin/yaze.app/Contents/MacOS/yaze
 ```
 
 ### Platform-Specific

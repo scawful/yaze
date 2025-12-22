@@ -1,0 +1,706 @@
+/**
+ * z3ed Terminal Styles
+ * Retro terminal styling for the yaze web application
+ * Classic terminal aesthetic with modern usability
+ */
+
+/* ============================================
+   CSS Custom Properties (Theme Variables)
+   ============================================ */
+:root {
+  /* Terminal color scheme - classic green phosphor */
+  --term-bg: #0a0a0a;
+  --term-bg-secondary: #111111;
+  --term-text: #33ff33;
+  --term-text-dim: #1a8c1a;
+  --term-text-bright: #66ff66;
+  --term-prompt: #00ff00;
+  --term-cursor: #33ff33;
+  --term-selection: rgba(51, 255, 51, 0.3);
+  --term-border: #1a1a1a;
+  --term-glow: rgba(51, 255, 51, 0.15);
+
+  /* Accent colors */
+  --term-error: var(--status-error, #ff3333);
+  --term-warning: var(--status-warning, #ffaa00);
+  --term-info: var(--accent-primary, #33aaff);
+  --term-success: var(--status-success, #33ff33);
+
+  /* Window chrome - Match app theme */
+  --term-chrome-bg: var(--bg-header, #1a1a1a);
+  --term-chrome-border: var(--border-light, #333333);
+}
+
+/* ============================================
+   Terminal Container - Main Window
+   ============================================ */
+
+.terminal-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 320px;
+  min-height: 120px;
+  max-height: 70vh;
+  background: var(--term-bg);
+  border-top: 1px solid var(--term-chrome-border);
+  box-shadow:
+    0 -4px 30px rgba(0, 0, 0, 0.8),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  z-index: 9000;
+  display: flex;
+  flex-direction: column;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+  transition: height 0.25s ease-out, transform 0.25s ease-out;
+}
+
+/* CRT scanline effect (subtle) */
+.terminal-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.1) 2px,
+    rgba(0, 0, 0, 0.1) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.3;
+}
+
+/* Screen glow effect */
+.terminal-container::after {
+  content: '';
+  position: absolute;
+  top: 40px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    ellipse at center,
+    var(--term-glow) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.5;
+}
+
+/* Collapsed state */
+.terminal-container.terminal-collapsed {
+  height: 40px;
+  min-height: 40px;
+}
+
+.terminal-container.terminal-collapsed .terminal-body {
+  display: none;
+}
+
+.terminal-container.terminal-collapsed::before,
+.terminal-container.terminal-collapsed::after {
+  display: none;
+}
+
+/* Hidden state */
+.terminal-container.terminal-hidden {
+  transform: translateY(100%);
+  pointer-events: none;
+}
+
+/* ============================================
+   Terminal Header - Window Chrome
+   ============================================ */
+
+.terminal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  height: 40px;
+  background: linear-gradient(180deg, #2a2a2a 0%, var(--term-chrome-bg) 100%);
+  border-bottom: 1px solid var(--term-border);
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.terminal-header:hover {
+  background: linear-gradient(180deg, #333333 0%, #222222 100%);
+}
+
+/* Simple flat control buttons */
+.terminal-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.terminal-ctrl-btn {
+  background: transparent;
+  border: 1px solid var(--term-border);
+  color: var(--term-text-dim);
+  width: 20px;
+  height: 18px;
+  font-size: 9px;
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.1s;
+}
+
+.terminal-ctrl-btn:hover {
+  background: var(--term-bg-secondary);
+  color: var(--term-text);
+  border-color: var(--term-text-dim);
+}
+
+/* Title */
+.terminal-title {
+  flex: 1;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: #888888;
+  letter-spacing: 0.5px;
+}
+
+.terminal-title-icon {
+  margin-right: 6px;
+  color: var(--term-text-dim);
+}
+
+/* Toggle indicator */
+.terminal-toggle {
+  color: #666666;
+  font-size: 10px;
+  transition: transform 0.25s ease;
+  width: 24px;
+  text-align: center;
+}
+
+.terminal-collapsed .terminal-toggle {
+  transform: rotate(180deg);
+}
+
+/* ============================================
+   Terminal Body - Content Area
+   ============================================ */
+
+.terminal-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 2;
+  overflow: hidden;
+}
+
+/* ============================================
+   Terminal Output - Scrollable Log
+   ============================================ */
+
+.terminal-output {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px 20px;
+  background: transparent;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--term-text);
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  text-shadow: 0 0 8px var(--term-glow);
+}
+
+/* Custom scrollbar */
+.terminal-output::-webkit-scrollbar {
+  width: 8px;
+}
+
+.terminal-output::-webkit-scrollbar-track {
+  background: var(--term-bg);
+}
+
+.terminal-output::-webkit-scrollbar-thumb {
+  background: var(--term-text-dim);
+  border-radius: 4px;
+}
+
+.terminal-output::-webkit-scrollbar-thumb:hover {
+  background: var(--term-text);
+}
+
+/* Selection */
+.terminal-output ::selection {
+  background: var(--term-selection);
+  color: var(--term-text-bright);
+}
+
+/* ============================================
+   Output Line Styles
+   ============================================ */
+
+.terminal-line {
+  margin-bottom: 2px;
+  padding: 1px 0;
+}
+
+/* Welcome message */
+.terminal-welcome {
+  color: var(--term-text-dim);
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--term-text-dim);
+}
+
+/* User input echo */
+.terminal-prompt {
+  color: var(--term-prompt);
+}
+
+.terminal-prompt::before {
+  content: '$ ';
+  color: var(--term-text-dim);
+}
+
+/* Command text */
+.terminal-command {
+  color: var(--term-text-bright);
+  font-weight: 500;
+}
+
+/* Response text */
+.terminal-response {
+  color: var(--term-text);
+  padding-left: 0;
+  margin-top: 4px;
+}
+
+/* Error messages */
+.terminal-error {
+  color: var(--term-error);
+  text-shadow: 0 0 8px rgba(255, 51, 51, 0.3);
+}
+
+.terminal-error::before {
+  content: 'error: ';
+  font-weight: 600;
+}
+
+/* Warning messages */
+.terminal-warning {
+  color: var(--term-warning);
+  text-shadow: 0 0 8px rgba(255, 170, 0, 0.3);
+}
+
+.terminal-warning::before {
+  content: 'warning: ';
+  font-weight: 600;
+}
+
+/* Info messages */
+.terminal-info {
+  color: var(--term-info);
+  text-shadow: 0 0 8px rgba(51, 170, 255, 0.3);
+}
+
+.terminal-info::before {
+  content: 'info: ';
+  font-weight: 600;
+  color: var(--term-info);
+}
+
+/* Success messages */
+.terminal-success {
+  color: var(--term-success);
+}
+
+.terminal-success::before {
+  content: '✓ ';
+  font-weight: 600;
+}
+
+/* Timestamp */
+.terminal-timestamp {
+  color: var(--term-text-dim);
+  font-size: 11px;
+  margin-right: 8px;
+}
+
+/* ============================================
+   Terminal Input Line
+   ============================================ */
+
+.terminal-input-line {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  background: var(--term-bg-secondary);
+  border-top: 1px solid var(--term-border);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+}
+
+/* Prompt symbol */
+.terminal-prompt-symbol {
+  color: var(--term-prompt);
+  font-weight: 600;
+  font-size: 14px;
+  margin-right: 10px;
+  flex-shrink: 0;
+  text-shadow: 0 0 10px var(--term-glow);
+}
+
+.terminal-prompt-symbol::before {
+  content: 'z3ed';
+  color: var(--term-text-dim);
+  margin-right: 4px;
+}
+
+.terminal-prompt-symbol::after {
+  content: '$';
+}
+
+/* Input field */
+.terminal-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--term-text);
+  font-family: inherit;
+  font-size: 13px;
+  caret-color: var(--term-cursor);
+  text-shadow: 0 0 8px var(--term-glow);
+}
+
+.terminal-input::placeholder {
+  color: var(--term-text-dim);
+  opacity: 0.5;
+}
+
+/* Blinking cursor effect (when focused) */
+.terminal-input:focus {
+  outline: none;
+}
+
+@keyframes cursor-blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* Submit button for touch */
+.terminal-submit {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 28px;
+  padding: 0;
+  background: var(--term-text-dim);
+  border: none;
+  border-radius: 4px;
+  color: var(--term-bg);
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-left: 10px;
+  transition: background 0.15s ease;
+}
+
+.terminal-submit:hover {
+  background: var(--term-text);
+}
+
+/* ============================================
+   Resize Handle
+   ============================================ */
+
+.terminal-resize-handle {
+  position: absolute;
+  top: 40px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  cursor: ns-resize;
+  background: transparent;
+  z-index: 10;
+  margin-top: -2px;
+}
+
+.terminal-resize-handle:hover {
+  background: var(--term-text-dim);
+  opacity: 0.5;
+}
+
+/* ============================================
+   Loading State
+   ============================================ */
+
+.terminal-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--term-text-dim);
+  padding: 4px 0;
+}
+
+.terminal-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--term-text-dim);
+  border-top-color: var(--term-text);
+  border-radius: 50%;
+  animation: terminal-spin 0.8s linear infinite;
+}
+
+@keyframes terminal-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ASCII loading animation */
+.terminal-loading-ascii {
+  font-family: inherit;
+  color: var(--term-text);
+}
+
+.terminal-loading-ascii::after {
+  content: '|';
+  animation: ascii-spin 0.5s steps(4) infinite;
+}
+
+@keyframes ascii-spin {
+  0% { content: '|'; }
+  25% { content: '/'; }
+  50% { content: '-'; }
+  75% { content: '\\'; }
+}
+
+/* ============================================
+   Autocomplete Suggestions
+   ============================================ */
+
+.terminal-suggestions {
+  position: absolute;
+  bottom: 100%;
+  left: 20px;
+  right: 20px;
+  max-height: 180px;
+  overflow-y: auto;
+  background: var(--term-bg-secondary);
+  border: 1px solid var(--term-text-dim);
+  border-bottom: none;
+  display: none;
+  z-index: 100;
+}
+
+.terminal-suggestions.visible {
+  display: block;
+}
+
+.terminal-suggestion {
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--term-text);
+  border-bottom: 1px solid var(--term-border);
+  transition: background 0.1s ease;
+}
+
+.terminal-suggestion:last-child {
+  border-bottom: none;
+}
+
+.terminal-suggestion:hover,
+.terminal-suggestion.selected {
+  background: var(--term-text-dim);
+  color: var(--term-bg);
+}
+
+.terminal-suggestion-command {
+  font-weight: 600;
+}
+
+.terminal-suggestion-desc {
+  font-size: 11px;
+  color: var(--term-text-dim);
+  margin-left: 12px;
+}
+
+.terminal-suggestion:hover .terminal-suggestion-desc,
+.terminal-suggestion.selected .terminal-suggestion-desc {
+  color: var(--term-bg);
+}
+
+/* ============================================
+   Code Blocks and Links
+   ============================================ */
+
+.terminal-code {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2px 6px;
+  border-radius: 2px;
+  font-size: 12px;
+  color: var(--term-text-bright);
+  border: 1px solid var(--term-border);
+}
+
+.terminal-link {
+  color: var(--term-info);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  cursor: pointer;
+}
+
+.terminal-link:hover {
+  color: var(--term-text-bright);
+  text-decoration-style: solid;
+}
+
+/* ============================================
+   Mobile Responsive
+   ============================================ */
+
+@media (max-width: 768px) {
+  .terminal-container {
+    height: 280px;
+    min-height: 100px;
+    max-height: 50vh;
+  }
+
+  .terminal-header {
+    height: 36px;
+    padding: 0 10px;
+  }
+
+  .terminal-controls {
+    gap: 2px;
+  }
+
+  .terminal-title {
+    font-size: 12px;
+  }
+
+  .terminal-output {
+    padding: 12px 14px;
+    font-size: 12px;
+  }
+
+  .terminal-input-line {
+    padding: 10px 14px;
+  }
+
+  .terminal-input {
+    font-size: 16px; /* Prevent iOS zoom */
+  }
+
+  .terminal-submit {
+    display: flex;
+  }
+
+  .terminal-prompt-symbol::before {
+    content: '';
+  }
+}
+
+@media (max-width: 480px) {
+  .terminal-container {
+    height: 220px;
+    max-height: 45vh;
+  }
+
+  .terminal-container::before,
+  .terminal-container::after {
+    display: none;
+  }
+
+  .terminal-controls {
+    display: none;
+  }
+
+  .terminal-output {
+    padding: 10px 12px;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .terminal-input-line {
+    padding: 8px 12px;
+  }
+}
+
+/* ============================================
+   Accessibility
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .terminal-container,
+  .terminal-spinner,
+  .terminal-loading-ascii::after {
+    animation: none;
+    transition: none;
+  }
+}
+
+@media (prefers-contrast: high) {
+  :root {
+    --term-text: #00ff00;
+    --term-bg: #000000;
+    --term-border: #00ff00;
+  }
+
+  .terminal-container::before,
+  .terminal-container::after {
+    display: none;
+  }
+}
+
+/* ============================================
+   Utility Classes
+   ============================================ */
+
+.terminal-visible {
+  display: flex !important;
+}
+
+.terminal-hidden {
+  display: none !important;
+}
+
+/* Bold text */
+.terminal-bold {
+  font-weight: 700;
+  color: var(--term-text-bright);
+}
+
+/* Dim text */
+.terminal-dim {
+  color: var(--term-text-dim);
+}
+
+/* Path/directory highlighting */
+.terminal-path {
+  color: #66ccff;
+}
+
+/* Number highlighting */
+.terminal-number {
+  color: #ff9966;
+}
+
+/* String highlighting */
+.terminal-string {
+  color: #ffcc66;
+}

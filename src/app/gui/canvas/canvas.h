@@ -7,8 +7,12 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
+#include <string_view>
+#include <vector>
 
+#include "absl/types/span.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/util/bpp_format_manager.h"
 #include "app/gui/canvas/bpp_format_ui.h"
@@ -24,7 +28,8 @@
 #include "app/gui/canvas/canvas_usage_tracker.h"
 #include "app/gui/canvas/canvas_utils.h"
 #include "app/gui/widgets/palette_editor_widget.h"
-#include "app/rom.h"
+#include "rom/rom.h"
+#include "zelda3/game_data.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -35,8 +40,9 @@ namespace yaze {
  */
 namespace gui {
 
-// Forward declaration (full include would cause circular dependency)
+// Forward declarations (full includes would cause circular dependency or bloat)
 class CanvasAutomationAPI;
+struct CanvasExtensions;
 
 using gfx::Bitmap;
 using gfx::BitmapTable;
@@ -44,6 +50,91 @@ using gfx::BitmapTable;
 enum class CanvasType { kTile, kBlock, kMap };
 enum class CanvasMode { kPaint, kSelect };
 enum class CanvasGridSize { k8x8, k16x16, k32x32, k64x64 };
+
+struct CanvasRuntime {
+  ImDrawList* draw_list = nullptr;
+  ImVec2 canvas_p0 = ImVec2(0, 0);
+  ImVec2 canvas_sz = ImVec2(0, 0);
+  ImVec2 scrolling = ImVec2(0, 0);
+  ImVec2 mouse_pos_local = ImVec2(0, 0);
+  bool hovered = false;
+  float grid_step = 16.0f;
+  float scale = 1.0f;
+  ImVec2 content_size = ImVec2(0, 0);
+};
+
+struct CanvasFrameOptions {
+  ImVec2 canvas_size = ImVec2(0, 0);
+  bool draw_context_menu = true;
+  bool draw_grid = true;
+  std::optional<float> grid_step;
+  bool draw_overlay = true;
+  bool render_popups = true;
+  // When true, wraps canvas in ImGui::BeginChild for scrollable container
+  // Default false to match legacy DrawBackground behavior
+  bool use_child_window = false;
+  // Only applies when use_child_window is true
+  bool show_scrollbar = false;
+};
+
+struct BitmapPreviewOptions {
+  ImVec2 canvas_size = ImVec2(0, 0);
+  ImVec2 dest_pos = ImVec2(0, 0);
+  ImVec2 dest_size = ImVec2(0, 0);
+  ImVec2 src_pos = ImVec2(0, 0);
+  ImVec2 src_size = ImVec2(0, 0);
+  float scale = 1.0f;
+  int alpha = 255;
+  bool draw_context_menu = false;
+  bool draw_grid = true;
+  std::optional<float> grid_step;
+  bool draw_overlay = true;
+  bool render_popups = true;
+  bool ensure_texture = false;
+  int selector_tile_size = 0;
+  int selector_tile_size_y = 0;
+};
+
+struct TileHit {
+  int tile_index = -1;
+  ImVec2 tile_origin = ImVec2(0, 0);
+  ImVec2 tile_size = ImVec2(0, 0);
+};
+
+struct BitmapDrawOpts {
+  ImVec2 dest_pos = ImVec2(0, 0);
+  ImVec2 dest_size = ImVec2(0, 0);
+  ImVec2 src_pos = ImVec2(0, 0);
+  ImVec2 src_size = ImVec2(0, 0);
+  float scale = 1.0f;
+  int alpha = 255;
+  bool ensure_texture = true;
+};
+
+struct SelectorPanelOpts {
+  ImVec2 canvas_size = ImVec2(0, 0);
+  float grid_step = 16.0f;
+  bool show_grid = true;
+  bool show_overlay = true;
+  bool render_popups = true;
+  bool ensure_texture = true;
+  int tile_selector_size = 0;
+  int tile_selector_size_y = 0;
+};
+
+struct PreviewPanelOpts {
+  ImVec2 canvas_size = ImVec2(0, 0);
+  ImVec2 dest_pos = ImVec2(0, 0);
+  ImVec2 dest_size = ImVec2(0, 0);
+  float grid_step = 0.0f;  // 0 = no grid
+  bool render_popups = false;
+  bool ensure_texture = true;
+};
+
+struct ZoomToFitResult {
+  float scale;
+  ImVec2 scroll;
+};
 
 /**
  * @class Canvas
@@ -62,21 +153,37 @@ class Canvas {
   Canvas();
   ~Canvas();
 
-  // Legacy constructors (renderer is optional for backward compatibility)
+  /**
+   * @brief Initialize canvas with configuration (post-construction)
+   * Preferred over constructor parameters for new code.
+   */
+  void Init(const CanvasConfig& config);
+  void Init(const std::string& id, ImVec2 canvas_size = ImVec2(0, 0));
+
+  // COMPAT: Legacy constructors - prefer default ctor + Init() for new code
+  [[deprecated("Use default ctor + Init(id, size) instead")]]
   explicit Canvas(const std::string& id);
+  [[deprecated("Use default ctor + Init(id, size) instead")]]
   explicit Canvas(const std::string& id, ImVec2 canvas_size);
+  [[deprecated("Use default ctor + Init(config) instead")]]
   explicit Canvas(const std::string& id, ImVec2 canvas_size,
                   CanvasGridSize grid_size);
+  [[deprecated("Use default ctor + Init(config) instead")]]
   explicit Canvas(const std::string& id, ImVec2 canvas_size,
                   CanvasGridSize grid_size, float global_scale);
 
-  // New constructors with renderer support (for migration to IRenderer pattern)
+  // COMPAT: Legacy constructors with renderer - prefer default ctor + Init()
+  [[deprecated("Use default ctor + SetRenderer() + Init() instead")]]
   explicit Canvas(gfx::IRenderer* renderer);
+  [[deprecated("Use default ctor + SetRenderer() + Init(id, size) instead")]]
   explicit Canvas(gfx::IRenderer* renderer, const std::string& id);
+  [[deprecated("Use default ctor + SetRenderer() + Init(id, size) instead")]]
   explicit Canvas(gfx::IRenderer* renderer, const std::string& id,
                   ImVec2 canvas_size);
+  [[deprecated("Use default ctor + SetRenderer() + Init(config) instead")]]
   explicit Canvas(gfx::IRenderer* renderer, const std::string& id,
                   ImVec2 canvas_size, CanvasGridSize grid_size);
+  [[deprecated("Use default ctor + SetRenderer() + Init(config) instead")]]
   explicit Canvas(gfx::IRenderer* renderer, const std::string& id,
                   ImVec2 canvas_size, CanvasGridSize grid_size,
                   float global_scale);
@@ -85,6 +192,7 @@ class Canvas {
   void SetRenderer(gfx::IRenderer* renderer) { renderer_ = renderer; }
   gfx::IRenderer* renderer() const { return renderer_; }
 
+  // COMPAT: prefer CanvasFrameOptions.grid_step for per-frame grid control
   void SetGridSize(CanvasGridSize grid_size) {
     switch (grid_size) {
       case CanvasGridSize::k8x8:
@@ -100,9 +208,16 @@ class Canvas {
         config_.grid_step = 64.0f;
         break;
     }
+    custom_step_ = config_.grid_step;
   }
 
-  // Legacy compatibility
+  // COMPAT: prefer CanvasFrameOptions.grid_step for per-frame grid control
+  void SetCustomGridStep(float step) {
+    config_.grid_step = step;
+    custom_step_ = step;
+  }
+
+  // COMPAT: prefer CanvasFrameOptions.grid_step for per-frame grid control
   void SetCanvasGridSize(CanvasGridSize grid_size) { SetGridSize(grid_size); }
 
   CanvasGridSize grid_size() const {
@@ -145,6 +260,7 @@ class Canvas {
    * ```
    */
   void Begin(ImVec2 canvas_size = ImVec2(0, 0));
+  void Begin(const CanvasFrameOptions& options);
 
   /**
    * @brief End canvas rendering (ImGui-style)
@@ -153,6 +269,7 @@ class Canvas {
    * Automatically draws grid and overlay if enabled.
    */
   void End();
+  void End(const CanvasFrameOptions& options);
 
   // ==================== Legacy Interface (Backward Compatible)
   // ====================
@@ -168,13 +285,7 @@ class Canvas {
   // Phase 4: Use unified menu item definition from canvas_menu.h
   using CanvasMenuItem = gui::CanvasMenuItem;
 
-  // BPP format UI components
-  std::unique_ptr<gui::BppFormatUI> bpp_format_ui_;
-  std::unique_ptr<gui::BppConversionDialog> bpp_conversion_dialog_;
-  std::unique_ptr<gui::BppComparisonTool> bpp_comparison_tool_;
-
-  // Enhanced canvas components
-  std::unique_ptr<CanvasModals> modals_;
+  // Enhanced canvas components (non-optional, used every frame)
   std::unique_ptr<CanvasContextMenu> context_menu_;
   std::shared_ptr<CanvasUsageTracker> usage_tracker_;
   std::shared_ptr<CanvasPerformanceIntegration> performance_integration_;
@@ -187,6 +298,9 @@ class Canvas {
   CanvasMenuDefinition& editor_menu() { return editor_menu_; }
   const CanvasMenuDefinition& editor_menu() const { return editor_menu_; }
   void SetContextMenuEnabled(bool enabled) { context_menu_enabled_ = enabled; }
+  void SetShowBuiltinContextMenu(bool show) {
+    config_.show_builtin_context_menu = show;
+  }
 
   // Persistent popup management for context menu actions
   void OpenPersistentPopup(const std::string& popup_id,
@@ -261,6 +375,15 @@ class Canvas {
   bool BeginTableCanvas(const std::string& label = "");
   void EndTableCanvas();
 
+  /**
+   * @brief Begin canvas in table cell with frame options (modern API)
+   * Returns CanvasRuntime for stateless helper usage.
+   * Handles child sizing, scrollbars, and table integration.
+   */
+  CanvasRuntime BeginInTable(const std::string& label,
+                             const CanvasFrameOptions& options);
+  void EndInTable(CanvasRuntime& runtime, const CanvasFrameOptions& options);
+
   // Improved interaction detection
   bool HasValidSelection() const;
   bool WasClicked(ImGuiMouseButton button = ImGuiMouseButton_Left) const;
@@ -289,10 +412,18 @@ class Canvas {
   int GetTileIdFromMousePos() {
     float x = mouse_pos_in_canvas_.x;
     float y = mouse_pos_in_canvas_.y;
-    int num_columns = (canvas_sz_.x / global_scale_) / custom_step_;
-    int num_rows = (canvas_sz_.y / global_scale_) / custom_step_;
-    int tile_id = (x / custom_step_) + (y / custom_step_) * num_columns;
-    tile_id = tile_id / global_scale_;
+    float step = custom_step_ != 0.0f ? custom_step_ : config_.grid_step;
+    float scale = config_.global_scale != 0.0f ? config_.global_scale : 1.0f;
+    if (step <= 0.0f) {
+      return -1;
+    }
+    int num_columns = (canvas_sz_.x / scale) / step;
+    int num_rows = (canvas_sz_.y / scale) / step;
+    if (num_columns <= 0 || num_rows <= 0) {
+      return -1;
+    }
+    int tile_id =
+        static_cast<int>((x / step) + (y / step) * static_cast<float>(num_columns));
     if (tile_id >= num_columns * num_rows) {
       tile_id = -1;  // Invalid tile ID
     }
@@ -310,11 +441,19 @@ class Canvas {
   auto push_back(ImVec2 pos) { points_.push_back(pos); }
   auto draw_list() const { return draw_list_; }
   auto zero_point() const { return canvas_p0_; }
+  ImVec2 ToCanvasPos(ImVec2 local) const;
   auto scrolling() const { return scrolling_; }
-  void set_scrolling(ImVec2 scroll) { scrolling_ = scroll; }
+  void set_scrolling(ImVec2 scroll) {
+    scrolling_ = scroll;
+    config_.scrolling = scroll;  // Sync to config for persistence
+  }
   auto drawn_tile_position() const { return drawn_tile_pos_; }
   auto canvas_size() const { return canvas_sz_; }
-  void set_global_scale(float scale) { global_scale_ = scale; }
+  // COMPAT: prefer CanvasRuntime.scale for per-frame scale control
+  void set_global_scale(float scale) {
+    global_scale_ = scale;
+    config_.global_scale = scale;
+  }
   void set_draggable(bool draggable) { draggable_ = draggable; }
 
   // Modern accessors using modular structure
@@ -326,11 +465,13 @@ class Canvas {
   void SetSelectedTilePos(ImVec2 pos) { selected_tile_pos_ = pos; }
 
   // Configuration accessors
+  // COMPAT: prefer CanvasFrameOptions.canvas_size for per-frame size control
   void SetCanvasSize(ImVec2 canvas_size) {
     config_.canvas_size = canvas_size;
     config_.custom_canvas_size = true;
   }
   float GetGlobalScale() const { return config_.global_scale; }
+  // COMPAT: prefer CanvasRuntime.scale for per-frame scale control
   void SetGlobalScale(float scale) { config_.global_scale = scale; }
   bool* GetCustomLabelsEnabled() { return &config_.enable_custom_labels; }
   float GetGridStep() const { return config_.grid_step; }
@@ -381,6 +522,8 @@ class Canvas {
                        int tile_size, float scale = 1.0f,
                        int local_map_size = 0x200,
                        ImVec2 total_map_size = ImVec2(0x1000, 0x1000));
+  void DrawBitmapPreview(Bitmap& bitmap,
+                         const BitmapPreviewOptions& options);
   bool DrawTilemapPainter(gfx::Tilemap& tilemap, int current_tile);
   void DrawSelectRect(int current_map, int tile_size = 0x10,
                       float scale = 1.0f);
@@ -416,21 +559,45 @@ class Canvas {
 
   void set_rom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }
+  void SetGameData(zelda3::GameData* game_data);
+  zelda3::GameData* game_data() const { return game_data_; }
+
+  void AddImageAt(ImTextureID texture, ImVec2 local_top_left, ImVec2 size);
+  void AddRectFilledAt(ImVec2 local_top_left, ImVec2 size, uint32_t color);
+  void AddTextAt(ImVec2 local_pos, const std::string& text, uint32_t color);
 
  private:
   void DrawContextMenuItem(const gui::CanvasMenuItem& item);
+
+  // Helper to build CanvasRuntime from current state (for delegation to
+  // stateless helpers)
+  CanvasRuntime BuildCurrentRuntime() const {
+    CanvasRuntime rt;
+    rt.draw_list = draw_list_;
+    rt.canvas_p0 = canvas_p0_;
+    rt.canvas_sz = canvas_sz_;
+    rt.scrolling = scrolling_;
+    rt.mouse_pos_local = mouse_pos_in_canvas_;
+    rt.hovered = is_hovered_;
+    rt.grid_step = custom_step_;
+    rt.scale = global_scale_;
+    rt.content_size = config_.content_size;
+    return rt;
+  }
 
   // Modular configuration and state
   gfx::IRenderer* renderer_ = nullptr;
   CanvasConfig config_;
   CanvasSelection selection_;
-  std::unique_ptr<PaletteEditorWidget> palette_editor_;
+
+  // Phase 4: Optional extensions (lazy-initialized on first use)
+  // Contains: bpp_format_ui, bpp_conversion_dialog, bpp_comparison_tool,
+  //           modals, palette_editor, automation_api
+  std::unique_ptr<CanvasExtensions> extensions_;
+  CanvasExtensions& EnsureExtensions();
 
   // Phase 1: Consolidated state (gradually replacing scattered members)
   CanvasState state_;
-
-  // Automation API (lazy-initialized on first access)
-  std::unique_ptr<CanvasAutomationAPI> automation_api_;
 
   // Core canvas state
   bool is_hovered_ = false;
@@ -453,6 +620,7 @@ class Canvas {
   // Core canvas state
   Bitmap* bitmap_ = nullptr;
   Rom* rom_ = nullptr;
+  zelda3::GameData* game_data_ = nullptr;
   ImDrawList* draw_list_ = nullptr;
 
   // Canvas geometry and interaction state
@@ -503,6 +671,86 @@ void BitmapCanvasPipeline(gui::Canvas& canvas, gfx::Bitmap& bitmap, int width,
 void TableCanvasPipeline(gui::Canvas& canvas, gfx::Bitmap& bitmap,
                          const std::string& label = "",
                          bool auto_resize = true);
+
+// ---------- Optional helper APIs ----------
+CanvasRuntime BeginCanvas(gui::Canvas& canvas,
+                          const CanvasFrameOptions& options);
+void EndCanvas(gui::Canvas& canvas, CanvasRuntime& runtime,
+               const CanvasFrameOptions& options);
+
+// New Stateless Drawing Helpers (CanvasRuntime-based)
+void DrawBitmap(const CanvasRuntime& rt, gfx::Bitmap& bitmap, int border_offset = 2, float scale = 1.0f);
+void DrawBitmap(const CanvasRuntime& rt, gfx::Bitmap& bitmap, int x_offset, int y_offset, float scale = 1.0f, int alpha = 255);
+void DrawBitmap(const CanvasRuntime& rt, gfx::Bitmap& bitmap, ImVec2 dest_pos, ImVec2 dest_size, ImVec2 src_pos, ImVec2 src_size);
+void DrawBitmap(const CanvasRuntime& rt, gfx::Bitmap& bitmap, const BitmapDrawOpts& opts);
+
+// New Stateless Preview Helpers
+void DrawBitmapPreview(const CanvasRuntime& rt, gfx::Bitmap& bitmap, const BitmapPreviewOptions& options);
+bool RenderPreviewPanel(const CanvasRuntime& rt, gfx::Bitmap& bmp, const PreviewPanelOpts& opts);
+
+bool DrawTilemapPainter(const CanvasRuntime& rt, gfx::Tilemap& tilemap, int current_tile, ImVec2* out_drawn_pos);
+bool DrawTileSelector(const CanvasRuntime& rt, int size, int size_y, ImVec2* out_selected_pos);
+void DrawSelectRect(const CanvasRuntime& rt, int current_map, int tile_size, float scale, CanvasSelection& selection);
+
+TileHit TileIndexAt(const ImVec2& local_pos, float grid_step, float scale,
+                    const ImVec2& canvas_px);
+
+void DrawTileOutline(const CanvasRuntime& rt, const ImVec2& tile_pos_px,
+                     const ImVec2& tile_size_px, ImU32 color);
+void DrawTileHighlight(const CanvasRuntime& rt, const ImVec2& tile_pos_px,
+                       const ImVec2& tile_size_px, ImU32 color);
+void DrawTileLabel(const CanvasRuntime& rt, const ImVec2& tile_pos_px,
+                   const char* text, ImU32 color);
+
+// Stateless DrawRect/DrawText helpers (CanvasRuntime-based)
+void DrawRect(const CanvasRuntime& rt, int x, int y, int w, int h,
+              ImVec4 color);
+void DrawText(const CanvasRuntime& rt, const std::string& text, int x, int y);
+void DrawOutline(const CanvasRuntime& rt, int x, int y, int w, int h,
+                 ImU32 color = IM_COL32(255, 255, 255, 200));
+
+bool DrawBitmap(gui::Canvas& canvas, CanvasRuntime& rt, gfx::Bitmap& bmp,
+                const BitmapDrawOpts& opts);
+
+bool DrawTilemapRegion(gui::Canvas& canvas, CanvasRuntime& rt,
+                       gfx::Tilemap& tilemap, absl::Span<const int> tile_ids,
+                       int tile_size, float scale, ImVec2 clamp_px);
+
+bool RenderSelectorPanel(gui::Canvas& canvas, gfx::Bitmap& bmp,
+                         const SelectorPanelOpts& opts, TileHit* out_hit);
+
+bool RenderPreviewPanel(gui::Canvas& canvas, gfx::Bitmap& bmp,
+                        const PreviewPanelOpts& opts);
+
+ZoomToFitResult ComputeZoomToFit(ImVec2 content_px, ImVec2 canvas_px,
+                                 float padding_px);
+ImVec2 ClampScroll(ImVec2 scroll, ImVec2 content_px, ImVec2 canvas_px);
+
+struct CanvasMenuAction {
+  std::string id;
+  std::string label;
+  std::string shortcut;
+  std::function<bool()> enabled;
+  std::function<void()> on_click;
+};
+
+class CanvasMenuActionHost {
+ public:
+  void Clear() { items_.clear(); }
+  void AddItem(CanvasMenuAction item) { items_.push_back(std::move(item)); }
+  absl::Span<const CanvasMenuAction> items() const { return items_; }
+  const std::string& popup_id() const { return popup_id_; }
+  void set_popup_id(std::string id) { popup_id_ = std::move(id); }
+
+ private:
+  std::vector<CanvasMenuAction> items_;
+  std::string popup_id_ = "CanvasMenuHost";
+};
+
+void RegisterDefaultCanvasMenu(CanvasMenuActionHost& host,
+                               const CanvasRuntime& rt, CanvasConfig& cfg);
+void RenderContextMenu(CanvasMenuActionHost& host, const CanvasRuntime& rt,
+                       CanvasConfig& cfg);
 
 /**
  * @class ScopedCanvas
@@ -605,6 +853,40 @@ class ScopedCanvas {
  private:
   Canvas* canvas_;
   bool owned_;
+  bool active_;
+};
+
+/**
+ * @class CanvasFrame
+ * @brief Lightweight RAII guard for existing Canvas instances.
+ *
+ * Usage:
+ * ```cpp
+ * CanvasFrameOptions opts;
+ * opts.grid_step = 32.0f;
+ * gui::CanvasFrame frame(canvas, opts);
+ * canvas.DrawBitmap(bitmap, 2, 2, 1.0f);
+ * // Grid/overlay/persistent popups auto-render on destruction.
+ * ```
+ */
+class CanvasFrame {
+ public:
+  CanvasFrame(Canvas& canvas,
+              CanvasFrameOptions options = CanvasFrameOptions());
+  ~CanvasFrame();
+
+  CanvasFrame(const CanvasFrame&) = delete;
+  CanvasFrame& operator=(const CanvasFrame&) = delete;
+
+  CanvasFrame(CanvasFrame&& other) noexcept;
+  CanvasFrame& operator=(CanvasFrame&& other) noexcept;
+
+  Canvas* operator->() { return canvas_; }
+  const Canvas* operator->() const { return canvas_; }
+
+ private:
+  Canvas* canvas_;
+  CanvasFrameOptions options_;
   bool active_;
 };
 

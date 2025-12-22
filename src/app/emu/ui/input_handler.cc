@@ -8,7 +8,9 @@ namespace yaze {
 namespace emu {
 namespace ui {
 
-void RenderKeyboardConfig(input::InputManager* manager) {
+void RenderKeyboardConfig(
+    input::InputManager* manager,
+    const std::function<void(const input::InputConfig&)>& on_config_changed) {
   if (!manager || !manager->backend())
     return;
 
@@ -100,11 +102,26 @@ void RenderKeyboardConfig(input::InputManager* manager) {
         "input");
   }
 
+  // Input capture behavior
+  if (ImGui::Checkbox("Allow input while typing in UI",
+                      &config.ignore_imgui_text_input)) {
+    // nothing else here; tooltip below
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "When enabled, game input is not blocked by ImGui text fields.\n"
+        "Useful if emulator input is blocked while typing in other panels.");
+  }
+
   ImGui::Spacing();
 
   // Apply button
   if (ImGui::Button("Apply Changes", ImVec2(-1, 30))) {
     manager->SetConfig(config);
+    config = manager->GetConfig();
+    if (on_config_changed) {
+      on_config_changed(config);
+    }
   }
 
   ImGui::Spacing();
@@ -112,7 +129,12 @@ void RenderKeyboardConfig(input::InputManager* manager) {
   // Defaults
   if (ImGui::Button("Reset to Defaults", ImVec2(-1, 30))) {
     config = input::InputConfig();  // Reset to defaults
+    input::ApplyDefaultKeyBindings(config);
     manager->SetConfig(config);
+    config = manager->GetConfig();
+    if (on_config_changed) {
+      on_config_changed(config);
+    }
   }
 
   ImGui::Spacing();

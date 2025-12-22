@@ -32,10 +32,11 @@
 #include <algorithm>
 
 #include "app/controller.h"
+#include "app/application.h"
 #include "app/platform/app_delegate.h"
 #include "app/platform/font_loader.h"
 #include "app/platform/window.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 
 #include "app/platform/sdl_compat.h"
 
@@ -100,11 +101,16 @@
   // Enable native IME
   SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");
 
-  // Create and initialize controller with modern API
-  _controller = new yaze::Controller();
-  auto init_status = _controller->OnEntry(rom_filename);
-  if (!init_status.ok()) {
-    NSLog(@"Failed to initialize controller: %s", init_status.message().data());
+  // Initialize Application singleton
+  yaze::AppConfig config;
+  config.rom_file = rom_filename;
+  yaze::Application::Instance().Initialize(config);
+  
+  // Keep local reference to controller for property compatibility
+  self.controller = yaze::Application::Instance().GetController();
+
+  if (!self.controller) {
+    NSLog(@"Failed to initialize application controller");
     abort();
   }
 
@@ -146,12 +152,14 @@
 }
 
 - (void)drawInMTKView:(MTKView *)view {
-  if (!_controller->IsActive()) return;
+  auto& app = yaze::Application::Instance();
+  if (!app.IsReady() || !app.GetController()->IsActive()) return;
 
-  // Handle SDL input events
-  _controller->OnInput();
-
-  // Update ImGui display size for iOS
+  // Update ImGui display size for iOS before Tick
+  // Note: Tick() calls OnInput() then OnLoad() (NewFrame) then DoRender()
+  // We want to update IO before NewFrame.
+  // OnInput handles SDL events.
+  
   ImGuiIO &io = ImGui::GetIO();
   io.DisplaySize.x = view.bounds.size.width;
   io.DisplaySize.y = view.bounds.size.height;
@@ -159,14 +167,7 @@
   CGFloat framebufferScale = view.window.screen.scale ?: UIScreen.mainScreen.scale;
   io.DisplayFramebufferScale = ImVec2(framebufferScale, framebufferScale);
 
-  // Process frame and render using Controller's API
-  auto load_status = _controller->OnLoad();
-  if (!load_status.ok()) {
-    NSLog(@"Controller OnLoad failed: %s", load_status.message().data());
-    return;
-  }
-  
-  _controller->DoRender();
+  app.Tick();
 }
 
 - (void)mtkView:(MTKView *)view drawableSizeWillChange:(CGSize)size {
@@ -308,13 +309,7 @@
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application {
-  // Controller OnExit handles cleanup
-  AppViewController *viewController = (AppViewController *)self.window.rootViewController;
-  if (viewController.controller) {
-    viewController.controller->OnExit();
-    delete viewController.controller;
-    viewController.controller = nullptr;
-  }
+  yaze::Application::Instance().Shutdown();
 }
 
 - (void)PresentDocumentPickerWithCompletionHandler:
@@ -338,41 +333,31 @@
   if (self.completionHandler) {
     if (selectedFileURL) {
       self.completionHandler(selectedFileURL.path);
-      std::string fileName = std::string([selectedFileURL.path UTF8String]);
-
-      // Extract the data from the file
-      [selectedFileURL startAccessingSecurityScopedResource];
-
-      auto data = [NSData dataWithContentsOfURL:selectedFileURL];
-      uint8_t *bytes = (uint8_t *)[data bytes];
-      size_t size = [data length];
-
-      std::vector<uint8_t> rom_data;
-      rom_data.resize(size);
-      std::copy(bytes, bytes + size, rom_data.begin());
-
-      // Load ROM using modern API
-      // Get the AppViewController which has the controller
-      AppViewController *viewController = (AppViewController *)self.window.rootViewController;
-      if (viewController && viewController.controller) {
-        // Access the controller's EditorManager to get the current ROM
-        auto* current_rom = viewController.controller->GetCurrentRom();
-        if (current_rom) {
-          auto load_status = current_rom->LoadFromData(rom_data);
-          if (load_status.ok()) {
-            current_rom->set_filename(fileName);
-            NSLog(@"ROM loaded successfully from %s", fileName.c_str());
-          } else {
-            NSLog(@"Failed to load ROM: %s", load_status.message().data());
-          }
-        } else {
-          NSLog(@"No ROM instance available");
-        }
-      } else {
-        NSLog(@"Controller not available");
-      }
       
+      // Create a temporary file path
+      NSString *tempDir = NSTemporaryDirectory();
+      NSString *fileName = [selectedFileURL lastPathComponent];
+      NSString *tempPath = [tempDir stringByAppendingPathComponent:fileName];
+      NSURL *tempURL = [NSURL fileURLWithPath:tempPath];
+      
+      // Copy the file to the temporary location
+      NSError *error = nil;
+      [[NSFileManager defaultManager] removeItemAtURL:tempURL error:nil]; // Remove if exists
+      
+      [selectedFileURL startAccessingSecurityScopedResource];
+      BOOL success = [[NSFileManager defaultManager] copyItemAtURL:selectedFileURL toURL:tempURL error:&error];
       [selectedFileURL stopAccessingSecurityScopedResource];
+      
+      if (success) {
+        std::string cppPath = std::string([tempPath UTF8String]);
+        NSLog(@"ROM copied to temporary path: %s", cppPath.c_str());
+        
+        // Load ROM using modern API via Application singleton
+        // This triggers the full editor loading pipeline (sessions, startup actions, etc.)
+        yaze::Application::Instance().LoadRom(cppPath);
+      } else {
+        NSLog(@"Failed to copy ROM to temp directory: %@", error);
+      }
     } else {
       self.completionHandler(@"");
     }

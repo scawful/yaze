@@ -221,7 +221,7 @@ The HTTP API can be tested in CI via workflow_dispatch:
 gh workflow run ci.yml -f enable_http_api_tests=true
 ```
 
-See `docs/internal/agents/gh-actions-remote.md` for details.
+See `docs/internal/agents/archive/utility-tools/gh-actions-remote.md` for details.
 
 ## Future Endpoints (Planned)
 

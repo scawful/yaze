@@ -1,215 +1,354 @@
-# Gemini Workflow Instructions for the `yaze` Project
+# GEMINI.md - YAZE Build Instructions
 
-This document provides a summary of the `yaze` project to guide an AI assistant in understanding the codebase, architecture, and development workflows.
+_Extends: ~/AGENTS.md, ~/GEMINI.md_
 
-> **Coordination Requirement**  
-> Gemini-based agents must read and update the shared coordination board
-> (`docs/internal/agents/coordination-board.md`) before making changes. Follow the protocol in
-> `AGENTS.md`, use the appropriate persona ID (e.g., `GEMINI_AUTOM`), and respond to any pending
-> entries targeting you.
+Build and test instructions for YAZE project. Follow commands exactly.
 
-## User Profile
+## Critical Rules
 
-- **User**: A Google programmer working on ROM hacking projects on macOS.
-- **IDE**: Visual Studio Code with the CMake Tools extension.
-- **Build System**: CMake with a preference for the "Unix Makefiles" generator.
-- **Workflow**: Uses CMake presets and a separate `build_test` directory for test builds.
-- **AI Assistant Build Policy**: When the AI assistant needs to build the project, it must use a dedicated build directory (e.g., `build_ai` or `build_agent`) to avoid interrupting the user's active builds. Never use `build` or `build_test` directories.
+1. **Use `build_ai/` directory** - Never use `build/` (reserved for user)
+2. **Use `*-ai` presets** - Never use `*-dbg` presets
+3. **Load persona** - Check `.claude/agents/<agent-id>.md` for system prompt
+4. **Use helper script:**
+   ```bash
+   ./scripts/agent_build.sh [target]
+   ```
+   *Example:* `./scripts/agent_build.sh yaze` or `./scripts/agent_build.sh yaze_test`
 
-## Project Overview
+---
 
-- **`yaze`**: A cross-platform GUI editor for "The Legend of Zelda: A Link to the Past" (ALTTP) ROMs. It is designed for compatibility with ZScream projects.
-- **`z3ed`**: A powerful command-line interface (CLI) for `yaze`. It features a resource-oriented design (`z3ed <resource> <action>`) and serves as the primary API for an AI-driven conversational agent.
-- **`yaze.org`**: The file `docs/yaze.org` is an Emacs Org-Mode file used as a development tracker for active issues and features.
+## Quick Reference: Build Times
 
-## Build Instructions
+**First Build (Cold Start)**:
+- **Fast Mode (Recommended)**: 2-4 minutes (uses system gRPC/sccache)
+- Standard Mode: 10-20 minutes (compiles gRPC from source)
 
-- Use the presets in `CMakePresets.json` (debug, AI, release, dev, CI, etc.). Always run the verifier
-  script before the first build on a machine.
-- Gemini agents must configure/build in dedicated directories (`build_ai`, `build_agent`, …) to avoid
-  touching the user’s `build` or `build_test` folders.
-- Consult [`docs/public/build/quick-reference.md`](docs/public/build/quick-reference.md) for the
-  canonical command list, preset overview, and testing guidance.
+**Incremental Builds (After Changes)**:
+- Typically 10-60 seconds depending on what changed
+- **sccache/ccache**: Automatically detected and used if installed (highly recommended)
+
+## Platform-Specific Build Commands
+
+### macOS
+
+```bash
+# Step 1: Configure (First time only, or when CMakeLists.txt changes)
+cmake --preset mac-ai
+
+# Step 2: Build the entire project
+cmake --build build_ai --preset mac-ai
+
+# Step 3: Build specific targets (faster for incremental work)
+cmake --build build_ai --target yaze                  # GUI application only
+cmake --build build_ai --target yaze_test            # Test suite only
+cmake --build build_ai --target ylib                 # Core library only
+```
+
+**Available macOS Presets**:
+- `mac-ai` - **Preferred for Agents**. Configured to use system gRPC/protobuf if available (brew installed) and defaults to `build_ai`.
+- `mac-dbg` - User's debug build (DO NOT USE).
+
+### Linux
+
+```bash
+# Step 1: Configure
+cmake --preset lin-ai
+
+# Step 2: Build
+cmake --build build_ai --preset lin-ai
+```
+
+**Available Linux Presets**:
+- `lin-ai` - **Preferred for Agents**. Uses `build_ai` and system libraries.
+
+### Windows
+
+```bash
+# Step 1: Configure (PowerShell or CMD)
+cmake --preset win-ai
+
+# Step 2: Build
+cmake --build build_ai --preset win-ai
+```
+
+**Available Windows Presets**:
+- `win-ai` - **Preferred for Agents**. Uses `build_ai`.
 
 ## Testing
 
-- **Framework**: GoogleTest.
-- **Test Categories**:
-    - `STABLE`: Fast, reliable, run in CI.
-    - `ROM_DEPENDENT`: Require a ROM file, skipped in CI unless a ROM is provided.
-    - `EXPERIMENTAL`: May be unstable, allowed to fail.
-- **Running Tests**:
-  ```bash
-  # Run stable tests using ctest and presets
-  ctest --preset dev
+### Running All Tests
 
-  # Run comprehensive overworld tests (requires a ROM)
-  ./scripts/run_overworld_tests.sh /path/to/zelda3.sfc
-  ```
-- **E2E GUI Testing**: The project includes a sophisticated end-to-end testing framework using `ImGuiTestEngine`, accessible via a gRPC service. The `z3ed agent test` command can execute natural language prompts as GUI tests.
+```bash
+# Build tests first
+cmake --build build_ai --target yaze_test
 
-## Core Architecture & Features
+# Run all tests
+./build_ai/bin/yaze_test
+```
 
-- **Overworld Editor**: Full support for vanilla and `ZSCustomOverworld` v2/v3 ROMs, ensuring compatibility with ZScream projects.
-- **Dungeon Editor**: A modular, component-based system for editing rooms, objects, sprites, and more. See `docs/E2-dungeon-editor-guide.md` and `docs/E3-dungeon-editor-design.md`.
-- **Graphics System**: A performant system featuring:
-    - `Arena`-based resource management.
-    - `Bitmap` class for SNES-specific graphics formats.
-    - `Tilemap` with an LRU cache.
-    - `AtlasRenderer` for batched drawing.
-- **Asar Integration**: Built-in support for the Asar 65816 assembler to apply assembly patches to the ROM.
+### Running Specific Test Categories
 
-## Editor System Architecture
+```bash
+# Unit tests only (fast, ~5-10 seconds)
+./build/bin/yaze_test --unit
 
-The editor system is designed around a central `EditorManager` that orchestrates multiple editors and UI components.
+# Integration tests (requires ROM file)
+./build/bin/yaze_test --integration --rom-path /path/to/zelda3.sfc
 
-- **`EditorManager`**: The top-level class that manages multiple `RomSession`s, the main menu, and all editor windows. It handles the application's main update loop.
-- **`RomSession`**: Each session encapsulates a `Rom` instance and a corresponding `EditorSet`, allowing multiple ROMs to be open simultaneously.
-- **`EditorSet`**: A container for all individual editor instances (Overworld, Dungeon, etc.) associated with a single ROM session.
-- **`Editor` (Base Class)**: A virtual base class (`src/app/editor/editor.h`) that defines a common interface for all editors, including methods like `Initialize`, `Load`, `Update`, and `Save`.
+# End-to-end GUI tests
+./build/bin/yaze_test --e2e --show-gui
 
-### Component-Based Editors
-The project is moving towards a component-based architecture to improve modularity and maintainability. This is most evident in the Dungeon Editor.
+# Run specific test by name pattern
+./build/bin/yaze_test "*Asar*"          # All tests with "Asar" in name
+./build/bin/yaze_test "*Dungeon*"       # All dungeon-related tests
+```
 
-- **Dungeon Editor**: Refactored into a collection of single-responsibility components orchestrated by `DungeonEditor`:
-    - `DungeonRoomSelector`: Manages the UI for selecting rooms and entrances.
-    - `DungeonCanvasViewer`: Handles the rendering of the dungeon room on the main canvas.
-    - `DungeonObjectSelector`: Provides the UI for browsing and selecting objects, sprites, and other editable elements.
-    - `DungeonObjectInteraction`: Manages mouse input, selection, and drag-and-drop on the canvas.
-    - `DungeonToolset`: The main toolbar for the editor.
-    - `DungeonRenderer`: A dedicated rendering engine for dungeon objects, featuring a cache for performance.
-    - `DungeonRoomLoader`: Handles the logic for loading all room data from the ROM, now optimized with parallel processing.
-    - `DungeonUsageTracker`: Analyzes and displays statistics on resource usage (blocksets, palettes, etc.).
+### Test Output Modes
 
-- **Overworld Editor**: Also employs a component-based approach with helpers like `OverworldEditorManager` for ZSCustomOverworld v3 features and `MapPropertiesSystem` for UI panels.
+```bash
+# Minimal output (default)
+./build/bin/yaze_test
 
-### Specialized Editors
-- **Code Editors**: `AssemblyEditor` (a full-featured text editor) and `MemoryEditor` (a hex viewer).
-- **Graphics Editors**: `GraphicsEditor`, `PaletteEditor`, `GfxGroupEditor`, `ScreenEditor`, and the highly detailed `Tile16Editor` provide tools for all visual assets.
-- **Content Editors**: `SpriteEditor`, `MessageEditor`, and `MusicEditor` manage specific game content.
+# Verbose output (shows all test names)
+./build/bin/yaze_test -v
 
-### System Components
-Located in `src/app/editor/system/`, these components provide the core application framework:
-- `SettingsEditor`: Manages global and project-specific feature flags.
-- `PopupManager`, `ToastManager`: Handle all UI dialogs and notifications.
-- `ShortcutManager`, `CommandManager`: Manage keyboard shortcuts and command palette functionality.
-- `ProposalDrawer`, `AgentChatWidget`: Key UI components for the AI Agent Workflow, allowing for proposal review and conversational interaction.
+# Very verbose (shows detailed test execution)
+./build/bin/yaze_test -vv
 
-## Game Data Models (`zelda3` Namespace)
+# List all available tests without running
+./build/bin/yaze_test --list-tests
+```
 
-The logic and data structures for ALTTP are primarily located in `src/zelda3/`.
+## Common Build Issues and Solutions
 
-- **`Rom` Class (`app/rom.h`)**: This is the most critical data class. It holds the entire ROM content in a `std::vector<uint8_t>` and provides the central API for all data access.
-    - **Responsibilities**: Handles loading/saving ROM files, stripping SMC headers, and providing low-level read/write primitives (e.g., `ReadByte`, `WriteWord`).
-    - **Game-Specific Loading**: The `LoadZelda3` method populates game-specific data structures like palettes (`palette_groups_`) and graphics groups.
-    - **State**: Manages a `dirty_` flag to track unsaved changes.
+### Issue 1: "No preset found"
 
-- **Overworld Model (`zelda3/overworld/`)**:
-    - `Overworld`: The main container class that orchestrates the loading of all overworld data, including maps, tiles, and entities. It correctly handles logic for both vanilla and `ZSCustomOverworld` ROMs.
-    - `OverworldMap`: Represents a single overworld screen, loading its own properties (palettes, graphics, music) based on the ROM version.
-    - `GameEntity`: A base class in `zelda3/common.h` for all interactive overworld elements like `OverworldEntrance`, `OverworldExit`, `OverworldItem`, and `Sprite`.
+**Error**: `CMake Error: No such preset in CMakePresets.json`
 
-- **Dungeon Model (`zelda3/dungeon/`)**:
-    - `DungeonEditorSystem`: A high-level API that serves as the backend for the UI, managing all dungeon editing logic (adding/removing sprites, items, doors, etc.).
-    - `Room`: Represents a single dungeon room, containing its objects, sprites, layout, and header information.
-    - `RoomObject` & `RoomLayout`: Define the structural elements of a room.
-    - `ObjectParser` & `ObjectRenderer`: High-performance components for directly parsing object data from the ROM and rendering them, avoiding the need for full SNES emulation.
+**Solution**: Check the exact preset name. Use tab-completion or check `CMakePresets.json`.
 
-- **Sprite Model (`zelda3/sprite/`)**:
-    - `Sprite`: Represents an individual sprite (enemy, NPC).
-    - `SpriteBuilder`: A fluent API for programmatically constructing custom sprites.
-    - `zsprite.h`: Data structures for compatibility with Zarby's ZSpriteMaker format.
+```bash
+# List available presets
+cmake --list-presets
 
-- **Other Data Models**:
-    - `MessageData` (`message/`): Handles the game's text and dialogue system.
-    - `Inventory`, `TitleScreen`, `DungeonMap` (`screen/`): Represent specific non-gameplay screens.
-    - `music::Tracker` (`music/`): Contains legacy code from Hyrule Magic for handling SNES music data.
+# Common mistake: Using wrong platform prefix
+cmake --preset dbg          # ❌ WRONG
+cmake --preset mac-dbg      # ✅ CORRECT (macOS)
+cmake --preset lin-dbg      # ✅ CORRECT (Linux)
+cmake --preset win-dbg      # ✅ CORRECT (Windows)
+```
 
-## Graphics System (`gfx` Namespace)
+### Issue 2: "Build directory exists but is outdated"
 
-The `gfx` namespace contains a highly optimized graphics engine tailored for SNES ROM hacking.
+**Error**: CMake complains about existing build directory
 
-- **Core Concepts**:
-    - **`Bitmap`**: The fundamental class for image data. It supports SNES pixel formats, palette management, and is optimized with features like dirty-region tracking and a hash-map-based palette lookup cache for O(1) performance.
-    - **SNES Formats**: `snes_color`, `snes_palette`, and `snes_tile` provide structures and conversion functions for handling SNES-specific data (15-bit color, 4BPP/8BPP tiles, etc.).
-    - **`Tilemap`**: Represents a collection of tiles, using a texture `atlas` and a `TileCache` (with LRU eviction) for efficient rendering.
+**Solution**: Clean and reconfigure
 
-- **Resource Management & Performance**:
-    - **`Arena`**: A singleton that manages all graphics resources. It pools `SDL_Texture` and `SDL_Surface` objects to reduce allocation overhead and uses custom deleters for automatic cleanup. It also manages the 223 global graphics sheets for the game.
-    - **`MemoryPool`**: A low-level, high-performance memory allocator that provides pre-allocated blocks for common graphics sizes, reducing `malloc` overhead and memory fragmentation.
-    - **`AtlasRenderer`**: A key performance component that batches draw calls by combining multiple smaller graphics onto a single large texture atlas.
-    - **Batching**: The `Arena` supports batching texture updates via `QueueTextureUpdate`, which minimizes expensive, blocking calls to the SDL rendering API.
+```bash
+# Remove old build directory
+rm -rf build
 
-- **Format Handling & Optimization**:
-    - **`compression.h`**: Contains SNES-specific compression algorithms (LC-LZ2, Hyrule Magic) for handling graphics data from the ROM.
-    - **`BppFormatManager`**: A system for analyzing and converting between different bits-per-pixel (BPP) formats.
-    - **`GraphicsOptimizer`**: A high-level tool that uses the `BppFormatManager` to analyze graphics sheets and recommend memory and performance optimizations.
-    - **`scad_format.h`**: Provides compatibility with legacy Nintendo CAD file formats (CGX, SCR, COL) from the "gigaleak".
+# Reconfigure from scratch
+cmake --preset mac-dbg  # or lin-dbg / win-dbg
+```
 
-- **Performance Monitoring**:
-    - **`PerformanceProfiler`**: A comprehensive system for timing operations using a `ScopedTimer` RAII class.
-    - **`PerformanceDashboard`**: An ImGui-based UI for visualizing real-time performance metrics collected by the profiler.
+### Issue 3: "Tests fail with 'ROM not found'"
 
-## GUI System (`gui` Namespace)
+**Error**: Integration tests fail with ROM-related errors
 
-The `yaze` user interface is built with **ImGui** and is located in `src/app/gui`. It features a modern, component-based architecture designed for modularity, performance, and testability.
+**Solution**: Some tests require a Zelda3 ROM file
 
-### Canvas System (`gui::Canvas`)
-The canvas is the core of all visual editors. The main `Canvas` class (`src/app/gui/canvas.h`) has been refactored from a monolithic class into a coordinator that leverages a set of single-responsibility components found in `src/app/gui/canvas/`.
+```bash
+# Skip ROM-dependent tests
+./build/bin/yaze_test --unit
 
-- **`Canvas`**: The main canvas widget. It provides a modern, ImGui-style interface (`Begin`/`End`) and coordinates the various sub-components for drawing, interaction, and configuration.
-- **`CanvasInteractionHandler`**: Manages all direct user input on the canvas, such as mouse clicks, drags, and selections for tile painting and object manipulation.
-- **`CanvasContextMenu`**: A powerful, data-driven context menu system. It is aware of the current `CanvasUsage` mode (e.g., `TilePainting`, `PaletteEditing`) and displays relevant menu items dynamically.
-- **`CanvasModals`**: Handles all modal dialogs related to the canvas, such as "Advanced Properties," "Scaling Controls," and "BPP Conversion," ensuring a consistent UX.
-- **`CanvasUsageTracker` & `CanvasPerformanceIntegration`**: These components provide deep analytics and performance monitoring. They track user interactions, operation timings, and memory usage, integrating with the global `PerformanceDashboard` to identify bottlenecks.
-- **`CanvasUtils`**: A collection of stateless helper functions for common canvas tasks like grid drawing, coordinate alignment, and size calculations, promoting code reuse.
+# Or provide ROM path
+./build/bin/yaze_test --integration --rom-path zelda3.sfc
+```
 
-### Theming and Styling
-The visual appearance of the editor is highly customizable through a robust theming system.
+### Issue 4: Long build times on first run
 
-- **`ThemeManager`**: A singleton that manages `EnhancedTheme` objects. It can load custom themes from `.theme` files, allowing users to personalize the editor's look and feel. It includes a built-in theme editor and selector UI.
-- **`BackgroundRenderer`**: Renders the animated, futuristic grid background for the main docking space, providing a polished, modern aesthetic.
-- **`style.cc` & `color.cc`**: Contain custom ImGui styling functions (`ColorsYaze`), `SnesColor` conversion utilities, and other helpers to maintain a consistent visual identity.
+**Not an Error**: This is normal!
 
-### Specialized UI Components
-The `gui` namespace includes several powerful, self-contained widgets for specific ROM hacking tasks.
+**Explanation**:
+- CPM.cmake downloads all dependencies (~3-5 minutes)
+- gRPC compilation (Windows only, ~15-20 minutes)
+- ImGui compilation (~2-3 minutes)
+- SDL2, Abseil, PNG libraries (~3-5 minutes)
 
-- **`BppFormatUI`**: A comprehensive UI for managing SNES bits-per-pixel (BPP) graphics formats. It provides a format selector, a detailed analysis panel, a side-by-side conversion preview, and a batch comparison tool.
-- **`EnhancedPaletteEditor`**: An advanced tool for editing `SnesPalette` objects. It features a grid-based editor, a ROM palette manager for loading palettes directly from the game, and a color analysis view to inspect pixel distribution.
-- **`TextEditor`**: A full-featured text editor widget with syntax highlighting for 65816 assembly, undo/redo functionality, and standard text manipulation features.
-- **`AssetBrowser`**: A flexible, icon-based browser for viewing and managing game assets, such as graphics sheets.
+**Solution**: Be patient on first build. Subsequent builds use ccache/sccache and are MUCH faster (10-60 seconds).
 
-### Widget Registry for Automation
-A key feature for test automation and AI agent integration is the discoverability of UI elements.
+```bash
+# Monitor build progress with verbose output
+cmake --build build --preset mac-dbg -v | tee build.log
 
-- **`WidgetIdRegistry`**: A singleton that catalogs all registered GUI widgets. It assigns a stable, hierarchical path (e.g., `Overworld/Canvas/Map`) to each widget, making the UI programmatically discoverable. This is the backbone of the `z3ed agent test` command.
-- **`WidgetIdScope`**: An RAII helper that simplifies the creation of hierarchical widget IDs by managing an ID stack, ensuring that widget paths are consistent and predictable.
+# Check build log for specific step taking long
+grep "Linking" build.log
+```
 
-## ROM Hacking Context
+### Issue 5: Incremental builds seem slow
 
-- **Game**: The Legend of Zelda: A Link to the Past (US/JP).
-- **`ZSCustomOverworld`**: A popular system for expanding overworld editing capabilities. `yaze` is designed to be fully compatible with ZScream's implementation of v2 and v3.
-- **Assembly**: Uses `asar` for 65816 assembly. A style guide is available at `docs/E1-asm-style-guide.md`.
-- **`usdasm` Disassembly**: The user has a local copy of the `usdasm` ALTTP disassembly at `/Users/scawful/Code/usdasm` which can be used for reference.
+**Solution**: Only rebuild what changed
 
-## Git Workflow
+```bash
+# Instead of rebuilding everything:
+cmake --build build --preset mac-dbg              # ❌ Rebuilds all targets
 
-The project follows a simplified Git workflow for pre-1.0 development, with a more formal process documented for the future. For details, see `docs/B4-git-workflow.md`.
+# Build only what you need:
+cmake --build build --target yaze                 # ✅ Just the GUI app
+cmake --build build --target ylib                 # ✅ Just the core library
+cmake --build build --target object_editor_card   # ✅ Just one component
+```
 
-- **Current (Pre-1.0)**: A relaxed model is in use. Direct commits to `develop` or `master` are acceptable for documentation and small fixes. Feature branches are used for larger, potentially breaking changes.
-- **Future (Post-1.0)**: The project will adopt a formal Git Flow model with `master`, `develop`, feature, release, and hotfix branches.
+## Development Workflow
 
-## AI Agent Workflow (`z3ed agent`)
+### Typical Development Session
 
-A primary focus of the `yaze` project is its AI-driven agentic workflow, orchestrated by the `z3ed` CLI.
+```bash
+# 1. Configure once (first time only)
+cmake --preset mac-dbg
 
-- **Vision**: To create a conversational ROM hacking assistant that can inspect the ROM and perform edits based on natural language.
-- **Core Loop (MCP)**:
-    1.  **Model (Plan)**: The user provides a prompt. The agent uses an LLM (Ollama or Gemini) to create a plan, which is a sequence of `z3ed` commands.
-    2.  **Code (Generate)**: The LLM generates the commands based on a machine-readable catalog of the CLI's capabilities.
-    3.  **Program (Execute)**: The `z3ed` agent executes the commands.
-- **Proposal System**: To ensure safety, agent-driven changes are not applied directly. They are executed in a **sandboxed ROM copy** and saved as a **proposal**.
-- **Review & Acceptance**: The user can review the proposed changes via `z3ed agent diff` or a dedicated `ProposalDrawer` in the `yaze` GUI. The user must explicitly **accept** a proposal to merge the changes into the main ROM.
-- **Tool Use**: The agent can use read-only `z3ed` commands (e.g., `overworld-find-tile`, `dungeon-list-sprites`) as "tools" to inspect the ROM and gather context to answer questions or formulate a plan.
-- **API Discovery**: The agent learns the available commands and their schemas by calling `z3ed agent describe`, which exports the entire CLI surface area in a machine-readable format.
-- **Function Schemas**: The Gemini AI service uses function calling schemas defined in `assets/agent/function_schemas.json`. These schemas are automatically copied to the build directory and loaded at runtime. To modify the available functions, edit this JSON file rather than hardcoding them in the C++ source.
+# 2. Make code changes to src/app/editor/dungeon/object_editor_card.cc
+
+# 3. Rebuild only the affected target (fast!)
+cmake --build build --target yaze
+
+# 4. Run the application to test manually
+./build/bin/yaze --rom_file zelda3.sfc --editor Dungeon
+
+# 5. Run automated tests to verify
+./build/bin/yaze_test --unit
+
+# 6. If tests pass, commit
+git add src/app/editor/dungeon/object_editor_card.cc
+git commit -m "feat(dungeon): add feature X"
+```
+
+### Testing Dungeon Editor Changes
+
+```bash
+# 1. Build just the GUI app (includes dungeon editor)
+cmake --build build --target yaze
+
+# 2. Launch directly to dungeon editor with ROM
+./build/bin/yaze --rom_file zelda3.sfc --editor Dungeon
+
+# 3. To test keyboard shortcuts specifically:
+#    - Open Object Editor card
+#    - Try Ctrl+A (select all)
+#    - Try Delete key (delete selected)
+#    - Try Ctrl+D (duplicate)
+#    - Try Arrow keys (nudge objects)
+#    - Try Tab (cycle selection)
+```
+
+### Before Committing Changes
+
+```bash
+# 1. Run unit tests (fast check)
+./build/bin/yaze_test --unit
+
+# 2. Run format check (ensure code style)
+cmake --build build --target format-check
+
+# 3. If format check fails, auto-format
+cmake --build build --target format
+
+# 4. Build in release mode to catch optimization warnings
+cmake --preset mac-rel
+cmake --build build --preset mac-rel
+
+# 5. If all passes, you're ready to commit!
+```
+
+## Preset Comparison Matrix
+
+| Preset     | Platform | Build Type | AI Features | gRPC | Agent UI | Use Case |
+|------------|----------|------------|-------------|------|----------|----------|
+| mac-dbg    | macOS    | Debug      | No          | No   | No       | Daily development |
+| mac-rel    | macOS    | Release    | No          | No   | No       | Performance testing |
+| mac-ai     | macOS    | Debug      | Yes         | Yes  | Yes      | z3ed development |
+| lin-dbg    | Linux    | Debug      | No          | No   | No       | Daily development |
+| lin-rel    | Linux    | Release    | No          | No   | No       | Performance testing |
+| lin-ai     | Linux    | Debug      | Yes         | Yes  | Yes      | z3ed development |
+| win-dbg    | Windows  | Debug      | No          | No   | No       | Daily development |
+| win-rel    | Windows  | Release    | No          | No   | No       | Performance testing |
+| win-ai     | Windows  | Debug      | Yes         | Yes  | Yes      | z3ed development |
+
+## CI/CD Build Times (For Reference)
+
+GitHub Actions runners typically see these build times:
+
+- **Ubuntu 22.04**: 6-8 minutes (with caching)
+- **macOS 14**: 8-10 minutes (with caching)
+- **Windows 2022**: 12-18 minutes (gRPC adds time)
+
+Your local builds may be faster or slower depending on:
+- CPU cores (more = faster parallel builds)
+- SSD speed (affects linking time)
+- Available RAM (swap = slower builds)
+- ccache/sccache hit rate (warm cache = much faster)
+
+## Target Dependencies Reference
+
+Understanding what rebuilds when you change files:
+
+```
+yaze (GUI app)
+├── ylib (core library)
+│   ├── zelda3_dungeon (dungeon module)
+│   │   └── object_editor_card.cc ← Your changes here
+│   ├── zelda3_overworld
+│   ├── gfx (graphics system)
+│   └── core (compression, ROM I/O)
+├── imgui (UI framework)
+└── SDL2 (windowing/graphics)
+
+yaze_test (test suite)
+├── ylib (same as above)
+├── gtest (Google Test framework)
+└── test/*.cc files
+```
+
+**When you change**:
+- `object_editor_card.cc` → Rebuilds: ylib, yaze (30-60 seconds)
+- `object_editor_card.h` → Rebuilds: ylib, yaze, any test including header (1-2 minutes)
+- `rom.cc` → Rebuilds: Most of ylib, yaze, yaze_test (3-5 minutes)
+- `CMakeLists.txt` → Reconfigure + full rebuild (5-10 minutes)
+
+## Quick Command Cheat Sheet
+
+```bash
+# === Configuration ===
+cmake --list-presets                    # Show available presets
+cmake --preset mac-dbg                  # Configure for macOS debug
+
+# === Building ===
+cmake --build build --target yaze       # Build GUI app
+cmake --build build --target yaze_test  # Build test suite
+cmake --build build --target format     # Format all code
+cmake --build build -v                  # Verbose build output
+
+# === Testing ===
+./build/bin/yaze_test                   # Run all tests
+./build/bin/yaze_test --unit            # Unit tests only
+./build/bin/yaze_test "*Asar*"          # Specific test pattern
+./build/bin/yaze_test --list-tests      # List available tests
+
+# === Running ===
+./build/bin/yaze                                    # Launch GUI
+./build/bin/yaze --rom_file zelda3.sfc              # Load ROM
+./build/bin/yaze --editor Dungeon                   # Open editor
+./build/bin/yaze --rom_file zelda3.sfc --editor Dungeon  # Combined
+
+# === Cleaning ===
+cmake --build build --target clean      # Clean build artifacts
+rm -rf build                            # Full clean (reconfigure needed)
+```
+
+## Key Reminders
+
+- Use full preset names: `mac-ai` not just `ai`
+- First builds: 10-20 min (normal), incremental: 10-60 sec
+- Build specific targets: `--target yaze` faster than full build
+- Some tests require ROM file to pass

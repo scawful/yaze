@@ -36,6 +36,33 @@ IMGUI_API bool InputHexByte(const char* label, uint8_t* data,
 IMGUI_API bool InputHexByte(const char* label, uint8_t* data, uint8_t max_value,
                             float input_width = 50.f, bool no_step = false);
 
+// Result type for InputHex functions that need to distinguish between
+// immediate changes (button/wheel) and text-edit changes (deferred)
+struct InputHexResult {
+  bool changed;           // Value was modified (any source)
+  bool immediate;         // Change was from button/wheel (apply now)
+  bool text_committed;    // Change was from text edit and committed (deactivated)
+
+  // Convenience: true if change should be applied immediately
+  // Use this instead of: InputHex(...) && IsItemDeactivatedAfterEdit()
+  bool ShouldApply() const { return immediate || text_committed; }
+
+  // Implicit bool conversion for backwards compatibility
+  operator bool() const { return changed; }
+};
+
+// New API that properly reports change source
+IMGUI_API InputHexResult InputHexByteEx(const char* label, uint8_t* data,
+                                        float input_width = 50.f,
+                                        bool no_step = false);
+IMGUI_API InputHexResult InputHexByteEx(const char* label, uint8_t* data,
+                                        uint8_t max_value,
+                                        float input_width = 50.f,
+                                        bool no_step = false);
+IMGUI_API InputHexResult InputHexWordEx(const char* label, uint16_t* data,
+                                        float input_width = 50.f,
+                                        bool no_step = false);
+
 // Custom hex input functions that properly respect width
 IMGUI_API bool InputHexByteCustom(const char* label, uint8_t* data,
                                   float input_width = 50.f);
@@ -80,6 +107,15 @@ void AddTableColumn(Table& table, const std::string& label, GuiElement element);
 IMGUI_API bool OpenUrl(const std::string& url);
 
 void MemoryEditorPopup(const std::string& label, std::span<uint8_t> memory);
+
+// Slider with mouse wheel support
+IMGUI_API bool SliderFloatWheel(const char* label, float* v, float v_min,
+                                float v_max, const char* format = "%.3f",
+                                float wheel_step = 0.05f,
+                                ImGuiSliderFlags flags = 0);
+IMGUI_API bool SliderIntWheel(const char* label, int* v, int v_min, int v_max,
+                              const char* format = "%d", int wheel_step = 1,
+                              ImGuiSliderFlags flags = 0);
 
 }  // namespace gui
 }  // namespace yaze

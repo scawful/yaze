@@ -278,7 +278,7 @@ struct PaletteGroup {
   // ========== Operator Overloads ==========
 
   SnesPalette operator[](int i) {
-    if (i >= palettes.size()) {
+    if (i < 0 || i >= static_cast<int>(palettes.size())) {
       std::cout << "PaletteGroup: Index " << i
                 << " out of bounds (size: " << palettes.size() << ")"
                 << std::endl;
@@ -288,7 +288,7 @@ struct PaletteGroup {
   }
 
   const SnesPalette& operator[](int i) const {
-    if (i >= palettes.size()) {
+    if (i < 0 || i >= static_cast<int>(palettes.size())) {
       std::cout << "PaletteGroup: Index " << i
                 << " out of bounds (size: " << palettes.size() << ")"
                 << std::endl;
@@ -327,7 +327,7 @@ struct PaletteGroupMap {
   PaletteGroup object_3d = {kPaletteGroupAddressesKeys[13]};
   PaletteGroup overworld_mini_map = {kPaletteGroupAddressesKeys[14]};
 
-  auto get_group(const std::string& group_name) {
+  PaletteGroup* get_group(const std::string& group_name) {
     if (group_name == "ow_main") {
       return &overworld_main;
     } else if (group_name == "ow_aux") {
@@ -359,7 +359,43 @@ struct PaletteGroupMap {
     } else if (group_name == "ow_mini_map") {
       return &overworld_mini_map;
     } else {
-      throw std::out_of_range("PaletteGroupMap: Group not found");
+      return nullptr;
+    }
+  }
+
+  const PaletteGroup* get_group(const std::string& group_name) const {
+    if (group_name == "ow_main") {
+      return &overworld_main;
+    } else if (group_name == "ow_aux") {
+      return &overworld_aux;
+    } else if (group_name == "ow_animated") {
+      return &overworld_animated;
+    } else if (group_name == "hud") {
+      return &hud;
+    } else if (group_name == "global_sprites") {
+      return &global_sprites;
+    } else if (group_name == "armors") {
+      return &armors;
+    } else if (group_name == "swords") {
+      return &swords;
+    } else if (group_name == "shields") {
+      return &shields;
+    } else if (group_name == "sprites_aux1") {
+      return &sprites_aux1;
+    } else if (group_name == "sprites_aux2") {
+      return &sprites_aux2;
+    } else if (group_name == "sprites_aux3") {
+      return &sprites_aux3;
+    } else if (group_name == "dungeon_main") {
+      return &dungeon_main;
+    } else if (group_name == "grass") {
+      return &grass;
+    } else if (group_name == "3d_object") {
+      return &object_3d;
+    } else if (group_name == "ow_mini_map") {
+      return &overworld_mini_map;
+    } else {
+      return nullptr;
     }
   }
 
@@ -400,7 +436,7 @@ struct PaletteGroupMap {
     overworld_mini_map.clear();
   }
 
-  bool empty() {
+  bool empty() const {
     return overworld_main.size() == 0 && overworld_aux.size() == 0 &&
            overworld_animated.size() == 0 && hud.size() == 0 &&
            global_sprites.size() == 0 && armors.size() == 0 &&

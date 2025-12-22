@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_AGENT_AGENT_EDITOR_H_
 
 #include <filesystem>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
@@ -9,9 +10,13 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "app/editor/agent/panels/agent_editor_panels.h"
 #include "app/editor/editor.h"
 #include "app/gui/widgets/text_editor.h"
 #include "cli/service/agent/conversational_agent_service.h"
+#ifdef YAZE_WITH_GRPC
+#include "app/editor/agent/automation_bridge.h"
+#endif
 
 namespace yaze {
 
@@ -21,7 +26,7 @@ namespace editor {
 
 class ToastManager;
 class ProposalDrawer;
-class AgentChatWidget;
+class AgentChat;
 class AgentCollaborationCoordinator;
 
 #ifdef YAZE_WITH_GRPC
@@ -92,15 +97,24 @@ class AgentEditor : public Editor {
     std::string model;
     std::string ollama_host = "http://localhost:11434";
     std::string gemini_api_key;
+    std::string openai_api_key;
     std::string system_prompt;
     bool verbose = false;
     bool show_reasoning = true;
     int max_tool_iterations = 4;
     int max_retry_attempts = 3;
+    float temperature = 0.25f;
+    float top_p = 0.95f;
+    int max_output_tokens = 2048;
+    bool stream_responses = false;
     std::vector<std::string> tags;
     absl::Time created_at = absl::Now();
     absl::Time modified_at = absl::Now();
   };
+
+  // Profile accessor for external sync (used by AgentUiController)
+  const BotProfile& GetCurrentProfile() const { return current_profile_; }
+  BotProfile& GetCurrentProfile() { return current_profile_; }
 
   // Legacy support
   struct AgentConfig {
@@ -108,9 +122,15 @@ class AgentEditor : public Editor {
     std::string model;
     std::string ollama_host = "http://localhost:11434";
     std::string gemini_api_key;
+    std::string openai_api_key;
     bool verbose = false;
     bool show_reasoning = true;
     int max_tool_iterations = 4;
+    int max_retry_attempts = 3;
+    float temperature = 0.25f;
+    float top_p = 0.95f;
+    int max_output_tokens = 2048;
+    bool stream_responses = false;
   };
 
   struct AgentBuilderState {
@@ -154,18 +174,23 @@ class AgentEditor : public Editor {
   absl::Status LoadBotProfile(const std::string& name);
   absl::Status DeleteBotProfile(const std::string& name);
   std::vector<BotProfile> GetAllProfiles() const;
-  BotProfile GetCurrentProfile() const { return current_profile_; }
   void SetCurrentProfile(const BotProfile& profile);
   absl::Status ExportProfile(const BotProfile& profile,
                              const std::filesystem::path& path);
   absl::Status ImportProfile(const std::filesystem::path& path);
 
   // Chat widget access (for EditorManager)
-  AgentChatWidget* GetChatWidget() { return chat_widget_.get(); }
+  AgentChat* GetAgentChat() { return agent_chat_.get(); }
   bool IsChatActive() const;
   void SetChatActive(bool active);
   void ToggleChat();
   void OpenChatWindow();
+
+  // Knowledge panel callback (set by AgentUiController)
+  using KnowledgePanelCallback = std::function<void()>;
+  void SetKnowledgePanelCallback(KnowledgePanelCallback callback) {
+    knowledge_panel_callback_ = std::move(callback);
+  }
 
   // Collaboration and session management
   enum class CollaborationMode {
@@ -233,8 +258,8 @@ class AgentEditor : public Editor {
   void DrawAgentBuilderPanel();
 
   // Setup callbacks
-  void SetupChatWidgetCallbacks();
   void SetupMultimodalCallbacks();
+  void SetupAutomationCallbacks();
 
   // Bot profile helpers
   std::filesystem::path GetProfilesDirectory() const;
@@ -245,15 +270,17 @@ class AgentEditor : public Editor {
   absl::Status LoadBuilderBlueprint(const std::filesystem::path& path);
 
   // Internal state
-  std::unique_ptr<AgentChatWidget> chat_widget_;  // Owned by AgentEditor
+  std::unique_ptr<AgentChat> agent_chat_;  // Owned by AgentEditor
   std::unique_ptr<AgentCollaborationCoordinator> local_coordinator_;
 #ifdef YAZE_WITH_GRPC
   std::unique_ptr<NetworkCollaborationCoordinator> network_coordinator_;
+  AutomationBridge harness_telemetry_bridge_;
 #endif
 
   ToastManager* toast_manager_ = nullptr;
   ProposalDrawer* proposal_drawer_ = nullptr;
   Rom* rom_ = nullptr;
+  // Note: Config syncing is managed by AgentUiController
 
   // Configuration state (legacy)
   AgentConfig current_config_;
@@ -278,7 +305,7 @@ class AgentEditor : public Editor {
   std::string current_session_name_;
   std::vector<std::string> current_participants_;
 
-  // UI state
+  // UI state (legacy)
   bool show_advanced_settings_ = false;
   bool show_prompt_editor_ = false;
   bool show_bot_profiles_ = false;
@@ -286,9 +313,25 @@ class AgentEditor : public Editor {
   bool show_metrics_dashboard_ = false;
   int selected_tab_ = 0;  // 0=Config, 1=Prompts, 2=Bots, 3=History, 4=Metrics
 
+  // Panel-based UI visibility flags
+  bool show_config_card_ = true;
+  bool show_status_card_ = true;
+  bool show_prompt_editor_card_ = false;
+  bool show_profiles_card_ = false;
+  bool show_history_card_ = false;
+  bool show_metrics_card_ = false;
+  bool show_builder_card_ = false;
+  bool show_chat_card_ = true;
+
+  // Panel registration helper
+  void RegisterPanels();
+
   // Chat history viewer state
   std::vector<cli::agent::ChatMessage> cached_history_;
   bool history_needs_refresh_ = true;
+
+  // Knowledge panel callback (set by AgentUiController)
+  KnowledgePanelCallback knowledge_panel_callback_;
 };
 
 }  // namespace editor

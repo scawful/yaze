@@ -30,7 +30,7 @@ Color RGBA(int r, int g, int b, int a = 255) {
 }
 
 // Theme Implementation
-void EnhancedTheme::ApplyToImGui() const {
+void Theme::ApplyToImGui() const {
   ImGuiStyle* style = &ImGui::GetStyle();
   ImVec4* colors = style->Colors;
 
@@ -155,7 +155,7 @@ void ThemeManager::InitializeBuiltInThemes() {
 void ThemeManager::CreateFallbackYazeClassic() {
   // Fallback theme that matches the original ColorsYaze() function colors but
   // in theme format
-  EnhancedTheme theme;
+  Theme theme;
   theme.name = "YAZE Tre";
   theme.description = "YAZE theme resource edition";
   theme.author = "YAZE Team";
@@ -265,6 +265,52 @@ void ThemeManager::CreateFallbackYazeClassic() {
       RGBA(92, 115, 92, 180);  // Light green with transparency
   theme.docking_empty_bg = RGBA(46, 66, 46, 255);  // Dark green
 
+  // Dungeon editor colors
+  theme.dungeon.selection_primary = RGBA(255, 230, 51, 153);     // Yellow
+  theme.dungeon.selection_secondary = RGBA(51, 230, 255, 153);   // Cyan
+  theme.dungeon.selection_pulsing = RGBA(255, 255, 255, 204);    // White pulse
+  theme.dungeon.selection_handle = RGBA(255, 255, 255, 255);     // White handle
+  theme.dungeon.drag_preview = RGBA(128, 128, 255, 102);         // Blueish
+  theme.dungeon.drag_preview_outline = RGBA(153, 153, 255, 204);
+  theme.dungeon.object_wall = RGBA(153, 153, 153, 255);
+  theme.dungeon.object_floor = RGBA(102, 102, 102, 255);
+  theme.dungeon.object_chest = RGBA(255, 214, 0, 255);           // Gold
+  theme.dungeon.object_door = RGBA(140, 69, 18, 255);
+  theme.dungeon.object_pot = RGBA(204, 102, 51, 255);
+  theme.dungeon.object_stairs = RGBA(230, 230, 77, 255);
+  theme.dungeon.object_decoration = RGBA(153, 204, 153, 255);
+  theme.dungeon.object_default = RGBA(204, 204, 204, 255);
+  theme.dungeon.grid_cell_highlight = RGBA(77, 204, 77, 77);
+  theme.dungeon.grid_cell_selected = RGBA(51, 179, 51, 128);
+  theme.dungeon.grid_cell_border = RGBA(102, 102, 102, 128);
+  theme.dungeon.grid_text = RGBA(255, 255, 255, 204);
+  theme.dungeon.room_border = RGBA(128, 128, 128, 255);
+  theme.dungeon.room_border_dark = RGBA(51, 51, 51, 255);
+  theme.dungeon.sprite_layer0 = RGBA(77, 204, 77, 255);          // Green
+  theme.dungeon.sprite_layer1 = RGBA(77, 77, 204, 255);          // Blue
+  theme.dungeon.sprite_layer2 = RGBA(77, 77, 204, 255);
+  theme.dungeon.outline_layer0 = RGBA(255, 51, 51, 255);         // Red
+  theme.dungeon.outline_layer1 = RGBA(51, 255, 51, 255);         // Green
+  theme.dungeon.outline_layer2 = RGBA(51, 51, 255, 255);         // Blue
+
+  // Chat/agent colors
+  theme.chat.user_message = RGBA(102, 179, 255, 255);
+  theme.chat.agent_message = RGBA(102, 230, 102, 255);
+  theme.chat.system_message = RGBA(179, 179, 179, 255);
+  theme.chat.json_text = RGBA(230, 179, 102, 255);
+  theme.chat.command_text = RGBA(230, 102, 102, 255);
+  theme.chat.code_background = RGBA(26, 26, 31, 255);
+  theme.chat.provider_ollama = RGBA(230, 230, 230, 255);
+  theme.chat.provider_gemini = RGBA(77, 153, 230, 255);
+  theme.chat.provider_mock = RGBA(128, 128, 128, 255);
+  theme.chat.provider_openai = RGBA(51, 204, 153, 255);  // Teal/green for OpenAI
+  theme.chat.proposal_panel_bg = RGBA(38, 38, 46, 255);
+  theme.chat.proposal_accent = RGBA(102, 153, 230, 255);
+  theme.chat.button_copy = RGBA(77, 77, 89, 255);
+  theme.chat.button_copy_hover = RGBA(102, 102, 115, 255);
+  theme.chat.gradient_top = theme.primary;
+  theme.chat.gradient_bottom = theme.secondary;
+
   // Apply original style settings
   theme.window_rounding = 0.0f;
   theme.frame_rounding = 5.0f;
@@ -329,7 +375,7 @@ absl::Status ThemeManager::LoadThemeFromFile(const std::string& filepath) {
         absl::StrFormat("Theme file is empty: %s", successful_path));
   }
 
-  EnhancedTheme theme;
+  Theme theme;
   auto parse_status = ParseThemeFile(content, theme);
   if (!parse_status.ok()) {
     return absl::InvalidArgumentError(
@@ -354,7 +400,7 @@ std::vector<std::string> ThemeManager::GetAvailableThemes() const {
   return theme_names;
 }
 
-const EnhancedTheme* ThemeManager::GetTheme(const std::string& name) const {
+const Theme* ThemeManager::GetTheme(const std::string& name) const {
   auto it = themes_.find(name);
   return (it != themes_.end()) ? &it->second : nullptr;
 }
@@ -370,7 +416,7 @@ void ThemeManager::ApplyTheme(const std::string& theme_name) {
   }
 }
 
-void ThemeManager::ApplyTheme(const EnhancedTheme& theme) {
+void ThemeManager::ApplyTheme(const Theme& theme) {
   current_theme_ = theme;
   current_theme_name_ = theme.name;  // CRITICAL: Update the name tracking
   current_theme_.ApplyToImGui();
@@ -556,7 +602,7 @@ void ThemeManager::ShowThemeSelector(bool* p_open) {
 }
 
 absl::Status ThemeManager::ParseThemeFile(const std::string& content,
-                                          EnhancedTheme& theme) {
+                                          Theme& theme) {
   std::istringstream stream(content);
   std::string line;
   std::string current_section = "";
@@ -787,7 +833,7 @@ Color ThemeManager::ParseColorFromString(const std::string& color_str) const {
   }
 }
 
-std::string ThemeManager::SerializeTheme(const EnhancedTheme& theme) const {
+std::string ThemeManager::SerializeTheme(const Theme& theme) const {
   std::ostringstream ss;
 
   // Helper function to convert color to RGB string
@@ -983,7 +1029,70 @@ std::string ThemeManager::SerializeTheme(const EnhancedTheme& theme) const {
   return ss.str();
 }
 
-absl::Status ThemeManager::SaveThemeToFile(const EnhancedTheme& theme,
+std::string ThemeManager::ExportCurrentThemeJson() const {
+  nlohmann::json j;
+  const auto& t = current_theme_;
+
+  j["name"] = t.name;
+  j["description"] = t.description;
+  j["author"] = t.author;
+
+  // Helper to convert Color to hex string (#RRGGBB or #RRGGBBAA)
+  auto colorToHex = [](const Color& c) -> std::string {
+    int r = static_cast<int>(c.red * 255.0f);
+    int g = static_cast<int>(c.green * 255.0f);
+    int b = static_cast<int>(c.blue * 255.0f);
+    int a = static_cast<int>(c.alpha * 255.0f);
+    if (a == 255) {
+      return absl::StrFormat("#%02X%02X%02X", r, g, b);
+    }
+    return absl::StrFormat("#%02X%02X%02X%02X", r, g, b, a);
+  };
+
+  j["colors"] = {
+      {"primary", colorToHex(t.primary)},
+      {"secondary", colorToHex(t.secondary)},
+      {"accent", colorToHex(t.accent)},
+      {"background", colorToHex(t.background)},
+      {"surface", colorToHex(t.surface)},
+      {"error", colorToHex(t.error)},
+      {"warning", colorToHex(t.warning)},
+      {"success", colorToHex(t.success)},
+      {"info", colorToHex(t.info)},
+      {"text_primary", colorToHex(t.text_primary)},
+      {"text_secondary", colorToHex(t.text_secondary)},
+      {"text_disabled", colorToHex(t.text_disabled)},
+      {"window_bg", colorToHex(t.window_bg)},
+      {"child_bg", colorToHex(t.child_bg)},
+      {"popup_bg", colorToHex(t.popup_bg)},
+      {"modal_bg", colorToHex(t.modal_bg)},
+      {"button", colorToHex(t.button)},
+      {"button_hovered", colorToHex(t.button_hovered)},
+      {"button_active", colorToHex(t.button_active)},
+      {"header", colorToHex(t.header)},
+      {"header_hovered", colorToHex(t.header_hovered)},
+      {"header_active", colorToHex(t.header_active)},
+      {"border", colorToHex(t.border)},
+      {"border_shadow", colorToHex(t.border_shadow)},
+      {"separator", colorToHex(t.separator)},
+      // Editor semantic colors
+      {"editor_background", colorToHex(t.editor_background)},
+      {"editor_grid", colorToHex(t.editor_grid)},
+      {"editor_cursor", colorToHex(t.editor_cursor)},
+      {"editor_selection", colorToHex(t.editor_selection)},
+      // Enhanced semantic colors
+      {"code_background", colorToHex(t.code_background)},
+      {"text_highlight", colorToHex(t.text_highlight)},
+      {"link_hover", colorToHex(t.link_hover)}};
+
+  j["style"] = {{"window_rounding", t.window_rounding},
+                {"frame_rounding", t.frame_rounding},
+                {"compact_factor", t.compact_factor}};
+
+  return j.dump();
+}
+
+absl::Status ThemeManager::SaveThemeToFile(const Theme& theme,
                                            const std::string& filepath) const {
   std::string theme_content = SerializeTheme(theme);
 
@@ -1010,7 +1119,7 @@ void ThemeManager::ApplyClassicYazeTheme() {
   current_theme_name_ = "Classic YAZE";
 
   // Create a complete Classic theme object that matches what ColorsYaze() sets
-  EnhancedTheme classic_theme;
+  Theme classic_theme;
   classic_theme.name = "Classic YAZE";
   classic_theme.description =
       "Original YAZE theme (direct ColorsYaze() function)";
@@ -1051,6 +1160,15 @@ void ThemeManager::ApplyClassicYazeTheme() {
   classic_theme.title_bg = RGBA(71, 92, 71);            // alttpMidGreen
   classic_theme.title_bg_active = RGBA(46, 66, 46);     // alttpDarkGreen
   classic_theme.title_bg_collapsed = RGBA(71, 92, 71);  // alttpMidGreen
+
+  // Initialize missing fields that were added to the struct
+  classic_theme.surface = classic_theme.background;
+  classic_theme.error = RGBA(220, 50, 50);
+  classic_theme.warning = RGBA(255, 200, 50);
+  classic_theme.success = classic_theme.primary;
+  classic_theme.info = RGBA(70, 170, 255);
+  classic_theme.text_secondary = RGBA(200, 200, 200);
+  classic_theme.modal_bg = classic_theme.popup_bg;
 
   // Borders and separators
   classic_theme.border = RGBA(92, 115, 92);        // allttpLightGreen
@@ -1289,12 +1407,12 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
       ImGui::EndMenuBar();
     }
 
-    static EnhancedTheme edit_theme = current_theme_;
+    static Theme edit_theme = current_theme_;
     static char theme_name[128];
     static char theme_description[256];
     static char theme_author[128];
     static bool live_preview = true;
-    static EnhancedTheme
+    static Theme
         original_theme;  // Store original theme for restoration
     static bool theme_backup_made = false;
 

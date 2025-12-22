@@ -9,8 +9,15 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
-#include "app/editor/system/popup_manager.h"
+#include "app/editor/ui/popup_manager.h"
 #include "app/editor/system/shortcut_manager.h"
+
+// Forward declaration in yaze::core namespace
+namespace yaze {
+namespace core {
+class VersionManager;
+}
+}
 
 namespace yaze {
 
@@ -19,6 +26,15 @@ class Rom;
 namespace gfx {
 class IRenderer;
 }
+namespace emu {
+class Emulator;
+}
+namespace project {
+struct YazeProject;
+}  // namespace project
+namespace zelda3 {
+struct GameData;
+}  // namespace zelda3
 
 /**
  * @namespace yaze::editor
@@ -27,9 +43,39 @@ class IRenderer;
 namespace editor {
 
 // Forward declarations
-class EditorCardRegistry;
+class PanelManager;
 class ToastManager;
 class UserSettings;
+
+/**
+ * @struct EditorContext
+ * @brief Lightweight view into the essential runtime context (Rom + GameData)
+ *
+ * This struct provides a bundled view of the two primary dependencies
+ * for Zelda3 editing operations. It can be passed by value and is designed
+ * to replace the pattern of passing rom_ and game_data_ separately.
+ *
+ * Usage:
+ * ```cpp
+ * void SomeComponent::DoWork(EditorContext ctx) {
+ *   if (!ctx.IsValid()) return;
+ *   auto data = ctx.rom->ReadByte(0x1234);
+ *   auto& palettes = ctx.game_data->palette_groups;
+ * }
+ * ```
+ */
+struct EditorContext {
+  Rom* rom = nullptr;
+  zelda3::GameData* game_data = nullptr;
+
+  // Check if context is valid for operations
+  bool IsValid() const { return rom != nullptr && game_data != nullptr; }
+  bool HasRom() const { return rom != nullptr; }
+  bool HasGameData() const { return game_data != nullptr; }
+
+  // Implicit conversion to bool for quick validity checks
+  explicit operator bool() const { return IsValid(); }
+};
 
 /**
  * @struct EditorDependencies
@@ -50,15 +96,16 @@ class UserSettings;
  * ```cpp
  * EditorDependencies deps;
  * deps.rom = current_rom;
- * deps.card_registry = &card_registry_;
+ * deps.game_data = game_data;
+ * deps.panel_manager = &panel_manager_;
  * deps.session_id = session_index;
  *
  * // Standard editor
  * OverworldEditor editor(deps);
  *
- * // Specialized editor with renderer
- * deps.renderer = renderer_;
- * DungeonEditor dungeon_editor(deps);
+ * // Get lightweight context for passing to sub-components
+ * auto ctx = deps.context();
+ * sub_component.Initialize(ctx);
  * ```
  */
 struct EditorDependencies {
@@ -77,17 +124,27 @@ struct EditorDependencies {
   };
 
   Rom* rom = nullptr;
-  EditorCardRegistry* card_registry = nullptr;
+  zelda3::GameData* game_data = nullptr;  // Zelda3-specific game state
+  PanelManager* panel_manager = nullptr;
   ToastManager* toast_manager = nullptr;
   PopupManager* popup_manager = nullptr;
   ShortcutManager* shortcut_manager = nullptr;
   SharedClipboard* shared_clipboard = nullptr;
   UserSettings* user_settings = nullptr;
+  project::YazeProject* project = nullptr;
+  core::VersionManager* version_manager = nullptr;
   size_t session_id = 0;
 
   gfx::IRenderer* renderer = nullptr;
+  emu::Emulator* emulator = nullptr;
 
   void* custom_data = nullptr;
+
+  // Get lightweight context for passing to sub-components
+  EditorContext context() const { return {rom, game_data}; }
+
+  // Check if essential context is available
+  bool HasContext() const { return rom != nullptr && game_data != nullptr; }
 };
 
 enum class EditorType {
@@ -126,6 +183,11 @@ class Editor {
 
   void SetDependencies(const EditorDependencies& deps) { dependencies_ = deps; }
 
+  // Set GameData for Zelda3-specific data access
+  virtual void SetGameData(zelda3::GameData* game_data) {
+    dependencies_.game_data = game_data;
+  }
+
   // Initialization of the editor, no ROM assets.
   virtual void Initialize() = 0;
 
@@ -161,13 +223,21 @@ class Editor {
     return "ROM state not implemented";
   }
 
+  // Accessors for common dependencies
+  Rom* rom() const { return dependencies_.rom; }
+  zelda3::GameData* game_data() const { return dependencies_.game_data; }
+
+  // Get bundled context for sub-components
+  EditorContext context() const { return dependencies_.context(); }
+  bool HasContext() const { return dependencies_.HasContext(); }
+
  protected:
   bool active_ = false;
   EditorType type_;
   EditorDependencies dependencies_;
 
   // Helper method to create session-aware card titles for multi-session support
-  std::string MakeCardTitle(const std::string& base_title) const {
+  std::string MakePanelTitle(const std::string& base_title) const {
     if (dependencies_.session_id > 0) {
       return absl::StrFormat("%s [S%zu]", base_title, dependencies_.session_id);
     }
@@ -175,7 +245,7 @@ class Editor {
   }
 
   // Helper method to create session-aware card IDs for multi-session support
-  std::string MakeCardId(const std::string& base_id) const {
+  std::string MakePanelId(const std::string& base_id) const {
     if (dependencies_.session_id > 0) {
       return absl::StrFormat("s%zu.%s", dependencies_.session_id, base_id);
     }

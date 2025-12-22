@@ -4,18 +4,27 @@
 #include <yaze.h>
 
 #include <cstdint>
+#include <memory>
 #include <string_view>
+#include <tuple>
+#include <utility>
 #include <vector>
 
 #include "app/gfx/render/background_buffer.h"
-#include "app/rom.h"
+#include "rom/rom.h"
+#include "zelda3/dungeon/door_position.h"
+#include "zelda3/dungeon/door_types.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/game_data.h"
 #include "zelda3/dungeon/room_layout.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/sprite/sprite.h"
 
 namespace yaze {
 namespace zelda3 {
+
+class DungeonState;
+class RoomLayerManager;
 
 // ROM addresses moved to dungeon_rom_addresses.h for better organization
 // Use kPrefixedNames for new code (clean naming convention)
@@ -80,10 +89,18 @@ struct LayerMergeType {
   }
 };
 
+// LayerMergeType(id, name, Layer2Visible, Layer2OnTop, Layer2Translucent)
+// 
+// SNES Mode 1 Layer Priority: BG1 is ALWAYS rendered on top of BG2 by default.
+// The flags control COLOR MATH effects, not Z-order:
+// - Layer2Visible: Whether BG2 is enabled on main screen
+// - Layer2OnTop: Whether BG2 participates in sub-screen color math effects
+//   (transparency, additive blending) - does NOT change draw order
+// - Layer2Translucent: Whether color math creates transparency effect
 const static LayerMergeType LayerMerge00{0x00, "Off", true, false, false};
 const static LayerMergeType LayerMerge01{0x01, "Parallax", true, false, false};
 const static LayerMergeType LayerMerge02{0x02, "Dark", true, true, true};
-const static LayerMergeType LayerMerge03{0x03, "On top", true, true, false};
+const static LayerMergeType LayerMerge03{0x03, "On top", false, true, false};
 const static LayerMergeType LayerMerge04{0x04, "Translucent", true, true, true};
 const static LayerMergeType LayerMerge05{0x05, "Addition", true, true, true};
 const static LayerMergeType LayerMerge06{0x06, "Normal", true, false, false};
@@ -111,6 +128,22 @@ enum EffectKey {
   Red_Flashes,
   Torch_Show_Floor,
   Ganon_Room,
+};
+
+// Pot item - items hidden under pots, rocks, skulls etc.
+// Each item has its own position from ROM data
+struct PotItem {
+  uint16_t position = 0;  // Raw position word from ROM
+  uint8_t item = 0;       // Item type (0 = nothing)
+  
+  // Decode pixel coordinates from position word
+  // Format: high byte * 16 = Y, low byte * 4 = X
+  int GetPixelX() const { return (position & 0xFF) * 4; }
+  int GetPixelY() const { return ((position >> 8) & 0xFF) * 16; }
+  
+  // Get tile coordinates (8-pixel tiles)
+  int GetTileX() const { return GetPixelX() / 8; }
+  int GetTileY() const { return GetPixelY() / 8; }
 };
 
 enum TagKey {
@@ -182,8 +215,15 @@ enum TagKey {
 
 class Room {
  public:
-  Room() = default;
-  Room(int room_id, Rom* rom) : room_id_(room_id), rom_(rom) {}
+  Room();
+  Room(int room_id, Rom* rom, GameData* game_data = nullptr);
+  ~Room();
+
+  // Move-only type due to unique_ptr
+  Room(Room&&);
+  Room& operator=(Room&&);
+  Room(const Room&) = delete;
+  Room& operator=(const Room&) = delete;
 
   void LoadRoomGraphics(uint8_t entrance_blockset = 0xFF);
   void CopyRoomGraphicsToBuffer();
@@ -194,12 +234,13 @@ class Room {
   void LoadObjects();
   void LoadSprites();
   void LoadChests();
+  void LoadPotItems();
   void LoadDoors();
   void LoadTorches();
   void LoadBlocks();
   void LoadPits();
-  void LoadRoomLayout();
   void LoadLayoutTilesToBuffer();
+  void ReloadGraphics(uint8_t entrance_blockset = 0xFF);
 
   // Public getters and manipulators for sprites
   const std::vector<zelda3::Sprite>& GetSprites() const { return sprites_; }
@@ -212,6 +253,92 @@ class Room {
   // Public getters and manipulators for stairs
   const std::vector<staircase>& GetStairs() const { return z3_staircases_; }
   std::vector<staircase>& GetStairs() { return z3_staircases_; }
+
+  /**
+   * @brief Represents a door in a dungeon room
+   *
+   * Doors connect rooms and can have various types (locked, bombable, etc.)
+   * They are placed at fixed positions along room walls.
+   */
+  struct Door {
+    uint8_t position;       ///< Encoded position (5-bit, 0-31)
+    DoorType type;          ///< Door type (determines appearance/behavior)
+    DoorDirection direction; ///< Which wall the door is on
+
+    uint8_t byte1;  ///< Original ROM byte 1 (position data)
+    uint8_t byte2;  ///< Original ROM byte 2 (type + direction)
+
+    /// Get tile coordinates for this door
+    std::pair<int, int> GetTileCoords() const {
+      return DoorPositionManager::PositionToTileCoords(position, direction);
+    }
+
+    /// Get pixel coordinates for this door
+    std::pair<int, int> GetPixelCoords() const {
+      return DoorPositionManager::PositionToPixelCoords(position, direction);
+    }
+
+    /// Get door dimensions in tiles
+    DoorDimensions GetDimensions() const {
+      return GetDoorDimensions(direction);
+    }
+
+    /// Get bounding rectangle (x, y, width, height in pixels)
+    std::tuple<int, int, int, int> GetBounds() const {
+      return DoorPositionManager::GetDoorBounds(position, direction);
+    }
+
+    /// Get human-readable type name
+    std::string_view GetTypeName() const {
+      return zelda3::GetDoorTypeName(type);
+    }
+
+    /// Get human-readable direction name
+    std::string_view GetDirectionName() const {
+      return zelda3::GetDoorDirectionName(direction);
+    }
+
+    /// Encode door data for ROM storage
+    std::pair<uint8_t, uint8_t> EncodeBytes() const {
+      return DoorPositionManager::EncodeDoorBytes(position, type, direction);
+    }
+
+    /// Create a door from raw ROM bytes
+    /// Format (from ASM RoomDraw_DoorObject):
+    ///   b1: bits 4-7 = position index, bits 0-1 = direction
+    ///   b2: door type (full byte, values 0x00, 0x02, 0x04, etc.)
+    static Door FromRomBytes(uint8_t b1, uint8_t b2) {
+      Door door;
+      door.byte1 = b1;
+      door.byte2 = b2;
+      // Position index is in bits 4-7 of b1
+      // ASM does: (b1 & 0xF0) >> 3 which gives index * 2 for table lookup
+      // We store the raw index (0-15, typically 0-5)
+      door.position = (b1 >> 4) & 0x0F;
+      // Direction is in bits 0-1 of b1
+      door.direction = DoorDirectionFromRaw(b1 & 0x03);
+      // Door type is the full second byte
+      door.type = DoorTypeFromRaw(b2);
+      return door;
+    }
+  };
+
+  const std::vector<Door>& GetDoors() const { return doors_; }
+  std::vector<Door>& GetDoors() { return doors_; }
+  void AddDoor(const Door& door) {
+    doors_.push_back(door);
+    MarkObjectsDirty();
+  }
+  void RemoveDoor(size_t index) {
+    if (index < doors_.size()) {
+      doors_.erase(doors_.begin() + index);
+      MarkObjectsDirty();
+    }
+  }
+
+  // Public getters for pot items (items hidden under pots/bushes)
+  const std::vector<PotItem>& GetPotItems() const { return pot_items_; }
+  std::vector<PotItem>& GetPotItems() { return pot_items_; }
 
   const RoomLayout& GetLayout() const { return layout_; }
 
@@ -239,14 +366,17 @@ class Room {
   void MarkObjectsDirty() {
     objects_dirty_ = true;
     textures_dirty_ = true;
+    composite_dirty_ = true;
   }
   void MarkGraphicsDirty() {
     graphics_dirty_ = true;
     textures_dirty_ = true;
+    composite_dirty_ = true;
   }
   void MarkLayoutDirty() {
     layout_dirty_ = true;
     textures_dirty_ = true;
+    composite_dirty_ = true;
   }
   void RemoveTileObject(size_t index) {
     if (index < tile_objects_.size()) {
@@ -388,15 +518,23 @@ class Room {
 
   // Object saving (Phase 1, Task 1.3)
   absl::Status SaveObjects();
-  absl::Status SaveSprites();  // New: Sprite saving
   std::vector<uint8_t> EncodeObjects() const;
-  std::vector<uint8_t> EncodeSprites() const; // New: Sprite encoding
+  absl::Status SaveSprites();
+  std::vector<uint8_t> EncodeSprites() const;
 
   auto blocks() const { return blocks_; }
   auto& mutable_blocks() { return blocks_; }
   auto rom() { return rom_; }
   auto mutable_rom() { return rom_; }
-  const std::array<uint8_t, 0x4000>& get_gfx_buffer() const {
+  void SetRom(Rom* rom) { rom_ = rom; }
+  auto game_data() { return game_data_; }
+  void SetGameData(GameData* data) { game_data_ = data; }
+  
+  // Helper to get version constants from game_data or default to US
+  zelda3_version_pointers version_constants() const {
+    return kVersionConstantsMap.at(game_data_ ? game_data_->version : zelda3_version::US);
+  }
+  const std::array<uint8_t, 0x10000>& get_gfx_buffer() const {
     return current_gfx16_;
   }
 
@@ -405,15 +543,37 @@ class Room {
   auto& bg2_buffer() { return bg2_buffer_; }
   const auto& bg1_buffer() const { return bg1_buffer_; }
   const auto& bg2_buffer() const { return bg2_buffer_; }
+  auto& object_bg1_buffer() { return object_bg1_buffer_; }
+  const auto& object_bg1_buffer() const { return object_bg1_buffer_; }
+  auto& object_bg2_buffer() { return object_bg2_buffer_; }
+  const auto& object_bg2_buffer() const { return object_bg2_buffer_; }
+
+  /// Get a composite bitmap of all layers merged
+  gfx::Bitmap& GetCompositeBitmap(RoomLayerManager& layer_mgr);
+  const gfx::Bitmap& composite_bitmap() const { return composite_bitmap_; }
+
+  /// Mark composite bitmap as needing regeneration
+  void MarkCompositeDirty() { composite_dirty_ = true; }
+  bool IsCompositeDirty() const { return composite_dirty_; }
+
+  DungeonState* GetDungeonState() { return dungeon_state_.get(); }
 
  private:
   Rom* rom_;
+  GameData* game_data_ = nullptr;
 
-  std::array<uint8_t, 0x4000> current_gfx16_;
+  std::array<uint8_t, 0x10000> current_gfx16_;
 
+  // Each room has its OWN background buffers and bitmaps
   // Each room has its OWN background buffers and bitmaps
   gfx::BackgroundBuffer bg1_buffer_{512, 512};
   gfx::BackgroundBuffer bg2_buffer_{512, 512};
+  gfx::BackgroundBuffer object_bg1_buffer_{512, 512};
+  gfx::BackgroundBuffer object_bg2_buffer_{512, 512};
+
+  // Composite bitmap for merged layer output
+  mutable gfx::Bitmap composite_bitmap_;
+  mutable bool composite_dirty_ = true;
 
   bool is_light_;
   bool is_loaded_ = false;
@@ -460,6 +620,8 @@ class Room {
   std::vector<zelda3::Sprite> sprites_;
   std::vector<staircase> z3_staircases_;
   std::vector<chest_data> chests_in_room_;
+  std::vector<Door> doors_;
+  std::vector<PotItem> pot_items_;
   RoomLayout layout_;
 
   LayerMergeType layer_merging_;
@@ -474,10 +636,15 @@ class Room {
   destination stair2_;
   destination stair3_;
   destination stair4_;
+
+  std::unique_ptr<DungeonState> dungeon_state_;
 };
 
 // Loads a room from the ROM.
 Room LoadRoomFromRom(Rom* rom, int room_id);
+
+// Loads only the room header (metadata) from the ROM.
+Room LoadRoomHeaderFromRom(Rom* rom, int room_id);
 
 struct RoomSize {
   int64_t room_size_pointer;
@@ -487,16 +654,10 @@ struct RoomSize {
 // Calculates the size of a room in the ROM.
 RoomSize CalculateRoomSize(Rom* rom, int room_id);
 
-static const std::string RoomEffect[] = {"Nothing",
-                                         "Nothing",
-                                         "Moving Floor",
-                                         "Moving Water",
-                                         "Trinexx Shell",
-                                         "Red Flashes",
-                                         "Light Torch to See Floor",
-                                         "Ganon's Darkness"};
+// RoomEffect names defined in room.cc to avoid static initialization order issues
+extern const std::string RoomEffect[8];
 
-constexpr std::string_view kRoomNames[] = {
+constexpr std::array<std::string_view, 297> kRoomNames = {
     "Ganon",
     "Hyrule Castle (North Corridor)",
     "Behind Sanctuary (Switch)",
@@ -796,74 +957,8 @@ constexpr std::string_view kRoomNames[] = {
     "Mazeblock Cave",
     "Smith Peg Cave"};
 
-static const std::string RoomTag[] = {"Nothing",
-                                      "NW Kill Enemy to Open",
-                                      "NE Kill Enemy to Open",
-                                      "SW Kill Enemy to Open",
-                                      "SE Kill Enemy to Open",
-                                      "W Kill Enemy to Open",
-                                      "E Kill Enemy to Open",
-                                      "N Kill Enemy to Open",
-                                      "S Kill Enemy to Open",
-                                      "Clear Quadrant to Open",
-                                      "Clear Full Tile to Open",
-
-                                      "NW Push Block to Open",
-                                      "NE Push Block to Open",
-                                      "SW Push Block to Open",
-                                      "SE Push Block to Open",
-                                      "W Push Block to Open",
-                                      "E Push Block to Open",
-                                      "N Push Block to Open",
-                                      "S Push Block to Open",
-                                      "Push Block to Open",
-                                      "Pull Lever to Open",
-                                      "Collect Prize to Open",
-
-                                      "Hold Switch Open Door",
-                                      "Toggle Switch to Open Door",
-                                      "Turn off Water",
-                                      "Turn on Water",
-                                      "Water Gate",
-                                      "Water Twin",
-                                      "Moving Wall Right",
-                                      "Moving Wall Left",
-                                      "Crash",
-                                      "Crash",
-                                      "Push Switch Exploding Wall",
-                                      "Holes 0",
-                                      "Open Chest (Holes 0)",
-                                      "Holes 1",
-                                      "Holes 2",
-                                      "Defeat Boss for Dungeon Prize",
-
-                                      "SE Kill Enemy to Push Block",
-                                      "Trigger Switch Chest",
-                                      "Pull Lever Exploding Wall",
-                                      "NW Kill Enemy for Chest",
-                                      "NE Kill Enemy for Chest",
-                                      "SW Kill Enemy for Chest",
-                                      "SE Kill Enemy for Chest",
-                                      "W Kill Enemy for Chest",
-                                      "E Kill Enemy for Chest",
-                                      "N Kill Enemy for Chest",
-                                      "S Kill Enemy for Chest",
-                                      "Clear Quadrant for Chest",
-                                      "Clear Full Tile for Chest",
-
-                                      "Light Torches to Open",
-                                      "Holes 3",
-                                      "Holes 4",
-                                      "Holes 5",
-                                      "Holes 6",
-                                      "Agahnim Room",
-                                      "Holes 7",
-                                      "Holes 8",
-                                      "Open Chest for Holes 8",
-                                      "Push Block for Chest",
-                                      "Clear Room for Triforce Door",
-                                      "Light Torches for Chest",
-                                      "Kill Boss Again"};
+// RoomTag names defined in room.cc to avoid static initialization order issues
+extern const std::string RoomTag[65];
 
 }  // namespace zelda3
 }  // namespace yaze

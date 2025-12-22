@@ -1,0 +1,34 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "dev-local",
+      "inherits": "dev",
+      "binaryDir": "$env{YAZE_BUILD_ROOT}/build"
+    },
+    {
+      "name": "wasm-debug-local",
+      "inherits": "wasm-debug",
+      "binaryDir": "$env{YAZE_BUILD_ROOT}/build-wasm"
+    },
+    {
+      "name": "wasm-release-local",
+      "inherits": "wasm-release",
+      "binaryDir": "$env{YAZE_BUILD_ROOT}/build-wasm"
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "dev-local",
+      "configurePreset": "dev-local"
+    },
+    {
+      "name": "wasm-debug-local",
+      "configurePreset": "wasm-debug-local"
+    },
+    {
+      "name": "wasm-release-local",
+      "configurePreset": "wasm-release-local"
+    }
+  ]
+}

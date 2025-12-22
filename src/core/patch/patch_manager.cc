@@ -1,0 +1,389 @@
+#include "core/patch/patch_manager.h"
+
+#include <algorithm>
+#include <filesystem>
+#include <fstream>
+#include <sstream>
+
+#include "absl/strings/str_cat.h"
+#include "absl/strings/str_join.h"
+#include "rom/rom.h"
+#include "core/asar_wrapper.h"
+
+namespace yaze::core {
+
+namespace fs = std::filesystem;
+
+absl::Status PatchManager::LoadPatches(const std::string& patches_dir) {
+  // Clear existing data
+  patches_.clear();
+  folders_.clear();
+  is_loaded_ = false;
+
+  patches_directory_ = patches_dir;
+
+  // Check if directory exists
+  if (!fs::exists(patches_dir)) {
+    return absl::NotFoundError(
+        absl::StrCat("Patches directory not found: ", patches_dir));
+  }
+
+  // Create default folders if they don't exist
+  std::vector<std::string> default_folders = {
+      "Misc", "Hex Edits", "Sprites", "Items", "Npcs"};
+
+  for (const auto& folder : default_folders) {
+    fs::path folder_path = fs::path(patches_dir) / folder;
+    if (!fs::exists(folder_path)) {
+      std::error_code ec;
+      fs::create_directories(folder_path, ec);
+    }
+  }
+
+  // Scan all subdirectories
+  for (const auto& entry : fs::directory_iterator(patches_dir)) {
+    if (entry.is_directory()) {
+      std::string folder_name = entry.path().filename().string();
+
+      // Skip UNPATCHED folder
+      if (folder_name == "UNPATCHED") {
+        continue;
+      }
+
+      folders_.push_back(folder_name);
+      ScanDirectory(entry.path().string(), folder_name);
+    }
+  }
+
+  // Sort folders alphabetically
+  std::sort(folders_.begin(), folders_.end());
+
+  is_loaded_ = true;
+  return absl::OkStatus();
+}
+
+absl::Status PatchManager::ReloadPatches() {
+  if (patches_directory_.empty()) {
+    return absl::FailedPreconditionError("No patches directory set");
+  }
+  return LoadPatches(patches_directory_);
+}
+
+void PatchManager::ScanDirectory(const std::string& dir_path,
+                                 const std::string& folder_name) {
+  for (const auto& entry : fs::directory_iterator(dir_path)) {
+    if (entry.is_regular_file() && entry.path().extension() == ".asm") {
+      auto patch =
+          std::make_unique<AsmPatch>(entry.path().string(), folder_name);
+      if (patch->is_valid()) {
+        patches_.push_back(std::move(patch));
+      }
+    }
+  }
+}
+
+std::vector<AsmPatch*> PatchManager::GetPatchesInFolder(
+    const std::string& folder) {
+  std::vector<AsmPatch*> result;
+  for (const auto& patch : patches_) {
+    if (patch->folder() == folder) {
+      result.push_back(patch.get());
+    }
+  }
+  // Sort by name
+  std::sort(result.begin(), result.end(),
+            [](AsmPatch* a, AsmPatch* b) { return a->name() < b->name(); });
+  return result;
+}
+
+AsmPatch* PatchManager::GetPatch(const std::string& folder,
+                                 const std::string& filename) {
+  for (const auto& patch : patches_) {
+    if (patch->folder() == folder && patch->filename() == filename) {
+      return patch.get();
+    }
+  }
+  return nullptr;
+}
+
+int PatchManager::GetEnabledPatchCount() const {
+  int count = 0;
+  for (const auto& patch : patches_) {
+    if (patch->enabled()) {
+      ++count;
+    }
+  }
+  return count;
+}
+
+absl::Status PatchManager::ApplyEnabledPatches(Rom* rom) {
+  if (!rom || !rom->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+
+  int enabled_count = GetEnabledPatchCount();
+  if (enabled_count == 0) {
+    return absl::OkStatus();  // Nothing to apply
+  }
+
+  // Generate temporary combined patch file
+  std::string temp_dir = std::filesystem::temp_directory_path().string();
+  std::string temp_path = temp_dir + "/yaze_combined_patches.asm";
+
+  auto status = GenerateCombinedPatch(temp_path);
+  if (!status.ok()) {
+    return status;
+  }
+
+#ifdef YAZE_ENABLE_ASAR
+  // Apply using AsarWrapper
+  AsarWrapper asar;
+  auto init_status = asar.Initialize();
+  if (!init_status.ok()) {
+    return init_status;
+  }
+
+  // Get mutable ROM data
+  auto& rom_data = rom->mutable_vector();
+
+  // Apply the combined patch
+  auto result_or_error = asar.ApplyPatch(temp_path, rom_data, {patches_directory_});
+
+  // Clean up temp file
+  std::filesystem::remove(temp_path);
+
+  if (!result_or_error.ok()) {
+    return result_or_error.status();
+  }
+
+  const auto& result = *result_or_error;
+
+  if (!result.success) {
+    return absl::InternalError(
+        absl::StrCat("Failed to apply patches:\n",
+                     absl::StrJoin(result.errors, "\n")));
+  }
+
+  return absl::OkStatus();
+#else
+  // Clean up temp file
+  std::filesystem::remove(temp_path);
+  return absl::UnimplementedError(
+      "Asar support not enabled. Build with YAZE_ENABLE_ASAR=ON");
+#endif
+}
+
+absl::Status PatchManager::GenerateCombinedPatch(
+    const std::string& output_path) {
+  std::ostringstream combined;
+
+  combined << "; =============================================================================\n";
+  combined << "; Combined Patch File\n";
+  combined << "; Generated by yaze - Yet Another Zelda3 Editor\n";
+  combined << "; =============================================================================\n";
+  combined << "; This file includes all enabled patches.\n";
+  combined << "; Do not edit this file directly - modify individual patches instead.\n";
+  combined << "; =============================================================================\n\n";
+
+  combined << "lorom\n\n";
+
+  // Include each enabled patch
+  int patch_count = 0;
+  for (const auto& patch : patches_) {
+    if (patch->enabled()) {
+      // Use relative path from patches directory
+      std::string relative_path = patch->folder() + "/" + patch->filename();
+      combined << "incsrc \"" << relative_path << "\"\n";
+      ++patch_count;
+    }
+  }
+
+  if (patch_count == 0) {
+    combined << "; No patches enabled\n";
+  } else {
+    combined << "\n; Total patches: " << patch_count << "\n";
+  }
+
+  // Write to file
+  std::ofstream file(output_path);
+  if (!file.is_open()) {
+    return absl::InternalError(
+        absl::StrCat("Failed to create combined patch file: ", output_path));
+  }
+
+  file << combined.str();
+  file.close();
+
+  if (file.fail()) {
+    return absl::InternalError(
+        absl::StrCat("Failed to write combined patch file: ", output_path));
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status PatchManager::SaveAllPatches() {
+  std::vector<std::string> errors;
+
+  for (const auto& patch : patches_) {
+    auto status = patch->Save();
+    if (!status.ok()) {
+      errors.push_back(
+          absl::StrCat(patch->filename(), ": ", status.message()));
+    }
+  }
+
+  if (!errors.empty()) {
+    return absl::InternalError(
+        absl::StrCat("Failed to save some patches:\n",
+                     absl::StrJoin(errors, "\n")));
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status PatchManager::CreatePatchFolder(const std::string& folder_name) {
+  if (patches_directory_.empty()) {
+    return absl::FailedPreconditionError("No patches directory set");
+  }
+
+  // Check if folder already exists
+  for (const auto& folder : folders_) {
+    if (folder == folder_name) {
+      return absl::AlreadyExistsError(
+          absl::StrCat("Folder already exists: ", folder_name));
+    }
+  }
+
+  // Create the directory
+  fs::path folder_path = fs::path(patches_directory_) / folder_name;
+  std::error_code ec;
+  fs::create_directories(folder_path, ec);
+  if (ec) {
+    return absl::InternalError(
+        absl::StrCat("Failed to create folder: ", ec.message()));
+  }
+
+  folders_.push_back(folder_name);
+  std::sort(folders_.begin(), folders_.end());
+
+  return absl::OkStatus();
+}
+
+absl::Status PatchManager::RemovePatchFolder(const std::string& folder_name) {
+  if (patches_directory_.empty()) {
+    return absl::FailedPreconditionError("No patches directory set");
+  }
+
+  // Check if this is the last folder
+  if (folders_.size() <= 1) {
+    return absl::FailedPreconditionError(
+        "Cannot remove the last remaining folder");
+  }
+
+  // Find and remove the folder
+  auto it = std::find(folders_.begin(), folders_.end(), folder_name);
+  if (it == folders_.end()) {
+    return absl::NotFoundError(
+        absl::StrCat("Folder not found: ", folder_name));
+  }
+
+  // Remove all patches in this folder from our list
+  patches_.erase(
+      std::remove_if(patches_.begin(), patches_.end(),
+                     [&folder_name](const std::unique_ptr<AsmPatch>& patch) {
+                       return patch->folder() == folder_name;
+                     }),
+      patches_.end());
+
+  // Remove the directory
+  fs::path folder_path = fs::path(patches_directory_) / folder_name;
+  std::error_code ec;
+  fs::remove_all(folder_path, ec);
+  if (ec) {
+    return absl::InternalError(
+        absl::StrCat("Failed to remove folder: ", ec.message()));
+  }
+
+  folders_.erase(it);
+
+  return absl::OkStatus();
+}
+
+absl::Status PatchManager::AddPatchFile(const std::string& source_path,
+                                        const std::string& target_folder) {
+  if (patches_directory_.empty()) {
+    return absl::FailedPreconditionError("No patches directory set");
+  }
+
+  // Check if source file exists
+  if (!fs::exists(source_path)) {
+    return absl::NotFoundError(
+        absl::StrCat("Source file not found: ", source_path));
+  }
+
+  // Check if target folder exists
+  auto it = std::find(folders_.begin(), folders_.end(), target_folder);
+  if (it == folders_.end()) {
+    return absl::NotFoundError(
+        absl::StrCat("Target folder not found: ", target_folder));
+  }
+
+  // Get filename and create target path
+  std::string filename = fs::path(source_path).filename().string();
+  fs::path target_path = fs::path(patches_directory_) / target_folder / filename;
+
+  // Copy the file
+  std::error_code ec;
+  fs::copy_file(source_path, target_path,
+                fs::copy_options::overwrite_existing, ec);
+  if (ec) {
+    return absl::InternalError(
+        absl::StrCat("Failed to copy file: ", ec.message()));
+  }
+
+  // Load the new patch
+  auto patch = std::make_unique<AsmPatch>(target_path.string(), target_folder);
+  if (patch->is_valid()) {
+    patches_.push_back(std::move(patch));
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status PatchManager::RemovePatchFile(const std::string& folder,
+                                           const std::string& filename) {
+  if (patches_directory_.empty()) {
+    return absl::FailedPreconditionError("No patches directory set");
+  }
+
+  // Find the patch
+  auto it = std::find_if(
+      patches_.begin(), patches_.end(),
+      [&folder, &filename](const std::unique_ptr<AsmPatch>& patch) {
+        return patch->folder() == folder && patch->filename() == filename;
+      });
+
+  if (it == patches_.end()) {
+    return absl::NotFoundError(
+        absl::StrCat("Patch not found: ", folder, "/", filename));
+  }
+
+  // Get the file path before removing from list
+  std::string file_path = (*it)->file_path();
+
+  // Remove from patches list
+  patches_.erase(it);
+
+  // Delete the file
+  std::error_code ec;
+  fs::remove(file_path, ec);
+  if (ec) {
+    return absl::InternalError(
+        absl::StrCat("Failed to delete file: ", ec.message()));
+  }
+
+  return absl::OkStatus();
+}
+
+}  // namespace yaze::core

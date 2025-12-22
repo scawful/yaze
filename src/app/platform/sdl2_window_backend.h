@@ -52,6 +52,7 @@ class SDL2WindowBackend : public IWindowBackend {
   absl::Status InitializeImGui(gfx::IRenderer* renderer) override;
   void ShutdownImGui() override;
   void NewImGuiFrame() override;
+  void RenderImGui(gfx::IRenderer* renderer) override;
 
   uint32_t GetAudioDevice() const override { return audio_device_; }
   std::shared_ptr<int16_t> GetAudioBuffer() const override {

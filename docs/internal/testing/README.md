@@ -212,7 +212,7 @@ scripts/agents/run-gh-workflow.sh ci.yml -f enable_http_api_tests=true
 scripts/agents/run-gh-workflow.sh ci.yml -f upload_artifacts=true
 ```
 
-See [GH Actions Remote Guide](../agents/gh-actions-remote.md) for details.
+See [GH Actions Remote Guide](../agents/archive/utility-tools/gh-actions-remote.md) for details.
 
 ### Test Result Artifacts
 

@@ -1,0 +1,37 @@
+{
+  "name": "YAZE - Yet Another Zelda3 Editor",
+  "short_name": "YAZE",
+  "description": "A modern, cross-platform ROM editor for The Legend of Zelda: A Link to the Past",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "theme_color": "#1e1e1e",
+  "background_color": "#1e1e1e",
+  "categories": ["games", "developer", "utilities"],
+  "icons": [
+    {
+      "src": "../icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Open ROM",
+      "short_name": "Open",
+      "description": "Open a ROM file for editing",
+      "url": "./?action=open"
+    },
+    {
+      "name": "New Project",
+      "short_name": "New",
+      "description": "Start a new ROM hacking project",
+      "url": "./?action=new"
+    }
+  ],
+  "lang": "en-US",
+  "prefer_related_applications": false,
+  "related_applications": []
+}

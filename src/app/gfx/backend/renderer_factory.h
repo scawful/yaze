@@ -57,7 +57,11 @@ class RendererFactory {
       RendererBackendType type = RendererBackendType::kDefault) {
     switch (type) {
       case RendererBackendType::SDL2:
+#ifndef YAZE_USE_SDL3
         return std::make_unique<SDL2Renderer>();
+#else
+        return nullptr;
+#endif
 
       case RendererBackendType::SDL3:
 #ifdef YAZE_USE_SDL3

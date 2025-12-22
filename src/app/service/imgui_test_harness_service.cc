@@ -1,3 +1,4 @@
+#include "app/application.h"
 #include "app/service/imgui_test_harness_service.h"
 
 #ifdef YAZE_WITH_GRPC
@@ -290,146 +291,151 @@ class ImGuiTestHarnessServiceGrpc final : public ImGuiTestHarness::Service {
   explicit ImGuiTestHarnessServiceGrpc(ImGuiTestHarnessServiceImpl* impl)
       : impl_(impl) {}
 
-  grpc::Status Ping(grpc::ServerContext* context, const PingRequest* request,
+  ::grpc::Status Ping(::grpc::ServerContext* context, const PingRequest* request,
                     PingResponse* response) override {
     return ConvertStatus(impl_->Ping(request, response));
   }
 
-  grpc::Status Click(grpc::ServerContext* context, const ClickRequest* request,
+  ::grpc::Status Click(::grpc::ServerContext* context, const ClickRequest* request,
                      ClickResponse* response) override {
     return ConvertStatus(impl_->Click(request, response));
   }
 
-  grpc::Status Type(grpc::ServerContext* context, const TypeRequest* request,
+  ::grpc::Status Type(::grpc::ServerContext* context, const TypeRequest* request,
                     TypeResponse* response) override {
     return ConvertStatus(impl_->Type(request, response));
   }
 
-  grpc::Status Wait(grpc::ServerContext* context, const WaitRequest* request,
+  ::grpc::Status Wait(::grpc::ServerContext* context, const WaitRequest* request,
                     WaitResponse* response) override {
     return ConvertStatus(impl_->Wait(request, response));
   }
 
-  grpc::Status Assert(grpc::ServerContext* context,
+  ::grpc::Status Assert(::grpc::ServerContext* context,
                       const AssertRequest* request,
                       AssertResponse* response) override {
     return ConvertStatus(impl_->Assert(request, response));
   }
 
-  grpc::Status Screenshot(grpc::ServerContext* context,
+  ::grpc::Status Screenshot(::grpc::ServerContext* context,
                           const ScreenshotRequest* request,
                           ScreenshotResponse* response) override {
     return ConvertStatus(impl_->Screenshot(request, response));
   }
 
-  grpc::Status GetTestStatus(grpc::ServerContext* context,
+  ::grpc::Status GetTestStatus(::grpc::ServerContext* context,
                              const GetTestStatusRequest* request,
                              GetTestStatusResponse* response) override {
     return ConvertStatus(impl_->GetTestStatus(request, response));
   }
 
-  grpc::Status ListTests(grpc::ServerContext* context,
+  ::grpc::Status ListTests(::grpc::ServerContext* context,
                          const ListTestsRequest* request,
                          ListTestsResponse* response) override {
     return ConvertStatus(impl_->ListTests(request, response));
   }
 
-  grpc::Status GetTestResults(grpc::ServerContext* context,
+  ::grpc::Status GetTestResults(::grpc::ServerContext* context,
                               const GetTestResultsRequest* request,
                               GetTestResultsResponse* response) override {
     return ConvertStatus(impl_->GetTestResults(request, response));
   }
 
-  grpc::Status DiscoverWidgets(grpc::ServerContext* context,
+  ::grpc::Status DiscoverWidgets(::grpc::ServerContext* context,
                                const DiscoverWidgetsRequest* request,
                                DiscoverWidgetsResponse* response) override {
     return ConvertStatus(impl_->DiscoverWidgets(request, response));
   }
 
-  grpc::Status StartRecording(grpc::ServerContext* context,
+  ::grpc::Status StartRecording(::grpc::ServerContext* context,
                               const StartRecordingRequest* request,
                               StartRecordingResponse* response) override {
     return ConvertStatus(impl_->StartRecording(request, response));
   }
 
-  grpc::Status StopRecording(grpc::ServerContext* context,
+  ::grpc::Status StopRecording(::grpc::ServerContext* context,
                              const StopRecordingRequest* request,
                              StopRecordingResponse* response) override {
     return ConvertStatus(impl_->StopRecording(request, response));
   }
 
-  grpc::Status ReplayTest(grpc::ServerContext* context,
+  ::grpc::Status ReplayTest(::grpc::ServerContext* context,
                           const ReplayTestRequest* request,
                           ReplayTestResponse* response) override {
     return ConvertStatus(impl_->ReplayTest(request, response));
   }
 
  private:
-  static grpc::Status ConvertStatus(const absl::Status& status) {
+  static ::grpc::Status ConvertStatus(const absl::Status& status) {
     if (status.ok()) {
-      return grpc::Status::OK;
+      return ::grpc::Status::OK;
     }
 
-    grpc::StatusCode code = grpc::StatusCode::UNKNOWN;
+    ::grpc::StatusCode code = ::grpc::StatusCode::UNKNOWN;
     switch (status.code()) {
       case absl::StatusCode::kCancelled:
-        code = grpc::StatusCode::CANCELLED;
+        code = ::grpc::StatusCode::CANCELLED;
         break;
       case absl::StatusCode::kUnknown:
-        code = grpc::StatusCode::UNKNOWN;
+        code = ::grpc::StatusCode::UNKNOWN;
         break;
       case absl::StatusCode::kInvalidArgument:
-        code = grpc::StatusCode::INVALID_ARGUMENT;
+        code = ::grpc::StatusCode::INVALID_ARGUMENT;
         break;
       case absl::StatusCode::kDeadlineExceeded:
-        code = grpc::StatusCode::DEADLINE_EXCEEDED;
+        code = ::grpc::StatusCode::DEADLINE_EXCEEDED;
         break;
       case absl::StatusCode::kNotFound:
-        code = grpc::StatusCode::NOT_FOUND;
+        code = ::grpc::StatusCode::NOT_FOUND;
         break;
       case absl::StatusCode::kAlreadyExists:
-        code = grpc::StatusCode::ALREADY_EXISTS;
+        code = ::grpc::StatusCode::ALREADY_EXISTS;
         break;
       case absl::StatusCode::kPermissionDenied:
-        code = grpc::StatusCode::PERMISSION_DENIED;
+        code = ::grpc::StatusCode::PERMISSION_DENIED;
         break;
       case absl::StatusCode::kResourceExhausted:
-        code = grpc::StatusCode::RESOURCE_EXHAUSTED;
+        code = ::grpc::StatusCode::RESOURCE_EXHAUSTED;
         break;
       case absl::StatusCode::kFailedPrecondition:
-        code = grpc::StatusCode::FAILED_PRECONDITION;
+        code = ::grpc::StatusCode::FAILED_PRECONDITION;
         break;
       case absl::StatusCode::kAborted:
-        code = grpc::StatusCode::ABORTED;
+        code = ::grpc::StatusCode::ABORTED;
         break;
       case absl::StatusCode::kOutOfRange:
-        code = grpc::StatusCode::OUT_OF_RANGE;
+        code = ::grpc::StatusCode::OUT_OF_RANGE;
         break;
       case absl::StatusCode::kUnimplemented:
-        code = grpc::StatusCode::UNIMPLEMENTED;
+        code = ::grpc::StatusCode::UNIMPLEMENTED;
         break;
       case absl::StatusCode::kInternal:
-        code = grpc::StatusCode::INTERNAL;
+        code = ::grpc::StatusCode::INTERNAL;
         break;
       case absl::StatusCode::kUnavailable:
-        code = grpc::StatusCode::UNAVAILABLE;
+        code = ::grpc::StatusCode::UNAVAILABLE;
         break;
       case absl::StatusCode::kDataLoss:
-        code = grpc::StatusCode::DATA_LOSS;
+        code = ::grpc::StatusCode::DATA_LOSS;
         break;
       case absl::StatusCode::kUnauthenticated:
-        code = grpc::StatusCode::UNAUTHENTICATED;
+        code = ::grpc::StatusCode::UNAUTHENTICATED;
         break;
       default:
-        code = grpc::StatusCode::UNKNOWN;
+        code = ::grpc::StatusCode::UNKNOWN;
         break;
     }
 
-    return grpc::Status(code, std::string(status.message().data(), status.message().size()));
+    return ::grpc::Status(code, std::string(status.message().data(), status.message().size()));
   }
 
   ImGuiTestHarnessServiceImpl* impl_;
 };
+
+std::unique_ptr<::grpc::Service> CreateImGuiTestHarnessServiceGrpc(
+    ImGuiTestHarnessServiceImpl* impl) {
+  return std::make_unique<ImGuiTestHarnessServiceGrpc>(impl);
+}
 
 // ============================================================================
 // ImGuiTestHarnessServiceImpl - RPC Handlers
@@ -1194,15 +1200,39 @@ absl::Status ImGuiTestHarnessServiceImpl::Screenshot(
 
   const std::string requested_path =
       request ? request->output_path() : std::string();
-  absl::StatusOr<ScreenshotArtifact> artifact_or =
-      CaptureHarnessScreenshot(requested_path);
-  if (!artifact_or.ok()) {
-    response->set_success(false);
-    response->set_message(std::string(artifact_or.status().message()));
-    return artifact_or.status();
+
+  // We must execute capture on the main thread to avoid Metal/OpenGL context errors.
+  // Use Controller's request queue.
+  struct State {
+    std::atomic<bool> done{false};
+    absl::StatusOr<ScreenshotArtifact> result = absl::UnknownError("Not captured");
+  };
+  auto state = std::make_shared<State>();
+
+  Application::Instance().GetController()->RequestScreenshot({
+    .preferred_path = requested_path,
+    .callback = [state](absl::StatusOr<ScreenshotArtifact> result) {
+      state->result = std::move(result);
+      state->done.store(true);
+    }
+  });
+
+  // Wait for main thread to process (timeout after 5s)
+  auto start = std::chrono::steady_clock::now();
+  while (!state->done.load()) {
+    if (std::chrono::steady_clock::now() - start > std::chrono::seconds(5)) {
+      return absl::DeadlineExceededError("Timed out waiting for screenshot capture on main thread");
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
 
-  const ScreenshotArtifact& artifact = *artifact_or;
+  if (!state->result.ok()) {
+    response->set_success(false);
+    response->set_message(std::string(state->result.status().message()));
+    return state->result.status();
+  }
+
+  const ScreenshotArtifact& artifact = *state->result;
   response->set_success(true);
   response->set_message(absl::StrFormat("Screenshot saved to %s (%dx%d)",
                                         artifact.file_path, artifact.width,

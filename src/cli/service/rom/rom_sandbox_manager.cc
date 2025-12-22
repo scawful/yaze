@@ -107,7 +107,6 @@ RomSandboxManager::CreateSandbox(Rom& rom, absl::string_view description) {
   settings.filename = sandbox_rom_path.string();
   settings.save_new = false;
   settings.backup = false;
-  settings.z3_save = true;
 
   absl::Status save_status = rom.SaveToFile(settings);
   if (!save_status.ok()) {

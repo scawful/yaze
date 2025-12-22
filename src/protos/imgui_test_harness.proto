@@ -139,6 +139,7 @@ message ScreenshotRequest {
     IMAGE_FORMAT_UNSPECIFIED = 0;
     IMAGE_FORMAT_PNG = 1;
     IMAGE_FORMAT_JPEG = 2;
+    IMAGE_FORMAT_BMP = 3;
   }
 }
 

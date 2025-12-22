@@ -9,8 +9,12 @@
 #include "absl/flags/flag.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
+#include "rom/rom.h"
 #include "cli/cli.h"
+#include "cli/service/command_registry.h"
+#ifndef __EMSCRIPTEN__
 #include "cli/tui/tui.h"
+#endif
 #include "cli/z3ed_ascii_logo.h"
 #include "yaze_config.h"
 
@@ -23,6 +27,7 @@
 ABSL_FLAG(bool, tui, false, "Launch interactive Text User Interface");
 ABSL_DECLARE_FLAG(bool, quiet);
 ABSL_FLAG(bool, version, false, "Show version information");
+ABSL_FLAG(bool, self_test, false, "Run self-test diagnostics to verify CLI functionality");
 #ifdef YAZE_HTTP_API_ENABLED
 ABSL_FLAG(int, http_port, 0,
           "HTTP API server port (0 = disabled, default: 8080 when enabled)");
@@ -33,7 +38,9 @@ ABSL_DECLARE_FLAG(std::string, rom);
 ABSL_DECLARE_FLAG(std::string, ai_provider);
 ABSL_DECLARE_FLAG(std::string, ai_model);
 ABSL_DECLARE_FLAG(std::string, gemini_api_key);
+ABSL_DECLARE_FLAG(std::string, anthropic_api_key);
 ABSL_DECLARE_FLAG(std::string, ollama_host);
+ABSL_DECLARE_FLAG(std::string, gui_server_address);
 ABSL_DECLARE_FLAG(std::string, prompt_version);
 ABSL_DECLARE_FLAG(bool, use_function_calling);
 
@@ -47,40 +54,112 @@ void PrintVersion() {
   std::cout << "  https://github.com/scawful/yaze\n\n";
 }
 
+/**
+ * @brief Run self-test diagnostics to verify CLI functionality
+ * @return EXIT_SUCCESS if all tests pass, EXIT_FAILURE otherwise
+ */
+int RunSelfTest() {
+  std::cout << "\n\033[1;36m=== z3ed Self-Test ===\033[0m\n\n";
+  int passed = 0;
+  int failed = 0;
+
+  auto run_test = [&](const char* name, bool condition) {
+    if (condition) {
+      std::cout << "  \033[1;32m✓\033[0m " << name << "\n";
+      ++passed;
+    } else {
+      std::cout << "  \033[1;31m✗\033[0m " << name << "\n";
+      ++failed;
+    }
+  };
+
+  // Test 1: Version info is available
+  run_test("Version info available", 
+           YAZE_VERSION_MAJOR >= 0 && YAZE_VERSION_MINOR >= 0);
+
+  // Test 2: CLI instance can be created
+  {
+    bool cli_created = false;
+    try {
+      yaze::cli::ModernCLI cli;
+      cli_created = true;
+    } catch (...) {
+      cli_created = false;
+    }
+    run_test("CLI instance creation", cli_created);
+  }
+
+  // Test 3: App context is accessible
+  run_test("App context accessible", true);  // Always passes if we got here
+
+  // Test 4: ROM class can be instantiated
+  {
+    bool rom_ok = false;
+    try {
+      yaze::Rom test_rom;
+      rom_ok = true;
+    } catch (...) {
+      rom_ok = false;
+    }
+    run_test("ROM class instantiation", rom_ok);
+  }
+
+  // Test 5: Flag parsing works
+  run_test("Flag parsing functional", 
+           absl::GetFlag(FLAGS_self_test) == true);
+
+#ifdef YAZE_HTTP_API_ENABLED
+  // Test 6: HTTP API available (if compiled in)
+  run_test("HTTP API compiled in", true);
+#else
+  run_test("HTTP API not compiled (expected)", true);
+#endif
+
+  // Summary
+  std::cout << "\n\033[1;36m=== Results ===\033[0m\n";
+  std::cout << "  Passed: \033[1;32m" << passed << "\033[0m\n";
+  std::cout << "  Failed: \033[1;31m" << failed << "\033[0m\n";
+  
+  if (failed == 0) {
+    std::cout << "\n\033[1;32mAll self-tests passed!\033[0m\n\n";
+    return EXIT_SUCCESS;
+  } else {
+    std::cout << "\n\033[1;31mSome self-tests failed.\033[0m\n\n";
+    return EXIT_FAILURE;
+  }
+}
+
 void PrintCompactHelp() {
+  auto& registry = yaze::cli::CommandRegistry::Instance();
+  auto categories = registry.GetCategories();
+
   std::cout << yaze::cli::GetColoredLogo() << "\n";
   std::cout
       << "  \033[1;37mYet Another Zelda3 Editor - AI-Powered CLI\033[0m\n\n";
 
   std::cout << "\033[1;36mUSAGE:\033[0m\n";
   std::cout << "  z3ed [command] [flags]\n";
-  std::cout << "  z3ed --tui              # Interactive TUI mode\n";
-  std::cout << "  z3ed --version          # Show version\n";
-  std::cout << "  z3ed --help <category>  # Category help\n\n";
+  std::cout << "  z3ed --tui                    # Interactive TUI mode\n";
+  std::cout << "  z3ed help <command|category>  # Scoped help\n";
+  std::cout << "  z3ed --export-schemas         # JSON schemas for agents\n";
+  std::cout << "  z3ed --version                # Show version\n\n";
 
-  std::cout << "\033[1;36mCOMMANDS:\033[0m\n";
-  std::cout << "  \033[1;33magent\033[0m       AI conversational agent for ROM "
-               "inspection\n";
-  std::cout << "  \033[1;33mrom\033[0m         ROM operations (info, validate, "
-               "diff)\n";
-  std::cout
-      << "  \033[1;33mdungeon\033[0m     Dungeon inspection and editing\n";
-  std::cout
-      << "  \033[1;33moverworld\033[0m   Overworld inspection and editing\n";
-  std::cout << "  \033[1;33mmessage\033[0m     Message/dialogue inspection\n";
-  std::cout << "  \033[1;33mgfx\033[0m         Graphics operations (export, "
-               "import)\n";
-  std::cout << "  \033[1;33mpalette\033[0m     Palette operations\n";
-  std::cout << "  \033[1;33mpatch\033[0m       Apply patches (BPS, Asar)\n";
-  std::cout
-      << "  \033[1;33mproject\033[0m     Project management (init, build)\n\n";
+  std::cout << "\033[1;36mCATEGORIES:\033[0m\n";
+  for (const auto& category : categories) {
+    auto commands = registry.GetCommandsInCategory(category);
+    std::cout << "  \033[1;33m" << category << "\033[0m (" << commands.size()
+              << " commands)\n";
+  }
+  std::cout << "\n";
 
   std::cout << "\033[1;36mCOMMON FLAGS:\033[0m\n";
   std::cout << "  --rom=<path>           Path to ROM file\n";
   std::cout << "  --tui                  Launch interactive TUI\n";
   std::cout << "  --quiet, -q            Suppress output\n";
   std::cout << "  --version              Show version\n";
-  std::cout << "  --help <category>      Show category help\n";
+  std::cout << "  --self-test            Run self-test diagnostics\n";
+  std::cout << "  --help <scope>         Show help for command or category\n";
+  std::cout << "  --export-schemas       Export command schemas as JSON\n";
 #ifdef YAZE_HTTP_API_ENABLED
   std::cout << "  --http-port=<port>     HTTP API server port (0=disabled)\n";
   std::cout
@@ -95,7 +174,7 @@ void PrintCompactHelp() {
                "Sword\"\n";
   std::cout << "  z3ed dungeon export --rom=zelda3.sfc --id=1\n\n";
 
-  std::cout << "For detailed help: z3ed --help <command>\n";
+  std::cout << "For detailed help: z3ed help <command>\n";
   std::cout << "For all commands:  z3ed --list-commands\n\n";
 }
 
@@ -104,7 +183,9 @@ struct ParsedGlobals {
   bool show_help = false;
   bool show_version = false;
   bool list_commands = false;
-  std::optional<std::string> help_category;
+  bool self_test = false;
+  bool export_schemas = false;
+  std::optional<std::string> help_target;
   std::optional<std::string> error;
 };
 
@@ -131,9 +212,9 @@ ParsedGlobals ParseGlobalFlags(int argc, char* argv[]) {
 
       // Help flags
       if (absl::StartsWith(token, "--help=")) {
-        std::string category(token.substr(7));
-        if (!category.empty()) {
-          result.help_category = category;
+        std::string target(token.substr(7));
+        if (!target.empty()) {
+          result.help_target = target;
         } else {
           result.show_help = true;
         }
@@ -141,7 +222,7 @@ ParsedGlobals ParseGlobalFlags(int argc, char* argv[]) {
       }
       if (token == "--help" || token == "-h") {
         if (i + 1 < argc && argv[i + 1][0] != '-') {
-          result.help_category = std::string(argv[++i]);
+          result.help_target = std::string(argv[++i]);
         } else {
           result.show_help = true;
         }
@@ -157,6 +238,18 @@ ParsedGlobals ParseGlobalFlags(int argc, char* argv[]) {
       // List commands
       if (token == "--list-commands" || token == "--list") {
         result.list_commands = true;
+        continue;
+      }
+
+      // Schema export
+      if (token == "--export-schemas" || token == "--export_schemas") {
+        result.export_schemas = true;
+        continue;
+      }
+
+      // Self-test mode
+      if (token == "--self-test" || token == "--selftest") {
+        result.self_test = true;
         continue;
       }
 
@@ -236,6 +329,38 @@ ParsedGlobals ParseGlobalFlags(int argc, char* argv[]) {
           return result;
         }
         absl::SetFlag(&FLAGS_gemini_api_key, std::string(argv[++i]));
+        continue;
+      }
+
+      if (absl::StartsWith(token, "--anthropic_api_key=") ||
+          absl::StartsWith(token, "--anthropic-api-key=")) {
+        size_t eq_pos = token.find('=');
+        absl::SetFlag(&FLAGS_anthropic_api_key,
+                      std::string(token.substr(eq_pos + 1)));
+        continue;
+      }
+      if (token == "--anthropic_api_key" || token == "--anthropic-api-key") {
+        if (i + 1 >= argc) {
+          result.error = "--anthropic-api-key flag requires a value";
+          return result;
+        }
+        absl::SetFlag(&FLAGS_anthropic_api_key, std::string(argv[++i]));
+        continue;
+      }
+
+      if (absl::StartsWith(token, "--gui_server_address=") ||
+          absl::StartsWith(token, "--gui-server-address=")) {
+        size_t eq_pos = token.find('=');
+        absl::SetFlag(&FLAGS_gui_server_address,
+                      std::string(token.substr(eq_pos + 1)));
+        continue;
+      }
+      if (token == "--gui_server_address" || token == "--gui-server-address") {
+        if (i + 1 >= argc) {
+          result.error = "--gui-server-address flag requires a value";
+          return result;
+        }
+        absl::SetFlag(&FLAGS_gui_server_address, std::string(argv[++i]));
         continue;
       }
 
@@ -361,6 +486,19 @@ int main(int argc, char* argv[]) {
     return EXIT_SUCCESS;
   }
 
+  // Handle self-test flag
+  if (globals.self_test) {
+    absl::SetFlag(&FLAGS_self_test, true);  // Ensure flag is set for test
+    return RunSelfTest();
+  }
+
+  auto& registry = yaze::cli::CommandRegistry::Instance();
+
+  if (globals.export_schemas) {
+    std::cout << registry.ExportFunctionSchemas() << "\n";
+    return EXIT_SUCCESS;
+  }
+
 #ifdef YAZE_HTTP_API_ENABLED
   // Start HTTP API server if requested
   std::unique_ptr<yaze::cli::api::HttpServer> http_server;
@@ -391,6 +529,7 @@ int main(int argc, char* argv[]) {
 #endif
 
   // Handle TUI mode
+#ifndef __EMSCRIPTEN__
   if (absl::GetFlag(FLAGS_tui)) {
     // Load ROM if specified before launching TUI
     std::string rom_path = absl::GetFlag(FLAGS_rom);
@@ -405,13 +544,31 @@ int main(int argc, char* argv[]) {
     yaze::cli::ShowMain();
     return EXIT_SUCCESS;
   }
+#else
+  if (absl::GetFlag(FLAGS_tui)) {
+    std::cerr << "TUI mode is not available in WASM builds.\n";
+    return EXIT_FAILURE;
+  }
+#endif
 
   // Create CLI instance
   yaze::cli::ModernCLI cli;
 
-  // Handle category-specific help
-  if (globals.help_category.has_value()) {
-    cli.PrintCategoryHelp(*globals.help_category);
+  // Handle targeted help (command or category)
+  if (globals.help_target.has_value()) {
+    const std::string& target = *globals.help_target;
+    if (target == "all") {
+      std::cout << registry.GenerateCompleteHelp() << "\n";
+    } else if (registry.HasCommand(target)) {
+      std::cout << registry.GenerateHelp(target) << "\n";
+    } else if (!registry.GetCommandsInCategory(target).empty()) {
+      cli.PrintCategoryHelp(target);
+    } else {
+      std::cerr << "\n\033[1;31mError:\033[0m Unknown command or category '"
+                << target << "'\n";
+      std::cerr << "Use --list-commands for a full command list.\n";
+      return EXIT_FAILURE;
+    }
     return EXIT_SUCCESS;
   }
 

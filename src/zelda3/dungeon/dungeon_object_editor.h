@@ -12,7 +12,9 @@
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/platform/window.h"
-#include "app/rom.h"
+#include "rom/rom.h"
+#include "zelda3/dungeon/dungeon_validator.h"
+#include "zelda3/dungeon/object_templates.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
 
@@ -113,6 +115,28 @@ class DungeonObjectEditor {
   absl::Status ChangeObjectType(size_t object_index, int new_type);
   absl::Status ChangeObjectLayer(size_t object_index, int new_layer);
 
+  // Batch operations
+  absl::Status BatchMoveObjects(const std::vector<size_t>& indices, int dx,
+                                int dy);
+  absl::Status BatchChangeObjectLayer(const std::vector<size_t>& indices,
+                                      int new_layer);
+  absl::Status BatchResizeObjects(const std::vector<size_t>& indices,
+                                  int new_size);
+
+  // Copy/Paste/Duplicate
+  std::optional<size_t> DuplicateObject(size_t object_index, int offset_x = 1, int offset_y = 1);
+  void CopySelectedObjects(const std::vector<size_t>& indices);
+  std::vector<size_t> PasteObjects();
+
+  enum class Alignment { Left, CenterX, Right, Top, CenterY, Bottom };
+  absl::Status AlignSelectedObjects(Alignment alignment);
+
+  // Template management
+  absl::Status InsertTemplate(const ObjectTemplate& tmpl, int x, int y);
+  absl::Status CreateTemplateFromSelection(const std::string& name,
+                                           const std::string& description);
+  const std::vector<ObjectTemplate>& GetTemplates() const;
+
   // Selection management
   absl::Status SelectObject(int screen_x, int screen_y);
   absl::Status SelectObjects(int start_x, int start_y, int end_x, int end_y);
@@ -157,7 +181,7 @@ class DungeonObjectEditor {
   // Phase 4: Visual feedback and GUI
   void RenderSelectionHighlight(gfx::Bitmap& canvas);
   void RenderLayerVisualization(gfx::Bitmap& canvas);
-  void RenderObjectPropertyPanel();  // ImGui panel
+  void DrawPropertyUI();  // ImGui panel contents
   void RenderLayerControls();        // ImGui controls
   absl::Status HandleDragOperation(int current_x, int current_y);
 
@@ -170,6 +194,7 @@ class DungeonObjectEditor {
 
   // Configuration
   void SetROM(Rom* rom);
+  void SetExternalRoom(Room* room);
   void SetConfig(const EditorConfig& config);
   EditorConfig GetConfig() const { return config_; }
   void SetSnapToGrid(bool enabled);
@@ -177,7 +202,7 @@ class DungeonObjectEditor {
   void SetShowGrid(bool enabled);
 
   // Validation and error checking
-  absl::Status ValidateRoom();
+  ValidationResult ValidateRoom();
   absl::Status ValidateObject(const RoomObject& object);
   std::vector<std::string> GetValidationErrors();
 
@@ -191,9 +216,11 @@ class DungeonObjectEditor {
   void SetRoomChangedCallback(RoomChangedCallback callback);
   void SetSelectionChangedCallback(SelectionChangedCallback callback);
 
+  absl::Status InitializeEditor();
+
   // Getters
   const Room& GetRoom() const { return *current_room_; }
-  Room* GetMutableRoom() { return current_room_.get(); }
+  Room* GetMutableRoom() { return current_room_; }
   const SelectionState& GetSelection() const { return selection_state_; }
   const EditingState& GetEditingState() const { return editing_state_; }
   size_t GetObjectCount() const {
@@ -205,7 +232,6 @@ class DungeonObjectEditor {
 
  private:
   // Internal helper methods
-  absl::Status InitializeEditor();
   absl::Status CreateUndoPoint();
   absl::Status ApplyUndoPoint(const UndoPoint& undo_point);
 
@@ -235,7 +261,8 @@ class DungeonObjectEditor {
 
   // Member variables
   Rom* rom_;
-  std::unique_ptr<Room> current_room_;
+  Room* current_room_ = nullptr;
+  std::unique_ptr<Room> owned_room_;
 
   SelectionState selection_state_;
   EditingState editing_state_;
@@ -261,8 +288,14 @@ class DungeonObjectEditor {
   static constexpr int kMinLayer = 0;
   static constexpr int kMaxLayer = 2;
 
+  DungeonValidator validator_;
+  ObjectTemplateManager template_manager_;
+
   // Empty objects vector for const getter
   std::vector<RoomObject> empty_objects_;
+
+  // Clipboard
+  std::vector<RoomObject> clipboard_;
 };
 
 /**

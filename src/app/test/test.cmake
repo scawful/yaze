@@ -13,6 +13,9 @@
 set(YAZE_TEST_SOURCES
   app/test/test_manager.cc
   app/test/z3ed_test_suite.cc
+  # AI Multimodal Testing Framework
+  app/test/ai_vision_verifier.cc
+  app/test/screenshot_assertion.cc
 )
 
 # gRPC test harness services are now in yaze_grpc_support library

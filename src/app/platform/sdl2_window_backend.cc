@@ -17,11 +17,16 @@
 #include "util/log.h"
 
 namespace yaze {
+
+// Forward reference to the global resize flag defined in window.cc
+namespace core {
+extern bool g_window_is_resizing;
+}
+
 namespace platform {
 
-// Global flag for window resize state (used by emulator to pause)
-// This maintains compatibility with the legacy window.cc
-extern bool g_window_is_resizing;
+// Alias to core's resize flag for compatibility
+#define g_window_is_resizing yaze::core::g_window_is_resizing
 
 SDL2WindowBackend::~SDL2WindowBackend() {
   if (initialized_) {
@@ -150,6 +155,8 @@ bool SDL2WindowBackend::PollEvent(WindowEvent& out_event) {
 
     // Convert to platform-agnostic event
     out_event = ConvertSDL2Event(sdl_event);
+    out_event.has_native_event = true;
+    out_event.native_event = sdl_event;
     return true;
   }
   return false;
@@ -375,6 +382,15 @@ absl::Status SDL2WindowBackend::InitializeImGui(gfx::IRenderer* renderer) {
   ImGuiIO& io = ImGui::GetIO();
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+  // Note: ViewportsEnable is intentionally NOT set for SDL2 + SDL_Renderer
+  // It causes scaling issues on macOS Retina displays
+
+  // Ensure macOS-style behavior (Cmd acts as Ctrl for shortcuts)
+  // ImGui should set this automatically based on __APPLE__, but force it to be safe
+#ifdef __APPLE__
+  io.ConfigMacOSXBehaviors = true;
+  LOG_INFO("SDL2WindowBackend", "Enabled ConfigMacOSXBehaviors for macOS");
+#endif
 
   // Initialize ImGui backends
   SDL_Renderer* sdl_renderer =
@@ -426,10 +442,34 @@ void SDL2WindowBackend::NewImGuiFrame() {
 
   ImGui_ImplSDLRenderer2_NewFrame();
   ImGui_ImplSDL2_NewFrame();
+  // ImGui_ImplSDL2_NewFrame() automatically handles DisplaySize and
+  // DisplayFramebufferScale via ImGui_ImplSDL2_GetWindowSizeAndFramebufferScale()
+  // which uses SDL_GetRendererOutputSize() when renderer is available.
 }
 
-// Define the global variable for backward compatibility
-bool g_window_is_resizing = false;
+void SDL2WindowBackend::RenderImGui(gfx::IRenderer* renderer) {
+  if (!imgui_initialized_) {
+    return;
+  }
+
+  // Finalize ImGui frame and render draw data
+  ImGui::Render();
+  
+  if (renderer) {
+    SDL_Renderer* sdl_renderer =
+        static_cast<SDL_Renderer*>(renderer->GetBackendRenderer());
+    if (sdl_renderer) {
+      ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), sdl_renderer);
+    }
+  }
+
+  // Multi-viewport support
+  ImGuiIO& io = ImGui::GetIO();
+  if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+    ImGui::UpdatePlatformWindows();
+    ImGui::RenderPlatformWindowsDefault();
+  }
+}
 
 }  // namespace platform
 }  // namespace yaze

@@ -1,9 +1,9 @@
 name: Nightly Test Suite
 
 on:
-  schedule:
-    # Run nightly at 3 AM UTC
-    - cron: '0 3 * * *'
+  # Disabled scheduled runs until test infrastructure matures
+  # schedule:
+  #   - cron: '0 3 * * *'
   workflow_dispatch:
     inputs:
       test_suites:
@@ -56,33 +56,12 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Compute dependency lock hash
-        id: deps-hash
-        shell: bash
-        run: |
-          python_cmd="$(command -v python3 || command -v python || true)"
-          if [ -z "$python_cmd" ]; then
-            echo "hash=none" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          hash=$("$python_cmd" - <<'PY'
-import hashlib
-import pathlib
-path = pathlib.Path("cmake/dependencies.lock")
-if path.is_file():
-    print(hashlib.sha256(path.read_bytes()).hexdigest())
-else:
-    print("none")
-PY
-)
-          echo "hash=$hash" >> "$GITHUB_OUTPUT"
-
       - name: Setup build environment
         uses: ./.github/actions/setup-build
         with:
           platform: ${{ matrix.platform }}
           preset: ${{ matrix.preset }}
-          cache-key: ${{ steps.deps-hash.outputs.hash }}
+          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
 
       - name: Configure with ROM tests enabled
         run: |
@@ -100,7 +79,7 @@ PY
             --parallel
 
       - name: Download test ROM (if available)
-        if: secrets.TEST_ROM_URL != ''
+        if: ${{ vars.TEST_ROM_URL != '' }}
         run: |
           # This would download a test ROM from a secure location
           # For now, this is a placeholder for ROM acquisition
@@ -108,7 +87,7 @@ PY
         continue-on-error: true
 
       - name: Run ROM-dependent tests
-        if: hashFiles('test_rom.sfc') != '' || github.event.inputs.rom_path != ''
+        if: ${{ github.event.inputs.rom_path != '' }}
         run: |
           cd build_nightly
           ctest -L rom_dependent \
@@ -152,33 +131,12 @@ PY
         with:
           submodules: recursive
 
-      - name: Compute dependency lock hash
-        id: deps-hash
-        shell: bash
-        run: |
-          python_cmd="$(command -v python3 || command -v python || true)"
-          if [ -z "$python_cmd" ]; then
-            echo "hash=none" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          hash=$("$python_cmd" - <<'PY'
-import hashlib
-import pathlib
-path = pathlib.Path("cmake/dependencies.lock")
-if path.is_file():
-    print(hashlib.sha256(path.read_bytes()).hexdigest())
-else:
-    print("none")
-PY
-)
-          echo "hash=$hash" >> "$GITHUB_OUTPUT"
-
       - name: Setup build environment
         uses: ./.github/actions/setup-build
         with:
           platform: ${{ matrix.platform }}
           preset: ${{ matrix.preset }}
-          cache-key: ${{ steps.deps-hash.outputs.hash }}
+          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
 
       - name: Configure with AI runtime enabled
         run: |
@@ -251,33 +209,12 @@ PY
         with:
           submodules: recursive
 
-      - name: Compute dependency lock hash
-        id: deps-hash
-        shell: bash
-        run: |
-          python_cmd="$(command -v python3 || command -v python || true)"
-          if [ -z "$python_cmd" ]; then
-            echo "hash=none" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          hash=$("$python_cmd" - <<'PY'
-import hashlib
-import pathlib
-path = pathlib.Path("cmake/dependencies.lock")
-if path.is_file():
-    print(hashlib.sha256(path.read_bytes()).hexdigest())
-else:
-    print("none")
-PY
-)
-          echo "hash=$hash" >> "$GITHUB_OUTPUT"
-
       - name: Setup build environment
         uses: ./.github/actions/setup-build
         with:
           platform: ${{ matrix.platform }}
           preset: ${{ matrix.preset }}
-          cache-key: ${{ steps.deps-hash.outputs.hash }}
+          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
 
       - name: Install GUI dependencies (Linux)
         if: runner.os == 'Linux'
@@ -337,7 +274,7 @@ PY
         with:
           platform: linux
           preset: ci-linux
-          cache-key: ${{ steps.deps-hash.outputs.hash }}
+          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
 
       - name: Build benchmarks
         run: |
@@ -366,7 +303,7 @@ PY
           retention-days: 90
 
       - name: Compare with baseline (if exists)
-        if: hashFiles('benchmark_baseline.json') != ''
+        if: ${{ hashFiles('benchmark_baseline.json') != '' }}
         run: |
           # Compare current results with baseline
           # This would use a tool like google/benchmark's compare.py
@@ -392,7 +329,7 @@ PY
         with:
           platform: linux
           preset: ci-linux
-          cache-key: ${{ steps.deps-hash.outputs.hash }}
+          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
 
       - name: Build with full features
         run: |
@@ -417,7 +354,7 @@ PY
             --output-junit extended_integration_results.xml
 
       - name: Run HTTP API tests
-        if: hashFiles('scripts/agents/test-http-api.sh') != ''
+        if: ${{ hashFiles('scripts/agents/test-http-api.sh') != '' }}
         run: |
           chmod +x scripts/agents/test-http-api.sh
           scripts/agents/test-http-api.sh
@@ -499,7 +436,7 @@ PY
           echo "*Nightly tests include comprehensive suites not run during PR/push CI.*" >> $GITHUB_STEP_SUMMARY
 
       - name: Send notification (if configured)
-        if: failure() && vars.SLACK_WEBHOOK_URL != ''
+        if: ${{ failure() && vars.SLACK_WEBHOOK_URL != '' }}
         run: |
           # Send notification about nightly test failures
           echo "Notification would be sent here"

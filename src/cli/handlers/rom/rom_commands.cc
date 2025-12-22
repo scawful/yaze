@@ -79,13 +79,13 @@ absl::Status RomDiffCommandHandler::Execute(
   std::string rom_b_path = rom_b_opt.value();
 
   Rom rom_a;
-  auto status_a = rom_a.LoadFromFile(rom_a_path, RomLoadOptions::CliDefaults());
+  auto status_a = rom_a.LoadFromFile(rom_a_path);
   if (!status_a.ok()) {
     return status_a;
   }
 
   Rom rom_b;
-  auto status_b = rom_b.LoadFromFile(rom_b_path, RomLoadOptions::CliDefaults());
+  auto status_b = rom_b.LoadFromFile(rom_b_path);
   if (!status_b.ok()) {
     return status_b;
   }
@@ -143,8 +143,7 @@ absl::Status RomGenerateGoldenCommandHandler::Execute(
   std::string golden_path = golden_opt.value();
 
   Rom source_rom;
-  auto status =
-      source_rom.LoadFromFile(rom_path, RomLoadOptions::CliDefaults());
+  auto status = source_rom.LoadFromFile(rom_path);
   if (!status.ok()) {
     return status;
   }

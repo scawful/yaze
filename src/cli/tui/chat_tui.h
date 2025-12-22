@@ -1,6 +1,9 @@
 #ifndef YAZE_SRC_CLI_TUI_CHAT_TUI_H_
 #define YAZE_SRC_CLI_TUI_CHAT_TUI_H_
 
+// FTXUI is not available on WASM builds
+#ifndef __EMSCRIPTEN__
+
 #include <atomic>
 #include <chrono>
 #include <future>
@@ -78,5 +81,7 @@ class ChatTUI {
 }  // namespace tui
 }  // namespace cli
 }  // namespace yaze
+
+#endif  // __EMSCRIPTEN__
 
 #endif  // YAZE_SRC_CLI_TUI_CHAT_TUI_H_

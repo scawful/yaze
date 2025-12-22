@@ -7,7 +7,8 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas_usage_tracker.h"
-#include "app/rom.h"
+#include "rom/rom.h"
+#include "zelda3/game_data.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -25,6 +26,7 @@ struct CanvasConfig {
   bool enable_hex_labels = false;
   bool enable_custom_labels = false;
   bool enable_context_menu = true;
+  bool show_builtin_context_menu = true;  // Show built-in canvas debug items
   bool is_draggable = false;
   bool auto_resize = false;
   bool clamp_rect_to_local_maps =
@@ -124,7 +126,7 @@ int GetTileIdFromPosition(ImVec2 mouse_pos, float tile_size, float scale,
                           int tiles_per_row);
 
 // Palette management utilities
-bool LoadROMPaletteGroups(Rom* rom, CanvasPaletteManager& palette_manager);
+bool LoadROMPaletteGroups(zelda3::GameData* game_data, CanvasPaletteManager& palette_manager);
 bool ApplyPaletteGroup(gfx::IRenderer* renderer, gfx::Bitmap* bitmap,
                        CanvasPaletteManager& palette_manager, int group_index,
                        int palette_index);

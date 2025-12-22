@@ -2,25 +2,33 @@
 
 This guide summarizes the architecture and implementation standards used across the editor codebase.
 
-## Editor Status (October 2025)
+## Editor Status (November 2025)
 
-| Editor            | State        | Notes |
-|-------------------|--------------|-------|
-| Overworld         | Stable       | Full feature set; continue regression testing after palette fixes. |
-| Message           | Stable       | Re-test rendering after recent palette work. |
-| Emulator          | Stable       | UI and core subsystems aligned with production builds. |
-| Palette           | Stable       | Serves as the source of truth for palette helpers. |
-| Assembly          | Stable       | No outstanding refactors. |
-| Dungeon           | Experimental | Requires thorough manual coverage before release. |
-| Graphics          | Experimental | Large rendering changes in flight; validate texture pipeline. |
-| Sprite            | Experimental | UI patterns still migrating to the new card system. |
+| Editor            | State        | Panels | Notes |
+|-------------------|--------------|--------|-------|
+| Overworld         | Stable       | 8      | Full feature set with tile16 editor, scratch space. |
+| Message           | Stable       | 4      | Message list, editor, font atlas, dictionary panels. |
+| Emulator          | Stable       | 10     | CPU, PPU, Memory debuggers; AI agent integration. |
+| Palette           | Stable       | 11     | Source of truth for palette helpers. |
+| Assembly          | Stable       | 2      | File browser and editor panels. |
+| Dungeon           | Stable       | 8      | Room selector, matrix, graphics, object editor. |
+| Graphics          | Stable       | 4      | Sheet editor, browser, player animations. |
+| Sprite            | Stable       | 2      | Vanilla and custom sprite panels. |
+| Screen            | Stable       | 5      | Dungeon maps, inventory, title screen, etc. |
+| Music             | Experimental | 3      | Tracker, instrument editor, assembly view. |
 
-### Screen Editor Notes
+### Recent Improvements (v0.3.9)
 
-- **Title screen**: Vanilla ROM tilemap parsing remains broken. Implement a DMA
-  parser and confirm the welcome screen renders before enabling painting.
-- **Overworld map**: Mode 7 tiling, palette switching, and custom map import/export are in place. The next milestone is faster tile painting.
-- **Dungeon map**: Rendering is wired up; tile painting and ROM write-back are still pending.
+- **EditorManager Refactoring**: 90% feature parity with 44% code reduction
+- **Panel-Based UI**: All 34 editor panels (formerly cards) with X-button close, multi-session support
+- **SDL3 Backend Infrastructure**: 17 abstraction files for future migration
+- **WASM Web Port**: Real-time collaboration via WebSocket
+- **AI Agent Tools**: Phases 1-4 complete (meta-tools, schemas, validation)
+
+### Known Issues
+
+- **Dungeon object rendering**: Regression with object visibility
+- **ZSOW v3 palettes**: Large-area palette issues being investigated
 
 ## 1. Core Architectural Patterns
 
@@ -139,18 +147,18 @@ Google-style C++23 guidelines while accommodating ROM hacking patterns.
 
 ### 5.1. Quick Debugging with Startup Flags
 
-To accelerate your debugging workflow, use command-line flags to jump directly to specific editors and open relevant UI cards:
+To accelerate your debugging workflow, use command-line flags to jump directly to specific editors and open relevant UI panels:
 
 ```bash
 # Quick dungeon room testing
-./yaze --rom_file=zelda3.sfc --editor=Dungeon --cards="Room 0"
+./yaze --rom_file=zelda3.sfc --editor=Dungeon --open_panels="Room 0"
 
 # Compare multiple rooms
-./yaze --rom_file=zelda3.sfc --editor=Dungeon --cards="Room 0,Room 1,Room 105"
+./yaze --rom_file=zelda3.sfc --editor=Dungeon --open_panels="Room 0,Room 1,Room 105"
 
 # Full dungeon workspace
 ./yaze --rom_file=zelda3.sfc --editor=Dungeon \
-  --cards="Rooms List,Room Matrix,Object Editor,Palette Editor"
+  --open_panels="Rooms List,Room Matrix,Object Editor,Palette Editor"
 
 # Enable debug logging
 ./yaze --debug --log_file=debug.log --rom_file=zelda3.sfc --editor=Dungeon
@@ -158,9 +166,9 @@ To accelerate your debugging workflow, use command-line flags to jump directly t
 
 **Available Editors**: Assembly, Dungeon, Graphics, Music, Overworld, Palette, Screen, Sprite, Message, Hex, Agent, Settings
 
-**Dungeon Editor Cards**: Rooms List, Room Matrix, Entrances List, Room Graphics, Object Editor, Palette Editor, Room N (where N is room ID 0-319)
+**Dungeon Editor Panels**: Rooms List, Room Matrix, Entrances List, Room Graphics, Object Editor, Palette Editor, Room N (where N is room ID 0-319)
 
-See [debugging-startup-flags.md](debugging-startup-flags.md) for complete documentation.
+See [Startup Debugging Flags](debug-flags.md) for complete documentation, including panel visibility overrides (`--startup_welcome/--startup_dashboard/--startup_sidebar`).
 
 ### 5.2. Testing Strategies
 

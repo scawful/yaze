@@ -1,6 +1,8 @@
 #include "input.h"
 
+#include <algorithm>
 #include <functional>
+#include <limits>
 #include <string>
 #include <variant>
 
@@ -8,7 +10,7 @@
 #include "app/gfx/types/snes_tile.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
-#include "imgui_memory_editor.h"
+#include "app/gui/imgui_memory_editor.h"
 
 template <class... Ts>
 struct overloaded : Ts... {
@@ -34,10 +36,22 @@ static inline bool IsInvisibleLabel(const char* label) {
   return label && label[0] == '#' && label[1] == '#';
 }
 
+// Result struct for extended input functions
+struct InputScalarResult {
+  bool changed;          // Any change occurred
+  bool immediate;        // Change was from button/wheel (apply immediately)
+  bool text_changed;     // Change was from text input
+  bool text_committed;   // Text input was committed (deactivated after edit)
+};
+
 bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
                      const void* p_step, const void* p_step_fast,
                      const char* format, float input_width,
                      ImGuiInputTextFlags flags, bool no_step = false) {
+  InputScalarResult result = {};
+  // Call extended version and return simple bool
+  // (implementation below handles both)
+
   ImGuiWindow* window = ImGui::GetCurrentWindow();
   if (window->SkipItems)
     return false;
@@ -146,10 +160,164 @@ bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
 
   return value_changed;
 }
+
+// Extended version that tracks change source
+InputScalarResult InputScalarLeftEx(const char* label, ImGuiDataType data_type,
+                                    void* p_data, const void* p_step,
+                                    const void* p_step_fast, const char* format,
+                                    float input_width, ImGuiInputTextFlags flags,
+                                    bool no_step = false) {
+  InputScalarResult result = {false, false, false, false};
+
+  ImGuiWindow* window = ImGui::GetCurrentWindow();
+  if (window->SkipItems)
+    return result;
+
+  ImGuiContext& g = *GImGui;
+  ImGuiStyle& style = g.Style;
+
+  if (format == NULL)
+    format = DataTypeGetInfo(data_type)->PrintFmt;
+
+  char buf[64];
+  DataTypeFormatString(buf, IM_ARRAYSIZE(buf), data_type, p_data, format);
+
+  if (g.ActiveId == 0 && (flags & (ImGuiInputTextFlags_CharsDecimal |
+                                   ImGuiInputTextFlags_CharsHexadecimal |
+                                   ImGuiInputTextFlags_CharsScientific)) == 0)
+    flags |= InputScalar_DefaultCharsFilter(data_type, format);
+  flags |= ImGuiInputTextFlags_AutoSelectAll;
+
+  const float button_size = GetFrameHeight();
+
+  // Support invisible labels (##) by not rendering the label, but still using
+  // it for ID
+  bool invisible_label = IsInvisibleLabel(label);
+
+  if (!invisible_label) {
+    AlignTextToFramePadding();
+    Text("%s", label);
+    SameLine();
+  }
+
+  BeginGroup();
+  PushID(label);
+  SetNextItemWidth(ImMax(
+      1.0f, CalcItemWidth() - (button_size + style.ItemInnerSpacing.x) * 2));
+
+  PushStyleVar(ImGuiStyleVar_ItemSpacing,
+               ImVec2{style.ItemSpacing.x, style.ItemSpacing.y});
+  PushStyleVar(ImGuiStyleVar_FramePadding,
+               ImVec2{style.FramePadding.x, style.FramePadding.y});
+
+  SetNextItemWidth(input_width);
+  if (InputText("", buf, IM_ARRAYSIZE(buf), flags)) {
+    if (DataTypeApplyFromText(buf, data_type, p_data, format)) {
+      result.text_changed = true;
+      result.changed = true;
+    }
+  }
+
+  // Check if text input was committed (deactivated after edit)
+  if (IsItemDeactivatedAfterEdit()) {
+    result.text_committed = true;
+  }
+
+  IMGUI_TEST_ENGINE_ITEM_INFO(
+      g.LastItemData.ID, label,
+      g.LastItemData.StatusFlags | ImGuiItemStatusFlags_Inputable);
+
+  // Mouse wheel support - immediate change
+  if (IsItemHovered() && g.IO.MouseWheel != 0.0f) {
+    float scroll_amount = g.IO.MouseWheel;
+    float scroll_speed = 0.25f;
+
+    if (g.IO.KeyCtrl && p_step_fast)
+      scroll_amount *= *(const float*)p_step_fast;
+    else
+      scroll_amount *= *(const float*)p_step;
+
+    if (scroll_amount > 0.0f) {
+      scroll_amount *= scroll_speed;
+      DataTypeApplyOp(data_type, '+', p_data, p_data, &scroll_amount);
+      result.changed = true;
+      result.immediate = true;
+    } else if (scroll_amount < 0.0f) {
+      scroll_amount *= -scroll_speed;
+      DataTypeApplyOp(data_type, '-', p_data, p_data, &scroll_amount);
+      result.changed = true;
+      result.immediate = true;
+    }
+  }
+
+  // Step buttons - immediate change
+  if (!no_step) {
+    const ImVec2 backup_frame_padding = style.FramePadding;
+    style.FramePadding.x = style.FramePadding.y;
+    ImGuiButtonFlags button_flags = ImGuiButtonFlags_PressedOnClick;
+    if (flags & ImGuiInputTextFlags_ReadOnly)
+      BeginDisabled();
+    SameLine(0, style.ItemInnerSpacing.x);
+    if (ButtonEx("-", ImVec2(button_size, button_size), button_flags)) {
+      DataTypeApplyOp(data_type, '-', p_data, p_data,
+                      g.IO.KeyCtrl && p_step_fast ? p_step_fast : p_step);
+      result.changed = true;
+      result.immediate = true;
+    }
+    SameLine(0, style.ItemInnerSpacing.x);
+    if (ButtonEx("+", ImVec2(button_size, button_size), button_flags)) {
+      DataTypeApplyOp(data_type, '+', p_data, p_data,
+                      g.IO.KeyCtrl && p_step_fast ? p_step_fast : p_step);
+      result.changed = true;
+      result.immediate = true;
+    }
+
+    if (flags & ImGuiInputTextFlags_ReadOnly)
+      EndDisabled();
+
+    style.FramePadding = backup_frame_padding;
+  }
+  PopID();
+  EndGroup();
+  ImGui::PopStyleVar(2);
+
+  if (result.changed)
+    MarkItemEdited(g.LastItemData.ID);
+
+  return result;
+}
 }  // namespace ImGui
 
 namespace yaze {
 namespace gui {
+
+namespace {
+
+template <typename T>
+bool ApplyHexMouseWheel(T* data, T min_value, T max_value) {
+  if (!ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup)) {
+    return false;
+  }
+
+  const float wheel = ImGui::GetIO().MouseWheel;
+  if (wheel == 0.0f) {
+    return false;
+  }
+
+  using Numeric = long long;
+  Numeric new_value =
+      static_cast<Numeric>(*data) + (wheel > 0.0f ? 1 : -1);
+  new_value = std::clamp(new_value, static_cast<Numeric>(min_value),
+                         static_cast<Numeric>(max_value));
+  if (static_cast<T>(new_value) != *data) {
+    *data = static_cast<T>(new_value);
+    ImGui::ClearActiveID();
+    return true;
+  }
+  return false;
+}
+
+}  // namespace
 
 const int kStepOneHex = 0x01;
 const int kStepFastHex = 0x0F;
@@ -175,36 +343,101 @@ bool InputHexShort(const char* label, uint32_t* data) {
 
 bool InputHexWord(const char* label, uint16_t* data, float input_width,
                   bool no_step) {
-  return ImGui::InputScalarLeft(label, ImGuiDataType_U16, data, &kStepOneHex,
-                                &kStepFastHex, "%04X", input_width,
-                                ImGuiInputTextFlags_CharsHexadecimal, no_step);
+  bool changed = ImGui::InputScalarLeft(label, ImGuiDataType_U16, data,
+                                        &kStepOneHex, &kStepFastHex, "%04X",
+                                        input_width,
+                                        ImGuiInputTextFlags_CharsHexadecimal,
+                                        no_step);
+  bool wheel_changed =
+      ApplyHexMouseWheel<uint16_t>(data, 0u,
+                                   std::numeric_limits<uint16_t>::max());
+  return changed || wheel_changed;
 }
 
 bool InputHexWord(const char* label, int16_t* data, float input_width,
                   bool no_step) {
-  return ImGui::InputScalarLeft(label, ImGuiDataType_S16, data, &kStepOneHex,
-                                &kStepFastHex, "%04X", input_width,
-                                ImGuiInputTextFlags_CharsHexadecimal, no_step);
+  bool changed = ImGui::InputScalarLeft(label, ImGuiDataType_S16, data,
+                                        &kStepOneHex, &kStepFastHex, "%04X",
+                                        input_width,
+                                        ImGuiInputTextFlags_CharsHexadecimal,
+                                        no_step);
+  bool wheel_changed = ApplyHexMouseWheel<int16_t>(
+      data, std::numeric_limits<int16_t>::min(),
+      std::numeric_limits<int16_t>::max());
+  return changed || wheel_changed;
 }
 
 bool InputHexByte(const char* label, uint8_t* data, float input_width,
                   bool no_step) {
-  return ImGui::InputScalarLeft(label, ImGuiDataType_U8, data, &kStepOneHex,
-                                &kStepFastHex, "%02X", input_width,
-                                ImGuiInputTextFlags_CharsHexadecimal, no_step);
+  bool changed = ImGui::InputScalarLeft(label, ImGuiDataType_U8, data,
+                                        &kStepOneHex, &kStepFastHex, "%02X",
+                                        input_width,
+                                        ImGuiInputTextFlags_CharsHexadecimal,
+                                        no_step);
+  bool wheel_changed = ApplyHexMouseWheel<uint8_t>(
+      data, 0u, std::numeric_limits<uint8_t>::max());
+  return changed || wheel_changed;
 }
 
 bool InputHexByte(const char* label, uint8_t* data, uint8_t max_value,
                   float input_width, bool no_step) {
-  if (ImGui::InputScalarLeft(label, ImGuiDataType_U8, data, &kStepOneHex,
-                             &kStepFastHex, "%02X", input_width,
-                             ImGuiInputTextFlags_CharsHexadecimal, no_step)) {
-    if (*data > max_value) {
-      *data = max_value;
-    }
-    return true;
+  bool changed = ImGui::InputScalarLeft(label, ImGuiDataType_U8, data,
+                                        &kStepOneHex, &kStepFastHex, "%02X",
+                                        input_width,
+                                        ImGuiInputTextFlags_CharsHexadecimal,
+                                        no_step);
+  if (changed && *data > max_value) {
+    *data = max_value;
   }
-  return false;
+  bool wheel_changed = ApplyHexMouseWheel<uint8_t>(data, 0u, max_value);
+  return changed || wheel_changed;
+}
+
+// Extended versions that properly track change source
+InputHexResult InputHexByteEx(const char* label, uint8_t* data,
+                              float input_width, bool no_step) {
+  auto result = ImGui::InputScalarLeftEx(label, ImGuiDataType_U8, data,
+                                         &kStepOneHex, &kStepFastHex, "%02X",
+                                         input_width,
+                                         ImGuiInputTextFlags_CharsHexadecimal,
+                                         no_step);
+  InputHexResult hex_result;
+  hex_result.changed = result.changed;
+  hex_result.immediate = result.immediate;
+  hex_result.text_committed = result.text_committed;
+  return hex_result;
+}
+
+InputHexResult InputHexByteEx(const char* label, uint8_t* data,
+                              uint8_t max_value, float input_width,
+                              bool no_step) {
+  auto result = ImGui::InputScalarLeftEx(label, ImGuiDataType_U8, data,
+                                         &kStepOneHex, &kStepFastHex, "%02X",
+                                         input_width,
+                                         ImGuiInputTextFlags_CharsHexadecimal,
+                                         no_step);
+  if (result.changed && *data > max_value) {
+    *data = max_value;
+  }
+  InputHexResult hex_result;
+  hex_result.changed = result.changed;
+  hex_result.immediate = result.immediate;
+  hex_result.text_committed = result.text_committed;
+  return hex_result;
+}
+
+InputHexResult InputHexWordEx(const char* label, uint16_t* data,
+                              float input_width, bool no_step) {
+  auto result = ImGui::InputScalarLeftEx(label, ImGuiDataType_U16, data,
+                                         &kStepOneHex, &kStepFastHex, "%04X",
+                                         input_width,
+                                         ImGuiInputTextFlags_CharsHexadecimal,
+                                         no_step);
+  InputHexResult hex_result;
+  hex_result.changed = result.changed;
+  hex_result.immediate = result.immediate;
+  hex_result.text_committed = result.text_committed;
+  return hex_result;
 }
 
 void Paragraph(const std::string& text) {
@@ -455,7 +688,7 @@ bool OpenUrl(const std::string& url) {
 
 void MemoryEditorPopup(const std::string& label, std::span<uint8_t> memory) {
   static bool open = false;
-  static MemoryEditor editor;
+  static yaze::gui::MemoryEditorWidget editor;
   if (ImGui::Button("View Data")) {
     open = true;
   }
@@ -510,6 +743,38 @@ bool InputHexWordCustom(const char* label, uint16_t* data, float input_width) {
   }
 
   ImGui::PopID();
+  return changed;
+}
+
+bool SliderFloatWheel(const char* label, float* v, float v_min, float v_max,
+                      const char* format, float wheel_step,
+                      ImGuiSliderFlags flags) {
+  bool changed = ImGui::SliderFloat(label, v, v_min, v_max, format, flags);
+
+  // Handle mouse wheel when hovering
+  if (ImGui::IsItemHovered()) {
+    float wheel = ImGui::GetIO().MouseWheel;
+    if (wheel != 0.0f) {
+      *v = std::clamp(*v + wheel * wheel_step, v_min, v_max);
+      changed = true;
+    }
+  }
+  return changed;
+}
+
+bool SliderIntWheel(const char* label, int* v, int v_min, int v_max,
+                    const char* format, int wheel_step, ImGuiSliderFlags flags) {
+  bool changed = ImGui::SliderInt(label, v, v_min, v_max, format, flags);
+
+  // Handle mouse wheel when hovering
+  if (ImGui::IsItemHovered()) {
+    float wheel = ImGui::GetIO().MouseWheel;
+    if (wheel != 0.0f) {
+      int delta = static_cast<int>(wheel) * wheel_step;
+      *v = std::clamp(*v + delta, v_min, v_max);
+      changed = true;
+    }
+  }
   return changed;
 }
 

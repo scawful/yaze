@@ -198,7 +198,21 @@ function Test-VcpkgCache {
 }
 
 function Test-CMakeCache {
-    $buildDirs = @("build", "build-windows", "build-test", "build-ai", "out/build")
+    $buildDirs = @(
+        "build",
+        "build-wasm",
+        "build-windows",
+        "build-test",
+        "build_ai",
+        "build_agent",
+        "build_ci",
+        "build_fast",
+        "build_test",
+        "build-wasm-debug",
+        "build_wasm_ai",
+        "build_wasm",
+        "out/build"
+    )
     $cacheIssues = $false
     
     foreach ($dir in $buildDirs) {
@@ -222,7 +236,21 @@ function Clean-CMakeCache {
     
     Write-Status "Cleaning CMake cache and build directories..." "Step"
     
-    $buildDirs = @("build", "build_test", "build-ai", "build_rooms", "out")
+    $buildDirs = @(
+        "build",
+        "build-wasm",
+        "build-test",
+        "build_rooms",
+        "build_ai",
+        "build_agent",
+        "build_ci",
+        "build_fast",
+        "build_test",
+        "build-wasm-debug",
+        "build_wasm_ai",
+        "build_wasm",
+        "out"
+    )
     $cleaned = $false
     
     foreach ($dir in $buildDirs) {

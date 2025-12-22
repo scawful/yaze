@@ -4,11 +4,13 @@
 #include <deque>
 #include <string>
 #include <vector>
+#include <memory>
 
 #include "absl/status/status.h"
+#include "app/editor/system/panel_manager.h"
+#include "app/editor/ui/toast_manager.h"
 #include "app/editor/session_types.h"
-#include "app/editor/system/toast_manager.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "imgui/imgui.h"
 
 // Forward declarations
@@ -17,7 +19,7 @@ class Rom;
 namespace editor {
 class EditorManager;
 class EditorSet;
-class EditorCardRegistry;
+class PanelManager;
 }  // namespace editor
 }  // namespace yaze
 
@@ -27,6 +29,30 @@ namespace editor {
 // Forward declarations
 class EditorSet;
 class ToastManager;
+
+/**
+ * @class SessionObserver
+ * @brief Observer interface for session state changes
+ *
+ * Allows components to react to session lifecycle events without tight
+ * coupling to SessionCoordinator internals.
+ */
+class SessionObserver {
+ public:
+  virtual ~SessionObserver() = default;
+
+  /// Called when the active session changes
+  virtual void OnSessionSwitched(size_t new_index, RomSession* session) = 0;
+
+  /// Called when a new session is created
+  virtual void OnSessionCreated(size_t index, RomSession* session) = 0;
+
+  /// Called when a session is closed
+  virtual void OnSessionClosed(size_t index) = 0;
+
+  /// Called when a ROM is loaded into a session
+  virtual void OnSessionRomLoaded(size_t index, RomSession* session) {}
+};
 
 /**
  * @class SessionCoordinator
@@ -41,13 +67,16 @@ class ToastManager;
  */
 class SessionCoordinator {
  public:
-  explicit SessionCoordinator(void* sessions_ptr,
-                              EditorCardRegistry* card_registry,
+  explicit SessionCoordinator(PanelManager* panel_manager,
                               ToastManager* toast_manager,
                               UserSettings* user_settings);
   ~SessionCoordinator() = default;
 
   void SetEditorManager(EditorManager* manager) { editor_manager_ = manager; }
+
+  // Observer management
+  void AddObserver(SessionObserver* observer);
+  void RemoveObserver(SessionObserver* observer);
 
   // Session lifecycle management
   void CreateNewSession();
@@ -56,6 +85,7 @@ class SessionCoordinator {
   void CloseSession(size_t index);
   void RemoveSession(size_t index);
   void SwitchToSession(size_t index);
+  void UpdateSessions();
 
   // Session activation and queries
   void ActivateSession(size_t index);
@@ -63,6 +93,7 @@ class SessionCoordinator {
   void* GetActiveSession() const;
   RomSession* GetActiveRomSession() const;
   Rom* GetCurrentRom() const;
+  zelda3::GameData* GetCurrentGameData() const;
   EditorSet* GetCurrentEditorSet() const;
   void* GetSession(size_t index) const;
   bool HasMultipleSessions() const;
@@ -87,11 +118,11 @@ class SessionCoordinator {
   void SetActiveSessionIndex(size_t index);
   void UpdateSessionCount();
 
-  // Card coordination across sessions
-  void ShowAllCardsInActiveSession();
-  void HideAllCardsInActiveSession();
-  void ShowCardsInCategory(const std::string& category);
-  void HideCardsInCategory(const std::string& category);
+  // Panel coordination across sessions
+  void ShowAllPanelsInActiveSession();
+  void HideAllPanelsInActiveSession();
+  void ShowPanelsInCategory(const std::string& category);
+  void HidePanelsInCategory(const std::string& category);
 
   // Session validation
   bool IsValidSessionIndex(size_t index) const;
@@ -156,10 +187,17 @@ class SessionCoordinator {
   bool IsSessionModified(size_t index) const;
 
  private:
+  // Observer notification helpers
+  void NotifySessionSwitched(size_t index, RomSession* session);
+  void NotifySessionCreated(size_t index, RomSession* session);
+  void NotifySessionClosed(size_t index);
+  void NotifySessionRomLoaded(size_t index, RomSession* session);
+
   // Core dependencies
   EditorManager* editor_manager_ = nullptr;
-  void* sessions_ptr_;  // std::deque<EditorManager::RomSession>*
-  EditorCardRegistry* card_registry_;
+  std::vector<std::unique_ptr<RomSession>> sessions_;
+  std::vector<SessionObserver*> observers_;
+  PanelManager* panel_manager_;
   ToastManager* toast_manager_;
   UserSettings* user_settings_;
 

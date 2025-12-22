@@ -4,7 +4,7 @@
 #include <string>
 
 #include "absl/status/status.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 
 namespace yaze {
 namespace editor {

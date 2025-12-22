@@ -25,7 +25,7 @@
 #include "absl/status/status.h"
 #include "app/gfx/render/background_buffer.h"
 #include "app/gfx/types/snes_palette.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "gtest/gtest.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/object_parser.h"
@@ -77,7 +77,7 @@ class DungeonRenderingIntegrationTest : public ::testing::Test {
 
     // Set ROM for all objects
     for (auto& obj : objects) {
-      obj.set_rom(rom_.get());
+      obj.SetRom(rom_.get());
     }
 
     // Add objects to room (this would normally be done by LoadObjects)
@@ -122,7 +122,7 @@ TEST_F(DungeonRenderingIntegrationTest, FullRoomRenderingWorks) {
   EXPECT_GT(test_room.GetTileObjects().size(), 0);
 
   // Test ObjectDrawer can render the room
-  ObjectDrawer drawer(rom_.get());
+  ObjectDrawer drawer(rom_.get(), 0);
   auto palette_group = CreateTestPaletteGroup();
 
   auto status =
@@ -135,7 +135,7 @@ TEST_F(DungeonRenderingIntegrationTest, FullRoomRenderingWorks) {
 // Test room rendering with different palette configurations
 TEST_F(DungeonRenderingIntegrationTest, RoomRenderingWithDifferentPalettes) {
   Room test_room = CreateTestRoom(0x00);
-  ObjectDrawer drawer(rom_.get());
+  ObjectDrawer drawer(rom_.get(), 0);
 
   // Test with different palette configurations
   std::vector<gfx::PaletteGroup> palette_groups;
@@ -157,7 +157,7 @@ TEST_F(DungeonRenderingIntegrationTest, RoomRenderingWithDifferentPalettes) {
 // Test room rendering with objects on different layers
 TEST_F(DungeonRenderingIntegrationTest, RoomRenderingWithMultipleLayers) {
   Room test_room = CreateTestRoom(0x00);
-  ObjectDrawer drawer(rom_.get());
+  ObjectDrawer drawer(rom_.get(), 0);
   auto palette_group = CreateTestPaletteGroup();
 
   // Separate objects by layer
@@ -190,7 +190,7 @@ TEST_F(DungeonRenderingIntegrationTest, RoomRenderingWithMultipleLayers) {
 // Test room rendering with various object sizes
 TEST_F(DungeonRenderingIntegrationTest, RoomRenderingWithVariousObjectSizes) {
   Room test_room = CreateTestRoom(0x00);
-  ObjectDrawer drawer(rom_.get());
+  ObjectDrawer drawer(rom_.get(), 0);
   auto palette_group = CreateTestPaletteGroup();
 
   // Group objects by size
@@ -222,11 +222,11 @@ TEST_F(DungeonRenderingIntegrationTest, RoomRenderingPerformance) {
     int layer = i % 2;       // Alternate layers
 
     RoomObject obj(id, x, y, size, layer);
-    obj.set_rom(rom_.get());
+    obj.SetRom(rom_.get());
     large_room.AddObject(obj);
   }
 
-  ObjectDrawer drawer(rom_.get());
+  ObjectDrawer drawer(rom_.get(), 0);
   auto palette_group = CreateTestPaletteGroup();
 
   // Time the rendering operation
@@ -252,7 +252,7 @@ TEST_F(DungeonRenderingIntegrationTest, RoomRenderingPerformance) {
 // Test room rendering with edge case coordinates
 TEST_F(DungeonRenderingIntegrationTest, RoomRenderingWithEdgeCaseCoordinates) {
   Room test_room = CreateTestRoom(0x00);
-  ObjectDrawer drawer(rom_.get());
+  ObjectDrawer drawer(rom_.get(), 0);
   auto palette_group = CreateTestPaletteGroup();
 
   // Add objects at edge coordinates
@@ -266,7 +266,7 @@ TEST_F(DungeonRenderingIntegrationTest, RoomRenderingWithEdgeCaseCoordinates) {
 
   // Set ROM for all objects
   for (auto& obj : edge_objects) {
-    obj.set_rom(rom_.get());
+    obj.SetRom(rom_.get());
   }
 
   auto status = drawer.DrawObjectList(edge_objects, test_room.bg1_buffer(),
@@ -278,7 +278,7 @@ TEST_F(DungeonRenderingIntegrationTest, RoomRenderingWithEdgeCaseCoordinates) {
 // Test room rendering with mixed object types
 TEST_F(DungeonRenderingIntegrationTest, RoomRenderingWithMixedObjectTypes) {
   Room test_room = CreateTestRoom(0x00);
-  ObjectDrawer drawer(rom_.get());
+  ObjectDrawer drawer(rom_.get(), 0);
   auto palette_group = CreateTestPaletteGroup();
 
   // Add various object types
@@ -306,7 +306,7 @@ TEST_F(DungeonRenderingIntegrationTest, RoomRenderingWithMixedObjectTypes) {
 
   // Set ROM for all objects
   for (auto& obj : mixed_objects) {
-    obj.set_rom(rom_.get());
+    obj.SetRom(rom_.get());
   }
 
   auto status = drawer.DrawObjectList(mixed_objects, test_room.bg1_buffer(),
@@ -334,7 +334,7 @@ TEST_F(DungeonRenderingIntegrationTest, RoomRenderingErrorHandling) {
 // Test room rendering with invalid object data
 TEST_F(DungeonRenderingIntegrationTest, RoomRenderingWithInvalidObjectData) {
   Room test_room = CreateTestRoom(0x00);
-  ObjectDrawer drawer(rom_.get());
+  ObjectDrawer drawer(rom_.get(), 0);
   auto palette_group = CreateTestPaletteGroup();
 
   // Create objects with invalid data
@@ -348,7 +348,7 @@ TEST_F(DungeonRenderingIntegrationTest, RoomRenderingWithInvalidObjectData) {
 
   // Set ROM for all objects
   for (auto& obj : invalid_objects) {
-    obj.set_rom(rom_.get());
+    obj.SetRom(rom_.get());
   }
 
   // Should handle gracefully

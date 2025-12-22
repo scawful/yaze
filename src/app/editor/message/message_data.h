@@ -85,10 +85,11 @@
 #include <unordered_map>
 #include <vector>
 
+#include <nlohmann/json.hpp>
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_replace.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 
 namespace yaze {
 namespace editor {
@@ -454,6 +455,13 @@ absl::Status LoadExpandedMessages(std::string& expanded_message_path,
                                   std::vector<std::string>& parsed_messages,
                                   std::vector<MessageData>& expanded_messages,
                                   std::vector<DictionaryEntry>& dictionary);
+
+// Serializes a vector of MessageData to a JSON object.
+nlohmann::json SerializeMessagesToJson(const std::vector<MessageData>& messages);
+
+// Exports messages to a JSON file at the specified path.
+absl::Status ExportMessagesToJson(const std::string& path,
+                                  const std::vector<MessageData>& messages);
 
 }  // namespace editor
 }  // namespace yaze

@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_SYSTEM_USER_SETTINGS_H_
 
 #include <string>
+#include <unordered_map>
 
 #include "absl/status/status.h"
 
@@ -25,6 +26,7 @@ class UserSettings {
     std::string last_project_path;
     bool show_welcome_on_startup = true;
     bool restore_last_session = true;
+    bool prefer_hmagic_sprite_names = true;
 
     // Editor Behavior
     bool backup_before_save = true;
@@ -54,6 +56,22 @@ class UserSettings {
     bool log_rom_operations = true;
     bool log_gui_automation = true;
     bool log_proposals = true;
+
+    // Shortcut Overrides
+    // Maps panel_id -> shortcut string (e.g., "dungeon.room_selector" -> "Ctrl+Shift+R")
+    std::unordered_map<std::string, std::string> panel_shortcuts;
+    // Maps global action id -> shortcut string (e.g., "Open", "Save")
+    std::unordered_map<std::string, std::string> global_shortcuts;
+    // Maps editor-scoped action id -> shortcut string (keyed by editor namespace)
+    std::unordered_map<std::string, std::string> editor_shortcuts;
+
+    // Sidebar State
+    bool sidebar_visible = true;         // Controls Activity Bar visibility
+    bool sidebar_panel_expanded = true;  // Controls Side Panel visibility
+    std::string sidebar_active_category; // Last active category
+
+    // Status Bar
+    bool show_status_bar = false;  // Show status bar at bottom (disabled by default)
   };
 
   UserSettings();

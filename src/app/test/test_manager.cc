@@ -1513,7 +1513,7 @@ absl::Status TestManager::CreateTestRomCopy(Rom* source_rom,
 
   // Copy the ROM data
   auto rom_data = source_rom->vector();
-  auto load_status = test_rom->LoadFromData(rom_data, true);
+  auto load_status = test_rom->LoadFromData(rom_data);
   if (!load_status.ok()) {
     return load_status;
   }

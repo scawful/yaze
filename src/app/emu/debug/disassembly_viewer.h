@@ -10,7 +10,7 @@
 #include "app/emu/cpu/cpu.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gui/core/icons.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "imgui/imgui.h"
 
 namespace yaze {

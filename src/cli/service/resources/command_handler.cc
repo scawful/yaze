@@ -6,7 +6,7 @@ namespace resources {
 
 CommandHandler::Descriptor CommandHandler::Describe() const {
   Descriptor descriptor;
-  descriptor.display_name = GetUsage();
+  descriptor.display_name = GetName(); // Use GetName() for display
   descriptor.summary = "Command summary not provided.";
   descriptor.todo_reference = "todo#unassigned";
   return descriptor;
@@ -27,7 +27,8 @@ namespace cli {
 namespace resources {
 
 absl::Status CommandHandler::Run(const std::vector<std::string>& args,
-                                 Rom* rom_context) {
+                                 Rom* rom_context,
+                                 std::string* captured_output) {
   // 1. Parse arguments
   ArgumentParser parser(args);
 
@@ -65,12 +66,15 @@ absl::Status CommandHandler::Run(const std::vector<std::string>& args,
 
   CommandContext context(config);
 
-  // 6. Get ROM (loads if needed)
-  ASSIGN_OR_RETURN(Rom * rom, context.GetRom());
+  // 6. Get ROM (loads if needed) - only if command requires it
+  Rom* rom = nullptr;
+  if (RequiresRom()) {
+    ASSIGN_OR_RETURN(rom, context.GetRom());
 
-  // 7. Ensure labels are loaded if required
-  if (RequiresLabels()) {
-    RETURN_IF_ERROR(context.EnsureLabelsLoaded(rom));
+    // 7. Ensure labels are loaded if required
+    if (RequiresLabels()) {
+      RETURN_IF_ERROR(context.EnsureLabelsLoaded(rom));
+    }
   }
 
   // 8. Begin output formatting
@@ -84,7 +88,12 @@ absl::Status CommandHandler::Run(const std::vector<std::string>& args,
 
   // 10. Finalize and print output
   formatter.EndObject();
-  formatter.Print();
+  
+  if (captured_output) {
+    *captured_output = formatter.GetOutput();
+  } else {
+    formatter.Print();
+  }
 
   return absl::OkStatus();
 }

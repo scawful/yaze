@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YAZE - Offline</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        .offline-container {
+            padding: 40px;
+            max-width: 500px;
+        }
+
+        .offline-icon {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 20px;
+            background: #3a3d41;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+        }
+
+        h1 {
+            color: #cccccc;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: #999;
+            font-size: 16px;
+            line-height: 1.6;
+            margin: 20px 0;
+        }
+
+        .retry-button {
+            background-color: #0e639c;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s;
+            margin-top: 20px;
+        }
+
+        .retry-button:hover {
+            background-color: #1177bb;
+        }
+
+        .cached-notice {
+            background: #252526;
+            border: 1px solid #3e3e42;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 30px;
+        }
+
+        .cached-notice h3 {
+            color: #0e639c;
+            margin-top: 0;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .cached-notice p {
+            font-size: 14px;
+            margin: 10px 0 0 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <div class="offline-icon">⚡</div>
+        <h1>You're Offline</h1>
+        <p>
+            It looks like you've lost your internet connection.
+            YAZE needs to load additional resources that aren't available offline yet.
+        </p>
+
+        <button class="retry-button" onclick="window.location.reload()">
+            Try Again
+        </button>
+
+        <div class="cached-notice">
+            <h3>Tip: Enable Offline Mode</h3>
+            <p>
+                Visit YAZE while online to cache all resources.
+                Once cached, you'll be able to use the editor even without an internet connection.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Check if we come back online
+        window.addEventListener('online', () => {
+            window.location.reload();
+        });
+    </script>
+</body>
+</html>

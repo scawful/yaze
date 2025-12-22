@@ -30,6 +30,7 @@
 #include "absl/time/clock.h"
 #include "imgui.h"
 #include "imgui_internal.h"
+#include "util/platform_paths.h"
 
 namespace yaze {
 namespace test {
@@ -41,15 +42,30 @@ struct ImGui_ImplSDLRenderer2_Data {
 };
 
 std::filesystem::path DefaultScreenshotPath() {
-  std::filesystem::path base_dir =
-      std::filesystem::temp_directory_path() / "yaze" / "test-results";
+  auto base_dir_or = util::PlatformPaths::GetUserDocumentsSubdirectory("screenshots");
+  std::filesystem::path base_dir;
+  if (base_dir_or.ok()) {
+    base_dir = *base_dir_or;
+  } else {
+    base_dir = std::filesystem::temp_directory_path() / "yaze" / "screenshots";
+  }
+  
   std::error_code ec;
   std::filesystem::create_directories(base_dir, ec);
 
   const int64_t timestamp_ms = absl::ToUnixMillis(absl::Now());
   return base_dir /
          std::filesystem::path(absl::StrFormat(
-             "harness_%lld.bmp", static_cast<long long>(timestamp_ms)));
+             "yaze_%lld.bmp", static_cast<long long>(timestamp_ms)));
+}
+
+void RevealScreenshot(const std::string& path) {
+#ifdef __APPLE__
+  // On macOS, automatically open the screenshot so the user can verify it
+  std::string cmd = absl::StrFormat("open \"%s\"", path);
+  int result = system(cmd.c_str());
+  (void)result;
+#endif
 }
 
 }  // namespace
@@ -67,7 +83,7 @@ absl::StatusOr<ScreenshotArtifact> CaptureHarnessScreenshot(
   SDL_Renderer* renderer = backend_data->Renderer;
   int width = 0;
   int height = 0;
-  if (SDL_GetRendererOutputSize(renderer, &width, &height) != 0) {
+  if (platform::GetRendererOutputSize(renderer, &width, &height) != 0) {
     return absl::InternalError(
         absl::StrFormat("Failed to get renderer size: %s", SDL_GetError()));
   }
@@ -80,27 +96,19 @@ absl::StatusOr<ScreenshotArtifact> CaptureHarnessScreenshot(
     std::filesystem::create_directories(output_path.parent_path(), ec);
   }
 
-  SDL_Surface* surface = SDL_CreateRGBSurface(
-      0, width, height, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
+  SDL_Surface* surface = platform::ReadPixelsToSurface(renderer, width, height, nullptr);
   if (!surface) {
     return absl::InternalError(
-        absl::StrFormat("Failed to create SDL surface: %s", SDL_GetError()));
-  }
-
-  if (SDL_RenderReadPixels(renderer, nullptr, SDL_PIXELFORMAT_ARGB8888,
-                           surface->pixels, surface->pitch) != 0) {
-    SDL_FreeSurface(surface);
-    return absl::InternalError(
-        absl::StrFormat("Failed to read renderer pixels: %s", SDL_GetError()));
+        absl::StrFormat("Failed to read pixels to surface: %s", SDL_GetError()));
   }
 
   if (SDL_SaveBMP(surface, output_path.string().c_str()) != 0) {
-    SDL_FreeSurface(surface);
+    platform::DestroySurface(surface);
     return absl::InternalError(
         absl::StrFormat("Failed to save BMP: %s", SDL_GetError()));
   }
 
-  SDL_FreeSurface(surface);
+  platform::DestroySurface(surface);
 
   std::error_code ec;
   const int64_t file_size = std::filesystem::file_size(output_path, ec);
@@ -115,6 +123,10 @@ absl::StatusOr<ScreenshotArtifact> CaptureHarnessScreenshot(
   artifact.width = width;
   artifact.height = height;
   artifact.file_size_bytes = file_size;
+
+  // Reveal to user
+  RevealScreenshot(artifact.file_path);
+
   return artifact;
 }
 
@@ -134,7 +146,7 @@ absl::StatusOr<ScreenshotArtifact> CaptureHarnessScreenshotRegion(
   // Get full renderer size
   int full_width = 0;
   int full_height = 0;
-  if (SDL_GetRendererOutputSize(renderer, &full_width, &full_height) != 0) {
+  if (platform::GetRendererOutputSize(renderer, &full_width, &full_height) != 0) {
     return absl::InternalError(
         absl::StrFormat("Failed to get renderer size: %s", SDL_GetError()));
   }
@@ -176,31 +188,22 @@ absl::StatusOr<ScreenshotArtifact> CaptureHarnessScreenshotRegion(
     std::filesystem::create_directories(output_path.parent_path(), ec);
   }
 
-  // Create surface for the capture region
-  SDL_Surface* surface =
-      SDL_CreateRGBSurface(0, capture_width, capture_height, 32, 0x00FF0000,
-                           0x0000FF00, 0x000000FF, 0xFF000000);
-  if (!surface) {
-    return absl::InternalError(
-        absl::StrFormat("Failed to create SDL surface: %s", SDL_GetError()));
-  }
-
   // Read pixels from the specified region
   SDL_Rect region_rect = {capture_x, capture_y, capture_width, capture_height};
-  if (SDL_RenderReadPixels(renderer, &region_rect, SDL_PIXELFORMAT_ARGB8888,
-                           surface->pixels, surface->pitch) != 0) {
-    SDL_FreeSurface(surface);
+  SDL_Surface* surface = platform::ReadPixelsToSurface(renderer, capture_width, capture_height, &region_rect);
+  
+  if (!surface) {
     return absl::InternalError(
-        absl::StrFormat("Failed to read renderer pixels: %s", SDL_GetError()));
+        absl::StrFormat("Failed to read pixels to surface: %s", SDL_GetError()));
   }
 
   if (SDL_SaveBMP(surface, output_path.string().c_str()) != 0) {
-    SDL_FreeSurface(surface);
+    platform::DestroySurface(surface);
     return absl::InternalError(
         absl::StrFormat("Failed to save BMP: %s", SDL_GetError()));
   }
 
-  SDL_FreeSurface(surface);
+  platform::DestroySurface(surface);
 
   std::error_code ec;
   const int64_t file_size = std::filesystem::file_size(output_path, ec);
@@ -215,6 +218,10 @@ absl::StatusOr<ScreenshotArtifact> CaptureHarnessScreenshotRegion(
   artifact.width = capture_width;
   artifact.height = capture_height;
   artifact.file_size_bytes = file_size;
+
+  // Reveal to user
+  RevealScreenshot(artifact.file_path);
+
   return artifact;
 }
 

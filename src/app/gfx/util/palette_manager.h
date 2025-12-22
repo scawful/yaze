@@ -14,9 +14,15 @@
 #include "absl/status/statusor.h"
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_palette.h"
-#include "app/rom.h"
 
 namespace yaze {
+
+// Forward declarations
+class Rom;
+namespace zelda3 {
+struct GameData;
+}
+
 namespace gfx {
 
 /**
@@ -84,7 +90,13 @@ class PaletteManager {
   // ========== Initialization ==========
 
   /**
-   * @brief Initialize the palette manager with ROM data
+   * @brief Initialize the palette manager with GameData
+   * @param game_data Pointer to GameData instance (must outlive PaletteManager)
+   */
+  void Initialize(zelda3::GameData* game_data);
+
+  /**
+   * @brief Legacy initialization with ROM (deprecated, use GameData version)
    * @param rom Pointer to ROM instance (must outlive PaletteManager)
    */
   void Initialize(Rom* rom);
@@ -92,7 +104,7 @@ class PaletteManager {
   /**
    * @brief Check if manager is initialized
    */
-  bool IsInitialized() const { return rom_ != nullptr; }
+  bool IsInitialized() const { return game_data_ != nullptr || rom_ != nullptr; }
 
   // ========== Color Operations ==========
 
@@ -183,6 +195,17 @@ class PaletteManager {
    * @brief Discard ALL unsaved changes
    */
   void DiscardAllChanges();
+
+  // ========== Preview Mode ==========
+
+  /**
+   * @brief Apply preview changes to other editors without saving to ROM
+   * @details This triggers bitmap propagation notification so other editors
+   *          can refresh their visuals with the modified palettes.
+   *          Use this for "live preview" functionality before committing to ROM.
+   * @return Status of the operation
+   */
+  absl::Status ApplyPreviewChanges();
 
   // ========== Undo/Redo ==========
 
@@ -281,7 +304,10 @@ class PaletteManager {
 
   // ========== Member Variables ==========
 
-  /// ROM instance (not owned)
+  /// GameData instance (not owned) - preferred
+  zelda3::GameData* game_data_ = nullptr;
+
+  /// ROM instance (not owned) - legacy, used when game_data_ is null
   Rom* rom_ = nullptr;
 
   /// Original palette snapshots (loaded from ROM for reset/comparison)

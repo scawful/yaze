@@ -23,13 +23,24 @@ if [ ! -f .clang-format ]; then
 fi
 
 echo "✅ Code formatting check..."
-# Check formatting without modifying files
-FORMATTING_ISSUES=$(find src test -name "*.cc" -o -name "*.h" | head -50 | xargs clang-format --dry-run --Werror --style=Google 2>&1 || true)
-if [ -n "$FORMATTING_ISSUES" ]; then
-    echo "⚠️  Formatting issues found. Run 'make format' to fix them."
-    echo "$FORMATTING_ISSUES" | head -20
+# Check formatting using unified lint script if available, otherwise fallback
+if [ -f "${SCRIPT_DIR}/lint.sh" ]; then
+    if ! "${SCRIPT_DIR}/lint.sh" check >/dev/null 2>&1; then
+         echo "⚠️  Formatting/Linting issues found. Run 'scripts/lint.sh fix' to fix formatting."
+         # We don't exit 1 here to avoid breaking existing workflows immediately, 
+         # but we warn.
+    else
+         echo "✅ All files are properly formatted and linted"
+    fi
 else
-    echo "✅ All files are properly formatted"
+    # Fallback to manual check
+    FORMATTING_ISSUES=$(find src test -name "*.cc" -o -name "*.h" | head -50 | xargs clang-format --dry-run --Werror --style=file 2>&1 || true)
+    if [ -n "$FORMATTING_ISSUES" ]; then
+        echo "⚠️  Formatting issues found. Run 'scripts/lint.sh fix' to fix them."
+        echo "$FORMATTING_ISSUES" | head -20
+    else
+        echo "✅ All files are properly formatted"
+    fi
 fi
 
 echo "🔍 Running static analysis..."
