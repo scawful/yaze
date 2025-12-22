@@ -23,6 +23,8 @@ namespace tools {
  */
 class FileSystemToolBase : public resources::CommandHandler {
  protected:
+  bool RequiresRom() const override { return false; }
+
   /**
    * @brief Validate and normalize a path for safe access
    *

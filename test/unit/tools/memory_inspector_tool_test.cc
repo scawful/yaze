@@ -166,7 +166,7 @@ TEST(MemoryAnalyzeToolTest, GetUsageContainsLength) {
 
 TEST(MemoryAnalyzeToolTest, GetDescriptionIsNotEmpty) {
   MemoryAnalyzeTool tool;
-  EXPECT_THAT(tool.GetDescription(), Not(HasSubstr("")));
+  EXPECT_FALSE(tool.GetDescription().empty());
 }
 
 TEST(MemoryAnalyzeToolTest, DoesNotRequireLabels) {
@@ -197,7 +197,7 @@ TEST(MemorySearchToolTest, GetUsageContainsStartEnd) {
 
 TEST(MemorySearchToolTest, GetDescriptionIsNotEmpty) {
   MemorySearchTool tool;
-  EXPECT_THAT(tool.GetDescription(), Not(HasSubstr("")));
+  EXPECT_FALSE(tool.GetDescription().empty());
 }
 
 TEST(MemorySearchToolTest, DoesNotRequireLabels) {
@@ -226,7 +226,7 @@ TEST(MemoryCompareToolTest, GetUsageContainsExpected) {
 
 TEST(MemoryCompareToolTest, GetDescriptionIsNotEmpty) {
   MemoryCompareTool tool;
-  EXPECT_THAT(tool.GetDescription(), Not(HasSubstr("")));
+  EXPECT_FALSE(tool.GetDescription().empty());
 }
 
 TEST(MemoryCompareToolTest, DoesNotRequireLabels) {
@@ -250,7 +250,7 @@ TEST(MemoryCheckToolTest, GetUsageContainsRegion) {
 
 TEST(MemoryCheckToolTest, GetDescriptionIsNotEmpty) {
   MemoryCheckTool tool;
-  EXPECT_THAT(tool.GetDescription(), Not(HasSubstr("")));
+  EXPECT_FALSE(tool.GetDescription().empty());
 }
 
 TEST(MemoryCheckToolTest, DoesNotRequireLabels) {
@@ -279,7 +279,7 @@ TEST(MemoryRegionsToolTest, GetUsageContainsFormat) {
 
 TEST(MemoryRegionsToolTest, GetDescriptionIsNotEmpty) {
   MemoryRegionsTool tool;
-  EXPECT_THAT(tool.GetDescription(), Not(HasSubstr("")));
+  EXPECT_FALSE(tool.GetDescription().empty());
 }
 
 TEST(MemoryRegionsToolTest, DoesNotRequireLabels) {
@@ -359,4 +359,3 @@ TEST(ALTTPMemoryMapTest, SRAMRegionSizeIsCorrect) {
 }  // namespace agent
 }  // namespace cli
 }  // namespace yaze
-
