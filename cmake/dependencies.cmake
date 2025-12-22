@@ -8,6 +8,9 @@ include(cmake/dependencies.lock)
 
 message(STATUS "=== Setting up YAZE dependencies with CPM.cmake ===")
 
+# Only prefer local/system packages when explicitly requested.
+set(CPM_USE_LOCAL_PACKAGES ${YAZE_USE_SYSTEM_DEPS} CACHE BOOL "" FORCE)
+
 # Clear any previous dependency targets
 set(YAZE_ALL_DEPENDENCIES "")
 set(YAZE_SDL2_TARGETS "")
@@ -15,6 +18,7 @@ set(YAZE_YAML_TARGETS "")
 set(YAZE_IMGUI_TARGETS "")
 set(YAZE_IMPLOT_TARGETS "")
 set(YAZE_JSON_TARGETS "")
+set(YAZE_HTTPLIB_TARGETS "")
 set(YAZE_GRPC_TARGETS "")
 set(YAZE_FTXUI_TARGETS "")
 set(YAZE_TESTING_TARGETS "")
@@ -52,6 +56,12 @@ endif()
 if(YAZE_ENABLE_JSON)
   include(cmake/dependencies/json.cmake)
   list(APPEND YAZE_ALL_DEPENDENCIES ${YAZE_JSON_TARGETS})
+endif()
+
+# Native HTTP/HTTPS (cpp-httplib) for non-WASM builds
+if(NOT EMSCRIPTEN)
+  include(cmake/dependencies/httplib.cmake)
+  list(APPEND YAZE_ALL_DEPENDENCIES ${YAZE_HTTPLIB_TARGETS})
 endif()
 
 # CRITICAL: Load testing dependencies BEFORE gRPC when both are enabled
@@ -94,6 +104,9 @@ if(YAZE_ENABLE_JSON)
 endif()
 if(YAZE_ENABLE_GRPC)
   message(STATUS "gRPC: ${YAZE_GRPC_TARGETS}")
+endif()
+if(NOT EMSCRIPTEN)
+  message(STATUS "httplib: ${YAZE_HTTPLIB_TARGETS}")
 endif()
 if(YAZE_BUILD_CLI AND NOT EMSCRIPTEN)
   message(STATUS "FTXUI: ${YAZE_FTXUI_TARGETS}")
