@@ -33,7 +33,7 @@ class HeadlessEditorTest : public ::testing::Test {
     ImGui::NewFrame();
 
     // Initialize mock renderer
-    renderer_ = std::make_unique<MockRenderer>();
+    renderer_ = std::make_unique<::testing::NiceMock<MockRenderer>>();
 
     // Initialize panel manager
     panel_manager_ = std::make_unique<editor::PanelManager>();

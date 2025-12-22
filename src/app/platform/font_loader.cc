@@ -34,8 +34,12 @@ std::string SetFontPath(const std::string& font_path) {
   const std::string kBundlePath = util::GetBundleResourcePath();
   return kBundlePath + font_path;
 #else
-  return absl::StrCat(util::GetBundleResourcePath(), "Contents/Resources/font/",
-                      font_path);
+  std::string bundle_path = absl::StrCat(
+      util::GetBundleResourcePath(), "Contents/Resources/font/", font_path);
+  if (std::filesystem::exists(bundle_path)) {
+    return bundle_path;
+  }
+  return absl::StrCat("assets/font/", font_path);
 #endif
 #else
   return absl::StrCat("assets/font/", font_path);
@@ -48,8 +52,20 @@ absl::Status LoadFont(const FontConfig& font_config) {
   // Check if the file exists with std library first, since ImGui IO will assert
   // if the file does not exist
   if (!std::filesystem::exists(actual_font_path)) {
+#ifdef __APPLE__
+    // Allow CLI/test runs to use repo assets when no app bundle is present.
+    std::string fallback_path =
+        absl::StrCat("assets/font/", font_config.font_path);
+    if (std::filesystem::exists(fallback_path)) {
+      actual_font_path = fallback_path;
+    } else {
+      return absl::InternalError(
+          absl::StrFormat("Font file %s does not exist", actual_font_path));
+    }
+#else
     return absl::InternalError(
         absl::StrFormat("Font file %s does not exist", actual_font_path));
+#endif
   }
 
   if (!imgui_io.Fonts->AddFontFromFileTTF(actual_font_path.data(),
