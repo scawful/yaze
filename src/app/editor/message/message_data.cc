@@ -217,6 +217,14 @@ DictionaryEntry FindRealDictionaryEntry(
 
 absl::StatusOr<MessageData> ParseSingleMessage(
     const std::vector<uint8_t>& rom_data, int* current_pos) {
+  if (current_pos == nullptr) {
+    return absl::InvalidArgumentError("current_pos is null");
+  }
+  if (*current_pos < 0 ||
+      static_cast<size_t>(*current_pos) >= rom_data.size()) {
+    return absl::OutOfRangeError("current_pos is out of range");
+  }
+
   MessageData message_data;
   int pos = *current_pos;
   uint8_t current_byte;
@@ -226,7 +234,7 @@ absl::StatusOr<MessageData> ParseSingleMessage(
   std::string current_message_parsed;
 
   // Read the message data
-  while (true) {
+  while (pos < static_cast<int>(rom_data.size())) {
     current_byte = rom_data[pos++];
 
     if (current_byte == kMessageTerminator) {
@@ -242,9 +250,10 @@ absl::StatusOr<MessageData> ParseSingleMessage(
       current_message_raw.clear();
       current_message_parsed.clear();
 
-      break;
+      *current_pos = pos;
+      return message_data;
     } else if (current_byte == 0xFF) {
-      break;
+      return absl::InvalidArgumentError("message terminator not found");
     }
 
     temp_bytes_raw.push_back(current_byte);
@@ -252,8 +261,28 @@ absl::StatusOr<MessageData> ParseSingleMessage(
     // Check for command.
     auto text_element = FindMatchingCommand(current_byte);
     if (text_element != std::nullopt) {
-      current_message_raw.append(text_element->GetParamToken());
-      current_message_parsed.append(text_element->GetParamToken());
+      temp_bytes_parsed.push_back(current_byte);
+      if (text_element->HasArgument) {
+        if (pos >= static_cast<int>(rom_data.size())) {
+          return absl::OutOfRangeError("message command argument out of range");
+        }
+        uint8_t arg_byte = rom_data[pos++];
+        temp_bytes_raw.push_back(arg_byte);
+        temp_bytes_parsed.push_back(arg_byte);
+        current_message_raw.append(text_element->GetParamToken(arg_byte));
+        current_message_parsed.append(text_element->GetParamToken(arg_byte));
+      } else {
+        current_message_raw.append(text_element->GetParamToken());
+        current_message_parsed.append(text_element->GetParamToken());
+      }
+      continue;
+    }
+
+    // Check for special characters.
+    if (auto special_element = FindMatchingSpecial(current_byte);
+        special_element != std::nullopt) {
+      current_message_raw.append(special_element->GetParamToken());
+      current_message_parsed.append(special_element->GetParamToken());
       temp_bytes_parsed.push_back(current_byte);
       continue;
     }
@@ -261,24 +290,12 @@ absl::StatusOr<MessageData> ParseSingleMessage(
     // Check for dictionary.
     int8_t dictionary = FindDictionaryEntry(current_byte);
     if (dictionary >= 0) {
-      current_message_raw.append("[");
-      current_message_raw.append(DICTIONARYTOKEN);
-      current_message_raw.append(":");
-      current_message_raw.append(
-          util::HexWord(static_cast<unsigned char>(dictionary)));
-      current_message_raw.append("]");
-
-      auto mutable_rom_data = const_cast<uint8_t*>(rom_data.data());
-      uint32_t address = Get24LocalFromPC(
-          mutable_rom_data, kPointersDictionaries + (dictionary * 2));
-      uint32_t address_end = Get24LocalFromPC(
-          mutable_rom_data, kPointersDictionaries + ((dictionary + 1) * 2));
-
-      for (uint32_t i = address; i < address_end; i++) {
-        temp_bytes_parsed.push_back(rom_data[i]);
-        current_message_parsed.append(ParseTextDataByte(rom_data[i]));
-      }
-
+      std::string token = absl::StrFormat(
+          "[%s:%02X]", DICTIONARYTOKEN,
+          static_cast<unsigned char>(dictionary));
+      current_message_raw.append(token);
+      current_message_parsed.append(token);
+      temp_bytes_parsed.push_back(current_byte);
       continue;
     }
 
@@ -293,7 +310,7 @@ absl::StatusOr<MessageData> ParseSingleMessage(
   }
 
   *current_pos = pos;
-  return message_data;
+  return absl::InvalidArgumentError("message terminator not found");
 }
 
 std::vector<std::string> ParseMessageData(
