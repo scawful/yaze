@@ -5,6 +5,8 @@
 # Core dependencies
 set(SDL2_VERSION "2.30.0" CACHE STRING "SDL2 version")
 set(YAML_CPP_VERSION "0.8.0" CACHE STRING "yaml-cpp version")
+set(NLOHMANN_JSON_VERSION "3.11.3" CACHE STRING "nlohmann/json version")
+set(HTTPLIB_VERSION "0.26.0" CACHE STRING "cpp-httplib version")
 
 # gRPC and related
 # Using v1.67.1 for MSVC compatibility (v1.75.1 has UPB compilation errors on Windows)
@@ -26,4 +28,3 @@ set(IMGUI_VERSION "1.90.4" CACHE STRING "Dear ImGui version")
 
 # ASAR
 set(ASAR_VERSION "main" CACHE STRING "ASAR version")
-

@@ -13,12 +13,3 @@
 [submodule "ext/nativefiledialog-extended"]
 	path = ext/nativefiledialog-extended
 	url = https://github.com/btzy/nativefiledialog-extended.git
-[submodule "assets/asm/usdasm"]
-	path = assets/asm/usdasm
-	url = https://github.com/spannerisms/usdasm.git
-[submodule "ext/json"]
-	path = ext/json
-	url = https://github.com/nlohmann/json.git
-[submodule "ext/httplib"]
-	path = ext/httplib
-	url = https://github.com/yhirose/cpp-httplib.git
