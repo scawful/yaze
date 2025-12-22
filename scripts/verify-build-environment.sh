@@ -94,8 +94,6 @@ function test_git_submodules() {
     "src/lib/abseil-cpp"
     "ext/asar"
     "ext/imgui"
-    "ext/json"
-    "ext/httplib"
     "ext/imgui_test_engine"
     "ext/nativefiledialog-extended"
     )
@@ -274,17 +272,27 @@ function sync_git_submodules() {
 
 function test_dependency_compatibility() {
     write_status "Testing dependency configuration..." "Step"
-    
-    # Check httplib configuration
-    if [[ -f "ext/httplib/CMakeLists.txt" ]]; then
-        write_status "httplib found in ext/" "Success"
-        SUCCESS+=("httplib header-only library available")
-    fi
-    
-    # Check json library
-    if [[ -d "ext/json/include" ]]; then
-        write_status "nlohmann/json found in ext/" "Success"
-        SUCCESS+=("nlohmann/json header-only library available")
+
+    local deps_found=0
+    local build_dirs=(
+        "build"
+        "build-wasm"
+        "build-test"
+        "build-grpc-test"
+        "build_agent"
+        "build_ci"
+    )
+
+    for dir in "${build_dirs[@]}"; do
+        if [[ -d "$dir/_deps/nlohmann_json-src" ]] || [[ -d "$dir/_deps/httplib-src" ]]; then
+            write_status "CPM dependencies present in $dir/_deps" "Success"
+            SUCCESS+=("CPM dependencies available in $dir")
+            deps_found=1
+        fi
+    done
+
+    if [[ $deps_found -eq 0 ]]; then
+        write_status "cpp-httplib and nlohmann/json are fetched by CPM during configure" "Info"
     fi
 }
 

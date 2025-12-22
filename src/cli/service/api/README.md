@@ -155,7 +155,7 @@ Access-Control-Allow-Origin: *
 ### Architecture
 
 The HTTP API is built using:
-- **cpp-httplib** - Header-only HTTP server library (`ext/httplib/`)
+- **cpp-httplib** - Header-only HTTP server library (fetched via CPM)
 - **nlohmann/json** - JSON serialization/deserialization
 - **ModelRegistry** - Unified model management across providers
 

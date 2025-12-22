@@ -57,8 +57,6 @@ target_include_directories(yaze_net PUBLIC
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/ext
   ${CMAKE_SOURCE_DIR}/ext/imgui
-  ${CMAKE_SOURCE_DIR}/ext/json/include
-  ${CMAKE_SOURCE_DIR}/ext/httplib
   ${PROJECT_BINARY_DIR}
 )
 
@@ -68,6 +66,10 @@ target_link_libraries(yaze_net PUBLIC
   ${ABSL_TARGETS}
   ${YAZE_SDL2_TARGETS}
 )
+
+if(NOT EMSCRIPTEN AND YAZE_HTTPLIB_TARGETS)
+  target_link_libraries(yaze_net PUBLIC ${YAZE_HTTPLIB_TARGETS})
+endif()
 
 # Add Emscripten-specific flags for WASM builds
 if(EMSCRIPTEN)
@@ -87,7 +89,6 @@ endif()
 if(YAZE_ENABLE_JSON)
   # Link nlohmann_json which provides the include directories automatically
   target_link_libraries(yaze_net PUBLIC nlohmann_json::nlohmann_json)
-  target_include_directories(yaze_net PUBLIC ${CMAKE_SOURCE_DIR}/ext/httplib)
   target_compile_definitions(yaze_net PUBLIC YAZE_WITH_JSON)
   
   # Add threading support (cross-platform)

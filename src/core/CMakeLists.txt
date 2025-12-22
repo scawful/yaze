@@ -48,9 +48,6 @@ target_link_libraries(yaze_core_lib PUBLIC
 # JSON support for project serialization
 if(TARGET nlohmann_json::nlohmann_json)
   target_link_libraries(yaze_core_lib PUBLIC nlohmann_json::nlohmann_json)
-  target_include_directories(yaze_core_lib PUBLIC
-    ${CMAKE_SOURCE_DIR}/ext/json/include
-  )
 endif()
 
 # Add Asar support (links asar-static and adds YAZE_ENABLE_ASAR definition)

@@ -17,6 +17,7 @@ if(YAZE_BUILD_TESTS)
     endif()
 
     target_include_directories(${suite_name} PUBLIC
+      ${CMAKE_SOURCE_DIR}
       ${CMAKE_SOURCE_DIR}/src
       ${CMAKE_SOURCE_DIR}/incl
       ${CMAKE_SOURCE_DIR}/test
@@ -26,7 +27,6 @@ if(YAZE_BUILD_TESTS)
       ${CMAKE_SOURCE_DIR}/ext/imgui/backends
       ${CMAKE_SOURCE_DIR}/ext/imgui_test_engine
       ${CMAKE_SOURCE_DIR}/ext/SDL/include
-      ${CMAKE_SOURCE_DIR}/ext/json/include
       ${CMAKE_BINARY_DIR}/ext/SDL/include
       ${PROJECT_BINARY_DIR}
     )
@@ -41,6 +41,13 @@ if(YAZE_BUILD_TESTS)
       ImGui
       ${YAZE_SDL2_TARGETS}
     )
+
+    if(YAZE_ENABLE_JSON AND TARGET nlohmann_json::nlohmann_json)
+      target_link_libraries(${suite_name} PRIVATE nlohmann_json::nlohmann_json)
+    endif()
+    if(TARGET httplib::httplib)
+      target_link_libraries(${suite_name} PRIVATE httplib::httplib)
+    endif()
 
     # Link ImGui Test Engine for GUI tests (always available when tests are built)
     if(is_gui_test AND TARGET ImGuiTestEngine)
@@ -92,6 +99,7 @@ if(YAZE_BUILD_TESTS)
     # Unit Tests
     unit/core/asar_wrapper_test.cc
     unit/core/hex_test.cc
+    unit/deps/dependency_smoke_test.cc
     unit/cli/resource_catalog_test.cc
     unit/rom/rom_test.cc
     unit/gfx/snes_tile_test.cc

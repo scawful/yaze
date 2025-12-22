@@ -112,6 +112,7 @@ set(
   app/editor/layout_designer/widget_code_generator.cc
   app/editor/layout_designer/theme_properties.cc
   app/editor/layout_designer/yaze_widgets.cc
+  yaze.cc
 )
 
 # Agent UI Theme is always needed (used by dungeon editor, etc.)
@@ -193,9 +194,6 @@ endif()
 # Note: yaze_test_support linking is deferred to test.cmake to ensure proper ordering
 
 if(YAZE_ENABLE_JSON)
-  target_include_directories(yaze_editor PUBLIC
-    ${CMAKE_SOURCE_DIR}/ext/json/include)
-
   if(TARGET nlohmann_json::nlohmann_json)
     target_link_libraries(yaze_editor PUBLIC nlohmann_json::nlohmann_json)
   endif()
