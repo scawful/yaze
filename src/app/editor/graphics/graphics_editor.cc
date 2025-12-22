@@ -2,6 +2,7 @@
 #include "graphics_editor.h"
 
 // C++ standard library headers
+#include <algorithm>
 #include <filesystem>
 
 // Third-party library headers
@@ -229,22 +230,6 @@ absl::Status GraphicsEditor::Save() {
       compressed = false;
     }
 
-    // Convert 8BPP bitmap data to SNES indexed format
-    auto indexed_data = gfx::Bpp8SnesToIndexed(sheet.vector(), bpp);
-
-    std::vector<uint8_t> final_data;
-    if (compressed) {
-      // Compress using Hyrule Magic LC-LZ2
-      int compressed_size = 0;
-      auto compressed_data = gfx::HyruleMagicCompress(
-          indexed_data.data(), static_cast<int>(indexed_data.size()),
-          &compressed_size, 1);
-      final_data.assign(compressed_data.begin(),
-                        compressed_data.begin() + compressed_size);
-    } else {
-      final_data = std::move(indexed_data);
-    }
-
     // Calculate ROM offset for this sheet
     // Get version constants from game_data
     auto version_constants = zelda3::kVersionConstantsMap.at(game_data()->version);
@@ -253,6 +238,47 @@ absl::Status GraphicsEditor::Save() {
         version_constants.kOverworldGfxPtr1,
         version_constants.kOverworldGfxPtr2,
         version_constants.kOverworldGfxPtr3, rom_->size());
+
+    // Convert 8BPP bitmap data to SNES planar format
+    auto snes_tile_data = gfx::IndexedToSnesSheet(sheet.vector(), bpp);
+
+    constexpr size_t kDecompressedSheetSize = 0x800;
+    std::vector<uint8_t> base_data;
+    if (compressed) {
+      auto decomp_result = gfx::lc_lz2::DecompressV2(
+          rom_->data(), offset, static_cast<int>(kDecompressedSheetSize), 1,
+          rom_->size());
+      if (!decomp_result.ok()) {
+        return decomp_result.status();
+      }
+      base_data = std::move(*decomp_result);
+    } else {
+      auto read_result =
+          rom_->ReadByteVector(offset, kDecompressedSheetSize);
+      if (!read_result.ok()) {
+        return read_result.status();
+      }
+      base_data = std::move(*read_result);
+    }
+
+    if (base_data.size() < snes_tile_data.size()) {
+      base_data.resize(snes_tile_data.size(), 0);
+    }
+    std::copy(snes_tile_data.begin(), snes_tile_data.end(),
+              base_data.begin());
+
+    std::vector<uint8_t> final_data;
+    if (compressed) {
+      // Compress using Hyrule Magic LC-LZ2
+      int compressed_size = 0;
+      auto compressed_data = gfx::HyruleMagicCompress(
+          base_data.data(), static_cast<int>(base_data.size()),
+          &compressed_size, 1);
+      final_data.assign(compressed_data.begin(),
+                        compressed_data.begin() + compressed_size);
+    } else {
+      final_data = std::move(base_data);
+    }
 
     // Write data to ROM buffer
     for (size_t i = 0; i < final_data.size(); i++) {

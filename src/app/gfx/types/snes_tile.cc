@@ -1,5 +1,6 @@
 #include "snes_tile.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cstdint>
 #include <stdexcept>
@@ -197,6 +198,62 @@ std::vector<uint8_t> SnesTo8bppSheet(std::span<uint8_t> sheet, int bpp,
     }
   }
   return sheet_buffer_out;
+}
+
+std::vector<uint8_t> IndexedToSnesSheet(std::span<const uint8_t> sheet, int bpp,
+                                        int num_sheets) {
+  if (sheet.empty()) {
+    return {};
+  }
+
+  const int tiles_per_row = kTilesheetWidth / 8;
+  const int default_tile_rows = (bpp == 2) ? 8 : 4;
+  const int computed_tile_rows =
+      static_cast<int>(sheet.size()) / (kTilesheetWidth * 8);
+  const int tile_rows = (computed_tile_rows > 0)
+                            ? std::max(default_tile_rows, computed_tile_rows)
+                            : default_tile_rows;
+  const int tiles_per_sheet = tiles_per_row * tile_rows;
+  const int total_tiles = tiles_per_sheet * num_sheets;
+  const int bytes_per_tile = bpp * 8;
+  const uint8_t max_color =
+      static_cast<uint8_t>((1u << static_cast<uint8_t>(bpp)) - 1u);
+
+  std::vector<uint8_t> output(total_tiles * bytes_per_tile, 0);
+
+  int xx = 0;
+  int yy = 0;
+  int pos = 0;
+  int ypos = 0;
+
+  for (int i = 0; i < total_tiles; i++) {
+    snes_tile8 tile = {};
+
+    for (int y = 0; y < 8; y++) {
+      for (int x = 0; x < 8; x++) {
+        const int index =
+            (x + xx) + (y * kTilesheetWidth) + (yy * kTilesheetWidth * 8);
+        if (index >= 0 && index < static_cast<int>(sheet.size())) {
+          tile.data[y * 8 + x] = sheet[index] & max_color;
+        }
+      }
+    }
+
+    auto packed_tile = PackBppTile(tile, bpp);
+    std::copy(packed_tile.begin(), packed_tile.end(),
+              output.begin() + (pos * bytes_per_tile));
+
+    pos++;
+    ypos++;
+    xx += 8;
+    if (ypos >= tiles_per_row) {
+      yy++;
+      xx = 0;
+      ypos = 0;
+    }
+  }
+
+  return output;
 }
 
 std::vector<uint8_t> Bpp8SnesToIndexed(std::vector<uint8_t> data,

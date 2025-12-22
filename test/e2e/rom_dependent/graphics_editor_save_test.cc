@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <memory>
@@ -10,9 +11,11 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/util/compression.h"
 #include "rom/rom.h"
+#include "test/test_utils.h"
 #include "zelda3/game_data.h"
 #include "zelda3/game_data.h"
 #include "testing.h"
+#include "zelda.h"
 
 namespace yaze {
 namespace test {
@@ -30,18 +33,10 @@ namespace test {
 class GraphicsEditorSaveTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    // Skip tests if ROM is not available
-    if (getenv("YAZE_SKIP_ROM_TESTS")) {
-      GTEST_SKIP() << "ROM tests disabled";
-    }
-
-    // Get ROM path from environment or use default (vanilla.sfc to avoid edited ROMs)
-    const char* rom_path_env = getenv("YAZE_TEST_ROM_PATH");
-    vanilla_rom_path_ = rom_path_env ? rom_path_env : "vanilla.sfc";
-
-    if (!std::filesystem::exists(vanilla_rom_path_)) {
-      GTEST_SKIP() << "Test ROM not found: " << vanilla_rom_path_;
-    }
+    yaze::test::TestRomManager::SkipIfRomMissing(
+        yaze::test::RomRole::kVanilla, "GraphicsEditorSaveTest");
+    vanilla_rom_path_ =
+        yaze::test::TestRomManager::GetRomPath(yaze::test::RomRole::kVanilla);
 
     // Create test ROM copies
     test_rom_path_ = "test_graphics_edit.sfc";
@@ -64,6 +59,19 @@ class GraphicsEditorSaveTest : public ::testing::Test {
     if (std::filesystem::exists(backup_rom_path_)) {
       std::filesystem::remove(backup_rom_path_);
     }
+  }
+
+  static int GetSheetBpp(uint16_t sheet_id) {
+    if (sheet_id == 113 || sheet_id == 114 || sheet_id >= 218) {
+      return 2;
+    }
+    return 3;
+  }
+
+  static uint8_t NextPixelValue(uint16_t sheet_id, uint8_t current,
+                                uint8_t delta = 1) {
+    const uint8_t max_colors = static_cast<uint8_t>(1u << GetSheetBpp(sheet_id));
+    return static_cast<uint8_t>((current + delta) % max_colors);
   }
 
   // Helper to load ROM and verify basic integrity
@@ -107,42 +115,62 @@ class GraphicsEditorSaveTest : public ::testing::Test {
     }
 
     // Determine BPP and compression based on sheet range
-    int bpp = 3;  // Default 3BPP
+    const int bpp = GetSheetBpp(sheet_id);
     bool compressed = true;
-
-    // Sheets 113-114, 218+ are 2BPP
-    if (sheet_id == 113 || sheet_id == 114 || sheet_id >= 218) {
-      bpp = 2;
-    }
 
     // Sheets 115-126 are uncompressed
     if (sheet_id >= 115 && sheet_id <= 126) {
       compressed = false;
     }
 
-    // Convert 8BPP bitmap data to SNES indexed format
-    auto indexed_data = gfx::Bpp8SnesToIndexed(sheet.vector(), bpp);
+    // Calculate ROM offset for this sheet
+    auto version = zelda3_detect_version(rom.data(), rom.size());
+    auto vc_it = zelda3::kVersionConstantsMap.find(version);
+    if (vc_it == zelda3::kVersionConstantsMap.end() ||
+        vc_it->second.kOverworldGfxPtr1 == 0) {
+      vc_it = zelda3::kVersionConstantsMap.find(zelda3_version::US);
+    }
+    const auto& vc = vc_it->second;
+    uint32_t offset = zelda3::GetGraphicsAddress(
+        rom.data(), static_cast<uint8_t>(sheet_id),
+        vc.kOverworldGfxPtr1, vc.kOverworldGfxPtr2,
+        vc.kOverworldGfxPtr3, rom.size());
+
+    // Convert 8BPP bitmap data to SNES planar format
+    auto snes_tile_data = gfx::IndexedToSnesSheet(sheet.vector(), bpp);
+
+    constexpr size_t kDecompressedSheetSize = 0x800;
+    std::vector<uint8_t> base_data;
+    if (compressed) {
+      auto decomp_result = gfx::lc_lz2::DecompressV2(
+          rom.data(), offset, static_cast<int>(kDecompressedSheetSize), 1,
+          rom.size());
+      RETURN_IF_ERROR(decomp_result.status());
+      base_data = std::move(*decomp_result);
+    } else {
+      auto read_result = rom.ReadByteVector(offset, kDecompressedSheetSize);
+      RETURN_IF_ERROR(read_result.status());
+      base_data = std::move(*read_result);
+    }
+
+    if (base_data.size() < snes_tile_data.size()) {
+      base_data.resize(snes_tile_data.size(), 0);
+    }
+    std::copy(snes_tile_data.begin(), snes_tile_data.end(),
+              base_data.begin());
 
     std::vector<uint8_t> final_data;
     if (compressed) {
       // Compress using Hyrule Magic LC-LZ2
       int compressed_size = 0;
       auto compressed_data = gfx::HyruleMagicCompress(
-          indexed_data.data(), static_cast<int>(indexed_data.size()),
+          base_data.data(), static_cast<int>(base_data.size()),
           &compressed_size, 1);
       final_data.assign(compressed_data.begin(),
                         compressed_data.begin() + compressed_size);
     } else {
-      final_data = std::move(indexed_data);
+      final_data = std::move(base_data);
     }
-
-    // Calculate ROM offset for this sheet
-    // Use JP version constants as default for vanilla ROM
-    const auto& vc = zelda3::kVersionConstantsMap.at(zelda3_version::JP);
-    uint32_t offset = zelda3::GetGraphicsAddress(
-        rom.data(), static_cast<uint8_t>(sheet_id),
-        vc.kOverworldGfxPtr1, vc.kOverworldGfxPtr2,
-        vc.kOverworldGfxPtr3, rom.size());
 
     // Write data to ROM buffer
     for (size_t i = 0; i < final_data.size(); i++) {
@@ -174,7 +202,7 @@ TEST_F(GraphicsEditorSaveTest, SingleSheetEdit_SaveAndReload) {
   uint8_t original_pixel = sheet.GetPixel(0, 0);
 
   // Modify pixel (cycle to next value, wrapping at 16 for 4-bit indexed)
-  uint8_t new_pixel = (original_pixel + 1) % 16;
+  uint8_t new_pixel = NextPixelValue(0, original_pixel);
   sheet.WriteToPixel(0, 0, new_pixel);
 
   // Verify modification took effect in memory
@@ -210,12 +238,19 @@ TEST_F(GraphicsEditorSaveTest, MultipleSheetEdit_Atomicity) {
 
   // Modify sheets 0, 50, and 100 with distinct values
   const std::vector<uint16_t> test_sheets = {0, 50, 100};
-  const std::vector<uint8_t> test_values = {5, 10, 15};
+  std::vector<uint8_t> test_values;
+  test_values.reserve(test_sheets.size());
 
   for (size_t i = 0; i < test_sheets.size(); i++) {
     auto& sheet = sheets[test_sheets[i]];
     if (sheet.is_active()) {
-      sheet.WriteToPixel(0, 0, test_values[i]);
+      uint8_t original_pixel = sheet.GetPixel(0, 0);
+      uint8_t new_pixel =
+          NextPixelValue(test_sheets[i], original_pixel, static_cast<uint8_t>(i + 1));
+      sheet.WriteToPixel(0, 0, new_pixel);
+      test_values.push_back(new_pixel);
+    } else {
+      test_values.push_back(0);
     }
   }
 
@@ -268,7 +303,7 @@ TEST_F(GraphicsEditorSaveTest, CompressionIntegrity_LZ2Sheets) {
 
   // Modify a single pixel
   uint8_t original_pixel = sheet.GetPixel(4, 4);
-  uint8_t new_pixel = (original_pixel + 7) % 16;
+  uint8_t new_pixel = NextPixelValue(test_sheet, original_pixel, 1);
   sheet.WriteToPixel(4, 4, new_pixel);
 
   // Save and reload
@@ -312,7 +347,7 @@ TEST_F(GraphicsEditorSaveTest, UncompressedSheets_SaveCorrectly) {
 
   // Modify pixel
   uint8_t original_pixel = sheet.GetPixel(0, 0);
-  uint8_t new_pixel = (original_pixel + 3) % 16;
+  uint8_t new_pixel = NextPixelValue(test_sheet, original_pixel, 1);
   sheet.WriteToPixel(0, 0, new_pixel);
 
   // Save and reload
@@ -349,7 +384,9 @@ TEST_F(GraphicsEditorSaveTest, SaveWithoutCorruption_AdjacentData) {
 
   // Modify only sheet 50
   if (sheets[50].is_active()) {
-    sheets[50].WriteToPixel(0, 0, 8);
+    uint8_t original_pixel = sheets[50].GetPixel(0, 0);
+    uint8_t new_pixel = NextPixelValue(50, original_pixel, 1);
+    sheets[50].WriteToPixel(0, 0, new_pixel);
     ASSERT_OK(SaveSheetToRom(*rom, 50));
   }
 
