@@ -24,6 +24,13 @@ z3ed emu start --rom oracle_of_secrets.sfc --grpc-port 50051
 
 Load symbols from your ASM source directory for meaningful labels:
 
+If you need the vanilla usdasm disassembly, fetch it on demand:
+
+```bash
+scripts/fetch_usdasm.sh
+# or: USDASM_DIR=/path/to/usdasm scripts/fetch_usdasm.sh
+```
+
 ```protobuf
 rpc LoadSymbols(SymbolFileRequest) returns (CommandResponse)
 
