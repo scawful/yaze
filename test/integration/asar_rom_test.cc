@@ -52,6 +52,7 @@ class AsarRomIntegrationTest : public RomDependentTest {
     std::ofstream simple_file(simple_patch_path_);
     simple_file << R"(
 ; Simple Asar patch for real ROM testing
+lorom
 org $008000
 yaze_test_entry:
     sei                 ; Disable interrupts
@@ -98,24 +99,20 @@ yaze_test_data:
     gameplay_file << R"(
 ; Gameplay modification patch for testing
 ; This modifies Link's starting health and magic
+lorom
 
-; Increase Link's maximum health
-org $7EF36C
-    db $A0              ; 160/8 = 20 hearts (was usually $60 = 12 hearts)
-
-; Increase Link's maximum magic  
-org $7EF36E
-    db $80              ; Full magic meter
+!player_health = $7EF36C
+!player_magic = $7EF36E
 
 ; Custom routine for health restoration
 org $00C000
 yaze_health_restore:
     sep #$20            ; 8-bit A
     lda #$A0            ; Full health
-    sta $7EF36C         ; Current health
+    sta !player_health  ; Current health
     
     lda #$80            ; Full magic
-    sta $7EF36E         ; Current magic
+    sta !player_magic   ; Current magic
     
     rep #$20            ; 16-bit A
     rtl
@@ -132,6 +129,7 @@ org $008012
     std::ofstream symbols_file(symbols_patch_path_);
     symbols_file << R"(
 ; Comprehensive symbol test for Asar integration
+lorom
 
 ; Define some constants
 !player_x = $7E0020
@@ -181,18 +179,34 @@ update_player:
     
     ; Process movement
     bit #$08            ; Up
-    beq +
-    dec !player_y
-+   bit #$04            ; Down
-    beq +
-    inc !player_y
-+   bit #$02            ; Left
-    beq +
-    dec !player_x
-+   bit #$01            ; Right
-    beq +
-    inc !player_x
-+   
+    beq yaze_skip_up
+    lda !player_y
+    sec
+    sbc #$01
+    sta !player_y
+yaze_skip_up:
+    bit #$04            ; Down
+    beq yaze_skip_down
+    lda !player_y
+    clc
+    adc #$01
+    sta !player_y
+yaze_skip_down:
+    bit #$02            ; Left
+    beq yaze_skip_left
+    lda !player_x
+    sec
+    sbc #$01
+    sta !player_x
+yaze_skip_left:
+    bit #$01            ; Right
+    beq yaze_skip_right
+    lda !player_x
+    clc
+    adc #$01
+    sta !player_x
+yaze_skip_right:
+    
     rep #$20
     rts
 
@@ -331,9 +345,8 @@ TEST_F(AsarRomIntegrationTest, GameplayModificationPatch) {
   // Check health modification at 0x7EF36C -> ROM offset would need calculation
   // For a proper test, we'd need to convert SNES addresses to ROM offsets
 
-  // Check if custom routine was inserted at 0xC000 -> ROM offset 0x18000 (in
-  // LoROM)
-  const uint32_t rom_offset = 0x18000;  // Bank $00:C000 in LoROM
+  // Check if custom routine was inserted at $00:C000 -> ROM offset $004000 (LoROM)
+  const uint32_t rom_offset = 0x4000;
   if (rom_offset < rom_copy.size()) {
     // Check for SEP #$20 instruction (0xE2 0x20)
     EXPECT_EQ(rom_copy[rom_offset], 0xE2);
