@@ -9,6 +9,16 @@ namespace test {
 
 class MockRenderer : public gfx::IRenderer {
  public:
+  MockRenderer() {
+    using ::testing::Return;
+    ON_CALL(*this, CreateTexture)
+        .WillByDefault(Return(DummyTextureHandle()));
+    ON_CALL(*this, CreateTextureWithFormat)
+        .WillByDefault(Return(DummyTextureHandle()));
+    ON_CALL(*this, LockTexture).WillByDefault(Return(true));
+    ON_CALL(*this, GetBackendRenderer).WillByDefault(Return(nullptr));
+  }
+
   MOCK_METHOD(bool, Initialize, (SDL_Window* window), (override));
   MOCK_METHOD(void, Shutdown, (), (override));
 
@@ -30,6 +40,13 @@ class MockRenderer : public gfx::IRenderer {
   MOCK_METHOD(void, SetDrawColor, (SDL_Color color), (override));
   
   MOCK_METHOD(void*, GetBackendRenderer, (), (override));
+
+ private:
+  gfx::TextureHandle DummyTextureHandle() {
+    return reinterpret_cast<gfx::TextureHandle>(&dummy_texture_);
+  }
+
+  int dummy_texture_ = 0;
 };
 
 }  // namespace test

@@ -37,6 +37,10 @@ void Arena::QueueTextureCommand(TextureCommandType type, Bitmap* bitmap) {
   texture_command_queue_.push_back({type, bitmap, gen});
 }
 
+void Arena::ClearTextureQueue() {
+  texture_command_queue_.clear();
+}
+
 bool Arena::ProcessSingleTexture(IRenderer* renderer) {
   IRenderer* active_renderer = renderer ? renderer : renderer_;
   if (!active_renderer || texture_command_queue_.empty()) {

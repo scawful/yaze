@@ -60,6 +60,7 @@ class Arena {
 
   void QueueTextureCommand(TextureCommandType type, Bitmap* bitmap);
   void ProcessTextureQueue(IRenderer* renderer);
+  void ClearTextureQueue();
 
   /**
    * @brief Check if there are pending textures to process

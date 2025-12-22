@@ -17,6 +17,7 @@
 #include "absl/debugging/symbolize.h"
 #include "app/controller.h"
 #include "app/gfx/backend/sdl2_renderer.h"
+#include "app/gfx/resource/arena.h"
 #include "app/platform/window.h"
 #include "e2e/canvas_selection_test.h"
 #include "e2e/dungeon_e2e_tests.h"
@@ -32,6 +33,13 @@
 
 namespace yaze {
 namespace test {
+
+class ArenaQueueCleaner : public ::testing::EmptyTestEventListener {
+ public:
+  void OnTestEnd(const ::testing::TestInfo&) override {
+    gfx::Arena::Get().ClearTextureQueue();
+  }
+};
 
 // Test execution modes for AI agents and developers
 enum class TestMode {
@@ -342,6 +350,8 @@ int main(int argc, char* argv[]) {
 
   // Initialize Google Test
   ::testing::InitGoogleTest(&argc, argv);
+  auto& listeners = ::testing::UnitTest::GetInstance()->listeners();
+  listeners.Append(new yaze::test::ArenaQueueCleaner());
 
   if (config.enable_ui_tests) {
 #ifdef YAZE_GUI_TEST_TARGET
