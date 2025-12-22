@@ -170,8 +170,8 @@ TEST_F(PaletteEditorSaveTest, SnesColorFormat_RoundTrip) {
     // Convert to SnesColor and back
     gfx::SnesColor color(test_snes);
 
-    // Get RGB representation
-    auto rgb = color.rgb();
+    // Get RGB representation in 0-255 range
+    auto rgb = color.rom_color();
 
     // Create new color from RGB
     gfx::SnesColor reconstructed(rgb);
@@ -284,19 +284,11 @@ TEST_F(PaletteEditorSaveTest, PaletteManager_SaveAllToRom) {
   }
 
   // Try to modify a color through PaletteManager
-  // Access overworld main palettes through game_data
-  auto* ow_main = game_data_->palette_groups.overworld_main.mutable_palette(0);
-  if (!ow_main || ow_main->size() == 0) {
-    GTEST_SKIP() << "No overworld main palette available";
-  }
-
-  // Record original color
-  gfx::SnesColor original_color = (*ow_main)[0];
+  gfx::SnesColor original_color = pm.GetColor("ow_main", 0, 0);
 
   // Modify the color
   uint16_t new_snes_value = (original_color.snes() + 0x0842) & 0x7FFF;
-  (*ow_main)[0] = gfx::SnesColor(new_snes_value);
-  (*ow_main)[0].set_modified(true);
+  ASSERT_OK(pm.SetColor("ow_main", 0, 0, gfx::SnesColor(new_snes_value)));
 
   // Save through PaletteManager
   auto save_result = pm.SaveAllToRom();
@@ -436,4 +428,3 @@ TEST_F(PaletteEditorSaveTest, RoundTrip_NoModification) {
 
 }  // namespace test
 }  // namespace yaze
-

@@ -106,6 +106,11 @@ class PaletteManager {
    */
   bool IsInitialized() const { return game_data_ != nullptr || rom_ != nullptr; }
 
+  /**
+   * @brief Reset all state for test isolation
+   */
+  void ResetForTesting();
+
   // ========== Color Operations ==========
 
   /**

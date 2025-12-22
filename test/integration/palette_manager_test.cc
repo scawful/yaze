@@ -14,9 +14,8 @@ namespace {
 class PaletteManagerTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    // PaletteManager is a singleton, so we need to reset it between tests
-    // Note: In a real scenario, we'd need a way to reset the singleton
-    // For now, we'll work with the existing instance
+    // PaletteManager is a singleton, so reset it for test isolation
+    PaletteManager::Get().ResetForTesting();
   }
 
   void TearDown() override {
