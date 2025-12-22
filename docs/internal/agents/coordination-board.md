@@ -16,6 +16,12 @@
 - STATUS: COMPLETE
 - NOTES: Identified build outputs (~11.7G), .git history (~5.4G), logs (~393M) as primary drivers; consolidated presets to `build/` + `build-wasm/`, removed extra build dirs, added `CMakeUserPresets.json.example`, updated scripts/docs to default to shared build dirs.
 
+### 2025-12-21 backend-infra-engineer – Pre-0.2.2 history phase snapshotting
+- TASK: Add additional pre-0.2.2 phase snapshots (2024 Q1/Q2/Q3) and re-rewrite history safely.
+- SCOPE: git history, tags, backups
+- STATUS: IN_PROGRESS
+- NOTES: Will create new bundle backup, rewrite snapshot chain, retag, and force-push origin/master + tags.
+
 ### 2025-12-07 snes-emulator-expert – ALTTP input/audio regression triage
 - TASK: Investigate SDL2/ImGui input pipeline and LakeSnes-based core for ALTTP A-button edge detection failure on naming screen + audio stutter on title screen
 - SCOPE: src/app/emu/input/, src/app/emu/, SDL2 backend, Link to the Past behavior (usdasm reference)
