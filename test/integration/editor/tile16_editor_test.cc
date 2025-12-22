@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "app/gfx/backend/renderer_factory.h"
@@ -12,6 +13,7 @@
 #include "app/gfx/resource/arena.h"
 #include "app/platform/window.h"
 #include "rom/rom.h"
+#include "test/test_utils.h"
 #include "zelda3/overworld/overworld.h"
 
 namespace yaze {
@@ -42,7 +44,12 @@ class Tile16EditorIntegrationTest : public ::testing::Test {
 
     // Load the test ROM
     rom_ = std::make_unique<Rom>();
-    auto load_result = rom_->LoadFromFile(YAZE_TEST_ROM_PATH);
+    yaze::test::TestRomManager::SkipIfRomMissing(
+        yaze::test::RomRole::kVanilla,
+        "Tile16EditorIntegrationTest");
+    const std::string rom_path =
+        yaze::test::TestRomManager::GetRomPath(yaze::test::RomRole::kVanilla);
+    auto load_result = rom_->LoadFromFile(rom_path);
     ASSERT_TRUE(load_result.ok())
         << "Failed to load test ROM: " << load_result.message();
 

@@ -1,3 +1,6 @@
+#define IMGUI_DEFINE_MATH_OPERATORS
+
+#include "imgui_test_engine/imgui_te_context.h"
 #include "test_utils.h"
 
 #include "app/controller.h"
@@ -15,6 +18,18 @@ void LoadRomInTest(ImGuiTestContext* ctx, const std::string& rom_path) {
     return;
   }
 
+  std::string resolved_rom_path = rom_path;
+  if (resolved_rom_path.empty() || resolved_rom_path == "zelda3.sfc" ||
+      resolved_rom_path == "vanilla.sfc") {
+    resolved_rom_path =
+        TestRomManager::GetRomPath(RomRole::kVanilla);
+  }
+  if (resolved_rom_path.empty()) {
+    ctx->LogError(
+        "LoadRomInTest: No ROM path resolved. Set YAZE_TEST_ROM_VANILLA.");
+    return;
+  }
+
   // Check if ROM is already loaded
   Rom* rom = controller->GetCurrentRom();
   if (rom && rom->is_loaded()) {
@@ -27,7 +42,7 @@ void LoadRomInTest(ImGuiTestContext* ctx, const std::string& rom_path) {
   // 2. ConfigureEditorDependencies()
   // 3. LoadAssets() - initializes all editors and loads graphics
   // 4. Updates UI state (hides welcome screen, etc.)
-  auto status = controller->LoadRomForTesting(rom_path);
+  auto status = controller->LoadRomForTesting(resolved_rom_path);
   if (!status.ok()) {
     ctx->LogError("LoadRomInTest: Failed to load ROM: %s",
                   std::string(status.message()).c_str());
@@ -35,7 +50,7 @@ void LoadRomInTest(ImGuiTestContext* ctx, const std::string& rom_path) {
   }
 
   ctx->LogInfo("ROM loaded successfully with full initialization: %s",
-               rom_path.c_str());
+               resolved_rom_path.c_str());
   ctx->Yield(10);  // Give more time for asset loading and UI updates
 }
 

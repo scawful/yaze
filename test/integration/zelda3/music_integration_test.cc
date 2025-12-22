@@ -4,8 +4,11 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <string>
+
 #include "app/emu/emulator.h"
 #include "rom/rom.h"
+#include "test/test_utils.h"
 #include "zelda3/music/music_bank.h"
 #include "zelda3/music/song_data.h"
 #include "zelda3/music/spc_parser.h"
@@ -25,12 +28,10 @@ class MusicIntegrationTest : public ::testing::Test {
   void SetUp() override {
     rom_ = std::make_unique<Rom>();
 
-    // Check if ROM file exists
-    const char* rom_path = std::getenv("YAZE_TEST_ROM_PATH");
-    if (!rom_path) {
-      rom_path = "zelda3.sfc";
-    }
-
+    yaze::test::TestRomManager::SkipIfRomMissing(
+        yaze::test::RomRole::kVanilla, "MusicIntegrationTest");
+    const std::string rom_path =
+        yaze::test::TestRomManager::GetRomPath(yaze::test::RomRole::kVanilla);
     auto status = rom_->LoadFromFile(rom_path);
     if (!status.ok()) {
       GTEST_SKIP() << "ROM file not available: " << status.message();

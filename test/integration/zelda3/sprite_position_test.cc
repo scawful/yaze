@@ -1,11 +1,12 @@
 #include <gtest/gtest.h>
 
-#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <memory>
+#include <string>
 
 #include "rom/rom.h"
+#include "test/test_utils.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_map.h"
 
@@ -15,19 +16,13 @@ namespace zelda3 {
 class SpritePositionTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    // Try to load a vanilla ROM for testing
     rom_ = std::make_unique<Rom>();
-    std::string rom_path = "bin/zelda3.sfc";
-
-    // Check if ROM exists in build directory
-    std::ifstream rom_file(rom_path);
-    if (rom_file.good()) {
-      ASSERT_TRUE(rom_->LoadFromFile(rom_path).ok())
-          << "Failed to load ROM from " << rom_path;
-    } else {
-      // Skip test if ROM not found
-      GTEST_SKIP() << "ROM file not found at " << rom_path;
-    }
+    yaze::test::TestRomManager::SkipIfRomMissing(
+        yaze::test::RomRole::kVanilla, "SpritePositionTest");
+    const std::string rom_path =
+        yaze::test::TestRomManager::GetRomPath(yaze::test::RomRole::kVanilla);
+    ASSERT_TRUE(rom_->LoadFromFile(rom_path).ok())
+        << "Failed to load ROM from " << rom_path;
 
     overworld_ = std::make_unique<Overworld>(rom_.get());
     ASSERT_TRUE(overworld_->Load(rom_.get()).ok())

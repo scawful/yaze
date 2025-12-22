@@ -102,7 +102,7 @@ void E2ETest_ImGuiMouseInteraction(ImGuiTestContext* ctx) {
  * - Arrow keys for navigation
  */
 void E2ETest_ImGuiKeyboardShortcuts(ImGuiTestContext* ctx) {
-  gui::LoadRomInTest(ctx, "zelda3.sfc");
+  gui::LoadRomInTest(ctx, yaze::test::TestRomManager::GetTestRomPath());
 
   ctx->SetRef("Yaze");
   ctx->WindowFocus("Overworld Editor");
@@ -169,7 +169,7 @@ void E2ETest_ImGuiWidgetState(ImGuiTestContext* ctx) {
  * the ImGui Test Engine for comprehensive visual verification.
  */
 void E2ETest_ImGuiWithScreenshotAssertion(ImGuiTestContext* ctx) {
-  gui::LoadRomInTest(ctx, "zelda3.sfc");
+  gui::LoadRomInTest(ctx, yaze::test::TestRomManager::GetTestRomPath());
 
   ctx->SetRef("Yaze");
   ctx->MenuClick("View/Graphics Editor");

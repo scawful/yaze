@@ -141,7 +141,7 @@ void E2ETest_DungeonObjectDrawing_BasicPlacement(ImGuiTestContext* ctx) {
 
   // Step 1: Load ROM
   ctx->LogInfo("Step 1: Loading ROM...");
-  gui::LoadRomInTest(ctx, "zelda3.sfc");
+  gui::LoadRomInTest(ctx, yaze::test::TestRomManager::GetTestRomPath());
   ctx->Yield(10);
 
   // Step 2: Open Dungeon Editor
@@ -216,7 +216,7 @@ void E2ETest_DungeonObjectDrawing_MultiLayerObjects(ImGuiTestContext* ctx) {
 
   // Step 1: Load ROM and open editor
   ctx->LogInfo("Step 1: Loading ROM and opening editor...");
-  gui::LoadRomInTest(ctx, "zelda3.sfc");
+  gui::LoadRomInTest(ctx, yaze::test::TestRomManager::GetTestRomPath());
   gui::OpenEditorInTest(ctx, "Dungeon");
   ctx->Yield(20);
 
@@ -287,7 +287,7 @@ void E2ETest_DungeonObjectDrawing_ObjectDeletion(ImGuiTestContext* ctx) {
 
   // Step 1: Load ROM and open editor
   ctx->LogInfo("Step 1: Loading ROM and opening editor...");
-  gui::LoadRomInTest(ctx, "zelda3.sfc");
+  gui::LoadRomInTest(ctx, yaze::test::TestRomManager::GetTestRomPath());
   gui::OpenEditorInTest(ctx, "Dungeon");
   ctx->Yield(20);
 
@@ -357,7 +357,7 @@ void E2ETest_DungeonObjectDrawing_ObjectRepositioning(ImGuiTestContext* ctx) {
 
   // Step 1: Load ROM and open editor
   ctx->LogInfo("Step 1: Loading ROM and opening editor...");
-  gui::LoadRomInTest(ctx, "zelda3.sfc");
+  gui::LoadRomInTest(ctx, yaze::test::TestRomManager::GetTestRomPath());
   gui::OpenEditorInTest(ctx, "Dungeon");
   ctx->Yield(20);
 

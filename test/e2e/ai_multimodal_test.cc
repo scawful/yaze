@@ -21,7 +21,7 @@ namespace test {
  */
 void E2ETest_AIVisionVerification(ImGuiTestContext* ctx) {
   // Load ROM first
-  gui::LoadRomInTest(ctx, "zelda3.sfc");
+  gui::LoadRomInTest(ctx, yaze::test::TestRomManager::GetTestRomPath());
 
   // Open the overworld editor
   gui::OpenEditorInTest(ctx, "Overworld");
@@ -80,7 +80,7 @@ void E2ETest_AIVisionVerification(ImGuiTestContext* ctx) {
  * using pixel-level comparison against reference images.
  */
 void E2ETest_ScreenshotAssertion(ImGuiTestContext* ctx) {
-  gui::LoadRomInTest(ctx, "zelda3.sfc");
+  gui::LoadRomInTest(ctx, yaze::test::TestRomManager::GetTestRomPath());
   gui::OpenEditorInTest(ctx, "Graphics");
   ctx->Yield(10);
 
@@ -144,7 +144,7 @@ void E2ETest_ScreenshotAssertion(ImGuiTestContext* ctx) {
  * for comprehensive UI testing.
  */
 void E2ETest_HybridAIScreenshotTest(ImGuiTestContext* ctx) {
-  gui::LoadRomInTest(ctx, "zelda3.sfc");
+  gui::LoadRomInTest(ctx, yaze::test::TestRomManager::GetTestRomPath());
   gui::OpenEditorInTest(ctx, "Dungeon");
   ctx->Yield(10);
 

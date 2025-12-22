@@ -16,7 +16,7 @@ namespace test {
  * as single operations when the PC is at a JSR/JSL instruction.
  */
 void E2ETest_EmulatorStepOver(ImGuiTestContext* ctx) {
-  gui::LoadRomInTest(ctx, "zelda3.sfc");
+  gui::LoadRomInTest(ctx, yaze::test::TestRomManager::GetTestRomPath());
 
   // Open emulator
   ctx->SetRef("Yaze");
@@ -61,7 +61,7 @@ void E2ETest_EmulatorStepOver(ImGuiTestContext* ctx) {
  * subroutine returns (RTS/RTL).
  */
 void E2ETest_EmulatorStepOut(ImGuiTestContext* ctx) {
-  gui::LoadRomInTest(ctx, "zelda3.sfc");
+  gui::LoadRomInTest(ctx, yaze::test::TestRomManager::GetTestRomPath());
 
   ctx->SetRef("Yaze");
   ctx->MenuClick("Emulation/Launch Emulator");
@@ -95,7 +95,7 @@ void E2ETest_EmulatorStepOut(ImGuiTestContext* ctx) {
  * across JSR/JSL calls and RTS/RTL returns.
  */
 void E2ETest_EmulatorCallStackTracking(ImGuiTestContext* ctx) {
-  gui::LoadRomInTest(ctx, "zelda3.sfc");
+  gui::LoadRomInTest(ctx, yaze::test::TestRomManager::GetTestRomPath());
 
   ctx->SetRef("Yaze");
   ctx->MenuClick("Emulation/Launch Emulator");
@@ -138,7 +138,7 @@ void E2ETest_EmulatorCallStackTracking(ImGuiTestContext* ctx) {
  * This test verifies running execution until a specific address is reached.
  */
 void E2ETest_EmulatorRunToAddress(ImGuiTestContext* ctx) {
-  gui::LoadRomInTest(ctx, "zelda3.sfc");
+  gui::LoadRomInTest(ctx, yaze::test::TestRomManager::GetTestRomPath());
 
   ctx->SetRef("Yaze");
   ctx->MenuClick("Emulation/Launch Emulator");
@@ -168,7 +168,7 @@ void E2ETest_EmulatorRunToAddress(ImGuiTestContext* ctx) {
  * for AI-driven analysis or automation.
  */
 void E2ETest_EmulatorInstructionCallback(ImGuiTestContext* ctx) {
-  gui::LoadRomInTest(ctx, "zelda3.sfc");
+  gui::LoadRomInTest(ctx, yaze::test::TestRomManager::GetTestRomPath());
 
   ctx->SetRef("Yaze");
   ctx->MenuClick("Emulation/Launch Emulator");

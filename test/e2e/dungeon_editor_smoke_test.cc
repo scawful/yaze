@@ -17,7 +17,7 @@ void E2ETest_DungeonEditorV2SmokeTest(ImGuiTestContext* ctx) {
 
   // Load ROM first
   ctx->LogInfo("Loading ROM...");
-  yaze::test::gui::LoadRomInTest(ctx, "zelda3.sfc");
+  yaze::test::gui::LoadRomInTest(ctx, yaze::test::TestRomManager::GetTestRomPath());
   ctx->LogInfo("ROM loaded successfully");
 
   // Open the Dungeon Editor

@@ -54,7 +54,7 @@ endif()
 #
 # For CI/CD, use the test runner with appropriate filters:
 # ./yaze_test --unit --verbose
-# ./yaze_test --e2e --rom-path zelda3.sfc
+# ./yaze_test --e2e --rom-vanilla roms/alttp_vanilla.sfc
 # ./yaze_test --zscustomoverworld --verbose
 
 # =============================================================================
