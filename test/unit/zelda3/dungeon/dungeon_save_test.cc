@@ -81,32 +81,31 @@ class DungeonSaveTest : public ::testing::Test {
 
   void SetupSpritePointers() {
     // 1. Setup kRoomsSpritePointer (0x4C298)
-    // Points to table in Bank 04. Let's put table at 0x20000 (04:8000)
+    // Points to table in Bank 09. Let's put table at 0x48000 (09:8000)
     int ptr_loc = kRoomsSpritePointer;
     rom_->mutable_data()[ptr_loc] = 0x00;
     rom_->mutable_data()[ptr_loc + 1] = 0x80; 
-    // Bank is hardcoded to 0x04 in code, so we only write low 2 bytes.
+    // Bank is hardcoded to 0x09 in code, so we only write low 2 bytes.
 
-    // 2. Setup Sprite Pointer Table at 0x20000
-    // Room 0 pointer at 0x20000
-    // Points to sprite list in Bank 09. Let's put sprites at 0x48000 (09:8000)
-    // Write 00 80 at 0x20000
-    int table_loc = 0x20000;
+    // 2. Setup Sprite Pointer Table at 0x48000 (09:8000)
+    // Room 0 pointer -> sprite list at 0x49000 (09:9000)
+    // Write 00 90 at 0x48000
+    int table_loc = 0x48000;
     rom_->mutable_data()[table_loc] = 0x00;
-    rom_->mutable_data()[table_loc + 1] = 0x80;
+    rom_->mutable_data()[table_loc + 1] = 0x90;
 
-    // Room 1 pointer at 0x20002 (for size calculation)
+    // Room 1 pointer at 0x48002 (for size calculation)
     // Let's give 0x50 bytes for sprites.
-    // Next room at 0x48050 (09:8050)
-    // Write 50 80 at 0x20002
+    // Next room at 0x49050 (09:9050)
+    // Write 50 90 at 0x48002
     rom_->mutable_data()[table_loc + 2] = 0x50;
-    rom_->mutable_data()[table_loc + 3] = 0x80;
+    rom_->mutable_data()[table_loc + 3] = 0x90;
 
-    // 3. Setup Sprite Data at 0x48000
+    // 3. Setup Sprite Data at 0x49000
     // Sortsprite byte (0 or 1)
-    rom_->mutable_data()[0x48000] = 0x00;
+    rom_->mutable_data()[0x49000] = 0x00;
     // End of sprites (0xFF)
-    rom_->mutable_data()[0x48001] = 0xFF;
+    rom_->mutable_data()[0x49001] = 0xFF;
   }
 
   std::unique_ptr<Rom> rom_;

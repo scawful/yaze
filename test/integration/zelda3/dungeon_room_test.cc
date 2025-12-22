@@ -1,7 +1,10 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <string>
+
 #include "rom/rom.h"
+#include "test/test_utils.h"
 #include "zelda3/dungeon/room.h"
 
 namespace yaze {
@@ -14,8 +17,10 @@ class DungeonRoomTest : public ::testing::Test {
 #if defined(__linux__)
     GTEST_SKIP() << "Dungeon room tests require ROM file (unavailable on Linux CI)";
 #else
-    if (!rom_.LoadFromFile("./zelda3.sfc").ok()) {
-      GTEST_SKIP() << "Failed to load test ROM (zelda3.sfc)";
+    TestRomManager::SkipIfRomMissing(RomRole::kVanilla, "DungeonRoomTest");
+    const std::string rom_path = TestRomManager::GetRomPath(RomRole::kVanilla);
+    if (!rom_.LoadFromFile(rom_path).ok()) {
+      GTEST_SKIP() << "Failed to load test ROM (" << rom_path << ")";
     }
 #endif
   }

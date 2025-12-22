@@ -113,6 +113,13 @@ class ObjectDrawer {
   int GetDrawRoutineId(int16_t object_id) const;
 
   /**
+   * @brief Get the total number of registered draw routines
+   */
+  int GetDrawRoutineCount() const {
+    return static_cast<int>(draw_routines_.size());
+  }
+
+  /**
    * @brief Initialize draw routine registry
    * Must be called before drawing objects
    */

@@ -1148,21 +1148,16 @@ std::optional<size_t> DungeonObjectEditor::FindObjectAt(int room_x,
 
 bool DungeonObjectEditor::IsObjectAtPosition(const RoomObject& object, int x,
                                              int y) {
-  // Convert object position to pixel coordinates
-  int obj_x = object.x_ * 16;
-  int obj_y = object.y_ * 16;
+  // Coordinates are in room tiles.
+  int obj_x = object.x_;
+  int obj_y = object.y_;
 
-  // Check if point is within object bounds
-  // This is a simplified implementation - in practice, you'd check
-  // against the actual tile data
-
-  int obj_width = 16;   // Default object width
-  int obj_height = 16;  // Default object height
-
-  // Adjust size based on object size value
+  // Simplified bounds: default to 1x1 tile, grow to 2x2 for large objects.
+  int obj_width = 1;
+  int obj_height = 1;
   if (object.size_ > 0x80) {
-    obj_width *= 2;
-    obj_height *= 2;
+    obj_width = 2;
+    obj_height = 2;
   }
 
   return (x >= obj_x && x < obj_x + obj_width && y >= obj_y &&
@@ -1225,7 +1220,14 @@ int DungeonObjectEditor::SnapToGrid(int coordinate) {
     return coordinate;
   }
 
-  return (coordinate / config_.grid_size) * config_.grid_size;
+  int grid_size = config_.grid_size;
+  if (grid_size <= 0) {
+    return coordinate;
+  }
+
+  // Coordinates are in room tiles; map pixel grid size to tile steps.
+  int tile_step = std::max(1, grid_size / 16);
+  return (coordinate / tile_step) * tile_step;
 }
 
 void DungeonObjectEditor::UpdatePreviewObject() {

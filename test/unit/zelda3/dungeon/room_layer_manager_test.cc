@@ -80,11 +80,11 @@ TEST_F(RoomLayerManagerTest, BG2OnTopDrawOrderBG1First) {
   manager_.SetBG2OnTop(true);
   auto order = manager_.GetDrawOrder();
 
-  // BG1 should be drawn first when BG2 is on top
-  EXPECT_EQ(order[0], LayerType::BG1_Layout);
-  EXPECT_EQ(order[1], LayerType::BG1_Objects);
-  EXPECT_EQ(order[2], LayerType::BG2_Layout);
-  EXPECT_EQ(order[3], LayerType::BG2_Objects);
+  // Draw order remains BG2 then BG1; "BG2 on top" only affects color math
+  EXPECT_EQ(order[0], LayerType::BG2_Layout);
+  EXPECT_EQ(order[1], LayerType::BG2_Objects);
+  EXPECT_EQ(order[2], LayerType::BG1_Layout);
+  EXPECT_EQ(order[3], LayerType::BG1_Objects);
 }
 
 // =============================================================================
@@ -143,8 +143,8 @@ TEST_F(RoomLayerManagerTest, ApplyLayerMergingOff) {
   LayerMergeType merge{0x00, "Off", false, false, false};
   manager_.ApplyLayerMerging(merge);
 
-  EXPECT_EQ(manager_.GetLayerBlendMode(LayerType::BG2_Layout), LayerBlendMode::Off);
-  EXPECT_EQ(manager_.GetLayerBlendMode(LayerType::BG2_Objects), LayerBlendMode::Off);
+  EXPECT_EQ(manager_.GetLayerBlendMode(LayerType::BG2_Layout), LayerBlendMode::Normal);
+  EXPECT_EQ(manager_.GetLayerBlendMode(LayerType::BG2_Objects), LayerBlendMode::Normal);
 }
 
 // =============================================================================

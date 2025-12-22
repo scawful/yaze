@@ -3,7 +3,7 @@
  * @brief Comprehensive tests for object drawing, parsing, and routine mapping
  *
  * Tests the following areas:
- * 1. Object type detection (Type 1: 0x00-0xFF, Type 2: 0x100-0x1FF, Type 3: 0xF80-0xFFF)
+ * 1. Object type detection (Type 1: 0x00-0xFF, Type 2: 0x100-0x13F, Type 3: 0xF80-0xFFF)
  * 2. Tile count lookup table (kSubtype1TileLengths)
  * 3. Draw routine mapping completeness
  * 4. Type 3 object index calculation
@@ -71,12 +71,18 @@ TEST_F(ObjectDrawingComprehensiveTest, DetectsType1Objects) {
 TEST_F(ObjectDrawingComprehensiveTest, DetectsType2Objects) {
   ObjectParser parser(rom_.get());
 
-  // Type 2: 0x100-0x1FF (64 fixed-size objects)
-  for (int id = 0x100; id <= 0x1FF; ++id) {
+  // Type 2: 0x100-0x13F (64 objects)
+  for (int id = 0x100; id <= 0x13F; ++id) {
     auto info = parser.GetObjectSubtype(id);
     ASSERT_TRUE(info.ok()) << "Failed for ID 0x" << std::hex << id;
     EXPECT_EQ(info->subtype, 2) << "ID 0x" << std::hex << id << " should be Type 2";
-    EXPECT_EQ(info->max_tile_count, 8) << "Type 2 objects should have 8 tiles";
+    if (id >= 0x100 && id <= 0x10F) {
+      EXPECT_EQ(info->max_tile_count, 16) << "Type 2 corners should have 16 tiles";
+    } else if (id >= 0x110 && id <= 0x117) {
+      EXPECT_EQ(info->max_tile_count, 12) << "Type 2 weird corners should have 12 tiles";
+    } else {
+      EXPECT_EQ(info->max_tile_count, 8) << "Type 2 objects should have 8 tiles";
+    }
   }
 }
 
@@ -88,7 +94,16 @@ TEST_F(ObjectDrawingComprehensiveTest, DetectsType3Objects) {
     auto info = parser.GetObjectSubtype(id);
     ASSERT_TRUE(info.ok()) << "Failed for ID 0x" << std::hex << id;
     EXPECT_EQ(info->subtype, 3) << "ID 0x" << std::hex << id << " should be Type 3";
-    EXPECT_EQ(info->max_tile_count, 8) << "Type 3 objects should have 8 tiles";
+    if (id == 0xFB1 || id == 0xFB2 ||
+        id == 0xF94 || id == 0xFCE ||
+        (id >= 0xFE7 && id <= 0xFE8) ||
+        (id >= 0xFEC && id <= 0xFED)) {
+      EXPECT_EQ(info->max_tile_count, 12) << "Type 3 objects should have 12 tiles";
+    } else if (id == 0xFC8 || id == 0xFE6 || id == 0xFEB || id == 0xFFA) {
+      EXPECT_EQ(info->max_tile_count, 16) << "Type 3 objects should have 16 tiles";
+    } else {
+      EXPECT_EQ(info->max_tile_count, 8) << "Type 3 objects should have 8 tiles";
+    }
   }
 }
 
@@ -158,8 +173,8 @@ TEST_F(ObjectDrawingComprehensiveTest, Type3IndexCalculation_AllIndicesInRange) 
 TEST_F(ObjectDrawingComprehensiveTest, Type2IndexCalculation_BoundaryValues) {
   ObjectParser parser(rom_.get());
 
-  // Verify Type 2 index calculation: index = (object_id - 0x100) & 0xFF
-  // This maps 0x100-0x1FF to table indices 0-255
+  // Verify Type 2 index calculation: index = (object_id - 0x100) & 0x3F
+  // This maps 0x100-0x13F to table indices 0-63 (64-entry table)
 
   struct TestCase {
     int object_id;
@@ -170,8 +185,7 @@ TEST_F(ObjectDrawingComprehensiveTest, Type2IndexCalculation_BoundaryValues) {
       {0x100, 0},    // First Type 2 object -> index 0
       {0x101, 1},    // Second Type 2 object -> index 1
       {0x10F, 15},   // Index 15
-      {0x13F, 63},   // Last commonly used Type 2 object
-      {0x1FF, 255},  // Last possible Type 2 object
+      {0x13F, 63},   // Last Type 2 object -> index 63
   };
 
   for (const auto& tc : test_cases) {
@@ -253,15 +267,14 @@ TEST_F(ObjectDrawingComprehensiveTest, TileCountLookupTable_SpecialCases) {
 
 TEST_F(ObjectDrawingComprehensiveTest, DrawRoutineMapping_AllSubtype1ObjectsHaveRoutines) {
   ObjectDrawer drawer(rom_.get(), 0);
+  const int max_routine_id = drawer.GetDrawRoutineCount() - 1;
 
   // Verify all Type 1 objects (0x00-0xF7) have valid routine mappings
   for (int id = 0; id <= 0xF7; ++id) {
     int routine_id = drawer.GetDrawRoutineId(id);
-    // Should return valid routine (0-82) or -1 for unmapped
-    // Phase 4 added: SuperSquare routines 56-64, Step 2 variants 65-74,
-    // Step 3 diagonal ceilings 75-78, Step 5 special routines 79-82
+    // Should return valid routine (0..max) or -1 for unmapped
     EXPECT_GE(routine_id, -1) << "ID 0x" << std::hex << id;
-    EXPECT_LE(routine_id, 82) << "ID 0x" << std::hex << id;
+    EXPECT_LE(routine_id, max_routine_id) << "ID 0x" << std::hex << id;
   }
 }
 
@@ -360,11 +373,13 @@ TEST_F(ObjectDrawingComprehensiveTest, DrawRoutineMapping_Type3SpecialObjects) {
   // Type 3 objects (0xF80-0xFFF) - actual decoded IDs from ROM
   // Index = (object_id - 0xF80) & 0x7F
 
-  // Water Face (indices 0-2)
-  for (int id : {0xF80, 0xF81, 0xF82}) {
-    EXPECT_EQ(drawer.GetDrawRoutineId(id), 34)
-        << "ID 0x" << std::hex << id << " should use routine 34 (Water Face)";
-  }
+  // Water Face variants (indices 0-2)
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xF80), 94)
+      << "ID 0xF80 should use routine 94 (Empty Water Face)";
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xF81), 95)
+      << "ID 0xF81 should use routine 95 (Spitting Water Face)";
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xF82), 96)
+      << "ID 0xF82 should use routine 96 (Drenching Water Face)";
 
   // Somaria Line (indices 3-9)
   for (int id : {0xF83, 0xF84, 0xF85, 0xF86, 0xF87, 0xF88, 0xF89}) {
@@ -372,8 +387,12 @@ TEST_F(ObjectDrawingComprehensiveTest, DrawRoutineMapping_Type3SpecialObjects) {
         << "ID 0x" << std::hex << id << " should use routine 33 (Somaria Line)";
   }
 
-  // Chests (indices 23-26 = 0x17-0x1A + 0xF80 = 0xF97-0xF9A)
-  for (int id : {0xF97, 0xF98, 0xF99, 0xF9A}) {
+  // Prison Cell + Big Key Lock + Chests (indices 0x17-0x1A -> 0xF97-0xF9A)
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xF97), 97)
+      << "ID 0xF97 should use routine 97 (Prison Cell)";
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xF98), 92)
+      << "ID 0xF98 should use routine 92 (Big Key Lock)";
+  for (int id : {0xF99, 0xF9A}) {
     EXPECT_EQ(drawer.GetDrawRoutineId(id), 39)
         << "ID 0x" << std::hex << id << " should use routine 39 (DrawChest)";
   }
@@ -503,14 +522,14 @@ TEST_F(ObjectDrawingComprehensiveTest, DimensionCalculation_DiagonalPatterns) {
   // Diagonal walls use (size + 6) or (size + 7) count
   RoomObject diagonal_size0(0x10, 0, 0, 0, 0);
   auto dims = drawer.CalculateObjectDimensions(diagonal_size0);
-  // Diagonal: (size + 6) * 8 pixels each direction
-  EXPECT_EQ(dims.first, 48);   // 6 * 8 = 48
-  EXPECT_EQ(dims.second, 48);
+  // Diagonal: count = size + 7, width = count * 8, height = (count + 4) * 8
+  EXPECT_EQ(dims.first, 56);   // 7 * 8 = 56
+  EXPECT_EQ(dims.second, 88);  // (7 + 4) * 8 = 88
 
   RoomObject diagonal_size10(0x10, 0, 0, 10, 0);
   dims = drawer.CalculateObjectDimensions(diagonal_size10);
-  EXPECT_EQ(dims.first, 128);  // 16 * 8 = 128
-  EXPECT_EQ(dims.second, 128);
+  EXPECT_EQ(dims.first, 136);  // 17 * 8 = 136
+  EXPECT_EQ(dims.second, 168);  // (17 + 4) * 8 = 168
 }
 
 // ============================================================================
@@ -546,14 +565,10 @@ TEST_F(ObjectDrawingComprehensiveTest, EdgeCase_Size0HandledCorrectly) {
   auto dims00 = drawer.CalculateObjectDimensions(obj00_size0);
   EXPECT_EQ(dims00.first, 512);  // 32 * 16 = 512
 
-  // NOTE: Object 0x01 (routine 1) size=0 handling is NOT implemented in
-  // CalculateObjectDimensions. The draw routine uses size=26 when size=0,
-  // but CalculateObjectDimensions falls through to default case.
-  // This is a known limitation - see TODO in CalculateObjectDimensions.
+  // Object 0x01 (routine 1) size=0 uses GetSize_1to15or26 -> 26 repetitions.
   RoomObject obj01_size0(0x01, 0, 0, 0, 0);
   auto dims01 = drawer.CalculateObjectDimensions(obj01_size0);
-  // Current behavior: falls through to default, size_h=0, width=(0+1)*8=8
-  EXPECT_EQ(dims01.first, 8);  // Known limitation: should be 416 (26*16)
+  EXPECT_EQ(dims01.first, 416);  // 26 * 16
 }
 
 // ============================================================================
@@ -597,19 +612,19 @@ TEST_F(ObjectDrawingComprehensiveTest, TransparencyHandling_Pixel0IsSkipped) {
   const auto& data = bg.bitmap().vector();
   EXPECT_EQ(data[0], 0xFF) << "Transparent pixel (0) should not overwrite bitmap";
 
-  // Verify pixel (1,0) WAS written with value (1-1) + palette_offset = 0
-  EXPECT_EQ(data[1], 0) << "Non-transparent pixel should be written";
+  // Verify pixel (1,0) WAS written with value pixel + palette_offset = 1
+  EXPECT_EQ(data[1], 1) << "Non-transparent pixel should be written";
 
-  // Verify pixel (2,0) WAS written with value (2-1) + palette_offset = 1
-  EXPECT_EQ(data[2], 1) << "Non-transparent pixel should be written";
+  // Verify pixel (2,0) WAS written with value pixel + palette_offset = 2
+  EXPECT_EQ(data[2], 2) << "Non-transparent pixel should be written";
 
-  // Verify pixel (0,1) WAS written with value (3-1) + palette_offset = 2
-  EXPECT_EQ(data[64], 2) << "Non-transparent pixel at row 1 should be written";
+  // Verify pixel (0,1) WAS written with value pixel + palette_offset = 3
+  EXPECT_EQ(data[64], 3) << "Non-transparent pixel at row 1 should be written";
 }
 
 TEST_F(ObjectDrawingComprehensiveTest, TileInfo_PaletteIndexMappingVerify) {
   // Verify palette index calculation:
-  // final_color = (pixel - 1) + (palette_ * 15)
+  // final_color = pixel + (palette_bank * 16)
 
   // TileInfo with palette 0
   gfx::TileInfo tile0;
@@ -619,13 +634,13 @@ TEST_F(ObjectDrawingComprehensiveTest, TileInfo_PaletteIndexMappingVerify) {
   gfx::TileInfo tile1;
   tile1.palette_ = 1;
 
-  // Palette 0 should use offsets 0-14
-  // Palette 1 should use offsets 15-29
+  // Palette 0 should use offsets 0-15
+  // Palette 1 should use offsets 16-31
   // etc.
 
   // This is design verification - the actual color lookup happens in DrawTileToBitmap
-  EXPECT_EQ(tile0.palette_ * 15, 0);
-  EXPECT_EQ(tile1.palette_ * 15, 15);
+  EXPECT_EQ(tile0.palette_ * 16, 0);
+  EXPECT_EQ(tile1.palette_ * 16, 16);
 
   // Test palette clamping - palettes 6,7 wrap to 0,1
   gfx::TileInfo tile6;

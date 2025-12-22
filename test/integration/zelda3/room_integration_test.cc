@@ -4,7 +4,10 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <string>
+
 #include "rom/rom.h"
+#include "test/test_utils.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
 
@@ -24,12 +27,10 @@ class RoomIntegrationTest : public ::testing::Test {
     // Load the ROM file
     rom_ = std::make_unique<Rom>();
 
-    // Check if ROM file exists
-    const char* rom_path = std::getenv("YAZE_TEST_ROM_PATH");
-    if (!rom_path) {
-      rom_path = "zelda3.sfc";
-    }
-
+    yaze::test::TestRomManager::SkipIfRomMissing(
+        yaze::test::RomRole::kVanilla, "RoomIntegrationTest");
+    const std::string rom_path =
+        yaze::test::TestRomManager::GetRomPath(yaze::test::RomRole::kVanilla);
     auto status = rom_->LoadFromFile(rom_path);
     if (!status.ok()) {
       GTEST_SKIP() << "ROM file not available: " << status.message();
@@ -59,6 +60,7 @@ class RoomIntegrationTest : public ::testing::Test {
 TEST_F(RoomIntegrationTest, BasicLoadSaveRoundTrip) {
   // Load room 0 (Hyrule Castle Entrance)
   Room room1(0x00, rom_.get());
+  room1.LoadObjects();
 
   // Get original object count
   size_t original_count = room1.GetTileObjects().size();
@@ -73,6 +75,7 @@ TEST_F(RoomIntegrationTest, BasicLoadSaveRoundTrip) {
 
   // Load the room again
   Room room2(0x00, rom_.get());
+  room2.LoadObjects();
 
   // Verify object count matches
   EXPECT_EQ(room2.GetTileObjects().size(), original_count);
@@ -108,6 +111,7 @@ TEST_F(RoomIntegrationTest, MultiRoomLoadSaveRoundTrip) {
 
     // Load room
     Room room1(room_id, rom_.get());
+    room1.LoadObjects();
     auto original_objects = room1.GetTileObjects();
 
     if (original_objects.empty()) {
@@ -120,6 +124,7 @@ TEST_F(RoomIntegrationTest, MultiRoomLoadSaveRoundTrip) {
 
     // Reload and verify
     Room room2(room_id, rom_.get());
+    room2.LoadObjects();
     auto reloaded_objects = room2.GetTileObjects();
 
     EXPECT_EQ(reloaded_objects.size(), original_objects.size());
@@ -146,6 +151,7 @@ TEST_F(RoomIntegrationTest, MultiRoomLoadSaveRoundTrip) {
 TEST_F(RoomIntegrationTest, LayerPreservation) {
   // Load a room known to have multiple layers
   Room room(0x01, rom_.get());
+  room.LoadObjects();
 
   auto objects = room.GetTileObjects();
   ASSERT_GT(objects.size(), 0);
@@ -170,6 +176,7 @@ TEST_F(RoomIntegrationTest, LayerPreservation) {
   ASSERT_TRUE(room.SaveObjects().ok());
 
   Room room2(0x01, rom_.get());
+  room2.LoadObjects();
   auto reloaded = room2.GetTileObjects();
 
   // Verify layer counts match
@@ -199,6 +206,7 @@ TEST_F(RoomIntegrationTest, LayerPreservation) {
 
 TEST_F(RoomIntegrationTest, ObjectTypeDistribution) {
   Room room(0x00, rom_.get());
+  room.LoadObjects();
 
   auto objects = room.GetTileObjects();
   ASSERT_GT(objects.size(), 0);
@@ -222,6 +230,7 @@ TEST_F(RoomIntegrationTest, ObjectTypeDistribution) {
   ASSERT_TRUE(room.SaveObjects().ok());
 
   Room room2(0x00, rom_.get());
+  room2.LoadObjects();
   auto reloaded = room2.GetTileObjects();
 
   // Verify type distribution matches
@@ -250,6 +259,7 @@ TEST_F(RoomIntegrationTest, BinaryDataExactMatch) {
   // when no modifications are made
 
   Room room(0x02, rom_.get());
+  room.LoadObjects();
 
   // Get the ROM location where objects are stored
   auto rom_data = rom_->vector();
@@ -309,6 +319,7 @@ TEST_F(RoomIntegrationTest, BinaryDataExactMatch) {
 TEST_F(RoomIntegrationTest, KnownRoomData) {
   // Room 0x00 (Hyrule Castle Entrance) - verify known objects exist
   Room room(0x00, rom_.get());
+  room.LoadObjects();
 
   auto objects = room.GetTileObjects();
   ASSERT_GT(objects.size(), 0) << "Room 0x00 should have objects";

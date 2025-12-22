@@ -6,6 +6,7 @@
 
 #include "app/emu/snes.h"
 #include "rom/rom.h"
+#include "util/macro.h"
 
 using namespace yaze;
 

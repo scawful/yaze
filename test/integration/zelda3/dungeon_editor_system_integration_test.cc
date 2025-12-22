@@ -3,9 +3,11 @@
 #include <chrono>
 #include <map>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "rom/rom.h"
+#include "test/test_utils.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/dungeon_object_editor.h"
 #include "zelda3/dungeon/room.h"
@@ -21,12 +23,22 @@ class DungeonEditorSystemIntegrationTest : public ::testing::Test {
     GTEST_SKIP() << "Dungeon editor tests require ROM file (unavailable on Linux CI)";
 #endif
 
-    // Use the real ROM from build directory
-    rom_path_ = "build/bin/zelda3.sfc";
+    yaze::test::TestRomManager::SkipIfRomMissing(
+        yaze::test::RomRole::kVanilla,
+        "DungeonEditorSystemIntegrationTest");
+    rom_path_ =
+        yaze::test::TestRomManager::GetRomPath(yaze::test::RomRole::kVanilla);
+    ASSERT_FALSE(rom_path_.empty())
+        << "ROM path not set for vanilla role. "
+        << yaze::test::TestRomManager::GetRomRoleHint(
+               yaze::test::RomRole::kVanilla);
 
     // Load ROM
     rom_ = std::make_unique<Rom>();
-    ASSERT_TRUE(rom_->LoadFromFile(rom_path_).ok());
+    auto load_status = rom_->LoadFromFile(rom_path_);
+    ASSERT_TRUE(load_status.ok())
+        << "Failed to load ROM from " << rom_path_ << ": "
+        << load_status.message();
 
     // Initialize dungeon editor system
     dungeon_editor_system_ = std::make_unique<DungeonEditorSystem>(rom_.get());
@@ -99,8 +111,8 @@ TEST_F(DungeonEditorSystemIntegrationTest, ObjectEditorIntegration) {
   ASSERT_TRUE(dungeon_editor_system_->SetCurrentRoom(0x0000).ok());
 
   // Test object insertion
-  ASSERT_TRUE(object_editor->InsertObject(5, 5, 0x10, 0x12, 0).ok());
-  ASSERT_TRUE(object_editor->InsertObject(10, 10, 0x20, 0x22, 1).ok());
+  ASSERT_TRUE(object_editor->InsertObject(5, 5, 0x10, 0x0F, 0).ok());
+  ASSERT_TRUE(object_editor->InsertObject(10, 10, 0x20, 0x0F, 1).ok());
 
   // Verify objects were added
   EXPECT_EQ(object_editor->GetObjectCount(), 2);
@@ -125,8 +137,8 @@ TEST_F(DungeonEditorSystemIntegrationTest, UndoRedoFunctionality) {
   ASSERT_NE(object_editor, nullptr);
 
   // Add some objects
-  ASSERT_TRUE(object_editor->InsertObject(5, 5, 0x10, 0x12, 0).ok());
-  ASSERT_TRUE(object_editor->InsertObject(10, 10, 0x20, 0x22, 1).ok());
+  ASSERT_TRUE(object_editor->InsertObject(5, 5, 0x10, 0x0F, 0).ok());
+  ASSERT_TRUE(object_editor->InsertObject(10, 10, 0x20, 0x0F, 1).ok());
 
   // Verify objects were added
   EXPECT_EQ(object_editor->GetObjectCount(), 2);
@@ -158,8 +170,8 @@ TEST_F(DungeonEditorSystemIntegrationTest, SaveLoadFunctionality) {
   auto object_editor = dungeon_editor_system_->GetObjectEditor();
   ASSERT_NE(object_editor, nullptr);
 
-  ASSERT_TRUE(object_editor->InsertObject(5, 5, 0x10, 0x12, 0).ok());
-  ASSERT_TRUE(object_editor->InsertObject(10, 10, 0x20, 0x22, 1).ok());
+  ASSERT_TRUE(object_editor->InsertObject(5, 5, 0x10, 0x0F, 0).ok());
+  ASSERT_TRUE(object_editor->InsertObject(10, 10, 0x20, 0x0F, 1).ok());
 
   // Save room
   ASSERT_TRUE(dungeon_editor_system_->SaveRoom(0x0000).ok());

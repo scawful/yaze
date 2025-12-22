@@ -156,7 +156,7 @@ TEST_F(DrawRoutineMappingTest, VerifiesPhase4Step5SpecialMappings) {
 TEST_F(DrawRoutineMappingTest, VerifiesSubtype2Mappings) {
   ObjectDrawer drawer(rom_.get(), 0);
   
-  // 0x100-0x107 -> Routine 16 (4x4)
+  // 0x100-0x107 -> Routine 16 (RoomDraw_4x4)
   EXPECT_EQ(drawer.GetDrawRoutineId(0x100), 16);
   
   // 0x108 -> Routine 35 (4x4 Corner BothBG)

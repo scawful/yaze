@@ -1,10 +1,12 @@
 #include <gtest/gtest.h>
+#include <string>
 #include <vector>
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_tile.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/game_data.h"
 #include "rom/rom.h"
+#include "test/test_utils.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -44,10 +46,10 @@ TEST_F(DungeonPaletteTest, PaletteOffsetIsCorrectFor8BPP) {
   // Row 0, Col 1: Index 2
   tiledata[1] = 2;
 
-  // Create TileInfo with palette index 1
+  // Create TileInfo with palette index 2 (first dungeon bank)
   gfx::TileInfo tile_info;
   tile_info.id_ = 0;
-  tile_info.palette_ = 1; // Palette 1
+  tile_info.palette_ = 2; // Palette 2
   tile_info.horizontal_mirror_ = false;
   tile_info.vertical_mirror_ = false;
   tile_info.over_ = false;
@@ -56,33 +58,30 @@ TEST_F(DungeonPaletteTest, PaletteOffsetIsCorrectFor8BPP) {
   drawer_->DrawTileToBitmap(bitmap, tile_info, 0, 0, tiledata.data());
 
   // Check pixels
-  // Dungeon tiles use 15-color sub-palettes (not 8 like overworld).
-  // Formula: final_color = (pixel - 1) + (palette * 15)
-  // For palette 1, offset is 15.
-  // Pixel at (0,0) was 1. Result should be (1-1) + 15 = 15.
-  // Pixel at (1,0) was 2. Result should be (2-1) + 15 = 16.
+  // Dungeon tiles use 16-color CGRAM banks with index 0 as transparent.
+  // Formula: final_color = pixel + ((palette - 2) * 16) for palette 2-7.
+  // Palette 2 maps to the first dungeon bank (offset 0).
+  // Pixel at (0,0) was 1. Result should be 1.
+  // Pixel at (1,0) was 2. Result should be 2.
 
   const auto& data = bitmap.vector();
   // Bitmap data is row-major.
   // (0,0) is index 0.
-  EXPECT_EQ(data[0], 15);  // (1-1) + 15 = 15
-  EXPECT_EQ(data[1], 16);  // (2-1) + 15 = 16
+  EXPECT_EQ(data[0], 1);
+  EXPECT_EQ(data[1], 2);
 
-  // Test with palette 0
-  tile_info.palette_ = 0;
+  // Test with palette 3 (offset 16)
+  tile_info.palette_ = 3;
   drawer_->DrawTileToBitmap(bitmap, tile_info, 0, 0, tiledata.data());
-  // Offset 0 * 15 = 0.
-  // Pixel 1 -> (1-1) + 0 = 0
-  // Pixel 2 -> (2-1) + 0 = 1
-  EXPECT_EQ(data[0], 0);
-  EXPECT_EQ(data[1], 1);
+  EXPECT_EQ(data[0], 17);  // 1 + 16
+  EXPECT_EQ(data[1], 18);  // 2 + 16
 
-  // Test with palette 7 (wraps to palette 1 due to 6 sub-palette limit)
+  // Test with palette 7 (last dungeon bank)
   tile_info.palette_ = 7;
   drawer_->DrawTileToBitmap(bitmap, tile_info, 0, 0, tiledata.data());
-  // Palette 7 wraps to 7 % 6 = 1, offset 1 * 15 = 15.
-  EXPECT_EQ(data[0], 15);  // (1-1) + 15 = 15
-  EXPECT_EQ(data[1], 16);  // (2-1) + 15 = 16
+  // Palette 7 maps to bank 5 (offset 80).
+  EXPECT_EQ(data[0], 81);  // 1 + 80
+  EXPECT_EQ(data[1], 82);  // 2 + 80
 }
 
 TEST_F(DungeonPaletteTest, PaletteOffsetWorksWithConvertedData) {
@@ -100,7 +99,7 @@ TEST_F(DungeonPaletteTest, PaletteOffsetWorksWithConvertedData) {
 
   gfx::TileInfo tile_info;
   tile_info.id_ = 0;
-  tile_info.palette_ = 2;  // Palette 2 → offset 30 (2 * 15)
+  tile_info.palette_ = 4;  // Palette 4 → offset 32 (2 * 16)
   tile_info.horizontal_mirror_ = false;
   tile_info.vertical_mirror_ = false;
   tile_info.over_ = false;
@@ -108,17 +107,21 @@ TEST_F(DungeonPaletteTest, PaletteOffsetWorksWithConvertedData) {
   drawer_->DrawTileToBitmap(bitmap, tile_info, 0, 0, tiledata.data());
 
   const auto& data = bitmap.vector();
-  // Dungeon tiles use 15-color sub-palettes.
-  // Formula: final_color = (pixel - 1) + (palette * 15)
-  // Pixel 3: (3-1) + 30 = 32
-  // Pixel 5: (5-1) + 30 = 34
-  EXPECT_EQ(data[0], 32);
-  EXPECT_EQ(data[1], 34);
+  // Dungeon tiles use 16-color CGRAM banks.
+  // Formula: final_color = pixel + ((palette - 2) * 16)
+  // Pixel 3: 3 + 32 = 35
+  // Pixel 5: 5 + 32 = 37
+  EXPECT_EQ(data[0], 35);
+  EXPECT_EQ(data[1], 37);
 }
 
 TEST_F(DungeonPaletteTest, InspectActualPaletteColors) {
   // Load actual ROM file
-  auto load_result = rom_->LoadFromFile("zelda3.sfc");
+  yaze::test::TestRomManager::SkipIfRomMissing(
+      yaze::test::RomRole::kVanilla, "DungeonPaletteTest.InspectActualPaletteColors");
+  const std::string rom_path =
+      yaze::test::TestRomManager::GetRomPath(yaze::test::RomRole::kVanilla);
+  auto load_result = rom_->LoadFromFile(rom_path);
   if (!load_result.ok()) {
     GTEST_SKIP() << "ROM file not found, skipping";
   }
