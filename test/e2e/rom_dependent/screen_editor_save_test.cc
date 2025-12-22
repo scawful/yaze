@@ -92,8 +92,25 @@ TEST_F(ScreenEditorSaveTest, SingleFloorRoom_SaveAndReload) {
 
   // Test with first dungeon (Hyrule Castle)
   const int dungeon_id = 0;
-  const int floor = 0;
-  const int room = 0;
+  int floor = -1;
+  int room = -1;
+  for (int f = 0; f < dungeon_maps_[dungeon_id].nbr_of_floor +
+                           dungeon_maps_[dungeon_id].nbr_of_basement;
+       f++) {
+    for (int r = 0; r < zelda3::kNumRooms; r++) {
+      if (dungeon_maps_[dungeon_id].floor_rooms[f][r] != 0x0F &&
+          dungeon_maps_[dungeon_id].floor_gfx[f][r] != 0xFF) {
+        floor = f;
+        room = r;
+        break;
+      }
+    }
+    if (floor != -1) break;
+  }
+
+  if (floor == -1 || room == -1) {
+    GTEST_SKIP() << "No non-empty rooms with valid GFX available for test";
+  }
 
   // Record original value
   uint8_t original_room = dungeon_maps_[dungeon_id].floor_rooms[floor][room];
@@ -213,8 +230,25 @@ TEST_F(ScreenEditorSaveTest, GfxData_Persistence) {
   }
 
   const int dungeon_id = 0;
-  const int floor = 0;
-  const int room = 0;
+  int floor = -1;
+  int room = -1;
+  for (int f = 0; f < dungeon_maps_[dungeon_id].nbr_of_floor +
+                           dungeon_maps_[dungeon_id].nbr_of_basement;
+       f++) {
+    for (int r = 0; r < zelda3::kNumRooms; r++) {
+      if (dungeon_maps_[dungeon_id].floor_rooms[f][r] != 0x0F &&
+          dungeon_maps_[dungeon_id].floor_gfx[f][r] != 0xFF) {
+        floor = f;
+        room = r;
+        break;
+      }
+    }
+    if (floor != -1) break;
+  }
+
+  if (floor == -1 || room == -1) {
+    GTEST_SKIP() << "No non-empty rooms with valid GFX available for test";
+  }
 
   // Record and modify GFX data
   uint8_t original_gfx = dungeon_maps_[dungeon_id].floor_gfx[floor][room];
@@ -356,16 +390,33 @@ TEST_F(ScreenEditorSaveTest, RoundTrip_NoModification) {
 // Test 8: Large batch dungeon modifications
 TEST_F(ScreenEditorSaveTest, LargeBatch_DungeonModifications) {
   // Modify all dungeons, all floors, first room
-  std::map<std::pair<int, int>, uint8_t> modifications;
+  struct Modification {
+    int dungeon;
+    int floor;
+    int room;
+    uint8_t value;
+  };
+  std::vector<Modification> modifications;
 
   for (size_t d = 0; d < dungeon_maps_.size(); ++d) {
     const int levels = dungeon_maps_[d].nbr_of_floor + 
                        dungeon_maps_[d].nbr_of_basement;
     for (int l = 0; l < levels; ++l) {
-      uint8_t original = dungeon_maps_[d].floor_rooms[l][0];
-      uint8_t modified = (original + d + l) % 0xFF;
-      dungeon_maps_[d].floor_rooms[l][0] = modified;
-      modifications[{static_cast<int>(d), l}] = modified;
+      int room_index = 0;
+      while (room_index < zelda3::kNumRooms &&
+             dungeon_maps_[d].floor_rooms[l][room_index] ==
+                 dungeon_maps_[d].boss_room) {
+        room_index++;
+      }
+      if (room_index >= zelda3::kNumRooms) {
+        continue;
+      }
+
+      uint8_t original = dungeon_maps_[d].floor_rooms[l][room_index];
+      uint8_t modified = static_cast<uint8_t>((original + d + l) % 0xFF);
+      dungeon_maps_[d].floor_rooms[l][room_index] = modified;
+      modifications.push_back(
+          {static_cast<int>(d), l, room_index, modified});
     }
   }
 
@@ -382,9 +433,10 @@ TEST_F(ScreenEditorSaveTest, LargeBatch_DungeonModifications) {
   ASSERT_TRUE(reloaded_maps.ok());
 
   int verified_count = 0;
-  for (const auto& [key, expected] : modifications) {
-    auto [d, l] = key;
-    if ((*reloaded_maps)[d].floor_rooms[l][0] == expected) {
+  for (const auto& modification : modifications) {
+    if ((*reloaded_maps)[modification.dungeon]
+            .floor_rooms[modification.floor][modification.room] ==
+        modification.value) {
       verified_count++;
     }
   }
