@@ -52,7 +52,7 @@ bool SetupDungeonEditorWithRoom(ImGuiTestContext* ctx,
                                  const char* room_hex = "0x00") {
   // Load ROM
   ctx->LogInfo("Loading ROM...");
-  gui::LoadRomInTest(ctx, "zelda3.sfc");
+  gui::LoadRomInTest(ctx, yaze::test::TestRomManager::GetTestRomPath());
 
   // Open Dungeon Editor
   ctx->LogInfo("Opening Dungeon Editor...");

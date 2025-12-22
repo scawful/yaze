@@ -7,6 +7,7 @@
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "rom/rom.h"
 #include "gtest/gtest.h"
+#include "test/test_utils.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/game_data.h"
 
@@ -21,16 +22,12 @@ namespace test {
 class DungeonEditorIntegrationTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    // Use the real ROM (try multiple locations)
+    TestRomManager::SkipIfRomMissing(RomRole::kVanilla,
+                                     "DungeonEditorIntegrationTest");
     rom_ = std::make_unique<Rom>();
-    auto status = rom_->LoadFromFile("assets/zelda3.sfc");
-    if (!status.ok()) {
-      status = rom_->LoadFromFile("build/bin/zelda3.sfc");
-    }
-    if (!status.ok()) {
-      status = rom_->LoadFromFile("zelda3.sfc");
-    }
-    ASSERT_TRUE(status.ok()) << "Could not load zelda3.sfc from any location";
+    const std::string rom_path = TestRomManager::GetRomPath(RomRole::kVanilla);
+    auto status = rom_->LoadFromFile(rom_path);
+    ASSERT_TRUE(status.ok()) << "Could not load ROM from " << rom_path;
 
     // Load Zelda3-specific game data
     game_data_ = std::make_unique<zelda3::GameData>(rom_.get());

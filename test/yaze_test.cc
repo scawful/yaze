@@ -51,7 +51,12 @@ enum class TestMode {
 struct TestConfig {
   TestMode mode = TestMode::kAll;
   std::string test_pattern;
-  std::string rom_path = "zelda3.sfc";
+  std::string rom_path;
+  std::string rom_vanilla;
+  std::string rom_us;
+  std::string rom_jp;
+  std::string rom_eu;
+  std::string rom_expanded;
   bool verbose = false;
   bool skip_rom_tests = false;
   bool enable_ui_tests = false;
@@ -69,7 +74,12 @@ TestConfig ParseArguments(int argc, char* argv[]) {
             << "  --fast          : Run tests at max speed (default)\n"
             << "  --normal        : Run tests at watchable speed\n"
             << "  --cinematic     : Run tests in slow-motion with pauses\n"
-            << "  --rom=<path>    : Specify ROM file path\n"
+            << "  --rom=<path>    : Legacy ROM path (vanilla)\n"
+            << "  --rom-vanilla=<path>\n"
+            << "  --rom-us=<path>\n"
+            << "  --rom-jp=<path>\n"
+            << "  --rom-eu=<path>\n"
+            << "  --rom-expanded=<path>\n"
             << "  --pattern=<pat> : Run tests matching pattern\n"
             << std::endl;
 
@@ -91,13 +101,18 @@ TestConfig ParseArguments(int argc, char* argv[]) {
       std::cout << "  --deprecated        Run deprecated tests\n\n";
       std::cout << "Options:\n";
       std::cout << "  --rom-path PATH     Specify ROM path for testing\n";
+      std::cout << "  --rom-vanilla PATH  Specify vanilla ROM path\n";
+      std::cout << "  --rom-us PATH       Specify US ROM path\n";
+      std::cout << "  --rom-jp PATH       Specify JP ROM path\n";
+      std::cout << "  --rom-eu PATH       Specify EU ROM path\n";
+      std::cout << "  --rom-expanded PATH Specify expanded ROM path (ZSCustom/OOS)\n";
       std::cout << "  --skip-rom-tests    Skip tests requiring ROM files\n";
       std::cout << "  --enable-ui-tests   Enable UI tests (requires display)\n";
       std::cout << "  --verbose           Enable verbose output\n";
       std::cout << "  --help              Show this help message\n\n";
       std::cout << "Examples:\n";
       std::cout << "  yaze_test --unit --verbose\n";
-      std::cout << "  yaze_test --e2e --rom-path my_rom.sfc\n";
+      std::cout << "  yaze_test --e2e --rom-vanilla my_rom.sfc\n";
       std::cout << "  yaze_test --zscustomoverworld --verbose\n";
       std::cout << "  yaze_test RomTest.*\n";
       exit(0);
@@ -119,10 +134,46 @@ TestConfig ParseArguments(int argc, char* argv[]) {
       config.mode = TestMode::kEditor;
     } else if (arg == "--deprecated") {
       config.mode = TestMode::kDeprecated;
-    } else if (arg == "--rom-path") {
+    } else if (arg == "--rom-path" || arg == "--rom") {
       if (i + 1 < argc) {
         config.rom_path = argv[++i];
       }
+    } else if (arg.rfind("--rom-path=", 0) == 0) {
+      config.rom_path = arg.substr(std::string("--rom-path=").size());
+    } else if (arg.rfind("--rom=", 0) == 0) {
+      config.rom_path = arg.substr(std::string("--rom=").size());
+    } else if (arg == "--rom-vanilla") {
+      if (i + 1 < argc) {
+        config.rom_vanilla = argv[++i];
+      }
+    } else if (arg.rfind("--rom-vanilla=", 0) == 0) {
+      config.rom_vanilla = arg.substr(std::string("--rom-vanilla=").size());
+    } else if (arg == "--rom-us") {
+      if (i + 1 < argc) {
+        config.rom_us = argv[++i];
+      }
+    } else if (arg.rfind("--rom-us=", 0) == 0) {
+      config.rom_us = arg.substr(std::string("--rom-us=").size());
+    } else if (arg == "--rom-jp") {
+      if (i + 1 < argc) {
+        config.rom_jp = argv[++i];
+      }
+    } else if (arg.rfind("--rom-jp=", 0) == 0) {
+      config.rom_jp = arg.substr(std::string("--rom-jp=").size());
+    } else if (arg == "--rom-eu") {
+      if (i + 1 < argc) {
+        config.rom_eu = argv[++i];
+      }
+    } else if (arg.rfind("--rom-eu=", 0) == 0) {
+      config.rom_eu = arg.substr(std::string("--rom-eu=").size());
+    } else if (arg == "--rom-expanded" || arg == "--rom-oos") {
+      if (i + 1 < argc) {
+        config.rom_expanded = argv[++i];
+      }
+    } else if (arg.rfind("--rom-expanded=", 0) == 0) {
+      config.rom_expanded = arg.substr(std::string("--rom-expanded=").size());
+    } else if (arg.rfind("--rom-oos=", 0) == 0) {
+      config.rom_expanded = arg.substr(std::string("--rom-oos=").size());
     } else if (arg == "--skip-rom-tests") {
       config.skip_rom_tests = true;
     } else if (arg == "--enable-ui-tests") {
@@ -154,6 +205,32 @@ void SetupTestEnvironment(const TestConfig& config) {
   // Set environment variables for tests using SDL's cross-platform function
   if (!config.rom_path.empty()) {
     SDL_setenv("YAZE_TEST_ROM_PATH", config.rom_path.c_str(), 1);
+    if (config.rom_vanilla.empty()) {
+      SDL_setenv("YAZE_TEST_ROM_VANILLA", config.rom_path.c_str(), 1);
+    }
+  }
+  if (!config.rom_vanilla.empty()) {
+    SDL_setenv("YAZE_TEST_ROM_VANILLA", config.rom_vanilla.c_str(), 1);
+    if (config.rom_path.empty()) {
+      SDL_setenv("YAZE_TEST_ROM_PATH", config.rom_vanilla.c_str(), 1);
+    }
+  }
+  if (!config.rom_us.empty()) {
+    SDL_setenv("YAZE_TEST_ROM_US", config.rom_us.c_str(), 1);
+    SDL_setenv("YAZE_TEST_ROM_US_PATH", config.rom_us.c_str(), 1);
+  }
+  if (!config.rom_jp.empty()) {
+    SDL_setenv("YAZE_TEST_ROM_JP", config.rom_jp.c_str(), 1);
+    SDL_setenv("YAZE_TEST_ROM_JP_PATH", config.rom_jp.c_str(), 1);
+  }
+  if (!config.rom_eu.empty()) {
+    SDL_setenv("YAZE_TEST_ROM_EU", config.rom_eu.c_str(), 1);
+    SDL_setenv("YAZE_TEST_ROM_EU_PATH", config.rom_eu.c_str(), 1);
+  }
+  if (!config.rom_expanded.empty()) {
+    SDL_setenv("YAZE_TEST_ROM_EXPANDED", config.rom_expanded.c_str(), 1);
+    SDL_setenv("YAZE_TEST_ROM_OOS", config.rom_expanded.c_str(), 1);
+    SDL_setenv("YAZE_TEST_ROM_EXPANDED_PATH", config.rom_expanded.c_str(), 1);
   }
 
   if (config.skip_rom_tests) {

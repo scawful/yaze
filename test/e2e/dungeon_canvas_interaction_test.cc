@@ -109,7 +109,7 @@ void E2ETest_DungeonCanvas_PanZoom(ImGuiTestContext* ctx) {
 
   // Load ROM
   ctx->LogInfo("Loading ROM...");
-  yaze::test::gui::LoadRomInTest(ctx, "zelda3.sfc");
+  yaze::test::gui::LoadRomInTest(ctx, yaze::test::TestRomManager::GetTestRomPath());
 
   // Open dungeon editor and room
   ctx->LogInfo("Opening Dungeon Editor...");
@@ -219,7 +219,7 @@ void E2ETest_DungeonCanvas_ObjectSelection(ImGuiTestContext* ctx) {
 
   // Load ROM
   ctx->LogInfo("Loading ROM...");
-  yaze::test::gui::LoadRomInTest(ctx, "zelda3.sfc");
+  yaze::test::gui::LoadRomInTest(ctx, yaze::test::TestRomManager::GetTestRomPath());
 
   // Open dungeon editor
   ctx->LogInfo("Opening Dungeon Editor...");
@@ -307,7 +307,7 @@ void E2ETest_DungeonCanvas_GridSnap(ImGuiTestContext* ctx) {
 
   // Load ROM
   ctx->LogInfo("Loading ROM...");
-  yaze::test::gui::LoadRomInTest(ctx, "zelda3.sfc");
+  yaze::test::gui::LoadRomInTest(ctx, yaze::test::TestRomManager::GetTestRomPath());
 
   // Open dungeon editor
   ctx->LogInfo("Opening Dungeon Editor...");
@@ -414,7 +414,7 @@ void E2ETest_DungeonCanvas_MultiSelect(ImGuiTestContext* ctx) {
 
   // Load ROM
   ctx->LogInfo("Loading ROM...");
-  yaze::test::gui::LoadRomInTest(ctx, "zelda3.sfc");
+  yaze::test::gui::LoadRomInTest(ctx, yaze::test::TestRomManager::GetTestRomPath());
 
   // Open dungeon editor
   ctx->LogInfo("Opening Dungeon Editor...");

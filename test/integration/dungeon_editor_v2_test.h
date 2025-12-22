@@ -9,6 +9,7 @@
 #include "rom/snes.h"
 #include "gtest/gtest.h"
 #include "imgui.h"
+#include "test/test_utils.h"
 #include "zelda3/game_data.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "framework/headless_editor_test.h"
@@ -26,22 +27,12 @@ class DungeonEditorV2IntegrationTest : public HeadlessEditorTest {
   void SetUp() override {
     HeadlessEditorTest::SetUp();
 
-    // Use the real ROM (try multiple locations)
-    // We use the base class helper but need to handle the path logic
-    // TODO: Make LoadRom return status or boolean to allow fallbacks
-    // For now, we'll just try to load directly
-    
-    // Try loading from standard locations
-    const char* paths[] = {"assets/zelda3.sfc", "build/bin/zelda3.sfc", "zelda3.sfc"};
-    bool loaded = false;
-    for (const char* path : paths) {
-        rom_ = std::make_unique<Rom>();
-        if (rom_->LoadFromFile(path).ok()) {
-            loaded = true;
-            break;
-        }
-    }
-    ASSERT_TRUE(loaded) << "Could not load zelda3.sfc from any location";
+    TestRomManager::SkipIfRomMissing(RomRole::kVanilla,
+                                     "DungeonEditorV2IntegrationTest");
+    const std::string rom_path = TestRomManager::GetRomPath(RomRole::kVanilla);
+    rom_ = std::make_unique<Rom>();
+    ASSERT_TRUE(rom_->LoadFromFile(rom_path).ok())
+        << "Could not load ROM from " << rom_path;
 
     // Patch ROM to ensure Room 0 and Room 1 sprite pointers are sequential
     // This fixes "Cannot determine available sprite space" error if the loaded ROM is non-standard

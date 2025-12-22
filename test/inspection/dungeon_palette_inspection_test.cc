@@ -1,6 +1,10 @@
 #include <gtest/gtest.h>
+
+#include <string>
+
 #include "rom/rom.h"
 #include "app/gfx/types/snes_palette.h"
+#include "test/test_utils.h"
 #include "util/log.h"
 
 namespace yaze {
@@ -10,7 +14,10 @@ namespace test {
 TEST(DungeonPaletteInspection, VerifyColors) {
   // Load ROM
   Rom rom;
-  auto load_result = rom.LoadFromFile("zelda3.sfc");
+  TestRomManager::SkipIfRomMissing(RomRole::kVanilla,
+                                   "DungeonPaletteInspection");
+  const std::string rom_path = TestRomManager::GetRomPath(RomRole::kVanilla);
+  auto load_result = rom.LoadFromFile(rom_path);
   if (!load_result.ok()) {
     GTEST_SKIP() << "ROM file not found, skipping palette inspection";
   }

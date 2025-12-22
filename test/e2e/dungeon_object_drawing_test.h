@@ -14,7 +14,7 @@
  * - Object repositioning via drag
  *
  * Requires:
- * - ROM file for testing (zelda3.sfc)
+ * - ROM file for testing (alttp_vanilla.sfc)
  * - GUI test mode (--ui flag)
  */
 

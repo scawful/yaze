@@ -60,7 +60,7 @@ struct ValidationResult {
  * Example usage:
  * @code
  * Rom rom;
- * rom.LoadFromFile("zelda3.sfc");
+ * rom.LoadFromFile("roms/alttp_vanilla.sfc");
  *
  * // Make edits...
  * rom.WriteByte(0x1234, 0x42);

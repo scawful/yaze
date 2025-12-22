@@ -1,25 +1,32 @@
 #ifndef YAZE_TEST_TEST_UTILS_H
 #define YAZE_TEST_TEST_UTILS_H
 
-#ifndef IMGUI_DEFINE_MATH_OPERATORS
-#define IMGUI_DEFINE_MATH_OPERATORS
-#endif
-
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <filesystem>
 #include <fstream>
+#include <initializer_list>
 #include <iostream>
+#include <cstdlib>
 #include <string>
 #include <vector>
 
 #include "absl/strings/str_format.h"
 #include "rom/rom.h"
-#include "imgui_test_engine/imgui_te_context.h"
+
+struct ImGuiTestContext;
 
 namespace yaze {
 namespace test {
+
+enum class RomRole {
+  kVanilla,
+  kUs,
+  kJp,
+  kEu,
+  kExpanded,
+};
 
 /**
  * @brief Utility class for handling test ROM files
@@ -32,15 +39,7 @@ class TestRomManager {
    * @brief Auto-discover a ROM file from common locations
    * @return Path to discovered ROM, or empty string if none found
    */
-  static std::string AutoDiscoverRom() {
-    // Common ROM filenames to look for
-    static const std::vector<std::string> kRomNames = {
-        "zelda3.sfc",
-        "alttp_vanilla.sfc",
-        "vanilla.sfc",
-        "Legend of Zelda, The - A Link to the Past (USA).sfc",
-    };
-
+  static std::string AutoDiscoverRom(const std::vector<std::string>& rom_names) {
     // Common directories to search (relative to working directory)
     static const std::vector<std::string> kSearchPaths = {
         ".",
@@ -50,7 +49,7 @@ class TestRomManager {
     };
 
     for (const auto& dir : kSearchPaths) {
-      for (const auto& name : kRomNames) {
+      for (const auto& name : rom_names) {
         std::filesystem::path path = std::filesystem::path(dir) / name;
         if (std::filesystem::exists(path)) {
           return path.string();
@@ -66,7 +65,10 @@ class TestRomManager {
    * @return True if ROM tests can be run
    */
   static bool IsRomTestingEnabled() {
-    return !GetTestRomPath().empty() && std::filesystem::exists(GetTestRomPath());
+    if (std::getenv("YAZE_SKIP_ROM_TESTS")) {
+      return false;
+    }
+    return HasRom(RomRole::kVanilla);
   }
 
   /**
@@ -74,21 +76,131 @@ class TestRomManager {
    * @return Path to the test ROM
    */
   static std::string GetTestRomPath() {
-    // Check environment variable first (set by --rom-path argument)
-    if (const char* env_path = std::getenv("YAZE_TEST_ROM_PATH")) {
-      if (std::filesystem::exists(env_path)) {
-        return env_path;
+    return GetRomPath(RomRole::kVanilla);
+  }
+
+  /**
+   * @brief Get the path to a ROM role (vanilla/expanded/region)
+   * @return Path to the ROM, or empty if not found
+   */
+  static std::string GetRomPath(RomRole role) {
+    switch (role) {
+      case RomRole::kVanilla: {
+        const auto env_path = GetEnvRomPath(
+            {"YAZE_TEST_ROM_VANILLA", "YAZE_TEST_ROM_VANILLA_PATH",
+             "YAZE_TEST_ROM_PATH"});
+        if (!env_path.empty()) {
+          return env_path;
+        }
+        const auto compile_path = GetCompileRomPath(role);
+        if (!compile_path.empty()) {
+          return compile_path;
+        }
+        static const std::vector<std::string> kVanillaNames = {
+            "alttp_vanilla.sfc",
+            "Legend of Zelda, The - A Link to the Past (USA).sfc",
+        };
+        return AutoDiscoverRom(kVanillaNames);
       }
+      case RomRole::kUs: {
+        const auto env_path = GetEnvRomPath(
+            {"YAZE_TEST_ROM_US", "YAZE_TEST_ROM_US_PATH"});
+        if (!env_path.empty()) {
+          return env_path;
+        }
+        return GetCompileRomPath(role);
+      }
+      case RomRole::kJp: {
+        const auto env_path = GetEnvRomPath(
+            {"YAZE_TEST_ROM_JP", "YAZE_TEST_ROM_JP_PATH"});
+        if (!env_path.empty()) {
+          return env_path;
+        }
+        return GetCompileRomPath(role);
+      }
+      case RomRole::kEu: {
+        const auto env_path = GetEnvRomPath(
+            {"YAZE_TEST_ROM_EU", "YAZE_TEST_ROM_EU_PATH"});
+        if (!env_path.empty()) {
+          return env_path;
+        }
+        return GetCompileRomPath(role);
+      }
+      case RomRole::kExpanded: {
+        const auto env_path =
+            GetEnvRomPath({"YAZE_TEST_ROM_EXPANDED", "YAZE_TEST_ROM_OOS",
+                           "YAZE_TEST_ROM_EXPANDED_PATH"});
+        if (!env_path.empty()) {
+          return env_path;
+        }
+        return GetCompileRomPath(role);
+      }
+      default:
+        return "";
     }
+  }
 
-#ifdef YAZE_TEST_ROM_PATH
-    if (std::filesystem::exists(YAZE_TEST_ROM_PATH)) {
-      return YAZE_TEST_ROM_PATH;
+  /**
+   * @brief Check if a ROM exists for the specified role
+   */
+  static bool HasRom(RomRole role) {
+    const auto rom_path = GetRomPath(role);
+    return !rom_path.empty() && std::filesystem::exists(rom_path);
+  }
+
+  /**
+   * @brief Skip test if the requested ROM role is not available
+   */
+  static void SkipIfRomMissing(RomRole role, const std::string& test_name) {
+    if (std::getenv("YAZE_SKIP_ROM_TESTS")) {
+      GTEST_SKIP() << "ROM testing disabled via YAZE_SKIP_ROM_TESTS. Test: "
+                   << test_name;
     }
-#endif
+    if (!HasRom(role)) {
+      GTEST_SKIP() << "ROM not found for role " << GetRomRoleName(role)
+                   << ". Test: " << test_name << ". "
+                   << GetRomRoleHint(role);
+    }
+  }
 
-    // Auto-discover ROM from common locations
-    return AutoDiscoverRom();
+  /**
+   * @brief Human-friendly role name for logging
+   */
+  static const char* GetRomRoleName(RomRole role) {
+    switch (role) {
+      case RomRole::kVanilla:
+        return "vanilla";
+      case RomRole::kUs:
+        return "us";
+      case RomRole::kJp:
+        return "jp";
+      case RomRole::kEu:
+        return "eu";
+      case RomRole::kExpanded:
+        return "expanded";
+      default:
+        return "unknown";
+    }
+  }
+
+  /**
+   * @brief Guidance for setting the correct ROM path env vars
+   */
+  static std::string GetRomRoleHint(RomRole role) {
+    switch (role) {
+      case RomRole::kVanilla:
+        return "Set YAZE_TEST_ROM_VANILLA or YAZE_TEST_ROM_PATH.";
+      case RomRole::kUs:
+        return "Set YAZE_TEST_ROM_US.";
+      case RomRole::kJp:
+        return "Set YAZE_TEST_ROM_JP.";
+      case RomRole::kEu:
+        return "Set YAZE_TEST_ROM_EU.";
+      case RomRole::kExpanded:
+        return "Set YAZE_TEST_ROM_EXPANDED or YAZE_TEST_ROM_OOS.";
+      default:
+        return "Set the appropriate YAZE_TEST_ROM_* env var.";
+    }
   }
 
   /**
@@ -168,10 +280,66 @@ class TestRomManager {
    * @param test_name Name of the test for logging
    */
   static void SkipIfRomTestingDisabled(const std::string& test_name) {
-    if (!IsRomTestingEnabled()) {
-      GTEST_SKIP() << "ROM testing disabled or ROM file not found. "
-                   << "Test: " << test_name
-                   << " requires: " << GetTestRomPath();
+    SkipIfRomMissing(RomRole::kVanilla, test_name);
+  }
+
+ private:
+  static std::string GetEnvRomPath(
+      std::initializer_list<const char*> env_vars) {
+    for (const char* env_var : env_vars) {
+      if (const char* env_path = std::getenv(env_var)) {
+        if (std::filesystem::exists(env_path)) {
+          return env_path;
+        }
+      }
+    }
+    return "";
+  }
+
+  static std::string GetCompileRomPath(RomRole role) {
+    switch (role) {
+      case RomRole::kVanilla:
+#ifdef YAZE_TEST_ROM_VANILLA_PATH
+        if (std::filesystem::exists(YAZE_TEST_ROM_VANILLA_PATH)) {
+          return YAZE_TEST_ROM_VANILLA_PATH;
+        }
+#endif
+#ifdef YAZE_TEST_ROM_PATH
+        if (std::filesystem::exists(YAZE_TEST_ROM_PATH)) {
+          return YAZE_TEST_ROM_PATH;
+        }
+#endif
+        return "";
+      case RomRole::kUs:
+#ifdef YAZE_TEST_ROM_US_PATH
+        if (std::filesystem::exists(YAZE_TEST_ROM_US_PATH)) {
+          return YAZE_TEST_ROM_US_PATH;
+        }
+#endif
+        return "";
+      case RomRole::kJp:
+#ifdef YAZE_TEST_ROM_JP_PATH
+        if (std::filesystem::exists(YAZE_TEST_ROM_JP_PATH)) {
+          return YAZE_TEST_ROM_JP_PATH;
+        }
+#endif
+        return "";
+      case RomRole::kEu:
+#ifdef YAZE_TEST_ROM_EU_PATH
+        if (std::filesystem::exists(YAZE_TEST_ROM_EU_PATH)) {
+          return YAZE_TEST_ROM_EU_PATH;
+        }
+#endif
+        return "";
+      case RomRole::kExpanded:
+#ifdef YAZE_TEST_ROM_EXPANDED_PATH
+        if (std::filesystem::exists(YAZE_TEST_ROM_EXPANDED_PATH)) {
+          return YAZE_TEST_ROM_EXPANDED_PATH;
+        }
+#endif
+        return "";
+      default:
+        return "";
     }
   }
 };
@@ -192,7 +360,7 @@ class TestRomManager::BoundRomTest : public ::testing::Test {
   const Rom* rom() const { return rom_instance_.get(); }
 
   std::string GetBoundRomPath() const {
-    return TestRomManager::GetTestRomPath();
+    return TestRomManager::GetRomPath(RomRole::kVanilla);
   }
 
  private:
@@ -203,7 +371,7 @@ class TestRomManager::BoundRomTest : public ::testing::Test {
     if (rom_loaded_) {
       return;
     }
-    const std::string rom_path = TestRomManager::GetTestRomPath();
+    const std::string rom_path = TestRomManager::GetRomPath(RomRole::kVanilla);
     ASSERT_TRUE(rom_instance_->LoadFromFile(rom_path).ok())
         << "Failed to load test ROM from " << rom_path;
     rom_loaded_ = true;

@@ -1,9 +1,10 @@
 #include <gtest/gtest.h>
 
-#include <filesystem>
+#include <string>
 
 #include "app/editor/message/message_data.h"
 #include "app/editor/message/message_editor.h"
+#include "test/test_utils.h"
 #include "testing.h"
 
 namespace yaze {
@@ -12,17 +13,8 @@ namespace test {
 class MessageRomTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    // Skip tests if ROM is not available
-    if (getenv("YAZE_SKIP_ROM_TESTS")) {
-      GTEST_SKIP() << "ROM tests disabled";
-    }
-
-    // Check if ROM file exists
-    std::string rom_path = "zelda3.sfc";
-    if (!std::filesystem::exists(rom_path)) {
-      GTEST_SKIP() << "Test ROM not found: " << rom_path;
-    }
-
+    TestRomManager::SkipIfRomMissing(RomRole::kVanilla, "MessageRomTest");
+    const std::string rom_path = TestRomManager::GetRomPath(RomRole::kVanilla);
     EXPECT_OK(rom_.LoadFromFile(rom_path));
     dictionary_ = editor::BuildDictionaryEntries(&rom_);
   }

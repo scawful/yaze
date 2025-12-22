@@ -12,9 +12,11 @@
 #include "absl/status/status.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
+#include "test/test_utils.h"
 #include "testing.h"
 #include "util/macro.h"
 #include "zelda.h"
+#include "zelda3/overworld/overworld_version_helper.h"
 
 namespace yaze {
 namespace test {
@@ -31,28 +33,6 @@ struct RomVersionInfo {
 };
 
 /**
- * @brief Environment variable names for ROM paths
- */
-struct RomEnvVars {
-  static constexpr const char* kDefaultRomPath = "YAZE_TEST_ROM_PATH";
-  static constexpr const char* kSkipRomTests = "YAZE_SKIP_ROM_TESTS";
-  static constexpr const char* kJpRomPath = "YAZE_TEST_ROM_JP_PATH";
-  static constexpr const char* kUsRomPath = "YAZE_TEST_ROM_US_PATH";
-  static constexpr const char* kEuRomPath = "YAZE_TEST_ROM_EU_PATH";
-  static constexpr const char* kExpandedRomPath = "YAZE_TEST_ROM_EXPANDED_PATH";
-};
-
-/**
- * @brief Default ROM paths relative to workspace (roms/ directory)
- */
-struct DefaultRomPaths {
-  static constexpr const char* kVanilla = "roms/alttp_vanilla.sfc";
-  static constexpr const char* kUsRom = "roms/Legend of Zelda, The - A Link to the Past (USA).sfc";
-  static constexpr const char* kExpanded = "roms/oos168.sfc";
-  static constexpr const char* kFallback = "zelda3.sfc";
-};
-
-/**
  * @brief Base test fixture for E2E editor save tests
  *
  * Provides common functionality for:
@@ -64,24 +44,8 @@ struct DefaultRomPaths {
 class EditorSaveTestBase : public ::testing::Test {
  protected:
   void SetUp() override {
-    // Skip tests if ROM tests are disabled
-    if (getenv(RomEnvVars::kSkipRomTests)) {
-      GTEST_SKIP() << "ROM tests disabled via YAZE_SKIP_ROM_TESTS";
-    }
-
-    // Determine ROM path
-    const char* rom_path_env = getenv(RomEnvVars::kDefaultRomPath);
-    if (rom_path_env && std::filesystem::exists(rom_path_env)) {
-      vanilla_rom_path_ = rom_path_env;
-    } else if (std::filesystem::exists(DefaultRomPaths::kVanilla)) {
-      vanilla_rom_path_ = DefaultRomPaths::kVanilla;
-    } else if (std::filesystem::exists(DefaultRomPaths::kUsRom)) {
-      vanilla_rom_path_ = DefaultRomPaths::kUsRom;
-    } else if (std::filesystem::exists(DefaultRomPaths::kFallback)) {
-      vanilla_rom_path_ = DefaultRomPaths::kFallback;
-    } else {
-      GTEST_SKIP() << "No test ROM found. Set YAZE_TEST_ROM_PATH or place ROM in roms/";
-    }
+    TestRomManager::SkipIfRomMissing(RomRole::kVanilla, "EditorSaveTestBase");
+    vanilla_rom_path_ = TestRomManager::GetRomPath(RomRole::kVanilla);
 
     // Create test file paths with unique names per test
     test_id_ = ::testing::UnitTest::GetInstance()->current_test_info()->name();
@@ -163,7 +127,7 @@ class EditorSaveTestBase : public ::testing::Test {
     Rom::SaveSettings settings;
     settings.filename = path;
     settings.backup = false;  // We handle backups ourselves
-    settings.save_new = true;
+    settings.save_new = false;  // Overwrite the test copy for persistence checks
 
     return rom->SaveToFile(settings);
   }
@@ -183,9 +147,11 @@ class EditorSaveTestBase : public ::testing::Test {
     auto version_byte = rom.ReadByte(0x140145);
     info.zscustom_version = version_byte.ok() ? *version_byte : 0xFF;
 
-    // Detect expanded tile16
-    auto tile16_check = rom.ReadByte(0x02FD28);
-    info.is_expanded_tile16 = tile16_check.ok() && *tile16_check != 0x0F;
+    // Detect expanded tile16 based on applied ASM version (v1+ uses expanded space)
+    const auto overworld_version =
+        zelda3::OverworldVersionHelper::GetVersion(rom);
+    info.is_expanded_tile16 =
+        zelda3::OverworldVersionHelper::SupportsExpandedSpace(overworld_version);
 
     // Detect expanded tile32
     auto tile32_check = rom.ReadByte(0x01772E);
@@ -347,24 +313,14 @@ class EditorSaveTestBase : public ::testing::Test {
    * @brief Get path to expanded ROM for v3 feature tests
    */
   std::string GetExpandedRomPath() {
-    const char* expanded_path = getenv(RomEnvVars::kExpandedRomPath);
-    if (expanded_path && std::filesystem::exists(expanded_path)) {
-      return expanded_path;
-    }
-    if (std::filesystem::exists(DefaultRomPaths::kExpanded)) {
-      return DefaultRomPaths::kExpanded;
-    }
-    return "";  // Not available
+    return TestRomManager::GetRomPath(RomRole::kExpanded);
   }
 
   /**
    * @brief Skip test if expanded ROM is required but not available
    */
   void RequireExpandedRom() {
-    std::string path = GetExpandedRomPath();
-    if (path.empty()) {
-      GTEST_SKIP() << "Expanded ROM not available for v3 feature tests";
-    }
+    TestRomManager::SkipIfRomMissing(RomRole::kExpanded, "ExpandedRomSaveTest");
   }
 
   // ===========================================================================
@@ -386,21 +342,9 @@ class MultiVersionEditorSaveTest : public EditorSaveTestBase {
     EditorSaveTestBase::SetUp();
 
     // Check for additional ROM versions
-    const char* jp_path = getenv(RomEnvVars::kJpRomPath);
-    const char* us_path = getenv(RomEnvVars::kUsRomPath);
-    const char* eu_path = getenv(RomEnvVars::kEuRomPath);
-
-    if (jp_path && std::filesystem::exists(jp_path)) {
-      jp_rom_path_ = jp_path;
-    }
-    if (us_path && std::filesystem::exists(us_path)) {
-      us_rom_path_ = us_path;
-    } else if (std::filesystem::exists(DefaultRomPaths::kUsRom)) {
-      us_rom_path_ = DefaultRomPaths::kUsRom;
-    }
-    if (eu_path && std::filesystem::exists(eu_path)) {
-      eu_rom_path_ = eu_path;
-    }
+    jp_rom_path_ = TestRomManager::GetRomPath(RomRole::kJp);
+    us_rom_path_ = TestRomManager::GetRomPath(RomRole::kUs);
+    eu_rom_path_ = TestRomManager::GetRomPath(RomRole::kEu);
   }
 
   bool HasJpRom() const { return !jp_rom_path_.empty(); }
@@ -418,27 +362,11 @@ class MultiVersionEditorSaveTest : public EditorSaveTestBase {
 class ExpandedRomSaveTest : public EditorSaveTestBase {
  protected:
   void SetUp() override {
-    // Skip if ROM tests disabled
-    if (getenv(RomEnvVars::kSkipRomTests)) {
-      GTEST_SKIP() << "ROM tests disabled via YAZE_SKIP_ROM_TESTS";
-    }
-
-    // Get expanded ROM path
-    const char* expanded_path = getenv(RomEnvVars::kExpandedRomPath);
-    if (expanded_path && std::filesystem::exists(expanded_path)) {
-      expanded_rom_path_ = expanded_path;
-    } else if (std::filesystem::exists(DefaultRomPaths::kExpanded)) {
-      expanded_rom_path_ = DefaultRomPaths::kExpanded;
-    } else {
-      GTEST_SKIP() << "Expanded ROM not available. Set YAZE_TEST_ROM_EXPANDED_PATH";
-    }
+    TestRomManager::SkipIfRomMissing(RomRole::kExpanded, "ExpandedRomSaveTest");
+    expanded_rom_path_ = TestRomManager::GetRomPath(RomRole::kExpanded);
 
     // Use vanilla for baseline comparison
-    if (std::filesystem::exists(DefaultRomPaths::kVanilla)) {
-      vanilla_rom_path_ = DefaultRomPaths::kVanilla;
-    } else {
-      vanilla_rom_path_ = "";
-    }
+    vanilla_rom_path_ = TestRomManager::GetRomPath(RomRole::kVanilla);
 
     // Create test file paths
     test_id_ = ::testing::UnitTest::GetInstance()->current_test_info()->name();

@@ -256,11 +256,18 @@ absl::Status TestStatusCommandHandler::Execute(
   bool is_json = formatter.IsJson();
 
   // Check environment variables
-  std::string rom_path = GetEnvOrDefault("YAZE_TEST_ROM_PATH", "");
+  std::string rom_vanilla = GetEnvOrDefault("YAZE_TEST_ROM_VANILLA", "");
+  std::string rom_expanded = GetEnvOrDefault("YAZE_TEST_ROM_EXPANDED", "");
+  std::string rom_path_legacy = GetEnvOrDefault("YAZE_TEST_ROM_PATH", "");
+  if (rom_vanilla.empty()) {
+    rom_vanilla = rom_path_legacy;
+  }
   std::string skip_rom = GetEnvOrDefault("YAZE_SKIP_ROM_TESTS", "");
   std::string enable_ui = GetEnvOrDefault("YAZE_ENABLE_UI_TESTS", "");
 
-  formatter.AddField("rom_path", rom_path.empty() ? "not set" : rom_path);
+  formatter.AddField("rom_vanilla", rom_vanilla.empty() ? "not set" : rom_vanilla);
+  formatter.AddField("rom_expanded", rom_expanded.empty() ? "not set" : rom_expanded);
+  formatter.AddField("rom_path", rom_path_legacy.empty() ? "not set" : rom_path_legacy);
   formatter.AddField("skip_rom_tests", !skip_rom.empty());
   formatter.AddField("ui_tests_enabled", !enable_ui.empty());
 
@@ -291,7 +298,7 @@ absl::Status TestStatusCommandHandler::Execute(
   formatter.BeginArray("available_suites");
   for (const auto& suite : kTestSuites) {
     bool available = true;
-    if (suite.requires_rom && rom_path.empty()) {
+    if (suite.requires_rom && rom_vanilla.empty()) {
       available = false;
     }
     if (available) {
@@ -307,8 +314,11 @@ absl::Status TestStatusCommandHandler::Execute(
     std::cout << "║                    TEST CONFIGURATION                         ║\n";
     std::cout << "╠═══════════════════════════════════════════════════════════════╣\n";
     std::cout << absl::StrFormat(
-        "║  ROM Path: %-50s ║\n",
-        rom_path.empty() ? "(not set)" : rom_path.substr(0, 50));
+        "║  ROM Vanilla: %-47s ║\n",
+        rom_vanilla.empty() ? "(not set)" : rom_vanilla.substr(0, 47));
+    std::cout << absl::StrFormat(
+        "║  ROM Expanded: %-46s ║\n",
+        rom_expanded.empty() ? "(not set)" : rom_expanded.substr(0, 46));
     std::cout << absl::StrFormat("║  Skip ROM Tests: %-43s ║\n",
                                  skip_rom.empty() ? "NO" : "YES");
     std::cout << absl::StrFormat("║  UI Tests Enabled: %-41s ║\n",
@@ -326,7 +336,7 @@ absl::Status TestStatusCommandHandler::Execute(
     for (const auto& suite : kTestSuites) {
       bool available = true;
       std::string reason;
-      if (suite.requires_rom && rom_path.empty()) {
+      if (suite.requires_rom && rom_vanilla.empty()) {
         available = false;
         reason = " (needs ROM)";
       }
@@ -338,9 +348,9 @@ absl::Status TestStatusCommandHandler::Execute(
     }
     std::cout << "╚═══════════════════════════════════════════════════════════════╝\n";
 
-    if (rom_path.empty()) {
+    if (rom_vanilla.empty()) {
       std::cout << "\nTo enable ROM-dependent tests:\n";
-      std::cout << "  export YAZE_TEST_ROM_PATH=/path/to/zelda3.sfc\n";
+      std::cout << "  export YAZE_TEST_ROM_VANILLA=/path/to/alttp_vanilla.sfc\n";
       std::cout << "  cmake ... -DYAZE_ENABLE_ROM_TESTS=ON\n";
     }
   }
@@ -349,4 +359,3 @@ absl::Status TestStatusCommandHandler::Execute(
 }
 
 }  // namespace yaze::cli
-

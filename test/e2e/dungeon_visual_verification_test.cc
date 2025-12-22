@@ -49,7 +49,7 @@ void E2ETest_VisualVerification_BasicRoomRendering(ImGuiTestContext* ctx) {
 
   // Load ROM
   ctx->LogInfo("Loading ROM...");
-  gui::LoadRomInTest(ctx, "zelda3.sfc");
+  gui::LoadRomInTest(ctx, yaze::test::TestRomManager::GetTestRomPath());
 
   // Open Dungeon Editor
   ctx->LogInfo("Opening Dungeon Editor...");
@@ -102,7 +102,7 @@ void E2ETest_VisualVerification_LayerVisibility(ImGuiTestContext* ctx) {
   ctx->LogInfo("=== Visual Verification: Layer Visibility ===");
 
   // Load ROM and open editor
-  gui::LoadRomInTest(ctx, "zelda3.sfc");
+  gui::LoadRomInTest(ctx, yaze::test::TestRomManager::GetTestRomPath());
   gui::OpenEditorInTest(ctx, "Dungeon");
   ctx->Yield(20);
 
@@ -157,7 +157,7 @@ void E2ETest_VisualVerification_LayerVisibility(ImGuiTestContext* ctx) {
 void E2ETest_VisualVerification_ObjectEditor(ImGuiTestContext* ctx) {
   ctx->LogInfo("=== Visual Verification: Object Editor ===");
 
-  gui::LoadRomInTest(ctx, "zelda3.sfc");
+  gui::LoadRomInTest(ctx, yaze::test::TestRomManager::GetTestRomPath());
   gui::OpenEditorInTest(ctx, "Dungeon");
   ctx->Yield(20);
 
@@ -190,7 +190,7 @@ void E2ETest_VisualVerification_ObjectEditor(ImGuiTestContext* ctx) {
 void E2ETest_VisualVerification_MultiRoomNavigation(ImGuiTestContext* ctx) {
   ctx->LogInfo("=== Visual Verification: Multi-Room Navigation ===");
 
-  gui::LoadRomInTest(ctx, "zelda3.sfc");
+  gui::LoadRomInTest(ctx, yaze::test::TestRomManager::GetTestRomPath());
   gui::OpenEditorInTest(ctx, "Dungeon");
   ctx->Yield(20);
 

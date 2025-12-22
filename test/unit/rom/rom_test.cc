@@ -3,10 +3,15 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <fstream>
+#include <iterator>
+#include <string>
+
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "rom/transaction.h"
 #include "mocks/mock_rom.h"
+#include "test/test_utils.h"
 #include "testing.h"
 
 namespace yaze {
@@ -35,7 +40,9 @@ TEST_F(RomTest, LoadFromFile) {
 #if defined(__linux__)
   GTEST_SKIP() << "ROM file loading skipped on Linux CI (no ROM available)";
 #endif
-  EXPECT_OK(rom_.LoadFromFile("zelda3.sfc"));
+  TestRomManager::SkipIfRomMissing(RomRole::kVanilla, "RomTest.LoadFromFile");
+  const std::string rom_path = TestRomManager::GetRomPath(RomRole::kVanilla);
+  EXPECT_OK(rom_.LoadFromFile(rom_path));
   EXPECT_EQ(rom_.size(), 0x200000);
   EXPECT_NE(rom_.data(), nullptr);
 }
@@ -64,7 +71,7 @@ TEST_F(RomTest, ReadByteOk) {
 
 TEST_F(RomTest, ReadByteInvalid) {
   EXPECT_THAT(rom_.ReadByte(0).status(),
-              StatusIs(absl::StatusCode::kFailedPrecondition));
+              StatusIs(absl::StatusCode::kOutOfRange));
 }
 
 TEST_F(RomTest, ReadWordOk) {
@@ -80,7 +87,7 @@ TEST_F(RomTest, ReadWordOk) {
 
 TEST_F(RomTest, ReadWordInvalid) {
   EXPECT_THAT(rom_.ReadWord(0).status(),
-              StatusIs(absl::StatusCode::kFailedPrecondition));
+              StatusIs(absl::StatusCode::kOutOfRange));
 }
 
 TEST_F(RomTest, ReadLongOk) {
@@ -188,8 +195,8 @@ TEST_F(RomTest, ReadTransactionFailure) {
   EXPECT_OK(mock_rom.LoadFromData(kMockRomData));
   uint8_t byte_val;
 
-  EXPECT_EQ(mock_rom.ReadTransaction(byte_val, 0x1000),
-            absl::FailedPreconditionError("Offset out of range"));
+  EXPECT_THAT(mock_rom.ReadTransaction(byte_val, 0x1000),
+              StatusIs(absl::StatusCode::kOutOfRange));
 }
 
 TEST_F(RomTest, SaveTruncatesExistingFile) {
@@ -213,12 +220,13 @@ TEST_F(RomTest, SaveTruncatesExistingFile) {
 
   // Load the saved file and verify size equals original data size and first
   // byte matches
-  Rom verify;
-  EXPECT_OK(verify.LoadFromFile(tmp_name));
-  EXPECT_EQ(verify.size(), kMockRomData.size());
-  auto b0 = verify.ReadByte(0);
-  ASSERT_TRUE(b0.ok());
-  EXPECT_EQ(*b0, 0xEE);
+  std::ifstream verify(tmp_name, std::ios::binary);
+  ASSERT_TRUE(verify.is_open());
+  std::vector<uint8_t> file_bytes((std::istreambuf_iterator<char>(verify)),
+                                  std::istreambuf_iterator<char>());
+  EXPECT_EQ(file_bytes.size(), kMockRomData.size());
+  ASSERT_FALSE(file_bytes.empty());
+  EXPECT_EQ(file_bytes[0], 0xEE);
 }
 
 TEST_F(RomTest, TransactionRollbackRestoresOriginals) {

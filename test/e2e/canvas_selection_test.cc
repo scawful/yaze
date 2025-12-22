@@ -5,7 +5,7 @@
 #include "test_utils.h"
 
 void E2ETest_CanvasSelectionTest(ImGuiTestContext* ctx) {
-  yaze::test::gui::LoadRomInTest(ctx, "zelda3.sfc");
+  yaze::test::gui::LoadRomInTest(ctx, yaze::test::TestRomManager::GetTestRomPath());
   yaze::Controller* controller = (yaze::Controller*)ctx->Test->UserData;
   yaze::zelda3::Overworld* overworld = controller->overworld();
 

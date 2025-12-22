@@ -9,7 +9,7 @@
 // It opens a window, clicks a button, and verifies that the button was clicked.
 // The GUI for this test is rendered in `test/yaze_test.cc`.
 void E2ETest_FrameworkSmokeTest(ImGuiTestContext* ctx) {
-  yaze::test::gui::LoadRomInTest(ctx, "zelda3.sfc");
+  yaze::test::gui::LoadRomInTest(ctx, yaze::test::TestRomManager::GetTestRomPath());
   ctx->SetRef("Hello World Window");
   ctx->ItemClick("Button");
   ctx->ItemCheck("Clicked 1 times");

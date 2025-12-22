@@ -8,6 +8,7 @@
 
 #include "rom/rom.h"
 #include "rom/transaction.h"
+#include "test/test_utils.h"
 #include "testing.h"
 #include "util/macro.h"
 
@@ -27,18 +28,10 @@ namespace test {
 class E2ERomDependentTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    // Skip tests if ROM is not available
-    if (getenv("YAZE_SKIP_ROM_TESTS")) {
-      GTEST_SKIP() << "ROM tests disabled";
-    }
-
-    // Get ROM path from environment or use default
-    const char* rom_path_env = getenv("YAZE_TEST_ROM_PATH");
-    vanilla_rom_path_ = rom_path_env ? rom_path_env : "zelda3.sfc";
-
-    if (!std::filesystem::exists(vanilla_rom_path_)) {
-      GTEST_SKIP() << "Test ROM not found: " << vanilla_rom_path_;
-    }
+    yaze::test::TestRomManager::SkipIfRomMissing(
+        yaze::test::RomRole::kVanilla, "E2ERomDependentTest");
+    vanilla_rom_path_ =
+        yaze::test::TestRomManager::GetRomPath(yaze::test::RomRole::kVanilla);
 
     // Create test ROM copies
     test_rom_path_ = "test_rom_edit.sfc";
@@ -69,10 +62,10 @@ class E2ERomDependentTest : public ::testing::Test {
     EXPECT_EQ(rom->size(), 0x200000) << "ROM size should be 2MB";
     EXPECT_NE(rom->data(), nullptr) << "ROM data should not be null";
 
-    // Check ROM header
-    auto header_byte = rom->ReadByte(0x7FC0);
-    RETURN_IF_ERROR(header_byte.status());
-    EXPECT_EQ(*header_byte, 0x21) << "ROM should be LoROM format";
+    // Check ROM mapping mode (LoROM expected)
+    auto map_mode = rom->ReadByte(0x7FD5);
+    RETURN_IF_ERROR(map_mode.status());
+    EXPECT_EQ(*map_mode & 0x01, 0) << "ROM should be LoROM format";
 
     return absl::OkStatus();
   }

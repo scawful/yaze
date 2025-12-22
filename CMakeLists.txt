@@ -72,7 +72,12 @@ include(cmake/dependencies.cmake)
 
 # Additional configuration options
 option(YAZE_SUPPRESS_WARNINGS "Suppress compiler warnings (use -v preset suffix for verbose)" ON)
-set(YAZE_TEST_ROM_PATH "${CMAKE_BINARY_DIR}/bin/zelda3.sfc" CACHE STRING "Path to test ROM file")
+set(YAZE_TEST_ROM_VANILLA_PATH "" CACHE STRING "Path to vanilla test ROM file")
+set(YAZE_TEST_ROM_US_PATH "" CACHE STRING "Path to US test ROM file")
+set(YAZE_TEST_ROM_JP_PATH "" CACHE STRING "Path to JP test ROM file")
+set(YAZE_TEST_ROM_EU_PATH "" CACHE STRING "Path to EU test ROM file")
+set(YAZE_TEST_ROM_EXPANDED_PATH "" CACHE STRING "Path to expanded test ROM file")
+set(YAZE_TEST_ROM_PATH "" CACHE STRING "Legacy path to test ROM file (vanilla)")
 
 # Export compile commands for clangd/LSP
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
