@@ -28,6 +28,16 @@ namespace test {
  */
 class RomVersionTest : public MultiVersionEditorSaveTest {
  protected:
+  static int FindPrimaryMapId(const zelda3::Overworld& overworld) {
+    for (int i = 0; i < static_cast<int>(overworld.overworld_maps().size());
+         i++) {
+      if (overworld.overworld_map(i)->parent() == i) {
+        return i;
+      }
+    }
+    return 0;
+  }
+
   // Version-specific address constants
   struct VersionAddresses {
     uint32_t overworld_gfx_ptr1;
@@ -337,7 +347,8 @@ TEST_F(RomVersionTest, MultipleCycles_Stability) {
         << "Map count mismatch on cycle " << cycle;
 
     // Make a modification
-    auto* map = overworld.mutable_overworld_map(cycle % 160);
+    const int map_id = FindPrimaryMapId(overworld);
+    auto* map = overworld.mutable_overworld_map(map_id);
     uint8_t new_value = static_cast<uint8_t>(cycle);
     map->set_area_graphics(new_value);
 
@@ -353,7 +364,8 @@ TEST_F(RomVersionTest, MultipleCycles_Stability) {
   ASSERT_OK(final_ow.Load(rom.get()));
 
   // Verify last modification persisted
-  EXPECT_EQ(final_ow.overworld_map((num_cycles - 1) % 160)->area_graphics(),
+  const int map_id = FindPrimaryMapId(final_ow);
+  EXPECT_EQ(final_ow.overworld_map(map_id)->area_graphics(),
             static_cast<uint8_t>(num_cycles - 1));
 }
 

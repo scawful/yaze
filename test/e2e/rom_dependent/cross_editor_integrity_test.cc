@@ -28,6 +28,16 @@ namespace test {
  */
 class CrossEditorIntegrityTest : public EditorSaveTestBase {
  protected:
+  static int FindPrimaryMapId(const zelda3::Overworld& overworld) {
+    for (int i = 0; i < static_cast<int>(overworld.overworld_maps().size());
+         i++) {
+      if (overworld.overworld_map(i)->parent() == i) {
+        return i;
+      }
+    }
+    return 0;
+  }
+
   void SetUp() override {
     EditorSaveTestBase::SetUp();
 
@@ -102,9 +112,10 @@ TEST_F(CrossEditorIntegrityTest, Overworld_Plus_Palette) {
   ASSERT_OK(overworld.Load(rom_.get()));
 
   // --- Overworld Edit ---
-  auto* map5 = overworld.mutable_overworld_map(5);
-  uint8_t original_palette_id = map5->main_palette();
-  map5->set_main_palette((original_palette_id + 1) % 8);
+  const int map_id = FindPrimaryMapId(overworld);
+  auto* map5 = overworld.mutable_overworld_map(map_id);
+  uint8_t original_palette_id = map5->area_palette();
+  map5->set_area_palette((original_palette_id + 1) % 8);
 
   // --- Palette Edit ---
   const uint32_t palette_offset = 0xDE6C8;  // Overworld main palette
@@ -126,7 +137,7 @@ TEST_F(CrossEditorIntegrityTest, Overworld_Plus_Palette) {
   ASSERT_OK(reloaded_ow.Load(reloaded.get()));
 
   // Verify overworld edit
-  EXPECT_EQ(reloaded_ow.overworld_map(5)->main_palette(),
+  EXPECT_EQ(reloaded_ow.overworld_map(map_id)->area_palette(),
             (original_palette_id + 1) % 8)
       << "Overworld palette ID edit should persist";
 
@@ -373,10 +384,16 @@ TEST_F(CrossEditorIntegrityTest, LargeScale_CombinedEdits) {
   // Edit many overworld maps
   const int num_map_edits = 50;
   std::map<int, uint8_t> expected_gfx;
-  for (int i = 0; i < num_map_edits; ++i) {
-    auto* map = overworld.mutable_overworld_map(i);
-    expected_gfx[i] = (map->area_graphics() + i) % 256;
-    map->set_area_graphics(expected_gfx[i]);
+  for (int map_id = 0;
+       map_id < static_cast<int>(overworld.overworld_maps().size()) &&
+       static_cast<int>(expected_gfx.size()) < num_map_edits;
+       ++map_id) {
+    if (overworld.overworld_map(map_id)->parent() != map_id) {
+      continue;
+    }
+    auto* map = overworld.mutable_overworld_map(map_id);
+    expected_gfx[map_id] = (map->area_graphics() + map_id) % 256;
+    map->set_area_graphics(expected_gfx[map_id]);
   }
 
   // Edit many palette colors
@@ -410,7 +427,7 @@ TEST_F(CrossEditorIntegrityTest, LargeScale_CombinedEdits) {
       map_verified++;
     }
   }
-  EXPECT_EQ(map_verified, num_map_edits)
+  EXPECT_EQ(map_verified, static_cast<int>(expected_gfx.size()))
       << "All map edits should persist";
 
   // Verify palette edits

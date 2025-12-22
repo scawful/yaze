@@ -1251,6 +1251,7 @@ absl::Status Overworld::LoadSpritesFromMap(int sprites_per_gamestate_ptr,
 
 absl::Status Overworld::Save(Rom* rom) {
   rom_ = rom;
+  RETURN_IF_ERROR(CreateTile32Tilemap())
   if (expanded_tile16_) {
     RETURN_IF_ERROR(SaveMap16Expanded())
   } else {
@@ -1276,6 +1277,10 @@ absl::Status Overworld::Save(Rom* rom) {
 
 absl::Status Overworld::SaveOverworldMaps() {
   util::logf("Saving Overworld Maps");
+
+  if (tiles32_list_.size() < NumberOfMap32) {
+    RETURN_IF_ERROR(CreateTile32Tilemap())
+  }
 
   // Initialize map pointers
   std::fill(map_pointers1_id.begin(), map_pointers1_id.end(), -1);
@@ -3011,7 +3016,9 @@ absl::Status Overworld::LoadDiggableTiles() {
 
 absl::Status Overworld::SaveDiggableTiles() {
   // Diggable tiles require v3+ (custom table at 0x140980+)
-  if (!OverworldVersionHelper::SupportsAreaEnum(cached_version_)) {
+  const auto version = OverworldVersionHelper::GetVersion(*rom_);
+  cached_version_ = version;
+  if (!OverworldVersionHelper::SupportsAreaEnum(version)) {
     return absl::OkStatus();  // Skip for vanilla/v1/v2
   }
 

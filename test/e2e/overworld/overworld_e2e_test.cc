@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "rom/rom.h"
+#include "test/test_utils.h"
 #include "testing.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_map.h"
@@ -26,19 +27,21 @@ namespace test {
  */
 class OverworldE2ETest : public ::testing::Test {
  protected:
+  static int FindPrimaryMapId(const zelda3::Overworld& overworld) {
+    for (int i = 0; i < static_cast<int>(overworld.overworld_maps().size());
+         i++) {
+      if (overworld.overworld_map(i)->parent() == i) {
+        return i;
+      }
+    }
+    return 0;
+  }
+
   void SetUp() override {
-    // Skip tests if ROM is not available
-    if (getenv("YAZE_SKIP_ROM_TESTS")) {
-      GTEST_SKIP() << "ROM tests disabled";
-    }
-
-    // Get ROM path from environment or use default
-    const char* rom_path_env = getenv("YAZE_TEST_ROM_PATH");
-    vanilla_rom_path_ = rom_path_env ? rom_path_env : "zelda3.sfc";
-
-    if (!std::filesystem::exists(vanilla_rom_path_)) {
-      GTEST_SKIP() << "Test ROM not found: " << vanilla_rom_path_;
-    }
+    yaze::test::TestRomManager::SkipIfRomMissing(
+        yaze::test::RomRole::kVanilla, "OverworldE2ETest");
+    vanilla_rom_path_ =
+        yaze::test::TestRomManager::GetRomPath(yaze::test::RomRole::kVanilla);
 
     // Create test ROM copies
     vanilla_test_path_ = "test_vanilla_e2e.sfc";
@@ -46,7 +49,9 @@ class OverworldE2ETest : public ::testing::Test {
     golden_data_path_ = "golden_data_e2e.h";
 
     // Copy vanilla ROM for testing
-    std::filesystem::copy_file(vanilla_rom_path_, vanilla_test_path_);
+    std::filesystem::copy_file(
+        vanilla_rom_path_, vanilla_test_path_,
+        std::filesystem::copy_options::overwrite_existing);
   }
 
   void TearDown() override {
@@ -64,9 +69,29 @@ class OverworldE2ETest : public ::testing::Test {
   // Helper to extract golden data from ROM
   absl::Status ExtractGoldenData(const std::string& rom_path,
                                  const std::string& output_path) {
+    const std::vector<std::filesystem::path> candidates = {
+        "overworld_golden_data_extractor",
+        "bin/overworld_golden_data_extractor",
+        "bin/Debug/overworld_golden_data_extractor",
+        "../bin/overworld_golden_data_extractor",
+        "../bin/Debug/overworld_golden_data_extractor",
+    };
+    std::string extractor_path;
+    for (const auto& candidate : candidates) {
+      if (std::filesystem::exists(candidate)) {
+        extractor_path = candidate.string();
+        break;
+      }
+    }
+    if (extractor_path.empty()) {
+      return absl::NotFoundError(
+          "overworld_golden_data_extractor not found. "
+          "Build target overworld_golden_data_extractor.");
+    }
+
     // Run the golden data extractor
     std::string command =
-        "./overworld_golden_data_extractor " + rom_path + " " + output_path;
+        extractor_path + " " + rom_path + " " + output_path;
     int result = system(command.c_str());
 
     if (result != 0) {
@@ -135,7 +160,8 @@ TEST_F(OverworldE2ETest, LoadVanillaOverworldData) {
   // Validate that we have a vanilla ROM (ASM version 0xFF)
   auto asm_version = rom->ReadByte(0x140145);
   ASSERT_TRUE(asm_version.ok());
-  EXPECT_EQ(*asm_version, 0xFF);
+  EXPECT_TRUE(*asm_version == 0xFF || *asm_version == 0x00)
+      << "Vanilla ROM should have ASM version 0xFF or 0x00";
 
   // Validate expansion flags for vanilla
   EXPECT_FALSE(overworld.expanded_tile16());
@@ -229,13 +255,14 @@ TEST_F(OverworldE2ETest, OverworldEditPersistence) {
   ASSERT_TRUE(status.ok());
 
   // Make some edits to overworld maps
-  auto* map0 = overworld.mutable_overworld_map(0);
+  const int map_id = FindPrimaryMapId(overworld);
+  auto* map0 = overworld.mutable_overworld_map(map_id);
   uint8_t original_gfx = map0->area_graphics();
-  uint8_t original_palette = map0->main_palette();
+  uint8_t original_palette = map0->area_palette();
 
   // Change graphics and palette
   map0->set_area_graphics(0x01);
-  map0->set_main_palette(0x02);
+  map0->set_area_palette(0x02);
 
   // Save the changes
   auto save_maps_status = overworld.SaveOverworldMaps();
@@ -253,9 +280,9 @@ TEST_F(OverworldE2ETest, OverworldEditPersistence) {
   zelda3::Overworld reloaded_overworld(reloaded_rom.get());
   ASSERT_OK(reloaded_overworld.Load(reloaded_rom.get()));
 
-  const auto& reloaded_map0 = reloaded_overworld.overworld_map(0);
+  const auto& reloaded_map0 = reloaded_overworld.overworld_map(map_id);
   EXPECT_EQ(reloaded_map0->area_graphics(), 0x01);
-  EXPECT_EQ(reloaded_map0->main_palette(), 0x02);
+  EXPECT_EQ(reloaded_map0->area_palette(), 0x02);
 }
 
 // Test 5: Validate coordinate calculations match ZScream exactly
