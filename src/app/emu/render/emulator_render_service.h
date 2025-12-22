@@ -119,6 +119,7 @@ class EmulatorRenderService {
 
   Rom* rom_ = nullptr;
   zelda3::GameData* game_data_ = nullptr;
+  std::unique_ptr<zelda3::GameData> owned_game_data_;
   std::unique_ptr<emu::Snes> snes_;
   std::unique_ptr<SaveStateManager> state_manager_;
 

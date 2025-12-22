@@ -24,6 +24,21 @@ absl::Status EmulatorRenderService::Initialize() {
     return absl::FailedPreconditionError("ROM not loaded");
   }
 
+  if (!game_data_) {
+    owned_game_data_ = std::make_unique<zelda3::GameData>(rom_);
+    zelda3::LoadOptions options;
+    options.load_graphics = true;
+    options.load_palettes = true;
+    options.load_gfx_groups = true;
+    options.expand_rom = false;
+    options.populate_metadata = true;
+    auto data_status = zelda3::LoadGameData(*rom_, *owned_game_data_, options);
+    if (!data_status.ok()) {
+      return data_status;
+    }
+    game_data_ = owned_game_data_.get();
+  }
+
   // Create SNES instance
   snes_ = std::make_unique<emu::Snes>();
   const std::vector<uint8_t>& rom_data = rom_->vector();
