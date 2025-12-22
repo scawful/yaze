@@ -2,6 +2,7 @@
 # scripts/gemini_build.sh
 # Build script for Gemini AI agent - builds full yaze with all features
 # Usage: ./scripts/gemini_build.sh [target] [--fresh]
+# Optional: set YAZE_BUILD_DIR to override the build directory.
 #
 # Examples:
 #   ./scripts/gemini_build.sh              # Build yaze (default)
@@ -12,7 +13,7 @@
 set -e
 
 # Configuration
-BUILD_DIR="build_gemini"
+BUILD_DIR="${YAZE_BUILD_DIR:-build}"
 PRESET="mac-gemini"
 TARGET="${1:-yaze}"
 FRESH=""

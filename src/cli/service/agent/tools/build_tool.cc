@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstdio>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <future>
@@ -39,8 +40,11 @@ namespace fs = std::filesystem;
 BuildTool::BuildTool(const BuildConfig& config)
     : config_(config) {
   // Ensure build directory is set with a default value
-  if (config_.build_directory.empty()) {
-    config_.build_directory = "build_ai";
+  const char* env_build_dir = std::getenv("YAZE_BUILD_DIR");
+  if (env_build_dir != nullptr && env_build_dir[0] != '\0') {
+    config_.build_directory = env_build_dir;
+  } else if (config_.build_directory.empty()) {
+    config_.build_directory = "build";
   }
 
   // Convert to absolute path if relative
@@ -171,9 +175,13 @@ absl::StatusOr<BuildTool::BuildResult> BuildTool::RunTests(
           absl::StrFormat("ROM file not found: %s", rom_path));
     }
 #ifdef _WIN32
-    env_setup = absl::StrFormat("set YAZE_TEST_ROM_PATH=\"%s\" && ", rom_path);
+    env_setup = absl::StrFormat(
+        "set YAZE_TEST_ROM_VANILLA=\"%s\" && set YAZE_TEST_ROM_PATH=\"%s\" && ",
+        rom_path, rom_path);
 #else
-    env_setup = absl::StrFormat("YAZE_TEST_ROM_PATH=\"%s\" ", rom_path);
+    env_setup = absl::StrFormat(
+        "YAZE_TEST_ROM_VANILLA=\"%s\" YAZE_TEST_ROM_PATH=\"%s\" ",
+        rom_path, rom_path);
 #endif
   }
 

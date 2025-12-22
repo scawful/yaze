@@ -27,23 +27,33 @@ Run the verification script once per machine to check dependencies and fix commo
 .\scripts\verify-build-environment.ps1 -FixIssues
 ```
 
+### macOS Toolchain Selection
+
+AppleClang (`/usr/bin/clang`) is the default and most reliable choice. If Homebrew LLVM is on your PATH and you hit SDK header errors, pick the toolchain explicitly:
+
+```bash
+# AppleClang (recommended)
+cmake --preset mac-dbg --fresh -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++
+
+# Homebrew LLVM (optional)
+cmake --preset mac-dbg --fresh -DCMAKE_TOOLCHAIN_FILE=cmake/llvm-brew.toolchain.cmake
+```
+
 ---
 
 ## 2. Build Presets
 
 YAZE uses CMake presets for consistent builds. Configure with `cmake --preset <name>`, then build with `cmake --build --preset <name>`.
 
-### Available Presets
+### Available Presets (High Level)
 
-| Preset | Platform | Description |
-|--------|----------|-------------|
-| `mac-dbg`, `lin-dbg`, `win-dbg` | macOS / Linux / Windows | Standard debug builds with tests enabled |
-| `mac-ai`, `lin-ai`, `win-ai` | macOS / Linux / Windows | Full AI stack: gRPC, agent UI, z3ed CLI, AI runtime |
-| `mac-rel`, `lin-rel`, `win-rel` | macOS / Linux / Windows | Optimized release builds |
-| `mac-dev`, `lin-dev`, `win-dev` | macOS / Linux / Windows | Development builds with ROM-dependent tests |
-| `mac-uni` | macOS | Universal binary (ARM64 + x86_64) for distribution |
-| `mac-test`, `lin-test`, `win-test` | All | Optimized builds for fast test iteration |
-| `ci-*` | Platform-specific | CI/CD configurations (see CMakePresets.json) |
+- **macOS**: `mac-dbg`, `mac-dbg-v`, `mac-rel`, `mac-dev`, `mac-ai`, `mac-ai-fast`, `mac-uni`, `mac-sdl3`, `mac-test`
+- **Windows**: `win-dbg`, `win-dbg-v`, `win-rel`, `win-dev`, `win-ai`, `win-z3ed`, `win-arm`, `win-arm-rel`, `win-vs-dbg`, `win-vs-rel`, `win-vs-ai`, `win-sdl3`, `win-test`
+- **Linux**: `lin-dbg`, `lin-dbg-v`, `lin-rel`, `lin-dev`, `lin-ai`, `lin-sdl3`, `lin-test`
+- **CI**: `ci-linux`, `ci-macos`, `ci-windows`, `ci-windows-ai`
+- **WASM**: `wasm-debug`, `wasm-release`, `wasm-crash-repro`, `wasm-ai`
+
+`mac-ai-fast` prefers the Homebrew gRPC/protobuf stack for faster configure times (`brew install grpc protobuf abseil`).
 
 **Tip:** Add `-v` suffix (e.g., `mac-dbg-v`) to enable verbose compiler warnings.
 
@@ -56,7 +66,9 @@ YAZE uses CMake presets for consistent builds. Configure with `cmake --preset <n
 | Native (desktop/CLI) | `build/` |
 | WASM | `build-wasm/` |
 
-If you need per-user or per-agent isolation, create a local `CMakeUserPresets.json` that points `binaryDir` to a custom path.
+macOS and Windows presets use multi-config generators, so binaries live under `build/bin/Debug` or `build/bin/Release`. Linux uses single-config builds in `build/bin`.
+
+If you need per-user or per-agent isolation, create a local `CMakeUserPresets.json` that points `binaryDir` to a custom path outside the repo. Avoid creating additional `build_*` folders in the repo to keep the checkout small.
 
 Example:
 ```bash
@@ -66,10 +78,36 @@ cmake --preset dev-local
 cmake --build --preset dev-local --target yaze
 ```
 
+You can also set `YAZE_BUILD_DIR` for scripts and the agent build tool to direct builds to an external path:
+```bash
+export YAZE_BUILD_DIR="$HOME/.cache/yaze/build"
+```
+
 For AI-enabled builds, use the `*-ai` presets and specify only the targets you need:
 ```bash
 cmake --build --preset mac-ai --target yaze z3ed
 ```
+
+### Shared Dependency Caches (Recommended)
+
+Set shared caches once per machine to avoid re-downloading dependencies after
+cleaning build directories.
+
+**macOS / Linux:**
+```bash
+export CPM_SOURCE_CACHE="$HOME/.cpm-cache"
+export VCPKG_DOWNLOADS="$HOME/.cache/vcpkg/downloads"
+export VCPKG_BINARY_SOURCES="clear;files,$HOME/.cache/vcpkg/bincache,readwrite"
+```
+
+**Windows (PowerShell):**
+```powershell
+$env:CPM_SOURCE_CACHE = "$env:USERPROFILE\.cpm-cache"
+$env:VCPKG_DOWNLOADS = "$env:LOCALAPPDATA\vcpkg\downloads"
+$env:VCPKG_BINARY_SOURCES = "clear;files,$env:LOCALAPPDATA\vcpkg\bincache,readwrite"
+```
+
+You can also set these in `CMakeUserPresets.json` (see `CMakeUserPresets.json.example`).
 
 **Windows Helper Scripts:**
 - Quick builds: `scripts/agents/windows-smoke-build.ps1`
@@ -138,6 +176,19 @@ ctest --test-dir build --output-on-failure
 ctest --test-dir build -R "Dungeon"
 ```
 
+### Direct Test Binaries
+
+```bash
+# macOS/Windows (multi-config)
+./build/bin/Debug/yaze_emu_test --emu_test_rom=roms/alttp_vanilla.sfc
+./build/bin/Debug/yaze_test_stable --rom=roms/alttp_vanilla.sfc
+./build/bin/Debug/yaze_test_gui --rom=roms/alttp_vanilla.sfc
+./build/bin/Debug/yaze_test_benchmark --rom=roms/alttp_vanilla.sfc
+
+# Linux (single-config)
+./build/bin/yaze_emu_test --emu_test_rom=roms/alttp_vanilla.sfc
+```
+
 ### Test Categories
 
 | Category | Command | Description |
@@ -151,7 +202,7 @@ ctest --test-dir build -R "Dungeon"
 
 ```bash
 # Configure with ROM path
-cmake --preset mac-dev -DYAZE_TEST_ROM_PATH=/path/to/zelda3.sfc
+cmake --preset mac-dev -DYAZE_TEST_ROM_VANILLA_PATH="$PWD/roms/alttp_vanilla.sfc"
 
 # Build and run
 cmake --build --preset mac-dev --target yaze_test
@@ -171,7 +222,9 @@ ctest --test-dir build -L rom_dependent
 
 | Variable | Purpose |
 |----------|---------|
-| `YAZE_TEST_ROM_PATH` | Path to ROM for ROM-dependent tests |
+| `YAZE_TEST_ROM_VANILLA` | Path to vanilla ROM for ROM-dependent tests |
+| `YAZE_TEST_ROM_EXPANDED` | Path to expanded (ZSCustom/OOS) ROM |
+| `YAZE_TEST_ROM_PATH` | Legacy ROM path (vanilla fallback) |
 | `YAZE_SKIP_ROM_TESTS` | Skip ROM tests (useful for CI) |
 | `YAZE_ENABLE_UI_TESTS` | Enable GUI tests (auto-detected if display available) |
 
