@@ -39,6 +39,10 @@ class OverworldRegressionTest : public ::testing::Test {
     for (int i = 0; i < 160; i++) {
       mock_rom_data[0x1788D + i] = 0x01;
     }
+    // Parent table - identity for LW so DW mirrors correctly (+0x40)
+    for (int i = 0; i < 64; i++) {
+      mock_rom_data[0x125EC + i] = static_cast<uint8_t>(i);
+    }
     // Sprite sets/palettes
     for (int i = 0; i < 160; i++) {
       mock_rom_data[0x7A41 + i] = 0x00;

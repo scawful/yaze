@@ -249,12 +249,12 @@ TEST_F(OverworldTest, OverworldMapDestroy) {
   map.set_main_palette(5);
   map.SetAreaSize(AreaSizeEnum::LargeArea);
 
-  // Destroy and verify reset
+  // Destroy and verify identity fields are preserved for rebuild
   map.Destroy();
 
-  EXPECT_EQ(map.area_graphics(), 0);
-  EXPECT_EQ(map.main_palette(), 0);
-  EXPECT_EQ(map.area_size(), AreaSizeEnum::SmallArea);
+  EXPECT_EQ(map.area_graphics(), 10);
+  EXPECT_EQ(map.main_palette(), 5);
+  EXPECT_EQ(map.area_size(), AreaSizeEnum::LargeArea);
   EXPECT_FALSE(map.is_initialized());
 }
 
