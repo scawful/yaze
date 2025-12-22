@@ -58,5 +58,12 @@ message(STATUS "Using macOS SDK at: ${CMAKE_SYSROOT}")
   # and all dependencies.
 set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES "${HOMEBREW_LLVM_PREFIX}/include/c++/v1")
 
+# 5.5 Ensure Homebrew libc++ is linked to avoid mixing ABI with system libc++.
+set(_yaze_llvm_lib_dir "${HOMEBREW_LLVM_PREFIX}/lib")
+set(CMAKE_CXX_FLAGS_INIT "${CMAKE_CXX_FLAGS_INIT} -stdlib=libc++")
+set(CMAKE_EXE_LINKER_FLAGS_INIT "${CMAKE_EXE_LINKER_FLAGS_INIT} -L${_yaze_llvm_lib_dir} -Wl,-rpath,${_yaze_llvm_lib_dir}")
+set(CMAKE_SHARED_LINKER_FLAGS_INIT "${CMAKE_SHARED_LINKER_FLAGS_INIT} -L${_yaze_llvm_lib_dir} -Wl,-rpath,${_yaze_llvm_lib_dir}")
+set(CMAKE_MODULE_LINKER_FLAGS_INIT "${CMAKE_MODULE_LINKER_FLAGS_INIT} -L${_yaze_llvm_lib_dir} -Wl,-rpath,${_yaze_llvm_lib_dir}")
+
 # 6. Set the default installation path for macOS frameworks
 set(CMAKE_FIND_FRAMEWORK FIRST)

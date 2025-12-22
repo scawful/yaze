@@ -19,8 +19,8 @@
 ### 2025-12-21 backend-infra-engineer – Pre-0.2.2 history phase snapshotting
 - TASK: Add additional pre-0.2.2 phase snapshots (2024 Q1/Q2/Q3) and re-rewrite history safely.
 - SCOPE: git history, tags, backups
-- STATUS: IN_PROGRESS
-- NOTES: Will create new bundle backup, rewrite snapshot chain, retag, and force-push origin/master + tags.
+- STATUS: COMPLETE
+- NOTES: Rewrote chain with pre-0.2.2-2024-q1/q2/q3 tags; forced push origin/master + tags; backup bundle saved (20251221T191959). Build/test pending after Homebrew libc++ link fix.
 
 ### 2025-12-07 snes-emulator-expert – ALTTP input/audio regression triage
 - TASK: Investigate SDL2/ImGui input pipeline and LakeSnes-based core for ALTTP A-button edge detection failure on naming screen + audio stutter on title screen

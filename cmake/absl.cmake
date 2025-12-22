@@ -100,7 +100,17 @@ endif()
 
 # ABSL_TARGETS is now available to the rest of the project via include()
 
-if(APPLE AND DEFINED CMAKE_OSX_ARCHITECTURES AND CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
+set(_yaze_absl_arm64 FALSE)
+if(APPLE)
+  if(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
+    set(_yaze_absl_arm64 TRUE)
+  elseif(CMAKE_OSX_ARCHITECTURES STREQUAL "" AND CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64")
+    # Homebrew LLVM doesn't honor -Xarch_x86_64; strip x86 flags on arm64-only builds.
+    set(_yaze_absl_arm64 TRUE)
+  endif()
+endif()
+
+if(_yaze_absl_arm64)
   foreach(_absl_target IN ITEMS absl_random_internal_randen_hwaes absl_random_internal_randen_hwaes_impl)
     if(TARGET ${_absl_target})
       get_target_property(_absl_opts ${_absl_target} COMPILE_OPTIONS)

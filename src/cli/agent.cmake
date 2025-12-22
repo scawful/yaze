@@ -180,13 +180,13 @@ set(YAZE_AGENT_CORE_SOURCES
   cli/service/agent/tools/validation_tool.cc
   cli/service/agent/tools/visual_analysis_tool.cc
   cli/service/agent/disassembler_65816.cc
-  cli/service/agent/rom_debug_agent.cc
   cli/service/agent/vim_mode.cc
   cli/service/command_registry.cc
   cli/service/gui/gui_action_generator.cc
   cli/service/net/z3ed_network_client.cc
   cli/service/planning/policy_evaluator.cc
   cli/service/planning/proposal_registry.cc
+  cli/service/planning/tile16_proposal_generator.cc
   cli/service/resources/command_context.cc
   cli/service/resources/command_handler.cc
   cli/service/resources/resource_catalog.cc
@@ -206,6 +206,12 @@ set(YAZE_AGENT_CORE_SOURCES
   app/editor/agent/agent_editor.cc
   app/editor/agent/panels/agent_editor_panels.cc
 )
+
+if(YAZE_ENABLE_REMOTE_AUTOMATION)
+  list(APPEND YAZE_AGENT_CORE_SOURCES
+    cli/service/agent/rom_debug_agent.cc
+  )
+endif()
 
 # AI runtime sources
 if(YAZE_ENABLE_AI_RUNTIME)
@@ -236,7 +242,6 @@ if(YAZE_ENABLE_REMOTE_AUTOMATION)
     cli/handlers/tools/emulator_commands.cc
     cli/service/gui/gui_automation_client.cc
     cli/service/gui/canvas_automation_client.cc
-    cli/service/planning/tile16_proposal_generator.cc
   )
 endif()
 
@@ -327,9 +332,18 @@ if(YAZE_ENABLE_AI_RUNTIME AND YAZE_ENABLE_JSON)
     # HTTP API works fine without HTTPS for local development
     if(NOT WIN32)
       find_package(OpenSSL)
-      if(OpenSSL_FOUND)
+      if(OPENSSL_INCLUDE_DIR)
+        target_include_directories(yaze_agent PUBLIC ${OPENSSL_INCLUDE_DIR})
+      elseif(OPENSSL_ROOT_DIR)
+        target_include_directories(yaze_agent PUBLIC ${OPENSSL_ROOT_DIR}/include)
+      endif()
+      if(OPENSSL_FOUND)
+        if(TARGET OpenSSL::SSL)
+          target_link_libraries(yaze_agent PUBLIC OpenSSL::SSL OpenSSL::Crypto)
+        else()
+          target_link_libraries(yaze_agent PUBLIC ${OPENSSL_SSL_LIBRARY} ${OPENSSL_CRYPTO_LIBRARY})
+        endif()
         target_compile_definitions(yaze_agent PUBLIC CPPHTTPLIB_OPENSSL_SUPPORT)
-        target_link_libraries(yaze_agent PUBLIC OpenSSL::SSL OpenSSL::Crypto)
 
         if(APPLE)
           target_compile_definitions(yaze_agent PUBLIC CPPHTTPLIB_USE_CERTS_FROM_MACOSX_KEYCHAIN)
