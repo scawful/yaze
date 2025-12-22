@@ -7,6 +7,9 @@
 #include <iterator>
 #include <iostream>
 #include <sstream>
+#ifndef _WIN32
+#include <sys/wait.h>
+#endif
 
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
@@ -350,12 +353,22 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchWithBinary(
   last_errors_.clear();
   last_warnings_.clear();
 
+  std::error_code ec;
+  fs::path patch_fs = fs::absolute(patch_path, ec);
+  if (ec) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Failed to resolve patch path: %s", ec.message()));
+  }
+  if (!fs::exists(patch_fs)) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Patch file not found: %s", patch_fs.string()));
+  }
+
   auto asar_path_opt = ResolveAsarBinary();
   if (!asar_path_opt) {
     return absl::FailedPreconditionError("Asar CLI path could not be resolved");
   }
 
-  fs::path patch_fs = fs::absolute(patch_path);
   fs::path patch_dir = patch_fs.parent_path();
   fs::path patch_name = patch_fs.filename();
 
@@ -363,6 +376,9 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchWithBinary(
   auto timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
   fs::path temp_rom = fs::temp_directory_path() /
                       ("yaze_asar_cli_" + std::to_string(timestamp) + ".sfc");
+  fs::path temp_symbols =
+      fs::temp_directory_path() /
+      ("yaze_asar_symbols_" + std::to_string(timestamp) + ".sym");
   {
     std::ofstream temp_rom_file(temp_rom, std::ios::binary);
     if (!temp_rom_file) {
@@ -378,7 +394,8 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchWithBinary(
 
   // Build command
   std::ostringstream cmd;
-  cmd << "\"" << *asar_path_opt << "\" --no-progress";
+  cmd << "\"" << *asar_path_opt << "\" --symbols=wla"
+      << " --symbols-path=\"" << temp_symbols.string() << "\"";
   for (const auto& include_path : include_paths) {
     cmd << " -I\"" << include_path << "\"";
   }
@@ -386,7 +403,6 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchWithBinary(
   cmd << " \"" << patch_name.string() << "\" \"" << temp_rom.string() << "\" 2>&1";
 
   // Run in patch directory so relative incsrc paths resolve naturally
-  std::error_code ec;
   fs::path original_cwd = fs::current_path(ec);
   if (!patch_dir.empty()) {
     fs::current_path(patch_dir, ec);
@@ -395,19 +411,26 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchWithBinary(
   // Execute using popen to capture output
   std::array<char, 128> buffer;
   std::string output;
-  std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.str().c_str(), "r"), pclose);
+  FILE* pipe = popen(cmd.str().c_str(), "r");
   if (!pipe) {
     fs::remove(temp_rom, ec);
     if (!patch_dir.empty()) fs::current_path(original_cwd, ec);
     return absl::InternalError("popen() failed for Asar CLI");
   }
-  while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+  while (fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
     output += buffer.data();
   }
-  
-  // Note: pclose returns exit status
-  // But we can't rely solely on it if popen failed differently.
-  // Assuming standard behavior.
+  int exit_status = pclose(pipe);
+  int exit_code = exit_status;
+#ifndef _WIN32
+  if (exit_status != -1) {
+    if (WIFEXITED(exit_status)) {
+      exit_code = WEXITSTATUS(exit_status);
+    } else if (WIFSIGNALED(exit_status)) {
+      exit_code = 128 + WTERMSIG(exit_status);
+    }
+  }
+#endif
 
   if (!patch_dir.empty()) {
     fs::current_path(original_cwd, ec);
@@ -425,9 +448,16 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchWithBinary(
     }
   }
 
+  if (exit_code != 0 && last_errors_.empty()) {
+    last_errors_.push_back(
+        absl::StrFormat("Asar CLI exited with status %d", exit_code));
+  }
+
   if (!last_errors_.empty()) {
     fs::remove(temp_rom, ec);
-    return absl::InternalError("Asar CLI reported errors during assembly");
+    fs::remove(temp_symbols, ec);
+    return absl::InternalError(absl::StrFormat(
+        "Patch failed: %s", absl::StrJoin(last_errors_, "; ")));
   }
 
   // Read patched ROM back into memory
@@ -435,6 +465,7 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchWithBinary(
   if (!patched_rom) {
     last_errors_.push_back("Failed to read patched ROM from Asar CLI");
     fs::remove(temp_rom, ec);
+    fs::remove(temp_symbols, ec);
     return absl::InternalError(last_errors_.back());
   }
 
@@ -444,8 +475,24 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchWithBinary(
   rom_data.swap(new_data);
   fs::remove(temp_rom, ec);
 
+  if (fs::exists(temp_symbols, ec)) {
+    auto symbol_status = LoadSymbolsFromFile(temp_symbols.string());
+    if (!symbol_status.ok()) {
+      last_warnings_.push_back(std::string(symbol_status.message()));
+    }
+    fs::remove(temp_symbols, ec);
+  }
+
   AsarPatchResult result;
   result.success = true;
+  result.errors = last_errors_;
+  result.warnings = last_warnings_;
+  if (!symbol_table_.empty()) {
+    result.symbols.reserve(symbol_table_.size());
+    for (const auto& [name, symbol] : symbol_table_) {
+      result.symbols.push_back(symbol);
+    }
+  }
   result.rom_size = static_cast<uint32_t>(rom_data.size());
   result.crc32 = 0;  // TODO: CRC32 for CLI path
   return result;
