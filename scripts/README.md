@@ -2,6 +2,15 @@
 
 This directory contains build automation and maintenance scripts for the YAZE project.
 
+## fetch_usdasm.sh
+
+Fetch the usdasm disassembly on demand (not vendored in the repo).
+
+```bash
+scripts/fetch_usdasm.sh
+# or: USDASM_DIR=/path/to/usdasm scripts/fetch_usdasm.sh
+```
+
 ## build_cleaner.py
 
 Automates CMake source list maintenance and header include management with IWYU-style analysis.

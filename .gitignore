@@ -75,6 +75,7 @@ src/lib/cmake/
 src/lib/GL/
 src/lib/libpng/
 src/lib/zlib/
+assets/asm/usdasm/
 src/app/gui/modules/component.h
 src/ios/macOS/Info-macOS.plist
 src/ios/macOS/MainMenu.storyboard
