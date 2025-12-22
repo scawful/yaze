@@ -18,7 +18,7 @@ void PaletteManager::Initialize(zelda3::GameData* game_data) {
   }
 
   game_data_ = game_data;
-  rom_ = nullptr;  // Clear legacy ROM pointer
+  rom_ = game_data->rom();
 
   // Load original palette snapshots for all groups
   auto* palette_groups = &game_data_->palette_groups;
@@ -64,6 +64,19 @@ void PaletteManager::Initialize(Rom* rom) {
   // Clear any existing state
   modified_palettes_.clear();
   modified_colors_.clear();
+  ClearHistory();
+}
+
+void PaletteManager::ResetForTesting() {
+  game_data_ = nullptr;
+  rom_ = nullptr;
+  original_palettes_.clear();
+  modified_palettes_.clear();
+  modified_colors_.clear();
+  change_listeners_.clear();
+  next_callback_id_ = 1;
+  batch_depth_ = 0;
+  batch_changes_.clear();
   ClearHistory();
 }
 
@@ -245,6 +258,14 @@ absl::Status PaletteManager::SaveGroup(const std::string& group_name) {
     return absl::FailedPreconditionError("PaletteManager not initialized");
   }
 
+  Rom* rom = rom_;
+  if (!rom && game_data_) {
+    rom = game_data_->rom();
+  }
+  if (!rom) {
+    return absl::FailedPreconditionError("No ROM available for palette save");
+  }
+
   auto* group = GetMutableGroup(group_name);
   if (!group) {
     return absl::NotFoundError(
@@ -271,7 +292,8 @@ absl::Status PaletteManager::SaveGroup(const std::string& group_name) {
             GetPaletteAddress(group_name, palette_idx, color_idx);
 
         // Write color to ROM - write the 16-bit SNES color value
-        rom_->WriteShort(address, (*palette)[color_idx].snes());
+        RETURN_IF_ERROR(
+            rom->WriteShort(address, (*palette)[color_idx].snes()));
       }
     }
   }
@@ -286,7 +308,7 @@ absl::Status PaletteManager::SaveGroup(const std::string& group_name) {
   ClearModifiedFlags(group_name);
 
   // Mark ROM as dirty
-  rom_->set_dirty(true);
+  rom->set_dirty(true);
 
   // Notify listeners
   PaletteChangeEvent event{PaletteChangeEvent::Type::kGroupSaved, group_name,

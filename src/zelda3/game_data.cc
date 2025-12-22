@@ -79,6 +79,7 @@ uint32_t GetGraphicsAddress(const uint8_t* data, uint8_t addr, uint32_t ptr1,
 
 absl::Status LoadGameData(Rom& rom, GameData& data, const LoadOptions& options) {
   data.Clear();
+  data.set_rom(&rom);
 
   if (options.populate_metadata) {
     RETURN_IF_ERROR(LoadMetadata(rom, data));

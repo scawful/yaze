@@ -31,17 +31,17 @@ TEST(SnesColorConversionTest, DefaultConstructor) {
   EXPECT_EQ(color.rgb().x, 0.0f);
   EXPECT_EQ(color.rgb().y, 0.0f);
   EXPECT_EQ(color.rgb().z, 0.0f);
-  EXPECT_EQ(color.rgb().w, 0.0f);
+  EXPECT_EQ(color.rgb().w, 255.0f);
   EXPECT_EQ(color.snes(), 0);
 }
 
 TEST(SnesColorConversionTest, RGBConstructor) {
   ImVec4 rgb(1.0f, 0.5f, 0.25f, 1.0f);
   yaze::gfx::SnesColor color(rgb);
-  EXPECT_EQ(color.rgb().x, rgb.x);
-  EXPECT_EQ(color.rgb().y, rgb.y);
-  EXPECT_EQ(color.rgb().z, rgb.z);
-  EXPECT_EQ(color.rgb().w, rgb.w);
+  EXPECT_EQ(color.rgb().x, 255.0f);
+  EXPECT_EQ(color.rgb().y, 127.5f);
+  EXPECT_EQ(color.rgb().z, 63.75f);
+  EXPECT_EQ(color.rgb().w, 255.0f);
 }
 
 TEST(SnesColorConversionTest, SNESConstructor) {
