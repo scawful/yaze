@@ -69,7 +69,7 @@ These tests are disabled in PR/Push CI but run in nightly builds for comprehensi
 
 **Requirements to Run Locally:**
 - CMake flag: `-DYAZE_ENABLE_ROM_TESTS=ON`
-- ROM path: `-DYAZE_TEST_ROM_PATH=/path/to/zelda3.sfc`
+- ROM path: `-DYAZE_TEST_ROM_VANILLA_PATH=/path/to/alttp_vanilla.sfc`
 - Use `mac-dev`, `lin-dev`, `win-dev` presets or configure manually
 
 **Contents:**
@@ -79,7 +79,7 @@ These tests are disabled in PR/Push CI but run in nightly builds for comprehensi
 
 **Run with:**
 ```bash
-cmake --preset mac-dev -DYAZE_TEST_ROM_PATH=~/zelda3.sfc
+cmake --preset mac-dev -DYAZE_TEST_ROM_VANILLA_PATH=~/roms/alttp_vanilla.sfc
 ctest --test-dir build -L rom_dependent
 ```
 
@@ -246,7 +246,7 @@ ctest --test-dir build -L "stable|gui" -j4
 # Configure with ROM
 cmake --preset mac-dbg \
   -DYAZE_ENABLE_ROM_TESTS=ON \
-  -DYAZE_TEST_ROM_PATH=~/zelda3.sfc
+  -DYAZE_TEST_ROM_VANILLA_PATH=~/roms/alttp_vanilla.sfc
 
 # Build ROM test suite
 cmake --build --preset mac-dbg --target yaze_test_rom_dependent
@@ -332,7 +332,7 @@ TEST(NewFeatureTest, BasicFunctionality) {
 
 1. Create file: `test/integration/new_feature_test.cc`
 2. Same pattern as unit tests
-3. May access ROM files via `YAZE_TEST_ROM_PATH`
+3. May access ROM files via `YAZE_TEST_ROM_VANILLA` or `TestRomManager`
 4. Automatically labeled as `stable` (unless in special subdirectory)
 
 ### Adding ROM-Dependent Test
@@ -345,7 +345,8 @@ TEST(NewFeatureTest, BasicFunctionality) {
 ```cpp
 #ifdef YAZE_ENABLE_ROM_TESTS
 TEST(MyRomTest, EditAndSave) {
-  const char* rom_path = YAZE_TEST_ROM_PATH;
+  const std::string rom_path =
+      yaze::test::TestRomManager::GetRomPath(yaze::test::RomRole::kVanilla);
   // ... ROM testing code
 }
 #endif
@@ -370,7 +371,9 @@ TEST(MyRomTest, EditAndSave) {
 #include "imgui_te_engine.h"
 
 void E2ETest_MyGuiWorkflow(ImGuiTestContext* ctx) {
-  yaze::test::gui::LoadRomInTest(ctx, "zelda3.sfc");
+  const std::string rom_path =
+      yaze::test::TestRomManager::GetRomPath(yaze::test::RomRole::kVanilla);
+  yaze::test::gui::LoadRomInTest(ctx, rom_path);
   // ... GUI test code
 }
 
@@ -430,8 +433,8 @@ If ROM tests fail:
 
 ```bash
 # Verify ROM path is correct
-echo $YAZE_TEST_ROM_PATH
-file ~/zelda3.sfc
+echo $YAZE_TEST_ROM_VANILLA
+file ~/roms/alttp_vanilla.sfc
 
 # Check ROM-dependent tests are enabled
 cmake . | grep YAZE_ENABLE_ROM_TESTS

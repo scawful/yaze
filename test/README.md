@@ -34,8 +34,10 @@ ctest --test-dir build -L stable
 # Run all available tests (respects your preset configuration)
 ctest --test-dir build --output-on-failure
 
-# Run with ROM path for full coverage
-cmake --preset mac-dbg -DYAZE_ENABLE_ROM_TESTS=ON -DYAZE_TEST_ROM_PATH=~/zelda3.sfc
+# Run with ROM paths for full coverage
+cmake --preset mac-dbg -DYAZE_ENABLE_ROM_TESTS=ON \
+  -DYAZE_TEST_ROM_VANILLA_PATH=~/roms/alttp_vanilla.sfc \
+  -DYAZE_TEST_ROM_EXPANDED_PATH=~/roms/oos168.sfc
 ctest --test-dir build
 ```
 
@@ -113,7 +115,8 @@ Tests that require an actual Zelda3 ROM file. Disabled by default to avoid distr
 
 **Enable with**:
 ```bash
-cmake --preset mac-dbg -DYAZE_ENABLE_ROM_TESTS=ON -DYAZE_TEST_ROM_PATH=/path/to/zelda3.sfc
+cmake --preset mac-dbg -DYAZE_ENABLE_ROM_TESTS=ON \
+  -DYAZE_TEST_ROM_VANILLA_PATH=/path/to/alttp_vanilla.sfc
 cmake --build --preset mac-dbg --target yaze_test_rom_dependent
 ```
 
@@ -221,7 +224,7 @@ ctest --test-dir build -L headless_gui
 # Must configure with ROM path first
 cmake --preset mac-dbg \
   -DYAZE_ENABLE_ROM_TESTS=ON \
-  -DYAZE_TEST_ROM_PATH=~/zelda3.sfc
+  -DYAZE_TEST_ROM_VANILLA_PATH=~/roms/alttp_vanilla.sfc
 
 # Build ROM-dependent test suite
 cmake --build --preset mac-dbg --target yaze_test_rom_dependent
@@ -258,8 +261,12 @@ ctest --test-dir build
 These variables control test behavior:
 
 ```bash
-# Specify ROM for tests (if YAZE_ENABLE_ROM_TESTS=ON)
-export YAZE_TEST_ROM_PATH=/path/to/zelda3.sfc
+# Specify ROMs for tests (if YAZE_ENABLE_ROM_TESTS=ON)
+export YAZE_TEST_ROM_VANILLA=/path/to/alttp_vanilla.sfc
+export YAZE_TEST_ROM_EXPANDED=/path/to/oos168.sfc
+export YAZE_TEST_ROM_US=/path/to/Legend\\ of\\ Zelda,\\ The\\ -\\ A\\ Link\\ to\\ the\\ Past\\ \\(USA\\).sfc
+# Legacy fallback (kept for older scripts)
+export YAZE_TEST_ROM_PATH=/path/to/alttp_vanilla.sfc
 
 # Skip ROM tests (useful for CI without ROM)
 export YAZE_SKIP_ROM_TESTS=1
@@ -274,12 +281,17 @@ The test framework automatically discovers ROMs without requiring environment va
 
 **Search Paths:** `.`, `roms/`, `../roms/`, `../../roms/`
 
-**ROM Filenames:** `zelda3.sfc`, `alttp_vanilla.sfc`, `vanilla.sfc`, `Legend of Zelda, The - A Link to the Past (USA).sfc`
+**ROM Filenames (vanilla only):** `alttp_vanilla.sfc`, `Legend of Zelda, The - A Link to the Past (USA).sfc`
 
-This means you can simply place your ROM in the `roms/` directory and run tests without setting `YAZE_TEST_ROM_PATH`:
+Auto-discovery is intentionally limited to clean vanilla ROM names. It does not
+consider `zelda3.sfc` or `vanilla.sfc` to avoid picking up modified files. For
+expanded ROM tests, set `YAZE_TEST_ROM_EXPANDED` explicitly.
+
+This means you can simply place your vanilla ROM in the `roms/` directory and
+run tests without setting `YAZE_TEST_ROM_VANILLA`:
 
 ```bash
-# Just works if you have roms/zelda3.sfc
+# Just works if you have roms/alttp_vanilla.sfc
 ./build/bin/Debug/yaze_test_stable
 ```
 
@@ -337,7 +349,7 @@ The test suite is optimized for AI agent automation:
 
 4. **Provide ROM path explicitly when needed**
    ```bash
-   cmake . -DYAZE_ENABLE_ROM_TESTS=ON -DYAZE_TEST_ROM_PATH=/path/to/rom
+   cmake . -DYAZE_ENABLE_ROM_TESTS=ON -DYAZE_TEST_ROM_VANILLA_PATH=/path/to/alttp_vanilla.sfc
    ```
 
 5. **Use headless mode for CI-safe GUI tests**
@@ -385,7 +397,7 @@ These tests have no external dependencies and run fast. They're enabled by defau
 
 Disabled by default because they require a Zelda3 ROM file. Enable only when needed:
 ```bash
-cmake ... -DYAZE_ENABLE_ROM_TESTS=ON -DYAZE_TEST_ROM_PATH=/path/to/rom
+cmake ... -DYAZE_ENABLE_ROM_TESTS=ON -DYAZE_TEST_ROM_VANILLA_PATH=/path/to/alttp_vanilla.sfc
 ```
 
 **Experimental AI Suite**
@@ -412,14 +424,16 @@ ctest --test-dir build -L "stable|gui" -j4
 ctest --test-dir build -L stable --output-on-failure
 
 # Add ROM tests if modifying ROM/editor code
-cmake . -DYAZE_ENABLE_ROM_TESTS=ON -DYAZE_TEST_ROM_PATH=~/zelda3.sfc
+cmake . -DYAZE_ENABLE_ROM_TESTS=ON -DYAZE_TEST_ROM_VANILLA_PATH=~/roms/alttp_vanilla.sfc
 ctest --test-dir build -L rom_dependent --output-on-failure
 ```
 
 ### Full Test Coverage (With All Features)
 ```bash
 # AI features + ROM tests
-cmake --preset mac-dev -DYAZE_TEST_ROM_PATH=~/zelda3.sfc
+cmake --preset mac-dev \
+  -DYAZE_TEST_ROM_VANILLA_PATH=~/roms/alttp_vanilla.sfc \
+  -DYAZE_TEST_ROM_EXPANDED_PATH=~/roms/oos168.sfc
 cmake --build --preset mac-dev --target yaze_test_rom_dependent yaze_test_experimental
 ctest --test-dir build --output-on-failure
 ```
@@ -438,13 +452,13 @@ See `.github/workflows/ci.yml` for details.
 ### ROM Tests Not Found
 ```bash
 # Ensure ROM tests are enabled
-cmake . -DYAZE_ENABLE_ROM_TESTS=ON -DYAZE_TEST_ROM_PATH=/path/to/rom
+cmake . -DYAZE_ENABLE_ROM_TESTS=ON -DYAZE_TEST_ROM_VANILLA_PATH=/path/to/alttp_vanilla.sfc
 cmake --build . --target yaze_test_rom_dependent
 ```
 
 ### GUI Tests Crash
 - Ensure SDL display available: `export DISPLAY=:0` on Linux
-- Check `assets/zelda3.sfc` exists if no ROM path specified
+- Check `roms/alttp_vanilla.sfc` exists if no ROM path specified
 - Run headlessly: `ctest -L headless_gui`
 
 ### Tests Not Discovered

@@ -122,7 +122,7 @@ The script intelligently preserves conditional blocks (if/endif) and excludes co
 
 - Check for `clang-cl`, Ninja, NASM, Visual Studio workloads, and VS Code (optional).
 - Validate vcpkg bootstrap status plus `vcpkg/installed` cache contents.
-- Warn about missing ROM assets (`zelda3.sfc`, `assets/zelda3.sfc`, etc.).
+- Warn about missing ROM assets (`roms/alttp_vanilla.sfc`, etc.).
 - Offer `-FixIssues` and `-CleanCache` switches to repair Git config, resync submodules, and wipe stale build directories.
 
 Run the script once per machine (and rerun after major toolchain updates) to ensure presets such as `win-dbg`, `win-ai`, `mac-ai`, and `ci-windows-ai` have everything they need.

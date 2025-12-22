@@ -65,7 +65,7 @@ cmake --build build --target yaze_test
 ./build/bin/yaze_test --integration
 
 # Run with ROM-dependent tests
-./build/bin/yaze_test --integration --rom-dependent --rom-path zelda3.sfc
+./build/bin/yaze_test --integration --rom-dependent --rom-vanilla roms/alttp_vanilla.sfc
 ```
 
 **Coverage Areas**:
@@ -159,7 +159,7 @@ scripts/agents/run-tests.sh mac-dbg --output-on-failure
 ./build/bin/yaze_test
 
 # Run all tests including ROM-dependent
-./build/bin/yaze_test --rom-dependent --rom-path zelda3.sfc
+./build/bin/yaze_test --rom-dependent --rom-vanilla roms/alttp_vanilla.sfc
 
 # Alternative: use ctest with preset
 ctest --preset dev
@@ -300,10 +300,10 @@ Common helpers in `test/test_utils.h`:
 **Solution**:
 ```bash
 # Set ROM path environment variable
-export YAZE_TEST_ROM_PATH=/path/to/zelda3.sfc
+export YAZE_TEST_ROM_VANILLA=/path/to/alttp_vanilla.sfc
 
 # Or pass directly
-./build/bin/yaze_test --rom-path /path/to/zelda3.sfc
+./build/bin/yaze_test --rom-vanilla /path/to/alttp_vanilla.sfc
 ```
 
 #### 2. GUI Test Failures in CI

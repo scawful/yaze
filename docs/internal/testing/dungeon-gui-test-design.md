@@ -82,7 +82,7 @@ void E2ETest_DungeonEditor_PlaceSingleObject(ImGuiTestContext* ctx) {
   ctx->LogInfo("=== Test: Place Single Object on Canvas ===");
 
   // Setup
-  gui::LoadRomInTest(ctx, "zelda3.sfc");
+  gui::LoadRomInTest(ctx, yaze::test::TestRomManager::GetTestRomPath());
   gui::OpenEditorInTest(ctx, "Dungeon");
   ctx->Yield(20);
 

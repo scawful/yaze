@@ -78,7 +78,7 @@ cmake --build build --target yaze_test
 ./build/bin/yaze_test --e2e --show-gui
 
 # Run ROM-dependent tests
-./build/bin/yaze_test --rom-dependent --rom-path /path/to/zelda3.sfc
+./build/bin/yaze_test --rom-dependent --rom-vanilla /path/to/alttp_vanilla.sfc
 
 # Run by pattern
 ./build/bin/yaze_test "*Asar*"
@@ -91,7 +91,7 @@ cmake --build build --target yaze_test
 
 ```bash
 # Configure with ROM tests
-cmake --preset mac-dev -DYAZE_TEST_ROM_PATH=/path/to/zelda3.sfc
+cmake --preset mac-dev -DYAZE_TEST_ROM_VANILLA_PATH=/path/to/alttp_vanilla.sfc
 
 # Build
 cmake --build --preset mac-dev --target yaze_test

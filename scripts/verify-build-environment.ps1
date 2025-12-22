@@ -426,10 +426,10 @@ function Test-VSCode {
 function Test-RomAssets {
     Write-Status "Checking for local Zelda 3 ROM assets..." "Step"
     $romPaths = @(
-        "zelda3.sfc",
-        "assets/zelda3.sfc",
+        "roms/alttp_vanilla.sfc",
+        "roms/Legend of Zelda, The - A Link to the Past (USA).sfc",
         "assets/zelda3.yaze",
-        "Roms/zelda3.sfc"
+        "Roms/alttp_vanilla.sfc"
     )
 
     foreach ($relativePath in $romPaths) {
@@ -441,7 +441,7 @@ function Test-RomAssets {
         }
     }
 
-    Write-Status "No ROM asset detected. Place a clean 'zelda3.sfc' in the repo root or assets/ directory." "Warning"
+    Write-Status "No ROM asset detected. Place a clean 'alttp_vanilla.sfc' in roms/ or set YAZE_TEST_ROM_VANILLA." "Warning"
     $script:warnings += "ROM assets missing - GUI workflows that load ROMs will fail until one is provided."
 }
 

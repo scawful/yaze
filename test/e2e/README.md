@@ -57,7 +57,7 @@ Follow the pattern in `dungeon_editor_smoke_test.cc`:
 
 void E2ETest_MyNewTest(ImGuiTestContext* ctx) {
     // Load ROM
-    yaze::test::gui::LoadRomInTest(ctx, "zelda3.sfc");
+    yaze::test::gui::LoadRomInTest(ctx, yaze::test::TestRomManager::GetTestRomPath());
     
     // Open editor
     yaze::test::gui::OpenEditorInTest(ctx, "My Editor");
@@ -130,7 +130,7 @@ test/e2e/
 ### Helper Functions
 
 Available in `test_utils.h`:
-- `yaze::test::gui::LoadRomInTest(ctx, "zelda3.sfc")` - Load ROM for testing
+- `yaze::test::gui::LoadRomInTest(ctx, yaze::test::TestRomManager::GetTestRomPath())` - Load ROM for testing
 - `yaze::test::gui::OpenEditorInTest(ctx, "Editor Name")` - Open an editor window
 
 ## Future Test Ideas
@@ -147,7 +147,7 @@ Potential tests to add:
 ## Troubleshooting
 
 ### Test Crashes in GUI Mode
-- Ensure ROM exists at `assets/zelda3.sfc`
+- Ensure ROM exists at `roms/alttp_vanilla.sfc` (or set `YAZE_TEST_ROM_VANILLA`)
 - Check logs for specific error messages
 - Try running without `--show-gui` first
 
@@ -173,4 +173,3 @@ Potential tests to add:
 **Current State**: E2E testing infrastructure is working with 6+ active tests.
 **Test Coverage**: Basic workflows covered; opportunity for expansion.
 **Stability**: Tests run reliably in both GUI and CI modes.
-

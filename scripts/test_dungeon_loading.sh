@@ -5,7 +5,7 @@
 set -e
 
 # Configuration
-ROM_FILE="${1:-zelda3.sfc}"
+ROM_FILE="${1:-roms/alttp_vanilla.sfc}"
 BUILD_DIR="build/bin"
 LOG_FILE="dungeon_loading_test.log"
 
@@ -23,7 +23,7 @@ echo ""
 # Check if ROM file exists
 if [ ! -f "$ROM_FILE" ]; then
     echo -e "${RED}ERROR: ROM file not found: $ROM_FILE${NC}"
-    echo "Usage: $0 [path/to/zelda3.sfc]"
+    echo "Usage: $0 [path/to/alttp_vanilla.sfc]"
     exit 1
 fi
 
@@ -169,4 +169,3 @@ kill $YAZE_PID 2>/dev/null || true
 echo "yaze stopped."
 
 exit 0
-

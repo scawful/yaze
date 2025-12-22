@@ -4,10 +4,14 @@
 param(
     [string]$YazeBin = "build-windows\bin\Debug\yaze.exe",
     [string]$Z3edBin = "build-windows\bin\Debug\z3ed.exe",
-    [string]$TestRom = "zelda3.sfc"
+    [string]$TestRom = $env:YAZE_TEST_ROM_VANILLA
 )
 
 $ErrorActionPreference = "Continue"
+
+if (-not $TestRom) {
+    $TestRom = "roms\alttp_vanilla.sfc"
+}
 
 function Write-Header {
     Write-Host "`n╔════════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan

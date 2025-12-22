@@ -108,7 +108,7 @@ The `yaze_test` executable is used to run the project's suite of unit, integrati
     ./build/bin/yaze_test --unit
 
     # Run tests that require a ROM file
-    ./build/bin/yaze_test --rom-dependent --rom-path /path/to/zelda3.sfc
+    ./build/bin/yaze_test --rom-dependent --rom-vanilla /path/to/alttp_vanilla.sfc
     ```
 
 -   **Run GUI-based E2E Tests**:

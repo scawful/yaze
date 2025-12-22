@@ -20,8 +20,8 @@
 
 **ROM Auto-Discovery**:
 - Tests now automatically discover ROMs in common locations (roms/, ../roms/, etc.)
-- Searches for common filenames: zelda3.sfc, alttp_vanilla.sfc, vanilla.sfc
-- Environment variable `YAZE_TEST_ROM_PATH` still takes precedence if set
+- Searches for common vanilla filenames: alttp_vanilla.sfc, Legend of Zelda, The - A Link to the Past (USA).sfc
+- Legacy environment variable `YAZE_TEST_ROM_PATH` is still supported as a fallback
 
 **Overworld Regression Tests**:
 - Added 9 new regression tests for save function version checks
