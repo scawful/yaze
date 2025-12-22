@@ -257,6 +257,7 @@ org $00FFE0
     adv_file << R"(
 ; Advanced Asar features test
 !ram_addr = $7E1000
+!test_mode = 0
 
 ; Macro definitions
 macro move_block(source, dest, size)
