@@ -1,6 +1,7 @@
 #include "app/emu/video/ppu.h"
 
 #include <cstdint>
+#include <cstdio>
 #include <iostream>
 #include <vector>
 
@@ -653,6 +654,15 @@ void Ppu::HandleVblank() {
     oam_second_write_ = false;
   }
   frame_interlace = interlace;  // set if we have a interlaced frame
+
+  // Debug: Dump PPU state every 120 frames (~2 seconds)
+  if (enable_debug_dump_) {
+    static int vblank_dump_counter = 0;
+    if (++vblank_dump_counter >= 120) {
+      vblank_dump_counter = 0;
+      DumpState();
+    }
+  }
 }
 
 uint8_t Ppu::Read(uint8_t adr, bool latch) {
@@ -1123,5 +1133,354 @@ void Ppu::PutPixels(uint8_t* pixels) {
   }
 }
 
+void Ppu::DumpState() const {
+  printf("=== PPU State Dump ===\n");
+  printf("$2100: forced_blank=%d brightness=%d\n", forced_blank_ ? 1 : 0,
+         brightness);
+  printf("$2105: mode=%d bg3priority=%d\n", mode, bg3priority ? 1 : 0);
+  printf("$212C (Main Screen): BG1=%d BG2=%d BG3=%d BG4=%d OBJ=%d\n",
+         layer_[0].mainScreenEnabled ? 1 : 0,
+         layer_[1].mainScreenEnabled ? 1 : 0,
+         layer_[2].mainScreenEnabled ? 1 : 0,
+         layer_[3].mainScreenEnabled ? 1 : 0,
+         layer_[4].mainScreenEnabled ? 1 : 0);
+  printf("$212D (Sub Screen): BG1=%d BG2=%d BG3=%d BG4=%d OBJ=%d\n",
+         layer_[0].subScreenEnabled ? 1 : 0,
+         layer_[1].subScreenEnabled ? 1 : 0,
+         layer_[2].subScreenEnabled ? 1 : 0,
+         layer_[3].subScreenEnabled ? 1 : 0,
+         layer_[4].subScreenEnabled ? 1 : 0);
+  for (int i = 0; i < 4; i++) {
+    printf("BG%d: tilemapAdr=$%04X tileAdr=$%04X hScroll=%d vScroll=%d "
+           "bigTiles=%d\n",
+           i + 1, bg_layer_[i].tilemapAdr, bg_layer_[i].tileAdr,
+           bg_layer_[i].hScroll, bg_layer_[i].vScroll,
+           bg_layer_[i].bigTiles ? 1 : 0);
+  }
+  // Check VRAM at BG1 tilemap address first to get actual palette number
+  uint16_t tm_addr = bg_layer_[0].tilemapAdr;
+  uint16_t first_entry = vram[tm_addr];
+  int actual_pal = (first_entry >> 10) & 7;
+  printf("First tilemap entry: $%04X (tile=$%03X, pal=%d, pri=%d, hflip=%d, "
+         "vflip=%d)\n",
+         first_entry, first_entry & 0x3FF, actual_pal,
+         (first_entry >> 13) & 1, (first_entry >> 14) & 1,
+         (first_entry >> 15) & 1);
+  // Check palette entries - dump palette 0 and the actual palette being used
+  printf("CGRAM Pal0[0-15]: %04X %04X %04X %04X %04X %04X %04X %04X "
+         "%04X %04X %04X %04X %04X %04X %04X %04X\n",
+         cgram[0], cgram[1], cgram[2], cgram[3], cgram[4], cgram[5], cgram[6],
+         cgram[7], cgram[8], cgram[9], cgram[10], cgram[11], cgram[12],
+         cgram[13], cgram[14], cgram[15]);
+  // Dump the ACTUAL palette being used by the first tile
+  int pal_start = actual_pal * 16;
+  printf("CGRAM Pal%d[0-15]: %04X %04X %04X %04X %04X %04X %04X %04X "
+         "%04X %04X %04X %04X %04X %04X %04X %04X\n",
+         actual_pal, cgram[pal_start], cgram[pal_start + 1],
+         cgram[pal_start + 2], cgram[pal_start + 3], cgram[pal_start + 4],
+         cgram[pal_start + 5], cgram[pal_start + 6], cgram[pal_start + 7],
+         cgram[pal_start + 8], cgram[pal_start + 9], cgram[pal_start + 10],
+         cgram[pal_start + 11], cgram[pal_start + 12], cgram[pal_start + 13],
+         cgram[pal_start + 14], cgram[pal_start + 15]);
+  // Check VRAM at BG1 tilemap address (first 8 words)
+  printf("VRAM@$%04X (BG1 tilemap): %04X %04X %04X %04X %04X %04X %04X %04X\n",
+         tm_addr, vram[tm_addr], vram[tm_addr + 1], vram[tm_addr + 2],
+         vram[tm_addr + 3], vram[tm_addr + 4], vram[tm_addr + 5],
+         vram[tm_addr + 6], vram[tm_addr + 7]);
+  // Check actual tile data for tile index from tilemap (4bpp = 16 words/tile)
+  uint16_t first_tile = vram[tm_addr] & 0x3FF;  // Lower 10 bits = tile index
+  uint16_t actual_tile_addr = bg_layer_[0].tileAdr + (first_tile * 16);
+  printf("Tile $%03X @ VRAM $%04X: %04X %04X %04X %04X %04X %04X %04X %04X\n",
+         first_tile, actual_tile_addr, vram[actual_tile_addr & 0x7FFF],
+         vram[(actual_tile_addr + 1) & 0x7FFF],
+         vram[(actual_tile_addr + 2) & 0x7FFF],
+         vram[(actual_tile_addr + 3) & 0x7FFF],
+         vram[(actual_tile_addr + 4) & 0x7FFF],
+         vram[(actual_tile_addr + 5) & 0x7FFF],
+         vram[(actual_tile_addr + 6) & 0x7FFF],
+         vram[(actual_tile_addr + 7) & 0x7FFF]);
+  printf("=== End PPU Dump ===\n");
+  fflush(stdout);
+}
+
+void Ppu::SaveState(std::ostream& stream) {
+  // POD members
+  stream.write(reinterpret_cast<const char*>(&frame_overscan_), sizeof(frame_overscan_));
+  stream.write(reinterpret_cast<const char*>(&overscan_), sizeof(overscan_));
+  stream.write(reinterpret_cast<const char*>(&forced_blank_), sizeof(forced_blank_));
+  stream.write(reinterpret_cast<const char*>(&brightness), sizeof(brightness));
+  stream.write(reinterpret_cast<const char*>(&mode), sizeof(mode));
+  stream.write(reinterpret_cast<const char*>(&bg3priority), sizeof(bg3priority));
+  stream.write(reinterpret_cast<const char*>(&even_frame), sizeof(even_frame));
+  stream.write(reinterpret_cast<const char*>(&pseudo_hires_), sizeof(pseudo_hires_));
+  stream.write(reinterpret_cast<const char*>(&interlace), sizeof(interlace));
+  stream.write(reinterpret_cast<const char*>(&frame_interlace), sizeof(frame_interlace));
+  stream.write(reinterpret_cast<const char*>(&direct_color_), sizeof(direct_color_));
+  
+  stream.write(reinterpret_cast<const char*>(&cycle_count_), sizeof(cycle_count_));
+  stream.write(reinterpret_cast<const char*>(&current_scanline_), sizeof(current_scanline_));
+  
+  // Arrays
+  stream.write(reinterpret_cast<const char*>(vram), sizeof(vram));
+  stream.write(reinterpret_cast<const char*>(&vram_pointer), sizeof(vram_pointer));
+  stream.write(reinterpret_cast<const char*>(&vram_increment_on_high_), sizeof(vram_increment_on_high_));
+  stream.write(reinterpret_cast<const char*>(&vram_increment_), sizeof(vram_increment_));
+  stream.write(reinterpret_cast<const char*>(&vram_remap_mode_), sizeof(vram_remap_mode_));
+  stream.write(reinterpret_cast<const char*>(&vram_read_buffer_), sizeof(vram_read_buffer_));
+  
+  stream.write(reinterpret_cast<const char*>(cgram), sizeof(cgram));
+  stream.write(reinterpret_cast<const char*>(&last_rendered_x_), sizeof(last_rendered_x_));
+  stream.write(reinterpret_cast<const char*>(&cgram_pointer_), sizeof(cgram_pointer_));
+  stream.write(reinterpret_cast<const char*>(&cgram_second_write_), sizeof(cgram_second_write_));
+  stream.write(reinterpret_cast<const char*>(&cgram_buffer_), sizeof(cgram_buffer_));
+  
+  stream.write(reinterpret_cast<const char*>(oam), sizeof(oam));
+  stream.write(reinterpret_cast<const char*>(high_oam_), sizeof(high_oam_));
+  stream.write(reinterpret_cast<const char*>(&oam_adr_), sizeof(oam_adr_));
+  stream.write(reinterpret_cast<const char*>(&oam_adr_written_), sizeof(oam_adr_written_));
+  stream.write(reinterpret_cast<const char*>(&oam_in_high_), sizeof(oam_in_high_));
+  stream.write(reinterpret_cast<const char*>(&oam_in_high_written_), sizeof(oam_in_high_written_));
+  stream.write(reinterpret_cast<const char*>(&oam_second_write_), sizeof(oam_second_write_));
+  stream.write(reinterpret_cast<const char*>(&oam_buffer_), sizeof(oam_buffer_));
+  
+  stream.write(reinterpret_cast<const char*>(&obj_priority_), sizeof(obj_priority_));
+  stream.write(reinterpret_cast<const char*>(&obj_tile_adr1_), sizeof(obj_tile_adr1_));
+  stream.write(reinterpret_cast<const char*>(&obj_tile_adr2_), sizeof(obj_tile_adr2_));
+  stream.write(reinterpret_cast<const char*>(&obj_size_), sizeof(obj_size_));
+  
+  // std::array buffers
+  stream.write(reinterpret_cast<const char*>(obj_pixel_buffer_.data()), sizeof(obj_pixel_buffer_));
+  stream.write(reinterpret_cast<const char*>(obj_priority_buffer_.data()), sizeof(obj_priority_buffer_));
+  
+  stream.write(reinterpret_cast<const char*>(&time_over_), sizeof(time_over_));
+  stream.write(reinterpret_cast<const char*>(&range_over_), sizeof(range_over_));
+  stream.write(reinterpret_cast<const char*>(&obj_interlace_), sizeof(obj_interlace_));
+  
+  stream.write(reinterpret_cast<const char*>(&clip_mode_), sizeof(clip_mode_));
+  stream.write(reinterpret_cast<const char*>(&prevent_math_mode_), sizeof(prevent_math_mode_));
+  stream.write(reinterpret_cast<const char*>(math_enabled_array_), sizeof(math_enabled_array_));
+  stream.write(reinterpret_cast<const char*>(&add_subscreen_), sizeof(add_subscreen_));
+  stream.write(reinterpret_cast<const char*>(&subtract_color_), sizeof(subtract_color_));
+  stream.write(reinterpret_cast<const char*>(&half_color_), sizeof(half_color_));
+  stream.write(reinterpret_cast<const char*>(&fixed_color_r_), sizeof(fixed_color_r_));
+  stream.write(reinterpret_cast<const char*>(&fixed_color_g_), sizeof(fixed_color_g_));
+  stream.write(reinterpret_cast<const char*>(&fixed_color_b_), sizeof(fixed_color_b_));
+  
+  for (const auto& layer : layer_) {
+    uint8_t flags[4] = {static_cast<uint8_t>(layer.mainScreenEnabled),
+                        static_cast<uint8_t>(layer.subScreenEnabled),
+                        static_cast<uint8_t>(layer.mainScreenWindowed),
+                        static_cast<uint8_t>(layer.subScreenWindowed)};
+    stream.write(reinterpret_cast<const char*>(flags), sizeof(flags));
+  }
+  
+  stream.write(reinterpret_cast<const char*>(m7matrix), sizeof(m7matrix));
+  stream.write(reinterpret_cast<const char*>(&m7prev), sizeof(m7prev));
+  stream.write(reinterpret_cast<const char*>(&m7largeField), sizeof(m7largeField));
+  stream.write(reinterpret_cast<const char*>(&m7charFill), sizeof(m7charFill));
+  stream.write(reinterpret_cast<const char*>(&m7xFlip), sizeof(m7xFlip));
+  stream.write(reinterpret_cast<const char*>(&m7yFlip), sizeof(m7yFlip));
+  stream.write(reinterpret_cast<const char*>(&m7extBg), sizeof(m7extBg));
+  stream.write(reinterpret_cast<const char*>(&m7startX), sizeof(m7startX));
+  stream.write(reinterpret_cast<const char*>(&m7startY), sizeof(m7startY));
+  
+  for (const auto& win : windowLayer) {
+    uint8_t encoded[5] = {static_cast<uint8_t>(win.window1enabled),
+                          static_cast<uint8_t>(win.window2enabled),
+                          static_cast<uint8_t>(win.window1inversed),
+                          static_cast<uint8_t>(win.window2inversed), win.maskLogic};
+    stream.write(reinterpret_cast<const char*>(encoded), sizeof(encoded));
+  }
+  stream.write(reinterpret_cast<const char*>(&window1left), sizeof(window1left));
+  stream.write(reinterpret_cast<const char*>(&window1right), sizeof(window1right));
+  stream.write(reinterpret_cast<const char*>(&window2left), sizeof(window2left));
+  stream.write(reinterpret_cast<const char*>(&window2right), sizeof(window2right));
+  
+  // BgLayer array (POD structs)
+  for (const auto& bg : bg_layer_) {
+    stream.write(reinterpret_cast<const char*>(&bg.hScroll), sizeof(bg.hScroll));
+    stream.write(reinterpret_cast<const char*>(&bg.vScroll), sizeof(bg.vScroll));
+    uint8_t flags[4] = {static_cast<uint8_t>(bg.tilemapWider),
+                        static_cast<uint8_t>(bg.tilemapHigher),
+                        static_cast<uint8_t>(bg.bigTiles),
+                        static_cast<uint8_t>(bg.mosaicEnabled)};
+    stream.write(reinterpret_cast<const char*>(flags), sizeof(flags));
+    stream.write(reinterpret_cast<const char*>(&bg.tilemapAdr), sizeof(bg.tilemapAdr));
+    stream.write(reinterpret_cast<const char*>(&bg.tileAdr), sizeof(bg.tileAdr));
+  }
+  
+  stream.write(reinterpret_cast<const char*>(&scroll_prev_), sizeof(scroll_prev_));
+  stream.write(reinterpret_cast<const char*>(&scroll_prev2_), sizeof(scroll_prev2_));
+  stream.write(reinterpret_cast<const char*>(&mosaic_size_), sizeof(mosaic_size_));
+  stream.write(reinterpret_cast<const char*>(&mosaic_startline_), sizeof(mosaic_startline_));
+  
+  stream.write(reinterpret_cast<const char*>(&pixelOutputFormat), sizeof(pixelOutputFormat));
+  
+  stream.write(reinterpret_cast<const char*>(&h_count_), sizeof(h_count_));
+  stream.write(reinterpret_cast<const char*>(&v_count_), sizeof(v_count_));
+  stream.write(reinterpret_cast<const char*>(&h_count_second_), sizeof(h_count_second_));
+  stream.write(reinterpret_cast<const char*>(&v_count_second_), sizeof(v_count_second_));
+  stream.write(reinterpret_cast<const char*>(&counters_latched_), sizeof(counters_latched_));
+  stream.write(reinterpret_cast<const char*>(&ppu1_open_bus_), sizeof(ppu1_open_bus_));
+  stream.write(reinterpret_cast<const char*>(&ppu2_open_bus_), sizeof(ppu2_open_bus_));
+  
+  stream.write(reinterpret_cast<const char*>(&tile_data_size_), sizeof(tile_data_size_));
+  stream.write(reinterpret_cast<const char*>(&vram_base_address_), sizeof(vram_base_address_));
+  stream.write(reinterpret_cast<const char*>(&tilemap_base_address_), sizeof(tilemap_base_address_));
+  stream.write(reinterpret_cast<const char*>(&screen_brightness_), sizeof(screen_brightness_));
+  
+  stream.write(reinterpret_cast<const char*>(&bg_mode_), sizeof(bg_mode_));
+  
+  // Registers
+  stream.write(reinterpret_cast<const char*>(&oam_size_), sizeof(oam_size_));
+  stream.write(reinterpret_cast<const char*>(&oam_address_), sizeof(oam_address_));
+  stream.write(reinterpret_cast<const char*>(&mosaic_), sizeof(mosaic_));
+  stream.write(reinterpret_cast<const char*>(&bgsc_), sizeof(bgsc_));
+  stream.write(reinterpret_cast<const char*>(&bgnba_), sizeof(bgnba_));
+  stream.write(reinterpret_cast<const char*>(&bghofs_), sizeof(bghofs_));
+  stream.write(reinterpret_cast<const char*>(&bgvofs_), sizeof(bgvofs_));
+}
+
+void Ppu::LoadState(std::istream& stream) {
+  // POD members
+  stream.read(reinterpret_cast<char*>(&frame_overscan_), sizeof(frame_overscan_));
+  stream.read(reinterpret_cast<char*>(&overscan_), sizeof(overscan_));
+  stream.read(reinterpret_cast<char*>(&forced_blank_), sizeof(forced_blank_));
+  stream.read(reinterpret_cast<char*>(&brightness), sizeof(brightness));
+  stream.read(reinterpret_cast<char*>(&mode), sizeof(mode));
+  stream.read(reinterpret_cast<char*>(&bg3priority), sizeof(bg3priority));
+  stream.read(reinterpret_cast<char*>(&even_frame), sizeof(even_frame));
+  stream.read(reinterpret_cast<char*>(&pseudo_hires_), sizeof(pseudo_hires_));
+  stream.read(reinterpret_cast<char*>(&interlace), sizeof(interlace));
+  stream.read(reinterpret_cast<char*>(&frame_interlace), sizeof(frame_interlace));
+  stream.read(reinterpret_cast<char*>(&direct_color_), sizeof(direct_color_));
+  
+  stream.read(reinterpret_cast<char*>(&cycle_count_), sizeof(cycle_count_));
+  stream.read(reinterpret_cast<char*>(&current_scanline_), sizeof(current_scanline_));
+  
+  // Arrays
+  stream.read(reinterpret_cast<char*>(vram), sizeof(vram));
+  stream.read(reinterpret_cast<char*>(&vram_pointer), sizeof(vram_pointer));
+  stream.read(reinterpret_cast<char*>(&vram_increment_on_high_), sizeof(vram_increment_on_high_));
+  stream.read(reinterpret_cast<char*>(&vram_increment_), sizeof(vram_increment_));
+  stream.read(reinterpret_cast<char*>(&vram_remap_mode_), sizeof(vram_remap_mode_));
+  stream.read(reinterpret_cast<char*>(&vram_read_buffer_), sizeof(vram_read_buffer_));
+  
+  stream.read(reinterpret_cast<char*>(cgram), sizeof(cgram));
+  stream.read(reinterpret_cast<char*>(&last_rendered_x_), sizeof(last_rendered_x_));
+  stream.read(reinterpret_cast<char*>(&cgram_pointer_), sizeof(cgram_pointer_));
+  stream.read(reinterpret_cast<char*>(&cgram_second_write_), sizeof(cgram_second_write_));
+  stream.read(reinterpret_cast<char*>(&cgram_buffer_), sizeof(cgram_buffer_));
+  
+  stream.read(reinterpret_cast<char*>(oam), sizeof(oam));
+  stream.read(reinterpret_cast<char*>(high_oam_), sizeof(high_oam_));
+  stream.read(reinterpret_cast<char*>(&oam_adr_), sizeof(oam_adr_));
+  stream.read(reinterpret_cast<char*>(&oam_adr_written_), sizeof(oam_adr_written_));
+  stream.read(reinterpret_cast<char*>(&oam_in_high_), sizeof(oam_in_high_));
+  stream.read(reinterpret_cast<char*>(&oam_in_high_written_), sizeof(oam_in_high_written_));
+  stream.read(reinterpret_cast<char*>(&oam_second_write_), sizeof(oam_second_write_));
+  stream.read(reinterpret_cast<char*>(&oam_buffer_), sizeof(oam_buffer_));
+  
+  stream.read(reinterpret_cast<char*>(&obj_priority_), sizeof(obj_priority_));
+  stream.read(reinterpret_cast<char*>(&obj_tile_adr1_), sizeof(obj_tile_adr1_));
+  stream.read(reinterpret_cast<char*>(&obj_tile_adr2_), sizeof(obj_tile_adr2_));
+  stream.read(reinterpret_cast<char*>(&obj_size_), sizeof(obj_size_));
+  
+  // std::array buffers
+  stream.read(reinterpret_cast<char*>(obj_pixel_buffer_.data()), sizeof(obj_pixel_buffer_));
+  stream.read(reinterpret_cast<char*>(obj_priority_buffer_.data()), sizeof(obj_priority_buffer_));
+  
+  stream.read(reinterpret_cast<char*>(&time_over_), sizeof(time_over_));
+  stream.read(reinterpret_cast<char*>(&range_over_), sizeof(range_over_));
+  stream.read(reinterpret_cast<char*>(&obj_interlace_), sizeof(obj_interlace_));
+  
+  stream.read(reinterpret_cast<char*>(&clip_mode_), sizeof(clip_mode_));
+  stream.read(reinterpret_cast<char*>(&prevent_math_mode_), sizeof(prevent_math_mode_));
+  stream.read(reinterpret_cast<char*>(math_enabled_array_), sizeof(math_enabled_array_));
+  stream.read(reinterpret_cast<char*>(&add_subscreen_), sizeof(add_subscreen_));
+  stream.read(reinterpret_cast<char*>(&subtract_color_), sizeof(subtract_color_));
+  stream.read(reinterpret_cast<char*>(&half_color_), sizeof(half_color_));
+  stream.read(reinterpret_cast<char*>(&fixed_color_r_), sizeof(fixed_color_r_));
+  stream.read(reinterpret_cast<char*>(&fixed_color_g_), sizeof(fixed_color_g_));
+  stream.read(reinterpret_cast<char*>(&fixed_color_b_), sizeof(fixed_color_b_));
+  
+  for (auto& layer : layer_) {
+    uint8_t flags[4];
+    stream.read(reinterpret_cast<char*>(flags), sizeof(flags));
+    layer.mainScreenEnabled = flags[0];
+    layer.subScreenEnabled = flags[1];
+    layer.mainScreenWindowed = flags[2];
+    layer.subScreenWindowed = flags[3];
+  }
+  
+  stream.read(reinterpret_cast<char*>(m7matrix), sizeof(m7matrix));
+  stream.read(reinterpret_cast<char*>(&m7prev), sizeof(m7prev));
+  stream.read(reinterpret_cast<char*>(&m7largeField), sizeof(m7largeField));
+  stream.read(reinterpret_cast<char*>(&m7charFill), sizeof(m7charFill));
+  stream.read(reinterpret_cast<char*>(&m7xFlip), sizeof(m7xFlip));
+  stream.read(reinterpret_cast<char*>(&m7yFlip), sizeof(m7yFlip));
+  stream.read(reinterpret_cast<char*>(&m7extBg), sizeof(m7extBg));
+  stream.read(reinterpret_cast<char*>(&m7startX), sizeof(m7startX));
+  stream.read(reinterpret_cast<char*>(&m7startY), sizeof(m7startY));
+  
+  for (auto& win : windowLayer) {
+    uint8_t encoded[5];
+    stream.read(reinterpret_cast<char*>(encoded), sizeof(encoded));
+    win.window1enabled = encoded[0];
+    win.window2enabled = encoded[1];
+    win.window1inversed = encoded[2];
+    win.window2inversed = encoded[3];
+    win.maskLogic = encoded[4];
+  }
+  stream.read(reinterpret_cast<char*>(&window1left), sizeof(window1left));
+  stream.read(reinterpret_cast<char*>(&window1right), sizeof(window1right));
+  stream.read(reinterpret_cast<char*>(&window2left), sizeof(window2left));
+  stream.read(reinterpret_cast<char*>(&window2right), sizeof(window2right));
+  
+  // BgLayer array (POD structs)
+  for (auto& bg : bg_layer_) {
+    stream.read(reinterpret_cast<char*>(&bg.hScroll), sizeof(bg.hScroll));
+    stream.read(reinterpret_cast<char*>(&bg.vScroll), sizeof(bg.vScroll));
+    uint8_t flags[4];
+    stream.read(reinterpret_cast<char*>(flags), sizeof(flags));
+    bg.tilemapWider = flags[0];
+    bg.tilemapHigher = flags[1];
+    bg.bigTiles = flags[2];
+    bg.mosaicEnabled = flags[3];
+    stream.read(reinterpret_cast<char*>(&bg.tilemapAdr), sizeof(bg.tilemapAdr));
+    stream.read(reinterpret_cast<char*>(&bg.tileAdr), sizeof(bg.tileAdr));
+  }
+  
+  stream.read(reinterpret_cast<char*>(&scroll_prev_), sizeof(scroll_prev_));
+  stream.read(reinterpret_cast<char*>(&scroll_prev2_), sizeof(scroll_prev2_));
+  stream.read(reinterpret_cast<char*>(&mosaic_size_), sizeof(mosaic_size_));
+  stream.read(reinterpret_cast<char*>(&mosaic_startline_), sizeof(mosaic_startline_));
+  
+  stream.read(reinterpret_cast<char*>(&pixelOutputFormat), sizeof(pixelOutputFormat));
+  
+  stream.read(reinterpret_cast<char*>(&h_count_), sizeof(h_count_));
+  stream.read(reinterpret_cast<char*>(&v_count_), sizeof(v_count_));
+  stream.read(reinterpret_cast<char*>(&h_count_second_), sizeof(h_count_second_));
+  stream.read(reinterpret_cast<char*>(&v_count_second_), sizeof(v_count_second_));
+  stream.read(reinterpret_cast<char*>(&counters_latched_), sizeof(counters_latched_));
+  stream.read(reinterpret_cast<char*>(&ppu1_open_bus_), sizeof(ppu1_open_bus_));
+  stream.read(reinterpret_cast<char*>(&ppu2_open_bus_), sizeof(ppu2_open_bus_));
+  
+  stream.read(reinterpret_cast<char*>(&tile_data_size_), sizeof(tile_data_size_));
+  stream.read(reinterpret_cast<char*>(&vram_base_address_), sizeof(vram_base_address_));
+  stream.read(reinterpret_cast<char*>(&tilemap_base_address_), sizeof(tilemap_base_address_));
+  stream.read(reinterpret_cast<char*>(&screen_brightness_), sizeof(screen_brightness_));
+  
+  stream.read(reinterpret_cast<char*>(&bg_mode_), sizeof(bg_mode_));
+  
+  // Registers
+  stream.read(reinterpret_cast<char*>(&oam_size_), sizeof(oam_size_));
+  stream.read(reinterpret_cast<char*>(&oam_address_), sizeof(oam_address_));
+  stream.read(reinterpret_cast<char*>(&mosaic_), sizeof(mosaic_));
+  stream.read(reinterpret_cast<char*>(&bgsc_), sizeof(bgsc_));
+  stream.read(reinterpret_cast<char*>(&bgnba_), sizeof(bgnba_));
+  stream.read(reinterpret_cast<char*>(&bghofs_), sizeof(bghofs_));
+  stream.read(reinterpret_cast<char*>(&bgvofs_), sizeof(bgvofs_));
+}
 }  // namespace emu
 }  // namespace yaze

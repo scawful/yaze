@@ -39,7 +39,7 @@ const std::unordered_map<EditorType, std::string> EditorRegistry::kEditorNames =
      {EditorType::kAgent, "Agent Editor"},
      {EditorType::kSettings, "Settings Editor"}};
 
-const std::unordered_map<EditorType, bool> EditorRegistry::kCardBasedEditors = {
+const std::unordered_map<EditorType, bool> EditorRegistry::kPanelBasedEditors = {
     {EditorType::kDungeon, true},
     {EditorType::kOverworld, true},
     {EditorType::kGraphics, true},
@@ -51,14 +51,14 @@ const std::unordered_map<EditorType, bool> EditorRegistry::kCardBasedEditors = {
     {EditorType::kAssembly, true},
     {EditorType::kEmulator, true},
     {EditorType::kHex, true},
-    {EditorType::kAgent, false},  // Agent: Traditional UI
+    {EditorType::kAgent, true},  // Agent: Panel-based UI
     {EditorType::kSettings,
-     true}  // Settings: Now card-based for better organization
+     false}  // Settings: Sidebar panel
 };
 
-bool EditorRegistry::IsCardBasedEditor(EditorType type) {
-  auto it = kCardBasedEditors.find(type);
-  return it != kCardBasedEditors.end() && it->second;
+bool EditorRegistry::IsPanelBasedEditor(EditorType type) {
+  auto it = kPanelBasedEditors.find(type);
+  return it != kPanelBasedEditors.end() && it->second;
 }
 
 std::string EditorRegistry::GetEditorCategory(EditorType type) {
@@ -79,21 +79,46 @@ EditorType EditorRegistry::GetEditorTypeFromCategory(
   return EditorType::kSettings;  // Default fallback
 }
 
+std::vector<std::string> EditorRegistry::GetAllEditorCategories() {
+  // Returns all editor categories in preferred display order for the sidebar
+  // This is a fixed list to ensure consistent ordering
+  return {
+      "Overworld",  // Primary map editing
+      "Dungeon",    // Dungeon/room editing
+      "Graphics",   // Graphics sheet editing
+      "Palette",    // Color palette editing
+      "Sprite",     // Sprite editing
+      "Message",    // Text/dialogue editing
+      "Screen",     // Screen/title editing
+      "Music",      // Music/SPC editing
+      "Assembly",   // Code editing
+      "Memory",     // Hex editor (uses "Memory" category for cards)
+      "Emulator",   // Game testing
+      "Agent"       // AI Agent
+  };
+}
+
 void EditorRegistry::JumpToDungeonRoom(int room_id) {
-  auto it = registered_editors_.find(EditorType::kDungeon);
-  if (it != registered_editors_.end() && it->second) {
-    // TODO: Implement dungeon room jumping
-    // This would typically call a method on the dungeon editor
-    printf("[EditorRegistry] Jumping to dungeon room %d\n", room_id);
+  if (jump_to_room_callback_) {
+    jump_to_room_callback_(room_id);
+  } else {
+    auto it = registered_editors_.find(EditorType::kDungeon);
+    if (it != registered_editors_.end() && it->second) {
+      // Fallback logging if no callback registered
+      printf("[EditorRegistry] JumpToDungeonRoom(%d) called (no callback)\n", room_id);
+    }
   }
 }
 
 void EditorRegistry::JumpToOverworldMap(int map_id) {
-  auto it = registered_editors_.find(EditorType::kOverworld);
-  if (it != registered_editors_.end() && it->second) {
-    // TODO: Implement overworld map jumping
-    // This would typically call a method on the overworld editor
-    printf("[EditorRegistry] Jumping to overworld map %d\n", map_id);
+  if (jump_to_map_callback_) {
+    jump_to_map_callback_(map_id);
+  } else {
+    auto it = registered_editors_.find(EditorType::kOverworld);
+    if (it != registered_editors_.end() && it->second) {
+      // Fallback logging if no callback registered
+      printf("[EditorRegistry] JumpToOverworldMap(%d) called (no callback)\n", map_id);
+    }
   }
 }
 
@@ -116,9 +141,9 @@ void EditorRegistry::SwitchToEditor(EditorType editor_type) {
   }
 }
 
-void EditorRegistry::HideCurrentEditorCards() {
+void EditorRegistry::HideCurrentEditorPanels() {
   for (auto& [type, editor] : registered_editors_) {
-    if (editor && IsCardBasedEditor(type)) {
+    if (editor && IsPanelBasedEditor(type)) {
       // TODO: Hide cards for this editor
       printf("[EditorRegistry] Hiding cards for %s\n",
              GetEditorDisplayName(type).c_str());
@@ -126,20 +151,20 @@ void EditorRegistry::HideCurrentEditorCards() {
   }
 }
 
-void EditorRegistry::ShowEditorCards(EditorType editor_type) {
+void EditorRegistry::ShowEditorPanels(EditorType editor_type) {
   ValidateEditorType(editor_type);
 
-  if (IsCardBasedEditor(editor_type)) {
+  if (IsPanelBasedEditor(editor_type)) {
     // TODO: Show cards for this editor
     printf("[EditorRegistry] Showing cards for %s\n",
            GetEditorDisplayName(editor_type).c_str());
   }
 }
 
-void EditorRegistry::ToggleEditorCards(EditorType editor_type) {
+void EditorRegistry::ToggleEditorPanels(EditorType editor_type) {
   ValidateEditorType(editor_type);
 
-  if (IsCardBasedEditor(editor_type)) {
+  if (IsPanelBasedEditor(editor_type)) {
     // TODO: Toggle cards for this editor
     printf("[EditorRegistry] Toggling cards for %s\n",
            GetEditorDisplayName(editor_type).c_str());

@@ -5,8 +5,9 @@
 #include <string>
 #include <vector>
 
+#include "absl/strings/str_format.h"
 #include "app/gfx/types/snes_tile.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "zelda3/dungeon/object_parser.h"
 
 namespace yaze {
@@ -64,8 +65,8 @@ class RoomObject {
         height_(16),
         rom_(nullptr) {}
 
-  void set_rom(Rom* rom) { rom_ = rom; }
-  auto rom() { return rom_; }
+  void SetRom(Rom* rom) { rom_ = rom; }
+  Rom* rom() const { return rom_; }
   auto mutable_rom() { return rom_; }
 
   // Position setters and getters
@@ -231,7 +232,7 @@ constexpr static inline const char* Type1RoomObjectNames[] = {
     "Nothing",
     "Carpet ↔",
     "Carpet trim ↔",
-    "Weird door",  // TODO: WEIRD DOOR OBJECT NEEDS INVESTIGATION
+    "Hole in wall",  // Generic opening or doorway
     "Drapes (north) ↔",
     "Drapes (west, odd) ↔",
     "Statues ↔",
@@ -463,11 +464,11 @@ constexpr static inline const char* Type2RoomObjectNames[] = {
     "Star tile (enabled)",
     "Small torch (lit)",
     "Barrel",
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
+    "Statue (back)",
     "Table",
     "Fairy statue",
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
+    "Potted plant",
+    "Stool",
     "Chair",
     "Bed",
     "Fireplace",
@@ -490,7 +491,7 @@ constexpr static inline const char* Type2RoomObjectNames[] = {
     "Interroom spiral stairs up (bottom)",
     "Interroom spiral stairs down (bottom)",
     "Sanctuary wall (north)",
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
+    "Sanctuary pew (right end)",
     "Pew",
     "Magic bat altar",
 };
@@ -516,7 +517,7 @@ constexpr static inline const char* Type3RoomObjectNames[] = {
     "Babasu hole (south)",
     "9 blue rupees",
     "Telepathy tile",
-    "Warp door",  // TODO: NEEDS IN GAME VERIFICATION THAT THIS IS USELESS
+    "Unused / Warp door",
     "Kholdstare's shell",
     "Hammer peg",
     "Prison cell",
@@ -548,12 +549,12 @@ constexpr static inline const char* Type3RoomObjectNames[] = {
     "Big chest",
     "Big chest (open)",
     "Intraroom stairs south (swim layer)",
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
+    "Intraroom stairs south (long)",
+    "Ladder (north)",
+    "Ladder (south)",
+    "Object 4B",
+    "Object 4C",
+    "Object 4D",
     "Pipe end (south)",
     "Pipe end (north)",
     "Pipe end (east)",
@@ -625,6 +626,47 @@ constexpr static inline const char* Type3RoomObjectNames[] = {
     "Arrow tile →",
     "Nothing",
 };
+
+// Helper function to get object name from ID
+// Works across all three object subtypes
+inline std::string GetObjectName(int object_id) {
+  if (object_id < 0x100) {
+    // Type 1: Subtype 1 objects (0x00-0xFF)
+    constexpr size_t kType1Count =
+        sizeof(Type1RoomObjectNames) / sizeof(Type1RoomObjectNames[0]);
+    if (object_id >= 0 && object_id < static_cast<int>(kType1Count)) {
+      return Type1RoomObjectNames[object_id];
+    }
+    return absl::StrFormat("Unknown Type1 (0x%02X)", object_id);
+  } else if (object_id >= 0x100 && object_id < 0x200) {
+    // Type 2: Subtype 2 objects (0x100-0x1FF)
+    int idx = object_id - 0x100;
+    constexpr size_t kType2Count =
+        sizeof(Type2RoomObjectNames) / sizeof(Type2RoomObjectNames[0]);
+    if (idx >= 0 && idx < static_cast<int>(kType2Count)) {
+      return Type2RoomObjectNames[idx];
+    }
+    return absl::StrFormat("Unknown Type2 (0x%03X)", object_id);
+  } else if (object_id >= 0xF80) {
+    // Type 3: Special objects (0xF80-0xFFF, decoded from ASM 0x200-0x27F)
+    int idx = object_id - 0xF80;
+    constexpr size_t kType3Count =
+        sizeof(Type3RoomObjectNames) / sizeof(Type3RoomObjectNames[0]);
+    if (idx >= 0 && idx < static_cast<int>(kType3Count)) {
+      return Type3RoomObjectNames[idx];
+    }
+    return absl::StrFormat("Unknown Type3 (0x%03X)", object_id);
+  }
+  return absl::StrFormat("Unknown (0x%03X)", object_id);
+}
+
+// Helper to get object type/subtype from ID
+inline int GetObjectSubtype(int object_id) {
+  if (object_id < 0x100) return 1;
+  if (object_id < 0x200) return 2;
+  if (object_id >= 0xF80) return 3;
+  return 0;  // Unknown
+}
 
 }  // namespace zelda3
 }  // namespace yaze

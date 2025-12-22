@@ -214,6 +214,7 @@ typedef struct zelda3_rom {
   zelda3_version version; /**< Detected ROM version */
   bool is_modified;       /**< True if ROM has been modified */
   void* impl;            /**< Internal implementation pointer */
+  void* game_data;       /**< Internal game data pointer */
 } zelda3_rom;
 
 /** @} */

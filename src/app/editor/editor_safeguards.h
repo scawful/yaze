@@ -3,27 +3,27 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 
 namespace yaze {
 namespace editor {
 
-// Macro for checking ROM loading state in editor methods
-#define REQUIRE_ROM_LOADED(rom_ptr, operation)                 \
-  do {                                                         \
-    if (!(rom_ptr) || !(rom_ptr)->is_loaded()) {               \
-      return absl::FailedPreconditionError(                    \
-          absl::StrFormat("%s: ROM not loaded", (operation))); \
-    }                                                          \
-  } while (0)
+// Helper function to check if ROM is loaded and return error if not
+inline absl::Status RequireRomLoaded(const Rom* rom, const std::string& operation) {
+  if (!rom || !rom->is_loaded()) {
+    return absl::FailedPreconditionError(
+        absl::StrFormat("%s: ROM not loaded", operation));
+  }
+  return absl::OkStatus();
+}
 
-// Macro for ROM state checking with custom error message
-#define CHECK_ROM_STATE(rom_ptr, message)            \
-  do {                                               \
-    if (!(rom_ptr) || !(rom_ptr)->is_loaded()) {     \
-      return absl::FailedPreconditionError(message); \
-    }                                                \
-  } while (0)
+// Helper function to check ROM state with custom message
+inline absl::Status CheckRomState(const Rom* rom, const std::string& message) {
+  if (!rom || !rom->is_loaded()) {
+    return absl::FailedPreconditionError(message);
+  }
+  return absl::OkStatus();
+}
 
 // Helper function for generating consistent ROM status messages
 inline std::string GetRomStatusMessage(const Rom* rom) {

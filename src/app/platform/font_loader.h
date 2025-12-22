@@ -25,6 +25,9 @@ absl::Status LoadPackageFonts();
 
 absl::Status ReloadPackageFont(const FontConfig& config);
 
+absl::Status LoadFontFromMemory(const std::string& name,
+                                const std::string& data, float size_pixels);
+
 void LoadSystemFonts();
 
 }  // namespace yaze

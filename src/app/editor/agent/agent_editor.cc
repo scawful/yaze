@@ -1,29 +1,41 @@
 #include "app/editor/agent/agent_editor.h"
 
 #include <algorithm>
+#include <cstdlib>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <memory>
 
+#include "app/editor/agent/agent_ui_theme.h"
 // Centralized UI theme
 #include "app/gui/style/theme.h"
+
+#include "app/editor/system/panel_manager.h"
+#include "app/gui/app/editor_layout.h"
 
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "absl/time/clock.h"
-#include "app/editor/agent/agent_chat_widget.h"
+#include "absl/time/time.h"
+#include "app/editor/agent/agent_chat.h"
 #include "app/editor/agent/agent_collaboration_coordinator.h"
 #include "app/editor/system/proposal_drawer.h"
-#include "app/editor/system/toast_manager.h"
+#include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/platform/asset_loader.h"
-#include "app/rom.h"
+#include "rom/rom.h"
+#include "app/service/screenshot_utils.h"
+#include "app/test/test_manager.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "util/file_util.h"
 #include "util/platform_paths.h"
+#include "cli/service/ai/service_factory.h"
+#include "cli/service/agent/tool_dispatcher.h"
 
 #ifdef YAZE_WITH_GRPC
 #include "app/editor/agent/network_collaboration_coordinator.h"
+#include "cli/service/ai/gemini_ai_service.h"
 #endif
 
 #if defined(YAZE_WITH_JSON)
@@ -35,7 +47,7 @@ namespace editor {
 
 AgentEditor::AgentEditor() {
   type_ = EditorType::kAgent;
-  chat_widget_ = std::make_unique<AgentChatWidget>();
+  agent_chat_ = std::make_unique<AgentChat>();
   local_coordinator_ = std::make_unique<AgentCollaborationCoordinator>();
   prompt_editor_ = std::make_unique<TextEditor>();
   common_tiles_editor_ = std::make_unique<TextEditor>();
@@ -83,11 +95,55 @@ AgentEditor::~AgentEditor() = default;
 void AgentEditor::Initialize() {
   // Base initialization
   EnsureProfilesDirectory();
+
+  // Register cards with the card registry
+  RegisterPanels();
+
+  // Register EditorPanel instances with PanelManager
+  if (dependencies_.panel_manager) {
+    auto* panel_manager = dependencies_.panel_manager;
+
+    // Register all agent EditorPanels with callbacks
+    panel_manager->RegisterEditorPanel(std::make_unique<AgentConfigurationPanel>(
+        [this]() { DrawConfigurationPanel(); }));
+    panel_manager->RegisterEditorPanel(std::make_unique<AgentStatusPanel>(
+        [this]() { DrawStatusPanel(); }));
+    panel_manager->RegisterEditorPanel(std::make_unique<AgentPromptEditorPanel>(
+        [this]() { DrawPromptEditorPanel(); }));
+    panel_manager->RegisterEditorPanel(std::make_unique<AgentBotProfilesPanel>(
+        [this]() { DrawBotProfilesPanel(); }));
+    panel_manager->RegisterEditorPanel(std::make_unique<AgentChatHistoryPanel>(
+        [this]() { DrawChatHistoryViewer(); }));
+    panel_manager->RegisterEditorPanel(std::make_unique<AgentMetricsDashboardPanel>(
+        [this]() { DrawAdvancedMetricsPanel(); }));
+    panel_manager->RegisterEditorPanel(std::make_unique<AgentBuilderPanel>(
+        [this]() { DrawAgentBuilderPanel(); }));
+    panel_manager->RegisterEditorPanel(
+        std::make_unique<AgentChatPanel>(agent_chat_.get()));
+
+    // Knowledge Base panel (callback set by AgentUiController)
+    panel_manager->RegisterEditorPanel(std::make_unique<AgentKnowledgeBasePanel>(
+        [this]() {
+          if (knowledge_panel_callback_) {
+            knowledge_panel_callback_();
+          } else {
+            ImGui::TextDisabled("Knowledge service not available");
+            ImGui::TextWrapped(
+                "Build with Z3ED_AI=ON to enable the knowledge service.");
+          }
+        }));
+  }
+}
+
+void AgentEditor::RegisterPanels() {
+  // Panel descriptors are now auto-created by RegisterEditorPanel() calls
+  // in Initialize(). No need for duplicate RegisterPanel() calls here.
 }
 
 absl::Status AgentEditor::Load() {
   // Load agent configuration from project/settings
   // Try to load all bot profiles
+  loaded_profiles_.clear();
   auto profiles_dir = GetProfilesDirectory();
   if (std::filesystem::exists(profiles_dir)) {
     for (const auto& entry :
@@ -110,6 +166,7 @@ absl::Status AgentEditor::Load() {
 
 absl::Status AgentEditor::Save() {
   // Save current profile
+  current_profile_.modified_at = absl::Now();
   return SaveBotProfile(current_profile_);
 }
 
@@ -132,418 +189,333 @@ void AgentEditor::InitializeWithDependencies(ToastManager* toast_manager,
   proposal_drawer_ = proposal_drawer;
   rom_ = rom;
 
-  if (chat_widget_) {
-    chat_widget_->SetToastManager(toast_manager);
-    chat_widget_->SetProposalDrawer(proposal_drawer);
-    if (rom) {
-      chat_widget_->SetRomContext(rom);
+  // Auto-load API keys from environment
+  if (const char* gemini_key = std::getenv("GEMINI_API_KEY")) {
+    current_profile_.gemini_api_key = gemini_key;
+    current_config_.gemini_api_key = gemini_key;
+    // Auto-select gemini provider if key is available and no provider set
+    if (current_profile_.provider == "mock") {
+      current_profile_.provider = "gemini";
+      current_profile_.model = "gemini-2.5-flash";
+      current_config_.provider = "gemini";
+      current_config_.model = "gemini-2.5-flash";
     }
   }
 
-  SetupChatWidgetCallbacks();
+  if (const char* openai_key = std::getenv("OPENAI_API_KEY")) {
+    current_profile_.openai_api_key = openai_key;
+    current_config_.openai_api_key = openai_key;
+    // Auto-select openai if no gemini key and provider is mock
+    if (current_profile_.provider == "mock" &&
+        current_profile_.gemini_api_key.empty()) {
+      current_profile_.provider = "openai";
+      current_profile_.model = "gpt-4o-mini";
+      current_config_.provider = "openai";
+      current_config_.model = "gpt-4o-mini";
+    }
+  }
+
+  if (agent_chat_) {
+    agent_chat_->Initialize(toast_manager, proposal_drawer);
+    if (rom) {
+      agent_chat_->SetRomContext(rom);
+    }
+  }
+
   SetupMultimodalCallbacks();
+  SetupAutomationCallbacks();
+
+#ifdef YAZE_WITH_GRPC
+  if (agent_chat_) {
+    harness_telemetry_bridge_.SetAgentChat(agent_chat_.get());
+    test::TestManager::Get().SetHarnessListener(&harness_telemetry_bridge_);
+  }
+#endif
+
+  // Push initial configuration to the agent service
+  ApplyConfig(current_config_);
 }
 
 void AgentEditor::SetRomContext(Rom* rom) {
   rom_ = rom;
-  if (chat_widget_) {
-    chat_widget_->SetRomContext(rom);
+  if (agent_chat_) {
+    agent_chat_->SetRomContext(rom);
   }
 }
 
 void AgentEditor::DrawDashboard() {
-  if (!active_)
+  if (!active_) {
     return;
+  }
 
   // Animate retro effects
-  ImGuiIO& io = ImGui::GetIO();
-  pulse_animation_ += io.DeltaTime * 2.0f;
-  scanline_offset_ += io.DeltaTime * 0.4f;
-  if (scanline_offset_ > 1.0f)
+  ImGuiIO& imgui_io = ImGui::GetIO();
+  pulse_animation_ += imgui_io.DeltaTime * 2.0f;
+  scanline_offset_ += imgui_io.DeltaTime * 0.4f;
+  if (scanline_offset_ > 1.0f) {
     scanline_offset_ -= 1.0f;
-  glitch_timer_ += io.DeltaTime * 5.0f;
+  }
+  glitch_timer_ += imgui_io.DeltaTime * 5.0f;
   blink_counter_ = static_cast<int>(pulse_animation_ * 2.0f) % 2;
-
-  // Pulsing glow for window
-  float pulse = 0.5f + 0.5f * std::sin(pulse_animation_);
-  // Apply theme primary color with pulsing effect
-const auto& theme = yaze::gui::style::DefaultTheme();
-ImGui::PushStyleColor(ImGuiCol_TitleBgActive,
-    ImVec4(theme.primary.x + 0.1f * pulse,
-            theme.primary.y + 0.15f * pulse,
-            theme.primary.z + 0.2f * pulse,
-            1.0f));
-ImGui::PopStyleColor();
-
-  ImGui::SetNextWindowSize(ImVec2(1200, 800), ImGuiCond_FirstUseEver);
-  ImGui::Begin(ICON_MD_SMART_TOY " AI AGENT PLATFORM [v0.4.x]", &active_,
-               ImGuiWindowFlags_MenuBar);
-
-  // Menu bar
-  if (ImGui::BeginMenuBar()) {
-    if (ImGui::BeginMenu(ICON_MD_MENU " File")) {
-      if (ImGui::MenuItem(ICON_MD_SAVE " Save Profile")) {
-        Save();
-        if (toast_manager_) {
-          toast_manager_->Show("Bot profile saved", ToastType::kSuccess);
-        }
-      }
-      if (ImGui::MenuItem(ICON_MD_FILE_UPLOAD " Export Profile...")) {
-        // TODO: Open file dialog for export
-        if (toast_manager_) {
-          toast_manager_->Show("Export functionality coming soon",
-                               ToastType::kInfo);
-        }
-      }
-      if (ImGui::MenuItem(ICON_MD_FILE_DOWNLOAD " Import Profile...")) {
-        // TODO: Open file dialog for import
-        if (toast_manager_) {
-          toast_manager_->Show("Import functionality coming soon",
-                               ToastType::kInfo);
-        }
-      }
-      ImGui::EndMenu();
-    }
-
-    if (ImGui::BeginMenu(ICON_MD_VIEW_LIST " View")) {
-      if (ImGui::MenuItem(ICON_MD_CHAT " Open Chat Window", "Ctrl+Shift+A")) {
-        OpenChatWindow();
-      }
-      ImGui::Separator();
-      ImGui::MenuItem(ICON_MD_EDIT " Show Prompt Editor", nullptr,
-                      &show_prompt_editor_);
-      ImGui::MenuItem(ICON_MD_FOLDER " Show Bot Profiles", nullptr,
-                      &show_bot_profiles_);
-      ImGui::MenuItem(ICON_MD_HISTORY " Show Chat History", nullptr,
-                      &show_chat_history_);
-      ImGui::MenuItem(ICON_MD_ANALYTICS " Show Metrics Dashboard", nullptr,
-                      &show_metrics_dashboard_);
-      ImGui::EndMenu();
-    }
-
-    ImGui::EndMenuBar();
-  }
-
-  // Compact tabbed interface (combined tabs)
-  if (ImGui::BeginTabBar("AgentEditorTabs", ImGuiTabBarFlags_None)) {
-    // Bot Studio Tab - Modular 3-column layout
-    if (ImGui::BeginTabItem(ICON_MD_SMART_TOY " Bot Studio")) {
-      ImGui::Spacing();
-
-      // Three-column layout: Config+Status | Editors | Profiles
-      ImGuiTableFlags table_flags = ImGuiTableFlags_Resizable |
-                                    ImGuiTableFlags_BordersInnerV |
-                                    ImGuiTableFlags_SizingStretchProp;
-
-      if (ImGui::BeginTable("BotStudioLayout", 3, table_flags)) {
-        ImGui::TableSetupColumn("Settings", ImGuiTableColumnFlags_WidthFixed,
-                                320.0f);
-        ImGui::TableSetupColumn("Editors", ImGuiTableColumnFlags_WidthStretch);
-        ImGui::TableSetupColumn("Profiles", ImGuiTableColumnFlags_WidthFixed,
-                                280.0f);
-        ImGui::TableNextRow();
-
-        // Column 1: AI Provider, Behavior, ROM, Tips, Metrics (merged!)
-        ImGui::TableNextColumn();
-        ImGui::PushID("SettingsColumn");
-
-        // Provider settings (always visible)
-        DrawConfigurationPanel();
-        ImGui::Spacing();
-
-        // Status cards (always visible)
-        DrawStatusPanel();
-
-        ImGui::PopID();
-
-        // Column 2: Tabbed Editors
-        ImGui::TableNextColumn();
-        ImGui::PushID("EditorsColumn");
-
-        if (ImGui::BeginTabBar("EditorTabs", ImGuiTabBarFlags_None)) {
-          if (ImGui::BeginTabItem(ICON_MD_EDIT " System Prompt")) {
-            DrawPromptEditorPanel();
-            ImGui::EndTabItem();
-          }
-
-          if (ImGui::BeginTabItem(ICON_MD_GRID_ON " Common Tiles")) {
-            DrawCommonTilesEditor();
-            ImGui::EndTabItem();
-          }
-
-          if (ImGui::BeginTabItem(ICON_MD_ADD " New Prompt")) {
-            DrawNewPromptCreator();
-            ImGui::EndTabItem();
-          }
-
-          ImGui::EndTabBar();
-        }
-
-        ImGui::PopID();
-
-        // Column 3: Bot Profiles
-        ImGui::TableNextColumn();
-        ImGui::PushID("ProfilesColumn");
-        DrawBotProfilesPanel();
-        ImGui::PopID();
-
-        ImGui::EndTable();
-      }
-
-      ImGui::EndTabItem();
-    }
-
-    // Session Manager Tab (combines History + Metrics)
-    if (ImGui::BeginTabItem(ICON_MD_HISTORY " Sessions & History")) {
-      ImGui::Spacing();
-
-      // Two-column layout
-      if (ImGui::BeginTable(
-              "SessionLayout", 2,
-              ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInnerV)) {
-        ImGui::TableSetupColumn("History", ImGuiTableColumnFlags_WidthStretch,
-                                0.6f);
-        ImGui::TableSetupColumn("Metrics", ImGuiTableColumnFlags_WidthStretch,
-                                0.4f);
-        ImGui::TableNextRow();
-
-        // LEFT: Chat History
-        ImGui::TableSetColumnIndex(0);
-        DrawChatHistoryViewer();
-
-        // RIGHT: Metrics
-        ImGui::TableSetColumnIndex(1);
-        DrawAdvancedMetricsPanel();
-
-        ImGui::EndTable();
-      }
-
-      ImGui::EndTabItem();
-    }
-
-    if (ImGui::BeginTabItem(ICON_MD_AUTO_FIX_HIGH " Agent Builder")) {
-      DrawAgentBuilderPanel();
-      ImGui::EndTabItem();
-    }
-
-    ImGui::EndTabBar();
-  }
-
-  ImGui::End();
-
-  // Pop the TitleBgActive color pushed at the beginning of DrawDashboard
-  ImGui::PopStyleColor();
 }
 
 void AgentEditor::DrawConfigurationPanel() {
-  const auto& theme = yaze::gui::style::DefaultTheme();
-  // AI Provider Configuration
-  if (ImGui::CollapsingHeader(ICON_MD_SETTINGS " AI Provider",
-                              ImGuiTreeNodeFlags_DefaultOpen)) {
-    ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f),
-                       ICON_MD_SMART_TOY " Provider Selection");
-    ImGui::Spacing();
+  const auto& theme = AgentUI::GetTheme();
 
-    // Provider buttons (large, visual)
-    ImVec2 button_size(ImGui::GetContentRegionAvail().x / 3 - 8, 60);
-
-    bool is_mock = (current_profile_.provider == "mock");
-    bool is_ollama = (current_profile_.provider == "ollama");
-    bool is_gemini = (current_profile_.provider == "gemini");
-
-    if (is_mock)
-      ImGui::PushStyleColor(ImGuiCol_Button, theme.secondary);
-    if (ImGui::Button(ICON_MD_SETTINGS " Mock", button_size)) {
-      current_profile_.provider = "mock";
-    }
-    if (is_mock)
-      ImGui::PopStyleColor();
-
+  auto HelpMarker = [](const char* desc) {
     ImGui::SameLine();
-    if (is_ollama)
-      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(theme.secondary.x * 1.2f,
-                                                theme.secondary.y * 1.2f,
-                                                theme.secondary.z * 1.2f, 1.0f));
-    if (ImGui::Button(ICON_MD_CLOUD " Ollama", button_size)) {
-      current_profile_.provider = "ollama";
+    ImGui::TextDisabled("(?)");
+    if (ImGui::IsItemHovered()) {
+      ImGui::BeginTooltip();
+      ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+      ImGui::TextUnformatted(desc);
+      ImGui::PopTextWrapPos();
+      ImGui::EndTooltip();
     }
-    if (is_ollama)
-      ImGui::PopStyleColor();
+  };
 
-    ImGui::SameLine();
-    if (is_gemini)
-      ImGui::PushStyleColor(ImGuiCol_Button, theme.primary);
-    if (ImGui::Button(ICON_MD_SMART_TOY " Gemini", button_size)) {
-      current_profile_.provider = "gemini";
+  AgentUI::RenderSectionHeader(ICON_MD_SETTINGS, "AI Provider",
+                               theme.accent_color);
+
+  float avail_width = ImGui::GetContentRegionAvail().x;
+  ImVec2 button_size(avail_width / 2 - 8, 46);
+
+  auto ProviderButton = [&](const char* label, const char* provider_id,
+                           const ImVec4& color) {
+    bool selected = current_profile_.provider == provider_id;
+    ImVec4 base_color = selected ? color : theme.panel_bg_darker;
+    if (AgentUI::StyledButton(label, base_color, button_size)) {
+      current_profile_.provider = provider_id;
     }
-    if (is_gemini)
-      ImGui::PopStyleColor();
+  };
 
-    ImGui::Separator();
-    ImGui::Spacing();
-
-    // Provider-specific settings
-    if (current_profile_.provider == "ollama") {
-      ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.4f, 1.0f),
-                         ICON_MD_SETTINGS " Ollama Settings");
-      ImGui::Text("Model:");
-      ImGui::SetNextItemWidth(-1);
-      static char model_buf[128] = "qwen2.5-coder:7b";
-      if (!current_profile_.model.empty()) {
-        strncpy(model_buf, current_profile_.model.c_str(),
-                sizeof(model_buf) - 1);
-      }
-      if (ImGui::InputTextWithHint("##ollama_model",
-                                   "e.g., qwen2.5-coder:7b, llama3.2",
-                                   model_buf, sizeof(model_buf))) {
-        current_profile_.model = model_buf;
-      }
-
-      ImGui::Text("Host URL:");
-      ImGui::SetNextItemWidth(-1);
-      static char host_buf[256] = "http://localhost:11434";
-      strncpy(host_buf, current_profile_.ollama_host.c_str(),
-              sizeof(host_buf) - 1);
-      if (ImGui::InputText("##ollama_host", host_buf, sizeof(host_buf))) {
-        current_profile_.ollama_host = host_buf;
-      }
-    } else if (current_profile_.provider == "gemini") {
-      ImGui::TextColored(ImVec4(0.196f, 0.6f, 0.8f, 1.0f),
-                         ICON_MD_SMART_TOY " Gemini Settings");
-
-      // Load from environment button
-      if (ImGui::Button(ICON_MD_REFRESH " Load from Environment")) {
-        const char* gemini_key = std::getenv("GEMINI_API_KEY");
-        if (gemini_key) {
-          current_profile_.gemini_api_key = gemini_key;
-          ApplyConfig(current_config_);
-          if (toast_manager_) {
-            toast_manager_->Show("Gemini API key loaded", ToastType::kSuccess);
-          }
-        } else {
-          if (toast_manager_) {
-            toast_manager_->Show("GEMINI_API_KEY not found",
-                                 ToastType::kWarning);
-          }
-        }
-      }
-
-      ImGui::Spacing();
-
-      ImGui::Text("Model:");
-      ImGui::SetNextItemWidth(-1);
-      static char model_buf[128] = "gemini-1.5-flash";
-      if (!current_profile_.model.empty()) {
-        strncpy(model_buf, current_profile_.model.c_str(),
-                sizeof(model_buf) - 1);
-      }
-      if (ImGui::InputTextWithHint("##gemini_model", "e.g., gemini-1.5-flash",
-                                   model_buf, sizeof(model_buf))) {
-        current_profile_.model = model_buf;
-      }
-
-      ImGui::Text("API Key:");
-      ImGui::SetNextItemWidth(-1);
-      static char key_buf[256] = "";
-      if (!current_profile_.gemini_api_key.empty() && key_buf[0] == '\0') {
-        strncpy(key_buf, current_profile_.gemini_api_key.c_str(),
-                sizeof(key_buf) - 1);
-      }
-      if (ImGui::InputText("##gemini_key", key_buf, sizeof(key_buf),
-                           ImGuiInputTextFlags_Password)) {
-        current_profile_.gemini_api_key = key_buf;
-      }
-      if (!current_profile_.gemini_api_key.empty()) {
-        ImGui::TextColored(theme.success,
-                           ICON_MD_CHECK_CIRCLE " API key configured");
-      }
-    } else {
-      ImGui::TextDisabled(ICON_MD_INFO " Mock mode - no configuration needed");
-    }
-  }
-
-  // Behavior Settings
-  if (ImGui::CollapsingHeader(ICON_MD_TUNE " Behavior",
-                              ImGuiTreeNodeFlags_DefaultOpen)) {
-    ImGui::Checkbox(ICON_MD_VISIBILITY " Show Reasoning",
-                    &current_profile_.show_reasoning);
-    ImGui::Checkbox(ICON_MD_ANALYTICS " Verbose Output",
-                    &current_profile_.verbose);
-    ImGui::SliderInt(ICON_MD_LOOP " Max Tool Iterations",
-                     &current_profile_.max_tool_iterations, 1, 10);
-    ImGui::SliderInt(ICON_MD_REFRESH " Max Retry Attempts",
-                     &current_profile_.max_retry_attempts, 1, 10);
-  }
-
-  // Profile Metadata
-  if (ImGui::CollapsingHeader(ICON_MD_INFO " Profile Info")) {
-    ImGui::Text("Name:");
-    static char name_buf[128];
-    strncpy(name_buf, current_profile_.name.c_str(), sizeof(name_buf) - 1);
-    if (ImGui::InputText("##profile_name", name_buf, sizeof(name_buf))) {
-      current_profile_.name = name_buf;
-    }
-
-    ImGui::Text("Description:");
-    static char desc_buf[256];
-    strncpy(desc_buf, current_profile_.description.c_str(),
-            sizeof(desc_buf) - 1);
-    if (ImGui::InputTextMultiline("##profile_desc", desc_buf, sizeof(desc_buf),
-                                  ImVec2(-1, 60))) {
-      current_profile_.description = desc_buf;
-    }
-
-    ImGui::Text("Tags (comma-separated):");
-    static char tags_buf[256];
-    if (tags_buf[0] == '\0' && !current_profile_.tags.empty()) {
-      std::string tags_str;
-      for (size_t i = 0; i < current_profile_.tags.size(); ++i) {
-        if (i > 0)
-          tags_str += ", ";
-        tags_str += current_profile_.tags[i];
-      }
-      strncpy(tags_buf, tags_str.c_str(), sizeof(tags_buf) - 1);
-    }
-    if (ImGui::InputText("##profile_tags", tags_buf, sizeof(tags_buf))) {
-      // Parse comma-separated tags
-      current_profile_.tags.clear();
-      std::string tags_str(tags_buf);
-      size_t pos = 0;
-      while ((pos = tags_str.find(',')) != std::string::npos) {
-        std::string tag = tags_str.substr(0, pos);
-        // Trim whitespace
-        tag.erase(0, tag.find_first_not_of(" \t"));
-        tag.erase(tag.find_last_not_of(" \t") + 1);
-        if (!tag.empty()) {
-          current_profile_.tags.push_back(tag);
-        }
-        tags_str.erase(0, pos + 1);
-      }
-      if (!tags_str.empty()) {
-        tags_str.erase(0, tags_str.find_first_not_of(" \t"));
-        tags_str.erase(tags_str.find_last_not_of(" \t") + 1);
-        if (!tags_str.empty()) {
-          current_profile_.tags.push_back(tags_str);
-        }
-      }
-    }
-  }
-
-  // Apply button
+  ProviderButton(ICON_MD_SETTINGS " Mock", "mock", theme.provider_mock);
+  ImGui::SameLine();
+  ProviderButton(ICON_MD_CLOUD " Ollama", "ollama", theme.provider_ollama);
+  ProviderButton(ICON_MD_SMART_TOY " Gemini API", "gemini",
+                 theme.provider_gemini);
+  ImGui::SameLine();
+  ProviderButton(ICON_MD_TERMINAL " Local CLI", "gemini-cli",
+                 theme.provider_gemini);
   ImGui::Spacing();
-  ImGui::PushStyleColor(ImGuiCol_Button, theme.success);
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                        ImVec4(theme.success.x * 1.2f, theme.success.y * 1.2f, theme.success.z * 1.2f, 1.0f));
+  ProviderButton(ICON_MD_AUTO_AWESOME " OpenAI", "openai",
+                 theme.provider_openai);
+
+  ImGui::Spacing();
+  ImGui::Separator();
+  ImGui::Spacing();
+
+  // Provider-specific settings
+  if (current_profile_.provider == "ollama") {
+    AgentUI::RenderSectionHeader(ICON_MD_TUNE, "Ollama Settings",
+                                 theme.accent_color);
+    ImGui::Text("Model:");
+    ImGui::SetNextItemWidth(-1);
+    static char model_buf[128] = "qwen2.5-coder:7b";
+    if (!current_profile_.model.empty()) {
+      strncpy(model_buf, current_profile_.model.c_str(),
+              sizeof(model_buf) - 1);
+    }
+    if (ImGui::InputTextWithHint("##ollama_model",
+                                 "e.g., qwen2.5-coder:7b, llama3.2",
+                                 model_buf, sizeof(model_buf))) {
+      current_profile_.model = model_buf;
+    }
+
+    ImGui::Text("Host URL:");
+    ImGui::SetNextItemWidth(-1);
+    static char host_buf[256] = "http://localhost:11434";
+    strncpy(host_buf, current_profile_.ollama_host.c_str(),
+            sizeof(host_buf) - 1);
+    if (ImGui::InputText("##ollama_host", host_buf, sizeof(host_buf))) {
+      current_profile_.ollama_host = host_buf;
+    }
+  } else if (current_profile_.provider == "gemini" ||
+             current_profile_.provider == "gemini-cli") {
+    AgentUI::RenderSectionHeader(ICON_MD_SMART_TOY, "Gemini Settings",
+                                 theme.accent_color);
+
+    if (ImGui::Button(ICON_MD_REFRESH " Load from Env (GEMINI_API_KEY)")) {
+      const char* gemini_key = std::getenv("GEMINI_API_KEY");
+      if (gemini_key) {
+        current_profile_.gemini_api_key = gemini_key;
+        ApplyConfig(current_config_);
+        if (toast_manager_) {
+          toast_manager_->Show("Gemini API key loaded", ToastType::kSuccess);
+        }
+      } else if (toast_manager_) {
+        toast_manager_->Show("GEMINI_API_KEY not found", ToastType::kWarning);
+      }
+    }
+    HelpMarker("Loads GEMINI_API_KEY from your environment");
+
+    ImGui::Spacing();
+    ImGui::Text("Model:");
+    ImGui::SetNextItemWidth(-1);
+    static char model_buf[128] = "gemini-2.5-flash";
+    if (!current_profile_.model.empty()) {
+      strncpy(model_buf, current_profile_.model.c_str(),
+              sizeof(model_buf) - 1);
+    }
+    if (ImGui::InputTextWithHint("##gemini_model", "e.g., gemini-2.5-flash",
+                                 model_buf, sizeof(model_buf))) {
+      current_profile_.model = model_buf;
+    }
+
+    ImGui::Text("API Key:");
+    ImGui::SetNextItemWidth(-1);
+    static char key_buf[256] = "";
+    if (!current_profile_.gemini_api_key.empty() && key_buf[0] == '\0') {
+      strncpy(key_buf, current_profile_.gemini_api_key.c_str(),
+              sizeof(key_buf) - 1);
+    }
+    if (ImGui::InputText("##gemini_key", key_buf, sizeof(key_buf),
+                         ImGuiInputTextFlags_Password)) {
+      current_profile_.gemini_api_key = key_buf;
+    }
+    if (!current_profile_.gemini_api_key.empty()) {
+      ImGui::TextColored(theme.status_success,
+                         ICON_MD_CHECK_CIRCLE " API key configured");
+    }
+  } else if (current_profile_.provider == "openai") {
+    AgentUI::RenderSectionHeader(ICON_MD_AUTO_AWESOME, "OpenAI Settings",
+                                 theme.accent_color);
+
+    if (ImGui::Button(ICON_MD_REFRESH " Load from Env (OPENAI_API_KEY)")) {
+      const char* openai_key = std::getenv("OPENAI_API_KEY");
+      if (openai_key) {
+        current_profile_.openai_api_key = openai_key;
+        ApplyConfig(current_config_);
+        if (toast_manager_) {
+          toast_manager_->Show("OpenAI API key loaded", ToastType::kSuccess);
+        }
+      } else if (toast_manager_) {
+        toast_manager_->Show("OPENAI_API_KEY not found", ToastType::kWarning);
+      }
+    }
+    HelpMarker("Loads OPENAI_API_KEY from your environment");
+
+    ImGui::Spacing();
+    ImGui::Text("Model:");
+    ImGui::SetNextItemWidth(-1);
+    static char openai_model_buf[128] = "gpt-4o-mini";
+    if (!current_profile_.model.empty()) {
+      strncpy(openai_model_buf, current_profile_.model.c_str(),
+              sizeof(openai_model_buf) - 1);
+    }
+    if (ImGui::InputTextWithHint("##openai_model", "e.g., gpt-4o-mini",
+                                 openai_model_buf, sizeof(openai_model_buf))) {
+      current_profile_.model = openai_model_buf;
+    }
+
+    ImGui::Text("API Key:");
+    ImGui::SetNextItemWidth(-1);
+    static char openai_key_buf[256] = "";
+    if (!current_profile_.openai_api_key.empty() &&
+        openai_key_buf[0] == '\0') {
+      strncpy(openai_key_buf, current_profile_.openai_api_key.c_str(),
+              sizeof(openai_key_buf) - 1);
+    }
+    if (ImGui::InputText("##openai_key", openai_key_buf,
+                         sizeof(openai_key_buf),
+                         ImGuiInputTextFlags_Password)) {
+      current_profile_.openai_api_key = openai_key_buf;
+    }
+    if (!current_profile_.openai_api_key.empty()) {
+      ImGui::TextColored(theme.status_success,
+                         ICON_MD_CHECK_CIRCLE " API key configured");
+    }
+  }
+
+  ImGui::Spacing();
+  AgentUI::RenderSectionHeader(ICON_MD_TUNE, "Behavior",
+                               theme.text_info);
+
+  ImGui::Checkbox("Verbose logging", &current_profile_.verbose);
+  HelpMarker("Logs provider requests/responses to console");
+  ImGui::Checkbox("Show reasoning traces", &current_profile_.show_reasoning);
+  ImGui::Checkbox("Stream responses", &current_profile_.stream_responses);
+
+  ImGui::SliderFloat("Temperature", &current_profile_.temperature, 0.0f, 1.0f);
+  ImGui::SliderFloat("Top P", &current_profile_.top_p, 0.0f, 1.0f);
+  ImGui::SliderInt("Max output tokens", &current_profile_.max_output_tokens,
+                   256, 4096);
+  ImGui::SliderInt(ICON_MD_LOOP " Max Tool Iterations",
+                   &current_profile_.max_tool_iterations, 1, 10);
+  HelpMarker(
+      "Maximum number of tool calls the agent can make while solving a single "
+      "request.");
+  ImGui::SliderInt(ICON_MD_REFRESH " Max Retry Attempts",
+                   &current_profile_.max_retry_attempts, 1, 10);
+  HelpMarker("Number of times to retry API calls on failure.");
+
+  ImGui::Spacing();
+  AgentUI::RenderSectionHeader(ICON_MD_INFO, "Profile",
+                               theme.text_secondary_gray);
+
+  static char name_buf[128];
+  strncpy(name_buf, current_profile_.name.c_str(), sizeof(name_buf) - 1);
+  if (ImGui::InputText("Name", name_buf, sizeof(name_buf))) {
+    current_profile_.name = name_buf;
+  }
+
+  static char desc_buf[256];
+  strncpy(desc_buf, current_profile_.description.c_str(),
+          sizeof(desc_buf) - 1);
+  if (ImGui::InputTextMultiline("Description", desc_buf, sizeof(desc_buf),
+                                ImVec2(-1, 64))) {
+    current_profile_.description = desc_buf;
+  }
+
+  ImGui::Text("Tags (comma-separated)");
+  static char tags_buf[256];
+  if (tags_buf[0] == '\0' && !current_profile_.tags.empty()) {
+    std::string tags_str;
+    for (size_t i = 0; i < current_profile_.tags.size(); ++i) {
+      if (i > 0)
+        tags_str += ", ";
+      tags_str += current_profile_.tags[i];
+    }
+    strncpy(tags_buf, tags_str.c_str(), sizeof(tags_buf) - 1);
+  }
+  if (ImGui::InputText("##profile_tags", tags_buf, sizeof(tags_buf))) {
+    current_profile_.tags.clear();
+    std::string tags_str(tags_buf);
+    size_t pos = 0;
+    while ((pos = tags_str.find(',')) != std::string::npos) {
+      std::string tag = tags_str.substr(0, pos);
+      tag.erase(0, tag.find_first_not_of(" \t"));
+      tag.erase(tag.find_last_not_of(" \t") + 1);
+      if (!tag.empty()) {
+        current_profile_.tags.push_back(tag);
+      }
+      tags_str.erase(0, pos + 1);
+    }
+    tags_str.erase(0, tags_str.find_first_not_of(" \t"));
+    tags_str.erase(tags_str.find_last_not_of(" \t") + 1);
+    if (!tags_str.empty()) {
+      current_profile_.tags.push_back(tags_str);
+    }
+  }
+
+  ImGui::Spacing();
+  ImGui::PushStyleColor(ImGuiCol_Button, theme.status_success);
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, theme.status_success);
   if (ImGui::Button(ICON_MD_CHECK " Apply & Save Configuration",
                     ImVec2(-1, 40))) {
-    // Update legacy config
     current_config_.provider = current_profile_.provider;
     current_config_.model = current_profile_.model;
     current_config_.ollama_host = current_profile_.ollama_host;
     current_config_.gemini_api_key = current_profile_.gemini_api_key;
+    current_config_.openai_api_key = current_profile_.openai_api_key;
     current_config_.verbose = current_profile_.verbose;
     current_config_.show_reasoning = current_profile_.show_reasoning;
     current_config_.max_tool_iterations = current_profile_.max_tool_iterations;
+    current_config_.max_retry_attempts = current_profile_.max_retry_attempts;
+    current_config_.temperature = current_profile_.temperature;
+    current_config_.top_p = current_profile_.top_p;
+    current_config_.max_output_tokens = current_profile_.max_output_tokens;
+    current_config_.stream_responses = current_profile_.stream_responses;
 
     ApplyConfig(current_config_);
     Save();
@@ -559,98 +531,82 @@ void AgentEditor::DrawConfigurationPanel() {
 }
 
 void AgentEditor::DrawStatusPanel() {
-  // Always visible status cards (no collapsing)
+  const auto& theme = AgentUI::GetTheme();
 
-  // Chat Status Card
-  ImGui::BeginChild("ChatStatusCard", ImVec2(0, 100), true);
-  ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f), ICON_MD_CHAT " Chat");
-  ImGui::Separator();
+  AgentUI::PushPanelStyle();
+  if (ImGui::BeginChild("ChatStatusCard", ImVec2(0, 140), true)) {
+    AgentUI::RenderSectionHeader(ICON_MD_CHAT, "Chat Status",
+                                 theme.accent_color);
 
-  if (chat_widget_ && chat_widget_->is_active()) {
-    ImGui::TextColored(ImVec4(0.133f, 0.545f, 0.133f, 1.0f),
-                       ICON_MD_CHECK_CIRCLE " Active");
-  } else {
-    ImGui::TextDisabled(ICON_MD_CANCEL " Inactive");
-  }
+    bool chat_active = agent_chat_ && *agent_chat_->active();
+    AgentUI::RenderStatusIndicator(chat_active ? "Active" : "Inactive",
+                                   chat_active);
+    ImGui::SameLine();
+    if (!chat_active && ImGui::SmallButton("Open")) {
+      OpenChatWindow();
+    }
 
-  ImGui::Spacing();
-  if (ImGui::Button(ICON_MD_OPEN_IN_NEW " Open", ImVec2(-1, 0))) {
-    OpenChatWindow();
-  }
-  ImGui::EndChild();
-
-  ImGui::Spacing();
-
-  // ROM Context Card
-  ImGui::BeginChild("RomStatusCard", ImVec2(0, 100), true);
-  ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f), ICON_MD_GAMEPAD " ROM");
-  ImGui::Separator();
-
-  if (rom_ && rom_->is_loaded()) {
-    ImGui::TextColored(ImVec4(0.133f, 0.545f, 0.133f, 1.0f),
-                       ICON_MD_CHECK_CIRCLE " Loaded");
-    ImGui::TextDisabled("Title: %s", rom_->title().c_str());
-    ImGui::TextDisabled("Tools: Ready");
-  } else {
-    ImGui::TextColored(ImVec4(0.8f, 0.2f, 0.2f, 1.0f),
-                       ICON_MD_WARNING " Not Loaded");
-    ImGui::TextDisabled("Load ROM for AI tools");
+    ImGui::Spacing();
+    ImGui::Text("Provider:");
+    ImGui::SameLine();
+    AgentUI::RenderProviderBadge(current_profile_.provider.c_str());
+    if (!current_profile_.model.empty()) {
+      ImGui::TextDisabled("Model: %s", current_profile_.model.c_str());
+    }
   }
   ImGui::EndChild();
 
   ImGui::Spacing();
 
-  // Quick Tips Card
-  ImGui::BeginChild("QuickTipsCard", ImVec2(0, 150), true);
-  ImGui::TextColored(ImVec4(0.196f, 0.6f, 0.8f, 1.0f),
-                     ICON_MD_TIPS_AND_UPDATES " Quick Tips");
-  ImGui::Separator();
+  if (ImGui::BeginChild("RomStatusCard", ImVec2(0, 110), true)) {
+    AgentUI::RenderSectionHeader(ICON_MD_GAMEPAD, "ROM Context",
+                                 theme.accent_color);
+    if (rom_ && rom_->is_loaded()) {
+      ImGui::TextColored(theme.status_success, ICON_MD_CHECK_CIRCLE " Loaded");
+      ImGui::TextDisabled("Tools: Ready");
+    } else {
+      ImGui::TextColored(theme.status_warning, ICON_MD_WARNING " Not Loaded");
+      ImGui::TextDisabled("Load a ROM to enable tool calls.");
+    }
+  }
+  ImGui::EndChild();
+
   ImGui::Spacing();
 
-  ImGui::BulletText("Ctrl+H: Toggle chat popup");
-  ImGui::BulletText("Ctrl+P: View proposals");
-  ImGui::BulletText("Edit prompts in center");
-  ImGui::BulletText("Create custom bots");
-  ImGui::BulletText("Save/load chat sessions");
-
+  if (ImGui::BeginChild("QuickTipsCard", ImVec2(0, 130), true)) {
+    AgentUI::RenderSectionHeader(ICON_MD_TIPS_AND_UPDATES, "Quick Tips",
+                                 theme.accent_color);
+    ImGui::BulletText("Ctrl+H: Toggle chat popup");
+    ImGui::BulletText("Ctrl+P: View proposals");
+    ImGui::BulletText("Edit prompts in Prompt Editor");
+    ImGui::BulletText("Create and save custom bots");
+  }
   ImGui::EndChild();
+  AgentUI::PopPanelStyle();
 }
 
 void AgentEditor::DrawMetricsPanel() {
   if (ImGui::CollapsingHeader(ICON_MD_ANALYTICS " Quick Metrics")) {
-    if (chat_widget_) {
-      // Get metrics from the chat widget's service
-      ImGui::TextDisabled("View detailed metrics in the Metrics tab");
-    } else {
-      ImGui::TextDisabled("No metrics available");
-    }
+    ImGui::TextDisabled("View detailed metrics in the Metrics tab");
   }
 }
 
 void AgentEditor::DrawPromptEditorPanel() {
-  ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f),
-                     ICON_MD_EDIT " Prompt Editor");
-  ImGui::Separator();
-  ImGui::Spacing();
+  const auto& theme = AgentUI::GetTheme();
+  AgentUI::RenderSectionHeader(ICON_MD_EDIT, "Prompt Editor",
+                               theme.accent_color);
 
-  // Compact prompt file selector
   ImGui::Text("File:");
   ImGui::SetNextItemWidth(-45);
   if (ImGui::BeginCombo("##prompt_file", active_prompt_file_.c_str())) {
-    if (ImGui::Selectable("system_prompt.txt",
-                          active_prompt_file_ == "system_prompt.txt")) {
-      active_prompt_file_ = "system_prompt.txt";
-      prompt_editor_initialized_ = false;
-    }
-    if (ImGui::Selectable("system_prompt_v2.txt",
-                          active_prompt_file_ == "system_prompt_v2.txt")) {
-      active_prompt_file_ = "system_prompt_v2.txt";
-      prompt_editor_initialized_ = false;
-    }
-    if (ImGui::Selectable("system_prompt_v3.txt",
-                          active_prompt_file_ == "system_prompt_v3.2.txt")) {
-      active_prompt_file_ = "system_prompt_v3.txt";
-      prompt_editor_initialized_ = false;
+    const char* options[] = {"system_prompt.txt", "system_prompt_v2.txt",
+                             "system_prompt_v3.txt"};
+    for (const char* option : options) {
+      bool selected = active_prompt_file_ == option;
+      if (ImGui::Selectable(option, selected)) {
+        active_prompt_file_ = option;
+        prompt_editor_initialized_ = false;
+      }
     }
     ImGui::EndCombo();
   }
@@ -663,52 +619,37 @@ void AgentEditor::DrawPromptEditorPanel() {
     ImGui::SetTooltip("Reload from disk");
   }
 
-  // Load prompt file if not initialized
   if (!prompt_editor_initialized_ && prompt_editor_) {
     std::string asset_path = "agent/" + active_prompt_file_;
     auto content_result = AssetLoader::LoadTextFile(asset_path);
-
     if (content_result.ok()) {
       prompt_editor_->SetText(*content_result);
       current_profile_.system_prompt = *content_result;
       prompt_editor_initialized_ = true;
-
       if (toast_manager_) {
-        toast_manager_->Show(absl::StrFormat(ICON_MD_CHECK_CIRCLE " Loaded %s",
-                                             active_prompt_file_),
-                             ToastType::kSuccess, 2.0f);
+        toast_manager_->Show(
+            absl::StrFormat(ICON_MD_CHECK_CIRCLE " Loaded %s",
+                            active_prompt_file_),
+            ToastType::kSuccess, 2.0f);
       }
     } else {
-      // Show detailed error in console
-      std::cerr << "❌ Failed to load " << active_prompt_file_ << "\n";
-      std::cerr << "   Error: " << content_result.status().message() << "\n";
-
-      // Set placeholder with instructions
       std::string placeholder = absl::StrFormat(
           "# System prompt file not found: %s\n"
           "# Error: %s\n\n"
-          "# Please ensure the file exists in:\n"
-          "# - assets/agent/%s\n"
-          "# - Or Contents/Resources/agent/%s (macOS bundle)\n\n"
-          "# You can create a custom prompt here and save it to your bot "
-          "profile.",
+          "# Ensure the file exists in assets/agent/%s\n",
           active_prompt_file_, content_result.status().message(),
-          active_prompt_file_, active_prompt_file_);
-
+          active_prompt_file_);
       prompt_editor_->SetText(placeholder);
       prompt_editor_initialized_ = true;
     }
   }
 
   ImGui::Spacing();
-
-  // Text editor
   if (prompt_editor_) {
-    ImVec2 editor_size = ImVec2(ImGui::GetContentRegionAvail().x,
-                                ImGui::GetContentRegionAvail().y - 50);
+    ImVec2 editor_size(ImGui::GetContentRegionAvail().x,
+                       ImGui::GetContentRegionAvail().y - 60);
     prompt_editor_->Render("##prompt_editor", editor_size, true);
 
-    // Save button
     ImGui::Spacing();
     if (ImGui::Button(ICON_MD_SAVE " Save Prompt to Profile", ImVec2(-1, 0))) {
       current_profile_.system_prompt = prompt_editor_->GetText();
@@ -721,38 +662,34 @@ void AgentEditor::DrawPromptEditorPanel() {
 
   ImGui::Spacing();
   ImGui::TextWrapped(
-      "Edit the system prompt that guides the AI agent's behavior. Changes are "
-      "saved to the current bot profile.");
+      "Edit the system prompt that guides the agent's behavior. Changes are "
+      "stored on the active bot profile.");
 }
 
 void AgentEditor::DrawBotProfilesPanel() {
-  const auto& theme = yaze::gui::style::DefaultTheme();
-  ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f),
-                     ICON_MD_FOLDER " Bot Profile Manager");
-  ImGui::Separator();
+  const auto& theme = AgentUI::GetTheme();
+  AgentUI::RenderSectionHeader(ICON_MD_FOLDER, "Bot Profile Manager",
+                               theme.accent_color);
   ImGui::Spacing();
 
-  // Current profile display
   ImGui::BeginChild("CurrentProfile", ImVec2(0, 150), true);
-  ImGui::TextColored(ImVec4(0.196f, 0.6f, 0.8f, 1.0f),
-                     ICON_MD_STAR " Current Profile");
-  ImGui::Separator();
+  AgentUI::RenderSectionHeader(ICON_MD_STAR, "Current Profile",
+                               theme.accent_color);
   ImGui::Text("Name: %s", current_profile_.name.c_str());
   ImGui::Text("Provider: %s", current_profile_.provider.c_str());
   if (!current_profile_.model.empty()) {
     ImGui::Text("Model: %s", current_profile_.model.c_str());
   }
-  ImGui::TextWrapped("Description: %s",
-                     current_profile_.description.empty()
-                         ? "No description"
-                         : current_profile_.description.c_str());
+  ImGui::TextWrapped(
+      "Description: %s",
+      current_profile_.description.empty()
+          ? "No description"
+          : current_profile_.description.c_str());
   ImGui::EndChild();
 
   ImGui::Spacing();
 
-  // Profile management buttons
   if (ImGui::Button(ICON_MD_ADD " Create New Profile", ImVec2(-1, 0))) {
-    // Create new profile from current
     BotProfile new_profile = current_profile_;
     new_profile.name = "New Profile";
     new_profile.created_at = absl::Now();
@@ -765,14 +702,10 @@ void AgentEditor::DrawBotProfilesPanel() {
   }
 
   ImGui::Spacing();
-
-  // Saved profiles list
-  ImGui::TextColored(ImVec4(0.196f, 0.6f, 0.8f, 1.0f),
-                     ICON_MD_LIST " Saved Profiles");
-  ImGui::Separator();
+  AgentUI::RenderSectionHeader(ICON_MD_LIST, "Saved Profiles",
+                               theme.accent_color);
 
   ImGui::BeginChild("ProfilesList", ImVec2(0, 0), true);
-
   if (loaded_profiles_.empty()) {
     ImGui::TextDisabled(
         "No saved profiles. Create and save a profile to see it here.");
@@ -782,32 +715,35 @@ void AgentEditor::DrawBotProfilesPanel() {
       ImGui::PushID(static_cast<int>(i));
 
       bool is_current = (profile.name == current_profile_.name);
-      if (is_current) {
-        ImGui::PushStyleColor(ImGuiCol_Button, theme.primary); // Use theme.primary for current
-      }
-
-      if (ImGui::Button(profile.name.c_str(),
-                        ImVec2(ImGui::GetContentRegionAvail().x - 80, 0))) {
-        LoadBotProfile(profile.name);
-        if (toast_manager_) {
-          toast_manager_->Show(
-              absl::StrFormat("Loaded profile: %s", profile.name),
-              ToastType::kSuccess);
+      ImVec2 button_size(ImGui::GetContentRegionAvail().x - 80, 0);
+      ImVec4 button_color =
+          is_current ? theme.accent_color : theme.panel_bg_darker;
+      if (AgentUI::StyledButton(profile.name.c_str(), button_color,
+                                button_size)) {
+        if (auto status = LoadBotProfile(profile.name); status.ok()) {
+          if (toast_manager_) {
+            toast_manager_->Show(
+                absl::StrFormat("Loaded profile: %s", profile.name),
+                ToastType::kSuccess);
+          }
+        } else if (toast_manager_) {
+          toast_manager_->Show(std::string(status.message()),
+                               ToastType::kError);
         }
       }
 
-      if (is_current) {
-        ImGui::PopStyleColor();
-      }
-
       ImGui::SameLine();
-      ImGui::PushStyleColor(ImGuiCol_Button, theme.warning);
+      ImGui::PushStyleColor(ImGuiCol_Button, theme.status_warning);
       if (ImGui::SmallButton(ICON_MD_DELETE)) {
-        DeleteBotProfile(profile.name);
-        if (toast_manager_) {
-          toast_manager_->Show(
-              absl::StrFormat("Deleted profile: %s", profile.name),
-              ToastType::kInfo);
+        if (auto status = DeleteBotProfile(profile.name); status.ok()) {
+          if (toast_manager_) {
+            toast_manager_->Show(
+                absl::StrFormat("Deleted profile: %s", profile.name),
+                ToastType::kInfo);
+          }
+        } else if (toast_manager_) {
+          toast_manager_->Show(std::string(status.message()),
+                               ToastType::kError);
         }
       }
       ImGui::PopStyleColor();
@@ -817,82 +753,72 @@ void AgentEditor::DrawBotProfilesPanel() {
                               ? "No description"
                               : profile.description.c_str());
       ImGui::Spacing();
-
       ImGui::PopID();
     }
   }
-
   ImGui::EndChild();
 }
 
 void AgentEditor::DrawChatHistoryViewer() {
-  ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f),
-                     ICON_MD_HISTORY " Chat History Viewer");
-  ImGui::Separator();
-  ImGui::Spacing();
+  const auto& theme = AgentUI::GetTheme();
+  AgentUI::RenderSectionHeader(ICON_MD_HISTORY, "Chat History Viewer",
+                               theme.accent_color);
 
   if (ImGui::Button(ICON_MD_REFRESH " Refresh History")) {
     history_needs_refresh_ = true;
   }
-
   ImGui::SameLine();
-  if (ImGui::Button(ICON_MD_DELETE " Clear History")) {
-    if (chat_widget_) {
-      // Clear through the chat widget's service
-      if (toast_manager_) {
-        toast_manager_->Show("Chat history cleared", ToastType::kInfo);
-      }
+  if (ImGui::Button(ICON_MD_DELETE_FOREVER " Clear History")) {
+    if (agent_chat_) {
+      agent_chat_->ClearHistory();
+      cached_history_.clear();
     }
+  }
+
+  if (history_needs_refresh_ && agent_chat_) {
+    cached_history_ = agent_chat_->GetAgentService()->GetHistory();
+    history_needs_refresh_ = false;
   }
 
   ImGui::Spacing();
   ImGui::Separator();
 
-  // Get history from chat widget
-  if (chat_widget_ && history_needs_refresh_) {
-    // Access the service's history through the chat widget
-    // For now, show a placeholder
-    history_needs_refresh_ = false;
-  }
-
   ImGui::BeginChild("HistoryList", ImVec2(0, 0), true);
-
   if (cached_history_.empty()) {
     ImGui::TextDisabled(
         "No chat history. Start a conversation in the chat window.");
   } else {
     for (const auto& msg : cached_history_) {
       bool from_user = (msg.sender == cli::agent::ChatMessage::Sender::kUser);
-      ImVec4 color = from_user ? ImVec4(0.6f, 0.8f, 1.0f, 1.0f)
-                               : ImVec4(0.4f, 0.8f, 0.4f, 1.0f);
+      ImVec4 color =
+          from_user ? theme.user_message_color : theme.agent_message_color;
 
       ImGui::PushStyleColor(ImGuiCol_Text, color);
       ImGui::Text("%s:", from_user ? "User" : "Agent");
       ImGui::PopStyleColor();
 
       ImGui::SameLine();
-      ImGui::TextDisabled("%s", absl::FormatTime("%H:%M:%S", msg.timestamp,
-                                                 absl::LocalTimeZone())
-                                    .c_str());
+      ImGui::TextDisabled("%s",
+                          absl::FormatTime("%H:%M:%S", msg.timestamp,
+                                           absl::LocalTimeZone())
+                              .c_str());
 
       ImGui::TextWrapped("%s", msg.message.c_str());
       ImGui::Spacing();
       ImGui::Separator();
     }
   }
-
   ImGui::EndChild();
 }
 
 void AgentEditor::DrawAdvancedMetricsPanel() {
-  ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f),
-                     ICON_MD_ANALYTICS " Session Metrics & Analytics");
-  ImGui::Separator();
+  const auto& theme = AgentUI::GetTheme();
+  AgentUI::RenderSectionHeader(ICON_MD_ANALYTICS, "Session Metrics",
+                               theme.accent_color);
   ImGui::Spacing();
 
-  // Get metrics from chat widget service
-  if (chat_widget_) {
-    // For now show placeholder metrics structure
+  if (agent_chat_) {
+    auto metrics = agent_chat_->GetAgentService()->GetMetrics();
     if (ImGui::BeginTable("MetricsTable", 2,
                           ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
       ImGui::TableSetupColumn("Metric", ImGuiTableColumnFlags_WidthFixed,
@@ -900,47 +826,36 @@ void AgentEditor::DrawAdvancedMetricsPanel() {
       ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
       ImGui::TableHeadersRow();
 
-      ImGui::TableNextRow();
-      ImGui::TableSetColumnIndex(0);
-      ImGui::Text(ICON_MD_CHAT " Total Messages");
-      ImGui::TableSetColumnIndex(1);
-      ImGui::TextDisabled("Available in chat session");
+      auto Row = [](const char* label, const std::string& value) {
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::Text("%s", label);
+        ImGui::TableSetColumnIndex(1);
+        ImGui::TextDisabled("%s", value.c_str());
+      };
 
-      ImGui::TableNextRow();
-      ImGui::TableSetColumnIndex(0);
-      ImGui::Text(ICON_MD_BUILD " Tool Calls");
-      ImGui::TableSetColumnIndex(1);
-      ImGui::TextDisabled("Available in chat session");
-
-      ImGui::TableNextRow();
-      ImGui::TableSetColumnIndex(0);
-      ImGui::Text(ICON_MD_PREVIEW " Proposals Created");
-      ImGui::TableSetColumnIndex(1);
-      ImGui::TextDisabled("Available in chat session");
-
-      ImGui::TableNextRow();
-      ImGui::TableSetColumnIndex(0);
-      ImGui::Text(ICON_MD_TIMER " Average Latency");
-      ImGui::TableSetColumnIndex(1);
-      ImGui::TextDisabled("Available in chat session");
+      Row("Total Messages",
+          absl::StrFormat("%d user / %d agent", metrics.total_user_messages,
+                          metrics.total_agent_messages));
+      Row("Tool Calls", absl::StrFormat("%d", metrics.total_tool_calls));
+      Row("Commands", absl::StrFormat("%d", metrics.total_commands));
+      Row("Proposals", absl::StrFormat("%d", metrics.total_proposals));
+      Row("Average Latency (s)",
+          absl::StrFormat("%.2f", metrics.average_latency_seconds));
+      Row("Elapsed (s)",
+          absl::StrFormat("%.2f", metrics.total_elapsed_seconds));
 
       ImGui::EndTable();
     }
-
-    ImGui::Spacing();
-    ImGui::TextWrapped(
-        "Detailed session metrics are available during active chat sessions. "
-        "Open the chat window to see live statistics.");
   } else {
-    ImGui::TextDisabled(
-        "No metrics available. Initialize the chat system first.");
+    ImGui::TextDisabled("Initialize the chat system to see metrics.");
   }
 }
 
 void AgentEditor::DrawCommonTilesEditor() {
-  ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f),
-                     ICON_MD_GRID_ON " Common Tiles Reference");
-  ImGui::Separator();
+  const auto& theme = AgentUI::GetTheme();
+  AgentUI::RenderSectionHeader(ICON_MD_GRID_ON, "Common Tiles Reference",
+                               theme.accent_color);
   ImGui::Spacing();
 
   ImGui::TextWrapped(
@@ -949,7 +864,6 @@ void AgentEditor::DrawCommonTilesEditor() {
 
   ImGui::Spacing();
 
-  // Load/Save buttons
   if (ImGui::Button(ICON_MD_FOLDER_OPEN " Load", ImVec2(100, 0))) {
     auto content = AssetLoader::LoadTextFile("agent/common_tiles.txt");
     if (content.ok()) {
@@ -964,11 +878,10 @@ void AgentEditor::DrawCommonTilesEditor() {
 
   ImGui::SameLine();
   if (ImGui::Button(ICON_MD_SAVE " Save", ImVec2(100, 0))) {
-    // Save to project or assets directory
     if (toast_manager_) {
-      toast_manager_->Show(ICON_MD_INFO
-                           " Save to project directory (coming soon)",
-                           ToastType::kInfo, 2.0f);
+      toast_manager_->Show(
+          ICON_MD_INFO " Save to project directory (coming soon)",
+          ToastType::kInfo, 2.0f);
     }
   }
 
@@ -980,13 +893,11 @@ void AgentEditor::DrawCommonTilesEditor() {
     ImGui::SetTooltip("Reload from disk");
   }
 
-  // Load if not initialized
   if (!common_tiles_initialized_ && common_tiles_editor_) {
     auto content = AssetLoader::LoadTextFile("agent/common_tiles.txt");
     if (content.ok()) {
       common_tiles_editor_->SetText(*content);
     } else {
-      // Create default template
       std::string default_tiles =
           "# Common Tile16 Reference\n"
           "# Format: 0xHEX = Description\n\n"
@@ -1006,7 +917,6 @@ void AgentEditor::DrawCommonTilesEditor() {
   ImGui::Separator();
   ImGui::Spacing();
 
-  // Editor
   if (common_tiles_editor_) {
     ImVec2 editor_size(ImGui::GetContentRegionAvail().x,
                        ImGui::GetContentRegionAvail().y);
@@ -1015,57 +925,38 @@ void AgentEditor::DrawCommonTilesEditor() {
 }
 
 void AgentEditor::DrawNewPromptCreator() {
-  ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f),
-                     ICON_MD_ADD " Create New System Prompt");
-  ImGui::Separator();
+  const auto& theme = AgentUI::GetTheme();
+  AgentUI::RenderSectionHeader(ICON_MD_ADD, "Create New System Prompt",
+                               theme.accent_color);
   ImGui::Spacing();
 
   ImGui::TextWrapped(
-      "Create a custom system prompt from scratch or use a template.");
-
-  ImGui::Spacing();
+      "Create a custom system prompt from scratch or start from a template.");
   ImGui::Separator();
 
-  // Prompt name input
   ImGui::Text("Prompt Name:");
   ImGui::SetNextItemWidth(-1);
   ImGui::InputTextWithHint("##new_prompt_name", "e.g., custom_prompt.txt",
                            new_prompt_name_, sizeof(new_prompt_name_));
 
   ImGui::Spacing();
-
-  // Template selection
   ImGui::Text("Start from template:");
 
-  if (ImGui::Button(ICON_MD_FILE_COPY " v1 (Basic)", ImVec2(-1, 0))) {
-    auto content = AssetLoader::LoadTextFile("agent/system_prompt.txt");
-    if (content.ok() && prompt_editor_) {
-      prompt_editor_->SetText(*content);
-      if (toast_manager_) {
-        toast_manager_->Show("Template v1 loaded", ToastType::kSuccess, 1.5f);
+  auto LoadTemplate = [&](const char* path, const char* label) {
+    if (ImGui::Button(label, ImVec2(-1, 0))) {
+      auto content = AssetLoader::LoadTextFile(path);
+      if (content.ok() && prompt_editor_) {
+        prompt_editor_->SetText(*content);
+        if (toast_manager_) {
+          toast_manager_->Show("Template loaded", ToastType::kSuccess, 1.5f);
+        }
       }
     }
-  }
+  };
 
-  if (ImGui::Button(ICON_MD_FILE_COPY " v2 (Enhanced)", ImVec2(-1, 0))) {
-    auto content = AssetLoader::LoadTextFile("agent/system_prompt_v2.txt");
-    if (content.ok() && prompt_editor_) {
-      prompt_editor_->SetText(*content);
-      if (toast_manager_) {
-        toast_manager_->Show("Template v2 loaded", ToastType::kSuccess, 1.5f);
-      }
-    }
-  }
-
-  if (ImGui::Button(ICON_MD_FILE_COPY " v3 (Proactive)", ImVec2(-1, 0))) {
-    auto content = AssetLoader::LoadTextFile("agent/system_prompt_v3.txt");
-    if (content.ok() && prompt_editor_) {
-      prompt_editor_->SetText(*content);
-      if (toast_manager_) {
-        toast_manager_->Show("Template v3 loaded", ToastType::kSuccess, 1.5f);
-      }
-    }
-  }
+  LoadTemplate("agent/system_prompt.txt", ICON_MD_FILE_COPY " v1 (Basic)");
+  LoadTemplate("agent/system_prompt_v2.txt", ICON_MD_FILE_COPY " v2 (Enhanced)");
+  LoadTemplate("agent/system_prompt_v3.txt", ICON_MD_FILE_COPY " v3 (Proactive)");
 
   if (ImGui::Button(ICON_MD_NOTE_ADD " Blank Template", ImVec2(-1, 0))) {
     if (prompt_editor_) {
@@ -1076,11 +967,6 @@ void AgentEditor::DrawNewPromptCreator() {
           "- Help users understand ROM data\n"
           "- Provide accurate information\n"
           "- Use tools when needed\n\n"
-          "## Available Tools\n"
-          "- resource-list: List resources by type\n"
-          "- dungeon-describe-room: Get room details\n"
-          "- overworld-find-tile: Find tile locations\n"
-          "- ... (see function schemas for complete list)\n\n"
           "## Guidelines\n"
           "1. Always provide text_response after tool calls\n"
           "2. Be helpful and accurate\n"
@@ -1096,24 +982,18 @@ void AgentEditor::DrawNewPromptCreator() {
   ImGui::Spacing();
   ImGui::Separator();
 
-  // Save button
-  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.133f, 0.545f, 0.133f, 0.8f));
+  ImGui::PushStyleColor(ImGuiCol_Button, theme.status_success);
   if (ImGui::Button(ICON_MD_SAVE " Save New Prompt", ImVec2(-1, 40))) {
     if (std::strlen(new_prompt_name_) > 0 && prompt_editor_) {
-      // Save to assets/agent/ directory
       std::string filename = new_prompt_name_;
       if (!absl::EndsWith(filename, ".txt")) {
         filename += ".txt";
       }
-
-      // TODO: Actually save the file
       if (toast_manager_) {
         toast_manager_->Show(
             absl::StrFormat(ICON_MD_SAVE " Prompt saved as %s", filename),
             ToastType::kSuccess, 3.0f);
       }
-
-      // Clear name buffer
       std::memset(new_prompt_name_, 0, sizeof(new_prompt_name_));
     } else if (toast_manager_) {
       toast_manager_->Show(ICON_MD_WARNING " Enter a name for the prompt",
@@ -1124,19 +1004,23 @@ void AgentEditor::DrawNewPromptCreator() {
 
   ImGui::Spacing();
   ImGui::TextWrapped(
-      "Note: New prompts are saved to your project. Use 'System Prompt' tab to "
+      "Note: New prompts are saved to your project. Use the Prompt Editor to "
       "edit existing prompts.");
 }
 
 void AgentEditor::DrawAgentBuilderPanel() {
-  if (!chat_widget_) {
-    ImGui::TextDisabled("Chat widget not initialized.");
+  const auto& theme = AgentUI::GetTheme();
+  AgentUI::RenderSectionHeader(ICON_MD_AUTO_FIX_HIGH, "Agent Builder",
+                               theme.accent_color);
+
+  if (!agent_chat_) {
+    ImGui::TextDisabled("Chat system not initialized.");
     return;
   }
 
   ImGui::BeginChild("AgentBuilderPanel", ImVec2(0, 0), false);
   ImGui::Columns(2, nullptr, false);
-  ImGui::TextColored(ImVec4(0.8f, 0.8f, 1.0f, 1.0f), "Stages");
+  ImGui::TextColored(theme.accent_color, "Stages");
   ImGui::Separator();
 
   for (size_t i = 0; i < builder_state_.stages.size(); ++i) {
@@ -1152,7 +1036,7 @@ void AgentEditor::DrawAgentBuilderPanel() {
   }
 
   ImGui::NextColumn();
-  ImGui::TextColored(ImVec4(0.9f, 0.9f, 0.6f, 1.0f), "Stage Details");
+  ImGui::TextColored(theme.text_info, "Stage Details");
   ImGui::Separator();
 
   int stage_index =
@@ -1164,6 +1048,7 @@ void AgentEditor::DrawAgentBuilderPanel() {
       ++completed_stages;
     }
   }
+
   switch (stage_index) {
     case 0: {
       static std::string new_goal;
@@ -1214,8 +1099,8 @@ void AgentEditor::DrawAgentBuilderPanel() {
       ImGui::Checkbox("Auto-focus proposal drawer",
                       &builder_state_.auto_focus_proposals);
       ImGui::TextWrapped(
-          "Enable these options to push harness dashboards/test plans whenever "
-          "the builder executes a plan.");
+          "Enable these options to push harness dashboards/test plans when "
+          "executing plans.");
       break;
     }
     case 3: {
@@ -1238,8 +1123,6 @@ void AgentEditor::DrawAgentBuilderPanel() {
                              .c_str());
       ImGui::Checkbox("Ready for automation handoff",
                       &builder_state_.ready_for_e2e);
-      ImGui::TextDisabled("Harness auto-run: %s",
-                          builder_state_.auto_run_tests ? "ON" : "OFF");
       ImGui::TextDisabled("Auto-sync ROM: %s",
                           builder_state_.auto_sync_rom ? "ON" : "OFF");
       ImGui::TextDisabled("Auto-focus proposals: %s",
@@ -1262,21 +1145,31 @@ void AgentEditor::DrawAgentBuilderPanel() {
                       builder_state_.ready_for_e2e ? "Yes" : "No");
 
   if (ImGui::Button(ICON_MD_LINK " Apply to Chat")) {
-    auto config = chat_widget_->GetAgentConfig();
-    config.tool_config.resources = builder_state_.tools.resources;
-    config.tool_config.dungeon = builder_state_.tools.dungeon;
-    config.tool_config.overworld = builder_state_.tools.overworld;
-    config.tool_config.dialogue = builder_state_.tools.dialogue;
-    config.tool_config.gui = builder_state_.tools.gui;
-    config.tool_config.music = builder_state_.tools.music;
-    config.tool_config.sprite = builder_state_.tools.sprite;
-    config.tool_config.emulator = builder_state_.tools.emulator;
-    chat_widget_->UpdateAgentConfig(config);
-    chat_widget_->ApplyBuilderPersona(builder_state_.persona_notes,
-                                      builder_state_.goals);
-    chat_widget_->ApplyAutomationPlan(builder_state_.auto_run_tests,
-                                      builder_state_.auto_sync_rom,
-                                      builder_state_.auto_focus_proposals);
+    auto* service = agent_chat_->GetAgentService();
+    if (service) {
+      cli::agent::ToolDispatcher::ToolPreferences prefs;
+      prefs.resources = builder_state_.tools.resources;
+      prefs.dungeon = builder_state_.tools.dungeon;
+      prefs.overworld = builder_state_.tools.overworld;
+      prefs.dialogue = builder_state_.tools.dialogue;
+      prefs.gui = builder_state_.tools.gui;
+      prefs.music = builder_state_.tools.music;
+      prefs.sprite = builder_state_.tools.sprite;
+#ifdef YAZE_WITH_GRPC
+      prefs.emulator = builder_state_.tools.emulator;
+#endif
+      service->SetToolPreferences(prefs);
+
+      auto agent_cfg = service->GetConfig();
+      agent_cfg.max_tool_iterations = current_profile_.max_tool_iterations;
+      agent_cfg.max_retry_attempts = current_profile_.max_retry_attempts;
+      agent_cfg.verbose = current_profile_.verbose;
+      agent_cfg.show_reasoning = current_profile_.show_reasoning;
+      service->SetConfig(agent_cfg);
+    }
+
+    agent_chat_->SetLastPlanSummary(builder_state_.persona_notes);
+
     if (toast_manager_) {
       toast_manager_->Show("Builder tool plan synced to chat",
                            ToastType::kSuccess, 2.0f);
@@ -1298,8 +1191,8 @@ void AgentEditor::DrawAgentBuilderPanel() {
         toast_manager_->Show("Builder blueprint saved", ToastType::kSuccess,
                              2.0f);
       } else {
-        toast_manager_->Show(std::string(status.message().data(), status.message().size()), ToastType::kError,
-                             3.5f);
+        toast_manager_->Show(std::string(status.message()),
+                             ToastType::kError, 3.5f);
       }
     }
   }
@@ -1311,8 +1204,8 @@ void AgentEditor::DrawAgentBuilderPanel() {
         toast_manager_->Show("Builder blueprint loaded", ToastType::kSuccess,
                              2.0f);
       } else {
-        toast_manager_->Show(std::string(status.message().data(), status.message().size()), ToastType::kError,
-                             3.5f);
+        toast_manager_->Show(std::string(status.message()),
+                             ToastType::kError, 3.5f);
       }
     }
   }
@@ -1320,8 +1213,7 @@ void AgentEditor::DrawAgentBuilderPanel() {
   ImGui::EndChild();
 }
 
-absl::Status AgentEditor::SaveBuilderBlueprint(
-    const std::filesystem::path& path) {
+absl::Status AgentEditor::SaveBuilderBlueprint(const std::filesystem::path& path) {
 #if defined(YAZE_WITH_JSON)
   nlohmann::json json;
   json["persona_notes"] = builder_state_.persona_notes;
@@ -1363,8 +1255,7 @@ absl::Status AgentEditor::SaveBuilderBlueprint(
 #endif
 }
 
-absl::Status AgentEditor::LoadBuilderBlueprint(
-    const std::filesystem::path& path) {
+absl::Status AgentEditor::LoadBuilderBlueprint(const std::filesystem::path& path) {
 #if defined(YAZE_WITH_JSON)
   std::ifstream file(path);
   if (!file.is_open()) {
@@ -1418,10 +1309,10 @@ absl::Status AgentEditor::LoadBuilderBlueprint(
 #endif
 }
 
-// Bot Profile Management Implementation
 absl::Status AgentEditor::SaveBotProfile(const BotProfile& profile) {
 #if defined(YAZE_WITH_JSON)
-  RETURN_IF_ERROR(EnsureProfilesDirectory());
+  auto dir_status = EnsureProfilesDirectory();
+  if (!dir_status.ok()) return dir_status;
 
   std::filesystem::path profile_path =
       GetProfilesDirectory() / (profile.name + ".json");
@@ -1432,11 +1323,7 @@ absl::Status AgentEditor::SaveBotProfile(const BotProfile& profile) {
 
   file << ProfileToJson(profile);
   file.close();
-
-  // Reload profiles list
-  Load();
-
-  return absl::OkStatus();
+  return Load();
 #else
   return absl::UnimplementedError(
       "JSON support required for profile management");
@@ -1459,21 +1346,27 @@ absl::Status AgentEditor::LoadBotProfile(const std::string& name) {
   std::string json_content((std::istreambuf_iterator<char>(file)),
                            std::istreambuf_iterator<char>());
 
-  ASSIGN_OR_RETURN(auto profile, JsonToProfile(json_content));
-  current_profile_ = profile;
+  auto profile_or = JsonToProfile(json_content);
+  if (!profile_or.ok()) {
+    return profile_or.status();
+  }
+  current_profile_ = *profile_or;
 
-  // Update legacy config
-  current_config_.provider = profile.provider;
-  current_config_.model = profile.model;
-  current_config_.ollama_host = profile.ollama_host;
-  current_config_.gemini_api_key = profile.gemini_api_key;
-  current_config_.verbose = profile.verbose;
-  current_config_.show_reasoning = profile.show_reasoning;
-  current_config_.max_tool_iterations = profile.max_tool_iterations;
+  current_config_.provider = current_profile_.provider;
+  current_config_.model = current_profile_.model;
+  current_config_.ollama_host = current_profile_.ollama_host;
+  current_config_.gemini_api_key = current_profile_.gemini_api_key;
+  current_config_.openai_api_key = current_profile_.openai_api_key;
+  current_config_.verbose = current_profile_.verbose;
+  current_config_.show_reasoning = current_profile_.show_reasoning;
+  current_config_.max_tool_iterations = current_profile_.max_tool_iterations;
+  current_config_.max_retry_attempts = current_profile_.max_retry_attempts;
+  current_config_.temperature = current_profile_.temperature;
+  current_config_.top_p = current_profile_.top_p;
+  current_config_.max_output_tokens = current_profile_.max_output_tokens;
+  current_config_.stream_responses = current_profile_.stream_responses;
 
-  // Apply to chat widget
   ApplyConfig(current_config_);
-
   return absl::OkStatus();
 #else
   return absl::UnimplementedError(
@@ -1489,11 +1382,7 @@ absl::Status AgentEditor::DeleteBotProfile(const std::string& name) {
   }
 
   std::filesystem::remove(profile_path);
-
-  // Reload profiles list
-  Load();
-
-  return absl::OkStatus();
+  return Load();
 }
 
 std::vector<AgentEditor::BotProfile> AgentEditor::GetAllProfiles() const {
@@ -1502,30 +1391,37 @@ std::vector<AgentEditor::BotProfile> AgentEditor::GetAllProfiles() const {
 
 void AgentEditor::SetCurrentProfile(const BotProfile& profile) {
   current_profile_ = profile;
-
-  // Update legacy config
+  // Sync to legacy config
   current_config_.provider = profile.provider;
   current_config_.model = profile.model;
   current_config_.ollama_host = profile.ollama_host;
   current_config_.gemini_api_key = profile.gemini_api_key;
+  current_config_.openai_api_key = profile.openai_api_key;
   current_config_.verbose = profile.verbose;
   current_config_.show_reasoning = profile.show_reasoning;
   current_config_.max_tool_iterations = profile.max_tool_iterations;
+  current_config_.max_retry_attempts = profile.max_retry_attempts;
+  current_config_.temperature = profile.temperature;
+  current_config_.top_p = profile.top_p;
+  current_config_.max_output_tokens = profile.max_output_tokens;
+  current_config_.stream_responses = profile.stream_responses;
+  ApplyConfig(current_config_);
 }
 
-absl::Status AgentEditor::ExportProfile(const BotProfile& profile,
-                                        const std::filesystem::path& path) {
+absl::Status AgentEditor::ExportProfile(const BotProfile& profile, const std::filesystem::path& path) {
 #if defined(YAZE_WITH_JSON)
+  auto status = SaveBotProfile(profile);
+  if (!status.ok()) return status;
+
   std::ofstream file(path);
   if (!file.is_open()) {
-    return absl::InternalError("Failed to open export file");
+    return absl::InternalError("Failed to open file for export");
   }
-
   file << ProfileToJson(profile);
-  file.close();
-
   return absl::OkStatus();
 #else
+  (void)profile;
+  (void)path;
   return absl::UnimplementedError("JSON support required");
 #endif
 }
@@ -1544,11 +1440,14 @@ absl::Status AgentEditor::ImportProfile(const std::filesystem::path& path) {
   std::string json_content((std::istreambuf_iterator<char>(file)),
                            std::istreambuf_iterator<char>());
 
-  ASSIGN_OR_RETURN(auto profile, JsonToProfile(json_content));
+  auto profile_or = JsonToProfile(json_content);
+  if (!profile_or.ok()) {
+    return profile_or.status();
+  }
 
-  // Save as new profile
-  return SaveBotProfile(profile);
+  return SaveBotProfile(*profile_or);
 #else
+  (void)path;
   return absl::UnimplementedError("JSON support required");
 #endif
 }
@@ -1556,7 +1455,6 @@ absl::Status AgentEditor::ImportProfile(const std::filesystem::path& path) {
 std::filesystem::path AgentEditor::GetProfilesDirectory() const {
   auto config_dir = yaze::util::PlatformPaths::GetConfigDirectory();
   if (!config_dir.ok()) {
-    // Fallback to a local directory if config can't be determined.
     return std::filesystem::current_path() / ".yaze" / "agent" / "profiles";
   }
   return *config_dir / "agent" / "profiles";
@@ -1567,8 +1465,9 @@ absl::Status AgentEditor::EnsureProfilesDirectory() {
   std::error_code ec;
   std::filesystem::create_directories(dir, ec);
   if (ec) {
-    return absl::InternalError(absl::StrFormat(
-        "Failed to create profiles directory: %s", ec.message()));
+    return absl::InternalError(
+        absl::StrFormat("Failed to create profiles directory: %s",
+                        ec.message()));
   }
   return absl::OkStatus();
 }
@@ -1582,11 +1481,16 @@ std::string AgentEditor::ProfileToJson(const BotProfile& profile) const {
   json["model"] = profile.model;
   json["ollama_host"] = profile.ollama_host;
   json["gemini_api_key"] = profile.gemini_api_key;
+  json["openai_api_key"] = profile.openai_api_key;
   json["system_prompt"] = profile.system_prompt;
   json["verbose"] = profile.verbose;
   json["show_reasoning"] = profile.show_reasoning;
   json["max_tool_iterations"] = profile.max_tool_iterations;
   json["max_retry_attempts"] = profile.max_retry_attempts;
+  json["temperature"] = profile.temperature;
+  json["top_p"] = profile.top_p;
+  json["max_output_tokens"] = profile.max_output_tokens;
+  json["stream_responses"] = profile.stream_responses;
   json["tags"] = profile.tags;
   json["created_at"] = absl::FormatTime(absl::RFC3339_full, profile.created_at,
                                         absl::UTCTimeZone());
@@ -1599,8 +1503,7 @@ std::string AgentEditor::ProfileToJson(const BotProfile& profile) const {
 #endif
 }
 
-absl::StatusOr<AgentEditor::BotProfile> AgentEditor::JsonToProfile(
-    const std::string& json_str) const {
+absl::StatusOr<AgentEditor::BotProfile> AgentEditor::JsonToProfile(const std::string& json_str) const {
 #if defined(YAZE_WITH_JSON)
   try {
     nlohmann::json json = nlohmann::json::parse(json_str);
@@ -1612,11 +1515,16 @@ absl::StatusOr<AgentEditor::BotProfile> AgentEditor::JsonToProfile(
     profile.model = json.value("model", "");
     profile.ollama_host = json.value("ollama_host", "http://localhost:11434");
     profile.gemini_api_key = json.value("gemini_api_key", "");
+    profile.openai_api_key = json.value("openai_api_key", "");
     profile.system_prompt = json.value("system_prompt", "");
     profile.verbose = json.value("verbose", false);
     profile.show_reasoning = json.value("show_reasoning", true);
     profile.max_tool_iterations = json.value("max_tool_iterations", 4);
     profile.max_retry_attempts = json.value("max_retry_attempts", 3);
+    profile.temperature = json.value("temperature", 0.25f);
+    profile.top_p = json.value("top_p", 0.95f);
+    profile.max_output_tokens = json.value("max_output_tokens", 2048);
+    profile.stream_responses = json.value("stream_responses", false);
 
     if (json.contains("tags") && json["tags"].is_array()) {
       for (const auto& tag : json["tags"]) {
@@ -1652,7 +1560,6 @@ absl::StatusOr<AgentEditor::BotProfile> AgentEditor::JsonToProfile(
 #endif
 }
 
-// Legacy methods
 AgentEditor::AgentConfig AgentEditor::GetCurrentConfig() const {
   return current_config_;
 }
@@ -1660,27 +1567,40 @@ AgentEditor::AgentConfig AgentEditor::GetCurrentConfig() const {
 void AgentEditor::ApplyConfig(const AgentConfig& config) {
   current_config_ = config;
 
-  // Apply to chat widget if available
-  if (chat_widget_) {
-    AgentChatWidget::AgentConfigState chat_config;
-    chat_config.ai_provider = config.provider;
-    chat_config.ai_model = config.model;
-    chat_config.ollama_host = config.ollama_host;
-    chat_config.gemini_api_key = config.gemini_api_key;
-    chat_config.verbose = config.verbose;
-    chat_config.show_reasoning = config.show_reasoning;
-    chat_config.max_tool_iterations = config.max_tool_iterations;
-    chat_widget_->UpdateAgentConfig(chat_config);
+  if (agent_chat_) {
+    auto* service = agent_chat_->GetAgentService();
+    if (service) {
+      cli::AIServiceConfig provider_config;
+      provider_config.provider =
+          config.provider.empty() ? "auto" : config.provider;
+      provider_config.model = config.model;
+      provider_config.ollama_host = config.ollama_host;
+      provider_config.gemini_api_key = config.gemini_api_key;
+      provider_config.openai_api_key = config.openai_api_key;
+      provider_config.verbose = config.verbose;
+
+      auto status = service->ConfigureProvider(provider_config);
+      if (!status.ok() && toast_manager_) {
+        toast_manager_->Show(std::string(status.message()), ToastType::kError);
+      }
+
+      auto agent_cfg = service->GetConfig();
+      agent_cfg.max_tool_iterations = config.max_tool_iterations;
+      agent_cfg.max_retry_attempts = config.max_retry_attempts;
+      agent_cfg.verbose = config.verbose;
+      agent_cfg.show_reasoning = config.show_reasoning;
+      service->SetConfig(agent_cfg);
+    }
   }
 }
 
 bool AgentEditor::IsChatActive() const {
-  return chat_widget_ && chat_widget_->is_active();
+  return agent_chat_ && *agent_chat_->active();
 }
 
 void AgentEditor::SetChatActive(bool active) {
-  if (chat_widget_) {
-    chat_widget_->set_active(active);
+  if (agent_chat_) {
+    agent_chat_->set_active(active);
   }
 }
 
@@ -1689,40 +1609,33 @@ void AgentEditor::ToggleChat() {
 }
 
 void AgentEditor::OpenChatWindow() {
-  if (chat_widget_) {
-    chat_widget_->set_active(true);
+  if (agent_chat_) {
+    agent_chat_->set_active(true);
   }
 }
 
-absl::StatusOr<AgentEditor::SessionInfo> AgentEditor::HostSession(
-    const std::string& session_name, CollaborationMode mode) {
+absl::StatusOr<AgentEditor::SessionInfo> AgentEditor::HostSession(const std::string& session_name, CollaborationMode mode) {
   current_mode_ = mode;
 
   if (mode == CollaborationMode::kLocal) {
-    ASSIGN_OR_RETURN(auto session,
-                     local_coordinator_->HostSession(session_name));
+    auto session_or = local_coordinator_->HostSession(session_name);
+    if (!session_or.ok()) return session_or.status();
 
     SessionInfo info;
-    info.session_id = session.session_id;
-    info.session_name = session.session_name;
-    info.participants = session.participants;
+    info.session_id = session_or->session_id;
+    info.session_name = session_or->session_name;
+    info.participants = session_or->participants;
 
     in_session_ = true;
     current_session_id_ = info.session_id;
     current_session_name_ = info.session_name;
     current_participants_ = info.participants;
 
-    // Switch chat to shared history
-    if (chat_widget_) {
-      chat_widget_->SwitchToSharedHistory(info.session_id);
-    }
-
     if (toast_manager_) {
       toast_manager_->Show(
           absl::StrFormat("Hosting local session: %s", session_name),
-          ToastType::kSuccess, 3.5f);
+          ToastType::kSuccess, 3.0f);
     }
-
     return info;
   }
 
@@ -1741,13 +1654,14 @@ absl::StatusOr<AgentEditor::SessionInfo> AgentEditor::HostSession(
       username = "unknown";
     }
 
-    ASSIGN_OR_RETURN(auto session,
-                     network_coordinator_->HostSession(session_name, username));
+    auto session_or =
+        network_coordinator_->HostSession(session_name, username);
+    if (!session_or.ok()) return session_or.status();
 
     SessionInfo info;
-    info.session_id = session.session_id;
-    info.session_name = session.session_name;
-    info.participants = session.participants;
+    info.session_id = session_or->session_id;
+    info.session_name = session_or->session_name;
+    info.participants = session_or->participants;
 
     in_session_ = true;
     current_session_id_ = info.session_id;
@@ -1757,7 +1671,7 @@ absl::StatusOr<AgentEditor::SessionInfo> AgentEditor::HostSession(
     if (toast_manager_) {
       toast_manager_->Show(
           absl::StrFormat("Hosting network session: %s", session_name),
-          ToastType::kSuccess, 3.5f);
+          ToastType::kSuccess, 3.0f);
     }
 
     return info;
@@ -1767,33 +1681,27 @@ absl::StatusOr<AgentEditor::SessionInfo> AgentEditor::HostSession(
   return absl::InvalidArgumentError("Unsupported collaboration mode");
 }
 
-absl::StatusOr<AgentEditor::SessionInfo> AgentEditor::JoinSession(
-    const std::string& session_code, CollaborationMode mode) {
+absl::StatusOr<AgentEditor::SessionInfo> AgentEditor::JoinSession(const std::string& session_code, CollaborationMode mode) {
   current_mode_ = mode;
 
   if (mode == CollaborationMode::kLocal) {
-    ASSIGN_OR_RETURN(auto session,
-                     local_coordinator_->JoinSession(session_code));
+    auto session_or = local_coordinator_->JoinSession(session_code);
+    if (!session_or.ok()) return session_or.status();
 
     SessionInfo info;
-    info.session_id = session.session_id;
-    info.session_name = session.session_name;
-    info.participants = session.participants;
+    info.session_id = session_or->session_id;
+    info.session_name = session_or->session_name;
+    info.participants = session_or->participants;
 
     in_session_ = true;
     current_session_id_ = info.session_id;
     current_session_name_ = info.session_name;
     current_participants_ = info.participants;
 
-    // Switch chat to shared history
-    if (chat_widget_) {
-      chat_widget_->SwitchToSharedHistory(info.session_id);
-    }
-
     if (toast_manager_) {
       toast_manager_->Show(
           absl::StrFormat("Joined local session: %s", session_code),
-          ToastType::kSuccess, 3.5f);
+          ToastType::kSuccess, 3.0f);
     }
 
     return info;
@@ -1814,13 +1722,13 @@ absl::StatusOr<AgentEditor::SessionInfo> AgentEditor::JoinSession(
       username = "unknown";
     }
 
-    ASSIGN_OR_RETURN(auto session,
-                     network_coordinator_->JoinSession(session_code, username));
+    auto session_or = network_coordinator_->JoinSession(session_code, username);
+    if (!session_or.ok()) return session_or.status();
 
     SessionInfo info;
-    info.session_id = session.session_id;
-    info.session_name = session.session_name;
-    info.participants = session.participants;
+    info.session_id = session_or->session_id;
+    info.session_name = session_or->session_name;
+    info.participants = session_or->participants;
 
     in_session_ = true;
     current_session_id_ = info.session_id;
@@ -1830,7 +1738,7 @@ absl::StatusOr<AgentEditor::SessionInfo> AgentEditor::JoinSession(
     if (toast_manager_) {
       toast_manager_->Show(
           absl::StrFormat("Joined network session: %s", session_code),
-          ToastType::kSuccess, 3.5f);
+          ToastType::kSuccess, 3.0f);
     }
 
     return info;
@@ -1846,20 +1754,17 @@ absl::Status AgentEditor::LeaveSession() {
   }
 
   if (current_mode_ == CollaborationMode::kLocal) {
-    RETURN_IF_ERROR(local_coordinator_->LeaveSession());
+    auto status = local_coordinator_->LeaveSession();
+    if (!status.ok()) return status;
   }
 #ifdef YAZE_WITH_GRPC
   else if (current_mode_ == CollaborationMode::kNetwork) {
     if (network_coordinator_) {
-      RETURN_IF_ERROR(network_coordinator_->LeaveSession());
+      auto status = network_coordinator_->LeaveSession();
+      if (!status.ok()) return status;
     }
   }
 #endif
-
-  // Switch chat back to local history
-  if (chat_widget_) {
-    chat_widget_->SwitchToLocalHistory();
-  }
 
   in_session_ = false;
   current_session_id_.clear();
@@ -1879,19 +1784,17 @@ absl::StatusOr<AgentEditor::SessionInfo> AgentEditor::RefreshSession() {
   }
 
   if (current_mode_ == CollaborationMode::kLocal) {
-    ASSIGN_OR_RETURN(auto session, local_coordinator_->RefreshSession());
+    auto session_or = local_coordinator_->RefreshSession();
+    if (!session_or.ok()) return session_or.status();
 
     SessionInfo info;
-    info.session_id = session.session_id;
-    info.session_name = session.session_name;
-    info.participants = session.participants;
-
+    info.session_id = session_or->session_id;
+    info.session_name = session_or->session_name;
+    info.participants = session_or->participants;
     current_participants_ = info.participants;
-
     return info;
   }
 
-  // Network mode doesn't need explicit refresh - it's real-time
   SessionInfo info;
   info.session_id = current_session_id_;
   info.session_name = current_session_name_;
@@ -1899,18 +1802,95 @@ absl::StatusOr<AgentEditor::SessionInfo> AgentEditor::RefreshSession() {
   return info;
 }
 
-absl::Status AgentEditor::CaptureSnapshot(
-    [[maybe_unused]] std::filesystem::path* output_path,
-    [[maybe_unused]] const CaptureConfig& config) {
-  return absl::UnimplementedError(
-      "CaptureSnapshot should be called through the chat widget UI");
+absl::Status AgentEditor::CaptureSnapshot(std::filesystem::path* output_path, const CaptureConfig& config) {
+#ifdef YAZE_WITH_GRPC
+  using yaze::test::CaptureActiveWindow;
+  using yaze::test::CaptureHarnessScreenshot;
+  using yaze::test::CaptureWindowByName;
+
+  absl::StatusOr<yaze::test::ScreenshotArtifact> result;
+  switch (config.mode) {
+    case CaptureConfig::CaptureMode::kFullWindow:
+      result = CaptureHarnessScreenshot("");
+      break;
+    case CaptureConfig::CaptureMode::kActiveEditor:
+      result = CaptureActiveWindow("");
+      if (!result.ok()) {
+        result = CaptureHarnessScreenshot("");
+      }
+      break;
+    case CaptureConfig::CaptureMode::kSpecificWindow: {
+      if (!config.specific_window_name.empty()) {
+        result = CaptureWindowByName(config.specific_window_name, "");
+      } else {
+        result = CaptureActiveWindow("");
+      }
+      if (!result.ok()) {
+        result = CaptureHarnessScreenshot("");
+      }
+      break;
+    }
+  }
+
+  if (!result.ok()) {
+    return result.status();
+  }
+  *output_path = result->file_path;
+  return absl::OkStatus();
+#else
+  (void)output_path;
+  (void)config;
+  return absl::UnimplementedError("Screenshot capture requires YAZE_WITH_GRPC");
+#endif
 }
 
-absl::Status AgentEditor::SendToGemini(
-    [[maybe_unused]] const std::filesystem::path& image_path,
-    [[maybe_unused]] const std::string& prompt) {
-  return absl::UnimplementedError(
-      "SendToGemini should be called through the chat widget UI");
+absl::Status AgentEditor::SendToGemini(const std::filesystem::path& image_path, const std::string& prompt) {
+#ifdef YAZE_WITH_GRPC
+  const char* api_key =
+      current_profile_.gemini_api_key.empty()
+          ? std::getenv("GEMINI_API_KEY")
+          : current_profile_.gemini_api_key.c_str();
+  if (!api_key || std::strlen(api_key) == 0) {
+    return absl::FailedPreconditionError(
+        "Gemini API key not configured (set GEMINI_API_KEY)");
+  }
+
+  cli::GeminiConfig config;
+  config.api_key = api_key;
+  config.model = current_profile_.model.empty() ? "gemini-2.5-flash"
+                                                : current_profile_.model;
+  config.verbose = current_profile_.verbose;
+
+  cli::GeminiAIService gemini_service(config);
+  auto response =
+      gemini_service.GenerateMultimodalResponse(image_path.string(), prompt);
+  if (!response.ok()) {
+    return response.status();
+  }
+
+  if (agent_chat_) {
+    auto* service = agent_chat_->GetAgentService();
+    if (service) {
+      auto history = service->GetHistory();
+      cli::agent::ChatMessage agent_msg;
+      agent_msg.sender = cli::agent::ChatMessage::Sender::kAgent;
+      agent_msg.message = response->text_response;
+      agent_msg.timestamp = absl::Now();
+      history.push_back(agent_msg);
+      service->ReplaceHistory(history);
+    }
+  }
+
+  if (toast_manager_) {
+    toast_manager_->Show("Gemini vision response added to chat",
+                         ToastType::kSuccess, 2.5f);
+  }
+  return absl::OkStatus();
+#else
+  (void)image_path;
+  (void)prompt;
+  return absl::UnimplementedError("Gemini integration requires YAZE_WITH_GRPC");
+#endif
 }
 
 #ifdef YAZE_WITH_GRPC
@@ -1948,81 +1928,19 @@ bool AgentEditor::IsConnectedToServer() const {
 }
 #endif
 
-bool AgentEditor::IsInSession() const {
-  return in_session_;
-}
+bool AgentEditor::IsInSession() const { return in_session_; }
 
-AgentEditor::CollaborationMode AgentEditor::GetCurrentMode() const {
-  return current_mode_;
-}
+AgentEditor::CollaborationMode AgentEditor::GetCurrentMode() const { return current_mode_; }
 
 std::optional<AgentEditor::SessionInfo> AgentEditor::GetCurrentSession() const {
-  if (!in_session_) {
-    return std::nullopt;
-  }
-
-  SessionInfo info;
-  info.session_id = current_session_id_;
-  info.session_name = current_session_name_;
-  info.participants = current_participants_;
-  return info;
-}
-
-void AgentEditor::SetupChatWidgetCallbacks() {
-  if (!chat_widget_) {
-    return;
-  }
-
-  AgentChatWidget::CollaborationCallbacks collab_callbacks;
-
-  collab_callbacks.host_session = [this](const std::string& session_name)
-      -> absl::StatusOr<
-          AgentChatWidget::CollaborationCallbacks::SessionContext> {
-    ASSIGN_OR_RETURN(auto session,
-                     this->HostSession(session_name, current_mode_));
-
-    AgentChatWidget::CollaborationCallbacks::SessionContext context;
-    context.session_id = session.session_id;
-    context.session_name = session.session_name;
-    context.participants = session.participants;
-    return context;
-  };
-
-  collab_callbacks.join_session = [this](const std::string& session_code)
-      -> absl::StatusOr<
-          AgentChatWidget::CollaborationCallbacks::SessionContext> {
-    ASSIGN_OR_RETURN(auto session,
-                     this->JoinSession(session_code, current_mode_));
-
-    AgentChatWidget::CollaborationCallbacks::SessionContext context;
-    context.session_id = session.session_id;
-    context.session_name = session.session_name;
-    context.participants = session.participants;
-    return context;
-  };
-
-  collab_callbacks.leave_session = [this]() {
-    return this->LeaveSession();
-  };
-
-  collab_callbacks.refresh_session =
-      [this]() -> absl::StatusOr<
-                   AgentChatWidget::CollaborationCallbacks::SessionContext> {
-    ASSIGN_OR_RETURN(auto session, this->RefreshSession());
-
-    AgentChatWidget::CollaborationCallbacks::SessionContext context;
-    context.session_id = session.session_id;
-    context.session_name = session.session_name;
-    context.participants = session.participants;
-    return context;
-  };
-
-  chat_widget_->SetCollaborationCallbacks(collab_callbacks);
+  if (!in_session_) return std::nullopt;
+  return SessionInfo{ current_session_id_, current_session_name_, current_participants_ };
 }
 
 void AgentEditor::SetupMultimodalCallbacks() {
-  // Multimodal callbacks are set up by the EditorManager since it has
-  // access to the screenshot utilities. We just initialize the structure here.
+}
+
+void AgentEditor::SetupAutomationCallbacks() {
 }
 
 }  // namespace editor

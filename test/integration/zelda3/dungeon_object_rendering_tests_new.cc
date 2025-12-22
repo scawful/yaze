@@ -10,7 +10,7 @@
 
 #include "app/gfx/background_buffer.h"
 #include "app/gfx/snes_palette.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "test_utils.h"
 #include "testing.h"
 #include "zelda3/dungeon/object_drawer.h"
@@ -32,7 +32,7 @@ class DungeonObjectRenderingTests : public TestRomManager::BoundRomTest {
     BoundRomTest::SetUp();
 
     // Create drawer
-    drawer_ = std::make_unique<zelda3::ObjectDrawer>(rom());
+    drawer_ = std::make_unique<zelda3::ObjectDrawer>(rom(), 0);
 
     // Create background buffers
     bg1_ = std::make_unique<gfx::BackgroundBuffer>(512, 512);
@@ -66,7 +66,7 @@ class DungeonObjectRenderingTests : public TestRomManager::BoundRomTest {
   zelda3::RoomObject CreateTestObject(int id, int x, int y, int size = 0x12,
                                       int layer = 0) {
     zelda3::RoomObject obj(id, x, y, size, layer);
-    obj.set_rom(rom());
+    obj.SetRom(rom());
     obj.EnsureTilesLoaded();
     return obj;
   }

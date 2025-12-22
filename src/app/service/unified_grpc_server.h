@@ -125,9 +125,10 @@ class YazeGRPCServer {
   std::unique_ptr<grpc::Server> server_;
   std::unique_ptr<test::ImGuiTestHarnessServiceImpl> test_harness_service_;
   std::unique_ptr<net::RomServiceImpl> rom_service_;
-  std::unique_ptr<CanvasAutomationServiceImpl> canvas_service_;
+  CanvasAutomationServiceImpl* canvas_service_ = nullptr;
   // Store as base grpc::Service* to avoid incomplete type issues
   std::unique_ptr<grpc::Service> canvas_grpc_service_;
+  std::unique_ptr<grpc::Service> test_harness_grpc_wrapper_;
   bool is_running_;
 
   // Build the gRPC server with all services

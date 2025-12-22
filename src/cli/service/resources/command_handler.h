@@ -5,8 +5,10 @@
 #include <vector>
 
 #include "absl/status/status.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "cli/service/resources/command_context.h"
+#include "core/asar_wrapper.h" // For AsarWrapper
+#include "core/project.h"      // For YazeProject
 
 namespace yaze {
 namespace cli {
@@ -67,7 +69,8 @@ class CommandHandler {
    * 4. Business logic execution
    * 5. Output formatting
    */
-  absl::Status Run(const std::vector<std::string>& args, Rom* rom_context);
+  absl::Status Run(const std::vector<std::string>& args, Rom* rom_context,
+                   std::string* captured_output = nullptr);
 
   /**
    * @brief Get the command name
@@ -86,6 +89,38 @@ class CommandHandler {
    * @brief Get the command usage string
    */
   virtual std::string GetUsage() const = 0;
+
+  /**
+   * @brief Check if the command requires a loaded ROM
+   *
+   * Override to return false if ROM is not needed (e.g., filesystem tools).
+   */
+  virtual bool RequiresRom() const { return true; }
+
+  /**
+   * @brief Check if the command requires ROM labels
+   *
+   * Override to return false if labels are not needed.
+   */
+  virtual bool RequiresLabels() const { return false; }
+  
+  /**
+   * @brief Set the YazeProject context.
+   * Default implementation does nothing, override if tool needs project info.
+   */
+  virtual void SetProjectContext(project::YazeProject* project) { project_ = project; }
+  
+  /**
+   * @brief Set the AsarWrapper context.
+   * Default implementation does nothing, override if tool needs Asar access.
+   */
+  virtual void SetAsarWrapper(core::AsarWrapper* asar_wrapper) { asar_wrapper_ = asar_wrapper; }
+
+  /**
+   * @brief Set the ROM context for tools that need ROM access.
+   * Default implementation stores the ROM pointer for subclass use.
+   */
+  virtual void SetRomContext(Rom* rom) { rom_ = rom; }
 
  protected:
   /**
@@ -106,13 +141,6 @@ class CommandHandler {
                                OutputFormatter& formatter) = 0;
 
   /**
-   * @brief Check if the command requires ROM labels
-   *
-   * Override to return false if labels are not needed.
-   */
-  virtual bool RequiresLabels() const { return false; }
-
-  /**
    * @brief Get the default output format ("json" or "text")
    */
   virtual std::string GetDefaultFormat() const { return "json"; }
@@ -121,6 +149,10 @@ class CommandHandler {
    * @brief Get the output title for formatting
    */
   virtual std::string GetOutputTitle() const { return "Result"; }
+
+  Rom* rom_ = nullptr;
+  project::YazeProject* project_ = nullptr;
+  core::AsarWrapper* asar_wrapper_ = nullptr;
 };
 
 /**
@@ -143,16 +175,17 @@ class CommandHandler {
  * )
  * ```
  */
-#define DEFINE_COMMAND_HANDLER(name, usage_str, validate_body, execute_body) \
-  class name##CommandHandler : public CommandHandler {                       \
-   protected:                                                                \
-    std::string GetUsage() const override {                                  \
-      return usage_str;                                                      \
-    }                                                                        \
-    absl::Status ValidateArgs(const ArgumentParser& parser) override         \
-        validate_body absl::Status                                           \
-        Execute(Rom* rom, const ArgumentParser& parser,                      \
-                OutputFormatter& formatter) override execute_body            \
+#define DEFINE_COMMAND_HANDLER(name, usage_str, validate_body, execute_body)        \
+  class name##CommandHandler : public CommandHandler {                              \
+   public:                                                                         \
+    std::string GetName() const override { return #name; }                         \
+    std::string GetUsage() const override { return usage_str; }                    \
+   protected:                                                                      \
+    absl::Status ValidateArgs(const ArgumentParser& parser) override               \
+    validate_body                                                                  \
+    absl::Status Execute(Rom* rom, const ArgumentParser& parser,                   \
+                         OutputFormatter& formatter) override                     \
+    execute_body                                                                   \
   };
 
 }  // namespace resources

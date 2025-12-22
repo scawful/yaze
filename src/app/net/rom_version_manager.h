@@ -8,7 +8,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 
 #ifdef YAZE_WITH_JSON
 #include "nlohmann/json.hpp"

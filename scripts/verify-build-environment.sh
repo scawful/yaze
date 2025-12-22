@@ -114,7 +114,23 @@ function test_git_submodules() {
 }
 
 function test_cmake_cache() {
-    local build_dirs=("build" "build_test" "build-test" "build-grpc-test" "build-rooms" "build-windows" "build_ai" "build_ai_claude" "build_agent" "build_ci")
+    local build_dirs=(
+        "build"
+        "build-wasm"
+        "build-test"
+        "build-grpc-test"
+        "build-rooms"
+        "build-windows"
+        "build_ai"
+        "build_ai_claude"
+        "build_agent"
+        "build_ci"
+        "build_fast"
+        "build_test"
+        "build-wasm-debug"
+        "build_wasm_ai"
+        "build_wasm"
+    )
     local cache_issues=0
     
     for dir in "${build_dirs[@]}"; do
@@ -139,8 +155,8 @@ function test_agent_folder_structure() {
     local agent_files=(
         "src/app/editor/agent/agent_editor.h"
         "src/app/editor/agent/agent_editor.cc"
-        "src/app/editor/agent/agent_chat_widget.h"
-        "src/app/editor/agent/agent_chat_widget.cc"
+        "src/app/editor/agent/agent_chat.h"
+        "src/app/editor/agent/agent_chat.cc"
         "src/app/editor/agent/agent_chat_history_codec.h"
         "src/app/editor/agent/agent_chat_history_codec.cc"
         "src/app/editor/agent/agent_collaboration_coordinator.h"
@@ -148,9 +164,9 @@ function test_agent_folder_structure() {
         "src/app/editor/agent/network_collaboration_coordinator.h"
         "src/app/editor/agent/network_collaboration_coordinator.cc"
     )
-    
+
     local old_system_files=(
-        "src/app/editor/agent/agent_chat_widget.h"
+        "src/app/gui/app/agent_chat_widget.h"
         "src/app/editor/agent/agent_collaboration_coordinator.h"
     )
     
@@ -191,7 +207,23 @@ function test_agent_folder_structure() {
 function clean_cmake_cache() {
     write_status "Cleaning CMake cache and build directories..." "Step"
     
-    local build_dirs=("build" "build_test" "build-test" "build-grpc-test" "build-rooms" "build-windows" "build_ai" "build_ai_claude" "build_agent" "build_ci")
+    local build_dirs=(
+        "build"
+        "build-wasm"
+        "build-test"
+        "build-grpc-test"
+        "build-rooms"
+        "build-windows"
+        "build_ai"
+        "build_ai_claude"
+        "build_agent"
+        "build_ci"
+        "build_fast"
+        "build_test"
+        "build-wasm-debug"
+        "build_wasm_ai"
+        "build_wasm"
+    )
     local cleaned=0
     
     for dir in "${build_dirs[@]}"; do

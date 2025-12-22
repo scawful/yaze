@@ -1,0 +1,414 @@
+/**
+ * Yaze WASM Error Handler Styles
+ * Provides styling for modals, toasts, progress indicators, and confirmations
+ */
+
+/* Modal Overlay */
+.yaze-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.2s ease;
+  backdrop-filter: blur(2px);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Modal Content Container */
+.yaze-modal-content {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  min-width: 320px;
+  max-height: 80vh;
+  overflow: hidden;
+  animation: slideUp 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Modal Header */
+.yaze-modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e5e5;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.yaze-modal-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.yaze-modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  flex: 1;
+}
+
+/* Modal Body */
+.yaze-modal-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.yaze-modal-body p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #555;
+  word-wrap: break-word;
+}
+
+/* Modal Footer */
+.yaze-modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #e5e5e5;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* Modal Buttons */
+.yaze-modal-button {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 80px;
+}
+
+.yaze-modal-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.3);
+}
+
+.yaze-modal-button-primary {
+  background: #4299e1;
+  color: white;
+}
+
+.yaze-modal-button-primary:hover {
+  background: #3182ce;
+}
+
+.yaze-modal-button-secondary {
+  background: #e2e8f0;
+  color: #4a5568;
+}
+
+.yaze-modal-button-secondary:hover {
+  background: #cbd5e0;
+}
+
+/* Modal Type Variants */
+.yaze-modal-error .yaze-modal-header {
+  background: #fff5f5;
+  border-bottom-color: #feb2b2;
+}
+
+.yaze-modal-error .yaze-modal-title {
+  color: #c53030;
+}
+
+.yaze-modal-warning .yaze-modal-header {
+  background: #fffdf7;
+  border-bottom-color: #fbd38d;
+}
+
+.yaze-modal-warning .yaze-modal-title {
+  color: #c05621;
+}
+
+.yaze-modal-info .yaze-modal-header {
+  background: #f7fafc;
+  border-bottom-color: #bee3f8;
+}
+
+.yaze-modal-info .yaze-modal-title {
+  color: #2c5282;
+}
+
+/* Toast Container */
+.yaze-toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 10001;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+}
+
+/* Toast Item */
+.yaze-toast {
+  background: #333;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 280px;
+  max-width: 400px;
+  animation: slideInRight 0.3s ease;
+  pointer-events: auto;
+  position: relative;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.yaze-toast-hiding {
+  animation: slideOutRight 0.3s ease;
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.yaze-toast-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.yaze-toast-message {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.yaze-toast-close {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.yaze-toast-close:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Toast Type Variants */
+.yaze-toast-success {
+  background: #48bb78;
+}
+
+.yaze-toast-warning {
+  background: #ed8936;
+}
+
+.yaze-toast-error {
+  background: #f56565;
+}
+
+.yaze-toast-info {
+  background: #4299e1;
+}
+
+/* Progress Container */
+.yaze-progress-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(3px);
+}
+
+/* Progress Content */
+.yaze-progress-content {
+  background: white;
+  border-radius: 12px;
+  padding: 32px;
+  min-width: 400px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.yaze-progress-label {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.yaze-progress-bar-container {
+  background: #e2e8f0;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.yaze-progress-bar {
+  background: linear-gradient(90deg, #4299e1, #667eea);
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  box-shadow: 0 2px 4px rgba(66, 153, 225, 0.3);
+}
+
+.yaze-progress-percentage {
+  font-size: 14px;
+  color: #718096;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.yaze-progress-cancel {
+  display: block;
+  margin: 0 auto;
+  padding: 8px 24px;
+  background: #e2e8f0;
+  color: #4a5568;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.yaze-progress-cancel:hover {
+  background: #cbd5e0;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  .yaze-modal-content {
+    max-width: 90vw;
+    min-width: 280px;
+    margin: 20px;
+  }
+
+  .yaze-toast-container {
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+  }
+
+  .yaze-toast {
+    max-width: 100%;
+  }
+
+  .yaze-progress-content {
+    min-width: 90vw;
+    padding: 24px;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .yaze-modal-content {
+    background: #2d3748;
+    color: #e2e8f0;
+  }
+
+  .yaze-modal-header {
+    border-bottom-color: #4a5568;
+  }
+
+  .yaze-modal-title {
+    color: #e2e8f0;
+  }
+
+  .yaze-modal-body p {
+    color: #cbd5e0;
+  }
+
+  .yaze-modal-footer {
+    border-top-color: #4a5568;
+  }
+
+  .yaze-progress-content {
+    background: #2d3748;
+  }
+
+  .yaze-progress-label {
+    color: #e2e8f0;
+  }
+
+  .yaze-progress-bar-container {
+    background: #4a5568;
+  }
+
+  .yaze-progress-percentage {
+    color: #a0aec0;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .yaze-modal-overlay,
+  .yaze-toast-container,
+  .yaze-progress-container {
+    display: none !important;
+  }
+}

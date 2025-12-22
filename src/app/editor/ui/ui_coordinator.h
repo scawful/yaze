@@ -6,12 +6,27 @@
 
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
-#include "app/editor/system/popup_manager.h"
+#include "app/editor/ui/popup_manager.h"
 #include "app/editor/ui/welcome_screen.h"
 #include "app/gui/core/icons.h"
+#include "app/startup_flags.h"
 
 namespace yaze {
 namespace editor {
+
+/**
+ * @brief Represents the current startup surface state
+ *
+ * Single source of truth for startup UI visibility:
+ * - kWelcome: No ROM loaded, showing onboarding screen
+ * - kDashboard: ROM loaded, no active editor (editor chooser)
+ * - kEditor: Active editor/category selected
+ */
+enum class StartupSurface {
+  kWelcome,    // No ROM, showing onboarding
+  kDashboard,  // ROM loaded, no active editor
+  kEditor,     // Active editor/category
+};
 
 // Forward declarations to avoid circular dependencies
 class EditorManager;
@@ -44,7 +59,7 @@ class UICoordinator {
   UICoordinator(EditorManager* editor_manager, RomFileManager& rom_manager,
                 ProjectManager& project_manager,
                 EditorRegistry& editor_registry,
-                EditorCardRegistry& card_registry,
+                PanelManager& card_registry,
                 SessionCoordinator& session_coordinator,
                 WindowDelegate& window_delegate, ToastManager& toast_manager,
                 PopupManager& popup_manager, ShortcutManager& shortcut_manager);
@@ -55,9 +70,12 @@ class UICoordinator {
   UICoordinator& operator=(const UICoordinator&) = delete;
 
   // Main UI drawing interface
+  void DrawBackground();
   void DrawAllUI();
   void DrawMenuBarExtras();
-  void DrawContextSensitiveCardControl();
+  void DrawNotificationBell(bool show_dirty, bool has_dirty_rom,
+                            bool show_session, bool has_multiple_sessions);
+  void DrawSessionButton();
 
   // Core UI components (actual ImGui rendering moved from EditorManager)
   void DrawCommandPalette();
@@ -76,7 +94,6 @@ class UICoordinator {
 
   // Window management UI
   void DrawWindowManagementUI();
-  void DrawRomSelector();
 
   // Popup and dialog management
   void DrawAllPopups();
@@ -90,11 +107,20 @@ class UICoordinator {
   void ShowLoadWorkspacePresetDialog() { show_load_workspace_preset_ = true; }
   // Session switcher is now managed by SessionCoordinator
   void ShowSessionSwitcher();
-  void HideCurrentEditorCards();
-  void ToggleCardSidebar() { show_card_sidebar_ = !show_card_sidebar_; }
+  void HideCurrentEditorPanels();
+  // Sidebar visibility delegates to PanelManager (single source of truth)
+  void TogglePanelSidebar();
   void ShowGlobalSearch() { show_global_search_ = true; }
   void ShowCommandPalette() { show_command_palette_ = true; }
-  void ShowCardBrowser() { show_card_browser_ = true; }
+  void ShowPanelBrowser() { show_panel_browser_ = true; }
+
+  // Menu bar visibility (for WASM/web app mode)
+  bool IsMenuBarVisible() const { return show_menu_bar_; }
+  void SetMenuBarVisible(bool visible) { show_menu_bar_ = visible; }
+  void ToggleMenuBar() { show_menu_bar_ = !show_menu_bar_; }
+
+  // Draw floating menu bar restore button (when menu bar is hidden)
+  void DrawMenuBarRestoreButton();
 
   // Window visibility management
   void ShowAllWindows();
@@ -113,18 +139,23 @@ class UICoordinator {
   bool IsPerformanceDashboardVisible() const {
     return show_performance_dashboard_;
   }
-  bool IsCardBrowserVisible() const { return show_card_browser_; }
+  bool IsPanelBrowserVisible() const { return show_panel_browser_; }
   bool IsCommandPaletteVisible() const { return show_command_palette_; }
-  bool IsCardSidebarVisible() const { return show_card_sidebar_; }
+  // Sidebar visibility delegates to PanelManager (single source of truth)
+  bool IsPanelSidebarVisible() const;
   bool IsImGuiDemoVisible() const { return show_imgui_demo_; }
   bool IsImGuiMetricsVisible() const { return show_imgui_metrics_; }
-  bool IsEmulatorVisible() const { return show_emulator_; }
+  // Emulator visibility delegates to PanelManager (single source of truth)
+  bool IsEmulatorVisible() const;
   bool IsMemoryEditorVisible() const { return show_memory_editor_; }
   bool IsAsmEditorVisible() const { return show_asm_editor_; }
   bool IsPaletteEditorVisible() const { return show_palette_editor_; }
   bool IsResourceLabelManagerVisible() const {
     return show_resource_label_manager_;
   }
+  bool IsAIAgentVisible() const { return show_ai_agent_; }
+  bool IsChatHistoryVisible() const { return show_chat_history_; }
+  bool IsProposalDrawerVisible() const { return show_proposal_drawer_; }
 
   // UI state setters (for programmatic control)
   void SetEditorSelectionVisible(bool visible) {
@@ -139,24 +170,38 @@ class UICoordinator {
   void SetWelcomeScreenManuallyClosed(bool closed) {
     welcome_screen_manually_closed_ = closed;
   }
+  void SetWelcomeScreenBehavior(StartupVisibility mode);
   void SetGlobalSearchVisible(bool visible) { show_global_search_ = visible; }
   void SetPerformanceDashboardVisible(bool visible) {
     show_performance_dashboard_ = visible;
   }
-  void SetCardBrowserVisible(bool visible) { show_card_browser_ = visible; }
+  void SetPanelBrowserVisible(bool visible) { show_panel_browser_ = visible; }
   void SetCommandPaletteVisible(bool visible) {
     show_command_palette_ = visible;
   }
-  void SetCardSidebarVisible(bool visible) { show_card_sidebar_ = visible; }
+  // Sidebar visibility delegates to PanelManager (single source of truth)
+  void SetPanelSidebarVisible(bool visible);
   void SetImGuiDemoVisible(bool visible) { show_imgui_demo_ = visible; }
   void SetImGuiMetricsVisible(bool visible) { show_imgui_metrics_ = visible; }
-  void SetEmulatorVisible(bool visible) { show_emulator_ = visible; }
+  // Emulator visibility delegates to PanelManager (single source of truth)
+  void SetEmulatorVisible(bool visible);
   void SetMemoryEditorVisible(bool visible) { show_memory_editor_ = visible; }
   void SetAsmEditorVisible(bool visible) { show_asm_editor_ = visible; }
   void SetPaletteEditorVisible(bool visible) { show_palette_editor_ = visible; }
   void SetResourceLabelManagerVisible(bool visible) {
     show_resource_label_manager_ = visible;
   }
+  void SetDashboardBehavior(StartupVisibility mode);
+  void SetAIAgentVisible(bool visible) { show_ai_agent_ = visible; }
+
+  // Startup surface management (single source of truth)
+  StartupSurface GetCurrentStartupSurface() const { return current_startup_surface_; }
+  void SetStartupSurface(StartupSurface surface);
+  bool ShouldShowWelcome() const;
+  bool ShouldShowDashboard() const;
+  bool ShouldShowActivityBar() const;
+  void SetChatHistoryVisible(bool visible) { show_chat_history_ = visible; }
+  void SetProposalDrawerVisible(bool visible) { show_proposal_drawer_ = visible; }
 
   // Note: Theme styling is handled by ThemeManager, not UICoordinator
 
@@ -166,7 +211,7 @@ class UICoordinator {
   RomFileManager& rom_manager_;
   ProjectManager& project_manager_;
   EditorRegistry& editor_registry_;
-  EditorCardRegistry& card_registry_;
+  PanelManager& panel_manager_;
   SessionCoordinator& session_coordinator_;
   WindowDelegate& window_delegate_;
   ToastManager& toast_manager_;
@@ -184,16 +229,25 @@ class UICoordinator {
   bool show_imgui_demo_ = false;
   bool show_imgui_metrics_ = false;
   bool show_test_dashboard_ = false;
-  bool show_card_browser_ = false;
+  bool show_panel_browser_ = false;
   bool show_command_palette_ = false;
-  bool show_emulator_ = false;
+  // show_emulator_ removed - now managed by PanelManager
+  // show_panel_sidebar_ removed - now managed by PanelManager
   bool show_memory_editor_ = false;
   bool show_asm_editor_ = false;
   bool show_palette_editor_ = false;
   bool show_resource_label_manager_ = false;
+  bool show_ai_agent_ = false;
+  bool show_chat_history_ = false;
+  bool show_proposal_drawer_ = false;
   bool show_save_workspace_preset_ = false;
   bool show_load_workspace_preset_ = false;
-  bool show_card_sidebar_ = true;  // Show sidebar by default
+  bool show_menu_bar_ = true;      // Menu bar visible by default
+  StartupVisibility welcome_behavior_override_ = StartupVisibility::kAuto;
+  StartupVisibility dashboard_behavior_override_ = StartupVisibility::kAuto;
+
+  // Single source of truth for startup surface state
+  StartupSurface current_startup_surface_ = StartupSurface::kWelcome;
 
   // Command Palette state
   char command_palette_query_[256] = {};
@@ -205,10 +259,14 @@ class UICoordinator {
   // Welcome screen component
   std::unique_ptr<WelcomeScreen> welcome_screen_;
 
-  // Helper methods for drawing operations
-  void DrawSessionIndicator();
-  void DrawSessionTabs();
-  void DrawSessionBadges();
+
+  // Menu bar icon button helper - provides consistent styling for all menubar buttons
+  // Returns true if button was clicked
+  bool DrawMenuBarIconButton(const char* icon, const char* tooltip,
+                             bool is_active = false);
+
+  // Calculate width of a menubar icon button (icon + frame padding)
+  static float GetMenuBarIconButtonWidth();
 
   // Material Design component helpers
   void DrawMaterialButton(const std::string& text, const std::string& icon,
@@ -220,10 +278,6 @@ class UICoordinator {
   void PositionWindow(const std::string& window_name, float x, float y);
   void SetWindowSize(const std::string& window_name, float width, float height);
 
-  // Icon and theming helpers
-  std::string GetIconForEditor(EditorType type) const;
-  std::string GetColorForEditor(EditorType type) const;
-  void ApplyEditorTheme(EditorType type);
 };
 
 }  // namespace editor

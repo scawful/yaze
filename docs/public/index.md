@@ -5,50 +5,52 @@
 
 # YAZE Documentation
 
-YAZE documentation now focuses on concise, Doxygen-friendly sections. Use the categories
-below for human-readable guides and reference material. Internal planning, AI agent playbooks,
-and research notes were moved to `docs/internal/` so the public docs stay focused.
-
-## Overview
-- [Getting Started](overview/getting-started.md)
-
-## Build & Tooling
-- [Build Quick Reference](build/quick-reference.md)
-- [Build From Source](build/build-from-source.md)
-- [Platform Compatibility](build/platform-compatibility.md)
-- [CMake Presets](build/presets.md)
-- [Build Troubleshooting](build/troubleshooting.md)
-
-## Usage Guides
-- [Dungeon Editor](usage/dungeon-editor.md)
-- [Overworld Loading](usage/overworld-loading.md)
-- [z3ed CLI](usage/z3ed-cli.md)
-- [Examples & Recipes](examples/)
-
-## Developer Guides
-- [Architecture Overview](developer/architecture.md)
-- [Dependency Architecture](developer/dependency-architecture.md)
-- [Git Workflow](developer/git-workflow.md)
-- [Networking Overview](developer/networking.md)
-- [Testing Guide](developer/testing-guide.md)
-- [Testing Without ROMs](developer/testing-without-roms.md)
-- [Debugging Guide](developer/debugging-guide.md)
-- [Debug Flags](developer/debug-flags.md)
-- [Assembler Style Guide](developer/asm-style-guide.md)
-- [API Reference](developer/api-reference.md)
-- [Emulator Development Guide](developer/emulator-development-guide.md)
-- [Canvas System](developer/canvas-system.md)
-- [Palette System Overview](developer/palette-system-overview.md)
-- [Tile16 Palette System](developer/tile16-palette-system.md)
-- [Overworld Entity System](developer/overworld-entity-system.md)
-- [GUI Consistency Guide](developer/gui-consistency-guide.md)
-- [AI-Assisted Development](developer/ai-assisted-development.md)
-
-## Reference
-- [ROM Reference](reference/rom-reference.md)
-- [Changelog](reference/changelog.md)
+Welcome to the YAZE documentation. This site covers installation, usage, and development of the YAZE ROM editor for The Legend of Zelda: A Link to the Past.
 
 ---
 
-Need editor playbooks, refactors, or AI workflows? Head over to [`docs/internal/`](../internal/README.md)
-for internal documentation that stays out of the public Doxygen site.
+## Quick Links
+
+| Goal | Start Here |
+|------|------------|
+| **Get started** | [Getting Started](overview/getting-started.md) |
+| **Build from source** | [Build Quick Reference](build/quick-reference.md) |
+| **Understand the code** | [Architecture Overview](developer/architecture.md) |
+| **Fix build issues** | [Build Troubleshooting](build/troubleshooting.md) |
+| **Use the CLI** | [z3ed CLI Guide](usage/z3ed-cli.md) |
+
+---
+
+## Documentation Sections
+
+### Getting Started
+- [Getting Started](overview/getting-started.md)
+
+### Build and Tooling
+- [Build Quick Reference](build/quick-reference.md) - Essential build commands
+- [Build from Source](build/build-from-source.md) - Full build guide
+- [CMake Presets](build/presets.md) - Preset reference
+- [Platform Compatibility](build/platform-compatibility.md) - OS-specific notes
+- [Build Troubleshooting](build/troubleshooting.md) - Common issues
+
+### Usage Guides
+- [Dungeon Editor](usage/dungeon-editor.md) - Room editing guide
+- [z3ed CLI](usage/z3ed-cli.md) - Command-line interface
+- [Web App](usage/web-app.md) - Browser-based editor (preview)
+- [Overworld Loading](usage/overworld-loading.md) - Technical reference
+
+### Developer Guides
+- [Architecture Overview](developer/architecture.md) - System design
+- [Testing Guide](developer/testing-guide.md) - Test organization and execution
+- [Debugging Guide](developer/debugging-guide.md) - Debugging workflows
+- [Canvas System](developer/canvas-system.md) - UI canvas reference
+- [Palette System](developer/palette-system-overview.md) - Color handling
+
+### Reference
+- [ROM Reference](reference/rom-reference.md) - ROM data structures
+- [z3ed Command Reference](reference/z3ed-command-reference.md) - CLI commands
+- [Changelog](reference/changelog.md) - Version history
+
+---
+
+**Internal Documentation:** Development plans, agent workflows, and architecture deep-dives are in [docs/internal/](../internal/README.md).

@@ -7,7 +7,9 @@
 #include <utility>
 #include <vector>
 
+#include "absl/strings/str_split.h"
 #include "app/gui/core/input.h"
+#include "app/gui/core/platform_keys.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -85,99 +87,200 @@ constexpr const char* GetKeyName(ImGuiKey key) {
   }
   return "";
 }
+
+struct ModifierState {
+  int mods = 0;
+  bool shortcut = false;  // Primary modifier (Cmd on macOS, Ctrl elsewhere)
+  bool alt = false;
+  bool shift = false;
+  bool super = false;     // Physical Super/Cmd key
+};
+
+ModifierState BuildModifierState(const ImGuiIO& io) {
+  ModifierState state;
+  state.mods = io.KeyMods;
+  state.super =
+      io.KeySuper || ((state.mods & ImGuiMod_Super) == ImGuiMod_Super);
+  state.alt = io.KeyAlt || ((state.mods & ImGuiMod_Alt) == ImGuiMod_Alt);
+  state.shift =
+      io.KeyShift || ((state.mods & ImGuiMod_Shift) == ImGuiMod_Shift);
+  state.shortcut =
+      io.KeyCtrl || io.KeySuper ||
+      ((io.KeyMods & ImGuiMod_Shortcut) == ImGuiMod_Shortcut);
+  return state;
+}
+
+bool ModifiersSatisfied(int required_mods, const ModifierState& state) {
+  // Primary modifier: allow either Ctrl or Cmd/Super to satisfy "Ctrl"
+  if ((required_mods & ImGuiMod_Ctrl) && !state.shortcut) {
+    return false;
+  }
+  if ((required_mods & ImGuiMod_Alt) && !state.alt) {
+    return false;
+  }
+  if ((required_mods & ImGuiMod_Shift) && !state.shift) {
+    return false;
+  }
+  if ((required_mods & ImGuiMod_Super) && !state.super) {
+    return false;
+  }
+  return true;
+}
 }  // namespace
 
 std::string PrintShortcut(const std::vector<ImGuiKey>& keys) {
-  std::string shortcut;
-  for (size_t i = keys.size(); i > 0; --i) {
-    shortcut += GetKeyName(keys[i - 1]);
-    if (i > 1) {
-      shortcut += "+";
-    }
-  }
-  return shortcut;
+  // Use the platform-aware FormatShortcut from platform_keys.h
+  // This handles Ctrl→Cmd and Alt→Opt conversions for macOS/WASM
+  return gui::FormatShortcut(keys);
 }
-
-const static std::string kCtrlKey = "Ctrl";
-const static std::string kAltKey = "Alt";
-const static std::string kShiftKey = "Shift";
-const static std::string kSuperKey = "Super";
 
 std::vector<ImGuiKey> ParseShortcut(const std::string& shortcut) {
-  std::vector<ImGuiKey> shortcuts;
-  // Search for special keys and the + symbol to combine with the
-  // MapKeyToImGuiKey function
-  size_t start = 0;
-  size_t end = shortcut.find(kCtrlKey);
-  if (end != std::string::npos) {
-    shortcuts.push_back(ImGuiMod_Ctrl);
-    start = end + kCtrlKey.size();
+  std::vector<ImGuiKey> keys;
+  if (shortcut.empty()) {
+    return keys;
   }
 
-  end = shortcut.find(kAltKey, start);
-  if (end != std::string::npos) {
-    shortcuts.push_back(ImGuiMod_Alt);
-    start = end + kAltKey.size();
-  }
+  // Split on '+' and trim whitespace
+  std::vector<std::string> parts = absl::StrSplit(shortcut, '+');
+  for (auto& part : parts) {
+    // Trim leading/trailing spaces
+    while (!part.empty() && (part.front() == ' ' || part.front() == '\t')) {
+      part.erase(part.begin());
+    }
+    while (!part.empty() && (part.back() == ' ' || part.back() == '\t')) {
+      part.pop_back();
+    }
+    if (part.empty()) continue;
 
-  end = shortcut.find(kShiftKey, start);
-  if (end != std::string::npos) {
-    shortcuts.push_back(ImGuiMod_Shift);
-    start = end + kShiftKey.size();
-  }
+    std::string lower;
+    lower.reserve(part.size());
+    for (char c : part) lower.push_back(static_cast<char>(std::tolower(c)));
 
-  end = shortcut.find(kSuperKey, start);
-  if (end != std::string::npos) {
-    shortcuts.push_back(ImGuiMod_Super);
-    start = end + kSuperKey.size();
-  }
+    // Modifiers (support platform aliases)
+    if (lower == "ctrl" || lower == "control") {
+      keys.push_back(ImGuiMod_Ctrl);
+      continue;
+    }
+    if (lower == "cmd" || lower == "command" || lower == "win" ||
+        lower == "super") {
+      keys.push_back(ImGuiMod_Super);
+      continue;
+    }
+    if (lower == "alt" || lower == "opt" || lower == "option") {
+      keys.push_back(ImGuiMod_Alt);
+      continue;
+    }
+    if (lower == "shift") {
+      keys.push_back(ImGuiMod_Shift);
+      continue;
+    }
 
-  // Parse the rest of the keys
-  while (start < shortcut.size()) {
-    shortcuts.push_back(gui::MapKeyToImGuiKey(shortcut[start]));
-    start++;
-  }
-
-  return shortcuts;
-}
-
-void ExecuteShortcuts(const ShortcutManager& shortcut_manager) {
-  // Check for keyboard shortcuts using the shortcut manager
-  for (const auto& shortcut : shortcut_manager.GetShortcuts()) {
-    bool modifiers_held = true;
-    bool key_pressed = false;
-    ImGuiKey main_key = ImGuiKey_None;
-
-    // Separate modifiers from main key
-    for (const auto& key : shortcut.second.keys) {
-      if (key == ImGuiMod_Ctrl || key == ImGuiMod_Alt ||
-          key == ImGuiMod_Shift || key == ImGuiMod_Super) {
-        // Check if modifier is held
-        if (key == ImGuiMod_Ctrl) {
-          modifiers_held &= ImGui::GetIO().KeyCtrl;
-        } else if (key == ImGuiMod_Alt) {
-          modifiers_held &= ImGui::GetIO().KeyAlt;
-        } else if (key == ImGuiMod_Shift) {
-          modifiers_held &= ImGui::GetIO().KeyShift;
-        } else if (key == ImGuiMod_Super) {
-          modifiers_held &= ImGui::GetIO().KeySuper;
-        }
-      } else {
-        // This is the main key - use IsKeyPressed for single trigger
-        main_key = key;
+    // Function keys
+    if (lower.size() >= 2 && lower[0] == 'f') {
+      int fnum = 0;
+      try {
+        fnum = std::stoi(lower.substr(1));
+      } catch (...) {
+        fnum = 0;
+      }
+      if (fnum >= 1 && fnum <= 24) {
+        keys.push_back(static_cast<ImGuiKey>(ImGuiKey_F1 + (fnum - 1)));
+        continue;
       }
     }
 
-    // Check if main key was pressed (not just held)
-    if (main_key != ImGuiKey_None) {
-      key_pressed = ImGui::IsKeyPressed(main_key, false);  // false = no repeat
+    // Single character keys
+    if (part.size() == 1) {
+      ImGuiKey mapped = gui::MapKeyToImGuiKey(part[0]);
+      if (mapped != ImGuiKey_COUNT) {
+        keys.push_back(mapped);
+        continue;
+      }
+    }
+  }
+
+  return keys;
+}
+
+void ExecuteShortcuts(const ShortcutManager& shortcut_manager) {
+  // Check for keyboard shortcuts using the shortcut manager. Modifier handling
+  // is normalized so Cmd (macOS) and Ctrl (other platforms) map to the same
+  // registered shortcuts.
+  const ImGuiIO& io = ImGui::GetIO();
+
+  // Skip shortcut processing when ImGui wants keyboard input (typing in text fields)
+  if (io.WantCaptureKeyboard || io.WantTextInput) {
+    return;
+  }
+
+  const ModifierState mod_state = BuildModifierState(io);
+
+  for (const auto& shortcut : shortcut_manager.GetShortcuts()) {
+    int required_mods = 0;
+    std::vector<ImGuiKey> main_keys;
+
+    // Decompose the shortcut into modifier mask + main keys
+    for (const auto& key : shortcut.second.keys) {
+      // Handle combined modifier entries (e.g., ImGuiMod_Ctrl | ImGuiMod_Shift)
+      int key_value = static_cast<int>(key);
+      if (key_value & ImGuiMod_Mask_) {
+        required_mods |= key_value & ImGuiMod_Mask_;
+        continue;
+      }
+      // Treat ImGuiMod_Shortcut (alias of Ctrl) the same way
+      if (key == ImGuiMod_Shortcut || key == ImGuiMod_Ctrl ||
+          key == ImGuiMod_Alt || key == ImGuiMod_Shift ||
+          key == ImGuiMod_Super) {
+        required_mods |= key_value;
+        continue;
+      }
+
+      main_keys.push_back(key);
     }
 
-    // Execute if modifiers held and key pressed
-    if (modifiers_held && key_pressed && shortcut.second.callback) {
+    // Fast path: single-key chords leverage ImGui's chord helper, which
+    // already accounts for macOS Cmd/Ctrl translation.
+    if (main_keys.size() == 1) {
+      ImGuiKeyChord chord = static_cast<ImGuiKeyChord>(required_mods) | main_keys.back();
+      if (ImGui::IsKeyChordPressed(chord) && shortcut.second.callback) {
+        shortcut.second.callback();
+      }
+      continue;
+    }
+
+    // Require modifiers first for multi-key chords (e.g., Ctrl+W then C)
+    if (!ModifiersSatisfied(required_mods, mod_state)) {
+      continue;
+    }
+
+    // Require all non-mod keys, with the last key triggering on press
+    bool chord_pressed = !main_keys.empty();
+    for (size_t i = 0; i + 1 < main_keys.size(); ++i) {
+      if (!ImGui::IsKeyDown(main_keys[i])) {
+        chord_pressed = false;
+        break;
+      }
+    }
+
+    if (chord_pressed && !main_keys.empty()) {
+      chord_pressed =
+          ImGui::IsKeyPressed(main_keys.back(), false /* repeat */);
+    }
+
+    if (chord_pressed && shortcut.second.callback) {
       shortcut.second.callback();
     }
   }
+}
+
+bool ShortcutManager::UpdateShortcutKeys(const std::string& name,
+                                         const std::vector<ImGuiKey>& keys) {
+  auto it = shortcuts_.find(name);
+  if (it == shortcuts_.end()) {
+    return false;
+  }
+  it->second.keys = keys;
+  return true;
 }
 
 }  // namespace editor

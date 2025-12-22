@@ -131,27 +131,54 @@ void Dsp::NewFrame() {
   lastFrameBoundary = sampleOffset;
 }
 
+void Dsp::ResetSampleBuffer() {
+  // Clear the sample ring buffer and reset position tracking
+  // This ensures a clean start for new playback without full DSP reset
+  memset(sampleBuffer, 0, sizeof(sampleBuffer));
+  sampleOffset = 0;
+  lastFrameBoundary = 0;
+}
+
 void Dsp::Cycle() {
+  // ========================================================================
+  // DSP Mixing Pipeline
+  // The S-DSP generates samples for 8 voices, applies effects, and mixes
+  // them into a final stereo output. This runs at 32000Hz.
+  // ========================================================================
+
+  // 1. Clear mixing accumulators for the new sample period
   sampleOutL = 0;
   sampleOutR = 0;
   echoOutL = 0;
   echoOutR = 0;
+
+  // 2. Process all 8 voices (generate samples, pitch, envelope)
   for (int i = 0; i < 8; i++) {
     CycleChannel(i);
   }
+
+  // 3. Apply Echo (FIR Filter) and mix into main output
   HandleEcho();  // also applies master volume
+
+  // 4. Update Noise Generator (LFSR)
+  // Counter runs at 32000Hz, noise rate divisor determines update freq
   counter = counter == 0 ? 30720 : counter - 1;
   HandleNoise();
-  evenCycle = !evenCycle;
-  // handle mute flag
+
+  // 5. Update State Flags
+  evenCycle = !evenCycle; // Used for Key On/Off timing (every other sample)
+
+  // 6. Apply Mute Flag (FLG bit 6)
   if (mute) {
     sampleOutL = 0;
     sampleOutR = 0;
   }
-  // put final sample in the ring buffer and advance pointer
-  sampleBuffer[(sampleOffset & 0x3ff) * 2] = sampleOutL;
-  sampleBuffer[(sampleOffset & 0x3ff) * 2 + 1] = sampleOutR;
-  sampleOffset = (sampleOffset + 1) & 0x3ff;
+
+  // 7. Output Stage
+  // Store final stereo sample in ring buffer for the APU/Emulator to read
+  sampleBuffer[(sampleOffset & 0x7ff) * 2] = sampleOutL;
+  sampleBuffer[(sampleOffset & 0x7ff) * 2 + 1] = sampleOutR;
+  sampleOffset = (sampleOffset + 1) & 0x7ff;
 }
 
 static int clamp16(int val) {
@@ -178,7 +205,9 @@ void Dsp::HandleEcho() {
   firBufferL[firBufferIndex] = ramSample >> 1;
   ramSample = aram_[(adr + 2) & 0xffff] | (aram_[(adr + 3) & 0xffff] << 8);
   firBufferR[firBufferIndex] = ramSample >> 1;
-  // calculate FIR-sum
+  
+  // Calculate FIR-sum (Finite Impulse Response Filter)
+  // 8-tap filter applied to echo buffer history
   int sumL = 0, sumR = 0;
   for (int i = 0; i < 8; i++) {
     sumL += (firBufferL[(firBufferIndex + i + 1) & 0x7] * firValues[i]) >> 6;
@@ -191,15 +220,19 @@ void Dsp::HandleEcho() {
   }
   sumL = clamp16(sumL) & ~1;
   sumR = clamp16(sumR) & ~1;
-  // apply master volume and modify output with sum
+  
+  // Apply master volume and mix echo into main output
+  // sampleOutL/R currently holds the sum of all voices
   sampleOutL = clamp16(((sampleOutL * masterVolumeL) >> 7) +
                        ((sumL * echoVolumeL) >> 7));
   sampleOutR = clamp16(((sampleOutR * masterVolumeR) >> 7) +
                        ((sumR * echoVolumeR) >> 7));
-  // get echo value
+  
+  // Calculate echo feedback for next pass
   int echoL = clamp16(echoOutL + clip16((sumL * feedbackVolume) >> 7)) & ~1;
   int echoR = clamp16(echoOutR + clip16((sumR * feedbackVolume) >> 7)) & ~1;
-  // write it to ram
+  
+  // Write feedback to echo buffer in RAM
   if (echoWrites) {
     aram_[adr] = echoL & 0xff;
     aram_[(adr + 1) & 0xffff] = echoL >> 8;
@@ -252,9 +285,13 @@ void Dsp::CycleChannel(int ch) {
   if (channel[ch].useNoise) {
     sample = clip16(noiseSample * 2);
   } else {
-    sample = GetSample(ch);
+    sample = GetSample(ch); // Interpolated sample from BRR buffer
   }
+
+  // Apply Gain/Envelope (16-bit * 11-bit -> ~27-bit, scaled back to 16-bit)
+  // The & ~1 clears the bottom bit, a quirk of the SNES DSP
   sample = ((sample * channel[ch].gain) >> 11) & ~1;
+
   // handle reset and release
   if (reset || (channel[ch].brrHeader & 0x03) == 1) {
     channel[ch].adsrState = 3;  // go to release
@@ -295,15 +332,21 @@ void Dsp::CycleChannel(int ch) {
   channel[ch].pitchCounter += pitch;
   if (channel[ch].pitchCounter > 0x7fff)
     channel[ch].pitchCounter = 0x7fff;
+  
   // set outputs
   ram[(ch << 4) | 8] = channel[ch].gain >> 4;
   ram[(ch << 4) | 9] = sample >> 8;
   channel[ch].sampleOut = sample;
-  sampleOutL = clamp16(sampleOutL + ((sample * channel[ch].volumeL) >> 7));
-  sampleOutR = clamp16(sampleOutR + ((sample * channel[ch].volumeR) >> 7));
-  if (channel[ch].echoEnable) {
-    echoOutL = clamp16(echoOutL + ((sample * channel[ch].volumeL) >> 7));
-    echoOutR = clamp16(echoOutR + ((sample * channel[ch].volumeR) >> 7));
+
+  if (!debug_mute_channels_[ch]) {
+    // Mix into main output accumulator (with clipping)
+    // (sample * volume) >> 7 scales 16-bit * 7-bit to roughly 16-bit
+    sampleOutL = clamp16(sampleOutL + ((sample * channel[ch].volumeL) >> 7));
+    sampleOutR = clamp16(sampleOutR + ((sample * channel[ch].volumeR) >> 7));
+    if (channel[ch].echoEnable) {
+      echoOutL = clamp16(echoOutL + ((sample * channel[ch].volumeL) >> 7));
+      echoOutR = clamp16(echoOutR + ((sample * channel[ch].volumeR) >> 7));
+    }
   }
 }
 
@@ -372,6 +415,7 @@ void Dsp::HandleGain(int ch) {
 }
 
 int16_t Dsp::GetSample(int ch) {
+  // Gaussian interpolation using a 512-entry lookup table
   int pos = (channel[ch].pitchCounter >> 12) + channel[ch].bufferOffset;
   int offset = (channel[ch].pitchCounter >> 4) & 0xff;
   int16_t news = channel[ch].decodeBuffer[(pos + 3) % 12];
@@ -677,25 +721,27 @@ inline int16_t InterpolateHermite(int16_t p0, int16_t p1, int16_t p2,
 
 void Dsp::GetSamples(int16_t* sample_data, int samples_per_frame,
                      bool pal_timing) {
-  // Resample from native samples-per-frame (NTSC: ~534, PAL: ~641)
-  const double native_per_frame = pal_timing ? 641.0 : 534.0;
+  // Resample from native samples-per-frame based on precise SNES timing.
+  // NTSC: 32040 Hz / 60.0988 Hz/frame = ~533.122 samples/frame
+  // PAL:  32040 Hz / 50.007 Hz/frame = ~640.71 samples/frame
+  const double native_per_frame = pal_timing ? (32040.0 / 50.007) : (32040.0 / 60.0988);
   const double step = native_per_frame / static_cast<double>(samples_per_frame);
 
   // Start reading one native frame behind the frame boundary
-  double location = static_cast<double>((lastFrameBoundary + 0x400) & 0x3ff);
+  double location = static_cast<double>((lastFrameBoundary + 0x800) & 0x7ff);
   location -= native_per_frame;
 
   // Ensure location is within valid range
   while (location < 0)
-    location += 0x400;
+    location += 0x800;
 
   for (int i = 0; i < samples_per_frame; i++) {
-    const int idx = static_cast<int>(location) & 0x3ff;
+    const int idx = static_cast<int>(location) & 0x7ff;
     const double frac = location - static_cast<int>(location);
 
     switch (interpolation_type) {
       case InterpolationType::Linear: {
-        const int next_idx = (idx + 1) & 0x3ff;
+        const int next_idx = (idx + 1) & 0x7ff;
 
         // Linear interpolation for left channel
         const int16_t s0_l = sampleBuffer[(idx * 2) + 0];
@@ -711,10 +757,10 @@ void Dsp::GetSamples(int16_t* sample_data, int samples_per_frame,
         break;
       }
       case InterpolationType::Hermite: {
-        const int idx0 = (idx - 1 + 0x400) & 0x3ff;
-        const int idx1 = idx & 0x3ff;
-        const int idx2 = (idx + 1) & 0x3ff;
-        const int idx3 = (idx + 2) & 0x3ff;
+        const int idx0 = (idx - 1 + 0x800) & 0x7ff;
+        const int idx1 = idx & 0x7ff;
+        const int idx2 = (idx + 1) & 0x7ff;
+        const int idx3 = (idx + 2) & 0x7ff;
         // Left channel
         const int16_t p0_l = sampleBuffer[(idx0 * 2) + 0];
         const int16_t p1_l = sampleBuffer[(idx1 * 2) + 0];
@@ -731,8 +777,40 @@ void Dsp::GetSamples(int16_t* sample_data, int samples_per_frame,
             InterpolateHermite(p0_r, p1_r, p2_r, p3_r, frac);
         break;
       }
+      case InterpolationType::Gaussian: {
+        const int offset = static_cast<int>(frac * 256.0) & 0xff;
+        const int idx0 = (idx - 1 + 0x800) & 0x7ff;
+        const int idx1 = idx & 0x7ff;
+        const int idx2 = (idx + 1) & 0x7ff;
+        const int idx3 = (idx + 2) & 0x7ff;
+
+        // Left channel
+        const int16_t p0_l = sampleBuffer[(idx0 * 2) + 0];
+        const int16_t p1_l = sampleBuffer[(idx1 * 2) + 0];
+        const int16_t p2_l = sampleBuffer[(idx2 * 2) + 0];
+        const int16_t p3_l = sampleBuffer[(idx3 * 2) + 0];
+
+        int out_l = (gaussValues[0xff - offset] * p0_l) >> 11;
+        out_l += (gaussValues[0x1ff - offset] * p1_l) >> 11;
+        out_l += (gaussValues[0x100 + offset] * p2_l) >> 11;
+        out_l = clip16(out_l) + ((gaussValues[offset] * p3_l) >> 11);
+        sample_data[(i * 2) + 0] = clamp16(out_l) & ~1;
+
+        // Right channel
+        const int16_t p0_r = sampleBuffer[(idx0 * 2) + 1];
+        const int16_t p1_r = sampleBuffer[(idx1 * 2) + 1];
+        const int16_t p2_r = sampleBuffer[(idx2 * 2) + 1];
+        const int16_t p3_r = sampleBuffer[(idx3 * 2) + 1];
+
+        int out_r = (gaussValues[0xff - offset] * p0_r) >> 11;
+        out_r += (gaussValues[0x1ff - offset] * p1_r) >> 11;
+        out_r += (gaussValues[0x100 + offset] * p2_r) >> 11;
+        out_r = clip16(out_r) + ((gaussValues[offset] * p3_r) >> 11);
+        sample_data[(i * 2) + 1] = clamp16(out_r) & ~1;
+        break;
+      }
       case InterpolationType::Cosine: {
-        const int next_idx = (idx + 1) & 0x3ff;
+        const int next_idx = (idx + 1) & 0x7ff;  // Fixed: use full 2048 buffer
         const int16_t s0_l = sampleBuffer[(idx * 2) + 0];
         const int16_t s1_l = sampleBuffer[(next_idx * 2) + 0];
         sample_data[(i * 2) + 0] = InterpolateCosine(s0_l, s1_l, frac);
@@ -742,10 +820,10 @@ void Dsp::GetSamples(int16_t* sample_data, int samples_per_frame,
         break;
       }
       case InterpolationType::Cubic: {
-        const int idx0 = (idx - 1 + 0x400) & 0x3ff;
-        const int idx1 = idx & 0x3ff;
-        const int idx2 = (idx + 1) & 0x3ff;
-        const int idx3 = (idx + 2) & 0x3ff;
+        const int idx0 = (idx - 1 + 0x800) & 0x7ff;  // Fixed: use full 2048 buffer
+        const int idx1 = idx & 0x7ff;
+        const int idx2 = (idx + 1) & 0x7ff;
+        const int idx3 = (idx + 2) & 0x7ff;
         // Left channel
         const int16_t p0_l = sampleBuffer[(idx0 * 2) + 0];
         const int16_t p1_l = sampleBuffer[(idx1 * 2) + 0];
@@ -776,15 +854,185 @@ int Dsp::CopyNativeFrame(int16_t* sample_data, bool pal_timing) {
   const int total_samples = native_per_frame * 2;
 
   int start_index =
-      static_cast<int>((lastFrameBoundary + 0x400 - native_per_frame) & 0x3ff);
+      static_cast<int>((lastFrameBoundary + 0x800 - native_per_frame) & 0x7ff);
 
   for (int i = 0; i < native_per_frame; ++i) {
-    const int idx = (start_index + i) & 0x3ff;
+    const int idx = (start_index + i) & 0x7ff;  // Fixed: use full 2048 buffer
     sample_data[(i * 2) + 0] = sampleBuffer[(idx * 2) + 0];
     sample_data[(i * 2) + 1] = sampleBuffer[(idx * 2) + 1];
   }
 
   return total_samples / 2;  // return frames per channel
+}
+
+void Dsp::SaveState(std::ostream& stream) {
+  stream.write(reinterpret_cast<const char*>(ram), sizeof(ram));
+  auto write_bool = [&](bool value) {
+    uint8_t encoded = value ? 1 : 0;
+    stream.write(reinterpret_cast<const char*>(&encoded), sizeof(encoded));
+  };
+  auto write_channel = [&](const DspChannel& ch) {
+    stream.write(reinterpret_cast<const char*>(&ch.pitch), sizeof(ch.pitch));
+    stream.write(reinterpret_cast<const char*>(&ch.pitchCounter),
+                 sizeof(ch.pitchCounter));
+    write_bool(ch.pitchModulation);
+    stream.write(reinterpret_cast<const char*>(ch.decodeBuffer),
+                 sizeof(ch.decodeBuffer));
+    stream.write(reinterpret_cast<const char*>(&ch.bufferOffset),
+                 sizeof(ch.bufferOffset));
+    stream.write(reinterpret_cast<const char*>(&ch.srcn), sizeof(ch.srcn));
+    stream.write(reinterpret_cast<const char*>(&ch.decodeOffset),
+                 sizeof(ch.decodeOffset));
+    stream.write(reinterpret_cast<const char*>(&ch.blockOffset),
+                 sizeof(ch.blockOffset));
+    stream.write(reinterpret_cast<const char*>(&ch.brrHeader),
+                 sizeof(ch.brrHeader));
+    write_bool(ch.useNoise);
+    stream.write(reinterpret_cast<const char*>(&ch.startDelay),
+                 sizeof(ch.startDelay));
+    stream.write(reinterpret_cast<const char*>(ch.adsrRates),
+                 sizeof(ch.adsrRates));
+    stream.write(reinterpret_cast<const char*>(&ch.adsrState),
+                 sizeof(ch.adsrState));
+    stream.write(reinterpret_cast<const char*>(&ch.sustainLevel),
+                 sizeof(ch.sustainLevel));
+    stream.write(reinterpret_cast<const char*>(&ch.gainSustainLevel),
+                 sizeof(ch.gainSustainLevel));
+    write_bool(ch.useGain);
+    stream.write(reinterpret_cast<const char*>(&ch.gainMode),
+                 sizeof(ch.gainMode));
+    write_bool(ch.directGain);
+    stream.write(reinterpret_cast<const char*>(&ch.gainValue),
+                 sizeof(ch.gainValue));
+    stream.write(reinterpret_cast<const char*>(&ch.preclampGain),
+                 sizeof(ch.preclampGain));
+    stream.write(reinterpret_cast<const char*>(&ch.gain), sizeof(ch.gain));
+    write_bool(ch.keyOn);
+    write_bool(ch.keyOff);
+    stream.write(reinterpret_cast<const char*>(&ch.sampleOut),
+                 sizeof(ch.sampleOut));
+    stream.write(reinterpret_cast<const char*>(&ch.volumeL),
+                 sizeof(ch.volumeL));
+    stream.write(reinterpret_cast<const char*>(&ch.volumeR),
+                 sizeof(ch.volumeR));
+    write_bool(ch.echoEnable);
+  };
+  for (const auto& ch : channel) {
+    write_channel(ch);
+  }
+  
+  stream.write(reinterpret_cast<const char*>(&counter), sizeof(counter));
+  stream.write(reinterpret_cast<const char*>(&dirPage), sizeof(dirPage));
+  stream.write(reinterpret_cast<const char*>(&evenCycle), sizeof(evenCycle));
+  stream.write(reinterpret_cast<const char*>(&mute), sizeof(mute));
+  stream.write(reinterpret_cast<const char*>(&reset), sizeof(reset));
+  stream.write(reinterpret_cast<const char*>(&masterVolumeL), sizeof(masterVolumeL));
+  stream.write(reinterpret_cast<const char*>(&masterVolumeR), sizeof(masterVolumeR));
+  
+  stream.write(reinterpret_cast<const char*>(&sampleOutL), sizeof(sampleOutL));
+  stream.write(reinterpret_cast<const char*>(&sampleOutR), sizeof(sampleOutR));
+  stream.write(reinterpret_cast<const char*>(&echoOutL), sizeof(echoOutL));
+  stream.write(reinterpret_cast<const char*>(&echoOutR), sizeof(echoOutR));
+  
+  stream.write(reinterpret_cast<const char*>(&noiseSample), sizeof(noiseSample));
+  stream.write(reinterpret_cast<const char*>(&noiseRate), sizeof(noiseRate));
+  
+  stream.write(reinterpret_cast<const char*>(&echoWrites), sizeof(echoWrites));
+  stream.write(reinterpret_cast<const char*>(&echoVolumeL), sizeof(echoVolumeL));
+  stream.write(reinterpret_cast<const char*>(&echoVolumeR), sizeof(echoVolumeR));
+  stream.write(reinterpret_cast<const char*>(&feedbackVolume), sizeof(feedbackVolume));
+  stream.write(reinterpret_cast<const char*>(&echoBufferAdr), sizeof(echoBufferAdr));
+  stream.write(reinterpret_cast<const char*>(&echoDelay), sizeof(echoDelay));
+  stream.write(reinterpret_cast<const char*>(&echoLength), sizeof(echoLength));
+  stream.write(reinterpret_cast<const char*>(&echoBufferIndex), sizeof(echoBufferIndex));
+  stream.write(reinterpret_cast<const char*>(&firBufferIndex), sizeof(firBufferIndex));
+  
+  stream.write(reinterpret_cast<const char*>(firValues), sizeof(firValues));
+  stream.write(reinterpret_cast<const char*>(firBufferL), sizeof(firBufferL));
+  stream.write(reinterpret_cast<const char*>(firBufferR), sizeof(firBufferR));
+  
+  stream.write(reinterpret_cast<const char*>(&lastFrameBoundary), sizeof(lastFrameBoundary));
+}
+
+void Dsp::LoadState(std::istream& stream) {
+  stream.read(reinterpret_cast<char*>(ram), sizeof(ram));
+  auto read_bool = [&](bool* value) {
+    uint8_t encoded = 0;
+    stream.read(reinterpret_cast<char*>(&encoded), sizeof(encoded));
+    *value = encoded != 0;
+  };
+  auto read_channel = [&](DspChannel& ch) {
+    stream.read(reinterpret_cast<char*>(&ch.pitch), sizeof(ch.pitch));
+    stream.read(reinterpret_cast<char*>(&ch.pitchCounter),
+                sizeof(ch.pitchCounter));
+    read_bool(&ch.pitchModulation);
+    stream.read(reinterpret_cast<char*>(ch.decodeBuffer),
+                sizeof(ch.decodeBuffer));
+    stream.read(reinterpret_cast<char*>(&ch.bufferOffset),
+                sizeof(ch.bufferOffset));
+    stream.read(reinterpret_cast<char*>(&ch.srcn), sizeof(ch.srcn));
+    stream.read(reinterpret_cast<char*>(&ch.decodeOffset),
+                sizeof(ch.decodeOffset));
+    stream.read(reinterpret_cast<char*>(&ch.blockOffset),
+                sizeof(ch.blockOffset));
+    stream.read(reinterpret_cast<char*>(&ch.brrHeader), sizeof(ch.brrHeader));
+    read_bool(&ch.useNoise);
+    stream.read(reinterpret_cast<char*>(&ch.startDelay), sizeof(ch.startDelay));
+    stream.read(reinterpret_cast<char*>(ch.adsrRates), sizeof(ch.adsrRates));
+    stream.read(reinterpret_cast<char*>(&ch.adsrState), sizeof(ch.adsrState));
+    stream.read(reinterpret_cast<char*>(&ch.sustainLevel),
+                sizeof(ch.sustainLevel));
+    stream.read(reinterpret_cast<char*>(&ch.gainSustainLevel),
+                sizeof(ch.gainSustainLevel));
+    read_bool(&ch.useGain);
+    stream.read(reinterpret_cast<char*>(&ch.gainMode), sizeof(ch.gainMode));
+    read_bool(&ch.directGain);
+    stream.read(reinterpret_cast<char*>(&ch.gainValue), sizeof(ch.gainValue));
+    stream.read(reinterpret_cast<char*>(&ch.preclampGain),
+                sizeof(ch.preclampGain));
+    stream.read(reinterpret_cast<char*>(&ch.gain), sizeof(ch.gain));
+    read_bool(&ch.keyOn);
+    read_bool(&ch.keyOff);
+    stream.read(reinterpret_cast<char*>(&ch.sampleOut), sizeof(ch.sampleOut));
+    stream.read(reinterpret_cast<char*>(&ch.volumeL), sizeof(ch.volumeL));
+    stream.read(reinterpret_cast<char*>(&ch.volumeR), sizeof(ch.volumeR));
+    read_bool(&ch.echoEnable);
+  };
+  for (auto& ch : channel) {
+    read_channel(ch);
+  }
+  
+  stream.read(reinterpret_cast<char*>(&counter), sizeof(counter));
+  stream.read(reinterpret_cast<char*>(&dirPage), sizeof(dirPage));
+  stream.read(reinterpret_cast<char*>(&evenCycle), sizeof(evenCycle));
+  stream.read(reinterpret_cast<char*>(&mute), sizeof(mute));
+  stream.read(reinterpret_cast<char*>(&reset), sizeof(reset));
+  stream.read(reinterpret_cast<char*>(&masterVolumeL), sizeof(masterVolumeL));
+  stream.read(reinterpret_cast<char*>(&masterVolumeR), sizeof(masterVolumeR));
+  
+  stream.read(reinterpret_cast<char*>(&sampleOutL), sizeof(sampleOutL));
+  stream.read(reinterpret_cast<char*>(&sampleOutR), sizeof(sampleOutR));
+  stream.read(reinterpret_cast<char*>(&echoOutL), sizeof(echoOutL));
+  stream.read(reinterpret_cast<char*>(&echoOutR), sizeof(echoOutR));
+  
+  stream.read(reinterpret_cast<char*>(&noiseSample), sizeof(noiseSample));
+  stream.read(reinterpret_cast<char*>(&noiseRate), sizeof(noiseRate));
+  
+  stream.read(reinterpret_cast<char*>(&echoWrites), sizeof(echoWrites));
+  stream.read(reinterpret_cast<char*>(&echoVolumeL), sizeof(echoVolumeL));
+  stream.read(reinterpret_cast<char*>(&echoVolumeR), sizeof(echoVolumeR));
+  stream.read(reinterpret_cast<char*>(&feedbackVolume), sizeof(feedbackVolume));
+  stream.read(reinterpret_cast<char*>(&echoBufferAdr), sizeof(echoBufferAdr));
+  stream.read(reinterpret_cast<char*>(&echoDelay), sizeof(echoDelay));
+  stream.read(reinterpret_cast<char*>(&echoLength), sizeof(echoLength));
+  stream.read(reinterpret_cast<char*>(&echoBufferIndex), sizeof(echoBufferIndex));
+  stream.read(reinterpret_cast<char*>(&firBufferIndex), sizeof(firBufferIndex));
+  
+  stream.read(reinterpret_cast<char*>(firValues), sizeof(firValues));
+  stream.read(reinterpret_cast<char*>(firBufferL), sizeof(firBufferL));
+  stream.read(reinterpret_cast<char*>(firBufferR), sizeof(firBufferR));
+  
+  stream.read(reinterpret_cast<char*>(&lastFrameBoundary), sizeof(lastFrameBoundary));
 }
 
 }  // namespace emu

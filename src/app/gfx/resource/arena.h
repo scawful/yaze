@@ -3,8 +3,10 @@
 
 #include <array>
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <mutex>
+#include <string>
 #include <tuple>
 #include <unordered_map>
 #include <vector>
@@ -53,10 +55,24 @@ class Arena {
   struct TextureCommand {
     TextureCommandType type;
     Bitmap* bitmap;  // The bitmap that needs a texture operation
+    uint32_t generation;  // Generation at queue time for staleness detection
   };
 
   void QueueTextureCommand(TextureCommandType type, Bitmap* bitmap);
   void ProcessTextureQueue(IRenderer* renderer);
+
+  /**
+   * @brief Check if there are pending textures to process
+   * @return true if texture queue has pending commands
+   */
+  bool HasPendingTextures() const { return !texture_command_queue_.empty(); }
+
+  /**
+   * @brief Process a single texture command for frame-budget-aware loading
+   * @param renderer The renderer to use for texture operations
+   * @return true if a texture was processed, false if queue was empty
+   */
+  bool ProcessSingleTexture(IRenderer* renderer);
 
   // --- Surface Management (unchanged) ---
   SDL_Surface* AllocateSurface(int width, int height, int depth, int format);
@@ -73,6 +89,9 @@ class Arena {
   size_t GetPooledSurfaceCount() const {
     return surface_pool_.available_surfaces_.size();
   }
+  size_t texture_command_queue_size() const {
+    return texture_command_queue_.size();
+  }
 
   // Graphics sheet access (223 total sheets in YAZE)
   /**
@@ -84,16 +103,22 @@ class Arena {
   /**
    * @brief Get a specific graphics sheet by index
    * @param i Sheet index (0-222)
-   * @return Copy of the Bitmap at index i
+   * @return Copy of the Bitmap at index i, or empty Bitmap if out of bounds
    */
-  auto gfx_sheet(int i) { return gfx_sheets_[i]; }
+  auto gfx_sheet(int i) {
+    if (i < 0 || i >= 223) return gfx::Bitmap{};
+    return gfx_sheets_[i];
+  }
 
   /**
    * @brief Get mutable reference to a specific graphics sheet
    * @param i Sheet index (0-222)
-   * @return Pointer to mutable Bitmap at index i
+   * @return Pointer to mutable Bitmap at index i, or nullptr if out of bounds
    */
-  auto mutable_gfx_sheet(int i) { return &gfx_sheets_[i]; }
+  auto mutable_gfx_sheet(int i) {
+    if (i < 0 || i >= 223) return static_cast<gfx::Bitmap*>(nullptr);
+    return &gfx_sheets_[i];
+  }
 
   /**
    * @brief Get mutable reference to all graphics sheets
@@ -107,6 +132,36 @@ class Arena {
    * @details This ensures textures are updated across all editors
    */
   void NotifySheetModified(int sheet_index);
+
+  // ========== Palette Change Notification System ==========
+
+  /// Callback type for palette change listeners
+  /// @param group_name The palette group that changed (e.g., "ow_main")
+  /// @param palette_index The specific palette that changed, or -1 for all
+  using PaletteChangeCallback =
+      std::function<void(const std::string& group_name, int palette_index)>;
+
+  /**
+   * @brief Notify all listeners that a palette has been modified
+   * @param group_name The palette group name (e.g., "ow_main", "dungeon_main")
+   * @param palette_index Specific palette index, or -1 for entire group
+   * @details This triggers bitmap refresh in editors using these palettes
+   */
+  void NotifyPaletteModified(const std::string& group_name,
+                             int palette_index = -1);
+
+  /**
+   * @brief Register a callback for palette change notifications
+   * @param callback Function to call when palettes change
+   * @return Unique ID for this listener (use to unregister)
+   */
+  int RegisterPaletteListener(PaletteChangeCallback callback);
+
+  /**
+   * @brief Unregister a palette change listener
+   * @param listener_id The ID returned from RegisterPaletteListener
+   */
+  void UnregisterPaletteListener(int listener_id);
 
   // Background buffer access for SNES layer rendering
   /**
@@ -160,6 +215,10 @@ class Arena {
 
   std::vector<TextureCommand> texture_command_queue_;
   IRenderer* renderer_ = nullptr;
+
+  // Palette change notification system
+  std::unordered_map<int, PaletteChangeCallback> palette_listeners_;
+  int next_palette_listener_id_ = 1;
 };
 
 }  // namespace gfx

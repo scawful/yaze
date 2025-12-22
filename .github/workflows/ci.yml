@@ -205,6 +205,34 @@ jobs:
           test-type: stable
           preset: ci-windows-ai
 
+  wasm-smoke-test:
+    name: "WASM Build Smoke Test"
+    runs-on: ubuntu-22.04
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 3.1.51
+          actions-cache-folder: 'emsdk-cache'
+
+      - name: Setup Ninja
+        uses: seanmiddleditch/gha-setup-ninja@v4
+
+      - name: Quick WASM build test
+        run: |
+          emcmake cmake --preset wasm-debug
+          cmake --build build-wasm-debug --target yaze --parallel
+          # Verify output exists
+          test -f build-wasm-debug/bin/yaze.wasm
+          echo "WASM build successful!"
+
   code-quality:
     name: "Code Quality"
     runs-on: ubuntu-22.04

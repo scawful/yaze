@@ -10,6 +10,7 @@
 #include "app/emu/debug/breakpoint_manager.h"
 #include "app/emu/debug/disassembler.h"
 #include "app/emu/debug/disassembly_viewer.h"
+#include "app/emu/debug/step_controller.h"
 #include "app/emu/debug/watchpoint_manager.h"
 #include "app/emu/emulator.h"
 #include "app/emu/input/input_backend.h"  // Required for SnesButton enum

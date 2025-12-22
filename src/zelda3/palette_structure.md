@@ -49,7 +49,24 @@ Row 2: Colors 32-47  (Color 32 = transparent)
   - Row 4: Colors 64-79 (transparent + 15 colors)
   - Row 5: Colors 80-89 (10 colors)
 - **ROM**: 0xDD734
-- **Sets**: 20 (one per dungeon)
+- **Sets**: 20 (indices 0-19)
+- **Bytes per Set**: 180 (90 colors × 2 bytes)
+
+##### Palette Lookup System
+
+Room headers store a "palette set ID" (0-71), NOT a direct dungeon palette index!
+
+**Two-Level Lookup**:
+1. `paletteset_ids[room.palette][0]` → byte offset (at ROM 0x75460)
+2. Read word at `0xDEC4B + offset` → ROM offset into palette data
+3. Divide by 180 → actual palette index (0-19)
+
+```
+Example: Room palette = 16
+  → paletteset_ids[16][0] = 0x10 (offset 16)
+  → Word at 0xDEC4B + 16 = 0x05A0 (1440)
+  → Palette = 1440 / 180 = 8
+```
 
 ### Sprite Palettes (OAM)
 

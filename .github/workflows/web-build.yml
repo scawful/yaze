@@ -1,0 +1,209 @@
+name: Web Build & Deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ master, main ]
+    paths:
+      - 'src/**'
+      - 'docs/**'
+      - 'CMakeLists.txt'
+      - 'CMakePresets.json'
+      - 'Doxyfile'
+      - 'scripts/build-wasm.sh'
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 2
+
+      # --- Detect what changed ---
+      - name: Check for web-only changes
+        id: changes
+        run: |
+          set -e
+          echo "Event: ${GITHUB_EVENT_NAME}"
+
+          NEEDS_BUILD=false
+          CHANGED=""
+
+          if git rev-parse HEAD~1 >/dev/null 2>&1; then
+            CHANGED=$(git diff --name-only HEAD~1 HEAD || echo "")
+          else
+            echo "No previous commit to diff against; forcing WASM build."
+            NEEDS_BUILD=true
+          fi
+
+          echo "Changed files:"
+          echo "${CHANGED}"
+
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            echo "Manual dispatch - force WASM build."
+            NEEDS_BUILD=true
+          fi
+
+          if echo "${CHANGED}" | grep -qE '\.(cc|cpp|h|hpp|c)$|CMakeLists\.txt|CMakePresets\.json|build-wasm\.sh'; then
+            echo "C++ or build files changed - full WASM build required"
+            NEEDS_BUILD=true
+          fi
+
+          echo "needs_wasm_build=${NEEDS_BUILD}" >> "${GITHUB_OUTPUT}"
+
+      # --- Cache CPM dependencies ---
+      - name: Cache CPM packages
+        if: steps.changes.outputs.needs_wasm_build == 'true' || steps.wasm_cache.outputs.has_cached_wasm == 'false'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/CPM
+          key: cpm-wasm-${{ hashFiles('**/CMakeLists.txt') }}
+          restore-keys: |
+            cpm-wasm-
+
+      # --- Cache WASM build artifacts ---
+      - name: Cache WASM build
+        uses: actions/cache@v4
+        with:
+          path: |
+            build_wasm_ai/bin
+            build_wasm_ai/CMakeCache.txt
+            build_wasm_ai/CMakeFiles
+          key: wasm-build-${{ hashFiles('src/**/*.cc', 'src/**/*.h', 'CMakeLists.txt', 'CMakePresets.json') }}
+          restore-keys: |
+            wasm-build-
+
+      - name: Check cached WASM artifacts
+        if: steps.changes.outputs.needs_wasm_build == 'false'
+        id: wasm_cache
+        run: |
+          if [ -f build_wasm_ai/bin/yaze.js ] && [ -f build_wasm_ai/bin/yaze.wasm ]; then
+            echo "Cached WASM found."
+            echo "has_cached_wasm=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "No cached WASM artifacts; will trigger a build."
+            echo "has_cached_wasm=false" >> "${GITHUB_OUTPUT}"
+          fi
+
+      # --- Setup Tools (only if WASM build needed or cache missing) ---
+      - name: Setup Emscripten
+        if: steps.changes.outputs.needs_wasm_build == 'true' || steps.wasm_cache.outputs.has_cached_wasm == 'false'
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 3.1.51
+          actions-cache-folder: 'emsdk-cache'
+
+      - name: Setup Ninja
+        if: steps.changes.outputs.needs_wasm_build == 'true' || steps.wasm_cache.outputs.has_cached_wasm == 'false'
+        uses: seanmiddleditch/gha-setup-ninja@v4
+
+      - name: Setup CMake
+        if: steps.changes.outputs.needs_wasm_build == 'true' || steps.wasm_cache.outputs.has_cached_wasm == 'false'
+        uses: jwlawson/actions-setup-cmake@v1.14
+        with:
+          cmake-version: '3.27.x'
+
+      - name: Setup ccache
+        if: steps.changes.outputs.needs_wasm_build == 'true' || steps.wasm_cache.outputs.has_cached_wasm == 'false'
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: wasm-ccache
+          max-size: 1G
+
+      - name: Install Graphviz
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y graphviz
+
+      - name: Install Doxygen 1.10.0
+        uses: ssciwr/doxygen-install@v1
+        with:
+          version: "1.10.0"
+
+      # --- Build Web App (full build or use cache) ---
+      - name: Build WASM App
+        if: steps.changes.outputs.needs_wasm_build == 'true' || steps.wasm_cache.outputs.has_cached_wasm == 'false'
+        run: |
+          export PATH="/usr/lib/ccache:$PATH"
+          chmod +x scripts/build-wasm.sh
+          ./scripts/build-wasm.sh ai
+
+      - name: Use cached WASM + update web assets
+        if: steps.changes.outputs.needs_wasm_build == 'false' && steps.wasm_cache.outputs.has_cached_wasm == 'true'
+        run: |
+          echo "Using cached WASM build, updating web assets only..."
+          mkdir -p build_wasm_ai/dist
+
+          # Check if we have cached WASM files
+          if [ -f build_wasm_ai/bin/yaze.wasm ]; then
+            cp build_wasm_ai/bin/yaze.html build_wasm_ai/dist/index.html
+            cp build_wasm_ai/bin/yaze.js build_wasm_ai/dist/
+            cp build_wasm_ai/bin/yaze.wasm build_wasm_ai/dist/
+            cp build_wasm_ai/bin/yaze.data build_wasm_ai/dist/ 2>/dev/null || true
+            # CRITICAL: Copy pthread worker script for multi-threading
+            cp build_wasm_ai/bin/yaze.worker.js build_wasm_ai/dist/ 2>/dev/null || true
+          else
+            echo "ERROR: No cached WASM build found. Triggering full build..."
+            exit 1
+          fi
+
+          # Copy updated web assets (new directory structure)
+          # Root level files
+          cp src/web/app.js build_wasm_ai/dist/
+
+          # Copy subdirectories
+          cp -r src/web/styles build_wasm_ai/dist/ 2>/dev/null || true
+          cp -r src/web/components build_wasm_ai/dist/ 2>/dev/null || true
+          cp -r src/web/core build_wasm_ai/dist/ 2>/dev/null || true
+          cp -r src/web/pwa build_wasm_ai/dist/ 2>/dev/null || true
+          cp -r src/web/icons build_wasm_ai/dist/ 2>/dev/null || true
+          cp -r src/web/debug build_wasm_ai/dist/ 2>/dev/null || true
+
+          # CRITICAL: coi-serviceworker.js must be at root for proper service worker scope
+          if [ -f src/web/pwa/coi-serviceworker.js ]; then
+            cp src/web/pwa/coi-serviceworker.js build_wasm_ai/dist/
+            echo "coi-serviceworker.js copied to root (required for SharedArrayBuffer)"
+          else
+            echo "WARNING: coi-serviceworker.js not found!"
+          fi
+
+          # Copy yaze icon
+          if [ -f assets/yaze.png ]; then
+            mkdir -p build_wasm_ai/dist/assets
+            cp assets/yaze.png build_wasm_ai/dist/assets/
+          fi
+
+          echo "Web assets updated!"
+
+      # --- Build Documentation ---
+      - name: Build Documentation
+        run: |
+          mkdir -p build/docs
+          doxygen Doxyfile
+          # Move docs into dist/docs
+          mkdir -p build_wasm_ai/dist/docs
+          mv build/docs/html/* build_wasm_ai/dist/docs/
+
+      # --- Deploy ---
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build_wasm_ai/dist/
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

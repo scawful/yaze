@@ -8,64 +8,129 @@ set(
   app/editor/dungeon/dungeon_editor_v2.cc
   app/editor/dungeon/dungeon_object_interaction.cc
   app/editor/dungeon/dungeon_object_selector.cc
+  app/editor/dungeon/object_selection.cc
   app/editor/dungeon/dungeon_room_loader.cc
   app/editor/dungeon/dungeon_room_selector.cc
   app/editor/dungeon/dungeon_toolset.cc
   app/editor/dungeon/dungeon_usage_tracker.cc
-  app/editor/dungeon/object_editor_card.cc
+  app/editor/dungeon/interaction/door_interaction_handler.cc
+  app/editor/dungeon/interaction/item_interaction_handler.cc
+  app/editor/dungeon/interaction/sprite_interaction_handler.cc
+  app/editor/dungeon/interaction/interaction_coordinator.cc
+  app/editor/dungeon/interaction/interaction_mode.cc
+  app/editor/dungeon/panels/object_editor_panel.cc
+  app/editor/dungeon/panels/minecart_track_editor_panel.cc
   app/editor/editor_manager.cc
   app/editor/session_types.cc
   app/editor/graphics/gfx_group_editor.cc
   app/editor/graphics/graphics_editor.cc
+  app/editor/graphics/link_sprite_panel.cc
+  app/editor/graphics/polyhedral_editor_panel.cc
+  app/editor/graphics/palette_controls_panel.cc
+  app/editor/graphics/paletteset_editor_panel.cc
+  app/editor/graphics/pixel_editor_panel.cc
   app/editor/graphics/screen_editor.cc
+  app/editor/graphics/sheet_browser_panel.cc
   app/editor/message/message_data.cc
   app/editor/message/message_editor.cc
   app/editor/message/message_preview.cc
   app/editor/music/music_editor.cc
+  app/editor/music/music_player.cc
+  app/editor/music/instrument_editor_view.cc
+  app/editor/music/piano_roll_view.cc
+  app/editor/music/sample_editor_view.cc
+  app/editor/music/song_browser_view.cc
+  app/editor/music/tracker_view.cc
+  app/editor/overworld/automation.cc
+  app/editor/overworld/debug_window_card.cc
   app/editor/overworld/entity.cc
   app/editor/overworld/entity_operations.cc
   app/editor/overworld/map_properties.cc
   app/editor/overworld/overworld_editor.cc
   app/editor/overworld/overworld_entity_renderer.cc
+  app/editor/overworld/overworld_navigation.cc
+  app/editor/overworld/overworld_sidebar.cc
+  app/editor/overworld/overworld_toolbar.cc
+  app/editor/overworld/panels/area_graphics_panel.cc
+  app/editor/overworld/panels/tile16_selector_panel.cc
+  app/editor/overworld/panels/map_properties_panel.cc
+  app/editor/overworld/panels/overworld_canvas_panel.cc
+  app/editor/overworld/panels/scratch_space_panel.cc
+  app/editor/overworld/panels/usage_statistics_panel.cc
+  app/editor/overworld/panels/tile8_selector_panel.cc
+  app/editor/overworld/panels/debug_window_panel.cc
+  app/editor/overworld/panels/gfx_groups_panel.cc
+  app/editor/overworld/panels/v3_settings_panel.cc
+  app/editor/overworld/panels/tile16_editor_panel.cc
   app/editor/overworld/scratch_space.cc
   app/editor/overworld/tile16_editor.cc
+  app/editor/overworld/usage_statistics_card.cc
   app/editor/palette/palette_editor.cc
-  app/editor/palette/palette_group_card.cc
+  app/editor/palette/palette_group_panel.cc
   app/editor/palette/palette_utility.cc
+  app/editor/sprite/sprite_drawer.cc
   app/editor/sprite/sprite_editor.cc
+  app/editor/layout/layout_coordinator.cc
+  app/editor/layout/layout_manager.cc
+  app/editor/layout/layout_orchestrator.cc
+  app/editor/layout/layout_presets.cc
+  app/editor/layout/window_delegate.cc
   app/editor/system/command_manager.cc
   app/editor/system/command_palette.cc
-  app/editor/system/editor_card_registry.cc
+  app/editor/system/editor_activator.cc
+  app/editor/system/panel_manager.cc
+  app/editor/system/file_browser.cc
   app/editor/system/editor_registry.cc
   app/editor/system/extension_manager.cc
-  app/editor/system/menu_orchestrator.cc
-  app/editor/system/popup_manager.cc
   app/editor/system/project_manager.cc
   app/editor/system/proposal_drawer.cc
   app/editor/system/rom_file_manager.cc
-  app/editor/system/settings_editor.cc
   app/editor/system/shortcut_manager.cc
   app/editor/system/session_coordinator.cc
   app/editor/system/user_settings.cc
-  app/editor/system/window_delegate.cc
   app/editor/system/shortcut_configurator.cc
+  app/editor/menu/menu_orchestrator.cc
+  app/editor/ui/popup_manager.cc
+  app/editor/ui/dashboard_panel.cc
   app/editor/ui/editor_selection_dialog.cc
-  app/editor/ui/layout_manager.cc
-  app/editor/ui/menu_builder.cc
+  app/editor/menu/right_panel_manager.cc
+  app/editor/menu/status_bar.cc
+  app/editor/ui/settings_panel.cc
+  app/editor/ui/selection_properties_panel.cc
+  app/editor/ui/project_management_panel.cc
+  app/editor/menu/menu_builder.cc
+  app/editor/menu/activity_bar.cc
+  app/editor/ui/rom_load_options_dialog.cc
   app/editor/ui/ui_coordinator.cc
   app/editor/ui/welcome_screen.cc
   app/editor/ui/workspace_manager.cc
+
+  app/editor/layout_designer/layout_designer_window.cc
+  app/editor/layout_designer/layout_serialization.cc
+  app/editor/layout_designer/layout_definition.cc
+  app/editor/layout_designer/widget_definition.cc
+  app/editor/layout_designer/widget_code_generator.cc
+  app/editor/layout_designer/theme_properties.cc
+  app/editor/layout_designer/yaze_widgets.cc
+)
+
+# Agent UI Theme is always needed (used by dungeon editor, etc.)
+list(APPEND YAZE_APP_EDITOR_SRC
+  app/editor/agent/agent_ui_theme.cc
 )
 
 if(YAZE_BUILD_AGENT_UI)
   list(APPEND YAZE_APP_EDITOR_SRC
-    app/editor/agent/agent_editor.cc
-    app/editor/agent/agent_chat_widget.cc
-    app/editor/agent/agent_chat_history_popup.cc
-    app/editor/agent/agent_ui_theme.cc
+    app/editor/agent/agent_chat.cc
     app/editor/agent/agent_collaboration_coordinator.cc
-    app/editor/agent/network_collaboration_coordinator.cc
+    app/editor/agent/agent_editor.cc
+    app/editor/agent/agent_proposals_panel.cc
+    app/editor/agent/agent_session.cc
+    app/editor/agent/agent_ui_controller.cc
     app/editor/agent/automation_bridge.cc
+    app/editor/agent/network_collaboration_coordinator.cc
+    app/editor/agent/panels/agent_editor_panels.cc
+    app/editor/agent/panels/agent_knowledge_panel.cc
   )
 endif()
 
@@ -105,6 +170,7 @@ target_include_directories(yaze_editor PUBLIC
 
 target_link_libraries(yaze_editor PUBLIC
   yaze_app_core_lib
+  yaze_rom
   yaze_gfx
   yaze_gui
   yaze_zelda3
@@ -126,7 +192,7 @@ endif()
 
 # Note: yaze_test_support linking is deferred to test.cmake to ensure proper ordering
 
-if(YAZE_WITH_JSON)
+if(YAZE_ENABLE_JSON)
   target_include_directories(yaze_editor PUBLIC
     ${CMAKE_SOURCE_DIR}/ext/json/include)
 
@@ -156,6 +222,8 @@ endif()
 # Conditionally link gRPC if enabled
 if(YAZE_WITH_GRPC)
   target_link_libraries(yaze_editor PUBLIC yaze_grpc_support)
+  # Add protobuf generated headers directory
+  target_include_directories(yaze_editor PUBLIC ${PROJECT_BINARY_DIR}/gens)
 endif()
 
 set_target_properties(yaze_editor PROPERTIES

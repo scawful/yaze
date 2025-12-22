@@ -38,6 +38,9 @@ class Cpu {
  public:
   explicit Cpu(Memory& mem) : memory(mem) {}
   void Reset(bool hard = false);
+  
+  void SaveState(std::ostream& stream);
+  void LoadState(std::istream& stream);
 
   auto& callbacks() { return callbacks_; }
   const auto& callbacks() const { return callbacks_; }

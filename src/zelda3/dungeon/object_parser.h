@@ -7,7 +7,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/gfx/types/snes_tile.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -162,6 +162,33 @@ class ObjectParser {
    */
   absl::StatusOr<std::vector<gfx::TileInfo>> ReadTileData(int address,
                                                           int tile_count);
+
+  /**
+   * @brief Get tile count for subtype 2 objects
+   *
+   * Different subtype 2 objects have different tile counts:
+   * - 4x4 corners (0x100-0x10F): 16 tiles
+   * - Weird corners (0x110-0x117): 12 tiles
+   * - Others: 8 tiles
+   *
+   * @param object_id The object ID
+   * @return Number of tiles to read
+   */
+  int GetSubtype2TileCount(int16_t object_id) const;
+
+  /**
+   * @brief Get tile count for subtype 3 objects
+   *
+   * Different subtype 3 objects have different tile counts:
+   * - BigChest/OpenBigChest (0xFB1-0xFB2): 12 tiles (4x3)
+   * - TableRock4x3 variants: 12 tiles
+   * - 4x4 objects: 16 tiles
+   * - Most others: 8 tiles
+   *
+   * @param object_id The object ID
+   * @return Number of tiles to read
+   */
+  int GetSubtype3TileCount(int16_t object_id) const;
 
   Rom* rom_;
 };

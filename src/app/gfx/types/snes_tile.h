@@ -62,11 +62,14 @@ class TileInfo {
         horizontal_mirror_(h),
         palette_(palette) {}
   TileInfo(uint8_t b1, uint8_t b2) {
-    id_ = (uint16_t)(((b2 & 0x01) << 8) + (b1));
-    vertical_mirror_ = (b2 & 0x80) == 0x80;
-    horizontal_mirror_ = (b2 & 0x40) == 0x40;
-    over_ = (b2 & 0x20) == 0x20;
-    palette_ = (b2 >> 2) & 0x07;
+    // SNES tilemap word format: vhopppcc cccccccc
+    // b1 = low byte (bits 0-7 of tile ID)
+    // b2 = high byte (bits 8-9 of tile ID in bits 0-1, palette in bits 2-4, flags in 5-7)
+    id_ = (uint16_t)(((b2 & 0x03) << 8) | b1);  // 10-bit tile ID (bits 0-9)
+    vertical_mirror_ = (b2 & 0x80) == 0x80;     // bit 15
+    horizontal_mirror_ = (b2 & 0x40) == 0x40;   // bit 14
+    over_ = (b2 & 0x20) == 0x20;                // bit 13 (priority)
+    palette_ = (b2 >> 2) & 0x07;                // bits 10-12
   }
 
   bool operator==(const TileInfo& other) const {

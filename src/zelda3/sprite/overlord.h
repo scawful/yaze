@@ -6,34 +6,8 @@
 namespace yaze {
 namespace zelda3 {
 
-static const std::string kOverlordNames[] = {
-    "Overlord_SpritePositionTarget",
-    "Overlord_AllDirectionMetalBallFactory",
-    "Overlord_CascadeMetalBallFactory",
-    "Overlord_StalfosFactory",
-    "Overlord_StalfosTrap",
-    "Overlord_SnakeTrap",
-    "Overlord_MovingFloor",
-    "Overlord_ZolFactory",
-    "Overlord_WallMasterFactory",
-    "Overlord_CrumbleTilePath 1",
-    "Overlord_CrumbleTilePath 2",
-    "Overlord_CrumbleTilePath 3",
-    "Overlord_CrumbleTilePath 4",
-    "Overlord_CrumbleTilePath 5",
-    "Overlord_CrumbleTilePath 6",
-    "Overlord_PirogusuFactory 1",
-    "Overlord_PirogusuFactory 2",
-    "Overlord_PirogusuFactory 3",
-    "Overlord_PirogusuFactory 4",
-    "Overlord_FlyingTileFactory",
-    "Overlord_WizzrobeFactory",
-    "Overlord_ZoroFactory",
-    "Overlord_StalfosTrapTriggerWindow",
-    "Overlord_RedStalfosTrap",
-    "Overlord_ArmosCoordinator",
-    "Overlord_BombTrap",
-};
+// Overlord names defined in sprite.cc to avoid static initialization order issues
+extern const std::string kOverlordNames[26];
 
 }
 }  // namespace yaze

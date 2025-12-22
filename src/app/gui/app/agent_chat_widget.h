@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "cli/service/agent/conversational_agent_service.h"
 
 namespace yaze {

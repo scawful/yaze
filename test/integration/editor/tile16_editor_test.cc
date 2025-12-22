@@ -11,7 +11,7 @@
 #include "app/gfx/render/tilemap.h"
 #include "app/gfx/resource/arena.h"
 #include "app/platform/window.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "zelda3/overworld/overworld.h"
 
 namespace yaze {
@@ -320,6 +320,114 @@ TEST_F(Tile16EditorIntegrationTest, ScratchSpaceWithROM) {
   auto clear_result = editor_->ClearScratchSpace(0);
   EXPECT_TRUE(clear_result.ok())
       << "Scratch clear failed: " << clear_result.message();
+#else
+  GTEST_SKIP() << "ROM tests disabled";
+#endif
+}
+
+// Palette slot calculation tests - these don't require ROM data
+// The new implementation uses row-based addressing: (kBaseRow + button) * 16
+// where kBaseRow = 2 (skipping HUD rows 0-1). Sheet index is now ignored
+// since all graphics use the same 16-color palette row structure.
+TEST_F(Tile16EditorIntegrationTest, GetActualPaletteSlot_Aux1Sheets) {
+  // Row-based: button 0 -> row 2 (32), button 1 -> row 3 (48), etc.
+  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 0), 32);   // Row 2
+  EXPECT_EQ(editor_->GetActualPaletteSlot(1, 0), 48);   // Row 3
+  EXPECT_EQ(editor_->GetActualPaletteSlot(2, 0), 64);   // Row 4
+  EXPECT_EQ(editor_->GetActualPaletteSlot(7, 0), 144);  // Row 9
+
+  // Sheet 3 also uses row-based (same values)
+  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 3), 32);
+  EXPECT_EQ(editor_->GetActualPaletteSlot(4, 3), 96);   // Row 6
+
+  // Sheet 4 also uses row-based
+  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 4), 32);
+}
+
+TEST_F(Tile16EditorIntegrationTest, GetActualPaletteSlot_MainSheets) {
+  // Row-based addressing is consistent across all sheets
+  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 1), 32);   // Row 2
+  EXPECT_EQ(editor_->GetActualPaletteSlot(1, 1), 48);   // Row 3
+  EXPECT_EQ(editor_->GetActualPaletteSlot(7, 1), 144);  // Row 9
+
+  // Sheet 2 uses same row-based values
+  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 2), 32);
+}
+
+TEST_F(Tile16EditorIntegrationTest, GetActualPaletteSlot_Aux2Sheets) {
+  // Row-based addressing is consistent
+  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 5), 32);   // Row 2
+  EXPECT_EQ(editor_->GetActualPaletteSlot(1, 5), 48);   // Row 3
+  EXPECT_EQ(editor_->GetActualPaletteSlot(7, 5), 144);  // Row 9
+
+  // Sheet 6 uses same values
+  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 6), 32);
+}
+
+TEST_F(Tile16EditorIntegrationTest, GetActualPaletteSlot_AnimatedSheet) {
+  // Row-based: all sheets use the same formula
+  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 7), 32);   // Row 2
+  EXPECT_EQ(editor_->GetActualPaletteSlot(1, 7), 48);   // Row 3
+  EXPECT_EQ(editor_->GetActualPaletteSlot(7, 7), 144);  // Row 9
+}
+
+TEST_F(Tile16EditorIntegrationTest, GetSheetIndexForTile8_BoundsCheck) {
+  // 256 tiles per sheet
+  EXPECT_EQ(editor_->GetSheetIndexForTile8(0), 0);
+  EXPECT_EQ(editor_->GetSheetIndexForTile8(255), 0);
+  EXPECT_EQ(editor_->GetSheetIndexForTile8(256), 1);
+  EXPECT_EQ(editor_->GetSheetIndexForTile8(511), 1);
+  EXPECT_EQ(editor_->GetSheetIndexForTile8(512), 2);
+  EXPECT_EQ(editor_->GetSheetIndexForTile8(1792), 7);  // 7 * 256 = 1792
+  EXPECT_EQ(editor_->GetSheetIndexForTile8(2047), 7);  // Max clamped to 7
+  EXPECT_EQ(editor_->GetSheetIndexForTile8(3000), 7);  // Beyond max still 7
+}
+
+TEST_F(Tile16EditorIntegrationTest, PaletteAccessors) {
+  // Test initial palette value
+  int initial = editor_->current_palette();
+  EXPECT_GE(initial, 0);
+  EXPECT_LE(initial, 7);
+
+  // Test setting palette
+  editor_->set_current_palette(5);
+  EXPECT_EQ(editor_->current_palette(), 5);
+
+  // Test clamping
+  editor_->set_current_palette(-1);
+  EXPECT_EQ(editor_->current_palette(), 0);
+
+  editor_->set_current_palette(10);
+  EXPECT_EQ(editor_->current_palette(), 7);
+}
+
+// Navigation tests - use SetCurrentTile which returns absl::Status
+TEST_F(Tile16EditorIntegrationTest, NavigationBoundsCheck_InvalidTile) {
+  // Setting tile -1 should fail
+  auto status = editor_->SetCurrentTile(-1);
+  EXPECT_FALSE(status.ok());
+  EXPECT_EQ(status.code(), absl::StatusCode::kOutOfRange);
+
+  // Setting tile beyond max should fail
+  status = editor_->SetCurrentTile(10000);
+  EXPECT_FALSE(status.ok());
+  EXPECT_EQ(status.code(), absl::StatusCode::kOutOfRange);
+}
+
+TEST_F(Tile16EditorIntegrationTest, NavigationBoundsCheck_ValidRange) {
+#ifdef YAZE_ENABLE_ROM_TESTS
+  if (!rom_loaded_) {
+    GTEST_SKIP() << "ROM not loaded, skipping integration test";
+  }
+
+  // Setting valid tiles should succeed (requires ROM for bitmap operations)
+  auto status = editor_->SetCurrentTile(0);
+  EXPECT_TRUE(status.ok()) << status.message();
+  EXPECT_EQ(editor_->current_tile16(), 0);
+
+  status = editor_->SetCurrentTile(100);
+  EXPECT_TRUE(status.ok()) << status.message();
+  EXPECT_EQ(editor_->current_tile16(), 100);
 #else
   GTEST_SKIP() << "ROM tests disabled";
 #endif

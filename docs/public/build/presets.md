@@ -114,8 +114,7 @@ By default, all presets suppress compiler warnings with `-w` for a cleaner build
 
 ## Build Directories
 
-Most presets use `build/` directory. Exceptions:
-- `mac-rooms`: Uses `build_rooms/` to avoid conflicts
+Most presets use `build/`. WASM presets use `build-wasm/`. Use `CMakeUserPresets.json` for custom directories.
 
 ## Feature Flags
 

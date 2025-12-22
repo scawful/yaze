@@ -14,6 +14,7 @@ compile_commands.json
 CPackConfig.cmake
 CPackSourceConfig.cmake
 CTestTestfile.cmake
+CMakeUserPresets.json
 
 # Build artifacts
 *.o
@@ -37,10 +38,6 @@ CTestTestfile.cmake
 test_screenshots/
 test_temp_rom.sfc
 zelda3_v3_test.sfc
-
-# Logs
-yaze_log.txt
-*.log
 
 # vcpkg
 vcpkg_installed/
@@ -93,3 +90,36 @@ recent_files.txt
 .genkit
 .claude
 scripts/__pycache__/
+build_gemini
+scripts/ai/results/*.json
+scripts/ai/results/*.md
+scripts/ai/results/*.txt
+logs/breakthrough_test.log
+logs/cmake_config 2.log
+logs/cmake_config 3.log
+logs/cmake_config.log
+logs/dungeon_debug.log
+logs/final_rendering.log
+logs/flag_fix_enhanced_test.log
+logs/flag_fix_test.log
+logs/layout_rendering.log
+logs/layout_tiles_test.log
+logs/scale_test.log
+logs/test_fixed.log
+logs/test_output.log
+logs/tile_data_test.log
+logs/timing_analysis.log
+logs/visual_test.log
+logs/windows_ci_linker_error.log
+logs/yaze_emu_trace.log
+logs/yaze_release.wasm
+logs/yaze_release.wat
+logs/build-logs-Windows 2022 (Clang)/build.log
+logs/build-logs-Windows 2022 (Clang)/cmake_config.log
+logs/build-logs-Windows 2022 (Clang-CL)/build.log
+logs/build-logs-Windows 2022 (Clang-CL)/cmake_config.log
+vanilla.sfc
+zelda3.sfc
+yaze_manual.log
+yaze_startup.log
+roms/

@@ -31,7 +31,7 @@ absl::Status DungeonListSpritesCommandHandler::Execute(
     return room_or.status();
   }
 
-  auto room = room_or.value();
+  auto& room = room_or.value();
 
   // TODO: Implement sprite listing from room data
   formatter.AddField("total_sprites", 0);
@@ -68,18 +68,29 @@ absl::Status DungeonDescribeRoomCommandHandler::Execute(
     return room_or.status();
   }
 
-  auto room = room_or.value();
+  auto& room = room_or.value();
 
   formatter.AddField("status", "success");
   formatter.AddField("name", absl::StrFormat("Room %d", room.id()));
   formatter.AddField("room_id", room.id());
   formatter.AddField("room_type", "Dungeon Room");
 
-  // Add room properties
+  // Room properties from Room data
   formatter.BeginObject("properties");
-  formatter.AddField("has_doors", "Unknown");
-  formatter.AddField("has_sprites", "Unknown");
-  formatter.AddField("has_secrets", "Unknown");
+  formatter.AddField("blockset", room.blockset);
+  formatter.AddField("spriteset", room.spriteset);
+  formatter.AddField("palette", room.palette);
+  formatter.AddField("layout", room.layout);
+  formatter.AddField("floor1", room.floor1());
+  formatter.AddField("floor2", room.floor2());
+  formatter.AddField("effect", static_cast<int>(room.effect()));
+  formatter.AddField("tag1", static_cast<int>(room.tag1()));
+  formatter.AddField("tag2", static_cast<int>(room.tag2()));
+  
+  // Check object counts for simple heuristics
+  room.LoadObjects();
+  formatter.AddField("object_count", static_cast<int>(room.GetTileObjects().size()));
+  
   formatter.EndObject();
 
   formatter.EndObject();
@@ -110,7 +121,7 @@ absl::Status DungeonExportRoomCommandHandler::Execute(
     return room_or.status();
   }
 
-  auto room = room_or.value();
+  auto& room = room_or.value();
 
   // Export room data
   formatter.AddField("status", "success");
@@ -153,14 +164,30 @@ absl::Status DungeonListObjectsCommandHandler::Execute(
     return room_or.status();
   }
 
-  auto room = room_or.value();
+  auto& room = room_or.value();
 
-  // TODO: Implement object listing from room data
-  formatter.AddField("total_objects", 0);
-  formatter.AddField("status", "not_implemented");
-  formatter.AddField("message", "Object listing requires room object parsing");
+  // Load objects if not already loaded (GetTileObjects might be empty otherwise)
+  room.LoadObjects();
+
+  const auto& objects = room.GetTileObjects();
+  formatter.AddField("total_objects", static_cast<int>(objects.size()));
+  formatter.AddField("status", "success");
 
   formatter.BeginArray("objects");
+  for (const auto& obj : objects) {
+    formatter.BeginObject("");
+    formatter.AddField("id", obj.id_);
+    formatter.AddField("id_hex", absl::StrFormat("0x%04X", obj.id_));
+    formatter.AddField("x", obj.x_);
+    formatter.AddField("y", obj.y_);
+    formatter.AddField("size", obj.size_);
+    formatter.AddField("layer", static_cast<int>(obj.layer_));
+    // Add decoded type info if available
+    int type = zelda3::RoomObject::DetermineObjectType(
+        (obj.id_ & 0xFF), (obj.id_ >> 8));
+    formatter.AddField("type", type);
+    formatter.EndObject();
+  }
   formatter.EndArray();
   formatter.EndObject();
 
@@ -190,7 +217,7 @@ absl::Status DungeonGetRoomTilesCommandHandler::Execute(
     return room_or.status();
   }
 
-  auto room = room_or.value();
+  auto& room = room_or.value();
 
   // TODO: Implement tile data retrieval from room
   formatter.AddField("room_width", "Unknown");

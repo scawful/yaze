@@ -2,7 +2,9 @@
 # Improved cross-platform support for macOS, Linux, and Windows
 
 # Configure Asar build options
-set(ASAR_GEN_EXE OFF CACHE BOOL "Build Asar standalone executable")
+# Build the standalone executable so we can fall back to a bundled CLI when the
+# static library misbehaves.
+set(ASAR_GEN_EXE ON CACHE BOOL "Build Asar standalone executable")
 set(ASAR_GEN_DLL ON CACHE BOOL "Build Asar shared library")
 set(ASAR_GEN_LIB ON CACHE BOOL "Build Asar static library")
 set(ASAR_GEN_EXE_TEST OFF CACHE BOOL "Build Asar executable tests")
@@ -16,8 +18,8 @@ endif()
 # Set Asar source directory
 set(ASAR_SRC_DIR "${CMAKE_SOURCE_DIR}/ext/asar/src")
 
-# Add Asar as subdirectory
-add_subdirectory(${ASAR_SRC_DIR} EXCLUDE_FROM_ALL)
+# Add Asar as subdirectory with explicit binary directory
+add_subdirectory(${ASAR_SRC_DIR} ${CMAKE_BINARY_DIR}/asar EXCLUDE_FROM_ALL)
 
 # Create modern CMake target for Asar integration
 if(TARGET asar-static)

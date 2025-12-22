@@ -10,8 +10,6 @@ if(YAZE_BUILD_EMU AND NOT YAZE_MINIMAL_BUILD)
     # yaze_agent -> yaze_app_core_lib -> yaze_editor -> yaze_agent
     add_executable(yaze_emu MACOSX_BUNDLE
       app/emu/emu.cc
-      app/platform/app_delegate.mm
-      app/controller.cc
     )
     target_link_libraries(yaze_emu PUBLIC "-framework Cocoa")
   else()

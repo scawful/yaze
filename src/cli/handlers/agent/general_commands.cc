@@ -34,6 +34,7 @@
 #include "core/project.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/zelda3_labels.h"
 
 ABSL_DECLARE_FLAG(std::string, rom);
 ABSL_DECLARE_FLAG(std::string, ai_provider);
@@ -62,7 +63,8 @@ absl::Status TryLoadProjectAndLabels(Rom& rom) {
     std::cout << "📂 Loaded project: " << project.name << "\n";
 
     // Initialize embedded labels (all default Zelda3 resource names)
-    auto labels_status = project.InitializeEmbeddedLabels();
+    auto labels_status = project.InitializeEmbeddedLabels(
+        zelda3::Zelda3Labels::ToResourceLabels());
     if (labels_status.ok()) {
       std::cout << "✅ Embedded labels initialized (all Zelda3 resources "
                    "available)\n";
@@ -90,7 +92,7 @@ absl::Status TryLoadProjectAndLabels(Rom& rom) {
     // No project found - use embedded defaults anyway
     std::cout
         << "ℹ️  No project file found. Using embedded default Zelda3 labels.\n";
-    project.InitializeEmbeddedLabels();
+    project.InitializeEmbeddedLabels(zelda3::Zelda3Labels::ToResourceLabels());
   }
 
   return absl::OkStatus();
@@ -742,7 +744,7 @@ absl::Status HandleAcceptCommand(const std::vector<std::string>& arg_vec,
 
   Rom sandbox_rom;
   auto sandbox_load_status = sandbox_rom.LoadFromFile(
-      metadata.sandbox_rom_path.string(), RomLoadOptions::CliDefaults());
+      metadata.sandbox_rom_path.string());
   if (!sandbox_load_status.ok()) {
     return absl::InternalError(absl::StrCat("Failed to load sandbox ROM: ",
                                             sandbox_load_status.message()));

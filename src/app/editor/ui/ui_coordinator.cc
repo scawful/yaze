@@ -7,16 +7,22 @@
 #include <vector>
 
 #include "absl/strings/str_format.h"
+
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 #include "app/editor/editor.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/system/editor_registry.h"
-#include "app/editor/system/popup_manager.h"
+#include "app/editor/menu/right_panel_manager.h"
+#include "app/editor/ui/popup_manager.h"
 #include "app/editor/system/project_manager.h"
 #include "app/editor/system/rom_file_manager.h"
 #include "app/editor/system/session_coordinator.h"
-#include "app/editor/system/toast_manager.h"
-#include "app/editor/system/window_delegate.h"
+#include "app/editor/ui/toast_manager.h"
+#include "app/editor/layout/window_delegate.h"
 #include "app/editor/ui/welcome_screen.h"
+#include "app/gui/core/background_renderer.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style.h"
@@ -31,14 +37,14 @@ namespace editor {
 UICoordinator::UICoordinator(
     EditorManager* editor_manager, RomFileManager& rom_manager,
     ProjectManager& project_manager, EditorRegistry& editor_registry,
-    EditorCardRegistry& card_registry, SessionCoordinator& session_coordinator,
+    PanelManager& panel_manager, SessionCoordinator& session_coordinator,
     WindowDelegate& window_delegate, ToastManager& toast_manager,
     PopupManager& popup_manager, ShortcutManager& shortcut_manager)
     : editor_manager_(editor_manager),
       rom_manager_(rom_manager),
       project_manager_(project_manager),
       editor_registry_(editor_registry),
-      card_registry_(card_registry),
+      panel_manager_(panel_manager),
       session_coordinator_(session_coordinator),
       window_delegate_(window_delegate),
       toast_manager_(toast_manager),
@@ -49,6 +55,19 @@ UICoordinator::UICoordinator(
 
   // Wire welcome screen callbacks to EditorManager
   welcome_screen_->SetOpenRomCallback([this]() {
+#ifdef __EMSCRIPTEN__
+    // In web builds, trigger the file input element directly
+    // The file input handler in app.js will handle the file selection
+    // and call LoadRomFromWeb, which will update the ROM
+    EM_ASM({
+      var romInput = document.getElementById('rom-input');
+      if (romInput) {
+        romInput.click();
+      }
+    });
+    // Don't hide welcome screen yet - it will be hidden when ROM loads
+    // (DrawWelcomeScreen auto-transitions to Dashboard on ROM load)
+#else
     if (editor_manager_) {
       auto status = editor_manager_->LoadRom();
       if (!status.ok()) {
@@ -56,11 +75,11 @@ UICoordinator::UICoordinator(
             absl::StrFormat("Failed to load ROM: %s", status.message()),
             ToastType::kError);
       } else {
-        // Hide welcome screen on successful ROM load
-        show_welcome_screen_ = false;
-        welcome_screen_manually_closed_ = true;
+        // Transition to Dashboard on successful ROM load
+        SetStartupSurface(StartupSurface::kDashboard);
       }
     }
+#endif
   });
 
   welcome_screen_->SetNewProjectCallback([this]() {
@@ -71,9 +90,8 @@ UICoordinator::UICoordinator(
             absl::StrFormat("Failed to create project: %s", status.message()),
             ToastType::kError);
       } else {
-        // Hide welcome screen on successful project creation
-        show_welcome_screen_ = false;
-        welcome_screen_manually_closed_ = true;
+        // Transition to Dashboard on successful project creation
+        SetStartupSurface(StartupSurface::kDashboard);
       }
     }
   });
@@ -86,12 +104,69 @@ UICoordinator::UICoordinator(
             absl::StrFormat("Failed to open project: %s", status.message()),
             ToastType::kError);
       } else {
-        // Hide welcome screen on successful project open
-        show_welcome_screen_ = false;
-        welcome_screen_manually_closed_ = true;
+        // Transition to Dashboard on successful project open
+        SetStartupSurface(StartupSurface::kDashboard);
       }
     }
   });
+
+  welcome_screen_->SetOpenAgentCallback([this]() {
+    if (editor_manager_) {
+#ifdef YAZE_BUILD_AGENT_UI
+      editor_manager_->ShowAIAgent();
+#endif
+      // Keep welcome screen visible - user may want to do other things
+    }
+  });
+}
+
+void UICoordinator::SetWelcomeScreenBehavior(StartupVisibility mode) {
+  welcome_behavior_override_ = mode;
+  if (mode == StartupVisibility::kHide) {
+    welcome_screen_manually_closed_ = true;
+    // If hiding welcome, transition to appropriate state
+    if (current_startup_surface_ == StartupSurface::kWelcome) {
+      SetStartupSurface(StartupSurface::kDashboard);
+    }
+  } else if (mode == StartupVisibility::kShow) {
+    welcome_screen_manually_closed_ = false;
+    SetStartupSurface(StartupSurface::kWelcome);
+  }
+}
+
+void UICoordinator::SetDashboardBehavior(StartupVisibility mode) {
+  if (dashboard_behavior_override_ == mode) {
+    return;
+  }
+  dashboard_behavior_override_ = mode;
+  if (mode == StartupVisibility::kShow) {
+    // Only transition to dashboard if we're not in welcome
+    if (current_startup_surface_ != StartupSurface::kWelcome) {
+      SetStartupSurface(StartupSurface::kDashboard);
+    }
+  } else if (mode == StartupVisibility::kHide) {
+    // If hiding dashboard, transition to editor state
+    if (current_startup_surface_ == StartupSurface::kDashboard) {
+      SetStartupSurface(StartupSurface::kEditor);
+    }
+  }
+}
+
+void UICoordinator::DrawBackground() {
+  if (ImGui::GetCurrentContext()) {
+    ImDrawList* bg_draw_list = ImGui::GetBackgroundDrawList();
+    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+
+    auto& theme_manager = gui::ThemeManager::Get();
+    auto current_theme = theme_manager.GetCurrentTheme();
+    auto& bg_renderer = gui::BackgroundRenderer::Get();
+
+    // Draw grid covering the entire main viewport
+    ImVec2 grid_pos = viewport->WorkPos;
+    ImVec2 grid_size = viewport->WorkSize;
+    bg_renderer.RenderDockingBackground(bg_draw_list, grid_pos, grid_size,
+                                        current_theme.primary);
+  }
 }
 
 void UICoordinator::DrawAllUI() {
@@ -109,152 +184,405 @@ void UICoordinator::DrawAllUI() {
   DrawWelcomeScreen();           // Welcome screen
   DrawProjectHelp();             // Project help
   DrawWindowManagementUI();      // Window management
+  
+  // Draw popups and toasts
+  DrawAllPopups();
+  toast_manager_.Draw();
 }
 
-void UICoordinator::DrawRomSelector() {
-  auto* current_rom = editor_manager_->GetCurrentRom();
-  ImGui::SameLine((ImGui::GetWindowWidth() / 2) - 100);
-  if (current_rom && current_rom->is_loaded()) {
-    ImGui::SetNextItemWidth(ImGui::GetWindowWidth() / 6);
-    if (ImGui::BeginCombo("##ROMSelector", current_rom->short_name().c_str())) {
-      for (size_t i = 0; i < session_coordinator_.GetTotalSessionCount(); ++i) {
-        if (session_coordinator_.IsSessionClosed(i))
-          continue;
+// =============================================================================
+// Menu Bar Helpers
+// =============================================================================
 
-        auto* session =
-            static_cast<RomSession*>(session_coordinator_.GetSession(i));
-        if (!session)
-          continue;
+bool UICoordinator::DrawMenuBarIconButton(const char* icon, const char* tooltip,
+                                          bool is_active) {
+  // Push consistent button styling
+  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                        gui::GetSurfaceContainerHighVec4());
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                        gui::GetSurfaceContainerHighestVec4());
 
-        Rom* rom = &session->rom;
-        ImGui::PushID(static_cast<int>(i));
-        bool selected = (rom == current_rom);
-        if (ImGui::Selectable(rom->short_name().c_str(), selected)) {
-          editor_manager_->SwitchToSession(i);
-        }
-        ImGui::PopID();
-      }
-      ImGui::EndCombo();
-    }
-    // Inline status next to ROM selector
-    ImGui::SameLine();
-    ImGui::Text("Size: %.1f MB", current_rom->size() / 1048576.0f);
-
-    // Context-sensitive card control (right after ROM info)
-    ImGui::SameLine();
-    DrawContextSensitiveCardControl();
+  // Active state uses primary color, inactive uses secondary text
+  if (is_active) {
+    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
   } else {
-    ImGui::Text("No ROM loaded");
+    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
   }
+
+  bool clicked = ImGui::SmallButton(icon);
+
+  ImGui::PopStyleColor(4);
+
+  if (tooltip && ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("%s", tooltip);
+  }
+
+  return clicked;
+}
+
+float UICoordinator::GetMenuBarIconButtonWidth() {
+  // SmallButton width = text width + frame padding * 2
+  const float frame_padding = ImGui::GetStyle().FramePadding.x;
+  // Use a standard icon width (Material Design icons are uniform)
+  const float icon_width = ImGui::CalcTextSize(ICON_MD_SETTINGS).x;
+  return icon_width + frame_padding * 2.0f;
 }
 
 void UICoordinator::DrawMenuBarExtras() {
-  // Get current ROM from EditorManager (RomFileManager doesn't track "current")
+  // Right-aligned status cluster: Version, dirty indicator, session, bell, panel toggles
+  // Panel toggles are positioned using SCREEN coordinates (from viewport) so they
+  // stay fixed even when the dockspace resizes due to panel open/close.
+  //
+  // Layout: [v0.x.x][●][📄▾][🔔] [panels][⬆]
+  //         ^^^ shifts with dockspace ^^^  ^^^ fixed screen position ^^^
+
   auto* current_rom = editor_manager_->GetCurrentRom();
-
-  // Calculate version width for right alignment
-  std::string version_text =
+  const std::string full_version =
       absl::StrFormat("v%s", editor_manager_->version().c_str());
-  float version_width = ImGui::CalcTextSize(version_text.c_str()).x;
 
-  // Session indicator with Material Design styling
-  if (session_coordinator_.HasMultipleSessions()) {
-    ImGui::SameLine();
-    std::string session_button_text = absl::StrFormat(
-        "%s %zu", ICON_MD_TAB, session_coordinator_.GetActiveSessionCount());
+  const float item_spacing = 6.0f;
+  const float button_width = GetMenuBarIconButtonWidth();
+  const float padding = 8.0f;
 
-    // Material Design button styling
-    ImGui::PushStyleColor(ImGuiCol_Button, gui::GetPrimaryVec4());
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, gui::GetPrimaryHoverVec4());
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, gui::GetPrimaryActiveVec4());
+  // Get TRUE viewport dimensions (not affected by dockspace resize)
+  const ImGuiViewport* viewport = ImGui::GetMainViewport();
+  const float true_viewport_right = viewport->WorkPos.x + viewport->WorkSize.x;
 
-    if (ImGui::SmallButton(session_button_text.c_str())) {
-      session_coordinator_.ToggleSessionSwitcher();
-    }
-
-    ImGui::PopStyleColor(3);
-
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Switch Sessions (Ctrl+Tab)");
-    }
+  // Calculate panel toggle region width
+  // Buttons: Project, Agent (GRPC only), Help, Settings, Properties
+  int panel_button_count = 0;
+  if (editor_manager_->right_panel_manager()) {
+#ifdef YAZE_WITH_GRPC
+    panel_button_count = 5;  // Project, Agent, Help, Settings, Properties
+#else
+    panel_button_count = 4;  // Project, Help, Settings, Properties
+#endif
   }
 
-  // ROM information display with Material Design card styling
-  ImGui::SameLine();
-  if (current_rom && current_rom->is_loaded()) {
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-    std::string rom_title = current_rom->title();
-    if (current_rom->dirty()) {
-      ImGui::Text("%s %s*", ICON_MD_CIRCLE, rom_title.c_str());
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Unsaved changes");
-      }
-    } else {
-      ImGui::Text("%s %s", ICON_MD_INSERT_DRIVE_FILE, rom_title.c_str());
-    }
-    ImGui::PopStyleColor();
-  } else {
+  float panel_region_width = 0.0f;
+  if (panel_button_count > 0) {
+    panel_region_width = (button_width * panel_button_count) +
+                         (item_spacing * (panel_button_count - 1)) + padding;
+  }
+#ifdef __EMSCRIPTEN__
+  panel_region_width += button_width + item_spacing;  // WASM toggle
+#endif
+
+  // Calculate screen X position for panel toggles (fixed at viewport right edge)
+  float panel_screen_x = true_viewport_right - panel_region_width;
+  if (editor_manager_->right_panel_manager() &&
+      editor_manager_->right_panel_manager()->IsPanelExpanded()) {
+    panel_screen_x -= editor_manager_->right_panel_manager()->GetPanelWidth();
+  }
+
+  // Calculate available space for status cluster (version, dirty, session, bell)
+  // This ends where the panel toggle region begins
+  const float window_width = ImGui::GetWindowWidth();
+  const float window_screen_x = ImGui::GetWindowPos().x;
+  const float menu_items_end = ImGui::GetCursorPosX() + 16.0f;
+
+  // Convert panel screen X to window-local coordinates for space calculation
+  float panel_local_x = panel_screen_x - window_screen_x;
+  float region_end = std::min(window_width - padding, panel_local_x - item_spacing);
+
+  // Calculate what elements to show - progressive hiding when space is tight
+  bool has_dirty_rom = current_rom && current_rom->is_loaded() && current_rom->dirty();
+  bool has_multiple_sessions = session_coordinator_.HasMultipleSessions();
+  
+  float version_width = ImGui::CalcTextSize(full_version.c_str()).x;
+  float dirty_width = ImGui::CalcTextSize(ICON_MD_FIBER_MANUAL_RECORD).x + item_spacing;
+  float session_width = button_width;
+
+  const float available_width = region_end - menu_items_end - padding;
+  
+  // Minimum required width: just the bell (always visible)
+  float required_width = button_width;
+
+  // Progressive show/hide based on available space
+  // Priority (highest to lowest): Bell > Dirty > Session > Version
+  
+  // Try to fit version (lowest priority - hide first when tight)
+  bool show_version = (required_width + version_width + item_spacing) <= available_width;
+  if (show_version) {
+    required_width += version_width + item_spacing;
+  }
+
+  // Try to fit session button (medium priority)
+  bool show_session = has_multiple_sessions &&
+                      (required_width + session_width + item_spacing) <= available_width;
+  if (show_session) {
+    required_width += session_width + item_spacing;
+  }
+
+  // Try to fit dirty indicator (high priority - only hide if extremely tight)
+  bool show_dirty = has_dirty_rom &&
+                    (required_width + dirty_width) <= available_width;
+  if (show_dirty) {
+    required_width += dirty_width;
+  }
+
+  // Calculate start position (right-align within available space)
+  float start_pos = std::max(menu_items_end, region_end - required_width);
+
+  // =========================================================================
+  // DRAW STATUS CLUSTER (shifts with dockspace)
+  // =========================================================================
+  ImGui::SameLine(start_pos);
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(item_spacing, 0.0f));
+
+  // 1. Version - subdued gray text
+  if (show_version) {
     ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextDisabledVec4());
-    ImGui::Text("%s No ROM", ICON_MD_WARNING);
+    ImGui::Text("%s", full_version.c_str());
     ImGui::PopStyleColor();
+    ImGui::SameLine();
   }
 
-  // Version info aligned to far right
-  ImGui::SameLine(ImGui::GetWindowWidth() - version_width - 15.0f);
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextDisabledVec4());
-  ImGui::Text("%s", version_text.c_str());
-  ImGui::PopStyleColor();
+  // 2. Dirty badge - warning color dot
+  if (show_dirty) {
+    const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+    ImGui::PushStyleColor(ImGuiCol_Text,
+                          gui::ConvertColorToImVec4(theme.warning));
+    ImGui::Text(ICON_MD_FIBER_MANUAL_RECORD);
+    ImGui::PopStyleColor();
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Unsaved changes: %s",
+                        current_rom->short_name().c_str());
+    }
+    ImGui::SameLine();
+  }
+
+  // 3. Session button - layers icon
+  if (show_session) {
+    DrawSessionButton();
+    ImGui::SameLine();
+  }
+
+  // 4. Notification bell (pass visibility flags for enhanced tooltip)
+  DrawNotificationBell(show_dirty, has_dirty_rom, show_session, has_multiple_sessions);
+
+  // =========================================================================
+  // DRAW PANEL TOGGLES (fixed screen position, unaffected by dockspace resize)
+  // =========================================================================
+  if (panel_button_count > 0) {
+    // Get current Y position within menu bar
+    float menu_bar_y = ImGui::GetCursorScreenPos().y;
+
+    // Position at fixed screen coordinates
+    ImGui::SetCursorScreenPos(ImVec2(panel_screen_x, menu_bar_y));
+
+    // Draw panel toggle buttons
+    editor_manager_->right_panel_manager()->DrawPanelToggleButtons();
+  }
+
+#ifdef __EMSCRIPTEN__
+  // WASM toggle button - also at fixed position
+  ImGui::SameLine();
+  if (DrawMenuBarIconButton(ICON_MD_EXPAND_LESS,
+                            "Hide menu bar (Alt to restore)")) {
+    show_menu_bar_ = false;
+  }
+#endif
+
+  ImGui::PopStyleVar();  // ItemSpacing
 }
 
-void UICoordinator::DrawContextSensitiveCardControl() {
-  // Get the currently active editor directly from EditorManager
-  // This ensures we show cards for the correct editor that has focus
-  auto* active_editor = editor_manager_->GetCurrentEditor();
-  if (!active_editor)
-    return;
-
-  // Only show card control for card-based editors (not palette, not assembly in
-  // legacy mode, etc.)
-  if (!editor_registry_.IsCardBasedEditor(active_editor->type())) {
+void UICoordinator::DrawMenuBarRestoreButton() {
+  // Only draw when menu bar is hidden (primarily for WASM builds)
+  if (show_menu_bar_) {
     return;
   }
 
-  // Get the category and session for the active editor
-  std::string category =
-      editor_registry_.GetEditorCategory(active_editor->type());
-  size_t session_id = editor_manager_->GetCurrentSessionId();
+  // Small floating button in top-left corner to restore menu bar
+  ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar |
+                           ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                           ImGuiWindowFlags_NoScrollbar |
+                           ImGuiWindowFlags_NoCollapse |
+                           ImGuiWindowFlags_AlwaysAutoResize |
+                           ImGuiWindowFlags_NoBackground |
+                           ImGuiWindowFlags_NoSavedSettings;
 
-  // Draw compact card control in menu bar (mini dropdown for cards)
-  ImGui::SameLine();
-  ImGui::PushStyleColor(ImGuiCol_Button, gui::GetSurfaceContainerHighVec4());
+  ImGui::SetNextWindowPos(ImVec2(8, 8));
+  ImGui::SetNextWindowBgAlpha(0.7f);
+
+  if (ImGui::Begin("##MenuBarRestore", nullptr, flags)) {
+    ImGui::PushStyleColor(ImGuiCol_Button, gui::GetSurfaceContainerVec4());
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                          gui::GetSurfaceContainerHighVec4());
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                          gui::GetSurfaceContainerHighestVec4());
+    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
+
+    if (ImGui::Button(ICON_MD_FULLSCREEN_EXIT, ImVec2(32, 32))) {
+      show_menu_bar_ = true;
+    }
+
+    ImGui::PopStyleColor(4);
+
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Show menu bar (Alt)");
+    }
+  }
+  ImGui::End();
+
+  // Also check for Alt key to restore menu bar
+  if (ImGui::IsKeyPressed(ImGuiKey_LeftAlt) ||
+      ImGui::IsKeyPressed(ImGuiKey_RightAlt)) {
+    show_menu_bar_ = true;
+  }
+}
+
+void UICoordinator::DrawNotificationBell(bool show_dirty, bool has_dirty_rom, 
+                                         bool show_session, bool has_multiple_sessions) {
+  size_t unread = toast_manager_.GetUnreadCount();
+  auto* current_rom = editor_manager_->GetCurrentRom();
+  auto* right_panel = editor_manager_->right_panel_manager();
+
+  // Check if notifications panel is active
+  bool is_active = right_panel && 
+      right_panel->IsPanelActive(RightPanelManager::PanelType::kNotifications);
+
+  // Bell icon with accent color when there are unread notifications or panel is active
+  if (unread > 0 || is_active) {
+    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4());
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4());
+  } else {
+    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4());
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4());
+  }
+
+  // Bell button - opens notifications panel in right sidebar
+  if (ImGui::SmallButton(ICON_MD_NOTIFICATIONS)) {
+    if (right_panel) {
+      right_panel->TogglePanel(RightPanelManager::PanelType::kNotifications);
+      toast_manager_.MarkAllRead();
+    }
+  }
+
+  ImGui::PopStyleColor(4);
+
+  // Enhanced tooltip showing notifications + hidden status items
+  if (ImGui::IsItemHovered()) {
+    ImGui::BeginTooltip();
+    
+    // Notifications
+    if (unread > 0) {
+      ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
+      ImGui::Text("%s %zu new notification%s", ICON_MD_NOTIFICATIONS, 
+                  unread, unread == 1 ? "" : "s");
+      ImGui::PopStyleColor();
+    } else {
+      ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
+      ImGui::Text(ICON_MD_NOTIFICATIONS " No new notifications");
+      ImGui::PopStyleColor();
+    }
+    
+    ImGui::TextDisabled("Click to open Notifications panel");
+    
+    // Show hidden status items if any
+    if (!show_dirty && has_dirty_rom) {
+      ImGui::Separator();
+      ImGui::PushStyleColor(ImGuiCol_Text, gui::ConvertColorToImVec4(
+          gui::ThemeManager::Get().GetCurrentTheme().warning));
+      ImGui::Text(ICON_MD_FIBER_MANUAL_RECORD " Unsaved changes: %s", 
+                  current_rom->short_name().c_str());
+      ImGui::PopStyleColor();
+    }
+    
+    if (!show_session && has_multiple_sessions) {
+      if (!show_dirty && has_dirty_rom) {
+        // Already had a separator
+      } else {
+        ImGui::Separator();
+      }
+      ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
+      ImGui::Text(ICON_MD_LAYERS " %zu sessions active", 
+                  session_coordinator_.GetActiveSessionCount());
+      ImGui::PopStyleColor();
+    }
+    
+    ImGui::EndTooltip();
+  }
+}
+
+void UICoordinator::DrawSessionButton() {
+  auto* current_rom = editor_manager_->GetCurrentRom();
+
+  // Consistent button styling with other menubar buttons
+  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                        gui::GetSurfaceContainerHighVec4());
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive,
                         gui::GetSurfaceContainerHighestVec4());
+  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
 
-  if (ImGui::SmallButton(
-          absl::StrFormat("%s %s", ICON_MD_LAYERS, category.c_str()).c_str())) {
-    ImGui::OpenPopup("##CardQuickAccess");
+  // Store button position for popup anchoring
+  ImVec2 button_min = ImGui::GetCursorScreenPos();
+
+  if (ImGui::SmallButton(ICON_MD_LAYERS)) {
+    ImGui::OpenPopup("##SessionSwitcherPopup");
   }
 
-  ImGui::PopStyleColor(2);
+  ImVec2 button_max = ImGui::GetItemRectMax();
+
+  ImGui::PopStyleColor(4);
 
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Quick access to %s cards", category.c_str());
+    std::string tooltip = current_rom && current_rom->is_loaded()
+                              ? current_rom->short_name()
+                              : "No ROM loaded";
+    ImGui::SetTooltip("%s\n%zu sessions open (Ctrl+Tab)", tooltip.c_str(),
+                      session_coordinator_.GetActiveSessionCount());
   }
 
-  // Quick access popup for toggling cards
-  if (ImGui::BeginPopup("##CardQuickAccess")) {
-    auto cards = card_registry_.GetCardsInCategory(session_id, category);
+  // Anchor popup to right edge - position so right edge aligns with button
+  const float popup_width = 250.0f;
+  const float screen_width = ImGui::GetIO().DisplaySize.x;
+  const float popup_x = std::min(button_min.x, screen_width - popup_width - 10.0f);
 
-    for (const auto& card : cards) {
-      bool visible = card.visibility_flag ? *card.visibility_flag : false;
-      if (ImGui::MenuItem(card.display_name.c_str(), nullptr, visible)) {
-        if (visible) {
-          card_registry_.HideCard(session_id, card.card_id);
-        } else {
-          card_registry_.ShowCard(session_id, card.card_id);
-        }
+  ImGui::SetNextWindowPos(ImVec2(popup_x, button_max.y + 2.0f), ImGuiCond_Appearing);
+
+  // Session switcher popup
+  if (ImGui::BeginPopup("##SessionSwitcherPopup")) {
+    ImGui::Text(ICON_MD_LAYERS " Sessions");
+    ImGui::Separator();
+
+    for (size_t i = 0; i < session_coordinator_.GetTotalSessionCount(); ++i) {
+      if (session_coordinator_.IsSessionClosed(i))
+        continue;
+
+      auto* session = static_cast<RomSession*>(session_coordinator_.GetSession(i));
+      if (!session)
+        continue;
+
+      Rom* rom = &session->rom;
+      ImGui::PushID(static_cast<int>(i));
+
+      bool is_current = (rom == current_rom);
+      if (is_current) {
+        ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
       }
+
+      std::string label = rom->is_loaded()
+          ? absl::StrFormat("%s %s", ICON_MD_DESCRIPTION, rom->short_name().c_str())
+          : absl::StrFormat("%s Session %zu", ICON_MD_DESCRIPTION, i + 1);
+
+      if (ImGui::Selectable(label.c_str(), is_current)) {
+        editor_manager_->SwitchToSession(i);
+      }
+
+      if (is_current) {
+        ImGui::PopStyleColor();
+      }
+
+      ImGui::PopID();
     }
+
     ImGui::EndPopup();
   }
 }
@@ -281,6 +609,21 @@ void UICoordinator::SetSessionSwitcherVisible(bool visible) {
   }
 }
 
+// Emulator visibility delegates to PanelManager (single source of truth)
+bool UICoordinator::IsEmulatorVisible() const {
+  size_t session_id = session_coordinator_.GetActiveSessionIndex();
+  return panel_manager_.IsPanelVisible(session_id, "emulator.cpu_debugger");
+}
+
+void UICoordinator::SetEmulatorVisible(bool visible) {
+  size_t session_id = session_coordinator_.GetActiveSessionIndex();
+  if (visible) {
+    panel_manager_.ShowPanel(session_id, "emulator.cpu_debugger");
+  } else {
+    panel_manager_.HidePanel(session_id, "emulator.cpu_debugger");
+  }
+}
+
 // ============================================================================
 // Layout and Window Management UI
 // ============================================================================
@@ -293,11 +636,11 @@ void UICoordinator::DrawLayoutPresets() {
 
 void UICoordinator::DrawWelcomeScreen() {
   // ============================================================================
-  // SIMPLIFIED WELCOME SCREEN LOGIC
+  // CENTRALIZED WELCOME SCREEN LOGIC (using StartupSurface state)
   // ============================================================================
-  // Auto-show: When no ROM is loaded (unless manually closed this session)
-  // Auto-hide: When ROM is loaded
-  // Manual control: Can be opened via Help > Welcome Screen menu
+  // Uses ShouldShowWelcome() as single source of truth
+  // Auto-transitions to Dashboard on ROM load
+  // Activity Bar hidden when welcome is visible
   // ============================================================================
 
   if (!editor_manager_) {
@@ -311,21 +654,24 @@ void UICoordinator::DrawWelcomeScreen() {
     return;
   }
 
-  // Check ROM state
+  // Check ROM state and update startup surface accordingly
   auto* current_rom = editor_manager_->GetCurrentRom();
   bool rom_is_loaded = current_rom && current_rom->is_loaded();
 
-  // SIMPLIFIED LOGIC: Auto-show when no ROM, auto-hide when ROM loads
-  if (!rom_is_loaded && !welcome_screen_manually_closed_) {
-    show_welcome_screen_ = true;
+  // Auto-transition: ROM loaded -> Dashboard (unless manually closed)
+  if (rom_is_loaded && current_startup_surface_ == StartupSurface::kWelcome &&
+      !welcome_screen_manually_closed_) {
+    SetStartupSurface(StartupSurface::kDashboard);
   }
 
-  if (rom_is_loaded && !welcome_screen_manually_closed_) {
-    show_welcome_screen_ = false;
+  // Auto-transition: ROM unloaded -> Welcome (reset to welcome state)
+  if (!rom_is_loaded && current_startup_surface_ != StartupSurface::kWelcome &&
+      !welcome_screen_manually_closed_) {
+    SetStartupSurface(StartupSurface::kWelcome);
   }
 
-  // Don't show if flag is false
-  if (!show_welcome_screen_) {
+  // Use centralized visibility check
+  if (!ShouldShowWelcome()) {
     return;
   }
 
@@ -335,18 +681,24 @@ void UICoordinator::DrawWelcomeScreen() {
   // Update recent projects before showing
   welcome_screen_->RefreshRecentProjects();
 
+  // Pass layout offsets so welcome screen centers within dockspace region
+  // Note: Activity Bar is hidden when welcome is shown, so left_offset = 0
+  float left_offset = ShouldShowActivityBar() ? editor_manager_->GetLeftLayoutOffset() : 0.0f;
+  float right_offset = editor_manager_->GetRightLayoutOffset();
+  welcome_screen_->SetLayoutOffsets(left_offset, right_offset);
+
   // Show the welcome screen window
   bool is_open = true;
   welcome_screen_->Show(&is_open);
 
-  // If user closed it via X button, respect that
+  // If user closed it via X button, respect that and transition to appropriate state
   if (!is_open) {
-    show_welcome_screen_ = false;
     welcome_screen_manually_closed_ = true;
+    // Transition to Dashboard if ROM loaded, stay in Editor state otherwise
+    if (rom_is_loaded) {
+      SetStartupSurface(StartupSurface::kDashboard);
+    }
   }
-
-  // If an action was taken (ROM loaded, project opened), the welcome screen
-  // will auto-hide next frame when rom_is_loaded becomes true
 }
 
 void UICoordinator::DrawProjectHelp() {
@@ -422,7 +774,7 @@ void UICoordinator::ShowDisplaySettings() {
   popup_manager_.Show(PopupID::kDisplaySettings);
 }
 
-void UICoordinator::HideCurrentEditorCards() {
+void UICoordinator::HideCurrentEditorPanels() {
   if (!editor_manager_)
     return;
 
@@ -432,9 +784,26 @@ void UICoordinator::HideCurrentEditorCards() {
 
   std::string category =
       editor_registry_.GetEditorCategory(current_editor->type());
-  card_registry_.HideAllCardsInCategory(category);
+  size_t session_id = session_coordinator_.GetActiveSessionIndex();
+  panel_manager_.HideAllPanelsInCategory(session_id, category);
 
-  LOG_INFO("UICoordinator", "Hid all cards in category: %s", category.c_str());
+  LOG_INFO("UICoordinator", "Hid all panels in category: %s", category.c_str());
+}
+
+// ============================================================================
+// Sidebar Visibility (delegates to PanelManager)
+// ============================================================================
+
+void UICoordinator::TogglePanelSidebar() {
+  panel_manager_.ToggleSidebarVisibility();
+}
+
+bool UICoordinator::IsPanelSidebarVisible() const {
+  return panel_manager_.IsSidebarVisible();
+}
+
+void UICoordinator::SetPanelSidebarVisible(bool visible) {
+  panel_manager_.SetSidebarVisible(visible);
 }
 
 void UICoordinator::ShowAllWindows() {
@@ -445,18 +814,6 @@ void UICoordinator::HideAllWindows() {
   window_delegate_.HideAllWindows();
 }
 
-// Helper methods for drawing operations
-void UICoordinator::DrawSessionIndicator() {
-  // TODO: [EditorManagerRefactor] Implement session indicator in menu bar
-}
-
-void UICoordinator::DrawSessionTabs() {
-  // TODO: [EditorManagerRefactor] Implement session tabs UI
-}
-
-void UICoordinator::DrawSessionBadges() {
-  // TODO: [EditorManagerRefactor] Implement session status badges
-}
 
 // Material Design component helpers
 void UICoordinator::DrawMaterialButton(const std::string& text,
@@ -499,48 +856,6 @@ void UICoordinator::SetWindowSize(const std::string& window_name, float width,
   ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_FirstUseEver);
 }
 
-// Icon and theming helpers
-std::string UICoordinator::GetIconForEditor(EditorType type) const {
-  switch (type) {
-    case EditorType::kDungeon:
-      return ICON_MD_CASTLE;
-    case EditorType::kOverworld:
-      return ICON_MD_MAP;
-    case EditorType::kGraphics:
-      return ICON_MD_IMAGE;
-    case EditorType::kPalette:
-      return ICON_MD_PALETTE;
-    case EditorType::kSprite:
-      return ICON_MD_TOYS;
-    case EditorType::kScreen:
-      return ICON_MD_TV;
-    case EditorType::kMessage:
-      return ICON_MD_CHAT_BUBBLE;
-    case EditorType::kMusic:
-      return ICON_MD_MUSIC_NOTE;
-    case EditorType::kAssembly:
-      return ICON_MD_CODE;
-    case EditorType::kHex:
-      return ICON_MD_DATA_ARRAY;
-    case EditorType::kEmulator:
-      return ICON_MD_PLAY_ARROW;
-    case EditorType::kSettings:
-      return ICON_MD_SETTINGS;
-    default:
-      return ICON_MD_HELP;
-  }
-}
-
-std::string UICoordinator::GetColorForEditor(EditorType type) const {
-  // TODO: [EditorManagerRefactor] Map editor types to theme colors
-  // Use ThemeManager to get Material Design color names
-  return "primary";
-}
-
-void UICoordinator::ApplyEditorTheme(EditorType type) {
-  // TODO: [EditorManagerRefactor] Apply editor-specific theme overrides
-  // Use ThemeManager to push/pop style colors based on editor type
-}
 
 void UICoordinator::DrawCommandPalette() {
   if (!show_command_palette_)
@@ -908,6 +1223,83 @@ void UICoordinator::DrawGlobalSearch() {
   if (!show_search) {
     SetGlobalSearchVisible(false);
   }
+}
+
+// ============================================================================
+// Startup Surface Management (Single Source of Truth)
+// ============================================================================
+
+void UICoordinator::SetStartupSurface(StartupSurface surface) {
+  StartupSurface old_surface = current_startup_surface_;
+  current_startup_surface_ = surface;
+
+  // Log state transitions for debugging
+  const char* surface_names[] = {"Welcome", "Dashboard", "Editor"};
+  LOG_INFO("UICoordinator", "Startup surface: %s -> %s",
+           surface_names[static_cast<int>(old_surface)],
+           surface_names[static_cast<int>(surface)]);
+
+  // Update dependent visibility flags
+  switch (surface) {
+    case StartupSurface::kWelcome:
+      show_welcome_screen_ = true;
+      show_editor_selection_ = false;  // Dashboard hidden
+      // Activity Bar will be hidden (checked via ShouldShowActivityBar)
+      break;
+    case StartupSurface::kDashboard:
+      show_welcome_screen_ = false;
+      show_editor_selection_ = true;  // Dashboard shown
+      break;
+    case StartupSurface::kEditor:
+      show_welcome_screen_ = false;
+      show_editor_selection_ = false;  // Dashboard hidden
+      break;
+  }
+}
+
+bool UICoordinator::ShouldShowWelcome() const {
+  // Respect CLI overrides
+  if (welcome_behavior_override_ == StartupVisibility::kHide) {
+    return false;
+  }
+  if (welcome_behavior_override_ == StartupVisibility::kShow) {
+    return true;
+  }
+
+  // Default: show welcome only when in welcome state and not manually closed
+  return current_startup_surface_ == StartupSurface::kWelcome &&
+         !welcome_screen_manually_closed_;
+}
+
+bool UICoordinator::ShouldShowDashboard() const {
+  // Respect CLI overrides
+  if (dashboard_behavior_override_ == StartupVisibility::kHide) {
+    return false;
+  }
+  if (dashboard_behavior_override_ == StartupVisibility::kShow) {
+    return true;
+  }
+
+  // Default: show dashboard only when in dashboard state
+  return current_startup_surface_ == StartupSurface::kDashboard;
+}
+
+bool UICoordinator::ShouldShowActivityBar() const {
+  // Activity Bar hidden on cold start (welcome screen)
+  // Only show after ROM is loaded
+  if (current_startup_surface_ == StartupSurface::kWelcome) {
+    return false;
+  }
+
+  // Check if ROM is actually loaded
+  if (editor_manager_) {
+    auto* current_rom = editor_manager_->GetCurrentRom();
+    if (!current_rom || !current_rom->is_loaded()) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 }  // namespace editor

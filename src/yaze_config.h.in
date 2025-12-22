@@ -5,8 +5,8 @@
 #define YAZE_VERSION_MINOR @yaze_VERSION_MINOR@
 #define YAZE_VERSION_PATCH @yaze_VERSION_PATCH@
 
-// Combined version as a string (e.g., "0.3.7")
-#define YAZE_VERSION_STRING "@yaze_VERSION_MAJOR@.@yaze_VERSION_MINOR@.@yaze_VERSION_PATCH@"
+// Combined version as a string (e.g., "0.3.7-alpha")
+#define YAZE_VERSION_STRING "@yaze_VERSION_MAJOR@.@yaze_VERSION_MINOR@.@yaze_VERSION_PATCH@@YAZE_VERSION_SUFFIX@"
 
 // Combined version as a number (major * 10000 + minor * 100 + patch)
 // e.g., 0.3.7 = 307

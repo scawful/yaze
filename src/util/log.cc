@@ -4,6 +4,8 @@
 #include <iomanip>
 #include <iostream>
 
+#include "core/features.h"
+
 namespace yaze {
 namespace util {
 
@@ -44,22 +46,40 @@ void LogManager::configure(LogLevel level, const std::string& file_path,
                            const std::set<std::string>& categories) {
   min_level_.store(level);
 
-  if (categories.empty()) {
+  enabled_categories_.clear();
+  disabled_categories_.clear();
+
+  for (const auto& cat : categories) {
+    if (!cat.empty() && cat[0] == '-') {
+      if (cat.length() > 1) {
+        disabled_categories_.insert(cat.substr(1));
+      }
+    } else {
+      enabled_categories_.insert(cat);
+    }
+  }
+
+  if (enabled_categories_.empty()) {
     all_categories_enabled_.store(true);
-    enabled_categories_.clear();
   } else {
     all_categories_enabled_.store(false);
-    enabled_categories_ = categories;
+  }
 
-    // Log which categories are enabled for debugging
-    std::string category_list;
-    for (const auto& cat : categories) {
-      if (!category_list.empty())
-        category_list += ", ";
-      category_list += cat;
+  // Log configuration for debugging
+  if (!enabled_categories_.empty() || !disabled_categories_.empty()) {
+    std::cerr << "Log filtering enabled:" << std::endl;
+    if (!enabled_categories_.empty()) {
+      std::string list;
+      for (const auto& c : enabled_categories_)
+        list += (list.empty() ? "" : ", ") + c;
+      std::cerr << "  Allow: " << list << std::endl;
     }
-    std::cerr << "Log categories filter enabled: [" << category_list << "]"
-              << std::endl;
+    if (!disabled_categories_.empty()) {
+      std::string list;
+      for (const auto& c : disabled_categories_)
+        list += (list.empty() ? "" : ", ") + c;
+      std::cerr << "  Block: " << list << std::endl;
+    }
   }
 
   // If a file path is provided, close any existing stream and open the new
@@ -81,9 +101,17 @@ void LogManager::log(LogLevel level, absl::string_view category,
     return;
   }
 
-  // 2. Filter by category.
+  std::string cat_str(category);
+
+  // 2. Filter by disabled categories (Blocklist).
+  if (disabled_categories_.find(cat_str) != disabled_categories_.end()) {
+    return;
+  }
+
+  // 3. Filter by enabled categories (Allowlist).
+  // If allowlist is active (not empty), we must match it.
   if (!all_categories_enabled_.load()) {
-    if (enabled_categories_.find(std::string(category)) ==
+    if (enabled_categories_.find(cat_str) ==
         enabled_categories_.end()) {
       return;
     }
@@ -102,11 +130,14 @@ void LogManager::log(LogLevel level, absl::string_view category,
       "[%02d:%02d:%02d.%03d] [%-5s] [%s] %s\n", now_tm.tm_hour, now_tm.tm_min,
       now_tm.tm_sec, ms.count(), LogLevelToString(level), category, message);
 
-  // 4. Write to the configured sink (file or stderr).
+  // 4. Write to the configured sink (file and/or stderr).
   if (log_stream_.is_open()) {
     log_stream_ << final_message;
     log_stream_.flush();  // Ensure immediate write for debugging.
-  } else {
+  }
+
+  // Also write to stderr if no file is open OR if console logging is enabled
+  if (!log_stream_.is_open() || core::FeatureFlags::get().kLogToConsole) {
     std::cerr << final_message;
   }
 

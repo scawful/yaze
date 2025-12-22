@@ -49,6 +49,7 @@ class AgentChatHistoryCodec {
     struct ModelPreset {
       std::string name;
       std::string model;
+      std::string provider;
       std::string host;
       std::vector<std::string> tags;
       bool pinned = false;

@@ -13,7 +13,7 @@ namespace editor {
 
 class EditorSet;
 class ToastManager;
-class EditorCardRegistry;
+class PanelManager;
 
 /**
  * @brief Manages workspace layouts, sessions, and presets
@@ -30,9 +30,9 @@ class WorkspaceManager {
   explicit WorkspaceManager(ToastManager* toast_manager)
       : toast_manager_(toast_manager) {}
 
-  // Set card registry for window visibility management
-  void set_card_registry(EditorCardRegistry* registry) {
-    card_registry_ = registry;
+  // Set panel manager for window visibility management
+  void set_panel_manager(PanelManager* manager) {
+    panel_manager_ = manager;
   }
 
   // Layout management
@@ -78,7 +78,7 @@ class WorkspaceManager {
 
  private:
   ToastManager* toast_manager_;
-  EditorCardRegistry* card_registry_ = nullptr;
+  PanelManager* panel_manager_ = nullptr;
   std::deque<SessionInfo>* sessions_ = nullptr;
   std::string last_workspace_preset_;
   std::vector<std::string> workspace_presets_;

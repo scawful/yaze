@@ -81,6 +81,10 @@ class IAudioBackend {
                                         int channels) {}
   virtual bool SupportsAudioStream() const { return false; }
 
+  // Check if audio stream resampling is currently active
+  // Returns true if resampling from native rate to device rate is enabled
+  virtual bool IsAudioStreamEnabled() const { return false; }
+
   // Get backend name for debugging
   virtual std::string GetBackendName() const = 0;
 };
@@ -116,21 +120,85 @@ class SDL2AudioBackend : public IAudioBackend {
   void SetAudioStreamResampling(bool enable, int native_rate,
                                 int channels) override;
   bool SupportsAudioStream() const override { return true; }
+  bool IsAudioStreamEnabled() const override;
 
   std::string GetBackendName() const override { return "SDL2"; }
 
  private:
-  uint32_t device_id_ = 0;
+ uint32_t device_id_ = 0;
   AudioConfig config_;
   bool initialized_ = false;
   float volume_ = 1.0f;
+  int call_count_ = 0;  // Track calls per backend instance
+#ifdef YAZE_USE_SDL3
+  SDL_AudioFormat device_format_ = SDL_AUDIO_S16;
+#else
   SDL_AudioFormat device_format_ = AUDIO_S16;
+#endif
   int device_channels_ = 2;
   int device_freq_ = 48000;
   bool audio_stream_enabled_ = false;
   int stream_native_rate_ = 0;
   SDL_AudioStream* audio_stream_ = nullptr;
   std::vector<int16_t> stream_buffer_;
+};
+
+/**
+ * @brief Null audio backend for testing/headless operation
+ *
+ * This backend accepts audio data but doesn't play it.
+ * Useful for unit tests and headless audio timing verification.
+ */
+class NullAudioBackend : public IAudioBackend {
+ public:
+  NullAudioBackend() = default;
+  ~NullAudioBackend() override = default;
+
+  bool Initialize(const AudioConfig& config) override;
+  void Shutdown() override;
+
+  void Play() override;
+  void Pause() override;
+  void Stop() override;
+  void Clear() override;
+
+  bool QueueSamples(const int16_t* samples, int num_samples) override;
+  bool QueueSamples(const float* samples, int num_samples) override;
+  bool QueueSamplesNative(const int16_t* samples, int frames_per_channel,
+                          int channels, int native_rate) override;
+
+  AudioStatus GetStatus() const override;
+  bool IsInitialized() const override;
+  AudioConfig GetConfig() const override;
+
+  void SetVolume(float volume) override;
+  float GetVolume() const override;
+
+  void SetAudioStreamResampling(bool enable, int native_rate,
+                                int channels) override;
+  bool SupportsAudioStream() const override { return true; }
+  bool IsAudioStreamEnabled() const override;
+
+  std::string GetBackendName() const override { return "Null"; }
+
+  // Test helpers - access queued sample counts for verification
+  uint64_t GetTotalQueuedSamples() const { return total_queued_samples_; }
+  uint64_t GetTotalQueuedFrames() const { return total_queued_frames_; }
+  void ResetCounters();
+
+ private:
+  AudioConfig config_;
+  bool initialized_ = false;
+  bool playing_ = false;
+  float volume_ = 1.0f;
+  bool audio_stream_enabled_ = false;
+  int stream_native_rate_ = 0;
+  int stream_channels_ = 2;
+
+  // Counters for testing
+  uint64_t total_queued_samples_ = 0;
+  uint64_t total_queued_frames_ = 0;
+  uint64_t current_queued_bytes_ = 0;
 };
 
 /**
@@ -141,6 +209,7 @@ class AudioBackendFactory {
   enum class BackendType {
     SDL2,
     SDL3,         // Future
+    WASM,         // WebAudio for Emscripten
     NULL_BACKEND  // For testing/headless
   };
 

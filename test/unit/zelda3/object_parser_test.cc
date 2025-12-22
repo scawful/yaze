@@ -90,21 +90,26 @@ TEST_F(ObjectParserTest, ParseSubtype3Object) {
 }
 
 TEST_F(ObjectParserTest, GetObjectSubtype) {
+  // Subtype 1: Object IDs 0x00-0xFF
   auto result1 = parser_->GetObjectSubtype(0x01);
   ASSERT_TRUE(result1.ok());
   EXPECT_EQ(result1->subtype, 1);
 
+  // Subtype 2: Object IDs 0x100-0x1FF
   auto result2 = parser_->GetObjectSubtype(0x101);
   ASSERT_TRUE(result2.ok());
   EXPECT_EQ(result2->subtype, 2);
 
-  auto result3 = parser_->GetObjectSubtype(0x201);
+  // Subtype 3: Object IDs 0xF80-0xFFF (decoded from b3 >= 0xF8)
+  // These map to table indices 0-127 via (id - 0xF80) & 0x7F
+  auto result3 = parser_->GetObjectSubtype(0xF81);
   ASSERT_TRUE(result3.ok());
   EXPECT_EQ(result3->subtype, 3);
 }
 
 TEST_F(ObjectParserTest, ParseObjectSize) {
-  auto result = parser_->ParseObjectSize(0x01, 0x12);
+  // size_byte 0x09 = 0b00001001: size_x = 1 (bits 0-1), size_y = 2 (bits 2-3)
+  auto result = parser_->ParseObjectSize(0x01, 0x09);
   ASSERT_TRUE(result.ok());
 
   const auto& size_info = result.value();
@@ -112,7 +117,7 @@ TEST_F(ObjectParserTest, ParseObjectSize) {
   EXPECT_EQ(size_info.height_tiles, 6);  // (2 + 1) * 2
   EXPECT_TRUE(size_info.is_horizontal);
   EXPECT_TRUE(size_info.is_repeatable);
-  EXPECT_EQ(size_info.repeat_count, 0x12);
+  EXPECT_EQ(size_info.repeat_count, 0x09);
 }
 
 TEST_F(ObjectParserTest, ParseObjectRoutine) {

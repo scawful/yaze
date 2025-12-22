@@ -43,6 +43,9 @@ class FeatureFlags {
     // Enable the new tiered graphics architecture.
     bool kEnableTieredGfxArchitecture = true;
 
+    // Enable custom object panels (Custom Objects, Minecart Editor)
+    bool kEnableCustomObjects = false;
+
     // Use NFD (Native File Dialog) instead of bespoke file dialog
     // implementation.
 #if defined(YAZE_ENABLE_NFD) && YAZE_ENABLE_NFD
@@ -78,6 +81,11 @@ class FeatureFlags {
 
       // Apply ZSCustomOverworld ASM patches when upgrading ROM versions.
       bool kApplyZSCustomOverworldASM = false;
+
+      // Enable experimental special-world tail expansion (maps 0xA0-0xBF).
+      // When disabled, the editor/runtime will ignore those maps and fall back
+      // to blanks for safety.
+      bool kEnableSpecialWorldExpansion = false;
     } overworld;
   };
 
@@ -114,11 +122,16 @@ class FeatureFlags {
               std::to_string(get().overworld.kLoadCustomOverworld) + "\n";
     result += "kApplyZSCustomOverworldASM: " +
               std::to_string(get().overworld.kApplyZSCustomOverworldASM) + "\n";
+    result += "kEnableSpecialWorldExpansion: " +
+              std::to_string(get().overworld.kEnableSpecialWorldExpansion) +
+              "\n";
     result +=
         "kUseNativeFileDialog: " + std::to_string(get().kUseNativeFileDialog) +
         "\n";
     result += "kEnableTieredGfxArchitecture: " +
               std::to_string(get().kEnableTieredGfxArchitecture) + "\n";
+    result += "kEnableCustomObjects: " +
+              std::to_string(get().kEnableCustomObjects) + "\n";
     return result;
   }
 };

@@ -6,7 +6,7 @@
 #include "absl/status/status.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_palette.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 
 namespace yaze {
 namespace zelda3 {

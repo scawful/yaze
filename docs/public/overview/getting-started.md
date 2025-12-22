@@ -1,68 +1,77 @@
-# Getting Started
+# Getting Started with YAZE
 
-This software allows you to modify "The Legend of Zelda: A Link to the Past" (US or JP) ROMs. It is built for compatibility with ZScream projects and designed to be cross-platform.
+YAZE is a ROM editor for "The Legend of Zelda: A Link to the Past" (US and JP versions). It provides a full-featured GUI editor, integrated SNES emulator, and AI-powered command-line tools.
+
+---
 
 ## Quick Start
 
-1.  **Download** the latest release for your platform from the [releases page](https://github.com/scawful/yaze/releases).
-2.  **Load ROM** via `File > Open ROM`.
-3.  **Select an Editor** from the main toolbar (e.g., Overworld, Dungeon, Graphics).
-4.  **Make Changes** and save your project.
+1. **Download** the latest release for your platform from the [GitHub Releases page](https://github.com/scawful/yaze/releases)
+2. **Launch** the application and load your ROM via `File > Open ROM`
+3. **Choose an Editor** from the toolbar (Overworld, Dungeon, Graphics, etc.)
+4. **Edit** your ROM and save your changes
 
-> Building from source or enabling AI tooling? Use the
-> [Build & Test Quick Reference](../build/quick-reference.md) for the canonical commands and presets.
+> **Building from source?** See the [Build and Test Quick Reference](../build/quick-reference.md).
 
-## General Tips
+---
 
--   **Experiment Flags**: Enable or disable new features in `File > Options > Experiment Flags`.
--   **Backup Files**: Enabled by default. Each save creates a timestamped backup of your ROM.
--   **Extensions**: Load custom tools via the `Extensions` menu (C library and Python module support is planned).
+## Tips
 
-## Feature Status
+- **Backups**: Automatic backups are enabled by default. Each save creates a timestamped backup.
+- **Experiment Flags**: Try new features via `File > Options > Experiment Flags`.
+- **Extensions**: Load custom tools from the `Extensions` menu (plugin system under development).
 
-| Feature | State | Notes |
-|---|---|---|
-| Overworld Editor | Stable | Supports vanilla and ZSCustomOverworld v2/v3 projects. |
-| Dungeon Editor | Experimental | Requires extensive manual testing before production use. |
-| Tile16 Editor | Experimental | Palette and tile workflows are still being tuned. |
-| Palette Editor | Stable | Reference implementation for palette utilities. |
-| Graphics Editor | Experimental | Rendering pipeline under active refactor. |
-| Sprite Editor | Experimental | Card/UI patterns mid-migration. |
-| Message Editor | Stable | Re-test after recent palette fixes. |
-| Hex Editor | Stable | Direct ROM editing utility. |
-| Asar Patching | Stable | Wraps the bundled Asar assembler. |
+---
 
-## Command-Line Interface (`z3ed`)
+## Editor Status
 
-`z3ed` provides scripted access to the same ROM editors.
+| Editor | Status | Notes |
+|--------|--------|-------|
+| Overworld | Stable | Full support for vanilla and ZSCustomOverworld v2/v3 |
+| Dungeon | Stable | Room editing, objects, sprites, palettes |
+| Palette | Stable | Reference implementation for palette utilities |
+| Message | Stable | Text and dialogue editing |
+| Hex | Stable | Direct ROM byte editing |
+| Asar Patching | Stable | Integrated Asar assembler |
+| Graphics | Stable | Tile and sprite graphics editing |
+| Sprite | Stable | Vanilla and custom sprite editing |
+| Music | Experimental | Tracker and instrument editing |
 
-### AI Agent Chat
-Chat with an AI to perform edits using natural language.
+---
+
+## Command-Line Interface (z3ed)
+
+The `z3ed` CLI provides scriptable access to ROM editing capabilities.
+
+### AI Chat
 
 ```bash
-# Start an interactive chat session with the AI agent
 z3ed agent chat --rom zelda3.sfc
 ```
-> **Prompt:** "What sprites are in dungeon 2?"
+Example prompt: "What sprites are in dungeon 2?"
 
-### Resource Inspection
-Directly query ROM data.
+### ROM Inspection
 
 ```bash
-# List all sprites in the Eastern Palace (dungeon 2)
+# List sprites in Eastern Palace
 z3ed dungeon list-sprites --rom zelda3.sfc --dungeon 2
 
-# Get information about a specific overworld map area
+# Describe overworld map
 z3ed overworld describe-map --rom zelda3.sfc --map 80
 ```
 
 ### Patching
-Apply assembly patches using the integrated Asar assembler.
+
 ```bash
-# Apply an assembly patch to the ROM
 z3ed asar patch.asm --rom zelda3.sfc
 ```
 
-## Extending Functionality
+For more details, see the [z3ed CLI Guide](../usage/z3ed-cli.md).
 
-YAZE exports a C API that is still evolving. Treat it as experimental and expect breaking changes while the plugin system is built out.
+---
+
+## Next Steps
+
+- **[Dungeon Editor Guide](../usage/dungeon-editor.md)** - Learn dungeon room editing
+- **[z3ed CLI Guide](../usage/z3ed-cli.md)** - Master the command-line interface
+- **[Architecture Overview](../developer/architecture.md)** - Understand the codebase

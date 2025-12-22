@@ -7,12 +7,13 @@
 #include "absl/flags/flag.h"
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "cli/handlers/agent/common.h"
 #include "cli/handlers/rom/mock_rom.h"
 #include "cli/service/agent/conversational_agent_service.h"
 #include "core/project.h"
 #include "nlohmann/json.hpp"
+#include "zelda3/zelda3_labels.h"
 
 ABSL_DECLARE_FLAG(std::string, rom);
 ABSL_DECLARE_FLAG(bool, mock_rom);
@@ -380,7 +381,8 @@ absl::Status HandleTestConversationCommand(
   // Load embedded labels for natural language queries
   std::cout << "🔍 Debug: Initializing embedded labels...\n";
   project::YazeProject project;
-  auto labels_status = project.InitializeEmbeddedLabels();
+  auto labels_status = project.InitializeEmbeddedLabels(
+      zelda3::Zelda3Labels::ToResourceLabels());
   if (!labels_status.ok()) {
     std::cerr << "⚠️  Warning: Could not initialize embedded labels: "
               << labels_status.message() << "\n";

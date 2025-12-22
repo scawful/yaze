@@ -37,6 +37,12 @@ void RenderPerformanceMonitor(Emulator* emu);
  */
 void RenderKeyboardShortcuts(bool* show);
 
+/**
+ * @brief Virtual SNES controller for testing input without keyboard
+ * Useful for debugging input issues - bypasses keyboard capture entirely
+ */
+void RenderVirtualController(Emulator* emu);
+
 }  // namespace ui
 }  // namespace emu
 }  // namespace yaze

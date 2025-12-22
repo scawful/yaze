@@ -66,6 +66,12 @@ runs:
         max-size: 500M
         variant: sccache
 
+    - name: Setup MSVC Dev Cmd (Windows)
+      if: inputs.platform == 'windows'
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x64
+
     - name: Configure compiler for Windows
       if: inputs.platform == 'windows'
       shell: pwsh

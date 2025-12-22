@@ -14,7 +14,7 @@
 
 #include "app/gfx/render/background_buffer.h"
 #include "app/gfx/types/snes_palette.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "test_utils.h"
 #include "testing.h"
 #include "zelda3/dungeon/object_drawer.h"
@@ -35,12 +35,18 @@ class DungeonObjectRenderingTests : public TestRomManager::BoundRomTest {
   void SetUp() override {
     BoundRomTest::SetUp();
 
-    // Create drawer
-    drawer_ = std::make_unique<zelda3::ObjectDrawer>(rom());
+    // Create dummy graphics buffer
+    gfx_buffer_.resize(0x10000, 1); // Fill with 1s so we see something
+    drawer_ = std::make_unique<zelda3::ObjectDrawer>(rom(), 0, gfx_buffer_.data());
 
     // Create background buffers
     bg1_ = std::make_unique<gfx::BackgroundBuffer>(512, 512);
     bg2_ = std::make_unique<gfx::BackgroundBuffer>(512, 512);
+
+    // Initialize bitmaps
+    std::vector<uint8_t> empty_data(512 * 512, 0);
+    bg1_->bitmap().Create(512, 512, 8, empty_data);
+    bg2_->bitmap().Create(512, 512, 8, empty_data);
 
     // Setup test palette
     palette_group_ = CreateTestPaletteGroup();
@@ -70,8 +76,17 @@ class DungeonObjectRenderingTests : public TestRomManager::BoundRomTest {
   zelda3::RoomObject CreateTestObject(int id, int x, int y, int size = 0x12,
                                       int layer = 0) {
     zelda3::RoomObject obj(id, x, y, size, layer);
-    obj.set_rom(rom());
+    obj.SetRom(rom());
     obj.EnsureTilesLoaded();
+    
+    // Force add a tile if none loaded (for testing without real ROM data)
+    if (obj.tiles().empty()) {
+      gfx::TileInfo tile;
+      tile.id_ = 0;
+      tile.palette_ = 0;
+      obj.mutable_tiles().push_back(tile);
+    }
+    
     return obj;
   }
 
@@ -79,6 +94,7 @@ class DungeonObjectRenderingTests : public TestRomManager::BoundRomTest {
   std::unique_ptr<gfx::BackgroundBuffer> bg1_;
   std::unique_ptr<gfx::BackgroundBuffer> bg2_;
   gfx::PaletteGroup palette_group_;
+  std::vector<uint8_t> gfx_buffer_;
 };
 
 // Test basic object drawing
@@ -124,6 +140,12 @@ TEST_F(DungeonObjectRenderingTests, PreviewBufferRendersContent) {
 
   gfx::BackgroundBuffer preview_bg(64, 64);
   gfx::BackgroundBuffer preview_bg2(64, 64);
+  
+  // Initialize bitmaps
+  std::vector<uint8_t> empty_data(64 * 64, 0);
+  preview_bg.bitmap().Create(64, 64, 8, empty_data);
+  preview_bg2.bitmap().Create(64, 64, 8, empty_data);
+
   preview_bg.ClearBuffer();
   preview_bg2.ClearBuffer();
 
@@ -133,9 +155,9 @@ TEST_F(DungeonObjectRenderingTests, PreviewBufferRendersContent) {
 
   auto& bitmap = preview_bg.bitmap();
   EXPECT_TRUE(bitmap.is_active());
-  const auto data = bitmap.data();
+  const auto& data = bitmap.vector();
   size_t non_zero = 0;
-  for (size_t i = 0; i < bitmap.size(); i += 16) {
+  for (size_t i = 0; i < data.size(); i++) {
     if (data[i] != 0) {
       non_zero++;
     }
@@ -229,7 +251,7 @@ TEST_F(DungeonObjectRenderingTests, VariousObjectTypes) {
 // Test error handling
 TEST_F(DungeonObjectRenderingTests, ErrorHandling) {
   // Test with null ROM
-  zelda3::ObjectDrawer null_drawer(nullptr);
+  zelda3::ObjectDrawer null_drawer(nullptr, 0);
   std::vector<zelda3::RoomObject> objects;
   objects.push_back(CreateTestObject(0x10, 5, 5));
 

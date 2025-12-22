@@ -2,14 +2,10 @@
 #define YAZE_UTIL_LOG_H
 
 #include <atomic>
-#include <chrono>
 #include <fstream>
-#include <iostream>
-#include <memory>
 #include <set>
 #include <string>
 #include <utility>
-#include <vector>
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
@@ -84,6 +80,7 @@ class LogManager {
   // Configuration state
   std::atomic<LogLevel> min_level_;
   std::set<std::string> enabled_categories_;
+  std::set<std::string> disabled_categories_;
   std::atomic<bool> all_categories_enabled_;
 
   // Output sink

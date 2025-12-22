@@ -6,10 +6,10 @@ doubt, link back to the relevant guide instead of duplicating long explanations.
 
 ## 1. Launching Common Editors
 ```bash
-# Open YAZE directly in the Dungeon editor with room cards preset
+# Open YAZE directly in the Dungeon editor with room panels preset
 ./build/bin/yaze --rom_file=zelda3.sfc \
   --editor=Dungeon \
-  --cards="Rooms List,Room Graphics,Object Editor"
+  --open_panels="Rooms List,Room Graphics,Object Editor"
 
 # Jump to an Overworld map from the CLI/TUI companion
 ./build/bin/z3ed overworld describe-map --map 0x80 --rom zelda3.sfc
@@ -34,9 +34,9 @@ cmake --preset mac-dbg
 cmake --build --preset mac-dbg --target yaze yaze_test
 ./build/bin/yaze_test --unit
 
-# AI-focused build in a dedicated directory (recommended for assistants)
-cmake --preset mac-ai -B build_ai
-cmake --build build_ai --target yaze z3ed
+# AI-focused build
+cmake --preset mac-ai
+cmake --build --preset mac-ai --target yaze z3ed
 ```
 
 ## 4. Quick Verification

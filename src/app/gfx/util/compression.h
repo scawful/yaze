@@ -19,8 +19,9 @@ std::vector<uint8_t> HyruleMagicCompress(uint8_t const* const src,
                                          int const oldsize, int* const size,
                                          int const flag);
 
-std::vector<uint8_t> HyruleMagicDecompress(uint8_t const* src, int* const size,
-                                           int const p_big_endian);
+std::vector<uint8_t> HyruleMagicDecompress(
+    uint8_t const* src, int* const size, int const p_big_endian,
+    size_t max_src_size = static_cast<size_t>(-1));
 
 /**
  * @namespace yaze::gfx::lc_lz2
@@ -235,12 +236,26 @@ void memfill(const uint8_t* data, std::vector<uint8_t>& buffer, int buffer_pos,
 
 /**
  * @brief Decompresses a buffer of data using the LC_LZ2 algorithm.
+ *
+ * @param data      Pointer to the ROM data buffer
+ * @param offset    Starting offset in the ROM where compressed data begins
+ * @param size      Output buffer size (default: 0x800 = 2048 bytes)
+ *                  WARNING: If size is 0, returns empty vector immediately!
+ *                  Always use 0x800 for graphics sheet decompression.
+ * @param mode      Decompression mode (default: 1)
+ * @param rom_size  ROM size for bounds checking, or -1 to disable checks
+ * @return          Decompressed data, or error status on failure
+ *
  * @note Works well for graphics but not overworld data. Prefer Hyrule Magic
- * routines for overworld data.
+ *       routines for overworld data.
+ *
+ * @warning The size parameter must NOT be 0. Passing size=0 causes immediate
+ *          return of an empty vector, which was a regression bug that broke
+ *          all graphics loading (sheets appeared as solid purple/brown 0xFF).
  */
 absl::StatusOr<std::vector<uint8_t>> DecompressV2(const uint8_t* data,
                                                   int offset, int size = 0x800,
-                                                  int mode = 1);
+                                                  int mode = 1, size_t rom_size = static_cast<size_t>(-1));
 absl::StatusOr<std::vector<uint8_t>> DecompressGraphics(const uint8_t* data,
                                                         int pos, int size);
 absl::StatusOr<std::vector<uint8_t>> DecompressOverworld(const uint8_t* data,

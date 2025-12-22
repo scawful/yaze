@@ -38,48 +38,48 @@ workflows/builds were triggered and where to find artifacts/logs.
 
 Local builds can take 10-15+ minutes from scratch. Follow these practices to minimize rebuild time:
 
-### Use Dedicated Build Directories
-Always use a dedicated build directory like `build_ai` or `build_agent` to avoid interfering with the user's `build` directory:
+### Use a Consistent Build Directory
+Defaults now use `build/` for native builds. If you need isolation, set `YAZE_BUILD_DIR` or add a `CMakeUserPresets.json` locally:
 ```bash
-cmake --preset mac-dbg -B build_ai
-cmake --build build_ai -j8 --target yaze
+cmake --preset mac-dbg
+cmake --build build -j8 --target yaze
 ```
 
 ### Incremental Builds
 Once configured, only rebuild—don't reconfigure unless CMakeLists.txt changed:
 ```bash
 # GOOD: Just rebuild (fast, only recompiles changed files)
-cmake --build build_ai -j8 --target yaze
+cmake --build build -j8 --target yaze
 
 # AVOID: Reconfiguring when unnecessary (triggers full dependency resolution)
-cmake --preset mac-dbg -B build_ai && cmake --build build_ai
+cmake --preset mac-dbg && cmake --build build
 ```
 
 ### Build Specific Targets
 Don't build everything when you only need to verify a specific component:
 ```bash
 # Build only the main editor (skips CLI, tests, etc.)
-cmake --build build_ai -j8 --target yaze
+cmake --build build -j8 --target yaze
 
 # Build only the CLI tool
-cmake --build build_ai -j8 --target z3ed
+cmake --build build -j8 --target z3ed
 
 # Build only tests
-cmake --build build_ai -j8 --target yaze_test
+cmake --build build -j8 --target yaze_test
 ```
 
 ### Parallel Compilation
 Always use `-j8` or higher based on CPU cores:
 ```bash
-cmake --build build_ai -j$(sysctl -n hw.ncpu)  # macOS
-cmake --build build_ai -j$(nproc)              # Linux
+cmake --build build -j$(sysctl -n hw.ncpu)  # macOS
+cmake --build build -j$(nproc)              # Linux
 ```
 
 ### Quick Syntax Check
 For rapid iteration on compile errors, build just the affected library:
 ```bash
 # If fixing errors in src/app/editor/dungeon/, build just the editor lib
-cmake --build build_ai -j8 --target yaze_editor
+cmake --build build -j8 --target yaze_editor
 ```
 
 ### Verifying Changes Before CI

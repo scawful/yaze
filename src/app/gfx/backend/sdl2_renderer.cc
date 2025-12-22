@@ -2,6 +2,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/gfx/core/bitmap.h"
+#include "app/platform/sdl_compat.h"
 
 namespace yaze {
 namespace gfx {
@@ -20,13 +21,16 @@ SDL2Renderer::~SDL2Renderer() {
 bool SDL2Renderer::Initialize(SDL_Window* window) {
   // Create an SDL2 renderer with hardware acceleration.
   renderer_ = std::unique_ptr<SDL_Renderer, util::SDL_Deleter>(
-      SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED));
+      platform::CreateRenderer(window));
 
   if (renderer_ == nullptr) {
     // Log an error if renderer creation fails.
     printf("SDL_CreateRenderer Error: %s\n", SDL_GetError());
     return false;
   }
+
+  // SDL3 sets vsync separately; this is a no-op on SDL2.
+  platform::SetRenderVSync(renderer_.get(), 1);
 
   // Set the blend mode to allow for transparency.
   SDL_SetRenderDrawBlendMode(renderer_.get(), SDL_BLENDMODE_BLEND);
@@ -49,9 +53,17 @@ void SDL2Renderer::Shutdown() {
  */
 TextureHandle SDL2Renderer::CreateTexture(int width, int height) {
   // The TextureHandle is a void*, so we cast the SDL_Texture* to it.
-  return static_cast<TextureHandle>(
-      SDL_CreateTexture(renderer_.get(), SDL_PIXELFORMAT_RGBA8888,
-                        SDL_TEXTUREACCESS_STREAMING, width, height));
+  // SDL2's SDL_CreateTexture takes Uint32 for format
+  // SDL2's SDL_CreateTexture takes Uint32 for format
+  SDL_Texture* texture = SDL_CreateTexture(
+      renderer_.get(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING,
+      width, height);
+  
+  if (texture) {
+    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+  }
+  
+  return static_cast<TextureHandle>(texture);
 }
 
 /**
@@ -87,7 +99,7 @@ void SDL2Renderer::UpdateTexture(TextureHandle texture, const Bitmap& bitmap) {
   // texture.
   auto converted_surface =
       std::unique_ptr<SDL_Surface, util::SDL_Surface_Deleter>(
-          SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA8888, 0));
+          platform::ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA8888));
 
   if (!converted_surface || !converted_surface->pixels) {
     return;
@@ -136,8 +148,8 @@ void SDL2Renderer::Present() {
  */
 void SDL2Renderer::RenderCopy(TextureHandle texture, const SDL_Rect* srcrect,
                               const SDL_Rect* dstrect) {
-  SDL_RenderCopy(renderer_.get(), static_cast<SDL_Texture*>(texture), srcrect,
-                 dstrect);
+  platform::RenderTexture(renderer_.get(),
+                          static_cast<SDL_Texture*>(texture), srcrect, dstrect);
 }
 
 /**

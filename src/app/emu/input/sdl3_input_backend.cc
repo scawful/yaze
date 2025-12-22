@@ -19,21 +19,7 @@ bool SDL3InputBackend::Initialize(const InputConfig& config) {
 
   config_ = config;
 
-  // Set default SDL keycodes if not configured
-  if (config_.key_a == 0) {
-    config_.key_a = SDLK_x;
-    config_.key_b = SDLK_z;
-    config_.key_x = SDLK_s;
-    config_.key_y = SDLK_a;
-    config_.key_l = SDLK_d;
-    config_.key_r = SDLK_c;
-    config_.key_start = SDLK_RETURN;
-    config_.key_select = SDLK_RSHIFT;
-    config_.key_up = SDLK_UP;
-    config_.key_down = SDLK_DOWN;
-    config_.key_left = SDLK_LEFT;
-    config_.key_right = SDLK_RIGHT;
-  }
+  ApplyDefaultKeyBindings(config_);
 
   // Initialize gamepad if enabled
   if (config_.enable_gamepad) {
@@ -72,17 +58,9 @@ ControllerState SDL3InputBackend::Poll(int player) {
     // SDL3: SDL_GetKeyboardState returns const bool* instead of const Uint8*
     platform::KeyboardState keyboard_state = SDL_GetKeyboardState(nullptr);
 
-    // IMPORTANT: Only block input when actively typing in text fields
-    // Allow game input even when ImGui windows are open/focused
+    // Respect ImGui text capture unless explicitly overridden
     ImGuiIO& io = ImGui::GetIO();
-
-    // Only block if user is actively typing in a text input field
-    // WantTextInput is true only when an InputText widget is active
-    if (io.WantTextInput) {
-      static int text_input_log_count = 0;
-      if (text_input_log_count++ < 5) {
-        LOG_DEBUG("InputBackend", "Blocking game input - WantTextInput=true");
-      }
+    if (io.WantTextInput && !config_.ignore_imgui_text_input) {
       return ControllerState{};
     }
 
@@ -244,8 +222,7 @@ void SDL3InputBackend::HandleGamepadEvent(const SDL_Event& event) {
       if (!gamepads_[i]) {
         gamepads_[i] = SDL_OpenGamepad(event.gdevice.which);
         if (gamepads_[i]) {
-          LOG_INFO("InputBackend", "SDL3 Gamepad connected for player " +
-                                       std::to_string(i + 1));
+          LOG_INFO("InputBackend", "SDL3 Gamepad connected for player %d", i + 1);
         }
         break;
       }
@@ -257,8 +234,7 @@ void SDL3InputBackend::HandleGamepadEvent(const SDL_Event& event) {
           SDL_GetGamepadID(gamepads_[i]) == event.gdevice.which) {
         SDL_CloseGamepad(gamepads_[i]);
         gamepads_[i] = nullptr;
-        LOG_INFO("InputBackend", "SDL3 Gamepad disconnected for player " +
-                                     std::to_string(i + 1));
+        LOG_INFO("InputBackend", "SDL3 Gamepad disconnected for player %d", i + 1);
         break;
       }
     }

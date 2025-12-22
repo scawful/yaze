@@ -58,13 +58,19 @@ void RenderTile(IRenderer* renderer, Tilemap& tilemap, int tile_id) {
     return;
   }
 
-  // Get tile data without using problematic tile cache
-  auto tile_data = GetTilemapData(tilemap, tile_id);
-  if (tile_data.empty()) {
-    return;
+  // Try cache first, then fall back to fresh render
+  Bitmap* cached_tile = tilemap.tile_cache.GetTile(tile_id);
+  if (!cached_tile) {
+    auto tile_data = GetTilemapData(tilemap, tile_id);
+    if (tile_data.empty()) {
+      return;
+    }
+    // Cache uses copy semantics - safe to use
+    gfx::Bitmap new_tile = gfx::Bitmap(
+        tilemap.tile_size.x, tilemap.tile_size.y, 8,
+        tile_data, tilemap.atlas.palette());
+    tilemap.tile_cache.CacheTile(tile_id, new_tile);
   }
-
-  // Note: Tile cache disabled to prevent std::move() related crashes
 }
 
 void RenderTile16(IRenderer* renderer, Tilemap& tilemap, int tile_id) {
@@ -91,7 +97,19 @@ void RenderTile16(IRenderer* renderer, Tilemap& tilemap, int tile_id) {
     return;
   }
 
-  // Note: Tile cache disabled to prevent std::move() related crashes
+  // Try cache first, then fall back to fresh render
+  Bitmap* cached_tile = tilemap.tile_cache.GetTile(tile_id);
+  if (!cached_tile) {
+    auto tile_data = GetTilemapData(tilemap, tile_id);
+    if (tile_data.empty()) {
+      return;
+    }
+    // Cache uses copy semantics - safe to use
+    gfx::Bitmap new_tile = gfx::Bitmap(
+        tilemap.tile_size.x, tilemap.tile_size.y, 8,
+        tile_data, tilemap.atlas.palette());
+    tilemap.tile_cache.CacheTile(tile_id, new_tile);
+  }
 }
 
 void UpdateTile16(IRenderer* renderer, Tilemap& tilemap, int tile_id) {
@@ -135,9 +153,13 @@ std::vector<uint8_t> FetchTileDataFromGraphicsBuffer(
   int row_in_sheet = position_in_sheet / tiles_per_row;
   int column_in_sheet = position_in_sheet % tiles_per_row;
 
-  assert(sheet >= sheet_offset && sheet <= sheet_offset + 3);
+  // Bounds check for sheet range
+  if (sheet < sheet_offset || sheet > sheet_offset + 3) {
+    return std::vector<uint8_t>(tile_width * tile_height, 0);
+  }
 
-  std::vector<uint8_t> tile_data(tile_width * tile_height);
+  const int data_size = static_cast<int>(data.size());
+  std::vector<uint8_t> tile_data(tile_width * tile_height, 0);
   for (int y = 0; y < tile_height; ++y) {
     for (int x = 0; x < tile_width; ++x) {
       int src_x = column_in_sheet * tile_width + x;
@@ -145,7 +167,11 @@ std::vector<uint8_t> FetchTileDataFromGraphicsBuffer(
 
       int src_index = (src_y * buffer_width) + src_x;
       int dest_index = y * tile_width + x;
-      tile_data[dest_index] = data[src_index];
+
+      // Bounds check before access
+      if (src_index >= 0 && src_index < data_size) {
+        tile_data[dest_index] = data[src_index];
+      }
     }
   }
   return tile_data;
@@ -358,11 +384,11 @@ void RenderTilesBatch(IRenderer* renderer, Tilemap& tilemap,
     // Try to get tile from cache first
     Bitmap* cached_tile = tilemap.tile_cache.GetTile(tile_id);
     if (!cached_tile) {
-      // Create and cache the tile if not found
+      // Create and cache the tile if not found (copy semantics for safety)
       gfx::Bitmap new_tile = gfx::Bitmap(
           tilemap.tile_size.x, tilemap.tile_size.y, 8,
           gfx::GetTilemapData(tilemap, tile_id), tilemap.atlas.palette());
-      tilemap.tile_cache.CacheTile(tile_id, std::move(new_tile));
+      tilemap.tile_cache.CacheTile(tile_id, new_tile);  // Copies bitmap
       cached_tile = tilemap.tile_cache.GetTile(tile_id);
       if (cached_tile) {
         cached_tile->CreateTexture();

@@ -6,12 +6,13 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "app/rom.h"
-#include "app/snes.h"
+#include "rom/rom.h"
+#include "rom/snes.h"
 #include "util/log.h"
 #include "util/macro.h"
 #include "zelda3/common.h"
 #include "zelda3/overworld/overworld_map.h"
+#include "zelda3/overworld/overworld_version_helper.h"
 
 namespace yaze::zelda3 {
 
@@ -20,12 +21,13 @@ absl::StatusOr<std::vector<OverworldItem>> LoadItems(
   std::vector<OverworldItem> items;
 
   // Version 0x03 of the OW ASM added item support for the SW.
-  uint8_t asm_version = (*rom)[OverworldCustomASMHasBeenApplied];
+  auto version = OverworldVersionHelper::GetVersion(*rom);
 
   // Determine max number of overworld maps based on actual ASM version
   // Only use expanded maps (0xA0) if v3+ ASM is actually applied
-  int max_ow =
-      (asm_version >= 0x03 && asm_version != 0xFF) ? kNumOverworldMaps : 0x80;
+  int max_ow = OverworldVersionHelper::SupportsAreaEnum(version)
+                   ? kNumOverworldMaps
+                   : 0x80;
 
   ASSIGN_OR_RETURN(uint32_t pointer_snes,
                    rom->ReadLong(zelda3::overworldItemsAddress));

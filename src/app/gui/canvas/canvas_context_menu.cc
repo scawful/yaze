@@ -7,6 +7,7 @@
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/widgets/palette_editor_widget.h"
+#include "app/platform/sdl_compat.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -93,46 +94,49 @@ void CanvasContextMenu::Render(
       RenderCanvasMenu(canvas->editor_menu(), popup_callback);
     }
 
-    // Also render usage-specific items (legacy support)
-    if (!usage_specific_items_[current_usage_].empty()) {
-      RenderUsageSpecificMenu(popup_callback);
+    // Only show built-in menu items if show_builtin_context_menu is true
+    if (current_config.show_builtin_context_menu) {
+      // Also render usage-specific items (legacy support)
+      if (!usage_specific_items_[current_usage_].empty()) {
+        RenderUsageSpecificMenu(popup_callback);
+        ImGui::Separator();
+      }
+
+      // PRIORITY 10: Bitmap/Palette operations
+      if (bitmap) {
+        RenderBitmapOperationsMenu(const_cast<gfx::Bitmap*>(bitmap));
+        ImGui::Separator();
+
+        RenderPaletteOperationsMenu(rom, const_cast<gfx::Bitmap*>(bitmap));
+        ImGui::Separator();
+
+        RenderBppOperationsMenu(bitmap);
+        ImGui::Separator();
+      }
+
+      // PRIORITY 20: Canvas properties
+      RenderCanvasPropertiesMenu(command_handler, current_config);
       ImGui::Separator();
-    }
 
-    // PRIORITY 10: Bitmap/Palette operations
-    if (bitmap) {
-      RenderBitmapOperationsMenu(const_cast<gfx::Bitmap*>(bitmap));
+      RenderViewControlsMenu(command_handler, current_config);
       ImGui::Separator();
 
-      RenderPaletteOperationsMenu(rom, const_cast<gfx::Bitmap*>(bitmap));
+      RenderGridControlsMenu(command_handler, current_config);
       ImGui::Separator();
 
-      RenderBppOperationsMenu(bitmap);
-      ImGui::Separator();
-    }
+      RenderScalingControlsMenu(command_handler, current_config);
 
-    // PRIORITY 20: Canvas properties
-    RenderCanvasPropertiesMenu(command_handler, current_config);
-    ImGui::Separator();
+      // PRIORITY 30: Debug/Performance
+      if (ImGui::GetIO().KeyCtrl) {  // Only show when Ctrl is held
+        ImGui::Separator();
+        RenderPerformanceMenu();
+      }
 
-    RenderViewControlsMenu(command_handler, current_config);
-    ImGui::Separator();
-
-    RenderGridControlsMenu(command_handler, current_config);
-    ImGui::Separator();
-
-    RenderScalingControlsMenu(command_handler, current_config);
-
-    // PRIORITY 30: Debug/Performance
-    if (ImGui::GetIO().KeyCtrl) {  // Only show when Ctrl is held
-      ImGui::Separator();
-      RenderPerformanceMenu();
-    }
-
-    // Render global menu items (if any)
-    if (!global_items_.empty()) {
-      ImGui::Separator();
-      RenderMenuSection("Custom Actions", global_items_, popup_callback);
+      // Render global menu items (if any)
+      if (!global_items_.empty()) {
+        ImGui::Separator();
+        RenderMenuSection("Custom Actions", global_items_, popup_callback);
+      }
     }
 
     ImGui::EndPopup();
@@ -278,9 +282,13 @@ void CanvasContextMenu::RenderBitmapOperationsMenu(gfx::Bitmap* bitmap) {
 
   if (ImGui::BeginMenu(ICON_MD_IMAGE " Bitmap Properties")) {
     ImGui::Text("Size: %d x %d", bitmap->width(), bitmap->height());
-    ImGui::Text("Pitch: %d", bitmap->surface()->pitch);
-    ImGui::Text("BitsPerPixel: %d", bitmap->surface()->format->BitsPerPixel);
-    ImGui::Text("BytesPerPixel: %d", bitmap->surface()->format->BytesPerPixel);
+    if (auto* surface = bitmap->surface()) {
+      ImGui::Text("Pitch: %d", surface->pitch);
+      ImGui::Text("BitsPerPixel: %d",
+                  platform::GetSurfaceBitsPerPixel(surface));
+      ImGui::Text("BytesPerPixel: %d",
+                  platform::GetSurfaceBytesPerPixel(surface));
+    }
 
     if (ImGui::BeginMenu("Format")) {
       if (ImGui::MenuItem("Indexed")) {

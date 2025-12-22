@@ -11,7 +11,7 @@
 #include "e2e/dungeon_object_drawing_test.h"
 
 #include "app/controller.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "gtest/gtest.h"
 #include "imgui.h"
 #include "imgui_test_engine/imgui_te_context.h"

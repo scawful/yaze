@@ -1,10 +1,21 @@
 #include "cli/handlers/command_handlers.h"
 
+#include "cli/handlers/tools/dungeon_doctor_commands.h"
 #include "cli/handlers/tools/gui_commands.h"
+#include "cli/handlers/tools/overworld_doctor_commands.h"
+#include "cli/handlers/tools/overworld_validate_commands.h"
 #include "cli/handlers/tools/resource_commands.h"
+#include "cli/handlers/tools/rom_compare_commands.h"
+#include "cli/handlers/tools/rom_doctor_commands.h"
+#include "cli/handlers/tools/message_doctor_commands.h"
+#include "cli/handlers/tools/sprite_doctor_commands.h"
+#include "cli/handlers/tools/graphics_doctor_commands.h"
+#include "cli/handlers/tools/test_cli_commands.h"
+#include "cli/handlers/tools/test_helpers_commands.h"
 #ifdef YAZE_WITH_GRPC
 #include "cli/handlers/tools/emulator_commands.h"
 #endif
+#include "cli/handlers/tools/hex_inspector_commands.h"
 #include <memory>
 
 #include "cli/handlers/game/dialogue_commands.h"
@@ -53,6 +64,16 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<MessageListCommandHandler>());
   handlers.push_back(std::make_unique<MessageReadCommandHandler>());
   handlers.push_back(std::make_unique<MessageSearchCommandHandler>());
+
+  // Validation and repair tools (doctor suite)
+  handlers.push_back(std::make_unique<OverworldValidateCommandHandler>());
+  handlers.push_back(std::make_unique<OverworldDoctorCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonDoctorCommandHandler>());
+  handlers.push_back(std::make_unique<RomDoctorCommandHandler>());
+  handlers.push_back(std::make_unique<MessageDoctorCommandHandler>());
+  handlers.push_back(std::make_unique<SpriteDoctorCommandHandler>());
+  handlers.push_back(std::make_unique<GraphicsDoctorCommandHandler>());
+  handlers.push_back(std::make_unique<RomCompareCommandHandler>());
 
   return handlers;
 }
@@ -107,6 +128,23 @@ CreateAgentCommandHandlers() {
   handlers.push_back(std::make_unique<EmulatorGetRegistersCommandHandler>());
   handlers.push_back(std::make_unique<EmulatorGetMetricsCommandHandler>());
 #endif
+
+  // Test helper tools
+  handlers.push_back(std::make_unique<ToolsListCommandHandler>());
+  handlers.push_back(std::make_unique<ToolsHarnessStateCommandHandler>());
+  handlers.push_back(std::make_unique<ToolsExtractValuesCommandHandler>());
+  handlers.push_back(std::make_unique<ToolsExtractGoldenCommandHandler>());
+  handlers.push_back(std::make_unique<ToolsPatchV3CommandHandler>());
+
+  // Hex Inspector
+  handlers.push_back(std::make_unique<HexDumpCommandHandler>());
+  handlers.push_back(std::make_unique<HexCompareCommandHandler>());
+  handlers.push_back(std::make_unique<HexAnnotateCommandHandler>());
+
+  // Test CLI commands
+  handlers.push_back(std::make_unique<TestListCommandHandler>());
+  handlers.push_back(std::make_unique<TestRunCommandHandler>());
+  handlers.push_back(std::make_unique<TestStatusCommandHandler>());
 
   return handlers;
 }

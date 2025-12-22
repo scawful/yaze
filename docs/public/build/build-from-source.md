@@ -1,89 +1,124 @@
-# Build Instructions
+# Build from Source
 
-yaze uses a modern CMake build system with presets for easy configuration. This guide explains the
-environment checks, dependencies, and platform-specific considerations. For concise per-platform
-commands, always start with the [Build & Test Quick Reference](quick-reference.md).
+YAZE uses a modern CMake build system with presets for easy configuration. This guide covers environment setup, dependencies, and platform-specific considerations.
+
+> **Quick Start:** For concise build commands, see the [Build and Test Quick Reference](quick-reference.md).
+
+---
 
 ## 1. Environment Verification
 
-**Before your first build**, run the verification script to ensure your environment is configured correctly.
+Before your first build, run the verification script to ensure your environment is configured correctly.
 
 ### Windows (PowerShell)
+
 ```powershell
 .\scripts\verify-build-environment.ps1
 
 # With automatic fixes
 .\scripts\verify-build-environment.ps1 -FixIssues
 ```
-> Tip: After verification, run `.\scripts\setup-vcpkg-windows.ps1` to bootstrap vcpkg, ensure `clang-cl`/Ninja are installed, and cache the `x64-windows` triplet.
 
-### macOS & Linux (Bash)
+> **Tip:** After verification, run `.\scripts\setup-vcpkg-windows.ps1` to bootstrap vcpkg, install clang-cl/Ninja, and cache the x64-windows triplet.
+
+### macOS and Linux
+
 ```bash
 ./scripts/verify-build-environment.sh
 
 # With automatic fixes
-./scripts\verify-build-environment.sh --fix
+./scripts/verify-build-environment.sh --fix
 ```
 
-The script checks for required tools like CMake, a C++23 compiler, and platform-specific dependencies.
+The script checks for CMake, a C++23 compiler, and platform-specific dependencies.
+
+---
 
 ## 2. Using Presets
 
-- Pick the preset that matches your platform/workflow (debug: `mac-dbg` / `lin-dbg` / `win-dbg`,
-  AI-enabled: `mac-ai` / `win-ai`, release: `*-rel`, etc.).
-- Configure with `cmake --preset <name>` and build with `cmake --build --preset <name> [--target …]`.
-- Add `-v` to a preset name (e.g., `mac-dbg-v`) to surface compiler warnings.
-- Need a full matrix? See the [CMake Presets Guide](presets.md) for every preset and the quick
-  reference for ready-to-run command snippets.
+Select a preset that matches your platform and workflow:
 
-## Feature Toggles & Windows Profiles
+| Workflow | Presets |
+|----------|---------|
+| Debug builds | `mac-dbg`, `lin-dbg`, `win-dbg` |
+| AI-enabled builds | `mac-ai`, `lin-ai`, `win-ai` |
+| Release builds | `mac-rel`, `lin-rel`, `win-rel` |
+| Development (ROM tests) | `mac-dev`, `lin-dev`, `win-dev` |
+
+**Build Commands:**
+```bash
+cmake --preset <name>                        # Configure
+cmake --build --preset <name> --target yaze  # Build
+```
+
+Add `-v` suffix (e.g., `mac-dbg-v`) to enable verbose compiler warnings.
+
+See the [CMake Presets Guide](presets.md) for the complete preset reference.
+
+---
+
+## Feature Toggles
 
 ### Windows Presets
 
 | Preset | Purpose |
-| --- | --- |
-| `win-dbg`, `win-rel`, `ci-windows` | Core builds without agent UI, gRPC, or AI runtimes. Fastest option for MSVC/clang-cl. |
-| `win-ai`, `win-vs-ai` | Full agent stack for local development (UI panels + remote automation + AI runtime). |
-| `ci-windows-ai` | Nightly/weekly CI preset that exercises the entire automation stack on Windows. |
+|--------|---------|
+| `win-dbg`, `win-rel` | Core builds without agent UI or AI. Fastest option. |
+| `win-ai`, `win-vs-ai` | Full agent stack (UI + automation + AI runtime) |
+| `ci-windows-ai` | CI preset for the complete automation stack |
 
-### Agent Feature Flags
+### CMake Feature Flags
 
-| Option | Default | Effect |
-| --- | --- | --- |
-| `YAZE_BUILD_AGENT_UI` | `ON` when `YAZE_BUILD_GUI=ON` | Builds the ImGui widgets used by the chat/agent panels. |
-| `YAZE_ENABLE_REMOTE_AUTOMATION` | `ON` for `*-ai` presets | Adds gRPC/protobuf services plus GUI automation clients. |
-| `YAZE_ENABLE_AI_RUNTIME` | `ON` for `*-ai` presets | Enables Gemini/Ollama transports, proposal planning, and advanced routing logic. |
-| `YAZE_ENABLE_AGENT_CLI` | `ON` when `YAZE_BUILD_CLI=ON` | Compiles the conversational agent stack consumed by `z3ed`. |
+| Option | Default | Description |
+|--------|---------|-------------|
+| `YAZE_BUILD_AGENT_UI` | ON with GUI | ImGui chat/agent panels |
+| `YAZE_ENABLE_REMOTE_AUTOMATION` | ON for `*-ai` | gRPC services and automation |
+| `YAZE_ENABLE_AI_RUNTIME` | ON for `*-ai` | Gemini/Ollama AI providers |
+| `YAZE_ENABLE_AGENT_CLI` | ON with CLI | z3ed agent commands |
 
-Combine these switches to match your workflow: keep everything `OFF` for lightweight GUI hacking or turn them `ON` for automation-heavy work with sketchybar/yabai/skhd, tmux, or remote runners.
+Keep features `OFF` for lightweight GUI development, or enable them for automation workflows.
+
+---
 
 ## 3. Dependencies
 
--   **Required**: CMake 3.16+, C++23 Compiler (GCC 13+, Clang 16+, MSVC 2019+), Git.
--   **Bundled**: All other dependencies (SDL2, ImGui, Asar, nlohmann/json, cpp-httplib, GoogleTest, etc.) live under the `ext/` directory or are managed by CMake's `FetchContent`. No external package manager is required for a basic build.
--   **Optional**: 
-    -   **gRPC**: For GUI test automation. Can be enabled with `-DYAZE_WITH_GRPC=ON`.
-    -   **vcpkg (Windows)**: Can be used for faster gRPC builds on Windows (optional).
+### Required
+
+- **CMake** 3.16 or later
+- **C++23 Compiler**: GCC 13+, Clang 16+, or MSVC 2022 17.4+
+- **Git**
+
+### Bundled (No Installation Required)
+
+All core dependencies are included in the `ext/` directory or fetched automatically:
+- SDL2, ImGui, Asar, nlohmann/json, cpp-httplib, GoogleTest
+
+### Optional
+
+- **gRPC**: Required for GUI automation and AI features. Enable with `-DYAZE_ENABLE_GRPC=ON`.
+- **vcpkg (Windows)**: Speeds up gRPC builds on Windows.
+
+---
 
 ## 4. Platform Setup
 
 ### macOS
+
 ```bash
 # Install Xcode Command Line Tools
 xcode-select --install
 
-# Recommended: Install build tools via Homebrew
+# Install build tools via Homebrew
 brew install cmake pkg-config
 
-# For sandboxed/offline builds: Install dependencies to avoid network fetch
+# Optional: For sandboxed/offline builds
 brew install yaml-cpp googletest
 ```
 
-**Note**: When building in sandboxed/offline environments (e.g., via Claude Code or restricted networks), install `yaml-cpp` and `googletest` via Homebrew to avoid GitHub fetch failures. The build system automatically detects Homebrew installations and uses them as fallback:
-- yaml-cpp: `/opt/homebrew/opt/yaml-cpp`, `/usr/local/opt/yaml-cpp`
-- googletest: `/opt/homebrew/opt/googletest`, `/usr/local/opt/googletest`
+> **Note:** In sandboxed environments, install yaml-cpp and googletest via Homebrew to avoid network fetch failures. The build system auto-detects Homebrew installations at `/opt/homebrew/opt/` (Apple Silicon) or `/usr/local/opt/` (Intel).
 
 ### Linux (Ubuntu/Debian)
+
 ```bash
 sudo apt-get update
 sudo apt-get install -y build-essential cmake ninja-build pkg-config \
@@ -91,15 +126,21 @@ sudo apt-get install -y build-essential cmake ninja-build pkg-config \
 ```
 
 ### Windows
-1. **Install Visual Studio 2022** with the “Desktop development with C++” workload (requires MSVC + MSBuild).  
-2. **Install Ninja** (recommended): `choco install ninja` or enable the “CMake tools for Windows” optional component.  
-3. Run the verifier: `.\scripts\verify-build-environment.ps1 -FixIssues` – this checks Visual Studio workloads, Ninja, clang-cl, Git settings, and vcpkg cache.  
-4. Bootstrap vcpkg once: `.\scripts\setup-vcpkg-windows.ps1` (prefetches SDL2, yaml-cpp, etc.).  
-5. Use the `win-*` presets (Ninja) or `win-vs-*` presets (Visual Studio generator) as needed. For AI/gRPC features, prefer `win-ai` / `win-vs-ai`.  
-6. For quick validation, run the PowerShell helper:  
+
+1. **Install Visual Studio 2022** with "Desktop development with C++" workload
+2. **Install Ninja** (recommended): `choco install ninja` or via Visual Studio Installer
+3. **Run the verifier:**
    ```powershell
-   pwsh -File scripts/agents/windows-smoke-build.ps1 -Preset win-ai -Target z3ed
+   .\scripts\verify-build-environment.ps1 -FixIssues
    ```
+4. **Bootstrap vcpkg:**
+   ```powershell
+   .\scripts\setup-vcpkg-windows.ps1
+   ```
+5. **Build:**
+   - Use `win-*` presets with Ninja generator
+   - Use `win-vs-*` presets for Visual Studio IDE
+   - For AI features, use `win-ai` or `win-vs-ai`
 
 ## 5. Testing
 

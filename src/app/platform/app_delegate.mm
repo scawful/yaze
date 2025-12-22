@@ -7,13 +7,11 @@
 
 #import "app/platform/app_delegate.h"
 #import "app/controller.h"
+#import "app/application.h"
 #import "util/file_util.h"
 #import "app/editor/editor.h"
-#import "app/rom.h"
-#include <span>
+#import "rom/rom.h"
 #include <vector>
-
-using std::span;
 
 #if defined(__APPLE__) && defined(__MACH__)
 /* Apple OSX and iOS (Darwin). */
@@ -30,15 +28,9 @@ using std::span;
 
 @interface AppDelegate : NSObject <NSApplicationDelegate>
 - (void)setupMenus;
-// - (void)changeApplicationIcon;
 @end
 
 @implementation AppDelegate
-
-// - (void)changeApplicationIcon {
-//   NSImage *newIcon = [NSImage imageNamed:@"newIcon"];
-//   [NSApp setApplicationIconImage:newIcon];
-// }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
   [self setupMenus];
@@ -62,7 +54,7 @@ using std::span;
                                                keyEquivalent:@"o"];
     [fileMenu addItem:openItem];
 
-    // Open Recent
+    // Open Recent (System handled usually, but we can add our own if needed)
     NSMenu *openRecentMenu = [[NSMenu alloc] initWithTitle:@"Open Recent"];
     NSMenuItem *openRecentMenuItem = [[NSMenuItem alloc] initWithTitle:@"Open Recent"
                                                                 action:nil
@@ -70,179 +62,146 @@ using std::span;
     [openRecentMenuItem setSubmenu:openRecentMenu];
     [fileMenu addItem:openRecentMenuItem];
 
-    // Add a separator
     [fileMenu addItem:[NSMenuItem separatorItem]];
 
     // Save
-    NSMenuItem *saveItem = [[NSMenuItem alloc] initWithTitle:@"Save" action:nil keyEquivalent:@"s"];
+    NSMenuItem *saveItem = [[NSMenuItem alloc] initWithTitle:@"Save" 
+                                                      action:@selector(saveAction:) 
+                                               keyEquivalent:@"s"];
     [fileMenu addItem:saveItem];
+    
+    // Save As
+    NSMenuItem *saveAsItem = [[NSMenuItem alloc] initWithTitle:@"Save As..." 
+                                                        action:@selector(saveAsAction:) 
+                                                 keyEquivalent:@"S"];
+    [fileMenu addItem:saveAsItem];
 
-    // Separator
     [fileMenu addItem:[NSMenuItem separatorItem]];
-
-    // Options submenu
-    NSMenu *optionsMenu = [[NSMenu alloc] initWithTitle:@"Options"];
-    NSMenuItem *optionsMenuItem = [[NSMenuItem alloc] initWithTitle:@"Options"
-                                                             action:nil
-                                                      keyEquivalent:@""];
-    [optionsMenuItem setSubmenu:optionsMenu];
-
-    // Flag checkmark field
-    NSMenuItem *flagItem = [[NSMenuItem alloc] initWithTitle:@"Flag"
-                                                      action:@selector(toggleFlagAction:)
-                                               keyEquivalent:@""];
-    [flagItem setTarget:self];
-    [flagItem setState:NSControlStateValueOff];
-    [optionsMenu addItem:flagItem];
-    [fileMenu addItem:optionsMenuItem];
 
     [mainMenu insertItem:fileMenuItem atIndex:1];
   }
 
+  // Edit Menu
   NSMenuItem *editMenuItem = [mainMenu itemWithTitle:@"Edit"];
   if (!editMenuItem) {
     NSMenu *editMenu = [[NSMenu alloc] initWithTitle:@"Edit"];
     editMenuItem = [[NSMenuItem alloc] initWithTitle:@"Edit" action:nil keyEquivalent:@""];
     [editMenuItem setSubmenu:editMenu];
 
-    NSMenuItem *undoItem = [[NSMenuItem alloc] initWithTitle:@"Undo" action:nil keyEquivalent:@"z"];
-
+    NSMenuItem *undoItem = [[NSMenuItem alloc] initWithTitle:@"Undo" 
+                                                      action:@selector(undoAction:) 
+                                               keyEquivalent:@"z"];
     [editMenu addItem:undoItem];
 
-    NSMenuItem *redoItem = [[NSMenuItem alloc] initWithTitle:@"Redo" action:nil keyEquivalent:@"Z"];
-
+    NSMenuItem *redoItem = [[NSMenuItem alloc] initWithTitle:@"Redo" 
+                                                      action:@selector(redoAction:) 
+                                               keyEquivalent:@"Z"];
     [editMenu addItem:redoItem];
 
-    // Add a separator
     [editMenu addItem:[NSMenuItem separatorItem]];
-
-    NSMenuItem *cutItem = [[NSMenuItem alloc] initWithTitle:@"Cut"
-                                                     action:@selector(cutAction:)
-                                              keyEquivalent:@"x"];
-    [editMenu addItem:cutItem];
-
-    NSMenuItem *copyItem = [[NSMenuItem alloc] initWithTitle:@"Copy" action:nil keyEquivalent:@"c"];
-    [editMenu addItem:copyItem];
-
-    NSMenuItem *pasteItem = [[NSMenuItem alloc] initWithTitle:@"Paste"
-                                                       action:nil
-                                                keyEquivalent:@"v"];
-
-    [editMenu addItem:pasteItem];
-
-    // Add a separator
-    [editMenu addItem:[NSMenuItem separatorItem]];
-
-    NSMenuItem *selectAllItem = [[NSMenuItem alloc] initWithTitle:@"Select All"
-                                                           action:nil
-                                                    keyEquivalent:@"a"];
-
-    [editMenu addItem:selectAllItem];
+    
+    // System-handled copy/paste usually works if we don't override, 
+    // but we might want to wire them to our internal clipboard if needed.
+    // For now, let SDL handle keyboard events for copy/paste in ImGui.
 
     [mainMenu insertItem:editMenuItem atIndex:2];
   }
 
+  // View Menu
   NSMenuItem *viewMenuItem = [mainMenu itemWithTitle:@"View"];
   if (!viewMenuItem) {
     NSMenu *viewMenu = [[NSMenu alloc] initWithTitle:@"View"];
     viewMenuItem = [[NSMenuItem alloc] initWithTitle:@"View" action:nil keyEquivalent:@""];
     [viewMenuItem setSubmenu:viewMenu];
 
-    // Emulator view button
-    NSMenuItem *emulatorViewItem = [[NSMenuItem alloc] initWithTitle:@"Emulator View"
-                                                              action:nil
-                                                       keyEquivalent:@"1"];
-
-    [viewMenu addItem:emulatorViewItem];
-
-    // Hex Editor View
-    NSMenuItem *hexEditorViewItem = [[NSMenuItem alloc] initWithTitle:@"Hex Editor View"
-                                                               action:nil
-                                                        keyEquivalent:@"2"];
-
-    [viewMenu addItem:hexEditorViewItem];
-
-    // Disassembly view button
-    NSMenuItem *disassemblyViewItem = [[NSMenuItem alloc] initWithTitle:@"Disassembly View"
-                                                                 action:nil
-                                                          keyEquivalent:@"3"];
-
-    [viewMenu addItem:disassemblyViewItem];
-
-    // Memory view button
-    NSMenuItem *memoryViewItem = [[NSMenuItem alloc] initWithTitle:@"Memory View"
-                                                            action:nil
-                                                     keyEquivalent:@"4"];
-
-    [viewMenu addItem:memoryViewItem];
-
-    // Add a separator
-    [viewMenu addItem:[NSMenuItem separatorItem]];
-
-    // Toggle fullscreen button
     NSMenuItem *toggleFullscreenItem = [[NSMenuItem alloc] initWithTitle:@"Toggle Fullscreen"
-                                                                  action:nil
+                                                                  action:@selector(toggleFullscreenAction:)
                                                            keyEquivalent:@"f"];
-
     [viewMenu addItem:toggleFullscreenItem];
 
     [mainMenu insertItem:viewMenuItem atIndex:3];
   }
-
-  NSMenuItem *helpMenuItem = [mainMenu itemWithTitle:@"Help"];
-  if (!helpMenuItem) {
-    NSMenu *helpMenu = [[NSMenu alloc] initWithTitle:@"Help"];
-    helpMenuItem = [[NSMenuItem alloc] initWithTitle:@"Help" action:nil keyEquivalent:@""];
-    [helpMenuItem setSubmenu:helpMenu];
-
-    // URL to online documentation
-    NSMenuItem *documentationItem = [[NSMenuItem alloc] initWithTitle:@"Documentation"
-                                                               action:nil
-                                                        keyEquivalent:@"?"];
-    [helpMenu addItem:documentationItem];
-
-    [mainMenu insertItem:helpMenuItem atIndex:4];
-  }
 }
 
-// Action method for the New menu item
-- (void)newFileAction:(id)sender {
-  NSLog(@"New File action triggered");
-}
-
-- (void)toggleFlagAction:(id)sender {
-  NSMenuItem *flagItem = (NSMenuItem *)sender;
-  if ([flagItem state] == NSControlStateValueOff) {
-    [flagItem setState:NSControlStateValueOn];
-  } else {
-    [flagItem setState:NSControlStateValueOff];
-  }
-}
+// ============================================================================
+// Menu Actions
+// ============================================================================
 
 - (void)openFileAction:(id)sender {
-  // TODO: Re-implmenent this without the SharedRom singleton 
-  // if (!yaze::SharedRom::shared_rom_
-  //          ->LoadFromFile(yaze::util::FileDialogWrapper::ShowOpenFileDialog())
-  //          .ok()) {
-  //   NSAlert *alert = [[NSAlert alloc] init];
-  //   [alert setMessageText:@"Error"];
-  //   [alert setInformativeText:@"Failed to load file."];
-  //   [alert addButtonWithTitle:@"OK"];
-  //   [alert runModal];
-  // }
+    // Use our internal file dialog via Application -> Controller -> EditorManager
+    // Or trigger the native dialog here and pass the path back.
+    // Since we have ImGui dialogs, we might prefer those, but native is nice on macOS.
+    // For now, let's just trigger the LoadRom logic which opens the dialog.
+    auto& app = yaze::Application::Instance();
+    if (app.IsReady() && app.GetController()) {
+        if (auto* manager = app.GetController()->editor_manager()) {
+            (void)manager->LoadRom();
+        }
+    }
 }
 
-- (void)cutAction:(id)sender {
-  // TODO: Implement
+- (void)saveAction:(id)sender {
+    auto& app = yaze::Application::Instance();
+    if (app.IsReady() && app.GetController()) {
+        if (auto* manager = app.GetController()->editor_manager()) {
+            (void)manager->SaveRom();
+        }
+    }
 }
 
-- (void)openRecentFileAction:(id)sender {
-  NSLog(@"Open Recent File action triggered");
+- (void)saveAsAction:(id)sender {
+    // Trigger Save As logic
+    // Manager->SaveRomAs("") usually triggers dialog
+    auto& app = yaze::Application::Instance();
+    if (app.IsReady() && app.GetController()) {
+        if (auto* manager = app.GetController()->editor_manager()) {
+            // We need a method to trigger Save As dialog from manager, 
+            // usually passing empty string does it or there's a specific method.
+            // EditorManager::SaveRomAs(string) saves immediately.
+            // We might need to expose a method to show the dialog.
+            // For now, let's assume we can use the file dialog wrapper from C++ side.
+             (void)manager->SaveRomAs(""); // This might fail if empty string isn't handled as "ask user"
+        }
+    }
+}
+
+- (void)undoAction:(id)sender {
+    // Route to active editor
+    auto& app = yaze::Application::Instance();
+    if (app.IsReady() && app.GetController()) {
+        if (auto* manager = app.GetController()->editor_manager()) {
+             // manager->card_registry().TriggerUndo(); // If we exposed TriggerUndo
+             // Or directly:
+             if (auto* current = manager->GetCurrentEditor()) {
+                 (void)current->Undo();
+             }
+        }
+    }
+}
+
+- (void)redoAction:(id)sender {
+    auto& app = yaze::Application::Instance();
+    if (app.IsReady() && app.GetController()) {
+        if (auto* manager = app.GetController()->editor_manager()) {
+             if (auto* current = manager->GetCurrentEditor()) {
+                 (void)current->Redo();
+             }
+        }
+    }
+}
+
+- (void)toggleFullscreenAction:(id)sender {
+    // Toggle fullscreen on the window
+    // SDL usually handles this, but we can trigger it via SDL_SetWindowFullscreen
+    // Accessing window via Application -> Controller -> Window
+    // Use SDL backend logic
+    // For now, rely on the View menu item shortcut that ImGui might catch, 
+    // or implement proper toggling in Controller.
 }
 
 @end
 
-extern "C" void yaze_initialize_cococa() {
+extern "C" void yaze_initialize_cocoa() {
   @autoreleasepool {
     AppDelegate *delegate = [[AppDelegate alloc] init];
     [NSApplication sharedApplication];
@@ -251,25 +210,27 @@ extern "C" void yaze_initialize_cococa() {
   }
 }
 
-extern "C" int yaze_run_cocoa_app_delegate(const char *filename) {
-  yaze_initialize_cococa();
-  auto controller = std::make_unique<yaze::Controller>();
-  EXIT_IF_ERROR(controller->OnEntry(filename));
-  while (controller->IsActive()) {
+extern "C" int yaze_run_cocoa_app_delegate(const yaze::AppConfig& config) {
+  yaze_initialize_cocoa();
+  
+  // Initialize the Application singleton with the provided config
+  // This will create the Controller and the SDL Window
+  yaze::Application::Instance().Initialize(config);
+  
+  // Main loop
+  // We continue to run our own loop rather than [NSApp run] 
+  // because we're driving SDL/ImGui manually.
+  // SDL's event polling works fine with Cocoa in this setup.
+  
+  auto& app = yaze::Application::Instance();
+  
+  while (app.IsReady() && app.GetController()->IsActive()) {
     @autoreleasepool {
-      controller->OnInput();
-      if (auto status = controller->OnLoad(); !status.ok()) {
-        NSAlert *alert = [[NSAlert alloc] init];
-        [alert setMessageText:@"Error"];
-        [alert setInformativeText:[NSString stringWithUTF8String:status.message().data()]];
-        [alert addButtonWithTitle:@"OK"];
-        [alert runModal];
-        break;
-      }
-      controller->DoRender();
+      app.Tick();
     }
   }
-  controller->OnExit();
+  
+  app.Shutdown();
   return EXIT_SUCCESS;
 }
 

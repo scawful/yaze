@@ -5,8 +5,9 @@
 
 #include "app/gfx/types/snes_color.h"
 #include "app/gui/core/color.h"
-#include "app/rom.h"
 #include "imgui/imgui.h"
+#include "rom/rom.h"
+#include "zelda3/game_data.h"
 
 namespace yaze {
 namespace editor {
@@ -65,10 +66,10 @@ void DrawColorInfoTooltip(const gfx::SnesColor& color);
  * @brief Draw a small palette preview (8 colors in a row)
  * @param group_name Palette group name
  * @param palette_index Palette index
- * @param rom ROM instance to read palette from
+ * @param game_data GameData instance to read palette from
  */
 void DrawPalettePreview(const std::string& group_name, int palette_index,
-                        class Rom* rom);
+                        zelda3::GameData* game_data);
 
 }  // namespace palette_utility
 

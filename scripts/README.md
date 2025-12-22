@@ -151,7 +151,7 @@ Validates CMake configuration by checking targets, flags, and platform-specific 
 cmake -P scripts/validate-cmake-config.cmake
 
 # Validate specific build directory
-cmake -P scripts/validate-cmake-config.cmake build_ai
+cmake -P scripts/validate-cmake-config.cmake build
 ```
 
 **What it checks:**
@@ -171,7 +171,7 @@ Validates include paths in compile_commands.json to catch missing includes befor
 ./scripts/check-include-paths.sh
 
 # Check specific build
-./scripts/check-include-paths.sh build_ai
+./scripts/check-include-paths.sh build
 
 # Verbose mode (show all include dirs)
 VERBOSE=1 ./scripts/check-include-paths.sh build
@@ -403,3 +403,164 @@ inline void ProcessData() { /* ... */ }
 Full documentation available in:
 - [docs/internal/testing/symbol-conflict-detection.md](../docs/internal/testing/symbol-conflict-detection.md)
 - [docs/internal/testing/sample-symbol-database.json](../docs/internal/testing/sample-symbol-database.json)
+
+## AI Model Evaluation Suite
+
+Tools for evaluating and comparing AI models used with the z3ed CLI agent system. Located in `scripts/ai/`.
+
+### Quick Start
+
+```bash
+# Run a quick smoke test
+./scripts/ai/run-model-eval.sh --quick
+
+# Evaluate specific models
+./scripts/ai/run-model-eval.sh --models llama3.2,qwen2.5-coder
+
+# Evaluate all available models
+./scripts/ai/run-model-eval.sh --all
+
+# Evaluate with comparison report
+./scripts/ai/run-model-eval.sh --default --compare
+```
+
+### Components
+
+#### run-model-eval.sh
+
+Main entry point script. Handles prerequisites checking, model pulling, and orchestrates the evaluation.
+
+**Options:**
+- `--models, -m LIST` - Comma-separated list of models to evaluate
+- `--all` - Evaluate all available Ollama models
+- `--default` - Evaluate default models from config (llama3.2, qwen2.5-coder, etc.)
+- `--tasks, -t LIST` - Task categories: rom_inspection, code_analysis, tool_calling, conversation
+- `--timeout SEC` - Timeout per task (default: 120)
+- `--quick` - Quick smoke test (single model, fewer tasks)
+- `--compare` - Generate comparison report after evaluation
+- `--dry-run` - Show what would run without executing
+
+#### eval-runner.py
+
+Python evaluation engine that runs tasks against models and scores responses.
+
+**Features:**
+- Multi-model evaluation
+- Pattern-based accuracy scoring
+- Response completeness analysis
+- Tool usage detection
+- Response time measurement
+- JSON output for analysis
+
+**Direct usage:**
+```bash
+python scripts/ai/eval-runner.py \
+  --models llama3.2,qwen2.5-coder \
+  --tasks all \
+  --output results/eval-$(date +%Y%m%d).json
+```
+
+#### compare-models.py
+
+Generates comparison reports from evaluation results.
+
+**Formats:**
+- `--format table` - ASCII table (default)
+- `--format markdown` - Markdown with analysis
+- `--format json` - Machine-readable JSON
+
+**Usage:**
+```bash
+# Compare all recent evaluations
+python scripts/ai/compare-models.py results/eval-*.json
+
+# Generate markdown report
+python scripts/ai/compare-models.py --format markdown --output report.md results/*.json
+
+# Get best model name (for scripting)
+BEST_MODEL=$(python scripts/ai/compare-models.py --best results/eval-*.json)
+```
+
+#### eval-tasks.yaml
+
+Task definitions and scoring configuration. Categories:
+
+| Category | Description | Example Tasks |
+|----------|-------------|---------------|
+| rom_inspection | ROM data structure queries | List dungeons, describe maps |
+| code_analysis | Code understanding tasks | Explain functions, find bugs |
+| tool_calling | Tool usage evaluation | File operations, build commands |
+| conversation | Multi-turn dialog | Follow-ups, clarifications |
+
+**Scoring dimensions:**
+- **Accuracy** (40%): Pattern matching against expected responses
+- **Completeness** (30%): Response depth and structure
+- **Tool Usage** (20%): Appropriate tool selection
+- **Response Time** (10%): Speed (normalized to 0-10)
+
+### Output
+
+Results are saved to `scripts/ai/results/`:
+- `eval-YYYYMMDD-HHMMSS.json` - Individual evaluation results
+- `comparison-YYYYMMDD-HHMMSS.md` - Comparison reports
+
+**Sample output:**
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│                    YAZE AI Model Evaluation Report                   │
+├──────────────────────────────────────────────────────────────────────┤
+│ Model                    │ Accuracy   │ Tool Use   │ Speed   │ Runs │
+├──────────────────────────────────────────────────────────────────────┤
+│ qwen2.5-coder:7b         │     8.8/10 │     9.2/10 │    2.1s │     3 │
+│ llama3.2:latest          │     7.9/10 │     7.5/10 │    2.3s │     3 │
+│ codellama:7b             │     7.2/10 │     8.1/10 │    2.8s │     3 │
+├──────────────────────────────────────────────────────────────────────┤
+│ Recommended: qwen2.5-coder:7b (score: 8.7/10)                        │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+### Prerequisites
+
+- **Ollama**: Install from https://ollama.ai
+- **Python 3.10+** with `requests` and `pyyaml`:
+  ```bash
+  pip install requests pyyaml
+  ```
+- **At least one model pulled**:
+  ```bash
+  ollama pull llama3.2
+  ```
+
+### Adding Custom Tasks
+
+Edit `scripts/ai/eval-tasks.yaml` to add new evaluation tasks:
+
+```yaml
+categories:
+  custom_category:
+    description: "My custom tasks"
+    tasks:
+      - id: "my_task"
+        name: "My Task Name"
+        prompt: "What is the purpose of..."
+        expected_patterns:
+          - "expected|keyword|pattern"
+        required_tool: null
+        scoring:
+          accuracy_criteria: "Must mention X, Y, Z"
+          completeness_criteria: "Should include examples"
+```
+
+### Integration with CI
+
+The evaluation suite can be integrated into CI pipelines:
+
+```yaml
+# .github/workflows/ai-eval.yml
+- name: Run AI Evaluation
+  run: |
+    ollama serve &
+    sleep 5
+    ollama pull llama3.2
+    ./scripts/ai/run-model-eval.sh --models llama3.2 --tasks tool_calling
+```

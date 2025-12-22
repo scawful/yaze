@@ -3,21 +3,25 @@
 #include <chrono>
 
 #include "absl/strings/str_format.h"
+#include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
+#include "rom/rom.h"
 #include "util/macro.h"
+#include "zelda3/game_data.h"
 
 namespace yaze {
 namespace gfx {
 
-void PaletteManager::Initialize(Rom* rom) {
-  if (!rom) {
+void PaletteManager::Initialize(zelda3::GameData* game_data) {
+  if (!game_data) {
     return;
   }
 
-  rom_ = rom;
+  game_data_ = game_data;
+  rom_ = nullptr;  // Clear legacy ROM pointer
 
   // Load original palette snapshots for all groups
-  auto* palette_groups = rom_->mutable_palette_group();
+  auto* palette_groups = &game_data_->palette_groups;
 
   // Snapshot all palette groups
   const char* group_names[] = {"ow_main",      "ow_aux",         "ow_animated",
@@ -41,6 +45,21 @@ void PaletteManager::Initialize(Rom* rom) {
       continue;
     }
   }
+
+  // Clear any existing state
+  modified_palettes_.clear();
+  modified_colors_.clear();
+  ClearHistory();
+}
+
+void PaletteManager::Initialize(Rom* rom) {
+  // Legacy initialization - not supported in new architecture
+  // Keep ROM pointer for backwards compatibility but log warning
+  if (!rom) {
+    return;
+  }
+  rom_ = rom;
+  game_data_ = nullptr;
 
   // Clear any existing state
   modified_palettes_.clear();
@@ -274,6 +293,9 @@ absl::Status PaletteManager::SaveGroup(const std::string& group_name) {
                            -1, -1};
   NotifyListeners(event);
 
+  // Notify Arena for bitmap propagation to other editors
+  Arena::Get().NotifyPaletteModified(group_name, -1);
+
   return absl::OkStatus();
 }
 
@@ -288,6 +310,30 @@ absl::Status PaletteManager::SaveAllToRom() {
   }
 
   // Notify listeners
+  PaletteChangeEvent event{PaletteChangeEvent::Type::kAllSaved, "", -1, -1};
+  NotifyListeners(event);
+
+  return absl::OkStatus();
+}
+
+absl::Status PaletteManager::ApplyPreviewChanges() {
+  if (!IsInitialized()) {
+    return absl::FailedPreconditionError("PaletteManager not initialized");
+  }
+
+  // Get all modified groups and notify Arena for each
+  // This triggers bitmap refresh in other editors WITHOUT saving to ROM
+  auto modified_groups = GetModifiedGroups();
+
+  if (modified_groups.empty()) {
+    return absl::OkStatus();  // Nothing to preview
+  }
+
+  for (const auto& group_name : modified_groups) {
+    Arena::Get().NotifyPaletteModified(group_name, -1);
+  }
+
+  // Notify listeners that preview was applied
   PaletteChangeEvent event{PaletteChangeEvent::Type::kAllSaved, "", -1, -1};
   NotifyListeners(event);
 
@@ -459,7 +505,10 @@ PaletteGroup* PaletteManager::GetMutableGroup(const std::string& group_name) {
     return nullptr;
   }
   try {
-    return rom_->mutable_palette_group()->get_group(group_name);
+    if (game_data_) {
+      return game_data_->palette_groups.get_group(group_name);
+    }
+    return nullptr;  // Legacy ROM-only mode not supported
   } catch (const std::exception&) {
     return nullptr;
   }
@@ -471,9 +520,11 @@ const PaletteGroup* PaletteManager::GetGroup(
     return nullptr;
   }
   try {
-    // Need to const_cast because get_group() is not const
-    return const_cast<Rom*>(rom_)->mutable_palette_group()->get_group(
-        group_name);
+    if (game_data_) {
+      return const_cast<PaletteGroupMap*>(&game_data_->palette_groups)
+          ->get_group(group_name);
+    }
+    return nullptr;  // Legacy ROM-only mode not supported
   } catch (const std::exception&) {
     return nullptr;
   }

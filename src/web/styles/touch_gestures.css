@@ -1,0 +1,463 @@
+/**
+ * Touch UI Styling for yaze WASM build
+ *
+ * Provides touch-friendly UI adaptations for iPad and tablet browsers:
+ * - Larger hit targets for buttons (44x44px minimum per Apple HIG)
+ * - Touch-friendly scrollbars
+ * - Visual feedback for touch interactions
+ * - Hide cursor when touch is active
+ * - Proper touch-action configuration
+ */
+
+/* =============================================================================
+   Touch Mode Detection
+   Uses a CSS custom property that can be toggled via JavaScript
+============================================================================= */
+
+:root {
+  --yaze-touch-mode: 0;
+  --yaze-min-touch-target: 44px;
+  --yaze-touch-padding: 8px;
+  --yaze-ripple-color: rgba(14, 99, 156, 0.4);
+  --yaze-ripple-duration: 300ms;
+}
+
+/* Applied when touch mode is active */
+body.yaze-touch-mode {
+  --yaze-touch-mode: 1;
+  cursor: none;
+}
+
+/* =============================================================================
+   Canvas Touch Configuration
+============================================================================= */
+
+#canvas,
+canvas.emscripten {
+  /* Disable all browser touch handling - we handle it ourselves */
+  touch-action: none;
+
+  /* Disable text selection */
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+
+  /* Disable callout on long-press (iOS Safari) */
+  -webkit-touch-callout: none;
+
+  /* Disable tap highlight (Android Chrome) */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* When touch is active, hide the cursor on the canvas */
+body.yaze-touch-mode #canvas,
+body.yaze-touch-mode canvas.emscripten {
+  cursor: none;
+}
+
+/* =============================================================================
+   Touch Ripple Effect
+   Visual feedback for tap interactions
+============================================================================= */
+
+.yaze-touch-ripple {
+  position: fixed;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: var(--yaze-ripple-color);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 10000;
+  opacity: 1;
+  transition: none;
+}
+
+.yaze-touch-ripple-active {
+  width: 80px;
+  height: 80px;
+  opacity: 0;
+  transition:
+    width var(--yaze-ripple-duration) ease-out,
+    height var(--yaze-ripple-duration) ease-out,
+    opacity var(--yaze-ripple-duration) ease-out;
+}
+
+/* Long press ripple - larger and different color */
+.yaze-touch-ripple-long-press {
+  background: rgba(255, 193, 7, 0.5);
+}
+
+.yaze-touch-ripple-long-press.yaze-touch-ripple-active {
+  width: 120px;
+  height: 120px;
+}
+
+/* =============================================================================
+   Touch-Friendly Buttons
+   Ensure all interactive elements meet minimum touch target size
+============================================================================= */
+
+body.yaze-touch-mode button,
+body.yaze-touch-mode .yaze-button,
+body.yaze-touch-mode [role="button"],
+body.yaze-touch-mode input[type="button"],
+body.yaze-touch-mode input[type="submit"],
+body.yaze-touch-mode input[type="reset"] {
+  min-width: var(--yaze-min-touch-target);
+  min-height: var(--yaze-min-touch-target);
+  padding: var(--yaze-touch-padding) 16px;
+
+  /* Ensure adequate spacing between touch targets */
+  margin: 4px;
+
+  /* Visual feedback on touch */
+  transition: transform 0.1s ease, background-color 0.1s ease;
+}
+
+body.yaze-touch-mode button:active,
+body.yaze-touch-mode .yaze-button:active,
+body.yaze-touch-mode [role="button"]:active {
+  transform: scale(0.95);
+}
+
+/* =============================================================================
+   Touch-Friendly Form Controls
+============================================================================= */
+
+body.yaze-touch-mode input[type="text"],
+body.yaze-touch-mode input[type="number"],
+body.yaze-touch-mode input[type="search"],
+body.yaze-touch-mode input[type="email"],
+body.yaze-touch-mode input[type="password"],
+body.yaze-touch-mode select,
+body.yaze-touch-mode textarea {
+  min-height: var(--yaze-min-touch-target);
+  padding: var(--yaze-touch-padding) 12px;
+  font-size: 16px; /* Prevents auto-zoom on iOS */
+}
+
+body.yaze-touch-mode input[type="checkbox"],
+body.yaze-touch-mode input[type="radio"] {
+  min-width: 24px;
+  min-height: 24px;
+
+  /* Add padding around checkboxes for easier tapping */
+  margin: 10px;
+}
+
+/* =============================================================================
+   Touch-Friendly Scrollbars
+   Larger, more visible scrollbars for touch interaction
+============================================================================= */
+
+body.yaze-touch-mode ::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+}
+
+body.yaze-touch-mode ::-webkit-scrollbar-track {
+  background: rgba(30, 30, 30, 0.3);
+  border-radius: 8px;
+}
+
+body.yaze-touch-mode ::-webkit-scrollbar-thumb {
+  background: rgba(100, 100, 100, 0.6);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  min-height: 40px;
+}
+
+body.yaze-touch-mode ::-webkit-scrollbar-thumb:hover,
+body.yaze-touch-mode ::-webkit-scrollbar-thumb:active {
+  background: rgba(140, 140, 140, 0.8);
+  background-clip: padding-box;
+}
+
+/* Firefox scrollbar styling */
+body.yaze-touch-mode * {
+  scrollbar-width: auto;
+  scrollbar-color: rgba(100, 100, 100, 0.6) rgba(30, 30, 30, 0.3);
+}
+
+/* =============================================================================
+   Header and Controls Touch Adaptation
+============================================================================= */
+
+body.yaze-touch-mode #header {
+  min-height: 56px;
+  padding: 8px 16px;
+}
+
+body.yaze-touch-mode #controls {
+  gap: 12px;
+}
+
+body.yaze-touch-mode #controls button {
+  padding: 10px 20px;
+  font-size: 15px;
+}
+
+/* File input touch styling */
+body.yaze-touch-mode #rom-input + label,
+body.yaze-touch-mode .yaze-file-input-label {
+  min-width: var(--yaze-min-touch-target);
+  min-height: var(--yaze-min-touch-target);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--yaze-touch-padding) 16px;
+}
+
+/* =============================================================================
+   Touch Indicator
+   Shows a visual indicator that touch mode is active
+============================================================================= */
+
+.yaze-touch-indicator {
+  position: fixed;
+  top: 70px;
+  right: 20px;
+  background: rgba(14, 99, 156, 0.9);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 1000;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+body.yaze-touch-mode .yaze-touch-indicator {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* =============================================================================
+   Gesture Hints
+   Visual hints for available gestures
+============================================================================= */
+
+.yaze-gesture-hint {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+  z-index: 999;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.yaze-gesture-hint.visible {
+  opacity: 1;
+}
+
+.yaze-gesture-hint-icon {
+  display: inline-block;
+  margin-right: 8px;
+  font-size: 18px;
+}
+
+/* =============================================================================
+   Zoom Controls Overlay
+   Touch-friendly zoom controls for canvas
+============================================================================= */
+
+.yaze-zoom-controls {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+body.yaze-touch-mode .yaze-zoom-controls {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.yaze-zoom-controls button {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(37, 37, 38, 0.9);
+  border: 1px solid rgba(62, 62, 66, 0.8);
+  color: #cccccc;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.yaze-zoom-controls button:hover {
+  background: rgba(50, 50, 52, 0.95);
+}
+
+.yaze-zoom-controls button:active {
+  transform: scale(0.9);
+  background: rgba(14, 99, 156, 0.9);
+}
+
+.yaze-zoom-level {
+  width: 48px;
+  height: 32px;
+  background: rgba(37, 37, 38, 0.9);
+  border: 1px solid rgba(62, 62, 66, 0.8);
+  border-radius: 4px;
+  color: #cccccc;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* =============================================================================
+   Context Menu Touch Styling
+   Make context menus touch-friendly
+============================================================================= */
+
+body.yaze-touch-mode .yaze-context-menu,
+body.yaze-touch-mode .imgui-context-menu {
+  min-width: 200px;
+}
+
+body.yaze-touch-mode .yaze-context-menu-item,
+body.yaze-touch-mode .imgui-menu-item {
+  min-height: var(--yaze-min-touch-target);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+}
+
+/* =============================================================================
+   Touch Keyboard Handling
+   Adjust layout when virtual keyboard appears
+============================================================================= */
+
+@media (max-height: 500px) {
+  /* Likely keyboard is open - adjust header */
+  body.yaze-touch-mode #header {
+    min-height: 40px;
+    padding: 4px 12px;
+  }
+
+  body.yaze-touch-mode #header h1 {
+    font-size: 14px;
+  }
+
+  body.yaze-touch-mode #controls button {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+}
+
+/* =============================================================================
+   iPad-Specific Styles
+============================================================================= */
+
+@supports (-webkit-touch-callout: none) {
+  /* iOS/iPadOS specific */
+
+  body.yaze-touch-mode {
+    /* Prevent overscroll bounce effect */
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Safe area insets for notched devices */
+  #header {
+    padding-left: max(20px, env(safe-area-inset-left));
+    padding-right: max(20px, env(safe-area-inset-right));
+    padding-top: max(10px, env(safe-area-inset-top));
+  }
+
+  #canvas-container {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* =============================================================================
+   Touch Mode Transition Animations
+============================================================================= */
+
+/* Smooth transition when entering/exiting touch mode */
+button,
+input,
+select,
+textarea,
+.yaze-button,
+[role="button"] {
+  transition:
+    min-width 0.2s ease,
+    min-height 0.2s ease,
+    padding 0.2s ease;
+}
+
+/* =============================================================================
+   Accessibility - High Contrast Mode
+============================================================================= */
+
+@media (prefers-contrast: high) {
+  body.yaze-touch-mode button:focus,
+  body.yaze-touch-mode input:focus,
+  body.yaze-touch-mode select:focus,
+  body.yaze-touch-mode textarea:focus {
+    outline: 3px solid white;
+    outline-offset: 2px;
+  }
+
+  .yaze-touch-ripple {
+    background: rgba(255, 255, 255, 0.5);
+  }
+}
+
+/* =============================================================================
+   Reduced Motion Support
+============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .yaze-touch-ripple,
+  .yaze-touch-ripple-active {
+    transition: none;
+  }
+
+  body.yaze-touch-mode button:active,
+  body.yaze-touch-mode .yaze-button:active {
+    transform: none;
+  }
+
+  .yaze-zoom-controls button:active {
+    transform: none;
+  }
+}
+
+/* =============================================================================
+   Print Styles - Hide Touch UI
+============================================================================= */
+
+@media print {
+  .yaze-touch-ripple,
+  .yaze-touch-indicator,
+  .yaze-gesture-hint,
+  .yaze-zoom-controls {
+    display: none !important;
+  }
+}

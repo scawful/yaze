@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <csignal>
 #include <cstdio>
 #include <ctime>
 #include <fstream>
@@ -39,15 +40,34 @@ std::filesystem::path CrashHandler::crash_log_path_;
 int CrashHandler::crash_log_fd_ = -1;
 
 void CrashHandler::CrashLogWriter(const char* data) {
-  // Compute length manually (async-signal-safe)
+  // Prevent re-entrancy - if we crash while handling a crash, just abort
+  static volatile sig_atomic_t in_crash_handler = 0;
+  if (in_crash_handler) {
+    // Already in crash handler - abort to prevent infinite loop
+    _Exit(1);
+  }
+  in_crash_handler = 1;
+  
+  if (data == nullptr) {
+    in_crash_handler = 0;
+    return;
+  }
+  
+  // Calculate length manually (strlen might crash)
   size_t len = 0;
-  while (data[len] != '\0') ++len;
-
+  while (len < 4096 && data[len] != '\0') {  // Cap at 4KB to prevent runaway
+    ++len;
+  }
+  
   if (crash_log_fd_ >= 0) {
+    // Write to crash log file (ignore errors - we're crashing anyway)
     write(crash_log_fd_, data, len);
   }
+  
   // Also write to stderr for immediate visibility
   write(STDERR_FILENO, data, len);
+  
+  in_crash_handler = 0;
 }
 
 void CrashHandler::Initialize(const std::string& version) {

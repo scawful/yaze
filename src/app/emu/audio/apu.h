@@ -58,6 +58,10 @@ class Apu {
   void Reset();
 
   void RunCycles(uint64_t cycles);
+  
+  void SaveState(std::ostream& stream);
+  void LoadState(std::istream& stream);
+
   uint8_t SpcRead(uint16_t address);
   void SpcWrite(uint16_t address, uint8_t data);
   void SpcIdle(bool waiting);
@@ -68,6 +72,7 @@ class Apu {
   void Write(uint16_t address, uint8_t data);
 
   auto dsp() -> Dsp& { return dsp_; }
+  auto dsp() const -> const Dsp& { return dsp_; }
   auto spc700() -> Spc700& { return spc700_; }
 
   uint64_t GetCycles() const { return cycles_; }
@@ -87,6 +92,47 @@ class Apu {
     }
   }
 
+  /**
+   * @brief Bootstrap SPC directly to driver code (bypasses IPL ROM handshake)
+   *
+   * This method allows direct control of the SPC700 by:
+   * 1. Disabling the IPL ROM
+   * 2. Setting PC to the driver entry point
+   * 3. Initializing SPC state for driver execution
+   *
+   * Use this after uploading audio driver code via WriteDma() to bypass
+   * the normal IPL ROM handshake protocol.
+   *
+   * @param entry_point The ARAM address where the driver code starts (typically $0800)
+   */
+  void BootstrapDirect(uint16_t entry_point);
+
+  /**
+   * @brief Check if SPC has completed IPL ROM boot and is running driver code
+   * @return true if IPL ROM is disabled and SPC is executing from RAM
+   */
+  bool IsDriverRunning() const { return !rom_readable_; }
+
+  /**
+   * @brief Get timer state for debug UI
+   * @param timer_index 0, 1, or 2
+   */
+  const Timer& GetTimer(int timer_index) const {
+    if (timer_index < 0) timer_index = 0;
+    if (timer_index > 2) timer_index = 2;
+    return timer_[timer_index];
+  }
+
+  /**
+   * @brief Write directly to DSP register
+   * Used for direct instrument/note preview without going through driver
+   */
+  void WriteToDsp(uint8_t address, uint8_t value) {
+    if (address < 0x80) {
+      dsp_.Write(address, value);
+    }
+  }
+
   // Port buffers (equivalent to $2140 to $2143 for the main CPU)
   std::array<uint8_t, 6> in_ports_;  // includes 2 bytes of ram
   std::array<uint8_t, 4> out_ports_;
@@ -96,7 +142,8 @@ class Apu {
   bool rom_readable_ = false;
 
   uint8_t dsp_adr_ = 0;
-  uint32_t cycles_ = 0;
+  uint64_t cycles_ = 0;
+  uint64_t last_master_cycles_ = 0;
 
   // IPL ROM transfer tracking for proper termination
   uint8_t transfer_size_ = 0;

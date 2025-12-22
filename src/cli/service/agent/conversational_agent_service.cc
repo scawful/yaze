@@ -20,7 +20,7 @@
 #include "absl/strings/string_view.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "cli/service/agent/advanced_routing.h"
 #include "cli/service/agent/agent_pretraining.h"
 #include "cli/service/agent/proposal_executor.h"
@@ -187,8 +187,11 @@ ChatMessage CreateMessage(ChatMessage::Sender sender,
 }  // namespace
 
 ConversationalAgentService::ConversationalAgentService() {
-  provider_config_.provider = "auto";
-  ai_service_ = CreateAIService();
+  // Default to a lightweight mock provider to avoid slow network checks during
+  // startup (especially on mac-ai builds). The real provider is created when
+  // ConfigureProvider is called from the UI.
+  provider_config_.provider = "mock";
+  ai_service_ = std::make_unique<MockAIService>();
   tool_dispatcher_.SetToolPreferences(tool_preferences_);
 
 #ifdef Z3ED_AI
@@ -210,8 +213,10 @@ ConversationalAgentService::ConversationalAgentService() {
 ConversationalAgentService::ConversationalAgentService(
     const AgentConfig& config)
     : config_(config) {
-  provider_config_.provider = "auto";
-  ai_service_ = CreateAIService();
+  // Avoid auto-detecting providers (which can block on network) until the UI
+  // applies an explicit configuration.
+  provider_config_.provider = "mock";
+  ai_service_ = std::make_unique<MockAIService>();
   tool_dispatcher_.SetToolPreferences(tool_preferences_);
 
 #ifdef Z3ED_AI
@@ -277,6 +282,160 @@ ChatMessage::SessionMetrics ConversationalAgentService::GetMetrics() const {
   return BuildMetricsSnapshot();
 }
 
+void ConversationalAgentService::SetExternalDriver(ExternalDriverCallback driver) {
+  external_driver_ = std::move(driver);
+  has_external_driver_ = true;
+}
+
+void ConversationalAgentService::HandleExternalResponse(
+    const AgentResponse& agent_response) {
+  // Process the response similar to the internal loop
+  // 1. Check for tool calls
+  // 2. Execute tools
+  // 3. Create proposal if needed
+  // 4. Append Agent message to history
+  // 5. If tools executed, call external driver again (loop)
+
+  bool executed_tool = false;
+  std::vector<std::string> executed_tools;
+
+  if (!agent_response.tool_calls.empty()) {
+    for (const auto& tool_call : agent_response.tool_calls) {
+      // Format tool arguments for display
+      std::vector<std::string> arg_parts;
+      for (const auto& [key, value] : tool_call.args) {
+        arg_parts.push_back(absl::StrCat(key, "=", value));
+      }
+      std::string args_str = absl::StrJoin(arg_parts, ", ");
+
+      util::PrintToolCall(tool_call.tool_name, args_str);
+
+      auto tool_result_or = tool_dispatcher_.Dispatch(tool_call);
+      std::string tool_output;
+      if (!tool_result_or.ok()) {
+        tool_output = absl::StrCat("Error: ", tool_result_or.status().message());
+        util::PrintError(tool_output);
+      } else {
+        tool_output = tool_result_or.value();
+        util::PrintSuccess("Tool executed successfully");
+      }
+
+      if (!tool_output.empty()) {
+        ++metrics_.tool_calls;
+        // Add tool result as internal message
+        std::string marked_output = absl::StrCat(
+            "[TOOL RESULT for ", tool_call.tool_name, "]\n",
+            "The tool returned the following data:\n", tool_output, "\n\n",
+            "Please provide a text_response field in your JSON to summarize "
+            "this information for the user.");
+        auto tool_result_msg =
+            CreateMessage(ChatMessage::Sender::kUser, marked_output);
+        tool_result_msg.is_internal = true;
+        history_.push_back(tool_result_msg);
+      }
+      executed_tool = true;
+      executed_tools.push_back(tool_call.tool_name);
+    }
+  }
+
+  // If tools were executed, we need to loop back to the AI
+  if (executed_tool && has_external_driver_) {
+    external_driver_(history_);
+    return; // Wait for next response
+  }
+
+  // Final text response processing
+  std::optional<ProposalCreationResult> proposal_result;
+  absl::Status proposal_status = absl::OkStatus();
+  bool attempted_proposal = false;
+
+  if (!agent_response.commands.empty()) {
+    attempted_proposal = true;
+    if (rom_context_ && rom_context_->is_loaded()) {
+      ProposalCreationRequest request;
+      // Use last user message as prompt context if available
+      if (!history_.empty()) {
+        for (auto it = history_.rbegin(); it != history_.rend(); ++it) {
+          if (it->sender == ChatMessage::Sender::kUser && !it->is_internal) {
+            request.prompt = it->message;
+            break;
+          }
+        }
+      }
+      request.response = &agent_response;
+      request.rom = rom_context_;
+      request.sandbox_label = "agent-chat";
+      request.ai_provider = "external";
+
+      auto creation_or = CreateProposalFromAgentResponse(request);
+      if (!creation_or.ok()) {
+        proposal_status = creation_or.status();
+        util::PrintError(absl::StrCat("Failed to create proposal: ",
+                                      proposal_status.message()));
+      } else {
+        proposal_result = std::move(creation_or.value());
+      }
+    }
+  }
+
+  // Construct text response
+  std::string response_text = agent_response.text_response;
+  if (!agent_response.reasoning.empty()) {
+    if (!response_text.empty()) response_text.append("\n\n");
+    response_text.append("Reasoning: ").append(agent_response.reasoning);
+  }
+  
+  if (!agent_response.commands.empty()) {
+    if (!response_text.empty()) response_text.append("\n\n");
+    response_text.append("Commands:\n").append(absl::StrJoin(agent_response.commands, "\n"));
+  }
+  metrics_.commands_generated += CountExecutableCommands(agent_response.commands);
+
+  if (proposal_result.has_value()) {
+    const auto& metadata = proposal_result->metadata;
+    if (!response_text.empty()) response_text.append("\n\n");
+    response_text.append(absl::StrFormat(
+        "✅ Proposal %s ready with %d change%s (%d command%s).",
+        metadata.id, proposal_result->change_count,
+        proposal_result->change_count == 1 ? "" : "s",
+        proposal_result->executed_commands,
+        proposal_result->executed_commands == 1 ? "" : "s"));
+    ++metrics_.proposals_created;
+  } else if (attempted_proposal && !proposal_status.ok()) {
+    if (!response_text.empty()) response_text.append("\n\n");
+    response_text.append(absl::StrCat("⚠️ Failed to prepare proposal: ", proposal_status.message()));
+  }
+
+  // Remove the "Thinking..." placeholder if present
+  if (!history_.empty() && history_.back().sender == ChatMessage::Sender::kAgent && 
+      history_.back().message == "Thinking...") {
+    history_.pop_back();
+  }
+
+  // Add final message
+  ChatMessage chat_response = CreateMessage(ChatMessage::Sender::kAgent, response_text);
+  if (proposal_result.has_value()) {
+    ChatMessage::ProposalSummary summary;
+    summary.id = proposal_result->metadata.id;
+    summary.change_count = proposal_result->change_count;
+    summary.executed_commands = proposal_result->executed_commands;
+    chat_response.proposal = summary;
+  }
+  
+  // Metadata
+  ChatMessage::ModelMetadata meta;
+  meta.provider = "external";
+  meta.model = "gemini"; // Could get this from JS
+  meta.tool_names = executed_tools;
+  chat_response.model_metadata = meta;
+
+  history_.push_back(chat_response);
+  TrimHistoryIfNeeded();
+  
+  ++metrics_.agent_messages;
+  ++metrics_.turns_completed;
+}
+
 absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
     const std::string& message) {
   if (message.empty() && history_.empty()) {
@@ -288,6 +447,14 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
     history_.push_back(CreateMessage(ChatMessage::Sender::kUser, message));
     TrimHistoryIfNeeded();
     ++metrics_.user_messages;
+  }
+
+  // External Driver Path (WASM/Sidecar)
+  if (has_external_driver_) {
+    external_driver_(history_);
+    // Return a placeholder that indicates waiting
+    // The UI should handle this update gracefully via callbacks
+    return CreateMessage(ChatMessage::Sender::kAgent, "Thinking...");
   }
 
   const int max_iterations = config_.max_tool_iterations;
@@ -559,6 +726,15 @@ absl::Status ConversationalAgentService::ConfigureProvider(
     const AIServiceConfig& config) {
   auto service_or = CreateAIServiceStrict(config);
   if (!service_or.ok()) {
+    // Keep the existing service running and fall back to mock so the UI stays
+    // responsive.
+    std::cerr << "Provider configuration failed: " << service_or.status()
+              << " — falling back to mock" << std::endl;
+    ai_service_ = std::make_unique<MockAIService>();
+    provider_config_.provider = "mock";
+    if (rom_context_) {
+      ai_service_->SetRomContext(rom_context_);
+    }
     return service_or.status();
   }
 

@@ -7,7 +7,7 @@
 #include "app/editor/editor.h"
 #include "app/gfx/backend/renderer_factory.h"
 #include "app/platform/window.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "imgui/imgui.h"
 
 #ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE

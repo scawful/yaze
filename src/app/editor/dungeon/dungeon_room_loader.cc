@@ -6,6 +6,10 @@
 #include <mutex>
 #include <thread>
 
+#ifdef __EMSCRIPTEN__
+#include "app/platform/wasm/wasm_loading_manager.h"
+#endif
+
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/types/snes_palette.h"
 #include "util/log.h"
@@ -22,6 +26,7 @@ absl::Status DungeonRoomLoader::LoadRoom(int room_id, zelda3::Room& room) {
   }
 
   room = zelda3::LoadRoomFromRom(rom_, room_id);
+  room.SetGameData(game_data_);  // Ensure room has access to GameData
   room.LoadObjects();
 
   return absl::OkStatus();
@@ -34,6 +39,60 @@ absl::Status DungeonRoomLoader::LoadAllRooms(
   }
 
   constexpr int kTotalRooms = 0x100 + 40;  // 296 rooms
+
+  // Data structures for collecting results
+  std::vector<std::pair<int, zelda3::RoomSize>> room_size_results;
+  std::vector<std::pair<int, ImVec4>> room_palette_results;
+
+#ifdef __EMSCRIPTEN__
+  // WASM: Sequential loading to avoid Web Worker explosion
+  // std::async creates pthreads which become Web Workers in browsers,
+  // causing excessive worker spawning and main thread blocking.
+  LOG_DEBUG("Dungeon", "Loading %d dungeon rooms sequentially (WASM build)",
+            kTotalRooms);
+
+  if (!game_data_) {
+    return absl::FailedPreconditionError("GameData not available");
+  }
+  auto dungeon_man_pal_group = game_data_->palette_groups.dungeon_main;
+
+  // Create loading indicator for progress feedback
+  auto loading_handle =
+      app::platform::WasmLoadingManager::BeginLoading("Loading Dungeon Rooms");
+
+  for (int i = 0; i < kTotalRooms; ++i) {
+    // Update progress every 10 rooms to reduce overhead
+    if (i % 10 == 0) {
+      float progress = static_cast<float>(i) / static_cast<float>(kTotalRooms);
+      app::platform::WasmLoadingManager::UpdateProgress(loading_handle,
+                                                        progress);
+
+      // Check for cancellation
+      if (app::platform::WasmLoadingManager::IsCancelled(loading_handle)) {
+        app::platform::WasmLoadingManager::EndLoading(loading_handle);
+        return absl::CancelledError("Dungeon room loading cancelled by user");
+      }
+    }
+
+    // Lazy load: Only load header/metadata, not objects/graphics
+    rooms[i] = zelda3::LoadRoomHeaderFromRom(rom_, i);
+    rooms[i].SetGameData(game_data_);  // Ensure room has access to GameData
+    auto room_size = zelda3::CalculateRoomSize(rom_, i);
+    // rooms[i].LoadObjects(); // DEFERRED: Load on demand
+
+    auto dungeon_palette_ptr = game_data_->paletteset_ids[rooms[i].palette][0];
+    auto palette_id = rom_->ReadWord(0xDEC4B + dungeon_palette_ptr);
+    if (palette_id.status() == absl::OkStatus()) {
+      int p_id = palette_id.value() / 180;
+      auto color = dungeon_man_pal_group[p_id][3];
+      room_size_results.emplace_back(i, room_size);
+      room_palette_results.emplace_back(rooms[i].palette, color.rgb());
+    }
+  }
+
+  app::platform::WasmLoadingManager::EndLoading(loading_handle);
+#else
+  // Native: Parallel loading for performance
   constexpr int kMaxConcurrency =
       8;  // Reasonable thread limit for room loading
 
@@ -49,8 +108,6 @@ absl::Status DungeonRoomLoader::LoadAllRooms(
 
   // Thread-safe data structures for collecting results
   std::mutex results_mutex;
-  std::vector<std::pair<int, zelda3::RoomSize>> room_size_results;
-  std::vector<std::pair<int, ImVec4>> room_palette_results;
 
   // Process rooms in parallel batches
   std::vector<std::future<absl::Status>> futures;
@@ -62,20 +119,24 @@ absl::Status DungeonRoomLoader::LoadAllRooms(
       const int start_room = thread_id * rooms_per_thread;
       const int end_room = std::min(start_room + rooms_per_thread, kTotalRooms);
 
-      auto dungeon_man_pal_group = rom_->palette_group().dungeon_main;
+      if (!game_data_) {
+        return absl::FailedPreconditionError("GameData not available");
+      }
+      auto dungeon_man_pal_group = game_data_->palette_groups.dungeon_main;
 
       for (int i = start_room; i < end_room; ++i) {
-        // Load room data (this is the expensive operation)
-        rooms[i] = zelda3::LoadRoomFromRom(rom_, i);
+        // Lazy load: Only load header/metadata
+        rooms[i] = zelda3::LoadRoomHeaderFromRom(rom_, i);
+        rooms[i].SetGameData(game_data_);  // Ensure room has access to GameData
 
         // Calculate room size
         auto room_size = zelda3::CalculateRoomSize(rom_, i);
 
-        // Load room objects
-        rooms[i].LoadObjects();
+        // Load room objects - DEFERRED
+        // rooms[i].LoadObjects();
 
         // Process palette
-        auto dungeon_palette_ptr = rom_->paletteset_ids[rooms[i].palette][0];
+        auto dungeon_palette_ptr = game_data_->paletteset_ids[rooms[i].palette][0];
         auto palette_id = rom_->ReadWord(0xDEC4B + dungeon_palette_ptr);
         if (palette_id.status() == absl::OkStatus()) {
           int p_id = palette_id.value() / 180;
@@ -100,6 +161,7 @@ absl::Status DungeonRoomLoader::LoadAllRooms(
   for (auto& future : futures) {
     RETURN_IF_ERROR(future.get());
   }
+#endif
 
   // Process collected results on main thread
   {

@@ -219,6 +219,22 @@ bool ToggleIconButton(const char* icon_on, const char* icon_off, bool* state,
   return result;
 }
 
+bool ToggleButton(const char* label, bool active, const ImVec2& size) {
+  if (active) {
+    ImGui::PushStyleColor(ImGuiCol_Button, GetAccentColor());
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, GetAccentColor());
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, GetAccentColor());
+  }
+
+  bool result = ImGui::Button(label, size);
+
+  if (active) {
+    ImGui::PopStyleColor(3);
+  }
+
+  return result;
+}
+
 void HelpMarker(const char* desc) {
   ImGui::TextDisabled(ICON_MD_HELP_OUTLINE);
   if (ImGui::IsItemHovered()) {
@@ -555,6 +571,10 @@ bool IconCombo(const char* icon, const char* label, int* current,
   ImGui::Text("%s", icon);
   ImGui::SameLine();
   return ImGui::Combo(label, current, items, count);
+}
+
+std::string MakePanelTitle(const std::string& title) {
+  return title;
 }
 
 }  // namespace gui

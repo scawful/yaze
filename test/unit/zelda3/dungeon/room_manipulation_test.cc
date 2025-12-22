@@ -2,7 +2,7 @@
 
 #include <gtest/gtest.h>
 
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
 
@@ -16,7 +16,7 @@ class RoomManipulationTest : public ::testing::Test {
     rom_ = std::make_unique<Rom>();
     // Create a minimal ROM for testing
     std::vector<uint8_t> dummy_data(0x200000, 0);
-    rom_->LoadFromData(dummy_data, false);
+    rom_->LoadFromData(dummy_data);
 
     room_ = std::make_unique<Room>(0, rom_.get());
   }

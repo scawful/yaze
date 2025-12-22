@@ -19,7 +19,8 @@ if(DEFINED ENV{YAZE_VERSION_OVERRIDE})
 elseif(DEFINED YAZE_VERSION_OVERRIDE)
      set(YAZE_VERSION ${YAZE_VERSION_OVERRIDE})
 else()
-    set(YAZE_VERSION "0.3.9")
+    set(YAZE_VERSION "0.5.0")
+    set(YAZE_VERSION_SUFFIX "-alpha")
 endif()
 
 if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
@@ -35,12 +36,19 @@ endif()
 # Include build options first
 include(cmake/options.cmake)
 
-# Enable ccache for faster rebuilds if available
-find_program(CCACHE_FOUND ccache)
-if(CCACHE_FOUND)
-    message(STATUS "✓ ccache found, enabling for faster builds")
-    set(CMAKE_CXX_COMPILER_LAUNCHER ccache)
-    set(CMAKE_C_COMPILER_LAUNCHER ccache)
+# Enable sccache/ccache for faster rebuilds if available
+find_program(SCCACHE_FOUND sccache)
+if(SCCACHE_FOUND)
+    message(STATUS "✓ sccache found, enabling for faster builds")
+    set(CMAKE_CXX_COMPILER_LAUNCHER sccache)
+    set(CMAKE_C_COMPILER_LAUNCHER sccache)
+else()
+    find_program(CCACHE_FOUND ccache)
+    if(CCACHE_FOUND)
+        message(STATUS "✓ ccache found, enabling for faster builds")
+        set(CMAKE_CXX_COMPILER_LAUNCHER ccache)
+        set(CMAKE_C_COMPILER_LAUNCHER ccache)
+    endif()
 endif()
 
 # Version is defined in project() above - use those variables
@@ -114,7 +122,27 @@ if(YAZE_BUILD_TESTS)
 endif()
 
 # Code quality targets
-find_program(CLANG_FORMAT NAMES clang-format clang-format-14 clang-format-15 clang-format-16 clang-format-17 clang-format-18)
+if(YAZE_ENABLE_CLANG_TIDY)
+  if(NOT YAZE_CLANG_TIDY_EXE)
+    find_program(YAZE_CLANG_TIDY_EXE NAMES clang-tidy clang-tidy-18 clang-tidy-17 clang-tidy-16)
+  endif()
+
+  if(YAZE_CLANG_TIDY_EXE)
+    message(STATUS "✓ clang-tidy enabled: ${YAZE_CLANG_TIDY_EXE}")
+    set(CMAKE_CXX_CLANG_TIDY "${YAZE_CLANG_TIDY_EXE}")
+  else()
+    message(WARNING "clang-tidy requested but not found")
+  endif()
+endif()
+
+find_program(CLANG_FORMAT
+  NAMES clang-format-18 clang-format
+  HINTS "${HOMEBREW_LLVM_PREFIX}/bin" # Prefer clang-format from Homebrew LLVM
+  NO_DEFAULT_PATH
+)
+if(NOT CLANG_FORMAT) # Fallback to generic search if not found in Homebrew prefix
+  find_program(CLANG_FORMAT NAMES clang-format clang-format-17 clang-format-16 clang-format-15 clang-format-14)
+endif()
 if(CLANG_FORMAT)
   file(GLOB_RECURSE ALL_SOURCE_FILES
        "${CMAKE_SOURCE_DIR}/src/*.cc"
@@ -126,12 +154,12 @@ if(CLANG_FORMAT)
   list(FILTER ALL_SOURCE_FILES EXCLUDE REGEX "src/lib/.*")
 
   add_custom_target(yaze-format
-    COMMAND ${CLANG_FORMAT} -i --style=Google ${ALL_SOURCE_FILES}
+    COMMAND ${CLANG_FORMAT} -i --style=file ${ALL_SOURCE_FILES}
     COMMENT "Running clang-format on source files"
   )
 
   add_custom_target(yaze-format-check
-    COMMAND ${CLANG_FORMAT} --dry-run --Werror --style=Google ${ALL_SOURCE_FILES}
+    COMMAND ${CLANG_FORMAT} --dry-run --Werror --style=file ${ALL_SOURCE_FILES}
     COMMENT "Checking code format"
   )
 endif()

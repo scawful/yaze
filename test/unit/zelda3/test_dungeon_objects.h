@@ -4,7 +4,7 @@
 #include <memory>
 #include <vector>
 
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "gtest/gtest.h"
 #include "mocks/mock_rom.h"
 #include "testing.h"

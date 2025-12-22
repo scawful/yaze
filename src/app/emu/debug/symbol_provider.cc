@@ -2,10 +2,13 @@
 
 #include <algorithm>
 #include <cctype>
-#include <filesystem>
 #include <fstream>
 #include <regex>
 #include <sstream>
+
+#ifndef __EMSCRIPTEN__
+#include <filesystem>
+#endif
 
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
@@ -98,6 +101,20 @@ bool WildcardMatch(const std::string& pattern, const std::string& str) {
   return p == pattern.size();
 }
 
+// Simple path utilities that work on all platforms
+std::string GetFilename(const std::string& path) {
+  size_t pos = path.find_last_of("/\\");
+  if (pos == std::string::npos) return path;
+  return path.substr(pos + 1);
+}
+
+std::string GetExtension(const std::string& path) {
+  std::string filename = GetFilename(path);
+  size_t pos = filename.find_last_of('.');
+  if (pos == std::string::npos) return "";
+  return filename.substr(pos);
+}
+
 }  // namespace
 
 absl::Status SymbolProvider::LoadAsarAsmFile(const std::string& path) {
@@ -106,12 +123,19 @@ absl::Status SymbolProvider::LoadAsarAsmFile(const std::string& path) {
     return content_or.status();
   }
 
-  std::filesystem::path file_path(path);
-  return ParseAsarAsmContent(*content_or, file_path.filename().string());
+  return ParseAsarAsmContent(*content_or, GetFilename(path));
 }
 
 absl::Status SymbolProvider::LoadAsarAsmDirectory(
     const std::string& directory_path) {
+#ifdef __EMSCRIPTEN__
+  // Directory iteration not supported in WASM builds
+  // Use LoadAsarAsmFile with explicit file paths instead
+  (void)directory_path;
+  return absl::UnimplementedError(
+      "Directory loading not supported in browser builds. "
+      "Please load individual symbol files.");
+#else
   std::filesystem::path dir(directory_path);
   if (!std::filesystem::exists(dir)) {
     return absl::NotFoundError(
@@ -136,6 +160,7 @@ absl::Status SymbolProvider::LoadAsarAsmDirectory(
   }
 
   return absl::OkStatus();
+#endif
 }
 
 absl::Status SymbolProvider::LoadSymbolFile(const std::string& path,
@@ -146,8 +171,7 @@ absl::Status SymbolProvider::LoadSymbolFile(const std::string& path,
   }
 
   const std::string& content = *content_or;
-  std::filesystem::path file_path(path);
-  std::string ext = file_path.extension().string();
+  std::string ext = GetExtension(path);
 
   // Auto-detect format if needed
   if (format == SymbolFormat::kAuto) {
@@ -156,7 +180,7 @@ absl::Status SymbolProvider::LoadSymbolFile(const std::string& path,
 
   switch (format) {
     case SymbolFormat::kAsar:
-      return ParseAsarAsmContent(content, file_path.filename().string());
+      return ParseAsarAsmContent(content, GetFilename(path));
     case SymbolFormat::kWlaDx:
       return ParseWlaDxSymFile(content);
     case SymbolFormat::kMesen:

@@ -13,10 +13,59 @@ namespace yaze {
 namespace editor {
 /**
  * @brief Namespace for the ZSprite format from Zarby's ZSpriteMaker.
+ *
+ * ZSM files use .NET BinaryWriter/BinaryReader conventions:
+ * - Strings: 7-bit encoded length prefix + UTF-8 bytes
+ * - Integers: Little-endian 32-bit
+ * - Booleans: Single byte (0x00 = false, 0x01 = true)
  */
 namespace zsprite {
 
+/**
+ * @brief Read a .NET BinaryReader format string (7-bit encoded length prefix).
+ */
+inline std::string ReadDotNetString(std::istream& is) {
+  uint32_t length = 0;
+  uint8_t byte;
+  int shift = 0;
+  do {
+    is.read(reinterpret_cast<char*>(&byte), 1);
+    if (!is.good()) return "";
+    length |= (byte & 0x7F) << shift;
+    shift += 7;
+  } while (byte & 0x80);
+
+  std::string result(length, '\0');
+  if (length > 0) {
+    is.read(&result[0], length);
+  }
+  return result;
+}
+
+/**
+ * @brief Write a .NET BinaryWriter format string (7-bit encoded length prefix).
+ */
+inline void WriteDotNetString(std::ostream& os, const std::string& str) {
+  uint32_t length = static_cast<uint32_t>(str.size());
+
+  // Write 7-bit encoded length
+  do {
+    uint8_t byte = length & 0x7F;
+    length >>= 7;
+    if (length > 0) {
+      byte |= 0x80;  // Set continuation bit
+    }
+    os.write(reinterpret_cast<const char*>(&byte), 1);
+  } while (length > 0);
+
+  // Write string content
+  if (!str.empty()) {
+    os.write(str.data(), str.size());
+  }
+}
+
 struct OamTile {
+  OamTile() = default;
   OamTile(uint8_t x, uint8_t y, bool mx, bool my, uint16_t id, uint8_t pal,
           bool s, uint8_t p)
       : x(x),
@@ -28,323 +77,315 @@ struct OamTile {
         size(s),
         priority(p) {}
 
-  uint8_t x;
-  uint8_t y;
-  bool mirror_x;
-  bool mirror_y;
-  uint16_t id;
-  uint8_t palette;
-  bool size;
-  uint8_t priority;
-  uint8_t z;
+  uint8_t x = 0;
+  uint8_t y = 0;
+  bool mirror_x = false;
+  bool mirror_y = false;
+  uint16_t id = 0;
+  uint8_t palette = 0;
+  bool size = false;  // false = 8x8, true = 16x16
+  uint8_t priority = 3;
+  uint8_t z = 0;
 };
 
 struct AnimationGroup {
   AnimationGroup() = default;
   AnimationGroup(uint8_t fs, uint8_t fe, uint8_t fsp, std::string fn)
-      : frame_name(fn), frame_start(fs), frame_end(fe), frame_speed(fsp) {}
+      : frame_name(std::move(fn)),
+        frame_start(fs),
+        frame_end(fe),
+        frame_speed(fsp) {}
 
   std::string frame_name;
-  uint8_t frame_start;
-  uint8_t frame_end;
-  uint8_t frame_speed;
+  uint8_t frame_start = 0;
+  uint8_t frame_end = 0;
+  uint8_t frame_speed = 1;
+  std::vector<OamTile> Tiles;
+};
+
+struct Frame {
   std::vector<OamTile> Tiles;
 };
 
 struct UserRoutine {
-  UserRoutine(std::string n, std::string c) : name(n), code(c) {}
+  UserRoutine() = default;
+  UserRoutine(std::string n, std::string c)
+      : name(std::move(n)), code(std::move(c)) {}
 
   std::string name;
   std::string code;
-  int Count;
 };
 
 struct SubEditor {
-  std::vector<AnimationGroup> Frames;
+  std::vector<Frame> Frames;
   std::vector<UserRoutine> user_routines;
 };
 
 struct SpriteProperty {
-  bool IsChecked;
+  bool IsChecked = false;
   std::string Text;
 };
 
 struct ZSprite {
  public:
+  /**
+   * @brief Load a ZSM file from disk.
+   */
   absl::Status Load(const std::string& filename) {
     std::ifstream fs(filename, std::ios::binary);
     if (!fs.is_open()) {
-      return absl::NotFoundError("File not found");
+      return absl::NotFoundError("File not found: " + filename);
     }
 
-    std::vector<char> buffer(std::istreambuf_iterator<char>(fs), {});
+    // Clear existing data
+    Reset();
 
-    int animation_count = *reinterpret_cast<int32_t*>(&buffer[0]);
-    int offset = sizeof(int);
+    // Read animation count
+    int32_t animation_count = 0;
+    fs.read(reinterpret_cast<char*>(&animation_count), sizeof(int32_t));
 
+    // Read animations
     for (int i = 0; i < animation_count; i++) {
-      std::string aname = std::string(&buffer[offset]);
-      offset += aname.size() + 1;
-      uint8_t afs = *reinterpret_cast<uint8_t*>(&buffer[offset]);
-      offset += sizeof(uint8_t);
-      uint8_t afe = *reinterpret_cast<uint8_t*>(&buffer[offset]);
-      offset += sizeof(uint8_t);
-      uint8_t afspeed = *reinterpret_cast<uint8_t*>(&buffer[offset]);
-      offset += sizeof(uint8_t);
-
-      animations.push_back(AnimationGroup(afs, afe, afspeed, aname));
+      std::string aname = ReadDotNetString(fs);
+      uint8_t afs, afe, afspeed;
+      fs.read(reinterpret_cast<char*>(&afs), sizeof(uint8_t));
+      fs.read(reinterpret_cast<char*>(&afe), sizeof(uint8_t));
+      fs.read(reinterpret_cast<char*>(&afspeed), sizeof(uint8_t));
+      animations.emplace_back(afs, afe, afspeed, aname);
     }
-    // RefreshAnimations();
 
-    int frame_count = *reinterpret_cast<int32_t*>(&buffer[offset]);
-    offset += sizeof(int);
+    // Read frame count
+    int32_t frame_count = 0;
+    fs.read(reinterpret_cast<char*>(&frame_count), sizeof(int32_t));
+
+    // Read frames
     for (int i = 0; i < frame_count; i++) {
-      // editor.Frames[i] = new Frame();
       editor.Frames.emplace_back();
-      // editor.AddUndo(i);
-      int tCount = *reinterpret_cast<int*>(&buffer[offset]);
-      offset += sizeof(int);
 
-      for (int j = 0; j < tCount; j++) {
-        uint16_t tid = *reinterpret_cast<uint16_t*>(&buffer[offset]);
-        offset += sizeof(uint16_t);
-        uint8_t tpal = *reinterpret_cast<uint8_t*>(&buffer[offset]);
-        offset += sizeof(uint8_t);
-        bool tmx = *reinterpret_cast<bool*>(&buffer[offset]);
-        offset += sizeof(bool);
-        bool tmy = *reinterpret_cast<bool*>(&buffer[offset]);
-        offset += sizeof(bool);
-        uint8_t tprior = *reinterpret_cast<uint8_t*>(&buffer[offset]);
-        offset += sizeof(uint8_t);
-        bool tsize = *reinterpret_cast<bool*>(&buffer[offset]);
-        offset += sizeof(bool);
-        uint8_t tx = *reinterpret_cast<uint8_t*>(&buffer[offset]);
-        offset += sizeof(uint8_t);
-        uint8_t ty = *reinterpret_cast<uint8_t*>(&buffer[offset]);
-        offset += sizeof(uint8_t);
-        uint8_t tz = *reinterpret_cast<uint8_t*>(&buffer[offset]);
-        offset += sizeof(uint8_t);
-        OamTile to(tx, ty, tmx, tmy, tid, tpal, tsize, tprior);
-        to.z = tz;
-        editor.Frames[i].Tiles.push_back(to);
+      int32_t tile_count = 0;
+      fs.read(reinterpret_cast<char*>(&tile_count), sizeof(int32_t));
+
+      for (int j = 0; j < tile_count; j++) {
+        uint16_t tid;
+        uint8_t tpal, tprior, tx, ty, tz;
+        bool tmx, tmy, tsize;
+
+        fs.read(reinterpret_cast<char*>(&tid), sizeof(uint16_t));
+        fs.read(reinterpret_cast<char*>(&tpal), sizeof(uint8_t));
+        fs.read(reinterpret_cast<char*>(&tmx), sizeof(bool));
+        fs.read(reinterpret_cast<char*>(&tmy), sizeof(bool));
+        fs.read(reinterpret_cast<char*>(&tprior), sizeof(uint8_t));
+        fs.read(reinterpret_cast<char*>(&tsize), sizeof(bool));
+        fs.read(reinterpret_cast<char*>(&tx), sizeof(uint8_t));
+        fs.read(reinterpret_cast<char*>(&ty), sizeof(uint8_t));
+        fs.read(reinterpret_cast<char*>(&tz), sizeof(uint8_t));
+
+        OamTile tile(tx, ty, tmx, tmy, tid, tpal, tsize, tprior);
+        tile.z = tz;
+        editor.Frames[i].Tiles.push_back(tile);
       }
     }
 
-    // all sprites properties
-    property_blockable.IsChecked = *reinterpret_cast<bool*>(&buffer[offset]);
-    offset += sizeof(bool);
-    property_canfall.IsChecked = *reinterpret_cast<bool*>(&buffer[offset]);
-    offset += sizeof(bool);
-    property_collisionlayer.IsChecked =
-        *reinterpret_cast<bool*>(&buffer[offset]);
-    offset += sizeof(bool);
-    property_customdeath.IsChecked = *reinterpret_cast<bool*>(&buffer[offset]);
-    offset += sizeof(bool);
-    property_damagesound.IsChecked = *reinterpret_cast<bool*>(&buffer[offset]);
-    offset += sizeof(bool);
-    property_deflectarrows.IsChecked =
-        *reinterpret_cast<bool*>(&buffer[offset]);
-    offset += sizeof(bool);
-    property_deflectprojectiles.IsChecked =
-        *reinterpret_cast<bool*>(&buffer[offset]);
-    offset += sizeof(bool);
-    property_fast.IsChecked = *reinterpret_cast<bool*>(&buffer[offset]);
-    offset += sizeof(bool);
-    property_harmless.IsChecked = *reinterpret_cast<bool*>(&buffer[offset]);
-    offset += sizeof(bool);
-    property_impervious.IsChecked = *reinterpret_cast<bool*>(&buffer[offset]);
-    offset += sizeof(bool);
-    property_imperviousarrow.IsChecked =
-        *reinterpret_cast<bool*>(&buffer[offset]);
-    offset += sizeof(bool);
-    property_imperviousmelee.IsChecked =
-        *reinterpret_cast<bool*>(&buffer[offset]);
-    offset += sizeof(bool);
-    property_interaction.IsChecked = *reinterpret_cast<bool*>(&buffer[offset]);
-    offset += sizeof(bool);
-    property_isboss.IsChecked = *reinterpret_cast<bool*>(&buffer[offset]);
-    offset += sizeof(bool);
-    property_persist.IsChecked = *reinterpret_cast<bool*>(&buffer[offset]);
-    offset += sizeof(bool);
-    property_shadow.IsChecked = *reinterpret_cast<bool*>(&buffer[offset]);
-    offset += sizeof(bool);
-    property_smallshadow.IsChecked = *reinterpret_cast<bool*>(&buffer[offset]);
-    offset += sizeof(bool);
-    property_statis.IsChecked = *reinterpret_cast<bool*>(&buffer[offset]);
-    offset += sizeof(bool);
-    property_statue.IsChecked = *reinterpret_cast<bool*>(&buffer[offset]);
-    offset += sizeof(bool);
-    property_watersprite.IsChecked = *reinterpret_cast<bool*>(&buffer[offset]);
-    offset += sizeof(bool);
+    // Read 20 sprite boolean properties
+    fs.read(reinterpret_cast<char*>(&property_blockable.IsChecked), 1);
+    fs.read(reinterpret_cast<char*>(&property_canfall.IsChecked), 1);
+    fs.read(reinterpret_cast<char*>(&property_collisionlayer.IsChecked), 1);
+    fs.read(reinterpret_cast<char*>(&property_customdeath.IsChecked), 1);
+    fs.read(reinterpret_cast<char*>(&property_damagesound.IsChecked), 1);
+    fs.read(reinterpret_cast<char*>(&property_deflectarrows.IsChecked), 1);
+    fs.read(reinterpret_cast<char*>(&property_deflectprojectiles.IsChecked), 1);
+    fs.read(reinterpret_cast<char*>(&property_fast.IsChecked), 1);
+    fs.read(reinterpret_cast<char*>(&property_harmless.IsChecked), 1);
+    fs.read(reinterpret_cast<char*>(&property_impervious.IsChecked), 1);
+    fs.read(reinterpret_cast<char*>(&property_imperviousarrow.IsChecked), 1);
+    fs.read(reinterpret_cast<char*>(&property_imperviousmelee.IsChecked), 1);
+    fs.read(reinterpret_cast<char*>(&property_interaction.IsChecked), 1);
+    fs.read(reinterpret_cast<char*>(&property_isboss.IsChecked), 1);
+    fs.read(reinterpret_cast<char*>(&property_persist.IsChecked), 1);
+    fs.read(reinterpret_cast<char*>(&property_shadow.IsChecked), 1);
+    fs.read(reinterpret_cast<char*>(&property_smallshadow.IsChecked), 1);
+    fs.read(reinterpret_cast<char*>(&property_statis.IsChecked), 1);
+    fs.read(reinterpret_cast<char*>(&property_statue.IsChecked), 1);
+    fs.read(reinterpret_cast<char*>(&property_watersprite.IsChecked), 1);
 
-    property_prize.Text =
-        std::to_string(*reinterpret_cast<uint8_t*>(&buffer[offset]));
-    offset += sizeof(uint8_t);
-    property_palette.Text =
-        std::to_string(*reinterpret_cast<uint8_t*>(&buffer[offset]));
-    offset += sizeof(uint8_t);
-    property_oamnbr.Text =
-        std::to_string(*reinterpret_cast<uint8_t*>(&buffer[offset]));
-    offset += sizeof(uint8_t);
-    property_hitbox.Text =
-        std::to_string(*reinterpret_cast<uint8_t*>(&buffer[offset]));
-    offset += sizeof(uint8_t);
-    property_health.Text =
-        std::to_string(*reinterpret_cast<uint8_t*>(&buffer[offset]));
-    offset += sizeof(uint8_t);
-    property_damage.Text =
-        std::to_string(*reinterpret_cast<uint8_t*>(&buffer[offset]));
-    offset += sizeof(uint8_t);
+    // Read 6 sprite stat bytes
+    uint8_t prize, palette, oamnbr, hitbox, health, damage;
+    fs.read(reinterpret_cast<char*>(&prize), sizeof(uint8_t));
+    fs.read(reinterpret_cast<char*>(&palette), sizeof(uint8_t));
+    fs.read(reinterpret_cast<char*>(&oamnbr), sizeof(uint8_t));
+    fs.read(reinterpret_cast<char*>(&hitbox), sizeof(uint8_t));
+    fs.read(reinterpret_cast<char*>(&health), sizeof(uint8_t));
+    fs.read(reinterpret_cast<char*>(&damage), sizeof(uint8_t));
 
-    if (offset != buffer.size()) {
-      property_sprname.Text = std::string(&buffer[offset]);
-      offset += property_sprname.Text.size() + 1;
+    property_prize.Text = std::to_string(prize);
+    property_palette.Text = std::to_string(palette);
+    property_oamnbr.Text = std::to_string(oamnbr);
+    property_hitbox.Text = std::to_string(hitbox);
+    property_health.Text = std::to_string(health);
+    property_damage.Text = std::to_string(damage);
 
-      int actionL = buffer[offset];
-      offset += sizeof(int);
-      for (int i = 0; i < actionL; i++) {
-        std::string a = std::string(&buffer[offset]);
-        offset += a.size() + 1;
-        std::string b = std::string(&buffer[offset]);
-        offset += b.size() + 1;
-        userRoutines.push_back(UserRoutine(a, b));
+    // Read optional sections (check if more data exists)
+    if (fs.peek() != EOF) {
+      property_sprname.Text = ReadDotNetString(fs);
+      sprName = property_sprname.Text;
+
+      int32_t routine_count = 0;
+      fs.read(reinterpret_cast<char*>(&routine_count), sizeof(int32_t));
+
+      for (int i = 0; i < routine_count; i++) {
+        std::string rname = ReadDotNetString(fs);
+        std::string rcode = ReadDotNetString(fs);
+        userRoutines.emplace_back(rname, rcode);
       }
     }
 
-    if (offset != buffer.size()) {
-      property_sprid.Text = std::string(&buffer[offset]);
-      fs.close();
+    // Read optional sprite ID
+    if (fs.peek() != EOF) {
+      property_sprid.Text = ReadDotNetString(fs);
     }
 
-    // UpdateUserRoutines();
-    // userroutinesListbox.SelectedIndex = 0;
-    // RefreshScreen();
-
+    fs.close();
     return absl::OkStatus();
   }
 
+  /**
+   * @brief Save a ZSM file to disk.
+   */
   absl::Status Save(const std::string& filename) {
     std::ofstream fs(filename, std::ios::binary);
-    if (fs.is_open()) {
-      // Write data to the file
-      fs.write(reinterpret_cast<const char*>(animations.size()), sizeof(int));
-      for (const AnimationGroup& anim : animations) {
-        fs.write(anim.frame_name.c_str(), anim.frame_name.size() + 1);
-        fs.write(reinterpret_cast<const char*>(&anim.frame_start),
-                 sizeof(uint8_t));
-        fs.write(reinterpret_cast<const char*>(&anim.frame_end),
-                 sizeof(uint8_t));
-        fs.write(reinterpret_cast<const char*>(&anim.frame_speed),
-                 sizeof(uint8_t));
-      }
-
-      fs.write(reinterpret_cast<const char*>(editor.Frames.size()),
-               sizeof(int));
-      for (int i = 0; i < editor.Frames.size(); i++) {
-        fs.write(reinterpret_cast<const char*>(editor.Frames[i].Tiles.size()),
-                 sizeof(int));
-
-        for (int j = 0; j < editor.Frames[i].Tiles.size(); j++) {
-          fs.write(reinterpret_cast<const char*>(&editor.Frames[i].Tiles[j].id),
-                   sizeof(uint16_t));
-          fs.write(
-              reinterpret_cast<const char*>(&editor.Frames[i].Tiles[j].palette),
-              sizeof(uint8_t));
-          fs.write(reinterpret_cast<const char*>(
-                       &editor.Frames[i].Tiles[j].mirror_x),
-                   sizeof(bool));
-          fs.write(reinterpret_cast<const char*>(
-                       &editor.Frames[i].Tiles[j].mirror_y),
-                   sizeof(bool));
-          fs.write(reinterpret_cast<const char*>(
-                       &editor.Frames[i].Tiles[j].priority),
-                   sizeof(uint8_t));
-          fs.write(
-              reinterpret_cast<const char*>(&editor.Frames[i].Tiles[j].size),
-              sizeof(bool));
-          fs.write(reinterpret_cast<const char*>(&editor.Frames[i].Tiles[j].x),
-                   sizeof(uint8_t));
-          fs.write(reinterpret_cast<const char*>(&editor.Frames[i].Tiles[j].y),
-                   sizeof(uint8_t));
-          fs.write(reinterpret_cast<const char*>(&editor.Frames[i].Tiles[j].z),
-                   sizeof(uint8_t));
-        }
-      }
-
-      // Write other properties
-      fs.write(reinterpret_cast<const char*>(&property_blockable.IsChecked),
-               sizeof(bool));
-      fs.write(reinterpret_cast<const char*>(&property_canfall.IsChecked),
-               sizeof(bool));
-      fs.write(
-          reinterpret_cast<const char*>(&property_collisionlayer.IsChecked),
-          sizeof(bool));
-      fs.write(reinterpret_cast<const char*>(&property_customdeath.IsChecked),
-               sizeof(bool));
-      fs.write(reinterpret_cast<const char*>(&property_damagesound.IsChecked),
-               sizeof(bool));
-      fs.write(reinterpret_cast<const char*>(&property_deflectarrows.IsChecked),
-               sizeof(bool));
-      fs.write(
-          reinterpret_cast<const char*>(&property_deflectprojectiles.IsChecked),
-          sizeof(bool));
-      fs.write(reinterpret_cast<const char*>(&property_fast.IsChecked),
-               sizeof(bool));
-      fs.write(reinterpret_cast<const char*>(&property_harmless.IsChecked),
-               sizeof(bool));
-      fs.write(reinterpret_cast<const char*>(&property_impervious.IsChecked),
-               sizeof(bool));
-      fs.write(
-          reinterpret_cast<const char*>(&property_imperviousarrow.IsChecked),
-          sizeof(bool));
-      fs.write(
-          reinterpret_cast<const char*>(&property_imperviousmelee.IsChecked),
-          sizeof(bool));
-      fs.write(reinterpret_cast<const char*>(&property_interaction.IsChecked),
-               sizeof(bool));
-      fs.write(reinterpret_cast<const char*>(&property_isboss.IsChecked),
-               sizeof(bool));
-      fs.write(reinterpret_cast<const char*>(&property_persist.IsChecked),
-               sizeof(bool));
-      fs.write(reinterpret_cast<const char*>(&property_shadow.IsChecked),
-               sizeof(bool));
-      fs.write(reinterpret_cast<const char*>(&property_smallshadow.IsChecked),
-               sizeof(bool));
-      fs.write(reinterpret_cast<const char*>(&property_statis.IsChecked),
-               sizeof(bool));
-      fs.write(reinterpret_cast<const char*>(&property_statue.IsChecked),
-               sizeof(bool));
-      fs.write(reinterpret_cast<const char*>(&property_watersprite.IsChecked),
-               sizeof(bool));
-
-      fs.write(reinterpret_cast<const char*>(&property_prize.Text),
-               sizeof(uint8_t));
-      fs.write(reinterpret_cast<const char*>(&property_palette.Text),
-               sizeof(uint8_t));
-      fs.write(reinterpret_cast<const char*>(&property_oamnbr.Text),
-               sizeof(uint8_t));
-      fs.write(reinterpret_cast<const char*>(&property_hitbox.Text),
-               sizeof(uint8_t));
-      fs.write(reinterpret_cast<const char*>(&property_health.Text),
-               sizeof(uint8_t));
-      fs.write(reinterpret_cast<const char*>(&property_damage.Text),
-               sizeof(uint8_t));
-
-      fs.write(sprName.c_str(), sprName.size() + 1);
-
-      fs.write(reinterpret_cast<const char*>(userRoutines.size()), sizeof(int));
-      for (const UserRoutine& userR : userRoutines) {
-        fs.write(userR.name.c_str(), userR.name.size() + 1);
-        fs.write(userR.code.c_str(), userR.code.size() + 1);
-      }
-
-      fs.write(reinterpret_cast<const char*>(&property_sprid.Text),
-               sizeof(property_sprid.Text));
-
-      fs.close();
+    if (!fs.is_open()) {
+      return absl::InternalError("Failed to open file for writing: " + filename);
     }
 
+    // Write animation count
+    int32_t anim_count = static_cast<int32_t>(animations.size());
+    fs.write(reinterpret_cast<const char*>(&anim_count), sizeof(int32_t));
+
+    // Write animations
+    for (const auto& anim : animations) {
+      WriteDotNetString(fs, anim.frame_name);
+      fs.write(reinterpret_cast<const char*>(&anim.frame_start), sizeof(uint8_t));
+      fs.write(reinterpret_cast<const char*>(&anim.frame_end), sizeof(uint8_t));
+      fs.write(reinterpret_cast<const char*>(&anim.frame_speed), sizeof(uint8_t));
+    }
+
+    // Write frame count
+    int32_t frame_count = static_cast<int32_t>(editor.Frames.size());
+    fs.write(reinterpret_cast<const char*>(&frame_count), sizeof(int32_t));
+
+    // Write frames
+    for (const auto& frame : editor.Frames) {
+      int32_t tile_count = static_cast<int32_t>(frame.Tiles.size());
+      fs.write(reinterpret_cast<const char*>(&tile_count), sizeof(int32_t));
+
+      for (const auto& tile : frame.Tiles) {
+        fs.write(reinterpret_cast<const char*>(&tile.id), sizeof(uint16_t));
+        fs.write(reinterpret_cast<const char*>(&tile.palette), sizeof(uint8_t));
+        fs.write(reinterpret_cast<const char*>(&tile.mirror_x), sizeof(bool));
+        fs.write(reinterpret_cast<const char*>(&tile.mirror_y), sizeof(bool));
+        fs.write(reinterpret_cast<const char*>(&tile.priority), sizeof(uint8_t));
+        fs.write(reinterpret_cast<const char*>(&tile.size), sizeof(bool));
+        fs.write(reinterpret_cast<const char*>(&tile.x), sizeof(uint8_t));
+        fs.write(reinterpret_cast<const char*>(&tile.y), sizeof(uint8_t));
+        fs.write(reinterpret_cast<const char*>(&tile.z), sizeof(uint8_t));
+      }
+    }
+
+    // Write 20 sprite boolean properties
+    fs.write(reinterpret_cast<const char*>(&property_blockable.IsChecked), 1);
+    fs.write(reinterpret_cast<const char*>(&property_canfall.IsChecked), 1);
+    fs.write(reinterpret_cast<const char*>(&property_collisionlayer.IsChecked), 1);
+    fs.write(reinterpret_cast<const char*>(&property_customdeath.IsChecked), 1);
+    fs.write(reinterpret_cast<const char*>(&property_damagesound.IsChecked), 1);
+    fs.write(reinterpret_cast<const char*>(&property_deflectarrows.IsChecked), 1);
+    fs.write(reinterpret_cast<const char*>(&property_deflectprojectiles.IsChecked), 1);
+    fs.write(reinterpret_cast<const char*>(&property_fast.IsChecked), 1);
+    fs.write(reinterpret_cast<const char*>(&property_harmless.IsChecked), 1);
+    fs.write(reinterpret_cast<const char*>(&property_impervious.IsChecked), 1);
+    fs.write(reinterpret_cast<const char*>(&property_imperviousarrow.IsChecked), 1);
+    fs.write(reinterpret_cast<const char*>(&property_imperviousmelee.IsChecked), 1);
+    fs.write(reinterpret_cast<const char*>(&property_interaction.IsChecked), 1);
+    fs.write(reinterpret_cast<const char*>(&property_isboss.IsChecked), 1);
+    fs.write(reinterpret_cast<const char*>(&property_persist.IsChecked), 1);
+    fs.write(reinterpret_cast<const char*>(&property_shadow.IsChecked), 1);
+    fs.write(reinterpret_cast<const char*>(&property_smallshadow.IsChecked), 1);
+    fs.write(reinterpret_cast<const char*>(&property_statis.IsChecked), 1);
+    fs.write(reinterpret_cast<const char*>(&property_statue.IsChecked), 1);
+    fs.write(reinterpret_cast<const char*>(&property_watersprite.IsChecked), 1);
+
+    // Write 6 sprite stat bytes (parse from Text properties)
+    uint8_t prize = static_cast<uint8_t>(std::stoi(property_prize.Text.empty() ? "0" : property_prize.Text));
+    uint8_t palette = static_cast<uint8_t>(std::stoi(property_palette.Text.empty() ? "0" : property_palette.Text));
+    uint8_t oamnbr = static_cast<uint8_t>(std::stoi(property_oamnbr.Text.empty() ? "0" : property_oamnbr.Text));
+    uint8_t hitbox = static_cast<uint8_t>(std::stoi(property_hitbox.Text.empty() ? "0" : property_hitbox.Text));
+    uint8_t health = static_cast<uint8_t>(std::stoi(property_health.Text.empty() ? "0" : property_health.Text));
+    uint8_t damage = static_cast<uint8_t>(std::stoi(property_damage.Text.empty() ? "0" : property_damage.Text));
+
+    fs.write(reinterpret_cast<const char*>(&prize), sizeof(uint8_t));
+    fs.write(reinterpret_cast<const char*>(&palette), sizeof(uint8_t));
+    fs.write(reinterpret_cast<const char*>(&oamnbr), sizeof(uint8_t));
+    fs.write(reinterpret_cast<const char*>(&hitbox), sizeof(uint8_t));
+    fs.write(reinterpret_cast<const char*>(&health), sizeof(uint8_t));
+    fs.write(reinterpret_cast<const char*>(&damage), sizeof(uint8_t));
+
+    // Write sprite name
+    WriteDotNetString(fs, sprName);
+
+    // Write user routines
+    int32_t routine_count = static_cast<int32_t>(userRoutines.size());
+    fs.write(reinterpret_cast<const char*>(&routine_count), sizeof(int32_t));
+    for (const auto& routine : userRoutines) {
+      WriteDotNetString(fs, routine.name);
+      WriteDotNetString(fs, routine.code);
+    }
+
+    // Write sprite ID
+    WriteDotNetString(fs, property_sprid.Text);
+
+    fs.close();
     return absl::OkStatus();
+  }
+
+  /**
+   * @brief Reset all sprite data to defaults.
+   */
+  void Reset() {
+    sprName.clear();
+    animations.clear();
+    userRoutines.clear();
+    editor.Frames.clear();
+
+    // Reset boolean properties
+    property_blockable.IsChecked = false;
+    property_canfall.IsChecked = false;
+    property_collisionlayer.IsChecked = false;
+    property_customdeath.IsChecked = false;
+    property_damagesound.IsChecked = false;
+    property_deflectarrows.IsChecked = false;
+    property_deflectprojectiles.IsChecked = false;
+    property_fast.IsChecked = false;
+    property_harmless.IsChecked = false;
+    property_impervious.IsChecked = false;
+    property_imperviousarrow.IsChecked = false;
+    property_imperviousmelee.IsChecked = false;
+    property_interaction.IsChecked = false;
+    property_isboss.IsChecked = false;
+    property_persist.IsChecked = false;
+    property_shadow.IsChecked = false;
+    property_smallshadow.IsChecked = false;
+    property_statis.IsChecked = false;
+    property_statue.IsChecked = false;
+    property_watersprite.IsChecked = false;
+
+    // Reset text properties
+    property_sprname.Text.clear();
+    property_prize.Text = "0";
+    property_palette.Text = "0";
+    property_oamnbr.Text = "0";
+    property_hitbox.Text = "0";
+    property_health.Text = "0";
+    property_damage.Text = "0";
+    property_sprid.Text.clear();
   }
 
   std::string sprName;
@@ -352,6 +393,7 @@ struct ZSprite {
   std::vector<UserRoutine> userRoutines;
   SubEditor editor;
 
+  // Boolean properties (20 total)
   SpriteProperty property_blockable;
   SpriteProperty property_canfall;
   SpriteProperty property_collisionlayer;
@@ -374,6 +416,7 @@ struct ZSprite {
   SpriteProperty property_watersprite;
   SpriteProperty property_sprname;
 
+  // Stat properties (6 total, stored as text)
   SpriteProperty property_prize;
   SpriteProperty property_palette;
   SpriteProperty property_oamnbr;

@@ -1,31 +1,42 @@
-# YAZE Handbook
+# YAZE Internal Documentation
 
-Internal documentation for planning, AI agents, research, and historical build notes. These
-files are intentionally excluded from the public Doxygen site so they can remain verbose and
-speculative without impacting the published docs.
+**Last Updated**: December 8, 2025
 
-## Sections
-- `agents/` – z3ed and AI agent playbooks, command abstractions, and debugging guides.
-- `blueprints/` – architectural proposals, refactors, and technical deep dives.
-- `roadmaps/` – sequencing, feature parity analysis, and postmortems.
-- `research/` – emulator investigations, timing analyses, web ideas, and development trackers.
-- `legacy/` – superseded build guides and other historical docs kept for reference.
-- `agents/` – includes the coordination board, personas, GH Actions remote guide, and helper scripts
-  (`scripts/agents/`) for common agent workflows.
+Internal documentation for planning, AI agents, research, and historical build notes. These files are intentionally excluded from the public Doxygen site so they can remain verbose and speculative.
 
-When adding new internal docs, place them under the appropriate subdirectory here instead of
-`docs/`.
+## Quick Links
 
-## Version Control & Safety Guidelines
-- **Coordinate before forceful changes**: Never rewrite history on shared branches. Use dedicated
-  feature/bugfix branches (see `docs/public/developer/git-workflow.md`) and keep `develop/master`
-  clean.
-- **Back up ROMs and assets**: Treat sample ROMs, palettes, and project files as irreplaceable. Work
-  on copies, and enable the editor’s automatic backup setting before testing risky changes.
-- **Run scripts/verify-build-environment.* after pulling significant build changes** to avoid
-  drifting tooling setups.
-- **Document risky operations**: When touching migrations, asset packers, or scripts that modify
-  files in bulk, add notes under `docs/internal/roadmaps/` or `blueprints/` so others understand the
-  impact.
-- **Use the coordination board** for any change that affects multiple personas or large parts of the
-  tree; log blockers and handoffs to reduce conflicting edits.
+- **Active Work**: [Coordination Board](agents/coordination-board.md)
+- **Roadmap**: [roadmap.md](roadmap.md)
+- **Doc Hygiene Rules**: [agents/doc-hygiene.md](agents/doc-hygiene.md)
+- **Templates**: [templates/](templates/)
+
+## Directory Structure
+
+| Directory | Purpose |
+|-----------|---------|
+| `agents/` | AI agent coordination, personas, and board |
+| `architecture/` | System design and architectural documentation |
+| `archive/` | Retired plans, completed features, closed investigations, and maintenance logs |
+| `debug/` | Debugging guides, active logs, and accuracy reports |
+| `hand-off/` | Active handoff documents for in-progress work |
+| `plans/` | Active implementation plans and roadmaps |
+| `research/` | Exploratory notes, ideas, and technical analysis |
+| `templates/` | Document templates (checklists, initiatives) |
+| `testing/` | Test infrastructure configuration and strategy |
+| `wasm/` | WASM/Web port documentation and guides |
+| `zelda3/` | Game-specific documentation (ALTTP internals) |
+| `roadmap.md` | Master project roadmap |
+
+## Doc Hygiene
+
+- **Single Source of Truth**: Maintain one canonical spec per initiative.
+- **Templates**: Use `templates/` for new initiatives and release checklists.
+- **Archiving**: Move completed specs to `archive/completed_features/` or `archive/investigations/`.
+- **Coordination**: Use the [Coordination Board](agents/coordination-board.md) for active tasks.
+
+## Version Control & Safety
+
+- **Coordinate before forceful changes**: Never rewrite history on shared branches.
+- **Back up ROMs and assets**: Work on copies, enable automatic backup.
+- **Run `scripts/verify-build-environment.*`** after pulling significant build changes.

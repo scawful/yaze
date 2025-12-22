@@ -14,9 +14,39 @@ void MemoryImpl::Initialize(const std::vector<uint8_t>& rom_data,
   verbose_ = verbose;
   type_ = 1;  // LoROM
 
-  auto location = 0x7FC0;  // LoROM header location
-  rom_size_ = 0x400 << rom_data[location + 0x17];
-  sram_size_ = 0x400 << rom_data[location + 0x18];
+  // Validate ROM data size before accessing header
+  // LoROM header is at 0x7FC0, and we need to access bytes at 0x7FD7 and 0x7FD8
+  constexpr uint32_t kLoRomHeaderLocation = 0x7FC0;
+  constexpr uint32_t kMinRomSizeForHeader = 0x7FD9;  // 0x7FC0 + 0x18 + 1
+  
+  if (rom_data.size() < kMinRomSizeForHeader) {
+    LOG_DEBUG("Memory", "ROM too small for header access: %zu bytes (need at least %u bytes)",
+              rom_data.size(), kMinRomSizeForHeader);
+    // Fallback: use ROM data size directly if header is not accessible
+    rom_size_ = static_cast<uint32_t>(rom_data.size());
+    sram_size_ = 0x2000;  // Default 8KB SRAM
+    LOG_DEBUG("Memory", "Using fallback: ROM size=%u bytes, SRAM size=%u bytes",
+              rom_size_, sram_size_);
+  } else {
+    auto location = kLoRomHeaderLocation;  // LoROM header location
+    uint8_t rom_size_shift = rom_data[location + 0x17];
+    uint8_t sram_size_shift = rom_data[location + 0x18];
+    
+    // Validate shift values to prevent excessive memory allocation
+    if (rom_size_shift > 15) {  // Max reasonable shift (0x400 << 15 = 128MB)
+      LOG_DEBUG("Memory", "Invalid ROM size shift: %u, using fallback", rom_size_shift);
+      rom_size_ = static_cast<uint32_t>(rom_data.size());
+    } else {
+      rom_size_ = 0x400 << rom_size_shift;
+    }
+    
+    if (sram_size_shift > 7) {  // Max reasonable shift (0x400 << 7 = 512KB)
+      LOG_DEBUG("Memory", "Invalid SRAM size shift: %u, using default", sram_size_shift);
+      sram_size_ = 0x2000;  // Default 8KB SRAM
+    } else {
+      sram_size_ = 0x400 << sram_size_shift;
+    }
+  }
 
   // Allocate ROM and SRAM storage
   rom_.resize(rom_size_);
@@ -29,8 +59,15 @@ void MemoryImpl::Initialize(const std::vector<uint8_t>& rom_data,
   LOG_DEBUG("Memory",
             "LoROM initialized: ROM size=$%06X (%zuKB) SRAM size=$%04X",
             rom_size_, rom_size_ / 1024, sram_size_);
-  LOG_DEBUG("Memory", "Reset vector at ROM offset $7FFC-$7FFD = $%02X%02X",
-            rom_data[0x7FFD], rom_data[0x7FFC]);
+  
+  // Log reset vector if ROM is large enough
+  if (rom_data.size() >= 0x7FFE) {
+    LOG_DEBUG("Memory", "Reset vector at ROM offset $7FFC-$7FFD = $%02X%02X",
+              rom_data[0x7FFD], rom_data[0x7FFC]);
+  } else {
+    LOG_DEBUG("Memory", "ROM too small to read reset vector (size: %zu bytes)",
+              rom_data.size());
+  }
 }
 
 uint8_t MemoryImpl::cart_read(uint8_t bank, uint16_t adr) {
@@ -76,6 +113,9 @@ uint8_t MemoryImpl::cart_readLorom(uint8_t bank, uint16_t adr) {
   bank &= 0x7f;
   if (adr >= 0x8000 || bank >= 0x40) {
     uint32_t rom_offset = ((bank << 15) | (adr & 0x7fff)) & (rom_size_ - 1);
+    if (rom_offset >= rom_.size()) {
+      return open_bus_;
+    }
     return rom_[rom_offset];
   }
 

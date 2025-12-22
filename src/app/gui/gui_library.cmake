@@ -18,9 +18,16 @@ set(GUI_CORE_SRC
   app/gui/core/color.cc
   app/gui/core/input.cc
   app/gui/core/layout_helpers.cc
+  app/gui/core/platform_keys.cc
   app/gui/core/style.cc
   app/gui/core/theme_manager.cc
+  app/gui/core/touch_input.cc
   app/gui/core/ui_helpers.cc
+  app/gui/keyboard_shortcuts.cc
+)
+
+list(APPEND GUI_CORE_SRC
+  app/gui/plots/implot_support.cc
 )
 
 # build_cleaner:auto-maintain
@@ -29,6 +36,7 @@ set(CANVAS_SRC
   app/gui/canvas/canvas.cc
   app/gui/canvas/canvas_automation_api.cc
   app/gui/canvas/canvas_context_menu.cc
+  app/gui/canvas/canvas_extensions.cc
   app/gui/canvas/canvas_geometry.cc
   app/gui/canvas/canvas_interaction.cc
   app/gui/canvas/canvas_interaction_handler.cc
@@ -38,6 +46,7 @@ set(CANVAS_SRC
   app/gui/canvas/canvas_performance_integration.cc
   app/gui/canvas/canvas_popup.cc
   app/gui/canvas/canvas_rendering.cc
+  app/gui/canvas/canvas_touch_handler.cc
   app/gui/canvas/canvas_usage_tracker.cc
   app/gui/canvas/canvas_utils.cc
 )
@@ -62,10 +71,13 @@ set(GUI_AUTOMATION_SRC
 
 # build_cleaner:auto-maintain
 set(GUI_APP_SRC
-  app/gui/app/agent_chat_widget.cc
-  app/gui/app/collaboration_panel.cc
   app/gui/app/editor_layout.cc
 )
+
+# Collaboration panel requires network libraries not available in WASM
+if(NOT EMSCRIPTEN)
+  list(APPEND GUI_APP_SRC app/gui/app/collaboration_panel.cc)
+endif()
 
 # ==============================================================================
 # LIBRARY DEFINITIONS AND LINK STRUCTURE (manually configured)
@@ -81,6 +93,9 @@ add_library(yaze_gui_app STATIC ${GUI_APP_SRC})
 
 # Link dependencies between the new libraries
 target_link_libraries(yaze_gui_core PUBLIC yaze_util ImGui nlohmann_json::nlohmann_json)
+if(TARGET ImPlot)
+  target_link_libraries(yaze_gui_core PUBLIC ImPlot)
+endif()
 target_link_libraries(yaze_canvas PUBLIC yaze_gui_core yaze_gfx)
 target_link_libraries(yaze_gui_widgets PUBLIC yaze_gui_core yaze_gfx)
 target_link_libraries(yaze_gui_automation PUBLIC yaze_gui_core)
@@ -122,7 +137,9 @@ endforeach()
 
 # 3. Create Aggregate INTERFACE library
 add_library(yaze_gui INTERFACE)
-target_link_libraries(yaze_gui INTERFACE
+
+# Base libraries that are always linked
+set(YAZE_GUI_INTERFACE_LIBS
   yaze_gui_core
   yaze_canvas
   yaze_gui_widgets
@@ -132,9 +149,16 @@ target_link_libraries(yaze_gui INTERFACE
   yaze_gfx
   yaze_util
   yaze_common
-  yaze_net
   ImGui
   ${YAZE_SDL2_TARGETS}
 )
+
+# Add yaze_net only for non-Emscripten builds
+# (yaze_net has dependencies on Threads, OpenSSL, and potentially gRPC that are incompatible with WASM)
+if(NOT EMSCRIPTEN)
+  list(APPEND YAZE_GUI_INTERFACE_LIBS yaze_net)
+endif()
+
+target_link_libraries(yaze_gui INTERFACE ${YAZE_GUI_INTERFACE_LIBS})
 
 message(STATUS "✓ yaze_gui library refactored and configured")

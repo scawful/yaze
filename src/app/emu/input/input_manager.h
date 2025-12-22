@@ -15,7 +15,7 @@ namespace input {
 
 class InputManager {
  public:
-  InputManager() = default;
+  InputManager();
   ~InputManager() { Shutdown(); }
 
   bool Initialize(InputBackendFactory::BackendType type =
@@ -40,6 +40,7 @@ class InputManager {
  private:
   std::unique_ptr<IInputBackend> backend_;
   ControllerState agent_controller_state_;  // State controlled by agent
+  InputConfig config_;                      // Cached/pending config
 };
 
 }  // namespace input

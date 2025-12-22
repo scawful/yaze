@@ -1,20 +1,48 @@
-#include "dungeon_canvas_viewer.h"
+#include <algorithm>
+#include <cfloat>
+#include <cstddef>
+#include <cstdint>
+#include <cstdio>
+#include <optional>
+#include <string>
+#include <utility>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/agent/agent_ui_theme.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/core/input.h"
-#include "app/rom.h"
-#include "app/editor/agent/agent_ui_theme.h"
+#include "dungeon_canvas_viewer.h"
+#include "dungeon_coordinates.h"
+#include "canvas/canvas_menu.h"
+#include "core/icons.h"
+#include "absl/status/status.h"
+#include "editor/dungeon/object_selection.h"
 #include "imgui/imgui.h"
+#include "rom/rom.h"
 #include "util/log.h"
+#include "util/macro.h"
+#include "zelda3/dungeon/object_dimensions.h"
+#include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_layer_manager.h"
+#include "zelda3/dungeon/room_object.h"
+#include "zelda3/resource_labels.h"
 #include "zelda3/sprite/sprite.h"
 
 namespace yaze::editor {
 
-// DrawDungeonTabView() removed - DungeonEditorV2 uses EditorCard system for
-// flexible docking
+namespace {
+
+constexpr int kRoomMatrixCols = 16;
+constexpr int kRoomMatrixRows = 19;
+constexpr int kRoomPropertyColumns = 2;
+
+}  // namespace
+
+// Use shared GetObjectName() from zelda3/dungeon/room_object.h
+using zelda3::GetObjectName;
+using zelda3::GetObjectSubtype;
 
 void DungeonCanvasViewer::Draw(int room_id) {
   DrawDungeonCanvas(room_id);
@@ -32,6 +60,35 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     return;
   }
 
+  // Handle pending scroll request
+  if (pending_scroll_target_.has_value()) {
+    auto [target_x, target_y] = pending_scroll_target_.value();
+
+    // Convert tile coordinates to pixels
+    float scale = canvas_.global_scale();
+    if (scale <= 0.0f)
+      scale = 1.0f;
+
+    float pixel_x = target_x * 8 * scale;
+    float pixel_y = target_y * 8 * scale;
+
+    // Center in view
+    ImVec2 view_size = ImGui::GetWindowSize();
+    float scroll_x = pixel_x - (view_size.x * 0.5f);
+    float scroll_y = pixel_y - (view_size.y * 0.5f);
+
+    // Account for canvas position offset if possible, but roughly centering is
+    // usually enough Ideally we'd add the cursor position y-offset to scroll_y
+    // to account for the UI above canvas but GetCursorPosY() might not be
+    // accurate before content is laid out. For X, canvas usually starts at
+    // left, so it's fine.
+
+    ImGui::SetScrollX(scroll_x);
+    ImGui::SetScrollY(scroll_y);
+
+    pending_scroll_target_.reset();
+  }
+
   ImGui::BeginGroup();
 
   // CRITICAL: Canvas coordinate system for dungeons
@@ -44,9 +101,17 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   constexpr int kRoomPixelHeight = 512;
   constexpr int kDungeonTileSize = 8;  // Dungeon tiles are 8x8 pixels
 
-  // Configure canvas for dungeon display
-  canvas_.SetCanvasSize(ImVec2(kRoomPixelWidth, kRoomPixelHeight));
-  canvas_.SetGridSize(gui::CanvasGridSize::k8x8);  // Match dungeon tile size
+  // Configure canvas frame options for the new BeginCanvas/EndCanvas pattern
+  gui::CanvasFrameOptions frame_opts;
+  frame_opts.canvas_size = ImVec2(kRoomPixelWidth, kRoomPixelHeight);
+  frame_opts.draw_grid = show_grid_;
+  frame_opts.grid_step = static_cast<float>(custom_grid_size_);
+  frame_opts.draw_context_menu = true;
+  frame_opts.draw_overlay = true;
+  frame_opts.render_popups = true;
+
+  // Legacy configuration for context menu and interaction systems
+  canvas_.SetShowBuiltinContextMenu(false);  // Hide default canvas debug items
 
   // DEBUG: Log canvas configuration
   static int debug_frame_count = 0;
@@ -65,141 +130,9 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   if (rooms_) {
     auto& room = (*rooms_)[room_id];
 
-    // Store previous values to detect changes
-    static int prev_blockset = -1;
-    static int prev_palette = -1;
-    static int prev_layout = -1;
-    static int prev_spriteset = -1;
-
-    // Room properties in organized table
-    if (ImGui::BeginTable(
-            "##RoomProperties", 4,
-            ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Borders)) {
-      ImGui::TableSetupColumn("Graphics");
-      ImGui::TableSetupColumn("Layout");
-      ImGui::TableSetupColumn("Floors");
-      ImGui::TableSetupColumn("Message");
-      ImGui::TableHeadersRow();
-
-      ImGui::TableNextRow();
-
-      // Column 1: Graphics (Blockset, Spriteset, Palette)
-      ImGui::TableNextColumn();
-      gui::InputHexByte("Gfx", &room.blockset, 50.f);
-      gui::InputHexByte("Sprite", &room.spriteset, 50.f);
-      gui::InputHexByte("Palette", &room.palette, 50.f);
-
-      // Column 2: Layout
-      ImGui::TableNextColumn();
-      gui::InputHexByte("Layout", &room.layout, 50.f);
-
-      // Column 3: Floors
-      ImGui::TableNextColumn();
-      uint8_t floor1_val = room.floor1();
-      uint8_t floor2_val = room.floor2();
-      if (gui::InputHexByte("Floor1", &floor1_val, 50.f) &&
-          ImGui::IsItemDeactivatedAfterEdit()) {
-        room.set_floor1(floor1_val);
-        if (room.rom() && room.rom()->is_loaded()) {
-          room.RenderRoomGraphics();
-        }
-      }
-      if (gui::InputHexByte("Floor2", &floor2_val, 50.f) &&
-          ImGui::IsItemDeactivatedAfterEdit()) {
-        room.set_floor2(floor2_val);
-        if (room.rom() && room.rom()->is_loaded()) {
-          room.RenderRoomGraphics();
-        }
-      }
-
-      // Column 4: Message
-      ImGui::TableNextColumn();
-      gui::InputHexWord("MsgID", &room.message_id_, 70.f);
-
-      ImGui::EndTable();
-    }
-
-    // Advanced room properties (Effect, Tags, Layer Merge)
-    ImGui::Separator();
-    if (ImGui::BeginTable(
-            "##AdvancedProperties", 3,
-            ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Borders)) {
-      ImGui::TableSetupColumn("Effect");
-      ImGui::TableSetupColumn("Tag 1");
-      ImGui::TableSetupColumn("Tag 2");
-      ImGui::TableHeadersRow();
-
-      ImGui::TableNextRow();
-
-      // Effect dropdown
-      ImGui::TableNextColumn();
-      const char* effect_names[] = {
-          "Nothing", "One",         "Moving Floor",     "Moving Water",
-          "Four",    "Red Flashes", "Torch Show Floor", "Ganon Room"};
-      int effect_val = static_cast<int>(room.effect());
-      if (ImGui::Combo("##Effect", &effect_val, effect_names, 8)) {
-        room.SetEffect(static_cast<zelda3::EffectKey>(effect_val));
-      }
-
-      // Tag 1 dropdown (abbreviated for space)
-      ImGui::TableNextColumn();
-      const char* tag_names[] = {
-          "Nothing",    "NW Kill",     "NE Kill",     "SW Kill",
-          "SE Kill",    "W Kill",      "E Kill",      "N Kill",
-          "S Kill",     "Clear Quad",  "Clear Room",  "NW Push",
-          "NE Push",    "SW Push",     "SE Push",     "W Push",
-          "E Push",     "N Push",      "S Push",      "Push Block",
-          "Pull Lever", "Clear Level", "Switch Hold", "Switch Toggle"};
-      int tag1_val = static_cast<int>(room.tag1());
-      if (ImGui::Combo("##Tag1", &tag1_val, tag_names, 24)) {
-        room.SetTag1(static_cast<zelda3::TagKey>(tag1_val));
-      }
-
-      // Tag 2 dropdown
-      ImGui::TableNextColumn();
-      int tag2_val = static_cast<int>(room.tag2());
-      if (ImGui::Combo("##Tag2", &tag2_val, tag_names, 24)) {
-        room.SetTag2(static_cast<zelda3::TagKey>(tag2_val));
-      }
-
-      ImGui::EndTable();
-    }
-
-    // Layer visibility and merge controls
-    ImGui::Separator();
-    if (ImGui::BeginTable("##LayerControls", 4,
-                          ImGuiTableFlags_SizingStretchSame)) {
-      ImGui::TableNextRow();
-
-      ImGui::TableNextColumn();
-      auto& layer_settings = GetRoomLayerSettings(room_id);
-      ImGui::Checkbox("BG1", &layer_settings.bg1_visible);
-
-      ImGui::TableNextColumn();
-      ImGui::Checkbox("BG2", &layer_settings.bg2_visible);
-
-      ImGui::TableNextColumn();
-      // BG2 layer type
-      const char* bg2_types[] = {"Norm", "Trans", "Add", "Dark", "Off"};
-      ImGui::SetNextItemWidth(-FLT_MIN);
-      ImGui::Combo("##BG2Type", &layer_settings.bg2_layer_type, bg2_types, 5);
-
-      ImGui::TableNextColumn();
-      // Layer merge type
-      const char* merge_types[] = {"Off",    "Parallax",    "Dark",
-                                   "On top", "Translucent", "Addition",
-                                   "Normal", "Transparent", "Dark room"};
-      int merge_val = room.layer_merging().ID;
-      if (ImGui::Combo("##Merge", &merge_val, merge_types, 9)) {
-        room.SetLayerMerging(zelda3::kLayerMergeTypeList[merge_val]);
-      }
-
-      ImGui::EndTable();
-    }
-
     // Check if critical properties changed and trigger reload
-    if (prev_blockset != room.blockset || prev_palette != room.palette ||
-        prev_layout != room.layout || prev_spriteset != room.spriteset) {
+    if (prev_blockset_ != room.blockset || prev_palette_ != room.palette ||
+        prev_layout_ != room.layout || prev_spriteset_ != room.spriteset) {
       // Only reload if ROM is properly loaded
       if (room.rom() && room.rom()->is_loaded()) {
         // Force reload of room graphics
@@ -209,89 +142,691 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
         room.RenderRoomGraphics();  // Applies palettes internally
       }
 
-      prev_blockset = room.blockset;
-      prev_palette = room.palette;
-      prev_layout = room.layout;
-      prev_spriteset = room.spriteset;
+      prev_blockset_ = room.blockset;
+      prev_palette_ = room.palette;
+      prev_layout_ = room.layout;
+      prev_spriteset_ = room.spriteset;
     }
+    ImGui::Separator();
+
+    auto draw_navigation = [&]() {
+      // Use swap callback (swaps room in current panel) if available,
+      // otherwise fall back to navigation callback (opens new panel)
+      if (!room_swap_callback_ && !room_navigation_callback_)
+        return;
+
+      const int col = room_id % kRoomMatrixCols;
+      const int row = room_id / kRoomMatrixCols;
+
+      auto room_if_valid = [](int candidate) -> std::optional<int> {
+        if (candidate < 0 || candidate >= zelda3::NumberOfRooms)
+          return std::nullopt;
+        return candidate;
+      };
+
+      const auto north =
+          room_if_valid(row > 0 ? room_id - kRoomMatrixCols : -1);
+      const auto south = room_if_valid(
+          row < kRoomMatrixRows - 1 ? room_id + kRoomMatrixCols : -1);
+      const auto west = room_if_valid(col > 0 ? room_id - 1 : -1);
+      const auto east =
+          room_if_valid(col < kRoomMatrixCols - 1 ? room_id + 1 : -1);
+
+      // Generate tooltip with target room info
+      auto make_tooltip = [](const std::optional<int>& target,
+                             const char* direction) -> std::string {
+        if (!target.has_value())
+          return "";
+        auto label = zelda3::GetRoomLabel(*target);
+        return absl::StrFormat("%s: [%03X] %s", direction, *target, label);
+      };
+
+      auto nav_button = [&](const char* id, ImGuiDir dir,
+                            const std::optional<int>& target,
+                            const std::string& tooltip) {
+        const bool enabled = target.has_value();
+        if (!enabled)
+          ImGui::BeginDisabled();
+        if (ImGui::ArrowButton(id, dir) && enabled) {
+          // Prefer swap callback (swaps room in current panel)
+          if (room_swap_callback_) {
+            room_swap_callback_(room_id, *target);
+          } else if (room_navigation_callback_) {
+            room_navigation_callback_(*target);
+          }
+        }
+        if (!enabled)
+          ImGui::EndDisabled();
+        if (enabled && ImGui::IsItemHovered() && !tooltip.empty())
+          ImGui::SetTooltip("%s", tooltip.c_str());
+      };
+
+      // Compass-style cross layout:
+      //        [N]
+      //    [W]     [E]
+      //        [S]
+      float button_width = ImGui::GetFrameHeight();
+      float spacing = ImGui::GetStyle().ItemSpacing.x;
+
+      ImGui::BeginGroup();
+      // Row 1: North button centered
+      ImGui::SetCursorPosX(ImGui::GetCursorPosX() + button_width + spacing);
+      nav_button("RoomNavNorth", ImGuiDir_Up, north, make_tooltip(north, "North"));
+
+      // Row 2: West and East buttons
+      nav_button("RoomNavWest", ImGuiDir_Left, west, make_tooltip(west, "West"));
+      ImGui::SameLine();
+      ImGui::Dummy(ImVec2(button_width, 0));  // Spacer for center
+      ImGui::SameLine();
+      nav_button("RoomNavEast", ImGuiDir_Right, east, make_tooltip(east, "East"));
+
+      // Row 3: South button centered
+      ImGui::SetCursorPosX(ImGui::GetCursorPosX() + button_width + spacing);
+      nav_button("RoomNavSouth", ImGuiDir_Down, south, make_tooltip(south, "South"));
+      ImGui::EndGroup();
+      ImGui::SameLine();
+    };
+
+    auto& layer_mgr = GetRoomLayerManager(room_id);
+    // TODO(zelda3-hacking-expert): The SNES path allows BG merge flags and
+    // layer types to coexist (four object streams with BothBG routines); make
+    // sure UI toggles here don’t enforce mutual exclusivity. See
+    // docs/internal/agents/dungeon-object-rendering-spec.md for the expected
+    // layering/merge semantics from bank_01.asm.
+    layer_mgr.ApplyLayerMerging(room.layer_merging());
+
+    uint8_t blockset_val = room.blockset;
+    uint8_t spriteset_val = room.spriteset;
+    uint8_t palette_val = room.palette;
+    uint8_t floor1_val = room.floor1();
+    uint8_t floor2_val = room.floor2();
+    int effect_val = static_cast<int>(room.effect());
+    int tag1_val = static_cast<int>(room.tag1());
+    int tag2_val = static_cast<int>(room.tag2());
+    uint8_t layout_val = room.layout;
+
+    // Effect names matching RoomEffect array in room.cc (8 entries, 0-7)
+    const char* effect_names[] = {
+        "Nothing",              // 0
+        "Nothing (1)",          // 1 - unused but exists in ROM
+        "Moving Floor",         // 2
+        "Moving Water",         // 3
+        "Trinexx Shell",        // 4
+        "Red Flashes",          // 5
+        "Light Torch to See",   // 6
+        "Ganon's Darkness"      // 7
+    };
+    
+    // Tag names matching RoomTag array in room.cc
+    const char* tag_names[] = {
+        "Nothing",                    // 0
+        "NW Kill Enemy to Open",      // 1
+        "NE Kill Enemy to Open",      // 2
+        "SW Kill Enemy to Open",      // 3
+        "SE Kill Enemy to Open",      // 4
+        "W Kill Enemy to Open",       // 5
+        "E Kill Enemy to Open",       // 6
+        "N Kill Enemy to Open",       // 7
+        "S Kill Enemy to Open",       // 8
+        "Clear Quadrant to Open",     // 9
+        "Clear Full Tile to Open",    // 10
+        "NW Push Block to Open",      // 11
+        "NE Push Block to Open",      // 12
+        "SW Push Block to Open",      // 13
+        "SE Push Block to Open",      // 14
+        "W Push Block to Open",       // 15
+        "E Push Block to Open",       // 16
+        "N Push Block to Open",       // 17
+        "S Push Block to Open",       // 18
+        "Push Block to Open",         // 19
+        "Pull Lever to Open",         // 20
+        "Collect Prize to Open",      // 21
+        "Hold Switch Open Door",      // 22
+        "Toggle Switch to Open",      // 23
+        "Turn off Water",             // 24
+        "Turn on Water",              // 25
+        "Water Gate",                 // 26
+        "Water Twin",                 // 27
+        "Moving Wall Right",          // 28
+        "Moving Wall Left",           // 29
+        "Crash (30)",                 // 30
+        "Crash (31)",                 // 31
+        "Push Switch Exploding Wall", // 32
+        "Holes 0",                    // 33
+        "Open Chest (Holes 0)",       // 34
+        "Holes 1",                    // 35
+        "Holes 2",                    // 36
+        "Defeat Boss for Prize",      // 37
+        "SE Kill Enemy Push Block",   // 38
+        "Trigger Switch Chest",       // 39
+        "Pull Lever Exploding Wall",  // 40
+        "NW Kill Enemy for Chest",    // 41
+        "NE Kill Enemy for Chest",    // 42
+        "SW Kill Enemy for Chest",    // 43
+        "SE Kill Enemy for Chest",    // 44
+        "W Kill Enemy for Chest",     // 45
+        "E Kill Enemy for Chest",     // 46
+        "N Kill Enemy for Chest",     // 47
+        "S Kill Enemy for Chest",     // 48
+        "Clear Quadrant for Chest",   // 49
+        "Clear Full Tile for Chest",  // 50
+        "Light Torches to Open",      // 51
+        "Holes 3",                    // 52
+        "Holes 4",                    // 53
+        "Holes 5",                    // 54
+        "Holes 6",                    // 55
+        "Agahnim Room",               // 56
+        "Holes 7",                    // 57
+        "Holes 8",                    // 58
+        "Open Chest for Holes 8",     // 59
+        "Push Block for Chest",       // 60
+        "Clear Room for Triforce",    // 61
+        "Light Torches for Chest",    // 62
+        "Kill Boss Again",            // 63
+        "64 (Unused)"                 // 64
+    };
+    constexpr int kNumTags = IM_ARRAYSIZE(tag_names);
+    
+    const char* merge_types[] = {"Off",    "Parallax",    "Dark",
+                                 "On top", "Translucent", "Addition",
+                                 "Normal", "Transparent", "Dark room"};
+    const char* blend_modes[] = {"Normal", "Trans", "Add", "Dark", "Off"};
+
+    // ========================================================================
+    // ROOM PROPERTIES TABLE - Compact layout for docking
+    // ========================================================================
+    // Minimal table flags: no padding, no borders between body cells
+    constexpr ImGuiTableFlags kPropsTableFlags =
+        ImGuiTableFlags_NoPadOuterX | ImGuiTableFlags_NoBordersInBody;
+    if (ImGui::BeginTable("##RoomPropsTable", 2, kPropsTableFlags)) {
+      ImGui::TableSetupColumn("NavCol", ImGuiTableColumnFlags_WidthFixed, 90);
+      ImGui::TableSetupColumn("PropsCol", ImGuiTableColumnFlags_WidthStretch);
+
+      // Row 1: Navigation + Room ID + Core properties (Blockset, Palette, Layout, Spriteset)
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      draw_navigation();
+      ImGui::TableNextColumn();
+      // Room ID and hex property inputs with icons
+      ImGui::Text(ICON_MD_TUNE " %03X", room_id);
+      ImGui::SameLine();
+      ImGui::TextDisabled(ICON_MD_VIEW_MODULE);
+      ImGui::SameLine(0, 2);
+      // Blockset: max 81 (kNumRoomBlocksets = 82)
+      if (auto res = gui::InputHexByteEx("##Blockset", &blockset_val, 81, 32.f, true);
+          res.ShouldApply()) {
+        room.SetBlockset(blockset_val);
+        if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
+      }
+      if (ImGui::IsItemHovered()) ImGui::SetTooltip("Blockset (0-51)");
+      ImGui::SameLine();
+      ImGui::TextDisabled(ICON_MD_PALETTE);
+      ImGui::SameLine(0, 2);
+      // Palette: max 71 (kNumPalettesets = 72)
+      if (auto res = gui::InputHexByteEx("##Palette", &palette_val, 71, 32.f, true);
+          res.ShouldApply()) {
+        room.SetPalette(palette_val);
+        SetCurrentPaletteId(palette_val);
+        if (game_data_ && rom_) {
+          if (palette_val < game_data_->paletteset_ids.size() &&
+              !game_data_->paletteset_ids[palette_val].empty()) {
+            auto palette_ptr = game_data_->paletteset_ids[palette_val][0];
+            if (auto palette_id_res = rom_->ReadWord(0xDEC4B + palette_ptr);
+                palette_id_res.ok()) {
+              current_palette_group_id_ = palette_id_res.value() / 180;
+              if (current_palette_group_id_ <
+                  game_data_->palette_groups.dungeon_main.size()) {
+                auto full_palette =
+                    game_data_->palette_groups
+                        .dungeon_main[current_palette_group_id_];
+                if (auto res =
+                        gfx::CreatePaletteGroupFromLargePalette(full_palette, 16);
+                    res.ok()) {
+                  current_palette_group_ = res.value();
+                }
+              }
+            }
+          }
+        }
+        if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
+      }
+      if (ImGui::IsItemHovered()) ImGui::SetTooltip("Palette (0-47)");
+      ImGui::SameLine();
+      ImGui::TextDisabled(ICON_MD_GRID_VIEW);
+      ImGui::SameLine(0, 2);
+      // Layout: 8 valid layouts (0-7)
+      if (auto res = gui::InputHexByteEx("##Layout", &layout_val, 7, 32.f, true);
+          res.ShouldApply()) {
+        room.layout = layout_val;
+        room.MarkLayoutDirty();
+        if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
+      }
+      if (ImGui::IsItemHovered()) ImGui::SetTooltip("Layout (0-7)");
+      ImGui::SameLine();
+      ImGui::TextDisabled(ICON_MD_PEST_CONTROL);
+      ImGui::SameLine(0, 2);
+      // Spriteset: max 143 (kNumSpritesets = 144)
+      if (auto res = gui::InputHexByteEx("##Spriteset", &spriteset_val, 143, 32.f, true);
+          res.ShouldApply()) {
+        room.SetSpriteset(spriteset_val);
+        if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
+      }
+      if (ImGui::IsItemHovered()) ImGui::SetTooltip("Spriteset (0-8F)");
+
+      // Row 2: Floor graphics + Effect (using vertical space from compass)
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      // Empty - compass takes vertical space
+      ImGui::TableNextColumn();
+      ImGui::TextDisabled(ICON_MD_SQUARE);
+      ImGui::SameLine(0, 2);
+      // Floor graphics: max 15 (4-bit value, 0-F)
+      if (auto res = gui::InputHexByteEx("##Floor1", &floor1_val, 15, 32.f, true);
+          res.ShouldApply()) {
+        room.set_floor1(floor1_val);
+        if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
+      }
+      if (ImGui::IsItemHovered()) ImGui::SetTooltip("Floor 1 (0-F)");
+      ImGui::SameLine();
+      ImGui::TextDisabled(ICON_MD_SQUARE_FOOT);
+      ImGui::SameLine(0, 2);
+      // Floor graphics: max 15 (4-bit value, 0-F)
+      if (auto res = gui::InputHexByteEx("##Floor2", &floor2_val, 15, 32.f, true);
+          res.ShouldApply()) {
+        room.set_floor2(floor2_val);
+        if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
+      }
+      if (ImGui::IsItemHovered()) ImGui::SetTooltip("Floor 2 (0-F)");
+      ImGui::SameLine();
+      ImGui::TextDisabled(ICON_MD_AUTO_AWESOME);
+      ImGui::SameLine(0, 2);
+      constexpr int kNumEffects = IM_ARRAYSIZE(effect_names);
+      if (effect_val < 0) effect_val = 0;
+      if (effect_val >= kNumEffects) effect_val = kNumEffects - 1;
+      ImGui::SetNextItemWidth(140);
+      if (ImGui::BeginCombo("##Effect", effect_names[effect_val])) {
+        for (int i = 0; i < kNumEffects; i++) {
+          if (ImGui::Selectable(effect_names[i], effect_val == i)) {
+            room.SetEffect(static_cast<zelda3::EffectKey>(i));
+            if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
+          }
+        }
+        ImGui::EndCombo();
+      }
+      if (ImGui::IsItemHovered()) ImGui::SetTooltip("Effect");
+
+      // Row 3: Tags (using vertical space from compass)
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      // Empty - compass takes vertical space
+      ImGui::TableNextColumn();
+      ImGui::TextDisabled(ICON_MD_LABEL);
+      ImGui::SameLine(0, 2);
+      int tag1_idx = std::clamp(tag1_val, 0, kNumTags - 1);
+      ImGui::SetNextItemWidth(240);
+      if (ImGui::BeginCombo("##Tag1", tag_names[tag1_idx])) {
+        for (int i = 0; i < kNumTags; i++) {
+          if (ImGui::Selectable(tag_names[i], tag1_idx == i)) {
+            room.SetTag1(static_cast<zelda3::TagKey>(i));
+            if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
+          }
+        }
+        ImGui::EndCombo();
+      }
+      if (ImGui::IsItemHovered()) ImGui::SetTooltip("Tag 1");
+      ImGui::SameLine();
+      ImGui::TextDisabled(ICON_MD_LABEL_OUTLINE);
+      ImGui::SameLine(0, 2);
+      int tag2_idx = std::clamp(tag2_val, 0, kNumTags - 1);
+      ImGui::SetNextItemWidth(240);
+      if (ImGui::BeginCombo("##Tag2", tag_names[tag2_idx])) {
+        for (int i = 0; i < kNumTags; i++) {
+          if (ImGui::Selectable(tag_names[i], tag2_idx == i)) {
+            room.SetTag2(static_cast<zelda3::TagKey>(i));
+            if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
+          }
+        }
+        ImGui::EndCombo();
+      }
+      if (ImGui::IsItemHovered()) ImGui::SetTooltip("Tag 2");
+
+      // Row 3: Layer visibility + Blend/Merge
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::TextDisabled(ICON_MD_LAYERS " Layers");
+      ImGui::TableNextColumn();
+      bool bg1_layout = layer_mgr.IsLayerVisible(zelda3::LayerType::BG1_Layout);
+      bool bg1_objects = layer_mgr.IsLayerVisible(zelda3::LayerType::BG1_Objects);
+      bool bg2_layout = layer_mgr.IsLayerVisible(zelda3::LayerType::BG2_Layout);
+      bool bg2_objects = layer_mgr.IsLayerVisible(zelda3::LayerType::BG2_Objects);
+      
+      // Helper to mark layer bitmaps as needing texture update
+      auto mark_layers_dirty = [&]() {
+        if (rooms_) {
+          auto& r = (*rooms_)[room_id];
+          r.bg1_buffer().bitmap().set_modified(true);
+          r.bg2_buffer().bitmap().set_modified(true);
+          r.object_bg1_buffer().bitmap().set_modified(true);
+          r.object_bg2_buffer().bitmap().set_modified(true);
+          r.MarkCompositeDirty();
+        }
+      };
+      
+      if (ImGui::Checkbox("BG1##L", &bg1_layout)) {
+        layer_mgr.SetLayerVisible(zelda3::LayerType::BG1_Layout, bg1_layout);
+        mark_layers_dirty();
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("BG1 Layout: Main floor tiles (rendered on top of BG2)");
+      }
+      ImGui::SameLine();
+      if (ImGui::Checkbox("O1##O", &bg1_objects)) {
+        layer_mgr.SetLayerVisible(zelda3::LayerType::BG1_Objects, bg1_objects);
+        mark_layers_dirty();
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("BG1 Objects: Walls, pots, interactive objects (topmost layer)");
+      }
+      ImGui::SameLine();
+      if (ImGui::Checkbox("BG2##L2", &bg2_layout)) {
+        layer_mgr.SetLayerVisible(zelda3::LayerType::BG2_Layout, bg2_layout);
+        mark_layers_dirty();
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("BG2 Layout: Background floor patterns (behind BG1)");
+      }
+      ImGui::SameLine();
+      if (ImGui::Checkbox("O2##O2", &bg2_objects)) {
+        layer_mgr.SetLayerVisible(zelda3::LayerType::BG2_Objects, bg2_objects);
+        mark_layers_dirty();
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("BG2 Objects: Background details (behind BG1)");
+      }
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(60);
+      int bg2_blend = static_cast<int>(
+          layer_mgr.GetLayerBlendMode(zelda3::LayerType::BG2_Layout));
+      if (ImGui::Combo("##Bld", &bg2_blend, blend_modes, IM_ARRAYSIZE(blend_modes))) {
+        auto mode = static_cast<zelda3::LayerBlendMode>(bg2_blend);
+        layer_mgr.SetLayerBlendMode(zelda3::LayerType::BG2_Layout, mode);
+        layer_mgr.SetLayerBlendMode(zelda3::LayerType::BG2_Objects, mode);
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(
+            "BG2 Blend Mode (color math effect):\n"
+            "- Normal: Opaque pixels\n"
+            "- Translucent: 50% alpha\n"
+            "- Addition: Additive blending\n"
+            "Does not change layer order (BG1 always on top)");
+      }
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(70);
+      int merge_val = room.layer_merging().ID;
+      if (ImGui::Combo("##Mrg", &merge_val, merge_types, IM_ARRAYSIZE(merge_types))) {
+        room.SetLayerMerging(zelda3::kLayerMergeTypeList[merge_val]);
+        layer_mgr.ApplyLayerMergingPreserveVisibility(room.layer_merging());
+        if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
+      }
+      if (ImGui::IsItemHovered()) ImGui::SetTooltip("Merge type");
+
+      // Row 4: Selection filter
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::TextDisabled(ICON_MD_SELECT_ALL " Select");
+      ImGui::TableNextColumn();
+      object_interaction_.SetLayersMerged(layer_mgr.AreLayersMerged());
+      int current_filter = object_interaction_.GetLayerFilter();
+      if (ImGui::RadioButton("All", current_filter == ObjectSelection::kLayerAll))
+        object_interaction_.SetLayerFilter(ObjectSelection::kLayerAll);
+      ImGui::SameLine();
+      if (ImGui::RadioButton("L1", current_filter == ObjectSelection::kLayer1))
+        object_interaction_.SetLayerFilter(ObjectSelection::kLayer1);
+      ImGui::SameLine();
+      if (ImGui::RadioButton("L2", current_filter == ObjectSelection::kLayer2))
+        object_interaction_.SetLayerFilter(ObjectSelection::kLayer2);
+      ImGui::SameLine();
+      if (ImGui::RadioButton("L3", current_filter == ObjectSelection::kLayer3))
+        object_interaction_.SetLayerFilter(ObjectSelection::kLayer3);
+      ImGui::SameLine();
+      // Mask mode: filter to BG2/Layer 1 overlay objects only (platforms, statues, etc.)
+      bool is_mask_mode = current_filter == ObjectSelection::kMaskLayer;
+      if (is_mask_mode) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4f, 0.8f, 1.0f, 1.0f));
+      if (ImGui::RadioButton("Mask", is_mask_mode))
+        object_interaction_.SetLayerFilter(ObjectSelection::kMaskLayer);
+      if (is_mask_mode) ImGui::PopStyleColor();
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(
+            "Mask Selection Mode\n"
+            "Only select BG2/Layer 1 overlay objects (platforms, statues, stairs)\n"
+            "These are the objects that create transparency holes in BG1");
+      }
+      if (object_interaction_.IsLayerFilterActive() && !is_mask_mode) {
+        ImGui::SameLine();
+        ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), ICON_MD_FILTER_ALT);
+      }
+      if (layer_mgr.AreLayersMerged()) {
+        ImGui::SameLine();
+        ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f), ICON_MD_MERGE_TYPE);
+      }
+
+      ImGui::EndTable();
+    }
+
+    // === Quick Access Toolbar for Entity Pickers ===
+    ImGui::Spacing();
+    ImGui::BeginGroup();
+    ImGui::TextDisabled(ICON_MD_ADD_CIRCLE " Place:");
+    ImGui::SameLine();
+
+    // Object picker button
+    if (ImGui::Button(ICON_MD_WIDGETS " Object")) {
+      if (show_object_panel_callback_) {
+        show_object_panel_callback_();
+      }
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Open Object Editor panel to select objects for placement");
+    }
+    ImGui::SameLine();
+
+    // Sprite picker button
+    if (ImGui::Button(ICON_MD_PERSON " Sprite")) {
+      if (show_sprite_panel_callback_) {
+        show_sprite_panel_callback_();
+      }
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Open Sprite Editor panel to select sprites for placement");
+    }
+    ImGui::SameLine();
+
+    // Item picker button
+    if (ImGui::Button(ICON_MD_INVENTORY " Item")) {
+      if (show_item_panel_callback_) {
+        show_item_panel_callback_();
+      }
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Open Item Editor panel to select items for placement");
+    }
+    ImGui::SameLine();
+
+    // Door placement toggle (inline)
+    bool door_mode = object_interaction_.IsDoorPlacementActive();
+    if (door_mode) {
+      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.6f, 0.9f, 1.0f));
+    }
+    if (ImGui::Button(ICON_MD_DOOR_FRONT " Door")) {
+      object_interaction_.SetDoorPlacementMode(!door_mode, zelda3::DoorType::NormalDoor);
+    }
+    if (door_mode) {
+      ImGui::PopStyleColor();
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(door_mode ? "Click to cancel door placement" : "Click to place doors");
+    }
+    ImGui::EndGroup();
+    ImGui::Separator();
   }
 
   ImGui::EndGroup();
 
-  // CRITICAL: Draw canvas with explicit size to ensure viewport matches content
-  // Pass the unscaled room size directly to DrawBackground
-  canvas_.DrawBackground(ImVec2(kRoomPixelWidth, kRoomPixelHeight));
-
-  // DEBUG: Log canvas state after DrawBackground
-  if (debug_frame_count % 60 == 1) {
-    LOG_DEBUG("[DungeonCanvas]",
-              "After DrawBackground: canvas_sz=(%.0f,%.0f) "
-              "canvas_p0=(%.0f,%.0f) canvas_p1=(%.0f,%.0f)",
-              canvas_.canvas_size().x, canvas_.canvas_size().y,
-              canvas_.zero_point().x, canvas_.zero_point().y,
-              canvas_.zero_point().x + canvas_.canvas_size().x,
-              canvas_.zero_point().y + canvas_.canvas_size().y);
-  }
-
-  // Add dungeon-specific context menu items
+  // Set up context menu items BEFORE DrawBackground so DrawContextMenu can be
+  // called immediately after (OpenPopupOnItemClick requires this ordering)
   canvas_.ClearContextMenuItems();
 
   if (rooms_ && rom_->is_loaded()) {
     auto& room = (*rooms_)[room_id];
-    auto& layer_settings = GetRoomLayerSettings(room_id);
 
-    // Add object placement option
-    canvas_.AddContextMenuItem(gui::CanvasMenuItem(
-        ICON_MD_ADD " Place Object", ICON_MD_ADD,
-        []() {
-          // TODO: Show object palette/selector
-        },
-        "Ctrl+P"));
+    // === Entity Placement Menu ===
+    gui::CanvasMenuItem place_menu;
+    place_menu.label = "Place Entity";
+    place_menu.icon = ICON_MD_ADD;
+    
+    // Place Object option
+    place_menu.subitems.push_back(gui::CanvasMenuItem(
+        "Object", ICON_MD_WIDGETS,
+        [this]() {
+          if (show_object_panel_callback_) {
+            show_object_panel_callback_();
+          }
+        }));
+    
+    // Place Sprite option
+    place_menu.subitems.push_back(gui::CanvasMenuItem(
+        "Sprite", ICON_MD_PERSON,
+        [this]() {
+          bool active = object_interaction_.IsSpritePlacementActive();
+          object_interaction_.SetSpritePlacementMode(!active, 0x09);
+        }));
+    
+    // Place Item option
+    place_menu.subitems.push_back(gui::CanvasMenuItem(
+        "Item", ICON_MD_INVENTORY,
+        [this]() {
+          bool active = object_interaction_.IsItemPlacementActive();
+          object_interaction_.SetItemPlacementMode(!active, 1);
+        }));
+    
+    // Place Door option
+    place_menu.subitems.push_back(gui::CanvasMenuItem(
+        "Door", ICON_MD_DOOR_FRONT,
+        [this]() {
+          bool active = object_interaction_.IsDoorPlacementActive();
+          object_interaction_.SetDoorPlacementMode(!active, 
+              zelda3::DoorType::NormalDoor);
+        }));
+    
+    canvas_.AddContextMenuItem(place_menu);
 
-    // Add object deletion for selected objects
-    canvas_.AddContextMenuItem(gui::CanvasMenuItem(
-        ICON_MD_DELETE " Delete Selected", ICON_MD_DELETE,
-        [this]() { object_interaction_.HandleDeleteSelected(); }, "Del"));
+    // Add room property quick toggles (4-way layer visibility)
+    gui::CanvasMenuItem layer_menu;
+    layer_menu.label = "Layer Visibility";
+    layer_menu.icon = ICON_MD_LAYERS;
 
-    // Add room property quick toggles
-    canvas_.AddContextMenuItem(gui::CanvasMenuItem(
-        ICON_MD_LAYERS " Toggle BG1", ICON_MD_LAYERS,
-        [this, room_id]() {
-          auto& settings = GetRoomLayerSettings(room_id);
-          settings.bg1_visible = !settings.bg1_visible;
-        },
-        "1"));
+    layer_menu.subitems.push_back(
+        gui::CanvasMenuItem("BG1 Layout", [this, room_id]() {
+          auto& mgr = GetRoomLayerManager(room_id);
+          mgr.SetLayerVisible(
+              zelda3::LayerType::BG1_Layout,
+              !mgr.IsLayerVisible(zelda3::LayerType::BG1_Layout));
+        }));
+    layer_menu.subitems.push_back(
+        gui::CanvasMenuItem("BG1 Objects", [this, room_id]() {
+          auto& mgr = GetRoomLayerManager(room_id);
+          mgr.SetLayerVisible(
+              zelda3::LayerType::BG1_Objects,
+              !mgr.IsLayerVisible(zelda3::LayerType::BG1_Objects));
+        }));
+    layer_menu.subitems.push_back(
+        gui::CanvasMenuItem("BG2 Layout", [this, room_id]() {
+          auto& mgr = GetRoomLayerManager(room_id);
+          mgr.SetLayerVisible(
+              zelda3::LayerType::BG2_Layout,
+              !mgr.IsLayerVisible(zelda3::LayerType::BG2_Layout));
+        }));
+    layer_menu.subitems.push_back(
+        gui::CanvasMenuItem("BG2 Objects", [this, room_id]() {
+          auto& mgr = GetRoomLayerManager(room_id);
+          mgr.SetLayerVisible(
+              zelda3::LayerType::BG2_Objects,
+              !mgr.IsLayerVisible(zelda3::LayerType::BG2_Objects));
+        }));
 
-    canvas_.AddContextMenuItem(gui::CanvasMenuItem(
-        ICON_MD_LAYERS " Toggle BG2", ICON_MD_LAYERS,
-        [this, room_id]() {
-          auto& settings = GetRoomLayerSettings(room_id);
-          settings.bg2_visible = !settings.bg2_visible;
-        },
-        "2"));
+    canvas_.AddContextMenuItem(layer_menu);
+
+    // Entity Visibility menu
+    gui::CanvasMenuItem entity_menu;
+    entity_menu.label = "Entity Visibility";
+    entity_menu.icon = ICON_MD_PERSON;
+
+    entity_menu.subitems.push_back(
+        gui::CanvasMenuItem("Show Sprites", [this]() {
+          entity_visibility_.show_sprites = !entity_visibility_.show_sprites;
+        }));
+    entity_menu.subitems.push_back(
+        gui::CanvasMenuItem("Show Pot Items", [this]() {
+          entity_visibility_.show_pot_items = !entity_visibility_.show_pot_items;
+        }));
+
+    canvas_.AddContextMenuItem(entity_menu);
 
     // Add re-render option
     canvas_.AddContextMenuItem(gui::CanvasMenuItem(
-        ICON_MD_REFRESH " Re-render Room", ICON_MD_REFRESH,
+        "Re-render Room", ICON_MD_REFRESH,
         [&room]() { room.RenderRoomGraphics(); }, "Ctrl+R"));
+
+    // Grid Options
+    gui::CanvasMenuItem grid_menu;
+    grid_menu.label = "Grid Options";
+    grid_menu.icon = ICON_MD_GRID_ON;
+
+    // Toggle grid visibility
+    gui::CanvasMenuItem toggle_grid_item(
+        show_grid_ ? "Hide Grid" : "Show Grid", 
+        show_grid_ ? ICON_MD_GRID_OFF : ICON_MD_GRID_ON,
+        [this]() { show_grid_ = !show_grid_; }, "G");
+    grid_menu.subitems.push_back(toggle_grid_item);
+
+    // Grid size options (only show if grid is visible)
+    grid_menu.subitems.push_back(
+        gui::CanvasMenuItem("8x8", [this]() { custom_grid_size_ = 8; show_grid_ = true; }));
+    grid_menu.subitems.push_back(
+        gui::CanvasMenuItem("16x16", [this]() { custom_grid_size_ = 16; show_grid_ = true; }));
+    grid_menu.subitems.push_back(
+        gui::CanvasMenuItem("32x32", [this]() { custom_grid_size_ = 32; show_grid_ = true; }));
+
+    canvas_.AddContextMenuItem(grid_menu);
 
     // === DEBUG MENU ===
     gui::CanvasMenuItem debug_menu;
-    debug_menu.label = ICON_MD_BUG_REPORT " Debug";
+    debug_menu.label = "Debug";
+    debug_menu.icon = ICON_MD_BUG_REPORT;
 
     // Show room info
-    debug_menu.subitems.push_back(gui::CanvasMenuItem(
-        ICON_MD_INFO " Show Room Info", ICON_MD_INFO,
-        [this]() { show_room_debug_info_ = !show_room_debug_info_; }));
+    gui::CanvasMenuItem room_info_item(
+        "Show Room Info", ICON_MD_INFO,
+        [this]() { show_room_debug_info_ = !show_room_debug_info_; });
+    debug_menu.subitems.push_back(room_info_item);
 
     // Show texture info
-    debug_menu.subitems.push_back(gui::CanvasMenuItem(
-        ICON_MD_IMAGE " Show Texture Debug", ICON_MD_IMAGE,
-        [this]() { show_texture_debug_ = !show_texture_debug_; }));
+    gui::CanvasMenuItem texture_info_item(
+        "Show Texture Debug", ICON_MD_IMAGE,
+        [this]() { show_texture_debug_ = !show_texture_debug_; });
+    debug_menu.subitems.push_back(texture_info_item);
+
+    // Toggle coordinate overlay
+    gui::CanvasMenuItem coord_overlay_item(
+        show_coordinate_overlay_ ? "Hide Coordinates" : "Show Coordinates", 
+        ICON_MD_MY_LOCATION,
+        [this]() { show_coordinate_overlay_ = !show_coordinate_overlay_; });
+    debug_menu.subitems.push_back(coord_overlay_item);
 
     // Show object bounds with sub-menu for categories
     gui::CanvasMenuItem object_bounds_menu;
-    object_bounds_menu.label = ICON_MD_CROP_SQUARE " Show Object Bounds";
+    object_bounds_menu.label = "Show Object Bounds";
+    object_bounds_menu.icon = ICON_MD_CROP_SQUARE;
     object_bounds_menu.callback = [this]() {
       show_object_bounds_ = !show_object_bounds_;
     };
@@ -341,21 +876,23 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     debug_menu.subitems.push_back(object_bounds_menu);
 
     // Show layer info
-    debug_menu.subitems.push_back(gui::CanvasMenuItem(
-        ICON_MD_LAYERS " Show Layer Info", ICON_MD_LAYERS,
-        [this]() { show_layer_info_ = !show_layer_info_; }));
+    gui::CanvasMenuItem layer_info_item(
+        "Show Layer Info", ICON_MD_LAYERS,
+        [this]() { show_layer_info_ = !show_layer_info_; });
+    debug_menu.subitems.push_back(layer_info_item);
 
     // Force reload room
-    debug_menu.subitems.push_back(gui::CanvasMenuItem(
-        ICON_MD_REFRESH " Force Reload", ICON_MD_REFRESH, [&room]() {
+    gui::CanvasMenuItem force_reload_item(
+        "Force Reload", ICON_MD_REFRESH, [&room]() {
           room.LoadObjects();
           room.LoadRoomGraphics(room.blockset);
           room.RenderRoomGraphics();
-        }));
+        });
+    debug_menu.subitems.push_back(force_reload_item);
 
     // Log room state
-    debug_menu.subitems.push_back(gui::CanvasMenuItem(
-        ICON_MD_PRINT " Log Room State", ICON_MD_PRINT, [&room, room_id]() {
+    gui::CanvasMenuItem log_item(
+        "Log Room State", ICON_MD_PRINT, [&room, room_id]() {
           LOG_DEBUG("DungeonDebug", "=== Room %03X Debug ===", room_id);
           LOG_DEBUG("DungeonDebug", "Blockset: %d, Palette: %d, Layout: %d",
                     room.blockset, room.palette, room.layout);
@@ -366,12 +903,226 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
                     room.bg1_buffer().bitmap().height(),
                     room.bg2_buffer().bitmap().width(),
                     room.bg2_buffer().bitmap().height());
-        }));
+        });
+    debug_menu.subitems.push_back(log_item);
 
     canvas_.AddContextMenuItem(debug_menu);
   }
 
-  canvas_.DrawContextMenu();
+  // Add object interaction menu items to canvas context menu
+  if (object_interaction_enabled_) {
+    auto& interaction = object_interaction_;
+    auto selected = interaction.GetSelectedObjectIndices();
+    const bool has_selection = !selected.empty();
+    const bool single_selection = selected.size() == 1;
+    const bool has_clipboard = interaction.HasClipboardData();
+    const bool placing_object = interaction.IsObjectLoaded();
+
+    if (single_selection && rooms_) {
+      auto& room = (*rooms_)[room_id];
+      const auto& objects = room.GetTileObjects();
+      if (selected[0] < objects.size()) {
+        const auto& obj = objects[selected[0]];
+        std::string name = GetObjectName(obj.id_);
+        canvas_.AddContextMenuItem(gui::CanvasMenuItem::Disabled(
+            absl::StrFormat("Object 0x%02X: %s", obj.id_, name.c_str())));
+      }
+    }
+
+    auto enabled_if = [](bool enabled) {
+      return [enabled]() {
+        return enabled;
+      };
+    };
+
+    gui::CanvasMenuItem cut_item(
+        "Cut", ICON_MD_CONTENT_CUT,
+        [&interaction]() {
+          interaction.HandleCopySelected();
+          interaction.HandleDeleteSelected();
+        },
+        "Ctrl+X");
+    cut_item.enabled_condition = enabled_if(has_selection);
+    canvas_.AddContextMenuItem(cut_item);
+
+    gui::CanvasMenuItem copy_item(
+        "Copy", ICON_MD_CONTENT_COPY,
+        [&interaction]() { interaction.HandleCopySelected(); }, "Ctrl+C");
+    copy_item.enabled_condition = enabled_if(has_selection);
+    canvas_.AddContextMenuItem(copy_item);
+
+    gui::CanvasMenuItem duplicate_item(
+        "Duplicate", ICON_MD_CONTENT_PASTE,
+        [&interaction]() {
+          interaction.HandleCopySelected();
+          interaction.HandlePasteObjects();
+        },
+        "Ctrl+D");
+    duplicate_item.enabled_condition = enabled_if(has_selection);
+    canvas_.AddContextMenuItem(duplicate_item);
+
+    gui::CanvasMenuItem delete_item(
+        "Delete", ICON_MD_DELETE,
+        [&interaction]() { interaction.HandleDeleteSelected(); }, "Del");
+    delete_item.enabled_condition = enabled_if(has_selection);
+    canvas_.AddContextMenuItem(delete_item);
+
+    gui::CanvasMenuItem paste_item(
+        "Paste", ICON_MD_CONTENT_PASTE,
+        [&interaction]() { interaction.HandlePasteObjects(); }, "Ctrl+V");
+    paste_item.enabled_condition = enabled_if(has_clipboard);
+    canvas_.AddContextMenuItem(paste_item);
+
+    gui::CanvasMenuItem cancel_item(
+        "Cancel Placement", ICON_MD_CANCEL,
+        [&interaction]() { interaction.CancelPlacement(); }, "Esc");
+    cancel_item.enabled_condition = enabled_if(placing_object);
+    canvas_.AddContextMenuItem(cancel_item);
+
+    // Send to Layer submenu
+    gui::CanvasMenuItem layer_menu;
+    layer_menu.label = "Send to Layer";
+    layer_menu.icon = ICON_MD_LAYERS;
+    layer_menu.enabled_condition = enabled_if(has_selection);
+
+    gui::CanvasMenuItem layer1_item(
+        "Layer 1 (BG1)", ICON_MD_LOOKS_ONE,
+        [&interaction]() { interaction.SendSelectedToLayer(0); }, "1");
+    layer1_item.enabled_condition = enabled_if(has_selection);
+    layer_menu.subitems.push_back(layer1_item);
+
+    gui::CanvasMenuItem layer2_item(
+        "Layer 2 (BG2)", ICON_MD_LOOKS_TWO,
+        [&interaction]() { interaction.SendSelectedToLayer(1); }, "2");
+    layer2_item.enabled_condition = enabled_if(has_selection);
+    layer_menu.subitems.push_back(layer2_item);
+
+    gui::CanvasMenuItem layer3_item(
+        "Layer 3 (BG3)", ICON_MD_LOOKS_3,
+        [&interaction]() { interaction.SendSelectedToLayer(2); }, "3");
+    layer3_item.enabled_condition = enabled_if(has_selection);
+    layer_menu.subitems.push_back(layer3_item);
+
+    canvas_.AddContextMenuItem(layer_menu);
+
+    // Arrange submenu (object draw order)
+    gui::CanvasMenuItem arrange_menu;
+    arrange_menu.label = "Arrange";
+    arrange_menu.icon = ICON_MD_SWAP_VERT;
+    arrange_menu.enabled_condition = enabled_if(has_selection);
+
+    gui::CanvasMenuItem bring_front_item(
+        "Bring to Front", ICON_MD_FLIP_TO_FRONT,
+        [&interaction]() { interaction.SendSelectedToFront(); }, "Ctrl+Shift+]");
+    bring_front_item.enabled_condition = enabled_if(has_selection);
+    arrange_menu.subitems.push_back(bring_front_item);
+
+    gui::CanvasMenuItem send_back_item(
+        "Send to Back", ICON_MD_FLIP_TO_BACK,
+        [&interaction]() { interaction.SendSelectedToBack(); }, "Ctrl+Shift+[");
+    send_back_item.enabled_condition = enabled_if(has_selection);
+    arrange_menu.subitems.push_back(send_back_item);
+
+    gui::CanvasMenuItem bring_forward_item(
+        "Bring Forward", ICON_MD_ARROW_UPWARD,
+        [&interaction]() { interaction.BringSelectedForward(); }, "Ctrl+]");
+    bring_forward_item.enabled_condition = enabled_if(has_selection);
+    arrange_menu.subitems.push_back(bring_forward_item);
+
+    gui::CanvasMenuItem send_backward_item(
+        "Send Backward", ICON_MD_ARROW_DOWNWARD,
+        [&interaction]() { interaction.SendSelectedBackward(); }, "Ctrl+[");
+    send_backward_item.enabled_condition = enabled_if(has_selection);
+    arrange_menu.subitems.push_back(send_backward_item);
+
+    canvas_.AddContextMenuItem(arrange_menu);
+
+    // === Entity Selection Actions (Doors, Sprites, Items) ===
+    const auto& selected_entity = interaction.GetSelectedEntity();
+    const bool has_entity_selection = interaction.HasEntitySelection();
+    
+    if (has_entity_selection && rooms_) {
+      auto& room = (*rooms_)[room_id];
+      
+      // Show selected entity info header
+      std::string entity_info;
+      switch (selected_entity.type) {
+        case EntityType::Door: {
+          const auto& doors = room.GetDoors();
+          if (selected_entity.index < doors.size()) {
+            const auto& door = doors[selected_entity.index];
+            entity_info = absl::StrFormat(ICON_MD_DOOR_FRONT " Door: %s",
+                std::string(zelda3::GetDoorTypeName(door.type)).c_str());
+          }
+          break;
+        }
+        case EntityType::Sprite: {
+          const auto& sprites = room.GetSprites();
+          if (selected_entity.index < sprites.size()) {
+            const auto& sprite = sprites[selected_entity.index];
+            entity_info = absl::StrFormat(ICON_MD_PERSON " Sprite: %s (0x%02X)",
+                zelda3::ResolveSpriteName(sprite.id()), sprite.id());
+          }
+          break;
+        }
+        case EntityType::Item: {
+          const auto& items = room.GetPotItems();
+          if (selected_entity.index < items.size()) {
+            const auto& item = items[selected_entity.index];
+            entity_info = absl::StrFormat(ICON_MD_INVENTORY " Item: 0x%02X", item.item);
+          }
+          break;
+        }
+        default:
+          break;
+      }
+      
+      if (!entity_info.empty()) {
+        canvas_.AddContextMenuItem(gui::CanvasMenuItem::Disabled(entity_info));
+        
+        // Delete entity action
+        gui::CanvasMenuItem delete_entity_item(
+            "Delete Entity", ICON_MD_DELETE,
+            [this, &room, selected_entity]() {
+              switch (selected_entity.type) {
+                case EntityType::Door: {
+                  auto& doors = room.GetDoors();
+                  if (selected_entity.index < doors.size()) {
+                    doors.erase(doors.begin() + 
+                        static_cast<long>(selected_entity.index));
+                  }
+                  break;
+                }
+                case EntityType::Sprite: {
+                  auto& sprites = room.GetSprites();
+                  if (selected_entity.index < sprites.size()) {
+                    sprites.erase(sprites.begin() + 
+                        static_cast<long>(selected_entity.index));
+                  }
+                  break;
+                }
+                case EntityType::Item: {
+                  auto& items = room.GetPotItems();
+                  if (selected_entity.index < items.size()) {
+                    items.erase(items.begin() + 
+                        static_cast<long>(selected_entity.index));
+                  }
+                  break;
+                }
+                default:
+                  break;
+              }
+              object_interaction_.ClearEntitySelection();
+            },
+            "Del");
+        canvas_.AddContextMenuItem(delete_entity_item);
+      }
+    }
+  }
+
+  // CRITICAL: Begin canvas frame using modern BeginCanvas/EndCanvas pattern
+  // This replaces DrawBackground + DrawContextMenu with a unified frame
+  auto canvas_rt = gui::BeginCanvas(canvas_, frame_opts);
 
   // Draw persistent debug overlays
   if (show_room_debug_info_ && rooms_ && rom_->is_loaded()) {
@@ -402,11 +1153,28 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       ImGui::Text("  BG2: %dx%d %s", bg2.width(), bg2.height(),
                   bg2.texture() ? "(has texture)" : "(NO TEXTURE)");
       ImGui::Separator();
-      ImGui::Text("Layers");
-      auto& layer_settings = GetRoomLayerSettings(room_id);
-      ImGui::Checkbox("BG1 Visible", &layer_settings.bg1_visible);
-      ImGui::Checkbox("BG2 Visible", &layer_settings.bg2_visible);
-      ImGui::SliderInt("BG2 Type", &layer_settings.bg2_layer_type, 0, 4);
+      ImGui::Text("Layers (4-way)");
+      auto& layer_mgr = GetRoomLayerManager(room_id);
+      bool bg1l = layer_mgr.IsLayerVisible(zelda3::LayerType::BG1_Layout);
+      bool bg1o = layer_mgr.IsLayerVisible(zelda3::LayerType::BG1_Objects);
+      bool bg2l = layer_mgr.IsLayerVisible(zelda3::LayerType::BG2_Layout);
+      bool bg2o = layer_mgr.IsLayerVisible(zelda3::LayerType::BG2_Objects);
+      if (ImGui::Checkbox("BG1 Layout", &bg1l))
+        layer_mgr.SetLayerVisible(zelda3::LayerType::BG1_Layout, bg1l);
+      if (ImGui::Checkbox("BG1 Objects", &bg1o))
+        layer_mgr.SetLayerVisible(zelda3::LayerType::BG1_Objects, bg1o);
+      if (ImGui::Checkbox("BG2 Layout", &bg2l))
+        layer_mgr.SetLayerVisible(zelda3::LayerType::BG2_Layout, bg2l);
+      if (ImGui::Checkbox("BG2 Objects", &bg2o))
+        layer_mgr.SetLayerVisible(zelda3::LayerType::BG2_Objects, bg2o);
+      int blend = static_cast<int>(
+          layer_mgr.GetLayerBlendMode(zelda3::LayerType::BG2_Layout));
+      if (ImGui::SliderInt("BG2 Blend", &blend, 0, 4)) {
+        layer_mgr.SetLayerBlendMode(zelda3::LayerType::BG2_Layout,
+                                    static_cast<zelda3::LayerBlendMode>(blend));
+        layer_mgr.SetLayerBlendMode(zelda3::LayerType::BG2_Objects,
+                                    static_cast<zelda3::LayerBlendMode>(blend));
+      }
 
       ImGui::Separator();
       ImGui::Text("Layout Override");
@@ -478,23 +1246,34 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     ImGui::SetNextWindowPos(
         ImVec2(canvas_.zero_point().x + 580, canvas_.zero_point().y + 10),
         ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(200, 0), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(220, 0), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Layer Info", &show_layer_info_,
                      ImGuiWindowFlags_NoCollapse)) {
       ImGui::Text("Canvas Scale: %.2f", canvas_.global_scale());
       ImGui::Text("Canvas Size: %.0fx%.0f", canvas_.width(), canvas_.height());
-      auto& layer_settings = GetRoomLayerSettings(room_id);
+      auto& layer_mgr = GetRoomLayerManager(room_id);
       ImGui::Separator();
-      ImGui::Text("Layer Visibility:");
-      ImGui::Text("  BG1: %s",
-                  layer_settings.bg1_visible ? "VISIBLE" : "hidden");
-      ImGui::Text("  BG2: %s",
-                  layer_settings.bg2_visible ? "VISIBLE" : "hidden");
-      ImGui::Text("BG2 Type: %d", layer_settings.bg2_layer_type);
-      const char* bg2_type_names[] = {"Normal", "Translucent", "Addition",
-                                      "Dark", "Off"};
-      ImGui::Text("  (%s)",
-                  bg2_type_names[std::min(layer_settings.bg2_layer_type, 4)]);
+      ImGui::Text("Layer Visibility (4-way):");
+
+      // Display each layer with visibility and blend mode
+      for (int i = 0; i < 4; ++i) {
+        auto layer = static_cast<zelda3::LayerType>(i);
+        bool visible = layer_mgr.IsLayerVisible(layer);
+        auto blend = layer_mgr.GetLayerBlendMode(layer);
+        ImGui::Text("  %s: %s (%s)",
+                    zelda3::RoomLayerManager::GetLayerName(layer),
+                    visible ? "VISIBLE" : "hidden",
+                    zelda3::RoomLayerManager::GetBlendModeName(blend));
+      }
+
+      ImGui::Separator();
+      ImGui::Text("Draw Order:");
+      auto draw_order = layer_mgr.GetDrawOrder();
+      for (int i = 0; i < 4; ++i) {
+        ImGui::Text("  %d: %s", i + 1,
+                    zelda3::RoomLayerManager::GetLayerName(draw_order[i]));
+      }
+      ImGui::Text("BG2 On Top: %s", layer_mgr.IsBG2OnTop() ? "YES" : "NO");
     }
     ImGui::End();
   }
@@ -525,12 +1304,22 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     if (room.GetTileObjects().empty()) {
       room.LoadObjects();
     }
+    
+    // Load sprites if not already loaded
+    if (room.GetSprites().empty()) {
+      room.LoadSprites();
+    }
+    
+    // Load pot items if not already loaded
+    if (room.GetPotItems().empty()) {
+      room.LoadPotItems();
+    }
 
     // CRITICAL: Process texture queue BEFORE drawing to ensure textures are
     // ready This must happen before DrawRoomBackgroundLayers() attempts to draw
     // bitmaps
     if (rom_ && rom_->is_loaded()) {
-      gfx::Arena::Get().ProcessTextureQueue(nullptr);
+      gfx::Arena::Get().ProcessTextureQueue(renderer_);
     }
 
     // Draw the room's background layers to canvas
@@ -538,9 +1327,15 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     // Room::RenderObjectsToBackground()
     DrawRoomBackgroundLayers(room_id);
 
-    // Render sprites as simple 16x16 squares with labels
-    // (Sprites are not part of the background buffers)
-    RenderSprites(room);
+    // Draw mask highlights when mask selection mode is active
+    // This helps visualize which objects are BG2 overlays
+    if (object_interaction_.IsMaskModeActive()) {
+      DrawMaskHighlights(canvas_rt, room);
+    }
+
+    // Render entity overlays (sprites, pot items) as colored squares with labels
+    // (Entities are not part of the background buffers)
+    RenderEntityOverlay(canvas_rt, room);
 
     // Handle object interaction if enabled
     if (object_interaction_enabled_) {
@@ -548,8 +1343,11 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       object_interaction_.CheckForObjectSelection();
       object_interaction_.DrawSelectBox();
       object_interaction_
-          .DrawSelectionHighlights();  // Draw selection highlights on top
-      object_interaction_.ShowContextMenu();  // Show dungeon-aware context menu
+          .DrawSelectionHighlights();  // Draw object selection highlights
+      object_interaction_
+          .DrawEntitySelectionHighlights();  // Draw door/sprite/item selection
+      object_interaction_.DrawGhostPreview();  // Draw placement preview
+      // Context menu is handled by BeginCanvas via frame_opts.draw_context_menu
     }
   }
 
@@ -562,45 +1360,104 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     // VISUALIZATION: Draw object position rectangles (for debugging)
     // This shows where objects are placed regardless of whether graphics render
     if (show_object_bounds_) {
-      DrawObjectPositionOutlines(room);
+      DrawObjectPositionOutlines(canvas_rt, room);
     }
   }
 
-  canvas_.DrawGrid();
-  canvas_.DrawOverlay();
-
-  // Draw layer information overlay
-  if (rooms_ && rom_->is_loaded()) {
-    auto& room = (*rooms_)[room_id];
-    std::string layer_info = absl::StrFormat(
-        "Room %03X - Objects: %zu, Sprites: %zu\n"
-        "Layers are game concept: Objects exist on different levels\n"
-        "connected by stair objects for player navigation",
-        room_id, room.GetTileObjects().size(), room.GetSprites().size());
-
-    canvas_.DrawText(layer_info, 10, canvas_.height() - 60);
+  // Draw coordinate overlay when hovering over canvas
+  if (show_coordinate_overlay_ && canvas_.IsMouseHovering()) {
+    ImVec2 mouse_pos = ImGui::GetMousePos();
+    ImVec2 canvas_pos = canvas_.zero_point();
+    float scale = canvas_.global_scale();
+    if (scale <= 0.0f) scale = 1.0f;
+    
+    // Calculate canvas-relative position
+    int canvas_x = static_cast<int>((mouse_pos.x - canvas_pos.x) / scale);
+    int canvas_y = static_cast<int>((mouse_pos.y - canvas_pos.y) / scale);
+    
+    // Only show if within bounds
+    if (canvas_x >= 0 && canvas_x < kRoomPixelWidth && 
+        canvas_y >= 0 && canvas_y < kRoomPixelHeight) {
+      // Calculate tile coordinates
+      int tile_x = canvas_x / kDungeonTileSize;
+      int tile_y = canvas_y / kDungeonTileSize;
+      
+      // Calculate camera/world coordinates (for minecart tracks, sprites, etc.)
+      auto [camera_x, camera_y] = dungeon_coords::TileToCameraCoords(room_id, tile_x, tile_y);
+      
+      // Calculate sprite coordinates (16-pixel units)
+      int sprite_x = canvas_x / dungeon_coords::kSpriteTileSize;
+      int sprite_y = canvas_y / dungeon_coords::kSpriteTileSize;
+      
+      // Draw coordinate info box at mouse position
+      ImVec2 overlay_pos = ImVec2(mouse_pos.x + 15, mouse_pos.y + 15);
+      
+      // Build coordinate text
+      std::string coord_text = absl::StrFormat(
+          "Tile: (%d, %d)\n"
+          "Pixel: (%d, %d)\n"
+          "Camera: ($%04X, $%04X)\n"
+          "Sprite: (%d, %d)",
+          tile_x, tile_y,
+          canvas_x, canvas_y,
+          camera_x, camera_y,
+          sprite_x, sprite_y);
+      
+      // Draw background box
+      ImVec2 text_size = ImGui::CalcTextSize(coord_text.c_str());
+      ImVec2 box_min = ImVec2(overlay_pos.x - 4, overlay_pos.y - 2);
+      ImVec2 box_max = ImVec2(overlay_pos.x + text_size.x + 8, overlay_pos.y + text_size.y + 4);
+      
+      ImDrawList* draw_list = ImGui::GetWindowDrawList();
+      draw_list->AddRectFilled(box_min, box_max, IM_COL32(0, 0, 0, 200), 4.0f);
+      draw_list->AddRect(box_min, box_max, IM_COL32(100, 100, 100, 255), 4.0f);
+      draw_list->AddText(overlay_pos, IM_COL32(255, 255, 255, 255), coord_text.c_str());
+    }
   }
+
+  // End canvas frame - this draws grid/overlay based on frame_opts
+  gui::EndCanvas(canvas_, canvas_rt, frame_opts);
 }
 
-void DungeonCanvasViewer::DisplayObjectInfo(const zelda3::RoomObject& object,
+void DungeonCanvasViewer::DisplayObjectInfo(const gui::CanvasRuntime& rt,
+                                            const zelda3::RoomObject& object,
                                             int canvas_x, int canvas_y) {
-  // Display object information as text overlay
-  std::string info_text = absl::StrFormat("ID:%d X:%d Y:%d S:%d", object.id_,
-                                          object.x_, object.y_, object.size_);
+  // Display object information as text overlay with hex ID and name
+  std::string name = GetObjectName(object.id_);
+  std::string info_text;
+  if (object.id_ >= 0x100) {
+    info_text =
+        absl::StrFormat("0x%03X %s (X:%d Y:%d S:0x%02X)", object.id_,
+                        name.c_str(), object.x_, object.y_, object.size_);
+  } else {
+    info_text =
+        absl::StrFormat("0x%02X %s (X:%d Y:%d S:0x%02X)", object.id_,
+                        name.c_str(), object.x_, object.y_, object.size_);
+  }
 
-  // Draw text at the object position
-  canvas_.DrawText(info_text, canvas_x, canvas_y - 12);
+  // Draw text at the object position using runtime-based helper
+  gui::DrawText(rt, info_text, canvas_x, canvas_y - 12);
 }
 
-void DungeonCanvasViewer::RenderSprites(const zelda3::Room& room) {
+void DungeonCanvasViewer::RenderSprites(const gui::CanvasRuntime& rt,
+                                        const zelda3::Room& room) {
+  // Skip if sprites are not visible
+  if (!entity_visibility_.show_sprites) {
+    return;
+  }
+
   const auto& theme = AgentUI::GetTheme();
 
-  // Render sprites as simple 8x8 squares with sprite name/ID
+  // Render sprites as 16x16 colored squares with sprite name/ID
+  // NOTE: Sprite coordinates are in 16-pixel units (0-31 range = 512 pixels)
+  // unlike object coordinates which are in 8-pixel tile units
   for (const auto& sprite : room.GetSprites()) {
-    auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(sprite.x(), sprite.y());
+    // Sprites use 16-pixel coordinate system
+    int canvas_x = sprite.x() * 16;
+    int canvas_y = sprite.y() * 16;
 
-    if (IsWithinCanvasBounds(canvas_x, canvas_y, 8)) {
-      // Draw 8x8 square for sprite
+    if (IsWithinCanvasBounds(canvas_x, canvas_y, 16)) {
+      // Draw 16x16 square for sprite (like overworld entities)
       ImVec4 sprite_color;
 
       // Color-code sprites based on layer
@@ -610,36 +1467,117 @@ void DungeonCanvasViewer::RenderSprites(const zelda3::Room& room) {
         sprite_color = theme.dungeon_sprite_layer1;  // Blue for layer 1
       }
 
-      canvas_.DrawRect(canvas_x, canvas_y, 8, 8, sprite_color);
+      // Draw filled square using runtime-based helper
+      gui::DrawRect(rt, canvas_x, canvas_y, 16, 16, sprite_color);
 
-      // Draw sprite border
-      canvas_.DrawRect(canvas_x, canvas_y, 8, 8, theme.panel_border_color);
-
-      // Draw sprite ID and name
+      // Draw sprite ID and name using unified ResourceLabelProvider
+      std::string full_name = zelda3::GetSpriteLabel(sprite.id());
       std::string sprite_text;
-      if (sprite.id() >= 0) {  // sprite.id() is uint8_t so always < 256
-        // Extract just the sprite name part (remove ID prefix)
-        std::string full_name = zelda3::kSpriteDefaultNames[sprite.id()];
-        auto space_pos = full_name.find(' ');
-        if (space_pos != std::string::npos &&
-            space_pos < full_name.length() - 1) {
-          std::string sprite_name = full_name.substr(space_pos + 1);
-          // Truncate long names
-          if (sprite_name.length() > 8) {
-            sprite_name = sprite_name.substr(0, 8) + "...";
-          }
-          sprite_text =
-              absl::StrFormat("%02X\n%s", sprite.id(), sprite_name.c_str());
-        } else {
-          sprite_text = absl::StrFormat("%02X", sprite.id());
-        }
+      // Truncate long names for display
+      if (full_name.length() > 12) {
+        sprite_text = absl::StrFormat("%02X %s..", sprite.id(),
+                                      full_name.substr(0, 8).c_str());
       } else {
-        sprite_text = absl::StrFormat("%02X", sprite.id());
+        sprite_text = absl::StrFormat("%02X %s", sprite.id(), full_name.c_str());
       }
 
-      canvas_.DrawText(sprite_text, canvas_x + 18, canvas_y);
+      gui::DrawText(rt, sprite_text, canvas_x, canvas_y);
     }
   }
+}
+
+void DungeonCanvasViewer::RenderPotItems(const gui::CanvasRuntime& rt,
+                                         const zelda3::Room& room) {
+  // Skip if pot items are not visible
+  if (!entity_visibility_.show_pot_items) {
+    return;
+  }
+
+  const auto& pot_items = room.GetPotItems();
+
+  // If no pot items in this room, nothing to render
+  if (pot_items.empty()) {
+    return;
+  }
+
+  // Pot item names
+  static const char* kPotItemNames[] = {
+      "Nothing",        // 0
+      "Green Rupee",    // 1
+      "Rock",           // 2
+      "Bee",            // 3
+      "Health",         // 4
+      "Bomb",           // 5
+      "Heart",          // 6
+      "Blue Rupee",     // 7
+      "Key",            // 8
+      "Arrow",          // 9
+      "Bomb",           // 10
+      "Heart",          // 11
+      "Magic",          // 12
+      "Full Magic",     // 13
+      "Cucco",          // 14
+      "Green Soldier",  // 15
+      "Bush Stal",      // 16
+      "Blue Soldier",   // 17
+      "Landmine",       // 18
+      "Heart",          // 19
+      "Fairy",          // 20
+      "Heart",          // 21
+      "Nothing",        // 22
+      "Hole",           // 23
+      "Warp",           // 24
+      "Staircase",      // 25
+      "Bombable",       // 26
+      "Switch"          // 27
+  };
+  constexpr size_t kPotItemNameCount =
+      sizeof(kPotItemNames) / sizeof(kPotItemNames[0]);
+
+  // Pot items now have their own position data from ROM
+  // No need to match to objects - each item has exact pixel coordinates
+  for (const auto& pot_item : pot_items) {
+    // Get pixel coordinates from PotItem structure
+    int pixel_x = pot_item.GetPixelX();
+    int pixel_y = pot_item.GetPixelY();
+
+    // Convert to canvas coordinates (already in pixels, just need offset)
+    // Note: pot item coords are already in full room pixel space
+    auto [canvas_x, canvas_y] =
+        RoomToCanvasCoordinates(pixel_x / 8, pixel_y / 8);
+
+    if (IsWithinCanvasBounds(canvas_x, canvas_y, 16)) {
+      // Draw colored square
+      ImVec4 pot_item_color;
+      if (pot_item.item == 0) {
+        pot_item_color = ImVec4(0.5f, 0.5f, 0.5f, 0.5f);  // Gray for Nothing
+      } else {
+        pot_item_color = ImVec4(1.0f, 0.85f, 0.2f, 0.75f);  // Yellow for items
+      }
+
+      gui::DrawRect(rt, canvas_x, canvas_y, 16, 16, pot_item_color);
+
+      // Get item name
+      std::string item_name;
+      if (pot_item.item < kPotItemNameCount) {
+        item_name = kPotItemNames[pot_item.item];
+      } else {
+        item_name = absl::StrFormat("Unk%02X", pot_item.item);
+      }
+
+      // Draw label above the box
+      std::string item_text =
+          absl::StrFormat("%02X %s", pot_item.item, item_name.c_str());
+      gui::DrawText(rt, item_text, canvas_x, canvas_y - 10);
+    }
+  }
+}
+
+void DungeonCanvasViewer::RenderEntityOverlay(const gui::CanvasRuntime& rt,
+                                              const zelda3::Room& room) {
+  // Render all entity overlays using runtime-based helpers
+  RenderSprites(rt, room);
+  RenderPotItems(rt, room);
 }
 
 // Coordinate conversion helper functions
@@ -682,54 +1620,24 @@ bool DungeonCanvasViewer::IsWithinCanvasBounds(int canvas_x, int canvas_y,
           canvas_x <= canvas_width + margin &&
           canvas_y <= canvas_height + margin);
 }
-
-void DungeonCanvasViewer::CalculateWallDimensions(
-    const zelda3::RoomObject& object, int& width, int& height) {
-  // Default base size
-  width = 8;
-  height = 8;
-
-  // For walls, use the size field to determine length and orientation
-  if (object.id_ >= 0x10 && object.id_ <= 0x1F) {
-    // Wall objects: size determines length and orientation
-    uint8_t size_x = object.size_ & 0x0F;
-    uint8_t size_y = (object.size_ >> 4) & 0x0F;
-
-    // Walls can be horizontal or vertical based on size parameters
-    if (size_x > size_y) {
-      // Horizontal wall
-      width = 8 + size_x * 8;  // Each unit adds 8 pixels
-      height = 8;
-    } else if (size_y > size_x) {
-      // Vertical wall
-      width = 8;
-      height = 8 + size_y * 8;
-    } else {
-      // Square wall or corner
-      width = 8 + size_x * 4;
-      height = 8 + size_y * 4;
-    }
-  } else {
-    // For other objects, use standard size calculation
-    width = 8 + (object.size_ & 0x0F) * 4;
-    height = 8 + ((object.size_ >> 4) & 0x0F) * 4;
-  }
-
-  // Clamp to reasonable limits
-  width = std::min(width, 256);
-  height = std::min(height, 256);
-}
-
 // Room layout visualization
 
 // Object visualization methods
-void DungeonCanvasViewer::DrawObjectPositionOutlines(const zelda3::Room& room) {
+void DungeonCanvasViewer::DrawObjectPositionOutlines(
+    const gui::CanvasRuntime& rt, const zelda3::Room& room) {
   // Draw colored rectangles showing object positions
   // This helps visualize object placement even if graphics don't render
   // correctly
 
   const auto& theme = AgentUI::GetTheme();
   const auto& objects = room.GetTileObjects();
+
+  // Create ObjectDrawer for accurate dimension calculation
+  // ObjectDrawer uses game-accurate draw routine mapping to determine sizes
+  // Note: const_cast needed because rom() accessor is non-const, but we don't
+  // modify ROM
+  zelda3::ObjectDrawer drawer(const_cast<zelda3::Room&>(room).rom(), room.id(),
+                              nullptr);
 
   for (const auto& obj : objects) {
     // Filter by object type (default to true if unknown type)
@@ -763,19 +1671,19 @@ void DungeonCanvasViewer::DrawObjectPositionOutlines(const zelda3::Room& room) {
     // (UNSCALED)
     auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(obj.x(), obj.y());
 
-    // Calculate object dimensions based on type and size (UNSCALED logical
-    // pixels)
-    int width = 8;  // Default 8x8 pixels
-    int height = 8;
-
-    // Use ZScream pattern: size field determines dimensions
-    // Lower nibble = horizontal size, upper nibble = vertical size
-    int size_h = (obj.size() & 0x0F);
-    int size_v = (obj.size() >> 4) & 0x0F;
-
-    // Objects are typically (size+1) tiles wide/tall (8 pixels per tile)
-    width = (size_h + 1) * 8;
-    height = (size_v + 1) * 8;
+    // Calculate object dimensions using the shared dimension table when loaded
+    int width = 16;
+    int height = 16;
+    auto& dim_table = zelda3::ObjectDimensionTable::Get();
+    if (dim_table.IsLoaded()) {
+      auto [w_tiles, h_tiles] = dim_table.GetDimensions(obj.id_, obj.size_);
+      width = w_tiles * 8;
+      height = h_tiles * 8;
+    } else {
+      auto [w, h] = drawer.CalculateObjectDimensions(obj);
+      width = w;
+      height = h;
+    }
 
     // IMPORTANT: Do NOT apply canvas scale here - DrawRect handles it
     // Clamp to reasonable sizes (in logical space)
@@ -792,12 +1700,25 @@ void DungeonCanvasViewer::DrawObjectPositionOutlines(const zelda3::Room& room) {
       outline_color = theme.dungeon_outline_layer2;  // Blue for layer 2
     }
 
-    // Draw outline rectangle
-    canvas_.DrawRect(canvas_x, canvas_y, width, height, outline_color);
+    // Draw outline rectangle using runtime-based helper
+    gui::DrawRect(rt, canvas_x, canvas_y, width, height, outline_color);
 
-    // Draw object ID label (smaller, less obtrusive)
-    std::string label = absl::StrFormat("%02X", obj.id_);
-    canvas_.DrawText(label, canvas_x + 1, canvas_y + 1);
+    // Draw object ID label with hex ID and abbreviated name
+    // Format: "0xNN Name" where name is truncated if needed
+    std::string name = GetObjectName(obj.id_);
+    // Truncate name to fit (approx 12 chars for small objects)
+    if (name.length() > 12) {
+      name = name.substr(0, 10) + "..";
+    }
+    std::string label;
+    if (obj.id_ >= 0x100) {
+      label = absl::StrFormat("0x%03X\n%s\n[%dx%d]", obj.id_, name.c_str(),
+                              width, height);
+    } else {
+      label = absl::StrFormat("0x%02X\n%s\n[%dx%d]", obj.id_, name.c_str(),
+                              width, height);
+    }
+    gui::DrawText(rt, label, canvas_x + 1, canvas_y + 1);
   }
 }
 
@@ -830,24 +1751,26 @@ absl::Status DungeonCanvasViewer::LoadAndRenderRoomGraphics(int room_id) {
   LOG_DEBUG("[LoadAndRender]", "Graphics loaded");
 
   // Load the room's palette with bounds checking
-  if (room.palette < rom_->paletteset_ids.size() &&
-      !rom_->paletteset_ids[room.palette].empty()) {
-    auto dungeon_palette_ptr = rom_->paletteset_ids[room.palette][0];
-    auto palette_id = rom_->ReadWord(0xDEC4B + dungeon_palette_ptr);
-    if (palette_id.ok()) {
-      current_palette_group_id_ = palette_id.value() / 180;
-      if (current_palette_group_id_ <
-          rom_->palette_group().dungeon_main.size()) {
-        auto full_palette =
-            rom_->palette_group().dungeon_main[current_palette_group_id_];
-        // TODO: Fix palette assignment to buffer.
-        ASSIGN_OR_RETURN(
-            current_palette_group_,
-            gfx::CreatePaletteGroupFromLargePalette(full_palette, 16));
-        LOG_DEBUG("[LoadAndRender]", "Palette loaded: group_id=%zu",
-                  current_palette_group_id_);
-      }
+  if (!game_data_) {
+    LOG_ERROR("[LoadAndRender]", "GameData not available");
+    return absl::FailedPreconditionError("GameData not available");
+  }
+  const auto& dungeon_main = game_data_->palette_groups.dungeon_main;
+  if (!dungeon_main.empty()) {
+    int palette_id = room.palette;
+    if (room.palette < game_data_->paletteset_ids.size()) {
+      palette_id = game_data_->paletteset_ids[room.palette][0];
     }
+    current_palette_group_id_ =
+        std::min<uint64_t>(std::max(0, palette_id),
+                           static_cast<int>(dungeon_main.size() - 1));
+
+    auto full_palette = dungeon_main[current_palette_group_id_];
+    ASSIGN_OR_RETURN(
+        current_palette_group_,
+        gfx::CreatePaletteGroupFromLargePalette(full_palette, 16));
+    LOG_DEBUG("[LoadAndRender]", "Palette loaded: group_id=%zu",
+              current_palette_group_id_);
   }
 
   // Render the room graphics (self-contained - handles all palette application)
@@ -865,120 +1788,79 @@ void DungeonCanvasViewer::DrawRoomBackgroundLayers(int room_id) {
     return;
 
   auto& room = (*rooms_)[room_id];
-  auto& layer_settings = GetRoomLayerSettings(room_id);
+  auto& layer_mgr = GetRoomLayerManager(room_id);
 
-  // Use THIS room's own buffers, not global arena!
-  auto& bg1_bitmap = room.bg1_buffer().bitmap();
-  auto& bg2_bitmap = room.bg2_buffer().bitmap();
+  // Apply room's layer merging settings to the manager
+  layer_mgr.ApplyLayerMerging(room.layer_merging());
 
-  // Draw BG1 layer if visible and active
-  if (layer_settings.bg1_visible && bg1_bitmap.is_active() &&
-      bg1_bitmap.width() > 0 && bg1_bitmap.height() > 0) {
-    if (!bg1_bitmap.texture()) {
-      // Queue texture creation for background layer 1 via Arena's deferred
-      // system BATCHING FIX: Don't process immediately - let the main loop
-      // handle batching
+  float scale = canvas_.global_scale();
+
+  // Always use composite mode: single merged bitmap with back-to-front layer order
+  // This matches SNES hardware behavior where BG2 is drawn first, then BG1 on top
+  auto& composite = room.GetCompositeBitmap(layer_mgr);
+  if (composite.is_active() && composite.width() > 0) {
+    // Ensure texture exists or is updated when bitmap data changes
+    if (!composite.texture()) {
       gfx::Arena::Get().QueueTextureCommand(
-          gfx::Arena::TextureCommandType::CREATE, &bg1_bitmap);
-
-      // Queue will be processed at the end of the frame in DrawDungeonCanvas()
-      // This allows multiple rooms to batch their texture operations together
-    }
-
-    // Only draw if texture was successfully created
-    if (bg1_bitmap.texture()) {
-      // Use canvas global scale so bitmap scales with zoom
-      float scale = canvas_.global_scale();
-      LOG_DEBUG("DungeonCanvasViewer",
-                "Drawing BG1 bitmap to canvas with texture %p, scale=%.2f",
-                bg1_bitmap.texture(), scale);
-      canvas_.DrawBitmap(bg1_bitmap, 0, 0, scale, 255);
-    } else {
-      LOG_DEBUG("DungeonCanvasViewer", "ERROR: BG1 bitmap has no texture!");
-    }
-  }
-
-  // Draw BG2 layer if visible and active
-  if (layer_settings.bg2_visible && bg2_bitmap.is_active() &&
-      bg2_bitmap.width() > 0 && bg2_bitmap.height() > 0) {
-    if (!bg2_bitmap.texture()) {
-      // Queue texture creation for background layer 2 via Arena's deferred
-      // system BATCHING FIX: Don't process immediately - let the main loop
-      // handle batching
+          gfx::Arena::TextureCommandType::CREATE, &composite);
+      composite.set_modified(false);
+    } else if (composite.modified()) {
+      // Update texture when bitmap was regenerated
       gfx::Arena::Get().QueueTextureCommand(
-          gfx::Arena::TextureCommandType::CREATE, &bg2_bitmap);
+          gfx::Arena::TextureCommandType::UPDATE, &composite);
+      composite.set_modified(false);
+    }
+    if (composite.texture()) {
+      canvas_.DrawBitmap(composite, 0, 0, scale, 255);
+    }
+  }
+}
 
-      // Queue will be processed at the end of the frame in DrawDungeonCanvas()
-      // This allows multiple rooms to batch their texture operations together
+void DungeonCanvasViewer::DrawMaskHighlights(const gui::CanvasRuntime& rt,
+                                              const zelda3::Room& room) {
+  // Draw semi-transparent blue overlay on BG2/Layer 1 objects when mask mode
+  // is active. This helps identify which objects are the "overlay" content
+  // (platforms, statues, stairs) that create transparency holes in BG1.
+  const auto& objects = room.GetTileObjects();
+
+  // Create ObjectDrawer for dimension calculation
+  zelda3::ObjectDrawer drawer(const_cast<zelda3::Room&>(room).rom(), room.id(),
+                              nullptr);
+
+  // Mask highlight color: semi-transparent cyan/blue
+  // DrawRect draws a filled rectangle with a black outline
+  ImVec4 mask_color(0.2f, 0.6f, 1.0f, 0.4f);  // Light blue, 40% opacity
+
+  for (const auto& obj : objects) {
+    // Only highlight Layer 1 (BG2) objects - these are the mask/overlay objects
+    if (obj.GetLayerValue() != 1) {
+      continue;
     }
 
-    // Only draw if texture was successfully created
-    if (bg2_bitmap.texture()) {
-      // Use the selected BG2 layer type alpha value
-      const int bg2_alpha_values[] = {255, 191, 127, 64, 0};
-      int alpha_value =
-          bg2_alpha_values[std::min(layer_settings.bg2_layer_type, 4)];
-      // Use canvas global scale so bitmap scales with zoom
-      float scale = canvas_.global_scale();
-      LOG_DEBUG(
-          "DungeonCanvasViewer",
-          "Drawing BG2 bitmap to canvas with texture %p, alpha=%d, scale=%.2f",
-          bg2_bitmap.texture(), alpha_value, scale);
-      canvas_.DrawBitmap(bg2_bitmap, 0, 0, scale, alpha_value);
+    // Convert object position to canvas coordinates
+    auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(obj.x(), obj.y());
+
+    // Calculate object dimensions
+    int width = 16;
+    int height = 16;
+    auto& dim_table = zelda3::ObjectDimensionTable::Get();
+    if (dim_table.IsLoaded()) {
+      auto [w_tiles, h_tiles] = dim_table.GetDimensions(obj.id_, obj.size_);
+      width = w_tiles * 8;
+      height = h_tiles * 8;
     } else {
-      LOG_DEBUG("DungeonCanvasViewer", "ERROR: BG2 bitmap has no texture!");
+      auto [w, h] = drawer.CalculateObjectDimensions(obj);
+      width = w;
+      height = h;
     }
+
+    // Clamp to reasonable sizes
+    width = std::min(width, 512);
+    height = std::min(height, 512);
+
+    // Draw filled rectangle with semi-transparent overlay (includes black outline)
+    gui::DrawRect(rt, canvas_x, canvas_y, width, height, mask_color);
   }
-
-  // DEBUG: Check if background buffers have content
-  if (bg1_bitmap.is_active() && bg1_bitmap.width() > 0) {
-    LOG_DEBUG("DungeonCanvasViewer",
-              "BG1 bitmap: %dx%d, active=%d, visible=%d, texture=%p",
-              bg1_bitmap.width(), bg1_bitmap.height(), bg1_bitmap.is_active(),
-              layer_settings.bg1_visible, bg1_bitmap.texture());
-
-    // Check bitmap data content
-    auto& bg1_data = bg1_bitmap.mutable_data();
-    int non_zero_pixels = 0;
-    for (size_t i = 0; i < bg1_data.size();
-         i += 100) {  // Sample every 100th pixel
-      if (bg1_data[i] != 0)
-        non_zero_pixels++;
-    }
-    LOG_DEBUG("DungeonCanvasViewer",
-              "BG1 bitmap data: %zu pixels, ~%d non-zero samples",
-              bg1_data.size(), non_zero_pixels);
-  }
-  if (bg2_bitmap.is_active() && bg2_bitmap.width() > 0) {
-    LOG_DEBUG(
-        "DungeonCanvasViewer",
-        "BG2 bitmap: %dx%d, active=%d, visible=%d, layer_type=%d, texture=%p",
-        bg2_bitmap.width(), bg2_bitmap.height(), bg2_bitmap.is_active(),
-        layer_settings.bg2_visible, layer_settings.bg2_layer_type,
-        bg2_bitmap.texture());
-
-    // Check bitmap data content
-    auto& bg2_data = bg2_bitmap.mutable_data();
-    int non_zero_pixels = 0;
-    for (size_t i = 0; i < bg2_data.size();
-         i += 100) {  // Sample every 100th pixel
-      if (bg2_data[i] != 0)
-        non_zero_pixels++;
-    }
-    LOG_DEBUG("DungeonCanvasViewer",
-              "BG2 bitmap data: %zu pixels, ~%d non-zero samples",
-              bg2_data.size(), non_zero_pixels);
-  }
-
-  // DEBUG: Show canvas and bitmap info
-  LOG_DEBUG("DungeonCanvasViewer",
-            "Canvas pos: (%.1f, %.1f), Canvas size: (%.1f, %.1f)",
-            canvas_.zero_point().x, canvas_.zero_point().y, canvas_.width(),
-            canvas_.height());
-  LOG_DEBUG("DungeonCanvasViewer",
-            "BG1 bitmap size: %dx%d, BG2 bitmap size: %dx%d",
-            bg1_bitmap.width(), bg1_bitmap.height(), bg2_bitmap.width(),
-            bg2_bitmap.height());
 }
 
 }  // namespace yaze::editor

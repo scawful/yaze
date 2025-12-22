@@ -79,6 +79,10 @@ bool ColoredButton(const char* label, ButtonType type,
 bool ToggleIconButton(const char* icon_on, const char* icon_off, bool* state,
                       const char* tooltip = nullptr);
 
+// Toggle button that looks like a regular button but stays pressed
+bool ToggleButton(const char* label, bool active,
+                  const ImVec2& size = ImVec2(0, 0));
+
 // Help marker with tooltip
 void HelpMarker(const char* desc);
 
@@ -176,6 +180,9 @@ bool LabeledInputHex(const char* label, uint16_t* value);
 // Combo with icon
 bool IconCombo(const char* icon, const char* label, int* current,
                const char* const items[], int count);
+
+// Helper to create consistent card titles
+std::string MakePanelTitle(const std::string& title);
 
 }  // namespace gui
 }  // namespace yaze

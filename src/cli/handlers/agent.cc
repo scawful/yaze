@@ -7,7 +7,7 @@
 #include "absl/flags/flag.h"
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "cli/cli.h"
 #include "cli/handlers/agent/common.h"
 #include "cli/handlers/agent/simple_chat_command.h"

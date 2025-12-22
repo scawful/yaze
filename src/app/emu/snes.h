@@ -5,6 +5,8 @@
 #include <functional>
 #include <memory>
 
+#include "absl/status/status.h"
+
 #include "app/emu/audio/apu.h"
 #include "app/emu/cpu/cpu.h"
 #include "app/emu/debug/apu_debugger.h"
@@ -18,8 +20,9 @@ struct Input {
   uint8_t type;
   bool latch_line_;
   // for controller
-  uint16_t current_state_;  // actual state
-  uint16_t latched_state_;
+  uint16_t current_state_;   // actual state from this frame
+  uint16_t latched_state_;   // state being shifted out for serial read
+  uint16_t previous_state_;  // state from previous frame for edge detection
 };
 
 class Snes {
@@ -41,9 +44,10 @@ class Snes {
   }
   ~Snes() = default;
 
-  void Init(std::vector<uint8_t>& rom_data);
+  void Init(const std::vector<uint8_t>& rom_data);
   void Reset(bool hard = false);
   void RunFrame();
+  void RunAudioFrame();  // Audio-focused frame: runs CPU+APU, skips PPU rendering
   void CatchUpApu();
   void HandleInput();
   void RunCycle();
@@ -70,16 +74,38 @@ class Snes {
   void SetPixels(uint8_t* pixel_data);
   void SetButtonState(int player, int button, bool pressed);
 
-  void loadState(const std::string& path);
-  void saveState(const std::string& path);
+  absl::Status loadState(const std::string& path);
+  absl::Status saveState(const std::string& path);
+  absl::Status LoadLegacyState(std::istream& file);
 
   bool running() const { return running_; }
+  bool audio_only_mode() const { return audio_only_mode_; }
+  void set_audio_only_mode(bool mode) { audio_only_mode_ = mode; }
   auto cpu() -> Cpu& { return cpu_; }
   auto ppu() -> Ppu& { return ppu_; }
   auto apu() -> Apu& { return apu_; }
+  auto apu() const -> const Apu& { return apu_; }
   auto memory() -> MemoryImpl& { return memory_; }
   auto get_ram() -> uint8_t* { return ram; }
   auto mutable_cycles() -> uint64_t& { return cycles_; }
+
+  // Input state accessors (for debugging UI)
+  uint16_t GetInput1State() const { return input1.current_state_; }
+  uint16_t GetInput2State() const { return input2.current_state_; }
+  uint16_t GetPortAutoRead(int index) const {
+    return (index >= 0 && index < 4) ? port_auto_read_[index] : 0;
+  }
+  bool IsAutoJoyReadEnabled() const { return auto_joy_read_; }
+
+  // Frame metrics
+  void ResetFrameMetrics() {
+    dma_bytes_frame_ = 0;
+    vram_bytes_frame_ = 0;
+  }
+  void AccumulateDmaBytes(uint32_t bytes) { dma_bytes_frame_ += bytes; }
+  void AccumulateVramBytes(uint32_t bytes) { vram_bytes_frame_ += bytes; }
+  uint64_t dma_bytes_frame() const { return dma_bytes_frame_; }
+  uint64_t vram_bytes_frame() const { return vram_bytes_frame_; }
 
   // Audio debugging
   auto apu_handshake_tracker() -> debug::ApuHandshakeTracker& {
@@ -97,6 +123,7 @@ class Snes {
   std::vector<uint8_t> rom_data;
 
   bool running_ = false;
+  bool audio_only_mode_ = false;  // Skip PPU rendering for audio-focused playback
 
   // ram
   uint8_t ram[0x20000];
@@ -106,6 +133,8 @@ class Snes {
   uint32_t frames_ = 0;
   uint64_t cycles_ = 0;
   uint64_t sync_cycle_ = 0;
+  uint64_t dma_bytes_frame_ = 0;
+  uint64_t vram_bytes_frame_ = 0;
   double apu_catchup_cycles_;
   uint32_t next_horiz_event;
 

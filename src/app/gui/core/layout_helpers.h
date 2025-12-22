@@ -75,7 +75,7 @@ class LayoutHelpers {
   static void HelpMarker(const char* desc);
 
   // Get current theme
-  static const EnhancedTheme& GetTheme() {
+  static const Theme& GetTheme() {
     return ThemeManager::Get().GetCurrentTheme();
   }
 

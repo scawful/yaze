@@ -9,7 +9,8 @@
 #include "absl/status/status.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
-#include "app/rom.h"
+#include "rom/rom.h"
+#include "zelda3/game_data.h"
 #include "zelda3/overworld/overworld_version_helper.h"
 
 namespace yaze {
@@ -98,11 +99,22 @@ typedef struct OverworldMapTiles {
 class OverworldMap : public gfx::GfxContext {
  public:
   OverworldMap() = default;
-  OverworldMap(int index, Rom* rom);
+  OverworldMap(int index, Rom* rom, GameData* game_data = nullptr);
+
+  void SetGameData(GameData* game_data) { game_data_ = game_data; }
 
   absl::Status BuildMap(int count, int game_state, int world,
                         std::vector<gfx::Tile16>& tiles16,
                         OverworldBlockset& world_blockset);
+
+  /**
+   * @brief Build map with optional cached tileset for performance
+   * @param cached_tileset Pre-computed tileset data (nullptr to build fresh)
+   */
+  absl::Status BuildMapWithCache(int count, int game_state, int world,
+                                  std::vector<gfx::Tile16>& tiles16,
+                                  OverworldBlockset& world_blockset,
+                                  const std::vector<uint8_t>* cached_tileset);
 
   void LoadAreaGraphics();
   absl::Status LoadPalette();
@@ -111,6 +123,14 @@ class OverworldMap : public gfx::GfxContext {
   absl::Status BuildTileset();
   absl::Status BuildTiles16Gfx(std::vector<gfx::Tile16>& tiles16, int count);
   absl::Status BuildBitmap(OverworldBlockset& world_blockset);
+
+  /**
+   * @brief Use a pre-computed tileset from cache instead of rebuilding
+   * @param cached_gfx The cached current_gfx_ data (64KB)
+   */
+  void UseCachedTileset(const std::vector<uint8_t>& cached_gfx) {
+    current_gfx_ = cached_gfx;
+  }
 
   void DrawAnimatedTiles();
 
@@ -136,6 +156,7 @@ class OverworldMap : public gfx::GfxContext {
   auto static_graphics(int i) const { return static_graphics_[i]; }
   auto large_index() const { return large_index_; }
   auto area_size() const { return area_size_; }
+  auto main_gfx_id() const { return main_gfx_id_; }
 
   auto main_palette() const { return main_palette_; }
   void set_main_palette(uint8_t palette) { main_palette_ = palette; }
@@ -150,6 +171,9 @@ class OverworldMap : public gfx::GfxContext {
 
   auto animated_gfx() const { return animated_gfx_; }
   void set_animated_gfx(uint8_t gfx) { animated_gfx_ = gfx; }
+
+  auto game_state() const { return game_state_; }
+  void set_game_state(int state) { game_state_ = state; }
 
   auto custom_tileset(int index) const { return custom_gfx_ids_[index]; }
 
@@ -215,40 +239,37 @@ class OverworldMap : public gfx::GfxContext {
 
   void SetParent(int parent_index) { parent_ = parent_index; }
 
+  /**
+   * @brief Free memory-heavy data while preserving map identity
+   *
+   * This method is called by LRU eviction to free memory.
+   * IMPORTANT: Do NOT reset index_, parent_, rom_, or other identity fields!
+   * The map must be rebuildable using EnsureMapBuilt() after eviction.
+   */
   void Destroy() {
+    // Free memory-heavy data
     current_blockset_.clear();
     current_gfx_.clear();
     bitmap_data_.clear();
     map_tiles_.light_world.clear();
     map_tiles_.dark_world.clear();
     map_tiles_.special_world.clear();
+
+    // Reset build state (allows rebuild)
     built_ = false;
     initialized_ = false;
-    large_map_ = false;
-    mosaic_ = false;
-    index_ = 0;
-    parent_ = 0;
-    large_index_ = 0;
+
+    // Reset runtime state (will be recomputed on rebuild)
     world_ = 0;
     game_state_ = 0;
     main_gfx_id_ = 0;
-    message_id_ = 0;
-    area_graphics_ = 0;
-    area_palette_ = 0;
-    main_palette_ = 0;
-    animated_gfx_ = 0;
-    subscreen_overlay_ = 0;
-    area_specific_bg_color_ = 0;
-    custom_gfx_ids_.fill(0);
-    sprite_graphics_.fill(0);
-    sprite_palette_.fill(0);
-    area_music_.fill(0);
-    static_graphics_.fill(0);
-    mosaic_expanded_.fill(false);
-    area_size_ = AreaSizeEnum::SmallArea;
-    overlay_id_ = 0;
-    has_overlay_ = false;
-    overlay_data_.clear();
+
+    // NOTE: Do NOT reset these identity fields - they are needed for rebuild:
+    // - index_: Map's position in overworld array (used for ROM lookups)
+    // - parent_: Map's parent relationship (for large maps)
+    // - rom_: ROM pointer (needed for data access)
+    // - large_map_, large_index_, area_size_: Map structure info
+    // - message_id_, area_graphics_, area_palette_, etc: Loaded from ROM on rebuild
   }
 
  private:
@@ -261,14 +282,21 @@ class OverworldMap : public gfx::GfxContext {
   void LoadMainBlocksets();
   void LoadAreaGraphicsBlocksets();
   void LoadDeathMountainGFX();
+  uint8_t ComputeWorldBasedMainPalette() const;
 
   void ProcessGraphicsBuffer(int index, int static_graphics_offset, int size,
-                             uint8_t* all_gfx);
+                             const uint8_t* all_gfx);
   absl::StatusOr<gfx::SnesPalette> GetPalette(const gfx::PaletteGroup& group,
                                               int index, int previous_index,
                                               int limit);
 
+  // Helper to get version constants from game_data or default to US
+  zelda3_version_pointers version_constants() const {
+    return kVersionConstantsMap.at(game_data_ ? game_data_->version : zelda3_version::US);
+  }
+
   Rom* rom_;
+  GameData* game_data_ = nullptr;
 
   bool built_ = false;
   bool large_map_ = false;

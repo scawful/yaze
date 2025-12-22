@@ -24,6 +24,40 @@ ProposalDrawer::ProposalDrawer() {
   RefreshProposals();
 }
 
+void ProposalDrawer::DrawContent() {
+  // Draw content without window wrapper (for embedding in RightPanelManager)
+  if (needs_refresh_) {
+    RefreshProposals();
+    needs_refresh_ = false;
+    if (!selected_proposal_id_.empty() && !selected_proposal_) {
+      SelectProposal(selected_proposal_id_);
+    }
+  }
+
+  // Header with refresh button
+  if (ImGui::Button(ICON_MD_REFRESH " Refresh")) {
+    RefreshProposals();
+  }
+  ImGui::SameLine();
+  DrawStatusFilter();
+
+  ImGui::Separator();
+
+  // Split view: proposal list on top, details on bottom
+  float list_height = ImGui::GetContentRegionAvail().y * 0.4f;
+
+  ImGui::BeginChild("ProposalListEmbed", ImVec2(0, list_height), true);
+  DrawProposalList();
+  ImGui::EndChild();
+
+  if (selected_proposal_) {
+    ImGui::Separator();
+    ImGui::BeginChild("ProposalDetailEmbed", ImVec2(0, 0), true);
+    DrawProposalDetail();
+    ImGui::EndChild();
+  }
+}
+
 void ProposalDrawer::Draw() {
   if (!visible_)
     return;

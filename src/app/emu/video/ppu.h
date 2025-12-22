@@ -7,7 +7,7 @@
 
 #include "app/emu/memory/memory.h"
 #include "app/emu/video/ppu_registers.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 
 namespace yaze {
 namespace emu {
@@ -264,6 +264,10 @@ class Ppu {
   }
 
   void Reset();
+  
+  void SaveState(std::ostream& stream);
+  void LoadState(std::istream& stream);
+
   void HandleFrameStart();
   void StartLine(int line);
   void CatchUp(int h_pos);
@@ -317,6 +321,11 @@ class Ppu {
 
   void PutPixels(uint8_t* pixel_data);
 
+  // Debug: Dump PPU state to log (enable with enable_debug_dump_)
+  void DumpState() const;
+  void SetDebugDump(bool enable) { enable_debug_dump_ = enable; }
+  bool IsDebugDumpEnabled() const { return enable_debug_dump_; }
+
   // Returns the pixel data for the current frame
   const std::vector<uint8_t>& GetFrameBuffer() const { return frame_buffer_; }
 
@@ -330,6 +339,7 @@ class Ppu {
   const int visibleScanlines = 224;   // SNES PPU renders 224 visible scanlines
 
   bool enable_forced_blanking_ = false;
+  bool enable_debug_dump_ = false;
 
   int cycle_count_ = 0;
   int current_scanline_ = 0;

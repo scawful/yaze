@@ -15,7 +15,7 @@
 #include <vector>
 
 #include "absl/strings/str_format.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "imgui_test_engine/imgui_te_context.h"
 
 namespace yaze {
@@ -29,15 +29,44 @@ class TestRomManager {
   class BoundRomTest;
 
   /**
+   * @brief Auto-discover a ROM file from common locations
+   * @return Path to discovered ROM, or empty string if none found
+   */
+  static std::string AutoDiscoverRom() {
+    // Common ROM filenames to look for
+    static const std::vector<std::string> kRomNames = {
+        "zelda3.sfc",
+        "alttp_vanilla.sfc",
+        "vanilla.sfc",
+        "Legend of Zelda, The - A Link to the Past (USA).sfc",
+    };
+
+    // Common directories to search (relative to working directory)
+    static const std::vector<std::string> kSearchPaths = {
+        ".",
+        "roms",
+        "../roms",
+        "../../roms",
+    };
+
+    for (const auto& dir : kSearchPaths) {
+      for (const auto& name : kRomNames) {
+        std::filesystem::path path = std::filesystem::path(dir) / name;
+        if (std::filesystem::exists(path)) {
+          return path.string();
+        }
+      }
+    }
+
+    return "";
+  }
+
+  /**
    * @brief Check if ROM testing is enabled and ROM file exists
    * @return True if ROM tests can be run
    */
   static bool IsRomTestingEnabled() {
-#ifdef YAZE_ENABLE_ROM_TESTS
-    return std::filesystem::exists(GetTestRomPath());
-#else
-    return false;
-#endif
+    return !GetTestRomPath().empty() && std::filesystem::exists(GetTestRomPath());
   }
 
   /**
@@ -45,11 +74,21 @@ class TestRomManager {
    * @return Path to the test ROM
    */
   static std::string GetTestRomPath() {
+    // Check environment variable first (set by --rom-path argument)
+    if (const char* env_path = std::getenv("YAZE_TEST_ROM_PATH")) {
+      if (std::filesystem::exists(env_path)) {
+        return env_path;
+      }
+    }
+
 #ifdef YAZE_TEST_ROM_PATH
-    return YAZE_TEST_ROM_PATH;
-#else
-    return "zelda3.sfc";
+    if (std::filesystem::exists(YAZE_TEST_ROM_PATH)) {
+      return YAZE_TEST_ROM_PATH;
+    }
 #endif
+
+    // Auto-discover ROM from common locations
+    return AutoDiscoverRom();
   }
 
   /**

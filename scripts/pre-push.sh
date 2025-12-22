@@ -179,11 +179,11 @@ main() {
     print_header "Step 3/3: Code Formatting"
 
     # Check if format-check target exists
-    if cmake --build "$BUILD_DIR" --target help 2>/dev/null | grep -q "format-check"; then
+    if cmake --build "$BUILD_DIR" --target help 2>/dev/null | grep -q "yaze-format-check"; then
       print_info "Checking code formatting..."
-      if ! cmake --build "$BUILD_DIR" --target format-check 2>&1 | tail -10; then
+      if ! cmake --build "$BUILD_DIR" --target yaze-format-check 2>&1 | tail -10; then
         print_error "Code formatting check failed!"
-        print_info "Fix with: cmake --build $BUILD_DIR --target format"
+        print_info "Fix with: scripts/lint.sh fix"
         exit 3
       fi
       print_success "Code formatting passed"

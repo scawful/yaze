@@ -56,7 +56,7 @@
 #include "app/controller.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/platform/window.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "imgui.h"
 #include "imgui_test_engine/imgui_te_context.h"
 #include "imgui_test_engine/imgui_te_engine.h"
@@ -81,7 +81,7 @@ class DungeonObjectRenderingE2ETests : public TestRomManager::BoundRomTest {
     rom_ = std::shared_ptr<Rom>(rom(), [](Rom*) {});
 
     dungeon_editor_ = std::make_unique<editor::DungeonEditorV2>();
-    dungeon_editor_->set_rom(rom_.get());
+    dungeon_editor_->SetRom(rom_.get());
     ASSERT_TRUE(dungeon_editor_->Load().ok());
 
     // Initialize imgui test engine

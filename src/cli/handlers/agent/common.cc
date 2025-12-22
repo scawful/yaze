@@ -87,6 +87,7 @@ std::string OptionalTimeToYaml(const std::optional<absl::Time>& time) {
   return iso;
 }
 
+#ifdef YAZE_WITH_GRPC
 const char* TestRunStatusToString(TestRunStatus status) {
   switch (status) {
     case TestRunStatus::kQueued:
@@ -173,6 +174,7 @@ std::optional<WidgetTypeFilter> ParseWidgetTypeFilter(absl::string_view value) {
   }
   return std::nullopt;
 }
+#endif  // YAZE_WITH_GRPC
 
 }  // namespace agent
 }  // namespace cli

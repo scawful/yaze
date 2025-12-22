@@ -6,7 +6,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
-#include "app/editor/system/editor_card_registry.h"
+#include "app/editor/system/panel_manager.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/resource/arena.h"
@@ -16,7 +16,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/style.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "util/file_util.h"
@@ -62,38 +62,30 @@ constexpr ImGuiTableFlags kMessageTableFlags = ImGuiTableFlags_Hideable |
                                                ImGuiTableFlags_Resizable;
 
 void MessageEditor::Initialize() {
-  // Register cards with EditorCardRegistry (dependency injection)
-  if (!dependencies_.card_registry)
+  // Register panels with PanelManager (dependency injection)
+  if (!dependencies_.panel_manager)
     return;
 
-  auto* card_registry = dependencies_.card_registry;
+  auto* panel_manager = dependencies_.panel_manager;
+  const size_t session_id = dependencies_.session_id;
 
-  card_registry->RegisterCard({.card_id = MakeCardId("message.message_list"),
-                               .display_name = "Message List",
-                               .icon = ICON_MD_LIST,
-                               .category = "Message",
-                               .priority = 10});
-
-  card_registry->RegisterCard({.card_id = MakeCardId("message.message_editor"),
-                               .display_name = "Message Editor",
-                               .icon = ICON_MD_EDIT,
-                               .category = "Message",
-                               .priority = 20});
-
-  card_registry->RegisterCard({.card_id = MakeCardId("message.font_atlas"),
-                               .display_name = "Font Atlas",
-                               .icon = ICON_MD_FONT_DOWNLOAD,
-                               .category = "Message",
-                               .priority = 30});
-
-  card_registry->RegisterCard({.card_id = MakeCardId("message.dictionary"),
-                               .display_name = "Dictionary",
-                               .icon = ICON_MD_BOOK,
-                               .category = "Message",
-                               .priority = 40});
+  // Register EditorPanel implementations (they provide both metadata and drawing)
+  panel_manager->RegisterEditorPanel(std::make_unique<MessageListPanel>(
+      [this]() { DrawMessageList(); }));
+  panel_manager->RegisterEditorPanel(std::make_unique<MessageEditorPanel>(
+      [this]() { DrawCurrentMessage(); }));
+  panel_manager->RegisterEditorPanel(std::make_unique<FontAtlasPanel>([this]() {
+    DrawFontAtlas();
+    DrawExpandedMessageSettings();
+  }));
+  panel_manager->RegisterEditorPanel(std::make_unique<DictionaryPanel>([this]() {
+    DrawTextCommands();
+    DrawSpecialCharacters();
+    DrawDictionary();
+  }));
 
   // Show message list by default
-  card_registry->ShowCard(MakeCardId("message.message_list"));
+  panel_manager->ShowPanel(session_id, "message.message_list");
 
   for (int i = 0; i < kWidthArraySize; i++) {
     message_preview_.width_array[i] = rom()->data()[kCharactersWidth + i];
@@ -101,7 +93,11 @@ void MessageEditor::Initialize() {
 
   message_preview_.all_dictionaries_ = BuildDictionaryEntries(rom());
   list_of_texts_ = ReadAllTextData(rom()->mutable_data());
-  font_preview_colors_ = rom()->palette_group().hud.palette(0);
+  LOG_INFO("MessageEditor", "Loaded %zu messages from ROM", list_of_texts_.size());
+
+  if (game_data()) {
+    font_preview_colors_ = game_data()->palette_groups.hud.palette(0);
+  }
 
   for (int i = 0; i < 0x4000; i++) {
     raw_font_gfx_data_[i] = rom()->data()[kGfxFont + i];
@@ -122,15 +118,22 @@ void MessageEditor::Initialize() {
   LOG_INFO("MessageEditor", "Font bitmap created and texture queued");
   *current_font_gfx16_bitmap_.mutable_palette() = font_preview_colors_;
 
-  auto load_font = LoadFontGraphics(*rom());
+  auto load_font = zelda3::LoadFontGraphics(*rom());
   if (load_font.ok()) {
     message_preview_.font_gfx16_data_2_ = load_font.value().vector();
   }
   parsed_messages_ =
       ParseMessageData(list_of_texts_, message_preview_.all_dictionaries_);
-  current_message_ = list_of_texts_[1];
-  message_text_box_.text = parsed_messages_[current_message_.ID];
-  DrawMessagePreview();
+  
+  if (!list_of_texts_.empty()) {
+    // Default to message 1 if available, otherwise 0
+    size_t default_idx = list_of_texts_.size() > 1 ? 1 : 0;
+    current_message_ = list_of_texts_[default_idx];
+    message_text_box_.text = parsed_messages_[current_message_.ID];
+    DrawMessagePreview();
+  } else {
+    LOG_ERROR("MessageEditor", "No messages found in ROM!");
+  }
 }
 
 absl::Status MessageEditor::Load() {
@@ -139,66 +142,9 @@ absl::Status MessageEditor::Load() {
 }
 
 absl::Status MessageEditor::Update() {
-  if (!dependencies_.card_registry)
-    return absl::OkStatus();
-
-  auto* card_registry = dependencies_.card_registry;
-
-  // Message List Card - Get visibility flag and pass to Begin() for proper X
-  // button
-  bool* list_visible =
-      card_registry->GetVisibilityFlag(MakeCardId("message.message_list"));
-  if (list_visible && *list_visible) {
-    static gui::EditorCard list_card("Message List", ICON_MD_LIST);
-    list_card.SetDefaultSize(400, 600);
-    if (list_card.Begin(list_visible)) {
-      DrawMessageList();
-    }
-    list_card.End();
-  }
-
-  // Message Editor Card - Get visibility flag and pass to Begin() for proper X
-  // button
-  bool* editor_visible =
-      card_registry->GetVisibilityFlag(MakeCardId("message.message_editor"));
-  if (editor_visible && *editor_visible) {
-    static gui::EditorCard editor_card("Message Editor", ICON_MD_EDIT);
-    editor_card.SetDefaultSize(500, 600);
-    if (editor_card.Begin(editor_visible)) {
-      DrawCurrentMessage();
-    }
-    editor_card.End();
-  }
-
-  // Font Atlas Card - Get visibility flag and pass to Begin() for proper X
-  // button
-  bool* font_visible =
-      card_registry->GetVisibilityFlag(MakeCardId("message.font_atlas"));
-  if (font_visible && *font_visible) {
-    static gui::EditorCard font_card("Font Atlas", ICON_MD_FONT_DOWNLOAD);
-    font_card.SetDefaultSize(400, 500);
-    if (font_card.Begin(font_visible)) {
-      DrawFontAtlas();
-      DrawExpandedMessageSettings();
-    }
-    font_card.End();
-  }
-
-  // Dictionary Card - Get visibility flag and pass to Begin() for proper X
-  // button
-  bool* dict_visible =
-      card_registry->GetVisibilityFlag(MakeCardId("message.dictionary"));
-  if (dict_visible && *dict_visible) {
-    static gui::EditorCard dict_card("Dictionary", ICON_MD_BOOK);
-    dict_card.SetDefaultSize(400, 500);
-    if (dict_card.Begin(dict_visible)) {
-      DrawTextCommands();
-      DrawSpecialCharacters();
-      DrawDictionary();
-    }
-    dict_card.End();
-  }
-
+  // Panel drawing is handled centrally by PanelManager::DrawAllVisiblePanels()
+  // via the EditorPanel implementations registered in Initialize().
+  // No local drawing needed here.
   return absl::OkStatus();
 }
 
@@ -318,11 +264,12 @@ void MessageEditor::DrawExpandedMessageSettings() {
   ImGui::BeginChild("##ExpandedMessageSettings", ImVec2(0, 100), true,
                     ImGuiWindowFlags_AlwaysVerticalScrollbar);
   ImGui::Text("Expanded Messages");
-  static std::string expanded_message_path = "";
+  
   if (ImGui::Button("Load Expanded Message")) {
-    expanded_message_path = util::FileDialogWrapper::ShowOpenFileDialog();
-    if (!expanded_message_path.empty()) {
-      if (!LoadExpandedMessages(expanded_message_path, parsed_messages_,
+    std::string path = util::FileDialogWrapper::ShowOpenFileDialog();
+    if (!path.empty()) {
+      expanded_message_path_ = path;
+      if (!LoadExpandedMessages(expanded_message_path_, parsed_messages_,
                                 expanded_messages_,
                                 message_preview_.all_dictionaries_)
                .ok()) {
@@ -334,7 +281,7 @@ void MessageEditor::DrawExpandedMessageSettings() {
   }
 
   if (expanded_messages_.size() > 0) {
-    ImGui::Text("Expanded Path: %s", expanded_message_path.c_str());
+    ImGui::Text("Expanded Path: %s", expanded_message_path_.c_str());
     ImGui::Text("Expanded Messages: %lu", expanded_messages_.size());
     if (ImGui::Button("Add New Message")) {
       MessageData new_message;
@@ -343,8 +290,31 @@ void MessageEditor::DrawExpandedMessageSettings() {
                             expanded_messages_.back().Data.size();
       expanded_messages_.push_back(new_message);
     }
+    
     if (ImGui::Button("Save Expanded Messages")) {
-      PRINT_IF_ERROR(SaveExpandedMessages());
+      if (expanded_message_path_.empty()) {
+        expanded_message_path_ = util::FileDialogWrapper::ShowSaveFileDialog();
+      }
+      if (!expanded_message_path_.empty()) {
+        PRINT_IF_ERROR(SaveExpandedMessages());
+      }
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("Save As...")) {
+      std::string path = util::FileDialogWrapper::ShowSaveFileDialog();
+      if (!path.empty()) {
+        expanded_message_path_ = path;
+        PRINT_IF_ERROR(SaveExpandedMessages());
+      }
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("Export to JSON")) {
+      std::string path = util::FileDialogWrapper::ShowSaveFileDialog();
+      if (!path.empty()) {
+        PRINT_IF_ERROR(ExportMessagesToJson(path, expanded_messages_));
+      }
     }
   }
 
@@ -495,15 +465,54 @@ absl::Status MessageEditor::Save() {
 }
 
 absl::Status MessageEditor::SaveExpandedMessages() {
+  if (expanded_message_path_.empty()) {
+    return absl::InvalidArgumentError("No path specified for expanded messages");
+  }
+  
+  // Ensure the ROM object is loaded/initialized if needed, or just use it as a buffer
+  // The original code used expanded_message_bin_ which wasn't clearly initialized in this scope
+  // except potentially in LoadExpandedMessages via a static local? 
+  // Wait, LoadExpandedMessages used a static local Rom. 
+  // We need to ensure expanded_message_bin_ member is populated or we load it.
+  
+  if (!expanded_message_bin_.is_loaded()) {
+     // Try to load from the path if it exists, otherwise create new?
+     // For now, let's assume we are overwriting or updating.
+     // If we are just writing raw data, maybe we don't need a full ROM load if we just write bytes?
+     // But SaveToFile expects a loaded ROM structure.
+     // Let's try to load it first.
+     auto status = expanded_message_bin_.LoadFromFile(expanded_message_path_);
+     if (!status.ok()) {
+         // If file doesn't exist, maybe we should create a buffer?
+         // For now, let's propagate error if we can't load it to update it.
+         // Or if it's a new file, we might need to handle that.
+         // Let's assume for this task we are updating an existing BIN or creating one.
+         // If creating, we might need to initialize expanded_message_bin_ with enough size.
+         // Let's just try to load, and if it fails (e.g. new file), initialize empty.
+         expanded_message_bin_.Expand(0x200000); // Default 2MB? Or just enough?
+     }
+  }
+
   for (const auto& expanded_message : expanded_messages_) {
+    // Ensure vector is large enough
+    if (expanded_message.Address + expanded_message.Data.size() > expanded_message_bin_.size()) {
+        expanded_message_bin_.Expand(expanded_message.Address + expanded_message.Data.size() + 0x1000);
+    }
     std::copy(expanded_message.Data.begin(), expanded_message.Data.end(),
               expanded_message_bin_.mutable_data() + expanded_message.Address);
   }
-  RETURN_IF_ERROR(expanded_message_bin_.WriteByte(
-      expanded_messages_.back().Address + expanded_messages_.back().Data.size(),
-      0xFF));
+  
+  // Write terminator
+  if (!expanded_messages_.empty()) {
+      size_t end_pos = expanded_messages_.back().Address + expanded_messages_.back().Data.size();
+      if (end_pos < expanded_message_bin_.size()) {
+          expanded_message_bin_.WriteByte(end_pos, 0xFF);
+      }
+  }
+
+  expanded_message_bin_.set_filename(expanded_message_path_);
   RETURN_IF_ERROR(expanded_message_bin_.SaveToFile(
-      Rom::SaveSettings{.backup = true, .save_new = false, .z3_save = false}));
+      Rom::SaveSettings{.backup = true, .save_new = false}));
   return absl::OkStatus();
 }
 

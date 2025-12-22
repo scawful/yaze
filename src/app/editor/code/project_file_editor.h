@@ -75,7 +75,17 @@ class ProjectFileEditor {
    */
   void NewFile();
 
+  /**
+   * @brief Set the project pointer for label import operations
+   */
+  void SetProject(project::YazeProject* project) { project_ = project; }
+
  private:
+  /**
+   * @brief Import labels from a ZScream DefaultNames.txt file
+   */
+  absl::Status ImportLabelsFromZScream();
+
   void ApplySyntaxHighlighting();
   void ValidateContent();
   void ShowValidationErrors();
@@ -87,6 +97,7 @@ class ProjectFileEditor {
   bool show_validation_ = true;
   std::vector<std::string> validation_errors_;
   ToastManager* toast_manager_ = nullptr;
+  project::YazeProject* project_ = nullptr;
 };
 
 }  // namespace editor

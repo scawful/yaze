@@ -1,0 +1,175 @@
+name: WASM Development Build
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'CMakeLists.txt'
+      - 'CMakePresets.json'
+      - 'scripts/build-wasm.sh'
+      - '.github/workflows/wasm-dev.yml'
+  workflow_dispatch:
+    inputs:
+      debug_build:
+        description: 'Build debug version'
+        required: false
+        default: true
+        type: boolean
+      run_tests:
+        description: 'Run WASM tests (experimental)'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  wasm-build:
+    name: "WASM Build (Debug)"
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 3.1.51
+          actions-cache-folder: 'emsdk-cache'
+
+      - name: Setup Ninja
+        uses: seanmiddleditch/gha-setup-ninja@v4
+
+      - name: Setup CMake
+        uses: jwlawson/actions-setup-cmake@v1.14
+        with:
+          cmake-version: '3.27.x'
+
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: wasm-dev-ccache
+          max-size: 1G
+
+      - name: Cache CPM packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/CPM
+          key: cpm-wasm-debug-${{ hashFiles('**/CMakeLists.txt') }}
+          restore-keys: |
+            cpm-wasm-debug-
+            cpm-wasm-
+
+      - name: Verify Emscripten setup
+        run: |
+          echo "=== Emscripten Configuration ==="
+          emcc --version
+          emcmake --version
+          echo "=== Node.js Version ==="
+          node --version
+          echo "=== Environment ==="
+          env | grep -i em || true
+
+      - name: Build WASM (Debug)
+        if: github.event.inputs.debug_build != 'false'
+        run: |
+          export PATH="/usr/lib/ccache:$PATH"
+          echo "Building WASM debug version..."
+          chmod +x scripts/build-wasm.sh
+          ./scripts/build-wasm.sh debug
+
+      - name: Build WASM (Release)
+        if: github.event.inputs.debug_build == 'false'
+        run: |
+          export PATH="/usr/lib/ccache:$PATH"
+          echo "Building WASM release version..."
+          chmod +x scripts/build-wasm.sh
+          ./scripts/build-wasm.sh release
+
+      - name: Verify build output
+        run: |
+          BUILD_DIR="build-wasm-debug"
+          if [ "${{ github.event.inputs.debug_build }}" == "false" ]; then
+            BUILD_DIR="build-wasm"
+          fi
+
+          echo "=== Build Output Verification ==="
+          ls -lh "$BUILD_DIR/bin/" || true
+
+          # Check for critical files
+          if [ ! -f "$BUILD_DIR/bin/yaze.wasm" ]; then
+            echo "ERROR: yaze.wasm not found!"
+            exit 1
+          fi
+
+          if [ ! -f "$BUILD_DIR/bin/yaze.js" ]; then
+            echo "ERROR: yaze.js not found!"
+            exit 1
+          fi
+
+          if [ ! -f "$BUILD_DIR/bin/yaze.html" ]; then
+            echo "ERROR: yaze.html not found!"
+            exit 1
+          fi
+
+          # Report file sizes
+          echo ""
+          echo "=== File Sizes ==="
+          du -h "$BUILD_DIR/bin/yaze.wasm"
+          du -h "$BUILD_DIR/bin/yaze.js"
+          du -h "$BUILD_DIR/bin/yaze.data" 2>/dev/null || echo "No .data file (lazy loading enabled?)"
+
+          # Check for SharedArrayBuffer support
+          if grep -q "SharedArrayBuffer" "$BUILD_DIR/bin/yaze.js"; then
+            echo "✓ SharedArrayBuffer support detected"
+          else
+            echo "⚠ SharedArrayBuffer not detected - threading may not work"
+          fi
+
+      - name: Run WASM tests (experimental)
+        if: github.event.inputs.run_tests == 'true'
+        run: |
+          echo "WASM tests are experimental and not yet implemented"
+          # TODO: Add Node.js-based WASM tests here
+
+      - name: Upload WASM artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wasm-debug-${{ github.sha }}
+          path: |
+            build-wasm-debug/bin/*.wasm
+            build-wasm-debug/bin/*.js
+            build-wasm-debug/bin/*.html
+            build-wasm-debug/bin/*.data
+            build-wasm/bin/*.wasm
+            build-wasm/bin/*.js
+            build-wasm/bin/*.html
+            build-wasm/bin/*.data
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Build summary
+        if: always()
+        run: |
+          echo "## WASM Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          BUILD_DIR="build-wasm-debug"
+          BUILD_TYPE="Debug"
+          if [ "${{ github.event.inputs.debug_build }}" == "false" ]; then
+            BUILD_DIR="build-wasm"
+            BUILD_TYPE="Release"
+          fi
+
+          echo "**Build Type:** $BUILD_TYPE" >> $GITHUB_STEP_SUMMARY
+          echo "**Emscripten Version:** 3.1.51" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f "$BUILD_DIR/bin/yaze.wasm" ]; then
+            WASM_SIZE=$(du -h "$BUILD_DIR/bin/yaze.wasm" | cut -f1)
+            echo "**WASM Size:** $WASM_SIZE" >> $GITHUB_STEP_SUMMARY
+            echo "✓ Build successful" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Build failed - WASM file not generated" >> $GITHUB_STEP_SUMMARY
+          fi

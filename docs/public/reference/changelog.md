@@ -1,5 +1,48 @@
 # Changelog
 
+## 0.4.1 (December 2025)
+
+### Overworld Editor Fixes
+
+**Vanilla ROM Corruption Fix**:
+- Fixed critical bug where save functions wrote to custom ASM address space (0x140000+) for ALL ROMs without version checking
+- `SaveAreaSpecificBGColors()`, `SaveCustomOverworldASM()`, and `SaveDiggableTiles()` now properly check ROM version before writing
+- Vanilla and v1 ROMs are no longer corrupted by writes to ZSCustomOverworld address space
+- Added `OverworldVersionHelper` with `SupportsCustomBGColors()` and `SupportsAreaEnum()` methods
+
+**Toolbar UI Improvements**:
+- Increased button widths from 30px to 40px for comfortable touch targets
+- Added version badge showing "Vanilla", "v2", or "v3" ROM version with color coding
+- Added "Upgrade" button for applying ZSCustomOverworld ASM patch to vanilla ROMs
+- Improved panel toggle button spacing and column layout
+
+### Testing Infrastructure
+
+**ROM Auto-Discovery**:
+- Tests now automatically discover ROMs in common locations (roms/, ../roms/, etc.)
+- Searches for common filenames: zelda3.sfc, alttp_vanilla.sfc, vanilla.sfc
+- Environment variable `YAZE_TEST_ROM_PATH` still takes precedence if set
+
+**Overworld Regression Tests**:
+- Added 9 new regression tests for save function version checks
+- Tests verify vanilla/v1/v2/v3 ROM handling for all version-gated save functions
+- Version feature matrix validation tests added
+
+### Logging & Diagnostics
+- Added CLI controls for log level/categories and console mirroring (`--log_level`, `--log_categories`, `--log_to_console`); `--debug` now force-enables console logging at debug level.
+- Startup logging now reports the resolved level, categories, and log file destination for easier reproducibility.
+
+### Editor & Panel Launch Controls
+- `--open_panels` matching is case-insensitive and accepts both display names and stable panel IDs (e.g., `dungeon.room_list`, `Room 105`, `welcome`, `dashboard`).
+- New startup visibility overrides (`--startup_welcome`, `--startup_dashboard`, `--startup_sidebar`) let you force panels to show/hide on launch for automation or demos.
+- Welcome and dashboard behavior is coordinated through the UI layer so CLI overrides and in-app toggles stay in sync.
+
+### Documentation & Testing
+- Debugging guides refreshed with the new logging filters and startup panel controls.
+- Startup flag reference and dungeon editor guide now use panel terminology and up-to-date CLI examples for automation setups.
+
+---
+
 ## 0.3.9 (November 2025)
 
 ### AI Agent Infrastructure

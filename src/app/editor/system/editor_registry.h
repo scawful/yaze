@@ -26,19 +26,33 @@ class EditorRegistry {
   ~EditorRegistry() = default;
 
   // Editor type management (static methods for global access)
-  static bool IsCardBasedEditor(EditorType type);
+  static bool IsPanelBasedEditor(EditorType type);
   static std::string GetEditorCategory(EditorType type);
   static EditorType GetEditorTypeFromCategory(const std::string& category);
+
+  /**
+   * @brief Get all editor categories in display order for sidebar
+   * @return Vector of category names in preferred display order
+   */
+  static std::vector<std::string> GetAllEditorCategories();
 
   // Editor navigation
   void JumpToDungeonRoom(int room_id);
   void JumpToOverworldMap(int map_id);
   void SwitchToEditor(EditorType editor_type);
 
+  // Callbacks for navigation
+  void SetJumpToDungeonRoomCallback(std::function<void(int)> callback) {
+    jump_to_room_callback_ = std::move(callback);
+  }
+  void SetJumpToOverworldMapCallback(std::function<void(int)> callback) {
+    jump_to_map_callback_ = std::move(callback);
+  }
+
   // Editor card management
-  void HideCurrentEditorCards();
-  void ShowEditorCards(EditorType editor_type);
-  void ToggleEditorCards(EditorType editor_type);
+  void HideCurrentEditorPanels();
+  void ShowEditorPanels(EditorType editor_type);
+  void ToggleEditorPanels(EditorType editor_type);
 
   // Editor information
   std::vector<EditorType> GetEditorsInCategory(
@@ -60,10 +74,14 @@ class EditorRegistry {
   // Editor type mappings
   static const std::unordered_map<EditorType, std::string> kEditorCategories;
   static const std::unordered_map<EditorType, std::string> kEditorNames;
-  static const std::unordered_map<EditorType, bool> kCardBasedEditors;
+  static const std::unordered_map<EditorType, bool> kPanelBasedEditors;
 
   // Registered editors
   std::unordered_map<EditorType, Editor*> registered_editors_;
+
+  // Navigation callbacks
+  std::function<void(int)> jump_to_room_callback_;
+  std::function<void(int)> jump_to_map_callback_;
 
   // Helper methods
   bool IsValidEditorType(EditorType type) const;

@@ -155,7 +155,18 @@ std::vector<uint8_t> SnesTo8bppSheet(std::span<uint8_t> sheet, int bpp,
     buffer_size *= num_sheets;
   }
 
-  std::vector<uint8_t> sheet_buffer_out(buffer_size);
+  // Safety check: Ensure input data is sufficient for requested tiles
+  if (static_cast<size_t>(num_tiles * bpp) > sheet.size()) {
+    // Clamp number of tiles to what we can read from input
+    // This prevents SIGSEGV if decompression returned truncated data
+    if (bpp > 0) {
+      num_tiles = static_cast<int>(sheet.size()) / bpp;
+    } else {
+      num_tiles = 0;
+    }
+  }
+
+  std::vector<uint8_t> sheet_buffer_out(buffer_size); // Zero initialized
 
   for (int i = 0; i < num_tiles; i++) {  // for each tiles, 16 per line
     for (int y = 0; y < 8; y++) {        // for each line

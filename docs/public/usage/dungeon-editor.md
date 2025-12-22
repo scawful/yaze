@@ -1,116 +1,117 @@
-# F2: Dungeon Editor v2 Guide
+# Dungeon Editor Guide
 
-**Scope**: DungeonEditorV2 (card-based UI), DungeonEditorSystem, dungeon canvases  
-**Related**: [Architecture Overview](../developer/architecture.md), [Canvas System](../developer/canvas-system.md)
+The Dungeon Editor provides a multi-panel workspace for editing Zelda 3 dungeon rooms. Each room has isolated graphics, objects, and palette data, allowing you to work on multiple rooms simultaneously.
 
 ---
 
-## 1. Overview
-
-The Dungeon Editor ships with the multi-card workspace introduced in the 0.3.x releases.
-Self-contained room buffers keep graphics, objects, and palettes isolated so you can switch between
-rooms without invalidating the entire renderer.
+## Overview
 
 ### Key Features
-- 512×512 canvas per room with pan/zoom, grid, and collision overlays.
-- Layer-specific visualization (BG1/BG2 toggles, colored object outlines, slot labels).
-- Modular cards for rooms, objects, palettes, entrances, and toolsets.
-- Undo/Redo shared across cards via `DungeonEditorSystem`.
-- Tight overworld integration: double-click an entrance to open the linked dungeon room.
+
+- **512x512 canvas** per room with pan, zoom, grid, and collision overlays
+- **Layer visualization** with BG1/BG2 toggles and colored object outlines
+- **Modular panels** for rooms, objects, palettes, and entrances
+- **Undo/Redo** shared across all panels
+- **Overworld integration** - double-click entrances to open linked rooms
+
+**Related Documentation:**
+- [Architecture Overview](../developer/architecture.md)
+- [Canvas System](../developer/canvas-system.md)
 
 ---
 
-## 2. Architecture Snapshot
+## Architecture
 
-```
-DungeonEditorV2 (UI)
-├─ Cards & docking
-├─ Canvas presenter
-└─ Menu + toolbar actions
+The editor uses a three-layer architecture:
 
-DungeonEditorSystem (Backend)
-├─ Room/session state
-├─ Undo/Redo stack
-├─ Sprite/entrance/item helpers
-└─ Persistence + ROM writes
+| Layer | Components | Responsibility |
+|-------|------------|----------------|
+| **UI** | DungeonEditorV2 | Panels, canvas, menus, toolbar |
+| **Backend** | DungeonEditorSystem | State management, undo/redo, persistence |
+| **Data** | Room Model | Buffers, objects, palettes, blocksets |
 
-Room Model (Data)
-├─ bg1_buffer_, bg2_buffer_
-├─ tile_objects_, door data, metadata
-└─ Palette + blockset caches
-```
+### Rendering Pipeline
 
-### Room Rendering Pipeline
-1. **Load** – `DungeonRoomLoader` reads the room header, blockset pointers, and door/entrance
-   metadata, producing a `Room` instance with immutable layout info.
-2. **Decode** – The requested blockset is converted into `current_gfx16_` bitmaps; objects are parsed
-   into `tile_objects_` grouped by layer and palette slot.
-3. **Draw** – `DungeonCanvasViewer` builds BG1/BG2 bitmaps, then overlays each object layer via
-   `ObjectDrawer`. Palette state comes from the room’s 90-color dungeon palette.
-4. **Queue** – The finished bitmaps are pushed into the graphics `Arena`, which uploads a bounded
-   number of textures per frame so UI latency stays flat.
-5. **Present** – When textures become available, the canvas displays the layers, draws interaction
-   widgets (selection rectangles, door gizmos, entity labels), and applies zoom/grid settings.
+1. **Load** - Read room header, blockset pointers, and door/entrance metadata
+2. **Decode** - Convert blockset into bitmaps; parse objects by layer
+3. **Draw** - Build BG1/BG2 bitmaps with object overlays
+4. **Queue** - Push bitmaps to texture queue for GPU upload
+5. **Present** - Display layers with selection widgets and grid
 
-Changing tiles, palettes, or objects invalidates the affected room cache so steps 2–5 rerun only for
-that room.
+Changes to tiles, palettes, or objects invalidate only the affected room's cache.
 
 ---
 
-## 3. Editing Workflow
+## Editing Workflow
 
 ### Opening Rooms
-1. Launch `yaze` with a ROM (`./build/bin/yaze --rom_file=zelda3.sfc`).
-2. Use the **Room Matrix** or **Rooms List** card to choose a room. The toolbar “+” button also opens
-   the selector.
-3. Pin multiple rooms by opening them in separate cards; each card maintains its own canvas state.
 
-### Working with Cards
+1. Launch YAZE with a ROM: `./build/bin/yaze --rom_file=zelda3.sfc`
+2. Select a room from **Room Matrix** or **Rooms List** panel
+3. Open multiple rooms in separate panels for comparison
 
-| Card | Purpose |
-|------|---------|
-| **Room Graphics** | Primary canvas, BG toggles, collision/grid switches. |
-| **Object Editor** | Filter by type/layer, edit coordinates, duplicate/delete objects. |
-| **Palette Editor** | Adjust per-room palette slots and preview results immediately. |
-| **Entrances List** | Jump between overworld entrances and their mapped rooms. |
-| **Room Matrix** | Visual grid of all rooms grouped per dungeon for quick navigation. |
+### Available Panels
 
-Cards can be docked, detached, or saved as workspace presets; use the sidebar to store favorite
-layouts (e.g., Room Graphics + Object Editor + Palette).
+| Panel | Purpose |
+|-------|---------|
+| **Room Graphics** | Main canvas with BG toggles and grid options |
+| **Object Editor** | Edit objects by type, layer, and coordinates |
+| **Palette Editor** | Adjust room palettes with live preview |
+| **Entrances List** | Navigate between overworld entrances and rooms |
+| **Room Matrix** | Visual dungeon room grid for quick navigation |
 
-### Canvas Interactions
-- Left-click to select an object; Shift-click to add to the selection.
-- Drag handles to move objects or use the property grid for precise coordinates.
-- Right-click to open the context menu, which includes quick inserts for common objects and a “jump
-  to entrance” helper.
-- Hold Space to pan, use mouse wheel (or trackpad pinch) to zoom. The status footer shows current
-  zoom and cursor coordinates.
-- Enable **Object Labels** from the toolbar to show layer-colored labels (e.g., `L1 Chest 0x23`).
+Panels can be docked, detached, or saved as workspace presets.
 
-### Saving & Undo
-- The editor queues every change through `DungeonEditorSystem`. Use `Cmd/Ctrl+Z` and `Cmd/Ctrl+Shift+Z`
-  to undo/redo across cards.
-- Saving writes back the room buffers, door metadata, and palettes for the active session. Keep
-  backups enabled (`File → Options → Experiment Flags`) for safety.
+### Canvas Controls
 
----
+| Action | Control |
+|--------|---------|
+| Select object | Left-click |
+| Add to selection | Shift + Left-click |
+| Move object | Drag handles |
+| Pan canvas | Hold Space + drag |
+| Zoom | Mouse wheel or trackpad pinch |
+| Context menu | Right-click |
 
-## 4. Tips & Troubleshooting
+Enable **Object Labels** from the toolbar to display layer-colored labels.
 
-- **Layer sanity**: If objects appear on the wrong layer, check the BG toggles in Room Graphics and
-  the layer filter in Object Editor—they operate independently.
-- **Palette issues**: Palettes are per room. After editing, ensure `Palette Editor` writes the new
-  values before switching rooms; the status footer confirms pending writes.
-- **Door alignment**: Use the entrance/door inspector popup (right-click a door marker) to verify
-  leads-to IDs without leaving the canvas.
-- **Performance**: Large ROMs with many rooms can accumulate textures. If the editor feels sluggish,
-  close unused room cards; each card releases its textures when closed.
+### Saving
+
+- **Undo/Redo**: `Cmd/Ctrl+Z` and `Cmd/Ctrl+Shift+Z`
+- Changes are tracked across all panels
+- Keep backups enabled in `File > Options > Experiment Flags`
 
 ---
 
-## 5. Related Docs
-- [Developer Architecture Overview](../developer/architecture.md) – patterns shared across editors.
-- [Canvas System Guide](../developer/canvas-system.md) – detailed explanation of canvas usage,
-  context menus, and popups.
-- [Debugging Guide](../developer/debugging-guide.md) – startup flags and logging tips (e.g.,
-  `--editor=Dungeon --cards="Room 0"` for focused debugging).
+## Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| Objects on wrong layer | Check BG toggles in Room Graphics and layer filter in Object Editor |
+| Palette not saving | Ensure Palette Editor writes values before switching rooms |
+| Door alignment issues | Right-click door markers to verify leads-to IDs |
+| Sluggish performance | Close unused room panels to release textures |
+
+---
+
+## Quick Launch Examples
+
+```bash
+# Open specific room for testing
+./yaze --rom_file=zelda3.sfc --editor=Dungeon --open_panels="Room 0"
+
+# Compare multiple rooms
+./yaze --rom_file=zelda3.sfc --editor=Dungeon --open_panels="Room 0,Room 1,Room 105"
+
+# Full workspace with all tools
+./yaze --rom_file=zelda3.sfc --editor=Dungeon \
+  --open_panels="Rooms List,Room Matrix,Object Editor,Palette Editor"
+```
+
+---
+
+## Related Documentation
+
+- [Architecture Overview](../developer/architecture.md) - Patterns shared across editors
+- [Canvas System](../developer/canvas-system.md) - Canvas controls and context menus
+- [Debugging Guide](../developer/debugging-guide.md) - Startup flags and logging

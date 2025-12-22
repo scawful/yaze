@@ -114,4 +114,94 @@ using uint = unsigned int;
     return absl::InternalError(SDL_GetError()); \
   }
 
+// ===========================================================================
+// ROM Bounds Checking Macros
+// ===========================================================================
+// These macros provide consistent bounds checking for ROM operations,
+// ensuring all ROM reads and writes are validated against the ROM size.
+
+/**
+ * @brief Validate ROM offset is within bounds before reading/writing
+ *
+ * Returns absl::OutOfRangeError if the offset + size exceeds ROM size.
+ *
+ * @param rom Pointer to the Rom object
+ * @param offset Start offset for the operation
+ * @param size Number of bytes to read/write
+ */
+#define RETURN_IF_ROM_OUT_OF_RANGE(rom, offset, size)                     \
+  do {                                                                    \
+    if (((offset) + (size)) > (rom)->size()) {                            \
+      return absl::OutOfRangeError(                                       \
+          absl::StrFormat("ROM access out of range: offset 0x%X + size "  \
+                          "0x%X exceeds ROM size 0x%X",                   \
+                          (offset), (size), (rom)->size()));              \
+    }                                                                     \
+  } while (0)
+
+/**
+ * @brief Validate ROM offset is within bounds, returning false on failure
+ *
+ * Use this variant for bool-returning functions that can't return Status.
+ *
+ * @param rom Pointer to the Rom object
+ * @param offset Start offset for the operation
+ * @param size Number of bytes to read/write
+ */
+#define RETURN_FALSE_IF_ROM_OUT_OF_RANGE(rom, offset, size) \
+  do {                                                      \
+    if (((offset) + (size)) > (rom)->size()) {              \
+      return false;                                         \
+    }                                                       \
+  } while (0)
+
+/**
+ * @brief Validate room ID is within valid dungeon room range
+ *
+ * SNES A Link to the Past has 296 dungeon rooms (0x000-0x127).
+ *
+ * @param room_id The room ID to validate
+ */
+#define RETURN_IF_ROOM_OUT_OF_RANGE(room_id)                               \
+  do {                                                                     \
+    constexpr int kMaxRoomId = 296;                                        \
+    if ((room_id) < 0 || (room_id) >= kMaxRoomId) {                        \
+      return absl::OutOfRangeError(absl::StrFormat(                        \
+          "Room ID %d out of range [0, %d)", (room_id), kMaxRoomId));      \
+    }                                                                      \
+  } while (0)
+
+/**
+ * @brief Validate overworld map ID is within valid range
+ *
+ * SNES A Link to the Past has 160 overworld maps (0x00-0x9F).
+ *
+ * @param map_id The map ID to validate
+ */
+#define RETURN_IF_MAP_OUT_OF_RANGE(map_id)                                 \
+  do {                                                                     \
+    constexpr int kMaxMapId = 160;                                         \
+    if ((map_id) < 0 || (map_id) >= kMaxMapId) {                           \
+      return absl::OutOfRangeError(absl::StrFormat(                        \
+          "Map ID %d out of range [0, %d)", (map_id), kMaxMapId));         \
+    }                                                                      \
+  } while (0)
+
+/**
+ * @brief Validate palette index is within SNES palette group range
+ *
+ * SNES palettes have 16 entries (0-15) per sub-palette.
+ *
+ * @param palette_id The palette index to validate
+ * @param max_palettes Maximum number of palettes in the group
+ */
+#define RETURN_IF_PALETTE_OUT_OF_RANGE(palette_id, max_palettes)           \
+  do {                                                                     \
+    if ((palette_id) < 0 || (palette_id) >= (max_palettes)) {              \
+      return absl::OutOfRangeError(absl::StrFormat(                        \
+          "Palette ID %d out of range [0, %d)",                            \
+          (palette_id), (max_palettes)));                                  \
+    }                                                                      \
+  } while (0)
+
 #endif  // YAZE_UTIL_MACRO_H

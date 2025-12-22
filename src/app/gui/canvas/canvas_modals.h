@@ -146,7 +146,7 @@ class CanvasModals {
   // UI helper methods
   void RenderMaterialIcon(const std::string& icon_name,
                           const ImVec4& color = ImVec4(1, 1, 1, 1));
-  void RenderMetricCard(const std::string& title, const std::string& value,
+  void RenderMetricPanel(const std::string& title, const std::string& value,
                         const std::string& icon,
                         const ImVec4& color = ImVec4(1, 1, 1, 1));
   void RenderSliderWithIcon(const std::string& label, const std::string& icon,

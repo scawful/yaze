@@ -5,9 +5,10 @@
 #include <string>
 
 #include "app/editor/dungeon/dungeon_editor_v2.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "gtest/gtest.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/game_data.h"
 
 namespace yaze {
 namespace test {
@@ -30,11 +31,17 @@ class DungeonEditorIntegrationTest : public ::testing::Test {
       status = rom_->LoadFromFile("zelda3.sfc");
     }
     ASSERT_TRUE(status.ok()) << "Could not load zelda3.sfc from any location";
-    ASSERT_TRUE(rom_->InitializeForTesting().ok());
 
-    // Initialize DungeonEditorV2 with ROM
+    // Load Zelda3-specific game data
+    game_data_ = std::make_unique<zelda3::GameData>(rom_.get());
+    auto load_game_data_status = zelda3::LoadGameData(*rom_, *game_data_);
+    ASSERT_TRUE(load_game_data_status.ok())
+        << "Failed to load game data: " << load_game_data_status.message();
+
+    // Initialize DungeonEditorV2 with ROM and GameData
     dungeon_editor_ = std::make_unique<editor::DungeonEditorV2>();
-    dungeon_editor_->set_rom(rom_.get());
+    dungeon_editor_->SetRom(rom_.get());
+    dungeon_editor_->SetGameData(game_data_.get());
 
     // Load editor data
     auto load_status = dungeon_editor_->Load();
@@ -44,10 +51,12 @@ class DungeonEditorIntegrationTest : public ::testing::Test {
 
   void TearDown() override {
     dungeon_editor_.reset();
+    game_data_.reset();
     rom_.reset();
   }
 
   std::unique_ptr<Rom> rom_;
+  std::unique_ptr<zelda3::GameData> game_data_;
   std::unique_ptr<editor::DungeonEditorV2> dungeon_editor_;
 
   static constexpr int kTestRoomId = 0x01;

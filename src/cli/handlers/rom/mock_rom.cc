@@ -61,7 +61,8 @@ absl::Status InitializeMockRom(Rom& rom) {
 
   // Initialize embedded labels so queries work without actual ROM data
   project::YazeProject project;
-  auto labels_status = project.InitializeEmbeddedLabels();
+  auto labels_status = project.InitializeEmbeddedLabels(
+      zelda3::Zelda3Labels::ToResourceLabels());
   if (!labels_status.ok()) {
     return absl::InternalError(absl::StrFormat(
         "Failed to initialize embedded labels: %s", labels_status.message()));

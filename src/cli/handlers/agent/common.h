@@ -5,7 +5,10 @@
 #include <string>
 
 #include "absl/time/time.h"
+
+#ifdef YAZE_WITH_GRPC
 #include "cli/service/gui/gui_automation_client.h"
+#endif
 
 namespace yaze {
 namespace cli {
@@ -18,10 +21,13 @@ std::string FormatOptionalTime(const std::optional<absl::Time>& time);
 std::string OptionalTimeToIso(const std::optional<absl::Time>& time);
 std::string OptionalTimeToJson(const std::optional<absl::Time>& time);
 std::string OptionalTimeToYaml(const std::optional<absl::Time>& time);
+
+#ifdef YAZE_WITH_GRPC
 const char* TestRunStatusToString(TestRunStatus status);
 bool IsTerminalStatus(TestRunStatus status);
 std::optional<TestRunStatus> ParseStatusFilter(absl::string_view value);
 std::optional<WidgetTypeFilter> ParseWidgetTypeFilter(absl::string_view value);
+#endif
 
 }  // namespace agent
 }  // namespace cli

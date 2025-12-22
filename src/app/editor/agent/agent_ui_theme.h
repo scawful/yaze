@@ -46,6 +46,7 @@ struct AgentUITheme {
   ImVec4 provider_ollama;
   ImVec4 provider_gemini;
   ImVec4 provider_mock;
+  ImVec4 provider_openai;
 
   // Collaboration colors
   ImVec4 collaboration_active;

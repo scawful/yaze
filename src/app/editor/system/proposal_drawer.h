@@ -36,8 +36,11 @@ class ProposalDrawer {
   // Set the ROM instance to merge proposals into
   void SetRom(Rom* rom) { rom_ = rom; }
 
-  // Render the proposal drawer UI
+  // Render the proposal drawer UI (creates own window)
   void Draw();
+
+  // Render just the content (for embedding in another window like RightPanelManager)
+  void DrawContent();
 
   // Show/hide the drawer
   void Show() { visible_ = true; }

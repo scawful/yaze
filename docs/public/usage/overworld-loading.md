@@ -495,6 +495,49 @@ class OverworldMap {
 - Ensure proper sprite graphics table selection for v2 vs v3 ROMs
 - Verify that special area maps use the correct graphics from referenced LW/DW maps
 
+## Save Operations and Version Safety
+
+### Version Checking for Save Functions
+
+**CRITICAL**: All save functions that write to custom ASM address space (0x140000+) must check the ROM version before writing. Failing to do so will corrupt vanilla ROMs by overwriting game data with uninitialized values.
+
+```cpp
+// CORRECT: Check version before writing to custom address space
+absl::Status Overworld::SaveAreaSpecificBGColors() {
+  auto version = OverworldVersionHelper::GetVersion(*rom_);
+  if (!OverworldVersionHelper::SupportsCustomBGColors(version)) {
+    return absl::OkStatus();  // Vanilla/v1 ROM - skip custom address writes
+  }
+  // Safe to write to 0x140000+ for v2+ ROMs
+}
+
+// INCORRECT: Writing without version check
+absl::Status Overworld::SaveAreaSpecificBGColors() {
+  // BUG: This writes to 0x140000 even for vanilla ROMs!
+  for (int i = 0; i < 160; ++i) {
+    rom_->Write(OverworldCustomAreaSpecificBGPalette + i * 2, color);
+  }
+}
+```
+
+### Version-Gated Save Functions
+
+| Save Function | Required Version | Address Range |
+|---------------|------------------|---------------|
+| `SaveAreaSpecificBGColors()` | v2+ | 0x140000-0x140140 |
+| `SaveCustomOverworldASM()` (v2 features) | v2+ | 0x140140-0x140180 |
+| `SaveCustomOverworldASM()` (v3 features) | v3+ | 0x140200+ |
+| `SaveDiggableTiles()` | v3+ | 0x140980+ |
+| `SaveAreaSizes()` | v3+ | 0x1417F8+ |
+
+### ROM Upgrade Path
+
+To enable v2/v3 features on a vanilla ROM:
+1. Use the toolbar version badge to identify current ROM version
+2. Click "Upgrade" button to apply ZSCustomOverworld ASM patch
+3. Editor automatically reinitializes custom tables with sensible defaults
+4. New UI controls become visible after upgrade
+
 ## Best Practices
 
 ### 1. Version-Specific Code

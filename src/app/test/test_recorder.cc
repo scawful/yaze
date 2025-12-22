@@ -9,6 +9,7 @@
 #include "absl/time/time.h"
 #include "app/test/test_manager.h"
 #include "app/test/test_script_parser.h"
+#include "util/macro.h"
 
 namespace yaze {
 namespace test {

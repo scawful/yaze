@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "app/emu/snes.h"
-#include "app/rom.h"
+#include "rom/rom.h"
 
 using namespace yaze;
 

@@ -3,7 +3,7 @@
 
 #include <functional>
 
-#include "app/rom.h"
+#include "rom/rom.h"
 #include "cli/tui/tui_component.h"
 
 namespace yaze {

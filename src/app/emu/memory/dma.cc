@@ -165,6 +165,7 @@ void DoDma(Snes* snes, MemoryImpl* memory, int cpuCycles) {
   for (int i = 0; i < 8; i++) {
     if (!channel[i].dma_active)
       continue;
+
     // do channel i
     WaitCycle(snes, memory);  // overhead per channel
     int offIndex = 0;
@@ -357,15 +358,33 @@ void TransferByte(Snes* snes, MemoryImpl* memory, uint16_t aAdr, uint8_t aBank,
                   (aAdr == 0x420b || aAdr == 0x420c ||
                    (aAdr >= 0x4300 && aAdr < 0x4380) ||
                    (aAdr >= 0x2100 && aAdr < 0x2200)));
+  auto record_vram = [&](uint8_t b_addr) {
+    switch (b_addr) {
+      case 0x18:  // VRAM data write low
+      case 0x19:  // VRAM data write high
+      case 0x04:  // OAM data write
+      case 0x22:  // CGRAM data write
+        snes->AccumulateVramBytes(1);
+        break;
+      default:
+        break;
+    }
+  };
   if (fromB) {
     uint8_t val = validB ? snes->ReadBBus(bAdr) : memory->open_bus();
-    if (validA)
+    if (validA) {
+      snes->AccumulateDmaBytes(1);
+      record_vram(bAdr);
       snes->Write((aBank << 16) | aAdr, val);
+    }
   } else {
     uint8_t val =
         validA ? snes->Read((aBank << 16) | aAdr) : memory->open_bus();
-    if (validB)
+    if (validB) {
+      snes->AccumulateDmaBytes(1);
+      record_vram(bAdr);
       snes->WriteBBus(bAdr, val);
+    }
   }
 }
 

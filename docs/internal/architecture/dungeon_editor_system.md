@@ -1,7 +1,7 @@
 # Dungeon Editor System Architecture
 
-**Status**: Draft  
-**Last Updated**: 2025-11-21  
+**Status**: Active  
+**Last Updated**: 2025-11-26  
 **Related Code**: `src/app/editor/dungeon/`, `src/zelda3/dungeon/`, `test/integration/dungeon_editor_v2_test.cc`, `test/e2e/dungeon_editor_smoke_test.cc`
 
 ## Overview
@@ -15,11 +15,31 @@ layout and delegates most logic to small components:
 - **DungeonObjectInteraction** (`dungeon_object_interaction.{h,cc}`): Selection, multi-select, drag/move, copy/paste, and ghost previews on the canvas.
 - **DungeonObjectSelector** (`dungeon_object_selector.{h,cc}`): Asset-browser style object picker and compact editors for sprites/items/doors/chests/properties (UI only).
 - **ObjectEditorCard** (`object_editor_card.{h,cc}`): Unified object editor card.
-- **DungeonEditorSystem** (`zelda3/dungeon/dungeon_editor_system.{h,cc}`): Planned orchestration layer for sprites/items/doors/chests/room properties (mostly stubbed today).
+- **DungeonEditorSystem** (`zelda3/dungeon/dungeon_editor_system.{h,cc}`): Orchestration layer for sprites/items/doors/chests/room properties.
 - **Room Model** (`zelda3/dungeon/room.{h,cc}`): Holds room metadata, objects, sprites, background buffers, and encodes objects back to ROM.
 
 The editor acts as a coordinator: it wires callbacks between selector/interaction/canvas, tracks
 tabbed room cards, and queues texture uploads through `gfx::Arena`.
+
+## Important ImGui Patterns
+
+**Critical**: The dungeon editor uses many `BeginChild`/`EndChild` pairs. Always ensure `EndChild()` is called OUTSIDE the if block:
+
+```cpp
+// ✅ CORRECT
+if (ImGui::BeginChild("##RoomsList", ImVec2(0, 0), true)) {
+  // Draw content
+}
+ImGui::EndChild();  // ALWAYS called
+
+// ❌ WRONG - causes ImGui state corruption
+if (ImGui::BeginChild("##RoomsList", ImVec2(0, 0), true)) {
+  // Draw content
+  ImGui::EndChild();  // BUG: Not called when BeginChild returns false!
+}
+```
+
+**Avoid duplicate rendering**: Don't call `RenderRoomGraphics()` in `DrawRoomGraphicsCard()` - it's already called in `DrawRoomTab()` when the room loads. The graphics card should only display already-rendered data.
 
 ## Data Flow (intended)
 

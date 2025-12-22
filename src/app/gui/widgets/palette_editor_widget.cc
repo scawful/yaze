@@ -6,6 +6,9 @@
 #include "absl/strings/str_format.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/color.h"
+#include "app/gui/core/theme_manager.h"
+#include "app/gui/core/popup_id.h"
+#include "app/gui/plots/implot_support.h"
 #include "util/log.h"
 
 namespace yaze {
@@ -13,20 +16,30 @@ namespace gui {
 
 // Merged implementation from PaletteWidget and PaletteEditorWidget
 
-void PaletteEditorWidget::Initialize(Rom* rom) {
-  rom_ = rom;
+void PaletteEditorWidget::Initialize(zelda3::GameData* game_data) {
+  game_data_ = game_data;
+  rom_ = nullptr;
   rom_palettes_loaded_ = false;
-  if (rom_) {
+  if (game_data_) {
     LoadROMPalettes();
   }
   current_palette_id_ = 0;
   selected_color_index_ = -1;
 }
 
+void PaletteEditorWidget::Initialize(Rom* rom) {
+  rom_ = rom;
+  game_data_ = nullptr;
+  rom_palettes_loaded_ = false;
+  // Legacy mode - no palette loading without game_data
+  current_palette_id_ = 0;
+  selected_color_index_ = -1;
+}
+
 // --- Embedded Draw Method (from simple editor) ---
 void PaletteEditorWidget::Draw() {
-  if (!rom_ || !rom_->is_loaded()) {
-    ImGui::TextColored(ImVec4(1, 0, 0, 1), "ROM not loaded");
+  if (!game_data_) {
+    ImGui::TextColored(ImVec4(1, 0, 0, 1), "GameData not loaded");
     return;
   }
 
@@ -35,7 +48,7 @@ void PaletteEditorWidget::Draw() {
   DrawPaletteSelector();
   ImGui::Separator();
 
-  auto& dungeon_pal_group = rom_->mutable_palette_group()->dungeon_main;
+  auto& dungeon_pal_group = game_data_->palette_groups.dungeon_main;
   if (current_palette_id_ >= 0 &&
       current_palette_id_ < (int)dungeon_pal_group.size()) {
     auto palette = dungeon_pal_group[current_palette_id_];
@@ -55,7 +68,8 @@ void PaletteEditorWidget::Draw() {
 }
 
 void PaletteEditorWidget::DrawPaletteSelector() {
-  auto& dungeon_pal_group = rom_->mutable_palette_group()->dungeon_main;
+  if (!game_data_) return;
+  auto& dungeon_pal_group = game_data_->palette_groups.dungeon_main;
   int num_palettes = dungeon_pal_group.size();
 
   ImGui::Text("Dungeon Palette:");
@@ -80,37 +94,47 @@ void PaletteEditorWidget::DrawPaletteSelector() {
 }
 
 void PaletteEditorWidget::DrawColorPicker() {
+  if (!game_data_) return;
   ImGui::SeparatorText(
       absl::StrFormat("Edit Color %d", selected_color_index_).c_str());
 
-  auto& dungeon_pal_group = rom_->mutable_palette_group()->dungeon_main;
+  auto& dungeon_pal_group = game_data_->palette_groups.dungeon_main;
   auto palette = dungeon_pal_group[current_palette_id_];
   auto original_color = palette[selected_color_index_];
 
-  if (ImGui::ColorEdit3(
-          "Color", &editing_color_.x,
+  // Use standardized SnesColorEdit4 for consistency
+  if (gui::SnesColorEdit4(
+          "Color", &palette[selected_color_index_],
           ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_PickerHueWheel)) {
-    int r = static_cast<int>(editing_color_.x * 31.0f);
-    int g = static_cast<int>(editing_color_.y * 31.0f);
-    int b = static_cast<int>(editing_color_.z * 31.0f);
-    uint16_t snes_color = (b << 10) | (g << 5) | r;
-
-    palette[selected_color_index_] = gfx::SnesColor(snes_color);
+    // Update the palette group with the modified palette
     dungeon_pal_group[current_palette_id_] = palette;
+
+    // Update editing_color_ to match (for consistency with other parts of the
+    // widget)
+    editing_color_ =
+        gui::ConvertSnesColorToImVec4(palette[selected_color_index_]);
 
     if (on_palette_changed_) {
       on_palette_changed_(current_palette_id_);
     }
   }
 
-  ImGui::Text("RGB (0-255): (%d, %d, %d)", (int)(editing_color_.x * 255),
-              (int)(editing_color_.y * 255), (int)(editing_color_.z * 255));
+  ImGui::Text("RGB (0-255): (%d, %d, %d)",
+              static_cast<int>(editing_color_.x * 255),
+              static_cast<int>(editing_color_.y * 255),
+              static_cast<int>(editing_color_.z * 255));
   ImGui::Text("SNES BGR555: 0x%04X", original_color.snes());
 
   if (ImGui::Button("Reset to Original")) {
-    editing_color_ =
-        ImVec4(original_color.rgb().x / 255.0f, original_color.rgb().y / 255.0f,
-               original_color.rgb().z / 255.0f, 1.0f);
+    editing_color_ = ImVec4(original_color.rgb().x / 255.0f,
+                            original_color.rgb().y / 255.0f,
+                            original_color.rgb().z / 255.0f, 1.0f);
+    // Also reset the actual palette color
+    palette[selected_color_index_] = original_color;
+    dungeon_pal_group[current_palette_id_] = palette;
+    if (on_palette_changed_) {
+      on_palette_changed_(current_palette_id_);
+    }
   }
 }
 
@@ -160,8 +184,7 @@ void PaletteEditorWidget::ShowPaletteEditor(gfx::SnesPalette& palette,
 }
 
 void PaletteEditorWidget::ShowROMPaletteManager() {
-  if (!show_rom_manager_)
-    return;
+  if (!show_rom_manager_) return;
 
   if (ImGui::Begin("ROM Palette Manager", &show_rom_manager_)) {
     if (!rom_) {
@@ -191,8 +214,7 @@ void PaletteEditorWidget::ShowROMPaletteManager() {
 
 void PaletteEditorWidget::ShowColorAnalysis(const gfx::Bitmap& bitmap,
                                             const std::string& title) {
-  if (!show_color_analysis_)
-    return;
+  if (!show_color_analysis_) return;
 
   if (ImGui::Begin(title.c_str(), &show_color_analysis_)) {
     ImGui::Text("Bitmap Color Analysis");
@@ -219,28 +241,26 @@ void PaletteEditorWidget::ShowColorAnalysis(const gfx::Bitmap& bitmap,
     ImGui::Text("Pixel Distribution:");
 
     int total_pixels = static_cast<int>(data.size());
+    plotting::PlotStyleScope plot_style(gui::ThemeManager::Get().GetCurrentTheme());
+    plotting::PlotConfig plot_cfg{
+        .id = "Pixel Distribution",
+        .x_label = "Palette Index",
+        .y_label = "Count",
+        .flags = ImPlotFlags_NoBoxSelect,
+        .x_axis_flags = ImPlotAxisFlags_AutoFit,
+        .y_axis_flags = ImPlotAxisFlags_AutoFit};
+    std::vector<double> x;
+    std::vector<double> y;
+    x.reserve(pixel_counts.size());
+    y.reserve(pixel_counts.size());
     for (const auto& [index, count] : pixel_counts) {
-      float percentage = (static_cast<float>(count) / total_pixels) * 100.0f;
-      ImGui::Text("Index %d: %d pixels (%.1f%%)", index, count, percentage);
-
-      ImGui::SameLine();
-      ImGui::ProgressBar(percentage / 100.0f, ImVec2(100, 0));
-
-      if (index < static_cast<int>(bitmap.palette().size())) {
-        ImGui::SameLine();
-        auto color = bitmap.palette()[index];
-        ImVec4 display_color = color.rgb();
-        ImGui::ColorButton(("##color" + std::to_string(index)).c_str(),
-                           display_color, ImGuiColorEditFlags_NoTooltip,
-                           ImVec2(20, 20));
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("SNES Color: 0x%04X\nRGB: (%d, %d, %d)",
-                            color.snes(),
-                            static_cast<int>(display_color.x * 255),
-                            static_cast<int>(display_color.y * 255),
-                            static_cast<int>(display_color.z * 255));
-        }
-      }
+      x.push_back(static_cast<double>(index));
+      y.push_back(static_cast<double>(count));
+    }
+    plotting::PlotGuard plot(plot_cfg);
+    if (plot && !x.empty()) {
+      ImPlot::PlotBars("Usage", x.data(), y.data(), static_cast<int>(x.size()),
+                       0.67, 0.0, ImPlotBarsFlags_None);
     }
   }
   ImGui::End();
@@ -297,8 +317,7 @@ bool PaletteEditorWidget::RestorePaletteBackup(gfx::SnesPalette& palette) {
 // Unified grid drawing function
 void PaletteEditorWidget::DrawPaletteGrid(gfx::SnesPalette& palette, int cols) {
   for (int i = 0; i < static_cast<int>(palette.size()); i++) {
-    if (i % cols != 0)
-      ImGui::SameLine();
+    if (i % cols != 0) ImGui::SameLine();
 
     auto color = palette[i];
     ImVec4 display_color = color.rgb();
@@ -338,8 +357,12 @@ void PaletteEditorWidget::DrawPaletteGrid(gfx::SnesPalette& palette, int cols) {
   }
 
   if (editing_color_index_ >= 0) {
-    ImGui::OpenPopup("Edit Color");
-    if (ImGui::BeginPopupModal("Edit Color", nullptr,
+    // Use a unique ID for the popup to prevent conflicts
+    std::string popup_id =
+        gui::MakePopupIdWithInstance("PaletteEditorWidget", "EditColor", this);
+
+    ImGui::OpenPopup(popup_id.c_str());
+    if (ImGui::BeginPopupModal(popup_id.c_str(), nullptr,
                                ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::Text("Editing Color %d", editing_color_index_);
       if (ImGui::ColorEdit4(
@@ -467,6 +490,31 @@ void PaletteEditorWidget::DrawPaletteAnalysis(const gfx::SnesPalette& palette) {
     }
   }
 
+  // Visual histogram of color reuse
+  {
+    plotting::PlotStyleScope plot_style(gui::ThemeManager::Get().GetCurrentTheme());
+    plotting::PlotConfig plot_cfg{
+        .id = "Palette Color Frequency",
+        .x_label = "Color Index",
+        .y_label = "Count",
+        .flags = ImPlotFlags_NoBoxSelect,
+        .x_axis_flags = ImPlotAxisFlags_AutoFit,
+        .y_axis_flags = ImPlotAxisFlags_AutoFit};
+    std::vector<double> x;
+    std::vector<double> y;
+    x.reserve(color_frequency.size());
+    y.reserve(color_frequency.size());
+    for (const auto& [snes_color, count] : color_frequency) {
+      x.push_back(static_cast<double>(snes_color));
+      y.push_back(static_cast<double>(count));
+    }
+    plotting::PlotGuard plot(plot_cfg);
+    if (plot && !x.empty()) {
+      ImPlot::PlotBars("Count", x.data(), y.data(), static_cast<int>(x.size()),
+                       0.5, 0.0, ImPlotBarsFlags_None);
+    }
+  }
+
   float total_brightness = 0.0f;
   float min_brightness = 1.0f;
   float max_brightness = 0.0f;
@@ -491,11 +539,11 @@ void PaletteEditorWidget::DrawPaletteAnalysis(const gfx::SnesPalette& palette) {
 }
 
 void PaletteEditorWidget::LoadROMPalettes() {
-  if (!rom_ || rom_palettes_loaded_)
+  if (!game_data_ || rom_palettes_loaded_)
     return;
 
   try {
-    const auto& palette_groups = rom_->palette_group();
+    const auto& palette_groups = game_data_->palette_groups;
     rom_palette_groups_.clear();
     palette_group_names_.clear();
 

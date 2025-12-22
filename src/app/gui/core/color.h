@@ -12,10 +12,12 @@ namespace yaze {
 namespace gui {
 
 struct Color {
-  float red;
-  float green;
-  float blue;
-  float alpha;
+  float red = 0.0f;
+  float green = 0.0f;
+  float blue = 0.0f;
+  float alpha = 1.0f;
+
+  operator ImVec4() const { return ImVec4(red, green, blue, alpha); }
 };
 
 inline ImVec4 ConvertColorToImVec4(const Color& color) {

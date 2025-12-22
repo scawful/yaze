@@ -1,0 +1,383 @@
+# YAZE AI Model Evaluation Tasks
+# 
+# This file defines evaluation tasks for comparing different AI models
+# used with the z3ed CLI agent system.
+#
+# Usage:
+#   ./scripts/ai/run-model-eval.sh --models "llama3,qwen2.5,codellama" --tasks all
+#   ./scripts/ai/run-model-eval.sh --tasks rom_inspection --models "llama3"
+#
+# Scoring:
+#   Each task is scored on a 0-10 scale across multiple dimensions:
+#   - accuracy: Did the model answer correctly?
+#   - completeness: Did it include all relevant information?
+#   - tool_usage: Did it use tools appropriately?
+#   - response_time: Measured in seconds (lower is better)
+
+version: "1.0"
+
+# Models to evaluate by default
+default_models:
+  - name: "llama3.2:latest"
+    description: "Meta's Llama 3.2 - default baseline"
+    type: "baseline"
+  - name: "qwen2.5-coder:7b"
+    description: "Qwen 2.5 Coder - optimized for code"
+    type: "code"
+  - name: "codellama:7b"
+    description: "Meta's CodeLlama - code generation"
+    type: "code"
+  - name: "mistral:7b"
+    description: "Mistral 7B - general purpose"
+    type: "general"
+  - name: "phi3:medium"
+    description: "Microsoft Phi-3 - efficient"
+    type: "efficient"
+
+# Scoring weights for overall score calculation
+scoring_weights:
+  accuracy: 0.4
+  completeness: 0.3
+  tool_usage: 0.2
+  response_time: 0.1
+
+# Maximum response time before timeout (seconds)
+timeout: 120
+
+# Evaluation task categories
+categories:
+  rom_inspection:
+    description: "Tasks that inspect ROM data structures"
+    tasks:
+      - id: "list_dungeons"
+        name: "List Dungeons"
+        prompt: "What dungeons are in this ROM? List their names and IDs."
+        expected_patterns:
+          - "eastern palace|palace of darkness|desert palace"
+          - "tower of hera|swamp palace|skull woods"
+          - "thieves|ice palace|misery mire"
+        required_tool: null
+        scoring:
+          accuracy_criteria: "Lists at least 8 dungeons with correct names"
+          completeness_criteria: "Includes dungeon IDs or entrance info"
+        
+      - id: "describe_overworld"
+        name: "Describe Overworld Map"
+        prompt: "Describe overworld map 0 (Light World). What areas and features are visible?"
+        expected_patterns:
+          - "light world|hyrule"
+          - "castle|sanctuary|kakariko"
+        required_tool: null
+        scoring:
+          accuracy_criteria: "Correctly identifies the Light World"
+          completeness_criteria: "Mentions multiple notable locations"
+        
+      - id: "find_sprites"
+        name: "Find Sprites in Room"
+        prompt: "What sprites are present in dungeon room 0? List their types and positions."
+        expected_patterns:
+          - "sprite|enemy|npc"
+          - "position|coordinate|x|y"
+        required_tool: null
+        scoring:
+          accuracy_criteria: "Lists sprites with correct types"
+          completeness_criteria: "Includes position data"
+        
+      - id: "entrance_info"
+        name: "Get Entrance Information"
+        prompt: "Where is the entrance to the Eastern Palace?"
+        expected_patterns:
+          - "eastern|palace|entrance"
+          - "east|light world"
+        required_tool: null
+        scoring:
+          accuracy_criteria: "Correctly identifies entrance location"
+          completeness_criteria: "Provides coordinates or map reference"
+
+  code_analysis:
+    description: "Tasks that analyze or generate code"
+    tasks:
+      - id: "explain_function"
+        name: "Explain Function"
+        prompt: "Explain what the function LoadDungeonRoom does in the codebase."
+        expected_patterns:
+          - "dungeon|room|load"
+          - "tilemap|object|sprite"
+        required_tool: "filesystem-read"
+        scoring:
+          accuracy_criteria: "Correctly describes the function purpose"
+          completeness_criteria: "Explains key steps or data flows"
+        
+      - id: "find_bugs"
+        name: "Find Potential Issues"
+        prompt: "Are there any potential issues with how sprite coordinates are handled in room loading?"
+        expected_patterns:
+          - "bounds|overflow|check"
+          - "coordinate|position"
+        required_tool: "filesystem-read"
+        scoring:
+          accuracy_criteria: "Identifies real or plausible issues"
+          completeness_criteria: "Explains why the issue matters"
+        
+      - id: "suggest_refactor"
+        name: "Suggest Refactoring"
+        prompt: "How could the dungeon editor's room rendering be improved for performance?"
+        expected_patterns:
+          - "cache|batch|optimize"
+          - "render|draw|update"
+        required_tool: "filesystem-read"
+        scoring:
+          accuracy_criteria: "Suggests valid optimization strategies"
+          completeness_criteria: "Explains implementation approach"
+
+  tool_calling:
+    description: "Tasks that require proper tool usage"
+    tasks:
+      - id: "list_files"
+        name: "List Source Files"
+        prompt: "List all .cc files in src/app/editor/"
+        expected_patterns:
+          - "\\.cc"
+          - "editor"
+        required_tool: "filesystem-list"
+        scoring:
+          accuracy_criteria: "Uses filesystem-list tool correctly"
+          completeness_criteria: "Lists files in correct directory"
+        
+      - id: "read_file"
+        name: "Read File Contents"
+        prompt: "What are the first 20 lines of src/app/rom.h?"
+        expected_patterns:
+          - "#ifndef|#define|#include"
+          - "rom|Rom"
+        required_tool: "filesystem-read"
+        scoring:
+          accuracy_criteria: "Uses filesystem-read with correct path"
+          completeness_criteria: "Shows actual file content"
+        
+      - id: "check_existence"
+        name: "Check File Existence"
+        prompt: "Does the file src/app/editor/dungeon/dungeon_editor.cc exist?"
+        expected_patterns:
+          - "exists|found|yes"
+        required_tool: "filesystem-exists"
+        scoring:
+          accuracy_criteria: "Uses filesystem-exists tool"
+          completeness_criteria: "Provides clear yes/no answer"
+        
+      - id: "build_status"
+        name: "Get Build Status"
+        prompt: "What build presets are available for macOS?"
+        expected_patterns:
+          - "mac-dbg|mac-rel|mac-ai|mac-test"
+          - "preset|configure"
+        required_tool: "build-configure"
+        scoring:
+          accuracy_criteria: "Lists valid macOS presets"
+          completeness_criteria: "Describes preset purposes"
+
+  visual_analysis:
+    description: "Tasks for visual analysis and pattern recognition"
+    tasks:
+      - id: "find_similar_tiles"
+        name: "Find Similar Tiles"
+        prompt: "Find tiles similar to tile 42 in the ROM. Use a similarity threshold of 85%."
+        expected_patterns:
+          - "similar|match|tile"
+          - "similarity|score|percent"
+        required_tool: "visual-find-similar-tiles"
+        scoring:
+          accuracy_criteria: "Uses visual-find-similar-tiles with correct parameters"
+          completeness_criteria: "Returns list of matching tiles with scores"
+        
+      - id: "analyze_spritesheet"
+        name: "Analyze Spritesheet"
+        prompt: "Analyze graphics sheet 10 to find unused regions that could be used for custom graphics."
+        expected_patterns:
+          - "unused|empty|free"
+          - "region|space|tile"
+        required_tool: "visual-analyze-spritesheet"
+        scoring:
+          accuracy_criteria: "Uses visual-analyze-spritesheet tool"
+          completeness_criteria: "Reports locations and sizes of free regions"
+        
+      - id: "palette_usage"
+        name: "Palette Usage Analysis"
+        prompt: "Analyze which palettes are used most frequently in the overworld maps."
+        expected_patterns:
+          - "palette|color"
+          - "usage|count|percent"
+        required_tool: "visual-palette-usage"
+        scoring:
+          accuracy_criteria: "Uses visual-palette-usage with overworld type"
+          completeness_criteria: "Shows palette usage statistics"
+        
+      - id: "tile_histogram"
+        name: "Tile Usage Histogram"
+        prompt: "Generate a histogram of the top 20 most used tiles in dungeon rooms."
+        expected_patterns:
+          - "tile|usage|histogram"
+          - "count|frequency|top"
+        required_tool: "visual-tile-histogram"
+        scoring:
+          accuracy_criteria: "Uses visual-tile-histogram with dungeon type"
+          completeness_criteria: "Lists top tiles with usage counts"
+
+  project_management:
+    description: "Tasks for project state and snapshot management"
+    tasks:
+      - id: "project_status"
+        name: "Get Project Status"
+        prompt: "What is the current project status? Show me any pending edits and available snapshots."
+        expected_patterns:
+          - "project|status|snapshot"
+          - "edit|pending|initialized"
+        required_tool: "project-status"
+        scoring:
+          accuracy_criteria: "Uses project-status tool correctly"
+          completeness_criteria: "Reports project state, snapshots, and ROM checksum"
+
+      - id: "create_snapshot"
+        name: "Create Project Snapshot"
+        prompt: "Create a snapshot named 'v1.0' with description 'Initial sprite modifications'."
+        expected_patterns:
+          - "snapshot|created|v1.0"
+          - "edit|delta|saved"
+        required_tool: "project-snapshot"
+        scoring:
+          accuracy_criteria: "Uses project-snapshot with correct name parameter"
+          completeness_criteria: "Confirms snapshot creation with details"
+
+      - id: "compare_snapshots"
+        name: "Compare Snapshots"
+        prompt: "Compare snapshots 'before-fix' and 'after-fix' to see what changed."
+        expected_patterns:
+          - "diff|compare|changed"
+          - "added|removed|modified"
+        required_tool: "project-diff"
+        scoring:
+          accuracy_criteria: "Uses project-diff with both snapshot names"
+          completeness_criteria: "Shows detailed comparison of edits"
+
+      - id: "restore_checkpoint"
+        name: "Restore to Checkpoint"
+        prompt: "Restore the ROM to the 'stable' snapshot."
+        expected_patterns:
+          - "restore|snapshot|stable"
+          - "applied|reverted|edit"
+        required_tool: "project-restore"
+        scoring:
+          accuracy_criteria: "Uses project-restore with correct snapshot name"
+          completeness_criteria: "Confirms restoration and lists applied edits"
+
+  code_generation:
+    description: "Tasks for ASM code generation and patching"
+    tasks:
+      - id: "generate_hook"
+        name: "Generate ASM Hook"
+        prompt: "Generate an ASM hook at address $008040 with label MyCustomHook and 2 NOPs for alignment."
+        expected_patterns:
+          - "hook|JSL|008040"
+          - "MyCustomHook|NOP"
+        required_tool: "codegen-asm-hook"
+        scoring:
+          accuracy_criteria: "Uses codegen-asm-hook with correct address and label"
+          completeness_criteria: "Generates valid ASM with proper hook structure"
+
+      - id: "find_freespace"
+        name: "Find Freespace for Patch"
+        prompt: "Generate a freespace patch for 256 bytes of code labeled 'NewSpriteCode', preferring bank $3F."
+        expected_patterns:
+          - "freespace|org|NewSpriteCode"
+          - "1F8000|bank|free"
+        required_tool: "codegen-freespace-patch"
+        scoring:
+          accuracy_criteria: "Uses codegen-freespace-patch with size and label"
+          completeness_criteria: "Reports available regions and generates allocation code"
+
+      - id: "sprite_template"
+        name: "Generate Sprite Template"
+        prompt: "Generate a sprite template named 'FollowerSprite' with init code that sets sprite state and main code that follows the player."
+        expected_patterns:
+          - "sprite|FollowerSprite|template"
+          - "init|main|0DD0"
+        required_tool: "codegen-sprite-template"
+        scoring:
+          accuracy_criteria: "Uses codegen-sprite-template with name and custom code"
+          completeness_criteria: "Generates complete sprite with init and main sections"
+
+      - id: "event_handler"
+        name: "Generate Event Handler"
+        prompt: "Generate an NMI event handler labeled 'FrameCounter' that increments a counter each frame."
+        expected_patterns:
+          - "NMI|event|handler"
+          - "FrameCounter|INC|counter"
+        required_tool: "codegen-event-handler"
+        scoring:
+          accuracy_criteria: "Uses codegen-event-handler with type=nmi and label"
+          completeness_criteria: "Generates handler with state preservation and custom code"
+
+  conversation:
+    description: "Tasks testing multi-turn dialog and context"
+    tasks:
+      - id: "follow_up"
+        name: "Follow-up Questions"
+        multi_turn: true
+        prompts:
+          - "What is the main purpose of the Rom class?"
+          - "What methods does it have for loading data?"
+          - "Can you show me an example of using LoadFromFile?"
+        expected_patterns:
+          - "rom|ROM|file"
+          - "load|read|parse"
+          - "example|code|usage"
+        scoring:
+          accuracy_criteria: "Maintains context across turns"
+          completeness_criteria: "Each response builds on previous"
+        
+      - id: "clarification"
+        name: "Handle Clarification"
+        multi_turn: true
+        prompts:
+          - "How do I add a new sprite?"
+          - "I mean in the dungeon editor, not the overworld"
+        expected_patterns:
+          - "sprite|dungeon|editor"
+          - "add|create|place"
+        scoring:
+          accuracy_criteria: "Adjusts response based on clarification"
+          completeness_criteria: "Provides dungeon-specific instructions"
+
+# Scoring rubric definitions
+scoring_rubric:
+  accuracy:
+    10: "Perfect - completely correct with no errors"
+    8: "Excellent - minor inaccuracies that don't affect understanding"
+    6: "Good - mostly correct with some notable errors"
+    4: "Fair - partially correct but missing key points"
+    2: "Poor - significant errors or misunderstandings"
+    0: "Incorrect - completely wrong or off-topic"
+  
+  completeness:
+    10: "Comprehensive - covers all aspects thoroughly"
+    8: "Very complete - covers most aspects well"
+    6: "Adequate - covers main points but missing some details"
+    4: "Partial - covers some points but lacks depth"
+    2: "Minimal - barely addresses the question"
+    0: "Incomplete - doesn't meaningfully address the question"
+  
+  tool_usage:
+    10: "Perfect - uses correct tools with proper parameters"
+    8: "Good - uses appropriate tools with minor parameter issues"
+    6: "Adequate - uses tools but not optimally"
+    4: "Fair - attempts tool use but with errors"
+    2: "Poor - wrong tool or significant usage errors"
+    0: "Failed - doesn't use required tools or fails completely"
+
+# Report configuration
+reporting:
+  output_format: "table"  # table, json, markdown
+  show_individual_scores: true
+  show_response_samples: true
+  max_sample_length: 500
+

@@ -419,9 +419,9 @@ absl::StatusOr<AutomationResult> GuiAutomationClient::Screenshot(
 
   yaze::test::ScreenshotRequest request;
   request.set_window_title("");                         // Empty = main window
-  request.set_output_path("/tmp/yaze_screenshot.png");  // Default path
+  // No hardcoded path here - let server decide default unless provided
   request.set_format(
-      yaze::test::ScreenshotRequest::IMAGE_FORMAT_PNG);  // Always PNG for now
+      yaze::test::ScreenshotRequest::IMAGE_FORMAT_BMP);  // Match SDL_SaveBMP
 
   yaze::test::ScreenshotResponse response;
   grpc::ClientContext context;

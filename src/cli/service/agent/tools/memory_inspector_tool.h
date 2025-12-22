@@ -173,13 +173,13 @@ class MemoryAnalyzeTool : public MemoryInspectorBase {
     return "memory-analyze --address <addr> --length <len> [--format <json|text>]";
   }
 
+  bool RequiresLabels() const override { return false; }
+
  protected:
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
 
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
                        resources::OutputFormatter& formatter) override;
-
-  bool RequiresLabels() const override { return false; }
 
  private:
   // Analyze sprite table entry
@@ -218,13 +218,13 @@ class MemorySearchTool : public MemoryInspectorBase {
            "[--max-results <n>] [--format <json|text>]";
   }
 
+  bool RequiresLabels() const override { return false; }
+
  protected:
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
 
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
                        resources::OutputFormatter& formatter) override;
-
-  bool RequiresLabels() const override { return false; }
 
  private:
   // Parse pattern string (supports wildcards)
@@ -261,13 +261,13 @@ class MemoryCompareTool : public MemoryInspectorBase {
     return "memory-compare --address <addr> --expected <hex> [--format <json|text>]";
   }
 
+  bool RequiresLabels() const override { return false; }
+
  protected:
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
 
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
                        resources::OutputFormatter& formatter) override;
-
-  bool RequiresLabels() const override { return false; }
 };
 
 /**
@@ -293,13 +293,13 @@ class MemoryCheckTool : public MemoryInspectorBase {
     return "memory-check [--region <region_name>] [--format <json|text>]";
   }
 
+  bool RequiresLabels() const override { return false; }
+
  protected:
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
 
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
                        resources::OutputFormatter& formatter) override;
-
-  bool RequiresLabels() const override { return false; }
 
  private:
   // Check sprite table for anomalies
@@ -334,13 +334,13 @@ class MemoryRegionsTool : public MemoryInspectorBase {
     return "memory-regions [--filter <pattern>] [--format <json|text>]";
   }
 
+  bool RequiresLabels() const override { return false; }
+
  protected:
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
 
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
                        resources::OutputFormatter& formatter) override;
-
-  bool RequiresLabels() const override { return false; }
 };
 
 }  // namespace tools

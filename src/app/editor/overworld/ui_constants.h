@@ -21,7 +21,8 @@ inline constexpr float kInputFieldSize = 30.f;
 inline constexpr float kHexByteInputWidth = 50.f;
 inline constexpr float kHexWordInputWidth = 70.f;
 inline constexpr float kCompactButtonWidth = 60.f;
-inline constexpr float kIconButtonWidth = 30.f;
+inline constexpr float kIconButtonWidth = 40.f;         // Comfortable touch target
+inline constexpr float kPanelToggleButtonWidth = 40.f;  // Panel toggle buttons
 inline constexpr float kSmallButtonWidth = 80.f;
 inline constexpr float kMediumButtonWidth = 90.f;
 inline constexpr float kLargeButtonWidth = 100.f;
@@ -56,6 +57,18 @@ inline constexpr float kCompactItemSpacing = 4.f;
 inline constexpr float kCompactFramePadding = 2.f;
 
 // Map Size Constants - using the one from overworld_editor.h
+
+enum class EditingMode { MOUSE = 0, DRAW_TILE = 1 };
+
+enum class EntityEditMode {
+  NONE = 0,
+  ENTRANCES = 1,
+  EXITS = 2,
+  ITEMS = 3,
+  SPRITES = 4,
+  TRANSPORTS = 5,
+  MUSIC = 6
+};
 
 }  // namespace editor
 }  // namespace yaze

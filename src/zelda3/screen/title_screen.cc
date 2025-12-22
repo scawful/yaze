@@ -4,17 +4,18 @@
 
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/resource/arena.h"
-#include "app/rom.h"
-#include "app/snes.h"
+#include "rom/rom.h"
+#include "rom/snes.h"
 #include "util/log.h"
 
 namespace yaze {
 namespace zelda3 {
 
-absl::Status TitleScreen::Create(Rom* rom) {
+absl::Status TitleScreen::Create(Rom* rom, GameData* game_data) {
   if (!rom || !rom->is_loaded()) {
     return absl::InvalidArgumentError("ROM is not loaded");
   }
+  game_data_ = game_data;
 
   // Initialize bitmaps for each layer
   tiles8_bitmap_.Create(128, 512, 8, std::vector<uint8_t>(0x20000));
@@ -66,7 +67,11 @@ absl::Status TitleScreen::Create(Rom* rom) {
   // Transparent/black Palette 6: SpritesAux1Palettes[1] Palette 7:
   // SpritesAux1Palettes[1]
 
-  auto pal_group = rom->palette_group();
+  // Get palette group from GameData if available, otherwise fail
+  if (!game_data_) {
+    return absl::FailedPreconditionError("GameData not set for TitleScreen");
+  }
+  auto& pal_group = game_data_->palette_groups;
 
   // Add each 8-color palette in sequence (EXACTLY 8 colors each for 64 total)
   size_t palette_start = palette_.size();
@@ -224,9 +229,12 @@ absl::Status TitleScreen::BuildTileset(Rom* rom) {
   staticgfx[14] = 112;            // UI graphics
   staticgfx[15] = 112;            // UI graphics
 
-  // Use pre-converted graphics from ROM buffer - simple and matches rest of
-  // yaze Title screen uses standard 3BPP graphics, no special offset needed
-  const auto& gfx_buffer = rom->graphics_buffer();
+  // Use pre-converted graphics from GameData buffer
+  // Title screen uses standard 3BPP graphics, no special offset needed
+  if (!game_data_) {
+    return absl::FailedPreconditionError("GameData not set");
+  }
+  const auto& gfx_buffer = game_data_->graphics_buffer;
   auto& tiles8_data = tiles8_bitmap_.mutable_data();
 
   LOG_INFO("TitleScreen", "Graphics buffer size: %zu bytes", gfx_buffer.size());
