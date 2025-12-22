@@ -78,7 +78,7 @@ TEST_F(ObjectParserTest, ParseSubtype2Object) {
   ASSERT_TRUE(result.ok());
 
   const auto& tiles = result.value();
-  EXPECT_EQ(tiles.size(), 8);
+  EXPECT_EQ(tiles.size(), 16);
 }
 
 TEST_F(ObjectParserTest, ParseSubtype3Object) {

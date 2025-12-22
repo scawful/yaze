@@ -78,14 +78,14 @@ TEST_F(CustomObjectManagerTest, LoadSimpleObject) {
 
 TEST_F(CustomObjectManagerTest, LoadComplexLayout) {
   // Two rows of 2 tiles
-  // Row 1: 0xAAAA, 0xBBBB. Jump to next row (stride 64 bytes - 4 bytes used = 60 bytes jump)
-  // Header 1: Count=2, Jump=60 (0x3C). 0x3C02 -> LE: 02 3C
+  // Row 1: 0xAAAA, 0xBBBB. Jump to next row (stride 128 bytes, jump 128)
+  // Header 1: Count=2, Jump=128 (0x80). 0x8002 -> LE: 02 80
   // Row 2: 0xCCCC, 0xDDDD.
   // Header 2: Count=2, Jump=0. 0x0002 -> LE: 02 00
   // Terminator
   
   std::vector<uint8_t> data = {
-    0x02, 0x3C,             // Header 1
+    0x02, 0x80,             // Header 1
     0xAA, 0xAA, 0xBB, 0xBB, // Row 1 Tiles (LE: 0xAAAA, 0xBBBB)
     0x02, 0x00,             // Header 2
     0xCC, 0xCC, 0xDD, 0xDD, // Row 2 Tiles (LE: 0xCCCC, 0xDDDD)

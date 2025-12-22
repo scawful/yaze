@@ -66,8 +66,8 @@ TEST_F(ObjectDimensionTableTest, GetDimensionsAccountsForSize) {
   auto [w0, h0] = table.GetDimensions(0x00, 0);
   auto [w5, h5] = table.GetDimensions(0x00, 5);
 
-  // Larger size should give larger width for horizontal walls
-  EXPECT_GE(w5, w0);
+  // Size 0 uses the 32-tile default, so width should be larger than size 5
+  EXPECT_GT(w0, w5);
 }
 
 TEST_F(ObjectDimensionTableTest, GetHitTestBoundsReturnsObjectPosition) {
@@ -143,20 +143,20 @@ TEST_F(ObjectDimensionsTest, CalculatesDimensionsForDiagonalWalls) {
   ObjectDrawer drawer(rom_.get(), 0);
 
   // Test object 0x10 (Diagonal Wall /)
-  // Routine 17: DrawDiagonalAcute_1to16_BothBG
-  // Logic: width = (size + 6) * 8
+  // Routine 5: DrawDiagonalAcute_1to16
+  // Logic: width = (size + 7) * 8
   
   RoomObject obj10(0x10, 10, 10, 0, 0); // Size 0
-  // width = (0 + 6) * 8 = 48
+  // width = (0 + 7) * 8 = 56
   auto dims = drawer.CalculateObjectDimensions(obj10);
-  EXPECT_EQ(dims.first, 48);
-  EXPECT_EQ(dims.second, 48);
+  EXPECT_EQ(dims.first, 56);
+  EXPECT_EQ(dims.second, 88);
 
   RoomObject obj10_size10(0x10, 10, 10, 10, 0); // Size 10
-  // width = (10 + 6) * 8 = 128
+  // width = (10 + 7) * 8 = 136
   dims = drawer.CalculateObjectDimensions(obj10_size10);
-  EXPECT_EQ(dims.first, 128);
-  EXPECT_EQ(dims.second, 128);
+  EXPECT_EQ(dims.first, 136);
+  EXPECT_EQ(dims.second, 168);
 }
 
 TEST_F(ObjectDimensionsTest, CalculatesDimensionsForType2Corners) {
@@ -164,10 +164,10 @@ TEST_F(ObjectDimensionsTest, CalculatesDimensionsForType2Corners) {
 
   // Test object 0x40 (Type 2 Corner)
   // Routine 22: Edge 1x1
-  // Width 8, Height 8
+  // Width 24, Height 8 (corner + middle + end)
   RoomObject obj40(0x40, 10, 10, 0, 0);
   auto dims = drawer.CalculateObjectDimensions(obj40);
-  EXPECT_EQ(dims.first, 8);
+  EXPECT_EQ(dims.first, 24);
   EXPECT_EQ(dims.second, 8);
 }
 

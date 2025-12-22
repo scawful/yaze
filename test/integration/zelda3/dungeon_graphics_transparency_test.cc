@@ -5,8 +5,10 @@
 #include <gtest/gtest.h>
 
 #include <cstdio>
+#include <string>
 
 #include "rom/rom.h"
+#include "test/test_utils.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/game_data.h"
@@ -20,11 +22,11 @@ class DungeonGraphicsTransparencyTest : public ::testing::Test {
   void SetUp() override {
     rom_ = std::make_unique<Rom>();
 
-    const char* rom_path = std::getenv("YAZE_TEST_ROM_PATH");
-    if (!rom_path) {
-      rom_path = "zelda3.sfc";
-    }
-
+    yaze::test::TestRomManager::SkipIfRomMissing(
+        yaze::test::RomRole::kVanilla,
+        "DungeonGraphicsTransparencyTest");
+    const std::string rom_path =
+        yaze::test::TestRomManager::GetRomPath(yaze::test::RomRole::kVanilla);
     auto status = rom_->LoadFromFile(rom_path);
     if (!status.ok()) {
       GTEST_SKIP() << "ROM file not available: " << status.message();
@@ -78,7 +80,8 @@ TEST_F(DungeonGraphicsTransparencyTest, GraphicsBufferHasTransparentPixels) {
 // Test 2: Verify room graphics buffer after CopyRoomGraphicsToBuffer
 TEST_F(DungeonGraphicsTransparencyTest, RoomGraphicsBufferHasTransparentPixels) {
   // Create room 0 (Ganon's room - known to have walls)
-  Room room(0x00, rom_.get());
+  Room room = LoadRoomHeaderFromRom(rom_.get(), 0x00);
+  room.SetGameData(&game_data_);
   room.LoadRoomGraphics(0xFF);
   room.CopyRoomGraphicsToBuffer();
 
@@ -86,15 +89,22 @@ TEST_F(DungeonGraphicsTransparencyTest, RoomGraphicsBufferHasTransparentPixels) 
   const auto& gfx16 = room.get_gfx_buffer();
   ASSERT_GT(gfx16.size(), 0);
 
-  // Count zeros in the room's graphics buffer
+  // Count zeros in the room's graphics buffer (background blocks only)
+  constexpr int kBlockSize = 4096;
+  constexpr int kBgBlocks = 8;
   int zero_count = 0;
-  for (size_t i = 0; i < gfx16.size(); i++) {
-    if (gfx16[i] == 0) zero_count++;
+  int total_pixels = 0;
+  for (int block = 0; block < kBgBlocks; block++) {
+    int base = block * kBlockSize;
+    for (int i = 0; i < kBlockSize; i++) {
+      if (gfx16[base + i] == 0) zero_count++;
+      total_pixels++;
+    }
   }
 
-  float zero_percent = 100.0f * zero_count / gfx16.size();
-  printf("[RoomGraphics] Room 0: Zeros: %d / %zu (%.1f%%)\n", zero_count,
-         gfx16.size(), zero_percent);
+  float zero_percent = 100.0f * zero_count / total_pixels;
+  printf("[RoomGraphics] Room 0: Zeros: %d / %d (%.1f%%)\n", zero_count,
+         total_pixels, zero_percent);
 
   // Log first 64 bytes (one tile's worth) to see actual values
   printf("[RoomGraphics] First 64 bytes:\n");
@@ -107,39 +117,44 @@ TEST_F(DungeonGraphicsTransparencyTest, RoomGraphicsBufferHasTransparentPixels) 
   }
 
   // Print value distribution
-  int value_counts[8] = {0};
+  int value_counts[16] = {0};
   int other_count = 0;
-  for (size_t i = 0; i < gfx16.size(); i++) {
-    if (gfx16[i] < 8) {
-      value_counts[gfx16[i]]++;
-    } else {
-      other_count++;
+  for (int block = 0; block < kBgBlocks; block++) {
+    int base = block * kBlockSize;
+    for (int i = 0; i < kBlockSize; i++) {
+      uint8_t value = gfx16[base + i];
+      if (value < 16) {
+        value_counts[value]++;
+      } else {
+        other_count++;
+      }
     }
   }
 
   printf("[RoomGraphics] Value distribution:\n");
-  for (int v = 0; v < 8; v++) {
+  for (int v = 0; v < 16; v++) {
     printf("  Value %d: %d (%.1f%%)\n", v, value_counts[v],
-           100.0f * value_counts[v] / gfx16.size());
+           100.0f * value_counts[v] / total_pixels);
   }
   if (other_count > 0) {
-    printf("  Values >7: %d (%.1f%%) - UNEXPECTED for 3BPP!\n", other_count,
-           100.0f * other_count / gfx16.size());
+    printf("  Values >15: %d (%.1f%%) - UNEXPECTED for 4BPP!\n", other_count,
+           100.0f * other_count / total_pixels);
   }
 
   EXPECT_GT(zero_percent, 5.0f)
       << "Room graphics buffer should have transparent pixels. "
       << "Got " << zero_percent << "%. Check CopyRoomGraphicsToBuffer().";
 
-  // All values should be 0-7 for 3BPP graphics
+  // Background blocks should not exceed 4BPP (0-15) values.
   EXPECT_EQ(other_count, 0)
-      << "Found " << other_count << " pixels with values > 7. "
-      << "3BPP graphics should only have values 0-7.";
+      << "Found " << other_count << " pixels with values > 15 in BG blocks. "
+      << "BG graphics should only have values 0-15.";
 }
 
 // Test 3: Verify specific tile has expected mix of transparent/opaque
 TEST_F(DungeonGraphicsTransparencyTest, SpecificTileTransparency) {
-  Room room(0x00, rom_.get());
+  Room room = LoadRoomHeaderFromRom(rom_.get(), 0x00);
+  room.SetGameData(&game_data_);
   room.LoadRoomGraphics(0xFF);
   room.CopyRoomGraphicsToBuffer();
 

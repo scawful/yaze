@@ -6,6 +6,7 @@
 #include "absl/strings/str_format.h"
 #include "app/gfx/types/snes_tile.h"
 #include "rom/rom.h"
+#include "core/features.h"
 #include "rom/snes.h"
 #include "util/log.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
@@ -340,10 +341,15 @@ void ObjectDrawer::InitializeDrawRoutines() {
   object_to_routine_map_[0x30] = 24;  // RoomDraw_RightwardsBottomCorners1x2_1to16_plus13
 
   // Custom Objects (0x31-0x32) - Oracle of Secrets minecart tracks and furniture
-  // These use external binary files instead of ROM tile data.
-  // Requires CustomObjectManager initialization and enable_custom_objects feature flag.
-  object_to_routine_map_[0x31] = DrawRoutineIds::kCustomObject;  // Custom tracks
-  object_to_routine_map_[0x32] = DrawRoutineIds::kCustomObject;  // Custom furniture
+  // USDASM marks these as RoomDraw_Nothing; only map to custom routines when enabled.
+  if (core::FeatureFlags::get().kEnableCustomObjects) {
+    // These use external binary files instead of ROM tile data.
+    object_to_routine_map_[0x31] = DrawRoutineIds::kCustomObject;  // Custom tracks
+    object_to_routine_map_[0x32] = DrawRoutineIds::kCustomObject;  // Custom furniture
+  } else {
+    object_to_routine_map_[0x31] = DrawRoutineIds::kNothing;
+    object_to_routine_map_[0x32] = DrawRoutineIds::kNothing;
+  }
   object_to_routine_map_[0x33] = 16; // 4x4 Block
   object_to_routine_map_[0x34] = 25; // Solid 1x1
   object_to_routine_map_[0x35] = 26; // Door Switcher
@@ -633,19 +639,10 @@ void ObjectDrawer::InitializeDrawRoutines() {
     object_to_routine_map_[id] = 39;  // Chest draw routine
   }
 
-  // Subtype 2 Object Mappings (0x100-0x1FF)
-  // LAYOUT CORNERS: 0x100-0x103 are the concave corners used in room layouts
-  // These must use DrawCorner4x4 (routine 19) NOT DrawRightwards4x4 (routine 16)
-  // ASM Reference: bank_01.asm RoomDraw_4x4Corner routine
-  // 0x100 = Corner (top, concave) ▛ (upper-left)
-  // 0x101 = Corner (top, concave) ▙ (lower-left)
-  // 0x102 = Corner (top, concave) ▜ (upper-right)
-  // 0x103 = Corner (top, concave) ▟ (lower-right)
-  for (int id = 0x100; id <= 0x103; id++) {
-    object_to_routine_map_[id] = 19;  // DrawCorner4x4 for layout corners
-  }
-  // 0x104-0x107: Other 4x4 patterns (non-corner)
-  for (int id = 0x104; id <= 0x107; id++) {
+  // Subtype 2 Object Mappings (0x100-0x13F)
+  // ASM Reference: bank_01.asm .type1_subtype_2_routine ($018470)
+  // 0x100-0x107: RoomDraw_4x4
+  for (int id = 0x100; id <= 0x107; id++) {
     object_to_routine_map_[id] = 16;  // Rightwards 4x4
   }
   for (int id = 0x108; id <= 0x10F; id++) {

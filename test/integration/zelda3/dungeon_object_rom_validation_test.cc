@@ -202,8 +202,8 @@ TEST_F(DungeonObjectRomValidationTest, DrawRoutineMapping_AllType1ObjectsHaveRou
     int routine = drawer.GetDrawRoutineId(id);
     EXPECT_GE(routine, 0)
         << "Object 0x" << std::hex << id << " should have a valid draw routine";
-    EXPECT_LT(routine, 40)
-        << "Object 0x" << std::hex << id << " routine ID should be < 40";
+    EXPECT_LT(routine, drawer.GetDrawRoutineCount())
+        << "Object 0x" << std::hex << id << " routine ID should be < registry size";
   }
 }
 

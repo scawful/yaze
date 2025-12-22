@@ -118,7 +118,7 @@ absl::StatusOr<ObjectSubtypeInfo> ObjectParser::GetObjectSubtype(
       info.subtype_ptr = kRoomObjectSubtype2 + (index * 2);
       // Routine table starts 128 bytes (64 entries * 2 bytes) after data table
       info.routine_ptr = kRoomObjectSubtype2 + 0x80 + (index * 2);
-      info.max_tile_count = 8;
+      info.max_tile_count = GetSubtype2TileCount(object_id);
       break;
     }
     case 3: {
@@ -127,7 +127,7 @@ absl::StatusOr<ObjectSubtypeInfo> ObjectParser::GetObjectSubtype(
       int index = (object_id - 0xF80) & 0x7F;
       info.subtype_ptr = kRoomObjectSubtype3 + (index * 2);
       info.routine_ptr = kRoomObjectSubtype3 + 0x100 + (index * 2);
-      info.max_tile_count = 8;
+      info.max_tile_count = GetSubtype3TileCount(object_id);
       break;
     }
     default:
