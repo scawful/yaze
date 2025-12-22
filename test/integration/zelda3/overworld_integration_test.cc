@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
 
-#include <filesystem>
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "rom/rom.h"
+#include "test/test_utils.h"
 #include "testing.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_map.h"
@@ -32,17 +32,16 @@ class OverworldIntegrationTest : public ::testing::Test {
 #endif
 
     // Check if we should use real ROM or mock data
-    const char* rom_path_env = getenv("YAZE_TEST_ROM_PATH");
-    const char* skip_rom_tests = getenv("YAZE_SKIP_ROM_TESTS");
-
-    if (skip_rom_tests) {
+    if (std::getenv("YAZE_SKIP_ROM_TESTS")) {
       GTEST_SKIP() << "ROM tests disabled";
     }
 
-    if (rom_path_env && std::filesystem::exists(rom_path_env)) {
+    const std::string rom_path =
+        yaze::test::TestRomManager::GetRomPath(yaze::test::RomRole::kVanilla);
+    if (!rom_path.empty()) {
       // Use real ROM for testing
       rom_ = std::make_unique<Rom>();
-      auto status = rom_->LoadFromFile(rom_path_env);
+      auto status = rom_->LoadFromFile(rom_path);
       if (status.ok()) {
         use_real_rom_ = true;
         overworld_ = std::make_unique<Overworld>(rom_.get());
@@ -181,7 +180,7 @@ TEST_F(OverworldIntegrationTest, DISABLED_EntranceCoordinateCalculation) {
 // Test exit loading matches ZScream data structure
 TEST_F(OverworldIntegrationTest, ExitDataLoading) {
   auto status = overworld_->Load(rom_.get());
-  ASSERT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok()) << status.ToString();
 
   const auto& exits = overworld_->exits();
   EXPECT_EQ(exits->size(), 0x4F);
@@ -298,8 +297,9 @@ TEST_F(OverworldIntegrationTest, RomDependentTestSuiteCompatibility) {
 
   // Test that sprite data is accessible (matches RomDependentTestSuite
   // expectations)
-  const auto& sprites = overworld_->sprites(0);
-  EXPECT_EQ(sprites.size(), 3);  // Three game states
+  const auto all_sprites = overworld_->all_sprites();
+  EXPECT_EQ(all_sprites.size(), 3);  // Three game states
+  EXPECT_GT(all_sprites[0].size(), 0);
 
   // Test that item data is accessible
   const auto& items = overworld_->all_items();
