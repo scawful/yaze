@@ -414,6 +414,7 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchWithBinary(
   FILE* pipe = popen(cmd.str().c_str(), "r");
   if (!pipe) {
     fs::remove(temp_rom, ec);
+    fs::remove(temp_symbols, ec);
     if (!patch_dir.empty()) fs::current_path(original_cwd, ec);
     return absl::InternalError("popen() failed for Asar CLI");
   }

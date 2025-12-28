@@ -140,6 +140,15 @@ class GraphicsEditorState {
   void ClearModifiedSheets() { modified_sheets.clear(); }
 
   /**
+   * @brief Clear specific sheets from modification tracking
+   */
+  void ClearModifiedSheets(const std::set<uint16_t>& sheet_ids) {
+    for (auto sheet_id : sheet_ids) {
+      modified_sheets.erase(sheet_id);
+    }
+  }
+
+  /**
    * @brief Check if any sheets have unsaved changes
    */
   bool HasUnsavedChanges() const { return !modified_sheets.empty(); }
