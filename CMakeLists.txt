@@ -23,7 +23,7 @@ else()
     set(YAZE_VERSION_SUFFIX "-alpha")
 endif()
 
-if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
+if(APPLE)
     project(yaze VERSION ${YAZE_VERSION}
                  DESCRIPTION "Yet Another Zelda3 Editor"
                  LANGUAGES CXX C OBJC OBJCXX)
@@ -32,6 +32,13 @@ else()
                  DESCRIPTION "Yet Another Zelda3 Editor"
                  LANGUAGES CXX C)
 endif()
+
+# Set language standards early so dependencies (e.g., Abseil) build with them.
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 
 # Include build options first
 include(cmake/options.cmake)
@@ -64,6 +71,19 @@ set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "Suppress deprecation warnings")
 # Add cmake directory to module path
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 
+# Platform detection
+if(APPLE)
+    if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+        set(YAZE_PLATFORM_IOS ON)
+    else()
+        set(YAZE_PLATFORM_MACOS ON)
+    endif()
+elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
+    set(YAZE_PLATFORM_LINUX ON)
+elseif(CMAKE_SYSTEM_NAME MATCHES "Windows")
+    set(YAZE_PLATFORM_WINDOWS ON)
+endif()
+
 # Include utility functions
 include(cmake/utils.cmake)
 
@@ -81,15 +101,6 @@ set(YAZE_TEST_ROM_PATH "" CACHE STRING "Legacy path to test ROM file (vanilla)")
 
 # Export compile commands for clangd/LSP
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-# Platform detection
-if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-    set(YAZE_PLATFORM_MACOS ON)
-elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
-    set(YAZE_PLATFORM_LINUX ON)
-elseif(CMAKE_SYSTEM_NAME MATCHES "Windows")
-    set(YAZE_PLATFORM_WINDOWS ON)
-endif()
 
 # Setup compiler flags and common interface target
 yaze_add_compiler_flags()
@@ -169,7 +180,9 @@ if(CLANG_FORMAT)
 endif()
 
 # Packaging configuration
-include(cmake/packaging/cpack.cmake)
+if(NOT YAZE_PLATFORM_IOS)
+  include(cmake/packaging/cpack.cmake)
+endif()
 
 add_custom_target(build_cleaner
   COMMAND ${CMAKE_COMMAND} -E echo "Running scripts/build_cleaner.py --dry-run"

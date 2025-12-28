@@ -14,8 +14,13 @@
 
 #include <climits>  // For PATH_MAX
 #ifdef __APPLE__
+#include <TargetConditionals.h>
 #include <mach-o/dyld.h>  // For _NSGetExecutablePath
 #endif
+#endif
+
+#if defined(__APPLE__) && defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
+#define YAZE_APPLE_MOBILE 1
 #endif
 
 namespace yaze {
@@ -76,7 +81,28 @@ std::filesystem::path PlatformPaths::GetHomeDirectory() {
 }
 
 absl::StatusOr<std::filesystem::path> PlatformPaths::GetAppDataDirectory() {
-#ifdef _WIN32
+#if defined(YAZE_IOS) || defined(YAZE_APPLE_MOBILE)
+  std::filesystem::path home = GetHomeDirectory();
+  if (home.empty() || home == ".") {
+    std::error_code ec;
+    auto temp = std::filesystem::temp_directory_path(ec);
+    if (!ec) {
+      home = temp;
+    }
+  }
+
+  std::filesystem::path app_data =
+      home / "Library" / "Application Support" / "yaze";
+  auto status = EnsureDirectoryExists(app_data);
+  if (!status.ok()) {
+    app_data = home / "Documents" / "yaze";
+    status = EnsureDirectoryExists(app_data);
+    if (!status.ok()) {
+      return status;
+    }
+  }
+  return app_data;
+#elif defined(_WIN32)
   wchar_t path[MAX_PATH];
   if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_APPDATA, NULL, 0, path))) {
     std::filesystem::path app_data = std::filesystem::path(path) / "yaze";
@@ -127,7 +153,19 @@ absl::StatusOr<std::filesystem::path> PlatformPaths::GetConfigDirectory() {
 }
 
 absl::StatusOr<std::filesystem::path> PlatformPaths::GetUserDocumentsDirectory() {
-#ifdef _WIN32
+#if defined(YAZE_IOS) || defined(YAZE_APPLE_MOBILE)
+  std::filesystem::path home = GetHomeDirectory();
+  std::filesystem::path docs_dir = home / "Documents" / "Yaze";
+  auto status = EnsureDirectoryExists(docs_dir);
+  if (!status.ok()) {
+    docs_dir = home / "Yaze";
+    status = EnsureDirectoryExists(docs_dir);
+    if (!status.ok()) {
+      return status;
+    }
+  }
+  return docs_dir;
+#elif defined(_WIN32)
   wchar_t path[MAX_PATH];
   if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_PERSONAL, NULL, 0, path))) {
     std::filesystem::path docs_dir = std::filesystem::path(path) / "Yaze";

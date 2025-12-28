@@ -33,6 +33,7 @@ CMakeUserPresets.json
 *.swo
 *~
 .DS_Store
+src/ios/yaze_ios.xcodeproj/
 
 # Test outputs
 test_screenshots/

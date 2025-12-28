@@ -31,8 +31,17 @@ namespace {
 std::string SetFontPath(const std::string& font_path) {
 #ifdef __APPLE__
 #if TARGET_OS_IOS == 1
-  const std::string kBundlePath = util::GetBundleResourcePath();
-  return kBundlePath + font_path;
+  const std::string bundle_root = util::GetBundleResourcePath();
+  std::string bundle_path =
+      absl::StrCat(bundle_root, "assets/font/", font_path);
+  if (std::filesystem::exists(bundle_path)) {
+    return bundle_path;
+  }
+  bundle_path = absl::StrCat(bundle_root, font_path);
+  if (std::filesystem::exists(bundle_path)) {
+    return bundle_path;
+  }
+  return absl::StrCat("assets/font/", font_path);
 #else
   std::string bundle_path = absl::StrCat(
       util::GetBundleResourcePath(), "Contents/Resources/font/", font_path);

@@ -32,7 +32,7 @@ if(EMSCRIPTEN)
   list(APPEND YAZE_APP_EXECUTABLE_SRC web/debug/yaze_debug_inspector.cc)
 endif()
 
-if (APPLE)
+if (YAZE_PLATFORM_MACOS)
   list(APPEND YAZE_APP_EXECUTABLE_SRC app/platform/app_delegate.mm)
   add_executable(yaze MACOSX_BUNDLE ${YAZE_APP_EXECUTABLE_SRC} ${YAZE_RESOURCE_FILES})
 
@@ -79,7 +79,9 @@ endif()
 target_link_libraries(yaze PRIVATE
   yaze_editor
   yaze_emulator
+  yaze_emulator_ui
   yaze_agent
+  yaze_grpc_support
   absl::failure_signal_handler
   absl::flags
   absl::flags_parse
@@ -103,7 +105,7 @@ if(WIN32)
   endif()
 endif()
 
-if(APPLE)
+if(YAZE_PLATFORM_MACOS)
   target_link_libraries(yaze PUBLIC "-framework Cocoa")
 endif()
 

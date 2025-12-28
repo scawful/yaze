@@ -34,8 +34,10 @@ macro(configure_gfx_library name)
   )
   if(UNIX AND NOT APPLE)
     target_compile_definitions(${name} PRIVATE linux stricmp=strcasecmp)
-  elseif(APPLE)
+  elseif(YAZE_PLATFORM_MACOS)
     target_compile_definitions(${name} PRIVATE MACOS)
+  elseif(YAZE_PLATFORM_IOS)
+    target_compile_definitions(${name} PRIVATE YAZE_IOS)
   elseif(WIN32)
     target_compile_definitions(${name} PRIVATE WINDOWS)
   endif()
@@ -62,6 +64,12 @@ if(YAZE_USE_SDL3)
 else()
   set(GFX_BACKEND_SRC
     app/gfx/backend/sdl2_renderer.cc
+  )
+endif()
+
+if(APPLE)
+  list(APPEND GFX_BACKEND_SRC
+    app/gfx/backend/metal_renderer.mm
   )
 endif()
 

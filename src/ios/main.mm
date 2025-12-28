@@ -35,6 +35,7 @@
 #include "app/application.h"
 #include "app/platform/app_delegate.h"
 #include "app/platform/font_loader.h"
+#include "app/platform/ios/ios_host.h"
 #include "app/platform/window.h"
 #include "rom/rom.h"
 
@@ -49,11 +50,19 @@
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui/imgui.h"
 
+namespace {
+yaze::ios::IOSHost g_ios_host;
+}  // namespace
+
 // ----------------------------------------------------------------------------
 // AppViewController
 // ----------------------------------------------------------------------------
 
-@implementation AppViewController
+@implementation AppViewController {
+  yaze::AppConfig app_config_;
+  bool host_initialized_;
+  UITouch *primary_touch_;
+}
 
 - (instancetype)initWithNibName:(nullable NSString *)nibNameOrNil
                          bundle:(nullable NSBundle *)nibBundleOrNil {
@@ -69,6 +78,12 @@
 
   // Initialize SDL for iOS
   SDL_SetMainReady();
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+  SDL_SetHint(SDL_HINT_AUDIO_CATEGORY, "ambient");
+  if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_TIMER) != 0) {
+    NSLog(@"SDL_Init failed: %s", SDL_GetError());
+  }
+#endif
 #if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
   SDL_iOSSetEventPump(SDL_TRUE);
 #endif
@@ -104,33 +119,34 @@
   // Initialize Application singleton
   yaze::AppConfig config;
   config.rom_file = rom_filename;
-  yaze::Application::Instance().Initialize(config);
-  
-  // Keep local reference to controller for property compatibility
-  self.controller = yaze::Application::Instance().GetController();
-
-  if (!self.controller) {
-    NSLog(@"Failed to initialize application controller");
-    abort();
-  }
+  app_config_ = config;
+  host_initialized_ = false;
 
   // Setup gesture recognizers
   _hoverGestureRecognizer =
       [[UIHoverGestureRecognizer alloc] initWithTarget:self action:@selector(HoverGesture:)];
+  _hoverGestureRecognizer.cancelsTouchesInView = NO;
+  _hoverGestureRecognizer.delegate = self;
   [self.view addGestureRecognizer:_hoverGestureRecognizer];
 
   _pinchRecognizer = [[UIPinchGestureRecognizer alloc] initWithTarget:self
                                                                action:@selector(HandlePinch:)];
+  _pinchRecognizer.cancelsTouchesInView = NO;
+  _pinchRecognizer.delegate = self;
   [self.view addGestureRecognizer:_pinchRecognizer];
 
   _longPressRecognizer =
       [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleLongPress:)];
+  _longPressRecognizer.cancelsTouchesInView = NO;
+  _longPressRecognizer.delegate = self;
   [self.view addGestureRecognizer:_longPressRecognizer];
 
   _swipeRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self
                                                                action:@selector(HandleSwipe:)];
   _swipeRecognizer.direction =
       UISwipeGestureRecognizerDirectionRight | UISwipeGestureRecognizerDirectionLeft;
+  _swipeRecognizer.cancelsTouchesInView = NO;
+  _swipeRecognizer.delegate = self;
   [self.view addGestureRecognizer:_swipeRecognizer];
   
   return self;
@@ -147,13 +163,36 @@
 - (void)viewDidLoad {
   [super viewDidLoad];
 
+  self.view.multipleTouchEnabled = YES;
+
   self.mtkView.device = self.device;
   self.mtkView.delegate = self;
+
+  if (!host_initialized_) {
+    g_ios_host.SetMetalView((__bridge void *)self.view);
+    yaze::ios::IOSHostConfig host_config;
+    host_config.app_config = app_config_;
+    auto status = g_ios_host.Initialize(host_config);
+    if (!status.ok()) {
+      NSLog(@"Failed to initialize iOS host: %s",
+            std::string(status.message()).c_str());
+      abort();
+    }
+
+    self.controller = yaze::Application::Instance().GetController();
+    if (!self.controller) {
+      NSLog(@"Failed to initialize application controller");
+      abort();
+    }
+    host_initialized_ = true;
+  }
 }
 
 - (void)drawInMTKView:(MTKView *)view {
   auto& app = yaze::Application::Instance();
-  if (!app.IsReady() || !app.GetController()->IsActive()) return;
+  if (!host_initialized_ || !app.IsReady() || !app.GetController()->IsActive()) {
+    return;
+  }
 
   // Update ImGui display size for iOS before Tick
   // Note: Tick() calls OnInput() then OnLoad() (NewFrame) then DoRender()
@@ -167,7 +206,7 @@
   CGFloat framebufferScale = view.window.screen.scale ?: UIScreen.mainScreen.scale;
   io.DisplayFramebufferScale = ImVec2(framebufferScale, framebufferScale);
 
-  app.Tick();
+  g_ios_host.Tick();
 }
 
 - (void)mtkView:(MTKView *)view drawableSizeWillChange:(CGSize)size {
@@ -185,20 +224,36 @@
 // when there are multiple active touches. But for demo purposes, single-touch
 // interaction actually works surprisingly well.
 - (void)UpdateIOWithTouchEvent:(UIEvent *)event {
-  UITouch *anyTouch = event.allTouches.anyObject;
-  CGPoint touchLocation = [anyTouch locationInView:self.view];
   ImGuiIO &io = ImGui::GetIO();
   io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
-  io.AddMousePosEvent(touchLocation.x, touchLocation.y);
 
-  BOOL hasActiveTouch = NO;
-  for (UITouch *touch in event.allTouches) {
-    if (touch.phase != UITouchPhaseEnded && touch.phase != UITouchPhaseCancelled) {
-      hasActiveTouch = YES;
-      break;
+  UITouch *active_touch = nil;
+  if (primary_touch_ && [event.allTouches containsObject:primary_touch_]) {
+    if (primary_touch_.phase != UITouchPhaseEnded &&
+        primary_touch_.phase != UITouchPhaseCancelled) {
+      active_touch = primary_touch_;
     }
   }
-  io.AddMouseButtonEvent(0, hasActiveTouch);
+
+  if (!active_touch) {
+    for (UITouch *touch in event.allTouches) {
+      if (touch.phase != UITouchPhaseEnded &&
+          touch.phase != UITouchPhaseCancelled) {
+        active_touch = touch;
+        break;
+      }
+    }
+  }
+
+  if (active_touch) {
+    primary_touch_ = active_touch;
+    CGPoint touchLocation = [active_touch locationInView:self.view];
+    io.AddMousePosEvent(touchLocation.x, touchLocation.y);
+    io.AddMouseButtonEvent(0, true);
+  } else {
+    primary_touch_ = nil;
+    io.AddMouseButtonEvent(0, false);
+  }
 }
 
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
@@ -256,9 +311,46 @@
                       [gestureRecognizer locationInView:self.view].y);
 }
 
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer
+    shouldRecognizeSimultaneouslyWithGestureRecognizer:
+        (UIGestureRecognizer *)otherGestureRecognizer {
+  (void)gestureRecognizer;
+  (void)otherGestureRecognizer;
+  return YES;
+}
+
 #endif
 
 @end
+
+// ----------------------------------------------------------------------------
+// SceneDelegate (UIScene lifecycle)
+// ----------------------------------------------------------------------------
+
+#if !TARGET_OS_OSX
+
+@interface SceneDelegate : UIResponder <UIWindowSceneDelegate>
+@property(nonatomic, strong) UIWindow *window;
+@end
+
+@implementation SceneDelegate
+
+- (void)scene:(UIScene *)scene
+    willConnectToSession:(UISceneSession *)session
+                 options:(UISceneConnectionOptions *)connectionOptions {
+  if (![scene isKindOfClass:[UIWindowScene class]]) {
+    return;
+  }
+  UIWindowScene *windowScene = (UIWindowScene *)scene;
+  UIViewController *rootViewController = [[AppViewController alloc] init];
+  self.window = [[UIWindow alloc] initWithWindowScene:windowScene];
+  self.window.rootViewController = rootViewController;
+  [self.window makeKeyAndVisible];
+}
+
+@end
+
+#endif
 
 // ----------------------------------------------------------------------------
 // AppDelegate
@@ -297,10 +389,19 @@
 
 #else
 
+@interface AppDelegate : UIResponder <UIApplicationDelegate, UIDocumentPickerDelegate>
+@property(nonatomic, strong) UIWindow *window;
+@property(nonatomic, copy) void (^completionHandler)(NSString *selectedFile);
+@property(nonatomic, strong) UIDocumentPickerViewController *documentPicker;
+@end
+
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application
     didFinishLaunchingWithOptions:(NSDictionary<UIApplicationLaunchOptionsKey, id> *)launchOptions {
+  if (@available(iOS 13.0, *)) {
+    return YES;
+  }
   UIViewController *rootViewController = [[AppViewController alloc] init];
   self.window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
   self.window.rootViewController = rootViewController;
@@ -308,16 +409,66 @@
   return YES;
 }
 
+- (UISceneConfiguration *)application:(UIApplication *)application
+    configurationForConnectingSceneSession:(UISceneSession *)connectingSceneSession
+                                   options:(UISceneConnectionOptions *)options {
+  if (@available(iOS 13.0, *)) {
+    UISceneConfiguration *configuration =
+        [[UISceneConfiguration alloc] initWithName:@"Default Configuration"
+                                       sessionRole:connectingSceneSession.role];
+    configuration.delegateClass = [SceneDelegate class];
+    configuration.sceneClass = [UIWindowScene class];
+    return configuration;
+  }
+  return nil;
+}
+
 - (void)applicationWillTerminate:(UIApplication *)application {
-  yaze::Application::Instance().Shutdown();
+  g_ios_host.Shutdown();
+}
+
+- (UIViewController *)RootViewControllerForPresenting {
+  if (@available(iOS 13.0, *)) {
+    for (UIScene *scene in UIApplication.sharedApplication.connectedScenes) {
+      if (scene.activationState != UISceneActivationStateForegroundActive) {
+        continue;
+      }
+      if (![scene isKindOfClass:[UIWindowScene class]]) {
+        continue;
+      }
+      UIWindowScene *windowScene = (UIWindowScene *)scene;
+      for (UIWindow *window in windowScene.windows) {
+        if (window.isKeyWindow && window.rootViewController) {
+          return window.rootViewController;
+        }
+      }
+      if (windowScene.windows.count > 0 &&
+          windowScene.windows.firstObject.rootViewController) {
+        return windowScene.windows.firstObject.rootViewController;
+      }
+    }
+  }
+
+  return self.window.rootViewController;
 }
 
 - (void)PresentDocumentPickerWithCompletionHandler:
-    (void (^)(NSString *selectedFile))completionHandler {
+    (void (^)(NSString *selectedFile))completionHandler
+                                   allowedTypes:(NSArray<UTType*> *)allowedTypes {
   self.completionHandler = completionHandler;
 
-  NSArray *documentTypes = @[ [UTType typeWithIdentifier:@"org.halext.sfc"] ];
-  UIViewController *rootViewController = self.window.rootViewController;
+  NSArray<UTType*>* documentTypes = allowedTypes;
+  if (!documentTypes || documentTypes.count == 0) {
+    documentTypes = @[ UTTypeData ];
+  }
+  UIViewController *rootViewController = [self RootViewControllerForPresenting];
+  if (!rootViewController) {
+    if (self.completionHandler) {
+      self.completionHandler(@"");
+    }
+    self.completionHandler = nil;
+    return;
+  }
   _documentPicker =
       [[UIDocumentPickerViewController alloc] initForOpeningContentTypes:documentTypes];
   _documentPicker.delegate = self;
@@ -332,8 +483,6 @@
 
   if (self.completionHandler) {
     if (selectedFileURL) {
-      self.completionHandler(selectedFileURL.path);
-      
       // Create a temporary file path
       NSString *tempDir = NSTemporaryDirectory();
       NSString *fileName = [selectedFileURL lastPathComponent];
@@ -350,13 +499,11 @@
       
       if (success) {
         std::string cppPath = std::string([tempPath UTF8String]);
-        NSLog(@"ROM copied to temporary path: %s", cppPath.c_str());
-        
-        // Load ROM using modern API via Application singleton
-        // This triggers the full editor loading pipeline (sessions, startup actions, etc.)
-        yaze::Application::Instance().LoadRom(cppPath);
+        NSLog(@"File copied to temporary path: %s", cppPath.c_str());
+        self.completionHandler(tempPath);
       } else {
         NSLog(@"Failed to copy ROM to temp directory: %@", error);
+        self.completionHandler(@"");
       }
     } else {
       self.completionHandler(@"");

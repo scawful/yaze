@@ -11,6 +11,7 @@
 
 #include "app/emu/snes.h"
 #include "rom/rom.h"
+#include "util/platform_paths.h"
 
 namespace {
 
@@ -70,9 +71,11 @@ absl::Status SaveStateManager::Initialize() {
   rom_checksum_ = CalculateRomChecksum();
   printf("[StateManager] ROM checksum: 0x%08X\n", rom_checksum_);
 
-  // Use ~/.yaze/states/ directory for state files
-  if (const char* home = std::getenv("HOME")) {
-    state_directory_ = std::string(home) + "/.yaze/states";
+  // Use app data directory for state files (sandbox-safe on iOS).
+  auto state_dir_status =
+      yaze::util::PlatformPaths::GetAppDataSubdirectory("states");
+  if (state_dir_status.ok()) {
+    state_directory_ = state_dir_status->string();
   } else {
     state_directory_ = "./states";
   }

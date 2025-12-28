@@ -232,6 +232,18 @@
       "configurePreset": "mac-sdl3"
     },
     {
+      "displayName": "iOS Debug Build (device)",
+      "jobs": 12,
+      "name": "ios-debug",
+      "configurePreset": "ios-debug"
+    },
+    {
+      "displayName": "iOS Release Build (device)",
+      "jobs": 12,
+      "name": "ios-release",
+      "configurePreset": "ios-release"
+    },
+    {
       "displayName": "Windows SDL3 Build",
       "configuration": "Debug",
       "jobs": 12,
@@ -514,6 +526,60 @@
         "lhs": "${hostSystemName}"
       },
       "description": "Base macOS preset with Homebrew toolchain visibility"
+    },
+    {
+      "name": "ios-base",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-ios",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "rhs": "Darwin",
+        "lhs": "${hostSystemName}"
+      },
+      "cacheVariables": {
+        "CMAKE_SYSTEM_NAME": "iOS",
+        "CMAKE_OSX_SYSROOT": "iphoneos",
+        "CMAKE_OSX_ARCHITECTURES": "arm64",
+        "CMAKE_OSX_DEPLOYMENT_TARGET": "17.0",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "YAZE_IOS_SDK": "iphoneos",
+        "YAZE_BUILD_GUI": "OFF",
+        "YAZE_BUILD_CLI": "OFF",
+        "YAZE_BUILD_Z3ED": "OFF",
+        "YAZE_BUILD_TESTS": "OFF",
+        "YAZE_BUILD_TOOLS": "OFF",
+        "YAZE_BUILD_LAB": "OFF",
+        "YAZE_BUILD_EMU": "ON",
+        "YAZE_BUILD_LIB": "ON",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF",
+        "YAZE_ENABLE_HTTP_API": "OFF",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_AGENT_CLI": "OFF",
+        "YAZE_ENABLE_OPENCV": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_USE_SYSTEM_DEPS": "OFF"
+      },
+      "description": "Base iOS preset for building static libs"
+    },
+    {
+      "inherits": "ios-base",
+      "name": "ios-debug",
+      "displayName": "iOS Debug (device)",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "inherits": "ios-base",
+      "name": "ios-release",
+      "displayName": "iOS Release (device)",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
     },
     {
       "inherits": "base",

@@ -44,9 +44,14 @@ if(TARGET asar-static)
             linux
             stricmp=strcasecmp
         )
-    elseif(APPLE)
+    elseif(YAZE_PLATFORM_MACOS)
         target_compile_definitions(asar-static PRIVATE
             MACOS
+            stricmp=strcasecmp
+        )
+    elseif(YAZE_PLATFORM_IOS)
+        target_compile_definitions(asar-static PRIVATE
+            YAZE_IOS
             stricmp=strcasecmp
         )
     endif()

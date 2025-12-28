@@ -1,0 +1,77 @@
+name: yaze_ios
+options:
+  bundleIdPrefix: org.halext
+  createIntermediateGroups: true
+  deploymentTarget:
+    iOS: "17.0"
+settings:
+  base:
+    PRODUCT_NAME: yaze
+    PRODUCT_BUNDLE_IDENTIFIER: org.halext.yaze-ios
+    INFOPLIST_FILE: iOS/Info-iOS.plist
+    CLANG_CXX_LANGUAGE_STANDARD: c++20
+    GCC_C_LANGUAGE_STANDARD: c17
+    TARGETED_DEVICE_FAMILY: "1,2"
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
+    HEADER_SEARCH_PATHS:
+      - "$(SRCROOT)/../../src"
+      - "$(SRCROOT)/../../incl"
+      - "$(SRCROOT)/../../ext"
+      - "$(SRCROOT)/../../ext/imgui"
+      - "$(SRCROOT)/../../build-ios"
+      - "$(SRCROOT)/../../build-ios/_deps/absl-src"
+      - "$(SRCROOT)/../../build-ios/_deps/nlohmann_json-src/include"
+    SYSTEM_HEADER_SEARCH_PATHS:
+      - "$(SRCROOT)/../../build-ios/_deps/SDL2-src/include"
+      - "$(SRCROOT)/../../build-ios/_deps/sdl2-src/include"
+      - "$(SRCROOT)/../../ext/SDL/include"
+      - "$(SRCROOT)/../../incl"
+    LIBRARY_SEARCH_PATHS:
+      - "$(SRCROOT)/../../build-ios/ios"
+    OTHER_LDFLAGS:
+      - "-ObjC"
+      - "-force_load"
+      - "$(SRCROOT)/../../build-ios/ios/libyaze_ios_bundle.a"
+targets:
+  yaze_ios:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: main.mm
+      - path: Media.xcassets
+      - path: iOS/LaunchScreen.storyboard
+    resources:
+      - path: ../../assets
+    settings:
+      base:
+        ASSETCATALOG_COMPILER_APPICON_NAME: yaze
+    postBuildScripts:
+      - name: Copy assets
+        script: |
+          set -e
+          ASSET_SRC="${SRCROOT}/../../assets"
+          ASSET_DST="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/assets"
+          if [ ! -d "${ASSET_SRC}" ]; then
+            echo "Assets source missing: ${ASSET_SRC}" >&2
+            exit 1
+          fi
+          /usr/bin/ditto "${ASSET_SRC}" "${ASSET_DST}"
+    dependencies:
+      - sdk: UIKit.framework
+      - sdk: Foundation.framework
+      - sdk: CoreBluetooth.framework
+      - sdk: CoreHaptics.framework
+      - sdk: Metal.framework
+      - sdk: MetalKit.framework
+      - sdk: ModelIO.framework
+      - sdk: CoreGraphics.framework
+      - sdk: CoreVideo.framework
+      - sdk: CoreMotion.framework
+      - sdk: OpenGLES.framework
+      - sdk: QuartzCore.framework
+      - sdk: AVFoundation.framework
+      - sdk: AudioToolbox.framework
+      - sdk: GameController.framework
+      - sdk: UniformTypeIdentifiers.framework
+      - sdk: CoreText.framework

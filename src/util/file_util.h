@@ -1,11 +1,21 @@
 #ifndef YAZE_UTIL_FILE_UTIL_H_
 #define YAZE_UTIL_FILE_UTIL_H_
 
+#include <functional>
 #include <string>
 #include <vector>
 
 namespace yaze {
 namespace util {
+
+struct FileDialogFilter {
+  std::string label;
+  std::string spec;  // Comma-delimited extensions (e.g., "sfc,smc") or "*".
+};
+
+struct FileDialogOptions {
+  std::vector<FileDialogFilter> filters;
+};
 
 class FileDialogWrapper {
  public:
@@ -14,6 +24,10 @@ class FileDialogWrapper {
    * filepath. Uses global feature flag to choose implementation.
    */
   static std::string ShowOpenFileDialog();
+  static std::string ShowOpenFileDialog(const FileDialogOptions& options);
+  static void ShowOpenFileDialogAsync(
+      const FileDialogOptions& options,
+      std::function<void(const std::string&)> callback);
 
   /**
    * @brief ShowOpenFolderDialog opens a file dialog and returns the selected
@@ -45,6 +59,8 @@ class FileDialogWrapper {
   static std::vector<std::string> GetFilesInFolder(
       const std::string& folder_path);
 };
+
+FileDialogOptions MakeRomFileDialogOptions(bool include_all_files = true);
 
 /**
  * @brief GetBundleResourcePath returns the path to the bundle resource

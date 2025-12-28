@@ -12,7 +12,7 @@
 #endif
 #else
 #ifdef __OBJC__
-@interface AppViewController : UIViewController <MTKViewDelegate>
+@interface AppViewController : UIViewController <MTKViewDelegate, UIGestureRecognizerDelegate>
 @property(nonatomic) yaze::Controller *controller;
 @property(nonatomic) UIHoverGestureRecognizer *hoverGestureRecognizer;
 @property(nonatomic) UIPinchGestureRecognizer *pinchRecognizer;
