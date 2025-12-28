@@ -2,6 +2,10 @@
 
 #include "app/platform/sdl_compat.h"
 
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
+
 #include <string>
 
 #include "absl/status/status.h"
@@ -21,8 +25,17 @@ namespace yaze {
 
 absl::Status Controller::OnEntry(std::string filename) {
   // Create window backend using factory (auto-selects SDL2 or SDL3)
-  window_backend_ = platform::WindowBackendFactory::Create(
-      platform::WindowBackendFactory::GetDefaultType());
+  auto backend_type = platform::WindowBackendFactory::GetDefaultType();
+  auto renderer_type = gfx::RendererFactory::GetDefaultBackendType();
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+  backend_type = platform::WindowBackendType::IOS;
+  renderer_type = gfx::RendererBackendType::Metal;
+#endif
+
+  window_backend_ = platform::WindowBackendFactory::Create(backend_type);
+  if (!window_backend_) {
+    return absl::InternalError("Failed to create window backend");
+  }
 
   platform::WindowConfig config;
   config.title = "Yet Another Zelda3 Editor";
@@ -32,7 +45,7 @@ absl::Status Controller::OnEntry(std::string filename) {
   RETURN_IF_ERROR(window_backend_->Initialize(config));
 
   // Create renderer via factory (auto-selects SDL2 or SDL3)
-  renderer_ = gfx::RendererFactory::Create();
+  renderer_ = gfx::RendererFactory::Create(renderer_type);
   if (!window_backend_->InitializeRenderer(renderer_.get())) {
     return absl::InternalError("Failed to initialize renderer");
   }
@@ -162,6 +175,11 @@ absl::Status Controller::OnLoad() {
   if (!show_menu_bar && editor_manager_.ui_coordinator()) {
     editor_manager_.ui_coordinator()->DrawMenuBarRestoreButton();
   }
+#else
+  if (window_backend_) {
+    window_backend_->NewImGuiFrame();
+    ImGui::NewFrame();
+  }
 #endif
   gui::WidgetIdRegistry::Instance().BeginFrame();
   absl::Status update_status = editor_manager_.Update();
@@ -192,7 +210,9 @@ void Controller::DoRender() const {
   // Gentle frame rate cap to prevent excessive CPU usage
   // Only delay if we're rendering faster than 144 FPS (< 7ms per frame)
   if (delta_time < 0.007f) {
+#if TARGET_OS_IPHONE != 1
     SDL_Delay(1);  // Tiny delay to yield CPU without affecting ImGui timing
+#endif
   }
 }
 

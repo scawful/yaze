@@ -1,6 +1,7 @@
 #include "app/gui/app/agent_chat_widget.h"
 
 #include <algorithm>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 
@@ -8,6 +9,7 @@
 #include "absl/time/time.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
+#include "util/platform_paths.h"
 
 #ifdef YAZE_WITH_JSON
 #include "nlohmann/json.hpp"
@@ -16,6 +18,27 @@
 namespace yaze {
 
 namespace gui {
+
+namespace {
+
+std::string ResolveAgentChatHistoryPath() {
+  auto agent_dir = util::PlatformPaths::GetAppDataSubdirectory("agent");
+  if (agent_dir.ok()) {
+    return (*agent_dir / "agent_chat_history.json").string();
+  }
+  auto docs_dir = util::PlatformPaths::GetUserDocumentsSubdirectory("agent");
+  if (docs_dir.ok()) {
+    return (*docs_dir / "agent_chat_history.json").string();
+  }
+  auto temp_dir = util::PlatformPaths::GetTempDirectory();
+  if (temp_dir.ok()) {
+    return (*temp_dir / "agent_chat_history.json").string();
+  }
+  return (std::filesystem::current_path() / "agent_chat_history.json")
+      .string();
+}
+
+}  // namespace
 
 AgentChatWidget::AgentChatWidget()
     : scroll_to_bottom_(false),
@@ -99,7 +122,7 @@ void AgentChatWidget::RenderToolbar() {
   ImGui::SameLine();
 
   if (ImGui::Button("Save History")) {
-    std::string filepath = ".yaze/agent_chat_history.json";
+    std::string filepath = ResolveAgentChatHistoryPath();
     if (auto status = SaveHistory(filepath); !status.ok()) {
       std::cerr << "Failed to save history: " << status.message() << std::endl;
     } else {
@@ -109,7 +132,7 @@ void AgentChatWidget::RenderToolbar() {
   ImGui::SameLine();
 
   if (ImGui::Button("Load History")) {
-    std::string filepath = ".yaze/agent_chat_history.json";
+    std::string filepath = ResolveAgentChatHistoryPath();
     if (auto status = LoadHistory(filepath); !status.ok()) {
       std::cerr << "Failed to load history: " << status.message() << std::endl;
     }
@@ -295,6 +318,17 @@ absl::Status AgentChatWidget::SaveHistory(const std::string& filepath) {
 #if defined(Z3ED_AI) && defined(YAZE_WITH_JSON)
   if (!agent_service_) {
     return absl::FailedPreconditionError("Agent service not initialized");
+  }
+
+  std::filesystem::path path(filepath);
+  if (path.has_parent_path()) {
+    std::error_code ec;
+    std::filesystem::create_directories(path.parent_path(), ec);
+    if (ec) {
+      return absl::InternalError(
+          absl::StrFormat("Failed to create history directory: %s",
+                          ec.message()));
+    }
   }
 
   std::ofstream file(filepath);

@@ -1,6 +1,7 @@
 #include "app/editor/agent/agent_chat.h"
 
 #include <algorithm>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 
@@ -13,6 +14,7 @@
 #include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
+#include "util/platform_paths.h"
 #include "util/log.h"
 
 #ifdef YAZE_WITH_JSON
@@ -21,6 +23,27 @@
 
 namespace yaze {
 namespace editor {
+
+namespace {
+
+std::string ResolveAgentChatHistoryPath() {
+  auto agent_dir = util::PlatformPaths::GetAppDataSubdirectory("agent");
+  if (agent_dir.ok()) {
+    return (*agent_dir / "agent_chat_history.json").string();
+  }
+  auto docs_dir = util::PlatformPaths::GetUserDocumentsSubdirectory("agent");
+  if (docs_dir.ok()) {
+    return (*docs_dir / "agent_chat_history.json").string();
+  }
+  auto temp_dir = util::PlatformPaths::GetTempDirectory();
+  if (temp_dir.ok()) {
+    return (*temp_dir / "agent_chat_history.json").string();
+  }
+  return (std::filesystem::current_path() / "agent_chat_history.json")
+      .string();
+}
+
+}  // namespace
 
 AgentChat::AgentChat() {
   // Default initialization
@@ -119,7 +142,7 @@ void AgentChat::RenderToolbar() {
   ImGui::SameLine();
 
   if (ImGui::Button(ICON_MD_SAVE " Save")) {
-    std::string filepath = ".yaze/agent_chat_history.json";
+    std::string filepath = ResolveAgentChatHistoryPath();
     if (auto status = SaveHistory(filepath); !status.ok()) {
       if (toast_manager_) {
         toast_manager_->Show("Failed to save history: " + std::string(status.message()), ToastType::kError);
@@ -133,7 +156,7 @@ void AgentChat::RenderToolbar() {
   ImGui::SameLine();
 
   if (ImGui::Button(ICON_MD_FOLDER_OPEN " Load")) {
-    std::string filepath = ".yaze/agent_chat_history.json";
+    std::string filepath = ResolveAgentChatHistoryPath();
     if (auto status = LoadHistory(filepath); !status.ok()) {
       if (toast_manager_) {
         toast_manager_->Show("Failed to load history: " + std::string(status.message()), ToastType::kError);
@@ -480,7 +503,13 @@ absl::Status AgentChat::SaveHistory(const std::string& filepath) {
   // Create directory if needed
   std::filesystem::path path(filepath);
   if (path.has_parent_path()) {
-    std::filesystem::create_directories(path.parent_path());
+    std::error_code ec;
+    std::filesystem::create_directories(path.parent_path(), ec);
+    if (ec) {
+      return absl::InternalError(
+          absl::StrFormat("Failed to create history directory: %s",
+                          ec.message()));
+    }
   }
 
   std::ofstream file(filepath);
