@@ -7,6 +7,7 @@
 #include "app/service/canvas_automation_service.h"
 #include "app/service/unified_grpc_server.h"
 #include "app/test/test_manager.h"
+#include "cli/service/agent/emulator_service_impl.h"
 #endif
 
 #ifdef __EMSCRIPTEN__
@@ -26,46 +27,7 @@ void Application::Initialize(const AppConfig& config) {
   config_ = config;
   LOG_INFO("App", "Initializing Application instance...");
 
-#ifdef YAZE_WITH_GRPC
-  // Initialize gRPC server if enabled
-  if (config_.enable_test_harness) {
-    LOG_INFO("App", "Initializing gRPC automation services...");
-    canvas_automation_service_ = std::make_unique<CanvasAutomationServiceImpl>();
-    grpc_server_ = std::make_unique<YazeGRPCServer>();
-    
-    // Initialize server with all services
-    // Note: RomService and ProposalApprovalManager will be connected later 
-    // when we have a session context, but we can start the server now.
-    auto status = grpc_server_->Initialize(
-        config_.test_harness_port,
-        &yaze::test::TestManager::Get(),
-        nullptr, // ROM not loaded yet
-        nullptr, // Version manager not ready
-        nullptr, // Approval manager not ready
-        canvas_automation_service_.get()
-    );
-
-    if (status.ok()) {
-      status = grpc_server_->StartAsync(); // Start in background thread
-      if (!status.ok()) {
-        LOG_ERROR("App", "Failed to start gRPC server: %s", std::string(status.message()).c_str());
-      } else {
-        LOG_INFO("App", "gRPC server started on port %d", config_.test_harness_port);
-      }
-    } else {
-      LOG_ERROR("App", "Failed to initialize gRPC server: %s", std::string(status.message()).c_str());
-    }
-  }
-#endif
-  
   controller_ = std::make_unique<Controller>();
-
-#ifdef YAZE_WITH_GRPC
-  // Connect services to controller/editor manager
-  if (canvas_automation_service_) {
-    controller_->SetCanvasAutomationService(canvas_automation_service_.get());
-  }
-#endif
 
   // Process pending ROM load if we have one (from flags/config - non-WASM only)
   std::string start_path = config_.rom_file;
@@ -102,6 +64,58 @@ void Application::Initialize(const AppConfig& config) {
      if (!start_path.empty() && controller_->editor_manager()) {
          RunStartupActions();
      }
+
+#ifdef YAZE_WITH_GRPC
+     // Initialize gRPC server if enabled
+     if (config_.enable_test_harness) {
+       LOG_INFO("App", "Initializing gRPC automation services...");
+       canvas_automation_service_ = std::make_unique<CanvasAutomationServiceImpl>();
+       grpc_server_ = std::make_unique<YazeGRPCServer>();
+
+       auto rom_getter = [this]() { return controller_->GetCurrentRom(); };
+
+       if (controller_->editor_manager()) {
+         auto emulator_service =
+             std::make_unique<yaze::net::EmulatorServiceImpl>(
+                 &controller_->editor_manager()->emulator(),
+                 rom_getter);
+         auto add_status =
+             grpc_server_->AddService(std::move(emulator_service));
+         if (!add_status.ok()) {
+           LOG_ERROR("App", "Failed to attach emulator service: %s",
+                     std::string(add_status.message()).c_str());
+         }
+       } else {
+         LOG_WARN("App", "EditorManager not ready; emulator gRPC disabled");
+       }
+
+       // Initialize server with all services
+       auto status = grpc_server_->Initialize(
+           config_.test_harness_port,
+           &yaze::test::TestManager::Get(),
+           rom_getter,
+           nullptr, // Version manager not ready
+           nullptr, // Approval manager not ready
+           canvas_automation_service_.get()
+       );
+
+       if (status.ok()) {
+         status = grpc_server_->StartAsync(); // Start in background thread
+         if (!status.ok()) {
+           LOG_ERROR("App", "Failed to start gRPC server: %s", std::string(status.message()).c_str());
+         } else {
+           LOG_INFO("App", "gRPC server started on port %d", config_.test_harness_port);
+         }
+       } else {
+         LOG_ERROR("App", "Failed to initialize gRPC server: %s", std::string(status.message()).c_str());
+       }
+
+       // Connect services to controller/editor manager
+       if (canvas_automation_service_) {
+         controller_->SetCanvasAutomationService(canvas_automation_service_.get());
+       }
+     }
+#endif
   }
 
 #ifdef __EMSCRIPTEN__

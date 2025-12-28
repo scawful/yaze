@@ -262,12 +262,19 @@ std::string AgentCollaborationCoordinator::GenerateSessionCode() const {
 }
 
 std::filesystem::path AgentCollaborationCoordinator::SessionsDirectory() const {
-  auto config_dir = util::PlatformPaths::GetConfigDirectory();
-  if (!config_dir.ok()) {
-    // Fallback to a local directory if config can't be determined.
-    return fs::current_path() / ".yaze" / "agent" / "sessions";
+  auto agent_dir = util::PlatformPaths::GetAppDataSubdirectory("agent");
+  if (agent_dir.ok()) {
+    return *agent_dir / "sessions";
   }
-  return *config_dir / "agent" / "sessions";
+  auto docs_dir = util::PlatformPaths::GetUserDocumentsSubdirectory("agent");
+  if (docs_dir.ok()) {
+    return *docs_dir / "sessions";
+  }
+  auto temp_dir = util::PlatformPaths::GetTempDirectory();
+  if (temp_dir.ok()) {
+    return *temp_dir / "agent" / "sessions";
+  }
+  return fs::current_path() / "agent" / "sessions";
 }
 
 std::filesystem::path AgentCollaborationCoordinator::SessionFilePath(

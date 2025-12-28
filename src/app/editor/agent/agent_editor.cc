@@ -1453,11 +1453,20 @@ absl::Status AgentEditor::ImportProfile(const std::filesystem::path& path) {
 }
 
 std::filesystem::path AgentEditor::GetProfilesDirectory() const {
-  auto config_dir = yaze::util::PlatformPaths::GetConfigDirectory();
-  if (!config_dir.ok()) {
-    return std::filesystem::current_path() / ".yaze" / "agent" / "profiles";
+  auto agent_dir = yaze::util::PlatformPaths::GetAppDataSubdirectory("agent");
+  if (agent_dir.ok()) {
+    return *agent_dir / "profiles";
   }
-  return *config_dir / "agent" / "profiles";
+  auto docs_dir =
+      yaze::util::PlatformPaths::GetUserDocumentsSubdirectory("agent");
+  if (docs_dir.ok()) {
+    return *docs_dir / "profiles";
+  }
+  auto temp_dir = yaze::util::PlatformPaths::GetTempDirectory();
+  if (temp_dir.ok()) {
+    return *temp_dir / "agent" / "profiles";
+  }
+  return std::filesystem::current_path() / "agent" / "profiles";
 }
 
 absl::Status AgentEditor::EnsureProfilesDirectory() {

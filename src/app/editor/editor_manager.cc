@@ -17,6 +17,10 @@
 #include <utility>
 #include <vector>
 
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#endif
+
 // Third-party library headers
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "absl/status/status.h"
@@ -270,7 +274,8 @@ EditorManager::EditorManager()
   project_management_panel_->SetToastManager(&toast_manager_);
   project_management_panel_->SetSwapRomCallback([this]() {
     // Prompt user to select a new ROM for the project
-    auto rom_path = util::FileDialogWrapper::ShowOpenFileDialog();
+    auto rom_path = util::FileDialogWrapper::ShowOpenFileDialog(
+        util::MakeRomFileDialogOptions(false));
     if (!rom_path.empty()) {
       current_project_.rom_filename = rom_path;
       auto status = current_project_.Save();
@@ -1480,61 +1485,80 @@ void EditorManager::DrawMenuBar() {
  * 8. Update UI state and recent files
  */
 absl::Status EditorManager::LoadRom() {
-  auto file_name = util::FileDialogWrapper::ShowOpenFileDialog();
-  if (file_name.empty()) {
-    return absl::OkStatus();
-  }
+  auto load_from_path = [this](const std::string& file_name) -> absl::Status {
+    if (file_name.empty()) {
+      return absl::OkStatus();
+    }
 
-  // Check if this is a project file - route to project loading
-  if (absl::StrContains(file_name, ".yaze")) {
-    return OpenRomOrProject(file_name);
-  }
+    // Check if this is a project file - route to project loading
+    if (absl::StrContains(file_name, ".yaze")) {
+      return OpenRomOrProject(file_name);
+    }
 
-  if (session_coordinator_->HasDuplicateSession(file_name)) {
-    toast_manager_.Show("ROM already open in another session",
-                        editor::ToastType::kWarning);
-    return absl::OkStatus();
-  }
+    if (session_coordinator_->HasDuplicateSession(file_name)) {
+      toast_manager_.Show("ROM already open in another session",
+                          editor::ToastType::kWarning);
+      return absl::OkStatus();
+    }
 
-  // Delegate ROM loading to RomFileManager
-  Rom temp_rom;
-  RETURN_IF_ERROR(rom_file_manager_.LoadRom(&temp_rom, file_name));
+    // Delegate ROM loading to RomFileManager
+    Rom temp_rom;
+    RETURN_IF_ERROR(rom_file_manager_.LoadRom(&temp_rom, file_name));
 
-  auto session_or = session_coordinator_->CreateSessionFromRom(
-      std::move(temp_rom), file_name);
-  if (!session_or.ok()) {
-    return session_or.status();
-  }
+    auto session_or = session_coordinator_->CreateSessionFromRom(
+        std::move(temp_rom), file_name);
+    if (!session_or.ok()) {
+      return session_or.status();
+    }
 
-  ConfigureEditorDependencies(GetCurrentEditorSet(), GetCurrentRom(),
-                              GetCurrentSessionId());
+    ConfigureEditorDependencies(GetCurrentEditorSet(), GetCurrentRom(),
+                                GetCurrentSessionId());
 
-  // Initialize resource labels for LoadRom() - use defaults with current project settings
-  auto& label_provider = zelda3::GetResourceLabels();
-  label_provider.SetProjectLabels(&current_project_.resource_labels);
-  label_provider.SetPreferHMagicNames(
-      current_project_.workspace_settings.prefer_hmagic_names);
-  LOG_INFO("EditorManager", "Initialized ResourceLabelProvider for LoadRom");
+    // Initialize resource labels for LoadRom() - use defaults with current project settings
+    auto& label_provider = zelda3::GetResourceLabels();
+    label_provider.SetProjectLabels(&current_project_.resource_labels);
+    label_provider.SetPreferHMagicNames(
+        current_project_.workspace_settings.prefer_hmagic_names);
+    LOG_INFO("EditorManager", "Initialized ResourceLabelProvider for LoadRom");
 
 #ifdef YAZE_ENABLE_TESTING
-  test::TestManager::Get().SetCurrentRom(GetCurrentRom());
+    test::TestManager::Get().SetCurrentRom(GetCurrentRom());
 #endif
 
-  auto& manager = project::RecentFilesManager::GetInstance();
-  manager.AddFile(file_name);
-  manager.Save();
+    auto& manager = project::RecentFilesManager::GetInstance();
+    manager.AddFile(file_name);
+    manager.Save();
 
-  RETURN_IF_ERROR(LoadAssets());
+    RETURN_IF_ERROR(LoadAssets());
 
-  if (ui_coordinator_) {
-    ui_coordinator_->SetWelcomeScreenVisible(false);
+    if (ui_coordinator_) {
+      ui_coordinator_->SetWelcomeScreenVisible(false);
 
-    // Show ROM load options dialog for ZSCustomOverworld and feature settings
-    rom_load_options_dialog_.Open(GetCurrentRom());
-    show_rom_load_options_ = true;
-  }
+      // Show ROM load options dialog for ZSCustomOverworld and feature settings
+      rom_load_options_dialog_.Open(GetCurrentRom());
+      show_rom_load_options_ = true;
+    }
 
+    return absl::OkStatus();
+  };
+
+#if defined(__APPLE__) && TARGET_OS_IOS == 1
+  util::FileDialogWrapper::ShowOpenFileDialogAsync(
+      util::MakeRomFileDialogOptions(false),
+      [this, load_from_path](const std::string& file_name) {
+        auto status = load_from_path(file_name);
+        if (!status.ok()) {
+          toast_manager_.Show(
+              absl::StrFormat("Failed to load ROM: %s", status.message()),
+              ToastType::kError);
+        }
+      });
   return absl::OkStatus();
+#else
+  auto file_name = util::FileDialogWrapper::ShowOpenFileDialog(
+      util::MakeRomFileDialogOptions(false));
+  return load_from_path(file_name);
+#endif
 }
 
 absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
@@ -1900,41 +1924,63 @@ absl::Status EditorManager::CreateNewProject(const std::string& template_name) {
     // Trigger ROM selection dialog - projects need a ROM to be useful
     // LoadRom() opens file dialog and shows ROM load options when ROM is loaded
     status = LoadRom();
+#if !(defined(__APPLE__) && TARGET_OS_IOS == 1)
     if (status.ok() && ui_coordinator_) {
       ui_coordinator_->SetWelcomeScreenVisible(false);
       ui_coordinator_->SetWelcomeScreenManuallyClosed(true);
     }
+#endif
   }
   return status;
 }
 
 absl::Status EditorManager::OpenProject() {
+  auto open_project_from_path =
+      [this](const std::string& file_path) -> absl::Status {
+    if (file_path.empty()) {
+      return absl::OkStatus();
+    }
+
+    project::YazeProject new_project;
+    RETURN_IF_ERROR(new_project.Open(file_path));
+
+    // Validate project
+    auto validation_status = new_project.Validate();
+    if (!validation_status.ok()) {
+      toast_manager_.Show(absl::StrFormat("Project validation failed: %s",
+                                          validation_status.message()),
+                          editor::ToastType::kWarning, 5.0f);
+
+      // Ask user if they want to repair
+      popup_manager_->Show("Project Repair");
+    }
+
+    current_project_ = std::move(new_project);
+
+    // Initialize VersionManager for the project
+    version_manager_ =
+        std::make_unique<core::VersionManager>(&current_project_);
+    version_manager_->InitializeGit();
+
+    return LoadProjectWithRom();
+  };
+
+#if defined(__APPLE__) && TARGET_OS_IOS == 1
+  util::FileDialogWrapper::ShowOpenFileDialogAsync(
+      util::FileDialogOptions{},
+      [this, open_project_from_path](const std::string& file_path) {
+        auto status = open_project_from_path(file_path);
+        if (!status.ok()) {
+          toast_manager_.Show(
+              absl::StrFormat("Failed to open project: %s", status.message()),
+              ToastType::kError);
+        }
+      });
+  return absl::OkStatus();
+#else
   auto file_path = util::FileDialogWrapper::ShowOpenFileDialog();
-  if (file_path.empty()) {
-    return absl::OkStatus();
-  }
-
-  project::YazeProject new_project;
-  RETURN_IF_ERROR(new_project.Open(file_path));
-
-  // Validate project
-  auto validation_status = new_project.Validate();
-  if (!validation_status.ok()) {
-    toast_manager_.Show(absl::StrFormat("Project validation failed: %s",
-                                        validation_status.message()),
-                        editor::ToastType::kWarning, 5.0f);
-
-    // Ask user if they want to repair
-    popup_manager_->Show("Project Repair");
-  }
-
-  current_project_ = std::move(new_project);
-
-  // Initialize VersionManager for the project
-  version_manager_ = std::make_unique<core::VersionManager>(&current_project_);
-  version_manager_->InitializeGit();
-
-  return LoadProjectWithRom();
+  return open_project_from_path(file_path);
+#endif
 }
 
 absl::Status EditorManager::LoadProjectWithRom() {
@@ -1944,13 +1990,41 @@ absl::Status EditorManager::LoadProjectWithRom() {
     toast_manager_.Show(
         "Project has no ROM file configured. Please select a ROM.",
         editor::ToastType::kInfo);
-    auto rom_path = util::FileDialogWrapper::ShowOpenFileDialog();
+#if defined(__APPLE__) && TARGET_OS_IOS == 1
+    util::FileDialogWrapper::ShowOpenFileDialogAsync(
+        util::MakeRomFileDialogOptions(false),
+        [this](const std::string& rom_path) {
+          if (rom_path.empty()) {
+            return;
+          }
+          current_project_.rom_filename = rom_path;
+          auto save_status = current_project_.Save();
+          if (!save_status.ok()) {
+            toast_manager_.Show(
+                absl::StrFormat("Failed to update project ROM: %s",
+                                save_status.message()),
+                ToastType::kError);
+            return;
+          }
+          auto status = LoadProjectWithRom();
+          if (!status.ok()) {
+            toast_manager_.Show(
+                absl::StrFormat("Failed to load project ROM: %s",
+                                status.message()),
+                ToastType::kError);
+          }
+        });
+    return absl::OkStatus();
+#else
+    auto rom_path = util::FileDialogWrapper::ShowOpenFileDialog(
+        util::MakeRomFileDialogOptions(false));
     if (rom_path.empty()) {
       return absl::OkStatus();
     }
     current_project_.rom_filename = rom_path;
     // Save updated project
     RETURN_IF_ERROR(current_project_.Save());
+#endif
   }
 
   // Load ROM from project
@@ -1963,14 +2037,41 @@ absl::Status EditorManager::LoadProjectWithRom() {
         absl::StrFormat("Could not load ROM '%s': %s. Please select a new ROM.",
                         current_project_.rom_filename, load_status.message()),
         editor::ToastType::kWarning, 5.0f);
-
-    auto rom_path = util::FileDialogWrapper::ShowOpenFileDialog();
+#if defined(__APPLE__) && TARGET_OS_IOS == 1
+    util::FileDialogWrapper::ShowOpenFileDialogAsync(
+        util::MakeRomFileDialogOptions(false),
+        [this](const std::string& rom_path) {
+          if (rom_path.empty()) {
+            return;
+          }
+          current_project_.rom_filename = rom_path;
+          auto save_status = current_project_.Save();
+          if (!save_status.ok()) {
+            toast_manager_.Show(
+                absl::StrFormat("Failed to update project ROM: %s",
+                                save_status.message()),
+                ToastType::kError);
+            return;
+          }
+          auto status = LoadProjectWithRom();
+          if (!status.ok()) {
+            toast_manager_.Show(
+                absl::StrFormat("Failed to load project ROM: %s",
+                                status.message()),
+                ToastType::kError);
+          }
+        });
+    return absl::OkStatus();
+#else
+    auto rom_path = util::FileDialogWrapper::ShowOpenFileDialog(
+        util::MakeRomFileDialogOptions(false));
     if (rom_path.empty()) {
       return absl::OkStatus();
     }
     current_project_.rom_filename = rom_path;
     RETURN_IF_ERROR(current_project_.Save());
     RETURN_IF_ERROR(rom_file_manager_.LoadRom(&temp_rom, rom_path));
+#endif
   }
 
   auto session_or = session_coordinator_->CreateSessionFromRom(
