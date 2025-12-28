@@ -4,6 +4,7 @@
 // C++ standard library headers
 #include <algorithm>
 #include <filesystem>
+#include <set>
 
 // Third-party library headers
 #include "absl/status/status.h"
@@ -209,6 +210,8 @@ absl::Status GraphicsEditor::Save() {
            state_.modified_sheets.size());
 
   auto& sheets = gfx::Arena::Get().gfx_sheets();
+  std::set<uint16_t> saved_sheets;
+  std::vector<uint16_t> skipped_sheets;
 
   for (uint16_t sheet_id : state_.modified_sheets) {
     if (sheet_id >= zelda3::kNumGfxSheets) continue;
@@ -228,6 +231,20 @@ absl::Status GraphicsEditor::Save() {
     // Sheets 115-126 are uncompressed
     if (sheet_id >= 115 && sheet_id <= 126) {
       compressed = false;
+    }
+
+    if (bpp == 2) {
+      const size_t expected_size =
+          gfx::kTilesheetWidth * gfx::kTilesheetHeight * 2;
+      const size_t actual_size = sheet.vector().size();
+      if (actual_size < expected_size) {
+        LOG_WARN(
+            "GraphicsEditor",
+            "Skipping 2BPP sheet %02X save (expected %zu bytes, got %zu)",
+            sheet_id, expected_size, actual_size);
+        skipped_sheets.push_back(sheet_id);
+        continue;
+      }
     }
 
     // Calculate ROM offset for this sheet
@@ -288,10 +305,16 @@ absl::Status GraphicsEditor::Save() {
     LOG_INFO("GraphicsEditor", "Saved sheet %02X (%zu bytes, %s) at offset %06X",
              sheet_id, final_data.size(), compressed ? "compressed" : "raw",
              offset);
+    saved_sheets.insert(sheet_id);
   }
 
   // Clear modified tracking after successful save
-  state_.ClearModifiedSheets();
+  state_.ClearModifiedSheets(saved_sheets);
+  if (!skipped_sheets.empty()) {
+    return absl::FailedPreconditionError(
+        absl::StrCat("Skipped ", skipped_sheets.size(),
+                     " 2BPP sheet(s); full data unavailable."));
+  }
 
   return absl::OkStatus();
 }

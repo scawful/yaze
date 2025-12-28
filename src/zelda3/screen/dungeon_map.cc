@@ -93,8 +93,10 @@ absl::Status SaveDungeonMaps(Rom& rom, std::vector<DungeonMap>& dungeon_maps) {
     RETURN_IF_ERROR(rom.WriteWord(kDungeonMapBossRooms + (d * 2),
                                   map.boss_room));
 
-    bool search_boss = map.boss_room != 0x000F;
-    if (!search_boss) {
+    const bool has_boss =
+        map.boss_room != 0x000F && map.boss_room != 0xFFFF;
+    bool search_boss = has_boss;
+    if (!has_boss) {
       RETURN_IF_ERROR(
           rom.WriteWord(kDungeonMapBossFloors + (d * 2), 0xFFFF));
     }
@@ -111,15 +113,15 @@ absl::Status SaveDungeonMaps(Rom& rom, std::vector<DungeonMap>& dungeon_maps) {
           search_boss = false;
         }
 
-        RETURN_IF_ERROR(rom.WriteByte(pos, map.floor_rooms[f][r]));
-        pos++;
-
         if (pos >= kDungeonMapDataReservedStart &&
             pos <= kDungeonMapDataReservedEnd) {
           pos = kDungeonMapDataReservedEnd + 1;
           restart = true;
           break;
         }
+
+        RETURN_IF_ERROR(rom.WriteByte(pos, map.floor_rooms[f][r]));
+        pos++;
       }
       if (restart) break;
     }
@@ -134,9 +136,6 @@ absl::Status SaveDungeonMaps(Rom& rom, std::vector<DungeonMap>& dungeon_maps) {
     for (int f = 0; f < total_floors; f++) {
       for (int r = 0; r < kNumRooms; r++) {
         if (map.floor_rooms[f][r] != 0x0F) {
-          RETURN_IF_ERROR(rom.WriteByte(pos, map.floor_gfx[f][r]));
-          pos++;
-
           if (pos >= kDungeonMapDataReservedStart &&
               pos <= kDungeonMapDataReservedEnd) {
             pos = kDungeonMapDataReservedEnd + 1;
@@ -145,6 +144,9 @@ absl::Status SaveDungeonMaps(Rom& rom, std::vector<DungeonMap>& dungeon_maps) {
             restart = true;
             break;
           }
+
+          RETURN_IF_ERROR(rom.WriteByte(pos, map.floor_gfx[f][r]));
+          pos++;
         }
       }
       if (restart) break;
