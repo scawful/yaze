@@ -462,6 +462,7 @@ void EditorSelectionDialog::DrawEditorPanel(const EditorInfo& info, int index,
   bool clicked =
       ImGui::Button(absl::StrCat("##", info.name).c_str(), card_size);
   bool is_hovered = ImGui::IsItemHovered();
+  const ImVec2 after_button = ImGui::GetCursorScreenPos();
 
   ImGui::PopStyleColor(3);
 
@@ -531,6 +532,7 @@ void EditorSelectionDialog::DrawEditorPanel(const EditorInfo& info, int index,
     selected_editor_ = info.type;
   }
 
+  ImGui::SetCursorScreenPos(after_button);
   ImGui::PopID();
 }
 
