@@ -5,6 +5,7 @@
 #include <cmath>
 #include <filesystem>
 #include <fstream>
+#include <string_view>
 
 #include "absl/strings/str_format.h"
 #include "absl/time/clock.h"
@@ -31,21 +32,33 @@ ImVec4 GetThemedColor(const char* color_name, const ImVec4& fallback) {
   auto& theme_mgr = gui::ThemeManager::Get();
   const auto& theme = theme_mgr.GetCurrentTheme();
 
-  // TODO: Fix this
-  // Map color names to theme colors
-  // if (strcmp(color_name, "triforce_gold") == 0) {
-  //   return theme.accent.to_im_vec4();
-  // } else if (strcmp(color_name, "hyrule_green") == 0) {
-  //   return theme.success.to_im_vec4();
-  // } else if (strcmp(color_name, "master_sword_blue") == 0) {
-  //   return theme.info.to_im_vec4();
-  // } else if (strcmp(color_name, "ganon_purple") == 0) {
-  //   return theme.secondary.to_im_vec4();
-  // } else if (strcmp(color_name, "heart_red") == 0) {
-  //   return theme.error.to_im_vec4();
-  // } else if (strcmp(color_name, "spirit_orange") == 0) {
-  //   return theme.warning.to_im_vec4();
-  // }
+  if (!color_name) {
+    return fallback;
+  }
+
+  const std::string_view name(color_name);
+  if (name == "triforce_gold") {
+    return gui::ConvertColorToImVec4(theme.accent);
+  }
+  if (name == "hyrule_green") {
+    return gui::ConvertColorToImVec4(theme.success);
+  }
+  if (name == "master_sword_blue") {
+    return gui::ConvertColorToImVec4(theme.info);
+  }
+  if (name == "ganon_purple") {
+    return gui::ConvertColorToImVec4(theme.secondary);
+  }
+  if (name == "heart_red") {
+    return gui::ConvertColorToImVec4(theme.error);
+  }
+  if (name == "spirit_orange") {
+    return gui::ConvertColorToImVec4(theme.warning);
+  }
+  if (name == "shadow_purple") {
+    return ImLerp(gui::ConvertColorToImVec4(theme.secondary),
+                  gui::GetSurfaceVec4(), 0.4f);
+  }
 
   return fallback;
 }
@@ -58,6 +71,11 @@ const ImVec4 kGanonPurpleFallback = ImVec4(0.502f, 0.0f, 0.502f, 1.0f);
 const ImVec4 kHeartRedFallback = ImVec4(0.863f, 0.078f, 0.235f, 1.0f);
 const ImVec4 kSpiritOrangeFallback = ImVec4(1.0f, 0.647f, 0.0f, 1.0f);
 const ImVec4 kShadowPurpleFallback = ImVec4(0.416f, 0.353f, 0.804f, 1.0f);
+
+constexpr float kRecentCardBaseWidth = 220.0f;
+constexpr float kRecentCardBaseHeight = 95.0f;
+constexpr float kRecentCardWidthMaxFactor = 1.25f;
+constexpr float kRecentCardHeightMaxFactor = 1.25f;
 
 // Active colors (updated each frame from theme)
 ImVec4 kTriforceGold = kTriforceGoldFallback;
@@ -116,7 +134,9 @@ void DrawTriforceBackground(ImDrawList* draw_list, ImVec2 pos, float size,
     draw_list->AddTriangleFilled(p1, p2, p3, color);
   };
 
-  ImU32 gold = ImGui::GetColorU32(ImVec4(1.0f, 0.843f, 0.0f, alpha));
+  ImVec4 gold_color = kTriforceGold;
+  gold_color.w = alpha;
+  ImU32 gold = ImGui::GetColorU32(gold_color);
 
   // Proper triforce layout with three triangles
   float small_size = size / 2.0f;
@@ -132,6 +152,51 @@ void DrawTriforceBackground(ImDrawList* draw_list, ImVec2 pos, float size,
   // Bottom right triangle
   triangle(ImVec2(pos.x + small_size / 2.0f, pos.y + small_height), small_size,
            gold);
+}
+
+struct GridLayout {
+  int columns = 1;
+  float item_width = 0.0f;
+  float item_height = 0.0f;
+  float spacing = 0.0f;
+  float row_start_x = 0.0f;
+};
+
+GridLayout ComputeGridLayout(float avail_width, float min_width,
+                             float max_width, float min_height,
+                             float max_height, float preferred_width,
+                             float aspect_ratio, float spacing) {
+  GridLayout layout;
+  layout.spacing = spacing;
+  const auto width_for_columns = [avail_width, spacing](int columns) {
+    return (avail_width - spacing * static_cast<float>(columns - 1)) /
+           static_cast<float>(columns);
+  };
+
+  layout.columns =
+      std::max(1, static_cast<int>((avail_width + spacing) /
+                                   (preferred_width + spacing)));
+
+  layout.item_width = width_for_columns(layout.columns);
+  while (layout.columns > 1 && layout.item_width < min_width) {
+    layout.columns -= 1;
+    layout.item_width = width_for_columns(layout.columns);
+  }
+
+  layout.item_width = std::min(layout.item_width, max_width);
+  layout.item_width = std::min(layout.item_width, avail_width);
+  layout.item_height =
+      std::clamp(layout.item_width * aspect_ratio, min_height, max_height);
+
+  const float row_width =
+      layout.item_width * static_cast<float>(layout.columns) +
+      spacing * static_cast<float>(layout.columns - 1);
+  layout.row_start_x = ImGui::GetCursorPosX();
+  if (row_width < avail_width) {
+    layout.row_start_x += (avail_width - row_width) * 0.5f;
+  }
+
+  return layout;
 }
 
 }  // namespace
@@ -380,46 +445,83 @@ bool WelcomeScreen::Show(bool* p_open) {
     ImGui::Dummy(ImVec2(0, 10));
 
     ImGui::BeginChild("WelcomeContent", ImVec2(0, -60), false);
+    const float content_width = ImGui::GetContentRegionAvail().x;
+    const float content_height = ImGui::GetContentRegionAvail().y;
+    const bool narrow_layout = content_width < 900.0f;
 
-    // Left side - Quick Actions & Templates
-    ImGui::BeginChild("LeftPanel",
-                      ImVec2(ImGui::GetContentRegionAvail().x * 0.3f, 0), true,
-                      ImGuiWindowFlags_NoScrollbar);
-    DrawQuickActions();
-    ImGui::Spacing();
+    if (narrow_layout) {
+      float left_height = std::clamp(content_height * 0.45f, 260.0f, content_height);
+      ImGui::BeginChild("LeftPanel", ImVec2(0, left_height), true,
+                        ImGuiWindowFlags_NoScrollbar);
+      DrawQuickActions();
+      ImGui::Spacing();
 
-    // Subtle separator
-    ImVec2 sep_start = ImGui::GetCursorScreenPos();
-    draw_list->AddLine(
-        sep_start,
-        ImVec2(sep_start.x + ImGui::GetContentRegionAvail().x, sep_start.y),
-        ImGui::GetColorU32(
-            ImVec4(kTriforceGold.x, kTriforceGold.y, kTriforceGold.z, 0.2f)),
-        1.0f);
+      ImVec2 sep_start = ImGui::GetCursorScreenPos();
+      draw_list->AddLine(
+          sep_start,
+          ImVec2(sep_start.x + ImGui::GetContentRegionAvail().x, sep_start.y),
+          ImGui::GetColorU32(
+              ImVec4(kTriforceGold.x, kTriforceGold.y, kTriforceGold.z, 0.2f)),
+          1.0f);
 
-    ImGui::Dummy(ImVec2(0, 5));
-    DrawTemplatesSection();
-    ImGui::EndChild();
+      ImGui::Dummy(ImVec2(0, 5));
+      DrawTemplatesSection();
+      ImGui::EndChild();
 
-    ImGui::SameLine();
+      ImGui::Spacing();
 
-    // Right side - Recent Projects & What's New
-    ImGui::BeginChild("RightPanel", ImVec2(0, 0), true);
-    DrawRecentProjects();
-    ImGui::Spacing();
+      ImGui::BeginChild("RightPanel", ImVec2(0, 0), true);
+      DrawRecentProjects();
+      ImGui::Spacing();
 
-    // Subtle separator
-    sep_start = ImGui::GetCursorScreenPos();
-    draw_list->AddLine(
-        sep_start,
-        ImVec2(sep_start.x + ImGui::GetContentRegionAvail().x, sep_start.y),
-        ImGui::GetColorU32(ImVec4(kMasterSwordBlue.x, kMasterSwordBlue.y,
-                                  kMasterSwordBlue.z, 0.2f)),
-        1.0f);
+      sep_start = ImGui::GetCursorScreenPos();
+      draw_list->AddLine(
+          sep_start,
+          ImVec2(sep_start.x + ImGui::GetContentRegionAvail().x, sep_start.y),
+          ImGui::GetColorU32(ImVec4(kMasterSwordBlue.x, kMasterSwordBlue.y,
+                                    kMasterSwordBlue.z, 0.2f)),
+          1.0f);
 
-    ImGui::Dummy(ImVec2(0, 5));
-    DrawWhatsNew();
-    ImGui::EndChild();
+      ImGui::Dummy(ImVec2(0, 5));
+      DrawWhatsNew();
+      ImGui::EndChild();
+    } else {
+      ImGui::BeginChild("LeftPanel",
+                        ImVec2(ImGui::GetContentRegionAvail().x * 0.3f, 0), true,
+                        ImGuiWindowFlags_NoScrollbar);
+      DrawQuickActions();
+      ImGui::Spacing();
+
+      ImVec2 sep_start = ImGui::GetCursorScreenPos();
+      draw_list->AddLine(
+          sep_start,
+          ImVec2(sep_start.x + ImGui::GetContentRegionAvail().x, sep_start.y),
+          ImGui::GetColorU32(
+              ImVec4(kTriforceGold.x, kTriforceGold.y, kTriforceGold.z, 0.2f)),
+          1.0f);
+
+      ImGui::Dummy(ImVec2(0, 5));
+      DrawTemplatesSection();
+      ImGui::EndChild();
+
+      ImGui::SameLine();
+
+      ImGui::BeginChild("RightPanel", ImVec2(0, 0), true);
+      DrawRecentProjects();
+      ImGui::Spacing();
+
+      sep_start = ImGui::GetCursorScreenPos();
+      draw_list->AddLine(
+          sep_start,
+          ImVec2(sep_start.x + ImGui::GetContentRegionAvail().x, sep_start.y),
+          ImGui::GetColorU32(ImVec4(kMasterSwordBlue.x, kMasterSwordBlue.y,
+                                    kMasterSwordBlue.z, 0.2f)),
+          1.0f);
+
+      ImGui::Dummy(ImVec2(0, 5));
+      DrawWhatsNew();
+      ImGui::EndChild();
+    }
 
     ImGui::EndChild();
 
@@ -629,7 +731,8 @@ void WelcomeScreen::DrawRecentProjects() {
 
   if (recent_projects_.empty()) {
     // Simple empty state
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
+    const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
+    ImGui::PushStyleColor(ImGuiCol_Text, text_secondary);
 
     ImVec2 cursor = ImGui::GetCursorPos();
     ImGui::SetCursorPosX(cursor.x + ImGui::GetContentRegionAvail().x * 0.3f);
@@ -644,47 +747,89 @@ void WelcomeScreen::DrawRecentProjects() {
     return;
   }
 
-  // Grid layout for project cards (compact)
-  float card_width = 220.0f;  // Reduced for compactness
-  float card_height = 95.0f;  // Reduced for less scrolling
-  int columns =
-      std::max(1, (int)(ImGui::GetContentRegionAvail().x / (card_width + 12)));
+  const float scale = ImGui::GetFontSize() / 16.0f;
+  const float min_width = kRecentCardBaseWidth * scale;
+  const float max_width = kRecentCardBaseWidth * kRecentCardWidthMaxFactor * scale;
+  const float min_height = kRecentCardBaseHeight * scale;
+  const float max_height = kRecentCardBaseHeight * kRecentCardHeightMaxFactor * scale;
+  const float spacing = ImGui::GetStyle().ItemSpacing.x;
+  const float aspect_ratio = min_height / std::max(min_width, 1.0f);
 
+  GridLayout layout = ComputeGridLayout(ImGui::GetContentRegionAvail().x,
+                                        min_width, max_width, min_height,
+                                        max_height, min_width, aspect_ratio,
+                                        spacing);
+
+  int column = 0;
   for (size_t i = 0; i < recent_projects_.size(); ++i) {
-    if (i % columns != 0) {
-      ImGui::SameLine();
+    if (column == 0) {
+      ImGui::SetCursorPosX(layout.row_start_x);
     }
-    DrawProjectPanel(recent_projects_[i], i);
+
+    DrawProjectPanel(recent_projects_[i], static_cast<int>(i),
+                     ImVec2(layout.item_width, layout.item_height));
+
+    column += 1;
+    if (column < layout.columns) {
+      ImGui::SameLine(0.0f, layout.spacing);
+    } else {
+      column = 0;
+      ImGui::Spacing();
+    }
+  }
+
+  if (column != 0) {
+    ImGui::NewLine();
   }
 }
 
-void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index) {
+void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
+                                     const ImVec2& card_size) {
   ImGui::BeginGroup();
 
-  ImVec2 card_size(200, 95);  // Compact size
+  const ImVec4 surface = gui::GetSurfaceVec4();
+  const ImVec4 surface_variant = gui::GetSurfaceVariantVec4();
+  const ImVec4 text_primary = gui::GetOnSurfaceVec4();
+  const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
+  const ImVec4 text_disabled = gui::GetTextDisabledVec4();
+
+  ImVec2 resolved_card_size = card_size;
   ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
 
   // Subtle hover scale (only on actual hover, no animation)
-  float scale = card_hover_scale_[index];
-  if (scale != 1.0f) {
-    ImVec2 center(cursor_pos.x + card_size.x / 2,
-                  cursor_pos.y + card_size.y / 2);
-    cursor_pos.x = center.x - (card_size.x * scale) / 2;
-    cursor_pos.y = center.y - (card_size.y * scale) / 2;
-    card_size.x *= scale;
-    card_size.y *= scale;
+  float hover_scale = card_hover_scale_[index];
+  if (hover_scale != 1.0f) {
+    ImVec2 center(cursor_pos.x + resolved_card_size.x / 2,
+                  cursor_pos.y + resolved_card_size.y / 2);
+    cursor_pos.x = center.x - (resolved_card_size.x * hover_scale) / 2;
+    cursor_pos.y = center.y - (resolved_card_size.y * hover_scale) / 2;
+    resolved_card_size.x *= hover_scale;
+    resolved_card_size.y *= hover_scale;
   }
+
+  const float layout_scale = resolved_card_size.y / kRecentCardBaseHeight;
+  const float padding = 8.0f * layout_scale;
+  const float icon_radius = 15.0f * layout_scale;
+  const float icon_offset = 13.0f * layout_scale;
+  const float text_offset = 32.0f * layout_scale;
+  const float name_offset_y = 8.0f * layout_scale;
+  const float rom_offset_y = 35.0f * layout_scale;
+  const float path_offset_y = 58.0f * layout_scale;
 
   // Draw card background with subtle gradient
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
   // Gradient background
-  ImU32 color_top = ImGui::GetColorU32(ImVec4(0.15f, 0.20f, 0.25f, 1.0f));
-  ImU32 color_bottom = ImGui::GetColorU32(ImVec4(0.10f, 0.15f, 0.20f, 1.0f));
+  ImVec4 color_top = ImLerp(surface_variant, surface, 0.7f);
+  ImVec4 color_bottom = ImLerp(surface_variant, surface, 0.3f);
+  ImU32 color_top_u32 = ImGui::GetColorU32(color_top);
+  ImU32 color_bottom_u32 = ImGui::GetColorU32(color_bottom);
   draw_list->AddRectFilledMultiColor(
       cursor_pos,
-      ImVec2(cursor_pos.x + card_size.x, cursor_pos.y + card_size.y), color_top,
-      color_top, color_bottom, color_bottom);
+      ImVec2(cursor_pos.x + resolved_card_size.x,
+             cursor_pos.y + resolved_card_size.y),
+      color_top_u32,
+      color_top_u32, color_bottom_u32, color_bottom_u32);
 
   // Static themed border
   ImVec4 border_color_base = (index % 3 == 0)   ? kHyruleGreen
@@ -695,13 +840,14 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index) {
 
   draw_list->AddRect(
       cursor_pos,
-      ImVec2(cursor_pos.x + card_size.x, cursor_pos.y + card_size.y),
+      ImVec2(cursor_pos.x + resolved_card_size.x,
+             cursor_pos.y + resolved_card_size.y),
       border_color, 6.0f, 0, 2.0f);
 
   // Make the card clickable
   ImGui::SetCursorScreenPos(cursor_pos);
   ImGui::InvisibleButton(absl::StrFormat("ProjectPanel_%d", index).c_str(),
-                         card_size);
+                         resolved_card_size);
   bool is_hovered = ImGui::IsItemHovered();
   bool is_clicked = ImGui::IsItemClicked();
 
@@ -714,50 +860,64 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index) {
         ImVec4(kTriforceGold.x, kTriforceGold.y, kTriforceGold.z, 0.15f));
     draw_list->AddRectFilled(
         cursor_pos,
-        ImVec2(cursor_pos.x + card_size.x, cursor_pos.y + card_size.y),
+        ImVec2(cursor_pos.x + resolved_card_size.x,
+               cursor_pos.y + resolved_card_size.y),
         hover_color, 6.0f);
   }
 
   // Draw content (tighter layout)
-  ImVec2 content_pos(cursor_pos.x + 8, cursor_pos.y + 8);
+  ImVec2 content_pos(cursor_pos.x + padding, cursor_pos.y + padding);
 
   // Icon with colored background circle (compact)
-  ImVec2 icon_center(content_pos.x + 13, content_pos.y + 13);
+  ImVec2 icon_center(content_pos.x + icon_offset, content_pos.y + icon_offset);
   ImU32 icon_bg = ImGui::GetColorU32(border_color_base);
-  draw_list->AddCircleFilled(icon_center, 15, icon_bg, 24);
+  draw_list->AddCircleFilled(icon_center, icon_radius, icon_bg, 24);
 
   // Center the icon properly
   ImVec2 icon_size = ImGui::CalcTextSize(ICON_MD_VIDEOGAME_ASSET);
   ImGui::SetCursorScreenPos(
       ImVec2(icon_center.x - icon_size.x / 2, icon_center.y - icon_size.y / 2));
-  ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 1, 1));
+  ImGui::PushStyleColor(ImGuiCol_Text, text_primary);
   ImGui::Text(ICON_MD_VIDEOGAME_ASSET);
   ImGui::PopStyleColor();
 
   // Project name (compact, shorten if too long)
-  ImGui::SetCursorScreenPos(ImVec2(content_pos.x + 32, content_pos.y + 8));
-  ImGui::PushTextWrapPos(cursor_pos.x + card_size.x - 8);
+  ImGui::SetCursorScreenPos(
+      ImVec2(content_pos.x + text_offset, content_pos.y + name_offset_y));
+  ImGui::PushTextWrapPos(cursor_pos.x + resolved_card_size.x - padding);
   ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);  // Default font
   std::string short_name = project.name;
-  if (short_name.length() > 22) {
-    short_name = short_name.substr(0, 19) + "...";
+  const float approx_char_width = ImGui::CalcTextSize("A").x;
+  const float name_max_width =
+      std::max(120.0f, resolved_card_size.x - text_offset - padding);
+  size_t max_chars = static_cast<size_t>(
+      std::max(12.0f, name_max_width / std::max(approx_char_width, 1.0f)));
+  if (short_name.length() > max_chars) {
+    short_name = short_name.substr(0, max_chars - 3) + "...";
   }
   ImGui::TextColored(kTriforceGold, "%s", short_name.c_str());
   ImGui::PopFont();
   ImGui::PopTextWrapPos();
 
   // ROM title (compact)
-  ImGui::SetCursorScreenPos(ImVec2(content_pos.x + 4, content_pos.y + 35));
-  ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.65f, 0.65f, 0.65f, 1.0f));
+  ImGui::SetCursorScreenPos(
+      ImVec2(content_pos.x + padding * 0.5f, content_pos.y + rom_offset_y));
+  ImGui::PushStyleColor(ImGuiCol_Text, text_secondary);
   ImGui::Text(ICON_MD_GAMEPAD " %s", project.rom_title.c_str());
   ImGui::PopStyleColor();
 
   // Path in card (compact)
-  ImGui::SetCursorScreenPos(ImVec2(content_pos.x + 4, content_pos.y + 58));
-  ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
+  ImGui::SetCursorScreenPos(
+      ImVec2(content_pos.x + padding * 0.5f, content_pos.y + path_offset_y));
+  ImGui::PushStyleColor(ImGuiCol_Text, text_disabled);
   std::string short_path = project.filepath;
-  if (short_path.length() > 26) {
-    short_path = "..." + short_path.substr(short_path.length() - 23);
+  const float path_max_width =
+      std::max(120.0f, resolved_card_size.x - padding * 2.0f);
+  size_t max_path_chars = static_cast<size_t>(
+      std::max(18.0f, path_max_width / std::max(approx_char_width, 1.0f)));
+  if (short_path.length() > max_path_chars) {
+    short_path =
+        "..." + short_path.substr(short_path.length() - (max_path_chars - 3));
   }
   ImGui::Text(ICON_MD_FOLDER " %s", short_path.c_str());
   ImGui::PopStyleColor();

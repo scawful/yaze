@@ -38,14 +38,14 @@ class DashboardPanel {
     std::string description;
     std::string shortcut;
     EditorType type;
-    ImVec4 color;
     bool recently_used = false;
   };
 
   void DrawWelcomeHeader();
   void DrawRecentEditors();
   void DrawEditorGrid();
-  void DrawEditorPanel(const EditorInfo& info, int index);
+  void DrawEditorPanel(const EditorInfo& info, int index,
+                       const ImVec2& card_size);
 
   EditorManager* editor_manager_;
   gui::PanelWindow window_;

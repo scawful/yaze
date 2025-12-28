@@ -11,6 +11,12 @@
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#endif
+#if defined(__APPLE__) && TARGET_OS_IOS == 1
+#include "app/platform/ios/ios_platform_state.h"
+#endif
 #include "app/editor/editor.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/system/editor_registry.h"
@@ -74,10 +80,13 @@ UICoordinator::UICoordinator(
         toast_manager_.Show(
             absl::StrFormat("Failed to load ROM: %s", status.message()),
             ToastType::kError);
-      } else {
+      }
+#if !(defined(__APPLE__) && TARGET_OS_IOS == 1)
+      else {
         // Transition to Dashboard on successful ROM load
         SetStartupSurface(StartupSurface::kDashboard);
       }
+#endif
     }
 #endif
   });
@@ -188,6 +197,147 @@ void UICoordinator::DrawAllUI() {
   // Draw popups and toasts
   DrawAllPopups();
   toast_manager_.Draw();
+  DrawMobileNavigation();
+}
+
+bool UICoordinator::IsCompactLayout() const {
+  const ImGuiViewport* viewport = ImGui::GetMainViewport();
+  if (!viewport) {
+    return false;
+  }
+  const float width = viewport->WorkSize.x;
+#if defined(__APPLE__) && TARGET_OS_IOS == 1
+  return true;
+#else
+  return width < 900.0f;
+#endif
+}
+
+void UICoordinator::DrawMobileNavigation() {
+  if (!IsCompactLayout()) {
+    return;
+  }
+
+  const ImGuiViewport* viewport = ImGui::GetMainViewport();
+  if (!viewport) {
+    return;
+  }
+
+  const ImGuiStyle& style = ImGui::GetStyle();
+  ImVec2 safe = style.DisplaySafeAreaPadding;
+#if defined(__APPLE__) && TARGET_OS_IOS == 1
+  const auto safe_area = ::yaze::platform::ios::GetSafeAreaInsets();
+  if (safe_area.left != 0.0f || safe_area.right != 0.0f ||
+      safe_area.top != 0.0f || safe_area.bottom != 0.0f) {
+    safe = ImVec2(safe_area.right, safe_area.bottom);
+  }
+#endif
+  const float button_size = std::max(44.0f, ImGui::GetFontSize() * 2.1f);
+  const float padding = style.WindowPadding.x;
+  const ImVec2 pos(viewport->WorkPos.x + viewport->WorkSize.x - safe.x - padding -
+                       button_size,
+                   viewport->WorkPos.y + viewport->WorkSize.y - safe.y - padding -
+                       button_size);
+
+  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+  const ImVec4 button_color = gui::ConvertColorToImVec4(theme.button);
+  const ImVec4 button_hovered = gui::ConvertColorToImVec4(theme.button_hovered);
+  const ImVec4 button_active = gui::ConvertColorToImVec4(theme.button_active);
+  const ImVec4 button_text = gui::ConvertColorToImVec4(theme.accent);
+
+  ImGui::SetNextWindowPos(pos, ImGuiCond_Always);
+  ImGui::SetNextWindowSize(ImVec2(button_size, button_size), ImGuiCond_Always);
+
+  ImGuiWindowFlags flags =
+      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
+      ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoFocusOnAppearing |
+      ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoSavedSettings |
+      ImGuiWindowFlags_NoBackground;
+
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+  if (ImGui::Begin("##MobileNavButton", nullptr, flags)) {
+    ImGui::PushStyleColor(ImGuiCol_Button, button_color);
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, button_hovered);
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, button_active);
+    ImGui::PushStyleColor(ImGuiCol_Text, button_text);
+
+    if (ImGui::Button(ICON_MD_APPS, ImVec2(button_size, button_size))) {
+      ImGui::OpenPopup("##MobileNavPopup");
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Navigation");
+    }
+
+    ImGui::PopStyleColor(4);
+  }
+  ImGui::End();
+  ImGui::PopStyleVar();
+
+  ImGui::PushStyleColor(ImGuiCol_PopupBg,
+                        gui::ConvertColorToImVec4(theme.surface));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12.0f, 10.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8.0f, 6.0f));
+
+  if (ImGui::BeginPopup("##MobileNavPopup")) {
+    bool has_rom = false;
+    if (editor_manager_) {
+      auto* current_rom = editor_manager_->GetCurrentRom();
+      has_rom = current_rom && current_rom->is_loaded();
+    }
+
+    if (ImGui::MenuItem(ICON_MD_FOLDER_OPEN " Open ROM")) {
+      if (editor_manager_) {
+        auto status = editor_manager_->LoadRom();
+        if (!status.ok()) {
+          toast_manager_.Show(
+              absl::StrFormat("Failed to load ROM: %s", status.message()),
+              ToastType::kError);
+        }
+#if !(defined(__APPLE__) && TARGET_OS_IOS == 1)
+        else {
+          SetStartupSurface(StartupSurface::kDashboard);
+        }
+#endif
+      }
+    }
+
+    if (has_rom) {
+      if (ImGui::MenuItem(ICON_MD_DASHBOARD " Dashboard", nullptr,
+                          current_startup_surface_ ==
+                              StartupSurface::kDashboard)) {
+        SetStartupSurface(StartupSurface::kDashboard);
+      }
+      if (ImGui::MenuItem(
+              ICON_MD_EDIT " Editor", nullptr,
+              current_startup_surface_ == StartupSurface::kEditor)) {
+        SetStartupSurface(StartupSurface::kEditor);
+      }
+    }
+
+    const bool sidebar_visible = panel_manager_.IsSidebarVisible();
+    if (ImGui::MenuItem(ICON_MD_VIEW_SIDEBAR " Toggle Sidebar", nullptr,
+                        sidebar_visible)) {
+      TogglePanelSidebar();
+    }
+
+    if (editor_manager_) {
+      auto* right_panel = editor_manager_->right_panel_manager();
+      if (right_panel) {
+        const bool settings_active = right_panel->IsPanelActive(
+            RightPanelManager::PanelType::kSettings);
+        if (ImGui::MenuItem(ICON_MD_SETTINGS " Settings", nullptr,
+                            settings_active)) {
+          right_panel->TogglePanel(RightPanelManager::PanelType::kSettings);
+        }
+      }
+    }
+
+    ImGui::EndPopup();
+  }
+
+  ImGui::PopStyleVar(2);
+  ImGui::PopStyleColor();
 }
 
 // =============================================================================
