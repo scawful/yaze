@@ -314,7 +314,7 @@ class Tile16Editor : public gfx::GfxContext {
 
   /// @brief Create a remapped palette for viewing with user-selected palette
   /// @param source Full 256-color palette
-  /// @param target_row User-selected palette row (0-7 maps to rows 2-9)
+  /// @param target_row User-selected palette row (0-7 maps to the sheet base)
   /// @return Remapped 256-color palette where all pixels map to target row
   gfx::SnesPalette CreateRemappedPaletteForViewing(
       const gfx::SnesPalette& source, int target_row) const;

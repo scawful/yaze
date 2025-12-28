@@ -79,13 +79,11 @@ std::vector<char> Convert(const std::vector<snes_color>& palette) {
 }
 
 SnesColor GetCgxColor(uint16_t color) {
-  ImVec4 rgb;
-  rgb.x = (color & 0x1F) * 8;
-  rgb.y = ((color & 0x3E0) >> 5) * 8;
-  rgb.z = ((color & 0x7C00) >> 10) * 8;
-  SnesColor toret;
-  toret.set_rgb(rgb);
-  return toret;
+  snes_color rgb;
+  rgb.red = (color & 0x1F) * 8;
+  rgb.green = ((color & 0x3E0) >> 5) * 8;
+  rgb.blue = ((color & 0x7C00) >> 10) * 8;
+  return SnesColor(rgb);
 }
 
 std::vector<SnesColor> GetColFileData(uint8_t* data) {
