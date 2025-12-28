@@ -1,5 +1,9 @@
 #include "app/editor/graphics/palette_controls_panel.h"
 
+#include <algorithm>
+#include <string>
+#include <string_view>
+
 #include "absl/strings/str_format.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
@@ -11,6 +15,90 @@ namespace yaze {
 namespace editor {
 
 using gfx::kPaletteGroupAddressesKeys;
+
+namespace {
+struct PaletteRowLayout {
+  int colors_per_row;
+  bool has_explicit_transparent;
+};
+
+PaletteRowLayout GetPaletteRowLayout(std::string_view group_name,
+                                     size_t palette_size) {
+  if (group_name == "ow_main" || group_name == "ow_aux" ||
+      group_name == "ow_animated" || group_name == "sprites_aux1" ||
+      group_name == "sprites_aux2" || group_name == "sprites_aux3") {
+    return {7, false};
+  }
+  if (group_name == "global_sprites" || group_name == "armors" ||
+      group_name == "dungeon_main") {
+    return {15, false};
+  }
+  if (group_name == "hud" || group_name == "ow_mini_map") {
+    return {16, true};
+  }
+  if (group_name == "swords") {
+    return {3, false};
+  }
+  if (group_name == "shields") {
+    return {4, false};
+  }
+  if (group_name == "grass") {
+    return {3, false};
+  }
+  if (group_name == "3d_object") {
+    return {8, false};
+  }
+
+  if (palette_size % 16 == 0) {
+    return {16, true};
+  }
+  if (palette_size % 15 == 0) {
+    return {15, false};
+  }
+  if (palette_size % 7 == 0) {
+    return {7, false};
+  }
+
+  int fallback = palette_size > 0 ? static_cast<int>(palette_size) : 1;
+  return {fallback, false};
+}
+
+int GetPaletteRowCount(size_t palette_size, int colors_per_row) {
+  if (colors_per_row <= 0) {
+    return 1;
+  }
+  return static_cast<int>((palette_size + colors_per_row - 1) / colors_per_row);
+}
+
+bool ComputePaletteSlice(std::string_view group_name,
+                         const gfx::SnesPalette& palette, int row_index,
+                         size_t& out_offset, int& out_length) {
+  if (palette.empty()) {
+    return false;
+  }
+
+  const auto layout = GetPaletteRowLayout(group_name, palette.size());
+  const int max_rows = GetPaletteRowCount(palette.size(), layout.colors_per_row);
+  const int clamped_row = std::clamp(row_index, 0, std::max(0, max_rows - 1));
+  const int row_offset = clamped_row * layout.colors_per_row;
+  const size_t offset =
+      static_cast<size_t>(row_offset + (layout.has_explicit_transparent ? 1 : 0));
+  int length = layout.colors_per_row - (layout.has_explicit_transparent ? 1 : 0);
+  length = std::clamp(length, 1, 15);
+
+  if (offset >= palette.size()) {
+    return false;
+  }
+
+  if (offset + length > palette.size()) {
+    length = static_cast<int>(palette.size() - offset);
+  }
+
+  out_offset = offset;
+  out_length = length;
+  return out_length > 0;
+}
+}  // namespace
 
 void PaletteControlsPanel::Initialize() {
   // Initialize with default palette group
@@ -147,10 +235,16 @@ void PaletteControlsPanel::DrawPaletteDisplay() {
 
   auto palette = palette_group.palette(state_->palette_index);
 
-  // Display palette colors in rows of 16
-  int colors_per_row = 16;
+  auto palette_group_name =
+      std::string_view(kPaletteGroupAddressesKeys[state_->palette_group_index]);
+  auto layout = GetPaletteRowLayout(palette_group_name, palette.size());
+
+  int colors_per_row = layout.colors_per_row;
   int total_colors = static_cast<int>(palette.size());
-  int num_rows = (total_colors + colors_per_row - 1) / colors_per_row;
+  int num_rows = GetPaletteRowCount(palette.size(), colors_per_row);
+  if (state_->sub_palette_index >= static_cast<uint64_t>(num_rows)) {
+    state_->sub_palette_index = 0;
+  }
 
   for (int row = 0; row < num_rows; row++) {
     for (int col = 0; col < colors_per_row; col++) {
@@ -260,18 +354,31 @@ void PaletteControlsPanel::DrawApplyButtons() {
 void PaletteControlsPanel::ApplyPaletteToSheet(uint16_t sheet_id) {
   if (!rom_ || !rom_->is_loaded() || !game_data_) return;
 
-  auto palette_group_result = game_data_->palette_groups.get_group(
-      kPaletteGroupAddressesKeys[state_->palette_group_index]);
+  auto palette_group_name =
+      std::string_view(kPaletteGroupAddressesKeys[state_->palette_group_index]);
+  auto palette_group_result =
+      game_data_->palette_groups.get_group(std::string(palette_group_name));
   if (!palette_group_result) return;
 
   auto palette_group = *palette_group_result;
   if (state_->palette_index >= palette_group.size()) return;
 
   auto palette = palette_group.palette(state_->palette_index);
+  if (palette.empty()) {
+    return;
+  }
 
   auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id);
   if (sheet.is_active() && sheet.surface()) {
-    sheet.SetPaletteWithTransparent(palette, state_->sub_palette_index);
+    size_t palette_offset = 0;
+    int palette_length = 0;
+    if (ComputePaletteSlice(palette_group_name, palette,
+                            static_cast<int>(state_->sub_palette_index),
+                            palette_offset, palette_length)) {
+      sheet.SetPaletteWithTransparent(palette, palette_offset, palette_length);
+    } else {
+      sheet.SetPaletteWithTransparent(palette, 0, std::min(7, static_cast<int>(palette.size())));
+    }
     gfx::Arena::Get().NotifySheetModified(sheet_id);
   }
 }
@@ -279,19 +386,34 @@ void PaletteControlsPanel::ApplyPaletteToSheet(uint16_t sheet_id) {
 void PaletteControlsPanel::ApplyPaletteToAllSheets() {
   if (!rom_ || !rom_->is_loaded() || !game_data_) return;
 
-  auto palette_group_result = game_data_->palette_groups.get_group(
-      kPaletteGroupAddressesKeys[state_->palette_group_index]);
+  auto palette_group_name =
+      std::string_view(kPaletteGroupAddressesKeys[state_->palette_group_index]);
+  auto palette_group_result =
+      game_data_->palette_groups.get_group(std::string(palette_group_name));
   if (!palette_group_result) return;
 
   auto palette_group = *palette_group_result;
   if (state_->palette_index >= palette_group.size()) return;
 
   auto palette = palette_group.palette(state_->palette_index);
+  if (palette.empty()) {
+    return;
+  }
+  size_t palette_offset = 0;
+  int palette_length = 0;
+  const bool has_slice = ComputePaletteSlice(
+      palette_group_name, palette, static_cast<int>(state_->sub_palette_index),
+      palette_offset, palette_length);
 
   for (int i = 0; i < zelda3::kNumGfxSheets; i++) {
     auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->data()[i];
     if (sheet.is_active() && sheet.surface()) {
-      sheet.SetPaletteWithTransparent(palette, state_->sub_palette_index);
+      if (has_slice) {
+        sheet.SetPaletteWithTransparent(palette, palette_offset, palette_length);
+      } else {
+        sheet.SetPaletteWithTransparent(palette, 0,
+                                        std::min(7, static_cast<int>(palette.size())));
+      }
       gfx::Arena::Get().NotifySheetModified(i);
     }
   }
