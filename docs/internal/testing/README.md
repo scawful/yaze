@@ -8,6 +8,8 @@
 
 This document serves as the central hub for all testing infrastructure in the yaze project. It coordinates testing strategies across local development, CI/CD, and release validation workflows.
 
+**ROM policy**: GitHub CI runs without ROMs and skips ROM-dependent suites. Run ROM tests locally with `YAZE_ENABLE_ROM_TESTS=ON` and `YAZE_TEST_ROM_*` paths, or force-skip with `YAZE_SKIP_ROM_TESTS=1`.
+
 ## Quick Links
 
 - **Developer Quick Start**: [Testing Quick Start Guide](../../public/developer/testing-quick-start.md)

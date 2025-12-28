@@ -41,6 +41,8 @@ test/
 | **E2E** | Simulate user workflows | GUI + ROM | Slow |
 | **Benchmarks** | Measure performance | None | Variable |
 
+**ROM policy**: GitHub CI does not run ROM-dependent tests. Run them locally with `YAZE_ENABLE_ROM_TESTS=ON` and `YAZE_TEST_ROM_*` paths. Use `YAZE_SKIP_ROM_TESTS=1` to force-skip ROM suites.
+
 ### Unit Tests
 
 Fast, isolated tests with no external dependencies. Run in CI on every commit.
@@ -100,6 +102,8 @@ cmake --build --preset mac-dev --target yaze_test
 ctest --preset dev          # Stable tests
 ctest --preset all          # All tests
 ```
+
+ROM-dependent CTest suites are local-only and will be skipped when ROMs are not configured.
 
 ---
 

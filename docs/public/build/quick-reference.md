@@ -50,12 +50,28 @@ YAZE uses CMake presets for consistent builds. Configure with `cmake --preset <n
 - **macOS**: `mac-dbg`, `mac-dbg-v`, `mac-rel`, `mac-dev`, `mac-ai`, `mac-ai-fast`, `mac-uni`, `mac-sdl3`, `mac-test`
 - **Windows**: `win-dbg`, `win-dbg-v`, `win-rel`, `win-dev`, `win-ai`, `win-z3ed`, `win-arm`, `win-arm-rel`, `win-vs-dbg`, `win-vs-rel`, `win-vs-ai`, `win-sdl3`, `win-test`
 - **Linux**: `lin-dbg`, `lin-dbg-v`, `lin-rel`, `lin-dev`, `lin-ai`, `lin-sdl3`, `lin-test`
+- **iOS**: `ios-debug`, `ios-release` (device builds for the thin Xcode shell)
 - **CI**: `ci-linux`, `ci-macos`, `ci-windows`, `ci-windows-ai`
 - **WASM**: `wasm-debug`, `wasm-release`, `wasm-crash-repro`, `wasm-ai`
 
 `mac-ai-fast` prefers the Homebrew gRPC/protobuf stack for faster configure times (`brew install grpc protobuf abseil`).
 
 **Tip:** Add `-v` suffix (e.g., `mac-dbg-v`) to enable verbose compiler warnings.
+
+---
+
+### iOS (Device) Build Flow
+
+Use the thin iOS shell backed by CMake-built static libs:
+
+```bash
+scripts/build-ios.sh           # builds ios-debug + generates Xcode project
+scripts/build-ios.sh ios-release
+```
+
+This generates `src/ios/yaze_ios.xcodeproj` and a bundled static library at
+`build-ios/ios/libyaze_ios_bundle.a`. Open the Xcode project and run on device.
+Requires `xcodegen` (`brew install xcodegen`) and the iOS SDK from Xcode.
 
 ---
 
@@ -86,6 +102,46 @@ export YAZE_BUILD_DIR="$HOME/.cache/yaze/build"
 For AI-enabled builds, use the `*-ai` presets and specify only the targets you need:
 ```bash
 cmake --build --preset mac-ai --target yaze z3ed
+```
+
+### Local Nightly Install (Isolated)
+
+Use `scripts/install-nightly.sh` to keep a separate clone and install prefix for
+nightly builds so your dev `build/` stays untouched.
+
+```bash
+scripts/install-nightly.sh
+```
+
+Wrappers are created under `~/.local/bin`:
+- `yaze-nightly` (GUI)
+- `yaze-nightly-grpc` (GUI + gRPC for MCP)
+- `z3ed-nightly` (CLI)
+- `yaze-mcp-nightly` (MCP server; expects `~/Code/yaze-mcp/venv`)
+
+How it works:
+- Clones `origin` into `$YAZE_NIGHTLY_REPO` (default `~/Code/yaze-nightly`) and keeps it clean.
+- Builds into `$YAZE_NIGHTLY_BUILD_DIR` (default `~/Code/yaze-nightly/build-nightly`).
+- Installs into `$YAZE_NIGHTLY_PREFIX/releases/<timestamp>` and updates `.../current` symlink.
+- Writes wrapper scripts to `$YAZE_NIGHTLY_BIN_DIR` (default `~/.local/bin`).
+
+Updating:
+```bash
+scripts/install-nightly.sh  # re-pulls and installs a new release
+```
+
+Removing:
+```bash
+rm -rf ~/.local/yaze/nightly ~/.local/bin/yaze-nightly* ~/.local/bin/z3ed-nightly ~/.local/bin/yaze-mcp-nightly
+```
+
+Key overrides:
+```bash
+export YAZE_NIGHTLY_REPO="$HOME/Code/yaze-nightly"
+export YAZE_NIGHTLY_PREFIX="$HOME/.local/yaze/nightly"
+export YAZE_NIGHTLY_BUILD_TYPE=RelWithDebInfo
+export YAZE_GRPC_PORT=50051
+export YAZE_MCP_REPO="$HOME/Code/yaze-mcp"
 ```
 
 ### Shared Dependency Caches (Recommended)
