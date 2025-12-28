@@ -22,8 +22,6 @@ SnesPalette::SnesPalette(char* data) {
     SnesColor col;
     col.set_snes(static_cast<uint8_t>(data[i + 1]) << 8);
     col.set_snes(col.snes() | static_cast<uint8_t>(data[i]));
-    snes_color mColor = ConvertSnesToRgb(col.snes());
-    col.set_rgb(ImVec4(mColor.red, mColor.green, mColor.blue, 1.f));
     colors_[size_++] = col;
   }
 }
@@ -34,8 +32,6 @@ SnesPalette::SnesPalette(const unsigned char* snes_pal) {
     SnesColor col;
     col.set_snes(snes_pal[i + 1] << (uint16_t)8);
     col.set_snes(col.snes() | snes_pal[i]);
-    snes_color mColor = ConvertSnesToRgb(col.snes());
-    col.set_rgb(ImVec4(mColor.red, mColor.green, mColor.blue, 1.f));
     colors_[size_++] = col;
   }
 }

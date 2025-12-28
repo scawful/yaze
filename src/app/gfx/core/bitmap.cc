@@ -74,6 +74,7 @@ Bitmap::Bitmap(const Bitmap& other)
     surface_ = Arena::Get().AllocateSurface(
         width_, height_, depth_, GetSnesPixelFormat(BitmapFormat::kIndexed));
     if (surface_) {
+      platform::EnsureSurfacePalette256(surface_);
       SDL_LockSurface(surface_);
       memcpy(surface_->pixels, pixel_data_, data_.size());
       SDL_UnlockSurface(surface_);
@@ -115,6 +116,7 @@ Bitmap& Bitmap::operator=(const Bitmap& other) {
       surface_ = Arena::Get().AllocateSurface(
           width_, height_, depth_, GetSnesPixelFormat(BitmapFormat::kIndexed));
       if (surface_) {
+        platform::EnsureSurfacePalette256(surface_);
         SDL_LockSurface(surface_);
         memcpy(surface_->pixels, pixel_data_, data_.size());
         SDL_UnlockSurface(surface_);
