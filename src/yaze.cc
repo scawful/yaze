@@ -233,14 +233,22 @@ zelda3_overworld* yaze_load_overworld(const zelda3_rom* rom) {
   return overworld;
 }
 
-zelda3_dungeon_room* yaze_load_all_rooms(const zelda3_rom* rom, int* room_count) {
-  if (rom->impl == nullptr) {
+zelda3_dungeon_room* yaze_load_all_rooms(const zelda3_rom* rom,
+                                         int* room_count) {
+  if (room_count != nullptr) {
+    *room_count = 0;
+  }
+  if (rom == nullptr || rom->impl == nullptr) {
     return nullptr;
   }
-  yaze::Rom* internal_rom = static_cast<yaze::Rom*>(rom->impl);
-  zelda3_dungeon_room* rooms = new zelda3_dungeon_room[256];
+
+  constexpr int kRoomCount = 256;
+  auto* rooms = new zelda3_dungeon_room[kRoomCount]();
+  for (int i = 0; i < kRoomCount; ++i) {
+    rooms[i].id = static_cast<uint16_t>(i);
+  }
   if (room_count != nullptr) {
-    *room_count = 256;
+    *room_count = kRoomCount;
   }
   return rooms;
 }
