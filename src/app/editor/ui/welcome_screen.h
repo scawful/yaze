@@ -114,7 +114,8 @@ class WelcomeScreen {
   void DrawHeader();
   void DrawQuickActions();
   void DrawRecentProjects();
-  void DrawProjectPanel(const RecentProject& project, int index);
+  void DrawProjectPanel(const RecentProject& project, int index,
+                        const ImVec2& card_size);
   void DrawTemplatesSection();
   void DrawTipsSection();
   void DrawWhatsNew();

@@ -273,6 +273,10 @@ class UICoordinator {
                           const ImVec4& color, std::function<void()> callback,
                           bool enabled = true);
 
+  // Mobile helpers
+  bool IsCompactLayout() const;
+  void DrawMobileNavigation();
+
   // Layout and positioning helpers
   void CenterWindow(const std::string& window_name);
   void PositionWindow(const std::string& window_name, float x, float y);

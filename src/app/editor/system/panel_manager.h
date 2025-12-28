@@ -214,6 +214,14 @@ class PanelManager {
 
   static constexpr float GetSidebarWidth() { return 48.0f; }
   static constexpr float GetSidePanelWidth() { return 250.0f; }
+  static float GetSidePanelWidthForViewport(float viewport_width) {
+    float width = GetSidePanelWidth();
+    const float max_width = viewport_width * 0.28f;
+    if (viewport_width > 0.0f && max_width > 0.0f && width > max_width) {
+      width = max_width;
+    }
+    return width;
+  }
   static constexpr float GetCollapsedSidebarWidth() { return 16.0f; }
 
   static std::string GetCategoryIcon(const std::string& category);

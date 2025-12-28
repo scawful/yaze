@@ -1,6 +1,7 @@
 #include "app/editor/menu/right_panel_manager.h"
 
 #include <chrono>
+#include <filesystem>
 
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_chat.h"
@@ -14,9 +15,31 @@
 #include "app/gui/core/style.h"
 #include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
+#include "util/platform_paths.h"
 
 namespace yaze {
 namespace editor {
+
+namespace {
+
+std::string ResolveAgentChatHistoryPath() {
+  auto agent_dir = util::PlatformPaths::GetAppDataSubdirectory("agent");
+  if (agent_dir.ok()) {
+    return (*agent_dir / "agent_chat_history.json").string();
+  }
+  auto docs_dir = util::PlatformPaths::GetUserDocumentsSubdirectory("agent");
+  if (docs_dir.ok()) {
+    return (*docs_dir / "agent_chat_history.json").string();
+  }
+  auto temp_dir = util::PlatformPaths::GetTempDirectory();
+  if (temp_dir.ok()) {
+    return (*temp_dir / "agent_chat_history.json").string();
+  }
+  return (std::filesystem::current_path() / "agent_chat_history.json")
+      .string();
+}
+
+}  // namespace
 
 const char* GetPanelTypeName(RightPanelManager::PanelType type) {
   switch (type) {
@@ -89,24 +112,50 @@ float RightPanelManager::GetPanelWidth() const {
     return 0.0f;
   }
 
+  float width = 0.0f;
   switch (active_panel_) {
     case PanelType::kAgentChat:
-      return agent_chat_width_;
+      width = agent_chat_width_;
+      break;
     case PanelType::kProposals:
-      return proposals_width_;
+      width = proposals_width_;
+      break;
     case PanelType::kSettings:
-      return settings_width_;
+      width = settings_width_;
+      break;
     case PanelType::kHelp:
-      return help_width_;
+      width = help_width_;
+      break;
     case PanelType::kNotifications:
-      return notifications_width_;
+      width = notifications_width_;
+      break;
     case PanelType::kProperties:
-      return properties_width_;
+      width = properties_width_;
+      break;
     case PanelType::kProject:
-      return project_width_;
+      width = project_width_;
+      break;
     default:
-      return 0.0f;
+      width = 0.0f;
+      break;
   }
+
+  ImGuiContext* context = ImGui::GetCurrentContext();
+  if (!context) {
+    return width;
+  }
+
+  const ImGuiViewport* viewport = ImGui::GetMainViewport();
+  if (!viewport) {
+    return width;
+  }
+
+  const float max_width = viewport->WorkSize.x * 0.35f;
+  if (max_width > 0.0f && width > max_width) {
+    width = max_width;
+  }
+
+  return width;
 }
 
 void RightPanelManager::SetPanelWidth(PanelType type, float width) {
@@ -503,7 +552,7 @@ void RightPanelManager::DrawAgentChatPanel() {
   }
   ImGui::SameLine();
   if (ImGui::Button(ICON_MD_FILE_DOWNLOAD " Save", half_width)) {
-    agent_chat_->SaveHistory(".yaze/agent_chat_history.json");
+    agent_chat_->SaveHistory(ResolveAgentChatHistoryPath());
   }
   ImGui::PopStyleColor(3);
   ImGui::PopStyleVar();

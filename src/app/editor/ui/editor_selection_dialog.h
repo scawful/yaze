@@ -23,7 +23,6 @@ struct EditorInfo {
   std::string shortcut;  // Platform-aware shortcut string
   bool recently_used = false;
   bool requires_rom = true;
-  ImVec4 color = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);  // Theme color for this editor
 };
 
 /**
@@ -94,7 +93,8 @@ class EditorSelectionDialog {
   }
 
  private:
-  void DrawEditorPanel(const EditorInfo& info, int index);
+  void DrawEditorPanel(const EditorInfo& info, int index,
+                       const ImVec2& card_size);
   void DrawWelcomeHeader();
   void DrawQuickAccessButtons();
 

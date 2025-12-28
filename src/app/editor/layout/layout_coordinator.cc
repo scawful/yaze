@@ -47,7 +47,12 @@ float LayoutCoordinator::GetLeftLayoutOffset() const {
 
   // Add Side Panel width if expanded
   if (panel_manager_->IsPanelExpanded()) {
-    width += PanelManager::GetSidePanelWidth();
+    float viewport_width = 0.0f;
+    if (ImGui::GetCurrentContext()) {
+      const ImGuiViewport* viewport = ImGui::GetMainViewport();
+      viewport_width = viewport ? viewport->WorkSize.x : 0.0f;
+    }
+    width += PanelManager::GetSidePanelWidthForViewport(viewport_width);
   }
 
   return width;

@@ -9,6 +9,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
+#include "util/file_util.h"
 #include "util/hex.h"
 
 namespace yaze {
@@ -351,7 +352,8 @@ void PopupManager::DrawNewProjectPopup() {
 
   if (Button(absl::StrFormat("%s ROM File", ICON_MD_VIDEOGAME_ASSET).c_str(),
              gui::kDefaultModalSize)) {
-    rom_filename = util::FileDialogWrapper::ShowOpenFileDialog();
+    rom_filename = util::FileDialogWrapper::ShowOpenFileDialog(
+        util::MakeRomFileDialogOptions(false));
   }
   SameLine();
   Text("%s", rom_filename.empty() ? "(Not set)" : rom_filename.c_str());

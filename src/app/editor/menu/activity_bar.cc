@@ -210,7 +210,8 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
   const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
   const ImGuiViewport* viewport = ImGui::GetMainViewport();
   const float bar_width = PanelManager::GetSidebarWidth();
-  const float panel_width = PanelManager::GetSidePanelWidth();
+  const float panel_width =
+      PanelManager::GetSidePanelWidthForViewport(viewport->WorkSize.x);
 
   ImGui::SetNextWindowPos(
       ImVec2(viewport->WorkPos.x + bar_width, viewport->WorkPos.y));

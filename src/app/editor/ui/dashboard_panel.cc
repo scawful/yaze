@@ -10,6 +10,8 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/platform_keys.h"
 #include "app/gui/core/style.h"
+#include "app/gui/core/theme_manager.h"
+#include "app/gui/core/color.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
@@ -18,52 +20,163 @@
 namespace yaze {
 namespace editor {
 
+namespace {
+
+constexpr float kDashboardCardBaseWidth = 180.0f;
+constexpr float kDashboardCardBaseHeight = 120.0f;
+constexpr float kDashboardCardWidthMaxFactor = 1.35f;
+constexpr float kDashboardCardHeightMaxFactor = 1.35f;
+constexpr float kDashboardCardMinWidthFactor = 0.9f;
+constexpr float kDashboardCardMinHeightFactor = 0.9f;
+constexpr int kDashboardMaxColumns = 5;
+constexpr float kDashboardRecentBaseWidth = 150.0f;
+constexpr float kDashboardRecentBaseHeight = 35.0f;
+constexpr float kDashboardRecentWidthMaxFactor = 1.3f;
+constexpr int kDashboardMaxRecentColumns = 4;
+
+struct FlowLayout {
+  int columns = 1;
+  float item_width = 0.0f;
+  float item_height = 0.0f;
+  float spacing = 0.0f;
+};
+
+FlowLayout ComputeFlowLayout(float avail_width, float min_width,
+                             float max_width, float min_height,
+                             float max_height, float aspect_ratio,
+                             float spacing, int max_columns,
+                             int item_count) {
+  FlowLayout layout;
+  layout.spacing = spacing;
+  if (avail_width <= 0.0f) {
+    layout.columns = 1;
+    layout.item_width = min_width;
+    layout.item_height = min_height;
+    return layout;
+  }
+
+  const int clamped_max =
+      std::max(1, max_columns > 0 ? max_columns : item_count);
+  const auto width_for_columns = [avail_width, spacing](int columns) {
+    return (avail_width - spacing * static_cast<float>(columns - 1)) /
+           static_cast<float>(columns);
+  };
+
+  int columns =
+      std::max(1, static_cast<int>((avail_width + spacing) /
+                                   (min_width + spacing)));
+  columns = std::min(columns, clamped_max);
+  if (item_count > 0) {
+    columns = std::min(columns, item_count);
+  }
+  columns = std::max(columns, 1);
+
+  float width = width_for_columns(columns);
+  while (columns < clamped_max && width > max_width) {
+    columns += 1;
+    width = width_for_columns(columns);
+  }
+
+  const float clamped_max_width = std::min(max_width, avail_width);
+  const float clamped_min_width = std::min(min_width, clamped_max_width);
+  layout.item_width = std::clamp(width, clamped_min_width, clamped_max_width);
+  layout.item_height =
+      std::clamp(layout.item_width * aspect_ratio, min_height, max_height);
+
+  layout.columns = columns;
+
+  return layout;
+}
+
+ImVec4 ScaleColor(const ImVec4& color, float scale, float alpha) {
+  return ImVec4(color.x * scale, color.y * scale, color.z * scale, alpha);
+}
+
+ImVec4 ScaleColor(const ImVec4& color, float scale) {
+  return ScaleColor(color, scale, color.w);
+}
+
+ImVec4 WithAlpha(ImVec4 color, float alpha) {
+  color.w = alpha;
+  return color;
+}
+
+ImVec4 GetEditorAccentColor(EditorType type, const gui::Theme& theme) {
+  switch (type) {
+    case EditorType::kOverworld:
+      return gui::ConvertColorToImVec4(theme.success);
+    case EditorType::kDungeon:
+      return gui::ConvertColorToImVec4(theme.secondary);
+    case EditorType::kGraphics:
+      return gui::ConvertColorToImVec4(theme.warning);
+    case EditorType::kSprite:
+      return gui::ConvertColorToImVec4(theme.info);
+    case EditorType::kMessage:
+      return gui::ConvertColorToImVec4(theme.primary);
+    case EditorType::kMusic:
+      return gui::ConvertColorToImVec4(theme.accent);
+    case EditorType::kPalette:
+      return gui::ConvertColorToImVec4(theme.error);
+    case EditorType::kScreen:
+      return gui::ConvertColorToImVec4(theme.info);
+    case EditorType::kAssembly:
+      return gui::ConvertColorToImVec4(theme.text_secondary);
+    case EditorType::kHex:
+      return gui::ConvertColorToImVec4(theme.success);
+    case EditorType::kEmulator:
+      return gui::ConvertColorToImVec4(theme.info);
+    case EditorType::kAgent:
+      return gui::ConvertColorToImVec4(theme.accent);
+    case EditorType::kSettings:
+    case EditorType::kUnknown:
+    default:
+      return gui::ConvertColorToImVec4(theme.text_primary);
+  }
+}
+
+}  // namespace
+
 DashboardPanel::DashboardPanel(EditorManager* editor_manager)
     : editor_manager_(editor_manager),
       window_("Dashboard", ICON_MD_DASHBOARD) {
   window_.SetDefaultSize(950, 650);
   window_.SetPosition(gui::PanelWindow::Position::Center);
 
-  // Initialize editor list with colors matching EditorSelectionDialog
   // Use platform-aware shortcut strings (Cmd on macOS, Ctrl elsewhere)
   const char* ctrl = gui::GetCtrlDisplayName();
   editors_ = {
-      {"Overworld", ICON_MD_MAP, "Edit overworld maps, entrances, and properties",
-       absl::StrFormat("%s+1", ctrl), EditorType::kOverworld,
-       ImVec4(0.133f, 0.545f, 0.133f, 1.0f)}, // Hyrule green
-      {"Dungeon", ICON_MD_CASTLE, "Design dungeon rooms, layouts, and mechanics",
-       absl::StrFormat("%s+2", ctrl), EditorType::kDungeon,
-       ImVec4(0.502f, 0.0f, 0.502f, 1.0f)}, // Ganon purple
-      {"Graphics", ICON_MD_PALETTE, "Modify tiles, palettes, and graphics sets",
-       absl::StrFormat("%s+3", ctrl), EditorType::kGraphics,
-       ImVec4(1.0f, 0.843f, 0.0f, 1.0f)}, // Triforce gold
-      {"Sprites", ICON_MD_EMOJI_EMOTIONS, "Edit sprite graphics and properties",
-       absl::StrFormat("%s+4", ctrl), EditorType::kSprite,
-       ImVec4(1.0f, 0.647f, 0.0f, 1.0f)}, // Spirit orange
+      {"Overworld", ICON_MD_MAP,
+       "Edit overworld maps, entrances, and properties",
+       absl::StrFormat("%s+1", ctrl), EditorType::kOverworld},
+      {"Dungeon", ICON_MD_CASTLE,
+       "Design dungeon rooms, layouts, and mechanics",
+       absl::StrFormat("%s+2", ctrl), EditorType::kDungeon},
+      {"Graphics", ICON_MD_PALETTE,
+       "Modify tiles, palettes, and graphics sets",
+       absl::StrFormat("%s+3", ctrl), EditorType::kGraphics},
+      {"Sprites", ICON_MD_EMOJI_EMOTIONS,
+       "Edit sprite graphics and properties",
+       absl::StrFormat("%s+4", ctrl), EditorType::kSprite},
       {"Messages", ICON_MD_CHAT_BUBBLE, "Edit dialogue, signs, and text",
-       absl::StrFormat("%s+5", ctrl), EditorType::kMessage,
-       ImVec4(0.196f, 0.6f, 0.8f, 1.0f)}, // Master sword blue
+       absl::StrFormat("%s+5", ctrl), EditorType::kMessage},
       {"Music", ICON_MD_MUSIC_NOTE, "Configure music and sound effects",
-       absl::StrFormat("%s+6", ctrl), EditorType::kMusic,
-       ImVec4(0.416f, 0.353f, 0.804f, 1.0f)}, // Shadow purple
-      {"Palettes", ICON_MD_COLOR_LENS, "Edit color palettes and animations",
-       absl::StrFormat("%s+7", ctrl), EditorType::kPalette,
-       ImVec4(0.863f, 0.078f, 0.235f, 1.0f)}, // Heart red
+       absl::StrFormat("%s+6", ctrl), EditorType::kMusic},
+      {"Palettes", ICON_MD_COLOR_LENS,
+       "Edit color palettes and animations",
+       absl::StrFormat("%s+7", ctrl), EditorType::kPalette},
       {"Screens", ICON_MD_TV, "Edit title screen and ending screens",
-       absl::StrFormat("%s+8", ctrl), EditorType::kScreen,
-       ImVec4(0.4f, 0.8f, 1.0f, 1.0f)}, // Sky blue
+       absl::StrFormat("%s+8", ctrl), EditorType::kScreen},
       {"Assembly", ICON_MD_CODE, "Write and edit assembly code",
-       absl::StrFormat("%s+9", ctrl), EditorType::kAssembly,
-       ImVec4(0.8f, 0.8f, 0.8f, 1.0f)}, // Silver
-      {"Hex Editor", ICON_MD_DATA_ARRAY, "Direct ROM memory editing and comparison",
-       absl::StrFormat("%s+0", ctrl), EditorType::kHex,
-       ImVec4(0.2f, 0.8f, 0.4f, 1.0f)}, // Matrix green
-      {"Emulator", ICON_MD_VIDEOGAME_ASSET, "Test and debug your ROM in real-time",
-       absl::StrFormat("%s+Shift+E", ctrl), EditorType::kEmulator,
-       ImVec4(0.2f, 0.6f, 1.0f, 1.0f)}, // Emulator blue
-      {"AI Agent", ICON_MD_SMART_TOY, "Configure AI agent, collaboration, and automation",
-       absl::StrFormat("%s+Shift+A", ctrl), EditorType::kAgent,
-       ImVec4(0.8f, 0.4f, 1.0f, 1.0f)}, // Purple/magenta
+       absl::StrFormat("%s+9", ctrl), EditorType::kAssembly},
+      {"Hex Editor", ICON_MD_DATA_ARRAY,
+       "Direct ROM memory editing and comparison",
+       absl::StrFormat("%s+0", ctrl), EditorType::kHex},
+      {"Emulator", ICON_MD_VIDEOGAME_ASSET,
+       "Test and debug your ROM in real-time",
+       absl::StrFormat("%s+Shift+E", ctrl), EditorType::kEmulator},
+      {"AI Agent", ICON_MD_SMART_TOY,
+       "Configure AI agent, collaboration, and automation",
+       absl::StrFormat("%s+Shift+A", ctrl), EditorType::kAgent},
   };
 
   LoadRecentEditors();
@@ -81,25 +194,27 @@ void DashboardPanel::Draw() {
     DrawWelcomeHeader();
     ImGui::Separator();
     ImGui::Spacing();
-    
+
     DrawRecentEditors();
     if (!recent_editors_.empty()) {
       ImGui::Separator();
       ImGui::Spacing();
     }
-    
     DrawEditorGrid();
   }
   window_.End();
 }
 
 void DashboardPanel::DrawWelcomeHeader() {
+  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+  const ImVec4 accent = gui::ConvertColorToImVec4(theme.accent);
+  const ImVec4 text_secondary = gui::ConvertColorToImVec4(theme.text_secondary);
+
   ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[2]);  // Large font
-  ImVec4 title_color = ImVec4(1.0f, 0.843f, 0.0f, 1.0f);  // Triforce gold
-  ImGui::TextColored(title_color, ICON_MD_EDIT " Select an Editor");
+  ImGui::TextColored(accent, ICON_MD_EDIT " Select an Editor");
   ImGui::PopFont();
 
-  ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.8f, 1.0f),
+  ImGui::TextColored(text_secondary,
                      "Choose an editor to begin working on your ROM. "
                      "You can open multiple editors simultaneously.");
 }
@@ -107,29 +222,65 @@ void DashboardPanel::DrawWelcomeHeader() {
 void DashboardPanel::DrawRecentEditors() {
   if (recent_editors_.empty()) return;
 
-  ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f),
-                     ICON_MD_HISTORY " Recently Used");
+  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+  const ImVec4 accent = gui::ConvertColorToImVec4(theme.accent);
+  ImGui::TextColored(accent, ICON_MD_HISTORY " Recently Used");
   ImGui::Spacing();
 
-  for (EditorType type : recent_editors_) {
-    // Find editor info
-    auto it = std::find_if(
-        editors_.begin(), editors_.end(),
-        [type](const EditorInfo& info) { return info.type == type; });
+  const ImGuiStyle& style = ImGui::GetStyle();
+  const float avail_width = ImGui::GetContentRegionAvail().x;
+  const float min_width = kDashboardRecentBaseWidth;
+  const float max_width = kDashboardRecentBaseWidth *
+                          kDashboardRecentWidthMaxFactor;
+  const float height = std::max(kDashboardRecentBaseHeight,
+                                ImGui::GetFrameHeight());
+  const float spacing = style.ItemSpacing.x;
+  const bool stack_items = avail_width < min_width * 1.6f;
+  FlowLayout row_layout{};
+  if (stack_items) {
+    row_layout.columns = 1;
+    row_layout.item_width = avail_width;
+    row_layout.item_height = height;
+    row_layout.spacing = spacing;
+  } else {
+    row_layout = ComputeFlowLayout(
+        avail_width, min_width, max_width, height, height,
+        height / std::max(min_width, 1.0f), spacing, kDashboardMaxRecentColumns,
+        static_cast<int>(recent_editors_.size()));
+  }
 
-    if (it != editors_.end()) {
-      // Use editor's theme color for button
-      ImVec4 color = it->color;
-      ImGui::PushStyleColor(
-          ImGuiCol_Button,
-          ImVec4(color.x * 0.5f, color.y * 0.5f, color.z * 0.5f, 0.7f));
-      ImGui::PushStyleColor(
-          ImGuiCol_ButtonHovered,
-          ImVec4(color.x * 0.7f, color.y * 0.7f, color.z * 0.7f, 0.9f));
-      ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
+  ImGuiTableFlags table_flags = ImGuiTableFlags_SizingFixedFit |
+                                ImGuiTableFlags_NoPadOuterX;
+  const ImVec2 cell_padding(row_layout.spacing * 0.5f,
+                            style.ItemSpacing.y * 0.4f);
+  ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, cell_padding);
+  if (ImGui::BeginTable("DashboardRecentGrid", row_layout.columns,
+                        table_flags)) {
+    for (EditorType type : recent_editors_) {
+      // Find editor info
+      auto it = std::find_if(
+          editors_.begin(), editors_.end(),
+          [type](const EditorInfo& info) { return info.type == type; });
 
+      if (it == editors_.end()) {
+        continue;
+      }
+
+      ImGui::TableNextColumn();
+
+      const ImVec4 base_color = GetEditorAccentColor(it->type, theme);
+      ImGui::PushStyleColor(ImGuiCol_Button,
+                            ScaleColor(base_color, 0.5f, 0.7f));
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                            ScaleColor(base_color, 0.7f, 0.9f));
+      ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                            WithAlpha(base_color, 1.0f));
+
+      ImVec2 button_size(stack_items ? avail_width : row_layout.item_width,
+                         row_layout.item_height > 0.0f ? row_layout.item_height
+                                                       : height);
       if (ImGui::Button(absl::StrCat(it->icon, " ", it->name).c_str(),
-                        ImVec2(150, 35))) {
+                        button_size)) {
         if (editor_manager_) {
           MarkRecentlyUsed(type);
           editor_manager_->SwitchToEditor(type);
@@ -142,151 +293,212 @@ void DashboardPanel::DrawRecentEditors() {
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("%s", it->description.c_str());
       }
-
-      ImGui::SameLine();
     }
+    ImGui::EndTable();
   }
-
-  ImGui::NewLine();
+  ImGui::PopStyleVar();
 }
 
 void DashboardPanel::DrawEditorGrid() {
   ImGui::Text(ICON_MD_APPS " All Editors");
   ImGui::Spacing();
 
-  const float card_width = 180.0f;
-  const float spacing = ImGui::GetStyle().ItemSpacing.x;
-  const float window_width = ImGui::GetContentRegionAvail().x;
-  int columns = static_cast<int>(window_width / (card_width + spacing));
-  columns = std::max(columns, 1);
+  const ImGuiStyle& style = ImGui::GetStyle();
+  const float avail_width = ImGui::GetContentRegionAvail().x;
+  const float min_width = kDashboardCardBaseWidth * kDashboardCardMinWidthFactor;
+  const float max_width =
+      kDashboardCardBaseWidth * kDashboardCardWidthMaxFactor;
+  const float min_height =
+      std::max(kDashboardCardBaseHeight * kDashboardCardMinHeightFactor,
+               ImGui::GetFrameHeight() * 3.2f);
+  const float max_height =
+      kDashboardCardBaseHeight * kDashboardCardHeightMaxFactor;
+  const float aspect_ratio =
+      kDashboardCardBaseHeight / std::max(kDashboardCardBaseWidth, 1.0f);
+  const float spacing = style.ItemSpacing.x;
 
-  if (ImGui::BeginTable("EditorGrid", columns)) {
+  FlowLayout layout = ComputeFlowLayout(
+      avail_width, min_width, max_width, min_height, max_height,
+      aspect_ratio, spacing, kDashboardMaxColumns,
+      static_cast<int>(editors_.size()));
+
+  ImGuiTableFlags table_flags = ImGuiTableFlags_SizingFixedFit |
+                                ImGuiTableFlags_NoPadOuterX;
+  const ImVec2 cell_padding(layout.spacing * 0.5f,
+                            style.ItemSpacing.y * 0.5f);
+  ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, cell_padding);
+  if (ImGui::BeginTable("DashboardEditorGrid", layout.columns, table_flags)) {
     for (size_t i = 0; i < editors_.size(); ++i) {
       ImGui::TableNextColumn();
-      DrawEditorPanel(editors_[i], static_cast<int>(i));
+      DrawEditorPanel(editors_[i], static_cast<int>(i),
+                      ImVec2(layout.item_width, layout.item_height));
     }
     ImGui::EndTable();
   }
+  ImGui::PopStyleVar();
 }
 
-void DashboardPanel::DrawEditorPanel(const EditorInfo& info, int index) {
+void DashboardPanel::DrawEditorPanel(const EditorInfo& info, int index,
+                                     const ImVec2& card_size) {
   ImGui::PushID(index);
 
-  ImVec2 button_size(180, 120);
-  ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
+  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+  const ImVec4 base_color = GetEditorAccentColor(info.type, theme);
+  const ImVec4 text_primary = gui::ConvertColorToImVec4(theme.text_primary);
+  const ImVec4 text_secondary = gui::ConvertColorToImVec4(theme.text_secondary);
+  const ImVec4 accent = gui::ConvertColorToImVec4(theme.accent);
+
+  const ImGuiStyle& style = ImGui::GetStyle();
+  const float line_height = ImGui::GetTextLineHeight();
+  const float padding_x = std::max(style.FramePadding.x, card_size.x * 0.06f);
+  const float padding_y = std::max(style.FramePadding.y, card_size.y * 0.08f);
+
+  const float footer_height = info.shortcut.empty() ? 0.0f : line_height;
+  const float footer_spacing = info.shortcut.empty() ? 0.0f : style.ItemSpacing.y;
+  const float available_icon_height =
+      card_size.y - padding_y * 2.0f - line_height - footer_height - footer_spacing;
+  const float min_icon_radius = line_height * 0.9f;
+  float max_icon_radius = card_size.y * 0.24f;
+  max_icon_radius = std::max(max_icon_radius, min_icon_radius);
+  const float icon_radius =
+      std::clamp(available_icon_height * 0.5f, min_icon_radius, max_icon_radius);
+
+  const ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
+  const ImVec2 icon_center(cursor_pos.x + card_size.x * 0.5f,
+                           cursor_pos.y + padding_y + icon_radius);
+  float title_y = icon_center.y + icon_radius + style.ItemSpacing.y;
+  const float footer_y = cursor_pos.y + card_size.y - padding_y - footer_height;
+  if (title_y + line_height > footer_y - style.ItemSpacing.y) {
+    title_y = footer_y - line_height - style.ItemSpacing.y;
+  }
 
   bool is_recent = std::find(recent_editors_.begin(), recent_editors_.end(),
                              info.type) != recent_editors_.end();
 
   // Create gradient background
-  ImVec4 base_color = info.color;
-  ImU32 color_top = ImGui::GetColorU32(ImVec4(
-      base_color.x * 0.4f, base_color.y * 0.4f, base_color.z * 0.4f, 0.8f));
-  ImU32 color_bottom = ImGui::GetColorU32(ImVec4(
-      base_color.x * 0.2f, base_color.y * 0.2f, base_color.z * 0.2f, 0.9f));
+  ImU32 color_top = ImGui::GetColorU32(ScaleColor(base_color, 0.4f, 0.85f));
+  ImU32 color_bottom =
+      ImGui::GetColorU32(ScaleColor(base_color, 0.2f, 0.9f));
 
   // Draw gradient card background
   draw_list->AddRectFilledMultiColor(
       cursor_pos,
-      ImVec2(cursor_pos.x + button_size.x, cursor_pos.y + button_size.y),
+      ImVec2(cursor_pos.x + card_size.x, cursor_pos.y + card_size.y),
       color_top, color_top, color_bottom, color_bottom);
 
   // Colored border
   ImU32 border_color =
       is_recent
           ? ImGui::GetColorU32(
-                ImVec4(base_color.x, base_color.y, base_color.z, 1.0f))
-          : ImGui::GetColorU32(ImVec4(base_color.x * 0.6f, base_color.y * 0.6f,
-                                      base_color.z * 0.6f, 0.7f));
+                WithAlpha(base_color, 1.0f))
+          : ImGui::GetColorU32(ScaleColor(base_color, 0.6f, 0.7f));
+  const float rounding = std::max(style.FrameRounding, card_size.y * 0.05f);
+  const float border_thickness =
+      is_recent ? std::max(2.0f, style.FrameBorderSize + 1.0f)
+                : std::max(1.0f, style.FrameBorderSize);
   draw_list->AddRect(
       cursor_pos,
-      ImVec2(cursor_pos.x + button_size.x, cursor_pos.y + button_size.y),
-      border_color, 4.0f, 0, is_recent ? 3.0f : 2.0f);
+      ImVec2(cursor_pos.x + card_size.x, cursor_pos.y + card_size.y),
+      border_color, rounding, 0, border_thickness);
 
   // Recent indicator badge
   if (is_recent) {
-    ImVec2 badge_pos(cursor_pos.x + button_size.x - 25, cursor_pos.y + 5);
-    draw_list->AddCircleFilled(badge_pos, 12, ImGui::GetColorU32(base_color),
-                               16);
-    ImGui::SetCursorScreenPos(ImVec2(badge_pos.x - 6, badge_pos.y - 8));
-    ImGui::TextColored(ImVec4(1, 1, 1, 1), ICON_MD_STAR);
+    const float badge_radius =
+        std::clamp(line_height * 0.6f, line_height * 0.4f, line_height);
+    ImVec2 badge_pos(cursor_pos.x + card_size.x - padding_x - badge_radius,
+                     cursor_pos.y + padding_y + badge_radius);
+    draw_list->AddCircleFilled(badge_pos, badge_radius,
+                               ImGui::GetColorU32(base_color), 16);
+    ImVec2 star_size = ImGui::CalcTextSize(ICON_MD_STAR);
+    ImGui::SetCursorScreenPos(
+        ImVec2(badge_pos.x - star_size.x * 0.5f,
+               badge_pos.y - star_size.y * 0.5f));
+    ImGui::TextColored(text_primary, ICON_MD_STAR);
   }
 
   // Make button transparent (we draw our own background)
-  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+  ImVec4 button_bg = ImGui::GetStyleColorVec4(ImGuiCol_Button);
+  button_bg.w = 0.0f;
+  ImGui::PushStyleColor(ImGuiCol_Button, button_bg);
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                        ImVec4(base_color.x * 0.3f, base_color.y * 0.3f,
-                               base_color.z * 0.3f, 0.5f));
+                        ScaleColor(base_color, 0.3f, 0.5f));
   ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                        ImVec4(base_color.x * 0.5f, base_color.y * 0.5f,
-                               base_color.z * 0.5f, 0.7f));
+                        ScaleColor(base_color, 0.5f, 0.7f));
 
   ImGui::SetCursorScreenPos(cursor_pos);
   bool clicked =
-      ImGui::Button(absl::StrCat("##", info.name).c_str(), button_size);
+      ImGui::Button(absl::StrCat("##", info.name).c_str(), card_size);
   bool is_hovered = ImGui::IsItemHovered();
 
   ImGui::PopStyleColor(3);
 
   // Draw icon with colored background circle
-  ImVec2 icon_center(cursor_pos.x + button_size.x / 2, cursor_pos.y + 30);
   ImU32 icon_bg = ImGui::GetColorU32(base_color);
-  draw_list->AddCircleFilled(icon_center, 22, icon_bg, 32);
+  draw_list->AddCircleFilled(icon_center, icon_radius, icon_bg, 32);
 
   // Draw icon
-  ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[2]);  // Larger font for icon
+  ImFont* icon_font = ImGui::GetFont();
+  if (ImGui::GetIO().Fonts->Fonts.size() > 2 &&
+      card_size.y >= kDashboardCardBaseHeight) {
+    icon_font = ImGui::GetIO().Fonts->Fonts[2];
+  } else if (ImGui::GetIO().Fonts->Fonts.size() > 1) {
+    icon_font = ImGui::GetIO().Fonts->Fonts[1];
+  }
+  ImGui::PushFont(icon_font);
   ImVec2 icon_size = ImGui::CalcTextSize(info.icon.c_str());
   ImGui::SetCursorScreenPos(
       ImVec2(icon_center.x - icon_size.x / 2, icon_center.y - icon_size.y / 2));
-  ImGui::TextColored(ImVec4(1, 1, 1, 1), "%s", info.icon.c_str());
+  ImGui::TextColored(text_primary, "%s", info.icon.c_str());
   ImGui::PopFont();
 
   // Draw name
-  ImGui::SetCursorScreenPos(ImVec2(cursor_pos.x + 10, cursor_pos.y + 65));
-  ImGui::PushTextWrapPos(cursor_pos.x + button_size.x - 10);
-  ImVec2 name_size = ImGui::CalcTextSize(info.name.c_str());
+  const float name_wrap_width = card_size.x - padding_x * 2.0f;
+  ImGui::PushTextWrapPos(cursor_pos.x + card_size.x - padding_x);
+  ImVec2 name_size =
+      ImGui::CalcTextSize(info.name.c_str(), nullptr, false, name_wrap_width);
   ImGui::SetCursorScreenPos(ImVec2(
-      cursor_pos.x + (button_size.x - name_size.x) / 2, cursor_pos.y + 65));
+      cursor_pos.x + (card_size.x - name_size.x) / 2.0f, title_y));
   ImGui::TextColored(base_color, "%s", info.name.c_str());
   ImGui::PopTextWrapPos();
 
   // Draw shortcut hint if available
   if (!info.shortcut.empty()) {
     ImGui::SetCursorScreenPos(
-        ImVec2(cursor_pos.x + 10, cursor_pos.y + button_size.y - 20));
-    ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "%s", info.shortcut.c_str());
+        ImVec2(cursor_pos.x + padding_x, footer_y));
+    ImGui::TextColored(text_secondary, "%s", info.shortcut.c_str());
   }
 
   // Hover glow effect
   if (is_hovered) {
-    ImU32 glow_color = ImGui::GetColorU32(
-        ImVec4(base_color.x, base_color.y, base_color.z, 0.2f));
+    ImU32 glow_color =
+        ImGui::GetColorU32(ScaleColor(base_color, 1.0f, 0.18f));
     draw_list->AddRectFilled(
         cursor_pos,
-        ImVec2(cursor_pos.x + button_size.x, cursor_pos.y + button_size.y),
-        glow_color, 4.0f);
+        ImVec2(cursor_pos.x + card_size.x, cursor_pos.y + card_size.y),
+        glow_color, rounding);
   }
 
   // Enhanced tooltip
   if (is_hovered) {
-    ImGui::SetNextWindowSize(ImVec2(300, 0), ImGuiCond_Always);
+    const float tooltip_width = std::clamp(card_size.x * 1.4f, 240.0f, 340.0f);
+    ImGui::SetNextWindowSize(ImVec2(tooltip_width, 0), ImGuiCond_Always);
     ImGui::BeginTooltip();
     ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[1]);  // Medium font
     ImGui::TextColored(base_color, "%s %s", info.icon.c_str(), info.name.c_str());
     ImGui::PopFont();
     ImGui::Separator();
-    ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + 280);
+    ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + tooltip_width - 20.0f);
     ImGui::TextWrapped("%s", info.description.c_str());
     ImGui::PopTextWrapPos();
     if (!info.shortcut.empty()) {
       ImGui::Spacing();
-      ImGui::TextColored(base_color, ICON_MD_KEYBOARD " %s", info.shortcut.c_str());
+      ImGui::TextColored(base_color, ICON_MD_KEYBOARD " %s",
+                         info.shortcut.c_str());
     }
     if (is_recent) {
       ImGui::Spacing();
-      ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f),
-                         ICON_MD_STAR " Recently used");
+      ImGui::TextColored(accent, ICON_MD_STAR " Recently used");
     }
     ImGui::EndTooltip();
   }
