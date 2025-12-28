@@ -70,25 +70,6 @@ set(
   app/editor/palette/palette_utility.cc
   app/editor/sprite/sprite_drawer.cc
   app/editor/sprite/sprite_editor.cc
-  app/editor/layout/layout_coordinator.cc
-  app/editor/layout/layout_manager.cc
-  app/editor/layout/layout_orchestrator.cc
-  app/editor/layout/layout_presets.cc
-  app/editor/layout/window_delegate.cc
-  app/editor/system/command_manager.cc
-  app/editor/system/command_palette.cc
-  app/editor/system/editor_activator.cc
-  app/editor/system/panel_manager.cc
-  app/editor/system/file_browser.cc
-  app/editor/system/editor_registry.cc
-  app/editor/system/extension_manager.cc
-  app/editor/system/project_manager.cc
-  app/editor/system/proposal_drawer.cc
-  app/editor/system/rom_file_manager.cc
-  app/editor/system/shortcut_manager.cc
-  app/editor/system/session_coordinator.cc
-  app/editor/system/user_settings.cc
-  app/editor/system/shortcut_configurator.cc
   app/editor/menu/menu_orchestrator.cc
   app/editor/ui/popup_manager.cc
   app/editor/ui/dashboard_panel.cc
@@ -105,14 +86,89 @@ set(
   app/editor/ui/welcome_screen.cc
   app/editor/ui/workspace_manager.cc
 
-  app/editor/layout_designer/layout_designer_window.cc
-  app/editor/layout_designer/layout_serialization.cc
-  app/editor/layout_designer/layout_definition.cc
-  app/editor/layout_designer/widget_definition.cc
-  app/editor/layout_designer/widget_code_generator.cc
-  app/editor/layout_designer/theme_properties.cc
-  app/editor/layout_designer/yaze_widgets.cc
   yaze.cc
+)
+
+set(
+  YAZE_EDITOR_SYSTEM_PANELS_SRC
+  app/editor/layout/layout_coordinator.cc
+  app/editor/layout/layout_manager.cc
+  app/editor/layout/layout_orchestrator.cc
+  app/editor/layout/layout_presets.cc
+  app/editor/layout/window_delegate.cc
+  app/editor/system/editor_activator.cc
+  app/editor/system/editor_registry.cc
+  app/editor/system/panel_manager.cc
+  app/editor/system/file_browser.cc
+  app/editor/system/proposal_drawer.cc
+)
+
+set(
+  YAZE_EDITOR_SYSTEM_SESSION_SRC
+  app/editor/system/extension_manager.cc
+  app/editor/system/project_manager.cc
+  app/editor/system/rom_file_manager.cc
+  app/editor/system/session_coordinator.cc
+  app/editor/system/user_settings.cc
+)
+
+set(
+  YAZE_EDITOR_SYSTEM_SHORTCUTS_SRC
+  app/editor/system/command_manager.cc
+  app/editor/system/command_palette.cc
+  app/editor/system/shortcut_manager.cc
+  app/editor/system/shortcut_configurator.cc
+)
+
+# Editor system split targets (panels/session/shortcuts)
+add_library(yaze_editor_system_panels STATIC ${YAZE_EDITOR_SYSTEM_PANELS_SRC})
+add_library(yaze_editor_system_session STATIC ${YAZE_EDITOR_SYSTEM_SESSION_SRC})
+add_library(yaze_editor_system_shortcuts STATIC ${YAZE_EDITOR_SYSTEM_SHORTCUTS_SRC})
+
+foreach(target_name IN ITEMS
+  yaze_editor_system_panels
+  yaze_editor_system_session
+  yaze_editor_system_shortcuts
+)
+  target_precompile_headers(${target_name} PRIVATE
+    "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_SOURCE_DIR}/src/yaze_pch.h>"
+  )
+
+  target_include_directories(${target_name} PUBLIC
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/ext
+    ${CMAKE_SOURCE_DIR}/ext/imgui
+    ${CMAKE_SOURCE_DIR}/ext/imgui_test_engine
+    ${CMAKE_SOURCE_DIR}/incl
+    ${SDL2_INCLUDE_DIR}
+    ${PROJECT_BINARY_DIR}
+  )
+endforeach()
+
+target_link_libraries(yaze_editor_system_panels PUBLIC
+  yaze_app_core_lib
+  yaze_gfx
+  yaze_gui
+  yaze_util
+  yaze_common
+  ImGui
+)
+
+target_link_libraries(yaze_editor_system_session PUBLIC
+  yaze_editor_system_panels
+  yaze_rom
+  yaze_zelda3
+  yaze_gui
+  yaze_util
+  yaze_common
+  ImGui
+)
+
+target_link_libraries(yaze_editor_system_shortcuts PUBLIC
+  yaze_gui
+  yaze_util
+  yaze_common
+  ImGui
 )
 
 # Agent UI Theme is always needed (used by dungeon editor, etc.)
@@ -155,6 +211,21 @@ endif()
 
 add_library(yaze_editor STATIC ${YAZE_APP_EDITOR_SRC})
 
+target_link_libraries(yaze_editor PUBLIC
+  yaze_editor_system_panels
+  yaze_editor_system_session
+  yaze_editor_system_shortcuts
+  yaze_app_core_lib
+  yaze_rom
+  yaze_gfx
+  yaze_gui
+  yaze_zelda3
+  yaze_emulator  # Needed for emulator integration (APU, PPU, SNES)
+  yaze_util
+  yaze_common
+  ImGui
+)
+
 target_precompile_headers(yaze_editor PRIVATE
   "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_SOURCE_DIR}/src/yaze_pch.h>"
 )
@@ -167,18 +238,6 @@ target_include_directories(yaze_editor PUBLIC
   ${CMAKE_SOURCE_DIR}/incl
   ${SDL2_INCLUDE_DIR}
   ${PROJECT_BINARY_DIR}
-)
-
-target_link_libraries(yaze_editor PUBLIC
-  yaze_app_core_lib
-  yaze_rom
-  yaze_gfx
-  yaze_gui
-  yaze_zelda3
-  yaze_emulator  # Needed for emulator integration (APU, PPU, SNES)
-  yaze_util
-  yaze_common
-  ImGui
 )
 
 # Link agent runtime only when agent UI panels are enabled
@@ -195,6 +254,7 @@ endif()
 
 if(YAZE_ENABLE_JSON)
   if(TARGET nlohmann_json::nlohmann_json)
+    target_link_libraries(yaze_editor_system_panels PUBLIC nlohmann_json::nlohmann_json)
     target_link_libraries(yaze_editor PUBLIC nlohmann_json::nlohmann_json)
   endif()
 

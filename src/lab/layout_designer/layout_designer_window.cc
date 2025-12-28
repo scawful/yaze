@@ -1,5 +1,5 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
-#include "app/editor/layout_designer/layout_designer_window.h"
+#include "lab/layout_designer/layout_designer_window.h"
 
 #include <algorithm>
 #include <functional>
@@ -9,9 +9,9 @@
 #include <unordered_set>
 
 #include "absl/strings/str_format.h"
-#include "app/editor/layout_designer/layout_serialization.h"
-#include "app/editor/layout_designer/widget_code_generator.h"
-#include "app/editor/layout_designer/yaze_widgets.h"
+#include "lab/layout_designer/layout_serialization.h"
+#include "lab/layout_designer/widget_code_generator.h"
+#include "lab/layout_designer/yaze_widgets.h"
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"

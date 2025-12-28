@@ -1,4 +1,4 @@
-#include "app/editor/layout_designer/layout_serialization.h"
+#include "lab/layout_designer/layout_serialization.h"
 
 #include <fstream>
 #include <sstream>

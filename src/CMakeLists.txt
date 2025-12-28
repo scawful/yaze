@@ -110,7 +110,7 @@ endif()
 # Include agent/CLI components (needed by yaze_editor for agent features)
 # NOTE: yaze_agent depends on yaze_app_core_lib, so we must include app.cmake
 # BEFORE cli/agent.cmake when building agent features
-if(YAZE_BUILD_GUI OR YAZE_BUILD_Z3ED OR YAZE_BUILD_TESTS)
+if(YAZE_BUILD_GUI OR YAZE_BUILD_Z3ED OR YAZE_BUILD_TESTS OR YAZE_BUILD_LAB OR YAZE_PLATFORM_IOS)
   include(app/app.cmake)
 endif()
 
@@ -125,6 +125,11 @@ include(app/emu/emu_library.cmake)
 # Build standalone emulator
 if(YAZE_BUILD_EMU)
   include(app/emu/emu.cmake)
+endif()
+
+# Build lab sandbox target
+if(YAZE_BUILD_LAB)
+  include(lab/lab.cmake)
 endif()
 
 # Build z3ed CLI tool
