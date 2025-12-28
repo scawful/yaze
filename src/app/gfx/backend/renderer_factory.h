@@ -3,11 +3,19 @@
 
 #include <memory>
 
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
+
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/backend/sdl2_renderer.h"
 
 #ifdef YAZE_USE_SDL3
 #include "app/gfx/backend/sdl3_renderer.h"
+#endif
+
+#if defined(__APPLE__)
+#include "app/gfx/backend/metal_renderer.h"
 #endif
 
 namespace yaze {
@@ -20,6 +28,7 @@ namespace gfx {
 enum class RendererBackendType {
   SDL2,        ///< SDL2 renderer backend
   SDL3,        ///< SDL3 renderer backend
+  Metal,       ///< Metal renderer backend (Apple platforms)
   kDefault,    ///< Use the default backend based on build configuration
   kAutoDetect  ///< Automatically select the best available backend
 };
@@ -71,11 +80,20 @@ class RendererFactory {
         return std::make_unique<SDL2Renderer>();
 #endif
 
+      case RendererBackendType::Metal:
+#if defined(__APPLE__)
+        return std::make_unique<MetalRenderer>();
+#else
+        return nullptr;
+#endif
+
       case RendererBackendType::kDefault:
       case RendererBackendType::kAutoDetect:
       default:
         // Use the default backend based on build configuration
-#ifdef YAZE_USE_SDL3
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+        return std::make_unique<MetalRenderer>();
+#elif defined(YAZE_USE_SDL3)
         return std::make_unique<SDL3Renderer>();
 #else
         return std::make_unique<SDL2Renderer>();
@@ -97,6 +115,13 @@ class RendererFactory {
 
       case RendererBackendType::SDL3:
 #ifdef YAZE_USE_SDL3
+        return true;
+#else
+        return false;
+#endif
+
+      case RendererBackendType::Metal:
+#if defined(__APPLE__)
         return true;
 #else
         return false;
@@ -124,6 +149,8 @@ class RendererFactory {
         return "SDL2";
       case RendererBackendType::SDL3:
         return "SDL3";
+      case RendererBackendType::Metal:
+        return "Metal";
       case RendererBackendType::kDefault:
         return "Default";
       case RendererBackendType::kAutoDetect:
@@ -139,7 +166,9 @@ class RendererFactory {
    * @return The default backend type based on build configuration.
    */
   static RendererBackendType GetDefaultBackendType() {
-#ifdef YAZE_USE_SDL3
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+    return RendererBackendType::Metal;
+#elif defined(YAZE_USE_SDL3)
     return RendererBackendType::SDL3;
 #else
     return RendererBackendType::SDL2;

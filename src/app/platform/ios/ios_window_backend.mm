@@ -1,0 +1,351 @@
+#include "app/platform/ios/ios_window_backend.h"
+
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
+
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+#import <CoreFoundation/CoreFoundation.h>
+#import <Metal/Metal.h>
+#import <MetalKit/MetalKit.h>
+#import <UIKit/UIKit.h>
+#endif
+
+#include <algorithm>
+
+#include "app/gfx/backend/metal_renderer.h"
+#include "app/gui/core/style.h"
+#include "app/platform/font_loader.h"
+#include "app/platform/ios/ios_platform_state.h"
+#include "imgui/backends/imgui_impl_metal.h"
+#include "imgui/imgui.h"
+#include "util/log.h"
+
+namespace yaze {
+namespace platform {
+
+namespace {
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+UIEdgeInsets GetSafeAreaInsets(MTKView* view) {
+  if (!view) {
+    return UIEdgeInsetsZero;
+  }
+  if (@available(iOS 11.0, *)) {
+    return view.safeAreaInsets;
+  }
+  return UIEdgeInsetsZero;
+}
+
+void ApplyTouchStyle(MTKView* view) {
+  ImGuiStyle& style = ImGui::GetStyle();
+  const float frame_height = ImGui::GetFrameHeight();
+  const float target_height = std::max(44.0f, frame_height);
+  const float touch_extra =
+      std::clamp((target_height - frame_height) * 0.5f, 0.0f, 16.0f);
+  style.TouchExtraPadding = ImVec2(touch_extra, touch_extra);
+
+  const float font_size = ImGui::GetFontSize();
+  if (font_size > 0.0f) {
+    style.ScrollbarSize = std::max(style.ScrollbarSize, font_size * 1.1f);
+    style.GrabMinSize = std::max(style.GrabMinSize, font_size * 0.9f);
+    style.FramePadding.x = std::max(style.FramePadding.x, font_size * 0.55f);
+    style.FramePadding.y = std::max(style.FramePadding.y, font_size * 0.35f);
+    style.ItemSpacing.x = std::max(style.ItemSpacing.x, font_size * 0.45f);
+    style.ItemSpacing.y = std::max(style.ItemSpacing.y, font_size * 0.35f);
+  }
+
+  const UIEdgeInsets insets = GetSafeAreaInsets(view);
+  const float safe_x = std::max(insets.left, insets.right);
+  const float safe_y = std::max(insets.top, insets.bottom);
+  style.DisplaySafeAreaPadding = ImVec2(safe_x, safe_y);
+  ios::SetSafeAreaInsets(insets.left, insets.right, insets.top,
+                         insets.bottom);
+}
+#endif
+}  // namespace
+
+absl::Status IOSWindowBackend::Initialize(const WindowConfig& config) {
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+  metal_view_ = ios::GetMetalView();
+  if (!metal_view_) {
+    return absl::FailedPreconditionError("Metal view not set");
+  }
+
+  title_ = config.title;
+  status_.is_active = true;
+  status_.is_focused = true;
+  status_.is_fullscreen = config.fullscreen;
+
+  auto* view = static_cast<MTKView*>(metal_view_);
+  status_.width = static_cast<int>(view.bounds.size.width);
+  status_.height = static_cast<int>(view.bounds.size.height);
+
+  initialized_ = true;
+  return absl::OkStatus();
+#else
+  (void)config;
+  return absl::FailedPreconditionError(
+      "IOSWindowBackend is only available on iOS");
+#endif
+}
+
+absl::Status IOSWindowBackend::Shutdown() {
+  ShutdownImGui();
+
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+  if (command_queue_) {
+    CFRelease(command_queue_);
+    command_queue_ = nullptr;
+  }
+#endif
+
+  metal_view_ = nullptr;
+  initialized_ = false;
+  return absl::OkStatus();
+}
+
+bool IOSWindowBackend::IsInitialized() const {
+  return initialized_;
+}
+
+bool IOSWindowBackend::PollEvent(WindowEvent& out_event) {
+  out_event = WindowEvent{};
+  return false;
+}
+
+void IOSWindowBackend::ProcessNativeEvent(void* native_event) {
+  (void)native_event;
+}
+
+WindowStatus IOSWindowBackend::GetStatus() const {
+  WindowStatus status = status_;
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+  if (metal_view_) {
+    auto* view = static_cast<MTKView*>(metal_view_);
+    status.width = static_cast<int>(view.bounds.size.width);
+    status.height = static_cast<int>(view.bounds.size.height);
+  }
+#endif
+  return status;
+}
+
+bool IOSWindowBackend::IsActive() const {
+  return status_.is_active;
+}
+
+void IOSWindowBackend::SetActive(bool active) {
+  status_.is_active = active;
+}
+
+void IOSWindowBackend::GetSize(int* width, int* height) const {
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+  if (metal_view_) {
+    auto* view = static_cast<MTKView*>(metal_view_);
+    if (width) {
+      *width = static_cast<int>(view.bounds.size.width);
+    }
+    if (height) {
+      *height = static_cast<int>(view.bounds.size.height);
+    }
+    return;
+  }
+#endif
+
+  if (width) {
+    *width = 0;
+  }
+  if (height) {
+    *height = 0;
+  }
+}
+
+void IOSWindowBackend::SetSize(int width, int height) {
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+  if (metal_view_) {
+    auto* view = static_cast<MTKView*>(metal_view_);
+    view.drawableSize = CGSizeMake(width, height);
+  }
+#else
+  (void)width;
+  (void)height;
+#endif
+}
+
+std::string IOSWindowBackend::GetTitle() const {
+  return title_;
+}
+
+void IOSWindowBackend::SetTitle(const std::string& title) {
+  title_ = title;
+}
+
+bool IOSWindowBackend::InitializeRenderer(gfx::IRenderer* renderer) {
+  if (!renderer || !metal_view_) {
+    return false;
+  }
+
+  if (renderer->GetBackendRenderer()) {
+    return true;
+  }
+
+  auto* metal_renderer = dynamic_cast<gfx::MetalRenderer*>(renderer);
+  if (metal_renderer) {
+    metal_renderer->SetMetalView(metal_view_);
+  } else {
+    LOG_WARN("IOSWindowBackend", "Non-Metal renderer selected on iOS");
+  }
+
+  return renderer->Initialize(nullptr);
+}
+
+SDL_Window* IOSWindowBackend::GetNativeWindow() {
+  return nullptr;
+}
+
+absl::Status IOSWindowBackend::InitializeImGui(gfx::IRenderer* renderer) {
+  if (imgui_initialized_) {
+    return absl::OkStatus();
+  }
+
+  if (!renderer) {
+    return absl::InvalidArgumentError("Renderer is null");
+  }
+
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+  if (!metal_view_) {
+    return absl::FailedPreconditionError("Metal view not set");
+  }
+
+  auto* view = static_cast<MTKView*>(metal_view_);
+  id<MTLDevice> device = view.device;
+  if (!device) {
+    device = MTLCreateSystemDefaultDevice();
+    view.device = device;
+  }
+
+  if (!device) {
+    return absl::InternalError("Failed to create Metal device");
+  }
+
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+
+  ImGuiIO& io = ImGui::GetIO();
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+  io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+  io.ConfigFlags |= ImGuiConfigFlags_IsTouchScreen;
+
+  if (!ImGui_ImplMetal_Init(device)) {
+    return absl::InternalError("ImGui_ImplMetal_Init failed");
+  }
+
+  auto font_status = LoadPackageFonts();
+  if (!font_status.ok()) {
+    ImGui_ImplMetal_Shutdown();
+    ImGui::DestroyContext();
+    return font_status;
+  }
+  gui::ColorsYaze();
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+  ApplyTouchStyle(view);
+#endif
+
+  if (!command_queue_) {
+    id<MTLCommandQueue> queue = [device newCommandQueue];
+    command_queue_ = (__bridge_retained void*)queue;
+  }
+
+  imgui_initialized_ = true;
+  LOG_INFO("IOSWindowBackend", "ImGui initialized with Metal backend");
+  return absl::OkStatus();
+#else
+  return absl::FailedPreconditionError(
+      "IOSWindowBackend is only available on iOS");
+#endif
+}
+
+void IOSWindowBackend::ShutdownImGui() {
+  if (!imgui_initialized_) {
+    return;
+  }
+
+  ImGui_ImplMetal_Shutdown();
+  ImGui::DestroyContext();
+
+  imgui_initialized_ = false;
+}
+
+void IOSWindowBackend::NewImGuiFrame() {
+  if (!imgui_initialized_) {
+    return;
+  }
+
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+  auto* view = static_cast<MTKView*>(metal_view_);
+  if (!view) {
+    return;
+  }
+
+  ApplyTouchStyle(view);
+
+  auto* render_pass = view.currentRenderPassDescriptor;
+  if (!render_pass) {
+    return;
+  }
+
+  ImGui_ImplMetal_NewFrame(render_pass);
+#endif
+}
+
+void IOSWindowBackend::RenderImGui(gfx::IRenderer* renderer) {
+  if (!imgui_initialized_) {
+    return;
+  }
+
+  ImGui::Render();
+
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+  (void)renderer;
+  auto* view = static_cast<MTKView*>(metal_view_);
+  if (!view || !view.currentDrawable) {
+    return;
+  }
+
+  auto* render_pass = view.currentRenderPassDescriptor;
+  if (!render_pass || !command_queue_) {
+    return;
+  }
+
+  id<MTLCommandQueue> queue =
+      (__bridge id<MTLCommandQueue>)command_queue_;
+  id<MTLCommandBuffer> command_buffer = [queue commandBuffer];
+  id<MTLRenderCommandEncoder> encoder =
+      [command_buffer renderCommandEncoderWithDescriptor:render_pass];
+
+  ImGui_ImplMetal_RenderDrawData(ImGui::GetDrawData(), command_buffer, encoder);
+  [encoder endEncoding];
+  [command_buffer presentDrawable:view.currentDrawable];
+  [command_buffer commit];
+#else
+  (void)renderer;
+#endif
+}
+
+uint32_t IOSWindowBackend::GetAudioDevice() const {
+  return 0;
+}
+
+std::shared_ptr<int16_t> IOSWindowBackend::GetAudioBuffer() const {
+  return nullptr;
+}
+
+std::string IOSWindowBackend::GetBackendName() const {
+  return "iOS-Metal";
+}
+
+int IOSWindowBackend::GetSDLVersion() const {
+  return 0;
+}
+
+}  // namespace platform
+}  // namespace yaze

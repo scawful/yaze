@@ -182,6 +182,11 @@ absl::Status VersionManager::BackupRomArtifact(const std::string& timestamp_str)
 // ============================================================================ 
 
 absl::Status VersionManager::RunCommand(const std::string& cmd) {
+#if defined(YAZE_IOS)
+  (void)cmd;
+  return absl::FailedPreconditionError(
+      "Command execution is not available on iOS");
+#else
   // Execute command in project root
   std::string full_cmd;
   
@@ -197,9 +202,15 @@ absl::Status VersionManager::RunCommand(const std::string& cmd) {
     return absl::InternalError(absl::StrFormat("Command failed: %s (Exit code %d)", cmd, ret));
   }
   return absl::OkStatus();
+#endif
 }
 
 absl::StatusOr<std::string> VersionManager::RunCommandOutput(const std::string& cmd) const {
+#if defined(YAZE_IOS)
+  (void)cmd;
+  return absl::FailedPreconditionError(
+      "Command execution is not available on iOS");
+#else
   std::string full_cmd;
   fs::path project_dir = fs::path(project_->filepath).parent_path();
   if (!project_dir.empty()) {
@@ -218,6 +229,7 @@ absl::StatusOr<std::string> VersionManager::RunCommandOutput(const std::string& 
     result += buffer.data();
   }
   return result;
+#endif
 }
 
 }  // namespace core

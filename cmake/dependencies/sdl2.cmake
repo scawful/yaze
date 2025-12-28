@@ -74,7 +74,7 @@ if(NOT TARGET yaze_sdl2)
     target_link_libraries(yaze_sdl2 INTERFACE SDL2::SDL2-static)
     # For local Homebrew SDL2, also add include path explicitly
     # SDL headers are in the SDL2 subdirectory
-    if(APPLE AND EXISTS "/opt/homebrew/opt/sdl2/include/SDL2")
+    if(YAZE_PLATFORM_MACOS AND EXISTS "/opt/homebrew/opt/sdl2/include/SDL2")
       target_include_directories(yaze_sdl2 INTERFACE /opt/homebrew/opt/sdl2/include/SDL2)
       message(STATUS "Added Homebrew SDL2 include path: /opt/homebrew/opt/sdl2/include/SDL2")
     endif()
@@ -94,12 +94,26 @@ if(WIN32)
     wbemuuid
   )
   target_compile_definitions(yaze_sdl2 INTERFACE SDL_MAIN_HANDLED)
-elseif(APPLE)
+elseif(YAZE_PLATFORM_MACOS)
   target_link_libraries(yaze_sdl2 INTERFACE
     "-framework Cocoa"
     "-framework IOKit"
     "-framework CoreVideo"
     "-framework ForceFeedback"
+  )
+  target_compile_definitions(yaze_sdl2 INTERFACE SDL_MAIN_HANDLED)
+elseif(YAZE_PLATFORM_IOS)
+  target_link_libraries(yaze_sdl2 INTERFACE
+    "-framework UIKit"
+    "-framework Foundation"
+    "-framework CoreGraphics"
+    "-framework CoreVideo"
+    "-framework CoreMotion"
+    "-framework QuartzCore"
+    "-framework AVFoundation"
+    "-framework AudioToolbox"
+    "-framework Metal"
+    "-framework GameController"
   )
   target_compile_definitions(yaze_sdl2 INTERFACE SDL_MAIN_HANDLED)
 elseif(UNIX)

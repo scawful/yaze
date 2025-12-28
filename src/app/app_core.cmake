@@ -19,6 +19,13 @@ set(
   app/platform/window_backend_factory.cc
 )
 
+if(YAZE_PLATFORM_IOS)
+  list(APPEND YAZE_APP_CORE_SRC
+    app/application.cc
+    app/controller.cc
+  )
+endif()
+
 # Window backend: SDL2 or SDL3 (mutually exclusive)
 if(YAZE_USE_SDL3)
   list(APPEND YAZE_APP_CORE_SRC
@@ -91,6 +98,9 @@ if(APPLE)
     set(YAZE_APPLE_OBJCXX_SRC
       app/platform/file_dialog.mm
       app/platform/font_loader.mm
+      app/platform/ios/ios_host.mm
+      app/platform/ios/ios_platform_state.mm
+      app/platform/ios/ios_window_backend.mm
     )
 
     add_library(yaze_app_objcxx OBJECT ${YAZE_APPLE_OBJCXX_SRC})
@@ -116,13 +126,19 @@ if(APPLE)
     endif()
 
     target_link_libraries(yaze_app_objcxx PUBLIC ${ABSL_TARGETS} yaze_util ${YAZE_SDL2_TARGETS})
-    target_compile_definitions(yaze_app_objcxx PUBLIC MACOS)
-
-    find_library(COCOA_LIBRARY Cocoa)
-    if(NOT COCOA_LIBRARY)
-        message(FATAL_ERROR "Cocoa not found")
+    if(YAZE_PLATFORM_MACOS)
+      target_compile_definitions(yaze_app_objcxx PUBLIC MACOS)
+    elseif(YAZE_PLATFORM_IOS)
+      target_compile_definitions(yaze_app_objcxx PUBLIC YAZE_IOS)
     endif()
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -framework ServiceManagement -framework Foundation -framework Cocoa")
+
+    if(YAZE_PLATFORM_MACOS)
+      find_library(COCOA_LIBRARY Cocoa)
+      if(NOT COCOA_LIBRARY)
+          message(FATAL_ERROR "Cocoa not found")
+      endif()
+      set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -framework ServiceManagement -framework Foundation -framework Cocoa")
+    endif()
 endif()
 
 # Create the application core library
@@ -176,14 +192,14 @@ endif()
 # gRPC Services (Optional)
 if(YAZE_WITH_GRPC)
   target_compile_definitions(yaze_app_core_lib PRIVATE YAZE_WITH_JSON)
-  # Link to consolidated gRPC support library
-  target_link_libraries(yaze_app_core_lib PUBLIC yaze_grpc_support)
+  # Note: Linking to yaze_grpc_support is moved to executable level to avoid cycle:
+  # yaze_grpc_support -> yaze_emulator -> yaze_app_core_lib -> yaze_grpc_support
   
   message(STATUS "  - gRPC ROM service + canvas automation enabled")
 endif()
 
 # Platform-specific libraries
-if(APPLE)
+if(YAZE_PLATFORM_MACOS)
   target_link_libraries(yaze_app_core_lib PUBLIC ${COCOA_LIBRARY})
 endif()
 
@@ -196,8 +212,10 @@ set_target_properties(yaze_app_core_lib PROPERTIES
 # Platform-specific compile definitions
 if(UNIX AND NOT APPLE)
   target_compile_definitions(yaze_app_core_lib PRIVATE linux stricmp=strcasecmp)
-elseif(APPLE)
+elseif(YAZE_PLATFORM_MACOS)
   target_compile_definitions(yaze_app_core_lib PRIVATE MACOS)
+elseif(YAZE_PLATFORM_IOS)
+  target_compile_definitions(yaze_app_core_lib PRIVATE YAZE_IOS)
 elseif(WIN32)
   target_compile_definitions(yaze_app_core_lib PRIVATE WINDOWS)
 endif()

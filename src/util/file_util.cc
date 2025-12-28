@@ -71,7 +71,10 @@ std::string GetResourcePath(const std::string& resource_path) {
 #ifdef __APPLE__
 #if TARGET_OS_IOS == 1
   const std::string kBundlePath = GetBundleResourcePath();
-  return kBundlePath + resource_path;
+  if (resource_path.rfind("assets/", 0) == 0) {
+    return kBundlePath + resource_path;
+  }
+  return kBundlePath + "assets/" + resource_path;
 #else
   return GetBundleResourcePath() + "Contents/Resources/" + resource_path;
 #endif
@@ -79,6 +82,15 @@ std::string GetResourcePath(const std::string& resource_path) {
   return resource_path;  // On Linux/Windows, resources are relative to
                          // executable
 #endif
+}
+
+FileDialogOptions MakeRomFileDialogOptions(bool include_all_files) {
+  FileDialogOptions options;
+  options.filters.push_back({"ROM Files", "sfc,smc"});
+  if (include_all_files) {
+    options.filters.push_back({"All Files", "*"});
+  }
+  return options;
 }
 
 // Note: FileDialogWrapper implementations are in

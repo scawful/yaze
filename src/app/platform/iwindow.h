@@ -272,6 +272,7 @@ class IWindowBackend {
 enum class WindowBackendType {
   SDL2,
   SDL3,
+  IOS,
   Auto  // Automatically select based on availability
 };
 

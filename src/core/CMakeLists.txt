@@ -76,8 +76,10 @@ set_target_properties(yaze_core_lib PROPERTIES
 # Platform-specific compile definitions
 if(UNIX AND NOT APPLE)
   target_compile_definitions(yaze_core_lib PRIVATE linux stricmp=strcasecmp)
-elseif(APPLE)
+elseif(YAZE_PLATFORM_MACOS)
   target_compile_definitions(yaze_core_lib PRIVATE MACOS)
+elseif(YAZE_PLATFORM_IOS)
+  target_compile_definitions(yaze_core_lib PRIVATE YAZE_IOS)
 elseif(WIN32)
   target_compile_definitions(yaze_core_lib PRIVATE WINDOWS)
 endif()

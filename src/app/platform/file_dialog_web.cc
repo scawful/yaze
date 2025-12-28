@@ -13,6 +13,12 @@ namespace util {
 // Web implementation of FileDialogWrapper
 // Triggers the existing file input element in the HTML
 
+std::string FileDialogWrapper::ShowOpenFileDialog(
+    const FileDialogOptions& options) {
+  (void)options;
+  return ShowOpenFileDialog();
+}
+
 std::string FileDialogWrapper::ShowOpenFileDialog() {
 #ifdef __EMSCRIPTEN__
   // Trigger the existing file input element
@@ -31,6 +37,15 @@ std::string FileDialogWrapper::ShowOpenFileDialog() {
 #else
   return "";
 #endif
+}
+
+void FileDialogWrapper::ShowOpenFileDialogAsync(
+    const FileDialogOptions& options,
+    std::function<void(const std::string&)> callback) {
+  if (!callback) {
+    return;
+  }
+  callback(ShowOpenFileDialog(options));
 }
 
 std::string FileDialogWrapper::ShowOpenFolderDialog() {
@@ -57,4 +72,3 @@ std::vector<std::string> FileDialogWrapper::GetFilesInFolder(
 
 }  // namespace util
 }  // namespace yaze
-

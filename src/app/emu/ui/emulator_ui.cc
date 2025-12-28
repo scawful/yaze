@@ -116,7 +116,8 @@ void RenderNavBar(Emulator* emu) {
   // Load ROM button
   if (ImGui::Button(ICON_MD_FOLDER_OPEN " Load ROM",
                     ImVec2(110, kButtonHeight))) {
-    std::string rom_path = util::FileDialogWrapper::ShowOpenFileDialog();
+    std::string rom_path = util::FileDialogWrapper::ShowOpenFileDialog(
+        util::MakeRomFileDialogOptions(false));
     if (!rom_path.empty()) {
       // Check if it's a valid ROM file extension
       std::string ext = util::GetFileExtension(rom_path);

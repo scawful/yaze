@@ -11,11 +11,35 @@
 namespace yaze {
 namespace util {
 
-std::string FileDialogWrapper::ShowOpenFileDialog() {
+std::string FileDialogWrapper::ShowOpenFileDialog(
+    const FileDialogOptions& options) {
   nfdchar_t* outPath = nullptr;
-  nfdfilteritem_t filterItem[2] = {{"ROM Files", "sfc,smc"},
-                                   {"All Files", "*"}};
-  nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 2, nullptr);
+  const nfdfilteritem_t* filter_list = nullptr;
+  size_t filter_count = 0;
+  std::vector<nfdfilteritem_t> filter_items;
+  std::vector<std::string> filter_names;
+  std::vector<std::string> filter_specs;
+
+  if (!options.filters.empty()) {
+    filter_items.reserve(options.filters.size());
+    filter_names.reserve(options.filters.size());
+    filter_specs.reserve(options.filters.size());
+
+    for (const auto& filter : options.filters) {
+      std::string label = filter.label.empty() ? "Files" : filter.label;
+      std::string spec = filter.spec.empty() ? "*" : filter.spec;
+      filter_names.push_back(label);
+      filter_specs.push_back(spec);
+      filter_items.push_back(
+          {filter_names.back().c_str(), filter_specs.back().c_str()});
+    }
+
+    filter_list = filter_items.data();
+    filter_count = filter_items.size();
+  }
+
+  nfdresult_t result =
+      NFD_OpenDialog(&outPath, filter_list, filter_count, nullptr);
 
   if (result == NFD_OKAY) {
     std::string path(outPath);
@@ -24,6 +48,19 @@ std::string FileDialogWrapper::ShowOpenFileDialog() {
   }
 
   return "";
+}
+
+std::string FileDialogWrapper::ShowOpenFileDialog() {
+  return ShowOpenFileDialog(FileDialogOptions{});
+}
+
+void FileDialogWrapper::ShowOpenFileDialogAsync(
+    const FileDialogOptions& options,
+    std::function<void(const std::string&)> callback) {
+  if (!callback) {
+    return;
+  }
+  callback(ShowOpenFileDialog(options));
 }
 
 std::string FileDialogWrapper::ShowOpenFolderDialog() {

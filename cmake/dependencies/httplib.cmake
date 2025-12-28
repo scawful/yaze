@@ -10,6 +10,29 @@ include(cmake/dependencies.lock)
 
 message(STATUS "Setting up cpp-httplib ${HTTPLIB_VERSION}")
 
+if(YAZE_PLATFORM_IOS)
+  CPMAddPackage(
+    NAME httplib
+    VERSION ${HTTPLIB_VERSION}
+    GITHUB_REPOSITORY yhirose/cpp-httplib
+    GIT_TAG v${HTTPLIB_VERSION}
+    DOWNLOAD_ONLY YES
+  )
+
+  if(NOT TARGET httplib)
+    add_library(httplib INTERFACE)
+    target_include_directories(httplib INTERFACE ${httplib_SOURCE_DIR})
+  endif()
+  if(NOT TARGET httplib::httplib)
+    add_library(httplib::httplib ALIAS httplib)
+  endif()
+
+  set(YAZE_HTTPLIB_TARGETS httplib::httplib)
+  set(YAZE_HTTPLIB_TARGETS httplib::httplib CACHE INTERNAL "cpp-httplib targets")
+  message(STATUS "cpp-httplib configured as header-only for iOS")
+  return()
+endif()
+
 set(_YAZE_USE_SYSTEM_HTTPLIB ${YAZE_USE_SYSTEM_DEPS})
 
 # Try to use system packages first

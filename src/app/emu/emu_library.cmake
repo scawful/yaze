@@ -36,7 +36,33 @@ endif()
 target_link_libraries(yaze_emulator PUBLIC
   yaze_util
   yaze_common
+  ${ABSL_TARGETS}
+  ${SDL_TARGETS}
+)
+
+if(YAZE_ENABLE_JSON AND TARGET nlohmann_json::nlohmann_json)
+  target_link_libraries(yaze_emulator PUBLIC nlohmann_json::nlohmann_json)
+endif()
+
+# Emulator UI library (depends on app core and GUI)
+add_library(yaze_emulator_ui STATIC ${YAZE_EMU_GUI_SRC})
+
+target_precompile_headers(yaze_emulator_ui PRIVATE
+  "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_SOURCE_DIR}/src/yaze_pch.h>"
+)
+
+target_include_directories(yaze_emulator_ui PUBLIC
+  ${CMAKE_SOURCE_DIR}/src
+  ${CMAKE_SOURCE_DIR}/src/app
+  ${CMAKE_SOURCE_DIR}/incl
+  ${SDL2_INCLUDE_DIR}
+  ${PROJECT_BINARY_DIR}
+)
+
+target_link_libraries(yaze_emulator_ui PUBLIC
+  yaze_emulator
   yaze_app_core_lib
+  yaze_gui
   ${ABSL_TARGETS}
   ${SDL_TARGETS}
 )
@@ -47,11 +73,19 @@ set_target_properties(yaze_emulator PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
 )
 
+set_target_properties(yaze_emulator_ui PROPERTIES
+  POSITION_INDEPENDENT_CODE ON
+  ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+)
+
 # Platform-specific compile definitions
 if(UNIX AND NOT APPLE)
   target_compile_definitions(yaze_emulator PRIVATE linux stricmp=strcasecmp)
-elseif(APPLE)
+elseif(YAZE_PLATFORM_MACOS)
   target_compile_definitions(yaze_emulator PRIVATE MACOS)
+elseif(YAZE_PLATFORM_IOS)
+  target_compile_definitions(yaze_emulator PRIVATE YAZE_IOS)
 elseif(WIN32)
   target_compile_definitions(yaze_emulator PRIVATE WINDOWS)
 endif()

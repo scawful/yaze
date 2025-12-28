@@ -63,7 +63,7 @@ if(NOT TARGET yaze_sdl3)
     message(STATUS "Using SDL3::SDL3-static target")
     target_link_libraries(yaze_sdl3 INTERFACE SDL3::SDL3-static)
     # For local Homebrew SDL3, also add include path explicitly
-    if(APPLE AND EXISTS "/opt/homebrew/opt/sdl3/include/SDL3")
+    if(YAZE_PLATFORM_MACOS AND EXISTS "/opt/homebrew/opt/sdl3/include/SDL3")
       target_include_directories(yaze_sdl3 INTERFACE /opt/homebrew/opt/sdl3/include/SDL3)
       message(STATUS "Added Homebrew SDL3 include path: /opt/homebrew/opt/sdl3/include/SDL3")
     endif()
@@ -83,13 +83,27 @@ if(WIN32)
     wbemuuid
   )
   target_compile_definitions(yaze_sdl3 INTERFACE SDL_MAIN_HANDLED)
-elseif(APPLE)
+elseif(YAZE_PLATFORM_MACOS)
   target_link_libraries(yaze_sdl3 INTERFACE
     "-framework Cocoa"
     "-framework IOKit"
     "-framework CoreVideo"
     "-framework CoreHaptics"
     "-framework ForceFeedback"
+    "-framework GameController"
+  )
+  target_compile_definitions(yaze_sdl3 INTERFACE SDL_MAIN_HANDLED)
+elseif(YAZE_PLATFORM_IOS)
+  target_link_libraries(yaze_sdl3 INTERFACE
+    "-framework UIKit"
+    "-framework Foundation"
+    "-framework CoreGraphics"
+    "-framework CoreVideo"
+    "-framework CoreMotion"
+    "-framework QuartzCore"
+    "-framework AVFoundation"
+    "-framework AudioToolbox"
+    "-framework Metal"
     "-framework GameController"
   )
   target_compile_definitions(yaze_sdl3 INTERFACE SDL_MAIN_HANDLED)

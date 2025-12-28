@@ -99,8 +99,10 @@ set_target_properties(yaze_zelda3 PROPERTIES
 # Platform-specific compile definitions
 if(UNIX AND NOT APPLE)
   target_compile_definitions(yaze_zelda3 PRIVATE linux stricmp=strcasecmp)
-elseif(APPLE)
+elseif(YAZE_PLATFORM_MACOS)
   target_compile_definitions(yaze_zelda3 PRIVATE MACOS)
+elseif(YAZE_PLATFORM_IOS)
+  target_compile_definitions(yaze_zelda3 PRIVATE YAZE_IOS)
 elseif(WIN32)
   target_compile_definitions(yaze_zelda3 PRIVATE WINDOWS)
 endif()

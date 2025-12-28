@@ -22,20 +22,23 @@ set(
   app/emu/debug/step_controller.cc
   app/emu/debug/symbol_provider.cc
   app/emu/debug/watchpoint_manager.cc
-  app/emu/emu.cc
   app/emu/emulator.cc
   app/emu/input/input_backend.cc
   app/emu/input/input_manager.cc
   app/emu/memory/dma.cc
   app/emu/memory/memory.cc
   app/emu/snes.cc
-  app/emu/ui/debugger_ui.cc
-  app/emu/ui/emulator_ui.cc
-  app/emu/ui/input_handler.cc
   app/emu/video/ppu.cc
   app/emu/render/render_context.cc
   app/emu/render/emulator_render_service.cc
   app/emu/render/save_state_manager.cc
+)
+
+set(
+  YAZE_EMU_GUI_SRC
+  app/emu/ui/debugger_ui.cc
+  app/emu/ui/emulator_ui.cc
+  app/emu/ui/input_handler.cc
 )
 
 # Add SDL3-specific backends when SDL3 is enabled
@@ -152,4 +155,93 @@ if (YAZE_BUILD_LIB)
     yaze_agent
     ImGui
   )
+endif()
+
+if(YAZE_PLATFORM_IOS)
+  if(NOT DEFINED YAZE_IOS_SDK)
+    set(YAZE_IOS_SDK "iphoneos" CACHE STRING "iOS SDK name for xcrun/libtool")
+  endif()
+
+  set(YAZE_IOS_BUNDLE_OUTPUT "${CMAKE_BINARY_DIR}/ios/libyaze_ios_bundle.a")
+  set(YAZE_IOS_BUNDLE_TARGETS
+    yaze_app_core_lib
+    yaze_editor
+    yaze_editor_system_panels
+    yaze_editor_system_session
+    yaze_editor_system_shortcuts
+    yaze_emulator
+    yaze_emulator_ui
+    yaze_gui_core
+    yaze_canvas
+    yaze_gui_widgets
+    yaze_gui_automation
+    yaze_gui_app
+    yaze_net
+    yaze_gfx_types
+    yaze_gfx_backend
+    yaze_gfx_resource
+    yaze_gfx_render
+    yaze_gfx_debug
+    yaze_gfx_core
+    yaze_gfx_util
+    yaze_zelda3
+    yaze_rom
+    yaze_core_lib
+    yaze_util
+    ImGui
+  )
+
+  if(TARGET ImPlot)
+    list(APPEND YAZE_IOS_BUNDLE_TARGETS ImPlot)
+  endif()
+
+  if(TARGET yaze_test_support)
+    list(APPEND YAZE_IOS_BUNDLE_TARGETS yaze_test_support)
+  endif()
+
+  if(TARGET asar-static)
+    list(APPEND YAZE_IOS_BUNDLE_TARGETS asar-static)
+  endif()
+
+  if(TARGET SDL2-static)
+    list(APPEND YAZE_IOS_BUNDLE_TARGETS SDL2-static)
+  elseif(TARGET SDL2::SDL2-static)
+    list(APPEND YAZE_IOS_BUNDLE_TARGETS SDL2::SDL2-static)
+  elseif(TARGET SDL2::SDL2)
+    list(APPEND YAZE_IOS_BUNDLE_TARGETS SDL2::SDL2)
+  endif()
+
+  list(REMOVE_DUPLICATES YAZE_IOS_BUNDLE_TARGETS)
+
+  set(YAZE_IOS_BUNDLE_INPUTS "")
+  foreach(target IN LISTS YAZE_IOS_BUNDLE_TARGETS)
+    if(TARGET ${target})
+      get_target_property(_target_type ${target} TYPE)
+      if(NOT _target_type STREQUAL "INTERFACE_LIBRARY")
+        list(APPEND YAZE_IOS_BUNDLE_INPUTS "$<TARGET_FILE:${target}>")
+      endif()
+    endif()
+  endforeach()
+
+  file(GLOB_RECURSE YAZE_IOS_ABSL_LIBS CONFIGURE_DEPENDS
+    "${CMAKE_BINARY_DIR}/_deps/absl-build/absl/*/libabsl_*.a"
+  )
+  if(YAZE_IOS_ABSL_LIBS)
+    list(REMOVE_DUPLICATES YAZE_IOS_ABSL_LIBS)
+    list(APPEND YAZE_IOS_BUNDLE_INPUTS ${YAZE_IOS_ABSL_LIBS})
+  endif()
+
+  list(REMOVE_DUPLICATES YAZE_IOS_BUNDLE_INPUTS)
+
+  if(YAZE_IOS_BUNDLE_INPUTS)
+    add_custom_command(
+      OUTPUT ${YAZE_IOS_BUNDLE_OUTPUT}
+      COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/ios
+      COMMAND xcrun --sdk ${YAZE_IOS_SDK} libtool -static -o ${YAZE_IOS_BUNDLE_OUTPUT} ${YAZE_IOS_BUNDLE_INPUTS}
+      DEPENDS ${YAZE_IOS_BUNDLE_TARGETS} ${YAZE_IOS_ABSL_LIBS}
+      COMMAND_EXPAND_LISTS
+      COMMENT "Bundling yaze iOS static libraries"
+    )
+    add_custom_target(yaze_ios_bundle ALL DEPENDS ${YAZE_IOS_BUNDLE_OUTPUT})
+  endif()
 endif()

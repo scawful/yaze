@@ -21,6 +21,12 @@ else()
   message(STATUS "Using ImGui SDL2 backend")
 endif()
 
+if(YAZE_PLATFORM_IOS)
+  list(APPEND IMGUI_BACKEND_SOURCES
+    ${IMGUI_DIR}/backends/imgui_impl_metal.mm
+  )
+endif()
+
 # Create ImGui library with core files from bundled source
 add_library(ImGui STATIC
   ${IMGUI_DIR}/imgui.cpp

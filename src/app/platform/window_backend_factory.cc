@@ -5,6 +5,14 @@
 #include "app/platform/sdl2_window_backend.h"
 #include "util/log.h"
 
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
+
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+#include "app/platform/ios/ios_window_backend.h"
+#endif
+
 #ifdef YAZE_USE_SDL3
 #include "app/platform/sdl3_window_backend.h"
 #endif
@@ -33,6 +41,15 @@ std::unique_ptr<IWindowBackend> WindowBackendFactory::Create(
       return std::make_unique<SDL2WindowBackend>();
 #endif
 
+    case WindowBackendType::IOS:
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+      return std::make_unique<IOSWindowBackend>();
+#else
+      LOG_WARN("WindowBackendFactory",
+               "iOS backend requested on non-iOS platform");
+      return nullptr;
+#endif
+
     case WindowBackendType::Auto:
     default:
       return Create(GetDefaultType());
@@ -40,6 +57,9 @@ std::unique_ptr<IWindowBackend> WindowBackendFactory::Create(
 }
 
 WindowBackendType WindowBackendFactory::GetDefaultType() {
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+  return WindowBackendType::IOS;
+#endif
 #ifdef YAZE_USE_SDL3
   return WindowBackendType::SDL3;
 #else
@@ -65,6 +85,13 @@ bool WindowBackendFactory::IsAvailable(WindowBackendType type) {
 
     case WindowBackendType::Auto:
       return true;  // Auto always available
+
+    case WindowBackendType::IOS:
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+      return true;
+#else
+      return false;
+#endif
 
     default:
       return false;

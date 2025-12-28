@@ -3,8 +3,8 @@
 #       because it's used by the main yaze app and test suites.
 #       This file only controls the STANDALONE emulator executable.
 
-if(YAZE_BUILD_EMU AND NOT YAZE_MINIMAL_BUILD)
-  if(APPLE)
+if(YAZE_BUILD_EMU AND NOT YAZE_MINIMAL_BUILD AND NOT YAZE_PLATFORM_IOS)
+  if(YAZE_PLATFORM_MACOS)
     # Note: controller.cc is included here (not via library) because it depends on
     # yaze_editor and yaze_gui. Including it in yaze_app_core_lib would create a cycle:
     # yaze_agent -> yaze_app_core_lib -> yaze_editor -> yaze_agent
@@ -25,6 +25,7 @@ if(YAZE_BUILD_EMU AND NOT YAZE_MINIMAL_BUILD)
   target_link_libraries(yaze_emu PRIVATE
     yaze_editor
     yaze_emulator
+    yaze_emulator_ui
     yaze_agent
     absl::flags
     absl::flags_parse
@@ -68,6 +69,6 @@ if(YAZE_BUILD_EMU AND NOT YAZE_MINIMAL_BUILD)
   message(STATUS "✓ yaze_emu_test: Headless emulator test harness configured")
   message(STATUS "✓ yaze_emu: Standalone emulator executable configured")
 else()
-  message(STATUS "○ Standalone emulator builds disabled (YAZE_BUILD_EMU=OFF or YAZE_MINIMAL_BUILD=ON)")
+  message(STATUS "○ Standalone emulator builds disabled (YAZE_BUILD_EMU=OFF, YAZE_MINIMAL_BUILD=ON, or iOS)")
   message(STATUS "  Note: yaze_emulator library still available for main app and tests")
 endif()

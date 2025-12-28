@@ -3,6 +3,10 @@
 #include <fstream>
 #include <sstream>
 
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#endif
+
 #include "absl/strings/str_format.h"
 #include "util/file_util.h"
 
@@ -16,6 +20,12 @@ std::vector<std::filesystem::path> AssetLoader::GetSearchPaths(
   // macOS bundle resource paths
   std::string bundle_root = yaze::util::GetBundleResourcePath();
 
+#if TARGET_OS_IOS == 1
+  // iOS app bundle resources live at the root.
+  search_paths.push_back(std::filesystem::path(bundle_root) / "assets" /
+                         relative_path);
+  search_paths.push_back(std::filesystem::path(bundle_root) / relative_path);
+#else
   // Try Contents/Resources first (standard bundle location)
   search_paths.push_back(std::filesystem::path(bundle_root) / "Contents" /
                          "Resources" / relative_path);
@@ -29,6 +39,7 @@ std::vector<std::filesystem::path> AssetLoader::GetSearchPaths(
                          ".." / "assets" / relative_path);
   search_paths.push_back(std::filesystem::path(bundle_root) / ".." / ".." /
                          ".." / ".." / "assets" / relative_path);
+#endif
 #endif
 
   // Standard relative paths (works for all platforms)

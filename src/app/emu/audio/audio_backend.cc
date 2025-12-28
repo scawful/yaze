@@ -4,6 +4,10 @@
 
 #include "app/platform/sdl_compat.h"
 
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
+
 #include <algorithm>
 #include <vector>
 
@@ -109,6 +113,9 @@ bool SDL2AudioBackend::Initialize(const AudioConfig& config) {
   // but the hardware actually runs at 48000Hz, causing pitch/speed issues.
   // SDL will handle internal resampling if the hardware doesn't support 48000Hz.
   int allowed_changes = SDL_AUDIO_ALLOW_FORMAT_CHANGE | SDL_AUDIO_ALLOW_CHANNELS_CHANGE;
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+  SDL_SetHint(SDL_HINT_AUDIO_CATEGORY, "ambient");
+#endif
   device_id_ = SDL_OpenAudioDevice(nullptr, 0, &want, &have, allowed_changes);
 
   if (device_id_ == 0) {
