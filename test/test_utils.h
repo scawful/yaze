@@ -346,7 +346,16 @@ class TestRomManager {
 
 class TestRomManager::BoundRomTest : public ::testing::Test {
  protected:
-  void SetUp() override { rom_instance_ = std::make_unique<Rom>(); }
+  void SetUp() override {
+    std::string test_name = "BoundRomTest";
+    if (const auto* info =
+            ::testing::UnitTest::GetInstance()->current_test_info()) {
+      test_name = absl::StrFormat("%s.%s", info->test_suite_name(),
+                                  info->name());
+    }
+    TestRomManager::SkipIfRomMissing(RomRole::kVanilla, test_name);
+    rom_instance_ = std::make_unique<Rom>();
+  }
 
   void TearDown() override {
     rom_instance_.reset();
