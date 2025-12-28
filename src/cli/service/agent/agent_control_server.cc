@@ -31,7 +31,7 @@ void AgentControlServer::Stop() {
 
 void AgentControlServer::Run() {
   std::string server_address("0.0.0.0:50051");
-  EmulatorServiceImpl service(emulator_);
+  yaze::net::EmulatorServiceImpl service(emulator_, nullptr);
 
   grpc::ServerBuilder builder;
   builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());

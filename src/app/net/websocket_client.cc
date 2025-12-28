@@ -10,7 +10,7 @@
 // Cross-platform WebSocket support using httplib
 // Skip httplib in WASM builds - use Emscripten WebSocket API instead
 #if defined(YAZE_WITH_JSON) && !defined(__EMSCRIPTEN__)
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(YAZE_IOS)
 #define CPPHTTPLIB_OPENSSL_SUPPORT
 #endif
 #include "httplib.h"

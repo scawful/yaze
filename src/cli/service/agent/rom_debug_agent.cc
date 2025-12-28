@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <iomanip>
+#include <set>
 #include <sstream>
 
 #include "absl/strings/str_format.h"
@@ -76,7 +77,7 @@ bool ModifiesStack(uint8_t opcode) {
 
 }  // namespace
 
-RomDebugAgent::RomDebugAgent(yaze::agent::EmulatorServiceImpl* emulator_service)
+RomDebugAgent::RomDebugAgent(yaze::net::EmulatorServiceImpl* emulator_service)
     : emulator_service_(emulator_service),
       disassembler_(std::make_unique<Disassembler65816>()),
       symbol_provider_(std::make_unique<yaze::emu::debug::SymbolProvider>()) {

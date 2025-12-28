@@ -12,7 +12,9 @@
 
 #ifdef YAZE_WITH_JSON
 #include "nlohmann/json.hpp"
+#if !defined(_WIN32) && !defined(YAZE_IOS)
 #define CPPHTTPLIB_OPENSSL_SUPPORT
+#endif
 #include "httplib.h"
 #endif
 

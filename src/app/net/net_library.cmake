@@ -101,7 +101,7 @@ if(YAZE_ENABLE_JSON)
     # CRITICAL FIX: Disable OpenSSL on Windows to avoid missing header errors
     # Windows CI doesn't have OpenSSL headers properly configured
     # WebSocket will work with plain HTTP (no SSL/TLS) on Windows
-    if(NOT WIN32)
+    if(NOT WIN32 AND NOT YAZE_PLATFORM_IOS)
       find_package(OpenSSL QUIET)
       if(OPENSSL_INCLUDE_DIR)
         target_include_directories(yaze_net PUBLIC ${OPENSSL_INCLUDE_DIR})
@@ -120,16 +120,16 @@ if(YAZE_ENABLE_JSON)
         message(STATUS "  - WebSocket without SSL/TLS (OpenSSL not found)")
       endif()
     else()
-      message(STATUS "  - Windows: WebSocket using plain HTTP (no SSL) - OpenSSL headers not available in CI")
+      message(STATUS "  - OpenSSL disabled on Windows/iOS (plain HTTP only)")
     endif()
   else()
     # When gRPC is enabled, still enable OpenSSL features but use gRPC's OpenSSL
     # CRITICAL: Skip on Windows - gRPC's OpenSSL headers aren't accessible in Windows CI
-    if(NOT WIN32)
+    if(NOT WIN32 AND NOT YAZE_PLATFORM_IOS)
       target_compile_definitions(yaze_net PUBLIC CPPHTTPLIB_OPENSSL_SUPPORT)
       message(STATUS "  - WebSocket with SSL/TLS support enabled via gRPC's OpenSSL")
     else()
-      message(STATUS "  - Windows + gRPC: WebSocket using plain HTTP (no SSL) - OpenSSL headers not available")
+      message(STATUS "  - Windows/iOS + gRPC: WebSocket using plain HTTP (no SSL)")
     endif()
   endif()
   

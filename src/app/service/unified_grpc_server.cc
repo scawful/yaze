@@ -14,17 +14,19 @@
 #include "app/service/imgui_test_harness_service.h"
 #include "protos/canvas_automation.grpc.pb.h"
 
+#include "app/editor/editor_manager.h"
+
 namespace yaze {
 
 YazeGRPCServer::YazeGRPCServer() : is_running_(false) {}
 
-// Destructor defined here so CanvasAutomationServiceGrpc is a complete type
 YazeGRPCServer::~YazeGRPCServer() {
   Shutdown();
 }
 
 absl::Status YazeGRPCServer::Initialize(
-    int port, test::TestManager* test_manager, Rom* rom,
+    int port, test::TestManager* test_manager, 
+    RomGetter rom_getter,
     net::RomVersionManager* version_mgr,
     net::ProposalApprovalManager* approval_mgr,
     CanvasAutomationServiceImpl* canvas_service) {
@@ -39,14 +41,12 @@ absl::Status YazeGRPCServer::Initialize(
     test_harness_service_ =
         std::make_unique<test::ImGuiTestHarnessServiceImpl>(test_manager);
     std::cout << "✓ ImGuiTestHarness service initialized\n";
-  } else if (config_.enable_test_harness) {
-    std::cout << "⚠ ImGuiTestHarness requested but no TestManager provided\n";
   }
 
-  // Create ROM service if rom provided
-  if (config_.enable_rom_service && rom) {
+  // Create ROM service if rom_getter provided
+  if (config_.enable_rom_service && rom_getter) {
     rom_service_ =
-        std::make_unique<net::RomServiceImpl>(rom, version_mgr, approval_mgr);
+        std::make_unique<net::RomServiceImpl>(rom_getter, version_mgr, approval_mgr);
 
     // Configure ROM service
     net::RomServiceImpl::Config rom_config;
@@ -115,6 +115,19 @@ absl::Status YazeGRPCServer::StartAsync() {
   return absl::OkStatus();
 }
 
+absl::Status YazeGRPCServer::AddService(
+    std::unique_ptr<grpc::Service> service) {
+  if (!service) {
+    return absl::InvalidArgumentError("Service is null");
+  }
+  if (is_running_) {
+    return absl::FailedPreconditionError(
+        "Cannot add services after the server has started");
+  }
+  extra_services_.push_back(std::move(service));
+  return absl::OkStatus();
+}
+
 void YazeGRPCServer::Shutdown() {
   if (server_ && is_running_) {
     std::cout << "⏹ Shutting down unified gRPC server...\n";
@@ -161,6 +174,10 @@ absl::Status YazeGRPCServer::BuildServer() {
     canvas_grpc_service_ =
         CreateCanvasAutomationServiceGrpc(canvas_service_);
     builder.RegisterService(canvas_grpc_service_.get());
+  }
+
+  for (auto& service : extra_services_) {
+    builder.RegisterService(service.get());
   }
 
   // Build and start

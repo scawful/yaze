@@ -106,7 +106,7 @@ class RomDebugAgent {
   };
 
   // Constructor
-  explicit RomDebugAgent(yaze::agent::EmulatorServiceImpl* emulator_service);
+  explicit RomDebugAgent(yaze::net::EmulatorServiceImpl* emulator_service);
 
   // --- Core Analysis Functions ---
 
@@ -277,7 +277,7 @@ class RomDebugAgent {
   std::optional<std::string> GetStructureInfo(uint32_t address) const;
 
   // Member variables
-  yaze::agent::EmulatorServiceImpl* emulator_service_;  // Non-owning pointer
+  yaze::net::EmulatorServiceImpl* emulator_service_;  // Non-owning pointer
   std::unique_ptr<Disassembler65816> disassembler_;
   std::unique_ptr<yaze::emu::debug::SymbolProvider> symbol_provider_;
   std::vector<uint8_t> original_rom_;  // Original ROM for comparison
