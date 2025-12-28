@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "app/editor/layout_designer/widget_definition.h"
+#include "lab/layout_designer/widget_definition.h"
 
 namespace yaze {
 namespace editor {

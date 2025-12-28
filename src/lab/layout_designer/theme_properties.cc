@@ -1,4 +1,4 @@
-#include "app/editor/layout_designer/theme_properties.h"
+#include "lab/layout_designer/theme_properties.h"
 
 #include "absl/strings/str_format.h"
 #include "app/gui/core/icons.h"

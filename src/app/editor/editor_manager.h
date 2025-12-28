@@ -41,7 +41,6 @@
 #include "app/editor/ui/ui_coordinator.h"
 #include "app/editor/ui/welcome_screen.h"
 #include "app/editor/ui/workspace_manager.h"
-#include "app/editor/layout_designer/layout_designer_window.h"
 #include "app/emu/emulator.h"
 #include "app/startup_flags.h"
 #include "rom/rom.h"
@@ -114,7 +113,6 @@ class EditorManager : public SessionObserver {
   auto quit() const { return quit_; }
   auto version() const { return version_; }
   
-  void OpenLayoutDesigner() { layout_designer_.Open(); }
 
   MenuBuilder& menu_builder() { return menu_builder_; }
   WorkspaceManager* workspace_manager() { return &workspace_manager_; }
@@ -427,7 +425,6 @@ class EditorManager : public SessionObserver {
   StatusBar status_bar_;    // Bottom status bar
   std::unique_ptr<ActivityBar> activity_bar_;
   WorkspaceManager workspace_manager_{&toast_manager_};
-  layout_designer::LayoutDesignerWindow layout_designer_;  // WYSIWYG layout designer
 
   emu::input::InputConfig BuildInputConfigFromSettings() const;
   void PersistInputConfig(const emu::input::InputConfig& config);

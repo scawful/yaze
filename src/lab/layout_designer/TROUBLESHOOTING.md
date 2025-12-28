@@ -219,7 +219,7 @@ void DrawDropZones(...) {
 
 Run through these steps to verify drag-drop works:
 
-- [ ] Open Layout Designer (Ctrl+L)
+- [ ] Launch the `lab` executable (built with `YAZE_BUILD_LAB`)
 - [ ] Verify Panel Layout mode is selected
 - [ ] See panels in left palette
 - [ ] Click and HOLD on "Room List" panel
@@ -357,4 +357,3 @@ if (const ImGuiPayload* payload =
 ```
 
 This avoids copying std::string in the payload!
-

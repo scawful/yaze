@@ -2,7 +2,8 @@
 
 ## Opening the Designer
 
-**Press `Ctrl+L`** or go to **`Tools > Layout Designer`**
+Build with `-DYAZE_BUILD_LAB=ON`, then run the `lab` executable. The designer
+opens by default in the lab host.
 
 ---
 
@@ -247,7 +248,6 @@ TabBar: "tabs"
 
 | Shortcut | Action |
 |----------|--------|
-| `Ctrl+L` | Open Layout Designer |
 | `Ctrl+N` | New layout/design |
 | `Ctrl+O` | Open file |
 | `Ctrl+S` | Save file |
@@ -260,10 +260,10 @@ TabBar: "tabs"
 ## Troubleshooting
 
 ### Q: Designer doesn't open
-**A:** Check that yaze is running and press `Ctrl+L` or use `Tools > Layout Designer`
+**A:** Make sure you're running the `lab` executable (built with `YAZE_BUILD_LAB`).
 
 ### Q: Palette is empty (Panel mode)
-**A:** Load a ROM first. Some panels only appear when ROM is loaded.
+**A:** In the lab host, confirm `RegisterLabPanels()` is seeding descriptors. If embedding in the main editor, load a ROM so session panels register.
 
 ### Q: Palette is empty (Widget mode)
 **A:** This is a bug. Widget palette should always show all 40+ widget types.
@@ -338,4 +338,3 @@ TabBar: "tabs"
 ---
 
 Happy designing! 🎨
-

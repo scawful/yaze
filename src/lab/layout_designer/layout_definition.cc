@@ -1,4 +1,4 @@
-#include "app/editor/layout_designer/layout_definition.h"
+#include "lab/layout_designer/layout_definition.h"
 
 #include <chrono>
 

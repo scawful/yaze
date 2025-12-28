@@ -286,8 +286,6 @@ void MenuOrchestrator::AddToolsMenuItems() {
           [this]() { OnShowCommandPalette(); }, SHORTCUT_CTRL_SHIFT(P))
       .Item("Resource Label Manager", ICON_MD_LABEL,
             [this]() { OnShowResourceLabelManager(); })
-      .Item("Layout Designer", ICON_MD_DASHBOARD,
-            [this]() { OnShowLayoutDesigner(); }, SHORTCUT_CTRL(L))
       .Separator();
 
   // ROM Analysis (moved from Debug menu)
@@ -747,13 +745,6 @@ void MenuOrchestrator::OnShowWelcomeScreen() {
     if (auto* ui = editor_manager_->ui_coordinator()) {
       ui->SetWelcomeScreenVisible(true);
     }
-  }
-}
-
-void MenuOrchestrator::OnShowLayoutDesigner() {
-  // Open the WYSIWYG layout designer
-  if (editor_manager_) {
-    editor_manager_->OpenLayoutDesigner();
   }
 }
 

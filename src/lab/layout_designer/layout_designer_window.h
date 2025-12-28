@@ -6,9 +6,9 @@
 #include <vector>
 #include <optional>
 
-#include "app/editor/layout_designer/layout_definition.h"
-#include "app/editor/layout_designer/widget_definition.h"
-#include "app/editor/layout_designer/theme_properties.h"
+#include "lab/layout_designer/layout_definition.h"
+#include "lab/layout_designer/widget_definition.h"
+#include "lab/layout_designer/theme_properties.h"
 #include "app/editor/system/panel_manager.h"
 
 #define IMGUI_DEFINE_MATH_OPERATORS

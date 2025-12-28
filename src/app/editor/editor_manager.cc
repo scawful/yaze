@@ -481,9 +481,6 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   emulator_.set_panel_manager(&panel_manager_);
   workspace_manager_.set_panel_manager(&panel_manager_);
 
-  // Initialize layout designer with panel + layout managers
-  layout_designer_.Initialize(&panel_manager_, layout_manager_.get(), this);
-
   // Point to a blank editor set when no ROM is loaded
   // current_editor_set_ = &blank_editor_set_;
 
@@ -1271,11 +1268,6 @@ absl::Status EditorManager::Update() {
     session_coordinator_->DrawSessionSwitcher();
     session_coordinator_->DrawSessionManager();
     session_coordinator_->DrawSessionRenameDialog();
-  }
-
-  // Draw Layout Designer if open
-  if (layout_designer_.IsOpen()) {
-    layout_designer_.Draw();
   }
 
   return absl::OkStatus();

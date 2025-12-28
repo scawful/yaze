@@ -1,4 +1,4 @@
-#include "app/editor/layout_designer/widget_code_generator.h"
+#include "lab/layout_designer/widget_code_generator.h"
 
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_replace.h"

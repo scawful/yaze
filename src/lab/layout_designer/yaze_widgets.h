@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_EDITOR_LAYOUT_DESIGNER_YAZE_WIDGETS_H_
 #define YAZE_APP_EDITOR_LAYOUT_DESIGNER_YAZE_WIDGETS_H_
 
-#include "app/editor/layout_designer/widget_definition.h"
+#include "lab/layout_designer/widget_definition.h"
 
 namespace yaze {
 namespace editor {

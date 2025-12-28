@@ -27,32 +27,29 @@ The Layout Designer provides a visual interface for designing complex multi-pane
 
 ## Quick Start
 
-### Opening the Designer
+### Opening the Designer (Lab)
+
+1. Configure with `-DYAZE_BUILD_LAB=ON`
+2. Build and run the `lab` executable
+3. The layout designer opens on launch and targets `MainDockSpace` for preview
+
+### Embedding in Another Host
 
 ```cpp
-// In EditorManager or main menu
-#include "app/editor/layout_designer/layout_designer_window.h"
+#include "lab/layout_designer/layout_designer_window.h"
 
-// Member variable
-layout_designer::LayoutDesignerWindow layout_designer_;
+layout_designer::LayoutDesignerWindow layout_designer;
+layout_designer.Initialize(&panel_manager, &layout_manager, nullptr);
+layout_designer.Open();
 
-// Initialize
-layout_designer_.Initialize(&panel_manager_);
-
-// Open from menu
-if (ImGui::MenuItem(ICON_MD_DASHBOARD " Layout Designer")) {
-  layout_designer_.Open();
-}
-
-// Draw each frame
-if (layout_designer_.IsOpen()) {
-  layout_designer_.Draw();
+if (layout_designer.IsOpen()) {
+  layout_designer.Draw();
 }
 ```
 
 ### Creating a Layout
 
-1. **Open Designer:** Tools > Layout Designer
+1. **Open Designer:** Launch the lab target (or embed the window in a host)
 2. **Create New Layout:** File > New (Ctrl+N)
 3. **Add Panels:**
    - Drag panels from palette on the left
@@ -306,4 +303,3 @@ cmake --build build
 ## License
 
 Same as yaze project license.
-
