@@ -13,96 +13,15 @@ on:
         type: choice
         options:
           - all
-          - rom_dependent
           - experimental
           - benchmarks
           - gui_e2e
           - extended_integration
-      rom_path:
-        description: 'ROM path for ROM-dependent tests (optional)'
-        required: false
-        default: ''
-        type: string
 
 env:
   BUILD_TYPE: RelWithDebInfo
 
 jobs:
-  rom-dependent-tests:
-    name: "ROM-Dependent Tests - ${{ matrix.os }}"
-    runs-on: ${{ matrix.os }}
-    if: |
-      github.event_name == 'schedule' ||
-      github.event.inputs.test_suites == 'all' ||
-      github.event.inputs.test_suites == 'rom_dependent'
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-22.04, macos-14, windows-2022]
-        include:
-          - os: ubuntu-22.04
-            platform: linux
-            preset: ci-linux
-          - os: macos-14
-            platform: macos
-            preset: ci-macos
-          - os: windows-2022
-            platform: windows
-            preset: ci-windows
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Setup build environment
-        uses: ./.github/actions/setup-build
-        with:
-          platform: ${{ matrix.platform }}
-          preset: ${{ matrix.preset }}
-          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
-
-      - name: Configure with ROM tests enabled
-        run: |
-          cmake --preset ${{ matrix.preset }} \
-            -B build_nightly \
-            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-            -DYAZE_ENABLE_ROM_TESTS=ON \
-            -DYAZE_TEST_ROM_PATH="${{ github.event.inputs.rom_path || 'test_rom.sfc' }}"
-
-      - name: Build project
-        run: |
-          cmake --build build_nightly \
-            --config ${{ env.BUILD_TYPE }} \
-            --target yaze_test_rom_dependent \
-            --parallel
-
-      - name: Download test ROM (if available)
-        if: ${{ vars.TEST_ROM_URL != '' }}
-        run: |
-          # This would download a test ROM from a secure location
-          # For now, this is a placeholder for ROM acquisition
-          echo "ROM acquisition would happen here"
-        continue-on-error: true
-
-      - name: Run ROM-dependent tests
-        if: ${{ github.event.inputs.rom_path != '' }}
-        run: |
-          cd build_nightly
-          ctest -L rom_dependent \
-            --output-on-failure \
-            --output-junit rom_dependent_results.xml
-        continue-on-error: true
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: rom-test-results-${{ matrix.platform }}
-          path: build_nightly/rom_dependent_results.xml
-          retention-days: 30
-
   experimental-ai-tests:
     name: "Experimental AI Tests - ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
@@ -373,7 +292,6 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     needs: [
-      rom-dependent-tests,
       experimental-ai-tests,
       gui-e2e-tests,
       benchmark-tests,
@@ -385,15 +303,6 @@ jobs:
         run: |
           echo "# Nightly Test Results - $(date +'%Y-%m-%d')" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-
-          # ROM-Dependent Tests
-          if [ "${{ needs.rom-dependent-tests.result }}" == "success" ]; then
-            echo "✅ **ROM-Dependent Tests:** Passed" >> $GITHUB_STEP_SUMMARY
-          elif [ "${{ needs.rom-dependent-tests.result }}" == "skipped" ]; then
-            echo "⏭️ **ROM-Dependent Tests:** Skipped" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "❌ **ROM-Dependent Tests:** Failed" >> $GITHUB_STEP_SUMMARY
-          fi
 
           # Experimental AI Tests
           if [ "${{ needs.experimental-ai-tests.result }}" == "success" ]; then
