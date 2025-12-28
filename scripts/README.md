@@ -11,6 +11,64 @@ scripts/fetch_usdasm.sh
 # or: USDASM_DIR=/path/to/usdasm scripts/fetch_usdasm.sh
 ```
 
+## install-nightly.sh
+
+Builds and installs an isolated nightly build in a separate clone (no dev build overlap)
+and creates wrapper commands (`yaze-nightly`, `yaze-nightly-grpc`, `z3ed-nightly`,
+`yaze-mcp-nightly`) under `~/.local/bin`.
+
+```bash
+scripts/install-nightly.sh
+YAZE_NIGHTLY_REPO="$HOME/Code/yaze-nightly" YAZE_NIGHTLY_BUILD_TYPE=RelWithDebInfo scripts/install-nightly.sh
+```
+
+### What it does
+- Clones `origin` into `$YAZE_NIGHTLY_REPO` (default `~/Code/yaze-nightly`) and keeps it clean.
+- Builds into `$YAZE_NIGHTLY_BUILD_DIR` (default `~/Code/yaze-nightly/build-nightly`).
+- Installs into `$YAZE_NIGHTLY_PREFIX/releases/<timestamp>` and updates `.../current`.
+- Writes wrapper scripts to `$YAZE_NIGHTLY_BIN_DIR` (default `~/.local/bin`).
+
+### Environment Overrides
+- `YAZE_NIGHTLY_REPO` (default `~/Code/yaze-nightly`)
+- `YAZE_NIGHTLY_BRANCH` (default `master`)
+- `YAZE_NIGHTLY_BUILD_DIR` (default `$YAZE_NIGHTLY_REPO/build-nightly`)
+- `YAZE_NIGHTLY_BUILD_TYPE` (default `RelWithDebInfo`)
+- `YAZE_NIGHTLY_PREFIX` (default `~/.local/yaze/nightly`)
+- `YAZE_NIGHTLY_BIN_DIR` (default `~/.local/bin`)
+- `YAZE_GRPC_HOST`/`YAZE_GRPC_PORT` (for `yaze-mcp-nightly`, defaults `localhost:50051`)
+- `YAZE_MCP_REPO` (default `~/Code/yaze-mcp`)
+
+### Typical usage
+```bash
+yaze-nightly-grpc     # start GUI with gRPC on 50051
+yaze-mcp-nightly      # start MCP server against the same port
+z3ed-nightly          # run CLI without touching dev build
+```
+
+### Removal
+```bash
+rm -rf ~/.local/yaze/nightly ~/.local/bin/yaze-nightly* ~/.local/bin/z3ed-nightly ~/.local/bin/yaze-mcp-nightly
+```
+
+See `docs/public/build/quick-reference.md` for environment overrides and runtime notes.
+
+## build-ios.sh
+
+Builds iOS static libraries via CMake and generates a thin Xcode project via XcodeGen.
+
+```bash
+scripts/build-ios.sh           # defaults to ios-debug
+scripts/build-ios.sh ios-release
+```
+
+Requirements:
+- Xcode (iOS SDK installed)
+- XcodeGen (`brew install xcodegen`)
+
+Outputs:
+- `build-ios/ios/libyaze_ios_bundle.a`
+- `src/ios/yaze_ios.xcodeproj`
+
 ## build_cleaner.py
 
 Automates CMake source list maintenance and header include management with IWYU-style analysis.
