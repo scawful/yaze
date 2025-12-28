@@ -2,20 +2,28 @@
 
 This guide summarizes the architecture and implementation standards used across the editor codebase.
 
-## Editor Status (November 2025)
+## Editor Status (December 2025)
 
-| Editor            | State        | Panels | Notes |
-|-------------------|--------------|--------|-------|
-| Overworld         | Stable       | 8      | Full feature set with tile16 editor, scratch space. |
-| Message           | Stable       | 4      | Message list, editor, font atlas, dictionary panels. |
-| Emulator          | Stable       | 10     | CPU, PPU, Memory debuggers; AI agent integration. |
-| Palette           | Stable       | 11     | Source of truth for palette helpers. |
-| Assembly          | Stable       | 2      | File browser and editor panels. |
-| Dungeon           | Stable       | 8      | Room selector, matrix, graphics, object editor. |
-| Graphics          | Stable       | 4      | Sheet editor, browser, player animations. |
-| Sprite            | Stable       | 2      | Vanilla and custom sprite panels. |
-| Screen            | Stable       | 5      | Dungeon maps, inventory, title screen, etc. |
-| Music             | Experimental | 3      | Tracker, instrument editor, assembly view. |
+**Status rubric**:
+- **Stable**: Core workflows function reliably; remaining TODOs are UX polish.
+- **Beta**: Core workflows exist, but important features are incomplete or experimental.
+- **Experimental**: WIP, flagged experimental in UI, or has major TODOs in core paths.
+
+| Editor | State | Evidence |
+|--------|-------|----------|
+| Overworld | Stable | E2E coverage; TODOs for v3 settings UI and entity deletion. |
+| Dungeon | Stable | E2E coverage; TODOs for usage tracker, selection preview, and rendering TODOs in `src/zelda3/dungeon`. |
+| Message | Stable | TODO: replace workflow in message editor. |
+| Palette | Stable | TODO: JSON export/import and notifications. |
+| Graphics | Beta | Explicit experimental section; screen editor marked WIP. |
+| Sprite | Stable | Core sprite panels present; no WIP markers in editor code. |
+| Screen | Experimental | `screen_editor.h` labeled WIP; title/inventory TODOs. |
+| Emulator | Beta | Debug UI + PPU TODOs; save-state UI not fully wired. |
+| Assembly | Beta | TODOs in assembly editor and project file editor. |
+| Hex | Beta | Memory editor lacks search and richer UX; see `src/app/editor/code`. |
+| Agent | Experimental | Chain mode labeled experimental; collaboration TODOs. |
+| Music | Experimental | Sample import/export and BRR tooling TODOs; serialization incomplete. |
+| Settings | Beta | Settings/project manager and layout serialization TODOs. |
 
 ### Recent Improvements (v0.3.9)
 
@@ -29,6 +37,67 @@ This guide summarizes the architecture and implementation standards used across 
 
 - **Dungeon object rendering**: Regression with object visibility
 - **ZSOW v3 palettes**: Large-area palette issues being investigated
+
+## Codebase Map
+
+```text
+yaze/
+├── src/
+│   ├── app/            # Desktop app (editors, gfx, emu, UI)
+│   ├── zelda3/         # Domain data + ROM parsing (overworld, dungeon, music)
+│   ├── rom/            # Core ROM container, transactions, diagnostics
+│   ├── cli/            # z3ed CLI + agent tooling
+│   ├── lab/            # Sandbox targets (layout designer, UI experiments)
+│   ├── web/            # WASM UI + browser integration
+│   ├── core/           # Shared core utilities/patch logic
+│   └── util/           # Logging, file IO, helpers
+├── incl/               # Public C API headers
+├── test/               # Unit/integration/e2e/benchmarks
+├── tools/              # Dev tools and build helpers
+├── assets/             # Built-in assets (no ROMs)
+├── cmake/              # Build system and dependency wiring
+├── scripts/            # Automation helpers
+└── docs/               # Documentation (public/internal)
+```
+
+```mermaid
+flowchart TD
+  app[src/app] --> zelda3[src/zelda3]
+  zelda3 --> rom[src/rom]
+  app --> gfx[src/app/gfx]
+  app --> emu[src/app/emu]
+  cli[src/cli] --> rom
+  cli --> zelda3
+  web[src/web] --> app
+  tools[src/tools] --> rom
+```
+
+## ROM Operations and Data Flow
+
+- **Load**: `RomFileManager`/`SessionCoordinator` load ROMs into `Rom` and hydrate `zelda3::GameData`.
+- **Read/Write**: `Rom` provides byte/word/long access; `Transaction` batches edits safely.
+- **Domain parse**: `zelda3::*` modules interpret ROM data (overworld, dungeon rooms, sprites, music).
+- **Edit**: Editors mutate domain models, then persist via save helpers (overworld, dungeon maps, palettes).
+- **Patch/compare**: Asar wrapper, ROM diff tools, and doctor commands validate or patch data.
+- **Test**: `TestRomManager` resolves ROMs locally; CI runs without ROMs and skips ROM-dependent suites.
+
+## UX/UI Feature Map
+
+- **Card-based layout**: EditorCardRegistry + LayoutManager for dockable panels and presets.
+- **Session-aware UI**: Multi-session coordinator, per-editor panel visibility, activity bar.
+- **Command tooling**: Command palette, shortcut manager, action registry.
+- **Theming**: Shared palette + semantic color tokens via AgentUI theme helpers.
+- **Agent UI**: Chat panels, tool execution, and multimodal test harnesses.
+- **Layout designer**: WYSIWYG layout tooling for panel arrangements.
+
+## Density Reduction Opportunities
+
+- **Quarantine legacy ROM code**: `src/rom/rom_old.*` can move to a legacy target or be removed if unused.
+- **Make WIP editors optional**: Gate agent UI and music editor behind build flags; layout designer now ships via the lab target.
+- **Split editor system**: `yaze_editor_system_{panels,session,shortcuts}` targets now isolate editor system components.
+- **Isolate experimental UI**: Layout designer now lives under `src/lab/` and builds via `YAZE_BUILD_LAB` (default OFF).
+- **De-duplicate editor panels**: Consolidate shared panel patterns across dungeon/overworld/screen.
+- **Reduce build surface**: Make emulator and web UI optional in minimal builds.
 
 ## 1. Core Architectural Patterns
 

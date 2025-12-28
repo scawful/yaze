@@ -12,6 +12,8 @@ The `z3ed` AI agent now supports **mock ROM mode** for testing without requiring
 - **Contributors** - Test the agent without needing to provide ROMs
 - **Automated testing** - Consistent, reproducible test environments
 
+GitHub CI does not run ROM-dependent editor tests; those must be exercised locally with real ROMs.
+
 ## How Mock ROM Mode Works
 
 Mock ROM mode creates a minimal but valid ROM structure with:

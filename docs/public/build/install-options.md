@@ -65,6 +65,15 @@ cd build-wasm && npx http-server .
 - When creating packages (Homebrew/Chocolatey/winget), pin the release URL and checksum and align dependencies to the CMake presets (`mac-*/lin-*/win-*`).
 - Keep CLI and GUI in the same archive to avoid mismatched versions; CLI entry is `z3ed`, GUI entry is `yaze`.
 
+## Local Nightly (Self-Build)
+For an isolated nightly build separate from your dev tree, use:
+```bash
+scripts/install-nightly.sh
+```
+This installs into `~/.local/yaze/nightly/current` and exposes wrapper commands
+(`yaze-nightly`, `z3ed-nightly`, `yaze-mcp-nightly`).
+Re-run the script to update to the latest commit.
+
 ## Quick Links
 - Build quick reference: `docs/public/build/quick-reference.md`
 - CMake presets: `CMakePresets.json`

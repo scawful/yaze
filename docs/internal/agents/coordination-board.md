@@ -3,12 +3,66 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
+### 2025-12-26 imgui-frontend-engineer – Mobile layout + nav pass
+- TASK: Improve iPad layout (responsive welcome cards + panel width clamps), add mobile nav switcher, tune iOS touch sizing, and track per-edge safe areas.
+- SCOPE: src/app/editor/ui/welcome_screen.*, src/app/editor/menu/right_panel_manager.cc, src/app/editor/menu/activity_bar.cc, src/app/editor/layout/layout_coordinator.cc, src/app/editor/ui/ui_coordinator.*, src/app/platform/ios/ios_window_backend.mm, src/app/platform/ios/ios_platform_state.*
+- STATUS: COMPLETE
+- NOTES: Compact layout uses floating nav button; right/side panels clamp to viewport; safe-area insets stored for per-edge use.
+
+### 2025-12-25 imgui-frontend-engineer – iOS touch + safe area tuning
+- TASK: Add touch target padding + safe-area padding for ImGui on iOS.
+- SCOPE: src/app/platform/ios/ios_window_backend.mm
+- STATUS: COMPLETE
+- NOTES: TouchExtraPadding targets 44pt min; DisplaySafeAreaPadding uses max safe-area insets.
+
+### 2025-12-25 imgui-frontend-engineer – Dashboard responsive layout pass
+- TASK: Rebuild dashboard/editor selection grid layout for responsive sizing + theme-based colors.
+- SCOPE: src/app/editor/ui/dashboard_panel.cc, src/app/editor/ui/editor_selection_dialog.cc
+- STATUS: COMPLETE
+- NOTES: z3ed CLI not available; tracking sub-steps locally.
+
+### 2025-12-24 imgui-frontend-engineer – Graphics palette tint regression
+- TASK: Fix red-tinted palettes across graphics previews (LoadAssets/Tile16).
+- SCOPE: src/app/gfx/types/snes_color.cc, src/app/gfx/types/snes_palette.cc, src/app/editor/overworld/tile16_editor.*
+- STATUS: COMPLETE
+- NOTES: Corrected CGX palette conversion to avoid 0-255 vs 0-1 misuse; removed redundant set_rgb in palette constructors; restored palette-row offset mapping to skip HUD rows. Follow-up: tile16 palette pipeline preserves encoded CGRAM offsets end-to-end (tile8 + tile16 + previews) unless auto-normalize is enabled, and remaps rows using sheet base.
+
 ### 2025-12-06 ai-infra-architect – Overworld Editor Refactoring Phase 2
 - TASK: Critical bug fixes and Tile16 Editor polish
 - SCOPE: src/app/editor/overworld/, src/app/gfx/render/
 - STATUS: COMPLETE (Phase 2 - Bug Fixes & Polish)
 - NOTES: Fixed tile cache (copy vs move), centralized zoom constants, re-enabled live preview, scaled entity hit detection, restored Tile16 Editor window, fixed SNES palette offset (+1), added palette remapping for source canvas viewing, visual sheet/palette indicators, diagnostic function. Simplified scratch space to single slot. Added toolbar panel toggles.
 - NEXT: Phase 2 Week 2 - Toolset improvements (eyedropper, flood fill, eraser tools)
+
+### 2025-12-24 snes-emulator-expert – Overworld palette tint regression
+- TASK: Investigate red-tinted overworld palette regression after history compaction.
+- SCOPE: src/app/overworld/, src/app/gfx/, src/zelda3/overworld/
+- STATUS: COMPLETE
+- NOTES: Tile16 palette row mapping now uses ROM palette indices directly (no HUD row offset); adjusted remap logging/comments.
+
+### 2025-12-23 imgui-frontend-engineer – Merge blockers + GLFW/iOS plan
+- TASK: Patch merge blockers (dungeon map reserved writes, Asar temp cleanup, 2BPP save guard) and draft GLFW+iOS integration plan with lab/orchestration notes.
+- SCOPE: src/zelda3/screen/dungeon_map.cc, src/core/asar_wrapper.cc, src/app/editor/graphics/*, docs/internal.
+- STATUS: COMPLETE
+- INITIATIVE_DOC: docs/internal/agents/initiative-glfw-ios-backend.md
+- NOTES: z3ed CLI not available in environment; tracking sub-steps locally.
+
+### 2025-12-24 imgui-frontend-engineer – iOS rebuild phase 0
+- TASK: Start iOS-first execution; stabilize native file picker for iOS.
+- SCOPE: src/app/platform/file_dialog.mm, src/ios/*, src/app/platform/ios/ios_host.mm, src/app/gfx/backend/metal_renderer.mm
+- STATUS: ACTIVE
+- NOTES: Added typed file dialog options + iOS picker type support; stubbed ios_host + metal_renderer, wired Metal renderer into factory/CMake, switched iOS main loop to IOSHost, added Xcode project + Info.plist updates (file sharing + sfc/smc UTTypes), added iOS window backend/platform state + Metal ImGui wiring, and fixed iOS framework links (SDKROOT + ModelIO + forced iOS linker flags). Continuing to split atomic commits + review remaining iOS/mobile changes.
+
+### 2025-12-24 backend-infra-engineer – iOS thin app + XcodeGen
+- TASK: CMake-built iOS static libs + generated Xcode app shell.
+- SCOPE: CMake presets/platform defs, cmake/dependencies, src/ios/project.yml, scripts/ios.
+- STATUS: COMPLETE (added iOS presets + bundle target + XcodeGen spec + build-ios.sh; legacy pbxproj still in repo).
+
+### 2025-12-24 backend-infra-engineer – iOS file dialog async + bundle assets
+- TASK: Fix iOS file picker re-entrancy and ensure bundled assets are discoverable.
+- SCOPE: src/app/platform/file_dialog.*, src/app/editor/editor_manager.cc, src/app/editor/ui/ui_coordinator.cc, src/util/platform_paths.cc, src/ios/project.yml.
+- STATUS: COMPLETE
+- NOTES: Added async open dialog API; iOS ROM/project flows now async; assets copied into bundle for fonts/themes; iOS config/docs paths use sandbox via YAZE_IOS guard (avoid /.yaze).
 
 ### 2025-12-22 zelda3-hacking-expert – Dungeon map save parity + palette wiring
 - TASK: Align dungeon map save flow with ZScream reference and unblock rom-dependent editor tests.
@@ -21,6 +75,18 @@
 - SCOPE: test/test_utils.h, test/yaze_test.cc, test/e2e/, test/integration/, docs/public build/test docs.
 - STATUS: IN_PROGRESS
 - NOTES: Replaced vanilla ROM with clean padded copy; fixed test SaveRomToFile to overwrite test copies; aligned expanded tile16 detection.
+
+### 2025-12-22 imgui-frontend-engineer – Lab target for layout designer
+- TASK: Move layout designer into a standalone lab target and decouple it from the main editor UI.
+- SCOPE: src/lab/, src/lab/layout_designer/, editor menu, CMake, docs/internal/architecture.
+- STATUS: COMPLETE
+- NOTES: Added YAZE_BUILD_LAB option + `lab` executable, moved layout designer into src/lab/, removed main editor menu hook, and updated layout designer docs for lab usage.
+
+### 2025-12-22 backend-infra-engineer – Local nightly install workflow
+- TASK: Create isolated nightly build/install flow for yaze + z3ed + yaze-mcp distinct from dev builds.
+- SCOPE: scripts/, CMakeUserPresets.json.example, docs/public/build/quick-reference.md, scripts/README.md
+- STATUS: COMPLETE
+- NOTES: Added scripts/install-nightly.sh with wrapper commands; documented nightly flow + env overrides in quick-reference/install-options.
 
 ### 2025-12-21 backend-infra-engineer – Codebase size reduction review
 - TASK: Audit repo size + build configuration outputs; propose shrink plan (submodules, build dirs, deps cache).
