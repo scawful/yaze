@@ -34,6 +34,8 @@ CMakeUserPresets.json
 *~
 .DS_Store
 src/ios/yaze_ios.xcodeproj/
+src/ios/yaze.xcodeproj/xcuserdata/
+src/ios/yaze.xcodeproj/project.xcworkspace/xcuserdata/
 
 # Test outputs
 test_screenshots/
