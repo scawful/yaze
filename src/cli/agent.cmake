@@ -238,7 +238,7 @@ if(YAZE_ENABLE_REMOTE_AUTOMATION)
   list(APPEND YAZE_AGENT_SOURCES
     cli/service/agent/agent_control_server.cc
     cli/service/agent/emulator_service_impl.cc
-    cli/handlers/tools/emulator_commands.cc
+    cli/service/agent/rom_debug_agent.cc
     cli/service/gui/gui_automation_client.cc
     cli/service/gui/canvas_automation_client.cc
   )

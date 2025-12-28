@@ -24,6 +24,7 @@
 // Note: Proto files will be generated to build directory
 #endif
 
+#include <functional>
 #include "app/net/rom_version_manager.h"
 #include "rom/rom.h"
 
@@ -35,34 +36,25 @@ namespace net {
 
 /**
  * @brief gRPC service implementation for remote ROM manipulation
- *
- * Enables remote clients (like z3ed CLI) to:
- * - Read/write ROM data
- * - Submit proposals for collaborative editing
- * - Manage ROM versions and snapshots
- * - Query ROM structures (overworld, dungeons, sprites)
- *
- * Thread-safe and designed for concurrent access.
  */
 class RomServiceImpl final : public proto::RomService::Service {
  public:
-  /**
-   * @brief Configuration for the ROM service
-   */
+  using RomGetter = std::function<Rom*()>;
+
   struct Config {
-    bool require_approval_for_writes = true;  // Submit writes as proposals
-    bool enable_version_management = true;    // Auto-snapshot before changes
-    int max_read_size_bytes = 1024 * 1024;    // 1MB max per read
-    bool allow_raw_rom_access = true;         // Allow direct byte access
+    bool require_approval_for_writes = true;
+    bool enable_version_management = true;
+    int max_read_size_bytes = 1024 * 1024;
+    bool allow_raw_rom_access = true;
   };
 
   /**
    * @brief Construct ROM service
-   * @param rom Pointer to ROM instance (not owned)
+   * @param rom_getter Function to retrieve the active ROM instance
    * @param version_mgr Pointer to version manager (not owned, optional)
    * @param approval_mgr Pointer to approval manager (not owned, optional)
    */
-  RomServiceImpl(Rom* rom, RomVersionManager* version_mgr = nullptr,
+  RomServiceImpl(RomGetter rom_getter, RomVersionManager* version_mgr = nullptr,
                  ProposalApprovalManager* approval_mgr = nullptr);
 
   ~RomServiceImpl() override = default;
@@ -155,7 +147,7 @@ class RomServiceImpl final : public proto::RomService::Service {
 
  private:
   Config config_;
-  Rom* rom_;                               // Not owned
+  RomGetter rom_getter_;
   RomVersionManager* version_mgr_;         // Not owned, may be null
   ProposalApprovalManager* approval_mgr_;  // Not owned, may be null
 

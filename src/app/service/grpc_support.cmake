@@ -47,11 +47,6 @@ target_include_directories(yaze_grpc_support PUBLIC
 target_link_libraries(yaze_grpc_support PUBLIC
   yaze_util
   yaze_common
-  yaze_zelda3
-  yaze_gfx
-  yaze_gui
-  yaze_emulator
-  yaze_net
   ${ABSL_TARGETS}
   ${YAZE_SDL2_TARGETS}
 )
@@ -114,8 +109,10 @@ set_target_properties(yaze_grpc_support PROPERTIES
 # Platform-specific compile definitions
 if(UNIX AND NOT APPLE)
   target_compile_definitions(yaze_grpc_support PRIVATE linux stricmp=strcasecmp)
-elseif(APPLE)
+elseif(YAZE_PLATFORM_MACOS)
   target_compile_definitions(yaze_grpc_support PRIVATE MACOS)
+elseif(YAZE_PLATFORM_IOS)
+  target_compile_definitions(yaze_grpc_support PRIVATE YAZE_IOS)
 elseif(WIN32)
   target_compile_definitions(yaze_grpc_support PRIVATE WINDOWS)
 endif()

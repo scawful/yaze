@@ -1,133 +1,100 @@
 #pragma once
 
 #include <grpcpp/grpcpp.h>
-
 #include <memory>
 
 #include "app/emu/debug/step_controller.h"
 #include "app/emu/debug/symbol_provider.h"
 #include "protos/emulator_service.grpc.pb.h"
 
-// Forward declaration to avoid circular dependencies
-namespace yaze::emu {
+namespace yaze {
+class Rom;
+namespace emu {
 class Emulator;
 }
+}
 
-namespace yaze::agent {
+namespace yaze::net {
 
-class EmulatorServiceImpl final : public EmulatorService::Service {
+class EmulatorServiceImpl final : public agent::EmulatorService::Service {
  public:
-  explicit EmulatorServiceImpl(yaze::emu::Emulator* emulator);
+  using RomGetter = std::function<Rom*()>;
+  explicit EmulatorServiceImpl(yaze::emu::Emulator* emulator, RomGetter rom_getter = nullptr);
 
-  // --- Lifecycle ---
-  grpc::Status Start(grpc::ServerContext* context, const Empty* request,
-                     CommandResponse* response) override;
-  grpc::Status Stop(grpc::ServerContext* context, const Empty* request,
-                    CommandResponse* response) override;
-  grpc::Status Pause(grpc::ServerContext* context, const Empty* request,
-                     CommandResponse* response) override;
-  grpc::Status Resume(grpc::ServerContext* context, const Empty* request,
-                      CommandResponse* response) override;
-  grpc::Status Reset(grpc::ServerContext* context, const Empty* request,
-                     CommandResponse* response) override;
+  // --- Core Lifecycle & Control ---
+  grpc::Status ControlEmulator(grpc::ServerContext* context, 
+                               const agent::ControlRequest* request,
+                               agent::CommandResponse* response) override;
+  
+  grpc::Status StepEmulator(grpc::ServerContext* context, 
+                            const agent::StepControlRequest* request,
+                            agent::StepResponse* response) override;
+  
+  grpc::Status RunToBreakpoint(grpc::ServerContext* context, 
+                               const agent::Empty* request,
+                               agent::BreakpointHitResponse* response) override;
 
-  // --- Input Control ---
+  // --- Input & State ---
   grpc::Status PressButtons(grpc::ServerContext* context,
-                            const ButtonRequest* request,
-                            CommandResponse* response) override;
-  grpc::Status ReleaseButtons(grpc::ServerContext* context,
-                              const ButtonRequest* request,
-                              CommandResponse* response) override;
+                            const agent::ButtonRequest* request,
+                            agent::CommandResponse* response) override;
   grpc::Status HoldButtons(grpc::ServerContext* context,
-                           const ButtonHoldRequest* request,
-                           CommandResponse* response) override;
-
-  // --- State Inspection ---
+                           const agent::ButtonHoldRequest* request,
+                           agent::CommandResponse* response) override;
   grpc::Status GetGameState(grpc::ServerContext* context,
-                            const GameStateRequest* request,
-                            GameStateResponse* response) override;
+                            const agent::GameStateRequest* request,
+                            agent::GameStateResponse* response) override;
   grpc::Status ReadMemory(grpc::ServerContext* context,
-                          const MemoryRequest* request,
-                          MemoryResponse* response) override;
+                          const agent::MemoryRequest* request,
+                          agent::MemoryResponse* response) override;
   grpc::Status WriteMemory(grpc::ServerContext* context,
-                           const MemoryWriteRequest* request,
-                           CommandResponse* response) override;
+                           const agent::MemoryWriteRequest* request,
+                           agent::CommandResponse* response) override;
 
-  // --- Advanced Debugging ---
-  // Breakpoints
-  grpc::Status AddBreakpoint(grpc::ServerContext* context,
-                             const BreakpointRequest* request,
-                             BreakpointResponse* response) override;
-  grpc::Status RemoveBreakpoint(grpc::ServerContext* context,
-                                const BreakpointIdRequest* request,
-                                CommandResponse* response) override;
-  grpc::Status ListBreakpoints(grpc::ServerContext* context,
-                               const Empty* request,
-                               BreakpointListResponse* response) override;
-  grpc::Status SetBreakpointEnabled(grpc::ServerContext* context,
-                                    const BreakpointStateRequest* request,
-                                    CommandResponse* response) override;
+  // --- Debugging Management ---
+  grpc::Status BreakpointControl(grpc::ServerContext* context,
+                                 const agent::BreakpointControlRequest* request,
+                                 agent::BreakpointControlResponse* response) override;
+  
+  grpc::Status WatchpointControl(grpc::ServerContext* context,
+                                 const agent::WatchpointControlRequest* request,
+                                 agent::WatchpointControlResponse* response) override;
 
-  // Watchpoints (memory access tracking)
-  grpc::Status AddWatchpoint(grpc::ServerContext* context,
-                             const WatchpointRequest* request,
-                             WatchpointResponse* response) override;
-  grpc::Status RemoveWatchpoint(grpc::ServerContext* context,
-                                const WatchpointIdRequest* request,
-                                CommandResponse* response) override;
-  grpc::Status ListWatchpoints(grpc::ServerContext* context,
-                               const Empty* request,
-                               WatchpointListResponse* response) override;
-  grpc::Status GetWatchpointHistory(
-      grpc::ServerContext* context, const WatchpointHistoryRequest* request,
-      WatchpointHistoryResponse* response) override;
-
-  // Execution Control
-  grpc::Status StepInstruction(grpc::ServerContext* context,
-                               const Empty* request,
-                               StepResponse* response) override;
-  grpc::Status RunToBreakpoint(grpc::ServerContext* context,
-                               const Empty* request,
-                               BreakpointHitResponse* response) override;
-  grpc::Status StepOver(grpc::ServerContext* context, const Empty* request,
-                        StepResponse* response) override;
-  grpc::Status StepOut(grpc::ServerContext* context, const Empty* request,
-                       StepResponse* response) override;
-
-  // Disassembly & Code Analysis
+  // --- Analysis & Symbols ---
   grpc::Status GetDisassembly(grpc::ServerContext* context,
-                              const DisassemblyRequest* request,
-                              DisassemblyResponse* response) override;
+                              const agent::DisassemblyRequest* request,
+                              agent::DisassemblyResponse* response) override;
   grpc::Status GetExecutionTrace(grpc::ServerContext* context,
-                                 const TraceRequest* request,
-                                 TraceResponse* response) override;
-
-  // Symbol Management
-  grpc::Status LoadSymbols(grpc::ServerContext* context,
-                           const SymbolFileRequest* request,
-                           CommandResponse* response) override;
+                                 const agent::TraceRequest* request,
+                                 agent::TraceResponse* response) override;
   grpc::Status ResolveSymbol(grpc::ServerContext* context,
-                             const SymbolLookupRequest* request,
-                             SymbolLookupResponse* response) override;
+                             const agent::SymbolLookupRequest* request,
+                             agent::SymbolLookupResponse* response) override;
   grpc::Status GetSymbolAt(grpc::ServerContext* context,
-                           const AddressRequest* request,
-                           SymbolLookupResponse* response) override;
+                           const agent::AddressRequest* request,
+                           agent::SymbolLookupResponse* response) override;
+  grpc::Status LoadSymbols(grpc::ServerContext* context,
+                           const agent::SymbolFileRequest* request,
+                           agent::CommandResponse* response) override;
 
-  // Debugging Session
-  grpc::Status CreateDebugSession(grpc::ServerContext* context,
-                                  const DebugSessionRequest* request,
-                                  DebugSessionResponse* response) override;
+  // --- Session & Experiments ---
   grpc::Status GetDebugStatus(grpc::ServerContext* context,
-                              const Empty* request,
-                              DebugStatusResponse* response) override;
+                              const agent::Empty* request,
+                              agent::DebugStatusResponse* response) override;
+  grpc::Status TestRun(grpc::ServerContext* context,
+                       const agent::TestRunRequest* request,
+                       agent::TestRunResponse* response) override;
 
  private:
   void InitializeStepController();
+  void CaptureCPUState(agent::CPUState* state);
 
   yaze::emu::Emulator*
       emulator_;  // Non-owning pointer to the emulator instance
+  RomGetter rom_getter_;
   yaze::emu::debug::SymbolProvider symbol_provider_;  // Symbol table for debugging
-  yaze::emu::debug::StepController step_controller_;  // Call stack tracking
+
+  yaze::emu::debug::StepController step_controller_;
 };
 
-}  // namespace yaze::agent
+}  // namespace yaze::net
