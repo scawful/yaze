@@ -6,6 +6,8 @@
 #include "util/macro.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 
+#include <algorithm>
+
 #ifdef __EMSCRIPTEN__
 #include "app/platform/wasm/wasm_loading_manager.h"
 #endif
@@ -26,6 +28,47 @@ uint32_t AddressFromBytes(uint8_t bank, uint8_t high, uint8_t low) {
 // Helper to convert SNES to PC address
 uint32_t SnesToPc(uint32_t snes_addr) {
   return (snes_addr & 0x7FFF) | ((snes_addr & 0x7F0000) >> 1);
+}
+
+struct PaletteSlice {
+  size_t offset = 0;
+  int length = 0;
+  bool valid = false;
+};
+
+PaletteSlice GetDefaultPaletteSlice(const gfx::SnesPalette& palette) {
+  const int palette_size = static_cast<int>(palette.size());
+  if (palette_size <= 0) {
+    return {};
+  }
+
+  const bool has_explicit_transparent =
+      palette_size >= 16 && (palette_size % 16 == 0);
+  PaletteSlice slice;
+  slice.offset = has_explicit_transparent ? 1 : 0;
+  slice.length = has_explicit_transparent ? 15 : std::min(palette_size, 15);
+  slice.valid = slice.length > 0 &&
+                (slice.offset + static_cast<size_t>(slice.length) <=
+                 palette.size());
+
+  if (!slice.valid) {
+    slice.offset = 0;
+    slice.length = std::min(palette_size, 15);
+    slice.valid = slice.length > 0 &&
+                  (slice.offset + static_cast<size_t>(slice.length) <=
+                   palette.size());
+  }
+
+  return slice;
+}
+
+void ApplyDefaultPalette(gfx::Bitmap& bitmap,
+                         const gfx::SnesPalette& palette) {
+  auto slice = GetDefaultPaletteSlice(palette);
+  if (!slice.valid) {
+    return;
+  }
+  bitmap.SetPaletteWithTransparent(palette, slice.offset, slice.length);
 }
 
 // Helper to convert PC to SNES address
@@ -376,7 +419,7 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
         }
         
         if (!default_palette.empty()) {
-          data.gfx_bitmaps[i].SetPalette(default_palette);
+          ApplyDefaultPalette(data.gfx_bitmaps[i], default_palette);
         } else {
           // Fallback to grayscale if no palette found
           std::vector<gfx::SnesColor> grayscale;
