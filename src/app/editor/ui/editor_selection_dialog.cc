@@ -1,6 +1,7 @@
 #include "app/editor/ui/editor_selection_dialog.h"
 
 #include <algorithm>
+#include <cfloat>
 #include <fstream>
 #include <sstream>
 
@@ -378,6 +379,8 @@ void EditorSelectionDialog::DrawEditorPanel(const EditorInfo& info, int index,
   const ImVec4 text_primary = gui::ConvertColorToImVec4(theme.text_primary);
   const ImVec4 text_secondary = gui::ConvertColorToImVec4(theme.text_secondary);
   const ImVec4 accent = gui::ConvertColorToImVec4(theme.accent);
+  ImFont* text_font = ImGui::GetFont();
+  const float text_font_size = ImGui::GetFontSize();
 
   const ImGuiStyle& style = ImGui::GetStyle();
   const float line_height = ImGui::GetTextLineHeight();
@@ -442,11 +445,14 @@ void EditorSelectionDialog::DrawEditorPanel(const EditorInfo& info, int index,
                      cursor_pos.y + padding_y + badge_radius);
     draw_list->AddCircleFilled(badge_pos, badge_radius,
                                ImGui::GetColorU32(base_color), 16);
-    ImVec2 star_size = ImGui::CalcTextSize(ICON_MD_STAR);
-    ImGui::SetCursorScreenPos(
-        ImVec2(badge_pos.x - star_size.x * 0.5f,
-               badge_pos.y - star_size.y * 0.5f));
-    ImGui::TextColored(text_primary, ICON_MD_STAR);
+    const ImU32 star_color = ImGui::GetColorU32(text_primary);
+    const ImVec2 star_size =
+        text_font->CalcTextSizeA(text_font_size, FLT_MAX, 0.0f,
+                                 ICON_MD_STAR);
+    const ImVec2 star_pos(badge_pos.x - star_size.x * 0.5f,
+                          badge_pos.y - star_size.y * 0.5f);
+    draw_list->AddText(text_font, text_font_size, star_pos, star_color,
+                       ICON_MD_STAR);
   }
 
   // Make button transparent (we draw our own background)
@@ -458,11 +464,9 @@ void EditorSelectionDialog::DrawEditorPanel(const EditorInfo& info, int index,
   ImGui::PushStyleColor(ImGuiCol_ButtonActive,
                         ScaleColor(base_color, 0.5f, 0.7f));
 
-  ImGui::SetCursorScreenPos(cursor_pos);
   bool clicked =
       ImGui::Button(absl::StrCat("##", info.name).c_str(), card_size);
   bool is_hovered = ImGui::IsItemHovered();
-  const ImVec2 after_button = ImGui::GetCursorScreenPos();
 
   ImGui::PopStyleColor(3);
 
@@ -471,28 +475,45 @@ void EditorSelectionDialog::DrawEditorPanel(const EditorInfo& info, int index,
   draw_list->AddCircleFilled(icon_center, icon_radius, icon_bg, 32);
 
   // Draw icon
-  ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[2]);  // Larger font for icon
-  ImVec2 icon_size = ImGui::CalcTextSize(info.icon);
-  ImGui::SetCursorScreenPos(
-      ImVec2(icon_center.x - icon_size.x / 2, icon_center.y - icon_size.y / 2));
-  ImGui::TextColored(text_primary, "%s", info.icon);
+  ImFont* icon_font = ImGui::GetFont();
+  if (ImGui::GetIO().Fonts->Fonts.size() > 2) {
+    icon_font = ImGui::GetIO().Fonts->Fonts[2];
+  } else if (ImGui::GetIO().Fonts->Fonts.size() > 1) {
+    icon_font = ImGui::GetIO().Fonts->Fonts[1];
+  }
+  ImGui::PushFont(icon_font);
+  const float icon_font_size = ImGui::GetFontSize();
+  const ImVec2 icon_size =
+      icon_font->CalcTextSizeA(icon_font_size, FLT_MAX, 0.0f, info.icon);
   ImGui::PopFont();
+  const ImVec2 icon_text_pos(icon_center.x - icon_size.x * 0.5f,
+                             icon_center.y - icon_size.y * 0.5f);
+  draw_list->AddText(icon_font, icon_font_size, icon_text_pos,
+                     ImGui::GetColorU32(text_primary), info.icon);
 
   // Draw name
-  const float name_wrap_width = card_size.x - padding_x * 2.0f;
-  ImGui::PushTextWrapPos(cursor_pos.x + card_size.x - padding_x);
-  ImVec2 name_size =
-      ImGui::CalcTextSize(info.name, nullptr, false, name_wrap_width);
-  ImGui::SetCursorScreenPos(ImVec2(
-      cursor_pos.x + (card_size.x - name_size.x) / 2.0f, title_y));
-  ImGui::TextColored(base_color, "%s", info.name);
-  ImGui::PopTextWrapPos();
+  const ImVec2 name_size =
+      text_font->CalcTextSizeA(text_font_size, FLT_MAX, 0.0f, info.name);
+  float name_x = cursor_pos.x + (card_size.x - name_size.x) * 0.5f;
+  const float name_min_x = cursor_pos.x + padding_x;
+  const float name_max_x = cursor_pos.x + card_size.x - padding_x;
+  name_x = std::clamp(name_x, name_min_x, name_max_x);
+  const ImVec2 name_pos(name_x, title_y);
+  const ImVec4 name_clip(name_min_x, cursor_pos.y + padding_y, name_max_x,
+                         footer_y);
+  draw_list->AddText(text_font, text_font_size, name_pos,
+                     ImGui::GetColorU32(base_color), info.name, nullptr, 0.0f,
+                     &name_clip);
 
   // Draw shortcut hint if available
   if (!info.shortcut.empty()) {
-    ImGui::SetCursorScreenPos(
-        ImVec2(cursor_pos.x + padding_x, footer_y));
-    ImGui::TextColored(text_secondary, "%s", info.shortcut.c_str());
+    const ImVec2 shortcut_pos(cursor_pos.x + padding_x, footer_y);
+    const ImVec4 shortcut_clip(cursor_pos.x + padding_x, footer_y,
+                               cursor_pos.x + card_size.x - padding_x,
+                               cursor_pos.y + card_size.y - padding_y);
+    draw_list->AddText(text_font, text_font_size, shortcut_pos,
+                       ImGui::GetColorU32(text_secondary),
+                       info.shortcut.c_str(), nullptr, 0.0f, &shortcut_clip);
   }
 
   // Hover glow effect
@@ -532,7 +553,6 @@ void EditorSelectionDialog::DrawEditorPanel(const EditorInfo& info, int index,
     selected_editor_ = info.type;
   }
 
-  ImGui::SetCursorScreenPos(after_button);
   ImGui::PopID();
 }
 
