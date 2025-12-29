@@ -7,7 +7,7 @@
 - TASK: Promote history-compacted to master/develop, bundle pre-compaction history, and trigger CI/release for v0.5.0.
 - SCOPE: git refs/branches, .github/workflows, docs/public/release-notes.md (if needed)
 - STATUS: ACTIVE
-- NOTES: Will push master FF + develop force; log workflow run URLs once triggered.
+- NOTES: master/develop pushed + v0.5.0 tag pushed; release/CI running but gh CLI not authed for run URLs.
 
 ### 2025-12-26 imgui-frontend-engineer – Mobile layout + nav pass
 - TASK: Improve iPad layout (responsive welcome cards + panel width clamps), add mobile nav switcher, tune iOS touch sizing, and track per-edge safe areas.
