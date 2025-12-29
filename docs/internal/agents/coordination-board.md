@@ -3,6 +3,12 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
+### 2025-12-28 backend-infra-engineer – History compaction rollout + v0.5.0 release
+- TASK: Promote history-compacted to master/develop, bundle pre-compaction history, and trigger CI/release for v0.5.0.
+- SCOPE: git refs/branches, .github/workflows, docs/public/release-notes.md (if needed)
+- STATUS: ACTIVE
+- NOTES: Will push master FF + develop force; log workflow run URLs once triggered.
+
 ### 2025-12-26 imgui-frontend-engineer – Mobile layout + nav pass
 - TASK: Improve iPad layout (responsive welcome cards + panel width clamps), add mobile nav switcher, tune iOS touch sizing, and track per-edge safe areas.
 - SCOPE: src/app/editor/ui/welcome_screen.*, src/app/editor/menu/right_panel_manager.cc, src/app/editor/menu/activity_bar.cc, src/app/editor/layout/layout_coordinator.cc, src/app/editor/ui/ui_coordinator.*, src/app/platform/ios/ios_window_backend.mm, src/app/platform/ios/ios_platform_state.*
