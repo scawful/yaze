@@ -18,7 +18,7 @@ A cross-platform Zelda 3 ROM editor with a modern C++ GUI, Asar 65816 assembler 
 - **Modular AI stack**: Toggle agent UI (`YAZE_BUILD_AGENT_UI`), remote automation/gRPC (`YAZE_ENABLE_REMOTE_AUTOMATION`), and AI runtimes (`YAZE_ENABLE_AI_RUNTIME`) per preset.
 
 ## Project Status
-`0.5.0-alpha` builds are in active development, focusing on the new Music Editor, Web Assembly port, and SDL3 migration. See [`docs/public/release-notes.md`](docs/public/release-notes.md) for details.
+v0.5.0 is the current release. New to YAZE? Start with a clean, legally obtained ALttP (USA) ROM and the Quick Start steps below. See [`docs/public/release-notes.md`](docs/public/release-notes.md) for details.
 
 ## Quick Start
 

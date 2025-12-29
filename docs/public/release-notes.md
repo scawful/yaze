@@ -1,27 +1,32 @@
 # Release Notes
 
-## v0.5.0-alpha (In Development)
+## v0.5.0 (Released December 2025)
 
-**Type:** Major Feature & Architecture Update
-**Date:** TBD
+**Type:** Platform Expansion & Stability
+**Date:** 2025-12-28
 
-### 🎵 New Music Editor
-The highly anticipated SPC Music Editor is now available!
-- **Tracker View:** Edit music patterns with a familiar tracker interface.
-- **Piano Roll:** Visualize and edit notes with velocity and duration control.
-- **Preview:** Real-time N-SPC audio preview with authentic ADSR envelopes.
-- **Instruments:** Manage instruments and samples directly.
+### 🧩 Graphics & Palette Accuracy
+- Fixed palette conversion and Tile16 tint regressions.
+- Corrected palette slicing for graphics sheets and indexed → SNES planar conversion.
+- Stabilized overworld palette/tilemap saves and render service GameData loads.
 
-### 🕸️ Web App Improvements (WASM)
-- **Experimental Web Port:** Run YAZE directly in your browser.
-- **UI Refresh:** New panelized layout with VSCode-style terminal and problems view.
-- **Usability:** Improved error handling for missing features (Emulator).
-- **Security:** Hardened `SharedArrayBuffer` support with `coi-serviceworker`.
+### 🧭 Editor UX & Reliability
+- Refined dashboard/editor selection layouts and card rendering.
+- Moved the layout designer into a lab target for safer experimentation.
+- Hardened room loading APIs and added room count reporting for C API consumers.
 
-### 🏗️ Architecture & CI
-- **Windows CI:** Fixed environment setup for `clang-cl` builds (MSVC dev cmd).
-- **Code Quality:** Consolidated CI workflows.
-- **SDL3 Prep:** Groundwork for the upcoming migration to SDL3.
+### 🤖 Automation & AI
+- Refactored gRPC agent services and editor wiring.
+- Hardened CLI patch handling and tool output formatting.
+
+### 📦 Platform & Build
+- Added iOS platform scaffolding (experimental).
+- Added build helper scripts and simplified nightly workflow.
+- Refreshed toolchain/dependency wiring and standardized build directory policy.
+
+### 🧪 Testing
+- Added role-based ROM selection and ROM-availability gating.
+- Stabilized rendering/benchmark tests and aligned integration expectations.
 
 ---
 

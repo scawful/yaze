@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.5.0 (December 2025)
+
+### Graphics & Palette Reliability
+- Fixed palette conversion and Tile16 tint regressions.
+- Corrected palette slicing for graphics sheets and indexed → SNES planar conversion.
+- Stabilized overworld palette/tilemap saves and render service GameData loading.
+
+### Editor UX & Tools
+- Refined dashboard/editor selection layouts and card text rendering.
+- Moved layout designer into a lab target for safer experimentation.
+- Hardened CLI/API room loading and Asar patch handling.
+
+### Platform, Build, and Tests
+- Added iOS platform scaffolding (experimental) plus build helper scripts.
+- Simplified nightly workflow, refreshed toolchain/dependency wiring, and standardized build dirs.
+- Added role-based ROM selection/availability gating and stabilized rendering/benchmark tests.
+
+---
+
 ## 0.4.1 (December 2025)
 
 ### Overworld Editor Fixes
