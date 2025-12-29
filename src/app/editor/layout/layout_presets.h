@@ -133,9 +133,6 @@ class LayoutPresets {
    */
   static PanelLayoutPreset GetAudioPreset();
 
-  // Legacy alias to ease Panel → Panel migration; prefer PanelLayoutPreset.
-  using PanelLayoutPreset = PanelLayoutPreset;
-
   // ============================================================================
   // Panel ID Constants - synced with actual editor registrations
   // ============================================================================
@@ -229,4 +226,3 @@ class LayoutPresets {
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_LAYOUT_LAYOUT_PRESETS_H_
-
