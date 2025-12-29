@@ -148,6 +148,7 @@ set(YAZE_AGENT_CORE_SOURCES
   cli/handlers/rom/project_commands.cc
   cli/handlers/rom/rom_commands.cc
   cli/handlers/tools/dungeon_doctor_commands.cc
+  cli/handlers/tools/emulator_commands.cc
   cli/handlers/tools/gui_commands.cc
   cli/handlers/tools/overworld_doctor_commands.cc
   cli/handlers/tools/overworld_validate_commands.cc
