@@ -15,6 +15,7 @@ service EmulatorService {
 
   // --- Input & State ---
   rpc PressButtons(ButtonRequest) returns (CommandResponse);
+  rpc ReleaseButtons(ButtonRequest) returns (CommandResponse);
   rpc HoldButtons(ButtonHoldRequest) returns (CommandResponse);
   rpc GetGameState(GameStateRequest) returns (GameStateResponse);
   rpc ReadMemory(MemoryRequest) returns (MemoryResponse);

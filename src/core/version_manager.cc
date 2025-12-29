@@ -221,7 +221,13 @@ absl::StatusOr<std::string> VersionManager::RunCommandOutput(const std::string& 
 
   std::array<char, 128> buffer;
   std::string result;
-  std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(full_cmd.c_str(), "r"), pclose);
+#ifdef _WIN32
+  std::unique_ptr<FILE, decltype(&_pclose)> pipe(_popen(full_cmd.c_str(), "r"),
+                                                 _pclose);
+#else
+  std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(full_cmd.c_str(), "r"),
+                                                pclose);
+#endif
   if (!pipe) {
     return absl::InternalError("popen() failed!");
   }
