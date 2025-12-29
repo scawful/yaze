@@ -92,9 +92,9 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
        .category = "Dungeon",
        .shortcut_hint = "Ctrl+Shift+D",
        .visibility_flag = nullptr,
+       .priority = 10,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-       .disabled_tooltip = "Load a ROM to access dungeon controls",
-       .priority = 10});
+       .disabled_tooltip = "Load a ROM to access dungeon controls"});
 
   panel_manager->RegisterPanel(
       {.card_id = kRoomSelectorId,
@@ -104,9 +104,9 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
        .category = "Dungeon",
        .shortcut_hint = "Ctrl+Shift+R",
        .visibility_flag = nullptr,
+       .priority = 20,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-       .disabled_tooltip = "Load a ROM to browse dungeon rooms",
-       .priority = 20});
+       .disabled_tooltip = "Load a ROM to browse dungeon rooms"});
 
   panel_manager->RegisterPanel(
       {.card_id = kEntranceListId,
@@ -116,9 +116,9 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
        .category = "Dungeon",
        .shortcut_hint = "Ctrl+Shift+E",
        .visibility_flag = nullptr,
+       .priority = 25,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-       .disabled_tooltip = "Load a ROM to browse dungeon entrances",
-       .priority = 25});
+       .disabled_tooltip = "Load a ROM to browse dungeon entrances"});
 
   panel_manager->RegisterPanel(
       {.card_id = "dungeon.entrance_properties",
@@ -128,9 +128,9 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
        .category = "Dungeon",
        .shortcut_hint = "",
        .visibility_flag = nullptr,
+       .priority = 26,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-       .disabled_tooltip = "Load a ROM to edit entrance properties",
-       .priority = 26});
+       .disabled_tooltip = "Load a ROM to edit entrance properties"});
 
   panel_manager->RegisterPanel(
       {.card_id = kRoomMatrixId,
@@ -140,9 +140,9 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
        .category = "Dungeon",
        .shortcut_hint = "Ctrl+Shift+M",
        .visibility_flag = nullptr,
+       .priority = 30,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-       .disabled_tooltip = "Load a ROM to view the room matrix",
-       .priority = 30});
+       .disabled_tooltip = "Load a ROM to view the room matrix"});
 
   panel_manager->RegisterPanel(
       {.card_id = kRoomGraphicsId,
@@ -152,9 +152,9 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
        .category = "Dungeon",
        .shortcut_hint = "Ctrl+Shift+G",
        .visibility_flag = nullptr,
+       .priority = 50,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-       .disabled_tooltip = "Load a ROM to view room graphics",
-       .priority = 50});
+       .disabled_tooltip = "Load a ROM to view room graphics"});
 
   panel_manager->RegisterPanel(
       {.card_id = kPaletteEditorId,
@@ -164,9 +164,9 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
        .category = "Dungeon",
        .shortcut_hint = "Ctrl+Shift+P",
        .visibility_flag = nullptr,
+       .priority = 70,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-       .disabled_tooltip = "Load a ROM to edit dungeon palettes",
-       .priority = 70});
+       .disabled_tooltip = "Load a ROM to edit dungeon palettes"});
 
   // Show default panels on startup
   panel_manager->ShowPanel(kControlPanelId);

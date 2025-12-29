@@ -1,15 +1,18 @@
 #ifndef YAZE_CORE_WINDOW_H_
 #define YAZE_CORE_WINDOW_H_
 
-#include "app/platform/sdl_compat.h"
-
 #include <memory>
 
+#include "app/platform/sdl_compat.h"
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/core/bitmap.h"
 #include "util/sdl_deleter.h"
+
+#ifdef CreateWindow
+#undef CreateWindow
+#endif
 
 namespace yaze {
 namespace core {
