@@ -657,6 +657,12 @@ void WelcomeScreen::DrawHeader() {
 
 void WelcomeScreen::DrawQuickActions() {
   ImGui::TextColored(kSpiritOrange, ICON_MD_BOLT " Quick Actions");
+  const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
+  ImGui::PushStyleColor(ImGuiCol_Text, text_secondary);
+  ImGui::TextWrapped(
+      "New here? Start with Open ROM or New Project. Use a clean, legally "
+      "obtained ALttP (USA) ROM to get going.");
+  ImGui::PopStyleColor();
   ImGui::Spacing();
 
   float button_width = ImGui::GetContentRegionAvail().x;
@@ -699,7 +705,8 @@ void WelcomeScreen::DrawQuickActions() {
     // Handled by callback
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(ICON_MD_INFO " Open an existing ALTTP ROM file");
+    ImGui::SetTooltip(
+        ICON_MD_INFO " Open a clean, legally obtained ALttP (USA) ROM file");
   }
 
   ImGui::Spacing();
@@ -710,7 +717,7 @@ void WelcomeScreen::DrawQuickActions() {
     // Handled by callback
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(ICON_MD_INFO " Create a new ROM hacking project");
+    ImGui::SetTooltip(ICON_MD_INFO " Create a new project from a ROM and template");
   }
 
   ImGui::Spacing();
@@ -721,7 +728,8 @@ void WelcomeScreen::DrawQuickActions() {
     // Handled by callback
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(ICON_MD_INFO " Open AI Agent for natural language ROM editing");
+    ImGui::SetTooltip(
+        ICON_MD_INFO " Ask the AI agent to guide edits in natural language");
   }
 }
 
@@ -742,7 +750,8 @@ void WelcomeScreen::DrawRecentProjects() {
     ImGui::SetCursorPosX(cursor.x);
 
     ImGui::TextWrapped(
-        "No recent projects yet.\nOpen a ROM to begin your adventure!");
+        "No recent projects yet.\nOpen a ROM or start a new project to begin "
+        "your adventure!");
     ImGui::PopStyleColor();
     return;
   }
@@ -1083,6 +1092,7 @@ void WelcomeScreen::DrawTipsSection() {
   // Static tip (or could rotate based on session start time rather than
   // animation)
   const char* tips[] = {
+      "New here? Open a ROM first, then save a copy before editing",
       "Press Ctrl+Shift+P to open the command palette",
       "Use z3ed agent for AI-powered ROM editing (Ctrl+Shift+A)",
       "Enable ZSCustomOverworld in Debug menu for expanded features",

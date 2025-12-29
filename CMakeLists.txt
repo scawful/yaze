@@ -20,7 +20,7 @@ elseif(DEFINED YAZE_VERSION_OVERRIDE)
      set(YAZE_VERSION ${YAZE_VERSION_OVERRIDE})
 else()
     set(YAZE_VERSION "0.5.0")
-    set(YAZE_VERSION_SUFFIX "-alpha")
+    set(YAZE_VERSION_SUFFIX "")
 endif()
 
 if(APPLE)
