@@ -7,7 +7,7 @@
 - TASK: Promote history-compacted to master/develop, bundle pre-compaction history, and trigger CI/release for v0.5.0.
 - SCOPE: git refs/branches, .github/workflows, docs/public/release-notes.md (if needed)
 - STATUS: ACTIVE
-- NOTES: Bundle saved; cmake-windows/z3ed deleted; master/develop + v0.5.0 retagged. Fixed usdasm gitlink + formatting (607f6aa1). Release 20561700588 failed (layout_presets self-alias + wasm yaze_grpc_support link); fixes in 9b3597e9 and v0.5.0 retagged. New release run: https://github.com/scawful/yaze/actions/runs/20562154006 (queued). Current CI: https://github.com/scawful/yaze/actions/runs/20562150909 (master), https://github.com/scawful/yaze/actions/runs/20562150911 (develop), web: https://github.com/scawful/yaze/actions/runs/20562150905; older runs canceling.
+- NOTES: Bundle saved; cmake-windows/z3ed deleted; master/develop + v0.5.0 retagged. Fixed usdasm gitlink + formatting + grpc proto include (1b167061). Prior release failed due to missing grpc header in proto gen; new release run: https://github.com/scawful/yaze/actions/runs/20565919222 (queued). Current CI: https://github.com/scawful/yaze/actions/runs/20565917457 (master), https://github.com/scawful/yaze/actions/runs/20565917471 (develop); web: https://github.com/scawful/yaze/actions/runs/20565917465.
 
 ### 2025-12-26 imgui-frontend-engineer – Mobile layout + nav pass
 - TASK: Improve iPad layout (responsive welcome cards + panel width clamps), add mobile nav switcher, tune iOS touch sizing, and track per-edge safe areas.
