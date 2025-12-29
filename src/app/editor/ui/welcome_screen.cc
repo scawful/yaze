@@ -173,9 +173,8 @@ GridLayout ComputeGridLayout(float avail_width, float min_width,
            static_cast<float>(columns);
   };
 
-  layout.columns =
-      std::max(1, static_cast<int>((avail_width + spacing) /
-                                   (preferred_width + spacing)));
+  layout.columns = std::max(1, static_cast<int>((avail_width + spacing) /
+                                                (preferred_width + spacing)));
 
   layout.item_width = width_for_columns(layout.columns);
   while (layout.columns > 1 && layout.item_width < min_width) {
@@ -250,11 +249,10 @@ bool WelcomeScreen::Show(bool* p_open) {
   }
 
   // Window flags: allow menu bar to be clickable by not bringing to front
-  ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoCollapse |
-                                  ImGuiWindowFlags_NoResize |
-                                  ImGuiWindowFlags_NoMove |
-                                  ImGuiWindowFlags_NoBringToFrontOnFocus |
-                                  ImGuiWindowFlags_NoTitleBar;
+  ImGuiWindowFlags window_flags =
+      ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
+      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus |
+      ImGuiWindowFlags_NoTitleBar;
 
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20, 20));
 
@@ -450,7 +448,8 @@ bool WelcomeScreen::Show(bool* p_open) {
     const bool narrow_layout = content_width < 900.0f;
 
     if (narrow_layout) {
-      float left_height = std::clamp(content_height * 0.45f, 260.0f, content_height);
+      float left_height =
+          std::clamp(content_height * 0.45f, 260.0f, content_height);
       ImGui::BeginChild("LeftPanel", ImVec2(0, left_height), true,
                         ImGuiWindowFlags_NoScrollbar);
       DrawQuickActions();
@@ -487,8 +486,8 @@ bool WelcomeScreen::Show(bool* p_open) {
       ImGui::EndChild();
     } else {
       ImGui::BeginChild("LeftPanel",
-                        ImVec2(ImGui::GetContentRegionAvail().x * 0.3f, 0), true,
-                        ImGuiWindowFlags_NoScrollbar);
+                        ImVec2(ImGui::GetContentRegionAvail().x * 0.3f, 0),
+                        true, ImGuiWindowFlags_NoScrollbar);
       DrawQuickActions();
       ImGui::Spacing();
 
@@ -705,8 +704,8 @@ void WelcomeScreen::DrawQuickActions() {
     // Handled by callback
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(
-        ICON_MD_INFO " Open a clean, legally obtained ALttP (USA) ROM file");
+    ImGui::SetTooltip(ICON_MD_INFO
+                      " Open a clean, legally obtained ALttP (USA) ROM file");
   }
 
   ImGui::Spacing();
@@ -717,7 +716,8 @@ void WelcomeScreen::DrawQuickActions() {
     // Handled by callback
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(ICON_MD_INFO " Create a new project from a ROM and template");
+    ImGui::SetTooltip(ICON_MD_INFO
+                      " Create a new project from a ROM and template");
   }
 
   ImGui::Spacing();
@@ -728,8 +728,8 @@ void WelcomeScreen::DrawQuickActions() {
     // Handled by callback
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(
-        ICON_MD_INFO " Ask the AI agent to guide edits in natural language");
+    ImGui::SetTooltip(ICON_MD_INFO
+                      " Ask the AI agent to guide edits in natural language");
   }
 }
 
@@ -758,16 +758,17 @@ void WelcomeScreen::DrawRecentProjects() {
 
   const float scale = ImGui::GetFontSize() / 16.0f;
   const float min_width = kRecentCardBaseWidth * scale;
-  const float max_width = kRecentCardBaseWidth * kRecentCardWidthMaxFactor * scale;
+  const float max_width =
+      kRecentCardBaseWidth * kRecentCardWidthMaxFactor * scale;
   const float min_height = kRecentCardBaseHeight * scale;
-  const float max_height = kRecentCardBaseHeight * kRecentCardHeightMaxFactor * scale;
+  const float max_height =
+      kRecentCardBaseHeight * kRecentCardHeightMaxFactor * scale;
   const float spacing = ImGui::GetStyle().ItemSpacing.x;
   const float aspect_ratio = min_height / std::max(min_width, 1.0f);
 
-  GridLayout layout = ComputeGridLayout(ImGui::GetContentRegionAvail().x,
-                                        min_width, max_width, min_height,
-                                        max_height, min_width, aspect_ratio,
-                                        spacing);
+  GridLayout layout = ComputeGridLayout(
+      ImGui::GetContentRegionAvail().x, min_width, max_width, min_height,
+      max_height, min_width, aspect_ratio, spacing);
 
   int column = 0;
   for (size_t i = 0; i < recent_projects_.size(); ++i) {
@@ -837,8 +838,7 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
       cursor_pos,
       ImVec2(cursor_pos.x + resolved_card_size.x,
              cursor_pos.y + resolved_card_size.y),
-      color_top_u32,
-      color_top_u32, color_bottom_u32, color_bottom_u32);
+      color_top_u32, color_top_u32, color_bottom_u32, color_bottom_u32);
 
   // Static themed border
   ImVec4 border_color_base = (index % 3 == 0)   ? kHyruleGreen
@@ -847,11 +847,10 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
   ImU32 border_color = ImGui::GetColorU32(ImVec4(
       border_color_base.x, border_color_base.y, border_color_base.z, 0.5f));
 
-  draw_list->AddRect(
-      cursor_pos,
-      ImVec2(cursor_pos.x + resolved_card_size.x,
-             cursor_pos.y + resolved_card_size.y),
-      border_color, 6.0f, 0, 2.0f);
+  draw_list->AddRect(cursor_pos,
+                     ImVec2(cursor_pos.x + resolved_card_size.x,
+                            cursor_pos.y + resolved_card_size.y),
+                     border_color, 6.0f, 0, 2.0f);
 
   // Make the card clickable
   ImGui::SetCursorScreenPos(cursor_pos);
@@ -867,11 +866,10 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
   if (is_hovered) {
     ImU32 hover_color = ImGui::GetColorU32(
         ImVec4(kTriforceGold.x, kTriforceGold.y, kTriforceGold.z, 0.15f));
-    draw_list->AddRectFilled(
-        cursor_pos,
-        ImVec2(cursor_pos.x + resolved_card_size.x,
-               cursor_pos.y + resolved_card_size.y),
-        hover_color, 6.0f);
+    draw_list->AddRectFilled(cursor_pos,
+                             ImVec2(cursor_pos.x + resolved_card_size.x,
+                                    cursor_pos.y + resolved_card_size.y),
+                             hover_color, 6.0f);
   }
 
   // Draw content (tighter layout)
@@ -1018,11 +1016,10 @@ void WelcomeScreen::DrawTemplatesSection() {
   Template templates[] = {
       {ICON_MD_COTTAGE, "Vanilla ROM Hack",
        "Standard editing without custom ASM", "Vanilla ROM Hack", kHyruleGreen},
-      {ICON_MD_MAP, "ZSCustomOverworld v3",
-       "Full overworld expansion features", "ZSCustomOverworld v3 (Recommended)",
-       kMasterSwordBlue},
-      {ICON_MD_LAYERS, "ZSCustomOverworld v2",
-       "Basic overworld expansion", "ZSCustomOverworld v2", kShadowPurple},
+      {ICON_MD_MAP, "ZSCustomOverworld v3", "Full overworld expansion features",
+       "ZSCustomOverworld v3 (Recommended)", kMasterSwordBlue},
+      {ICON_MD_LAYERS, "ZSCustomOverworld v2", "Basic overworld expansion",
+       "ZSCustomOverworld v2", kShadowPurple},
       {ICON_MD_SHUFFLE, "Randomizer Compatible",
        "Minimal custom features for rando", "Randomizer Compatible",
        kSpiritOrange},
@@ -1072,7 +1069,8 @@ void WelcomeScreen::DrawTemplatesSection() {
           ImVec2(-1, 30))) {
     // Trigger template-based project creation
     if (new_project_with_template_callback_) {
-      new_project_with_template_callback_(templates[selected_template_].template_id);
+      new_project_with_template_callback_(
+          templates[selected_template_].template_id);
     } else if (new_project_callback_) {
       // Fallback to regular new project if template callback not set
       new_project_callback_();
@@ -1082,9 +1080,10 @@ void WelcomeScreen::DrawTemplatesSection() {
   ImGui::PopStyleColor(3);
 
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("%s Create new project with '%s' template\nThis will "
-                      "open a ROM and apply the template settings.",
-                      ICON_MD_INFO, templates[selected_template_].name);
+    ImGui::SetTooltip(
+        "%s Create new project with '%s' template\nThis will "
+        "open a ROM and apply the template settings.",
+        ICON_MD_INFO, templates[selected_template_].name);
   }
 }
 
@@ -1134,9 +1133,11 @@ void WelcomeScreen::DrawWhatsNew() {
 
   Feature features[] = {
       {ICON_MD_MUSIC_NOTE, "Music Editor",
-       "Complete SPC music editing with piano roll and tracker views", kTriforceGold},
+       "Complete SPC music editing with piano roll and tracker views",
+       kTriforceGold},
       {ICON_MD_PIANO, "Piano Roll & Playback",
-       "Visual note editing with authentic N-SPC audio preview", kMasterSwordBlue},
+       "Visual note editing with authentic N-SPC audio preview",
+       kMasterSwordBlue},
       {ICON_MD_SPEAKER, "Instrument Editor",
        "Edit ADSR envelopes, samples, and instrument banks", kHyruleGreen},
       {ICON_MD_PSYCHOLOGY, "AI Agent Integration",
