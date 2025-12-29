@@ -81,12 +81,19 @@ target_link_libraries(yaze PRIVATE
   yaze_emulator
   yaze_emulator_ui
   yaze_agent
-  yaze_grpc_support
   absl::failure_signal_handler
   absl::flags
   absl::flags_parse
 )
 # gRPC/protobuf linking is now handled by yaze_grpc_support library
+if(YAZE_ENABLE_REMOTE_AUTOMATION)
+  if(TARGET yaze_grpc_support)
+    target_link_libraries(yaze PRIVATE yaze_grpc_support)
+    message(STATUS "✓ yaze executable linked to yaze_grpc_support")
+  else()
+    message(FATAL_ERROR "YAZE_ENABLE_REMOTE_AUTOMATION=ON but yaze_grpc_support target missing")
+  endif()
+endif()
 
 # Link test support library (yaze_editor needs TestManager)
 if(TARGET yaze_test_support)
