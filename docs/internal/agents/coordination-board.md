@@ -7,7 +7,7 @@
 - TASK: Promote history-compacted to master/develop, bundle pre-compaction history, and trigger CI/release for v0.5.0.
 - SCOPE: git refs/branches, .github/workflows, docs/public/release-notes.md (if needed)
 - STATUS: ACTIVE
-- NOTES: Bundle saved; cmake-windows/z3ed deleted; master/develop + v0.5.0 retagged. Fixed checkout failure by removing usdasm submodule gitlink; new release run: https://github.com/scawful/yaze/actions/runs/20561700588 (in progress). Prior failures: https://github.com/scawful/yaze/actions/runs/20561587173 (release), https://github.com/scawful/yaze/actions/runs/20561584240 (master CI), https://github.com/scawful/yaze/actions/runs/20561584508 (develop CI).
+- NOTES: Bundle saved; cmake-windows/z3ed deleted; master/develop + v0.5.0 retagged. Fixed checkout failure by removing usdasm submodule gitlink; new release run: https://github.com/scawful/yaze/actions/runs/20561700588 (in progress). Manual CI run: https://github.com/scawful/yaze/actions/runs/20561726079 (master). Prior failures: https://github.com/scawful/yaze/actions/runs/20561587173 (release), https://github.com/scawful/yaze/actions/runs/20561584240 (master CI), https://github.com/scawful/yaze/actions/runs/20561584508 (develop CI).
 
 ### 2025-12-26 imgui-frontend-engineer – Mobile layout + nav pass
 - TASK: Improve iPad layout (responsive welcome cards + panel width clamps), add mobile nav switcher, tune iOS touch sizing, and track per-edge safe areas.
