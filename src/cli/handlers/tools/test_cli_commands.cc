@@ -44,8 +44,13 @@ const TestSuite kTestSuites[] = {
 std::string ExecuteCommand(const std::string& cmd) {
   std::array<char, 256> buffer;
   std::string result;
+#ifdef _WIN32
+  std::unique_ptr<FILE, decltype(&_pclose)> pipe(_popen(cmd.c_str(), "r"),
+                                                 _pclose);
+#else
   std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.c_str(), "r"),
-                                                 pclose);
+                                                pclose);
+#endif
   if (!pipe) {
     return "";
   }

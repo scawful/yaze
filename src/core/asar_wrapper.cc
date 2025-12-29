@@ -1,6 +1,7 @@
 #include "core/asar_wrapper.h"
 
 #include <chrono>
+#include <cstdio>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -411,7 +412,11 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchWithBinary(
   // Execute using popen to capture output
   std::array<char, 128> buffer;
   std::string output;
+#ifdef _WIN32
+  FILE* pipe = _popen(cmd.str().c_str(), "r");
+#else
   FILE* pipe = popen(cmd.str().c_str(), "r");
+#endif
   if (!pipe) {
     fs::remove(temp_rom, ec);
     fs::remove(temp_symbols, ec);
@@ -421,9 +426,9 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchWithBinary(
   while (fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
     output += buffer.data();
   }
+#ifndef _WIN32
   int exit_status = pclose(pipe);
   int exit_code = exit_status;
-#ifndef _WIN32
   if (exit_status != -1) {
     if (WIFEXITED(exit_status)) {
       exit_code = WEXITSTATUS(exit_status);
@@ -431,6 +436,8 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchWithBinary(
       exit_code = 128 + WTERMSIG(exit_status);
     }
   }
+#else
+  int exit_code = _pclose(pipe);
 #endif
 
   if (!patch_dir.empty()) {

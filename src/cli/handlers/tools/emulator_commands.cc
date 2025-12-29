@@ -86,9 +86,10 @@ absl::Status EmulatorResetCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
   EmulatorClient client;
-  agent::Empty request;
+  agent::ControlRequest request;
+  request.set_action("reset");
   auto response_or =
-      client.CallRpc(&agent::EmulatorService::Stub::Reset, request);
+      client.CallRpc(&agent::EmulatorService::Stub::ControlEmulator, request);
   if (!response_or.ok()) {
     return response_or.status();
   }

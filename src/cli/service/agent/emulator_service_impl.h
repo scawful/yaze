@@ -38,6 +38,9 @@ class EmulatorServiceImpl final : public agent::EmulatorService::Service {
   grpc::Status PressButtons(grpc::ServerContext* context,
                             const agent::ButtonRequest* request,
                             agent::CommandResponse* response) override;
+  grpc::Status ReleaseButtons(grpc::ServerContext* context,
+                              const agent::ButtonRequest* request,
+                              agent::CommandResponse* response) override;
   grpc::Status HoldButtons(grpc::ServerContext* context,
                            const agent::ButtonHoldRequest* request,
                            agent::CommandResponse* response) override;

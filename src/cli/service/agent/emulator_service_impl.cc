@@ -211,6 +211,18 @@ grpc::Status EmulatorServiceImpl::PressButtons(grpc::ServerContext* context,
   return grpc::Status::OK;
 }
 
+grpc::Status EmulatorServiceImpl::ReleaseButtons(grpc::ServerContext* context,
+                                                 const agent::ButtonRequest* request,
+                                                 agent::CommandResponse* response) {
+  if (!emulator_) return grpc::Status(grpc::StatusCode::UNAVAILABLE, "Emulator not initialized.");
+  auto& input_manager = emulator_->input_manager();
+  for (int i = 0; i < request->buttons_size(); i++) {
+    input_manager.ReleaseButton(ToSnesButton(static_cast<agent::Button>(request->buttons(i))));
+  }
+  response->set_success(true);
+  return grpc::Status::OK;
+}
+
 grpc::Status EmulatorServiceImpl::HoldButtons(grpc::ServerContext* context,
                                               const agent::ButtonHoldRequest* request,
                                               agent::CommandResponse* response) {
