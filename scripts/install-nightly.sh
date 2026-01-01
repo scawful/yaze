@@ -16,6 +16,8 @@ nightly_build_type="${YAZE_NIGHTLY_BUILD_TYPE:-RelWithDebInfo}"
 nightly_prefix="${YAZE_NIGHTLY_PREFIX:-$HOME/.local/yaze/nightly}"
 nightly_component="${YAZE_NIGHTLY_COMPONENT:-yaze}"
 nightly_bin_dir="${YAZE_NIGHTLY_BIN_DIR:-$HOME/.local/bin}"
+nightly_ai_runtime="${YAZE_NIGHTLY_AI_RUNTIME:-ON}"
+nightly_ai_features="${YAZE_NIGHTLY_AI_FEATURES:-$nightly_ai_runtime}"
 
 if [[ ! -d "$nightly_repo/.git" ]]; then
   echo "[nightly] Cloning $origin_url -> $nightly_repo"
@@ -50,9 +52,9 @@ cmake -S "$nightly_repo" -B "$nightly_build_dir" -G "$cmake_generator" \
   -DCMAKE_BUILD_TYPE="$nightly_build_type" \
   -DYAZE_ENABLE_GRPC=ON \
   -DYAZE_ENABLE_REMOTE_AUTOMATION=ON \
-  -DYAZE_BUILD_TESTS=OFF \
-  -DYAZE_ENABLE_AI=OFF \
-  -DYAZE_ENABLE_AI_RUNTIME=OFF
+  -DYAZE_ENABLE_AI_RUNTIME="$nightly_ai_runtime" \
+  -DYAZE_ENABLE_AI="$nightly_ai_features" \
+  -DYAZE_BUILD_TESTS=OFF
 
 echo "[nightly] Building yaze + z3ed"
 cmake --build "$nightly_build_dir" --config "$nightly_build_type" --target yaze z3ed

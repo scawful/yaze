@@ -1,0 +1,39 @@
+name = "yaze"
+description = "Zelda editor and tooling"
+tags = ["game-dev", "romhacking", "tools", "active"]
+platforms = ["mac", "linux"]
+
+stage = "beta"
+is_product = false
+commercial_intent = "none"
+public = true
+
+# Technology stack
+languages = ["cpp", "c"]
+build_system = "cmake"
+requires_version = {cpp = "23", cmake = "3.25"}
+
+[dependencies]
+# External system dependencies
+external = ["sdl2", "imgui", "abseil", "png", "zlib"]
+
+# Build dependencies
+build = ["cmake", "ninja"]
+
+# Test dependencies
+test = ["googletest"]
+
+[links]
+github = "https://github.com/scawful/yaze"
+
+[build]
+system = "cmake"
+command = "cmake --preset mac-dbg && cmake --build build -j8"
+
+[test]
+command = "ctest --test-dir build -L stable -j4"
+
+[sync]
+type = "git"
+direction = "both"
+remote = "server"
