@@ -161,6 +161,11 @@ jobs:
           # Copy updated web assets (new directory structure)
           # Root level files
           cp src/web/app.js build-wasm/dist/
+          if [ -f src/web/shell_ui.js ]; then
+            cp src/web/shell_ui.js build-wasm/dist/
+          else
+            echo "WARNING: shell_ui.js not found!"
+          fi
 
           # Copy subdirectories
           cp -r src/web/styles build-wasm/dist/ 2>/dev/null || true
