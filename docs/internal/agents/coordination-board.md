@@ -3,6 +3,12 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
+### 2026-01-01 backend-infra-engineer – yaze.halext.org GH Pages restore
+- TASK: Restore yaze.halext.org reverse proxy, fix web-build artifact paths, and bring collab server back online.
+- SCOPE: .github/workflows/web-build.yml, /etc/nginx/sites/yaze.halext.org.conf, /home/halext/yaze-server/server.js
+- STATUS: ACTIVE
+- NOTES: Reinstalled node deps; patched uuid usage to crypto.randomUUID; restored nginx host + /ws proxy; dispatched Web Build workflow 20645407016.
+
 ### 2025-12-28 backend-infra-engineer – History compaction rollout + v0.5.0 release
 - TASK: Promote history-compacted to master/develop, bundle pre-compaction history, and trigger CI/release for v0.5.0.
 - SCOPE: git refs/branches, .github/workflows, docs/public/release-notes.md (if needed)
