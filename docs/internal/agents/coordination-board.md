@@ -18,8 +18,8 @@
 ### 2026-01-01 backend-infra-engineer – WASM perf + file management fixes
 - TASK: Reduce WASM filesystem init overhead, fix /projects directory errors, and validate 0.5.0 web app flows.
 - SCOPE: src/app/platform/wasm/wasm_bootstrap.cc, src/web/core/filesystem_manager.js, src/web/components/file_manager_ui.js
-- STATUS: ACTIVE
-- NOTES: Playwright smoke on https://yaze.halext.org: /help ok, file manager + /projects write ok. COI/SharedArrayBuffer still failing (SW controlling, SAB unavailable) with 404 noise. Triggered web-build.yml: https://github.com/scawful/yaze/actions/runs/20646881368.
+- STATUS: COMPLETE
+- NOTES: Playwright smoke on https://yaze.halext.org: /help + /projects write ok; shell_ui.js 200. COI/SharedArrayBuffer still failing (SW controlling, SAB unavailable); overlay hidden for automation. web-build.yml: https://github.com/scawful/yaze/actions/runs/20646881368.
 
 ### 2025-12-28 backend-infra-engineer – History compaction rollout + v0.5.0 release
 - TASK: Promote history-compacted to master/develop, bundle pre-compaction history, and trigger CI/release for v0.5.0.
