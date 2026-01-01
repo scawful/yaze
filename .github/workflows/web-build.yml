@@ -77,9 +77,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            build_wasm_ai/bin
-            build_wasm_ai/CMakeCache.txt
-            build_wasm_ai/CMakeFiles
+            build-wasm/bin
+            build-wasm/CMakeCache.txt
+            build-wasm/CMakeFiles
           key: wasm-build-${{ hashFiles('src/**/*.cc', 'src/**/*.h', 'CMakeLists.txt', 'CMakePresets.json') }}
           restore-keys: |
             wasm-build-
@@ -88,7 +88,7 @@ jobs:
         if: steps.changes.outputs.needs_wasm_build == 'false'
         id: wasm_cache
         run: |
-          if [ -f build_wasm_ai/bin/yaze.js ] && [ -f build_wasm_ai/bin/yaze.wasm ]; then
+          if [ -f build-wasm/bin/yaze.js ] && [ -f build-wasm/bin/yaze.wasm ]; then
             echo "Cached WASM found."
             echo "has_cached_wasm=true" >> "${GITHUB_OUTPUT}"
           else
@@ -143,16 +143,16 @@ jobs:
         if: steps.changes.outputs.needs_wasm_build == 'false' && steps.wasm_cache.outputs.has_cached_wasm == 'true'
         run: |
           echo "Using cached WASM build, updating web assets only..."
-          mkdir -p build_wasm_ai/dist
+          mkdir -p build-wasm/dist
 
           # Check if we have cached WASM files
-          if [ -f build_wasm_ai/bin/yaze.wasm ]; then
-            cp build_wasm_ai/bin/yaze.html build_wasm_ai/dist/index.html
-            cp build_wasm_ai/bin/yaze.js build_wasm_ai/dist/
-            cp build_wasm_ai/bin/yaze.wasm build_wasm_ai/dist/
-            cp build_wasm_ai/bin/yaze.data build_wasm_ai/dist/ 2>/dev/null || true
+          if [ -f build-wasm/bin/yaze.wasm ]; then
+            cp build-wasm/bin/yaze.html build-wasm/dist/index.html
+            cp build-wasm/bin/yaze.js build-wasm/dist/
+            cp build-wasm/bin/yaze.wasm build-wasm/dist/
+            cp build-wasm/bin/yaze.data build-wasm/dist/ 2>/dev/null || true
             # CRITICAL: Copy pthread worker script for multi-threading
-            cp build_wasm_ai/bin/yaze.worker.js build_wasm_ai/dist/ 2>/dev/null || true
+            cp build-wasm/bin/yaze.worker.js build-wasm/dist/ 2>/dev/null || true
           else
             echo "ERROR: No cached WASM build found. Triggering full build..."
             exit 1
@@ -160,19 +160,19 @@ jobs:
 
           # Copy updated web assets (new directory structure)
           # Root level files
-          cp src/web/app.js build_wasm_ai/dist/
+          cp src/web/app.js build-wasm/dist/
 
           # Copy subdirectories
-          cp -r src/web/styles build_wasm_ai/dist/ 2>/dev/null || true
-          cp -r src/web/components build_wasm_ai/dist/ 2>/dev/null || true
-          cp -r src/web/core build_wasm_ai/dist/ 2>/dev/null || true
-          cp -r src/web/pwa build_wasm_ai/dist/ 2>/dev/null || true
-          cp -r src/web/icons build_wasm_ai/dist/ 2>/dev/null || true
-          cp -r src/web/debug build_wasm_ai/dist/ 2>/dev/null || true
+          cp -r src/web/styles build-wasm/dist/ 2>/dev/null || true
+          cp -r src/web/components build-wasm/dist/ 2>/dev/null || true
+          cp -r src/web/core build-wasm/dist/ 2>/dev/null || true
+          cp -r src/web/pwa build-wasm/dist/ 2>/dev/null || true
+          cp -r src/web/icons build-wasm/dist/ 2>/dev/null || true
+          cp -r src/web/debug build-wasm/dist/ 2>/dev/null || true
 
           # CRITICAL: coi-serviceworker.js must be at root for proper service worker scope
           if [ -f src/web/pwa/coi-serviceworker.js ]; then
-            cp src/web/pwa/coi-serviceworker.js build_wasm_ai/dist/
+            cp src/web/pwa/coi-serviceworker.js build-wasm/dist/
             echo "coi-serviceworker.js copied to root (required for SharedArrayBuffer)"
           else
             echo "WARNING: coi-serviceworker.js not found!"
@@ -180,8 +180,8 @@ jobs:
 
           # Copy yaze icon
           if [ -f assets/yaze.png ]; then
-            mkdir -p build_wasm_ai/dist/assets
-            cp assets/yaze.png build_wasm_ai/dist/assets/
+            mkdir -p build-wasm/dist/assets
+            cp assets/yaze.png build-wasm/dist/assets/
           fi
 
           echo "Web assets updated!"
@@ -192,8 +192,8 @@ jobs:
           mkdir -p build/docs
           doxygen Doxyfile
           # Move docs into dist/docs
-          mkdir -p build_wasm_ai/dist/docs
-          mv build/docs/html/* build_wasm_ai/dist/docs/
+          mkdir -p build-wasm/dist/docs
+          mv build/docs/html/* build-wasm/dist/docs/
 
       # --- Deploy ---
       - name: Setup Pages
@@ -202,7 +202,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: build_wasm_ai/dist/
+          path: build-wasm/dist/
 
       - name: Deploy to GitHub Pages
         id: deployment
