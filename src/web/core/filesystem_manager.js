@@ -7,6 +7,13 @@ var FilesystemManager = {
   ready: false,
   initPromise: null,
   initAttempts: 0,
+  syncDelayMs: 250,
+  syncTimer: null,
+  syncPromise: null,
+  syncInProgress: null,
+  syncRequested: false,
+  _readyResolvers: null,
+  _readyTimeoutId: null,
 
   // Standard directories used by the app
   directories: {
@@ -20,12 +27,9 @@ var FilesystemManager = {
   },
 
   /**
-   * Checks if the filesystem is ready and shows a status message if not.
-   * @param {boolean} showAlert - Whether to show an alert or status message.
-   * @returns {boolean} - True if ready, false otherwise.
+   * Returns the active Emscripten FS handle, if available.
    */
-  ensureReady: function(showAlert = true) {
-    // Try to get FS from Module if not globally available
+  _getFS: function() {
     var fs = (typeof FS !== 'undefined') ? FS :
              (typeof Module !== 'undefined' && Module.FS) ? Module.FS :
              (typeof window.Module !== 'undefined' && window.Module.FS) ? window.Module.FS : null;
@@ -33,6 +37,17 @@ var FilesystemManager = {
     if (fs && typeof window.FS === 'undefined') {
       window.FS = fs; // Expose globally for convenience
     }
+
+    return fs;
+  },
+
+  /**
+   * Checks if the filesystem is ready and shows a status message if not.
+   * @param {boolean} showAlert - Whether to show an alert or status message.
+   * @returns {boolean} - True if ready, false otherwise.
+   */
+  ensureReady: function(showAlert = true) {
+    var fs = this._getFS();
 
     if (this.ready && fs) return true;
 
@@ -69,6 +84,95 @@ var FilesystemManager = {
   },
 
   /**
+   * Ensures a directory exists in the virtual filesystem.
+   * @param {string} path - Directory path to ensure.
+   * @returns {boolean} - True if the directory exists or was created.
+   */
+  ensureDirectory: function(path) {
+    if (!this.ensureReady(false)) return false;
+    if (!path || path === '/') return true;
+
+    var fs = this._getFS();
+    if (!fs) return false;
+
+    function isErrno(err, code) {
+      if (!err) return false;
+      if (err.code === code) return true;
+      if (typeof err.errno === 'number' && fs.ERRNO_CODES && fs.ERRNO_CODES[code] === err.errno) {
+        return true;
+      }
+      return false;
+    }
+
+    try {
+      var stat = fs.stat(path);
+      if (fs.isDir(stat.mode)) return true;
+
+      var backup = path + '.bak';
+      try {
+        fs.stat(backup);
+        backup = backup + Date.now();
+      } catch (e) {}
+
+      try {
+        fs.rename(path, backup);
+        console.warn('[FilesystemManager] Renamed file at', path, 'to', backup);
+      } catch (renameErr) {
+        console.warn('[FilesystemManager] Failed to rename file at', path, renameErr);
+        return false;
+      }
+    } catch (e) {
+      if (!isErrno(e, 'ENOENT')) {
+        console.warn('[FilesystemManager] Failed to stat directory', path, e);
+      }
+    }
+
+    try {
+      if (fs.mkdirTree) {
+        fs.mkdirTree(path);
+      } else {
+        fs.mkdir(path);
+      }
+      return true;
+    } catch (e) {
+      if (isErrno(e, 'EEXIST')) return true;
+      console.warn('[FilesystemManager] Failed to create directory', path, e);
+      return false;
+    }
+  },
+
+  /**
+   * Ensures all standard directories exist.
+   */
+  ensureStandardDirectories: function() {
+    for (var key in this.directories) {
+      if (!Object.prototype.hasOwnProperty.call(this.directories, key)) continue;
+      var dir = this.directories[key];
+      if (dir) {
+        this.ensureDirectory(dir);
+      }
+    }
+  },
+
+  /**
+   * Resolves any pending waiters once the FS is ready.
+   */
+  _notifyReady: function() {
+    if (this._readyTimeoutId) {
+      clearTimeout(this._readyTimeoutId);
+      this._readyTimeoutId = null;
+    }
+
+    var resolvers = this._readyResolvers || [];
+    this._readyResolvers = null;
+    resolvers.forEach(function(resolve) {
+      try {
+        resolve();
+      } catch (e) {}
+    });
+  },
+
+  /**
    * Initializes the persistent filesystem.
    * @returns {Promise} - Resolves when FS is ready.
    */
@@ -88,19 +192,13 @@ var FilesystemManager = {
     waitForModule(function() {
       // If C++ already signaled ready, we are done
       if (self.ready) {
+        self.ensureStandardDirectories();
         resolveInit();
         return;
       }
 
       // Try to get FS from Module (MODULARIZE mode)
-      var fs = (typeof FS !== 'undefined') ? FS :
-               (typeof Module !== 'undefined' && Module.FS) ? Module.FS :
-               (typeof window.Module !== 'undefined' && window.Module.FS) ? window.Module.FS : null;
-
-      if (fs && typeof window.FS === 'undefined') {
-        console.log('[FilesystemManager] Exposing Module.FS globally');
-        window.FS = fs;
-      }
+      var fs = self._getFS();
 
       if (!fs) {
         self.initAttempts++;
@@ -119,7 +217,7 @@ var FilesystemManager = {
       // Check if /roms already exists (C++ may have already set up the FS)
       var romsExists = false;
       try {
-        FS.stat('/roms');
+        fs.stat('/roms');
         romsExists = true;
       } catch (e) {
         // Directory doesn't exist
@@ -129,47 +227,29 @@ var FilesystemManager = {
         // C++ already mounted IDBFS, just mark as ready
         console.log('[WASM] FS already initialized by C++ runtime');
         self.ready = true;
+        self.ensureStandardDirectories();
         resolveInit();
         return;
       }
 
       console.log('[WASM] Waiting for C++ FS initialization...');
 
-      // Poll for ready or /roms existence
-      var checkInterval = setInterval(function() {
-        if (self.ready) {
-          clearInterval(checkInterval);
-          checkInterval = null;
-          resolveInit();
-          return;
-        }
-
-        try {
-          FS.stat('/roms');
-          console.log('[WASM] Detected /roms, marking FS ready');
-          self.ready = true;
-          clearInterval(checkInterval);
-          checkInterval = null;
-          resolveInit();
-        } catch(e) {
-          // Still waiting
-        }
-      }, 200);
-
       // Timeout after 15 seconds
-      setTimeout(function() {
-        if (!self.ready) {
-          if (checkInterval !== null) {
-            clearInterval(checkInterval);
-            checkInterval = null;
+      self._readyResolvers = self._readyResolvers || [];
+      self._readyResolvers.push(function() {
+        resolveInit();
+      });
+
+      if (!self._readyTimeoutId) {
+        self._readyTimeoutId = setTimeout(function() {
+          if (!self.ready) {
+            console.warn('[WASM] FS init timed out, forcing ready (might be MEMFS)');
+            self.ready = true; // Fallback
+            self.ensureStandardDirectories();
+            self._notifyReady();
           }
-          console.warn('[WASM] FS init timed out, forcing ready (might be MEMFS)');
-          // Try to create /roms if it doesn't exist
-          try { FS.mkdir('/roms'); } catch(e) {}
-          self.ready = true; // Fallback
-          resolveInit();
-        }
-      }, 15000);
+        }, 15000);
+      }
     });
 
     return this.initPromise;
@@ -181,6 +261,8 @@ var FilesystemManager = {
   onFileSystemReady: function() {
     console.log('[WASM] C++ signaled FileSystem Ready');
     this.ready = true;
+    this.ensureStandardDirectories();
+    this._notifyReady();
 
     // Update UI if needed
     var status = document.getElementById('header-status');
@@ -503,8 +585,36 @@ var FilesystemManager = {
    */
   syncAll: function() {
     if (!this.ensureReady()) return Promise.reject(new Error('Filesystem not ready'));
-    return new Promise((resolve, reject) => {
+    if (this.syncInProgress) {
+      this.syncRequested = true;
+      return this.syncInProgress;
+    }
+
+    if (this.syncTimer) {
+      return this.syncPromise || Promise.resolve();
+    }
+
+    var self = this;
+    this.syncPromise = new Promise((resolve, reject) => {
+      this.syncTimer = setTimeout(function() {
+        self.syncTimer = null;
+        self._syncNow().then(resolve).catch(reject);
+      }, self.syncDelayMs);
+    });
+
+    return this.syncPromise;
+  },
+
+  /**
+   * Executes an immediate sync to IndexedDB.
+   */
+  _syncNow: function() {
+    if (this.syncInProgress) return this.syncInProgress;
+    var self = this;
+    this.syncRequested = false;
+    this.syncInProgress = new Promise((resolve, reject) => {
       FS.syncfs(false, function(err) {
+        self.syncInProgress = null;
         if (err) {
           console.warn('[FilesystemManager] Failed to sync filesystem:', err);
           reject(err);
@@ -512,8 +622,13 @@ var FilesystemManager = {
           console.log('[FilesystemManager] All directories synced to persistent storage.');
           resolve();
         }
+
+        if (self.syncRequested) {
+          self._syncNow();
+        }
       });
     });
+    return this.syncInProgress;
   },
 
   // ========================
@@ -530,7 +645,9 @@ var FilesystemManager = {
     try {
       var content = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
       var path = this.directories.config + '/' + name;
-      FS.writeFile(path, content);
+      if (!this.writeFile(path, content)) {
+        throw new Error('writeFile failed');
+      }
       this.syncAll();
       console.log('[FilesystemManager] Config saved:', name);
       return true;
@@ -585,7 +702,9 @@ var FilesystemManager = {
     try {
       var content = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
       var path = this.directories.projects + '/' + name + '.yproj';
-      FS.writeFile(path, content);
+      if (!this.writeFile(path, content)) {
+        throw new Error('writeFile failed');
+      }
       this.syncAll();
       console.log('[FilesystemManager] Project saved:', name);
       return true;
@@ -639,7 +758,9 @@ var FilesystemManager = {
     if (!this.ensureReady()) return false;
     try {
       var path = this.directories.prompts + '/' + name + '.md';
-      FS.writeFile(path, content);
+      if (!this.writeFile(path, content)) {
+        throw new Error('writeFile failed');
+      }
       this.syncAll();
       console.log('[FilesystemManager] Prompt saved:', name);
       return true;
@@ -716,7 +837,9 @@ var FilesystemManager = {
         recent = recent.slice(0, 20);
       }
 
-      FS.writeFile(recentPath, JSON.stringify(recent, null, 2));
+      if (!this.writeFile(recentPath, JSON.stringify(recent, null, 2))) {
+        throw new Error('writeFile failed');
+      }
       // Only sync if not explicitly skipped (caller may defer sync to avoid Asyncify conflicts)
       if (!skipSync) {
         this.syncAll();
@@ -750,7 +873,9 @@ var FilesystemManager = {
     if (!this.ensureReady()) return;
     try {
       var recentPath = this.directories.recent + '/recent.json';
-      FS.writeFile(recentPath, '[]');
+      if (!this.writeFile(recentPath, '[]')) {
+        throw new Error('writeFile failed');
+      }
       this.syncAll();
     } catch (e) {
       console.error('[FilesystemManager] Failed to clear recent files:', e);
@@ -786,6 +911,11 @@ var FilesystemManager = {
   writeFile: function(path, data) {
     if (!this.ensureReady()) return false;
     try {
+      var lastSlash = path.lastIndexOf('/');
+      var dir = lastSlash > 0 ? path.slice(0, lastSlash) : '/';
+      if (!this.ensureDirectory(dir)) {
+        throw new Error('Parent directory missing: ' + dir);
+      }
       FS.writeFile(path, data);
       return true;
     } catch (e) {

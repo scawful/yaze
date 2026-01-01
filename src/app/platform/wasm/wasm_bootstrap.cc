@@ -85,6 +85,76 @@ void LoadRomFromWeb(const char* filename) {
 } // extern "C"
 
 EM_JS(void, MountFilesystems, (), {
+  if (typeof FS === 'undefined') {
+    if (typeof Module !== 'undefined') {
+      Module.YAZE_FS_MOUNT_ATTEMPTS = (Module.YAZE_FS_MOUNT_ATTEMPTS || 0) + 1;
+      if (Module.YAZE_FS_MOUNT_ATTEMPTS < 50) {
+        console.warn('[WASM] FS not ready, retrying mount (' + Module.YAZE_FS_MOUNT_ATTEMPTS + ')');
+        setTimeout(MountFilesystems, 50);
+        return;
+      }
+    }
+    console.error('[WASM] FS unavailable, skipping filesystem mounts');
+    if (typeof Module !== 'undefined' && Module._SetFileSystemReady) {
+      Module._SetFileSystemReady();
+    }
+    return;
+  }
+
+  function isErrno(err, code) {
+    if (!err) return false;
+    if (err.code === code) return true;
+    if (typeof err.errno === 'number' && FS.ERRNO_CODES && FS.ERRNO_CODES[code] === err.errno) {
+      return true;
+    }
+    return false;
+  }
+
+  function pathExists(path) {
+    try {
+      FS.stat(path);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function ensureDir(dir) {
+    try {
+      var stat = FS.stat(dir);
+      if (FS.isDir(stat.mode)) return true;
+
+      var backup = dir + '.bak';
+      if (pathExists(backup)) {
+        var suffix = 1;
+        while (suffix < 5 && pathExists(backup + suffix)) {
+          suffix++;
+        }
+        backup = backup + suffix;
+      }
+      try {
+        FS.rename(dir, backup);
+        console.warn('[WASM] Renamed file at ' + dir + ' to ' + backup);
+      } catch (renameErr) {
+        console.warn('[WASM] Failed to rename file at ' + dir + ': ' + renameErr);
+        return false;
+      }
+    } catch (e) {
+      if (!isErrno(e, 'ENOENT')) {
+        console.warn('[WASM] Failed to stat directory ' + dir + ': ' + e);
+      }
+    }
+
+    try {
+      FS.mkdir(dir);
+      return true;
+    } catch (e) {
+      if (isErrno(e, 'EEXIST')) return true;
+      console.warn('[WASM] Failed to create directory ' + dir + ': ' + e);
+      return false;
+    }
+  }
+
   // Create all required directories
   var directories = [
     '/roms',       // ROM files (IDBFS - persistent for session restore)
@@ -97,18 +167,17 @@ EM_JS(void, MountFilesystems, (), {
   ];
 
   directories.forEach(function(dir) {
-    try {
-      FS.mkdir(dir);
-    } catch (e) {
-      // Directory may already exist
-      if (e.code !== 'EEXIST') {
-        console.warn("Failed to create directory " + dir + ": " + e);
-      }
-    }
+    ensureDir(dir);
   });
 
   // Mount MEMFS for temporary files only
-  FS.mount(MEMFS, {}, '/temp');
+  try {
+    FS.mount(MEMFS, {}, '/temp');
+  } catch (e) {
+    if (!isErrno(e, 'EBUSY') && !isErrno(e, 'EEXIST')) {
+      console.warn('[WASM] Failed to mount MEMFS for /temp: ' + e);
+    }
+  }
 
   // Check if IDBFS is available (try multiple ways to access it)
   var idbfs = null;
