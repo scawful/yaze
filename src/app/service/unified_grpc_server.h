@@ -3,9 +3,9 @@
 
 #ifdef YAZE_WITH_GRPC
 
+#include <functional>
 #include <memory>
 #include <vector>
-#include <functional>
 
 #include "absl/status/status.h"
 #include "app/net/rom_version_manager.h"
@@ -64,7 +64,7 @@ class YazeGRPCServer {
    * @return OK status if initialized successfully
    */
   absl::Status Initialize(
-      int port, test::TestManager* test_manager = nullptr, 
+      int port, test::TestManager* test_manager = nullptr,
       RomGetter rom_getter = nullptr,
       net::RomVersionManager* version_mgr = nullptr,
       net::ProposalApprovalManager* approval_mgr = nullptr,
