@@ -14,7 +14,7 @@ namespace music {
 // =============================================================================
 
 absl::StatusOr<MusicSong> SpcParser::ParseSong(Rom& rom, uint16_t address,
-                                                uint8_t bank) {
+                                               uint8_t bank) {
   if (!rom.is_loaded()) {
     return absl::FailedPreconditionError("ROM is not loaded");
   }
@@ -27,9 +27,8 @@ absl::StatusOr<MusicSong> SpcParser::ParseSong(Rom& rom, uint16_t address,
   int data_length = 0;
   const uint8_t* song_data = GetSpcData(rom, address, bank, &data_length);
   if (!song_data) {
-    return absl::NotFoundError(
-        absl::StrFormat("Song data not found at address $%04X bank %d",
-                        address, bank));
+    return absl::NotFoundError(absl::StrFormat(
+        "Song data not found at address $%04X bank %d", address, bank));
   }
 
   MusicSong song;
@@ -50,7 +49,8 @@ absl::StatusOr<MusicSong> SpcParser::ParseSong(Rom& rom, uint16_t address,
         // This is a loop indicator
         // Next word is the loop target segment pointer
         if (offset + 3 < static_cast<size_t>(data_length)) {
-          uint16_t loop_target = song_data[offset + 2] | (song_data[offset + 3] << 8);
+          uint16_t loop_target =
+              song_data[offset + 2] | (song_data[offset + 3] << 8);
           // Find which segment this loops to
           for (size_t i = 0; i < segment_addresses.size(); ++i) {
             if (segment_addresses[i] == loop_target) {
@@ -113,9 +113,9 @@ absl::StatusOr<std::vector<uint16_t>> SpcParser::ReadSongPointerTable(
   const uint8_t* table_data =
       GetSpcData(rom, table_address, bank, &data_length);
   if (!table_data) {
-    return absl::NotFoundError(absl::StrFormat(
-        "Song pointer table not found at $%04X for bank %d", table_address,
-        bank));
+    return absl::NotFoundError(
+        absl::StrFormat("Song pointer table not found at $%04X for bank %d",
+                        table_address, bank));
   }
 
   if (data_length < 2) {
@@ -142,7 +142,7 @@ absl::StatusOr<std::vector<uint16_t>> SpcParser::ReadSongPointerTable(
 }
 
 absl::StatusOr<MusicTrack> SpcParser::ParseTrack(Rom& rom, uint16_t address,
-                                                  uint8_t bank, int max_ticks) {
+                                                 uint8_t bank, int max_ticks) {
   ParseContext ctx;
   ctx.rom = &rom;
   ctx.current_bank = bank;
@@ -154,8 +154,8 @@ absl::StatusOr<MusicTrack> SpcParser::ParseTrack(Rom& rom, uint16_t address,
 }
 
 absl::StatusOr<MusicTrack> SpcParser::ParseTrackInternal(ParseContext& ctx,
-                                                          uint16_t address,
-                                                          int max_ticks) {
+                                                         uint16_t address,
+                                                         int max_ticks) {
   if (!ctx.rom || !ctx.rom->is_loaded()) {
     return absl::FailedPreconditionError("ROM is not loaded");
   }
@@ -181,8 +181,8 @@ absl::StatusOr<MusicTrack> SpcParser::ParseTrackInternal(ParseContext& ctx,
   ++ctx.current_depth;
 
   int data_length = 0;
-  const uint8_t* track_data = GetSpcData(*ctx.rom, address, ctx.current_bank,
-                                          &data_length);
+  const uint8_t* track_data =
+      GetSpcData(*ctx.rom, address, ctx.current_bank, &data_length);
   if (!track_data) {
     --ctx.current_depth;
     return absl::NotFoundError(
@@ -259,7 +259,8 @@ absl::StatusOr<MusicTrack> SpcParser::ParseTrackInternal(ParseContext& ctx,
       ++pos;
 
       // Read parameters
-      for (int i = 0; i < param_count && pos < static_cast<size_t>(data_length); ++i) {
+      for (int i = 0; i < param_count && pos < static_cast<size_t>(data_length);
+           ++i) {
         event.command.params[i] = track_data[pos];
         ++pos;
       }
@@ -270,8 +271,8 @@ absl::StatusOr<MusicTrack> SpcParser::ParseTrackInternal(ParseContext& ctx,
         uint8_t repeat = event.command.GetSubroutineRepeatCount();
 
         // Parse subroutine to calculate duration
-        auto sub_result = ParseSubroutine(ctx, sub_addr, repeat,
-                                          max_ticks - current_tick);
+        auto sub_result =
+            ParseSubroutine(ctx, sub_addr, repeat, max_ticks - current_tick);
         if (sub_result.ok()) {
           current_tick += *sub_result;
         }
@@ -291,14 +292,15 @@ absl::StatusOr<MusicTrack> SpcParser::ParseTrackInternal(ParseContext& ctx,
 }
 
 absl::StatusOr<int> SpcParser::ParseSubroutine(ParseContext& ctx,
-                                                uint16_t address,
-                                                int repeat_count,
-                                                int remaining_ticks) {
-  if (repeat_count == 0) return 0;
+                                               uint16_t address,
+                                               int repeat_count,
+                                               int remaining_ticks) {
+  if (repeat_count == 0)
+    return 0;
 
   // Parse the subroutine track once
-  auto track_result = ParseTrackInternal(ctx, address,
-                                          remaining_ticks / repeat_count);
+  auto track_result =
+      ParseTrackInternal(ctx, address, remaining_ticks / repeat_count);
   if (!track_result.ok()) {
     return track_result.status();
   }
@@ -308,7 +310,7 @@ absl::StatusOr<int> SpcParser::ParseSubroutine(ParseContext& ctx,
 }
 
 uint32_t SpcParser::SpcAddressToRomOffset(Rom& rom, uint16_t spc_address,
-                                           uint8_t bank) {
+                                          uint8_t bank) {
   // The game's sound data is stored in blocks with headers:
   // [size:2][spc_addr:2][data:size]
   // We search through the blocks to find where the SPC address maps to ROM.
@@ -367,13 +369,15 @@ uint32_t SpcParser::SpcAddressToRomOffset(Rom& rom, uint16_t spc_address,
   const uint8_t* rom_data = rom.data();
 
   for (int iterations = 0; iterations < 1000; ++iterations) {  // Safety limit
-    if (rom_ptr + 4 >= rom_size) break;
+    if (rom_ptr + 4 >= rom_size)
+      break;
 
     uint16_t block_size = rom_data[rom_ptr] | (rom_data[rom_ptr + 1] << 8);
     uint16_t block_addr = rom_data[rom_ptr + 2] | (rom_data[rom_ptr + 3] << 8);
 
     // End of table (size 0 or invalid)
-    if (block_size == 0 || block_size > 0x10000) break;
+    if (block_size == 0 || block_size > 0x10000)
+      break;
 
     rom_ptr += 4;
 
@@ -394,31 +398,30 @@ uint32_t SpcParser::SpcAddressToRomOffset(Rom& rom, uint16_t spc_address,
 }
 
 const uint8_t* SpcParser::GetSpcData(Rom& rom, uint16_t spc_address,
-                                      uint8_t bank, int* out_length) {
+                                     uint8_t bank, int* out_length) {
   uint32_t rom_offset = SpcAddressToRomOffset(rom, spc_address, bank);
   if (rom_offset == 0 || rom_offset >= rom.size()) {
-    if (out_length) *out_length = 0;
+    if (out_length)
+      *out_length = 0;
     return nullptr;
   }
 
   // Calculate remaining length (rough estimate)
   if (out_length) {
     // Return a safe default length
-    *out_length = static_cast<int>((std::min)(
-        static_cast<size_t>(0x1000), rom.size() - rom_offset));
+    *out_length = static_cast<int>(
+        (std::min)(static_cast<size_t>(0x1000), rom.size() - rom_offset));
   }
 
   return rom.data() + rom_offset;
 }
-
-
 
 // =============================================================================
 // BrrCodec Implementation
 // =============================================================================
 
 std::vector<int16_t> BrrCodec::Decode(const std::vector<uint8_t>& brr_data,
-                                       int* loop_start) {
+                                      int* loop_start) {
   std::vector<int16_t> pcm;
 
   if (brr_data.size() < 9) {
@@ -428,7 +431,8 @@ std::vector<int16_t> BrrCodec::Decode(const std::vector<uint8_t>& brr_data,
   int prev1 = 0, prev2 = 0;
 
   for (size_t block = 0; block < brr_data.size(); block += 9) {
-    if (block + 9 > brr_data.size()) break;
+    if (block + 9 > brr_data.size())
+      break;
 
     uint8_t header = brr_data[block];
     int range = (header >> 4) & 0x0F;
@@ -443,7 +447,8 @@ std::vector<int16_t> BrrCodec::Decode(const std::vector<uint8_t>& brr_data,
         int sample = (nibble == 0) ? (byte >> 4) : (byte & 0x0F);
 
         // Sign extend
-        if (sample >= 8) sample -= 16;
+        if (sample >= 8)
+          sample -= 16;
 
         // Apply range
         sample <<= range;
@@ -464,8 +469,10 @@ std::vector<int16_t> BrrCodec::Decode(const std::vector<uint8_t>& brr_data,
         }
 
         // Clamp
-        if (sample > 0x7FFF) sample = 0x7FFF;
-        if (sample < -0x8000) sample = -0x8000;
+        if (sample > 0x7FFF)
+          sample = 0x7FFF;
+        if (sample < -0x8000)
+          sample = -0x8000;
 
         pcm.push_back(static_cast<int16_t>(sample));
 
@@ -487,7 +494,7 @@ std::vector<int16_t> BrrCodec::Decode(const std::vector<uint8_t>& brr_data,
 }
 
 std::vector<uint8_t> BrrCodec::Encode(const std::vector<int16_t>& pcm_data,
-                                       int loop_start) {
+                                      int loop_start) {
   std::vector<uint8_t> brr;
 
   // Pad to multiple of 16 samples
@@ -532,8 +539,10 @@ std::vector<uint8_t> BrrCodec::Encode(const std::vector<int16_t>& pcm_data,
           int encoded = (diff >> range);
 
           // Clamp to 4 bits
-          if (encoded > 7) encoded = 7;
-          if (encoded < -8) encoded = -8;
+          if (encoded > 7)
+            encoded = 7;
+          if (encoded < -8)
+            encoded = -8;
 
           // Reconstruct
           int reconstructed = (encoded << range) + predicted;
@@ -583,11 +592,14 @@ std::vector<uint8_t> BrrCodec::Encode(const std::vector<int16_t>& pcm_data,
       }
 
       int enc1 = ((s1 - predicted1) >> best_range);
-      if (enc1 > 7) enc1 = 7;
-      if (enc1 < -8) enc1 = -8;
+      if (enc1 > 7)
+        enc1 = 7;
+      if (enc1 < -8)
+        enc1 = -8;
       enc1 &= 0x0F;
 
-      int reconstructed1 = (((enc1 >= 8) ? enc1 - 16 : enc1) << best_range) + predicted1;
+      int reconstructed1 =
+          (((enc1 >= 8) ? enc1 - 16 : enc1) << best_range) + predicted1;
       prev2 = prev1;
       prev1 = reconstructed1;
 
@@ -606,11 +618,14 @@ std::vector<uint8_t> BrrCodec::Encode(const std::vector<int16_t>& pcm_data,
       }
 
       int enc2 = ((s2 - predicted2) >> best_range);
-      if (enc2 > 7) enc2 = 7;
-      if (enc2 < -8) enc2 = -8;
+      if (enc2 > 7)
+        enc2 = 7;
+      if (enc2 < -8)
+        enc2 = -8;
       enc2 &= 0x0F;
 
-      int reconstructed2 = (((enc2 >= 8) ? enc2 - 16 : enc2) << best_range) + predicted2;
+      int reconstructed2 =
+          (((enc2 >= 8) ? enc2 - 16 : enc2) << best_range) + predicted2;
       prev2 = prev1;
       prev1 = reconstructed2;
 
