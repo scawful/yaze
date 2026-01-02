@@ -159,6 +159,46 @@ set -euo pipefail
 prefix="${YAZE_NIGHTLY_PREFIX:-$HOME/.local/yaze/nightly}"
 app="$prefix/current/yaze.app/Contents/MacOS/yaze"
 binary="$prefix/current/yaze"
+build_info="$prefix/current/BUILD_INFO.txt"
+
+show_help() {
+  cat <<'USAGE'
+Usage: yaze-nightly [--help] [--version] [args...]
+
+Launches the YAZE GUI build from the nightly install.
+Use z3ed-nightly for the CLI/TUI.
+USAGE
+}
+
+show_version() {
+  if [[ -f "$build_info" ]]; then
+    describe="$(awk -F= '$1=="describe"{print $2}' "$build_info")"
+    commit="$(awk -F= '$1=="commit"{print $2}' "$build_info")"
+    if [[ -n "$describe" ]]; then
+      echo "yaze-nightly $describe"
+      return 0
+    fi
+    if [[ -n "$commit" ]]; then
+      echo "yaze-nightly $commit"
+      return 0
+    fi
+  fi
+  echo "yaze-nightly"
+}
+
+for arg in "$@"; do
+  case "$arg" in
+    --help|-h)
+      show_help
+      exit 0
+      ;;
+    --version)
+      show_version
+      exit 0
+      ;;
+  esac
+done
+
 if [[ -x "$app" ]]; then
   exec "$app" "$@"
 fi
@@ -173,6 +213,46 @@ prefix="${YAZE_NIGHTLY_PREFIX:-$HOME/.local/yaze/nightly}"
 port="${YAZE_GRPC_PORT:-50051}"
 app="$prefix/current/yaze.app/Contents/MacOS/yaze"
 binary="$prefix/current/yaze"
+build_info="$prefix/current/BUILD_INFO.txt"
+
+show_help() {
+  cat <<'USAGE'
+Usage: yaze-nightly-grpc [--help] [--version] [args...]
+
+Launches the YAZE GUI build with the gRPC test harness enabled.
+Use z3ed-nightly for the CLI/TUI.
+USAGE
+}
+
+show_version() {
+  if [[ -f "$build_info" ]]; then
+    describe="$(awk -F= '$1=="describe"{print $2}' "$build_info")"
+    commit="$(awk -F= '$1=="commit"{print $2}' "$build_info")"
+    if [[ -n "$describe" ]]; then
+      echo "yaze-nightly $describe"
+      return 0
+    fi
+    if [[ -n "$commit" ]]; then
+      echo "yaze-nightly $commit"
+      return 0
+    fi
+  fi
+  echo "yaze-nightly"
+}
+
+for arg in "$@"; do
+  case "$arg" in
+    --help|-h)
+      show_help
+      exit 0
+      ;;
+    --version)
+      show_version
+      exit 0
+      ;;
+  esac
+done
+
 if [[ -x "$app" ]]; then
   exec "$app" --enable_test_harness --test_harness_port="$port" "$@"
 fi
