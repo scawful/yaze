@@ -11,11 +11,6 @@
 #include "absl/status/status.h"
 #include "app/gui/canvas/canvas.h"
 
-// Forward declarations
-namespace grpc {
-class ServerContext;
-}
-
 namespace yaze {
 namespace editor {
 class OverworldEditor;

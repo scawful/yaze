@@ -26,7 +26,6 @@
 
 // Forward declarations to avoid including gRPC headers in public interface
 namespace grpc {
-class ServerContext;
 class Service;
 class Server;
 }  // namespace grpc
