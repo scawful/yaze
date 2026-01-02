@@ -27,9 +27,61 @@ if(YAZE_PREFER_SYSTEM_GRPC OR YAZE_USE_SYSTEM_DEPS)
 
   # Try CMake's find_package first (works with Homebrew on macOS)
   find_package(gRPC CONFIG QUIET)
-  if(gRPC_FOUND)
-    find_package(Protobuf CONFIG QUIET)
-    find_package(absl CONFIG QUIET)
+  find_package(Protobuf CONFIG QUIET)
+  find_package(absl CONFIG QUIET)
+
+  if(NOT gRPC_FOUND OR NOT Protobuf_FOUND)
+    find_package(PkgConfig QUIET)
+    if(PKG_CONFIG_FOUND)
+      if(NOT gRPC_FOUND)
+        pkg_check_modules(GRPCPP QUIET grpc++)
+        pkg_check_modules(GRPCPP_REFLECTION QUIET grpc++_reflection)
+      endif()
+      if(NOT Protobuf_FOUND)
+        pkg_check_modules(PROTOBUF QUIET protobuf)
+      endif()
+    endif()
+
+    if(NOT Protobuf_FOUND AND PROTOBUF_FOUND AND NOT TARGET protobuf::libprotobuf)
+      add_library(protobuf::libprotobuf INTERFACE IMPORTED)
+      target_include_directories(protobuf::libprotobuf INTERFACE ${PROTOBUF_INCLUDE_DIRS})
+      if(PROTOBUF_LIBRARY_DIRS)
+        target_link_directories(protobuf::libprotobuf INTERFACE ${PROTOBUF_LIBRARY_DIRS})
+      endif()
+      target_link_libraries(protobuf::libprotobuf INTERFACE ${PROTOBUF_LIBRARIES})
+      set(Protobuf_FOUND TRUE)
+    endif()
+
+    if(NOT gRPC_FOUND AND GRPCPP_FOUND AND NOT TARGET gRPC::grpc++)
+      add_library(gRPC::grpc++ INTERFACE IMPORTED)
+      target_include_directories(gRPC::grpc++ INTERFACE ${GRPCPP_INCLUDE_DIRS})
+      if(GRPCPP_LIBRARY_DIRS)
+        target_link_directories(gRPC::grpc++ INTERFACE ${GRPCPP_LIBRARY_DIRS})
+      endif()
+      target_link_libraries(gRPC::grpc++ INTERFACE ${GRPCPP_LIBRARIES})
+      set(gRPC_FOUND TRUE)
+    endif()
+
+    if(NOT TARGET gRPC::grpc++_reflection)
+      if(GRPCPP_REFLECTION_FOUND)
+        add_library(gRPC::grpc++_reflection INTERFACE IMPORTED)
+        target_include_directories(gRPC::grpc++_reflection INTERFACE ${GRPCPP_REFLECTION_INCLUDE_DIRS})
+        if(GRPCPP_REFLECTION_LIBRARY_DIRS)
+          target_link_directories(gRPC::grpc++_reflection INTERFACE ${GRPCPP_REFLECTION_LIBRARY_DIRS})
+        endif()
+        target_link_libraries(gRPC::grpc++_reflection INTERFACE ${GRPCPP_REFLECTION_LIBRARIES})
+      else()
+        find_library(_YAZE_GRPCPP_REFLECTION_LIB NAMES grpc++_reflection)
+        if(_YAZE_GRPCPP_REFLECTION_LIB AND TARGET gRPC::grpc++)
+          add_library(gRPC::grpc++_reflection INTERFACE IMPORTED)
+          get_target_property(_YAZE_GRPCPP_INCLUDE_DIRS gRPC::grpc++ INTERFACE_INCLUDE_DIRECTORIES)
+          if(_YAZE_GRPCPP_INCLUDE_DIRS)
+            target_include_directories(gRPC::grpc++_reflection INTERFACE ${_YAZE_GRPCPP_INCLUDE_DIRS})
+          endif()
+          target_link_libraries(gRPC::grpc++_reflection INTERFACE ${_YAZE_GRPCPP_REFLECTION_LIB} gRPC::grpc++)
+        endif()
+      endif()
+    endif()
   endif()
 
   if(gRPC_FOUND AND Protobuf_FOUND AND absl_FOUND)
@@ -101,10 +153,57 @@ if(YAZE_PREFER_SYSTEM_GRPC OR YAZE_USE_SYSTEM_DEPS)
         add_library(grpc::grpc++_reflection ALIAS gRPC::grpc++_reflection)
       endif()
 
+      set(ABSL_TARGETS "")
+      set(_YAZE_ABSL_CANDIDATES
+        absl::base
+        absl::config
+        absl::core_headers
+        absl::utility
+        absl::memory
+        absl::container_memory
+        absl::strings
+        absl::strings_internal
+        absl::str_format
+        absl::str_format_internal
+        absl::cord
+        absl::hash
+        absl::time
+        absl::time_zone
+        absl::status
+        absl::statusor
+        absl::flags
+        absl::flags_parse
+        absl::flags_usage
+        absl::flags_commandlineflag
+        absl::flags_marshalling
+        absl::flags_private_handle_accessor
+        absl::flags_program_name
+        absl::flags_config
+        absl::flags_reflection
+        absl::examine_stack
+        absl::stacktrace
+        absl::failure_signal_handler
+        absl::flat_hash_map
+        absl::synchronization
+        absl::symbolize
+        absl::strerror
+        absl::int128
+      )
+      foreach(_yaze_absl_target IN LISTS _YAZE_ABSL_CANDIDATES)
+        if(TARGET ${_yaze_absl_target})
+          list(APPEND ABSL_TARGETS ${_yaze_absl_target})
+        endif()
+      endforeach()
+
       # Export targets
       set(YAZE_GRPC_TARGETS
         gRPC::grpc++
         gRPC::grpc++_reflection
+        protobuf::libprotobuf
+        protoc
+        grpc_cpp_plugin
+      )
+      set(YAZE_PROTOBUF_TARGETS
         protobuf::libprotobuf
       )
 

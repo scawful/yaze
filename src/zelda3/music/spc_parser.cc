@@ -404,8 +404,8 @@ const uint8_t* SpcParser::GetSpcData(Rom& rom, uint16_t spc_address,
   // Calculate remaining length (rough estimate)
   if (out_length) {
     // Return a safe default length
-    *out_length = std::min(static_cast<size_t>(0x1000),
-                           rom.size() - rom_offset);
+    *out_length = static_cast<int>((std::min)(
+        static_cast<size_t>(0x1000), rom.size() - rom_offset));
   }
 
   return rom.data() + rom_offset;
