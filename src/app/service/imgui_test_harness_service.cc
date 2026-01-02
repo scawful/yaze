@@ -1,5 +1,5 @@
-#include "app/application.h"
 #include "app/service/imgui_test_harness_service.h"
+#include "app/application.h"
 
 #ifdef YAZE_WITH_GRPC
 
@@ -291,77 +291,81 @@ class ImGuiTestHarnessServiceGrpc final : public ImGuiTestHarness::Service {
   explicit ImGuiTestHarnessServiceGrpc(ImGuiTestHarnessServiceImpl* impl)
       : impl_(impl) {}
 
-  ::grpc::Status Ping(::grpc::ServerContext* context, const PingRequest* request,
-                    PingResponse* response) override {
+  ::grpc::Status Ping(::grpc::ServerContext* context,
+                      const PingRequest* request,
+                      PingResponse* response) override {
     return ConvertStatus(impl_->Ping(request, response));
   }
 
-  ::grpc::Status Click(::grpc::ServerContext* context, const ClickRequest* request,
-                     ClickResponse* response) override {
+  ::grpc::Status Click(::grpc::ServerContext* context,
+                       const ClickRequest* request,
+                       ClickResponse* response) override {
     return ConvertStatus(impl_->Click(request, response));
   }
 
-  ::grpc::Status Type(::grpc::ServerContext* context, const TypeRequest* request,
-                    TypeResponse* response) override {
+  ::grpc::Status Type(::grpc::ServerContext* context,
+                      const TypeRequest* request,
+                      TypeResponse* response) override {
     return ConvertStatus(impl_->Type(request, response));
   }
 
-  ::grpc::Status Wait(::grpc::ServerContext* context, const WaitRequest* request,
-                    WaitResponse* response) override {
+  ::grpc::Status Wait(::grpc::ServerContext* context,
+                      const WaitRequest* request,
+                      WaitResponse* response) override {
     return ConvertStatus(impl_->Wait(request, response));
   }
 
   ::grpc::Status Assert(::grpc::ServerContext* context,
-                      const AssertRequest* request,
-                      AssertResponse* response) override {
+                        const AssertRequest* request,
+                        AssertResponse* response) override {
     return ConvertStatus(impl_->Assert(request, response));
   }
 
   ::grpc::Status Screenshot(::grpc::ServerContext* context,
-                          const ScreenshotRequest* request,
-                          ScreenshotResponse* response) override {
+                            const ScreenshotRequest* request,
+                            ScreenshotResponse* response) override {
     return ConvertStatus(impl_->Screenshot(request, response));
   }
 
   ::grpc::Status GetTestStatus(::grpc::ServerContext* context,
-                             const GetTestStatusRequest* request,
-                             GetTestStatusResponse* response) override {
+                               const GetTestStatusRequest* request,
+                               GetTestStatusResponse* response) override {
     return ConvertStatus(impl_->GetTestStatus(request, response));
   }
 
   ::grpc::Status ListTests(::grpc::ServerContext* context,
-                         const ListTestsRequest* request,
-                         ListTestsResponse* response) override {
+                           const ListTestsRequest* request,
+                           ListTestsResponse* response) override {
     return ConvertStatus(impl_->ListTests(request, response));
   }
 
   ::grpc::Status GetTestResults(::grpc::ServerContext* context,
-                              const GetTestResultsRequest* request,
-                              GetTestResultsResponse* response) override {
+                                const GetTestResultsRequest* request,
+                                GetTestResultsResponse* response) override {
     return ConvertStatus(impl_->GetTestResults(request, response));
   }
 
   ::grpc::Status DiscoverWidgets(::grpc::ServerContext* context,
-                               const DiscoverWidgetsRequest* request,
-                               DiscoverWidgetsResponse* response) override {
+                                 const DiscoverWidgetsRequest* request,
+                                 DiscoverWidgetsResponse* response) override {
     return ConvertStatus(impl_->DiscoverWidgets(request, response));
   }
 
   ::grpc::Status StartRecording(::grpc::ServerContext* context,
-                              const StartRecordingRequest* request,
-                              StartRecordingResponse* response) override {
+                                const StartRecordingRequest* request,
+                                StartRecordingResponse* response) override {
     return ConvertStatus(impl_->StartRecording(request, response));
   }
 
   ::grpc::Status StopRecording(::grpc::ServerContext* context,
-                             const StopRecordingRequest* request,
-                             StopRecordingResponse* response) override {
+                               const StopRecordingRequest* request,
+                               StopRecordingResponse* response) override {
     return ConvertStatus(impl_->StopRecording(request, response));
   }
 
   ::grpc::Status ReplayTest(::grpc::ServerContext* context,
-                          const ReplayTestRequest* request,
-                          ReplayTestResponse* response) override {
+                            const ReplayTestRequest* request,
+                            ReplayTestResponse* response) override {
     return ConvertStatus(impl_->ReplayTest(request, response));
   }
 
@@ -426,7 +430,8 @@ class ImGuiTestHarnessServiceGrpc final : public ImGuiTestHarness::Service {
         break;
     }
 
-    return ::grpc::Status(code, std::string(status.message().data(), status.message().size()));
+    return ::grpc::Status(
+        code, std::string(status.message().data(), status.message().size()));
   }
 
   ImGuiTestHarnessServiceImpl* impl_;
@@ -1205,23 +1210,24 @@ absl::Status ImGuiTestHarnessServiceImpl::Screenshot(
   // Use Controller's request queue.
   struct State {
     std::atomic<bool> done{false};
-    absl::StatusOr<ScreenshotArtifact> result = absl::UnknownError("Not captured");
+    absl::StatusOr<ScreenshotArtifact> result =
+        absl::UnknownError("Not captured");
   };
   auto state = std::make_shared<State>();
 
-  Application::Instance().GetController()->RequestScreenshot({
-    .preferred_path = requested_path,
-    .callback = [state](absl::StatusOr<ScreenshotArtifact> result) {
-      state->result = std::move(result);
-      state->done.store(true);
-    }
-  });
+  Application::Instance().GetController()->RequestScreenshot(
+      {.preferred_path = requested_path,
+       .callback = [state](absl::StatusOr<ScreenshotArtifact> result) {
+         state->result = std::move(result);
+         state->done.store(true);
+       }});
 
   // Wait for main thread to process (timeout after 5s)
   auto start = std::chrono::steady_clock::now();
   while (!state->done.load()) {
     if (std::chrono::steady_clock::now() - start > std::chrono::seconds(5)) {
-      return absl::DeadlineExceededError("Timed out waiting for screenshot capture on main thread");
+      return absl::DeadlineExceededError(
+          "Timed out waiting for screenshot capture on main thread");
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
@@ -1674,7 +1680,8 @@ absl::Status ImGuiTestHarnessServiceImpl::ReplayTest(
     } else {
       status = absl::InvalidArgumentError(
           absl::StrFormat("Unsupported action '%s'", step.action));
-      step_message = std::string(status.message().data(), status.message().size());
+      step_message =
+          std::string(status.message().data(), status.message().size());
     }
 
     auto* assertion = response->add_assertions();
@@ -1683,7 +1690,8 @@ absl::Status ImGuiTestHarnessServiceImpl::ReplayTest(
 
     if (!status.ok()) {
       assertion->set_passed(false);
-      assertion->set_error_message(std::string(status.message().data(), status.message().size()));
+      assertion->set_error_message(
+          std::string(status.message().data(), status.message().size()));
       overall_success = false;
       overall_message = step_message;
       logs.push_back(absl::StrFormat("  Error: %s", status.message()));

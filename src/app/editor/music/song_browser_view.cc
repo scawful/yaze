@@ -25,8 +25,8 @@ void SongBrowserView::Draw(MusicBank& bank) {
 
     // Check for expanded music patch
     if (bank.HasExpandedMusicPatch()) {
-      ImGui::TextColored(ImVec4(0.4f, 0.8f, 0.4f, 1.0f),
-                         ICON_MD_CHECK_CIRCLE " Oracle of Secrets expanded music detected");
+      ImGui::TextColored(ImVec4(0.4f, 0.8f, 0.4f, 1.0f), ICON_MD_CHECK_CIRCLE
+                         " Oracle of Secrets expanded music detected");
       const auto& info = bank.GetExpandedBankInfo();
       ImGui::TextDisabled("Expanded bank at $%06X, Aux at $%06X",
                           info.main_rom_offset, info.aux_rom_offset);
@@ -35,7 +35,7 @@ void SongBrowserView::Draw(MusicBank& bank) {
 
     // Display space for each bank
     static const char* bank_names[] = {"Overworld", "Dungeon", "Credits",
-                                        "Expanded", "Auxiliary"};
+                                       "Expanded", "Auxiliary"};
     static const MusicBank::Bank banks[] = {
         MusicBank::Bank::Overworld, MusicBank::Bank::Dungeon,
         MusicBank::Bank::Credits, MusicBank::Bank::OverworldExpanded,
@@ -45,7 +45,8 @@ void SongBrowserView::Draw(MusicBank& bank) {
 
     for (int i = 0; i < num_banks; ++i) {
       auto space = bank.CalculateSpaceUsage(banks[i]);
-      if (space.total_bytes == 0) continue;  // Skip empty/invalid banks
+      if (space.total_bytes == 0)
+        continue;  // Skip empty/invalid banks
 
       // Progress bar color based on usage
       ImVec4 bar_color;
@@ -63,16 +64,16 @@ void SongBrowserView::Draw(MusicBank& bank) {
       // Progress bar
       ImGui::PushStyleColor(ImGuiCol_PlotHistogram, bar_color);
       float fraction = space.usage_percent / 100.0f;
-      std::string overlay = absl::StrFormat(
-          "%d / %d bytes (%.1f%%)", space.used_bytes, space.total_bytes,
-          space.usage_percent);
+      std::string overlay =
+          absl::StrFormat("%d / %d bytes (%.1f%%)", space.used_bytes,
+                          space.total_bytes, space.usage_percent);
       ImGui::ProgressBar(fraction, ImVec2(-1, 0), overlay.c_str());
       ImGui::PopStyleColor();
 
       // Warning/critical messages
       if (space.is_critical) {
-        ImGui::TextColored(ImVec4(0.9f, 0.3f, 0.3f, 1.0f),
-                           ICON_MD_ERROR " %s", space.recommendation.c_str());
+        ImGui::TextColored(ImVec4(0.9f, 0.3f, 0.3f, 1.0f), ICON_MD_ERROR " %s",
+                           space.recommendation.c_str());
       } else if (space.is_warning) {
         ImGui::TextColored(ImVec4(0.9f, 0.7f, 0.2f, 1.0f),
                            ICON_MD_WARNING " %s", space.recommendation.c_str());
@@ -100,8 +101,10 @@ void SongBrowserView::Draw(MusicBank& bank) {
     int new_idx = bank.CreateNewSong("New Song", MusicBank::Bank::Dungeon);
     if (new_idx >= 0) {
       selected_song_index_ = new_idx;
-      if (on_song_selected_) on_song_selected_(new_idx);
-      if (on_edit_) on_edit_();
+      if (on_song_selected_)
+        on_song_selected_(new_idx);
+      if (on_edit_)
+        on_edit_();
     }
   }
   ImGui::SameLine();
@@ -115,18 +118,20 @@ void SongBrowserView::Draw(MusicBank& bank) {
 
   // Vanilla Songs Section
   if (ImGui::CollapsingHeader(ICON_MD_LIBRARY_MUSIC " Vanilla Songs",
-                               ImGuiTreeNodeFlags_DefaultOpen)) {
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
     for (size_t i = 0; i < bank.GetSongCount(); ++i) {
       const auto* song = bank.GetSong(static_cast<int>(i));
-      if (!song || !bank.IsVanilla(static_cast<int>(i))) continue;
+      if (!song || !bank.IsVanilla(static_cast<int>(i)))
+        continue;
 
       // Filter check
       std::string display_name = absl::StrFormat("%02X: %s", i + 1, song->name);
-      if (!MatchesSearch(display_name)) continue;
+      if (!MatchesSearch(display_name))
+        continue;
 
       // Icon + label
-      std::string label =
-          absl::StrFormat(ICON_MD_MUSIC_NOTE " %s##vanilla%zu", display_name, i);
+      std::string label = absl::StrFormat(ICON_MD_MUSIC_NOTE " %s##vanilla%zu",
+                                          display_name, i);
       bool is_selected = (selected_song_index_ == static_cast<int>(i));
       if (ImGui::Selectable(label.c_str(), is_selected)) {
         selected_song_index_ = static_cast<int>(i);
@@ -145,19 +150,23 @@ void SongBrowserView::Draw(MusicBank& bank) {
       // Context menu for vanilla songs
       if (ImGui::BeginPopupContextItem()) {
         if (ImGui::MenuItem(ICON_MD_MUSIC_NOTE " Open Tracker")) {
-          if (on_open_tracker_) on_open_tracker_(static_cast<int>(i));
+          if (on_open_tracker_)
+            on_open_tracker_(static_cast<int>(i));
         }
         if (ImGui::MenuItem(ICON_MD_PIANO " Open Piano Roll")) {
-          if (on_open_piano_roll_) on_open_piano_roll_(static_cast<int>(i));
+          if (on_open_piano_roll_)
+            on_open_piano_roll_(static_cast<int>(i));
         }
         ImGui::Separator();
         if (ImGui::MenuItem(ICON_MD_CONTENT_COPY " Duplicate as Custom")) {
           bank.DuplicateSong(static_cast<int>(i));
-          if (on_edit_) on_edit_();
+          if (on_edit_)
+            on_edit_();
         }
         ImGui::Separator();
         if (ImGui::MenuItem(ICON_MD_FILE_DOWNLOAD " Export to ASM...")) {
-          if (on_export_asm_) on_export_asm_(static_cast<int>(i));
+          if (on_export_asm_)
+            on_export_asm_(static_cast<int>(i));
         }
         ImGui::EndPopup();
       }
@@ -166,17 +175,19 @@ void SongBrowserView::Draw(MusicBank& bank) {
 
   // Custom Songs Section
   if (ImGui::CollapsingHeader(ICON_MD_EDIT " Custom Songs",
-                               ImGuiTreeNodeFlags_DefaultOpen)) {
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
     bool has_custom = false;
     for (size_t i = 0; i < bank.GetSongCount(); ++i) {
       const auto* song = bank.GetSong(static_cast<int>(i));
-      if (!song || bank.IsVanilla(static_cast<int>(i))) continue;
+      if (!song || bank.IsVanilla(static_cast<int>(i)))
+        continue;
 
       has_custom = true;
 
       // Filter check
       std::string display_name = absl::StrFormat("%02X: %s", i + 1, song->name);
-      if (!MatchesSearch(display_name)) continue;
+      if (!MatchesSearch(display_name))
+        continue;
 
       // Custom song icon + label (different color)
       std::string label =
@@ -203,15 +214,18 @@ void SongBrowserView::Draw(MusicBank& bank) {
       // Context menu for custom songs (includes delete/rename)
       if (ImGui::BeginPopupContextItem()) {
         if (ImGui::MenuItem(ICON_MD_MUSIC_NOTE " Open Tracker")) {
-          if (on_open_tracker_) on_open_tracker_(static_cast<int>(i));
+          if (on_open_tracker_)
+            on_open_tracker_(static_cast<int>(i));
         }
         if (ImGui::MenuItem(ICON_MD_PIANO " Open Piano Roll")) {
-          if (on_open_piano_roll_) on_open_piano_roll_(static_cast<int>(i));
+          if (on_open_piano_roll_)
+            on_open_piano_roll_(static_cast<int>(i));
         }
         ImGui::Separator();
         if (ImGui::MenuItem(ICON_MD_CONTENT_COPY " Duplicate")) {
           bank.DuplicateSong(static_cast<int>(i));
-          if (on_edit_) on_edit_();
+          if (on_edit_)
+            on_edit_();
         }
         if (ImGui::MenuItem(ICON_MD_DRIVE_FILE_RENAME_OUTLINE " Rename")) {
           rename_target_index_ = static_cast<int>(i);
@@ -219,10 +233,12 @@ void SongBrowserView::Draw(MusicBank& bank) {
         }
         ImGui::Separator();
         if (ImGui::MenuItem(ICON_MD_FILE_DOWNLOAD " Export to ASM...")) {
-          if (on_export_asm_) on_export_asm_(static_cast<int>(i));
+          if (on_export_asm_)
+            on_export_asm_(static_cast<int>(i));
         }
         if (ImGui::MenuItem(ICON_MD_FILE_UPLOAD " Import from ASM...")) {
-          if (on_import_asm_) on_import_asm_(static_cast<int>(i));
+          if (on_import_asm_)
+            on_import_asm_(static_cast<int>(i));
         }
         ImGui::Separator();
         if (ImGui::MenuItem(ICON_MD_DELETE " Delete")) {
@@ -230,7 +246,8 @@ void SongBrowserView::Draw(MusicBank& bank) {
           if (selected_song_index_ == static_cast<int>(i)) {
             selected_song_index_ = -1;
           }
-          if (on_edit_) on_edit_();
+          if (on_edit_)
+            on_edit_();
         }
         ImGui::EndPopup();
       }
@@ -246,7 +263,8 @@ void SongBrowserView::Draw(MusicBank& bank) {
 }
 
 bool SongBrowserView::MatchesSearch(const std::string& name) const {
-  if (search_buffer_[0] == '\0') return true;
+  if (search_buffer_[0] == '\0')
+    return true;
 
   // Case-insensitive search
   std::string lower_name = name;

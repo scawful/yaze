@@ -24,14 +24,14 @@
 #include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/platform/asset_loader.h"
-#include "rom/rom.h"
 #include "app/service/screenshot_utils.h"
 #include "app/test/test_manager.h"
+#include "cli/service/agent/tool_dispatcher.h"
+#include "cli/service/ai/service_factory.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
+#include "rom/rom.h"
 #include "util/file_util.h"
 #include "util/platform_paths.h"
-#include "cli/service/ai/service_factory.h"
-#include "cli/service/agent/tool_dispatcher.h"
 
 #ifdef YAZE_WITH_GRPC
 #include "app/editor/agent/network_collaboration_coordinator.h"
@@ -104,26 +104,28 @@ void AgentEditor::Initialize() {
     auto* panel_manager = dependencies_.panel_manager;
 
     // Register all agent EditorPanels with callbacks
-    panel_manager->RegisterEditorPanel(std::make_unique<AgentConfigurationPanel>(
-        [this]() { DrawConfigurationPanel(); }));
-    panel_manager->RegisterEditorPanel(std::make_unique<AgentStatusPanel>(
-        [this]() { DrawStatusPanel(); }));
+    panel_manager->RegisterEditorPanel(
+        std::make_unique<AgentConfigurationPanel>(
+            [this]() { DrawConfigurationPanel(); }));
+    panel_manager->RegisterEditorPanel(
+        std::make_unique<AgentStatusPanel>([this]() { DrawStatusPanel(); }));
     panel_manager->RegisterEditorPanel(std::make_unique<AgentPromptEditorPanel>(
         [this]() { DrawPromptEditorPanel(); }));
     panel_manager->RegisterEditorPanel(std::make_unique<AgentBotProfilesPanel>(
         [this]() { DrawBotProfilesPanel(); }));
     panel_manager->RegisterEditorPanel(std::make_unique<AgentChatHistoryPanel>(
         [this]() { DrawChatHistoryViewer(); }));
-    panel_manager->RegisterEditorPanel(std::make_unique<AgentMetricsDashboardPanel>(
-        [this]() { DrawAdvancedMetricsPanel(); }));
+    panel_manager->RegisterEditorPanel(
+        std::make_unique<AgentMetricsDashboardPanel>(
+            [this]() { DrawAdvancedMetricsPanel(); }));
     panel_manager->RegisterEditorPanel(std::make_unique<AgentBuilderPanel>(
         [this]() { DrawAgentBuilderPanel(); }));
     panel_manager->RegisterEditorPanel(
         std::make_unique<AgentChatPanel>(agent_chat_.get()));
 
     // Knowledge Base panel (callback set by AgentUiController)
-    panel_manager->RegisterEditorPanel(std::make_unique<AgentKnowledgeBasePanel>(
-        [this]() {
+    panel_manager->RegisterEditorPanel(
+        std::make_unique<AgentKnowledgeBasePanel>([this]() {
           if (knowledge_panel_callback_) {
             knowledge_panel_callback_();
           } else {
@@ -281,7 +283,7 @@ void AgentEditor::DrawConfigurationPanel() {
   ImVec2 button_size(avail_width / 2 - 8, 46);
 
   auto ProviderButton = [&](const char* label, const char* provider_id,
-                           const ImVec4& color) {
+                            const ImVec4& color) {
     bool selected = current_profile_.provider == provider_id;
     ImVec4 base_color = selected ? color : theme.panel_bg_darker;
     if (AgentUI::StyledButton(label, base_color, button_size)) {
@@ -313,12 +315,11 @@ void AgentEditor::DrawConfigurationPanel() {
     ImGui::SetNextItemWidth(-1);
     static char model_buf[128] = "qwen2.5-coder:7b";
     if (!current_profile_.model.empty()) {
-      strncpy(model_buf, current_profile_.model.c_str(),
-              sizeof(model_buf) - 1);
+      strncpy(model_buf, current_profile_.model.c_str(), sizeof(model_buf) - 1);
     }
     if (ImGui::InputTextWithHint("##ollama_model",
-                                 "e.g., qwen2.5-coder:7b, llama3.2",
-                                 model_buf, sizeof(model_buf))) {
+                                 "e.g., qwen2.5-coder:7b, llama3.2", model_buf,
+                                 sizeof(model_buf))) {
       current_profile_.model = model_buf;
     }
 
@@ -354,8 +355,7 @@ void AgentEditor::DrawConfigurationPanel() {
     ImGui::SetNextItemWidth(-1);
     static char model_buf[128] = "gemini-2.5-flash";
     if (!current_profile_.model.empty()) {
-      strncpy(model_buf, current_profile_.model.c_str(),
-              sizeof(model_buf) - 1);
+      strncpy(model_buf, current_profile_.model.c_str(), sizeof(model_buf) - 1);
     }
     if (ImGui::InputTextWithHint("##gemini_model", "e.g., gemini-2.5-flash",
                                  model_buf, sizeof(model_buf))) {
@@ -411,13 +411,11 @@ void AgentEditor::DrawConfigurationPanel() {
     ImGui::Text("API Key:");
     ImGui::SetNextItemWidth(-1);
     static char openai_key_buf[256] = "";
-    if (!current_profile_.openai_api_key.empty() &&
-        openai_key_buf[0] == '\0') {
+    if (!current_profile_.openai_api_key.empty() && openai_key_buf[0] == '\0') {
       strncpy(openai_key_buf, current_profile_.openai_api_key.c_str(),
               sizeof(openai_key_buf) - 1);
     }
-    if (ImGui::InputText("##openai_key", openai_key_buf,
-                         sizeof(openai_key_buf),
+    if (ImGui::InputText("##openai_key", openai_key_buf, sizeof(openai_key_buf),
                          ImGuiInputTextFlags_Password)) {
       current_profile_.openai_api_key = openai_key_buf;
     }
@@ -428,8 +426,7 @@ void AgentEditor::DrawConfigurationPanel() {
   }
 
   ImGui::Spacing();
-  AgentUI::RenderSectionHeader(ICON_MD_TUNE, "Behavior",
-                               theme.text_info);
+  AgentUI::RenderSectionHeader(ICON_MD_TUNE, "Behavior", theme.text_info);
 
   ImGui::Checkbox("Verbose logging", &current_profile_.verbose);
   HelpMarker("Logs provider requests/responses to console");
@@ -460,8 +457,7 @@ void AgentEditor::DrawConfigurationPanel() {
   }
 
   static char desc_buf[256];
-  strncpy(desc_buf, current_profile_.description.c_str(),
-          sizeof(desc_buf) - 1);
+  strncpy(desc_buf, current_profile_.description.c_str(), sizeof(desc_buf) - 1);
   if (ImGui::InputTextMultiline("Description", desc_buf, sizeof(desc_buf),
                                 ImVec2(-1, 64))) {
     current_profile_.description = desc_buf;
@@ -627,10 +623,9 @@ void AgentEditor::DrawPromptEditorPanel() {
       current_profile_.system_prompt = *content_result;
       prompt_editor_initialized_ = true;
       if (toast_manager_) {
-        toast_manager_->Show(
-            absl::StrFormat(ICON_MD_CHECK_CIRCLE " Loaded %s",
-                            active_prompt_file_),
-            ToastType::kSuccess, 2.0f);
+        toast_manager_->Show(absl::StrFormat(ICON_MD_CHECK_CIRCLE " Loaded %s",
+                                             active_prompt_file_),
+                             ToastType::kSuccess, 2.0f);
       }
     } else {
       std::string placeholder = absl::StrFormat(
@@ -680,11 +675,10 @@ void AgentEditor::DrawBotProfilesPanel() {
   if (!current_profile_.model.empty()) {
     ImGui::Text("Model: %s", current_profile_.model.c_str());
   }
-  ImGui::TextWrapped(
-      "Description: %s",
-      current_profile_.description.empty()
-          ? "No description"
-          : current_profile_.description.c_str());
+  ImGui::TextWrapped("Description: %s",
+                     current_profile_.description.empty()
+                         ? "No description"
+                         : current_profile_.description.c_str());
   ImGui::EndChild();
 
   ImGui::Spacing();
@@ -798,10 +792,9 @@ void AgentEditor::DrawChatHistoryViewer() {
       ImGui::PopStyleColor();
 
       ImGui::SameLine();
-      ImGui::TextDisabled("%s",
-                          absl::FormatTime("%H:%M:%S", msg.timestamp,
-                                           absl::LocalTimeZone())
-                              .c_str());
+      ImGui::TextDisabled("%s", absl::FormatTime("%H:%M:%S", msg.timestamp,
+                                                 absl::LocalTimeZone())
+                                    .c_str());
 
       ImGui::TextWrapped("%s", msg.message.c_str());
       ImGui::Spacing();
@@ -879,9 +872,9 @@ void AgentEditor::DrawCommonTilesEditor() {
   ImGui::SameLine();
   if (ImGui::Button(ICON_MD_SAVE " Save", ImVec2(100, 0))) {
     if (toast_manager_) {
-      toast_manager_->Show(
-          ICON_MD_INFO " Save to project directory (coming soon)",
-          ToastType::kInfo, 2.0f);
+      toast_manager_->Show(ICON_MD_INFO
+                           " Save to project directory (coming soon)",
+                           ToastType::kInfo, 2.0f);
     }
   }
 
@@ -955,8 +948,10 @@ void AgentEditor::DrawNewPromptCreator() {
   };
 
   LoadTemplate("agent/system_prompt.txt", ICON_MD_FILE_COPY " v1 (Basic)");
-  LoadTemplate("agent/system_prompt_v2.txt", ICON_MD_FILE_COPY " v2 (Enhanced)");
-  LoadTemplate("agent/system_prompt_v3.txt", ICON_MD_FILE_COPY " v3 (Proactive)");
+  LoadTemplate("agent/system_prompt_v2.txt",
+               ICON_MD_FILE_COPY " v2 (Enhanced)");
+  LoadTemplate("agent/system_prompt_v3.txt",
+               ICON_MD_FILE_COPY " v3 (Proactive)");
 
   if (ImGui::Button(ICON_MD_NOTE_ADD " Blank Template", ImVec2(-1, 0))) {
     if (prompt_editor_) {
@@ -1191,8 +1186,8 @@ void AgentEditor::DrawAgentBuilderPanel() {
         toast_manager_->Show("Builder blueprint saved", ToastType::kSuccess,
                              2.0f);
       } else {
-        toast_manager_->Show(std::string(status.message()),
-                             ToastType::kError, 3.5f);
+        toast_manager_->Show(std::string(status.message()), ToastType::kError,
+                             3.5f);
       }
     }
   }
@@ -1204,8 +1199,8 @@ void AgentEditor::DrawAgentBuilderPanel() {
         toast_manager_->Show("Builder blueprint loaded", ToastType::kSuccess,
                              2.0f);
       } else {
-        toast_manager_->Show(std::string(status.message()),
-                             ToastType::kError, 3.5f);
+        toast_manager_->Show(std::string(status.message()), ToastType::kError,
+                             3.5f);
       }
     }
   }
@@ -1213,7 +1208,8 @@ void AgentEditor::DrawAgentBuilderPanel() {
   ImGui::EndChild();
 }
 
-absl::Status AgentEditor::SaveBuilderBlueprint(const std::filesystem::path& path) {
+absl::Status AgentEditor::SaveBuilderBlueprint(
+    const std::filesystem::path& path) {
 #if defined(YAZE_WITH_JSON)
   nlohmann::json json;
   json["persona_notes"] = builder_state_.persona_notes;
@@ -1255,7 +1251,8 @@ absl::Status AgentEditor::SaveBuilderBlueprint(const std::filesystem::path& path
 #endif
 }
 
-absl::Status AgentEditor::LoadBuilderBlueprint(const std::filesystem::path& path) {
+absl::Status AgentEditor::LoadBuilderBlueprint(
+    const std::filesystem::path& path) {
 #if defined(YAZE_WITH_JSON)
   std::ifstream file(path);
   if (!file.is_open()) {
@@ -1312,7 +1309,8 @@ absl::Status AgentEditor::LoadBuilderBlueprint(const std::filesystem::path& path
 absl::Status AgentEditor::SaveBotProfile(const BotProfile& profile) {
 #if defined(YAZE_WITH_JSON)
   auto dir_status = EnsureProfilesDirectory();
-  if (!dir_status.ok()) return dir_status;
+  if (!dir_status.ok())
+    return dir_status;
 
   std::filesystem::path profile_path =
       GetProfilesDirectory() / (profile.name + ".json");
@@ -1408,10 +1406,12 @@ void AgentEditor::SetCurrentProfile(const BotProfile& profile) {
   ApplyConfig(current_config_);
 }
 
-absl::Status AgentEditor::ExportProfile(const BotProfile& profile, const std::filesystem::path& path) {
+absl::Status AgentEditor::ExportProfile(const BotProfile& profile,
+                                        const std::filesystem::path& path) {
 #if defined(YAZE_WITH_JSON)
   auto status = SaveBotProfile(profile);
-  if (!status.ok()) return status;
+  if (!status.ok())
+    return status;
 
   std::ofstream file(path);
   if (!file.is_open()) {
@@ -1474,9 +1474,8 @@ absl::Status AgentEditor::EnsureProfilesDirectory() {
   std::error_code ec;
   std::filesystem::create_directories(dir, ec);
   if (ec) {
-    return absl::InternalError(
-        absl::StrFormat("Failed to create profiles directory: %s",
-                        ec.message()));
+    return absl::InternalError(absl::StrFormat(
+        "Failed to create profiles directory: %s", ec.message()));
   }
   return absl::OkStatus();
 }
@@ -1512,7 +1511,8 @@ std::string AgentEditor::ProfileToJson(const BotProfile& profile) const {
 #endif
 }
 
-absl::StatusOr<AgentEditor::BotProfile> AgentEditor::JsonToProfile(const std::string& json_str) const {
+absl::StatusOr<AgentEditor::BotProfile> AgentEditor::JsonToProfile(
+    const std::string& json_str) const {
 #if defined(YAZE_WITH_JSON)
   try {
     nlohmann::json json = nlohmann::json::parse(json_str);
@@ -1623,12 +1623,14 @@ void AgentEditor::OpenChatWindow() {
   }
 }
 
-absl::StatusOr<AgentEditor::SessionInfo> AgentEditor::HostSession(const std::string& session_name, CollaborationMode mode) {
+absl::StatusOr<AgentEditor::SessionInfo> AgentEditor::HostSession(
+    const std::string& session_name, CollaborationMode mode) {
   current_mode_ = mode;
 
   if (mode == CollaborationMode::kLocal) {
     auto session_or = local_coordinator_->HostSession(session_name);
-    if (!session_or.ok()) return session_or.status();
+    if (!session_or.ok())
+      return session_or.status();
 
     SessionInfo info;
     info.session_id = session_or->session_id;
@@ -1663,9 +1665,9 @@ absl::StatusOr<AgentEditor::SessionInfo> AgentEditor::HostSession(const std::str
       username = "unknown";
     }
 
-    auto session_or =
-        network_coordinator_->HostSession(session_name, username);
-    if (!session_or.ok()) return session_or.status();
+    auto session_or = network_coordinator_->HostSession(session_name, username);
+    if (!session_or.ok())
+      return session_or.status();
 
     SessionInfo info;
     info.session_id = session_or->session_id;
@@ -1690,12 +1692,14 @@ absl::StatusOr<AgentEditor::SessionInfo> AgentEditor::HostSession(const std::str
   return absl::InvalidArgumentError("Unsupported collaboration mode");
 }
 
-absl::StatusOr<AgentEditor::SessionInfo> AgentEditor::JoinSession(const std::string& session_code, CollaborationMode mode) {
+absl::StatusOr<AgentEditor::SessionInfo> AgentEditor::JoinSession(
+    const std::string& session_code, CollaborationMode mode) {
   current_mode_ = mode;
 
   if (mode == CollaborationMode::kLocal) {
     auto session_or = local_coordinator_->JoinSession(session_code);
-    if (!session_or.ok()) return session_or.status();
+    if (!session_or.ok())
+      return session_or.status();
 
     SessionInfo info;
     info.session_id = session_or->session_id;
@@ -1732,7 +1736,8 @@ absl::StatusOr<AgentEditor::SessionInfo> AgentEditor::JoinSession(const std::str
     }
 
     auto session_or = network_coordinator_->JoinSession(session_code, username);
-    if (!session_or.ok()) return session_or.status();
+    if (!session_or.ok())
+      return session_or.status();
 
     SessionInfo info;
     info.session_id = session_or->session_id;
@@ -1764,13 +1769,15 @@ absl::Status AgentEditor::LeaveSession() {
 
   if (current_mode_ == CollaborationMode::kLocal) {
     auto status = local_coordinator_->LeaveSession();
-    if (!status.ok()) return status;
+    if (!status.ok())
+      return status;
   }
 #ifdef YAZE_WITH_GRPC
   else if (current_mode_ == CollaborationMode::kNetwork) {
     if (network_coordinator_) {
       auto status = network_coordinator_->LeaveSession();
-      if (!status.ok()) return status;
+      if (!status.ok())
+        return status;
     }
   }
 #endif
@@ -1794,7 +1801,8 @@ absl::StatusOr<AgentEditor::SessionInfo> AgentEditor::RefreshSession() {
 
   if (current_mode_ == CollaborationMode::kLocal) {
     auto session_or = local_coordinator_->RefreshSession();
-    if (!session_or.ok()) return session_or.status();
+    if (!session_or.ok())
+      return session_or.status();
 
     SessionInfo info;
     info.session_id = session_or->session_id;
@@ -1811,7 +1819,8 @@ absl::StatusOr<AgentEditor::SessionInfo> AgentEditor::RefreshSession() {
   return info;
 }
 
-absl::Status AgentEditor::CaptureSnapshot(std::filesystem::path* output_path, const CaptureConfig& config) {
+absl::Status AgentEditor::CaptureSnapshot(std::filesystem::path* output_path,
+                                          const CaptureConfig& config) {
 #ifdef YAZE_WITH_GRPC
   using yaze::test::CaptureActiveWindow;
   using yaze::test::CaptureHarnessScreenshot;
@@ -1853,12 +1862,12 @@ absl::Status AgentEditor::CaptureSnapshot(std::filesystem::path* output_path, co
 #endif
 }
 
-absl::Status AgentEditor::SendToGemini(const std::filesystem::path& image_path, const std::string& prompt) {
+absl::Status AgentEditor::SendToGemini(const std::filesystem::path& image_path,
+                                       const std::string& prompt) {
 #ifdef YAZE_WITH_GRPC
-  const char* api_key =
-      current_profile_.gemini_api_key.empty()
-          ? std::getenv("GEMINI_API_KEY")
-          : current_profile_.gemini_api_key.c_str();
+  const char* api_key = current_profile_.gemini_api_key.empty()
+                            ? std::getenv("GEMINI_API_KEY")
+                            : current_profile_.gemini_api_key.c_str();
   if (!api_key || std::strlen(api_key) == 0) {
     return absl::FailedPreconditionError(
         "Gemini API key not configured (set GEMINI_API_KEY)");
@@ -1937,20 +1946,24 @@ bool AgentEditor::IsConnectedToServer() const {
 }
 #endif
 
-bool AgentEditor::IsInSession() const { return in_session_; }
+bool AgentEditor::IsInSession() const {
+  return in_session_;
+}
 
-AgentEditor::CollaborationMode AgentEditor::GetCurrentMode() const { return current_mode_; }
+AgentEditor::CollaborationMode AgentEditor::GetCurrentMode() const {
+  return current_mode_;
+}
 
 std::optional<AgentEditor::SessionInfo> AgentEditor::GetCurrentSession() const {
-  if (!in_session_) return std::nullopt;
-  return SessionInfo{ current_session_id_, current_session_name_, current_participants_ };
+  if (!in_session_)
+    return std::nullopt;
+  return SessionInfo{current_session_id_, current_session_name_,
+                     current_participants_};
 }
 
-void AgentEditor::SetupMultimodalCallbacks() {
-}
+void AgentEditor::SetupMultimodalCallbacks() {}
 
-void AgentEditor::SetupAutomationCallbacks() {
-}
+void AgentEditor::SetupAutomationCallbacks() {}
 
 }  // namespace editor
 }  // namespace yaze

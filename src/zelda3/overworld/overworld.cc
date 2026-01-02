@@ -18,9 +18,9 @@
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/types/snes_tile.h"
 #include "app/gfx/util/compression.h"
+#include "core/features.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
-#include "core/features.h"
 #include "util/hex.h"
 #include "util/log.h"
 #include "util/macro.h"
@@ -132,11 +132,11 @@ void Overworld::FetchLargeMaps() {
   //
   // The function determines large_index_ (quadrant) based on the relationship
   // between map index and its parent, rather than grid-walking.
-  
+
   // First pass: Set up special world maps using ROM data
   for (int i = 128; i < kNumOverworldMaps; i++) {
     int parent = overworld_maps_[i].parent();
-    
+
     if (overworld_maps_[i].is_large_map()) {
       // Calculate quadrant based on position relative to parent
       int quadrant = 0;
@@ -164,15 +164,16 @@ void Overworld::FetchLargeMaps() {
   for (int world_offset = 0; world_offset < 128; world_offset += 64) {
     for (int local = 0; local < 64; local++) {
       int i = world_offset + local;
-      
-      if (map_checked[i]) continue;
-      
+
+      if (map_checked[i])
+        continue;
+
       int parent = overworld_maps_[i].parent();
-      
+
       if (overworld_maps_[i].is_large_map()) {
         // This map is part of a large area - set up all 4 quadrants
         // The parent value from ROM tells us which map is the parent
-        
+
         // Calculate quadrant based on position relative to parent
         int quadrant = 0;
         if (i == parent) {
@@ -184,20 +185,21 @@ void Overworld::FetchLargeMaps() {
         } else if (i == parent + 9) {
           quadrant = 3;  // Bottom-right
         }
-        
+
         overworld_maps_[i].SetAsLargeMap(parent, quadrant);
         map_checked[i] = true;
-        
+
         // Mark siblings as checked and set their quadrants
         // Use the ROM parent value for all siblings
         // Ensure siblings stay within the same world to prevent cross-world issues
-        std::array<int, 4> siblings = {parent, parent + 1, parent + 8, parent + 9};
+        std::array<int, 4> siblings = {parent, parent + 1, parent + 8,
+                                       parent + 9};
         int world_start = world_offset;
         int world_end = world_offset + 64;
         for (int q = 0; q < 4; q++) {
           int sibling = siblings[q];
           // Check sibling is within the same world (LW: 0-63, DW: 64-127)
-          if (sibling >= world_start && sibling < world_end && 
+          if (sibling >= world_start && sibling < world_end &&
               !map_checked[sibling]) {
             overworld_maps_[sibling].SetAsLargeMap(parent, q);
             map_checked[sibling] = true;
@@ -474,10 +476,9 @@ absl::StatusOr<uint16_t> Overworld::GetTile16ForTile32(
 absl::Status Overworld::AssembleMap32Tiles() {
   constexpr int kMap32TilesLength = 0x33F0;
   int num_tile32 = kMap32TilesLength;
-  uint32_t map32address[4] = {version_constants().kMap32TileTL,
-                              version_constants().kMap32TileTR,
-                              version_constants().kMap32TileBL,
-                              version_constants().kMap32TileBR};
+  uint32_t map32address[4] = {
+      version_constants().kMap32TileTL, version_constants().kMap32TileTR,
+      version_constants().kMap32TileBL, version_constants().kMap32TileBR};
 
   // Check if expanded tile32 data is actually present in ROM
   // The flag position should contain 0x04 for vanilla, something else for
@@ -593,7 +594,8 @@ OverworldBlockset& Overworld::SelectWorldBlockset(int world_type) {
 
 void Overworld::FillBlankMapTiles(int map_index) {
   int world_type = 0;
-  if (map_index >= kDarkWorldMapIdStart && map_index < kSpecialWorldMapIdStart) {
+  if (map_index >= kDarkWorldMapIdStart &&
+      map_index < kSpecialWorldMapIdStart) {
     world_type = 1;
   } else if (map_index >= kSpecialWorldMapIdStart) {
     world_type = 2;
@@ -681,8 +683,8 @@ absl::Status Overworld::DecompressAllMapTilesParallel() {
 
     int ttpos = 0;
 
-    bool pointers_valid = (p1 > 0 && p2 > 0 && p1 < rom()->size() &&
-                           p2 < rom()->size());
+    bool pointers_valid =
+        (p1 > 0 && p2 > 0 && p1 < rom()->size() && p2 < rom()->size());
     if (!pointers_valid) {
       // Missing/invalid pointers -> use blank map tiles to avoid crashes
       FillBlankMapTiles(i);
@@ -712,9 +714,11 @@ absl::Status Overworld::DecompressAllMapTilesParallel() {
 
     int size1, size2;
     size_t max_size_p2 = rom()->size() - p2;
-    auto bytes = gfx::HyruleMagicDecompress(rom()->data() + p2, &size1, 1, max_size_p2);
+    auto bytes =
+        gfx::HyruleMagicDecompress(rom()->data() + p2, &size1, 1, max_size_p2);
     size_t max_size_p1 = rom()->size() - p1;
-    auto bytes2 = gfx::HyruleMagicDecompress(rom()->data() + p1, &size2, 1, max_size_p1);
+    auto bytes2 =
+        gfx::HyruleMagicDecompress(rom()->data() + p1, &size2, 1, max_size_p1);
 
     // If decompression fails, use blank tiles to keep map index usable
     if (bytes.empty() || bytes2.empty()) {
@@ -790,11 +794,12 @@ absl::Status Overworld::LoadOverworldMaps() {
       // CRITICAL: Set game_state_ BEFORE LoadAreaGraphics() because
       // LoadSpritesBlocksets() uses game_state_ to determine static_graphics_[12-15]
       overworld_maps_[i].set_game_state(game_state_);
-      
+
       // Apply large map child handling BEFORE computing hash
       // Must match LoadAreaInfo() logic exactly for SW maps
       auto* map = &overworld_maps_[i];
-      if (map->is_large_map() && cached_version_ == OverworldVersion::kVanilla) {
+      if (map->is_large_map() &&
+          cached_version_ == OverworldVersion::kVanilla) {
         if (map->parent() != i && !map->is_initialized()) {
           if (i >= kSpecialWorldMapIdStart && i <= 0x8A && i != 0x88) {
             // Zora's Domain children - also set sprite_graphics
@@ -802,7 +807,8 @@ absl::Status Overworld::LoadOverworldMaps() {
             map->set_sprite_graphics(1, 0x0E);
             map->set_sprite_graphics(2, 0x0E);
             map->set_area_graphics(
-                (*rom_)[kOverworldSpecialGfxGroup + (map->parent() - kSpecialWorldMapIdStart)]);
+                (*rom_)[kOverworldSpecialGfxGroup +
+                        (map->parent() - kSpecialWorldMapIdStart)]);
             map->set_area_palette((*rom_)[kOverworldSpecialPalGroup + 1]);
           } else if (i == 0x88) {
             map->set_area_graphics(0x51);
@@ -810,16 +816,18 @@ absl::Status Overworld::LoadOverworldMaps() {
           } else if (i < kSpecialWorldMapIdStart) {
             // LW/DW large map child - use parent's graphics
             map->set_area_graphics((*rom_)[kAreaGfxIdPtr + map->parent()]);
-            map->set_area_palette((*rom_)[kOverworldMapPaletteIds + map->parent()]);
+            map->set_area_palette(
+                (*rom_)[kOverworldMapPaletteIds + map->parent()]);
           }
           // Note: Other SW maps (>0x8A) keep their LoadAreaInfo values
         }
       }
-      
+
       // Reuse cached tilesets to reduce load time on WASM
       overworld_maps_[i].LoadAreaGraphics();
       uint64_t config_hash = ComputeGraphicsConfigHash(i);
-      const std::vector<uint8_t>* cached_tileset = GetCachedTileset(config_hash);
+      const std::vector<uint8_t>* cached_tileset =
+          GetCachedTileset(config_hash);
       RETURN_IF_ERROR(overworld_maps_[i].BuildMapWithCache(
           size, game_state_, world_type, tiles16_, GetMapTiles(world_type),
           cached_tileset));
@@ -900,7 +908,8 @@ absl::Status Overworld::EnsureMapBuilt(int map_index) {
   // Check if map is already built
   if (overworld_maps_[map_index].is_built()) {
     // Move to front of LRU (most recently used)
-    auto it = std::find(built_map_lru_.begin(), built_map_lru_.end(), map_index);
+    auto it =
+        std::find(built_map_lru_.begin(), built_map_lru_.end(), map_index);
     if (it != built_map_lru_.end()) {
       built_map_lru_.erase(it);
     }
@@ -931,7 +940,7 @@ absl::Status Overworld::EnsureMapBuilt(int map_index) {
   // CRITICAL: Set game_state_ BEFORE LoadAreaGraphics() because
   // LoadSpritesBlocksets() uses game_state_ to determine static_graphics_[12-15]
   overworld_maps_[map_index].set_game_state(game_state_);
-  
+
   // Apply large map child handling BEFORE computing hash
   // This mirrors the logic in BuildMapWithCache that modifies area_graphics_
   // for large map children in vanilla ROMs - must happen before hash
@@ -947,7 +956,8 @@ absl::Status Overworld::EnsureMapBuilt(int map_index) {
         map->set_sprite_graphics(1, 0x0E);
         map->set_sprite_graphics(2, 0x0E);
         map->set_area_graphics(
-            (*rom_)[kOverworldSpecialGfxGroup + (map->parent() - kSpecialWorldMapIdStart)]);
+            (*rom_)[kOverworldSpecialGfxGroup +
+                    (map->parent() - kSpecialWorldMapIdStart)]);
         map->set_area_palette((*rom_)[kOverworldSpecialPalGroup + 1]);
       } else if (map_index == 0x88) {
         map->set_area_graphics(0x51);
@@ -960,7 +970,7 @@ absl::Status Overworld::EnsureMapBuilt(int map_index) {
       // Note: Other SW maps (>0x8A) keep their LoadAreaInfo values
     }
   }
-  
+
   // Prepare graphics config to check cache (must call LoadAreaGraphics first)
   overworld_maps_[map_index].LoadAreaGraphics();
   uint64_t config_hash = ComputeGraphicsConfigHash(map_index);
@@ -999,7 +1009,8 @@ uint64_t Overworld::ComputeGraphicsConfigHash(int map_index) {
   // CRITICAL: Include explicit world type to absolutely prevent cross-world sharing
   // LW=0, DW=1, SW=2 - this is the strongest disambiguation
   int world_type = 0;
-  if (map_index >= kDarkWorldMapIdStart && map_index < kSpecialWorldMapIdStart) {
+  if (map_index >= kDarkWorldMapIdStart &&
+      map_index < kSpecialWorldMapIdStart) {
     world_type = 1;
   } else if (map_index >= kSpecialWorldMapIdStart) {
     world_type = 2;
@@ -1100,11 +1111,11 @@ void Overworld::InvalidateMapCache(int map_index) {
   if (map_index < 0 || map_index >= kNumOverworldMaps) {
     return;
   }
-  
+
   // Compute the hash for this map's graphics configuration and remove it
   uint64_t config_hash = ComputeGraphicsConfigHash(map_index);
   gfx_config_cache_.erase(config_hash);
-  
+
   // Also mark the map as needing rebuild
   if (static_cast<size_t>(map_index) < overworld_maps_.size()) {
     overworld_maps_[map_index].SetNotBuilt();
@@ -1115,16 +1126,17 @@ void Overworld::InvalidateSiblingMapCaches(int map_index) {
   if (map_index < 0 || map_index >= kNumOverworldMaps) {
     return;
   }
-  
+
   auto* map = mutable_overworld_map(map_index);
-  if (!map) return;
-  
+  if (!map)
+    return;
+
   // Get parent and determine all sibling maps
   int parent_id = map->parent();
   std::vector<int> siblings;
 
   bool use_v3_sizes = OverworldVersionHelper::SupportsAreaEnum(cached_version_);
-  
+
   if (use_v3_sizes) {
     // v3: Use area_size enum
     switch (map->area_size()) {
@@ -1149,7 +1161,7 @@ void Overworld::InvalidateSiblingMapCaches(int map_index) {
       siblings = {map_index};  // Small area - just this map
     }
   }
-  
+
   // Invalidate cache for all siblings
   for (int sibling : siblings) {
     if (sibling >= 0 && sibling < kNumOverworldMaps) {
@@ -1164,9 +1176,11 @@ absl::Status Overworld::LoadSprites() {
 #ifdef __EMSCRIPTEN__
   // WASM: Sequential loading to avoid Web Worker explosion
   if (OverworldVersionHelper::SupportsAreaEnum(cached_version_)) {
-    RETURN_IF_ERROR(LoadSpritesFromMap(overworldSpritesBeginingExpanded, 64, 0));
+    RETURN_IF_ERROR(
+        LoadSpritesFromMap(overworldSpritesBeginingExpanded, 64, 0));
     RETURN_IF_ERROR(LoadSpritesFromMap(overworldSpritesZeldaExpanded, 144, 1));
-    RETURN_IF_ERROR(LoadSpritesFromMap(overworldSpritesAgahnimExpanded, 144, 2));
+    RETURN_IF_ERROR(
+        LoadSpritesFromMap(overworldSpritesAgahnimExpanded, 144, 2));
   } else {
     RETURN_IF_ERROR(LoadSpritesFromMap(kOverworldSpritesBeginning, 64, 0));
     RETURN_IF_ERROR(LoadSpritesFromMap(kOverworldSpritesZelda, 144, 1));
@@ -3025,8 +3039,7 @@ absl::Status Overworld::SaveDiggableTiles() {
   util::logf("Saving Diggable Tiles");
 
   // Write enable flag
-  RETURN_IF_ERROR(
-      rom()->WriteByte(kOverworldCustomDiggableTilesEnabled, 0xFF));
+  RETURN_IF_ERROR(rom()->WriteByte(kOverworldCustomDiggableTilesEnabled, 0xFF));
 
   // Write the 64-byte bitfield
   const auto& bitfield = diggable_tiles_.GetRawData();
@@ -3044,9 +3057,8 @@ absl::Status Overworld::AutoDetectDiggableTiles() {
   diggable_tiles_.Clear();
 
   // Iterate through all Map16 tiles and check if they're diggable
-  for (uint16_t tile_id = 0;
-       tile_id < static_cast<uint16_t>(tiles16_.size()) &&
-       tile_id < kMaxDiggableTileId;
+  for (uint16_t tile_id = 0; tile_id < static_cast<uint16_t>(tiles16_.size()) &&
+                             tile_id < kMaxDiggableTileId;
        ++tile_id) {
     if (DiggableTiles::IsTile16Diggable(tiles16_[tile_id], all_tiles_types_)) {
       diggable_tiles_.SetDiggable(tile_id, true);

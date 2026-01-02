@@ -13,9 +13,9 @@
 #include "cli/service/ai/ollama_ai_service.h"
 
 #ifdef YAZE_WITH_JSON
+#include "cli/service/ai/anthropic_ai_service.h"
 #include "cli/service/ai/gemini_ai_service.h"
 #include "cli/service/ai/openai_ai_service.h"
-#include "cli/service/ai/anthropic_ai_service.h"
 #endif
 
 ABSL_DECLARE_FLAG(std::string, ai_provider);
@@ -91,7 +91,8 @@ std::unique_ptr<AIService> CreateAIService(const AIServiceConfig& config) {
 #endif
     {
       std::cout << "🤖 No AI provider configured, using MockAIService\n";
-      std::cout << "   Tip: Set GEMINI_API_KEY, ANTHROPIC_API_KEY, or OPENAI_API_KEY\n";
+      std::cout << "   Tip: Set GEMINI_API_KEY, ANTHROPIC_API_KEY, or "
+                   "OPENAI_API_KEY\n";
       effective_config.provider = "mock";
     }
   }

@@ -1,4 +1,5 @@
 #include "cli/service/agent/disassembler_65816.h"
+#include "absl/strings/str_format.h"
 
 namespace yaze {
 namespace cli {
@@ -18,7 +19,8 @@ void Disassembler65816::InitializeOpcodeTable() {
   opcode_table_[0x06] = {"ASL", AddressingMode::Direct, 2, 5};
   opcode_table_[0x07] = {"ORA", AddressingMode::IndirectLong, 2, 5};
   opcode_table_[0x08] = {"PHP", AddressingMode::Implied, 1, 3};
-  opcode_table_[0x09] = {"ORA", AddressingMode::Immediate8, 2, 2};  // Size depends on M flag
+  opcode_table_[0x09] = {"ORA", AddressingMode::Immediate8, 2,
+                         2};  // Size depends on M flag
   opcode_table_[0x0A] = {"ASL", AddressingMode::Accumulator, 1, 2};
   opcode_table_[0x0B] = {"PHD", AddressingMode::Implied, 1, 4};
   opcode_table_[0x0C] = {"TSB", AddressingMode::Absolute, 3, 4};
@@ -54,7 +56,8 @@ void Disassembler65816::InitializeOpcodeTable() {
   opcode_table_[0x26] = {"ROL", AddressingMode::Direct, 2, 5};
   opcode_table_[0x27] = {"AND", AddressingMode::IndirectLong, 2, 5};
   opcode_table_[0x28] = {"PLP", AddressingMode::Implied, 1, 4};
-  opcode_table_[0x29] = {"AND", AddressingMode::Immediate8, 2, 2};  // Size depends on M flag
+  opcode_table_[0x29] = {"AND", AddressingMode::Immediate8, 2,
+                         2};  // Size depends on M flag
   opcode_table_[0x2A] = {"ROL", AddressingMode::Accumulator, 1, 2};
   opcode_table_[0x2B] = {"PLD", AddressingMode::Implied, 1, 4};
   opcode_table_[0x2C] = {"BIT", AddressingMode::Absolute, 3, 4};
@@ -90,7 +93,8 @@ void Disassembler65816::InitializeOpcodeTable() {
   opcode_table_[0x46] = {"LSR", AddressingMode::Direct, 2, 5};
   opcode_table_[0x47] = {"EOR", AddressingMode::IndirectLong, 2, 5};
   opcode_table_[0x48] = {"PHA", AddressingMode::Implied, 1, 3};
-  opcode_table_[0x49] = {"EOR", AddressingMode::Immediate8, 2, 2};  // Size depends on M flag
+  opcode_table_[0x49] = {"EOR", AddressingMode::Immediate8, 2,
+                         2};  // Size depends on M flag
   opcode_table_[0x4A] = {"LSR", AddressingMode::Accumulator, 1, 2};
   opcode_table_[0x4B] = {"PHK", AddressingMode::Implied, 1, 4};
   opcode_table_[0x4C] = {"JMP", AddressingMode::Absolute, 3, 3};
@@ -126,7 +130,8 @@ void Disassembler65816::InitializeOpcodeTable() {
   opcode_table_[0x66] = {"ROR", AddressingMode::Direct, 2, 5};
   opcode_table_[0x67] = {"ADC", AddressingMode::IndirectLong, 2, 5};
   opcode_table_[0x68] = {"PLA", AddressingMode::Implied, 1, 4};
-  opcode_table_[0x69] = {"ADC", AddressingMode::Immediate8, 2, 2};  // Size depends on M flag
+  opcode_table_[0x69] = {"ADC", AddressingMode::Immediate8, 2,
+                         2};  // Size depends on M flag
   opcode_table_[0x6A] = {"ROR", AddressingMode::Accumulator, 1, 2};
   opcode_table_[0x6B] = {"RTL", AddressingMode::Implied, 1, 4};
   opcode_table_[0x6C] = {"JMP", AddressingMode::Indirect, 3, 5};
@@ -162,7 +167,8 @@ void Disassembler65816::InitializeOpcodeTable() {
   opcode_table_[0x86] = {"STX", AddressingMode::Direct, 2, 3};
   opcode_table_[0x87] = {"STA", AddressingMode::IndirectLong, 2, 5};
   opcode_table_[0x88] = {"DEY", AddressingMode::Implied, 1, 2};
-  opcode_table_[0x89] = {"BIT", AddressingMode::Immediate8, 2, 2};  // Size depends on M flag
+  opcode_table_[0x89] = {"BIT", AddressingMode::Immediate8, 2,
+                         2};  // Size depends on M flag
   opcode_table_[0x8A] = {"TXA", AddressingMode::Implied, 1, 2};
   opcode_table_[0x8B] = {"PHB", AddressingMode::Implied, 1, 4};
   opcode_table_[0x8C] = {"STY", AddressingMode::Absolute, 3, 4};
@@ -189,16 +195,19 @@ void Disassembler65816::InitializeOpcodeTable() {
   opcode_table_[0x9F] = {"STA", AddressingMode::AbsoluteXLong, 4, 5};
 
   // 0xA0 - 0xAF
-  opcode_table_[0xA0] = {"LDY", AddressingMode::ImmediateX, 2, 2};  // Size depends on X flag
+  opcode_table_[0xA0] = {"LDY", AddressingMode::ImmediateX, 2,
+                         2};  // Size depends on X flag
   opcode_table_[0xA1] = {"LDA", AddressingMode::IndirectX, 2, 6};
-  opcode_table_[0xA2] = {"LDX", AddressingMode::ImmediateX, 2, 2};  // Size depends on X flag
+  opcode_table_[0xA2] = {"LDX", AddressingMode::ImmediateX, 2,
+                         2};  // Size depends on X flag
   opcode_table_[0xA3] = {"LDA", AddressingMode::StackRel, 2, 8};
   opcode_table_[0xA4] = {"LDY", AddressingMode::Direct, 2, 3};
   opcode_table_[0xA5] = {"LDA", AddressingMode::Direct, 2, 3};
   opcode_table_[0xA6] = {"LDX", AddressingMode::Direct, 2, 3};
   opcode_table_[0xA7] = {"LDA", AddressingMode::IndirectLong, 2, 5};
   opcode_table_[0xA8] = {"TAY", AddressingMode::Implied, 1, 2};
-  opcode_table_[0xA9] = {"LDA", AddressingMode::Immediate8, 2, 2};  // Size depends on M flag
+  opcode_table_[0xA9] = {"LDA", AddressingMode::Immediate8, 2,
+                         2};  // Size depends on M flag
   opcode_table_[0xAA] = {"TAX", AddressingMode::Implied, 1, 2};
   opcode_table_[0xAB] = {"PLB", AddressingMode::Implied, 1, 4};
   opcode_table_[0xAC] = {"LDY", AddressingMode::Absolute, 3, 4};
@@ -225,7 +234,8 @@ void Disassembler65816::InitializeOpcodeTable() {
   opcode_table_[0xBF] = {"LDA", AddressingMode::AbsoluteXLong, 4, 5};
 
   // 0xC0 - 0xCF
-  opcode_table_[0xC0] = {"CPY", AddressingMode::ImmediateX, 2, 2};  // Size depends on X flag
+  opcode_table_[0xC0] = {"CPY", AddressingMode::ImmediateX, 2,
+                         2};  // Size depends on X flag
   opcode_table_[0xC1] = {"CMP", AddressingMode::IndirectX, 2, 6};
   opcode_table_[0xC2] = {"REP", AddressingMode::Immediate8, 2, 2};
   opcode_table_[0xC3] = {"CMP", AddressingMode::StackRel, 2, 8};
@@ -234,7 +244,8 @@ void Disassembler65816::InitializeOpcodeTable() {
   opcode_table_[0xC6] = {"DEC", AddressingMode::Direct, 2, 5};
   opcode_table_[0xC7] = {"CMP", AddressingMode::IndirectLong, 2, 5};
   opcode_table_[0xC8] = {"INY", AddressingMode::Implied, 1, 2};
-  opcode_table_[0xC9] = {"CMP", AddressingMode::Immediate8, 2, 2};  // Size depends on M flag
+  opcode_table_[0xC9] = {"CMP", AddressingMode::Immediate8, 2,
+                         2};  // Size depends on M flag
   opcode_table_[0xCA] = {"DEX", AddressingMode::Implied, 1, 2};
   opcode_table_[0xCB] = {"WAI", AddressingMode::Implied, 1, 4};
   opcode_table_[0xCC] = {"CPY", AddressingMode::Absolute, 3, 4};
@@ -261,7 +272,8 @@ void Disassembler65816::InitializeOpcodeTable() {
   opcode_table_[0xDF] = {"CMP", AddressingMode::AbsoluteXLong, 4, 7};
 
   // 0xE0 - 0xEF
-  opcode_table_[0xE0] = {"CPX", AddressingMode::ImmediateX, 2, 2};  // Size depends on X flag
+  opcode_table_[0xE0] = {"CPX", AddressingMode::ImmediateX, 2,
+                         2};  // Size depends on X flag
   opcode_table_[0xE1] = {"SBC", AddressingMode::IndirectX, 2, 6};
   opcode_table_[0xE2] = {"SEP", AddressingMode::Immediate8, 2, 2};
   opcode_table_[0xE3] = {"SBC", AddressingMode::StackRel, 2, 8};
@@ -270,7 +282,8 @@ void Disassembler65816::InitializeOpcodeTable() {
   opcode_table_[0xE6] = {"INC", AddressingMode::Direct, 2, 5};
   opcode_table_[0xE7] = {"SBC", AddressingMode::IndirectLong, 2, 5};
   opcode_table_[0xE8] = {"INX", AddressingMode::Implied, 1, 2};
-  opcode_table_[0xE9] = {"SBC", AddressingMode::Immediate8, 2, 2};  // Size depends on M flag
+  opcode_table_[0xE9] = {"SBC", AddressingMode::Immediate8, 2,
+                         2};  // Size depends on M flag
   opcode_table_[0xEA] = {"NOP", AddressingMode::Implied, 1, 2};
   opcode_table_[0xEB] = {"XBA", AddressingMode::Implied, 1, 2};
   opcode_table_[0xEC] = {"CPX", AddressingMode::Absolute, 3, 4};
@@ -351,9 +364,11 @@ uint8_t Disassembler65816::GetEffectiveSize(uint8_t opcode,
   switch (mode) {
     case AddressingMode::Immediate8:
       // Instructions affected by M flag (accumulator/memory operations)
-      if (opcode == 0x09 || opcode == 0x29 || opcode == 0x49 ||  // ORA, AND, EOR
-          opcode == 0x69 || opcode == 0x89 || opcode == 0xA9 ||  // ADC, BIT, LDA
-          opcode == 0xC9 || opcode == 0xE9) {                    // CMP, SBC
+      if (opcode == 0x09 || opcode == 0x29 ||
+          opcode == 0x49 ||  // ORA, AND, EOR
+          opcode == 0x69 || opcode == 0x89 ||
+          opcode == 0xA9 ||                    // ADC, BIT, LDA
+          opcode == 0xC9 || opcode == 0xE9) {  // CMP, SBC
         return m_flag_ ? 2 : 3;  // 8-bit when M=1, 16-bit when M=0
       }
       return base_size;

@@ -3,13 +3,13 @@
 #include <iostream>
 
 #include "absl/status/status.h"
-#include "absl/strings/str_format.h"
 #include "absl/strings/match.h"
+#include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
-#include "rom/rom.h"
+#include "app/editor/message/message_data.h"
 #include "cli/handlers/tools/diagnostic_types.h"
 #include "rom/hm_support.h"
-#include "app/editor/message/message_data.h"
+#include "rom/rom.h"
 
 namespace yaze::cli {
 
@@ -67,45 +67,59 @@ RomHeaderInfo ReadRomHeader(Rom* rom) {
   info.version = data[yaze::cli::kSnesHeaderBase + 27];
 
   // Read checksums
-  info.checksum_complement =
-      data[yaze::cli::kChecksumComplementPos] | (data[yaze::cli::kChecksumComplementPos + 1] << 8);
+  info.checksum_complement = data[yaze::cli::kChecksumComplementPos] |
+                             (data[yaze::cli::kChecksumComplementPos + 1] << 8);
   info.checksum =
       data[yaze::cli::kChecksumPos] | (data[yaze::cli::kChecksumPos + 1] << 8);
 
   // Validate checksum (complement XOR checksum should be 0xFFFF)
-  info.checksum_valid =
-      ((info.checksum_complement ^ info.checksum) == 0xFFFF);
+  info.checksum_valid = ((info.checksum_complement ^ info.checksum) == 0xFFFF);
 
   return info;
 }
 
 std::string GetMapModeName(uint8_t mode) {
   switch (mode & 0x0F) {
-    case 0x00: return "LoROM";
-    case 0x01: return "HiROM";
-    case 0x02: return "LoROM + S-DD1";
-    case 0x03: return "LoROM + SA-1";
-    case 0x05: return "ExHiROM";
-    default: return absl::StrFormat("Unknown (0x%02X)", mode);
+    case 0x00:
+      return "LoROM";
+    case 0x01:
+      return "HiROM";
+    case 0x02:
+      return "LoROM + S-DD1";
+    case 0x03:
+      return "LoROM + SA-1";
+    case 0x05:
+      return "ExHiROM";
+    default:
+      return absl::StrFormat("Unknown (0x%02X)", mode);
   }
 }
 
 std::string GetCountryName(uint8_t country) {
   switch (country) {
-    case 0x00: return "Japan";
-    case 0x01: return "USA";
-    case 0x02: return "Europe";
-    default: return absl::StrFormat("Unknown (0x%02X)", country);
+    case 0x00:
+      return "Japan";
+    case 0x01:
+      return "USA";
+    case 0x02:
+      return "Europe";
+    default:
+      return absl::StrFormat("Unknown (0x%02X)", country);
   }
 }
 
 void OutputTextBanner(bool is_json) {
-  if (is_json) return;
+  if (is_json)
+    return;
   std::cout << "\n";
-  std::cout << "╔═══════════════════════════════════════════════════════════════╗\n";
-  std::cout << "║                      ROM DOCTOR                               ║\n";
-  std::cout << "║         File Integrity & Validation Tool                      ║\n";
-  std::cout << "╚═══════════════════════════════════════════════════════════════╝\n";
+  std::cout
+      << "╔═══════════════════════════════════════════════════════════════╗\n";
+  std::cout
+      << "║                      ROM DOCTOR                               ║\n";
+  std::cout
+      << "║         File Integrity & Validation Tool                      ║\n";
+  std::cout
+      << "╚═══════════════════════════════════════════════════════════════╝\n";
 }
 
 RomFeatures DetectRomFeaturesLocal(Rom* rom) {
@@ -113,8 +127,8 @@ RomFeatures DetectRomFeaturesLocal(Rom* rom) {
 
   if (kZSCustomVersionPos < rom->size()) {
     features.zs_custom_version = rom->data()[kZSCustomVersionPos];
-    features.is_vanilla =
-        (features.zs_custom_version == 0xFF || features.zs_custom_version == 0x00);
+    features.is_vanilla = (features.zs_custom_version == 0xFF ||
+                           features.zs_custom_version == 0x00);
     features.is_v2 = (!features.is_vanilla && features.zs_custom_version == 2);
     features.is_v3 = (!features.is_vanilla && features.zs_custom_version >= 3);
   } else {
@@ -144,7 +158,7 @@ RomFeatures DetectRomFeaturesLocal(Rom* rom) {
 void CheckCorruptionHeuristics(Rom* rom, DiagnosticReport& report) {
   const auto* data = rom->data();
   size_t size = rom->size();
-  
+
   // Check known problematic addresses
   for (uint32_t addr : kProblemAddresses) {
     if (addr < size) {
@@ -156,9 +170,12 @@ void CheckCorruptionHeuristics(Rom* rom, DiagnosticReport& report) {
         DiagnosticFinding finding;
         finding.id = "known_corruption_pattern";
         finding.severity = DiagnosticSeverity::kWarning;
-        finding.message = absl::StrFormat("Potential corruption detected at known problematic address 0x%06X", addr);
+        finding.message = absl::StrFormat(
+            "Potential corruption detected at known problematic address 0x%06X",
+            addr);
         finding.location = absl::StrFormat("0x%06X", addr);
-        finding.suggested_action = "Check if this byte should be 0x00. If not, restore from backup.";
+        finding.suggested_action =
+            "Check if this byte should be 0x00. If not, restore from backup.";
         finding.fixable = false;
         report.AddFinding(finding);
       }
@@ -170,8 +187,10 @@ void CheckCorruptionHeuristics(Rom* rom, DiagnosticReport& report) {
   // We'll scan a small sample.
   int zero_run = 0;
   for (uint32_t i = 0x0000; i < 0x1000; ++i) {
-    if (data[i] == 0x00) zero_run++;
-    else zero_run = 0;
+    if (data[i] == 0x00)
+      zero_run++;
+    else
+      zero_run = 0;
 
     if (zero_run > 64) {
       DiagnosticFinding finding;
@@ -179,25 +198,28 @@ void CheckCorruptionHeuristics(Rom* rom, DiagnosticReport& report) {
       finding.severity = DiagnosticSeverity::kCritical;
       finding.message = "Large block of zeros detected in Bank 00 code region";
       finding.location = absl::StrFormat("Around 0x%06X", i);
-      finding.suggested_action = "ROM is likely corrupted. Restore from backup.";
+      finding.suggested_action =
+          "ROM is likely corrupted. Restore from backup.";
       finding.fixable = false;
       report.AddFinding(finding);
-      break; 
+      break;
     }
   }
 }
 
 void ValidateExpandedTables(Rom* rom, DiagnosticReport& report) {
-  if (!report.features.has_expanded_tile16) return;
+  if (!report.features.has_expanded_tile16)
+    return;
 
   const auto* data = rom->data();
   size_t size = rom->size();
-  
+
   // Check Tile16 expansion region (0x1E8000 - 0x1F0000)
   // This region should contain data, not be all empty.
   if (size >= kMap16TilesExpandedEnd) {
     bool all_empty = true;
-    for (uint32_t i = kMap16TilesExpanded; i < kMap16TilesExpandedEnd; i += 256) {
+    for (uint32_t i = kMap16TilesExpanded; i < kMap16TilesExpandedEnd;
+         i += 256) {
       if (data[i] != 0xFF && data[i] != 0x00) {
         all_empty = false;
         break;
@@ -208,9 +230,11 @@ void ValidateExpandedTables(Rom* rom, DiagnosticReport& report) {
       DiagnosticFinding finding;
       finding.id = "empty_expanded_tile16";
       finding.severity = DiagnosticSeverity::kError;
-      finding.message = "Expanded Tile16 region appears to be empty/uninitialized";
+      finding.message =
+          "Expanded Tile16 region appears to be empty/uninitialized";
       finding.location = "0x1E8000-0x1F0000";
-      finding.suggested_action = "Re-save Tile16 data from editor or re-apply expansion patch.";
+      finding.suggested_action =
+          "Re-save Tile16 data from editor or re-apply expansion patch.";
       finding.fixable = false;
       report.AddFinding(finding);
     }
@@ -220,12 +244,12 @@ void ValidateExpandedTables(Rom* rom, DiagnosticReport& report) {
 void CheckParallelWorldsHeuristics(Rom* rom, DiagnosticReport& report) {
   // 1. Search for "PARALLEL WORLDS" string in decoded messages
   try {
-    std::vector<uint8_t> rom_data_copy = rom->vector(); // Copy for safety
+    std::vector<uint8_t> rom_data_copy = rom->vector();  // Copy for safety
     auto messages = yaze::editor::ReadAllTextData(rom_data_copy.data());
-    
+
     bool pw_string_found = false;
     for (const auto& msg : messages) {
-      if (absl::StrContains(msg.ContentsParsed, "PARALLEL WORLDS") || 
+      if (absl::StrContains(msg.ContentsParsed, "PARALLEL WORLDS") ||
           absl::StrContains(msg.ContentsParsed, "Parallel Worlds")) {
         pw_string_found = true;
         break;
@@ -254,11 +278,13 @@ void CheckZScreamHeuristics(Rom* rom, DiagnosticReport& report) {
   bool has_zscustom_features = false;
   std::vector<std::string> features_found;
 
-  if (kCustomBGEnabledPos < size && data[kCustomBGEnabledPos] != 0x00 && data[kCustomBGEnabledPos] != 0xFF) {
+  if (kCustomBGEnabledPos < size && data[kCustomBGEnabledPos] != 0x00 &&
+      data[kCustomBGEnabledPos] != 0xFF) {
     has_zscustom_features = true;
     features_found.push_back("Custom BG");
   }
-  if (kCustomMainPalettePos < size && data[kCustomMainPalettePos] != 0x00 && data[kCustomMainPalettePos] != 0xFF) {
+  if (kCustomMainPalettePos < size && data[kCustomMainPalettePos] != 0x00 &&
+      data[kCustomMainPalettePos] != 0xFF) {
     has_zscustom_features = true;
     features_found.push_back("Custom Palette");
   }
@@ -267,14 +293,16 @@ void CheckZScreamHeuristics(Rom* rom, DiagnosticReport& report) {
     DiagnosticFinding finding;
     finding.id = "zscustom_features_detected";
     finding.severity = DiagnosticSeverity::kInfo;
-    finding.message = absl::StrFormat("ZSCustom features detected despite missing version header: %s", absl::StrJoin(features_found, ", "));
+    finding.message = absl::StrFormat(
+        "ZSCustom features detected despite missing version header: %s",
+        absl::StrJoin(features_found, ", "));
     finding.location = "ZSCustom Flags";
     finding.suggested_action = "Treat as ZSCustom ROM.";
     finding.fixable = false;
     report.AddFinding(finding);
-    
+
     report.features.is_vanilla = false;
-    report.features.zs_custom_version = 0xFE; // Unknown/Detected
+    report.features.zs_custom_version = 0xFE;  // Unknown/Detected
   }
 }
 
@@ -297,7 +325,8 @@ absl::Status RomDoctorCommandHandler::Execute(
   formatter.AddHexField("size_hex", rom->size(), 6);
 
   // Size validation
-  bool size_valid = (rom->size() == kVanillaSize || rom->size() == kExpandedSize);
+  bool size_valid =
+      (rom->size() == kVanillaSize || rom->size() == kExpandedSize);
   formatter.AddField("size_valid", size_valid);
 
   if (rom->size() == kVanillaSize) {
@@ -325,7 +354,8 @@ absl::Status RomDoctorCommandHandler::Execute(
   formatter.AddField("map_mode", GetMapModeName(header.map_mode));
   formatter.AddHexField("rom_type", header.rom_type, 2);
   formatter.AddField("rom_size_header", 1 << (header.rom_size + 10));
-  formatter.AddField("sram_size", header.sram_size > 0 ? (1 << (header.sram_size + 10)) : 0);
+  formatter.AddField("sram_size",
+                     header.sram_size > 0 ? (1 << (header.sram_size + 10)) : 0);
   formatter.AddField("country", GetCountryName(header.country));
   formatter.AddField("version", header.version);
   formatter.AddHexField("checksum_complement", header.checksum_complement, 4);
@@ -337,11 +367,14 @@ absl::Status RomDoctorCommandHandler::Execute(
     finding.id = "invalid_checksum";
     finding.severity = DiagnosticSeverity::kError;
     finding.message = absl::StrFormat(
-        "Invalid SNES checksum: complement=0x%04X checksum=0x%04X (XOR=0x%04X, expected 0xFFFF)",
+        "Invalid SNES checksum: complement=0x%04X checksum=0x%04X (XOR=0x%04X, "
+        "expected 0xFFFF)",
         header.checksum_complement, header.checksum,
         header.checksum_complement ^ header.checksum);
-    finding.location = absl::StrFormat("0x%04X", yaze::cli::kChecksumComplementPos);
-    finding.suggested_action = "ROM may be corrupted or modified without checksum update";
+    finding.location =
+        absl::StrFormat("0x%04X", yaze::cli::kChecksumComplementPos);
+    finding.suggested_action =
+        "ROM may be corrupted or modified without checksum update";
     finding.fixable = true;  // Could be fixed by recalculating
     report.AddFinding(finding);
   }
@@ -352,7 +385,8 @@ absl::Status RomDoctorCommandHandler::Execute(
   formatter.AddField("is_vanilla", report.features.is_vanilla);
   formatter.AddField("expanded_tile16", report.features.has_expanded_tile16);
   formatter.AddField("expanded_tile32", report.features.has_expanded_tile32);
-  formatter.AddField("expanded_pointer_tables", report.features.has_expanded_pointer_tables);
+  formatter.AddField("expanded_pointer_tables",
+                     report.features.has_expanded_pointer_tables);
 
   // Free space analysis (simplified)
   if (rom->size() >= kExpandedSize) {
@@ -388,7 +422,8 @@ absl::Status RomDoctorCommandHandler::Execute(
     finding.severity = DiagnosticSeverity::kInfo;
     finding.message = "Parallel Worlds (1.5MB) detected (Header check)";
     finding.location = "ROM Header";
-    finding.suggested_action = "Use z3ed for editing. Custom pointer tables are supported.";
+    finding.suggested_action =
+        "Use z3ed for editing. Custom pointer tables are supported.";
     finding.fixable = false;
     report.AddFinding(finding);
   } else if (hm_validator.HasBank00Erasure()) {
@@ -405,8 +440,6 @@ absl::Status RomDoctorCommandHandler::Execute(
   // Advanced Heuristics
   CheckParallelWorldsHeuristics(rom, report);
   CheckZScreamHeuristics(rom, report);
-
-
 
   // 5. Validate expanded tables
   ValidateExpandedTables(rom, report);
@@ -429,31 +462,44 @@ absl::Status RomDoctorCommandHandler::Execute(
   // Text output
   if (!is_json) {
     std::cout << "\n";
-    std::cout << "╔═══════════════════════════════════════════════════════════════╗\n";
-    std::cout << "║                    DIAGNOSTIC SUMMARY                         ║\n";
-    std::cout << "╠═══════════════════════════════════════════════════════════════╣\n";
+    std::cout << "╔════════════════════════════════════════════════════════════"
+                 "═══╗\n";
+    std::cout << "║                    DIAGNOSTIC SUMMARY                      "
+                 "   ║\n";
+    std::cout << "╠════════════════════════════════════════════════════════════"
+                 "═══╣\n";
     std::cout << absl::StrFormat("║  ROM Title: %-49s ║\n", header.title);
     std::cout << absl::StrFormat("║  Size: 0x%06zX bytes (%zu KB)%-26s ║\n",
                                  rom->size(), rom->size() / 1024, "");
-    std::cout << absl::StrFormat("║  Map Mode: %-50s ║\n", GetMapModeName(header.map_mode));
-    std::cout << absl::StrFormat("║  Country: %-51s ║\n", GetCountryName(header.country));
-    std::cout << "╠═══════════════════════════════════════════════════════════════╣\n";
-    std::cout << absl::StrFormat("║  Checksum: 0x%04X (complement: 0x%04X) - %s%-14s ║\n",
-                                 header.checksum, header.checksum_complement,
-                                 header.checksum_valid ? "VALID" : "INVALID", "");
+    std::cout << absl::StrFormat("║  Map Mode: %-50s ║\n",
+                                 GetMapModeName(header.map_mode));
+    std::cout << absl::StrFormat("║  Country: %-51s ║\n",
+                                 GetCountryName(header.country));
+    std::cout << "╠════════════════════════════════════════════════════════════"
+                 "═══╣\n";
+    std::cout << absl::StrFormat(
+        "║  Checksum: 0x%04X (complement: 0x%04X) - %s%-14s ║\n",
+        header.checksum, header.checksum_complement,
+        header.checksum_valid ? "VALID" : "INVALID", "");
     std::cout << absl::StrFormat("║  ZSCustomOverworld: %-41s ║\n",
                                  report.features.GetVersionString());
-    std::cout << absl::StrFormat("║  Expanded Tile16: %-43s ║\n",
-                                 report.features.has_expanded_tile16 ? "YES" : "NO");
-    std::cout << absl::StrFormat("║  Expanded Tile32: %-43s ║\n",
-                                 report.features.has_expanded_tile32 ? "YES" : "NO");
-    std::cout << absl::StrFormat("║  Expanded Ptr Tables: %-39s ║\n",
-                                 report.features.has_expanded_pointer_tables ? "YES" : "NO");
-    std::cout << "╠═══════════════════════════════════════════════════════════════╣\n";
-    std::cout << absl::StrFormat("║  Findings: %d total (%d errors, %d warnings, %d info)%-8s ║\n",
-                                 report.TotalFindings(), report.error_count,
-                                 report.warning_count, report.info_count, "");
-    std::cout << "╚═══════════════════════════════════════════════════════════════╝\n";
+    std::cout << absl::StrFormat(
+        "║  Expanded Tile16: %-43s ║\n",
+        report.features.has_expanded_tile16 ? "YES" : "NO");
+    std::cout << absl::StrFormat(
+        "║  Expanded Tile32: %-43s ║\n",
+        report.features.has_expanded_tile32 ? "YES" : "NO");
+    std::cout << absl::StrFormat(
+        "║  Expanded Ptr Tables: %-39s ║\n",
+        report.features.has_expanded_pointer_tables ? "YES" : "NO");
+    std::cout << "╠════════════════════════════════════════════════════════════"
+                 "═══╣\n";
+    std::cout << absl::StrFormat(
+        "║  Findings: %d total (%d errors, %d warnings, %d info)%-8s ║\n",
+        report.TotalFindings(), report.error_count, report.warning_count,
+        report.info_count, "");
+    std::cout << "╚════════════════════════════════════════════════════════════"
+                 "═══╝\n";
 
     if (verbose && !report.findings.empty()) {
       std::cout << "\n=== Detailed Findings ===\n";
@@ -467,4 +513,3 @@ absl::Status RomDoctorCommandHandler::Execute(
 }
 
 }  // namespace yaze::cli
-

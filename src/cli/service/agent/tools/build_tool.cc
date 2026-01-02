@@ -17,8 +17,8 @@
 #include "absl/strings/str_split.h"
 
 #ifdef _WIN32
-#include <windows.h>
 #include <process.h>
+#include <windows.h>
 #else
 #include <fcntl.h>
 #include <signal.h>
@@ -37,8 +37,7 @@ namespace fs = std::filesystem;
 // BuildTool Implementation
 // ============================================================================
 
-BuildTool::BuildTool(const BuildConfig& config)
-    : config_(config) {
+BuildTool::BuildTool(const BuildConfig& config) : config_(config) {
   // Ensure build directory is set with a default value
   const char* env_build_dir = std::getenv("YAZE_BUILD_DIR");
   if (env_build_dir != nullptr && env_build_dir[0] != '\0') {
@@ -50,7 +49,8 @@ BuildTool::BuildTool(const BuildConfig& config)
   // Convert to absolute path if relative
   fs::path build_path(config_.build_directory);
   if (build_path.is_relative()) {
-    config_.build_directory = (fs::path(GetProjectRoot()) / build_path).string();
+    config_.build_directory =
+        (fs::path(GetProjectRoot()) / build_path).string();
   }
 }
 
@@ -80,8 +80,8 @@ absl::StatusOr<BuildTool::BuildResult> BuildTool::Configure(
   if (!IsPresetValid(preset)) {
     auto available = ListAvailablePresets();
     return absl::InvalidArgumentError(
-        absl::StrFormat("Invalid preset '%s'. Available presets: %s",
-                       preset, absl::StrJoin(available, ", ")));
+        absl::StrFormat("Invalid preset '%s'. Available presets: %s", preset,
+                        absl::StrJoin(available, ", ")));
   }
 
   // Ensure build directory exists
@@ -93,16 +93,15 @@ absl::StatusOr<BuildTool::BuildResult> BuildTool::Configure(
   }
 
   // Build cmake command
-  std::string command = absl::StrFormat(
-      "cmake --preset %s -B \"%s\"",
-      preset, config_.build_directory);
+  std::string command = absl::StrFormat("cmake --preset %s -B \"%s\"", preset,
+                                        config_.build_directory);
 
   if (config_.verbose) {
     command += " --debug-output";
   }
 
-  return ExecuteCommand(command,
-      absl::StrFormat("Configuring with preset '%s'", preset));
+  return ExecuteCommand(
+      command, absl::StrFormat("Configuring with preset '%s'", preset));
 }
 
 absl::StatusOr<BuildTool::BuildResult> BuildTool::Build(
@@ -110,14 +109,14 @@ absl::StatusOr<BuildTool::BuildResult> BuildTool::Build(
 
   // Check if build directory exists
   if (!IsBuildDirectoryReady()) {
-    return absl::FailedPreconditionError(
-        absl::StrFormat("Build directory '%s' not configured. Run Configure first.",
-                       config_.build_directory));
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Build directory '%s' not configured. Run Configure first.",
+        config_.build_directory));
   }
 
   // Build cmake command
-  std::string command = absl::StrFormat(
-      "cmake --build \"%s\"", config_.build_directory);
+  std::string command =
+      absl::StrFormat("cmake --build \"%s\"", config_.build_directory);
 
   if (!config.empty()) {
     command += absl::StrFormat(" --config %s", config);
@@ -134,9 +133,9 @@ absl::StatusOr<BuildTool::BuildResult> BuildTool::Build(
     command += " --verbose";
   }
 
-  return ExecuteCommand(command,
-      absl::StrFormat("Building %s",
-                     target.empty() ? "all targets" : target));
+  return ExecuteCommand(
+      command,
+      absl::StrFormat("Building %s", target.empty() ? "all targets" : target));
 }
 
 absl::StatusOr<BuildTool::BuildResult> BuildTool::RunTests(
@@ -144,15 +143,14 @@ absl::StatusOr<BuildTool::BuildResult> BuildTool::RunTests(
 
   // Check if build directory exists
   if (!IsBuildDirectoryReady()) {
-    return absl::FailedPreconditionError(
-        absl::StrFormat("Build directory '%s' not configured. Run Configure first.",
-                       config_.build_directory));
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Build directory '%s' not configured. Run Configure first.",
+        config_.build_directory));
   }
 
   // Build ctest command
   std::string command = absl::StrFormat(
-      "ctest --test-dir \"%s\" --output-on-failure",
-      config_.build_directory);
+      "ctest --test-dir \"%s\" --output-on-failure", config_.build_directory);
 
   // Add filter if specified
   if (!filter.empty()) {
@@ -180,8 +178,8 @@ absl::StatusOr<BuildTool::BuildResult> BuildTool::RunTests(
         rom_path, rom_path);
 #else
     env_setup = absl::StrFormat(
-        "YAZE_TEST_ROM_VANILLA=\"%s\" YAZE_TEST_ROM_PATH=\"%s\" ",
-        rom_path, rom_path);
+        "YAZE_TEST_ROM_VANILLA=\"%s\" YAZE_TEST_ROM_PATH=\"%s\" ", rom_path,
+        rom_path);
 #endif
   }
 
@@ -194,9 +192,11 @@ absl::StatusOr<BuildTool::BuildResult> BuildTool::RunTests(
 
   std::string full_command = env_setup + command;
 
-  return ExecuteCommand(full_command,
-      absl::StrFormat("Running tests%s",
-                     filter.empty() ? "" : absl::StrFormat(" (filter: %s)", filter)));
+  return ExecuteCommand(
+      full_command,
+      absl::StrFormat(
+          "Running tests%s",
+          filter.empty() ? "" : absl::StrFormat(" (filter: %s)", filter)));
 }
 
 BuildTool::BuildStatus BuildTool::GetBuildStatus() const {
@@ -211,8 +211,7 @@ BuildTool::BuildStatus BuildTool::GetBuildStatus() const {
   if (last_result_.has_value()) {
     status.last_result_summary = absl::StrFormat(
         "Last operation: %s (exit code: %d, duration: %lds)",
-        last_result_->success ? "SUCCESS" : "FAILED",
-        last_result_->exit_code,
+        last_result_->success ? "SUCCESS" : "FAILED", last_result_->exit_code,
         last_result_->duration.count());
   } else {
     status.last_result_summary = "No operations executed yet";
@@ -233,9 +232,8 @@ absl::StatusOr<BuildTool::BuildResult> BuildTool::Clean() {
     return result;
   }
 
-  std::string command = absl::StrFormat(
-      "cmake --build \"%s\" --target clean",
-      config_.build_directory);
+  std::string command = absl::StrFormat("cmake --build \"%s\" --target clean",
+                                        config_.build_directory);
 
   return ExecuteCommand(command, "Cleaning build directory");
 }
@@ -244,8 +242,7 @@ bool BuildTool::IsBuildDirectoryReady() const {
   fs::path build_path(config_.build_directory);
 
   // Check if directory exists and contains CMakeCache.txt
-  return fs::exists(build_path) &&
-         fs::exists(build_path / "CMakeCache.txt");
+  return fs::exists(build_path) && fs::exists(build_path / "CMakeCache.txt");
 }
 
 std::vector<std::string> BuildTool::ListAvailablePresets() const {
@@ -288,8 +285,8 @@ absl::StatusOr<BuildTool::BuildResult> BuildTool::ExecuteCommand(
 
   // Calculate duration
   auto end_time = std::chrono::steady_clock::now();
-  auto duration = std::chrono::duration_cast<std::chrono::seconds>(
-      end_time - start_time);
+  auto duration =
+      std::chrono::duration_cast<std::chrono::seconds>(end_time - start_time);
 
   if (result.ok()) {
     auto& build_result = *result;
@@ -373,9 +370,8 @@ absl::StatusOr<BuildTool::BuildResult> BuildTool::ExecuteCommandInternal(
       pclose(pipe);
 #endif
       fs::current_path(original_dir, ec);
-      return absl::DeadlineExceededError(
-          absl::StrFormat("Command timed out after %ld seconds",
-                         timeout.count()));
+      return absl::DeadlineExceededError(absl::StrFormat(
+          "Command timed out after %ld seconds", timeout.count()));
     }
 
     // Read from pipe
@@ -529,7 +525,8 @@ std::vector<std::string> BuildTool::ParsePresetsFile() const {
       continue;
     }
 
-    if (!in_configure_presets) continue;
+    if (!in_configure_presets)
+      continue;
 
     // Track braces to know when we're in a preset object
     for (char c : line) {
@@ -612,7 +609,8 @@ std::vector<std::string> BuildTool::ParsePresetsFile() const {
 
 bool BuildTool::IsPresetValid(const std::string& preset) const {
   auto available = ListAvailablePresets();
-  return std::find(available.begin(), available.end(), preset) != available.end();
+  return std::find(available.begin(), available.end(), preset) !=
+         available.end();
 }
 
 void BuildTool::UpdateStatus(const std::string& operation, bool is_running) {
@@ -666,19 +664,18 @@ absl::Status BuildConfigureCommandHandler::Execute(
   formatter.AddField("success", result->success ? "true" : "false");
   formatter.AddField("exit_code", std::to_string(result->exit_code));
   formatter.AddField("duration",
-      absl::StrFormat("%ld seconds", result->duration.count()));
+                     absl::StrFormat("%ld seconds", result->duration.count()));
 
   if (!result->output.empty()) {
     // Truncate output if too long
     const size_t max_lines = 100;
     std::vector<std::string> lines = absl::StrSplit(result->output, '\n');
     if (lines.size() > max_lines) {
-      std::vector<std::string> truncated(
-          lines.end() - max_lines, lines.end());
+      std::vector<std::string> truncated(lines.end() - max_lines, lines.end());
       formatter.AddField("output",
-          absl::StrFormat("[...truncated %zu lines...]\n%s",
-                         lines.size() - max_lines,
-                         absl::StrJoin(truncated, "\n")));
+                         absl::StrFormat("[...truncated %zu lines...]\n%s",
+                                         lines.size() - max_lines,
+                                         absl::StrJoin(truncated, "\n")));
     } else {
       formatter.AddField("output", result->output);
     }
@@ -737,19 +734,18 @@ absl::Status BuildCompileCommandHandler::Execute(
   formatter.AddField("success", result->success ? "true" : "false");
   formatter.AddField("exit_code", std::to_string(result->exit_code));
   formatter.AddField("duration",
-      absl::StrFormat("%ld seconds", result->duration.count()));
+                     absl::StrFormat("%ld seconds", result->duration.count()));
 
   // Limit output size for readability
   if (!result->output.empty()) {
     const size_t max_lines = 100;
     std::vector<std::string> lines = absl::StrSplit(result->output, '\n');
     if (lines.size() > max_lines) {
-      std::vector<std::string> truncated(
-          lines.end() - max_lines, lines.end());
+      std::vector<std::string> truncated(lines.end() - max_lines, lines.end());
       formatter.AddField("output",
-          absl::StrFormat("[...truncated %zu lines...]\n%s",
-                         lines.size() - max_lines,
-                         absl::StrJoin(truncated, "\n")));
+                         absl::StrFormat("[...truncated %zu lines...]\n%s",
+                                         lines.size() - max_lines,
+                                         absl::StrJoin(truncated, "\n")));
       formatter.AddField("output_truncated", "true");
     } else {
       formatter.AddField("output", result->output);
@@ -812,7 +808,7 @@ absl::Status BuildTestCommandHandler::Execute(
   formatter.AddField("success", result->success ? "true" : "false");
   formatter.AddField("exit_code", std::to_string(result->exit_code));
   formatter.AddField("duration",
-      absl::StrFormat("%ld seconds", result->duration.count()));
+                     absl::StrFormat("%ld seconds", result->duration.count()));
 
   // Parse test results from output
   if (!result->output.empty()) {
@@ -830,12 +826,11 @@ absl::Status BuildTestCommandHandler::Execute(
     const size_t max_lines = 50;
     std::vector<std::string> lines = absl::StrSplit(result->output, '\n');
     if (lines.size() > max_lines) {
-      std::vector<std::string> truncated(
-          lines.end() - max_lines, lines.end());
+      std::vector<std::string> truncated(lines.end() - max_lines, lines.end());
       formatter.AddField("output",
-          absl::StrFormat("[...truncated %zu lines...]\n%s",
-                         lines.size() - max_lines,
-                         absl::StrJoin(truncated, "\n")));
+                         absl::StrFormat("[...truncated %zu lines...]\n%s",
+                                         lines.size() - max_lines,
+                                         absl::StrJoin(truncated, "\n")));
     } else {
       formatter.AddField("output", result->output);
     }
@@ -878,9 +873,8 @@ absl::Status BuildStatusCommandHandler::Execute(
   formatter.BeginObject("Build Status");
   formatter.AddField("build_directory", build_dir);
   formatter.AddField("directory_ready",
-      build_tool_->IsBuildDirectoryReady() ? "true" : "false");
-  formatter.AddField("operation_running",
-      status.is_running ? "true" : "false");
+                     build_tool_->IsBuildDirectoryReady() ? "true" : "false");
+  formatter.AddField("operation_running", status.is_running ? "true" : "false");
 
   if (status.is_running) {
     formatter.AddField("current_operation", status.current_operation);
@@ -890,7 +884,7 @@ absl::Status BuildStatusCommandHandler::Execute(
     auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(
         now - status.start_time);
     formatter.AddField("elapsed_time",
-        absl::StrFormat("%ld seconds", elapsed.count()));
+                       absl::StrFormat("%ld seconds", elapsed.count()));
   }
 
   if (!status.last_result_summary.empty()) {
@@ -914,7 +908,8 @@ absl::Status BuildStatusCommandHandler::Execute(
     formatter.AddField("command", last_result->command_executed);
     formatter.AddField("success", last_result->success ? "true" : "false");
     formatter.AddField("exit_code", std::to_string(last_result->exit_code));
-    formatter.AddField("duration",
+    formatter.AddField(
+        "duration",
         absl::StrFormat("%ld seconds", last_result->duration.count()));
     formatter.EndObject();
   }

@@ -59,21 +59,25 @@ absl::StatusOr<ZsprData> ZsprLoader::LoadFromData(
   uint16_t palette_size = ReadU16LE(&data[0x0F]);
   zspr.metadata.sprite_type = ReadU16LE(&data[0x11]);
 
-  LOG_INFO("ZsprLoader", "ZSPR v%d: sprite@0x%04X (%d bytes), palette@0x%04X (%d bytes), type=%d",
-           zspr.metadata.version, sprite_offset, sprite_size,
-           palette_offset, palette_size, zspr.metadata.sprite_type);
+  LOG_INFO(
+      "ZsprLoader",
+      "ZSPR v%d: sprite@0x%04X (%d bytes), palette@0x%04X (%d bytes), type=%d",
+      zspr.metadata.version, sprite_offset, sprite_size, palette_offset,
+      palette_size, zspr.metadata.sprite_type);
 
   // Validate checksum (covers sprite and palette data)
   // Note: Some ZSPR files may have checksum=0 if not computed
   if (checksum != 0) {
     size_t checksum_start = sprite_offset;
-    size_t checksum_length = sprite_size + palette_size + 4;  // +4 for glove colors
+    size_t checksum_length =
+        sprite_size + palette_size + 4;  // +4 for glove colors
     if (checksum_start + checksum_length <= data.size()) {
-      if (!ValidateChecksum(
-              std::vector<uint8_t>(data.begin() + checksum_start,
-                                   data.begin() + checksum_start + checksum_length),
-              checksum)) {
-        LOG_WARN("ZsprLoader", "ZSPR checksum mismatch (expected 0x%08X)", checksum);
+      if (!ValidateChecksum(std::vector<uint8_t>(data.begin() + checksum_start,
+                                                 data.begin() + checksum_start +
+                                                     checksum_length),
+                            checksum)) {
+        LOG_WARN("ZsprLoader", "ZSPR checksum mismatch (expected 0x%08X)",
+                 checksum);
         // Continue anyway - some files have incorrect checksums
       }
     }
@@ -104,14 +108,14 @@ absl::StatusOr<ZsprData> ZsprLoader::LoadFromData(
     string_offset += bytes_read;
   }
 
-  LOG_INFO("ZsprLoader", "ZSPR: '%s' by %s",
-           zspr.metadata.display_name.c_str(),
+  LOG_INFO("ZsprLoader", "ZSPR: '%s' by %s", zspr.metadata.display_name.c_str(),
            zspr.metadata.author.c_str());
 
   // Extract sprite data
   if (sprite_offset + sprite_size > data.size()) {
     return absl::InvalidArgumentError(
-        absl::StrFormat("ZSPR sprite data extends beyond file: offset=%d, size=%d, file_size=%zu",
+        absl::StrFormat("ZSPR sprite data extends beyond file: offset=%d, "
+                        "size=%d, file_size=%zu",
                         sprite_offset, sprite_size, data.size()));
   }
   zspr.sprite_data.assign(data.begin() + sprite_offset,
@@ -119,14 +123,16 @@ absl::StatusOr<ZsprData> ZsprLoader::LoadFromData(
 
   // Validate sprite data size for Link sprites
   if (zspr.is_link_sprite() && sprite_size != kExpectedSpriteDataSize) {
-    LOG_WARN("ZsprLoader", "Unexpected sprite data size for Link sprite: %d (expected %zu)",
+    LOG_WARN("ZsprLoader",
+             "Unexpected sprite data size for Link sprite: %d (expected %zu)",
              sprite_size, kExpectedSpriteDataSize);
   }
 
   // Extract palette data
   if (palette_offset + palette_size > data.size()) {
     return absl::InvalidArgumentError(
-        absl::StrFormat("ZSPR palette data extends beyond file: offset=%d, size=%d, file_size=%zu",
+        absl::StrFormat("ZSPR palette data extends beyond file: offset=%d, "
+                        "size=%d, file_size=%zu",
                         palette_offset, palette_size, data.size()));
   }
   zspr.palette_data.assign(data.begin() + palette_offset,
@@ -137,8 +143,8 @@ absl::StatusOr<ZsprData> ZsprLoader::LoadFromData(
   if (glove_offset + 4 <= data.size()) {
     zspr.glove_colors[0] = ReadU16LE(&data[glove_offset]);
     zspr.glove_colors[1] = ReadU16LE(&data[glove_offset + 2]);
-    LOG_INFO("ZsprLoader", "Glove colors: 0x%04X, 0x%04X",
-             zspr.glove_colors[0], zspr.glove_colors[1]);
+    LOG_INFO("ZsprLoader", "Glove colors: 0x%04X, 0x%04X", zspr.glove_colors[0],
+             zspr.glove_colors[1]);
   }
 
   return zspr;
@@ -188,7 +194,8 @@ absl::Status ZsprLoader::ApplyToRom(Rom& rom, const ZsprData& zspr) {
 
     // Write sheet data to ROM
     for (size_t i = 0; i < kBytesPerSheet; i++) {
-      auto status = rom.WriteByte(rom_offset + i, zspr.sprite_data[data_offset + i]);
+      auto status =
+          rom.WriteByte(rom_offset + i, zspr.sprite_data[data_offset + i]);
       if (!status.ok()) {
         return absl::InternalError(
             absl::StrFormat("Failed to write byte at 0x%06X: %s",
@@ -196,8 +203,8 @@ absl::Status ZsprLoader::ApplyToRom(Rom& rom, const ZsprData& zspr) {
       }
     }
 
-    LOG_INFO("ZsprLoader", "Wrote Link sheet %zu at ROM offset 0x%06X",
-             sheet, rom_offset);
+    LOG_INFO("ZsprLoader", "Wrote Link sheet %zu at ROM offset 0x%06X", sheet,
+             rom_offset);
   }
 
   return absl::OkStatus();
@@ -235,21 +242,24 @@ absl::Status ZsprLoader::ApplyPaletteToRom(Rom& rom, const ZsprData& zspr) {
     size_t data_offset = pal * kPaletteSize;
 
     for (size_t i = 0; i < kPaletteSize; i++) {
-      auto status = rom.WriteByte(rom_offset + i, zspr.palette_data[data_offset + i]);
+      auto status =
+          rom.WriteByte(rom_offset + i, zspr.palette_data[data_offset + i]);
       if (!status.ok()) {
-        return absl::InternalError(
-            absl::StrFormat("Failed to write palette byte at 0x%06X", rom_offset + i));
+        return absl::InternalError(absl::StrFormat(
+            "Failed to write palette byte at 0x%06X", rom_offset + i));
       }
     }
 
-    LOG_INFO("ZsprLoader", "Wrote palette %zu at ROM offset 0x%06X", pal, rom_offset);
+    LOG_INFO("ZsprLoader", "Wrote palette %zu at ROM offset 0x%06X", pal,
+             rom_offset);
   }
 
   // Write glove colors
   // Glove 1: 0x0DExx (power glove)
   // Glove 2: 0x0DExx (titan's mitt)
   // TODO: Find exact glove color offsets for US ROM
-  LOG_INFO("ZsprLoader", "Glove colors loaded but not yet written (TODO: find offsets)");
+  LOG_INFO("ZsprLoader",
+           "Glove colors loaded but not yet written (TODO: find offsets)");
 
   return absl::OkStatus();
 }
@@ -273,8 +283,8 @@ uint32_t ZsprLoader::CalculateAdler32(const uint8_t* data, size_t length) {
 }
 
 std::string ZsprLoader::ReadNullTerminatedString(const uint8_t* data,
-                                                  size_t max_length,
-                                                  size_t& bytes_read) {
+                                                 size_t max_length,
+                                                 size_t& bytes_read) {
   std::string result;
   bytes_read = 0;
 
@@ -290,8 +300,7 @@ std::string ZsprLoader::ReadNullTerminatedString(const uint8_t* data,
 }
 
 uint16_t ZsprLoader::ReadU16LE(const uint8_t* data) {
-  return static_cast<uint16_t>(data[0]) |
-         (static_cast<uint16_t>(data[1]) << 8);
+  return static_cast<uint16_t>(data[0]) | (static_cast<uint16_t>(data[1]) << 8);
 }
 
 uint32_t ZsprLoader::ReadU32LE(const uint8_t* data) {

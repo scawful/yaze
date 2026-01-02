@@ -58,8 +58,8 @@ absl::StatusOr<VisionVerificationResult> AIVisionVerifier::Verify(
   auto result = ParseAIResponse(*ai_response, "");
 
   auto end = std::chrono::steady_clock::now();
-  result.latency = std::chrono::duration_cast<std::chrono::milliseconds>(
-      end - start);
+  result.latency =
+      std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
   return result;
 }
@@ -79,19 +79,21 @@ absl::StatusOr<VisionVerificationResult> AIVisionVerifier::VerifyConditions(
 
   // Build multi-condition prompt
   std::ostringstream prompt;
-  prompt << "Analyze this screenshot and verify ALL of the following conditions:\n\n";
+  prompt << "Analyze this screenshot and verify ALL of the following "
+            "conditions:\n\n";
   for (size_t i = 0; i < conditions.size(); ++i) {
     prompt << (i + 1) << ". " << conditions[i] << "\n";
   }
-  prompt << "\nFor EACH condition, respond with:\n"
-         << "- PASS or FAIL\n"
-         << "- Brief explanation\n\n"
-         << "Then provide an OVERALL result (PASS only if ALL conditions pass).\n"
-         << "Format:\n"
-         << "CONDITION 1: [PASS/FAIL] - [explanation]\n"
-         << "...\n"
-         << "OVERALL: [PASS/FAIL]\n"
-         << "CONFIDENCE: [0.0-1.0]";
+  prompt
+      << "\nFor EACH condition, respond with:\n"
+      << "- PASS or FAIL\n"
+      << "- Brief explanation\n\n"
+      << "Then provide an OVERALL result (PASS only if ALL conditions pass).\n"
+      << "Format:\n"
+      << "CONDITION 1: [PASS/FAIL] - [explanation]\n"
+      << "...\n"
+      << "OVERALL: [PASS/FAIL]\n"
+      << "CONFIDENCE: [0.0-1.0]";
 
   auto ai_response = CallVisionModel(prompt.str(), *screenshot_result);
   if (!ai_response.ok()) {
@@ -101,8 +103,8 @@ absl::StatusOr<VisionVerificationResult> AIVisionVerifier::VerifyConditions(
   auto result = ParseAIResponse(*ai_response, "");
 
   auto end = std::chrono::steady_clock::now();
-  result.latency = std::chrono::duration_cast<std::chrono::milliseconds>(
-      end - start);
+  result.latency =
+      std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
   return result;
 }
@@ -136,8 +138,8 @@ absl::StatusOr<VisionVerificationResult> AIVisionVerifier::CompareToReference(
   auto result = ParseAIResponse(*ai_response, reference_path);
 
   auto end = std::chrono::steady_clock::now();
-  result.latency = std::chrono::duration_cast<std::chrono::milliseconds>(
-      end - start);
+  result.latency =
+      std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
   return result;
 }
@@ -159,31 +161,30 @@ absl::StatusOr<std::string> AIVisionVerifier::AskAboutState(
 absl::StatusOr<VisionVerificationResult> AIVisionVerifier::VerifyTileAt(
     int x, int y, int expected_tile_id) {
   std::string condition = absl::StrFormat(
-      "The tile at canvas position (%d, %d) should be tile ID 0x%04X",
-      x, y, expected_tile_id);
+      "The tile at canvas position (%d, %d) should be tile ID 0x%04X", x, y,
+      expected_tile_id);
   return Verify(condition);
 }
 
 absl::StatusOr<VisionVerificationResult> AIVisionVerifier::VerifyPanelVisible(
     const std::string& panel_name) {
   std::string condition = absl::StrFormat(
-      "The '%s' panel/window should be visible and not obscured",
-      panel_name);
+      "The '%s' panel/window should be visible and not obscured", panel_name);
   return Verify(condition);
 }
 
 absl::StatusOr<VisionVerificationResult> AIVisionVerifier::VerifyEmulatorState(
     const std::string& state_description) {
-  std::string condition = absl::StrFormat(
-      "In the emulator view, verify: %s", state_description);
+  std::string condition =
+      absl::StrFormat("In the emulator view, verify: %s", state_description);
   return Verify(condition);
 }
 
 absl::StatusOr<VisionVerificationResult> AIVisionVerifier::VerifySpriteAt(
     int x, int y, const std::string& sprite_description) {
   std::string condition = absl::StrFormat(
-      "At position (%d, %d), there should be a sprite matching: %s",
-      x, y, sprite_description);
+      "At position (%d, %d), there should be a sprite matching: %s", x, y,
+      sprite_description);
   return Verify(condition);
 }
 
@@ -203,8 +204,8 @@ absl::StatusOr<std::string> AIVisionVerifier::CaptureScreenshot(
   // Save to file
   std::string path = absl::StrCat(config_.screenshot_dir, "/", name, ".png");
   // TODO: Implement PNG saving
-  LOG_DEBUG("AIVisionVerifier", "Screenshot captured: %s (%dx%d)",
-            path.c_str(), last_width_, last_height_);
+  LOG_DEBUG("AIVisionVerifier", "Screenshot captured: %s (%dx%d)", path.c_str(),
+            last_width_, last_height_);
 
   return path;
 }
@@ -243,7 +244,8 @@ absl::Status AIVisionVerifier::AddIterativeCheck(const std::string& condition) {
   return absl::OkStatus();
 }
 
-absl::StatusOr<VisionVerificationResult> AIVisionVerifier::CompleteIterativeSession() {
+absl::StatusOr<VisionVerificationResult>
+AIVisionVerifier::CompleteIterativeSession() {
   in_iterative_session_ = false;
 
   if (iterative_results_.empty()) {
@@ -261,11 +263,11 @@ absl::StatusOr<VisionVerificationResult> AIVisionVerifier::CompleteIterativeSess
     }
     total_confidence += result.confidence;
     combined.observations.insert(combined.observations.end(),
-                                  result.observations.begin(),
-                                  result.observations.end());
+                                 result.observations.begin(),
+                                 result.observations.end());
     combined.discrepancies.insert(combined.discrepancies.end(),
-                                   result.discrepancies.begin(),
-                                   result.discrepancies.end());
+                                  result.discrepancies.begin(),
+                                  result.discrepancies.end());
   }
 
   combined.confidence = total_confidence / iterative_results_.size();
@@ -321,8 +323,7 @@ absl::StatusOr<std::string> AIVisionVerifier::CallVisionModel(
     }
 
     // Try GeminiAIService for multimodal request
-    auto* gemini_service =
-        dynamic_cast<cli::GeminiAIService*>(ai_service_);
+    auto* gemini_service = dynamic_cast<cli::GeminiAIService*>(ai_service_);
     if (gemini_service) {
       auto response =
           gemini_service->GenerateMultimodalResponse(temp_image_path, prompt);
@@ -381,7 +382,8 @@ VisionVerificationResult AIVisionVerifier::ParseAIResponse(
   auto obs_pos = response.find("OBSERVATIONS:");
   if (obs_pos != std::string::npos) {
     auto end_pos = response.find('\n', obs_pos);
-    if (end_pos == std::string::npos) end_pos = response.length();
+    if (end_pos == std::string::npos)
+      end_pos = response.length();
     result.observations.push_back(
         response.substr(obs_pos + 13, end_pos - obs_pos - 13));
   }
@@ -390,7 +392,8 @@ VisionVerificationResult AIVisionVerifier::ParseAIResponse(
   auto disc_pos = response.find("DISCREPANCIES:");
   if (disc_pos != std::string::npos) {
     auto end_pos = response.find('\n', disc_pos);
-    if (end_pos == std::string::npos) end_pos = response.length();
+    if (end_pos == std::string::npos)
+      end_pos = response.length();
     std::string disc = response.substr(disc_pos + 14, end_pos - disc_pos - 14);
     if (disc != "None" && !disc.empty()) {
       result.discrepancies.push_back(disc);

@@ -8,7 +8,6 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/time/time.h"
-#include "rom/rom.h"
 #include "cli/tui/autocomplete_ui.h"
 #include "cli/tui/tui.h"
 #include "ftxui/component/component.hpp"
@@ -17,6 +16,7 @@
 #include "ftxui/component/screen_interactive.hpp"
 #include "ftxui/dom/elements.hpp"
 #include "ftxui/dom/table.hpp"
+#include "rom/rom.h"
 
 namespace yaze {
 namespace cli {
@@ -29,8 +29,8 @@ const std::vector<std::string> kSpinnerFrames = {"⠋", "⠙", "⠹", "⠸", "�
                                                  "⠴", "⠦", "⠧", "⠇", "⠏"};
 
 Element RenderPanelPanel(const std::string& title,
-                        const std::vector<Element>& body, Color border_color,
-                        bool highlight = false) {
+                         const std::vector<Element>& body, Color border_color,
+                         bool highlight = false) {
   auto panel = window(text(title) | bold, vbox(body));
   if (highlight) {
     panel = panel | color(border_color) | bgcolor(Color::GrayDark);
@@ -256,8 +256,7 @@ void ChatTUI::Run() {
                               absl::StrFormat("%d", metrics.turn_index),
                               Color::Cyan),
             RenderMetricLabel(
-                "🙋", "User",
-                absl::StrFormat("%d", metrics.total_user_messages),
+                "🙋", "User", absl::StrFormat("%d", metrics.total_user_messages),
                 Color::White),
             RenderMetricLabel(
                 "🤖", "Agent",

@@ -2043,19 +2043,24 @@ void Cpu::SaveState(std::ostream& stream) {
   stream.write(reinterpret_cast<const char*>(&E), sizeof(E));
   stream.write(reinterpret_cast<const char*>(&waiting_), sizeof(waiting_));
   stream.write(reinterpret_cast<const char*>(&stopped_), sizeof(stopped_));
-  stream.write(reinterpret_cast<const char*>(&irq_wanted_), sizeof(irq_wanted_));
-  stream.write(reinterpret_cast<const char*>(&nmi_wanted_), sizeof(nmi_wanted_));
-  stream.write(reinterpret_cast<const char*>(&reset_wanted_), sizeof(reset_wanted_));
-  stream.write(reinterpret_cast<const char*>(&int_wanted_), sizeof(int_wanted_));
+  stream.write(reinterpret_cast<const char*>(&irq_wanted_),
+               sizeof(irq_wanted_));
+  stream.write(reinterpret_cast<const char*>(&nmi_wanted_),
+               sizeof(nmi_wanted_));
+  stream.write(reinterpret_cast<const char*>(&reset_wanted_),
+               sizeof(reset_wanted_));
+  stream.write(reinterpret_cast<const char*>(&int_wanted_),
+               sizeof(int_wanted_));
   stream.write(reinterpret_cast<const char*>(&int_delay_), sizeof(int_delay_));
 
   // Breakpoints
   constexpr uint32_t kMaxBreakpoints = 1024;
-  uint32_t bp_count =
-      static_cast<uint32_t>(std::min<size_t>(breakpoints_.size(), kMaxBreakpoints));
+  uint32_t bp_count = static_cast<uint32_t>(
+      std::min<size_t>(breakpoints_.size(), kMaxBreakpoints));
   stream.write(reinterpret_cast<const char*>(&bp_count), sizeof(bp_count));
   if (bp_count > 0) {
-    stream.write(reinterpret_cast<const char*>(breakpoints_.data()), bp_count * sizeof(uint32_t));
+    stream.write(reinterpret_cast<const char*>(breakpoints_.data()),
+                 bp_count * sizeof(uint32_t));
   }
 }
 
@@ -2087,7 +2092,8 @@ void Cpu::LoadState(std::istream& stream) {
   const uint32_t safe_count = std::min(bp_count, kMaxBreakpoints);
   breakpoints_.resize(safe_count);
   if (safe_count > 0) {
-    stream.read(reinterpret_cast<char*>(breakpoints_.data()), safe_count * sizeof(uint32_t));
+    stream.read(reinterpret_cast<char*>(breakpoints_.data()),
+                safe_count * sizeof(uint32_t));
   }
   // Discard any excess breakpoints to keep stream position consistent.
   if (bp_count > safe_count) {

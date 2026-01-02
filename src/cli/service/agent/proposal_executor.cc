@@ -26,9 +26,9 @@ absl::StatusOr<ProposalCreationResult> CreateProposalFromAgentResponse(
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
-#include "rom/rom.h"
 #include "cli/service/planning/tile16_proposal_generator.h"
 #include "cli/service/rom/rom_sandbox_manager.h"
+#include "rom/rom.h"
 #include "util/macro.h"
 
 namespace yaze {

@@ -191,8 +191,8 @@ void PalettesetEditorPanel::DrawPaletteGrid(gfx::SnesPalette& palette,
       SameLine(0.0f, GetStyle().ItemSpacing.y);
     }
 
-    ImGuiColorEditFlags flags = ImGuiColorEditFlags_NoAlpha |
-                                ImGuiColorEditFlags_NoTooltip;
+    ImGuiColorEditFlags flags =
+        ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoTooltip;
     if (!editable) {
       flags |= ImGuiColorEditFlags_NoPicker;
     }
@@ -204,9 +204,9 @@ void PalettesetEditorPanel::DrawPaletteGrid(gfx::SnesPalette& palette,
 
     if (ImGui::IsItemHovered()) {
       auto& color = palette[color_idx];
-      ImGui::SetTooltip("Color %zu\nRGB: %d, %d, %d\nSNES: $%04X",
-                        color_idx, color.rom_color().red, color.rom_color().green, color.rom_color().blue,
-                        color.snes());
+      ImGui::SetTooltip("Color %zu\nRGB: %d, %d, %d\nSNES: $%04X", color_idx,
+                        color.rom_color().red, color.rom_color().green,
+                        color.rom_color().blue, color.snes());
     }
 
     PopID();
@@ -220,4 +220,3 @@ void PalettesetEditorPanel::DrawPaletteGrid(gfx::SnesPalette& palette,
 
 }  // namespace editor
 }  // namespace yaze
-

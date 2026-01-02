@@ -1,5 +1,6 @@
 // Related header
 #include "dungeon_object_interaction.h"
+#include "absl/strings/str_format.h"
 
 // C++ standard library headers
 #include <algorithm>
@@ -24,7 +25,8 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
   }
 
   // Handle Escape key to cancel any active placement mode
-  if (ImGui::IsKeyPressed(ImGuiKey_Escape) && mode_manager_.IsPlacementActive()) {
+  if (ImGui::IsKeyPressed(ImGuiKey_Escape) &&
+      mode_manager_.IsPlacementActive()) {
     CancelPlacement();
     return;
   }
@@ -88,7 +90,8 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
             state.rect_start_y = static_cast<int>(canvas_mouse_pos.y);
             state.rect_end_x = state.rect_start_x;
             state.rect_end_y = state.rect_start_y;
-            selection_.BeginRectangleSelection(state.rect_start_x, state.rect_start_y);
+            selection_.BeginRectangleSelection(state.rect_start_x,
+                                               state.rect_start_y);
           } else {
             // Clicked on an object - start drag if we have selected objects
             ClearEntitySelection();  // Clear entity selection when selecting object
@@ -198,7 +201,8 @@ void DungeonObjectInteraction::DrawObjectSelectRect() {
     auto& room = (*rooms_)[current_room_id_];
 
     // Determine selection mode based on modifiers
-    ObjectSelection::SelectionMode mode = ObjectSelection::SelectionMode::Single;
+    ObjectSelection::SelectionMode mode =
+        ObjectSelection::SelectionMode::Single;
     if (io.KeyShift) {
       mode = ObjectSelection::SelectionMode::Add;
     } else if (io.KeyCtrl) {
@@ -229,7 +233,8 @@ void DungeonObjectInteraction::DrawSelectionHighlights() {
         // (doesn't inflate size=0 to 32 like the game's GetSize_1to15or32)
         auto& dim_table = zelda3::ObjectDimensionTable::Get();
         if (dim_table.IsLoaded()) {
-          auto [w_tiles, h_tiles] = dim_table.GetSelectionDimensions(obj.id_, obj.size_);
+          auto [w_tiles, h_tiles] =
+              dim_table.GetSelectionDimensions(obj.id_, obj.size_);
           return std::make_pair(w_tiles * 8, h_tiles * 8);
         }
         // Fallback to drawer (aligns with render) if table not loaded
@@ -265,12 +270,12 @@ void DungeonObjectInteraction::DrawSelectionHighlights() {
       std::string object_name = zelda3::GetObjectName(object.id_);
       int subtype = zelda3::GetObjectSubtype(object.id_);
       int layer = object.GetLayerValue();
-      
+
       // Get subtype name
       const char* subtype_names[] = {"Unknown", "Type 1", "Type 2", "Type 3"};
-      const char* subtype_name = (subtype >= 0 && subtype <= 3) 
-                                  ? subtype_names[subtype] : "Unknown";
-      
+      const char* subtype_name =
+          (subtype >= 0 && subtype <= 3) ? subtype_names[subtype] : "Unknown";
+
       // Build informative tooltip
       std::string tooltip;
       tooltip += object_name;
@@ -278,32 +283,34 @@ void DungeonObjectInteraction::DrawSelectionHighlights() {
       tooltip += "\n";
       tooltip += "ID: 0x" + absl::StrFormat("%03X", object.id_);
       tooltip += " | Layer: " + std::to_string(layer + 1);
-      tooltip += " | Pos: (" + std::to_string(object.x_) + ", " + 
+      tooltip += " | Pos: (" + std::to_string(object.x_) + ", " +
                  std::to_string(object.y_) + ")";
-      tooltip += "\nSize: " + std::to_string(object.size_) + 
-                 " (0x" + absl::StrFormat("%02X", object.size_) + ")";
-      
+      tooltip += "\nSize: " + std::to_string(object.size_) + " (0x" +
+                 absl::StrFormat("%02X", object.size_) + ")";
+
       if (selection_.IsObjectSelected(hovered_index)) {
         tooltip += "\n" ICON_MD_MOUSE " Scroll wheel to resize";
         tooltip += "\n" ICON_MD_DRAG_INDICATOR " Drag to move";
       } else {
         tooltip += "\n" ICON_MD_TOUCH_APP " Click to select";
       }
-      
+
       ImGui::SetTooltip("%s", tooltip.c_str());
     }
   }
-  
+
   // Draw hover highlight for non-selected objects
   DrawHoverHighlight(objects);
 }
 
 void DungeonObjectInteraction::DrawHoverHighlight(
     const std::vector<zelda3::RoomObject>& objects) {
-  if (!canvas_->IsMouseHovering()) return;
+  if (!canvas_->IsMouseHovering())
+    return;
 
   // Skip all object hover in exclusive entity mode (door/sprite/item selected)
-  if (is_entity_mode_) return;
+  if (is_entity_mode_)
+    return;
 
   // Don't show object hover highlight if cursor is over a door/sprite/item entity
   // Entities take priority over objects for interaction
@@ -317,7 +324,8 @@ void DungeonObjectInteraction::DrawHoverHighlight(
   }
 
   size_t hovered_index = GetHoveredObjectIndex();
-  if (hovered_index == static_cast<size_t>(-1) || hovered_index >= objects.size()) {
+  if (hovered_index == static_cast<size_t>(-1) ||
+      hovered_index >= objects.size()) {
     return;
   }
 
@@ -325,20 +333,22 @@ void DungeonObjectInteraction::DrawHoverHighlight(
   if (selection_.IsObjectSelected(hovered_index)) {
     return;
   }
-  
+
   const auto& object = objects[hovered_index];
   const auto& theme = AgentUI::GetTheme();
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   // canvas_pos already defined above for entity check
   float scale = canvas_->global_scale();
-  
+
   // Calculate object position and dimensions
-  auto [obj_x, obj_y] = selection_.RoomToCanvasCoordinates(object.x_, object.y_);
-  
+  auto [obj_x, obj_y] =
+      selection_.RoomToCanvasCoordinates(object.x_, object.y_);
+
   int pixel_width, pixel_height;
   auto& dim_table = zelda3::ObjectDimensionTable::Get();
   if (dim_table.IsLoaded()) {
-    auto [w_tiles, h_tiles] = dim_table.GetSelectionDimensions(object.id_, object.size_);
+    auto [w_tiles, h_tiles] =
+        dim_table.GetSelectionDimensions(object.id_, object.size_);
     pixel_width = w_tiles * 8;
     pixel_height = h_tiles * 8;
   } else if (object_drawer_) {
@@ -349,42 +359,42 @@ void DungeonObjectInteraction::DrawHoverHighlight(
     pixel_width = 16;
     pixel_height = 16;
   }
-  
+
   // Apply scale and canvas offset
-  ImVec2 obj_start(canvas_pos.x + obj_x * scale,
-                   canvas_pos.y + obj_y * scale);
+  ImVec2 obj_start(canvas_pos.x + obj_x * scale, canvas_pos.y + obj_y * scale);
   ImVec2 obj_end(obj_start.x + pixel_width * scale,
                  obj_start.y + pixel_height * scale);
-  
+
   // Expand slightly for visibility
   constexpr float margin = 2.0f;
   obj_start.x -= margin;
   obj_start.y -= margin;
   obj_end.x += margin;
   obj_end.y += margin;
-  
+
   // Get layer-based color for consistent highlighting
   ImVec4 layer_color = selection_.GetLayerTypeColor(object);
-  
+
   // Draw subtle hover highlight with layer-based color
-  ImVec4 hover_fill = ImVec4(
-      layer_color.x, layer_color.y, layer_color.z,
-      0.15f  // Very subtle fill
+  ImVec4 hover_fill = ImVec4(layer_color.x, layer_color.y, layer_color.z,
+                             0.15f  // Very subtle fill
   );
-  ImVec4 hover_border = ImVec4(
-      layer_color.x, layer_color.y, layer_color.z,
-      0.6f  // Visible but not as prominent as selection
-  );
-  
+  ImVec4 hover_border =
+      ImVec4(layer_color.x, layer_color.y, layer_color.z,
+             0.6f  // Visible but not as prominent as selection
+      );
+
   // Draw filled background for better visibility
   draw_list->AddRectFilled(obj_start, obj_end, ImGui::GetColorU32(hover_fill));
-  
+
   // Draw dashed-style border (simulated with thinner line)
-  draw_list->AddRect(obj_start, obj_end, ImGui::GetColorU32(hover_border), 0.0f, 0, 1.5f);
+  draw_list->AddRect(obj_start, obj_end, ImGui::GetColorU32(hover_border), 0.0f,
+                     0, 1.5f);
 }
 
 void DungeonObjectInteraction::PlaceObjectAtPosition(int room_x, int room_y) {
-  if (!mode_manager_.IsObjectPlacementActive() || preview_object_.id_ < 0 || !rooms_)
+  if (!mode_manager_.IsObjectPlacementActive() || preview_object_.id_ < 0 ||
+      !rooms_)
     return;
 
   if (current_room_id_ < 0 || current_room_id_ >= 296)
@@ -563,8 +573,9 @@ void DungeonObjectInteraction::RenderGhostPreviewBitmap() {
   zelda3::ObjectDrawer drawer(rom_, current_room_id_, gfx_data);
   drawer.InitializeDrawRoutines();
 
-  auto status = drawer.DrawObject(preview_object_, *ghost_preview_buffer_,
-                                   *ghost_preview_buffer_, current_palette_group_);
+  auto status =
+      drawer.DrawObject(preview_object_, *ghost_preview_buffer_,
+                        *ghost_preview_buffer_, current_palette_group_);
   if (!status.ok()) {
     ghost_preview_buffer_.reset();
     return;
@@ -588,7 +599,8 @@ void DungeonObjectInteraction::ClearSelection() {
 
 bool DungeonObjectInteraction::TrySelectObjectAtCursor() {
   // Don't attempt object selection in exclusive entity mode
-  if (is_entity_mode_) return false;
+  if (is_entity_mode_)
+    return false;
 
   size_t hovered = GetHoveredObjectIndex();
   if (hovered == static_cast<size_t>(-1)) {
@@ -823,10 +835,10 @@ void DungeonObjectInteraction::DrawGhostPreview() {
 
   // Draw text background for readability
   ImVec2 text_size = ImGui::CalcTextSize(id_text.c_str());
-  draw_list->AddRectFilled(text_pos,
-                           ImVec2(text_pos.x + text_size.x + 4,
-                                  text_pos.y + text_size.y + 2),
-                           IM_COL32(0, 0, 0, 180));
+  draw_list->AddRectFilled(
+      text_pos,
+      ImVec2(text_pos.x + text_size.x + 4, text_pos.y + text_size.y + 2),
+      IM_COL32(0, 0, 0, 180));
   draw_list->AddText(ImVec2(text_pos.x + 2, text_pos.y + 1),
                      ImGui::GetColorU32(theme.text_primary), id_text.c_str());
 
@@ -970,27 +982,27 @@ size_t DungeonObjectInteraction::GetHoveredObjectIndex() const {
 
     // Calculate object bounds using accurate logic
     auto [width, height] = mutable_this->CalculateObjectBounds(object);
-    
+
     // Convert width/height (pixels) to tiles for comparison with room_x/room_y
     // room_x/room_y are in tiles (8x8 pixels)
     // object.x_/y_ are in tiles
-    
+
     int obj_x = object.x_;
     int obj_y = object.y_;
-    
+
     // Check if mouse is within object bounds
     // Note: room_x/y are tile coordinates. width/height are pixels.
     // We need to check pixel coordinates or convert width/height to tiles.
-    // Let's check pixel coordinates for better precision if needed, 
+    // Let's check pixel coordinates for better precision if needed,
     // but room_x/y are integers (tiles).
-    
+
     // Convert mouse to pixels relative to room origin
     int mouse_pixel_x = static_cast<int>(canvas_mouse_pos.x);
     int mouse_pixel_y = static_cast<int>(canvas_mouse_pos.y);
-    
+
     int obj_pixel_x = obj_x * 8;
     int obj_pixel_y = obj_y * 8;
-    
+
     if (mouse_pixel_x >= obj_pixel_x && mouse_pixel_x < obj_pixel_x + width &&
         mouse_pixel_y >= obj_pixel_y && mouse_pixel_y < obj_pixel_y + height) {
       return index;
@@ -1059,12 +1071,14 @@ void DungeonObjectInteraction::SendSelectedToFront() {
   // Rebuild: other objects first, then selected objects at end
   objects.clear();
   objects.insert(objects.end(), other_objects.begin(), other_objects.end());
-  objects.insert(objects.end(), selected_objects.begin(), selected_objects.end());
+  objects.insert(objects.end(), selected_objects.begin(),
+                 selected_objects.end());
 
   // Update selection to new indices (at end of list)
   selection_.ClearSelection();
   for (size_t i = 0; i < selected_objects.size(); ++i) {
-    selection_.SelectObject(other_objects.size() + i, ObjectSelection::SelectionMode::Add);
+    selection_.SelectObject(other_objects.size() + i,
+                            ObjectSelection::SelectionMode::Add);
   }
 
   room.MarkObjectsDirty();
@@ -1098,7 +1112,8 @@ void DungeonObjectInteraction::SendSelectedToBack() {
 
   // Rebuild: selected objects first, then other objects
   objects.clear();
-  objects.insert(objects.end(), selected_objects.begin(), selected_objects.end());
+  objects.insert(objects.end(), selected_objects.begin(),
+                 selected_objects.end());
   objects.insert(objects.end(), other_objects.begin(), other_objects.end());
 
   // Update selection to new indices (at start of list)
@@ -1125,7 +1140,7 @@ void DungeonObjectInteraction::BringSelectedForward() {
   // Move each selected object up one position (towards end of list)
   // Process from end to start to avoid shifting issues
   std::sort(indices.begin(), indices.end());
-  
+
   // Check if any selected object is already at the end
   bool all_at_end = true;
   for (size_t idx : indices) {
@@ -1134,13 +1149,14 @@ void DungeonObjectInteraction::BringSelectedForward() {
       break;
     }
   }
-  if (all_at_end) return;
+  if (all_at_end)
+    return;
 
   interaction_context_.NotifyMutation();
 
   // Track new indices after moves
   std::vector<size_t> new_indices;
-  
+
   // Process from end to avoid index shifting issues
   for (auto it = indices.rbegin(); it != indices.rend(); ++it) {
     size_t idx = *it;
@@ -1177,7 +1193,7 @@ void DungeonObjectInteraction::SendSelectedBackward() {
   // Move each selected object down one position (towards start of list)
   // Process from start to end to avoid shifting issues
   std::sort(indices.begin(), indices.end());
-  
+
   // Check if any selected object is already at the start
   bool all_at_start = true;
   for (size_t idx : indices) {
@@ -1186,13 +1202,14 @@ void DungeonObjectInteraction::SendSelectedBackward() {
       break;
     }
   }
-  if (all_at_start) return;
+  if (all_at_start)
+    return;
 
   interaction_context_.NotifyMutation();
 
   // Track new indices after moves
   std::vector<size_t> new_indices;
-  
+
   // Process from start to avoid index shifting issues
   for (size_t idx : indices) {
     if (idx > 0) {
@@ -1257,7 +1274,7 @@ void DungeonObjectInteraction::HandleLayerKeyboardShortcuts() {
 // ============================================================================
 
 void DungeonObjectInteraction::SetDoorPlacementMode(bool enabled,
-                                                     zelda3::DoorType type) {
+                                                    zelda3::DoorType type) {
   if (enabled) {
     mode_manager_.SetMode(InteractionMode::PlaceDoor);
     mode_manager_.GetModeState().preview_door_type = type;
@@ -1295,8 +1312,8 @@ void DungeonObjectInteraction::DrawDoorGhostPreview() {
   }
 
   // Snap to nearest valid door position
-  uint8_t position =
-      zelda3::DoorPositionManager::SnapToNearestPosition(canvas_x, canvas_y, direction);
+  uint8_t position = zelda3::DoorPositionManager::SnapToNearestPosition(
+      canvas_x, canvas_y, direction);
 
   // Store detected values for placement
   auto& state = mode_manager_.GetModeState();
@@ -1328,21 +1345,23 @@ void DungeonObjectInteraction::DrawDoorGhostPreview() {
 
   // Draw semi-transparent filled rectangle
   ImU32 fill_color = IM_COL32(theme.dungeon_selection_primary.x * 255,
-                               theme.dungeon_selection_primary.y * 255,
-                               theme.dungeon_selection_primary.z * 255,
-                               80);  // Semi-transparent
+                              theme.dungeon_selection_primary.y * 255,
+                              theme.dungeon_selection_primary.z * 255,
+                              80);  // Semi-transparent
   draw_list->AddRectFilled(preview_start, preview_end, fill_color);
 
   // Draw outline
   ImVec4 outline_color = ImVec4(theme.dungeon_selection_primary.x,
-                                 theme.dungeon_selection_primary.y,
-                                 theme.dungeon_selection_primary.z, 0.9f);
+                                theme.dungeon_selection_primary.y,
+                                theme.dungeon_selection_primary.z, 0.9f);
   draw_list->AddRect(preview_start, preview_end,
                      ImGui::GetColorU32(outline_color), 0.0f, 0, 2.0f);
 
   // Draw door type label
-  const char* type_name = std::string(zelda3::GetDoorTypeName(GetPreviewDoorType())).c_str();
-  const char* dir_name = std::string(zelda3::GetDoorDirectionName(direction)).c_str();
+  const char* type_name =
+      std::string(zelda3::GetDoorTypeName(GetPreviewDoorType())).c_str();
+  const char* dir_name =
+      std::string(zelda3::GetDoorDirectionName(direction)).c_str();
   char label[64];
   snprintf(label, sizeof(label), "%s (%s)", type_name, dir_name);
 
@@ -1366,8 +1385,8 @@ void DungeonObjectInteraction::PlaceDoorAtPosition(int canvas_x, int canvas_y) {
   }
 
   // Snap to nearest valid door position
-  uint8_t position =
-      zelda3::DoorPositionManager::SnapToNearestPosition(canvas_x, canvas_y, direction);
+  uint8_t position = zelda3::DoorPositionManager::SnapToNearestPosition(
+      canvas_x, canvas_y, direction);
 
   // Validate position
   if (!zelda3::DoorPositionManager::IsValidPosition(position, direction)) {
@@ -1398,7 +1417,8 @@ void DungeonObjectInteraction::PlaceDoorAtPosition(int canvas_x, int canvas_y) {
 // Sprite Placement Methods
 // ============================================================================
 
-void DungeonObjectInteraction::SetSpritePlacementMode(bool enabled, uint8_t sprite_id) {
+void DungeonObjectInteraction::SetSpritePlacementMode(bool enabled,
+                                                      uint8_t sprite_id) {
   if (enabled) {
     mode_manager_.SetMode(InteractionMode::PlaceSprite);
     mode_manager_.GetModeState().preview_sprite_id = sprite_id;
@@ -1425,7 +1445,7 @@ void DungeonObjectInteraction::DrawSpriteGhostPreview() {
   // Convert to room coordinates (sprites use 16-pixel grid)
   int canvas_x = static_cast<int>((mouse_pos.x - canvas_pos.x) / scale);
   int canvas_y = static_cast<int>((mouse_pos.y - canvas_pos.y) / scale);
-  
+
   // Snap to 16-pixel grid (sprite coordinate system)
   int snapped_x = (canvas_x / 16) * 16;
   int snapped_y = (canvas_y / 16) * 16;
@@ -1440,14 +1460,17 @@ void DungeonObjectInteraction::DrawSpriteGhostPreview() {
   ImU32 outline_color = IM_COL32(50, 255, 50, 200);
 
   canvas_->draw_list()->AddRectFilled(rect_min, rect_max, fill_color);
-  canvas_->draw_list()->AddRect(rect_min, rect_max, outline_color, 0.0f, 0, 2.0f);
+  canvas_->draw_list()->AddRect(rect_min, rect_max, outline_color, 0.0f, 0,
+                                2.0f);
 
   // Draw sprite ID label
   std::string label = absl::StrFormat("%02X", GetPreviewSpriteId());
-  canvas_->draw_list()->AddText(rect_min, IM_COL32(255, 255, 255, 255), label.c_str());
+  canvas_->draw_list()->AddText(rect_min, IM_COL32(255, 255, 255, 255),
+                                label.c_str());
 }
 
-void DungeonObjectInteraction::PlaceSpriteAtPosition(int canvas_x, int canvas_y) {
+void DungeonObjectInteraction::PlaceSpriteAtPosition(int canvas_x,
+                                                     int canvas_y) {
   if (mode_manager_.GetMode() != InteractionMode::PlaceSprite || !rooms_)
     return;
 
@@ -1455,7 +1478,8 @@ void DungeonObjectInteraction::PlaceSpriteAtPosition(int canvas_x, int canvas_y)
     return;
 
   float scale = canvas_->global_scale();
-  if (scale <= 0.0f) scale = 1.0f;
+  if (scale <= 0.0f)
+    scale = 1.0f;
 
   // Convert to sprite coordinates (16-pixel units)
   int sprite_x = canvas_x / static_cast<int>(16 * scale);
@@ -1470,8 +1494,7 @@ void DungeonObjectInteraction::PlaceSpriteAtPosition(int canvas_x, int canvas_y)
   // Create the sprite
   zelda3::Sprite new_sprite(GetPreviewSpriteId(),
                             static_cast<uint8_t>(sprite_x),
-                            static_cast<uint8_t>(sprite_y),
-                            0, 0);
+                            static_cast<uint8_t>(sprite_y), 0, 0);
 
   // Add sprite to room
   auto& room = (*rooms_)[current_room_id_];
@@ -1485,7 +1508,8 @@ void DungeonObjectInteraction::PlaceSpriteAtPosition(int canvas_x, int canvas_y)
 // Item Placement Methods
 // ============================================================================
 
-void DungeonObjectInteraction::SetItemPlacementMode(bool enabled, uint8_t item_id) {
+void DungeonObjectInteraction::SetItemPlacementMode(bool enabled,
+                                                    uint8_t item_id) {
   if (enabled) {
     mode_manager_.SetMode(InteractionMode::PlaceItem);
     mode_manager_.GetModeState().preview_item_id = item_id;
@@ -1512,7 +1536,7 @@ void DungeonObjectInteraction::DrawItemGhostPreview() {
   // Convert to room coordinates (items use 8-pixel grid for fine positioning)
   int canvas_x = static_cast<int>((mouse_pos.x - canvas_pos.x) / scale);
   int canvas_y = static_cast<int>((mouse_pos.y - canvas_pos.y) / scale);
-  
+
   // Snap to 8-pixel grid
   int snapped_x = (canvas_x / 8) * 8;
   int snapped_y = (canvas_y / 8) * 8;
@@ -1527,11 +1551,13 @@ void DungeonObjectInteraction::DrawItemGhostPreview() {
   ImU32 outline_color = IM_COL32(255, 255, 50, 200);
 
   canvas_->draw_list()->AddRectFilled(rect_min, rect_max, fill_color);
-  canvas_->draw_list()->AddRect(rect_min, rect_max, outline_color, 0.0f, 0, 2.0f);
+  canvas_->draw_list()->AddRect(rect_min, rect_max, outline_color, 0.0f, 0,
+                                2.0f);
 
   // Draw item ID label
   std::string label = absl::StrFormat("%02X", GetPreviewItemId());
-  canvas_->draw_list()->AddText(rect_min, IM_COL32(255, 255, 255, 255), label.c_str());
+  canvas_->draw_list()->AddText(rect_min, IM_COL32(255, 255, 255, 255),
+                                label.c_str());
 }
 
 void DungeonObjectInteraction::PlaceItemAtPosition(int canvas_x, int canvas_y) {
@@ -1542,18 +1568,19 @@ void DungeonObjectInteraction::PlaceItemAtPosition(int canvas_x, int canvas_y) {
     return;
 
   float scale = canvas_->global_scale();
-  if (scale <= 0.0f) scale = 1.0f;
+  if (scale <= 0.0f)
+    scale = 1.0f;
 
   // Convert to pixel coordinates
   int pixel_x = canvas_x / static_cast<int>(scale);
   int pixel_y = canvas_y / static_cast<int>(scale);
 
-  // PotItem position encoding: 
+  // PotItem position encoding:
   // high byte * 16 = Y, low byte * 4 = X
   // So: X = pixel_x / 4, Y = pixel_y / 16
   int encoded_x = pixel_x / 4;
   int encoded_y = pixel_y / 16;
-  
+
   // Clamp to valid range
   encoded_x = std::clamp(encoded_x, 0, 255);
   encoded_y = std::clamp(encoded_y, 0, 255);
@@ -1607,71 +1634,72 @@ std::optional<SelectedEntity> DungeonObjectInteraction::GetEntityAtPosition(
     return std::nullopt;
 
   const auto& room = (*rooms_)[current_room_id_];
-  
+
   // Convert screen coordinates to room coordinates by accounting for canvas scale
   float scale = canvas_->global_scale();
-  if (scale <= 0.0f) scale = 1.0f;
+  if (scale <= 0.0f)
+    scale = 1.0f;
   int room_x = static_cast<int>(canvas_x / scale);
   int room_y = static_cast<int>(canvas_y / scale);
-  
+
   // Check doors first (they have higher priority for selection)
   const auto& doors = room.GetDoors();
   for (size_t i = 0; i < doors.size(); ++i) {
     const auto& door = doors[i];
-    
+
     // Get door position in tile coordinates
     auto [tile_x, tile_y] = door.GetTileCoords();
-    
+
     // Get door dimensions
     auto dims = zelda3::GetDoorDimensions(door.direction);
-    
+
     // Convert to pixel coordinates
     int door_x = tile_x * 8;
     int door_y = tile_y * 8;
     int door_w = dims.width_tiles * 8;
     int door_h = dims.height_tiles * 8;
-    
+
     // Check if point is inside door bounds (using room coordinates)
-    if (room_x >= door_x && room_x < door_x + door_w &&
-        room_y >= door_y && room_y < door_y + door_h) {
+    if (room_x >= door_x && room_x < door_x + door_w && room_y >= door_y &&
+        room_y < door_y + door_h) {
       return SelectedEntity{EntityType::Door, i};
     }
   }
-  
+
   // Check sprites (16x16 hitbox)
   // NOTE: Sprite coordinates are in 16-pixel units (0-31 range = 512 pixels)
   const auto& sprites = room.GetSprites();
   for (size_t i = 0; i < sprites.size(); ++i) {
     const auto& sprite = sprites[i];
-    
+
     // Sprites use 16-pixel coordinate system
     int sprite_x = sprite.x() * 16;
     int sprite_y = sprite.y() * 16;
-    
+
     // 16x16 hitbox (using room coordinates)
-    if (room_x >= sprite_x && room_x < sprite_x + 16 &&
-        room_y >= sprite_y && room_y < sprite_y + 16) {
+    if (room_x >= sprite_x && room_x < sprite_x + 16 && room_y >= sprite_y &&
+        room_y < sprite_y + 16) {
       return SelectedEntity{EntityType::Sprite, i};
     }
   }
-  
+
   // Check pot items - they have their own position data from ROM
   const auto& pot_items = room.GetPotItems();
-  
+
   for (size_t i = 0; i < pot_items.size(); ++i) {
     const auto& pot_item = pot_items[i];
-    
+
     // Get pixel coordinates from PotItem
     int item_x = pot_item.GetPixelX();
     int item_y = pot_item.GetPixelY();
-    
+
     // 16x16 hitbox (using room coordinates)
-    if (room_x >= item_x && room_x < item_x + 16 &&
-        room_y >= item_y && room_y < item_y + 16) {
+    if (room_x >= item_x && room_x < item_x + 16 && room_y >= item_y &&
+        room_y < item_y + 16) {
       return SelectedEntity{EntityType::Item, i};
     }
   }
-  
+
   return std::nullopt;
 }
 
@@ -1683,7 +1711,7 @@ bool DungeonObjectInteraction::TrySelectEntityAtCursor() {
   ImVec2 canvas_pos = canvas_->zero_point();
   int canvas_x = static_cast<int>(io.MousePos.x - canvas_pos.x);
   int canvas_y = static_cast<int>(io.MousePos.y - canvas_pos.y);
-  
+
   auto entity = GetEntityAtPosition(canvas_x, canvas_y);
   if (entity.has_value()) {
     // Clear previous object selection
@@ -1694,13 +1722,13 @@ bool DungeonObjectInteraction::TrySelectEntityAtCursor() {
     // Start drag
     mode_manager_.SetMode(InteractionMode::DraggingEntity);
     auto& state = mode_manager_.GetModeState();
-    state.entity_drag_start = ImVec2(static_cast<float>(canvas_x),
-                                      static_cast<float>(canvas_y));
+    state.entity_drag_start =
+        ImVec2(static_cast<float>(canvas_x), static_cast<float>(canvas_y));
     state.entity_drag_current = state.entity_drag_start;
 
     return true;
   }
-  
+
   // No entity at cursor - clear entity selection
   ClearEntitySelection();
   return false;
@@ -1724,7 +1752,8 @@ void DungeonObjectInteraction::HandleEntityDrag() {
 
       // Detect wall
       zelda3::DoorDirection direction;
-      if (zelda3::DoorPositionManager::DetectWallFromPosition(canvas_x, canvas_y, direction)) {
+      if (zelda3::DoorPositionManager::DetectWallFromPosition(
+              canvas_x, canvas_y, direction)) {
         // Snap to nearest valid position
         uint8_t position = zelda3::DoorPositionManager::SnapToNearestPosition(
             canvas_x, canvas_y, direction);
@@ -1788,14 +1817,14 @@ void DungeonObjectInteraction::HandleEntityDrag() {
 
   // Update drag position
   ImVec2 canvas_pos = canvas_->zero_point();
-  state.entity_drag_current = ImVec2(io.MousePos.x - canvas_pos.x,
-                                      io.MousePos.y - canvas_pos.y);
+  state.entity_drag_current =
+      ImVec2(io.MousePos.x - canvas_pos.x, io.MousePos.y - canvas_pos.y);
 }
 
 void DungeonObjectInteraction::DrawEntitySelectionHighlights() {
   if (selected_entity_.type == EntityType::None)
     return;
-    
+
   if (!rooms_ || current_room_id_ < 0 || current_room_id_ >= 296)
     return;
 
@@ -1804,20 +1833,21 @@ void DungeonObjectInteraction::DrawEntitySelectionHighlights() {
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   ImVec2 canvas_pos = canvas_->zero_point();
   float scale = canvas_->global_scale();
-  
+
   ImVec2 pos, size;
   ImU32 color;
   const char* label = "";
-  
+
   switch (selected_entity_.type) {
     case EntityType::Door: {
       const auto& doors = room.GetDoors();
-      if (selected_entity_.index >= doors.size()) return;
-      
+      if (selected_entity_.index >= doors.size())
+        return;
+
       const auto& door = doors[selected_entity_.index];
       auto [tile_x, tile_y] = door.GetTileCoords();
       auto dims = zelda3::GetDoorDimensions(door.direction);
-      
+
       // If dragging, use current drag position for door preview
       if (mode_manager_.GetMode() == InteractionMode::DraggingEntity) {
         const auto& state = mode_manager_.GetModeState();
@@ -1826,32 +1856,37 @@ void DungeonObjectInteraction::DrawEntitySelectionHighlights() {
 
         zelda3::DoorDirection dir;
         bool is_inner = false;
-        if (zelda3::DoorPositionManager::DetectWallSection(drag_x, drag_y, dir, is_inner)) {
-          uint8_t snap_pos = zelda3::DoorPositionManager::SnapToNearestPosition(drag_x, drag_y, dir);
-          auto [snap_x, snap_y] = zelda3::DoorPositionManager::PositionToTileCoords(snap_pos, dir);
+        if (zelda3::DoorPositionManager::DetectWallSection(drag_x, drag_y, dir,
+                                                           is_inner)) {
+          uint8_t snap_pos = zelda3::DoorPositionManager::SnapToNearestPosition(
+              drag_x, drag_y, dir);
+          auto [snap_x, snap_y] =
+              zelda3::DoorPositionManager::PositionToTileCoords(snap_pos, dir);
           tile_x = snap_x;
           tile_y = snap_y;
           dims = zelda3::GetDoorDimensions(dir);
         }
       }
-      
+
       pos = ImVec2(canvas_pos.x + tile_x * 8 * scale,
                    canvas_pos.y + tile_y * 8 * scale);
-      size = ImVec2(dims.width_tiles * 8 * scale, dims.height_tiles * 8 * scale);
+      size =
+          ImVec2(dims.width_tiles * 8 * scale, dims.height_tiles * 8 * scale);
       color = IM_COL32(255, 165, 0, 180);  // Orange
       label = "Door";
       break;
     }
-    
+
     case EntityType::Sprite: {
       const auto& sprites = room.GetSprites();
-      if (selected_entity_.index >= sprites.size()) return;
-      
+      if (selected_entity_.index >= sprites.size())
+        return;
+
       const auto& sprite = sprites[selected_entity_.index];
       // Sprites use 16-pixel coordinate system
       int pixel_x = sprite.x() * 16;
       int pixel_y = sprite.y() * 16;
-      
+
       // If dragging, use current drag position (snapped to 16-pixel grid)
       if (mode_manager_.GetMode() == InteractionMode::DraggingEntity) {
         const auto& state = mode_manager_.GetModeState();
@@ -1862,7 +1897,7 @@ void DungeonObjectInteraction::DrawEntitySelectionHighlights() {
         pixel_x = tile_x * 16;
         pixel_y = tile_y * 16;
       }
-      
+
       pos = ImVec2(canvas_pos.x + pixel_x * scale,
                    canvas_pos.y + pixel_y * scale);
       size = ImVec2(16 * scale, 16 * scale);
@@ -1870,17 +1905,18 @@ void DungeonObjectInteraction::DrawEntitySelectionHighlights() {
       label = "Sprite";
       break;
     }
-    
+
     case EntityType::Item: {
       // Pot items have their own position data from ROM
       const auto& pot_items = room.GetPotItems();
-      
-      if (selected_entity_.index >= pot_items.size()) return;
-      
+
+      if (selected_entity_.index >= pot_items.size())
+        return;
+
       const auto& pot_item = pot_items[selected_entity_.index];
       int pixel_x = pot_item.GetPixelX();
       int pixel_y = pot_item.GetPixelY();
-      
+
       pos = ImVec2(canvas_pos.x + pixel_x * scale,
                    canvas_pos.y + pixel_y * scale);
       size = ImVec2(16 * scale, 16 * scale);
@@ -1888,20 +1924,23 @@ void DungeonObjectInteraction::DrawEntitySelectionHighlights() {
       label = "Item";
       break;
     }
-    
+
     default:
       return;
   }
-  
+
   // Draw selection rectangle with animated border
   static float pulse = 0.0f;
   pulse += ImGui::GetIO().DeltaTime * 3.0f;
   float alpha = 0.5f + 0.3f * sinf(pulse);
-  
-  ImU32 fill_color = (color & 0x00FFFFFF) | (static_cast<ImU32>(alpha * 100) << 24);
-  draw_list->AddRectFilled(pos, ImVec2(pos.x + size.x, pos.y + size.y), fill_color);
-  draw_list->AddRect(pos, ImVec2(pos.x + size.x, pos.y + size.y), color, 0.0f, 0, 2.0f);
-  
+
+  ImU32 fill_color =
+      (color & 0x00FFFFFF) | (static_cast<ImU32>(alpha * 100) << 24);
+  draw_list->AddRectFilled(pos, ImVec2(pos.x + size.x, pos.y + size.y),
+                           fill_color);
+  draw_list->AddRect(pos, ImVec2(pos.x + size.x, pos.y + size.y), color, 0.0f,
+                     0, 2.0f);
+
   // Draw label
   ImVec2 text_pos(pos.x, pos.y - 14 * scale);
   draw_list->AddText(text_pos, IM_COL32(255, 255, 255, 220), label);
@@ -1922,11 +1961,13 @@ void DungeonObjectInteraction::DrawDoorSnapIndicators() {
   bool is_inner = false;
   int drag_x = static_cast<int>(state.entity_drag_current.x);
   int drag_y = static_cast<int>(state.entity_drag_current.y);
-  if (!zelda3::DoorPositionManager::DetectWallSection(drag_x, drag_y, direction, is_inner))
+  if (!zelda3::DoorPositionManager::DetectWallSection(drag_x, drag_y, direction,
+                                                      is_inner))
     return;
 
   // Get the starting position index for this section
-  uint8_t start_pos = zelda3::DoorPositionManager::GetSectionStartPosition(direction, is_inner);
+  uint8_t start_pos =
+      zelda3::DoorPositionManager::GetSectionStartPosition(direction, is_inner);
 
   // Get the nearest snap position
   uint8_t nearest_snap = zelda3::DoorPositionManager::SnapToNearestPosition(
@@ -1942,7 +1983,8 @@ void DungeonObjectInteraction::DrawDoorSnapIndicators() {
   // Positions are: start_pos+0,1,2 (one Y offset) and start_pos+3,4,5 (other Y offset)
   for (uint8_t i = 0; i < 6; ++i) {
     uint8_t pos = start_pos + i;
-    auto [tile_x, tile_y] = zelda3::DoorPositionManager::PositionToTileCoords(pos, direction);
+    auto [tile_x, tile_y] =
+        zelda3::DoorPositionManager::PositionToTileCoords(pos, direction);
     float pixel_x = tile_x * 8.0f;
     float pixel_y = tile_y * 8.0f;
 
@@ -1956,11 +1998,13 @@ void DungeonObjectInteraction::DrawDoorSnapIndicators() {
       ImVec4 highlight = ImVec4(theme.dungeon_selection_primary.x,
                                 theme.dungeon_selection_primary.y,
                                 theme.dungeon_selection_primary.z, 0.75f);
-      draw_list->AddRect(snap_start, snap_end, ImGui::GetColorU32(highlight), 0.0f, 0, 2.5f);
+      draw_list->AddRect(snap_start, snap_end, ImGui::GetColorU32(highlight),
+                         0.0f, 0, 2.5f);
     } else {
       // Ghosted other positions - semi-transparent thin border
       ImVec4 ghost = ImVec4(1.0f, 1.0f, 1.0f, 0.25f);
-      draw_list->AddRect(snap_start, snap_end, ImGui::GetColorU32(ghost), 0.0f, 0, 1.0f);
+      draw_list->AddRect(snap_start, snap_end, ImGui::GetColorU32(ghost), 0.0f,
+                         0, 1.0f);
     }
   }
 }

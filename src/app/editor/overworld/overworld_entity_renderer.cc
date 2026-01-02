@@ -252,7 +252,7 @@ void OverworldEntityRenderer::DrawSprites(int current_world, int game_state,
 }
 
 void OverworldEntityRenderer::DrawDiggableTileHighlights(int current_world,
-                                                          int current_map) {
+                                                         int current_map) {
   if (!show_diggable_tiles_) {
     return;
   }

@@ -66,11 +66,12 @@ void ActivityBar::DrawActivityBarStrip(
   ImGui::PushStyleColor(ImGuiCol_WindowBg, bar_bg);
   ImGui::PushStyleColor(ImGuiCol_Border, bar_border);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 8.0f));
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 8.0f)); // Increased spacing
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,
+                      ImVec2(0.0f, 8.0f));  // Increased spacing
   ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
 
   if (ImGui::Begin("##ActivityBar", nullptr, flags)) {
-    
+
     // Global Search / Command Palette at top
     if (gui::TransparentIconButton(ICON_MD_SEARCH, ImVec2(48.0f, 40.0f),
                                    "Global Search (Ctrl+Shift+F)", false)) {
@@ -101,7 +102,8 @@ void ActivityBar::DrawActivityBarStrip(
       // Get category-specific theme colors for expressive appearance
       auto cat_theme = PanelManager::GetCategoryTheme(cat);
       ImVec4 cat_color(cat_theme.r, cat_theme.g, cat_theme.b, cat_theme.a);
-      ImVec4 glow_color(cat_theme.glow_r, cat_theme.glow_g, cat_theme.glow_b, 1.0f);
+      ImVec4 glow_color(cat_theme.glow_r, cat_theme.glow_g, cat_theme.glow_b,
+                        1.0f);
 
       // Active Indicator with category-specific colors
       if (is_selected && category_enabled) {
@@ -119,21 +121,20 @@ void ActivityBar::DrawActivityBarStrip(
         ImVec4 highlight = glow_color;
         highlight.w = 0.30f;
         ImGui::GetWindowDrawList()->AddRectFilled(
-            pos,
-            ImVec2(pos.x + 48.0f, pos.y + 40.0f),
+            pos, ImVec2(pos.x + 48.0f, pos.y + 40.0f),
             ImGui::ColorConvertFloat4ToU32(highlight), 2.0f);
 
         // Left accent border (4px wide, category-specific color)
         ImGui::GetWindowDrawList()->AddRectFilled(
-            pos,
-            ImVec2(pos.x + 4.0f, pos.y + 40.0f),
+            pos, ImVec2(pos.x + 4.0f, pos.y + 40.0f),
             ImGui::ColorConvertFloat4ToU32(cat_color));
       }
 
       std::string icon = PanelManager::GetCategoryIcon(cat);
 
       // Use ThemedWidgets with category-specific color when active
-      ImVec4 icon_color = is_selected ? cat_color : ImVec4(0, 0, 0, 0);  // 0 = use default
+      ImVec4 icon_color =
+          is_selected ? cat_color : ImVec4(0, 0, 0, 0);  // 0 = use default
       if (gui::TransparentIconButton(icon.c_str(), ImVec2(48.0f, 40.0f),
                                      nullptr, is_selected, icon_color)) {
         if (category_enabled) {
@@ -179,10 +180,10 @@ void ActivityBar::DrawActivityBarStrip(
 
   if (ImGui::BeginPopup("ActivityBarMoreMenu")) {
     if (ImGui::MenuItem(ICON_MD_TERMINAL " Command Palette")) {
-        panel_manager_.TriggerShowCommandPalette();
+      panel_manager_.TriggerShowCommandPalette();
     }
     if (ImGui::MenuItem(ICON_MD_KEYBOARD " Keyboard Shortcuts")) {
-        panel_manager_.TriggerShowShortcuts();
+      panel_manager_.TriggerShowShortcuts();
     }
     ImGui::Separator();
     if (ImGui::MenuItem(ICON_MD_FOLDER_OPEN " Open ROM")) {

@@ -8,11 +8,11 @@
 #include <thread>
 
 #include "absl/strings/str_format.h"
-#include "app/service/rom_service_impl.h"
-#include "rom/rom.h"
 #include "app/service/canvas_automation_service.h"
 #include "app/service/imgui_test_harness_service.h"
+#include "app/service/rom_service_impl.h"
 #include "protos/canvas_automation.grpc.pb.h"
+#include "rom/rom.h"
 
 #include "app/editor/editor_manager.h"
 
@@ -25,8 +25,7 @@ YazeGRPCServer::~YazeGRPCServer() {
 }
 
 absl::Status YazeGRPCServer::Initialize(
-    int port, test::TestManager* test_manager, 
-    RomGetter rom_getter,
+    int port, test::TestManager* test_manager, RomGetter rom_getter,
     net::RomVersionManager* version_mgr,
     net::ProposalApprovalManager* approval_mgr,
     CanvasAutomationServiceImpl* canvas_service) {
@@ -45,8 +44,8 @@ absl::Status YazeGRPCServer::Initialize(
 
   // Create ROM service if rom_getter provided
   if (config_.enable_rom_service && rom_getter) {
-    rom_service_ =
-        std::make_unique<net::RomServiceImpl>(rom_getter, version_mgr, approval_mgr);
+    rom_service_ = std::make_unique<net::RomServiceImpl>(
+        rom_getter, version_mgr, approval_mgr);
 
     // Configure ROM service
     net::RomServiceImpl::Config rom_config;
@@ -157,7 +156,7 @@ absl::Status YazeGRPCServer::BuildServer() {
   // Register services
   if (test_harness_service_) {
     // Create gRPC wrapper for the test harness service
-    test_harness_grpc_wrapper_ = 
+    test_harness_grpc_wrapper_ =
         test::CreateImGuiTestHarnessServiceGrpc(test_harness_service_.get());
     std::cout << "  Registering ImGuiTestHarness service...\n";
     builder.RegisterService(test_harness_grpc_wrapper_.get());
@@ -171,8 +170,7 @@ absl::Status YazeGRPCServer::BuildServer() {
   if (canvas_service_) {
     std::cout << "  Registering Canvas Automation service...\n";
     // Create gRPC wrapper using factory function
-    canvas_grpc_service_ =
-        CreateCanvasAutomationServiceGrpc(canvas_service_);
+    canvas_grpc_service_ = CreateCanvasAutomationServiceGrpc(canvas_service_);
     builder.RegisterService(canvas_grpc_service_.get());
   }
 

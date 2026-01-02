@@ -14,8 +14,8 @@
 #include <vector>
 
 #include "absl/strings/str_format.h"
-#include "rom/rom.h"
 #include "nlohmann/json.hpp"
+#include "rom/rom.h"
 #include "util/macro.h"
 #include "zelda3/music/song_data.h"
 #include "zelda3/music/spc_parser.h"
@@ -33,41 +33,41 @@ struct VanillaSongInfo {
 };
 
 constexpr VanillaSongInfo kVanillaSongs[] = {
-    {"Invalid", MusicBank::Bank::Overworld},        // 0 (unused)
-    {"Title", MusicBank::Bank::Overworld},          // 1
-    {"Light World", MusicBank::Bank::Overworld},    // 2
-    {"Beginning", MusicBank::Bank::Overworld},      // 3
-    {"Rabbit", MusicBank::Bank::Overworld},         // 4
-    {"Forest", MusicBank::Bank::Overworld},         // 5
-    {"Intro", MusicBank::Bank::Overworld},          // 6
-    {"Town", MusicBank::Bank::Overworld},           // 7
-    {"Warp", MusicBank::Bank::Overworld},           // 8
-    {"Dark World", MusicBank::Bank::Overworld},     // 9
-    {"Master Sword", MusicBank::Bank::Overworld},   // 10
-    {"File Select", MusicBank::Bank::Overworld},    // 11
-    {"Soldier", MusicBank::Bank::Dungeon},          // 12
-    {"Mountain", MusicBank::Bank::Dungeon},         // 13
-    {"Shop", MusicBank::Bank::Dungeon},             // 14
-    {"Fanfare", MusicBank::Bank::Dungeon},          // 15
-    {"Castle", MusicBank::Bank::Dungeon},           // 16
-    {"Palace (Pendant)", MusicBank::Bank::Dungeon}, // 17
-    {"Cave", MusicBank::Bank::Dungeon},             // 18
-    {"Clear", MusicBank::Bank::Dungeon},            // 19
-    {"Church", MusicBank::Bank::Dungeon},           // 20
-    {"Boss", MusicBank::Bank::Dungeon},             // 21
-    {"Dungeon (Crystal)", MusicBank::Bank::Dungeon},// 22
-    {"Psychic", MusicBank::Bank::Dungeon},          // 23
-    {"Secret Way", MusicBank::Bank::Dungeon},       // 24
-    {"Rescue", MusicBank::Bank::Dungeon},           // 25
-    {"Crystal", MusicBank::Bank::Dungeon},          // 26
-    {"Fountain", MusicBank::Bank::Dungeon},         // 27
-    {"Pyramid", MusicBank::Bank::Dungeon},          // 28
-    {"Kill Agahnim", MusicBank::Bank::Dungeon},     // 29
-    {"Ganon Room", MusicBank::Bank::Dungeon},       // 30
-    {"Last Boss", MusicBank::Bank::Dungeon},        // 31
-    {"Credits 1", MusicBank::Bank::Credits},        // 32
-    {"Credits 2", MusicBank::Bank::Credits},        // 33
-    {"Credits 3", MusicBank::Bank::Credits},        // 34
+    {"Invalid", MusicBank::Bank::Overworld},          // 0 (unused)
+    {"Title", MusicBank::Bank::Overworld},            // 1
+    {"Light World", MusicBank::Bank::Overworld},      // 2
+    {"Beginning", MusicBank::Bank::Overworld},        // 3
+    {"Rabbit", MusicBank::Bank::Overworld},           // 4
+    {"Forest", MusicBank::Bank::Overworld},           // 5
+    {"Intro", MusicBank::Bank::Overworld},            // 6
+    {"Town", MusicBank::Bank::Overworld},             // 7
+    {"Warp", MusicBank::Bank::Overworld},             // 8
+    {"Dark World", MusicBank::Bank::Overworld},       // 9
+    {"Master Sword", MusicBank::Bank::Overworld},     // 10
+    {"File Select", MusicBank::Bank::Overworld},      // 11
+    {"Soldier", MusicBank::Bank::Dungeon},            // 12
+    {"Mountain", MusicBank::Bank::Dungeon},           // 13
+    {"Shop", MusicBank::Bank::Dungeon},               // 14
+    {"Fanfare", MusicBank::Bank::Dungeon},            // 15
+    {"Castle", MusicBank::Bank::Dungeon},             // 16
+    {"Palace (Pendant)", MusicBank::Bank::Dungeon},   // 17
+    {"Cave", MusicBank::Bank::Dungeon},               // 18
+    {"Clear", MusicBank::Bank::Dungeon},              // 19
+    {"Church", MusicBank::Bank::Dungeon},             // 20
+    {"Boss", MusicBank::Bank::Dungeon},               // 21
+    {"Dungeon (Crystal)", MusicBank::Bank::Dungeon},  // 22
+    {"Psychic", MusicBank::Bank::Dungeon},            // 23
+    {"Secret Way", MusicBank::Bank::Dungeon},         // 24
+    {"Rescue", MusicBank::Bank::Dungeon},             // 25
+    {"Crystal", MusicBank::Bank::Dungeon},            // 26
+    {"Fountain", MusicBank::Bank::Dungeon},           // 27
+    {"Pyramid", MusicBank::Bank::Dungeon},            // 28
+    {"Kill Agahnim", MusicBank::Bank::Dungeon},       // 29
+    {"Ganon Room", MusicBank::Bank::Dungeon},         // 30
+    {"Last Boss", MusicBank::Bank::Dungeon},          // 31
+    {"Credits 1", MusicBank::Bank::Credits},          // 32
+    {"Credits 2", MusicBank::Bank::Credits},          // 33
+    {"Credits 3", MusicBank::Bank::Credits},          // 34
 };
 
 constexpr int kVanillaSongCount =
@@ -127,12 +127,14 @@ absl::Status UpdateBankPointerRegisters(Rom& rom,
   }
 
   auto status = rom.WriteByte(regs.low, EncodeLoRomLow(pc_offset));
-  if (!status.ok()) return status;
+  if (!status.ok())
+    return status;
 
-  status =
-      rom.WriteByte(regs.mid, static_cast<uint8_t>(preserved_mid |
-                                                   EncodeLoRomMid(pc_offset)));
-  if (!status.ok()) return status;
+  status = rom.WriteByte(
+      regs.mid,
+      static_cast<uint8_t>(preserved_mid | EncodeLoRomMid(pc_offset)));
+  if (!status.ok())
+    return status;
 
   status = rom.WriteByte(regs.bank, EncodeLoRomBank(pc_offset));
   return status;
@@ -154,11 +156,11 @@ absl::Status UpdateDynamicBankPointer(Rom& rom, MusicBank::Bank bank,
 constexpr int kVanillaInstrumentCount = 0x19;  // 25 entries
 constexpr int kInstrumentEntrySize = 6;
 constexpr const char* kAltTpInstrumentNames[kVanillaInstrumentCount] = {
-    "Noise",        "Rain",      "Timpani",     "Square wave", "Saw wave",
-    "Clink",        "Wobbly lead", "Compound saw", "Tweet",       "Strings A",
-    "Strings B",    "Trombone",  "Cymbal",      "Ocarina",     "Chimes",
-    "Harp",         "Splash",    "Trumpet",     "Horn",        "Snare A",
-    "Snare B",      "Choir",     "Flute",       "Oof",         "Piano"};
+    "Noise",     "Rain",        "Timpani",      "Square wave", "Saw wave",
+    "Clink",     "Wobbly lead", "Compound saw", "Tweet",       "Strings A",
+    "Strings B", "Trombone",    "Cymbal",       "Ocarina",     "Chimes",
+    "Harp",      "Splash",      "Trumpet",      "Horn",        "Snare A",
+    "Snare B",   "Choir",       "Flute",        "Oof",         "Piano"};
 
 }  // namespace
 
@@ -183,22 +185,27 @@ absl::Status MusicBank::LoadFromRom(Rom& rom) {
 
   // Detect Oracle of Secrets expanded music patch
   auto status = DetectExpandedMusicPatch(rom);
-  if (!status.ok()) return status;
+  if (!status.ok())
+    return status;
 
   // Load songs from each vanilla bank
   status = LoadSongTable(rom, Bank::Overworld, &custom_songs);
-  if (!status.ok()) return status;
+  if (!status.ok())
+    return status;
 
   status = LoadSongTable(rom, Bank::Dungeon, &custom_songs);
-  if (!status.ok()) return status;
+  if (!status.ok())
+    return status;
 
   status = LoadSongTable(rom, Bank::Credits, &custom_songs);
-  if (!status.ok()) return status;
+  if (!status.ok())
+    return status;
 
   // Load expanded bank songs if patch detected
   if (expanded_bank_info_.detected) {
     status = LoadExpandedSongTable(rom, &custom_songs);
-    if (!status.ok()) return status;
+    if (!status.ok())
+      return status;
   }
 
   for (auto& song : custom_songs) {
@@ -207,11 +214,13 @@ absl::Status MusicBank::LoadFromRom(Rom& rom) {
 
   // Load instruments
   status = LoadInstruments(rom);
-  if (!status.ok()) return status;
+  if (!status.ok())
+    return status;
 
   // Load samples
   status = LoadSamples(rom);
-  if (!status.ok()) return status;
+  if (!status.ok())
+    return status;
 
   loaded_ = true;
   return absl::OkStatus();
@@ -234,24 +243,29 @@ absl::Status MusicBank::SaveToRom(Rom& rom) {
 
   // Save songs to each bank
   auto status = SaveSongTable(rom, Bank::Overworld);
-  if (!status.ok()) return status;
+  if (!status.ok())
+    return status;
 
   status = SaveSongTable(rom, Bank::Dungeon);
-  if (!status.ok()) return status;
+  if (!status.ok())
+    return status;
 
   status = SaveSongTable(rom, Bank::Credits);
-  if (!status.ok()) return status;
+  if (!status.ok())
+    return status;
 
   // Save instruments if modified
   if (instruments_modified_) {
     status = SaveInstruments(rom);
-    if (!status.ok()) return status;
+    if (!status.ok())
+      return status;
   }
 
   // Save samples if modified
   if (samples_modified_) {
     status = SaveSamples(rom);
-    if (!status.ok()) return status;
+    if (!status.ok())
+      return status;
   }
 
   ClearModifications();
@@ -300,12 +314,13 @@ int MusicBank::CreateNewSong(const std::string& name, Bank bank) {
 
 int MusicBank::DuplicateSong(int index) {
   auto* source = GetSong(index);
-  if (!source) return -1;
-  
+  if (!source)
+    return -1;
+
   MusicSong new_song = *source;
   new_song.name += " (Copy)";
   new_song.modified = true;
-  
+
   songs_.push_back(std::move(new_song));
   return static_cast<int>(songs_.size()) - 1;
 }
@@ -318,7 +333,7 @@ absl::Status MusicBank::DeleteSong(int index) {
   if (index < 0 || index >= static_cast<int>(songs_.size())) {
     return absl::InvalidArgumentError("Invalid song index");
   }
-  
+
   if (IsVanilla(index)) {
     return absl::InvalidArgumentError("Cannot delete vanilla songs");
   }
@@ -381,10 +396,10 @@ const MusicSample* MusicBank::GetSample(int index) const {
 }
 
 absl::StatusOr<int> MusicBank::ImportSampleFromWav(const std::string& filepath,
-                                                    const std::string& name) {
+                                                   const std::string& name) {
   // TODO: Implement proper WAV loading and BRR encoding
   // For now, return success with a dummy sample so UI integration can be tested
-  
+
   MusicSample sample;
   sample.name = name;
   // Create dummy PCM data (sine wave)
@@ -392,10 +407,10 @@ absl::StatusOr<int> MusicBank::ImportSampleFromWav(const std::string& filepath,
   for (int i = 0; i < 1000; ++i) {
     sample.pcm_data[i] = static_cast<int16_t>(32040.0 * std::sin(i * 0.1));
   }
-  
+
   samples_.push_back(std::move(sample));
   samples_modified_ = true;
-  
+
   return static_cast<int>(samples_.size()) - 1;
 }
 
@@ -412,8 +427,8 @@ MusicBank::SpaceInfo MusicBank::CalculateSpaceUsage(Bank bank) const {
 
   info.free_bytes = info.total_bytes - info.used_bytes;
   info.usage_percent = (info.total_bytes > 0)
-      ? (100.0f * info.used_bytes / info.total_bytes)
-      : 0.0f;
+                           ? (100.0f * info.used_bytes / info.total_bytes)
+                           : 0.0f;
 
   // Set warning/critical flags
   info.is_warning = info.usage_percent > 75.0f;
@@ -443,22 +458,32 @@ bool MusicBank::AllSongsFit() const {
 
 int MusicBank::GetBankMaxSize(Bank bank) {
   switch (bank) {
-    case Bank::Overworld: return kOverworldBankMaxSize;
-    case Bank::Dungeon: return kDungeonBankMaxSize;
-    case Bank::Credits: return kCreditsBankMaxSize;
-    case Bank::OverworldExpanded: return kExpandedOverworldBankMaxSize;
-    case Bank::Auxiliary: return kAuxBankMaxSize;
+    case Bank::Overworld:
+      return kOverworldBankMaxSize;
+    case Bank::Dungeon:
+      return kDungeonBankMaxSize;
+    case Bank::Credits:
+      return kCreditsBankMaxSize;
+    case Bank::OverworldExpanded:
+      return kExpandedOverworldBankMaxSize;
+    case Bank::Auxiliary:
+      return kAuxBankMaxSize;
   }
   return 0;
 }
 
 uint32_t MusicBank::GetBankRomAddress(Bank bank) {
   switch (bank) {
-    case Bank::Overworld: return kOverworldBankRom;
-    case Bank::Dungeon: return kDungeonBankRom;
-    case Bank::Credits: return kCreditsBankRom;
-    case Bank::OverworldExpanded: return kExpandedOverworldBankRom;
-    case Bank::Auxiliary: return kExpandedAuxBankRom;
+    case Bank::Overworld:
+      return kOverworldBankRom;
+    case Bank::Dungeon:
+      return kDungeonBankRom;
+    case Bank::Credits:
+      return kCreditsBankRom;
+    case Bank::OverworldExpanded:
+      return kExpandedOverworldBankRom;
+    case Bank::Auxiliary:
+      return kExpandedAuxBankRom;
   }
   return 0;
 }
@@ -578,7 +603,8 @@ absl::Status MusicBank::LoadExpandedSongTable(
 
   // Read song pointers from the expanded bank
   // Each entry is 2 bytes, count entries until we hit song data or null
-  const int max_songs = 16;  // Oracle of Secrets uses ~15 songs in expanded bank
+  const int max_songs =
+      16;  // Oracle of Secrets uses ~15 songs in expanded bank
   auto pointer_result = SpcParser::ReadSongPointerTable(
       rom, kSongTableAram, expanded_spc_bank, max_songs);
 
@@ -592,7 +618,8 @@ absl::Status MusicBank::LoadExpandedSongTable(
   // Parse each song in the expanded bank
   int expanded_index = 0;
   for (const uint16_t spc_address : song_addresses) {
-    if (spc_address == 0) continue;  // Skip null entries
+    if (spc_address == 0)
+      continue;  // Skip null entries
 
     MusicSong song;
     auto parsed_song =
@@ -658,9 +685,8 @@ absl::Status MusicBank::LoadSongTable(Rom& rom, Bank bank,
 
   std::vector<uint16_t> song_addresses = std::move(pointer_result.value());
   if (song_addresses.empty()) {
-    return absl::InvalidArgumentError(
-        absl::StrFormat("Song table for bank %d is empty",
-                        static_cast<int>(bank)));
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Song table for bank %d is empty", static_cast<int>(bank)));
   }
 
   auto make_empty_song = []() -> MusicSong {
@@ -721,30 +747,32 @@ absl::Status MusicBank::LoadSongTable(Rom& rom, Bank bank,
     const uint16_t spc_address =
         (i < song_addresses.size()) ? song_addresses[i] : 0;
     const int song_id = range.start_id + static_cast<int>(i);
-    const std::string display_name = (song_id > 0 && song_id <= kVanillaSongCount)
-                                         ? GetVanillaSongName(song_id)
-                                         : absl::StrFormat("Vanilla Song %d",
-                                                           song_id);
+    const std::string display_name =
+        (song_id > 0 && song_id <= kVanillaSongCount)
+            ? GetVanillaSongName(song_id)
+            : absl::StrFormat("Vanilla Song %d", song_id);
     auto status =
         parse_and_emit(spc_address, display_name, /*is_custom=*/false);
-    if (!status.ok()) return status;
+    if (!status.ok())
+      return status;
   }
 
   // Custom slots (beyond vanilla range for this bank)
   // These would be at indices after the vanilla songs in this bank's table
   int custom_counter = 1;
-  for (size_t table_index = vanilla_slots;
-       table_index < song_addresses.size(); ++table_index) {
+  for (size_t table_index = vanilla_slots; table_index < song_addresses.size();
+       ++table_index) {
     const uint16_t spc_address = song_addresses[table_index];
     // Skip null entries (no custom song at this slot)
-    if (spc_address == 0) continue;
+    if (spc_address == 0)
+      continue;
 
     const std::string display_name =
         absl::StrFormat("Custom Song %d", custom_counter++);
 
-    auto status =
-        parse_and_emit(spc_address, display_name, /*is_custom=*/true);
-    if (!status.ok()) return status;
+    auto status = parse_and_emit(spc_address, display_name, /*is_custom=*/true);
+    if (!status.ok())
+      return status;
   }
 
   const int total_songs = static_cast<int>(song_addresses.size());
@@ -799,11 +827,10 @@ absl::Status MusicBank::SaveSongTable(Rom& rom, Bank bank) {
 
     const uint32_t song_size = serialized.data.size();
     if (current_spc_address + song_size > bank_limit) {
-      return absl::ResourceExhaustedError(
-          absl::StrFormat("Bank %d overflow (%u bytes needed, limit %u)",
-                          static_cast<int>(bank),
-                          current_spc_address + song_size - bank_base,
-                          GetBankMaxSize(bank)));
+      return absl::ResourceExhaustedError(absl::StrFormat(
+          "Bank %d overflow (%u bytes needed, limit %u)",
+          static_cast<int>(bank), current_spc_address + song_size - bank_base,
+          GetBankMaxSize(bank)));
     }
 
     const uint16_t song_base = static_cast<uint16_t>(current_spc_address);
@@ -821,10 +848,9 @@ absl::Status MusicBank::SaveSongTable(Rom& rom, Bank bank) {
   write_pointer_entry(pointer_index, 0);
 
   if (payload.size() > static_cast<size_t>(GetBankMaxSize(bank))) {
-    return absl::ResourceExhaustedError(
-        absl::StrFormat("Bank %d payload size %zu exceeds limit %d",
-                        static_cast<int>(bank), payload.size(),
-                        GetBankMaxSize(bank)));
+    return absl::ResourceExhaustedError(absl::StrFormat(
+        "Bank %d payload size %zu exceeds limit %d", static_cast<int>(bank),
+        payload.size(), GetBankMaxSize(bank)));
   }
 
   const uint16_t block_size = static_cast<uint16_t>(payload.size());
@@ -842,19 +868,20 @@ absl::Status MusicBank::SaveSongTable(Rom& rom, Bank bank) {
 
   const uint32_t rom_offset = GetBankRomAddress(bank);
   if (rom_offset + block_data.size() > rom.size()) {
-    return absl::OutOfRangeError(
-        absl::StrFormat("Bank %d ROM write exceeds image size (offset=%u, "
-                        "size=%zu, rom_size=%zu)",
-                        static_cast<int>(bank), rom_offset,
-                        block_data.size(), rom.size()));
+    return absl::OutOfRangeError(absl::StrFormat(
+        "Bank %d ROM write exceeds image size (offset=%u, "
+        "size=%zu, rom_size=%zu)",
+        static_cast<int>(bank), rom_offset, block_data.size(), rom.size()));
   }
 
   auto status =
       rom.WriteVector(static_cast<int>(rom_offset), std::move(block_data));
-  if (!status.ok()) return status;
+  if (!status.ok())
+    return status;
 
   status = UpdateDynamicBankPointer(rom, bank, rom_offset);
-  if (!status.ok()) return status;
+  if (!status.ok())
+    return status;
 
   return absl::OkStatus();
 }
@@ -874,8 +901,9 @@ absl::Status MusicBank::LoadInstruments(Rom& rom) {
     return absl::OutOfRangeError("Instrument table exceeds ROM bounds");
   }
 
-  ASSIGN_OR_RETURN(auto bytes,
-                   rom.ReadByteVector(rom_offset, static_cast<uint32_t>(table_size)));
+  ASSIGN_OR_RETURN(
+      auto bytes,
+      rom.ReadByteVector(rom_offset, static_cast<uint32_t>(table_size)));
 
   instruments_.reserve(kVanillaInstrumentCount);
   for (int i = 0; i < kVanillaInstrumentCount; ++i) {
@@ -923,7 +951,8 @@ absl::Status MusicBank::LoadSamples(Rom& rom) {
     MusicSample sample;
     sample.name = absl::StrFormat("Sample %02X", i);
     // Store loop point as relative offset from start
-    sample.loop_point = (loop_addr >= start_addr) ? (loop_addr - start_addr) : 0;
+    sample.loop_point =
+        (loop_addr >= start_addr) ? (loop_addr - start_addr) : 0;
 
     // Resolve start address to ROM offset
     uint32_t rom_offset = SpcParser::SpcAddressToRomOffset(rom, start_addr, 0);
@@ -1111,7 +1140,8 @@ absl::Status MusicBank::LoadFromJson(const nlohmann::json& j) {
             if (jseg.contains("tracks") && jseg["tracks"].is_array()) {
               int track_idx = 0;
               for (const auto& jt : jseg["tracks"]) {
-                if (track_idx >= 8) break;
+                if (track_idx >= 8)
+                  break;
                 auto& track = seg.tracks[track_idx++];
                 track.rom_address = jt.value("rom_address", 0);
                 track.duration_ticks = jt.value("duration_ticks", 0);
@@ -1215,8 +1245,7 @@ MusicBank::Bank GetVanillaSongBank(int song_id) {
 
 MusicBank::BankSongRange MusicBank::GetBankSongRange(Bank bank) {
   if (const auto* metadata = GetMetadataForBank(bank)) {
-    return BankSongRange{metadata->vanilla_start_id,
-                         metadata->vanilla_end_id};
+    return BankSongRange{metadata->vanilla_start_id, metadata->vanilla_end_id};
   }
   return {};
 }

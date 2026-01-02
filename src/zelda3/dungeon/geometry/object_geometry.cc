@@ -38,7 +38,8 @@ int ChooseAnchorY(const DrawRoutineInfo& routine, const RoomObject& object) {
     // Need count-1 tiles of upward travel plus 4 extra rows for the column.
     int min_anchor = count - 1;
     int max_anchor = DrawContext::kMaxTilesY - 5;  // leave 4 rows below ceiling
-    if (min_anchor > max_anchor) min_anchor = max_anchor;
+    if (min_anchor > max_anchor)
+      min_anchor = max_anchor;
     return std::clamp(min_anchor, 0, max_anchor);
   }
 
@@ -53,7 +54,9 @@ ObjectGeometry& ObjectGeometry::Get() {
   return instance;
 }
 
-ObjectGeometry::ObjectGeometry() { BuildRegistry(); }
+ObjectGeometry::ObjectGeometry() {
+  BuildRegistry();
+}
 
 void ObjectGeometry::BuildRegistry() {
   routines_.clear();
@@ -126,7 +129,8 @@ absl::StatusOr<GeometryBounds> ObjectGeometry::MeasureRoutine(
 
   for (int y = 0; y < tiles_h; ++y) {
     for (int x = 0; x < tiles_w; ++x) {
-      if (bg.GetTileAt(x, y) == 0) continue;
+      if (bg.GetTileAt(x, y) == 0)
+        continue;
       min_x = std::min(min_x, x);
       min_y = std::min(min_y, y);
       max_x = std::max(max_x, x);
@@ -156,11 +160,11 @@ absl::StatusOr<GeometryBounds> ObjectGeometry::MeasureForLayerCompositing(
   }
 
   GeometryBounds bounds = *result;
-  
+
   // Mark as BG2 overlay if the object's layer indicates Layer 1 (BG2)
   // Layer 1 objects write to the lower tilemap (BG2) and need BG1 transparency
   bounds.is_bg2_overlay = (object.layer_ == RoomObject::LayerType::BG2);
-  
+
   return bounds;
 }
 
@@ -176,7 +180,8 @@ bool ObjectGeometry::IsLayerOneRoutine(int routine_id) {
   //
   // This method is primarily for documentation; actual layer determination
   // comes from the object's layer_ field set during room loading.
-  (void)routine_id;  // Currently unused - layer determined by object, not routine
+  (void)
+      routine_id;  // Currently unused - layer determined by object, not routine
   return false;
 }
 
@@ -189,8 +194,8 @@ bool ObjectGeometry::IsDiagonalCeilingRoutine(int routine_id) {
   return routine_id >= 75 && routine_id <= 78;
 }
 
-GeometryBounds ObjectGeometry::ApplySelectionBounds(GeometryBounds render_bounds,
-                                                     int routine_id) {
+GeometryBounds ObjectGeometry::ApplySelectionBounds(
+    GeometryBounds render_bounds, int routine_id) {
   if (!IsDiagonalCeilingRoutine(routine_id)) {
     // Not a diagonal ceiling - return render bounds unchanged
     return render_bounds;
@@ -200,10 +205,10 @@ GeometryBounds ObjectGeometry::ApplySelectionBounds(GeometryBounds render_bounds
   // The visual triangle fills roughly 50% of the bounding box area.
   // We use a selection rectangle that's 70% of the size, centered,
   // to provide a reasonable hit target without excessive false positives.
-  
+
   int reduced_width = std::max(1, (render_bounds.width_tiles * 7) / 10);
   int reduced_height = std::max(1, (render_bounds.height_tiles * 7) / 10);
-  
+
   // Center the reduced selection box within the render bounds
   int offset_x = (render_bounds.width_tiles - reduced_width) / 2;
   int offset_y = (render_bounds.height_tiles - reduced_height) / 2;

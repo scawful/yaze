@@ -35,8 +35,7 @@ std::string ResolveAgentChatHistoryPath() {
   if (temp_dir.ok()) {
     return (*temp_dir / "agent_chat_history.json").string();
   }
-  return (std::filesystem::current_path() / "agent_chat_history.json")
-      .string();
+  return (std::filesystem::current_path() / "agent_chat_history.json").string();
 }
 
 }  // namespace
@@ -213,9 +212,8 @@ void RightPanelManager::Draw() {
       ImGuiWindowFlags_NoNavFocus;
 
   // Position panel on right edge, full height
-  ImGui::SetNextWindowPos(
-      ImVec2(viewport->WorkPos.x + viewport_width - panel_width,
-             viewport->WorkPos.y));
+  ImGui::SetNextWindowPos(ImVec2(
+      viewport->WorkPos.x + viewport_width - panel_width, viewport->WorkPos.y));
   ImGui::SetNextWindowSize(ImVec2(panel_width, viewport_height));
 
   ImGui::PushStyleColor(ImGuiCol_WindowBg, panel_bg);
@@ -269,8 +267,6 @@ void RightPanelManager::Draw() {
   ImGui::PopStyleColor(2);
 }
 
-
-
 void RightPanelManager::DrawPanelHeader(const char* title, const char* icon) {
   const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
   const float header_height = 44.0f;
@@ -282,8 +278,9 @@ void RightPanelManager::DrawPanelHeader(const char* title, const char* icon) {
                              header_min.y + header_height);
 
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  draw_list->AddRectFilled(header_min, header_max,
-                           ImGui::GetColorU32(gui::GetSurfaceContainerHighVec4()));
+  draw_list->AddRectFilled(
+      header_min, header_max,
+      ImGui::GetColorU32(gui::GetSurfaceContainerHighVec4()));
 
   // Draw subtle bottom border
   draw_list->AddLine(ImVec2(header_min.x, header_max.y),
@@ -292,7 +289,8 @@ void RightPanelManager::DrawPanelHeader(const char* title, const char* icon) {
 
   // Position content within header
   ImGui::SetCursorPosX(padding);
-  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (header_height - ImGui::GetTextLineHeight()) * 0.5f);
+  ImGui::SetCursorPosY(ImGui::GetCursorPosY() +
+                       (header_height - ImGui::GetTextLineHeight()) * 0.5f);
 
   // Panel icon with primary color
   ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
@@ -317,10 +315,10 @@ void RightPanelManager::DrawPanelHeader(const char* title, const char* icon) {
   ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
                         gui::GetSurfaceContainerHighestVec4());
-  ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                        ImVec4(gui::GetPrimaryVec4().x * 0.3f,
-                               gui::GetPrimaryVec4().y * 0.3f,
-                               gui::GetPrimaryVec4().z * 0.3f, 0.4f));
+  ImGui::PushStyleColor(
+      ImGuiCol_ButtonActive,
+      ImVec4(gui::GetPrimaryVec4().x * 0.3f, gui::GetPrimaryVec4().y * 0.3f,
+             gui::GetPrimaryVec4().z * 0.3f, 0.4f));
   ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
 
@@ -335,17 +333,19 @@ void RightPanelManager::DrawPanelHeader(const char* title, const char* icon) {
   if (active_panel_ == PanelType::kProperties) {
     current_x -= (button_size + 4.0f);
     ImGui::SameLine(current_x);
-    
+
     // TODO: Hook up to actual lock state in SelectionPropertiesPanel
-    static bool is_locked = false; 
-    ImVec4 lock_color = is_locked ? gui::GetPrimaryVec4() : gui::GetTextSecondaryVec4();
+    static bool is_locked = false;
+    ImVec4 lock_color =
+        is_locked ? gui::GetPrimaryVec4() : gui::GetTextSecondaryVec4();
     ImGui::PushStyleColor(ImGuiCol_Text, lock_color);
-    
-    if (ImGui::Button(is_locked ? ICON_MD_LOCK : ICON_MD_LOCK_OPEN, ImVec2(button_size, button_size))) {
+
+    if (ImGui::Button(is_locked ? ICON_MD_LOCK : ICON_MD_LOCK_OPEN,
+                      ImVec2(button_size, button_size))) {
       is_locked = !is_locked;
     }
     ImGui::PopStyleColor();
-    
+
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(is_locked ? "Unlock Selection" : "Lock Selection");
     }
@@ -380,10 +380,9 @@ bool RightPanelManager::BeginPanelSection(const char* label, const char* icon,
     header_text = label;
   }
 
-  ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Framed |
-                             ImGuiTreeNodeFlags_SpanAvailWidth |
-                             ImGuiTreeNodeFlags_AllowOverlap |
-                             ImGuiTreeNodeFlags_FramePadding;
+  ImGuiTreeNodeFlags flags =
+      ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth |
+      ImGuiTreeNodeFlags_AllowOverlap | ImGuiTreeNodeFlags_FramePadding;
   if (default_open) {
     flags |= ImGuiTreeNodeFlags_DefaultOpen;
   }
@@ -505,7 +504,8 @@ void RightPanelManager::DrawAgentChatPanel() {
     }
     ImGui::EndChild();
   } else {
-    if (ImGui::BeginChild("AgentQuickConfig", ImVec2(0, content_height), true)) {
+    if (ImGui::BeginChild("AgentQuickConfig", ImVec2(0, content_height),
+                          true)) {
       bool auto_scroll = agent_chat_->auto_scroll();
       bool show_ts = agent_chat_->show_timestamps();
       bool show_reasoning = agent_chat_->show_reasoning();
@@ -689,16 +689,16 @@ void RightPanelManager::DrawEditorContextHeader() {
 void RightPanelManager::DrawGlobalShortcuts() {
   const char* ctrl = gui::GetCtrlDisplayName();
   DrawPanelLabel("Global");
-    ImGui::Indent(8.0f);
-    DrawPanelValue(absl::StrFormat("%s+O", ctrl).c_str(), "Open ROM");
-    DrawPanelValue(absl::StrFormat("%s+S", ctrl).c_str(), "Save ROM");
+  ImGui::Indent(8.0f);
+  DrawPanelValue(absl::StrFormat("%s+O", ctrl).c_str(), "Open ROM");
+  DrawPanelValue(absl::StrFormat("%s+S", ctrl).c_str(), "Save ROM");
   DrawPanelValue(absl::StrFormat("%s+Z", ctrl).c_str(), "Undo");
   DrawPanelValue(absl::StrFormat("%s+Y", ctrl).c_str(), "Redo");
   DrawPanelValue(absl::StrFormat("%s+B", ctrl).c_str(), "Toggle Sidebar");
   DrawPanelValue("F1", "Help Panel");
   DrawPanelValue("Esc", "Close Panel");
-    ImGui::Unindent(8.0f);
-    ImGui::Spacing();
+  ImGui::Unindent(8.0f);
+  ImGui::Spacing();
 }
 
 void RightPanelManager::DrawEditorSpecificShortcuts() {
@@ -757,18 +757,19 @@ void RightPanelManager::DrawEditorSpecificShortcuts() {
     case EditorType::kMessage:
       DrawPanelLabel("Message");
       ImGui::Indent(8.0f);
-      DrawPanelValue(absl::StrFormat("%s+Enter", ctrl).c_str(), "Insert Line Break");
+      DrawPanelValue(absl::StrFormat("%s+Enter", ctrl).c_str(),
+                     "Insert Line Break");
       DrawPanelValue("Up/Down", "Navigate Messages");
       ImGui::Unindent(8.0f);
       break;
 
     default:
       DrawPanelLabel("Editor Shortcuts");
-    ImGui::Indent(8.0f);
+      ImGui::Indent(8.0f);
       ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
       ImGui::TextWrapped("Select an editor to see specific shortcuts.");
       ImGui::PopStyleColor();
-    ImGui::Unindent(8.0f);
+      ImGui::Unindent(8.0f);
       break;
   }
 }
@@ -776,61 +777,95 @@ void RightPanelManager::DrawEditorSpecificShortcuts() {
 void RightPanelManager::DrawEditorSpecificHelp() {
   switch (active_editor_type_) {
     case EditorType::kOverworld:
-      ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_Text));
-      ImGui::Bullet(); ImGui::TextWrapped("Paint tiles by selecting from Tile16 Selector");
-      ImGui::Bullet(); ImGui::TextWrapped("Switch between Light World, Dark World, and Special Areas");
-      ImGui::Bullet(); ImGui::TextWrapped("Use Entity Mode to place entrances, exits, items, and sprites");
-      ImGui::Bullet(); ImGui::TextWrapped("Right-click on the map to pick a tile for painting");
+      ImGui::PushStyleColor(ImGuiCol_Text,
+                            ImGui::GetStyleColorVec4(ImGuiCol_Text));
+      ImGui::Bullet();
+      ImGui::TextWrapped("Paint tiles by selecting from Tile16 Selector");
+      ImGui::Bullet();
+      ImGui::TextWrapped(
+          "Switch between Light World, Dark World, and Special Areas");
+      ImGui::Bullet();
+      ImGui::TextWrapped(
+          "Use Entity Mode to place entrances, exits, items, and sprites");
+      ImGui::Bullet();
+      ImGui::TextWrapped("Right-click on the map to pick a tile for painting");
       ImGui::PopStyleColor();
       break;
 
     case EditorType::kDungeon:
-      ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_Text));
-      ImGui::Bullet(); ImGui::TextWrapped("Select rooms from the Room Selector or Room Matrix");
-      ImGui::Bullet(); ImGui::TextWrapped("Place objects using the Object Editor panel");
-      ImGui::Bullet(); ImGui::TextWrapped("Edit room headers for palette, GFX, and floor settings");
-      ImGui::Bullet(); ImGui::TextWrapped("Multiple rooms can be opened in separate tabs");
+      ImGui::PushStyleColor(ImGuiCol_Text,
+                            ImGui::GetStyleColorVec4(ImGuiCol_Text));
+      ImGui::Bullet();
+      ImGui::TextWrapped("Select rooms from the Room Selector or Room Matrix");
+      ImGui::Bullet();
+      ImGui::TextWrapped("Place objects using the Object Editor panel");
+      ImGui::Bullet();
+      ImGui::TextWrapped(
+          "Edit room headers for palette, GFX, and floor settings");
+      ImGui::Bullet();
+      ImGui::TextWrapped("Multiple rooms can be opened in separate tabs");
       ImGui::PopStyleColor();
       break;
 
     case EditorType::kGraphics:
-      ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_Text));
-      ImGui::Bullet(); ImGui::TextWrapped("Browse graphics sheets using the Sheet Browser");
-      ImGui::Bullet(); ImGui::TextWrapped("Edit pixels directly with the Pixel Editor");
-      ImGui::Bullet(); ImGui::TextWrapped("Choose palettes from Palette Controls");
-      ImGui::Bullet(); ImGui::TextWrapped("View 3D objects like rupees and crystals");
+      ImGui::PushStyleColor(ImGuiCol_Text,
+                            ImGui::GetStyleColorVec4(ImGuiCol_Text));
+      ImGui::Bullet();
+      ImGui::TextWrapped("Browse graphics sheets using the Sheet Browser");
+      ImGui::Bullet();
+      ImGui::TextWrapped("Edit pixels directly with the Pixel Editor");
+      ImGui::Bullet();
+      ImGui::TextWrapped("Choose palettes from Palette Controls");
+      ImGui::Bullet();
+      ImGui::TextWrapped("View 3D objects like rupees and crystals");
       ImGui::PopStyleColor();
       break;
 
     case EditorType::kPalette:
-      ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_Text));
-      ImGui::Bullet(); ImGui::TextWrapped("Edit overworld, dungeon, and sprite palettes");
-      ImGui::Bullet(); ImGui::TextWrapped("Use Quick Access for color harmony tools");
-      ImGui::Bullet(); ImGui::TextWrapped("Changes update in real-time across all editors");
+      ImGui::PushStyleColor(ImGuiCol_Text,
+                            ImGui::GetStyleColorVec4(ImGuiCol_Text));
+      ImGui::Bullet();
+      ImGui::TextWrapped("Edit overworld, dungeon, and sprite palettes");
+      ImGui::Bullet();
+      ImGui::TextWrapped("Use Quick Access for color harmony tools");
+      ImGui::Bullet();
+      ImGui::TextWrapped("Changes update in real-time across all editors");
       ImGui::PopStyleColor();
       break;
 
     case EditorType::kMusic:
-      ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_Text));
-      ImGui::Bullet(); ImGui::TextWrapped("Browse songs in the Song Browser");
-      ImGui::Bullet(); ImGui::TextWrapped("Use the tracker for playback control");
-      ImGui::Bullet(); ImGui::TextWrapped("Edit instruments and BRR samples");
+      ImGui::PushStyleColor(ImGuiCol_Text,
+                            ImGui::GetStyleColorVec4(ImGuiCol_Text));
+      ImGui::Bullet();
+      ImGui::TextWrapped("Browse songs in the Song Browser");
+      ImGui::Bullet();
+      ImGui::TextWrapped("Use the tracker for playback control");
+      ImGui::Bullet();
+      ImGui::TextWrapped("Edit instruments and BRR samples");
       ImGui::PopStyleColor();
       break;
 
     case EditorType::kMessage:
-      ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_Text));
-      ImGui::Bullet(); ImGui::TextWrapped("Edit all in-game dialog messages");
-      ImGui::Bullet(); ImGui::TextWrapped("Preview text rendering with the font atlas");
-      ImGui::Bullet(); ImGui::TextWrapped("Manage the compression dictionary");
+      ImGui::PushStyleColor(ImGuiCol_Text,
+                            ImGui::GetStyleColorVec4(ImGuiCol_Text));
+      ImGui::Bullet();
+      ImGui::TextWrapped("Edit all in-game dialog messages");
+      ImGui::Bullet();
+      ImGui::TextWrapped("Preview text rendering with the font atlas");
+      ImGui::Bullet();
+      ImGui::TextWrapped("Manage the compression dictionary");
       ImGui::PopStyleColor();
       break;
 
     default:
-      ImGui::Bullet(); ImGui::TextWrapped("Open a ROM file via File > Open ROM");
-      ImGui::Bullet(); ImGui::TextWrapped("Select an editor from the sidebar");
-      ImGui::Bullet(); ImGui::TextWrapped("Use panels to access tools and settings");
-      ImGui::Bullet(); ImGui::TextWrapped("Save your work via File > Save ROM");
+      ImGui::Bullet();
+      ImGui::TextWrapped("Open a ROM file via File > Open ROM");
+      ImGui::Bullet();
+      ImGui::TextWrapped("Select an editor from the sidebar");
+      ImGui::Bullet();
+      ImGui::TextWrapped("Use panels to access tools and settings");
+      ImGui::Bullet();
+      ImGui::TextWrapped("Save your work via File > Save ROM");
       break;
   }
 }
@@ -843,18 +878,22 @@ void RightPanelManager::DrawQuickActionButtons() {
 
   // Documentation button
   ImGui::PushStyleColor(ImGuiCol_Button, gui::GetSurfaceContainerHighVec4());
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighestVec4());
-  if (ImGui::Button(ICON_MD_DESCRIPTION " Open Documentation", ImVec2(button_width, 0))) {
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                        gui::GetSurfaceContainerHighestVec4());
+  if (ImGui::Button(ICON_MD_DESCRIPTION " Open Documentation",
+                    ImVec2(button_width, 0))) {
     // TODO: Open documentation URL
   }
   ImGui::PopStyleColor(2);
 
-    ImGui::Spacing();
+  ImGui::Spacing();
 
   // GitHub Issues button
   ImGui::PushStyleColor(ImGuiCol_Button, gui::GetSurfaceContainerHighVec4());
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighestVec4());
-  if (ImGui::Button(ICON_MD_BUG_REPORT " Report Issue", ImVec2(button_width, 0))) {
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                        gui::GetSurfaceContainerHighestVec4());
+  if (ImGui::Button(ICON_MD_BUG_REPORT " Report Issue",
+                    ImVec2(button_width, 0))) {
     // TODO: Open GitHub issues URL
   }
   ImGui::PopStyleColor(2);
@@ -863,7 +902,8 @@ void RightPanelManager::DrawQuickActionButtons() {
 
   // Discord button
   ImGui::PushStyleColor(ImGuiCol_Button, gui::GetSurfaceContainerHighVec4());
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighestVec4());
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                        gui::GetSurfaceContainerHighestVec4());
   if (ImGui::Button(ICON_MD_FORUM " Join Discord", ImVec2(button_width, 0))) {
     // TODO: Open Discord invite URL
   }
@@ -873,14 +913,14 @@ void RightPanelManager::DrawQuickActionButtons() {
 }
 
 void RightPanelManager::DrawAboutSection() {
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
-    ImGui::Text("YAZE - Yet Another Zelda3 Editor");
-    ImGui::PopStyleColor();
+  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
+  ImGui::Text("YAZE - Yet Another Zelda3 Editor");
+  ImGui::PopStyleColor();
 
-    ImGui::Spacing();
-    DrawPanelDescription(
-        "A comprehensive editor for The Legend of Zelda: "
-        "A Link to the Past ROM files.");
+  ImGui::Spacing();
+  DrawPanelDescription(
+      "A comprehensive editor for The Legend of Zelda: "
+      "A Link to the Past ROM files.");
 
   DrawPanelDivider();
 
@@ -889,9 +929,9 @@ void RightPanelManager::DrawAboutSection() {
   ImGui::Text("Written by: scawful");
   ImGui::Text("Special Thanks: Zarby89, JaredBrian");
 
-    DrawPanelDivider();
+  DrawPanelDivider();
 
-    DrawPanelLabel("Links");
+  DrawPanelLabel("Links");
   ImGui::Spacing();
   ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
   ImGui::Text(ICON_MD_LINK " github.com/scawful/yaze");
@@ -912,13 +952,16 @@ void RightPanelManager::DrawNotificationsPanel() {
 
   // Mark all read button
   ImGui::PushStyleColor(ImGuiCol_Button, gui::GetSurfaceContainerHighVec4());
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighestVec4());
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                        gui::GetSurfaceContainerHighestVec4());
 
-  if (ImGui::Button(ICON_MD_DONE_ALL " Mark All Read", ImVec2(avail * 0.5f - 4.0f, 0))) {
+  if (ImGui::Button(ICON_MD_DONE_ALL " Mark All Read",
+                    ImVec2(avail * 0.5f - 4.0f, 0))) {
     toast_manager_->MarkAllRead();
   }
   ImGui::SameLine();
-  if (ImGui::Button(ICON_MD_DELETE_SWEEP " Clear All", ImVec2(avail * 0.5f - 4.0f, 0))) {
+  if (ImGui::Button(ICON_MD_DELETE_SWEEP " Clear All",
+                    ImVec2(avail * 0.5f - 4.0f, 0))) {
     toast_manager_->ClearHistory();
   }
 
@@ -935,7 +978,8 @@ void RightPanelManager::DrawNotificationsPanel() {
     ImGui::Text(ICON_MD_INBOX " No notifications");
     ImGui::PopStyleColor();
     ImGui::Spacing();
-    DrawPanelDescription("Notifications will appear here when actions complete.");
+    DrawPanelDescription(
+        "Notifications will appear here when actions complete.");
     return;
   }
 
@@ -966,8 +1010,9 @@ void RightPanelManager::DrawNotificationsPanel() {
   bool shown_older = false;
 
   for (const auto& entry : history) {
-    auto diff = std::chrono::duration_cast<std::chrono::hours>(
-        now - entry.timestamp).count();
+    auto diff =
+        std::chrono::duration_cast<std::chrono::hours>(now - entry.timestamp)
+            .count();
 
     // Time grouping headers
     if (diff < 24 && !shown_today) {
@@ -1026,8 +1071,9 @@ void RightPanelManager::DrawNotificationsPanel() {
     ImGui::TextWrapped("%s", entry.message.c_str());
 
     // Timestamp
-    auto diff_sec = std::chrono::duration_cast<std::chrono::seconds>(
-        now - entry.timestamp).count();
+    auto diff_sec =
+        std::chrono::duration_cast<std::chrono::seconds>(now - entry.timestamp)
+            .count();
     std::string time_str;
     if (diff_sec < 60) {
       time_str = "just now";
@@ -1145,9 +1191,9 @@ bool RightPanelManager::DrawPanelToggleButtons() {
     ImGui::PushStyleColor(ImGuiCol_ButtonActive,
                           gui::GetSurfaceContainerHighestVec4());
     // Active = primary color, inactive = secondary text color
-    ImGui::PushStyleColor(
-        ImGuiCol_Text,
-        is_active ? gui::GetPrimaryVec4() : gui::GetTextSecondaryVec4());
+    ImGui::PushStyleColor(ImGuiCol_Text, is_active
+                                             ? gui::GetPrimaryVec4()
+                                             : gui::GetTextSecondaryVec4());
 
     if (ImGui::SmallButton(icon)) {
       TogglePanel(type);

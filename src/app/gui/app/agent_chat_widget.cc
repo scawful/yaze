@@ -34,8 +34,7 @@ std::string ResolveAgentChatHistoryPath() {
   if (temp_dir.ok()) {
     return (*temp_dir / "agent_chat_history.json").string();
   }
-  return (std::filesystem::current_path() / "agent_chat_history.json")
-      .string();
+  return (std::filesystem::current_path() / "agent_chat_history.json").string();
 }
 
 }  // namespace
@@ -325,9 +324,8 @@ absl::Status AgentChatWidget::SaveHistory(const std::string& filepath) {
     std::error_code ec;
     std::filesystem::create_directories(path.parent_path(), ec);
     if (ec) {
-      return absl::InternalError(
-          absl::StrFormat("Failed to create history directory: %s",
-                          ec.message()));
+      return absl::InternalError(absl::StrFormat(
+          "Failed to create history directory: %s", ec.message()));
     }
   }
 

@@ -29,51 +29,56 @@ void ScreenEditor::Initialize() {
     return;
   auto* panel_manager = dependencies_.panel_manager;
 
-  panel_manager->RegisterPanel({.card_id = "screen.dungeon_maps",
-                                .display_name = "Dungeon Maps",
-                                .window_title = " Dungeon Map Editor",
-                                .icon = ICON_MD_MAP,
-                                .category = "Screen",
-                                .shortcut_hint = "Alt+1",
-                                .priority = 10,
-                                .enabled_condition = [this]() { return rom()->is_loaded(); },
-                                .disabled_tooltip = "Load a ROM first"});
-  panel_manager->RegisterPanel({.card_id = "screen.inventory_menu",
-                                .display_name = "Inventory Menu",
-                                .window_title = " Inventory Menu",
-                                .icon = ICON_MD_INVENTORY,
-                                .category = "Screen",
-                                .shortcut_hint = "Alt+2",
-                                .priority = 20,
-                                .enabled_condition = [this]() { return rom()->is_loaded(); },
-                                .disabled_tooltip = "Load a ROM first"});
-  panel_manager->RegisterPanel({.card_id = "screen.overworld_map",
-                                .display_name = "Overworld Map",
-                                .window_title = " Overworld Map",
-                                .icon = ICON_MD_PUBLIC,
-                                .category = "Screen",
-                                .shortcut_hint = "Alt+3",
-                                .priority = 30,
-                                .enabled_condition = [this]() { return rom()->is_loaded(); },
-                                .disabled_tooltip = "Load a ROM first"});
-  panel_manager->RegisterPanel({.card_id = "screen.title_screen",
-                                .display_name = "Title Screen",
-                                .window_title = " Title Screen",
-                                .icon = ICON_MD_TITLE,
-                                .category = "Screen",
-                                .shortcut_hint = "Alt+4",
-                                .priority = 40,
-                                .enabled_condition = [this]() { return rom()->is_loaded(); },
-                                .disabled_tooltip = "Load a ROM first"});
-  panel_manager->RegisterPanel({.card_id = "screen.naming_screen",
-                                .display_name = "Naming Screen",
-                                .window_title = " Naming Screen",
-                                .icon = ICON_MD_EDIT,
-                                .category = "Screen",
-                                .shortcut_hint = "Alt+5",
-                                .priority = 50,
-                                .enabled_condition = [this]() { return rom()->is_loaded(); },
-                                .disabled_tooltip = "Load a ROM first"});
+  panel_manager->RegisterPanel(
+      {.card_id = "screen.dungeon_maps",
+       .display_name = "Dungeon Maps",
+       .window_title = " Dungeon Map Editor",
+       .icon = ICON_MD_MAP,
+       .category = "Screen",
+       .shortcut_hint = "Alt+1",
+       .priority = 10,
+       .enabled_condition = [this]() { return rom()->is_loaded(); },
+       .disabled_tooltip = "Load a ROM first"});
+  panel_manager->RegisterPanel(
+      {.card_id = "screen.inventory_menu",
+       .display_name = "Inventory Menu",
+       .window_title = " Inventory Menu",
+       .icon = ICON_MD_INVENTORY,
+       .category = "Screen",
+       .shortcut_hint = "Alt+2",
+       .priority = 20,
+       .enabled_condition = [this]() { return rom()->is_loaded(); },
+       .disabled_tooltip = "Load a ROM first"});
+  panel_manager->RegisterPanel(
+      {.card_id = "screen.overworld_map",
+       .display_name = "Overworld Map",
+       .window_title = " Overworld Map",
+       .icon = ICON_MD_PUBLIC,
+       .category = "Screen",
+       .shortcut_hint = "Alt+3",
+       .priority = 30,
+       .enabled_condition = [this]() { return rom()->is_loaded(); },
+       .disabled_tooltip = "Load a ROM first"});
+  panel_manager->RegisterPanel(
+      {.card_id = "screen.title_screen",
+       .display_name = "Title Screen",
+       .window_title = " Title Screen",
+       .icon = ICON_MD_TITLE,
+       .category = "Screen",
+       .shortcut_hint = "Alt+4",
+       .priority = 40,
+       .enabled_condition = [this]() { return rom()->is_loaded(); },
+       .disabled_tooltip = "Load a ROM first"});
+  panel_manager->RegisterPanel(
+      {.card_id = "screen.naming_screen",
+       .display_name = "Naming Screen",
+       .window_title = " Naming Screen",
+       .icon = ICON_MD_EDIT,
+       .category = "Screen",
+       .shortcut_hint = "Alt+5",
+       .priority = 50,
+       .enabled_condition = [this]() { return rom()->is_loaded(); },
+       .disabled_tooltip = "Load a ROM first"});
 
   // Register EditorPanel implementations
   panel_manager->RegisterEditorPanel(std::make_unique<DungeonMapsPanel>(
@@ -96,19 +101,24 @@ absl::Status ScreenEditor::Load() {
 
   ASSIGN_OR_RETURN(dungeon_maps_,
                    zelda3::LoadDungeonMaps(*rom(), dungeon_map_labels_));
-  RETURN_IF_ERROR(zelda3::LoadDungeonMapTile16(
-      tile16_blockset_, *rom(), game_data(), game_data()->graphics_buffer,
-      false));
+  RETURN_IF_ERROR(
+      zelda3::LoadDungeonMapTile16(tile16_blockset_, *rom(), game_data(),
+                                   game_data()->graphics_buffer, false));
 
   // Load graphics sheets and apply dungeon palette
-  sheets_[0] = std::make_unique<gfx::Bitmap>(gfx::Arena::Get().gfx_sheets()[212]);
-  sheets_[1] = std::make_unique<gfx::Bitmap>(gfx::Arena::Get().gfx_sheets()[213]);
-  sheets_[2] = std::make_unique<gfx::Bitmap>(gfx::Arena::Get().gfx_sheets()[214]);
-  sheets_[3] = std::make_unique<gfx::Bitmap>(gfx::Arena::Get().gfx_sheets()[215]);
+  sheets_[0] =
+      std::make_unique<gfx::Bitmap>(gfx::Arena::Get().gfx_sheets()[212]);
+  sheets_[1] =
+      std::make_unique<gfx::Bitmap>(gfx::Arena::Get().gfx_sheets()[213]);
+  sheets_[2] =
+      std::make_unique<gfx::Bitmap>(gfx::Arena::Get().gfx_sheets()[214]);
+  sheets_[3] =
+      std::make_unique<gfx::Bitmap>(gfx::Arena::Get().gfx_sheets()[215]);
 
   // Apply dungeon palette to all sheets
   for (int i = 0; i < 4; i++) {
-    sheets_[i]->SetPalette(*game_data()->palette_groups.dungeon_main.mutable_palette(3));
+    sheets_[i]->SetPalette(
+        *game_data()->palette_groups.dungeon_main.mutable_palette(3));
     gfx::Arena::Get().QueueTextureCommand(
         gfx::Arena::TextureCommandType::CREATE, sheets_[i].get());
   }
@@ -141,7 +151,8 @@ absl::Status ScreenEditor::Load() {
   tile8_tilemap_.tile_size = {8, 8};
   tile8_tilemap_.map_size = {256, 256};  // Logical size for tile count
   tile8_tilemap_.atlas.Create(tile8_width, tile8_height, 8, tile8_data);
-  tile8_tilemap_.atlas.SetPalette(*game_data()->palette_groups.dungeon_main.mutable_palette(3));
+  tile8_tilemap_.atlas.SetPalette(
+      *game_data()->palette_groups.dungeon_main.mutable_palette(3));
 
   // Queue single texture creation for the atlas (not individual tiles)
   gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
@@ -523,9 +534,9 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
       if (tilesheet_canvas_.IsMouseHovering() &&
           ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
         if (!tilesheet_canvas_.points().empty()) {
-          selected_tile16_ =
-              static_cast<int>(tilesheet_canvas_.points().front().x / 32 +
-                               (tilesheet_canvas_.points().front().y / 32) * 16);
+          selected_tile16_ = static_cast<int>(
+              tilesheet_canvas_.points().front().x / 32 +
+              (tilesheet_canvas_.points().front().y / 32) * 16);
 
           // Render selected tile16 and cache tile metadata
           gfx::RenderTile16(nullptr, tile16_blockset_, selected_tile16_);
@@ -747,7 +758,8 @@ void ScreenEditor::LoadBinaryGfx() {
           gfx_sheets.emplace_back(converted_bin.begin() + (i * 0x1000),
                                   converted_bin.begin() + ((i + 1) * 0x1000));
           sheets_[i] = std::make_unique<gfx::Bitmap>(128, 32, 8, gfx_sheets[i]);
-          sheets_[i]->SetPalette(*game_data()->palette_groups.dungeon_main.mutable_palette(3));
+          sheets_[i]->SetPalette(
+              *game_data()->palette_groups.dungeon_main.mutable_palette(3));
           // Queue texture creation via Arena's deferred system
           gfx::Arena::Get().QueueTextureCommand(
               gfx::Arena::TextureCommandType::CREATE, sheets_[i].get());

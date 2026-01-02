@@ -471,7 +471,8 @@ absl::Status HandleOverworldDescribeMapLegacy(
         summary.has_overlay ? "true" : "false", summary.overlay_id);
     std::cout << "}\n";
   } else {
-    std::cout << absl::StrFormat("🗺️ Map 0x%02X (%s World)\n", summary.map_id,
+    std::cout << absl::StrFormat("🗺️ Map 0x%02X (%s World)\n",
+                                 summary.map_id,
                                  overworld::WorldName(summary.world));
     std::cout << absl::StrFormat("  Grid: (%d, %d) local-index %d\n",
                                  summary.map_x, summary.map_y,
@@ -780,8 +781,7 @@ absl::Status HandleOverworldScrollToLegacy(
         "Usage: overworld scroll-to --map <map_id> --x <x> --y <y> [--center]");
   }
 
-  std::cout << "✅ Scrolled to tile (" << x << "," << y << ") on map "
-            << map_id;
+  std::cout << "✅ Scrolled to tile (" << x << "," << y << ") on map " << map_id;
   if (center) {
     std::cout << " (centered)";
   }

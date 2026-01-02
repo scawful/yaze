@@ -31,7 +31,8 @@ absl::Status ObjectTemplateManager::LoadTemplates(
     return absl::OkStatus();
   }
 
-  for (const auto& entry : std::filesystem::directory_iterator(directory_path)) {
+  for (const auto& entry :
+       std::filesystem::directory_iterator(directory_path)) {
     if (entry.path().extension() == ".json") {
       try {
         std::ifstream i(entry.path());
@@ -66,12 +67,12 @@ absl::Status ObjectTemplateManager::SaveTemplate(
     json j = tmpl;
     std::ofstream o(path);
     o << std::setw(4) << j << std::endl;
-    
+
     // Add to in-memory list if not present
     bool exists = false;
     for (auto& t : templates_) {
       if (t.name == tmpl.name) {
-        t = tmpl; // Update existing
+        t = tmpl;  // Update existing
         exists = true;
         break;
       }
@@ -82,7 +83,8 @@ absl::Status ObjectTemplateManager::SaveTemplate(
 
     return absl::OkStatus();
   } catch (const std::exception& e) {
-    return absl::InternalError(absl::StrFormat("Failed to save template: %s", e.what()));
+    return absl::InternalError(
+        absl::StrFormat("Failed to save template: %s", e.what()));
   }
 }
 
@@ -92,7 +94,7 @@ ObjectTemplate ObjectTemplateManager::CreateFromObjects(
   ObjectTemplate tmpl;
   tmpl.name = name;
   tmpl.description = description;
-  tmpl.category = "Custom"; // Default category
+  tmpl.category = "Custom";  // Default category
 
   for (const auto& obj : objects) {
     TemplateObject t_obj;

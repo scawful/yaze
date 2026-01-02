@@ -44,9 +44,8 @@ void SessionCoordinator::AddObserver(SessionObserver* observer) {
 }
 
 void SessionCoordinator::RemoveObserver(SessionObserver* observer) {
-  observers_.erase(
-      std::remove(observers_.begin(), observers_.end(), observer),
-      observers_.end());
+  observers_.erase(std::remove(observers_.begin(), observers_.end(), observer),
+                   observers_.end());
 }
 
 void SessionCoordinator::NotifySessionSwitched(size_t index,
@@ -557,8 +556,9 @@ std::string SessionCoordinator::GenerateUniqueEditorTitle(
 
   // Multi-session - include session identifier
   const auto& session = sessions_[session_index];
-  std::string session_name =
-      session->custom_name.empty() ? session->rom.title() : session->custom_name;
+  std::string session_name = session->custom_name.empty()
+                                 ? session->rom.title()
+                                 : session->custom_name;
 
   // Truncate long session names
   if (session_name.length() > 20) {
@@ -633,7 +633,8 @@ void SessionCoordinator::UpdateSessions() {
         }
 
         // CARD-BASED EDITORS: Don't wrap in Begin/End, they manage own windows
-        bool is_card_based_editor = EditorManager::IsPanelBasedEditor(editor->type());
+        bool is_card_based_editor =
+            EditorManager::IsPanelBasedEditor(editor->type());
 
         if (is_card_based_editor) {
           // Panel-based editors create their own top-level windows
@@ -646,7 +647,8 @@ void SessionCoordinator::UpdateSessions() {
 
           // Route editor errors to toast manager
           if (!status.ok() && toast_manager_) {
-            std::string editor_name = kEditorNames[static_cast<int>(editor->type())];
+            std::string editor_name =
+                kEditorNames[static_cast<int>(editor->type())];
             toast_manager_->Show(
                 absl::StrFormat("%s Error: %s", editor_name, status.message()),
                 ToastType::kError, 8.0f);
@@ -654,8 +656,8 @@ void SessionCoordinator::UpdateSessions() {
 
         } else {
           // TRADITIONAL EDITORS: Wrap in Begin/End
-          std::string window_title =
-              GenerateUniqueEditorTitle(kEditorNames[static_cast<int>(editor->type())], session_idx);
+          std::string window_title = GenerateUniqueEditorTitle(
+              kEditorNames[static_cast<int>(editor->type())], session_idx);
 
           // Set window to maximize on first open
           ImGui::SetNextWindowSize(ImGui::GetMainViewport()->WorkSize,
@@ -675,10 +677,11 @@ void SessionCoordinator::UpdateSessions() {
 
             // Route editor errors to toast manager
             if (!status.ok() && toast_manager_) {
-              std::string editor_name = kEditorNames[static_cast<int>(editor->type())];
+              std::string editor_name =
+                  kEditorNames[static_cast<int>(editor->type())];
               toast_manager_->Show(absl::StrFormat("%s Error: %s", editor_name,
-                                                  status.message()),
-                                  ToastType::kError, 8.0f);
+                                                   status.message()),
+                                   ToastType::kError, 8.0f);
             }
           }
           ImGui::End();
@@ -765,7 +768,8 @@ absl::Status SessionCoordinator::SaveSessionAs(size_t session_index,
 absl::StatusOr<RomSession*> SessionCoordinator::CreateSessionFromRom(
     Rom&& rom, const std::string& filepath) {
   size_t new_session_id = sessions_.size();
-  sessions_.push_back(std::make_unique<RomSession>(std::move(rom), user_settings_, new_session_id));
+  sessions_.push_back(std::make_unique<RomSession>(
+      std::move(rom), user_settings_, new_session_id));
   auto& session = sessions_.back();
   session->filepath = filepath;
 
@@ -851,8 +855,7 @@ void SessionCoordinator::FocusLastSession() {
 }
 
 void SessionCoordinator::UpdateActiveSession() {
-  if (!sessions_.empty() &&
-      active_session_index_ >= sessions_.size()) {
+  if (!sessions_.empty() && active_session_index_ >= sessions_.size()) {
     active_session_index_ = sessions_.size() - 1;
   }
 }

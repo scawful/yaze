@@ -102,7 +102,8 @@ void ObjectEditorPanel::Draw(bool* p_open) {
   const auto& theme = AgentUI::GetTheme();
 
   // Door Section (Collapsible)
-  if (ImGui::CollapsingHeader(ICON_MD_DOOR_FRONT " Doors", ImGuiTreeNodeFlags_DefaultOpen)) {
+  if (ImGui::CollapsingHeader(ICON_MD_DOOR_FRONT " Doors",
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
     DrawDoorSection();
   }
 
@@ -117,7 +118,7 @@ void ObjectEditorPanel::Draw(bool* p_open) {
     reserved_height += 200.0f;
   }
   float browser_height = std::max(150.0f, available_height - reserved_height);
-  
+
   ImGui::BeginChild("ObjectBrowserRegion", ImVec2(0, browser_height), true);
   DrawObjectSelector();
   ImGui::EndChild();
@@ -192,38 +193,39 @@ void ObjectEditorPanel::DrawDoorSection() {
 
   // Common door types for the grid
   static constexpr std::array<zelda3::DoorType, 20> kDoorTypes = {{
-    zelda3::DoorType::NormalDoor,
-    zelda3::DoorType::NormalDoorLower,
-    zelda3::DoorType::CaveExit,
-    zelda3::DoorType::DoubleSidedShutter,
-    zelda3::DoorType::EyeWatchDoor,
-    zelda3::DoorType::SmallKeyDoor,
-    zelda3::DoorType::BigKeyDoor,
-    zelda3::DoorType::SmallKeyStairsUp,
-    zelda3::DoorType::SmallKeyStairsDown,
-    zelda3::DoorType::DashWall,
-    zelda3::DoorType::BombableDoor,
-    zelda3::DoorType::ExplodingWall,
-    zelda3::DoorType::CurtainDoor,
-    zelda3::DoorType::BottomSidedShutter,
-    zelda3::DoorType::TopSidedShutter,
-    zelda3::DoorType::FancyDungeonExit,
-    zelda3::DoorType::WaterfallDoor,
-    zelda3::DoorType::ExitMarker,
-    zelda3::DoorType::LayerSwapMarker,
-    zelda3::DoorType::DungeonSwapMarker,
+      zelda3::DoorType::NormalDoor,
+      zelda3::DoorType::NormalDoorLower,
+      zelda3::DoorType::CaveExit,
+      zelda3::DoorType::DoubleSidedShutter,
+      zelda3::DoorType::EyeWatchDoor,
+      zelda3::DoorType::SmallKeyDoor,
+      zelda3::DoorType::BigKeyDoor,
+      zelda3::DoorType::SmallKeyStairsUp,
+      zelda3::DoorType::SmallKeyStairsDown,
+      zelda3::DoorType::DashWall,
+      zelda3::DoorType::BombableDoor,
+      zelda3::DoorType::ExplodingWall,
+      zelda3::DoorType::CurtainDoor,
+      zelda3::DoorType::BottomSidedShutter,
+      zelda3::DoorType::TopSidedShutter,
+      zelda3::DoorType::FancyDungeonExit,
+      zelda3::DoorType::WaterfallDoor,
+      zelda3::DoorType::ExitMarker,
+      zelda3::DoorType::LayerSwapMarker,
+      zelda3::DoorType::DungeonSwapMarker,
   }};
 
   // Placement mode indicator
   if (door_placement_mode_) {
-    ImGui::TextColored(theme.status_warning, 
+    ImGui::TextColored(
+        theme.status_warning,
         ICON_MD_PLACE " Placing: %s - Click wall to place",
         std::string(zelda3::GetDoorTypeName(selected_door_type_)).c_str());
     if (ImGui::SmallButton(ICON_MD_CANCEL " Cancel")) {
       door_placement_mode_ = false;
       if (canvas_viewer_) {
-        canvas_viewer_->object_interaction().SetDoorPlacementMode(false, 
-            zelda3::DoorType::NormalDoor);
+        canvas_viewer_->object_interaction().SetDoorPlacementMode(
+            false, zelda3::DoorType::NormalDoor);
       }
     }
     ImGui::Separator();
@@ -231,74 +233,79 @@ void ObjectEditorPanel::DrawDoorSection() {
 
   // Door type selector grid with preview thumbnails
   ImGui::Text(ICON_MD_CATEGORY " Select Door Type:");
-  
+
   constexpr float kPreviewSize = 32.0f;
   constexpr int kItemsPerRow = 5;
   float panel_width = ImGui::GetContentRegionAvail().x;
-  int items_per_row = std::max(1, static_cast<int>(panel_width / (kPreviewSize + 8)));
-  
-  ImGui::BeginChild("##DoorTypeGrid", ImVec2(0, 80), true, ImGuiWindowFlags_HorizontalScrollbar);
-  
+  int items_per_row =
+      std::max(1, static_cast<int>(panel_width / (kPreviewSize + 8)));
+
+  ImGui::BeginChild("##DoorTypeGrid", ImVec2(0, 80), true,
+                    ImGuiWindowFlags_HorizontalScrollbar);
+
   int col = 0;
   for (size_t i = 0; i < kDoorTypes.size(); ++i) {
     auto door_type = kDoorTypes[i];
     bool is_selected = (selected_door_type_ == door_type);
-    
+
     ImGui::PushID(static_cast<int>(i));
-    
+
     // Color-coded button for door type
     ImVec4 button_color;
     // Color-code by door category
     int type_val = static_cast<int>(door_type);
-    if (type_val <= 0x12) {  // Standard doors
+    if (type_val <= 0x12) {                           // Standard doors
       button_color = ImVec4(0.3f, 0.5f, 0.7f, 1.0f);  // Blue
-    } else if (type_val <= 0x1E) {  // Shutter/special
+    } else if (type_val <= 0x1E) {                    // Shutter/special
       button_color = ImVec4(0.7f, 0.5f, 0.3f, 1.0f);  // Orange
-    } else {  // Markers
+    } else {                                          // Markers
       button_color = ImVec4(0.5f, 0.7f, 0.3f, 1.0f);  // Green
     }
-    
+
     if (is_selected) {
       button_color.x += 0.2f;
       button_color.y += 0.2f;
       button_color.z += 0.2f;
     }
-    
+
     ImGui::PushStyleColor(ImGuiCol_Button, button_color);
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, 
-        ImVec4(button_color.x + 0.1f, button_color.y + 0.1f, button_color.z + 0.1f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, 
-        ImVec4(button_color.x + 0.2f, button_color.y + 0.2f, button_color.z + 0.2f, 1.0f));
-    
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                          ImVec4(button_color.x + 0.1f, button_color.y + 0.1f,
+                                 button_color.z + 0.1f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                          ImVec4(button_color.x + 0.2f, button_color.y + 0.2f,
+                                 button_color.z + 0.2f, 1.0f));
+
     // Draw button with door type abbreviation
     std::string label = absl::StrFormat("%02X", type_val);
     if (ImGui::Button(label.c_str(), ImVec2(kPreviewSize, kPreviewSize))) {
       selected_door_type_ = door_type;
       door_placement_mode_ = true;
       if (canvas_viewer_) {
-        canvas_viewer_->object_interaction().SetDoorPlacementMode(true, 
-            selected_door_type_);
+        canvas_viewer_->object_interaction().SetDoorPlacementMode(
+            true, selected_door_type_);
       }
     }
-    
+
     ImGui::PopStyleColor(3);
-    
+
     // Tooltip with full name
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("%s (0x%02X)\nClick to select for placement",
-          std::string(zelda3::GetDoorTypeName(door_type)).c_str(), type_val);
+                        std::string(zelda3::GetDoorTypeName(door_type)).c_str(),
+                        type_val);
     }
-    
+
     // Selection highlight
     if (is_selected) {
       ImVec2 min = ImGui::GetItemRectMin();
       ImVec2 max = ImGui::GetItemRectMax();
-      ImGui::GetWindowDrawList()->AddRect(
-          min, max, IM_COL32(255, 255, 0, 255), 0.0f, 0, 2.0f);
+      ImGui::GetWindowDrawList()->AddRect(min, max, IM_COL32(255, 255, 0, 255),
+                                          0.0f, 0, 2.0f);
     }
-    
+
     ImGui::PopID();
-    
+
     col++;
     if (col < items_per_row && i < kDoorTypes.size() - 1) {
       ImGui::SameLine();
@@ -306,7 +313,7 @@ void ObjectEditorPanel::DrawDoorSection() {
       col = 0;
     }
   }
-  
+
   ImGui::EndChild();
 
   // Show current room's doors
@@ -317,33 +324,34 @@ void ObjectEditorPanel::DrawDoorSection() {
 
     if (!doors.empty()) {
       ImGui::Text(ICON_MD_LIST " Room Doors (%zu):", doors.size());
-      
+
       ImGui::BeginChild("##DoorList", ImVec2(0, 80), true);
       for (size_t i = 0; i < doors.size(); ++i) {
         const auto& door = doors[i];
         auto [tile_x, tile_y] = door.GetTileCoords();
 
         ImGui::PushID(static_cast<int>(i));
-        
+
         std::string type_name(zelda3::GetDoorTypeName(door.type));
         std::string dir_name(zelda3::GetDoorDirectionName(door.direction));
-        
+
         ImGui::Text("[%zu] %s (%s)", i, type_name.c_str(), dir_name.c_str());
         ImGui::SameLine();
-        ImGui::TextColored(theme.text_secondary_gray, "@ (%d,%d)", tile_x, tile_y);
-        
+        ImGui::TextColored(theme.text_secondary_gray, "@ (%d,%d)", tile_x,
+                           tile_y);
+
         ImGui::SameLine();
         if (ImGui::SmallButton(ICON_MD_DELETE "##Del")) {
           auto& mutable_room = (*rooms)[current_room_id_];
           mutable_room.RemoveDoor(i);
         }
-        
+
         ImGui::PopID();
       }
       ImGui::EndChild();
     } else {
-      ImGui::TextColored(theme.text_secondary_gray, 
-          ICON_MD_INFO " No doors in this room");
+      ImGui::TextColored(theme.text_secondary_gray,
+                         ICON_MD_INFO " No doors in this room");
     }
   }
 }
@@ -445,15 +453,15 @@ void ObjectEditorPanel::OpenStaticObjectEditor(int object_id) {
 
   // Render the object preview using ObjectDrawer
   auto* rooms = object_selector_.get_rooms();
-  if (rom_ && rom_->is_loaded() && rooms && current_room_id_ >= 0 && 
+  if (rom_ && rom_->is_loaded() && rooms && current_room_id_ >= 0 &&
       current_room_id_ < static_cast<int>(rooms->size())) {
     auto& room = (*rooms)[current_room_id_];
-    
+
     // Ensure room graphics are loaded
     if (!room.IsLoaded()) {
       room.LoadRoomGraphics(room.blockset);
     }
-    
+
     // Clear preview buffer and initialize bitmap
     static_preview_buffer_.ClearBuffer();
     static_preview_buffer_.EnsureBitmapInitialized();
@@ -470,7 +478,7 @@ void ObjectEditorPanel::OpenStaticObjectEditor(int object_id) {
 
     // Get room graphics data
     const uint8_t* gfx_data = room.get_gfx_buffer().data();
-    
+
     // Apply palette to bitmap
     auto& bitmap = static_preview_buffer_.bitmap();
     gfx::PaletteGroup palette_group;
@@ -478,19 +486,17 @@ void ObjectEditorPanel::OpenStaticObjectEditor(int object_id) {
     if (game_data && !game_data->palette_groups.dungeon_main.empty()) {
       // Use the entire dungeon_main palette group
       palette_group = game_data->palette_groups.dungeon_main;
-      
+
       std::vector<SDL_Color> colors(256);
       size_t color_index = 0;
-      for (size_t pal_idx = 0; pal_idx < palette_group.size() && color_index < 256; ++pal_idx) {
+      for (size_t pal_idx = 0;
+           pal_idx < palette_group.size() && color_index < 256; ++pal_idx) {
         const auto& pal = palette_group[pal_idx];
         for (size_t i = 0; i < pal.size() && color_index < 256; ++i) {
           ImVec4 rgb = pal[i].rgb();
-          colors[color_index++] = {
-              static_cast<Uint8>(rgb.x),
-              static_cast<Uint8>(rgb.y),
-              static_cast<Uint8>(rgb.z),
-              255
-          };
+          colors[color_index++] = {static_cast<Uint8>(rgb.x),
+                                   static_cast<Uint8>(rgb.y),
+                                   static_cast<Uint8>(rgb.z), 255};
         }
       }
       colors[255] = {0, 0, 0, 0};  // Transparent
@@ -509,21 +515,23 @@ void ObjectEditorPanel::OpenStaticObjectEditor(int object_id) {
                                     static_preview_buffer_, palette_group);
     if (status.ok()) {
       // Sync bitmap data to SDL surface
-      if (bitmap.modified() && bitmap.surface() && bitmap.mutable_data().size() > 0) {
+      if (bitmap.modified() && bitmap.surface() &&
+          bitmap.mutable_data().size() > 0) {
         SDL_LockSurface(bitmap.surface());
         size_t surface_size = bitmap.surface()->h * bitmap.surface()->pitch;
         size_t data_size = bitmap.mutable_data().size();
         if (surface_size >= data_size) {
-          memcpy(bitmap.surface()->pixels, bitmap.mutable_data().data(), data_size);
+          memcpy(bitmap.surface()->pixels, bitmap.mutable_data().data(),
+                 data_size);
         }
         SDL_UnlockSurface(bitmap.surface());
       }
-      
+
       // Create texture
       gfx::Arena::Get().QueueTextureCommand(
           gfx::Arena::TextureCommandType::CREATE, &bitmap);
       gfx::Arena::Get().ProcessTextureQueue(renderer_);
-      
+
       static_preview_rendered_ = bitmap.texture() != nullptr;
     }
   }

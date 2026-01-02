@@ -1,5 +1,6 @@
 #include "color.h"
 
+#include "absl/strings/str_format.h"
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_palette.h"
 #include "imgui/imgui.h"

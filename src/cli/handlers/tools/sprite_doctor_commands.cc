@@ -22,8 +22,7 @@ void ValidateSpritePointerTable(Rom* rom, DiagnosticReport& report,
   // Check sprite pointers for all 296 rooms
   int invalid_count = 0;
   for (int room = 0; room < zelda3::kNumberOfRooms; ++room) {
-    uint32_t ptr_addr =
-        zelda3::kRoomsSpritePointer + (room * 2);
+    uint32_t ptr_addr = zelda3::kRoomsSpritePointer + (room * 2);
 
     if (ptr_addr + 1 >= rom->size()) {
       DiagnosticFinding finding;
@@ -68,7 +67,8 @@ void ValidateSpritePointerTable(Rom* rom, DiagnosticReport& report,
     finding.id = "sprite_ptr_summary";
     finding.severity = DiagnosticSeverity::kInfo;
     finding.message = absl::StrFormat(
-        "Found %d rooms with potentially invalid sprite pointers", invalid_count);
+        "Found %d rooms with potentially invalid sprite pointers",
+        invalid_count);
     finding.location = "Sprite Pointer Table";
     finding.fixable = false;
     report.AddFinding(finding);
@@ -110,10 +110,9 @@ void ValidateSpritesets(Rom* rom, DiagnosticReport& report) {
           finding.id = "invalid_spriteset_sheet";
           finding.severity = DiagnosticSeverity::kWarning;
           finding.message = absl::StrFormat(
-              "Spriteset %d slot %d references invalid sheet %d (max: %d)",
-              set, slot, sheet_id, kNumGfxSheets - 1);
-          finding.location =
-              absl::StrFormat("Spriteset %d slot %d", set, slot);
+              "Spriteset %d slot %d references invalid sheet %d (max: %d)", set,
+              slot, sheet_id, kNumGfxSheets - 1);
+          finding.location = absl::StrFormat("Spriteset %d slot %d", set, slot);
           finding.fixable = false;
           report.AddFinding(finding);
         }
@@ -141,7 +140,8 @@ void ValidateRoomSprites(Rom* rom, int room_id, DiagnosticReport& report,
 
   // Get sprite pointer for this room
   uint32_t ptr_addr = zelda3::kRoomsSpritePointer + (room_id * 2);
-  if (ptr_addr + 1 >= rom->size()) return;
+  if (ptr_addr + 1 >= rom->size())
+    return;
 
   uint16_t ptr = data[ptr_addr] | (data[ptr_addr + 1] << 8);
   uint32_t sprite_addr = 0x090000 + ptr;
@@ -152,10 +152,12 @@ void ValidateRoomSprites(Rom* rom, int room_id, DiagnosticReport& report,
     return;
   }
 
-  if (sprite_addr >= rom->size()) return;
+  if (sprite_addr >= rom->size())
+    return;
 
   // Read sort byte
-  if (sprite_addr >= rom->size()) return;
+  if (sprite_addr >= rom->size())
+    return;
   // uint8_t sort_byte = data[sprite_addr];
   sprite_addr++;
 
@@ -165,7 +167,8 @@ void ValidateRoomSprites(Rom* rom, int room_id, DiagnosticReport& report,
 
   while (sprite_addr < rom->size() && room_sprite_count < kMaxSpritesPerRoom) {
     uint8_t y_pos = data[sprite_addr];
-    if (y_pos == 0xFF) break;  // Terminator
+    if (y_pos == 0xFF)
+      break;  // Terminator
 
     if (sprite_addr + 2 >= rom->size()) {
       DiagnosticFinding finding;
@@ -200,8 +203,9 @@ void ValidateRoomSprites(Rom* rom, int room_id, DiagnosticReport& report,
     DiagnosticFinding finding;
     finding.id = "sprite_count_limit";
     finding.severity = DiagnosticSeverity::kWarning;
-    finding.message = absl::StrFormat(
-        "Room %d has %d+ sprites (hit scan limit)", room_id, kMaxSpritesPerRoom);
+    finding.message =
+        absl::StrFormat("Room %d has %d+ sprites (hit scan limit)", room_id,
+                        kMaxSpritesPerRoom);
     finding.location = absl::StrFormat("Room %d", room_id);
     finding.fixable = false;
     report.AddFinding(finding);
@@ -216,7 +220,8 @@ void CheckCommonSpriteIssues(Rom* rom, DiagnosticReport& report) {
   int zero_pointers = 0;
   for (int room = 0; room < zelda3::kNumberOfRooms; ++room) {
     uint32_t ptr_addr = zelda3::kRoomsSpritePointer + (room * 2);
-    if (ptr_addr + 1 >= rom->size()) break;
+    if (ptr_addr + 1 >= rom->size())
+      break;
 
     uint16_t ptr = data[ptr_addr] | (data[ptr_addr + 1] << 8);
     if (ptr == 0x0000) {
@@ -259,9 +264,9 @@ absl::Status SpriteDoctorCommandHandler::Execute(
 
   if (single_room) {
     if (target_room < 0 || target_room >= zelda3::kNumberOfRooms) {
-      return absl::InvalidArgumentError(absl::StrFormat(
-          "Room ID %d out of range (0-%d)", target_room,
-          zelda3::kNumberOfRooms - 1));
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Room ID %d out of range (0-%d)", target_room,
+                          zelda3::kNumberOfRooms - 1));
     }
   }
 
@@ -287,9 +292,12 @@ absl::Status SpriteDoctorCommandHandler::Execute(
   } else {
     // Sample rooms: first 20, some middle, some end
     std::vector<int> sample_rooms;
-    for (int i = 0; i < 20; ++i) sample_rooms.push_back(i);
-    for (int i = 100; i < 110; ++i) sample_rooms.push_back(i);
-    for (int i = 200; i < 210; ++i) sample_rooms.push_back(i);
+    for (int i = 0; i < 20; ++i)
+      sample_rooms.push_back(i);
+    for (int i = 100; i < 110; ++i)
+      sample_rooms.push_back(i);
+    for (int i = 200; i < 210; ++i)
+      sample_rooms.push_back(i);
 
     for (int room : sample_rooms) {
       if (room < zelda3::kNumberOfRooms) {
@@ -324,19 +332,24 @@ absl::Status SpriteDoctorCommandHandler::Execute(
   // Text output
   if (!formatter.IsJson()) {
     std::cout << "\n";
-    std::cout << "╔═══════════════════════════════════════════════════════════════╗\n";
-    std::cout << "║                      SPRITE DOCTOR                            ║\n";
-    std::cout << "╠═══════════════════════════════════════════════════════════════╣\n";
+    std::cout << "╔════════════════════════════════════════════════════════════"
+                 "═══╗\n";
+    std::cout << "║                      SPRITE DOCTOR                         "
+                 "   ║\n";
+    std::cout << "╠════════════════════════════════════════════════════════════"
+                 "═══╣\n";
     std::cout << absl::StrFormat("║  Rooms Scanned: %-45d ║\n", rooms_scanned);
     std::cout << absl::StrFormat("║  Total Sprites Found: %-39d ║\n",
                                  total_sprites);
     std::cout << absl::StrFormat("║  Empty Rooms: %-47d ║\n", empty_rooms);
-    std::cout << "╠═══════════════════════════════════════════════════════════════╣\n";
+    std::cout << "╠════════════════════════════════════════════════════════════"
+                 "═══╣\n";
     std::cout << absl::StrFormat(
         "║  Findings: %d total (%d errors, %d warnings, %d info)%-8s ║\n",
         report.TotalFindings(), report.error_count, report.warning_count,
         report.info_count, "");
-    std::cout << "╚═══════════════════════════════════════════════════════════════╝\n";
+    std::cout << "╚════════════════════════════════════════════════════════════"
+                 "═══╝\n";
 
     if (verbose && !report.findings.empty()) {
       std::cout << "\n=== Detailed Findings ===\n";

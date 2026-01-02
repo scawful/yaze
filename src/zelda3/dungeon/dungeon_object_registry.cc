@@ -13,9 +13,10 @@ void DungeonObjectRegistry::RegisterVanillaRange(int16_t start_id,
                                                  int16_t end_id) {
   for (int16_t id = start_id; id <= end_id; ++id) {
     if (registry_.find(id) == registry_.end()) {
-      registry_[id] = DungeonObjectInfo{.id = id,
-                                        .name = absl::StrFormat("Object 0x%03X", id),
-                                        .is_custom = false};
+      registry_[id] =
+          DungeonObjectInfo{.id = id,
+                            .name = absl::StrFormat("Object 0x%03X", id),
+                            .is_custom = false};
     }
   }
 }

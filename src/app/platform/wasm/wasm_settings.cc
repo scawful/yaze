@@ -27,7 +27,8 @@ EM_JS(void, localStorage_setItem, (const char* key, const char* value), {
 EM_JS(char*, localStorage_getItem, (const char* key), {
   try {
     const value = localStorage.getItem(UTF8ToString(key));
-    if (value === null) return null;
+    if (value == = null)
+      return null;
     const len = lengthBytesUTF8(value) + 1;
     const ptr = _malloc(len);
     stringToUTF8(value, ptr, len);
@@ -48,7 +49,7 @@ EM_JS(void, localStorage_removeItem, (const char* key), {
 
 EM_JS(int, localStorage_hasItem, (const char* key), {
   try {
-    return localStorage.getItem(UTF8ToString(key)) !== null ? 1 : 0;
+    return localStorage.getItem(UTF8ToString(key)) != = null ? 1 : 0;
   } catch (e) {
     console.error('Failed to check localStorage:', e);
     return 0;
@@ -65,7 +66,7 @@ EM_JS(void, localStorage_clear, (), {
         keys.push(key);
       }
     }
-    keys.forEach(key => localStorage.removeItem(key));
+    keys.forEach(key = > localStorage.removeItem(key));
   } catch (e) {
     console.error('Failed to clear localStorage:', e);
   }
@@ -105,10 +106,9 @@ nlohmann::json WasmSettings::RecentFilesToJson(
   for (const auto& file : files) {
     nlohmann::json entry;
     entry["filename"] = file.filename;
-    entry["timestamp"] =
-        std::chrono::duration_cast<std::chrono::milliseconds>(
-            file.timestamp.time_since_epoch())
-            .count();
+    entry["timestamp"] = std::chrono::duration_cast<std::chrono::milliseconds>(
+                             file.timestamp.time_since_epoch())
+                             .count();
     json_array.push_back(entry);
   }
   return json_array;
@@ -117,7 +117,8 @@ nlohmann::json WasmSettings::RecentFilesToJson(
 std::vector<WasmSettings::RecentFile> WasmSettings::JsonToRecentFiles(
     const nlohmann::json& json) {
   std::vector<RecentFile> files;
-  if (!json.is_array()) return files;
+  if (!json.is_array())
+    return files;
 
   for (const auto& entry : json) {
     if (entry.contains("filename") && entry.contains("timestamp")) {
@@ -150,12 +151,11 @@ absl::Status WasmSettings::AddRecentFile(
   }
 
   // Remove existing entry if present
-  files.erase(
-      std::remove_if(files.begin(), files.end(),
-                     [&filename](const RecentFile& f) {
-                       return f.filename == filename;
-                     }),
-      files.end());
+  files.erase(std::remove_if(files.begin(), files.end(),
+                             [&filename](const RecentFile& f) {
+                               return f.filename == filename;
+                             }),
+              files.end());
 
   // Add new entry at the beginning
   files.insert(files.begin(), {filename, timestamp});
@@ -211,12 +211,11 @@ absl::Status WasmSettings::RemoveRecentFile(const std::string& filename) {
     nlohmann::json json = nlohmann::json::parse(json_str);
     std::vector<RecentFile> files = JsonToRecentFiles(json);
 
-    files.erase(
-        std::remove_if(files.begin(), files.end(),
-                       [&filename](const RecentFile& f) {
-                         return f.filename == filename;
-                       }),
-        files.end());
+    files.erase(std::remove_if(files.begin(), files.end(),
+                               [&filename](const RecentFile& f) {
+                                 return f.filename == filename;
+                               }),
+                files.end());
 
     nlohmann::json new_json = RecentFilesToJson(files);
     localStorage_setItem(kRecentFilesKey, new_json.dump().c_str());
@@ -238,7 +237,8 @@ absl::Status WasmSettings::SaveWorkspace(const std::string& name,
   return WasmStorage::SaveProject(key, layout_json);
 }
 
-absl::StatusOr<std::string> WasmSettings::LoadWorkspace(const std::string& name) {
+absl::StatusOr<std::string> WasmSettings::LoadWorkspace(
+    const std::string& name) {
   std::string key = absl::StrCat(kWorkspacePrefix, name);
   return WasmStorage::LoadProject(key);
 }
@@ -279,8 +279,8 @@ std::string WasmSettings::GetActiveWorkspace() {
 
 // Undo History Persistence
 
-absl::Status WasmSettings::SaveUndoHistory(const std::string& editor_id,
-                                           const std::vector<uint8_t>& history) {
+absl::Status WasmSettings::SaveUndoHistory(
+    const std::string& editor_id, const std::vector<uint8_t>& history) {
   std::string key = absl::StrCat(kUndoHistoryPrefix, editor_id);
   return WasmStorage::SaveRom(key, history);  // Use binary storage
 }
@@ -322,13 +322,15 @@ absl::Status WasmSettings::SaveSetting(const std::string& key,
   // Update last save time
   auto now = std::chrono::system_clock::now();
   auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-      now.time_since_epoch()).count();
+                now.time_since_epoch())
+                .count();
   localStorage_setItem(kLastSaveTimeKey, std::to_string(ms).c_str());
 
   return absl::OkStatus();
 }
 
-absl::StatusOr<nlohmann::json> WasmSettings::LoadSetting(const std::string& key) {
+absl::StatusOr<nlohmann::json> WasmSettings::LoadSetting(
+    const std::string& key) {
   std::string storage_key = absl::StrCat(kSettingsPrefix, key);
   char* value = localStorage_getItem(storage_key.c_str());
 
@@ -375,10 +377,10 @@ absl::StatusOr<nlohmann::json> WasmSettings::LoadAllSettings() {
   // For now, we'll just return common settings if they exist.
 
   std::vector<std::string> common_keys = {
-      "show_grid", "grid_size", "auto_save", "auto_save_interval",
-      "show_tooltips", "confirm_on_delete", "default_editor",
-      "animation_speed", "zoom_level", "show_minimap"
-  };
+      "show_grid",          "grid_size",       "auto_save",
+      "auto_save_interval", "show_tooltips",   "confirm_on_delete",
+      "default_editor",     "animation_speed", "zoom_level",
+      "show_minimap"};
 
   for (const auto& key : common_keys) {
     if (HasSetting(key)) {
@@ -450,7 +452,7 @@ absl::Status WasmSettings::ImportSettings(const std::string& json_str) {
     // Import recent files
     if (import_data.contains("recent_files")) {
       localStorage_setItem(kRecentFilesKey,
-                          import_data["recent_files"].dump().c_str());
+                           import_data["recent_files"].dump().c_str());
     }
 
     // Import active workspace
@@ -459,7 +461,8 @@ absl::Status WasmSettings::ImportSettings(const std::string& json_str) {
     }
 
     // Import workspaces
-    if (import_data.contains("workspaces") && import_data["workspaces"].is_object()) {
+    if (import_data.contains("workspaces") &&
+        import_data["workspaces"].is_object()) {
       for (auto it = import_data["workspaces"].begin();
            it != import_data["workspaces"].end(); ++it) {
         SaveWorkspace(it.key(), it.value().dump());
@@ -467,7 +470,8 @@ absl::Status WasmSettings::ImportSettings(const std::string& json_str) {
     }
 
     // Import general settings
-    if (import_data.contains("settings") && import_data["settings"].is_object()) {
+    if (import_data.contains("settings") &&
+        import_data["settings"].is_object()) {
       SaveAllSettings(import_data["settings"]);
     }
 
@@ -478,7 +482,8 @@ absl::Status WasmSettings::ImportSettings(const std::string& json_str) {
   }
 }
 
-absl::StatusOr<std::chrono::system_clock::time_point> WasmSettings::GetLastSaveTime() {
+absl::StatusOr<std::chrono::system_clock::time_point>
+WasmSettings::GetLastSaveTime() {
   char* time_str = localStorage_getItem(kLastSaveTimeKey);
   if (!time_str) {
     return absl::NotFoundError("No save time recorded");

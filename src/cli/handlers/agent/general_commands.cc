@@ -90,8 +90,8 @@ absl::Status TryLoadProjectAndLabels(Rom& rom) {
     }
   } else {
     // No project found - use embedded defaults anyway
-    std::cout
-        << "ℹ️  No project file found. Using embedded default Zelda3 labels.\n";
+    std::cout << "ℹ️  No project file found. Using embedded default Zelda3 "
+                 "labels.\n";
     project.InitializeEmbeddedLabels(zelda3::Zelda3Labels::ToResourceLabels());
   }
 
@@ -216,9 +216,8 @@ absl::Status HandleRunCommand(const std::vector<std::string>& arg_vec,
   const auto& metadata = proposal_result.metadata;
   std::filesystem::path proposal_dir = metadata.log_path.parent_path();
 
-  std::cout
-      << "✅ Agent successfully planned and executed changes in a sandbox."
-      << std::endl;
+  std::cout << "✅ Agent successfully planned and executed changes in a sandbox."
+            << std::endl;
   std::cout << "   Proposal ID: " << metadata.id << std::endl;
   std::cout << "   Sandbox ROM: " << metadata.sandbox_rom_path << std::endl;
   std::cout << "   Proposal dir: " << proposal_dir << std::endl;
@@ -743,8 +742,8 @@ absl::Status HandleAcceptCommand(const std::vector<std::string>& arg_vec,
       EnsureRomLoaded(rom, "agent accept --proposal-id <proposal_id>"));
 
   Rom sandbox_rom;
-  auto sandbox_load_status = sandbox_rom.LoadFromFile(
-      metadata.sandbox_rom_path.string());
+  auto sandbox_load_status =
+      sandbox_rom.LoadFromFile(metadata.sandbox_rom_path.string());
   if (!sandbox_load_status.ok()) {
     return absl::InternalError(absl::StrCat("Failed to load sandbox ROM: ",
                                             sandbox_load_status.message()));

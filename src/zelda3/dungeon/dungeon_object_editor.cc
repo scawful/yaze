@@ -400,7 +400,8 @@ absl::Status DungeonObjectEditor::BatchMoveObjects(
 
   // Apply moves
   for (size_t index : indices) {
-    if (index >= current_room_->GetTileObjectCount()) continue;
+    if (index >= current_room_->GetTileObjectCount())
+      continue;
 
     auto& object = current_room_->GetTileObject(index);
     int new_x = object.x() + dx;
@@ -442,7 +443,8 @@ absl::Status DungeonObjectEditor::BatchChangeObjectLayer(
   }
 
   for (size_t index : indices) {
-    if (index >= current_room_->GetTileObjectCount()) continue;
+    if (index >= current_room_->GetTileObjectCount())
+      continue;
 
     auto& object = current_room_->GetTileObject(index);
     object.layer_ = static_cast<RoomObject::LayerType>(new_layer);
@@ -476,7 +478,8 @@ absl::Status DungeonObjectEditor::BatchResizeObjects(
   }
 
   for (size_t index : indices) {
-    if (index >= current_room_->GetTileObjectCount()) continue;
+    if (index >= current_room_->GetTileObjectCount())
+      continue;
 
     auto& object = current_room_->GetTileObject(index);
     // Only Type 1 objects typically support arbitrary sizing, but we allow it
@@ -495,7 +498,9 @@ absl::Status DungeonObjectEditor::BatchResizeObjects(
   return absl::OkStatus();
 }
 
-std::optional<size_t> DungeonObjectEditor::DuplicateObject(size_t object_index, int offset_x, int offset_y) {
+std::optional<size_t> DungeonObjectEditor::DuplicateObject(size_t object_index,
+                                                           int offset_x,
+                                                           int offset_y) {
   if (current_room_ == nullptr) {
     return std::nullopt;
   }
@@ -508,37 +513,39 @@ std::optional<size_t> DungeonObjectEditor::DuplicateObject(size_t object_index, 
   CreateUndoPoint();
 
   auto object = current_room_->GetTileObject(object_index);
-  
+
   // Offset position
   int new_x = object.x() + offset_x;
   int new_y = object.y() + offset_y;
-  
+
   // Clamp
   new_x = std::max(0, std::min(63, new_x));
   new_y = std::max(0, std::min(63, new_y));
-  
+
   object.set_x(new_x);
   object.set_y(new_y);
 
   // Add object
   if (current_room_->AddObject(object).ok()) {
     size_t new_index = current_room_->GetTileObjectCount() - 1;
-    
+
     if (room_changed_callback_) {
       room_changed_callback_();
     }
-    
+
     return new_index;
   }
 
   return std::nullopt;
 }
 
-void DungeonObjectEditor::CopySelectedObjects(const std::vector<size_t>& indices) {
-  if (current_room_ == nullptr) return;
+void DungeonObjectEditor::CopySelectedObjects(
+    const std::vector<size_t>& indices) {
+  if (current_room_ == nullptr)
+    return;
 
   clipboard_.clear();
-  
+
   for (size_t index : indices) {
     if (index < current_room_->GetTileObjectCount()) {
       clipboard_.push_back(current_room_->GetTileObject(index));
@@ -560,12 +567,12 @@ std::vector<size_t> DungeonObjectEditor::PasteObjects() {
   for (const auto& obj : clipboard_) {
     // Paste with slight offset to make it visible
     RoomObject new_obj = obj;
-    
+
     // Logic to ensure it stays in bounds if we were to support mouse-position pasting
     // For now, just paste at original location + offset, or perhaps center of screen
     // Let's do original + 1,1 for now to match duplicate behavior if we just copy/paste
     // But better might be to keep relative positions if we had a "cursor" position.
-    
+
     int new_x = std::min(63, new_obj.x() + 1);
     int new_y = std::min(63, new_obj.y() + 1);
     new_obj.set_x(new_x);
@@ -689,8 +696,10 @@ absl::Status DungeonObjectEditor::CreateTemplateFromSelection(
     if (index < current_room_->GetTileObjectCount()) {
       const auto& obj = current_room_->GetTileObject(index);
       objects.push_back(obj);
-      if (obj.x() < min_x) min_x = obj.x();
-      if (obj.y() < min_y) min_y = obj.y();
+      if (obj.x() < min_x)
+        min_x = obj.x();
+      if (obj.y() < min_y)
+        min_y = obj.y();
     }
   }
 
@@ -712,7 +721,7 @@ absl::Status DungeonObjectEditor::AlignSelectedObjects(Alignment alignment) {
   }
 
   if (selection_state_.selected_objects.size() < 2) {
-    return absl::OkStatus(); // Nothing to align
+    return absl::OkStatus();  // Nothing to align
   }
 
   // Create undo point
@@ -724,11 +733,11 @@ absl::Status DungeonObjectEditor::AlignSelectedObjects(Alignment alignment) {
   // Find reference value (min/max/avg)
   int ref_val = 0;
   const auto& indices = selection_state_.selected_objects;
-  
+
   if (alignment == Alignment::Left || alignment == Alignment::Top) {
-    ref_val = 64; // Max possible
+    ref_val = 64;  // Max possible
   } else if (alignment == Alignment::Right || alignment == Alignment::Bottom) {
-    ref_val = 0; // Min possible
+    ref_val = 0;  // Min possible
   }
 
   // First pass: calculate reference
@@ -736,21 +745,26 @@ absl::Status DungeonObjectEditor::AlignSelectedObjects(Alignment alignment) {
   int count = 0;
 
   for (size_t index : indices) {
-    if (index >= current_room_->GetTileObjectCount()) continue;
+    if (index >= current_room_->GetTileObjectCount())
+      continue;
     const auto& obj = current_room_->GetTileObject(index);
-    
+
     switch (alignment) {
       case Alignment::Left:
-        if (obj.x() < ref_val) ref_val = obj.x();
+        if (obj.x() < ref_val)
+          ref_val = obj.x();
         break;
       case Alignment::Right:
-        if (obj.x() > ref_val) ref_val = obj.x();
+        if (obj.x() > ref_val)
+          ref_val = obj.x();
         break;
       case Alignment::Top:
-        if (obj.y() < ref_val) ref_val = obj.y();
+        if (obj.y() < ref_val)
+          ref_val = obj.y();
         break;
       case Alignment::Bottom:
-        if (obj.y() > ref_val) ref_val = obj.y();
+        if (obj.y() > ref_val)
+          ref_val = obj.y();
         break;
       case Alignment::CenterX:
         sum += obj.x();
@@ -764,14 +778,16 @@ absl::Status DungeonObjectEditor::AlignSelectedObjects(Alignment alignment) {
   }
 
   if (alignment == Alignment::CenterX || alignment == Alignment::CenterY) {
-    if (count > 0) ref_val = sum / count;
+    if (count > 0)
+      ref_val = sum / count;
   }
 
   // Second pass: apply alignment
   for (size_t index : indices) {
-    if (index >= current_room_->GetTileObjectCount()) continue;
+    if (index >= current_room_->GetTileObjectCount())
+      continue;
     auto& obj = current_room_->GetTileObject(index);
-    
+
     switch (alignment) {
       case Alignment::Left:
       case Alignment::Right:
@@ -1604,10 +1620,10 @@ void DungeonObjectEditor::DrawPropertyUI() {
       // ========== Actions Section ==========
       float button_width = (ImGui::GetContentRegionAvail().x - 8) / 2;
 
-      ImGui::PushStyleColor(ImGuiCol_Button,
-                            ImVec4(theme.status_error.x * 0.7f,
-                                   theme.status_error.y * 0.7f,
-                                   theme.status_error.z * 0.7f, 1.0f));
+      ImGui::PushStyleColor(
+          ImGuiCol_Button,
+          ImVec4(theme.status_error.x * 0.7f, theme.status_error.y * 0.7f,
+                 theme.status_error.z * 0.7f, 1.0f));
       ImGui::PushStyleColor(ImGuiCol_ButtonHovered, theme.status_error);
       if (ImGui::Button(ICON_MD_DELETE " Delete", ImVec2(button_width, 0))) {
         auto status = DeleteObject(obj_idx);
@@ -1627,7 +1643,8 @@ void DungeonObjectEditor::DrawPropertyUI() {
     }
   } else {
     // ========== Multiple Selection Mode ==========
-    ImGui::TextColored(theme.text_warning_yellow, ICON_MD_SELECT_ALL " %zu objects selected",
+    ImGui::TextColored(theme.text_warning_yellow,
+                       ICON_MD_SELECT_ALL " %zu objects selected",
                        selection_state_.selected_objects.size());
 
     ImGui::Spacing();
@@ -1680,10 +1697,10 @@ void DungeonObjectEditor::DrawPropertyUI() {
     // ========== Actions ==========
     float button_width = (ImGui::GetContentRegionAvail().x - 8) / 2;
 
-    ImGui::PushStyleColor(ImGuiCol_Button,
-                          ImVec4(theme.status_error.x * 0.7f,
-                                 theme.status_error.y * 0.7f,
-                                 theme.status_error.z * 0.7f, 1.0f));
+    ImGui::PushStyleColor(
+        ImGuiCol_Button,
+        ImVec4(theme.status_error.x * 0.7f, theme.status_error.y * 0.7f,
+               theme.status_error.z * 0.7f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, theme.status_error);
     if (ImGui::Button(ICON_MD_DELETE_SWEEP " Delete All",
                       ImVec2(button_width, 0))) {
@@ -1899,7 +1916,9 @@ std::vector<ObjectCategory> GetObjectCategories() {
       {"Interactive", {0xF9, 0xFA, 0xFB}, "Interactive objects like chests"},
       {"Stairs", {0x13, 0x14, 0x15, 0x16}, "Staircase objects"},
       {"Doors", {0x17, 0x18, 0x19, 0x1A}, "Door objects"},
-      {"Special", {0xF80, 0xF81, 0xF82, 0xF97}, "Special dungeon objects (Type 3)"}};
+      {"Special",
+       {0xF80, 0xF81, 0xF82, 0xF97},
+       "Special dungeon objects (Type 3)"}};
 }
 
 absl::StatusOr<std::vector<int>> GetObjectsInCategory(

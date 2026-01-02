@@ -19,14 +19,14 @@
 #endif
 #include "app/editor/editor.h"
 #include "app/editor/editor_manager.h"
-#include "app/editor/system/editor_registry.h"
+#include "app/editor/layout/window_delegate.h"
 #include "app/editor/menu/right_panel_manager.h"
-#include "app/editor/ui/popup_manager.h"
+#include "app/editor/system/editor_registry.h"
 #include "app/editor/system/project_manager.h"
 #include "app/editor/system/rom_file_manager.h"
 #include "app/editor/system/session_coordinator.h"
+#include "app/editor/ui/popup_manager.h"
 #include "app/editor/ui/toast_manager.h"
-#include "app/editor/layout/window_delegate.h"
 #include "app/editor/ui/welcome_screen.h"
 #include "app/gui/core/background_renderer.h"
 #include "app/gui/core/icons.h"
@@ -193,7 +193,7 @@ void UICoordinator::DrawAllUI() {
   DrawWelcomeScreen();           // Welcome screen
   DrawProjectHelp();             // Project help
   DrawWindowManagementUI();      // Window management
-  
+
   // Draw popups and toasts
   DrawAllPopups();
   toast_manager_.Draw();
@@ -234,10 +234,10 @@ void UICoordinator::DrawMobileNavigation() {
 #endif
   const float button_size = std::max(44.0f, ImGui::GetFontSize() * 2.1f);
   const float padding = style.WindowPadding.x;
-  const ImVec2 pos(viewport->WorkPos.x + viewport->WorkSize.x - safe.x - padding -
-                       button_size,
-                   viewport->WorkPos.y + viewport->WorkSize.y - safe.y - padding -
-                       button_size);
+  const ImVec2 pos(viewport->WorkPos.x + viewport->WorkSize.x - safe.x -
+                       padding - button_size,
+                   viewport->WorkPos.y + viewport->WorkSize.y - safe.y -
+                       padding - button_size);
 
   const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
   const ImVec4 button_color = gui::ConvertColorToImVec4(theme.button);
@@ -303,9 +303,9 @@ void UICoordinator::DrawMobileNavigation() {
     }
 
     if (has_rom) {
-      if (ImGui::MenuItem(ICON_MD_DASHBOARD " Dashboard", nullptr,
-                          current_startup_surface_ ==
-                              StartupSurface::kDashboard)) {
+      if (ImGui::MenuItem(
+              ICON_MD_DASHBOARD " Dashboard", nullptr,
+              current_startup_surface_ == StartupSurface::kDashboard)) {
         SetStartupSurface(StartupSurface::kDashboard);
       }
       if (ImGui::MenuItem(
@@ -324,8 +324,8 @@ void UICoordinator::DrawMobileNavigation() {
     if (editor_manager_) {
       auto* right_panel = editor_manager_->right_panel_manager();
       if (right_panel) {
-        const bool settings_active = right_panel->IsPanelActive(
-            RightPanelManager::PanelType::kSettings);
+        const bool settings_active =
+            right_panel->IsPanelActive(RightPanelManager::PanelType::kSettings);
         if (ImGui::MenuItem(ICON_MD_SETTINGS " Settings", nullptr,
                             settings_active)) {
           right_panel->TogglePanel(RightPanelManager::PanelType::kSettings);
@@ -434,40 +434,45 @@ void UICoordinator::DrawMenuBarExtras() {
 
   // Convert panel screen X to window-local coordinates for space calculation
   float panel_local_x = panel_screen_x - window_screen_x;
-  float region_end = std::min(window_width - padding, panel_local_x - item_spacing);
+  float region_end =
+      std::min(window_width - padding, panel_local_x - item_spacing);
 
   // Calculate what elements to show - progressive hiding when space is tight
-  bool has_dirty_rom = current_rom && current_rom->is_loaded() && current_rom->dirty();
+  bool has_dirty_rom =
+      current_rom && current_rom->is_loaded() && current_rom->dirty();
   bool has_multiple_sessions = session_coordinator_.HasMultipleSessions();
-  
+
   float version_width = ImGui::CalcTextSize(full_version.c_str()).x;
-  float dirty_width = ImGui::CalcTextSize(ICON_MD_FIBER_MANUAL_RECORD).x + item_spacing;
+  float dirty_width =
+      ImGui::CalcTextSize(ICON_MD_FIBER_MANUAL_RECORD).x + item_spacing;
   float session_width = button_width;
 
   const float available_width = region_end - menu_items_end - padding;
-  
+
   // Minimum required width: just the bell (always visible)
   float required_width = button_width;
 
   // Progressive show/hide based on available space
   // Priority (highest to lowest): Bell > Dirty > Session > Version
-  
+
   // Try to fit version (lowest priority - hide first when tight)
-  bool show_version = (required_width + version_width + item_spacing) <= available_width;
+  bool show_version =
+      (required_width + version_width + item_spacing) <= available_width;
   if (show_version) {
     required_width += version_width + item_spacing;
   }
 
   // Try to fit session button (medium priority)
-  bool show_session = has_multiple_sessions &&
-                      (required_width + session_width + item_spacing) <= available_width;
+  bool show_session =
+      has_multiple_sessions &&
+      (required_width + session_width + item_spacing) <= available_width;
   if (show_session) {
     required_width += session_width + item_spacing;
   }
 
   // Try to fit dirty indicator (high priority - only hide if extremely tight)
-  bool show_dirty = has_dirty_rom &&
-                    (required_width + dirty_width) <= available_width;
+  bool show_dirty =
+      has_dirty_rom && (required_width + dirty_width) <= available_width;
   if (show_dirty) {
     required_width += dirty_width;
   }
@@ -510,7 +515,8 @@ void UICoordinator::DrawMenuBarExtras() {
   }
 
   // 4. Notification bell (pass visibility flags for enhanced tooltip)
-  DrawNotificationBell(show_dirty, has_dirty_rom, show_session, has_multiple_sessions);
+  DrawNotificationBell(show_dirty, has_dirty_rom, show_session,
+                       has_multiple_sessions);
 
   // =========================================================================
   // DRAW PANEL TOGGLES (fixed screen position, unaffected by dockspace resize)
@@ -545,13 +551,11 @@ void UICoordinator::DrawMenuBarRestoreButton() {
   }
 
   // Small floating button in top-left corner to restore menu bar
-  ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar |
-                           ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-                           ImGuiWindowFlags_NoScrollbar |
-                           ImGuiWindowFlags_NoCollapse |
-                           ImGuiWindowFlags_AlwaysAutoResize |
-                           ImGuiWindowFlags_NoBackground |
-                           ImGuiWindowFlags_NoSavedSettings;
+  ImGuiWindowFlags flags =
+      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
+      ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize |
+      ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoSavedSettings;
 
   ImGui::SetNextWindowPos(ImVec2(8, 8));
   ImGui::SetNextWindowBgAlpha(0.7f);
@@ -583,27 +587,33 @@ void UICoordinator::DrawMenuBarRestoreButton() {
   }
 }
 
-void UICoordinator::DrawNotificationBell(bool show_dirty, bool has_dirty_rom, 
-                                         bool show_session, bool has_multiple_sessions) {
+void UICoordinator::DrawNotificationBell(bool show_dirty, bool has_dirty_rom,
+                                         bool show_session,
+                                         bool has_multiple_sessions) {
   size_t unread = toast_manager_.GetUnreadCount();
   auto* current_rom = editor_manager_->GetCurrentRom();
   auto* right_panel = editor_manager_->right_panel_manager();
 
   // Check if notifications panel is active
-  bool is_active = right_panel && 
+  bool is_active =
+      right_panel &&
       right_panel->IsPanelActive(RightPanelManager::PanelType::kNotifications);
 
   // Bell icon with accent color when there are unread notifications or panel is active
   if (unread > 0 || is_active) {
     ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4());
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4());
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                          gui::GetSurfaceContainerHighVec4());
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                          gui::GetSurfaceContainerHighestVec4());
   } else {
     ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4());
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4());
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                          gui::GetSurfaceContainerHighVec4());
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                          gui::GetSurfaceContainerHighestVec4());
   }
 
   // Bell button - opens notifications panel in right sidebar
@@ -619,31 +629,33 @@ void UICoordinator::DrawNotificationBell(bool show_dirty, bool has_dirty_rom,
   // Enhanced tooltip showing notifications + hidden status items
   if (ImGui::IsItemHovered()) {
     ImGui::BeginTooltip();
-    
+
     // Notifications
     if (unread > 0) {
       ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
-      ImGui::Text("%s %zu new notification%s", ICON_MD_NOTIFICATIONS, 
-                  unread, unread == 1 ? "" : "s");
+      ImGui::Text("%s %zu new notification%s", ICON_MD_NOTIFICATIONS, unread,
+                  unread == 1 ? "" : "s");
       ImGui::PopStyleColor();
     } else {
       ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
       ImGui::Text(ICON_MD_NOTIFICATIONS " No new notifications");
       ImGui::PopStyleColor();
     }
-    
+
     ImGui::TextDisabled("Click to open Notifications panel");
-    
+
     // Show hidden status items if any
     if (!show_dirty && has_dirty_rom) {
       ImGui::Separator();
-      ImGui::PushStyleColor(ImGuiCol_Text, gui::ConvertColorToImVec4(
-          gui::ThemeManager::Get().GetCurrentTheme().warning));
-      ImGui::Text(ICON_MD_FIBER_MANUAL_RECORD " Unsaved changes: %s", 
+      ImGui::PushStyleColor(
+          ImGuiCol_Text,
+          gui::ConvertColorToImVec4(
+              gui::ThemeManager::Get().GetCurrentTheme().warning));
+      ImGui::Text(ICON_MD_FIBER_MANUAL_RECORD " Unsaved changes: %s",
                   current_rom->short_name().c_str());
       ImGui::PopStyleColor();
     }
-    
+
     if (!show_session && has_multiple_sessions) {
       if (!show_dirty && has_dirty_rom) {
         // Already had a separator
@@ -651,11 +663,11 @@ void UICoordinator::DrawNotificationBell(bool show_dirty, bool has_dirty_rom,
         ImGui::Separator();
       }
       ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-      ImGui::Text(ICON_MD_LAYERS " %zu sessions active", 
+      ImGui::Text(ICON_MD_LAYERS " %zu sessions active",
                   session_coordinator_.GetActiveSessionCount());
       ImGui::PopStyleColor();
     }
-    
+
     ImGui::EndTooltip();
   }
 }
@@ -693,9 +705,11 @@ void UICoordinator::DrawSessionButton() {
   // Anchor popup to right edge - position so right edge aligns with button
   const float popup_width = 250.0f;
   const float screen_width = ImGui::GetIO().DisplaySize.x;
-  const float popup_x = std::min(button_min.x, screen_width - popup_width - 10.0f);
+  const float popup_x =
+      std::min(button_min.x, screen_width - popup_width - 10.0f);
 
-  ImGui::SetNextWindowPos(ImVec2(popup_x, button_max.y + 2.0f), ImGuiCond_Appearing);
+  ImGui::SetNextWindowPos(ImVec2(popup_x, button_max.y + 2.0f),
+                          ImGuiCond_Appearing);
 
   // Session switcher popup
   if (ImGui::BeginPopup("##SessionSwitcherPopup")) {
@@ -706,7 +720,8 @@ void UICoordinator::DrawSessionButton() {
       if (session_coordinator_.IsSessionClosed(i))
         continue;
 
-      auto* session = static_cast<RomSession*>(session_coordinator_.GetSession(i));
+      auto* session =
+          static_cast<RomSession*>(session_coordinator_.GetSession(i));
       if (!session)
         continue;
 
@@ -718,9 +733,11 @@ void UICoordinator::DrawSessionButton() {
         ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
       }
 
-      std::string label = rom->is_loaded()
-          ? absl::StrFormat("%s %s", ICON_MD_DESCRIPTION, rom->short_name().c_str())
-          : absl::StrFormat("%s Session %zu", ICON_MD_DESCRIPTION, i + 1);
+      std::string label =
+          rom->is_loaded()
+              ? absl::StrFormat("%s %s", ICON_MD_DESCRIPTION,
+                                rom->short_name().c_str())
+              : absl::StrFormat("%s Session %zu", ICON_MD_DESCRIPTION, i + 1);
 
       if (ImGui::Selectable(label.c_str(), is_current)) {
         editor_manager_->SwitchToSession(i);
@@ -833,7 +850,8 @@ void UICoordinator::DrawWelcomeScreen() {
 
   // Pass layout offsets so welcome screen centers within dockspace region
   // Note: Activity Bar is hidden when welcome is shown, so left_offset = 0
-  float left_offset = ShouldShowActivityBar() ? editor_manager_->GetLeftLayoutOffset() : 0.0f;
+  float left_offset =
+      ShouldShowActivityBar() ? editor_manager_->GetLeftLayoutOffset() : 0.0f;
   float right_offset = editor_manager_->GetRightLayoutOffset();
   welcome_screen_->SetLayoutOffsets(left_offset, right_offset);
 
@@ -964,7 +982,6 @@ void UICoordinator::HideAllWindows() {
   window_delegate_.HideAllWindows();
 }
 
-
 // Material Design component helpers
 void UICoordinator::DrawMaterialButton(const std::string& text,
                                        const std::string& icon,
@@ -1005,7 +1022,6 @@ void UICoordinator::SetWindowSize(const std::string& window_name, float width,
                                   float height) {
   ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_FirstUseEver);
 }
-
 
 void UICoordinator::DrawCommandPalette() {
   if (!show_command_palette_)

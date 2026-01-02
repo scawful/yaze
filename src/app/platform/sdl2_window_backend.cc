@@ -100,9 +100,8 @@ absl::Status SDL2WindowBackend::Initialize(const WindowConfig& config) {
   audio_buffer_ = std::shared_ptr<int16_t>(new int16_t[buffer_size],
                                            std::default_delete<int16_t[]>());
 
-  LOG_INFO("SDL2WindowBackend",
-           "Initialized: %dx%d, audio buffer: %zu samples", screen_width,
-           screen_height, buffer_size);
+  LOG_INFO("SDL2WindowBackend", "Initialized: %dx%d, audio buffer: %zu samples",
+           screen_width, screen_height, buffer_size);
 
   initialized_ = true;
   active_ = true;
@@ -329,8 +328,10 @@ void SDL2WindowBackend::GetSize(int* width, int* height) const {
   if (window_) {
     SDL_GetWindowSize(window_.get(), width, height);
   } else {
-    if (width) *width = 0;
-    if (height) *height = 0;
+    if (width)
+      *width = 0;
+    if (height)
+      *height = 0;
   }
 }
 
@@ -454,7 +455,7 @@ void SDL2WindowBackend::RenderImGui(gfx::IRenderer* renderer) {
 
   // Finalize ImGui frame and render draw data
   ImGui::Render();
-  
+
   if (renderer) {
     SDL_Renderer* sdl_renderer =
         static_cast<SDL_Renderer*>(renderer->GetBackendRenderer());

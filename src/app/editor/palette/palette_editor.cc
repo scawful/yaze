@@ -2,6 +2,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
 #include "app/editor/palette/palette_category.h"
 #include "app/editor/system/panel_manager.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
@@ -200,126 +201,137 @@ void PaletteEditor::Initialize() {
   auto* panel_manager = dependencies_.panel_manager;
   const size_t session_id = dependencies_.session_id;
 
-  panel_manager->RegisterPanel({.card_id = "palette.control_panel",
-                               .display_name = "Palette Controls",
-                               .window_title = " Group Manager",
-                               .icon = ICON_MD_PALETTE,
-                               .category = "Palette",
-                               .shortcut_hint = "Ctrl+Shift+P",
-                               .visibility_flag = &show_control_panel_,
-                               .priority = 10,
-                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first"});
+  panel_manager->RegisterPanel(
+      {.card_id = "palette.control_panel",
+       .display_name = "Palette Controls",
+       .window_title = " Group Manager",
+       .icon = ICON_MD_PALETTE,
+       .category = "Palette",
+       .shortcut_hint = "Ctrl+Shift+P",
+       .visibility_flag = &show_control_panel_,
+       .priority = 10,
+       .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+       .disabled_tooltip = "Load a ROM first"});
 
-  panel_manager->RegisterPanel({.card_id = "palette.ow_main",
-                               .display_name = "Overworld Main",
-                               .window_title = " Overworld Main",
-                               .icon = ICON_MD_LANDSCAPE,
-                               .category = "Palette",
-                               .shortcut_hint = "Ctrl+Alt+1",
-                               .visibility_flag = &show_ow_main_panel_,
-                               .priority = 20,
-                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first"});
+  panel_manager->RegisterPanel(
+      {.card_id = "palette.ow_main",
+       .display_name = "Overworld Main",
+       .window_title = " Overworld Main",
+       .icon = ICON_MD_LANDSCAPE,
+       .category = "Palette",
+       .shortcut_hint = "Ctrl+Alt+1",
+       .visibility_flag = &show_ow_main_panel_,
+       .priority = 20,
+       .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+       .disabled_tooltip = "Load a ROM first"});
 
-  panel_manager->RegisterPanel({.card_id = "palette.ow_animated",
-                               .display_name = "Overworld Animated",
-                               .window_title = " Overworld Animated",
-                               .icon = ICON_MD_WATER,
-                               .category = "Palette",
-                               .shortcut_hint = "Ctrl+Alt+2",
-                               .visibility_flag = &show_ow_animated_panel_,
-                               .priority = 30,
-                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first"});
+  panel_manager->RegisterPanel(
+      {.card_id = "palette.ow_animated",
+       .display_name = "Overworld Animated",
+       .window_title = " Overworld Animated",
+       .icon = ICON_MD_WATER,
+       .category = "Palette",
+       .shortcut_hint = "Ctrl+Alt+2",
+       .visibility_flag = &show_ow_animated_panel_,
+       .priority = 30,
+       .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+       .disabled_tooltip = "Load a ROM first"});
 
-  panel_manager->RegisterPanel({.card_id = "palette.dungeon_main",
-                               .display_name = "Dungeon Main",
-                               .window_title = " Dungeon Main",
-                               .icon = ICON_MD_CASTLE,
-                               .category = "Palette",
-                               .shortcut_hint = "Ctrl+Alt+3",
-                               .visibility_flag = &show_dungeon_main_panel_,
-                               .priority = 40,
-                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first"});
+  panel_manager->RegisterPanel(
+      {.card_id = "palette.dungeon_main",
+       .display_name = "Dungeon Main",
+       .window_title = " Dungeon Main",
+       .icon = ICON_MD_CASTLE,
+       .category = "Palette",
+       .shortcut_hint = "Ctrl+Alt+3",
+       .visibility_flag = &show_dungeon_main_panel_,
+       .priority = 40,
+       .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+       .disabled_tooltip = "Load a ROM first"});
 
-  panel_manager->RegisterPanel({.card_id = "palette.sprites",
-                               .display_name = "Global Sprite Palettes",
-                               .window_title = " SNES Palette",
-                               .icon = ICON_MD_PETS,
-                               .category = "Palette",
-                               .shortcut_hint = "Ctrl+Alt+4",
-                               .visibility_flag = &show_sprite_panel_,
-                               .priority = 50,
-                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first"});
+  panel_manager->RegisterPanel(
+      {.card_id = "palette.sprites",
+       .display_name = "Global Sprite Palettes",
+       .window_title = " SNES Palette",
+       .icon = ICON_MD_PETS,
+       .category = "Palette",
+       .shortcut_hint = "Ctrl+Alt+4",
+       .visibility_flag = &show_sprite_panel_,
+       .priority = 50,
+       .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+       .disabled_tooltip = "Load a ROM first"});
 
-  panel_manager->RegisterPanel({.card_id = "palette.sprites_aux1",
-                               .display_name = "Sprites Aux 1",
-                               .window_title = " Sprites Aux 1",
-                               .icon = ICON_MD_FILTER_1,
-                               .category = "Palette",
-                               .shortcut_hint = "Ctrl+Alt+7",
-                               .visibility_flag = &show_sprites_aux1_panel_,
-                               .priority = 51,
-                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first"});
+  panel_manager->RegisterPanel(
+      {.card_id = "palette.sprites_aux1",
+       .display_name = "Sprites Aux 1",
+       .window_title = " Sprites Aux 1",
+       .icon = ICON_MD_FILTER_1,
+       .category = "Palette",
+       .shortcut_hint = "Ctrl+Alt+7",
+       .visibility_flag = &show_sprites_aux1_panel_,
+       .priority = 51,
+       .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+       .disabled_tooltip = "Load a ROM first"});
 
-  panel_manager->RegisterPanel({.card_id = "palette.sprites_aux2",
-                               .display_name = "Sprites Aux 2",
-                               .window_title = " Sprites Aux 2",
-                               .icon = ICON_MD_FILTER_2,
-                               .category = "Palette",
-                               .shortcut_hint = "Ctrl+Alt+8",
-                               .visibility_flag = &show_sprites_aux2_panel_,
-                               .priority = 52,
-                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first"});
+  panel_manager->RegisterPanel(
+      {.card_id = "palette.sprites_aux2",
+       .display_name = "Sprites Aux 2",
+       .window_title = " Sprites Aux 2",
+       .icon = ICON_MD_FILTER_2,
+       .category = "Palette",
+       .shortcut_hint = "Ctrl+Alt+8",
+       .visibility_flag = &show_sprites_aux2_panel_,
+       .priority = 52,
+       .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+       .disabled_tooltip = "Load a ROM first"});
 
-  panel_manager->RegisterPanel({.card_id = "palette.sprites_aux3",
-                               .display_name = "Sprites Aux 3",
-                               .window_title = " Sprites Aux 3",
-                               .icon = ICON_MD_FILTER_3,
-                               .category = "Palette",
-                               .shortcut_hint = "Ctrl+Alt+9",
-                               .visibility_flag = &show_sprites_aux3_panel_,
-                               .priority = 53,
-                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first"});
+  panel_manager->RegisterPanel(
+      {.card_id = "palette.sprites_aux3",
+       .display_name = "Sprites Aux 3",
+       .window_title = " Sprites Aux 3",
+       .icon = ICON_MD_FILTER_3,
+       .category = "Palette",
+       .shortcut_hint = "Ctrl+Alt+9",
+       .visibility_flag = &show_sprites_aux3_panel_,
+       .priority = 53,
+       .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+       .disabled_tooltip = "Load a ROM first"});
 
-  panel_manager->RegisterPanel({.card_id = "palette.equipment",
-                               .display_name = "Equipment Palettes",
-                               .window_title = " Equipment Palettes",
-                               .icon = ICON_MD_SHIELD,
-                               .category = "Palette",
-                               .shortcut_hint = "Ctrl+Alt+5",
-                               .visibility_flag = &show_equipment_panel_,
-                               .priority = 60,
-                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first"});
+  panel_manager->RegisterPanel(
+      {.card_id = "palette.equipment",
+       .display_name = "Equipment Palettes",
+       .window_title = " Equipment Palettes",
+       .icon = ICON_MD_SHIELD,
+       .category = "Palette",
+       .shortcut_hint = "Ctrl+Alt+5",
+       .visibility_flag = &show_equipment_panel_,
+       .priority = 60,
+       .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+       .disabled_tooltip = "Load a ROM first"});
 
-  panel_manager->RegisterPanel({.card_id = "palette.quick_access",
-                               .display_name = "Quick Access",
-                               .window_title = " Color Harmony",
-                               .icon = ICON_MD_COLOR_LENS,
-                               .category = "Palette",
-                               .shortcut_hint = "Ctrl+Alt+Q",
-                               .visibility_flag = &show_quick_access_,
-                               .priority = 70,
-                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first"});
+  panel_manager->RegisterPanel(
+      {.card_id = "palette.quick_access",
+       .display_name = "Quick Access",
+       .window_title = " Color Harmony",
+       .icon = ICON_MD_COLOR_LENS,
+       .category = "Palette",
+       .shortcut_hint = "Ctrl+Alt+Q",
+       .visibility_flag = &show_quick_access_,
+       .priority = 70,
+       .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+       .disabled_tooltip = "Load a ROM first"});
 
-  panel_manager->RegisterPanel({.card_id = "palette.custom",
-                               .display_name = "Custom Palette",
-                               .window_title = " Palette Editor",
-                               .icon = ICON_MD_BRUSH,
-                               .category = "Palette",
-                               .shortcut_hint = "Ctrl+Alt+C",
-                               .visibility_flag = &show_custom_palette_,
-                               .priority = 80,
-                               .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-                               .disabled_tooltip = "Load a ROM first"});
+  panel_manager->RegisterPanel(
+      {.card_id = "palette.custom",
+       .display_name = "Custom Palette",
+       .window_title = " Palette Editor",
+       .icon = ICON_MD_BRUSH,
+       .category = "Palette",
+       .shortcut_hint = "Ctrl+Alt+C",
+       .visibility_flag = &show_custom_palette_,
+       .priority = 80,
+       .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+       .disabled_tooltip = "Load a ROM first"});
 
   // Show control panel by default when Palette Editor is activated
   panel_manager->ShowPanel(session_id, "palette.control_panel");
@@ -339,10 +351,12 @@ class PaletteControlPanel : public EditorPanel {
   std::string GetIcon() const override { return ICON_MD_PALETTE; }
   std::string GetEditorCategory() const override { return "Palette"; }
   int GetPriority() const override { return 10; }
-  
+
   void Draw(bool* p_open) override {
-    if (p_open && !*p_open) return;
-    if (draw_callback_) draw_callback_();
+    if (p_open && !*p_open)
+      return;
+    if (draw_callback_)
+      draw_callback_();
   }
 
  private:
@@ -359,10 +373,12 @@ class QuickAccessPalettePanel : public EditorPanel {
   std::string GetIcon() const override { return ICON_MD_COLOR_LENS; }
   std::string GetEditorCategory() const override { return "Palette"; }
   int GetPriority() const override { return 70; }
-  
+
   void Draw(bool* p_open) override {
-    if (p_open && !*p_open) return;
-    if (draw_callback_) draw_callback_();
+    if (p_open && !*p_open)
+      return;
+    if (draw_callback_)
+      draw_callback_();
   }
 
  private:
@@ -379,10 +395,12 @@ class CustomPalettePanel : public EditorPanel {
   std::string GetIcon() const override { return ICON_MD_BRUSH; }
   std::string GetEditorCategory() const override { return "Palette"; }
   int GetPriority() const override { return 80; }
-  
+
   void Draw(bool* p_open) override {
-    if (p_open && !*p_open) return;
-    if (draw_callback_) draw_callback_();
+    if (p_open && !*p_open)
+      return;
+    if (draw_callback_)
+      draw_callback_();
   }
 
  private:
@@ -424,37 +442,44 @@ absl::Status PaletteEditor::Load() {
     // Note: PanelManager takes ownership via unique_ptr
 
     // Overworld Main
-    auto ow_main = std::make_unique<OverworldMainPalettePanel>(rom_, game_data());
+    auto ow_main =
+        std::make_unique<OverworldMainPalettePanel>(rom_, game_data());
     ow_main_panel_ = ow_main.get();
     panel_manager->RegisterEditorPanel(std::move(ow_main));
 
     // Overworld Animated
-    auto ow_anim = std::make_unique<OverworldAnimatedPalettePanel>(rom_, game_data());
+    auto ow_anim =
+        std::make_unique<OverworldAnimatedPalettePanel>(rom_, game_data());
     ow_anim_panel_ = ow_anim.get();
     panel_manager->RegisterEditorPanel(std::move(ow_anim));
 
     // Dungeon Main
-    auto dungeon_main = std::make_unique<DungeonMainPalettePanel>(rom_, game_data());
+    auto dungeon_main =
+        std::make_unique<DungeonMainPalettePanel>(rom_, game_data());
     dungeon_main_panel_ = dungeon_main.get();
     panel_manager->RegisterEditorPanel(std::move(dungeon_main));
 
     // Global Sprites
-    auto sprite_global = std::make_unique<SpritePalettePanel>(rom_, game_data());
+    auto sprite_global =
+        std::make_unique<SpritePalettePanel>(rom_, game_data());
     sprite_global_panel_ = sprite_global.get();
     panel_manager->RegisterEditorPanel(std::move(sprite_global));
 
     // Sprites Aux 1
-    auto sprite_aux1 = std::make_unique<SpritesAux1PalettePanel>(rom_, game_data());
+    auto sprite_aux1 =
+        std::make_unique<SpritesAux1PalettePanel>(rom_, game_data());
     sprite_aux1_panel_ = sprite_aux1.get();
     panel_manager->RegisterEditorPanel(std::move(sprite_aux1));
 
     // Sprites Aux 2
-    auto sprite_aux2 = std::make_unique<SpritesAux2PalettePanel>(rom_, game_data());
+    auto sprite_aux2 =
+        std::make_unique<SpritesAux2PalettePanel>(rom_, game_data());
     sprite_aux2_panel_ = sprite_aux2.get();
     panel_manager->RegisterEditorPanel(std::move(sprite_aux2));
 
     // Sprites Aux 3
-    auto sprite_aux3 = std::make_unique<SpritesAux3PalettePanel>(rom_, game_data());
+    auto sprite_aux3 =
+        std::make_unique<SpritesAux3PalettePanel>(rom_, game_data());
     sprite_aux3_panel_ = sprite_aux3.get();
     panel_manager->RegisterEditorPanel(std::move(sprite_aux3));
 
@@ -466,8 +491,9 @@ absl::Status PaletteEditor::Load() {
     // Register utility panels with callbacks
     panel_manager->RegisterEditorPanel(std::make_unique<PaletteControlPanel>(
         [this]() { DrawControlPanel(); }));
-    panel_manager->RegisterEditorPanel(std::make_unique<QuickAccessPalettePanel>(
-        [this]() { DrawQuickAccessPanel(); }));
+    panel_manager->RegisterEditorPanel(
+        std::make_unique<QuickAccessPalettePanel>(
+            [this]() { DrawQuickAccessPanel(); }));
     panel_manager->RegisterEditorPanel(std::make_unique<CustomPalettePanel>(
         [this]() { DrawCustomPalettePanel(); }));
   }
@@ -597,9 +623,9 @@ void PaletteEditor::DrawCustomPalette() {
       if (open_color_picker) {
         current_color_ = custom_palette_[i];
         edit_palette_index_ = i;
-        ImGui::OpenPopup(
-            gui::MakePopupId(gui::EditorNames::kPalette, "CustomPaletteColorEdit")
-                .c_str());
+        ImGui::OpenPopup(gui::MakePopupId(gui::EditorNames::kPalette,
+                                          "CustomPaletteColorEdit")
+                             .c_str());
       }
 
       if (BeginPopupContextItem()) {
@@ -917,18 +943,16 @@ void PaletteEditor::DrawControlPanel() {
     size_t modified_count = gfx::PaletteManager::Get().GetModifiedColorCount();
 
     ImGui::BeginDisabled(!has_unsaved);
-    if (ImGui::Button(
-            absl::StrFormat(ICON_MD_SAVE " Save All (%zu colors)",
-                            modified_count)
-                .c_str(),
-            ImVec2(-1, 0))) {
+    if (ImGui::Button(absl::StrFormat(ICON_MD_SAVE " Save All (%zu colors)",
+                                      modified_count)
+                          .c_str(),
+                      ImVec2(-1, 0))) {
       auto status = gfx::PaletteManager::Get().SaveAllToRom();
       if (!status.ok()) {
         // TODO: Show error toast/notification
-        ImGui::OpenPopup(
-            gui::MakePopupId(gui::EditorNames::kPalette,
-                             gui::PopupNames::kSaveError)
-                .c_str());
+        ImGui::OpenPopup(gui::MakePopupId(gui::EditorNames::kPalette,
+                                          gui::PopupNames::kSaveError)
+                             .c_str());
       }
     }
     ImGui::EndDisabled();
@@ -946,10 +970,9 @@ void PaletteEditor::DrawControlPanel() {
     if (ImGui::Button(ICON_MD_VISIBILITY " Apply to Editors", ImVec2(-1, 0))) {
       auto status = gfx::PaletteManager::Get().ApplyPreviewChanges();
       if (!status.ok()) {
-        ImGui::OpenPopup(
-            gui::MakePopupId(gui::EditorNames::kPalette,
-                             gui::PopupNames::kSaveError)
-                .c_str());
+        ImGui::OpenPopup(gui::MakePopupId(gui::EditorNames::kPalette,
+                                          gui::PopupNames::kSaveError)
+                             .c_str());
       }
     }
     ImGui::EndDisabled();
@@ -965,10 +988,9 @@ void PaletteEditor::DrawControlPanel() {
 
     ImGui::BeginDisabled(!has_unsaved);
     if (ImGui::Button(ICON_MD_UNDO " Discard All Changes", ImVec2(-1, 0))) {
-      ImGui::OpenPopup(
-          gui::MakePopupId(gui::EditorNames::kPalette,
-                           gui::PopupNames::kConfirmDiscardAll)
-              .c_str());
+      ImGui::OpenPopup(gui::MakePopupId(gui::EditorNames::kPalette,
+                                        gui::PopupNames::kConfirmDiscardAll)
+                           .c_str());
     }
     ImGui::EndDisabled();
 
@@ -1004,11 +1026,10 @@ void PaletteEditor::DrawControlPanel() {
     }
 
     // Error popup for save failures
-    if (ImGui::BeginPopupModal(
-            gui::MakePopupId(gui::EditorNames::kPalette,
-                             gui::PopupNames::kSaveError)
-                .c_str(),
-            nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+    if (ImGui::BeginPopupModal(gui::MakePopupId(gui::EditorNames::kPalette,
+                                                gui::PopupNames::kSaveError)
+                                   .c_str(),
+                               nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f),
                          "Failed to save changes");
       ImGui::Text("An error occurred while saving to ROM.");
@@ -1024,10 +1045,9 @@ void PaletteEditor::DrawControlPanel() {
 
     // Editor Manager Menu Button
     if (ImGui::Button(ICON_MD_DASHBOARD " Panel Manager", ImVec2(-1, 0))) {
-      ImGui::OpenPopup(
-          gui::MakePopupId(gui::EditorNames::kPalette,
-                           gui::PopupNames::kPalettePanelManager)
-              .c_str());
+      ImGui::OpenPopup(gui::MakePopupId(gui::EditorNames::kPalette,
+                                        gui::PopupNames::kPalettePanelManager)
+                           .c_str());
     }
 
     if (ImGui::BeginPopup(
@@ -1059,7 +1079,7 @@ void PaletteEditor::DrawControlPanel() {
 
 void PaletteEditor::DrawQuickAccessPanel() {
   gui::PanelWindow card("Quick Access Palette", ICON_MD_COLOR_LENS,
-                       &show_quick_access_);
+                        &show_quick_access_);
   card.SetDefaultSize(340, 300);
   card.SetPosition(gui::PanelWindow::Position::Right);
 
@@ -1147,10 +1167,9 @@ void PaletteEditor::DrawCustomPalettePanel() {
         if (open_color_picker) {
           current_color_ = custom_palette_[i];
           edit_palette_index_ = i;
-          ImGui::OpenPopup(
-              gui::MakePopupId(gui::EditorNames::kPalette,
-                               "PanelCustomPaletteColorEdit")
-                  .c_str());
+          ImGui::OpenPopup(gui::MakePopupId(gui::EditorNames::kPalette,
+                                            "PanelCustomPaletteColorEdit")
+                               .c_str());
         }
 
         if (BeginPopupContextItem()) {
@@ -1310,7 +1329,8 @@ void PaletteEditor::DrawSearchBar() {
 }
 
 bool PaletteEditor::PassesSearchFilter(const std::string& group_name) const {
-  if (search_buffer_[0] == '\0') return true;
+  if (search_buffer_[0] == '\0')
+    return true;
 
   // Check if group name or display name matches
   return gui::FuzzyMatch(search_buffer_, group_name) ||
@@ -1318,14 +1338,22 @@ bool PaletteEditor::PassesSearchFilter(const std::string& group_name) const {
 }
 
 bool* PaletteEditor::GetShowFlagForGroup(const std::string& group_name) {
-  if (group_name == "ow_main") return &show_ow_main_panel_;
-  if (group_name == "ow_animated") return &show_ow_animated_panel_;
-  if (group_name == "dungeon_main") return &show_dungeon_main_panel_;
-  if (group_name == "global_sprites") return &show_sprite_panel_;
-  if (group_name == "sprites_aux1") return &show_sprites_aux1_panel_;
-  if (group_name == "sprites_aux2") return &show_sprites_aux2_panel_;
-  if (group_name == "sprites_aux3") return &show_sprites_aux3_panel_;
-  if (group_name == "armors") return &show_equipment_panel_;
+  if (group_name == "ow_main")
+    return &show_ow_main_panel_;
+  if (group_name == "ow_animated")
+    return &show_ow_animated_panel_;
+  if (group_name == "dungeon_main")
+    return &show_dungeon_main_panel_;
+  if (group_name == "global_sprites")
+    return &show_sprite_panel_;
+  if (group_name == "sprites_aux1")
+    return &show_sprites_aux1_panel_;
+  if (group_name == "sprites_aux2")
+    return &show_sprites_aux2_panel_;
+  if (group_name == "sprites_aux3")
+    return &show_sprites_aux3_panel_;
+  if (group_name == "armors")
+    return &show_equipment_panel_;
   return nullptr;
 }
 
@@ -1348,7 +1376,8 @@ void PaletteEditor::DrawCategorizedPaletteList() {
       }
     }
 
-    if (!has_visible_items) continue;
+    if (!has_visible_items)
+      continue;
 
     ImGui::PushID(static_cast<int>(cat_idx));
 
@@ -1361,7 +1390,8 @@ void PaletteEditor::DrawCategorizedPaletteList() {
     if (open) {
       ImGui::Indent(10.0f);
       for (const auto& group_name : cat.group_names) {
-        if (!PassesSearchFilter(group_name)) continue;
+        if (!PassesSearchFilter(group_name))
+          continue;
 
         bool* show_flag = GetShowFlagForGroup(group_name);
         if (show_flag) {

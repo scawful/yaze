@@ -28,8 +28,8 @@
 #include <emscripten.h>
 #include "app/platform/wasm/wasm_collaboration.h"
 #endif
-#include "rom/snes.h"
 #include "core/features.h"
+#include "rom/snes.h"
 #include "util/hex.h"
 #include "util/log.h"
 #include "util/macro.h"
@@ -105,7 +105,8 @@ void MaybeStripSmcHeader(std::vector<uint8_t>& rom_data, unsigned long& size) {
 inline void MaybeBroadcastChange(uint32_t offset,
                                  const std::vector<uint8_t>& old_bytes,
                                  const std::vector<uint8_t>& new_bytes) {
-  if (new_bytes.empty()) return;
+  if (new_bytes.empty())
+    return;
   auto& collab = app::platform::GetWasmCollaborationInstance();
   if (!collab.IsConnected() || collab.IsApplyingRemoteChange()) {
     return;
@@ -207,23 +208,23 @@ absl::StatusOr<std::vector<uint8_t>> Load2BppGraphics(const Rom& rom) {
   std::vector<uint8_t> sheet;
   const uint8_t sheets[] = {0x71, 0x72, 0xDA, 0xDB, 0xDC, 0xDD, 0xDE};
   for (const auto& sheet_id : sheets) {
-    auto offset = GetGraphicsAddress(rom.data(), sheet_id,
-                                     rom.version_constants().kOverworldGfxPtr1,
-                                     rom.version_constants().kOverworldGfxPtr2,
-                                     rom.version_constants().kOverworldGfxPtr3,
-                                     rom.size());
+    auto offset = GetGraphicsAddress(
+        rom.data(), sheet_id, rom.version_constants().kOverworldGfxPtr1,
+        rom.version_constants().kOverworldGfxPtr2,
+        rom.version_constants().kOverworldGfxPtr3, rom.size());
 
     if (offset >= rom.size()) {
-      return absl::OutOfRangeError(
-          absl::StrFormat("2BPP graphics sheet %u offset %u exceeds ROM size %zu",
-                          sheet_id, offset, rom.size()));
+      return absl::OutOfRangeError(absl::StrFormat(
+          "2BPP graphics sheet %u offset %u exceeds ROM size %zu", sheet_id,
+          offset, rom.size()));
     }
 
     // Decompress using LC-LZ2 algorithm with 0x800 byte output buffer.
     // IMPORTANT: The size parameter (0x800) must NOT be 0, or DecompressV2
     // returns an empty vector immediately. This was a regression bug.
-    ASSIGN_OR_RETURN(auto decomp_sheet,
-                     gfx::lc_lz2::DecompressV2(rom.data(), offset, 0x800, 1, rom.size()));
+    ASSIGN_OR_RETURN(
+        auto decomp_sheet,
+        gfx::lc_lz2::DecompressV2(rom.data(), offset, 0x800, 1, rom.size()));
     auto converted_sheet = gfx::SnesTo8bppSheet(decomp_sheet, 2);
     for (const auto& each_pixel : converted_sheet) {
       sheet.push_back(each_pixel);
@@ -257,16 +258,18 @@ absl::StatusOr<gfx::Bitmap> LoadFontGraphics(const Rom& rom) {
   // Validate ROM size before accessing font graphics
   constexpr uint32_t kFontGraphicsOffset = 0x70000;
   constexpr uint32_t kFontGraphicsSize = 0x2000;
-  constexpr uint32_t kMinRomSizeForFont = kFontGraphicsOffset + kFontGraphicsSize;
-  
+  constexpr uint32_t kMinRomSizeForFont =
+      kFontGraphicsOffset + kFontGraphicsSize;
+
   if (rom.size() < kMinRomSizeForFont) {
-    return absl::FailedPreconditionError(
-        absl::StrFormat("ROM too small for font graphics: %zu bytes (need at least %u bytes)",
-                        rom.size(), kMinRomSizeForFont));
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "ROM too small for font graphics: %zu bytes (need at least %u bytes)",
+        rom.size(), kMinRomSizeForFont));
   }
-  
+
   // Use memcpy instead of byte-by-byte copy for performance
-  std::vector<uint8_t> data(rom.data() + 0x70000, rom.data() + 0x70000 + 0x2000);
+  std::vector<uint8_t> data(rom.data() + 0x70000,
+                            rom.data() + 0x70000 + 0x2000);
 
   std::vector<uint8_t> new_data(0x4000);
   std::vector<uint8_t> mask = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
@@ -352,7 +355,8 @@ absl::StatusOr<gfx::Bitmap> LoadFontGraphics(const Rom& rom) {
 absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
     Rom& rom, bool defer_render) {
 #ifdef __EMSCRIPTEN__
-  EM_ASM({ console.log('[C++] LoadAllGraphicsData START - ROM size:', $0); }, rom.size());
+  EM_ASM({ console.log('[C++] LoadAllGraphicsData START - ROM size:', $0); },
+         rom.size());
 #endif
 
   std::array<gfx::Bitmap, kNumGfxSheets> graphics_sheets;
@@ -395,14 +399,17 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
     uint32_t ptr1 = rom.version_constants().kOverworldGfxPtr1;
     uint32_t ptr2 = rom.version_constants().kOverworldGfxPtr2;
     uint32_t ptr3 = rom.version_constants().kOverworldGfxPtr3;
-    if (ptr1 + probe < rom.size() && ptr2 + probe < rom.size() && ptr3 + probe < rom.size()) {
+    if (ptr1 + probe < rom.size() && ptr2 + probe < rom.size() &&
+        ptr3 + probe < rom.size()) {
       // Pointer tables: ptr1=bank, ptr2=high, ptr3=low (matches GetGraphicsAddress)
       uint8_t bank = rom.data()[ptr1 + probe];
       uint8_t high = rom.data()[ptr2 + probe];
       uint8_t low = rom.data()[ptr3 + probe];
       uint32_t snes_addr = AddressFromBytes(bank, high, low);
       uint32_t pc_addr = SnesToPc(snes_addr);
-      LOG_INFO("Graphics", "Sheet %d: bytes=[%02X,%02X,%02X] -> SNES=0x%06X -> PC=0x%X (valid=%s)",
+      LOG_INFO("Graphics",
+               "Sheet %d: bytes=[%02X,%02X,%02X] -> SNES=0x%06X -> PC=0x%X "
+               "(valid=%s)",
                probe, bank, high, low, snes_addr, pc_addr,
                pc_addr < rom.size() ? "yes" : "NO");
     }
@@ -451,17 +458,16 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
     if (i >= 115 && i <= 126) {
       diag.sheets[i].is_compressed = false;
       diag.sheets[i].decomp_size_param = Uncompressed3BPPSize;
-      
+
       offset = GetGraphicsAddress(
           rom.data(), i, rom.version_constants().kOverworldGfxPtr1,
           rom.version_constants().kOverworldGfxPtr2,
-          rom.version_constants().kOverworldGfxPtr3,
-          rom.size());
-      
+          rom.version_constants().kOverworldGfxPtr3, rom.size());
+
       diag.sheets[i].pc_offset = offset;
       diag.sheets[i].snes_address = PcToSnes(offset);
       offset_valid = (offset < rom.size());
-      
+
       // Capture first 8 bytes for diagnostics
       diag.sheets[i].first_bytes.clear();
       if (offset_valid && offset + 8 <= rom.size()) {
@@ -469,40 +475,41 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
           diag.sheets[i].first_bytes.push_back(rom.data()[offset + b]);
         }
       }
-      
+
       sheet.resize(Uncompressed3BPPSize);
 
       if (offset + Uncompressed3BPPSize > rom.size()) {
-        LOG_WARN("Rom", "Uncompressed sheet %u offset 0x%X out of bounds (ROM size 0x%zX)",
-                 i, offset, rom.size());
+        LOG_WARN(
+            "Rom",
+            "Uncompressed sheet %u offset 0x%X out of bounds (ROM size 0x%zX)",
+            i, offset, rom.size());
         // Use zero-filled sheet to maintain buffer alignment
         sheet.assign(Uncompressed3BPPSize, 0);
         diag.sheets[i].decompression_succeeded = false;
       } else {
-        std::copy(rom.data() + offset, rom.data() + offset + Uncompressed3BPPSize,
-                  sheet.begin());
+        std::copy(rom.data() + offset,
+                  rom.data() + offset + Uncompressed3BPPSize, sheet.begin());
         diag.sheets[i].decompression_succeeded = true;
         diag.sheets[i].actual_decomp_size = Uncompressed3BPPSize;
       }
       bpp3 = true;
 
-    // -----------------------------------------------------------------------
-    // Category 2: 2BPP sheets (113-114, 218+) - Skipped
-    // -----------------------------------------------------------------------
-    // These are loaded separately via Load2BppGraphics(). We still need to
-    // push placeholder data to graphics_buffer to maintain index alignment.
+      // -----------------------------------------------------------------------
+      // Category 2: 2BPP sheets (113-114, 218+) - Skipped
+      // -----------------------------------------------------------------------
+      // These are loaded separately via Load2BppGraphics(). We still need to
+      // push placeholder data to graphics_buffer to maintain index alignment.
     } else if (i == 113 || i == 114 || i >= 218) {
-      diag.sheets[i].is_compressed = true; // Typically are compressed
+      diag.sheets[i].is_compressed = true;  // Typically are compressed
       // Still capture address for diagnostics
       offset = GetGraphicsAddress(
           rom.data(), i, rom.version_constants().kOverworldGfxPtr1,
           rom.version_constants().kOverworldGfxPtr2,
-          rom.version_constants().kOverworldGfxPtr3,
-          rom.size());
+          rom.version_constants().kOverworldGfxPtr3, rom.size());
       diag.sheets[i].pc_offset = offset;
       diag.sheets[i].snes_address = PcToSnes(offset);
       offset_valid = (offset < rom.size());
-      
+
       // Capture first 8 bytes for diagnostics
       diag.sheets[i].first_bytes.clear();
       if (offset_valid && offset + 8 <= rom.size()) {
@@ -510,26 +517,25 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
           diag.sheets[i].first_bytes.push_back(rom.data()[offset + b]);
         }
       }
-      
+
       bpp3 = false;
 
-    // -----------------------------------------------------------------------
-    // Category 3: Compressed 3BPP sheets (0-112, 127-217)
-    // -----------------------------------------------------------------------
-    // Standard compressed graphics using Nintendo's LC-LZ2 algorithm.
+      // -----------------------------------------------------------------------
+      // Category 3: Compressed 3BPP sheets (0-112, 127-217)
+      // -----------------------------------------------------------------------
+      // Standard compressed graphics using Nintendo's LC-LZ2 algorithm.
     } else {
       diag.sheets[i].is_compressed = true;
-      
+
       offset = GetGraphicsAddress(
           rom.data(), i, rom.version_constants().kOverworldGfxPtr1,
           rom.version_constants().kOverworldGfxPtr2,
-          rom.version_constants().kOverworldGfxPtr3,
-          rom.size());
-      
+          rom.version_constants().kOverworldGfxPtr3, rom.size());
+
       diag.sheets[i].pc_offset = offset;
       diag.sheets[i].snes_address = PcToSnes(offset);
       offset_valid = (offset < rom.size());
-      
+
       // Capture first 8 bytes for diagnostics
       diag.sheets[i].first_bytes.clear();
       if (offset_valid && offset + 8 <= rom.size()) {
@@ -539,8 +545,9 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
       }
 
       if (offset >= rom.size()) {
-        LOG_WARN("Rom", "Compressed sheet %u offset 0x%X exceeds ROM size 0x%zX",
-                 i, offset, rom.size());
+        LOG_WARN("Rom",
+                 "Compressed sheet %u offset 0x%X exceeds ROM size 0x%zX", i,
+                 offset, rom.size());
         bpp3 = false;
         diag.sheets[i].decompression_succeeded = false;
         diag.sheets[i].decomp_size_param = 0x800;
@@ -550,24 +557,31 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
         // CRITICAL: size parameter MUST be 0x800, not 0!
         // size=0 causes DecompressV2 to return empty data immediately.
         diag.sheets[i].decomp_size_param = 0x800;
-        auto decomp_result = gfx::lc_lz2::DecompressV2(rom.data(), offset, 0x800, 1, rom.size());
+        auto decomp_result =
+            gfx::lc_lz2::DecompressV2(rom.data(), offset, 0x800, 1, rom.size());
         if (decomp_result.ok()) {
           sheet = *decomp_result;
           bpp3 = true;
           diag.sheets[i].decompression_succeeded = true;
           diag.sheets[i].actual_decomp_size = sheet.size();
-          
+
           // DEBUG: Log success for specific sheets
           if (i == 73 || i == 115) {
-             printf("[LoadAllGraphicsData] Sheet %d: Decompressed successfully. Size: %zu. Offset: 0x%X\n", 
-                    i, sheet.size(), offset);
+            printf(
+                "[LoadAllGraphicsData] Sheet %d: Decompressed successfully. "
+                "Size: %zu. Offset: 0x%X\n",
+                i, sheet.size(), offset);
           }
 
         } else {
-          LOG_WARN("Rom", "Decompression failed for sheet %u: %s", i, decomp_result.status().message());
+          LOG_WARN("Rom", "Decompression failed for sheet %u: %s", i,
+                   decomp_result.status().message());
           // DEBUG: Log failure
           if (i == 73 || i == 115) {
-             printf("[LoadAllGraphicsData] Sheet %d: Decompression FAILED. Offset: 0x%X\n", i, offset);
+            printf(
+                "[LoadAllGraphicsData] Sheet %d: Decompression FAILED. Offset: "
+                "0x%X\n",
+                i, offset);
           }
           bpp3 = false;
           diag.sheets[i].decompression_succeeded = false;
@@ -634,10 +648,11 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
       // This ensures the bitmap exists even if empty, preventing index out of
       // bounds errors when editors iterate over all sheets.
       // 128x32 pixels * 1 byte/pixel = 4096 bytes
-      constexpr size_t kPlaceholderSize = 4096; 
+      constexpr size_t kPlaceholderSize = 4096;
       std::vector<uint8_t> placeholder_data(kPlaceholderSize, 0xFF);
       graphics_sheets[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
-                                gfx::kTilesheetDepth, std::move(placeholder_data));
+                                gfx::kTilesheetDepth,
+                                std::move(placeholder_data));
 
       // Also append to legacy graphics buffer for backward compatibility
       // Use resize + memset for efficiency
@@ -689,8 +704,7 @@ absl::Status SaveAllGraphicsData(
       auto offset = GetGraphicsAddress(
           rom.data(), i, rom.version_constants().kOverworldGfxPtr1,
           rom.version_constants().kOverworldGfxPtr2,
-          rom.version_constants().kOverworldGfxPtr3,
-          rom.size());
+          rom.version_constants().kOverworldGfxPtr3, rom.size());
       std::copy(final_data.begin(), final_data.end(), rom.begin() + offset);
     }
   }
@@ -713,14 +727,14 @@ absl::Status Rom::LoadFromFile(const std::string& filename,
 #ifdef __EMSCRIPTEN__
   // In Emscripten, use the path as-is (MEMFS paths are absolute from root)
   filename_ = filename;
-  
+
   // Try to open the file to verify it exists (this works with MEMFS)
   std::ifstream test_file(filename_, std::ios::binary);
   if (!test_file.is_open()) {
-    return absl::NotFoundError(
-        absl::StrCat("ROM file does not exist or cannot be opened: ", filename_));
+    return absl::NotFoundError(absl::StrCat(
+        "ROM file does not exist or cannot be opened: ", filename_));
   }
-  
+
   // Get file size from stream (std::filesystem::file_size doesn't work with MEMFS)
   test_file.seekg(0, std::ios::end);
   if (!test_file) {
@@ -729,7 +743,7 @@ absl::Status Rom::LoadFromFile(const std::string& filename,
   }
   size_ = test_file.tellg();
   test_file.close();
-  
+
   // Validate ROM size before proceeding
   if (size_ < 32768) {
     return absl::InvalidArgumentError(absl::StrFormat(
@@ -870,14 +884,17 @@ absl::Status Rom::LoadZelda3(const RomLoadOptions& options) {
   size_ = rom_data_.size();
 
   // Log post-strip ROM alignment verification
-  LOG_INFO("Rom", "LoadZelda3: Post-strip size=%zu bytes (0x%zX)", size_, size_);
+  LOG_INFO("Rom", "LoadZelda3: Post-strip size=%zu bytes (0x%zX)", size_,
+           size_);
 
   // Verify SNES checksum after stripping to confirm alignment
   if (size_ > 0x7FE0) {
     uint16_t complement = rom_data_[0x7FDC] | (rom_data_[0x7FDD] << 8);
     uint16_t checksum = rom_data_[0x7FDE] | (rom_data_[0x7FDF] << 8);
     bool valid = (complement ^ checksum) == 0xFFFF;
-    LOG_INFO("Rom", "SNES checksum at 0x7FDC: complement=0x%04X checksum=0x%04X XOR=0x%04X valid=%s",
+    LOG_INFO("Rom",
+             "SNES checksum at 0x7FDC: complement=0x%04X checksum=0x%04X "
+             "XOR=0x%04X valid=%s",
              complement, checksum, complement ^ checksum, valid ? "YES" : "NO");
 
     // Log first few bytes at critical pointer table location (kOverworldGfxPtr1 = 0x4F80)
@@ -903,9 +920,9 @@ absl::Status Rom::LoadZelda3(const RomLoadOptions& options) {
                   rom_data_.begin() + offset + kTitleStringLength);
     // Check bounds before accessing version byte (offset + 0x19)
     if (offset + 0x19 < rom_data_.size()) {
-    if (rom_data_[offset + 0x19] == 0) {
-      version_ = zelda3_version::JP;
-    } else {
+      if (rom_data_[offset + 0x19] == 0) {
+        version_ = zelda3_version::JP;
+      } else {
         version_ = zelda3_version::US;
       }
     } else {
@@ -933,7 +950,8 @@ absl::Status Rom::LoadZelda3(const RomLoadOptions& options) {
 #endif
     RETURN_IF_ERROR(LoadGfxGroups());
 #ifdef __EMSCRIPTEN__
-    EM_ASM({ console.log('[C++] LoadZelda3 - Gfx groups loaded successfully'); });
+    EM_ASM(
+        { console.log('[C++] LoadZelda3 - Gfx groups loaded successfully'); });
 #endif
   } else {
     main_blockset_ids = {};
@@ -957,36 +975,37 @@ absl::Status Rom::LoadGfxGroups() {
   if (rom_data_.empty()) {
     return absl::FailedPreconditionError("ROM data is empty");
   }
-  
+
   // Check if version is in the constants map (this also validates the version)
   if (kVersionConstantsMap.find(version_) == kVersionConstantsMap.end()) {
-    return absl::FailedPreconditionError(
-        absl::StrFormat("Unsupported ROM version: %d", static_cast<int>(version_)));
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Unsupported ROM version: %d", static_cast<int>(version_)));
   }
-  
+
   // Validate kGfxGroupsPointer is within bounds before reading
   if (kGfxGroupsPointer + 1 >= rom_data_.size()) {
     LOG_WARN("Rom", "Graphics groups pointer address out of bounds: %u >= %zu",
              kGfxGroupsPointer + 1, rom_data_.size());
-    return absl::OkStatus(); // Continue with empty groups
+    return absl::OkStatus();  // Continue with empty groups
   }
-  
+
   auto ptr_status = ReadWord(kGfxGroupsPointer);
-  if (!ptr_status.ok()) return absl::OkStatus();
-  
+  if (!ptr_status.ok())
+    return absl::OkStatus();
+
   auto main_blockset_ptr = SnesToPc(*ptr_status);
-  
+
   // Validate converted pointer is within bounds
   if (main_blockset_ptr >= rom_data_.size()) {
     LOG_WARN("Rom", "Main blockset pointer out of bounds: %u >= %zu",
              main_blockset_ptr, rom_data_.size());
     return absl::OkStatus();
   }
-  
+
   // Bounds check for main blocksets
   uint32_t main_blockset_end = main_blockset_ptr + (kNumMainBlocksets * 8);
   if (main_blockset_end > rom_data_.size()) {
-    LOG_WARN("Rom", "Main blockset data out of bounds: %u > %zu", 
+    LOG_WARN("Rom", "Main blockset data out of bounds: %u > %zu",
              main_blockset_end, rom_data_.size());
     return absl::OkStatus();
   }
@@ -1011,76 +1030,77 @@ absl::Status Rom::LoadGfxGroups() {
 
   // Bounds check for room blocksets
   if (kEntranceGfxGroup >= rom_data_.size()) {
-     LOG_WARN("Rom", "Entrance graphics group pointer out of bounds: %u >= %zu",
-              kEntranceGfxGroup, rom_data_.size());
+    LOG_WARN("Rom", "Entrance graphics group pointer out of bounds: %u >= %zu",
+             kEntranceGfxGroup, rom_data_.size());
   } else {
-      // Check for integer overflow before calculating end
-      const uint32_t room_blockset_size = kNumRoomBlocksets * 4;
-      if (kEntranceGfxGroup > UINT32_MAX - room_blockset_size) {
-        LOG_WARN("Rom", "Room blockset pointer would overflow: %u + %u", 
-                 kEntranceGfxGroup, room_blockset_size);
-      } else {
-        uint32_t room_blockset_end = kEntranceGfxGroup + room_blockset_size;
-        if (room_blockset_end <= rom_data_.size()) {
-            for (uint32_t i = 0; i < kNumRoomBlocksets; i++) {
-              for (int j = 0; j < 4; j++) {
-                uint32_t idx = kEntranceGfxGroup + (i * 4) + j;
-                // Per-access bounds check for WASM safety
-                if (idx < rom_data_.size()) {
-                  room_blockset_ids[i][j] = rom_data_[idx];
-                }
-              }
+    // Check for integer overflow before calculating end
+    const uint32_t room_blockset_size = kNumRoomBlocksets * 4;
+    if (kEntranceGfxGroup > UINT32_MAX - room_blockset_size) {
+      LOG_WARN("Rom", "Room blockset pointer would overflow: %u + %u",
+               kEntranceGfxGroup, room_blockset_size);
+    } else {
+      uint32_t room_blockset_end = kEntranceGfxGroup + room_blockset_size;
+      if (room_blockset_end <= rom_data_.size()) {
+        for (uint32_t i = 0; i < kNumRoomBlocksets; i++) {
+          for (int j = 0; j < 4; j++) {
+            uint32_t idx = kEntranceGfxGroup + (i * 4) + j;
+            // Per-access bounds check for WASM safety
+            if (idx < rom_data_.size()) {
+              room_blockset_ids[i][j] = rom_data_[idx];
             }
+          }
         }
       }
+    }
   }
 
   auto vc = version_constants();
-  
+
   // Bounds check for sprite blocksets
   if (vc.kSpriteBlocksetPointer < rom_data_.size()) {
-      // Check for integer overflow before calculating end
-      const uint32_t sprite_blockset_size = kNumSpritesets * 4;
-      if (vc.kSpriteBlocksetPointer > UINT32_MAX - sprite_blockset_size) {
-        LOG_WARN("Rom", "Sprite blockset pointer would overflow: %u + %u", 
-                 vc.kSpriteBlocksetPointer, sprite_blockset_size);
-      } else {
-        uint32_t sprite_blockset_end = vc.kSpriteBlocksetPointer + sprite_blockset_size;
-        if (sprite_blockset_end <= rom_data_.size()) {
-            for (uint32_t i = 0; i < kNumSpritesets; i++) {
-              for (int j = 0; j < 4; j++) {
-                uint32_t idx = vc.kSpriteBlocksetPointer + (i * 4) + j;
-                // Per-access bounds check for WASM safety
-                if (idx < rom_data_.size()) {
-                  spriteset_ids[i][j] = rom_data_[idx];
-                }
-              }
+    // Check for integer overflow before calculating end
+    const uint32_t sprite_blockset_size = kNumSpritesets * 4;
+    if (vc.kSpriteBlocksetPointer > UINT32_MAX - sprite_blockset_size) {
+      LOG_WARN("Rom", "Sprite blockset pointer would overflow: %u + %u",
+               vc.kSpriteBlocksetPointer, sprite_blockset_size);
+    } else {
+      uint32_t sprite_blockset_end =
+          vc.kSpriteBlocksetPointer + sprite_blockset_size;
+      if (sprite_blockset_end <= rom_data_.size()) {
+        for (uint32_t i = 0; i < kNumSpritesets; i++) {
+          for (int j = 0; j < 4; j++) {
+            uint32_t idx = vc.kSpriteBlocksetPointer + (i * 4) + j;
+            // Per-access bounds check for WASM safety
+            if (idx < rom_data_.size()) {
+              spriteset_ids[i][j] = rom_data_[idx];
             }
+          }
         }
       }
+    }
   }
 
   // Bounds check for palette sets
   if (vc.kDungeonPalettesGroups < rom_data_.size()) {
-      // Check for integer overflow before calculating end
-      const uint32_t palette_size = kNumPalettesets * 4;
-      if (vc.kDungeonPalettesGroups > UINT32_MAX - palette_size) {
-        LOG_WARN("Rom", "Palette groups pointer would overflow: %u + %u", 
-                 vc.kDungeonPalettesGroups, palette_size);
-      } else {
-        uint32_t palette_end = vc.kDungeonPalettesGroups + palette_size;
-        if (palette_end <= rom_data_.size()) {
-            for (uint32_t i = 0; i < kNumPalettesets; i++) {
-              for (int j = 0; j < 4; j++) {
-                uint32_t idx = vc.kDungeonPalettesGroups + (i * 4) + j;
-                // Per-access bounds check for WASM safety
-                if (idx < rom_data_.size()) {
-                  paletteset_ids[i][j] = rom_data_[idx];
-                }
-              }
+    // Check for integer overflow before calculating end
+    const uint32_t palette_size = kNumPalettesets * 4;
+    if (vc.kDungeonPalettesGroups > UINT32_MAX - palette_size) {
+      LOG_WARN("Rom", "Palette groups pointer would overflow: %u + %u",
+               vc.kDungeonPalettesGroups, palette_size);
+    } else {
+      uint32_t palette_end = vc.kDungeonPalettesGroups + palette_size;
+      if (palette_end <= rom_data_.size()) {
+        for (uint32_t i = 0; i < kNumPalettesets; i++) {
+          for (int j = 0; j < 4; j++) {
+            uint32_t idx = vc.kDungeonPalettesGroups + (i * 4) + j;
+            // Per-access bounds check for WASM safety
+            if (idx < rom_data_.size()) {
+              paletteset_ids[i][j] = rom_data_[idx];
             }
+          }
         }
       }
+    }
   }
 
   return absl::OkStatus();

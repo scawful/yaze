@@ -151,8 +151,7 @@ std::vector<std::pair<size_t, size_t>> WasmPatchExport::FindChangedRegions(
 }
 
 std::vector<uint8_t> WasmPatchExport::GenerateBPSPatch(
-    const std::vector<uint8_t>& source,
-    const std::vector<uint8_t>& target) {
+    const std::vector<uint8_t>& source, const std::vector<uint8_t>& target) {
   std::vector<uint8_t> patch;
 
   // BPS header "BPS1"
@@ -211,7 +210,8 @@ std::vector<uint8_t> WasmPatchExport::GenerateBPSPatch(
     }
 
     // Decide which action to use
-    if (source_read_len >= 4 || (source_read_len > 0 && source_read_len >= best_source_copy_len)) {
+    if (source_read_len >= 4 ||
+        (source_read_len > 0 && source_read_len >= best_source_copy_len)) {
       // Use SourceRead
       uint64_t action = ((source_read_len - 1) << 2) | 0;
       WriteVariableLength(patch, action);
@@ -222,10 +222,11 @@ std::vector<uint8_t> WasmPatchExport::GenerateBPSPatch(
       WriteVariableLength(patch, action);
 
       // Write relative offset (signed, encoded as unsigned with sign bit)
-      int64_t relative = static_cast<int64_t>(best_source_copy_offset) - source_relative_offset;
-      uint64_t encoded_offset = (relative < 0) ?
-          ((static_cast<uint64_t>(-relative - 1) << 1) | 1) :
-          (static_cast<uint64_t>(relative) << 1);
+      int64_t relative = static_cast<int64_t>(best_source_copy_offset) -
+                         source_relative_offset;
+      uint64_t encoded_offset =
+          (relative < 0) ? ((static_cast<uint64_t>(-relative - 1) << 1) | 1)
+                         : (static_cast<uint64_t>(relative) << 1);
       WriteVariableLength(patch, encoded_offset);
 
       source_relative_offset = best_source_copy_offset + best_source_copy_len;
@@ -298,8 +299,7 @@ std::vector<uint8_t> WasmPatchExport::GenerateBPSPatch(
 }
 
 std::vector<uint8_t> WasmPatchExport::GenerateIPSPatch(
-    const std::vector<uint8_t>& source,
-    const std::vector<uint8_t>& target) {
+    const std::vector<uint8_t>& source, const std::vector<uint8_t>& target) {
   std::vector<uint8_t> patch;
 
   // IPS header
@@ -378,9 +378,9 @@ std::vector<uint8_t> WasmPatchExport::GenerateIPSPatch(
   return patch;
 }
 
-absl::Status WasmPatchExport::DownloadPatchFile(const std::string& filename,
-                                                const std::vector<uint8_t>& data,
-                                                const std::string& mime_type) {
+absl::Status WasmPatchExport::DownloadPatchFile(
+    const std::string& filename, const std::vector<uint8_t>& data,
+    const std::string& mime_type) {
   if (data.empty()) {
     return absl::InvalidArgumentError("Cannot download empty patch file");
   }
@@ -441,7 +441,7 @@ absl::Status WasmPatchExport::ExportIPS(const std::vector<uint8_t>& original,
   if (modified.size() > 0xFFFFFF) {
     return absl::InvalidArgumentError(
         absl::StrFormat("ROM size (%zu bytes) exceeds IPS format limit (16MB)",
-                       modified.size()));
+                        modified.size()));
   }
 
   // Generate the IPS patch
@@ -455,8 +455,9 @@ absl::Status WasmPatchExport::ExportIPS(const std::vector<uint8_t>& original,
   return DownloadPatchFile(filename, patch, "application/octet-stream");
 }
 
-PatchInfo WasmPatchExport::GetPatchPreview(const std::vector<uint8_t>& original,
-                                           const std::vector<uint8_t>& modified) {
+PatchInfo WasmPatchExport::GetPatchPreview(
+    const std::vector<uint8_t>& original,
+    const std::vector<uint8_t>& modified) {
   PatchInfo info;
   info.changed_bytes = 0;
   info.num_regions = 0;

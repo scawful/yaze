@@ -18,7 +18,8 @@ namespace {
 // Trim whitespace from both ends of a string
 std::string Trim(const std::string& str) {
   size_t start = str.find_first_not_of(" \t\r\n");
-  if (start == std::string::npos) return "";
+  if (start == std::string::npos)
+    return "";
   size_t end = str.find_last_not_of(" \t\r\n");
   return str.substr(start, end - start + 1);
 }
@@ -26,7 +27,8 @@ std::string Trim(const std::string& str) {
 // Extract filename from path
 std::string GetFilename(const std::string& path) {
   size_t pos = path.find_last_of("/\\");
-  if (pos == std::string::npos) return path;
+  if (pos == std::string::npos)
+    return path;
   return path.substr(pos + 1);
 }
 
@@ -151,7 +153,8 @@ void AsmPatch::ParseMetadata(const std::string& content) {
         size_t eq_pos = attr_line.find('=');
 
         if (eq_pos != std::string::npos) {
-          std::string key = absl::AsciiStrToLower(Trim(attr_line.substr(0, eq_pos)));
+          std::string key =
+              absl::AsciiStrToLower(Trim(attr_line.substr(0, eq_pos)));
           std::string value = Trim(attr_line.substr(eq_pos + 1));
 
           if (key == "name") {
@@ -164,8 +167,10 @@ void AsmPatch::ParseMetadata(const std::string& content) {
             // Parse "min,max" format
             size_t comma_pos = value.find(',');
             if (comma_pos != std::string::npos) {
-              current_param.min_value = ParseValue(Trim(value.substr(0, comma_pos)));
-              current_param.max_value = ParseValue(Trim(value.substr(comma_pos + 1)));
+              current_param.min_value =
+                  ParseValue(Trim(value.substr(0, comma_pos)));
+              current_param.max_value =
+                  ParseValue(Trim(value.substr(comma_pos + 1)));
             }
           } else if (key == "checkedvalue") {
             current_param.checked_value = ParseValue(value);
@@ -184,7 +189,8 @@ void AsmPatch::ParseMetadata(const std::string& content) {
               bit_index = std::stoi(key.substr(3));
             }
             // Ensure choices vector is large enough
-            while (current_param.choices.size() <= static_cast<size_t>(bit_index)) {
+            while (current_param.choices.size() <=
+                   static_cast<size_t>(bit_index)) {
               current_param.choices.push_back("");
             }
             current_param.choices[bit_index] = value;
@@ -268,7 +274,8 @@ PatchParameterType AsmPatch::ParseType(const std::string& type_str) {
 
 int AsmPatch::ParseValue(const std::string& value_str) {
   std::string trimmed = Trim(value_str);
-  if (trimmed.empty()) return 0;
+  if (trimmed.empty())
+    return 0;
 
   // Handle hex values (prefixed with $)
   if (trimmed[0] == '$') {
@@ -343,7 +350,8 @@ std::string AsmPatch::GenerateContent() const {
 void AsmPatch::UpdateLine(std::string& content, const std::string& prefix,
                           const std::string& new_value) {
   size_t pos = content.find(prefix);
-  if (pos == std::string::npos) return;
+  if (pos == std::string::npos)
+    return;
 
   size_t line_end = content.find('\n', pos);
   if (line_end == std::string::npos) {
@@ -359,7 +367,8 @@ void AsmPatch::UpdateDefineLine(std::string& content,
                                 const std::string& define_name, int value) {
   // Find the define line (starts with the define name)
   size_t pos = content.find(define_name);
-  if (pos == std::string::npos) return;
+  if (pos == std::string::npos)
+    return;
 
   // Find the end of the line
   size_t line_end = content.find('\n', pos);

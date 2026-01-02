@@ -9,9 +9,9 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
-#include "rom/rom.h"
 #include "cli/handlers/tools/diagnostic_types.h"
 #include "core/asar_wrapper.h"
+#include "rom/rom.h"
 #include "zelda3/overworld/overworld_entrance.h"
 #include "zelda3/overworld/overworld_exit.h"
 #include "zelda3/overworld/overworld_item.h"
@@ -43,12 +43,12 @@ bool IsTile16Valid(uint16_t tile_info) {
 
 RomFeatures DetectRomFeatures(Rom* rom) {
   RomFeatures features;
-  
+
   // Detect ZSCustomOverworld version
   if (kZSCustomVersionPos < rom->size()) {
     features.zs_custom_version = rom->data()[kZSCustomVersionPos];
-    features.is_vanilla =
-        (features.zs_custom_version == 0xFF || features.zs_custom_version == 0x00);
+    features.is_vanilla = (features.zs_custom_version == 0xFF ||
+                           features.zs_custom_version == 0x00);
     features.is_v2 = (!features.is_vanilla && features.zs_custom_version == 2);
     features.is_v3 = (!features.is_vanilla && features.zs_custom_version >= 3);
   } else {
@@ -61,7 +61,7 @@ RomFeatures DetectRomFeatures(Rom* rom) {
       uint8_t flag = rom->data()[kMap16ExpandedFlagPos];
       features.has_expanded_tile16 = (flag != 0x0F);
     }
-    
+
     if (kMap32ExpandedFlagPos < rom->size()) {
       uint8_t flag = rom->data()[kMap32ExpandedFlagPos];
       features.has_expanded_tile32 = (flag != 0x04);
@@ -112,7 +112,7 @@ void ValidateMapPointers(Rom* rom, DiagnosticReport& report) {
   for (int map_id = 0; map_id < kVanillaMapCount; ++map_id) {
     uint32_t ptr_low_addr = kPtrTableLowBase + (3 * map_id);
     uint32_t ptr_high_addr = kPtrTableHighBase + (3 * map_id);
-    
+
     if (ptr_low_addr + 3 > rom->size() || ptr_high_addr + 3 > rom->size()) {
       report.map_status.invalid_map_count++;
       if (map_id < 0x80) {
@@ -122,20 +122,20 @@ void ValidateMapPointers(Rom* rom, DiagnosticReport& report) {
       }
       continue;
     }
-    
+
     uint32_t snes_low = rom->data()[ptr_low_addr] |
                         (rom->data()[ptr_low_addr + 1] << 8) |
                         (rom->data()[ptr_low_addr + 2] << 16);
     uint32_t snes_high = rom->data()[ptr_high_addr] |
                          (rom->data()[ptr_high_addr + 1] << 8) |
                          (rom->data()[ptr_high_addr + 2] << 16);
-    
+
     uint32_t pc_low = SnesToPc(snes_low);
     uint32_t pc_high = SnesToPc(snes_high);
-    
+
     bool low_valid = (pc_low > 0 && pc_low < rom->size());
     bool high_valid = (pc_high > 0 && pc_high < rom->size());
-    
+
     if (!low_valid || !high_valid) {
       report.map_status.invalid_map_count++;
       if (map_id < 0x80) {
@@ -157,8 +157,10 @@ void ValidateMapPointers(Rom* rom, DiagnosticReport& report) {
   }
 
   // Tail maps status
-  report.map_status.tail_maps_valid = report.features.has_expanded_pointer_tables;
-  report.map_status.can_support_tail = report.features.has_expanded_pointer_tables;
+  report.map_status.tail_maps_valid =
+      report.features.has_expanded_pointer_tables;
+  report.map_status.can_support_tail =
+      report.features.has_expanded_pointer_tables;
 
   // Add finding if map pointer corruption detected
   if (!report.map_status.lw_dw_maps_valid) {
@@ -179,8 +181,8 @@ void ValidateMapPointers(Rom* rom, DiagnosticReport& report) {
     finding.id = "sw_corruption";
     finding.severity = DiagnosticSeverity::kError;
     finding.message = "Special World map pointers are corrupted";
-    finding.location = absl::StrFormat("0x%06X-0x%06X", kPtrTableLowBase + 0x180,
-                                       kPtrTableHighBase);
+    finding.location = absl::StrFormat(
+        "0x%06X-0x%06X", kPtrTableLowBase + 0x180, kPtrTableHighBase);
     finding.suggested_action = "Restore Special World data from baseline";
     finding.fixable = false;
     report.AddFinding(finding);
@@ -197,12 +199,12 @@ void CheckTile16Corruption(Rom* rom, DiagnosticReport& report) {
   if (!report.features.has_expanded_tile16) {
     return;
   }
-  
+
   for (uint32_t addr : kProblemAddresses) {
     if (addr >= kMap16TilesExpanded && addr < kMap16TilesExpandedEnd) {
       int tile_offset = addr - kMap16TilesExpanded;
       int tile_index = tile_offset / 8;
-      
+
       uint16_t tile_data[4];
       for (int i = 0; i < 4 && (addr + i * 2 + 1) < rom->size(); ++i) {
         tile_data[i] =
@@ -216,7 +218,7 @@ void CheckTile16Corruption(Rom* rom, DiagnosticReport& report) {
           break;
         }
       }
-      
+
       if (!looks_valid) {
         report.tile16_status.corruption_detected = true;
         report.tile16_status.corrupted_addresses.push_back(addr);
@@ -225,8 +227,7 @@ void CheckTile16Corruption(Rom* rom, DiagnosticReport& report) {
         DiagnosticFinding finding;
         finding.id = "tile16_corruption";
         finding.severity = DiagnosticSeverity::kError;
-        finding.message =
-            absl::StrFormat("Corrupted tile16 #%d", tile_index);
+        finding.message = absl::StrFormat("Corrupted tile16 #%d", tile_index);
         finding.location = absl::StrFormat("0x%06X", addr);
         finding.suggested_action = "Run with --fix to zero corrupted entries";
         finding.fixable = true;
@@ -251,13 +252,15 @@ std::unique_ptr<Rom> LoadBaselineRom(const std::optional<std::string>& path,
 
   for (const auto& candidate : candidates) {
     std::ifstream probe(candidate, std::ios::binary);
-    if (!probe.good()) continue;
+    if (!probe.good())
+      continue;
     probe.close();
 
     auto baseline = std::make_unique<Rom>();
     auto status = baseline->LoadFromFile(candidate);
     if (status.ok()) {
-      if (resolved_path) *resolved_path = candidate;
+      if (resolved_path)
+        *resolved_path = candidate;
       return baseline;
     }
   }
@@ -313,9 +316,9 @@ absl::Status RepairTile16Region(Rom* rom, const DiagnosticReport& report,
 
   for (uint32_t addr : report.tile16_status.corrupted_addresses) {
     if (!dry_run) {
-    for (int i = 0; i < 8 && addr + i < rom->size(); ++i) {
-      (*rom)[addr + i] = 0x00;
-    }
+      for (int i = 0; i < 8 && addr + i < rom->size(); ++i) {
+        (*rom)[addr + i] = 0x00;
+      }
     }
   }
 
@@ -349,8 +352,7 @@ absl::Status ApplyTailExpansion(Rom* rom, bool dry_run, bool verbose) {
   std::vector<std::string> patch_locations = {
       "assets/patches/Overworld/TailMapExpansion.asm",
       "../assets/patches/Overworld/TailMapExpansion.asm",
-      "TailMapExpansion.asm"
-  };
+      "TailMapExpansion.asm"};
 
   std::string patch_path;
   for (const auto& loc : patch_locations) {
@@ -440,7 +442,8 @@ void OutputFeaturesJson(resources::OutputFormatter& formatter,
     formatter.AddField("custom_mosaic_enabled", features.custom_mosaic_enabled);
     formatter.AddField("custom_animated_gfx_enabled",
                        features.custom_animated_gfx_enabled);
-    formatter.AddField("custom_overlay_enabled", features.custom_overlay_enabled);
+    formatter.AddField("custom_overlay_enabled",
+                       features.custom_overlay_enabled);
     formatter.AddField("custom_tile_gfx_enabled",
                        features.custom_tile_gfx_enabled);
   }
@@ -475,23 +478,30 @@ void OutputSummaryJson(resources::OutputFormatter& formatter,
 }
 
 void OutputTextBanner(bool is_json) {
-  if (is_json) return;
+  if (is_json)
+    return;
   std::cout << "\n";
-  std::cout << "╔═══════════════════════════════════════════════════════════════╗\n";
-  std::cout << "║                    OVERWORLD DOCTOR                           ║\n";
-  std::cout << "║         ROM Diagnostic & Repair Tool                          ║\n";
-  std::cout << "╚═══════════════════════════════════════════════════════════════╝\n";
+  std::cout
+      << "╔═══════════════════════════════════════════════════════════════╗\n";
+  std::cout
+      << "║                    OVERWORLD DOCTOR                           ║\n";
+  std::cout
+      << "║         ROM Diagnostic & Repair Tool                          ║\n";
+  std::cout
+      << "╚═══════════════════════════════════════════════════════════════╝\n";
 }
 
 void OutputTextSummary(const DiagnosticReport& report) {
   std::cout << "\n";
-  std::cout << "╔═══════════════════════════════════════════════════════════════╗\n";
-  std::cout << "║                    DIAGNOSTIC SUMMARY                         ║\n";
-  std::cout << "╠═══════════════════════════════════════════════════════════════╣\n";
-  
-  std::cout << absl::StrFormat(
-      "║  ROM Version: %-46s ║\n",
-      report.features.GetVersionString());
+  std::cout
+      << "╔═══════════════════════════════════════════════════════════════╗\n";
+  std::cout
+      << "║                    DIAGNOSTIC SUMMARY                         ║\n";
+  std::cout
+      << "╠═══════════════════════════════════════════════════════════════╣\n";
+
+  std::cout << absl::StrFormat("║  ROM Version: %-46s ║\n",
+                               report.features.GetVersionString());
 
   std::cout << absl::StrFormat(
       "║  Expanded Tile16: %-42s ║\n",
@@ -499,50 +509,55 @@ void OutputTextSummary(const DiagnosticReport& report) {
   std::cout << absl::StrFormat(
       "║  Expanded Tile32: %-42s ║\n",
       report.features.has_expanded_tile32 ? "YES" : "NO");
-  std::cout << absl::StrFormat(
-      "║  Expanded Ptr Tables: %-38s ║\n",
-      report.features.has_expanded_pointer_tables ? "YES (192 maps)"
-                                                   : "NO (160 maps)");
-  
-  std::cout << "╠═══════════════════════════════════════════════════════════════╣\n";
-  
+  std::cout << absl::StrFormat("║  Expanded Ptr Tables: %-38s ║\n",
+                               report.features.has_expanded_pointer_tables
+                                   ? "YES (192 maps)"
+                                   : "NO (160 maps)");
+
+  std::cout
+      << "╠═══════════════════════════════════════════════════════════════╣\n";
+
   std::cout << absl::StrFormat(
       "║  Light/Dark World (0x00-0x7F): %-29s ║\n",
       report.map_status.lw_dw_maps_valid ? "OK" : "CORRUPTED");
   std::cout << absl::StrFormat(
       "║  Special World (0x80-0x9F): %-32s ║\n",
       report.map_status.sw_maps_valid ? "OK" : "CORRUPTED");
-  std::cout << absl::StrFormat(
-      "║  Tail Maps (0xA0-0xBF): %-36s ║\n",
-      report.map_status.can_support_tail ? "Available"
-                                         : "N/A (no ASM expansion)");
+  std::cout << absl::StrFormat("║  Tail Maps (0xA0-0xBF): %-36s ║\n",
+                               report.map_status.can_support_tail
+                                   ? "Available"
+                                   : "N/A (no ASM expansion)");
 
   if (report.tile16_status.uses_expanded) {
-    std::cout << "╠═══════════════════════════════════════════════════════════════╣\n";
+    std::cout << "╠════════════════════════════════════════════════════════════"
+                 "═══╣\n";
     if (report.tile16_status.corruption_detected) {
       std::cout << absl::StrFormat(
           "║  Tile16 Corruption: DETECTED (%zu addresses)%-17s ║\n",
           report.tile16_status.corrupted_addresses.size(), "");
       for (uint32_t addr : report.tile16_status.corrupted_addresses) {
         int tile_idx = (addr - kMap16TilesExpanded) / 8;
-        std::cout << absl::StrFormat("║    - 0x%06X (tile #%d)%-36s ║\n", 
-            addr, tile_idx, "");
+        std::cout << absl::StrFormat("║    - 0x%06X (tile #%d)%-36s ║\n", addr,
+                                     tile_idx, "");
       }
     } else {
-      std::cout << "║  Tile16 Corruption: None detected                             ║\n";
+      std::cout << "║  Tile16 Corruption: None detected                        "
+                   "     ║\n";
     }
   }
-  
-  std::cout << "╠═══════════════════════════════════════════════════════════════╣\n";
-  std::cout << absl::StrFormat(
-      "║  Total Findings: %-43d ║\n", report.TotalFindings());
+
+  std::cout
+      << "╠═══════════════════════════════════════════════════════════════╣\n";
+  std::cout << absl::StrFormat("║  Total Findings: %-43d ║\n",
+                               report.TotalFindings());
   std::cout << absl::StrFormat(
       "║    Critical: %-3d  Errors: %-3d  Warnings: %-3d  Info: %-3d%-4s ║\n",
       report.critical_count, report.error_count, report.warning_count,
       report.info_count, "");
-  std::cout << absl::StrFormat(
-      "║  Fixable Issues: %-43d ║\n", report.fixable_count);
-  std::cout << "╚═══════════════════════════════════════════════════════════════╝\n";
+  std::cout << absl::StrFormat("║  Fixable Issues: %-43d ║\n",
+                               report.fixable_count);
+  std::cout
+      << "╚═══════════════════════════════════════════════════════════════╝\n";
 }
 
 void OutputTextFindings(const DiagnosticReport& report) {
@@ -585,7 +600,7 @@ absl::Status OverworldDoctorCommandHandler::Execute(
   // Load baseline if provided
   std::string resolved_baseline;
   auto baseline_rom = LoadBaselineRom(baseline_path, &resolved_baseline);
-  
+
   // Add info finding if no ASM expansion for tail maps
   if (!report.features.has_expanded_pointer_tables) {
     DiagnosticFinding finding;
@@ -624,20 +639,20 @@ absl::Status OverworldDoctorCommandHandler::Execute(
 
   // Entity coverage (text mode only for now)
   if (!is_json) {
-  ASSIGN_OR_RETURN(auto exits, zelda3::LoadExits(rom));
-  ASSIGN_OR_RETURN(auto entrances, zelda3::LoadEntrances(rom));
-  ASSIGN_OR_RETURN(auto maps, BuildOverworldMaps(rom));
-  ASSIGN_OR_RETURN(auto items, zelda3::LoadItems(rom, maps));
+    ASSIGN_OR_RETURN(auto exits, zelda3::LoadExits(rom));
+    ASSIGN_OR_RETURN(auto entrances, zelda3::LoadEntrances(rom));
+    ASSIGN_OR_RETURN(auto maps, BuildOverworldMaps(rom));
+    ASSIGN_OR_RETURN(auto items, zelda3::LoadItems(rom, maps));
 
     auto exit_stats =
         BuildDistribution(exits, [](const auto& exit) { return exit.map_id_; });
-    auto entrance_stats = BuildDistribution(
-        entrances,
-        [](const auto& ent) { return static_cast<uint16_t>(ent.map_id_); });
+    auto entrance_stats = BuildDistribution(entrances, [](const auto& ent) {
+      return static_cast<uint16_t>(ent.map_id_);
+    });
     auto item_stats =
         BuildDistribution(items, [](const auto& item) { return item.map_id_; });
 
-  std::cout << "\n=== Overworld Entity Coverage ===\n";
+    std::cout << "\n=== Overworld Entity Coverage ===\n";
     std::cout << absl::StrFormat(
         "  exits     : total=%d unique=%d most_common=0x%02X (%d)\n",
         exit_stats.total, exit_stats.unique, exit_stats.most_common_map,
@@ -696,7 +711,8 @@ absl::Status OverworldDoctorCommandHandler::Execute(
           std::cout << "\n[ERROR] Failed to apply tail expansion: "
                     << status.message() << "\n";
         }
-        formatter.AddField("tail_expansion_error", std::string(status.message()));
+        formatter.AddField("tail_expansion_error",
+                           std::string(status.message()));
         // Continue with diagnostics, don't fail the whole command
       }
     }
@@ -719,17 +735,18 @@ absl::Status OverworldDoctorCommandHandler::Execute(
         }
         std::cout << "\nNo changes made (dry run).\n";
       }
-      formatter.AddField("dry_run_fixes_planned",
-                         static_cast<int>(
-                             report.tile16_status.corrupted_addresses.size()));
-  } else {
+      formatter.AddField(
+          "dry_run_fixes_planned",
+          static_cast<int>(report.tile16_status.corrupted_addresses.size()));
+    } else {
       // Actually apply fixes
       if (report.tile16_status.corruption_detected) {
         RETURN_IF_ERROR(RepairTile16Region(rom, report, false));
         if (!is_json) {
           std::cout << "\n=== Fixes Applied ===\n";
-          std::cout << absl::StrFormat("  Zeroed %zu corrupted tile16 entries\n",
-                                       report.tile16_status.corrupted_addresses.size());
+          std::cout << absl::StrFormat(
+              "  Zeroed %zu corrupted tile16 entries\n",
+              report.tile16_status.corrupted_addresses.size());
         }
         formatter.AddField("fixes_applied", true);
         formatter.AddField(
@@ -738,10 +755,10 @@ absl::Status OverworldDoctorCommandHandler::Execute(
       }
 
       // Save if output path provided
-  if (output_path.has_value()) {
-    Rom::SaveSettings settings;
-    settings.filename = output_path.value();
-    RETURN_IF_ERROR(rom->SaveToFile(settings));
+      if (output_path.has_value()) {
+        Rom::SaveSettings settings;
+        settings.filename = output_path.value();
+        RETURN_IF_ERROR(rom->SaveToFile(settings));
         if (!is_json) {
           std::cout << absl::StrFormat("\nSaved fixed ROM to: %s\n",
                                        output_path.value());
@@ -749,7 +766,8 @@ absl::Status OverworldDoctorCommandHandler::Execute(
         formatter.AddField("output_file", output_path.value());
       } else if (report.HasFixable()) {
         if (!is_json) {
-          std::cout << "\nNo output path specified. Use --output <path> to save.\n";
+          std::cout
+              << "\nNo output path specified. Use --output <path> to save.\n";
         }
       }
     }
@@ -761,7 +779,7 @@ absl::Status OverworldDoctorCommandHandler::Execute(
       std::cout << "To save to a new file, use --output <path>.\n";
     }
   }
-  
+
   return absl::OkStatus();
 }
 

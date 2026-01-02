@@ -59,9 +59,8 @@ freecode
        "Hook into NMI handler for frame-by-frame code execution"});
 
   // Sprite Template
-  templates.push_back(
-      {"sprite",
-       R"(; Sprite Template
+  templates.push_back({"sprite",
+                       R"(; Sprite Template
 ; Sprite Variables:
 ; $0D00,X = Y pos (low)  $0D10,X = X pos (low)
 ; $0D20,X = Y pos (high) $0D30,X = X pos (high)
@@ -84,8 +83,8 @@ freecode
   {{MAIN_CODE}}
   PLB : RTL
 )",
-       {"SPRITE_NAME", "INIT_CODE", "MAIN_CODE"},
-       "Complete sprite with init and main loop"});
+                       {"SPRITE_NAME", "INIT_CODE", "MAIN_CODE"},
+                       "Complete sprite with init and main loop"});
 
   // Freespace Allocation Template
   templates.push_back(
@@ -105,20 +104,18 @@ org ${{HOOK_ADDRESS}}
        "Allocate code in freespace with hook from existing code"});
 
   // Simple JSL Hook Template
-  templates.push_back(
-      {"jsl_hook",
-       R"(; JSL Hook
+  templates.push_back({"jsl_hook",
+                       R"(; JSL Hook
 org ${{HOOK_ADDRESS}}
   JSL {{LABEL}}
   {{NOP_FILL}}
 )",
-       {"HOOK_ADDRESS", "LABEL", "NOP_FILL"},
-       "Simple JSL hook at address"});
+                       {"HOOK_ADDRESS", "LABEL", "NOP_FILL"},
+                       "Simple JSL hook at address"});
 
   // Event Handler Template
-  templates.push_back(
-      {"event_handler",
-       R"(; {{EVENT_TYPE}} Event Handler
+  templates.push_back({"event_handler",
+                       R"(; {{EVENT_TYPE}} Event Handler
 org ${{HOOK_ADDRESS}}
   JSL {{LABEL}}_Handler
   NOP
@@ -132,8 +129,8 @@ freecode
   PLB
   RTL
 )",
-       {"EVENT_TYPE", "HOOK_ADDRESS", "LABEL", "CUSTOM_CODE"},
-       "Event handler with state preservation"});
+                       {"EVENT_TYPE", "HOOK_ADDRESS", "LABEL", "CUSTOM_CODE"},
+                       "Event handler with state preservation"});
 
   return templates;
 }
@@ -143,12 +140,11 @@ freecode
 // =============================================================================
 
 absl::Status CodeGenToolBase::ValidateHookAddress(Rom* rom,
-                                                   uint32_t address) const {
+                                                  uint32_t address) const {
   // Check ROM bounds
   if (address >= rom->size()) {
-    return absl::InvalidArgumentError(
-        absl::StrFormat("Address 0x%06X is beyond ROM size (0x%X)", address,
-                        rom->size()));
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Address 0x%06X is beyond ROM size (0x%X)", address, rom->size()));
   }
 
   // Check if address is already hooked (has JSL or JML)
@@ -159,21 +155,18 @@ absl::Status CodeGenToolBase::ValidateHookAddress(Rom* rom,
   uint8_t opcode = *opcode_result;
 
   if (opcode == 0x22) {  // JSL
-    return absl::AlreadyExistsError(
-        absl::StrFormat("Address 0x%06X already contains a JSL instruction",
-                        address));
+    return absl::AlreadyExistsError(absl::StrFormat(
+        "Address 0x%06X already contains a JSL instruction", address));
   }
   if (opcode == 0x5C) {  // JML
-    return absl::AlreadyExistsError(
-        absl::StrFormat("Address 0x%06X already contains a JML instruction",
-                        address));
+    return absl::AlreadyExistsError(absl::StrFormat(
+        "Address 0x%06X already contains a JML instruction", address));
   }
 
   // Check alignment (JSL is 4 bytes, so we need at least 4 bytes available)
   if (address + 4 > rom->size()) {
-    return absl::InvalidArgumentError(
-        absl::StrFormat("Not enough space at 0x%06X for JSL hook (need 4 bytes)",
-                        address));
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Not enough space at 0x%06X for JSL hook (need 4 bytes)", address));
   }
 
   return absl::OkStatus();
@@ -204,7 +197,8 @@ std::vector<FreeSpaceRegion> CodeGenToolBase::DetectFreeSpace(
       continue;
     }
 
-    uint32_t actual_end = std::min(candidate.end, static_cast<uint32_t>(rom->size() - 1));
+    uint32_t actual_end =
+        std::min(candidate.end, static_cast<uint32_t>(rom->size() - 1));
     size_t region_size = actual_end - candidate.start + 1;
 
     // Count free bytes (0x00 or 0xFF)
@@ -257,8 +251,7 @@ absl::StatusOr<AsmTemplate> CodeGenToolBase::GetTemplate(
       return tmpl;
     }
   }
-  return absl::NotFoundError(
-      absl::StrFormat("Template '%s' not found", name));
+  return absl::NotFoundError(absl::StrFormat("Template '%s' not found", name));
 }
 
 const std::vector<AsmTemplate>& CodeGenToolBase::GetAllTemplates() const {
@@ -274,7 +267,8 @@ bool CodeGenToolBase::IsKnownHookLocation(uint32_t address) const {
   return false;
 }
 
-std::string CodeGenToolBase::GetHookLocationDescription(uint32_t address) const {
+std::string CodeGenToolBase::GetHookLocationDescription(
+    uint32_t address) const {
   for (const auto& [name, addr] : kKnownHooks) {
     if (addr == address) {
       return name;
@@ -295,7 +289,8 @@ std::string CodeGenToolBase::FormatResultAsJson(
   if (!result.generated_code.empty()) {
     // Escape newlines and quotes for JSON
     std::string escaped_code = result.generated_code;
-    escaped_code = absl::StrReplaceAll(escaped_code, {{"\\", "\\\\"}, {"\"", "\\\""}, {"\n", "\\n"}});
+    escaped_code = absl::StrReplaceAll(
+        escaped_code, {{"\\", "\\\\"}, {"\"", "\\\""}, {"\n", "\\n"}});
     json << "\"" << escaped_code << "\"";
   } else {
     json << "null";
@@ -306,8 +301,10 @@ std::string CodeGenToolBase::FormatResultAsJson(
   json << "  \"symbols\": {";
   bool first_symbol = true;
   for (const auto& [label, address] : result.symbols) {
-    if (!first_symbol) json << ", ";
-    json << "\"" << label << "\": \"" << absl::StrFormat("0x%06X", address) << "\"";
+    if (!first_symbol)
+      json << ", ";
+    json << "\"" << label << "\": \"" << absl::StrFormat("0x%06X", address)
+         << "\"";
     first_symbol = false;
   }
   json << "},\n";
@@ -320,10 +317,12 @@ std::string CodeGenToolBase::FormatResultAsJson(
     json << "\"severity\": \"" << diag.SeverityString() << "\", ";
     json << "\"message\": \"" << diag.message << "\"";
     if (diag.address != 0) {
-      json << ", \"address\": \"" << absl::StrFormat("0x%06X", diag.address) << "\"";
+      json << ", \"address\": \"" << absl::StrFormat("0x%06X", diag.address)
+           << "\"";
     }
     json << "}";
-    if (i < result.diagnostics.size() - 1) json << ",";
+    if (i < result.diagnostics.size() - 1)
+      json << ",";
     json << "\n";
   }
   json << "  ]\n";
@@ -353,7 +352,8 @@ std::string CodeGenToolBase::FormatResultAsText(
   if (!result.symbols.empty()) {
     text << "Symbols:\n";
     for (const auto& [label, address] : result.symbols) {
-      text << "  " << label << " = " << absl::StrFormat("$%06X", address) << "\n";
+      text << "  " << label << " = " << absl::StrFormat("$%06X", address)
+           << "\n";
     }
     text << "\n";
   }
@@ -402,7 +402,7 @@ absl::Status CodeGenAsmHookTool::Execute(
     result.AddError("Invalid or missing address");
     std::string format = parser.GetString("format").value_or("json");
     std::cout << (format == "json" ? FormatResultAsJson(result)
-                                    : FormatResultAsText(result));
+                                   : FormatResultAsText(result));
     return address_result.status();
   }
   uint32_t address = static_cast<uint32_t>(*address_result);
@@ -416,16 +416,15 @@ absl::Status CodeGenAsmHookTool::Execute(
   if (!validate_status.ok()) {
     result.AddError(std::string(validate_status.message()), address);
     std::cout << (format == "json" ? FormatResultAsJson(result)
-                                    : FormatResultAsText(result));
+                                   : FormatResultAsText(result));
     return validate_status;
   }
 
   // Check if this is a known safe hook location
   if (IsKnownHookLocation(address)) {
-    result.AddInfo(
-        absl::StrFormat("Using known safe hook: %s",
-                        GetHookLocationDescription(address)),
-        address);
+    result.AddInfo(absl::StrFormat("Using known safe hook: %s",
+                                   GetHookLocationDescription(address)),
+                   address);
   } else {
     result.AddWarning(
         "Address is not a known safe hook location. Verify manually.", address);
@@ -446,7 +445,7 @@ absl::Status CodeGenAsmHookTool::Execute(
   if (!tmpl.ok()) {
     result.AddError("Failed to load jsl_hook template");
     std::cout << (format == "json" ? FormatResultAsJson(result)
-                                    : FormatResultAsText(result));
+                                   : FormatResultAsText(result));
     return tmpl.status();
   }
 
@@ -459,12 +458,13 @@ absl::Status CodeGenAsmHookTool::Execute(
   result.generated_code = SubstitutePlaceholders(tmpl->code_template, params);
   result.symbols[label] = address;
 
-  result.AddInfo(absl::StrFormat("Generated JSL hook to %s at $%06X", label, address),
-                 address);
+  result.AddInfo(
+      absl::StrFormat("Generated JSL hook to %s at $%06X", label, address),
+      address);
 
   // Output result
   std::cout << (format == "json" ? FormatResultAsJson(result)
-                                  : FormatResultAsText(result));
+                                 : FormatResultAsText(result));
 
   formatter.AddField("status", "complete");
   return absl::OkStatus();
@@ -490,11 +490,12 @@ absl::Status CodeGenFreespacePatchTool::Execute(
   auto regions = DetectFreeSpace(rom, size);
 
   if (regions.empty()) {
-    result.AddError(absl::StrFormat(
-        "No suitable freespace found for %d bytes (need >=%d bytes with >=80%% free)",
-        size, size));
+    result.AddError(
+        absl::StrFormat("No suitable freespace found for %d bytes (need >=%d "
+                        "bytes with >=80%% free)",
+                        size, size));
     std::cout << (format == "json" ? FormatResultAsJson(result)
-                                    : FormatResultAsText(result));
+                                   : FormatResultAsText(result));
     return absl::NotFoundError("No freespace available");
   }
 
@@ -539,7 +540,7 @@ absl::Status CodeGenFreespacePatchTool::Execute(
 
   // Output result
   std::cout << (format == "json" ? FormatResultAsJson(result)
-                                  : FormatResultAsText(result));
+                                 : FormatResultAsText(result));
 
   formatter.AddField("status", "complete");
   return absl::OkStatus();
@@ -557,10 +558,14 @@ absl::Status CodeGenSpriteTemplateTool::Execute(
 
   // Parse arguments
   std::string name = parser.GetString("name").value();
-  std::string init_code = parser.GetString("init-code").value_or(
-      "; Initialize sprite here\n  LDA #$00 : STA $0F50, X  ; Example: Clear state");
-  std::string main_code = parser.GetString("main-code").value_or(
-      "; Main sprite logic here\n  JSR Sprite_Move  ; Example: Move sprite");
+  std::string init_code = parser.GetString("init-code")
+                              .value_or(
+                                  "; Initialize sprite here\n  LDA #$00 : STA "
+                                  "$0F50, X  ; Example: Clear state");
+  std::string main_code = parser.GetString("main-code")
+                              .value_or(
+                                  "; Main sprite logic here\n  JSR Sprite_Move "
+                                  " ; Example: Move sprite");
   std::string format = parser.GetString("format").value_or("json");
 
   // Get sprite template
@@ -568,7 +573,7 @@ absl::Status CodeGenSpriteTemplateTool::Execute(
   if (!tmpl.ok()) {
     result.AddError("Failed to load sprite template");
     std::cout << (format == "json" ? FormatResultAsJson(result)
-                                    : FormatResultAsText(result));
+                                   : FormatResultAsText(result));
     return tmpl.status();
   }
 
@@ -580,11 +585,12 @@ absl::Status CodeGenSpriteTemplateTool::Execute(
   };
 
   result.generated_code = SubstitutePlaceholders(tmpl->code_template, params);
-  result.AddInfo(absl::StrFormat("Generated sprite template for '%s'", name.c_str()));
+  result.AddInfo(
+      absl::StrFormat("Generated sprite template for '%s'", name.c_str()));
 
   // Output result
   std::cout << (format == "json" ? FormatResultAsJson(result)
-                                  : FormatResultAsText(result));
+                                 : FormatResultAsText(result));
 
   formatter.AddField("status", "complete");
   return absl::OkStatus();
@@ -603,8 +609,8 @@ absl::Status CodeGenEventHandlerTool::Execute(
   // Parse arguments
   std::string type = parser.GetString("type").value();
   std::string label = parser.GetString("label").value();
-  std::string custom_code = parser.GetString("custom-code").value_or(
-      "; Your custom code here");
+  std::string custom_code =
+      parser.GetString("custom-code").value_or("; Your custom code here");
   std::string format = parser.GetString("format").value_or("json");
 
   // Validate event type
@@ -619,7 +625,7 @@ absl::Status CodeGenEventHandlerTool::Execute(
     result.AddError(absl::StrFormat(
         "Unknown event type '%s'. Valid types: nmi, irq, reset", type.c_str()));
     std::cout << (format == "json" ? FormatResultAsJson(result)
-                                    : FormatResultAsText(result));
+                                   : FormatResultAsText(result));
     return absl::InvalidArgumentError("Invalid event type");
   }
 
@@ -630,7 +636,7 @@ absl::Status CodeGenEventHandlerTool::Execute(
   if (!tmpl.ok()) {
     result.AddError("Failed to load event_handler template");
     std::cout << (format == "json" ? FormatResultAsJson(result)
-                                    : FormatResultAsText(result));
+                                   : FormatResultAsText(result));
     return tmpl.status();
   }
 
@@ -651,7 +657,7 @@ absl::Status CodeGenEventHandlerTool::Execute(
 
   // Output result
   std::cout << (format == "json" ? FormatResultAsJson(result)
-                                  : FormatResultAsText(result));
+                                 : FormatResultAsText(result));
 
   formatter.AddField("status", "complete");
   return absl::OkStatus();

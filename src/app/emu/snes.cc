@@ -6,25 +6,25 @@
 #include <cstring>
 #include <fstream>
 #include <sstream>
+#include <string>
 #include <type_traits>
 #include <vector>
-#include <string>
 
+#include "absl/status/status.h"
+#include "absl/strings/str_format.h"
 #include "app/emu/audio/apu.h"
 #include "app/emu/memory/dma.h"
 #include "app/emu/memory/memory.h"
-#include "app/emu/video/ppu.h"
 #include "app/emu/render/render_context.h"
-#include "absl/status/status.h"
-#include "absl/strings/str_format.h"
+#include "app/emu/video/ppu.h"
 #include "util/log.h"
 
-#define RETURN_IF_ERROR(expr) \
-  do {                         \
+#define RETURN_IF_ERROR(expr)      \
+  do {                             \
     absl::Status _status = (expr); \
-    if (!_status.ok()) {       \
-      return _status;          \
-    }                          \
+    if (!_status.ok()) {           \
+      return _status;              \
+    }                              \
   } while (0)
 
 namespace yaze {
@@ -41,7 +41,7 @@ void input_latch(Input* input, bool value) {
 uint8_t input_read(Input* input) {
   if (input->latch_line_)
     input->latched_state_ = input->current_state_;
-  
+
   // Invert state for serial line: 1 (Pressed) -> 0, 0 (Released) -> 1
   // This matches SNES hardware Active Low logic.
   // Also ensures shifting in 0s results in 1s (Released) for bits 17+.
@@ -136,10 +136,10 @@ absl::Status WriteChunk(std::ostream& out, uint32_t tag, uint32_t version,
   if (payload.size() > kMaxChunkSize) {
     return absl::FailedPreconditionError("Serialized chunk too large");
   }
-  ChunkHeader header{tag, version, static_cast<uint32_t>(payload.size()),
-                     render::CalculateCRC32(
-                         reinterpret_cast<const uint8_t*>(payload.data()),
-                         payload.size())};
+  ChunkHeader header{
+      tag, version, static_cast<uint32_t>(payload.size()),
+      render::CalculateCRC32(reinterpret_cast<const uint8_t*>(payload.data()),
+                             payload.size())};
 
   RETURN_IF_ERROR(WriteUint32LE(out, header.tag));
   RETURN_IF_ERROR(WriteUint32LE(out, header.version));
@@ -232,8 +232,6 @@ void Snes::RunFrame() {
   }
 
   uint32_t frame = frames_;
-
-
 
   while (!in_vblank_ && frame == frames_) {
     cpu_.RunOpcode();
@@ -387,7 +385,8 @@ void Snes::RunCycle() {
             memory_.set_v_pos(0);
             frames_++;
             static int frame_log = 0;
-            if (++frame_log % 60 == 0) LOG_INFO("SNES", "Frames incremented 60 times");
+            if (++frame_log % 60 == 0)
+              LOG_INFO("SNES", "Frames incremented 60 times");
           }
         } else {
           // even interlace frame is 313 lines
@@ -397,7 +396,8 @@ void Snes::RunCycle() {
             memory_.set_v_pos(0);
             frames_++;
             static int frame_log_pal = 0;
-            if (++frame_log_pal % 60 == 0) LOG_INFO("SNES", "Frames (PAL) incremented 60 times");
+            if (++frame_log_pal % 60 == 0)
+              LOG_INFO("SNES", "Frames (PAL) incremented 60 times");
           }
         }
 
@@ -454,8 +454,6 @@ void Snes::RunCycle() {
             // TODO: this starts a little after start of vblank
             auto_joy_timer_ = 4224;
             HandleInput();
-
-
           }
 
           if (nmi_enabled_) {
@@ -564,7 +562,8 @@ uint8_t Snes::ReadReg(uint16_t adr) {
     case 0x421c:
     case 0x421e: {
       // If transfer is still in progress, data is not yet valid
-      if (auto_joy_timer_ > 0) return 0;
+      if (auto_joy_timer_ > 0)
+        return 0;
       uint8_t result = port_auto_read_[(adr - 0x4218) / 2] & 0xff;
       return result;
     }
@@ -573,7 +572,8 @@ uint8_t Snes::ReadReg(uint16_t adr) {
     case 0x421d:
     case 0x421f: {
       // If transfer is still in progress, data is not yet valid
-      if (auto_joy_timer_ > 0) return 0;
+      if (auto_joy_timer_ > 0)
+        return 0;
       uint8_t result = port_auto_read_[(adr - 0x4219) / 2] >> 8;
 
       return result;
@@ -628,7 +628,8 @@ void Snes::WriteBBus(uint8_t adr, uint8_t val) {
     // PPU Register write - catch up rendering first to ensure mid-scanline effects work
     // Only needed if we are in the visible portion of a visible scanline
     // Skip in audio-only mode for performance (no video output needed)
-    if (!audio_only_mode_ && !in_vblank_ && memory_.v_pos() > 0 && memory_.h_pos() < 1100) {
+    if (!audio_only_mode_ && !in_vblank_ && memory_.v_pos() > 0 &&
+        memory_.h_pos() < 1100) {
       ppu_.CatchUp(memory_.h_pos());
     }
     ppu_.Write(adr, val);
@@ -641,8 +642,6 @@ void Snes::WriteBBus(uint8_t adr, uint8_t val) {
     // Track CPU port writes for handshake debugging
     uint32_t full_pc = (static_cast<uint32_t>(cpu_.PB) << 16) | cpu_.PC;
     apu_handshake_tracker_.OnCpuPortWrite(adr & 0x3, val, full_pc);
-
-
 
     // NOTE: Auto-reset disabled - relying on complete IPL ROM with counter
     // protocol The IPL ROM will handle multi-upload sequences via its transfer
@@ -675,7 +674,6 @@ void Snes::WriteReg(uint16_t adr, uint8_t val) {
   switch (adr) {
     case 0x4200: {
       // Log ALL writes to $4200 unconditionally
-
 
       auto_joy_read_ = val & 0x1;
       if (!auto_joy_read_)
@@ -769,8 +767,6 @@ void Snes::WriteReg(uint16_t adr, uint8_t val) {
 
 void Snes::Write(uint32_t adr, uint8_t val) {
   memory_.set_open_bus(val);
-
-
 
   uint8_t bank = adr >> 16;
   adr &= 0xffff;
@@ -985,12 +981,15 @@ absl::Status Snes::saveState(const std::string& path) {
     return WriteChunk(file, tag, version, payload);
   };
 
-  RETURN_IF_ERROR(write_component(MakeTag('C', 'P', 'U', ' '), 1,
-                                  [&](std::ostream& out) { cpu_.SaveState(out); }));
-  RETURN_IF_ERROR(write_component(MakeTag('P', 'P', 'U', ' '), 1,
-                                  [&](std::ostream& out) { ppu_.SaveState(out); }));
-  RETURN_IF_ERROR(write_component(MakeTag('A', 'P', 'U', ' '), 1,
-                                  [&](std::ostream& out) { apu_.SaveState(out); }));
+  RETURN_IF_ERROR(
+      write_component(MakeTag('C', 'P', 'U', ' '), 1,
+                      [&](std::ostream& out) { cpu_.SaveState(out); }));
+  RETURN_IF_ERROR(
+      write_component(MakeTag('P', 'P', 'U', ' '), 1,
+                      [&](std::ostream& out) { ppu_.SaveState(out); }));
+  RETURN_IF_ERROR(
+      write_component(MakeTag('A', 'P', 'U', ' '), 1,
+                      [&](std::ostream& out) { apu_.SaveState(out); }));
 
   return absl::OkStatus();
 }
@@ -1082,10 +1081,12 @@ absl::Status Snes::loadState(const std::string& path) {
     switch (header.tag) {
       case MakeTag('S', 'N', 'E', 'S'): {
         if (header.version != 1) {
-          return absl::FailedPreconditionError("Unsupported SNES chunk version");
+          return absl::FailedPreconditionError(
+              "Unsupported SNES chunk version");
         }
         auto status = load_core_chunk(chunk_stream);
-        if (!status.ok()) return status;
+        if (!status.ok())
+          return status;
         core_loaded = true;
         break;
       }

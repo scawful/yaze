@@ -89,8 +89,8 @@ absl::Status SDL3WindowBackend::Initialize(const WindowConfig& config) {
 
   // Create window
   // Note: SDL3 uses SDL_CreateWindow with different signature
-  SDL_Window* raw_window =
-      SDL_CreateWindow(config.title.c_str(), screen_width, screen_height, flags);
+  SDL_Window* raw_window = SDL_CreateWindow(config.title.c_str(), screen_width,
+                                            screen_height, flags);
 
   if (!raw_window) {
     SDL_Quit();
@@ -106,9 +106,8 @@ absl::Status SDL3WindowBackend::Initialize(const WindowConfig& config) {
   audio_buffer_ = std::shared_ptr<int16_t>(new int16_t[buffer_size],
                                            std::default_delete<int16_t[]>());
 
-  LOG_INFO("SDL3WindowBackend",
-           "Initialized: %dx%d, audio buffer: %zu samples", screen_width,
-           screen_height, buffer_size);
+  LOG_INFO("SDL3WindowBackend", "Initialized: %dx%d, audio buffer: %zu samples",
+           screen_width, screen_height, buffer_size);
 
   initialized_ = true;
   active_ = true;
@@ -351,8 +350,10 @@ void SDL3WindowBackend::GetSize(int* width, int* height) const {
   if (window_) {
     SDL_GetWindowSize(window_.get(), width, height);
   } else {
-    if (width) *width = 0;
-    if (height) *height = 0;
+    if (width)
+      *width = 0;
+    if (height)
+      *height = 0;
   }
 }
 
@@ -471,7 +472,7 @@ void SDL3WindowBackend::RenderImGui(gfx::IRenderer* renderer) {
 
   // Finalize ImGui frame and render draw data
   ImGui::Render();
-  
+
   if (renderer) {
     SDL_Renderer* sdl_renderer =
         static_cast<SDL_Renderer*>(renderer->GetBackendRenderer());

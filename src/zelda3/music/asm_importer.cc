@@ -140,8 +140,8 @@ absl::Status AsmImporter::ParseLine(const std::string& line, MusicSong& song,
 
   // Unknown line - just warn
   if (options.verbose_errors) {
-    state.warnings.push_back(
-        absl::StrFormat("Line %d: Unrecognized: %s", state.line_number, trimmed));
+    state.warnings.push_back(absl::StrFormat("Line %d: Unrecognized: %s",
+                                             state.line_number, trimmed));
   }
 
   return absl::OkStatus();
@@ -239,7 +239,8 @@ absl::Status AsmImporter::ParseDataBytes(const std::string& line,
 
   for (const auto& part : parts) {
     std::string value = Trim(part);
-    if (value.empty()) continue;
+    if (value.empty())
+      continue;
 
     // Check for note name
     auto note_result = ParseNoteName(value);
@@ -317,8 +318,8 @@ absl::Status AsmImporter::ParseDataBytes(const std::string& line,
 
     // Unknown value
     if (options.verbose_errors) {
-      state.warnings.push_back(
-          absl::StrFormat("Line %d: Unknown value: %s", state.line_number, value));
+      state.warnings.push_back(absl::StrFormat("Line %d: Unknown value: %s",
+                                               state.line_number, value));
     }
   }
 
@@ -393,12 +394,13 @@ absl::StatusOr<std::vector<TrackEvent>> AsmImporter::ParseMacro(
         absl::StrFormat("Unknown macro: %s", macro_name));
   }
 
-  state.warnings.push_back(
-      absl::StrFormat("Line %d: Unknown macro: %s", state.line_number, macro_name));
+  state.warnings.push_back(absl::StrFormat("Line %d: Unknown macro: %s",
+                                           state.line_number, macro_name));
   return events;
 }
 
-absl::StatusOr<uint8_t> AsmImporter::ParseNoteName(const std::string& note_name) {
+absl::StatusOr<uint8_t> AsmImporter::ParseNoteName(
+    const std::string& note_name) {
   for (const auto& mapping : kAsmNoteNames) {
     if (note_name == mapping.name) {
       return mapping.pitch;
@@ -477,7 +479,8 @@ bool AsmImporter::ParseMacroCall(const std::string& call,
     return false;
   }
 
-  std::string params_str = call.substr(paren_start + 1, paren_end - paren_start - 1);
+  std::string params_str =
+      call.substr(paren_start + 1, paren_end - paren_start - 1);
   if (!params_str.empty()) {
     std::vector<std::string> parts = absl::StrSplit(params_str, ',');
     for (const auto& p : parts) {
@@ -512,7 +515,8 @@ absl::StatusOr<uint8_t> AsmImporter::ParseHexValue(const std::string& value) {
 
 std::string AsmImporter::Trim(const std::string& s) {
   size_t start = s.find_first_not_of(" \t\r\n");
-  if (start == std::string::npos) return "";
+  if (start == std::string::npos)
+    return "";
   size_t end = s.find_last_not_of(" \t\r\n");
   return s.substr(start, end - start + 1);
 }

@@ -17,7 +17,7 @@ namespace {
 // JavaScript interop functions for sessionStorage
 EM_JS(void, js_session_storage_set, (const char* key, const char* value), {
   try {
-    if (typeof(Storage) !== "undefined" && sessionStorage) {
+    if (typeof(Storage) != = "undefined" && sessionStorage) {
       sessionStorage.setItem(UTF8ToString(key), UTF8ToString(value));
     }
   } catch (e) {
@@ -27,9 +27,10 @@ EM_JS(void, js_session_storage_set, (const char* key, const char* value), {
 
 EM_JS(char*, js_session_storage_get, (const char* key), {
   try {
-    if (typeof(Storage) !== "undefined" && sessionStorage) {
+    if (typeof(Storage) != = "undefined" && sessionStorage) {
       const value = sessionStorage.getItem(UTF8ToString(key));
-      if (value === null) return null;
+      if (value == = null)
+        return null;
       const len = lengthBytesUTF8(value) + 1;
       const ptr = _malloc(len);
       stringToUTF8(value, ptr, len);
@@ -43,7 +44,7 @@ EM_JS(char*, js_session_storage_get, (const char* key), {
 
 EM_JS(void, js_session_storage_remove, (const char* key), {
   try {
-    if (typeof(Storage) !== "undefined" && sessionStorage) {
+    if (typeof(Storage) != = "undefined" && sessionStorage) {
       sessionStorage.removeItem(UTF8ToString(key));
     }
   } catch (e) {
@@ -53,8 +54,8 @@ EM_JS(void, js_session_storage_remove, (const char* key), {
 
 EM_JS(int, js_session_storage_has, (const char* key), {
   try {
-    if (typeof(Storage) !== "undefined" && sessionStorage) {
-      return sessionStorage.getItem(UTF8ToString(key)) !== null ? 1 : 0;
+    if (typeof(Storage) != = "undefined" && sessionStorage) {
+      return sessionStorage.getItem(UTF8ToString(key)) != = null ? 1 : 0;
     }
   } catch (e) {
     console.error('Failed to check sessionStorage:', e);
@@ -65,7 +66,7 @@ EM_JS(int, js_session_storage_has, (const char* key), {
 // JavaScript interop functions for localStorage
 EM_JS(void, js_local_storage_set, (const char* key, const char* value), {
   try {
-    if (typeof(Storage) !== "undefined" && localStorage) {
+    if (typeof(Storage) != = "undefined" && localStorage) {
       localStorage.setItem(UTF8ToString(key), UTF8ToString(value));
     }
   } catch (e) {
@@ -75,9 +76,10 @@ EM_JS(void, js_local_storage_set, (const char* key, const char* value), {
 
 EM_JS(char*, js_local_storage_get, (const char* key), {
   try {
-    if (typeof(Storage) !== "undefined" && localStorage) {
+    if (typeof(Storage) != = "undefined" && localStorage) {
       const value = localStorage.getItem(UTF8ToString(key));
-      if (value === null) return null;
+      if (value == = null)
+        return null;
       const len = lengthBytesUTF8(value) + 1;
       const ptr = _malloc(len);
       stringToUTF8(value, ptr, len);
@@ -91,7 +93,7 @@ EM_JS(char*, js_local_storage_get, (const char* key), {
 
 EM_JS(void, js_local_storage_remove, (const char* key), {
   try {
-    if (typeof(Storage) !== "undefined" && localStorage) {
+    if (typeof(Storage) != = "undefined" && localStorage) {
       localStorage.removeItem(UTF8ToString(key));
     }
   } catch (e) {
@@ -101,8 +103,8 @@ EM_JS(void, js_local_storage_remove, (const char* key), {
 
 EM_JS(int, js_local_storage_has, (const char* key), {
   try {
-    if (typeof(Storage) !== "undefined" && localStorage) {
-      return localStorage.getItem(UTF8ToString(key)) !== null ? 1 : 0;
+    if (typeof(Storage) != = "undefined" && localStorage) {
+      return localStorage.getItem(UTF8ToString(key)) != = null ? 1 : 0;
     }
   } catch (e) {
     console.error('Failed to check localStorage:', e);
@@ -113,7 +115,7 @@ EM_JS(int, js_local_storage_has, (const char* key), {
 // Get all keys from storage
 EM_JS(char*, js_session_storage_keys, (), {
   try {
-    if (typeof(Storage) !== "undefined" && sessionStorage) {
+    if (typeof(Storage) != = "undefined" && sessionStorage) {
       const keys = [];
       for (let i = 0; i < sessionStorage.length; i++) {
         keys.push(sessionStorage.key(i));
@@ -132,7 +134,7 @@ EM_JS(char*, js_session_storage_keys, (), {
 
 EM_JS(char*, js_local_storage_keys, (), {
   try {
-    if (typeof(Storage) !== "undefined" && localStorage) {
+    if (typeof(Storage) != = "undefined" && localStorage) {
       const keys = [];
       for (let i = 0; i < localStorage.length; i++) {
         keys.push(localStorage.key(i));
@@ -152,7 +154,7 @@ EM_JS(char*, js_local_storage_keys, (), {
 // Clear all keys with prefix
 EM_JS(void, js_session_storage_clear_prefix, (const char* prefix), {
   try {
-    if (typeof(Storage) !== "undefined" && sessionStorage) {
+    if (typeof(Storage) != = "undefined" && sessionStorage) {
       const prefixStr = UTF8ToString(prefix);
       const keysToRemove = [];
       for (let i = 0; i < sessionStorage.length; i++) {
@@ -161,7 +163,7 @@ EM_JS(void, js_session_storage_clear_prefix, (const char* prefix), {
           keysToRemove.push(key);
         }
       }
-      keysToRemove.forEach(key => sessionStorage.removeItem(key));
+      keysToRemove.forEach(key = > sessionStorage.removeItem(key));
     }
   } catch (e) {
     console.error('Failed to clear sessionStorage prefix:', e);
@@ -170,7 +172,7 @@ EM_JS(void, js_session_storage_clear_prefix, (const char* prefix), {
 
 EM_JS(void, js_local_storage_clear_prefix, (const char* prefix), {
   try {
-    if (typeof(Storage) !== "undefined" && localStorage) {
+    if (typeof(Storage) != = "undefined" && localStorage) {
       const prefixStr = UTF8ToString(prefix);
       const keysToRemove = [];
       for (let i = 0; i < localStorage.length; i++) {
@@ -179,7 +181,7 @@ EM_JS(void, js_local_storage_clear_prefix, (const char* prefix), {
           keysToRemove.push(key);
         }
       }
-      keysToRemove.forEach(key => localStorage.removeItem(key));
+      keysToRemove.forEach(key = > localStorage.removeItem(key));
     }
   } catch (e) {
     console.error('Failed to clear localStorage prefix:', e);
@@ -189,7 +191,7 @@ EM_JS(void, js_local_storage_clear_prefix, (const char* prefix), {
 // Check if storage is available
 EM_JS(int, js_is_storage_available, (), {
   try {
-    if (typeof(Storage) !== "undefined") {
+    if (typeof(Storage) != = "undefined") {
       // Test both storage types
       const testKey = '__yaze_storage_test__';
 
@@ -237,8 +239,8 @@ std::vector<std::string> SplitString(const std::string& str, char delimiter) {
 // Public methods implementation
 
 absl::Status WasmSecureStorage::StoreApiKey(const std::string& service,
-                                             const std::string& key,
-                                             StorageType storage_type) {
+                                            const std::string& key,
+                                            StorageType storage_type) {
   if (service.empty()) {
     return absl::InvalidArgumentError("Service name cannot be empty");
   }
@@ -258,8 +260,7 @@ absl::Status WasmSecureStorage::StoreApiKey(const std::string& service,
 }
 
 absl::StatusOr<std::string> WasmSecureStorage::RetrieveApiKey(
-    const std::string& service,
-    StorageType storage_type) {
+    const std::string& service, StorageType storage_type) {
   if (service.empty()) {
     return absl::InvalidArgumentError("Service name cannot be empty");
   }
@@ -284,7 +285,7 @@ absl::StatusOr<std::string> WasmSecureStorage::RetrieveApiKey(
 }
 
 absl::Status WasmSecureStorage::ClearApiKey(const std::string& service,
-                                             StorageType storage_type) {
+                                            StorageType storage_type) {
   if (service.empty()) {
     return absl::InvalidArgumentError("Service name cannot be empty");
   }
@@ -301,7 +302,7 @@ absl::Status WasmSecureStorage::ClearApiKey(const std::string& service,
 }
 
 bool WasmSecureStorage::HasApiKey(const std::string& service,
-                                   StorageType storage_type) {
+                                  StorageType storage_type) {
   if (service.empty()) {
     return false;
   }
@@ -316,8 +317,8 @@ bool WasmSecureStorage::HasApiKey(const std::string& service,
 }
 
 absl::Status WasmSecureStorage::StoreSecret(const std::string& key,
-                                             const std::string& value,
-                                             StorageType storage_type) {
+                                            const std::string& value,
+                                            StorageType storage_type) {
   if (key.empty()) {
     return absl::InvalidArgumentError("Key cannot be empty");
   }
@@ -337,8 +338,7 @@ absl::Status WasmSecureStorage::StoreSecret(const std::string& key,
 }
 
 absl::StatusOr<std::string> WasmSecureStorage::RetrieveSecret(
-    const std::string& key,
-    StorageType storage_type) {
+    const std::string& key, StorageType storage_type) {
   if (key.empty()) {
     return absl::InvalidArgumentError("Key cannot be empty");
   }
@@ -353,7 +353,8 @@ absl::StatusOr<std::string> WasmSecureStorage::RetrieveSecret(
   }
 
   if (value == nullptr) {
-    return absl::NotFoundError(absl::StrFormat("No secret found for key: %s", key));
+    return absl::NotFoundError(
+        absl::StrFormat("No secret found for key: %s", key));
   }
 
   std::string result(value);
@@ -362,7 +363,7 @@ absl::StatusOr<std::string> WasmSecureStorage::RetrieveSecret(
 }
 
 absl::Status WasmSecureStorage::ClearSecret(const std::string& key,
-                                             StorageType storage_type) {
+                                            StorageType storage_type) {
   if (key.empty()) {
     return absl::InvalidArgumentError("Key cannot be empty");
   }
@@ -425,8 +426,8 @@ bool WasmSecureStorage::IsStorageAvailable() {
   return js_is_storage_available() != 0;
 }
 
-absl::StatusOr<WasmSecureStorage::StorageQuota> WasmSecureStorage::GetStorageQuota(
-    StorageType storage_type) {
+absl::StatusOr<WasmSecureStorage::StorageQuota>
+WasmSecureStorage::GetStorageQuota(StorageType storage_type) {
   // Browser storage APIs don't provide direct quota information
   // We can estimate based on typical limits
   StorageQuota quota;
@@ -474,7 +475,8 @@ absl::StatusOr<WasmSecureStorage::StorageQuota> WasmSecureStorage::GetStorageQuo
 
 // Private methods implementation
 
-std::string WasmSecureStorage::BuildApiKeyStorageKey(const std::string& service) {
+std::string WasmSecureStorage::BuildApiKeyStorageKey(
+    const std::string& service) {
   return absl::StrCat(kApiKeyPrefix, service);
 }
 
@@ -482,7 +484,8 @@ std::string WasmSecureStorage::BuildSecretStorageKey(const std::string& key) {
   return absl::StrCat(kSecretPrefix, key);
 }
 
-std::string WasmSecureStorage::ExtractServiceFromKey(const std::string& storage_key) {
+std::string WasmSecureStorage::ExtractServiceFromKey(
+    const std::string& storage_key) {
   std::string prefix = kApiKeyPrefix;
   if (storage_key.find(prefix) == 0) {
     return storage_key.substr(prefix.length());

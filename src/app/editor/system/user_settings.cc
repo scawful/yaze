@@ -28,7 +28,8 @@ absl::Status UserSettings::Load() {
   try {
     // If file doesn't exist, save defaults immediately
     if (!util::PlatformPaths::Exists(settings_file_path_)) {
-      LOG_INFO("UserSettings", "Settings file not found, creating defaults at: %s", 
+      LOG_INFO("UserSettings",
+               "Settings file not found, creating defaults at: %s",
                settings_file_path_.c_str());
       return Save();
     }
@@ -169,8 +170,8 @@ absl::Status UserSettings::Save() {
        << "\n";
     ss << "restore_last_session=" << (prefs_.restore_last_session ? 1 : 0)
        << "\n";
-    ss << "prefer_hmagic_sprite_names=" << (prefs_.prefer_hmagic_sprite_names ? 1 : 0)
-       << "\n";
+    ss << "prefer_hmagic_sprite_names="
+       << (prefs_.prefer_hmagic_sprite_names ? 1 : 0) << "\n";
 
     // Editor Behavior
     ss << "backup_before_save=" << (prefs_.backup_before_save ? 1 : 0) << "\n";
@@ -208,7 +209,8 @@ absl::Status UserSettings::Save() {
 
     // Sidebar State
     ss << "sidebar_visible=" << (prefs_.sidebar_visible ? 1 : 0) << "\n";
-    ss << "sidebar_panel_expanded=" << (prefs_.sidebar_panel_expanded ? 1 : 0) << "\n";
+    ss << "sidebar_panel_expanded=" << (prefs_.sidebar_panel_expanded ? 1 : 0)
+       << "\n";
     ss << "sidebar_active_category=" << prefs_.sidebar_active_category << "\n";
 
     // Status Bar

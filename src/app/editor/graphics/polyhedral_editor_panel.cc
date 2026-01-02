@@ -10,9 +10,9 @@
 #include "absl/strings/str_format.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/plots/implot_support.h"
-#include "rom/snes.h"
 #include "imgui/imgui.h"
 #include "implot.h"
+#include "rom/snes.h"
 #include "util/macro.h"
 
 namespace yaze {
@@ -208,8 +208,8 @@ void PolyhedralEditorPanel::Draw(bool* p_open) {
   if (ImGui::Button(ICON_MD_REFRESH " Reload from ROM")) {
     auto status = LoadShapes();
     if (!status.ok()) {
-      ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f),
-                         "Reload failed: %s", status.message().data());
+      ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "Reload failed: %s",
+                         status.message().data());
     }
   }
   ImGui::SameLine();
@@ -217,8 +217,8 @@ void PolyhedralEditorPanel::Draw(bool* p_open) {
   if (ImGui::Button(ICON_MD_SAVE " Save 3D objects")) {
     auto status = SaveShapes();
     if (!status.ok()) {
-      ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f),
-                         "Save failed: %s", status.message().data());
+      ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "Save failed: %s",
+                         status.message().data());
     }
   }
   ImGui::EndDisabled();
@@ -286,8 +286,7 @@ absl::Status PolyhedralEditorPanel::Update() {
 }
 
 void PolyhedralEditorPanel::DrawShapeEditor(PolyShape& shape) {
-  ImGui::Text("Vertices: %u  Faces: %u", shape.vertex_count,
-              shape.face_count);
+  ImGui::Text("Vertices: %u  Faces: %u", shape.vertex_count, shape.face_count);
   ImGui::Text("Vertex data @ $09:%04X (PC $%05X)", shape.vertex_ptr,
               ToPc(shape.vertex_ptr));
   ImGui::Text("Face data   @ $09:%04X (PC $%05X)", shape.face_ptr,
@@ -295,8 +294,9 @@ void PolyhedralEditorPanel::DrawShapeEditor(PolyShape& shape) {
 
   ImGui::Spacing();
 
-  if (ImGui::BeginTable("##poly_editor", 2,
-                        ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp)) {
+  if (ImGui::BeginTable(
+          "##poly_editor", 2,
+          ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp)) {
     ImGui::TableSetupColumn("Data", ImGuiTableColumnFlags_WidthStretch, 0.45f);
     ImGui::TableSetupColumn("Plots", ImGuiTableColumnFlags_WidthStretch, 0.55f);
 
@@ -362,10 +362,9 @@ void PolyhedralEditorPanel::DrawFaceList(PolyShape& shape) {
 
     ImGui::SameLine();
     ImGui::TextUnformatted("Vertices:");
-    const int max_idx =
-        shape.vertices.empty()
-            ? 0
-            : static_cast<int>(shape.vertices.size() - 1);
+    const int max_idx = shape.vertices.empty()
+                            ? 0
+                            : static_cast<int>(shape.vertices.size() - 1);
     for (size_t v = 0; v < shape.faces[i].vertex_indices.size(); ++v) {
       ImGui::SameLine();
       int idx = shape.faces[i].vertex_indices[v];
@@ -390,9 +389,7 @@ void PolyhedralEditorPanel::DrawPlot(const char* label, PlotPlane plane,
   ImPlotFlags flags = ImPlotFlags_NoLegend | ImPlotFlags_Equal;
   if (ImPlot::BeginPlot(label, plot_size, flags)) {
     const char* x_label = (plane == PlotPlane::kYZ) ? "Y" : "X";
-    const char* y_label = (plane == PlotPlane::kXY)
-                              ? "Y"
-                              : "Z";
+    const char* y_label = (plane == PlotPlane::kXY) ? "Y" : "Z";
     ImPlot::SetupAxes(x_label, y_label, ImPlotAxisFlags_AutoFit,
                       ImPlotAxisFlags_AutoFit);
     ImPlot::SetupAxisLimits(ImAxis_X1, -80, 80, ImGuiCond_Once);
@@ -417,8 +414,7 @@ void PolyhedralEditorPanel::DrawPlot(const char* label, PlotPlane plane,
       const bool is_selected = static_cast<int>(i) == selected_vertex_;
       ImVec4 color = is_selected ? kSelectedVertexColor : kVertexColor;
       // ImPlot::DragPoint wants an int ID, so compose one from vertex index and plane.
-      int point_id =
-          static_cast<int>(i * 10 + static_cast<size_t>(plane));
+      int point_id = static_cast<int>(i * 10 + static_cast<size_t>(plane));
       if (ImPlot::DragPoint(point_id, &x, &y, color, 6.0f)) {
         // Round so we keep integer coordinates in ROM
         int rounded_x = Clamp(static_cast<int>(std::lround(x)), -127, 127);
@@ -519,9 +515,10 @@ void PolyhedralEditorPanel::DrawPreview(PolyShape& shape) {
         accum += rotated[idx].z;
       }
     }
-    double avg = shape.faces[i].vertex_indices.empty()
-                     ? 0.0
-                     : accum / static_cast<double>(shape.faces[i].vertex_indices.size());
+    double avg =
+        shape.faces[i].vertex_indices.empty()
+            ? 0.0
+            : accum / static_cast<double>(shape.faces[i].vertex_indices.size());
     order.push_back({avg, i});
   }
 

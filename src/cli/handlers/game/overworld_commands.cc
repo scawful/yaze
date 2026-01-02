@@ -5,7 +5,6 @@
 #include "cli/handlers/game/overworld_inspect.h"
 #include "zelda3/overworld/overworld.h"
 
-
 namespace yaze {
 namespace cli {
 namespace handlers {
@@ -84,7 +83,7 @@ absl::Status OverworldDescribeMapCommandHandler::Execute(
   formatter.BeginObject("Overworld Map Description");
   formatter.AddField("screen_id", absl::StrFormat("0x%02X", summary.map_id));
   formatter.AddField("world", overworld::WorldName(summary.world));
-  
+
   formatter.BeginObject("grid");
   formatter.AddField("x", summary.map_x);
   formatter.AddField("y", summary.map_y);
@@ -98,13 +97,20 @@ absl::Status OverworldDescribeMapCommandHandler::Execute(
   formatter.AddField("quadrant", summary.large_quadrant);
   formatter.EndObject();
 
-  formatter.AddField("message_id", absl::StrFormat("0x%04X", summary.message_id));
-  formatter.AddField("area_graphics", absl::StrFormat("0x%02X", summary.area_graphics));
-  formatter.AddField("area_palette", absl::StrFormat("0x%02X", summary.area_palette));
-  formatter.AddField("main_palette", absl::StrFormat("0x%02X", summary.main_palette));
-  formatter.AddField("animated_gfx", absl::StrFormat("0x%02X", summary.animated_gfx));
-  formatter.AddField("subscreen_overlay", absl::StrFormat("0x%04X", summary.subscreen_overlay));
-  formatter.AddField("area_specific_bg_color", absl::StrFormat("0x%04X", summary.area_specific_bg_color));
+  formatter.AddField("message_id",
+                     absl::StrFormat("0x%04X", summary.message_id));
+  formatter.AddField("area_graphics",
+                     absl::StrFormat("0x%02X", summary.area_graphics));
+  formatter.AddField("area_palette",
+                     absl::StrFormat("0x%02X", summary.area_palette));
+  formatter.AddField("main_palette",
+                     absl::StrFormat("0x%02X", summary.main_palette));
+  formatter.AddField("animated_gfx",
+                     absl::StrFormat("0x%02X", summary.animated_gfx));
+  formatter.AddField("subscreen_overlay",
+                     absl::StrFormat("0x%04X", summary.subscreen_overlay));
+  formatter.AddField("area_specific_bg_color",
+                     absl::StrFormat("0x%04X", summary.area_specific_bg_color));
 
   // Format array fields
   formatter.BeginArray("sprite_graphics");
@@ -158,7 +164,8 @@ absl::Status OverworldListWarpsCommandHandler::Execute(
   if (screen_id_str != "all") {
     int map_id;
     if (!absl::SimpleHexAtoi(screen_id_str, &map_id)) {
-      return absl::InvalidArgumentError("Invalid screen ID format. Must be hex.");
+      return absl::InvalidArgumentError(
+          "Invalid screen ID format. Must be hex.");
     }
     query.map_id = map_id;
   }
@@ -181,19 +188,22 @@ absl::Status OverworldListWarpsCommandHandler::Execute(
     formatter.AddField("type", overworld::WarpTypeName(warp.type));
     formatter.AddField("map_id", absl::StrFormat("0x%02X", warp.map_id));
     formatter.AddField("world", overworld::WorldName(warp.world));
-    formatter.AddField("position", absl::StrFormat("(%d,%d)", warp.pixel_x, warp.pixel_y));
+    formatter.AddField("position",
+                       absl::StrFormat("(%d,%d)", warp.pixel_x, warp.pixel_y));
     formatter.AddField("map_pos", absl::StrFormat("0x%04X", warp.map_pos));
-    
+
     if (warp.entrance_id.has_value()) {
-      formatter.AddField("entrance_id", absl::StrFormat("0x%02X", warp.entrance_id.value()));
+      formatter.AddField("entrance_id",
+                         absl::StrFormat("0x%02X", warp.entrance_id.value()));
     }
     if (warp.entrance_name.has_value()) {
       formatter.AddField("entrance_name", warp.entrance_name.value());
     }
     if (warp.room_id.has_value()) {
-      formatter.AddField("room_id", absl::StrFormat("0x%04X", warp.room_id.value()));
+      formatter.AddField("room_id",
+                         absl::StrFormat("0x%04X", warp.room_id.value()));
     }
-    
+
     formatter.AddField("deleted", warp.deleted);
     formatter.AddField("is_hole", warp.is_hole);
     formatter.EndObject();
@@ -221,7 +231,8 @@ absl::Status OverworldListSpritesCommandHandler::Execute(
   if (screen_id_str != "all") {
     int map_id;
     if (!absl::SimpleHexAtoi(screen_id_str, &map_id)) {
-      return absl::InvalidArgumentError("Invalid screen ID format. Must be hex.");
+      return absl::InvalidArgumentError(
+          "Invalid screen ID format. Must be hex.");
     }
     query.map_id = map_id;
   }
@@ -241,15 +252,17 @@ absl::Status OverworldListSpritesCommandHandler::Execute(
   formatter.BeginArray("sprites");
   for (const auto& sprite : sprites) {
     formatter.BeginObject();
-    formatter.AddField("sprite_id", absl::StrFormat("0x%02X", sprite.sprite_id));
+    formatter.AddField("sprite_id",
+                       absl::StrFormat("0x%02X", sprite.sprite_id));
     formatter.AddField("map_id", absl::StrFormat("0x%02X", sprite.map_id));
     formatter.AddField("world", overworld::WorldName(sprite.world));
-    formatter.AddField("position", absl::StrFormat("(%d,%d)", sprite.x, sprite.y));
-    
+    formatter.AddField("position",
+                       absl::StrFormat("(%d,%d)", sprite.x, sprite.y));
+
     if (sprite.sprite_name.has_value()) {
       formatter.AddField("name", sprite.sprite_name.value());
     }
-    
+
     formatter.EndObject();
   }
   formatter.EndArray();
@@ -285,18 +298,21 @@ absl::Status OverworldGetEntranceCommandHandler::Execute(
 
   // Format the output
   formatter.BeginObject("Overworld Entrance");
-  formatter.AddField("entrance_id", absl::StrFormat("0x%02X", details.entrance_id));
+  formatter.AddField("entrance_id",
+                     absl::StrFormat("0x%02X", details.entrance_id));
   formatter.AddField("map_id", absl::StrFormat("0x%02X", details.map_id));
   formatter.AddField("world", overworld::WorldName(details.world));
-  formatter.AddField("position", absl::StrFormat("(%d,%d)", details.x, details.y));
-  formatter.AddField("area_position", absl::StrFormat("(%d,%d)", details.area_x, details.area_y));
+  formatter.AddField("position",
+                     absl::StrFormat("(%d,%d)", details.x, details.y));
+  formatter.AddField("area_position", absl::StrFormat("(%d,%d)", details.area_x,
+                                                      details.area_y));
   formatter.AddField("map_pos", absl::StrFormat("0x%04X", details.map_pos));
   formatter.AddField("is_hole", details.is_hole);
-  
+
   if (details.entrance_name.has_value()) {
     formatter.AddField("name", details.entrance_name.value());
   }
-  
+
   formatter.EndObject();
 
   return absl::OkStatus();
@@ -315,13 +331,13 @@ absl::Status OverworldTileStatsCommandHandler::Execute(
   }
 
   // TODO: Implement comprehensive tile statistics
-  // The AnalyzeTileUsage helper requires a specific tile_id, 
+  // The AnalyzeTileUsage helper requires a specific tile_id,
   // so we need a different approach to gather overall tile statistics.
   // This could involve:
   // 1. Iterating through all tiles in the overworld maps
   // 2. Building a frequency map of tile usage
   // 3. Computing statistics like unique tiles, most common tiles, etc.
-  
+
   formatter.BeginObject("Overworld Tile Statistics");
   formatter.AddField("screen_filter", screen_id_str);
   formatter.AddField("status", "partial_implementation");

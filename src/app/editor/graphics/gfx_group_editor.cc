@@ -2,6 +2,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
@@ -60,10 +61,8 @@ void DrawScaledSheet(gui::Canvas& canvas, gfx::Bitmap& sheet, int unique_id,
   PushID(unique_id);
 
   // Calculate scaled dimensions
-  int display_width =
-      static_cast<int>(gfx::kTilesheetWidth * scale);
-  int display_height =
-      static_cast<int>(gfx::kTilesheetHeight * scale);
+  int display_width = static_cast<int>(gfx::kTilesheetWidth * scale);
+  int display_height = static_cast<int>(gfx::kTilesheetHeight * scale);
 
   // Draw canvas background
   canvas.DrawBackground(ImVec2(display_width + 1, display_height + 1));
@@ -240,7 +239,8 @@ void GfxGroupEditor::DrawRoomsetViewer() {
       }
 
       // Unique ID combining roomset, slot, and sheet
-      int unique_id = (0x1000) | (selected_roomset_ << 8) | (idx << 4) | sheet_id;
+      int unique_id =
+          (0x1000) | (selected_roomset_ << 8) | (idx << 4) | sheet_id;
       DrawScaledSheet(roomset_canvases_[idx], sheet, unique_id, view_scale_);
     }
     EndGroup();
@@ -349,12 +349,14 @@ void GfxGroupEditor::DrawPaletteControls() {
 
   // Use the category names array for display
   static constexpr int kNumPaletteCategories = 14;
-  if (BeginCombo("##PaletteCategory",
-                 gfx::kPaletteCategoryNames[selected_palette_category_].data())) {
+  if (BeginCombo(
+          "##PaletteCategory",
+          gfx::kPaletteCategoryNames[selected_palette_category_].data())) {
     for (int cat = 0; cat < kNumPaletteCategories; cat++) {
       auto category = static_cast<PaletteCategory>(cat);
       bool is_selected = (selected_palette_category_ == category);
-      if (Selectable(gfx::kPaletteCategoryNames[category].data(), is_selected)) {
+      if (Selectable(gfx::kPaletteCategoryNames[category].data(),
+                     is_selected)) {
         selected_palette_category_ = category;
         selected_palette_index_ = 0;
         UpdateCurrentPalette();
@@ -397,7 +399,8 @@ void GfxGroupEditor::UpdateCurrentPalette() {
       current_palette_ = groups.swords.mutable_palette(selected_palette_index_);
       break;
     case PaletteCategory::kShield:
-      current_palette_ = groups.shields.mutable_palette(selected_palette_index_);
+      current_palette_ =
+          groups.shields.mutable_palette(selected_palette_index_);
       break;
     case PaletteCategory::kClothes:
       current_palette_ = groups.armors.mutable_palette(selected_palette_index_);

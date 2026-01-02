@@ -1,6 +1,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 
 #include "app/editor/agent/automation_bridge.h"
+#include "absl/time/clock.h"
 
 #if defined(YAZE_WITH_GRPC)
 

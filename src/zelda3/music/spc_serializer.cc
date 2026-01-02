@@ -63,7 +63,8 @@ absl::StatusOr<SpcSerializer::SerializeResult> SpcSerializer::SerializeSong(
       blob.data = std::move(track_bytes);
       track_blobs.push_back(std::move(blob));
 
-      next_track_offset += static_cast<uint32_t>(track_blobs.back().data.size());
+      next_track_offset +=
+          static_cast<uint32_t>(track_blobs.back().data.size());
     }
   }
 
@@ -92,9 +93,8 @@ absl::StatusOr<SpcSerializer::SerializeResult> SpcSerializer::SerializeSong(
   if (song.HasLoop()) {
     result.data.push_back(0xFF);
     result.data.push_back(0x00);
-    uint16_t loop_target =
-        static_cast<uint16_t>(segment_table_base + base_address +
-                              song.loop_point * 16);
+    uint16_t loop_target = static_cast<uint16_t>(
+        segment_table_base + base_address + song.loop_point * 16);
     write_pointer(loop_target, true);
   } else {
     result.data.push_back(0x00);
@@ -105,8 +105,7 @@ absl::StatusOr<SpcSerializer::SerializeResult> SpcSerializer::SerializeSong(
   for (const auto& ptrs : segment_track_ptrs) {
     for (int ch = 0; ch < 8; ++ch) {
       uint16_t pointer_value =
-          (ptrs[ch] == 0) ? 0
-                          : static_cast<uint16_t>(ptrs[ch] + base_address);
+          (ptrs[ch] == 0) ? 0 : static_cast<uint16_t>(ptrs[ch] + base_address);
       write_pointer(pointer_value, ptrs[ch] != 0);
     }
   }
@@ -120,7 +119,8 @@ absl::StatusOr<SpcSerializer::SerializeResult> SpcSerializer::SerializeSong(
 }
 
 absl::StatusOr<SpcSerializer::SerializeResult>
-SpcSerializer::SerializeSongFromSegment(const MusicSong& song, int start_segment,
+SpcSerializer::SerializeSongFromSegment(const MusicSong& song,
+                                        int start_segment,
                                         uint16_t base_address) {
   // Validate start segment
   if (start_segment < 0 ||
@@ -196,7 +196,8 @@ int SpcSerializer::CalculateRequiredSpace(const MusicSong& song) {
 
   // Song header
   total += static_cast<int>(song.segments.size()) * 2 + 2;
-  if (song.HasLoop()) total += 2;
+  if (song.HasLoop())
+    total += 2;
 
   // Segments and tracks
   for (const auto& segment : song.segments) {
@@ -213,7 +214,7 @@ int SpcSerializer::CalculateRequiredSpace(const MusicSong& song) {
 }
 
 std::vector<uint8_t> SpcSerializer::SerializeNote(const Note& note,
-                                                   uint8_t* current_duration) {
+                                                  uint8_t* current_duration) {
   std::vector<uint8_t> data;
 
   // Output duration if different from current
@@ -233,7 +234,8 @@ std::vector<uint8_t> SpcSerializer::SerializeNote(const Note& note,
   return data;
 }
 
-std::vector<uint8_t> SpcSerializer::SerializeCommand(const MusicCommand& command) {
+std::vector<uint8_t> SpcSerializer::SerializeCommand(
+    const MusicCommand& command) {
   std::vector<uint8_t> data;
 
   data.push_back(command.opcode);
@@ -248,19 +250,19 @@ std::vector<uint8_t> SpcSerializer::SerializeCommand(const MusicCommand& command
 
 void SpcSerializer::ApplyBaseAddress(SerializeResult* result,
                                      uint16_t new_base_address) {
-  if (!result) return;
-  const int32_t delta =
-      static_cast<int32_t>(new_base_address) -
-      static_cast<int32_t>(result->base_address);
+  if (!result)
+    return;
+  const int32_t delta = static_cast<int32_t>(new_base_address) -
+                        static_cast<int32_t>(result->base_address);
   if (delta == 0) {
     return;
   }
 
   for (uint16_t offset : result->relocations) {
-    if (offset + 1 >= result->data.size()) continue;
-    uint16_t value =
-        static_cast<uint16_t>(result->data[offset] |
-                              (result->data[offset + 1] << 8));
+    if (offset + 1 >= result->data.size())
+      continue;
+    uint16_t value = static_cast<uint16_t>(result->data[offset] |
+                                           (result->data[offset + 1] << 8));
     value = static_cast<uint16_t>(value + delta);
     result->data[offset] = value & 0xFF;
     result->data[offset + 1] = (value >> 8) & 0xFF;

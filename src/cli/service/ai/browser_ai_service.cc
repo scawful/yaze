@@ -8,8 +8,8 @@
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
-#include "rom/rom.h"  // Full definition needed for Rom member access
 #include "cli/service/agent/conversational_agent_service.h"
+#include "rom/rom.h"  // Full definition needed for Rom member access
 
 namespace yaze {
 namespace cli {
@@ -66,7 +66,8 @@ std::string ConvertHistoryToGeminiFormat(
 
     nlohmann::json content;
     content["parts"] = nlohmann::json::array({part});
-    content["role"] = (msg.sender == agent::ChatMessage::Sender::kUser) ? "user" : "model";
+    content["role"] =
+        (msg.sender == agent::ChatMessage::Sender::kUser) ? "user" : "model";
 
     contents.push_back(content);
   }
@@ -76,8 +77,9 @@ std::string ConvertHistoryToGeminiFormat(
 
 }  // namespace
 
-BrowserAIService::BrowserAIService(const BrowserAIConfig& config,
-                                     std::unique_ptr<net::IHttpClient> http_client)
+BrowserAIService::BrowserAIService(
+    const BrowserAIConfig& config,
+    std::unique_ptr<net::IHttpClient> http_client)
     : config_(config), http_client_(std::move(http_client)) {
   // Normalize provider name
   config_.provider = absl::AsciiStrToLower(config_.provider);
@@ -86,10 +88,13 @@ BrowserAIService::BrowserAIService(const BrowserAIConfig& config,
   }
   // Set sensible defaults per provider
   if (config_.provider == "openai") {
-    if (config_.model.empty()) config_.model = "gpt-4o-mini";
-    if (config_.api_base.empty()) config_.api_base = kOpenAIApiBaseUrl;
+    if (config_.model.empty())
+      config_.model = "gpt-4o-mini";
+    if (config_.api_base.empty())
+      config_.api_base = kOpenAIApiBaseUrl;
   } else {
-    if (config_.model.empty()) config_.model = "gemini-2.5-flash";
+    if (config_.model.empty())
+      config_.model = "gemini-2.5-flash";
   }
 
   if (!http_client_) {
@@ -112,7 +117,8 @@ void BrowserAIService::SetRomContext(Rom* rom) {
   if (rom_ && rom_->is_loaded()) {
     // Add ROM-specific context to system instruction
     config_.system_instruction = absl::StrFormat(
-        "You are assisting with ROM hacking for The Legend of Zelda: A Link to the Past. "
+        "You are assisting with ROM hacking for The Legend of Zelda: A Link to "
+        "the Past. "
         "The ROM file '%s' is currently loaded. %s",
         rom_->filename(), config_.system_instruction);
   }
@@ -155,9 +161,8 @@ absl::StatusOr<AgentResponse> BrowserAIService::GenerateResponse(
   // Make API request
   auto response_or = http_client_->Post(url, request_body, headers);
   if (!response_or.ok()) {
-    return absl::InternalError(
-        absl::StrFormat("Failed to make API request: %s",
-                        response_or.status().message()));
+    return absl::InternalError(absl::StrFormat("Failed to make API request: %s",
+                                               response_or.status().message()));
   }
 
   const auto& response = response_or.value();
@@ -169,9 +174,8 @@ absl::StatusOr<AgentResponse> BrowserAIService::GenerateResponse(
           absl::StrFormat("API request failed with status %d: %s",
                           response.status_code, response.body));
     } else {
-      return absl::InternalError(
-          absl::StrFormat("API server error %d: %s",
-                          response.status_code, response.body));
+      return absl::InternalError(absl::StrFormat(
+          "API server error %d: %s", response.status_code, response.body));
     }
   }
 
@@ -198,7 +202,8 @@ absl::StatusOr<AgentResponse> BrowserAIService::GenerateResponse(
     return absl::InvalidArgumentError("Chat history cannot be empty");
   }
 
-  LogDebug(absl::StrFormat("Generating response from %zu messages", history.size()));
+  LogDebug(
+      absl::StrFormat("Generating response from %zu messages", history.size()));
 
   // Build API URL
   std::string url = BuildApiUrl("generateContent");
@@ -211,7 +216,8 @@ absl::StatusOr<AgentResponse> BrowserAIService::GenerateResponse(
   } else {
     // Convert history to Gemini format and build request
     nlohmann::json request;
-    request["contents"] = nlohmann::json::parse(ConvertHistoryToGeminiFormat(history));
+    request["contents"] =
+        nlohmann::json::parse(ConvertHistoryToGeminiFormat(history));
 
     // Add generation config
     request["generationConfig"]["temperature"] = config_.temperature;
@@ -219,7 +225,8 @@ absl::StatusOr<AgentResponse> BrowserAIService::GenerateResponse(
 
     // Add system instruction if provided
     if (!config_.system_instruction.empty()) {
-      request["systemInstruction"]["parts"][0]["text"] = config_.system_instruction;
+      request["systemInstruction"]["parts"][0]["text"] =
+          config_.system_instruction;
     }
 
     request_body = request.dump();
@@ -235,9 +242,8 @@ absl::StatusOr<AgentResponse> BrowserAIService::GenerateResponse(
   // Make API request
   auto response_or = http_client_->Post(url, request_body, headers);
   if (!response_or.ok()) {
-    return absl::InternalError(
-        absl::StrFormat("Failed to make API request: %s",
-                        response_or.status().message()));
+    return absl::InternalError(absl::StrFormat("Failed to make API request: %s",
+                                               response_or.status().message()));
   }
 
   const auto& response = response_or.value();
@@ -261,78 +267,65 @@ absl::StatusOr<std::vector<ModelInfo>> BrowserAIService::ListAvailableModels() {
   // For browser context, return curated lists for configured provider
   std::vector<ModelInfo> models;
 
-  const std::string provider = config_.provider.empty() ? "gemini" : config_.provider;
+  const std::string provider =
+      config_.provider.empty() ? "gemini" : config_.provider;
 
   if (provider == "openai") {
-    models.push_back({
-        .name = "gpt-4o-mini",
-        .display_name = "GPT-4o Mini",
-        .provider = "openai",
-        .description = "Fast/cheap OpenAI model",
-        .family = "gpt-4o",
-        .is_local = false
-    });
-    models.push_back({
-        .name = "gpt-4o",
-        .display_name = "GPT-4o",
-        .provider = "openai",
-        .description = "Balanced OpenAI flagship model",
-        .family = "gpt-4o",
-        .is_local = false
-    });
-    models.push_back({
-        .name = "gpt-4.1-mini",
-        .display_name = "GPT-4.1 Mini",
-        .provider = "openai",
-        .description = "Lightweight 4.1 variant",
-        .family = "gpt-4.1",
-        .is_local = false
-    });
+    models.push_back({.name = "gpt-4o-mini",
+                      .display_name = "GPT-4o Mini",
+                      .provider = "openai",
+                      .description = "Fast/cheap OpenAI model",
+                      .family = "gpt-4o",
+                      .is_local = false});
+    models.push_back({.name = "gpt-4o",
+                      .display_name = "GPT-4o",
+                      .provider = "openai",
+                      .description = "Balanced OpenAI flagship model",
+                      .family = "gpt-4o",
+                      .is_local = false});
+    models.push_back({.name = "gpt-4.1-mini",
+                      .display_name = "GPT-4.1 Mini",
+                      .provider = "openai",
+                      .description = "Lightweight 4.1 variant",
+                      .family = "gpt-4.1",
+                      .is_local = false});
   } else {
-    models.push_back({
-        .name = "gemini-2.5-flash",
-        .display_name = "Gemini 2.0 Flash (Experimental)",
-        .provider = "gemini",
-        .description = "Fastest Gemini model with experimental features",
-        .family = "gemini",
-        .is_local = false
-    });
+    models.push_back(
+        {.name = "gemini-2.5-flash",
+         .display_name = "Gemini 2.0 Flash (Experimental)",
+         .provider = "gemini",
+         .description = "Fastest Gemini model with experimental features",
+         .family = "gemini",
+         .is_local = false});
 
-    models.push_back({
-        .name = "gemini-1.5-flash",
-        .display_name = "Gemini 1.5 Flash",
-        .provider = "gemini",
-        .description = "Fast and efficient for most tasks",
-        .family = "gemini",
-        .is_local = false
-    });
+    models.push_back({.name = "gemini-1.5-flash",
+                      .display_name = "Gemini 1.5 Flash",
+                      .provider = "gemini",
+                      .description = "Fast and efficient for most tasks",
+                      .family = "gemini",
+                      .is_local = false});
 
-    models.push_back({
-        .name = "gemini-1.5-flash-8b",
-        .display_name = "Gemini 1.5 Flash 8B",
-        .provider = "gemini",
-        .description = "Smaller, faster variant of Flash",
-        .family = "gemini",
-        .parameter_size = "8B",
-        .is_local = false
-    });
+    models.push_back({.name = "gemini-1.5-flash-8b",
+                      .display_name = "Gemini 1.5 Flash 8B",
+                      .provider = "gemini",
+                      .description = "Smaller, faster variant of Flash",
+                      .family = "gemini",
+                      .parameter_size = "8B",
+                      .is_local = false});
 
-    models.push_back({
-        .name = "gemini-1.5-pro",
-        .display_name = "Gemini 1.5 Pro",
-        .provider = "gemini",
-        .description = "Most capable model for complex tasks",
-        .family = "gemini",
-        .is_local = false
-    });
+    models.push_back({.name = "gemini-1.5-pro",
+                      .display_name = "Gemini 1.5 Pro",
+                      .provider = "gemini",
+                      .description = "Most capable model for complex tasks",
+                      .family = "gemini",
+                      .is_local = false});
   }
 
   return models;
 }
 
 absl::StatusOr<AgentResponse> BrowserAIService::AnalyzeImage(
-    const std::string& image_data,
-    const std::string& prompt) {
+    const std::string& image_data, const std::string& prompt) {
   std::lock_guard<std::mutex> lock(mutex_);
   if (!http_client_) {
     return absl::FailedPreconditionError("HTTP client not initialized");
@@ -368,7 +361,8 @@ absl::StatusOr<AgentResponse> BrowserAIService::AnalyzeImage(
   }
 
   // Build multimodal request
-  std::string request_body = BuildMultimodalRequestBody(prompt, clean_image_data, mime_type);
+  std::string request_body =
+      BuildMultimodalRequestBody(prompt, clean_image_data, mime_type);
 
   // Set headers
   net::Headers headers;
@@ -377,9 +371,8 @@ absl::StatusOr<AgentResponse> BrowserAIService::AnalyzeImage(
   // Make API request
   auto response_or = http_client_->Post(url, request_body, headers);
   if (!response_or.ok()) {
-    return absl::InternalError(
-        absl::StrFormat("Failed to make API request: %s",
-                        response_or.status().message()));
+    return absl::InternalError(absl::StrFormat("Failed to make API request: %s",
+                                               response_or.status().message()));
   }
 
   const auto& response = response_or.value();
@@ -410,13 +403,12 @@ absl::Status BrowserAIService::CheckAvailability() {
 
   if (config_.provider == "openai") {
     url = config_.api_base.empty() ? kOpenAIApiBaseUrl : config_.api_base;
-    if (!url.empty() && url.back() == '/') url.pop_back();
+    if (!url.empty() && url.back() == '/')
+      url.pop_back();
     url += "/models";
     headers["Authorization"] = "Bearer " + config_.api_key;
   } else {
-    url = absl::StrFormat("%s%s?key=%s",
-                          kGeminiApiBaseUrl,
-                          config_.model,
+    url = absl::StrFormat("%s%s?key=%s", kGeminiApiBaseUrl, config_.model,
                           config_.api_key);
   }
 
@@ -424,8 +416,7 @@ absl::Status BrowserAIService::CheckAvailability() {
 
   if (!response_or.ok()) {
     return absl::UnavailableError(
-        absl::StrFormat("Cannot reach %s API: %s",
-                        config_.provider,
+        absl::StrFormat("Cannot reach %s API: %s", config_.provider,
                         response_or.status().message()));
   }
 
@@ -434,10 +425,8 @@ absl::Status BrowserAIService::CheckAvailability() {
     if (response.status_code == 401 || response.status_code == 403) {
       return absl::PermissionDeniedError("Invalid API key");
     }
-    return absl::UnavailableError(
-        absl::StrFormat("%s API returned error %d",
-                        config_.provider,
-                        response.status_code));
+    return absl::UnavailableError(absl::StrFormat(
+        "%s API returned error %d", config_.provider, response.status_code));
   }
 
   return absl::OkStatus();
@@ -454,22 +443,20 @@ void BrowserAIService::UpdateApiKey(const std::string& api_key) {
 
 std::string BrowserAIService::BuildApiUrl(const std::string& endpoint) const {
   if (config_.provider == "openai") {
-    std::string base = config_.api_base.empty() ? kOpenAIApiBaseUrl : config_.api_base;
+    std::string base =
+        config_.api_base.empty() ? kOpenAIApiBaseUrl : config_.api_base;
     if (!base.empty() && base.back() == '/') {
       base.pop_back();
     }
     return absl::StrFormat("%s/%s", base, endpoint);
   }
 
-  return absl::StrFormat("%s%s:%s?key=%s",
-                         kGeminiApiBaseUrl,
-                         config_.model,
-                         endpoint,
-                         config_.api_key);
+  return absl::StrFormat("%s%s:%s?key=%s", kGeminiApiBaseUrl, config_.model,
+                         endpoint, config_.api_key);
 }
 
 std::string BrowserAIService::BuildRequestBody(const std::string& prompt,
-                                                bool include_system) const {
+                                               bool include_system) const {
   nlohmann::json request;
 
   // Build contents array with user prompt
@@ -490,15 +477,15 @@ std::string BrowserAIService::BuildRequestBody(const std::string& prompt,
   if (include_system && !config_.system_instruction.empty()) {
     nlohmann::json system_part;
     system_part["text"] = config_.system_instruction;
-    request["systemInstruction"]["parts"] = nlohmann::json::array({system_part});
+    request["systemInstruction"]["parts"] =
+        nlohmann::json::array({system_part});
   }
 
   return request.dump();
 }
 
 std::string BrowserAIService::BuildMultimodalRequestBody(
-    const std::string& prompt,
-    const std::string& image_data,
+    const std::string& prompt, const std::string& image_data,
     const std::string& mime_type) const {
   nlohmann::json request;
 
@@ -524,7 +511,8 @@ std::string BrowserAIService::BuildMultimodalRequestBody(
   if (!config_.system_instruction.empty()) {
     nlohmann::json system_part;
     system_part["text"] = config_.system_instruction;
-    request["systemInstruction"]["parts"] = nlohmann::json::array({system_part});
+    request["systemInstruction"]["parts"] =
+        nlohmann::json::array({system_part});
   }
 
   return request.dump();
@@ -538,16 +526,17 @@ std::string BrowserAIService::BuildOpenAIRequestBody(
 
   nlohmann::json messages = nlohmann::json::array();
   if (!config_.system_instruction.empty()) {
-    messages.push_back({{"role", "system"},
-                        {"content", config_.system_instruction}});
+    messages.push_back(
+        {{"role", "system"}, {"content", config_.system_instruction}});
   }
 
   if (history && !history->empty()) {
     for (const auto& msg : *history) {
-      messages.push_back({
-          {"role", msg.sender == agent::ChatMessage::Sender::kUser ? "user"
-                                                                   : "assistant"},
-          {"content", msg.message}});
+      messages.push_back(
+          {{"role", msg.sender == agent::ChatMessage::Sender::kUser
+                        ? "user"
+                        : "assistant"},
+           {"content", msg.message}});
     }
   } else if (!prompt.empty()) {
     messages.push_back({{"role", "user"}, {"content", prompt}});
@@ -591,16 +580,15 @@ absl::StatusOr<AgentResponse> BrowserAIService::ParseGeminiResponse(
         if (rating.contains("probability") &&
             rating["probability"] != "NEGLIGIBLE" &&
             rating["probability"] != "LOW") {
-          response.warnings.push_back(
-              absl::StrFormat("Content flagged: %s (%s)",
-                             rating.value("category", "unknown"),
-                             rating.value("probability", "unknown")));
+          response.warnings.push_back(absl::StrFormat(
+              "Content flagged: %s (%s)", rating.value("category", "unknown"),
+              rating.value("probability", "unknown")));
         }
       }
     }
 
     LogDebug(absl::StrFormat("Successfully parsed response with %zu characters",
-                            text_content.length()));
+                             text_content.length()));
 
     return response;
 
@@ -619,8 +607,10 @@ absl::StatusOr<AgentResponse> BrowserAIService::ParseOpenAIResponse(
       const auto& err = json["error"];
       std::string message = err.value("message", "Unknown error");
       int code = err.value("code", 0);
-      if (code == 401 || code == 403) return absl::UnauthenticatedError(message);
-      if (code == 429) return absl::ResourceExhaustedError(message);
+      if (code == 401 || code == 403)
+        return absl::UnauthenticatedError(message);
+      if (code == 429)
+        return absl::ResourceExhaustedError(message);
       return absl::InternalError(message);
     }
 
@@ -706,9 +696,8 @@ absl::Status BrowserAIService::CheckForApiError(
 void BrowserAIService::LogDebug(const std::string& message) const {
   if (config_.verbose) {
     // Use console.log for browser debugging
-    EM_ASM({
-      console.log('[BrowserAIService] ' + UTF8ToString($0));
-    }, message.c_str());
+    EM_ASM({ console.log('[BrowserAIService] ' + UTF8ToString($0)); },
+           message.c_str());
   }
 }
 

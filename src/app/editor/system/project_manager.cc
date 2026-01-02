@@ -18,7 +18,7 @@ absl::Status ProjectManager::CreateNewProject(
     const std::string& template_name) {
   // ROM-first workflow: Creating a project requires a ROM to be loaded
   // The actual project creation happens after ROM selection in the wizard
-  
+
   if (template_name.empty()) {
     // Create default project - will be configured after ROM load
     current_project_ = project::YazeProject();
@@ -26,10 +26,10 @@ absl::Status ProjectManager::CreateNewProject(
     current_project_.filepath = GenerateProjectFilename("New Project");
 
     if (toast_manager_) {
-      toast_manager_->Show("New project created - select a ROM to continue", 
+      toast_manager_->Show("New project created - select a ROM to continue",
                            ToastType::kInfo);
     }
-    
+
     // Mark that we're waiting for ROM selection
     pending_rom_selection_ = true;
     return absl::OkStatus();
@@ -57,18 +57,16 @@ absl::Status ProjectManager::LoadProjectFromFile(const std::string& filename) {
   if (!status.ok()) {
     if (toast_manager_) {
       toast_manager_->Show(
-          absl::StrFormat("Failed to load project: %s",
-                          status.message()),
+          absl::StrFormat("Failed to load project: %s", status.message()),
           ToastType::kError);
     }
     return status;
   }
 
   if (toast_manager_) {
-    toast_manager_->Show(
-        absl::StrFormat("Project loaded: %s",
-                        current_project_.GetDisplayName()),
-        ToastType::kSuccess);
+    toast_manager_->Show(absl::StrFormat("Project loaded: %s",
+                                         current_project_.GetDisplayName()),
+                         ToastType::kSuccess);
   }
 
   return absl::OkStatus();
@@ -308,7 +306,7 @@ absl::Status ProjectManager::SetProjectRom(const std::string& rom_path) {
 
   if (toast_manager_) {
     toast_manager_->Show(
-        absl::StrFormat("ROM set for project: %s", 
+        absl::StrFormat("ROM set for project: %s",
                         std::filesystem::path(rom_path).filename().string()),
         ToastType::kSuccess);
   }
@@ -323,7 +321,7 @@ absl::Status ProjectManager::FinalizeProjectCreation(
   }
 
   current_project_.name = project_name;
-  
+
   if (!project_path.empty()) {
     current_project_.filepath = project_path;
   } else {
@@ -336,24 +334,22 @@ absl::Status ProjectManager::FinalizeProjectCreation(
   // Initialize project structure if we have a directory
   std::string project_dir;
 #ifndef __EMSCRIPTEN__
-  project_dir = std::filesystem::path(current_project_.filepath)
-                    .parent_path()
-                    .string();
+  project_dir =
+      std::filesystem::path(current_project_.filepath).parent_path().string();
 #endif
   if (!project_dir.empty()) {
     auto status = InitializeProjectStructure(project_dir);
     if (!status.ok()) {
       if (toast_manager_) {
-        toast_manager_->Show("Could not create project directories", 
+        toast_manager_->Show("Could not create project directories",
                              ToastType::kWarning);
       }
     }
   }
 
   if (toast_manager_) {
-    toast_manager_->Show(
-        absl::StrFormat("Project created: %s", project_name),
-        ToastType::kSuccess);
+    toast_manager_->Show(absl::StrFormat("Project created: %s", project_name),
+                         ToastType::kSuccess);
   }
 
   return absl::OkStatus();
@@ -364,7 +360,7 @@ void ProjectManager::CancelPendingProject() {
     pending_rom_selection_ = false;
     pending_template_name_.clear();
     current_project_ = project::YazeProject();
-    
+
     if (toast_manager_) {
       toast_manager_->Show("Project creation cancelled", ToastType::kInfo);
     }
@@ -381,41 +377,44 @@ void ProjectManager::RequestRomSelection() {
 // ZSCustomOverworld Presets
 // ============================================================================
 
-std::vector<project::ProjectManager::ProjectTemplate> 
+std::vector<project::ProjectManager::ProjectTemplate>
 ProjectManager::GetZsoTemplates() {
   std::vector<project::ProjectManager::ProjectTemplate> templates;
-  
+
   // Vanilla ROM Hack
   {
     project::ProjectManager::ProjectTemplate t;
     t.name = "Vanilla ROM Hack";
-    t.description = "Standard ROM editing without custom ASM patches. "
-                    "Limited to vanilla game features.";
+    t.description =
+        "Standard ROM editing without custom ASM patches. "
+        "Limited to vanilla game features.";
     t.icon = "MD_GAMEPAD";
     t.template_project.feature_flags.overworld.kLoadCustomOverworld = false;
     t.template_project.feature_flags.overworld.kSaveOverworldMaps = true;
     templates.push_back(t);
   }
-  
+
   // ZSCustomOverworld v2
   {
     project::ProjectManager::ProjectTemplate t;
     t.name = "ZSCustomOverworld v2";
-    t.description = "Basic overworld expansion with custom BG colors, "
-                    "main palettes, and parent system.";
+    t.description =
+        "Basic overworld expansion with custom BG colors, "
+        "main palettes, and parent system.";
     t.icon = "MD_MAP";
     t.template_project.feature_flags.overworld.kLoadCustomOverworld = true;
     t.template_project.feature_flags.overworld.kSaveOverworldMaps = true;
     t.template_project.feature_flags.kSaveAllPalettes = true;
     templates.push_back(t);
   }
-  
+
   // ZSCustomOverworld v3 (Recommended)
   {
     project::ProjectManager::ProjectTemplate t;
     t.name = "ZSCustomOverworld v3";
-    t.description = "Full overworld expansion: wide/tall areas, animated GFX, "
-                    "subscreen overlays, and all custom features.";
+    t.description =
+        "Full overworld expansion: wide/tall areas, animated GFX, "
+        "subscreen overlays, and all custom features.";
     t.icon = "MD_TERRAIN";
     t.template_project.feature_flags.overworld.kLoadCustomOverworld = true;
     t.template_project.feature_flags.overworld.kSaveOverworldMaps = true;
@@ -428,40 +427,40 @@ ProjectManager::GetZsoTemplates() {
     t.template_project.feature_flags.kSaveDungeonMaps = true;
     templates.push_back(t);
   }
-  
+
   // Randomizer Compatible
   {
     project::ProjectManager::ProjectTemplate t;
     t.name = "Randomizer Compatible";
-    t.description = "Minimal editing preset compatible with ALttP Randomizer. "
-                    "Avoids changes that break randomizer compatibility.";
+    t.description =
+        "Minimal editing preset compatible with ALttP Randomizer. "
+        "Avoids changes that break randomizer compatibility.";
     t.icon = "MD_SHUFFLE";
     t.template_project.feature_flags.overworld.kLoadCustomOverworld = false;
     t.template_project.feature_flags.overworld.kSaveOverworldMaps = false;
     templates.push_back(t);
   }
-  
+
   return templates;
 }
 
 absl::Status ProjectManager::ApplyZsoPreset(const std::string& preset_name) {
   auto templates = GetZsoTemplates();
-  
+
   for (const auto& t : templates) {
     if (t.name == preset_name) {
       // Apply feature flags from template
       current_project_.feature_flags = t.template_project.feature_flags;
-      
+
       if (toast_manager_) {
-        toast_manager_->Show(
-            absl::StrFormat("Applied preset: %s", preset_name),
-            ToastType::kSuccess);
+        toast_manager_->Show(absl::StrFormat("Applied preset: %s", preset_name),
+                             ToastType::kSuccess);
       }
-      
+
       return absl::OkStatus();
     }
   }
-  
+
   return absl::NotFoundError(
       absl::StrFormat("Unknown preset: %s", preset_name));
 }

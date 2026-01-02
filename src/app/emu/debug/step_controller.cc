@@ -7,37 +7,28 @@ namespace emu {
 namespace debug {
 
 bool StepController::IsCallInstruction(uint8_t opcode) {
-  return opcode == opcode::JSR ||
-         opcode == opcode::JSL ||
+  return opcode == opcode::JSR || opcode == opcode::JSL ||
          opcode == opcode::JSR_X;
 }
 
 bool StepController::IsReturnInstruction(uint8_t opcode) {
-  return opcode == opcode::RTS ||
-         opcode == opcode::RTL ||
+  return opcode == opcode::RTS || opcode == opcode::RTL ||
          opcode == opcode::RTI;
 }
 
 bool StepController::IsBranchInstruction(uint8_t opcode) {
-  return opcode == opcode::BCC ||
-         opcode == opcode::BCS ||
-         opcode == opcode::BEQ ||
-         opcode == opcode::BMI ||
-         opcode == opcode::BNE ||
-         opcode == opcode::BPL ||
-         opcode == opcode::BVC ||
-         opcode == opcode::BVS ||
-         opcode == opcode::BRA ||
-         opcode == opcode::BRL ||
-         opcode == opcode::JMP_ABS ||
-         opcode == opcode::JMP_IND ||
-         opcode == opcode::JMP_ABS_X ||
-         opcode == opcode::JMP_LONG ||
+  return opcode == opcode::BCC || opcode == opcode::BCS ||
+         opcode == opcode::BEQ || opcode == opcode::BMI ||
+         opcode == opcode::BNE || opcode == opcode::BPL ||
+         opcode == opcode::BVC || opcode == opcode::BVS ||
+         opcode == opcode::BRA || opcode == opcode::BRL ||
+         opcode == opcode::JMP_ABS || opcode == opcode::JMP_IND ||
+         opcode == opcode::JMP_ABS_X || opcode == opcode::JMP_LONG ||
          opcode == opcode::JMP_IND_L;
 }
 
 uint8_t StepController::GetInstructionSize(uint8_t opcode, bool m_flag,
-                                            bool x_flag) {
+                                           bool x_flag) {
   // Simplified instruction size calculation
   // For a full implementation, refer to the Disassembler65816 class
 
@@ -140,7 +131,7 @@ uint8_t StepController::GetInstructionSize(uint8_t opcode, bool m_flag,
 }
 
 uint32_t StepController::CalculateReturnAddress(uint32_t pc,
-                                                  uint8_t opcode) const {
+                                                uint8_t opcode) const {
   // Return address is pushed onto stack and is the address of the
   // instruction following the call
   uint8_t size = GetInstructionSize(opcode, true, true);
@@ -156,8 +147,9 @@ uint32_t StepController::CalculateReturnAddress(uint32_t pc,
 }
 
 uint32_t StepController::CalculateCallTarget(uint32_t pc,
-                                               uint8_t opcode) const {
-  if (!read_byte_) return 0;
+                                             uint8_t opcode) const {
+  if (!read_byte_)
+    return 0;
 
   uint32_t bank = pc & 0xFF0000;
 
@@ -168,8 +160,7 @@ uint32_t StepController::CalculateCallTarget(uint32_t pc,
 
     case opcode::JSL:
       // JSL long - full 24-bit address
-      return read_byte_(pc + 1) |
-             (read_byte_(pc + 2) << 8) |
+      return read_byte_(pc + 1) | (read_byte_(pc + 2) << 8) |
              (read_byte_(pc + 3) << 16);
 
     case opcode::JSR_X:
@@ -182,7 +173,8 @@ uint32_t StepController::CalculateCallTarget(uint32_t pc,
 }
 
 void StepController::ProcessInstruction(uint32_t pc) {
-  if (!read_byte_) return;
+  if (!read_byte_)
+    return;
 
   uint8_t opcode = read_byte_(pc);
 
@@ -242,9 +234,9 @@ StepResult StepController::StepInto() {
   result.ret = return_made;
 
   if (call_made) {
-    result.message = absl::StrFormat("Called $%06X from $%06X",
-                                      call_made->target_address,
-                                      call_made->call_address);
+    result.message =
+        absl::StrFormat("Called $%06X from $%06X", call_made->target_address,
+                        call_made->call_address);
   } else if (return_made) {
     result.message = absl::StrFormat("Returned to $%06X", pc_after);
   } else {
@@ -320,8 +312,8 @@ StepResult StepController::StepOver(uint32_t max_instructions) {
   // Timeout
   result.success = false;
   result.new_pc = get_pc_();
-  result.message = absl::StrFormat(
-      "Step over timed out after %u instructions", max_instructions);
+  result.message = absl::StrFormat("Step over timed out after %u instructions",
+                                   max_instructions);
   return result;
 }
 
@@ -367,9 +359,9 @@ StepResult StepController::StepOut(uint32_t max_instructions) {
       if (call_stack_.size() <= target_depth) {
         result.success = true;
         result.new_pc = get_pc_();
-        result.message = absl::StrFormat(
-            "Stepped out to $%06X after %u instructions",
-            result.new_pc, result.instructions_executed);
+        result.message =
+            absl::StrFormat("Stepped out to $%06X after %u instructions",
+                            result.new_pc, result.instructions_executed);
         return result;
       }
     }
@@ -378,8 +370,8 @@ StepResult StepController::StepOut(uint32_t max_instructions) {
   // Timeout
   result.success = false;
   result.new_pc = get_pc_();
-  result.message = absl::StrFormat(
-      "Step out timed out after %u instructions", max_instructions);
+  result.message = absl::StrFormat("Step out timed out after %u instructions",
+                                   max_instructions);
   return result;
 }
 

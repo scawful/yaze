@@ -43,7 +43,8 @@ void AppendStringArray(std::ostringstream& out,
                        const std::vector<std::string>& values) {
   out << "[";
   for (size_t i = 0; i < values.size(); ++i) {
-    if (i > 0) out << ", ";
+    if (i > 0)
+      out << ", ";
     out << "\"" << EscapeJson(values[i]) << "\"";
   }
   out << "]";
@@ -147,18 +148,20 @@ std::string CommandRegistry::ExportFunctionSchemas() const {
 
   bool first = true;
   for (const auto& [_, metadata] : metadata_) {
-    if (!first) out << ",\n";
+    if (!first)
+      out << ",\n";
     first = false;
 
     out << "    {\n";
     out << "      \"name\": \"" << EscapeJson(metadata.name) << "\",\n";
     out << "      \"category\": \"" << EscapeJson(metadata.category) << "\",\n";
-    out << "      \"description\": \"" << EscapeJson(metadata.description) << "\",\n";
+    out << "      \"description\": \"" << EscapeJson(metadata.description)
+        << "\",\n";
     out << "      \"usage\": \"" << EscapeJson(metadata.usage) << "\",\n";
     out << "      \"available_to_agent\": "
         << (metadata.available_to_agent ? "true" : "false") << ",\n";
-    out << "      \"requires_rom\": " << (metadata.requires_rom ? "true" : "false")
-        << ",\n";
+    out << "      \"requires_rom\": "
+        << (metadata.requires_rom ? "true" : "false") << ",\n";
     out << "      \"requires_grpc\": "
         << (metadata.requires_grpc ? "true" : "false") << ",\n";
     if (!metadata.todo_reference.empty()) {

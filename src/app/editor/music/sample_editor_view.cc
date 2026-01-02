@@ -4,8 +4,8 @@
 #include <cmath>
 
 #include "absl/strings/str_format.h"
-#include "app/gui/plots/implot_support.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/plots/implot_support.h"
 #include "imgui/imgui.h"
 #include "implot.h"
 
@@ -31,7 +31,7 @@ void SampleEditorView::Draw(MusicBank& bank) {
   float total_w = ImGui::GetContentRegionAvail().x;
   float list_w = std::max(150.0f, total_w * 0.2f);
   float props_w = std::max(220.0f, total_w * 0.25f);
-  
+
   ImGui::BeginChild("SampleList", ImVec2(list_w, 0), true);
   DrawSampleList(bank);
   ImGui::EndChild();
@@ -64,16 +64,18 @@ void SampleEditorView::DrawSampleList(MusicBank& bank) {
     auto result = bank.ImportSampleFromWav("dummy.wav", "New Sample");
     if (result.ok()) {
       selected_sample_index_ = result.value();
-      if (on_edit_) on_edit_();
+      if (on_edit_)
+        on_edit_();
     }
   }
-  
+
   ImGui::Separator();
 
   for (size_t i = 0; i < bank.GetSampleCount(); ++i) {
     const auto* sample = bank.GetSample(i);
     std::string label = absl::StrFormat("%02X: %s", i, sample->name.c_str());
-    if (ImGui::Selectable(label.c_str(), selected_sample_index_ == static_cast<int>(i))) {
+    if (ImGui::Selectable(label.c_str(),
+                          selected_sample_index_ == static_cast<int>(i))) {
       selected_sample_index_ = static_cast<int>(i);
     }
   }
@@ -100,12 +102,14 @@ void SampleEditorView::DrawProperties(MusicSample& sample) {
   int blocks = static_cast<int>(sample.brr_data.size() / 9);
   ImGui::Text("Blocks: %d", blocks);
   ImGui::Text("Duration: %.3f s", (blocks * 16) / 32040.0f);
-  
+
   ImGui::Spacing();
   ImGui::Separator();
   ImGui::Text("Loop Settings");
   ImGui::SameLine();
-  HelpMarker("SNES samples can loop. The loop point is defined in BRR blocks (groups of 16 samples).");
+  HelpMarker(
+      "SNES samples can loop. The loop point is defined in BRR blocks (groups "
+      "of 16 samples).");
 
   // Loop Flag
   bool loops = sample.loops;
@@ -118,7 +122,7 @@ void SampleEditorView::DrawProperties(MusicSample& sample) {
   // Stored as byte offset in brr_data (must be multiple of 9)
   int loop_block = sample.loop_point / 9;
   int max_block = std::max(0, blocks - 1);
-  
+
   if (loops) {
     if (ImGui::SliderInt("Loop Start (Block)", &loop_block, 0, max_block)) {
       sample.loop_point = loop_block * 9;
@@ -140,7 +144,8 @@ void SampleEditorView::DrawProperties(MusicSample& sample) {
       on_preview_(selected_sample_index_);
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Play this sample at default pitch (requires ROM loaded)");
+      ImGui::SetTooltip(
+          "Play this sample at default pitch (requires ROM loaded)");
     }
   } else {
     ImGui::BeginDisabled();
@@ -169,25 +174,28 @@ void SampleEditorView::DrawWaveform(const MusicSample& sample) {
   // Decode BRR for visualization (simplified)
   // For now, just plot raw bytes as signed values to show *something*
   // A real BRR decoder is needed for accurate waveform
-  
+
   plot_x_.clear();
   plot_y_.clear();
-  
+
   // Downsample for performance if needed
   int step = 1;
-  if (sample.pcm_data.size() > 4000) step = static_cast<int>(sample.pcm_data.size()) / 4000;
-  if (step < 1) step = 1;
-  
+  if (sample.pcm_data.size() > 4000)
+    step = static_cast<int>(sample.pcm_data.size()) / 4000;
+  if (step < 1)
+    step = 1;
+
   for (size_t i = 0; i < sample.pcm_data.size(); i += step) {
     plot_x_.push_back(static_cast<float>(i));
     plot_y_.push_back(static_cast<float>(sample.pcm_data[i]) / 32768.0f);
   }
-  
+
   if (ImPlot::BeginPlot("Waveform", ImVec2(-1, -1))) {
     ImPlot::SetupAxes("Sample", "Amplitude");
     ImPlot::SetupAxesLimits(0, sample.pcm_data.size(), -1.1, 1.1);
-    
-    ImPlot::PlotLine("PCM", plot_x_.data(), plot_y_.data(), static_cast<int>(plot_x_.size()));
+
+    ImPlot::PlotLine("PCM", plot_x_.data(), plot_y_.data(),
+                     static_cast<int>(plot_x_.size()));
 
     // Draw Loop Point
     if (sample.loops) {

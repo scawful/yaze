@@ -7,9 +7,9 @@
 #include <fstream>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/layout/layout_presets.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/resource_panel.h"
-#include "app/editor/layout/layout_presets.h"
 #include "app/gui/app/editor_layout.h"
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
@@ -26,19 +26,32 @@ namespace editor {
 // ============================================================================
 
 std::string PanelManager::GetCategoryIcon(const std::string& category) {
-  if (category == "Dungeon") return ICON_MD_CASTLE;
-  if (category == "Overworld") return ICON_MD_MAP;
-  if (category == "Graphics") return ICON_MD_IMAGE;
-  if (category == "Palette") return ICON_MD_PALETTE;
-  if (category == "Sprite") return ICON_MD_PERSON;
-  if (category == "Music") return ICON_MD_MUSIC_NOTE;
-  if (category == "Message") return ICON_MD_MESSAGE;
-  if (category == "Screen") return ICON_MD_TV;
-  if (category == "Emulator") return ICON_MD_VIDEOGAME_ASSET;
-  if (category == "Assembly") return ICON_MD_CODE;
-  if (category == "Settings") return ICON_MD_SETTINGS;
-  if (category == "Memory") return ICON_MD_MEMORY;
-  if (category == "Agent") return ICON_MD_SMART_TOY;
+  if (category == "Dungeon")
+    return ICON_MD_CASTLE;
+  if (category == "Overworld")
+    return ICON_MD_MAP;
+  if (category == "Graphics")
+    return ICON_MD_IMAGE;
+  if (category == "Palette")
+    return ICON_MD_PALETTE;
+  if (category == "Sprite")
+    return ICON_MD_PERSON;
+  if (category == "Music")
+    return ICON_MD_MUSIC_NOTE;
+  if (category == "Message")
+    return ICON_MD_MESSAGE;
+  if (category == "Screen")
+    return ICON_MD_TV;
+  if (category == "Emulator")
+    return ICON_MD_VIDEOGAME_ASSET;
+  if (category == "Assembly")
+    return ICON_MD_CODE;
+  if (category == "Settings")
+    return ICON_MD_SETTINGS;
+  if (category == "Memory")
+    return ICON_MD_MEMORY;
+  if (category == "Agent")
+    return ICON_MD_SMART_TOY;
   return ICON_MD_FOLDER;  // Default for unknown categories
 }
 
@@ -118,8 +131,8 @@ void PanelManager::RegisterSession(size_t session_id) {
     session_card_mapping_[session_id] =
         std::unordered_map<std::string, std::string>();
     UpdateSessionCount();
-    LOG_INFO("PanelManager", "Registered session %zu (total: %zu)",
-             session_id, session_count_);
+    LOG_INFO("PanelManager", "Registered session %zu (total: %zu)", session_id,
+             session_count_);
   }
 }
 
@@ -155,7 +168,7 @@ void PanelManager::SetActiveSession(size_t session_id) {
 // ============================================================================
 
 void PanelManager::RegisterPanel(size_t session_id,
-                                      const PanelDescriptor& base_info) {
+                                 const PanelDescriptor& base_info) {
   RegisterSession(session_id);  // Ensure session exists
 
   std::string prefixed_id = MakePanelId(session_id, base_info.card_id);
@@ -189,12 +202,14 @@ void PanelManager::RegisterPanel(size_t session_id,
            base_info.card_id.c_str(), prefixed_id.c_str(), session_id);
 }
 
-void PanelManager::RegisterPanel(
-    size_t session_id, const std::string& card_id,
-    const std::string& display_name, const std::string& icon,
-    const std::string& category, const std::string& shortcut_hint, int priority,
-    std::function<void()> on_show, std::function<void()> on_hide,
-    bool visible_by_default) {
+void PanelManager::RegisterPanel(size_t session_id, const std::string& card_id,
+                                 const std::string& display_name,
+                                 const std::string& icon,
+                                 const std::string& category,
+                                 const std::string& shortcut_hint, int priority,
+                                 std::function<void()> on_show,
+                                 std::function<void()> on_hide,
+                                 bool visible_by_default) {
   PanelDescriptor info;
   info.card_id = card_id;
   info.display_name = display_name;
@@ -215,7 +230,7 @@ void PanelManager::RegisterPanel(
 }
 
 void PanelManager::UnregisterPanel(size_t session_id,
-                                        const std::string& base_card_id) {
+                                   const std::string& base_card_id) {
   std::string prefixed_id = GetPrefixedPanelId(session_id, base_card_id);
   if (prefixed_id.empty()) {
     return;
@@ -223,8 +238,7 @@ void PanelManager::UnregisterPanel(size_t session_id,
 
   auto it = cards_.find(prefixed_id);
   if (it != cards_.end()) {
-    LOG_INFO("PanelManager", "Unregistered card: %s",
-             prefixed_id.c_str());
+    LOG_INFO("PanelManager", "Unregistered card: %s", prefixed_id.c_str());
     cards_.erase(it);
     centralized_visibility_.erase(prefixed_id);
     pinned_panels_.erase(prefixed_id);
@@ -336,8 +350,8 @@ void PanelManager::RegisterEditorPanel(std::unique_ptr<EditorPanel> panel) {
     panel_resource_types_[panel_id] = type;
   }
 
-  LOG_INFO("PanelManager", "Registered EditorPanel: %s (%s)",
-           panel_id.c_str(), descriptor.display_name.c_str());
+  LOG_INFO("PanelManager", "Registered EditorPanel: %s (%s)", panel_id.c_str(),
+           descriptor.display_name.c_str());
 }
 
 // ============================================================================
@@ -346,16 +360,22 @@ void PanelManager::RegisterEditorPanel(std::unique_ptr<EditorPanel> panel) {
 
 void PanelManager::EnforceResourceLimits(const std::string& resource_type) {
   auto it = resource_panels_.find(resource_type);
-  if (it == resource_panels_.end()) return;
+  if (it == resource_panels_.end())
+    return;
 
   auto& panel_list = it->second;
-  size_t limit = ResourcePanelLimits::kMaxTotalResourcePanels; // Default fallback
+  size_t limit =
+      ResourcePanelLimits::kMaxTotalResourcePanels;  // Default fallback
 
   // Determine limit based on type
-  if (resource_type == "room") limit = ResourcePanelLimits::kMaxRoomPanels;
-  else if (resource_type == "song") limit = ResourcePanelLimits::kMaxSongPanels;
-  else if (resource_type == "sheet") limit = ResourcePanelLimits::kMaxSheetPanels;
-  else if (resource_type == "map") limit = ResourcePanelLimits::kMaxMapPanels;
+  if (resource_type == "room")
+    limit = ResourcePanelLimits::kMaxRoomPanels;
+  else if (resource_type == "song")
+    limit = ResourcePanelLimits::kMaxSongPanels;
+  else if (resource_type == "sheet")
+    limit = ResourcePanelLimits::kMaxSheetPanels;
+  else if (resource_type == "map")
+    limit = ResourcePanelLimits::kMaxMapPanels;
 
   // Evict panels until we have room for one more (current count < limit)
   // Prioritize evicting non-pinned panels first, then oldest pinned ones
@@ -368,27 +388,29 @@ void PanelManager::EnforceResourceLimits(const std::string& resource_type) {
         break;
       }
     }
-    
+
     // If all are pinned, evict the oldest (front of list) anyway
     if (panel_to_evict.empty()) {
       panel_to_evict = panel_list.front();
       LOG_INFO("PanelManager", "All %s panels pinned, evicting oldest: %s",
                resource_type.c_str(), panel_to_evict.c_str());
     } else {
-      LOG_INFO("PanelManager", "Evicting non-pinned resource panel: %s (type: %s)",
+      LOG_INFO("PanelManager",
+               "Evicting non-pinned resource panel: %s (type: %s)",
                panel_to_evict.c_str(), resource_type.c_str());
     }
-    
+
     // Remove from LRU list first to avoid iterator issues
     panel_list.remove(panel_to_evict);
-    
+
     UnregisterEditorPanel(panel_to_evict);
   }
 }
 
 void PanelManager::MarkPanelUsed(const std::string& panel_id) {
   auto type_it = panel_resource_types_.find(panel_id);
-  if (type_it == panel_resource_types_.end()) return;
+  if (type_it == panel_resource_types_.end())
+    return;
 
   std::string type = type_it->second;
   auto& list = resource_panels_[type];
@@ -469,9 +491,8 @@ void PanelManager::DrawAllVisiblePanels() {
     window.SetPinned(IsPanelPinned(panel_id));
 
     // Wire up pin state change callback to persist to PanelManager
-    window.SetPinChangedCallback([this, panel_id](bool pinned) {
-      SetPanelPinned(panel_id, pinned);
-    });
+    window.SetPinChangedCallback(
+        [this, panel_id](bool pinned) { SetPanelPinned(panel_id, pinned); });
 
     if (window.Begin(visibility_flag)) {
       panel->Draw(visibility_flag);
@@ -504,7 +525,8 @@ void PanelManager::OnEditorSwitch(const std::string& from_category,
   }
 
   // Show default panels for new category
-  EditorType editor_type = EditorRegistry::GetEditorTypeFromCategory(to_category);
+  EditorType editor_type =
+      EditorRegistry::GetEditorTypeFromCategory(to_category);
   auto defaults = LayoutPresets::GetDefaultPanels(editor_type);
   for (const auto& panel_id : defaults) {
     ShowPanel(panel_id);
@@ -519,7 +541,7 @@ void PanelManager::OnEditorSwitch(const std::string& from_category,
 // ============================================================================
 
 bool PanelManager::ShowPanel(size_t session_id,
-                                  const std::string& base_card_id) {
+                             const std::string& base_card_id) {
   std::string prefixed_id = GetPrefixedPanelId(session_id, base_card_id);
   if (prefixed_id.empty()) {
     return false;
@@ -539,7 +561,7 @@ bool PanelManager::ShowPanel(size_t session_id,
 }
 
 bool PanelManager::HidePanel(size_t session_id,
-                                  const std::string& base_card_id) {
+                             const std::string& base_card_id) {
   std::string prefixed_id = GetPrefixedPanelId(session_id, base_card_id);
   if (prefixed_id.empty()) {
     return false;
@@ -559,7 +581,7 @@ bool PanelManager::HidePanel(size_t session_id,
 }
 
 bool PanelManager::TogglePanel(size_t session_id,
-                                    const std::string& base_card_id) {
+                               const std::string& base_card_id) {
   std::string prefixed_id = GetPrefixedPanelId(session_id, base_card_id);
   if (prefixed_id.empty()) {
     return false;
@@ -581,7 +603,7 @@ bool PanelManager::TogglePanel(size_t session_id,
 }
 
 bool PanelManager::IsPanelVisible(size_t session_id,
-                                       const std::string& base_card_id) const {
+                                  const std::string& base_card_id) const {
   std::string prefixed_id = GetPrefixedPanelId(session_id, base_card_id);
   if (prefixed_id.empty()) {
     return false;
@@ -595,7 +617,7 @@ bool PanelManager::IsPanelVisible(size_t session_id,
 }
 
 bool* PanelManager::GetVisibilityFlag(size_t session_id,
-                                            const std::string& base_card_id) {
+                                      const std::string& base_card_id) {
   std::string prefixed_id = GetPrefixedPanelId(session_id, base_card_id);
   if (prefixed_id.empty()) {
     return nullptr;
@@ -643,7 +665,7 @@ void PanelManager::HideAllPanelsInSession(size_t session_id) {
 }
 
 void PanelManager::ShowAllPanelsInCategory(size_t session_id,
-                                                const std::string& category) {
+                                           const std::string& category) {
   auto it = session_cards_.find(session_id);
   if (it != session_cards_.end()) {
     for (const auto& prefixed_card_id : it->second) {
@@ -661,7 +683,7 @@ void PanelManager::ShowAllPanelsInCategory(size_t session_id,
 }
 
 void PanelManager::HideAllPanelsInCategory(size_t session_id,
-                                                const std::string& category) {
+                                           const std::string& category) {
   auto it = session_cards_.find(session_id);
   if (it != session_cards_.end()) {
     for (const auto& prefixed_card_id : it->second) {
@@ -679,7 +701,7 @@ void PanelManager::HideAllPanelsInCategory(size_t session_id,
 }
 
 void PanelManager::ShowOnlyPanel(size_t session_id,
-                                      const std::string& base_card_id) {
+                                 const std::string& base_card_id) {
   // First get the category of the target card
   std::string prefixed_id = GetPrefixedPanelId(session_id, base_card_id);
   if (prefixed_id.empty()) {
@@ -873,7 +895,7 @@ void PanelManager::AddToRecent(const std::string& card_id) {
 // ============================================================================
 
 void PanelManager::SavePreset(const std::string& name,
-                                    const std::string& description) {
+                              const std::string& description) {
   WorkspacePreset preset;
   preset.name = name;
   preset.description = description;
@@ -924,8 +946,7 @@ void PanelManager::DeletePreset(const std::string& name) {
   SavePresetsToFile();
 }
 
-std::vector<PanelManager::WorkspacePreset>
-PanelManager::GetPresets() const {
+std::vector<PanelManager::WorkspacePreset> PanelManager::GetPresets() const {
   std::vector<WorkspacePreset> result;
   for (const auto& [name, preset] : presets_) {
     result.push_back(preset);
@@ -950,12 +971,10 @@ void PanelManager::ResetToDefaults(size_t session_id) {
   HideAllPanelsInSession(session_id);
 
   // TODO: Load default visibility from config file or hardcoded defaults
-  LOG_INFO("PanelManager", "Reset to defaults for session %zu",
-           session_id);
+  LOG_INFO("PanelManager", "Reset to defaults for session %zu", session_id);
 }
 
-void PanelManager::ResetToDefaults(size_t session_id,
-                                         EditorType editor_type) {
+void PanelManager::ResetToDefaults(size_t session_id, EditorType editor_type) {
   // Get category for this editor
   std::string category = EditorRegistry::GetEditorCategory(editor_type);
   if (category.empty()) {
@@ -974,14 +993,12 @@ void PanelManager::ResetToDefaults(size_t session_id,
   // Show each default card
   for (const auto& card_id : default_panels) {
     if (ShowPanel(session_id, card_id)) {
-      LOG_INFO("PanelManager", "Showing default card: %s",
-               card_id.c_str());
+      LOG_INFO("PanelManager", "Showing default card: %s", card_id.c_str());
     }
   }
 
-  LOG_INFO("PanelManager",
-           "Reset %s editor to defaults (%zu cards visible)", category.c_str(),
-           default_panels.size());
+  LOG_INFO("PanelManager", "Reset %s editor to defaults (%zu cards visible)",
+           category.c_str(), default_panels.size());
 }
 
 // ============================================================================
@@ -1009,7 +1026,7 @@ size_t PanelManager::GetVisiblePanelCount(size_t session_id) const {
 // ============================================================================
 
 std::string PanelManager::MakePanelId(size_t session_id,
-                                           const std::string& base_id) const {
+                                      const std::string& base_id) const {
   if (ShouldPrefixPanels()) {
     return absl::StrFormat("s%zu.%s", session_id, base_id);
   }
@@ -1024,8 +1041,8 @@ void PanelManager::UpdateSessionCount() {
   session_count_ = session_cards_.size();
 }
 
-std::string PanelManager::GetPrefixedPanelId(
-    size_t session_id, const std::string& base_id) const {
+std::string PanelManager::GetPrefixedPanelId(size_t session_id,
+                                             const std::string& base_id) const {
   auto session_it = session_card_mapping_.find(session_id);
   if (session_it != session_card_mapping_.end()) {
     auto card_it = session_it->second.find(base_id);
@@ -1061,7 +1078,8 @@ void PanelManager::SavePresetsToFile() {
     return;
   }
 
-  std::filesystem::path presets_file = *config_dir_result / "layout_presets.json";
+  std::filesystem::path presets_file =
+      *config_dir_result / "layout_presets.json";
 
   try {
     yaze::Json j;
@@ -1101,7 +1119,8 @@ void PanelManager::LoadPresetsFromFile() {
     return;
   }
 
-  std::filesystem::path presets_file = *config_dir_result / "layout_presets.json";
+  std::filesystem::path presets_file =
+      *config_dir_result / "layout_presets.json";
 
   if (!util::PlatformPaths::Exists(presets_file)) {
     LOG_INFO("PanelManager", "No presets file found at %s",
@@ -1173,21 +1192,20 @@ FileBrowser* PanelManager::GetFileBrowser(const std::string& category) {
 }
 
 void PanelManager::EnableFileBrowser(const std::string& category,
-                                           const std::string& root_path) {
+                                     const std::string& root_path) {
   if (category_file_browsers_.find(category) == category_file_browsers_.end()) {
     auto browser = std::make_unique<FileBrowser>();
 
     // Set callback to forward file clicks
-    browser->SetFileClickedCallback(
-        [this, category](const std::string& path) {
-          if (on_file_clicked_) {
-            on_file_clicked_(category, path);
-          }
-          // Also activate the editor for this category
-          if (on_card_clicked_) {
-            on_card_clicked_(category);
-          }
-        });
+    browser->SetFileClickedCallback([this, category](const std::string& path) {
+      if (on_file_clicked_) {
+        on_file_clicked_(category, path);
+      }
+      // Also activate the editor for this category
+      if (on_card_clicked_) {
+        on_card_clicked_(category);
+      }
+    });
 
     if (!root_path.empty()) {
       browser->SetRootPath(root_path);
@@ -1214,7 +1232,7 @@ bool PanelManager::HasFileBrowser(const std::string& category) const {
 }
 
 void PanelManager::SetFileBrowserPath(const std::string& category,
-                                            const std::string& path) {
+                                      const std::string& path) {
   auto it = category_file_browsers_.find(category);
   if (it != category_file_browsers_.end()) {
     it->second->SetRootPath(path);
@@ -1252,7 +1270,8 @@ std::vector<std::string> PanelManager::GetPinnedPanels(
       ShouldPrefixPanels() ? absl::StrFormat("s%zu.", session_id) : "";
 
   for (const auto& [panel_id, pinned] : pinned_panels_) {
-    if (!pinned) continue;
+    if (!pinned)
+      continue;
     if (prefix.empty() || panel_id.rfind(prefix, 0) == 0) {
       result.push_back(panel_id);
     }
@@ -1272,8 +1291,6 @@ bool PanelManager::IsPanelPinned(const std::string& base_card_id) const {
 std::vector<std::string> PanelManager::GetPinnedPanels() const {
   return GetPinnedPanels(active_session_);
 }
-
-
 
 // =============================================================================
 // Panel Validation
@@ -1314,9 +1331,8 @@ PanelManager::PanelValidationResult PanelManager::ValidatePanel(
   return result;
 }
 
-
-std::vector<PanelManager::PanelValidationResult>
-PanelManager::ValidatePanels() const {
+std::vector<PanelManager::PanelValidationResult> PanelManager::ValidatePanels()
+    const {
   std::vector<PanelValidationResult> results;
   results.reserve(cards_.size());
 
@@ -1326,8 +1342,6 @@ PanelManager::ValidatePanels() const {
 
   return results;
 }
-
-
 
 }  // namespace editor
 }  // namespace yaze

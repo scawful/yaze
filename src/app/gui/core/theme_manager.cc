@@ -266,15 +266,15 @@ void ThemeManager::CreateFallbackYazeClassic() {
   theme.docking_empty_bg = RGBA(46, 66, 46, 255);  // Dark green
 
   // Dungeon editor colors
-  theme.dungeon.selection_primary = RGBA(255, 230, 51, 153);     // Yellow
-  theme.dungeon.selection_secondary = RGBA(51, 230, 255, 153);   // Cyan
-  theme.dungeon.selection_pulsing = RGBA(255, 255, 255, 204);    // White pulse
-  theme.dungeon.selection_handle = RGBA(255, 255, 255, 255);     // White handle
-  theme.dungeon.drag_preview = RGBA(128, 128, 255, 102);         // Blueish
+  theme.dungeon.selection_primary = RGBA(255, 230, 51, 153);    // Yellow
+  theme.dungeon.selection_secondary = RGBA(51, 230, 255, 153);  // Cyan
+  theme.dungeon.selection_pulsing = RGBA(255, 255, 255, 204);   // White pulse
+  theme.dungeon.selection_handle = RGBA(255, 255, 255, 255);    // White handle
+  theme.dungeon.drag_preview = RGBA(128, 128, 255, 102);        // Blueish
   theme.dungeon.drag_preview_outline = RGBA(153, 153, 255, 204);
   theme.dungeon.object_wall = RGBA(153, 153, 153, 255);
   theme.dungeon.object_floor = RGBA(102, 102, 102, 255);
-  theme.dungeon.object_chest = RGBA(255, 214, 0, 255);           // Gold
+  theme.dungeon.object_chest = RGBA(255, 214, 0, 255);  // Gold
   theme.dungeon.object_door = RGBA(140, 69, 18, 255);
   theme.dungeon.object_pot = RGBA(204, 102, 51, 255);
   theme.dungeon.object_stairs = RGBA(230, 230, 77, 255);
@@ -286,12 +286,12 @@ void ThemeManager::CreateFallbackYazeClassic() {
   theme.dungeon.grid_text = RGBA(255, 255, 255, 204);
   theme.dungeon.room_border = RGBA(128, 128, 128, 255);
   theme.dungeon.room_border_dark = RGBA(51, 51, 51, 255);
-  theme.dungeon.sprite_layer0 = RGBA(77, 204, 77, 255);          // Green
-  theme.dungeon.sprite_layer1 = RGBA(77, 77, 204, 255);          // Blue
+  theme.dungeon.sprite_layer0 = RGBA(77, 204, 77, 255);  // Green
+  theme.dungeon.sprite_layer1 = RGBA(77, 77, 204, 255);  // Blue
   theme.dungeon.sprite_layer2 = RGBA(77, 77, 204, 255);
-  theme.dungeon.outline_layer0 = RGBA(255, 51, 51, 255);         // Red
-  theme.dungeon.outline_layer1 = RGBA(51, 255, 51, 255);         // Green
-  theme.dungeon.outline_layer2 = RGBA(51, 51, 255, 255);         // Blue
+  theme.dungeon.outline_layer0 = RGBA(255, 51, 51, 255);  // Red
+  theme.dungeon.outline_layer1 = RGBA(51, 255, 51, 255);  // Green
+  theme.dungeon.outline_layer2 = RGBA(51, 51, 255, 255);  // Blue
 
   // Chat/agent colors
   theme.chat.user_message = RGBA(102, 179, 255, 255);
@@ -303,7 +303,8 @@ void ThemeManager::CreateFallbackYazeClassic() {
   theme.chat.provider_ollama = RGBA(230, 230, 230, 255);
   theme.chat.provider_gemini = RGBA(77, 153, 230, 255);
   theme.chat.provider_mock = RGBA(128, 128, 128, 255);
-  theme.chat.provider_openai = RGBA(51, 204, 153, 255);  // Teal/green for OpenAI
+  theme.chat.provider_openai =
+      RGBA(51, 204, 153, 255);  // Teal/green for OpenAI
   theme.chat.proposal_panel_bg = RGBA(38, 38, 46, 255);
   theme.chat.proposal_accent = RGBA(102, 153, 230, 255);
   theme.chat.button_copy = RGBA(77, 77, 89, 255);
@@ -1049,41 +1050,40 @@ std::string ThemeManager::ExportCurrentThemeJson() const {
     return absl::StrFormat("#%02X%02X%02X%02X", r, g, b, a);
   };
 
-  j["colors"] = {
-      {"primary", colorToHex(t.primary)},
-      {"secondary", colorToHex(t.secondary)},
-      {"accent", colorToHex(t.accent)},
-      {"background", colorToHex(t.background)},
-      {"surface", colorToHex(t.surface)},
-      {"error", colorToHex(t.error)},
-      {"warning", colorToHex(t.warning)},
-      {"success", colorToHex(t.success)},
-      {"info", colorToHex(t.info)},
-      {"text_primary", colorToHex(t.text_primary)},
-      {"text_secondary", colorToHex(t.text_secondary)},
-      {"text_disabled", colorToHex(t.text_disabled)},
-      {"window_bg", colorToHex(t.window_bg)},
-      {"child_bg", colorToHex(t.child_bg)},
-      {"popup_bg", colorToHex(t.popup_bg)},
-      {"modal_bg", colorToHex(t.modal_bg)},
-      {"button", colorToHex(t.button)},
-      {"button_hovered", colorToHex(t.button_hovered)},
-      {"button_active", colorToHex(t.button_active)},
-      {"header", colorToHex(t.header)},
-      {"header_hovered", colorToHex(t.header_hovered)},
-      {"header_active", colorToHex(t.header_active)},
-      {"border", colorToHex(t.border)},
-      {"border_shadow", colorToHex(t.border_shadow)},
-      {"separator", colorToHex(t.separator)},
-      // Editor semantic colors
-      {"editor_background", colorToHex(t.editor_background)},
-      {"editor_grid", colorToHex(t.editor_grid)},
-      {"editor_cursor", colorToHex(t.editor_cursor)},
-      {"editor_selection", colorToHex(t.editor_selection)},
-      // Enhanced semantic colors
-      {"code_background", colorToHex(t.code_background)},
-      {"text_highlight", colorToHex(t.text_highlight)},
-      {"link_hover", colorToHex(t.link_hover)}};
+  j["colors"] = {{"primary", colorToHex(t.primary)},
+                 {"secondary", colorToHex(t.secondary)},
+                 {"accent", colorToHex(t.accent)},
+                 {"background", colorToHex(t.background)},
+                 {"surface", colorToHex(t.surface)},
+                 {"error", colorToHex(t.error)},
+                 {"warning", colorToHex(t.warning)},
+                 {"success", colorToHex(t.success)},
+                 {"info", colorToHex(t.info)},
+                 {"text_primary", colorToHex(t.text_primary)},
+                 {"text_secondary", colorToHex(t.text_secondary)},
+                 {"text_disabled", colorToHex(t.text_disabled)},
+                 {"window_bg", colorToHex(t.window_bg)},
+                 {"child_bg", colorToHex(t.child_bg)},
+                 {"popup_bg", colorToHex(t.popup_bg)},
+                 {"modal_bg", colorToHex(t.modal_bg)},
+                 {"button", colorToHex(t.button)},
+                 {"button_hovered", colorToHex(t.button_hovered)},
+                 {"button_active", colorToHex(t.button_active)},
+                 {"header", colorToHex(t.header)},
+                 {"header_hovered", colorToHex(t.header_hovered)},
+                 {"header_active", colorToHex(t.header_active)},
+                 {"border", colorToHex(t.border)},
+                 {"border_shadow", colorToHex(t.border_shadow)},
+                 {"separator", colorToHex(t.separator)},
+                 // Editor semantic colors
+                 {"editor_background", colorToHex(t.editor_background)},
+                 {"editor_grid", colorToHex(t.editor_grid)},
+                 {"editor_cursor", colorToHex(t.editor_cursor)},
+                 {"editor_selection", colorToHex(t.editor_selection)},
+                 // Enhanced semantic colors
+                 {"code_background", colorToHex(t.code_background)},
+                 {"text_highlight", colorToHex(t.text_highlight)},
+                 {"link_hover", colorToHex(t.link_hover)}};
 
   j["style"] = {{"window_rounding", t.window_rounding},
                 {"frame_rounding", t.frame_rounding},
@@ -1412,8 +1412,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
     static char theme_description[256];
     static char theme_author[128];
     static bool live_preview = true;
-    static Theme
-        original_theme;  // Store original theme for restoration
+    static Theme original_theme;  // Store original theme for restoration
     static bool theme_backup_made = false;
 
     // Helper lambda for live preview application

@@ -38,7 +38,8 @@ std::string ValidationToolBase::FormatIssuesAsJson(
       json << absl::StrFormat(", \"address\": \"0x%06X\"", issue.address);
     }
     json << "}";
-    if (i < issues.size() - 1) json << ",";
+    if (i < issues.size() - 1)
+      json << ",";
     json << "\n";
   }
 
@@ -60,8 +61,8 @@ std::string ValidationToolBase::FormatIssuesAsJson(
         break;
     }
   }
-  json << "\"summary\": {\"errors\": " << errors << ", \"warnings\": " << warnings
-       << ", \"info\": " << info << "}}\n";
+  json << "\"summary\": {\"errors\": " << errors
+       << ", \"warnings\": " << warnings << ", \"info\": " << info << "}}\n";
 
   return json.str();
 }
@@ -181,8 +182,8 @@ std::vector<ValidationIssue> RomValidateTool::ValidateHeader(Rom* rom) {
       issues.push_back(
           {ValidationIssue::Severity::kInfo, "header", "ROM only", 0x7FD6});
     } else if (type == 0x02) {
-      issues.push_back({ValidationIssue::Severity::kInfo, "header",
-                        "ROM + SRAM", 0x7FD6});
+      issues.push_back(
+          {ValidationIssue::Severity::kInfo, "header", "ROM + SRAM", 0x7FD6});
     }
   }
 
@@ -255,9 +256,8 @@ std::vector<ValidationIssue> RomValidateTool::ValidateSize(Rom* rom) {
     issues.push_back({ValidationIssue::Severity::kInfo, "size",
                       "ROM size: 4MB (fully expanded)", 0});
   } else {
-    issues.push_back(
-        {ValidationIssue::Severity::kWarning, "size",
-         absl::StrFormat("Unusual ROM size: %zu bytes", size), 0});
+    issues.push_back({ValidationIssue::Severity::kWarning, "size",
+                      absl::StrFormat("Unusual ROM size: %zu bytes", size), 0});
   }
 
   // Check for header presence
@@ -382,11 +382,10 @@ std::vector<ValidationIssue> DataValidateTool::ValidatePalettes(Rom* rom) {
     issues.push_back({ValidationIssue::Severity::kInfo, "palettes",
                       "All main palettes accessible", kPaletteBase});
   } else {
-    issues.push_back(
-        {ValidationIssue::Severity::kError, "palettes",
-         absl::StrFormat("Only %d/%d palettes accessible", valid_palettes,
-                         kNumPalettes),
-         kPaletteBase});
+    issues.push_back({ValidationIssue::Severity::kError, "palettes",
+                      absl::StrFormat("Only %d/%d palettes accessible",
+                                      valid_palettes, kNumPalettes),
+                      kPaletteBase});
   }
 
   return issues;
@@ -413,11 +412,10 @@ std::vector<ValidationIssue> DataValidateTool::ValidateEntrances(Rom* rom) {
     issues.push_back({ValidationIssue::Severity::kInfo, "entrances",
                       "All entrance room IDs valid", kEntranceBase});
   } else {
-    issues.push_back(
-        {ValidationIssue::Severity::kWarning, "entrances",
-         absl::StrFormat("%d/%d entrances have valid room IDs",
-                         valid_entrances, kNumEntrances),
-         kEntranceBase});
+    issues.push_back({ValidationIssue::Severity::kWarning, "entrances",
+                      absl::StrFormat("%d/%d entrances have valid room IDs",
+                                      valid_entrances, kNumEntrances),
+                      kEntranceBase});
   }
 
   return issues;
@@ -470,10 +468,10 @@ std::vector<ValidationIssue> PatchCheckTool::CheckFreeSpace(Rom* rom) {
 
   for (const auto& region : regions) {
     if (region.end > rom->size()) {
-      issues.push_back({ValidationIssue::Severity::kInfo, "free_space",
-                        absl::StrFormat("%s not available (ROM too small)",
-                                        region.name),
-                        region.start});
+      issues.push_back(
+          {ValidationIssue::Severity::kInfo, "free_space",
+           absl::StrFormat("%s not available (ROM too small)", region.name),
+           region.start});
       continue;
     }
 
@@ -489,17 +487,15 @@ std::vector<ValidationIssue> PatchCheckTool::CheckFreeSpace(Rom* rom) {
     int free_percent = (free_bytes * 100) / region_size;
 
     if (free_percent > 80) {
-      issues.push_back(
-          {ValidationIssue::Severity::kInfo, "free_space",
-           absl::StrFormat("%s: %d%% free (%d bytes)", region.name,
-                           free_percent, free_bytes),
-           region.start});
+      issues.push_back({ValidationIssue::Severity::kInfo, "free_space",
+                        absl::StrFormat("%s: %d%% free (%d bytes)", region.name,
+                                        free_percent, free_bytes),
+                        region.start});
     } else {
-      issues.push_back(
-          {ValidationIssue::Severity::kWarning, "free_space",
-           absl::StrFormat("%s: only %d%% free (%d bytes)", region.name,
-                           free_percent, free_bytes),
-           region.start});
+      issues.push_back({ValidationIssue::Severity::kWarning, "free_space",
+                        absl::StrFormat("%s: only %d%% free (%d bytes)",
+                                        region.name, free_percent, free_bytes),
+                        region.start});
     }
   }
 
@@ -590,8 +586,8 @@ absl::Status ValidateAllTool::Execute(Rom* rom,
     for (const auto& issue : all_issues) {
       if (issue.severity == ValidationIssue::Severity::kCritical ||
           issue.severity == ValidationIssue::Severity::kError) {
-        return absl::InvalidArgumentError(
-            "Validation failed: " + issue.message);
+        return absl::InvalidArgumentError("Validation failed: " +
+                                          issue.message);
       }
     }
   }
@@ -611,4 +607,3 @@ absl::Status ValidateAllTool::Execute(Rom* rom,
 }  // namespace agent
 }  // namespace cli
 }  // namespace yaze
-

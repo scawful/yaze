@@ -4,9 +4,9 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
-#include "util/file_util.h"
-#include "rom/rom.h"
 #include "imgui/imgui.h"
+#include "rom/rom.h"
+#include "util/file_util.h"
 #include "util/log.h"
 
 namespace yaze {
@@ -16,7 +16,8 @@ LinkSpritePanel::LinkSpritePanel(GraphicsEditorState* state, Rom* rom)
     : state_(state), rom_(rom) {}
 
 void LinkSpritePanel::Initialize() {
-  preview_canvas_.SetCanvasSize(ImVec2(128 * preview_zoom_, 32 * preview_zoom_));
+  preview_canvas_.SetCanvasSize(
+      ImVec2(128 * preview_zoom_, 32 * preview_zoom_));
 }
 
 void LinkSpritePanel::Draw(bool* p_open) {
@@ -109,8 +110,7 @@ void LinkSpritePanel::DrawToolbar() {
   // Show loaded ZSPR info
   if (loaded_zspr_.has_value()) {
     ImGui::SameLine();
-    ImGui::TextColored(ImVec4(0.5f, 1.0f, 0.5f, 1.0f),
-                       "Loaded: %s",
+    ImGui::TextColored(ImVec4(0.5f, 1.0f, 0.5f, 1.0f), "Loaded: %s",
                        loaded_zspr_->metadata.display_name.c_str());
   }
 
@@ -171,20 +171,21 @@ void LinkSpritePanel::DrawSheetThumbnail(int sheet_index) {
     if (sheet.texture()) {
       ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
       ImGui::GetWindowDrawList()->AddImage(
-          (ImTextureID)(intptr_t)sheet.texture(),
-          cursor_pos,
+          (ImTextureID)(intptr_t)sheet.texture(), cursor_pos,
           ImVec2(cursor_pos.x + kThumbnailSize,
                  cursor_pos.y + kThumbnailSize / 4));  // 128x32 aspect
     }
   }
 
   // Click handling
-  if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+  if (ImGui::IsWindowHovered() &&
+      ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
     selected_sheet_ = sheet_index;
   }
 
   // Double-click to open in pixel editor
-  if (ImGui::IsWindowHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+  if (ImGui::IsWindowHovered() &&
+      ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
     OpenSheetInPixelEditor();
   }
 
@@ -222,7 +223,7 @@ void LinkSpritePanel::DrawPreviewCanvas() {
     frame_opts.draw_context_menu = false;
     frame_opts.draw_grid = true;
     frame_opts.grid_step = grid_step;
-    
+
     auto rt = gui::BeginCanvas(preview_canvas_, frame_opts);
 
     auto& sheet = link_sheets_[selected_sheet_];
@@ -233,7 +234,7 @@ void LinkSpritePanel::DrawPreviewCanvas() {
       draw_opts.ensure_texture = false;
       gui::DrawBitmap(rt, sheet, draw_opts);
     }
-    
+
     gui::EndCanvas(preview_canvas_, rt, frame_opts);
   }
 
@@ -255,7 +256,8 @@ void LinkSpritePanel::DrawPaletteSelector() {
   ImGui::Text("Display Palette:");
   ImGui::SameLine();
 
-  const char* palette_names[] = {"Green Mail", "Blue Mail", "Red Mail", "Bunny"};
+  const char* palette_names[] = {"Green Mail", "Blue Mail", "Red Mail",
+                                 "Bunny"};
   int current = static_cast<int>(selected_palette_);
 
   ImGui::SetNextItemWidth(120);
@@ -368,7 +370,8 @@ absl::Status LinkSpritePanel::LoadLinkSheets() {
   link_sheets_ = std::move(result.value());
   sheets_loaded_ = true;
 
-  LOG_INFO("LinkSpritePanel", "Loaded %d Link graphics sheets", zelda3::kNumLinkSheets);
+  LOG_INFO("LinkSpritePanel", "Loaded %d Link graphics sheets",
+           zelda3::kNumLinkSheets);
 
   // Apply default palette for display
   ApplySelectedPalette();
@@ -377,7 +380,8 @@ absl::Status LinkSpritePanel::LoadLinkSheets() {
 }
 
 void LinkSpritePanel::ApplySelectedPalette() {
-  if (!rom_ || !rom_->is_loaded()) return;
+  if (!rom_ || !rom_->is_loaded())
+    return;
 
   // Get the appropriate palette based on selection
   // Link palettes are in Group 4 (Sprites Aux1) and Group 5 (Sprites Aux2)
@@ -385,43 +389,43 @@ void LinkSpritePanel::ApplySelectedPalette() {
   // Blue Mail: Group 4, Index 0 (Standard Link) - but with different colors in game
   // Red Mail: Group 4, Index 0 (Standard Link) - but with different colors in game
   // Bunny: Group 4, Index 1 (Bunny Link)
-  
+
   // For now, we'll use the standard sprite palettes from GameData if available
   // In a full implementation, we would load the specific mail palettes
-  
+
   // Default to Green Mail (Standard Link palette)
   const gfx::SnesPalette* palette = nullptr;
-  
+
   // We need access to GameData to get the palettes
   // Since we don't have direct access to GameData here (only Rom), we'll try to find it
   // or use a hardcoded fallback if necessary.
   // Ideally, LinkSpritePanel should have access to GameData.
   // For this fix, we will assume the standard sprite palette location in ROM if GameData isn't available,
   // or use a simplified approach.
-  
+
   // Actually, we can get GameData from the main Editor instance if we had access,
   // but we only have Rom. Let's try to read the palette directly from ROM for now
   // to ensure it works without refactoring the whole dependency injection.
-  
+
   // Standard Link Palette (Green Mail) is usually at 0x1BD318 (PC) / 0x37D318 (SNES) in vanilla
   // But we should use the loaded palette data if possible.
-  
+
   // Let's use a safe fallback: Create a default Link palette
   static gfx::SnesPalette default_palette;
   if (default_palette.empty()) {
     // Basic Green Mail colors (approximate)
     default_palette.Resize(16);
-    default_palette[0] = gfx::SnesColor(0, 0, 0);       // Transparent
-    default_palette[1] = gfx::SnesColor(24, 24, 24);    // Tunic Dark
-    default_palette[2] = gfx::SnesColor(0, 19, 0);      // Tunic Green
-    default_palette[3] = gfx::SnesColor(255, 255, 255); // White
-    default_palette[4] = gfx::SnesColor(255, 165, 66);  // Skin
-    default_palette[5] = gfx::SnesColor(255, 100, 50);  // Skin Dark
-    default_palette[6] = gfx::SnesColor(255, 0, 0);     // Red
-    default_palette[7] = gfx::SnesColor(255, 255, 0);   // Yellow
+    default_palette[0] = gfx::SnesColor(0, 0, 0);        // Transparent
+    default_palette[1] = gfx::SnesColor(24, 24, 24);     // Tunic Dark
+    default_palette[2] = gfx::SnesColor(0, 19, 0);       // Tunic Green
+    default_palette[3] = gfx::SnesColor(255, 255, 255);  // White
+    default_palette[4] = gfx::SnesColor(255, 165, 66);   // Skin
+    default_palette[5] = gfx::SnesColor(255, 100, 50);   // Skin Dark
+    default_palette[6] = gfx::SnesColor(255, 0, 0);      // Red
+    default_palette[7] = gfx::SnesColor(255, 255, 0);    // Yellow
     // ... fill others as needed
   }
-  
+
   // If we can't get the real palette, use default
   palette = &default_palette;
 
@@ -430,7 +434,7 @@ void LinkSpritePanel::ApplySelectedPalette() {
     if (sheet.is_active() && sheet.surface()) {
       // Use the palette
       sheet.SetPaletteWithTransparent(*palette, 0);
-      
+
       // Force texture update
       gfx::Arena::Get().QueueTextureCommand(
           gfx::Arena::TextureCommandType::UPDATE, &sheet);
@@ -443,11 +447,16 @@ void LinkSpritePanel::ApplySelectedPalette() {
 
 const char* LinkSpritePanel::GetPaletteName(PaletteType type) {
   switch (type) {
-    case PaletteType::kGreenMail: return "Green Mail";
-    case PaletteType::kBlueMail: return "Blue Mail";
-    case PaletteType::kRedMail: return "Red Mail";
-    case PaletteType::kBunny: return "Bunny";
-    default: return "Unknown";
+    case PaletteType::kGreenMail:
+      return "Green Mail";
+    case PaletteType::kBlueMail:
+      return "Blue Mail";
+    case PaletteType::kRedMail:
+      return "Red Mail";
+    case PaletteType::kBunny:
+      return "Bunny";
+    default:
+      return "Unknown";
   }
 }
 

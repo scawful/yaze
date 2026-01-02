@@ -17,8 +17,7 @@ std::string AgentSessionManager::CreateSession(const std::string& name) {
   AgentSession session;
   session.agent_id = GenerateAgentId();
   session.display_name =
-      name.empty() ? absl::StrFormat("Agent %d", next_session_number_++)
-                   : name;
+      name.empty() ? absl::StrFormat("Agent %d", next_session_number_++) : name;
   session.is_active = sessions_.empty();  // First session is active by default
 
   sessions_.push_back(std::move(session));

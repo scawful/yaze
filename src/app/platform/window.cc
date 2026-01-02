@@ -140,12 +140,12 @@ absl::Status CreateWindow(Window& window, gfx::IRenderer* renderer, int flags) {
     window.audio_buffer_ = std::shared_ptr<int16_t>(
         new int16_t[buffer_size], std::default_delete<int16_t[]>());
 
-  // Note: Actual audio device is created by Emulator's IAudioBackend
-  // This maintains compatibility with existing code paths
-  LOG_INFO(
-      "Window",
-      "Audio buffer allocated: %zu int16_t samples (backend in Emulator)",
-      buffer_size);
+    // Note: Actual audio device is created by Emulator's IAudioBackend
+    // This maintains compatibility with existing code paths
+    LOG_INFO(
+        "Window",
+        "Audio buffer allocated: %zu int16_t samples (backend in Emulator)",
+        buffer_size);
   }
 
   return absl::OkStatus();

@@ -270,14 +270,17 @@ absl::Status TestStatusCommandHandler::Execute(
   std::string skip_rom = GetEnvOrDefault("YAZE_SKIP_ROM_TESTS", "");
   std::string enable_ui = GetEnvOrDefault("YAZE_ENABLE_UI_TESTS", "");
 
-  formatter.AddField("rom_vanilla", rom_vanilla.empty() ? "not set" : rom_vanilla);
-  formatter.AddField("rom_expanded", rom_expanded.empty() ? "not set" : rom_expanded);
-  formatter.AddField("rom_path", rom_path_legacy.empty() ? "not set" : rom_path_legacy);
+  formatter.AddField("rom_vanilla",
+                     rom_vanilla.empty() ? "not set" : rom_vanilla);
+  formatter.AddField("rom_expanded",
+                     rom_expanded.empty() ? "not set" : rom_expanded);
+  formatter.AddField("rom_path",
+                     rom_path_legacy.empty() ? "not set" : rom_path_legacy);
   formatter.AddField("skip_rom_tests", !skip_rom.empty());
   formatter.AddField("ui_tests_enabled", !enable_ui.empty());
 
   // Check available build directories
-  std::vector<std::string> build_dirs = {"build",      "build_fast", "build_ai",
+  std::vector<std::string> build_dirs = {"build", "build_fast", "build_ai",
                                          "build_test", "build_agent"};
 
   formatter.BeginArray("build_directories");
@@ -315,9 +318,12 @@ absl::Status TestStatusCommandHandler::Execute(
   // Text output
   if (!is_json) {
     std::cout << "\n";
-    std::cout << "╔═══════════════════════════════════════════════════════════════╗\n";
-    std::cout << "║                    TEST CONFIGURATION                         ║\n";
-    std::cout << "╠═══════════════════════════════════════════════════════════════╣\n";
+    std::cout << "╔════════════════════════════════════════════════════════════"
+                 "═══╗\n";
+    std::cout << "║                    TEST CONFIGURATION                      "
+                 "   ║\n";
+    std::cout << "╠════════════════════════════════════════════════════════════"
+                 "═══╣\n";
     std::cout << absl::StrFormat(
         "║  ROM Vanilla: %-47s ║\n",
         rom_vanilla.empty() ? "(not set)" : rom_vanilla.substr(0, 47));
@@ -329,15 +335,19 @@ absl::Status TestStatusCommandHandler::Execute(
     std::cout << absl::StrFormat("║  UI Tests Enabled: %-41s ║\n",
                                  enable_ui.empty() ? "NO" : "YES");
     std::cout << absl::StrFormat("║  Active Preset: %-44s ║\n", active_preset);
-    std::cout << "╠═══════════════════════════════════════════════════════════════╣\n";
-    std::cout << "║  Available Build Directories:                                 ║\n";
+    std::cout << "╠════════════════════════════════════════════════════════════"
+                 "═══╣\n";
+    std::cout << "║  Available Build Directories:                              "
+                 "   ║\n";
     for (const auto& dir : build_dirs) {
       if (BuildDirExists(dir)) {
         std::cout << absl::StrFormat("║    ✓ %-55s ║\n", dir);
       }
     }
-    std::cout << "╠═══════════════════════════════════════════════════════════════╣\n";
-    std::cout << "║  Available Test Suites:                                       ║\n";
+    std::cout << "╠════════════════════════════════════════════════════════════"
+                 "═══╣\n";
+    std::cout << "║  Available Test Suites:                                    "
+                 "   ║\n";
     for (const auto& suite : kTestSuites) {
       bool available = true;
       std::string reason;
@@ -351,11 +361,13 @@ absl::Status TestStatusCommandHandler::Execute(
       std::cout << absl::StrFormat("║    %s %-15s%-40s ║\n",
                                    available ? "✓" : "✗", suite.label, reason);
     }
-    std::cout << "╚═══════════════════════════════════════════════════════════════╝\n";
+    std::cout << "╚════════════════════════════════════════════════════════════"
+                 "═══╝\n";
 
     if (rom_vanilla.empty()) {
       std::cout << "\nTo enable ROM-dependent tests:\n";
-      std::cout << "  export YAZE_TEST_ROM_VANILLA=/path/to/alttp_vanilla.sfc\n";
+      std::cout
+          << "  export YAZE_TEST_ROM_VANILLA=/path/to/alttp_vanilla.sfc\n";
       std::cout << "  cmake ... -DYAZE_ENABLE_ROM_TESTS=ON\n";
     }
   }

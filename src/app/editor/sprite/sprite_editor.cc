@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstring>
 
+#include "absl/strings/str_format.h"
 #include "app/editor/sprite/sprite_drawer.h"
 #include "app/editor/sprite/zsprite.h"
 #include "app/editor/system/panel_manager.h"
@@ -36,8 +37,8 @@ void SpriteEditor::Initialize() {
 
   // Register EditorPanel implementations with callbacks
   // EditorPanels provide both metadata (icon, name, priority) and drawing logic
-  panel_manager->RegisterEditorPanel(std::make_unique<VanillaSpriteEditorPanel>(
-      [this]() {
+  panel_manager->RegisterEditorPanel(
+      std::make_unique<VanillaSpriteEditorPanel>([this]() {
         if (rom_ && rom_->is_loaded()) {
           DrawVanillaSpriteEditor();
         } else {
@@ -76,7 +77,8 @@ absl::Status SpriteEditor::Update() {
 
 void SpriteEditor::HandleEditorShortcuts() {
   // Animation playback shortcuts (when custom sprite panel is active)
-  if (ImGui::IsKeyPressed(ImGuiKey_Space, false) && !ImGui::GetIO().WantTextInput) {
+  if (ImGui::IsKeyPressed(ImGuiKey_Space, false) &&
+      !ImGui::GetIO().WantTextInput) {
     animation_playing_ = !animation_playing_;
   }
 
@@ -99,7 +101,8 @@ void SpriteEditor::HandleEditorShortcuts() {
       vanilla_preview_needs_update_ = true;
     }
   }
-  if (ImGui::GetIO().KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_DownArrow, false)) {
+  if (ImGui::GetIO().KeyCtrl &&
+      ImGui::IsKeyPressed(ImGuiKey_DownArrow, false)) {
     current_sprite_id_++;
     vanilla_preview_needs_update_ = true;
   }
@@ -192,8 +195,8 @@ void SpriteEditor::DrawSpriteCanvas() {
 
     // Render vanilla sprite if layout exists
     if (current_sprite_id_ >= 0) {
-      const auto* layout =
-          zelda3::SpriteOamRegistry::GetLayout(static_cast<uint8_t>(current_sprite_id_));
+      const auto* layout = zelda3::SpriteOamRegistry::GetLayout(
+          static_cast<uint8_t>(current_sprite_id_));
       if (layout) {
         // Load required sheets for this sprite
         LoadSheetsForSprite(layout->required_sheets);
@@ -615,15 +618,13 @@ void SpriteEditor::DrawBooleanProperties() {
       zsm_dirty_ = true;
     if (ImGui::Checkbox("Shadow", &sprite.property_shadow.IsChecked))
       zsm_dirty_ = true;
-    if (ImGui::Checkbox("Small Shadow",
-                        &sprite.property_smallshadow.IsChecked))
+    if (ImGui::Checkbox("Small Shadow", &sprite.property_smallshadow.IsChecked))
       zsm_dirty_ = true;
     if (ImGui::Checkbox("Stasis", &sprite.property_statis.IsChecked))
       zsm_dirty_ = true;
     if (ImGui::Checkbox("Statue", &sprite.property_statue.IsChecked))
       zsm_dirty_ = true;
-    if (ImGui::Checkbox("Water Sprite",
-                        &sprite.property_watersprite.IsChecked))
+    if (ImGui::Checkbox("Water Sprite", &sprite.property_watersprite.IsChecked))
       zsm_dirty_ = true;
 
     ImGui::EndTable();
@@ -650,17 +651,18 @@ void SpriteEditor::DrawAnimationPanel() {
   }
   ImGui::SameLine();
   if (ImGui::Button(ICON_MD_SKIP_PREVIOUS)) {
-    if (current_frame_ > 0) current_frame_--;
+    if (current_frame_ > 0)
+      current_frame_--;
     preview_needs_update_ = true;
   }
   ImGui::SameLine();
   if (ImGui::Button(ICON_MD_SKIP_NEXT)) {
-    if (current_frame_ < (int)sprite.editor.Frames.size() - 1) current_frame_++;
+    if (current_frame_ < (int)sprite.editor.Frames.size() - 1)
+      current_frame_++;
     preview_needs_update_ = true;
   }
   ImGui::SameLine();
-  Text("Frame: %d / %d", current_frame_,
-       (int)sprite.editor.Frames.size() - 1);
+  Text("Frame: %d / %d", current_frame_, (int)sprite.editor.Frames.size() - 1);
 
   Separator();
 
@@ -676,8 +678,7 @@ void SpriteEditor::DrawAnimationPanel() {
   if (ImGui::BeginChild("AnimList", ImVec2(0, 120), true)) {
     for (size_t i = 0; i < sprite.animations.size(); i++) {
       auto& anim = sprite.animations[i];
-      std::string label =
-          anim.frame_name.empty() ? "Unnamed" : anim.frame_name;
+      std::string label = anim.frame_name.empty() ? "Unnamed" : anim.frame_name;
       if (Selectable(label.c_str(), current_animation_index_ == (int)i)) {
         current_animation_index_ = static_cast<int>(i);
         current_frame_ = anim.frame_start;
@@ -725,8 +726,7 @@ void SpriteEditor::DrawAnimationPanel() {
       sprite.animations.erase(sprite.animations.begin() +
                               current_animation_index_);
       current_animation_index_ =
-          std::min(current_animation_index_,
-                   (int)sprite.animations.size() - 1);
+          std::min(current_animation_index_, (int)sprite.animations.size() - 1);
       zsm_dirty_ = true;
     }
   }
@@ -771,7 +771,8 @@ void SpriteEditor::DrawFrameEditor() {
   ImGui::EndChild();
 
   // Edit tiles in current frame
-  if (current_frame_ >= 0 && current_frame_ < (int)sprite.editor.Frames.size()) {
+  if (current_frame_ >= 0 &&
+      current_frame_ < (int)sprite.editor.Frames.size()) {
     auto& frame = sprite.editor.Frames[current_frame_];
 
     Separator();
@@ -1002,7 +1003,8 @@ void SpriteEditor::LoadSpritePalettes() {
   sprite_palettes_.clear();
 
   // Add global sprite palettes (typically 2 palettes, 16 colors each)
-  if (!game_data()) return;
+  if (!game_data())
+    return;
   const auto& global = game_data()->palette_groups.global_sprites;
   for (size_t i = 0; i < global.size() && i < 8; i++) {
     sprite_palettes_.AddPalette(global.palette(i));
@@ -1016,11 +1018,14 @@ void SpriteEditor::LoadSpritePalettes() {
   // Pad to 8 palettes total for proper OAM palette mapping
   while (sprite_palettes_.size() < 8) {
     if (sprite_palettes_.size() < 4 && aux1.size() > 0) {
-      sprite_palettes_.AddPalette(aux1.palette(sprite_palettes_.size() % aux1.size()));
+      sprite_palettes_.AddPalette(
+          aux1.palette(sprite_palettes_.size() % aux1.size()));
     } else if (sprite_palettes_.size() < 6 && aux2.size() > 0) {
-      sprite_palettes_.AddPalette(aux2.palette((sprite_palettes_.size() - 4) % aux2.size()));
+      sprite_palettes_.AddPalette(
+          aux2.palette((sprite_palettes_.size() - 4) % aux2.size()));
     } else if (aux3.size() > 0) {
-      sprite_palettes_.AddPalette(aux3.palette((sprite_palettes_.size() - 6) % aux3.size()));
+      sprite_palettes_.AddPalette(
+          aux3.palette((sprite_palettes_.size() - 6) % aux3.size()));
     } else {
       // Fallback: add empty palette
       sprite_palettes_.AddPalette(gfx::SnesPalette());
@@ -1082,16 +1087,19 @@ void SpriteEditor::RenderVanillaSprite(const zelda3::SpriteOamLayout& layout) {
     tile.mirror_y = entry.flip_y;
     tile.priority = 0;
 
-    sprite_drawer_.DrawOamTile(vanilla_preview_bitmap_, tile, origin_x, origin_y);
+    sprite_drawer_.DrawOamTile(vanilla_preview_bitmap_, tile, origin_x,
+                               origin_y);
   }
 
   // Build combined 128-color palette (8 sub-palettes × 16 colors)
   // and apply to bitmap for proper color rendering
   if (sprite_palettes_.size() > 0) {
     gfx::SnesPalette combined_palette;
-    for (size_t pal_idx = 0; pal_idx < 8 && pal_idx < sprite_palettes_.size(); pal_idx++) {
+    for (size_t pal_idx = 0; pal_idx < 8 && pal_idx < sprite_palettes_.size();
+         pal_idx++) {
       const auto& sub_pal = sprite_palettes_.palette(pal_idx);
-      for (size_t col_idx = 0; col_idx < 16 && col_idx < sub_pal.size(); col_idx++) {
+      for (size_t col_idx = 0; col_idx < 16 && col_idx < sub_pal.size();
+           col_idx++) {
         combined_palette.AddColor(sub_pal[col_idx]);
       }
       // Pad to 16 if sub-palette is smaller
@@ -1145,9 +1153,11 @@ void SpriteEditor::RenderZSpriteFrame(int frame_index) {
     // Build combined 128-color palette and apply to bitmap
     if (sprite_palettes_.size() > 0) {
       gfx::SnesPalette combined_palette;
-      for (size_t pal_idx = 0; pal_idx < 8 && pal_idx < sprite_palettes_.size(); pal_idx++) {
+      for (size_t pal_idx = 0; pal_idx < 8 && pal_idx < sprite_palettes_.size();
+           pal_idx++) {
         const auto& sub_pal = sprite_palettes_.palette(pal_idx);
-        for (size_t col_idx = 0; col_idx < 16 && col_idx < sub_pal.size(); col_idx++) {
+        for (size_t col_idx = 0; col_idx < 16 && col_idx < sub_pal.size();
+             col_idx++) {
           combined_palette.AddColor(sub_pal[col_idx]);
         }
         // Pad to 16 if sub-palette is smaller
@@ -1182,7 +1192,7 @@ void SpriteEditor::RenderZSpriteFrame(int frame_index) {
 
       // Highlight selected tile
       ImVec4 color = (selected_tile_index_ == static_cast<int>(i))
-                         ? ImVec4(0.0f, 1.0f, 0.0f, 0.8f)   // Green for selected
+                         ? ImVec4(0.0f, 1.0f, 0.0f, 0.8f)  // Green for selected
                          : ImVec4(1.0f, 1.0f, 0.0f, 0.3f);  // Yellow for others
 
       sprite_canvas_.DrawRect(canvas_x, canvas_y, tile_size, tile_size, color);

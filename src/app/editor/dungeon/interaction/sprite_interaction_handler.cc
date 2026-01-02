@@ -19,7 +19,8 @@ void SpriteInteractionHandler::BeginPlacement() {
 }
 
 bool SpriteInteractionHandler::HandleClick(int canvas_x, int canvas_y) {
-  if (!HasValidContext()) return false;
+  if (!HasValidContext())
+    return false;
 
   if (sprite_placement_mode_) {
     PlaceSpriteAtPosition(canvas_x, canvas_y);
@@ -31,8 +32,8 @@ bool SpriteInteractionHandler::HandleClick(int canvas_x, int canvas_y) {
   if (sprite_index.has_value()) {
     SelectSprite(*sprite_index);
     is_dragging_ = true;
-    drag_start_pos_ = ImVec2(static_cast<float>(canvas_x),
-                              static_cast<float>(canvas_y));
+    drag_start_pos_ =
+        ImVec2(static_cast<float>(canvas_x), static_cast<float>(canvas_y));
     drag_current_pos_ = drag_start_pos_;
     return true;
   }
@@ -42,7 +43,8 @@ bool SpriteInteractionHandler::HandleClick(int canvas_x, int canvas_y) {
 }
 
 void SpriteInteractionHandler::HandleDrag(ImVec2 current_pos, ImVec2 delta) {
-  if (!is_dragging_ || !selected_sprite_index_.has_value()) return;
+  if (!is_dragging_ || !selected_sprite_index_.has_value())
+    return;
   drag_current_pos_ = current_pos;
 }
 
@@ -59,9 +61,9 @@ void SpriteInteractionHandler::HandleRelease() {
   }
 
   // Convert to sprite coordinates (16-pixel units)
-  auto [tile_x, tile_y] = CanvasToSpriteCoords(
-      static_cast<int>(drag_current_pos_.x),
-      static_cast<int>(drag_current_pos_.y));
+  auto [tile_x, tile_y] =
+      CanvasToSpriteCoords(static_cast<int>(drag_current_pos_.x),
+                           static_cast<int>(drag_current_pos_.y));
 
   // Clamp to valid range (sprites use 0-31 range)
   tile_x = std::clamp(tile_x, 0, dungeon_coords::kSpriteGridMax);
@@ -81,10 +83,12 @@ void SpriteInteractionHandler::HandleRelease() {
 }
 
 void SpriteInteractionHandler::DrawGhostPreview() {
-  if (!sprite_placement_mode_ || !HasValidContext()) return;
+  if (!sprite_placement_mode_ || !HasValidContext())
+    return;
 
   auto* canvas = ctx_->canvas;
-  if (!canvas->IsMouseHovering()) return;
+  if (!canvas->IsMouseHovering())
+    return;
 
   const ImGuiIO& io = ImGui::GetIO();
   ImVec2 canvas_pos = canvas->zero_point();
@@ -112,22 +116,25 @@ void SpriteInteractionHandler::DrawGhostPreview() {
 
   canvas->draw_list()->AddRectFilled(rect_min, rect_max, fill_color);
   canvas->draw_list()->AddRect(rect_min, rect_max, outline_color, 0.0f, 0,
-                                2.0f);
+                               2.0f);
 
   // Draw sprite ID label
   std::string label = absl::StrFormat("%02X", preview_sprite_id_);
   canvas->draw_list()->AddText(rect_min, IM_COL32(255, 255, 255, 255),
-                                label.c_str());
+                               label.c_str());
 }
 
 void SpriteInteractionHandler::DrawSelectionHighlight() {
-  if (!selected_sprite_index_.has_value() || !HasValidContext()) return;
+  if (!selected_sprite_index_.has_value() || !HasValidContext())
+    return;
 
   auto* room = GetCurrentRoom();
-  if (!room) return;
+  if (!room)
+    return;
 
   const auto& sprites = room->GetSprites();
-  if (*selected_sprite_index_ >= sprites.size()) return;
+  if (*selected_sprite_index_ >= sprites.size())
+    return;
 
   const auto& sprite = sprites[*selected_sprite_index_];
 
@@ -137,9 +144,9 @@ void SpriteInteractionHandler::DrawSelectionHighlight() {
 
   // If dragging, use current drag position (snapped to 16-pixel grid)
   if (is_dragging_) {
-    auto [tile_x, tile_y] = CanvasToSpriteCoords(
-        static_cast<int>(drag_current_pos_.x),
-        static_cast<int>(drag_current_pos_.y));
+    auto [tile_x, tile_y] =
+        CanvasToSpriteCoords(static_cast<int>(drag_current_pos_.x),
+                             static_cast<int>(drag_current_pos_.y));
     tile_x = std::clamp(tile_x, 0, dungeon_coords::kSpriteGridMax);
     tile_y = std::clamp(tile_y, 0, dungeon_coords::kSpriteGridMax);
     pixel_x = tile_x * dungeon_coords::kSpriteTileSize;
@@ -164,7 +171,7 @@ void SpriteInteractionHandler::DrawSelectionHighlight() {
       (color & 0x00FFFFFF) | (static_cast<ImU32>(alpha * 100) << 24);
 
   draw_list->AddRectFilled(pos, ImVec2(pos.x + size.x, pos.y + size.y),
-                            fill_color);
+                           fill_color);
   draw_list->AddRect(pos, ImVec2(pos.x + size.x, pos.y + size.y), color, 0.0f,
                      0, 2.0f);
 
@@ -175,10 +182,12 @@ void SpriteInteractionHandler::DrawSelectionHighlight() {
 
 std::optional<size_t> SpriteInteractionHandler::GetEntityAtPosition(
     int canvas_x, int canvas_y) const {
-  if (!HasValidContext()) return std::nullopt;
+  if (!HasValidContext())
+    return std::nullopt;
 
   auto* room = ctx_->GetCurrentRoomConst();
-  if (!room) return std::nullopt;
+  if (!room)
+    return std::nullopt;
 
   // Convert screen coordinates to room coordinates
   float scale = GetCanvasScale();
@@ -217,13 +226,16 @@ void SpriteInteractionHandler::ClearSelection() {
 }
 
 void SpriteInteractionHandler::DeleteSelected() {
-  if (!selected_sprite_index_.has_value() || !HasValidContext()) return;
+  if (!selected_sprite_index_.has_value() || !HasValidContext())
+    return;
 
   auto* room = GetCurrentRoom();
-  if (!room) return;
+  if (!room)
+    return;
 
   auto& sprites = room->GetSprites();
-  if (*selected_sprite_index_ >= sprites.size()) return;
+  if (*selected_sprite_index_ >= sprites.size())
+    return;
 
   ctx_->NotifyMutation();
   sprites.erase(sprites.begin() +
@@ -233,11 +245,13 @@ void SpriteInteractionHandler::DeleteSelected() {
 }
 
 void SpriteInteractionHandler::PlaceSpriteAtPosition(int canvas_x,
-                                                      int canvas_y) {
-  if (!HasValidContext()) return;
+                                                     int canvas_y) {
+  if (!HasValidContext())
+    return;
 
   auto* room = GetCurrentRoom();
-  if (!room) return;
+  if (!room)
+    return;
 
   auto [sprite_x, sprite_y] = CanvasToSpriteCoords(canvas_x, canvas_y);
 

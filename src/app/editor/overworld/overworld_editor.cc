@@ -95,28 +95,23 @@ void OverworldEditor::Initialize() {
   renderer_ = dependencies_.renderer;
 
   // Register Overworld Canvas (main canvas panel with toolset)
-  
+
   // Register EditorPanel instances (new architecture)
-  panel_manager->RegisterEditorPanel(
-      std::make_unique<AreaGraphicsPanel>(this));
+  panel_manager->RegisterEditorPanel(std::make_unique<AreaGraphicsPanel>(this));
   panel_manager->RegisterEditorPanel(
       std::make_unique<Tile16SelectorPanel>(this));
   panel_manager->RegisterEditorPanel(
       std::make_unique<Tile16EditorPanel>(&tile16_editor_));
   panel_manager->RegisterEditorPanel(
       std::make_unique<MapPropertiesPanel>(this));
-  panel_manager->RegisterEditorPanel(
-      std::make_unique<ScratchSpacePanel>(this));
+  panel_manager->RegisterEditorPanel(std::make_unique<ScratchSpacePanel>(this));
   panel_manager->RegisterEditorPanel(
       std::make_unique<UsageStatisticsPanel>(this));
   panel_manager->RegisterEditorPanel(
       std::make_unique<Tile8SelectorPanel>(this));
-  panel_manager->RegisterEditorPanel(
-      std::make_unique<DebugWindowPanel>(this));
-  panel_manager->RegisterEditorPanel(
-      std::make_unique<GfxGroupsPanel>(this));
-  panel_manager->RegisterEditorPanel(
-      std::make_unique<V3SettingsPanel>(this));
+  panel_manager->RegisterEditorPanel(std::make_unique<DebugWindowPanel>(this));
+  panel_manager->RegisterEditorPanel(std::make_unique<GfxGroupsPanel>(this));
+  panel_manager->RegisterEditorPanel(std::make_unique<V3SettingsPanel>(this));
 
   panel_manager->RegisterEditorPanel(
       std::make_unique<OverworldCanvasPanel>(this));
@@ -132,8 +127,6 @@ void OverworldEditor::Initialize() {
   usage_stats_card_ = std::make_unique<UsageStatisticsCard>(&overworld_);
   debug_window_card_ = std::make_unique<DebugWindowCard>();
 
-
-
   map_properties_system_ = std::make_unique<MapPropertiesSystem>(
       &overworld_, rom_, &maps_bmp_, &ow_map_canvas_);
 
@@ -146,8 +139,8 @@ void OverworldEditor::Initialize() {
       [this](int map_index) { this->ForceRefreshGraphics(map_index); });
 
   // Initialize OverworldSidebar
-  sidebar_ = std::make_unique<OverworldSidebar>(
-      &overworld_, rom_, map_properties_system_.get());
+  sidebar_ = std::make_unique<OverworldSidebar>(&overworld_, rom_,
+                                                map_properties_system_.get());
 
   // Initialize OverworldEntityRenderer for entity visualization
   entity_renderer_ = std::make_unique<OverworldEntityRenderer>(
@@ -161,8 +154,10 @@ void OverworldEditor::Initialize() {
     InvalidateGraphicsCache(current_map_);
     RefreshSiblingMapGraphics(current_map_, true);
   };
-  toolbar_->on_refresh_map = [this]() { RefreshOverworldMap(); };
-  
+  toolbar_->on_refresh_map = [this]() {
+    RefreshOverworldMap();
+  };
+
   toolbar_->on_save_to_scratch = [this]() {
     SaveCurrentSelectionToScratch();
   };
@@ -216,9 +211,8 @@ absl::Status OverworldEditor::Load() {
         });
 
     // Set up tile16 edit callback for context menu in MOUSE mode
-    map_properties_system_->SetTile16EditCallback([this]() {
-      HandleTile16Edit();
-    });
+    map_properties_system_->SetTile16EditCallback(
+        [this]() { HandleTile16Edit(); });
   }
 
   ASSIGN_OR_RETURN(entrance_tiletypes_, zelda3::LoadEntranceTileTypes(rom_));
@@ -286,12 +280,12 @@ absl::Status OverworldEditor::Update() {
   // The panels (Tile16 Selector, Area Graphics, etc.) are now managed by
   // EditorPanel/PanelManager and drawn automatically. This section only
   // handles the main canvas and toolbar.
-  
+
   // ===========================================================================
   // Non-Panel Windows (not managed by EditorPanel system)
   // ===========================================================================
   // These are separate feature windows, not part of the panel system
-  
+
   // Custom Background Color Editor
   if (show_custom_bg_color_editor_) {
     ImGui::SetNextWindowSize(ImVec2(400, 500), ImGuiCond_FirstUseEver);
@@ -331,7 +325,7 @@ absl::Status OverworldEditor::Update() {
   // Entity insertion error popup
   if (ImGui::BeginPopupModal("Entity Insert Error", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), 
+    ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f),
                        ICON_MD_ERROR " Entity Insertion Failed");
     ImGui::Separator();
     ImGui::TextWrapped("%s", entity_insert_error_message_.c_str());
@@ -490,8 +484,8 @@ void OverworldEditor::HandleEntityEditingShortcuts() {
 
 void OverworldEditor::HandleUndoRedoShortcuts() {
   // Check for Ctrl key (either left or right)
-  bool ctrl_held =
-      ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl);
+  bool ctrl_held = ImGui::IsKeyDown(ImGuiKey_LeftCtrl) ||
+                   ImGui::IsKeyDown(ImGuiKey_RightCtrl);
   if (!ctrl_held) {
     return;
   }
@@ -548,7 +542,8 @@ void OverworldEditor::HandleEntityContextMenus(
     case zelda3::GameEntity::EntityType::kExit:
       current_exit_ = *static_cast<zelda3::OverworldExit*>(hovered_entity);
       ImGui::OpenPopup(
-          gui::MakePopupId(gui::EditorNames::kOverworld, "Exit Editor").c_str());
+          gui::MakePopupId(gui::EditorNames::kOverworld, "Exit Editor")
+              .c_str());
       break;
     case zelda3::GameEntity::EntityType::kEntrance:
       current_entrance_ =
@@ -560,7 +555,8 @@ void OverworldEditor::HandleEntityContextMenus(
     case zelda3::GameEntity::EntityType::kItem:
       current_item_ = *static_cast<zelda3::OverworldItem*>(hovered_entity);
       ImGui::OpenPopup(
-          gui::MakePopupId(gui::EditorNames::kOverworld, "Item Editor").c_str());
+          gui::MakePopupId(gui::EditorNames::kOverworld, "Item Editor")
+              .c_str());
       break;
     case zelda3::GameEntity::EntityType::kSprite:
       current_sprite_ = *static_cast<zelda3::Sprite*>(hovered_entity);
@@ -624,7 +620,8 @@ void OverworldEditor::DrawEntityEditorPopups() {
 void OverworldEditor::DrawOverworldMaps() {
   // Get the current zoom scale for positioning and sizing
   float scale = ow_map_canvas_.global_scale();
-  if (scale <= 0.0f) scale = 1.0f;
+  if (scale <= 0.0f)
+    scale = 1.0f;
 
   int xx = 0;
   int yy = 0;
@@ -649,8 +646,8 @@ void OverworldEditor::DrawOverworldMaps() {
     // Only draw if the map has a valid texture AND is active (has bitmap data)
     // The current_map_ check was causing crashes when hovering over unbuilt maps
     // because the bitmap would be drawn before EnsureMapBuilt() was called
-    bool can_draw = maps_bmp_[world_index].texture() &&
-                    maps_bmp_[world_index].is_active();
+    bool can_draw =
+        maps_bmp_[world_index].texture() && maps_bmp_[world_index].is_active();
 
     if (can_draw) {
       // Draw bitmap at scaled position with scale applied to size
@@ -661,9 +658,8 @@ void OverworldEditor::DrawOverworldMaps() {
       ImVec2 canvas_pos = ow_map_canvas_.zero_point();
       ImVec2 scrolling = ow_map_canvas_.scrolling();
       // Apply scrolling offset and use already-scaled map_x/map_y
-      ImVec2 placeholder_pos =
-          ImVec2(canvas_pos.x + scrolling.x + map_x,
-                 canvas_pos.y + scrolling.y + map_y);
+      ImVec2 placeholder_pos = ImVec2(canvas_pos.x + scrolling.x + map_x,
+                                      canvas_pos.y + scrolling.y + map_y);
       // Scale the placeholder size to match zoomed maps
       float scaled_size = kOverworldMapSize * scale;
       ImVec2 placeholder_size = ImVec2(scaled_size, scaled_size);
@@ -702,11 +698,12 @@ void OverworldEditor::DrawOverworldEdits() {
   // drawn_tile_position() returns scaled coordinates, need to unscale
   auto scaled_position = ow_map_canvas_.drawn_tile_position();
   float scale = ow_map_canvas_.global_scale();
-  if (scale <= 0.0f) scale = 1.0f;
+  if (scale <= 0.0f)
+    scale = 1.0f;
 
   // Convert scaled position to world coordinates
-  ImVec2 mouse_position = ImVec2(scaled_position.x / scale,
-                                  scaled_position.y / scale);
+  ImVec2 mouse_position =
+      ImVec2(scaled_position.x / scale, scaled_position.y / scale);
 
   int map_x = static_cast<int>(mouse_position.x) / kOverworldMapSize;
   int map_y = static_cast<int>(mouse_position.y) / kOverworldMapSize;
@@ -761,7 +758,8 @@ void OverworldEditor::DrawOverworldEdits() {
 
   // Only record undo if tile is actually changing
   if (old_tile_id != current_tile16_) {
-    CreateUndoPoint(current_map_, current_world_, index_x, index_y, old_tile_id);
+    CreateUndoPoint(current_map_, current_world_, index_x, index_y,
+                    old_tile_id);
   }
 
   selected_world[index_x][index_y] = current_tile16_;
@@ -983,7 +981,8 @@ void OverworldEditor::CheckForOverworldEdits() {
 void OverworldEditor::CheckForSelectRectangle() {
   // Pass the canvas scale for proper zoom handling
   float scale = ow_map_canvas_.global_scale();
-  if (scale <= 0.0f) scale = 1.0f;
+  if (scale <= 0.0f)
+    scale = 1.0f;
   ow_map_canvas_.DrawSelectRect(current_map_, 0x10, scale);
 
   // Single tile case
@@ -1078,8 +1077,10 @@ absl::Status OverworldEditor::Paste() {
   // Unscale coordinates to get world position
   const ImVec2 scaled_anchor = ow_map_canvas_.drawn_tile_position();
   float scale = ow_map_canvas_.global_scale();
-  if (scale <= 0.0f) scale = 1.0f;
-  const ImVec2 anchor = ImVec2(scaled_anchor.x / scale, scaled_anchor.y / scale);
+  if (scale <= 0.0f)
+    scale = 1.0f;
+  const ImVec2 anchor =
+      ImVec2(scaled_anchor.x / scale, scaled_anchor.y / scale);
 
   // Compute anchor in tile16 grid within the current map
   const int tile16_x =
@@ -1129,7 +1130,8 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
   // Unscale to get world coordinates for map detection
   const auto scaled_position = ow_map_canvas_.hover_mouse_pos();
   float scale = ow_map_canvas_.global_scale();
-  if (scale <= 0.0f) scale = 1.0f;
+  if (scale <= 0.0f)
+    scale = 1.0f;
   const int large_map_size = 1024;
 
   // Calculate which small map the mouse is currently over
@@ -1368,10 +1370,6 @@ ImVec2 ClampScrollPosition(ImVec2 scroll, ImVec2 content_size,
 
 }  // namespace
 
-
-
-
-
 void OverworldEditor::CheckForMousePan() {
   // Legacy wrapper - now calls HandleOverworldPan
   HandleOverworldPan();
@@ -1397,9 +1395,9 @@ void OverworldEditor::DrawOverworldCanvas() {
   // PHASE 3: Modern BeginCanvas/EndCanvas Pattern
   // ==========================================================================
   // Context menu setup MUST happen BEFORE BeginCanvas (lesson from dungeon)
-  bool show_context_menu = (current_mode == EditingMode::MOUSE) &&
-                           (!entity_renderer_ ||
-                            entity_renderer_->hovered_entity() == nullptr);
+  bool show_context_menu =
+      (current_mode == EditingMode::MOUSE) &&
+      (!entity_renderer_ || entity_renderer_->hovered_entity() == nullptr);
 
   if (rom_->is_loaded() && overworld_.is_loaded() && map_properties_system_) {
     ow_map_canvas_.ClearContextMenuItems();
@@ -1500,8 +1498,8 @@ void OverworldEditor::DrawOverworldCanvas() {
         if (dragged_entity_) {
           float end_scale = canvas_rt.scale;
           MoveEntityOnGrid(dragged_entity_, canvas_rt.canvas_p0,
-                           canvas_rt.scrolling,
-                           dragged_entity_free_movement_, end_scale);
+                           canvas_rt.scrolling, dragged_entity_free_movement_,
+                           end_scale);
           // Pass overworld context for proper area size detection
           dragged_entity_->UpdateMapProperties(dragged_entity_->map_id_,
                                                &overworld_);
@@ -1676,16 +1674,16 @@ void OverworldEditor::DrawV3Settings() {
   // v3 Settings panel - placeholder for ZSCustomOverworld configuration
   ImGui::TextWrapped("ZSCustomOverworld v3 settings panel");
   ImGui::Separator();
-  
+
   if (!rom_ || !rom_->is_loaded()) {
     gui::CenterText("No ROM loaded");
     return;
   }
-  
+
   ImGui::TextWrapped(
       "This panel will contain ZSCustomOverworld configuration options "
       "such as custom map sizes, extended tile sets, and other v3 features.");
-  
+
   // TODO: Implement v3 settings UI
   // Could include:
   // - Custom map size toggles
@@ -1726,7 +1724,7 @@ void OverworldEditor::DrawMapProperties() {
   if (ImGui::BeginPopup("OverlayEditor")) {
     if (map_properties_system_) {
       map_properties_system_->DrawOverlayEditor(current_map_,
-                                                 show_overlay_editor);
+                                                show_overlay_editor);
     }
     ImGui::EndPopup();
   }
@@ -1771,7 +1769,7 @@ auto& OverworldEditor::GetWorldTiles(int world) {
 }
 
 void OverworldEditor::CreateUndoPoint(int map_id, int world, int x, int y,
-                                       int old_tile_id) {
+                                      int old_tile_id) {
   auto now = std::chrono::steady_clock::now();
 
   // Check if we should batch with current operation (same map, same world,
@@ -1781,18 +1779,18 @@ void OverworldEditor::CreateUndoPoint(int map_id, int world, int x, int y,
       current_paint_operation_->world == world &&
       (now - last_paint_time_) < kPaintBatchTimeout) {
     // Add to existing operation
-    current_paint_operation_->tile_changes.emplace_back(
-        std::make_pair(x, y), old_tile_id);
+    current_paint_operation_->tile_changes.emplace_back(std::make_pair(x, y),
+                                                        old_tile_id);
   } else {
     // Finalize any pending operation before starting a new one
     FinalizePaintOperation();
 
     // Start new operation
-    current_paint_operation_ = OverworldUndoPoint{
-        .map_id = map_id,
-        .world = world,
-        .tile_changes = {{{x, y}, old_tile_id}},
-        .timestamp = now};
+    current_paint_operation_ =
+        OverworldUndoPoint{.map_id = map_id,
+                           .world = world,
+                           .tile_changes = {{{x, y}, old_tile_id}},
+                           .timestamp = now};
   }
 
   last_paint_time_ = now;
@@ -1842,9 +1840,9 @@ absl::Status OverworldEditor::Undo() {
 
   // Create redo point with current tile values before restoring
   OverworldUndoPoint redo_point{.map_id = point.map_id,
-                                 .world = point.world,
-                                 .tile_changes = {},
-                                 .timestamp = std::chrono::steady_clock::now()};
+                                .world = point.world,
+                                .tile_changes = {},
+                                .timestamp = std::chrono::steady_clock::now()};
 
   auto& world_tiles = GetWorldTiles(point.world);
 
@@ -1878,9 +1876,9 @@ absl::Status OverworldEditor::Redo() {
 
   // Create undo point with current tile values
   OverworldUndoPoint undo_point{.map_id = point.map_id,
-                                 .world = point.world,
-                                 .tile_changes = {},
-                                 .timestamp = std::chrono::steady_clock::now()};
+                                .world = point.world,
+                                .tile_changes = {},
+                                .timestamp = std::chrono::steady_clock::now()};
 
   auto& world_tiles = GetWorldTiles(point.world);
 
@@ -1974,7 +1972,8 @@ absl::Status OverworldEditor::LoadGraphics() {
 #ifdef __EMSCRIPTEN__
   constexpr int kEssentialMapsPerWorld = 4;  // Match WASM build in overworld.cc
 #else
-  constexpr int kEssentialMapsPerWorld = 16; // Match native build in overworld.cc
+  constexpr int kEssentialMapsPerWorld =
+      16;  // Match native build in overworld.cc
 #endif
   constexpr int kLightWorldEssential = kEssentialMapsPerWorld;
   constexpr int kDarkWorldEssential =
@@ -2193,8 +2192,7 @@ void OverworldEditor::QueueAdjacentMapsForPreload(int center_map) {
     if (nx >= 0 && nx < 8 && ny >= 0 && ny < max_rows) {
       int neighbor_index = world_offset + ny * 8 + nx;
       // Only queue if not already built
-      if (neighbor_index >= 0 &&
-          neighbor_index < zelda3::kNumOverworldMaps &&
+      if (neighbor_index >= 0 && neighbor_index < zelda3::kNumOverworldMaps &&
           !overworld_.overworld_map(neighbor_index)->is_built()) {
         preload_queue_.push_back(neighbor_index);
       }
@@ -2377,23 +2375,24 @@ void OverworldEditor::RefreshMultiAreaMapsSafely(int map_index,
 
   // Always work from parent perspective for consistent coordination
   int parent_id = map->parent();
-  
+
   // If we're not the parent, get the parent map to work from
   auto* parent_map = overworld_.mutable_overworld_map(parent_id);
   if (!parent_map) {
-    LOG_WARN("OverworldEditor",
-             "RefreshMultiAreaMapsSafely: Could not get parent map %d for map %d",
-             parent_id, map_index);
+    LOG_WARN(
+        "OverworldEditor",
+        "RefreshMultiAreaMapsSafely: Could not get parent map %d for map %d",
+        parent_id, map_index);
     return;
   }
 
-  LOG_DEBUG(
-      "OverworldEditor",
-      "RefreshMultiAreaMapsSafely: Processing %s area from parent %d (trigger: %d)",
-      (area_size == AreaSizeEnum::LargeArea)  ? "large"
-      : (area_size == AreaSizeEnum::WideArea) ? "wide"
-                                              : "tall",
-      parent_id, map_index);
+  LOG_DEBUG("OverworldEditor",
+            "RefreshMultiAreaMapsSafely: Processing %s area from parent %d "
+            "(trigger: %d)",
+            (area_size == AreaSizeEnum::LargeArea)  ? "large"
+            : (area_size == AreaSizeEnum::WideArea) ? "wide"
+                                                    : "tall",
+            parent_id, map_index);
 
   // Determine all maps that are part of this multi-area structure
   // based on the parent's position and area size
@@ -2439,46 +2438,52 @@ void OverworldEditor::RefreshMultiAreaMapsSafely(int map_index,
     // Check visibility - only immediately refresh visible maps
     bool is_current_map = (sibling == current_map_);
     bool is_current_world = (sibling / 0x40 == current_world_);
-    
+
     // Always mark sibling as needing refresh to ensure consistency
     maps_bmp_[sibling].set_modified(true);
 
     if (is_current_map || is_current_world) {
       LOG_DEBUG("OverworldEditor",
-                "RefreshMultiAreaMapsSafely: Refreshing sibling map %d", sibling);
+                "RefreshMultiAreaMapsSafely: Refreshing sibling map %d",
+                sibling);
 
       // Direct refresh for visible siblings
       auto* sibling_map = overworld_.mutable_overworld_map(sibling);
-      if (!sibling_map) continue;
-      
+      if (!sibling_map)
+        continue;
+
       sibling_map->LoadAreaGraphics();
 
       auto status = sibling_map->BuildTileset();
       if (!status.ok()) {
-        LOG_ERROR("OverworldEditor", "Failed to build tileset for sibling %d: %s",
-                  sibling, status.message().data());
+        LOG_ERROR("OverworldEditor",
+                  "Failed to build tileset for sibling %d: %s", sibling,
+                  status.message().data());
         continue;
       }
-      
+
       status = sibling_map->BuildTiles16Gfx(*overworld_.mutable_tiles16(),
                                             overworld_.tiles16().size());
       if (!status.ok()) {
-        LOG_ERROR("OverworldEditor", "Failed to build tiles16 for sibling %d: %s",
-                  sibling, status.message().data());
+        LOG_ERROR("OverworldEditor",
+                  "Failed to build tiles16 for sibling %d: %s", sibling,
+                  status.message().data());
         continue;
       }
-      
+
       status = sibling_map->LoadPalette();
       if (!status.ok()) {
-        LOG_ERROR("OverworldEditor", "Failed to load palette for sibling %d: %s",
-                  sibling, status.message().data());
+        LOG_ERROR("OverworldEditor",
+                  "Failed to load palette for sibling %d: %s", sibling,
+                  status.message().data());
         continue;
       }
-      
+
       status = sibling_map->BuildBitmap(overworld_.GetMapTiles(current_world_));
       if (!status.ok()) {
-        LOG_ERROR("OverworldEditor", "Failed to build bitmap for sibling %d: %s",
-                  sibling, status.message().data());
+        LOG_ERROR("OverworldEditor",
+                  "Failed to build bitmap for sibling %d: %s", sibling,
+                  status.message().data());
         continue;
       }
 
@@ -2602,7 +2607,7 @@ void OverworldEditor::ForceRefreshGraphics(int map_index) {
 
     // Clear blockset cache
     current_blockset_ = 0xFF;
-    
+
     // Invalidate Overworld's tileset cache for this map and siblings
     // This ensures stale cached tilesets aren't reused after property changes
     overworld_.InvalidateSiblingMapCaches(map_index);
@@ -2814,7 +2819,8 @@ void OverworldEditor::UpdateBlocksetWithPendingTileChanges() {
     }
 
     // Get the pending bitmap for this tile
-    const gfx::Bitmap* pending_bmp = tile16_editor_.GetPendingTileBitmap(tile_id);
+    const gfx::Bitmap* pending_bmp =
+        tile16_editor_.GetPendingTileBitmap(tile_id);
     if (!pending_bmp || !pending_bmp->is_active() ||
         pending_bmp->vector().empty()) {
       continue;
@@ -2838,8 +2844,7 @@ void OverworldEditor::UpdateBlocksetWithPendingTileChanges() {
         int atlas_idx = (tile_y + y) * atlas_width + (tile_x + x);
         int pending_idx = y * pending_bmp->width() + x;
 
-        if (atlas_idx >= 0 &&
-            atlas_idx < static_cast<int>(atlas_data.size()) &&
+        if (atlas_idx >= 0 && atlas_idx < static_cast<int>(atlas_data.size()) &&
             pending_idx >= 0 &&
             pending_idx < static_cast<int>(pending_data.size())) {
           atlas_data[atlas_idx] = pending_data[pending_idx];
@@ -2864,7 +2869,8 @@ void OverworldEditor::HandleMapInteraction() {
     // Get the current map from mouse position (unscale coordinates)
     auto scaled_position = ow_map_canvas_.drawn_tile_position();
     float scale = ow_map_canvas_.global_scale();
-    if (scale <= 0.0f) scale = 1.0f;
+    if (scale <= 0.0f)
+      scale = 1.0f;
     int map_x = static_cast<int>(scaled_position.x / scale) / kOverworldMapSize;
     int map_y = static_cast<int>(scaled_position.y / scale) / kOverworldMapSize;
     int hovered_map = map_x + map_y * 8;

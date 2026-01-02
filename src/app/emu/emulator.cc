@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <vector>
 
+#include "absl/strings/str_format.h"
 #include "app/editor/system/panel_manager.h"
 #include "util/log.h"
 
@@ -87,21 +88,25 @@ void Emulator::ResumeAudio() {
 #ifdef __EMSCRIPTEN__
   if (audio_backend_) {
     // Safe cast because we know we created a WasmAudioBackend in WASM builds
-    auto* wasm_backend = static_cast<audio::WasmAudioBackend*>(audio_backend_.get());
+    auto* wasm_backend =
+        static_cast<audio::WasmAudioBackend*>(audio_backend_.get());
     wasm_backend->HandleUserInteraction();
   }
 #endif
 }
 
 void Emulator::set_interpolation_type(int type) {
-  if (!snes_initialized_) return;
+  if (!snes_initialized_)
+    return;
   // Clamp to valid range (0-4)
   int safe_type = std::clamp(type, 0, 4);
-  snes_.apu().dsp().interpolation_type = static_cast<InterpolationType>(safe_type);
+  snes_.apu().dsp().interpolation_type =
+      static_cast<InterpolationType>(safe_type);
 }
 
 int Emulator::get_interpolation_type() const {
-  if (!snes_initialized_) return 0; // Default to Linear if not initialized
+  if (!snes_initialized_)
+    return 0;  // Default to Linear if not initialized
   return static_cast<int>(snes_.apu().dsp().interpolation_type);
 }
 
@@ -209,12 +214,14 @@ bool Emulator::EnsureInitialized(Rom* rom) {
     snes_.Init(rom_data_);
 
     // Use accurate SNES frame rates for proper timing
-    const double frame_rate = snes_.memory().pal_timing() ? kPalFrameRate : kNtscFrameRate;
+    const double frame_rate =
+        snes_.memory().pal_timing() ? kPalFrameRate : kNtscFrameRate;
     wanted_frames_ = 1.0 / frame_rate;
     // When resampling is enabled (which we just did above), we need to generate
     // samples at the NATIVE rate (32kHz). The backend will resample them to 48kHz.
     // Calculate samples per frame based on actual frame rate for accurate timing.
-    wanted_samples_ = static_cast<int>(std::lround(kNativeSampleRate / frame_rate));
+    wanted_samples_ =
+        static_cast<int>(std::lround(kNativeSampleRate / frame_rate));
     snes_initialized_ = true;
 
     count_frequency = SDL_GetPerformanceFrequency();
@@ -227,9 +234,11 @@ bool Emulator::EnsureInitialized(Rom* rom) {
   // Always update timing constants based on current ROM region
   // This ensures MusicPlayer gets correct timing even if ROM changed
   if (snes_initialized_) {
-    const double frame_rate = snes_.memory().pal_timing() ? kPalFrameRate : kNtscFrameRate;
+    const double frame_rate =
+        snes_.memory().pal_timing() ? kPalFrameRate : kNtscFrameRate;
     wanted_frames_ = 1.0 / frame_rate;
-    wanted_samples_ = static_cast<int>(std::lround(kNativeSampleRate / frame_rate));
+    wanted_samples_ =
+        static_cast<int>(std::lround(kNativeSampleRate / frame_rate));
   }
 
   return true;
@@ -280,7 +289,8 @@ void Emulator::RunFrameOnly() {
   // Local buffer for audio samples (533 stereo samples per frame)
   static int16_t native_audio_buffer[2048];
 
-  while (time_adder >= wanted_frames_ && frames_processed < kMaxFramesPerUpdate) {
+  while (time_adder >= wanted_frames_ &&
+         frames_processed < kMaxFramesPerUpdate) {
     time_adder -= wanted_frames_;
     frames_processed++;
 
@@ -299,9 +309,8 @@ void Emulator::RunFrameOnly() {
         snes_.SetSamples(native_audio_buffer, wanted_samples_);
         // Try native rate resampling first (if audio stream is enabled)
         // Falls back to direct queueing if not available
-        if (!audio_backend_->QueueSamplesNative(native_audio_buffer,
-                                                wanted_samples_, 2,
-                                                kNativeSampleRate)) {
+        if (!audio_backend_->QueueSamplesNative(
+                native_audio_buffer, wanted_samples_, 2, kNativeSampleRate)) {
           static int log_counter = 0;
           if (++log_counter % 60 == 0) {
             int backend_rate = audio_backend_->GetConfig().sample_rate;
@@ -339,7 +348,9 @@ void Emulator::RunAudioFrame() {
   // DIAGNOSTIC: Always log entry to verify this function is being called
   static int entry_count = 0;
   if (entry_count < 5 || entry_count % 300 == 0) {
-    LOG_INFO("Emulator", "RunAudioFrame ENTRY #%d: init=%d, running=%d, backend=%p (external=%p, owned=%p)",
+    LOG_INFO("Emulator",
+             "RunAudioFrame ENTRY #%d: init=%d, running=%d, backend=%p "
+             "(external=%p, owned=%p)",
              entry_count, snes_initialized_, running_,
              static_cast<void*>(backend),
              static_cast<void*>(external_audio_backend_),
@@ -375,8 +386,8 @@ void Emulator::RunAudioFrame() {
     static int16_t audio_buffer[2048];  // 533 stereo samples max
     snes_.SetSamples(audio_buffer, wanted_samples_);
 
-    bool queued = backend->QueueSamplesNative(
-        audio_buffer, wanted_samples_, 2, kNativeSampleRate);
+    bool queued = backend->QueueSamplesNative(audio_buffer, wanted_samples_, 2,
+                                              kNativeSampleRate);
 
     // Diagnostic: Log first few calls and then periodically
     static int frame_log_count = 0;
@@ -389,16 +400,19 @@ void Emulator::RunAudioFrame() {
 
     if (!queued && backend->SupportsAudioStream()) {
       // Try to re-enable resampling and retry once
-      LOG_INFO("Emulator", "RunAudioFrame: First queue failed, re-enabling resampling");
+      LOG_INFO("Emulator",
+               "RunAudioFrame: First queue failed, re-enabling resampling");
       backend->SetAudioStreamResampling(true, kNativeSampleRate, 2);
       audio_stream_active_ = true;
-      queued = backend->QueueSamplesNative(
-          audio_buffer, wanted_samples_, 2, kNativeSampleRate);
-      LOG_INFO("Emulator", "RunAudioFrame: Retry queued=%s", queued ? "YES" : "NO");
+      queued = backend->QueueSamplesNative(audio_buffer, wanted_samples_, 2,
+                                           kNativeSampleRate);
+      LOG_INFO("Emulator", "RunAudioFrame: Retry queued=%s",
+               queued ? "YES" : "NO");
     }
 
     if (!queued) {
-      LOG_WARN("Emulator", "RunAudioFrame: AUDIO DROPPED - resampling not working!");
+      LOG_WARN("Emulator",
+               "RunAudioFrame: AUDIO DROPPED - resampling not working!");
     }
   }
 }
@@ -489,11 +503,13 @@ void Emulator::Run(Rom* rom) {
     // texture
 
     // Use accurate SNES frame rates for proper timing
-    const double frame_rate = snes_.memory().pal_timing() ? kPalFrameRate : kNtscFrameRate;
+    const double frame_rate =
+        snes_.memory().pal_timing() ? kPalFrameRate : kNtscFrameRate;
     wanted_frames_ = 1.0 / frame_rate;
     // Use native SNES sample rate (32kHz), not backend rate (48kHz)
     // The audio backend handles resampling from 32kHz -> 48kHz
-    wanted_samples_ = static_cast<int>(std::lround(kNativeSampleRate / frame_rate));
+    wanted_samples_ =
+        static_cast<int>(std::lround(kNativeSampleRate / frame_rate));
     snes_initialized_ = true;
 
     count_frequency = SDL_GetPerformanceFrequency();
@@ -604,16 +620,22 @@ void Emulator::Run(Rom* rom) {
         // behind.
         if (audio_backend_) {
           int16_t temp_audio_buffer[2048];
-          int16_t* frame_buffer = audio_buffer_ ? audio_buffer_ : temp_audio_buffer;
+          int16_t* frame_buffer =
+              audio_buffer_ ? audio_buffer_ : temp_audio_buffer;
 
           if (audio_stream_config_dirty_) {
-            if (use_sdl_audio_stream_ && audio_backend_->SupportsAudioStream()) {
-              LOG_INFO("Emulator", "Enabling audio stream resampling (32040Hz -> Device Rate)");
-              audio_backend_->SetAudioStreamResampling(true, kNativeSampleRate, 2);
+            if (use_sdl_audio_stream_ &&
+                audio_backend_->SupportsAudioStream()) {
+              LOG_INFO(
+                  "Emulator",
+                  "Enabling audio stream resampling (32040Hz -> Device Rate)");
+              audio_backend_->SetAudioStreamResampling(true, kNativeSampleRate,
+                                                       2);
               audio_stream_active_ = true;
             } else {
               LOG_INFO("Emulator", "Disabling audio stream resampling");
-              audio_backend_->SetAudioStreamResampling(false, kNativeSampleRate, 2);
+              audio_backend_->SetAudioStreamResampling(false, kNativeSampleRate,
+                                                       2);
               audio_stream_active_ = false;
             }
             audio_stream_config_dirty_ = false;
@@ -669,7 +691,8 @@ void Emulator::Run(Rom* rom) {
 
             if (!queue_ok && audio_backend_->SupportsAudioStream()) {
               // Try to re-enable resampling and retry once
-              audio_backend_->SetAudioStreamResampling(true, kNativeSampleRate, 2);
+              audio_backend_->SetAudioStreamResampling(true, kNativeSampleRate,
+                                                       2);
               audio_stream_active_ = true;
               queue_ok = audio_backend_->QueueSamplesNative(
                   frame_buffer, wanted_samples_, 2, effective_rate);
@@ -679,10 +702,11 @@ void Emulator::Run(Rom* rom) {
               // Drop audio rather than playing at wrong speed
               static int error_count = 0;
               if (++error_count % 300 == 0) {
-                LOG_WARN("Emulator",
-                         "Resampling failed, dropping audio to prevent 1.5x speed "
-                         "(count: %d)",
-                         error_count);
+                LOG_WARN(
+                    "Emulator",
+                    "Resampling failed, dropping audio to prevent 1.5x speed "
+                    "(count: %d)",
+                    error_count);
               }
             }
           } else {
@@ -711,9 +735,8 @@ void Emulator::Run(Rom* rom) {
           {
             const uint64_t frame_end = SDL_GetPerformanceCounter();
             const double elapsed_ms =
-                1000.0 *
-                (static_cast<double>(frame_end - frame_start) /
-                 static_cast<double>(count_frequency));
+                1000.0 * (static_cast<double>(frame_end - frame_start) /
+                          static_cast<double>(count_frequency));
             PushFrameMetrics(static_cast<float>(elapsed_ms), queued_frames,
                              snes_.dma_bytes_frame(), snes_.vram_bytes_frame(),
                              audio_rms_left, audio_rms_right);
@@ -749,24 +772,21 @@ void Emulator::PushFrameMetrics(float frame_ms, uint32_t audio_frames,
                                 float audio_rms_left, float audio_rms_right) {
   frame_time_history_[metric_history_head_] = frame_ms;
   fps_history_[metric_history_head_] = static_cast<float>(current_fps_);
-  audio_queue_history_[metric_history_head_] =
-      static_cast<float>(audio_frames);
-  dma_bytes_history_[metric_history_head_] =
-      static_cast<float>(dma_bytes);
-  vram_bytes_history_[metric_history_head_] =
-      static_cast<float>(vram_bytes);
+  audio_queue_history_[metric_history_head_] = static_cast<float>(audio_frames);
+  dma_bytes_history_[metric_history_head_] = static_cast<float>(dma_bytes);
+  vram_bytes_history_[metric_history_head_] = static_cast<float>(vram_bytes);
   audio_rms_left_history_[metric_history_head_] = audio_rms_left;
   audio_rms_right_history_[metric_history_head_] = audio_rms_right;
-  metric_history_head_ =
-      (metric_history_head_ + 1) % kMetricHistorySize;
+  metric_history_head_ = (metric_history_head_ + 1) % kMetricHistorySize;
   if (metric_history_count_ < kMetricHistorySize) {
     metric_history_count_++;
   }
 }
 
 namespace {
-std::vector<float> CopyHistoryOrdered(const std::array<float, Emulator::kMetricHistorySize>& data,
-                                      int head, int count) {
+std::vector<float> CopyHistoryOrdered(
+    const std::array<float, Emulator::kMetricHistorySize>& data, int head,
+    int count) {
   std::vector<float> out;
   out.reserve(count);
   int start = (head - count + Emulator::kMetricHistorySize) %
@@ -934,7 +954,7 @@ void Emulator::RenderEmulatorInterface() {
     }
 
     static gui::PanelWindow controller_card("Virtual Controller",
-                                           ICON_MD_SPORTS_ESPORTS);
+                                            ICON_MD_SPORTS_ESPORTS);
     controller_card.SetDefaultSize(250, 450);
     bool* virtual_controller_visible =
         panel_manager_->GetVisibilityFlag("emulator.virtual_controller");
@@ -1256,14 +1276,13 @@ void Emulator::RenderSaveStates() {
 
 void Emulator::RenderKeyboardConfig() {
   // Delegate to the input manager UI
-  ui::RenderKeyboardConfig(
-      &input_manager_,
-      [this](const input::InputConfig& config) {
-        input_config_ = config;
-        if (input_config_changed_callback_) {
-          input_config_changed_callback_(config);
-        }
-      });
+  ui::RenderKeyboardConfig(&input_manager_,
+                           [this](const input::InputConfig& config) {
+                             input_config_ = config;
+                             if (input_config_changed_callback_) {
+                               input_config_changed_callback_(config);
+                             }
+                           });
 }
 
 void Emulator::RenderApuDebugger() {
@@ -1272,7 +1291,8 @@ void Emulator::RenderApuDebugger() {
 }
 
 void Emulator::RenderAudioMixer() {
-  if (!audio_backend_) return;
+  if (!audio_backend_)
+    return;
 
   // Master Volume
   float volume = audio_backend_->GetVolume();
@@ -1299,11 +1319,13 @@ void Emulator::RenderAudioMixer() {
 
   ImGui::Separator();
   if (ImGui::Button("Mute All")) {
-    for (int i = 0; i < 8; ++i) dsp.SetChannelMute(i, true);
+    for (int i = 0; i < 8; ++i)
+      dsp.SetChannelMute(i, true);
   }
   ImGui::SameLine();
   if (ImGui::Button("Unmute All")) {
-    for (int i = 0; i < 8; ++i) dsp.SetChannelMute(i, false);
+    for (int i = 0; i < 8; ++i)
+      dsp.SetChannelMute(i, false);
   }
 }
 

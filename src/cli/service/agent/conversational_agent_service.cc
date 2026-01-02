@@ -20,13 +20,13 @@
 #include "absl/strings/string_view.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
-#include "rom/rom.h"
 #include "cli/service/agent/advanced_routing.h"
 #include "cli/service/agent/agent_pretraining.h"
 #include "cli/service/agent/proposal_executor.h"
 #include "cli/service/ai/service_factory.h"
 #include "cli/util/terminal_colors.h"
 #include "nlohmann/json.hpp"
+#include "rom/rom.h"
 
 #ifdef SendMessage
 #undef SendMessage
@@ -282,7 +282,8 @@ ChatMessage::SessionMetrics ConversationalAgentService::GetMetrics() const {
   return BuildMetricsSnapshot();
 }
 
-void ConversationalAgentService::SetExternalDriver(ExternalDriverCallback driver) {
+void ConversationalAgentService::SetExternalDriver(
+    ExternalDriverCallback driver) {
   external_driver_ = std::move(driver);
   has_external_driver_ = true;
 }
@@ -313,7 +314,8 @@ void ConversationalAgentService::HandleExternalResponse(
       auto tool_result_or = tool_dispatcher_.Dispatch(tool_call);
       std::string tool_output;
       if (!tool_result_or.ok()) {
-        tool_output = absl::StrCat("Error: ", tool_result_or.status().message());
+        tool_output =
+            absl::StrCat("Error: ", tool_result_or.status().message());
         util::PrintError(tool_output);
       } else {
         tool_output = tool_result_or.value();
@@ -341,7 +343,7 @@ void ConversationalAgentService::HandleExternalResponse(
   // If tools were executed, we need to loop back to the AI
   if (executed_tool && has_external_driver_) {
     external_driver_(history_);
-    return; // Wait for next response
+    return;  // Wait for next response
   }
 
   // Final text response processing
@@ -381,39 +383,48 @@ void ConversationalAgentService::HandleExternalResponse(
   // Construct text response
   std::string response_text = agent_response.text_response;
   if (!agent_response.reasoning.empty()) {
-    if (!response_text.empty()) response_text.append("\n\n");
+    if (!response_text.empty())
+      response_text.append("\n\n");
     response_text.append("Reasoning: ").append(agent_response.reasoning);
   }
-  
+
   if (!agent_response.commands.empty()) {
-    if (!response_text.empty()) response_text.append("\n\n");
-    response_text.append("Commands:\n").append(absl::StrJoin(agent_response.commands, "\n"));
+    if (!response_text.empty())
+      response_text.append("\n\n");
+    response_text.append("Commands:\n")
+        .append(absl::StrJoin(agent_response.commands, "\n"));
   }
-  metrics_.commands_generated += CountExecutableCommands(agent_response.commands);
+  metrics_.commands_generated +=
+      CountExecutableCommands(agent_response.commands);
 
   if (proposal_result.has_value()) {
     const auto& metadata = proposal_result->metadata;
-    if (!response_text.empty()) response_text.append("\n\n");
-    response_text.append(absl::StrFormat(
-        "✅ Proposal %s ready with %d change%s (%d command%s).",
-        metadata.id, proposal_result->change_count,
-        proposal_result->change_count == 1 ? "" : "s",
-        proposal_result->executed_commands,
-        proposal_result->executed_commands == 1 ? "" : "s"));
+    if (!response_text.empty())
+      response_text.append("\n\n");
+    response_text.append(
+        absl::StrFormat("✅ Proposal %s ready with %d change%s (%d command%s).",
+                        metadata.id, proposal_result->change_count,
+                        proposal_result->change_count == 1 ? "" : "s",
+                        proposal_result->executed_commands,
+                        proposal_result->executed_commands == 1 ? "" : "s"));
     ++metrics_.proposals_created;
   } else if (attempted_proposal && !proposal_status.ok()) {
-    if (!response_text.empty()) response_text.append("\n\n");
-    response_text.append(absl::StrCat("⚠️ Failed to prepare proposal: ", proposal_status.message()));
+    if (!response_text.empty())
+      response_text.append("\n\n");
+    response_text.append(absl::StrCat("⚠️ Failed to prepare proposal: ",
+                                      proposal_status.message()));
   }
 
   // Remove the "Thinking..." placeholder if present
-  if (!history_.empty() && history_.back().sender == ChatMessage::Sender::kAgent && 
+  if (!history_.empty() &&
+      history_.back().sender == ChatMessage::Sender::kAgent &&
       history_.back().message == "Thinking...") {
     history_.pop_back();
   }
 
   // Add final message
-  ChatMessage chat_response = CreateMessage(ChatMessage::Sender::kAgent, response_text);
+  ChatMessage chat_response =
+      CreateMessage(ChatMessage::Sender::kAgent, response_text);
   if (proposal_result.has_value()) {
     ChatMessage::ProposalSummary summary;
     summary.id = proposal_result->metadata.id;
@@ -421,17 +432,17 @@ void ConversationalAgentService::HandleExternalResponse(
     summary.executed_commands = proposal_result->executed_commands;
     chat_response.proposal = summary;
   }
-  
+
   // Metadata
   ChatMessage::ModelMetadata meta;
   meta.provider = "external";
-  meta.model = "gemini"; // Could get this from JS
+  meta.model = "gemini";  // Could get this from JS
   meta.tool_names = executed_tools;
   chat_response.model_metadata = meta;
 
   history_.push_back(chat_response);
   TrimHistoryIfNeeded();
-  
+
   ++metrics_.agent_messages;
   ++metrics_.turns_completed;
 }

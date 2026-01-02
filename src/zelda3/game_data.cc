@@ -47,23 +47,22 @@ PaletteSlice GetDefaultPaletteSlice(const gfx::SnesPalette& palette) {
   PaletteSlice slice;
   slice.offset = has_explicit_transparent ? 1 : 0;
   slice.length = has_explicit_transparent ? 15 : std::min(palette_size, 15);
-  slice.valid = slice.length > 0 &&
-                (slice.offset + static_cast<size_t>(slice.length) <=
-                 palette.size());
+  slice.valid =
+      slice.length > 0 &&
+      (slice.offset + static_cast<size_t>(slice.length) <= palette.size());
 
   if (!slice.valid) {
     slice.offset = 0;
     slice.length = std::min(palette_size, 15);
-    slice.valid = slice.length > 0 &&
-                  (slice.offset + static_cast<size_t>(slice.length) <=
-                   palette.size());
+    slice.valid =
+        slice.length > 0 &&
+        (slice.offset + static_cast<size_t>(slice.length) <= palette.size());
   }
 
   return slice;
 }
 
-void ApplyDefaultPalette(gfx::Bitmap& bitmap,
-                         const gfx::SnesPalette& palette) {
+void ApplyDefaultPalette(gfx::Bitmap& bitmap, const gfx::SnesPalette& palette) {
   auto slice = GetDefaultPaletteSlice(palette);
   if (!slice.valid) {
     return;
@@ -120,7 +119,8 @@ uint32_t GetGraphicsAddress(const uint8_t* data, uint8_t addr, uint32_t ptr1,
                                    data[ptr3 + addr]));
 }
 
-absl::Status LoadGameData(Rom& rom, GameData& data, const LoadOptions& options) {
+absl::Status LoadGameData(Rom& rom, GameData& data,
+                          const LoadOptions& options) {
   data.Clear();
   data.set_rom(&rom);
 
@@ -153,20 +153,21 @@ absl::Status SaveGameData(Rom& rom, GameData& data) {
   if (core::FeatureFlags::get().kSaveAllPalettes) {
     // TODO: Implement SaveAllPalettes logic using Rom::WriteColor
     // This was previously in Rom::SaveAllPalettes
-    return data.palette_groups.for_each([&](gfx::PaletteGroup& group) -> absl::Status {
-      for (size_t i = 0; i < group.size(); ++i) {
-        auto* palette = group.mutable_palette(i);
-        for (size_t j = 0; j < palette->size(); ++j) {
-          gfx::SnesColor color = (*palette)[j];
-          if (color.is_modified()) {
-            RETURN_IF_ERROR(rom.WriteColor(
-                gfx::GetPaletteAddress(group.name(), i, j), color));
-            color.set_modified(false);
+    return data.palette_groups.for_each(
+        [&](gfx::PaletteGroup& group) -> absl::Status {
+          for (size_t i = 0; i < group.size(); ++i) {
+            auto* palette = group.mutable_palette(i);
+            for (size_t j = 0; j < palette->size(); ++j) {
+              gfx::SnesColor color = (*palette)[j];
+              if (color.is_modified()) {
+                RETURN_IF_ERROR(rom.WriteColor(
+                    gfx::GetPaletteAddress(group.name(), i, j), color));
+                color.set_modified(false);
+              }
+            }
           }
-        }
-      }
-      return absl::OkStatus();
-    });
+          return absl::OkStatus();
+        });
   }
 
   if (core::FeatureFlags::get().kSaveGfxGroups) {
@@ -189,7 +190,8 @@ absl::Status LoadMetadata(const Rom& rom, GameData& data) {
   if (kTitleStringOffset + 0x19 < rom.size()) {
     // Access directly via data() since ReadByte is non-const
     uint8_t version_byte = rom.data()[kTitleStringOffset + 0x19];
-    data.version = (version_byte == 0) ? zelda3_version::JP : zelda3_version::US;
+    data.version =
+        (version_byte == 0) ? zelda3_version::JP : zelda3_version::US;
   }
 
   auto title_bytes = rom.ReadByteVector(kTitleStringOffset, kTitleStringLength);
@@ -220,7 +222,8 @@ absl::Status LoadGfxGroups(Rom& rom, GameData& data) {
     for (uint32_t i = 0; i < kNumMainBlocksets; i++) {
       for (int j = 0; j < 8; j++) {
         auto val = rom.ReadByte(main_ptr + (i * 8) + j);
-        if (val.ok()) data.main_blockset_ids[i][j] = *val;
+        if (val.ok())
+          data.main_blockset_ids[i][j] = *val;
       }
     }
   }
@@ -229,23 +232,28 @@ absl::Status LoadGfxGroups(Rom& rom, GameData& data) {
   for (uint32_t i = 0; i < kNumRoomBlocksets; i++) {
     for (int j = 0; j < 4; j++) {
       auto val = rom.ReadByte(kEntranceGfxGroup + (i * 4) + j);
-      if (val.ok()) data.room_blockset_ids[i][j] = *val;
+      if (val.ok())
+        data.room_blockset_ids[i][j] = *val;
     }
   }
 
   // Load Sprite Blocksets
   for (uint32_t i = 0; i < kNumSpritesets; i++) {
     for (int j = 0; j < 4; j++) {
-      auto val = rom.ReadByte(version_constants.kSpriteBlocksetPointer + (i * 4) + j);
-      if (val.ok()) data.spriteset_ids[i][j] = *val;
+      auto val =
+          rom.ReadByte(version_constants.kSpriteBlocksetPointer + (i * 4) + j);
+      if (val.ok())
+        data.spriteset_ids[i][j] = *val;
     }
   }
 
   // Load Palette Sets
   for (uint32_t i = 0; i < kNumPalettesets; i++) {
     for (int j = 0; j < 4; j++) {
-      auto val = rom.ReadByte(version_constants.kDungeonPalettesGroups + (i * 4) + j);
-      if (val.ok()) data.paletteset_ids[i][j] = *val;
+      auto val =
+          rom.ReadByte(version_constants.kDungeonPalettesGroups + (i * 4) + j);
+      if (val.ok())
+        data.paletteset_ids[i][j] = *val;
     }
   }
 
@@ -254,22 +262,22 @@ absl::Status LoadGfxGroups(Rom& rom, GameData& data) {
 
 absl::Status SaveGfxGroups(Rom& rom, const GameData& data) {
   auto version_constants = kVersionConstantsMap.at(data.version);
-  
+
   ASSIGN_OR_RETURN(auto main_ptr, rom.ReadWord(kGfxGroupsPointer));
   main_ptr = SnesToPc(main_ptr);
 
   // Save Main Blocksets
   for (uint32_t i = 0; i < kNumMainBlocksets; i++) {
     for (int j = 0; j < 8; j++) {
-      RETURN_IF_ERROR(rom.WriteByte(main_ptr + (i * 8) + j, 
-                                    data.main_blockset_ids[i][j]));
+      RETURN_IF_ERROR(
+          rom.WriteByte(main_ptr + (i * 8) + j, data.main_blockset_ids[i][j]));
     }
   }
 
   // Save Room Blocksets
   for (uint32_t i = 0; i < kNumRoomBlocksets; i++) {
     for (int j = 0; j < 4; j++) {
-      RETURN_IF_ERROR(rom.WriteByte(kEntranceGfxGroup + (i * 4) + j, 
+      RETURN_IF_ERROR(rom.WriteByte(kEntranceGfxGroup + (i * 4) + j,
                                     data.room_blockset_ids[i][j]));
     }
   }
@@ -277,16 +285,18 @@ absl::Status SaveGfxGroups(Rom& rom, const GameData& data) {
   // Save Sprite Blocksets
   for (uint32_t i = 0; i < kNumSpritesets; i++) {
     for (int j = 0; j < 4; j++) {
-      RETURN_IF_ERROR(rom.WriteByte(version_constants.kSpriteBlocksetPointer + (i * 4) + j,
-                                    data.spriteset_ids[i][j]));
+      RETURN_IF_ERROR(
+          rom.WriteByte(version_constants.kSpriteBlocksetPointer + (i * 4) + j,
+                        data.spriteset_ids[i][j]));
     }
   }
 
   // Save Palette Sets
   for (uint32_t i = 0; i < kNumPalettesets; i++) {
     for (int j = 0; j < 4; j++) {
-      RETURN_IF_ERROR(rom.WriteByte(version_constants.kDungeonPalettesGroups + (i * 4) + j,
-                                    data.paletteset_ids[i][j]));
+      RETURN_IF_ERROR(
+          rom.WriteByte(version_constants.kDungeonPalettesGroups + (i * 4) + j,
+                        data.paletteset_ids[i][j]));
     }
   }
 
@@ -328,14 +338,16 @@ absl::Status SaveGfxGroups(Rom& rom, const GameData& data) {
 ///          solid purple/brown (0xFF fill).
 absl::Status LoadGraphics(Rom& rom, GameData& data) {
   if (kVersionConstantsMap.find(data.version) == kVersionConstantsMap.end()) {
-    return absl::FailedPreconditionError("Unsupported ROM version for graphics");
+    return absl::FailedPreconditionError(
+        "Unsupported ROM version for graphics");
   }
   auto version_constants = kVersionConstantsMap.at(data.version);
 
   data.graphics_buffer.clear();
-  
+
 #ifdef __EMSCRIPTEN__
-  auto loading_handle = app::platform::WasmLoadingManager::BeginLoading("Loading Graphics");
+  auto loading_handle =
+      app::platform::WasmLoadingManager::BeginLoading("Loading Graphics");
 #endif
 
   // Initialize Diagnostics
@@ -347,7 +359,8 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
 
   for (uint32_t i = 0; i < kNumGfxSheets; i++) {
 #ifdef __EMSCRIPTEN__
-    app::platform::WasmLoadingManager::UpdateProgress(loading_handle, static_cast<float>(i) / kNumGfxSheets);
+    app::platform::WasmLoadingManager::UpdateProgress(
+        loading_handle, static_cast<float>(i) / kNumGfxSheets);
 #endif
 
     diag.sheets[i].index = i;
@@ -358,10 +371,14 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
     // Uncompressed 3BPP (115-126)
     if (i >= 115 && i <= 126) {
       diag.sheets[i].is_compressed = false;
-      offset = GetGraphicsAddress(rom.data(), i, version_constants.kOverworldGfxPtr1, version_constants.kOverworldGfxPtr2, version_constants.kOverworldGfxPtr3, rom.size());
+      offset =
+          GetGraphicsAddress(rom.data(), i, version_constants.kOverworldGfxPtr1,
+                             version_constants.kOverworldGfxPtr2,
+                             version_constants.kOverworldGfxPtr3, rom.size());
       diag.sheets[i].pc_offset = offset;
-      
-      auto read_res = rom.ReadByteVector(offset, zelda3::kUncompressedSheetSize);
+
+      auto read_res =
+          rom.ReadByteVector(offset, zelda3::kUncompressedSheetSize);
       if (read_res.ok()) {
         sheet = *read_res;
         diag.sheets[i].decompression_succeeded = true;
@@ -379,7 +396,10 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
     // Compressed 3BPP (Standard)
     else {
       diag.sheets[i].is_compressed = true;
-      offset = GetGraphicsAddress(rom.data(), i, version_constants.kOverworldGfxPtr1, version_constants.kOverworldGfxPtr2, version_constants.kOverworldGfxPtr3, rom.size());
+      offset =
+          GetGraphicsAddress(rom.data(), i, version_constants.kOverworldGfxPtr1,
+                             version_constants.kOverworldGfxPtr2,
+                             version_constants.kOverworldGfxPtr3, rom.size());
       diag.sheets[i].pc_offset = offset;
 
       if (offset < rom.size()) {
@@ -387,7 +407,8 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
         // IMPORTANT: The size parameter (0x800) must NOT be 0, or DecompressV2
         // returns an empty vector immediately. This was a regression bug.
         // See: docs/internal/graphics-loading-regression-2024.md
-        auto decomp_res = gfx::lc_lz2::DecompressV2(rom.data(), offset, 0x800, 1, rom.size());
+        auto decomp_res =
+            gfx::lc_lz2::DecompressV2(rom.data(), offset, 0x800, 1, rom.size());
         if (decomp_res.ok()) {
           sheet = *decomp_res;
           diag.sheets[i].decompression_succeeded = true;
@@ -401,12 +422,13 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
     // Post-process
     if (bpp3) {
       auto converted_sheet = gfx::SnesTo8bppSheet(sheet, 3);
-      if (converted_sheet.size() != 4096) converted_sheet.resize(4096, 0);
-      
+      if (converted_sheet.size() != 4096)
+        converted_sheet.resize(4096, 0);
+
       data.raw_gfx_sheets[i] = converted_sheet;
-      data.gfx_bitmaps[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight, 
+      data.gfx_bitmaps[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
                                  gfx::kTilesheetDepth, converted_sheet);
-      
+
       // Apply default palettes
       if (!data.palette_groups.empty()) {
         gfx::SnesPalette default_palette;
@@ -417,7 +439,7 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
         } else if (data.palette_groups.hud.size() > 0) {
           default_palette = data.palette_groups.hud.palette(0);
         }
-        
+
         if (!default_palette.empty()) {
           ApplyDefaultPalette(data.gfx_bitmaps[i], default_palette);
         } else {
@@ -447,14 +469,14 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
         data.gfx_bitmaps[i].SetPalette(gfx::SnesPalette(grayscale));
       }
 
-      data.graphics_buffer.insert(data.graphics_buffer.end(), 
-                                  data.gfx_bitmaps[i].data(), 
-                                  data.gfx_bitmaps[i].data() + data.gfx_bitmaps[i].size());
+      data.graphics_buffer.insert(
+          data.graphics_buffer.end(), data.gfx_bitmaps[i].data(),
+          data.gfx_bitmaps[i].data() + data.gfx_bitmaps[i].size());
     } else {
       // Placeholder - Fill with 0 (transparent) instead of 0xFF (white)
       std::vector<uint8_t> placeholder(4096, 0);
       data.raw_gfx_sheets[i] = placeholder;
-      data.gfx_bitmaps[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight, 
+      data.gfx_bitmaps[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
                                  gfx::kTilesheetDepth, placeholder);
       data.graphics_buffer.resize(data.graphics_buffer.size() + 4096, 0);
     }
@@ -483,9 +505,11 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumLinkSheets>> LoadLinkGraphics(
     if (!link_sheet_data_result.ok()) {
       return link_sheet_data_result.status();
     }
-    auto link_sheet_8bpp = gfx::SnesTo8bppSheet(*link_sheet_data_result, /*bpp=*/4);
-    if (link_sheet_8bpp.size() != 4096) link_sheet_8bpp.resize(4096, 0);
-    
+    auto link_sheet_8bpp =
+        gfx::SnesTo8bppSheet(*link_sheet_data_result, /*bpp=*/4);
+    if (link_sheet_8bpp.size() != 4096)
+      link_sheet_8bpp.resize(4096, 0);
+
     link_graphics[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
                             gfx::kTilesheetDepth, link_sheet_8bpp);
     // Palette is applied by the caller since GameData may not be available here
@@ -500,25 +524,25 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumLinkSheets>> LoadLinkGraphics(
 absl::StatusOr<std::vector<uint8_t>> Load2BppGraphics(const Rom& rom) {
   std::vector<uint8_t> sheet;
   const uint8_t sheets[] = {0x71, 0x72, 0xDA, 0xDB, 0xDC, 0xDD, 0xDE};
-  
+
   // Get version constants - default to US if we don't know
   auto version_constants = kVersionConstantsMap.at(zelda3_version::US);
-  
+
   for (const auto& sheet_id : sheets) {
-    auto offset = GetGraphicsAddress(rom.data(), sheet_id,
-                                     version_constants.kOverworldGfxPtr1,
-                                     version_constants.kOverworldGfxPtr2,
-                                     version_constants.kOverworldGfxPtr3,
-                                     rom.size());
+    auto offset = GetGraphicsAddress(
+        rom.data(), sheet_id, version_constants.kOverworldGfxPtr1,
+        version_constants.kOverworldGfxPtr2,
+        version_constants.kOverworldGfxPtr3, rom.size());
 
     if (offset >= rom.size()) {
-      return absl::OutOfRangeError(
-          absl::StrFormat("2BPP graphics sheet %u offset %u exceeds ROM size %zu",
-                          sheet_id, offset, rom.size()));
+      return absl::OutOfRangeError(absl::StrFormat(
+          "2BPP graphics sheet %u offset %u exceeds ROM size %zu", sheet_id,
+          offset, rom.size()));
     }
 
     // Decompress using LC-LZ2 algorithm with 0x800 byte output buffer.
-    auto decomp_result = gfx::lc_lz2::DecompressV2(rom.data(), offset, 0x800, 1, rom.size());
+    auto decomp_result =
+        gfx::lc_lz2::DecompressV2(rom.data(), offset, 0x800, 1, rom.size());
     if (!decomp_result.ok()) {
       return decomp_result.status();
     }
@@ -538,7 +562,8 @@ absl::StatusOr<gfx::Bitmap> LoadFontGraphics(const Rom& rom) {
   // Font sprites are located at 0x70000, 2BPP format
   constexpr uint32_t kFontDataSize = 0x4000;  // 16KB of font data
 
-  auto font_data_result = rom.ReadByteVector(kFontSpriteLocation, kFontDataSize);
+  auto font_data_result =
+      rom.ReadByteVector(kFontSpriteLocation, kFontDataSize);
   if (!font_data_result.ok()) {
     return font_data_result.status();
   }
@@ -558,7 +583,8 @@ absl::StatusOr<gfx::Bitmap> LoadFontGraphics(const Rom& rom) {
 // ============================================================================
 
 absl::Status SaveAllGraphicsData(
-    [[maybe_unused]] Rom& rom, [[maybe_unused]] const std::array<gfx::Bitmap, kNumGfxSheets>& sheets) {
+    [[maybe_unused]] Rom& rom,
+    [[maybe_unused]] const std::array<gfx::Bitmap, kNumGfxSheets>& sheets) {
   // For now, return OK status - full implementation would write sheets back
   // to ROM at their respective addresses with proper compression
   LOG_INFO("SaveAllGraphicsData", "Graphics save not yet fully implemented");

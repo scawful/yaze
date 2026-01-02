@@ -8,11 +8,11 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/editor_manager.h"
+#include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/platform_keys.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/theme_manager.h"
-#include "app/gui/core/color.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
@@ -45,8 +45,7 @@ struct FlowLayout {
 FlowLayout ComputeFlowLayout(float avail_width, float min_width,
                              float max_width, float min_height,
                              float max_height, float aspect_ratio,
-                             float spacing, int max_columns,
-                             int item_count) {
+                             float spacing, int max_columns, int item_count) {
   FlowLayout layout;
   layout.spacing = spacing;
   if (avail_width <= 0.0f) {
@@ -63,9 +62,8 @@ FlowLayout ComputeFlowLayout(float avail_width, float min_width,
            static_cast<float>(columns);
   };
 
-  int columns =
-      std::max(1, static_cast<int>((avail_width + spacing) /
-                                   (min_width + spacing)));
+  int columns = std::max(
+      1, static_cast<int>((avail_width + spacing) / (min_width + spacing)));
   columns = std::min(columns, clamped_max);
   if (item_count > 0) {
     columns = std::min(columns, item_count);
@@ -138,8 +136,7 @@ ImVec4 GetEditorAccentColor(EditorType type, const gui::Theme& theme) {
 }  // namespace
 
 DashboardPanel::DashboardPanel(EditorManager* editor_manager)
-    : editor_manager_(editor_manager),
-      window_("Dashboard", ICON_MD_DASHBOARD) {
+    : editor_manager_(editor_manager), window_("Dashboard", ICON_MD_DASHBOARD) {
   window_.SetDefaultSize(950, 650);
   window_.SetPosition(gui::PanelWindow::Position::Center);
 
@@ -152,18 +149,15 @@ DashboardPanel::DashboardPanel(EditorManager* editor_manager)
       {"Dungeon", ICON_MD_CASTLE,
        "Design dungeon rooms, layouts, and mechanics",
        absl::StrFormat("%s+2", ctrl), EditorType::kDungeon},
-      {"Graphics", ICON_MD_PALETTE,
-       "Modify tiles, palettes, and graphics sets",
+      {"Graphics", ICON_MD_PALETTE, "Modify tiles, palettes, and graphics sets",
        absl::StrFormat("%s+3", ctrl), EditorType::kGraphics},
-      {"Sprites", ICON_MD_EMOJI_EMOTIONS,
-       "Edit sprite graphics and properties",
+      {"Sprites", ICON_MD_EMOJI_EMOTIONS, "Edit sprite graphics and properties",
        absl::StrFormat("%s+4", ctrl), EditorType::kSprite},
       {"Messages", ICON_MD_CHAT_BUBBLE, "Edit dialogue, signs, and text",
        absl::StrFormat("%s+5", ctrl), EditorType::kMessage},
       {"Music", ICON_MD_MUSIC_NOTE, "Configure music and sound effects",
        absl::StrFormat("%s+6", ctrl), EditorType::kMusic},
-      {"Palettes", ICON_MD_COLOR_LENS,
-       "Edit color palettes and animations",
+      {"Palettes", ICON_MD_COLOR_LENS, "Edit color palettes and animations",
        absl::StrFormat("%s+7", ctrl), EditorType::kPalette},
       {"Screens", ICON_MD_TV, "Edit title screen and ending screens",
        absl::StrFormat("%s+8", ctrl), EditorType::kScreen},
@@ -184,7 +178,8 @@ DashboardPanel::DashboardPanel(EditorManager* editor_manager)
 }
 
 void DashboardPanel::Draw() {
-  if (!show_) return;
+  if (!show_)
+    return;
 
   // Set window properties immediately before Begin
   ImVec2 center = ImGui::GetMainViewport()->GetCenter();
@@ -221,7 +216,8 @@ void DashboardPanel::DrawWelcomeHeader() {
 }
 
 void DashboardPanel::DrawRecentEditors() {
-  if (recent_editors_.empty()) return;
+  if (recent_editors_.empty())
+    return;
 
   const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
   const ImVec4 accent = gui::ConvertColorToImVec4(theme.accent);
@@ -231,10 +227,10 @@ void DashboardPanel::DrawRecentEditors() {
   const ImGuiStyle& style = ImGui::GetStyle();
   const float avail_width = ImGui::GetContentRegionAvail().x;
   const float min_width = kDashboardRecentBaseWidth;
-  const float max_width = kDashboardRecentBaseWidth *
-                          kDashboardRecentWidthMaxFactor;
-  const float height = std::max(kDashboardRecentBaseHeight,
-                                ImGui::GetFrameHeight());
+  const float max_width =
+      kDashboardRecentBaseWidth * kDashboardRecentWidthMaxFactor;
+  const float height =
+      std::max(kDashboardRecentBaseHeight, ImGui::GetFrameHeight());
   const float spacing = style.ItemSpacing.x;
   const bool stack_items = avail_width < min_width * 1.6f;
   FlowLayout row_layout{};
@@ -244,14 +240,14 @@ void DashboardPanel::DrawRecentEditors() {
     row_layout.item_height = height;
     row_layout.spacing = spacing;
   } else {
-    row_layout = ComputeFlowLayout(
-        avail_width, min_width, max_width, height, height,
-        height / std::max(min_width, 1.0f), spacing, kDashboardMaxRecentColumns,
-        static_cast<int>(recent_editors_.size()));
+    row_layout = ComputeFlowLayout(avail_width, min_width, max_width, height,
+                                   height, height / std::max(min_width, 1.0f),
+                                   spacing, kDashboardMaxRecentColumns,
+                                   static_cast<int>(recent_editors_.size()));
   }
 
-  ImGuiTableFlags table_flags = ImGuiTableFlags_SizingFixedFit |
-                                ImGuiTableFlags_NoPadOuterX;
+  ImGuiTableFlags table_flags =
+      ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoPadOuterX;
   const ImVec2 cell_padding(row_layout.spacing * 0.5f,
                             style.ItemSpacing.y * 0.4f);
   ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, cell_padding);
@@ -274,12 +270,11 @@ void DashboardPanel::DrawRecentEditors() {
                             ScaleColor(base_color, 0.5f, 0.7f));
       ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
                             ScaleColor(base_color, 0.7f, 0.9f));
-      ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                            WithAlpha(base_color, 1.0f));
+      ImGui::PushStyleColor(ImGuiCol_ButtonActive, WithAlpha(base_color, 1.0f));
 
-      ImVec2 button_size(stack_items ? avail_width : row_layout.item_width,
-                         row_layout.item_height > 0.0f ? row_layout.item_height
-                                                       : height);
+      ImVec2 button_size(
+          stack_items ? avail_width : row_layout.item_width,
+          row_layout.item_height > 0.0f ? row_layout.item_height : height);
       if (ImGui::Button(absl::StrCat(it->icon, " ", it->name).c_str(),
                         button_size)) {
         if (editor_manager_) {
@@ -306,7 +301,8 @@ void DashboardPanel::DrawEditorGrid() {
 
   const ImGuiStyle& style = ImGui::GetStyle();
   const float avail_width = ImGui::GetContentRegionAvail().x;
-  const float min_width = kDashboardCardBaseWidth * kDashboardCardMinWidthFactor;
+  const float min_width =
+      kDashboardCardBaseWidth * kDashboardCardMinWidthFactor;
   const float max_width =
       kDashboardCardBaseWidth * kDashboardCardWidthMaxFactor;
   const float min_height =
@@ -319,14 +315,12 @@ void DashboardPanel::DrawEditorGrid() {
   const float spacing = style.ItemSpacing.x;
 
   FlowLayout layout = ComputeFlowLayout(
-      avail_width, min_width, max_width, min_height, max_height,
-      aspect_ratio, spacing, kDashboardMaxColumns,
-      static_cast<int>(editors_.size()));
+      avail_width, min_width, max_width, min_height, max_height, aspect_ratio,
+      spacing, kDashboardMaxColumns, static_cast<int>(editors_.size()));
 
-  ImGuiTableFlags table_flags = ImGuiTableFlags_SizingFixedFit |
-                                ImGuiTableFlags_NoPadOuterX;
-  const ImVec2 cell_padding(layout.spacing * 0.5f,
-                            style.ItemSpacing.y * 0.5f);
+  ImGuiTableFlags table_flags =
+      ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoPadOuterX;
+  const ImVec2 cell_padding(layout.spacing * 0.5f, style.ItemSpacing.y * 0.5f);
   ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, cell_padding);
   if (ImGui::BeginTable("DashboardEditorGrid", layout.columns, table_flags)) {
     for (size_t i = 0; i < editors_.size(); ++i) {
@@ -357,14 +351,16 @@ void DashboardPanel::DrawEditorPanel(const EditorInfo& info, int index,
   const float padding_y = std::max(style.FramePadding.y, card_size.y * 0.08f);
 
   const float footer_height = info.shortcut.empty() ? 0.0f : line_height;
-  const float footer_spacing = info.shortcut.empty() ? 0.0f : style.ItemSpacing.y;
-  const float available_icon_height =
-      card_size.y - padding_y * 2.0f - line_height - footer_height - footer_spacing;
+  const float footer_spacing =
+      info.shortcut.empty() ? 0.0f : style.ItemSpacing.y;
+  const float available_icon_height = card_size.y - padding_y * 2.0f -
+                                      line_height - footer_height -
+                                      footer_spacing;
   const float min_icon_radius = line_height * 0.9f;
   float max_icon_radius = card_size.y * 0.24f;
   max_icon_radius = std::max(max_icon_radius, min_icon_radius);
-  const float icon_radius =
-      std::clamp(available_icon_height * 0.5f, min_icon_radius, max_icon_radius);
+  const float icon_radius = std::clamp(available_icon_height * 0.5f,
+                                       min_icon_radius, max_icon_radius);
 
   const ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -381,21 +377,18 @@ void DashboardPanel::DrawEditorPanel(const EditorInfo& info, int index,
 
   // Create gradient background
   ImU32 color_top = ImGui::GetColorU32(ScaleColor(base_color, 0.4f, 0.85f));
-  ImU32 color_bottom =
-      ImGui::GetColorU32(ScaleColor(base_color, 0.2f, 0.9f));
+  ImU32 color_bottom = ImGui::GetColorU32(ScaleColor(base_color, 0.2f, 0.9f));
 
   // Draw gradient card background
   draw_list->AddRectFilledMultiColor(
       cursor_pos,
-      ImVec2(cursor_pos.x + card_size.x, cursor_pos.y + card_size.y),
-      color_top, color_top, color_bottom, color_bottom);
+      ImVec2(cursor_pos.x + card_size.x, cursor_pos.y + card_size.y), color_top,
+      color_top, color_bottom, color_bottom);
 
   // Colored border
   ImU32 border_color =
-      is_recent
-          ? ImGui::GetColorU32(
-                WithAlpha(base_color, 1.0f))
-          : ImGui::GetColorU32(ScaleColor(base_color, 0.6f, 0.7f));
+      is_recent ? ImGui::GetColorU32(WithAlpha(base_color, 1.0f))
+                : ImGui::GetColorU32(ScaleColor(base_color, 0.6f, 0.7f));
   const float rounding = std::max(style.FrameRounding, card_size.y * 0.05f);
   const float border_thickness =
       is_recent ? std::max(2.0f, style.FrameBorderSize + 1.0f)
@@ -415,8 +408,7 @@ void DashboardPanel::DrawEditorPanel(const EditorInfo& info, int index,
                                ImGui::GetColorU32(base_color), 16);
     const ImU32 star_color = ImGui::GetColorU32(text_primary);
     const ImVec2 star_size =
-        text_font->CalcTextSizeA(text_font_size, FLT_MAX, 0.0f,
-                                 ICON_MD_STAR);
+        text_font->CalcTextSizeA(text_font_size, FLT_MAX, 0.0f, ICON_MD_STAR);
     const ImVec2 star_pos(badge_pos.x - star_size.x * 0.5f,
                           badge_pos.y - star_size.y * 0.5f);
     draw_list->AddText(text_font, text_font_size, star_pos, star_color,
@@ -452,9 +444,8 @@ void DashboardPanel::DrawEditorPanel(const EditorInfo& info, int index,
   }
   ImGui::PushFont(icon_font);
   const float icon_font_size = ImGui::GetFontSize();
-  const ImVec2 icon_size =
-      icon_font->CalcTextSizeA(icon_font_size, FLT_MAX, 0.0f,
-                               info.icon.c_str());
+  const ImVec2 icon_size = icon_font->CalcTextSizeA(icon_font_size, FLT_MAX,
+                                                    0.0f, info.icon.c_str());
   ImGui::PopFont();
   const ImVec2 icon_text_pos(icon_center.x - icon_size.x * 0.5f,
                              icon_center.y - icon_size.y * 0.5f);
@@ -462,9 +453,8 @@ void DashboardPanel::DrawEditorPanel(const EditorInfo& info, int index,
                      ImGui::GetColorU32(text_primary), info.icon.c_str());
 
   // Draw name
-  const ImVec2 name_size =
-      text_font->CalcTextSizeA(text_font_size, FLT_MAX, 0.0f,
-                               info.name.c_str());
+  const ImVec2 name_size = text_font->CalcTextSizeA(text_font_size, FLT_MAX,
+                                                    0.0f, info.name.c_str());
   float name_x = cursor_pos.x + (card_size.x - name_size.x) * 0.5f;
   const float name_min_x = cursor_pos.x + padding_x;
   const float name_max_x = cursor_pos.x + card_size.x - padding_x;
@@ -489,8 +479,7 @@ void DashboardPanel::DrawEditorPanel(const EditorInfo& info, int index,
 
   // Hover glow effect
   if (is_hovered) {
-    ImU32 glow_color =
-        ImGui::GetColorU32(ScaleColor(base_color, 1.0f, 0.18f));
+    ImU32 glow_color = ImGui::GetColorU32(ScaleColor(base_color, 1.0f, 0.18f));
     draw_list->AddRectFilled(
         cursor_pos,
         ImVec2(cursor_pos.x + card_size.x, cursor_pos.y + card_size.y),
@@ -503,7 +492,8 @@ void DashboardPanel::DrawEditorPanel(const EditorInfo& info, int index,
     ImGui::SetNextWindowSize(ImVec2(tooltip_width, 0), ImGuiCond_Always);
     ImGui::BeginTooltip();
     ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[1]);  // Medium font
-    ImGui::TextColored(base_color, "%s %s", info.icon.c_str(), info.name.c_str());
+    ImGui::TextColored(base_color, "%s %s", info.icon.c_str(),
+                       info.name.c_str());
     ImGui::PopFont();
     ImGui::Separator();
     ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + tooltip_width - 20.0f);

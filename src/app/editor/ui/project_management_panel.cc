@@ -105,7 +105,8 @@ void ProjectManagementPanel::DrawRomManagement() {
   ImGui::TextColored(gui::GetTextSecondaryVec4(), "Current ROM:");
   if (project_->rom_filename.empty()) {
     const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
-    ImGui::TextColored(gui::ConvertColorToImVec4(theme.warning), "Not configured");
+    ImGui::TextColored(gui::ConvertColorToImVec4(theme.warning),
+                       "Not configured");
   } else {
     // Show just the filename, full path on hover
     std::string filename = project_->rom_filename;
@@ -383,4 +384,3 @@ void ProjectManagementPanel::DrawQuickActions() {
 
 }  // namespace editor
 }  // namespace yaze
-

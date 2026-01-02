@@ -43,8 +43,8 @@ std::string SetFontPath(const std::string& font_path) {
   }
   return absl::StrCat("assets/font/", font_path);
 #else
-  std::string bundle_path = absl::StrCat(
-      util::GetBundleResourcePath(), "Contents/Resources/font/", font_path);
+  std::string bundle_path = absl::StrCat(util::GetBundleResourcePath(),
+                                         "Contents/Resources/font/", font_path);
   if (std::filesystem::exists(bundle_path)) {
     return bundle_path;
   }
@@ -170,9 +170,8 @@ absl::Status LoadFontFromMemory(const std::string& name,
   std::strncpy(config.Name, name.c_str(), sizeof(config.Name) - 1);
   config.Name[sizeof(config.Name) - 1] = 0;
 
-  if (!imgui_io.Fonts->AddFontFromMemoryTTF(font_data,
-                                            static_cast<int>(data.size()),
-                                            size_pixels, &config)) {
+  if (!imgui_io.Fonts->AddFontFromMemoryTTF(
+          font_data, static_cast<int>(data.size()), size_pixels, &config)) {
     ImGui::MemFree(font_data);
     return absl::InternalError("Failed to load font from memory");
   }

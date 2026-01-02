@@ -8,8 +8,8 @@
 #include <ctime>
 
 #include "absl/strings/str_format.h"
-#include "app/platform/wasm/wasm_storage.h"
 #include "app/platform/wasm/wasm_config.h"
+#include "app/platform/wasm/wasm_storage.h"
 
 namespace yaze {
 namespace platform {
@@ -34,10 +34,12 @@ EM_JS(void, register_beforeunload_handler, (), {
     }
 
     // Some browsers require returnValue to be set
-    event.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+    event.returnValue =
+        'You have unsaved changes. Are you sure you want to leave?';
     return event.returnValue;
   };
-  window.addEventListener('beforeunload', window._yazeAutoSaveHandlers.beforeunload);
+  window.addEventListener('beforeunload',
+                          window._yazeAutoSaveHandlers.beforeunload);
 
   // Register visibilitychange event for when tab becomes hidden
   window._yazeAutoSaveHandlers.visibilitychange = function() {
@@ -46,7 +48,8 @@ EM_JS(void, register_beforeunload_handler, (), {
       Module._yazeEmergencySave();
     }
   };
-  document.addEventListener('visibilitychange', window._yazeAutoSaveHandlers.visibilitychange);
+  document.addEventListener('visibilitychange',
+                            window._yazeAutoSaveHandlers.visibilitychange);
 
   // Register pagehide event as backup
   window._yazeAutoSaveHandlers.pagehide = function(event) {
@@ -63,13 +66,16 @@ EM_JS(void, unregister_beforeunload_handler, (), {
   // Remove all event listeners using stored references
   if (window._yazeAutoSaveHandlers) {
     if (window._yazeAutoSaveHandlers.beforeunload) {
-      window.removeEventListener('beforeunload', window._yazeAutoSaveHandlers.beforeunload);
+      window.removeEventListener('beforeunload',
+                                 window._yazeAutoSaveHandlers.beforeunload);
     }
     if (window._yazeAutoSaveHandlers.visibilitychange) {
-      document.removeEventListener('visibilitychange', window._yazeAutoSaveHandlers.visibilitychange);
+      document.removeEventListener(
+          'visibilitychange', window._yazeAutoSaveHandlers.visibilitychange);
     }
     if (window._yazeAutoSaveHandlers.pagehide) {
-      window.removeEventListener('pagehide', window._yazeAutoSaveHandlers.pagehide);
+      window.removeEventListener('pagehide',
+                                 window._yazeAutoSaveHandlers.pagehide);
     }
     window._yazeAutoSaveHandlers = null;
   }
@@ -90,7 +96,7 @@ EM_JS(void, set_recovery_flag, (int has_recovery), {
 
 EM_JS(int, get_recovery_flag, (), {
   try {
-    return sessionStorage.getItem('yaze_has_recovery') === 'true' ? 1 : 0;
+    return sessionStorage.getItem('yaze_has_recovery') == = 'true' ? 1 : 0;
   } catch (e) {
     console.error('Failed to get recovery flag:', e);
     return 0;
@@ -134,7 +140,8 @@ void yazeClearRecoveryData() {
 // AutoSaveManager implementation
 
 AutoSaveManager::AutoSaveManager()
-    : interval_seconds_(app::platform::WasmConfig::Get().autosave.interval_seconds),
+    : interval_seconds_(
+          app::platform::WasmConfig::Get().autosave.interval_seconds),
       enabled_(true),
       running_(false),
       timer_id_(-1),
@@ -200,8 +207,8 @@ absl::Status AutoSaveManager::Start(int interval_seconds) {
   InitializeEventHandlers();
 
   // Start the timer
-  timer_id_ = emscripten_set_timeout(
-      TimerCallback, interval_seconds_ * 1000, this);
+  timer_id_ =
+      emscripten_set_timeout(TimerCallback, interval_seconds_ * 1000, this);
 
   running_ = true;
   emscripten_log(EM_LOG_INFO, "Auto-save started with %d second interval",
@@ -281,8 +288,10 @@ absl::Status AutoSaveManager::PerformSave() {
 
   // Add metadata
   auto now = std::chrono::system_clock::now();
-  save_data["timestamp"] = std::chrono::duration_cast<std::chrono::milliseconds>(
-      now.time_since_epoch()).count();
+  save_data["timestamp"] =
+      std::chrono::duration_cast<std::chrono::milliseconds>(
+          now.time_since_epoch())
+          .count();
   save_data["version"] = 1;
 
   // Save to storage
@@ -356,18 +365,21 @@ void AutoSaveManager::EmergencySave() {
 
     emergency_data["timestamp"] =
         std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::system_clock::now().time_since_epoch()).count();
+            std::chrono::system_clock::now().time_since_epoch())
+            .count();
 
     // Use synchronous localStorage for emergency save (faster than IndexedDB)
-    EM_ASM({
-      try {
-        const data = UTF8ToString($0);
-        localStorage.setItem('yaze_emergency_save', data);
-        console.log('Emergency save completed');
-      } catch (e) {
-        console.error('Emergency save failed:', e);
-      }
-    }, emergency_data.dump().c_str());
+    EM_ASM(
+        {
+          try {
+            const data = UTF8ToString($0);
+            localStorage.setItem('yaze_emergency_save', data);
+            console.log('Emergency save completed');
+          } catch (e) {
+            console.error('Emergency save failed:', e);
+          }
+        },
+        emergency_data.dump().c_str());
 
     set_recovery_flag(1);
   } catch (...) {
@@ -389,7 +401,7 @@ bool AutoSaveManager::HasRecoveryData() {
 
   // Check for emergency save data
   int has_emergency = EM_ASM_INT({
-    return localStorage.getItem('yaze_emergency_save') !== null ? 1 : 0;
+    return localStorage.getItem('yaze_emergency_save') != = null ? 1 : 0;
   });
 
   return has_emergency == 1;
@@ -408,15 +420,17 @@ absl::StatusOr<nlohmann::json> AutoSaveManager::GetRecoveryInfo() {
 
   // Check for emergency save
   char* emergency_data = nullptr;
-  EM_ASM({
-    const data = localStorage.getItem('yaze_emergency_save');
-    if (data) {
-      const len = lengthBytesUTF8(data) + 1;
-      const ptr = _malloc(len);
-      stringToUTF8(data, ptr, len);
-      setValue($0, ptr, 'i32');
-    }
-  }, &emergency_data);
+  EM_ASM(
+      {
+        const data = localStorage.getItem('yaze_emergency_save');
+        if (data) {
+          const len = lengthBytesUTF8(data) + 1;
+          const ptr = _malloc(len);
+          stringToUTF8(data, ptr, len);
+          setValue($0, ptr, 'i32');
+        }
+      },
+      &emergency_data);
 
   if (emergency_data) {
     try {
@@ -453,7 +467,7 @@ absl::Status AutoSaveManager::RecoverLastSession() {
             emscripten_log(EM_LOG_INFO, "Restored component: %s", id.c_str());
           } catch (const std::exception& e) {
             emscripten_log(EM_LOG_ERROR, "Failed to restore component %s: %s",
-                          id.c_str(), e.what());
+                           id.c_str(), e.what());
           }
         }
       }
@@ -465,15 +479,17 @@ absl::Status AutoSaveManager::RecoverLastSession() {
 
   // Try emergency save data
   char* emergency_data = nullptr;
-  EM_ASM({
-    const data = localStorage.getItem('yaze_emergency_save');
-    if (data) {
-      const len = lengthBytesUTF8(data) + 1;
-      const ptr = _malloc(len);
-      stringToUTF8(data, ptr, len);
-      setValue($0, ptr, 'i32');
-    }
-  }, &emergency_data);
+  EM_ASM(
+      {
+        const data = localStorage.getItem('yaze_emergency_save');
+        if (data) {
+          const len = lengthBytesUTF8(data) + 1;
+          const ptr = _malloc(len);
+          stringToUTF8(data, ptr, len);
+          setValue($0, ptr, 'i32');
+        }
+      },
+      &emergency_data);
 
   if (emergency_data) {
     try {
@@ -486,19 +502,18 @@ absl::Status AutoSaveManager::RecoverLastSession() {
           if (it != components_.end() && it->second.restore_fn) {
             try {
               it->second.restore_fn(component_data);
-              emscripten_log(EM_LOG_INFO, "Restored component from emergency save: %s",
-                            id.c_str());
+              emscripten_log(EM_LOG_INFO,
+                             "Restored component from emergency save: %s",
+                             id.c_str());
             } catch (const std::exception& e) {
               emscripten_log(EM_LOG_ERROR, "Failed to restore component %s: %s",
-                            id.c_str(), e.what());
+                             id.c_str(), e.what());
             }
           }
         }
 
         // Clear emergency save data
-        EM_ASM({
-          localStorage.removeItem('yaze_emergency_save');
-        });
+        EM_ASM({ localStorage.removeItem('yaze_emergency_save'); });
 
         recovery_count_++;
         set_recovery_flag(0);  // Clear recovery flag
@@ -519,9 +534,7 @@ absl::Status AutoSaveManager::ClearRecoveryData() {
   WasmStorage::DeleteProject(kAutoSaveMetaKey);
 
   // Clear emergency save data
-  EM_ASM({
-    localStorage.removeItem('yaze_emergency_save');
-  });
+  EM_ASM({ localStorage.removeItem('yaze_emergency_save'); });
 
   // Clear recovery flag
   set_recovery_flag(0);
@@ -567,7 +580,8 @@ nlohmann::json AutoSaveManager::GetStatistics() const {
   if (last_save_time_.time_since_epoch().count() > 0) {
     stats["last_save_timestamp"] =
         std::chrono::duration_cast<std::chrono::milliseconds>(
-            last_save_time_.time_since_epoch()).count();
+            last_save_time_.time_since_epoch())
+            .count();
   }
 
   return stats;

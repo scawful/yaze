@@ -16,9 +16,9 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/style.h"
-#include "rom/rom.h"
 #include "imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
+#include "rom/rom.h"
 #include "util/file_util.h"
 #include "util/hex.h"
 #include "util/log.h"
@@ -70,19 +70,20 @@ void MessageEditor::Initialize() {
   const size_t session_id = dependencies_.session_id;
 
   // Register EditorPanel implementations (they provide both metadata and drawing)
-  panel_manager->RegisterEditorPanel(std::make_unique<MessageListPanel>(
-      [this]() { DrawMessageList(); }));
-  panel_manager->RegisterEditorPanel(std::make_unique<MessageEditorPanel>(
-      [this]() { DrawCurrentMessage(); }));
+  panel_manager->RegisterEditorPanel(
+      std::make_unique<MessageListPanel>([this]() { DrawMessageList(); }));
+  panel_manager->RegisterEditorPanel(
+      std::make_unique<MessageEditorPanel>([this]() { DrawCurrentMessage(); }));
   panel_manager->RegisterEditorPanel(std::make_unique<FontAtlasPanel>([this]() {
     DrawFontAtlas();
     DrawExpandedMessageSettings();
   }));
-  panel_manager->RegisterEditorPanel(std::make_unique<DictionaryPanel>([this]() {
-    DrawTextCommands();
-    DrawSpecialCharacters();
-    DrawDictionary();
-  }));
+  panel_manager->RegisterEditorPanel(
+      std::make_unique<DictionaryPanel>([this]() {
+        DrawTextCommands();
+        DrawSpecialCharacters();
+        DrawDictionary();
+      }));
 
   // Show message list by default
   panel_manager->ShowPanel(session_id, "message.message_list");
@@ -93,7 +94,8 @@ void MessageEditor::Initialize() {
 
   message_preview_.all_dictionaries_ = BuildDictionaryEntries(rom());
   list_of_texts_ = ReadAllTextData(rom()->mutable_data());
-  LOG_INFO("MessageEditor", "Loaded %zu messages from ROM", list_of_texts_.size());
+  LOG_INFO("MessageEditor", "Loaded %zu messages from ROM",
+           list_of_texts_.size());
 
   if (game_data()) {
     font_preview_colors_ = game_data()->palette_groups.hud.palette(0);
@@ -124,7 +126,7 @@ void MessageEditor::Initialize() {
   }
   parsed_messages_ =
       ParseMessageData(list_of_texts_, message_preview_.all_dictionaries_);
-  
+
   if (!list_of_texts_.empty()) {
     // Default to message 1 if available, otherwise 0
     size_t default_idx = list_of_texts_.size() > 1 ? 1 : 0;
@@ -264,7 +266,7 @@ void MessageEditor::DrawExpandedMessageSettings() {
   ImGui::BeginChild("##ExpandedMessageSettings", ImVec2(0, 100), true,
                     ImGuiWindowFlags_AlwaysVerticalScrollbar);
   ImGui::Text("Expanded Messages");
-  
+
   if (ImGui::Button("Load Expanded Message")) {
     std::string path = util::FileDialogWrapper::ShowOpenFileDialog();
     if (!path.empty()) {
@@ -290,7 +292,7 @@ void MessageEditor::DrawExpandedMessageSettings() {
                             expanded_messages_.back().Data.size();
       expanded_messages_.push_back(new_message);
     }
-    
+
     if (ImGui::Button("Save Expanded Messages")) {
       if (expanded_message_path_.empty()) {
         expanded_message_path_ = util::FileDialogWrapper::ShowSaveFileDialog();
@@ -466,48 +468,52 @@ absl::Status MessageEditor::Save() {
 
 absl::Status MessageEditor::SaveExpandedMessages() {
   if (expanded_message_path_.empty()) {
-    return absl::InvalidArgumentError("No path specified for expanded messages");
+    return absl::InvalidArgumentError(
+        "No path specified for expanded messages");
   }
-  
+
   // Ensure the ROM object is loaded/initialized if needed, or just use it as a buffer
   // The original code used expanded_message_bin_ which wasn't clearly initialized in this scope
-  // except potentially in LoadExpandedMessages via a static local? 
-  // Wait, LoadExpandedMessages used a static local Rom. 
+  // except potentially in LoadExpandedMessages via a static local?
+  // Wait, LoadExpandedMessages used a static local Rom.
   // We need to ensure expanded_message_bin_ member is populated or we load it.
-  
+
   if (!expanded_message_bin_.is_loaded()) {
-     // Try to load from the path if it exists, otherwise create new?
-     // For now, let's assume we are overwriting or updating.
-     // If we are just writing raw data, maybe we don't need a full ROM load if we just write bytes?
-     // But SaveToFile expects a loaded ROM structure.
-     // Let's try to load it first.
-     auto status = expanded_message_bin_.LoadFromFile(expanded_message_path_);
-     if (!status.ok()) {
-         // If file doesn't exist, maybe we should create a buffer?
-         // For now, let's propagate error if we can't load it to update it.
-         // Or if it's a new file, we might need to handle that.
-         // Let's assume for this task we are updating an existing BIN or creating one.
-         // If creating, we might need to initialize expanded_message_bin_ with enough size.
-         // Let's just try to load, and if it fails (e.g. new file), initialize empty.
-         expanded_message_bin_.Expand(0x200000); // Default 2MB? Or just enough?
-     }
+    // Try to load from the path if it exists, otherwise create new?
+    // For now, let's assume we are overwriting or updating.
+    // If we are just writing raw data, maybe we don't need a full ROM load if we just write bytes?
+    // But SaveToFile expects a loaded ROM structure.
+    // Let's try to load it first.
+    auto status = expanded_message_bin_.LoadFromFile(expanded_message_path_);
+    if (!status.ok()) {
+      // If file doesn't exist, maybe we should create a buffer?
+      // For now, let's propagate error if we can't load it to update it.
+      // Or if it's a new file, we might need to handle that.
+      // Let's assume for this task we are updating an existing BIN or creating one.
+      // If creating, we might need to initialize expanded_message_bin_ with enough size.
+      // Let's just try to load, and if it fails (e.g. new file), initialize empty.
+      expanded_message_bin_.Expand(0x200000);  // Default 2MB? Or just enough?
+    }
   }
 
   for (const auto& expanded_message : expanded_messages_) {
     // Ensure vector is large enough
-    if (expanded_message.Address + expanded_message.Data.size() > expanded_message_bin_.size()) {
-        expanded_message_bin_.Expand(expanded_message.Address + expanded_message.Data.size() + 0x1000);
+    if (expanded_message.Address + expanded_message.Data.size() >
+        expanded_message_bin_.size()) {
+      expanded_message_bin_.Expand(expanded_message.Address +
+                                   expanded_message.Data.size() + 0x1000);
     }
     std::copy(expanded_message.Data.begin(), expanded_message.Data.end(),
               expanded_message_bin_.mutable_data() + expanded_message.Address);
   }
-  
+
   // Write terminator
   if (!expanded_messages_.empty()) {
-      size_t end_pos = expanded_messages_.back().Address + expanded_messages_.back().Data.size();
-      if (end_pos < expanded_message_bin_.size()) {
-          expanded_message_bin_.WriteByte(end_pos, 0xFF);
-      }
+    size_t end_pos = expanded_messages_.back().Address +
+                     expanded_messages_.back().Data.size();
+    if (end_pos < expanded_message_bin_.size()) {
+      expanded_message_bin_.WriteByte(end_pos, 0xFF);
+    }
   }
 
   expanded_message_bin_.set_filename(expanded_message_path_);

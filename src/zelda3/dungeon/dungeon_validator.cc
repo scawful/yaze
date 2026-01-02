@@ -19,9 +19,9 @@ ValidationResult DungeonValidator::ValidateRoom(const Room& room) {
   // Check sprite count
   size_t sprite_count = room.GetSprites().size();
   if (sprite_count > kMaxTotalSprites) {
-    result.warnings.push_back(absl::StrFormat(
-        "Too many sprites (%zu > %d). Game limit is strict.", sprite_count,
-        kMaxTotalSprites));
+    result.warnings.push_back(
+        absl::StrFormat("Too many sprites (%zu > %d). Game limit is strict.",
+                        sprite_count, kMaxTotalSprites));
   }
 
   // Check chest count (approximate, based on object ID)
