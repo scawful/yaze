@@ -27,8 +27,10 @@ if(YAZE_PREFER_SYSTEM_GRPC OR YAZE_USE_SYSTEM_DEPS)
 
   # Try CMake's find_package first (works with Homebrew on macOS)
   find_package(gRPC CONFIG QUIET)
-  find_package(Protobuf CONFIG QUIET)
-  find_package(absl CONFIG QUIET)
+  if(gRPC_FOUND)
+    find_package(Protobuf CONFIG QUIET)
+    find_package(absl CONFIG QUIET)
+  endif()
 
   if(gRPC_FOUND AND Protobuf_FOUND AND absl_FOUND)
     message(STATUS "✓ Found system gRPC: ${gRPC_VERSION}")
@@ -578,4 +580,3 @@ function(target_add_protobuf target)
         )
     endforeach()
 endfunction()
-
