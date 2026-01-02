@@ -131,13 +131,15 @@ void PopupManager::Initialize() {
                                              DrawLayoutResetConfirmPopup();
                                            }};
 
-  popups_[PopupID::kLayoutPresets] = {PopupID::kLayoutPresets,
-                                      PopupType::kSettings, false, false,
-                                      [this]() { DrawLayoutPresetsPopup(); }};
+  popups_[PopupID::kLayoutPresets] = {
+      PopupID::kLayoutPresets, PopupType::kSettings, false, false, [this]() {
+        DrawLayoutPresetsPopup();
+      }};
 
-  popups_[PopupID::kSessionManager] = {PopupID::kSessionManager,
-                                       PopupType::kSettings, false, true,
-                                       [this]() { DrawSessionManagerPopup(); }};
+  popups_[PopupID::kSessionManager] = {
+      PopupID::kSessionManager, PopupType::kSettings, false, true, [this]() {
+        DrawSessionManagerPopup();
+      }};
 
   // Debug/Testing
   popups_[PopupID::kDataIntegrity] = {PopupID::kDataIntegrity, PopupType::kInfo,
@@ -752,28 +754,42 @@ void PopupManager::DrawLayoutPresetsPopup() {
   PresetInfo presets[] = {
       {"Minimal", ICON_MD_CROP_FREE,
        "Essential cards only - maximum editing space",
-       []() { return LayoutPresets::GetMinimalPreset(); }},
+       []() {
+         return LayoutPresets::GetMinimalPreset();
+       }},
       {"Developer", ICON_MD_BUG_REPORT,
        "Debug and development focused - CPU/Memory/Breakpoints",
-       []() { return LayoutPresets::GetDeveloperPreset(); }},
+       []() {
+         return LayoutPresets::GetDeveloperPreset();
+       }},
       {"Designer", ICON_MD_PALETTE,
        "Visual and artistic focused - Graphics/Palettes/Sprites",
-       []() { return LayoutPresets::GetDesignerPreset(); }},
+       []() {
+         return LayoutPresets::GetDesignerPreset();
+       }},
       {"Modder", ICON_MD_BUILD,
        "Full-featured - All tools available for comprehensive editing",
-       []() { return LayoutPresets::GetModderPreset(); }},
+       []() {
+         return LayoutPresets::GetModderPreset();
+       }},
       {"Overworld Expert", ICON_MD_MAP,
        "Complete overworld editing toolkit with all map tools",
-       []() { return LayoutPresets::GetOverworldExpertPreset(); }},
+       []() {
+         return LayoutPresets::GetOverworldExpertPreset();
+       }},
       {"Dungeon Expert", ICON_MD_DOOR_SLIDING,
        "Complete dungeon editing toolkit with room tools",
-       []() { return LayoutPresets::GetDungeonExpertPreset(); }},
-      {"Testing", ICON_MD_SCIENCE,
-       "Quality assurance and ROM testing layout",
-       []() { return LayoutPresets::GetTestingPreset(); }},
-      {"Audio", ICON_MD_MUSIC_NOTE,
-       "Music and sound editing layout",
-       []() { return LayoutPresets::GetAudioPreset(); }},
+       []() {
+         return LayoutPresets::GetDungeonExpertPreset();
+       }},
+      {"Testing", ICON_MD_SCIENCE, "Quality assurance and ROM testing layout",
+       []() {
+         return LayoutPresets::GetTestingPreset();
+       }},
+      {"Audio", ICON_MD_MUSIC_NOTE, "Music and sound editing layout",
+       []() {
+         return LayoutPresets::GetAudioPreset();
+       }},
   };
 
   constexpr int kPresetCount = 8;
@@ -783,11 +799,13 @@ void PopupManager::DrawLayoutPresetsPopup() {
   float button_height = 50.0f;
 
   for (int i = 0; i < kPresetCount; i++) {
-    if (i % 2 != 0) SameLine();
+    if (i % 2 != 0)
+      SameLine();
 
     PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.0f, 0.5f));
-    if (Button(absl::StrFormat("%s %s", presets[i].icon, presets[i].name).c_str(),
-               ImVec2(button_width, button_height))) {
+    if (Button(
+            absl::StrFormat("%s %s", presets[i].icon, presets[i].name).c_str(),
+            ImVec2(button_width, button_height))) {
       // Apply the preset
       auto preset = presets[i].getter();
       auto& panel_manager = editor_manager_->panel_manager();
@@ -813,8 +831,9 @@ void PopupManager::DrawLayoutPresetsPopup() {
   Spacing();
 
   // Reset current editor to defaults
-  if (Button(absl::StrFormat("%s Reset Current Editor", ICON_MD_REFRESH).c_str(),
-             ImVec2(-1, 0))) {
+  if (Button(
+          absl::StrFormat("%s Reset Current Editor", ICON_MD_REFRESH).c_str(),
+          ImVec2(-1, 0))) {
     auto& panel_manager = editor_manager_->card_registry();
     auto* current_editor = editor_manager_->GetCurrentEditor();
     if (current_editor) {

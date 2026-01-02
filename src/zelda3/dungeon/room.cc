@@ -7,6 +7,8 @@
 #include <vector>
 
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
+#include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/platform/sdl_compat.h"
@@ -15,94 +17,89 @@
 #include "util/log.h"
 #include "zelda3/dungeon/editor_dungeon_state.h"
 #include "zelda3/dungeon/object_drawer.h"
+#include "zelda3/dungeon/palette_debug.h"
 #include "zelda3/dungeon/room_layer_manager.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/sprite/sprite.h"
-#include "zelda3/dungeon/palette_debug.h"
-#include "app/editor/dungeon/dungeon_canvas_viewer.h"
 
 namespace yaze {
 namespace zelda3 {
 
 // Define room effect names in a single translation unit to avoid SIOF
-const std::string RoomEffect[8] = {
-    "Nothing",
-    "Nothing",
-    "Moving Floor",
-    "Moving Water",
-    "Trinexx Shell",
-    "Red Flashes",
-    "Light Torch to See Floor",
-    "Ganon's Darkness"
-};
+const std::string RoomEffect[8] = {"Nothing",
+                                   "Nothing",
+                                   "Moving Floor",
+                                   "Moving Water",
+                                   "Trinexx Shell",
+                                   "Red Flashes",
+                                   "Light Torch to See Floor",
+                                   "Ganon's Darkness"};
 
 // Define room tag names in a single translation unit to avoid SIOF
-const std::string RoomTag[65] = {
-    "Nothing",
-    "NW Kill Enemy to Open",
-    "NE Kill Enemy to Open",
-    "SW Kill Enemy to Open",
-    "SE Kill Enemy to Open",
-    "W Kill Enemy to Open",
-    "E Kill Enemy to Open",
-    "N Kill Enemy to Open",
-    "S Kill Enemy to Open",
-    "Clear Quadrant to Open",
-    "Clear Full Tile to Open",
-    "NW Push Block to Open",
-    "NE Push Block to Open",
-    "SW Push Block to Open",
-    "SE Push Block to Open",
-    "W Push Block to Open",
-    "E Push Block to Open",
-    "N Push Block to Open",
-    "S Push Block to Open",
-    "Push Block to Open",
-    "Pull Lever to Open",
-    "Collect Prize to Open",
-    "Hold Switch Open Door",
-    "Toggle Switch to Open Door",
-    "Turn off Water",
-    "Turn on Water",
-    "Water Gate",
-    "Water Twin",
-    "Moving Wall Right",
-    "Moving Wall Left",
-    "Crash",
-    "Crash",
-    "Push Switch Exploding Wall",
-    "Holes 0",
-    "Open Chest (Holes 0)",
-    "Holes 1",
-    "Holes 2",
-    "Defeat Boss for Dungeon Prize",
-    "SE Kill Enemy to Push Block",
-    "Trigger Switch Chest",
-    "Pull Lever Exploding Wall",
-    "NW Kill Enemy for Chest",
-    "NE Kill Enemy for Chest",
-    "SW Kill Enemy for Chest",
-    "SE Kill Enemy for Chest",
-    "W Kill Enemy for Chest",
-    "E Kill Enemy for Chest",
-    "N Kill Enemy for Chest",
-    "S Kill Enemy for Chest",
-    "Clear Quadrant for Chest",
-    "Clear Full Tile for Chest",
-    "Light Torches to Open",
-    "Holes 3",
-    "Holes 4",
-    "Holes 5",
-    "Holes 6",
-    "Agahnim Room",
-    "Holes 7",
-    "Holes 8",
-    "Open Chest for Holes 8",
-    "Push Block for Chest",
-    "Clear Room for Triforce Door",
-    "Light Torches for Chest",
-    "Kill Boss Again"
-};
+const std::string RoomTag[65] = {"Nothing",
+                                 "NW Kill Enemy to Open",
+                                 "NE Kill Enemy to Open",
+                                 "SW Kill Enemy to Open",
+                                 "SE Kill Enemy to Open",
+                                 "W Kill Enemy to Open",
+                                 "E Kill Enemy to Open",
+                                 "N Kill Enemy to Open",
+                                 "S Kill Enemy to Open",
+                                 "Clear Quadrant to Open",
+                                 "Clear Full Tile to Open",
+                                 "NW Push Block to Open",
+                                 "NE Push Block to Open",
+                                 "SW Push Block to Open",
+                                 "SE Push Block to Open",
+                                 "W Push Block to Open",
+                                 "E Push Block to Open",
+                                 "N Push Block to Open",
+                                 "S Push Block to Open",
+                                 "Push Block to Open",
+                                 "Pull Lever to Open",
+                                 "Collect Prize to Open",
+                                 "Hold Switch Open Door",
+                                 "Toggle Switch to Open Door",
+                                 "Turn off Water",
+                                 "Turn on Water",
+                                 "Water Gate",
+                                 "Water Twin",
+                                 "Moving Wall Right",
+                                 "Moving Wall Left",
+                                 "Crash",
+                                 "Crash",
+                                 "Push Switch Exploding Wall",
+                                 "Holes 0",
+                                 "Open Chest (Holes 0)",
+                                 "Holes 1",
+                                 "Holes 2",
+                                 "Defeat Boss for Dungeon Prize",
+                                 "SE Kill Enemy to Push Block",
+                                 "Trigger Switch Chest",
+                                 "Pull Lever Exploding Wall",
+                                 "NW Kill Enemy for Chest",
+                                 "NE Kill Enemy for Chest",
+                                 "SW Kill Enemy for Chest",
+                                 "SE Kill Enemy for Chest",
+                                 "W Kill Enemy for Chest",
+                                 "E Kill Enemy for Chest",
+                                 "N Kill Enemy for Chest",
+                                 "S Kill Enemy for Chest",
+                                 "Clear Quadrant for Chest",
+                                 "Clear Full Tile for Chest",
+                                 "Light Torches to Open",
+                                 "Holes 3",
+                                 "Holes 4",
+                                 "Holes 5",
+                                 "Holes 6",
+                                 "Agahnim Room",
+                                 "Holes 7",
+                                 "Holes 8",
+                                 "Open Chest for Holes 8",
+                                 "Push Block for Chest",
+                                 "Clear Room for Triforce Door",
+                                 "Light Torches for Chest",
+                                 "Kill Boss Again"};
 
 RoomSize CalculateRoomSize(Rom* rom, int room_id) {
   // Calculate the size of the room based on how many objects are used per room
@@ -126,9 +123,10 @@ RoomSize CalculateRoomSize(Rom* rom, int room_id) {
   }
 
   auto room_size_address = 0xF8000 + (room_id * 3);
-  
+
   // Bounds check
-  if (room_size_address < 0 || room_size_address + 2 >= static_cast<int>(rom->size())) {
+  if (room_size_address < 0 ||
+      room_size_address + 2 >= static_cast<int>(rom->size())) {
     return room_size;
   }
 
@@ -152,8 +150,9 @@ RoomSize CalculateRoomSize(Rom* rom, int room_id) {
     int next_room_address = 0xF8000 + ((room_id + 1) * 3);
 
     // Bounds check for next room address
-    if (next_room_address < 0 || next_room_address + 2 >= static_cast<int>(rom->size())) {
-        return room_size;
+    if (next_room_address < 0 ||
+        next_room_address + 2 >= static_cast<int>(rom->size())) {
+      return room_size;
     }
 
     // Reading bytes for long address construction
@@ -211,7 +210,8 @@ Room LoadRoomHeaderFromRom(Rom* rom, int room_id) {
   }
 
   // Validate kRoomHeaderPointer access
-  if (kRoomHeaderPointer < 0 || kRoomHeaderPointer + 2 >= static_cast<int>(rom->size())) {
+  if (kRoomHeaderPointer < 0 ||
+      kRoomHeaderPointer + 2 >= static_cast<int>(rom->size())) {
     return room;
   }
 
@@ -222,7 +222,8 @@ Room LoadRoomHeaderFromRom(Rom* rom, int room_id) {
   header_pointer = SnesToPc(header_pointer);
 
   // Validate kRoomHeaderPointerBank access
-  if (kRoomHeaderPointerBank < 0 || kRoomHeaderPointerBank >= static_cast<int>(rom->size())) {
+  if (kRoomHeaderPointerBank < 0 ||
+      kRoomHeaderPointerBank >= static_cast<int>(rom->size())) {
     return room;
   }
 
@@ -239,7 +240,8 @@ Room LoadRoomHeaderFromRom(Rom* rom, int room_id) {
   auto header_location = SnesToPc(address);
 
   // Validate header_location access (we read up to +13 bytes)
-  if (header_location < 0 || header_location + 13 >= static_cast<int>(rom->size())) {
+  if (header_location < 0 ||
+      header_location + 13 >= static_cast<int>(rom->size())) {
     return room;
   }
 
@@ -272,7 +274,8 @@ Room LoadRoomHeaderFromRom(Rom* rom, int room_id) {
   // =====
 
   // Validate kRoomHeaderPointer access (again, just in case)
-  if (kRoomHeaderPointer < 0 || kRoomHeaderPointer + 2 >= static_cast<int>(rom->size())) {
+  if (kRoomHeaderPointer < 0 ||
+      kRoomHeaderPointer + 2 >= static_cast<int>(rom->size())) {
     return room;
   }
 
@@ -282,13 +285,15 @@ Room LoadRoomHeaderFromRom(Rom* rom, int room_id) {
   header_pointer_2 = SnesToPc(header_pointer_2);
 
   // Validate kRoomHeaderPointerBank access
-  if (kRoomHeaderPointerBank < 0 || kRoomHeaderPointerBank >= static_cast<int>(rom->size())) {
+  if (kRoomHeaderPointerBank < 0 ||
+      kRoomHeaderPointerBank >= static_cast<int>(rom->size())) {
     return room;
   }
 
   // Validate header_pointer_2 table access
   int table_offset_2 = (header_pointer_2) + (room_id * 2);
-  if (table_offset_2 < 0 || table_offset_2 + 1 >= static_cast<int>(rom->size())) {
+  if (table_offset_2 < 0 ||
+      table_offset_2 + 1 >= static_cast<int>(rom->size())) {
     return room;
   }
 
@@ -299,7 +304,7 @@ Room LoadRoomHeaderFromRom(Rom* rom, int room_id) {
   room.SetMessageIdDirect(messages_id_dungeon + (room_id * 2));
 
   auto hpos = SnesToPc(address_2);
-  
+
   // Validate hpos access (we read sequentially)
   // We read about 14 bytes (hpos++ calls)
   if (hpos < 0 || hpos + 14 >= static_cast<int>(rom->size())) {
@@ -351,7 +356,7 @@ Room LoadRoomHeaderFromRom(Rom* rom, int room_id) {
   room.SetStair3Target(rom->data()[hpos]);
   hpos++;
   room.SetStair4Target(rom->data()[hpos]);
-  
+
   // Note: We do NOT set is_loaded_ to true here, as this is just the header
   return room;
 }
@@ -376,16 +381,15 @@ void Room::LoadRoomGraphics(uint8_t entrance_blockset) {
   const auto& room_gfx = game_data_->room_blockset_ids;
   const auto& sprite_gfx = game_data_->spriteset_ids;
 
-  LOG_DEBUG("Room", "Room %d: blockset=%d, spriteset=%d, palette=%d",
-            room_id_, blockset, spriteset, palette);
+  LOG_DEBUG("Room", "Room %d: blockset=%d, spriteset=%d, palette=%d", room_id_,
+            blockset, spriteset, palette);
 
   for (int i = 0; i < 8; i++) {
     blocks_[i] = game_data_->main_blockset_ids[blockset][i];
     // Block 6 can be overridden by entrance-specific room graphics (index 3)
     // Note: The "3-6" comment was misleading - only block 6 uses room_gfx
     if (i == 6) {
-      if (entrance_blockset != 0xFF &&
-          room_gfx[entrance_blockset][3] != 0) {
+      if (entrance_blockset != 0xFF && room_gfx[entrance_blockset][3] != 0) {
         blocks_[i] = room_gfx[entrance_blockset][3];
       }
     }
@@ -399,9 +403,9 @@ void Room::LoadRoomGraphics(uint8_t entrance_blockset) {
     blocks_[12 + i] = (uint8_t)(sprite_gfx[spriteset + 64][i] + 115);
   }  // 12-16 sprites
 
-  LOG_DEBUG("Room", "Sheet IDs BG[0-7]: %d %d %d %d %d %d %d %d",
-            blocks_[0], blocks_[1], blocks_[2], blocks_[3],
-            blocks_[4], blocks_[5], blocks_[6], blocks_[7]);
+  LOG_DEBUG("Room", "Sheet IDs BG[0-7]: %d %d %d %d %d %d %d %d", blocks_[0],
+            blocks_[1], blocks_[2], blocks_[3], blocks_[4], blocks_[5],
+            blocks_[6], blocks_[7]);
 }
 
 constexpr int kGfxBufferOffset = 92 * 2048;
@@ -584,10 +588,12 @@ void Room::RenderRoomGraphics() {
   }
 
   // Get and apply palette BEFORE rendering objects (so objects use correct colors)
-  if (!game_data_) return;
+  if (!game_data_)
+    return;
   auto& dungeon_pal_group = game_data_->palette_groups.dungeon_main;
   int num_palettes = dungeon_pal_group.size();
-  if (num_palettes == 0) return;
+  if (num_palettes == 0)
+    return;
 
   // Look up dungeon palette ID using the two-level paletteset_ids table.
   // paletteset_ids[palette][0] contains a BYTE OFFSET into the palette pointer
@@ -610,9 +616,9 @@ void Room::RenderRoomGraphics() {
   auto bg1_palette = dungeon_pal_group[palette_id];
 
   // DEBUG: Log palette loading
-  PaletteDebugger::Get().LogPaletteLoad(
-      "Room::RenderRoomGraphics", palette_id, bg1_palette);
-      
+  PaletteDebugger::Get().LogPaletteLoad("Room::RenderRoomGraphics", palette_id,
+                                        bg1_palette);
+
   LOG_DEBUG("Room", "RenderRoomGraphics: Palette ID=%d, Size=%zu", palette_id,
             bg1_palette.size());
   if (!bg1_palette.empty()) {
@@ -641,8 +647,10 @@ void Room::RenderRoomGraphics() {
     //
     // Drawing formula: final_color = pixel + (bank * 16)
     // Where pixel 0 = transparent (not written), pixel 1-15 = colors 1-15 in bank
-    auto set_dungeon_palette = [](gfx::Bitmap& bmp, const gfx::SnesPalette& pal) {
-      std::vector<SDL_Color> colors(256, {0, 0, 0, 0});  // Initialize all transparent
+    auto set_dungeon_palette = [](gfx::Bitmap& bmp,
+                                  const gfx::SnesPalette& pal) {
+      std::vector<SDL_Color> colors(
+          256, {0, 0, 0, 0});  // Initialize all transparent
 
       // Map ROM palette to 16-color banks
       // ROM: 90 colors (6 banks × 15 colors each)
@@ -656,13 +664,14 @@ void Room::RenderRoomGraphics() {
         // ROM colors map to SDL indices 1-15 within each bank
         for (int color = 0; color < kColorsPerRomBank; color++) {
           size_t rom_index = bank * kColorsPerRomBank + color;
-          if (rom_index >= pal.size()) break;
+          if (rom_index >= pal.size())
+            break;
 
-          int sdl_index = bank * kIndicesPerSdlBank + color + 1;  // +1 to skip transparent
+          int sdl_index =
+              bank * kIndicesPerSdlBank + color + 1;  // +1 to skip transparent
           ImVec4 rgb = pal[rom_index].rgb();
           colors[sdl_index] = {
-              static_cast<Uint8>(rgb.x),
-              static_cast<Uint8>(rgb.y),
+              static_cast<Uint8>(rgb.x), static_cast<Uint8>(rgb.y),
               static_cast<Uint8>(rgb.z),
               255  // Opaque
           };
@@ -775,11 +784,9 @@ void Room::RenderRoomGraphics() {
             "Texture commands queued for batch processing");
 }
 
-
-
 void Room::LoadLayoutTilesToBuffer() {
-  LOG_DEBUG("Room", "LoadLayoutTilesToBuffer for room %d, layout=%d",
-            room_id_, layout);
+  LOG_DEBUG("Room", "LoadLayoutTilesToBuffer for room %d, layout=%d", room_id_,
+            layout);
 
   if (!rom_ || !rom_->is_loaded()) {
     LOG_DEBUG("Room", "ROM not loaded, aborting");
@@ -790,8 +797,8 @@ void Room::LoadLayoutTilesToBuffer() {
   layout_.SetRom(rom_);
   auto layout_status = layout_.LoadLayout(layout);
   if (!layout_status.ok()) {
-    LOG_DEBUG("Room", "Failed to load layout %d: %s",
-              layout, layout_status.message().data());
+    LOG_DEBUG("Room", "Failed to load layout %d: %s", layout,
+              layout_status.message().data());
     return;
   }
 
@@ -813,7 +820,8 @@ void Room::LoadLayoutTilesToBuffer() {
   // Get palette for layout rendering using two-level lookup
   auto& dungeon_pal_group = game_data_->palette_groups.dungeon_main;
   int num_palettes = dungeon_pal_group.size();
-  if (num_palettes == 0) return;
+  if (num_palettes == 0)
+    return;
   int palette_id = palette;
   if (palette < game_data_->paletteset_ids.size() &&
       !game_data_->paletteset_ids[palette].empty()) {
@@ -842,9 +850,9 @@ void Room::LoadLayoutTilesToBuffer() {
                              bg2_buffer_, palette_group, dungeon_state_.get());
 
   if (!status.ok()) {
-    LOG_DEBUG("RenderRoomGraphics", "Layout Draw failed: %s",
-              std::string(status.message().data(), status.message().size())
-                  .c_str());
+    LOG_DEBUG(
+        "RenderRoomGraphics", "Layout Draw failed: %s",
+        std::string(status.message().data(), status.message().size()).c_str());
   } else {
     LOG_DEBUG("RenderRoomGraphics", "Layout rendered with %zu objects",
               layout_objects.size());
@@ -880,7 +888,8 @@ void Room::RenderObjectsToBackground() {
             "Room %d: Emulator rendering objects", room_id_);
   // Get palette group for object rendering (use SAME lookup as
   // RenderRoomGraphics)
-  if (!game_data_) return;
+  if (!game_data_)
+    return;
   auto& dungeon_pal_group = game_data_->palette_groups.dungeon_main;
   int num_palettes = dungeon_pal_group.size();
 
@@ -917,7 +926,7 @@ void Room::RenderObjectsToBackground() {
   // land on both BG1/BG2 as in bank_01.asm. See
   // docs/internal/agents/dungeon-object-rendering-spec.md for the expected
   // order and dual-layer handling.
-  
+
   // Clear object buffers before rendering
   // IMPORTANT: Fill with 255 (transparent color key) so objects overlay correctly
   // on the floor. We use index 255 as transparent since palette has 90 colors (0-89).
@@ -925,32 +934,40 @@ void Room::RenderObjectsToBackground() {
   object_bg2_buffer_.EnsureBitmapInitialized();
   object_bg1_buffer_.bitmap().Fill(255);
   object_bg2_buffer_.bitmap().Fill(255);
-  
+
   // IMPORTANT: Clear priority buffers when clearing object buffers
   // Otherwise, old priority values persist and cause incorrect Z-ordering
   object_bg1_buffer_.ClearPriorityBuffer();
   object_bg2_buffer_.ClearPriorityBuffer();
-  
+
   // Log layer distribution for this room
   int layer0_count = 0, layer1_count = 0, layer2_count = 0;
   for (const auto& obj : tile_objects_) {
     switch (obj.GetLayerValue()) {
-      case 0: layer0_count++; break;
-      case 1: layer1_count++; break;
-      case 2: layer2_count++; break;
+      case 0:
+        layer0_count++;
+        break;
+      case 1:
+        layer1_count++;
+        break;
+      case 2:
+        layer2_count++;
+        break;
     }
   }
-  LOG_DEBUG("Room", "Room %03X Object Layer Summary: L0(BG1)=%d, L1(BG2)=%d, L2(BG3)=%d",
-            room_id_, layer0_count, layer1_count, layer2_count);
+  LOG_DEBUG(
+      "Room",
+      "Room %03X Object Layer Summary: L0(BG1)=%d, L1(BG2)=%d, L2(BG3)=%d",
+      room_id_, layer0_count, layer1_count, layer2_count);
 
   // Render objects to appropriate buffers
   // BG1 = Floor/Main (Layer 0, 2)
   // BG2 = Overlay (Layer 1)
   // Pass bg1_buffer_ for BG2 object masking - this creates "holes" in the floor
   // so BG2 overlay content (platforms, statues) shows through BG1 floor tiles
-  auto status = drawer.DrawObjectList(tile_objects_, object_bg1_buffer_, object_bg2_buffer_,
-                                      palette_group, dungeon_state_.get(),
-                                      &bg1_buffer_);
+  auto status = drawer.DrawObjectList(tile_objects_, object_bg1_buffer_,
+                                      object_bg2_buffer_, palette_group,
+                                      dungeon_state_.get(), &bg1_buffer_);
 
   // Render doors using DoorDef struct with enum types
   // Doors are drawn to the OBJECT buffer for layer visibility control
@@ -999,9 +1016,11 @@ void Room::RenderObjectsToBackground() {
 
   // Log only failures, not successes
   if (!status.ok()) {
-    LOG_DEBUG("[RenderObjectsToBackground]", "ObjectDrawer failed: %s - FALLING BACK TO MANUAL",
-              std::string(status.message().data(), status.message().size()).c_str());
-    
+    LOG_DEBUG(
+        "[RenderObjectsToBackground]",
+        "ObjectDrawer failed: %s - FALLING BACK TO MANUAL",
+        std::string(status.message().data(), status.message().size()).c_str());
+
     LOG_DEBUG("[RenderObjectsToBackground]",
               "Room %d: Manual rendering objects (fallback)", room_id_);
     auto& bg1_bmp = bg1_buffer_.bitmap();
@@ -1013,13 +1032,13 @@ void Room::RenderObjectsToBackground() {
       int height = 16;
 
       // Basic layer-based coloring for manual mode
-      uint8_t color_idx = 0; // Default transparent
+      uint8_t color_idx = 0;  // Default transparent
       if (obj.GetLayerValue() == 0) {
-        color_idx = 5; // Example: Reddish for Layer 0
+        color_idx = 5;  // Example: Reddish for Layer 0
       } else if (obj.GetLayerValue() == 1) {
-        color_idx = 10; // Example: Greenish for Layer 1
+        color_idx = 10;  // Example: Greenish for Layer 1
       } else {
-        color_idx = 15; // Example: Bluish for Layer 2
+        color_idx = 15;  // Example: Bluish for Layer 2
       }
       // Draw simple rectangle using WriteToBGRSurface
       for (int py = y; py < y + height && py < bg1_bmp.height(); ++py) {
@@ -1029,7 +1048,7 @@ void Room::RenderObjectsToBackground() {
         }
       }
     }
-    objects_dirty_ = false; // Mark as clean after manual draw
+    objects_dirty_ = false;  // Mark as clean after manual draw
   } else {
     // Mark objects as clean after successful render
     objects_dirty_ = false;
@@ -1093,7 +1112,8 @@ void Room::LoadAnimatedGraphics() {
 
     // Validate buffer access for second operation
     int tileset_index = rom_data[gfx_ptr + background_tileset_];
-    int second_offset = data + (tileset_index * 4096) + (1024 * animated_frame_);
+    int second_offset =
+        data + (tileset_index * 4096) + (1024 * animated_frame_);
     if (second_offset >= 0 &&
         second_offset < static_cast<int>(gfx_buffer_data->size())) {
       uint8_t map_byte = (*gfx_buffer_data)[second_offset];
@@ -1254,9 +1274,10 @@ void Room::ParseObjectsFromLocation(int objects_location) {
       //   b1: bits 4-7 = position index, bits 0-1 = direction
       //   b2: door type (full byte)
       auto door = Door::FromRomBytes(b1, b2);
-      LOG_DEBUG("Room", "ParseDoor: room=%d b1=0x%02X b2=0x%02X pos=%d dir=%d type=%d",
-                room_id_, b1, b2, door.position, static_cast<int>(door.direction),
-                static_cast<int>(door.type));
+      LOG_DEBUG("Room",
+                "ParseDoor: room=%d b1=0x%02X b2=0x%02X pos=%d dir=%d type=%d",
+                room_id_, b1, b2, door.position,
+                static_cast<int>(door.direction), static_cast<int>(door.type));
       doors_.push_back(door);
     }
   }
@@ -1421,7 +1442,8 @@ absl::Status Room::SaveSprites() {
                        (rom_data[rooms_sprite_pointer]);
   sprite_pointer = SnesToPc(sprite_pointer);
 
-  if (sprite_pointer < 0 || sprite_pointer + (room_id_ * 2) + 1 >= (int)rom_->size()) {
+  if (sprite_pointer < 0 ||
+      sprite_pointer + (room_id_ * 2) + 1 >= (int)rom_->size()) {
     return absl::OutOfRangeError("Sprite table pointer out of range");
   }
 
@@ -1439,42 +1461,44 @@ absl::Status Room::SaveSprites() {
   // Calculate available space for sprites
   // Check next room's sprite pointer
   int next_sprite_address_snes =
-      (0x09 << 16) + (rom_data[sprite_pointer + ((room_id_ + 1) * 2) + 1] << 8) +
+      (0x09 << 16) +
+      (rom_data[sprite_pointer + ((room_id_ + 1) * 2) + 1] << 8) +
       rom_data[sprite_pointer + ((room_id_ + 1) * 2)];
-  
+
   int next_sprite_address = SnesToPc(next_sprite_address_snes);
-  
+
   // Handle wrap-around or end of bank if needed, but usually sequential
   int available_size = next_sprite_address - sprite_address;
-  
+
   // If calculation seems wrong (negative or too large), fallback to a safe limit or error
   if (available_size <= 0 || available_size > 0x1000) {
-      // Fallback: Assume standard max or just warn. 
-      // For now, let's be strict but allow a reasonable max if calculation fails (e.g. last room)
-      if (room_id_ == NumberOfRooms - 1) {
-          available_size = 0x100; // Arbitrary safe limit for last room
-      } else {
-          // If negative, it means pointers are not sequential. 
-          // This happens in some ROMs. We can't easily validate size then without a free space map.
-          // We'll log a warning and proceed with caution? No, prompt says "Free space validation".
-          // Let's error out if we can't determine size.
-          return absl::InternalError(absl::StrFormat("Cannot determine available sprite space for room %d", room_id_));
-      }
+    // Fallback: Assume standard max or just warn.
+    // For now, let's be strict but allow a reasonable max if calculation fails (e.g. last room)
+    if (room_id_ == NumberOfRooms - 1) {
+      available_size = 0x100;  // Arbitrary safe limit for last room
+    } else {
+      // If negative, it means pointers are not sequential.
+      // This happens in some ROMs. We can't easily validate size then without a free space map.
+      // We'll log a warning and proceed with caution? No, prompt says "Free space validation".
+      // Let's error out if we can't determine size.
+      return absl::InternalError(absl::StrFormat(
+          "Cannot determine available sprite space for room %d", room_id_));
+    }
   }
 
   // Handle sortsprites byte (skip if present)
   bool has_sort_sprite = false;
   if (rom_data[sprite_address] == 1) {
-     has_sort_sprite = true;
-     sprite_address += 1;
-     available_size -= 1;
+    has_sort_sprite = true;
+    sprite_address += 1;
+    available_size -= 1;
   }
 
   auto encoded_bytes = EncodeSprites();
 
   // VALIDATION
   if (encoded_bytes.size() > available_size) {
-      return absl::OutOfRangeError(absl::StrFormat(
+    return absl::OutOfRangeError(absl::StrFormat(
         "Room %d sprite data too large! Size: %d, Available: %d", room_id_,
         encoded_bytes.size(), available_size));
   }
@@ -1831,7 +1855,8 @@ void Room::LoadBlocks() {
 }
 
 void Room::LoadPotItems() {
-  if (!rom_ || !rom_->is_loaded()) return;
+  if (!rom_ || !rom_->is_loaded())
+    return;
   auto rom_data = rom()->vector();
 
   // Load pot items
@@ -1842,36 +1867,38 @@ void Room::LoadPotItems() {
   //     - 2 bytes: position word (Y_hi, X_lo encoding)
   //     - 1 byte: item type
   //   - Terminated by 0xFFFF position word
-  
+
   int table_addr = kRoomItemsPointers;  // 0x01DB69
-  
+
   // Read pointer for this room
   int ptr_addr = table_addr + (room_id_ * 2);
-  if (ptr_addr + 1 >= static_cast<int>(rom_data.size())) return;
-  
+  if (ptr_addr + 1 >= static_cast<int>(rom_data.size()))
+    return;
+
   uint16_t item_ptr = (rom_data[ptr_addr + 1] << 8) | rom_data[ptr_addr];
-  
+
   // Convert to PC address (Bank 01 offset)
   int item_addr = SnesToPc(0x010000 | item_ptr);
-  
+
   pot_items_.clear();
-  
+
   // Read 3-byte entries until 0xFFFF terminator
   while (item_addr + 2 < static_cast<int>(rom_data.size())) {
     // Read position word (little endian)
     uint16_t position = (rom_data[item_addr + 1] << 8) | rom_data[item_addr];
-    
+
     // Check for terminator
-    if (position == 0xFFFF) break;
-    
+    if (position == 0xFFFF)
+      break;
+
     // Read item type (3rd byte)
     uint8_t item_type = rom_data[item_addr + 2];
-    
+
     PotItem pot_item;
     pot_item.position = position;
     pot_item.item = item_type;
     pot_items_.push_back(pot_item);
-    
+
     item_addr += 3;  // Move to next entry
   }
 }

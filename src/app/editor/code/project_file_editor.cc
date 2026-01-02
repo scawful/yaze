@@ -53,8 +53,9 @@ void ProjectFileEditor::Draw() {
       if (!file.empty()) {
         auto status = LoadFile(file);
         if (!status.ok() && toast_manager_) {
-          toast_manager_->Show(std::string(status.message().data(), status.message().size()),
-                               ToastType::kError);
+          toast_manager_->Show(
+              std::string(status.message().data(), status.message().size()),
+              ToastType::kError);
         }
       }
     }
@@ -68,7 +69,9 @@ void ProjectFileEditor::Draw() {
       if (status.ok() && toast_manager_) {
         toast_manager_->Show("Project file saved", ToastType::kSuccess);
       } else if (!status.ok() && toast_manager_) {
-        toast_manager_->Show(std::string(status.message().data(), status.message().size()), ToastType::kError);
+        toast_manager_->Show(
+            std::string(status.message().data(), status.message().size()),
+            ToastType::kError);
       }
     }
     if (!can_save)
@@ -83,8 +86,9 @@ void ProjectFileEditor::Draw() {
         if (status.ok() && toast_manager_) {
           toast_manager_->Show("Project file saved", ToastType::kSuccess);
         } else if (!status.ok() && toast_manager_) {
-          toast_manager_->Show(std::string(status.message().data(), status.message().size()),
-                               ToastType::kError);
+          toast_manager_->Show(
+              std::string(status.message().data(), status.message().size()),
+              ToastType::kError);
         }
       }
     }
@@ -98,7 +102,8 @@ void ProjectFileEditor::Draw() {
             absl::StrFormat("%s Import Labels", ICON_MD_LABEL).c_str())) {
       auto status = ImportLabelsFromZScream();
       if (status.ok() && toast_manager_) {
-        toast_manager_->Show("Labels imported successfully", ToastType::kSuccess);
+        toast_manager_->Show("Labels imported successfully",
+                             ToastType::kSuccess);
       } else if (!status.ok() && toast_manager_) {
         toast_manager_->Show(
             std::string(status.message().data(), status.message().size()),

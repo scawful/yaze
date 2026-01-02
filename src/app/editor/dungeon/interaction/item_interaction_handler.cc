@@ -19,7 +19,8 @@ void ItemInteractionHandler::BeginPlacement() {
 }
 
 bool ItemInteractionHandler::HandleClick(int canvas_x, int canvas_y) {
-  if (!HasValidContext()) return false;
+  if (!HasValidContext())
+    return false;
 
   if (item_placement_mode_) {
     PlaceItemAtPosition(canvas_x, canvas_y);
@@ -31,8 +32,8 @@ bool ItemInteractionHandler::HandleClick(int canvas_x, int canvas_y) {
   if (item_index.has_value()) {
     SelectItem(*item_index);
     is_dragging_ = true;
-    drag_start_pos_ = ImVec2(static_cast<float>(canvas_x),
-                              static_cast<float>(canvas_y));
+    drag_start_pos_ =
+        ImVec2(static_cast<float>(canvas_x), static_cast<float>(canvas_y));
     drag_current_pos_ = drag_start_pos_;
     return true;
   }
@@ -42,7 +43,8 @@ bool ItemInteractionHandler::HandleClick(int canvas_x, int canvas_y) {
 }
 
 void ItemInteractionHandler::HandleDrag(ImVec2 current_pos, ImVec2 delta) {
-  if (!is_dragging_ || !selected_item_index_.has_value()) return;
+  if (!is_dragging_ || !selected_item_index_.has_value())
+    return;
   drag_current_pos_ = current_pos;
 }
 
@@ -87,10 +89,12 @@ void ItemInteractionHandler::HandleRelease() {
 }
 
 void ItemInteractionHandler::DrawGhostPreview() {
-  if (!item_placement_mode_ || !HasValidContext()) return;
+  if (!item_placement_mode_ || !HasValidContext())
+    return;
 
   auto* canvas = ctx_->canvas;
-  if (!canvas->IsMouseHovering()) return;
+  if (!canvas->IsMouseHovering())
+    return;
 
   const ImGuiIO& io = ImGui::GetIO();
   ImVec2 canvas_pos = canvas->zero_point();
@@ -101,10 +105,10 @@ void ItemInteractionHandler::DrawGhostPreview() {
   int canvas_y = static_cast<int>((io.MousePos.y - canvas_pos.y) / scale);
 
   // Snap to 8-pixel grid
-  int snapped_x = (canvas_x / dungeon_coords::kTileSize) *
-                  dungeon_coords::kTileSize;
-  int snapped_y = (canvas_y / dungeon_coords::kTileSize) *
-                  dungeon_coords::kTileSize;
+  int snapped_x =
+      (canvas_x / dungeon_coords::kTileSize) * dungeon_coords::kTileSize;
+  int snapped_y =
+      (canvas_y / dungeon_coords::kTileSize) * dungeon_coords::kTileSize;
 
   // Draw ghost rectangle for item preview
   ImVec2 rect_min(canvas_pos.x + snapped_x * scale,
@@ -117,22 +121,25 @@ void ItemInteractionHandler::DrawGhostPreview() {
 
   canvas->draw_list()->AddRectFilled(rect_min, rect_max, fill_color);
   canvas->draw_list()->AddRect(rect_min, rect_max, outline_color, 0.0f, 0,
-                                2.0f);
+                               2.0f);
 
   // Draw item ID label
   std::string label = absl::StrFormat("%02X", preview_item_id_);
   canvas->draw_list()->AddText(rect_min, IM_COL32(255, 255, 255, 255),
-                                label.c_str());
+                               label.c_str());
 }
 
 void ItemInteractionHandler::DrawSelectionHighlight() {
-  if (!selected_item_index_.has_value() || !HasValidContext()) return;
+  if (!selected_item_index_.has_value() || !HasValidContext())
+    return;
 
   auto* room = GetCurrentRoom();
-  if (!room) return;
+  if (!room)
+    return;
 
   const auto& pot_items = room->GetPotItems();
-  if (*selected_item_index_ >= pot_items.size()) return;
+  if (*selected_item_index_ >= pot_items.size())
+    return;
 
   const auto& pot_item = pot_items[*selected_item_index_];
   int pixel_x = pot_item.GetPixelX();
@@ -165,7 +172,7 @@ void ItemInteractionHandler::DrawSelectionHighlight() {
       (color & 0x00FFFFFF) | (static_cast<ImU32>(alpha * 100) << 24);
 
   draw_list->AddRectFilled(pos, ImVec2(pos.x + size.x, pos.y + size.y),
-                            fill_color);
+                           fill_color);
   draw_list->AddRect(pos, ImVec2(pos.x + size.x, pos.y + size.y), color, 0.0f,
                      0, 2.0f);
 
@@ -176,10 +183,12 @@ void ItemInteractionHandler::DrawSelectionHighlight() {
 
 std::optional<size_t> ItemInteractionHandler::GetEntityAtPosition(
     int canvas_x, int canvas_y) const {
-  if (!HasValidContext()) return std::nullopt;
+  if (!HasValidContext())
+    return std::nullopt;
 
   auto* room = ctx_->GetCurrentRoomConst();
-  if (!room) return std::nullopt;
+  if (!room)
+    return std::nullopt;
 
   // Convert screen coordinates to room coordinates
   float scale = GetCanvasScale();
@@ -215,13 +224,16 @@ void ItemInteractionHandler::ClearSelection() {
 }
 
 void ItemInteractionHandler::DeleteSelected() {
-  if (!selected_item_index_.has_value() || !HasValidContext()) return;
+  if (!selected_item_index_.has_value() || !HasValidContext())
+    return;
 
   auto* room = GetCurrentRoom();
-  if (!room) return;
+  if (!room)
+    return;
 
   auto& pot_items = room->GetPotItems();
-  if (*selected_item_index_ >= pot_items.size()) return;
+  if (*selected_item_index_ >= pot_items.size())
+    return;
 
   ctx_->NotifyMutation();
   pot_items.erase(pot_items.begin() +
@@ -231,10 +243,12 @@ void ItemInteractionHandler::DeleteSelected() {
 }
 
 void ItemInteractionHandler::PlaceItemAtPosition(int canvas_x, int canvas_y) {
-  if (!HasValidContext()) return;
+  if (!HasValidContext())
+    return;
 
   auto* room = GetCurrentRoom();
-  if (!room) return;
+  if (!room)
+    return;
 
   float scale = GetCanvasScale();
 

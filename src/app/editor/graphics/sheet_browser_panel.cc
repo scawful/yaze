@@ -101,10 +101,12 @@ void SheetBrowserPanel::DrawSheetGrid() {
 
   // Calculate columns based on available width
   float available_width = ImGui::GetContentRegionAvail().x;
-  columns_ = std::max(1, static_cast<int>(available_width / (thumb_width + padding * 2)));
+  columns_ = std::max(
+      1, static_cast<int>(available_width / (thumb_width + padding * 2)));
 
   int col = 0;
-  for (int i = filter_min_; i <= filter_max_ && i < zelda3::kNumGfxSheets; i++) {
+  for (int i = filter_min_; i <= filter_max_ && i < zelda3::kNumGfxSheets;
+       i++) {
     // Filter by modification state if enabled
     if (show_only_modified_ &&
         state_->modified_sheets.find(static_cast<uint16_t>(i)) ==
@@ -133,7 +135,8 @@ void SheetBrowserPanel::DrawSheetThumbnail(int sheet_id, gfx::Bitmap& bitmap) {
   const float thumb_width = 128 * thumbnail_scale_;
   const float thumb_height = 32 * thumbnail_scale_;
 
-  bool is_selected = state_->current_sheet_id == static_cast<uint16_t>(sheet_id);
+  bool is_selected =
+      state_->current_sheet_id == static_cast<uint16_t>(sheet_id);
   bool is_multi_selected =
       state_->selected_sheets.count(static_cast<uint16_t>(sheet_id)) > 0;
   bool is_modified =
@@ -205,7 +208,8 @@ void SheetBrowserPanel::DrawSheetThumbnail(int sheet_id, gfx::Bitmap& bitmap) {
   }
 
   // Double-click to open in new tab
-  if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+  if (ImGui::IsItemHovered() &&
+      ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
     state_->open_sheets.insert(static_cast<uint16_t>(sheet_id));
   }
 

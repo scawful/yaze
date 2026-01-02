@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "cli/handlers/command_handlers.h"
 #include "cli/service/command_registry.h"

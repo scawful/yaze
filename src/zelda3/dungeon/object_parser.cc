@@ -108,7 +108,8 @@ absl::StatusOr<ObjectSubtypeInfo> ObjectParser::GetObjectSubtype(
       int index = object_id & 0xFF;
       info.subtype_ptr = kRoomObjectSubtype1 + (index * 2);
       info.routine_ptr = kRoomObjectSubtype1 + 0x200 + (index * 2);
-      info.max_tile_count = GetSubtype1TileCount(object_id);  // Use lookup table
+      info.max_tile_count =
+          GetSubtype1TileCount(object_id);  // Use lookup table
       break;
     }
     case 2: {
@@ -187,26 +188,31 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype1(
                           object_id == 0xC0 || object_id == 0xC2);
   static int debug_count = 0;
   if (debug_count < 10 || is_debug_object) {
-    LOG_DEBUG("ObjectParser", "ParseSubtype1: obj=0x%02X%s tile_ptr=0x%04X (SNES $01:%04X)",
+    LOG_DEBUG("ObjectParser",
+              "ParseSubtype1: obj=0x%02X%s tile_ptr=0x%04X (SNES $01:%04X)",
               object_id, is_debug_object ? " (DEBUG)" : "", tile_ptr, tile_ptr);
-    LOG_DEBUG("ObjectParser", "  ROM[0x%04X..0x%04X]=0x%02X 0x%02X offset=%d (0x%04X)",
+    LOG_DEBUG("ObjectParser",
+              "  ROM[0x%04X..0x%04X]=0x%02X 0x%02X offset=%d (0x%04X)",
               tile_ptr, tile_ptr + 1, low, high, offset, (uint16_t)offset);
-    LOG_DEBUG("ObjectParser", "  tile_data_ptr=0x%04X+0x%04X=0x%04X (SNES $00:%04X)",
+    LOG_DEBUG("ObjectParser",
+              "  tile_data_ptr=0x%04X+0x%04X=0x%04X (SNES $00:%04X)",
               kRoomObjectTileAddress, (uint16_t)offset, tile_data_ptr,
               tile_data_ptr + 0x8000);
 
     // Fix: Check for negative tile_data_ptr to prevent SIGSEGV on corrupted ROMs
     if (tile_data_ptr >= 0 && tile_data_ptr + 8 < (int)rom_->size()) {
-      uint16_t tw0 = rom_->data()[tile_data_ptr] |
-                     (rom_->data()[tile_data_ptr + 1] << 8);
+      uint16_t tw0 =
+          rom_->data()[tile_data_ptr] | (rom_->data()[tile_data_ptr + 1] << 8);
       uint16_t tw1 = rom_->data()[tile_data_ptr + 2] |
                      (rom_->data()[tile_data_ptr + 3] << 8);
       LOG_DEBUG("ObjectParser", "  First 2 tiles: $%04X(id=%d) $%04X(id=%d)",
                 tw0, tw0 & 0x3FF, tw1, tw1 & 0x3FF);
     } else {
-      LOG_DEBUG("ObjectParser", "  Tile data at 0x%04X: <OUT OF BOUNDS>", tile_data_ptr);
+      LOG_DEBUG("ObjectParser", "  Tile data at 0x%04X: <OUT OF BOUNDS>",
+                tile_data_ptr);
     }
-    if (!is_debug_object) debug_count++;
+    if (!is_debug_object)
+      debug_count++;
   }
 
   // Use lookup table for correct tile count per object ID
@@ -232,28 +238,31 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype2(
 
   // Determine tile count based on object ID
   int tile_count = GetSubtype2TileCount(object_id);
-  
+
   // DEBUG: Log corner tile loading (0x100-0x103)
   bool is_corner = (object_id >= 0x100 && object_id <= 0x103);
   if (is_corner) {
-    LOG_DEBUG("ObjectParser", "ParseSubtype2: CORNER obj=0x%03X index=%d tile_ptr=0x%04X",
+    LOG_DEBUG("ObjectParser",
+              "ParseSubtype2: CORNER obj=0x%03X index=%d tile_ptr=0x%04X",
               object_id, index, tile_ptr);
-    LOG_DEBUG("ObjectParser", "  ROM[0x%04X..0x%04X]=0x%02X 0x%02X offset=0x%04X",
-              tile_ptr, tile_ptr + 1, low, high, (high << 8) | low);
-    LOG_DEBUG("ObjectParser", "  tile_data_ptr=0x%04X+0x%04X=0x%04X (tile_count=%d)",
-              kRoomObjectTileAddress, (high << 8) | low, tile_data_ptr, tile_count);
+    LOG_DEBUG("ObjectParser",
+              "  ROM[0x%04X..0x%04X]=0x%02X 0x%02X offset=0x%04X", tile_ptr,
+              tile_ptr + 1, low, high, (high << 8) | low);
+    LOG_DEBUG(
+        "ObjectParser", "  tile_data_ptr=0x%04X+0x%04X=0x%04X (tile_count=%d)",
+        kRoomObjectTileAddress, (high << 8) | low, tile_data_ptr, tile_count);
 
     // Show first 2 tile words
     if (tile_data_ptr >= 0 && tile_data_ptr + 4 < (int)rom_->size()) {
-      uint16_t tw0 = rom_->data()[tile_data_ptr] |
-                     (rom_->data()[tile_data_ptr + 1] << 8);
+      uint16_t tw0 =
+          rom_->data()[tile_data_ptr] | (rom_->data()[tile_data_ptr + 1] << 8);
       uint16_t tw1 = rom_->data()[tile_data_ptr + 2] |
                      (rom_->data()[tile_data_ptr + 3] << 8);
       LOG_DEBUG("ObjectParser", "  First 2 tiles: $%04X(id=%d) $%04X(id=%d)",
                 tw0, tw0 & 0x3FF, tw1, tw1 & 0x3FF);
     }
   }
-  
+
   return ReadTileData(tile_data_ptr, tile_count);
 }
 
@@ -309,15 +318,17 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ReadTileData(
     // DEBUG: Log first few tiles
     if (should_log && i < 4) {
       LOG_DEBUG("ObjectParser",
-                "ReadTile[%d]: addr=0x%06X word=0x%04X id=0x%03X pal=%d mirror=(h:%d,v:%d)",
+                "ReadTile[%d]: addr=0x%06X word=0x%04X id=0x%03X pal=%d "
+                "mirror=(h:%d,v:%d)",
                 i, tile_offset, tile_word, tile_info.id_, tile_info.palette_,
                 tile_info.horizontal_mirror_, tile_info.vertical_mirror_);
     }
   }
 
   if (should_log) {
-    LOG_DEBUG("ObjectParser", "ReadTileData: addr=0x%06X count=%d loaded %zu tiles",
-              address, tile_count, tiles.size());
+    LOG_DEBUG("ObjectParser",
+              "ReadTileData: addr=0x%06X count=%d loaded %zu tiles", address,
+              tile_count, tiles.size());
     debug_read_count++;
   }
 
@@ -353,8 +364,8 @@ int ObjectParser::GetSubtype3TileCount(int16_t object_id) const {
   }
   // 4x4 pattern objects: 16 tiles
   // (0xFC8 = 0x248, 0xFE6 = 0x266, 0xFEB = 0x26B, 0xFFA = 0x27A)
-  if (object_id == 0xFC8 || object_id == 0xFE6 ||
-      object_id == 0xFEB || object_id == 0xFFA) {
+  if (object_id == 0xFC8 || object_id == 0xFE6 || object_id == 0xFEB ||
+      object_id == 0xFFA) {
     return 16;
   }
   // Default: 8 tiles for most subtype 3 objects
@@ -415,67 +426,67 @@ ObjectDrawInfo ObjectParser::GetObjectDrawInfo(int16_t object_id) const {
     info.tile_count = 5;
     info.is_horizontal = false;
   } else if (object_id >= 0x0C && object_id <= 0x0D) {
-    info.draw_routine_id = 17; // RoomDraw_DiagonalAcute_1to16_BothBG
+    info.draw_routine_id = 17;  // RoomDraw_DiagonalAcute_1to16_BothBG
     info.routine_name = "DiagonalAcute_1to16_BothBG";
     info.tile_count = 5;
     info.is_horizontal = false;
     info.both_layers = true;
   } else if (object_id >= 0x0E && object_id <= 0x0F) {
-    info.draw_routine_id = 18; // RoomDraw_DiagonalGrave_1to16_BothBG
+    info.draw_routine_id = 18;  // RoomDraw_DiagonalGrave_1to16_BothBG
     info.routine_name = "DiagonalGrave_1to16_BothBG";
     info.tile_count = 5;
     info.is_horizontal = false;
     info.both_layers = true;
   } else if (object_id >= 0x10 && object_id <= 0x11) {
-    info.draw_routine_id = 17; // RoomDraw_DiagonalAcute_1to16_BothBG
+    info.draw_routine_id = 17;  // RoomDraw_DiagonalAcute_1to16_BothBG
     info.routine_name = "DiagonalAcute_1to16_BothBG";
     info.tile_count = 5;
     info.is_horizontal = false;
     info.both_layers = true;
   } else if (object_id >= 0x12 && object_id <= 0x13) {
-    info.draw_routine_id = 18; // RoomDraw_DiagonalGrave_1to16_BothBG
+    info.draw_routine_id = 18;  // RoomDraw_DiagonalGrave_1to16_BothBG
     info.routine_name = "DiagonalGrave_1to16_BothBG";
     info.tile_count = 5;
     info.is_horizontal = false;
     info.both_layers = true;
   } else if (object_id >= 0x14 && object_id <= 0x15) {
-    info.draw_routine_id = 17; // RoomDraw_DiagonalAcute_1to16_BothBG
+    info.draw_routine_id = 17;  // RoomDraw_DiagonalAcute_1to16_BothBG
     info.routine_name = "DiagonalAcute_1to16_BothBG";
     info.tile_count = 5;
     info.is_horizontal = false;
     info.both_layers = true;
   } else if (object_id >= 0x16 && object_id <= 0x17) {
-    info.draw_routine_id = 18; // RoomDraw_DiagonalGrave_1to16_BothBG
+    info.draw_routine_id = 18;  // RoomDraw_DiagonalGrave_1to16_BothBG
     info.routine_name = "DiagonalGrave_1to16_BothBG";
     info.tile_count = 5;
     info.is_horizontal = false;
     info.both_layers = true;
   } else if (object_id >= 0x18 && object_id <= 0x19) {
-    info.draw_routine_id = 17; // RoomDraw_DiagonalAcute_1to16_BothBG
+    info.draw_routine_id = 17;  // RoomDraw_DiagonalAcute_1to16_BothBG
     info.routine_name = "DiagonalAcute_1to16_BothBG";
     info.tile_count = 5;
     info.is_horizontal = false;
     info.both_layers = true;
   } else if (object_id >= 0x1A && object_id <= 0x1B) {
-    info.draw_routine_id = 18; // RoomDraw_DiagonalGrave_1to16_BothBG
+    info.draw_routine_id = 18;  // RoomDraw_DiagonalGrave_1to16_BothBG
     info.routine_name = "DiagonalGrave_1to16_BothBG";
     info.tile_count = 5;
     info.is_horizontal = false;
     info.both_layers = true;
   } else if (object_id >= 0x1C && object_id <= 0x1D) {
-    info.draw_routine_id = 17; // RoomDraw_DiagonalAcute_1to16_BothBG
+    info.draw_routine_id = 17;  // RoomDraw_DiagonalAcute_1to16_BothBG
     info.routine_name = "DiagonalAcute_1to16_BothBG";
     info.tile_count = 5;
     info.is_horizontal = false;
     info.both_layers = true;
   } else if (object_id >= 0x1E && object_id <= 0x1F) {
-    info.draw_routine_id = 18; // RoomDraw_DiagonalGrave_1to16_BothBG
+    info.draw_routine_id = 18;  // RoomDraw_DiagonalGrave_1to16_BothBG
     info.routine_name = "DiagonalGrave_1to16_BothBG";
     info.tile_count = 5;
     info.is_horizontal = false;
     info.both_layers = true;
   } else if (object_id == 0x20) {
-    info.draw_routine_id = 17; // RoomDraw_DiagonalAcute_1to16_BothBG
+    info.draw_routine_id = 17;  // RoomDraw_DiagonalAcute_1to16_BothBG
     info.routine_name = "DiagonalAcute_1to16_BothBG";
     info.tile_count = 5;
     info.is_horizontal = false;
@@ -506,7 +517,8 @@ ObjectDrawInfo ObjectParser::GetObjectDrawInfo(int16_t object_id) const {
     info.tile_count = 2;
     info.is_horizontal = true;
   } else if (object_id == 0x28) {
-    info.draw_routine_id = 24;  // RoomDraw_RightwardsBottomCorners1x2_1to16_plus13
+    info.draw_routine_id =
+        24;  // RoomDraw_RightwardsBottomCorners1x2_1to16_plus13
     info.routine_name = "RightwardsBottomCorners1x2_1to16_plus13";
     info.tile_count = 2;
     info.is_horizontal = true;
@@ -521,7 +533,8 @@ ObjectDrawInfo ObjectParser::GetObjectDrawInfo(int16_t object_id) const {
     info.tile_count = 2;
     info.is_horizontal = true;
   } else if (object_id == 0x30) {
-    info.draw_routine_id = 24;  // RoomDraw_RightwardsBottomCorners1x2_1to16_plus13
+    info.draw_routine_id =
+        24;  // RoomDraw_RightwardsBottomCorners1x2_1to16_plus13
     info.routine_name = "RightwardsBottomCorners1x2_1to16_plus13";
     info.tile_count = 2;
     info.is_horizontal = true;
@@ -574,7 +587,8 @@ ObjectDrawInfo ObjectParser::GetObjectDrawInfo(int16_t object_id) const {
     info.tile_count = 4;
     info.is_horizontal = true;
   } else if (object_id >= 0x3F && object_id <= 0x40) {
-    info.draw_routine_id = 22;  // RoomDraw_RightwardsHasEdge1x1_1to16_plus2 (variant)
+    info.draw_routine_id =
+        22;  // RoomDraw_RightwardsHasEdge1x1_1to16_plus2 (variant)
     info.routine_name = "RightwardsHasEdge1x1_1to16_plus2";
     info.tile_count = 1;
     info.is_horizontal = true;
@@ -584,63 +598,65 @@ ObjectDrawInfo ObjectParser::GetObjectDrawInfo(int16_t object_id) const {
     info.tile_count = 16;
     info.is_horizontal = true;
   } else if (object_id >= 0x60 && object_id <= 0x6F) {
-      // Vertical objects (Subtype 1)
-      if (object_id == 0x60) {
-          info.draw_routine_id = 7; // RoomDraw_Downwards2x2_1to15or32
-          info.routine_name = "Downwards2x2_1to15or32";
-          info.tile_count = 4;
-          info.is_horizontal = false;
-      } else if (object_id >= 0x61 && object_id <= 0x62) {
-          info.draw_routine_id = 8; // RoomDraw_Downwards4x2_1to15or26
-          info.routine_name = "Downwards4x2_1to15or26";
-          info.tile_count = 8;
-          info.is_horizontal = false;
-      } else if (object_id >= 0x63 && object_id <= 0x64) {
-          info.draw_routine_id = 9; // RoomDraw_Downwards4x2_1to16_BothBG
-          info.routine_name = "Downwards4x2_1to16_BothBG";
-          info.tile_count = 8;
-          info.is_horizontal = false;
-          info.both_layers = true;
-      } else if (object_id >= 0x65 && object_id <= 0x66) {
-          info.draw_routine_id = 10; // RoomDraw_DownwardsDecor4x2spaced4_1to16
-          info.routine_name = "DownwardsDecor4x2spaced4_1to16";
-          info.tile_count = 8;
-          info.is_horizontal = false;
-      } else if (object_id >= 0x67 && object_id <= 0x68) {
-          info.draw_routine_id = 11; // RoomDraw_Downwards2x2_1to16
-          info.routine_name = "Downwards2x2_1to16";
-          info.tile_count = 4;
-          info.is_horizontal = false;
-      } else if (object_id == 0x69) {
-          info.draw_routine_id = 12; // RoomDraw_DownwardsHasEdge1x1_1to16_plus3
-          info.routine_name = "DownwardsHasEdge1x1_1to16_plus3";
-          info.tile_count = 1;
-          info.is_horizontal = false;
-      } else if (object_id >= 0x6A && object_id <= 0x6B) {
-          info.draw_routine_id = 13; // RoomDraw_DownwardsEdge1x1_1to16
-          info.routine_name = "DownwardsEdge1x1_1to16";
-          info.tile_count = 1;
-          info.is_horizontal = false;
-      } else if (object_id == 0x6C) {
-          info.draw_routine_id = 14; // RoomDraw_DownwardsLeftCorners2x1_1to16_plus12
-          info.routine_name = "DownwardsLeftCorners2x1_1to16_plus12";
-          info.tile_count = 2;
-          info.is_horizontal = false;
-      } else if (object_id == 0x6D) {
-          info.draw_routine_id = 15; // RoomDraw_DownwardsRightCorners2x1_1to16_plus12
-          info.routine_name = "DownwardsRightCorners2x1_1to16_plus12";
-          info.tile_count = 2;
-          info.is_horizontal = false;
-      } else {
-          info.draw_routine_id = 16; // Default
-          info.routine_name = "DefaultSolid";
-          info.tile_count = 1;
-      }
+    // Vertical objects (Subtype 1)
+    if (object_id == 0x60) {
+      info.draw_routine_id = 7;  // RoomDraw_Downwards2x2_1to15or32
+      info.routine_name = "Downwards2x2_1to15or32";
+      info.tile_count = 4;
+      info.is_horizontal = false;
+    } else if (object_id >= 0x61 && object_id <= 0x62) {
+      info.draw_routine_id = 8;  // RoomDraw_Downwards4x2_1to15or26
+      info.routine_name = "Downwards4x2_1to15or26";
+      info.tile_count = 8;
+      info.is_horizontal = false;
+    } else if (object_id >= 0x63 && object_id <= 0x64) {
+      info.draw_routine_id = 9;  // RoomDraw_Downwards4x2_1to16_BothBG
+      info.routine_name = "Downwards4x2_1to16_BothBG";
+      info.tile_count = 8;
+      info.is_horizontal = false;
+      info.both_layers = true;
+    } else if (object_id >= 0x65 && object_id <= 0x66) {
+      info.draw_routine_id = 10;  // RoomDraw_DownwardsDecor4x2spaced4_1to16
+      info.routine_name = "DownwardsDecor4x2spaced4_1to16";
+      info.tile_count = 8;
+      info.is_horizontal = false;
+    } else if (object_id >= 0x67 && object_id <= 0x68) {
+      info.draw_routine_id = 11;  // RoomDraw_Downwards2x2_1to16
+      info.routine_name = "Downwards2x2_1to16";
+      info.tile_count = 4;
+      info.is_horizontal = false;
+    } else if (object_id == 0x69) {
+      info.draw_routine_id = 12;  // RoomDraw_DownwardsHasEdge1x1_1to16_plus3
+      info.routine_name = "DownwardsHasEdge1x1_1to16_plus3";
+      info.tile_count = 1;
+      info.is_horizontal = false;
+    } else if (object_id >= 0x6A && object_id <= 0x6B) {
+      info.draw_routine_id = 13;  // RoomDraw_DownwardsEdge1x1_1to16
+      info.routine_name = "DownwardsEdge1x1_1to16";
+      info.tile_count = 1;
+      info.is_horizontal = false;
+    } else if (object_id == 0x6C) {
+      info.draw_routine_id =
+          14;  // RoomDraw_DownwardsLeftCorners2x1_1to16_plus12
+      info.routine_name = "DownwardsLeftCorners2x1_1to16_plus12";
+      info.tile_count = 2;
+      info.is_horizontal = false;
+    } else if (object_id == 0x6D) {
+      info.draw_routine_id =
+          15;  // RoomDraw_DownwardsRightCorners2x1_1to16_plus12
+      info.routine_name = "DownwardsRightCorners2x1_1to16_plus12";
+      info.tile_count = 2;
+      info.is_horizontal = false;
+    } else {
+      info.draw_routine_id = 16;  // Default
+      info.routine_name = "DefaultSolid";
+      info.tile_count = 1;
+    }
   } else if (object_id >= 0x100 && object_id <= 0x10F) {
-      info.draw_routine_id = 16; // RoomDraw_Rightwards4x4_1to16 (Type 2)
-      info.routine_name = "Rightwards4x4_1to16";
-      info.tile_count = 16;
-      info.is_horizontal = true;
+    info.draw_routine_id = 16;  // RoomDraw_Rightwards4x4_1to16 (Type 2)
+    info.routine_name = "Rightwards4x4_1to16";
+    info.tile_count = 16;
+    info.is_horizontal = true;
   } else {
     // Default to simple 1x1 solid for unmapped objects
     info.draw_routine_id = 25;  // Use solid block routine (0x34)

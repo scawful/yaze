@@ -1,5 +1,6 @@
 // Related header
 #include "dungeon_object_selector.h"
+#include "absl/strings/str_format.h"
 
 // C system headers
 #include <cstring>
@@ -12,20 +13,19 @@
 #include "imgui/imgui.h"
 
 // Project headers
+#include "app/editor/agent/agent_ui_theme.h"
 #include "app/gui/widgets/asset_browser.h"
 #include "app/platform/window.h"
-#include "app/editor/agent/agent_ui_theme.h"
 #include "core/features.h"
 #include "rom/rom.h"
+#include "zelda3/dungeon/custom_object.h"  // For CustomObjectManager
+#include "zelda3/dungeon/door_types.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/dungeon_object_editor.h"
-#include "zelda3/dungeon/door_types.h"
 #include "zelda3/dungeon/dungeon_object_registry.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room.h"
-#include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"  // For GetObjectName()
-#include "zelda3/dungeon/custom_object.h" // For CustomObjectManager
 
 namespace yaze::editor {
 
@@ -367,7 +367,8 @@ ImU32 DungeonObjectSelector::GetObjectTypeColor(int object_id) {
     } else if (object_id >= 0x120 && object_id <= 0x12F) {
       return IM_COL32(100, 200, 100, 255);  // Green for switches
     } else if (object_id >= 0x130 && object_id <= 0x13F) {
-      return ImGui::GetColorU32(theme.dungeon_selection_primary);  // Yellow for stairs
+      return ImGui::GetColorU32(
+          theme.dungeon_selection_primary);  // Yellow for stairs
     } else {
       return IM_COL32(180, 180, 180, 255);  // Gray for other Type 2
     }
@@ -383,9 +384,11 @@ ImU32 DungeonObjectSelector::GetObjectTypeColor(int object_id) {
   } else if (object_id >= 0x17 && object_id <= 0x1E) {
     return ImGui::GetColorU32(theme.dungeon_object_floor);  // Brown for doors
   } else if (object_id == 0x2F || object_id == 0x2B) {
-    return ImGui::GetColorU32(theme.dungeon_object_pot);  // Saddle brown for pots
+    return ImGui::GetColorU32(
+        theme.dungeon_object_pot);  // Saddle brown for pots
   } else if (object_id >= 0x30 && object_id <= 0x3F) {
-    return ImGui::GetColorU32(theme.dungeon_object_decoration);  // Dim gray for decorations
+    return ImGui::GetColorU32(
+        theme.dungeon_object_decoration);  // Dim gray for decorations
   } else if (object_id >= 0x00 && object_id <= 0x0F) {
     return IM_COL32(120, 120, 180, 255);  // Blue-gray for corners
   } else {
@@ -494,9 +497,10 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
       {0x100, 0x141, "Type 2", IM_COL32(120, 80, 180, 255)},
       {0xF80, 0xFFF, "Type 3", IM_COL32(180, 120, 80, 255)},
   };
-  
+
   // Total object count
-  int total_objects = (0xFF - 0x00 + 1) + (0x141 - 0x100 + 1) + (0xFFF - 0xF80 + 1);
+  int total_objects =
+      (0xFF - 0x00 + 1) + (0x141 - 0x100 + 1) + (0xFFF - 0xF80 + 1);
 
   // Preview toggle (disabled by default for performance)
   ImGui::Checkbox(ICON_MD_IMAGE " Previews", &enable_object_previews_);
@@ -520,24 +524,28 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
   float child_height = ImGui::GetContentRegionAvail().y;
   if (ImGui::BeginChild("##ObjectGrid", ImVec2(0, child_height), false,
                         ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-    
+
     // Iterate through all object ranges
     for (const auto& range : ranges) {
       // Section header for each type
       ImGui::PushStyleColor(ImGuiCol_Header, range.header_color);
-      ImGui::PushStyleColor(ImGuiCol_HeaderHovered, 
+      ImGui::PushStyleColor(
+          ImGuiCol_HeaderHovered,
           IM_COL32((range.header_color & 0xFF) + 30,
                    ((range.header_color >> 8) & 0xFF) + 30,
                    ((range.header_color >> 16) & 0xFF) + 30, 255));
       bool section_open = ImGui::CollapsingHeader(
-          absl::StrFormat("%s (0x%03X-0x%03X)", range.label, range.start, range.end).c_str(),
+          absl::StrFormat("%s (0x%03X-0x%03X)", range.label, range.start,
+                          range.end)
+              .c_str(),
           ImGuiTreeNodeFlags_DefaultOpen);
       ImGui::PopStyleColor(2);
-      
-      if (!section_open) continue;
-      
+
+      if (!section_open)
+        continue;
+
       int current_column = 0;
-      
+
       for (int obj_id = range.start; obj_id <= range.end; ++obj_id) {
         if (current_column > 0) {
           ImGui::SameLine();
@@ -545,241 +553,253 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
 
         ImGui::PushID(obj_id);
 
-      // Create selectable button for object
-      bool is_selected = (selected_object_id_ == obj_id);
-      ImVec2 button_size(item_size, item_size);
+        // Create selectable button for object
+        bool is_selected = (selected_object_id_ == obj_id);
+        ImVec2 button_size(item_size, item_size);
 
-      if (ImGui::Selectable("", is_selected,
-                            ImGuiSelectableFlags_AllowDoubleClick,
-                            button_size)) {
-        selected_object_id_ = obj_id;
+        if (ImGui::Selectable("", is_selected,
+                              ImGuiSelectableFlags_AllowDoubleClick,
+                              button_size)) {
+          selected_object_id_ = obj_id;
 
-        // Create and update preview object
-        preview_object_ = zelda3::RoomObject(obj_id, 0, 0, 0x12, 0);
-        preview_object_.SetRom(rom_);
-        if (game_data_ && current_palette_group_id_ <
-                              game_data_->palette_groups.dungeon_main.size()) {
-          auto palette =
-              game_data_->palette_groups.dungeon_main[current_palette_group_id_];
-          preview_palette_ = palette;
-        }
-        object_loaded_ = true;
+          // Create and update preview object
+          preview_object_ = zelda3::RoomObject(obj_id, 0, 0, 0x12, 0);
+          preview_object_.SetRom(rom_);
+          if (game_data_ &&
+              current_palette_group_id_ <
+                  game_data_->palette_groups.dungeon_main.size()) {
+            auto palette = game_data_->palette_groups
+                               .dungeon_main[current_palette_group_id_];
+            preview_palette_ = palette;
+          }
+          object_loaded_ = true;
 
-        // Notify callbacks
-        if (object_selected_callback_) {
-          object_selected_callback_(preview_object_);
-        }
+          // Notify callbacks
+          if (object_selected_callback_) {
+            object_selected_callback_(preview_object_);
+          }
 
-        // Handle double-click to open static object editor
-        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-          if (object_double_click_callback_) {
-            object_double_click_callback_(obj_id);
+          // Handle double-click to open static object editor
+          if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+            if (object_double_click_callback_) {
+              object_double_click_callback_(obj_id);
+            }
           }
         }
-      }
 
-      // Draw object preview on the button; fall back to styled placeholder
-      ImVec2 button_pos = ImGui::GetItemRectMin();
-      ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        // Draw object preview on the button; fall back to styled placeholder
+        ImVec2 button_pos = ImGui::GetItemRectMin();
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-      // Only attempt graphical preview if enabled (performance optimization)
-      bool rendered = false;
-      if (enable_object_previews_) {
-        rendered = DrawObjectPreview(MakePreviewObject(obj_id), button_pos,
-                                     item_size);
-      }
+        // Only attempt graphical preview if enabled (performance optimization)
+        bool rendered = false;
+        if (enable_object_previews_) {
+          rendered = DrawObjectPreview(MakePreviewObject(obj_id), button_pos,
+                                       item_size);
+        }
 
-      if (!rendered) {
-        // Draw a styled fallback with gradient background
-        ImU32 obj_color = GetObjectTypeColor(obj_id);
-        ImU32 darker_color = IM_COL32((obj_color & 0xFF) * 0.6f,
-                                      ((obj_color >> 8) & 0xFF) * 0.6f,
-                                      ((obj_color >> 16) & 0xFF) * 0.6f, 255);
+        if (!rendered) {
+          // Draw a styled fallback with gradient background
+          ImU32 obj_color = GetObjectTypeColor(obj_id);
+          ImU32 darker_color = IM_COL32((obj_color & 0xFF) * 0.6f,
+                                        ((obj_color >> 8) & 0xFF) * 0.6f,
+                                        ((obj_color >> 16) & 0xFF) * 0.6f, 255);
 
-        // Gradient background
-        draw_list->AddRectFilledMultiColor(
+          // Gradient background
+          draw_list->AddRectFilledMultiColor(
+              button_pos,
+              ImVec2(button_pos.x + item_size, button_pos.y + item_size),
+              darker_color, darker_color, obj_color, obj_color);
+
+          // Draw object type symbol in center
+          std::string symbol = GetObjectTypeSymbol(obj_id);
+          ImVec2 symbol_size = ImGui::CalcTextSize(symbol.c_str());
+          ImVec2 symbol_pos(
+              button_pos.x + (item_size - symbol_size.x) / 2,
+              button_pos.y + (item_size - symbol_size.y) / 2 - 10);
+          draw_list->AddText(symbol_pos, IM_COL32(255, 255, 255, 180),
+                             symbol.c_str());
+        }
+
+        // Draw border with special highlight for static editor object
+        bool is_static_editor_obj = (obj_id == static_editor_object_id_);
+        ImU32 border_color;
+        float border_thickness;
+
+        if (is_static_editor_obj) {
+          border_color = IM_COL32(0, 200, 255, 255);
+          border_thickness = 3.0f;
+        } else if (is_selected) {
+          border_color = ImGui::GetColorU32(theme.dungeon_selection_primary);
+          border_thickness = 3.0f;
+        } else {
+          border_color = ImGui::GetColorU32(theme.panel_bg_darker);
+          border_thickness = 1.0f;
+        }
+
+        draw_list->AddRect(
             button_pos,
             ImVec2(button_pos.x + item_size, button_pos.y + item_size),
-            darker_color, darker_color, obj_color, obj_color);
+            border_color, 0.0f, 0, border_thickness);
 
-        // Draw object type symbol in center
-        std::string symbol = GetObjectTypeSymbol(obj_id);
-        ImVec2 symbol_size = ImGui::CalcTextSize(symbol.c_str());
-        ImVec2 symbol_pos(button_pos.x + (item_size - symbol_size.x) / 2,
-                          button_pos.y + (item_size - symbol_size.y) / 2 - 10);
-        draw_list->AddText(symbol_pos, IM_COL32(255, 255, 255, 180),
-                           symbol.c_str());
-      }
+        // Static editor indicator icon
+        if (is_static_editor_obj) {
+          ImVec2 icon_pos(button_pos.x + item_size - 14, button_pos.y + 2);
+          draw_list->AddCircleFilled(ImVec2(icon_pos.x + 6, icon_pos.y + 6), 6,
+                                     IM_COL32(0, 200, 255, 200));
+          draw_list->AddText(icon_pos, IM_COL32(255, 255, 255, 255), "i");
+        }
 
-      // Draw border with special highlight for static editor object
-      bool is_static_editor_obj = (obj_id == static_editor_object_id_);
-      ImU32 border_color;
-      float border_thickness;
+        // Get object name for display
+        std::string full_name = zelda3::GetObjectName(obj_id);
 
-      if (is_static_editor_obj) {
-        border_color = IM_COL32(0, 200, 255, 255);
-        border_thickness = 3.0f;
-      } else if (is_selected) {
-        border_color = ImGui::GetColorU32(theme.dungeon_selection_primary);
-        border_thickness = 3.0f;
-      } else {
-        border_color = ImGui::GetColorU32(theme.panel_bg_darker);
-        border_thickness = 1.0f;
-      }
+        // Truncate name for display
+        std::string display_name = full_name;
+        const size_t kMaxDisplayChars = 12;
+        if (display_name.length() > kMaxDisplayChars) {
+          display_name = display_name.substr(0, kMaxDisplayChars - 2) + "..";
+        }
 
-      draw_list->AddRect(
-          button_pos,
-          ImVec2(button_pos.x + item_size, button_pos.y + item_size),
-          border_color, 0.0f, 0, border_thickness);
+        // Draw object name (smaller, above ID)
+        ImVec2 name_size = ImGui::CalcTextSize(display_name.c_str());
+        ImVec2 name_pos = ImVec2(button_pos.x + (item_size - name_size.x) / 2,
+                                 button_pos.y + item_size - 26);
+        draw_list->AddText(name_pos,
+                           ImGui::GetColorU32(theme.text_secondary_gray),
+                           display_name.c_str());
 
-      // Static editor indicator icon
-      if (is_static_editor_obj) {
-        ImVec2 icon_pos(button_pos.x + item_size - 14, button_pos.y + 2);
-        draw_list->AddCircleFilled(ImVec2(icon_pos.x + 6, icon_pos.y + 6), 6,
-                                   IM_COL32(0, 200, 255, 200));
-        draw_list->AddText(icon_pos, IM_COL32(255, 255, 255, 255), "i");
-      }
+        // Draw object ID at bottom (hex format)
+        std::string id_text = absl::StrFormat("%03X", obj_id);
+        ImVec2 id_size = ImGui::CalcTextSize(id_text.c_str());
+        ImVec2 id_pos = ImVec2(button_pos.x + (item_size - id_size.x) / 2,
+                               button_pos.y + item_size - id_size.y - 2);
+        draw_list->AddText(id_pos, ImGui::GetColorU32(theme.text_primary),
+                           id_text.c_str());
 
-      // Get object name for display
-      std::string full_name = zelda3::GetObjectName(obj_id);
+        // Enhanced tooltip
+        if (ImGui::IsItemHovered()) {
+          ImGui::BeginTooltip();
+          ImGui::TextColored(ImVec4(1.0f, 0.9f, 0.4f, 1.0f), "Object 0x%03X",
+                             obj_id);
+          ImGui::Text("%s", full_name.c_str());
+          int subtype = zelda3::GetObjectSubtype(obj_id);
+          ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "Subtype %d",
+                             subtype);
+          ImGui::Separator();
+          ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f),
+                             "Click to select for placement");
+          ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f),
+                             "Double-click to view details");
+          ImGui::EndTooltip();
+        }
 
-      // Truncate name for display
-      std::string display_name = full_name;
-      const size_t kMaxDisplayChars = 12;
-      if (display_name.length() > kMaxDisplayChars) {
-        display_name = display_name.substr(0, kMaxDisplayChars - 2) + "..";
-      }
+        ImGui::PopID();
 
-      // Draw object name (smaller, above ID)
-      ImVec2 name_size = ImGui::CalcTextSize(display_name.c_str());
-      ImVec2 name_pos = ImVec2(button_pos.x + (item_size - name_size.x) / 2,
-                               button_pos.y + item_size - 26);
-      draw_list->AddText(name_pos,
-                         ImGui::GetColorU32(theme.text_secondary_gray),
-                         display_name.c_str());
-
-      // Draw object ID at bottom (hex format)
-      std::string id_text = absl::StrFormat("%03X", obj_id);
-      ImVec2 id_size = ImGui::CalcTextSize(id_text.c_str());
-      ImVec2 id_pos = ImVec2(button_pos.x + (item_size - id_size.x) / 2,
-                             button_pos.y + item_size - id_size.y - 2);
-      draw_list->AddText(id_pos, ImGui::GetColorU32(theme.text_primary),
-                         id_text.c_str());
-
-      // Enhanced tooltip
-      if (ImGui::IsItemHovered()) {
-        ImGui::BeginTooltip();
-        ImGui::TextColored(ImVec4(1.0f, 0.9f, 0.4f, 1.0f), "Object 0x%03X",
-                           obj_id);
-        ImGui::Text("%s", full_name.c_str());
-        int subtype = zelda3::GetObjectSubtype(obj_id);
-        ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "Subtype %d",
-                           subtype);
-        ImGui::Separator();
-        ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f),
-                           "Click to select for placement");
-        ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f),
-                           "Double-click to view details");
-        ImGui::EndTooltip();
-      }
-
-      ImGui::PopID();
-
-      current_column = (current_column + 1) % columns;
+        current_column = (current_column + 1) % columns;
       }  // end object loop
-    }  // end range loop
+    }    // end range loop
 
     // Custom Objects Section
     ImGui::PushStyleColor(ImGuiCol_Header, IM_COL32(100, 180, 120, 255));
     ImGui::PushStyleColor(ImGuiCol_HeaderHovered, IM_COL32(130, 210, 150, 255));
-    bool custom_open = ImGui::CollapsingHeader("Custom Objects", ImGuiTreeNodeFlags_DefaultOpen);
+    bool custom_open = ImGui::CollapsingHeader("Custom Objects",
+                                               ImGuiTreeNodeFlags_DefaultOpen);
     ImGui::PopStyleColor(2);
 
     if (custom_open) {
       int custom_col = 0;
       auto& obj_manager = zelda3::CustomObjectManager::Get();
-      
+
       // Initialize if needed (hacky lazy init if drawer hasn't done it yet)
-      // Ideally should be initialized by system. 
+      // Ideally should be initialized by system.
       // We'll skip init here and assume ObjectDrawer did it or will do it.
       // But we need counts. If uninitialized, counts might be wrong?
       // GetSubtypeCount checks static lists, so it's safe even if not fully init with paths.
 
       for (int obj_id : {0x31, 0x32}) {
-         int subtype_count = obj_manager.GetSubtypeCount(obj_id);
-         for (int subtype = 0; subtype < subtype_count; ++subtype) {
-            if (custom_col > 0) ImGui::SameLine();
-            
-            ImGui::PushID(obj_id * 1000 + subtype);
-            
-            bool is_selected = (selected_object_id_ == obj_id && (preview_object_.size_ & 0x1F) == subtype);
-            ImVec2 button_size(item_size, item_size);
-            
-            if (ImGui::Selectable("", is_selected, ImGuiSelectableFlags_AllowDoubleClick, button_size)) {
-                SelectObject(obj_id);
-                // Update size to subtype
-                preview_object_.size_ = subtype;
-                
-                if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-                   if (object_double_click_callback_) object_double_click_callback_(obj_id);
-                }
-            }
-            
-            // Draw Preview
-            ImVec2 button_pos = ImGui::GetItemRectMin();
-            ImDrawList* draw_list = ImGui::GetWindowDrawList();
-            
-            bool rendered = false;
-            // Native preview requires loaded ROM and correct pathing, might fail if not init.
-            // But we can try constructing a temp object with correct subtype.
-            if (enable_object_previews_) {
-               auto temp_obj = MakePreviewObject(obj_id);
-               temp_obj.size_ = subtype; 
-               rendered = DrawObjectPreview(temp_obj, button_pos, item_size);
-            }
-            
-            if (!rendered) {
-               // Fallback visuals
-               ImU32 obj_color = IM_COL32(100, 180, 120, 255);
-                ImU32 darker_color = IM_COL32(60, 100, 70, 255);
+        int subtype_count = obj_manager.GetSubtypeCount(obj_id);
+        for (int subtype = 0; subtype < subtype_count; ++subtype) {
+          if (custom_col > 0)
+            ImGui::SameLine();
 
-                draw_list->AddRectFilledMultiColor(
-                    button_pos,
-                    ImVec2(button_pos.x + item_size, button_pos.y + item_size),
-                    darker_color, darker_color, obj_color, obj_color);
+          ImGui::PushID(obj_id * 1000 + subtype);
 
-                std::string symbol = (obj_id == 0x31) ? "Trk" : "Cus";
-                // Subtype
-                std::string sub_text = absl::StrFormat("%02X", subtype);
-                ImVec2 sub_size = ImGui::CalcTextSize(sub_text.c_str());
-                 ImVec2 sub_pos(button_pos.x + (item_size - sub_size.x) / 2,
-                                  button_pos.y + (item_size - sub_size.y) / 2);
-                draw_list->AddText(sub_pos, IM_COL32(255, 255, 255, 220), sub_text.c_str());
+          bool is_selected = (selected_object_id_ == obj_id &&
+                              (preview_object_.size_ & 0x1F) == subtype);
+          ImVec2 button_size(item_size, item_size);
+
+          if (ImGui::Selectable("", is_selected,
+                                ImGuiSelectableFlags_AllowDoubleClick,
+                                button_size)) {
+            SelectObject(obj_id);
+            // Update size to subtype
+            preview_object_.size_ = subtype;
+
+            if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+              if (object_double_click_callback_)
+                object_double_click_callback_(obj_id);
             }
-            
-            // Border
-            bool is_static_editor_obj = (obj_id == static_editor_object_id_ && static_editor_object_id_ != -1); 
-            // Static editor doesn't track subtype currently, so highlighting all subtypes of 0x31 is correct 
-            // if we are editing 0x31 generic. But maybe we only edit specific subtype?
-            // Static editor usually edits the code/logic common to ID.
-             ImU32 border_color = is_selected ? ImGui::GetColorU32(theme.dungeon_selection_primary) : ImGui::GetColorU32(theme.panel_bg_darker);
-            float border_thickness = is_selected ? 3.0f : 1.0f;
-             draw_list->AddRect(
+          }
+
+          // Draw Preview
+          ImVec2 button_pos = ImGui::GetItemRectMin();
+          ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+          bool rendered = false;
+          // Native preview requires loaded ROM and correct pathing, might fail if not init.
+          // But we can try constructing a temp object with correct subtype.
+          if (enable_object_previews_) {
+            auto temp_obj = MakePreviewObject(obj_id);
+            temp_obj.size_ = subtype;
+            rendered = DrawObjectPreview(temp_obj, button_pos, item_size);
+          }
+
+          if (!rendered) {
+            // Fallback visuals
+            ImU32 obj_color = IM_COL32(100, 180, 120, 255);
+            ImU32 darker_color = IM_COL32(60, 100, 70, 255);
+
+            draw_list->AddRectFilledMultiColor(
+                button_pos,
+                ImVec2(button_pos.x + item_size, button_pos.y + item_size),
+                darker_color, darker_color, obj_color, obj_color);
+
+            std::string symbol = (obj_id == 0x31) ? "Trk" : "Cus";
+            // Subtype
+            std::string sub_text = absl::StrFormat("%02X", subtype);
+            ImVec2 sub_size = ImGui::CalcTextSize(sub_text.c_str());
+            ImVec2 sub_pos(button_pos.x + (item_size - sub_size.x) / 2,
+                           button_pos.y + (item_size - sub_size.y) / 2);
+            draw_list->AddText(sub_pos, IM_COL32(255, 255, 255, 220),
+                               sub_text.c_str());
+          }
+
+          // Border
+          bool is_static_editor_obj = (obj_id == static_editor_object_id_ &&
+                                       static_editor_object_id_ != -1);
+          // Static editor doesn't track subtype currently, so highlighting all subtypes of 0x31 is correct
+          // if we are editing 0x31 generic. But maybe we only edit specific subtype?
+          // Static editor usually edits the code/logic common to ID.
+          ImU32 border_color =
+              is_selected ? ImGui::GetColorU32(theme.dungeon_selection_primary)
+                          : ImGui::GetColorU32(theme.panel_bg_darker);
+          float border_thickness = is_selected ? 3.0f : 1.0f;
+          draw_list->AddRect(
               button_pos,
               ImVec2(button_pos.x + item_size, button_pos.y + item_size),
               border_color, 0.0f, 0, border_thickness);
 
-            // Name/ID
-            std::string id_text = absl::StrFormat("%02X:%02X", obj_id, subtype);
-            ImVec2 id_size = ImGui::CalcTextSize(id_text.c_str());
-            ImVec2 id_pos = ImVec2(button_pos.x + (item_size - id_size.x) / 2,
-                                     button_pos.y + item_size - id_size.y - 2);
-              draw_list->AddText(id_pos, ImGui::GetColorU32(theme.text_primary),
-                                 id_text.c_str());
-            
-            ImGui::PopID();
-            custom_col = (custom_col + 1) % columns;
-          }
+          // Name/ID
+          std::string id_text = absl::StrFormat("%02X:%02X", obj_id, subtype);
+          ImVec2 id_size = ImGui::CalcTextSize(id_text.c_str());
+          ImVec2 id_pos = ImVec2(button_pos.x + (item_size - id_size.x) / 2,
+                                 button_pos.y + item_size - id_size.y - 2);
+          draw_list->AddText(id_pos, ImGui::GetColorU32(theme.text_primary),
+                             id_text.c_str());
+
+          ImGui::PopID();
+          custom_col = (custom_col + 1) % columns;
+        }
       }
     }
   }
@@ -935,8 +955,8 @@ void DungeonObjectSelector::DrawCompactDoorEditor() {
           // Draw door info with type name
           std::string type_name(zelda3::GetDoorTypeName(door.type));
           std::string dir_name(zelda3::GetDoorDirectionName(door.direction));
-          ImGui::Text("[%zu] %s (%s) at tile(%d,%d)",
-                      i, type_name.c_str(), dir_name.c_str(), tile_x, tile_y);
+          ImGui::Text("[%zu] %s (%s) at tile(%d,%d)", i, type_name.c_str(),
+                      dir_name.c_str(), tile_x, tile_y);
 
           // Delete button
           ImGui::SameLine();
@@ -956,7 +976,8 @@ void DungeonObjectSelector::DrawCompactDoorEditor() {
     // Door type selector
     Separator();
     ImGui::Text("Door Type:");
-    static int selected_door_type = static_cast<int>(zelda3::DoorType::NormalDoor);
+    static int selected_door_type =
+        static_cast<int>(zelda3::DoorType::NormalDoor);
 
     // Build door type combo items (common types)
     constexpr std::array<zelda3::DoorType, 20> door_types = {
@@ -982,13 +1003,16 @@ void DungeonObjectSelector::DrawCompactDoorEditor() {
         zelda3::DoorType::DungeonSwapMarker,
     };
 
-    if (ImGui::BeginCombo("##DoorType",
-                          std::string(zelda3::GetDoorTypeName(
-                              static_cast<zelda3::DoorType>(selected_door_type))).c_str())) {
+    if (ImGui::BeginCombo(
+            "##DoorType",
+            std::string(zelda3::GetDoorTypeName(
+                            static_cast<zelda3::DoorType>(selected_door_type)))
+                .c_str())) {
       for (auto door_type : door_types) {
         bool is_selected = (selected_door_type == static_cast<int>(door_type));
-        if (ImGui::Selectable(std::string(zelda3::GetDoorTypeName(door_type)).c_str(),
-                              is_selected)) {
+        if (ImGui::Selectable(
+                std::string(zelda3::GetDoorTypeName(door_type)).c_str(),
+                is_selected)) {
           selected_door_type = static_cast<int>(door_type);
         }
         if (is_selected) {
@@ -999,11 +1023,12 @@ void DungeonObjectSelector::DrawCompactDoorEditor() {
     }
 
     // Instructions
-    ImGui::TextWrapped("Click on a room wall edge to place a door. Doors snap to valid positions.");
+    ImGui::TextWrapped(
+        "Click on a room wall edge to place a door. Doors snap to valid "
+        "positions.");
   } else {
     ImGui::Text("No room selected");
   }
-
 }
 
 void DungeonObjectSelector::DrawCompactChestEditor() {
@@ -1061,7 +1086,8 @@ void DungeonObjectSelector::DrawCompactPropertiesEditor() {
 }
 
 void DungeonObjectSelector::EnsureRegistryInitialized() {
-  if (registry_initialized_) return;
+  if (registry_initialized_)
+    return;
   object_registry_.RegisterVanillaRange(0x000, 0x1FF);
   registry_initialized_ = true;
 }
@@ -1078,7 +1104,7 @@ void DungeonObjectSelector::InvalidatePreviewCache() {
 }
 
 bool DungeonObjectSelector::GetOrCreatePreview(int obj_id, float size,
-                                                gfx::BackgroundBuffer** out) {
+                                               gfx::BackgroundBuffer** out) {
   if (!rom_ || !rom_->is_loaded()) {
     return false;
   }
@@ -1117,7 +1143,8 @@ bool DungeonObjectSelector::GetOrCreatePreview(int obj_id, float size,
   // Create preview buffer large enough for object
   // Use a reasonable size based on object dimensions (minimum 64x64)
   int buffer_size = std::max(static_cast<int>(size), 128);
-  auto preview = std::make_unique<gfx::BackgroundBuffer>(buffer_size, buffer_size);
+  auto preview =
+      std::make_unique<gfx::BackgroundBuffer>(buffer_size, buffer_size);
 
   // CRITICAL: Initialize bitmap before drawing
   preview->EnsureBitmapInitialized();
@@ -1140,16 +1167,15 @@ bool DungeonObjectSelector::GetOrCreatePreview(int obj_id, float size,
     // Flatten palette group into SDL colors
     // Dungeon palettes have 6 sub-palettes of 15 colors each = 90 colors
     size_t color_index = 0;
-    for (size_t pal_idx = 0; pal_idx < current_palette_group_.size() && color_index < 256; ++pal_idx) {
+    for (size_t pal_idx = 0;
+         pal_idx < current_palette_group_.size() && color_index < 256;
+         ++pal_idx) {
       const auto& pal = current_palette_group_[pal_idx];
       for (size_t i = 0; i < pal.size() && color_index < 256; ++i) {
         ImVec4 rgb = pal[i].rgb();
-        colors[color_index++] = {
-            static_cast<Uint8>(rgb.x),
-            static_cast<Uint8>(rgb.y),
-            static_cast<Uint8>(rgb.z),
-            255
-        };
+        colors[color_index++] = {static_cast<Uint8>(rgb.x),
+                                 static_cast<Uint8>(rgb.y),
+                                 static_cast<Uint8>(rgb.z), 255};
       }
     }
     // Transparent color key at index 255
@@ -1171,7 +1197,8 @@ bool DungeonObjectSelector::GetOrCreatePreview(int obj_id, float size,
   }
 
   // Sync bitmap data to SDL surface after drawing
-  if (bitmap.modified() && bitmap.surface() && bitmap.mutable_data().size() > 0) {
+  if (bitmap.modified() && bitmap.surface() &&
+      bitmap.mutable_data().size() > 0) {
     SDL_LockSurface(bitmap.surface());
     size_t surface_size = bitmap.surface()->h * bitmap.surface()->pitch;
     size_t data_size = bitmap.mutable_data().size();
@@ -1187,8 +1214,8 @@ bool DungeonObjectSelector::GetOrCreatePreview(int obj_id, float size,
   }
 
   // Create texture
-  gfx::Arena::Get().QueueTextureCommand(
-      gfx::Arena::TextureCommandType::CREATE, &bitmap);
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
+                                        &bitmap);
   gfx::Arena::Get().ProcessTextureQueue(nullptr);
 
   if (!bitmap.texture()) {
@@ -1201,8 +1228,8 @@ bool DungeonObjectSelector::GetOrCreatePreview(int obj_id, float size,
   return true;
 }
 
-bool DungeonObjectSelector::DrawObjectPreview(
-    const zelda3::RoomObject& object, ImVec2 top_left, float size) {
+bool DungeonObjectSelector::DrawObjectPreview(const zelda3::RoomObject& object,
+                                              ImVec2 top_left, float size) {
   gfx::BackgroundBuffer* preview = nullptr;
   if (!GetOrCreatePreview(object.id_, size, &preview)) {
     return false;

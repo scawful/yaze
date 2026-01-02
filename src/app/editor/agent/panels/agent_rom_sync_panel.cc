@@ -3,6 +3,7 @@
 #include <string>
 
 #include "absl/strings/str_format.h"
+#include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
@@ -25,8 +26,7 @@ void AgentRomSyncPanel::Draw(AgentUIContext* context,
 
   // Display current ROM hash
   if (!state.current_rom_hash.empty()) {
-    ImGui::Text("Hash: %s",
-                state.current_rom_hash.substr(0, 16).c_str());
+    ImGui::Text("Hash: %s", state.current_rom_hash.substr(0, 16).c_str());
     ImGui::SameLine();
     if (ImGui::SmallButton(ICON_MD_CONTENT_COPY)) {
       ImGui::SetClipboardText(state.current_rom_hash.c_str());
@@ -49,8 +49,8 @@ void AgentRomSyncPanel::Draw(AgentUIContext* context,
   ImGui::Checkbox("Auto-sync ROM changes", &state.auto_sync_enabled);
 
   if (state.auto_sync_enabled) {
-    ImGui::SliderInt("Sync Interval (seconds)",
-                     &state.sync_interval_seconds, 10, 120);
+    ImGui::SliderInt("Sync Interval (seconds)", &state.sync_interval_seconds,
+                     10, 120);
   }
 
   ImGui::Spacing();
@@ -67,23 +67,21 @@ void AgentRomSyncPanel::Draw(AgentUIContext* context,
     if (callbacks.generate_rom_diff) {
       auto diff_result = callbacks.generate_rom_diff();
       if (diff_result.ok()) {
-        std::string hash = callbacks.get_rom_hash
-                               ? callbacks.get_rom_hash()
-                               : "";
+        std::string hash =
+            callbacks.get_rom_hash ? callbacks.get_rom_hash() : "";
 
         state.current_rom_hash = hash;
         state.last_sync_time = absl::Now();
 
         // TODO: Send via network coordinator (handled by caller usually)
         if (toast_manager) {
-          toast_manager->Show(ICON_MD_CLOUD_DONE
-                               " ROM synced to collaborators",
-                               ToastType::kSuccess, 3.0f);
+          toast_manager->Show(ICON_MD_CLOUD_DONE " ROM synced to collaborators",
+                              ToastType::kSuccess, 3.0f);
         }
       } else if (toast_manager) {
         toast_manager->Show(absl::StrFormat(ICON_MD_ERROR " Sync failed: %s",
-                                             diff_result.status().message()),
-                             ToastType::kError, 5.0f);
+                                            diff_result.status().message()),
+                            ToastType::kError, 5.0f);
       }
     }
   }

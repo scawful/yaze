@@ -60,7 +60,8 @@ void MaybeStripSmcHeader(std::vector<uint8_t>& rom_data, unsigned long& size) {
 inline void MaybeBroadcastChange(uint32_t offset,
                                  const std::vector<uint8_t>& old_bytes,
                                  const std::vector<uint8_t>& new_bytes) {
-  if (new_bytes.empty()) return;
+  if (new_bytes.empty())
+    return;
   auto& collab = app::platform::GetWasmCollaborationInstance();
   if (!collab.IsConnected() || collab.IsApplyingRemoteChange()) {
     return;
@@ -82,13 +83,13 @@ absl::Status Rom::LoadFromFile(const std::string& filename,
   filename_ = filename;
   std::ifstream test_file(filename_, std::ios::binary);
   if (!test_file.is_open()) {
-    return absl::NotFoundError(
-        absl::StrCat("ROM file does not exist or cannot be opened: ", filename_));
+    return absl::NotFoundError(absl::StrCat(
+        "ROM file does not exist or cannot be opened: ", filename_));
   }
   test_file.seekg(0, std::ios::end);
   size_ = test_file.tellg();
   test_file.close();
-  
+
   if (size_ < 32768) {
     return absl::InvalidArgumentError(absl::StrFormat(
         "ROM file too small (%zu bytes), minimum is 32KB", size_));
@@ -176,7 +177,7 @@ absl::Status Rom::SaveToFile(const SaveSettings& settings) {
     auto now_c = std::chrono::system_clock::to_time_t(now);
     std::string backup_filename =
         absl::StrCat(filename, "_backup_", std::ctime(&now_c));
-    
+
     backup_filename.erase(
         std::remove(backup_filename.begin(), backup_filename.end(), '\n'),
         backup_filename.end());
@@ -220,7 +221,8 @@ absl::Status Rom::SaveToFile(const SaveSettings& settings) {
 
 absl::StatusOr<uint8_t> Rom::ReadByte(int offset) {
   if (offset < 0 || offset >= static_cast<int>(rom_data_.size())) {
-    return absl::OutOfRangeError(absl::StrFormat("Offset %d out of range (size: %d)", offset, rom_data_.size()));
+    return absl::OutOfRangeError(absl::StrFormat(
+        "Offset %d out of range (size: %d)", offset, rom_data_.size()));
   }
   return rom_data_[offset];
 }
@@ -253,7 +255,8 @@ absl::StatusOr<std::vector<uint8_t>> Rom::ReadByteVector(
   return result;
 }
 
-absl::StatusOr<gfx::Tile16> Rom::ReadTile16(uint32_t tile16_id, uint32_t tile16_ptr) {
+absl::StatusOr<gfx::Tile16> Rom::ReadTile16(uint32_t tile16_id,
+                                            uint32_t tile16_ptr) {
   // Skip 8 bytes per tile.
   auto tpos = tile16_ptr + (tile16_id * 0x08);
   gfx::Tile16 tile16 = {};
@@ -271,7 +274,8 @@ absl::StatusOr<gfx::Tile16> Rom::ReadTile16(uint32_t tile16_id, uint32_t tile16_
   return tile16;
 }
 
-absl::Status Rom::WriteTile16(int tile16_id, uint32_t tile16_ptr, const gfx::Tile16& tile) {
+absl::Status Rom::WriteTile16(int tile16_id, uint32_t tile16_ptr,
+                              const gfx::Tile16& tile) {
   auto tpos = tile16_ptr + (tile16_id * 0x08);
   RETURN_IF_ERROR(WriteShort(tpos, gfx::TileInfoToWord(tile.tile0_)));
   tpos += 2;
@@ -338,7 +342,8 @@ absl::Status Rom::WriteLong(uint32_t addr, uint32_t value) {
 }
 
 absl::Status Rom::WriteVector(int addr, std::vector<uint8_t> data) {
-  if (addr + static_cast<int>(data.size()) > static_cast<int>(rom_data_.size())) {
+  if (addr + static_cast<int>(data.size()) >
+      static_cast<int>(rom_data_.size())) {
     return absl::OutOfRangeError("Address out of range");
   }
   std::vector<uint8_t> old_data;
@@ -376,4 +381,3 @@ absl::Status Rom::WriteHelper(const WriteAction& action) {
 }
 
 }  // namespace yaze
-

@@ -7,11 +7,11 @@
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/platform_keys.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/theme_manager.h"
-#include "app/gui/core/color.h"
 #include "imgui/imgui.h"
 #include "util/file_util.h"
 
@@ -56,9 +56,8 @@ GridLayout ComputeGridLayout(float avail_width, float min_width,
            static_cast<float>(columns);
   };
 
-  layout.columns =
-      std::max(1, static_cast<int>((avail_width + spacing) /
-                                   (preferred_width + spacing)));
+  layout.columns = std::max(1, static_cast<int>((avail_width + spacing) /
+                                                (preferred_width + spacing)));
 
   layout.item_width = width_for_columns(layout.columns);
   while (layout.columns > 1 && layout.item_width < min_width) {
@@ -147,28 +146,28 @@ EditorSelectionDialog::EditorSelectionDialog() {
        absl::StrFormat("%s+3", ctrl), false, true},
 
       {EditorType::kSprite, "Sprites", ICON_MD_EMOJI_EMOTIONS,
-       "Edit sprite graphics and properties",
-       absl::StrFormat("%s+4", ctrl), false, true},
+       "Edit sprite graphics and properties", absl::StrFormat("%s+4", ctrl),
+       false, true},
 
       {EditorType::kMessage, "Messages", ICON_MD_CHAT_BUBBLE,
-       "Edit dialogue, signs, and text",
-       absl::StrFormat("%s+5", ctrl), false, true},
+       "Edit dialogue, signs, and text", absl::StrFormat("%s+5", ctrl), false,
+       true},
 
       {EditorType::kMusic, "Music", ICON_MD_MUSIC_NOTE,
-       "Configure music and sound effects",
-       absl::StrFormat("%s+6", ctrl), false, true},
+       "Configure music and sound effects", absl::StrFormat("%s+6", ctrl),
+       false, true},
 
       {EditorType::kPalette, "Palettes", ICON_MD_COLOR_LENS,
-       "Edit color palettes and animations",
-       absl::StrFormat("%s+7", ctrl), false, true},
+       "Edit color palettes and animations", absl::StrFormat("%s+7", ctrl),
+       false, true},
 
       {EditorType::kScreen, "Screens", ICON_MD_TV,
-       "Edit title screen and ending screens",
-       absl::StrFormat("%s+8", ctrl), false, true},
+       "Edit title screen and ending screens", absl::StrFormat("%s+8", ctrl),
+       false, true},
 
       {EditorType::kAssembly, "Assembly", ICON_MD_CODE,
-       "Write and edit assembly code",
-       absl::StrFormat("%s+9", ctrl), false, false},
+       "Write and edit assembly code", absl::StrFormat("%s+9", ctrl), false,
+       false},
 
       {EditorType::kHex, "Hex Editor", ICON_MD_DATA_ARRAY,
        "Direct ROM memory editing and comparison",
@@ -236,10 +235,9 @@ bool EditorSelectionDialog::Show(bool* p_open) {
         kEditorSelectCardBaseHeight * kEditorSelectCardHeightMaxFactor * scale;
     const float spacing = ImGui::GetStyle().ItemSpacing.x;
     const float aspect_ratio = min_height / std::max(min_width, 1.0f);
-    GridLayout layout = ComputeGridLayout(ImGui::GetContentRegionAvail().x,
-                                          min_width, max_width, min_height,
-                                          max_height, min_width, aspect_ratio,
-                                          spacing);
+    GridLayout layout = ComputeGridLayout(
+        ImGui::GetContentRegionAvail().x, min_width, max_width, min_height,
+        max_height, min_width, aspect_ratio, spacing);
 
     int column = 0;
     for (size_t i = 0; i < editors_.size(); ++i) {
@@ -336,12 +334,10 @@ void EditorSelectionDialog::DrawQuickAccessButtons() {
       }
 
       const ImVec4 base_color = GetEditorAccentColor(it->type, theme);
-      ImGui::PushStyleColor(
-          ImGuiCol_Button,
-          ScaleColor(base_color, 0.5f, 0.7f));
-      ImGui::PushStyleColor(
-          ImGuiCol_ButtonHovered,
-          ScaleColor(base_color, 0.7f, 0.9f));
+      ImGui::PushStyleColor(ImGuiCol_Button,
+                            ScaleColor(base_color, 0.5f, 0.7f));
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                            ScaleColor(base_color, 0.7f, 0.9f));
       ImGui::PushStyleColor(ImGuiCol_ButtonActive, WithAlpha(base_color, 1.0f));
 
       if (ImGui::Button(absl::StrCat(it->icon, " ", it->name).c_str(),
@@ -388,14 +384,16 @@ void EditorSelectionDialog::DrawEditorPanel(const EditorInfo& info, int index,
   const float padding_y = std::max(style.FramePadding.y, card_size.y * 0.08f);
 
   const float footer_height = info.shortcut.empty() ? 0.0f : line_height;
-  const float footer_spacing = info.shortcut.empty() ? 0.0f : style.ItemSpacing.y;
-  const float available_icon_height =
-      card_size.y - padding_y * 2.0f - line_height - footer_height - footer_spacing;
+  const float footer_spacing =
+      info.shortcut.empty() ? 0.0f : style.ItemSpacing.y;
+  const float available_icon_height = card_size.y - padding_y * 2.0f -
+                                      line_height - footer_height -
+                                      footer_spacing;
   const float min_icon_radius = line_height * 0.9f;
   float max_icon_radius = card_size.y * 0.24f;
   max_icon_radius = std::max(max_icon_radius, min_icon_radius);
-  const float icon_radius =
-      std::clamp(available_icon_height * 0.5f, min_icon_radius, max_icon_radius);
+  const float icon_radius = std::clamp(available_icon_height * 0.5f,
+                                       min_icon_radius, max_icon_radius);
 
   const ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -413,21 +411,18 @@ void EditorSelectionDialog::DrawEditorPanel(const EditorInfo& info, int index,
 
   // Create gradient background
   ImU32 color_top = ImGui::GetColorU32(ScaleColor(base_color, 0.4f, 0.85f));
-  ImU32 color_bottom =
-      ImGui::GetColorU32(ScaleColor(base_color, 0.2f, 0.9f));
+  ImU32 color_bottom = ImGui::GetColorU32(ScaleColor(base_color, 0.2f, 0.9f));
 
   // Draw gradient card background
   draw_list->AddRectFilledMultiColor(
       cursor_pos,
-      ImVec2(cursor_pos.x + card_size.x, cursor_pos.y + card_size.y),
-      color_top, color_top, color_bottom, color_bottom);
+      ImVec2(cursor_pos.x + card_size.x, cursor_pos.y + card_size.y), color_top,
+      color_top, color_bottom, color_bottom);
 
   // Colored border
   ImU32 border_color =
-      is_recent
-          ? ImGui::GetColorU32(
-                WithAlpha(base_color, 1.0f))
-          : ImGui::GetColorU32(ScaleColor(base_color, 0.6f, 0.7f));
+      is_recent ? ImGui::GetColorU32(WithAlpha(base_color, 1.0f))
+                : ImGui::GetColorU32(ScaleColor(base_color, 0.6f, 0.7f));
   const float rounding = std::max(style.FrameRounding, card_size.y * 0.05f);
   const float border_thickness =
       is_recent ? std::max(2.0f, style.FrameBorderSize + 1.0f)
@@ -447,8 +442,7 @@ void EditorSelectionDialog::DrawEditorPanel(const EditorInfo& info, int index,
                                ImGui::GetColorU32(base_color), 16);
     const ImU32 star_color = ImGui::GetColorU32(text_primary);
     const ImVec2 star_size =
-        text_font->CalcTextSizeA(text_font_size, FLT_MAX, 0.0f,
-                                 ICON_MD_STAR);
+        text_font->CalcTextSizeA(text_font_size, FLT_MAX, 0.0f, ICON_MD_STAR);
     const ImVec2 star_pos(badge_pos.x - star_size.x * 0.5f,
                           badge_pos.y - star_size.y * 0.5f);
     draw_list->AddText(text_font, text_font_size, star_pos, star_color,
@@ -518,8 +512,7 @@ void EditorSelectionDialog::DrawEditorPanel(const EditorInfo& info, int index,
 
   // Hover glow effect
   if (is_hovered) {
-    ImU32 glow_color =
-        ImGui::GetColorU32(ScaleColor(base_color, 1.0f, 0.18f));
+    ImU32 glow_color = ImGui::GetColorU32(ScaleColor(base_color, 1.0f, 0.18f));
     draw_list->AddRectFilled(
         cursor_pos,
         ImVec2(cursor_pos.x + card_size.x, cursor_pos.y + card_size.y),
@@ -540,7 +533,8 @@ void EditorSelectionDialog::DrawEditorPanel(const EditorInfo& info, int index,
     ImGui::PopTextWrapPos();
     if (!info.shortcut.empty()) {
       ImGui::Spacing();
-      ImGui::TextColored(base_color, ICON_MD_KEYBOARD " %s", info.shortcut.c_str());
+      ImGui::TextColored(base_color, ICON_MD_KEYBOARD " %s",
+                         info.shortcut.c_str());
     }
     if (is_recent) {
       ImGui::Spacing();

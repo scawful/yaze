@@ -31,30 +31,30 @@ static const std::vector<MemoryRegion> kKnownRegions = {
     // Graphics
     {0x000000, 0x00FFFF, "graphics", "Compressed graphics"},
     {0x080000, 0x08FFFF, "graphics", "More graphics data"},
-    
+
     // Overworld
     {0x020000, 0x027FFF, "overworld", "Overworld tilemap data"},
     {0x0A8000, 0x0AFFFF, "overworld", "Overworld map data"},
-    
+
     // Dungeon
     {0x028000, 0x02FFFF, "dungeon", "Dungeon room data"},
     {0x0B0000, 0x0B7FFF, "dungeon", "Dungeon tileset data"},
-    
+
     // Sprites
     {0x09C800, 0x09DFFF, "sprites", "Sprite graphics"},
     {0x0D8000, 0x0DFFFF, "sprites", "More sprite data"},
-    
+
     // Palettes
     {0x0DD218, 0x0DD4FF, "palettes", "Main palettes"},
     {0x0DE000, 0x0DEFFF, "palettes", "Sprite palettes"},
-    
+
     // Text/Messages
     {0x0E0000, 0x0E7FFF, "messages", "Text and messages"},
-    
+
     // Code
     {0x008000, 0x00FFFF, "code", "Bank $00 code"},
     {0x018000, 0x01FFFF, "code", "Bank $03 code"},
-    
+
     // Audio
     {0x0C0000, 0x0CFFFF, "audio", "Music/SPC data"},
 };
@@ -134,7 +134,8 @@ DiffSummary RomDiffTool::ComputeDiff(const std::vector<uint8_t>& rom1,
         diff.description = DescribeChange(diff_start, old_bytes, new_bytes);
       } else {
         diff.category = "data";
-        diff.description = absl::StrFormat("%zu bytes changed", old_bytes.size());
+        diff.description =
+            absl::StrFormat("%zu bytes changed", old_bytes.size());
       }
 
       summary.diffs.push_back(diff);
@@ -177,9 +178,9 @@ std::string RomDiffTool::CategorizeAddress(uint32_t address) const {
   return "unknown";
 }
 
-std::string RomDiffTool::DescribeChange(uint32_t address,
-                                        const std::vector<uint8_t>& old_val,
-                                        const std::vector<uint8_t>& new_val) const {
+std::string RomDiffTool::DescribeChange(
+    uint32_t address, const std::vector<uint8_t>& old_val,
+    const std::vector<uint8_t>& new_val) const {
   std::string category = CategorizeAddress(address);
 
   if (category == "graphics") {
@@ -191,11 +192,13 @@ std::string RomDiffTool::DescribeChange(uint32_t address,
   } else if (category == "sprites") {
     return absl::StrFormat("Sprite data changed (%zu bytes)", old_val.size());
   } else if (category == "messages") {
-    return absl::StrFormat("Message/text data changed (%zu bytes)", old_val.size());
+    return absl::StrFormat("Message/text data changed (%zu bytes)",
+                           old_val.size());
   } else if (category == "dungeon") {
     return absl::StrFormat("Dungeon data changed (%zu bytes)", old_val.size());
   } else if (category == "overworld") {
-    return absl::StrFormat("Overworld data changed (%zu bytes)", old_val.size());
+    return absl::StrFormat("Overworld data changed (%zu bytes)",
+                           old_val.size());
   }
 
   return absl::StrFormat("%zu bytes changed", old_val.size());
@@ -212,7 +215,8 @@ std::string RomDiffTool::FormatAsJson(const DiffSummary& summary) const {
   json << "  \"changes_by_category\": {";
   bool first = true;
   for (const auto& [cat, count] : summary.changes_by_category) {
-    if (!first) json << ", ";
+    if (!first)
+      json << ", ";
     json << "\"" << cat << "\": " << count;
     first = false;
   }
@@ -224,12 +228,14 @@ std::string RomDiffTool::FormatAsJson(const DiffSummary& summary) const {
   for (size_t i = 0; i < max_diffs; ++i) {
     const auto& diff = summary.diffs[i];
     json << "    {";
-    json << "\"address\": \"" << absl::StrFormat("0x%06X", diff.address) << "\", ";
+    json << "\"address\": \"" << absl::StrFormat("0x%06X", diff.address)
+         << "\", ";
     json << "\"length\": " << diff.length << ", ";
     json << "\"category\": \"" << diff.category << "\", ";
     json << "\"description\": \"" << diff.description << "\"";
     json << "}";
-    if (i < max_diffs - 1) json << ",";
+    if (i < max_diffs - 1)
+      json << ",";
     json << "\n";
   }
 
@@ -261,8 +267,8 @@ std::string RomDiffTool::FormatAsText(const DiffSummary& summary) const {
   size_t max_diffs = std::min(size_t(20), summary.diffs.size());
   for (size_t i = 0; i < max_diffs; ++i) {
     const auto& diff = summary.diffs[i];
-    text << absl::StrFormat("  %06X: %s (%zu bytes)\n",
-                            diff.address, diff.description, diff.length);
+    text << absl::StrFormat("  %06X: %s (%zu bytes)\n", diff.address,
+                            diff.description, diff.length);
   }
 
   if (summary.diffs.size() > 20) {
@@ -309,7 +315,8 @@ absl::Status RomChangesTool::Execute(Rom* /*rom*/,
     // Size comparison
     if (rom1.size() != rom2.size()) {
       output << "  \"size_change\": "
-             << static_cast<int64_t>(rom2.size()) - static_cast<int64_t>(rom1.size())
+             << static_cast<int64_t>(rom2.size()) -
+                    static_cast<int64_t>(rom1.size())
              << ",\n";
     }
 
@@ -321,7 +328,8 @@ absl::Status RomChangesTool::Execute(Rom* /*rom*/,
     int total_diffs = 0;
     size_t min_size = std::min(rom1.size(), rom2.size());
     for (size_t i = 0; i < min_size; ++i) {
-      if (rom1[i] != rom2[i]) total_diffs++;
+      if (rom1[i] != rom2[i])
+        total_diffs++;
     }
 
     output << "  \"bytes_different\": " << total_diffs << ",\n";
@@ -336,22 +344,26 @@ absl::Status RomChangesTool::Execute(Rom* /*rom*/,
 
     if (rom1.size() != rom2.size()) {
       output << "Size change: "
-             << (static_cast<int64_t>(rom2.size()) - static_cast<int64_t>(rom1.size()))
+             << (static_cast<int64_t>(rom2.size()) -
+                 static_cast<int64_t>(rom1.size()))
              << " bytes\n";
     }
 
     if (rom1.title() != rom2.title()) {
-      output << "Title changed: '" << rom1.title() << "' -> '" << rom2.title() << "'\n";
+      output << "Title changed: '" << rom1.title() << "' -> '" << rom2.title()
+             << "'\n";
     }
 
     int total_diffs = 0;
     size_t min_size = std::min(rom1.size(), rom2.size());
     for (size_t i = 0; i < min_size; ++i) {
-      if (rom1[i] != rom2[i]) total_diffs++;
+      if (rom1[i] != rom2[i])
+        total_diffs++;
     }
 
     output << "Bytes different: " << total_diffs << " ("
-           << absl::StrFormat("%.2f%%", (total_diffs * 100.0) / min_size) << ")\n";
+           << absl::StrFormat("%.2f%%", (total_diffs * 100.0) / min_size)
+           << ")\n";
   }
 
   std::cout << output.str();
@@ -363,4 +375,3 @@ absl::Status RomChangesTool::Execute(Rom* /*rom*/,
 }  // namespace agent
 }  // namespace cli
 }  // namespace yaze
-

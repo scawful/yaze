@@ -6,9 +6,10 @@
 #include <string>
 #include <vector>
 
+#include "absl/strings/ascii.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
-#include "absl/strings/ascii.h"
+#include "absl/time/clock.h"
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/system/toast_manager.h"
 #include "app/gui/core/icons.h"
@@ -24,17 +25,21 @@ namespace editor {
 namespace {
 
 std::string FormatByteSize(uint64_t bytes) {
-  if (bytes < 1024) return absl::StrFormat("%d B", bytes);
-  if (bytes < 1024 * 1024) return absl::StrFormat("%.1f KB", bytes / 1024.0);
+  if (bytes < 1024)
+    return absl::StrFormat("%d B", bytes);
+  if (bytes < 1024 * 1024)
+    return absl::StrFormat("%.1f KB", bytes / 1024.0);
   if (bytes < 1024 * 1024 * 1024)
     return absl::StrFormat("%.1f MB", bytes / (1024.0 * 1024.0));
   return absl::StrFormat("%.1f GB", bytes / (1024.0 * 1024.0 * 1024.0));
 }
 
 std::string FormatRelativeTime(absl::Time timestamp) {
-  if (timestamp == absl::InfinitePast()) return "never";
+  if (timestamp == absl::InfinitePast())
+    return "never";
   auto delta = absl::Now() - timestamp;
-  if (delta < absl::Seconds(60)) return "just now";
+  if (delta < absl::Seconds(60))
+    return "just now";
   if (delta < absl::Minutes(60))
     return absl::StrFormat("%.0fm ago", absl::ToDoubleMinutes(delta));
   if (delta < absl::Hours(24))
@@ -103,9 +108,9 @@ void AgentConfigurationPanel::RenderModelConfigControls(
     bool active = config.ai_provider == value;
     if (active) {
       ImGui::PushStyleColor(ImGuiCol_Button, color);
-      ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                            ImVec4(color.x * 1.15f, color.y * 1.15f,
-                                   color.z * 1.15f, color.w));
+      ImGui::PushStyleColor(
+          ImGuiCol_ButtonHovered,
+          ImVec4(color.x * 1.15f, color.y * 1.15f, color.z * 1.15f, color.w));
     }
     if (ImGui::Button(label, ImVec2(90, 28))) {
       config.ai_provider = value;
@@ -121,7 +126,8 @@ void AgentConfigurationPanel::RenderModelConfigControls(
   provider_button(ICON_MD_SETTINGS " Mock", "mock", theme.provider_mock);
   provider_button(ICON_MD_CLOUD " Ollama", "ollama", theme.provider_ollama);
   provider_button(ICON_MD_SMART_TOY " Gemini", "gemini", theme.provider_gemini);
-  provider_button(ICON_MD_AUTO_AWESOME " OpenAI", "openai", theme.provider_openai);
+  provider_button(ICON_MD_AUTO_AWESOME " OpenAI", "openai",
+                  theme.provider_openai);
   ImGui::NewLine();
   ImGui::NewLine();
 
@@ -221,9 +227,12 @@ void AgentConfigurationPanel::RenderModelConfigControls(
     ImGui::TextDisabled("No cached models. Refresh to discover.");
   } else {
     auto get_provider_color = [&theme](const std::string& provider) -> ImVec4 {
-      if (provider == "ollama") return theme.provider_ollama;
-      if (provider == "gemini") return theme.provider_gemini;
-      if (provider == "openai") return theme.provider_openai;
+      if (provider == "ollama")
+        return theme.provider_ollama;
+      if (provider == "gemini")
+        return theme.provider_gemini;
+      if (provider == "openai")
+        return theme.provider_openai;
       return theme.provider_mock;
     };
 
@@ -248,7 +257,8 @@ void AgentConfigurationPanel::RenderModelConfigControls(
             match = absl::AsciiStrToLower(info.family).find(filter) !=
                     std::string::npos;
           }
-          if (!match) continue;
+          if (!match)
+            continue;
         }
 
         ImGui::PushID(model_index++);
@@ -264,9 +274,9 @@ void AgentConfigurationPanel::RenderModelConfigControls(
         ImGui::PopStyleColor();
         ImGui::SameLine();
 
-        if (ImGui::Selectable(info.name.c_str(), is_selected,
-                              ImGuiSelectableFlags_None,
-                              ImVec2(ImGui::GetContentRegionAvail().x - 60, 0))) {
+        if (ImGui::Selectable(
+                info.name.c_str(), is_selected, ImGuiSelectableFlags_None,
+                ImVec2(ImGui::GetContentRegionAvail().x - 60, 0))) {
           config.ai_model = info.name;
           config.ai_provider = info.provider;
           std::snprintf(config.model_buffer, sizeof(config.model_buffer), "%s",
@@ -276,13 +286,12 @@ void AgentConfigurationPanel::RenderModelConfigControls(
         }
 
         ImGui::SameLine();
-        bool is_favorite =
-            std::find(config.favorite_models.begin(),
-                      config.favorite_models.end(),
-                      info.name) != config.favorite_models.end();
-        ImGui::PushStyleColor(ImGuiCol_Text,
-                              is_favorite ? theme.status_warning
-                                          : theme.text_secondary_color);
+        bool is_favorite = std::find(config.favorite_models.begin(),
+                                     config.favorite_models.end(),
+                                     info.name) != config.favorite_models.end();
+        ImGui::PushStyleColor(ImGuiCol_Text, is_favorite
+                                                 ? theme.status_warning
+                                                 : theme.text_secondary_color);
         if (ImGui::SmallButton(is_favorite ? ICON_MD_STAR
                                            : ICON_MD_STAR_BORDER)) {
           if (is_favorite) {
@@ -310,8 +319,7 @@ void AgentConfigurationPanel::RenderModelConfigControls(
           preset.name = info.name;
           preset.model = info.name;
           preset.provider = info.provider;
-          preset.host =
-              (info.provider == "ollama") ? config.ollama_host : "";
+          preset.host = (info.provider == "ollama") ? config.ollama_host : "";
           preset.tags = {info.provider};
           preset.last_used = absl::Now();
           config.model_presets.push_back(std::move(preset));
@@ -330,7 +338,8 @@ void AgentConfigurationPanel::RenderModelConfigControls(
                            size_label.c_str());
         if (!info.quantization.empty()) {
           ImGui::SameLine();
-          ImGui::TextColored(theme.text_info, "  %s", info.quantization.c_str());
+          ImGui::TextColored(theme.text_info, "  %s",
+                             info.quantization.c_str());
         }
         if (!info.family.empty()) {
           ImGui::SameLine();
@@ -370,9 +379,9 @@ void AgentConfigurationPanel::RenderModelConfigControls(
             std::find(config.favorite_models.begin(),
                       config.favorite_models.end(),
                       model_name) != config.favorite_models.end();
-        ImGui::PushStyleColor(ImGuiCol_Text,
-                              is_favorite ? theme.status_warning
-                                          : theme.text_secondary_color);
+        ImGui::PushStyleColor(ImGuiCol_Text, is_favorite
+                                                 ? theme.status_warning
+                                                 : theme.text_secondary_color);
         if (ImGui::SmallButton(is_favorite ? ICON_MD_STAR
                                            : ICON_MD_STAR_BORDER)) {
           if (is_favorite) {
@@ -394,7 +403,8 @@ void AgentConfigurationPanel::RenderModelConfigControls(
   ImGui::PopStyleColor();
 
   if (model_cache.last_refresh != absl::InfinitePast()) {
-    double seconds = absl::ToDoubleSeconds(absl::Now() - model_cache.last_refresh);
+    double seconds =
+        absl::ToDoubleSeconds(absl::Now() - model_cache.last_refresh);
     ImGui::TextDisabled("Last refresh %.0fs ago", seconds);
   } else {
     ImGui::TextDisabled("Models not refreshed yet");
@@ -422,9 +432,12 @@ void AgentConfigurationPanel::RenderModelConfigControls(
 
       if (!provider_name.empty()) {
         ImVec4 badge_color = theme.provider_mock;
-        if (provider_name == "ollama") badge_color = theme.provider_ollama;
-        else if (provider_name == "gemini") badge_color = theme.provider_gemini;
-        else if (provider_name == "openai") badge_color = theme.provider_openai;
+        if (provider_name == "ollama")
+          badge_color = theme.provider_ollama;
+        else if (provider_name == "gemini")
+          badge_color = theme.provider_gemini;
+        else if (provider_name == "openai")
+          badge_color = theme.provider_openai;
         ImGui::PushStyleColor(ImGuiCol_Button, badge_color);
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(3, 1));
@@ -448,8 +461,8 @@ void AgentConfigurationPanel::RenderModelConfigControls(
       ImGui::PushStyleColor(ImGuiCol_Text, theme.status_error);
       if (ImGui::SmallButton(ICON_MD_CLOSE)) {
         config.model_chain.erase(
-            std::remove(config.model_chain.begin(),
-                        config.model_chain.end(), favorite),
+            std::remove(config.model_chain.begin(), config.model_chain.end(),
+                        favorite),
             config.model_chain.end());
         config.favorite_models.erase(config.favorite_models.begin() + i);
         ImGui::PopStyleColor();
@@ -550,7 +563,8 @@ void AgentConfigurationPanel::RenderModelDeck(AgentUIContext* context,
   ImGui::PopStyleColor();
 }
 
-void AgentConfigurationPanel::RenderParameterControls(AgentConfigState& config) {
+void AgentConfigurationPanel::RenderParameterControls(
+    AgentConfigState& config) {
   ImGui::SliderFloat("Temperature", &config.temperature, 0.0f, 1.5f);
   ImGui::SliderFloat("Top P", &config.top_p, 0.0f, 1.0f);
   ImGui::SliderInt("Max Output Tokens", &config.max_output_tokens, 256, 8192);
@@ -563,8 +577,8 @@ void AgentConfigurationPanel::RenderParameterControls(AgentConfigState& config) 
   ImGui::Checkbox("Verbose logs", &config.verbose);
 }
 
-void AgentConfigurationPanel::RenderToolingControls(AgentConfigState& config,
-                                                    const Callbacks& callbacks) {
+void AgentConfigurationPanel::RenderToolingControls(
+    AgentConfigState& config, const Callbacks& callbacks) {
   struct ToolToggleEntry {
     const char* label;
     bool* flag;
@@ -596,13 +610,15 @@ void AgentConfigurationPanel::RenderToolingControls(AgentConfigState& config,
   ImGui::Columns(1);
 }
 
-void AgentConfigurationPanel::RenderChainModeControls(AgentConfigState& config) {
+void AgentConfigurationPanel::RenderChainModeControls(
+    AgentConfigState& config) {
   ImGui::Spacing();
   ImGui::TextDisabled("Chain Mode (Experimental)");
-  
+
   bool round_robin = config.chain_mode == ChainMode::kRoundRobin;
   if (ImGui::Checkbox("Round Robin", &round_robin)) {
-    config.chain_mode = round_robin ? ChainMode::kRoundRobin : ChainMode::kDisabled;
+    config.chain_mode =
+        round_robin ? ChainMode::kRoundRobin : ChainMode::kDisabled;
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Rotate through favorite models for each response");
@@ -611,7 +627,8 @@ void AgentConfigurationPanel::RenderChainModeControls(AgentConfigState& config) 
   ImGui::SameLine();
   bool consensus = config.chain_mode == ChainMode::kConsensus;
   if (ImGui::Checkbox("Consensus", &consensus)) {
-    config.chain_mode = consensus ? ChainMode::kConsensus : ChainMode::kDisabled;
+    config.chain_mode =
+        consensus ? ChainMode::kConsensus : ChainMode::kDisabled;
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Ask multiple models and synthesize a response");

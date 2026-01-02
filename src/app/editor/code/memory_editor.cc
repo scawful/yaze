@@ -11,7 +11,7 @@ namespace editor {
 void MemoryEditor::Update(bool& show_memory_editor) {
   DrawToolbar();
   ImGui::Separator();
-  
+
   ImGui::Begin("Hex Editor", &show_memory_editor);
   if (ImGui::Button("Compare Rom")) {
     auto file_name = util::FileDialogWrapper::ShowOpenFileDialog();
@@ -38,7 +38,8 @@ void MemoryEditor::Update(bool& show_memory_editor) {
     ImGui::BeginGroup();
     ImGui::BeginChild("Comparison ROM");
     Text("%s", comparison_rom_.filename().data());
-    comparison_widget_.DrawContents((void*)&(comparison_rom_), comparison_rom_.size());
+    comparison_widget_.DrawContents((void*)&(comparison_rom_),
+                                    comparison_rom_.size());
     ImGui::EndChild();
     ImGui::EndGroup();
   }

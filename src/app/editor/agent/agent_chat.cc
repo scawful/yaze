@@ -7,15 +7,15 @@
 
 #include "absl/strings/str_format.h"
 #include "absl/time/time.h"
-#include "app/editor/ui/toast_manager.h"
 #include "app/editor/system/proposal_drawer.h"
+#include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
-#include "util/platform_paths.h"
 #include "util/log.h"
+#include "util/platform_paths.h"
 
 #ifdef YAZE_WITH_JSON
 #include "nlohmann/json.hpp"
@@ -39,8 +39,7 @@ std::string ResolveAgentChatHistoryPath() {
   if (temp_dir.ok()) {
     return (*temp_dir / "agent_chat_history.json").string();
   }
-  return (std::filesystem::current_path() / "agent_chat_history.json")
-      .string();
+  return (std::filesystem::current_path() / "agent_chat_history.json").string();
 }
 
 }  // namespace
@@ -49,7 +48,8 @@ AgentChat::AgentChat() {
   // Default initialization
 }
 
-void AgentChat::Initialize(ToastManager* toast_manager, ProposalDrawer* proposal_drawer) {
+void AgentChat::Initialize(ToastManager* toast_manager,
+                           ProposalDrawer* proposal_drawer) {
   toast_manager_ = toast_manager;
   proposal_drawer_ = proposal_drawer;
 }
@@ -78,7 +78,8 @@ void AgentChat::ClearHistory() {
 }
 
 void AgentChat::SendMessage(const std::string& message) {
-  if (message.empty()) return;
+  if (message.empty())
+    return;
 
   waiting_for_response_ = true;
   thinking_animation_ = 0.0f;
@@ -89,20 +90,25 @@ void AgentChat::SendMessage(const std::string& message) {
   HandleAgentResponse(status);
 }
 
-void AgentChat::HandleAgentResponse(const absl::StatusOr<cli::agent::ChatMessage>& response) {
+void AgentChat::HandleAgentResponse(
+    const absl::StatusOr<cli::agent::ChatMessage>& response) {
   waiting_for_response_ = false;
   if (!response.ok()) {
     if (toast_manager_) {
-      toast_manager_->Show("Agent Error: " + std::string(response.status().message()), ToastType::kError);
+      toast_manager_->Show(
+          "Agent Error: " + std::string(response.status().message()),
+          ToastType::kError);
     }
-    LOG_ERROR("AgentChat", "Agent Error: %s", response.status().ToString().c_str());
+    LOG_ERROR("AgentChat", "Agent Error: %s",
+              response.status().ToString().c_str());
   } else {
     ScrollToBottom();
   }
 }
 
 void AgentChat::Draw(float available_height) {
-  if (!context_) return;
+  if (!context_)
+    return;
 
   // Chat container
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 4));
@@ -114,9 +120,9 @@ void AgentChat::Draw(float available_height) {
   // 1. History Area (Available space - Input height - Toolbar height)
   float input_height = ImGui::GetTextLineHeightWithSpacing() * 4 + 20.0f;
   float toolbar_height = ImGui::GetFrameHeightWithSpacing() + 8.0f;
-  float history_height = available_height > 0
-      ? (available_height - input_height - toolbar_height)
-      : -input_height - toolbar_height;
+  float history_height =
+      available_height > 0 ? (available_height - input_height - toolbar_height)
+                           : -input_height - toolbar_height;
 
   if (ImGui::BeginChild("##ChatHistory", ImVec2(0, history_height), true)) {
     RenderHistory();
@@ -145,7 +151,9 @@ void AgentChat::RenderToolbar() {
     std::string filepath = ResolveAgentChatHistoryPath();
     if (auto status = SaveHistory(filepath); !status.ok()) {
       if (toast_manager_) {
-        toast_manager_->Show("Failed to save history: " + std::string(status.message()), ToastType::kError);
+        toast_manager_->Show(
+            "Failed to save history: " + std::string(status.message()),
+            ToastType::kError);
       }
     } else {
       if (toast_manager_) {
@@ -159,7 +167,9 @@ void AgentChat::RenderToolbar() {
     std::string filepath = ResolveAgentChatHistoryPath();
     if (auto status = LoadHistory(filepath); !status.ok()) {
       if (toast_manager_) {
-        toast_manager_->Show("Failed to load history: " + std::string(status.message()), ToastType::kError);
+        toast_manager_->Show(
+            "Failed to load history: " + std::string(status.message()),
+            ToastType::kError);
       }
     } else {
       if (toast_manager_) {
@@ -204,7 +214,8 @@ void AgentChat::RenderMessage(const cli::agent::ChatMessage& msg, int index) {
 
   // Styling
   float wrap_width = ImGui::GetContentRegionAvail().x * 0.85f;
-  ImGui::SetCursorPosX(is_user ? (ImGui::GetWindowContentRegionMax().x - wrap_width - 10) : 10);
+  ImGui::SetCursorPosX(
+      is_user ? (ImGui::GetWindowContentRegionMax().x - wrap_width - 10) : 10);
 
   ImGui::BeginGroup();
 
@@ -212,24 +223,29 @@ void AgentChat::RenderMessage(const cli::agent::ChatMessage& msg, int index) {
   if (show_timestamps_) {
     std::string timestamp =
         absl::FormatTime("%H:%M:%S", msg.timestamp, absl::LocalTimeZone());
-    ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "[%s]", timestamp.c_str());
+    ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "[%s]",
+                       timestamp.c_str());
     ImGui::SameLine();
   }
 
   // Name/Icon
   if (is_user) {
-    ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "%s You", ICON_MD_PERSON);
+    ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "%s You",
+                       ICON_MD_PERSON);
   } else {
-    ImGui::TextColored(ImVec4(0.6f, 1.0f, 0.6f, 1.0f), "%s Agent", ICON_MD_SMART_TOY);
+    ImGui::TextColored(ImVec4(0.6f, 1.0f, 0.6f, 1.0f), "%s Agent",
+                       ICON_MD_SMART_TOY);
   }
 
   // Message Bubble
-  ImVec4 bg_col = is_user ? ImVec4(0.2f, 0.2f, 0.25f, 1.0f) : ImVec4(0.25f, 0.25f, 0.25f, 1.0f);
+  ImVec4 bg_col = is_user ? ImVec4(0.2f, 0.2f, 0.25f, 1.0f)
+                          : ImVec4(0.25f, 0.25f, 0.25f, 1.0f);
   ImGui::PushStyleColor(ImGuiCol_ChildBg, bg_col);
   ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 8.0f);
 
   std::string content_id = "msg_content_" + std::to_string(index);
-  if (ImGui::BeginChild(content_id.c_str(), ImVec2(wrap_width, 0), true, ImGuiWindowFlags_AlwaysUseWindowPadding)) {
+  if (ImGui::BeginChild(content_id.c_str(), ImVec2(wrap_width, 0), true,
+                        ImGuiWindowFlags_AlwaysUseWindowPadding)) {
     // Check if we have table data to render
     if (!is_user && msg.table_data.has_value()) {
       RenderTableData(msg.table_data.value());
@@ -271,47 +287,54 @@ void AgentChat::RenderThinkingIndicator() {
   ImGui::Spacing();
   ImGui::Indent(10);
   ImGui::TextDisabled("%s Agent is thinking...", ICON_MD_PENDING);
-  
+
   // Simple pulse animation
   thinking_animation_ += ImGui::GetIO().DeltaTime;
   int dots = (int)(thinking_animation_ * 3) % 4;
   ImGui::SameLine();
-  if (dots == 0) ImGui::Text(".");
-  else if (dots == 1) ImGui::Text("..");
-  else if (dots == 2) ImGui::Text("...");
-  
+  if (dots == 0)
+    ImGui::Text(".");
+  else if (dots == 1)
+    ImGui::Text("..");
+  else if (dots == 2)
+    ImGui::Text("...");
+
   ImGui::Unindent(10);
 }
 
 void AgentChat::RenderInputBox() {
   ImGui::Separator();
-  
+
   // Input flags
-  ImGuiInputTextFlags flags = ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CtrlEnterForNewLine;
-  
+  ImGuiInputTextFlags flags = ImGuiInputTextFlags_EnterReturnsTrue |
+                              ImGuiInputTextFlags_CtrlEnterForNewLine;
+
   ImGui::PushItemWidth(-1);
   if (ImGui::IsWindowAppearing()) {
     ImGui::SetKeyboardFocusHere();
   }
-  
-  bool submit = ImGui::InputTextMultiline("##Input", input_buffer_, sizeof(input_buffer_), ImVec2(0, 0), flags);
-  
+
+  bool submit = ImGui::InputTextMultiline(
+      "##Input", input_buffer_, sizeof(input_buffer_), ImVec2(0, 0), flags);
+
   if (submit) {
     std::string msg(input_buffer_);
     // Trim whitespace
-    while (!msg.empty() && std::isspace(msg.back())) msg.pop_back();
-    
+    while (!msg.empty() && std::isspace(msg.back()))
+      msg.pop_back();
+
     if (!msg.empty()) {
       SendMessage(msg);
       input_buffer_[0] = '\0';
-      ImGui::SetKeyboardFocusHere(-1); // Refocus
+      ImGui::SetKeyboardFocusHere(-1);  // Refocus
     }
   }
-  
+
   ImGui::PopItemWidth();
 }
 
-void AgentChat::RenderProposalQuickActions(const cli::agent::ChatMessage& msg, int index) {
+void AgentChat::RenderProposalQuickActions(const cli::agent::ChatMessage& msg,
+                                           int index) {
   // Simple check for "Proposal:" keyword for now, or metadata if available
   // In a real implementation, we'd parse the JSON proposal data
   if (msg.message.find("Proposal:") != std::string::npos) {
@@ -325,16 +348,19 @@ void AgentChat::RenderProposalQuickActions(const cli::agent::ChatMessage& msg, i
   }
 }
 
-void AgentChat::RenderCodeBlock(const std::string& code, const std::string& language, int msg_index) {
+void AgentChat::RenderCodeBlock(const std::string& code,
+                                const std::string& language, int msg_index) {
   ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
-  if (ImGui::BeginChild(absl::StrCat("code_", msg_index).c_str(), ImVec2(0, 0), true, ImGuiWindowFlags_AlwaysAutoResize)) {
+  if (ImGui::BeginChild(absl::StrCat("code_", msg_index).c_str(), ImVec2(0, 0),
+                        true, ImGuiWindowFlags_AlwaysAutoResize)) {
     if (!language.empty()) {
-        ImGui::TextDisabled("%s", language.c_str());
-        ImGui::SameLine();
+      ImGui::TextDisabled("%s", language.c_str());
+      ImGui::SameLine();
     }
     if (ImGui::Button(ICON_MD_CONTENT_COPY)) {
-        ImGui::SetClipboardText(code.c_str());
-        if (toast_manager_) toast_manager_->Show("Code copied", ToastType::kSuccess);
+      ImGui::SetClipboardText(code.c_str());
+      if (toast_manager_)
+        toast_manager_->Show("Code copied", ToastType::kSuccess);
     }
     ImGui::Separator();
     ImGui::TextUnformatted(code.c_str());
@@ -355,7 +381,8 @@ void AgentChat::SetLastPlanSummary(const std::string& summary) {
   last_plan_summary_ = summary;
 }
 
-std::vector<AgentChat::ContentBlock> AgentChat::ParseMessageContent(const std::string& content) {
+std::vector<AgentChat::ContentBlock> AgentChat::ParseMessageContent(
+    const std::string& content) {
   std::vector<ContentBlock> blocks;
 
   // Basic markdown code block parser
@@ -370,13 +397,15 @@ std::vector<AgentChat::ContentBlock> AgentChat::ParseMessageContent(const std::s
 
     // Add text before code
     if (code_start > pos) {
-      blocks.push_back({ContentBlock::Type::kText, content.substr(pos, code_start - pos), ""});
+      blocks.push_back({ContentBlock::Type::kText,
+                        content.substr(pos, code_start - pos), ""});
     }
 
     size_t code_end = content.find("```", code_start + 3);
     if (code_end == std::string::npos) {
       // Malformed, treat as text
-      blocks.push_back({ContentBlock::Type::kText, content.substr(code_start), ""});
+      blocks.push_back(
+          {ContentBlock::Type::kText, content.substr(code_start), ""});
       break;
     }
 
@@ -398,13 +427,15 @@ std::vector<AgentChat::ContentBlock> AgentChat::ParseMessageContent(const std::s
   return blocks;
 }
 
-void AgentChat::RenderTableData(const cli::agent::ChatMessage::TableData& table) {
+void AgentChat::RenderTableData(
+    const cli::agent::ChatMessage::TableData& table) {
   if (table.headers.empty()) {
     return;
   }
 
   // Render table
-  if (ImGui::BeginTable("ToolResultTable", static_cast<int>(table.headers.size()),
+  if (ImGui::BeginTable("ToolResultTable",
+                        static_cast<int>(table.headers.size()),
                         ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
                             ImGuiTableFlags_ScrollY)) {
     // Headers
@@ -416,7 +447,8 @@ void AgentChat::RenderTableData(const cli::agent::ChatMessage::TableData& table)
     // Rows
     for (const auto& row : table.rows) {
       ImGui::TableNextRow();
-      for (size_t col = 0; col < std::min(row.size(), table.headers.size()); ++col) {
+      for (size_t col = 0; col < std::min(row.size(), table.headers.size());
+           ++col) {
         ImGui::TableSetColumnIndex(static_cast<int>(col));
         ImGui::TextWrapped("%s", row[col].c_str());
       }
@@ -444,10 +476,12 @@ void AgentChat::RenderToolTimeline(const cli::agent::ChatMessage& msg) {
 
   // Tool timeline header - collapsible
   ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.15f, 0.15f, 0.18f, 1.0f));
-  ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.2f, 0.2f, 0.25f, 1.0f));
+  ImGui::PushStyleColor(ImGuiCol_HeaderHovered,
+                        ImVec4(0.2f, 0.2f, 0.25f, 1.0f));
 
-  std::string header = absl::StrFormat("%s Tools (%d calls, %.2fs)", ICON_MD_BUILD_CIRCLE,
-                                       meta.tool_iterations, meta.latency_seconds);
+  std::string header =
+      absl::StrFormat("%s Tools (%d calls, %.2fs)", ICON_MD_BUILD_CIRCLE,
+                      meta.tool_iterations, meta.latency_seconds);
 
   if (ImGui::TreeNode("##ToolTimeline", "%s", header.c_str())) {
     // List tool names
@@ -506,9 +540,8 @@ absl::Status AgentChat::SaveHistory(const std::string& filepath) {
     std::error_code ec;
     std::filesystem::create_directories(path.parent_path(), ec);
     if (ec) {
-      return absl::InternalError(
-          absl::StrFormat("Failed to create history directory: %s",
-                          ec.message()));
+      return absl::InternalError(absl::StrFormat(
+          "Failed to create history directory: %s", ec.message()));
     }
   }
 
@@ -527,7 +560,9 @@ absl::Status AgentChat::SaveHistory(const std::string& filepath) {
 
     for (const auto& msg : history) {
       nlohmann::json msg_json;
-      msg_json["sender"] = (msg.sender == cli::agent::ChatMessage::Sender::kUser) ? "user" : "agent";
+      msg_json["sender"] =
+          (msg.sender == cli::agent::ChatMessage::Sender::kUser) ? "user"
+                                                                 : "agent";
       msg_json["message"] = msg.message;
       msg_json["timestamp"] = absl::FormatTime(msg.timestamp);
       j["messages"].push_back(msg_json);

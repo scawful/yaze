@@ -1387,9 +1387,9 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
         }
 
         ImGui::Separator();
-        ImGui::TextColored(
-            ImVec4(1.0f, 0.5f, 0.0f, 1.0f),
-            "⚠️  Recommendation: Use 'Enable Safe Tests Only' to avoid crashes");
+        ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f),
+                           "⚠️  Recommendation: Use 'Enable Safe Tests Only' "
+                           "to avoid crashes");
       }
 
       // Platform-specific settings

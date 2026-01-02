@@ -62,8 +62,8 @@ void LayoutOrchestrator::ResetToDefault(EditorType type, size_t session_id) {
   RequestLayoutRebuild();
 }
 
-std::string LayoutOrchestrator::GetWindowTitle(
-    const std::string& card_id, size_t session_id) const {
+std::string LayoutOrchestrator::GetWindowTitle(const std::string& card_id,
+                                               size_t session_id) const {
   if (!panel_manager_) {
     return "";
   }
@@ -164,8 +164,8 @@ void LayoutOrchestrator::ApplyDockLayout(EditorType type) {
   layout_manager_->RequestRebuild();
 }
 
-std::string LayoutOrchestrator::GetPrefixedPanelId(
-    const std::string& card_id, size_t session_id) const {
+std::string LayoutOrchestrator::GetPrefixedPanelId(const std::string& card_id,
+                                                   size_t session_id) const {
   if (panel_manager_) {
     return panel_manager_->MakePanelId(session_id, card_id);
   }

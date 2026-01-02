@@ -42,21 +42,21 @@ struct ImGui_ImplSDLRenderer2_Data {
 };
 
 std::filesystem::path DefaultScreenshotPath() {
-  auto base_dir_or = util::PlatformPaths::GetUserDocumentsSubdirectory("screenshots");
+  auto base_dir_or =
+      util::PlatformPaths::GetUserDocumentsSubdirectory("screenshots");
   std::filesystem::path base_dir;
   if (base_dir_or.ok()) {
     base_dir = *base_dir_or;
   } else {
     base_dir = std::filesystem::temp_directory_path() / "yaze" / "screenshots";
   }
-  
+
   std::error_code ec;
   std::filesystem::create_directories(base_dir, ec);
 
   const int64_t timestamp_ms = absl::ToUnixMillis(absl::Now());
-  return base_dir /
-         std::filesystem::path(absl::StrFormat(
-             "yaze_%lld.bmp", static_cast<long long>(timestamp_ms)));
+  return base_dir / std::filesystem::path(absl::StrFormat(
+                        "yaze_%lld.bmp", static_cast<long long>(timestamp_ms)));
 }
 
 void RevealScreenshot(const std::string& path) {
@@ -96,10 +96,11 @@ absl::StatusOr<ScreenshotArtifact> CaptureHarnessScreenshot(
     std::filesystem::create_directories(output_path.parent_path(), ec);
   }
 
-  SDL_Surface* surface = platform::ReadPixelsToSurface(renderer, width, height, nullptr);
+  SDL_Surface* surface =
+      platform::ReadPixelsToSurface(renderer, width, height, nullptr);
   if (!surface) {
-    return absl::InternalError(
-        absl::StrFormat("Failed to read pixels to surface: %s", SDL_GetError()));
+    return absl::InternalError(absl::StrFormat(
+        "Failed to read pixels to surface: %s", SDL_GetError()));
   }
 
   if (SDL_SaveBMP(surface, output_path.string().c_str()) != 0) {
@@ -146,7 +147,8 @@ absl::StatusOr<ScreenshotArtifact> CaptureHarnessScreenshotRegion(
   // Get full renderer size
   int full_width = 0;
   int full_height = 0;
-  if (platform::GetRendererOutputSize(renderer, &full_width, &full_height) != 0) {
+  if (platform::GetRendererOutputSize(renderer, &full_width, &full_height) !=
+      0) {
     return absl::InternalError(
         absl::StrFormat("Failed to get renderer size: %s", SDL_GetError()));
   }
@@ -190,11 +192,12 @@ absl::StatusOr<ScreenshotArtifact> CaptureHarnessScreenshotRegion(
 
   // Read pixels from the specified region
   SDL_Rect region_rect = {capture_x, capture_y, capture_width, capture_height};
-  SDL_Surface* surface = platform::ReadPixelsToSurface(renderer, capture_width, capture_height, &region_rect);
-  
+  SDL_Surface* surface = platform::ReadPixelsToSurface(
+      renderer, capture_width, capture_height, &region_rect);
+
   if (!surface) {
-    return absl::InternalError(
-        absl::StrFormat("Failed to read pixels to surface: %s", SDL_GetError()));
+    return absl::InternalError(absl::StrFormat(
+        "Failed to read pixels to surface: %s", SDL_GetError()));
   }
 
   if (SDL_SaveBMP(surface, output_path.string().c_str()) != 0) {

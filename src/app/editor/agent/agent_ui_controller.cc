@@ -1,13 +1,14 @@
 #include "app/editor/agent/agent_ui_controller.h"
+#include "absl/time/clock.h"
 
 #if defined(YAZE_BUILD_AGENT_UI)
 
 #include "app/editor/agent/agent_chat.h"
 #include "app/editor/agent/agent_editor.h"
 #include "app/editor/agent/agent_session.h"
+#include "app/editor/menu/right_panel_manager.h"
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/ui/toast_manager.h"
-#include "app/editor/menu/right_panel_manager.h"
 #include "rom/rom.h"
 #include "util/log.h"
 
@@ -83,7 +84,9 @@ void AgentUiController::Initialize(ToastManager* toast_manager,
         }
       }
     };
-    callbacks.refresh_knowledge = [this]() { SyncKnowledgeToContext(); };
+    callbacks.refresh_knowledge = [this]() {
+      SyncKnowledgeToContext();
+    };
 
     knowledge_panel_.Draw(GetContext(), GetKnowledgeService(), callbacks,
                           toast_manager_);
@@ -101,7 +104,7 @@ void AgentUiController::SetRomContext(Rom* rom) {
 
 void AgentUiController::SetProjectContext(project::YazeProject* project) {
   agent_ui_context_.SetProject(project);
-  
+
   // Propagate to active session context
   if (AgentSession* session = session_manager_.GetActiveSession()) {
     session->context.SetProject(project);
@@ -134,8 +137,10 @@ void AgentUiController::SyncStateFromEditor() {
 
   // Check for changes between Editor and Context
   bool changed = false;
-  if (ctx_config.ai_provider != profile.provider) changed = true;
-  if (ctx_config.ai_model != profile.model) changed = true;
+  if (ctx_config.ai_provider != profile.provider)
+    changed = true;
+  if (ctx_config.ai_model != profile.model)
+    changed = true;
   // ... (Simplified sync logic for now)
 
   if (changed) {
@@ -143,10 +148,10 @@ void AgentUiController::SyncStateFromEditor() {
     ctx_config.ai_model = profile.model;
     ctx_config.ollama_host = profile.ollama_host;
     ctx_config.gemini_api_key = profile.gemini_api_key;
-    
+
     // Update last synced state
     last_synced_config_ = ctx_config;
-    
+
     SyncStateToComponents();
   }
 }
@@ -219,9 +224,12 @@ void AgentUiController::InitializeKnowledge() {
   if (status.ok()) {
     knowledge_initialized_ = true;
     SyncKnowledgeToContext();
-    LOG_INFO("AgentUiController", "LearnedKnowledgeService initialized successfully");
+    LOG_INFO("AgentUiController",
+             "LearnedKnowledgeService initialized successfully");
   } else {
-    LOG_ERROR("AgentUiController", "Failed to initialize LearnedKnowledgeService: %s", status.message().data());
+    LOG_ERROR("AgentUiController",
+              "Failed to initialize LearnedKnowledgeService: %s",
+              status.message().data());
   }
 }
 

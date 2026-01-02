@@ -90,15 +90,13 @@ absl::Status SaveDungeonMaps(Rom& rom, std::vector<DungeonMap>& dungeon_maps) {
 
     uint16_t floors = (map.nbr_of_floor << 4) | map.nbr_of_basement;
     RETURN_IF_ERROR(rom.WriteWord(kDungeonMapFloors + (d * 2), floors));
-    RETURN_IF_ERROR(rom.WriteWord(kDungeonMapBossRooms + (d * 2),
-                                  map.boss_room));
+    RETURN_IF_ERROR(
+        rom.WriteWord(kDungeonMapBossRooms + (d * 2), map.boss_room));
 
-    const bool has_boss =
-        map.boss_room != 0x000F && map.boss_room != 0xFFFF;
+    const bool has_boss = map.boss_room != 0x000F && map.boss_room != 0xFFFF;
     bool search_boss = has_boss;
     if (!has_boss) {
-      RETURN_IF_ERROR(
-          rom.WriteWord(kDungeonMapBossFloors + (d * 2), 0xFFFF));
+      RETURN_IF_ERROR(rom.WriteWord(kDungeonMapBossFloors + (d * 2), 0xFFFF));
     }
 
     RETURN_IF_ERROR(
@@ -108,8 +106,7 @@ absl::Status SaveDungeonMaps(Rom& rom, std::vector<DungeonMap>& dungeon_maps) {
     for (int f = 0; f < total_floors; f++) {
       for (int r = 0; r < kNumRooms; r++) {
         if (search_boss && map.floor_rooms[f][r] == map.boss_room) {
-          RETURN_IF_ERROR(
-              rom.WriteWord(kDungeonMapBossFloors + (d * 2), f));
+          RETURN_IF_ERROR(rom.WriteWord(kDungeonMapBossFloors + (d * 2), f));
           search_boss = false;
         }
 
@@ -123,7 +120,8 @@ absl::Status SaveDungeonMaps(Rom& rom, std::vector<DungeonMap>& dungeon_maps) {
         RETURN_IF_ERROR(rom.WriteByte(pos, map.floor_rooms[f][r]));
         pos++;
       }
-      if (restart) break;
+      if (restart)
+        break;
     }
 
     if (restart) {
@@ -131,16 +129,15 @@ absl::Status SaveDungeonMaps(Rom& rom, std::vector<DungeonMap>& dungeon_maps) {
       continue;
     }
 
-    RETURN_IF_ERROR(
-        rom.WriteWord(kDungeonMapGfxPtr + (d * 2), PcToSnes(pos)));
+    RETURN_IF_ERROR(rom.WriteWord(kDungeonMapGfxPtr + (d * 2), PcToSnes(pos)));
     for (int f = 0; f < total_floors; f++) {
       for (int r = 0; r < kNumRooms; r++) {
         if (map.floor_rooms[f][r] != 0x0F) {
           if (pos >= kDungeonMapDataReservedStart &&
               pos <= kDungeonMapDataReservedEnd) {
             pos = kDungeonMapDataReservedEnd + 1;
-            RETURN_IF_ERROR(rom.WriteWord(kDungeonMapGfxPtr + (d * 2),
-                                          PcToSnes(pos)));
+            RETURN_IF_ERROR(
+                rom.WriteWord(kDungeonMapGfxPtr + (d * 2), PcToSnes(pos)));
             restart = true;
             break;
           }
@@ -149,12 +146,12 @@ absl::Status SaveDungeonMaps(Rom& rom, std::vector<DungeonMap>& dungeon_maps) {
           pos++;
         }
       }
-      if (restart) break;
+      if (restart)
+        break;
     }
 
     if (pos >= kDungeonMapDataLimit) {
-      return absl::OutOfRangeError(
-          "Dungeon map data exceeds reserved space");
+      return absl::OutOfRangeError("Dungeon map data exceeds reserved space");
     }
 
     if (restart) {

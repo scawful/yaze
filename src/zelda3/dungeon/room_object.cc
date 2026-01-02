@@ -1,6 +1,7 @@
 #include "room_object.h"
 
 #include "absl/status/status.h"
+#include "absl/strings/str_format.h"
 #include "util/log.h"
 #include "zelda3/dungeon/object_parser.h"
 
@@ -66,7 +67,8 @@ void RoomObject::EnsureTilesLoaded() {
     // DEBUG: Log wall/corner objects
     if (id_ == 0x001 || id_ == 0x002 || id_ == 0x061 || id_ == 0x062 ||
         (id_ >= 0x100 && id_ <= 0x103)) {
-      LOG_DEBUG("RoomObject", "EnsureTilesLoaded: obj=0x%03X ROM is NULL!", id_);
+      LOG_DEBUG("RoomObject", "EnsureTilesLoaded: obj=0x%03X ROM is NULL!",
+                id_);
     }
     return;
   }
@@ -78,7 +80,8 @@ void RoomObject::EnsureTilesLoaded() {
     // DEBUG: Log wall/corner objects
     if (id_ == 0x001 || id_ == 0x002 || id_ == 0x061 || id_ == 0x062 ||
         (id_ >= 0x100 && id_ <= 0x103)) {
-      LOG_DEBUG("RoomObject", "EnsureTilesLoaded: obj=0x%03X loaded %zu tiles via parser",
+      LOG_DEBUG("RoomObject",
+                "EnsureTilesLoaded: obj=0x%03X loaded %zu tiles via parser",
                 id_, tiles_.size());
     }
     return;
@@ -87,7 +90,8 @@ void RoomObject::EnsureTilesLoaded() {
   // DEBUG: Log parser failure for wall/corner objects
   if (id_ == 0x001 || id_ == 0x002 || id_ == 0x061 || id_ == 0x062 ||
       (id_ >= 0x100 && id_ <= 0x103)) {
-    LOG_DEBUG("RoomObject", "EnsureTilesLoaded: obj=0x%03X parser failed: %s, trying legacy",
+    LOG_DEBUG("RoomObject",
+              "EnsureTilesLoaded: obj=0x%03X parser failed: %s, trying legacy",
               id_, std::string(parser_status.message()).c_str());
   }
 
@@ -105,7 +109,7 @@ void RoomObject::EnsureTilesLoaded() {
     // Log error but don't crash
     LOG_DEBUG("RoomObject", "Tile pointer out of bounds for object %04X", id_);
     tiles_.clear();
-    tiles_loaded_ = true; // Mark as loaded (empty) to prevent retry
+    tiles_loaded_ = true;  // Mark as loaded (empty) to prevent retry
     return;
   }
 
@@ -116,9 +120,10 @@ void RoomObject::EnsureTilesLoaded() {
   // Enhanced bounds checking for tile data
   if (pos < 0 || pos + 7 >= (int)rom_->size()) {
     // Log error but don't crash
-    LOG_DEBUG("RoomObject", "Tile data position out of bounds for object %04X", id_);
+    LOG_DEBUG("RoomObject", "Tile data position out of bounds for object %04X",
+              id_);
     tiles_.clear();
-    tiles_loaded_ = true; // Mark as loaded (empty) to prevent retry
+    tiles_loaded_ = true;  // Mark as loaded (empty) to prevent retry
     return;
   }
 
@@ -230,8 +235,8 @@ RoomObject RoomObject::DecodeObjectFromBytes(uint8_t b1, uint8_t b2, uint8_t b3,
     y = ((b2 & 0x0F) << 2) | ((b3 & 0xC0) >> 6);
     size = 0;
     LOG_DEBUG("ObjectParser",
-              "Type2: b1=%02X b2=%02X b3=%02X -> id=%04X x=%d y=%d size=%d",
-              b1, b2, b3, id, x, y, size);
+              "Type2: b1=%02X b2=%02X b3=%02X -> id=%04X x=%d y=%d size=%d", b1,
+              b2, b3, id, x, y, size);
   }
   // Type 3: xxxxxxii yyyyyyii 11111iii
   // Discriminator: b3 >= 0xF8 (top 5 bits all 1)
@@ -242,8 +247,8 @@ RoomObject RoomObject::DecodeObjectFromBytes(uint8_t b1, uint8_t b2, uint8_t b3,
     y = (b2 & 0xFC) >> 2;
     size = ((b1 & 0x03) << 2) | (b2 & 0x03);
     LOG_DEBUG("ObjectParser",
-              "Type3: b1=%02X b2=%02X b3=%02X -> id=%04X x=%d y=%d size=%d",
-              b1, b2, b3, id, x, y, size);
+              "Type3: b1=%02X b2=%02X b3=%02X -> id=%04X x=%d y=%d size=%d", b1,
+              b2, b3, id, x, y, size);
   }
   // Type 1: xxxxxxss yyyyyyss iiiiiiii
   else {
@@ -252,8 +257,8 @@ RoomObject RoomObject::DecodeObjectFromBytes(uint8_t b1, uint8_t b2, uint8_t b3,
     y = (b2 & 0xFC) >> 2;
     size = ((b1 & 0x03) << 2) | (b2 & 0x03);
     LOG_DEBUG("ObjectParser",
-              "Type1: b1=%02X b2=%02X b3=%02X -> id=%04X x=%d y=%d size=%d",
-              b1, b2, b3, id, x, y, size);
+              "Type1: b1=%02X b2=%02X b3=%02X -> id=%04X x=%d y=%d size=%d", b1,
+              b2, b3, id, x, y, size);
   }
 
   auto obj = RoomObject(static_cast<int16_t>(id), x, y, size, layer);

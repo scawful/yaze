@@ -15,16 +15,20 @@ namespace {
 // Based on ALTTP object IDs and draw routine analysis.
 bool IsPitOrMaskObject(int16_t id) {
   // BigHole4x4 (0xA4)
-  if (id == 0xA4) return true;
+  if (id == 0xA4)
+    return true;
 
   // Pit edge objects (0x9B - 0xA6 range)
-  if (id >= 0x9B && id <= 0xA6) return true;
+  if (id >= 0x9B && id <= 0xA6)
+    return true;
 
   // Type 3 pit objects (0xFE6)
-  if (id == 0xFE6) return true;
+  if (id == 0xFE6)
+    return true;
 
   // Layer 2 pit mask objects (Type 3: 0xFBE, 0xFBF)
-  if (id == 0xFBE || id == 0xFBF) return true;
+  if (id == 0xFBE || id == 0xFBF)
+    return true;
 
   return false;
 }
@@ -63,8 +67,8 @@ absl::Status RoomLayout::LoadLayout(int layout_id) {
   const auto& rom_data = rom_->data();
   int layer = 0;
 
-  LOG_DEBUG("RoomLayout", "Loading layout %d from PC address 0x%05X",
-            layout_id, pos);
+  LOG_DEBUG("RoomLayout", "Loading layout %d from PC address 0x%05X", layout_id,
+            pos);
 
   int obj_index = 0;
   while (pos + 2 < static_cast<int>(rom_->size())) {
@@ -73,7 +77,8 @@ absl::Status RoomLayout::LoadLayout(int layout_id) {
 
     if (b1 == 0xFF && b2 == 0xFF) {
       // $FF $FF is the END terminator for this layout
-      LOG_DEBUG("RoomLayout", "Layout %d terminated at pos=0x%05X after %d objects",
+      LOG_DEBUG("RoomLayout",
+                "Layout %d terminated at pos=0x%05X after %d objects",
                 layout_id, pos, obj_index);
       break;
     }
@@ -92,7 +97,8 @@ absl::Status RoomLayout::LoadLayout(int layout_id) {
     // This allows them to show through BG1 content (walls, floor).
     if (IsPitOrMaskObject(obj.id_)) {
       obj.layer_ = RoomObject::LayerType::BG2;
-      LOG_DEBUG("RoomLayout", "Pit/mask object 0x%03X assigned to BG2 layer", obj.id_);
+      LOG_DEBUG("RoomLayout", "Pit/mask object 0x%03X assigned to BG2 layer",
+                obj.id_);
     }
 
     obj.SetRom(rom_);
@@ -100,14 +106,15 @@ absl::Status RoomLayout::LoadLayout(int layout_id) {
     objects_.push_back(obj);
 
     LOG_DEBUG("RoomLayout",
-              "Layout %d obj[%d]: bytes=[%02X,%02X,%02X] -> id=0x%03X x=%d y=%d size=%d tiles=%zu",
-              layout_id, obj_index, b1, b2, b3,
-              obj.id_, obj.x_, obj.y_, obj.size_, obj.tiles().size());
+              "Layout %d obj[%d]: bytes=[%02X,%02X,%02X] -> id=0x%03X x=%d "
+              "y=%d size=%d tiles=%zu",
+              layout_id, obj_index, b1, b2, b3, obj.id_, obj.x_, obj.y_,
+              obj.size_, obj.tiles().size());
     obj_index++;
   }
 
-  LOG_DEBUG("RoomLayout", "Layout %d loaded with %zu objects",
-            layout_id, objects_.size());
+  LOG_DEBUG("RoomLayout", "Layout %d loaded with %zu objects", layout_id,
+            objects_.size());
 
   return absl::OkStatus();
 }

@@ -453,4 +453,3 @@ std::string ResourceLabelProvider::ExportToZScreamFormat() const {
 
 }  // namespace zelda3
 }  // namespace yaze
-

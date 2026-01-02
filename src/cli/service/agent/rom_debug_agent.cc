@@ -20,7 +20,8 @@ namespace {
 
 // Helper to format a 24-bit SNES address
 std::string FormatSnesAddress(uint32_t address) {
-  return absl::StrFormat("$%02X:%04X", (address >> 16) & 0xFF, address & 0xFFFF);
+  return absl::StrFormat("$%02X:%04X", (address >> 16) & 0xFF,
+                         address & 0xFFFF);
 }
 
 // Helper to check if an opcode is a branch/jump instruction
@@ -85,7 +86,8 @@ RomDebugAgent::RomDebugAgent(yaze::net::EmulatorServiceImpl* emulator_service)
   disassembler_->SetFlags(true, true);
 }
 
-absl::StatusOr<RomDebugAgent::BreakpointAnalysis> RomDebugAgent::AnalyzeBreakpoint(
+absl::StatusOr<RomDebugAgent::BreakpointAnalysis>
+RomDebugAgent::AnalyzeBreakpoint(
     const yaze::agent::BreakpointHitResponse& hit) {
   BreakpointAnalysis analysis;
 
@@ -98,7 +100,8 @@ absl::StatusOr<RomDebugAgent::BreakpointAnalysis> RomDebugAgent::AnalyzeBreakpoi
 
   // Get symbol or format address
   if (symbol_provider_->HasSymbols()) {
-    analysis.location_description = symbol_provider_->FormatAddress(analysis.address);
+    analysis.location_description =
+        symbol_provider_->FormatAddress(analysis.address);
   } else {
     analysis.location_description = FormatSnesAddress(analysis.address);
   }
@@ -121,7 +124,8 @@ absl::StatusOr<RomDebugAgent::BreakpointAnalysis> RomDebugAgent::AnalyzeBreakpoi
   disasm_req.set_count(1);
   yaze::agent::DisassemblyResponse disasm_resp;
 
-  auto status = emulator_service_->GetDisassembly(&context, &disasm_req, &disasm_resp);
+  auto status =
+      emulator_service_->GetDisassembly(&context, &disasm_req, &disasm_resp);
   if (!status.ok()) {
     return absl::InternalError("Failed to get disassembly");
   }
@@ -129,9 +133,11 @@ absl::StatusOr<RomDebugAgent::BreakpointAnalysis> RomDebugAgent::AnalyzeBreakpoi
   if (disasm_resp.lines_size() > 0) {
     const auto& inst = disasm_resp.lines(0);
     analysis.disassembly = inst.mnemonic() + " " + inst.operand_str();
-    
+
     // Analyze instruction for AI explanation
-    auto explanation = AnalyzeInstruction(analysis.address, nullptr, 0); // We don't have raw bytes here easily without reading memory
+    auto explanation = AnalyzeInstruction(
+        analysis.address, nullptr,
+        0);  // We don't have raw bytes here easily without reading memory
     if (explanation.ok()) {
       analysis.instruction_explanation = *explanation;
     }
@@ -245,25 +251,30 @@ absl::StatusOr<RomDebugAgent::MemoryAnalysis> RomDebugAgent::AnalyzeMemory(
 
     // Check for DMA issues
     if ((analysis.data[0] & 0x80) && address == DMA0_CONTROL) {
-      analysis.anomalies.push_back("DMA channel enabled during active display - may cause glitches");
+      analysis.anomalies.push_back(
+          "DMA channel enabled during active display - may cause glitches");
     }
   }
 
   // Check for common issues
   if (analysis.data_type == "sprite" && length >= 16) {
     // Check sprite corruption patterns
-    bool all_zero = std::all_of(analysis.data.begin(),
-                                 analysis.data.begin() + std::min(size_t(16), length),
-                                 [](uint8_t b) { return b == 0; });
-    bool all_ff = std::all_of(analysis.data.begin(),
-                              analysis.data.begin() + std::min(size_t(16), length),
-                              [](uint8_t b) { return b == 0xFF; });
+    bool all_zero =
+        std::all_of(analysis.data.begin(),
+                    analysis.data.begin() + std::min(size_t(16), length),
+                    [](uint8_t b) { return b == 0; });
+    bool all_ff =
+        std::all_of(analysis.data.begin(),
+                    analysis.data.begin() + std::min(size_t(16), length),
+                    [](uint8_t b) { return b == 0xFF; });
 
     if (all_zero) {
-      analysis.anomalies.push_back("Sprite data is all zeros - likely uninitialized");
+      analysis.anomalies.push_back(
+          "Sprite data is all zeros - likely uninitialized");
     }
     if (all_ff) {
-      analysis.anomalies.push_back("Sprite data is all 0xFF - possible corruption");
+      analysis.anomalies.push_back(
+          "Sprite data is all 0xFF - possible corruption");
     }
   }
 
@@ -298,9 +309,10 @@ absl::StatusOr<std::string> RomDebugAgent::ExplainExecutionTrace(
         }
       }
 
-      std::string target_name = symbol_provider_->HasSymbols()
-          ? symbol_provider_->FormatAddress(target_addr)
-          : FormatSnesAddress(target_addr);
+      std::string target_name =
+          symbol_provider_->HasSymbols()
+              ? symbol_provider_->FormatAddress(target_addr)
+              : FormatSnesAddress(target_addr);
 
       explanation << indent << "→ CALL " << target_name << " from "
                   << FormatSnesAddress(entry.address) << "\n";
@@ -321,22 +333,40 @@ absl::StatusOr<std::string> RomDebugAgent::ExplainExecutionTrace(
       // Branch or jump
       std::string condition;
       switch (entry.opcode) {
-        case 0x10: condition = " (if plus)"; break;
-        case 0x30: condition = " (if minus)"; break;
-        case 0x50: condition = " (if overflow clear)"; break;
-        case 0x70: condition = " (if overflow set)"; break;
-        case 0x90: condition = " (if carry clear)"; break;
-        case 0xB0: condition = " (if carry set)"; break;
-        case 0xD0: condition = " (if not zero)"; break;
-        case 0xF0: condition = " (if zero)"; break;
+        case 0x10:
+          condition = " (if plus)";
+          break;
+        case 0x30:
+          condition = " (if minus)";
+          break;
+        case 0x50:
+          condition = " (if overflow clear)";
+          break;
+        case 0x70:
+          condition = " (if overflow set)";
+          break;
+        case 0x90:
+          condition = " (if carry clear)";
+          break;
+        case 0xB0:
+          condition = " (if carry set)";
+          break;
+        case 0xD0:
+          condition = " (if not zero)";
+          break;
+        case 0xF0:
+          condition = " (if zero)";
+          break;
         case 0x80:
         case 0x82:
         case 0x4C:
-        case 0x5C: condition = " (unconditional)"; break;
+        case 0x5C:
+          condition = " (unconditional)";
+          break;
       }
 
-      explanation << indent << "  " << entry.mnemonic << " " << entry.operand_str
-                  << condition << "\n";
+      explanation << indent << "  " << entry.mnemonic << " "
+                  << entry.operand_str << condition << "\n";
 
     } else {
       // Regular instruction - only show significant ones
@@ -387,15 +417,18 @@ absl::StatusOr<std::string> RomDebugAgent::ExplainExecutionTrace(
     // Check for patterns
     if (i > 0) {
       // Detect infinite loops
-      if (entry.address == trace[i-1].address && IsBranchOrJump(entry.opcode)) {
+      if (entry.address == trace[i - 1].address &&
+          IsBranchOrJump(entry.opcode)) {
         explanation << indent << "  ⚠️  POSSIBLE INFINITE LOOP DETECTED\n";
       }
 
       // Detect rapid DMA
-      if (entry.address >= DMA0_CONTROL && entry.address < DMA0_CONTROL + 0x80) {
-        if (i > 0 && trace[i-1].address >= DMA0_CONTROL &&
-            trace[i-1].address < DMA0_CONTROL + 0x80) {
-          explanation << indent << "  ⚠️  RAPID DMA OPERATIONS - CHECK TIMING\n";
+      if (entry.address >= DMA0_CONTROL &&
+          entry.address < DMA0_CONTROL + 0x80) {
+        if (i > 0 && trace[i - 1].address >= DMA0_CONTROL &&
+            trace[i - 1].address < DMA0_CONTROL + 0x80) {
+          explanation << indent
+                      << "  ⚠️  RAPID DMA OPERATIONS - CHECK TIMING\n";
         }
       }
     }
@@ -407,14 +440,16 @@ absl::StatusOr<std::string> RomDebugAgent::ExplainExecutionTrace(
   explanation << "Total instructions: " << trace.size() << "\n";
   explanation << "Subroutine depth: " << indent_level << "\n";
   if (!call_stack.empty()) {
-    explanation << "Unmatched calls: " << absl::StrJoin(call_stack, ", ") << "\n";
+    explanation << "Unmatched calls: " << absl::StrJoin(call_stack, ", ")
+                << "\n";
   }
 
   return explanation.str();
 }
 
-absl::StatusOr<RomDebugAgent::PatchComparisonResult> RomDebugAgent::ComparePatch(
-    uint32_t address, size_t length, const std::vector<uint8_t>& original) {
+absl::StatusOr<RomDebugAgent::PatchComparisonResult>
+RomDebugAgent::ComparePatch(uint32_t address, size_t length,
+                            const std::vector<uint8_t>& original) {
   PatchComparisonResult result;
   result.address = address;
   result.length = length;
@@ -439,24 +474,23 @@ absl::StatusOr<RomDebugAgent::PatchComparisonResult> RomDebugAgent::ComparePatch
   std::stringstream orig_disasm, patch_disasm;
   size_t orig_offset = 0, patch_offset = 0;
 
-  while (orig_offset < original.size() && patch_offset < result.patched_code.size()) {
+  while (orig_offset < original.size() &&
+         patch_offset < result.patched_code.size()) {
     // Disassemble original
     std::string orig_mnem, orig_operand;
     std::vector<uint8_t> orig_operands;
     uint8_t orig_size = disassembler_->DisassembleInstruction(
-        address + orig_offset,
-        original.data() + orig_offset,
-        orig_mnem, orig_operand, orig_operands);
+        address + orig_offset, original.data() + orig_offset, orig_mnem,
+        orig_operand, orig_operands);
 
-    orig_disasm << FormatSnesAddress(address + orig_offset) << ": "
-                << orig_mnem << " " << orig_operand << "\n";
+    orig_disasm << FormatSnesAddress(address + orig_offset) << ": " << orig_mnem
+                << " " << orig_operand << "\n";
 
     // Disassemble patched
     std::string patch_mnem, patch_operand;
     std::vector<uint8_t> patch_operands;
     uint8_t patch_size = disassembler_->DisassembleInstruction(
-        address + patch_offset,
-        result.patched_code.data() + patch_offset,
+        address + patch_offset, result.patched_code.data() + patch_offset,
         patch_mnem, patch_operand, patch_operands);
 
     patch_disasm << FormatSnesAddress(address + patch_offset) << ": "
@@ -465,10 +499,8 @@ absl::StatusOr<RomDebugAgent::PatchComparisonResult> RomDebugAgent::ComparePatch
     // Compare instructions
     if (orig_mnem != patch_mnem || orig_operand != patch_operand) {
       result.differences.push_back(absl::StrFormat(
-          "At %s: '%s %s' → '%s %s'",
-          FormatSnesAddress(address + orig_offset),
-          orig_mnem, orig_operand,
-          patch_mnem, patch_operand));
+          "At %s: '%s %s' → '%s %s'", FormatSnesAddress(address + orig_offset),
+          orig_mnem, orig_operand, patch_mnem, patch_operand));
 
       // Check for potential issues
 
@@ -483,17 +515,18 @@ absl::StatusOr<RomDebugAgent::PatchComparisonResult> RomDebugAgent::ComparePatch
         }
 
         if (!IsValidJumpTarget(target)) {
-          result.potential_issues.push_back(absl::StrFormat(
-              "Invalid jump target at %s: %s",
-              FormatSnesAddress(address + patch_offset),
-              FormatSnesAddress(target)));
+          result.potential_issues.push_back(
+              absl::StrFormat("Invalid jump target at %s: %s",
+                              FormatSnesAddress(address + patch_offset),
+                              FormatSnesAddress(target)));
           result.is_safe = false;
         }
       }
 
       // Check for stack imbalance
       bool orig_modifies_stack = ModifiesStack(original[orig_offset]);
-      bool patch_modifies_stack = ModifiesStack(result.patched_code[patch_offset]);
+      bool patch_modifies_stack =
+          ModifiesStack(result.patched_code[patch_offset]);
 
       if (orig_modifies_stack != patch_modifies_stack) {
         result.potential_issues.push_back(
@@ -527,15 +560,16 @@ absl::StatusOr<RomDebugAgent::PatchComparisonResult> RomDebugAgent::ComparePatch
   }
   if (nop_count > 5) {
     result.potential_issues.push_back(absl::StrFormat(
-        "Patch contains %d NOPs - possible padding or removed code", nop_count));
+        "Patch contains %d NOPs - possible padding or removed code",
+        nop_count));
   }
 
   // Check for BRK instructions (usually indicates problems)
   for (size_t i = 0; i < result.patched_code.size(); ++i) {
     if (result.patched_code[i] == 0x00) {  // BRK
-      result.potential_issues.push_back(absl::StrFormat(
-          "BRK instruction at %s - usually indicates error",
-          FormatSnesAddress(address + i)));
+      result.potential_issues.push_back(
+          absl::StrFormat("BRK instruction at %s - usually indicates error",
+                          FormatSnesAddress(address + i)));
       result.is_safe = false;
     }
   }
@@ -559,7 +593,8 @@ std::vector<RomDebugAgent::DetectedIssue> RomDebugAgent::ScanForIssues(
     return issues;
   }
 
-  const uint8_t* code = reinterpret_cast<const uint8_t*>(mem_resp.data().data());
+  const uint8_t* code =
+      reinterpret_cast<const uint8_t*>(mem_resp.data().data());
   size_t code_size = mem_resp.data().size();
 
   size_t offset = 0;
@@ -567,7 +602,8 @@ std::vector<RomDebugAgent::DetectedIssue> RomDebugAgent::ScanForIssues(
     uint32_t current_addr = start_address + offset;
 
     // Check for specific patterns
-    auto issue = DetectIssuePattern(current_addr, code + offset, code_size - offset);
+    auto issue =
+        DetectIssuePattern(current_addr, code + offset, code_size - offset);
     if (issue.has_value()) {
       issues.push_back(issue.value());
     }
@@ -576,14 +612,11 @@ std::vector<RomDebugAgent::DetectedIssue> RomDebugAgent::ScanForIssues(
     uint8_t inst_size = disassembler_->GetInstructionSize(code[offset]);
     if (inst_size == 0) {
       // Invalid opcode
-      issues.push_back({
-          IssueType::kInvalidOpcode,
-          current_addr,
-          absl::StrFormat("Invalid opcode $%02X at %s",
-                          code[offset], FormatSnesAddress(current_addr)),
-          "Check if this is data being executed as code",
-          5
-      });
+      issues.push_back(
+          {IssueType::kInvalidOpcode, current_addr,
+           absl::StrFormat("Invalid opcode $%02X at %s", code[offset],
+                           FormatSnesAddress(current_addr)),
+           "Check if this is data being executed as code", 5});
       offset++;
     } else {
       offset += inst_size;
@@ -616,7 +649,8 @@ bool RomDebugAgent::IsValidJumpTarget(uint32_t address) const {
   return false;
 }
 
-bool RomDebugAgent::HasStackImbalance(uint32_t routine_start, uint32_t routine_end) {
+bool RomDebugAgent::HasStackImbalance(uint32_t routine_start,
+                                      uint32_t routine_end) {
   // Read the routine
   grpc::ServerContext context;
   MemoryRequest mem_req;
@@ -629,7 +663,8 @@ bool RomDebugAgent::HasStackImbalance(uint32_t routine_start, uint32_t routine_e
     return false;
   }
 
-  const uint8_t* code = reinterpret_cast<const uint8_t*>(mem_resp.data().data());
+  const uint8_t* code =
+      reinterpret_cast<const uint8_t*>(mem_resp.data().data());
   size_t code_size = mem_resp.data().size();
 
   // Track stack depth
@@ -660,9 +695,9 @@ bool RomDebugAgent::HasStackImbalance(uint32_t routine_start, uint32_t routine_e
         stack_depth--;
         break;
 
-      case 0x62:  // PER (push effective address)
-      case 0xD4:  // PEI
-      case 0xF4:  // PEA
+      case 0x62:           // PER (push effective address)
+      case 0xD4:           // PEI
+      case 0xF4:           // PEA
         stack_depth += 2;  // These push 16-bit values
         break;
     }
@@ -794,7 +829,8 @@ std::string RomDebugAgent::DescribeMemoryLocation(uint32_t address) const {
     } else if (address == PLAYER_MAX_HEALTH) {
       description = "Player Max Health";
     } else if (address >= INVENTORY_START && address < INVENTORY_START + 0x40) {
-      description = absl::StrFormat("Inventory Slot %d", address - INVENTORY_START);
+      description =
+          absl::StrFormat("Inventory Slot %d", address - INVENTORY_START);
     } else {
       description = "Save Data";
     }
@@ -805,7 +841,8 @@ std::string RomDebugAgent::DescribeMemoryLocation(uint32_t address) const {
   } else if (address >= WRAM_START && address <= WRAM_END) {
     description = "WRAM";
   } else if (address >= 0x800000 && address < 0xC00000) {
-    description = absl::StrFormat("Extended ROM Bank $%02X", (address >> 16) & 0xFF);
+    description =
+        absl::StrFormat("Extended ROM Bank $%02X", (address >> 16) & 0xFF);
   } else {
     description = "Unknown";
   }
@@ -886,64 +923,152 @@ absl::StatusOr<std::string> RomDebugAgent::AnalyzeInstruction(
   // Analyze based on opcode
   switch (opcode) {
     // Load instructions
-    case 0xA9: explanation = "Load immediate value into accumulator"; break;
-    case 0xA2: explanation = "Load immediate value into X register"; break;
-    case 0xA0: explanation = "Load immediate value into Y register"; break;
-    case 0xAD: explanation = "Load accumulator from absolute address"; break;
-    case 0xAE: explanation = "Load X register from absolute address"; break;
-    case 0xAC: explanation = "Load Y register from absolute address"; break;
+    case 0xA9:
+      explanation = "Load immediate value into accumulator";
+      break;
+    case 0xA2:
+      explanation = "Load immediate value into X register";
+      break;
+    case 0xA0:
+      explanation = "Load immediate value into Y register";
+      break;
+    case 0xAD:
+      explanation = "Load accumulator from absolute address";
+      break;
+    case 0xAE:
+      explanation = "Load X register from absolute address";
+      break;
+    case 0xAC:
+      explanation = "Load Y register from absolute address";
+      break;
 
     // Store instructions
-    case 0x8D: explanation = "Store accumulator to absolute address"; break;
-    case 0x8E: explanation = "Store X register to absolute address"; break;
-    case 0x8C: explanation = "Store Y register to absolute address"; break;
-    case 0x9D: explanation = "Store accumulator to address indexed by X"; break;
-    case 0x99: explanation = "Store accumulator to address indexed by Y"; break;
+    case 0x8D:
+      explanation = "Store accumulator to absolute address";
+      break;
+    case 0x8E:
+      explanation = "Store X register to absolute address";
+      break;
+    case 0x8C:
+      explanation = "Store Y register to absolute address";
+      break;
+    case 0x9D:
+      explanation = "Store accumulator to address indexed by X";
+      break;
+    case 0x99:
+      explanation = "Store accumulator to address indexed by Y";
+      break;
 
     // Branches
-    case 0x10: explanation = "Branch if plus (N flag clear)"; break;
-    case 0x30: explanation = "Branch if minus (N flag set)"; break;
-    case 0x50: explanation = "Branch if overflow clear"; break;
-    case 0x70: explanation = "Branch if overflow set"; break;
-    case 0x80: explanation = "Branch always"; break;
-    case 0x90: explanation = "Branch if carry clear (less than)"; break;
-    case 0xB0: explanation = "Branch if carry set (greater than or equal)"; break;
-    case 0xD0: explanation = "Branch if not equal (Z flag clear)"; break;
-    case 0xF0: explanation = "Branch if equal (Z flag set)"; break;
+    case 0x10:
+      explanation = "Branch if plus (N flag clear)";
+      break;
+    case 0x30:
+      explanation = "Branch if minus (N flag set)";
+      break;
+    case 0x50:
+      explanation = "Branch if overflow clear";
+      break;
+    case 0x70:
+      explanation = "Branch if overflow set";
+      break;
+    case 0x80:
+      explanation = "Branch always";
+      break;
+    case 0x90:
+      explanation = "Branch if carry clear (less than)";
+      break;
+    case 0xB0:
+      explanation = "Branch if carry set (greater than or equal)";
+      break;
+    case 0xD0:
+      explanation = "Branch if not equal (Z flag clear)";
+      break;
+    case 0xF0:
+      explanation = "Branch if equal (Z flag set)";
+      break;
 
     // Jumps and calls
-    case 0x20: explanation = "Call subroutine"; break;
-    case 0x22: explanation = "Call long subroutine (24-bit)"; break;
-    case 0x4C: explanation = "Jump to address"; break;
-    case 0x5C: explanation = "Jump long (24-bit)"; break;
-    case 0x60: explanation = "Return from subroutine"; break;
-    case 0x6B: explanation = "Return from long subroutine"; break;
+    case 0x20:
+      explanation = "Call subroutine";
+      break;
+    case 0x22:
+      explanation = "Call long subroutine (24-bit)";
+      break;
+    case 0x4C:
+      explanation = "Jump to address";
+      break;
+    case 0x5C:
+      explanation = "Jump long (24-bit)";
+      break;
+    case 0x60:
+      explanation = "Return from subroutine";
+      break;
+    case 0x6B:
+      explanation = "Return from long subroutine";
+      break;
 
     // Stack operations
-    case 0x48: explanation = "Push accumulator onto stack"; break;
-    case 0x68: explanation = "Pull accumulator from stack"; break;
-    case 0x08: explanation = "Push processor status onto stack"; break;
-    case 0x28: explanation = "Pull processor status from stack"; break;
+    case 0x48:
+      explanation = "Push accumulator onto stack";
+      break;
+    case 0x68:
+      explanation = "Pull accumulator from stack";
+      break;
+    case 0x08:
+      explanation = "Push processor status onto stack";
+      break;
+    case 0x28:
+      explanation = "Pull processor status from stack";
+      break;
 
     // Arithmetic
-    case 0x69: explanation = "Add to accumulator with carry"; break;
-    case 0xE9: explanation = "Subtract from accumulator with borrow"; break;
-    case 0xC9: explanation = "Compare accumulator with value"; break;
-    case 0xE0: explanation = "Compare X register with value"; break;
-    case 0xC0: explanation = "Compare Y register with value"; break;
+    case 0x69:
+      explanation = "Add to accumulator with carry";
+      break;
+    case 0xE9:
+      explanation = "Subtract from accumulator with borrow";
+      break;
+    case 0xC9:
+      explanation = "Compare accumulator with value";
+      break;
+    case 0xE0:
+      explanation = "Compare X register with value";
+      break;
+    case 0xC0:
+      explanation = "Compare Y register with value";
+      break;
 
     // Logical
-    case 0x29: explanation = "AND accumulator with value"; break;
-    case 0x09: explanation = "OR accumulator with value"; break;
-    case 0x49: explanation = "XOR accumulator with value"; break;
+    case 0x29:
+      explanation = "AND accumulator with value";
+      break;
+    case 0x09:
+      explanation = "OR accumulator with value";
+      break;
+    case 0x49:
+      explanation = "XOR accumulator with value";
+      break;
 
     // Special
-    case 0x00: explanation = "Software interrupt (BRK)"; break;
-    case 0xEA: explanation = "No operation (NOP)"; break;
-    case 0x18: explanation = "Clear carry flag"; break;
-    case 0x38: explanation = "Set carry flag"; break;
-    case 0xC2: explanation = "Clear processor flags (REP)"; break;
-    case 0xE2: explanation = "Set processor flags (SEP)"; break;
+    case 0x00:
+      explanation = "Software interrupt (BRK)";
+      break;
+    case 0xEA:
+      explanation = "No operation (NOP)";
+      break;
+    case 0x18:
+      explanation = "Clear carry flag";
+      break;
+    case 0x38:
+      explanation = "Set carry flag";
+      break;
+    case 0xC2:
+      explanation = "Clear processor flags (REP)";
+      break;
+    case 0xE2:
+      explanation = "Set processor flags (SEP)";
+      break;
 
     default:
       explanation = absl::StrFormat("Execute opcode $%02X", opcode);
@@ -952,14 +1077,16 @@ absl::StatusOr<std::string> RomDebugAgent::AnalyzeInstruction(
   return explanation;
 }
 
-std::vector<std::string> RomDebugAgent::GetDisassemblyContext(
-    uint32_t address, int before_lines, int after_lines) {
+std::vector<std::string> RomDebugAgent::GetDisassemblyContext(uint32_t address,
+                                                              int before_lines,
+                                                              int after_lines) {
   std::vector<std::string> context_lines;
 
   // Get disassembly from emulator service
   grpc::ServerContext ctx;
   DisassemblyRequest req;
-  req.set_start_address(address - (before_lines * 3));  // Estimate 3 bytes per instruction
+  req.set_start_address(
+      address - (before_lines * 3));  // Estimate 3 bytes per instruction
   req.set_count(before_lines + after_lines + 1);
   DisassemblyResponse resp;
 
@@ -969,10 +1096,9 @@ std::vector<std::string> RomDebugAgent::GetDisassemblyContext(
   }
 
   for (const auto& inst : resp.lines()) {
-    std::string line = absl::StrFormat("%s: %s %s",
-                                       FormatSnesAddress(inst.address()),
-                                       inst.mnemonic(),
-                                       inst.operand_str());
+    std::string line =
+        absl::StrFormat("%s: %s %s", FormatSnesAddress(inst.address()),
+                        inst.mnemonic(), inst.operand_str());
     if (inst.address() == address) {
       line = ">>> " + line + " <<<";  // Highlight current instruction
     }
@@ -1003,9 +1129,10 @@ std::vector<std::string> RomDebugAgent::BuildCallStack(uint32_t current_pc) {
 
     if (opcode == 0x20 || opcode == 0x22 || opcode == 0xFC) {
       // Found a call
-      std::string caller = symbol_provider_->HasSymbols()
-          ? symbol_provider_->FormatAddress(entry.address())
-          : FormatSnesAddress(entry.address());
+      std::string caller =
+          symbol_provider_->HasSymbols()
+              ? symbol_provider_->FormatAddress(entry.address())
+              : FormatSnesAddress(entry.address());
       stack.push_back(caller);
     } else if (IsReturn(opcode) && !stack.empty()) {
       // Found a return, pop from our reconstructed stack
@@ -1030,24 +1157,18 @@ std::optional<RomDebugAgent::DetectedIssue> RomDebugAgent::DetectIssuePattern(
   // Check for BRK (usually an error)
   if (opcode == 0x00) {
     return DetectedIssue{
-        IssueType::kInvalidOpcode,
-        address,
-        "BRK instruction found - usually indicates an error or unimplemented code",
-        "Replace with proper implementation or NOP if intentional padding",
-        4
-    };
+        IssueType::kInvalidOpcode, address,
+        "BRK instruction found - usually indicates an error or unimplemented "
+        "code",
+        "Replace with proper implementation or NOP if intentional padding", 4};
   }
 
   // Check for infinite loop (branch to self)
   if (opcode == 0x80 && length >= 2 && code[1] == 0xFE) {
     // BRA $-2 (branch to self)
-    return DetectedIssue{
-        IssueType::kInfiniteLoop,
-        address,
-        "Infinite loop detected (BRA to self)",
-        "Add proper exit condition or loop counter",
-        5
-    };
+    return DetectedIssue{IssueType::kInfiniteLoop, address,
+                         "Infinite loop detected (BRA to self)",
+                         "Add proper exit condition or loop counter", 5};
   }
 
   // Check for writes to vector table
@@ -1055,12 +1176,9 @@ std::optional<RomDebugAgent::DetectedIssue> RomDebugAgent::DetectIssuePattern(
     uint16_t dest = code[1] | (code[2] << 8);
     if (dest >= 0xFFE0) {
       return DetectedIssue{
-          IssueType::kWramCorruption,
-          address,
+          IssueType::kWramCorruption, address,
           absl::StrFormat("Writing to interrupt vector at $%04X", dest),
-          "Verify this vector modification is intentional",
-          5
-      };
+          "Verify this vector modification is intentional", 5};
     }
   }
 
@@ -1070,21 +1188,20 @@ std::optional<RomDebugAgent::DetectedIssue> RomDebugAgent::DetectIssuePattern(
     // For now, just flag excessive consecutive pushes
     int consecutive_pushes = 0;
     for (size_t i = 0; i < std::min(size_t(10), length); ++i) {
-      if (code[i] == 0x48 || code[i] == 0x08 || code[i] == 0xDA || code[i] == 0x5A) {
+      if (code[i] == 0x48 || code[i] == 0x08 || code[i] == 0xDA ||
+          code[i] == 0x5A) {
         consecutive_pushes++;
-      } else if (code[i] == 0x68 || code[i] == 0x28 || code[i] == 0xFA || code[i] == 0x7A) {
+      } else if (code[i] == 0x68 || code[i] == 0x28 || code[i] == 0xFA ||
+                 code[i] == 0x7A) {
         consecutive_pushes--;
       }
     }
 
     if (consecutive_pushes > 5) {
       return DetectedIssue{
-          IssueType::kStackImbalance,
-          address,
+          IssueType::kStackImbalance, address,
           "Multiple consecutive pushes without pulls - possible stack overflow",
-          "Verify stack operations are properly balanced",
-          3
-      };
+          "Verify stack operations are properly balanced", 3};
     }
   }
 
@@ -1115,27 +1232,44 @@ bool RomDebugAgent::IsCriticalMemoryArea(uint32_t address) const {
   return false;
 }
 
-std::optional<std::string> RomDebugAgent::GetStructureInfo(uint32_t address) const {
+std::optional<std::string> RomDebugAgent::GetStructureInfo(
+    uint32_t address) const {
   // Sprite structure
   if (address >= SPRITE_TABLE_START && address < SPRITE_TABLE_END) {
     uint32_t offset = (address - SPRITE_TABLE_START) % 0x10;
     switch (offset) {
-      case 0x00: return "Sprite State";
-      case 0x01: return "Sprite X Position Low";
-      case 0x02: return "Sprite X Position High";
-      case 0x03: return "Sprite Y Position Low";
-      case 0x04: return "Sprite Y Position High";
-      case 0x05: return "Sprite Z Position";
-      case 0x06: return "Sprite Velocity X";
-      case 0x07: return "Sprite Velocity Y";
-      case 0x08: return "Sprite Type";
-      case 0x09: return "Sprite Subtype";
-      case 0x0A: return "Sprite Graphics";
-      case 0x0B: return "Sprite Properties";
-      case 0x0C: return "Sprite Health";
-      case 0x0D: return "Sprite Damage";
-      case 0x0E: return "Sprite Timer";
-      case 0x0F: return "Sprite Flags";
+      case 0x00:
+        return "Sprite State";
+      case 0x01:
+        return "Sprite X Position Low";
+      case 0x02:
+        return "Sprite X Position High";
+      case 0x03:
+        return "Sprite Y Position Low";
+      case 0x04:
+        return "Sprite Y Position High";
+      case 0x05:
+        return "Sprite Z Position";
+      case 0x06:
+        return "Sprite Velocity X";
+      case 0x07:
+        return "Sprite Velocity Y";
+      case 0x08:
+        return "Sprite Type";
+      case 0x09:
+        return "Sprite Subtype";
+      case 0x0A:
+        return "Sprite Graphics";
+      case 0x0B:
+        return "Sprite Properties";
+      case 0x0C:
+        return "Sprite Health";
+      case 0x0D:
+        return "Sprite Damage";
+      case 0x0E:
+        return "Sprite Timer";
+      case 0x0F:
+        return "Sprite Flags";
     }
   }
 
@@ -1143,10 +1277,14 @@ std::optional<std::string> RomDebugAgent::GetStructureInfo(uint32_t address) con
   if (address >= OAM_BUFFER && address <= OAM_BUFFER_END) {
     uint32_t offset = (address - OAM_BUFFER) % 4;
     switch (offset) {
-      case 0: return "OAM X Position";
-      case 1: return "OAM Y Position";
-      case 2: return "OAM Tile Number";
-      case 3: return "OAM Attributes";
+      case 0:
+        return "OAM X Position";
+      case 1:
+        return "OAM Y Position";
+      case 2:
+        return "OAM Tile Number";
+      case 3:
+        return "OAM Attributes";
     }
   }
 
@@ -1154,14 +1292,22 @@ std::optional<std::string> RomDebugAgent::GetStructureInfo(uint32_t address) con
   if (address >= DMA0_CONTROL && address < DMA0_CONTROL + 0x80) {
     uint32_t offset = (address - DMA0_CONTROL) % 0x10;
     switch (offset) {
-      case 0x00: return "DMA Control";
-      case 0x01: return "DMA Destination";
-      case 0x02: return "DMA Source Low";
-      case 0x03: return "DMA Source High";
-      case 0x04: return "DMA Source Bank";
-      case 0x05: return "DMA Size Low";
-      case 0x06: return "DMA Size High";
-      case 0x07: return "DMA Indirect Bank";
+      case 0x00:
+        return "DMA Control";
+      case 0x01:
+        return "DMA Destination";
+      case 0x02:
+        return "DMA Source Low";
+      case 0x03:
+        return "DMA Source High";
+      case 0x04:
+        return "DMA Source Bank";
+      case 0x05:
+        return "DMA Size Low";
+      case 0x06:
+        return "DMA Size High";
+      case 0x07:
+        return "DMA Indirect Bank";
     }
   }
 

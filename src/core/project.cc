@@ -1,7 +1,7 @@
 #include "core/project.h"
 
-#include <chrono>
 #include <cctype>
+#include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
@@ -15,11 +15,10 @@
 #include "util/file_util.h"
 #include "util/json.h"
 #include "util/log.h"
-#include "util/platform_paths.h"
 #include "util/macro.h"
+#include "util/platform_paths.h"
 #include "yaze_config.h"
 #include "zelda3/resource_labels.h"
-
 
 #ifdef __EMSCRIPTEN__
 #include "app/platform/wasm/wasm_storage.h"
@@ -256,7 +255,8 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
   file << "labels_filename=" << GetRelativePath(labels_filename) << "\n";
   file << "symbols_filename=" << GetRelativePath(symbols_filename) << "\n";
   file << "output_folder=" << GetRelativePath(output_folder) << "\n";
-  file << "custom_objects_folder=" << GetRelativePath(custom_objects_folder) << "\n";
+  file << "custom_objects_folder=" << GetRelativePath(custom_objects_folder)
+       << "\n";
   file << "additional_roms=" << absl::StrJoin(additional_roms, ",") << "\n\n";
 
   // Feature flags section
@@ -278,17 +278,17 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
   // Workspace settings section
   file << "[workspace]\n";
   file << "font_global_scale=" << workspace_settings.font_global_scale << "\n";
-  file << "dark_mode="
-       << (workspace_settings.dark_mode ? "true" : "false") << "\n";
+  file << "dark_mode=" << (workspace_settings.dark_mode ? "true" : "false")
+       << "\n";
   file << "ui_theme=" << workspace_settings.ui_theme << "\n";
   file << "autosave_enabled="
        << (workspace_settings.autosave_enabled ? "true" : "false") << "\n";
-  file << "autosave_interval_secs="
-       << workspace_settings.autosave_interval_secs << "\n";
+  file << "autosave_interval_secs=" << workspace_settings.autosave_interval_secs
+       << "\n";
   file << "backup_on_save="
        << (workspace_settings.backup_on_save ? "true" : "false") << "\n";
-  file << "show_grid="
-       << (workspace_settings.show_grid ? "true" : "false") << "\n";
+  file << "show_grid=" << (workspace_settings.show_grid ? "true" : "false")
+       << "\n";
   file << "show_collision="
        << (workspace_settings.show_collision ? "true" : "false") << "\n";
   file << "prefer_hmagic_names="
@@ -297,8 +297,8 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
        << "\n";
   file << "saved_layouts="
        << absl::StrJoin(workspace_settings.saved_layouts, ",") << "\n";
-  file << "recent_files="
-       << absl::StrJoin(workspace_settings.recent_files, ",") << "\n\n";
+  file << "recent_files=" << absl::StrJoin(workspace_settings.recent_files, ",")
+       << "\n\n";
 
   // AI Agent settings section
   file << "[agent_settings]\n";
@@ -322,8 +322,8 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
        << (agent_settings.stream_responses ? "true" : "false") << "\n";
   file << "favorite_models="
        << absl::StrJoin(agent_settings.favorite_models, ",") << "\n";
-  file << "model_chain="
-       << absl::StrJoin(agent_settings.model_chain, ",") << "\n";
+  file << "model_chain=" << absl::StrJoin(agent_settings.model_chain, ",")
+       << "\n";
   file << "chain_mode=" << agent_settings.chain_mode << "\n";
   file << "enable_tool_resources="
        << (agent_settings.enable_tool_resources ? "true" : "false") << "\n";
@@ -381,8 +381,8 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
   file << "output_folder=" << GetRelativePath(output_folder) << "\n";
   file << "git_repository=" << git_repository << "\n";
   file << "track_changes=" << (track_changes ? "true" : "false") << "\n";
-  file << "build_configurations="
-       << absl::StrJoin(build_configurations, ",") << "\n";
+  file << "build_configurations=" << absl::StrJoin(build_configurations, ",")
+       << "\n";
   file << "build_target=" << build_target << "\n";
   file << "asm_entry_point=" << asm_entry_point << "\n";
   file << "asm_sources=" << absl::StrJoin(asm_sources, ",") << "\n";
@@ -932,34 +932,39 @@ std::string YazeProject::GenerateProjectId() const {
 std::vector<ProjectManager::ProjectTemplate>
 ProjectManager::GetProjectTemplates() {
   std::vector<ProjectTemplate> templates;
-  
+
   // ==========================================================================
   // ZSCustomOverworld Templates (Recommended)
   // ==========================================================================
-  
+
   // Vanilla ROM Hack - no ZSO
   {
     ProjectTemplate t;
     t.name = "Vanilla ROM Hack";
-    t.description = "Standard ROM editing without custom ASM. Limited to vanilla features.";
+    t.description =
+        "Standard ROM editing without custom ASM. Limited to vanilla features.";
     t.icon = ICON_MD_VIDEOGAME_ASSET;
     t.template_project.feature_flags.overworld.kLoadCustomOverworld = false;
-    t.template_project.feature_flags.overworld.kApplyZSCustomOverworldASM = false;
+    t.template_project.feature_flags.overworld.kApplyZSCustomOverworldASM =
+        false;
     t.template_project.feature_flags.overworld.kSaveOverworldMaps = true;
     t.template_project.feature_flags.overworld.kSaveOverworldEntrances = true;
     t.template_project.feature_flags.overworld.kSaveOverworldExits = true;
     t.template_project.feature_flags.overworld.kSaveOverworldItems = true;
     templates.push_back(t);
   }
-  
+
   // ZSCustomOverworld v2 - Basic expansion
   {
     ProjectTemplate t;
     t.name = "ZSCustomOverworld v2";
-    t.description = "Basic overworld expansion: custom BG colors, main palettes, parent system.";
+    t.description =
+        "Basic overworld expansion: custom BG colors, main palettes, parent "
+        "system.";
     t.icon = ICON_MD_MAP;
     t.template_project.feature_flags.overworld.kLoadCustomOverworld = true;
-    t.template_project.feature_flags.overworld.kApplyZSCustomOverworldASM = true;
+    t.template_project.feature_flags.overworld.kApplyZSCustomOverworldASM =
+        true;
     t.template_project.feature_flags.overworld.kSaveOverworldMaps = true;
     t.template_project.feature_flags.overworld.kSaveOverworldEntrances = true;
     t.template_project.feature_flags.overworld.kSaveOverworldExits = true;
@@ -969,15 +974,18 @@ ProjectManager::GetProjectTemplates() {
     t.template_project.metadata.tags = {"zso_v2", "overworld", "expansion"};
     templates.push_back(t);
   }
-  
+
   // ZSCustomOverworld v3 - Full features (Recommended)
   {
     ProjectTemplate t;
     t.name = "ZSCustomOverworld v3 (Recommended)";
-    t.description = "Full overworld expansion: wide/tall areas, animated GFX, overlays, all features.";
+    t.description =
+        "Full overworld expansion: wide/tall areas, animated GFX, overlays, "
+        "all features.";
     t.icon = ICON_MD_TERRAIN;
     t.template_project.feature_flags.overworld.kLoadCustomOverworld = true;
-    t.template_project.feature_flags.overworld.kApplyZSCustomOverworldASM = true;
+    t.template_project.feature_flags.overworld.kApplyZSCustomOverworldASM =
+        true;
     t.template_project.feature_flags.overworld.kSaveOverworldMaps = true;
     t.template_project.feature_flags.overworld.kSaveOverworldEntrances = true;
     t.template_project.feature_flags.overworld.kSaveOverworldExits = true;
@@ -987,28 +995,32 @@ ProjectManager::GetProjectTemplates() {
     t.template_project.feature_flags.kSaveGfxGroups = true;
     t.template_project.feature_flags.kSaveDungeonMaps = true;
     t.template_project.feature_flags.kSaveGraphicsSheet = true;
-    t.template_project.metadata.tags = {"zso_v3", "overworld", "full", "recommended"};
+    t.template_project.metadata.tags = {"zso_v3", "overworld", "full",
+                                        "recommended"};
     templates.push_back(t);
   }
-  
+
   // Randomizer Compatible
   {
     ProjectTemplate t;
     t.name = "Randomizer Compatible";
-    t.description = "Compatible with ALttP Randomizer. Minimal custom features to avoid conflicts.";
+    t.description =
+        "Compatible with ALttP Randomizer. Minimal custom features to avoid "
+        "conflicts.";
     t.icon = ICON_MD_SHUFFLE;
     t.template_project.feature_flags.overworld.kLoadCustomOverworld = false;
-    t.template_project.feature_flags.overworld.kApplyZSCustomOverworldASM = false;
+    t.template_project.feature_flags.overworld.kApplyZSCustomOverworldASM =
+        false;
     t.template_project.feature_flags.overworld.kSaveOverworldMaps = false;
     t.template_project.feature_flags.kSaveDungeonMaps = false;
     t.template_project.metadata.tags = {"randomizer", "compatible", "minimal"};
     templates.push_back(t);
   }
-  
+
   // ==========================================================================
   // Editor-Focused Templates
   // ==========================================================================
-  
+
   // Dungeon Designer
   {
     ProjectTemplate t;
@@ -1017,26 +1029,29 @@ ProjectManager::GetProjectTemplates() {
     t.icon = ICON_MD_DOMAIN;
     t.template_project.feature_flags.kSaveDungeonMaps = true;
     t.template_project.workspace_settings.show_grid = true;
-    t.template_project.workspace_settings.last_layout_preset = "dungeon_default";
+    t.template_project.workspace_settings.last_layout_preset =
+        "dungeon_default";
     t.template_project.metadata.tags = {"dungeons", "rooms", "design"};
     templates.push_back(t);
   }
-  
+
   // Graphics Pack
   {
     ProjectTemplate t;
     t.name = "Graphics Pack";
-    t.description = "Project focused on graphics, sprites, and visual modifications.";
+    t.description =
+        "Project focused on graphics, sprites, and visual modifications.";
     t.icon = ICON_MD_PALETTE;
     t.template_project.feature_flags.kSaveGraphicsSheet = true;
     t.template_project.feature_flags.kSaveAllPalettes = true;
     t.template_project.feature_flags.kSaveGfxGroups = true;
     t.template_project.workspace_settings.show_grid = true;
-    t.template_project.workspace_settings.last_layout_preset = "graphics_default";
+    t.template_project.workspace_settings.last_layout_preset =
+        "graphics_default";
     t.template_project.metadata.tags = {"graphics", "sprites", "palettes"};
     templates.push_back(t);
   }
-  
+
   // Complete Overhaul
   {
     ProjectTemplate t;
@@ -1044,7 +1059,8 @@ ProjectManager::GetProjectTemplates() {
     t.description = "Full-scale ROM hack with all features enabled.";
     t.icon = ICON_MD_BUILD;
     t.template_project.feature_flags.overworld.kLoadCustomOverworld = true;
-    t.template_project.feature_flags.overworld.kApplyZSCustomOverworldASM = true;
+    t.template_project.feature_flags.overworld.kApplyZSCustomOverworldASM =
+        true;
     t.template_project.feature_flags.overworld.kSaveOverworldMaps = true;
     t.template_project.feature_flags.overworld.kSaveOverworldEntrances = true;
     t.template_project.feature_flags.overworld.kSaveOverworldExits = true;
@@ -1057,7 +1073,7 @@ ProjectManager::GetProjectTemplates() {
     t.template_project.metadata.tags = {"complete", "overhaul", "full-mod"};
     templates.push_back(t);
   }
-  
+
   return templates;
 }
 
@@ -1332,9 +1348,8 @@ std::string ResourceLabelManager::CreateOrGetLabel(
 // ============================================================================
 
 absl::Status YazeProject::InitializeEmbeddedLabels(
-    const std::unordered_map<std::string,
-                             std::unordered_map<std::string, std::string>>&
-        labels) {
+    const std::unordered_map<
+        std::string, std::unordered_map<std::string, std::string>>& labels) {
   try {
     // Load all default Zelda3 resource names into resource_labels
     // We merge them with existing labels, prioritizing existing overrides?
@@ -1439,7 +1454,8 @@ absl::Status YazeProject::ImportLabelsFromZScreamContent(
   }
 
   LOG_DEBUG("Project", "Imported ZScream labels:");
-  LOG_DEBUG("Project", "   - %d sprite labels", resource_labels["sprite"].size());
+  LOG_DEBUG("Project", "   - %d sprite labels",
+            resource_labels["sprite"].size());
   LOG_DEBUG("Project", "   - %d room labels", resource_labels["room"].size());
   LOG_DEBUG("Project", "   - %d item labels", resource_labels["item"].size());
   LOG_DEBUG("Project", "   - %d room tag labels",
@@ -1453,8 +1469,7 @@ void YazeProject::InitializeResourceLabelProvider() {
   provider.SetProjectLabels(&resource_labels);
   provider.SetPreferHMagicNames(workspace_settings.prefer_hmagic_names);
 
-  LOG_DEBUG("Project",
-            "Initialized ResourceLabelProvider with project labels");
+  LOG_DEBUG("Project", "Initialized ResourceLabelProvider with project labels");
   LOG_DEBUG("Project", "   - prefer_hmagic_names: %s",
             workspace_settings.prefer_hmagic_names ? "true" : "false");
 }

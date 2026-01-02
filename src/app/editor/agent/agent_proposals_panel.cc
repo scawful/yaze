@@ -12,8 +12,8 @@
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
-#include "rom/rom.h"
 #include "imgui/imgui.h"
+#include "rom/rom.h"
 
 namespace yaze {
 namespace editor {
@@ -38,7 +38,8 @@ std::string FormatRelativeTime(absl::Time timestamp) {
   return absl::FormatTime("%b %d", timestamp, absl::LocalTimeZone());
 }
 
-std::string ReadFileContents(const std::filesystem::path& path, int max_lines = 100) {
+std::string ReadFileContents(const std::filesystem::path& path,
+                             int max_lines = 100) {
   std::ifstream file(path);
   if (!file.is_open()) {
     return "";
@@ -73,7 +74,9 @@ void AgentProposalsPanel::SetToastManager(ToastManager* toast_manager) {
   toast_manager_ = toast_manager;
 }
 
-void AgentProposalsPanel::SetRom(Rom* rom) { rom_ = rom; }
+void AgentProposalsPanel::SetRom(Rom* rom) {
+  rom_ = rom;
+}
 
 void AgentProposalsPanel::SetProposalCallbacks(
     const ProposalCallbacks& callbacks) {
@@ -94,9 +97,10 @@ void AgentProposalsPanel::Draw(float available_height) {
 
   // Calculate heights
   float detail_height = selected_proposal_ && !compact_mode_ ? 200.0f : 0.0f;
-  float list_height = available_height > 0
-                          ? available_height - ImGui::GetCursorPosY() - detail_height
-                          : ImGui::GetContentRegionAvail().y - detail_height;
+  float list_height =
+      available_height > 0
+          ? available_height - ImGui::GetCursorPosY() - detail_height
+          : ImGui::GetContentRegionAvail().y - detail_height;
 
   // Proposal list
   ImGui::PushStyleColor(ImGuiCol_ChildBg, theme.panel_bg_darker);
@@ -117,7 +121,7 @@ void AgentProposalsPanel::Draw(float available_height) {
   }
 
   if (ImGui::BeginPopupModal("Confirm Action", nullptr,
-                              ImGuiWindowFlags_AlwaysAutoResize)) {
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
     ImGui::Text("Are you sure you want to %s proposal %s?",
                 confirm_action_.c_str(), confirm_proposal_id_.c_str());
     ImGui::Separator();
@@ -143,7 +147,8 @@ void AgentProposalsPanel::Draw(float available_height) {
 }
 
 void AgentProposalsPanel::DrawStatusFilter() {
-  if (!context_) return;
+  if (!context_)
+    return;
 
   auto& proposal_state = context_->proposal_state();
   const char* filter_labels[] = {"All", "Pending", "Accepted", "Rejected"};
@@ -161,15 +166,15 @@ void AgentProposalsPanel::DrawStatusFilter() {
   } else {
     // Full: show filter buttons
     for (int i = 0; i < 4; ++i) {
-      if (i > 0) ImGui::SameLine();
+      if (i > 0)
+        ImGui::SameLine();
       bool selected = (current_filter == i);
       if (selected) {
         ImGui::PushStyleColor(ImGuiCol_Button,
                               ImGui::GetStyle().Colors[ImGuiCol_ButtonActive]);
       }
       if (ImGui::SmallButton(filter_labels[i])) {
-        proposal_state.filter_mode =
-            static_cast<ProposalState::FilterMode>(i);
+        proposal_state.filter_mode = static_cast<ProposalState::FilterMode>(i);
         needs_refresh_ = true;
       }
       if (selected) {
@@ -212,7 +217,8 @@ void AgentProposalsPanel::DrawProposalList() {
         default:
           matches = true;
       }
-      if (!matches) continue;
+      if (!matches)
+        continue;
     }
 
     DrawProposalRow(proposal);
@@ -250,8 +256,8 @@ void AgentProposalsPanel::DrawProposalRow(
     ImGui::BeginGroup();
     ImGui::Text("%s", proposal.id.c_str());
     ImGui::TextDisabled("%s", proposal.description.empty()
-                                   ? "(no description)"
-                                   : proposal.description.c_str());
+                                  ? "(no description)"
+                                  : proposal.description.c_str());
     ImGui::EndGroup();
 
     ImGui::SameLine(ImGui::GetContentRegionAvail().x - 150.0f);
@@ -266,7 +272,8 @@ void AgentProposalsPanel::DrawProposalRow(
 
   // Quick actions (only for pending)
   if (proposal.status == cli::ProposalRegistry::ProposalStatus::kPending) {
-    ImGui::SameLine(ImGui::GetContentRegionAvail().x - (compact_mode_ ? 60.0f : 100.0f));
+    ImGui::SameLine(ImGui::GetContentRegionAvail().x -
+                    (compact_mode_ ? 60.0f : 100.0f));
     DrawQuickActions(proposal);
   }
 
@@ -301,14 +308,14 @@ void AgentProposalsPanel::DrawQuickActions(
   } else {
     // Full buttons
     if (AgentUI::StyledButton(ICON_MD_CHECK " Accept", theme.status_success,
-                               ImVec2(0, 0))) {
+                              ImVec2(0, 0))) {
       confirm_action_ = "accept";
       confirm_proposal_id_ = proposal.id;
       show_confirm_dialog_ = true;
     }
     ImGui::SameLine();
     if (AgentUI::StyledButton(ICON_MD_CLOSE " Reject", theme.status_error,
-                               ImVec2(0, 0))) {
+                              ImVec2(0, 0))) {
       confirm_action_ = "reject";
       confirm_proposal_id_ = proposal.id;
       show_confirm_dialog_ = true;
@@ -319,7 +326,8 @@ void AgentProposalsPanel::DrawQuickActions(
 }
 
 void AgentProposalsPanel::DrawProposalDetail() {
-  if (!selected_proposal_) return;
+  if (!selected_proposal_)
+    return;
 
   const auto& theme = AgentUI::GetTheme();
 
@@ -534,10 +542,9 @@ absl::Status AgentProposalsPanel::AcceptProposal(
 
   if (status.ok()) {
     if (toast_manager_) {
-      toast_manager_->Show(
-          absl::StrFormat("%s Proposal %s accepted", ICON_MD_CHECK_CIRCLE,
-                          proposal_id),
-          ToastType::kSuccess, 3.0f);
+      toast_manager_->Show(absl::StrFormat("%s Proposal %s accepted",
+                                           ICON_MD_CHECK_CIRCLE, proposal_id),
+                           ToastType::kSuccess, 3.0f);
     }
     needs_refresh_ = true;
 
@@ -561,10 +568,9 @@ absl::Status AgentProposalsPanel::RejectProposal(
 
   if (status.ok()) {
     if (toast_manager_) {
-      toast_manager_->Show(
-          absl::StrFormat("%s Proposal %s rejected", ICON_MD_CANCEL,
-                          proposal_id),
-          ToastType::kInfo, 3.0f);
+      toast_manager_->Show(absl::StrFormat("%s Proposal %s rejected",
+                                           ICON_MD_CANCEL, proposal_id),
+                           ToastType::kInfo, 3.0f);
     }
     needs_refresh_ = true;
 
@@ -583,15 +589,13 @@ absl::Status AgentProposalsPanel::RejectProposal(
 
 absl::Status AgentProposalsPanel::DeleteProposal(
     const std::string& proposal_id) {
-  auto status =
-      cli::ProposalRegistry::Instance().RemoveProposal(proposal_id);
+  auto status = cli::ProposalRegistry::Instance().RemoveProposal(proposal_id);
 
   if (status.ok()) {
     if (toast_manager_) {
-      toast_manager_->Show(
-          absl::StrFormat("%s Proposal %s deleted", ICON_MD_DELETE,
-                          proposal_id),
-          ToastType::kInfo, 3.0f);
+      toast_manager_->Show(absl::StrFormat("%s Proposal %s deleted",
+                                           ICON_MD_DELETE, proposal_id),
+                           ToastType::kInfo, 3.0f);
     }
     needs_refresh_ = true;
 

@@ -4,6 +4,7 @@
 
 #include <algorithm>
 
+#include "absl/strings/str_format.h"
 #include "app/gfx/backend/irenderer.h"
 #include "util/log.h"
 #include "util/sdl_deleter.h"
@@ -175,7 +176,8 @@ void Arena::ProcessTextureQueue(IRenderer* renderer) {
                      "Creating texture from surface WITHOUT palette - "
                      "colors will be incorrect!");
             zelda3::PaletteDebugger::Get().LogPaletteApplication(
-                "Arena::ProcessTextureQueue", 0, false, "Surface has NO palette");
+                "Arena::ProcessTextureQueue", 0, false,
+                "Surface has NO palette");
           } else if (color_count < 90) {
             LOG_WARN("Arena",
                      "Creating texture with only %d palette colors (expected "
@@ -188,27 +190,31 @@ void Arena::ProcessTextureQueue(IRenderer* renderer) {
 
           try {
             zelda3::PaletteDebugger::Get().LogPaletteApplication(
-                "Arena::ProcessTextureQueue", 0, true, "Calling CreateTexture...");
-            
+                "Arena::ProcessTextureQueue", 0, true,
+                "Calling CreateTexture...");
+
             auto texture = active_renderer->CreateTexture(
                 command.bitmap->width(), command.bitmap->height());
-            
+
             if (texture) {
               zelda3::PaletteDebugger::Get().LogPaletteApplication(
-                  "Arena::ProcessTextureQueue", 0, true, "CreateTexture SUCCESS");
-              
+                  "Arena::ProcessTextureQueue", 0, true,
+                  "CreateTexture SUCCESS");
+
               command.bitmap->set_texture(texture);
               active_renderer->UpdateTexture(texture, *command.bitmap);
               processed++;
             } else {
               zelda3::PaletteDebugger::Get().LogPaletteApplication(
-                  "Arena::ProcessTextureQueue", 0, false, "CreateTexture returned NULL");
+                  "Arena::ProcessTextureQueue", 0, false,
+                  "CreateTexture returned NULL");
               should_remove = false;  // Retry next frame
             }
           } catch (...) {
             LOG_ERROR("Arena", "Exception during texture creation");
             zelda3::PaletteDebugger::Get().LogPaletteApplication(
-                "Arena::ProcessTextureQueue", 0, false, "EXCEPTION during texture creation");
+                "Arena::ProcessTextureQueue", 0, false,
+                "EXCEPTION during texture creation");
             should_remove = true;  // Remove bad command
           }
         }
@@ -358,7 +364,8 @@ void Arena::NotifyPaletteModified(const std::string& group_name,
     }
   }
 
-  LOG_DEBUG("Arena", "Notified %zu palette listeners", palette_listeners_.size());
+  LOG_DEBUG("Arena", "Notified %zu palette listeners",
+            palette_listeners_.size());
 }
 
 int Arena::RegisterPaletteListener(PaletteChangeCallback callback) {

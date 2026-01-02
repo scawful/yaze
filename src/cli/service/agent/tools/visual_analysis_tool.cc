@@ -39,8 +39,8 @@ double VisualAnalysisBase::ComputePixelDifference(
   // Compute Mean Absolute Error
   double total_diff = 0.0;
   for (size_t i = 0; i < tile_a.size(); ++i) {
-    total_diff += std::abs(static_cast<int>(tile_a[i]) -
-                          static_cast<int>(tile_b[i]));
+    total_diff +=
+        std::abs(static_cast<int>(tile_a[i]) - static_cast<int>(tile_b[i]));
   }
 
   // Normalize to 0-100 scale (max diff per pixel is 255)
@@ -87,8 +87,8 @@ double VisualAnalysisBase::ComputeStructuralSimilarity(
   const double c2 = 58.5225;  // (0.03 * 255)^2
 
   double numerator = (2.0 * mean_a * mean_b + c1) * (2.0 * covar + c2);
-  double denominator = (mean_a * mean_a + mean_b * mean_b + c1) *
-                       (var_a + var_b + c2);
+  double denominator =
+      (mean_a * mean_a + mean_b * mean_b + c1) * (var_a + var_b + c2);
 
   double ssim = numerator / denominator;
 
@@ -108,7 +108,8 @@ absl::StatusOr<std::vector<uint8_t>> VisualAnalysisBase::ExtractTile(
   }
 
   // Calculate tile position in sheet
-  int tiles_per_sheet = (kSheetWidth / kTileWidth) * (kSheetHeight / kTileHeight);
+  int tiles_per_sheet =
+      (kSheetWidth / kTileWidth) * (kSheetHeight / kTileHeight);
   if (tile_index < 0 || tile_index >= tiles_per_sheet) {
     return absl::InvalidArgumentError(
         absl::StrCat("Invalid tile index: ", tile_index));
@@ -129,7 +130,7 @@ absl::StatusOr<std::vector<uint8_t>> VisualAnalysisBase::ExtractTileAtPosition(
   // Get graphics sheet data from ROM
   // Graphics sheets are stored in a compressed format in the ROM
   // For now, we'll work with the decompressed data if available
-  
+
   // Calculate the base address for the graphics sheet
   // ALTTP graphics are stored at various locations depending on the sheet
   // This is a simplified extraction - in practice, this would need to
@@ -175,22 +176,21 @@ absl::StatusOr<std::vector<uint8_t>> VisualAnalysisBase::ExtractTileAtPosition(
   return tile_data;
 }
 
-bool VisualAnalysisBase::IsRegionEmpty(
-    const std::vector<uint8_t>& data) const {
+bool VisualAnalysisBase::IsRegionEmpty(const std::vector<uint8_t>& data) const {
   if (data.empty()) {
     return true;
   }
 
   // Check if all bytes are 0x00 (fully transparent/black)
   bool all_zero = std::all_of(data.begin(), data.end(),
-                               [](uint8_t b) { return b == 0x00; });
+                              [](uint8_t b) { return b == 0x00; });
   if (all_zero) {
     return true;
   }
 
   // Check if all bytes are 0xFF (common empty pattern)
   bool all_ff = std::all_of(data.begin(), data.end(),
-                             [](uint8_t b) { return b == 0xFF; });
+                            [](uint8_t b) { return b == 0xFF; });
   if (all_ff) {
     return true;
   }
@@ -231,7 +231,8 @@ std::string VisualAnalysisBase::FormatMatchesAsJson(
     json << "      \"x_position\": " << m.x_position << ",\n";
     json << "      \"y_position\": " << m.y_position << "\n";
     json << "    }";
-    if (i < matches.size() - 1) json << ",";
+    if (i < matches.size() - 1)
+      json << ",";
     json << "\n";
   }
 
@@ -265,7 +266,8 @@ std::string VisualAnalysisBase::FormatRegionsAsJson(
     json << "      \"height\": " << r.height << ",\n";
     json << "      \"tile_count\": " << r.tile_count << "\n";
     json << "    }";
-    if (i < regions.size() - 1) json << ",";
+    if (i < regions.size() - 1)
+      json << ",";
     json << "\n";
   }
 
@@ -297,11 +299,13 @@ std::string VisualAnalysisBase::FormatPaletteUsageAsJson(
     json << "      \"used_by_maps\": [";
     for (size_t j = 0; j < s.used_by_maps.size(); ++j) {
       json << s.used_by_maps[j];
-      if (j < s.used_by_maps.size() - 1) json << ", ";
+      if (j < s.used_by_maps.size() - 1)
+        json << ", ";
     }
     json << "]\n";
     json << "    }";
-    if (i < stats.size() - 1) json << ",";
+    if (i < stats.size() - 1)
+      json << ",";
     json << "\n";
   }
 
@@ -326,12 +330,15 @@ std::string VisualAnalysisBase::FormatHistogramAsJson(
     json << "      \"locations\": [";
     for (size_t j = 0; j < std::min(e.locations.size(), size_t(10)); ++j) {
       json << e.locations[j];
-      if (j < std::min(e.locations.size(), size_t(10)) - 1) json << ", ";
+      if (j < std::min(e.locations.size(), size_t(10)) - 1)
+        json << ", ";
     }
-    if (e.locations.size() > 10) json << ", ...";
+    if (e.locations.size() > 10)
+      json << ", ...";
     json << "]\n";
     json << "    }";
-    if (i < entries.size() - 1) json << ",";
+    if (i < entries.size() - 1)
+      json << ",";
     json << "\n";
   }
 
@@ -376,14 +383,14 @@ absl::Status TileSimilarityTool::Execute(
 
   // Find similar tiles across all sheets (or specified sheet)
   std::vector<TileSimilarityMatch> matches;
-  
+
   bool has_sheet = parser.GetString("sheet").has_value();
   int start_sheet = has_sheet ? sheet : 0;
   int end_sheet = has_sheet ? sheet + 1 : kMaxSheets;
 
   for (int s = start_sheet; s < end_sheet; ++s) {
     int tile_count = GetTileCountForSheet(s);
-    
+
     for (int t = 0; t < tile_count; ++t) {
       // Skip the reference tile itself
       if (s == sheet && t == tile_id) {
@@ -417,10 +424,9 @@ absl::Status TileSimilarityTool::Execute(
   }
 
   // Sort by similarity score descending
-  std::sort(matches.begin(), matches.end(),
-            [](const auto& a, const auto& b) {
-              return a.similarity_score > b.similarity_score;
-            });
+  std::sort(matches.begin(), matches.end(), [](const auto& a, const auto& b) {
+    return a.similarity_score > b.similarity_score;
+  });
 
   // Limit to top 50 matches
   if (matches.size() > 50) {
@@ -469,10 +475,9 @@ absl::Status SpritesheetAnalysisTool::Execute(
   all_regions = MergeAdjacentRegions(all_regions);
 
   // Sort by size (largest first)
-  std::sort(all_regions.begin(), all_regions.end(),
-            [](const auto& a, const auto& b) {
-              return a.tile_count > b.tile_count;
-            });
+  std::sort(
+      all_regions.begin(), all_regions.end(),
+      [](const auto& a, const auto& b) { return a.tile_count > b.tile_count; });
 
   // Output results
   std::cout << FormatRegionsAsJson(all_regions);
@@ -496,8 +501,8 @@ std::vector<UnusedRegion> SpritesheetAnalysisTool::FindUnusedRegions(
 
       for (int py = 0; py < tile_size; ++py) {
         for (int px = 0; px < tile_size; ++px) {
-          auto pixel_or = ExtractTileAtPosition(
-              rom, sheet_index, tx * tile_size, ty * tile_size);
+          auto pixel_or = ExtractTileAtPosition(rom, sheet_index,
+                                                tx * tile_size, ty * tile_size);
           if (pixel_or.ok() && !pixel_or.value().empty()) {
             // Get the specific pixel
             int local_idx = py * tile_size + px;
@@ -542,17 +547,17 @@ std::vector<UnusedRegion> SpritesheetAnalysisTool::MergeAdjacentRegions(
     // Simple horizontal merging for adjacent tiles
     std::sort(sheet_regions.begin(), sheet_regions.end(),
               [](const auto& a, const auto& b) {
-                if (a.y != b.y) return a.y < b.y;
+                if (a.y != b.y)
+                  return a.y < b.y;
                 return a.x < b.x;
               });
 
     for (size_t i = 0; i < sheet_regions.size();) {
       UnusedRegion current = sheet_regions[i];
-      
+
       // Try to merge with following regions on the same row
       size_t j = i + 1;
-      while (j < sheet_regions.size() &&
-             sheet_regions[j].y == current.y &&
+      while (j < sheet_regions.size() && sheet_regions[j].y == current.y &&
              sheet_regions[j].x == current.x + current.width) {
         current.width += sheet_regions[j].width;
         current.tile_count += sheet_regions[j].tile_count;
@@ -576,9 +581,9 @@ absl::Status PaletteUsageTool::ValidateArgs(
   return absl::OkStatus();
 }
 
-absl::Status PaletteUsageTool::Execute(
-    Rom* rom, const resources::ArgumentParser& parser,
-    resources::OutputFormatter& formatter) {
+absl::Status PaletteUsageTool::Execute(Rom* rom,
+                                       const resources::ArgumentParser& parser,
+                                       resources::OutputFormatter& formatter) {
   std::string type = parser.GetString("type").value_or("all");
 
   std::vector<PaletteUsageStats> stats;
@@ -596,8 +601,7 @@ absl::Status PaletteUsageTool::Execute(
       for (auto& s : stats) {
         if (s.palette_index == ds.palette_index) {
           s.usage_count += ds.usage_count;
-          s.used_by_maps.insert(s.used_by_maps.end(),
-                                ds.used_by_maps.begin(),
+          s.used_by_maps.insert(s.used_by_maps.end(), ds.used_by_maps.begin(),
                                 ds.used_by_maps.end());
           found = true;
           break;
@@ -615,16 +619,16 @@ absl::Status PaletteUsageTool::Execute(
     total_usage += s.usage_count;
   }
   for (auto& s : stats) {
-    s.usage_percentage = total_usage > 0
-        ? (static_cast<double>(s.usage_count) / total_usage) * 100.0
-        : 0.0;
+    s.usage_percentage =
+        total_usage > 0
+            ? (static_cast<double>(s.usage_count) / total_usage) * 100.0
+            : 0.0;
   }
 
   // Sort by usage count
-  std::sort(stats.begin(), stats.end(),
-            [](const auto& a, const auto& b) {
-              return a.usage_count > b.usage_count;
-            });
+  std::sort(stats.begin(), stats.end(), [](const auto& a, const auto& b) {
+    return a.usage_count > b.usage_count;
+  });
 
   std::cout << FormatPaletteUsageAsJson(stats);
 
@@ -671,7 +675,7 @@ std::vector<PaletteUsageStats> PaletteUsageTool::AnalyzeDungeonPalettes(
 
   // Dungeons use a different palette system
   // Each room can reference one of several dungeon palettes
-  
+
   // Initialize with dungeon palettes (typically 0-15)
   for (int i = 0; i < 16; ++i) {
     PaletteUsageStats stats;
@@ -705,9 +709,9 @@ absl::Status TileHistogramTool::ValidateArgs(
   return absl::OkStatus();
 }
 
-absl::Status TileHistogramTool::Execute(
-    Rom* rom, const resources::ArgumentParser& parser,
-    resources::OutputFormatter& formatter) {
+absl::Status TileHistogramTool::Execute(Rom* rom,
+                                        const resources::ArgumentParser& parser,
+                                        resources::OutputFormatter& formatter) {
   std::string type = parser.GetString("type").value_or("overworld");
   int top_n = parser.GetInt("top").value_or(20);
 
@@ -725,9 +729,9 @@ absl::Status TileHistogramTool::Execute(
     for (const auto& [tile_id, entry] : dg) {
       if (usage_map.count(tile_id)) {
         usage_map[tile_id].usage_count += entry.usage_count;
-        usage_map[tile_id].locations.insert(
-            usage_map[tile_id].locations.end(),
-            entry.locations.begin(), entry.locations.end());
+        usage_map[tile_id].locations.insert(usage_map[tile_id].locations.end(),
+                                            entry.locations.begin(),
+                                            entry.locations.end());
       } else {
         usage_map[tile_id] = entry;
       }
@@ -743,16 +747,16 @@ absl::Status TileHistogramTool::Execute(
   }
 
   for (auto& e : entries) {
-    e.usage_percentage = total_usage > 0
-        ? (static_cast<double>(e.usage_count) / total_usage) * 100.0
-        : 0.0;
+    e.usage_percentage =
+        total_usage > 0
+            ? (static_cast<double>(e.usage_count) / total_usage) * 100.0
+            : 0.0;
   }
 
   // Sort by usage count descending
-  std::sort(entries.begin(), entries.end(),
-            [](const auto& a, const auto& b) {
-              return a.usage_count > b.usage_count;
-            });
+  std::sort(entries.begin(), entries.end(), [](const auto& a, const auto& b) {
+    return a.usage_count > b.usage_count;
+  });
 
   // Limit to top N
   if (static_cast<int>(entries.size()) > top_n) {
@@ -780,7 +784,7 @@ std::map<int, TileUsageEntry> TileHistogramTool::CountOverworldTiles(
     for (int i = 0; i < 1024; ++i) {
       // In actual implementation: int tile_id = ReadTileFromMap(rom, map_id, i);
       int tile_id = (map_id * 7 + i) % 512;  // Synthetic distribution
-      
+
       if (usage.count(tile_id) == 0) {
         TileUsageEntry entry;
         entry.tile_id = tile_id;
@@ -788,7 +792,7 @@ std::map<int, TileUsageEntry> TileHistogramTool::CountOverworldTiles(
         usage[tile_id] = entry;
       }
       usage[tile_id].usage_count++;
-      
+
       // Track first 10 locations only to save memory
       if (usage[tile_id].locations.size() < 10) {
         usage[tile_id].locations.push_back(map_id);
@@ -810,7 +814,7 @@ std::map<int, TileUsageEntry> TileHistogramTool::CountDungeonTiles(
     // Simulate tile usage per room
     for (int i = 0; i < 256; ++i) {
       int tile_id = (room_id * 11 + i) % 256;  // Synthetic distribution
-      
+
       if (usage.count(tile_id) == 0) {
         TileUsageEntry entry;
         entry.tile_id = tile_id;
@@ -818,9 +822,10 @@ std::map<int, TileUsageEntry> TileHistogramTool::CountDungeonTiles(
         usage[tile_id] = entry;
       }
       usage[tile_id].usage_count++;
-      
+
       if (usage[tile_id].locations.size() < 10) {
-        usage[tile_id].locations.push_back(room_id + 1000);  // Offset for dungeons
+        usage[tile_id].locations.push_back(room_id +
+                                           1000);  // Offset for dungeons
       }
     }
   }
@@ -834,8 +839,8 @@ std::map<int, TileUsageEntry> TileHistogramTool::CountDungeonTiles(
 
 #ifdef YAZE_WITH_OPENCV
 #include <opencv2/core.hpp>
-#include <opencv2/imgproc.hpp>
 #include <opencv2/features2d.hpp>
+#include <opencv2/imgproc.hpp>
 
 namespace opencv {
 
@@ -845,21 +850,21 @@ std::pair<std::pair<int, int>, double> TemplateMatch(
     int method) {
   // Convert to cv::Mat
   cv::Mat ref_mat(8, 8, CV_8UC1, const_cast<uint8_t*>(reference.data()));
-  cv::Mat search_mat(height, width, CV_8UC1, 
+  cv::Mat search_mat(height, width, CV_8UC1,
                      const_cast<uint8_t*>(search_region.data()));
-  
+
   cv::Mat result;
   cv::matchTemplate(search_mat, ref_mat, result, method);
-  
+
   double min_val, max_val;
   cv::Point min_loc, max_loc;
   cv::minMaxLoc(result, &min_val, &max_val, &min_loc, &max_loc);
-  
+
   // For TM_SQDIFF methods, lower is better
   if (method == cv::TM_SQDIFF || method == cv::TM_SQDIFF_NORMED) {
     return {{min_loc.x, min_loc.y}, 1.0 - min_val};
   }
-  
+
   return {{max_loc.x, max_loc.y}, max_val};
 }
 
@@ -867,35 +872,35 @@ double FeatureMatch(const std::vector<uint8_t>& tile_a,
                     const std::vector<uint8_t>& tile_b) {
   cv::Mat mat_a(8, 8, CV_8UC1, const_cast<uint8_t*>(tile_a.data()));
   cv::Mat mat_b(8, 8, CV_8UC1, const_cast<uint8_t*>(tile_b.data()));
-  
+
   // ORB detector
   cv::Ptr<cv::ORB> orb = cv::ORB::create();
-  
+
   std::vector<cv::KeyPoint> kp_a, kp_b;
   cv::Mat desc_a, desc_b;
-  
+
   orb->detectAndCompute(mat_a, cv::noArray(), kp_a, desc_a);
   orb->detectAndCompute(mat_b, cv::noArray(), kp_b, desc_b);
-  
+
   if (desc_a.empty() || desc_b.empty()) {
     return 0.0;  // No features found
   }
-  
+
   // BFMatcher
   cv::BFMatcher matcher(cv::NORM_HAMMING);
   std::vector<cv::DMatch> matches;
   matcher.match(desc_a, desc_b, matches);
-  
+
   if (matches.empty()) {
     return 0.0;
   }
-  
+
   // Calculate match score based on distances
   double total_dist = 0.0;
   for (const auto& m : matches) {
     total_dist += m.distance;
   }
-  
+
   // Normalize: lower distance = higher similarity
   double avg_dist = total_dist / matches.size();
   return std::max(0.0, 100.0 - avg_dist);
@@ -905,25 +910,25 @@ double ComputeSSIM(const std::vector<uint8_t>& tile_a,
                    const std::vector<uint8_t>& tile_b) {
   cv::Mat mat_a(8, 8, CV_8UC1, const_cast<uint8_t*>(tile_a.data()));
   cv::Mat mat_b(8, 8, CV_8UC1, const_cast<uint8_t*>(tile_b.data()));
-  
+
   const double C1 = 6.5025, C2 = 58.5225;
-  
+
   cv::Mat I1, I2;
   mat_a.convertTo(I1, CV_32F);
   mat_b.convertTo(I2, CV_32F);
-  
+
   cv::Mat I1_2 = I1.mul(I1);
   cv::Mat I2_2 = I2.mul(I2);
   cv::Mat I1_I2 = I1.mul(I2);
-  
+
   cv::Mat mu1, mu2;
   cv::GaussianBlur(I1, mu1, cv::Size(3, 3), 1.5);
   cv::GaussianBlur(I2, mu2, cv::Size(3, 3), 1.5);
-  
+
   cv::Mat mu1_2 = mu1.mul(mu1);
   cv::Mat mu2_2 = mu2.mul(mu2);
   cv::Mat mu1_mu2 = mu1.mul(mu2);
-  
+
   cv::Mat sigma1_2, sigma2_2, sigma12;
   cv::GaussianBlur(I1_2, sigma1_2, cv::Size(3, 3), 1.5);
   sigma1_2 -= mu1_2;
@@ -931,18 +936,18 @@ double ComputeSSIM(const std::vector<uint8_t>& tile_a,
   sigma2_2 -= mu2_2;
   cv::GaussianBlur(I1_I2, sigma12, cv::Size(3, 3), 1.5);
   sigma12 -= mu1_mu2;
-  
+
   cv::Mat t1 = 2 * mu1_mu2 + C1;
   cv::Mat t2 = 2 * sigma12 + C2;
   cv::Mat t3 = t1.mul(t2);
-  
+
   t1 = mu1_2 + mu2_2 + C1;
   t2 = sigma1_2 + sigma2_2 + C2;
   t1 = t1.mul(t2);
-  
+
   cv::Mat ssim_map;
   cv::divide(t3, t1, ssim_map);
-  
+
   cv::Scalar mssim = cv::mean(ssim_map);
   return mssim[0] * 100.0;  // Convert to percentage
 }

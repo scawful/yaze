@@ -9,9 +9,9 @@
 #include "absl/flags/flag.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
-#include "rom/rom.h"
 #include "cli/cli.h"
 #include "cli/service/command_registry.h"
+#include "rom/rom.h"
 #ifndef __EMSCRIPTEN__
 #include "cli/tui/tui.h"
 #endif
@@ -27,7 +27,8 @@
 ABSL_FLAG(bool, tui, false, "Launch interactive Text User Interface");
 ABSL_DECLARE_FLAG(bool, quiet);
 ABSL_FLAG(bool, version, false, "Show version information");
-ABSL_FLAG(bool, self_test, false, "Run self-test diagnostics to verify CLI functionality");
+ABSL_FLAG(bool, self_test, false,
+          "Run self-test diagnostics to verify CLI functionality");
 #ifdef YAZE_HTTP_API_ENABLED
 ABSL_FLAG(int, http_port, 0,
           "HTTP API server port (0 = disabled, default: 8080 when enabled)");
@@ -74,7 +75,7 @@ int RunSelfTest() {
   };
 
   // Test 1: Version info is available
-  run_test("Version info available", 
+  run_test("Version info available",
            YAZE_VERSION_MAJOR >= 0 && YAZE_VERSION_MINOR >= 0);
 
   // Test 2: CLI instance can be created
@@ -105,8 +106,7 @@ int RunSelfTest() {
   }
 
   // Test 5: Flag parsing works
-  run_test("Flag parsing functional", 
-           absl::GetFlag(FLAGS_self_test) == true);
+  run_test("Flag parsing functional", absl::GetFlag(FLAGS_self_test) == true);
 
 #ifdef YAZE_HTTP_API_ENABLED
   // Test 6: HTTP API available (if compiled in)
@@ -119,7 +119,7 @@ int RunSelfTest() {
   std::cout << "\n\033[1;36m=== Results ===\033[0m\n";
   std::cout << "  Passed: \033[1;32m" << passed << "\033[0m\n";
   std::cout << "  Failed: \033[1;31m" << failed << "\033[0m\n";
-  
+
   if (failed == 0) {
     std::cout << "\n\033[1;32mAll self-tests passed!\033[0m\n\n";
     return EXIT_SUCCESS;

@@ -6,8 +6,8 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/gfx/util/compression.h"
-#include "rom/rom.h"
 #include "cli/handlers/tools/diagnostic_types.h"
+#include "rom/rom.h"
 #include "zelda3/overworld/overworld.h"
 
 namespace yaze::cli {
@@ -36,8 +36,7 @@ struct MapValidationResult {
         R"("pc_low":"0x%06X","pc_high":"0x%06X","pointers_valid":%s,)"
         R"("decomp_low":%s,"decomp_high":%s,"error":"%s","skipped":%s})",
         map_id, snes_low, snes_high, pc_low, pc_high,
-        pointers_valid ? "true" : "false",
-        decompress_low_ok ? "true" : "false",
+        pointers_valid ? "true" : "false", decompress_low_ok ? "true" : "false",
         decompress_high_ok ? "true" : "false", error,
         skipped ? "true" : "false");
   }
@@ -46,20 +45,20 @@ struct MapValidationResult {
     if (skipped) {
       return absl::StrFormat("map 0x%02X: skipped (%s)", map_id, error);
     }
-    std::string status = (pointers_valid && decompress_low_ok && decompress_high_ok)
-                             ? "OK"
-                             : "FAIL";
+    std::string status =
+        (pointers_valid && decompress_low_ok && decompress_high_ok) ? "OK"
+                                                                    : "FAIL";
     return absl::StrFormat(
         "map 0x%02X: %s snes_low=0x%06X snes_high=0x%06X ptr=%s dec_low=%s "
         "dec_high=%s %s",
-        map_id, status, snes_low, snes_high,
-        pointers_valid ? "OK" : "BAD",
-        decompress_low_ok ? "OK" : "BAD",
-        decompress_high_ok ? "OK" : "BAD", error);
+        map_id, status, snes_low, snes_high, pointers_valid ? "OK" : "BAD",
+        decompress_low_ok ? "OK" : "BAD", decompress_high_ok ? "OK" : "BAD",
+        error);
   }
 
   bool IsValid() const {
-    return !skipped && pointers_valid && decompress_low_ok && decompress_high_ok;
+    return !skipped && pointers_valid && decompress_low_ok &&
+           decompress_high_ok;
   }
 };
 
@@ -275,8 +274,9 @@ absl::Status OverworldValidateCommandHandler::Execute(
     formatter.AddField("tile16_uses_expanded", tile16_result.uses_expanded);
 
     if (tile16_result.uses_expanded) {
-      formatter.AddField("tile16_problem_addresses",
-                         static_cast<int>(tile16_result.problem_addresses.size()));
+      formatter.AddField(
+          "tile16_problem_addresses",
+          static_cast<int>(tile16_result.problem_addresses.size()));
       formatter.AddField("tile16_suspicious_count",
                          tile16_result.suspicious_count);
 

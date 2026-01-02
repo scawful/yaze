@@ -418,7 +418,7 @@ absl::StatusOr<AutomationResult> GuiAutomationClient::Screenshot(
   }
 
   yaze::test::ScreenshotRequest request;
-  request.set_window_title("");                         // Empty = main window
+  request.set_window_title("");  // Empty = main window
   // No hardcoded path here - let server decide default unless provided
   request.set_format(
       yaze::test::ScreenshotRequest::IMAGE_FORMAT_BMP);  // Match SDL_SaveBMP

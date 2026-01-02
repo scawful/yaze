@@ -188,10 +188,9 @@ void UnifiedLayout::InitializeTheme() {
 Component UnifiedLayout::CreateMainMenuPanel() {
   struct MenuState {
     int selected = 0;
-    std::vector<std::string> items = {"🔍 Hex Viewer",     "🎨 Palette Editor",
-                                      "📝 TODO Manager",   "🔧 ROM Tools",
-                                      "🎮 Graphics Tools", "⚙️ Settings",
-                                      "❓ Help",           "🚪 Exit"};
+    std::vector<std::string> items = {
+        "🔍 Hex Viewer",     "🎨 Palette Editor", "📝 TODO Manager", "🔧 ROM Tools",
+        "🎮 Graphics Tools", "⚙️ Settings",  "❓ Help",         "🚪 Exit"};
   };
 
   auto state = std::make_shared<MenuState>();

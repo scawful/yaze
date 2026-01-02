@@ -50,17 +50,28 @@ const std::map<uint8_t, std::string> kGameModes = {
 
 // Sprite type names (common ones)
 const std::map<uint8_t, std::string> kSpriteTypes = {
-    {0x00, "Raven"},        {0x01, "Vulture"},
-    {0x02, "Flying Tile"},  {0x03, "Empty"},
-    {0x04, "Pull Switch"},  {0x05, "Octorock"},
-    {0x06, "Wall Master"},  {0x07, "Moldorm (tail)"},
-    {0x08, "Octorock (4)"},  {0x09, "Chicken"},
-    {0x0A, "Octorok (Stone)"}, {0x0B, "Buzzblob"},
-    {0x0C, "Snap Dragon"},  {0x0D, "Octoballoon"},
-    {0x0E, "Octoballoon Hatchling"}, {0x0F, "Hinox"},
-    {0x10, "Moblin"},       {0x11, "Mini Helmasaur"},
-    {0x12, "Gargoyle's Domain (Fireball)"}, {0x13, "Antifairy"},
-    {0x14, "Sahasrahla/Elder"}, {0x15, "Bush Hoarder"},
+    {0x00, "Raven"},
+    {0x01, "Vulture"},
+    {0x02, "Flying Tile"},
+    {0x03, "Empty"},
+    {0x04, "Pull Switch"},
+    {0x05, "Octorock"},
+    {0x06, "Wall Master"},
+    {0x07, "Moldorm (tail)"},
+    {0x08, "Octorock (4)"},
+    {0x09, "Chicken"},
+    {0x0A, "Octorok (Stone)"},
+    {0x0B, "Buzzblob"},
+    {0x0C, "Snap Dragon"},
+    {0x0D, "Octoballoon"},
+    {0x0E, "Octoballoon Hatchling"},
+    {0x0F, "Hinox"},
+    {0x10, "Moblin"},
+    {0x11, "Mini Helmasaur"},
+    {0x12, "Gargoyle's Domain (Fireball)"},
+    {0x13, "Antifairy"},
+    {0x14, "Sahasrahla/Elder"},
+    {0x15, "Bush Hoarder"},
 };
 
 // Link direction names
@@ -167,8 +178,8 @@ std::vector<MemoryRegionInfo> MemoryInspectorBase::GetKnownRegions() const {
        ALTTPMemoryMap::kSpriteType + 15, "array"},
       {"oam_buffer", "OAM sprite buffer", ALTTPMemoryMap::kOAMBuffer,
        ALTTPMemoryMap::kOAMBufferEnd, "array"},
-      {"overworld_area", "Current overworld area", ALTTPMemoryMap::kOverworldArea,
-       ALTTPMemoryMap::kOverworldArea, "byte"},
+      {"overworld_area", "Current overworld area",
+       ALTTPMemoryMap::kOverworldArea, ALTTPMemoryMap::kOverworldArea, "byte"},
       {"dungeon_room", "Current dungeon room", ALTTPMemoryMap::kDungeonRoom,
        ALTTPMemoryMap::kDungeonRoom + 1, "word"},
       {"player_health", "Player current health", ALTTPMemoryMap::kPlayerHealth,
@@ -235,9 +246,9 @@ absl::Status MemoryAnalyzeTool::ValidateArgs(
   return parser.RequireArgs({"address", "length"});
 }
 
-absl::Status MemoryAnalyzeTool::Execute(
-    Rom* rom, const resources::ArgumentParser& parser,
-    resources::OutputFormatter& formatter) {
+absl::Status MemoryAnalyzeTool::Execute(Rom* rom,
+                                        const resources::ArgumentParser& parser,
+                                        resources::OutputFormatter& formatter) {
   auto addr_str = parser.GetString("address");
   if (!addr_str.has_value()) {
     return absl::InvalidArgumentError("Missing required argument: address");
@@ -258,19 +269,23 @@ absl::Status MemoryAnalyzeTool::Execute(
   formatter.AddField("length", length);
   formatter.AddField("region", DescribeAddress(address));
   formatter.AddField("data_type", IdentifyDataType(address));
-  formatter.AddField("note", "Connect to emulator via gRPC to read actual memory data");
+  formatter.AddField("note",
+                     "Connect to emulator via gRPC to read actual memory data");
 
   // Provide context-specific analysis hints
   if (ALTTPMemoryMap::IsSpriteTable(address)) {
-    formatter.AddField("analysis_hint",
+    formatter.AddField(
+        "analysis_hint",
         "Sprite table: Check sprite_state ($DD0), sprite_type ($E20), "
         "sprite_health ($E50) for each sprite (0-15)");
   } else if (address >= ALTTPMemoryMap::kLinkYLow &&
              address <= ALTTPMemoryMap::kLinkDirection) {
-    formatter.AddField("analysis_hint",
+    formatter.AddField(
+        "analysis_hint",
         "Player state: Position at $20-$23, state at $5D, direction at $2F");
   } else if (address == ALTTPMemoryMap::kGameMode) {
-    formatter.AddField("analysis_hint",
+    formatter.AddField(
+        "analysis_hint",
         "Game mode: 0x07=Dungeon, 0x09=Overworld, 0x19=Inventory, "
         "0x0D=Dialogue");
   }
@@ -368,9 +383,9 @@ absl::Status MemorySearchTool::ValidateArgs(
   return parser.RequireArgs({"pattern"});
 }
 
-absl::Status MemorySearchTool::Execute(
-    Rom* rom, const resources::ArgumentParser& parser,
-    resources::OutputFormatter& formatter) {
+absl::Status MemorySearchTool::Execute(Rom* rom,
+                                       const resources::ArgumentParser& parser,
+                                       resources::OutputFormatter& formatter) {
   auto pattern_opt = parser.GetString("pattern");
   if (!pattern_opt.has_value()) {
     return absl::InvalidArgumentError("Missing required argument: pattern");
@@ -388,7 +403,8 @@ absl::Status MemorySearchTool::Execute(
   formatter.AddField("pattern", pattern_str);
   formatter.AddField("pattern_length", static_cast<int>(pattern.size()));
   formatter.AddField("max_results", max_results);
-  formatter.AddField("note", "Connect to emulator via gRPC to search actual memory");
+  formatter.AddField("note",
+                     "Connect to emulator via gRPC to search actual memory");
 
   // Show parsed pattern
   std::ostringstream parsed;
@@ -465,9 +481,8 @@ std::vector<PatternMatch> MemorySearchTool::FindMatches(
     if (match) {
       PatternMatch m;
       m.address = base_address + static_cast<uint32_t>(i);
-      m.matched_bytes =
-          std::vector<uint8_t>(memory.begin() + i,
-                               memory.begin() + i + pattern.size());
+      m.matched_bytes = std::vector<uint8_t>(
+          memory.begin() + i, memory.begin() + i + pattern.size());
       m.context = DescribeAddress(m.address);
       matches.push_back(m);
 
@@ -488,9 +503,9 @@ absl::Status MemoryCompareTool::ValidateArgs(
   return parser.RequireArgs({"address"});
 }
 
-absl::Status MemoryCompareTool::Execute(
-    Rom* rom, const resources::ArgumentParser& parser,
-    resources::OutputFormatter& formatter) {
+absl::Status MemoryCompareTool::Execute(Rom* rom,
+                                        const resources::ArgumentParser& parser,
+                                        resources::OutputFormatter& formatter) {
   auto addr_result = ParseAddress(parser.GetString("address").value_or(""));
   if (!addr_result.ok())
     return addr_result.status();
@@ -504,9 +519,11 @@ absl::Status MemoryCompareTool::Execute(
 
   if (!expected_str.empty()) {
     formatter.AddField("expected", expected_str);
-    formatter.AddField("note", "Connect to emulator via gRPC to compare actual memory");
+    formatter.AddField("note",
+                       "Connect to emulator via gRPC to compare actual memory");
   } else {
-    formatter.AddField("note", "Provide --expected <hex> to compare against expected values");
+    formatter.AddField(
+        "note", "Provide --expected <hex> to compare against expected values");
   }
 
   formatter.EndObject();
@@ -522,21 +539,24 @@ absl::Status MemoryCheckTool::ValidateArgs(
   return absl::OkStatus();  // No required args
 }
 
-absl::Status MemoryCheckTool::Execute(
-    Rom* rom, const resources::ArgumentParser& parser,
-    resources::OutputFormatter& formatter) {
+absl::Status MemoryCheckTool::Execute(Rom* rom,
+                                      const resources::ArgumentParser& parser,
+                                      resources::OutputFormatter& formatter) {
   std::string region = parser.GetString("region").value_or("all");
 
   // Provide check descriptions
   std::vector<std::string> checks;
   if (region == "all" || region == "sprites") {
-    checks.push_back("Sprite table: Check for invalid states, out-of-bounds positions");
+    checks.push_back(
+        "Sprite table: Check for invalid states, out-of-bounds positions");
   }
   if (region == "all" || region == "player") {
-    checks.push_back("Player state: Check for invalid positions, corrupted state");
+    checks.push_back(
+        "Player state: Check for invalid positions, corrupted state");
   }
   if (region == "all" || region == "game") {
-    checks.push_back("Game mode: Check for invalid mode/submodule combinations");
+    checks.push_back(
+        "Game mode: Check for invalid mode/submodule combinations");
   }
 
   std::ostringstream checks_str;
@@ -546,7 +566,8 @@ absl::Status MemoryCheckTool::Execute(
 
   formatter.BeginObject();
   formatter.AddField("region", region);
-  formatter.AddField("note", "Connect to emulator via gRPC to check actual memory");
+  formatter.AddField("note",
+                     "Connect to emulator via gRPC to check actual memory");
   formatter.AddField("available_checks", checks_str.str());
   formatter.EndObject();
   return absl::OkStatus();
@@ -641,9 +662,9 @@ absl::Status MemoryRegionsTool::ValidateArgs(
   return absl::OkStatus();  // No required args
 }
 
-absl::Status MemoryRegionsTool::Execute(
-    Rom* rom, const resources::ArgumentParser& parser,
-    resources::OutputFormatter& formatter) {
+absl::Status MemoryRegionsTool::Execute(Rom* rom,
+                                        const resources::ArgumentParser& parser,
+                                        resources::OutputFormatter& formatter) {
   std::string filter = parser.GetString("filter").value_or("");
 
   auto regions = GetKnownRegions();

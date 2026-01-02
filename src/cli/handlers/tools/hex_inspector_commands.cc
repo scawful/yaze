@@ -1,25 +1,22 @@
 #include "cli/handlers/tools/hex_inspector_commands.h"
 
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 #include <vector>
 
-#include "absl/strings/str_format.h"
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
-#include "rom/rom.h"
 #include "cli/service/resources/command_context.h"
+#include "rom/rom.h"
 
 namespace yaze {
 namespace cli {
 
 namespace {
 
-enum class AddressMode {
-  kPc,
-  kSnes
-};
+enum class AddressMode { kPc, kSnes };
 
 std::string PcToSnesLoRom(int pc_addr) {
   int bank = pc_addr / 0x8000;
@@ -28,12 +25,15 @@ std::string PcToSnesLoRom(int pc_addr) {
 }
 
 int SnesToPcLoRom(int bank, int addr) {
-  if (addr < 0x8000) return -1; // Invalid for ROM data in LoROM
+  if (addr < 0x8000)
+    return -1;  // Invalid for ROM data in LoROM
   int pc_addr = ((bank & 0x7F) * 0x8000) + (addr - 0x8000);
   return pc_addr;
 }
 
-void PrintHexDump(const std::vector<uint8_t>& data, int offset, int size, AddressMode mode, [[maybe_unused]] resources::OutputFormatter& formatter) {
+void PrintHexDump(const std::vector<uint8_t>& data, int offset, int size,
+                  AddressMode mode,
+                  [[maybe_unused]] resources::OutputFormatter& formatter) {
   std::string output;
   for (int i = 0; i < size; i += 16) {
     // Print address
@@ -71,9 +71,10 @@ void PrintHexDump(const std::vector<uint8_t>& data, int offset, int size, Addres
   std::cout << output;
 }
 
-} // namespace
+}  // namespace
 
-absl::Status HexDumpCommandHandler::ValidateArgs(const resources::ArgumentParser& parser) {
+absl::Status HexDumpCommandHandler::ValidateArgs(
+    const resources::ArgumentParser& parser) {
   if (parser.GetPositional().empty()) {
     return absl::InvalidArgumentError("Missing ROM path.");
   }
@@ -83,15 +84,17 @@ absl::Status HexDumpCommandHandler::ValidateArgs(const resources::ArgumentParser
   return absl::OkStatus();
 }
 
-absl::Status HexDumpCommandHandler::Execute([[maybe_unused]] Rom* rom, const resources::ArgumentParser& parser,
-                                            resources::OutputFormatter& formatter) {
+absl::Status HexDumpCommandHandler::Execute(
+    [[maybe_unused]] Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
   std::string rom_path = parser.GetPositional()[0];
   std::string offset_str = parser.GetPositional()[1];
-  int size = 256; // Default size
+  int size = 256;  // Default size
 
   if (parser.GetPositional().size() >= 3) {
     if (!absl::SimpleAtoi(parser.GetPositional()[2], &size)) {
-      return absl::InvalidArgumentError(absl::StrFormat("Invalid size: %s", parser.GetPositional()[2]));
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Invalid size: %s", parser.GetPositional()[2]));
     }
   }
 
@@ -111,34 +114,41 @@ absl::Status HexDumpCommandHandler::Execute([[maybe_unused]] Rom* rom, const res
     if (parts.size() == 2) {
       int bank = 0;
       int addr = 0;
-      if (absl::SimpleAtoi(parts[0], &bank) && absl::SimpleAtoi(parts[1], &addr)) { // This assumes decimal if no 0x, but usually hex for addresses
-         // Let's try hex parsing for bank/addr
-         try {
-           bank = std::stoi(parts[0], nullptr, 16);
-           addr = std::stoi(parts[1], nullptr, 16);
-           offset = SnesToPcLoRom(bank, addr);
-           if (offset == -1) {
-             return absl::InvalidArgumentError("Invalid LoROM SNES address (addr < 0x8000)");
-           }
-           // Auto-enable SNES mode if user provided SNES address
-           if (!parser.GetString("mode")) {
-             mode = AddressMode::kSnes;
-           }
-         } catch (...) {
-            return absl::InvalidArgumentError("Invalid SNES address format (expected HEX:HEX)");
-         }
+      if (absl::SimpleAtoi(parts[0], &bank) &&
+          absl::SimpleAtoi(
+              parts[1],
+              &addr)) {  // This assumes decimal if no 0x, but usually hex for addresses
+        // Let's try hex parsing for bank/addr
+        try {
+          bank = std::stoi(parts[0], nullptr, 16);
+          addr = std::stoi(parts[1], nullptr, 16);
+          offset = SnesToPcLoRom(bank, addr);
+          if (offset == -1) {
+            return absl::InvalidArgumentError(
+                "Invalid LoROM SNES address (addr < 0x8000)");
+          }
+          // Auto-enable SNES mode if user provided SNES address
+          if (!parser.GetString("mode")) {
+            mode = AddressMode::kSnes;
+          }
+        } catch (...) {
+          return absl::InvalidArgumentError(
+              "Invalid SNES address format (expected HEX:HEX)");
+        }
       }
     }
   } else if (offset_str.size() > 2 && offset_str.substr(0, 2) == "0x") {
-     try {
-       offset = std::stoi(offset_str, nullptr, 16);
-     } catch (...) {
-       return absl::InvalidArgumentError(absl::StrFormat("Invalid hex offset: %s", offset_str));
-     }
+    try {
+      offset = std::stoi(offset_str, nullptr, 16);
+    } catch (...) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Invalid hex offset: %s", offset_str));
+    }
   } else {
-     if (!absl::SimpleAtoi(offset_str, &offset)) {
-       return absl::InvalidArgumentError(absl::StrFormat("Invalid offset: %s", offset_str));
-     }
+    if (!absl::SimpleAtoi(offset_str, &offset)) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Invalid offset: %s", offset_str));
+    }
   }
 
   // Load ROM locally since RequiresRom() is false (to allow inspecting any file)
@@ -149,17 +159,19 @@ absl::Status HexDumpCommandHandler::Execute([[maybe_unused]] Rom* rom, const res
   }
 
   if (offset < 0 || static_cast<size_t>(offset) >= local_rom.size()) {
-    return absl::InvalidArgumentError(absl::StrFormat("Offset out of bounds. ROM size: %lu", local_rom.size()));
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Offset out of bounds. ROM size: %lu", local_rom.size()));
   }
 
-  if (static_cast<size_t>(offset) + static_cast<size_t>(size) > local_rom.size()) {
+  if (static_cast<size_t>(offset) + static_cast<size_t>(size) >
+      local_rom.size()) {
     size = static_cast<int>(local_rom.size() - static_cast<size_t>(offset));
   }
 
   std::vector<uint8_t> buffer(size);
   const auto& rom_data = local_rom.vector();
-  for(int i=0; i<size; ++i) {
-      buffer[i] = rom_data[offset + i];
+  for (int i = 0; i < size; ++i) {
+    buffer[i] = rom_data[offset + i];
   }
 
   PrintHexDump(buffer, offset, size, mode, formatter);
@@ -358,25 +370,23 @@ const DataStructure kRoomHeaderStructure = {
     }};
 
 // Sprite entry structure (3 bytes)
-const DataStructure kSpriteStructure = {
-    "Sprite Entry",
-    3,
-    {
-        {"Y Position", 0, 1, "decimal"},
-        {"X/Subtype", 1, 1, "hex"},
-        {"Sprite ID", 2, 1, "hex"},
-    }};
+const DataStructure kSpriteStructure = {"Sprite Entry",
+                                        3,
+                                        {
+                                            {"Y Position", 0, 1, "decimal"},
+                                            {"X/Subtype", 1, 1, "hex"},
+                                            {"Sprite ID", 2, 1, "hex"},
+                                        }};
 
 // Tile16 entry structure (8 bytes - 4 tiles)
-const DataStructure kTile16Structure = {
-    "Tile16 Entry",
-    8,
-    {
-        {"Tile TL", 0, 2, "hex"},
-        {"Tile TR", 2, 2, "hex"},
-        {"Tile BL", 4, 2, "hex"},
-        {"Tile BR", 6, 2, "hex"},
-    }};
+const DataStructure kTile16Structure = {"Tile16 Entry",
+                                        8,
+                                        {
+                                            {"Tile TL", 0, 2, "hex"},
+                                            {"Tile TR", 2, 2, "hex"},
+                                            {"Tile BL", 4, 2, "hex"},
+                                            {"Tile BR", 6, 2, "hex"},
+                                        }};
 
 void PrintAnnotatedStructure(const DataStructure& structure,
                              const std::vector<uint8_t>& data, int offset) {
@@ -494,8 +504,8 @@ absl::Status HexAnnotateCommandHandler::Execute(
   }
 
   if (offset < 0 || static_cast<size_t>(offset) >= local_rom.size()) {
-    return absl::InvalidArgumentError(
-        absl::StrFormat("Offset out of bounds. ROM size: %lu", local_rom.size()));
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Offset out of bounds. ROM size: %lu", local_rom.size()));
   }
 
   // Auto-detect structure type if needed
@@ -557,13 +567,15 @@ absl::Status HexAnnotateCommandHandler::Execute(
                  field.offset + 1 < (int)buffer.size()) {
         uint16_t val = buffer[field.offset] | (buffer[field.offset + 1] << 8);
         value = absl::StrFormat("0x%04X", val);
-      } else if (field.format == "decimal" && field.offset < (int)buffer.size()) {
+      } else if (field.format == "decimal" &&
+                 field.offset < (int)buffer.size()) {
         value = std::to_string(buffer[field.offset]);
       } else if (field.format == "ascii") {
         for (int i = 0; i < field.size && field.offset + i < (int)buffer.size();
              ++i) {
           char c = static_cast<char>(buffer[field.offset + i]);
-          if (c >= 32 && c < 127) value += c;
+          if (c >= 32 && c < 127)
+            value += c;
         }
       } else if (field.format == "flags" && field.offset < (int)buffer.size()) {
         value = absl::StrFormat("0x%02X", buffer[field.offset]);

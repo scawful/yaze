@@ -78,12 +78,14 @@ bool ComputePaletteSlice(std::string_view group_name,
   }
 
   const auto layout = GetPaletteRowLayout(group_name, palette.size());
-  const int max_rows = GetPaletteRowCount(palette.size(), layout.colors_per_row);
+  const int max_rows =
+      GetPaletteRowCount(palette.size(), layout.colors_per_row);
   const int clamped_row = std::clamp(row_index, 0, std::max(0, max_rows - 1));
   const int row_offset = clamped_row * layout.colors_per_row;
-  const size_t offset =
-      static_cast<size_t>(row_offset + (layout.has_explicit_transparent ? 1 : 0));
-  int length = layout.colors_per_row - (layout.has_explicit_transparent ? 1 : 0);
+  const size_t offset = static_cast<size_t>(
+      row_offset + (layout.has_explicit_transparent ? 1 : 0));
+  int length =
+      layout.colors_per_row - (layout.has_explicit_transparent ? 1 : 0);
   length = std::clamp(length, 1, 15);
 
   if (offset >= palette.size()) {
@@ -190,7 +192,8 @@ void PaletteControlsPanel::DrawPaletteGroupSelector() {
 
   // Palette group combo
   ImGui::SetNextItemWidth(160);
-  if (ImGui::Combo("Group", reinterpret_cast<int*>(&state_->palette_group_index),
+  if (ImGui::Combo("Group",
+                   reinterpret_cast<int*>(&state_->palette_group_index),
                    kPaletteGroupAddressesKeys,
                    IM_ARRAYSIZE(kPaletteGroupAddressesKeys))) {
     state_->refresh_graphics = true;
@@ -219,7 +222,8 @@ void PaletteControlsPanel::DrawPaletteDisplay() {
   gui::TextWithSeparators("Current Palette");
 
   // Get the current palette from GameData
-  if (!game_data_) return;
+  if (!game_data_)
+    return;
   auto palette_group_result = game_data_->palette_groups.get_group(
       kPaletteGroupAddressesKeys[state_->palette_group_index]);
   if (!palette_group_result) {
@@ -249,9 +253,11 @@ void PaletteControlsPanel::DrawPaletteDisplay() {
   for (int row = 0; row < num_rows; row++) {
     for (int col = 0; col < colors_per_row; col++) {
       int idx = row * colors_per_row + col;
-      if (idx >= total_colors) break;
+      if (idx >= total_colors)
+        break;
 
-      if (col > 0) ImGui::SameLine();
+      if (col > 0)
+        ImGui::SameLine();
 
       auto& color = palette[idx];
       ImVec4 im_color(color.rgb().x / 255.0f, color.rgb().y / 255.0f,
@@ -293,7 +299,8 @@ void PaletteControlsPanel::DrawPaletteDisplay() {
   // Row selection buttons
   ImGui::Text("Sub-palette Row:");
   for (int i = 0; i < std::min(8, num_rows); i++) {
-    if (i > 0) ImGui::SameLine();
+    if (i > 0)
+      ImGui::SameLine();
     bool selected = (state_->sub_palette_index == static_cast<uint64_t>(i));
     if (selected) {
       ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.5f, 0.8f, 1.0f));
@@ -329,10 +336,10 @@ void PaletteControlsPanel::DrawApplyButtons() {
 
   // Apply to selected sheets (multi-select)
   if (!state_->selected_sheets.empty()) {
-    if (ImGui::Button(
-            absl::StrFormat(ICON_MD_CHECKLIST " Apply to %zu Selected",
-                            state_->selected_sheets.size())
-                .c_str())) {
+    if (ImGui::Button(absl::StrFormat(ICON_MD_CHECKLIST
+                                      " Apply to %zu Selected",
+                                      state_->selected_sheets.size())
+                          .c_str())) {
       for (uint16_t sheet_id : state_->selected_sheets) {
         ApplyPaletteToSheet(sheet_id);
       }
@@ -352,16 +359,19 @@ void PaletteControlsPanel::DrawApplyButtons() {
 }
 
 void PaletteControlsPanel::ApplyPaletteToSheet(uint16_t sheet_id) {
-  if (!rom_ || !rom_->is_loaded() || !game_data_) return;
+  if (!rom_ || !rom_->is_loaded() || !game_data_)
+    return;
 
   auto palette_group_name =
       std::string_view(kPaletteGroupAddressesKeys[state_->palette_group_index]);
   auto palette_group_result =
       game_data_->palette_groups.get_group(std::string(palette_group_name));
-  if (!palette_group_result) return;
+  if (!palette_group_result)
+    return;
 
   auto palette_group = *palette_group_result;
-  if (state_->palette_index >= palette_group.size()) return;
+  if (state_->palette_index >= palette_group.size())
+    return;
 
   auto palette = palette_group.palette(state_->palette_index);
   if (palette.empty()) {
@@ -377,23 +387,27 @@ void PaletteControlsPanel::ApplyPaletteToSheet(uint16_t sheet_id) {
                             palette_offset, palette_length)) {
       sheet.SetPaletteWithTransparent(palette, palette_offset, palette_length);
     } else {
-      sheet.SetPaletteWithTransparent(palette, 0, std::min(7, static_cast<int>(palette.size())));
+      sheet.SetPaletteWithTransparent(
+          palette, 0, std::min(7, static_cast<int>(palette.size())));
     }
     gfx::Arena::Get().NotifySheetModified(sheet_id);
   }
 }
 
 void PaletteControlsPanel::ApplyPaletteToAllSheets() {
-  if (!rom_ || !rom_->is_loaded() || !game_data_) return;
+  if (!rom_ || !rom_->is_loaded() || !game_data_)
+    return;
 
   auto palette_group_name =
       std::string_view(kPaletteGroupAddressesKeys[state_->palette_group_index]);
   auto palette_group_result =
       game_data_->palette_groups.get_group(std::string(palette_group_name));
-  if (!palette_group_result) return;
+  if (!palette_group_result)
+    return;
 
   auto palette_group = *palette_group_result;
-  if (state_->palette_index >= palette_group.size()) return;
+  if (state_->palette_index >= palette_group.size())
+    return;
 
   auto palette = palette_group.palette(state_->palette_index);
   if (palette.empty()) {
@@ -409,10 +423,11 @@ void PaletteControlsPanel::ApplyPaletteToAllSheets() {
     auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->data()[i];
     if (sheet.is_active() && sheet.surface()) {
       if (has_slice) {
-        sheet.SetPaletteWithTransparent(palette, palette_offset, palette_length);
+        sheet.SetPaletteWithTransparent(palette, palette_offset,
+                                        palette_length);
       } else {
-        sheet.SetPaletteWithTransparent(palette, 0,
-                                        std::min(7, static_cast<int>(palette.size())));
+        sheet.SetPaletteWithTransparent(
+            palette, 0, std::min(7, static_cast<int>(palette.size())));
       }
       gfx::Arena::Get().NotifySheetModified(i);
     }

@@ -1,18 +1,19 @@
-#include <vector>
-#include <string>
-#include <iostream>
-#include <thread>
 #include <functional>
+#include <iostream>
 #include <mutex>
+#include <string>
+#include <thread>
+#include <vector>
 
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
+#include "absl/time/clock.h"
 #include "cli/cli.h"
-#include "cli/service/command_registry.h"
 #include "cli/handlers/agent/todo_commands.h"
-#include "cli/service/ai/browser_ai_service.h"
 #include "cli/service/agent/conversational_agent_service.h"
+#include "cli/service/ai/browser_ai_service.h"
+#include "cli/service/command_registry.h"
 #include "cli/service/resources/resource_catalog.h"
 #include "rom/rom.h"
 
@@ -42,11 +43,13 @@ absl::Status HandleChatCommand(const std::vector<std::string>& args) {
   auto* service = GetGlobalBrowserAIService();
   if (!service) {
     return absl::FailedPreconditionError(
-        "AI Service not initialized. Please set an API key using the settings menu.");
+        "AI Service not initialized. Please set an API key using the settings "
+        "menu.");
   }
 
   if (args.empty()) {
-    return absl::InvalidArgumentError("Please provide a message. Usage: agent chat <message>");
+    return absl::InvalidArgumentError(
+        "Please provide a message. Usage: agent chat <message>");
   }
 
   std::string prompt = absl::StrJoin(args, " ");
@@ -73,12 +76,13 @@ absl::Status HandleChatCommand(const std::vector<std::string>& args) {
 
     // Generate response using history
     auto response_or = service->GenerateResponse(history_copy);
-    
+
     if (!response_or.ok()) {
-      std::cerr << "\nError: " << response_or.status().message() << "\n" << std::endl;
+      std::cerr << "\nError: " << response_or.status().message() << "\n"
+                << std::endl;
       // Remove the failed user message so we don't get stuck in a bad state
       std::lock_guard<std::mutex> lock(g_chat_mutex);
-      if (!g_chat_history.empty() && 
+      if (!g_chat_history.empty() &&
           g_chat_history.back().sender == agent::ChatMessage::Sender::kUser) {
         g_chat_history.pop_back();
       }
@@ -116,15 +120,19 @@ absl::Status HandlePlanCommand(const std::vector<std::string>& args) {
   }
 
   std::string task = absl::StrJoin(args, " ");
-  std::string prompt = "Create a detailed step-by-step implementation plan for the following ROM hacking task. "
-                       "Do not execute it yet, just plan it.\nTask: " + task;
+  std::string prompt =
+      "Create a detailed step-by-step implementation plan for the following "
+      "ROM hacking task. "
+      "Do not execute it yet, just plan it.\nTask: " +
+      task;
 
   std::cout << "Generating plan... (Check back in a moment)" << std::endl;
 
   std::thread([service, prompt]() {
     auto response_or = service->GenerateResponse(prompt);
     if (!response_or.ok()) {
-      std::cerr << "\nPlan Error: " << response_or.status().message() << "\n" << std::endl;
+      std::cerr << "\nPlan Error: " << response_or.status().message() << "\n"
+                << std::endl;
       return;
     }
 
@@ -134,7 +142,8 @@ absl::Status HandlePlanCommand(const std::vector<std::string>& args) {
     }
 
     std::cout << "\nProposed Plan Ready:\n" << std::string(40, '-') << "\n";
-    std::cout << response_or.value().text_response << "\n" << std::string(40, '-') << "\n";
+    std::cout << response_or.value().text_response << "\n"
+              << std::string(40, '-') << "\n";
     std::cout << "Run 'agent diff' to review this plan again.\n" << std::endl;
   }).detach();
 
@@ -144,12 +153,14 @@ absl::Status HandlePlanCommand(const std::vector<std::string>& args) {
 absl::Status HandleDiffCommand(Rom&, const std::vector<std::string>&) {
   std::lock_guard<std::mutex> lock(g_plan_mutex);
   if (g_pending_plan.empty()) {
-    return absl::NotFoundError("No pending plan found. Run 'agent plan <task>' first.");
+    return absl::NotFoundError(
+        "No pending plan found. Run 'agent plan <task>' first.");
   }
 
-  std::cout << "\nPending Plan (Conceptual Diff):\n" << std::string(40, '-') << "\n";
+  std::cout << "\nPending Plan (Conceptual Diff):\n"
+            << std::string(40, '-') << "\n";
   std::cout << g_pending_plan << "\n" << std::string(40, '-') << "\n";
-  
+
   return absl::OkStatus();
 }
 
@@ -192,32 +203,39 @@ absl::Status HandleDescribeCommand(const std::vector<std::string>& args) {
 
 // Forward declarations if needed
 namespace agent {
-  // Stubs for unsupported commands
-  absl::Status HandleRunCommand(const std::vector<std::string>&, Rom&) {
-    return absl::UnimplementedError("Agent run command not available in browser yet");
-  }
-  // HandlePlanCommand and HandleDiffCommand are now implemented in the anonymous namespace above
-  // and dispatched below.
-  
-  absl::Status HandleCommitCommand(Rom&) {
-    return absl::UnimplementedError("Agent commit command not available in browser yet");
-  }
-  absl::Status HandleRevertCommand(Rom&) {
-    return absl::UnimplementedError("Agent revert command not available in browser yet");
-  }
-  absl::Status HandleAcceptCommand(const std::vector<std::string>&, Rom&) {
-    return absl::UnimplementedError("Agent accept command not available in browser yet");
-  }
-  absl::Status HandleTestCommand(const std::vector<std::string>&) {
-    return absl::UnimplementedError("Agent test command not available in browser");
-  }
-  absl::Status HandleTestConversationCommand(const std::vector<std::string>&) {
-    return absl::UnimplementedError("Agent test-conversation command not available in browser");
-  }
-  absl::Status HandleLearnCommand(const std::vector<std::string>&) {
-    return absl::UnimplementedError("Agent learn command not available in browser");
-  }
+// Stubs for unsupported commands
+absl::Status HandleRunCommand(const std::vector<std::string>&, Rom&) {
+  return absl::UnimplementedError(
+      "Agent run command not available in browser yet");
 }
+// HandlePlanCommand and HandleDiffCommand are now implemented in the anonymous namespace above
+// and dispatched below.
+
+absl::Status HandleCommitCommand(Rom&) {
+  return absl::UnimplementedError(
+      "Agent commit command not available in browser yet");
+}
+absl::Status HandleRevertCommand(Rom&) {
+  return absl::UnimplementedError(
+      "Agent revert command not available in browser yet");
+}
+absl::Status HandleAcceptCommand(const std::vector<std::string>&, Rom&) {
+  return absl::UnimplementedError(
+      "Agent accept command not available in browser yet");
+}
+absl::Status HandleTestCommand(const std::vector<std::string>&) {
+  return absl::UnimplementedError(
+      "Agent test command not available in browser");
+}
+absl::Status HandleTestConversationCommand(const std::vector<std::string>&) {
+  return absl::UnimplementedError(
+      "Agent test-conversation command not available in browser");
+}
+absl::Status HandleLearnCommand(const std::vector<std::string>&) {
+  return absl::UnimplementedError(
+      "Agent learn command not available in browser");
+}
+}  // namespace agent
 
 std::string GenerateAgentHelp() {
   return "Available Agent Commands (Browser):\n"
@@ -269,7 +287,8 @@ absl::Status HandleAgentCommand(const std::vector<std::string>& arg_vec) {
   }
 
   std::cout << GenerateAgentHelp();
-  return absl::InvalidArgumentError(absl::StrCat("Unknown subcommand: ", subcommand));
+  return absl::InvalidArgumentError(
+      absl::StrCat("Unknown subcommand: ", subcommand));
 }
 
 }  // namespace handlers

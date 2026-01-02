@@ -292,8 +292,7 @@ absl::Status PaletteManager::SaveGroup(const std::string& group_name) {
             GetPaletteAddress(group_name, palette_idx, color_idx);
 
         // Write color to ROM - write the 16-bit SNES color value
-        RETURN_IF_ERROR(
-            rom->WriteShort(address, (*palette)[color_idx].snes()));
+        RETURN_IF_ERROR(rom->WriteShort(address, (*palette)[color_idx].snes()));
       }
     }
   }

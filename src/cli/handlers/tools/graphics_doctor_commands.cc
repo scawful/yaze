@@ -68,8 +68,8 @@ void ValidateGraphicsPointerTable(Rom* rom, DiagnosticReport& report,
         finding.id = "invalid_gfx_ptr";
         finding.severity = DiagnosticSeverity::kError;
         finding.message = absl::StrFormat(
-            "Sheet %d has invalid pointer 0x%06X (ROM size: 0x%zX)",
-            i, addr, rom->size());
+            "Sheet %d has invalid pointer 0x%06X (ROM size: 0x%zX)", i, addr,
+            rom->size());
         finding.location = absl::StrFormat("Sheet %d", i);
         finding.fixable = false;
         report.AddFinding(finding);
@@ -85,8 +85,8 @@ void ValidateGraphicsPointerTable(Rom* rom, DiagnosticReport& report,
     DiagnosticFinding finding;
     finding.id = "gfx_ptr_summary";
     finding.severity = DiagnosticSeverity::kInfo;
-    finding.message = absl::StrFormat(
-        "Found %d sheets with invalid pointers", invalid_count);
+    finding.message =
+        absl::StrFormat("Found %d sheets with invalid pointers", invalid_count);
     finding.location = "Graphics Pointer Table";
     finding.fixable = false;
     report.AddFinding(finding);
@@ -108,18 +108,17 @@ void ValidateCompression(Rom* rom, const std::vector<uint32_t>& addresses,
     uint32_t addr = addresses[i];
 
     // Try to decompress
-    auto result = gfx::lc_lz2::DecompressV2(data.data(), addr,
-                                             kUncompressedSheetSize, 1,
-                                             rom->size());
+    auto result = gfx::lc_lz2::DecompressV2(
+        data.data(), addr, kUncompressedSheetSize, 1, rom->size());
 
     if (!result.ok()) {
       if (verbose || failed_decomp < 10) {
         DiagnosticFinding finding;
         finding.id = "decompression_failed";
         finding.severity = DiagnosticSeverity::kError;
-        finding.message = absl::StrFormat(
-            "Sheet %d decompression failed at 0x%06X: %s",
-            i, addr, std::string(result.status().message()));
+        finding.message =
+            absl::StrFormat("Sheet %d decompression failed at 0x%06X: %s", i,
+                            addr, std::string(result.status().message()));
         finding.location = absl::StrFormat("Sheet %d", i);
         finding.fixable = false;
         report.AddFinding(finding);
@@ -133,8 +132,8 @@ void ValidateCompression(Rom* rom, const std::vector<uint32_t>& addresses,
           finding.id = "unexpected_sheet_size";
           finding.severity = DiagnosticSeverity::kWarning;
           finding.message = absl::StrFormat(
-              "Sheet %d decompressed to %zu bytes (expected %d)",
-              i, result->size(), kUncompressedSheetSize);
+              "Sheet %d decompressed to %zu bytes (expected %d)", i,
+              result->size(), kUncompressedSheetSize);
           finding.location = absl::StrFormat("Sheet %d", i);
           finding.fixable = false;
           report.AddFinding(finding);
@@ -166,7 +165,8 @@ void ValidateBlocksets(Rom* rom, DiagnosticReport& report) {
     for (uint32_t i = 0; i < kNumRoomBlocksets; ++i) {
       for (int slot = 0; slot < 4; ++slot) {
         uint32_t addr = room_blockset_ptr + (i * 4) + slot;
-        if (addr >= rom->size()) break;
+        if (addr >= rom->size())
+          break;
 
         uint8_t sheet_id = data[addr];
         if (sheet_id != 0xFF && sheet_id >= kNumGfxSheets) {
@@ -175,8 +175,8 @@ void ValidateBlocksets(Rom* rom, DiagnosticReport& report) {
             finding.id = "invalid_blockset_ref";
             finding.severity = DiagnosticSeverity::kWarning;
             finding.message = absl::StrFormat(
-                "Room blockset %d slot %d references invalid sheet %d",
-                i, slot, sheet_id);
+                "Room blockset %d slot %d references invalid sheet %d", i, slot,
+                sheet_id);
             finding.location = absl::StrFormat("Room blockset %d", i);
             finding.fixable = false;
             report.AddFinding(finding);
@@ -213,11 +213,11 @@ void CheckSheetIntegrity(Rom* rom, const std::vector<uint32_t>& addresses,
     uint32_t addr = addresses[i];
 
     // Try to decompress first
-    auto result = gfx::lc_lz2::DecompressV2(data.data(), addr,
-                                             kUncompressedSheetSize, 1,
-                                             rom->size());
+    auto result = gfx::lc_lz2::DecompressV2(
+        data.data(), addr, kUncompressedSheetSize, 1, rom->size());
 
-    if (!result.ok()) continue;
+    if (!result.ok())
+      continue;
 
     const auto& sheet_data = *result;
 
@@ -225,9 +225,12 @@ void CheckSheetIntegrity(Rom* rom, const std::vector<uint32_t>& addresses,
     bool all_zero = true;
     bool all_ff = true;
     for (uint8_t byte : sheet_data) {
-      if (byte != 0x00) all_zero = false;
-      if (byte != 0xFF) all_ff = false;
-      if (!all_zero && !all_ff) break;
+      if (byte != 0x00)
+        all_zero = false;
+      if (byte != 0xFF)
+        all_ff = false;
+      if (!all_zero && !all_ff)
+        break;
     }
 
     if (all_zero) {
@@ -235,8 +238,7 @@ void CheckSheetIntegrity(Rom* rom, const std::vector<uint32_t>& addresses,
         DiagnosticFinding finding;
         finding.id = "empty_sheet";
         finding.severity = DiagnosticSeverity::kWarning;
-        finding.message = absl::StrFormat(
-            "Sheet %d is all zeros (empty)", i);
+        finding.message = absl::StrFormat("Sheet %d is all zeros (empty)", i);
         finding.location = absl::StrFormat("Sheet %d at 0x%06X", i, addr);
         finding.fixable = false;
         report.AddFinding(finding);
@@ -247,8 +249,8 @@ void CheckSheetIntegrity(Rom* rom, const std::vector<uint32_t>& addresses,
         DiagnosticFinding finding;
         finding.id = "erased_sheet";
         finding.severity = DiagnosticSeverity::kWarning;
-        finding.message = absl::StrFormat(
-            "Sheet %d is all 0xFF (erased/uninitialized)", i);
+        finding.message =
+            absl::StrFormat("Sheet %d is all 0xFF (erased/uninitialized)", i);
         finding.location = absl::StrFormat("Sheet %d at 0x%06X", i, addr);
         finding.suggested_action = "Sheet may need to be restored";
         finding.fixable = false;
@@ -298,9 +300,9 @@ absl::Status GraphicsDoctorCommandHandler::Execute(
     if (target_sheet < static_cast<int>(valid_addresses.size()) &&
         valid_addresses[target_sheet] != 0) {
       const auto& data = rom->vector();
-      auto result = gfx::lc_lz2::DecompressV2(
-          data.data(), valid_addresses[target_sheet],
-          kUncompressedSheetSize, 1, rom->size());
+      auto result =
+          gfx::lc_lz2::DecompressV2(data.data(), valid_addresses[target_sheet],
+                                    kUncompressedSheetSize, 1, rom->size());
       if (result.ok()) {
         successful_decomp = 1;
         formatter.AddField("decompressed_size",
@@ -320,8 +322,8 @@ absl::Status GraphicsDoctorCommandHandler::Execute(
   // 4. Check sheet integrity
   int empty_sheets = 0;
   int suspicious_sheets = 0;
-  CheckSheetIntegrity(rom, valid_addresses, report, verbose,
-                      empty_sheets, suspicious_sheets);
+  CheckSheetIntegrity(rom, valid_addresses, report, verbose, empty_sheets,
+                      suspicious_sheets);
 
   // Output results
   formatter.AddField("total_sheets", static_cast<int>(kNumGfxSheets));
@@ -347,9 +349,12 @@ absl::Status GraphicsDoctorCommandHandler::Execute(
   // Text output
   if (!formatter.IsJson()) {
     std::cout << "\n";
-    std::cout << "╔═══════════════════════════════════════════════════════════════╗\n";
-    std::cout << "║                     GRAPHICS DOCTOR                           ║\n";
-    std::cout << "╠═══════════════════════════════════════════════════════════════╣\n";
+    std::cout << "╔════════════════════════════════════════════════════════════"
+                 "═══╗\n";
+    std::cout << "║                     GRAPHICS DOCTOR                        "
+                 "   ║\n";
+    std::cout << "╠════════════════════════════════════════════════════════════"
+                 "═══╣\n";
     std::cout << absl::StrFormat("║  Total Sheets: %-46d ║\n",
                                  static_cast<int>(kNumGfxSheets));
     std::cout << absl::StrFormat("║  Successful Decompressions: %-33d ║\n",
@@ -359,12 +364,14 @@ absl::Status GraphicsDoctorCommandHandler::Execute(
     std::cout << absl::StrFormat("║  Empty Sheets: %-46d ║\n", empty_sheets);
     std::cout << absl::StrFormat("║  Suspicious Sheets: %-41d ║\n",
                                  suspicious_sheets);
-    std::cout << "╠═══════════════════════════════════════════════════════════════╣\n";
+    std::cout << "╠════════════════════════════════════════════════════════════"
+                 "═══╣\n";
     std::cout << absl::StrFormat(
         "║  Findings: %d total (%d errors, %d warnings, %d info)%-8s ║\n",
         report.TotalFindings(), report.error_count, report.warning_count,
         report.info_count, "");
-    std::cout << "╚═══════════════════════════════════════════════════════════════╝\n";
+    std::cout << "╚════════════════════════════════════════════════════════════"
+                 "═══╝\n";
 
     if (verbose && !report.findings.empty()) {
       std::cout << "\n=== Detailed Findings ===\n";

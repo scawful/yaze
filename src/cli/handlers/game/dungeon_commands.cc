@@ -86,11 +86,12 @@ absl::Status DungeonDescribeRoomCommandHandler::Execute(
   formatter.AddField("effect", static_cast<int>(room.effect()));
   formatter.AddField("tag1", static_cast<int>(room.tag1()));
   formatter.AddField("tag2", static_cast<int>(room.tag2()));
-  
+
   // Check object counts for simple heuristics
   room.LoadObjects();
-  formatter.AddField("object_count", static_cast<int>(room.GetTileObjects().size()));
-  
+  formatter.AddField("object_count",
+                     static_cast<int>(room.GetTileObjects().size()));
+
   formatter.EndObject();
 
   formatter.EndObject();
@@ -183,8 +184,8 @@ absl::Status DungeonListObjectsCommandHandler::Execute(
     formatter.AddField("size", obj.size_);
     formatter.AddField("layer", static_cast<int>(obj.layer_));
     // Add decoded type info if available
-    int type = zelda3::RoomObject::DetermineObjectType(
-        (obj.id_ & 0xFF), (obj.id_ >> 8));
+    int type = zelda3::RoomObject::DetermineObjectType((obj.id_ & 0xFF),
+                                                       (obj.id_ >> 8));
     formatter.AddField("type", type);
     formatter.EndObject();
   }

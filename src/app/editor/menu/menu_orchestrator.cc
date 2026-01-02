@@ -3,24 +3,25 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/editor.h"
 #include "app/editor/editor_manager.h"
-#include "app/editor/system/panel_manager.h"
+#include "app/editor/layout/layout_presets.h"
+#include "app/editor/menu/menu_builder.h"
 #include "app/editor/system/editor_registry.h"
-#include "app/editor/ui/popup_manager.h"
+#include "app/editor/system/panel_manager.h"
 #include "app/editor/system/project_manager.h"
 #include "app/editor/system/rom_file_manager.h"
 #include "app/editor/system/session_coordinator.h"
+#include "app/editor/ui/popup_manager.h"
 #include "app/editor/ui/toast_manager.h"
-#include "app/editor/layout/layout_presets.h"
-#include "app/editor/menu/menu_builder.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/platform_keys.h"
-#include "rom/rom.h"
 #include "core/features.h"
+#include "rom/rom.h"
 #include "zelda3/overworld/overworld_map.h"
 
 // Platform-aware shortcut macros for menu display
 #define SHORTCUT_CTRL(key) gui::FormatCtrlShortcut(ImGuiKey_##key).c_str()
-#define SHORTCUT_CTRL_SHIFT(key) gui::FormatCtrlShiftShortcut(ImGuiKey_##key).c_str()
+#define SHORTCUT_CTRL_SHIFT(key) \
+  gui::FormatCtrlShiftShortcut(ImGuiKey_##key).c_str()
 
 namespace yaze {
 namespace editor {
@@ -66,7 +67,8 @@ void MenuOrchestrator::AddFileMenuItems() {
   // ROM Operations
   menu_builder_
       .Item(
-          "Open ROM", ICON_MD_FILE_OPEN, [this]() { OnOpenRom(); }, SHORTCUT_CTRL(O))
+          "Open ROM", ICON_MD_FILE_OPEN, [this]() { OnOpenRom(); },
+          SHORTCUT_CTRL(O))
       .Item(
           "Save ROM", ICON_MD_SAVE, [this]() { OnSaveRom(); }, SHORTCUT_CTRL(S),
           [this]() { return CanSaveRom(); })
@@ -114,7 +116,9 @@ void MenuOrchestrator::AddFileMenuItems() {
   menu_builder_
       .Item("Settings", ICON_MD_SETTINGS, [this]() { OnShowSettings(); })
       .Separator()
-      .Item("Quit", ICON_MD_EXIT_TO_APP, [this]() { OnQuit(); }, SHORTCUT_CTRL(Q));
+      .Item(
+          "Quit", ICON_MD_EXIT_TO_APP, [this]() { OnQuit(); },
+          SHORTCUT_CTRL(Q));
 }
 
 void MenuOrchestrator::BuildEditMenu() {
@@ -140,11 +144,11 @@ void MenuOrchestrator::AddEditMenuItems() {
           "Cut", ICON_MD_CONTENT_CUT, [this]() { OnCut(); }, SHORTCUT_CTRL(X),
           [this]() { return HasCurrentEditor(); })
       .Item(
-          "Copy", ICON_MD_CONTENT_COPY, [this]() { OnCopy(); }, SHORTCUT_CTRL(C),
-          [this]() { return HasCurrentEditor(); })
+          "Copy", ICON_MD_CONTENT_COPY, [this]() { OnCopy(); },
+          SHORTCUT_CTRL(C), [this]() { return HasCurrentEditor(); })
       .Item(
-          "Paste", ICON_MD_CONTENT_PASTE, [this]() { OnPaste(); }, SHORTCUT_CTRL(V),
-          [this]() { return HasCurrentEditor(); })
+          "Paste", ICON_MD_CONTENT_PASTE, [this]() { OnPaste(); },
+          SHORTCUT_CTRL(V), [this]() { return HasCurrentEditor(); })
       .Separator();
 
   // Search operations (Find in Files moved to Tools > Global Search)
@@ -162,37 +166,48 @@ void MenuOrchestrator::BuildViewMenu() {
 void MenuOrchestrator::AddViewMenuItems() {
   // UI Layout
   menu_builder_
-      .Item("Show Sidebar", ICON_MD_VIEW_SIDEBAR,
-            [this]() { if (panel_manager_) panel_manager_->ToggleSidebarVisibility(); },
-            nullptr, nullptr,
-            [this]() { return panel_manager_ && panel_manager_->IsSidebarVisible(); })
-      .Item("Show Status Bar", ICON_MD_HORIZONTAL_RULE,
-            [this]() {
-              if (user_settings_) {
-                user_settings_->prefs().show_status_bar = !user_settings_->prefs().show_status_bar;
-                user_settings_->Save();
-                if (status_bar_) {
-                  status_bar_->SetEnabled(user_settings_->prefs().show_status_bar);
-                }
+      .Item(
+          "Show Sidebar", ICON_MD_VIEW_SIDEBAR,
+          [this]() {
+            if (panel_manager_)
+              panel_manager_->ToggleSidebarVisibility();
+          },
+          nullptr, nullptr,
+          [this]() {
+            return panel_manager_ && panel_manager_->IsSidebarVisible();
+          })
+      .Item(
+          "Show Status Bar", ICON_MD_HORIZONTAL_RULE,
+          [this]() {
+            if (user_settings_) {
+              user_settings_->prefs().show_status_bar =
+                  !user_settings_->prefs().show_status_bar;
+              user_settings_->Save();
+              if (status_bar_) {
+                status_bar_->SetEnabled(
+                    user_settings_->prefs().show_status_bar);
               }
-            },
-            nullptr, nullptr,
-            [this]() { return user_settings_ && user_settings_->prefs().show_status_bar; })
+            }
+          },
+          nullptr, nullptr,
+          [this]() {
+            return user_settings_ && user_settings_->prefs().show_status_bar;
+          })
       .Separator();
 
   // Settings and UI
   menu_builder_
       .Item("Display Settings", ICON_MD_DISPLAY_SETTINGS,
             [this]() { OnShowDisplaySettings(); })
-      .Item("Welcome Screen", ICON_MD_HOME,
-            [this]() { OnShowWelcomeScreen(); })
+      .Item("Welcome Screen", ICON_MD_HOME, [this]() { OnShowWelcomeScreen(); })
       .Separator();
 
   // Panel Browser
   menu_builder_
       .Item(
-          "Panel Browser", ICON_MD_DASHBOARD, [this]() { OnShowPanelBrowser(); },
-          SHORTCUT_CTRL_SHIFT(B), [this]() { return HasActiveRom(); })
+          "Panel Browser", ICON_MD_DASHBOARD,
+          [this]() { OnShowPanelBrowser(); }, SHORTCUT_CTRL_SHIFT(B),
+          [this]() { return HasActiveRom(); })
       .Separator();
 
   // Editor Selection (Switch Editor)
@@ -213,61 +228,69 @@ void MenuOrchestrator::AddPanelsSubmenu() {
   }
 
   const size_t session_id = session_coordinator_.GetActiveSessionIndex();
-  
+
   // Get active category
   std::string active_category = panel_manager_->GetActiveCategory();
-  
+
   // Get all categories from registry
   auto all_categories = panel_manager_->GetAllCategories(session_id);
   if (all_categories.empty()) {
     return;
   }
 
-  if (ImGui::BeginMenu(absl::StrFormat("%s Panels", ICON_MD_DASHBOARD).c_str())) {
-    
+  if (ImGui::BeginMenu(
+          absl::StrFormat("%s Panels", ICON_MD_DASHBOARD).c_str())) {
+
     // 1. Active Category (Prominent)
     if (!active_category.empty()) {
-        auto cards = panel_manager_->GetPanelsInCategory(session_id, active_category);
-        if (!cards.empty()) {
-            ImGui::TextDisabled("%s", active_category.c_str());
-            for (const auto& card : cards) {
-                bool is_visible = panel_manager_->IsPanelVisible(session_id, card.card_id);
-                const char* shortcut = card.shortcut_hint.empty() ? nullptr : card.shortcut_hint.c_str();
-                if (ImGui::MenuItem(card.display_name.c_str(), shortcut, &is_visible)) {
-                    panel_manager_->TogglePanel(session_id, card.card_id);
-                }
-            }
-            ImGui::Separator();
+      auto cards =
+          panel_manager_->GetPanelsInCategory(session_id, active_category);
+      if (!cards.empty()) {
+        ImGui::TextDisabled("%s", active_category.c_str());
+        for (const auto& card : cards) {
+          bool is_visible =
+              panel_manager_->IsPanelVisible(session_id, card.card_id);
+          const char* shortcut =
+              card.shortcut_hint.empty() ? nullptr : card.shortcut_hint.c_str();
+          if (ImGui::MenuItem(card.display_name.c_str(), shortcut,
+                              &is_visible)) {
+            panel_manager_->TogglePanel(session_id, card.card_id);
+          }
         }
+        ImGui::Separator();
+      }
     }
 
     // 2. Other Categories
     if (ImGui::BeginMenu("All Categories")) {
-        for (const auto& category : all_categories) {
-            // Skip active category if it was already shown above? 
-            // Actually, keeping it here too is fine for completeness, or we can filter.
-            // Let's keep it simple and just list all.
-            
-            if (ImGui::BeginMenu(category.c_str())) {
-                auto cards = panel_manager_->GetPanelsInCategory(session_id, category);
-                for (const auto& card : cards) {
-                    bool is_visible = panel_manager_->IsPanelVisible(session_id, card.card_id);
-                    const char* shortcut = card.shortcut_hint.empty() ? nullptr : card.shortcut_hint.c_str();
-                    if (ImGui::MenuItem(card.display_name.c_str(), shortcut, &is_visible)) {
-                        panel_manager_->TogglePanel(session_id, card.card_id);
-                    }
-                }
-                ImGui::EndMenu();
+      for (const auto& category : all_categories) {
+        // Skip active category if it was already shown above?
+        // Actually, keeping it here too is fine for completeness, or we can filter.
+        // Let's keep it simple and just list all.
+
+        if (ImGui::BeginMenu(category.c_str())) {
+          auto cards =
+              panel_manager_->GetPanelsInCategory(session_id, category);
+          for (const auto& card : cards) {
+            bool is_visible =
+                panel_manager_->IsPanelVisible(session_id, card.card_id);
+            const char* shortcut = card.shortcut_hint.empty()
+                                       ? nullptr
+                                       : card.shortcut_hint.c_str();
+            if (ImGui::MenuItem(card.display_name.c_str(), shortcut,
+                                &is_visible)) {
+              panel_manager_->TogglePanel(session_id, card.card_id);
             }
+          }
+          ImGui::EndMenu();
         }
-        ImGui::EndMenu();
+      }
+      ImGui::EndMenu();
     }
 
     ImGui::EndMenu();
   }
 }
-
-
 
 void MenuOrchestrator::BuildToolsMenu() {
   menu_builder_.BeginMenu("Tools");
@@ -405,7 +428,9 @@ void MenuOrchestrator::AddWindowMenuItems() {
       .Separator();
 
   // Layout Management
-  const auto layout_actions_enabled = [this]() { return HasCurrentEditor(); };
+  const auto layout_actions_enabled = [this]() {
+    return HasCurrentEditor();
+  };
   const auto apply_preset = [this](const char* preset_name) {
     if (editor_manager_) {
       editor_manager_->ApplyLayoutPreset(preset_name);
@@ -427,34 +452,42 @@ void MenuOrchestrator::AddWindowMenuItems() {
       .Item("Reset Layout", ICON_MD_RESET_TV,
             [this]() { OnResetWorkspaceLayout(); })
       .BeginSubMenu("Layout Presets", ICON_MD_VIEW_QUILT)
-      .Item("Reset Active Editor Layout", ICON_MD_REFRESH,
-            [reset_editor_layout]() { reset_editor_layout(); }, nullptr,
-            layout_actions_enabled)
+      .Item(
+          "Reset Active Editor Layout", ICON_MD_REFRESH,
+          [reset_editor_layout]() { reset_editor_layout(); }, nullptr,
+          layout_actions_enabled)
       .Separator()
-      .Item("Minimal", ICON_MD_VIEW_COMPACT,
-            [apply_preset]() { apply_preset("Minimal"); }, nullptr,
-            layout_actions_enabled)
-      .Item("Developer", ICON_MD_DEVELOPER_MODE,
-            [apply_preset]() { apply_preset("Developer"); }, nullptr,
-            layout_actions_enabled)
-      .Item("Designer", ICON_MD_DESIGN_SERVICES,
-            [apply_preset]() { apply_preset("Designer"); }, nullptr,
-            layout_actions_enabled)
-      .Item("Modder", ICON_MD_BUILD,
-            [apply_preset]() { apply_preset("Modder"); }, nullptr,
-            layout_actions_enabled)
-      .Item("Overworld Expert", ICON_MD_MAP,
-            [apply_preset]() { apply_preset("Overworld Expert"); }, nullptr,
-            layout_actions_enabled)
-      .Item("Dungeon Expert", ICON_MD_CASTLE,
-            [apply_preset]() { apply_preset("Dungeon Expert"); }, nullptr,
-            layout_actions_enabled)
-      .Item("Testing", ICON_MD_SCIENCE,
-            [apply_preset]() { apply_preset("Testing"); }, nullptr,
-            layout_actions_enabled)
-      .Item("Audio", ICON_MD_MUSIC_NOTE,
-            [apply_preset]() { apply_preset("Audio"); }, nullptr,
-            layout_actions_enabled)
+      .Item(
+          "Minimal", ICON_MD_VIEW_COMPACT,
+          [apply_preset]() { apply_preset("Minimal"); }, nullptr,
+          layout_actions_enabled)
+      .Item(
+          "Developer", ICON_MD_DEVELOPER_MODE,
+          [apply_preset]() { apply_preset("Developer"); }, nullptr,
+          layout_actions_enabled)
+      .Item(
+          "Designer", ICON_MD_DESIGN_SERVICES,
+          [apply_preset]() { apply_preset("Designer"); }, nullptr,
+          layout_actions_enabled)
+      .Item(
+          "Modder", ICON_MD_BUILD, [apply_preset]() { apply_preset("Modder"); },
+          nullptr, layout_actions_enabled)
+      .Item(
+          "Overworld Expert", ICON_MD_MAP,
+          [apply_preset]() { apply_preset("Overworld Expert"); }, nullptr,
+          layout_actions_enabled)
+      .Item(
+          "Dungeon Expert", ICON_MD_CASTLE,
+          [apply_preset]() { apply_preset("Dungeon Expert"); }, nullptr,
+          layout_actions_enabled)
+      .Item(
+          "Testing", ICON_MD_SCIENCE,
+          [apply_preset]() { apply_preset("Testing"); }, nullptr,
+          layout_actions_enabled)
+      .Item(
+          "Audio", ICON_MD_MUSIC_NOTE,
+          [apply_preset]() { apply_preset("Audio"); }, nullptr,
+          layout_actions_enabled)
       .Separator()
       .Item("Manage Presets...", ICON_MD_TUNE,
             [this]() { OnShowLayoutPresets(); })
@@ -472,8 +505,9 @@ void MenuOrchestrator::AddWindowMenuItems() {
   // Panel Browser (requires ROM) - Panels are accessible via the sidebar
   menu_builder_
       .Item(
-          "Panel Browser", ICON_MD_DASHBOARD, [this]() { OnShowPanelBrowser(); },
-          SHORTCUT_CTRL_SHIFT(B), [this]() { return HasActiveRom(); })
+          "Panel Browser", ICON_MD_DASHBOARD,
+          [this]() { OnShowPanelBrowser(); }, SHORTCUT_CTRL_SHIFT(B),
+          [this]() { return HasActiveRom(); })
       .Separator();
 
   // Note: Panel toggle buttons are on the right side of the menu bar
@@ -505,7 +539,8 @@ void MenuOrchestrator::AddHelpMenuItems() {
       .Item("Contributing", ICON_MD_VOLUNTEER_ACTIVISM,
             [this]() { OnShowContributing(); })
       .Separator()
-      .Item("About", ICON_MD_INFO, [this]() { OnShowAbout(); }, "F1");
+      .Item(
+          "About", ICON_MD_INFO, [this]() { OnShowAbout(); }, "F1");
 }
 
 // Menu state management
@@ -720,7 +755,8 @@ void MenuOrchestrator::OnShowDisplaySettings() {
 void MenuOrchestrator::OnShowHexEditor() {
   // Show hex editor card via EditorPanelManager
   if (editor_manager_) {
-    editor_manager_->panel_manager().ShowPanel(editor_manager_->GetCurrentSessionId(), "Hex Editor");
+    editor_manager_->panel_manager().ShowPanel(
+        editor_manager_->GetCurrentSessionId(), "Hex Editor");
   }
 }
 
@@ -906,7 +942,8 @@ void MenuOrchestrator::OnShowImGuiMetrics() {
 
 void MenuOrchestrator::OnShowMemoryEditor() {
   if (editor_manager_) {
-    editor_manager_->panel_manager().ShowPanel(editor_manager_->GetCurrentSessionId(), "Memory Editor");
+    editor_manager_->panel_manager().ShowPanel(
+        editor_manager_->GetCurrentSessionId(), "Memory Editor");
   }
 }
 
@@ -1073,7 +1110,8 @@ bool MenuOrchestrator::HasActiveProject() const {
 bool MenuOrchestrator::HasProjectFile() const {
   // Check if EditorManager has a project with a valid filepath
   // This is separate from HasActiveProject which checks ProjectManager
-  const auto* project = editor_manager_ ? editor_manager_->GetCurrentProject() : nullptr;
+  const auto* project =
+      editor_manager_ ? editor_manager_->GetCurrentProject() : nullptr;
   return project && !project->filepath.empty();
 }
 

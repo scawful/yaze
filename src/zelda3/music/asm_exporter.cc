@@ -15,11 +15,15 @@ absl::StatusOr<std::string> AsmExporter::ExportSong(
 
   // File header comment
   if (options.include_comments) {
-    out << "; =============================================================================\n";
+    out << "; "
+           "==================================================================="
+           "==========\n";
     out << "; " << song.name << "\n";
     out << "; Exported from yaze music editor\n";
     out << "; Format: Oracle of Secrets music_macros.asm compatible\n";
-    out << "; =============================================================================\n\n";
+    out << "; "
+           "==================================================================="
+           "==========\n\n";
   }
 
   // Generate song header
@@ -40,7 +44,8 @@ absl::StatusOr<std::string> AsmExporter::ExportSong(
 
     for (int ch = 0; ch < 8; ++ch) {
       const auto& track = segment.tracks[ch];
-      if (track.is_empty) continue;
+      if (track.is_empty)
+        continue;
 
       out << GenerateChannelData(track, ch, options);
       out << "\n";
@@ -222,7 +227,8 @@ std::string AsmExporter::ConvertCommandToAsm(const MusicCommand& cmd,
   out << "%" << macro_name << "(";
 
   for (int i = 0; i < param_count; ++i) {
-    if (i > 0) out << ", ";
+    if (i > 0)
+      out << ", ";
     out << absl::StrFormat("$%02X", cmd.params[i]);
   }
 
@@ -241,9 +247,12 @@ const char* AsmExporter::GetDurationConstant(uint8_t duration) {
 
 std::string AsmExporter::GetNoteName(uint8_t pitch) {
   // Special values
-  if (pitch == kNoteTie) return "Tie";
-  if (pitch == kNoteRest) return "Rest";
-  if (pitch == kTrackEnd) return "End";
+  if (pitch == kNoteTie)
+    return "Tie";
+  if (pitch == kNoteRest)
+    return "Rest";
+  if (pitch == kTrackEnd)
+    return "End";
 
   // Regular notes: C1 = 0x80, B6 = 0xC7
   if (pitch < kNoteMinPitch || pitch > kNoteMaxPitch) {
@@ -271,39 +280,68 @@ const char* AsmExporter::GetInstrumentMacro(uint8_t instrument_id) {
 
 const char* AsmExporter::GetCommandMacro(uint8_t opcode) {
   switch (opcode) {
-    case 0xE0: return "SetInstrument";
-    case 0xE1: return "SetPan";
-    case 0xE2: return "PanFade";
-    case 0xE3: return "VibratoOn";
-    case 0xE4: return "VibratoOff";
-    case 0xE5: return "SetMasterVolume";
-    case 0xE6: return "MasterVolumeFade";
-    case 0xE7: return "SetTempo";
-    case 0xE8: return "TempoFade";
-    case 0xE9: return "GlobalTranspose";
-    case 0xEA: return "ChannelTranspose";
-    case 0xEB: return "TremoloOn";
-    case 0xEC: return "TremoloOff";
-    case 0xED: return "SetChannelVolume";
-    case 0xEE: return "ChannelVolumeFade";
-    case 0xEF: return "CallSubroutine";
-    case 0xF0: return "VibratoFade";
-    case 0xF1: return "PitchEnvelopeTo";
-    case 0xF2: return "PitchEnvelopeFrom";
-    case 0xF3: return "PitchEnvelopeOff";
-    case 0xF4: return "Tuning";
-    case 0xF5: return "EchoVBits";
-    case 0xF6: return "EchoOff";
-    case 0xF7: return "EchoParams";
-    case 0xF8: return "EchoVolumeFade";
-    case 0xF9: return "PitchSlide";
-    case 0xFA: return "PercussionPatch";
-    default: return nullptr;
+    case 0xE0:
+      return "SetInstrument";
+    case 0xE1:
+      return "SetPan";
+    case 0xE2:
+      return "PanFade";
+    case 0xE3:
+      return "VibratoOn";
+    case 0xE4:
+      return "VibratoOff";
+    case 0xE5:
+      return "SetMasterVolume";
+    case 0xE6:
+      return "MasterVolumeFade";
+    case 0xE7:
+      return "SetTempo";
+    case 0xE8:
+      return "TempoFade";
+    case 0xE9:
+      return "GlobalTranspose";
+    case 0xEA:
+      return "ChannelTranspose";
+    case 0xEB:
+      return "TremoloOn";
+    case 0xEC:
+      return "TremoloOff";
+    case 0xED:
+      return "SetChannelVolume";
+    case 0xEE:
+      return "ChannelVolumeFade";
+    case 0xEF:
+      return "CallSubroutine";
+    case 0xF0:
+      return "VibratoFade";
+    case 0xF1:
+      return "PitchEnvelopeTo";
+    case 0xF2:
+      return "PitchEnvelopeFrom";
+    case 0xF3:
+      return "PitchEnvelopeOff";
+    case 0xF4:
+      return "Tuning";
+    case 0xF5:
+      return "EchoVBits";
+    case 0xF6:
+      return "EchoOff";
+    case 0xF7:
+      return "EchoParams";
+    case 0xF8:
+      return "EchoVolumeFade";
+    case 0xF9:
+      return "PitchSlide";
+    case 0xFA:
+      return "PercussionPatch";
+    default:
+      return nullptr;
   }
 }
 
 int AsmExporter::GetCommandParamCount(uint8_t opcode) {
-  if (opcode < 0xE0) return 0;
+  if (opcode < 0xE0)
+    return 0;
   return kCommandParamCount[opcode - 0xE0];
 }
 

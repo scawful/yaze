@@ -25,9 +25,8 @@ void ValidateControlCodes(const editor::MessageData& msg,
         DiagnosticFinding finding;
         finding.id = "unknown_control_code";
         finding.severity = DiagnosticSeverity::kWarning;
-        finding.message =
-            absl::StrFormat("Unknown control code 0x%02X in message %d", byte,
-                            msg.ID);
+        finding.message = absl::StrFormat(
+            "Unknown control code 0x%02X in message %d", byte, msg.ID);
         finding.location = absl::StrFormat("Message %d offset %zu", msg.ID, i);
         finding.fixable = false;
         report.AddFinding(finding);
@@ -37,9 +36,9 @@ void ValidateControlCodes(const editor::MessageData& msg,
           DiagnosticFinding finding;
           finding.id = "missing_command_arg";
           finding.severity = DiagnosticSeverity::kError;
-          finding.message =
-              absl::StrFormat("Control code [%s] missing argument in message %d",
-                              cmd->Token, msg.ID);
+          finding.message = absl::StrFormat(
+              "Control code [%s] missing argument in message %d", cmd->Token,
+              msg.ID);
           finding.location =
               absl::StrFormat("Message %d offset %zu", msg.ID, i);
           finding.fixable = false;
@@ -72,9 +71,9 @@ void ValidateTerminators(const editor::MessageData& msg,
     DiagnosticFinding finding;
     finding.id = "missing_terminator";
     finding.severity = DiagnosticSeverity::kError;
-    finding.message = absl::StrFormat(
-        "Message %d missing 0x7F terminator (ends with 0x%02X)", msg.ID,
-        msg.Data.back());
+    finding.message =
+        absl::StrFormat("Message %d missing 0x7F terminator (ends with 0x%02X)",
+                        msg.ID, msg.Data.back());
     finding.location = absl::StrFormat("Message %d", msg.ID);
     finding.suggested_action = "Add 0x7F terminator to end of message";
     finding.fixable = true;
@@ -130,9 +129,8 @@ void CheckCorruptionPatterns(const editor::MessageData& msg,
       DiagnosticFinding finding;
       finding.id = "possible_corruption_zeros";
       finding.severity = DiagnosticSeverity::kWarning;
-      finding.message =
-          absl::StrFormat("Large block of zeros (%d bytes) in message %d",
-                          zero_run, msg.ID);
+      finding.message = absl::StrFormat(
+          "Large block of zeros (%d bytes) in message %d", zero_run, msg.ID);
       finding.location = absl::StrFormat("Message %d", msg.ID);
       finding.suggested_action = "Check if message data is corrupted";
       finding.fixable = false;
@@ -144,9 +142,8 @@ void CheckCorruptionPatterns(const editor::MessageData& msg,
       DiagnosticFinding finding;
       finding.id = "possible_corruption_ff";
       finding.severity = DiagnosticSeverity::kWarning;
-      finding.message =
-          absl::StrFormat("Large block of 0xFF (%d bytes) in message %d",
-                          ff_run, msg.ID);
+      finding.message = absl::StrFormat(
+          "Large block of 0xFF (%d bytes) in message %d", ff_run, msg.ID);
       finding.location = absl::StrFormat("Message %d", msg.ID);
       finding.suggested_action = "Check if message data is corrupted or erased";
       finding.fixable = false;
@@ -248,16 +245,20 @@ absl::Status MessageDoctorCommandHandler::Execute(
   // Text output
   if (!formatter.IsJson()) {
     std::cout << "\n";
-    std::cout << "╔═══════════════════════════════════════════════════════════════╗\n";
-    std::cout << "║                     MESSAGE DOCTOR                            ║\n";
-    std::cout << "╠═══════════════════════════════════════════════════════════════╣\n";
+    std::cout << "╔════════════════════════════════════════════════════════════"
+                 "═══╗\n";
+    std::cout << "║                     MESSAGE DOCTOR                         "
+                 "   ║\n";
+    std::cout << "╠════════════════════════════════════════════════════════════"
+                 "═══╣\n";
     std::cout << absl::StrFormat("║  Messages Scanned: %-42d ║\n",
                                  static_cast<int>(messages.size()));
     std::cout << absl::StrFormat("║  Valid Messages: %-44d ║\n", valid_count);
     std::cout << absl::StrFormat("║  Empty Messages: %-44d ║\n", empty_count);
     std::cout << absl::StrFormat("║  Dictionary Entries: %-40d ║\n",
                                  static_cast<int>(dictionary.size()));
-    std::cout << "╠═══════════════════════════════════════════════════════════════╣\n";
+    std::cout << "╠════════════════════════════════════════════════════════════"
+                 "═══╣\n";
     std::cout << absl::StrFormat(
         "║  Findings: %d total (%d errors, %d warnings, %d info)%-8s ║\n",
         report.TotalFindings(), report.error_count, report.warning_count,
@@ -266,7 +267,8 @@ absl::Status MessageDoctorCommandHandler::Execute(
       std::cout << absl::StrFormat("║  Fixable Issues: %-44d ║\n",
                                    report.fixable_count);
     }
-    std::cout << "╚═══════════════════════════════════════════════════════════════╝\n";
+    std::cout << "╚════════════════════════════════════════════════════════════"
+                 "═══╝\n";
 
     if (verbose && !report.findings.empty()) {
       std::cout << "\n=== Detailed Findings ===\n";

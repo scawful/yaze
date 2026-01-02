@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
 #include "absl/strings/strip.h"
 #include "absl/time/clock.h"
@@ -132,7 +133,8 @@ void AnthropicAIService::SetRomContext(Rom* rom) {
   prompt_builder_.SetRom(rom);
 }
 
-absl::StatusOr<std::vector<ModelInfo>> AnthropicAIService::ListAvailableModels() {
+absl::StatusOr<std::vector<ModelInfo>>
+AnthropicAIService::ListAvailableModels() {
   // Anthropic doesn't have a simple public "list models" endpoint like OpenAI/Gemini
   // We'll return a hardcoded list of supported models
   std::vector<ModelInfo> defaults = {
@@ -192,7 +194,8 @@ absl::StatusOr<AgentResponse> AnthropicAIService::GenerateResponse(
 
   try {
     if (config_.verbose) {
-      std::cerr << "[DEBUG] Using curl for Anthropic HTTPS request" << std::endl;
+      std::cerr << "[DEBUG] Using curl for Anthropic HTTPS request"
+                << std::endl;
     }
 
     // Build messages array
@@ -202,22 +205,18 @@ absl::StatusOr<AgentResponse> AnthropicAIService::GenerateResponse(
     int start_idx = std::max(0, static_cast<int>(history.size()) - 10);
     for (size_t i = start_idx; i < history.size(); ++i) {
       const auto& msg = history[i];
-      std::string role =
-          (msg.sender == agent::ChatMessage::Sender::kUser) ? "user" : "assistant";
+      std::string role = (msg.sender == agent::ChatMessage::Sender::kUser)
+                             ? "user"
+                             : "assistant";
 
-      messages.push_back({
-          {"role", role},
-          {"content", msg.message}
-      });
+      messages.push_back({{"role", role}, {"content", msg.message}});
     }
 
     // Build request body
-    nlohmann::json request_body = {
-        {"model", config_.model},
-        {"max_tokens", config_.max_output_tokens},
-        {"system", config_.system_instruction},
-        {"messages", messages}
-    };
+    nlohmann::json request_body = {{"model", config_.model},
+                                   {"max_tokens", config_.max_output_tokens},
+                                   {"system", config_.system_instruction},
+                                   {"messages", messages}};
 
     // Add function calling tools if enabled
     if (function_calling_enabled_) {
@@ -236,19 +235,19 @@ absl::StatusOr<AgentResponse> AnthropicAIService::GenerateResponse(
           for (const auto& schema : schemas) {
             // Check if it's already in tool format or just the function schema
             nlohmann::json tool_def;
-            
+
             // Handle both bare schema and wrapped "function" schema
             nlohmann::json func_schema = schema;
             if (schema.contains("function")) {
-                func_schema = schema["function"];
+              func_schema = schema["function"];
             }
-            
+
             tool_def = {
                 {"name", func_schema.value("name", "")},
                 {"description", func_schema.value("description", "")},
-                {"input_schema", func_schema.value("parameters", nlohmann::json::object())}
-            };
-            
+                {"input_schema",
+                 func_schema.value("parameters", nlohmann::json::object())}};
+
             tools.push_back(tool_def);
           }
           request_body["tools"] = tools;
@@ -273,10 +272,13 @@ absl::StatusOr<AgentResponse> AnthropicAIService::GenerateResponse(
     // Use curl to make the request
     std::string curl_cmd =
         "curl -s -X POST 'https://api.anthropic.com/v1/messages' "
-        "-H 'x-api-key: " + config_.api_key + "' "
+        "-H 'x-api-key: " +
+        config_.api_key +
+        "' "
         "-H 'anthropic-version: 2023-06-01' "
         "-H 'content-type: application/json' "
-        "-d @" + temp_file + " 2>&1";
+        "-d @" +
+        temp_file + " 2>&1";
 
     if (config_.verbose) {
       std::cerr << "[DEBUG] Executing Anthropic API request..." << std::endl;
@@ -315,7 +317,9 @@ absl::StatusOr<AgentResponse> AnthropicAIService::GenerateResponse(
 
     if (config_.verbose) {
       std::cout << "\n"
-                << "\033[35m" << "🔍 Raw Anthropic API Response:" << "\033[0m"
+                << "\033[35m"
+                << "🔍 Raw Anthropic API Response:"
+                << "\033[0m"
                 << "\n"
                 << "\033[2m" << response_str.substr(0, 500) << "\033[0m"
                 << "\n\n";
@@ -369,32 +373,40 @@ absl::StatusOr<AgentResponse> AnthropicAIService::ParseAnthropicResponse(
 
   // Check for errors
   if (response_json.contains("error")) {
-    std::string error_msg = response_json["error"].value("message", "Unknown error");
-    return absl::InternalError(absl::StrCat("❌ Anthropic API error: ", error_msg));
+    std::string error_msg =
+        response_json["error"].value("message", "Unknown error");
+    return absl::InternalError(
+        absl::StrCat("❌ Anthropic API error: ", error_msg));
   }
 
   // Navigate Anthropic's response structure (Messages API)
-  if (!response_json.contains("content") || !response_json["content"].is_array()) {
+  if (!response_json.contains("content") ||
+      !response_json["content"].is_array()) {
     return absl::InternalError("❌ No content in Anthropic response");
   }
 
   for (const auto& block : response_json["content"]) {
     std::string type = block.value("type", "");
-    
+
     if (type == "text") {
       std::string text_content = block.value("text", "");
-      
+
       if (config_.verbose) {
         std::cout << "\n"
-                  << "\033[35m" << "🔍 Raw LLM Text:" << "\033[0m" << "\n"
-                  << "\033[2m" << text_content << "\033[0m" << "\n\n";
+                  << "\033[35m"
+                  << "🔍 Raw LLM Text:"
+                  << "\033[0m"
+                  << "\n"
+                  << "\033[2m" << text_content << "\033[0m"
+                  << "\n\n";
       }
 
       // Try to parse structured command format if present in text
       // (similar to OpenAI logic)
-      
+
       // Strip markdown code blocks
-      std::string clean_text = std::string(absl::StripAsciiWhitespace(text_content));
+      std::string clean_text =
+          std::string(absl::StripAsciiWhitespace(text_content));
       if (absl::StartsWith(clean_text, "```json")) {
         clean_text = clean_text.substr(7);
       } else if (absl::StartsWith(clean_text, "```")) {
@@ -408,10 +420,13 @@ absl::StatusOr<AgentResponse> AnthropicAIService::ParseAnthropicResponse(
       // Try to parse as JSON object
       auto parsed_text = nlohmann::json::parse(clean_text, nullptr, false);
       if (!parsed_text.is_discarded()) {
-        if (parsed_text.contains("text_response") && parsed_text["text_response"].is_string()) {
-          agent_response.text_response = parsed_text["text_response"].get<std::string>();
+        if (parsed_text.contains("text_response") &&
+            parsed_text["text_response"].is_string()) {
+          agent_response.text_response =
+              parsed_text["text_response"].get<std::string>();
         }
-        if (parsed_text.contains("commands") && parsed_text["commands"].is_array()) {
+        if (parsed_text.contains("commands") &&
+            parsed_text["commands"].is_array()) {
           for (const auto& cmd : parsed_text["commands"]) {
             if (cmd.is_string()) {
               std::string command = cmd.get<std::string>();
@@ -425,15 +440,15 @@ absl::StatusOr<AgentResponse> AnthropicAIService::ParseAnthropicResponse(
       } else {
         // Use raw text as response if JSON parsing fails
         if (agent_response.text_response.empty()) {
-            agent_response.text_response = text_content;
+          agent_response.text_response = text_content;
         } else {
-            agent_response.text_response += "\n\n" + text_content;
+          agent_response.text_response += "\n\n" + text_content;
         }
       }
     } else if (type == "tool_use") {
       ToolCall tool_call;
       tool_call.tool_name = block.value("name", "");
-      
+
       if (block.contains("input") && block["input"].is_object()) {
         for (auto& [key, value] : block["input"].items()) {
           if (value.is_string()) {

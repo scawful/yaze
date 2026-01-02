@@ -253,7 +253,8 @@ void PanelWindow::SetPosition(Position pos) {
   position_ = pos;
 }
 
-void PanelWindow::AddHeaderButton(const char* icon, const char* tooltip, std::function<void()> callback) {
+void PanelWindow::AddHeaderButton(const char* icon, const char* tooltip,
+                                  std::function<void()> callback) {
   header_buttons_.push_back({icon, tooltip, callback});
 }
 
@@ -280,7 +281,9 @@ bool PanelWindow::Begin(bool* p_open) {
       duplicate_detected_ = true;
       duplicate_panel_name_ = window_name_;
       // Log the duplicate detection
-      fprintf(stderr, "[PanelWindow] DUPLICATE DETECTED: '%s' Begin() called twice in frame %d\n",
+      fprintf(stderr,
+              "[PanelWindow] DUPLICATE DETECTED: '%s' Begin() called twice in "
+              "frame %d\n",
               window_name_.c_str(), current_frame);
       break;
     }
@@ -442,7 +445,7 @@ void PanelWindow::DrawHeaderButtons() {
   //
   // For now, pin state is tracked internally but the button is not rendered.
   // Right-click context menu in Activity Bar can be used for pinning.
-  
+
   // Skip drawing header buttons in content area - they interfere with docking
   // and take up vertical space. The pin state is still tracked and used by
   // PanelManager for category filtering.

@@ -1,5 +1,6 @@
 #include "dungeon_room_selector.h"
 
+#include "absl/strings/str_format.h"
 #include "app/gui/core/input.h"
 #include "imgui/imgui.h"
 #include "util/hex.h"
@@ -15,7 +16,7 @@ using ImGui::EndChild;
 using ImGui::SameLine;
 
 void DungeonRoomSelector::Draw() {
-  // Legacy combined view - prefer using DrawRoomSelector() and 
+  // Legacy combined view - prefer using DrawRoomSelector() and
   // DrawEntranceSelector() separately via their own EditorPanels
   DrawRoomSelector();
 }
@@ -33,7 +34,8 @@ void DungeonRoomSelector::DrawRoomSelector() {
 
   if (ImGui::BeginTable("RoomList", 2,
                         ImGuiTableFlags_ScrollY | ImGuiTableFlags_Borders |
-                            ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable)) {
+                            ImGuiTableFlags_RowBg |
+                            ImGuiTableFlags_Resizable)) {
     ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 40.0f);
     ImGui::TableSetupColumn("Name");
     ImGui::TableHeadersRow();
@@ -141,13 +143,14 @@ void DungeonRoomSelector::DrawEntranceSelector() {
   // Entrance array layout (from LoadRoomEntrances):
   //   indices 0-6 (0x00-0x06): Spawn points (7 entries)
   //   indices 7-139 (0x07-0x8B): Regular entrances (133 entries, IDs 0x00-0x84)
-  constexpr int kNumSpawnPoints = 7;      // 0x07
-  constexpr int kNumEntrances = 133;      // 0x85
-  constexpr int kTotalEntries = 140;      // 0x8C
+  constexpr int kNumSpawnPoints = 7;  // 0x07
+  constexpr int kNumEntrances = 133;  // 0x85
+  constexpr int kTotalEntries = 140;  // 0x8C
 
   if (ImGui::BeginTable("EntranceList", 3,
                         ImGuiTableFlags_ScrollY | ImGuiTableFlags_Borders |
-                            ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable)) {
+                            ImGuiTableFlags_RowBg |
+                            ImGuiTableFlags_Resizable)) {
     ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 40.0f);
     ImGui::TableSetupColumn("Room", ImGuiTableColumnFlags_WidthFixed, 50.0f);
     ImGui::TableSetupColumn("Name");
@@ -155,7 +158,7 @@ void DungeonRoomSelector::DrawEntranceSelector() {
 
     for (int i = 0; i < kTotalEntries; i++) {
       std::string display_name;
-      
+
       if (i < kNumSpawnPoints) {
         // Spawn points are at indices 0-6
         display_name = absl::StrFormat("Spawn Point %d", i);
@@ -171,12 +174,13 @@ void DungeonRoomSelector::DrawEntranceSelector() {
       }
 
       // Get room ID for this entrance
-      int room_id = (i < static_cast<int>(entrances_->size())) 
-          ? (*entrances_)[i].room_ : 0;
+      int room_id = (i < static_cast<int>(entrances_->size()))
+                        ? (*entrances_)[i].room_
+                        : 0;
 
       // Include room ID in filter matching
       char filter_text[256];
-      snprintf(filter_text, sizeof(filter_text), "%s %03X", 
+      snprintf(filter_text, sizeof(filter_text), "%s %03X",
                display_name.c_str(), room_id);
 
       if (entrance_filter_.PassFilter(filter_text)) {
@@ -200,7 +204,7 @@ void DungeonRoomSelector::DrawEntranceSelector() {
 
         ImGui::TableNextColumn();
         ImGui::Text("%03X", room_id);
-        
+
         ImGui::TableNextColumn();
         ImGui::TextUnformatted(display_name.c_str());
       }

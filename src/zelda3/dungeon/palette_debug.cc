@@ -47,9 +47,9 @@ void PaletteDebugger::LogPaletteLoad(const std::string& location,
 
   std::string sample_str;
   if (event.sample_colors.size() >= 3) {
-    sample_str = absl::StrFormat("[Sample: R=%d G=%d B=%d]",
-                                 event.sample_colors[0], event.sample_colors[1],
-                                 event.sample_colors[2]);
+    sample_str =
+        absl::StrFormat("[Sample: R=%d G=%d B=%d]", event.sample_colors[0],
+                        event.sample_colors[1], event.sample_colors[2]);
   }
 
   event.message = absl::StrFormat("Loaded palette %d with %d colors %s",
@@ -155,8 +155,8 @@ void PaletteDebugger::LogSurfaceState(const std::string& location,
     if (palette && ncolors > 56) {
       auto& c = palette->colors[56];
       event.sample_colors = {c.r, c.g, c.b};
-      event.message += absl::StrFormat(" [Color56: R=%d G=%d B=%d]", c.r, c.g,
-                                       c.b);
+      event.message +=
+          absl::StrFormat(" [Color56: R=%d G=%d B=%d]", c.r, c.g, c.b);
     }
   }
 
@@ -225,9 +225,9 @@ ColorComparison PaletteDebugger::SamplePixelAt(int x, int y) const {
   }
 
   // Check if they match
-  comp.matches = (comp.actual_r == comp.expected_r &&
-                  comp.actual_g == comp.expected_g &&
-                  comp.actual_b == comp.expected_b);
+  comp.matches =
+      (comp.actual_r == comp.expected_r && comp.actual_g == comp.expected_g &&
+       comp.actual_b == comp.expected_b);
 
   return comp;
 }
@@ -254,9 +254,9 @@ std::string PaletteDebugger::ExportToJSON() const {
     json << "\"location\":\"" << e.location << "\",";
     json << "\"message\":\"" << e.message << "\",";
     json << "\"level\":\""
-         << (e.level == PaletteDebugLevel::ERROR      ? "error"
+         << (e.level == PaletteDebugLevel::ERROR     ? "error"
              : e.level == PaletteDebugLevel::WARNING ? "warning"
-                                                      : "info")
+                                                     : "info")
          << "\",";
     json << "\"palette_id\":" << e.palette_id << ",";
     json << "\"color_count\":" << e.color_count;
@@ -268,7 +268,8 @@ std::string PaletteDebugger::ExportToJSON() const {
     }
 
     json << "}";
-    if (i < events_.size() - 1) json << ",";
+    if (i < events_.size() - 1)
+      json << ",";
   }
   json << "]";
   return json.str();
@@ -288,7 +289,8 @@ std::string PaletteDebugger::ExportColorComparisonsJSON() const {
          << "," << (int)c.expected_b << "],";
     json << "\"matches\":" << (c.matches ? "true" : "false");
     json << "}";
-    if (i < comparisons_.size() - 1) json << ",";
+    if (i < comparisons_.size() - 1)
+      json << ",";
   }
   json << "]";
   return json.str();
@@ -344,9 +346,10 @@ std::string PaletteDebugger::ExportPaletteDataJSON() const {
 
   for (size_t i = 0; i < current_palette_.size(); i++) {
     auto rgb = current_palette_[i].rgb();
-    json << "{\"index\":" << i << ",\"r\":" << (int)rgb.x << ",\"g\":"
-         << (int)rgb.y << ",\"b\":" << (int)rgb.z << "}";
-    if (i < current_palette_.size() - 1) json << ",";
+    json << "{\"index\":" << i << ",\"r\":" << (int)rgb.x
+         << ",\"g\":" << (int)rgb.y << ",\"b\":" << (int)rgb.z << "}";
+    if (i < current_palette_.size() - 1)
+      json << ",";
   }
 
   json << "]}";
@@ -377,7 +380,8 @@ std::string PaletteDebugger::ExportTimelineJSON() const {
   }
   bool first = true;
   for (const auto& [loc, count] : location_counts) {
-    if (!first) json << ",";
+    if (!first)
+      json << ",";
     json << "\"" << loc << "\":" << count;
     first = false;
   }
@@ -411,8 +415,10 @@ std::string PaletteDebugger::GetDiagnosticSummary() const {
   bool has_color_mismatch = false;
 
   for (const auto& e : events_) {
-    if (e.level == PaletteDebugLevel::WARNING) warnings++;
-    if (e.level == PaletteDebugLevel::ERROR) errors++;
+    if (e.level == PaletteDebugLevel::WARNING)
+      warnings++;
+    if (e.level == PaletteDebugLevel::ERROR)
+      errors++;
 
     // Detect specific issues
     if (e.message.find("WITHOUT palette") != std::string::npos) {
@@ -444,7 +450,8 @@ std::string PaletteDebugger::GetDiagnosticSummary() const {
   if (has_color_mismatch) {
     summary << "ISSUE: Color mismatch detected between expected and actual. ";
   }
-  if (!has_missing_palette && !has_palette_timing_issue && !has_color_mismatch) {
+  if (!has_missing_palette && !has_palette_timing_issue &&
+      !has_color_mismatch) {
     summary << "No obvious issues detected. ";
   }
 

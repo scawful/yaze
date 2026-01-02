@@ -10,10 +10,10 @@
 #include <filesystem>
 #endif
 
+#include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
 #include "absl/strings/strip.h"
-#include "absl/strings/match.h"
 
 namespace yaze {
 namespace emu {
@@ -50,12 +50,14 @@ std::optional<uint32_t> ParseAddress(const std::string& str) {
     clean.pop_back();
   }
 
-  if (clean.empty() || clean.size() > 6) return std::nullopt;
+  if (clean.empty() || clean.size() > 6)
+    return std::nullopt;
 
   try {
     size_t pos;
     uint32_t addr = std::stoul(clean, &pos, 16);
-    if (pos != clean.size()) return std::nullopt;
+    if (pos != clean.size())
+      return std::nullopt;
     return addr;
   } catch (...) {
     return std::nullopt;
@@ -64,14 +66,17 @@ std::optional<uint32_t> ParseAddress(const std::string& str) {
 
 // Check if a string is a valid label name
 bool IsValidLabelName(const std::string& name) {
-  if (name.empty()) return false;
+  if (name.empty())
+    return false;
   // First char must be alpha, underscore, or dot (for local labels)
   char first = name[0];
-  if (!std::isalpha(first) && first != '_' && first != '.') return false;
+  if (!std::isalpha(first) && first != '_' && first != '.')
+    return false;
   // Rest must be alphanumeric, underscore, or dot
   for (size_t i = 1; i < name.size(); ++i) {
     char c = name[i];
-    if (!std::isalnum(c) && c != '_' && c != '.') return false;
+    if (!std::isalnum(c) && c != '_' && c != '.')
+      return false;
   }
   return true;
 }
@@ -97,21 +102,24 @@ bool WildcardMatch(const std::string& pattern, const std::string& str) {
     }
   }
 
-  while (p < pattern.size() && pattern[p] == '*') ++p;
+  while (p < pattern.size() && pattern[p] == '*')
+    ++p;
   return p == pattern.size();
 }
 
 // Simple path utilities that work on all platforms
 std::string GetFilename(const std::string& path) {
   size_t pos = path.find_last_of("/\\");
-  if (pos == std::string::npos) return path;
+  if (pos == std::string::npos)
+    return path;
   return path.substr(pos + 1);
 }
 
 std::string GetExtension(const std::string& path) {
   std::string filename = GetFilename(path);
   size_t pos = filename.find_last_of('.');
-  if (pos == std::string::npos) return "";
+  if (pos == std::string::npos)
+    return "";
   return filename.substr(pos);
 }
 
@@ -164,7 +172,7 @@ absl::Status SymbolProvider::LoadAsarAsmDirectory(
 }
 
 absl::Status SymbolProvider::LoadSymbolFile(const std::string& path,
-                                             SymbolFormat format) {
+                                            SymbolFormat format) {
   auto content_or = ReadFileContent(path);
   if (!content_or.ok()) {
     return content_or.status();
@@ -256,7 +264,7 @@ std::vector<Symbol> SymbolProvider::FindSymbolsMatching(
 }
 
 std::vector<Symbol> SymbolProvider::GetSymbolsInRange(uint32_t start,
-                                                       uint32_t end) const {
+                                                      uint32_t end) const {
   std::vector<Symbol> result;
   auto it_start = symbols_by_address_.lower_bound(start);
   auto it_end = symbols_by_address_.upper_bound(end);
@@ -266,9 +274,9 @@ std::vector<Symbol> SymbolProvider::GetSymbolsInRange(uint32_t start,
   return result;
 }
 
-std::optional<Symbol> SymbolProvider::GetNearestSymbol(
-    uint32_t address) const {
-  if (symbols_by_address_.empty()) return std::nullopt;
+std::optional<Symbol> SymbolProvider::GetNearestSymbol(uint32_t address) const {
+  if (symbols_by_address_.empty())
+    return std::nullopt;
 
   // Find first symbol > address
   auto it = symbols_by_address_.upper_bound(address);
@@ -284,7 +292,7 @@ std::optional<Symbol> SymbolProvider::GetNearestSymbol(
 }
 
 std::string SymbolProvider::FormatAddress(uint32_t address,
-                                           uint32_t max_offset) const {
+                                          uint32_t max_offset) const {
   // Check for exact match first
   auto exact = GetSymbol(address);
   if (exact) {
@@ -311,7 +319,7 @@ std::function<std::string(uint32_t)> SymbolProvider::CreateResolver() const {
 }
 
 absl::Status SymbolProvider::ParseAsarAsmContent(const std::string& content,
-                                                  const std::string& filename) {
+                                                 const std::string& filename) {
   std::istringstream stream(content);
   std::string line;
   int line_number = 0;
@@ -336,7 +344,8 @@ absl::Status SymbolProvider::ParseAsarAsmContent(const std::string& content,
 
     // Skip empty lines and comment-only lines
     std::string trimmed = std::string(absl::StripAsciiWhitespace(line));
-    if (trimmed.empty() || trimmed[0] == ';') continue;
+    if (trimmed.empty() || trimmed[0] == ';')
+      continue;
 
     std::smatch match;
 
@@ -375,9 +384,8 @@ absl::Status SymbolProvider::ParseAsarAsmContent(const std::string& content,
     if (std::regex_search(trimmed, match, local_label_regex)) {
       std::string local_name = match[1].str();
       // Create fully qualified name: GlobalLabel.local_name
-      std::string full_name = current_label.empty()
-                                  ? local_name
-                                  : current_label + local_name;
+      std::string full_name =
+          current_label.empty() ? local_name : current_label + local_name;
       pending_label = true;
       pending_label_name = full_name;
       pending_is_local = true;
@@ -407,11 +415,13 @@ absl::Status SymbolProvider::ParseWlaDxSymFile(const std::string& content) {
       continue;
     }
     if (trimmed.empty() || trimmed[0] == '[') {
-      if (trimmed[0] == '[') in_labels_section = false;
+      if (trimmed[0] == '[')
+        in_labels_section = false;
       continue;
     }
 
-    if (!in_labels_section) continue;
+    if (!in_labels_section)
+      continue;
 
     std::smatch match;
     if (std::regex_search(trimmed, match, label_regex)) {
@@ -441,7 +451,8 @@ absl::Status SymbolProvider::ParseMesenMlbFile(const std::string& content) {
 
   while (std::getline(stream, line)) {
     std::string trimmed = std::string(absl::StripAsciiWhitespace(line));
-    if (trimmed.empty() || trimmed[0] == ';') continue;
+    if (trimmed.empty() || trimmed[0] == ';')
+      continue;
 
     std::smatch match;
     if (std::regex_search(trimmed, match, label_regex)) {
@@ -468,7 +479,8 @@ absl::Status SymbolProvider::ParseBsnesSymFile(const std::string& content) {
 
   while (std::getline(stream, line)) {
     std::string trimmed = std::string(absl::StripAsciiWhitespace(line));
-    if (trimmed.empty() || trimmed[0] == ';' || trimmed[0] == '#') continue;
+    if (trimmed.empty() || trimmed[0] == ';' || trimmed[0] == '#')
+      continue;
 
     std::smatch match;
     if (std::regex_search(trimmed, match, label_regex)) {
@@ -484,7 +496,7 @@ absl::Status SymbolProvider::ParseBsnesSymFile(const std::string& content) {
 }
 
 SymbolFormat SymbolProvider::DetectFormat(const std::string& content,
-                                           const std::string& extension) const {
+                                          const std::string& extension) const {
   // Check extension first
   if (extension == ".asm" || extension == ".s") {
     return SymbolFormat::kAsar;

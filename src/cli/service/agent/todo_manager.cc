@@ -365,7 +365,7 @@ absl::Status TodoManager::Load() {
     }
     return result.status();
   }
-  
+
   try {
     j_todos = json::parse(*result);
   } catch (const std::exception& e) {

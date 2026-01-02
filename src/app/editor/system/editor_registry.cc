@@ -39,21 +39,21 @@ const std::unordered_map<EditorType, std::string> EditorRegistry::kEditorNames =
      {EditorType::kAgent, "Agent Editor"},
      {EditorType::kSettings, "Settings Editor"}};
 
-const std::unordered_map<EditorType, bool> EditorRegistry::kPanelBasedEditors = {
-    {EditorType::kDungeon, true},
-    {EditorType::kOverworld, true},
-    {EditorType::kGraphics, true},
-    {EditorType::kPalette, true},
-    {EditorType::kSprite, true},
-    {EditorType::kScreen, true},
-    {EditorType::kMessage, true},
-    {EditorType::kMusic, true},
-    {EditorType::kAssembly, true},
-    {EditorType::kEmulator, true},
-    {EditorType::kHex, true},
-    {EditorType::kAgent, true},  // Agent: Panel-based UI
-    {EditorType::kSettings,
-     false}  // Settings: Sidebar panel
+const std::unordered_map<EditorType, bool> EditorRegistry::kPanelBasedEditors =
+    {
+        {EditorType::kDungeon, true},
+        {EditorType::kOverworld, true},
+        {EditorType::kGraphics, true},
+        {EditorType::kPalette, true},
+        {EditorType::kSprite, true},
+        {EditorType::kScreen, true},
+        {EditorType::kMessage, true},
+        {EditorType::kMusic, true},
+        {EditorType::kAssembly, true},
+        {EditorType::kEmulator, true},
+        {EditorType::kHex, true},
+        {EditorType::kAgent, true},     // Agent: Panel-based UI
+        {EditorType::kSettings, false}  // Settings: Sidebar panel
 };
 
 bool EditorRegistry::IsPanelBasedEditor(EditorType type) {
@@ -105,7 +105,8 @@ void EditorRegistry::JumpToDungeonRoom(int room_id) {
     auto it = registered_editors_.find(EditorType::kDungeon);
     if (it != registered_editors_.end() && it->second) {
       // Fallback logging if no callback registered
-      printf("[EditorRegistry] JumpToDungeonRoom(%d) called (no callback)\n", room_id);
+      printf("[EditorRegistry] JumpToDungeonRoom(%d) called (no callback)\n",
+             room_id);
     }
   }
 }
@@ -117,7 +118,8 @@ void EditorRegistry::JumpToOverworldMap(int map_id) {
     auto it = registered_editors_.find(EditorType::kOverworld);
     if (it != registered_editors_.end() && it->second) {
       // Fallback logging if no callback registered
-      printf("[EditorRegistry] JumpToOverworldMap(%d) called (no callback)\n", map_id);
+      printf("[EditorRegistry] JumpToOverworldMap(%d) called (no callback)\n",
+             map_id);
     }
   }
 }

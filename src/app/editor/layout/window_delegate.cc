@@ -324,4 +324,3 @@ void WindowDelegate::ResetWorkspaceLayout() {
 
 }  // namespace editor
 }  // namespace yaze
-

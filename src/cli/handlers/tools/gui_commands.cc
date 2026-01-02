@@ -31,11 +31,12 @@ absl::Status GuiPlaceTileCommandHandler::Execute(
   CanvasAutomationClient client(absl::GetFlag(FLAGS_gui_server_address));
   auto status = client.Connect();
   if (!status.ok()) {
-    return absl::UnavailableError("Failed to connect to GUI server: " + std::string(status.message()));
+    return absl::UnavailableError("Failed to connect to GUI server: " +
+                                  std::string(status.message()));
   }
 
   // Assume "overworld" canvas for now, or parse from args if needed
-  std::string canvas_id = "overworld"; 
+  std::string canvas_id = "overworld";
   status = client.SetTile(canvas_id, x, y, tile_id);
 
   formatter.BeginObject("GUI Tile Placement");
@@ -60,13 +61,16 @@ absl::Status GuiClickCommandHandler::Execute(
   auto click_type_str = parser.GetString("click-type").value_or("left");
 
   ClickType click_type = ClickType::kLeft;
-  if (click_type_str == "right") click_type = ClickType::kRight;
-  else if (click_type_str == "double") click_type = ClickType::kDouble;
+  if (click_type_str == "right")
+    click_type = ClickType::kRight;
+  else if (click_type_str == "double")
+    click_type = ClickType::kDouble;
 
   GuiAutomationClient client(absl::GetFlag(FLAGS_gui_server_address));
   auto status = client.Connect();
   if (!status.ok()) {
-    return absl::UnavailableError("Failed to connect to GUI server: " + std::string(status.message()));
+    return absl::UnavailableError("Failed to connect to GUI server: " +
+                                  std::string(status.message()));
   }
 
   auto result = client.Click(target, click_type);
@@ -74,13 +78,14 @@ absl::Status GuiClickCommandHandler::Execute(
   formatter.BeginObject("GUI Click Action");
   formatter.AddField("target", target);
   formatter.AddField("click_type", click_type_str);
-  
+
   if (result.ok()) {
     formatter.AddField("status", result->success ? "Success" : "Failed");
     if (!result->success) {
       formatter.AddField("error", result->message);
     }
-    formatter.AddField("execution_time_ms", static_cast<int>(result->execution_time.count()));
+    formatter.AddField("execution_time_ms",
+                       static_cast<int>(result->execution_time.count()));
   } else {
     formatter.AddField("status", "Error");
     formatter.AddField("error", std::string(result.status().message()));
@@ -95,14 +100,15 @@ absl::Status GuiDiscoverToolCommandHandler::Execute(
     resources::OutputFormatter& formatter) {
   auto window = parser.GetString("window").value_or("");
   auto type_str = parser.GetString("type").value_or("all");
-  
+
   // Detect if we were called as 'summarize' to provide more compact output
   bool is_summary = (GetName() == "gui-summarize-widgets");
 
   GuiAutomationClient client(absl::GetFlag(FLAGS_gui_server_address));
   auto status = client.Connect();
   if (!status.ok()) {
-    return absl::UnavailableError("Failed to connect to GUI server: " + std::string(status.message()));
+    return absl::UnavailableError("Failed to connect to GUI server: " +
+                                  std::string(status.message()));
   }
 
   DiscoverWidgetsQuery query;
@@ -114,36 +120,40 @@ absl::Status GuiDiscoverToolCommandHandler::Execute(
 
   formatter.BeginObject(is_summary ? "GUI Summary" : "Widget Discovery");
   formatter.AddField("window_filter", window);
-  
+
   if (result.ok()) {
     formatter.AddField("total_widgets", result->total_widgets);
     formatter.AddField("status", "Success");
-    
+
     formatter.BeginArray("windows");
     for (const auto& win : result->windows) {
-      if (!win.visible && is_summary) continue;
-      
+      if (!win.visible && is_summary)
+        continue;
+
       formatter.BeginObject("window");
       formatter.AddField("name", win.name);
       formatter.AddField("visible", win.visible);
-      
+
       if (is_summary) {
-          std::vector<std::string> highlights;
-          for (const auto& w : win.widgets) {
-              if (w.type == "button" || w.type == "input" || w.type == "menu") {
-                  highlights.push_back(absl::StrFormat("%s (%s)", w.label, w.type));
-              }
-              if (highlights.size() > 10) break;
+        std::vector<std::string> highlights;
+        for (const auto& w : win.widgets) {
+          if (w.type == "button" || w.type == "input" || w.type == "menu") {
+            highlights.push_back(absl::StrFormat("%s (%s)", w.label, w.type));
           }
-          formatter.AddField("key_elements", absl::StrJoin(highlights, ", "));
+          if (highlights.size() > 10)
+            break;
+        }
+        formatter.AddField("key_elements", absl::StrJoin(highlights, ", "));
       } else {
-          formatter.BeginArray("widgets");
-          int count = 0;
-          for (const auto& widget : win.widgets) {
-            if (count++ > 50) break;
-            formatter.AddArrayItem(absl::StrFormat("%s (%s) - %s", widget.label, widget.type, widget.path));
-          }
-          formatter.EndArray();
+        formatter.BeginArray("widgets");
+        int count = 0;
+        for (const auto& widget : win.widgets) {
+          if (count++ > 50)
+            break;
+          formatter.AddArrayItem(absl::StrFormat("%s (%s) - %s", widget.label,
+                                                 widget.type, widget.path));
+        }
+        formatter.EndArray();
       }
       formatter.EndObject();
     }
@@ -166,7 +176,8 @@ absl::Status GuiScreenshotCommandHandler::Execute(
   GuiAutomationClient client(absl::GetFlag(FLAGS_gui_server_address));
   auto status = client.Connect();
   if (!status.ok()) {
-    return absl::UnavailableError("Failed to connect to GUI server: " + std::string(status.message()));
+    return absl::UnavailableError("Failed to connect to GUI server: " +
+                                  std::string(status.message()));
   }
 
   auto result = client.Screenshot(region, image_format);
@@ -174,12 +185,12 @@ absl::Status GuiScreenshotCommandHandler::Execute(
   formatter.BeginObject("Screenshot Capture");
   formatter.AddField("region", region);
   formatter.AddField("image_format", image_format);
-  
+
   if (result.ok()) {
     formatter.AddField("status", result->success ? "Success" : "Failed");
     if (result->success) {
       formatter.AddField("output_path", result->message);
-      
+
       // Also print a user-friendly message directly to stderr for visibility
       if (!absl::GetFlag(FLAGS_quiet)) {
         std::cerr << "\n📸 \033[1;32mScreenshot captured!\033[0m\n";

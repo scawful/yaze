@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "absl/strings/str_format.h"
+#include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/gui/core/icons.h"
@@ -55,15 +56,13 @@ void AgentAutomationPanel::Draw(AgentUIContext* context,
 
     if (connected) {
       // Pulsing green for connected
-      float green_pulse =
-          0.7f + 0.3f * std::sin(state.pulse_animation * 0.5f);
+      float green_pulse = 0.7f + 0.3f * std::sin(state.pulse_animation * 0.5f);
       status_color = ImVec4(0.1f, green_pulse, 0.3f, 1.0f);
       status_text = "ONLINE";
       status_icon = ICON_MD_CHECK_CIRCLE;
     } else {
       // Pulsing red for disconnected
-      float red_pulse =
-          0.6f + 0.4f * std::sin(state.pulse_animation * 1.5f);
+      float red_pulse = 0.6f + 0.4f * std::sin(state.pulse_animation * 1.5f);
       status_color = ImVec4(red_pulse, 0.2f, 0.2f, 1.0f);
       status_text = "OFFLINE";
       status_icon = ICON_MD_ERROR;
@@ -135,9 +134,8 @@ void AgentAutomationPanel::Draw(AgentUIContext* context,
     // === SETTINGS ROW ===
     ImGui::Spacing();
     ImGui::SetNextItemWidth(80.0f);
-    ImGui::SliderFloat("##refresh_interval",
-                       &state.refresh_interval_seconds, 0.5f, 10.0f,
-                       "%.1fs");
+    ImGui::SliderFloat("##refresh_interval", &state.refresh_interval_seconds,
+                       0.5f, 10.0f, "%.1fs");
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Auto-refresh interval");
     }
@@ -147,8 +145,7 @@ void AgentAutomationPanel::Draw(AgentUIContext* context,
     ImGui::TextDisabled("Automation Hooks");
     ImGui::Checkbox("Auto-run harness plan", &state.auto_run_plan);
     ImGui::Checkbox("Auto-sync ROM context", &state.auto_sync_rom);
-    ImGui::Checkbox("Auto-focus proposal drawer",
-                    &state.auto_focus_proposals);
+    ImGui::Checkbox("Auto-focus proposal drawer", &state.auto_focus_proposals);
 
     // === RECENT AUTOMATION ACTIONS WITH SCROLLING ===
     ImGui::Spacing();

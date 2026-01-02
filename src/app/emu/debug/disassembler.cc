@@ -3,12 +3,15 @@
 #include <algorithm>
 #include <iomanip>
 #include <sstream>
+#include "absl/strings/str_format.h"
 
 namespace yaze {
 namespace emu {
 namespace debug {
 
-Disassembler65816::Disassembler65816() { InitializeOpcodeTable(); }
+Disassembler65816::Disassembler65816() {
+  InitializeOpcodeTable();
+}
 
 void Disassembler65816::InitializeOpcodeTable() {
   // Initialize all opcodes with their mnemonics and addressing modes
@@ -311,7 +314,7 @@ const InstructionInfo& Disassembler65816::GetInstructionInfo(
 }
 
 uint8_t Disassembler65816::GetInstructionSize(uint8_t opcode, bool m_flag,
-                                               bool x_flag) const {
+                                              bool x_flag) const {
   const auto& info = opcode_table_[opcode];
   uint8_t size = info.base_size;
 
@@ -327,8 +330,10 @@ uint8_t Disassembler65816::GetInstructionSize(uint8_t opcode, bool m_flag,
   return size;
 }
 
-DisassembledInstruction Disassembler65816::Disassemble(
-    uint32_t address, MemoryReader read_byte, bool m_flag, bool x_flag) const {
+DisassembledInstruction Disassembler65816::Disassemble(uint32_t address,
+                                                       MemoryReader read_byte,
+                                                       bool m_flag,
+                                                       bool x_flag) const {
   DisassembledInstruction result;
   result.address = address;
 
@@ -349,10 +354,10 @@ DisassembledInstruction Disassembler65816::Disassemble(
 
   // Determine instruction type
   const std::string& mn = result.mnemonic;
-  result.is_branch = (mn == "BRA" || mn == "BRL" || mn == "BPL" ||
-                      mn == "BMI" || mn == "BVC" || mn == "BVS" ||
-                      mn == "BCC" || mn == "BCS" || mn == "BNE" ||
-                      mn == "BEQ" || mn == "JMP");
+  result.is_branch =
+      (mn == "BRA" || mn == "BRL" || mn == "BPL" || mn == "BMI" ||
+       mn == "BVC" || mn == "BVS" || mn == "BCC" || mn == "BCS" ||
+       mn == "BNE" || mn == "BEQ" || mn == "JMP");
   result.is_call = (mn == "JSR" || mn == "JSL");
   result.is_return = (mn == "RTS" || mn == "RTL" || mn == "RTI");
 
@@ -416,9 +421,9 @@ std::vector<DisassembledInstruction> Disassembler65816::DisassembleRange(
 }
 
 std::string Disassembler65816::FormatOperand(AddressingMode65816 mode,
-                                              const std::vector<uint8_t>& ops,
-                                              uint32_t address, bool m_flag,
-                                              bool x_flag) const {
+                                             const std::vector<uint8_t>& ops,
+                                             uint32_t address, bool m_flag,
+                                             bool x_flag) const {
   using AM = AddressingMode65816;
 
   switch (mode) {
@@ -637,8 +642,7 @@ uint32_t Disassembler65816::CalculateBranchTarget(
 
     case AM::kProgramCounterRelativeLong:
       if (operands.size() >= 2) {
-        int16_t offset =
-            static_cast<int16_t>(operands[0] | (operands[1] << 8));
+        int16_t offset = static_cast<int16_t>(operands[0] | (operands[1] << 8));
         return (address + instruction_size + offset) & 0xFFFFFF;
       }
       break;

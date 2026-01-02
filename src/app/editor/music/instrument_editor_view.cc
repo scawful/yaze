@@ -29,7 +29,8 @@ static void HelpMarker(const char* desc) {
 void InstrumentEditorView::Draw(MusicBank& bank) {
   // Layout: List on left (25%), Properties on right (75%)
   float list_width = ImGui::GetContentRegionAvail().x * 0.25f;
-  if (list_width < 150.0f) list_width = 150.0f;
+  if (list_width < 150.0f)
+    list_width = 150.0f;
 
   ImGui::BeginChild("InstrumentList", ImVec2(list_width, 0), true);
   DrawInstrumentList(bank);
@@ -39,7 +40,8 @@ void InstrumentEditorView::Draw(MusicBank& bank) {
 
   ImGui::BeginChild("InstrumentProps", ImVec2(0, 0), true);
   if (selected_instrument_index_ >= 0 &&
-      selected_instrument_index_ < static_cast<int>(bank.GetInstrumentCount())) {
+      selected_instrument_index_ <
+          static_cast<int>(bank.GetInstrumentCount())) {
     DrawProperties(*bank.GetInstrument(selected_instrument_index_), bank);
   } else {
     ImGui::TextDisabled("Select an instrument to edit");
@@ -50,21 +52,24 @@ void InstrumentEditorView::Draw(MusicBank& bank) {
 void InstrumentEditorView::DrawInstrumentList(MusicBank& bank) {
   if (ImGui::Button("Add Instrument")) {
     bank.CreateNewInstrument("New Instrument");
-    if (on_edit_) on_edit_();
+    if (on_edit_)
+      on_edit_();
   }
-  
+
   ImGui::Separator();
 
   for (size_t i = 0; i < bank.GetInstrumentCount(); ++i) {
     const auto* inst = bank.GetInstrument(i);
     std::string label = absl::StrFormat("%02X: %s", i, inst->name);
-    if (ImGui::Selectable(label.c_str(), selected_instrument_index_ == static_cast<int>(i))) {
+    if (ImGui::Selectable(label.c_str(),
+                          selected_instrument_index_ == static_cast<int>(i))) {
       selected_instrument_index_ = static_cast<int>(i);
     }
   }
 }
 
-void InstrumentEditorView::DrawProperties(MusicInstrument& instrument, MusicBank& bank) {
+void InstrumentEditorView::DrawProperties(MusicInstrument& instrument,
+                                          MusicBank& bank) {
   bool changed = false;
 
   // Name
@@ -81,7 +86,8 @@ void InstrumentEditorView::DrawProperties(MusicInstrument& instrument, MusicBank
       on_preview_(selected_instrument_index_);
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Play a C4 note with this instrument (requires ROM loaded)");
+      ImGui::SetTooltip(
+          "Play a C4 note with this instrument (requires ROM loaded)");
     }
   } else {
     ImGui::BeginDisabled();
@@ -93,16 +99,19 @@ void InstrumentEditorView::DrawProperties(MusicInstrument& instrument, MusicBank
   }
 
   // Sample Selection
-  if (ImGui::BeginCombo("Sample", absl::StrFormat("%02X", instrument.sample_index).c_str())) {
+  if (ImGui::BeginCombo(
+          "Sample", absl::StrFormat("%02X", instrument.sample_index).c_str())) {
     for (size_t i = 0; i < bank.GetSampleCount(); ++i) {
       bool is_selected = (instrument.sample_index == i);
       const auto* sample = bank.GetSample(i);
-      std::string label = absl::StrFormat("%02X: %s", i, sample ? sample->name.c_str() : "Unknown");
+      std::string label = absl::StrFormat(
+          "%02X: %s", i, sample ? sample->name.c_str() : "Unknown");
       if (ImGui::Selectable(label.c_str(), is_selected)) {
         instrument.sample_index = static_cast<uint8_t>(i);
         changed = true;
       }
-      if (is_selected) ImGui::SetItemDefaultFocus();
+      if (is_selected)
+        ImGui::SetItemDefaultFocus();
     }
     ImGui::EndCombo();
   }
@@ -111,12 +120,15 @@ void InstrumentEditorView::DrawProperties(MusicInstrument& instrument, MusicBank
 
   // Pitch Multiplier (Tuning)
   int pitch = instrument.pitch_mult;
-  if (ImGui::InputInt("Pitch Multiplier", &pitch, 1, 16, ImGuiInputTextFlags_CharsHexadecimal)) {
+  if (ImGui::InputInt("Pitch Multiplier", &pitch, 1, 16,
+                      ImGuiInputTextFlags_CharsHexadecimal)) {
     instrument.pitch_mult = static_cast<uint16_t>(std::clamp(pitch, 0, 0xFFFF));
     changed = true;
   }
   ImGui::SameLine();
-  HelpMarker("Base pitch adjustment. $1000 = 1.0x (Standard C). Lower values lower the pitch.");
+  HelpMarker(
+      "Base pitch adjustment. $1000 = 1.0x (Standard C). Lower values lower "
+      "the pitch.");
 
   ImGui::Separator();
   ImGui::Text("Envelope (ADSR)");
@@ -130,7 +142,10 @@ void InstrumentEditorView::DrawProperties(MusicInstrument& instrument, MusicBank
     instrument.attack = static_cast<uint8_t>(attack);
     changed = true;
   }
-  if (ImGui::IsItemHovered()) ImGui::SetTooltip("How fast the volume reaches peak. 15 = Fastest (Instant), 0 = Slowest.");
+  if (ImGui::IsItemHovered())
+    ImGui::SetTooltip(
+        "How fast the volume reaches peak. 15 = Fastest (Instant), 0 = "
+        "Slowest.");
 
   // Decay: 0-7
   int decay = instrument.decay;
@@ -138,7 +153,10 @@ void InstrumentEditorView::DrawProperties(MusicInstrument& instrument, MusicBank
     instrument.decay = static_cast<uint8_t>(decay);
     changed = true;
   }
-  if (ImGui::IsItemHovered()) ImGui::SetTooltip("How fast volume drops from peak to Sustain Level. 7 = Fastest, 0 = Slowest.");
+  if (ImGui::IsItemHovered())
+    ImGui::SetTooltip(
+        "How fast volume drops from peak to Sustain Level. 7 = Fastest, 0 = "
+        "Slowest.");
 
   // Sustain Level: 0-7
   int sustain_level = instrument.sustain_level;
@@ -146,7 +164,10 @@ void InstrumentEditorView::DrawProperties(MusicInstrument& instrument, MusicBank
     instrument.sustain_level = static_cast<uint8_t>(sustain_level);
     changed = true;
   }
-  if (ImGui::IsItemHovered()) ImGui::SetTooltip("The volume level (1/8ths) to sustain at. 7 = Max Volume, 0 = Silence.");
+  if (ImGui::IsItemHovered())
+    ImGui::SetTooltip(
+        "The volume level (1/8ths) to sustain at. 7 = Max Volume, 0 = "
+        "Silence.");
 
   // Sustain Rate: 0-31
   int sustain_rate = instrument.sustain_rate;
@@ -154,7 +175,10 @@ void InstrumentEditorView::DrawProperties(MusicInstrument& instrument, MusicBank
     instrument.sustain_rate = static_cast<uint8_t>(sustain_rate);
     changed = true;
   }
-  if (ImGui::IsItemHovered()) ImGui::SetTooltip("How fast volume decays WHILE holding the key (after reaching Sustain Level). 0 = Infinite sustain, 31 = Fast fade out.");
+  if (ImGui::IsItemHovered())
+    ImGui::SetTooltip(
+        "How fast volume decays WHILE holding the key (after reaching Sustain "
+        "Level). 0 = Infinite sustain, 31 = Fast fade out.");
 
   // Gain (if not using ADSR, but usually ADSR is preferred for instruments)
   // TODO: Add Gain Mode toggle
@@ -175,34 +199,35 @@ void InstrumentEditorView::DrawAdsrGraph(const MusicInstrument& instrument) {
 
   // Ensure ImPlot context exists before plotting
   yaze::gui::plotting::EnsureImPlotContext();
-  
+
   // Helper to convert SNES rates to time/slope
   // (Simplified for visualization)
-  
+
   plot_x_.clear();
   plot_y_.clear();
-  
+
   float t = 0.0f;
-  
+
   // Attack Phase
   // Rate N: (Rate * 2 + 1) ms to full volume? Roughly.
   // Simplification: t += 1.0 / (attack + 1)
-  float attack_time = 1.0f / (instrument.attack + 1.0f); 
-  if (instrument.attack == 15) attack_time = 0.0f; // Instant
-  
+  float attack_time = 1.0f / (instrument.attack + 1.0f);
+  if (instrument.attack == 15)
+    attack_time = 0.0f;  // Instant
+
   plot_x_.push_back(0.0f);
   plot_y_.push_back(0.0f);
-  
+
   // Attack is linear in SNES DSP (add 1/64 per tick)
   plot_x_.push_back(attack_time);
-  plot_y_.push_back(1.0f); // Max volume
+  plot_y_.push_back(1.0f);  // Max volume
   t = attack_time;
-  
+
   // Decay Phase
   // Exponential decay to Sustain Level
   // Sustain Level is instrument.sustain_level/8.0f + 1
   float s_level = (instrument.sustain_level + 1) / 8.0f;
-  
+
   // Simulate exponential decay
   // k = decay rate factor
   for (int i = 0; i < 20; ++i) {
@@ -210,29 +235,30 @@ void InstrumentEditorView::DrawAdsrGraph(const MusicInstrument& instrument) {
     // Fake exponential: vol = s_level + (1 - s_level) * exp(-k * dt)
     // Or simple lerp for now
     float alpha = (float)i / 20.0f;
-    float curve = alpha * alpha; // Quadratic approximation for exponential
+    float curve = alpha * alpha;  // Quadratic approximation for exponential
     float vol = 1.0f - (1.0f - s_level) * curve;
-    
+
     plot_x_.push_back(t);
     plot_y_.push_back(vol);
   }
-  
+
   // Sustain Phase (Decrease)
   // Decreases at sustain_rate until key off
-  float sustain_time = 1.0f; // Show 1 second of sustain
-  float sustain_drop_per_sec = instrument.sustain_rate / 31.0f; 
-  
+  float sustain_time = 1.0f;  // Show 1 second of sustain
+  float sustain_drop_per_sec = instrument.sustain_rate / 31.0f;
+
   plot_x_.push_back(t + sustain_time);
   plot_y_.push_back(std::max(0.0f, s_level - sustain_drop_per_sec));
-  
+
   if (ImPlot::BeginPlot("ADSR Envelope", ImVec2(-1, 200))) {
     ImPlot::SetupAxes("Time", "Volume");
     ImPlot::SetupAxesLimits(0, 2.0, 0, 1.1);
-    ImPlot::PlotLine("Volume", plot_x_.data(), plot_y_.data(), static_cast<int>(plot_x_.size()));
-    
+    ImPlot::PlotLine("Volume", plot_x_.data(), plot_y_.data(),
+                     static_cast<int>(plot_x_.size()));
+
     // Mark phases
-    ImPlot::TagX(attack_time, ImVec4(1,1,0,0.5), "Decay Start");
-    
+    ImPlot::TagX(attack_time, ImVec4(1, 1, 0, 0.5), "Decay Start");
+
     ImPlot::EndPlot();
   }
 }

@@ -220,13 +220,12 @@ absl::Status FileSystemListTool::Execute(
   }
 
   // Sort entries: directories first, then files, alphabetically
-  std::sort(entries.begin(), entries.end(),
-            [](const auto& a, const auto& b) {
-              if (a.at("type") != b.at("type")) {
-                return a.at("type") == "directory";
-              }
-              return a.at("name") < b.at("name");
-            });
+  std::sort(entries.begin(), entries.end(), [](const auto& a, const auto& b) {
+    if (a.at("type") != b.at("type")) {
+      return a.at("type") == "directory";
+    }
+    return a.at("name") < b.at("name");
+  });
 
   // Add entries to formatter
   formatter.BeginArray("entries");
@@ -349,15 +348,18 @@ bool FileSystemReadTool::IsTextFile(const fs::path& path) const {
 
   // Common text file extensions
   std::set<std::string> text_extensions = {
-      ".txt", ".md", ".cc", ".cpp", ".c", ".h", ".hpp", ".py", ".js", ".ts",
-      ".json", ".xml", ".yaml", ".yml", ".toml", ".ini", ".cfg", ".conf",
-      ".sh", ".bash", ".zsh", ".fish", ".cmake", ".mk", ".makefile",
-      ".html", ".css", ".scss", ".sass", ".less", ".jsx", ".tsx",
-      ".rs", ".go", ".java", ".kt", ".swift", ".rb", ".pl", ".php",
-      ".lua", ".vim", ".el", ".lisp", ".clj", ".hs", ".ml", ".fs",
-      ".asm", ".s", ".S", ".proto", ".thrift", ".graphql", ".sql",
-      ".gitignore", ".dockerignore", ".editorconfig", ".eslintrc"
-  };
+      ".txt",       ".md",           ".cc",           ".cpp",     ".c",
+      ".h",         ".hpp",          ".py",           ".js",      ".ts",
+      ".json",      ".xml",          ".yaml",         ".yml",     ".toml",
+      ".ini",       ".cfg",          ".conf",         ".sh",      ".bash",
+      ".zsh",       ".fish",         ".cmake",        ".mk",      ".makefile",
+      ".html",      ".css",          ".scss",         ".sass",    ".less",
+      ".jsx",       ".tsx",          ".rs",           ".go",      ".java",
+      ".kt",        ".swift",        ".rb",           ".pl",      ".php",
+      ".lua",       ".vim",          ".el",           ".lisp",    ".clj",
+      ".hs",        ".ml",           ".fs",           ".asm",     ".s",
+      ".S",         ".proto",        ".thrift",       ".graphql", ".sql",
+      ".gitignore", ".dockerignore", ".editorconfig", ".eslintrc"};
 
   if (text_extensions.count(ext) > 0) {
     return true;
@@ -381,9 +383,7 @@ bool FileSystemReadTool::IsTextFile(const fs::path& path) const {
     }
     // Also check for other non-printable characters
     // (excluding common whitespace)
-    if (!std::isprint(buffer[i]) &&
-        buffer[i] != '\n' &&
-        buffer[i] != '\r' &&
+    if (!std::isprint(buffer[i]) && buffer[i] != '\n' && buffer[i] != '\r' &&
         buffer[i] != '\t') {
       return false;
     }
@@ -521,8 +521,9 @@ absl::Status FileSystemInfoTool::Execute(
 
   // Additional info
   formatter.AddField("absolute_path", fs::absolute(info_path).string());
-  formatter.AddField("is_hidden",
-                     info_path.filename().string().starts_with(".") ? "true" : "false");
+  formatter.AddField("is_hidden", info_path.filename().string().starts_with(".")
+                                      ? "true"
+                                      : "false");
 
   formatter.EndObject();
 

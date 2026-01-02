@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <iostream>
 
+#include "absl/strings/str_format.h"
 #include "core/features.h"
 
 namespace yaze {
@@ -111,8 +112,7 @@ void LogManager::log(LogLevel level, absl::string_view category,
   // 3. Filter by enabled categories (Allowlist).
   // If allowlist is active (not empty), we must match it.
   if (!all_categories_enabled_.load()) {
-    if (enabled_categories_.find(cat_str) ==
-        enabled_categories_.end()) {
+    if (enabled_categories_.find(cat_str) == enabled_categories_.end()) {
       return;
     }
   }

@@ -42,8 +42,7 @@ absl::Status OverworldEditor::DrawScratchSpace() {
   if (ow_map_canvas_.select_rect_active() &&
       !ow_map_canvas_.selected_tiles().empty()) {
     TextColored(
-        ImVec4(0.4f, 1.0f, 0.4f, 1.0f),
-        ICON_MD_CONTENT_PASTE
+        ImVec4(0.4f, 1.0f, 0.4f, 1.0f), ICON_MD_CONTENT_PASTE
         " Overworld selection active! Click in scratch space to stamp.");
   } else {
     Text("Left-click to paint with current tile.");
@@ -77,7 +76,7 @@ absl::Status OverworldEditor::DrawScratchSpace() {
   gui::CanvasFrameOptions frame_opts;
   frame_opts.canvas_size = scratch_content_size;
   frame_opts.draw_grid = true;
-  frame_opts.grid_step = 32.0f;  // Tile16 grid (32px = 2x tile scale)
+  frame_opts.grid_step = 32.0f;          // Tile16 grid (32px = 2x tile scale)
   frame_opts.draw_context_menu = false;  // No context menu for scratch
   frame_opts.draw_overlay = true;
   frame_opts.render_popups = false;
@@ -156,7 +155,8 @@ void OverworldEditor::DrawScratchSpacePattern() {
   int pattern_width = dependencies_.shared_clipboard->overworld_width;
   int pattern_height = dependencies_.shared_clipboard->overworld_height;
 
-  if (tile_ids.empty()) return;
+  if (tile_ids.empty())
+    return;
 
   int max_width = scratch_space_.width > 0 ? scratch_space_.width : 20;
   int max_height = scratch_space_.height > 0 ? scratch_space_.height : 30;
@@ -193,7 +193,8 @@ void OverworldEditor::UpdateScratchBitmapTile(int tile_x, int tile_y,
   gfx::ScopedTimer timer("overworld_update_scratch_tile");
 
   auto tile_data = gfx::GetTilemapData(tile16_blockset_, tile_id);
-  if (tile_data.empty()) return;
+  if (tile_data.empty())
+    return;
 
   const int grid_size = 32;
   int scratch_bitmap_width = scratch_space_.scratch_bitmap.width();
@@ -246,9 +247,8 @@ absl::Status OverworldEditor::SaveCurrentSelectionToScratch() {
       scratch_space_.width = std::max(1, std::min(selection_width, 32));
       scratch_space_.height = std::max(1, std::min(selection_height, 32));
       scratch_space_.in_use = true;
-      scratch_space_.name = absl::StrFormat("Selection %dx%d",
-                                            scratch_space_.width,
-                                            scratch_space_.height);
+      scratch_space_.name = absl::StrFormat(
+          "Selection %dx%d", scratch_space_.width, scratch_space_.height);
 
       int bitmap_width = scratch_space_.width * 16;
       int bitmap_height = scratch_space_.height * 16;

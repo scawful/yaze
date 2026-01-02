@@ -8,8 +8,8 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
-#include "rom/rom.h"
 #include "cli/handlers/tools/diagnostic_types.h"
+#include "rom/rom.h"
 
 namespace yaze::cli {
 
@@ -88,8 +88,7 @@ std::string GetVersionString(uint8_t version) {
 
 void FindDiffRegions(const std::vector<uint8_t>& target,
                      const std::vector<uint8_t>& baseline,
-                     RomCompareResult& result,
-                     bool smart_diff) {
+                     RomCompareResult& result, bool smart_diff) {
   size_t min_size = std::min(target.size(), baseline.size());
 
   for (const auto& region : kCriticalRegions) {
@@ -103,7 +102,9 @@ void FindDiffRegions(const std::vector<uint8_t>& target,
     for (uint32_t i = region.start; i < end; ++i) {
       // Smart diff: Ignore checksum bytes
       if (smart_diff) {
-        if (i >= yaze::cli::kChecksumComplementPos && i <= yaze::cli::kChecksumPos + 1) continue;
+        if (i >= yaze::cli::kChecksumComplementPos &&
+            i <= yaze::cli::kChecksumPos + 1)
+          continue;
         // Ignore ZSCustom timestamp/version if needed (optional)
       }
 
@@ -145,10 +146,14 @@ void OutputTextBanner(bool is_json) {
     return;
   }
   std::cout << "\n";
-  std::cout << "╔═══════════════════════════════════════════════════════════════╗\n";
-  std::cout << "║                      ROM COMPARE                              ║\n";
-  std::cout << "║         Baseline Comparison Tool                              ║\n";
-  std::cout << "╚═══════════════════════════════════════════════════════════════╝\n";
+  std::cout
+      << "╔═══════════════════════════════════════════════════════════════╗\n";
+  std::cout
+      << "║                      ROM COMPARE                              ║\n";
+  std::cout
+      << "║         Baseline Comparison Tool                              ║\n";
+  std::cout
+      << "╚═══════════════════════════════════════════════════════════════╝\n";
 }
 
 void OutputTextRomInfo(const RomCompareResult& result) {
@@ -160,12 +165,14 @@ void OutputTextRomInfo(const RomCompareResult& result) {
   std::cout << absl::StrFormat("%-20s %-30s %-30s\n", "ZSCustom Version",
                                GetVersionString(result.baseline.zs_version),
                                GetVersionString(result.target.zs_version));
-  std::cout << absl::StrFormat("%-20s %-30s %-30s\n", "Expanded Tile16",
-                               result.baseline.has_expanded_tile16 ? "YES" : "NO",
-                               result.target.has_expanded_tile16 ? "YES" : "NO");
-  std::cout << absl::StrFormat("%-20s %-30s %-30s\n", "Expanded Tile32",
-                               result.baseline.has_expanded_tile32 ? "YES" : "NO",
-                               result.target.has_expanded_tile32 ? "YES" : "NO");
+  std::cout << absl::StrFormat(
+      "%-20s %-30s %-30s\n", "Expanded Tile16",
+      result.baseline.has_expanded_tile16 ? "YES" : "NO",
+      result.target.has_expanded_tile16 ? "YES" : "NO");
+  std::cout << absl::StrFormat(
+      "%-20s %-30s %-30s\n", "Expanded Tile32",
+      result.baseline.has_expanded_tile32 ? "YES" : "NO",
+      result.target.has_expanded_tile32 ? "YES" : "NO");
   std::cout << absl::StrFormat("%-20s 0x%08X%21s 0x%08X\n", "Checksum",
                                result.baseline.checksum, "",
                                result.target.checksum);
@@ -179,8 +186,9 @@ void OutputTextDiffSummary(const RomCompareResult& result) {
     return;
   }
 
-  std::cout << absl::StrFormat("Found differences in %zu regions (%zu bytes total):\n",
-                               result.diff_regions.size(), result.total_diff_bytes);
+  std::cout << absl::StrFormat(
+      "Found differences in %zu regions (%zu bytes total):\n",
+      result.diff_regions.size(), result.total_diff_bytes);
 
   for (const auto& diff : result.diff_regions) {
     std::string marker = diff.critical ? "[CRITICAL] " : "";
@@ -198,11 +206,12 @@ void OutputTextDetailedDiff(const std::vector<uint8_t>& target,
                                region.region_name, region.start, region.end);
 
   int samples_shown = 0;
-  for (uint32_t i = region.start;
-       i < region.end && samples_shown < max_samples; ++i) {
+  for (uint32_t i = region.start; i < region.end && samples_shown < max_samples;
+       ++i) {
     if (target[i] != baseline[i]) {
-      std::cout << absl::StrFormat("    0x%06X: baseline=0x%02X target=0x%02X\n",
-                                   i, baseline[i], target[i]);
+      std::cout << absl::StrFormat(
+          "    0x%06X: baseline=0x%02X target=0x%02X\n", i, baseline[i],
+          target[i]);
       samples_shown++;
     }
   }
@@ -215,33 +224,40 @@ void OutputTextDetailedDiff(const std::vector<uint8_t>& target,
 
 void OutputTextAssessment(const RomCompareResult& result) {
   std::cout << "\n";
-  std::cout << "╔═══════════════════════════════════════════════════════════════╗\n";
-  std::cout << "║                       ASSESSMENT                              ║\n";
-  std::cout << "╠═══════════════════════════════════════════════════════════════╣\n";
+  std::cout
+      << "╔═══════════════════════════════════════════════════════════════╗\n";
+  std::cout
+      << "║                       ASSESSMENT                              ║\n";
+  std::cout
+      << "╠═══════════════════════════════════════════════════════════════╣\n";
 
   bool has_issues = false;
 
   if (!result.sizes_match) {
-    std::cout << "║  SIZE MISMATCH: ROMs have different sizes                    ║\n";
+    std::cout
+        << "║  SIZE MISMATCH: ROMs have different sizes                    ║\n";
     has_issues = true;
   }
 
   for (const auto& diff : result.diff_regions) {
     if (diff.critical) {
       std::cout << absl::StrFormat(
-          "║  WARNING: %s modified (%zu bytes)%-14s ║\n",
-          diff.region_name, diff.diff_count, "");
+          "║  WARNING: %s modified (%zu bytes)%-14s ║\n", diff.region_name,
+          diff.diff_count, "");
       has_issues = true;
     }
   }
 
   if (!has_issues && result.diff_regions.empty()) {
-    std::cout << "║  ROMs are identical in all critical regions                  ║\n";
+    std::cout
+        << "║  ROMs are identical in all critical regions                  ║\n";
   } else if (!has_issues) {
-    std::cout << "║  ROMs have expected differences (version upgrade, etc.)      ║\n";
+    std::cout
+        << "║  ROMs have expected differences (version upgrade, etc.)      ║\n";
   }
 
-  std::cout << "╚═══════════════════════════════════════════════════════════════╝\n";
+  std::cout
+      << "╚═══════════════════════════════════════════════════════════════╝\n";
 }
 
 }  // namespace
@@ -290,9 +306,10 @@ absl::Status RomCompareCommandHandler::Execute(
   result.sizes_match = (result.target.size == result.baseline.size);
   result.versions_match =
       (result.target.zs_version == result.baseline.zs_version);
-  result.features_match =
-      (result.target.has_expanded_tile16 == result.baseline.has_expanded_tile16) &&
-      (result.target.has_expanded_tile32 == result.baseline.has_expanded_tile32);
+  result.features_match = (result.target.has_expanded_tile16 ==
+                           result.baseline.has_expanded_tile16) &&
+                          (result.target.has_expanded_tile32 ==
+                           result.baseline.has_expanded_tile32);
 
   // Find differences
   FindDiffRegions(target_data, baseline_data, result, smart_diff);
@@ -303,7 +320,8 @@ absl::Status RomCompareCommandHandler::Execute(
   formatter.AddField("sizes_match", result.sizes_match);
   formatter.AddField("versions_match", result.versions_match);
   formatter.AddField("features_match", result.features_match);
-  formatter.AddField("total_diff_bytes", static_cast<int>(result.total_diff_bytes));
+  formatter.AddField("total_diff_bytes",
+                     static_cast<int>(result.total_diff_bytes));
 
   formatter.BeginArray("diff_regions");
   for (const auto& diff : result.diff_regions) {
@@ -324,10 +342,11 @@ absl::Status RomCompareCommandHandler::Execute(
     }
   }
   formatter.AddField("has_critical_differences", has_critical);
-  formatter.AddField("assessment",
-                     has_critical ? "warning" : (result.diff_regions.empty()
-                                                     ? "identical"
-                                                     : "expected_differences"));
+  formatter.AddField("assessment", has_critical
+                                       ? "warning"
+                                       : (result.diff_regions.empty()
+                                              ? "identical"
+                                              : "expected_differences"));
 
   // Text output
   if (!is_json) {
@@ -337,7 +356,8 @@ absl::Status RomCompareCommandHandler::Execute(
     if (show_diff && !result.diff_regions.empty()) {
       std::cout << "\n=== Detailed Differences ===\n";
       for (const auto& diff : result.diff_regions) {
-        OutputTextDetailedDiff(target_data, baseline_data, diff, verbose ? 10 : 5);
+        OutputTextDetailedDiff(target_data, baseline_data, diff,
+                               verbose ? 10 : 5);
       }
     }
 

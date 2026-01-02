@@ -6,8 +6,8 @@
 #include "absl/strings/str_format.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/color.h"
-#include "app/gui/core/theme_manager.h"
 #include "app/gui/core/popup_id.h"
+#include "app/gui/core/theme_manager.h"
 #include "app/gui/plots/implot_support.h"
 #include "util/log.h"
 
@@ -68,7 +68,8 @@ void PaletteEditorWidget::Draw() {
 }
 
 void PaletteEditorWidget::DrawPaletteSelector() {
-  if (!game_data_) return;
+  if (!game_data_)
+    return;
   auto& dungeon_pal_group = game_data_->palette_groups.dungeon_main;
   int num_palettes = dungeon_pal_group.size();
 
@@ -94,7 +95,8 @@ void PaletteEditorWidget::DrawPaletteSelector() {
 }
 
 void PaletteEditorWidget::DrawColorPicker() {
-  if (!game_data_) return;
+  if (!game_data_)
+    return;
   ImGui::SeparatorText(
       absl::StrFormat("Edit Color %d", selected_color_index_).c_str());
 
@@ -126,9 +128,9 @@ void PaletteEditorWidget::DrawColorPicker() {
   ImGui::Text("SNES BGR555: 0x%04X", original_color.snes());
 
   if (ImGui::Button("Reset to Original")) {
-    editing_color_ = ImVec4(original_color.rgb().x / 255.0f,
-                            original_color.rgb().y / 255.0f,
-                            original_color.rgb().z / 255.0f, 1.0f);
+    editing_color_ =
+        ImVec4(original_color.rgb().x / 255.0f, original_color.rgb().y / 255.0f,
+               original_color.rgb().z / 255.0f, 1.0f);
     // Also reset the actual palette color
     palette[selected_color_index_] = original_color;
     dungeon_pal_group[current_palette_id_] = palette;
@@ -184,7 +186,8 @@ void PaletteEditorWidget::ShowPaletteEditor(gfx::SnesPalette& palette,
 }
 
 void PaletteEditorWidget::ShowROMPaletteManager() {
-  if (!show_rom_manager_) return;
+  if (!show_rom_manager_)
+    return;
 
   if (ImGui::Begin("ROM Palette Manager", &show_rom_manager_)) {
     if (!rom_) {
@@ -214,7 +217,8 @@ void PaletteEditorWidget::ShowROMPaletteManager() {
 
 void PaletteEditorWidget::ShowColorAnalysis(const gfx::Bitmap& bitmap,
                                             const std::string& title) {
-  if (!show_color_analysis_) return;
+  if (!show_color_analysis_)
+    return;
 
   if (ImGui::Begin(title.c_str(), &show_color_analysis_)) {
     ImGui::Text("Bitmap Color Analysis");
@@ -241,14 +245,14 @@ void PaletteEditorWidget::ShowColorAnalysis(const gfx::Bitmap& bitmap,
     ImGui::Text("Pixel Distribution:");
 
     int total_pixels = static_cast<int>(data.size());
-    plotting::PlotStyleScope plot_style(gui::ThemeManager::Get().GetCurrentTheme());
-    plotting::PlotConfig plot_cfg{
-        .id = "Pixel Distribution",
-        .x_label = "Palette Index",
-        .y_label = "Count",
-        .flags = ImPlotFlags_NoBoxSelect,
-        .x_axis_flags = ImPlotAxisFlags_AutoFit,
-        .y_axis_flags = ImPlotAxisFlags_AutoFit};
+    plotting::PlotStyleScope plot_style(
+        gui::ThemeManager::Get().GetCurrentTheme());
+    plotting::PlotConfig plot_cfg{.id = "Pixel Distribution",
+                                  .x_label = "Palette Index",
+                                  .y_label = "Count",
+                                  .flags = ImPlotFlags_NoBoxSelect,
+                                  .x_axis_flags = ImPlotAxisFlags_AutoFit,
+                                  .y_axis_flags = ImPlotAxisFlags_AutoFit};
     std::vector<double> x;
     std::vector<double> y;
     x.reserve(pixel_counts.size());
@@ -317,7 +321,8 @@ bool PaletteEditorWidget::RestorePaletteBackup(gfx::SnesPalette& palette) {
 // Unified grid drawing function
 void PaletteEditorWidget::DrawPaletteGrid(gfx::SnesPalette& palette, int cols) {
   for (int i = 0; i < static_cast<int>(palette.size()); i++) {
-    if (i % cols != 0) ImGui::SameLine();
+    if (i % cols != 0)
+      ImGui::SameLine();
 
     auto color = palette[i];
     ImVec4 display_color = color.rgb();
@@ -492,14 +497,14 @@ void PaletteEditorWidget::DrawPaletteAnalysis(const gfx::SnesPalette& palette) {
 
   // Visual histogram of color reuse
   {
-    plotting::PlotStyleScope plot_style(gui::ThemeManager::Get().GetCurrentTheme());
-    plotting::PlotConfig plot_cfg{
-        .id = "Palette Color Frequency",
-        .x_label = "Color Index",
-        .y_label = "Count",
-        .flags = ImPlotFlags_NoBoxSelect,
-        .x_axis_flags = ImPlotAxisFlags_AutoFit,
-        .y_axis_flags = ImPlotAxisFlags_AutoFit};
+    plotting::PlotStyleScope plot_style(
+        gui::ThemeManager::Get().GetCurrentTheme());
+    plotting::PlotConfig plot_cfg{.id = "Palette Color Frequency",
+                                  .x_label = "Color Index",
+                                  .y_label = "Count",
+                                  .flags = ImPlotFlags_NoBoxSelect,
+                                  .x_axis_flags = ImPlotAxisFlags_AutoFit,
+                                  .y_axis_flags = ImPlotAxisFlags_AutoFit};
     std::vector<double> x;
     std::vector<double> y;
     x.reserve(color_frequency.size());

@@ -307,8 +307,12 @@ absl::StatusOr<AgentResponse> OllamaAIService::GenerateResponse(
     const char* verbose_env = std::getenv("Z3ED_VERBOSE");
     if (verbose_env && std::string(verbose_env) == "1") {
       std::cout << "\n"
-                << "\033[35m" << "🔍 Raw LLM Response:" << "\033[0m" << "\n"
-                << "\033[2m" << llm_output << "\033[0m" << "\n\n";
+                << "\033[35m"
+                << "🔍 Raw LLM Response:"
+                << "\033[0m"
+                << "\n"
+                << "\033[2m" << llm_output << "\033[0m"
+                << "\n\n";
     }
 
     // Parse the LLM's JSON response (the agent structure)

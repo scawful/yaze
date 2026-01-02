@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
 #include "absl/strings/strip.h"
 #include "absl/time/clock.h"
@@ -564,7 +565,9 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
     // Debug: print response
     if (config_.verbose) {
       std::cout << "\n"
-                << "\033[35m" << "🔍 Raw Gemini API Response:" << "\033[0m"
+                << "\033[35m"
+                << "🔍 Raw Gemini API Response:"
+                << "\033[0m"
                 << "\n"
                 << "\033[2m" << response_str.substr(0, 500) << "\033[0m"
                 << "\n\n";
@@ -637,8 +640,12 @@ absl::StatusOr<AgentResponse> GeminiAIService::ParseGeminiResponse(
         // Debug: Print raw LLM output when verbose mode is enabled
         if (config_.verbose) {
           std::cout << "\n"
-                    << "\033[35m" << "🔍 Raw LLM Response:" << "\033[0m" << "\n"
-                    << "\033[2m" << text_content << "\033[0m" << "\n\n";
+                    << "\033[35m"
+                    << "🔍 Raw LLM Response:"
+                    << "\033[0m"
+                    << "\n"
+                    << "\033[2m" << text_content << "\033[0m"
+                    << "\n\n";
         }
 
         // Strip markdown code blocks if present (```json ... ```)
@@ -936,7 +943,9 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateMultimodalResponse(
     if (config_.verbose) {
       std::cout << "\n"
                 << "\033[35m"
-                << "🔍 Raw Gemini Multimodal Response:" << "\033[0m" << "\n"
+                << "🔍 Raw Gemini Multimodal Response:"
+                << "\033[0m"
+                << "\n"
                 << "\033[2m" << response_str.substr(0, 500) << "\033[0m"
                 << "\n\n";
     }

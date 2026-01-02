@@ -229,8 +229,8 @@ void PixelEditorPanel::DrawCanvas() {
         state_->current_sheet_id = sheet_id;
 
         // Get the current sheet bitmap
-        auto& sheet =
-            gfx::Arena::Get().mutable_gfx_sheets()->at(state_->current_sheet_id);
+        auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(
+            state_->current_sheet_id);
 
         if (!sheet.is_active()) {
           ImGui::TextDisabled("Sheet %02X is not active", sheet_id);
@@ -253,8 +253,7 @@ void PixelEditorPanel::DrawCanvas() {
         // Draw the sheet texture
         if (sheet.texture()) {
           canvas_.draw_list()->AddImage(
-              (ImTextureID)(intptr_t)sheet.texture(),
-              canvas_.zero_point(),
+              (ImTextureID)(intptr_t)sheet.texture(), canvas_.zero_point(),
               ImVec2(canvas_.zero_point().x + canvas_width,
                      canvas_.zero_point().y + canvas_height));
         }
@@ -266,16 +265,17 @@ void PixelEditorPanel::DrawCanvas() {
 
         // Draw selection rectangle if active
         if (state_->selection.is_active) {
-          ImVec2 sel_min = PixelToScreen(state_->selection.x, state_->selection.y);
+          ImVec2 sel_min =
+              PixelToScreen(state_->selection.x, state_->selection.y);
           ImVec2 sel_max =
               PixelToScreen(state_->selection.x + state_->selection.width,
                             state_->selection.y + state_->selection.height);
-          canvas_.draw_list()->AddRect(sel_min, sel_max,
-                                       IM_COL32(255, 255, 0, 255), 0.0f, 0, 2.0f);
+          canvas_.draw_list()->AddRect(
+              sel_min, sel_max, IM_COL32(255, 255, 0, 255), 0.0f, 0, 2.0f);
 
           // Marching ants effect (simplified)
-          canvas_.draw_list()->AddRect(sel_min, sel_max,
-                                       IM_COL32(0, 0, 0, 128), 0.0f, 0, 1.0f);
+          canvas_.draw_list()->AddRect(sel_min, sel_max, IM_COL32(0, 0, 0, 128),
+                                       0.0f, 0, 1.0f);
         }
 
         // Draw tool preview (line/rectangle)
@@ -360,16 +360,14 @@ void PixelEditorPanel::DrawCursorCrosshair() {
   float pixel_size = state_->zoom_level;
 
   // Vertical line through cursor pixel
-  ImVec2 v_start(cursor_screen.x + pixel_size / 2,
-                 canvas_.zero_point().y);
+  ImVec2 v_start(cursor_screen.x + pixel_size / 2, canvas_.zero_point().y);
   ImVec2 v_end(cursor_screen.x + pixel_size / 2,
                canvas_.zero_point().y + canvas_.canvas_size().y);
   canvas_.draw_list()->AddLine(v_start, v_end, IM_COL32(255, 100, 100, 100),
                                1.0f);
 
   // Horizontal line through cursor pixel
-  ImVec2 h_start(canvas_.zero_point().x,
-                 cursor_screen.y + pixel_size / 2);
+  ImVec2 h_start(canvas_.zero_point().x, cursor_screen.y + pixel_size / 2);
   ImVec2 h_end(canvas_.zero_point().x + canvas_.canvas_size().x,
                cursor_screen.y + pixel_size / 2);
   canvas_.draw_list()->AddLine(h_start, h_end, IM_COL32(255, 100, 100, 100),
@@ -467,10 +465,10 @@ void PixelEditorPanel::DrawColorPicker() {
     }
 
     std::string id = absl::StrFormat("##Color%d", i);
-    if (ImGui::ColorButton(id.c_str(), color,
-                           ImGuiColorEditFlags_NoTooltip |
-                               ImGuiColorEditFlags_NoBorder,
-                           ImVec2(24, 24))) {
+    if (ImGui::ColorButton(
+            id.c_str(), color,
+            ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoBorder,
+            ImVec2(24, 24))) {
       state_->current_color_index = static_cast<uint8_t>(i);
       state_->current_color = color;
     }
@@ -514,7 +512,8 @@ void PixelEditorPanel::DrawMiniMap() {
 
   auto& sheet =
       gfx::Arena::Get().mutable_gfx_sheets()->at(state_->current_sheet_id);
-  if (!sheet.texture()) return;
+  if (!sheet.texture())
+    return;
 
   // Draw mini version of the sheet
   float mini_scale = 0.5f;
@@ -523,9 +522,9 @@ void PixelEditorPanel::DrawMiniMap() {
 
   ImVec2 pos = ImGui::GetCursorScreenPos();
 
-  ImGui::GetWindowDrawList()->AddImage((ImTextureID)(intptr_t)sheet.texture(),
-                                       pos,
-                                       ImVec2(pos.x + mini_width, pos.y + mini_height));
+  ImGui::GetWindowDrawList()->AddImage(
+      (ImTextureID)(intptr_t)sheet.texture(), pos,
+      ImVec2(pos.x + mini_width, pos.y + mini_height));
 
   // Draw viewport rectangle
   // TODO: Calculate actual viewport bounds based on scroll position
@@ -590,8 +589,8 @@ void PixelEditorPanel::HandleCanvasInput() {
   // Mouse button handling
   if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
     is_drawing_ = true;
-    tool_start_pixel_ = ImVec2(static_cast<float>(cursor_x_),
-                               static_cast<float>(cursor_y_));
+    tool_start_pixel_ =
+        ImVec2(static_cast<float>(cursor_x_), static_cast<float>(cursor_y_));
     last_mouse_pixel_ = tool_start_pixel_;
 
     // Save undo state before starting to draw
@@ -627,8 +626,8 @@ void PixelEditorPanel::HandleCanvasInput() {
   }
 
   if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && is_drawing_) {
-    preview_end_ = ImVec2(static_cast<float>(cursor_x_),
-                          static_cast<float>(cursor_y_));
+    preview_end_ =
+        ImVec2(static_cast<float>(cursor_x_), static_cast<float>(cursor_y_));
 
     switch (state_->current_tool) {
       case PixelTool::kPencil:
@@ -647,8 +646,8 @@ void PixelEditorPanel::HandleCanvasInput() {
         break;
     }
 
-    last_mouse_pixel_ = ImVec2(static_cast<float>(cursor_x_),
-                               static_cast<float>(cursor_y_));
+    last_mouse_pixel_ =
+        ImVec2(static_cast<float>(cursor_x_), static_cast<float>(cursor_y_));
   }
 
   if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && is_drawing_) {
@@ -730,12 +729,14 @@ void PixelEditorPanel::ApplyFill(int x, int y) {
   auto& sheet =
       gfx::Arena::Get().mutable_gfx_sheets()->at(state_->current_sheet_id);
 
-  if (x < 0 || x >= sheet.width() || y < 0 || y >= sheet.height()) return;
+  if (x < 0 || x >= sheet.width() || y < 0 || y >= sheet.height())
+    return;
 
   uint8_t target_color = sheet.GetPixel(x, y);
   uint8_t fill_color = state_->current_color_index;
 
-  if (target_color == fill_color) return;  // Nothing to fill
+  if (target_color == fill_color)
+    return;  // Nothing to fill
 
   // BFS flood fill
   std::queue<std::pair<int, int>> queue;
@@ -805,7 +806,8 @@ void PixelEditorPanel::DrawLine(int x1, int y1, int x2, int y2) {
       sheet.WriteToPixel(x1, y1, state_->current_color_index);
     }
 
-    if (x1 == x2 && y1 == y2) break;
+    if (x1 == x2 && y1 == y2)
+      break;
 
     int e2 = 2 * err;
     if (e2 > -dy) {
@@ -914,7 +916,8 @@ void PixelEditorPanel::CopySelection() {
 }
 
 void PixelEditorPanel::PasteSelection(int x, int y) {
-  if (state_->selection.pixel_data.empty()) return;
+  if (state_->selection.pixel_data.empty())
+    return;
 
   auto& sheet =
       gfx::Arena::Get().mutable_gfx_sheets()->at(state_->current_sheet_id);
@@ -939,13 +942,15 @@ void PixelEditorPanel::PasteSelection(int x, int y) {
 }
 
 void PixelEditorPanel::FlipSelectionHorizontal() {
-  if (state_->selection.pixel_data.empty()) return;
+  if (state_->selection.pixel_data.empty())
+    return;
 
   std::vector<uint8_t> flipped(state_->selection.pixel_data.size());
   for (int y = 0; y < state_->selection.height; y++) {
     for (int x = 0; x < state_->selection.width; x++) {
       int src_idx = y * state_->selection.width + x;
-      int dst_idx = y * state_->selection.width + (state_->selection.width - 1 - x);
+      int dst_idx =
+          y * state_->selection.width + (state_->selection.width - 1 - x);
       flipped[dst_idx] = state_->selection.pixel_data[src_idx];
     }
   }
@@ -953,7 +958,8 @@ void PixelEditorPanel::FlipSelectionHorizontal() {
 }
 
 void PixelEditorPanel::FlipSelectionVertical() {
-  if (state_->selection.pixel_data.empty()) return;
+  if (state_->selection.pixel_data.empty())
+    return;
 
   std::vector<uint8_t> flipped(state_->selection.pixel_data.size());
   for (int y = 0; y < state_->selection.height; y++) {

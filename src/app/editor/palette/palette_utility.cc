@@ -4,8 +4,8 @@
 #include "app/editor/palette/palette_editor.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/core/icons.h"
-#include "rom/rom.h"
 #include "imgui/imgui.h"
+#include "rom/rom.h"
 
 namespace yaze {
 namespace editor {

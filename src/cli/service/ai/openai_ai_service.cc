@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
 #include "absl/strings/strip.h"
 #include "absl/time/clock.h"
@@ -232,9 +233,7 @@ absl::StatusOr<std::vector<ModelInfo>> OpenAIAIService::ListAvailableModels() {
           {.name = "gpt-4o-mini",
            .display_name = "GPT-4o Mini",
            .provider = "openai"},
-          {.name = "gpt-4o",
-           .display_name = "GPT-4o",
-           .provider = "openai"},
+          {.name = "gpt-4o", .display_name = "GPT-4o", .provider = "openai"},
           {.name = "gpt-3.5-turbo",
            .display_name = "GPT-3.5 Turbo",
            .provider = "openai"}};
@@ -256,12 +255,18 @@ absl::StatusOr<std::vector<ModelInfo>> OpenAIAIService::ListAvailableModels() {
         info.is_local = false;
 
         // Set display name based on model
-        if (id == "gpt-4o") info.display_name = "GPT-4o";
-        else if (id == "gpt-4o-mini") info.display_name = "GPT-4o Mini";
-        else if (id == "gpt-4-turbo") info.display_name = "GPT-4 Turbo";
-        else if (id == "gpt-3.5-turbo") info.display_name = "GPT-3.5 Turbo";
-        else if (id == "o1-preview") info.display_name = "o1 Preview";
-        else if (id == "o1-mini") info.display_name = "o1 Mini";
+        if (id == "gpt-4o")
+          info.display_name = "GPT-4o";
+        else if (id == "gpt-4o-mini")
+          info.display_name = "GPT-4o Mini";
+        else if (id == "gpt-4-turbo")
+          info.display_name = "GPT-4 Turbo";
+        else if (id == "gpt-3.5-turbo")
+          info.display_name = "GPT-3.5 Turbo";
+        else if (id == "o1-preview")
+          info.display_name = "o1 Preview";
+        else if (id == "o1-mini")
+          info.display_name = "o1 Mini";
 
         models.push_back(std::move(info));
       }
@@ -358,31 +363,25 @@ absl::StatusOr<AgentResponse> OpenAIAIService::GenerateResponse(
     nlohmann::json messages = nlohmann::json::array();
 
     // Add system message
-    messages.push_back({
-        {"role", "system"},
-        {"content", config_.system_instruction}
-    });
+    messages.push_back(
+        {{"role", "system"}, {"content", config_.system_instruction}});
 
     // Add conversation history (up to last 10 messages for context window)
     int start_idx = std::max(0, static_cast<int>(history.size()) - 10);
     for (size_t i = start_idx; i < history.size(); ++i) {
       const auto& msg = history[i];
-      std::string role =
-          (msg.sender == agent::ChatMessage::Sender::kUser) ? "user" : "assistant";
+      std::string role = (msg.sender == agent::ChatMessage::Sender::kUser)
+                             ? "user"
+                             : "assistant";
 
-      messages.push_back({
-          {"role", role},
-          {"content", msg.message}
-      });
+      messages.push_back({{"role", role}, {"content", msg.message}});
     }
 
     // Build request body
-    nlohmann::json request_body = {
-        {"model", config_.model},
-        {"messages", messages},
-        {"temperature", config_.temperature},
-        {"max_tokens", config_.max_output_tokens}
-    };
+    nlohmann::json request_body = {{"model", config_.model},
+                                   {"messages", messages},
+                                   {"temperature", config_.temperature},
+                                   {"max_tokens", config_.max_output_tokens}};
 
     // Add function calling tools if enabled
     if (function_calling_enabled_) {
@@ -399,10 +398,7 @@ absl::StatusOr<AgentResponse> OpenAIAIService::GenerateResponse(
           // Convert to OpenAI tools format
           nlohmann::json tools = nlohmann::json::array();
           for (const auto& schema : schemas) {
-            tools.push_back({
-                {"type", "function"},
-                {"function", schema}
-            });
+            tools.push_back({{"type", "function"}, {"function", schema}});
           }
           request_body["tools"] = tools;
         }
@@ -470,7 +466,9 @@ absl::StatusOr<AgentResponse> OpenAIAIService::GenerateResponse(
 
     if (config_.verbose) {
       std::cout << "\n"
-                << "\033[35m" << "🔍 Raw OpenAI API Response:" << "\033[0m"
+                << "\033[35m"
+                << "🔍 Raw OpenAI API Response:"
+                << "\033[0m"
                 << "\n"
                 << "\033[2m" << response_str.substr(0, 500) << "\033[0m"
                 << "\n\n";
@@ -524,7 +522,8 @@ absl::StatusOr<AgentResponse> OpenAIAIService::ParseOpenAIResponse(
 
   // Check for errors
   if (response_json.contains("error")) {
-    std::string error_msg = response_json["error"].value("message", "Unknown error");
+    std::string error_msg =
+        response_json["error"].value("message", "Unknown error");
     return absl::InternalError(absl::StrCat("❌ OpenAI API error: ", error_msg));
   }
 
@@ -546,8 +545,12 @@ absl::StatusOr<AgentResponse> OpenAIAIService::ParseOpenAIResponse(
 
     if (config_.verbose) {
       std::cout << "\n"
-                << "\033[35m" << "🔍 Raw LLM Response:" << "\033[0m" << "\n"
-                << "\033[2m" << text_content << "\033[0m" << "\n\n";
+                << "\033[35m"
+                << "🔍 Raw LLM Response:"
+                << "\033[0m"
+                << "\n"
+                << "\033[2m" << text_content << "\033[0m"
+                << "\n\n";
     }
 
     // Strip markdown code blocks if present
@@ -579,7 +582,8 @@ absl::StatusOr<AgentResponse> OpenAIAIService::ParseOpenAIResponse(
       }
 
       // Extract commands
-      if (parsed_text.contains("commands") && parsed_text["commands"].is_array()) {
+      if (parsed_text.contains("commands") &&
+          parsed_text["commands"].is_array()) {
         for (const auto& cmd : parsed_text["commands"]) {
           if (cmd.is_string()) {
             std::string command = cmd.get<std::string>();
@@ -628,9 +632,8 @@ absl::StatusOr<AgentResponse> OpenAIAIService::ParseOpenAIResponse(
         tool_call.tool_name = func.value("name", "");
 
         if (func.contains("arguments") && func["arguments"].is_string()) {
-          auto args_json =
-              nlohmann::json::parse(func["arguments"].get<std::string>(),
-                                    nullptr, false);
+          auto args_json = nlohmann::json::parse(
+              func["arguments"].get<std::string>(), nullptr, false);
           if (!args_json.is_discarded() && args_json.is_object()) {
             for (auto& [key, value] : args_json.items()) {
               if (value.is_string()) {

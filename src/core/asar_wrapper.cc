@@ -5,8 +5,8 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
-#include <iterator>
 #include <iostream>
+#include <iterator>
 #include <sstream>
 #ifndef _WIN32
 #include <sys/wait.h>
@@ -97,8 +97,7 @@ int AsarWrapper::GetApiVersion() const {
 }
 
 absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatch(
-    const std::string& patch_path,
-    std::vector<uint8_t>& rom_data,
+    const std::string& patch_path, std::vector<uint8_t>& rom_data,
     const std::vector<std::string>& include_paths) {
   if (!initialized_) {
     return absl::FailedPreconditionError("Asar not initialized");
@@ -123,8 +122,7 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatch(
 }
 
 absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchFromString(
-    const std::string& patch_content,
-    std::vector<uint8_t>& rom_data,
+    const std::string& patch_content, std::vector<uint8_t>& rom_data,
     const std::string& base_path) {
   if (!initialized_) {
     return absl::FailedPreconditionError("Asar not initialized");
@@ -134,8 +132,7 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchFromString(
   Reset();
 
   // Write patch content to temporary file
-  fs::path temp_patch_path =
-      fs::temp_directory_path() / "yaze_asar_temp.asm";
+  fs::path temp_patch_path = fs::temp_directory_path() / "yaze_asar_temp.asm";
 
   std::ofstream temp_patch_file(temp_patch_path);
   if (!temp_patch_file) {
@@ -146,7 +143,8 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchFromString(
   temp_patch_file.close();
 
   // Apply patch using temporary file
-  auto patch_result = ApplyPatch(temp_patch_path.string(), rom_data, {base_path});
+  auto patch_result =
+      ApplyPatch(temp_patch_path.string(), rom_data, {base_path});
 
   // Clean up temporary file
   std::error_code ec;
@@ -187,7 +185,8 @@ std::map<std::string, AsarSymbol> AsarWrapper::GetSymbolTable() const {
   return symbol_table_;
 }
 
-std::optional<AsarSymbol> AsarWrapper::FindSymbol(const std::string& name) const {
+std::optional<AsarSymbol> AsarWrapper::FindSymbol(
+    const std::string& name) const {
   auto it = symbol_table_.find(name);
   if (it != symbol_table_.end()) {
     return it->second;
@@ -195,7 +194,8 @@ std::optional<AsarSymbol> AsarWrapper::FindSymbol(const std::string& name) const
   return std::nullopt;
 }
 
-std::vector<AsarSymbol> AsarWrapper::GetSymbolsAtAddress(uint32_t address) const {
+std::vector<AsarSymbol> AsarWrapper::GetSymbolsAtAddress(
+    uint32_t address) const {
   std::vector<AsarSymbol> symbols;
   for (const auto& [name, symbol] : symbol_table_) {
     if (symbol.address == address) {
@@ -216,10 +216,9 @@ void AsarWrapper::Reset() {
   last_warnings_.clear();
 }
 
-absl::Status AsarWrapper::CreatePatch(
-    const std::vector<uint8_t>& original_rom,
-    const std::vector<uint8_t>& modified_rom,
-    const std::string& patch_path) {
+absl::Status AsarWrapper::CreatePatch(const std::vector<uint8_t>& original_rom,
+                                      const std::vector<uint8_t>& modified_rom,
+                                      const std::string& patch_path) {
   // This is a complex operation that would require:
   // 1. Analyzing differences between ROMs
   // 2. Generating appropriate assembly code
@@ -245,8 +244,7 @@ absl::Status AsarWrapper::ValidateAssembly(const std::string& asm_path) {
 
   if (!result->success) {
     return absl::InvalidArgumentError(absl::StrFormat(
-        "Assembly validation failed: %s",
-        absl::StrJoin(result->errors, "; ")));
+        "Assembly validation failed: %s", absl::StrJoin(result->errors, "; ")));
   }
 
   return absl::OkStatus();
@@ -284,8 +282,7 @@ void AsarWrapper::ProcessWarnings() {
 }
 
 absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchWithLibrary(
-    const std::string& patch_path,
-    std::vector<uint8_t>& rom_data,
+    const std::string& patch_path, std::vector<uint8_t>& rom_data,
     const std::vector<std::string>& /*include_paths*/) {
 #ifdef YAZE_ENABLE_ASAR
   if (!initialized_ || !library_enabled_) {
@@ -306,11 +303,9 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchWithLibrary(
   }
 
   // Apply the patch
-  bool patch_success = asar_patch(
-      patch_path.c_str(),
-      reinterpret_cast<char*>(rom_data.data()),
-      buffer_size,
-      &rom_size);
+  bool patch_success =
+      asar_patch(patch_path.c_str(), reinterpret_cast<char*>(rom_data.data()),
+                 buffer_size, &rom_size);
 
   // Process results
   ProcessErrors();
@@ -336,8 +331,8 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchWithLibrary(
     return result;
   }
 
-  return absl::InternalError(absl::StrFormat(
-      "Patch failed: %s", absl::StrJoin(last_errors_, "; ")));
+  return absl::InternalError(
+      absl::StrFormat("Patch failed: %s", absl::StrJoin(last_errors_, "; ")));
 #else
   (void)patch_path;
   (void)rom_data;
@@ -348,8 +343,7 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchWithLibrary(
 }
 
 absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchWithBinary(
-    const std::string& patch_path,
-    std::vector<uint8_t>& rom_data,
+    const std::string& patch_path, std::vector<uint8_t>& rom_data,
     const std::vector<std::string>& include_paths) {
   last_errors_.clear();
   last_warnings_.clear();
@@ -401,7 +395,8 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchWithBinary(
     cmd << " -I\"" << include_path << "\"";
   }
   // Capture stderr
-  cmd << " \"" << patch_name.string() << "\" \"" << temp_rom.string() << "\" 2>&1";
+  cmd << " \"" << patch_name.string() << "\" \"" << temp_rom.string()
+      << "\" 2>&1";
 
   // Run in patch directory so relative incsrc paths resolve naturally
   fs::path original_cwd = fs::current_path(ec);
@@ -420,7 +415,8 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchWithBinary(
   if (!pipe) {
     fs::remove(temp_rom, ec);
     fs::remove(temp_symbols, ec);
-    if (!patch_dir.empty()) fs::current_path(original_cwd, ec);
+    if (!patch_dir.empty())
+      fs::current_path(original_cwd, ec);
     return absl::InternalError("popen() failed for Asar CLI");
   }
   while (fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
@@ -449,7 +445,8 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchWithBinary(
   std::istringstream output_stream(output);
   std::string line;
   while (std::getline(output_stream, line)) {
-    if (line.find("error: ") != std::string::npos || line.find(": error:") != std::string::npos) {
+    if (line.find("error: ") != std::string::npos ||
+        line.find(": error:") != std::string::npos) {
       last_errors_.push_back(line);
     } else if (line.find("warning: ") != std::string::npos) {
       last_warnings_.push_back(line);
@@ -464,8 +461,8 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchWithBinary(
   if (!last_errors_.empty()) {
     fs::remove(temp_rom, ec);
     fs::remove(temp_symbols, ec);
-    return absl::InternalError(absl::StrFormat(
-        "Patch failed: %s", absl::StrJoin(last_errors_, "; ")));
+    return absl::InternalError(
+        absl::StrFormat("Patch failed: %s", absl::StrJoin(last_errors_, "; ")));
   }
 
   // Read patched ROM back into memory
@@ -477,9 +474,8 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchWithBinary(
     return absl::InternalError(last_errors_.back());
   }
 
-  std::vector<uint8_t> new_data(
-      (std::istreambuf_iterator<char>(patched_rom)),
-      std::istreambuf_iterator<char>());
+  std::vector<uint8_t> new_data((std::istreambuf_iterator<char>(patched_rom)),
+                                std::istreambuf_iterator<char>());
   rom_data.swap(new_data);
   fs::remove(temp_rom, ec);
 
@@ -542,19 +538,23 @@ absl::Status AsarWrapper::LoadSymbolsFromFile(const std::string& symbol_path) {
   while (std::getline(file, line)) {
     // WLA format: bank:addr label
     // Example: 00:8000 Reset
-    
+
     // Skip sections or comments
-    if (line.empty() || line[0] == '[' || line[0] == ';') continue;
+    if (line.empty() || line[0] == '[' || line[0] == ';')
+      continue;
 
     size_t colon_pos = line.find(':');
-    if (colon_pos == std::string::npos || colon_pos != 2) continue;
+    if (colon_pos == std::string::npos || colon_pos != 2)
+      continue;
 
     size_t space_pos = line.find(' ', colon_pos);
-    if (space_pos == std::string::npos) continue;
+    if (space_pos == std::string::npos)
+      continue;
 
     try {
       std::string bank_str = line.substr(0, colon_pos);
-      std::string addr_str = line.substr(colon_pos + 1, space_pos - (colon_pos + 1));
+      std::string addr_str =
+          line.substr(colon_pos + 1, space_pos - (colon_pos + 1));
       std::string name = line.substr(space_pos + 1);
 
       // Trim name
@@ -568,7 +568,7 @@ absl::Status AsarWrapper::LoadSymbolsFromFile(const std::string& symbol_path) {
       AsarSymbol symbol;
       symbol.name = name;
       symbol.address = full_addr;
-      
+
       symbol_table_[name] = symbol;
     } catch (...) {
       // Parse error, skip line
@@ -591,8 +591,8 @@ void AsarWrapper::ExtractSymbolsFromLastOperation() {
     AsarSymbol symbol;
     symbol.name = std::string(labels[i].name);
     symbol.address = labels[i].location;
-    symbol.file = "";  // Not available in basic API
-    symbol.line = 0;   // Not available in basic API
+    symbol.file = "";    // Not available in basic API
+    symbol.line = 0;     // Not available in basic API
     symbol.opcode = "";  // Would need additional processing
     symbol.comment = "";
 

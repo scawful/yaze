@@ -5,8 +5,8 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
-#include "rom/rom.h"
 #include "cli/handlers/tools/diagnostic_types.h"
+#include "rom/rom.h"
 #include "zelda3/dungeon/dungeon_validator.h"
 #include "zelda3/dungeon/room.h"
 
@@ -30,12 +30,15 @@ struct RoomDiagnostic {
   int chest_count = 0;
   std::vector<DiagnosticFinding> findings;
 
-  bool IsValid() const { return header_valid && objects_valid && sprites_valid; }
+  bool IsValid() const {
+    return header_valid && objects_valid && sprites_valid;
+  }
 
   std::string FormatJson() const {
     std::string findings_json = "[";
     for (size_t i = 0; i < findings.size(); ++i) {
-      if (i > 0) findings_json += ",";
+      if (i > 0)
+        findings_json += ",";
       findings_json += findings[i].FormatJson();
     }
     findings_json += "]";
@@ -57,7 +60,8 @@ RoomDiagnostic DiagnoseRoom(Rom* rom, int room_id) {
   zelda3::Room room = zelda3::LoadRoomHeaderFromRom(rom, room_id);
 
   // Check if header loaded correctly
-  diag.header_valid = true;  // LoadRoomHeaderFromRom doesn't fail, it just returns empty
+  diag.header_valid =
+      true;  // LoadRoomHeaderFromRom doesn't fail, it just returns empty
 
   // Load objects
   room.LoadObjects();
@@ -108,28 +112,39 @@ RoomDiagnostic DiagnoseRoom(Rom* rom, int room_id) {
 }
 
 void OutputTextBanner(bool is_json) {
-  if (is_json) return;
+  if (is_json)
+    return;
   std::cout << "\n";
-  std::cout << "╔═══════════════════════════════════════════════════════════════╗\n";
-  std::cout << "║                    DUNGEON DOCTOR                             ║\n";
-  std::cout << "║         Room Data Integrity Tool                              ║\n";
-  std::cout << "╚═══════════════════════════════════════════════════════════════╝\n";
+  std::cout
+      << "╔═══════════════════════════════════════════════════════════════╗\n";
+  std::cout
+      << "║                    DUNGEON DOCTOR                             ║\n";
+  std::cout
+      << "║         Room Data Integrity Tool                              ║\n";
+  std::cout
+      << "╚═══════════════════════════════════════════════════════════════╝\n";
 }
 
 void OutputTextSummary(int total_rooms, int valid_rooms, int warning_rooms,
                        int error_rooms, int total_objects, int total_sprites) {
   std::cout << "\n";
-  std::cout << "╔═══════════════════════════════════════════════════════════════╗\n";
-  std::cout << "║                    DIAGNOSTIC SUMMARY                         ║\n";
-  std::cout << "╠═══════════════════════════════════════════════════════════════╣\n";
+  std::cout
+      << "╔═══════════════════════════════════════════════════════════════╗\n";
+  std::cout
+      << "║                    DIAGNOSTIC SUMMARY                         ║\n";
+  std::cout
+      << "╠═══════════════════════════════════════════════════════════════╣\n";
   std::cout << absl::StrFormat("║  Rooms Analyzed: %-44d ║\n", total_rooms);
   std::cout << absl::StrFormat("║  Valid Rooms: %-47d ║\n", valid_rooms);
-  std::cout << absl::StrFormat("║  Rooms with Warnings: %-39d ║\n", warning_rooms);
+  std::cout << absl::StrFormat("║  Rooms with Warnings: %-39d ║\n",
+                               warning_rooms);
   std::cout << absl::StrFormat("║  Rooms with Errors: %-41d ║\n", error_rooms);
-  std::cout << "╠═══════════════════════════════════════════════════════════════╣\n";
+  std::cout
+      << "╠═══════════════════════════════════════════════════════════════╣\n";
   std::cout << absl::StrFormat("║  Total Objects: %-45d ║\n", total_objects);
   std::cout << absl::StrFormat("║  Total Sprites: %-45d ║\n", total_sprites);
-  std::cout << "╚═══════════════════════════════════════════════════════════════╝\n";
+  std::cout
+      << "╚═══════════════════════════════════════════════════════════════╝\n";
 }
 
 void CheckUnusedRooms(const std::vector<RoomDiagnostic>& diagnostics,
@@ -159,7 +174,8 @@ absl::Status DungeonDoctorCommandHandler::Execute(
   auto room_id_arg = parser.GetInt("room");
   bool is_json = formatter.IsJson();
 
-  if (deep_scan) all_rooms = true;
+  if (deep_scan)
+    all_rooms = true;
 
   OutputTextBanner(is_json);
 
@@ -196,9 +212,12 @@ absl::Status DungeonDoctorCommandHandler::Execute(
           has_warnings = true;
         }
       }
-      if (has_errors) error_rooms = 1;
-      else if (has_warnings) warning_rooms = 1;
-      else valid_rooms = 1;
+      if (has_errors)
+        error_rooms = 1;
+      else if (has_warnings)
+        warning_rooms = 1;
+      else
+        valid_rooms = 1;
     }
 
   } else if (all_rooms) {
@@ -234,18 +253,21 @@ absl::Status DungeonDoctorCommandHandler::Execute(
     }
   } else {
     // Default: sample key rooms
-    std::vector<int> sample_rooms = {0, 1, 2, 3, 4, 5, 6, 7,  // Eastern Palace
-                                      32, 33, 34, 35,          // Desert Palace
-                                      64, 65, 66, 67,          // Tower of Hera
-                                      128, 129, 130};          // Dark rooms
+    std::vector<int> sample_rooms = {0,   1,   2,  3,
+                                     4,   5,   6,  7,   // Eastern Palace
+                                     32,  33,  34, 35,  // Desert Palace
+                                     64,  65,  66, 67,  // Tower of Hera
+                                     128, 129, 130};    // Dark rooms
 
     if (!is_json) {
-      std::cout << "\nAnalyzing " << sample_rooms.size() << " sample rooms...\n";
+      std::cout << "\nAnalyzing " << sample_rooms.size()
+                << " sample rooms...\n";
       std::cout << "(Use --all to analyze all " << kNumRooms << " rooms)\n";
     }
 
     for (int room_id : sample_rooms) {
-      if (room_id >= kNumRooms) continue;
+      if (room_id >= kNumRooms)
+        continue;
       auto diag = DiagnoseRoom(rom, room_id);
       diagnostics.push_back(diag);
       total_objects += diag.object_count;
@@ -292,11 +314,11 @@ absl::Status DungeonDoctorCommandHandler::Execute(
       formatter.AddArrayItem(diag.FormatJson());
     } else if (verbose || !diag.findings.empty()) {
       // In text mode, show rooms with issues or in verbose mode
-      std::string status = diag.IsValid() && diag.findings.empty() ? "OK" : "ISSUES";
+      std::string status =
+          diag.IsValid() && diag.findings.empty() ? "OK" : "ISSUES";
       formatter.AddArrayItem(absl::StrFormat(
-          "Room 0x%02X: %s (objects=%d, sprites=%d, chests=%d)",
-          diag.room_id, status, diag.object_count, diag.sprite_count,
-          diag.chest_count));
+          "Room 0x%02X: %s (objects=%d, sprites=%d, chests=%d)", diag.room_id,
+          status, diag.object_count, diag.sprite_count, diag.chest_count));
     }
   }
   formatter.EndArray();
@@ -336,4 +358,3 @@ absl::Status DungeonDoctorCommandHandler::Execute(
 }
 
 }  // namespace yaze::cli
-
