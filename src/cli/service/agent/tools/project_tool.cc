@@ -570,7 +570,8 @@ absl::Status ProjectManager::LoadSnapshots() {
 
     for (const auto& entry : fs::directory_iterator(snapshots_path_)) {
       if (entry.path().extension() == ".edits") {
-        auto snapshot_result = ProjectSnapshot::LoadFromFile(entry.path());
+        auto snapshot_result =
+            ProjectSnapshot::LoadFromFile(entry.path().string());
         if (snapshot_result.ok()) {
           ProjectSnapshot& snapshot = *snapshot_result;
           snapshots_[snapshot.name] = snapshot;

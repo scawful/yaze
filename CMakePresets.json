@@ -604,7 +604,8 @@
         "YAZE_BUILD_TESTS": "ON",
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "YAZE_ENABLE_ROM_TESTS": "OFF",
-        "YAZE_ENABLE_JSON": "ON"
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_PREFER_SYSTEM_GRPC": "ON"
       },
       "displayName": "CI Build",
       "name": "ci",
@@ -774,7 +775,8 @@
         "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
         "YAZE_ENABLE_ROM_TESTS": "OFF",
         "YAZE_ENABLE_JSON": "ON",
-        "YAZE_ENABLE_AI_RUNTIME": "OFF"
+        "YAZE_ENABLE_AI_RUNTIME": "OFF",
+        "YAZE_PREFER_SYSTEM_GRPC": "ON"
       },
       "displayName": "CI Build - Linux",
       "name": "ci-linux",
@@ -792,7 +794,8 @@
         "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
         "YAZE_ENABLE_ROM_TESTS": "OFF",
         "YAZE_ENABLE_JSON": "ON",
-        "YAZE_ENABLE_AI_RUNTIME": "OFF"
+        "YAZE_ENABLE_AI_RUNTIME": "OFF",
+        "YAZE_PREFER_SYSTEM_GRPC": "ON"
       },
       "displayName": "CI Build - macOS",
       "name": "ci-macos",

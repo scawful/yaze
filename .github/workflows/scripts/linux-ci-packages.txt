@@ -6,6 +6,12 @@ libglew-dev
 libxext-dev
 libwavpack-dev
 libboost-all-dev
+libgrpc++-dev
+libgrpc-dev
+libprotobuf-dev
+protobuf-compiler
+protobuf-compiler-grpc
+libabsl-dev
 libpng-dev
 python3-dev
 libasound2-dev

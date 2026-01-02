@@ -240,14 +240,45 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
     
     - name: Install Tools
       run: |
         sudo apt-get update
         sudo apt-get install -y clang-format-14 clang-tidy-14 cppcheck
+
+    - name: Collect changed files
+      id: changed
+      run: |
+        if [ "${{ github.event_name }}" = "pull_request" ]; then
+          base="${{ github.event.pull_request.base.sha }}"
+          head="${{ github.event.pull_request.head.sha }}"
+        else
+          base="${{ github.event.before }}"
+          head="${{ github.sha }}"
+        fi
+
+        if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ]; then
+          if git rev-parse HEAD^ >/dev/null 2>&1; then
+            base="$(git rev-parse HEAD^)"
+          else
+            base="$head"
+          fi
+        fi
+
+        files=$(git diff --name-only "$base" "$head" | grep -E '^(src|test)/.*\.(cc|h)$' || true)
+        echo "files<<EOF" >> "$GITHUB_OUTPUT"
+        echo "$files" >> "$GITHUB_OUTPUT"
+        echo "EOF" >> "$GITHUB_OUTPUT"
     
     - name: Check Formatting
-      run: find src test -name "*.cc" -o -name "*.h" | xargs clang-format-14 --dry-run --Werror
+      run: |
+        if [ -z "${{ steps.changed.outputs.files }}" ]; then
+          echo "No C/C++ sources changed."
+          exit 0
+        fi
+        echo "${{ steps.changed.outputs.files }}" | xargs clang-format-14 --dry-run --Werror
     
     - name: Run cppcheck
       run: |
