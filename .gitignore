@@ -41,6 +41,10 @@ src/ios/yaze.xcodeproj/project.xcworkspace/xcuserdata/
 test_screenshots/
 test_temp_rom.sfc
 zelda3_v3_test.sfc
+test-results/
+scripts/agents/node_modules/
+scripts/agents/playwright-report/
+scripts/agents/test-results/
 
 # vcpkg
 vcpkg_installed/

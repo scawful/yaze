@@ -1,0 +1,9 @@
+{
+  "name": "yaze-agent-scripts",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Agent tooling for yaze smoke tests",
+  "devDependencies": {
+    "@playwright/test": "^1.50.1"
+  }
+}
