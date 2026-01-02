@@ -109,7 +109,7 @@ void SHA256Transform(uint32_t state[8], const uint8_t block[64]) {
 }
 
 std::array<uint8_t, 32> ComputeSHA256Internal(const uint8_t* data,
-                                               size_t length) {
+                                              size_t length) {
   // Initialize hash values
   uint32_t state[8] = {0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
                        0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19};
@@ -177,7 +177,7 @@ std::array<uint8_t, 32> ProjectToolUtils::ComputeRomChecksum(const Rom* rom) {
 }
 
 std::array<uint8_t, 32> ProjectToolUtils::ComputeSHA256(const uint8_t* data,
-                                                         size_t length) {
+                                                        size_t length) {
   return ComputeSHA256Internal(data, length);
 }
 
@@ -336,8 +336,8 @@ absl::StatusOr<ProjectSnapshot> ProjectSnapshot::LoadFromFile(
     }
 
     if (metadata_json.contains("metadata")) {
-      snapshot.metadata = metadata_json["metadata"].get<
-          std::map<std::string, std::string>>();
+      snapshot.metadata =
+          metadata_json["metadata"].get<std::map<std::string, std::string>>();
     }
 
     return snapshot;
@@ -412,11 +412,10 @@ absl::Status ProjectManager::CreateSnapshot(
 }
 
 absl::Status ProjectManager::RestoreSnapshot(const std::string& name,
-                                              Rom* rom) {
+                                             Rom* rom) {
   auto it = snapshots_.find(name);
   if (it == snapshots_.end()) {
-    return absl::NotFoundError(
-        absl::StrFormat("Snapshot not found: %s", name));
+    return absl::NotFoundError(absl::StrFormat("Snapshot not found: %s", name));
   }
 
   if (!rom || !rom->is_loaded()) {
@@ -455,8 +454,7 @@ absl::StatusOr<ProjectSnapshot> ProjectManager::GetSnapshot(
     const std::string& name) const {
   auto it = snapshots_.find(name);
   if (it == snapshots_.end()) {
-    return absl::NotFoundError(
-        absl::StrFormat("Snapshot not found: %s", name));
+    return absl::NotFoundError(absl::StrFormat("Snapshot not found: %s", name));
   }
   return it->second;
 }
@@ -464,8 +462,7 @@ absl::StatusOr<ProjectSnapshot> ProjectManager::GetSnapshot(
 absl::Status ProjectManager::DeleteSnapshot(const std::string& name) {
   auto it = snapshots_.find(name);
   if (it == snapshots_.end()) {
-    return absl::NotFoundError(
-        absl::StrFormat("Snapshot not found: %s", name));
+    return absl::NotFoundError(absl::StrFormat("Snapshot not found: %s", name));
   }
 
   // Delete file
@@ -482,7 +479,7 @@ absl::Status ProjectManager::DeleteSnapshot(const std::string& name) {
 }
 
 absl::Status ProjectManager::ExportProject(const std::string& export_path,
-                                            bool include_rom) {
+                                           bool include_rom) {
   // TODO: Implement project export (create tar/zip archive)
   return absl::UnimplementedError("Project export not yet implemented");
 }
@@ -556,8 +553,7 @@ absl::StatusOr<std::string> ProjectManager::DiffSnapshots(
     }
   }
 
-  diff << absl::StrFormat("\nSummary: +%d -%d ~%d\n", added, removed,
-                          modified);
+  diff << absl::StrFormat("\nSummary: +%d -%d ~%d\n", added, removed, modified);
 
   return diff.str();
 }
@@ -592,11 +588,10 @@ absl::Status ProjectManager::SaveProjectMetadata() {
     std::string metadata_path =
         (fs::path(project_path_) / "project.json").string();
 
-    json metadata = {
-        {"version", "1.0"},
-        {"updated", ProjectToolUtils::FormatTimestamp(
-                        std::chrono::system_clock::now())},
-        {"snapshots", json::array()}};
+    json metadata = {{"version", "1.0"},
+                     {"updated", ProjectToolUtils::FormatTimestamp(
+                                     std::chrono::system_clock::now())},
+                     {"snapshots", json::array()}};
 
     for (const auto& [name, snapshot] : snapshots_) {
       metadata["snapshots"].push_back({
@@ -658,9 +653,8 @@ std::string ProjectToolBase::FormatSnapshot(
   oss << absl::StrFormat("Created: %s\n",
                          ProjectToolUtils::FormatTimestamp(snapshot.created));
   oss << absl::StrFormat("Edits: %zu\n", snapshot.edits.size());
-  oss << absl::StrFormat(
-      "ROM Checksum: %s\n",
-      ProjectToolUtils::FormatChecksum(snapshot.rom_checksum));
+  oss << absl::StrFormat("ROM Checksum: %s\n", ProjectToolUtils::FormatChecksum(
+                                                   snapshot.rom_checksum));
   return oss.str();
 }
 
@@ -756,7 +750,8 @@ absl::Status ProjectSnapshotTool::Execute(
   formatter.AddField("name", *name);
   formatter.AddField("description", description);
   formatter.AddField("edit_count", static_cast<int>(edits.size()));
-  formatter.AddField("rom_checksum", ProjectToolUtils::FormatChecksum(checksum));
+  formatter.AddField("rom_checksum",
+                     ProjectToolUtils::FormatChecksum(checksum));
   formatter.EndObject();
 
   return absl::OkStatus();
@@ -805,9 +800,9 @@ absl::Status ProjectRestoreTool::Execute(
   return absl::OkStatus();
 }
 
-absl::Status ProjectExportTool::Execute(
-    Rom* /*rom*/, const resources::ArgumentParser& parser,
-    resources::OutputFormatter& formatter) {
+absl::Status ProjectExportTool::Execute(Rom* /*rom*/,
+                                        const resources::ArgumentParser& parser,
+                                        resources::OutputFormatter& formatter) {
   auto path = parser.GetString("path");
   if (!path.has_value()) {
     return absl::InvalidArgumentError("Missing --path argument");
@@ -834,9 +829,9 @@ absl::Status ProjectExportTool::Execute(
   return absl::OkStatus();
 }
 
-absl::Status ProjectImportTool::Execute(
-    Rom* /*rom*/, const resources::ArgumentParser& parser,
-    resources::OutputFormatter& formatter) {
+absl::Status ProjectImportTool::Execute(Rom* /*rom*/,
+                                        const resources::ArgumentParser& parser,
+                                        resources::OutputFormatter& formatter) {
   auto path = parser.GetString("path");
   if (!path.has_value()) {
     return absl::InvalidArgumentError("Missing --path argument");
