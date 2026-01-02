@@ -10,6 +10,7 @@
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/str_format.h"
 #include "app/gfx/types/snes_color.h"
 #include "imgui/imgui.h"
 #include "util/macro.h"
