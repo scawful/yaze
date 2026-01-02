@@ -36,7 +36,7 @@ runs:
       if: inputs.platform == 'macos'
       shell: bash
       run: |
-        brew install ninja pkg-config ccache
+        brew install ninja pkg-config ccache grpc protobuf
         if ! command -v cmake &> /dev/null; then
           brew install cmake
         fi
@@ -80,4 +80,3 @@ runs:
         echo "CXX=clang-cl" >> $env:GITHUB_ENV
         echo "CMAKE_CXX_COMPILER_LAUNCHER=sccache" >> $env:GITHUB_ENV
         echo "CMAKE_C_COMPILER_LAUNCHER=sccache" >> $env:GITHUB_ENV
-

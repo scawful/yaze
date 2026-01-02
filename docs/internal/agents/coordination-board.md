@@ -25,7 +25,7 @@
 - TASK: Promote history-compacted to master/develop, bundle pre-compaction history, and trigger CI/release for v0.5.0.
 - SCOPE: git refs/branches, .github/workflows, docs/public/release-notes.md (if needed)
 - STATUS: ACTIVE
-- NOTES: Bundle saved; cmake-windows/z3ed deleted; master/develop + v0.5.0 retagged. Fixed panel descriptor initializer order + CreateWindow macro clash + missing emulator command sources (4a517a38). Release run: https://github.com/scawful/yaze/actions/runs/20567489846 (queued). Current CI/CD: https://github.com/scawful/yaze/actions/runs/20567488041 (master), https://github.com/scawful/yaze/actions/runs/20567488033 (develop); web: https://github.com/scawful/yaze/actions/runs/20567488084; security: https://github.com/scawful/yaze/actions/runs/20567488040 (master), https://github.com/scawful/yaze/actions/runs/20567488034 (develop).
+- NOTES: Bundle saved; cmake-windows/z3ed deleted; master/develop + v0.5.0 retagged. Fixed panel descriptor initializer order + CreateWindow macro clash + missing emulator command sources (4a517a38). Now triaging CI/CD failures on history-compacted (clang-format scope, gRPC disk pressure, z3ed build dir, mac link order).
 
 ### 2025-12-26 imgui-frontend-engineer – Mobile layout + nav pass
 - TASK: Improve iPad layout (responsive welcome cards + panel width clamps), add mobile nav switcher, tune iOS touch sizing, and track per-edge safe areas.

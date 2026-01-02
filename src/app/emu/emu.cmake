@@ -30,6 +30,8 @@ if(YAZE_BUILD_EMU AND NOT YAZE_MINIMAL_BUILD AND NOT YAZE_PLATFORM_IOS)
     absl::flags
     absl::flags_parse
     absl::failure_signal_handler
+    yaze_gui_core
+    yaze_app_core_lib
   )
 
   # Link test support library (yaze_editor needs TestManager)
