@@ -103,10 +103,18 @@ EM_JS(int, idb_load_binary, (const char* store_name, const char* key, uint8_t** 
         var request = store.get(keyStr);
         request.onsuccess = function() {
           var result = request.result;
-          if (result && result instanceof Uint8Array) {
-            var size = result.length;
+          var bytes = null;
+          if (result instanceof Uint8Array) {
+            bytes = result;
+          } else if (result instanceof ArrayBuffer) {
+            bytes = new Uint8Array(result);
+          } else if (result && ArrayBuffer.isView(result)) {
+            bytes = new Uint8Array(result.buffer, result.byteOffset, result.byteLength);
+          }
+          if (bytes) {
+            var size = bytes.length;
             var ptr = Module._malloc(size);
-            Module.HEAPU8.set(result, ptr);
+            Module.HEAPU8.set(bytes, ptr);
             Module.HEAPU32[out_data >> 2] = ptr;
             Module.HEAPU32[out_size >> 2] = size;
             resolve(0);
@@ -281,7 +289,11 @@ EM_JS(size_t, idb_get_storage_usage, (), {
             if (cursor) {
               var value = cursor.value;
               if (value instanceof Uint8Array) {
-                totalSize += value.length;
+                totalSize += value.byteLength;
+              } else if (value instanceof ArrayBuffer) {
+                totalSize += value.byteLength;
+              } else if (value && ArrayBuffer.isView(value)) {
+                totalSize += value.byteLength;
               } else if (typeof value === 'string') {
                 totalSize += value.length * 2;  // UTF-16 estimation
               } else if (value) {
