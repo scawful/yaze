@@ -21,14 +21,9 @@
 #endif
 #endif  // _WIN32
 
-// Include grpcpp headers for unique_ptr<Server> in member variable
+// Include grpcpp headers for gRPC service/server types used in the interface.
+#include <grpcpp/impl/service_type.h>
 #include <grpcpp/server.h>
-
-// Forward declarations to avoid including gRPC headers in public interface
-namespace grpc {
-class Service;
-class Server;
-}  // namespace grpc
 
 namespace yaze {
 namespace test {

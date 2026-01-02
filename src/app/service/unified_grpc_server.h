@@ -10,12 +10,9 @@
 #include "absl/status/status.h"
 #include "app/net/rom_version_manager.h"
 
-// Include grpcpp for grpc::Service forward declaration
+// gRPC types used by the server interface.
 #include <grpcpp/impl/service_type.h>
-
-namespace grpc {
-class Server;
-}
+#include <grpcpp/server.h>
 
 namespace yaze {
 
