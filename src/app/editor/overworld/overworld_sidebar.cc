@@ -1,5 +1,6 @@
 #include "app/editor/overworld/overworld_sidebar.h"
 
+#include "absl/strings/str_format.h"
 #include "app/editor/overworld/ui_constants.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
@@ -32,7 +33,7 @@ void OverworldSidebar::Draw(int& current_world, int& current_map,
   if (ImGui::BeginChild("OverworldSidebar", ImVec2(0, 0), false,
                         ImGuiWindowFlags_None)) {
     DrawMapSelection(current_world, current_map, current_map_lock);
-    
+
     ImGui::Spacing();
     Separator();
     ImGui::Spacing();
@@ -41,8 +42,7 @@ void OverworldSidebar::Draw(int& current_world, int& current_map,
     if (ImGui::CollapsingHeader("General Settings",
                                 ImGuiTreeNodeFlags_DefaultOpen)) {
       DrawBasicPropertiesTab(current_map, game_state,
-                             show_custom_bg_color_editor,
-                             show_overlay_editor);
+                             show_custom_bg_color_editor, show_overlay_editor);
     }
 
     if (ImGui::CollapsingHeader("Graphics", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -81,10 +81,10 @@ void OverworldSidebar::DrawSpritePropertiesTab(int current_map,
   ImGui::Spacing();
   // Reuse existing logic from MapPropertiesSystem if possible, or reimplement
   // Here we'll reimplement a simplified version based on what was in MapPropertiesSystem
-  
+
   ImGui::Text(ICON_MD_PEST_CONTROL_RODENT " Sprite Settings");
   ImGui::Separator();
-  
+
   // Sprite Graphics (already in Graphics tab, but useful here too)
   if (gui::InputHexByte("Sprite GFX",
                         overworld_->mutable_overworld_map(current_map)
@@ -142,7 +142,7 @@ void OverworldSidebar::DrawMusicTab(int current_map) {
 void OverworldSidebar::DrawMapSelection(int& current_world, int& current_map,
                                         bool& current_map_lock) {
   ImGui::Text(ICON_MD_MAP " Map Selection");
-  
+
   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
   ImGui::Combo("##world", &current_world, kWorldNames, 3);
 
@@ -156,7 +156,6 @@ void OverworldSidebar::DrawMapSelection(int& current_world, int& current_map,
     ImGui::SetTooltip(current_map_lock ? "Unlock Map" : "Lock Map");
   }
   ImGui::EndGroup();
-
 }
 
 void OverworldSidebar::DrawGraphicsSettings(int current_map, int game_state) {
@@ -201,7 +200,8 @@ void OverworldSidebar::DrawGraphicsSettings(int current_map, int game_state) {
   // Custom Tile Graphics (v1+)
   if (zelda3::OverworldVersionHelper::SupportsExpandedSpace(rom_version)) {
     if (ImGui::TreeNode("Custom Tile Graphics")) {
-      if (ImGui::BeginTable("CustomTileGraphics", 2, ImGuiTableFlags_SizingFixedFit)) {
+      if (ImGui::BeginTable("CustomTileGraphics", 2,
+                            ImGuiTableFlags_SizingFixedFit)) {
         for (int i = 0; i < 8; i++) {
           ImGui::TableNextColumn();
           std::string label = absl::StrFormat("Sheet %d", i);
@@ -289,11 +289,11 @@ void OverworldSidebar::DrawConfiguration(int current_map, int& game_state,
     ImGui::TableNextColumn();
     ImGui::Text(ICON_MD_PHOTO_SIZE_SELECT_LARGE " Area Size");
     ImGui::TableNextColumn();
-    
+
     auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*rom_);
     int current_area_size =
         static_cast<int>(overworld_->overworld_map(current_map)->area_size());
-    
+
     ImGui::SetNextItemWidth(-1);
     if (zelda3::OverworldVersionHelper::SupportsAreaEnum(rom_version)) {
       if (ImGui::Combo("##AreaSize", &current_area_size, kAreaSizeNames, 4)) {
@@ -347,7 +347,7 @@ void OverworldSidebar::DrawConfiguration(int current_map, int& game_state,
   // Mosaic Settings
   ImGui::Separator();
   ImGui::Text(ICON_MD_GRID_ON " Mosaic");
-  
+
   if (zelda3::OverworldVersionHelper::SupportsCustomBGColors(rom_version)) {
     auto* current_map_ptr = overworld_->mutable_overworld_map(current_map);
     std::array<bool, 4> mosaic_expanded = current_map_ptr->mosaic_expanded();
