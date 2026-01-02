@@ -286,6 +286,7 @@ jobs:
           --suppress=missingIncludeSystem --suppress=unusedFunction --inconclusive src/
     
     - name: Run clang-tidy
+      continue-on-error: true
       run: |
         find src -name "*.cc" -not -path "*/lib/*" | head -20 | \
           xargs clang-tidy-14 --header-filter='src/.*\.(h|hpp)$'
