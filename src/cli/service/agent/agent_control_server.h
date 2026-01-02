@@ -1,11 +1,11 @@
 #pragma once
 
+#ifdef YAZE_WITH_GRPC
+
 #include <memory>
 #include <thread>
 
-namespace grpc {
-class Server;
-}
+#include <grpcpp/server.h>
 
 namespace yaze::emu {
 class Emulator;
@@ -30,3 +30,5 @@ class AgentControlServer {
 };
 
 }  // namespace yaze::agent
+
+#endif  // YAZE_WITH_GRPC
