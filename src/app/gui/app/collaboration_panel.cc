@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <sstream>
 
+#include "absl/strings/str_format.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
