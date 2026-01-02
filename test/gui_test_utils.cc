@@ -3,6 +3,7 @@
 #include "imgui_test_engine/imgui_te_context.h"
 #include "test_utils.h"
 
+#include "absl/strings/str_format.h"
 #include "app/controller.h"
 #include "app/editor/editor_manager.h"
 #include "rom/rom.h"
@@ -21,8 +22,7 @@ void LoadRomInTest(ImGuiTestContext* ctx, const std::string& rom_path) {
   std::string resolved_rom_path = rom_path;
   if (resolved_rom_path.empty() || resolved_rom_path == "zelda3.sfc" ||
       resolved_rom_path == "vanilla.sfc") {
-    resolved_rom_path =
-        TestRomManager::GetRomPath(RomRole::kVanilla);
+    resolved_rom_path = TestRomManager::GetRomPath(RomRole::kVanilla);
   }
   if (resolved_rom_path.empty()) {
     ctx->LogError(
