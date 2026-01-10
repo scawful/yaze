@@ -170,6 +170,17 @@ window.yaze.data.getRoomTiles(roomId)
 
 See [`docs/internal/wasm-yazeDebug-api-reference.md`](../../internal/wasm-yazeDebug-api-reference.md) for full API documentation.
 
+### Debug API Test Suite
+
+For quick smoke validation of the web build (control/gui/AI APIs), load the
+debug test script and run it in the browser console:
+
+```javascript
+// Paste the contents of src/web/tests/wasm_debug_api_tests.js into the console,
+// then run:
+await window.runWasmDebugApiTests();
+```
+
 ## Known Limitations
 
 ### Not Yet Supported
