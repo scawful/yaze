@@ -7,6 +7,8 @@
 #include <string>
 #include <thread>
 
+#include "util/grpc_win_compat.h"
+
 #include <grpcpp/server.h>
 
 namespace yaze {

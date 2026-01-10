@@ -17,23 +17,11 @@
 #include "absl/time/time.h"
 
 #ifdef YAZE_WITH_GRPC
-// Undefine Windows macros that conflict with protobuf generated code
-#ifdef _WIN32
-#pragma push_macro("DWORD")
-#pragma push_macro("ERROR")
-#undef DWORD
-#undef ERROR
-#endif  // _WIN32
+#include "util/grpc_win_compat.h"
 
 #include <grpcpp/grpcpp.h>
 
 #include "protos/imgui_test_harness.grpc.pb.h"
-
-// Restore Windows macros
-#ifdef _WIN32
-#pragma pop_macro("DWORD")
-#pragma pop_macro("ERROR")
-#endif
 #endif
 
 namespace yaze {

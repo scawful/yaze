@@ -9,20 +9,9 @@
 #include "absl/status/statusor.h"
 
 #ifdef YAZE_WITH_GRPC
-#ifdef _WIN32
-#pragma push_macro("DWORD")
-#pragma push_macro("ERROR")
-#undef DWORD
-#undef ERROR
-#endif
-
+#include "util/grpc_win_compat.h"
 #include <grpcpp/grpcpp.h>
 #include "protos/canvas_automation.grpc.pb.h"
-
-#ifdef _WIN32
-#pragma pop_macro("DWORD")
-#pragma pop_macro("ERROR")
-#endif
 #endif
 
 namespace yaze {

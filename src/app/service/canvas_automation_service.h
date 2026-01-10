@@ -1,6 +1,8 @@
 #ifndef YAZE_APP_CORE_SERVICE_CANVAS_AUTOMATION_SERVICE_H_
 #define YAZE_APP_CORE_SERVICE_CANVAS_AUTOMATION_SERVICE_H_
 
+#include "util/grpc_win_compat.h"
+
 #include "grpcpp/impl/service_type.h"
 #ifdef YAZE_WITH_GRPC
 

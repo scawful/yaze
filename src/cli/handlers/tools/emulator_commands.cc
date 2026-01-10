@@ -1,5 +1,7 @@
 #include "cli/handlers/tools/emulator_commands.h"
 
+#include "util/grpc_win_compat.h"
+
 #include <grpcpp/grpcpp.h>
 
 #include "absl/status/statusor.h"

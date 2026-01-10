@@ -1,5 +1,7 @@
 #include "cli/service/agent/agent_control_server.h"
 
+#include "util/grpc_win_compat.h"
+
 #include <grpcpp/server.h>
 #include <grpcpp/server_builder.h>
 
