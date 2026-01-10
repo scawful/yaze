@@ -31,6 +31,15 @@ target_precompile_headers(yaze_grpc_support PRIVATE
   "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_SOURCE_DIR}/src/yaze_pch.h>"
 )
 
+if(WIN32)
+  set(_YAZE_GRPC_WIN_COMPAT "${CMAKE_SOURCE_DIR}/src/util/grpc_win_compat.h")
+  target_compile_options(yaze_grpc_support PRIVATE
+    "$<$<CXX_COMPILER_ID:MSVC>:/FI${_YAZE_GRPC_WIN_COMPAT}>"
+    "$<$<CXX_COMPILER_ID:Clang>:-include${_YAZE_GRPC_WIN_COMPAT}>"
+    "$<$<CXX_COMPILER_ID:GNU>:-include${_YAZE_GRPC_WIN_COMPAT}>"
+  )
+endif()
+
 target_include_directories(yaze_grpc_support PUBLIC
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/src/app
@@ -79,6 +88,14 @@ endif()
 # Create a separate OBJECT library for proto files to break dependency cycles
 # This allows yaze_agent to depend on the protos without depending on yaze_grpc_support
 add_library(yaze_proto_gen OBJECT)
+
+if(WIN32)
+  target_compile_options(yaze_proto_gen PRIVATE
+    "$<$<CXX_COMPILER_ID:MSVC>:/FI${_YAZE_GRPC_WIN_COMPAT}>"
+    "$<$<CXX_COMPILER_ID:Clang>:-include${_YAZE_GRPC_WIN_COMPAT}>"
+    "$<$<CXX_COMPILER_ID:GNU>:-include${_YAZE_GRPC_WIN_COMPAT}>"
+  )
+endif()
 target_add_protobuf(yaze_proto_gen
   ${PROJECT_SOURCE_DIR}/src/protos/rom_service.proto
   ${PROJECT_SOURCE_DIR}/src/protos/canvas_automation.proto
