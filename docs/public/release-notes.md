@@ -1,9 +1,9 @@
 # Release Notes
 
-## v0.5.0 (Released December 2025)
+## v0.5.0 (Released January 2026)
 
 **Type:** Platform Expansion & Stability
-**Date:** 2025-12-28
+**Date:** 2026-01-10
 
 ### 🧩 Graphics & Palette Accuracy
 - Fixed palette conversion and Tile16 tint regressions.
@@ -16,8 +16,13 @@
 - Hardened room loading APIs and added room count reporting for C API consumers.
 
 ### 🤖 Automation & AI
-- Refactored gRPC agent services and editor wiring.
-- Hardened CLI patch handling and tool output formatting.
+- Added agent control server support and stabilized gRPC automation hooks.
+- Expanded z3ed CLI test commands (`test-list`, `test-run`, `test-status`) and tool metadata.
+- Improved agent command routing and help/schema surfacing for AI clients.
+
+### 🌐 Web/WASM Preview
+- Reduced filesystem initialization overhead and fixed `/projects` directory handling.
+- Hardened browser terminal integration and storage error reporting.
 
 ### 📦 Platform & Build
 - Added iOS platform scaffolding (experimental).

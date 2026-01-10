@@ -309,6 +309,22 @@ void CommandRegistry::RegisterAllCommands() {
         metadata.examples = {
             "z3ed overworld-find-tile --tile=0x42 --format=json"};
       }
+    } else if (name.find("rom-") == 0) {
+      metadata.category = "rom";
+      metadata.description = "ROM inspection and validation";
+      if (name == "rom-info") {
+        metadata.examples = {"z3ed rom-info --rom=zelda3.sfc"};
+      } else if (name == "rom-validate") {
+        metadata.examples = {"z3ed rom-validate --rom=zelda3.sfc"};
+      } else if (name == "rom-doctor") {
+        metadata.examples = {"z3ed rom-doctor --rom=zelda3.sfc --format=json"};
+      } else if (name == "rom-diff") {
+        metadata.examples = {
+            "z3ed rom-diff --rom_a=base.sfc --rom_b=target.sfc"};
+      } else if (name == "rom-compare") {
+        metadata.examples = {
+            "z3ed rom-compare --rom=target.sfc --baseline=vanilla.sfc"};
+      }
     } else if (name.find("emulator-") == 0) {
       metadata.category = "emulator";
       metadata.description = "Emulator control and debugging";
@@ -369,6 +385,19 @@ void CommandRegistry::RegisterAllCommands() {
             "z3ed tools-patch-v3 --rom=zelda3.sfc --output=patched.sfc"};
       } else {
         metadata.description = "Test helper tool";
+      }
+    } else if (name.find("test-") == 0) {
+      metadata.category = "test";
+      metadata.description = "Test discovery and execution";
+      if (name == "test-list") {
+        metadata.requires_rom = false;
+        metadata.examples = {"z3ed test-list", "z3ed test-list --format json"};
+      } else if (name == "test-run") {
+        metadata.examples = {"z3ed test-run --label stable",
+                             "z3ed test-run --label gui"};
+      } else if (name == "test-status") {
+        metadata.requires_rom = false;
+        metadata.examples = {"z3ed test-status --format json"};
       }
     } else {
       metadata.category = "misc";

@@ -67,7 +67,7 @@ While the `AsarWrapper` can be used programmatically, the `z3ed` CLI is the most
 z3ed asar my_patch.asm --rom=zelda3.sfc
 
 # For more complex operations, use the AI agent.
-z3ed agent chat --rom zelda3.sfc
+z3ed agent simple-chat --rom zelda3.sfc
 ```
 > **Prompt:** "Apply the patch `mosaic_change.asm` to my ROM."
 

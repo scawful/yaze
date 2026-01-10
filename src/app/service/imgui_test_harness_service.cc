@@ -20,6 +20,9 @@
 #ifdef IGNORE
 #undef IGNORE
 #endif
+#ifdef SendMessage
+#undef SendMessage
+#endif
 #endif  // _WIN32
 
 #include <algorithm>

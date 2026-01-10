@@ -1,23 +1,8 @@
 #include "cli/handlers/command_handlers.h"
 
-#include "cli/handlers/tools/dungeon_doctor_commands.h"
-#include "cli/handlers/tools/gui_commands.h"
-#include "cli/handlers/tools/overworld_doctor_commands.h"
-#include "cli/handlers/tools/overworld_validate_commands.h"
-#include "cli/handlers/tools/resource_commands.h"
-#include "cli/handlers/tools/rom_compare_commands.h"
-#include "cli/handlers/tools/rom_doctor_commands.h"
-#include "cli/handlers/tools/message_doctor_commands.h"
-#include "cli/handlers/tools/sprite_doctor_commands.h"
-#include "cli/handlers/tools/graphics_doctor_commands.h"
-#include "cli/handlers/tools/test_cli_commands.h"
-#include "cli/handlers/tools/test_helpers_commands.h"
-#ifdef YAZE_WITH_GRPC
-#include "cli/handlers/tools/emulator_commands.h"
-#endif
-#include "cli/handlers/tools/hex_inspector_commands.h"
 #include <memory>
 
+#include "cli/handlers/agent/simple_chat_command.h"
 #include "cli/handlers/game/dialogue_commands.h"
 #include "cli/handlers/game/dungeon_commands.h"
 #include "cli/handlers/game/message_commands.h"
@@ -26,6 +11,23 @@
 #include "cli/handlers/graphics/hex_commands.h"
 #include "cli/handlers/graphics/palette_commands.h"
 #include "cli/handlers/graphics/sprite_commands.h"
+#include "cli/handlers/rom/rom_commands.h"
+#include "cli/handlers/tools/dungeon_doctor_commands.h"
+#ifdef YAZE_WITH_GRPC
+#include "cli/handlers/tools/emulator_commands.h"
+#endif
+#include "cli/handlers/tools/graphics_doctor_commands.h"
+#include "cli/handlers/tools/gui_commands.h"
+#include "cli/handlers/tools/hex_inspector_commands.h"
+#include "cli/handlers/tools/message_doctor_commands.h"
+#include "cli/handlers/tools/overworld_doctor_commands.h"
+#include "cli/handlers/tools/overworld_validate_commands.h"
+#include "cli/handlers/tools/resource_commands.h"
+#include "cli/handlers/tools/rom_compare_commands.h"
+#include "cli/handlers/tools/rom_doctor_commands.h"
+#include "cli/handlers/tools/sprite_doctor_commands.h"
+#include "cli/handlers/tools/test_cli_commands.h"
+#include "cli/handlers/tools/test_helpers_commands.h"
 
 namespace yaze {
 namespace cli {
@@ -65,6 +67,12 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<MessageReadCommandHandler>());
   handlers.push_back(std::make_unique<MessageSearchCommandHandler>());
 
+  // ROM commands
+  handlers.push_back(std::make_unique<RomInfoCommandHandler>());
+  handlers.push_back(std::make_unique<RomValidateCommandHandler>());
+  handlers.push_back(std::make_unique<RomDiffCommandHandler>());
+  handlers.push_back(std::make_unique<RomGenerateGoldenCommandHandler>());
+
   // Validation and repair tools (doctor suite)
   handlers.push_back(std::make_unique<OverworldValidateCommandHandler>());
   handlers.push_back(std::make_unique<OverworldDoctorCommandHandler>());
@@ -77,8 +85,6 @@ CreateCliCommandHandlers() {
 
   return handlers;
 }
-
-#include "cli/handlers/agent/simple_chat_command.h"
 
 std::vector<std::unique_ptr<resources::CommandHandler>>
 CreateAgentCommandHandlers() {

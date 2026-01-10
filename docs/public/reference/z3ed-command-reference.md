@@ -480,7 +480,7 @@ z3ed repl --rom zelda3.sfc --history ~/.z3ed_history
 
 #### Variable Assignment
 ```
-z3ed> $info = rom info
+z3ed> $info = rom-info
 z3ed> echo $info.title
 THE LEGEND OF ZELDA
 ```

@@ -59,7 +59,7 @@ Then run z3ed with the model:
 
 ```bash
 export OLLAMA_MODEL=qwen2.5-coder:0.5b
-z3ed agent chat --rom zelda3.sfc
+z3ed agent simple-chat --rom zelda3.sfc
 ```
 
 #### Option 2: Cloud AI with Gemini (For Advanced Features)
@@ -69,7 +69,7 @@ For more capable AI with vision support (image analysis, ROM visualization):
 ```bash
 # Get API key from https://ai.google.com/
 export GEMINI_API_KEY=your_api_key_here
-z3ed agent chat --rom zelda3.sfc
+z3ed agent simple-chat --rom zelda3.sfc
 ```
 
 ### Build Verification
@@ -92,7 +92,7 @@ cmake --build build
 # [ERROR] src/app/gfx/snes_color.cc:45: error: 'Arena' was not declared
 
 # Use z3ed to analyze and suggest fixes
-z3ed agent chat --rom zelda3.sfc
+z3ed agent simple-chat --rom zelda3.sfc
 > My code has a compilation error on line 45 of snes_color.cc. Can you help?
 
 AI: I can help! Let me examine that file...
@@ -127,7 +127,7 @@ The register X contains $8000 when it should be < $2000.
 
 ```bash
 # Ask the agent to generate tests for your changes
-z3ed agent chat --rom zelda3.sfc
+z3ed agent simple-chat --rom zelda3.sfc
 > I just added a function Process(int input) that returns input * 2.
 > Can you write a test for it?
 
@@ -150,7 +150,7 @@ Use AI assistance while developing yaze itself.
 The agent automatically analyzes compilation failures:
 
 ```bash
-z3ed agent chat --rom zelda3.sfc
+z3ed agent simple-chat --rom zelda3.sfc
 > cmake --build build failed with:
 >   error: 'gfx::Arena' has not been declared in snes_color.cc:45
 
@@ -166,7 +166,7 @@ z3ed agent chat --rom zelda3.sfc
 Generate tests or run existing tests through the agent:
 
 ```bash
-z3ed agent chat --rom zelda3.sfc
+z3ed agent simple-chat --rom zelda3.sfc
 > Run the stable test suite and tell me if anything failed
 
 # AI will:
@@ -181,7 +181,7 @@ z3ed agent chat --rom zelda3.sfc
 Get help understanding segmentation faults and assertions:
 
 ```bash
-z3ed agent chat --rom zelda3.sfc
+z3ed agent simple-chat --rom zelda3.sfc
 > My program crashed with segfault in graphics_arena.cc:234
 > [Paste stack trace]
 
@@ -197,7 +197,7 @@ z3ed agent chat --rom zelda3.sfc
 Identify performance regressions:
 
 ```bash
-z3ed agent chat --rom zelda3.sfc
+z3ed agent simple-chat --rom zelda3.sfc
 > My tile rendering is 3x slower than before. What changed?
 
 # AI will:
@@ -297,13 +297,13 @@ Most z3ed agent commands support these options:
 
 ```bash
 # Logging and debugging
-z3ed agent chat --log-file agent.log --debug
+z3ed agent simple-chat --log-file agent.log --debug
 
 # ROM and workspace configuration
-z3ed agent chat --rom zelda3.sfc --sandbox
+z3ed agent simple-chat --rom zelda3.sfc --sandbox
 
 # Model selection (Ollama)
-z3ed agent chat --ai_model qwen2.5-coder:1b
+z3ed agent simple-chat --ai_model qwen2.5-coder:1b
 
 # Emulator debugging (ROM Debug Mode)
 z3ed agent debug-rom --emulator-port 50051
@@ -342,7 +342,7 @@ ollama serve &
 echo $GEMINI_API_KEY  # Should not be empty
 
 # Specify model explicitly
-z3ed agent chat --ai_model qwen2.5-coder:0.5b --rom zelda3.sfc
+z3ed agent simple-chat --ai_model qwen2.5-coder:0.5b --rom zelda3.sfc
 ```
 
 ### Problem: z3ed command not found
@@ -366,7 +366,7 @@ cmake --build --preset mac-ai --target z3ed
 **Solution**:
 ```bash
 # Always use paths relative to project root
-z3ed agent chat
+z3ed agent simple-chat
 > [Give paths like src/app/rom.cc, not /Users/name/Code/yaze/src/...]
 
 # For binary files, ask for analysis instead
@@ -393,12 +393,12 @@ z3ed agent debug-rom --rom my_hack.sfc --emulator-port 50051
 **Solution**:
 ```bash
 # Use smaller batches
-z3ed agent chat --max_batch_size 100
+z3ed agent simple-chat --max_batch_size 100
 
 # Process one ROM at a time
-z3ed agent chat --rom hack1.sfc
+z3ed agent simple-chat --rom hack1.sfc
 # ... finish ...
-z3ed agent chat --rom hack2.sfc
+z3ed agent simple-chat --rom hack2.sfc
 ```
 
 ## Advanced Topics
@@ -421,7 +421,7 @@ jobs:
           cmake --build --preset lin-ai --target yaze z3ed
       - name: Analyze build
         run: |
-          z3ed agent chat --ci-mode \
+          z3ed agent simple-chat --ci-mode \
             --prompt "Check if build succeeded and suggest fixes"
 ```
 
@@ -432,7 +432,7 @@ Process multiple ROM hacks automatically:
 ```bash
 #!/bin/bash
 for rom in hacks/*.sfc; do
-  z3ed agent chat --rom "$rom" \
+  z3ed agent simple-chat --rom "$rom" \
     --prompt "Run tests and report status"
 done
 ```
@@ -443,7 +443,7 @@ Extend z3ed with your own tools:
 
 ```bash
 # Call custom analysis tools
-z3ed agent chat --rom zelda3.sfc
+z3ed agent simple-chat --rom zelda3.sfc
 > Can you run my custom analysis tool on this ROM?
 > [Describe your tool]
 

@@ -38,7 +38,7 @@ Welcome to the `yaze` internal agent workspace. This directory contains the rule
 Agents have built-in CLI capabilities to assist with this workflow:
 *   `z3ed agent todo`: Manage your personal task list.
 *   `z3ed agent handoff`: Generate context bundles for the next agent.
-*   `z3ed agent chat`: (If enabled) Inter-agent communication channel.
+*   `z3ed agent simple-chat`: (If enabled) Inter-agent communication channel.
 
 ## Picking the right agent
 - **ai-infra-architect**: AI/agent infra, MCP/gRPC, z3ed tooling, model plumbing.

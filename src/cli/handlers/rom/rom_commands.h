@@ -12,9 +12,9 @@ namespace handlers {
  */
 class RomInfoCommandHandler : public resources::CommandHandler {
  public:
-  std::string GetName() const { return "rom-info"; }
+  std::string GetName() const override { return "rom-info"; }
   std::string GetDescription() const { return "Display ROM information"; }
-  std::string GetUsage() const { return "rom-info"; }
+  std::string GetUsage() const override { return "rom-info"; }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return absl::OkStatus();
@@ -29,9 +29,9 @@ class RomInfoCommandHandler : public resources::CommandHandler {
  */
 class RomValidateCommandHandler : public resources::CommandHandler {
  public:
-  std::string GetName() const { return "rom-validate"; }
+  std::string GetName() const override { return "rom-validate"; }
   std::string GetDescription() const { return "Validate ROM file integrity"; }
-  std::string GetUsage() const { return "rom-validate"; }
+  std::string GetUsage() const override { return "rom-validate"; }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return absl::OkStatus();
@@ -46,11 +46,12 @@ class RomValidateCommandHandler : public resources::CommandHandler {
  */
 class RomDiffCommandHandler : public resources::CommandHandler {
  public:
-  std::string GetName() const { return "rom-diff"; }
+  std::string GetName() const override { return "rom-diff"; }
   std::string GetDescription() const { return "Compare two ROM files"; }
-  std::string GetUsage() const {
+  std::string GetUsage() const override {
     return "rom-diff --rom_a <file> --rom_b <file>";
   }
+  bool RequiresRom() const override { return false; }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return parser.RequireArgs({"rom_a", "rom_b"});
@@ -65,13 +66,14 @@ class RomDiffCommandHandler : public resources::CommandHandler {
  */
 class RomGenerateGoldenCommandHandler : public resources::CommandHandler {
  public:
-  std::string GetName() const { return "rom-generate-golden"; }
+  std::string GetName() const override { return "rom-generate-golden"; }
   std::string GetDescription() const {
     return "Generate golden ROM file for testing";
   }
-  std::string GetUsage() const {
+  std::string GetUsage() const override {
     return "rom-generate-golden --rom_file <file> --golden_file <file>";
   }
+  bool RequiresRom() const override { return false; }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return parser.RequireArgs({"rom_file", "golden_file"});

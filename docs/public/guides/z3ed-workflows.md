@@ -775,8 +775,8 @@ z3ed rom validate --comprehensive
 z3ed test run --suite optimization_validation.yaml
 
 # Step 8: Generate report
-original_size=$(z3ed rom info --snapshot "pre-optimization" | jq '.size')
-optimized_size=$(z3ed rom info | jq '.size')
+original_size=$(z3ed rom-info --snapshot "pre-optimization" | jq '.size')
+optimized_size=$(z3ed rom-info | jq '.size')
 saved=$((original_size - optimized_size))
 percent=$((saved * 100 / original_size))
 

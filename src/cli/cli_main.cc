@@ -168,11 +168,11 @@ void PrintCompactHelp() {
   std::cout << "\n";
 
   std::cout << "\033[1;36mEXAMPLES:\033[0m\n";
-  std::cout << "  z3ed agent test-conversation --rom=zelda3.sfc\n";
-  std::cout << "  z3ed rom info --rom=zelda3.sfc\n";
-  std::cout << "  z3ed agent message-search --rom=zelda3.sfc --query=\"Master "
-               "Sword\"\n";
-  std::cout << "  z3ed dungeon export --rom=zelda3.sfc --id=1\n\n";
+  std::cout << "  z3ed agent simple-chat --rom=zelda3.sfc\n";
+  std::cout << "  z3ed rom-info --rom=zelda3.sfc\n";
+  std::cout
+      << "  z3ed message-search --rom=zelda3.sfc --query=\"Master Sword\"\n";
+  std::cout << "  z3ed dungeon-export --rom=zelda3.sfc --id=1\n\n";
 
   std::cout << "For detailed help: z3ed help <command>\n";
   std::cout << "For all commands:  z3ed --list-commands\n\n";

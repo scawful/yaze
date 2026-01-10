@@ -295,11 +295,12 @@ jobs:
           body: |
             ## What's Changed
             
-            This release includes:
-            - Cross-platform builds for Linux, macOS, and Windows
-            - Improved dependency management with CPM.cmake
-            - Enhanced CI/CD pipeline with parallel execution
-            - Automated packaging and release creation
+            Highlights in v0.5.0:
+            - Agent control server support and gRPC automation stability improvements
+            - z3ed CLI test commands (`test-list`, `test-run`, `test-status`) and tool metadata for AI clients
+            - Web/WASM filesystem initialization and terminal stability fixes
+            - Graphics/palette reliability fixes across Tile16 and palette conversions
+            - iOS scaffolding (experimental) plus build/CI workflow cleanup
             
             ## Downloads
             
@@ -332,6 +333,10 @@ jobs:
             # Run the installer
             yaze-*.exe
             ```
+
+            ## Notes
+
+            - AI features require an Ollama server or Gemini/OpenAI API key.
           files: |
             release-files/*
           draft: false

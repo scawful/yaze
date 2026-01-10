@@ -101,7 +101,9 @@ if(YAZE_BUILD_TESTS)
     unit/core/hex_test.cc
     unit/deps/dependency_smoke_test.cc
     unit/cli/resource_catalog_test.cc
+    unit/cli/command_registry_test.cc
     unit/rom/rom_test.cc
+    unit/emu/input_backend_test.cc
     unit/gfx/snes_tile_test.cc
     unit/gfx/compression_test.cc
     unit/gfx/snes_palette_test.cc
@@ -133,6 +135,7 @@ if(YAZE_BUILD_TESTS)
     # Platform Tests
     platform/sdl3_audio_backend_test.cc
     platform/window_backend_test.cc
+    platform/wasm_async_guard_test.cc
     # Agent Tools Tests
     unit/tools/build_tool_test.cc
     unit/tools/filesystem_tool_test.cc
@@ -142,6 +145,7 @@ if(YAZE_BUILD_TESTS)
     unit/tools/code_gen_tool_test.cc
     ../src/cli/service/resources/resource_catalog.cc
     cli/service/resources/command_context_test.cc
+    cli/service/resources/command_handler_test.cc
     # Integration Tests
     integration/asar_integration_test.cc
     integration/dungeon_editor_test.cc

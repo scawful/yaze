@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.5.0 (December 2025)
+## 0.5.0 (January 2026)
 
 ### Graphics & Palette Reliability
 - Fixed palette conversion and Tile16 tint regressions.
@@ -11,6 +11,15 @@
 - Refined dashboard/editor selection layouts and card text rendering.
 - Moved layout designer into a lab target for safer experimentation.
 - Hardened CLI/API room loading and Asar patch handling.
+
+### Automation & AI
+- Added agent control server support and stabilized gRPC automation hooks.
+- Expanded z3ed CLI test commands (`test-list`, `test-run`, `test-status`) and tool metadata.
+- Improved agent command routing and help/schema surfacing for AI clients.
+
+### Web/WASM Preview
+- Reduced filesystem initialization overhead and fixed `/projects` directory handling.
+- Hardened browser terminal integration and storage error reporting.
 
 ### Platform, Build, and Tests
 - Added iOS platform scaffolding (experimental) plus build helper scripts.

@@ -51,6 +51,8 @@ vcpkg_installed/
 
 # Agent learned knowledge (user-specific)
 .agent_knowledge/
+.context/
+.context
 
 # macOS
 .DS_Store
@@ -128,6 +130,11 @@ logs/build-logs-Windows 2022 (Clang-CL)/build.log
 logs/build-logs-Windows 2022 (Clang-CL)/cmake_config.log
 vanilla.sfc
 zelda3.sfc
+*.sfc
+*.smc
+*.srm
+*.fig
+/test_*.py
 yaze_manual.log
 yaze_startup.log
 roms/
