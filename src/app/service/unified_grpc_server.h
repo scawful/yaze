@@ -9,6 +9,7 @@
 
 #include "absl/status/status.h"
 #include "app/net/rom_version_manager.h"
+#include "util/grpc_win_compat.h"
 
 // gRPC types used by the server interface.
 #include <grpcpp/impl/service_type.h>

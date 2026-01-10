@@ -2,6 +2,8 @@
 
 #ifdef YAZE_WITH_GRPC
 
+#include "util/grpc_win_compat.h"
+
 #include <grpcpp/grpcpp.h>
 
 #include "app/editor/overworld/overworld_editor.h"

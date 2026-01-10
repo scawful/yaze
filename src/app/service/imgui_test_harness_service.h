@@ -11,18 +11,7 @@
 #include "app/service/widget_discovery_service.h"
 #include "app/test/test_recorder.h"
 
-// Undefine Windows macros that conflict with protobuf generated code
-#ifdef _WIN32
-#ifdef DWORD
-#undef DWORD
-#endif
-#ifdef ERROR
-#undef ERROR
-#endif
-#ifdef SendMessage
-#undef SendMessage
-#endif
-#endif  // _WIN32
+#include "util/grpc_win_compat.h"
 
 // Include grpcpp headers for gRPC service/server types used in the interface.
 #include <grpcpp/impl/service_type.h>

@@ -1,7 +1,10 @@
 #pragma once
 
-#include <grpcpp/grpcpp.h>
 #include <memory>
+
+#include "util/grpc_win_compat.h"
+
+#include <grpcpp/grpcpp.h>
 
 #include "app/emu/debug/step_controller.h"
 #include "app/emu/debug/symbol_provider.h"

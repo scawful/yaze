@@ -1,5 +1,7 @@
 #include "cli/service/agent/emulator_service_impl.h"
 
+#include "util/grpc_win_compat.h"
+
 #include <grpcpp/grpcpp.h>
 #include <iostream>
 #include <thread>
