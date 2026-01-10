@@ -5,9 +5,16 @@
 
 #include "app/platform/sdl_compat.h"
 
-// Undefine Windows macros that conflict with protobuf generated code
-// SDL.h includes Windows.h on Windows, which defines these macros
 #ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+
+// Undefine Windows macros that conflict with protobuf/gRPC headers.
 #ifdef DWORD
 #undef DWORD
 #endif
