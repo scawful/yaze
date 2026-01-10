@@ -99,7 +99,7 @@ The zelda3 library will be moved to src/zelda3/ and broken down into six distinc
 This plan details the steps to move the library from src/app/zelda3 to src/zelda3.
 
   1. Physical File Move:
-      * Move the directory /Users/scawful/Code/yaze/src/app/zelda3 to /Users/scawful/Code/yaze/src/zelda3.
+      * Move the directory $TRUNK_ROOT/scawful/retro/yaze/src/app/zelda3 to $TRUNK_ROOT/scawful/retro/yaze/src/zelda3.
 
   2. Update CMake Configuration:
       * In src/CMakeLists.txt, change the line include(zelda3/zelda3_library.cmake) to

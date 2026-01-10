@@ -66,19 +66,40 @@ void Application::Initialize(const AppConfig& config) {
      }
 
 #ifdef YAZE_WITH_GRPC
-     // Initialize gRPC server if enabled
+     // Start AgentControlServer for MCP/CLI debugging (always enabled with gRPC)
+     if (controller_->editor_manager()) {
+       auto rom_getter = [this]() -> Rom* {
+         return controller_->GetCurrentRom();
+       };
+       auto rom_loader = [this](const std::string& path) -> bool {
+         if (!controller_ || !controller_->editor_manager()) return false;
+         auto status = controller_->editor_manager()->OpenRomOrProject(path);
+         return status.ok();
+       };
+       agent_control_server_ = std::make_unique<yaze::agent::AgentControlServer>(
+           &controller_->editor_manager()->emulator(), rom_getter, rom_loader);
+       agent_control_server_->Start();
+       LOG_INFO("App", "AgentControlServer started on port 50053");
+     }
+
+     // Initialize gRPC test harness server if enabled (separate from AgentControlServer)
      if (config_.enable_test_harness) {
        LOG_INFO("App", "Initializing gRPC automation services...");
        canvas_automation_service_ = std::make_unique<CanvasAutomationServiceImpl>();
        grpc_server_ = std::make_unique<YazeGRPCServer>();
 
-       auto rom_getter = [this]() { return controller_->GetCurrentRom(); };
+       auto th_rom_getter = [this]() { return controller_->GetCurrentRom(); };
+       auto th_rom_loader = [this](const std::string& path) -> bool {
+         if (!controller_ || !controller_->editor_manager()) return false;
+         auto status = controller_->editor_manager()->OpenRomOrProject(path);
+         return status.ok();
+       };
 
        if (controller_->editor_manager()) {
          auto emulator_service =
              std::make_unique<yaze::net::EmulatorServiceImpl>(
                  &controller_->editor_manager()->emulator(),
-                 rom_getter);
+                 th_rom_getter, th_rom_loader);
          auto add_status =
              grpc_server_->AddService(std::move(emulator_service));
          if (!add_status.ok()) {
@@ -93,7 +114,7 @@ void Application::Initialize(const AppConfig& config) {
        auto status = grpc_server_->Initialize(
            config_.test_harness_port,
            &yaze::test::TestManager::Get(),
-           rom_getter,
+           th_rom_getter,
            nullptr, // Version manager not ready
            nullptr, // Approval manager not ready
            canvas_automation_service_.get()
@@ -222,8 +243,13 @@ void Application::Shutdown() {
 #endif
 
 #ifdef YAZE_WITH_GRPC
+  if (agent_control_server_) {
+    LOG_INFO("App", "Shutting down AgentControlServer...");
+    agent_control_server_->Stop();
+    agent_control_server_.reset();
+  }
   if (grpc_server_) {
-    LOG_INFO("App", "Shutting down gRPC server...");
+    LOG_INFO("App", "Shutting down gRPC test harness server...");
     grpc_server_->Shutdown();
     grpc_server_.reset();
   }

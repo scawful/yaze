@@ -34,16 +34,18 @@ Set the model with `--ai_model` or `OLLAMA_MODEL` environment variable.
 
 | Task | Command |
 |------|---------|
-| Apply assembly patch | `z3ed asar patch.asm --rom zelda3.sfc` |
-| List dungeon sprites | `z3ed dungeon list-sprites --dungeon 2 --rom zelda3.sfc` |
-| Describe overworld map | `z3ed overworld describe-map --map 80 --rom zelda3.sfc` |
-| Export palettes | `z3ed palette export --rom zelda3.sfc --output palettes.json` |
-| Validate ROM | `z3ed rom info --rom zelda3.sfc` |
+| ROM info | `z3ed rom-info --rom=zelda3.sfc` |
+| List dungeon sprites | `z3ed dungeon-list-sprites --room=1 --rom=zelda3.sfc` |
+| Describe dungeon room | `z3ed dungeon-describe-room --room=1 --rom=zelda3.sfc` |
+| Describe overworld map | `z3ed overworld-describe-map --map=80 --rom=zelda3.sfc` |
+| List messages | `z3ed message-list --rom=zelda3.sfc` |
+| Search messages | `z3ed message-search --query="sword" --rom=zelda3.sfc` |
 
-Commands follow `<noun> <verb>` convention. Use `--help` for flag details:
+Commands follow `<noun>-<verb>` convention (dashes, not spaces). Use `--help` for flag details:
 ```bash
-z3ed dungeon --help
-z3ed dungeon list-sprites --help
+z3ed --help
+z3ed help dungeon
+z3ed dungeon-list-sprites --help
 ```
 
 ---
@@ -53,34 +55,51 @@ z3ed dungeon list-sprites --help
 ### Interactive Chat
 
 ```bash
-z3ed agent chat --rom zelda3.sfc --theme overworld
+z3ed agent simple-chat --rom=zelda3.sfc
 ```
 
 Chat sessions maintain conversation history and can invoke ROM commands automatically.
+
+### Agent Subcommands
+
+| Command | Description |
+|---------|-------------|
+| `agent simple-chat` | Interactive AI chat |
+| `agent test-conversation` | Automated test conversation |
+| `agent plan` | Generate execution plan |
+| `agent run` | Execute plan in sandbox |
+| `agent diff` | Review proposal diff |
+| `agent accept` | Apply proposal changes |
+| `agent commit` | Save ROM changes |
+| `agent revert` | Reload ROM from disk |
+| `agent learn` | Manage learned knowledge |
+| `agent todo` | Task management |
+| `agent list` | List proposals |
+| `agent describe` | Describe a proposal |
 
 ### Plan and Apply
 
 ```bash
 # Create a plan without applying
-z3ed agent plan --prompt "Move eastern palace entrance 3 tiles east" --rom zelda3.sfc
+z3ed agent plan --rom=zelda3.sfc
 
 # List pending plans
 z3ed agent list
 
+# Review diff
+z3ed agent diff --rom=zelda3.sfc
+
 # Apply after review
-z3ed agent accept --proposal-id <id> --rom zelda3.sfc
+z3ed agent accept --proposal-id=<id> --rom=zelda3.sfc
 ```
 
 Plans are stored in `$XDG_DATA_HOME/yaze/proposals/` (or `%APPDATA%\yaze\proposals\` on Windows).
 
-### Scripted Prompts
+### Scripted Chat
 
 ```bash
-# From file
-z3ed agent simple-chat --file queries.txt --rom zelda3.sfc --stdout
-
 # From stdin
-echo "Describe tile 0x3A in map 0x80" | z3ed agent simple-chat --rom zelda3.sfc --stdout
+echo "Describe room 1" | z3ed agent simple-chat --rom=zelda3.sfc --stdout
 ```
 
 ---

@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EMU_INPUT_INPUT_MANAGER_H_
 #define YAZE_APP_EMU_INPUT_INPUT_MANAGER_H_
 
+#include <atomic>
 #include <memory>
 
 #include "app/emu/input/input_backend.h"
@@ -39,7 +40,7 @@ class InputManager {
 
  private:
   std::unique_ptr<IInputBackend> backend_;
-  ControllerState agent_controller_state_;  // State controlled by agent
+  std::atomic<uint16_t> agent_buttons_{0};  // Thread-safe agent button state
   InputConfig config_;                      // Cached/pending config
 };
 

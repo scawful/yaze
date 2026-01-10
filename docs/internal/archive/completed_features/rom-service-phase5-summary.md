@@ -98,7 +98,7 @@ The implementation uses well-known ALTTP ROM addresses:
 - Sprites: Direct property bytes from various tables
 
 ## Files Modified
-- `/Users/scawful/Code/yaze/src/app/net/rom_service_impl.cc`
+- `$TRUNK_ROOT/scawful/retro/yaze/src/app/net/rom_service_impl.cc`
   - Enhanced GetRomInfo with checksum and version detection
   - Implemented ReadOverworldMap with pointer table lookup
   - Implemented ReadDungeonRoom with header parsing

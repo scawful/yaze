@@ -63,9 +63,10 @@ void InputManager::Poll(Snes* snes, int player) {
   ControllerState physical_state = backend_->Poll(player);
 
   // Combine physical input with agent-controlled input (OR operation)
+  // Use atomic load for thread-safe access from gRPC thread
   ControllerState final_state;
   final_state.buttons =
-      physical_state.buttons | agent_controller_state_.buttons;
+      physical_state.buttons | agent_buttons_.load(std::memory_order_acquire);
 
   // Apply button state directly to SNES
   // Just send the raw button state on every Poll() call
@@ -118,11 +119,15 @@ void InputManager::SetConfig(const InputConfig& config) {
 }
 
 void InputManager::PressButton(SnesButton button) {
-  agent_controller_state_.SetButton(button, true);
+  // Atomic fetch-and-or for thread-safe button press from gRPC thread
+  uint16_t mask = 1 << static_cast<uint8_t>(button);
+  agent_buttons_.fetch_or(mask, std::memory_order_release);
 }
 
 void InputManager::ReleaseButton(SnesButton button) {
-  agent_controller_state_.SetButton(button, false);
+  // Atomic fetch-and-and for thread-safe button release from gRPC thread
+  uint16_t mask = ~(1 << static_cast<uint8_t>(button));
+  agent_buttons_.fetch_and(mask, std::memory_order_release);
 }
 
 }  // namespace input

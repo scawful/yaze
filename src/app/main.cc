@@ -68,8 +68,8 @@ DEFINE_FLAG(int, api_port, 8080, "Port for the AI Agent API server.");
 // gRPC test harness flags
 DEFINE_FLAG(bool, enable_test_harness, false,
             "Start gRPC test harness server for automated GUI testing.");
-DEFINE_FLAG(int, test_harness_port, 50051,
-            "Port for gRPC test harness server (default: 50051).");
+DEFINE_FLAG(int, test_harness_port, 50052,
+            "Port for gRPC test harness server (default: 50052). AgentControlServer uses 50051.");
 #endif
 
 // ============================================================================

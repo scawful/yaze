@@ -214,8 +214,8 @@ if (debugging_enabled_) {
 - **CPU:** `src/app/emu/cpu/cpu.h`
 
 ### MCP Server
-- **Location:** `/Users/scawful/Code/yaze-mcp/server.py`
-- **Proto Stubs:** `/Users/scawful/Code/yaze-mcp/protos/`
+- **Location:** `$TRUNK_ROOT/scawful/retro/yaze-mcp/server.py`
+- **Proto Stubs:** `$TRUNK_ROOT/scawful/retro/yaze-mcp/protos/`
 
 ## Success Criteria
 

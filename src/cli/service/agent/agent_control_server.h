@@ -2,10 +2,16 @@
 
 #ifdef YAZE_WITH_GRPC
 
+#include <functional>
 #include <memory>
+#include <string>
 #include <thread>
 
 #include <grpcpp/server.h>
+
+namespace yaze {
+class Rom;
+}
 
 namespace yaze::emu {
 class Emulator;
@@ -15,7 +21,12 @@ namespace yaze::agent {
 
 class AgentControlServer {
  public:
-  AgentControlServer(yaze::emu::Emulator* emulator);
+  using RomGetter = std::function<Rom*()>;
+  using RomLoader = std::function<bool(const std::string& path)>;
+
+  AgentControlServer(yaze::emu::Emulator* emulator,
+                     RomGetter rom_getter = nullptr,
+                     RomLoader rom_loader = nullptr);
   ~AgentControlServer();
 
   void Start();
@@ -25,6 +36,8 @@ class AgentControlServer {
   void Run();
 
   yaze::emu::Emulator* emulator_;  // Non-owning pointer
+  RomGetter rom_getter_;
+  RomLoader rom_loader_;
   std::unique_ptr<grpc::Server> server_;
   std::thread server_thread_;
 };

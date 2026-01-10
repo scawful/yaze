@@ -13,6 +13,7 @@
 #ifdef YAZE_WITH_GRPC
 #include "app/service/unified_grpc_server.h"
 #include "app/service/canvas_automation_service.h"
+#include "cli/service/agent/agent_control_server.h"
 #endif
 
 namespace yaze {
@@ -42,7 +43,7 @@ struct AppConfig {
   bool enable_api = false;
   int api_port = 8080;
   bool enable_test_harness = false;
-  int test_harness_port = 50051;
+  int test_harness_port = 50052;  // GUI automation (50052), AgentControlServer uses 50051
 };
 
 /**
@@ -96,6 +97,7 @@ class Application {
 #ifdef YAZE_WITH_GRPC
   std::unique_ptr<YazeGRPCServer> grpc_server_;
   std::unique_ptr<CanvasAutomationServiceImpl> canvas_automation_service_;
+  std::unique_ptr<yaze::agent::AgentControlServer> agent_control_server_;
 #endif
 };
 

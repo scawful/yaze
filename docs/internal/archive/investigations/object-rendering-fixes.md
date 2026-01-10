@@ -319,5 +319,5 @@ After implementing Fix 2:
 ## References
 
 - **ZScream Source:** `/Users/scawful/Code/ZScreamDungeon/ZeldaFullEditor/Data/Underworld/RoomObjectTileLister.cs`
-- **Analysis Document:** `/Users/scawful/Code/yaze/docs/internal/zscream-comparison-object-rendering.md`
-- **Rendering Analysis:** `/Users/scawful/Code/yaze/docs/internal/dungeon-rendering-analysis.md`
+- **Analysis Document:** `$TRUNK_ROOT/scawful/retro/yaze/docs/internal/zscream-comparison-object-rendering.md`
+- **Rendering Analysis:** `$TRUNK_ROOT/scawful/retro/yaze/docs/internal/dungeon-rendering-analysis.md`

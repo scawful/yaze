@@ -183,7 +183,7 @@ static constexpr uint8_t kSubtype1TileLengths[0xF8] = {
 
 ## Files to Read Before Implementation
 
-1. `/Users/scawful/Code/yaze/src/zelda3/dungeon/object_parser.cc` - **PRIMARY** - Find the hardcoded `8` in tile loading
+1. `$TRUNK_ROOT/scawful/retro/yaze/src/zelda3/dungeon/object_parser.cc` - **PRIMARY** - Find the hardcoded `8` in tile loading
 2. `/Users/scawful/Code/ZScreamDungeon/ZeldaFullEditor/Data/DungeonObjectData.cs` - Verify tile table values
 
 ## Estimated Impact

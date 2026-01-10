@@ -9,8 +9,10 @@
 
 namespace yaze::agent {
 
-AgentControlServer::AgentControlServer(yaze::emu::Emulator* emulator)
-    : emulator_(emulator) {}
+AgentControlServer::AgentControlServer(yaze::emu::Emulator* emulator,
+                                       RomGetter rom_getter,
+                                       RomLoader rom_loader)
+    : emulator_(emulator), rom_getter_(rom_getter), rom_loader_(rom_loader) {}
 
 AgentControlServer::~AgentControlServer() {
   Stop();
@@ -30,21 +32,26 @@ void AgentControlServer::Stop() {
 }
 
 void AgentControlServer::Run() {
-  std::string server_address("0.0.0.0:50051");
-  yaze::net::EmulatorServiceImpl service(emulator_, nullptr);
+  // Port 50053 for agent/MCP debugging (50051 often occupied on macOS)
+  std::string server_address("0.0.0.0:50053");
+  yaze::net::EmulatorServiceImpl service(emulator_, rom_getter_, rom_loader_);
 
   grpc::ServerBuilder builder;
-  builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+
+  // Track selected port for debugging
+  int selected_port = 0;
+  builder.AddListeningPort(server_address, grpc::InsecureServerCredentials(),
+                           &selected_port);
   builder.RegisterService(&service);
 
   server_ = builder.BuildAndStart();
-  if (server_) {
+  if (server_ && selected_port > 0) {
     std::cout << "AgentControlServer listening on " << server_address
-              << std::endl;
+              << " (selected_port: " << selected_port << ")" << std::endl;
     server_->Wait();
   } else {
     std::cerr << "Failed to start AgentControlServer on " << server_address
-              << std::endl;
+              << " (selected_port: " << selected_port << ")" << std::endl;
   }
 }
 

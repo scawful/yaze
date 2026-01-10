@@ -23,7 +23,7 @@ This is the canonical reference for ALTTP dungeon object rendering research and 
 - **State injection roadmap (for later emulator manipulation):** capture a minimal WRAM/VRAM snapshot that boots directly into a target dungeon room with desired inventory/state. Needed fields: room ID/submodule, Link coords, camera offsets, inventory bitfields (sword/shield/armor/keys/map/compass), dungeon progress flags (boss, pendant/crystal), BG tilemap buffers, palette state. This ties WRAM tracing to the eventual “load me into this dungeon with these items” feature.
  - **Testing plan (headless + MCP):**
    1) Build/launch headless with gRPC: `SDL_VIDEODRIVER=dummy ./scripts/dev_start_yaze.sh` (script now auto-finds `build_ai/bin/Debug/yaze.app/...`).
-   2) Run yaze-mcp server: `/Users/scawful/Code/yaze-mcp/venv/bin/python /Users/scawful/Code/yaze-mcp/server.py` (Codex MCP configured with `yaze-debugger` entry).
+   2) Run yaze-mcp server: `$TRUNK_ROOT/scawful/retro/yaze-mcp/venv/bin/python $TRUNK_ROOT/scawful/retro/yaze-mcp/server.py` (Codex MCP configured with `yaze-debugger` entry).
    3) Dump WRAM via MCP: `read_memory address="7E0000" size=0x8000` before/after room entry or object draw; diff snapshots.
    4) Annotate diffs in `alttp-wram-state.md` (purpose/default/required-for-preview vs state injection); script minimal WRAM initializer once stable.
 

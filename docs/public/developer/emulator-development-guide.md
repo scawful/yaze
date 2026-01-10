@@ -1247,7 +1247,7 @@ class MusicEditor {
 ### Quick Build
 
 ```bash
-cd /Users/scawful/Code/yaze
+cd $TRUNK_ROOT/scawful/retro/yaze
 cmake --build build --target yaze -j12
 ./build/bin/yaze.app/Contents/MacOS/yaze
 ```

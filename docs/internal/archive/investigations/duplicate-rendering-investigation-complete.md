@@ -440,17 +440,17 @@ The editor system has a **clean, single-path rendering architecture**. No code p
 ## Files Referenced
 
 **Core Investigation Files:**
-- `/Users/scawful/Code/yaze/src/app/controller.cc` - Main loop (lines 56-165)
-- `/Users/scawful/Code/yaze/src/app/editor/editor_manager.cc` - Update flow (lines 616-1079)
-- `/Users/scawful/Code/yaze/src/app/editor/overworld/overworld_editor.cc` - Editor Update (lines 228-377)
-- `/Users/scawful/Code/yaze/src/app/gui/app/editor_layout.cc` - EditorCard implementation (lines 256-380)
-- `/Users/scawful/Code/yaze/src/app/editor/ui/right_panel_manager.cc` - Panel system (lines 117-242)
-- `/Users/scawful/Code/yaze/src/app/editor/system/editor_card_registry.cc` - Card registry (lines 456-787)
-- `/Users/scawful/Code/yaze/src/app/editor/system/proposal_drawer.h` - Draw vs DrawContent (lines 39-43)
+- `$TRUNK_ROOT/scawful/retro/yaze/src/app/controller.cc` - Main loop (lines 56-165)
+- `$TRUNK_ROOT/scawful/retro/yaze/src/app/editor/editor_manager.cc` - Update flow (lines 616-1079)
+- `$TRUNK_ROOT/scawful/retro/yaze/src/app/editor/overworld/overworld_editor.cc` - Editor Update (lines 228-377)
+- `$TRUNK_ROOT/scawful/retro/yaze/src/app/gui/app/editor_layout.cc` - EditorCard implementation (lines 256-380)
+- `$TRUNK_ROOT/scawful/retro/yaze/src/app/editor/ui/right_panel_manager.cc` - Panel system (lines 117-242)
+- `$TRUNK_ROOT/scawful/retro/yaze/src/app/editor/system/editor_card_registry.cc` - Card registry (lines 456-787)
+- `$TRUNK_ROOT/scawful/retro/yaze/src/app/editor/system/proposal_drawer.h` - Draw vs DrawContent (lines 39-43)
 
 **Diagnostic Code:**
-- `/Users/scawful/Code/yaze/src/app/gui/app/editor_layout.h` (lines 121-135)
-- `/Users/scawful/Code/yaze/src/app/gui/app/editor_layout.cc` (lines 17-285)
+- `$TRUNK_ROOT/scawful/retro/yaze/src/app/gui/app/editor_layout.h` (lines 121-135)
+- `$TRUNK_ROOT/scawful/retro/yaze/src/app/gui/app/editor_layout.cc` (lines 17-285)
 
 **Previous Investigation:**
-- `/Users/scawful/Code/yaze/docs/internal/handoff-duplicate-rendering-investigation.md`
+- `$TRUNK_ROOT/scawful/retro/yaze/docs/internal/handoff-duplicate-rendering-investigation.md`

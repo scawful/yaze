@@ -4,10 +4,10 @@
 **Author**: Claude (AI Agent)
 **Status**: Implemented
 **Related Files**:
-- `/Users/scawful/Code/yaze/src/app/platform/wasm/wasm_control_api.cc`
-- `/Users/scawful/Code/yaze/src/app/gui/automation/widget_id_registry.h`
-- `/Users/scawful/Code/yaze/src/app/gui/automation/widget_measurement.h`
-- `/Users/scawful/Code/yaze/src/app/controller.cc`
+- `$TRUNK_ROOT/scawful/retro/yaze/src/app/platform/wasm/wasm_control_api.cc`
+- `$TRUNK_ROOT/scawful/retro/yaze/src/app/gui/automation/widget_id_registry.h`
+- `$TRUNK_ROOT/scawful/retro/yaze/src/app/gui/automation/widget_measurement.h`
+- `$TRUNK_ROOT/scawful/retro/yaze/src/app/controller.cc`
 
 ## Overview
 
@@ -40,7 +40,7 @@ The implementation connects the WASM API to the existing widget registry:
 
 #### Updated `GetUIElementTree()`
 
-**File**: `/Users/scawful/Code/yaze/src/app/platform/wasm/wasm_control_api.cc` (lines 1386-1433)
+**File**: `$TRUNK_ROOT/scawful/retro/yaze/src/app/platform/wasm/wasm_control_api.cc` (lines 1386-1433)
 
 ```cpp
 std::string WasmControlApi::GetUIElementTree() {
@@ -109,7 +109,7 @@ std::string WasmControlApi::GetUIElementTree() {
 
 #### Updated `GetUIElementBounds()`
 
-**File**: `/Users/scawful/Code/yaze/src/app/platform/wasm/wasm_control_api.cc` (lines ~1435+)
+**File**: `$TRUNK_ROOT/scawful/retro/yaze/src/app/platform/wasm/wasm_control_api.cc` (lines ~1435+)
 
 ```cpp
 std::string WasmControlApi::GetUIElementBounds(const std::string& element_id) {
@@ -175,7 +175,7 @@ std::string WasmControlApi::GetUIElementBounds(const std::string& element_id) {
 
 ### 3. Frame Lifecycle Integration
 
-**File**: `/Users/scawful/Code/yaze/src/app/controller.cc` (lines 96-98)
+**File**: `$TRUNK_ROOT/scawful/retro/yaze/src/app/controller.cc` (lines 96-98)
 
 The widget registry is already integrated into the main render loop:
 
@@ -332,10 +332,10 @@ window.yaze.control.getUIElementTree();
 
 ## References
 
-- Widget ID Registry: `/Users/scawful/Code/yaze/src/app/gui/automation/widget_id_registry.h`
-- Widget Measurement: `/Users/scawful/Code/yaze/src/app/gui/automation/widget_measurement.h`
-- WASM Control API: `/Users/scawful/Code/yaze/src/app/platform/wasm/wasm_control_api.h`
-- Controller Integration: `/Users/scawful/Code/yaze/src/app/controller.cc` (lines 96-98)
+- Widget ID Registry: `$TRUNK_ROOT/scawful/retro/yaze/src/app/gui/automation/widget_id_registry.h`
+- Widget Measurement: `$TRUNK_ROOT/scawful/retro/yaze/src/app/gui/automation/widget_measurement.h`
+- WASM Control API: `$TRUNK_ROOT/scawful/retro/yaze/src/app/platform/wasm/wasm_control_api.h`
+- Controller Integration: `$TRUNK_ROOT/scawful/retro/yaze/src/app/controller.cc` (lines 96-98)
 
 ## Revision History
 

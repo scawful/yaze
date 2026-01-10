@@ -18,7 +18,7 @@
 ## 2. MCP Server Enhancements (Python)
 
 ### A. Semantic Translation (Knowledge Graph)
--   Integrate `hafs` knowledge base.
+-   Integrate `afs` knowledge base.
 -   Add a lookup layer: if a tool returns an address (e.g., `$028000`), the MCP server should look up the label in `symbols.json` and append it: `$02:8000 [Module07_Underworld]`.
 -   Allow tools to accept labels directly: `read_memory("Link_X_Coord")` -> `read_memory("$7EF36D")`.
 
