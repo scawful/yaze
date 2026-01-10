@@ -7,7 +7,7 @@
 - TASK: Fix linting + tests, stabilize CI/CD + release, and prep v0.5.0 artifacts for desktop/CLI/wasm.
 - SCOPE: .github/workflows, CMake/test infra, docs/release notes, wasm + z3ed + app build paths.
 - STATUS: ACTIVE
-- NOTES: Starting review; will log CI run IDs/results here when available.
+- NOTES: Release run 20885321093 queued (v0.5.0); CI/CD runs 20885319512 + 20885317411 queued; lint check ok (clang-tidy warns in ext/imgui).
 
 ### 2026-01-01 backend-infra-engineer – yaze.halext.org GH Pages restore
 - TASK: Restore yaze.halext.org reverse proxy, fix web-build artifact paths, and bring collab server back online.
