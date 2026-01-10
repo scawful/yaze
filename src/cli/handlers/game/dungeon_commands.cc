@@ -1,12 +1,14 @@
 #include "cli/handlers/game/dungeon_commands.h"
 
-#include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
+#include "cli/util/hex_util.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 
 namespace yaze {
 namespace cli {
 namespace handlers {
+
+using util::ParseHexString;
 
 absl::Status DungeonListSpritesCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
@@ -14,7 +16,7 @@ absl::Status DungeonListSpritesCommandHandler::Execute(
   auto room_id_str = parser.GetString("room").value();
 
   int room_id;
-  if (!absl::SimpleHexAtoi(room_id_str, &room_id)) {
+  if (!ParseHexString(room_id_str, &room_id)) {
     return absl::InvalidArgumentError("Invalid room ID format. Must be hex.");
   }
 
@@ -51,7 +53,7 @@ absl::Status DungeonDescribeRoomCommandHandler::Execute(
   auto room_id_str = parser.GetString("room").value();
 
   int room_id;
-  if (!absl::SimpleHexAtoi(room_id_str, &room_id)) {
+  if (!ParseHexString(room_id_str, &room_id)) {
     return absl::InvalidArgumentError("Invalid room ID format. Must be hex.");
   }
 
@@ -105,7 +107,7 @@ absl::Status DungeonExportRoomCommandHandler::Execute(
   auto room_id_str = parser.GetString("room").value();
 
   int room_id;
-  if (!absl::SimpleHexAtoi(room_id_str, &room_id)) {
+  if (!ParseHexString(room_id_str, &room_id)) {
     return absl::InvalidArgumentError("Invalid room ID format. Must be hex.");
   }
 
@@ -148,7 +150,7 @@ absl::Status DungeonListObjectsCommandHandler::Execute(
   auto room_id_str = parser.GetString("room").value();
 
   int room_id;
-  if (!absl::SimpleHexAtoi(room_id_str, &room_id)) {
+  if (!ParseHexString(room_id_str, &room_id)) {
     return absl::InvalidArgumentError("Invalid room ID format. Must be hex.");
   }
 
@@ -201,7 +203,7 @@ absl::Status DungeonGetRoomTilesCommandHandler::Execute(
   auto room_id_str = parser.GetString("room").value();
 
   int room_id;
-  if (!absl::SimpleHexAtoi(room_id_str, &room_id)) {
+  if (!ParseHexString(room_id_str, &room_id)) {
     return absl::InvalidArgumentError("Invalid room ID format. Must be hex.");
   }
 
@@ -243,7 +245,7 @@ absl::Status DungeonSetRoomPropertyCommandHandler::Execute(
   auto value = parser.GetString("value").value();
 
   int room_id;
-  if (!absl::SimpleHexAtoi(room_id_str, &room_id)) {
+  if (!ParseHexString(room_id_str, &room_id)) {
     return absl::InvalidArgumentError("Invalid room ID format. Must be hex.");
   }
 

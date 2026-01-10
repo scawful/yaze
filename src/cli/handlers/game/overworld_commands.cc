@@ -1,13 +1,15 @@
 #include "cli/handlers/game/overworld_commands.h"
 
-#include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
 #include "cli/handlers/game/overworld_inspect.h"
+#include "cli/util/hex_util.h"
 #include "zelda3/overworld/overworld.h"
 
 namespace yaze {
 namespace cli {
 namespace handlers {
+
+using util::ParseHexString;
 
 absl::Status OverworldFindTileCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
@@ -15,7 +17,7 @@ absl::Status OverworldFindTileCommandHandler::Execute(
   auto tile_id_str = parser.GetString("tile").value();
 
   int tile_id;
-  if (!absl::SimpleHexAtoi(tile_id_str, &tile_id)) {
+  if (!ParseHexString(tile_id_str, &tile_id)) {
     return absl::InvalidArgumentError("Invalid tile ID format. Must be hex.");
   }
 
@@ -61,7 +63,7 @@ absl::Status OverworldDescribeMapCommandHandler::Execute(
   auto screen_id_str = parser.GetString("screen").value();
 
   int screen_id;
-  if (!absl::SimpleHexAtoi(screen_id_str, &screen_id)) {
+  if (!ParseHexString(screen_id_str, &screen_id)) {
     return absl::InvalidArgumentError("Invalid screen ID format. Must be hex.");
   }
 
@@ -163,7 +165,7 @@ absl::Status OverworldListWarpsCommandHandler::Execute(
   overworld::WarpQuery query;
   if (screen_id_str != "all") {
     int map_id;
-    if (!absl::SimpleHexAtoi(screen_id_str, &map_id)) {
+    if (!ParseHexString(screen_id_str, &map_id)) {
       return absl::InvalidArgumentError(
           "Invalid screen ID format. Must be hex.");
     }
@@ -230,7 +232,7 @@ absl::Status OverworldListSpritesCommandHandler::Execute(
   overworld::SpriteQuery query;
   if (screen_id_str != "all") {
     int map_id;
-    if (!absl::SimpleHexAtoi(screen_id_str, &map_id)) {
+    if (!ParseHexString(screen_id_str, &map_id)) {
       return absl::InvalidArgumentError(
           "Invalid screen ID format. Must be hex.");
     }
@@ -277,7 +279,7 @@ absl::Status OverworldGetEntranceCommandHandler::Execute(
   auto entrance_id_str = parser.GetString("entrance").value();
 
   int entrance_id;
-  if (!absl::SimpleHexAtoi(entrance_id_str, &entrance_id)) {
+  if (!ParseHexString(entrance_id_str, &entrance_id)) {
     return absl::InvalidArgumentError(
         "Invalid entrance ID format. Must be hex.");
   }

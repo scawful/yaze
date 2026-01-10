@@ -4,16 +4,18 @@
 
 #include "absl/status/statusor.h"
 #include "absl/strings/escaping.h"
-#include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
 #include "absl/strings/string_view.h"
 #include "absl/time/time.h"
+#include "cli/util/hex_util.h"
 #include "protos/emulator_service.grpc.pb.h"
 
 namespace yaze {
 namespace cli {
 namespace handlers {
+
+using util::ParseHexString;
 
 namespace {
 
@@ -143,7 +145,7 @@ absl::Status EmulatorReadMemoryCommandHandler::Execute(
   agent::MemoryRequest request;
 
   uint32_t address;
-  if (!absl::SimpleHexAtoi(parser.GetString("address").value(), &address)) {
+  if (!ParseHexString(parser.GetString("address").value(), &address)) {
     return absl::InvalidArgumentError("Invalid address format.");
   }
   request.set_address(address);
@@ -170,7 +172,7 @@ absl::Status EmulatorWriteMemoryCommandHandler::Execute(
   agent::MemoryWriteRequest request;
 
   uint32_t address;
-  if (!absl::SimpleHexAtoi(parser.GetString("address").value(), &address)) {
+  if (!ParseHexString(parser.GetString("address").value(), &address)) {
     return absl::InvalidArgumentError("Invalid address format.");
   }
   request.set_address(address);
