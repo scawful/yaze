@@ -126,17 +126,18 @@ The web app supports desktop keyboard shortcuts:
 
 ### Terminal Access
 
-Press **`** (backtick) to open the integrated terminal:
+Press **`** (backtick) to open the integrated terminal. The terminal uses the
+currently loaded ROM, so you can omit `--rom` for most commands:
 
 ```bash
-# List all dungeons
-z3ed dungeon list --rom current
+# ROM summary
+z3ed rom-info
 
-# Get overworld info
-z3ed overworld info --map 0
+# List sprites in a dungeon room
+z3ed dungeon-list-sprites --room=1
 
-# Apply a patch
-z3ed asar my_patch.asm
+# Describe an overworld map
+z3ed overworld-describe-map --map=0
 ```
 
 ### Collaboration (Experimental)
@@ -275,4 +276,3 @@ server {
 - **For serious ROM hacking**: Use the desktop build
 - **For quick previews or demos**: Web app is suitable
 - **For learning/exploration**: Either works, but desktop is more complete
-

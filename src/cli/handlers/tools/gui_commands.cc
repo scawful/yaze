@@ -27,7 +27,8 @@ absl::Status GuiPlaceTileCommandHandler::Execute(
 
   int tile_id, x, y;
   if (!ParseHexString(tile_id_str, &tile_id) ||
-      !absl::SimpleAtoi(x_str, &x) || !absl::SimpleAtoi(y_str, &y)) {
+      !absl::SimpleAtoi(x_str, &x) ||
+      !absl::SimpleAtoi(y_str, &y)) {
     return absl::InvalidArgumentError("Invalid tile ID or coordinate format.");
   }
 

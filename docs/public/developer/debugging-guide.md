@@ -123,7 +123,7 @@ The `z3ed` CLI is a powerful tool for inspecting ROM data without launching the 
 
 -   **Get ROM Information**:
     ```bash
-    z3ed rom info --rom zelda3.sfc
+    z3ed rom-info --rom zelda3.sfc
     ```
 
 -   **Inspect Dungeon Sprites**:

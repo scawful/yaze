@@ -194,24 +194,26 @@ The WASM build includes a subset of z3ed commands that don't require native depe
 - `version` - Show version information
 
 ### ROM Commands
-- `rom load <file>` - Load ROM from file
-- `rom info` - Display ROM information
-- `rom validate` - Validate ROM structure
+- `rom-info` - Display ROM information
+- `rom-validate` - Validate ROM structure
+- `rom-diff --rom_a <file> --rom_b <file>` - Compare two ROM files
 
-### Resource Queries
-- `resource query dungeon.rooms` - List dungeon rooms
-- `resource query overworld.maps` - List overworld maps
-- `resource query graphics.sheets` - List graphics sheets
-- `resource query palettes` - List palettes
+### Resource Commands
+- `resource-list --type <type>` - List resource labels
+- `resource-search --query <query>` - Search resource labels
 
-### AI Commands (requires API key)
-- `ai <prompt>` - Generate AI response
-- `ai analyze <resource>` - Analyze ROM resource
-- `ai suggest <context>` - Get suggestions
+### Agent Commands (requires API key)
+- `agent simple-chat` - Interactive AI chat
+- `agent plan <task>` - Generate an execution plan
+- `agent diff` - Review pending proposal diff
+- `agent list` / `agent describe <resource>` - List or describe resources
 
-### Graphics Commands
-- `gfx list` - List graphics resources
-- `gfx export <id>` - Export graphics (returns base64)
+### Graphics & Hex Commands
+- `hex-read --address <hex> --length <bytes>` - Read ROM bytes
+- `hex-write --address <hex> --data <hex>` - Write ROM bytes
+- `hex-search --pattern <hex>` - Search for a byte pattern
+- `palette-get-colors --palette <id>` - Read palette colors
+- `palette-set-color --palette <id> --index <idx> --color <hex>` - Update a palette entry
 
 ## Build Configuration
 

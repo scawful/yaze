@@ -136,7 +136,7 @@ Test critical preset combinations:
 
 - [ ] **Launches successfully**: `z3ed --help` works
 - [ ] **Basic commands work**: `z3ed rom info zelda3.sfc`
-- [ ] **AI features work**: `z3ed agent chat` (if enabled)
+- [ ] **AI features work**: `z3ed agent simple-chat` (if enabled)
 - [ ] **HTTP API works**: `z3ed --http-port=8080` serves endpoints (if enabled)
 - [ ] **TUI functional**: Terminal UI renders correctly
 

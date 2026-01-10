@@ -1,25 +1,8 @@
 #include "cli/service/resources/command_handler.h"
 
-namespace yaze {
-namespace cli {
-namespace resources {
-
-CommandHandler::Descriptor CommandHandler::Describe() const {
-  Descriptor descriptor;
-  descriptor.display_name = GetName(); // Use GetName() for display
-  descriptor.summary = "Command summary not provided.";
-  descriptor.todo_reference = "todo#unassigned";
-  return descriptor;
-}
-
-}  // namespace resources
-}  // namespace cli
-}  // namespace yaze
-
 #include <iostream>
+#include <utility>
 
-#include "absl/strings/str_format.h"
-#include "cli/service/resources/command_handler.h"
 #include "util/macro.h"
 
 namespace yaze {
@@ -55,6 +38,7 @@ absl::Status CommandHandler::Run(const std::vector<std::string>& args,
   CommandContext::Config config;
   config.external_rom_context = rom_context;
   config.format = format_str;
+  config.verbose = parser.HasFlag("verbose");
 
   // Check for --rom override
   if (auto rom_path = parser.GetString("rom"); rom_path.has_value()) {
@@ -70,6 +54,7 @@ absl::Status CommandHandler::Run(const std::vector<std::string>& args,
   Rom* rom = nullptr;
   if (RequiresRom()) {
     ASSIGN_OR_RETURN(rom, context.GetRom());
+    SetRomContext(rom);
 
     // 7. Ensure labels are loaded if required
     if (RequiresLabels()) {
@@ -88,7 +73,7 @@ absl::Status CommandHandler::Run(const std::vector<std::string>& args,
 
   // 10. Finalize and print output
   formatter.EndObject();
-  
+
   if (captured_output) {
     *captured_output = formatter.GetOutput();
   } else {
@@ -96,6 +81,14 @@ absl::Status CommandHandler::Run(const std::vector<std::string>& args,
   }
 
   return absl::OkStatus();
+}
+
+CommandHandler::Descriptor CommandHandler::Describe() const {
+  Descriptor descriptor;
+  descriptor.display_name = GetName();  // Use GetName() for display.
+  descriptor.summary = "Command summary not provided.";
+  descriptor.todo_reference = "todo#unassigned";
+  return descriptor;
 }
 
 }  // namespace resources

@@ -13,6 +13,7 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -366,4 +367,3 @@ class AgentContext {
 }  // namespace yaze
 
 #endif  // YAZE_SRC_CLI_SERVICE_AGENT_AGENT_CONTEXT_H_
-

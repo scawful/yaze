@@ -45,7 +45,7 @@ Commands follow `<noun>-<verb>` convention (dashes, not spaces). Use `--help` fo
 ```bash
 z3ed --help
 z3ed help dungeon
-z3ed dungeon-list-sprites --help
+z3ed help dungeon-list-sprites
 ```
 
 ---
@@ -120,7 +120,7 @@ echo "Describe room 1" | z3ed agent simple-chat --rom=zelda3.sfc --stdout
 
 | Issue | Solution |
 |-------|----------|
-| `agent chat` hangs | Verify `ollama serve` is running or `GEMINI_API_KEY` is set |
+| `agent simple-chat` hangs | Verify `ollama serve` is running or `GEMINI_API_KEY` is set |
 | Missing `libgrpc` or `absl` | Rebuild with `*-ai` preset |
 | ROM not found | Use absolute paths or set `YAZE_DEFAULT_ROM` |
 | Command not found | Run `z3ed --help` to verify build is current |

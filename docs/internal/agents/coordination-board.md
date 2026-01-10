@@ -3,6 +3,12 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
+### 2026-01-10 backend-infra-engineer – v0.5.0 CI/lint/test/release sweep
+- TASK: Fix linting + tests, stabilize CI/CD + release, and prep v0.5.0 artifacts for desktop/CLI/wasm.
+- SCOPE: .github/workflows, CMake/test infra, docs/release notes, wasm + z3ed + app build paths.
+- STATUS: ACTIVE
+- NOTES: Starting review; will log CI run IDs/results here when available.
+
 ### 2026-01-01 backend-infra-engineer – yaze.halext.org GH Pages restore
 - TASK: Restore yaze.halext.org reverse proxy, fix web-build artifact paths, and bring collab server back online.
 - SCOPE: .github/workflows/web-build.yml, /etc/nginx/sites/yaze.halext.org.conf, /home/halext/yaze-server/server.js

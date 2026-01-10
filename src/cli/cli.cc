@@ -85,8 +85,8 @@ void ModernCLI::ShowHelp() {
   rows.push_back({"Category", "Commands", "Description"});
 
   // Add special "agent" category first
-  rows.push_back({"agent", "chat, learn, todo, emulator-*",
-                  "AI conversational agent + debugging tools"});
+  rows.push_back({"agent", "simple-chat, plan, run, todo, test",
+                  "AI agent workflows + tool routing"});
 
   // Add registry categories
   for (const auto& category : categories) {
@@ -106,8 +106,16 @@ void ModernCLI::ShowHelp() {
       desc = "Emulator debugging";
     else if (category == "graphics")
       desc = "Graphics/palette/sprites";
+    else if (category == "gui")
+      desc = "GUI automation";
     else if (category == "game")
       desc = "Messages/dialogue/music";
+    else if (category == "rom")
+      desc = "ROM inspection/validation";
+    else if (category == "test")
+      desc = "Test discovery/execution";
+    else if (category == "tools")
+      desc = "Utilities and doctor tools";
     else
       desc = category + " commands";
 
