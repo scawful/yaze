@@ -10,9 +10,9 @@ set(ASAR_GEN_LIB ON CACHE BOOL "Build Asar static library")
 set(ASAR_GEN_EXE_TEST OFF CACHE BOOL "Build Asar executable tests")
 set(ASAR_GEN_DLL_TEST OFF CACHE BOOL "Build Asar DLL tests")
 
-# Force Asar to use static MSVC runtime to match vcpkg static triplets
+# Force Asar to use dynamic MSVC runtime to match the app runtime
 if(MSVC)
-    set(MSVC_LIB_TYPE T CACHE STRING "Asar MSVC runtime type" FORCE)
+    set(MSVC_LIB_TYPE D CACHE STRING "Asar MSVC runtime type" FORCE)
 endif()
 
 # Set Asar source directory
