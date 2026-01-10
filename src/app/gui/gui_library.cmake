@@ -30,6 +30,13 @@ list(APPEND GUI_CORE_SRC
   app/gui/plots/implot_support.cc
 )
 
+if(WIN32 OR (UNIX AND NOT APPLE AND NOT EMSCRIPTEN))
+  list(APPEND GUI_CORE_SRC app/platform/file_dialog_nfd.cc)
+  if(NOT TARGET nfd)
+    add_subdirectory(${CMAKE_SOURCE_DIR}/ext/nativefiledialog-extended ${CMAKE_BINARY_DIR}/nfd EXCLUDE_FROM_ALL)
+  endif()
+endif()
+
 # build_cleaner:auto-maintain
 set(CANVAS_SRC
   app/gui/canvas/bpp_format_ui.cc
@@ -95,6 +102,10 @@ add_library(yaze_gui_app STATIC ${GUI_APP_SRC})
 target_link_libraries(yaze_gui_core PUBLIC yaze_util ImGui nlohmann_json::nlohmann_json)
 if(TARGET ImPlot)
   target_link_libraries(yaze_gui_core PUBLIC ImPlot)
+endif()
+if(WIN32 OR (UNIX AND NOT APPLE AND NOT EMSCRIPTEN))
+  target_link_libraries(yaze_gui_core PUBLIC nfd)
+  target_include_directories(yaze_gui_core PUBLIC ${CMAKE_SOURCE_DIR}/ext/nativefiledialog-extended/src/include)
 endif()
 target_link_libraries(yaze_canvas PUBLIC yaze_gui_core yaze_gfx)
 target_link_libraries(yaze_gui_widgets PUBLIC yaze_gui_core yaze_gfx)
