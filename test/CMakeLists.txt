@@ -102,6 +102,7 @@ if(YAZE_BUILD_TESTS)
     unit/deps/dependency_smoke_test.cc
     unit/cli/resource_catalog_test.cc
     unit/cli/command_registry_test.cc
+    unit/cli/conversational_agent_service_test.cc
     unit/rom/rom_test.cc
     unit/emu/input_backend_test.cc
     unit/gfx/snes_tile_test.cc
@@ -111,6 +112,7 @@ if(YAZE_BUILD_TESTS)
     unit/snes_color_test.cc
     unit/gui/tile_selector_widget_test.cc
     unit/gui/canvas_automation_api_test.cc
+    unit/editor/agent_chat_test.cc
     unit/editor/message/message_data_test.cc
     unit/editor/panel_system_test.cc
     unit/zelda3/overworld_test.cc

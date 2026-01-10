@@ -25,6 +25,8 @@
 - Added iOS platform scaffolding (experimental) plus build helper scripts.
 - Simplified nightly workflow, refreshed toolchain/dependency wiring, and standardized build dirs.
 - Added role-based ROM selection/availability gating and stabilized rendering/benchmark tests.
+- Hardened Windows gRPC builds by forcing Win32 macro-compat includes for gRPC targets.
+- Added AgentChat history/telemetry and agent metrics unit coverage; expanded WASM debug API checks.
 
 ---
 

@@ -88,7 +88,12 @@ ctest --test-dir build -L integration   # Integration tests
 ctest --preset dev                      # CI test set
 ```
 
-Some tests require a ROM. Set `YAZE_TEST_ROM_VANILLA=/path/to/zelda3.sfc`.
+Some tests require a ROM. Set `YAZE_TEST_ROM_VANILLA` or
+`YAZE_TEST_ROM_VANILLA_PATH` (and optionally `YAZE_TEST_ROM_EXPANDED` or
+`YAZE_TEST_ROM_EXPANDED_PATH`).
+
+Web app smoke checks: load `src/web/tests/wasm_debug_api_tests.js` in the
+browser console and run `await window.runWasmDebugApiTests()`.
 
 ## Documentation
 

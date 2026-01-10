@@ -225,6 +225,55 @@
     }
   }
 
+  // Test: Core state and utilities
+  function testCoreStateApi() {
+    console.log('\n--- Core State Tests ---');
+
+    if (!window.yaze || !window.yaze.core) {
+      TestUtils.skip('Core state tests', 'window.yaze.core not available');
+      return;
+    }
+
+    const core = window.yaze.core;
+    TestUtils.assertProperty(core, 'state', 'core.state exists');
+    if (core.state) {
+      TestUtils.assertType(core.state.wasmReady, 'boolean', 'core.state.wasmReady is boolean');
+      TestUtils.assertType(core.state.fsReady, 'boolean', 'core.state.fsReady is boolean');
+    }
+
+    TestUtils.assertProperty(core, 'Module', 'core.Module getter exists');
+    TestUtils.assertProperty(core, 'FS', 'core.FS getter exists');
+  }
+
+  function testUtilsApi() {
+    console.log('\n--- Utils API Tests ---');
+
+    if (!window.yaze || !window.yaze.utils) {
+      TestUtils.skip('Utils API tests', 'window.yaze.utils not available');
+      return;
+    }
+
+    const utils = window.yaze.utils;
+    TestUtils.assertFunction(utils, 'resizeCanvas', 'resizeCanvas function exists');
+    TestUtils.assertFunction(utils, 'toggleFullscreen', 'toggleFullscreen function exists');
+    TestUtils.assertFunction(utils, 'debounce', 'debounce helper exists');
+    TestUtils.assertFunction(utils, 'throttle', 'throttle helper exists');
+
+    TestUtils.assertProperty(utils, 'zoom', 'zoom helper exists');
+    if (utils.zoom) {
+      TestUtils.assertFunction(utils.zoom, 'in', 'zoom.in exists');
+      TestUtils.assertFunction(utils.zoom, 'out', 'zoom.out exists');
+      TestUtils.assertFunction(utils.zoom, 'reset', 'zoom.reset exists');
+    }
+
+    TestUtils.assertProperty(utils, 'serviceWorker', 'serviceWorker helper exists');
+    if (utils.serviceWorker) {
+      TestUtils.assertFunction(utils.serviceWorker, 'update', 'serviceWorker.update exists');
+      TestUtils.assertFunction(utils.serviceWorker, 'dismiss', 'serviceWorker.dismiss exists');
+      TestUtils.assertProperty(utils.serviceWorker, 'manager', 'serviceWorker.manager exists');
+    }
+  }
+
   // Test: GUI Automation API
   function testGuiAPIFunctions() {
     console.log('\n--- GUI API Function Tests ---');
@@ -324,6 +373,22 @@
     TestUtils.assertFunction(window.aiTools, 'getRoomData', 'getRoomData function exists');
     TestUtils.assertFunction(window.aiTools, 'getMapData', 'getMapData function exists');
     TestUtils.assertFunction(window.aiTools, 'dumpAPIReference', 'dumpAPIReference function exists');
+  }
+
+  // Test: window.yaze.ai manager API
+  function testAiManagerFunctions() {
+    console.log('\n--- AI Manager Function Tests ---');
+
+    if (!window.yaze || !window.yaze.ai) {
+      TestUtils.skip('AI manager tests', 'window.yaze.ai not available');
+      return;
+    }
+
+    const ai = window.yaze.ai;
+    TestUtils.assertFunction(ai, 'generateContent', 'generateContent function exists');
+    TestUtils.assertFunction(ai, 'startDeviceAuth', 'startDeviceAuth function exists');
+    TestUtils.assertFunction(ai, 'pollForToken', 'pollForToken function exists');
+    TestUtils.assertFunction(ai, 'logout', 'logout function exists');
   }
 
   // Test: AI Tools data
@@ -460,6 +525,8 @@
     // Control API tests
     testControlAPIFunctions();
     testControlAPIData();
+    testCoreStateApi();
+    testUtilsApi();
 
     // GUI API tests
     testGuiAPIFunctions();
@@ -468,6 +535,7 @@
     // AI Tools tests
     testAiToolsFunctions();
     testAiToolsData();
+    testAiManagerFunctions();
 
     // yazeDebug compatibility
     testYazeDebugAPI();
@@ -486,10 +554,13 @@
     testYazeNamespace: testYazeNamespace,
     testControlAPIFunctions: testControlAPIFunctions,
     testControlAPIData: testControlAPIData,
+    testCoreStateApi: testCoreStateApi,
+    testUtilsApi: testUtilsApi,
     testGuiAPIFunctions: testGuiAPIFunctions,
     testGuiAPIData: testGuiAPIData,
     testAiToolsFunctions: testAiToolsFunctions,
     testAiToolsData: testAiToolsData,
+    testAiManagerFunctions: testAiManagerFunctions,
     testYazeDebugAPI: testYazeDebugAPI,
     testEditorSwitching: testEditorSwitching,
     testPanelOperations: testPanelOperations,
@@ -514,6 +585,12 @@
       TestUtils.reset();
       testAiToolsFunctions();
       testAiToolsData();
+      return TestUtils.summary();
+    },
+
+    runAiManagerTests: function() {
+      TestUtils.reset();
+      testAiManagerFunctions();
       return TestUtils.summary();
     }
   };
