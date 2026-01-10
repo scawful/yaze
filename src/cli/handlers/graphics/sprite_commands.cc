@@ -2,11 +2,14 @@
 
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
+#include "cli/util/hex_util.h"
 #include "zelda3/sprite/sprite.h"
 
 namespace yaze {
 namespace cli {
 namespace handlers {
+
+using util::ParseHexString;
 
 absl::Status SpriteListCommandHandler::Execute(
     Rom* /*rom*/, const resources::ArgumentParser& parser,
@@ -40,7 +43,7 @@ absl::Status SpritePropertiesCommandHandler::Execute(
   auto id_str = parser.GetString("id").value();
 
   int sprite_id;
-  if (!absl::SimpleHexAtoi(id_str, &sprite_id) &&
+  if (!ParseHexString(id_str, &sprite_id) &&
       !absl::SimpleAtoi(id_str, &sprite_id)) {
     return absl::InvalidArgumentError(
         "Invalid sprite ID format. Must be hex (0xNN) or decimal.");
@@ -80,7 +83,7 @@ absl::Status SpritePaletteCommandHandler::Execute(
   auto id_str = parser.GetString("id").value();
 
   int sprite_id;
-  if (!absl::SimpleHexAtoi(id_str, &sprite_id) &&
+  if (!ParseHexString(id_str, &sprite_id) &&
       !absl::SimpleAtoi(id_str, &sprite_id)) {
     return absl::InvalidArgumentError(
         "Invalid sprite ID format. Must be hex (0xNN) or decimal.");

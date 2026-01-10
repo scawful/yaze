@@ -7,6 +7,7 @@
 #include "absl/strings/str_join.h"
 #include "cli/service/gui/canvas_automation_client.h"
 #include "cli/service/gui/gui_automation_client.h"
+#include "cli/util/hex_util.h"
 
 ABSL_DECLARE_FLAG(std::string, gui_server_address);
 ABSL_DECLARE_FLAG(bool, quiet);
@@ -14,6 +15,8 @@ ABSL_DECLARE_FLAG(bool, quiet);
 namespace yaze {
 namespace cli {
 namespace handlers {
+
+using util::ParseHexString;
 
 absl::Status GuiPlaceTileCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
@@ -23,7 +26,7 @@ absl::Status GuiPlaceTileCommandHandler::Execute(
   auto y_str = parser.GetString("y").value();
 
   int tile_id, x, y;
-  if (!absl::SimpleHexAtoi(tile_id_str, &tile_id) ||
+  if (!ParseHexString(tile_id_str, &tile_id) ||
       !absl::SimpleAtoi(x_str, &x) || !absl::SimpleAtoi(y_str, &y)) {
     return absl::InvalidArgumentError("Invalid tile ID or coordinate format.");
   }

@@ -2,10 +2,13 @@
 
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
+#include "cli/util/hex_util.h"
 
 namespace yaze {
 namespace cli {
 namespace handlers {
+
+using util::ParseHexString;
 
 absl::Status PaletteGetColorsCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
@@ -13,7 +16,7 @@ absl::Status PaletteGetColorsCommandHandler::Execute(
   auto palette_id_str = parser.GetString("palette").value();
 
   int palette_id;
-  if (!absl::SimpleHexAtoi(palette_id_str, &palette_id)) {
+  if (!ParseHexString(palette_id_str, &palette_id)) {
     return absl::InvalidArgumentError(
         "Invalid palette ID format. Must be hex.");
   }
@@ -46,7 +49,7 @@ absl::Status PaletteSetColorCommandHandler::Execute(
   auto color_str = parser.GetString("color").value();
 
   int palette_id, color_index;
-  if (!absl::SimpleHexAtoi(palette_id_str, &palette_id) ||
+  if (!ParseHexString(palette_id_str, &palette_id) ||
       !absl::SimpleAtoi(index_str, &color_index)) {
     return absl::InvalidArgumentError("Invalid palette ID or index format.");
   }
@@ -78,7 +81,7 @@ absl::Status PaletteAnalyzeCommandHandler::Execute(
     formatter.AddField("total_palettes", 32);
   } else {
     int palette_id;
-    if (!absl::SimpleHexAtoi(palette_id_str, &palette_id)) {
+    if (!ParseHexString(palette_id_str, &palette_id)) {
       return absl::InvalidArgumentError(
           "Invalid palette ID format. Must be hex.");
     }

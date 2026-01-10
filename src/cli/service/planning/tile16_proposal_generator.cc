@@ -4,15 +4,17 @@
 #include <sstream>
 
 #include "absl/strings/match.h"
-#include "absl/strings/numbers.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_split.h"
+#include "cli/util/hex_util.h"
 #include "nlohmann/json.hpp"
 #include "util/macro.h"
 #include "zelda3/overworld/overworld.h"
 
 namespace yaze {
 namespace cli {
+
+using util::ParseHexString;
 
 std::string Tile16Change::ToString() const {
   std::ostringstream oss;
@@ -101,7 +103,7 @@ absl::StatusOr<uint16_t> ParseTileValue(const nlohmann::json& json,
       }
       value = value.substr(2);
       unsigned int parsed = 0;
-      if (!absl::SimpleHexAtoi(value, &parsed) || parsed > 0xFFFF) {
+      if (!ParseHexString(value, &parsed) || parsed > 0xFFFF) {
         return absl::InvalidArgumentError(
             absl::StrCat("Invalid hex tile value for '", field,
                          "': ", json[field].get<std::string>()));

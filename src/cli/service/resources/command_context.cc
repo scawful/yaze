@@ -6,12 +6,14 @@
 #include "absl/flags/flag.h"
 #include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
-#include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "cli/handlers/rom/mock_rom.h"
+#include "cli/util/hex_util.h"
 #include "core/project.h"
 #include "zelda3/zelda3_labels.h"
+
+using yaze::cli::util::ParseHexString;
 
 ABSL_DECLARE_FLAG(std::string, rom);
 ABSL_DECLARE_FLAG(bool, mock_rom);
@@ -161,7 +163,7 @@ absl::StatusOr<int> ArgumentParser::GetInt(const std::string& name) const {
   // Try hex first (with 0x prefix)
   if (absl::StartsWith(*value, "0x") || absl::StartsWith(*value, "0X")) {
     int result;
-    if (absl::SimpleHexAtoi(value->substr(2), &result)) {
+    if (ParseHexString(value->substr(2), &result)) {
       return result;
     }
     return absl::InvalidArgumentError(
@@ -192,7 +194,7 @@ absl::StatusOr<int> ArgumentParser::GetHex(const std::string& name) const {
   }
 
   int result;
-  if (absl::SimpleHexAtoi(hex_str, &result)) {
+  if (ParseHexString(hex_str, &result)) {
     return result;
   }
 
