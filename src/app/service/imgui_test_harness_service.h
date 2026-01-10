@@ -19,6 +19,9 @@
 #ifdef ERROR
 #undef ERROR
 #endif
+#ifdef SendMessage
+#undef SendMessage
+#endif
 #endif  // _WIN32
 
 // Include grpcpp headers for gRPC service/server types used in the interface.
