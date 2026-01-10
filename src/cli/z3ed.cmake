@@ -61,6 +61,11 @@ if(YAZE_WITH_GRPC)
   target_link_libraries(z3ed PRIVATE yaze_grpc_support)
 endif()
 
+# Ensure FileDialogWrapper symbols resolve after GUI/core libs in static links.
+if(NOT EMSCRIPTEN)
+  target_link_libraries(z3ed PRIVATE yaze_app_core_lib)
+endif()
+
 # Add Emscripten-specific flags for WASM builds
 if(EMSCRIPTEN)
   message(STATUS "Configuring z3ed for WASM terminal mode")
