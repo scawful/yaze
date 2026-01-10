@@ -56,14 +56,10 @@ if(YAZE_BUILD_EMU AND NOT YAZE_MINIMAL_BUILD AND NOT YAZE_PLATFORM_IOS)
   )
   target_link_libraries(yaze_emu_test PRIVATE
     yaze_emulator
-    yaze_editor
-    yaze_gui
-    yaze_util
     absl::flags
     absl::flags_parse
     absl::status
     absl::strings
-    absl::str_format
   )
   
   # gRPC/protobuf linking is now handled by yaze_grpc_support library
