@@ -259,7 +259,7 @@ license=
 version=1.0
 created_date=
 last_modified=
-yaze_version=0.4.0
+yaze_version=0.5.0
 created_by=YAZE
 tags=
 

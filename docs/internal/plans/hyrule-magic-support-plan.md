@@ -28,13 +28,13 @@ Add support for "doctoring" legacy Hyrule Magic (HM) ROMs and loading Parallel W
     - PW Room Pointers: Need to locate these. Likely in expanded space.
 
 ### 3. Implementation Steps
-#### [NEW] [hm_support.cc](file:///Users/scawful/Code/yaze/src/rom/hm_support.cc)
+#### [NEW] [hm_support.cc](file://$TRUNK_ROOT/scawful/retro/yaze/src/rom/hm_support.cc)
 - Implement detection and fix logic.
 
-#### [MODIFY] [rom_doctor_commands.cc](file:///Users/scawful/Code/yaze/src/cli/handlers/tools/rom_doctor_commands.cc)
+#### [MODIFY] [rom_doctor_commands.cc](file://$TRUNK_ROOT/scawful/retro/yaze/src/cli/handlers/tools/rom_doctor_commands.cc)
 - Integrate HM/PW checks.
 
-#### [MODIFY] [dungeon_loader.cc](file:///Users/scawful/Code/yaze/src/zelda3/dungeon/dungeon_loader.cc)
+#### [MODIFY] [dungeon_loader.cc](file://$TRUNK_ROOT/scawful/retro/yaze/src/zelda3/dungeon/dungeon_loader.cc)
 - Add branching logic for PW ROMs to use alternate pointer tables.
 
 ## Verification Plan

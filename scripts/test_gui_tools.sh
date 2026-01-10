@@ -4,10 +4,13 @@
 echo "=== Testing GUI Automation Tools ==="
 echo ""
 
+# Workspace root (override with TRUNK_ROOT)
+TRUNK_ROOT="${TRUNK_ROOT:-$HOME/src/trunk}"
+
 # Set up environment
 export AI_PROVIDER=mock
 export MOCK_RESPONSE="Testing GUI tools"
-cd /Users/scawful/Code/yaze
+cd "$TRUNK_ROOT/scawful/retro/yaze"
 
 echo "1. Testing gui-discover tool..."
 echo "Query: What buttons are available?"

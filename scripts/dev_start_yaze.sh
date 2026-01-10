@@ -5,6 +5,9 @@
 # Exit on error
 set -e
 
+# Workspace root (override with TRUNK_ROOT)
+TRUNK_ROOT="${TRUNK_ROOT:-$HOME/src/trunk}"
+
 # Project root
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BUILD_DIR="${YAZE_BUILD_DIR:-${PROJECT_ROOT}/build}"
@@ -26,11 +29,11 @@ if [ ! -x "$YAZE_BIN" ]; then
     fi
 fi
 # Default to oos168.sfc if available, otherwise check common locations or ask user
-ROM_PATH="/Users/scawful/Code/Oracle-of-Secrets/Roms/oos168.sfc"
+ROM_PATH="$TRUNK_ROOT/scawful/retro/oracle-of-secrets/Roms/oos168.sfc"
 
 # If the hardcoded path doesn't exist, try to find one
 if [ ! -f "$ROM_PATH" ]; then
-    FOUND_ROM=$(find "${PROJECT_ROOT}/../Oracle-of-Secrets/Roms" -name "*.sfc" | head -n 1)
+    FOUND_ROM=$(find "$TRUNK_ROOT/scawful/retro/oracle-of-secrets/Roms" -name "*.sfc" | head -n 1)
     if [ -n "$FOUND_ROM" ]; then
         ROM_PATH="$FOUND_ROM"
     fi

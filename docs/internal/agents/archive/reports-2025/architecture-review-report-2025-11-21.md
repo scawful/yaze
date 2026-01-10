@@ -385,32 +385,32 @@ Detailed architectural guides are available in `docs/internal/architecture/`:
 ## Files Modified
 
 ### Updated Files
-1. `/Users/scawful/Code/yaze/docs/internal/architecture/graphics_system_architecture.md`
+1. `$TRUNK_ROOT/scawful/retro/yaze/docs/internal/architecture/graphics_system_architecture.md`
    - Status: Enhanced (178 lines, was 74)
    - Changes: Consolidated duplicate, added rendering pipeline, best practices, code examples
 
-2. `/Users/scawful/Code/yaze/docs/internal/architecture/dungeon_editor_system.md`
+2. `$TRUNK_ROOT/scawful/retro/yaze/docs/internal/architecture/dungeon_editor_system.md`
    - Status: Enhanced
    - Changes: Added best practices section, contributor guidelines, expanded components, examples
 
-3. `/Users/scawful/Code/yaze/docs/internal/architecture/room_data_persistence.md`
+3. `$TRUNK_ROOT/scawful/retro/yaze/docs/internal/architecture/room_data_persistence.md`
    - Status: Enhanced
    - Changes: Improved method signatures, ROM address details, thread safety notes
 
-4. `/Users/scawful/Code/yaze/docs/internal/architecture/zscustomoverworld_integration.md`
+4. `$TRUNK_ROOT/scawful/retro/yaze/docs/internal/architecture/zscustomoverworld_integration.md`
    - Status: Enhanced
    - Changes: Added ROM storage table, implementation details, code examples
 
-5. `/Users/scawful/Code/yaze/CLAUDE.md`
+5. `$TRUNK_ROOT/scawful/retro/yaze/CLAUDE.md`
    - Status: Enhanced
    - Changes: Added Architecture Documentation section with links and descriptions
 
 ### New Files
-1. `/Users/scawful/Code/yaze/docs/internal/architecture/README.md` (400+ lines)
+1. `$TRUNK_ROOT/scawful/retro/yaze/docs/internal/architecture/README.md` (400+ lines)
    - Comprehensive navigation hub with quick references, design patterns, and guidelines
 
 ### Deleted Files
-1. `/Users/scawful/Code/yaze/docs/internal/architecture/graphics_system.md`
+1. `$TRUNK_ROOT/scawful/retro/yaze/docs/internal/architecture/graphics_system.md`
    - Consolidated into graphics_system_architecture.md
 
 ---

@@ -300,6 +300,13 @@ void Snes::HandleInput() {
     // port_auto_read_[2/3] remain 0 as standard controllers don't use them
   }
 
+  // Debug: Log input state when buttons are pressed
+  static int input_log_count = 0;
+  if (latched1 != 0 && input_log_count++ < 50) {
+    LOG_INFO("Input", "current_state=0x%04X -> $4218=0x%02X $4219=0x%02X",
+             latched1, port_auto_read_[0] & 0xFF, port_auto_read_[0] >> 8);
+  }
+
   // Store previous state for edge detection
   // Do this here instead of after a destructive latch sequence
   input1.previous_state_ = input1.current_state_;
@@ -562,8 +569,14 @@ uint8_t Snes::ReadReg(uint16_t adr) {
     case 0x421c:
     case 0x421e: {
       // If transfer is still in progress, data is not yet valid
-      if (auto_joy_timer_ > 0)
+      if (auto_joy_timer_ > 0) {
+        static int zero_return_count = 0;
+        if (zero_return_count++ < 50) {
+          LOG_WARN("SNES", "Reading $%04X while auto_joy_timer_=%d, returning 0!",
+                   adr, auto_joy_timer_);
+        }
         return 0;
+      }
       uint8_t result = port_auto_read_[(adr - 0x4218) / 2] & 0xff;
       return result;
     }

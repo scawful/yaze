@@ -382,10 +382,6 @@ class EditorManager : public SessionObserver {
   // Project management panel for version control and ROM management
   std::unique_ptr<ProjectManagementPanel> project_management_panel_;
 
-#ifdef YAZE_WITH_GRPC
-  std::unique_ptr<yaze::agent::AgentControlServer> agent_control_server_;
-#endif
-
   std::string version_ = "";
   absl::Status status_;
   emu::Emulator emulator_;

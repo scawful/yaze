@@ -77,8 +77,66 @@ agent::CpuType ToProtoCpuType(emu::BreakpointManager::CpuType cpu) {
 }
 }  // namespace
 
-EmulatorServiceImpl::EmulatorServiceImpl(yaze::emu::Emulator* emulator, RomGetter rom_getter)
-    : emulator_(emulator), rom_getter_(rom_getter) {}
+EmulatorServiceImpl::EmulatorServiceImpl(yaze::emu::Emulator* emulator,
+                                         RomGetter rom_getter,
+                                         RomLoader rom_loader)
+    : emulator_(emulator), rom_getter_(rom_getter), rom_loader_(rom_loader) {}
+
+// --- ROM Loading ---
+
+grpc::Status EmulatorServiceImpl::LoadRom(
+    grpc::ServerContext* context, const agent::LoadRomRequest* request,
+    agent::LoadRomResponse* response) {
+  if (!rom_loader_) {
+    response->set_success(false);
+    response->set_message("ROM loading not available (no loader callback set)");
+    return grpc::Status::OK;
+  }
+
+  const std::string& filepath = request->filepath();
+  if (filepath.empty()) {
+    response->set_success(false);
+    response->set_message("Filepath is required");
+    return grpc::Status::OK;
+  }
+
+  bool success = rom_loader_(filepath);
+  if (success) {
+    response->set_success(true);
+    response->set_message("ROM loaded successfully");
+    // Get ROM info if available
+    if (rom_getter_) {
+      Rom* rom = rom_getter_();
+      if (rom && rom->is_loaded()) {
+        response->set_rom_title(rom->title());
+        response->set_rom_size(rom->size());
+      }
+    }
+  } else {
+    response->set_success(false);
+    response->set_message("Failed to load ROM: " + filepath);
+  }
+  return grpc::Status::OK;
+}
+
+grpc::Status EmulatorServiceImpl::GetLoadedRomPath(
+    grpc::ServerContext* context, const agent::Empty* request,
+    agent::LoadedRomPathResponse* response) {
+  if (!rom_getter_) {
+    response->set_has_rom(false);
+    return grpc::Status::OK;
+  }
+
+  Rom* rom = rom_getter_();
+  if (rom && rom->is_loaded()) {
+    response->set_has_rom(true);
+    response->set_filepath(rom->filename());
+    response->set_title(rom->title());
+  } else {
+    response->set_has_rom(false);
+  }
+  return grpc::Status::OK;
+}
 
 void EmulatorServiceImpl::CaptureCPUState(agent::CPUState* state) {
   auto& cpu = emulator_->snes().cpu();
@@ -284,11 +342,12 @@ grpc::Status EmulatorServiceImpl::ReadMemory(grpc::ServerContext* context,
   if (!emulator_ || !emulator_->is_snes_initialized()) {
     return grpc::Status(grpc::StatusCode::UNAVAILABLE, "SNES is not initialized.");
   }
-  auto& memory = emulator_->snes().memory();
+  // Use Snes::Read() for proper memory mapping (WRAM, registers, etc.)
+  auto& snes = emulator_->snes();
   response->set_address(request->address());
   std::vector<uint8_t> data(request->size());
   for (uint32_t i = 0; i < request->size(); ++i) {
-    data[i] = memory.ReadByte(request->address() + i);
+    data[i] = snes.Read(request->address() + i);
   }
   response->set_data(data.data(), data.size());
   return grpc::Status::OK;

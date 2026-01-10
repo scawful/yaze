@@ -54,6 +54,11 @@ ControllerState SDL3InputBackend::Poll(int player) {
   ControllerState state;
 
   if (config_.continuous_polling) {
+    // Pump events to update keyboard state - critical for edge detection
+    // when multiple emulated frames run per host frame.
+    // Without this, SDL_GetKeyboardState returns stale data.
+    SDL_PumpEvents();
+
     // Continuous polling mode (for games)
     // SDL3: SDL_GetKeyboardState returns const bool* instead of const Uint8*
     platform::KeyboardState keyboard_state = SDL_GetKeyboardState(nullptr);

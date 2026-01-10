@@ -43,7 +43,7 @@ class YazeGRPCServer {
   using RomGetter = std::function<Rom*()>;
 
   struct Config {
-    int port = 50051;
+    int port = 50052;  // GUI automation server (AgentControlServer uses 50051)
     bool enable_test_harness = true;
     bool enable_rom_service = true;
     bool enable_canvas_automation = true;

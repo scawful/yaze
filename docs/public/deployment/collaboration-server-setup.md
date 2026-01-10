@@ -21,10 +21,10 @@ npm start
 
 ### Production Deployment
 For production, deploy yaze-server behind an SSL proxy when possible:
-- **halext-server**: `ws://org.halext.org:8765` (pm2 process `yaze-collab`, no TLS on 8765 today; front with nginx/Caddy for `wss://` if desired)
+- **halext-nj**: `ws://org.halext.org:8765` (pm2 process `yaze-collab`, no TLS on 8765 today; front with nginx/Caddy for `wss://` if desired)
 - **Self-hosted**: Deploy to Railway, Render, Fly.io, or your own VPS
 
-### Current halext deployment (ssh halext-server)
+### Current halext deployment (ssh halext-nj)
 - Process: pm2 `yaze-collab`
 - Port: `8765` (plain WS/HTTP; add TLS proxy for WSS)
 - Health: `http://org.halext.org:8765/health`, metrics at `/metrics`
@@ -310,7 +310,7 @@ POST /admin/sessions/:code/broadcast
 Step-by-step guide to add WSS (TLS) to the halext deployment.
 
 ### Prerequisites
-- SSH access to halext-server
+- SSH access to halext-nj
 - Domain DNS pointing to server (e.g., `collab.halext.org` or use existing `org.halext.org`)
 - Certbot or existing SSL certificates
 

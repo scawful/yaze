@@ -64,7 +64,6 @@
 #include "app/gui/core/theme_manager.h"
 #include "app/platform/timing.h"
 #include "app/test/test_manager.h"
-#include "cli/service/agent/agent_control_server.h"
 #include "core/features.h"
 #include "core/project.h"
 #include "editor/core/editor_context.h"
@@ -580,6 +579,9 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   // Initialize agent UI (no-op when agent UI is disabled)
   agent_ui_.Initialize(&toast_manager_, &proposal_drawer_,
                        right_panel_manager_.get(), &panel_manager_);
+
+  // Note: AgentControlServer is started from Application::Initialize()
+  // after gRPC infrastructure is properly set up
 
   // Load critical user settings first
   status_ = user_settings_.Load();

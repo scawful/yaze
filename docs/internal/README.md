@@ -1,6 +1,6 @@
 # YAZE Internal Documentation
 
-**Last Updated**: December 8, 2025
+**Last Updated**: January 7, 2026
 
 Internal documentation for planning, AI agents, research, and historical build notes. These files are intentionally excluded from the public Doxygen site so they can remain verbose and speculative.
 
@@ -9,7 +9,15 @@ Internal documentation for planning, AI agents, research, and historical build n
 - **Active Work**: [Coordination Board](agents/coordination-board.md)
 - **Roadmap**: [roadmap.md](roadmap.md)
 - **Doc Hygiene Rules**: [agents/doc-hygiene.md](agents/doc-hygiene.md)
+- **Documentation Audit**: [DOCS_AUDIT.md](DOCS_AUDIT.md)
 - **Templates**: [templates/](templates/)
+
+## Technical References
+
+| Module | Documentation |
+|--------|---------------|
+| Zelda3 Core | [zelda3/README.md](zelda3/README.md) - ROM data structures, constants, loaders |
+| GUI Layer | [gui/README.md](gui/README.md) - Canvas system, widgets, theming |
 
 ## Directory Structure
 
@@ -19,6 +27,7 @@ Internal documentation for planning, AI agents, research, and historical build n
 | `architecture/` | System design and architectural documentation |
 | `archive/` | Retired plans, completed features, closed investigations, and maintenance logs |
 | `debug/` | Debugging guides, active logs, and accuracy reports |
+| `gui/` | GUI abstraction layer reference (canvas, widgets) |
 | `hand-off/` | Active handoff documents for in-progress work |
 | `plans/` | Active implementation plans and roadmaps |
 | `research/` | Exploratory notes, ideas, and technical analysis |

@@ -946,12 +946,12 @@
 /* Begin PBXFileReference section */
 		05318E0E274C397200A8DE2E /* GameController.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameController.framework; path = System/Library/Frameworks/GameController.framework; sourceTree = SDKROOT; };
 		07A82ED62139413C0078D120 /* imgui_internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imgui_internal.h; path = ../../yaze/ext/imgui/imgui_internal.h; sourceTree = "<group>"; };
-		07A82ED72139413C0078D120 /* imgui_widgets.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_widgets.cpp; path = /Users/scawful/Code/yaze/ext/imgui/imgui_widgets.cpp; sourceTree = "<absolute>"; };
+		07A82ED72139413C0078D120 /* imgui_widgets.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_widgets.cpp; path = $(SRCROOT)/../../ext/imgui/imgui_widgets.cpp; sourceTree = "<absolute>"; };
 		104B9B65C53C4E71B4C15762 /* ios_platform_state.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = ios_platform_state.mm; path = ../app/platform/ios/ios_platform_state.mm; sourceTree = SOURCE_ROOT; };
 		2DD3040220B14DA7AE5C9126 /* metal_renderer.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = metal_renderer.mm; path = ../app/gfx/backend/metal_renderer.mm; sourceTree = SOURCE_ROOT; };
 		33E38666249F4B68BD81E8FD /* ios_host.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ios_host.h; path = ../app/platform/ios/ios_host.h; sourceTree = SOURCE_ROOT; };
 		4CBB29F4B39241868684DD52 /* ios_host.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = ios_host.mm; path = ../app/platform/ios/ios_host.mm; sourceTree = SOURCE_ROOT; };
-		5079822D257677DB0038A28D /* imgui_tables.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_tables.cpp; path = /Users/scawful/Code/yaze/ext/imgui/imgui_tables.cpp; sourceTree = "<absolute>"; };
+		5079822D257677DB0038A28D /* imgui_tables.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_tables.cpp; path = $(SRCROOT)/../../ext/imgui/imgui_tables.cpp; sourceTree = "<absolute>"; };
 		75242C7D5025428685194503 /* ios_platform_state.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ios_platform_state.h; path = ../app/platform/ios/ios_platform_state.h; sourceTree = SOURCE_ROOT; };
 		8307E7C420E9F9C900473790 /* yaze.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = yaze.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8307E7DA20E9F9C900473790 /* yaze.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = yaze.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -969,9 +969,9 @@
 		83BBE9EA20EB471700295997 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
 		83BBE9EB20EB471700295997 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
 		83BBE9EE20EB471C00295997 /* ModelIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ModelIO.framework; path = System/Library/Frameworks/ModelIO.framework; sourceTree = SDKROOT; };
-		83BBEA0120EB54E700295997 /* imgui_draw.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_draw.cpp; path = /Users/scawful/Code/yaze/ext/imgui/imgui_draw.cpp; sourceTree = "<absolute>"; };
-		83BBEA0220EB54E700295997 /* imgui_demo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_demo.cpp; path = /Users/scawful/Code/yaze/ext/imgui/imgui_demo.cpp; sourceTree = "<absolute>"; };
-		83BBEA0320EB54E700295997 /* imgui.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui.cpp; path = /Users/scawful/Code/yaze/ext/imgui/imgui.cpp; sourceTree = "<absolute>"; };
+		83BBEA0120EB54E700295997 /* imgui_draw.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_draw.cpp; path = $(SRCROOT)/../../ext/imgui/imgui_draw.cpp; sourceTree = "<absolute>"; };
+		83BBEA0220EB54E700295997 /* imgui_demo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_demo.cpp; path = $(SRCROOT)/../../ext/imgui/imgui_demo.cpp; sourceTree = "<absolute>"; };
+		83BBEA0320EB54E700295997 /* imgui.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui.cpp; path = $(SRCROOT)/../../ext/imgui/imgui.cpp; sourceTree = "<absolute>"; };
 		83BBEA0420EB54E700295997 /* imconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = imconfig.h; sourceTree = "<group>"; };
 		C655B969EA0646E8AC97C6FA /* metal_renderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = metal_renderer.h; path = ../app/gfx/backend/metal_renderer.h; sourceTree = SOURCE_ROOT; };
 		D329B1DE46A74E5783838504 /* ios_window_backend.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ios_window_backend.h; path = ../app/platform/ios/ios_window_backend.h; sourceTree = SOURCE_ROOT; };
@@ -6498,7 +6498,7 @@
 					"DEBUG=1",
 					"$(inherited)",
 				);
-				HEADER_SEARCH_PATHS = "\"/Users/scawful/Code/yaze/build\"";
+				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../build\"";
 				INFOPLIST_FILE = "$(SRCROOT)/iOS/Info-iOS.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Yet Another Zelda3 Editor";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
@@ -6543,7 +6543,7 @@
 					"\"$(SRCROOT)/../../build/_deps/absl-src\"",
 					"\"$(SRCROOT)/../../ext\"",
 					"\"$(SRCROOT)/../../ext/imgui\"",
-					"\"/Users/scawful/Code/yaze/build\"",
+					"\"$(SRCROOT)/../../build\"",
 				);
 			};
 			name = Debug;
@@ -6559,7 +6559,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = c17;
-				HEADER_SEARCH_PATHS = "\"/Users/scawful/Code/yaze/build\"";
+				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../build\"";
 				INFOPLIST_FILE = "$(SRCROOT)/iOS/Info-iOS.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Yet Another Zelda3 Editor";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
@@ -6603,7 +6603,7 @@
 					"\"$(SRCROOT)/../../build/_deps/absl-src\"",
 					"\"$(SRCROOT)/../../ext\"",
 					"\"$(SRCROOT)/../../ext/imgui\"",
-					"\"/Users/scawful/Code/yaze/build\"",
+					"\"$(SRCROOT)/../../build\"",
 				);
 				VALIDATE_PRODUCT = YES;
 			};

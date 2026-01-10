@@ -46,24 +46,21 @@ The `z3ed` CLI provides scriptable access to ROM editing capabilities.
 ### AI Chat
 
 ```bash
-z3ed agent chat --rom zelda3.sfc
+z3ed agent simple-chat --rom=zelda3.sfc
 ```
-Example prompt: "What sprites are in dungeon 2?"
+Example prompt: "What sprites are in room 1?"
 
 ### ROM Inspection
 
 ```bash
-# List sprites in Eastern Palace
-z3ed dungeon list-sprites --rom zelda3.sfc --dungeon 2
+# List sprites in a dungeon room (room 1 = Eastern Palace)
+z3ed dungeon-list-sprites --room=1 --rom=zelda3.sfc
 
 # Describe overworld map
-z3ed overworld describe-map --rom zelda3.sfc --map 80
-```
+z3ed overworld-describe-map --map=80 --rom=zelda3.sfc
 
-### Patching
-
-```bash
-z3ed asar patch.asm --rom zelda3.sfc
+# Search messages
+z3ed message-search --query="Master Sword" --rom=zelda3.sfc
 ```
 
 For more details, see the [z3ed CLI Guide](../usage/z3ed-cli.md).

@@ -4,6 +4,10 @@ package yaze.agent;
 
 // The consolidated service for controlling the yaze emulator
 service EmulatorService {
+  // --- ROM Loading ---
+  rpc LoadRom(LoadRomRequest) returns (LoadRomResponse);
+  rpc GetLoadedRomPath(Empty) returns (LoadedRomPathResponse);
+
   // --- Core Lifecycle & Control ---
   // action: "start", "stop", "pause", "resume", "reset"
   rpc ControlEmulator(ControlRequest) returns (CommandResponse);
@@ -264,4 +268,23 @@ message TestRunResponse {
   string message = 2;
   CPUState final_cpu_state = 3;
   bool crashed = 4;
+}
+
+// --- ROM Loading ---
+
+message LoadRomRequest {
+  string filepath = 1;  // Absolute path to ROM file
+}
+
+message LoadRomResponse {
+  bool success = 1;
+  string message = 2;
+  string rom_title = 3;
+  uint32 rom_size = 4;
+}
+
+message LoadedRomPathResponse {
+  bool has_rom = 1;
+  string filepath = 2;
+  string title = 3;
 }

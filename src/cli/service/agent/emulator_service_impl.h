@@ -19,7 +19,18 @@ namespace yaze::net {
 class EmulatorServiceImpl final : public agent::EmulatorService::Service {
  public:
   using RomGetter = std::function<Rom*()>;
-  explicit EmulatorServiceImpl(yaze::emu::Emulator* emulator, RomGetter rom_getter = nullptr);
+  using RomLoader = std::function<bool(const std::string& path)>;
+  explicit EmulatorServiceImpl(yaze::emu::Emulator* emulator,
+                               RomGetter rom_getter = nullptr,
+                               RomLoader rom_loader = nullptr);
+
+  // --- ROM Loading ---
+  grpc::Status LoadRom(grpc::ServerContext* context,
+                       const agent::LoadRomRequest* request,
+                       agent::LoadRomResponse* response) override;
+  grpc::Status GetLoadedRomPath(grpc::ServerContext* context,
+                                const agent::Empty* request,
+                                agent::LoadedRomPathResponse* response) override;
 
   // --- Core Lifecycle & Control ---
   grpc::Status ControlEmulator(grpc::ServerContext* context, 
@@ -95,6 +106,7 @@ class EmulatorServiceImpl final : public agent::EmulatorService::Service {
   yaze::emu::Emulator*
       emulator_;  // Non-owning pointer to the emulator instance
   RomGetter rom_getter_;
+  RomLoader rom_loader_;
   yaze::emu::debug::SymbolProvider symbol_provider_;  // Symbol table for debugging
 
   yaze::emu::debug::StepController step_controller_;

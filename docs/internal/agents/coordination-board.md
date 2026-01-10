@@ -375,8 +375,8 @@
 - NOTES: Root causes identified (hashFiles() invalidation, Windows crash_handler POSIX macros)
 
 ### 2025-11-24 ai-infra-architect – WASM collab server deployment
-- TASK: Evaluate WASM web collaboration vs yaze-server and deploy compatible backend to halext-server.
-- SCOPE: src/app/platform/wasm/*collaboration*, src/web/collaboration_ui.*, ~/Code/yaze-server, halext-server deployment.
+- TASK: Evaluate WASM web collaboration vs yaze-server and deploy compatible backend to halext-nj.
+- SCOPE: src/app/platform/wasm/*collaboration*, src/web/collaboration_ui.*, ~/Code/yaze-server, halext-nj deployment.
 - STATUS: COMPLETE
 - NOTES: Added WASM-protocol shim + passwords/rate limits + Gemini AI handler to yaze-server/server.js (halext pm2 `yaze-collab`, port 8765). Web client wired to collab via exported bindings; docked chat/console UI added. Needs wasm rebuild to ship UI; AI requires GEMINI_API_KEY/AI_AGENT_ENDPOINT set server-side.
 
