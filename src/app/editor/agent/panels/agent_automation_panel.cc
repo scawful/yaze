@@ -46,7 +46,7 @@ void AgentAutomationPanel::Draw(AgentUIContext* context,
     ImGui::PopStyleColor();
 
     ImGui::SameLine();
-    ImGui::TextDisabled("[v0.4.x]");
+    ImGui::TextDisabled("[v0.5.x]");
 
     // === CONNECTION STATUS WITH VISUAL EFFECTS ===
     bool connected = state.harness_connected;
