@@ -645,7 +645,7 @@ void WelcomeScreen::DrawHeader() {
   ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "%s", subtitle);
 
   const std::string version_line = absl::StrFormat(
-      "v%s - Multi-provider AI, web preview, and release polish",
+      "v%s - AI workflows, CLI automation, and web preview",
       YAZE_VERSION_STRING);
   textWidth = ImGui::CalcTextSize(version_line.c_str()).x;
   ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
@@ -669,7 +669,7 @@ void WelcomeScreen::DrawQuickActions() {
   ImGui::TextWrapped(
       "New here? Start with Open ROM or New Project. For AI workflows, "
       "configure a provider in Settings > Agent (Ollama/Gemini/OpenAI/"
-      "Anthropic).");
+      "Anthropic) or use z3ed --tui for scripted flows.");
   ImGui::PopStyleColor();
   ImGui::Spacing();
 
@@ -1104,8 +1104,8 @@ void WelcomeScreen::DrawTipsSection() {
       "Open a ROM first, then save a copy before editing",
       "Press Ctrl+Shift+P for the command palette and F1 for help",
       "Use Ctrl+Shift+A for AI workflows (Ollama/Gemini/OpenAI/Anthropic)",
-      "Try z3ed --tui for scripting and automation",
-      "Enable Web/WASM collaboration for live syncing",
+      "Try z3ed --tui or the web terminal for scripting and automation",
+      "Enable Web/WASM collaboration for live syncing (server required)",
       "Keep multiple sessions for parallel ROM work (Ctrl+Shift+N)"};
   int tip_index = 0;  // Show first tip, or could be random on screen open
 
@@ -1143,17 +1143,20 @@ void WelcomeScreen::DrawWhatsNew() {
 
   Feature features[] = {
       {ICON_MD_PSYCHOLOGY, "AI Agent Workflows",
-       "Multi-provider AI (Ollama/Gemini/OpenAI/Anthropic) in app and z3ed",
+       "Multi-provider AI plus vision refiners in app, CLI, and web",
        kGanonPurple},
       {ICON_MD_TERMINAL, "CLI + Automation",
-       "z3ed CLI/TUI with test, doctor, and schema export tooling",
+       "z3ed CLI/TUI with plan/run, test, doctor, and schema export tooling",
        kMasterSwordBlue},
       {ICON_MD_PUBLIC, "Web/WASM Preview",
-       "Browser build with collaboration server hooks", kTriforceGold},
-      {ICON_MD_SPEED, "Performance & Stability",
-       "Faster asset loading and safer graphics lifetimes", kSpiritOrange},
+       "Browser build with improved storage handling and collaboration hooks",
+       kTriforceGold},
+      {ICON_MD_SPEED, "Editor Accuracy",
+       "Palette fixes, graphics saves, and stability improvements",
+       kSpiritOrange},
       {ICON_MD_FACT_CHECK, "Release Quality",
-       "Cross-platform packaging and CI/CD hardening for v0.5.0", kHyruleGreen},
+       "Cross-platform packaging and CI/CD hardening for v0.5.0",
+       kHyruleGreen},
   };
 
   for (const auto& feature : features) {

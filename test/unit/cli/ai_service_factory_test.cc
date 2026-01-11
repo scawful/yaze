@@ -25,6 +25,58 @@ TEST(AIServiceFactoryTest, OpenAIMissingKeyReturnsError) {
 }
 
 #ifdef YAZE_WITH_JSON
+TEST(AIServiceFactoryTest, GeminiMissingKeyReturnsError) {
+  AIServiceConfig config;
+  config.provider = "gemini";
+
+  auto service_or = CreateAIServiceStrict(config);
+
+  EXPECT_FALSE(service_or.ok());
+  EXPECT_EQ(service_or.status().code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_THAT(service_or.status().message(),
+              testing::HasSubstr("Gemini API key"));
+}
+#else
+TEST(AIServiceFactoryTest, GeminiUnavailableWithoutJsonSupport) {
+  AIServiceConfig config;
+  config.provider = "gemini";
+
+  auto service_or = CreateAIServiceStrict(config);
+
+  EXPECT_FALSE(service_or.ok());
+  EXPECT_EQ(service_or.status().code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_THAT(service_or.status().message(),
+              testing::HasSubstr("YAZE_WITH_JSON"));
+}
+#endif
+
+#ifdef YAZE_WITH_JSON
+TEST(AIServiceFactoryTest, AnthropicMissingKeyReturnsError) {
+  AIServiceConfig config;
+  config.provider = "anthropic";
+
+  auto service_or = CreateAIServiceStrict(config);
+
+  EXPECT_FALSE(service_or.ok());
+  EXPECT_EQ(service_or.status().code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_THAT(service_or.status().message(),
+              testing::HasSubstr("Anthropic API key"));
+}
+#else
+TEST(AIServiceFactoryTest, AnthropicUnavailableWithoutJsonSupport) {
+  AIServiceConfig config;
+  config.provider = "anthropic";
+
+  auto service_or = CreateAIServiceStrict(config);
+
+  EXPECT_FALSE(service_or.ok());
+  EXPECT_EQ(service_or.status().code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_THAT(service_or.status().message(),
+              testing::HasSubstr("YAZE_WITH_JSON"));
+}
+#endif
+
+#ifdef YAZE_WITH_JSON
 TEST(AIServiceFactoryTest, OpenAIWithKeyCreatesService) {
   AIServiceConfig config;
   config.provider = "openai";

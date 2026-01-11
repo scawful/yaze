@@ -11,13 +11,14 @@
 - Refined dashboard/editor selection layouts and card text rendering.
 - Moved layout designer into a lab target for safer experimentation.
 - Hardened CLI/API room loading and Asar patch handling.
-- Refreshed welcome screen and help text to highlight multi-provider AI and CLI workflows.
+- Refreshed welcome screen and help text across desktop/CLI/web to highlight multi-provider AI workflows.
 
 ### Automation & AI
 - Added agent control server support and stabilized gRPC automation hooks.
 - Expanded z3ed CLI test commands (`test-list`, `test-run`, `test-status`) and tool metadata.
 - Improved agent command routing and help/schema surfacing for AI clients.
 - Added OpenAI/Anthropic provider support in z3ed and refreshed AI provider docs/help.
+- Introduced vision refiner/verification hooks for AI-assisted validation.
 
 ### Web/WASM Preview
 - Reduced filesystem initialization overhead and fixed `/projects` directory handling.
@@ -29,6 +30,7 @@
 - Added role-based ROM selection/availability gating and stabilized rendering/benchmark tests.
 - Hardened Windows gRPC builds by forcing Win32 macro-compat includes for gRPC targets.
 - Added AgentChat history/telemetry and agent metrics unit coverage; expanded WASM debug API checks.
+- Fixed Linux static link order for test suites and tightened Abseil linkage.
 
 ---
 

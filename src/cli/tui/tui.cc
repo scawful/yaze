@@ -645,7 +645,7 @@ void HelpComponent(ftxui::ScreenInteractive& screen) {
       text("╔══════════════════════════════════════════════════════════╗") |
           color(Color::Cyan1) | bold,
       text(absl::StrCat("║            Z3ED v", YAZE_VERSION_STRING,
-                        " - AI-Powered CLI                 ║")) |
+                        " - AI + Automation CLI            ║")) |
           color(Color::Cyan1) | bold,
       text("║   The Legend of Zelda: A Link to the Past Editor        ║") |
           color(Color::White),
@@ -657,7 +657,7 @@ void HelpComponent(ftxui::ScreenInteractive& screen) {
           text("scawful") | color(Color::Magenta),
           text("  │  ") | color(Color::GrayDark),
           text("🤖 AI: ") | color(Color::Green1) | bold,
-          text("Ollama + Gemini + OpenAI + Anthropic Integration") |
+          text("Ollama + Gemini + OpenAI + Anthropic (auto)") |
               color(Color::GreenLight),
       }) | center,
       text(""),
@@ -666,7 +666,7 @@ void HelpComponent(ftxui::ScreenInteractive& screen) {
       // AI Agent Commands
       text("") | center,
       text("🤖 AI AGENT COMMANDS") | bold | color(Color::Green1) | center,
-      text("    Conversational AI for ROM inspection and modification") |
+      text("    Multi-provider AI for ROM inspection and automation") |
           color(Color::GreenLight) | center,
       separator(),
       hbox({text("  "), text("💬 Test Chat Mode") | bold | color(Color::Cyan),

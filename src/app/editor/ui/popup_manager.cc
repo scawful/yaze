@@ -583,9 +583,11 @@ void PopupManager::DrawCLIUsagePopup() {
   Spacing();
   TextWrapped("Commands:");
   BulletText("z3ed rom-info --rom=zelda3.sfc");
-  BulletText("z3ed agent simple-chat --rom=zelda3.sfc --ai_provider=openai");
-  BulletText("z3ed --tui");
+  BulletText("z3ed agent simple-chat --rom=zelda3.sfc --ai_provider=auto");
+  BulletText("z3ed agent plan --rom=zelda3.sfc");
+  BulletText("z3ed test-list --format json");
   BulletText("z3ed patch apply-asar patch.asm --rom=zelda3.sfc");
+  BulletText("z3ed --tui");
 
   if (Button("Close", gui::kDefaultModalSize)) {
     Hide("CLI Usage");
@@ -599,7 +601,7 @@ void PopupManager::DrawTroubleshootingPopup() {
   BulletText("ROM won't load: Check file format (SFC/SMC supported)");
   BulletText(
       "AI agent missing: Start Ollama or set GEMINI_API_KEY/OPENAI_API_KEY/"
-      "ANTHROPIC_API_KEY");
+      "ANTHROPIC_API_KEY (web uses AI_AGENT_ENDPOINT)");
   BulletText("Graphics issues: Try disabling experimental features");
   BulletText("Performance: Enable hardware acceleration in display settings");
   BulletText("Crashes: Check ROM file integrity and available memory");
@@ -634,7 +636,7 @@ void PopupManager::DrawWhatsNewPopup() {
               .c_str(),
           ImGuiTreeNodeFlags_DefaultOpen)) {
     BulletText("Refreshed welcome screen and onboarding tips");
-    BulletText("Context-aware help panels and updated popups");
+    BulletText("Help text refreshed across desktop, CLI, and web");
     BulletText("Improved panel layouts and session workflows");
     BulletText("Theme polish and icon refreshes");
   }
@@ -662,9 +664,8 @@ void PopupManager::DrawWhatsNewPopup() {
           absl::StrFormat("%s Editor Features", ICON_MD_EDIT).c_str())) {
     BulletText("Music editor updates with SPC parsing/playback");
     BulletText(
-        "AI agent-assisted editing workflows (Ollama/Gemini/OpenAI/"
-        "Anthropic)");
-    BulletText("Expanded overworld/dungeon tooling and palettes");
+        "AI agent-assisted editing workflows (multi-provider + vision)");
+    BulletText("Expanded overworld/dungeon tooling and palette accuracy");
     BulletText("Web/WASM preview with collaboration hooks");
   }
 
