@@ -1,6 +1,6 @@
 # Getting Started with YAZE
 
-YAZE is a ROM editor for "The Legend of Zelda: A Link to the Past" (US and JP versions). It provides a full-featured GUI editor, integrated SNES emulator, and AI-powered command-line tools.
+YAZE is a ROM editor for "The Legend of Zelda: A Link to the Past" (US and JP versions). It provides a full-featured GUI editor, integrated SNES emulator, AI-powered command-line tools, and a web preview build.
 
 ---
 
@@ -15,11 +15,21 @@ YAZE is a ROM editor for "The Legend of Zelda: A Link to the Past" (US and JP ve
 
 ---
 
+## Web App (Preview)
+
+Want a quick browser-based preview? Use the web build with a limited feature
+set and no emulator support. See the [Web App Guide](../usage/web-app.md) for
+supported features and AI configuration.
+
+---
+
 ## Tips
 
 - **Backups**: Automatic backups are enabled by default. Each save creates a timestamped backup.
 - **Experiment Flags**: Try new features via `File > Options > Experiment Flags`.
 - **Extensions**: Load custom tools from the `Extensions` menu (plugin system under development).
+- **AI Providers**: Configure providers in `Settings > Agent` or set
+  `GEMINI_API_KEY`, `OPENAI_API_KEY`, or `ANTHROPIC_API_KEY`.
 
 ---
 
@@ -46,7 +56,7 @@ The `z3ed` CLI provides scriptable access to ROM editing capabilities.
 ### AI Chat
 
 ```bash
-z3ed agent simple-chat --rom=zelda3.sfc
+z3ed agent simple-chat --rom=zelda3.sfc --ai_provider=auto
 ```
 Example prompt: "What sprites are in room 1?"
 

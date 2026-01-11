@@ -31,6 +31,7 @@ AI features require at least one provider:
 | **Anthropic** (cloud) | `export ANTHROPIC_API_KEY=your_key` |
 
 Use `--ai_provider` to force a specific backend (e.g., `--ai_provider=openai`).
+The default `--ai_provider=auto` selects the first configured provider.
 Set the model with `--ai_model` (or `OLLAMA_MODEL` for Ollama).
 
 > Without a provider, z3ed still works but agent commands use manual plans.
@@ -62,7 +63,7 @@ z3ed help dungeon-list-sprites
 ### Interactive Chat
 
 ```bash
-z3ed agent simple-chat --rom=zelda3.sfc
+z3ed agent simple-chat --rom=zelda3.sfc --ai_provider=auto
 ```
 
 Chat sessions maintain conversation history and can invoke ROM commands automatically.

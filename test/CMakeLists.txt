@@ -31,16 +31,42 @@ if(YAZE_BUILD_TESTS)
       ${PROJECT_BINARY_DIR}
     )
 
-    target_link_libraries(${suite_name} PRIVATE
+    set(_yaze_test_core_libs
       yaze_test_support
-      gmock_main
-      gtest_main
-      absl::failure_signal_handler
-      absl::flags
-      absl::flags_parse
-      ImGui
-      ${YAZE_SDL2_TARGETS}
+      yaze_editor
+      yaze_emulator
+      yaze_emulator_ui
     )
+
+    # Linux static linking needs a rescan to resolve yaze_test_support/editor
+    # and emulator/emulator_ui circular dependencies.
+    if(UNIX AND NOT APPLE)
+      target_link_libraries(${suite_name} PRIVATE
+        -Wl,--start-group
+        ${_yaze_test_core_libs}
+        -Wl,--end-group
+        gmock_main
+        gtest_main
+        absl::failure_signal_handler
+        absl::flags
+        absl::flags_parse
+        absl::hash
+        ImGui
+        ${YAZE_SDL2_TARGETS}
+      )
+    else()
+      target_link_libraries(${suite_name} PRIVATE
+        ${_yaze_test_core_libs}
+        gmock_main
+        gtest_main
+        absl::failure_signal_handler
+        absl::flags
+        absl::flags_parse
+        absl::hash
+        ImGui
+        ${YAZE_SDL2_TARGETS}
+      )
+    endif()
 
     if(YAZE_ENABLE_JSON AND TARGET nlohmann_json::nlohmann_json)
       target_link_libraries(${suite_name} PRIVATE nlohmann_json::nlohmann_json)

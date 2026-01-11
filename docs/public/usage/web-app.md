@@ -15,6 +15,7 @@ Visit your deployed instance to access the web version. The application is serve
 1. Click **"Open ROM"** or drag and drop your Zelda 3 ROM file onto the page
 2. The ROM is stored locally in your browser using IndexedDB - it never leaves your computer
 3. Start editing using a subset of the desktop interface
+4. Press **`** (backtick) to open the terminal and run `help` or `/help`
 
 ### Saving Your Work
 
@@ -143,8 +144,14 @@ Press **`** (backtick) to open the integrated terminal. The terminal uses the
 currently loaded ROM, so you can omit `--rom` for most commands:
 
 ```bash
+# Show terminal help
+/help
+
 # ROM summary
 z3ed rom-info
+
+# Ask AI about ROM data (when AI is configured)
+z3ed ai query "What sprites are in room 1?"
 
 # List sprites in a dungeon room
 z3ed dungeon-list-sprites --room=1
