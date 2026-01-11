@@ -3,6 +3,12 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
+### 2026-01-10 backend-infra-engineer – CI/CD stabilization after v0.5.0 release
+- TASK: Fix failing CI builds/tests on master/develop and close remaining lint/test gaps across desktop/CLI/wasm.
+- SCOPE: .github/workflows, CMake/test targets, docs/public build/test references.
+- STATUS: ACTIVE
+- NOTES: Investigating CI run 20886367827 (Windows/Linux build/test failures; SpcSerializer link errors observed in Windows test job).
+
 ### 2026-01-10 backend-infra-engineer – v0.5.0 CI/lint/test/release sweep
 - TASK: Fix linting + tests, stabilize CI/CD + release, and prep v0.5.0 artifacts for desktop/CLI/wasm.
 - SCOPE: .github/workflows, CMake/test infra, docs/release notes, wasm + z3ed + app build paths.

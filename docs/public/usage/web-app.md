@@ -43,6 +43,18 @@ The web version is in preview with varying editor support:
 
 **Legend**: ✅ Working | ⚡ Preview/Incomplete | ❌ Not Available
 
+## AI Features (Preview)
+
+The web app can surface AI chat/agent tools when connected to a collaboration
+server with AI enabled.
+
+- Set `ENABLE_AI_AGENT=true` and either `GEMINI_API_KEY` or
+  `AI_AGENT_ENDPOINT` on the collaboration server.
+- If AI is not configured, the UI remains usable but AI responses stay disabled.
+
+See [`docs/public/deployment/collaboration-server-setup.md`](../deployment/collaboration-server-setup.md)
+for server configuration details.
+
 ## Browser Requirements
 
 ### Recommended Browsers

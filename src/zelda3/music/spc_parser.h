@@ -7,6 +7,7 @@
 #include "absl/status/statusor.h"
 #include "rom/rom.h"
 #include "zelda3/music/song_data.h"
+#include "zelda3/music/spc_serializer.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -164,79 +165,6 @@ class SpcParser {
                                               uint16_t address,
                                               int repeat_count,
                                               int remaining_ticks);
-};
-
-/**
- * @brief Serializer for N-SPC music data to ROM format.
- *
- * This class handles converting the internal song representation back to
- * the binary format expected by the SNES APU.
- */
-class SpcSerializer {
- public:
-  /**
-   * @brief Result of serialization with relocation info.
-   */
-  struct SerializeResult {
-    std::vector<uint8_t> data;
-    std::vector<uint16_t> relocations;  // Offsets that need address fixup
-    uint16_t base_address = 0;
-  };
-
-  // =========================================================================
-  // Song Serialization
-  // =========================================================================
-
-  /**
-   * @brief Serialize a complete song to binary format.
-   * @param song The song to serialize.
-   * @param base_address The target SPC address.
-   * @return Serialization result with binary data and relocations.
-   */
-  static absl::StatusOr<SerializeResult> SerializeSong(const MusicSong& song,
-                                                        uint16_t base_address);
-
-  /**
-   * @brief Serialize a single track to binary format.
-   * @param track The track to serialize.
-   * @return Binary data for the track.
-   */
-  static std::vector<uint8_t> SerializeTrack(const MusicTrack& track);
-
-  /**
-   * @brief Calculate the space required for a song.
-   * @param song The song to measure.
-   * @return Size in bytes.
-   */
-  static int CalculateRequiredSpace(const MusicSong& song);
-
-  // =========================================================================
-  // Event Serialization
-  // =========================================================================
-
-  /**
-   * @brief Serialize a note event.
-   * @param note The note to serialize.
-   * @param current_duration The current duration state.
-   * @return Binary bytes for the note.
-   */
-  static std::vector<uint8_t> SerializeNote(const Note& note,
-                                             uint8_t* current_duration);
-
-  /**
-   * @brief Serialize a command event.
-   * @param command The command to serialize.
-   * @return Binary bytes for the command.
-   */
-  static std::vector<uint8_t> SerializeCommand(const MusicCommand& command);
-
-  /**
-   * @brief Adjust all serialized pointers to a new base address.
-   * @param result Serialized blob to patch (in-place).
-   * @param new_base_address Target SPC base address.
-   */
-  static void ApplyBaseAddress(SerializeResult* result,
-                               uint16_t new_base_address);
 };
 
 /**
