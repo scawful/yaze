@@ -7,7 +7,7 @@
 - TASK: Fix failing CI builds/tests on master/develop and close remaining lint/test gaps across desktop/CLI/wasm.
 - SCOPE: .github/workflows, CMake/test targets, docs/public build/test references.
 - STATUS: ACTIVE
-- NOTES: Investigating CI run 20886367827 (Windows/Linux build/test failures; SpcSerializer link errors observed in Windows test job).
+- NOTES: Fixing clang-format in src/cli/tui/tui.cc; adding OpenAI provider tests + doc updates; retag v0.5.0 after CI green (z3ed CLI not available locally).
 
 ### 2026-01-10 backend-infra-engineer – v0.5.0 CI/lint/test/release sweep
 - TASK: Fix linting + tests, stabilize CI/CD + release, and prep v0.5.0 artifacts for desktop/CLI/wasm.

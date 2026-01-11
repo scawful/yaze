@@ -17,7 +17,7 @@ Built in C++23 with ImGui, includes a built-in SNES emulator, the Asar 65816 ass
 - **Sprite Editor** - View sprite graphics and animations
 - **Music Editor** - (Experimental) View and edit SPC700 music data
 - **Built-in Emulator** - Test changes without leaving the editor
-- **CLI (z3ed)** - Script ROM operations, integrate with AI agents (requires Ollama or Gemini API)
+- **CLI (z3ed)** - Script ROM operations, integrate with AI agents (Ollama or cloud APIs)
 
 ## Apps
 
@@ -29,7 +29,7 @@ Built in C++23 with ImGui, includes a built-in SNES emulator, the Asar 65816 ass
 
 - A legally obtained ALttP ROM (US or JP)
 - CMake 3.25+, C++23 compiler (Clang 16+, GCC 13+, or MSVC 2022+)
-- For AI features: Ollama running locally or a Gemini API key
+- For AI features: Ollama running locally or a cloud API key (Gemini/OpenAI/Anthropic)
 
 ## Project Status
 
@@ -63,7 +63,8 @@ cmake --build build -j8
 
 **Presets:** `mac-dbg`, `mac-rel`, `lin-dbg`, `lin-rel`, `win-dbg`, `win-rel`
 
-For AI features, use `*-ai` presets (`mac-ai`, `win-ai`) which enable Ollama/Gemini integration.
+For AI features, use `*-ai` presets (`mac-ai`, `win-ai`) which enable
+Ollama/Gemini/OpenAI/Anthropic integration.
 
 See [`docs/public/build/quick-reference.md`](docs/public/build/quick-reference.md) for full build instructions.
 

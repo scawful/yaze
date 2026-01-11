@@ -16,6 +16,7 @@
 - Added agent control server support and stabilized gRPC automation hooks.
 - Expanded z3ed CLI test commands (`test-list`, `test-run`, `test-status`) and tool metadata.
 - Improved agent command routing and help/schema surfacing for AI clients.
+- Added OpenAI/Anthropic provider support in z3ed and refreshed AI provider docs/help.
 
 ### Web/WASM Preview
 - Reduced filesystem initialization overhead and fixed `/projects` directory handling.

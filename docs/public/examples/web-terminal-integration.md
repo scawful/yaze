@@ -17,7 +17,7 @@ const char* Z3edProcessCommand(const char* command);
 // Get command completions for autocomplete
 const char* Z3edGetCompletions(const char* partial);
 
-// Set API key for AI services (Gemini)
+// Set API key for AI services (Gemini-only in browser)
 void Z3edSetApiKey(const char* api_key);
 
 // Check if terminal bridge is ready
@@ -89,6 +89,10 @@ async function loadRomFile(file) {
   }
 }
 ```
+
+**Note:** The WASM terminal bridge currently wires API keys to Gemini in
+`BrowserAIService`. For OpenAI/Anthropic, use a collaboration server with
+`AI_AGENT_ENDPOINT` or extend the bridge to pass provider selection.
 
 ## Terminal UI Component
 

@@ -49,7 +49,8 @@ The web app can surface AI chat/agent tools when connected to a collaboration
 server with AI enabled.
 
 - Set `ENABLE_AI_AGENT=true` and either `GEMINI_API_KEY` or
-  `AI_AGENT_ENDPOINT` on the collaboration server.
+  `AI_AGENT_ENDPOINT` (for OpenAI/Anthropic/external agents) on the
+  collaboration server.
 - If AI is not configured, the UI remains usable but AI responses stay disabled.
 
 See [`docs/public/deployment/collaboration-server-setup.md`](../deployment/collaboration-server-setup.md)

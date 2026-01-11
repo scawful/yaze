@@ -1,6 +1,6 @@
 # Testing z3ed Without ROM Files
 
-**Last Updated:** October 10, 2025  
+**Last Updated:** January 10, 2026  
 **Status:** Active
 
 ## Overview
@@ -43,6 +43,9 @@ z3ed agent test-conversation --mock-rom
 
 # AI provider testing
 z3ed agent simple-chat "List all dungeons" --mock-rom --ai_provider=ollama
+z3ed agent simple-chat "List all dungeons" --mock-rom --ai_provider=gemini
+z3ed agent simple-chat "List all dungeons" --mock-rom --ai_provider=openai --ai_model=gpt-4o-mini
+z3ed agent simple-chat "List all dungeons" --mock-rom --ai_provider=anthropic --ai_model=claude-3-5-sonnet-latest
 ```
 
 ### Test Suite
@@ -55,6 +58,9 @@ The `agent_test_suite.sh` script now defaults to mock ROM mode:
 
 # Or with Gemini
 ./scripts/agent_test_suite.sh gemini
+
+# Note: agent_test_suite.sh currently supports ollama/gemini/mock only.
+# For OpenAI/Anthropic, run z3ed agent commands directly with --ai_provider.
 
 # Override the Ollama model (CI uses qwen2.5-coder:0.5b)
 OLLAMA_MODEL=qwen2.5-coder:0.5b ./scripts/agent_test_suite.sh ollama

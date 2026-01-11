@@ -89,7 +89,7 @@ For scripts and agent-driven builds, set `YAZE_BUILD_DIR` to an external path (f
 |--------|---------|-------------|
 | `YAZE_BUILD_AGENT_UI` | ON with GUI | ImGui chat/agent panels |
 | `YAZE_ENABLE_REMOTE_AUTOMATION` | ON for `*-ai` | gRPC services and automation |
-| `YAZE_ENABLE_AI_RUNTIME` | ON for `*-ai` | Gemini/Ollama AI providers |
+| `YAZE_ENABLE_AI_RUNTIME` | ON for `*-ai` | Gemini/Ollama/OpenAI/Anthropic AI providers |
 | `YAZE_ENABLE_AGENT_CLI` | ON with CLI | z3ed agent commands |
 
 Keep features `OFF` for lightweight GUI development, or enable them for automation workflows.
