@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_ZELDA3_DUNGEON_DUNGEON_OBJECT_EDITOR_H
 #define YAZE_APP_ZELDA3_DUNGEON_DUNGEON_OBJECT_EDITOR_H
 
+#include <chrono>
 #include <functional>
 #include <memory>
 #include <optional>
@@ -124,7 +125,8 @@ class DungeonObjectEditor {
                                   int new_size);
 
   // Copy/Paste/Duplicate
-  std::optional<size_t> DuplicateObject(size_t object_index, int offset_x = 1, int offset_y = 1);
+  std::optional<size_t> DuplicateObject(size_t object_index, int offset_x = 1,
+                                        int offset_y = 1);
   void CopySelectedObjects(const std::vector<size_t>& indices);
   std::vector<size_t> PasteObjects();
 
@@ -181,8 +183,8 @@ class DungeonObjectEditor {
   // Phase 4: Visual feedback and GUI
   void RenderSelectionHighlight(gfx::Bitmap& canvas);
   void RenderLayerVisualization(gfx::Bitmap& canvas);
-  void DrawPropertyUI();  // ImGui panel contents
-  void RenderLayerControls();        // ImGui controls
+  void DrawPropertyUI();       // ImGui panel contents
+  void RenderLayerControls();  // ImGui controls
   absl::Status HandleDragOperation(int current_x, int current_y);
 
   // Undo/Redo functionality
