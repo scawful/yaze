@@ -256,7 +256,8 @@ void ChatTUI::Run() {
                               absl::StrFormat("%d", metrics.turn_index),
                               Color::Cyan),
             RenderMetricLabel(
-                "🙋", "User", absl::StrFormat("%d", metrics.total_user_messages),
+                "🙋", "User",
+                absl::StrFormat("%d", metrics.total_user_messages),
                 Color::White),
             RenderMetricLabel(
                 "🤖", "Agent",
@@ -383,7 +384,7 @@ void ChatTUI::OnSubmit(const std::string& message) {
     auto response =
         agent_service_.SendMessage("Show me information about the loaded ROM");
     if (!response.ok()) {
-      last_error_ = response.status().message();
+      last_error_ = std::string(response.status().message());
     } else {
       last_error_.reset();
     }
@@ -392,7 +393,7 @@ void ChatTUI::OnSubmit(const std::string& message) {
   if (message == "/help") {
     auto response = agent_service_.SendMessage("What commands can I use?");
     if (!response.ok()) {
-      last_error_ = response.status().message();
+      last_error_ = std::string(response.status().message());
     } else {
       last_error_.reset();
     }
@@ -418,7 +419,7 @@ void ChatTUI::OnSubmit(const std::string& message) {
     // Add a system message with status
     auto response = agent_service_.SendMessage(status_message);
     if (!response.ok()) {
-      last_error_ = response.status().message();
+      last_error_ = std::string(response.status().message());
     } else {
       last_error_.reset();
     }
@@ -450,7 +451,7 @@ void ChatTUI::LaunchAgentPrompt(const std::string& prompt) {
   auto future = std::async(std::launch::async, [this, prompt] {
     auto response = agent_service_.SendMessage(prompt);
     if (!response.ok()) {
-      last_error_ = response.status().message();
+      last_error_ = std::string(response.status().message());
     } else {
       last_error_.reset();
     }
