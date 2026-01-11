@@ -41,6 +41,8 @@ if(YAZE_BUILD_TESTS)
     # Linux static linking needs a rescan to resolve yaze_test_support/editor
     # and emulator/emulator_ui circular dependencies.
     if(UNIX AND NOT APPLE)
+      # Ensure transitive shared libs (absl flags/hash) stay linked on Linux.
+      target_link_options(${suite_name} PRIVATE -Wl,--no-as-needed)
       target_link_libraries(${suite_name} PRIVATE
         -Wl,--start-group
         ${_yaze_test_core_libs}
