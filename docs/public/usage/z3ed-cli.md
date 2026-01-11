@@ -27,8 +27,11 @@ AI features require at least one provider:
 |----------|-------|
 | **Ollama** (local) | `brew install ollama && ollama serve` |
 | **Gemini** (cloud) | `export GEMINI_API_KEY=your_key` |
+| **OpenAI** (cloud) | `export OPENAI_API_KEY=your_key` |
+| **Anthropic** (cloud) | `export ANTHROPIC_API_KEY=your_key` |
 
-Set the model with `--ai_model` or `OLLAMA_MODEL` environment variable.
+Use `--ai_provider` to force a specific backend (e.g., `--ai_provider=openai`).
+Set the model with `--ai_model` (or `OLLAMA_MODEL` for Ollama).
 
 > Without a provider, z3ed still works but agent commands use manual plans.
 
@@ -124,7 +127,7 @@ echo "Describe room 1" | z3ed agent simple-chat --rom=zelda3.sfc --stdout
 
 | Issue | Solution |
 |-------|----------|
-| `agent simple-chat` hangs | Verify `ollama serve` is running or `GEMINI_API_KEY` is set |
+| `agent simple-chat` hangs | Verify `ollama serve` is running or `GEMINI_API_KEY`/`OPENAI_API_KEY`/`ANTHROPIC_API_KEY` is set |
 | Missing `libgrpc` or `absl` | Rebuild with `*-ai` preset |
 | ROM not found | Use absolute paths or set `YAZE_DEFAULT_ROM` |
 | Command not found | Run `z3ed --help` to verify build is current |

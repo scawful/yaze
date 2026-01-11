@@ -10,11 +10,11 @@ ABSL_FLAG(bool, quiet, false, "Suppress non-essential output");
 
 // AI Service Configuration Flags
 ABSL_FLAG(std::string, ai_provider, "auto",
-          "AI provider to use: 'auto' (try gemini→ollama→mock), 'gemini', "
-          "'ollama', or 'mock'");
+          "AI provider to use: 'auto' (try gemini→anthropic→openai→mock), "
+          "'gemini', 'anthropic', 'openai', 'ollama', or 'mock'");
 ABSL_FLAG(std::string, ai_model, "",
           "AI model to use (provider-specific, e.g., 'llama3' for Ollama, "
-          "'gemini-1.5-flash' for Gemini)");
+          "'gemini-1.5-flash' for Gemini, 'gpt-4o-mini' for OpenAI)");
 ABSL_FLAG(std::string, gemini_api_key, "",
           "Gemini API key (can also use GEMINI_API_KEY environment variable)");
 ABSL_FLAG(std::string, anthropic_api_key, "",

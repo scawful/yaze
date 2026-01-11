@@ -84,7 +84,7 @@ std::string GenerateAgentHelp() {
 
   help << "Global Options:\n";
   help << "  --rom=<path>            Path to ROM file\n";
-  help << "  --ai_provider=<name>    AI provider: ollama | gemini\n";
+  help << "  --ai_provider=<name>    AI provider: ollama | gemini | openai\n";
   help << "  --format=<type>         Output format: text | json\n\n";
 
   help << "For detailed help: z3ed agent <command> --help\n";

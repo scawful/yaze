@@ -17,6 +17,7 @@
 #include "core/asar_wrapper.h"
 #include "util/bps.h"
 #include "util/file_util.h"
+#include "yaze.h"
 
 namespace yaze {
 namespace cli {
@@ -643,7 +644,8 @@ void HelpComponent(ftxui::ScreenInteractive& screen) {
       // Header
       text("╔══════════════════════════════════════════════════════════╗") |
           color(Color::Cyan1) | bold,
-      text("║            Z3ED v0.3.2 - AI-Powered CLI                 ║") |
+      text(absl::StrCat("║            Z3ED v", YAZE_VERSION_STRING,
+                        " - AI-Powered CLI                 ║")) |
           color(Color::Cyan1) | bold,
       text("║   The Legend of Zelda: A Link to the Past Editor        ║") |
           color(Color::White),
@@ -655,7 +657,7 @@ void HelpComponent(ftxui::ScreenInteractive& screen) {
           text("scawful") | color(Color::Magenta),
           text("  │  ") | color(Color::GrayDark),
           text("🤖 AI: ") | color(Color::Green1) | bold,
-          text("Ollama + Gemini Integration") | color(Color::GreenLight),
+          text("Ollama + Gemini + OpenAI Integration") | color(Color::GreenLight),
       }) | center,
       text(""),
       separator(),
@@ -905,7 +907,8 @@ void MainMenuComponent(ftxui::ScreenInteractive& screen) {
   });
 
   auto title = border(hbox({
-      text("v0.3.2") | bold | color(Color::Green1),
+      text(absl::StrCat("v", YAZE_VERSION_STRING)) | bold |
+          color(Color::Green1),
       separator(),
       text(rom_information) | bold | color(Color::Red1),
   }));
