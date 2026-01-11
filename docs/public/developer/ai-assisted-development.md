@@ -281,14 +281,12 @@ z3ed agent debug-rom --rom=my_hack.sfc
 ```bash
 # Use specific AI model (Ollama)
 export OLLAMA_MODEL=qwen2.5-coder:0.5b
-export OLLAMA_API_BASE=http://localhost:11434
 
-# Use Gemini instead
+# Use Gemini/OpenAI/Anthropic instead
 export GEMINI_API_KEY=your_key_here
+export OPENAI_API_KEY=your_key_here
+export ANTHROPIC_API_KEY=your_key_here
 
-# Configure z3ed behavior
-export Z3ED_WORKSPACE=/tmp/z3ed_work    # Working directory for proposals
-export Z3ED_LOG_LEVEL=debug              # Verbose logging
 ```
 
 ### Command-Line Flags
@@ -305,27 +303,18 @@ z3ed agent simple-chat --rom zelda3.sfc --sandbox
 # Model selection (Ollama)
 z3ed agent simple-chat --ai_model qwen2.5-coder:1b
 
+# Force a cloud provider
+z3ed agent simple-chat --ai_provider openai --ai_model gpt-4o-mini
+
 # Emulator debugging (ROM Debug Mode)
 z3ed agent debug-rom --emulator-port 50051
 ```
 
-### Configuration File
+### Configuration File (Planned)
 
-For persistent settings, create `~/.config/yaze/agent.toml`:
-
-```toml
-[ai]
-provider = "ollama"  # or "gemini"
-ollama_model = "qwen2.5-coder:0.5b"
-gemini_api_key = "YOUR_KEY"
-
-[workspace]
-proposals_dir = "~/.local/share/yaze/proposals"
-sandbox_roms = true
-
-[logging]
-level = "info"  # debug, info, warn, error
-```
+The CLI currently reads flags and environment variables only. For persistent
+settings, use a shell profile or wrapper script until a TOML config loader
+lands.
 
 ## Troubleshooting
 
@@ -338,8 +327,10 @@ level = "info"  # debug, info, warn, error
 # Check Ollama is running
 ollama serve &
 
-# Or verify Gemini API key
-echo $GEMINI_API_KEY  # Should not be empty
+# Or verify a cloud API key
+echo $GEMINI_API_KEY    # Gemini
+echo $OPENAI_API_KEY    # OpenAI
+echo $ANTHROPIC_API_KEY # Anthropic
 
 # Specify model explicitly
 z3ed agent simple-chat --ai_model qwen2.5-coder:0.5b --rom zelda3.sfc

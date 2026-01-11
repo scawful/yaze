@@ -12,7 +12,8 @@ namespace cli {
 
 struct AIServiceConfig {
   std::string provider =
-      "auto";  // "auto" (try gemini→ollama→mock), "gemini", "ollama", or "mock"
+      "auto";  // "auto" (try gemini→anthropic→openai→mock), "gemini",
+               // "anthropic", "openai", "ollama", or "mock"
   std::string model;           // Provider-specific model name
   std::string gemini_api_key;  // For Gemini
   std::string openai_api_key;  // For OpenAI
