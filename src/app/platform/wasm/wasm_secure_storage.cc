@@ -17,7 +17,7 @@ namespace {
 // JavaScript interop functions for sessionStorage
 EM_JS(void, js_session_storage_set, (const char* key, const char* value), {
   try {
-    if (typeof(Storage) != = "undefined" && sessionStorage) {
+    if (typeof(Storage) !== "undefined" && sessionStorage) {
       sessionStorage.setItem(UTF8ToString(key), UTF8ToString(value));
     }
   } catch (e) {
@@ -27,9 +27,9 @@ EM_JS(void, js_session_storage_set, (const char* key, const char* value), {
 
 EM_JS(char*, js_session_storage_get, (const char* key), {
   try {
-    if (typeof(Storage) != = "undefined" && sessionStorage) {
+    if (typeof(Storage) !== "undefined" && sessionStorage) {
       const value = sessionStorage.getItem(UTF8ToString(key));
-      if (value == = null)
+      if (value === null)
         return null;
       const len = lengthBytesUTF8(value) + 1;
       const ptr = _malloc(len);
@@ -44,7 +44,7 @@ EM_JS(char*, js_session_storage_get, (const char* key), {
 
 EM_JS(void, js_session_storage_remove, (const char* key), {
   try {
-    if (typeof(Storage) != = "undefined" && sessionStorage) {
+    if (typeof(Storage) !== "undefined" && sessionStorage) {
       sessionStorage.removeItem(UTF8ToString(key));
     }
   } catch (e) {
@@ -54,8 +54,8 @@ EM_JS(void, js_session_storage_remove, (const char* key), {
 
 EM_JS(int, js_session_storage_has, (const char* key), {
   try {
-    if (typeof(Storage) != = "undefined" && sessionStorage) {
-      return sessionStorage.getItem(UTF8ToString(key)) != = null ? 1 : 0;
+    if (typeof(Storage) !== "undefined" && sessionStorage) {
+      return sessionStorage.getItem(UTF8ToString(key)) !== null ? 1 : 0;
     }
   } catch (e) {
     console.error('Failed to check sessionStorage:', e);
@@ -66,7 +66,7 @@ EM_JS(int, js_session_storage_has, (const char* key), {
 // JavaScript interop functions for localStorage
 EM_JS(void, js_local_storage_set, (const char* key, const char* value), {
   try {
-    if (typeof(Storage) != = "undefined" && localStorage) {
+    if (typeof(Storage) !== "undefined" && localStorage) {
       localStorage.setItem(UTF8ToString(key), UTF8ToString(value));
     }
   } catch (e) {
@@ -76,9 +76,9 @@ EM_JS(void, js_local_storage_set, (const char* key, const char* value), {
 
 EM_JS(char*, js_local_storage_get, (const char* key), {
   try {
-    if (typeof(Storage) != = "undefined" && localStorage) {
+    if (typeof(Storage) !== "undefined" && localStorage) {
       const value = localStorage.getItem(UTF8ToString(key));
-      if (value == = null)
+      if (value === null)
         return null;
       const len = lengthBytesUTF8(value) + 1;
       const ptr = _malloc(len);
@@ -93,7 +93,7 @@ EM_JS(char*, js_local_storage_get, (const char* key), {
 
 EM_JS(void, js_local_storage_remove, (const char* key), {
   try {
-    if (typeof(Storage) != = "undefined" && localStorage) {
+    if (typeof(Storage) !== "undefined" && localStorage) {
       localStorage.removeItem(UTF8ToString(key));
     }
   } catch (e) {
@@ -103,8 +103,8 @@ EM_JS(void, js_local_storage_remove, (const char* key), {
 
 EM_JS(int, js_local_storage_has, (const char* key), {
   try {
-    if (typeof(Storage) != = "undefined" && localStorage) {
-      return localStorage.getItem(UTF8ToString(key)) != = null ? 1 : 0;
+    if (typeof(Storage) !== "undefined" && localStorage) {
+      return localStorage.getItem(UTF8ToString(key)) !== null ? 1 : 0;
     }
   } catch (e) {
     console.error('Failed to check localStorage:', e);
@@ -115,7 +115,7 @@ EM_JS(int, js_local_storage_has, (const char* key), {
 // Get all keys from storage
 EM_JS(char*, js_session_storage_keys, (), {
   try {
-    if (typeof(Storage) != = "undefined" && sessionStorage) {
+    if (typeof(Storage) !== "undefined" && sessionStorage) {
       const keys = [];
       for (let i = 0; i < sessionStorage.length; i++) {
         keys.push(sessionStorage.key(i));
@@ -134,7 +134,7 @@ EM_JS(char*, js_session_storage_keys, (), {
 
 EM_JS(char*, js_local_storage_keys, (), {
   try {
-    if (typeof(Storage) != = "undefined" && localStorage) {
+    if (typeof(Storage) !== "undefined" && localStorage) {
       const keys = [];
       for (let i = 0; i < localStorage.length; i++) {
         keys.push(localStorage.key(i));
@@ -154,7 +154,7 @@ EM_JS(char*, js_local_storage_keys, (), {
 // Clear all keys with prefix
 EM_JS(void, js_session_storage_clear_prefix, (const char* prefix), {
   try {
-    if (typeof(Storage) != = "undefined" && sessionStorage) {
+    if (typeof(Storage) !== "undefined" && sessionStorage) {
       const prefixStr = UTF8ToString(prefix);
       const keysToRemove = [];
       for (let i = 0; i < sessionStorage.length; i++) {
@@ -163,7 +163,7 @@ EM_JS(void, js_session_storage_clear_prefix, (const char* prefix), {
           keysToRemove.push(key);
         }
       }
-      keysToRemove.forEach(key = > sessionStorage.removeItem(key));
+      keysToRemove.forEach((key) => sessionStorage.removeItem(key));
     }
   } catch (e) {
     console.error('Failed to clear sessionStorage prefix:', e);
@@ -172,7 +172,7 @@ EM_JS(void, js_session_storage_clear_prefix, (const char* prefix), {
 
 EM_JS(void, js_local_storage_clear_prefix, (const char* prefix), {
   try {
-    if (typeof(Storage) != = "undefined" && localStorage) {
+    if (typeof(Storage) !== "undefined" && localStorage) {
       const prefixStr = UTF8ToString(prefix);
       const keysToRemove = [];
       for (let i = 0; i < localStorage.length; i++) {
@@ -181,7 +181,7 @@ EM_JS(void, js_local_storage_clear_prefix, (const char* prefix), {
           keysToRemove.push(key);
         }
       }
-      keysToRemove.forEach(key = > localStorage.removeItem(key));
+      keysToRemove.forEach((key) => localStorage.removeItem(key));
     }
   } catch (e) {
     console.error('Failed to clear localStorage prefix:', e);
@@ -191,7 +191,7 @@ EM_JS(void, js_local_storage_clear_prefix, (const char* prefix), {
 // Check if storage is available
 EM_JS(int, js_is_storage_available, (), {
   try {
-    if (typeof(Storage) != = "undefined") {
+    if (typeof(Storage) !== "undefined") {
       // Test both storage types
       const testKey = '__yaze_storage_test__';
 

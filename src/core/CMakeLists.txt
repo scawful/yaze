@@ -41,6 +41,7 @@ target_include_directories(yaze_core_lib PUBLIC
 # Link dependencies - minimal set
 target_link_libraries(yaze_core_lib PUBLIC
   yaze_util          # Logging, file I/O, platform paths
+  yaze_zelda3        # Resource labels and Zelda3 data model helpers
   ${ABSL_TARGETS}    # Abseil for Status/StatusOr
   ${CMAKE_DL_LIBS}   # Dynamic library loading
 )

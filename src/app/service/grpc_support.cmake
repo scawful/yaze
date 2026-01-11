@@ -122,6 +122,17 @@ target_link_libraries(yaze_grpc_support PUBLIC
   ${YAZE_PROTOBUF_TARGETS}
 )
 
+# Some system gRPC configs omit libgrpc++ in INTERFACE_LINK_LIBRARIES.
+# Add an explicit fallback for system builds to avoid undefined symbols.
+if((YAZE_PREFER_SYSTEM_GRPC OR YAZE_USE_SYSTEM_DEPS) AND NOT WIN32)
+  find_library(_YAZE_GRPCPP_LIB NAMES grpc++ grpc++_unsecure)
+  if(_YAZE_GRPCPP_LIB)
+    target_link_libraries(yaze_grpc_support PUBLIC ${_YAZE_GRPCPP_LIB})
+  else()
+    message(WARNING "System gRPC detected but libgrpc++ not found in link path")
+  endif()
+endif()
+
 set_target_properties(yaze_grpc_support PROPERTIES
   POSITION_INDEPENDENT_CODE ON
   ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"

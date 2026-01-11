@@ -106,6 +106,7 @@ set(GFX_DEBUG_SRC
   app/gfx/debug/graphics_optimizer.cc
   app/gfx/debug/performance/performance_dashboard.cc
   app/gfx/debug/performance/performance_profiler.cc
+  zelda3/dungeon/palette_debug.cc
 )
 
 # ==============================================================================
