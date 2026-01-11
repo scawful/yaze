@@ -2,13 +2,13 @@
 #include <iostream>
 #include <optional>
 #include <string>
-#include <string_view>
 #include <vector>
 
 #include "absl/flags/declare.h"
 #include "absl/flags/flag.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/string_view.h"
 #include "cli/cli.h"
 #include "cli/service/command_registry.h"
 #include "rom/rom.h"
@@ -202,7 +202,7 @@ ParsedGlobals ParseGlobalFlags(int argc, char* argv[]) {
   bool passthrough = false;
   for (int i = 1; i < argc; ++i) {
     char* current = argv[i];
-    std::string_view token(current);
+    absl::string_view token(current);
 
     if (!passthrough) {
       if (token == "--") {
