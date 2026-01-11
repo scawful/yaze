@@ -156,6 +156,10 @@ void PrintCompactHelp() {
   std::cout << "  --rom=<path>           Path to ROM file\n";
   std::cout << "  --tui                  Launch interactive TUI\n";
   std::cout << "  --quiet, -q            Suppress output\n";
+  std::cout << "  --ai_provider=<name>   AI provider (auto, ollama, gemini, "
+               "openai,\n";
+  std::cout << "                         anthropic, mock)\n";
+  std::cout << "  --ai_model=<name>      Provider-specific model override\n";
   std::cout << "  --version              Show version\n";
   std::cout << "  --self-test            Run self-test diagnostics\n";
   std::cout << "  --help <scope>         Show help for command or category\n";

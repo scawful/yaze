@@ -11,6 +11,7 @@
 - Refined dashboard/editor selection layouts and card text rendering.
 - Moved layout designer into a lab target for safer experimentation.
 - Hardened CLI/API room loading and Asar patch handling.
+- Refreshed welcome screen and help text to highlight multi-provider AI and CLI workflows.
 
 ### Automation & AI
 - Added agent control server support and stabilized gRPC automation hooks.

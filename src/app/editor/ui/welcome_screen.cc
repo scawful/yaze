@@ -644,9 +644,9 @@ void WelcomeScreen::DrawHeader() {
 
   ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "%s", subtitle);
 
-  const std::string version_line =
-      absl::StrFormat("v%s - AI workflows, web preview, and stability updates",
-                      YAZE_VERSION_STRING);
+  const std::string version_line = absl::StrFormat(
+      "v%s - Multi-provider AI, web preview, and release polish",
+      YAZE_VERSION_STRING);
   textWidth = ImGui::CalcTextSize(version_line.c_str()).x;
   ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
   ImGui::TextColored(ImVec4(0.55f, 0.55f, 0.55f, 1.0f), "%s",
@@ -667,8 +667,9 @@ void WelcomeScreen::DrawQuickActions() {
   const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
   ImGui::PushStyleColor(ImGuiCol_Text, text_secondary);
   ImGui::TextWrapped(
-      "New here? Start with Open ROM or New Project. For AI workflows, enable "
-      "Ollama or set GEMINI_API_KEY in Settings > Agent.");
+      "New here? Start with Open ROM or New Project. For AI workflows, "
+      "configure a provider in Settings > Agent (Ollama/Gemini/OpenAI/"
+      "Anthropic).");
   ImGui::PopStyleColor();
   ImGui::Spacing();
 
@@ -738,7 +739,7 @@ void WelcomeScreen::DrawQuickActions() {
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(ICON_MD_INFO
                       " Ask the AI agent to guide edits in natural language "
-                      "(requires Ollama or Gemini)");
+                      "(requires Ollama, Gemini, OpenAI, or Anthropic)");
   }
 }
 
@@ -1102,7 +1103,7 @@ void WelcomeScreen::DrawTipsSection() {
   const char* tips[] = {
       "Open a ROM first, then save a copy before editing",
       "Press Ctrl+Shift+P for the command palette and F1 for help",
-      "Use Ctrl+Shift+A for AI workflows (Ollama/Gemini required)",
+      "Use Ctrl+Shift+A for AI workflows (Ollama/Gemini/OpenAI/Anthropic)",
       "Try z3ed --tui for scripting and automation",
       "Enable Web/WASM collaboration for live syncing",
       "Keep multiple sessions for parallel ROM work (Ctrl+Shift+N)"};
@@ -1142,16 +1143,17 @@ void WelcomeScreen::DrawWhatsNew() {
 
   Feature features[] = {
       {ICON_MD_PSYCHOLOGY, "AI Agent Workflows",
-       "Natural language ROM editing with z3ed agent and in-app panels",
+       "Multi-provider AI (Ollama/Gemini/OpenAI/Anthropic) in app and z3ed",
        kGanonPurple},
+      {ICON_MD_TERMINAL, "CLI + Automation",
+       "z3ed CLI/TUI with test, doctor, and schema export tooling",
+       kMasterSwordBlue},
       {ICON_MD_PUBLIC, "Web/WASM Preview",
-       "Browser build with collaboration server support", kMasterSwordBlue},
-      {ICON_MD_MUSIC_NOTE, "Music Editor Updates",
-       "SPC parsing, piano roll, and playback improvements", kTriforceGold},
+       "Browser build with collaboration server hooks", kTriforceGold},
       {ICON_MD_SPEED, "Performance & Stability",
        "Faster asset loading and safer graphics lifetimes", kSpiritOrange},
       {ICON_MD_FACT_CHECK, "Release Quality",
-       "Cross-platform packaging and CI hardening for v0.5.0", kHyruleGreen},
+       "Cross-platform packaging and CI/CD hardening for v0.5.0", kHyruleGreen},
   };
 
   for (const auto& feature : features) {

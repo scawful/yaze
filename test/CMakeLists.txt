@@ -104,6 +104,7 @@ if(YAZE_BUILD_TESTS)
     unit/cli/command_registry_test.cc
     unit/cli/conversational_agent_service_test.cc
     unit/cli/ai_service_factory_test.cc
+    unit/cli/vision_action_refiner_test.cc
     unit/rom/rom_test.cc
     unit/emu/input_backend_test.cc
     unit/gfx/snes_tile_test.cc

@@ -14,6 +14,7 @@
 - Refined dashboard/editor selection layouts and card rendering.
 - Moved the layout designer into a lab target for safer experimentation.
 - Hardened room loading APIs and added room count reporting for C API consumers.
+- Refreshed welcome screen and help popups to spotlight multi-provider AI and CLI workflows.
 
 ### 🤖 Automation & AI
 - Added agent control server support and stabilized gRPC automation hooks.
