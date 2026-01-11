@@ -644,6 +644,14 @@ void WelcomeScreen::DrawHeader() {
 
   ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "%s", subtitle);
 
+  const std::string version_line =
+      absl::StrFormat("v%s - AI workflows, web preview, and stability updates",
+                      YAZE_VERSION_STRING);
+  textWidth = ImGui::CalcTextSize(version_line.c_str()).x;
+  ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+  ImGui::TextColored(ImVec4(0.55f, 0.55f, 0.55f, 1.0f), "%s",
+                     version_line.c_str());
+
   // Small decorative triforces flanking the title (static, transparent)
   // Positioned well away from text to avoid crowding
   ImVec2 left_tri_pos(xPos - 80, text_pos.y + 20);
@@ -659,8 +667,8 @@ void WelcomeScreen::DrawQuickActions() {
   const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
   ImGui::PushStyleColor(ImGuiCol_Text, text_secondary);
   ImGui::TextWrapped(
-      "New here? Start with Open ROM or New Project. Use a clean, legally "
-      "obtained ALttP (USA) ROM to get going.");
+      "New here? Start with Open ROM or New Project. For AI workflows, enable "
+      "Ollama or set GEMINI_API_KEY in Settings > Agent.");
   ImGui::PopStyleColor();
   ImGui::Spacing();
 
@@ -729,7 +737,8 @@ void WelcomeScreen::DrawQuickActions() {
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(ICON_MD_INFO
-                      " Ask the AI agent to guide edits in natural language");
+                      " Ask the AI agent to guide edits in natural language "
+                      "(requires Ollama or Gemini)");
   }
 }
 
@@ -1091,12 +1100,12 @@ void WelcomeScreen::DrawTipsSection() {
   // Static tip (or could rotate based on session start time rather than
   // animation)
   const char* tips[] = {
-      "New here? Open a ROM first, then save a copy before editing",
-      "Press Ctrl+Shift+P to open the command palette",
-      "Use z3ed agent for AI-powered ROM editing (Ctrl+Shift+A)",
-      "Enable ZSCustomOverworld in Debug menu for expanded features",
-      "Check the Performance Dashboard for optimization insights",
-      "Collaborate in real-time with yaze-server"};
+      "Open a ROM first, then save a copy before editing",
+      "Press Ctrl+Shift+P for the command palette and F1 for help",
+      "Use Ctrl+Shift+A for AI workflows (Ollama/Gemini required)",
+      "Try z3ed --tui for scripting and automation",
+      "Enable Web/WASM collaboration for live syncing",
+      "Keep multiple sessions for parallel ROM work (Ctrl+Shift+N)"};
   int tip_index = 0;  // Show first tip, or could be random on screen open
 
   ImGui::Text(ICON_MD_LIGHTBULB);
@@ -1132,18 +1141,17 @@ void WelcomeScreen::DrawWhatsNew() {
   };
 
   Feature features[] = {
-      {ICON_MD_MUSIC_NOTE, "Music Editor",
-       "Complete SPC music editing with piano roll and tracker views",
-       kTriforceGold},
-      {ICON_MD_PIANO, "Piano Roll & Playback",
-       "Visual note editing with authentic N-SPC audio preview",
-       kMasterSwordBlue},
-      {ICON_MD_SPEAKER, "Instrument Editor",
-       "Edit ADSR envelopes, samples, and instrument banks", kHyruleGreen},
-      {ICON_MD_PSYCHOLOGY, "AI Agent Integration",
-       "Natural language ROM editing with z3ed agent", kGanonPurple},
-      {ICON_MD_SPEED, "Performance Improvements",
-       "Improved graphics arena and faster loading", kSpiritOrange},
+      {ICON_MD_PSYCHOLOGY, "AI Agent Workflows",
+       "Natural language ROM editing with z3ed agent and in-app panels",
+       kGanonPurple},
+      {ICON_MD_PUBLIC, "Web/WASM Preview",
+       "Browser build with collaboration server support", kMasterSwordBlue},
+      {ICON_MD_MUSIC_NOTE, "Music Editor Updates",
+       "SPC parsing, piano roll, and playback improvements", kTriforceGold},
+      {ICON_MD_SPEED, "Performance & Stability",
+       "Faster asset loading and safer graphics lifetimes", kSpiritOrange},
+      {ICON_MD_FACT_CHECK, "Release Quality",
+       "Cross-platform packaging and CI hardening for v0.5.0", kHyruleGreen},
   };
 
   for (const auto& feature : features) {

@@ -11,6 +11,7 @@
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "util/file_util.h"
 #include "util/hex.h"
+#include "yaze.h"
 
 namespace yaze {
 namespace editor {
@@ -41,112 +42,79 @@ void PopupManager::Initialize() {
 
   // File Operations
   popups_[PopupID::kSaveAs] = {PopupID::kSaveAs, PopupType::kFileOperation,
-                               false, false, [this]() {
-                                 DrawSaveAsPopup();
-                               }};
-  popups_[PopupID::kNewProject] = {
-      PopupID::kNewProject, PopupType::kFileOperation, false, false, [this]() {
-        DrawNewProjectPopup();
-      }};
+                               false, false, [this]() { DrawSaveAsPopup(); }};
+  popups_[PopupID::kNewProject] = {PopupID::kNewProject,
+                                   PopupType::kFileOperation, false, false,
+                                   [this]() { DrawNewProjectPopup(); }};
   popups_[PopupID::kManageProject] = {PopupID::kManageProject,
                                       PopupType::kFileOperation, false, false,
-                                      [this]() {
-                                        DrawManageProjectPopup();
-                                      }};
+                                      [this]() { DrawManageProjectPopup(); }};
 
   // Information
   popups_[PopupID::kAbout] = {PopupID::kAbout, PopupType::kInfo, false, false,
-                              [this]() {
-                                DrawAboutPopup();
-                              }};
+                              [this]() { DrawAboutPopup(); }};
   popups_[PopupID::kRomInfo] = {PopupID::kRomInfo, PopupType::kInfo, false,
-                                false, [this]() {
-                                  DrawRomInfoPopup();
-                                }};
+                                false, [this]() { DrawRomInfoPopup(); }};
   popups_[PopupID::kSupportedFeatures] = {
-      PopupID::kSupportedFeatures, PopupType::kInfo, false, false, [this]() {
-        DrawSupportedFeaturesPopup();
-      }};
+      PopupID::kSupportedFeatures, PopupType::kInfo, false, false,
+      [this]() { DrawSupportedFeaturesPopup(); }};
   popups_[PopupID::kOpenRomHelp] = {PopupID::kOpenRomHelp, PopupType::kHelp,
-                                    false, false, [this]() {
-                                      DrawOpenRomHelpPopup();
-                                    }};
+                                    false, false,
+                                    [this]() { DrawOpenRomHelpPopup(); }};
 
   // Help Documentation
-  popups_[PopupID::kGettingStarted] = {
-      PopupID::kGettingStarted, PopupType::kHelp, false, false, [this]() {
-        DrawGettingStartedPopup();
-      }};
+  popups_[PopupID::kGettingStarted] = {PopupID::kGettingStarted,
+                                       PopupType::kHelp, false, false,
+                                       [this]() { DrawGettingStartedPopup(); }};
   popups_[PopupID::kAsarIntegration] = {
-      PopupID::kAsarIntegration, PopupType::kHelp, false, false, [this]() {
-        DrawAsarIntegrationPopup();
-      }};
+      PopupID::kAsarIntegration, PopupType::kHelp, false, false,
+      [this]() { DrawAsarIntegrationPopup(); }};
   popups_[PopupID::kBuildInstructions] = {
-      PopupID::kBuildInstructions, PopupType::kHelp, false, false, [this]() {
-        DrawBuildInstructionsPopup();
-      }};
+      PopupID::kBuildInstructions, PopupType::kHelp, false, false,
+      [this]() { DrawBuildInstructionsPopup(); }};
   popups_[PopupID::kCLIUsage] = {PopupID::kCLIUsage, PopupType::kHelp, false,
-                                 false, [this]() {
-                                   DrawCLIUsagePopup();
-                                 }};
+                                 false, [this]() { DrawCLIUsagePopup(); }};
   popups_[PopupID::kTroubleshooting] = {
-      PopupID::kTroubleshooting, PopupType::kHelp, false, false, [this]() {
-        DrawTroubleshootingPopup();
-      }};
+      PopupID::kTroubleshooting, PopupType::kHelp, false, false,
+      [this]() { DrawTroubleshootingPopup(); }};
   popups_[PopupID::kContributing] = {PopupID::kContributing, PopupType::kHelp,
-                                     false, false, [this]() {
-                                       DrawContributingPopup();
-                                     }};
+                                     false, false,
+                                     [this]() { DrawContributingPopup(); }};
   popups_[PopupID::kWhatsNew] = {PopupID::kWhatsNew, PopupType::kHelp, false,
-                                 false, [this]() {
-                                   DrawWhatsNewPopup();
-                                 }};
+                                 false, [this]() { DrawWhatsNewPopup(); }};
 
   // Settings
-  popups_[PopupID::kDisplaySettings] = {PopupID::kDisplaySettings,
-                                        PopupType::kSettings, false,
-                                        true,  // Resizable
-                                        [this]() {
-                                          DrawDisplaySettingsPopup();
-                                        }};
+  popups_[PopupID::kDisplaySettings] = {
+      PopupID::kDisplaySettings, PopupType::kSettings, false,
+      true,  // Resizable
+      [this]() { DrawDisplaySettingsPopup(); }};
   popups_[PopupID::kFeatureFlags] = {
       PopupID::kFeatureFlags, PopupType::kSettings, false, true,  // Resizable
-      [this]() {
-        DrawFeatureFlagsPopup();
-      }};
+      [this]() { DrawFeatureFlagsPopup(); }};
 
   // Workspace
   popups_[PopupID::kWorkspaceHelp] = {PopupID::kWorkspaceHelp, PopupType::kHelp,
-                                      false, false, [this]() {
-                                        DrawWorkspaceHelpPopup();
-                                      }};
-  popups_[PopupID::kSessionLimitWarning] = {PopupID::kSessionLimitWarning,
-                                            PopupType::kWarning, false, false,
-                                            [this]() {
-                                              DrawSessionLimitWarningPopup();
-                                            }};
-  popups_[PopupID::kLayoutResetConfirm] = {PopupID::kLayoutResetConfirm,
-                                           PopupType::kConfirmation, false,
-                                           false, [this]() {
-                                             DrawLayoutResetConfirmPopup();
-                                           }};
+                                      false, false,
+                                      [this]() { DrawWorkspaceHelpPopup(); }};
+  popups_[PopupID::kSessionLimitWarning] = {
+      PopupID::kSessionLimitWarning, PopupType::kWarning, false, false,
+      [this]() { DrawSessionLimitWarningPopup(); }};
+  popups_[PopupID::kLayoutResetConfirm] = {
+      PopupID::kLayoutResetConfirm, PopupType::kConfirmation, false, false,
+      [this]() { DrawLayoutResetConfirmPopup(); }};
 
-  popups_[PopupID::kLayoutPresets] = {
-      PopupID::kLayoutPresets, PopupType::kSettings, false, false, [this]() {
-        DrawLayoutPresetsPopup();
-      }};
+  popups_[PopupID::kLayoutPresets] = {PopupID::kLayoutPresets,
+                                      PopupType::kSettings, false, false,
+                                      [this]() { DrawLayoutPresetsPopup(); }};
 
-  popups_[PopupID::kSessionManager] = {
-      PopupID::kSessionManager, PopupType::kSettings, false, true, [this]() {
-        DrawSessionManagerPopup();
-      }};
+  popups_[PopupID::kSessionManager] = {PopupID::kSessionManager,
+                                       PopupType::kSettings, false, true,
+                                       [this]() { DrawSessionManagerPopup(); }};
 
   // Debug/Testing
   popups_[PopupID::kDataIntegrity] = {PopupID::kDataIntegrity, PopupType::kInfo,
                                       false, true,  // Resizable
-                                      [this]() {
-                                        DrawDataIntegrityPopup();
-                                      }};
+                                      [this]() { DrawDataIntegrityPopup(); }};
 }
 
 void PopupManager::DrawPopups() {
@@ -493,6 +461,8 @@ void PopupManager::DrawOpenRomHelpPopup() {
   Text("The Legend of Zelda: A Link to the Past");
   Text("US Version 1.0");
   Text("JP Version 1.0");
+  Spacing();
+  TextWrapped("ROM files are not bundled. Use a clean, legally obtained copy.");
 
   if (Button("Close", gui::kDefaultModalSize)) {
     Hide("Open a ROM");
@@ -515,15 +485,20 @@ void PopupManager::DrawManageProjectPopup() {
 }
 
 void PopupManager::DrawGettingStartedPopup() {
-  TextWrapped("Welcome to YAZE v0.3!");
+  TextWrapped("Welcome to YAZE v%s!", YAZE_VERSION_STRING);
   TextWrapped(
-      "This software allows you to modify 'The Legend of Zelda: A Link to the "
-      "Past' (US or JP) ROMs.");
+      "YAZE lets you modify 'The Legend of Zelda: A Link to the Past' (US or "
+      "JP) ROMs with modern tooling.");
+  Spacing();
+  TextWrapped("Release Highlights:");
+  BulletText("AI-assisted workflows via z3ed agent and in-app panels");
+  BulletText("Web/WASM preview with collaboration server support");
+  BulletText("Music editor updates with SPC parsing and playback");
   Spacing();
   TextWrapped("General Tips:");
-  BulletText("Experiment flags determine whether certain features are enabled");
-  BulletText("Backup files are enabled by default for safety");
-  BulletText("Use File > Options to configure settings");
+  BulletText("Open a clean ROM and save a backup before editing");
+  BulletText("Use Help (F1) for context-aware guidance");
+  BulletText("Configure AI providers in Settings > Agent");
 
   if (Button("Close", gui::kDefaultModalSize)) {
     Hide("Getting Started");
@@ -533,13 +508,13 @@ void PopupManager::DrawGettingStartedPopup() {
 void PopupManager::DrawAsarIntegrationPopup() {
   TextWrapped("Asar 65816 Assembly Integration");
   TextWrapped(
-      "YAZE v0.3 includes full Asar assembler support for ROM patching.");
+      "YAZE v0.5.0 includes full Asar assembler support for ROM patching.");
   Spacing();
   TextWrapped("Features:");
   BulletText("Cross-platform ROM patching with assembly code");
-  BulletText("Symbol extraction with addresses and opcodes");
-  BulletText("Assembly validation with error reporting");
-  BulletText("Memory-safe operations with automatic ROM size management");
+  BulletText("Symbol export with addresses and opcodes");
+  BulletText("Assembly validation with detailed error reporting");
+  BulletText("Memory-safe patch application with size checks");
 
   if (Button("Close", gui::kDefaultModalSize)) {
     Hide("Asar Integration");
@@ -550,13 +525,15 @@ void PopupManager::DrawBuildInstructionsPopup() {
   TextWrapped("Build Instructions");
   TextWrapped("YAZE uses modern CMake for cross-platform builds.");
   Spacing();
-  TextWrapped("Quick Start:");
-  BulletText("cmake -B build");
-  BulletText("cmake --build build --target yaze");
+  TextWrapped("Quick Start (examples):");
+  BulletText("cmake --preset mac-dbg | lin-dbg | win-dbg");
+  BulletText("cmake --build --preset <preset> --target yaze");
   Spacing();
-  TextWrapped("Development:");
-  BulletText("cmake --preset dev");
-  BulletText("cmake --build --preset dev");
+  TextWrapped("AI Builds:");
+  BulletText("cmake --preset mac-ai | lin-ai | win-ai");
+  BulletText("cmake --build --preset <preset> --target yaze z3ed");
+  Spacing();
+  TextWrapped("Docs: docs/public/build/quick-reference.md");
 
   if (Button("Close", gui::kDefaultModalSize)) {
     Hide("Build Instructions");
@@ -565,13 +542,13 @@ void PopupManager::DrawBuildInstructionsPopup() {
 
 void PopupManager::DrawCLIUsagePopup() {
   TextWrapped("Command Line Interface (z3ed)");
-  TextWrapped("Enhanced CLI tool with Asar integration.");
+  TextWrapped("Scriptable ROM editing and AI agent workflows.");
   Spacing();
   TextWrapped("Commands:");
-  BulletText("z3ed asar patch.asm --rom=file.sfc");
-  BulletText("z3ed extract symbols.asm");
-  BulletText("z3ed validate assembly.asm");
-  BulletText("z3ed patch file.bps --rom=file.sfc");
+  BulletText("z3ed rom-info --rom=zelda3.sfc");
+  BulletText("z3ed agent simple-chat --rom=zelda3.sfc");
+  BulletText("z3ed --tui");
+  BulletText("z3ed asar patch.asm --rom=zelda3.sfc");
 
   if (Button("Close", gui::kDefaultModalSize)) {
     Hide("CLI Usage");
@@ -583,6 +560,7 @@ void PopupManager::DrawTroubleshootingPopup() {
   TextWrapped("Common issues and solutions:");
   Spacing();
   BulletText("ROM won't load: Check file format (SFC/SMC supported)");
+  BulletText("AI agent missing: Start Ollama or set GEMINI_API_KEY");
   BulletText("Graphics issues: Try disabling experimental features");
   BulletText("Performance: Enable hardware acceleration in display settings");
   BulletText("Crashes: Check ROM file integrity and available memory");
@@ -609,19 +587,17 @@ void PopupManager::DrawContributingPopup() {
 }
 
 void PopupManager::DrawWhatsNewPopup() {
-  TextWrapped("What's New in YAZE v0.3");
+  TextWrapped("What's New in YAZE v%s", YAZE_VERSION_STRING);
   Spacing();
 
   if (CollapsingHeader(
           absl::StrFormat("%s User Interface & Theming", ICON_MD_PALETTE)
               .c_str(),
           ImGuiTreeNodeFlags_DefaultOpen)) {
-    BulletText("Complete theme management system with 5+ built-in themes");
-    BulletText("Custom theme editor with save-to-file functionality");
-    BulletText("Animated background grid with breathing effects (optional)");
-    BulletText("Enhanced welcome screen with themed elements");
-    BulletText("Multi-session workspace support with docking");
-    BulletText("Improved editor organization and navigation");
+    BulletText("Refreshed welcome screen and onboarding tips");
+    BulletText("Context-aware help panels and updated popups");
+    BulletText("Improved panel layouts and session workflows");
+    BulletText("Theme polish and icon refreshes");
   }
 
   if (CollapsingHeader(
@@ -629,43 +605,39 @@ void PopupManager::DrawWhatsNewPopup() {
               .c_str(),
           ImGuiTreeNodeFlags_DefaultOpen)) {
     BulletText("Asar 65816 assembler integration for ROM patching");
-    BulletText("Enhanced CLI tools with TUI (Terminal User Interface)");
-    BulletText("Modernized CMake build system with presets");
-    BulletText("Cross-platform CI/CD pipeline (Windows, macOS, Linux)");
-    BulletText("Comprehensive testing framework with 46+ core tests");
-    BulletText("Professional packaging for all platforms (DMG, MSI, DEB)");
+    BulletText("z3ed CLI + TUI for scripting and automation");
+    BulletText("Modern CMake presets for desktop, AI, and web builds");
+    BulletText("Cross-platform CI/CD hardening (Windows, macOS, Linux)");
+    BulletText("Quality release packaging for macOS/Windows/Linux");
   }
 
   if (CollapsingHeader(
           absl::StrFormat("%s Core Improvements", ICON_MD_SETTINGS).c_str())) {
-    BulletText("Enhanced project management with YazeProject structure");
-    BulletText("Improved ROM loading and validation");
-    BulletText("Better error handling and status reporting");
-    BulletText("Memory safety improvements with sanitizers");
-    BulletText("Enhanced file dialog integration");
-    BulletText("Improved logging and debugging capabilities");
+    BulletText("Improved ROM validation and project metadata handling");
+    BulletText("Stronger error reporting and status feedback");
+    BulletText("Performance and stability improvements across editors");
+    BulletText("Expanded logging and diagnostics tooling");
   }
 
   if (CollapsingHeader(
           absl::StrFormat("%s Editor Features", ICON_MD_EDIT).c_str())) {
-    BulletText("Enhanced overworld editing capabilities");
-    BulletText("Improved graphics sheet viewing and editing");
-    BulletText("Better palette management and editing");
-    BulletText("Enhanced memory and hex editing tools");
-    BulletText("Improved sprite and item management");
-    BulletText("Better entrance and exit editing");
+    BulletText("Music editor updates with SPC parsing/playback");
+    BulletText("AI agent-assisted editing workflows");
+    BulletText("Expanded overworld/dungeon tooling and palettes");
+    BulletText("Web/WASM preview with collaboration hooks");
   }
 
   Spacing();
-  if (Button(absl::StrFormat("%s View Theme Editor", ICON_MD_PALETTE).c_str(),
-             ImVec2(-1, 30))) {
+  if (Button(
+          absl::StrFormat("%s View Release Notes", ICON_MD_DESCRIPTION).c_str(),
+          ImVec2(-1, 30))) {
     // Close this popup and show theme settings
-    Hide("Whats New v03");
-    // Could trigger theme editor opening here
+    Hide(PopupID::kWhatsNew);
+    // Could trigger release notes panel opening here
   }
 
   if (Button("Close", gui::kDefaultModalSize)) {
-    Hide("Whats New v03");
+    Hide(PopupID::kWhatsNew);
   }
 }
 
@@ -754,42 +726,26 @@ void PopupManager::DrawLayoutPresetsPopup() {
   PresetInfo presets[] = {
       {"Minimal", ICON_MD_CROP_FREE,
        "Essential cards only - maximum editing space",
-       []() {
-         return LayoutPresets::GetMinimalPreset();
-       }},
+       []() { return LayoutPresets::GetMinimalPreset(); }},
       {"Developer", ICON_MD_BUG_REPORT,
        "Debug and development focused - CPU/Memory/Breakpoints",
-       []() {
-         return LayoutPresets::GetDeveloperPreset();
-       }},
+       []() { return LayoutPresets::GetDeveloperPreset(); }},
       {"Designer", ICON_MD_PALETTE,
        "Visual and artistic focused - Graphics/Palettes/Sprites",
-       []() {
-         return LayoutPresets::GetDesignerPreset();
-       }},
+       []() { return LayoutPresets::GetDesignerPreset(); }},
       {"Modder", ICON_MD_BUILD,
        "Full-featured - All tools available for comprehensive editing",
-       []() {
-         return LayoutPresets::GetModderPreset();
-       }},
+       []() { return LayoutPresets::GetModderPreset(); }},
       {"Overworld Expert", ICON_MD_MAP,
        "Complete overworld editing toolkit with all map tools",
-       []() {
-         return LayoutPresets::GetOverworldExpertPreset();
-       }},
+       []() { return LayoutPresets::GetOverworldExpertPreset(); }},
       {"Dungeon Expert", ICON_MD_DOOR_SLIDING,
        "Complete dungeon editing toolkit with room tools",
-       []() {
-         return LayoutPresets::GetDungeonExpertPreset();
-       }},
+       []() { return LayoutPresets::GetDungeonExpertPreset(); }},
       {"Testing", ICON_MD_SCIENCE, "Quality assurance and ROM testing layout",
-       []() {
-         return LayoutPresets::GetTestingPreset();
-       }},
+       []() { return LayoutPresets::GetTestingPreset(); }},
       {"Audio", ICON_MD_MUSIC_NOTE, "Music and sound editing layout",
-       []() {
-         return LayoutPresets::GetAudioPreset();
-       }},
+       []() { return LayoutPresets::GetAudioPreset(); }},
   };
 
   constexpr int kPresetCount = 8;
