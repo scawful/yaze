@@ -27,7 +27,7 @@ EM_JS(void, localStorage_setItem, (const char* key, const char* value), {
 EM_JS(char*, localStorage_getItem, (const char* key), {
   try {
     const value = localStorage.getItem(UTF8ToString(key));
-    if (value === null)
+    if (value == null)
       return null;
     const len = lengthBytesUTF8(value) + 1;
     const ptr = _malloc(len);
@@ -49,7 +49,7 @@ EM_JS(void, localStorage_removeItem, (const char* key), {
 
 EM_JS(int, localStorage_hasItem, (const char* key), {
   try {
-    return localStorage.getItem(UTF8ToString(key)) !== null ? 1 : 0;
+    return localStorage.getItem(UTF8ToString(key)) != null ? 1 : 0;
   } catch (e) {
     console.error('Failed to check localStorage:', e);
     return 0;
@@ -66,7 +66,7 @@ EM_JS(void, localStorage_clear, (), {
         keys.push(key);
       }
     }
-    keys.forEach((key) => localStorage.removeItem(key));
+    keys.forEach(function(key) { localStorage.removeItem(key); });
   } catch (e) {
     console.error('Failed to clear localStorage:', e);
   }

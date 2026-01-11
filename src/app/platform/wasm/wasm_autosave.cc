@@ -96,7 +96,7 @@ EM_JS(void, set_recovery_flag, (int has_recovery), {
 
 EM_JS(int, get_recovery_flag, (), {
   try {
-    return sessionStorage.getItem('yaze_has_recovery') === 'true' ? 1 : 0;
+    return sessionStorage.getItem('yaze_has_recovery') == 'true' ? 1 : 0;
   } catch (e) {
     console.error('Failed to get recovery flag:', e);
     return 0;
@@ -400,9 +400,8 @@ bool AutoSaveManager::HasRecoveryData() {
   }
 
   // Check for emergency save data
-  int has_emergency = EM_ASM_INT({
-    return localStorage.getItem('yaze_emergency_save') !== null ? 1 : 0;
-  });
+  int has_emergency = EM_ASM_INT(
+      { return localStorage.getItem('yaze_emergency_save') != null ? 1 : 0; });
 
   return has_emergency == 1;
 }
