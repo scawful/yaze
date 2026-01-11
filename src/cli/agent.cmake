@@ -199,6 +199,7 @@ set(YAZE_AGENT_CORE_SOURCES
   cli/service/testing/test_workflow_generator.cc
   cli/service/ai/ai_service.cc
   cli/service/ai/model_registry.cc
+  cli/service/ai/vision_action_refiner.cc
   cli/service/api/http_server.cc
   cli/service/api/api_handlers.cc
   
@@ -224,7 +225,6 @@ if(YAZE_ENABLE_AI_RUNTIME)
     cli/service/ai/local_gemini_cli_service.cc
     cli/service/ai/prompt_builder.cc
     cli/service/ai/service_factory.cc
-    cli/service/ai/vision_action_refiner.cc
   )
 else()
   list(APPEND YAZE_AGENT_CORE_SOURCES
