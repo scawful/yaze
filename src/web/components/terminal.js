@@ -1079,6 +1079,7 @@
       '  /apikey <key>      Set Gemini API key (stored in sessionStorage)',
       '  /apikey clear      Clear the stored API key',
       '  /apikey            Show current API key status',
+      '  Note: Browser AI uses Gemini; external providers require AI_AGENT_ENDPOINT',
       '  /history           Show command history',
       '  /version           Show version information',
       '',
