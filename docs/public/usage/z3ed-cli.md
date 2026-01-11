@@ -15,6 +15,10 @@ cmake --build --preset mac-ai --target z3ed
 ./build/bin/z3ed --tui
 ```
 
+> **Binary path note**: On macOS/Windows multi-config builds, use
+> `./build/bin/Debug/z3ed` or `./build/bin/Release/z3ed`. Linux uses
+> `./build/bin/z3ed`.
+
 ## AI Provider Configuration
 
 AI features require at least one provider:

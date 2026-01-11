@@ -19,6 +19,12 @@ Built in C++23 with ImGui, includes a built-in SNES emulator, the Asar 65816 ass
 - **Built-in Emulator** - Test changes without leaving the editor
 - **CLI (z3ed)** - Script ROM operations, integrate with AI agents (requires Ollama or Gemini API)
 
+## Apps
+
+- **Desktop app (yaze)** - Full GUI editor + emulator. See `docs/public/build/quick-reference.md`.
+- **CLI (z3ed)** - Scriptable ROM editing and AI workflows. See `docs/public/usage/z3ed-cli.md`.
+- **Web/WASM preview** - Browser-based editor with a subset of features. See `docs/public/usage/web-app.md`.
+
 ## What It Needs
 
 - A legally obtained ALttP ROM (US or JP)

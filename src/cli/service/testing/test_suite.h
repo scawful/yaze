@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "absl/strings/string_view.h"
+#include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "cli/service/gui/gui_automation_client.h"
 

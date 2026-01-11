@@ -11,6 +11,42 @@ namespace test {
 
 using namespace yaze::zelda3::music;
 
+namespace {
+
+constexpr uint16_t kSerializerBaseAddress = 0xD000;
+
+std::vector<uint8_t> SerializeSingleTrack(const MusicTrack& track) {
+  MusicSong song;
+  MusicSegment segment;
+  segment.tracks[0] = track;
+  segment.tracks[0].is_empty = false;
+  for (int i = 1; i < 8; ++i) {
+    segment.tracks[i].is_empty = true;
+    segment.tracks[i].events.clear();
+  }
+  song.segments.push_back(segment);
+
+  auto result = SpcSerializer::SerializeSong(song, kSerializerBaseAddress);
+  EXPECT_TRUE(result.ok()) << result.status();
+  if (!result.ok()) {
+    return {};
+  }
+
+  const auto segment_count = song.segments.size();
+  const auto header_size =
+      segment_count * 2 + 2 + (song.HasLoop() ? 2 : 0);
+  const auto track_data_base = header_size + segment_count * 16;
+  if (result->data.size() < track_data_base) {
+    ADD_FAILURE() << "Serialized data shorter than expected header size.";
+    return {};
+  }
+
+  return std::vector<uint8_t>(result->data.begin() + track_data_base,
+                              result->data.end());
+}
+
+}  // namespace
+
 // =============================================================================
 // Song Data Tests
 // =============================================================================
@@ -215,44 +251,37 @@ class SpcSerializerTest : public ::testing::Test {
 };
 
 TEST_F(SpcSerializerTest, SerializeNote) {
-  Note note;
-  note.pitch = 0x8C;
-  note.duration = 0x48;
-  note.velocity = 0;
-  note.has_duration_prefix = true;
+  MusicTrack track;
+  TrackEvent first = TrackEvent::MakeNote(0, 0x8C, 0x48);
+  first.note.has_duration_prefix = true;
+  track.events.push_back(first);
 
-  uint8_t current_duration = 0;
-  auto bytes = SpcSerializer::SerializeNote(note, &current_duration);
+  TrackEvent second = TrackEvent::MakeNote(72, 0x8E, 0x48);
+  second.note.has_duration_prefix = true;
+  track.events.push_back(second);
+  track.events.push_back(TrackEvent::MakeEnd(144));
 
-  // Should output duration + pitch
-  ASSERT_EQ(bytes.size(), 2);
-  EXPECT_EQ(bytes[0], 0x48);  // Duration
-  EXPECT_EQ(bytes[1], 0x8C);  // Pitch
-  EXPECT_EQ(current_duration, 0x48);
+  auto bytes = SerializeSingleTrack(track);
 
-  // Next note with same duration
-  Note note2;
-  note2.pitch = 0x8E;
-  note2.duration = 0x48;
-  note2.has_duration_prefix = true;
-
-  auto bytes2 = SpcSerializer::SerializeNote(note2, &current_duration);
-
-  // Should only output pitch (duration unchanged)
-  ASSERT_EQ(bytes2.size(), 1);
-  EXPECT_EQ(bytes2[0], 0x8E);
+  // Should output duration + pitch, then pitch, then end marker.
+  ASSERT_EQ(bytes.size(), 4u);
+  EXPECT_EQ(bytes[0], 0x48);
+  EXPECT_EQ(bytes[1], 0x8C);
+  EXPECT_EQ(bytes[2], 0x8E);
+  EXPECT_EQ(bytes[3], 0x00);
 }
 
 TEST_F(SpcSerializerTest, SerializeCommand) {
-  MusicCommand cmd;
-  cmd.opcode = 0xE0;
-  cmd.params = {0x0B, 0, 0};  // SetInstrument(Piano)
+  MusicTrack track;
+  track.events.push_back(TrackEvent::MakeCommand(0, 0xE0, 0x0B));
+  track.events.push_back(TrackEvent::MakeEnd(72));
 
-  auto bytes = SpcSerializer::SerializeCommand(cmd);
+  auto bytes = SerializeSingleTrack(track);
 
-  ASSERT_EQ(bytes.size(), 2);
+  ASSERT_EQ(bytes.size(), 3u);
   EXPECT_EQ(bytes[0], 0xE0);
   EXPECT_EQ(bytes[1], 0x0B);
+  EXPECT_EQ(bytes[2], 0x00);
 }
 
 TEST_F(SpcSerializerTest, SerializeTrack) {
@@ -272,10 +301,10 @@ TEST_F(SpcSerializerTest, SerializeTrack) {
   // End
   track.events.push_back(TrackEvent::MakeEnd(72));
 
-  auto bytes = SpcSerializer::SerializeTrack(track);
+  auto bytes = SerializeSingleTrack(track);
 
   // Expected: E0 0B ED C0 48 8C 00
-  ASSERT_GE(bytes.size(), 7);
+  ASSERT_EQ(bytes.size(), 7u);
   EXPECT_EQ(bytes[0], 0xE0);
   EXPECT_EQ(bytes[1], 0x0B);
   EXPECT_EQ(bytes[2], 0xED);
