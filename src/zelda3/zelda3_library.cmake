@@ -15,7 +15,6 @@ set(
   zelda3/dungeon/object_templates.cc
   zelda3/dungeon/room.cc
   zelda3/dungeon/room_layer_manager.cc
-  zelda3/dungeon/palette_debug.cc
   zelda3/dungeon/room_layout.cc
   zelda3/dungeon/room_object.cc
   # Draw routine modules (Phase 2 modularization)

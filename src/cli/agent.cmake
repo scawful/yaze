@@ -197,6 +197,7 @@ set(YAZE_AGENT_CORE_SOURCES
   cli/service/testing/test_suite_reporter.cc
   cli/service/testing/test_suite_writer.cc
   cli/service/testing/test_workflow_generator.cc
+  cli/service/ai/ai_action_parser.cc
   cli/service/ai/ai_service.cc
   cli/service/ai/model_registry.cc
   cli/service/ai/vision_action_refiner.cc
@@ -219,7 +220,6 @@ if(YAZE_ENABLE_AI_RUNTIME)
   list(APPEND YAZE_AGENT_CORE_SOURCES
     cli/service/agent/advanced_routing.cc
     cli/service/agent/agent_pretraining.cc
-    cli/service/ai/ai_action_parser.cc
     cli/service/ai/ai_gui_controller.cc
     cli/service/ai/ollama_ai_service.cc
     cli/service/ai/local_gemini_cli_service.cc
