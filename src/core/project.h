@@ -127,7 +127,8 @@ struct YazeProject {
 
   // AI Agent Settings
   struct AgentSettings {
-    std::string ai_provider = "auto";  // auto, gemini, ollama, mock
+    std::string ai_provider =
+        "auto";  // auto, gemini, anthropic, openai, ollama, mock
     std::string ai_model;  // e.g., "gemini-2.5-flash", "llama3:latest"
     std::string ollama_host = "http://localhost:11434";
     std::string gemini_api_key;  // Optional, can use env var

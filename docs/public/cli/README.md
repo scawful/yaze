@@ -55,6 +55,8 @@ Machine-readable test discovery and execution.
 | `--rom <path>` | Path to ROM file |
 | `--format json\|text` | Output format |
 | `--verbose` | Detailed output |
+| `--ai_provider <name>` | AI provider for agent commands (ollama, gemini, openai, anthropic, mock) |
+| `--ai_model <name>` | Provider-specific model override |
 | `--help` | Show command help |
 
 ---
@@ -81,4 +83,3 @@ z3ed rom-doctor --rom zelda3.sfc --format json | jq '.checksum_valid'
 
 - [z3ed CLI Guide](../usage/z3ed-cli.md) - Usage tutorials and workflows
 - [Getting Started](../overview/getting-started.md) - Quick start guide
-

@@ -9,7 +9,8 @@ YAZE includes two primary AI assistance modes:
 1. **Development Assistance** - Help with building, testing, and debugging yaze itself
 2. **ROM Debugging Assistance** - Help debugging ROM patches, ASM code, and game state
 
-Both modes use the same underlying AI service (Ollama or Gemini) and tool infrastructure, but target different workflows.
+Both modes use the same underlying AI service (Ollama, Gemini, OpenAI, or
+Anthropic) and tool infrastructure, but target different workflows.
 
 ## Choosing the right agent persona
 - Personas live in `.claude/agents/<agent-id>.md`; open the matching file as your system prompt before a session (available to all agents, not just Claude).
@@ -70,6 +71,21 @@ For more capable AI with vision support (image analysis, ROM visualization):
 # Get API key from https://ai.google.com/
 export GEMINI_API_KEY=your_api_key_here
 z3ed agent simple-chat --rom zelda3.sfc
+```
+
+#### Option 3: Cloud AI with OpenAI or Anthropic
+
+For alternative hosted models (or if Gemini is unavailable), configure OpenAI
+or Anthropic and pick a provider explicitly:
+
+```bash
+# OpenAI (https://platform.openai.com/)
+export OPENAI_API_KEY=your_api_key_here
+z3ed agent simple-chat --rom zelda3.sfc --ai_provider=openai --ai_model=gpt-4o-mini
+
+# Anthropic (https://console.anthropic.com/)
+export ANTHROPIC_API_KEY=your_api_key_here
+z3ed agent simple-chat --rom zelda3.sfc --ai_provider=anthropic --ai_model=claude-3-5-sonnet-latest
 ```
 
 ### Build Verification

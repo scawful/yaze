@@ -20,7 +20,7 @@ can treat it as a quick reference while editing.
 | `YAZE_BUILD_LIB` | `OFF` | Produces the `yaze_core` INTERFACE target used by external tooling. |
 | `YAZE_BUILD_AGENT_UI` | `ON` when `YAZE_BUILD_GUI` is `ON` | Compiles ImGui chat widgets. Disable for lighter GUI builds. |
 | `YAZE_ENABLE_REMOTE_AUTOMATION` | `OFF` in `win-*` core presets | Builds gRPC servers/clients plus proto generation. |
-| `YAZE_ENABLE_AI_RUNTIME` | `OFF` in `win-*` core presets | Enables Gemini/Ollama transports, proposal planning, and advanced routing code. |
+| `YAZE_ENABLE_AI_RUNTIME` | `OFF` in `win-*` core presets | Enables Gemini/Ollama/OpenAI/Anthropic transports, proposal planning, and advanced routing code. |
 | `YAZE_ENABLE_AGENT_CLI` | `ON` when `YAZE_BUILD_CLI` is `ON` | Compiles the conversational agent stack used by `z3ed`. |
 
 Use the canned presets from `CMakePresets.json` so these options stay consistent across

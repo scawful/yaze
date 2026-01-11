@@ -39,7 +39,7 @@ The yaze ecosystem is split into two main components: the **YAZE GUI Application
 │  ┌──────────────────────────────────────────────────────────────┐       │
 │  │  CLI Services (Business Logic - NOT gRPC servers)             │       │
 │  │  ══════════════════════════════════════════════════           │       │
-│  │  - AI Services (Gemini, Ollama)                               │       │
+│  │  - AI Services (Gemini, OpenAI, Anthropic, Ollama)             │       │
 │  │  - Agent Services (Chat, Tool Dispatcher)                     │       │
 │  │  - Network Clients (gRPC and WebSocket clients)               │       │
 │  └──────────────────────────────────────────────────────────────┘       │
@@ -114,7 +114,7 @@ The WebSocket protocol handles real-time messaging for:
 ## 5. Data Flow Example: AI Agent Edits a Tile
 
 1.  **User** runs `z3ed agent --prompt "Paint grass at 10,10"`.
-2.  The **GeminiAIService** (a CLI Service) parses the prompt and returns a tool call to `overworld-set-tile`.
+2.  The configured **AI service** (Gemini/OpenAI/Anthropic/Ollama) parses the prompt and returns a tool call to `overworld-set-tile`.
 3.  The **ToolDispatcher** (a CLI Service) routes this to the appropriate handler.
 4.  The **Tile16ProposalGenerator** (a CLI Service) creates a proposal.
 5.  The **GuiAutomationClient** (a CLI Service acting as a gRPC client) calls the `CanvasAutomation.SetTile()` RPC method on the YAZE application's `UnifiedGRPCServer`.

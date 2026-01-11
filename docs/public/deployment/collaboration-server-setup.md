@@ -6,7 +6,7 @@ This guide explains how to set up a WebSocket server for yaze's real-time collab
 
 The official collaboration server is **[yaze-server](https://github.com/scawful/yaze-server)**, a Node.js WebSocket server with:
 - Real-time session management
-- AI agent integration (Gemini/Genkit)
+- AI agent integration (Gemini/Genkit or external agent endpoints)
 - ROM synchronization and diff broadcasting
 - Rate limiting and security features
 
@@ -93,7 +93,7 @@ Messages use `{ "type": "...", "payload": { ... } }`.
 - `rom_sync`: `sender`, `diff_data` (base64), `rom_hash`
 - `snapshot_share`: `sender`, `snapshot_data` (base64), `snapshot_type`
 - `proposal_share` / `proposal_vote` / `proposal_update`
-- `ai_query`: `username`, `query` (requires `ENABLE_AI_AGENT` plus `GEMINI_API_KEY` or `AI_AGENT_ENDPOINT`)
+- `ai_query`: `username`, `query` (requires `ENABLE_AI_AGENT` plus `GEMINI_API_KEY` or `AI_AGENT_ENDPOINT` for external providers)
 - `leave_session`, `ping`
 
 **Key server broadcasts**
@@ -123,7 +123,7 @@ See `yaze-server/README.md` for full payload examples.
    PORT=8765                          # WebSocket/HTTP port (default: 8765)
    ENABLE_AI_AGENT=true               # Enable AI query handling (default: true)
    GEMINI_API_KEY=your_api_key        # Gemini API key for AI responses
-   AI_AGENT_ENDPOINT=http://...       # Alternative: external AI endpoint
+   AI_AGENT_ENDPOINT=http://...       # Alternative: external AI endpoint (OpenAI/Anthropic/etc.)
    ```
 
    **Persistence (v2.1+):**
