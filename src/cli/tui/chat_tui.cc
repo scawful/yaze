@@ -255,12 +255,13 @@ void ChatTUI::Run() {
             RenderMetricLabel("🕒", "Turns",
                               absl::StrFormat("%d", metrics.turn_index),
                               Color::Cyan),
-            RenderMetricLabel("🙋", "User",
-                              absl::StrFormat("%d", metrics.total_user_messages),
-                              Color::White),
-            RenderMetricLabel("🤖", "Agent",
-                              absl::StrFormat("%d", metrics.total_agent_messages),
-                              Color::GreenLight),
+            RenderMetricLabel(
+                "🙋", "User", absl::StrFormat("%d", metrics.total_user_messages),
+                Color::White),
+            RenderMetricLabel(
+                "🤖", "Agent",
+                absl::StrFormat("%d", metrics.total_agent_messages),
+                Color::GreenLight),
             RenderMetricLabel("🔧", "Tools",
                               absl::StrFormat("%d", metrics.total_tool_calls),
                               Color::YellowLight),
@@ -272,10 +273,10 @@ void ChatTUI::Run() {
         {RenderMetricLabel("⚡", "Last",
                            absl::StrFormat("%.2fs", last_response_seconds_),
                            Color::Yellow),
-         RenderMetricLabel("📈", "Average",
-                           absl::StrFormat("%.2fs",
-                                           metrics.average_latency_seconds),
-                           Color::MagentaLight),
+         RenderMetricLabel(
+             "📈", "Average",
+             absl::StrFormat("%.2fs", metrics.average_latency_seconds),
+             Color::MagentaLight),
          RenderLatencySparkline(latency_history_)},
         Color::Magenta, agent_busy_.load()));
 
