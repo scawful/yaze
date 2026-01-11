@@ -644,9 +644,9 @@ void WelcomeScreen::DrawHeader() {
 
   ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "%s", subtitle);
 
-  const std::string version_line = absl::StrFormat(
-      "v%s - AI workflows, CLI automation, and web preview",
-      YAZE_VERSION_STRING);
+  const std::string version_line =
+      absl::StrFormat("v%s - AI workflows, CLI automation, and web preview",
+                      YAZE_VERSION_STRING);
   textWidth = ImGui::CalcTextSize(version_line.c_str()).x;
   ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
   ImGui::TextColored(ImVec4(0.55f, 0.55f, 0.55f, 1.0f), "%s",
@@ -1155,8 +1155,7 @@ void WelcomeScreen::DrawWhatsNew() {
        "Palette fixes, graphics saves, and stability improvements",
        kSpiritOrange},
       {ICON_MD_FACT_CHECK, "Release Quality",
-       "Cross-platform packaging and CI/CD hardening for v0.5.0",
-       kHyruleGreen},
+       "Cross-platform packaging and CI/CD hardening for v0.5.0", kHyruleGreen},
   };
 
   for (const auto& feature : features) {
