@@ -12,12 +12,12 @@ namespace cli {
 
 struct AIServiceConfig {
   std::string provider =
-      "auto";  // "auto" (try gemini→anthropic→openai→mock), "gemini",
-               // "anthropic", "openai", "ollama", or "mock"
-  std::string model;           // Provider-specific model name
-  std::string gemini_api_key;  // For Gemini
-  std::string openai_api_key;  // For OpenAI
-  std::string anthropic_api_key; // For Anthropic
+      "auto";         // "auto" (try gemini→anthropic→openai→mock), "gemini",
+                      // "anthropic", "openai", "ollama", or "mock"
+  std::string model;  // Provider-specific model name
+  std::string gemini_api_key;                          // For Gemini
+  std::string openai_api_key;                          // For OpenAI
+  std::string anthropic_api_key;                       // For Anthropic
   std::string ollama_host = "http://localhost:11434";  // For Ollama
   bool verbose = false;                                // Enable debug logging
 };

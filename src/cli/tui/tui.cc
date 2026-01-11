@@ -536,8 +536,8 @@ void ValidateAssemblyComponent(ftxui::ScreenInteractive& screen) {
         output_message = "✅ Assembly file is valid!";
         output_color = Color::Green;
       } else {
-        output_message =
-            absl::StrCat("❌ Validation failed:\n", validation_status.message());
+        output_message = absl::StrCat("❌ Validation failed:\n",
+                                      validation_status.message());
         output_color = Color::Red;
       }
 
@@ -657,7 +657,8 @@ void HelpComponent(ftxui::ScreenInteractive& screen) {
           text("scawful") | color(Color::Magenta),
           text("  │  ") | color(Color::GrayDark),
           text("🤖 AI: ") | color(Color::Green1) | bold,
-          text("Ollama + Gemini + OpenAI Integration") | color(Color::GreenLight),
+          text("Ollama + Gemini + OpenAI Integration") |
+              color(Color::GreenLight),
       }) | center,
       text(""),
       separator(),

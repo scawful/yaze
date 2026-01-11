@@ -17,8 +17,9 @@ ABSL_FLAG(std::string, ai_model, "",
           "'gemini-1.5-flash' for Gemini, 'gpt-4o-mini' for OpenAI)");
 ABSL_FLAG(std::string, gemini_api_key, "",
           "Gemini API key (can also use GEMINI_API_KEY environment variable)");
-ABSL_FLAG(std::string, anthropic_api_key, "",
-          "Anthropic API key (can also use ANTHROPIC_API_KEY environment variable)");
+ABSL_FLAG(
+    std::string, anthropic_api_key, "",
+    "Anthropic API key (can also use ANTHROPIC_API_KEY environment variable)");
 ABSL_FLAG(std::string, ollama_host, "http://localhost:11434",
           "Ollama server host URL");
 ABSL_FLAG(std::string, prompt_version, "default",

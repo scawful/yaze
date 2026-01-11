@@ -7,12 +7,12 @@
 #include "absl/flags/flag.h"
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
-#include "rom/rom.h"
 #include "cli/cli.h"
 #include "cli/handlers/agent/common.h"
 #include "cli/handlers/agent/simple_chat_command.h"
 #include "cli/handlers/agent/todo_commands.h"
 #include "cli/service/command_registry.h"
+#include "rom/rom.h"
 
 ABSL_DECLARE_FLAG(bool, quiet);
 
