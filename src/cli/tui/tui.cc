@@ -536,8 +536,9 @@ void ValidateAssemblyComponent(ftxui::ScreenInteractive& screen) {
         output_message = "✅ Assembly file is valid!";
         output_color = Color::Green;
       } else {
-        output_message = absl::StrCat("❌ Validation failed:\n",
-                                      validation_status.message());
+        output_message =
+            absl::StrCat("❌ Validation failed:\n",
+                         validation_status.message());
         output_color = Color::Red;
       }
 
