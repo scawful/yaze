@@ -42,79 +42,112 @@ void PopupManager::Initialize() {
 
   // File Operations
   popups_[PopupID::kSaveAs] = {PopupID::kSaveAs, PopupType::kFileOperation,
-                               false, false, [this]() { DrawSaveAsPopup(); }};
-  popups_[PopupID::kNewProject] = {PopupID::kNewProject,
-                                   PopupType::kFileOperation, false, false,
-                                   [this]() { DrawNewProjectPopup(); }};
+                               false, false, [this]() {
+                                 DrawSaveAsPopup();
+                               }};
+  popups_[PopupID::kNewProject] = {
+      PopupID::kNewProject, PopupType::kFileOperation, false, false, [this]() {
+        DrawNewProjectPopup();
+      }};
   popups_[PopupID::kManageProject] = {PopupID::kManageProject,
                                       PopupType::kFileOperation, false, false,
-                                      [this]() { DrawManageProjectPopup(); }};
+                                      [this]() {
+                                        DrawManageProjectPopup();
+                                      }};
 
   // Information
   popups_[PopupID::kAbout] = {PopupID::kAbout, PopupType::kInfo, false, false,
-                              [this]() { DrawAboutPopup(); }};
+                              [this]() {
+                                DrawAboutPopup();
+                              }};
   popups_[PopupID::kRomInfo] = {PopupID::kRomInfo, PopupType::kInfo, false,
-                                false, [this]() { DrawRomInfoPopup(); }};
+                                false, [this]() {
+                                  DrawRomInfoPopup();
+                                }};
   popups_[PopupID::kSupportedFeatures] = {
-      PopupID::kSupportedFeatures, PopupType::kInfo, false, false,
-      [this]() { DrawSupportedFeaturesPopup(); }};
+      PopupID::kSupportedFeatures, PopupType::kInfo, false, false, [this]() {
+        DrawSupportedFeaturesPopup();
+      }};
   popups_[PopupID::kOpenRomHelp] = {PopupID::kOpenRomHelp, PopupType::kHelp,
-                                    false, false,
-                                    [this]() { DrawOpenRomHelpPopup(); }};
+                                    false, false, [this]() {
+                                      DrawOpenRomHelpPopup();
+                                    }};
 
   // Help Documentation
-  popups_[PopupID::kGettingStarted] = {PopupID::kGettingStarted,
-                                       PopupType::kHelp, false, false,
-                                       [this]() { DrawGettingStartedPopup(); }};
+  popups_[PopupID::kGettingStarted] = {
+      PopupID::kGettingStarted, PopupType::kHelp, false, false, [this]() {
+        DrawGettingStartedPopup();
+      }};
   popups_[PopupID::kAsarIntegration] = {
-      PopupID::kAsarIntegration, PopupType::kHelp, false, false,
-      [this]() { DrawAsarIntegrationPopup(); }};
+      PopupID::kAsarIntegration, PopupType::kHelp, false, false, [this]() {
+        DrawAsarIntegrationPopup();
+      }};
   popups_[PopupID::kBuildInstructions] = {
-      PopupID::kBuildInstructions, PopupType::kHelp, false, false,
-      [this]() { DrawBuildInstructionsPopup(); }};
+      PopupID::kBuildInstructions, PopupType::kHelp, false, false, [this]() {
+        DrawBuildInstructionsPopup();
+      }};
   popups_[PopupID::kCLIUsage] = {PopupID::kCLIUsage, PopupType::kHelp, false,
-                                 false, [this]() { DrawCLIUsagePopup(); }};
+                                 false, [this]() {
+                                   DrawCLIUsagePopup();
+                                 }};
   popups_[PopupID::kTroubleshooting] = {
-      PopupID::kTroubleshooting, PopupType::kHelp, false, false,
-      [this]() { DrawTroubleshootingPopup(); }};
+      PopupID::kTroubleshooting, PopupType::kHelp, false, false, [this]() {
+        DrawTroubleshootingPopup();
+      }};
   popups_[PopupID::kContributing] = {PopupID::kContributing, PopupType::kHelp,
-                                     false, false,
-                                     [this]() { DrawContributingPopup(); }};
+                                     false, false, [this]() {
+                                       DrawContributingPopup();
+                                     }};
   popups_[PopupID::kWhatsNew] = {PopupID::kWhatsNew, PopupType::kHelp, false,
-                                 false, [this]() { DrawWhatsNewPopup(); }};
+                                 false, [this]() {
+                                   DrawWhatsNewPopup();
+                                 }};
 
   // Settings
-  popups_[PopupID::kDisplaySettings] = {
-      PopupID::kDisplaySettings, PopupType::kSettings, false,
-      true,  // Resizable
-      [this]() { DrawDisplaySettingsPopup(); }};
+  popups_[PopupID::kDisplaySettings] = {PopupID::kDisplaySettings,
+                                        PopupType::kSettings, false,
+                                        true,  // Resizable
+                                        [this]() {
+                                          DrawDisplaySettingsPopup();
+                                        }};
   popups_[PopupID::kFeatureFlags] = {
       PopupID::kFeatureFlags, PopupType::kSettings, false, true,  // Resizable
-      [this]() { DrawFeatureFlagsPopup(); }};
+      [this]() {
+        DrawFeatureFlagsPopup();
+      }};
 
   // Workspace
   popups_[PopupID::kWorkspaceHelp] = {PopupID::kWorkspaceHelp, PopupType::kHelp,
-                                      false, false,
-                                      [this]() { DrawWorkspaceHelpPopup(); }};
-  popups_[PopupID::kSessionLimitWarning] = {
-      PopupID::kSessionLimitWarning, PopupType::kWarning, false, false,
-      [this]() { DrawSessionLimitWarningPopup(); }};
-  popups_[PopupID::kLayoutResetConfirm] = {
-      PopupID::kLayoutResetConfirm, PopupType::kConfirmation, false, false,
-      [this]() { DrawLayoutResetConfirmPopup(); }};
+                                      false, false, [this]() {
+                                        DrawWorkspaceHelpPopup();
+                                      }};
+  popups_[PopupID::kSessionLimitWarning] = {PopupID::kSessionLimitWarning,
+                                            PopupType::kWarning, false, false,
+                                            [this]() {
+                                              DrawSessionLimitWarningPopup();
+                                            }};
+  popups_[PopupID::kLayoutResetConfirm] = {PopupID::kLayoutResetConfirm,
+                                           PopupType::kConfirmation, false,
+                                           false, [this]() {
+                                             DrawLayoutResetConfirmPopup();
+                                           }};
 
-  popups_[PopupID::kLayoutPresets] = {PopupID::kLayoutPresets,
-                                      PopupType::kSettings, false, false,
-                                      [this]() { DrawLayoutPresetsPopup(); }};
+  popups_[PopupID::kLayoutPresets] = {
+      PopupID::kLayoutPresets, PopupType::kSettings, false, false, [this]() {
+        DrawLayoutPresetsPopup();
+      }};
 
-  popups_[PopupID::kSessionManager] = {PopupID::kSessionManager,
-                                       PopupType::kSettings, false, true,
-                                       [this]() { DrawSessionManagerPopup(); }};
+  popups_[PopupID::kSessionManager] = {
+      PopupID::kSessionManager, PopupType::kSettings, false, true, [this]() {
+        DrawSessionManagerPopup();
+      }};
 
   // Debug/Testing
   popups_[PopupID::kDataIntegrity] = {PopupID::kDataIntegrity, PopupType::kInfo,
                                       false, true,  // Resizable
-                                      [this]() { DrawDataIntegrityPopup(); }};
+                                      [this]() {
+                                        DrawDataIntegrityPopup();
+                                      }};
 }
 
 void PopupManager::DrawPopups() {
@@ -491,14 +524,18 @@ void PopupManager::DrawGettingStartedPopup() {
       "JP) ROMs with modern tooling.");
   Spacing();
   TextWrapped("Release Highlights:");
-  BulletText("AI-assisted workflows via z3ed agent and in-app panels");
+  BulletText(
+      "AI-assisted workflows via z3ed agent and in-app panels "
+      "(Ollama/Gemini/OpenAI/Anthropic)");
   BulletText("Web/WASM preview with collaboration server support");
   BulletText("Music editor updates with SPC parsing and playback");
   Spacing();
   TextWrapped("General Tips:");
   BulletText("Open a clean ROM and save a backup before editing");
   BulletText("Use Help (F1) for context-aware guidance");
-  BulletText("Configure AI providers in Settings > Agent");
+  BulletText(
+      "Configure AI providers (Ollama/Gemini/OpenAI/Anthropic) in Settings > "
+      "Agent");
 
   if (Button("Close", gui::kDefaultModalSize)) {
     Hide("Getting Started");
@@ -546,9 +583,9 @@ void PopupManager::DrawCLIUsagePopup() {
   Spacing();
   TextWrapped("Commands:");
   BulletText("z3ed rom-info --rom=zelda3.sfc");
-  BulletText("z3ed agent simple-chat --rom=zelda3.sfc");
+  BulletText("z3ed agent simple-chat --rom=zelda3.sfc --ai_provider=openai");
   BulletText("z3ed --tui");
-  BulletText("z3ed asar patch.asm --rom=zelda3.sfc");
+  BulletText("z3ed patch apply-asar patch.asm --rom=zelda3.sfc");
 
   if (Button("Close", gui::kDefaultModalSize)) {
     Hide("CLI Usage");
@@ -560,7 +597,9 @@ void PopupManager::DrawTroubleshootingPopup() {
   TextWrapped("Common issues and solutions:");
   Spacing();
   BulletText("ROM won't load: Check file format (SFC/SMC supported)");
-  BulletText("AI agent missing: Start Ollama or set GEMINI_API_KEY");
+  BulletText(
+      "AI agent missing: Start Ollama or set GEMINI_API_KEY/OPENAI_API_KEY/"
+      "ANTHROPIC_API_KEY");
   BulletText("Graphics issues: Try disabling experimental features");
   BulletText("Performance: Enable hardware acceleration in display settings");
   BulletText("Crashes: Check ROM file integrity and available memory");
@@ -605,7 +644,7 @@ void PopupManager::DrawWhatsNewPopup() {
               .c_str(),
           ImGuiTreeNodeFlags_DefaultOpen)) {
     BulletText("Asar 65816 assembler integration for ROM patching");
-    BulletText("z3ed CLI + TUI for scripting and automation");
+    BulletText("z3ed CLI + TUI for scripting, test/doctor, and automation");
     BulletText("Modern CMake presets for desktop, AI, and web builds");
     BulletText("Cross-platform CI/CD hardening (Windows, macOS, Linux)");
     BulletText("Quality release packaging for macOS/Windows/Linux");
@@ -622,7 +661,9 @@ void PopupManager::DrawWhatsNewPopup() {
   if (CollapsingHeader(
           absl::StrFormat("%s Editor Features", ICON_MD_EDIT).c_str())) {
     BulletText("Music editor updates with SPC parsing/playback");
-    BulletText("AI agent-assisted editing workflows");
+    BulletText(
+        "AI agent-assisted editing workflows (Ollama/Gemini/OpenAI/"
+        "Anthropic)");
     BulletText("Expanded overworld/dungeon tooling and palettes");
     BulletText("Web/WASM preview with collaboration hooks");
   }
@@ -726,26 +767,42 @@ void PopupManager::DrawLayoutPresetsPopup() {
   PresetInfo presets[] = {
       {"Minimal", ICON_MD_CROP_FREE,
        "Essential cards only - maximum editing space",
-       []() { return LayoutPresets::GetMinimalPreset(); }},
+       []() {
+         return LayoutPresets::GetMinimalPreset();
+       }},
       {"Developer", ICON_MD_BUG_REPORT,
        "Debug and development focused - CPU/Memory/Breakpoints",
-       []() { return LayoutPresets::GetDeveloperPreset(); }},
+       []() {
+         return LayoutPresets::GetDeveloperPreset();
+       }},
       {"Designer", ICON_MD_PALETTE,
        "Visual and artistic focused - Graphics/Palettes/Sprites",
-       []() { return LayoutPresets::GetDesignerPreset(); }},
+       []() {
+         return LayoutPresets::GetDesignerPreset();
+       }},
       {"Modder", ICON_MD_BUILD,
        "Full-featured - All tools available for comprehensive editing",
-       []() { return LayoutPresets::GetModderPreset(); }},
+       []() {
+         return LayoutPresets::GetModderPreset();
+       }},
       {"Overworld Expert", ICON_MD_MAP,
        "Complete overworld editing toolkit with all map tools",
-       []() { return LayoutPresets::GetOverworldExpertPreset(); }},
+       []() {
+         return LayoutPresets::GetOverworldExpertPreset();
+       }},
       {"Dungeon Expert", ICON_MD_DOOR_SLIDING,
        "Complete dungeon editing toolkit with room tools",
-       []() { return LayoutPresets::GetDungeonExpertPreset(); }},
+       []() {
+         return LayoutPresets::GetDungeonExpertPreset();
+       }},
       {"Testing", ICON_MD_SCIENCE, "Quality assurance and ROM testing layout",
-       []() { return LayoutPresets::GetTestingPreset(); }},
+       []() {
+         return LayoutPresets::GetTestingPreset();
+       }},
       {"Audio", ICON_MD_MUSIC_NOTE, "Music and sound editing layout",
-       []() { return LayoutPresets::GetAudioPreset(); }},
+       []() {
+         return LayoutPresets::GetAudioPreset();
+       }},
   };
 
   constexpr int kPresetCount = 8;

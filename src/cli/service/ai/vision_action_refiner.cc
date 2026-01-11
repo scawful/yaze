@@ -319,7 +319,7 @@ VisionAnalysisResult VisionActionRefiner::ParseVerificationResponse(
     size_t pos = response_upper.find("FAILURE:");
     if (pos != std::string::npos) {
       std::string desc = response.substr(pos + 8);
-      result.error_message = absl::StripAsciiWhitespace(desc);
+      result.error_message = std::string(absl::StripAsciiWhitespace(desc));
     } else {
       result.error_message = "Action failed (details in description)";
     }

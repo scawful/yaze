@@ -133,6 +133,8 @@ class VisionActionRefiner {
       const std::filesystem::path& screenshot_path);
 
  private:
+  friend class VisionActionRefinerTest;
+
   GeminiAIService* gemini_service_;  // Not owned
 
   // Build prompts for different vision analysis tasks
