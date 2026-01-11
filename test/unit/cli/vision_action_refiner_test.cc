@@ -1,5 +1,6 @@
 #include "cli/service/ai/vision_action_refiner.h"
 
+#include "cli/service/ai/gemini_ai_service.h"
 #include "gtest/gtest.h"
 
 namespace yaze {
@@ -8,7 +9,8 @@ namespace ai {
 
 class VisionActionRefinerTest : public ::testing::Test {
  protected:
-  VisionActionRefinerTest() : refiner_(nullptr) {}
+  VisionActionRefinerTest()
+      : gemini_service_(GeminiConfig{}), refiner_(&gemini_service_) {}
 
   VisionAnalysisResult ParseAnalysis(const std::string& response) {
     return refiner_.ParseAnalysisResponse(response);
@@ -19,6 +21,7 @@ class VisionActionRefinerTest : public ::testing::Test {
     return refiner_.ParseVerificationResponse(response, action);
   }
 
+  GeminiAIService gemini_service_;
   VisionActionRefiner refiner_;
 };
 
