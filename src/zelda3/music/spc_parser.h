@@ -24,10 +24,10 @@ namespace music {
 // - Dungeon:   $1B:8000 (PC 0xD8000)
 // - Credits:   $1A:D380 (PC 0xD5380)
 constexpr uint32_t kSoundBankOffsets[] = {
-    0xC8000,   // Bank 0 (common) - start of contiguous region
-    0xD1EF5,   // Bank 1 (overworld) - song table block
-    0xD8000,   // Bank 2 (dungeon) - separate region
-    0xD5380    // Bank 3 (credits) - song table block
+    0xC8000,  // Bank 0 (common) - start of contiguous region
+    0xD1EF5,  // Bank 1 (overworld) - song table block
+    0xD8000,  // Bank 2 (dungeon) - separate region
+    0xD5380   // Bank 3 (credits) - song table block
 };
 
 /**
@@ -69,7 +69,7 @@ class SpcParser {
    * @return The parsed song, or error status.
    */
   static absl::StatusOr<MusicSong> ParseSong(Rom& rom, uint16_t address,
-                                              uint8_t bank);
+                                             uint8_t bank);
 
   /**
    * @brief Read the song pointer table for a given SPC bank.
@@ -91,8 +91,8 @@ class SpcParser {
    * @return The parsed track, or error status.
    */
   static absl::StatusOr<MusicTrack> ParseTrack(Rom& rom, uint16_t address,
-                                                uint8_t bank,
-                                                int max_ticks = 50000);
+                                               uint8_t bank,
+                                               int max_ticks = 50000);
 
   // =========================================================================
   // Address Resolution
@@ -106,7 +106,7 @@ class SpcParser {
    * @return The ROM file offset, or 0 if not found.
    */
   static uint32_t SpcAddressToRomOffset(Rom& rom, uint16_t spc_address,
-                                         uint8_t bank);
+                                        uint8_t bank);
 
   /**
    * @brief Get a pointer to ROM data at an SPC address.
@@ -116,8 +116,8 @@ class SpcParser {
    * @param out_length Receives the length of the data block.
    * @return Pointer to ROM data, or nullptr if not found.
    */
-  static const uint8_t* GetSpcData(Rom& rom, uint16_t spc_address,
-                                    uint8_t bank, int* out_length = nullptr);
+  static const uint8_t* GetSpcData(Rom& rom, uint16_t spc_address, uint8_t bank,
+                                   int* out_length = nullptr);
 
   // =========================================================================
   // Command Utilities
@@ -129,7 +129,8 @@ class SpcParser {
    * @return Number of parameter bytes, or 0 for notes.
    */
   static int GetCommandParamCount(uint8_t opcode) {
-    if (opcode < 0xE0) return 0;
+    if (opcode < 0xE0)
+      return 0;
     return kCommandParamCount[opcode - 0xE0];
   }
 
@@ -143,28 +144,23 @@ class SpcParser {
   /**
    * @brief Check if a byte is a duration value (< 128).
    */
-  static bool IsDuration(uint8_t byte) {
-    return byte < 0x80;
-  }
+  static bool IsDuration(uint8_t byte) { return byte < 0x80; }
 
   /**
    * @brief Check if a byte is a command opcode.
    */
-  static bool IsCommand(uint8_t byte) {
-    return byte >= 0xE0;
-  }
+  static bool IsCommand(uint8_t byte) { return byte >= 0xE0; }
 
  private:
   // Internal parsing with context
   static absl::StatusOr<MusicTrack> ParseTrackInternal(ParseContext& ctx,
-                                                        uint16_t address,
-                                                        int max_ticks);
+                                                       uint16_t address,
+                                                       int max_ticks);
 
   // Parse subroutine call
   static absl::StatusOr<int> ParseSubroutine(ParseContext& ctx,
-                                              uint16_t address,
-                                              int repeat_count,
-                                              int remaining_ticks);
+                                             uint16_t address, int repeat_count,
+                                             int remaining_ticks);
 };
 
 /**
@@ -181,7 +177,7 @@ class BrrCodec {
    * @return Decoded 16-bit PCM samples.
    */
   static std::vector<int16_t> Decode(const std::vector<uint8_t>& brr_data,
-                                      int* loop_start = nullptr);
+                                     int* loop_start = nullptr);
 
   /**
    * @brief Encode PCM samples to BRR format.
@@ -190,7 +186,7 @@ class BrrCodec {
    * @return BRR-encoded data.
    */
   static std::vector<uint8_t> Encode(const std::vector<int16_t>& pcm_data,
-                                      int loop_start = -1);
+                                     int loop_start = -1);
 
  private:
   // Filter coefficients for BRR decoding
