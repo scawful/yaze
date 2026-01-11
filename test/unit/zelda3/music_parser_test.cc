@@ -33,8 +33,7 @@ std::vector<uint8_t> SerializeSingleTrack(const MusicTrack& track) {
   }
 
   const auto segment_count = song.segments.size();
-  const auto header_size =
-      segment_count * 2 + 2 + (song.HasLoop() ? 2 : 0);
+  const auto header_size = segment_count * 2 + 2 + (song.HasLoop() ? 2 : 0);
   const auto track_data_base = header_size + segment_count * 16;
   if (result->data.size() < track_data_base) {
     ADD_FAILURE() << "Serialized data shorter than expected header size.";
@@ -345,7 +344,8 @@ TEST_F(BrrCodecTest, EncodeDecodeRoundtrip) {
   int max_error = 0;
   for (size_t i = 0; i < original.size(); ++i) {
     int error = abs(original[i] - decoded[i]);
-    if (error > max_error) max_error = error;
+    if (error > max_error)
+      max_error = error;
   }
 
   // BRR compression should keep error reasonable
@@ -431,10 +431,10 @@ class DirectSpcMappingTest : public ::testing::Test {
   // Note: These match the logic in MusicEditor::GetBankRomOffset
   uint32_t GetBankRomOffset(uint8_t bank) const {
     constexpr uint32_t kSoundBankOffsets[] = {
-        0xC8000,   // ROM Bank 0 (common) - driver + samples + instruments
-        0xD1EF5,   // ROM Bank 1 (overworld songs)
-        0xD8000,   // ROM Bank 2 (dungeon songs)
-        0xD5380    // ROM Bank 3 (credits songs)
+        0xC8000,  // ROM Bank 0 (common) - driver + samples + instruments
+        0xD1EF5,  // ROM Bank 1 (overworld songs)
+        0xD8000,  // ROM Bank 2 (dungeon songs)
+        0xD5380   // ROM Bank 3 (credits songs)
     };
     if (bank < 4) {
       return kSoundBankOffsets[bank];
@@ -453,12 +453,12 @@ class DirectSpcMappingTest : public ::testing::Test {
   // Matches MusicEditor::GetSongIndexInBank
   int GetSongIndexInBank(int song_id, uint8_t bank) const {
     switch (bank) {
-      case 0:  // Overworld
-        return song_id - 1;  // Songs 1-11 → 0-10
-      case 1:  // Dungeon
-        return song_id - 12; // Songs 12-31 → 0-19
-      case 2:  // Credits
-        return song_id - 32; // Songs 32-34 → 0-2
+      case 0:                 // Overworld
+        return song_id - 1;   // Songs 1-11 → 0-10
+      case 1:                 // Dungeon
+        return song_id - 12;  // Songs 12-31 → 0-19
+      case 2:                 // Credits
+        return song_id - 32;  // Songs 32-34 → 0-2
       default:
         return 0;
     }
@@ -498,17 +498,17 @@ TEST_F(DirectSpcMappingTest, SongBankToRomBankMapping) {
 
 TEST_F(DirectSpcMappingTest, OverworldSongIndices) {
   // Overworld songs: 1-11 (global ID) → 0-10 (bank index)
-  EXPECT_EQ(GetSongIndexInBank(1, 0), 0);   // Title
-  EXPECT_EQ(GetSongIndexInBank(2, 0), 1);   // Light World
-  EXPECT_EQ(GetSongIndexInBank(11, 0), 10); // File Select
+  EXPECT_EQ(GetSongIndexInBank(1, 0), 0);    // Title
+  EXPECT_EQ(GetSongIndexInBank(2, 0), 1);    // Light World
+  EXPECT_EQ(GetSongIndexInBank(11, 0), 10);  // File Select
 }
 
 TEST_F(DirectSpcMappingTest, DungeonSongIndices) {
   // Dungeon songs: 12-31 (global ID) → 0-19 (bank index)
-  EXPECT_EQ(GetSongIndexInBank(12, 1), 0);  // Soldier
-  EXPECT_EQ(GetSongIndexInBank(13, 1), 1);  // Mountain
-  EXPECT_EQ(GetSongIndexInBank(21, 1), 9);  // Boss
-  EXPECT_EQ(GetSongIndexInBank(31, 1), 19); // Last Boss
+  EXPECT_EQ(GetSongIndexInBank(12, 1), 0);   // Soldier
+  EXPECT_EQ(GetSongIndexInBank(13, 1), 1);   // Mountain
+  EXPECT_EQ(GetSongIndexInBank(21, 1), 9);   // Boss
+  EXPECT_EQ(GetSongIndexInBank(31, 1), 19);  // Last Boss
 }
 
 TEST_F(DirectSpcMappingTest, CreditsSongIndices) {
@@ -522,19 +522,22 @@ TEST_F(DirectSpcMappingTest, BankIndexConsistency) {
   // Verify bank index is non-negative for all vanilla songs
   for (int song_id = 1; song_id <= 11; ++song_id) {
     int index = GetSongIndexInBank(song_id, 0);
-    EXPECT_GE(index, 0) << "Overworld song " << song_id << " should have non-negative index";
+    EXPECT_GE(index, 0) << "Overworld song " << song_id
+                        << " should have non-negative index";
     EXPECT_LE(index, 10) << "Overworld song " << song_id << " should be <= 10";
   }
 
   for (int song_id = 12; song_id <= 31; ++song_id) {
     int index = GetSongIndexInBank(song_id, 1);
-    EXPECT_GE(index, 0) << "Dungeon song " << song_id << " should have non-negative index";
+    EXPECT_GE(index, 0) << "Dungeon song " << song_id
+                        << " should have non-negative index";
     EXPECT_LE(index, 19) << "Dungeon song " << song_id << " should be <= 19";
   }
 
   for (int song_id = 32; song_id <= 34; ++song_id) {
     int index = GetSongIndexInBank(song_id, 2);
-    EXPECT_GE(index, 0) << "Credits song " << song_id << " should have non-negative index";
+    EXPECT_GE(index, 0) << "Credits song " << song_id
+                        << " should have non-negative index";
     EXPECT_LE(index, 2) << "Credits song " << song_id << " should be <= 2";
   }
 }
