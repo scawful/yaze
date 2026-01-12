@@ -21,6 +21,7 @@
 #include "app/platform/window.h"
 #include "e2e/canvas_selection_test.h"
 #include "e2e/dungeon_e2e_tests.h"
+#include "e2e/editor_smoke_tests.h"
 #include "e2e/framework_smoke_test.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
@@ -404,6 +405,9 @@ int main(int argc, char* argv[]) {
     // This includes: smoke tests, visual verification, object drawing,
     // canvas interaction, and layer rendering tests (18 total)
     yaze::test::e2e::RegisterDungeonE2ETests(engine, &controller);
+
+    // Register editor smoke tests for key editors and emulator panels
+    yaze::test::e2e::RegisterEditorSmokeTests(engine, &controller);
 
 
     // Queue all registered tests to run automatically

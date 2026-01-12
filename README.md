@@ -41,10 +41,13 @@ v0.5.0 is the current release. See [`docs/public/release-notes.md`](docs/public/
 | Dungeon | Stable |
 | Palette | Stable |
 | Message | Stable |
-| Graphics | Stable |
+| Graphics | Beta |
 | Sprite | Stable |
 | Music | Experimental |
 | Emulator | Beta |
+
+See [`docs/public/reference/feature-coverage-report.md`](docs/public/reference/feature-coverage-report.md)
+for cross-app status, persistence notes, and test coverage.
 
 ## Quick Start
 

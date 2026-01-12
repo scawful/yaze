@@ -151,3 +151,16 @@ UI elements are registered with stable IDs for programmatic access via `z3ed`:
 - `z3ed agent test replay` - Replay recorded tests
 
 See the [z3ed CLI Guide](../usage/z3ed-cli.md) for more details.
+
+---
+
+## Web/WASM Smoke Tests
+
+The web build uses a Playwright smoke test to validate the debug API and basic
+terminal/filesystem flows. Run it locally against a served `build-wasm/dist`:
+
+```bash
+python3 -m http.server 8000 --directory build-wasm/dist
+cd scripts/agents
+YAZE_WASM_URL=http://127.0.0.1:8000 npx playwright test playwright-wasm-smoke.spec.js
+```

@@ -41,10 +41,11 @@ supported features and AI configuration.
 | Dungeon | Stable | Room editing, objects, sprites, palettes |
 | Palette | Stable | Reference implementation for palette utilities |
 | Message | Stable | Text and dialogue editing |
-| Hex | Stable | Direct ROM byte editing |
-| Asar Patching | Stable | Integrated Asar assembler |
-| Graphics | Stable | Tile and sprite graphics editing |
+| Hex | Beta | Direct ROM byte editing; search/UX incomplete |
+| Asar Patching | Beta | Integrated Asar assembler; project editor incomplete |
+| Graphics | Beta | Tile and sprite graphics editing; screen tooling WIP |
 | Sprite | Stable | Vanilla and custom sprite editing |
+| Emulator | Beta | Runtime emulator; save-state UI incomplete |
 | Music | Experimental | Tracker and instrument editing |
 
 ---

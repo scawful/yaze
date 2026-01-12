@@ -9,9 +9,10 @@ This directory contains E2E tests using ImGui Test Engine to validate complete u
 1. **framework_smoke_test.cc** - Basic framework validation
 2. **canvas_selection_test.cc** - Canvas selection and copy/paste workflow  
 3. **dungeon_editor_smoke_test.cc** - Dungeon editor UI navigation and interaction
-4. **overworld/overworld_e2e_test.cc** - Overworld editor workflows
-5. **rom_dependent/e2e_rom_test.cc** - ROM-dependent functionality tests
-6. **zscustomoverworld/zscustomoverworld_upgrade_test.cc** - ZSCustomOverworld upgrade tests
+4. **editor_smoke_tests.cc** - Graphics/Sprite/Message/Music/Emulator smoke tests
+5. **overworld/overworld_e2e_test.cc** - Overworld editor workflows
+6. **rom_dependent/e2e_rom_test.cc** - ROM-dependent functionality tests
+7. **zscustomoverworld/zscustomoverworld_upgrade_test.cc** - ZSCustomOverworld upgrade tests
 
 ### 📝 Dungeon Editor Smoke Test
 
@@ -119,6 +120,7 @@ test/e2e/
 ├── framework_smoke_test.{cc,h}
 ├── canvas_selection_test.{cc,h}
 ├── dungeon_editor_smoke_test.{cc,h}  ← Latest dungeon test
+├── editor_smoke_tests.{cc,h}         ← Graphics/Sprite/Message/Music/Emulator smoke tests
 ├── overworld/
 │   └── overworld_e2e_test.cc
 ├── rom_dependent/
@@ -140,9 +142,9 @@ Potential tests to add:
 - [ ] Object property editing
 - [ ] Layer visibility toggling
 - [ ] Save workflow validation
-- [ ] Sprite editor workflows
+- [ ] Sprite editor workflow depth (properties, custom sprites)
 - [ ] Palette editor workflows
-- [ ] Music editor workflows
+- [ ] Music editor workflow depth (tracker, piano roll)
 
 ## Troubleshooting
 

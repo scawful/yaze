@@ -31,6 +31,8 @@
 - Hardened Windows gRPC builds by forcing Win32 macro-compat includes for gRPC targets.
 - Added AgentChat history/telemetry and agent metrics unit coverage; expanded WASM debug API checks.
 - Fixed Linux static link order for test suites and tightened Abseil linkage.
+- Release artifacts now include a release README and omit internal test helper utilities.
+- Windows ships as a portable zip (no installer) with trimmed runtime DLLs.
 
 ---
 

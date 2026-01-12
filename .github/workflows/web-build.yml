@@ -200,6 +200,23 @@ jobs:
           mkdir -p build-wasm/dist/docs
           mv build/docs/html/* build-wasm/dist/docs/
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run WASM debug API smoke (Playwright)
+        run: |
+          set -euo pipefail
+          cd scripts/agents
+          npm ci
+          npx playwright install --with-deps chromium
+          python3 -m http.server 8000 --directory ../../build-wasm/dist &
+          server_pid=$!
+          trap "kill ${server_pid}" EXIT
+          sleep 3
+          YAZE_WASM_URL=http://127.0.0.1:8000 npx playwright test playwright-wasm-smoke.spec.js
+
       # --- Deploy ---
       - name: Setup Pages
         uses: actions/configure-pages@v4

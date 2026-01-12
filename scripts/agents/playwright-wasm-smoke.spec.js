@@ -1,4 +1,6 @@
 const { test, expect } = require('@playwright/test');
+const fs = require('fs');
+const path = require('path');
 
 const baseUrl = process.env.YAZE_WASM_URL || 'https://yaze.halext.org';
 
@@ -63,5 +65,47 @@ test.describe('yaze wasm smoke', () => {
     expect(fsResult.exists).toBe(true);
     expect(fsResult.content).toContain('playwright smoke');
     expect(fsResult.deleted).toBe(true);
+  });
+
+  test('debug api tests', async ({ page }) => {
+    test.setTimeout(240000);
+
+    await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+
+    const overlay = page.locator('#loading-overlay');
+    await overlay.waitFor({ state: 'hidden', timeout: 120000 });
+
+    await page.waitForFunction(
+      () => window.Module && window.Module.calledRun === true,
+      null,
+      { timeout: 120000 }
+    );
+
+    const debugScriptPath = path.join(
+      __dirname,
+      '..',
+      '..',
+      'src',
+      'web',
+      'tests',
+      'wasm_debug_api_tests.js'
+    );
+    const debugScript = fs.readFileSync(debugScriptPath, 'utf8');
+
+    await page.addScriptTag({ content: debugScript });
+    await page.waitForFunction(
+      () => typeof window.runWasmDebugApiTests === 'function',
+      null,
+      { timeout: 30000 }
+    );
+
+    const results = await page.evaluate(async () => {
+      if (typeof window.runWasmDebugApiTests !== 'function') {
+        return { failed: 1, error: 'runWasmDebugApiTests missing' };
+      }
+      return await window.runWasmDebugApiTests();
+    });
+
+    expect(results.failed).toBe(0);
   });
 });

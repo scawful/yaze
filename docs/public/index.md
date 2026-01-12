@@ -47,6 +47,7 @@ Welcome to the YAZE documentation. This site covers installation, usage, and dev
 - [Palette System](developer/palette-system-overview.md) - Color handling
 
 ### Reference
+- [Feature & Test Coverage Report](reference/feature-coverage-report.md) - Feature status and test coverage map
 - [ROM Reference](reference/rom-reference.md) - ROM data structures
 - [z3ed Command Reference](reference/z3ed-command-reference.md) - CLI commands
 - [Changelog](reference/changelog.md) - Version history

@@ -193,7 +193,8 @@ See [`docs/internal/wasm-yazeDebug-api-reference.md`](../../internal/wasm-yazeDe
 ### Debug API Test Suite
 
 For quick smoke validation of the web build (control/gui/AI APIs), load the
-debug test script and run it in the browser console:
+debug test script and run it in the browser console. CI also runs this suite
+via Playwright using `scripts/agents/playwright-wasm-smoke.spec.js`:
 
 ```javascript
 // Paste the contents of src/web/tests/wasm_debug_api_tests.js into the console,

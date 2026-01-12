@@ -61,6 +61,8 @@ foreach(TOOL ${HELPER_TOOLS})
 endforeach()
 
 # Install tools to bin directory
-install(TARGETS overworld_golden_data_extractor extract_vanilla_values rom_patch_utility dungeon_test_harness
-  DESTINATION bin
-)
+if(YAZE_INSTALL_TEST_HELPERS)
+  install(TARGETS overworld_golden_data_extractor extract_vanilla_values rom_patch_utility dungeon_test_harness
+    DESTINATION bin
+  )
+endif()
