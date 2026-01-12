@@ -278,6 +278,7 @@ if(YAZE_BUILD_TESTS)
     e2e/dungeon_object_drawing_test.cc
     e2e/dungeon_canvas_interaction_test.cc
     e2e/dungeon_layer_rendering_test.cc
+    e2e/editor_smoke_tests.cc
     # AI Multimodal Testing Framework
     e2e/ai_multimodal_test.cc
     e2e/emulator_stepping_test.cc

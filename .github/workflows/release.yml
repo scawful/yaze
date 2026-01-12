@@ -312,7 +312,6 @@ jobs:
             - **DMG**: `yaze-*.dmg` (macOS 11.0+)
             
             ### Windows
-            - **Installer**: `yaze-*.exe` (Windows 10/11)
             - **ZIP**: `yaze-*.zip` (Portable)
             
             ## Installation
@@ -330,13 +329,14 @@ jobs:
             
             ### Windows
             ```bash
-            # Run the installer
-            yaze-*.exe
+            # Unzip and run the portable build
+            yaze-*.zip
             ```
 
             ## Notes
 
-            - AI features require an Ollama server or Gemini/OpenAI API key.
+            - AI features require an Ollama server or Gemini/OpenAI/Anthropic API key.
+            - Collaboration server setup lives in the separate yaze-server repo.
           files: |
             release-files/*
           draft: false

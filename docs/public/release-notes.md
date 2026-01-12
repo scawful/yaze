@@ -33,6 +33,8 @@
 - Refreshed toolchain/dependency wiring and standardized build directory policy.
 - Hardened Windows gRPC builds by forcing the Win32 macro-compat include for gRPC targets.
 - Fixed Linux static link order for test suites and tightened Abseil linkage.
+- Release artifacts now include a release-focused README and exclude internal test helper tools.
+- Windows ships as a portable zip (no installer) with trimmed runtime DLLs.
 
 ### 🧪 Testing
 - Added role-based ROM selection and ROM-availability gating.

@@ -2,7 +2,7 @@
 
 This guide summarizes the architecture and implementation standards used across the editor codebase.
 
-## Editor Status (December 2025)
+## Editor Status (January 2026)
 
 **Status rubric**:
 - **Stable**: Core workflows function reliably; remaining TODOs are UX polish.
@@ -24,6 +24,9 @@ This guide summarizes the architecture and implementation standards used across 
 | Agent | Experimental | Chain mode labeled experimental; collaboration TODOs. |
 | Music | Experimental | Sample import/export and BRR tooling TODOs; serialization incomplete. |
 | Settings | Beta | Settings/project manager and layout serialization TODOs. |
+
+For a cross-app status view (desktop/CLI/web), persistence notes, and test
+coverage, see the [Feature & Test Coverage Report](../reference/feature-coverage-report.md).
 
 ### Recent Improvements (v0.3.9)
 

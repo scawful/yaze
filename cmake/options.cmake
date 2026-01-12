@@ -64,6 +64,7 @@ option(YAZE_VERBOSE_BUILD "Verbose build output" OFF)
 # Install options
 option(YAZE_INSTALL_LIB "Install static library" OFF)
 option(YAZE_INSTALL_HEADERS "Install public headers" ON)
+option(YAZE_INSTALL_TEST_HELPERS "Install development test helper tools" OFF)
 
 # Set preprocessor definitions based on options
 if(YAZE_ENABLE_REMOTE_AUTOMATION AND NOT YAZE_ENABLE_GRPC)

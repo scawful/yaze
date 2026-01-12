@@ -6,8 +6,21 @@
 ### 2026-01-10 backend-infra-engineer – CI/CD stabilization after v0.5.0 release
 - TASK: Fix failing CI builds/tests on master/develop and close remaining lint/test gaps across desktop/CLI/wasm.
 - SCOPE: .github/workflows, CMake/test targets, docs/public build/test references.
+- STATUS: COMPLETE
+- NOTES: Retagged v0.5.0; release run 20896390585 succeeded (all platforms); added feature/test coverage report and aligned status tables.
+
+### 2026-01-12 backend-infra-engineer – v0.5.0 release artifact cleanup
+- TASK: Clean up release artifacts (README, Windows DLL bloat, remove test helpers) and align docs/changelog for portable zip.
+- SCOPE: cmake/packaging, tools/test_helpers, docs/public/release-notes.md, docs/public/reference/changelog.md, release workflow.
 - STATUS: ACTIVE
-- NOTES: Fixing clang-format in src/cli/tui/tui.cc; adding OpenAI provider tests + doc updates; retag v0.5.0 after CI green (z3ed CLI not available locally).
+- NOTES: Changes staged (release README, runtime DLL trim, no test helpers); rerun release workflow to refresh artifacts.
+
+### 2026-01-11 backend-infra-engineer – v0.5.x test coverage expansion
+- TASK: Expand GUI + WASM debug API coverage for desktop/CLI/web and wire CI checks.
+- SCOPE: test/e2e, test/gui_test_utils.cc, scripts/agents, .github/workflows/web-build.yml, docs/public/reference/feature-coverage-report.md.
+- STATUS: ACTIVE
+- INITIATIVE_DOC: docs/internal/agents/initiative-test-coverage-v0-5-x.md
+- NOTES: Added editor smoke tests + save-state panel check; wired Playwright debug API smoke into web-build workflow.
 
 ### 2026-01-10 backend-infra-engineer – v0.5.0 CI/lint/test/release sweep
 - TASK: Fix linting + tests, stabilize CI/CD + release, and prep v0.5.0 artifacts for desktop/CLI/wasm.
