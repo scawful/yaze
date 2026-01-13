@@ -1,0 +1,24 @@
+{
+  "name": "yaze",
+  "version": "@YAZE_MANIFEST_VERSION@",
+  "git_sha": "@YAZE_MANIFEST_GIT_SHA@",
+  "build_timestamp_utc": "@YAZE_MANIFEST_BUILD_TIMESTAMP@",
+  "preset": "@YAZE_MANIFEST_PRESET@",
+  "build_type": "@YAZE_MANIFEST_BUILD_TYPE@",
+  "generator": "@YAZE_MANIFEST_GENERATOR@",
+  "compiler": {
+    "id": "@YAZE_MANIFEST_CXX_COMPILER_ID@",
+    "version": "@YAZE_MANIFEST_CXX_COMPILER_VERSION@"
+  },
+  "features": {
+    "build_gui": @YAZE_MANIFEST_BUILD_GUI@,
+    "build_z3ed": @YAZE_MANIFEST_BUILD_Z3ED@,
+    "build_cli": @YAZE_MANIFEST_BUILD_CLI@,
+    "enable_ai": @YAZE_MANIFEST_ENABLE_AI@,
+    "enable_ai_runtime": @YAZE_MANIFEST_ENABLE_AI_RUNTIME@,
+    "enable_grpc": @YAZE_MANIFEST_ENABLE_GRPC@,
+    "enable_http_api": @YAZE_MANIFEST_ENABLE_HTTP_API@,
+    "enable_agent_cli": @YAZE_MANIFEST_ENABLE_AGENT_CLI@,
+    "enable_json": @YAZE_MANIFEST_ENABLE_JSON@
+  }
+}
