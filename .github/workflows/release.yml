@@ -126,6 +126,12 @@ jobs:
           echo "=== Package files created ==="
           ls -la packages/*.deb packages/*.tar.gz 2>/dev/null || echo "No packages found"
 
+      - name: Validate Linux artifacts
+        if: matrix.platform == 'linux'
+        shell: bash
+        run: |
+          python3 scripts/release/validate-archive.py build/packages/*.tar.gz
+
       - name: Package artifacts (macOS)
         if: matrix.platform == 'macos'
         run: |
@@ -146,6 +152,15 @@ jobs:
             mkdir -p build/packages
             mv yaze-${{ env.VERSION }}-bundle.dmg build/packages/
           fi
+
+      - name: Validate macOS artifacts
+        if: matrix.platform == 'macos'
+        shell: bash
+        run: |
+          chmod +x scripts/release/validate-dmg.sh
+          for dmg in build/packages/*.dmg; do
+            scripts/release/validate-dmg.sh "$dmg"
+          done
 
       - name: Patch cmake_install.cmake (Windows)
         if: matrix.platform == 'windows'
@@ -169,6 +184,12 @@ jobs:
           Get-ChildItem packages -ErrorAction SilentlyContinue
           Write-Host "=== Package files created ==="
           Get-ChildItem packages/*.exe, packages/*.zip -ErrorAction SilentlyContinue
+
+      - name: Validate Windows artifacts
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          python scripts/release/validate-archive.py build/packages/*.zip
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
