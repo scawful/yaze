@@ -12,8 +12,8 @@
 ### 2026-01-12 backend-infra-engineer – v0.5.0 release artifact cleanup
 - TASK: Clean up release artifacts (README, Windows DLL bloat, remove test helpers) and align docs/changelog for portable zip.
 - SCOPE: cmake/packaging, tools/test_helpers, docs/public/release-notes.md, docs/public/reference/changelog.md, release workflow.
-- STATUS: ACTIVE
-- NOTES: Changes staged (release README, runtime DLL trim, no test helpers); rerun release workflow to refresh artifacts.
+- STATUS: COMPLETE
+- NOTES: Release run 20938978598 succeeded; artifacts regenerated with release README, trimmed Windows DLLs, and no helper binaries.
 
 ### 2026-01-11 backend-infra-engineer – v0.5.x test coverage expansion
 - TASK: Expand GUI + WASM debug API coverage for desktop/CLI/web and wire CI checks.
