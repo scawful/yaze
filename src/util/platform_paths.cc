@@ -237,7 +237,8 @@ absl::StatusOr<std::filesystem::path> PlatformPaths::GetConfigDirectory() {
   return GetAppDataDirectory();
 }
 
-absl::StatusOr<std::filesystem::path> PlatformPaths::GetUserDocumentsDirectory() {
+absl::StatusOr<std::filesystem::path>
+PlatformPaths::GetUserDocumentsDirectory() {
 #if defined(YAZE_IOS) || defined(YAZE_APPLE_MOBILE)
   std::filesystem::path home = GetHomeDirectory();
   std::filesystem::path docs_dir = home / "Documents" / "Yaze";
@@ -289,8 +290,8 @@ absl::StatusOr<std::filesystem::path> PlatformPaths::GetUserDocumentsDirectory()
 #endif
 }
 
-absl::StatusOr<std::filesystem::path> PlatformPaths::GetUserDocumentsSubdirectory(
-    const std::string& subdir) {
+absl::StatusOr<std::filesystem::path>
+PlatformPaths::GetUserDocumentsSubdirectory(const std::string& subdir) {
   auto docs_result = GetUserDocumentsDirectory();
   if (!docs_result.ok()) {
     return docs_result.status();
@@ -458,8 +459,8 @@ absl::StatusOr<std::filesystem::path> PlatformPaths::FindAsset(
         // Assets may be at yaze.app/Contents/Resources/assets/ (inside bundle)
         // or at ../../../assets/ (same level as .app bundle in DMG)
         auto contents_dir = cached_exe_dir.parent_path();  // Contents/
-        auto bundle_dir = contents_dir.parent_path();       // yaze.app/
-        auto bundle_parent = bundle_dir.parent_path();      // DMG root
+        auto bundle_dir = contents_dir.parent_path();      // yaze.app/
+        auto bundle_parent = bundle_dir.parent_path();     // DMG root
         search_paths.push_back(contents_dir / "Resources" / "assets" /
                                relative_path);
         search_paths.push_back(bundle_parent / "assets" / relative_path);
