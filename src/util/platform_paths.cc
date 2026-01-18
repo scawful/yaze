@@ -114,6 +114,8 @@ absl::StatusOr<std::filesystem::path> PlatformPaths::GetAppDataDirectory() {
   //   /.yaze/prompts  - Agent prompts (IDBFS - persistent)
   //   /.yaze/recent   - Recent files metadata (IDBFS - persistent)
   //   /.yaze/temp     - Temporary files (MEMFS - non-persistent)
+  // Directory creation is handled by FilesystemManager.ensureStandardDirectories()
+  // in src/web/core/filesystem_manager.js, which is called when the FS is ready.
   std::filesystem::path app_data("/.yaze");
   return app_data;
 #else
@@ -183,6 +185,13 @@ absl::StatusOr<std::filesystem::path> PlatformPaths::GetAppDataDirectory() {
       return absl::InternalError(
           absl::StrCat("Failed to migrate legacy data: ", ec.message()));
     }
+
+    // Clean up legacy directory after successful copy migration
+    // Use remove_all to handle non-empty directories; ignore errors
+    // since the migration succeeded and legacy data is now in preferred
+    std::filesystem::remove_all(legacy, ec);
+    // Intentionally ignore ec - cleanup failure is non-fatal
+
     return absl::OkStatus();
   };
 
