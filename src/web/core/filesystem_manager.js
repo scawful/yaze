@@ -145,6 +145,9 @@ var FilesystemManager = {
    * Ensures all standard directories exist.
    */
   ensureStandardDirectories: function() {
+    // Ensure root .yaze directory exists first
+    this.ensureDirectory('/.yaze');
+
     for (var key in this.directories) {
       if (!Object.prototype.hasOwnProperty.call(this.directories, key)) continue;
       var dir = this.directories[key];
