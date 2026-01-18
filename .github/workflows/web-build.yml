@@ -11,6 +11,7 @@ on:
       - 'CMakePresets.json'
       - 'Doxyfile'
       - 'scripts/build-wasm.sh'
+      - 'scripts/agents/**'
 
 jobs:
   build-deploy:
