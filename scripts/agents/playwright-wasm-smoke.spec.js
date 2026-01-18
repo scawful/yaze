@@ -99,13 +99,35 @@ test.describe('yaze wasm smoke', () => {
       { timeout: 30000 }
     );
 
-    const results = await page.evaluate(async () => {
-      if (typeof window.runWasmDebugApiTests !== 'function') {
-        return { failed: 1, error: 'runWasmDebugApiTests missing' };
-      }
-      return await window.runWasmDebugApiTests();
-    });
+    let results;
+    try {
+      results = await page.evaluate(async () => {
+        if (typeof window.runWasmDebugApiTests !== 'function') {
+          return { failed: 1, passed: 0, error: 'runWasmDebugApiTests missing' };
+        }
+        try {
+          const testResults = await window.runWasmDebugApiTests();
+          // Return only serializable properties
+          return {
+            failed: testResults?.failed ?? 0,
+            passed: testResults?.passed ?? 0,
+            skipped: testResults?.skipped ?? 0,
+            total: testResults?.total ?? 0,
+            error: null
+          };
+        } catch (e) {
+          return { failed: 1, passed: 0, error: e.message || String(e) };
+        }
+      });
+    } catch (evalError) {
+      results = { failed: 1, passed: 0, error: `page.evaluate failed: ${evalError.message}` };
+    }
 
+    expect(results).toBeDefined();
+    if (results.error) {
+      console.log('Debug API test error:', results.error);
+    }
+    console.log(`Debug API tests: ${results.passed} passed, ${results.failed} failed, ${results.skipped || 0} skipped`);
     expect(results.failed).toBe(0);
   });
 });
