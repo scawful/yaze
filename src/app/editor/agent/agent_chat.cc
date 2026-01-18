@@ -31,10 +31,6 @@ std::string ResolveAgentChatHistoryPath() {
   if (agent_dir.ok()) {
     return (*agent_dir / "agent_chat_history.json").string();
   }
-  auto docs_dir = util::PlatformPaths::GetUserDocumentsSubdirectory("agent");
-  if (docs_dir.ok()) {
-    return (*docs_dir / "agent_chat_history.json").string();
-  }
   auto temp_dir = util::PlatformPaths::GetTempDirectory();
   if (temp_dir.ok()) {
     return (*temp_dir / "agent_chat_history.json").string();

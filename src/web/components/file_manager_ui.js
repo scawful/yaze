@@ -9,9 +9,9 @@ var fileManager = {
 
   // Category to directory mapping
   categoryDirs: {
-    roms: '/roms',
-    projects: '/projects',
-    saves: '/saves',
+    roms: '/.yaze/roms',
+    projects: '/.yaze/projects',
+    saves: '/.yaze/saves',
     recent: null  // Special handling
   },
 
@@ -21,6 +21,7 @@ var fileManager = {
     '.smc': 'memory',
     '.srm': 'save',
     '.sav': 'save',
+    '.yaze': 'folder',
     '.yproj': 'folder',
     '.md': 'description',
     'default': 'insert_drive_file'
@@ -294,7 +295,7 @@ var fileManager = {
 
     reader.onload = function(e) {
       var data = new Uint8Array(e.target.result);
-      var dir = self.categoryDirs[self.currentCategory] || '/roms';
+      var dir = self.categoryDirs[self.currentCategory] || '/.yaze/roms';
       var filename = dir + '/' + file.name;
 
       try {

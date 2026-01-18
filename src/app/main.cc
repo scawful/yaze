@@ -194,7 +194,7 @@ int main(int argc, char** argv) {
 
   std::string log_path = FLAGS_log_file->Get();
   if (log_path.empty()) {
-    auto logs_dir = yaze::util::PlatformPaths::GetUserDocumentsSubdirectory("logs");
+    auto logs_dir = yaze::util::PlatformPaths::GetAppDataSubdirectory("logs");
     if (logs_dir.ok()) {
       log_path = (*logs_dir / "yaze.log").string();
     }

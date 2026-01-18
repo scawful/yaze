@@ -7,6 +7,13 @@ void MessagePreview::DrawTileToPreview(int x, int y, int srcx, int srcy,
                                        int pal, int sizex, int sizey) {
   const int num_x_tiles = 16;
   const int img_width = 512;  // (imgwidth/2)
+  const auto& font_data = !font_gfx16_data_2_.empty() ? font_gfx16_data_2_
+                                                      : font_gfx16_data_;
+  if (font_data.empty()) {
+    return;
+  }
+  const size_t font_size = font_data.size();
+  const size_t preview_size = current_preview_data_.size();
   int draw_id = srcx + (srcy * 32);
   for (int yl = 0; yl < sizey * 8; yl++) {
     for (int xl = 0; xl < 4; xl++) {
@@ -15,11 +22,19 @@ void MessagePreview::DrawTileToPreview(int x, int y, int srcx, int srcy,
 
       // Formula information to get tile index position in the array.
       int tx = ((draw_id / num_x_tiles) * img_width) + ((draw_id & 0xF) << 2);
-      uint8_t pixel = font_gfx16_data_2_[tx + (yl * 64) + xl];
+      const int pixel_index = tx + (yl * 64) + xl;
+      if (pixel_index < 0 ||
+          static_cast<size_t>(pixel_index) >= font_size) {
+        continue;
+      }
+      uint8_t pixel = font_data[pixel_index];
 
       // nx,ny = object position, xx,yy = tile position, xl,yl = pixel
       // position
       int index = x + (y * 172) + (mx * 2) + (my * 172);
+      if (index < 0 || static_cast<size_t>(index + 1) >= preview_size) {
+        continue;
+      }
       if ((pixel & 0x0F) != 0) {
         current_preview_data_[index + 1] = (uint8_t)((pixel & 0x0F) + (0 * 4));
       }

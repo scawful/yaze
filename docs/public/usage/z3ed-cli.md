@@ -101,7 +101,7 @@ z3ed agent diff --rom=zelda3.sfc
 z3ed agent accept --proposal-id=<id> --rom=zelda3.sfc
 ```
 
-Plans are stored in `$XDG_DATA_HOME/yaze/proposals/` (or `%APPDATA%\yaze\proposals\` on Windows).
+Plans are stored in `~/.yaze/proposals` (Windows uses `%USERPROFILE%\\.yaze\\proposals`).
 
 ### Scripted Chat
 

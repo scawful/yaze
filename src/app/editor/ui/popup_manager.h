@@ -75,7 +75,7 @@ constexpr const char* kBuildInstructions = "Build Instructions";
 constexpr const char* kCLIUsage = "CLI Usage";
 constexpr const char* kTroubleshooting = "Troubleshooting";
 constexpr const char* kContributing = "Contributing";
-constexpr const char* kWhatsNew = "Whats New v0.5.0";
+constexpr const char* kWhatsNew = "What's New";
 constexpr const char* kOpenRomHelp = "Open a ROM";
 
 // Settings
@@ -152,7 +152,7 @@ class PopupManager {
   // Draw the manage project popup
   void DrawManageProjectPopup();
 
-  // v0.5.0 Help Documentation popups
+  // Help Documentation popups
   void DrawGettingStartedPopup();
   void DrawAsarIntegrationPopup();
   void DrawBuildInstructionsPopup();

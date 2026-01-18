@@ -1,5 +1,30 @@
 # Release Notes
 
+## v0.5.1 (Draft)
+
+**Type:** UX + Storage Consolidation
+**Status:** In progress
+
+### ✨ UX & Guidance
+- Help panel now reflects configured shortcuts and adds searchable shortcut lists.
+- Supported Features popup lists platform status + persistence details for desktop/CLI/web.
+- User-facing warnings added for unimplemented collaboration and E2E menus.
+
+### 🗂️ Storage & Paths
+- Unified app data under `~/.yaze` across desktop/CLI; legacy AppData/Library/XDG migrated.
+- Web build storage consolidated under `/.yaze` (IDBFS) for ROMs/saves/projects.
+- Project management panel now surfaces storage paths and version mismatch warnings.
+
+### 🧭 Versioning
+- Added `VERSION` file as the source of truth for build/versioning.
+- Web version badge now syncs to the runtime WASM version.
+
+### 🧪 Testing
+- Feature coverage report refreshed with storage and UI persistence notes.
+- New coverage plan items added for `.yaze` migration and layout/shortcut persistence.
+
+---
+
 ## v0.5.0 (Released January 2026)
 
 **Type:** Platform Expansion & Stability

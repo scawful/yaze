@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.5.1 (Draft)
+
+### UX & Guidance
+- Help panel now reflects configured shortcuts and adds shortcut search.
+- Supported Features popup lists platform status + persistence details.
+- User-facing warnings added for unimplemented collaboration and E2E menus.
+
+### Storage & Paths
+- App data consolidated under `~/.yaze` across desktop/CLI with legacy migration.
+- Web build storage consolidated under `/.yaze` for ROMs/saves/projects.
+- Agent chat, profiles, and sessions now persist under `.yaze/agent`.
+
+### Project Management
+- Storage locations and version mismatch warnings surfaced in the project panel.
+
+### Versioning
+- Added `VERSION` file as the build source of truth.
+- Web version badge syncs to runtime WASM version.
+
+---
+
 ## 0.5.0 (January 2026)
 
 ### Graphics & Palette Reliability

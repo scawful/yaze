@@ -2,7 +2,8 @@
 
 Documentation for importing disassembly symbol files into YAZE.
 
-**Source:** `~/Code/alttp-gigaleak/DISASM/jpdasm/symbols_*.asm`
+**Source:** `$ALTTP_GIGALEAK_ROOT/DISASM/jpdasm/symbols_*.asm` (example:
+`~/src/alttp-gigaleak/DISASM/jpdasm/symbols_*.asm`)
 
 ## Available Symbol Files
 
@@ -200,7 +201,7 @@ Parse for `FREE RAM` comments to find available space for ROM hacks.
 ## File Locations
 
 ```
-~/Code/alttp-gigaleak/DISASM/jpdasm/
+$ALTTP_GIGALEAK_ROOT/DISASM/jpdasm/
 ├── symbols_wram.asm    # Work RAM ($7E)
 ├── symbols_sram.asm    # Save RAM ($70)
 ├── symbols_apu.asm     # Audio

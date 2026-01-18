@@ -1,4 +1,4 @@
-# YAZE 0.5.0 Release
+# YAZE 0.5.1 Release
 
 YAZE is a cross-platform Zelda 3 editor. This package includes the desktop app
 (yaze), the z3ed CLI, and required assets.
@@ -45,9 +45,10 @@ The multiplayer/collaboration service ships separately:
   `qwen2.5-coder:0.5b`).
 
 ## Data Locations
-- Windows: `%APPDATA%\\yaze`
-- macOS/Linux: `~/.yaze`
-- Projects: `~/Documents/Yaze` or `%USERPROFILE%\\Documents\\Yaze`
+- Desktop/CLI: `~/.yaze` (Windows uses `%USERPROFILE%\\.yaze`)
+- Web: `/.yaze` (browser storage via IndexedDB)
+- Projects: store `.yaze` project files wherever you prefer
+  (recommended: `~/.yaze/projects`)
 
 ## Documentation
 - https://yaze.halext.org

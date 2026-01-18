@@ -58,6 +58,7 @@ class ProjectManagementPanel {
 
  private:
   void DrawProjectOverview();
+  void DrawStorageLocations();
   void DrawRomManagement();
   void DrawVersionControl();
   void DrawSnapshotHistory();
@@ -90,4 +91,3 @@ class ProjectManagementPanel {
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_UI_PROJECT_MANAGEMENT_PANEL_H_
-

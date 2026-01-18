@@ -354,7 +354,7 @@ absl::StatusOr<ProjectSnapshot> ProjectSnapshot::LoadFromFile(
 
 absl::Status ProjectManager::Initialize(const std::string& base_path) {
   try {
-    project_path_ = (fs::path(base_path) / ".yaze-project").string();
+    project_path_ = (fs::path(base_path) / ".yaze").string();
     snapshots_path_ = (fs::path(project_path_) / "snapshots").string();
 
     // Create directory structure

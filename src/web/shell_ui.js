@@ -680,12 +680,35 @@ function updateVersionBadge() {
   if (!badge) return;
   if (typeof Module !== 'undefined' && Module.getYazeVersion) {
     try {
-      badge.textContent = 'v' + Module.getYazeVersion();
+      const version = Module.getYazeVersion();
+      badge.textContent = 'v' + version;
+      if (window.yaze) {
+        window.yaze.version = version;
+      }
     } catch (e) {
       // Keep default version
     }
   }
 }
+
+function initVersionBadge() {
+  if (window.yaze && window.yaze.core && window.yaze.core.ready) {
+    window.yaze.core.ready().then(function() {
+      updateVersionBadge();
+    });
+    return;
+  }
+
+  if (window.yaze && window.yaze.events && window.yaze.events.on) {
+    window.yaze.events.on(window.yaze.events.WASM_READY, function() {
+      updateVersionBadge();
+    });
+  }
+
+  window.addEventListener('load', updateVersionBadge);
+}
+
+initVersionBadge();
 
 // Close help menu when clicking outside
 document.addEventListener('click', function(e) {

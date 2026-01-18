@@ -6,6 +6,8 @@
 #include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
+#include "util/platform_paths.h"
+#include "yaze_config.h"
 
 namespace yaze {
 namespace editor {
@@ -22,6 +24,8 @@ void ProjectManagementPanel::Draw() {
 
   DrawProjectOverview();
   ImGui::Separator();
+  DrawStorageLocations();
+  ImGui::Separator();
   DrawRomManagement();
   ImGui::Separator();
   DrawVersionControl();
@@ -35,6 +39,34 @@ void ProjectManagementPanel::DrawProjectOverview() {
   ImGui::Text("%s Project", ICON_MD_FOLDER_SPECIAL);
   ImGui::PopStyleColor();
   ImGui::Spacing();
+
+  ImGui::TextColored(gui::GetTextSecondaryVec4(), "Project Format:");
+  ImGui::SameLine();
+  ImGui::Text("%s", project_->format == project::ProjectFormat::kYazeNative
+                         ? ".yaze"
+                         : ".zsproj");
+
+  ImGui::TextColored(gui::GetTextSecondaryVec4(), "Project YAZE Version:");
+  ImGui::SameLine();
+  const std::string& project_version = project_->metadata.yaze_version;
+  if (project_version.empty()) {
+    const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+    ImGui::TextColored(gui::ConvertColorToImVec4(theme.warning), "Unknown");
+  } else if (project_version != YAZE_VERSION_STRING) {
+    const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+    ImGui::TextColored(gui::ConvertColorToImVec4(theme.warning), "%s",
+                       project_version.c_str());
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Project saved with v%s; running v%s",
+                        project_version.c_str(), YAZE_VERSION_STRING);
+    }
+  } else {
+    ImGui::Text("%s", project_version.c_str());
+  }
+
+  ImGui::TextColored(gui::GetTextSecondaryVec4(), "Running YAZE:");
+  ImGui::SameLine();
+  ImGui::Text("%s", YAZE_VERSION_STRING);
 
   // Project file path (read-only, click to copy)
   ImGui::TextColored(gui::GetTextSecondaryVec4(), "Path:");
@@ -90,6 +122,70 @@ void ProjectManagementPanel::DrawProjectOverview() {
                                 sizeof(desc_buffer), ImVec2(0, 60))) {
     project_->metadata.description = desc_buffer;
     project_dirty_ = true;
+  }
+
+  ImGui::Spacing();
+}
+
+void ProjectManagementPanel::DrawStorageLocations() {
+  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
+  ImGui::Text("%s Storage", ICON_MD_STORAGE);
+  ImGui::PopStyleColor();
+  ImGui::Spacing();
+
+  ImGui::TextWrapped(
+      "Primary data lives under the .yaze root. Click any path to copy it.");
+  ImGui::Spacing();
+
+  auto app_root = util::PlatformPaths::GetAppDataDirectory();
+  if (!app_root.ok()) {
+    const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+    ImGui::TextColored(gui::ConvertColorToImVec4(theme.error),
+                       "Storage unavailable: %s",
+                       std::string(app_root.status().message()).c_str());
+    return;
+  }
+
+  std::vector<std::pair<const char*, std::filesystem::path>> locations = {
+      {"Root", *app_root},
+      {"Projects", *app_root / "projects"},
+      {"Layouts", *app_root / "layouts"},
+      {"Workspaces", *app_root / "workspaces"},
+      {"Logs", *app_root / "logs"},
+      {"Agent", *app_root / "agent"}};
+
+  auto temp_root = util::PlatformPaths::GetTempDirectory();
+  if (temp_root.ok()) {
+    locations.emplace_back("Temp", *temp_root);
+  }
+
+  if (ImGui::BeginTable("##storage_locations", 2,
+                        ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerV |
+                            ImGuiTableFlags_SizingStretchProp)) {
+    ImGui::TableSetupColumn("Location", ImGuiTableColumnFlags_WidthFixed,
+                            110.0f);
+    ImGui::TableSetupColumn("Path", ImGuiTableColumnFlags_WidthStretch);
+    for (const auto& entry : locations) {
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::TextColored(gui::GetTextSecondaryVec4(), "%s", entry.first);
+      ImGui::TableNextColumn();
+      const std::string display_path =
+          util::PlatformPaths::NormalizePathForDisplay(entry.second);
+      ImGui::PushID(entry.first);
+      if (ImGui::Selectable(display_path.c_str(), false,
+                            ImGuiSelectableFlags_SpanAllColumns)) {
+        ImGui::SetClipboardText(display_path.c_str());
+        if (toast_manager_) {
+          toast_manager_->Show("Path copied to clipboard", ToastType::kInfo);
+        }
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Click to copy");
+      }
+      ImGui::PopID();
+    }
+    ImGui::EndTable();
   }
 
   ImGui::Spacing();

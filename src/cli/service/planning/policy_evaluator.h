@@ -50,8 +50,8 @@ class PolicyEvaluator {
  public:
   static PolicyEvaluator& GetInstance();
 
-  // Load policies from disk (.yaze/policies/agent.yaml)
-  absl::Status LoadPolicies(absl::string_view policy_dir = ".yaze/policies");
+  // Load policies from disk (defaults to ~/.yaze/policies/agent.yaml)
+  absl::Status LoadPolicies(absl::string_view policy_dir = "");
 
   // Evaluate a proposal against all loaded policies
   absl::StatusOr<PolicyResult> EvaluateProposal(absl::string_view proposal_id);

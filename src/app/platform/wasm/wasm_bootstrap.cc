@@ -157,13 +157,14 @@ EM_JS(void, MountFilesystems, (), {
 
   // Create all required directories
   var directories = [
-    '/roms',       // ROM files (IDBFS - persistent for session restore)
-    '/saves',      // Save files (IDBFS - persistent)
-    '/config',     // Configuration files (IDBFS - persistent)
-    '/projects',   // Project files (IDBFS - persistent)
-    '/prompts',    // Agent prompts (IDBFS - persistent)
-    '/recent',     // Recent files metadata (IDBFS - persistent)
-    '/temp'        // Temporary files (MEMFS - non-persistent)
+    '/.yaze',          // Root for all app data
+    '/.yaze/roms',     // ROM files (IDBFS - persistent for session restore)
+    '/.yaze/saves',    // Save files (IDBFS - persistent)
+    '/.yaze/config',   // Configuration files (IDBFS - persistent)
+    '/.yaze/projects', // Project files (IDBFS - persistent)
+    '/.yaze/prompts',  // Agent prompts (IDBFS - persistent)
+    '/.yaze/recent',   // Recent files metadata (IDBFS - persistent)
+    '/.yaze/temp'      // Temporary files (MEMFS - non-persistent)
   ];
 
   directories.forEach(function(dir) {
@@ -172,10 +173,10 @@ EM_JS(void, MountFilesystems, (), {
 
   // Mount MEMFS for temporary files only
   try {
-    FS.mount(MEMFS, {}, '/temp');
+    FS.mount(MEMFS, {}, '/.yaze/temp');
   } catch (e) {
     if (!isErrno(e, 'EBUSY') && !isErrno(e, 'EEXIST')) {
-      console.warn('[WASM] Failed to mount MEMFS for /temp: ' + e);
+      console.warn('[WASM] Failed to mount MEMFS for /.yaze/temp: ' + e);
     }
   }
 
@@ -190,7 +191,14 @@ EM_JS(void, MountFilesystems, (), {
   }
 
   // Persistent directories to mount with IDBFS
-  var persistentDirs = ['/roms', '/saves', '/config', '/projects', '/prompts', '/recent'];
+  var persistentDirs = [
+    '/.yaze/roms',
+    '/.yaze/saves',
+    '/.yaze/config',
+    '/.yaze/projects',
+    '/.yaze/prompts',
+    '/.yaze/recent'
+  ];
   var mountedCount = 0;
   var totalToMount = persistentDirs.length;
 
@@ -315,7 +323,7 @@ void InitializeWasmPlatform() {
 
         if (ext == "sfc" || ext == "smc" || ext == "zip") {
             // Write to MEMFS and load
-            std::string path = "/roms/" + filename;
+            std::string path = "/.yaze/roms/" + filename;
             std::ofstream file(path, std::ios::binary);
             file.write(reinterpret_cast<const char*>(data.data()), data.size());
             file.close();

@@ -19,24 +19,26 @@ and creates wrapper commands (`yaze-nightly`, `yaze-nightly-grpc`, `z3ed-nightly
 
 ```bash
 scripts/install-nightly.sh
-YAZE_NIGHTLY_REPO="$HOME/Code/yaze-nightly" YAZE_NIGHTLY_BUILD_TYPE=RelWithDebInfo scripts/install-nightly.sh
+YAZE_NIGHTLY_REPO="$HOME/.yaze/nightly/repo" YAZE_NIGHTLY_BUILD_TYPE=RelWithDebInfo scripts/install-nightly.sh
 ```
 
 ### What it does
-- Clones `origin` into `$YAZE_NIGHTLY_REPO` (default `~/Code/yaze-nightly`) and keeps it clean.
-- Builds into `$YAZE_NIGHTLY_BUILD_DIR` (default `~/Code/yaze-nightly/build-nightly`).
+- Clones `origin` into `$YAZE_NIGHTLY_REPO` (default `~/.yaze/nightly/repo`) and keeps it clean.
+- Builds into `$YAZE_NIGHTLY_BUILD_DIR` (default `~/.yaze/nightly/repo/build-nightly`).
 - Installs into `$YAZE_NIGHTLY_PREFIX/releases/<timestamp>` and updates `.../current`.
 - Writes wrapper scripts to `$YAZE_NIGHTLY_BIN_DIR` (default `~/.local/bin`).
+- On macOS, creates a stable app link at `~/Applications/Yaze Nightly.app` for menu launchers.
 
 ### Environment Overrides
-- `YAZE_NIGHTLY_REPO` (default `~/Code/yaze-nightly`)
+- `YAZE_NIGHTLY_REPO` (default `~/.yaze/nightly/repo`)
 - `YAZE_NIGHTLY_BRANCH` (default `master`)
 - `YAZE_NIGHTLY_BUILD_DIR` (default `$YAZE_NIGHTLY_REPO/build-nightly`)
 - `YAZE_NIGHTLY_BUILD_TYPE` (default `RelWithDebInfo`)
 - `YAZE_NIGHTLY_PREFIX` (default `~/.local/yaze/nightly`)
 - `YAZE_NIGHTLY_BIN_DIR` (default `~/.local/bin`)
+- `YAZE_NIGHTLY_APP_DIR` (default `~/Applications`, macOS only)
 - `YAZE_GRPC_HOST`/`YAZE_GRPC_PORT` (for `yaze-mcp-nightly`, defaults `localhost:50051`)
-- `YAZE_MCP_REPO` (default `~/Code/yaze-mcp`)
+- `YAZE_MCP_REPO` (default `~/.yaze/yaze-mcp`)
 
 ### Typical usage
 ```bash

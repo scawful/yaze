@@ -374,7 +374,7 @@ cmake --build --preset mac-ai --target z3ed
 ```bash
 # Always use paths relative to project root
 z3ed agent simple-chat
-> [Give paths like src/app/rom.cc, not /Users/name/Code/yaze/src/...]
+> [Give paths like src/app/rom.cc, not /Users/name/src/yaze/src/...]
 
 # For binary files, ask for analysis instead
 > Can you explain what the graphics in assets/graphics.bin contains?

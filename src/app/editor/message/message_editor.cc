@@ -1,5 +1,6 @@
 #include "message_editor.h"
 
+#include <algorithm>
 #include <string>
 #include <vector>
 
@@ -126,11 +127,14 @@ void MessageEditor::Initialize() {
   }
   parsed_messages_ =
       ParseMessageData(list_of_texts_, message_preview_.all_dictionaries_);
+  expanded_message_base_id_ = static_cast<int>(list_of_texts_.size());
 
   if (!list_of_texts_.empty()) {
     // Default to message 1 if available, otherwise 0
     size_t default_idx = list_of_texts_.size() > 1 ? 1 : 0;
     current_message_ = list_of_texts_[default_idx];
+    current_message_index_ = current_message_.ID;
+    current_message_is_expanded_ = false;
     message_text_box_.text = parsed_messages_[current_message_.ID];
     DrawMessagePreview();
   } else {
@@ -166,6 +170,8 @@ void MessageEditor::DrawMessageList() {
         PushID(message.ID);
         if (Button(util::HexWord(message.ID).c_str())) {
           current_message_ = message;
+          current_message_index_ = message.ID;
+          current_message_is_expanded_ = false;
           message_text_box_.text = parsed_messages_[message.ID];
           DrawMessagePreview();
         }
@@ -176,19 +182,26 @@ void MessageEditor::DrawMessageList() {
         TextWrapped("%s",
                     util::HexLong(list_of_texts_[message.ID].Address).c_str());
       }
+      const int expanded_base = expanded_message_base_id_;
       for (const auto& expanded_message : expanded_messages_) {
+        const int display_id = expanded_base + expanded_message.ID;
+        const char* display_text = "Missing text";
+        if (display_id >= 0 &&
+            display_id < static_cast<int>(parsed_messages_.size())) {
+          display_text = parsed_messages_[display_id].c_str();
+        }
         TableNextColumn();
-        PushID(expanded_message.ID + 0x18D);
-        if (Button(util::HexWord(expanded_message.ID + 0x18D).c_str())) {
+        PushID(display_id);
+        if (Button(util::HexWord(display_id).c_str())) {
           current_message_ = expanded_message;
-          message_text_box_.text =
-              parsed_messages_[expanded_message.ID + 0x18D];
+          current_message_index_ = expanded_message.ID;
+          current_message_is_expanded_ = true;
+          message_text_box_.text = display_text;
           DrawMessagePreview();
         }
         PopID();
         TableNextColumn();
-        TextWrapped("%s",
-                    parsed_messages_[expanded_message.ID + 0x18C].c_str());
+        TextWrapped("%s", display_text);
         TableNextColumn();
         TextWrapped("%s", util::HexLong(expanded_message.Address).c_str());
       }
@@ -203,11 +216,7 @@ void MessageEditor::DrawCurrentMessage() {
   Button(absl::StrCat("Message ", current_message_.ID).c_str());
   if (InputTextMultiline("##MessageEditor", &message_text_box_.text,
                          ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
-    std::string temp = message_text_box_.text;
-    // Strip newline characters.
-    temp.erase(std::remove(temp.begin(), temp.end(), '\n'), temp.end());
-    current_message_.Data = ParseMessageToData(temp);
-    DrawMessagePreview();
+    UpdateCurrentMessageFromText(message_text_box_.text);
   }
   Separator();
   gui::MemoryEditorPopup("Message Data", current_message_.Data);
@@ -271,6 +280,12 @@ void MessageEditor::DrawExpandedMessageSettings() {
     std::string path = util::FileDialogWrapper::ShowOpenFileDialog();
     if (!path.empty()) {
       expanded_message_path_ = path;
+      expanded_message_base_id_ = static_cast<int>(list_of_texts_.size());
+      if (parsed_messages_.size() >
+          static_cast<size_t>(expanded_message_base_id_)) {
+        parsed_messages_.resize(expanded_message_base_id_);
+      }
+      expanded_messages_.clear();
       if (!LoadExpandedMessages(expanded_message_path_, parsed_messages_,
                                 expanded_messages_,
                                 message_preview_.all_dictionaries_)
@@ -291,6 +306,11 @@ void MessageEditor::DrawExpandedMessageSettings() {
       new_message.Address = expanded_messages_.back().Address +
                             expanded_messages_.back().Data.size();
       expanded_messages_.push_back(new_message);
+      const int display_id = expanded_message_base_id_ + new_message.ID;
+      if (display_id >= 0 &&
+          static_cast<size_t>(display_id) >= parsed_messages_.size()) {
+        parsed_messages_.resize(display_id + 1);
+      }
     }
 
     if (ImGui::Button("Save Expanded Messages")) {
@@ -333,6 +353,7 @@ void MessageEditor::DrawTextCommands() {
     if (Button(text_element.GenericToken.c_str())) {
       message_text_box_.text.append(
           text_element.GetParamToken(command_parameter));
+      UpdateCurrentMessageFromText(message_text_box_.text);
     }
     SameLine();
     TextWrapped("%s", text_element.Description.c_str());
@@ -348,6 +369,7 @@ void MessageEditor::DrawSpecialCharacters() {
   for (const auto& text_element : SpecialChars) {
     if (Button(text_element.GenericToken.c_str())) {
       message_text_box_.text.append(text_element.GenericToken);
+      UpdateCurrentMessageFromText(message_text_box_.text);
     }
     SameLine();
     TextWrapped("%s", text_element.Description.c_str());
@@ -374,6 +396,43 @@ void MessageEditor::DrawDictionary() {
     }
   }
   EndChild();
+}
+
+void MessageEditor::UpdateCurrentMessageFromText(const std::string& text) {
+  std::string raw_text = text;
+  raw_text.erase(std::remove(raw_text.begin(), raw_text.end(), '\n'),
+                 raw_text.end());
+
+  current_message_.RawString = raw_text;
+  current_message_.ContentsParsed = text;
+  current_message_.Data = ParseMessageToData(raw_text);
+
+  int parsed_index = current_message_index_;
+  if (current_message_is_expanded_) {
+    parsed_index = expanded_message_base_id_ + current_message_index_;
+  }
+
+  if (parsed_index >= 0) {
+    if (static_cast<size_t>(parsed_index) >= parsed_messages_.size()) {
+      parsed_messages_.resize(parsed_index + 1);
+    }
+    parsed_messages_[parsed_index] = text;
+  }
+
+  if (current_message_is_expanded_) {
+    if (current_message_index_ >= 0 &&
+        current_message_index_ <
+            static_cast<int>(expanded_messages_.size())) {
+      expanded_messages_[current_message_index_] = current_message_;
+    }
+  } else {
+    if (current_message_index_ >= 0 &&
+        current_message_index_ < static_cast<int>(list_of_texts_.size())) {
+      list_of_texts_[current_message_index_] = current_message_;
+    }
+  }
+
+  DrawMessagePreview();
 }
 
 void MessageEditor::DrawMessagePreview() {

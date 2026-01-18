@@ -29,8 +29,8 @@
    * @namespace yaze
    */
   window.yaze = {
-    /** Version string */
-    version: '0.3.9',
+    /** Version string (overridden after WASM init when available) */
+    version: (window.YAZE_VERSION || 'dev'),
 
     /** Initialization flag */
     _initialized: true,
@@ -354,7 +354,7 @@
   console.log('[yaze] Namespace initialized v' + window.yaze.version);
 })();
 
-// Backward compatibility shims (deprecated, will be removed in v0.5.0)
+// Backward compatibility shims (deprecated, will be removed in a future release)
 // These provide warnings when old globals are accessed
 (function() {
   'use strict';

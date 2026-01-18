@@ -266,10 +266,6 @@ std::filesystem::path AgentCollaborationCoordinator::SessionsDirectory() const {
   if (agent_dir.ok()) {
     return *agent_dir / "sessions";
   }
-  auto docs_dir = util::PlatformPaths::GetUserDocumentsSubdirectory("agent");
-  if (docs_dir.ok()) {
-    return *docs_dir / "sessions";
-  }
   auto temp_dir = util::PlatformPaths::GetTempDirectory();
   if (temp_dir.ok()) {
     return *temp_dir / "agent" / "sessions";

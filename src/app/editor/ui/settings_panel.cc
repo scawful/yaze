@@ -7,6 +7,8 @@
 #include <set>
 #include <vector>
 
+#include "absl/strings/ascii.h"
+#include "absl/strings/match.h"
 #include "app/editor/system/panel_manager.h"
 #include "app/editor/system/shortcut_manager.h"
 #include "app/gui/app/feature_flags_menu.h"
@@ -397,6 +399,13 @@ void SettingsPanel::DrawAIAgentSettings() {
 
 void SettingsPanel::DrawKeyboardShortcuts() {
   if (ImGui::TreeNodeEx(ICON_MD_KEYBOARD " Shortcuts", ImGuiTreeNodeFlags_DefaultOpen)) {
+    ImGui::InputTextWithHint("##shortcut_filter", "Filter shortcuts...",
+                             &shortcut_filter_);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Filter by action name or key combo");
+    }
+    ImGui::Spacing();
+
     if (ImGui::TreeNode("Global Shortcuts")) {
       DrawGlobalShortcuts();
       ImGui::TreePop();
@@ -414,6 +423,15 @@ void SettingsPanel::DrawKeyboardShortcuts() {
   }
 }
 
+bool SettingsPanel::MatchesShortcutFilter(const std::string& text) const {
+  if (shortcut_filter_.empty()) {
+    return true;
+  }
+  std::string haystack = absl::AsciiStrToLower(text);
+  std::string needle = absl::AsciiStrToLower(shortcut_filter_);
+  return absl::StrContains(haystack, needle);
+}
+
 void SettingsPanel::DrawGlobalShortcuts() {
   if (!shortcut_manager_ || !user_settings_) {
     ImGui::TextDisabled("Not available");
@@ -428,7 +446,14 @@ void SettingsPanel::DrawGlobalShortcuts() {
 
   static std::unordered_map<std::string, std::string> editing;
 
+  bool has_match = false;
   for (const auto& sc : shortcuts) {
+    std::string label = sc.name;
+    std::string keys = PrintShortcut(sc.keys);
+    if (!MatchesShortcutFilter(label) && !MatchesShortcutFilter(keys)) {
+      continue;
+    }
+    has_match = true;
     auto it = editing.find(sc.name);
     if (it == editing.end()) {
       std::string current = PrintShortcut(sc.keys);
@@ -462,6 +487,9 @@ void SettingsPanel::DrawGlobalShortcuts() {
     }
     ImGui::PopID();
   }
+  if (!has_match) {
+    ImGui::TextDisabled("No shortcuts match the current filter.");
+  }
 }
 
 void SettingsPanel::DrawEditorShortcuts() {
@@ -479,9 +507,22 @@ void SettingsPanel::DrawEditorShortcuts() {
     std::string group = pos != std::string::npos ? sc.name.substr(0, pos) : "general";
     grouped[group].push_back(sc);
   }
+  bool has_match = false;
   for (const auto& [group, list] : grouped) {
+    std::vector<Shortcut> filtered;
+    filtered.reserve(list.size());
+    for (const auto& sc : list) {
+      std::string keys = PrintShortcut(sc.keys);
+      if (MatchesShortcutFilter(sc.name) || MatchesShortcutFilter(keys)) {
+        filtered.push_back(sc);
+      }
+    }
+    if (filtered.empty()) {
+      continue;
+    }
+    has_match = true;
     if (ImGui::TreeNode(group.c_str())) {
-      for (const auto& sc : list) {
+      for (const auto& sc : filtered) {
         ImGui::PushID(sc.name.c_str());
         ImGui::Text("%s", sc.name.c_str());
         ImGui::SameLine();
@@ -512,6 +553,9 @@ void SettingsPanel::DrawEditorShortcuts() {
       ImGui::TreePop();
     }
   }
+  if (!has_match) {
+    ImGui::TextDisabled("No shortcuts match the current filter.");
+  }
 }
 
 void SettingsPanel::DrawPanelShortcuts() {
@@ -523,11 +567,24 @@ void SettingsPanel::DrawPanelShortcuts() {
   // Simplified shortcut editor for sidebar
   auto categories = panel_manager_->GetAllCategories();
 
+  bool has_match = false;
   for (const auto& category : categories) {
+    auto cards = panel_manager_->GetPanelsInCategory(0, category);
+    std::vector<decltype(cards)::value_type> filtered_cards;
+    filtered_cards.reserve(cards.size());
+    for (const auto& card : cards) {
+      if (MatchesShortcutFilter(card.display_name) ||
+          MatchesShortcutFilter(card.card_id)) {
+        filtered_cards.push_back(card);
+      }
+    }
+    if (filtered_cards.empty()) {
+      continue;
+    }
+    has_match = true;
     if (ImGui::TreeNode(category.c_str())) {
-      auto cards = panel_manager_->GetPanelsInCategory(0, category);
 
-      for (const auto& card : cards) {
+      for (const auto& card : filtered_cards) {
         ImGui::PushID(card.card_id.c_str());
         
         ImGui::Text("%s %s", card.icon.c_str(), card.display_name.c_str());
@@ -585,6 +642,9 @@ void SettingsPanel::DrawPanelShortcuts() {
       
       ImGui::TreePop();
     }
+  }
+  if (!has_match) {
+    ImGui::TextDisabled("No shortcuts match the current filter.");
   }
 }
 

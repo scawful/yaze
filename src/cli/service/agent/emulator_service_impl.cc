@@ -524,4 +524,174 @@ void EmulatorServiceImpl::InitializeStepController() {
   step_controller_.SetPcGetter([&cpu]() -> uint32_t { return (cpu.PB << 16) | cpu.PC; });
 }
 
+// --- Save State Management ---
+
+grpc::Status EmulatorServiceImpl::SaveState(grpc::ServerContext* context,
+                                             const agent::SaveStateRequest* request,
+                                             agent::SaveStateResponse* response) {
+  if (!emulator_ || !emulator_->is_snes_initialized()) {
+    response->set_success(false);
+    response->set_message("SNES not initialized");
+    return grpc::Status::OK;
+  }
+
+  const std::string& filepath = request->filepath();
+  if (filepath.empty()) {
+    response->set_success(false);
+    response->set_message("Filepath is required");
+    return grpc::Status::OK;
+  }
+
+  // Ensure parent directory exists
+#ifndef __EMSCRIPTEN__
+  std::filesystem::path path(filepath);
+  if (path.has_parent_path()) {
+    std::filesystem::create_directories(path.parent_path());
+  }
+#endif
+
+  auto status = emulator_->snes().saveState(filepath);
+  if (!status.ok()) {
+    response->set_success(false);
+    response->set_message(std::string(status.message()));
+    return grpc::Status::OK;
+  }
+
+  // Extract state ID from filename
+  std::string state_id = filepath;
+#ifndef __EMSCRIPTEN__
+  state_id = path.stem().string();
+#else
+  size_t last_slash = filepath.find_last_of("/\\");
+  if (last_slash != std::string::npos) {
+    state_id = filepath.substr(last_slash + 1);
+  }
+  size_t dot_pos = state_id.find_last_of('.');
+  if (dot_pos != std::string::npos) {
+    state_id = state_id.substr(0, dot_pos);
+  }
+#endif
+
+  // Calculate ROM checksum for compatibility
+  uint32_t checksum = 0;
+  if (rom_getter_) {
+    Rom* rom = rom_getter_();
+    if (rom && rom->is_loaded()) {
+      // Simple checksum: sum of first 1024 bytes
+      const uint8_t* data = rom->data();
+      size_t len = std::min<size_t>(rom->size(), 1024);
+      for (size_t i = 0; i < len; ++i) {
+        checksum += data[i];
+      }
+    }
+  }
+
+  response->set_success(true);
+  response->set_message("State saved: " + filepath);
+  response->set_state_id(state_id);
+  response->set_rom_checksum(checksum);
+  return grpc::Status::OK;
+}
+
+grpc::Status EmulatorServiceImpl::LoadState(grpc::ServerContext* context,
+                                             const agent::LoadStateRequest* request,
+                                             agent::LoadStateResponse* response) {
+  if (!emulator_ || !emulator_->is_snes_initialized()) {
+    response->set_success(false);
+    response->set_message("SNES not initialized");
+    return grpc::Status::OK;
+  }
+
+  const std::string& filepath = request->filepath();
+  if (filepath.empty()) {
+    response->set_success(false);
+    response->set_message("Filepath is required");
+    return grpc::Status::OK;
+  }
+
+#ifndef __EMSCRIPTEN__
+  if (!std::filesystem::exists(filepath)) {
+    response->set_success(false);
+    response->set_message("State file not found: " + filepath);
+    return grpc::Status::OK;
+  }
+#endif
+
+  auto status = emulator_->snes().loadState(filepath);
+  if (!status.ok()) {
+    response->set_success(false);
+    response->set_message(std::string(status.message()));
+    return grpc::Status::OK;
+  }
+
+  // Populate metadata from current emulator state
+  auto* metadata = response->mutable_metadata();
+
+#ifndef __EMSCRIPTEN__
+  std::filesystem::path path(filepath);
+  metadata->set_state_id(path.stem().string());
+  metadata->set_filepath(filepath);
+
+  // Get file modification time
+  auto ftime = std::filesystem::last_write_time(filepath);
+  auto sctp = std::chrono::time_point_cast<std::chrono::seconds>(
+      std::chrono::file_clock::to_sys(ftime));
+  metadata->set_timestamp(sctp.time_since_epoch().count());
+#else
+  metadata->set_state_id(filepath);
+  metadata->set_filepath(filepath);
+  metadata->set_timestamp(0);
+#endif
+
+  // Read game state from WRAM
+  auto& snes = emulator_->snes();
+  metadata->set_room_id(snes.Read(0x7E00A0) | (snes.Read(0x7E00A1) << 8));
+  metadata->set_game_module(snes.Read(0x7E0010));
+
+  response->set_success(true);
+  response->set_message("State loaded: " + filepath);
+  return grpc::Status::OK;
+}
+
+grpc::Status EmulatorServiceImpl::ListStates(grpc::ServerContext* context,
+                                              const agent::ListStatesRequest* request,
+                                              agent::ListStatesResponse* response) {
+#ifdef __EMSCRIPTEN__
+  // Directory listing not well supported in WASM
+  return grpc::Status::OK;
+#else
+  std::string directory = request->directory();
+  if (directory.empty()) {
+    directory = "./states";  // Default directory
+  }
+
+  if (!std::filesystem::exists(directory)) {
+    return grpc::Status::OK;  // Empty list, no error
+  }
+
+  for (const auto& entry : std::filesystem::directory_iterator(directory)) {
+    if (!entry.is_regular_file()) continue;
+
+    std::string ext = entry.path().extension().string();
+    if (ext != ".state" && ext != ".sav") continue;
+
+    auto* state = response->add_states();
+    state->set_state_id(entry.path().stem().string());
+    state->set_filepath(entry.path().string());
+
+    // Get modification time
+    auto ftime = std::filesystem::last_write_time(entry);
+    auto sctp = std::chrono::time_point_cast<std::chrono::seconds>(
+        std::chrono::file_clock::to_sys(ftime));
+    state->set_timestamp(sctp.time_since_epoch().count());
+
+    // Default values for metadata we can't determine without loading
+    state->set_room_id(-1);
+    state->set_game_module(-1);
+  }
+
+  return grpc::Status::OK;
+#endif
+}
+
 }  // namespace yaze::net

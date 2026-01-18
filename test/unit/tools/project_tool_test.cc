@@ -239,9 +239,9 @@ TEST_F(ProjectManagerTest, InitializeCreatesProjectDirectory) {
   ASSERT_TRUE(status.ok()) << status.message();
 
   EXPECT_TRUE(manager.IsInitialized());
-  EXPECT_TRUE(fs::exists(test_dir_ / ".yaze-project"));
-  EXPECT_TRUE(fs::exists(test_dir_ / ".yaze-project" / "snapshots"));
-  EXPECT_TRUE(fs::exists(test_dir_ / ".yaze-project" / "project.json"));
+  EXPECT_TRUE(fs::exists(test_dir_ / ".yaze"));
+  EXPECT_TRUE(fs::exists(test_dir_ / ".yaze" / "snapshots"));
+  EXPECT_TRUE(fs::exists(test_dir_ / ".yaze" / "project.json"));
 }
 
 TEST_F(ProjectManagerTest, ListSnapshotsEmptyInitially) {

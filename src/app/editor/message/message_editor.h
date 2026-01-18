@@ -53,6 +53,7 @@ class MessageEditor : public Editor {
   void DrawExpandedMessageSettings();
   void DrawDictionary();
   void DrawMessagePreview();
+  void UpdateCurrentMessageFromText(const std::string& text);
 
   absl::Status Save() override;
   absl::Status SaveExpandedMessages();
@@ -93,6 +94,9 @@ class MessageEditor : public Editor {
   Rom* rom_;
   Rom expanded_message_bin_;
   std::string expanded_message_path_;
+  int expanded_message_base_id_ = 0;
+  int current_message_index_ = 0;
+  bool current_message_is_expanded_ = false;
 
   // Panel visibility states
   bool show_message_list_ = false;

@@ -188,10 +188,11 @@ Test critical preset combinations:
    - [ ] All features merged to `develop` branch
    - [ ] All tests passing on `develop`
    - [ ] Version number updated in:
-     - [ ] `CMakeLists.txt` (PROJECT_VERSION)
-     - [ ] `src/yaze.cc` (version string)
-     - [ ] `src/cli/z3ed.cc` (version string)
-     - [ ] `README.md` (version badge)
+     - [ ] `VERSION` (source of truth for builds)
+     - [ ] `README.md` (current release)
+     - [ ] `docs/public/reference/changelog.md` (new entry)
+     - [ ] `docs/public/release-notes.md` (new section)
+     - [ ] `docs/public/release/README.md` (release header)
    - [ ] CHANGELOG.md updated with release notes
    - [ ] Documentation updated
 

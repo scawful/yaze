@@ -2,6 +2,7 @@
 #define YAZE_APP_GUI_FEATURE_FLAGS_MENU_H
 
 #include "core/features.h"
+#include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
 #include "zelda3/overworld/overworld_map.h"
 #include "zelda3/overworld/overworld_version_helper.h"
@@ -20,6 +21,7 @@ using ImGui::Separator;
 
 struct FlagsMenu {
   void DrawOverworldFlags() {
+    const auto& theme = ThemeManager::Get().GetCurrentTheme();
     Checkbox("Enable Overworld Sprites",
              &core::FeatureFlags::get().overworld.kDrawOverworldSprites);
     Separator();
@@ -50,7 +52,7 @@ struct FlagsMenu {
              &core::FeatureFlags::get().overworld.kApplyZSCustomOverworldASM);
     
     Separator();
-    ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), "Experimental");
+    ImGui::TextColored(ConvertColorToImVec4(theme.warning), "Experimental");
     
     Checkbox("Enable Special World Tail (0xA0-0xBF)",
              &core::FeatureFlags::get().overworld.kEnableSpecialWorldExpansion);
@@ -59,12 +61,13 @@ struct FlagsMenu {
       ImGui::OpenPopup("TailExpansionHelp");
     }
     if (ImGui::BeginPopup("TailExpansionHelp")) {
-      ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "EXPERIMENTAL FEATURE");
+      ImGui::TextColored(ConvertColorToImVec4(theme.warning),
+                         "EXPERIMENTAL FEATURE");
       ImGui::Separator();
       ImGui::Text("Enables access to special world tail maps (0xA0-0xBF).");
       ImGui::Text("These are unused map slots that can be made editable.");
       ImGui::Spacing();
-      ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "REQUIRES:");
+      ImGui::TextColored(ConvertColorToImVec4(theme.error), "REQUIRES:");
       ImGui::BulletText("ZSCustomOverworld v3 ASM");
       ImGui::BulletText("Pointer table expansion ASM patch");
       ImGui::Spacing();
@@ -75,6 +78,7 @@ struct FlagsMenu {
   }
 
   void DrawDungeonFlags() {
+    const auto& theme = ThemeManager::Get().GetCurrentTheme();
     Checkbox("Save Dungeon Maps", &core::FeatureFlags::get().kSaveDungeonMaps);
     Checkbox("Enable Custom Objects", &core::FeatureFlags::get().kEnableCustomObjects);
     ImGui::SameLine();
@@ -86,7 +90,7 @@ struct FlagsMenu {
       ImGui::BulletText("Minecart track editor panel");
       ImGui::BulletText("Custom object graphics (0x31, 0x32)");
       ImGui::Spacing();
-      ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), "REQUIRES:");
+      ImGui::TextColored(ConvertColorToImVec4(theme.warning), "REQUIRES:");
       ImGui::BulletText("custom_objects_folder set in project file");
       ImGui::BulletText("Custom object .bin files in that folder");
       ImGui::EndPopup();

@@ -1,5 +1,6 @@
 #include "cli/service/planning/policy_evaluator.h"
 
+#include <filesystem>
 #include <fstream>
 #include <sstream>
 
@@ -7,6 +8,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
 #include "cli/service/planning/proposal_registry.h"
+#include "util/platform_paths.h"
 
 namespace yaze {
 namespace cli {
@@ -72,8 +74,18 @@ PolicyEvaluator& PolicyEvaluator::GetInstance() {
 }
 
 absl::Status PolicyEvaluator::LoadPolicies(absl::string_view policy_dir) {
-  policy_dir_ = std::string(policy_dir);
-  policy_path_ = absl::StrFormat("%s/agent.yaml", policy_dir);
+  if (policy_dir.empty()) {
+    auto policies_dir = util::PlatformPaths::GetAppDataSubdirectory("policies");
+    if (policies_dir.ok()) {
+      policy_dir_ = policies_dir->string();
+    } else {
+      policy_dir_ =
+          (std::filesystem::current_path() / ".yaze" / "policies").string();
+    }
+  } else {
+    policy_dir_ = std::string(policy_dir);
+  }
+  policy_path_ = absl::StrFormat("%s/agent.yaml", policy_dir_);
 
   // Check if file exists
   std::ifstream file(policy_path_);

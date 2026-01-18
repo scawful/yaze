@@ -203,8 +203,8 @@ To ensure robust and consistent behavior across platforms, YAZE has standardized
 - **`std::filesystem`**: All new and refactored code uses the C++17 `std::filesystem` library for path manipulation, directory iteration, and file operations. This eliminates platform-specific bugs related to path separators (`/` vs `\`).
 
 - **`PlatformPaths` Utility**: A dedicated utility class, `yaze::util::PlatformPaths`, provides platform-aware API for retrieving standard directory locations:
-  - **Application Data**: `%APPDATA%` on Windows, `~/Library/Application Support` on macOS, XDG Base Directory on Linux
-  - **Configuration Files**: Semantically clear API for config file locations
+  - **Application Data**: `~/.yaze` across desktop platforms (with legacy migration)
+  - **Configuration Files**: Unified under the same `.yaze` root
   - **Home and Temporary Directories**: Safely resolves user-specific and temporary folders
 
 This removes legacy platform-specific APIs (like `dirent.h` or Win32 directory functions) for cleaner, more maintainable file handling.

@@ -28,6 +28,7 @@ class AgentChat;
 class SettingsPanel;
 class SelectionPropertiesPanel;
 class ProjectManagementPanel;
+class ShortcutManager;
 
 /**
  * @class RightPanelManager
@@ -75,6 +76,9 @@ class RightPanelManager {
   void SetAgentChat(AgentChat* chat) { agent_chat_ = chat; }
   void SetProposalDrawer(ProposalDrawer* drawer) { proposal_drawer_ = drawer; }
   void SetSettingsPanel(SettingsPanel* panel) { settings_panel_ = panel; }
+  void SetShortcutManager(ShortcutManager* manager) {
+    shortcut_manager_ = manager;
+  }
   void SetPropertiesPanel(SelectionPropertiesPanel* panel) {
     properties_panel_ = panel;
   }
@@ -203,6 +207,10 @@ class RightPanelManager {
   void DrawPanelLabel(const char* label);
   void DrawPanelValue(const char* label, const char* value);
   void DrawPanelDescription(const char* text);
+  std::string GetShortcutLabel(const std::string& action,
+                               const std::string& fallback) const;
+  void DrawShortcutRow(const std::string& action, const char* description,
+                       const std::string& fallback);
 
   // Active panel
   PanelType active_panel_ = PanelType::kNone;
@@ -223,6 +231,7 @@ class RightPanelManager {
   AgentChat* agent_chat_ = nullptr;
   ProposalDrawer* proposal_drawer_ = nullptr;
   SettingsPanel* settings_panel_ = nullptr;
+  ShortcutManager* shortcut_manager_ = nullptr;
   SelectionPropertiesPanel* properties_panel_ = nullptr;
   ProjectManagementPanel* project_panel_ = nullptr;
   ToastManager* toast_manager_ = nullptr;
@@ -247,4 +256,3 @@ const char* GetPanelTypeIcon(RightPanelManager::PanelType type);
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_MENU_RIGHT_PANEL_MANAGER_H_
-
