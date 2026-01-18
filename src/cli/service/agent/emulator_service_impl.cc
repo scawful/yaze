@@ -715,10 +715,15 @@ grpc::Status EmulatorServiceImpl::LoadState(
   metadata->set_filepath(filepath);
 
   // Get file modification time
+  // Note: file_clock::to_sys is not available on MSVC, so we skip timestamp
+#if !defined(_WIN32)
   auto ftime = std::filesystem::last_write_time(filepath);
   auto sctp = std::chrono::time_point_cast<std::chrono::seconds>(
       std::chrono::file_clock::to_sys(ftime));
   metadata->set_timestamp(sctp.time_since_epoch().count());
+#else
+  metadata->set_timestamp(0);
+#endif
 #else
   metadata->set_state_id(filepath);
   metadata->set_filepath(filepath);
@@ -764,10 +769,15 @@ grpc::Status EmulatorServiceImpl::ListStates(
     state->set_filepath(entry.path().string());
 
     // Get modification time
+    // Note: file_clock::to_sys is not available on MSVC, so we skip timestamp
+#if !defined(_WIN32)
     auto ftime = std::filesystem::last_write_time(entry);
     auto sctp = std::chrono::time_point_cast<std::chrono::seconds>(
         std::chrono::file_clock::to_sys(ftime));
     state->set_timestamp(sctp.time_since_epoch().count());
+#else
+    state->set_timestamp(0);
+#endif
 
     // Default values for metadata we can't determine without loading
     state->set_room_id(-1);
