@@ -1103,10 +1103,11 @@ void WelcomeScreen::DrawTipsSection() {
   const char* tips[] = {
       "Open a ROM first, then save a copy before editing",
       "Press Ctrl+Shift+P for the command palette and F1 for help",
+      "Shortcuts are configurable in Settings > Keyboard Shortcuts",
+      "Project + settings data live under ~/.yaze (user profile on Windows)",
       "Use Ctrl+Shift+A for AI workflows (Ollama/Gemini/OpenAI/Anthropic)",
       "Try z3ed --tui or the web terminal for scripting and automation",
-      "Enable Web/WASM collaboration for live syncing (server required)",
-      "Keep multiple sessions for parallel ROM work (Ctrl+Shift+N)"};
+      "Enable collaboration only when yaze-server is running"};
   int tip_index = 0;  // Show first tip, or could be random on screen open
 
   ImGui::Text(ICON_MD_LIGHTBULB);
@@ -1142,20 +1143,21 @@ void WelcomeScreen::DrawWhatsNew() {
   };
 
   Feature features[] = {
-      {ICON_MD_PSYCHOLOGY, "AI Agent Workflows",
-       "Multi-provider AI plus vision refiners in app, CLI, and web",
-       kGanonPurple},
-      {ICON_MD_TERMINAL, "CLI + Automation",
-       "z3ed CLI/TUI with plan/run, test, doctor, and schema export tooling",
+      {ICON_MD_FACT_CHECK, "Feature Status & Help",
+       "Clear status + persistence summaries for desktop, CLI, and web",
        kMasterSwordBlue},
-      {ICON_MD_PUBLIC, "Web/WASM Preview",
-       "Browser build with improved storage handling and collaboration hooks",
-       kTriforceGold},
-      {ICON_MD_SPEED, "Editor Accuracy",
-       "Palette fixes, graphics saves, and stability improvements",
+      {ICON_MD_STORAGE, "Unified .yaze Storage",
+       "Consistent project/config paths across desktop, CLI, and web builds",
+       kHyruleGreen},
+      {ICON_MD_KEYBOARD, "Shortcut + Settings Polish",
+       "Help panel reflects your configured keybindings",
        kSpiritOrange},
-      {ICON_MD_FACT_CHECK, "Release Quality",
-       "Cross-platform packaging and CI/CD hardening for v0.5.0", kHyruleGreen},
+      {ICON_MD_FOLDER_SPECIAL, "Project Clarity",
+       "Improved project metadata and workspace cues",
+       kTriforceGold},
+      {ICON_MD_PSYCHOLOGY, "AI + Automation",
+       "Agent workflows remain integrated across app and z3ed",
+       kGanonPurple},
   };
 
   for (const auto& feature : features) {

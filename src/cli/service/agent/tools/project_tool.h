@@ -93,7 +93,7 @@ class ProjectManager {
 
   /**
    * @brief Initialize project directory structure
-   * @param base_path Base directory for project (creates .yaze-project/)
+   * @param base_path Base directory for project (creates .yaze/)
    */
   absl::Status Initialize(const std::string& base_path);
 

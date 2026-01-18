@@ -435,7 +435,7 @@ int Z3edLoadRomData(const uint8_t* data, size_t size) {
   }
 
   // Write to a temporary file
-  std::string temp_path = "/roms/terminal_upload.sfc";
+  std::string temp_path = "/.yaze/roms/terminal_upload.sfc";
   std::ofstream file(temp_path, std::ios::binary);
   if (!file) {
       z3ed_error_to_terminal("Failed to write to VFS");

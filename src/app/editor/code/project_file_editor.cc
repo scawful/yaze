@@ -12,6 +12,7 @@
 #include "core/project.h"
 #include "imgui/imgui.h"
 #include "util/file_util.h"
+#include "yaze_config.h"
 
 #ifdef __EMSCRIPTEN__
 #include "app/platform/wasm/wasm_storage.h"
@@ -247,7 +248,8 @@ absl::Status ProjectFileEditor::SaveFileAs(const std::string& filepath) {
 
 void ProjectFileEditor::NewFile() {
   // Create a template project file
-  const char* template_content = R"(# yaze Project File
+  const std::string template_content = absl::StrFormat(
+      R"(# yaze Project File
 # Format Version: 2.0
 
 [project]
@@ -259,7 +261,7 @@ license=
 version=1.0
 created_date=
 last_modified=
-yaze_version=0.5.0
+yaze_version=%s
 created_by=YAZE
 tags=
 
@@ -305,7 +307,8 @@ last_build_hash=
 persist_custom_music=true
 storage_key=
 last_saved_at=
-)";
+)",
+      YAZE_VERSION_STRING);
 
   text_editor_.SetText(template_content);
   filepath_.clear();

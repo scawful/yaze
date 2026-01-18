@@ -36,13 +36,17 @@ bool FileExists(const std::filesystem::path& path) {
 }  // namespace
 
 LearnedKnowledgeService::LearnedKnowledgeService() {
-  // Get user documents directory for agent knowledge (visible to user)
-  auto docs_result = util::PlatformPaths::GetUserDocumentsSubdirectory("agent");
-  if (docs_result.ok()) {
-    data_dir_ = *docs_result;
+  auto data_result = util::PlatformPaths::GetAppDataSubdirectory("agent");
+  if (data_result.ok()) {
+    data_dir_ = *data_result;
   } else {
-    // Fallback to current directory -> agent (e.g. portable mode)
-    data_dir_ = std::filesystem::current_path() / "agent";
+    auto temp_result = util::PlatformPaths::GetTempDirectory();
+    if (temp_result.ok()) {
+      data_dir_ = *temp_result / "agent";
+    } else {
+      // Fallback to current directory -> agent (e.g. portable mode)
+      data_dir_ = std::filesystem::current_path() / "agent";
+    }
   }
 
   prefs_file_ = data_dir_ / "preferences.json";

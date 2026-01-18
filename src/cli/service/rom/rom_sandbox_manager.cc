@@ -10,6 +10,7 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "util/macro.h"
+#include "util/platform_paths.h"
 
 namespace yaze {
 namespace cli {
@@ -19,6 +20,10 @@ namespace {
 std::filesystem::path DetermineDefaultRoot() {
   if (const char* env_root = std::getenv("YAZE_SANDBOX_ROOT")) {
     return std::filesystem::path(env_root);
+  }
+  auto app_data = util::PlatformPaths::GetAppDataSubdirectory("sandboxes");
+  if (app_data.ok()) {
+    return *app_data;
   }
   std::error_code ec;
   auto temp_dir = std::filesystem::temp_directory_path(ec);

@@ -1,6 +1,8 @@
 #include "popup_manager.h"
 
+#include <cstring>
 #include <functional>
+#include <initializer_list>
 
 #include "absl/strings/str_format.h"
 #include "app/editor/editor_manager.h"
@@ -8,6 +10,7 @@
 #include "app/gui/app/feature_flags_menu.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
+#include "app/gui/core/theme_manager.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "util/file_util.h"
 #include "util/hex.h"
@@ -419,71 +422,141 @@ void PopupManager::DrawNewProjectPopup() {
 }
 
 void PopupManager::DrawSupportedFeaturesPopup() {
-  if (CollapsingHeader(
-          absl::StrFormat("%s Overworld Editor", ICON_MD_LAYERS).c_str(),
-          ImGuiTreeNodeFlags_DefaultOpen)) {
-    BulletText("LW/DW/SW Tilemap Editing");
-    BulletText("LW/DW/SW Map Properties");
-    BulletText("Create/Delete/Update Entrances");
-    BulletText("Create/Delete/Update Exits");
-    BulletText("Create/Delete/Update Sprites");
-    BulletText("Create/Delete/Update Items");
-    BulletText("Multi-session map editing support");
+  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+  const ImVec4 status_ok = gui::ConvertColorToImVec4(theme.success);
+  const ImVec4 status_warn = gui::ConvertColorToImVec4(theme.warning);
+  const ImVec4 status_info = gui::ConvertColorToImVec4(theme.info);
+  const ImVec4 status_error = gui::ConvertColorToImVec4(theme.error);
+
+  auto status_color = [&](const char* status) -> ImVec4 {
+    if (strcmp(status, "Stable") == 0 || strcmp(status, "Working") == 0) {
+      return status_ok;
+    }
+    if (strcmp(status, "Beta") == 0 || strcmp(status, "Experimental") == 0) {
+      return status_warn;
+    }
+    if (strcmp(status, "Preview") == 0) {
+      return status_info;
+    }
+    if (strcmp(status, "Not available") == 0) {
+      return status_error;
+    }
+    return status_info;
+  };
+
+  struct FeatureRow {
+    const char* feature;
+    const char* status;
+    const char* persistence;
+    const char* notes;
+  };
+
+  auto draw_table = [&](const char* table_id,
+                        std::initializer_list<FeatureRow> rows) {
+    ImGuiTableFlags flags = ImGuiTableFlags_BordersInnerH |
+                            ImGuiTableFlags_RowBg |
+                            ImGuiTableFlags_Resizable;
+    if (!BeginTable(table_id, 4, flags)) {
+      return;
+    }
+    TableSetupColumn("Feature", ImGuiTableColumnFlags_WidthStretch);
+    TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+    TableSetupColumn("Save/Load", ImGuiTableColumnFlags_WidthFixed, 180.0f);
+    TableSetupColumn("Notes", ImGuiTableColumnFlags_WidthStretch);
+    TableHeadersRow();
+
+    for (const auto& row : rows) {
+      TableNextRow();
+      TableSetColumnIndex(0);
+      TextUnformatted(row.feature);
+      TableSetColumnIndex(1);
+      TextColored(status_color(row.status), "%s", row.status);
+      TableSetColumnIndex(2);
+      TextUnformatted(row.persistence);
+      TableSetColumnIndex(3);
+      TextWrapped("%s", row.notes);
+    }
+
+    EndTable();
+  };
+
+  TextDisabled(
+      "Status: Stable = production ready, Beta = usable with gaps, "
+      "Experimental = WIP, Preview = web parity in progress.");
+  TextDisabled("See Settings > Feature Flags for ROM-specific toggles.");
+  Spacing();
+
+  if (CollapsingHeader("Desktop App (yaze)", ImGuiTreeNodeFlags_DefaultOpen)) {
+    draw_table(
+        "desktop_features",
+        {
+            {"ROM load/save", "Stable", "ROM + backups",
+             "Backups on save when enabled."},
+            {"Overworld Editor", "Stable", "ROM",
+             "Maps/entrances/exits/items; version-gated."},
+            {"Dungeon Editor", "Stable", "ROM",
+             "Room objects/tiles/palettes persist."},
+            {"Palette Editor", "Stable", "ROM",
+             "Palette edits persist; JSON IO pending."},
+            {"Graphics Editor", "Beta", "ROM",
+             "Sheet edits persist; tooling still expanding."},
+            {"Sprite Editor", "Stable", "ROM", "Sprite edits persist."},
+            {"Message Editor", "Stable", "ROM", "Text edits persist."},
+            {"Screen Editor", "Experimental", "ROM (partial)",
+             "Save coverage incomplete."},
+            {"Hex Editor", "Beta", "ROM", "Search UX incomplete."},
+            {"Assembly/Asar", "Beta", "ROM + project",
+             "Patch apply + symbol export."},
+            {"Emulator", "Beta", "Runtime only",
+             "Save-state UI partially wired."},
+            {"Music Editor", "Experimental", "ROM (partial)",
+             "Serialization in progress."},
+            {"Agent UI", "Experimental", ".yaze/agent",
+             "Requires AI provider configuration."},
+            {"Settings/Layouts", "Beta", ".yaze config",
+             "Layout serialization improving."},
+        });
   }
 
-  if (CollapsingHeader(
-          absl::StrFormat("%s Dungeon Editor", ICON_MD_CASTLE).c_str())) {
-    BulletText("View Room Header Properties");
-    BulletText("View Entrance Properties");
-    BulletText("Enhanced room navigation");
+  if (CollapsingHeader("z3ed CLI")) {
+    draw_table(
+        "cli_features",
+        {
+            {"ROM read/write/validate", "Stable", "ROM file",
+             "Direct command execution."},
+            {"Agent workflows", "Stable", ".yaze/proposals + sandboxes",
+             "Commit writes ROM; revert reloads."},
+            {"Snapshots/restore", "Stable", "Sandbox copies",
+             "Supports YAZE_SANDBOX_ROOT override."},
+            {"Doctor/test suites", "Stable", "Reports",
+             "Structured output for automation."},
+            {"TUI/REPL", "Stable", "Session history",
+             "Interactive command palette + logs."},
+        });
   }
 
-  if (CollapsingHeader(
-          absl::StrFormat("%s Graphics & Themes", ICON_MD_PALETTE).c_str())) {
-    BulletText("View Decompressed Graphics Sheets");
-    BulletText("View/Update Graphics Groups");
-    BulletText(
-        "5+ Built-in themes (Classic, Cyberpunk, Sunset, Forest, Midnight)");
-    BulletText("Custom theme creation and editing");
-    BulletText("Theme import/export functionality");
-    BulletText("Animated background grid effects");
-  }
-
-  if (CollapsingHeader(
-          absl::StrFormat("%s Palettes", ICON_MD_COLOR_LENS).c_str())) {
-    BulletText("View Palette Groups");
-    BulletText("Enhanced palette editing tools");
-    BulletText("Color conversion utilities");
-  }
-
-  if (CollapsingHeader(
-          absl::StrFormat("%s Project Management", ICON_MD_FOLDER).c_str())) {
-    BulletText("Multi-session workspace support");
-    BulletText("Enhanced project creation and management");
-    BulletText("ZScream project format compatibility");
-    BulletText("Workspace settings and feature flags");
-  }
-
-  if (CollapsingHeader(
-          absl::StrFormat("%s Development Tools", ICON_MD_BUILD).c_str())) {
-    BulletText("Asar 65816 assembler integration");
-    BulletText("Enhanced CLI tools with TUI interface");
-    BulletText("Memory editor with advanced features");
-    BulletText("Hex editor with search and navigation");
-    BulletText("Assembly validation and symbol extraction");
-  }
-
-  if (CollapsingHeader(
-          absl::StrFormat("%s Save Capabilities", ICON_MD_SAVE).c_str())) {
-    BulletText("All Overworld editing features");
-    BulletText("Hex Editor changes");
-    BulletText("Theme configurations");
-    BulletText("Project settings and workspace layouts");
-    BulletText("Custom assembly patches");
+  if (CollapsingHeader("Web/WASM Preview")) {
+    draw_table(
+        "web_features",
+        {
+            {"ROM load/save", "Preview", "IndexedDB + download",
+             "Drag/drop or picker; download for backups."},
+            {"Editors (OW/Dungeon/Palette/etc.)", "Preview",
+             "IndexedDB + download", "Parity work in progress."},
+            {"Hex Editor", "Working", "IndexedDB + download",
+             "Direct ROM editing available."},
+            {"Asar patching", "Preview", "ROM",
+             "Basic patch apply support."},
+            {"Emulator", "Not available", "N/A", "Desktop only."},
+            {"Collaboration", "Experimental", "Server",
+             "Requires yaze-server."},
+            {"AI features", "Preview", "Server",
+             "Requires AI-enabled server."},
+        });
   }
 
   if (Button("Close", gui::kDefaultModalSize)) {
-    Hide("Supported Features");
+    Hide(PopupID::kSupportedFeatures);
   }
 }
 
@@ -527,12 +600,12 @@ void PopupManager::DrawGettingStartedPopup() {
   BulletText(
       "AI-assisted workflows via z3ed agent and in-app panels "
       "(Ollama/Gemini/OpenAI/Anthropic)");
-  BulletText("Web/WASM preview with collaboration server support");
-  BulletText("Music editor updates with SPC parsing and playback");
+  BulletText("Clear feature status panels and improved help/tooltips");
+  BulletText("Unified .yaze storage across desktop/CLI/web");
   Spacing();
   TextWrapped("General Tips:");
   BulletText("Open a clean ROM and save a backup before editing");
-  BulletText("Use Help (F1) for context-aware guidance");
+  BulletText("Use Help (F1) for context-aware guidance and shortcuts");
   BulletText(
       "Configure AI providers (Ollama/Gemini/OpenAI/Anthropic) in Settings > "
       "Agent");
@@ -545,7 +618,7 @@ void PopupManager::DrawGettingStartedPopup() {
 void PopupManager::DrawAsarIntegrationPopup() {
   TextWrapped("Asar 65816 Assembly Integration");
   TextWrapped(
-      "YAZE v0.5.0 includes full Asar assembler support for ROM patching.");
+      "YAZE includes full Asar assembler support for ROM patching.");
   Spacing();
   TextWrapped("Features:");
   BulletText("Cross-platform ROM patching with assembly code");
@@ -588,6 +661,9 @@ void PopupManager::DrawCLIUsagePopup() {
   BulletText("z3ed test-list --format json");
   BulletText("z3ed patch apply-asar patch.asm --rom=zelda3.sfc");
   BulletText("z3ed --tui");
+  Spacing();
+  TextWrapped("Storage:");
+  BulletText("Agent plans/proposals live under ~/.yaze (see docs for details)");
 
   if (Button("Close", gui::kDefaultModalSize)) {
     Hide("CLI Usage");
@@ -602,9 +678,10 @@ void PopupManager::DrawTroubleshootingPopup() {
   BulletText(
       "AI agent missing: Start Ollama or set GEMINI_API_KEY/OPENAI_API_KEY/"
       "ANTHROPIC_API_KEY (web uses AI_AGENT_ENDPOINT)");
-  BulletText("Graphics issues: Try disabling experimental features");
+  BulletText("Graphics issues: Disable experimental flags in Settings");
   BulletText("Performance: Enable hardware acceleration in display settings");
   BulletText("Crashes: Check ROM file integrity and available memory");
+  BulletText("Layout issues: Reset workspace layouts from View > Layouts");
 
   if (Button("Close", gui::kDefaultModalSize)) {
     Hide("Troubleshooting");
@@ -635,10 +712,10 @@ void PopupManager::DrawWhatsNewPopup() {
           absl::StrFormat("%s User Interface & Theming", ICON_MD_PALETTE)
               .c_str(),
           ImGuiTreeNodeFlags_DefaultOpen)) {
-    BulletText("Refreshed welcome screen and onboarding tips");
+    BulletText("Feature status/persistence summaries across desktop/CLI/web");
+    BulletText("Shortcut/help panels now match configured keybindings");
+    BulletText("Refined onboarding tips and error messaging");
     BulletText("Help text refreshed across desktop, CLI, and web");
-    BulletText("Improved panel layouts and session workflows");
-    BulletText("Theme polish and icon refreshes");
   }
 
   if (CollapsingHeader(
@@ -648,13 +725,12 @@ void PopupManager::DrawWhatsNewPopup() {
     BulletText("Asar 65816 assembler integration for ROM patching");
     BulletText("z3ed CLI + TUI for scripting, test/doctor, and automation");
     BulletText("Modern CMake presets for desktop, AI, and web builds");
-    BulletText("Cross-platform CI/CD hardening (Windows, macOS, Linux)");
-    BulletText("Quality release packaging for macOS/Windows/Linux");
+    BulletText("Unified version + storage references for 0.5.1");
   }
 
   if (CollapsingHeader(
           absl::StrFormat("%s Core Improvements", ICON_MD_SETTINGS).c_str())) {
-    BulletText("Improved ROM validation and project metadata handling");
+    BulletText("Improved project metadata + .yaze storage alignment");
     BulletText("Stronger error reporting and status feedback");
     BulletText("Performance and stability improvements across editors");
     BulletText("Expanded logging and diagnostics tooling");

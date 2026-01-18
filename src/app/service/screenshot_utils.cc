@@ -43,7 +43,7 @@ struct ImGui_ImplSDLRenderer2_Data {
 
 std::filesystem::path DefaultScreenshotPath() {
   auto base_dir_or =
-      util::PlatformPaths::GetUserDocumentsSubdirectory("screenshots");
+      util::PlatformPaths::GetAppDataSubdirectory("screenshots");
   std::filesystem::path base_dir;
   if (base_dir_or.ok()) {
     base_dir = *base_dir_or;

@@ -73,6 +73,11 @@ class ShortcutManager {
     return shortcuts_.at(name);
   }
 
+  const Shortcut* FindShortcut(const std::string& name) const {
+    auto it = shortcuts_.find(name);
+    return it != shortcuts_.end() ? &it->second : nullptr;
+  }
+
   // Get shortcut callback function
   std::function<void()> GetCallback(const std::string& name) const {
     return shortcuts_.at(name).callback;

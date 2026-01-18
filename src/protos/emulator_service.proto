@@ -42,6 +42,11 @@ service EmulatorService {
   // --- Session & Experiments ---
   rpc GetDebugStatus(Empty) returns (DebugStatusResponse);
   rpc TestRun(TestRunRequest) returns (TestRunResponse);
+
+  // --- Save State Management ---
+  rpc SaveState(SaveStateRequest) returns (SaveStateResponse);
+  rpc LoadState(LoadStateRequest) returns (LoadStateResponse);
+  rpc ListStates(ListStatesRequest) returns (ListStatesResponse);
 }
 
 // --- Message Definitions ---
@@ -287,4 +292,50 @@ message LoadedRomPathResponse {
   bool has_rom = 1;
   string filepath = 2;
   string title = 3;
+}
+
+// --- Save State Management ---
+
+message SaveStateRequest {
+  string filepath = 1;           // Full path to .state file
+  string description = 2;        // Human-readable description
+  bool is_checkpoint = 3;        // Major checkpoint marker
+}
+
+message SaveStateResponse {
+  bool success = 1;
+  string message = 2;
+  string state_id = 3;           // Generated ID (filename without extension)
+  uint32 rom_checksum = 4;       // For compatibility verification
+}
+
+message LoadStateRequest {
+  string filepath = 1;           // Path to .state file
+  bool verify_checksum = 2;      // Verify ROM compatibility
+}
+
+message LoadStateResponse {
+  bool success = 1;
+  string message = 2;
+  StateMetadata metadata = 3;
+}
+
+message ListStatesRequest {
+  string directory = 1;          // State directory to list
+  string rom_checksum_filter = 2; // Optional filter by ROM checksum
+}
+
+message StateMetadata {
+  string state_id = 1;
+  string filepath = 2;
+  string description = 3;
+  uint64 timestamp = 4;
+  uint32 rom_checksum = 5;
+  bool is_checkpoint = 6;
+  int32 room_id = 7;             // ALTTP room if applicable (-1 if unknown)
+  int32 game_module = 8;         // Game module state
+}
+
+message ListStatesResponse {
+  repeated StateMetadata states = 1;
 }

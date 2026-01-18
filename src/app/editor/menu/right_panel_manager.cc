@@ -5,6 +5,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_chat.h"
+#include "app/editor/system/shortcut_manager.h"
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/ui/project_management_panel.h"
 #include "app/editor/ui/selection_properties_panel.h"
@@ -26,10 +27,6 @@ std::string ResolveAgentChatHistoryPath() {
   auto agent_dir = util::PlatformPaths::GetAppDataSubdirectory("agent");
   if (agent_dir.ok()) {
     return (*agent_dir / "agent_chat_history.json").string();
-  }
-  auto docs_dir = util::PlatformPaths::GetUserDocumentsSubdirectory("agent");
-  if (docs_dir.ok()) {
-    return (*docs_dir / "agent_chat_history.json").string();
   }
   auto temp_dir = util::PlatformPaths::GetTempDirectory();
   if (temp_dir.ok()) {
@@ -436,6 +433,30 @@ void RightPanelManager::DrawPanelDescription(const char* text) {
   ImGui::PopStyleColor();
 }
 
+std::string RightPanelManager::GetShortcutLabel(
+    const std::string& action, const std::string& fallback) const {
+  if (!shortcut_manager_) {
+    return fallback;
+  }
+
+  const Shortcut* shortcut = shortcut_manager_->FindShortcut(action);
+  if (!shortcut) {
+    return fallback;
+  }
+  if (shortcut->keys.empty()) {
+    return "Unassigned";
+  }
+
+  return PrintShortcut(shortcut->keys);
+}
+
+void RightPanelManager::DrawShortcutRow(const std::string& action,
+                                        const char* description,
+                                        const std::string& fallback) {
+  std::string label = GetShortcutLabel(action, fallback);
+  DrawPanelValue(label.c_str(), description);
+}
+
 // =============================================================================
 // Panel Content Drawing
 // =============================================================================
@@ -690,12 +711,19 @@ void RightPanelManager::DrawGlobalShortcuts() {
   const char* ctrl = gui::GetCtrlDisplayName();
   DrawPanelLabel("Global");
   ImGui::Indent(8.0f);
-  DrawPanelValue(absl::StrFormat("%s+O", ctrl).c_str(), "Open ROM");
-  DrawPanelValue(absl::StrFormat("%s+S", ctrl).c_str(), "Save ROM");
-  DrawPanelValue(absl::StrFormat("%s+Z", ctrl).c_str(), "Undo");
-  DrawPanelValue(absl::StrFormat("%s+Y", ctrl).c_str(), "Redo");
-  DrawPanelValue(absl::StrFormat("%s+B", ctrl).c_str(), "Toggle Sidebar");
-  DrawPanelValue("F1", "Help Panel");
+  DrawShortcutRow("Open", "Open ROM", absl::StrFormat("%s+O", ctrl));
+  DrawShortcutRow("Save", "Save ROM", absl::StrFormat("%s+S", ctrl));
+  DrawShortcutRow("Save As", "Save ROM As",
+                  absl::StrFormat("%s+Shift+S", ctrl));
+  DrawShortcutRow("Undo", "Undo", absl::StrFormat("%s+Z", ctrl));
+  DrawShortcutRow("Redo", "Redo", absl::StrFormat("%s+Shift+Z", ctrl));
+  DrawShortcutRow("Command Palette", "Command Palette",
+                  absl::StrFormat("%s+Shift+P", ctrl));
+  DrawShortcutRow("Global Search", "Global Search",
+                  absl::StrFormat("%s+Shift+K", ctrl));
+  DrawShortcutRow("view.toggle_activity_bar", "Toggle Sidebar",
+                  absl::StrFormat("%s+B", ctrl));
+  DrawShortcutRow("Show About", "About / Help", "F1");
   DrawPanelValue("Esc", "Close Panel");
   ImGui::Unindent(8.0f);
   ImGui::Spacing();
@@ -711,6 +739,10 @@ void RightPanelManager::DrawEditorSpecificShortcuts() {
       DrawPanelValue("Arrow Keys", "Navigate Maps");
       DrawPanelValue("E", "Entity Mode");
       DrawPanelValue("T", "Tile Mode");
+      DrawShortcutRow("overworld.brush_toggle", "Toggle brush", "B");
+      DrawShortcutRow("overworld.fill", "Fill tool", "F");
+      DrawShortcutRow("overworld.next_tile", "Next tile", "]");
+      DrawShortcutRow("overworld.prev_tile", "Previous tile", "[");
       DrawPanelValue("Right Click", "Pick Tile");
       ImGui::Unindent(8.0f);
       break;
@@ -718,8 +750,14 @@ void RightPanelManager::DrawEditorSpecificShortcuts() {
     case EditorType::kDungeon:
       DrawPanelLabel("Dungeon");
       ImGui::Indent(8.0f);
-      DrawPanelValue("Delete", "Remove Object");
-      DrawPanelValue(absl::StrFormat("%s+D", ctrl).c_str(), "Duplicate");
+      DrawShortcutRow("dungeon.object.select_tool", "Select tool", "S");
+      DrawShortcutRow("dungeon.object.place_tool", "Place tool", "P");
+      DrawShortcutRow("dungeon.object.delete_tool", "Delete tool", "D");
+      DrawShortcutRow("dungeon.object.copy", "Copy selection",
+                      absl::StrFormat("%s+C", ctrl));
+      DrawShortcutRow("dungeon.object.paste", "Paste selection",
+                      absl::StrFormat("%s+V", ctrl));
+      DrawShortcutRow("dungeon.object.delete", "Delete selection", "Delete");
       DrawPanelValue("Arrow Keys", "Move Object");
       DrawPanelValue("G", "Toggle Grid");
       DrawPanelValue("L", "Cycle Layers");
@@ -729,10 +767,14 @@ void RightPanelManager::DrawEditorSpecificShortcuts() {
     case EditorType::kGraphics:
       DrawPanelLabel("Graphics");
       ImGui::Indent(8.0f);
-      DrawPanelValue("[ ]", "Previous/Next Sheet");
-      DrawPanelValue("P", "Pencil Tool");
-      DrawPanelValue("F", "Fill Tool");
-      DrawPanelValue("+ -", "Zoom In/Out");
+      DrawShortcutRow("graphics.prev_sheet", "Previous sheet", "PageUp");
+      DrawShortcutRow("graphics.next_sheet", "Next sheet", "PageDown");
+      DrawShortcutRow("graphics.tool.pencil", "Pencil tool", "B");
+      DrawShortcutRow("graphics.tool.fill", "Fill tool", "G");
+      DrawShortcutRow("graphics.zoom_in", "Zoom in", "+");
+      DrawShortcutRow("graphics.zoom_out", "Zoom out", "-");
+      DrawShortcutRow("graphics.toggle_grid", "Toggle grid",
+                      absl::StrFormat("%s+G", ctrl));
       ImGui::Unindent(8.0f);
       break;
 
@@ -748,8 +790,10 @@ void RightPanelManager::DrawEditorSpecificShortcuts() {
     case EditorType::kMusic:
       DrawPanelLabel("Music");
       ImGui::Indent(8.0f);
-      DrawPanelValue("Space", "Play/Pause");
-      DrawPanelValue("Enter", "Stop");
+      DrawShortcutRow("music.play_pause", "Play/Pause", "Space");
+      DrawShortcutRow("music.stop", "Stop", "Esc");
+      DrawShortcutRow("music.speed_up", "Speed up", "+");
+      DrawShortcutRow("music.speed_down", "Slow down", "-");
       DrawPanelValue("Left/Right", "Seek");
       ImGui::Unindent(8.0f);
       break;

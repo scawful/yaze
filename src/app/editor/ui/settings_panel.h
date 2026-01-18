@@ -56,6 +56,7 @@ class SettingsPanel {
   void DrawGlobalShortcuts();
   void DrawEditorShortcuts();
   void DrawPanelShortcuts();
+  bool MatchesShortcutFilter(const std::string& text) const;
   void DrawPatchSettings();
   void DrawProjectSettings(); // New method
   void DrawPatchList(const std::string& folder);
@@ -73,6 +74,7 @@ class SettingsPanel {
   char shortcut_edit_buffer_[64] = {};
   std::string editing_card_id_;
   bool is_editing_shortcut_ = false;
+  std::string shortcut_filter_;
 
   // Patch system state
   core::PatchManager patch_manager_;

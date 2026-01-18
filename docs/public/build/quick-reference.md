@@ -117,11 +117,15 @@ Wrappers are created under `~/.local/bin`:
 - `yaze-nightly` (GUI)
 - `yaze-nightly-grpc` (GUI + gRPC for MCP)
 - `z3ed-nightly` (CLI)
-- `yaze-mcp-nightly` (MCP server; expects `~/Code/yaze-mcp/venv`)
+- `yaze-mcp-nightly` (MCP server; expects `~/.yaze/yaze-mcp/venv`)
+
+On macOS, a stable app link is created (default: `~/Applications/Yaze Nightly.app`).
+Use that path for menu bar launchers (Sketchybar, Raycast, Alfred, etc.).
+Example Sketchybar click script: `open -a "$HOME/Applications/Yaze Nightly.app"`.
 
 How it works:
-- Clones `origin` into `$YAZE_NIGHTLY_REPO` (default `~/Code/yaze-nightly`) and keeps it clean.
-- Builds into `$YAZE_NIGHTLY_BUILD_DIR` (default `~/Code/yaze-nightly/build-nightly`).
+- Clones `origin` into `$YAZE_NIGHTLY_REPO` (default `~/.yaze/nightly/repo`) and keeps it clean.
+- Builds into `$YAZE_NIGHTLY_BUILD_DIR` (default `~/.yaze/nightly/repo/build-nightly`).
 - Installs into `$YAZE_NIGHTLY_PREFIX/releases/<timestamp>` and updates `.../current` symlink.
 - Writes wrapper scripts to `$YAZE_NIGHTLY_BIN_DIR` (default `~/.local/bin`).
 
@@ -137,11 +141,12 @@ rm -rf ~/.local/yaze/nightly ~/.local/bin/yaze-nightly* ~/.local/bin/z3ed-nightl
 
 Key overrides:
 ```bash
-export YAZE_NIGHTLY_REPO="$HOME/Code/yaze-nightly"
+export YAZE_NIGHTLY_REPO="$HOME/.yaze/nightly/repo"
 export YAZE_NIGHTLY_PREFIX="$HOME/.local/yaze/nightly"
 export YAZE_NIGHTLY_BUILD_TYPE=RelWithDebInfo
 export YAZE_GRPC_PORT=50051
-export YAZE_MCP_REPO="$HOME/Code/yaze-mcp"
+export YAZE_MCP_REPO="$HOME/.yaze/yaze-mcp"
+export YAZE_NIGHTLY_APP_DIR="$HOME/Applications"
 ```
 
 ### Shared Dependency Caches (Recommended)

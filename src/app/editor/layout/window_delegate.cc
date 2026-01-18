@@ -6,6 +6,7 @@
 
 #include "absl/strings/str_format.h"
 #include "imgui/imgui.h"
+#include "util/platform_paths.h"
 
 namespace yaze {
 namespace editor {
@@ -187,14 +188,14 @@ std::vector<std::string> WindowDelegate::GetAvailableLayouts() const {
   std::vector<std::string> layouts;
 
   try {
-    // Look for layout files in config directory
-    std::string config_dir = "config/layouts";  // TODO: Use proper config path
-    if (std::filesystem::exists(config_dir)) {
-      for (const auto& entry :
-           std::filesystem::directory_iterator(config_dir)) {
-        if (entry.is_regular_file() && entry.path().extension() == ".ini") {
-          layouts.push_back(entry.path().stem().string());
-        }
+    auto layouts_dir = util::PlatformPaths::GetAppDataSubdirectory("layouts");
+    if (!layouts_dir.ok()) {
+      return layouts;
+    }
+    for (const auto& entry :
+         std::filesystem::directory_iterator(*layouts_dir)) {
+      if (entry.is_regular_file() && entry.path().extension() == ".ini") {
+        layouts.push_back(entry.path().stem().string());
       }
     }
   } catch (const std::exception& e) {
@@ -294,8 +295,12 @@ bool WindowDelegate::IsWindowRegistered(const std::string& window_id) const {
 
 std::string WindowDelegate::GetLayoutFilePath(
     const std::string& preset_name) const {
-  // TODO: Use proper config directory path
-  return absl::StrFormat("config/layouts/%s.ini", preset_name);
+  auto layouts_dir = util::PlatformPaths::GetAppDataSubdirectory("layouts");
+  if (layouts_dir.ok()) {
+    return (*layouts_dir / absl::StrFormat("%s.ini", preset_name.c_str()))
+        .string();
+  }
+  return absl::StrFormat("yaze_layout_%s.ini", preset_name);
 }
 
 void WindowDelegate::ApplyLayoutToWindow(const std::string& window_id,
@@ -307,13 +312,25 @@ void WindowDelegate::ApplyLayoutToWindow(const std::string& window_id,
 }
 
 void WindowDelegate::SaveWorkspaceLayout() {
-  ImGui::SaveIniSettingsToDisk("yaze_workspace.ini");
-  printf("[WindowDelegate] Workspace layout saved to yaze_workspace.ini\n");
+  std::filesystem::path layout_path = "yaze_workspace.ini";
+  auto workspace_dir = util::PlatformPaths::GetAppDataSubdirectory("workspaces");
+  if (workspace_dir.ok()) {
+    layout_path = *workspace_dir / "yaze_workspace.ini";
+  }
+  ImGui::SaveIniSettingsToDisk(layout_path.string().c_str());
+  printf("[WindowDelegate] Workspace layout saved to %s\n",
+         layout_path.string().c_str());
 }
 
 void WindowDelegate::LoadWorkspaceLayout() {
-  ImGui::LoadIniSettingsFromDisk("yaze_workspace.ini");
-  printf("[WindowDelegate] Workspace layout loaded from yaze_workspace.ini\n");
+  std::filesystem::path layout_path = "yaze_workspace.ini";
+  auto workspace_dir = util::PlatformPaths::GetAppDataSubdirectory("workspaces");
+  if (workspace_dir.ok()) {
+    layout_path = *workspace_dir / "yaze_workspace.ini";
+  }
+  ImGui::LoadIniSettingsFromDisk(layout_path.string().c_str());
+  printf("[WindowDelegate] Workspace layout loaded from %s\n",
+         layout_path.string().c_str());
 }
 
 void WindowDelegate::ResetWorkspaceLayout() {

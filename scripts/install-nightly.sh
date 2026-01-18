@@ -9,13 +9,16 @@ if [[ -z "$origin_url" ]]; then
   exit 1
 fi
 
-nightly_repo="${YAZE_NIGHTLY_REPO:-$HOME/Code/yaze-nightly}"
+nightly_repo="${YAZE_NIGHTLY_REPO:-$HOME/.yaze/nightly/repo}"
 nightly_branch="${YAZE_NIGHTLY_BRANCH:-master}"
 nightly_build_dir="${YAZE_NIGHTLY_BUILD_DIR:-$nightly_repo/build-nightly}"
 nightly_build_type="${YAZE_NIGHTLY_BUILD_TYPE:-RelWithDebInfo}"
 nightly_prefix="${YAZE_NIGHTLY_PREFIX:-$HOME/.local/yaze/nightly}"
 nightly_component="${YAZE_NIGHTLY_COMPONENT:-yaze}"
 nightly_bin_dir="${YAZE_NIGHTLY_BIN_DIR:-$HOME/.local/bin}"
+nightly_app_dir="${YAZE_NIGHTLY_APP_DIR:-$HOME/Applications}"
+nightly_app_name="${YAZE_NIGHTLY_APP_NAME:-Yaze Nightly.app}"
+nightly_app_link="${YAZE_NIGHTLY_APP_LINK:-$nightly_app_dir/$nightly_app_name}"
 nightly_ai_runtime="${YAZE_NIGHTLY_AI_RUNTIME:-ON}"
 nightly_ai_features="${YAZE_NIGHTLY_AI_FEATURES:-$nightly_ai_runtime}"
 nightly_prefer_system_grpc="${YAZE_NIGHTLY_PREFER_SYSTEM_GRPC:-AUTO}"
@@ -53,6 +56,18 @@ ensure_bin_dir() {
   mkdir -p "$nightly_bin_dir"
 }
 
+ensure_app_link() {
+  if [[ "$(uname -s)" != "Darwin" ]]; then
+    return
+  fi
+  local app_source="$nightly_prefix/current/yaze.app"
+  if [[ ! -d "$app_source" ]]; then
+    return
+  fi
+  mkdir -p "$nightly_app_dir"
+  ln -sfn "$app_source" "$nightly_app_link"
+}
+
 fallback_install() {
   echo "[nightly] Running fallback install copy."
   rm -rf "$release_dir/yaze.app" "$release_dir/assets"
@@ -88,6 +103,7 @@ fallback_install() {
 }
 
 if [[ ! -d "$nightly_repo/.git" ]]; then
+  mkdir -p "$(dirname "$nightly_repo")"
   echo "[nightly] Cloning $origin_url -> $nightly_repo"
   git clone --filter=blob:none --recurse-submodules --shallow-submodules \
     --branch "$nightly_branch" "$origin_url" "$nightly_repo"
@@ -140,6 +156,7 @@ if ! cmake --install "$nightly_build_dir" --prefix "$release_dir" --component "$
   fallback_install
 fi
 ln -sfn "$release_dir" "$nightly_prefix/current"
+ensure_app_link
 
 commit="$(git rev-parse HEAD)"
 describe="$(git describe --tags --always 2>/dev/null || echo "$commit")"
@@ -202,7 +219,11 @@ done
 if [[ -x "$app" ]]; then
   exec "$app" "$@"
 fi
-exec "$binary" "$@"
+if [[ -x "$binary" ]]; then
+  exec "$binary" "$@"
+fi
+echo "[yaze-nightly] Missing install under $prefix/current. Run scripts/install-nightly.sh." >&2
+exit 1
 EOF
 chmod +x "$nightly_bin_dir/yaze-nightly"
 
@@ -256,7 +277,11 @@ done
 if [[ -x "$app" ]]; then
   exec "$app" --enable_test_harness --test_harness_port="$port" "$@"
 fi
-exec "$binary" --enable_test_harness --test_harness_port="$port" "$@"
+if [[ -x "$binary" ]]; then
+  exec "$binary" --enable_test_harness --test_harness_port="$port" "$@"
+fi
+echo "[yaze-nightly-grpc] Missing install under $prefix/current. Run scripts/install-nightly.sh." >&2
+exit 1
 EOF
 chmod +x "$nightly_bin_dir/yaze-nightly-grpc"
 
@@ -264,14 +289,19 @@ cat > "$nightly_bin_dir/z3ed-nightly" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
 prefix="${YAZE_NIGHTLY_PREFIX:-$HOME/.local/yaze/nightly}"
-exec "$prefix/current/z3ed" "$@"
+binary="$prefix/current/z3ed"
+if [[ -x "$binary" ]]; then
+  exec "$binary" "$@"
+fi
+echo "[z3ed-nightly] Missing install under $prefix/current. Run scripts/install-nightly.sh." >&2
+exit 1
 EOF
 chmod +x "$nightly_bin_dir/z3ed-nightly"
 
 cat > "$nightly_bin_dir/yaze-mcp-nightly" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
-mcp_repo="${YAZE_MCP_REPO:-$HOME/Code/yaze-mcp}"
+mcp_repo="${YAZE_MCP_REPO:-$HOME/.yaze/yaze-mcp}"
 python_bin="$mcp_repo/venv/bin/python"
 if [[ ! -x "$python_bin" ]]; then
   echo "[yaze-mcp] Missing venv at $mcp_repo/venv. Run: $mcp_repo/setup.sh" >&2
@@ -285,4 +315,10 @@ EOF
 chmod +x "$nightly_bin_dir/yaze-mcp-nightly"
 
 echo "[nightly] Installed $describe to $release_dir"
+if [[ -n "$nightly_app_link" && -L "$nightly_app_link" ]]; then
+  echo "[nightly] macOS app link: $nightly_app_link"
+fi
+if ! command -v yaze-nightly >/dev/null 2>&1; then
+  echo "[nightly] Note: $nightly_bin_dir is not on your PATH. Add it to use wrappers."
+fi
 echo "[nightly] Wrappers: $nightly_bin_dir/yaze-nightly, yaze-nightly-grpc, z3ed-nightly, yaze-mcp-nightly"

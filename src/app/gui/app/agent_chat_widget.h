@@ -49,6 +49,7 @@ class AgentChatWidget {
   void RenderToolbar();
   void RenderMessageBubble(const cli::agent::ChatMessage& msg, int index);
   void RenderTableData(const cli::agent::ChatMessage::TableData& table);
+  void UpdateThemeColors();
 
   void SendMessage(const std::string& message);
   void ScrollToBottom();

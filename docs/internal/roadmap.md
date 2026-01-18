@@ -1,15 +1,14 @@
 # Roadmap
 
-**Last Updated: November 29, 2025**
+**Last Updated: January 12, 2026**
 
 This roadmap tracks upcoming releases and major ongoing initiatives.
 
-## Current Focus (v0.5.0)
+## Current Focus (v0.5.1)
 
-- **SDL3 Migration**: Switch to SDL3 with GPU-based rendering, port editors to new backend
-- **Plugin Architecture**: Initial framework for community extensions
-- **Editor Polish**: Tile16 palette fixes, overworld sprite workflow, dungeon editor improvements
-- **Emulator Input/Render**: PPU catch-up, dungeon preview render service, and input persistence
+- **UX Polish**: Help/shortcuts discoverability, feature status clarity, settings polish
+- **Storage Consolidation**: `.yaze` unified app data across desktop/CLI/web with legacy migration
+- **Versioning + Docs**: Standardize version updates and refresh release documentation
 
 ### WASM Web Port Status
 
@@ -21,7 +20,7 @@ This roadmap tracks upcoming releases and major ongoing initiatives.
 - **Recommendation**: Desktop build for serious ROM hacking
 - **Documentation**: See `docs/public/usage/web-app.md`
 
-## 0.4.0 (Current Release) - Music Editor & UI Polish
+## 0.4.0 (Historical Release) - Music Editor & UI Polish
 
 **Status:** Released
 **Type:** Feature Release
@@ -116,7 +115,7 @@ This roadmap tracks upcoming releases and major ongoing initiatives.
 #### Editor Fixes
 - 🟡 Dungeon object rendering regression (under investigation)
 
-### Remaining Work (Deferred to 0.5.0)
+### Remaining Work (Deferred to 0.5.x)
 
 #### Editor Polish
 - Resolve remaining Tile16 palette inconsistencies

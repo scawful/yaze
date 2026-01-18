@@ -41,8 +41,16 @@ absl::Status WorkspaceManager::ResetWorkspaceLayout() {
 void WorkspaceManager::SaveWorkspacePreset(const std::string& name) {
   if (name.empty())
     return;
-  std::string ini_name = absl::StrFormat("yaze_workspace_%s.ini", name.c_str());
-  ImGui::SaveIniSettingsToDisk(ini_name.c_str());
+  std::filesystem::path workspace_dir = std::filesystem::current_path();
+  auto workspace_dir_status =
+      util::PlatformPaths::GetAppDataSubdirectory("workspaces");
+  if (workspace_dir_status.ok()) {
+    workspace_dir = *workspace_dir_status;
+  }
+
+  std::filesystem::path ini_path =
+      workspace_dir / absl::StrFormat("workspace_%s.ini", name.c_str());
+  ImGui::SaveIniSettingsToDisk(ini_path.string().c_str());
 
   if (!workspace_presets_loaded_) {
     // RefreshWorkspacePresets(); // This will be implemented next
@@ -55,8 +63,9 @@ void WorkspaceManager::SaveWorkspacePreset(const std::string& name) {
       std::ostringstream ss;
       for (const auto& n : workspace_presets_)
         ss << n << "\n";
-      // This should use a platform-agnostic path
-      util::SaveFile("workspace_presets.txt", ss.str());
+      std::filesystem::path presets_path =
+          workspace_dir / "workspace_presets.txt";
+      util::SaveFile(presets_path.string(), ss.str());
     } catch (const std::exception& e) {
       // LOG_WARN("WorkspaceManager", "Failed to save presets: %s", e.what());
     }
@@ -71,8 +80,15 @@ void WorkspaceManager::SaveWorkspacePreset(const std::string& name) {
 void WorkspaceManager::LoadWorkspacePreset(const std::string& name) {
   if (name.empty())
     return;
-  std::string ini_name = absl::StrFormat("yaze_workspace_%s.ini", name.c_str());
-  ImGui::LoadIniSettingsFromDisk(ini_name.c_str());
+  std::filesystem::path workspace_dir = std::filesystem::current_path();
+  auto workspace_dir_status =
+      util::PlatformPaths::GetAppDataSubdirectory("workspaces");
+  if (workspace_dir_status.ok()) {
+    workspace_dir = *workspace_dir_status;
+  }
+  std::filesystem::path ini_path =
+      workspace_dir / absl::StrFormat("workspace_%s.ini", name.c_str());
+  ImGui::LoadIniSettingsFromDisk(ini_path.string().c_str());
   last_workspace_preset_ = name;
   if (toast_manager_) {
     toast_manager_->Show(absl::StrFormat("Preset '%s' loaded", name),
@@ -83,11 +99,11 @@ void WorkspaceManager::LoadWorkspacePreset(const std::string& name) {
 void WorkspaceManager::RefreshPresets() {
   try {
     std::vector<std::string> new_presets;
-    auto config_dir = util::PlatformPaths::GetConfigDirectory();
-    if (config_dir.ok()) {
-      std::string presets_path =
-          (*config_dir / "workspace_presets.txt").string();
-      auto data = util::LoadFile(presets_path);
+    auto workspace_dir = util::PlatformPaths::GetAppDataSubdirectory("workspaces");
+    if (workspace_dir.ok()) {
+      std::filesystem::path presets_path =
+          *workspace_dir / "workspace_presets.txt";
+      auto data = util::LoadFile(presets_path.string());
       if (!data.empty()) {
         std::istringstream ss(data);
         std::string name;

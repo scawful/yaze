@@ -47,7 +47,7 @@ class TestRunner:
             raise FileNotFoundError(f"Test binary not found: {test_binary}")
 
         self.num_shards = num_shards or min(multiprocessing.cpu_count(), 8)
-        self.cache_dir = Path(cache_dir or Path.home() / ".yaze_test_cache")
+        self.cache_dir = Path(cache_dir or Path.home() / ".yaze" / "test_cache")
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.verbose = verbose
         self.test_times = self.load_test_times()
@@ -388,7 +388,7 @@ def main():
     )
     parser.add_argument(
         "--cache-dir",
-        help="Directory for test cache (default: ~/.yaze_test_cache)"
+        help="Directory for test cache (default: ~/.yaze/test_cache)"
     )
     parser.add_argument(
         "--retry",

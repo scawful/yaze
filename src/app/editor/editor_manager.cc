@@ -267,6 +267,7 @@ EditorManager::EditorManager()
   right_panel_manager_->SetToastManager(&toast_manager_);
   right_panel_manager_->SetProposalDrawer(&proposal_drawer_);
   right_panel_manager_->SetPropertiesPanel(&selection_properties_panel_);
+  right_panel_manager_->SetShortcutManager(&shortcut_manager_);
 
   // Initialize ProjectManagementPanel for project/version management
   project_management_panel_ = std::make_unique<ProjectManagementPanel>();

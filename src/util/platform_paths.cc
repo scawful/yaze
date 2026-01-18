@@ -1,6 +1,8 @@
 #include "util/platform_paths.h"
 
+#include <algorithm>
 #include <cstdlib>
+#include <vector>
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_replace.h"
@@ -92,57 +94,131 @@ absl::StatusOr<std::filesystem::path> PlatformPaths::GetAppDataDirectory() {
   }
 
   std::filesystem::path app_data =
-      home / "Library" / "Application Support" / "yaze";
+      home / "Library" / "Application Support" / ".yaze";
   auto status = EnsureDirectoryExists(app_data);
   if (!status.ok()) {
-    app_data = home / "Documents" / "yaze";
+    app_data = home / "Documents" / ".yaze";
     status = EnsureDirectoryExists(app_data);
     if (!status.ok()) {
       return status;
     }
   }
   return app_data;
-#elif defined(_WIN32)
+#elif defined(__EMSCRIPTEN__)
+  // Emscripten: Use /.yaze for app data (mounted IDBFS)
+  // Note: The directory structure in WASM is:
+  //   /.yaze/roms     - ROM files (IDBFS - persistent for session restore)
+  //   /.yaze/saves    - Save files (IDBFS - persistent)
+  //   /.yaze/config   - Configuration files (IDBFS - persistent)
+  //   /.yaze/projects - Project files (IDBFS - persistent)
+  //   /.yaze/prompts  - Agent prompts (IDBFS - persistent)
+  //   /.yaze/recent   - Recent files metadata (IDBFS - persistent)
+  //   /.yaze/temp     - Temporary files (MEMFS - non-persistent)
+  std::filesystem::path app_data("/.yaze");
+  return app_data;
+#else
+  std::filesystem::path home = GetHomeDirectory();
+  std::filesystem::path preferred;
+  if (!home.empty() && home != ".") {
+    preferred = home / ".yaze";
+  }
+
+  std::vector<std::filesystem::path> legacy_paths;
+  auto add_legacy_path = [&](const std::filesystem::path& path) {
+    if (path.empty()) {
+      return;
+    }
+    if (std::find(legacy_paths.begin(), legacy_paths.end(), path) ==
+        legacy_paths.end()) {
+      legacy_paths.push_back(path);
+    }
+  };
+
+#ifdef _WIN32
   wchar_t path[MAX_PATH];
   if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_APPDATA, NULL, 0, path))) {
-    std::filesystem::path app_data = std::filesystem::path(path) / "yaze";
-    auto status = EnsureDirectoryExists(app_data);
+    add_legacy_path(std::filesystem::path(path) / "yaze");
+  }
+  if (const char* appdata = std::getenv("APPDATA")) {
+    if (*appdata) {
+      add_legacy_path(std::filesystem::path(appdata) / "yaze");
+    }
+  }
+#elif defined(__APPLE__)
+  if (!home.empty() && home != ".") {
+    add_legacy_path(home / "Library" / "Application Support" / "yaze");
+    add_legacy_path(home / "Library" / "Application Support" / "Yaze");
+  }
+#else
+  if (!home.empty() && home != ".") {
+    add_legacy_path(home / ".config" / "yaze");
+  }
+#endif
+
+  auto try_migrate = [&](const std::filesystem::path& legacy) -> absl::Status {
+    if (legacy.empty() || preferred.empty()) {
+      return absl::OkStatus();
+    }
+    if (!Exists(legacy) || Exists(preferred)) {
+      return absl::OkStatus();
+    }
+
+    std::error_code ec;
+    std::filesystem::rename(legacy, preferred, ec);
+    if (!ec) {
+      return absl::OkStatus();
+    }
+
+    std::filesystem::create_directories(preferred, ec);
+    if (ec) {
+      return absl::InternalError(
+          absl::StrCat("Failed to create .yaze directory: ", ec.message()));
+    }
+
+    std::filesystem::copy(legacy, preferred,
+                          std::filesystem::copy_options::recursive |
+                              std::filesystem::copy_options::skip_existing,
+                          ec);
+    if (ec) {
+      return absl::InternalError(
+          absl::StrCat("Failed to migrate legacy data: ", ec.message()));
+    }
+    return absl::OkStatus();
+  };
+
+  if (!preferred.empty()) {
+    if (!Exists(preferred)) {
+      for (const auto& legacy : legacy_paths) {
+        if (Exists(legacy)) {
+          (void)try_migrate(legacy);
+          break;
+        }
+      }
+    }
+
+    auto status = EnsureDirectoryExists(preferred);
+    if (status.ok()) {
+      return preferred;
+    }
+  }
+
+  for (const auto& legacy : legacy_paths) {
+    auto status = EnsureDirectoryExists(legacy);
+    if (status.ok()) {
+      return legacy;
+    }
+  }
+
+  if (preferred.empty()) {
+    std::filesystem::path fallback = std::filesystem::current_path() / ".yaze";
+    auto status = EnsureDirectoryExists(fallback);
     if (!status.ok()) {
       return status;
     }
-    return app_data;
+    return fallback;
   }
-  // Fallback if SHGetFolderPathW fails
-  std::filesystem::path home = GetHomeDirectory();
-  std::filesystem::path app_data = home / "yaze_data";
-  auto status = EnsureDirectoryExists(app_data);
-  if (!status.ok()) {
-    return status;
-  }
-  return app_data;
-#elif defined(__EMSCRIPTEN__)
-  // Emscripten: Use /config for app data (mounted IDBFS)
-  // Note: The directory structure in WASM is:
-  //   /config   - Configuration files (IDBFS - persistent)
-  //   /saves    - Save files (IDBFS - persistent)
-  //   /projects - Project files (IDBFS - persistent)
-  //   /prompts  - Agent prompts (IDBFS - persistent)
-  //   /roms     - ROM files (IDBFS - persistent for session restore)
-  //   /recent   - Recent files metadata (IDBFS - persistent)
-  //   /temp     - Temporary files (MEMFS - non-persistent)
-  std::filesystem::path app_data("/config");
-  // We assume the mount point exists or will be created by initialization
-  return app_data;
-#else
-  // Unix/macOS: Use ~/.yaze for simplicity and consistency
-  // This is simpler than XDG or Application Support for a dev tool
-  std::filesystem::path home = GetHomeDirectory();
-  std::filesystem::path app_data = home / ".yaze";
-  auto status = EnsureDirectoryExists(app_data);
-  if (!status.ok()) {
-    return status;
-  }
-  return app_data;
+
+  return absl::InternalError("Failed to resolve app data directory");
 #endif
 }
 
@@ -184,8 +260,8 @@ absl::StatusOr<std::filesystem::path> PlatformPaths::GetUserDocumentsDirectory()
   }
   return docs_dir;
 #elif defined(__EMSCRIPTEN__)
-  // Emscripten: Use /projects for user documents (mounted IDBFS)
-  std::filesystem::path docs_dir("/projects");
+  // Emscripten: Use /.yaze/projects for user documents (mounted IDBFS)
+  std::filesystem::path docs_dir("/.yaze/projects");
   return docs_dir;
 #else
   // Unix/macOS: Use ~/Documents/Yaze
@@ -262,8 +338,8 @@ bool PlatformPaths::Exists(const std::filesystem::path& path) {
 
 absl::StatusOr<std::filesystem::path> PlatformPaths::GetTempDirectory() {
 #ifdef __EMSCRIPTEN__
-  // Emscripten: Use /temp (mounted MEMFS - non-persistent)
-  return std::filesystem::path("/temp");
+  // Emscripten: Use /.yaze/temp (mounted MEMFS - non-persistent)
+  return std::filesystem::path("/.yaze/temp");
 #else
   std::error_code ec;
   std::filesystem::path temp_base = std::filesystem::temp_directory_path(ec);

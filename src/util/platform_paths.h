@@ -34,8 +34,8 @@ class PlatformPaths {
    * This is the standard location for storing user-specific data, settings,
    * and cache files. The directory is created if it doesn't exist.
    *
-   * - Windows: `%APPDATA%\yaze` (e.g., C:\Users\user\AppData\Roaming\yaze)
-   * - macOS/Unix: `~/.yaze`
+   * - Windows/macOS/Linux: `~/.yaze` (user home, cross-platform consistency)
+   * - Legacy locations (AppData/Library/XDG) are migrated or reused if present.
    *
    * @return StatusOr with path to the application data directory.
    */
@@ -47,8 +47,8 @@ class PlatformPaths {
    * This is the standard location for storing user configuration files.
    * The directory is created if it doesn't exist.
    *
-   * - Windows: `%APPDATA%\yaze`
-   * - macOS/Unix: `~/.yaze`
+   * - Windows/macOS/Linux: `~/.yaze` (user home, cross-platform consistency)
+   * - Legacy locations (AppData/Library/XDG) are migrated or reused if present.
    *
    * @return StatusOr with path to the configuration directory.
    */

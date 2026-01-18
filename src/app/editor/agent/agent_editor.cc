@@ -1457,11 +1457,6 @@ std::filesystem::path AgentEditor::GetProfilesDirectory() const {
   if (agent_dir.ok()) {
     return *agent_dir / "profiles";
   }
-  auto docs_dir =
-      yaze::util::PlatformPaths::GetUserDocumentsSubdirectory("agent");
-  if (docs_dir.ok()) {
-    return *docs_dir / "profiles";
-  }
   auto temp_dir = yaze::util::PlatformPaths::GetTempDirectory();
   if (temp_dir.ok()) {
     return *temp_dir / "agent" / "profiles";

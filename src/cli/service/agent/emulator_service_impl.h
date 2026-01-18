@@ -102,6 +102,17 @@ class EmulatorServiceImpl final : public agent::EmulatorService::Service {
                        const agent::TestRunRequest* request,
                        agent::TestRunResponse* response) override;
 
+  // --- Save State Management ---
+  grpc::Status SaveState(grpc::ServerContext* context,
+                         const agent::SaveStateRequest* request,
+                         agent::SaveStateResponse* response) override;
+  grpc::Status LoadState(grpc::ServerContext* context,
+                         const agent::LoadStateRequest* request,
+                         agent::LoadStateResponse* response) override;
+  grpc::Status ListStates(grpc::ServerContext* context,
+                          const agent::ListStatesRequest* request,
+                          agent::ListStatesResponse* response) override;
+
  private:
   void InitializeStepController();
   void CaptureCPUState(agent::CPUState* state);

@@ -7,6 +7,7 @@
 
 #include "absl/strings/str_format.h"
 #include "absl/time/time.h"
+#include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "util/platform_paths.h"
@@ -26,10 +27,6 @@ std::string ResolveAgentChatHistoryPath() {
   if (agent_dir.ok()) {
     return (*agent_dir / "agent_chat_history.json").string();
   }
-  auto docs_dir = util::PlatformPaths::GetUserDocumentsSubdirectory("agent");
-  if (docs_dir.ok()) {
-    return (*docs_dir / "agent_chat_history.json").string();
-  }
   auto temp_dir = util::PlatformPaths::GetTempDirectory();
   if (temp_dir.ok()) {
     return (*temp_dir / "agent_chat_history.json").string();
@@ -48,14 +45,6 @@ AgentChatWidget::AgentChatWidget()
       rom_(nullptr) {
   memset(input_buffer_, 0, sizeof(input_buffer_));
 
-  // Initialize colors with a pleasant dark theme
-  colors_.user_bubble = ImVec4(0.2f, 0.4f, 0.8f, 1.0f);     // Blue
-  colors_.agent_bubble = ImVec4(0.3f, 0.3f, 0.35f, 1.0f);   // Dark gray
-  colors_.system_text = ImVec4(0.7f, 0.7f, 0.7f, 1.0f);     // Light gray
-  colors_.error_text = ImVec4(1.0f, 0.3f, 0.3f, 1.0f);      // Red
-  colors_.tool_call_bg = ImVec4(0.2f, 0.5f, 0.3f, 0.3f);    // Green tint
-  colors_.timestamp_text = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);  // Medium gray
-
 #ifdef Z3ED_AI
   agent_service_ = std::make_unique<cli::agent::ConversationalAgentService>();
 #endif
@@ -73,6 +62,7 @@ void AgentChatWidget::Initialize(Rom* rom) {
 }
 
 void AgentChatWidget::Render(bool* p_open) {
+  UpdateThemeColors();
 #ifndef Z3ED_AI
   ImGui::Begin("Agent Chat", p_open);
   ImGui::TextColored(colors_.error_text, "AI features not available");
@@ -112,6 +102,16 @@ void AgentChatWidget::Render(bool* p_open) {
 
   ImGui::End();
 #endif
+}
+
+void AgentChatWidget::UpdateThemeColors() {
+  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+  colors_.user_bubble = ConvertColorToImVec4(theme.chat.user_message);
+  colors_.agent_bubble = ConvertColorToImVec4(theme.chat.agent_message);
+  colors_.system_text = ConvertColorToImVec4(theme.chat.system_message);
+  colors_.error_text = ConvertColorToImVec4(theme.error);
+  colors_.tool_call_bg = ConvertColorToImVec4(theme.chat.code_background);
+  colors_.timestamp_text = ConvertColorToImVec4(theme.text_secondary);
 }
 
 void AgentChatWidget::RenderToolbar() {

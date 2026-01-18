@@ -1,14 +1,17 @@
-# Feature & Test Coverage Report (v0.5.0)
+# Feature & Test Coverage Report (v0.5.1)
 
 This report summarizes feature status and persistence behavior across the
-desktop app, z3ed CLI, and the web/WASM preview, and maps those features to
-current automated test coverage. Status levels follow the desktop rubric:
+desktop app (yaze), z3ed CLI, and the web/WASM preview, and maps those features
+to current automated test coverage. Status levels follow the desktop rubric:
 Stable = reliable core workflows, Beta = usable but incomplete, Experimental = WIP.
+As of v0.5.1, app data is consolidated under `~/.yaze` on desktop/CLI and
+`/.yaze` in the web build (IDBFS), with legacy migrations from AppData/Library/XDG.
 
 ## Desktop App (yaze)
 
 | Feature | State | Save/Load & Persistence |
 | --- | --- | --- |
+| Project files (.yaze) | Stable | Project metadata stored in the .yaze file; recent project list persisted. |
 | ROM load/save | Stable | ROM loaded from disk; save writes ROM; timestamped backups when enabled. |
 | Overworld Editor | Stable | Overworld edits persist to ROM; version-gated for vanilla/v2/v3. |
 | Dungeon Editor | Stable | Room objects/tiles/palettes persist to ROM; shared undo/redo. |
@@ -21,20 +24,20 @@ Stable = reliable core workflows, Beta = usable but incomplete, Experimental = W
 | Assembly/Asar | Beta | Patches apply to ROM; project file editor is incomplete. |
 | Emulator | Beta | Runtime-only; save-state format exists but UI is not fully wired. |
 | Music Editor | Experimental | Serialization incomplete; some edits may not save. |
-| Agent UI | Experimental | Experimental; persistence is not fully documented. |
-| Settings/Project Manager | Beta | Settings/layout serialization has TODOs. |
-| Panel Layouts/Workspaces | Beta | Layout presets exist; serialization not fully complete. |
+| Agent UI | Experimental | Chat history, profiles, and sessions stored under `~/.yaze/agent`. |
+| Settings/Shortcuts | Beta | Settings + shortcuts UI wired; persistence stored in `~/.yaze` layouts/workspaces. |
+| Panel Layouts/Workspaces | Beta | Layout presets stored under `~/.yaze/layouts` and `~/.yaze/workspaces`. |
 
 ## z3ed CLI
 
 | Feature | State | Save/Load & Persistence |
 | --- | --- | --- |
 | ROM read/write/validate | Stable | Operates directly on ROM file. |
-| ROM snapshots/restore | Stable | Snapshot/restore ROM state (CLI-managed storage). |
+| ROM snapshots/restore | Stable | Snapshot/restore ROM state in project-local `.yaze/snapshots`. |
 | Doctor suite | Stable | Diagnostics; optional fix output to file. |
 | Editor automation | Stable | Writes changes to ROM. |
 | Test discovery/run/status | Stable | Structured output; no ROM required. |
-| Agent workflows | Stable | Proposals stored in XDG data path; commit writes ROM; revert reloads ROM. |
+| Agent workflows | Stable | Proposals/policies/sandboxes stored under `~/.yaze/*`. |
 | TUI/REPL | Stable | Interactive sessions; REPL supports session save/load. |
 | AI providers | Stable | Ollama/Gemini/OpenAI/Anthropic with keys or local server. |
 
@@ -42,7 +45,7 @@ Stable = reliable core workflows, Beta = usable but incomplete, Experimental = W
 
 | Feature | State | Save/Load & Persistence |
 | --- | --- | --- |
-| ROM load | Working | Drag/drop or picker; stored in IndexedDB. |
+| ROM load | Working | Drag/drop or picker; stored in `/.yaze/roms` (IndexedDB). |
 | Auto-save | Preview | Auto-save to browser storage when working. |
 | Download ROM | Working | Download modified ROM to disk. |
 | Overworld/Dungeon/Palette/Graphics/Sprite/Message | Preview | Editing incomplete; persists via browser storage + download. |
@@ -54,10 +57,11 @@ Stable = reliable core workflows, Beta = usable but incomplete, Experimental = W
 
 ## Persistence Summary
 
+- Desktop/CLI: app data stored under `~/.yaze` with migration from legacy paths.
 - Desktop: primary persistence is ROM save to disk; backups on save when enabled.
 - Emulator: save-state format exists, but UI wiring is incomplete.
-- CLI: agent proposals stored in XDG data path; snapshots/restore for ROM state.
-- Web: IndexedDB auto-save; download for durable backups; browser storage can be cleared.
+- CLI: proposals/policies/sandboxes stored under `~/.yaze`; snapshots/restore for ROM state.
+- Web: `/.yaze` in IndexedDB; download for durable backups; browser storage can be cleared.
 
 ## Automated Test Coverage (Current)
 
@@ -83,13 +87,16 @@ Stable = reliable core workflows, Beta = usable but incomplete, Experimental = W
   Screen, and Settings flows (smoke coverage added, workflow depth pending).
 - Emulator save-state UI has smoke coverage; full save/load workflows pending.
 - Settings/project manager and layout serialization not fully exercised.
+- `.yaze` migration and path normalization lack targeted regression coverage.
 - Web build has automated debug API smoke; broader browser CI still light.
 
 ## Coverage Plan (v0.5.x)
 
 1) [DONE] Add GUI smoke tests for Graphics, Sprite, Message, and Music editors.
 2) [DONE] Add emulator save-state UI smoke coverage (workflow tests pending).
-3) [TODO] Add settings/layout serialization tests (load/save workspace presets).
-4) [TODO] Expand CLI command coverage for doctor and editor automation commands.
-5) [DONE] Promote WASM debug API checks into CI (automated browser run).
-6) [TODO] Add ROM-dependent tests for version-gated overworld saves and dungeon persistence.
+3) [TODO] Add settings/layout serialization tests (workspace presets + shortcuts).
+4) [TODO] Add `.yaze` migration and path normalization tests (desktop + CLI).
+5) [TODO] Expand CLI command coverage for doctor and editor automation commands.
+6) [DONE] Promote WASM debug API checks into CI (automated browser run).
+7) [TODO] Add ROM-dependent tests for version-gated overworld saves and dungeon persistence.
+8) [TODO] Add web storage regression checks (IDBFS sync + file manager flows).

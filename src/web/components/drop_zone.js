@@ -320,14 +320,14 @@
                 console.log('[DropZone] ROM data passed to FilesystemManager');
              }
           } else if (['srm', 'sav'].includes(ext)) {
-             // Save File - Write to /saves and sync
-             const savePath = '/saves/' + file.name;
+             // Save File - Write to /.yaze/saves and sync
+             const savePath = '/.yaze/saves/' + file.name;
              FilesystemManager.writeFile(savePath, data);
              FilesystemManager.syncAll();
              alert('Save file imported: ' + file.name + '\nReload ROM to apply.');
-          } else if (ext === 'yproj') {
-             // Project File - Write to /projects
-             const projPath = '/projects/' + file.name;
+          } else if (['yaze', 'zsproj', 'yproj'].includes(ext)) {
+             // Project File - Write to /.yaze/projects
+             const projPath = '/.yaze/projects/' + file.name;
              FilesystemManager.writeFile(projPath, data);
              FilesystemManager.syncAll();
              alert('Project imported: ' + file.name);

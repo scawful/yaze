@@ -17,13 +17,13 @@ var FilesystemManager = {
 
   // Standard directories used by the app
   directories: {
-    roms: '/roms',
-    saves: '/saves',
-    config: '/config',
-    projects: '/projects',
-    prompts: '/prompts',
-    recent: '/recent',
-    temp: '/temp'
+    roms: '/.yaze/roms',
+    saves: '/.yaze/saves',
+    config: '/.yaze/config',
+    projects: '/.yaze/projects',
+    prompts: '/.yaze/prompts',
+    recent: '/.yaze/recent',
+    temp: '/.yaze/temp'
   },
 
   /**
@@ -51,9 +51,9 @@ var FilesystemManager = {
 
     if (this.ready && fs) return true;
 
-    // Check if /roms exists (fast path)
+    // Check if roms directory exists (fast path)
     try {
-      if (fs && fs.stat('/roms')) {
+      if (fs && fs.stat(this.directories.roms)) {
         this.ready = true;
         return true;
       }
@@ -214,10 +214,10 @@ var FilesystemManager = {
         return;
       }
 
-      // Check if /roms already exists (C++ may have already set up the FS)
+      // Check if roms already exists (C++ may have already set up the FS)
       var romsExists = false;
       try {
-        fs.stat('/roms');
+        fs.stat(self.directories.roms);
         romsExists = true;
       } catch (e) {
         // Directory doesn't exist
@@ -295,10 +295,10 @@ var FilesystemManager = {
     var self = this;
     reader.onload = (e) => {
       var data = new Uint8Array(e.target.result);
-      var filename = '/roms/' + file.name;
+      var filename = self.directories.roms + '/' + file.name;
 
       try {
-        try { FS.mkdir('/roms'); } catch(e) {}
+        try { FS.mkdir(self.directories.roms); } catch(e) {}
         FS.writeFile(filename, data);
         console.log("Wrote " + data.length + " bytes to " + filename);
 
@@ -344,10 +344,10 @@ var FilesystemManager = {
     if (!this.ensureReady()) return;
 
     var self = this;
-    var fullPath = '/roms/' + filename;
+    var fullPath = this.directories.roms + '/' + filename;
 
     try {
-      try { FS.mkdir('/roms'); } catch(e) {}
+      try { FS.mkdir(this.directories.roms); } catch(e) {}
       FS.writeFile(fullPath, data);
       console.log("Wrote " + data.length + " bytes to " + fullPath);
 
@@ -522,6 +522,7 @@ var FilesystemManager = {
    */
   downloadSaves: function() {
     if (!this.ensureReady()) return;
+    var self = this;
     
     FS.syncfs(false, function(err) {
       if (err) {
@@ -531,14 +532,14 @@ var FilesystemManager = {
       }
       
       try {
-        var files = FS.readdir('/saves');
+        var files = FS.readdir(self.directories.saves);
         var found = false;
         
         files.forEach(function(file) {
           if (file === '.' || file === '..') return;
           if (file.endsWith('.srm') || file.endsWith('.sav')) {
             found = true;
-            var content = FS.readFile('/saves/' + file);
+            var content = FS.readFile(self.directories.saves + '/' + file);
             var blob = new Blob([content], {type: 'application/octet-stream'});
             var url = URL.createObjectURL(blob);
             
@@ -556,7 +557,7 @@ var FilesystemManager = {
         });
         
         if (!found) {
-          alert("No save files found in /saves");
+          alert("No save files found in " + self.directories.saves);
         }
         
       } catch (e) {

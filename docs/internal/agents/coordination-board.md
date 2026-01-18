@@ -15,6 +15,12 @@
 - STATUS: COMPLETE
 - NOTES: Release run 20938978598 succeeded; artifacts regenerated with release README, trimmed Windows DLLs, and no helper binaries.
 
+### 2026-01-12 imgui-frontend-engineer – v0.5.1 UX + .yaze consolidation
+- TASK: Improve user-facing error handling/tooltips/feature status across editors + settings/shortcuts/project mgmt UX; consolidate .yaze storage across desktop/CLI/wasm; standardize version update workflow.
+- SCOPE: src/app/editor/ui, src/app/editor/menu, src/app/platform, src/util/platform_paths.*, src/web, docs/public, scripts.
+- STATUS: COMPLETE
+- NOTES: Added feature status + shortcut search UX, storage info panel, .yaze path consolidation for app/CLI/web, VERSION source-of-truth, and refreshed release/docs + coverage report.
+
 ### 2026-01-11 backend-infra-engineer – v0.5.x test coverage expansion
 - TASK: Expand GUI + WASM debug API coverage for desktop/CLI/web and wire CI checks.
 - SCOPE: test/e2e, test/gui_test_utils.cc, scripts/agents, .github/workflows/web-build.yml, docs/public/reference/feature-coverage-report.md.

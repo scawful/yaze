@@ -73,6 +73,9 @@ scripts/install-nightly.sh
 This installs into `~/.local/yaze/nightly/current` and exposes wrapper commands
 (`yaze-nightly`, `z3ed-nightly`, `yaze-mcp-nightly`).
 Re-run the script to update to the latest commit.
+By default, the clone lives under `~/.yaze/nightly/repo` (override with
+`YAZE_NIGHTLY_REPO`). On macOS, a stable app link is created at
+`~/Applications/Yaze Nightly.app` (override with `YAZE_NIGHTLY_APP_DIR`).
 
 ## Quick Links
 - Build quick reference: `docs/public/build/quick-reference.md`

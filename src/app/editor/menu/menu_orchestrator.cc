@@ -978,25 +978,30 @@ void MenuOrchestrator::OnRunIntegrationTests() {
 }
 
 void MenuOrchestrator::OnRunE2ETests() {
-  toast_manager_.Show("Running E2E tests...", ToastType::kInfo);
-  // TODO: Implement E2E test runner
+  toast_manager_.Show(
+      "E2E runner is not wired in-app yet. Use scripts/agents/run-tests.sh or "
+      "z3ed test-run.",
+      ToastType::kWarning);
 }
 #endif
 
 #ifdef YAZE_WITH_GRPC
 void MenuOrchestrator::OnStartCollaboration() {
-  toast_manager_.Show("Starting collaboration session...", ToastType::kInfo);
-  // TODO: Implement collaboration session start
+  toast_manager_.Show(
+      "Collaboration session start is not wired yet. Run yaze-server and use "
+      "the web client for live sync.",
+      ToastType::kWarning);
 }
 
 void MenuOrchestrator::OnJoinCollaboration() {
-  toast_manager_.Show("Joining collaboration session...", ToastType::kInfo);
-  // TODO: Implement collaboration session join
+  toast_manager_.Show(
+      "Join collaboration is not wired yet. Use the web client + yaze-server.",
+      ToastType::kWarning);
 }
 
 void MenuOrchestrator::OnShowNetworkStatus() {
-  toast_manager_.Show("Network Status", ToastType::kInfo);
-  // TODO: Show network status dialog
+  toast_manager_.Show("Network status panel is not implemented yet.",
+                      ToastType::kWarning);
 }
 #endif
 
