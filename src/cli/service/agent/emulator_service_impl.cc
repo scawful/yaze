@@ -10,10 +10,10 @@
 #include <thread>
 #include <unordered_set>
 
-#include "emu/emulator.h"
-#include "rom/rom.h"
 #include "app/emu/debug/disassembler.h"
 #include "app/service/screenshot_utils.h"
+#include "emu/emulator.h"
+#include "rom/rom.h"
 
 namespace yaze::net {
 
@@ -21,61 +21,93 @@ namespace {
 emu::input::SnesButton ToSnesButton(agent::Button button) {
   using emu::input::SnesButton;
   switch (button) {
-    case agent::A: return SnesButton::A;
-    case agent::B: return SnesButton::B;
-    case agent::X: return SnesButton::X;
-    case agent::Y: return SnesButton::Y;
-    case agent::L: return SnesButton::L;
-    case agent::R: return SnesButton::R;
-    case agent::SELECT: return SnesButton::SELECT;
-    case agent::START: return SnesButton::START;
-    case agent::UP: return SnesButton::UP;
-    case agent::DOWN: return SnesButton::DOWN;
-    case agent::LEFT: return SnesButton::LEFT;
-    case agent::RIGHT: return SnesButton::RIGHT;
-    default: return SnesButton::B;
+    case agent::A:
+      return SnesButton::A;
+    case agent::B:
+      return SnesButton::B;
+    case agent::X:
+      return SnesButton::X;
+    case agent::Y:
+      return SnesButton::Y;
+    case agent::L:
+      return SnesButton::L;
+    case agent::R:
+      return SnesButton::R;
+    case agent::SELECT:
+      return SnesButton::SELECT;
+    case agent::START:
+      return SnesButton::START;
+    case agent::UP:
+      return SnesButton::UP;
+    case agent::DOWN:
+      return SnesButton::DOWN;
+    case agent::LEFT:
+      return SnesButton::LEFT;
+    case agent::RIGHT:
+      return SnesButton::RIGHT;
+    default:
+      return SnesButton::B;
   }
 }
 
-emu::BreakpointManager::Type ToBreakpointType(agent::BreakpointType proto_type) {
+emu::BreakpointManager::Type ToBreakpointType(
+    agent::BreakpointType proto_type) {
   using emu::BreakpointManager;
   switch (proto_type) {
-    case agent::EXECUTE: return BreakpointManager::Type::EXECUTE;
-    case agent::READ: return BreakpointManager::Type::READ;
-    case agent::WRITE: return BreakpointManager::Type::WRITE;
-    case agent::ACCESS: return BreakpointManager::Type::ACCESS;
-    case agent::CONDITIONAL: return BreakpointManager::Type::CONDITIONAL;
-    default: return BreakpointManager::Type::EXECUTE;
+    case agent::EXECUTE:
+      return BreakpointManager::Type::EXECUTE;
+    case agent::READ:
+      return BreakpointManager::Type::READ;
+    case agent::WRITE:
+      return BreakpointManager::Type::WRITE;
+    case agent::ACCESS:
+      return BreakpointManager::Type::ACCESS;
+    case agent::CONDITIONAL:
+      return BreakpointManager::Type::CONDITIONAL;
+    default:
+      return BreakpointManager::Type::EXECUTE;
   }
 }
 
 emu::BreakpointManager::CpuType ToCpuType(agent::CpuType proto_cpu) {
   using emu::BreakpointManager;
   switch (proto_cpu) {
-    case agent::CPU_65816: return BreakpointManager::CpuType::CPU_65816;
-    case agent::SPC700: return BreakpointManager::CpuType::SPC700;
-    default: return BreakpointManager::CpuType::CPU_65816;
+    case agent::CPU_65816:
+      return BreakpointManager::CpuType::CPU_65816;
+    case agent::SPC700:
+      return BreakpointManager::CpuType::SPC700;
+    default:
+      return BreakpointManager::CpuType::CPU_65816;
   }
 }
 
 agent::BreakpointType ToProtoBreakpointType(emu::BreakpointManager::Type type) {
   using emu::BreakpointManager;
   switch (type) {
-    case BreakpointManager::Type::EXECUTE: return agent::EXECUTE;
-    case BreakpointManager::Type::READ: return agent::READ;
-    case BreakpointManager::Type::WRITE: return agent::WRITE;
-    case BreakpointManager::Type::ACCESS: return agent::ACCESS;
-    case BreakpointManager::Type::CONDITIONAL: return agent::CONDITIONAL;
-    default: return agent::EXECUTE;
+    case BreakpointManager::Type::EXECUTE:
+      return agent::EXECUTE;
+    case BreakpointManager::Type::READ:
+      return agent::READ;
+    case BreakpointManager::Type::WRITE:
+      return agent::WRITE;
+    case BreakpointManager::Type::ACCESS:
+      return agent::ACCESS;
+    case BreakpointManager::Type::CONDITIONAL:
+      return agent::CONDITIONAL;
+    default:
+      return agent::EXECUTE;
   }
 }
 
 agent::CpuType ToProtoCpuType(emu::BreakpointManager::CpuType cpu) {
   using emu::BreakpointManager;
   switch (cpu) {
-    case BreakpointManager::CpuType::CPU_65816: return agent::CPU_65816;
-    case BreakpointManager::CpuType::SPC700: return agent::SPC700;
-    default: return agent::CPU_65816;
+    case BreakpointManager::CpuType::CPU_65816:
+      return agent::CPU_65816;
+    case BreakpointManager::CpuType::SPC700:
+      return agent::SPC700;
+    default:
+      return agent::CPU_65816;
   }
 }
 }  // namespace
@@ -87,9 +119,9 @@ EmulatorServiceImpl::EmulatorServiceImpl(yaze::emu::Emulator* emulator,
 
 // --- ROM Loading ---
 
-grpc::Status EmulatorServiceImpl::LoadRom(
-    grpc::ServerContext* context, const agent::LoadRomRequest* request,
-    agent::LoadRomResponse* response) {
+grpc::Status EmulatorServiceImpl::LoadRom(grpc::ServerContext* context,
+                                          const agent::LoadRomRequest* request,
+                                          agent::LoadRomResponse* response) {
   if (!rom_loader_) {
     response->set_success(false);
     response->set_message("ROM loading not available (no loader callback set)");
@@ -161,11 +193,13 @@ void EmulatorServiceImpl::CaptureCPUState(agent::CPUState* state) {
 
 // --- Core Lifecycle & Control ---
 
-grpc::Status EmulatorServiceImpl::ControlEmulator(grpc::ServerContext* context, 
-                               const agent::ControlRequest* request,
-                               agent::CommandResponse* response) {
-  if (!emulator_) return grpc::Status(grpc::StatusCode::UNAVAILABLE, "Emulator not initialized.");
-  
+grpc::Status EmulatorServiceImpl::ControlEmulator(
+    grpc::ServerContext* context, const agent::ControlRequest* request,
+    agent::CommandResponse* response) {
+  if (!emulator_)
+    return grpc::Status(grpc::StatusCode::UNAVAILABLE,
+                        "Emulator not initialized.");
+
   std::string action = request->action();
   if (action == "start" || action == "resume") {
     emulator_->set_running(true);
@@ -182,21 +216,24 @@ grpc::Status EmulatorServiceImpl::ControlEmulator(grpc::ServerContext* context,
       emulator_->EnsureInitialized(rom);
       response->set_message("Emulator initialized with active ROM.");
     } else {
-      return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION, "ROM not loaded in core.");
+      return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION,
+                          "ROM not loaded in core.");
     }
   } else {
-    return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "Unknown action: " + action);
+    return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT,
+                        "Unknown action: " + action);
   }
-  
+
   response->set_success(true);
   return grpc::Status::OK;
 }
 
-grpc::Status EmulatorServiceImpl::StepEmulator(grpc::ServerContext* context, 
-                            const agent::StepControlRequest* request,
-                            agent::StepResponse* response) {
+grpc::Status EmulatorServiceImpl::StepEmulator(
+    grpc::ServerContext* context, const agent::StepControlRequest* request,
+    agent::StepResponse* response) {
   if (!emulator_ || !emulator_->is_snes_initialized()) {
-    return grpc::Status(grpc::StatusCode::UNAVAILABLE, "SNES is not initialized.");
+    return grpc::Status(grpc::StatusCode::UNAVAILABLE,
+                        "SNES is not initialized.");
   }
 
   std::string mode = request->mode();
@@ -212,7 +249,8 @@ grpc::Status EmulatorServiceImpl::StepEmulator(grpc::ServerContext* context,
     auto result = step_controller_.StepOut();
     response->set_message(result.message);
   } else {
-    return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "Unknown step mode: " + mode);
+    return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT,
+                        "Unknown step mode: " + mode);
   }
 
   CaptureCPUState(response->mutable_cpu_state());
@@ -220,11 +258,12 @@ grpc::Status EmulatorServiceImpl::StepEmulator(grpc::ServerContext* context,
   return grpc::Status::OK;
 }
 
-grpc::Status EmulatorServiceImpl::RunToBreakpoint(grpc::ServerContext* context, 
-                               const agent::Empty* request,
-                               agent::BreakpointHitResponse* response) {
+grpc::Status EmulatorServiceImpl::RunToBreakpoint(
+    grpc::ServerContext* context, const agent::Empty* request,
+    agent::BreakpointHitResponse* response) {
   if (!emulator_ || !emulator_->is_snes_initialized()) {
-    return grpc::Status(grpc::StatusCode::UNAVAILABLE, "SNES is not initialized.");
+    return grpc::Status(grpc::StatusCode::UNAVAILABLE,
+                        "SNES is not initialized.");
   }
 
   const int kMaxInstructions = 1000000;
@@ -234,7 +273,8 @@ grpc::Status EmulatorServiceImpl::RunToBreakpoint(grpc::ServerContext* context,
 
   while (instruction_count++ < kMaxInstructions) {
     uint32_t pc = (cpu.PB << 16) | cpu.PC;
-    if (bp_manager.ShouldBreakOnExecute(pc, emu::BreakpointManager::CpuType::CPU_65816)) {
+    if (bp_manager.ShouldBreakOnExecute(
+            pc, emu::BreakpointManager::CpuType::CPU_65816)) {
       response->set_hit(true);
       auto* last_hit = bp_manager.GetLastHit();
       if (last_hit) {
@@ -256,55 +296,68 @@ grpc::Status EmulatorServiceImpl::RunToBreakpoint(grpc::ServerContext* context,
 
 // --- Input & State ---
 
-grpc::Status EmulatorServiceImpl::PressButtons(grpc::ServerContext* context,
-                                               const agent::ButtonRequest* request,
-                                               agent::CommandResponse* response) {
-  if (!emulator_) return grpc::Status(grpc::StatusCode::UNAVAILABLE, "Emulator not initialized.");
+grpc::Status EmulatorServiceImpl::PressButtons(
+    grpc::ServerContext* context, const agent::ButtonRequest* request,
+    agent::CommandResponse* response) {
+  if (!emulator_)
+    return grpc::Status(grpc::StatusCode::UNAVAILABLE,
+                        "Emulator not initialized.");
   auto& input_manager = emulator_->input_manager();
   for (int i = 0; i < request->buttons_size(); i++) {
-    input_manager.PressButton(ToSnesButton(static_cast<agent::Button>(request->buttons(i))));
+    input_manager.PressButton(
+        ToSnesButton(static_cast<agent::Button>(request->buttons(i))));
   }
   std::this_thread::sleep_for(std::chrono::milliseconds(50));
   for (int i = 0; i < request->buttons_size(); i++) {
-    input_manager.ReleaseButton(ToSnesButton(static_cast<agent::Button>(request->buttons(i))));
+    input_manager.ReleaseButton(
+        ToSnesButton(static_cast<agent::Button>(request->buttons(i))));
   }
   response->set_success(true);
   return grpc::Status::OK;
 }
 
-grpc::Status EmulatorServiceImpl::ReleaseButtons(grpc::ServerContext* context,
-                                                 const agent::ButtonRequest* request,
-                                                 agent::CommandResponse* response) {
-  if (!emulator_) return grpc::Status(grpc::StatusCode::UNAVAILABLE, "Emulator not initialized.");
+grpc::Status EmulatorServiceImpl::ReleaseButtons(
+    grpc::ServerContext* context, const agent::ButtonRequest* request,
+    agent::CommandResponse* response) {
+  if (!emulator_)
+    return grpc::Status(grpc::StatusCode::UNAVAILABLE,
+                        "Emulator not initialized.");
   auto& input_manager = emulator_->input_manager();
   for (int i = 0; i < request->buttons_size(); i++) {
-    input_manager.ReleaseButton(ToSnesButton(static_cast<agent::Button>(request->buttons(i))));
+    input_manager.ReleaseButton(
+        ToSnesButton(static_cast<agent::Button>(request->buttons(i))));
   }
   response->set_success(true);
   return grpc::Status::OK;
 }
 
-grpc::Status EmulatorServiceImpl::HoldButtons(grpc::ServerContext* context,
-                                              const agent::ButtonHoldRequest* request,
-                                              agent::CommandResponse* response) {
-  if (!emulator_) return grpc::Status(grpc::StatusCode::UNAVAILABLE, "Emulator not initialized.");
+grpc::Status EmulatorServiceImpl::HoldButtons(
+    grpc::ServerContext* context, const agent::ButtonHoldRequest* request,
+    agent::CommandResponse* response) {
+  if (!emulator_)
+    return grpc::Status(grpc::StatusCode::UNAVAILABLE,
+                        "Emulator not initialized.");
   auto& input_manager = emulator_->input_manager();
   for (int i = 0; i < request->buttons_size(); i++) {
-    input_manager.PressButton(ToSnesButton(static_cast<agent::Button>(request->buttons(i))));
+    input_manager.PressButton(
+        ToSnesButton(static_cast<agent::Button>(request->buttons(i))));
   }
-  std::this_thread::sleep_for(std::chrono::milliseconds(request->duration_ms()));
+  std::this_thread::sleep_for(
+      std::chrono::milliseconds(request->duration_ms()));
   for (int i = 0; i < request->buttons_size(); i++) {
-    input_manager.ReleaseButton(ToSnesButton(static_cast<agent::Button>(request->buttons(i))));
+    input_manager.ReleaseButton(
+        ToSnesButton(static_cast<agent::Button>(request->buttons(i))));
   }
   response->set_success(true);
   return grpc::Status::OK;
 }
 
-grpc::Status EmulatorServiceImpl::GetGameState(grpc::ServerContext* context,
-                                               const agent::GameStateRequest* request,
-                                               agent::GameStateResponse* response) {
+grpc::Status EmulatorServiceImpl::GetGameState(
+    grpc::ServerContext* context, const agent::GameStateRequest* request,
+    agent::GameStateResponse* response) {
   if (!emulator_ || !emulator_->is_snes_initialized()) {
-    return grpc::Status(grpc::StatusCode::UNAVAILABLE, "SNES is not initialized.");
+    return grpc::Status(grpc::StatusCode::UNAVAILABLE,
+                        "SNES is not initialized.");
   }
   auto& memory = emulator_->snes().memory();
   response->set_game_mode(memory.ReadByte(0x7E0010));
@@ -339,11 +392,12 @@ grpc::Status EmulatorServiceImpl::GetGameState(grpc::ServerContext* context,
   return grpc::Status::OK;
 }
 
-grpc::Status EmulatorServiceImpl::ReadMemory(grpc::ServerContext* context,
-                                             const agent::MemoryRequest* request,
-                                             agent::MemoryResponse* response) {
+grpc::Status EmulatorServiceImpl::ReadMemory(
+    grpc::ServerContext* context, const agent::MemoryRequest* request,
+    agent::MemoryResponse* response) {
   if (!emulator_ || !emulator_->is_snes_initialized()) {
-    return grpc::Status(grpc::StatusCode::UNAVAILABLE, "SNES is not initialized.");
+    return grpc::Status(grpc::StatusCode::UNAVAILABLE,
+                        "SNES is not initialized.");
   }
   // Use Snes::Read() for proper memory mapping (WRAM, registers, etc.)
   auto& snes = emulator_->snes();
@@ -356,11 +410,12 @@ grpc::Status EmulatorServiceImpl::ReadMemory(grpc::ServerContext* context,
   return grpc::Status::OK;
 }
 
-grpc::Status EmulatorServiceImpl::WriteMemory(grpc::ServerContext* context,
-                                              const agent::MemoryWriteRequest* request,
-                                              agent::CommandResponse* response) {
+grpc::Status EmulatorServiceImpl::WriteMemory(
+    grpc::ServerContext* context, const agent::MemoryWriteRequest* request,
+    agent::CommandResponse* response) {
   if (!emulator_ || !emulator_->is_snes_initialized()) {
-    return grpc::Status(grpc::StatusCode::UNAVAILABLE, "SNES is not initialized.");
+    return grpc::Status(grpc::StatusCode::UNAVAILABLE,
+                        "SNES is not initialized.");
   }
   auto& memory = emulator_->snes().memory();
   const std::string& data = request->data();
@@ -373,15 +428,21 @@ grpc::Status EmulatorServiceImpl::WriteMemory(grpc::ServerContext* context,
 
 // --- Debugging Management ---
 
-grpc::Status EmulatorServiceImpl::BreakpointControl(grpc::ServerContext* context,
-                                 const agent::BreakpointControlRequest* request,
-                                 agent::BreakpointControlResponse* response) {
-  if (!emulator_) return grpc::Status(grpc::StatusCode::UNAVAILABLE, "Emulator not initialized.");
+grpc::Status EmulatorServiceImpl::BreakpointControl(
+    grpc::ServerContext* context,
+    const agent::BreakpointControlRequest* request,
+    agent::BreakpointControlResponse* response) {
+  if (!emulator_)
+    return grpc::Status(grpc::StatusCode::UNAVAILABLE,
+                        "Emulator not initialized.");
   auto& bp_manager = emulator_->breakpoint_manager();
   std::string action = request->action();
 
   if (action == "add") {
-    uint32_t id = bp_manager.AddBreakpoint(request->address(), ToBreakpointType(request->type()), ToCpuType(request->cpu()), request->condition(), request->description());
+    uint32_t id = bp_manager.AddBreakpoint(
+        request->address(), ToBreakpointType(request->type()),
+        ToCpuType(request->cpu()), request->condition(),
+        request->description());
     response->set_breakpoint_id(id);
     response->set_message("Breakpoint added.");
   } else if (action == "remove") {
@@ -401,33 +462,39 @@ grpc::Status EmulatorServiceImpl::BreakpointControl(grpc::ServerContext* context
       info->set_enabled(bp.enabled);
     }
   } else {
-    return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "Unknown action: " + action);
+    return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT,
+                        "Unknown action: " + action);
   }
 
   response->set_success(true);
   return grpc::Status::OK;
 }
 
-grpc::Status EmulatorServiceImpl::WatchpointControl(grpc::ServerContext* context,
-                                 const agent::WatchpointControlRequest* request,
-                                 agent::WatchpointControlResponse* response) {
-  return grpc::Status(grpc::StatusCode::UNIMPLEMENTED, "WatchpointManager integration pending.");
+grpc::Status EmulatorServiceImpl::WatchpointControl(
+    grpc::ServerContext* context,
+    const agent::WatchpointControlRequest* request,
+    agent::WatchpointControlResponse* response) {
+  return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
+                      "WatchpointManager integration pending.");
 }
 
 // --- Analysis & Symbols ---
 
-grpc::Status EmulatorServiceImpl::GetDisassembly(grpc::ServerContext* context,
-                              const agent::DisassemblyRequest* request,
-                              agent::DisassemblyResponse* response) {
-  if (!emulator_ || !emulator_->is_snes_initialized()) return grpc::Status(grpc::StatusCode::UNAVAILABLE, "SNES not initialized.");
-  
+grpc::Status EmulatorServiceImpl::GetDisassembly(
+    grpc::ServerContext* context, const agent::DisassemblyRequest* request,
+    agent::DisassemblyResponse* response) {
+  if (!emulator_ || !emulator_->is_snes_initialized())
+    return grpc::Status(grpc::StatusCode::UNAVAILABLE, "SNES not initialized.");
+
   yaze::emu::debug::Disassembler65816 dis;
   auto& memory = emulator_->snes().memory();
   auto& cpu = emulator_->snes().cpu();
-  
+
   uint32_t addr = request->start_address();
   for (uint32_t i = 0; i < request->count(); ++i) {
-    auto inst = dis.Disassemble(addr, [&memory](uint32_t a){ return memory.ReadByte(a); }, cpu.GetAccumulatorSize(), cpu.GetIndexSize());
+    auto inst = dis.Disassemble(
+        addr, [&memory](uint32_t a) { return memory.ReadByte(a); },
+        cpu.GetAccumulatorSize(), cpu.GetIndexSize());
     auto* line = response->add_lines();
     line->set_address(inst.address);
     line->set_mnemonic(inst.mnemonic);
@@ -437,15 +504,16 @@ grpc::Status EmulatorServiceImpl::GetDisassembly(grpc::ServerContext* context,
   return grpc::Status::OK;
 }
 
-grpc::Status EmulatorServiceImpl::GetExecutionTrace(grpc::ServerContext* context,
-                                 const agent::TraceRequest* request,
-                                 agent::TraceResponse* response) {
-  return grpc::Status(grpc::StatusCode::UNIMPLEMENTED, "Trace not implemented.");
+grpc::Status EmulatorServiceImpl::GetExecutionTrace(
+    grpc::ServerContext* context, const agent::TraceRequest* request,
+    agent::TraceResponse* response) {
+  return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
+                      "Trace not implemented.");
 }
 
-grpc::Status EmulatorServiceImpl::ResolveSymbol(grpc::ServerContext* context,
-                             const agent::SymbolLookupRequest* request,
-                             agent::SymbolLookupResponse* response) {
+grpc::Status EmulatorServiceImpl::ResolveSymbol(
+    grpc::ServerContext* context, const agent::SymbolLookupRequest* request,
+    agent::SymbolLookupResponse* response) {
   auto sym = symbol_provider_.FindSymbol(request->symbol_name());
   if (sym) {
     response->set_found(true);
@@ -455,9 +523,9 @@ grpc::Status EmulatorServiceImpl::ResolveSymbol(grpc::ServerContext* context,
   return grpc::Status::OK;
 }
 
-grpc::Status EmulatorServiceImpl::GetSymbolAt(grpc::ServerContext* context,
-                           const agent::AddressRequest* request,
-                           agent::SymbolLookupResponse* response) {
+grpc::Status EmulatorServiceImpl::GetSymbolAt(
+    grpc::ServerContext* context, const agent::AddressRequest* request,
+    agent::SymbolLookupResponse* response) {
   auto sym = symbol_provider_.GetSymbol(request->address());
   if (sym) {
     response->set_found(true);
@@ -467,10 +535,11 @@ grpc::Status EmulatorServiceImpl::GetSymbolAt(grpc::ServerContext* context,
   return grpc::Status::OK;
 }
 
-grpc::Status EmulatorServiceImpl::LoadSymbols(grpc::ServerContext* context,
-                           const agent::SymbolFileRequest* request,
-                           agent::CommandResponse* response) {
-  auto status = symbol_provider_.LoadSymbolFile(request->filepath(), (yaze::emu::debug::SymbolFormat)request->format());
+grpc::Status EmulatorServiceImpl::LoadSymbols(
+    grpc::ServerContext* context, const agent::SymbolFileRequest* request,
+    agent::CommandResponse* response) {
+  auto status = symbol_provider_.LoadSymbolFile(
+      request->filepath(), (yaze::emu::debug::SymbolFormat)request->format());
   response->set_success(status.ok());
   response->set_message(std::string(status.message()));
   return grpc::Status::OK;
@@ -478,27 +547,33 @@ grpc::Status EmulatorServiceImpl::LoadSymbols(grpc::ServerContext* context,
 
 // --- Session & Experiments ---
 
-grpc::Status EmulatorServiceImpl::GetDebugStatus(grpc::ServerContext* context,
-                              const agent::Empty* request,
-                              agent::DebugStatusResponse* response) {
-  if (!emulator_) return grpc::Status(grpc::StatusCode::UNAVAILABLE, "Emulator not initialized.");
+grpc::Status EmulatorServiceImpl::GetDebugStatus(
+    grpc::ServerContext* context, const agent::Empty* request,
+    agent::DebugStatusResponse* response) {
+  if (!emulator_)
+    return grpc::Status(grpc::StatusCode::UNAVAILABLE,
+                        "Emulator not initialized.");
   response->set_is_running(emulator_->running());
   CaptureCPUState(response->mutable_cpu_state());
-  response->set_active_breakpoints(emulator_->breakpoint_manager().GetAllBreakpoints().size());
+  response->set_active_breakpoints(
+      emulator_->breakpoint_manager().GetAllBreakpoints().size());
   return grpc::Status::OK;
 }
 
 grpc::Status EmulatorServiceImpl::TestRun(grpc::ServerContext* context,
-                       const agent::TestRunRequest* request,
-                       agent::TestRunResponse* response) {
-  if (!emulator_ || !emulator_->is_snes_initialized()) return grpc::Status(grpc::StatusCode::UNAVAILABLE, "SNES not initialized.");
+                                          const agent::TestRunRequest* request,
+                                          agent::TestRunResponse* response) {
+  if (!emulator_ || !emulator_->is_snes_initialized())
+    return grpc::Status(grpc::StatusCode::UNAVAILABLE, "SNES not initialized.");
   auto& snes = emulator_->snes();
   auto& cpu = snes.cpu();
   auto& memory = snes.memory();
 
   uint32_t addr = request->address();
   const std::string& data = request->data();
-  for (size_t i = 0; i < data.size(); ++i) { memory.WriteByte(addr + i, (uint8_t)data[i]); }
+  for (size_t i = 0; i < data.size(); ++i) {
+    memory.WriteByte(addr + i, (uint8_t)data[i]);
+  }
 
   bool was_running = emulator_->running();
   emulator_->set_running(false);
@@ -508,7 +583,10 @@ grpc::Status EmulatorServiceImpl::TestRun(grpc::ServerContext* context,
   uint32_t frames = request->frame_count() > 0 ? request->frame_count() : 60;
   for (uint32_t i = 0; i < frames; ++i) {
     emulator_->RunFrameOnly();
-    if (cpu.PC == 0 && cpu.PB == 0) { response->set_crashed(true); break; }
+    if (cpu.PC == 0 && cpu.PB == 0) {
+      response->set_crashed(true);
+      break;
+    }
   }
 
   CaptureCPUState(response->mutable_final_cpu_state());
@@ -520,16 +598,19 @@ grpc::Status EmulatorServiceImpl::TestRun(grpc::ServerContext* context,
 void EmulatorServiceImpl::InitializeStepController() {
   auto& memory = emulator_->snes().memory();
   auto& cpu = emulator_->snes().cpu();
-  step_controller_.SetMemoryReader([&memory](uint32_t addr) -> uint8_t { return memory.ReadByte(addr); });
-  step_controller_.SetSingleStepper([this]() { emulator_->StepSingleInstruction(); });
-  step_controller_.SetPcGetter([&cpu]() -> uint32_t { return (cpu.PB << 16) | cpu.PC; });
+  step_controller_.SetMemoryReader(
+      [&memory](uint32_t addr) -> uint8_t { return memory.ReadByte(addr); });
+  step_controller_.SetSingleStepper(
+      [this]() { emulator_->StepSingleInstruction(); });
+  step_controller_.SetPcGetter(
+      [&cpu]() -> uint32_t { return (cpu.PB << 16) | cpu.PC; });
 }
 
 // --- Save State Management ---
 
-grpc::Status EmulatorServiceImpl::SaveState(grpc::ServerContext* context,
-                                             const agent::SaveStateRequest* request,
-                                             agent::SaveStateResponse* response) {
+grpc::Status EmulatorServiceImpl::SaveState(
+    grpc::ServerContext* context, const agent::SaveStateRequest* request,
+    agent::SaveStateResponse* response) {
   if (!emulator_ || !emulator_->is_snes_initialized()) {
     response->set_success(false);
     response->set_message("SNES not initialized");
@@ -594,9 +675,9 @@ grpc::Status EmulatorServiceImpl::SaveState(grpc::ServerContext* context,
   return grpc::Status::OK;
 }
 
-grpc::Status EmulatorServiceImpl::LoadState(grpc::ServerContext* context,
-                                             const agent::LoadStateRequest* request,
-                                             agent::LoadStateResponse* response) {
+grpc::Status EmulatorServiceImpl::LoadState(
+    grpc::ServerContext* context, const agent::LoadStateRequest* request,
+    agent::LoadStateResponse* response) {
   if (!emulator_ || !emulator_->is_snes_initialized()) {
     response->set_success(false);
     response->set_message("SNES not initialized");
@@ -654,9 +735,9 @@ grpc::Status EmulatorServiceImpl::LoadState(grpc::ServerContext* context,
   return grpc::Status::OK;
 }
 
-grpc::Status EmulatorServiceImpl::ListStates(grpc::ServerContext* context,
-                                              const agent::ListStatesRequest* request,
-                                              agent::ListStatesResponse* response) {
+grpc::Status EmulatorServiceImpl::ListStates(
+    grpc::ServerContext* context, const agent::ListStatesRequest* request,
+    agent::ListStatesResponse* response) {
 #ifdef __EMSCRIPTEN__
   // Directory listing not well supported in WASM
   return grpc::Status::OK;
@@ -671,10 +752,12 @@ grpc::Status EmulatorServiceImpl::ListStates(grpc::ServerContext* context,
   }
 
   for (const auto& entry : std::filesystem::directory_iterator(directory)) {
-    if (!entry.is_regular_file()) continue;
+    if (!entry.is_regular_file())
+      continue;
 
     std::string ext = entry.path().extension().string();
-    if (ext != ".state" && ext != ".sav") continue;
+    if (ext != ".state" && ext != ".sav")
+      continue;
 
     auto* state = response->add_states();
     state->set_state_id(entry.path().stem().string());
