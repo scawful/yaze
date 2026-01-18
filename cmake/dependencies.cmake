@@ -88,9 +88,13 @@ if(YAZE_BUILD_TESTS AND NOT YAZE_ENABLE_GRPC)
   list(APPEND YAZE_ALL_DEPENDENCIES ${YAZE_TESTING_TARGETS})
 endif()
 
-# ASAR dependency (for ROM assembly) - temporarily disabled
-# TODO: Add CMakeLists.txt to bundled ASAR or find working repository
-message(STATUS "ASAR dependency temporarily disabled - will be added later")
+# ASAR dependency (for ROM assembly)
+if(YAZE_ENABLE_ASAR AND NOT EMSCRIPTEN)
+  include(cmake/asar.cmake)
+  if(ASAR_FOUND)
+    list(APPEND YAZE_ALL_DEPENDENCIES ${ASAR_LIBRARIES})
+  endif()
+endif()
 
 # Print dependency summary
 message(STATUS "=== YAZE Dependencies Summary ===")
@@ -113,6 +117,9 @@ if(YAZE_BUILD_CLI AND NOT EMSCRIPTEN)
 endif()
 if(YAZE_BUILD_TESTS)
   message(STATUS "Testing: ${YAZE_TESTING_TARGETS}")
+endif()
+if(YAZE_ENABLE_ASAR AND NOT EMSCRIPTEN)
+  message(STATUS "ASAR: ${ASAR_FOUND} (${ASAR_LIBRARIES})")
 endif()
 message(STATUS "=================================")
 

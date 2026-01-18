@@ -1,6 +1,12 @@
 # Modern Asar 65816 Assembler Integration
 # Improved cross-platform support for macOS, Linux, and Windows
 
+# Include guard to prevent multiple inclusions
+if(ASAR_CMAKE_INCLUDED)
+  return()
+endif()
+set(ASAR_CMAKE_INCLUDED TRUE)
+
 # Configure Asar build options
 # Build the standalone executable so we can fall back to a bundled CLI when the
 # static library misbehaves.
