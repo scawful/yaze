@@ -80,23 +80,18 @@ namespace editor {
  * PaletteEditor, ScreenEditor, and SpriteEditor. The current_editor_ member
  * variable points to the currently active editor in the tab view.
  *
- * EditorManager implements SessionObserver to receive notifications about
- * session lifecycle events and update cross-cutting concerns accordingly.
+ * EditorManager subscribes to EventBus events for session lifecycle
+ * notifications (SessionSwitchedEvent, SessionCreatedEvent, etc.) and
+ * updates cross-cutting concerns accordingly.
  */
-class EditorManager : public SessionObserver {
+class EditorManager {
  public:
   // Constructor and destructor must be defined in .cc file for std::unique_ptr
   // with forward-declared types
   EditorManager();
-  ~EditorManager() override;
+  ~EditorManager();
 
   void Initialize(gfx::IRenderer* renderer, const std::string& filename = "");
-
-  // SessionObserver implementation
-  void OnSessionSwitched(size_t new_index, RomSession* session) override;
-  void OnSessionCreated(size_t index, RomSession* session) override;
-  void OnSessionClosed(size_t index) override;
-  void OnSessionRomLoaded(size_t index, RomSession* session) override;
 
   // Processes startup flags to open a specific editor and panels.
   void OpenEditorAndPanelsFromFlags(const std::string& editor_name,
@@ -342,6 +337,12 @@ class EditorManager : public SessionObserver {
   // Testing system
   void InitializeTestSuites();
   void ApplyStartupVisibilityOverrides();
+
+  // Session event handlers (EventBus subscribers)
+  void HandleSessionSwitched(size_t new_index, RomSession* session);
+  void HandleSessionCreated(size_t index, RomSession* session);
+  void HandleSessionClosed(size_t index);
+  void HandleSessionRomLoaded(size_t index, Rom* rom);
 
   bool quit_ = false;
 
