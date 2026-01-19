@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_APPLICATION_H_
 #define YAZE_APP_APPLICATION_H_
 
+#include <chrono>
 #include <memory>
 #include <string>
 #include <vector>
@@ -84,7 +85,12 @@ class Application {
 
   std::unique_ptr<Controller> controller_;
   AppConfig config_;
-  
+
+  // Frame timing for delta_time calculation
+  std::chrono::steady_clock::time_point last_frame_time_;
+  float delta_time_ = 0.0f;
+  bool first_frame_ = true;
+
 #ifndef __EMSCRIPTEN__
   // For non-WASM builds, we need a local queue for ROMs requested before
   // the controller is initialized.

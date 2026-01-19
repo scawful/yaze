@@ -1,6 +1,8 @@
 #include "app/application.h"
 
 #include "absl/strings/str_cat.h"
+#include "app/editor/core/content_registry.h"
+#include "app/editor/events/core_events.h"
 #include "util/log.h"
 
 #ifdef YAZE_WITH_GRPC
@@ -150,6 +152,22 @@ void Application::Initialize(const AppConfig& config) {
 void Application::Tick() {
   if (!controller_) return;
 
+  // Calculate delta time
+  auto now = std::chrono::steady_clock::now();
+  if (first_frame_) {
+    delta_time_ = 0.016f;  // Assume ~60fps for first frame
+    first_frame_ = false;
+  } else {
+    auto elapsed = std::chrono::duration<float>(now - last_frame_time_);
+    delta_time_ = elapsed.count();
+  }
+  last_frame_time_ = now;
+
+  // Publish FrameBeginEvent for deferred action processing
+  if (auto* bus = editor::ContentRegistry::Context::event_bus()) {
+    bus->Publish(editor::FrameBeginEvent::Create(delta_time_));
+  }
+
 #ifdef __EMSCRIPTEN__
   auto& wasm_collab = app::platform::GetWasmCollaborationInstance();
   wasm_collab.ProcessPendingChanges();
@@ -164,13 +182,18 @@ void Application::Tick() {
 #endif
     return;
   }
-  
+
   if (!controller_->IsActive()) {
       // Window closed
       // LOG_INFO("App", "Controller became inactive");
   }
 
   controller_->DoRender();
+
+  // Publish FrameEndEvent for cleanup operations
+  if (auto* bus = editor::ContentRegistry::Context::event_bus()) {
+    bus->Publish(editor::FrameEndEvent::Create(delta_time_));
+  }
 }
 
 void Application::LoadRom(const std::string& path) {
