@@ -10,8 +10,14 @@ namespace yaze {
 class Rom;
 class EventBus;
 
+namespace zelda3 {
+class GameData;
+}  // namespace zelda3
+
 namespace editor {
 class EditorPanel;
+class Editor;
+struct EditorDependencies;
 
 /**
  * @brief Central registry for editor content and services.
@@ -63,6 +69,34 @@ namespace Context {
    * @param bus Pointer to the EventBus to set as current.
    */
   void SetEventBus(::yaze::EventBus* bus);
+
+  /**
+   * @brief Get the currently active editor.
+   * @return Pointer to the current editor, or nullptr if none active.
+   */
+  Editor* current_editor();
+
+  /**
+   * @brief Set the currently active editor.
+   * @param editor Pointer to the editor to set as current.
+   *
+   * Called when switching between editors (Overworld, Dungeon, etc.)
+   */
+  void SetCurrentEditor(Editor* editor);
+
+  /**
+   * @brief Get the current game data instance.
+   * @return Pointer to the current GameData, or nullptr if not set.
+   */
+  ::yaze::zelda3::GameData* game_data();
+
+  /**
+   * @brief Set the current game data instance.
+   * @param data Pointer to the GameData to set as current.
+   *
+   * Called when loading a ROM or switching sessions.
+   */
+  void SetGameData(::yaze::zelda3::GameData* data);
 
   /**
    * @brief Clear all context state.
@@ -131,6 +165,59 @@ namespace Panels {
    */
   void Clear();
 }  // namespace Panels
+
+/**
+ * @brief Registry for Editors (full workspace tabs).
+ */
+namespace Editors {
+  using EditorFactory = std::function<std::unique_ptr<Editor>(const EditorDependencies&)>;
+
+  void RegisterFactory(EditorFactory factory);
+
+  template<typename T>
+  void add() {
+    RegisterFactory([](const EditorDependencies& deps) {
+      auto editor = std::make_unique<T>();
+      editor->SetDependencies(deps);
+      return editor;
+    });
+  }
+
+  std::vector<std::unique_ptr<Editor>> CreateAll(const EditorDependencies& deps);
+} // namespace Editors
+
+/**
+ * @brief Registry for Keyboard Shortcuts.
+ * Allows components to declare their shortcuts statically.
+ */
+namespace Shortcuts {
+  struct ShortcutDef {
+    std::string id;
+    std::string default_key;
+    std::string description;
+  };
+
+  void Register(const ShortcutDef& shortcut);
+  void add(const std::string& id, const std::string& key, const std::string& desc);
+  std::vector<ShortcutDef> GetAll();
+} // namespace Shortcuts
+
+/**
+ * @brief Registry for User Settings.
+ * Allows components to declare their settings statically.
+ */
+namespace Settings {
+  struct SettingDef {
+    std::string key;
+    std::string section;
+    std::string default_value; // serialized
+    std::string description;
+  };
+
+  void Register(const SettingDef& setting);
+  void add(const std::string& section, const std::string& key, const std::string& default_val, const std::string& desc);
+  std::vector<SettingDef> GetAll();
+} // namespace Settings
 
 }  // namespace ContentRegistry
 

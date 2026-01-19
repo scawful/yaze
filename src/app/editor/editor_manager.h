@@ -14,6 +14,7 @@
 #include "app/editor/code/project_file_editor.h"
 #include "app/editor/editor.h"
 #include "app/editor/menu/activity_bar.h"
+#include "app/editor/core/content_registry.h"
 #include "app/editor/core/editor_context.h"
 #include "app/editor/core/event_bus.h"
 #include "app/editor/menu/menu_builder.h"
@@ -149,6 +150,8 @@ class EditorManager {
   auto GetCurrentEditor() const -> Editor* { return current_editor_; }
   void SetCurrentEditor(Editor* editor) {
     current_editor_ = editor;
+    // Update ContentRegistry context for panel access
+    ContentRegistry::Context::SetCurrentEditor(editor);
     // Update help panel's editor context for context-aware help
     if (right_panel_manager_ && editor) {
       right_panel_manager_->SetActiveEditor(editor->type());

@@ -459,8 +459,9 @@ void EditorManager::HandleSessionSwitched(size_t new_index,
     selection_properties_panel_.SetRom(&session->rom);
   }
 
-  // Update ContentRegistry context with current session's ROM
+  // Update ContentRegistry context with current session's ROM and GameData
   ContentRegistry::Context::SetRom(session ? &session->rom : nullptr);
+  ContentRegistry::Context::SetGameData(session ? &session->game_data : nullptr);
 
 #ifdef YAZE_ENABLE_TESTING
   test::TestManager::Get().SetCurrentRom(session ? &session->rom : nullptr);
@@ -494,6 +495,11 @@ void EditorManager::HandleSessionRomLoaded(size_t index, Rom* rom) {
   if (rom && session_coordinator_ &&
       index == session_coordinator_->GetActiveSessionIndex()) {
     ContentRegistry::Context::SetRom(rom);
+    // Also update GameData from the session
+    if (auto* session =
+            static_cast<RomSession*>(session_coordinator_->GetSession(index))) {
+      ContentRegistry::Context::SetGameData(&session->game_data);
+    }
   }
 
 #ifdef YAZE_ENABLE_TESTING
