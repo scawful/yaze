@@ -21,6 +21,7 @@ struct RegistryState {
   Rom* current_rom = nullptr;
   ::yaze::EventBus* event_bus = nullptr;
   std::vector<std::unique_ptr<EditorPanel>> panels;
+  std::vector<ContentRegistry::Panels::PanelFactory> factories;
 
   static RegistryState& Get() {
     static RegistryState instance;
@@ -71,6 +72,24 @@ void Clear() {
 // =============================================================================
 
 namespace Panels {
+
+void RegisterFactory(PanelFactory factory) {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  RegistryState::Get().factories.push_back(std::move(factory));
+}
+
+std::vector<std::unique_ptr<EditorPanel>> CreateAll() {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  std::vector<std::unique_ptr<EditorPanel>> result;
+  result.reserve(RegistryState::Get().factories.size());
+
+  for (const auto& factory : RegistryState::Get().factories) {
+    if (auto panel = factory()) {
+      result.push_back(std::move(panel));
+    }
+  }
+  return result;
+}
 
 void Register(std::unique_ptr<EditorPanel> panel) {
   if (!panel) return;
