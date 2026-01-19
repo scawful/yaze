@@ -1,16 +1,21 @@
 #include "app/editor/overworld/panels/map_properties_panel.h"
 
-#include "absl/status/status.h"
+#include "app/editor/core/content_registry.h"
+#include "app/editor/core/panel_registration.h"
 #include "app/editor/overworld/overworld_editor.h"
 
-namespace yaze {
-namespace editor {
+namespace yaze::editor {
 
 void MapPropertiesPanel::Draw(bool* p_open) {
-  // Call the existing map properties drawing
-  // The map_properties_ member handles all the UI
-  editor_->DrawMapProperties();
+  auto* editor = ContentRegistry::Context::current_editor();
+  if (!editor) return;
+
+  if (auto* ow_editor = dynamic_cast<OverworldEditor*>(editor)) {
+    // Call the existing map properties drawing
+    ow_editor->DrawMapProperties();
+  }
 }
 
-}  // namespace editor
-}  // namespace yaze
+REGISTER_PANEL(MapPropertiesPanel);
+
+}  // namespace yaze::editor
