@@ -66,6 +66,7 @@
 #include "app/test/test_manager.h"
 #include "core/features.h"
 #include "core/project.h"
+#include "editor/core/content_registry.h"
 #include "editor/core/editor_context.h"
 #include "editor/layout/layout_coordinator.h"
 #include "editor/menu/right_panel_manager.h"
@@ -416,6 +417,9 @@ void EditorManager::OnSessionSwitched(size_t new_index, RomSession* session) {
     selection_properties_panel_.SetRom(&session->rom);
   }
 
+  // Update ContentRegistry context with current session's ROM
+  ContentRegistry::Context::SetRom(session ? &session->rom : nullptr);
+
 #ifdef YAZE_ENABLE_TESTING
   test::TestManager::Get().SetCurrentRom(session ? &session->rom : nullptr);
 #endif
@@ -428,6 +432,13 @@ void EditorManager::OnSessionCreated(size_t index, RomSession* session) {
 }
 
 void EditorManager::OnSessionClosed(size_t index) {
+  // Update ContentRegistry - it will be set to new active ROM on next switch
+  // If no sessions remain, clear the context
+  if (session_coordinator_ &&
+      session_coordinator_->GetTotalSessionCount() == 0) {
+    ContentRegistry::Context::Clear();
+  }
+
 #ifdef YAZE_ENABLE_TESTING
   // Update test manager - it will get the new current ROM on next switch
   test::TestManager::Get().SetCurrentRom(GetCurrentRom());
@@ -437,6 +448,12 @@ void EditorManager::OnSessionClosed(size_t index) {
 }
 
 void EditorManager::OnSessionRomLoaded(size_t index, RomSession* session) {
+  // Update ContentRegistry when ROM is loaded (if this is the active session)
+  if (session && session_coordinator_ &&
+      index == session_coordinator_->GetActiveSessionIndex()) {
+    ContentRegistry::Context::SetRom(&session->rom);
+  }
+
 #ifdef YAZE_ENABLE_TESTING
   if (session) {
     test::TestManager::Get().SetCurrentRom(&session->rom);

@@ -2,6 +2,7 @@ set(
   YAZE_APP_EDITOR_SRC
   app/editor/agent/agent_chat_history_codec.cc
   app/editor/code/assembly_editor.cc
+  app/editor/core/content_registry.cc
   app/editor/code/memory_editor.cc
   app/editor/code/project_file_editor.cc
   app/editor/dungeon/dungeon_canvas_viewer.cc
