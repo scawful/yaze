@@ -68,6 +68,7 @@
 #include "core/project.h"
 #include "editor/core/content_registry.h"
 #include "editor/core/editor_context.h"
+#include "editor/events/core_events.h"
 #include "editor/layout/layout_coordinator.h"
 #include "editor/menu/right_panel_manager.h"
 #include "editor/system/editor_activator.h"
@@ -255,6 +256,22 @@ EditorManager::EditorManager()
   ContentRegistry::Context::SetEventBus(&event_bus_);  // Global event bus access
   session_coordinator_->AddObserver(
       this);  // Register for session lifecycle events
+
+  // Subscribe to FrameBeginEvent for deferred action processing
+  // This replaces scattered manual processing calls with event-driven execution
+  event_bus_.Subscribe<FrameBeginEvent>([this](const FrameBeginEvent&) {
+    // Process LayoutCoordinator's deferred actions
+    layout_coordinator_.ProcessDeferredActions();
+
+    // Process EditorManager's deferred actions
+    if (!deferred_actions_.empty()) {
+      std::vector<std::function<void()>> actions_to_execute;
+      actions_to_execute.swap(deferred_actions_);
+      for (auto& action : actions_to_execute) {
+        action();
+      }
+    }
+  });
 
   // STEP 4: Initialize UICoordinator (depends on popup_manager_,
   // session_coordinator_, panel_manager_)
@@ -1072,17 +1089,9 @@ void EditorManager::ProcessStartupActions(const AppConfig& config) {
  * components.
  */
 absl::Status EditorManager::Update() {
-  // Process deferred actions from previous frame (both EditorManager and LayoutCoordinator)
-  // This ensures actions that modify ImGui state (like layout resets)
-  // are executed safely outside of menu/popup rendering contexts
-  layout_coordinator_.ProcessDeferredActions();
-  if (!deferred_actions_.empty()) {
-    std::vector<std::function<void()>> actions_to_execute;
-    actions_to_execute.swap(deferred_actions_);
-    for (auto& action : actions_to_execute) {
-      action();
-    }
-  }
+  // NOTE: Deferred actions are now processed via FrameBeginEvent subscription
+  // in the constructor. This ensures actions run at the start of each frame
+  // before controller processing, avoiding ImGui state modification issues.
 
   // Update timing manager for accurate delta time across the application
   // This fixes animation timing issues that occur when mouse isn't moving
