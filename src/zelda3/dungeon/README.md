@@ -2,6 +2,19 @@
 
 This directory contains the core business logic, data structures, and rendering algorithms for the `The Legend of Zelda: A Link to the Past` dungeon system. It serves as the backend for the editor UI found in `src/app/editor/dungeon`.
 
+## Current Status (January 2026)
+
+**Core System: Stable** - 222/222 unit and integration tests passing.
+
+The object rendering pipeline has been validated against the ALTTP disassembly:
+- Type 1/2/3 object detection and parsing ✅
+- Index calculation for all object tables ✅
+- Draw routine mapping (130+ routines) ✅
+- BothBG flag propagation ✅
+- Tile count lookup tables ✅
+
+**Known Minor Issues**: Some specific objects (vertical rails, doors, certain edge patterns) may have visual discrepancies that require individual verification against the game. These are not regressions but areas needing refinement.
+
 ## Architecture Overview
 
 The module is designed to replicate the SNES game engine's logic for loading, parsing, and rendering dungeon rooms, while providing high-level editing capabilities.
