@@ -252,6 +252,7 @@ EditorManager::EditorManager()
 
   session_coordinator_->SetEditorManager(this);
   session_coordinator_->SetEventBus(&event_bus_);  // Enable event publishing
+  ContentRegistry::Context::SetEventBus(&event_bus_);  // Global event bus access
   session_coordinator_->AddObserver(
       this);  // Register for session lifecycle events
 

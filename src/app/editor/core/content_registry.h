@@ -7,6 +7,7 @@
 
 namespace yaze {
 class Rom;
+class EventBus;
 
 namespace editor {
 class EditorPanel;
@@ -49,6 +50,18 @@ namespace Context {
    * @param rom Pointer to the ROM to set as current.
    */
   void SetRom(Rom* rom);
+
+  /**
+   * @brief Get the current EventBus instance.
+   * @return Pointer to the current EventBus, or nullptr if not set.
+   */
+  ::yaze::EventBus* event_bus();
+
+  /**
+   * @brief Set the current EventBus instance.
+   * @param bus Pointer to the EventBus to set as current.
+   */
+  void SetEventBus(::yaze::EventBus* bus);
 
   /**
    * @brief Clear all context state.
