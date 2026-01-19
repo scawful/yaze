@@ -4,18 +4,18 @@
 #include "app/editor/system/editor_panel.h"
 #include "app/gui/core/icons.h"
 
-namespace yaze {
-namespace editor {
-
-class OverworldEditor;
+namespace yaze::editor {
 
 /**
  * @class V3SettingsPanel
  * @brief ZSCustomOverworld configuration settings
+ *
+ * Uses ContentRegistry::Context to access the current OverworldEditor.
+ * Self-registers via REGISTER_PANEL macro.
  */
 class V3SettingsPanel : public EditorPanel {
  public:
-  explicit V3SettingsPanel(OverworldEditor* editor) : editor_(editor) {}
+  V3SettingsPanel() = default;
 
   // EditorPanel interface
   std::string GetId() const override { return "overworld.v3_settings"; }
@@ -23,12 +23,8 @@ class V3SettingsPanel : public EditorPanel {
   std::string GetIcon() const override { return ICON_MD_SETTINGS; }
   std::string GetEditorCategory() const override { return "Overworld"; }
   void Draw(bool* p_open) override;
-
- private:
-  OverworldEditor* editor_;
 };
 
-}  // namespace editor
-}  // namespace yaze
+}  // namespace yaze::editor
 
 #endif  // YAZE_APP_EDITOR_OVERWORLD_PANELS_V3_SETTINGS_PANEL_H

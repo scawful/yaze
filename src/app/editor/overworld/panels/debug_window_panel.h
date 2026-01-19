@@ -4,18 +4,18 @@
 #include "app/editor/system/editor_panel.h"
 #include "app/gui/core/icons.h"
 
-namespace yaze {
-namespace editor {
-
-class OverworldEditor;
+namespace yaze::editor {
 
 /**
  * @class DebugWindowPanel
  * @brief Displays debug information for the Overworld Editor
+ *
+ * Uses ContentRegistry::Context to access the current OverworldEditor.
+ * Self-registers via REGISTER_PANEL macro.
  */
 class DebugWindowPanel : public EditorPanel {
  public:
-  explicit DebugWindowPanel(OverworldEditor* editor) : editor_(editor) {}
+  DebugWindowPanel() = default;
 
   // EditorPanel interface
   std::string GetId() const override { return "overworld.debug"; }
@@ -23,12 +23,8 @@ class DebugWindowPanel : public EditorPanel {
   std::string GetIcon() const override { return ICON_MD_BUG_REPORT; }
   std::string GetEditorCategory() const override { return "Overworld"; }
   void Draw(bool* p_open) override;
-
- private:
-  OverworldEditor* editor_;
 };
 
-}  // namespace editor
-}  // namespace yaze
+}  // namespace yaze::editor
 
 #endif  // YAZE_APP_EDITOR_OVERWORLD_PANELS_DEBUG_WINDOW_PANEL_H
