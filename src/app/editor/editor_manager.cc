@@ -93,6 +93,7 @@
 
 // Conditional test headers
 #ifdef YAZE_ENABLE_TESTING
+#include "app/test/core_systems_test_suite.h"
 #include "app/test/e2e_test_suite.h"
 #include "app/test/integrated_test_suite.h"
 #include "app/test/rom_dependent_test_suite.h"
@@ -468,6 +469,7 @@ void EditorManager::InitializeTestSuites() {
 
 #ifdef YAZE_ENABLE_TESTING
   // Register comprehensive test suites
+  test_manager.RegisterTestSuite(std::make_unique<test::CoreSystemsTestSuite>());
   test_manager.RegisterTestSuite(std::make_unique<test::IntegratedTestSuite>());
   test_manager.RegisterTestSuite(
       std::make_unique<test::PerformanceTestSuite>());
