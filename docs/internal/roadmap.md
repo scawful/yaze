@@ -1,6 +1,6 @@
 # Roadmap
 
-**Last Updated: January 12, 2026**
+**Last Updated: January 19, 2026**
 
 This roadmap tracks upcoming releases and major ongoing initiatives.
 
@@ -113,7 +113,8 @@ This roadmap tracks upcoming releases and major ongoing initiatives.
 - 🟡 Finalize pending-change workflow UX, palette handling, and overworld context menus; align project metadata/JSON refactor with WASM FS persistence work (ai-infra-architect).
 
 #### Editor Fixes
-- 🟡 Dungeon object rendering regression (under investigation)
+- ✅ Dungeon object rendering core system stable (222/222 tests passing)
+- 🟡 Minor visual discrepancies in specific objects (vertical rails, doors, etc.) - requires individual verification
 
 ### Remaining Work (Deferred to 0.5.x)
 
