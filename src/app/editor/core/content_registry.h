@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_CORE_CONTENT_REGISTRY_H_
 #define YAZE_APP_EDITOR_CORE_CONTENT_REGISTRY_H_
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -81,8 +82,31 @@ namespace Context {
  * - Lifecycle management
  */
 namespace Panels {
+  using PanelFactory = std::function<std::unique_ptr<EditorPanel>()>;
+
   /**
-   * @brief Register a panel with the registry.
+   * @brief Register a panel factory.
+   * @param factory Function that creates a new instance of the panel.
+   */
+  void RegisterFactory(PanelFactory factory);
+
+  /**
+   * @brief Register a panel type for auto-creation.
+   * @tparam T The panel class to register (must have default constructor).
+   */
+  template<typename T>
+  void add() {
+    RegisterFactory([]() { return std::make_unique<T>(); });
+  }
+
+  /**
+   * @brief Create new instances of all registered panels.
+   * @return Vector of unique pointers to new panel instances.
+   */
+  std::vector<std::unique_ptr<EditorPanel>> CreateAll();
+
+  /**
+   * @brief Register a panel instance (Legacy/Global).
    * @param panel Unique pointer to the panel to register.
    */
   void Register(std::unique_ptr<EditorPanel> panel);

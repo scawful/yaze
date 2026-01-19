@@ -73,6 +73,7 @@ set(
   app/editor/sprite/sprite_editor.cc
   app/editor/menu/menu_orchestrator.cc
   app/editor/ui/popup_manager.cc
+  app/editor/ui/about_panel.cc
   app/editor/ui/dashboard_panel.cc
   app/editor/ui/editor_selection_dialog.cc
   app/editor/menu/right_panel_manager.cc
