@@ -7,6 +7,7 @@
 #include <memory>
 
 #include "absl/status/status.h"
+#include "app/editor/core/event_bus.h"
 #include "app/editor/system/panel_manager.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/editor/session_types.h"
@@ -73,6 +74,10 @@ class SessionCoordinator {
   ~SessionCoordinator() = default;
 
   void SetEditorManager(EditorManager* manager) { editor_manager_ = manager; }
+
+  /// Set the EventBus for publishing session lifecycle events.
+  /// When set, session events will be published alongside observer notifications.
+  void SetEventBus(EventBus* bus) { event_bus_ = bus; }
 
   // Observer management
   void AddObserver(SessionObserver* observer);
@@ -195,6 +200,7 @@ class SessionCoordinator {
 
   // Core dependencies
   EditorManager* editor_manager_ = nullptr;
+  EventBus* event_bus_ = nullptr;  // For publishing session lifecycle events
   std::vector<std::unique_ptr<RomSession>> sessions_;
   std::vector<SessionObserver*> observers_;
   PanelManager* panel_manager_;

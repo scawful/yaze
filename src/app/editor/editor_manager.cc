@@ -251,6 +251,7 @@ EditorManager::EditorManager()
   menu_orchestrator_->SetUserSettings(&user_settings_);
 
   session_coordinator_->SetEditorManager(this);
+  session_coordinator_->SetEventBus(&event_bus_);  // Enable event publishing
   session_coordinator_->AddObserver(
       this);  // Register for session lifecycle events
 

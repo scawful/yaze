@@ -15,6 +15,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/editor_manager.h"
+#include "app/editor/events/core_events.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/session_types.h"
 #include "app/gui/core/icons.h"
@@ -50,28 +51,56 @@ void SessionCoordinator::RemoveObserver(SessionObserver* observer) {
 
 void SessionCoordinator::NotifySessionSwitched(size_t index,
                                                RomSession* session) {
+  // Notify traditional observers
   for (auto* observer : observers_) {
     observer->OnSessionSwitched(index, session);
+  }
+
+  // Publish event to EventBus (dual-path during transition)
+  if (event_bus_) {
+    // Track previous index for the event (before we update active_session_index_)
+    size_t old_index = active_session_index_;
+    event_bus_->Publish(
+        SessionSwitchedEvent::Create(old_index, index, session));
   }
 }
 
 void SessionCoordinator::NotifySessionCreated(size_t index,
                                               RomSession* session) {
+  // Notify traditional observers
   for (auto* observer : observers_) {
     observer->OnSessionCreated(index, session);
+  }
+
+  // Publish event to EventBus (dual-path during transition)
+  if (event_bus_) {
+    event_bus_->Publish(SessionCreatedEvent::Create(index, session));
   }
 }
 
 void SessionCoordinator::NotifySessionClosed(size_t index) {
+  // Notify traditional observers
   for (auto* observer : observers_) {
     observer->OnSessionClosed(index);
+  }
+
+  // Publish event to EventBus (dual-path during transition)
+  if (event_bus_) {
+    event_bus_->Publish(SessionClosedEvent::Create(index));
   }
 }
 
 void SessionCoordinator::NotifySessionRomLoaded(size_t index,
                                                 RomSession* session) {
+  // Notify traditional observers
   for (auto* observer : observers_) {
     observer->OnSessionRomLoaded(index, session);
+  }
+
+  // Publish event to EventBus (dual-path during transition)
+  if (event_bus_ && session) {
+    event_bus_->Publish(
+        RomLoadedEvent::Create(&session->rom, session->filepath, index));
   }
 }
 
