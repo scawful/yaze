@@ -1,17 +1,9 @@
 #include "app/editor/ui/about_panel.h"
-#include "app/editor/core/content_registry.h"
+#include "app/editor/core/panel_registration.h"
 
 namespace yaze::editor {
 
-namespace {
-// Auto-register AboutPanel using the ContentRegistry
-// This demonstrates the Unified Panel Registry pattern (Proposal A)
-struct AboutPanelRegistration {
-  AboutPanelRegistration() {
-    ContentRegistry::Panels::add<AboutPanel>();
-  }
-};
-static AboutPanelRegistration s_registration;
-}
+// Auto-register AboutPanel with ContentRegistry
+REGISTER_PANEL(AboutPanel);
 
-} // namespace yaze::editor
+}  // namespace yaze::editor
