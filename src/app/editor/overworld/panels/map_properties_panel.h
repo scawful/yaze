@@ -4,21 +4,21 @@
 #include "app/editor/system/editor_panel.h"
 #include "app/gui/core/icons.h"
 
-namespace yaze {
-namespace editor {
-
-class OverworldEditor;
+namespace yaze::editor {
 
 /**
  * @class MapPropertiesPanel
  * @brief Displays and edits properties for the current overworld map
- * 
+ *
  * Shows settings like palette selection, graphics groups, large/small map,
  * parent map, message ID, and other per-map configuration.
+ *
+ * Uses ContentRegistry::Context to access the current OverworldEditor.
+ * Self-registers via REGISTER_PANEL macro.
  */
 class MapPropertiesPanel : public EditorPanel {
  public:
-  explicit MapPropertiesPanel(OverworldEditor* editor) : editor_(editor) {}
+  MapPropertiesPanel() = default;
 
   // EditorPanel interface
   std::string GetId() const override { return "overworld.properties"; }
@@ -26,12 +26,8 @@ class MapPropertiesPanel : public EditorPanel {
   std::string GetIcon() const override { return ICON_MD_TUNE; }
   std::string GetEditorCategory() const override { return "Overworld"; }
   void Draw(bool* p_open) override;
-
- private:
-  OverworldEditor* editor_;
 };
 
-}  // namespace editor
-}  // namespace yaze
+}  // namespace yaze::editor
 
 #endif  // YAZE_APP_EDITOR_OVERWORLD_PANELS_MAP_PROPERTIES_PANEL_H

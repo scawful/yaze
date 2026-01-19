@@ -102,14 +102,11 @@ void OverworldEditor::Initialize() {
       std::make_unique<Tile16SelectorPanel>(this));
   panel_manager->RegisterEditorPanel(
       std::make_unique<Tile16EditorPanel>(&tile16_editor_));
-  panel_manager->RegisterEditorPanel(
-      std::make_unique<MapPropertiesPanel>(this));
-  panel_manager->RegisterEditorPanel(std::make_unique<ScratchSpacePanel>(this));
-  // UsageStatisticsPanel, DebugWindowPanel, V3SettingsPanel now self-register
+  // MapPropertiesPanel, ScratchSpacePanel, UsageStatisticsPanel,
+  // DebugWindowPanel, V3SettingsPanel, GfxGroupsPanel now self-register
   // via REGISTER_PANEL macro and use ContentRegistry::Context
   panel_manager->RegisterEditorPanel(
       std::make_unique<Tile8SelectorPanel>(this));
-  panel_manager->RegisterEditorPanel(std::make_unique<GfxGroupsPanel>(this));
 
   panel_manager->RegisterEditorPanel(
       std::make_unique<OverworldCanvasPanel>(this));
