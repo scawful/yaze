@@ -254,8 +254,31 @@ EditorManager::EditorManager()
   session_coordinator_->SetEditorManager(this);
   session_coordinator_->SetEventBus(&event_bus_);  // Enable event publishing
   ContentRegistry::Context::SetEventBus(&event_bus_);  // Global event bus access
-  session_coordinator_->AddObserver(
-      this);  // Register for session lifecycle events
+
+  // Auto-register panels from ContentRegistry (Unified Panel System)
+  auto registry_panels = ContentRegistry::Panels::CreateAll();
+  for (auto& panel : registry_panels) {
+    panel_manager_.RegisterEditorPanel(std::move(panel));
+  }
+
+  // Subscribe to session lifecycle events via EventBus
+  // (replaces SessionObserver pattern)
+  event_bus_.Subscribe<SessionSwitchedEvent>(
+      [this](const SessionSwitchedEvent& e) {
+        HandleSessionSwitched(e.new_index, e.session);
+      });
+
+  event_bus_.Subscribe<SessionCreatedEvent>(
+      [this](const SessionCreatedEvent& e) {
+        HandleSessionCreated(e.index, e.session);
+      });
+
+  event_bus_.Subscribe<SessionClosedEvent>(
+      [this](const SessionClosedEvent& e) { HandleSessionClosed(e.index); });
+
+  event_bus_.Subscribe<RomLoadedEvent>([this](const RomLoadedEvent& e) {
+    HandleSessionRomLoaded(e.session_id, e.rom);
+  });
 
   // Subscribe to FrameBeginEvent for deferred action processing
   // This replaces scattered manual processing calls with event-driven execution
@@ -412,17 +435,16 @@ EditorManager::EditorManager()
 }
 
 EditorManager::~EditorManager() {
-  // Unregister as observer before destruction
-  if (session_coordinator_) {
-    session_coordinator_->RemoveObserver(this);
-  }
+  // EventBus subscriptions are automatically cleaned up when event_bus_ is
+  // destroyed (owned by this class). No manual unsubscription needed.
 }
 
 // ============================================================================
-// SessionObserver Implementation
+// Session Event Handlers (EventBus subscribers)
 // ============================================================================
 
-void EditorManager::OnSessionSwitched(size_t new_index, RomSession* session) {
+void EditorManager::HandleSessionSwitched(size_t new_index,
+                                          RomSession* session) {
   // Update RightPanelManager with the new session's settings editor
   if (right_panel_manager_ && session) {
     right_panel_manager_->SetSettingsPanel(session->editors.GetSettingsPanel());
@@ -444,14 +466,14 @@ void EditorManager::OnSessionSwitched(size_t new_index, RomSession* session) {
   test::TestManager::Get().SetCurrentRom(session ? &session->rom : nullptr);
 #endif
 
-  LOG_DEBUG("EditorManager", "Session switched to %zu via observer", new_index);
+  LOG_DEBUG("EditorManager", "Session switched to %zu via EventBus", new_index);
 }
 
-void EditorManager::OnSessionCreated(size_t index, RomSession* session) {
-  LOG_INFO("EditorManager", "Session %zu created via observer", index);
+void EditorManager::HandleSessionCreated(size_t index, RomSession* session) {
+  LOG_INFO("EditorManager", "Session %zu created via EventBus", index);
 }
 
-void EditorManager::OnSessionClosed(size_t index) {
+void EditorManager::HandleSessionClosed(size_t index) {
   // Update ContentRegistry - it will be set to new active ROM on next switch
   // If no sessions remain, clear the context
   if (session_coordinator_ &&
@@ -464,23 +486,23 @@ void EditorManager::OnSessionClosed(size_t index) {
   test::TestManager::Get().SetCurrentRom(GetCurrentRom());
 #endif
 
-  LOG_INFO("EditorManager", "Session %zu closed via observer", index);
+  LOG_INFO("EditorManager", "Session %zu closed via EventBus", index);
 }
 
-void EditorManager::OnSessionRomLoaded(size_t index, RomSession* session) {
+void EditorManager::HandleSessionRomLoaded(size_t index, Rom* rom) {
   // Update ContentRegistry when ROM is loaded (if this is the active session)
-  if (session && session_coordinator_ &&
+  if (rom && session_coordinator_ &&
       index == session_coordinator_->GetActiveSessionIndex()) {
-    ContentRegistry::Context::SetRom(&session->rom);
+    ContentRegistry::Context::SetRom(rom);
   }
 
 #ifdef YAZE_ENABLE_TESTING
-  if (session) {
-    test::TestManager::Get().SetCurrentRom(&session->rom);
+  if (rom) {
+    test::TestManager::Get().SetCurrentRom(rom);
   }
 #endif
 
-  LOG_INFO("EditorManager", "ROM loaded in session %zu via observer", index);
+  LOG_INFO("EditorManager", "ROM loaded in session %zu via EventBus", index);
 }
 
 void EditorManager::InitializeTestSuites() {
