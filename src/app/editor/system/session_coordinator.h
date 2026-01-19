@@ -35,10 +35,29 @@ class ToastManager;
  * @class SessionObserver
  * @brief Observer interface for session state changes
  *
- * Allows components to react to session lifecycle events without tight
- * coupling to SessionCoordinator internals.
+ * @deprecated Use EventBus subscriptions instead. Subscribe to:
+ * - SessionSwitchedEvent for session changes
+ * - SessionCreatedEvent for new sessions
+ * - SessionClosedEvent for closed sessions
+ * - RomLoadedEvent for ROM loads
+ *
+ * Example migration:
+ * @code
+ * // Old pattern:
+ * class MyClass : public SessionObserver {
+ *   void OnSessionSwitched(size_t idx, RomSession* s) override { ... }
+ * };
+ *
+ * // New pattern:
+ * event_bus->Subscribe<SessionSwitchedEvent>([](const auto& e) {
+ *   // Handle session switch using e.new_index, e.session
+ * });
+ * @endcode
+ *
+ * This interface will be removed in a future release.
  */
-class SessionObserver {
+class [[deprecated("Use EventBus subscriptions instead - see class documentation")]]
+SessionObserver {
  public:
   virtual ~SessionObserver() = default;
 
