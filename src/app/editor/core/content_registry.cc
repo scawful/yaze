@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "app/editor/core/event_bus.h"
 #include "app/editor/system/editor_panel.h"
 #include "rom/rom.h"
 
@@ -18,6 +19,7 @@ namespace {
 struct RegistryState {
   std::mutex mutex;
   Rom* current_rom = nullptr;
+  ::yaze::EventBus* event_bus = nullptr;
   std::vector<std::unique_ptr<EditorPanel>> panels;
 
   static RegistryState& Get() {
@@ -46,9 +48,20 @@ void SetRom(Rom* rom) {
   RegistryState::Get().current_rom = rom;
 }
 
+::yaze::EventBus* event_bus() {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  return RegistryState::Get().event_bus;
+}
+
+void SetEventBus(::yaze::EventBus* bus) {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  RegistryState::Get().event_bus = bus;
+}
+
 void Clear() {
   std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
   RegistryState::Get().current_rom = nullptr;
+  RegistryState::Get().event_bus = nullptr;
 }
 
 }  // namespace Context
