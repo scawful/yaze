@@ -299,6 +299,29 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
   register_editor_shortcut(EditorType::kAssembly, ImGuiKey_9);
   register_editor_shortcut(EditorType::kSettings, ImGuiKey_0);
 
+  // ============================================================================
+  // Editor Switch Commands (command palette with friendly names)
+  // ============================================================================
+  auto register_editor_command = [&](EditorType type, const std::string& name) {
+    shortcut_manager->RegisterCommand(
+        absl::StrFormat("Switch to %s Editor", name), [editor_manager, type]() {
+          if (editor_manager) {
+            editor_manager->SwitchToEditor(type);
+          }
+        });
+  };
+
+  register_editor_command(EditorType::kOverworld, "Overworld");
+  register_editor_command(EditorType::kDungeon, "Dungeon");
+  register_editor_command(EditorType::kGraphics, "Graphics");
+  register_editor_command(EditorType::kSprite, "Sprite");
+  register_editor_command(EditorType::kMessage, "Message");
+  register_editor_command(EditorType::kMusic, "Music");
+  register_editor_command(EditorType::kPalette, "Palette");
+  register_editor_command(EditorType::kScreen, "Screen");
+  register_editor_command(EditorType::kAssembly, "Assembly");
+  register_editor_command(EditorType::kSettings, "Settings");
+
   // Editor-scoped Music shortcuts (toggle playback, speed controls)
   if (editor_manager) {
     auto* editor_set = editor_manager->GetCurrentEditorSet();
@@ -552,6 +575,69 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
           editor_manager->ResetCurrentEditorLayout();
         }
       });
+
+  // ============================================================================
+  // Panel Visibility Toggle Commands (command palette only)
+  // ============================================================================
+  if (panel_manager) {
+    auto categories = panel_manager->GetAllCategories();
+    int session_id = 0;  // Default session for command registration
+
+    for (const auto& category : categories) {
+      auto panels = panel_manager->GetPanelsInCategory(session_id, category);
+
+      for (const auto& panel : panels) {
+        std::string panel_id = panel.card_id;
+        std::string display_name = panel.display_name;
+
+        // Register show command
+        shortcut_manager->RegisterCommand(
+            absl::StrFormat("View: Show %s", display_name),
+            [panel_manager, panel_id]() {
+              if (panel_manager) {
+                panel_manager->ShowPanel(0, panel_id);
+              }
+            });
+
+        // Register hide command
+        shortcut_manager->RegisterCommand(
+            absl::StrFormat("View: Hide %s", display_name),
+            [panel_manager, panel_id]() {
+              if (panel_manager) {
+                panel_manager->HidePanel(0, panel_id);
+              }
+            });
+
+        // Register toggle command
+        shortcut_manager->RegisterCommand(
+            absl::StrFormat("View: Toggle %s", display_name),
+            [panel_manager, panel_id]() {
+              if (panel_manager) {
+                panel_manager->TogglePanel(0, panel_id);
+              }
+            });
+      }
+    }
+
+    // Category-level commands
+    for (const auto& category : categories) {
+      shortcut_manager->RegisterCommand(
+          absl::StrFormat("View: Show All %s Panels", category),
+          [panel_manager, category]() {
+            if (panel_manager) {
+              panel_manager->ShowAllPanelsInCategory(0, category);
+            }
+          });
+
+      shortcut_manager->RegisterCommand(
+          absl::StrFormat("View: Hide All %s Panels", category),
+          [panel_manager, category]() {
+            if (panel_manager) {
+              panel_manager->HideAllPanelsInCategory(0, category);
+            }
+          });
+    }
+  }
 }
 
 void ConfigureMenuShortcuts(const ShortcutDependencies& deps,

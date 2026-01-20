@@ -21,6 +21,18 @@ void DungeonRoomSelector::Draw() {
   DrawRoomSelector();
 }
 
+void DungeonRoomSelector::RebuildRoomFilterCache() {
+  filtered_room_indices_.clear();
+  filtered_room_indices_.reserve(zelda3::kNumberOfRooms);
+
+  for (int i = 0; i < zelda3::kNumberOfRooms; ++i) {
+    std::string display_name = zelda3::GetRoomLabel(i);
+    if (room_filter_.PassFilter(display_name.c_str())) {
+      filtered_room_indices_.push_back(i);
+    }
+  }
+}
+
 void DungeonRoomSelector::DrawRoomSelector() {
   if (!rom_ || !rom_->is_loaded()) {
     ImGui::Text("ROM not loaded");
@@ -32,6 +44,13 @@ void DungeonRoomSelector::DrawRoomSelector() {
 
   room_filter_.Draw("Filter", ImGui::GetContentRegionAvail().x);
 
+  // Rebuild cache if filter changed
+  std::string current_filter(room_filter_.InputBuf);
+  if (current_filter != last_room_filter_ || filtered_room_indices_.empty()) {
+    last_room_filter_ = current_filter;
+    RebuildRoomFilterCache();
+  }
+
   if (ImGui::BeginTable("RoomList", 2,
                         ImGuiTableFlags_ScrollY | ImGuiTableFlags_Borders |
                             ImGuiTableFlags_RowBg |
@@ -40,22 +59,25 @@ void DungeonRoomSelector::DrawRoomSelector() {
     ImGui::TableSetupColumn("Name");
     ImGui::TableHeadersRow();
 
-    // Use kNumberOfRooms (296) as limit - rooms_ array is 0x128 elements
-    for (int i = 0; i < zelda3::kNumberOfRooms; ++i) {
-      // Use unified ResourceLabelProvider for room names
-      std::string display_name = zelda3::GetRoomLabel(i);
+    // Use ImGuiListClipper for virtualized rendering
+    ImGuiListClipper clipper;
+    clipper.Begin(static_cast<int>(filtered_room_indices_.size()));
 
-      if (room_filter_.PassFilter(display_name.c_str())) {
+    while (clipper.Step()) {
+      for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row) {
+        int room_id = filtered_room_indices_[row];
+        std::string display_name = zelda3::GetRoomLabel(room_id);
+
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
 
         char label[32];
-        snprintf(label, sizeof(label), "%03X", i);
-        if (ImGui::Selectable(label, current_room_id_ == i,
+        snprintf(label, sizeof(label), "%03X", room_id);
+        if (ImGui::Selectable(label, current_room_id_ == room_id,
                               ImGuiSelectableFlags_SpanAllColumns)) {
-          current_room_id_ = i;
+          current_room_id_ = room_id;
           if (room_selected_callback_) {
-            room_selected_callback_(i);
+            room_selected_callback_(room_id);
           }
         }
 
@@ -63,7 +85,44 @@ void DungeonRoomSelector::DrawRoomSelector() {
         ImGui::TextUnformatted(display_name.c_str());
       }
     }
+
     ImGui::EndTable();
+  }
+}
+
+void DungeonRoomSelector::RebuildEntranceFilterCache() {
+  constexpr int kNumSpawnPoints = 7;
+  constexpr int kNumEntrances = 133;
+  constexpr int kTotalEntries = 140;
+
+  filtered_entrance_indices_.clear();
+  filtered_entrance_indices_.reserve(kTotalEntries);
+
+  for (int i = 0; i < kTotalEntries; i++) {
+    std::string display_name;
+
+    if (i < kNumSpawnPoints) {
+      display_name = absl::StrFormat("Spawn Point %d", i);
+    } else {
+      int entrance_id = i - kNumSpawnPoints;
+      if (entrance_id < kNumEntrances) {
+        display_name = zelda3::GetEntranceLabel(entrance_id);
+      } else {
+        display_name = absl::StrFormat("Unknown Entrance %d", i);
+      }
+    }
+
+    int room_id = (entrances_ && i < static_cast<int>(entrances_->size()))
+                      ? (*entrances_)[i].room_
+                      : 0;
+
+    char filter_text[256];
+    snprintf(filter_text, sizeof(filter_text), "%s %03X", display_name.c_str(),
+             room_id);
+
+    if (entrance_filter_.PassFilter(filter_text)) {
+      filtered_entrance_indices_.push_back(i);
+    }
   }
 }
 
@@ -140,12 +199,15 @@ void DungeonRoomSelector::DrawEntranceSelector() {
 
   entrance_filter_.Draw("Filter", ImGui::GetContentRegionAvail().x);
 
-  // Entrance array layout (from LoadRoomEntrances):
-  //   indices 0-6 (0x00-0x06): Spawn points (7 entries)
-  //   indices 7-139 (0x07-0x8B): Regular entrances (133 entries, IDs 0x00-0x84)
-  constexpr int kNumSpawnPoints = 7;  // 0x07
-  constexpr int kNumEntrances = 133;  // 0x85
-  constexpr int kTotalEntries = 140;  // 0x8C
+  // Rebuild cache if filter changed
+  std::string current_filter(entrance_filter_.InputBuf);
+  if (current_filter != last_entrance_filter_ ||
+      filtered_entrance_indices_.empty()) {
+    last_entrance_filter_ = current_filter;
+    RebuildEntranceFilterCache();
+  }
+
+  constexpr int kNumSpawnPoints = 7;
 
   if (ImGui::BeginTable("EntranceList", 3,
                         ImGuiTableFlags_ScrollY | ImGuiTableFlags_Borders |
@@ -156,34 +218,26 @@ void DungeonRoomSelector::DrawEntranceSelector() {
     ImGui::TableSetupColumn("Name");
     ImGui::TableHeadersRow();
 
-    for (int i = 0; i < kTotalEntries; i++) {
-      std::string display_name;
+    // Use ImGuiListClipper for virtualized rendering
+    ImGuiListClipper clipper;
+    clipper.Begin(static_cast<int>(filtered_entrance_indices_.size()));
 
-      if (i < kNumSpawnPoints) {
-        // Spawn points are at indices 0-6
-        display_name = absl::StrFormat("Spawn Point %d", i);
-      } else {
-        // Regular entrances are at indices 7-139, mapped to entrance IDs 0-132
-        int entrance_id = i - kNumSpawnPoints;
-        if (entrance_id < kNumEntrances) {
-          // Use unified ResourceLabelProvider for entrance names
-          display_name = zelda3::GetEntranceLabel(entrance_id);
+    while (clipper.Step()) {
+      for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row) {
+        int i = filtered_entrance_indices_[row];
+        std::string display_name;
+
+        if (i < kNumSpawnPoints) {
+          display_name = absl::StrFormat("Spawn Point %d", i);
         } else {
-          display_name = absl::StrFormat("Unknown Entrance %d", i);
+          int entrance_id = i - kNumSpawnPoints;
+          display_name = zelda3::GetEntranceLabel(entrance_id);
         }
-      }
 
-      // Get room ID for this entrance
-      int room_id = (i < static_cast<int>(entrances_->size()))
-                        ? (*entrances_)[i].room_
-                        : 0;
+        int room_id = (i < static_cast<int>(entrances_->size()))
+                          ? (*entrances_)[i].room_
+                          : 0;
 
-      // Include room ID in filter matching
-      char filter_text[256];
-      snprintf(filter_text, sizeof(filter_text), "%s %03X",
-               display_name.c_str(), room_id);
-
-      if (entrance_filter_.PassFilter(filter_text)) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
 
@@ -193,7 +247,6 @@ void DungeonRoomSelector::DrawEntranceSelector() {
                               ImGuiSelectableFlags_SpanAllColumns)) {
           current_entrance_id_ = i;
           if (i < static_cast<int>(entrances_->size())) {
-            // Use entrance callback if set, otherwise fall back to room callback
             if (entrance_selected_callback_) {
               entrance_selected_callback_(i);
             } else if (room_selected_callback_) {
@@ -209,6 +262,7 @@ void DungeonRoomSelector::DrawEntranceSelector() {
         ImGui::TextUnformatted(display_name.c_str());
       }
     }
+
     ImGui::EndTable();
   }
 }
