@@ -20,8 +20,10 @@
 #include "absl/strings/string_view.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
+#ifdef YAZE_AI_RUNTIME_AVAILABLE
 #include "cli/service/agent/advanced_routing.h"
 #include "cli/service/agent/agent_pretraining.h"
+#endif
 #include "cli/service/agent/proposal_executor.h"
 #include "cli/service/ai/service_factory.h"
 #include "cli/util/terminal_colors.h"
@@ -882,7 +884,11 @@ std::string ConversationalAgentService::InjectPretraining() {
 
   std::ostringstream pretraining;
   pretraining << "[SYSTEM KNOWLEDGE INJECTION - Read this first]\n\n";
+#ifdef YAZE_AI_RUNTIME_AVAILABLE
   pretraining << AgentPretraining::GeneratePretrainingPrompt(rom_context_);
+#else
+  pretraining << "AI Runtime not available - pretraining disabled.\n";
+#endif
   pretraining << "\n[END KNOWLEDGE INJECTION]\n";
 
   return pretraining.str();
