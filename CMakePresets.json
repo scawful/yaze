@@ -14,302 +14,308 @@
   "buildPresets": [
     {
       "displayName": "Developer Build",
-      "jobs": 12,
+      "jobs": 8,
       "name": "dev",
       "configurePreset": "dev"
     },
     {
+      "displayName": "Developer Build (System gRPC)",
+      "jobs": 8,
+      "name": "dev-system-grpc",
+      "configurePreset": "dev-system-grpc"
+    },
+    {
       "displayName": "CI Build",
-      "jobs": 12,
+      "jobs": 8,
       "name": "ci",
       "configurePreset": "ci"
     },
     {
       "displayName": "Release Build",
-      "jobs": 12,
+      "jobs": 8,
       "name": "release",
       "configurePreset": "release"
     },
     {
       "displayName": "Minimal Build",
-      "jobs": 12,
+      "jobs": 8,
       "name": "minimal",
       "configurePreset": "minimal"
     },
     {
       "displayName": "Web Assembly Debug",
-      "jobs": 12,
+      "jobs": 8,
       "name": "wasm-debug",
       "configurePreset": "wasm-debug"
     },
     {
       "displayName": "Web Assembly Release",
-      "jobs": 12,
+      "jobs": 8,
       "name": "wasm-release",
       "configurePreset": "wasm-release"
     },
     {
       "displayName": "WASM Crash Repro",
-      "jobs": 12,
+      "jobs": 8,
       "name": "wasm-crash-repro",
       "configurePreset": "wasm-crash-repro"
     },
     {
       "displayName": "CI Build - Linux",
-      "jobs": 12,
+      "jobs": 8,
       "name": "ci-linux",
       "configurePreset": "ci-linux"
     },
     {
       "displayName": "CI Build - macOS",
-      "jobs": 12,
+      "jobs": 8,
       "name": "ci-macos",
       "configurePreset": "ci-macos"
     },
     {
       "displayName": "CI Build - Windows",
       "configuration": "RelWithDebInfo",
-      "jobs": 12,
+      "jobs": 8,
       "name": "ci-windows",
       "configurePreset": "ci-windows"
     },
     {
       "displayName": "CI Build - Windows (AI)",
       "configuration": "RelWithDebInfo",
-      "jobs": 12,
+      "jobs": 8,
       "name": "ci-windows-ai",
       "configurePreset": "ci-windows-ai"
     },
     {
       "displayName": "Coverage Build",
-      "jobs": 12,
+      "jobs": 8,
       "name": "coverage",
       "configurePreset": "coverage"
     },
     {
       "displayName": "Sanitizer Build",
-      "jobs": 12,
+      "jobs": 8,
       "name": "sanitizer",
       "configurePreset": "sanitizer"
     },
     {
       "displayName": "Verbose Build",
-      "jobs": 12,
+      "jobs": 8,
       "name": "verbose",
       "configurePreset": "verbose"
     },
     {
       "displayName": "Windows Debug Build",
       "configuration": "Debug",
-      "jobs": 12,
+      "jobs": 8,
       "name": "win-dbg",
       "configurePreset": "win-dbg"
     },
     {
       "displayName": "Windows Debug Verbose Build",
       "configuration": "Debug",
-      "jobs": 12,
+      "jobs": 8,
       "name": "win-dbg-v",
       "configurePreset": "win-dbg-v"
     },
     {
       "displayName": "Windows Release Build",
       "configuration": "Release",
-      "jobs": 12,
+      "jobs": 8,
       "name": "win-rel",
       "configurePreset": "win-rel"
     },
     {
       "displayName": "Windows Development Build",
       "configuration": "Debug",
-      "jobs": 12,
+      "jobs": 8,
       "name": "win-dev",
       "configurePreset": "win-dev"
     },
     {
       "displayName": "Windows AI Development Build",
       "configuration": "Debug",
-      "jobs": 12,
+      "jobs": 8,
       "name": "win-ai",
       "configurePreset": "win-ai"
     },
     {
       "displayName": "Windows z3ed CLI Build",
       "configuration": "Release",
-      "jobs": 12,
+      "jobs": 8,
       "name": "win-z3ed",
       "configurePreset": "win-z3ed"
     },
     {
       "displayName": "Windows ARM64 Debug Build",
       "configuration": "Debug",
-      "jobs": 12,
+      "jobs": 8,
       "name": "win-arm",
       "configurePreset": "win-arm"
     },
     {
       "displayName": "Windows ARM64 Release Build",
       "configuration": "Release",
-      "jobs": 12,
+      "jobs": 8,
       "name": "win-arm-rel",
       "configurePreset": "win-arm-rel"
     },
     {
       "displayName": "Windows Debug Build (Visual Studio)",
       "configuration": "Debug",
-      "jobs": 12,
+      "jobs": 8,
       "name": "win-vs-dbg",
       "configurePreset": "win-vs-dbg"
     },
     {
       "displayName": "Windows Release Build (Visual Studio)",
       "configuration": "Release",
-      "jobs": 12,
+      "jobs": 8,
       "name": "win-vs-rel",
       "configurePreset": "win-vs-rel"
     },
     {
       "displayName": "Windows AI Development Build (Visual Studio)",
       "configuration": "Debug",
-      "jobs": 12,
+      "jobs": 8,
       "name": "win-vs-ai",
       "configurePreset": "win-vs-ai"
     },
     {
       "displayName": "macOS Debug Build",
       "configuration": "Debug",
-      "jobs": 12,
+      "jobs": 8,
       "name": "mac-dbg",
       "configurePreset": "mac-dbg"
     },
     {
       "displayName": "macOS Debug Verbose Build",
       "configuration": "Debug",
-      "jobs": 12,
+      "jobs": 8,
       "name": "mac-dbg-v",
       "configurePreset": "mac-dbg-v"
     },
     {
       "displayName": "macOS Release Build",
       "configuration": "Release",
-      "jobs": 12,
+      "jobs": 8,
       "name": "mac-rel",
       "configurePreset": "mac-rel"
     },
     {
       "displayName": "macOS Development Build",
       "configuration": "Debug",
-      "jobs": 12,
+      "jobs": 8,
       "name": "mac-dev",
       "configurePreset": "mac-dev"
     },
     {
       "displayName": "macOS AI Development Build",
       "configuration": "Debug",
-      "jobs": 12,
+      "jobs": 8,
       "name": "mac-ai",
       "configurePreset": "mac-ai"
     },
     {
       "displayName": "macOS AI Fast Build (System gRPC)",
       "configuration": "Debug",
-      "jobs": 12,
+      "jobs": 8,
       "name": "mac-ai-fast",
       "configurePreset": "mac-ai-fast"
     },
     {
       "displayName": "macOS Universal Binary Build",
       "configuration": "Release",
-      "jobs": 12,
+      "jobs": 8,
       "name": "mac-uni",
       "configurePreset": "mac-uni"
     },
     {
       "displayName": "macOS SDL3 Build",
       "configuration": "Debug",
-      "jobs": 12,
+      "jobs": 8,
       "name": "mac-sdl3",
       "configurePreset": "mac-sdl3"
     },
     {
       "displayName": "iOS Debug Build (device)",
-      "jobs": 12,
+      "jobs": 8,
       "name": "ios-debug",
       "configurePreset": "ios-debug"
     },
     {
       "displayName": "iOS Release Build (device)",
-      "jobs": 12,
+      "jobs": 8,
       "name": "ios-release",
       "configurePreset": "ios-release"
     },
     {
       "displayName": "Windows SDL3 Build",
       "configuration": "Debug",
-      "jobs": 12,
+      "jobs": 8,
       "name": "win-sdl3",
       "configurePreset": "win-sdl3"
     },
     {
       "displayName": "Linux SDL3 Build",
       "configuration": "Debug",
-      "jobs": 12,
+      "jobs": 8,
       "name": "lin-sdl3",
       "configurePreset": "lin-sdl3"
     },
     {
       "displayName": "Linux Debug Build",
       "configuration": "Debug",
-      "jobs": 12,
+      "jobs": 8,
       "name": "lin-dbg",
       "configurePreset": "lin-dbg"
     },
     {
       "displayName": "Linux Debug Verbose Build",
       "configuration": "Debug",
-      "jobs": 12,
+      "jobs": 8,
       "name": "lin-dbg-v",
       "configurePreset": "lin-dbg-v"
     },
     {
       "displayName": "Linux Release Build",
       "configuration": "Release",
-      "jobs": 12,
+      "jobs": 8,
       "name": "lin-rel",
       "configurePreset": "lin-rel"
     },
     {
       "displayName": "Linux Development Build",
       "configuration": "Debug",
-      "jobs": 12,
+      "jobs": 8,
       "name": "lin-dev",
       "configurePreset": "lin-dev"
     },
     {
       "displayName": "Linux AI Development Build",
       "configuration": "Debug",
-      "jobs": 12,
+      "jobs": 8,
       "name": "lin-ai",
       "configurePreset": "lin-ai"
     },
     {
       "displayName": "macOS Fast Test Build",
       "configuration": "RelWithDebInfo",
-      "jobs": 12,
+      "jobs": 8,
       "name": "mac-test",
       "configurePreset": "mac-test"
     },
     {
       "displayName": "Windows Fast Test Build",
       "configuration": "RelWithDebInfo",
-      "jobs": 12,
+      "jobs": 8,
       "name": "win-test",
       "configurePreset": "win-test"
     },
     {
       "displayName": "Linux Fast Test Build",
       "configuration": "RelWithDebInfo",
-      "jobs": 12,
+      "jobs": 8,
       "name": "lin-test",
       "configurePreset": "lin-test"
     }
@@ -594,6 +600,15 @@
       "displayName": "Developer Build",
       "name": "dev",
       "description": "Full development build with all features"
+    },
+    {
+      "inherits": "dev",
+      "cacheVariables": {
+        "YAZE_PREFER_SYSTEM_GRPC": "ON"
+      },
+      "displayName": "Developer Build (System gRPC)",
+      "name": "dev-system-grpc",
+      "description": "Full development build using system gRPC/protobuf/abseil"
     },
     {
       "inherits": "base",
@@ -945,7 +960,7 @@
       },
       "displayName": "Windows AI Development",
       "description": "Full development build with AI features and gRPC",
-      "binaryDir": "${sourceDir}/build",
+      "binaryDir": "${sourceDir}/build_ai",
       "name": "win-ai"
     },
     {
@@ -1047,7 +1062,7 @@
       },
       "displayName": "Windows AI Development (Visual Studio)",
       "description": "Full development build with AI features for Visual Studio",
-      "binaryDir": "${sourceDir}/build",
+      "binaryDir": "${sourceDir}/build_ai",
       "name": "win-vs-ai"
     },
     {
@@ -1142,7 +1157,7 @@
       },
       "displayName": "macOS AI Development",
       "name": "mac-ai",
-      "binaryDir": "${sourceDir}/build",
+      "binaryDir": "${sourceDir}/build_ai",
       "condition": {
         "type": "equals",
         "rhs": "Darwin",
@@ -1166,7 +1181,7 @@
       },
       "displayName": "macOS AI Development (Fast - System gRPC)",
       "name": "mac-ai-fast",
-      "binaryDir": "${sourceDir}/build",
+      "binaryDir": "${sourceDir}/build_ai",
       "condition": {
         "type": "equals",
         "rhs": "Darwin",
@@ -1329,7 +1344,7 @@
       },
       "displayName": "Linux AI Development",
       "name": "lin-ai",
-      "binaryDir": "${sourceDir}/build",
+      "binaryDir": "${sourceDir}/build_ai",
       "condition": {
         "type": "equals",
         "rhs": "Linux",

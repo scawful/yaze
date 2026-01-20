@@ -78,6 +78,7 @@ gens/
 
 # Cache
 .cache/
+__pycache__/
 
 # local dependencies
 src/lib/cmake/

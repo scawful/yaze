@@ -1,0 +1,111 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": { "major": 3, "minor": 24, "patch": 0 },
+
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+
+    {
+      "name": "dev",
+      "inherits": "base",
+      "displayName": "Development",
+      "description": "Local development build (EDITOR profile)",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "YAZE_BUILD_PROFILE": "EDITOR",
+        "YAZE_BUILD_TESTS": "ON"
+      }
+    },
+
+    {
+      "name": "dev-full",
+      "inherits": "dev",
+      "displayName": "Development (Full)",
+      "description": "Full features including gRPC and AI",
+      "cacheVariables": {
+        "YAZE_BUILD_PROFILE": "FULL"
+      }
+    },
+
+    {
+      "name": "release",
+      "inherits": "base",
+      "displayName": "Release",
+      "description": "Optimized release build",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "YAZE_BUILD_PROFILE": "EDITOR",
+        "YAZE_ENABLE_LTO": "ON"
+      }
+    },
+
+    {
+      "name": "minimal",
+      "inherits": "base",
+      "displayName": "Minimal",
+      "description": "Libraries only, fastest build",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "YAZE_BUILD_PROFILE": "MINIMAL"
+      }
+    },
+
+    {
+      "name": "ci",
+      "inherits": "base",
+      "displayName": "CI Build",
+      "description": "Continuous integration build",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "YAZE_BUILD_PROFILE": "FULL",
+        "YAZE_BUILD_TESTS": "ON"
+      }
+    },
+
+    {
+      "name": "wasm",
+      "displayName": "Web Assembly",
+      "description": "Emscripten build for browsers",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-wasm",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "YAZE_BUILD_PROFILE": "EDITOR",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "CMAKE_CXX_STANDARD": "20",
+        "CMAKE_CXX_FLAGS": "-pthread -s USE_SDL=2 -s USE_FREETYPE=1 -s USE_PTHREADS=1 -s ALLOW_MEMORY_GROWTH=1 -msimd128"
+      }
+    }
+  ],
+
+  "buildPresets": [
+    { "name": "dev", "configurePreset": "dev", "jobs": 12 },
+    { "name": "dev-full", "configurePreset": "dev-full", "jobs": 12 },
+    { "name": "release", "configurePreset": "release", "jobs": 12 },
+    { "name": "minimal", "configurePreset": "minimal", "jobs": 12 },
+    { "name": "ci", "configurePreset": "ci", "jobs": 12 },
+    { "name": "wasm", "configurePreset": "wasm", "jobs": 12 }
+  ],
+
+  "testPresets": [
+    {
+      "name": "dev",
+      "configurePreset": "dev",
+      "output": { "outputOnFailure": true },
+      "filter": { "include": { "label": "stable" } }
+    },
+    {
+      "name": "ci",
+      "configurePreset": "ci",
+      "output": { "outputOnFailure": true }
+    }
+  ]
+}
