@@ -182,21 +182,30 @@ void PaletteGroupPanel::DrawPaletteSelector() {
   if (ImGui::BeginCombo(
           "##PaletteSelect",
           absl::StrFormat("Palette %d", selected_palette_).c_str())) {
-    for (int i = 0; i < num_palettes; i++) {
-      bool is_selected = (selected_palette_ == i);
-      bool is_modified = IsPaletteModified(i);
+    const float item_height = ImGui::GetTextLineHeightWithSpacing();
+    ImGuiListClipper clipper;
+    clipper.Begin(num_palettes, item_height);
+    if (selected_palette_ >= 0 && selected_palette_ < num_palettes) {
+      clipper.IncludeItemByIndex(selected_palette_);
+    }
 
-      std::string label = absl::StrFormat("Palette %d", i);
-      if (is_modified) {
-        label += " *";
-      }
+    while (clipper.Step()) {
+      for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i) {
+        bool is_selected = (selected_palette_ == i);
+        bool is_modified = IsPaletteModified(i);
 
-      if (ImGui::Selectable(label.c_str(), is_selected)) {
-        selected_palette_ = i;
-        selected_color_ = -1;  // Reset color selection
-      }
-      if (is_selected) {
-        ImGui::SetItemDefaultFocus();
+        std::string label = absl::StrFormat("Palette %d", i);
+        if (is_modified) {
+          label += " *";
+        }
+
+        if (ImGui::Selectable(label.c_str(), is_selected)) {
+          selected_palette_ = i;
+          selected_color_ = -1;  // Reset color selection
+        }
+        if (is_selected) {
+          ImGui::SetItemDefaultFocus();
+        }
       }
     }
     ImGui::EndCombo();
