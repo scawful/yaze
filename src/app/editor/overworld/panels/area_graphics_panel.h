@@ -4,21 +4,21 @@
 #include "app/editor/system/editor_panel.h"
 #include "app/gui/core/icons.h"
 
-namespace yaze {
-namespace editor {
-
-class OverworldEditor;
+namespace yaze::editor {
 
 /**
  * @class AreaGraphicsPanel
  * @brief Displays the current area's GFX sheet for preview
- * 
+ *
  * Shows the graphics tileset used by the current overworld map,
  * useful for visual reference while editing.
+ *
+ * Uses ContentRegistry::Context to access the current OverworldEditor.
+ * Self-registers via REGISTER_PANEL macro.
  */
 class AreaGraphicsPanel : public EditorPanel {
  public:
-  explicit AreaGraphicsPanel(OverworldEditor* editor) : editor_(editor) {}
+  AreaGraphicsPanel() = default;
 
   // EditorPanel interface
   std::string GetId() const override { return "overworld.area_graphics"; }
@@ -30,12 +30,8 @@ class AreaGraphicsPanel : public EditorPanel {
     return 128 * 2.0f + 20.0f;
   }
   void Draw(bool* p_open) override;
-
- private:
-  OverworldEditor* editor_;
 };
 
-}  // namespace editor
-}  // namespace yaze
+}  // namespace yaze::editor
 
 #endif  // YAZE_APP_EDITOR_OVERWORLD_PANELS_AREA_GRAPHICS_PANEL_H

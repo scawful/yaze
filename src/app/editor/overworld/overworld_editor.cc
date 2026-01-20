@@ -36,17 +36,12 @@
 #include "app/editor/overworld/overworld_entity_renderer.h"
 #include "app/editor/overworld/overworld_sidebar.h"
 #include "app/editor/overworld/overworld_toolbar.h"
-#include "app/editor/overworld/panels/area_graphics_panel.h"
-#include "app/editor/overworld/panels/debug_window_panel.h"
-#include "app/editor/overworld/panels/gfx_groups_panel.h"
-#include "app/editor/overworld/panels/map_properties_panel.h"
 #include "app/editor/overworld/panels/overworld_canvas_panel.h"
-#include "app/editor/overworld/panels/scratch_space_panel.h"
 #include "app/editor/overworld/panels/tile16_editor_panel.h"
 #include "app/editor/overworld/panels/tile16_selector_panel.h"
-#include "app/editor/overworld/panels/tile8_selector_panel.h"
-#include "app/editor/overworld/panels/usage_statistics_panel.h"
-#include "app/editor/overworld/panels/v3_settings_panel.h"
+// Note: AreaGraphicsPanel, DebugWindowPanel, GfxGroupsPanel, MapPropertiesPanel,
+// ScratchSpacePanel, Tile8SelectorPanel, UsageStatisticsPanel, V3SettingsPanel
+// now self-register via REGISTER_PANEL macro
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/editor/overworld/ui_constants.h"
 #include "app/editor/overworld/usage_statistics_card.h"
@@ -97,16 +92,14 @@ void OverworldEditor::Initialize() {
   // Register Overworld Canvas (main canvas panel with toolset)
 
   // Register EditorPanel instances (new architecture)
-  panel_manager->RegisterEditorPanel(std::make_unique<AreaGraphicsPanel>(this));
   panel_manager->RegisterEditorPanel(
       std::make_unique<Tile16SelectorPanel>(this));
   panel_manager->RegisterEditorPanel(
       std::make_unique<Tile16EditorPanel>(&tile16_editor_));
   // MapPropertiesPanel, ScratchSpacePanel, UsageStatisticsPanel,
-  // DebugWindowPanel, V3SettingsPanel, GfxGroupsPanel now self-register
-  // via REGISTER_PANEL macro and use ContentRegistry::Context
-  panel_manager->RegisterEditorPanel(
-      std::make_unique<Tile8SelectorPanel>(this));
+  // DebugWindowPanel, V3SettingsPanel, GfxGroupsPanel, Tile8SelectorPanel,
+  // AreaGraphicsPanel now self-register via REGISTER_PANEL macro and use
+  // ContentRegistry::Context
 
   panel_manager->RegisterEditorPanel(
       std::make_unique<OverworldCanvasPanel>(this));
