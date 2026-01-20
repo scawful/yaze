@@ -22,6 +22,18 @@ enum class PanelCategory {
 };
 
 /**
+ * @enum PanelScope
+ * @brief Defines whether a panel is session-scoped or global
+ *
+ * Session-scoped panels are registered per session (with optional prefixing).
+ * Global panels share a single descriptor across all sessions.
+ */
+enum class PanelScope {
+  kSession,
+  kGlobal
+};
+
+/**
  * @class EditorPanel
  * @brief Base interface for all logical panel components
  *
@@ -147,6 +159,14 @@ class EditorPanel {
   virtual PanelCategory GetPanelCategory() const {
     return PanelCategory::EditorBound;
   }
+
+  /**
+   * @brief Get the registration scope for this panel
+   * @return PanelScope indicating session or global scope
+   *
+   * Default is session-scoped.
+   */
+  virtual PanelScope GetScope() const { return PanelScope::kSession; }
 
   /**
    * @brief Check if this panel is currently enabled

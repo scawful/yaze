@@ -47,6 +47,7 @@ struct PanelDescriptor {
   std::string window_title;  // ImGui window title for DockBuilder (e.g., " Rooms List")
   std::string icon;          // Material icon
   std::string category;      // Category (e.g., "Dungeon", "Graphics", "Palette")
+  PanelScope scope = PanelScope::kSession;
   enum class ShortcutScope {
     kGlobal,   // Available regardless of active editor
     kEditor,   // Only active within the owning editor
@@ -124,6 +125,23 @@ class PanelManager {
   // ============================================================================
   // EditorPanel Instance Management (Phase 4)
   // ============================================================================
+
+  /**
+   * @brief Register a ContentRegistry-managed EditorPanel instance
+   * @param panel The panel to register (ownership transferred)
+   *
+   * Registry panels are stored without auto-registering descriptors. Call
+   * RegisterRegistryPanelsForSession() to add descriptors per session.
+   */
+  void RegisterRegistryPanel(std::unique_ptr<EditorPanel> panel);
+
+  /**
+   * @brief Register descriptors for all registry panels in a session
+   * @param session_id The session to register descriptors for
+   *
+   * Safe to call multiple times; descriptors are only created once.
+   */
+  void RegisterRegistryPanelsForSession(size_t session_id);
 
   /**
    * @brief Register an EditorPanel instance for central drawing
@@ -414,6 +432,8 @@ class PanelManager {
   // ============================================================================
 
   std::string MakePanelId(size_t session_id, const std::string& base_id) const;
+  std::string MakePanelId(size_t session_id, const std::string& base_id,
+                          PanelScope scope) const;
   bool ShouldPrefixPanels() const { return session_count_ > 1; }
 
   // ============================================================================
@@ -537,6 +557,8 @@ class PanelManager {
   // EditorPanel instance storage (panel_id → EditorPanel)
   // Panels with instances are drawn by DrawAllVisiblePanels()
   std::unordered_map<std::string, std::unique_ptr<EditorPanel>> panel_instances_;
+  std::unordered_set<std::string> registry_panel_ids_;
+  std::unordered_set<std::string> global_panel_ids_;
 
   // Favorites and Recent tracking
   std::unordered_set<std::string> favorite_cards_;
@@ -610,6 +632,10 @@ class PanelManager {
   void UpdateSessionCount();
   std::string GetPrefixedPanelId(size_t session_id,
                                 const std::string& base_id) const;
+  void RegisterPanelDescriptorForSession(size_t session_id,
+                                         const EditorPanel& panel);
+  void TrackPanelForSession(size_t session_id, const std::string& base_id,
+                            const std::string& panel_id);
   void UnregisterSessionPanels(size_t session_id);
   void SavePresetsToFile();
   void LoadPresetsFromFile();

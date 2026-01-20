@@ -10,6 +10,7 @@
 #include "app/editor/core/content_registry.h"
 #include "app/editor/core/event_bus.h"
 #include "app/editor/events/core_events.h"
+#include "app/editor/system/panel_manager.h"
 #include "app/test/test_manager.h"
 #include "rom/rom.h"
 
@@ -36,6 +37,7 @@ class CoreSystemsTestSuite : public TestSuite {
     RunContentRegistryContextClearTest(results);
     RunContentRegistryPanelRegistrationTest(results);
     RunContentRegistryThreadSafetyTest(results);
+    RunPanelScopeRegistrationTest(results);
 
     // EventBus tests
     RunEventBusSubscribePublishTest(results);
@@ -222,6 +224,79 @@ class CoreSystemsTestSuite : public TestSuite {
     FinalizeResult(result, start_time, results);
   }
 
+  void RunPanelScopeRegistrationTest(TestResults& results) {
+    if (!test_content_registry_) {
+      AddSkippedResult(results, "PanelManager_Scope_Registration",
+                       "ContentRegistry testing disabled");
+      return;
+    }
+
+    auto start_time = std::chrono::steady_clock::now();
+    TestResult result = CreateResult("PanelManager_Scope_Registration",
+                                     start_time);
+
+    try {
+      class TestSessionPanel final : public editor::EditorPanel {
+       public:
+        std::string GetId() const override { return "test.session_panel"; }
+        std::string GetDisplayName() const override { return "Test Session"; }
+        std::string GetIcon() const override { return ""; }
+        std::string GetEditorCategory() const override { return "Test"; }
+        void Draw(bool*) override {}
+      };
+
+      class TestGlobalPanel final : public editor::EditorPanel {
+       public:
+        std::string GetId() const override { return "test.global_panel"; }
+        std::string GetDisplayName() const override { return "Test Global"; }
+        std::string GetIcon() const override { return ""; }
+        std::string GetEditorCategory() const override { return "Test"; }
+        editor::PanelScope GetScope() const override {
+          return editor::PanelScope::kGlobal;
+        }
+        void Draw(bool*) override {}
+      };
+
+      PanelManager panel_manager;
+      panel_manager.RegisterRegistryPanel(std::make_unique<TestSessionPanel>());
+      panel_manager.RegisterRegistryPanel(std::make_unique<TestGlobalPanel>());
+      panel_manager.RegisterRegistryPanelsForSession(0);
+      panel_manager.RegisterRegistryPanelsForSession(1);
+
+      const auto* session0 =
+          panel_manager.GetPanelDescriptor(0, "test.session_panel");
+      const auto* session1 =
+          panel_manager.GetPanelDescriptor(1, "test.session_panel");
+      const auto* global0 =
+          panel_manager.GetPanelDescriptor(0, "test.global_panel");
+      const auto* global1 =
+          panel_manager.GetPanelDescriptor(1, "test.global_panel");
+
+      bool all_ok = (session0 && session1 && global0 && global1);
+      if (all_ok) {
+        all_ok &= (session0->card_id != session1->card_id);
+        all_ok &= (global0->card_id == "test.global_panel");
+        all_ok &= (global1->card_id == "test.global_panel");
+      }
+
+      if (all_ok) {
+        result.status = TestStatus::kPassed;
+        result.error_message =
+            "PanelManager registers session/global descriptors correctly";
+      } else {
+        result.status = TestStatus::kFailed;
+        result.error_message =
+            "Panel scope registration did not create expected descriptors";
+      }
+    } catch (const std::exception& e) {
+      result.status = TestStatus::kFailed;
+      result.error_message =
+          "Panel scope registration test failed: " + std::string(e.what());
+    }
+
+    FinalizeResult(result, start_time, results);
+  }
+
   // ===========================================================================
   // EventBus Tests
   // ===========================================================================
@@ -337,15 +412,15 @@ class CoreSystemsTestSuite : public TestSuite {
       int subscriber3_calls = 0;
 
       // Register multiple subscribers
-      bus.Subscribe<editor::FrameBeginEvent>(
-          [&](const editor::FrameBeginEvent&) { subscriber1_calls++; });
-      bus.Subscribe<editor::FrameBeginEvent>(
-          [&](const editor::FrameBeginEvent&) { subscriber2_calls++; });
-      bus.Subscribe<editor::FrameBeginEvent>(
-          [&](const editor::FrameBeginEvent&) { subscriber3_calls++; });
+      bus.Subscribe<editor::FrameGuiBeginEvent>(
+          [&](const editor::FrameGuiBeginEvent&) { subscriber1_calls++; });
+      bus.Subscribe<editor::FrameGuiBeginEvent>(
+          [&](const editor::FrameGuiBeginEvent&) { subscriber2_calls++; });
+      bus.Subscribe<editor::FrameGuiBeginEvent>(
+          [&](const editor::FrameGuiBeginEvent&) { subscriber3_calls++; });
 
       // Publish once
-      bus.Publish(editor::FrameBeginEvent::Create(0.016f));
+      bus.Publish(editor::FrameGuiBeginEvent::Create(0.016f));
 
       if (subscriber1_calls == 1 && subscriber2_calls == 1 &&
           subscriber3_calls == 1) {
@@ -431,6 +506,7 @@ class CoreSystemsTestSuite : public TestSuite {
       auto session_closed = editor::SessionClosedEvent::Create(5);
       auto editor_switched = editor::EditorSwitchedEvent::Create(1, nullptr);
       auto frame_begin = editor::FrameBeginEvent::Create(0.016f);
+      auto frame_gui_begin = editor::FrameGuiBeginEvent::Create(0.016f);
       auto frame_end = editor::FrameEndEvent::Create(0.016f);
 
       // Verify values
@@ -446,6 +522,7 @@ class CoreSystemsTestSuite : public TestSuite {
       all_correct &= (session_closed.index == 5);
       all_correct &= (editor_switched.editor_type == 1);
       all_correct &= (frame_begin.delta_time > 0.0f);
+      all_correct &= (frame_gui_begin.delta_time > 0.0f);
       all_correct &= (frame_end.delta_time > 0.0f);
 
       if (all_correct) {

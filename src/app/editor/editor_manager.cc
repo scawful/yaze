@@ -258,7 +258,7 @@ EditorManager::EditorManager()
   // Auto-register panels from ContentRegistry (Unified Panel System)
   auto registry_panels = ContentRegistry::Panels::CreateAll();
   for (auto& panel : registry_panels) {
-    panel_manager_.RegisterEditorPanel(std::move(panel));
+    panel_manager_.RegisterRegistryPanel(std::move(panel));
   }
 
   // Subscribe to session lifecycle events via EventBus
@@ -280,9 +280,9 @@ EditorManager::EditorManager()
     HandleSessionRomLoaded(e.session_id, e.rom);
   });
 
-  // Subscribe to FrameBeginEvent for deferred action processing
+  // Subscribe to FrameGuiBeginEvent for ImGui-safe deferred action processing
   // This replaces scattered manual processing calls with event-driven execution
-  event_bus_.Subscribe<FrameBeginEvent>([this](const FrameBeginEvent&) {
+  event_bus_.Subscribe<FrameGuiBeginEvent>([this](const FrameGuiBeginEvent&) {
     // Process LayoutCoordinator's deferred actions
     layout_coordinator_.ProcessDeferredActions();
 
@@ -471,6 +471,7 @@ void EditorManager::HandleSessionSwitched(size_t new_index,
 }
 
 void EditorManager::HandleSessionCreated(size_t index, RomSession* session) {
+  panel_manager_.RegisterRegistryPanelsForSession(index);
   LOG_INFO("EditorManager", "Session %zu created via EventBus", index);
 }
 
@@ -1117,7 +1118,7 @@ void EditorManager::ProcessStartupActions(const AppConfig& config) {
  * components.
  */
 absl::Status EditorManager::Update() {
-  // NOTE: Deferred actions are now processed via FrameBeginEvent subscription
+  // NOTE: Deferred actions are now processed via FrameGuiBeginEvent subscription
   // in the constructor. This ensures actions run at the start of each frame
   // before controller processing, avoiding ImGui state modification issues.
 

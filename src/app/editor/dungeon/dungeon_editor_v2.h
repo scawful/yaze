@@ -185,9 +185,13 @@ class DungeonEditorV2 : public Editor {
 
   // Public accessors for WASM API and automation
   int current_room_id() const { return room_selector_.current_room_id(); }
+  int* mutable_current_room_id() { return &current_room_id_; }
   const ImVector<int>& active_rooms() const {
     return room_selector_.active_rooms();
   }
+  std::array<zelda3::Room, 0x128>& rooms() { return rooms_; }
+  const std::array<zelda3::Room, 0x128>& rooms() const { return rooms_; }
+  gfx::IRenderer* renderer() const { return renderer_; }
   ObjectEditorPanel* object_editor_panel() const {
     return object_editor_panel_;
   }

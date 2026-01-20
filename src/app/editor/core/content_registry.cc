@@ -108,11 +108,16 @@ void RegisterFactory(PanelFactory factory) {
 }
 
 std::vector<std::unique_ptr<EditorPanel>> CreateAll() {
-  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
-  std::vector<std::unique_ptr<EditorPanel>> result;
-  result.reserve(RegistryState::Get().factories.size());
+  std::vector<PanelFactory> factories;
+  {
+    std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+    factories = RegistryState::Get().factories;
+  }
 
-  for (const auto& factory : RegistryState::Get().factories) {
+  std::vector<std::unique_ptr<EditorPanel>> result;
+  result.reserve(factories.size());
+
+  for (const auto& factory : factories) {
     if (auto panel = factory()) {
       result.push_back(std::move(panel));
     }

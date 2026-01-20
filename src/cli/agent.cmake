@@ -57,7 +57,6 @@ if(EMSCRIPTEN)
     # Additional Handlers required by ToolDispatcher
     cli/handlers/game/message_commands.cc
     cli/handlers/game/dialogue_commands.cc
-    cli/handlers/tools/gui_commands.cc
     cli/handlers/game/music_commands.cc
     cli/handlers/graphics/sprite_commands.cc
     cli/service/agent/tools/filesystem_tool.cc
@@ -148,7 +147,6 @@ set(YAZE_AGENT_CORE_SOURCES
   cli/handlers/rom/project_commands.cc
   cli/handlers/rom/rom_commands.cc
   cli/handlers/tools/dungeon_doctor_commands.cc
-  cli/handlers/tools/emulator_commands.cc
   cli/handlers/tools/gui_commands.cc
   cli/handlers/tools/overworld_doctor_commands.cc
   cli/handlers/tools/overworld_validate_commands.cc
@@ -183,6 +181,8 @@ set(YAZE_AGENT_CORE_SOURCES
   cli/service/agent/vim_mode.cc
   cli/service/command_registry.cc
   cli/service/gui/gui_action_generator.cc
+  cli/service/gui/gui_automation_client.cc
+  cli/service/gui/canvas_automation_client.cc
   cli/service/net/z3ed_network_client.cc
   cli/service/planning/policy_evaluator.cc
   cli/service/planning/proposal_registry.cc
@@ -239,9 +239,7 @@ if(YAZE_ENABLE_REMOTE_AUTOMATION)
   list(APPEND YAZE_AGENT_SOURCES
     cli/service/agent/agent_control_server.cc
     cli/service/agent/emulator_service_impl.cc
-    cli/service/agent/rom_debug_agent.cc
-    cli/service/gui/gui_automation_client.cc
-    cli/service/gui/canvas_automation_client.cc
+    cli/handlers/tools/emulator_commands.cc
   )
 endif()
 
