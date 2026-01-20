@@ -15,6 +15,8 @@
 namespace yaze {
 namespace editor {
 
+class DungeonEditorV2;
+
 /**
  * @class DungeonRoomGraphicsPanel
  * @brief EditorPanel for displaying room graphics blocks
@@ -26,6 +28,11 @@ namespace editor {
  */
 class DungeonRoomGraphicsPanel : public EditorPanel {
  public:
+  // Default constructor for ContentRegistry self-registration
+  DungeonRoomGraphicsPanel()
+      : room_gfx_canvas_("##RoomGfxCanvasPanel", ImVec2(256 + 1, 256 + 1)) {}
+
+  // Legacy constructor for direct instantiation
   DungeonRoomGraphicsPanel(int* current_room_id,
                            std::array<zelda3::Room, 0x128>* rooms,
                            gfx::IRenderer* renderer = nullptr)
@@ -57,106 +64,14 @@ class DungeonRoomGraphicsPanel : public EditorPanel {
   // EditorPanel Drawing
   // ==========================================================================
 
-  void Draw(bool* p_open) override {
-    if (!current_room_id_ || !rooms_) {
-      ImGui::TextDisabled("No room data available");
-      return;
-    }
-
-    if (*current_room_id_ < 0 ||
-        *current_room_id_ >= static_cast<int>(rooms_->size())) {
-      ImGui::TextDisabled("No room selected");
-      return;
-    }
-
-    auto& room = (*rooms_)[*current_room_id_];
-
-    ImGui::Text("Room %03X Graphics", *current_room_id_);
-    ImGui::Text("Blockset: %02X", room.blockset);
-    ImGui::Separator();
-
-    gui::CanvasFrameOptions frame_opts;
-    frame_opts.draw_grid = true;
-    frame_opts.grid_step = 32.0f;
-    frame_opts.render_popups = true;
-    gui::CanvasFrame frame(room_gfx_canvas_, frame_opts);
-    room_gfx_canvas_.DrawTileSelector(32);
-
-    auto blocks = room.blocks();
-
-    // Load graphics if not already loaded
-    if (blocks.empty()) {
-      room.LoadRoomGraphics(room.blockset);
-      blocks = room.blocks();
-    }
-
-    int current_block = 0;
-    constexpr int max_blocks_per_row = 2;
-    constexpr int block_width = 128;
-    constexpr int block_height = 32;
-
-    for (int block : blocks) {
-      if (current_block >= 16) break;
-
-      if (block < static_cast<int>(gfx::Arena::Get().gfx_sheets().size())) {
-        auto& gfx_sheet = gfx::Arena::Get().gfx_sheets()[block];
-
-        // Apply current room's palette to the sheet if dirty
-        if (palette_dirty_ && gfx_sheet.is_active() && 
-            current_palette_group_.size() > 0) {
-          // Use palette index based on block type (simplified: use palette 0)
-          int palette_index = 0;
-          if (current_palette_group_.size() > 0) {
-            gfx_sheet.SetPaletteWithTransparent(
-                current_palette_group_[palette_index], palette_index);
-            gfx_sheet.set_modified(true);
-          }
-        }
-
-        // Create or update texture
-        if (!gfx_sheet.texture() && gfx_sheet.is_active() &&
-            gfx_sheet.width() > 0) {
-          gfx::Arena::Get().QueueTextureCommand(
-              gfx::Arena::TextureCommandType::CREATE, &gfx_sheet);
-          gfx::Arena::Get().ProcessTextureQueue(renderer_);
-        } else if (gfx_sheet.modified() && gfx_sheet.texture()) {
-          gfx::Arena::Get().QueueTextureCommand(
-              gfx::Arena::TextureCommandType::UPDATE, &gfx_sheet);
-          gfx::Arena::Get().ProcessTextureQueue(renderer_);
-          gfx_sheet.set_modified(false);
-        }
-
-        int row = current_block / max_blocks_per_row;
-        int col = current_block % max_blocks_per_row;
-
-        ImVec2 local_pos(2 + (col * block_width), 2 + (row * block_height));
-
-        if (gfx_sheet.texture() != 0) {
-          room_gfx_canvas_.AddImageAt(
-              (ImTextureID)(intptr_t)gfx_sheet.texture(), local_pos,
-              ImVec2(block_width, block_height));
-        } else {
-          room_gfx_canvas_.AddRectFilledAt(
-              local_pos, ImVec2(block_width, block_height),
-              IM_COL32(40, 40, 40, 255));
-          room_gfx_canvas_.AddTextAt(ImVec2(local_pos.x + 10, local_pos.y + 10),
-                                     "No Graphics",
-                                     IM_COL32(255, 255, 255, 255));
-        }
-      }
-      current_block++;
-    }
-    
-    // Clear dirty flag after processing all blocks
-    palette_dirty_ = false;
-  }
+  void Draw(bool* p_open) override;
 
  private:
   int* current_room_id_ = nullptr;
   std::array<zelda3::Room, 0x128>* rooms_ = nullptr;
   gfx::IRenderer* renderer_ = nullptr;
   gui::Canvas room_gfx_canvas_;
-  
+
   // Palette tracking for proper sheet coloring
   gfx::PaletteGroup current_palette_group_;
   bool palette_dirty_ = true;

@@ -151,16 +151,30 @@ struct EditorSwitchedEvent : public Event {
 // =============================================================================
 
 /**
- * @brief Published at the beginning of each frame.
+ * @brief Published at the beginning of each frame (pre-ImGui).
  *
- * Use for operations that need to run before rendering, replacing
- * scattered deferred_actions_ queues.
+ * Use for operations that do not require a valid ImGui frame.
  */
 struct FrameBeginEvent : public Event {
   float delta_time = 0.0f;
 
   static FrameBeginEvent Create(float dt) {
     FrameBeginEvent e;
+    e.delta_time = dt;
+    return e;
+  }
+};
+
+/**
+ * @brief Published after ImGui::NewFrame and dockspace creation.
+ *
+ * Use for operations that need a valid ImGui frame/window (e.g., DockBuilder).
+ */
+struct FrameGuiBeginEvent : public Event {
+  float delta_time = 0.0f;
+
+  static FrameGuiBeginEvent Create(float dt) {
+    FrameGuiBeginEvent e;
     e.delta_time = dt;
     return e;
   }

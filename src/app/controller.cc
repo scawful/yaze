@@ -9,6 +9,8 @@
 #include <string>
 
 #include "absl/status/status.h"
+#include "app/editor/core/content_registry.h"
+#include "app/editor/events/core_events.h"
 #include "app/editor/editor_manager.h"
 #include "app/gfx/backend/renderer_factory.h"
 #include "app/gfx/resource/arena.h"
@@ -169,6 +171,10 @@ absl::Status Controller::OnLoad() {
   }
 
   gui::DockSpaceRenderer::EndEnhancedDockSpace();
+
+  if (auto* bus = editor::ContentRegistry::Context::event_bus()) {
+    bus->Publish(editor::FrameGuiBeginEvent::Create(ImGui::GetIO().DeltaTime));
+  }
   ImGui::End();
 
   // Draw menu bar restore button when menu is hidden (WASM)
@@ -179,6 +185,10 @@ absl::Status Controller::OnLoad() {
   if (window_backend_) {
     window_backend_->NewImGuiFrame();
     ImGui::NewFrame();
+    if (auto* bus = editor::ContentRegistry::Context::event_bus()) {
+      bus->Publish(
+          editor::FrameGuiBeginEvent::Create(ImGui::GetIO().DeltaTime));
+    }
   }
 #endif
   gui::WidgetIdRegistry::Instance().BeginFrame();

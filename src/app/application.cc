@@ -163,7 +163,7 @@ void Application::Tick() {
   }
   last_frame_time_ = now;
 
-  // Publish FrameBeginEvent for deferred action processing
+  // Publish FrameBeginEvent for pre-frame (non-ImGui) work
   if (auto* bus = editor::ContentRegistry::Context::event_bus()) {
     bus->Publish(editor::FrameBeginEvent::Create(delta_time_));
   }

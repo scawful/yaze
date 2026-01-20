@@ -21,6 +21,24 @@
 namespace yaze {
 namespace editor {
 
+namespace {
+
+PanelDescriptor BuildDescriptorFromPanel(const EditorPanel& panel) {
+  PanelDescriptor descriptor;
+  descriptor.card_id = panel.GetId();
+  descriptor.display_name = panel.GetDisplayName();
+  descriptor.icon = panel.GetIcon();
+  descriptor.category = panel.GetEditorCategory();
+  descriptor.priority = panel.GetPriority();
+  descriptor.shortcut_hint = panel.GetShortcutHint();
+  descriptor.scope = panel.GetScope();
+  descriptor.visibility_flag = nullptr;  // Created by RegisterPanel
+  descriptor.window_title = panel.GetIcon() + " " + panel.GetDisplayName();
+  return descriptor;
+}
+
+}  // namespace
+
 // ============================================================================
 // Category Icon Mapping
 // ============================================================================
@@ -158,9 +176,7 @@ void PanelManager::UnregisterSession(size_t session_id) {
 }
 
 void PanelManager::SetActiveSession(size_t session_id) {
-  if (session_cards_.find(session_id) != session_cards_.end()) {
-    active_session_ = session_id;
-  }
+  active_session_ = session_id;
 }
 
 // ============================================================================
@@ -171,35 +187,39 @@ void PanelManager::RegisterPanel(size_t session_id,
                                  const PanelDescriptor& base_info) {
   RegisterSession(session_id);  // Ensure session exists
 
-  std::string prefixed_id = MakePanelId(session_id, base_info.card_id);
+  std::string panel_id =
+      MakePanelId(session_id, base_info.card_id, base_info.scope);
 
-  // Check if already registered to avoid duplicates
-  if (cards_.find(prefixed_id) != cards_.end()) {
+  bool already_registered = (cards_.find(panel_id) != cards_.end());
+  if (already_registered && base_info.scope != PanelScope::kGlobal) {
     LOG_WARN("PanelManager",
              "Panel '%s' already registered, skipping duplicate",
-             prefixed_id.c_str());
-    return;
+             panel_id.c_str());
   }
 
-  // Create new PanelDescriptor with prefixed ID
-  PanelDescriptor prefixed_info = base_info;
-  prefixed_info.card_id = prefixed_id;
+  if (!already_registered) {
+    // Create new PanelDescriptor with final ID
+    PanelDescriptor panel_info = base_info;
+    panel_info.card_id = panel_id;
 
-  // If no visibility_flag provided, create centralized one
-  if (!prefixed_info.visibility_flag) {
-    centralized_visibility_[prefixed_id] = false;  // Hidden by default
-    prefixed_info.visibility_flag = &centralized_visibility_[prefixed_id];
+    // If no visibility_flag provided, create centralized one
+    if (!panel_info.visibility_flag) {
+      centralized_visibility_[panel_id] = false;  // Hidden by default
+      panel_info.visibility_flag = &centralized_visibility_[panel_id];
+    }
+
+    // Register the card
+    cards_[panel_id] = panel_info;
+
+    LOG_INFO("PanelManager", "Registered card %s -> %s for session %zu",
+             base_info.card_id.c_str(), panel_id.c_str(), session_id);
   }
 
-  // Register the card
-  cards_[prefixed_id] = prefixed_info;
+  if (base_info.scope == PanelScope::kGlobal) {
+    global_panel_ids_.insert(panel_id);
+  }
 
-  // Track in our session mapping
-  session_cards_[session_id].push_back(prefixed_id);
-  session_card_mapping_[session_id][base_info.card_id] = prefixed_id;
-
-  LOG_INFO("PanelManager", "Registered card %s -> %s for session %zu",
-           base_info.card_id.c_str(), prefixed_id.c_str(), session_id);
+  TrackPanelForSession(session_id, base_info.card_id, panel_id);
 }
 
 void PanelManager::RegisterPanel(size_t session_id, const std::string& card_id,
@@ -242,6 +262,18 @@ void PanelManager::UnregisterPanel(size_t session_id,
     cards_.erase(it);
     centralized_visibility_.erase(prefixed_id);
     pinned_panels_.erase(prefixed_id);
+    if (global_panel_ids_.find(prefixed_id) != global_panel_ids_.end()) {
+      global_panel_ids_.erase(prefixed_id);
+      for (auto& [mapped_session, card_list] : session_cards_) {
+        card_list.erase(std::remove(card_list.begin(), card_list.end(),
+                                    prefixed_id),
+                        card_list.end());
+      }
+      for (auto& [mapped_session, mapping] : session_card_mapping_) {
+        mapping.erase(base_card_id);
+      }
+      return;
+    }
 
     // Remove from session tracking
     auto& session_card_list = session_cards_[session_id];
@@ -289,6 +321,8 @@ void PanelManager::ClearAllPanels() {
   session_cards_.clear();
   session_card_mapping_.clear();
   panel_instances_.clear();
+  registry_panel_ids_.clear();
+  global_panel_ids_.clear();
   session_count_ = 0;
   LOG_INFO("PanelManager", "Cleared all cards");
 }
@@ -296,6 +330,58 @@ void PanelManager::ClearAllPanels() {
 // ============================================================================
 // EditorPanel Instance Management (Phase 4)
 // ============================================================================
+
+void PanelManager::RegisterRegistryPanel(std::unique_ptr<EditorPanel> panel) {
+  if (!panel) {
+    LOG_ERROR("PanelManager", "Attempted to register null EditorPanel");
+    return;
+  }
+
+  // Phase 6: Resource Panel Limits
+  auto* resource_panel = dynamic_cast<ResourcePanel*>(panel.get());
+  if (resource_panel) {
+    EnforceResourceLimits(resource_panel->GetResourceType());
+  }
+
+  std::string panel_id = panel->GetId();
+
+  // Check if already registered
+  if (panel_instances_.find(panel_id) != panel_instances_.end()) {
+    LOG_WARN("PanelManager",
+             "EditorPanel '%s' already registered, skipping registry add",
+             panel_id.c_str());
+    return;
+  }
+
+  if (panel->GetScope() == PanelScope::kGlobal) {
+    global_panel_ids_.insert(panel_id);
+  }
+  registry_panel_ids_.insert(panel_id);
+
+  // Store the EditorPanel instance
+  panel_instances_[panel_id] = std::move(panel);
+
+  // Phase 6: Track resource panel usage
+  if (resource_panel) {
+    std::string type = resource_panel->GetResourceType();
+    resource_panels_[type].push_back(panel_id);
+    panel_resource_types_[panel_id] = type;
+  }
+
+  LOG_INFO("PanelManager", "Registered registry EditorPanel: %s",
+           panel_id.c_str());
+}
+
+void PanelManager::RegisterRegistryPanelsForSession(size_t session_id) {
+  RegisterSession(session_id);
+  for (const auto& panel_id : registry_panel_ids_) {
+    auto it = panel_instances_.find(panel_id);
+    if (it == panel_instances_.end()) {
+      continue;
+    }
+    RegisterPanelDescriptorForSession(session_id, *it->second);
+  }
+}
 
 void PanelManager::RegisterEditorPanel(std::unique_ptr<EditorPanel> panel) {
   if (!panel) {
@@ -319,15 +405,7 @@ void PanelManager::RegisterEditorPanel(std::unique_ptr<EditorPanel> panel) {
   }
 
   // Auto-register PanelDescriptor for sidebar/menu visibility
-  PanelDescriptor descriptor;
-  descriptor.card_id = panel_id;
-  descriptor.display_name = panel->GetDisplayName();
-  descriptor.icon = panel->GetIcon();
-  descriptor.category = panel->GetEditorCategory();
-  descriptor.priority = panel->GetPriority();
-  descriptor.shortcut_hint = panel->GetShortcutHint();
-  descriptor.visibility_flag = nullptr;  // Will be created by RegisterPanel
-  descriptor.window_title = panel->GetIcon() + " " + panel->GetDisplayName();
+  PanelDescriptor descriptor = BuildDescriptorFromPanel(*panel);
 
   // Check if panel should be visible by default
   bool visible_by_default = panel->IsVisibleByDefault();
@@ -427,6 +505,8 @@ void PanelManager::UnregisterEditorPanel(const std::string& panel_id) {
     // Call OnClose before removing
     it->second->OnClose();
     panel_instances_.erase(it);
+    registry_panel_ids_.erase(panel_id);
+    global_panel_ids_.erase(panel_id);
     LOG_INFO("PanelManager", "Unregistered EditorPanel: %s", panel_id.c_str());
   }
 
@@ -1027,6 +1107,15 @@ size_t PanelManager::GetVisiblePanelCount(size_t session_id) const {
 
 std::string PanelManager::MakePanelId(size_t session_id,
                                       const std::string& base_id) const {
+  return MakePanelId(session_id, base_id, PanelScope::kSession);
+}
+
+std::string PanelManager::MakePanelId(size_t session_id,
+                                      const std::string& base_id,
+                                      PanelScope scope) const {
+  if (scope == PanelScope::kGlobal) {
+    return base_id;
+  }
   if (ShouldPrefixPanels()) {
     return absl::StrFormat("s%zu.%s", session_id, base_id);
   }
@@ -1059,10 +1148,37 @@ std::string PanelManager::GetPrefixedPanelId(size_t session_id,
   return "";  // Panel not found
 }
 
+void PanelManager::RegisterPanelDescriptorForSession(
+    size_t session_id, const EditorPanel& panel) {
+  RegisterSession(session_id);
+  std::string panel_id =
+      MakePanelId(session_id, panel.GetId(), panel.GetScope());
+  bool already_registered = (cards_.find(panel_id) != cards_.end());
+  PanelDescriptor descriptor = BuildDescriptorFromPanel(panel);
+  RegisterPanel(session_id, descriptor);
+  if (!already_registered && panel.IsVisibleByDefault()) {
+    ShowPanel(session_id, panel.GetId());
+  }
+}
+
+void PanelManager::TrackPanelForSession(size_t session_id,
+                                        const std::string& base_id,
+                                        const std::string& panel_id) {
+  auto& card_list = session_cards_[session_id];
+  if (std::find(card_list.begin(), card_list.end(), panel_id) ==
+      card_list.end()) {
+    card_list.push_back(panel_id);
+  }
+  session_card_mapping_[session_id][base_id] = panel_id;
+}
+
 void PanelManager::UnregisterSessionPanels(size_t session_id) {
   auto it = session_cards_.find(session_id);
   if (it != session_cards_.end()) {
     for (const auto& prefixed_card_id : it->second) {
+      if (global_panel_ids_.find(prefixed_card_id) != global_panel_ids_.end()) {
+        continue;
+      }
       cards_.erase(prefixed_card_id);
       centralized_visibility_.erase(prefixed_card_id);
       pinned_panels_.erase(prefixed_card_id);
@@ -1266,13 +1382,17 @@ bool PanelManager::IsPanelPinned(size_t session_id,
 std::vector<std::string> PanelManager::GetPinnedPanels(
     size_t session_id) const {
   std::vector<std::string> result;
-  const std::string prefix =
-      ShouldPrefixPanels() ? absl::StrFormat("s%zu.", session_id) : "";
-
+  auto session_it = session_cards_.find(session_id);
+  if (session_it == session_cards_.end()) {
+    return result;
+  }
+  const auto& session_panels = session_it->second;
   for (const auto& [panel_id, pinned] : pinned_panels_) {
-    if (!pinned)
+    if (!pinned) {
       continue;
-    if (prefix.empty() || panel_id.rfind(prefix, 0) == 0) {
+    }
+    if (std::find(session_panels.begin(), session_panels.end(), panel_id) !=
+        session_panels.end()) {
       result.push_back(panel_id);
     }
   }
