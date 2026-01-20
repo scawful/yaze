@@ -18,7 +18,9 @@ namespace cli {
 
 // Forward declaration
 namespace handlers {
+#ifdef YAZE_ENABLE_AGENT_CLI
 absl::Status HandleAgentCommand(const std::vector<std::string>& args);
+#endif
 }
 
 ModernCLI::ModernCLI() {
@@ -55,8 +57,13 @@ absl::Status ModernCLI::Run(int argc, char* argv[]) {
 
   // Special case: "agent" command routes to HandleAgentCommand
   if (args[0] == "agent") {
+#ifdef YAZE_ENABLE_AGENT_CLI
     std::vector<std::string> agent_args(args.begin() + 1, args.end());
     return handlers::HandleAgentCommand(agent_args);
+#else
+    return absl::FailedPreconditionError(
+        "Agent CLI is disabled in this build");
+#endif
   }
 
   // Use CommandRegistry for unified command execution
@@ -84,9 +91,11 @@ void ModernCLI::ShowHelp() {
   std::vector<std::vector<std::string>> rows;
   rows.push_back({"Category", "Commands", "Description"});
 
+#ifdef YAZE_ENABLE_AGENT_CLI
   // Add special "agent" category first
   rows.push_back({"agent", "simple-chat, plan, run, todo, test",
                   "AI agent workflows + tool routing"});
+#endif
 
   // Add registry categories
   for (const auto& category : categories) {
@@ -122,6 +131,11 @@ void ModernCLI::ShowHelp() {
     rows.push_back({category, cmd_list, desc});
   }
 
+  size_t category_count = categories.size();
+#ifdef YAZE_ENABLE_AGENT_CLI
+  category_count += 1;
+#endif
+
   Table summary(rows);
   summary.SelectAll().Border(LIGHT);
   summary.SelectRow(0).Decorate(bold);
@@ -130,10 +144,12 @@ void ModernCLI::ShowHelp() {
       {text(yaze::cli::GetColoredLogo()), banner, separator(), summary.Render(),
        separator(),
        text(absl::StrFormat("Total: %zu commands across %zu categories",
-                            registry.Count(), categories.size() + 1)) |
+                            registry.Count(), category_count)) |
            center | dim,
+#ifdef YAZE_ENABLE_AGENT_CLI
        text("Try `z3ed agent simple-chat` for AI-powered ROM inspection") |
            center,
+#endif
        text("Use `z3ed --list-commands` for complete list") | dim | center});
 
   auto screen = Screen::Create(Dimension::Full(), Dimension::Fit(layout));
@@ -144,7 +160,9 @@ void ModernCLI::ShowHelp() {
   std::cout << yaze::cli::GetColoredLogo() << "\n";
   std::cout << "Z3ED - AI-Powered ROM Editor CLI\n\n";
   std::cout << "Categories:\n";
+#ifdef YAZE_ENABLE_AGENT_CLI
   std::cout << "  agent       - AI conversational agent + debugging tools\n";
+#endif
   for (const auto& category : categories) {
     auto commands = registry.GetCommandsInCategory(category);
     std::cout << "  " << category << " - " << commands.size() << " commands\n";

@@ -50,6 +50,12 @@ class CommandRegistry {
                 const CommandMetadata& metadata);
 
   /**
+   * @brief Register a set of command handlers (idempotent)
+   */
+  void RegisterHandlers(
+      std::vector<std::unique_ptr<resources::CommandHandler>> handlers);
+
+  /**
    * @brief Get a command handler by name or alias
    */
   resources::CommandHandler* Get(const std::string& name) const;
@@ -121,8 +127,8 @@ class CommandRegistry {
   std::map<std::string, CommandMetadata> metadata_;
   std::map<std::string, std::string> aliases_;  // alias → canonical name
 
-  // Auto-register all commands
-  void RegisterAllCommands();
+  // Auto-register CLI commands
+  void RegisterCliCommands();
 };
 
 }  // namespace cli

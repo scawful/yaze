@@ -2,7 +2,6 @@
 
 #include <memory>
 
-#include "cli/handlers/agent/simple_chat_command.h"
 #include "cli/handlers/game/dialogue_commands.h"
 #include "cli/handlers/game/dungeon_commands.h"
 #include "cli/handlers/game/message_commands.h"
@@ -73,26 +72,6 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<RomDiffCommandHandler>());
   handlers.push_back(std::make_unique<RomGenerateGoldenCommandHandler>());
 
-  // Validation and repair tools (doctor suite)
-  handlers.push_back(std::make_unique<OverworldValidateCommandHandler>());
-  handlers.push_back(std::make_unique<OverworldDoctorCommandHandler>());
-  handlers.push_back(std::make_unique<DungeonDoctorCommandHandler>());
-  handlers.push_back(std::make_unique<RomDoctorCommandHandler>());
-  handlers.push_back(std::make_unique<MessageDoctorCommandHandler>());
-  handlers.push_back(std::make_unique<SpriteDoctorCommandHandler>());
-  handlers.push_back(std::make_unique<GraphicsDoctorCommandHandler>());
-  handlers.push_back(std::make_unique<RomCompareCommandHandler>());
-
-  return handlers;
-}
-
-std::vector<std::unique_ptr<resources::CommandHandler>>
-CreateAgentCommandHandlers() {
-  std::vector<std::unique_ptr<resources::CommandHandler>> handlers;
-
-  // Add simple-chat command handler
-  handlers.push_back(std::make_unique<SimpleChatCommandHandler>());
-
   // Resource inspection tools
   handlers.push_back(std::make_unique<ResourceListCommandHandler>());
   handlers.push_back(std::make_unique<ResourceSearchCommandHandler>());
@@ -127,7 +106,8 @@ CreateAgentCommandHandlers() {
   handlers.push_back(std::make_unique<EmulatorResetCommandHandler>());
   handlers.push_back(std::make_unique<EmulatorGetStateCommandHandler>());
   handlers.push_back(std::make_unique<EmulatorSetBreakpointCommandHandler>());
-  handlers.push_back(std::make_unique<EmulatorClearBreakpointCommandHandler>());
+  handlers.push_back(
+      std::make_unique<EmulatorClearBreakpointCommandHandler>());
   handlers.push_back(std::make_unique<EmulatorListBreakpointsCommandHandler>());
   handlers.push_back(std::make_unique<EmulatorReadMemoryCommandHandler>());
   handlers.push_back(std::make_unique<EmulatorWriteMemoryCommandHandler>());
@@ -152,24 +132,15 @@ CreateAgentCommandHandlers() {
   handlers.push_back(std::make_unique<TestRunCommandHandler>());
   handlers.push_back(std::make_unique<TestStatusCommandHandler>());
 
-  return handlers;
-}
-
-std::vector<std::unique_ptr<resources::CommandHandler>>
-CreateAllCommandHandlers() {
-  std::vector<std::unique_ptr<resources::CommandHandler>> handlers;
-
-  // Add CLI handlers
-  auto cli_handlers = CreateCliCommandHandlers();
-  for (auto& handler : cli_handlers) {
-    handlers.push_back(std::move(handler));
-  }
-
-  // Add agent handlers
-  auto agent_handlers = CreateAgentCommandHandlers();
-  for (auto& handler : agent_handlers) {
-    handlers.push_back(std::move(handler));
-  }
+  // Validation and repair tools (doctor suite)
+  handlers.push_back(std::make_unique<OverworldValidateCommandHandler>());
+  handlers.push_back(std::make_unique<OverworldDoctorCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonDoctorCommandHandler>());
+  handlers.push_back(std::make_unique<RomDoctorCommandHandler>());
+  handlers.push_back(std::make_unique<MessageDoctorCommandHandler>());
+  handlers.push_back(std::make_unique<SpriteDoctorCommandHandler>());
+  handlers.push_back(std::make_unique<GraphicsDoctorCommandHandler>());
+  handlers.push_back(std::make_unique<RomCompareCommandHandler>());
 
   return handlers;
 }

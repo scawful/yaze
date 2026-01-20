@@ -8,6 +8,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
 #include "cli/cli.h"
+#include "cli/handlers/agent_command_registration.h"
 #include "cli/handlers/agent/common.h"
 #include "cli/handlers/agent/simple_chat_command.h"
 #include "cli/handlers/agent/todo_commands.h"
@@ -110,6 +111,7 @@ namespace handlers {
  * 3. Fallback to error
  */
 absl::Status HandleAgentCommand(const std::vector<std::string>& arg_vec) {
+  RegisterAgentCommandHandlers();
   if (arg_vec.empty()) {
     std::cout << GenerateAgentHelp();
     return absl::InvalidArgumentError("No subcommand specified");

@@ -10,6 +10,9 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
 #include "cli/cli.h"
+#ifdef YAZE_ENABLE_AGENT_CLI
+#include "cli/handlers/agent_command_registration.h"
+#endif
 #include "cli/service/command_registry.h"
 #include "rom/rom.h"
 #ifndef __EMSCRIPTEN__
@@ -172,7 +175,9 @@ void PrintCompactHelp() {
   std::cout << "\n";
 
   std::cout << "\033[1;36mEXAMPLES:\033[0m\n";
+#ifdef YAZE_ENABLE_AGENT_CLI
   std::cout << "  z3ed agent simple-chat --rom=zelda3.sfc\n";
+#endif
   std::cout << "  z3ed rom-info --rom=zelda3.sfc\n";
   std::cout
       << "  z3ed message-search --rom=zelda3.sfc --query=\"Master Sword\"\n";
@@ -497,6 +502,9 @@ int main(int argc, char* argv[]) {
   }
 
   auto& registry = yaze::cli::CommandRegistry::Instance();
+#ifdef YAZE_ENABLE_AGENT_CLI
+  yaze::cli::handlers::RegisterAgentCommandHandlers();
+#endif
 
   if (globals.export_schemas) {
     std::cout << registry.ExportFunctionSchemas() << "\n";
