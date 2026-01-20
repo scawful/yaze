@@ -4,21 +4,21 @@
 #include "app/editor/system/editor_panel.h"
 #include "app/gui/core/icons.h"
 
-namespace yaze {
-namespace editor {
-
-class OverworldEditor;
+namespace yaze::editor {
 
 /**
  * @class Tile16SelectorPanel
  * @brief Displays the Tile16 palette for painting tiles on the overworld
- * 
+ *
  * Provides a visual tile selector showing all available 16x16 tiles
  * that can be placed on the current overworld map.
+ *
+ * Uses ContentRegistry::Context to access the current OverworldEditor.
+ * Self-registers via REGISTER_PANEL macro.
  */
 class Tile16SelectorPanel : public EditorPanel {
  public:
-  explicit Tile16SelectorPanel(OverworldEditor* editor) : editor_(editor) {}
+  Tile16SelectorPanel() = default;
 
   // EditorPanel interface
   std::string GetId() const override { return "overworld.tile16_selector"; }
@@ -31,12 +31,8 @@ class Tile16SelectorPanel : public EditorPanel {
   }
   bool IsVisibleByDefault() const override { return true; }
   void Draw(bool* p_open) override;
-
- private:
-  OverworldEditor* editor_;
 };
 
-}  // namespace editor
-}  // namespace yaze
+}  // namespace yaze::editor
 
 #endif  // YAZE_APP_EDITOR_OVERWORLD_PANELS_TILE16_SELECTOR_PANEL_H

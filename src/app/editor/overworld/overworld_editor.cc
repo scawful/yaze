@@ -36,12 +36,10 @@
 #include "app/editor/overworld/overworld_entity_renderer.h"
 #include "app/editor/overworld/overworld_sidebar.h"
 #include "app/editor/overworld/overworld_toolbar.h"
-#include "app/editor/overworld/panels/overworld_canvas_panel.h"
-#include "app/editor/overworld/panels/tile16_editor_panel.h"
-#include "app/editor/overworld/panels/tile16_selector_panel.h"
-// Note: AreaGraphicsPanel, DebugWindowPanel, GfxGroupsPanel, MapPropertiesPanel,
-// ScratchSpacePanel, Tile8SelectorPanel, UsageStatisticsPanel, V3SettingsPanel
-// now self-register via REGISTER_PANEL macro
+// Note: All overworld panels now self-register via REGISTER_PANEL macro:
+// AreaGraphicsPanel, DebugWindowPanel, GfxGroupsPanel, MapPropertiesPanel,
+// OverworldCanvasPanel, ScratchSpacePanel, Tile16EditorPanel, Tile16SelectorPanel,
+// Tile8SelectorPanel, UsageStatisticsPanel, V3SettingsPanel
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/editor/overworld/ui_constants.h"
 #include "app/editor/overworld/usage_statistics_card.h"
@@ -91,23 +89,9 @@ void OverworldEditor::Initialize() {
 
   // Register Overworld Canvas (main canvas panel with toolset)
 
-  // Register EditorPanel instances (new architecture)
-  panel_manager->RegisterEditorPanel(
-      std::make_unique<Tile16SelectorPanel>(this));
-  panel_manager->RegisterEditorPanel(
-      std::make_unique<Tile16EditorPanel>(&tile16_editor_));
-  // MapPropertiesPanel, ScratchSpacePanel, UsageStatisticsPanel,
-  // DebugWindowPanel, V3SettingsPanel, GfxGroupsPanel, Tile8SelectorPanel,
-  // AreaGraphicsPanel now self-register via REGISTER_PANEL macro and use
-  // ContentRegistry::Context
-
-  panel_manager->RegisterEditorPanel(
-      std::make_unique<OverworldCanvasPanel>(this));
-
-  // Note: Legacy RegisterPanel() calls removed.
-  // RegisterEditorPanel() auto-creates PanelDescriptor entries for each panel,
-  // eliminating the dual registration problem identified in the panel system audit.
-  // Panel visibility is now managed centrally through PanelManager.
+  // Note: All EditorPanel instances now self-register via REGISTER_PANEL macro
+  // and use ContentRegistry::Context to access the current editor.
+  // See comment at include section for full list of panels.
 
   // Original initialization code below:
   // Initialize MapPropertiesSystem with canvas and bitmap data
