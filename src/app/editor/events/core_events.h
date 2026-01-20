@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <string>
+#include <vector>
 
 #include "app/editor/core/event_bus.h"
 
@@ -144,6 +145,113 @@ struct EditorSwitchedEvent : public Event {
     e.editor = ed;
     return e;
   }
+};
+
+// =============================================================================
+// UI State Events
+// =============================================================================
+
+/**
+ * @brief Published when selection changes in any editor.
+ *
+ * Subscribers can respond to selection changes for cross-component updates,
+ * status bar updates, or property panel refreshes.
+ */
+struct SelectionChangedEvent : public Event {
+  std::string source;              // Source editor: "overworld", "dungeon", "graphics", etc.
+  std::vector<int> selected_ids;   // IDs of selected items (tiles, rooms, sprites, etc.)
+  int primary_id = -1;             // Primary selection (first or focused item)
+  size_t session_id = 0;
+
+  static SelectionChangedEvent Create(const std::string& src,
+                                       const std::vector<int>& ids,
+                                       size_t session = 0) {
+    SelectionChangedEvent e;
+    e.source = src;
+    e.selected_ids = ids;
+    e.primary_id = ids.empty() ? -1 : ids.front();
+    e.session_id = session;
+    return e;
+  }
+
+  static SelectionChangedEvent CreateSingle(const std::string& src, int id,
+                                             size_t session = 0) {
+    SelectionChangedEvent e;
+    e.source = src;
+    e.selected_ids = {id};
+    e.primary_id = id;
+    e.session_id = session;
+    return e;
+  }
+
+  static SelectionChangedEvent CreateEmpty(const std::string& src,
+                                            size_t session = 0) {
+    SelectionChangedEvent e;
+    e.source = src;
+    e.selected_ids = {};
+    e.primary_id = -1;
+    e.session_id = session;
+    return e;
+  }
+
+  bool IsEmpty() const { return selected_ids.empty(); }
+  size_t Count() const { return selected_ids.size(); }
+};
+
+/**
+ * @brief Published when panel visibility changes.
+ *
+ * Use for layout persistence, analytics, or cross-panel coordination.
+ * More granular than PanelToggleEvent - includes session context.
+ */
+struct PanelVisibilityChangedEvent : public Event {
+  std::string panel_id;      // Panel identifier (may be session-prefixed)
+  std::string base_panel_id; // Base panel ID without session prefix
+  std::string category;      // Panel category ("Dungeon", "Overworld", etc.)
+  bool visible = false;      // New visibility state
+  size_t session_id = 0;
+
+  static PanelVisibilityChangedEvent Create(const std::string& id,
+                                             const std::string& base_id,
+                                             const std::string& cat,
+                                             bool vis, size_t session = 0) {
+    PanelVisibilityChangedEvent e;
+    e.panel_id = id;
+    e.base_panel_id = base_id;
+    e.category = cat;
+    e.visible = vis;
+    e.session_id = session;
+    return e;
+  }
+};
+
+/**
+ * @brief Published when zoom level changes in any canvas/editor.
+ *
+ * Use for synchronized zoom across linked views or status bar updates.
+ */
+struct ZoomChangedEvent : public Event {
+  std::string source;     // Source canvas: "overworld_canvas", "dungeon_canvas", etc.
+  float old_zoom = 1.0f;  // Previous zoom level
+  float new_zoom = 1.0f;  // New zoom level
+  size_t session_id = 0;
+
+  static ZoomChangedEvent Create(const std::string& src, float old_z,
+                                  float new_z, size_t session = 0) {
+    ZoomChangedEvent e;
+    e.source = src;
+    e.old_zoom = old_z;
+    e.new_zoom = new_z;
+    e.session_id = session;
+    return e;
+  }
+
+  float GetZoomDelta() const { return new_zoom - old_zoom; }
+  float GetZoomRatio() const {
+    return old_zoom > 0.0f ? new_zoom / old_zoom : 1.0f;
+  }
+  bool IsZoomIn() const { return new_zoom > old_zoom; }
+  bool IsZoomOut() const { return new_zoom < old_zoom; }
 };
 
 // =============================================================================

@@ -1,6 +1,8 @@
 #include "dungeon_room_selector.h"
 
 #include "absl/strings/str_format.h"
+#include "app/editor/core/content_registry.h"
+#include "app/editor/events/core_events.h"
 #include "app/gui/core/input.h"
 #include "imgui/imgui.h"
 #include "util/hex.h"
@@ -76,6 +78,13 @@ void DungeonRoomSelector::DrawRoomSelector() {
         if (ImGui::Selectable(label, current_room_id_ == room_id,
                               ImGuiSelectableFlags_SpanAllColumns)) {
           current_room_id_ = room_id;
+
+          // Publish selection changed event
+          if (auto* bus = ContentRegistry::Context::event_bus()) {
+            bus->Publish(SelectionChangedEvent::CreateSingle("dungeon_room", room_id));
+          }
+
+          // Legacy callback support
           if (room_selected_callback_) {
             room_selected_callback_(room_id);
           }
@@ -247,6 +256,12 @@ void DungeonRoomSelector::DrawEntranceSelector() {
                               ImGuiSelectableFlags_SpanAllColumns)) {
           current_entrance_id_ = i;
           if (i < static_cast<int>(entrances_->size())) {
+            // Publish selection changed event
+            if (auto* bus = ContentRegistry::Context::event_bus()) {
+              bus->Publish(SelectionChangedEvent::CreateSingle("dungeon_entrance", i));
+            }
+
+            // Legacy callback support
             if (entrance_selected_callback_) {
               entrance_selected_callback_(i);
             } else if (room_selected_callback_) {

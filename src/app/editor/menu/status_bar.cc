@@ -1,6 +1,7 @@
 #include "app/editor/menu/status_bar.h"
 
 #include "absl/strings/str_format.h"
+#include "app/editor/events/core_events.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/theme_manager.h"
@@ -13,8 +14,23 @@ namespace editor {
 void StatusBar::Initialize(GlobalEditorContext* context) {
   context_ = context;
   if (context_) {
+    // Subscribe to UI status updates
     context_->GetEventBus().Subscribe<StatusUpdateEvent>(
         [this](const StatusUpdateEvent& e) { HandleStatusUpdate(e); });
+
+    // Subscribe to selection changes from any editor
+    context_->GetEventBus().Subscribe<SelectionChangedEvent>(
+        [this](const SelectionChangedEvent& e) {
+          if (e.IsEmpty()) {
+            ClearSelection();
+          } else {
+            SetSelection(static_cast<int>(e.Count()));
+          }
+        });
+
+    // Subscribe to zoom changes from any canvas
+    context_->GetEventBus().Subscribe<ZoomChangedEvent>(
+        [this](const ZoomChangedEvent& e) { SetZoom(e.new_zoom); });
   }
 }
 
