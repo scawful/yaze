@@ -4,6 +4,10 @@
 #include <cctype>
 #include <chrono>
 
+#include "absl/strings/str_format.h"
+#include "app/editor/system/editor_registry.h"
+#include "app/editor/system/panel_manager.h"
+
 namespace yaze {
 namespace editor {
 
@@ -165,6 +169,107 @@ void CommandPalette::SaveHistory(const std::string& filepath) {
 
 void CommandPalette::LoadHistory(const std::string& filepath) {
   // TODO: Implement JSON deserialization of command history
+}
+
+std::vector<CommandEntry> CommandPalette::GetAllCommands() const {
+  std::vector<CommandEntry> result;
+  result.reserve(commands_.size());
+  for (const auto& [name, entry] : commands_) {
+    result.push_back(entry);
+  }
+  return result;
+}
+
+void CommandPalette::RegisterPanelCommands(PanelManager* panel_manager,
+                                           size_t session_id) {
+  if (!panel_manager) return;
+
+  // Get all registered panel descriptors
+  const auto& descriptors = panel_manager->GetAllPanelDescriptors();
+
+  for (const auto& [panel_id, descriptor] : descriptors) {
+    // Create show command
+    std::string show_name =
+        absl::StrFormat("Show: %s", descriptor.display_name);
+    std::string show_desc =
+        absl::StrFormat("Show the %s panel", descriptor.display_name);
+
+    AddCommand(show_name, CommandCategory::kPanel, show_desc, "",
+               [panel_manager, panel_id = panel_id, session_id]() {
+                 panel_manager->ShowPanel(session_id, panel_id);
+               });
+
+    // Create hide command
+    std::string hide_name =
+        absl::StrFormat("Hide: %s", descriptor.display_name);
+    std::string hide_desc =
+        absl::StrFormat("Hide the %s panel", descriptor.display_name);
+
+    AddCommand(hide_name, CommandCategory::kPanel, hide_desc, "",
+               [panel_manager, panel_id = panel_id, session_id]() {
+                 panel_manager->HidePanel(session_id, panel_id);
+               });
+
+    // Create toggle command
+    std::string toggle_name =
+        absl::StrFormat("Toggle: %s", descriptor.display_name);
+    std::string toggle_desc =
+        absl::StrFormat("Toggle the %s panel visibility", descriptor.display_name);
+
+    AddCommand(toggle_name, CommandCategory::kPanel, toggle_desc, "",
+               [panel_manager, panel_id = panel_id, session_id]() {
+                 panel_manager->TogglePanel(session_id, panel_id);
+               });
+  }
+}
+
+void CommandPalette::RegisterEditorCommands(
+    std::function<void(const std::string&)> switch_callback) {
+  // Get all editor categories
+  auto categories = EditorRegistry::GetAllEditorCategories();
+
+  for (const auto& category : categories) {
+    std::string name = absl::StrFormat("Switch to: %s Editor", category);
+    std::string desc =
+        absl::StrFormat("Switch to the %s editor category", category);
+
+    AddCommand(name, CommandCategory::kEditor, desc, "",
+               [switch_callback, category]() { switch_callback(category); });
+  }
+}
+
+void CommandPalette::RegisterLayoutCommands(
+    std::function<void(const std::string&)> apply_callback) {
+  // Named workspace presets
+  struct PresetInfo {
+    const char* name;
+    const char* description;
+  };
+
+  static const PresetInfo presets[] = {
+      {"Minimal", "Minimal workspace with essential panels only"},
+      {"Developer", "Debug-focused layout with emulator and memory tools"},
+      {"Designer", "Visual-focused layout for graphics and palette editing"},
+      {"Modder", "Full-featured layout with all panels available"},
+      {"Overworld Expert", "Optimized layout for overworld editing"},
+      {"Dungeon Expert", "Optimized layout for dungeon editing"},
+      {"Testing", "QA-focused layout with testing tools"},
+      {"Audio", "Music and sound editing focused layout"},
+  };
+
+  for (const auto& preset : presets) {
+    std::string name = absl::StrFormat("Apply Layout: %s", preset.name);
+
+    AddCommand(name, CommandCategory::kLayout, preset.description, "",
+               [apply_callback, preset_name = std::string(preset.name)]() {
+                 apply_callback(preset_name);
+               });
+  }
+
+  // Reset to default layout command
+  AddCommand("Reset Layout: Default", CommandCategory::kLayout,
+             "Reset to the default layout for current editor", "",
+             [apply_callback]() { apply_callback("Default"); });
 }
 
 }  // namespace editor

@@ -1027,6 +1027,11 @@ void UICoordinator::DrawCommandPalette() {
   if (!show_command_palette_)
     return;
 
+  // Initialize command palette on first use
+  if (!command_palette_initialized_) {
+    InitializeCommandPalette(0);  // Default session
+  }
+
   using namespace ImGui;
   auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
 
@@ -1060,73 +1065,89 @@ void UICoordinator::DrawCommandPalette() {
 
     Separator();
 
-    // Fuzzy filter commands with scoring
-    std::vector<std::pair<int, std::pair<std::string, std::string>>>
-        scored_commands;
+    // Unified command list structure
+    struct ScoredCommand {
+      int score;
+      std::string name;
+      std::string category;
+      std::string shortcut;
+      std::function<void()> callback;
+    };
+    std::vector<ScoredCommand> scored_commands;
+
     std::string query_lower = command_palette_query_;
     std::transform(query_lower.begin(), query_lower.end(), query_lower.begin(),
                    ::tolower);
 
-    for (const auto& entry : shortcut_manager_.GetShortcuts()) {
-      const auto& name = entry.first;
-      const auto& shortcut = entry.second;
-
-      std::string name_lower = name;
-      std::transform(name_lower.begin(), name_lower.end(), name_lower.begin(),
+    auto score_text = [&query_lower](const std::string& text) -> int {
+      std::string text_lower = text;
+      std::transform(text_lower.begin(), text_lower.end(), text_lower.begin(),
                      ::tolower);
 
-      int score = 0;
-      if (command_palette_query_[0] == '\0') {
-        score = 1;  // Show all when no query
-      } else if (name_lower.find(query_lower) == 0) {
-        score = 1000;  // Starts with
-      } else if (name_lower.find(query_lower) != std::string::npos) {
-        score = 500;  // Contains
-      } else {
-        // Fuzzy match - characters in order
-        size_t text_idx = 0, query_idx = 0;
-        while (text_idx < name_lower.length() &&
-               query_idx < query_lower.length()) {
-          if (name_lower[text_idx] == query_lower[query_idx]) {
-            score += 10;
-            query_idx++;
-          }
-          text_idx++;
-        }
-        if (query_idx != query_lower.length())
-          score = 0;
-      }
+      if (query_lower.empty()) return 1;
+      if (text_lower.find(query_lower) == 0) return 1000;
+      if (text_lower.find(query_lower) != std::string::npos) return 500;
 
+      // Fuzzy match
+      size_t text_idx = 0, query_idx = 0;
+      int score = 0;
+      while (text_idx < text_lower.length() && query_idx < query_lower.length()) {
+        if (text_lower[text_idx] == query_lower[query_idx]) {
+          score += 10;
+          query_idx++;
+        }
+        text_idx++;
+      }
+      return (query_idx == query_lower.length()) ? score : 0;
+    };
+
+    // Add shortcuts from ShortcutManager
+    for (const auto& [name, shortcut] : shortcut_manager_.GetShortcuts()) {
+      int score = score_text(name);
       if (score > 0) {
         std::string shortcut_text =
             shortcut.keys.empty()
                 ? ""
                 : absl::StrFormat("(%s)", PrintShortcut(shortcut.keys).c_str());
-        scored_commands.push_back({score, {name, shortcut_text}});
+        scored_commands.push_back({score, name, "Shortcuts", shortcut_text,
+                                   shortcut.callback});
       }
     }
 
+    // Add commands from CommandPalette
+    for (const auto& entry : command_palette_.GetAllCommands()) {
+      int score = score_text(entry.name);
+      // Also search category and description
+      score += score_text(entry.category) / 2;
+      score += score_text(entry.description) / 4;
+
+      if (score > 0) {
+        scored_commands.push_back({score, entry.name, entry.category,
+                                   entry.shortcut, entry.callback});
+      }
+    }
+
+    // Sort by score descending
     std::sort(scored_commands.begin(), scored_commands.end(),
-              [](const auto& a, const auto& b) { return a.first > b.first; });
+              [](const auto& a, const auto& b) { return a.score > b.score; });
 
     // Display results with categories
     if (BeginTabBar("CommandCategories")) {
       if (BeginTabItem(
               absl::StrFormat("%s All Commands", ICON_MD_LIST).c_str())) {
         if (gui::LayoutHelpers::BeginTableWithTheming(
-                "CommandPaletteTable", 3,
+                "CommandPaletteTable", 4,
                 ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg |
                     ImGuiTableFlags_SizingStretchProp,
                 ImVec2(0, -30))) {
-          TableSetupColumn("Command", ImGuiTableColumnFlags_WidthStretch, 0.5f);
-          TableSetupColumn("Shortcut", ImGuiTableColumnFlags_WidthStretch,
-                           0.3f);
-          TableSetupColumn("Score", ImGuiTableColumnFlags_WidthStretch, 0.2f);
+          TableSetupColumn("Command", ImGuiTableColumnFlags_WidthStretch, 0.45f);
+          TableSetupColumn("Category", ImGuiTableColumnFlags_WidthStretch, 0.2f);
+          TableSetupColumn("Shortcut", ImGuiTableColumnFlags_WidthStretch, 0.2f);
+          TableSetupColumn("Score", ImGuiTableColumnFlags_WidthStretch, 0.15f);
           TableHeadersRow();
 
           for (size_t i = 0; i < scored_commands.size(); ++i) {
-            const auto& [score, cmd_pair] = scored_commands[i];
-            const auto& [command_name, shortcut_text] = cmd_pair;
+            const auto& cmd = scored_commands[i];
 
             TableNextRow();
             TableNextColumn();
@@ -1134,14 +1155,14 @@ void UICoordinator::DrawCommandPalette() {
             PushID(static_cast<int>(i));
             bool is_selected =
                 (static_cast<int>(i) == command_palette_selected_idx_);
-            if (Selectable(command_name.c_str(), is_selected,
+            if (Selectable(cmd.name.c_str(), is_selected,
                            ImGuiSelectableFlags_SpanAllColumns)) {
               command_palette_selected_idx_ = i;
-              const auto& shortcuts = shortcut_manager_.GetShortcuts();
-              auto it = shortcuts.find(command_name);
-              if (it != shortcuts.end() && it->second.callback) {
-                it->second.callback();
+              if (cmd.callback) {
+                cmd.callback();
                 show_command_palette_ = false;
+                // Record usage for frecency
+                command_palette_.RecordUsage(cmd.name);
               }
             }
             PopID();
@@ -1149,16 +1170,20 @@ void UICoordinator::DrawCommandPalette() {
             TableNextColumn();
             PushStyleColor(ImGuiCol_Text,
                            gui::ConvertColorToImVec4(theme.text_secondary));
-            Text("%s", shortcut_text.c_str());
+            Text("%s", cmd.category.c_str());
             PopStyleColor();
 
             TableNextColumn();
-            if (score > 0) {
-              PushStyleColor(ImGuiCol_Text,
+            PushStyleColor(ImGuiCol_Text,
+                           gui::ConvertColorToImVec4(theme.text_secondary));
+            Text("%s", cmd.shortcut.c_str());
+            PopStyleColor();
+
+            TableNextColumn();
+            PushStyleColor(ImGuiCol_Text,
                              gui::ConvertColorToImVec4(theme.text_disabled));
-              Text("%d", score);
-              PopStyleColor();
-            }
+            Text("%d", cmd.score);
+            PopStyleColor();
           }
 
           gui::LayoutHelpers::EndTableWithTheming();
@@ -1167,12 +1192,39 @@ void UICoordinator::DrawCommandPalette() {
       }
 
       if (BeginTabItem(absl::StrFormat("%s Recent", ICON_MD_HISTORY).c_str())) {
-        Text("Recent commands coming soon...");
+        auto recent = command_palette_.GetRecentCommands(10);
+        if (recent.empty()) {
+          Text("No recent commands yet.");
+        } else {
+          for (const auto& entry : recent) {
+            if (Selectable(entry.name.c_str())) {
+              if (entry.callback) {
+                entry.callback();
+                show_command_palette_ = false;
+                command_palette_.RecordUsage(entry.name);
+              }
+            }
+          }
+        }
         EndTabItem();
       }
 
       if (BeginTabItem(absl::StrFormat("%s Frequent", ICON_MD_STAR).c_str())) {
-        Text("Frequent commands coming soon...");
+        auto frequent = command_palette_.GetFrequentCommands(10);
+        if (frequent.empty()) {
+          Text("No frequently used commands yet.");
+        } else {
+          for (const auto& entry : frequent) {
+            if (Selectable(absl::StrFormat("%s (%d uses)", entry.name,
+                                           entry.usage_count).c_str())) {
+              if (entry.callback) {
+                entry.callback();
+                show_command_palette_ = false;
+                command_palette_.RecordUsage(entry.name);
+              }
+            }
+          }
+        }
         EndTabItem();
       }
 
@@ -1195,6 +1247,36 @@ void UICoordinator::DrawCommandPalette() {
   if (!show_palette) {
     show_command_palette_ = false;
   }
+}
+
+void UICoordinator::InitializeCommandPalette(size_t session_id) {
+  command_palette_.Clear();
+
+  // Register panel commands
+  command_palette_.RegisterPanelCommands(&panel_manager_, session_id);
+
+  // Register editor switch commands
+  command_palette_.RegisterEditorCommands(
+      [this](const std::string& category) {
+        auto type = EditorRegistry::GetEditorTypeFromCategory(category);
+        if (type != EditorType::kSettings) {  // kSettings is used as "unknown"
+          editor_registry_.SwitchToEditor(type);
+        }
+      });
+
+  // Register layout preset commands
+  command_palette_.RegisterLayoutCommands([this](const std::string& preset) {
+    // TODO: Implement layout preset application via LayoutManager
+    toast_manager_.Show(
+        absl::StrFormat("Layout preset '%s' (coming soon)", preset),
+        ToastType::kInfo);
+  });
+
+  command_palette_initialized_ = true;
+}
+
+void UICoordinator::RefreshCommandPalette(size_t session_id) {
+  InitializeCommandPalette(session_id);
 }
 
 void UICoordinator::DrawGlobalSearch() {
