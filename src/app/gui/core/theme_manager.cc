@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cstring>
+#include <filesystem>
 #include <fstream>
 #include <set>
 #include <sstream>
@@ -1384,6 +1385,30 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
             }
           }
         }
+        ImGui::Separator();
+        if (ImGui::MenuItem(
+                absl::StrFormat("%s Export to User Themes", ICON_MD_FOLDER_OPEN)
+                    .c_str())) {
+          // Export current theme to ~/.yaze/themes/ for cross-platform sharing
+          std::string user_themes_dir = GetUserThemesDirectory();
+          std::string safe_name =
+              current_theme_.name.empty() ? "custom_theme" : current_theme_.name;
+          // Sanitize filename: replace invalid characters with underscores
+          for (char& c : safe_name) {
+            if (c == ' ' || c == '/' || c == '\\' || c == ':' || c == '*' ||
+                c == '?' || c == '"' || c == '<' || c == '>' || c == '|') {
+              c = '_';
+            }
+          }
+          std::string file_path = user_themes_dir + safe_name + ".theme";
+
+          auto status = SaveThemeToFile(current_theme_, file_path);
+          if (status.ok()) {
+            LOG_INFO("Theme Manager", "Exported theme to: %s", file_path.c_str());
+          } else {
+            LOG_ERROR("Theme Manager", "Failed to export theme to user themes");
+          }
+        }
         ImGui::EndMenu();
       }
 
@@ -1397,7 +1422,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
           ImGui::Separator();
           for (const auto& theme_name : available_themes) {
             if (ImGui::MenuItem(theme_name.c_str())) {
-              LoadTheme(theme_name);
+              (void)LoadTheme(theme_name);
             }
           }
         }
@@ -2393,14 +2418,19 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
 std::vector<std::string> ThemeManager::GetThemeSearchPaths() const {
   std::vector<std::string> search_paths;
 
-  // Development path (relative to build directory)
-  search_paths.push_back("assets/themes/");
-  search_paths.push_back("../assets/themes/");
+  // Priority 1: User themes directory (~/.yaze/themes/)
+  // This is the primary location for user-installed and custom themes
+  auto config_dir = util::PlatformPaths::GetConfigDirectory();
+  if (config_dir.ok()) {
+    auto user_themes = *config_dir / "themes";
+    // Ensure the directory exists for user themes
+    (void)util::PlatformPaths::EnsureDirectoryExists(user_themes);
+    search_paths.push_back(user_themes.string() + "/");
+  }
 
-  // Platform-specific resource paths
+  // Priority 2: Application bundle/install themes
 #ifdef __APPLE__
-  // macOS bundle resource path (this should be the primary path for bundled
-  // apps)
+  // macOS bundle resource path
   std::string bundle_themes = util::GetResourcePath("assets/themes/");
   if (!bundle_themes.empty()) {
     search_paths.push_back(bundle_themes);
@@ -2408,22 +2438,25 @@ std::vector<std::string> ThemeManager::GetThemeSearchPaths() const {
 
   // Alternative bundle locations
   std::string bundle_root = util::GetBundleResourcePath();
+  if (!bundle_root.empty()) {
+    search_paths.push_back(bundle_root + "Contents/Resources/themes/");
+    search_paths.push_back(bundle_root + "Contents/Resources/assets/themes/");
+  }
+#endif
 
-  search_paths.push_back(bundle_root + "Contents/Resources/themes/");
-  search_paths.push_back(bundle_root + "Contents/Resources/assets/themes/");
-  search_paths.push_back(bundle_root + "assets/themes/");
-  search_paths.push_back(bundle_root + "themes/");
-#else
-  // Linux/Windows relative paths
+  // Priority 3: System-wide themes (Unix only)
+#ifndef _WIN32
+  search_paths.push_back("/usr/local/share/yaze/themes/");
+  search_paths.push_back("/usr/share/yaze/themes/");
+#endif
+
+  // Priority 4: Development paths (relative to working directory)
+  search_paths.push_back("assets/themes/");
+  search_paths.push_back("../assets/themes/");
+#ifdef _WIN32
   search_paths.push_back("./assets/themes/");
   search_paths.push_back("./themes/");
 #endif
-
-  // User config directory
-  auto config_dir = util::PlatformPaths::GetConfigDirectory();
-  if (config_dir.ok()) {
-    search_paths.push_back((*config_dir / "themes/").string());
-  }
 
   return search_paths;
 }
@@ -2455,55 +2488,89 @@ std::string ThemeManager::GetThemesDirectory() const {
   return search_paths.empty() ? "assets/themes/" : search_paths[0];
 }
 
+std::string ThemeManager::GetUserThemesDirectory() const {
+  // Always return the user themes directory (~/.yaze/themes/)
+  // This is the canonical location for user-created and exported themes
+  auto config_dir = util::PlatformPaths::GetConfigDirectory();
+  if (config_dir.ok()) {
+    auto user_themes_path = *config_dir / "themes";
+    // Ensure the directory exists
+    (void)util::PlatformPaths::EnsureDirectoryExists(user_themes_path);
+    return user_themes_path.string() + "/";
+  }
+
+  // Fallback to development path if config directory unavailable
+  return "assets/themes/";
+}
+
 std::vector<std::string> ThemeManager::DiscoverAvailableThemeFiles() const {
   std::vector<std::string> theme_files;
   auto search_paths = GetThemeSearchPaths();
 
   for (const auto& search_path : search_paths) {
     try {
-      // Use platform-specific file discovery instead of glob
-#ifdef __APPLE__
-      auto files_in_folder =
-          util::FileDialogWrapper::GetFilesInFolder(search_path);
-      for (const auto& file : files_in_folder) {
-        if (file.length() > 6 && file.substr(file.length() - 6) == ".theme") {
-          std::string full_path = search_path + file;
-          theme_files.push_back(full_path);
-        }
-      }
-#else
-      // For Linux/Windows, use filesystem directory iteration
-      // (could be extended with platform-specific implementations if needed)
-      std::vector<std::string> known_themes = {
-          "yaze_tre.theme", "cyberpunk.theme", "sunset.theme", "forest.theme",
-          "midnight.theme"};
+      std::filesystem::path dir_path(search_path);
 
-      for (const auto& theme_name : known_themes) {
-        std::string full_path = search_path + theme_name;
-        std::ifstream test_file(full_path);
-        if (test_file.good()) {
-          theme_files.push_back(full_path);
+      // Skip if directory doesn't exist
+      std::error_code ec;
+      if (!std::filesystem::exists(dir_path, ec) || ec) {
+        continue;
+      }
+
+      if (!std::filesystem::is_directory(dir_path, ec) || ec) {
+        continue;
+      }
+
+      // Iterate directory entries using std::filesystem (cross-platform)
+      for (const auto& entry : std::filesystem::directory_iterator(dir_path, ec)) {
+        if (ec) {
+          LOG_WARN("Theme Manager", "Error iterating directory: %s",
+                   ec.message().c_str());
+          break;
+        }
+
+        if (!entry.is_regular_file(ec) || ec) {
+          continue;
+        }
+
+        std::string filename = entry.path().filename().string();
+        std::string extension = entry.path().extension().string();
+
+        // Accept both .theme and .theme.json extensions
+        if (extension == ".theme" ||
+            (filename.length() > 11 &&
+             filename.substr(filename.length() - 11) == ".theme.json")) {
+          theme_files.push_back(entry.path().string());
         }
       }
-#endif
     } catch (const std::exception& e) {
-      LOG_ERROR("Theme Manager", "Error scanning directory %s",
-                search_path.c_str());
+      LOG_WARN("Theme Manager", "Error scanning directory %s: %s",
+               search_path.c_str(), e.what());
     }
   }
 
-  // Remove duplicates while preserving order
+  // Remove duplicates while preserving order (user themes take priority)
   std::vector<std::string> unique_files;
   std::set<std::string> seen_basenames;
 
   for (const auto& file : theme_files) {
     std::string basename = util::GetFileName(file);
+    // Normalize basename by removing both .theme and .theme.json extensions
+    if (basename.length() > 11 &&
+        basename.substr(basename.length() - 11) == ".theme.json") {
+      basename = basename.substr(0, basename.length() - 11);
+    } else if (basename.length() > 6 &&
+               basename.substr(basename.length() - 6) == ".theme") {
+      basename = basename.substr(0, basename.length() - 6);
+    }
+
     if (seen_basenames.find(basename) == seen_basenames.end()) {
       unique_files.push_back(file);
       seen_basenames.insert(basename);
     }
   }
 
+  LOG_INFO("Theme Manager", "Discovered %zu theme files", unique_files.size());
   return unique_files;
 }
 
