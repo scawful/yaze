@@ -1469,12 +1469,14 @@ void EditorManager::DrawMenuBar() {
       ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
     }
 
+    // Show hamburger when sidebar is hidden (click to open)
+    // Show "menu open" icon when sidebar is visible (click to collapse)
     if (ui_coordinator_ && ui_coordinator_->IsPanelSidebarVisible()) {
-      if (ImGui::SmallButton(ICON_MD_MENU)) {
+      if (ImGui::SmallButton(ICON_MD_MENU_OPEN)) {
         panel_manager_.ToggleSidebarVisibility();
       }
     } else {
-      if (ImGui::SmallButton(ICON_MD_MENU_OPEN)) {
+      if (ImGui::SmallButton(ICON_MD_MENU)) {
         panel_manager_.ToggleSidebarVisibility();
       }
     }

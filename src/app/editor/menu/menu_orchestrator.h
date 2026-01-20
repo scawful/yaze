@@ -63,7 +63,8 @@ class MenuOrchestrator {
   void BuildFileMenu();
   void BuildEditMenu();
   void BuildViewMenu();
-  void BuildToolsMenu();  // Also contains former Debug menu items
+  void BuildPanelsMenu();  // Top-level Panels menu for panel management
+  void BuildToolsMenu();   // Also contains former Debug menu items
   void BuildWindowMenu();
   void BuildHelpMenu();
 
@@ -206,12 +207,10 @@ class MenuOrchestrator {
   void AddFileMenuItems();
   void AddEditMenuItems();
   void AddViewMenuItems();
-  void AddToolsMenuItems();  // Also contains former Debug menu items
+  void AddPanelsMenuItems();  // Top-level panels menu items
+  void AddToolsMenuItems();   // Also contains former Debug menu items
   void AddWindowMenuItems();
   void AddHelpMenuItems();
-
-  // Auto-generated menu helpers
-  void AddPanelsSubmenu();
 
   // Menu item validation helpers
   bool CanSaveRom() const;

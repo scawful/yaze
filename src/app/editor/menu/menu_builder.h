@@ -80,6 +80,14 @@ class MenuBuilder {
   MenuBuilder& DisabledItem(const char* label, const char* icon = nullptr);
 
   /**
+   * @brief Add a custom menu with a callback for drawing dynamic content
+   *
+   * Use this for menus that need dynamic/runtime-generated content.
+   * The callback is responsible for drawing menu items using ImGui directly.
+   */
+  MenuBuilder& CustomMenu(const char* label, Callback draw_callback);
+
+  /**
    * @brief Draw the menu bar (call in main menu bar)
    */
   void Draw();
@@ -112,6 +120,8 @@ class MenuBuilder {
     std::string label;
     std::string icon;
     std::vector<MenuItem> items;
+    Callback custom_draw;  // For custom menus with dynamic content
+    bool is_custom = false;
   };
 
   std::vector<Menu> menus_;

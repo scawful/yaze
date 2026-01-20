@@ -44,10 +44,12 @@ void MenuOrchestrator::BuildMainMenu() {
   ClearMenu();
 
   // Build all menu sections in order
+  // Traditional order: File, Edit, View, then app-specific menus
   BuildFileMenu();
   BuildEditMenu();
   BuildViewMenu();
-  BuildToolsMenu();  // Debug menu items merged into Tools
+  BuildPanelsMenu();  // Dedicated top-level menu for panel management
+  BuildToolsMenu();   // Debug menu items merged into Tools
   BuildWindowMenu();
   BuildHelpMenu();
 
@@ -164,7 +166,7 @@ void MenuOrchestrator::BuildViewMenu() {
 }
 
 void MenuOrchestrator::AddViewMenuItems() {
-  // UI Layout
+  // Appearance/Layout controls
   menu_builder_
       .Item(
           "Show Sidebar", ICON_MD_VIEW_SIDEBAR,
@@ -172,7 +174,7 @@ void MenuOrchestrator::AddViewMenuItems() {
             if (panel_manager_)
               panel_manager_->ToggleSidebarVisibility();
           },
-          nullptr, nullptr,
+          SHORTCUT_CTRL(B), nullptr,
           [this]() {
             return panel_manager_ && panel_manager_->IsSidebarVisible();
           })
@@ -195,100 +197,83 @@ void MenuOrchestrator::AddViewMenuItems() {
           })
       .Separator();
 
-  // Settings and UI
+  // Display and appearance settings
   menu_builder_
       .Item("Display Settings", ICON_MD_DISPLAY_SETTINGS,
             [this]() { OnShowDisplaySettings(); })
       .Item("Welcome Screen", ICON_MD_HOME, [this]() { OnShowWelcomeScreen(); })
       .Separator();
 
-  // Panel Browser
-  menu_builder_
-      .Item(
-          "Panel Browser", ICON_MD_DASHBOARD,
-          [this]() { OnShowPanelBrowser(); }, SHORTCUT_CTRL_SHIFT(B),
-          [this]() { return HasActiveRom(); })
-      .Separator();
-
-  // Editor Selection (Switch Editor)
-  menu_builder_
-      .Item(
-          "Switch Editor...", ICON_MD_SWAP_HORIZ,
-          [this]() { OnShowEditorSelection(); }, SHORTCUT_CTRL(E),
-          [this]() { return HasActiveRom(); })
-      .Separator();
-
-  // Dynamically added panels
-  AddPanelsSubmenu();
+  // Editor selection (Switch Editor)
+  menu_builder_.Item(
+      "Switch Editor...", ICON_MD_SWAP_HORIZ,
+      [this]() { OnShowEditorSelection(); }, SHORTCUT_CTRL(E),
+      [this]() { return HasActiveRom(); });
 }
 
-void MenuOrchestrator::AddPanelsSubmenu() {
+void MenuOrchestrator::BuildPanelsMenu() {
+  // Use CustomMenu to integrate dynamic panel content with the menu builder
+  menu_builder_.CustomMenu("Panels", [this]() { AddPanelsMenuItems(); });
+}
+
+void MenuOrchestrator::AddPanelsMenuItems() {
   if (!panel_manager_) {
     return;
   }
 
   const size_t session_id = session_coordinator_.GetActiveSessionIndex();
-
-  // Get active category
   std::string active_category = panel_manager_->GetActiveCategory();
-
-  // Get all categories from registry
   auto all_categories = panel_manager_->GetAllCategories(session_id);
+
   if (all_categories.empty()) {
+    ImGui::TextDisabled("No panels available");
     return;
   }
 
-  if (ImGui::BeginMenu(
-          absl::StrFormat("%s Panels", ICON_MD_DASHBOARD).c_str())) {
+  // Panel Browser action at top
+  if (ImGui::MenuItem(
+          absl::StrFormat("%s Panel Browser", ICON_MD_APPS).c_str(),
+          SHORTCUT_CTRL_SHIFT(B))) {
+    OnShowPanelBrowser();
+  }
+  ImGui::Separator();
 
-    // 1. Active Category (Prominent)
-    if (!active_category.empty()) {
-      auto cards =
-          panel_manager_->GetPanelsInCategory(session_id, active_category);
-      if (!cards.empty()) {
-        ImGui::TextDisabled("%s", active_category.c_str());
+  // Show all categories as direct submenus (no nested "All Categories" wrapper)
+  for (const auto& category : all_categories) {
+    // Mark active category with icon
+    std::string label = category;
+    if (category == active_category) {
+      label = absl::StrFormat("%s %s", ICON_MD_FOLDER_OPEN, category);
+    } else {
+      label = absl::StrFormat("%s %s", ICON_MD_FOLDER, category);
+    }
+
+    if (ImGui::BeginMenu(label.c_str())) {
+      auto cards = panel_manager_->GetPanelsInCategory(session_id, category);
+
+      if (cards.empty()) {
+        ImGui::TextDisabled("No panels in this category");
+      } else {
         for (const auto& card : cards) {
           bool is_visible =
               panel_manager_->IsPanelVisible(session_id, card.card_id);
-          const char* shortcut =
-              card.shortcut_hint.empty() ? nullptr : card.shortcut_hint.c_str();
-          if (ImGui::MenuItem(card.display_name.c_str(), shortcut,
-                              &is_visible)) {
+          const char* shortcut = card.shortcut_hint.empty()
+                                     ? nullptr
+                                     : card.shortcut_hint.c_str();
+
+          // Show icon for visible panels
+          std::string item_label = is_visible
+              ? absl::StrFormat("%s %s", ICON_MD_CHECK_BOX, card.display_name)
+              : absl::StrFormat("%s %s", ICON_MD_CHECK_BOX_OUTLINE_BLANK,
+                                card.display_name);
+
+          if (ImGui::MenuItem(item_label.c_str(), shortcut)) {
             panel_manager_->TogglePanel(session_id, card.card_id);
           }
-        }
-        ImGui::Separator();
-      }
-    }
-
-    // 2. Other Categories
-    if (ImGui::BeginMenu("All Categories")) {
-      for (const auto& category : all_categories) {
-        // Skip active category if it was already shown above?
-        // Actually, keeping it here too is fine for completeness, or we can filter.
-        // Let's keep it simple and just list all.
-
-        if (ImGui::BeginMenu(category.c_str())) {
-          auto cards =
-              panel_manager_->GetPanelsInCategory(session_id, category);
-          for (const auto& card : cards) {
-            bool is_visible =
-                panel_manager_->IsPanelVisible(session_id, card.card_id);
-            const char* shortcut = card.shortcut_hint.empty()
-                                       ? nullptr
-                                       : card.shortcut_hint.c_str();
-            if (ImGui::MenuItem(card.display_name.c_str(), shortcut,
-                                &is_visible)) {
-              panel_manager_->TogglePanel(session_id, card.card_id);
-            }
-          }
-          ImGui::EndMenu();
         }
       }
       ImGui::EndMenu();
     }
-
-    ImGui::EndMenu();
   }
 }
 
