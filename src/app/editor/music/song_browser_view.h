@@ -78,7 +78,12 @@ class SongBrowserView {
 
   // Search
   char search_buffer_[64] = "";
+  std::string last_search_buffer_;
+  std::vector<int> filtered_vanilla_indices_;
+  std::vector<int> filtered_custom_indices_;
+  
   bool MatchesSearch(const std::string& name) const;
+  void RebuildFilterCache(const MusicBank& bank);
 
   // Callbacks
   std::function<void(int)> on_song_selected_;
