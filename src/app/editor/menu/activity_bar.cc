@@ -74,7 +74,9 @@ void ActivityBar::DrawActivityBarStrip(
 
     // Global Search / Command Palette at top
     if (gui::TransparentIconButton(ICON_MD_SEARCH, ImVec2(48.0f, 40.0f),
-                                   "Global Search (Ctrl+Shift+F)", false)) {
+                                   "Global Search (Ctrl+Shift+F)", false,
+                                   ImVec4(0, 0, 0, 0), "activity_bar",
+                                   "search")) {
       panel_manager_.TriggerShowSearch();
     }
 
@@ -136,7 +138,8 @@ void ActivityBar::DrawActivityBarStrip(
       ImVec4 icon_color =
           is_selected ? cat_color : ImVec4(0, 0, 0, 0);  // 0 = use default
       if (gui::TransparentIconButton(icon.c_str(), ImVec2(48.0f, 40.0f),
-                                     nullptr, is_selected, icon_color)) {
+                                     nullptr, is_selected, icon_color,
+                                     "activity_bar", cat.c_str())) {
         if (category_enabled) {
           if (cat == active_category && panel_manager_.IsPanelExpanded()) {
             panel_manager_.TogglePanelExpanded();
@@ -174,7 +177,9 @@ void ActivityBar::DrawActivityBarStrip(
   // Draw "More Actions" button at the bottom
   ImGui::SetCursorPosY(viewport_height - 48.0f);
 
-  if (gui::TransparentIconButton(ICON_MD_MORE_HORIZ, ImVec2(48.0f, 48.0f))) {
+  if (gui::TransparentIconButton(ICON_MD_MORE_HORIZ, ImVec2(48.0f, 48.0f),
+                                 nullptr, false, ImVec4(0, 0, 0, 0),
+                                 "activity_bar", "more_actions")) {
     ImGui::OpenPopup("ActivityBarMoreMenu");
   }
 

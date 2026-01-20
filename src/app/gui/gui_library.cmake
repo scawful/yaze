@@ -14,6 +14,7 @@
 
 # build_cleaner:auto-maintain
 set(GUI_CORE_SRC
+  app/gui/animation/animator.cc
   app/gui/core/background_renderer.cc
   app/gui/core/color.cc
   app/gui/core/input.cc

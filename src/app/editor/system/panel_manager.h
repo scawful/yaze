@@ -143,6 +143,9 @@ class PanelManager {
    */
   void RegisterRegistryPanelsForSession(size_t session_id);
 
+  /// @brief Returns the number of panels registered via ContentRegistry
+  size_t GetRegistryPanelCount() const { return registry_panel_ids_.size(); }
+
   /**
    * @brief Register an EditorPanel instance for central drawing
    * @param panel The panel to register (ownership transferred)

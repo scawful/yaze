@@ -12,6 +12,7 @@
 #include "app/editor/layout/layout_presets.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/resource_panel.h"
+#include "app/gui/animation/animator.h"
 #include "app/gui/app/editor_layout.h"
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
@@ -506,6 +507,7 @@ void PanelManager::UnregisterEditorPanel(const std::string& panel_id) {
   if (it != panel_instances_.end()) {
     // Call OnClose before removing
     it->second->OnClose();
+    gui::GetAnimator().ClearAnimationsForPanel(panel_id);
     panel_instances_.erase(it);
     registry_panel_ids_.erase(panel_id);
     global_panel_ids_.erase(panel_id);
