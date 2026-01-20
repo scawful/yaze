@@ -1266,10 +1266,11 @@ void UICoordinator::InitializeCommandPalette(size_t session_id) {
 
   // Register layout preset commands
   command_palette_.RegisterLayoutCommands([this](const std::string& preset) {
-    // TODO: Implement layout preset application via LayoutManager
-    toast_manager_.Show(
-        absl::StrFormat("Layout preset '%s' (coming soon)", preset),
-        ToastType::kInfo);
+    if (editor_manager_) {
+      editor_manager_->ApplyLayoutPreset(preset);
+      toast_manager_.Show(absl::StrFormat("Applied layout: %s", preset),
+                          ToastType::kSuccess);
+    }
   });
 
   command_palette_initialized_ = true;
