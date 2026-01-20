@@ -3,11 +3,23 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
+### 2026-01-19 imgui-frontend-engineer – ImHex UI modernization follow-ups
+- TASK: Add lifecycle addendum, animation utilities, and finish list virtualization (music/palette).
+- SCOPE: docs/internal/plans/imhex-ui-modernization.md, src/app/gui/animation/animator.*, src/app/gui/gui_library.cmake, src/app/editor/music/song_browser_view.cc, src/app/editor/palette/palette_group_panel.cc
+- STATUS: COMPLETE
+- NOTES: Animator interface panel-scoped + theme-gated; finalize remaining clipper usage + theme colors in song browser. `cmake --build build` ok; smoke-build now fails in `imgui_test_harness.pb.h` with Protobuf header/runtime mismatch (ClearHasBit/SetHasBit).
+
 ### 2026-01-10 backend-infra-engineer – CI/CD stabilization after v0.5.0 release
 - TASK: Fix failing CI builds/tests on master/develop and close remaining lint/test gaps across desktop/CLI/wasm.
 - SCOPE: .github/workflows, CMake/test targets, docs/public build/test references.
 - STATUS: COMPLETE
 - NOTES: Retagged v0.5.0; release run 20896390585 succeeded (all platforms); added feature/test coverage report and aligned status tables.
+
+### 2026-01-19 imgui-frontend-engineer – ContentRegistry panel scope + frame events
+- TASK: Add global/session panel scope, register registry panels per session, move deferred actions to GUI-safe frame event, and add coverage.
+- SCOPE: src/app/editor/system/panel_manager.*, src/app/editor/events/core_events.h, src/app/controller.cc, src/app/editor/editor_manager.cc, src/app/test/core_systems_test_suite.h, src/app/editor/core/content_registry.cc, src/app/editor/ui/about_panel.h.
+- STATUS: COMPLETE
+- NOTES: Added PanelScope + registry panel registration path; published FrameGuiBeginEvent after dockspace; added panel scope smoke test; avoid ContentRegistry factory lock while creating panels.
 
 ### 2026-01-12 backend-infra-engineer – v0.5.0 release artifact cleanup
 - TASK: Clean up release artifacts (README, Windows DLL bloat, remove test helpers) and align docs/changelog for portable zip.

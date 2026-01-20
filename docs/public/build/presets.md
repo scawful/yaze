@@ -47,6 +47,15 @@ cmake --build --preset win-arm
 
 ## All Presets
 
+### Cross-platform Presets
+
+| Preset | Description | Notes |
+|--------|-------------|-------|
+| `dev` | Full development build | AI + gRPC + tests |
+| `dev-system-grpc` | Dev build using system gRPC/protobuf | Requires gRPC/protobuf/abseil installed |
+| `release` | Optimized release build | LTO enabled |
+| `minimal` | Minimal build | No gRPC/AI |
+
 ### macOS Presets
 
 | Preset | Description | Arch | Warnings | Notes |
