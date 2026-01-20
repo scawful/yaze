@@ -431,8 +431,8 @@ class Canvas {
   }
   void DrawCustomHighlight(float grid_step);
   bool IsMouseHovering() const { return is_hovered_; }
-  void ZoomIn() { global_scale_ += 0.25f; }
-  void ZoomOut() { global_scale_ -= 0.25f; }
+  void ZoomIn();
+  void ZoomOut();
 
   // Points accessors - points_ is maintained separately for custom overlay
   // drawing
@@ -450,10 +450,7 @@ class Canvas {
   auto drawn_tile_position() const { return drawn_tile_pos_; }
   auto canvas_size() const { return canvas_sz_; }
   // COMPAT: prefer CanvasRuntime.scale for per-frame scale control
-  void set_global_scale(float scale) {
-    global_scale_ = scale;
-    config_.global_scale = scale;
-  }
+  void set_global_scale(float scale);
   void set_draggable(bool draggable) { draggable_ = draggable; }
 
   // Modern accessors using modular structure

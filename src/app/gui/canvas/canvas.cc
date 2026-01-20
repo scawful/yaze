@@ -3,6 +3,9 @@
 #include <cmath>
 #include <string>
 
+#include "app/editor/core/content_registry.h"
+#include "app/editor/core/event_bus.h"
+#include "app/editor/events/core_events.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/util/bpp_format_manager.h"
@@ -191,6 +194,44 @@ void Canvas::InitializeDefaults() {
   custom_canvas_size_ = config_.custom_canvas_size;
   select_rect_active_ = selection_.select_rect_active;
   selected_tile_pos_ = selection_.selected_tile_pos;
+}
+
+void Canvas::ZoomIn() {
+  float old_scale = global_scale_;
+  global_scale_ += 0.25f;
+  config_.global_scale = global_scale_;
+
+  // Publish zoom changed event
+  if (auto* bus = editor::ContentRegistry::Context::event_bus()) {
+    bus->Publish(
+        editor::ZoomChangedEvent::Create(canvas_id_, old_scale, global_scale_));
+  }
+}
+
+void Canvas::ZoomOut() {
+  float old_scale = global_scale_;
+  global_scale_ -= 0.25f;
+  config_.global_scale = global_scale_;
+
+  // Publish zoom changed event
+  if (auto* bus = editor::ContentRegistry::Context::event_bus()) {
+    bus->Publish(
+        editor::ZoomChangedEvent::Create(canvas_id_, old_scale, global_scale_));
+  }
+}
+
+void Canvas::set_global_scale(float scale) {
+  float old_scale = global_scale_;
+  global_scale_ = scale;
+  config_.global_scale = scale;
+
+  // Publish zoom changed event only if scale actually changed
+  if (old_scale != scale) {
+    if (auto* bus = editor::ContentRegistry::Context::event_bus()) {
+      bus->Publish(
+          editor::ZoomChangedEvent::Create(canvas_id_, old_scale, scale));
+    }
+  }
 }
 
 void Canvas::Cleanup() {
