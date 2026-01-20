@@ -68,7 +68,7 @@ class DungeonRoomPanel : public ResourcePanel {
   }
 
   std::string GetIcon() const override { return ICON_MD_GRID_ON; }
-  std::string GetEditorCategory() const override { return "dungeon"; }
+  std::string GetEditorCategory() const override { return "Dungeon"; }
   int GetPriority() const override { return 100 + room_id_; }
 
   // ==========================================================================
