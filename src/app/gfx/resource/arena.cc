@@ -3,6 +3,7 @@
 #include "app/platform/sdl_compat.h"
 
 #include <algorithm>
+#include <chrono>
 
 #include "absl/strings/str_format.h"
 #include "app/gfx/backend/irenderer.h"
@@ -255,6 +256,72 @@ void Arena::ProcessTextureQueue(IRenderer* renderer) {
       ++it;
     }
   }
+}
+
+bool Arena::ProcessTextureQueueWithBudget(IRenderer* renderer,
+                                           float budget_ms) {
+  using Clock = std::chrono::high_resolution_clock;
+  using Microseconds = std::chrono::microseconds;
+
+  IRenderer* active_renderer = renderer ? renderer : renderer_;
+  if (!active_renderer) {
+    return texture_command_queue_.empty();
+  }
+
+  if (texture_command_queue_.empty()) {
+    return true;  // Queue is empty, all done
+  }
+
+  // Convert budget to microseconds for precise timing
+  const auto budget_us = static_cast<long long>(budget_ms * 1000.0f);
+  const auto start_time = Clock::now();
+
+  size_t textures_this_call = 0;
+
+  // Process textures until budget exhausted or queue empty
+  while (!texture_command_queue_.empty()) {
+    // Check time budget before each texture (not after, to avoid overshoot)
+    if (textures_this_call > 0) {  // Always process at least one
+      auto elapsed = std::chrono::duration_cast<Microseconds>(
+          Clock::now() - start_time);
+      if (elapsed.count() >= budget_us) {
+        LOG_DEBUG("Arena",
+                  "Budget exhausted: processed %zu textures in %.2fms, "
+                  "%zu remaining",
+                  textures_this_call, elapsed.count() / 1000.0f,
+                  texture_command_queue_.size());
+        break;
+      }
+    }
+
+    // Process one texture
+    if (ProcessSingleTexture(active_renderer)) {
+      textures_this_call++;
+    }
+  }
+
+  // Update statistics
+  if (textures_this_call > 0) {
+    auto total_elapsed = std::chrono::duration_cast<Microseconds>(
+        Clock::now() - start_time);
+    float elapsed_ms = total_elapsed.count() / 1000.0f;
+
+    texture_queue_stats_.textures_processed += textures_this_call;
+    texture_queue_stats_.frames_with_work++;
+    texture_queue_stats_.total_time_ms += elapsed_ms;
+
+    if (elapsed_ms > texture_queue_stats_.max_frame_time_ms) {
+      texture_queue_stats_.max_frame_time_ms = elapsed_ms;
+    }
+
+    if (texture_queue_stats_.textures_processed > 0) {
+      texture_queue_stats_.avg_texture_time_ms =
+          texture_queue_stats_.total_time_ms /
+          static_cast<float>(texture_queue_stats_.textures_processed);
+    }
+  }
+
+  return texture_command_queue_.empty();
 }
 
 SDL_Surface* Arena::AllocateSurface(int width, int height, int depth,

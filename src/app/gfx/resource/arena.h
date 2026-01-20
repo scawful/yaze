@@ -75,6 +75,55 @@ class Arena {
    */
   bool ProcessSingleTexture(IRenderer* renderer);
 
+  /**
+   * @brief Process texture queue with a time budget
+   *
+   * Processes texture commands until either the queue is empty or the
+   * time budget is exceeded. Uses microsecond precision timing to avoid
+   * overshooting frame budgets.
+   *
+   * @param renderer The renderer to use for texture operations
+   * @param budget_ms Maximum time in milliseconds to spend processing
+   * @return true if queue is now empty, false if more work remains
+   *
+   * Example usage for 60 FPS (16.67ms frame time):
+   *   // Allow up to 4ms for texture loading per frame
+   *   arena.ProcessTextureQueueWithBudget(renderer, 4.0f);
+   */
+  bool ProcessTextureQueueWithBudget(IRenderer* renderer, float budget_ms);
+
+  /**
+   * @brief Statistics for texture queue processing
+   */
+  struct TextureQueueStats {
+    size_t textures_processed = 0;   // Total textures processed this session
+    size_t frames_with_work = 0;     // Frames that did texture work
+    float total_time_ms = 0.0f;      // Total time spent processing
+    float max_frame_time_ms = 0.0f;  // Maximum time spent in a single call
+    float avg_texture_time_ms = 0.0f;  // Average time per texture
+
+    void Reset() {
+      textures_processed = 0;
+      frames_with_work = 0;
+      total_time_ms = 0.0f;
+      max_frame_time_ms = 0.0f;
+      avg_texture_time_ms = 0.0f;
+    }
+  };
+
+  /**
+   * @brief Get texture queue processing statistics
+   * @return Reference to current statistics
+   */
+  const TextureQueueStats& GetTextureQueueStats() const {
+    return texture_queue_stats_;
+  }
+
+  /**
+   * @brief Reset texture queue statistics
+   */
+  void ResetTextureQueueStats() { texture_queue_stats_.Reset(); }
+
   // --- Surface Management (unchanged) ---
   SDL_Surface* AllocateSurface(int width, int height, int depth, int format);
   void FreeSurface(SDL_Surface* surface);
@@ -216,6 +265,7 @@ class Arena {
 
   std::vector<TextureCommand> texture_command_queue_;
   IRenderer* renderer_ = nullptr;
+  TextureQueueStats texture_queue_stats_;
 
   // Palette change notification system
   std::unordered_map<int, PaletteChangeCallback> palette_listeners_;

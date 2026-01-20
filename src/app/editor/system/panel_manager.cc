@@ -7,6 +7,8 @@
 #include <fstream>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/core/content_registry.h"
+#include "app/editor/events/core_events.h"
 #include "app/editor/layout/layout_presets.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/resource_panel.h"
@@ -635,6 +637,12 @@ bool PanelManager::ShowPanel(size_t session_id,
     if (it->second.on_show) {
       it->second.on_show();
     }
+
+    // Publish visibility changed event
+    if (auto* bus = ContentRegistry::Context::event_bus()) {
+      bus->Publish(PanelVisibilityChangedEvent::Create(
+          prefixed_id, base_card_id, it->second.category, true, session_id));
+    }
     return true;
   }
   return false;
@@ -654,6 +662,12 @@ bool PanelManager::HidePanel(size_t session_id,
     }
     if (it->second.on_hide) {
       it->second.on_hide();
+    }
+
+    // Publish visibility changed event
+    if (auto* bus = ContentRegistry::Context::event_bus()) {
+      bus->Publish(PanelVisibilityChangedEvent::Create(
+          prefixed_id, base_card_id, it->second.category, false, session_id));
     }
     return true;
   }
@@ -676,6 +690,13 @@ bool PanelManager::TogglePanel(size_t session_id,
       it->second.on_show();
     } else if (!new_state && it->second.on_hide) {
       it->second.on_hide();
+    }
+
+    // Publish visibility changed event
+    if (auto* bus = ContentRegistry::Context::event_bus()) {
+      bus->Publish(PanelVisibilityChangedEvent::Create(
+          prefixed_id, base_card_id, it->second.category, new_state,
+          session_id));
     }
     return true;
   }
