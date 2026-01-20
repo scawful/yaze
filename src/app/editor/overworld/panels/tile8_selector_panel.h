@@ -4,18 +4,18 @@
 #include "app/editor/system/editor_panel.h"
 #include "app/gui/core/icons.h"
 
-namespace yaze {
-namespace editor {
-
-class OverworldEditor;
+namespace yaze::editor {
 
 /**
  * @class Tile8SelectorPanel
  * @brief Low-level 8x8 tile editing interface
+ *
+ * Uses ContentRegistry::Context to access the current OverworldEditor.
+ * Self-registers via REGISTER_PANEL macro.
  */
 class Tile8SelectorPanel : public EditorPanel {
  public:
-  explicit Tile8SelectorPanel(OverworldEditor* editor) : editor_(editor) {}
+  Tile8SelectorPanel() = default;
 
   // EditorPanel interface
   std::string GetId() const override { return "overworld.tile8_selector"; }
@@ -27,12 +27,8 @@ class Tile8SelectorPanel : public EditorPanel {
     return 256.0f + 20.0f;
   }
   void Draw(bool* p_open) override;
-
- private:
-  OverworldEditor* editor_;
 };
 
-}  // namespace editor
-}  // namespace yaze
+}  // namespace yaze::editor
 
 #endif  // YAZE_APP_EDITOR_OVERWORLD_PANELS_TILE8_SELECTOR_PANEL_H
