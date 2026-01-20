@@ -72,6 +72,21 @@ class UserSettings {
 
     // Status Bar
     bool show_status_bar = false;  // Show status bar at bottom (disabled by default)
+
+    // Panel Visibility State (per editor type)
+    // Maps editor_type_name -> (panel_id -> visible)
+    // e.g., "Overworld" -> {"overworld.tile16_selector" -> true, ...}
+    std::unordered_map<std::string, std::unordered_map<std::string, bool>>
+        panel_visibility_state;
+
+    // Pinned panels (persists across sessions)
+    // Maps panel_id -> pinned
+    std::unordered_map<std::string, bool> pinned_panels;
+
+    // Named layouts (user-saved workspace configurations)
+    // Maps layout_name -> (panel_id -> visible)
+    std::unordered_map<std::string, std::unordered_map<std::string, bool>>
+        saved_layouts;
   };
 
   UserSettings();

@@ -1,8 +1,8 @@
 # ImHex-Style UI Modernization Plan for YAZE
 
 **Created:** 2026-01-19
-**Updated:** 2026-01-19
-**Status:** Phase 1-3 Complete, Phase 4+ In Progress
+**Updated:** 2026-01-20
+**Status:** Phase 1-4 Complete (except 3.2, 3.3), Phase 5+ In Progress
 **Reference:** `docs/internal/architecture/imhex-comparison-analysis.md`
 
 ---
@@ -18,12 +18,14 @@
 | 2.2 | Hover Effects | ✅ Done | Activity bar integrated |
 | 2.3 | Panel Transitions | ✅ Done | Fade-in/out via Animator in PanelManager |
 | 3.1 | Command Palette | ✅ Done | Recent files + history persistence added |
-| 3.2 | Contextual Help | ❌ TODO | |
-| 3.3 | Shortcut Overlay | ❌ TODO | |
+| 3.2 | Contextual Help | ✅ Done | RightPanelManager help panel + quick action URLs |
+| 3.3 | Shortcut Overlay | ✅ Done | Search, categorization already implemented |
 | 4.1 | Core Events | ✅ Done | Zoom, Selection, PanelVisibility events exist |
-| 4.2 | Migrate Callbacks | ❌ TODO | |
+| 4.2 | Migrate Callbacks | ✅ Done | PanelManager + EditorRegistry callbacks migrated |
 | 4.3 | Deprecate SessionObserver | ✅ Done | No active observers remain (dual-path in place) |
-| 5.x | Caching | ❌ TODO | |
+| 5.1 | Panel State Caching | ✅ Done | EditorPanel caching infrastructure |
+| 5.2 | Graphics Sheet Caching | ✅ Done | LRU cache in Arena |
+| 5.3 | Layout State Persistence | ✅ Done | Panel visibility + ImGui INI persistence |
 | 6.x | Provider Abstraction | ❌ Future | |
 
 ---
@@ -164,17 +166,35 @@ CommandPalette now includes all discoverable actions with history persistence.
 - `src/app/editor/system/command_palette.h/cc` - Added `RegisterRecentFilesCommands()`, `SaveHistory()`, `LoadHistory()`
 - `src/app/editor/ui/ui_coordinator.cc` - Integrated recent files and history in `InitializeCommandPalette()`
 
-### 3.2 Contextual Help System (P2)
+### 3.2 Contextual Help System ✅ DONE
 Add context-aware help based on current editor.
 
-**Files to modify:**
-- `src/app/editor/menu/right_panel_manager.h/cc` - Wire up help context
+**Implemented:**
+- RightPanelManager help panel shows context-aware content based on active editor
+- `SetActiveEditor()` called from `EditorManager::SetCurrentEditor()` to update context
+- Editor-specific shortcuts displayed per editor type
+- Editor-specific help content for each editor
+- Quick action buttons with working URLs (docs, GitHub issues, Discord)
 
-### 3.3 Keyboard Shortcut Overlay (P2)
-Enhance the existing KeyboardShortcuts overlay.
+**Files:**
+- `src/app/editor/menu/right_panel_manager.h/cc` - Full help panel implementation
 
-**Files to modify:**
-- `src/app/gui/keyboard_shortcuts.cc` - Add search, categorization
+### 3.3 Keyboard Shortcut Overlay ✅ DONE
+KeyboardShortcuts overlay already has all features implemented.
+
+**Implemented:**
+- Search filter (`ImGui::InputTextWithHint`)
+- Category sections with collapsible headers
+- Table display with Shortcut, Description, Context columns
+- Context-aware filtering
+- '?' key toggle and Escape to close
+- Semi-transparent background with centered modal
+
+**Files:**
+- `src/app/gui/keyboard_shortcuts.cc` - Full overlay implementation
+
+**Note:** The overlay exists but is not integrated into the main application loop.
+The RightPanelManager help panel provides similar functionality and is active.
 
 ---
 
@@ -205,12 +225,24 @@ struct ZoomChangedEvent : Event {
 };
 ```
 
-### 4.2 Migrate Direct Callbacks (P1)
+### 4.2 Migrate Direct Callbacks ✅ DONE
 Replace callback functions with EventBus where appropriate.
 
-**Files to modify:**
-- `src/app/editor/system/panel_manager.cc` - Publish visibility change events
-- Individual editors - Subscribe to relevant events
+**Implemented:**
+- Added `UIActionRequestEvent` with enum for all activity bar actions
+- Added `JumpToRoomRequestEvent` and `JumpToMapRequestEvent` for navigation
+- `PanelManager` publishes events via `SetEventBus()` (Trigger* methods prefer EventBus)
+- `EditorManager` subscribes to `UIActionRequestEvent` via `HandleUIActionRequest()`
+- `EditorActivator` subscribes to navigation events for JumpToDungeon/JumpToOverworld
+- All callback setters deprecated with `[[deprecated]]` attribute
+- Old callbacks kept for backward compatibility (fallback if EventBus not set)
+
+**Files modified:**
+- `src/app/editor/events/core_events.h` - Added UIActionRequestEvent, JumpTo*RequestEvent
+- `src/app/editor/system/panel_manager.h` - SetEventBus(), EventBus-aware Trigger* methods
+- `src/app/editor/system/editor_registry.h/cc` - Deprecated navigation callbacks
+- `src/app/editor/system/editor_activator.h/cc` - EventBus subscription for navigation
+- `src/app/editor/editor_manager.h/cc` - HandleUIActionRequest(), SetEventBus() call
 
 ### 4.3 Complete SessionObserver Deprecation ✅ DONE
 
@@ -238,43 +270,94 @@ event_bus_->Subscribe<SessionSwitchedEvent>([this](const auto& e) { ... });
 ## Phase 5: Caching and State Management
 **Timeline:** Week 5-6 | **Complexity:** High | **Impact:** Medium
 
-### 5.1 Panel State Caching (P2)
+### 5.1 Panel State Caching ✅ DONE
 Cache expensive panel computations.
 
-**Files to modify:**
-- `src/app/editor/system/editor_panel.h` - Add cache invalidation hooks
+**Implemented in `src/app/editor/system/editor_panel.h`:**
+- `InvalidateCache()` - Marks cache as stale
+- `GetCached<T>(key, compute)` - Get or compute cached value
+- `IsCacheValid()` - Check cache validity
+- `ClearCache()` - Clear all cached values and free memory
 
+**Usage example:**
 ```cpp
-class EditorPanel {
-protected:
-  void InvalidateCache() { cache_valid_ = false; }
-
-  template<typename T>
-  T& GetCached(const std::string& key, std::function<T()> compute) {
-    if (!cache_valid_ || !cache_.contains(key)) {
-      cache_[key] = compute();
-    }
-    return std::any_cast<T&>(cache_[key]);
+class MyPanel : public EditorPanel {
+  int GetExpensiveResult() {
+    return GetCached<int>("expensive_result", [this]() {
+      return ComputeExpensiveValue();
+    });
   }
 
-private:
-  bool cache_valid_ = false;
-  std::unordered_map<std::string, std::any> cache_;
+  void OnDataChanged() {
+    InvalidateCache();  // Mark stale, recompute on next access
+  }
 };
 ```
 
-### 5.2 Graphics Sheet Caching (P2)
-Optimize frequent graphics sheet access.
+### 5.2 Graphics Sheet Caching ✅ DONE
+Optimize frequent graphics sheet access with LRU eviction.
 
-**Files to modify:**
-- `src/app/gfx/resource/arena.h/cc` - Add LRU cache for rendered sheets
+**Implemented in `src/app/gfx/resource/arena.h/cc`:**
+- `TouchSheet(sheet_index)` - Mark sheet as recently accessed
+- `GetSheetWithCache(sheet_index)` - Get sheet with auto LRU tracking + texture creation
+- `SetSheetCacheSize(max_size)` - Configure max cached textures (default 64)
+- `EvictLRUSheets(count)` - Manual eviction for memory management
+- `SheetCacheStats` struct with hit rate, evictions, current size
 
-### 5.3 Layout State Persistence (P2)
+**Usage example:**
+```cpp
+// Instead of direct array access:
+auto& sheet = Arena::Get().gfx_sheets()[i];
+
+// Use cached access for automatic texture management:
+auto* sheet = Arena::Get().GetSheetWithCache(i);
+// - Tracks LRU order
+// - Queues texture creation if needed
+// - Evicts old textures when cache full
+```
+
+**Benefits:**
+- Reduces GPU memory by limiting cached textures (64 of 223 sheets)
+- O(1) access and LRU updates via doubly-linked list + hash map
+- Automatic eviction of least-used sheet textures
+- Statistics for cache performance monitoring
+
+### 5.3 Layout State Persistence ✅ DONE
 Save and restore panel states efficiently.
 
-**Files to modify:**
-- `src/app/editor/layout/layout_manager.cc` - Add state serialization
-- `src/app/editor/system/user_settings.cc` - Add panel state persistence
+**Implemented across three files:**
+
+**`src/app/editor/system/panel_manager.h/cc`:**
+- `GetVisiblePanelIds(session_id)` - Get list of visible panels
+- `SetVisiblePanels(session_id, panel_ids)` - Restore visible panels
+- `SerializeVisibilityState(session_id)` - Export visibility map
+- `RestoreVisibilityState(session_id, state)` - Import visibility map
+- `SerializePinnedState()` / `RestorePinnedState()` - Pinned panel persistence
+
+**`src/app/editor/layout/layout_manager.h/cc`:**
+- `SaveCurrentLayout(name)` - Save named layout (panels + ImGui docking)
+- `LoadLayout(name)` - Restore named layout
+- `DeleteLayout(name)` - Remove saved layout
+- `GetSavedLayoutNames()` - List all saved layouts
+- `HasLayout(name)` - Check if layout exists
+
+**`src/app/editor/system/user_settings.h/cc`:**
+- `panel_visibility_state` - Per-editor panel visibility persistence
+- `pinned_panels` - Pinned panels (persists across sessions)
+- `saved_layouts` - Named workspace configurations
+- INI serialization for all new state types
+
+**Usage:**
+```cpp
+// Save current workspace
+layout_manager.SaveCurrentLayout("MyWorkspace");
+
+// Later, restore it
+layout_manager.LoadLayout("MyWorkspace");
+
+// List available layouts
+auto names = layout_manager.GetSavedLayoutNames();
+```
 
 ---
 
@@ -356,15 +439,10 @@ Phase 2 (UX) ──────> Phase 3 (Discoverability) ──> Phase 4 (Even
 
 ## Recommended Next Steps
 
-**Phases 1-3 complete, Phase 4 events in place.** Prioritize:
+**Phases 1-5 complete.** All performance and caching work is done.
 
-### Immediate (P1)
-1. **Phase 4.2: Migrate Callbacks** - Replace remaining direct callbacks with EventBus
-2. **Phase 3.2: Contextual Help** - Add context-aware help panel
-
-### Short-term (P2)
-1. **Phase 5.1: Panel State Caching** - Cache expensive computations
-2. **Phase 3.3: Shortcut Overlay** - Enhance keyboard shortcuts UI
+### Future (P3)
+1. **Phase 6: Provider Abstraction** - DataProvider interface for patches, network, etc.
 
 ### Reference (Already Complete)
 - ✅ List Virtualization: 7+ files using ImGuiListClipper
@@ -375,4 +453,10 @@ Phase 2 (UX) ──────> Phase 3 (Discoverability) ──> Phase 4 (Even
 - ✅ Panel Transitions: Fade-in/out via Animator in PanelManager::DrawAllVisiblePanels
 - ✅ Command Palette: Recent files + JSON history persistence
 - ✅ Core Events: Zoom, Selection, PanelVisibility events
+- ✅ Callback Migration: PanelManager + EditorRegistry migrated to EventBus
 - ✅ SessionObserver Deprecated: Dual-path to EventBus, no active observers
+- ✅ Contextual Help: RightPanelManager help panel with quick action URLs
+- ✅ Shortcut Overlay: Search, categorization, context-aware filtering
+- ✅ Panel State Caching: EditorPanel caching infrastructure
+- ✅ Graphics Sheet Caching: LRU cache in Arena (64 sheet max, auto-eviction)
+- ✅ Layout State Persistence: PanelManager serialization + UserSettings + LayoutManager named layouts

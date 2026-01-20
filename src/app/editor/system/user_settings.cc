@@ -145,6 +145,31 @@ absl::Status UserSettings::Load() {
       else if (key == "show_status_bar") {
         prefs_.show_status_bar = (val == "1");
       }
+      // Panel Visibility State (format: panel_visibility.EditorType.panel_id=1)
+      else if (key.substr(0, 17) == "panel_visibility.") {
+        std::string rest = key.substr(17);
+        size_t dot_pos = rest.find('.');
+        if (dot_pos != std::string::npos) {
+          std::string editor_type = rest.substr(0, dot_pos);
+          std::string panel_id = rest.substr(dot_pos + 1);
+          prefs_.panel_visibility_state[editor_type][panel_id] = (val == "1");
+        }
+      }
+      // Pinned Panels (format: pinned_panel.panel_id=1)
+      else if (key.substr(0, 13) == "pinned_panel.") {
+        std::string panel_id = key.substr(13);
+        prefs_.pinned_panels[panel_id] = (val == "1");
+      }
+      // Saved Layouts (format: saved_layout.LayoutName.panel_id=1)
+      else if (key.substr(0, 13) == "saved_layout.") {
+        std::string rest = key.substr(13);
+        size_t dot_pos = rest.find('.');
+        if (dot_pos != std::string::npos) {
+          std::string layout_name = rest.substr(0, dot_pos);
+          std::string panel_id = rest.substr(dot_pos + 1);
+          prefs_.saved_layouts[layout_name][panel_id] = (val == "1");
+        }
+      }
     }
     ImGui::GetIO().FontGlobalScale = prefs_.font_global_scale;
   } catch (const std::exception& e) {
@@ -215,6 +240,27 @@ absl::Status UserSettings::Save() {
 
     // Status Bar
     ss << "show_status_bar=" << (prefs_.show_status_bar ? 1 : 0) << "\n";
+
+    // Panel Visibility State
+    for (const auto& [editor_type, panel_state] : prefs_.panel_visibility_state) {
+      for (const auto& [panel_id, visible] : panel_state) {
+        ss << "panel_visibility." << editor_type << "." << panel_id << "="
+           << (visible ? 1 : 0) << "\n";
+      }
+    }
+
+    // Pinned Panels
+    for (const auto& [panel_id, pinned] : prefs_.pinned_panels) {
+      ss << "pinned_panel." << panel_id << "=" << (pinned ? 1 : 0) << "\n";
+    }
+
+    // Saved Layouts
+    for (const auto& [layout_name, panel_state] : prefs_.saved_layouts) {
+      for (const auto& [panel_id, visible] : panel_state) {
+        ss << "saved_layout." << layout_name << "." << panel_id << "="
+           << (visible ? 1 : 0) << "\n";
+      }
+    }
 
     util::SaveFile(settings_file_path_, ss.str());
   } catch (const std::exception& e) {

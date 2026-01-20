@@ -1,7 +1,10 @@
 #ifndef YAZE_APP_EDITOR_SYSTEM_EDITOR_PANEL_H_
 #define YAZE_APP_EDITOR_SYSTEM_EDITOR_PANEL_H_
 
+#include <any>
+#include <functional>
 #include <string>
+#include <unordered_map>
 
 namespace yaze {
 namespace editor {
@@ -281,8 +284,75 @@ class EditorPanel {
     Draw(p_open);
   }
 
+ protected:
+  // ==========================================================================
+  // Caching Infrastructure (For Derived Panels)
+  // ==========================================================================
+
+  /**
+   * @brief Invalidate all cached computations
+   *
+   * Call this when the underlying data changes and cached values are stale.
+   * Common triggers:
+   * - Session switch (data context changes)
+   * - ROM data modification
+   * - Settings changes that affect computed values
+   */
+  void InvalidateCache() { cache_valid_ = false; }
+
+  /**
+   * @brief Get or compute a cached value
+   * @tparam T The type of the cached value
+   * @param key Unique identifier for this cached value
+   * @param compute Function to compute the value if not cached
+   * @return Reference to the cached value
+   *
+   * Example usage:
+   * ```cpp
+   * int GetExpensiveResult() {
+   *   return GetCached<int>("expensive_result", [this]() {
+   *     // Expensive computation here
+   *     return ComputeExpensiveValue();
+   *   });
+   * }
+   * ```
+   *
+   * @note The cache is invalidated when InvalidateCache() is called.
+   * @note Values are stored using std::any, so complex types work fine.
+   */
+  template <typename T>
+  T& GetCached(const std::string& key, std::function<T()> compute) {
+    if (!cache_valid_ || cache_.find(key) == cache_.end()) {
+      cache_[key] = compute();
+      cache_valid_ = true;  // Mark valid after first successful computation
+    }
+    return std::any_cast<T&>(cache_[key]);
+  }
+
+  /**
+   * @brief Check if cache has been invalidated
+   * @return true if cache is valid, false if InvalidateCache() was called
+   */
+  bool IsCacheValid() const { return cache_valid_; }
+
+  /**
+   * @brief Clear all cached values (more aggressive than InvalidateCache)
+   *
+   * Use this when you need to free memory, not just mark values as stale.
+   * InvalidateCache() just marks the cache as invalid but keeps values for
+   * potential debugging or lazy re-computation.
+   */
+  void ClearCache() {
+    cache_.clear();
+    cache_valid_ = false;
+  }
+
  private:
   bool lazy_init_done_ = false;
+
+  // Cache infrastructure
+  bool cache_valid_ = false;
+  std::unordered_map<std::string, std::any> cache_;
 };
 
 // Inline implementation (requires private member to be declared first)

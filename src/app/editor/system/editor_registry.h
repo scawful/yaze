@@ -37,14 +37,19 @@ class EditorRegistry {
   static std::vector<std::string> GetAllEditorCategories();
 
   // Editor navigation
+  // DEPRECATED: Use EventBus with JumpToRoomRequestEvent/JumpToMapRequestEvent instead
+  [[deprecated("Use EventBus::Publish(JumpToRoomRequestEvent::Create(room_id))")]]
   void JumpToDungeonRoom(int room_id);
+  [[deprecated("Use EventBus::Publish(JumpToMapRequestEvent::Create(map_id))")]]
   void JumpToOverworldMap(int map_id);
   void SwitchToEditor(EditorType editor_type);
 
-  // Callbacks for navigation
+  // DEPRECATED: Navigation callbacks replaced by EventBus subscriptions
+  [[deprecated("EditorActivator now subscribes to JumpToRoomRequestEvent")]]
   void SetJumpToDungeonRoomCallback(std::function<void(int)> callback) {
     jump_to_room_callback_ = std::move(callback);
   }
+  [[deprecated("EditorActivator now subscribes to JumpToMapRequestEvent")]]
   void SetJumpToOverworldMapCallback(std::function<void(int)> callback) {
     jump_to_map_callback_ = std::move(callback);
   }
