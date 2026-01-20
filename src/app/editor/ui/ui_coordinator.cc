@@ -36,6 +36,7 @@
 #include "core/project.h"
 #include "imgui/imgui.h"
 #include "util/file_util.h"
+#include "util/platform_paths.h"
 
 namespace yaze {
 namespace editor {
@@ -1243,9 +1244,15 @@ void UICoordinator::DrawCommandPalette() {
   }
   End();
 
-  // Update visibility state
+  // Update visibility state - save history when closing
   if (!show_palette) {
     show_command_palette_ = false;
+    // Save command usage history on close
+    auto config_dir = util::PlatformPaths::GetConfigDirectory();
+    if (config_dir.ok()) {
+      std::filesystem::path history_file = *config_dir / "command_history.json";
+      command_palette_.SaveHistory(history_file.string());
+    }
   }
 }
 
@@ -1272,6 +1279,26 @@ void UICoordinator::InitializeCommandPalette(size_t session_id) {
                           ToastType::kSuccess);
     }
   });
+
+  // Register recent files commands
+  command_palette_.RegisterRecentFilesCommands(
+      [this](const std::string& filepath) {
+        if (editor_manager_) {
+          auto status = editor_manager_->OpenRomOrProject(filepath);
+          if (!status.ok()) {
+            toast_manager_.Show(
+                absl::StrFormat("Failed to open: %s", status.message()),
+                ToastType::kError);
+          }
+        }
+      });
+
+  // Load command usage history
+  auto config_dir = util::PlatformPaths::GetConfigDirectory();
+  if (config_dir.ok()) {
+    std::filesystem::path history_file = *config_dir / "command_history.json";
+    command_palette_.LoadHistory(history_file.string());
+  }
 
   command_palette_initialized_ = true;
 }

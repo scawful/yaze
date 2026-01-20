@@ -3,10 +3,15 @@
 #include <algorithm>
 #include <cctype>
 #include <chrono>
+#include <filesystem>
+#include <fstream>
 
 #include "absl/strings/str_format.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/panel_manager.h"
+#include "core/project.h"
+#include "util/json.h"
+#include "util/log.h"
 
 namespace yaze {
 namespace editor {
@@ -164,11 +169,65 @@ std::vector<CommandEntry> CommandPalette::GetFrequentCommands(int limit) {
 }
 
 void CommandPalette::SaveHistory(const std::string& filepath) {
-  // TODO: Implement JSON serialization of command history
+  try {
+    yaze::Json j;
+    j["version"] = 1;
+    j["commands"] = yaze::Json::object();
+
+    for (const auto& [name, entry] : commands_) {
+      if (entry.usage_count > 0) {
+        yaze::Json cmd;
+        cmd["usage_count"] = entry.usage_count;
+        cmd["last_used_ms"] = entry.last_used_ms;
+        j["commands"][name] = cmd;
+      }
+    }
+
+    std::ofstream file(filepath);
+    if (file.is_open()) {
+      file << j.dump(2);
+      LOG_INFO("CommandPalette", "Saved command history to %s",
+               filepath.c_str());
+    }
+  } catch (const std::exception& e) {
+    LOG_ERROR("CommandPalette", "Failed to save command history: %s", e.what());
+  }
 }
 
 void CommandPalette::LoadHistory(const std::string& filepath) {
-  // TODO: Implement JSON deserialization of command history
+  if (!std::filesystem::exists(filepath)) {
+    return;
+  }
+
+  try {
+    std::ifstream file(filepath);
+    if (!file.is_open()) {
+      return;
+    }
+
+    std::string content((std::istreambuf_iterator<char>(file)),
+                        std::istreambuf_iterator<char>());
+    yaze::Json j = yaze::Json::parse(content);
+
+    if (!j.contains("commands") || !j["commands"].is_object()) {
+      return;
+    }
+
+    int loaded = 0;
+    for (auto& [name, cmd_json] : j["commands"].items()) {
+      auto it = commands_.find(name);
+      if (it != commands_.end()) {
+        it->second.usage_count = cmd_json.value("usage_count", 0);
+        it->second.last_used_ms = cmd_json.value("last_used_ms", int64_t{0});
+        loaded++;
+      }
+    }
+
+    LOG_INFO("CommandPalette", "Loaded %d command history entries from %s",
+             loaded, filepath.c_str());
+  } catch (const std::exception& e) {
+    LOG_ERROR("CommandPalette", "Failed to load command history: %s", e.what());
+  }
 }
 
 std::vector<CommandEntry> CommandPalette::GetAllCommands() const {
@@ -274,6 +333,29 @@ void CommandPalette::RegisterLayoutCommands(
   AddCommand("Reset Layout: Default", CommandCategory::kLayout,
              "Reset to the default layout for current editor", "",
              [apply_callback]() { apply_callback("Default"); });
+}
+
+void CommandPalette::RegisterRecentFilesCommands(
+    std::function<void(const std::string&)> open_callback) {
+  const auto& recent_files =
+      project::RecentFilesManager::GetInstance().GetRecentFiles();
+
+  for (const auto& filepath : recent_files) {
+    // Skip files that no longer exist
+    if (!std::filesystem::exists(filepath)) {
+      continue;
+    }
+
+    // Extract just the filename for display
+    std::filesystem::path path(filepath);
+    std::string filename = path.filename().string();
+
+    std::string name = absl::StrFormat("Open Recent: %s", filename);
+    std::string desc = absl::StrFormat("Open file %s", filepath);
+
+    AddCommand(name, CommandCategory::kFile, desc, "",
+               [open_callback, filepath]() { open_callback(filepath); });
+  }
 }
 
 }  // namespace editor
