@@ -4,10 +4,7 @@
 #include "app/editor/system/editor_panel.h"
 #include "app/gui/core/icons.h"
 
-namespace yaze {
-namespace editor {
-
-class Tile16Editor;
+namespace yaze::editor {
 
 /**
  * @class Tile16EditorPanel
@@ -15,10 +12,14 @@ class Tile16Editor;
  *
  * Provides a dockable panel interface for the Tile16 editor.
  * Menu items from the original MenuBar are available through a context menu.
+ *
+ * Uses ContentRegistry::Context to access the current OverworldEditor,
+ * then accesses its tile16_editor() member.
+ * Self-registers via REGISTER_PANEL macro.
  */
 class Tile16EditorPanel : public EditorPanel {
  public:
-  explicit Tile16EditorPanel(Tile16Editor* editor) : editor_(editor) {}
+  Tile16EditorPanel() = default;
 
   // EditorPanel interface
   std::string GetId() const override { return "overworld.tile16_editor"; }
@@ -29,12 +30,8 @@ class Tile16EditorPanel : public EditorPanel {
   float GetPreferredWidth() const override { return 500.0f; }
 
   void Draw(bool* p_open) override;
-
- private:
-  Tile16Editor* editor_;
 };
 
-}  // namespace editor
-}  // namespace yaze
+}  // namespace yaze::editor
 
 #endif  // YAZE_APP_EDITOR_OVERWORLD_PANELS_TILE16_EDITOR_PANEL_H
