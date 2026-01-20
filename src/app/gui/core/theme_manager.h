@@ -312,6 +312,7 @@ class ThemeManager {
   // Helper methods for path resolution
   std::vector<std::string> GetThemeSearchPaths() const;
   std::string GetThemesDirectory() const;
+  std::string GetUserThemesDirectory() const;  // Returns ~/.yaze/themes/
   std::string GetCurrentThemeFilePath() const;
 };
 
