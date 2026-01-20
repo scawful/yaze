@@ -9,10 +9,11 @@ if [[ $# -lt 1 ]]; then
 fi
 
 PRESET="$1"
+BUILD_JOBS="${YAZE_BUILD_JOBS:-${CMAKE_BUILD_PARALLEL_LEVEL:-4}}"
 
 START=$(date +%s)
 cmake --preset "$PRESET"
-cmake --build --preset "$PRESET"
+cmake --build --preset "$PRESET" --parallel "$BUILD_JOBS"
 END=$(date +%s)
 
 ELAPSED=$((END - START))

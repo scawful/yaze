@@ -85,6 +85,24 @@ target_link_libraries(yaze PRIVATE
   absl::flags
   absl::flags_parse
 )
+
+# Force-load yaze_editor to ensure static REGISTER_PANEL objects are included.
+# Without this, the linker strips panel object files since nothing references them.
+if(APPLE)
+  target_link_options(yaze PRIVATE
+    "-Wl,-force_load,$<TARGET_LINKER_FILE:yaze_editor>"
+  )
+elseif(UNIX)
+  target_link_options(yaze PRIVATE
+    "-Wl,--whole-archive"
+    "$<TARGET_LINKER_FILE:yaze_editor>"
+    "-Wl,--no-whole-archive"
+  )
+elseif(MSVC)
+  target_link_options(yaze PRIVATE
+    "/WHOLEARCHIVE:$<TARGET_LINKER_FILE:yaze_editor>"
+  )
+endif()
 # gRPC/protobuf linking is now handled by yaze_grpc_support library
 if(YAZE_ENABLE_REMOTE_AUTOMATION)
   if(TARGET yaze_grpc_support)

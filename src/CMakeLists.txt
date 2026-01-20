@@ -117,8 +117,16 @@ if(YAZE_BUILD_GUI OR YAZE_BUILD_Z3ED OR YAZE_BUILD_TESTS OR YAZE_BUILD_LAB OR YA
   include(app/app.cmake)
 endif()
 
+if(YAZE_BUILD_GUI OR YAZE_BUILD_Z3ED OR YAZE_BUILD_TESTS OR YAZE_BUILD_CLI)
+  include(cli/cli_core.cmake)
+endif()
+
 if(YAZE_BUILD_GUI OR YAZE_BUILD_Z3ED OR YAZE_BUILD_TESTS)
   include(cli/agent.cmake)
+endif()
+
+if(YAZE_ENABLE_AGENT_CLI AND (YAZE_BUILD_CLI OR YAZE_BUILD_Z3ED))
+  include(cli/cli_agent.cmake)
 endif()
 
 # Editor and emulator (depend on test support when tests are enabled)
@@ -152,7 +160,6 @@ if (YAZE_BUILD_LIB)
     yaze_core_lib
     yaze_editor
     yaze_emulator
-    yaze_agent
     ImGui
   )
 endif()
