@@ -9,16 +9,57 @@
 namespace yaze {
 namespace gui {
 
+// Transition types for panel animations
+enum class TransitionType {
+  kNone,
+  kFade,       // Simple alpha fade
+  kSlideLeft,  // Slide in from left
+  kSlideRight, // Slide in from right
+  kSlideUp,    // Slide in from bottom
+  kSlideDown,  // Slide in from top
+  kScale,      // Scale from center
+  kExpand      // Expand from point
+};
+
 class Animator {
  public:
+  // Static easing functions
   static float Lerp(float a, float b, float t);
   static float EaseOutCubic(float t);
+  static float EaseInOutCubic(float t);
+  static float EaseOutElastic(float t);
+  static float EaseOutBack(float t);
   static ImVec4 LerpColor(ImVec4 a, ImVec4 b, float t);
 
+  // Basic animations
   float Animate(const std::string& panel_id, const std::string& anim_id,
                 float target, float speed = 5.0f);
   ImVec4 AnimateColor(const std::string& panel_id, const std::string& anim_id,
                       ImVec4 target, float speed = 5.0f);
+
+  // Panel transition animations
+  struct PanelTransition {
+    float alpha = 1.0f;
+    float offset_x = 0.0f;
+    float offset_y = 0.0f;
+    float scale = 1.0f;
+    bool is_complete = true;
+  };
+
+  // Start a panel transition (call when panel opens)
+  void BeginPanelTransition(const std::string& panel_id, TransitionType type);
+
+  // Update and get current transition state (call each frame)
+  PanelTransition UpdatePanelTransition(const std::string& panel_id,
+                                        float speed = 8.0f);
+
+  // Check if panel is currently transitioning
+  bool IsPanelTransitioning(const std::string& panel_id) const;
+
+  // Apply transition to ImGui window (call before/after Begin)
+  void ApplyPanelTransitionPre(const std::string& panel_id);
+  void ApplyPanelTransitionPost(const std::string& panel_id);
+
   void ClearAnimationsForPanel(const std::string& panel_id);
 
   bool IsEnabled() const;
@@ -31,6 +72,14 @@ class Animator {
     bool has_color = false;
   };
 
+  struct PanelTransitionState {
+    TransitionType type = TransitionType::kNone;
+    float progress = 1.0f;  // 0 = start, 1 = complete
+    bool active = false;
+    float initial_offset_x = 0.0f;
+    float initial_offset_y = 0.0f;
+  };
+
   using AnimationMap = std::unordered_map<std::string, AnimationState>;
 
   AnimationState& GetState(const std::string& panel_id,
@@ -38,6 +87,7 @@ class Animator {
   float ComputeStep(float speed) const;
 
   std::unordered_map<std::string, AnimationMap> panels_;
+  std::unordered_map<std::string, PanelTransitionState> panel_transitions_;
 };
 
 Animator& GetAnimator();

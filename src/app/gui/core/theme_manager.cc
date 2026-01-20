@@ -122,6 +122,56 @@ void Theme::ApplyToImGui() const {
   style->TabRounding = tab_rounding;
   style->WindowBorderSize = window_border_size;
   style->FrameBorderSize = frame_border_size;
+
+  // Apply density-based sizing
+  float base_spacing = 8.0f * compact_factor;
+  style->WindowPadding = ImVec2(base_spacing, base_spacing);
+  style->FramePadding = ImVec2(base_spacing * 0.5f, base_spacing * 0.375f);
+  style->CellPadding = ImVec2(base_spacing * 0.5f, base_spacing * 0.25f);
+  style->ItemSpacing = ImVec2(base_spacing, base_spacing * 0.5f);
+  style->ItemInnerSpacing = ImVec2(base_spacing * 0.5f, base_spacing * 0.5f);
+  style->IndentSpacing = base_spacing * 2.5f;
+  style->ScrollbarSize = 14.0f * compact_factor;
+  style->GrabMinSize = 12.0f * compact_factor;
+}
+
+void Theme::ApplyDensityPreset(DensityPreset preset) {
+  density_preset = preset;
+
+  switch (preset) {
+    case DensityPreset::kCompact:
+      compact_factor = 0.75f;
+      widget_height_multiplier = 0.85f;
+      spacing_multiplier = 0.7f;
+      toolbar_height_multiplier = 0.65f;
+      panel_padding_multiplier = 0.75f;
+      button_padding_multiplier = 0.8f;
+      table_row_height_multiplier = 0.85f;
+      canvas_toolbar_multiplier = 0.6f;
+      break;
+
+    case DensityPreset::kNormal:
+      compact_factor = 1.0f;
+      widget_height_multiplier = 1.0f;
+      spacing_multiplier = 1.0f;
+      toolbar_height_multiplier = 0.8f;
+      panel_padding_multiplier = 1.0f;
+      button_padding_multiplier = 1.0f;
+      table_row_height_multiplier = 1.0f;
+      canvas_toolbar_multiplier = 0.75f;
+      break;
+
+    case DensityPreset::kComfortable:
+      compact_factor = 1.25f;
+      widget_height_multiplier = 1.2f;
+      spacing_multiplier = 1.3f;
+      toolbar_height_multiplier = 1.0f;
+      panel_padding_multiplier = 1.25f;
+      button_padding_multiplier = 1.2f;
+      table_row_height_multiplier = 1.2f;
+      canvas_toolbar_multiplier = 0.9f;
+      break;
+  }
 }
 
 // ThemeManager Implementation
@@ -390,6 +440,9 @@ absl::Status ThemeManager::LoadThemeFromFile(const std::string& filepath) {
         absl::StrFormat("Theme file missing name: %s", successful_path));
   }
 
+  // Fill in any missing properties with smart defaults
+  ApplySmartDefaults(theme);
+
   themes_[theme.name] = theme;
   return absl::OkStatus();
 }
@@ -511,9 +564,14 @@ void ThemeManager::ShowThemeSelector(bool* p_open) {
     }
     std::sort(sorted_theme_names.begin(), sorted_theme_names.end());
 
+    // Track if any theme item is hovered for live preview
+    bool any_theme_hovered = false;
+    static std::string hovered_theme_name;
+
     for (const auto& name : sorted_theme_names) {
       const auto& theme = themes_.at(name);
-      bool is_current = (name == current_theme_name_);
+      bool is_current = (name == current_theme_name_) ||
+                        (IsPreviewActive() && name == hovered_theme_name);
 
       if (is_current) {
         ImGui::PushStyleColor(ImGuiCol_Button,
@@ -526,12 +584,19 @@ void ThemeManager::ShowThemeSelector(bool* p_open) {
                               name.c_str())
                   .c_str(),
               ImVec2(-1, 40))) {
+        // End preview before applying (to restore original first)
+        if (IsPreviewActive()) {
+          EndPreview();
+        }
         auto status = LoadTheme(name);  // Use LoadTheme instead of ApplyTheme
                                         // to ensure correct tracking
         if (!status.ok()) {
           LOG_ERROR("Theme Manager", "Failed to load theme %s", name.c_str());
         }
       }
+
+      // Check hover state for live preview
+      bool button_hovered = ImGui::IsItemHovered();
 
       if (is_current) {
         ImGui::PopStyleColor();
@@ -542,22 +607,45 @@ void ThemeManager::ShowThemeSelector(bool* p_open) {
       ImGui::ColorButton(absl::StrFormat("##primary_%s", name.c_str()).c_str(),
                          ConvertColorToImVec4(theme.primary),
                          ImGuiColorEditFlags_NoTooltip, ImVec2(20, 20));
+      bool color1_hovered = ImGui::IsItemHovered();
       ImGui::SameLine();
       ImGui::ColorButton(
           absl::StrFormat("##secondary_%s", name.c_str()).c_str(),
           ConvertColorToImVec4(theme.secondary), ImGuiColorEditFlags_NoTooltip,
           ImVec2(20, 20));
+      bool color2_hovered = ImGui::IsItemHovered();
       ImGui::SameLine();
       ImGui::ColorButton(absl::StrFormat("##accent_%s", name.c_str()).c_str(),
                          ConvertColorToImVec4(theme.accent),
                          ImGuiColorEditFlags_NoTooltip, ImVec2(20, 20));
+      bool color3_hovered = ImGui::IsItemHovered();
 
-      if (ImGui::IsItemHovered()) {
+      // If hovering any part of this theme row, show tooltip and trigger preview
+      bool row_hovered =
+          button_hovered || color1_hovered || color2_hovered || color3_hovered;
+
+      if (row_hovered) {
+        any_theme_hovered = true;
+        hovered_theme_name = name;
+
+        // Start preview if not already previewing this theme
+        if (!IsPreviewActive() || current_theme_name_ != name) {
+          StartPreview(name);
+        }
+
         ImGui::BeginTooltip();
+        ImGui::Text("%s %s", ICON_MD_PREVIEW, "Live Preview Active");
+        ImGui::Separator();
         ImGui::Text("%s", theme.description.c_str());
         ImGui::Text("Author: %s", theme.author.c_str());
         ImGui::EndTooltip();
       }
+    }
+
+    // End preview if no theme is hovered
+    if (!any_theme_hovered && IsPreviewActive()) {
+      EndPreview();
+      hovered_theme_name.clear();
     }
 
     ImGui::Separator();
@@ -607,12 +695,13 @@ absl::Status ThemeManager::ParseThemeFile(const std::string& content,
                                           Theme& theme) {
   std::istringstream stream(content);
   std::string line;
-  std::string current_section = "";
+  std::string current_section;
 
   while (std::getline(stream, line)) {
     // Skip empty lines and comments
-    if (line.empty() || line[0] == '#')
+    if (line.empty() || line[0] == '#') {
       continue;
+    }
 
     // Check for section headers [section_name]
     if (line[0] == '[' && line.back() == ']') {
@@ -621,8 +710,9 @@ absl::Status ThemeManager::ParseThemeFile(const std::string& content,
     }
 
     size_t eq_pos = line.find('=');
-    if (eq_pos == std::string::npos)
+    if (eq_pos == std::string::npos) {
       continue;
+    }
 
     std::string key = line.substr(0, eq_pos);
     std::string value = line.substr(eq_pos + 1);
@@ -816,6 +906,360 @@ absl::Status ThemeManager::ParseThemeFile(const std::string& content,
   }
 
   return absl::OkStatus();
+}
+
+void ThemeManager::ApplySmartDefaults(Theme& theme) {
+  // Helper to check if a color is uninitialized (all zeros)
+  auto is_unset = [](const Color& color) {
+    return color.red == 0.0f && color.green == 0.0f &&
+           color.blue == 0.0f && color.alpha == 0.0f;
+  };
+
+  // Helper to create a color with modified alpha
+  auto with_alpha = [](const Color& color, float alpha) {
+    return Color{color.red, color.green, color.blue, alpha};
+  };
+
+  // Helper to lighten a color
+  auto lighten = [](const Color& color, float amount) {
+    return Color{
+        std::min(1.0f, color.red + amount),
+        std::min(1.0f, color.green + amount),
+        std::min(1.0f, color.blue + amount),
+        color.alpha};
+  };
+
+  // Helper to darken a color
+  auto darken = [](const Color& color, float amount) {
+    return Color{
+        std::max(0.0f, color.red - amount),
+        std::max(0.0f, color.green - amount),
+        std::max(0.0f, color.blue - amount),
+        color.alpha};
+  };
+
+  // Borders and separators
+  if (is_unset(theme.border)) {
+    theme.border = theme.primary;
+  }
+  if (is_unset(theme.border_shadow)) {
+    theme.border_shadow = RGBA(0, 0, 0, 0);
+  }
+  if (is_unset(theme.separator)) {
+    theme.separator = with_alpha(theme.secondary, 0.6f);
+  }
+  if (is_unset(theme.separator_hovered)) {
+    theme.separator_hovered = with_alpha(theme.primary, 0.8f);
+  }
+  if (is_unset(theme.separator_active)) {
+    theme.separator_active = theme.accent;
+  }
+
+  // Scrollbars
+  if (is_unset(theme.scrollbar_bg)) {
+    theme.scrollbar_bg = with_alpha(theme.surface, 0.6f);
+  }
+  if (is_unset(theme.scrollbar_grab)) {
+    theme.scrollbar_grab = with_alpha(theme.secondary, 0.5f);
+  }
+  if (is_unset(theme.scrollbar_grab_hovered)) {
+    theme.scrollbar_grab_hovered = with_alpha(theme.secondary, 0.7f);
+  }
+  if (is_unset(theme.scrollbar_grab_active)) {
+    theme.scrollbar_grab_active = with_alpha(theme.secondary, 0.9f);
+  }
+
+  // Resize grips
+  if (is_unset(theme.resize_grip)) {
+    theme.resize_grip = RGBA(255, 255, 255, 26);
+  }
+  if (is_unset(theme.resize_grip_hovered)) {
+    theme.resize_grip_hovered = with_alpha(theme.accent, 0.6f);
+  }
+  if (is_unset(theme.resize_grip_active)) {
+    theme.resize_grip_active = with_alpha(theme.accent, 0.9f);
+  }
+
+  // Controls
+  if (is_unset(theme.check_mark)) {
+    theme.check_mark = lighten(theme.accent, 0.2f);
+  }
+  if (is_unset(theme.slider_grab)) {
+    theme.slider_grab = theme.primary;
+  }
+  if (is_unset(theme.slider_grab_active)) {
+    theme.slider_grab_active = theme.accent;
+  }
+
+  // Tables
+  if (is_unset(theme.table_header_bg)) {
+    theme.table_header_bg = theme.header;
+  }
+  if (is_unset(theme.table_border_strong)) {
+    theme.table_border_strong = theme.secondary;
+  }
+  if (is_unset(theme.table_border_light)) {
+    theme.table_border_light = with_alpha(theme.surface, 0.5f);
+  }
+  if (is_unset(theme.table_row_bg)) {
+    theme.table_row_bg = RGBA(0, 0, 0, 0);
+  }
+  if (is_unset(theme.table_row_bg_alt)) {
+    theme.table_row_bg_alt = RGBA(255, 255, 255, 20);
+  }
+
+  // Links
+  if (is_unset(theme.text_link)) {
+    theme.text_link = theme.info;
+  }
+
+  // Navigation and special elements
+  if (is_unset(theme.input_text_cursor)) {
+    theme.input_text_cursor = theme.text_primary;
+  }
+  if (is_unset(theme.nav_cursor)) {
+    theme.nav_cursor = theme.accent;
+  }
+  if (is_unset(theme.nav_windowing_highlight)) {
+    theme.nav_windowing_highlight = with_alpha(theme.accent, 0.8f);
+  }
+  if (is_unset(theme.nav_windowing_dim_bg)) {
+    theme.nav_windowing_dim_bg = RGBA(0, 0, 0, 128);
+  }
+  if (is_unset(theme.modal_window_dim_bg)) {
+    theme.modal_window_dim_bg = RGBA(0, 0, 0, 100);
+  }
+  if (is_unset(theme.text_selected_bg)) {
+    theme.text_selected_bg = with_alpha(theme.primary, 0.4f);
+  }
+  if (is_unset(theme.drag_drop_target)) {
+    theme.drag_drop_target = with_alpha(theme.accent, 0.8f);
+  }
+
+  // Docking
+  if (is_unset(theme.docking_preview)) {
+    theme.docking_preview = with_alpha(theme.primary, 0.7f);
+  }
+  if (is_unset(theme.docking_empty_bg)) {
+    theme.docking_empty_bg = theme.header;
+  }
+
+  // Tree
+  if (is_unset(theme.tree_lines)) {
+    theme.tree_lines = with_alpha(theme.separator, 0.6f);
+  }
+
+  // Tab variations
+  if (is_unset(theme.tab_dimmed)) {
+    theme.tab_dimmed = darken(theme.tab, 0.1f);
+  }
+  if (is_unset(theme.tab_dimmed_selected)) {
+    theme.tab_dimmed_selected = darken(theme.tab_active, 0.1f);
+  }
+  if (is_unset(theme.tab_dimmed_selected_overline)) {
+    theme.tab_dimmed_selected_overline = theme.accent;
+  }
+  if (is_unset(theme.tab_selected_overline)) {
+    theme.tab_selected_overline = theme.accent;
+  }
+
+  // Surface variants (if missing)
+  if (is_unset(theme.surface)) {
+    theme.surface = theme.background;
+  }
+  if (is_unset(theme.modal_bg)) {
+    theme.modal_bg = theme.popup_bg;
+  }
+}
+
+Theme ThemeManager::GenerateThemeFromAccent(const Color& accent,
+                                            bool dark_mode) {
+  Theme theme;
+  theme.name = "Custom Accent Theme";
+  theme.description = "Generated from accent color";
+  theme.author = "YAZE Theme Generator";
+
+  // Get HSL of accent for derivation
+  Color::HSL accent_hsl = accent.ToHSL();
+
+  // Generate primary as a slightly darker/less saturated version of accent
+  theme.primary = accent;
+  theme.accent = accent;
+
+  // Generate secondary with complementary hue shift (30 degrees)
+  theme.secondary = accent.ShiftHue(30.0f).Desaturate(0.1f);
+
+  if (dark_mode) {
+    // Dark theme: very dark backgrounds, light text
+    theme.background = Color::FromHSL(accent_hsl.h, 0.15f, 0.08f);
+    theme.surface = Color::FromHSL(accent_hsl.h, 0.12f, 0.12f);
+    theme.window_bg = theme.background.WithAlpha(0.95f);
+    theme.child_bg = Color::FromHSL(accent_hsl.h, 0.10f, 0.10f).WithAlpha(0.8f);
+    theme.popup_bg = Color::FromHSL(accent_hsl.h, 0.12f, 0.14f).WithAlpha(0.98f);
+    theme.modal_bg = theme.popup_bg;
+
+    // Light text on dark backgrounds
+    theme.text_primary = Color{0.95f, 0.95f, 0.95f, 1.0f};
+    theme.text_secondary = Color{0.75f, 0.75f, 0.78f, 1.0f};
+    theme.text_disabled = Color{0.45f, 0.45f, 0.48f, 1.0f};
+
+    // Buttons derived from accent
+    theme.button = accent.Darker(0.15f).Desaturate(0.1f);
+    theme.button_hovered = accent;
+    theme.button_active = accent.Lighter(0.1f);
+
+    // Frame backgrounds (inputs, etc.)
+    theme.frame_bg = Color::FromHSL(accent_hsl.h, 0.08f, 0.15f);
+    theme.frame_bg_hovered = Color::FromHSL(accent_hsl.h, 0.12f, 0.20f);
+    theme.frame_bg_active = Color::FromHSL(accent_hsl.h, 0.15f, 0.25f);
+
+    // Headers
+    theme.header = Color::FromHSL(accent_hsl.h, 0.20f, 0.18f);
+    theme.header_hovered = accent.Darker(0.2f);
+    theme.header_active = accent.Darker(0.1f);
+
+    // Tabs
+    theme.tab = Color::FromHSL(accent_hsl.h, 0.12f, 0.12f);
+    theme.tab_hovered = accent.Darker(0.25f);
+    theme.tab_active = accent.Darker(0.15f);
+
+    // Title bars
+    theme.title_bg = Color::FromHSL(accent_hsl.h, 0.15f, 0.10f);
+    theme.title_bg_active = Color::FromHSL(accent_hsl.h, 0.20f, 0.14f);
+    theme.title_bg_collapsed = theme.title_bg;
+
+    // Menu bar
+    theme.menu_bar_bg = Color::FromHSL(accent_hsl.h, 0.10f, 0.12f);
+
+  } else {
+    // Light theme: light backgrounds, dark text
+    theme.background = Color::FromHSL(accent_hsl.h, 0.05f, 0.96f);
+    theme.surface = Color::FromHSL(accent_hsl.h, 0.08f, 0.94f);
+    theme.window_bg = theme.background.WithAlpha(0.98f);
+    theme.child_bg = Color::FromHSL(accent_hsl.h, 0.05f, 0.92f).WithAlpha(0.8f);
+    theme.popup_bg = Color{1.0f, 1.0f, 1.0f, 0.98f};
+    theme.modal_bg = theme.popup_bg;
+
+    // Dark text on light backgrounds
+    theme.text_primary = Color{0.12f, 0.12f, 0.15f, 1.0f};
+    theme.text_secondary = Color{0.35f, 0.35f, 0.40f, 1.0f};
+    theme.text_disabled = Color{0.60f, 0.60f, 0.65f, 1.0f};
+
+    // Buttons derived from accent
+    theme.button = accent.Lighter(0.1f);
+    theme.button_hovered = accent;
+    theme.button_active = accent.Darker(0.1f);
+
+    // Frame backgrounds (inputs, etc.)
+    theme.frame_bg = Color::FromHSL(accent_hsl.h, 0.05f, 0.90f);
+    theme.frame_bg_hovered = Color::FromHSL(accent_hsl.h, 0.08f, 0.85f);
+    theme.frame_bg_active = Color::FromHSL(accent_hsl.h, 0.12f, 0.80f);
+
+    // Headers
+    theme.header = Color::FromHSL(accent_hsl.h, 0.08f, 0.88f);
+    theme.header_hovered = accent.Lighter(0.2f);
+    theme.header_active = accent.Lighter(0.1f);
+
+    // Tabs
+    theme.tab = Color::FromHSL(accent_hsl.h, 0.05f, 0.90f);
+    theme.tab_hovered = accent.Lighter(0.25f);
+    theme.tab_active = accent.Lighter(0.15f);
+
+    // Title bars
+    theme.title_bg = Color::FromHSL(accent_hsl.h, 0.05f, 0.92f);
+    theme.title_bg_active = Color::FromHSL(accent_hsl.h, 0.10f, 0.88f);
+    theme.title_bg_collapsed = theme.title_bg;
+
+    // Menu bar
+    theme.menu_bar_bg = Color::FromHSL(accent_hsl.h, 0.05f, 0.94f);
+  }
+
+  // Status colors (independent of dark/light mode)
+  theme.error = Color{0.90f, 0.30f, 0.30f, 1.0f};
+  theme.warning = Color{0.95f, 0.75f, 0.25f, 1.0f};
+  theme.success = Color{0.30f, 0.85f, 0.45f, 1.0f};
+  theme.info = Color{0.35f, 0.70f, 0.95f, 1.0f};
+
+  // Borders using accent hue
+  theme.border = accent.WithAlpha(0.6f);
+  theme.border_shadow = Color{0.0f, 0.0f, 0.0f, 0.0f};
+  theme.separator = accent.Desaturate(0.3f).WithAlpha(0.4f);
+  theme.separator_hovered = accent.WithAlpha(0.7f);
+  theme.separator_active = accent;
+
+  // Scrollbars
+  theme.scrollbar_bg = dark_mode ? Color::FromHSL(accent_hsl.h, 0.08f, 0.12f)
+                                 : Color::FromHSL(accent_hsl.h, 0.05f, 0.88f);
+  theme.scrollbar_grab = accent.Darker(0.2f).WithAlpha(0.6f);
+  theme.scrollbar_grab_hovered = accent.WithAlpha(0.8f);
+  theme.scrollbar_grab_active = accent;
+
+  // Resize grips
+  theme.resize_grip = Color{1.0f, 1.0f, 1.0f, 0.1f};
+  theme.resize_grip_hovered = accent.WithAlpha(0.6f);
+  theme.resize_grip_active = accent;
+
+  // Controls
+  theme.check_mark = accent.Lighter(0.2f);
+  theme.slider_grab = accent;
+  theme.slider_grab_active = accent.Lighter(0.15f);
+
+  // Tables
+  theme.table_header_bg = theme.header;
+  theme.table_border_strong = accent.Desaturate(0.2f);
+  theme.table_border_light = accent.Desaturate(0.4f).WithAlpha(0.5f);
+  theme.table_row_bg = Color{0.0f, 0.0f, 0.0f, 0.0f};
+  theme.table_row_bg_alt = accent.WithAlpha(0.05f);
+
+  // Links
+  theme.text_link = accent.Lighter(0.1f);
+
+  // Navigation
+  theme.input_text_cursor = theme.text_primary;
+  theme.nav_cursor = accent;
+  theme.nav_windowing_highlight = accent.WithAlpha(0.7f);
+  theme.nav_windowing_dim_bg = Color{0.0f, 0.0f, 0.0f, 0.5f};
+  theme.modal_window_dim_bg = Color{0.0f, 0.0f, 0.0f, 0.4f};
+  theme.text_selected_bg = accent.WithAlpha(0.35f);
+  theme.drag_drop_target = accent.WithAlpha(0.8f);
+
+  // Docking
+  theme.docking_preview = accent.WithAlpha(0.7f);
+  theme.docking_empty_bg = theme.menu_bar_bg;
+
+  // Tree lines
+  theme.tree_lines = accent.Desaturate(0.3f).WithAlpha(0.4f);
+
+  // Tab variations
+  theme.tab_unfocused = theme.tab.Darker(0.05f);
+  theme.tab_unfocused_active = theme.tab_active.Darker(0.1f);
+  theme.tab_dimmed = theme.tab.Darker(0.1f);
+  theme.tab_dimmed_selected = theme.tab_active.Darker(0.05f);
+  theme.tab_dimmed_selected_overline = accent;
+  theme.tab_selected_overline = accent;
+
+  // Style parameters
+  theme.window_rounding = 8.0f;
+  theme.frame_rounding = 6.0f;
+  theme.scrollbar_rounding = 8.0f;
+  theme.grab_rounding = 4.0f;
+  theme.tab_rounding = 6.0f;
+  theme.window_border_size = 1.0f;
+  theme.frame_border_size = 0.0f;
+
+  // Animation settings
+  theme.enable_animations = true;
+  theme.animation_speed = 1.0f;
+  theme.enable_glow_effects = false;
+
+  return theme;
+}
+
+void ThemeManager::ApplyAccentColor(const Color& accent, bool dark_mode) {
+  Theme generated = GenerateThemeFromAccent(accent, dark_mode);
+  ApplyTheme(generated);
+  current_theme_ = generated;
+  current_theme_name_ = "Custom Accent";
 }
 
 Color ThemeManager::ParseColorFromString(const std::string& color_str) const {
@@ -1294,6 +1738,46 @@ void ThemeManager::ApplyClassicYazeTheme() {
   current_theme_ = classic_theme;
 }
 
+void ThemeManager::StartPreview(const std::string& theme_name) {
+  // Don't start a new preview if already previewing
+  if (preview_active_) {
+    // If previewing a different theme, just switch to the new one
+    if (themes_.contains(theme_name)) {
+      ApplyTheme(themes_.at(theme_name));
+    }
+    return;
+  }
+
+  // Store the original theme state before preview
+  preview_original_theme_ = current_theme_;
+  preview_original_name_ = current_theme_name_;
+  preview_active_ = true;
+
+  // Apply the preview theme
+  if (themes_.contains(theme_name)) {
+    ApplyTheme(themes_.at(theme_name));
+  }
+}
+
+void ThemeManager::EndPreview() {
+  if (!preview_active_) {
+    return;
+  }
+
+  // Restore the original theme
+  current_theme_ = preview_original_theme_;
+  current_theme_name_ = preview_original_name_;
+
+  // Re-apply the original theme's colors to ImGui
+  ApplyTheme(current_theme_);
+
+  preview_active_ = false;
+}
+
+bool ThemeManager::IsPreviewActive() const {
+  return preview_active_;
+}
+
 void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
   if (!p_open || !*p_open)
     return;
@@ -1348,7 +1832,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
                     .c_str())) {
           auto file_path = util::FileDialogWrapper::ShowOpenFileDialog();
           if (!file_path.empty()) {
-            LoadThemeFromFile(file_path);
+            (void)LoadThemeFromFile(file_path);
           }
         }
         ImGui::Separator();
@@ -1521,6 +2005,66 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
       // Primary Colors Tab
       if (ImGui::BeginTabItem(
               absl::StrFormat("%s Primary", ICON_MD_COLOR_LENS).c_str())) {
+
+        // Accent Color Generator Section
+        ImGui::PushStyleColor(ImGuiCol_ChildBg,
+                              ImVec4(0.1f, 0.1f, 0.12f, 0.5f));
+        ImGui::BeginChild("AccentGenerator", ImVec2(0, 120), true);
+
+        ImGui::TextColored(ImVec4(0.7f, 0.8f, 1.0f, 1.0f),
+                           "%s Generate Theme from Accent Color",
+                           ICON_MD_AUTO_FIX_HIGH);
+        ImGui::Separator();
+
+        static Color accent_picker_color = {0.4f, 0.6f, 0.9f, 1.0f};
+        static bool dark_mode_generate = true;
+
+        ImGui::Text("Accent Color:");
+        ImGui::SameLine();
+        ImVec4 accent_vec = ConvertColorToImVec4(accent_picker_color);
+        if (ImGui::ColorEdit3("##AccentPicker", &accent_vec.x,
+                              ImGuiColorEditFlags_NoInputs)) {
+          accent_picker_color = {accent_vec.x, accent_vec.y, accent_vec.z, 1.0f};
+        }
+
+        ImGui::SameLine();
+        ImGui::Checkbox("Dark Mode", &dark_mode_generate);
+
+        ImGui::SameLine();
+        if (ImGui::Button(absl::StrFormat("%s Generate", ICON_MD_BOLT).c_str(),
+                          ImVec2(120, 0))) {
+          // Generate and apply theme from accent color
+          Theme generated =
+              GenerateThemeFromAccent(accent_picker_color, dark_mode_generate);
+          edit_theme = generated;
+          apply_live_preview();
+        }
+
+        // Show color harmony preview
+        ImGui::Text("Preview: ");
+        ImGui::SameLine();
+
+        // Show primary, secondary, background as color swatches
+        Theme preview_theme =
+            GenerateThemeFromAccent(accent_picker_color, dark_mode_generate);
+        ImVec4 prev_primary = ConvertColorToImVec4(preview_theme.primary);
+        ImVec4 prev_secondary = ConvertColorToImVec4(preview_theme.secondary);
+        ImVec4 prev_bg = ConvertColorToImVec4(preview_theme.background);
+        ImVec4 prev_surface = ConvertColorToImVec4(preview_theme.surface);
+
+        ImGui::ColorButton("##prev_primary", prev_primary, 0, ImVec2(24, 24));
+        ImGui::SameLine(0, 2);
+        ImGui::ColorButton("##prev_secondary", prev_secondary, 0, ImVec2(24, 24));
+        ImGui::SameLine(0, 2);
+        ImGui::ColorButton("##prev_bg", prev_bg, 0, ImVec2(24, 24));
+        ImGui::SameLine(0, 2);
+        ImGui::ColorButton("##prev_surface", prev_surface, 0, ImVec2(24, 24));
+
+        ImGui::EndChild();
+        ImGui::PopStyleColor();
+
+        ImGui::Spacing();
+
         if (ImGui::BeginTable("PrimaryColorsTable", 3,
                               ImGuiTableFlags_SizingStretchProp)) {
           ImGui::TableSetupColumn("Color", ImGuiTableColumnFlags_WidthFixed,
@@ -2277,6 +2821,221 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
 
             ImGui::EndTable();
           }
+        }
+
+        ImGui::EndTabItem();
+      }
+
+      // Density & Layout Tab
+      if (ImGui::BeginTabItem(
+              absl::StrFormat("%s Density", ICON_MD_DENSITY_SMALL).c_str())) {
+        ImGui::Text("Control UI density, spacing, and typography scaling");
+        ImGui::Separator();
+
+        // Density Preset Selector
+        ImGui::TextColored(ImVec4(0.7f, 0.8f, 1.0f, 1.0f),
+                           "%s Quick Presets", ICON_MD_TUNE);
+        ImGui::Spacing();
+
+        // Get current preset
+        int current_preset = static_cast<int>(edit_theme.density_preset);
+
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(20, 12));
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(12, 0));
+
+        // Compact button
+        bool is_compact = (current_preset == 0);
+        if (is_compact) {
+          ImGui::PushStyleColor(
+              ImGuiCol_Button,
+              ImVec4(edit_theme.accent.red, edit_theme.accent.green,
+                     edit_theme.accent.blue, 0.8f));
+        }
+        if (ImGui::Button(absl::StrFormat("%s Compact", ICON_MD_COMPRESS).c_str(),
+                          ImVec2(130, 50))) {
+          edit_theme.ApplyDensityPreset(DensityPreset::kCompact);
+          apply_live_preview();
+        }
+        if (is_compact) {
+          ImGui::PopStyleColor();
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Dense UI with smaller widgets and tighter spacing\n"
+                            "Best for: Information-dense workflows");
+        }
+
+        ImGui::SameLine();
+
+        // Normal button
+        bool is_normal = (current_preset == 1);
+        if (is_normal) {
+          ImGui::PushStyleColor(
+              ImGuiCol_Button,
+              ImVec4(edit_theme.accent.red, edit_theme.accent.green,
+                     edit_theme.accent.blue, 0.8f));
+        }
+        if (ImGui::Button(absl::StrFormat("%s Normal", ICON_MD_CHECK).c_str(),
+                          ImVec2(130, 50))) {
+          edit_theme.ApplyDensityPreset(DensityPreset::kNormal);
+          apply_live_preview();
+        }
+        if (is_normal) {
+          ImGui::PopStyleColor();
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Balanced spacing and widget sizes\n"
+                            "Best for: General use");
+        }
+
+        ImGui::SameLine();
+
+        // Comfortable button
+        bool is_comfortable = (current_preset == 2);
+        if (is_comfortable) {
+          ImGui::PushStyleColor(
+              ImGuiCol_Button,
+              ImVec4(edit_theme.accent.red, edit_theme.accent.green,
+                     edit_theme.accent.blue, 0.8f));
+        }
+        if (ImGui::Button(
+                absl::StrFormat("%s Comfortable", ICON_MD_EXPAND).c_str(),
+                ImVec2(130, 50))) {
+          edit_theme.ApplyDensityPreset(DensityPreset::kComfortable);
+          apply_live_preview();
+        }
+        if (is_comfortable) {
+          ImGui::PopStyleColor();
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Spacious layout with larger click targets\n"
+                            "Best for: Touch screens, accessibility");
+        }
+
+        ImGui::PopStyleVar(2);
+
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        // Advanced Controls
+        if (ImGui::CollapsingHeader("Advanced Density Controls")) {
+          ImGui::Indent();
+
+          ImGui::Text("Fine-tune individual spacing multipliers:");
+          ImGui::Spacing();
+
+          // Compact factor slider
+          if (ImGui::SliderFloat("Compact Factor", &edit_theme.compact_factor,
+                                 0.5f, 1.5f, "%.2f")) {
+            apply_live_preview();
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Global density multiplier (0.5 = very compact, "
+                              "1.5 = very spacious)");
+          }
+
+          ImGui::Spacing();
+
+          // Widget height
+          if (ImGui::SliderFloat("Widget Height",
+                                 &edit_theme.widget_height_multiplier, 0.6f,
+                                 1.5f, "%.2f")) {
+            apply_live_preview();
+          }
+
+          // Spacing
+          if (ImGui::SliderFloat("Item Spacing", &edit_theme.spacing_multiplier,
+                                 0.5f, 1.5f, "%.2f")) {
+            apply_live_preview();
+          }
+
+          // Toolbar height
+          if (ImGui::SliderFloat("Toolbar Height",
+                                 &edit_theme.toolbar_height_multiplier, 0.5f,
+                                 1.2f, "%.2f")) {
+            apply_live_preview();
+          }
+
+          // Panel padding
+          if (ImGui::SliderFloat("Panel Padding",
+                                 &edit_theme.panel_padding_multiplier, 0.5f,
+                                 1.5f, "%.2f")) {
+            apply_live_preview();
+          }
+
+          // Button padding
+          if (ImGui::SliderFloat("Button Padding",
+                                 &edit_theme.button_padding_multiplier, 0.5f,
+                                 1.5f, "%.2f")) {
+            apply_live_preview();
+          }
+
+          // Table row height
+          if (ImGui::SliderFloat("Table Row Height",
+                                 &edit_theme.table_row_height_multiplier, 0.7f,
+                                 1.5f, "%.2f")) {
+            apply_live_preview();
+          }
+
+          ImGui::Unindent();
+        }
+
+        // Style Rounding Controls
+        if (ImGui::CollapsingHeader("Corner Rounding")) {
+          ImGui::Indent();
+
+          if (ImGui::SliderFloat("Window Rounding", &edit_theme.window_rounding,
+                                 0.0f, 20.0f, "%.1f")) {
+            apply_live_preview();
+          }
+
+          if (ImGui::SliderFloat("Frame Rounding", &edit_theme.frame_rounding,
+                                 0.0f, 12.0f, "%.1f")) {
+            apply_live_preview();
+          }
+
+          if (ImGui::SliderFloat("Tab Rounding", &edit_theme.tab_rounding, 0.0f,
+                                 12.0f, "%.1f")) {
+            apply_live_preview();
+          }
+
+          if (ImGui::SliderFloat("Scrollbar Rounding",
+                                 &edit_theme.scrollbar_rounding, 0.0f, 12.0f,
+                                 "%.1f")) {
+            apply_live_preview();
+          }
+
+          if (ImGui::SliderFloat("Grab Rounding", &edit_theme.grab_rounding,
+                                 0.0f, 12.0f, "%.1f")) {
+            apply_live_preview();
+          }
+
+          ImGui::Unindent();
+        }
+
+        // Animation Settings
+        if (ImGui::CollapsingHeader("Animation Settings")) {
+          ImGui::Indent();
+
+          if (ImGui::Checkbox("Enable Animations",
+                              &edit_theme.enable_animations)) {
+            apply_live_preview();
+          }
+
+          if (edit_theme.enable_animations) {
+            if (ImGui::SliderFloat("Animation Speed",
+                                   &edit_theme.animation_speed, 0.5f, 2.0f,
+                                   "%.2f")) {
+              apply_live_preview();
+            }
+          }
+
+          if (ImGui::Checkbox("Enable Glow Effects",
+                              &edit_theme.enable_glow_effects)) {
+            apply_live_preview();
+          }
+
+          ImGui::Unindent();
         }
 
         ImGui::EndTabItem();

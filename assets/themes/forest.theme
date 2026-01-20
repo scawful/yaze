@@ -1,16 +1,16 @@
 # Forest Theme
-# Enhanced forest theme with better readability
+# Deep forest theme with enhanced readability
 name=Forest
-description=Deep forest theme with enhanced readability
+description=Deep forest theme with natural greens and earth tones
 author=YAZE Team
-version=1.0
+version=2.0
 
 [colors]
 # Primary colors (enhanced forest with better contrast)
-primary=100,180,120,255         # Brighter forest green
-secondary=70,130,85,255         # Mid forest green
-accent=130,220,150,255          # Light accent green
-background=15,25,15,255         # Darker background for contrast
+primary=100,180,120,255          # Brighter forest green
+secondary=70,130,85,255          # Mid forest green
+accent=130,220,150,255           # Light accent green
+background=15,25,15,255          # Darker background for contrast
 surface=25,35,25,255
 
 # Status colors
@@ -20,9 +20,9 @@ success=100,180,120,255
 info=120,200,180,255
 
 # Text colors (enhanced for readability)
-text_primary=250,255,250,255    # Very light for contrast
-text_secondary=220,240,220,255  # Light green tint
-text_disabled=150,170,150,255   # Brighter disabled text
+text_primary=250,255,250,255     # Very light for contrast
+text_secondary=220,240,220,255   # Light green tint
+text_disabled=150,170,150,255    # Brighter disabled text
 
 # Window colors (better contrast)
 window_bg=20,30,20,240
@@ -49,16 +49,60 @@ title_bg=50,80,55,255
 title_bg_active=55,85,60,255
 title_bg_collapsed=45,75,50,255
 
-# Separators (better visibility)
+# Borders and separators
+border=100,180,120,255           # Primary green
+border_shadow=0,0,0,0
 separator=120,160,130,180
 separator_hovered=150,200,160,220
 separator_active=180,240,190,255
 
-# Scrollbars (better visibility)
+# Scrollbars
 scrollbar_bg=40,60,45,180
 scrollbar_grab=80,120,90,200
 scrollbar_grab_hovered=100,150,115,230
 scrollbar_grab_active=130,180,145,255
+
+# Resize grips
+resize_grip=255,255,255,26
+resize_grip_hovered=130,220,150,153
+resize_grip_active=130,220,150,230
+
+# Controls
+check_mark=180,255,200,255       # Bright green checkmark
+slider_grab=100,180,120,255
+slider_grab_active=130,220,150,255
+
+# Tables
+table_header_bg=55,85,60,255
+table_border_strong=70,130,85,255
+table_border_light=50,70,55,255
+table_row_bg=0,0,0,0
+table_row_bg_alt=255,255,255,20
+
+# Links
+text_link=120,200,180,255        # Teal links
+
+# Navigation and special elements
+input_text_cursor=250,255,250,255
+nav_cursor=130,220,150,255
+nav_windowing_highlight=130,220,150,200
+nav_windowing_dim_bg=0,0,0,128
+modal_window_dim_bg=0,0,0,100
+text_selected_bg=100,180,120,100
+drag_drop_target=130,220,150,200
+
+# Docking
+docking_preview=100,180,120,180
+docking_empty_bg=40,70,45,255
+
+# Tree lines
+tree_lines=120,160,130,153
+
+# Tab variations
+tab_dimmed=35,55,40,255
+tab_dimmed_selected=55,90,65,255
+tab_dimmed_selected_overline=130,220,150,255
+tab_selected_overline=130,220,150,255
 
 [style]
 window_rounding=6.0

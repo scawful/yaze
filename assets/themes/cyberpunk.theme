@@ -1,17 +1,17 @@
 # Cyberpunk Theme
 # Neon-inspired futuristic theme
 name=Cyberpunk
-description=Neon-inspired futuristic theme
+description=Neon-inspired futuristic theme with glowing accents
 author=YAZE Team
-version=1.0
+version=2.0
 
 [colors]
 # Primary colors (neon cyberpunk)
-primary=255,20,147,255
-secondary=0,255,255,255
-accent=255,0,128,255
-background=10,10,20,255
-surface=20,20,40,255
+primary=255,20,147,255           # Hot pink
+secondary=0,255,255,255          # Cyan
+accent=255,0,128,255             # Magenta
+background=10,10,20,255          # Deep dark blue
+surface=20,20,40,255             # Dark purple-blue
 
 # Status colors
 error=255,50,100,255
@@ -48,6 +48,61 @@ menu_bar_bg=20,10,40,255
 title_bg=25,15,45,255
 title_bg_active=30,10,50,255
 title_bg_collapsed=25,15,45,255
+
+# Borders and separators
+border=255,20,147,255            # Hot pink border
+border_shadow=0,0,0,0
+separator=100,100,150,153
+separator_hovered=200,100,200,200
+separator_active=255,20,147,255
+
+# Scrollbars
+scrollbar_bg=20,20,40,153
+scrollbar_grab=80,40,100,180
+scrollbar_grab_hovered=120,60,140,200
+scrollbar_grab_active=160,80,180,230
+
+# Resize grips (cyan glow)
+resize_grip=0,255,255,40
+resize_grip_hovered=0,255,255,153
+resize_grip_active=0,255,255,230
+
+# Controls
+check_mark=0,255,255,255         # Cyan checkmark
+slider_grab=255,20,147,255       # Hot pink
+slider_grab_active=255,100,180,255
+
+# Tables
+table_header_bg=30,10,50,255
+table_border_strong=80,40,100,255
+table_border_light=50,50,80,255
+table_row_bg=0,0,0,0
+table_row_bg_alt=255,255,255,15
+
+# Links
+text_link=0,255,255,255          # Cyan links
+
+# Navigation and special elements
+input_text_cursor=0,255,255,255  # Cyan cursor
+nav_cursor=255,20,147,255
+nav_windowing_highlight=255,20,147,200
+nav_windowing_dim_bg=0,0,0,150
+modal_window_dim_bg=0,0,0,120
+text_selected_bg=255,20,147,100
+drag_drop_target=0,255,255,200
+
+# Docking
+docking_preview=255,20,147,180
+docking_empty_bg=20,10,40,255
+
+# Tree lines
+tree_lines=100,100,150,153
+
+# Tab variations
+tab_dimmed=18,10,35,255
+tab_dimmed_selected=50,25,70,255
+tab_dimmed_selected_overline=255,20,147,255
+tab_selected_overline=0,255,255,255
 
 [style]
 window_rounding=10.0
