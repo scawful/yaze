@@ -117,18 +117,39 @@ MenuBuilder& MenuBuilder::DisabledItem(const char* label, const char* icon) {
   return *this;
 }
 
+MenuBuilder& MenuBuilder::CustomMenu(const char* label, Callback draw_callback) {
+  Menu menu;
+  menu.label = label;
+  menu.custom_draw = draw_callback;
+  menu.is_custom = true;
+  menus_.push_back(menu);
+  current_menu_ = nullptr;  // Custom menus don't use the builder pattern
+  return *this;
+}
+
 void MenuBuilder::Draw() {
   for (const auto& menu : menus_) {
     // Don't add icons to top-level menus as they get cut off
     std::string menu_label = menu.label;
 
-    if (ImGui::BeginMenu(menu_label.c_str())) {
-      submenu_stack_.clear();  // Reset submenu stack for each top-level menu
-      skip_depth_ = 0;         // Reset skip depth
-      for (const auto& item : menu.items) {
-        DrawMenuItem(item);
+    if (menu.is_custom) {
+      // Custom menu with callback for dynamic content
+      if (ImGui::BeginMenu(menu_label.c_str())) {
+        if (menu.custom_draw) {
+          menu.custom_draw();
+        }
+        ImGui::EndMenu();
       }
-      ImGui::EndMenu();
+    } else {
+      // Standard menu with predefined items
+      if (ImGui::BeginMenu(menu_label.c_str())) {
+        submenu_stack_.clear();  // Reset submenu stack for each top-level menu
+        skip_depth_ = 0;         // Reset skip depth
+        for (const auto& item : menu.items) {
+          DrawMenuItem(item);
+        }
+        ImGui::EndMenu();
+      }
     }
   }
 }
