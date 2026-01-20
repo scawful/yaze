@@ -579,7 +579,7 @@ void PanelManager::DrawAllVisiblePanels() {
         [this, panel_id](bool pinned) { SetPanelPinned(panel_id, pinned); });
 
     if (window.Begin(visibility_flag)) {
-      panel->Draw(visibility_flag);
+      panel->DrawWithLazyInit(visibility_flag);
     }
     window.End();
 

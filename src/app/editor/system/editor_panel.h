@@ -124,6 +124,35 @@ class EditorPanel {
   // ==========================================================================
 
   /**
+   * @brief Called once before the first Draw() in a session
+   *
+   * Use this for expensive one-time initialization that should be deferred
+   * until the panel is actually visible. This avoids loading resources for
+   * panels that may never be opened.
+   *
+   * @note Reset via InvalidateLazyInit() on session switches if needed.
+   * @see RequiresLazyInit()
+   */
+  virtual void OnFirstDraw() {}
+
+  /**
+   * @brief Whether this panel uses lazy initialization
+   * @return true if OnFirstDraw() should be called before first Draw()
+   *
+   * Override to return true if your panel has expensive setup in OnFirstDraw().
+   * When false (default), OnFirstDraw() is skipped for performance.
+   */
+  virtual bool RequiresLazyInit() const { return false; }
+
+  /**
+   * @brief Reset lazy init state so OnFirstDraw() runs again
+   *
+   * Call this when panel state needs to be reinitialized (e.g., session switch).
+   * The next Draw() will trigger OnFirstDraw() again.
+   */
+  void InvalidateLazyInit();  // Implementation below private member
+
+  /**
    * @brief Called when panel becomes visible
    *
    * Use this to initialize state, load resources, or start animations.
@@ -233,7 +262,31 @@ class EditorPanel {
    * Only affects panels that have this panel as their parent.
    */
   virtual bool CascadeCloseChildren() const { return false; }
+
+  // ==========================================================================
+  // Internal State (Managed by PanelManager)
+  // ==========================================================================
+
+  /**
+   * @brief Execute lazy initialization if needed, then call Draw()
+   * @param p_open Pointer to visibility flag
+   *
+   * Called by PanelManager. Handles OnFirstDraw() invocation automatically.
+   */
+  void DrawWithLazyInit(bool* p_open) {
+    if (RequiresLazyInit() && !lazy_init_done_) {
+      OnFirstDraw();
+      lazy_init_done_ = true;
+    }
+    Draw(p_open);
+  }
+
+ private:
+  bool lazy_init_done_ = false;
 };
+
+// Inline implementation (requires private member to be declared first)
+inline void EditorPanel::InvalidateLazyInit() { lazy_init_done_ = false; }
 
 }  // namespace editor
 }  // namespace yaze
