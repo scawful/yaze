@@ -6,6 +6,7 @@
 
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
+#include "app/editor/system/command_palette.h"
 #include "app/editor/ui/popup_manager.h"
 #include "app/editor/ui/welcome_screen.h"
 #include "app/gui/core/icons.h"
@@ -113,6 +114,18 @@ class UICoordinator {
   void ShowGlobalSearch() { show_global_search_ = true; }
   void ShowCommandPalette() { show_command_palette_ = true; }
   void ShowPanelBrowser() { show_panel_browser_ = true; }
+
+  /**
+   * @brief Initialize command palette with all discoverable commands
+   * @param session_id Current session ID for panel commands
+   */
+  void InitializeCommandPalette(size_t session_id);
+
+  /**
+   * @brief Refresh command palette commands (call after session switch)
+   * @param session_id New session ID
+   */
+  void RefreshCommandPalette(size_t session_id);
 
   // Menu bar visibility (for WASM/web app mode)
   bool IsMenuBarVisible() const { return show_menu_bar_; }
@@ -250,6 +263,8 @@ class UICoordinator {
   StartupSurface current_startup_surface_ = StartupSurface::kWelcome;
 
   // Command Palette state
+  CommandPalette command_palette_;
+  bool command_palette_initialized_ = false;
   char command_palette_query_[256] = {};
   int command_palette_selected_idx_ = 0;
 
