@@ -2,6 +2,8 @@
 #define YAZE_APP_EDITOR_DUNGEON_DUNGEON_ROOM_SELECTOR_H
 
 #include <functional>
+#include <string>
+#include <vector>
 
 #include "app/editor/editor.h"
 #include "rom/rom.h"
@@ -93,6 +95,16 @@ class DungeonRoomSelector {
 
   ImGuiTextFilter room_filter_;
   ImGuiTextFilter entrance_filter_;
+
+  // Cached filtered indices for virtualization
+  std::vector<int> filtered_room_indices_;
+  std::vector<int> filtered_entrance_indices_;
+  std::string last_room_filter_;
+  std::string last_entrance_filter_;
+
+  // Rebuild filtered indices when filter changes
+  void RebuildRoomFilterCache();
+  void RebuildEntranceFilterCache();
 };
 
 }  // namespace editor

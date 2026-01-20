@@ -165,45 +165,63 @@ void MessageEditor::DrawMessageList() {
       TableSetupColumn("Data");
 
       TableHeadersRow();
-      for (const auto& message : list_of_texts_) {
-        TableNextColumn();
-        PushID(message.ID);
-        if (Button(util::HexWord(message.ID).c_str())) {
-          current_message_ = message;
-          current_message_index_ = message.ID;
-          current_message_is_expanded_ = false;
-          message_text_box_.text = parsed_messages_[message.ID];
-          DrawMessagePreview();
+
+      // Calculate total rows for clipper
+      const int vanilla_count = static_cast<int>(list_of_texts_.size());
+      const int expanded_count = static_cast<int>(expanded_messages_.size());
+      const int total_rows = vanilla_count + expanded_count;
+
+      // Use ImGuiListClipper for virtualized rendering
+      ImGuiListClipper clipper;
+      clipper.Begin(total_rows);
+
+      while (clipper.Step()) {
+        for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row) {
+          if (row < vanilla_count) {
+            // Vanilla message
+            const auto& message = list_of_texts_[row];
+            TableNextColumn();
+            PushID(message.ID);
+            if (Button(util::HexWord(message.ID).c_str())) {
+              current_message_ = message;
+              current_message_index_ = message.ID;
+              current_message_is_expanded_ = false;
+              message_text_box_.text = parsed_messages_[message.ID];
+              DrawMessagePreview();
+            }
+            PopID();
+            TableNextColumn();
+            TextWrapped("%s", parsed_messages_[message.ID].c_str());
+            TableNextColumn();
+            TextWrapped(
+                "%s", util::HexLong(list_of_texts_[message.ID].Address).c_str());
+          } else {
+            // Expanded message
+            int expanded_idx = row - vanilla_count;
+            const auto& expanded_message = expanded_messages_[expanded_idx];
+            const int display_id =
+                expanded_message_base_id_ + expanded_message.ID;
+            const char* display_text = "Missing text";
+            if (display_id >= 0 &&
+                display_id < static_cast<int>(parsed_messages_.size())) {
+              display_text = parsed_messages_[display_id].c_str();
+            }
+            TableNextColumn();
+            PushID(display_id);
+            if (Button(util::HexWord(display_id).c_str())) {
+              current_message_ = expanded_message;
+              current_message_index_ = expanded_message.ID;
+              current_message_is_expanded_ = true;
+              message_text_box_.text = display_text;
+              DrawMessagePreview();
+            }
+            PopID();
+            TableNextColumn();
+            TextWrapped("%s", display_text);
+            TableNextColumn();
+            TextWrapped("%s", util::HexLong(expanded_message.Address).c_str());
+          }
         }
-        PopID();
-        TableNextColumn();
-        TextWrapped("%s", parsed_messages_[message.ID].c_str());
-        TableNextColumn();
-        TextWrapped("%s",
-                    util::HexLong(list_of_texts_[message.ID].Address).c_str());
-      }
-      const int expanded_base = expanded_message_base_id_;
-      for (const auto& expanded_message : expanded_messages_) {
-        const int display_id = expanded_base + expanded_message.ID;
-        const char* display_text = "Missing text";
-        if (display_id >= 0 &&
-            display_id < static_cast<int>(parsed_messages_.size())) {
-          display_text = parsed_messages_[display_id].c_str();
-        }
-        TableNextColumn();
-        PushID(display_id);
-        if (Button(util::HexWord(display_id).c_str())) {
-          current_message_ = expanded_message;
-          current_message_index_ = expanded_message.ID;
-          current_message_is_expanded_ = true;
-          message_text_box_.text = display_text;
-          DrawMessagePreview();
-        }
-        PopID();
-        TableNextColumn();
-        TextWrapped("%s", display_text);
-        TableNextColumn();
-        TextWrapped("%s", util::HexLong(expanded_message.Address).c_str());
       }
 
       EndTable();
@@ -386,12 +404,23 @@ void MessageEditor::DrawDictionary() {
       TableSetupColumn("ID");
       TableSetupColumn("Contents");
       TableHeadersRow();
-      for (const auto& dictionary : message_preview_.all_dictionaries_) {
-        TableNextColumn();
-        Text("%s", util::HexWord(dictionary.ID).c_str());
-        TableNextColumn();
-        Text("%s", dictionary.Contents.c_str());
+
+      // Use ImGuiListClipper for virtualized rendering
+      const int dict_count =
+          static_cast<int>(message_preview_.all_dictionaries_.size());
+      ImGuiListClipper clipper;
+      clipper.Begin(dict_count);
+
+      while (clipper.Step()) {
+        for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row) {
+          const auto& dictionary = message_preview_.all_dictionaries_[row];
+          TableNextColumn();
+          Text("%s", util::HexWord(dictionary.ID).c_str());
+          TableNextColumn();
+          Text("%s", dictionary.Contents.c_str());
+        }
       }
+
       EndTable();
     }
   }
