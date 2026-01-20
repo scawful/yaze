@@ -187,16 +187,20 @@ void CommandPalette::RegisterPanelCommands(PanelManager* panel_manager,
   // Get all registered panel descriptors
   const auto& descriptors = panel_manager->GetAllPanelDescriptors();
 
-  for (const auto& [panel_id, descriptor] : descriptors) {
+  for (const auto& [prefixed_id, descriptor] : descriptors) {
+    // Use the base card_id from the descriptor, not the prefixed map key
+    const std::string& base_id = descriptor.card_id;
+
     // Create show command
     std::string show_name =
         absl::StrFormat("Show: %s", descriptor.display_name);
     std::string show_desc =
         absl::StrFormat("Show the %s panel", descriptor.display_name);
 
-    AddCommand(show_name, CommandCategory::kPanel, show_desc, "",
-               [panel_manager, panel_id = panel_id, session_id]() {
-                 panel_manager->ShowPanel(session_id, panel_id);
+    AddCommand(show_name, CommandCategory::kPanel, show_desc,
+               descriptor.shortcut_hint,
+               [panel_manager, base_id, session_id]() {
+                 panel_manager->ShowPanel(session_id, base_id);
                });
 
     // Create hide command
@@ -206,8 +210,8 @@ void CommandPalette::RegisterPanelCommands(PanelManager* panel_manager,
         absl::StrFormat("Hide the %s panel", descriptor.display_name);
 
     AddCommand(hide_name, CommandCategory::kPanel, hide_desc, "",
-               [panel_manager, panel_id = panel_id, session_id]() {
-                 panel_manager->HidePanel(session_id, panel_id);
+               [panel_manager, base_id, session_id]() {
+                 panel_manager->HidePanel(session_id, base_id);
                });
 
     // Create toggle command
@@ -217,8 +221,8 @@ void CommandPalette::RegisterPanelCommands(PanelManager* panel_manager,
         absl::StrFormat("Toggle the %s panel visibility", descriptor.display_name);
 
     AddCommand(toggle_name, CommandCategory::kPanel, toggle_desc, "",
-               [panel_manager, panel_id = panel_id, session_id]() {
-                 panel_manager->TogglePanel(session_id, panel_id);
+               [panel_manager, base_id, session_id]() {
+                 panel_manager->TogglePanel(session_id, base_id);
                });
   }
 }
