@@ -91,7 +91,26 @@ class CommandPalette {
   void RegisterLayoutCommands(
       std::function<void(const std::string&)> apply_callback);
 
+  /**
+   * @brief Register commands to open recent files
+   * @param open_callback Callback to open a file by path
+   *
+   * Creates "Open Recent: <filename>" commands for each file in
+   * RecentFilesManager. Files are checked for existence before registration.
+   */
+  void RegisterRecentFilesCommands(
+      std::function<void(const std::string&)> open_callback);
+
+  /**
+   * @brief Save command usage history to disk
+   * @param filepath Path to save JSON history file
+   */
   void SaveHistory(const std::string& filepath);
+
+  /**
+   * @brief Load command usage history from disk
+   * @param filepath Path to load JSON history file from
+   */
   void LoadHistory(const std::string& filepath);
 
  private:

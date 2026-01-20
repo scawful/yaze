@@ -533,23 +533,38 @@ void PanelManager::DrawAllVisiblePanels() {
     return;
   }
 
+  auto& animator = gui::GetAnimator();
+  bool animations_enabled = animator.IsEnabled();
+
   for (auto& [panel_id, panel] : panel_instances_) {
     // Check visibility via PanelDescriptor
-    if (!IsPanelVisible(panel_id)) {
-      continue;
-    }
+    bool is_visible = IsPanelVisible(panel_id);
 
     // Category filtering: only draw if matches active category, pinned, or persistent
     bool should_draw = false;
-    if (panel->GetEditorCategory() == active_category_) {
-      should_draw = true;
-    } else if (IsPanelPinned(panel_id)) {
-      should_draw = true;
-    } else if (panel->GetPanelCategory() == PanelCategory::Persistent) {
-      should_draw = true;
+    if (is_visible) {
+      if (panel->GetEditorCategory() == active_category_) {
+        should_draw = true;
+      } else if (IsPanelPinned(panel_id)) {
+        should_draw = true;
+      } else if (panel->GetPanelCategory() == PanelCategory::Persistent) {
+        should_draw = true;
+      }
     }
 
-    if (!should_draw) {
+    // Compute target alpha: 1.0 if should draw, 0.0 if should hide
+    float target_alpha = should_draw ? 1.0f : 0.0f;
+
+    // Animate alpha towards target (or snap if animations disabled)
+    float current_alpha = 1.0f;
+    if (animations_enabled) {
+      current_alpha = animator.Animate(panel_id, "panel_alpha", target_alpha, 8.0f);
+    } else {
+      current_alpha = target_alpha;
+    }
+
+    // Skip drawing if alpha is effectively zero
+    if (current_alpha < 0.01f) {
       continue;
     }
 
@@ -578,10 +593,19 @@ void PanelManager::DrawAllVisiblePanels() {
     window.SetPinChangedCallback(
         [this, panel_id](bool pinned) { SetPanelPinned(panel_id, pinned); });
 
+    // Apply fade alpha for smooth transitions
+    if (current_alpha < 1.0f) {
+      ImGui::PushStyleVar(ImGuiStyleVar_Alpha, current_alpha);
+    }
+
     if (window.Begin(visibility_flag)) {
       panel->DrawWithLazyInit(visibility_flag);
     }
     window.End();
+
+    if (current_alpha < 1.0f) {
+      ImGui::PopStyleVar();
+    }
 
     // Handle visibility change (window closed via X button)
     if (visibility_flag && !*visibility_flag) {
