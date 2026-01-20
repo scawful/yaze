@@ -1,8 +1,30 @@
 # ImHex-Style UI Modernization Plan for YAZE
 
 **Created:** 2026-01-19
-**Status:** Planning Complete
+**Updated:** 2026-01-19
+**Status:** In Progress (Phase 1-2 Mostly Complete)
 **Reference:** `docs/internal/architecture/imhex-comparison-analysis.md`
+
+---
+
+## Implementation Status
+
+| Phase | Task | Status | Notes |
+|-------|------|--------|-------|
+| 1.1 | List Virtualization | ✅ Done | 7+ files use ImGuiListClipper |
+| 1.2 | Lazy Panel Loading | ❌ TODO | OnFirstDraw hook needed |
+| 1.3 | Texture Queue Budget | ✅ Done | ProcessTextureQueueWithBudget exists |
+| 2.1 | Animation System | ✅ Done | Animator class implemented |
+| 2.2 | Hover Effects | ✅ Done | Activity bar integrated |
+| 2.3 | Panel Transitions | ❌ TODO | Fade-in/out for panels |
+| 3.1 | Command Palette | 🔄 Partial | Panels + layouts done, need recent files |
+| 3.2 | Contextual Help | ❌ TODO | |
+| 3.3 | Shortcut Overlay | ❌ TODO | |
+| 4.1 | Core Events | 🔄 Partial | ZoomChangedEvent done, need Selection |
+| 4.2 | Migrate Callbacks | ❌ TODO | |
+| 4.3 | Deprecate SessionObserver | ❌ TODO | EditorManager migrated, others remain |
+| 5.x | Caching | ❌ TODO | |
+| 6.x | Provider Abstraction | ❌ Future | |
 
 ---
 
@@ -44,30 +66,19 @@ This addendum clarifies lifecycle rules that cut across the phases below.
 
 ---
 
-## Phase 1: Performance Foundation
+## Phase 1: Performance Foundation ✅ (Mostly Complete)
 **Timeline:** Week 1-2 | **Complexity:** Medium | **Impact:** High
 
-### 1.1 List Virtualization (P0)
-Add ImGuiListClipper to all large lists.
+### 1.1 List Virtualization ✅ DONE
 
-**Files to modify:**
-- `src/app/editor/dungeon/panels/dungeon_room_panel.cc` - Room list (296 rooms)
-- `src/app/editor/music/song_browser_view.cc` - Song list
-- `src/app/editor/message/message_editor.cc` - Message list (200+ messages)
-- `src/app/editor/palette/palette_group_panel.cc` - Palette entries
-
-**Reference implementation:** `src/app/gui/widgets/asset_browser.cc`
-
-```cpp
-// Pattern to follow
-ImGuiListClipper clipper;
-clipper.Begin(items.size(), item_height);
-while (clipper.Step()) {
-  for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++) {
-    DrawItem(items[i]);
-  }
-}
-```
+ImGuiListClipper implemented in:
+- `src/app/editor/dungeon/dungeon_room_selector.cc` ✅
+- `src/app/editor/music/song_browser_view.cc` ✅
+- `src/app/editor/music/tracker_view.cc` ✅
+- `src/app/editor/message/message_editor.cc` ✅
+- `src/app/editor/palette/palette_group_panel.cc` ✅
+- `src/app/gui/widgets/asset_browser.cc` ✅
+- `src/app/emu/debug/disassembly_viewer.cc` ✅
 
 ### 1.2 Lazy Panel Loading (P2)
 Extend EditorPanel with lazy initialization.
@@ -105,42 +116,22 @@ bool Arena::ProcessTextureQueueWithBudget(IRenderer* renderer, float budget_ms) 
 
 ---
 
-## Phase 2: Modern UX Patterns
+## Phase 2: Modern UX Patterns ✅ (Mostly Complete)
 **Timeline:** Week 2-3 | **Complexity:** Medium | **Impact:** High
 
-### 2.1 Animation System (P1)
-Implement the animation flags already defined in ThemeManager.
+### 2.1 Animation System ✅ DONE
 
-**New files:** `src/app/gui/animation/animator.h`, `src/app/gui/animation/animator.cc`
+Implemented in `src/app/gui/animation/animator.h/cc`:
+- `Lerp()`, `EaseOutCubic()`, `LerpColor()` utilities
+- Panel-scoped animation state management
+- `ClearAnimationsForPanel()` for cleanup on unregister
+- Integrated with `ThemeManager::enable_animations`
 
-```cpp
-class Animator {
-public:
-  static float Lerp(float a, float b, float t);
-  static float EaseOutCubic(float t);
-  static ImVec4 LerpColor(ImVec4 a, ImVec4 b, float t);
+### 2.2 Hover Effects and Feedback ✅ DONE
 
-  // Managed animations with IDs for persistent state
-  float Animate(const std::string& panel_id, const std::string& anim_id,
-                float target, float speed = 5.0f);
-  ImVec4 AnimateColor(const std::string& panel_id, const std::string& anim_id,
-                      ImVec4 target, float speed = 5.0f);
-  void ClearAnimationsForPanel(const std::string& panel_id);
-  bool IsEnabled() const;
-};
-```
-
-**Files to modify:**
-- `src/app/gui/core/ui_helpers.h/cc` - Add animation utilities
-- Wire up to `ThemeManager::enable_animations` flag
-
-### 2.2 Hover Effects and Feedback (P1)
-Add consistent hover states across all interactive elements.
-
-**Files to modify:**
-- `src/app/gui/core/style.cc` - Add hover style utilities
-- `src/app/editor/menu/activity_bar.cc` - Add hover animations
-- `src/app/gui/widgets/themed_widgets.h` - Create animated button widgets
+- `src/app/gui/widgets/themed_widgets.h` - Animated button widgets
+- `src/app/editor/menu/activity_bar.cc` - Hover animations integrated
+- `src/app/editor/system/panel_manager.cc` - Clears animations on unregister
 
 ### 2.3 Panel Transitions (P2)
 Smooth panel show/hide transitions.
@@ -359,17 +350,21 @@ Phase 2 (UX) ──────> Phase 3 (Discoverability) ──> Phase 4 (Even
 
 ---
 
-## Recommended Starting Point
+## Recommended Next Steps
 
-**Start with Phase 1.1 (List Virtualization) and Phase 3.1 (Command Palette)** - these are P0 priorities with low effort and high impact. They can be implemented in parallel as they touch different parts of the codebase.
+**Phase 1-2 are mostly complete.** Prioritize:
 
-### First PR: List Virtualization
-1. Identify the 3-4 largest lists in the codebase
-2. Add ImGuiListClipper following asset_browser.cc pattern
-3. Measure frame time improvement
+### Immediate (P1)
+1. **Phase 1.2: Lazy Panel Loading** - Add `OnFirstDraw()` hook to EditorPanel
+2. **Phase 3.1: Complete Command Palette** - Add recent files, search history
+3. **Phase 4.1: Selection Events** - Add SelectionChangedEvent for cross-panel sync
 
-### Second PR: Command Palette Expansion
-1. Register all panel toggles in CommandPalette
-2. Add editor switch commands
-3. Add layout preset commands
-4. Test with fuzzy search
+### Short-term (P2)
+1. **Phase 2.3: Panel Transitions** - Fade-in/out for show/hide
+2. **Phase 4.3: SessionObserver Deprecation** - Migrate remaining observers
+
+### Reference PRs (Already Complete)
+- ✅ List Virtualization: 7+ files already using ImGuiListClipper
+- ✅ Animation System: Animator class with activity bar integration
+- ✅ Hover Effects: Themed widgets with animation support
+- ✅ Texture Budget: `ProcessTextureQueueWithBudget()` in Arena
