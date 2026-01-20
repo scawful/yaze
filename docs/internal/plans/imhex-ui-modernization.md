@@ -12,7 +12,7 @@
 | Phase | Task | Status | Notes |
 |-------|------|--------|-------|
 | 1.1 | List Virtualization | ✅ Done | 7+ files use ImGuiListClipper |
-| 1.2 | Lazy Panel Loading | ❌ TODO | OnFirstDraw hook needed |
+| 1.2 | Lazy Panel Loading | ✅ Done | OnFirstDraw hook added |
 | 1.3 | Texture Queue Budget | ✅ Done | ProcessTextureQueueWithBudget exists |
 | 2.1 | Animation System | ✅ Done | Animator class implemented |
 | 2.2 | Hover Effects | ✅ Done | Activity bar integrated |
@@ -20,7 +20,7 @@
 | 3.1 | Command Palette | 🔄 Partial | Panels + layouts done, need recent files |
 | 3.2 | Contextual Help | ❌ TODO | |
 | 3.3 | Shortcut Overlay | ❌ TODO | |
-| 4.1 | Core Events | 🔄 Partial | ZoomChangedEvent done, need Selection |
+| 4.1 | Core Events | ✅ Done | Zoom, Selection, PanelVisibility events exist |
 | 4.2 | Migrate Callbacks | ❌ TODO | |
 | 4.3 | Deprecate SessionObserver | ❌ TODO | EditorManager migrated, others remain |
 | 5.x | Caching | ❌ TODO | |
@@ -352,19 +352,20 @@ Phase 2 (UX) ──────> Phase 3 (Discoverability) ──> Phase 4 (Even
 
 ## Recommended Next Steps
 
-**Phase 1-2 are mostly complete.** Prioritize:
+**Phases 1-2 and core events are complete.** Prioritize:
 
 ### Immediate (P1)
-1. **Phase 1.2: Lazy Panel Loading** - Add `OnFirstDraw()` hook to EditorPanel
-2. **Phase 3.1: Complete Command Palette** - Add recent files, search history
-3. **Phase 4.1: Selection Events** - Add SelectionChangedEvent for cross-panel sync
+1. **Phase 3.1: Complete Command Palette** - Add recent files, search history
+2. **Phase 2.3: Panel Transitions** - Fade-in/out for show/hide
 
 ### Short-term (P2)
-1. **Phase 2.3: Panel Transitions** - Fade-in/out for show/hide
+1. **Phase 4.2: Migrate Callbacks** - Replace direct callbacks with EventBus
 2. **Phase 4.3: SessionObserver Deprecation** - Migrate remaining observers
 
-### Reference PRs (Already Complete)
-- ✅ List Virtualization: 7+ files already using ImGuiListClipper
+### Reference (Already Complete)
+- ✅ List Virtualization: 7+ files using ImGuiListClipper
+- ✅ Lazy Panel Loading: `OnFirstDraw()` hook in EditorPanel
+- ✅ Texture Budget: `ProcessTextureQueueWithBudget()` in Arena
 - ✅ Animation System: Animator class with activity bar integration
 - ✅ Hover Effects: Themed widgets with animation support
-- ✅ Texture Budget: `ProcessTextureQueueWithBudget()` in Arena
+- ✅ Core Events: Zoom, Selection, PanelVisibility events
