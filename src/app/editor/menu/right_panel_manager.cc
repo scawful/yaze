@@ -12,6 +12,7 @@
 #include "app/editor/ui/settings_panel.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/input.h"
 #include "app/gui/core/platform_keys.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/theme_manager.h"
@@ -926,7 +927,7 @@ void RightPanelManager::DrawQuickActionButtons() {
                         gui::GetSurfaceContainerHighestVec4());
   if (ImGui::Button(ICON_MD_DESCRIPTION " Open Documentation",
                     ImVec2(button_width, 0))) {
-    // TODO: Open documentation URL
+    gui::OpenUrl("https://github.com/scawful/yaze/wiki");
   }
   ImGui::PopStyleColor(2);
 
@@ -938,7 +939,7 @@ void RightPanelManager::DrawQuickActionButtons() {
                         gui::GetSurfaceContainerHighestVec4());
   if (ImGui::Button(ICON_MD_BUG_REPORT " Report Issue",
                     ImVec2(button_width, 0))) {
-    // TODO: Open GitHub issues URL
+    gui::OpenUrl("https://github.com/scawful/yaze/issues/new");
   }
   ImGui::PopStyleColor(2);
 
@@ -949,7 +950,7 @@ void RightPanelManager::DrawQuickActionButtons() {
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
                         gui::GetSurfaceContainerHighestVec4());
   if (ImGui::Button(ICON_MD_FORUM " Join Discord", ImVec2(button_width, 0))) {
-    // TODO: Open Discord invite URL
+    gui::OpenUrl("https://discord.gg/zU5qDm8MZg");
   }
   ImGui::PopStyleColor(2);
 

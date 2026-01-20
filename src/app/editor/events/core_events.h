@@ -255,6 +255,122 @@ struct ZoomChangedEvent : public Event {
 };
 
 // =============================================================================
+// Navigation Request Events (cross-editor navigation)
+// =============================================================================
+
+/**
+ * @brief Request to navigate to a specific dungeon room.
+ *
+ * Published by components that want to trigger room navigation without
+ * direct coupling to the dungeon editor (e.g., entrance lists, room links).
+ */
+struct JumpToRoomRequestEvent : public Event {
+  int room_id = -1;
+  size_t session_id = 0;
+
+  static JumpToRoomRequestEvent Create(int room, size_t session = 0) {
+    JumpToRoomRequestEvent e;
+    e.room_id = room;
+    e.session_id = session;
+    return e;
+  }
+};
+
+/**
+ * @brief Request to navigate to a specific overworld map.
+ *
+ * Published by components that want to trigger map navigation without
+ * direct coupling to the overworld editor (e.g., entrance destinations).
+ */
+struct JumpToMapRequestEvent : public Event {
+  int map_id = -1;
+  size_t session_id = 0;
+
+  static JumpToMapRequestEvent Create(int map, size_t session = 0) {
+    JumpToMapRequestEvent e;
+    e.map_id = map;
+    e.session_id = session;
+    return e;
+  }
+};
+
+// =============================================================================
+// UI Action Request Events (activity bar, menus, shortcuts)
+// =============================================================================
+
+/**
+ * @brief Activity bar or menu action request.
+ *
+ * Published when user clicks activity bar icons or triggers menu commands.
+ * Allows decoupling between UI triggers and action handlers.
+ */
+struct UIActionRequestEvent : public Event {
+  enum class Action {
+    kShowEmulator,
+    kShowSettings,
+    kShowPanelBrowser,
+    kShowSearch,
+    kShowShortcuts,
+    kShowCommandPalette,
+    kShowHelp,
+    kOpenRom,
+    kSaveRom,
+    kUndo,
+    kRedo,
+  };
+
+  Action action;
+  size_t session_id = 0;
+
+  static UIActionRequestEvent Create(Action act, size_t session = 0) {
+    UIActionRequestEvent e;
+    e.action = act;
+    e.session_id = session;
+    return e;
+  }
+
+  // Convenience factory methods
+  static UIActionRequestEvent ShowEmulator(size_t session = 0) {
+    return Create(Action::kShowEmulator, session);
+  }
+  static UIActionRequestEvent ShowSettings(size_t session = 0) {
+    return Create(Action::kShowSettings, session);
+  }
+  static UIActionRequestEvent ShowCommandPalette(size_t session = 0) {
+    return Create(Action::kShowCommandPalette, session);
+  }
+  static UIActionRequestEvent OpenRom(size_t session = 0) {
+    return Create(Action::kOpenRom, session);
+  }
+  static UIActionRequestEvent SaveRom(size_t session = 0) {
+    return Create(Action::kSaveRom, session);
+  }
+  static UIActionRequestEvent Undo(size_t session = 0) {
+    return Create(Action::kUndo, session);
+  }
+  static UIActionRequestEvent Redo(size_t session = 0) {
+    return Create(Action::kRedo, session);
+  }
+};
+
+/**
+ * @brief Sidebar visibility state change notification.
+ *
+ * Published when sidebar or side panel visibility changes.
+ */
+struct SidebarStateChangedEvent : public Event {
+  bool sidebar_visible = false;
+  bool panel_expanded = false;
+
+  static SidebarStateChangedEvent Create(bool visible, bool expanded) {
+    SidebarStateChangedEvent e;
+    e.sidebar_visible = visible;
+    e.panel_expanded = expanded;
+    return e;
+  }
+};
+
+// =============================================================================
 // Frame Lifecycle Events (for deferred action consolidation)
 // =============================================================================
 

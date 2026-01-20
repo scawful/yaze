@@ -1,5 +1,6 @@
 #include "editor_activator.h"
 
+#include "app/editor/events/core_events.h"
 #include "app/editor/session_types.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/panel_manager.h"
@@ -18,6 +19,21 @@ namespace editor {
 void EditorActivator::Initialize(const Dependencies& deps) {
   deps_ = deps;
   initialized_ = true;
+
+  // Subscribe to navigation events via EventBus
+  if (deps_.event_bus) {
+    deps_.event_bus->Subscribe<JumpToRoomRequestEvent>(
+        [this](const JumpToRoomRequestEvent& event) {
+          JumpToDungeonRoom(event.room_id);
+        });
+
+    deps_.event_bus->Subscribe<JumpToMapRequestEvent>(
+        [this](const JumpToMapRequestEvent& event) {
+          JumpToOverworldMap(event.map_id);
+        });
+
+    LOG_INFO("EditorActivator", "Subscribed to navigation events");
+  }
 }
 
 void EditorActivator::SwitchToEditor(EditorType editor_type, bool force_visible,

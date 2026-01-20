@@ -3,6 +3,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "app/editor/editor.h"
 #include "imgui/imgui.h"
@@ -96,6 +97,26 @@ class LayoutManager {
   void LoadLayout(const std::string& name);
 
   /**
+   * @brief Delete a saved layout by name
+   * @param name The name of the layout to delete
+   * @return true if layout was deleted, false if not found
+   */
+  bool DeleteLayout(const std::string& name);
+
+  /**
+   * @brief Get list of all saved layout names
+   * @return Vector of layout names
+   */
+  std::vector<std::string> GetSavedLayoutNames() const;
+
+  /**
+   * @brief Check if a layout exists
+   * @param name The layout name to check
+   * @return true if layout exists
+   */
+  bool HasLayout(const std::string& name) const;
+
+  /**
    * @brief Reset the layout for an editor to its default
    * @param type The editor type to reset
    */
@@ -186,6 +207,13 @@ class LayoutManager {
 
   // Current editor type being displayed
   EditorType current_editor_type_ = EditorType::kUnknown;
+
+  // Saved layouts (panel visibility state)
+  std::unordered_map<std::string, std::unordered_map<std::string, bool>>
+      saved_layouts_;
+
+  // Saved ImGui docking layouts (INI data)
+  std::unordered_map<std::string, std::string> saved_imgui_layouts_;
 };
 
 }  // namespace editor

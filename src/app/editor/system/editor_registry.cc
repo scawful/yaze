@@ -99,28 +99,24 @@ std::vector<std::string> EditorRegistry::GetAllEditorCategories() {
 }
 
 void EditorRegistry::JumpToDungeonRoom(int room_id) {
+  // DEPRECATED: Use EventBus::Publish(JumpToRoomRequestEvent::Create(room_id))
+  // This method is kept for backward compatibility but will be removed.
+  printf("[EditorRegistry] DEPRECATED: JumpToDungeonRoom(%d) - "
+         "Use EventBus::Publish(JumpToRoomRequestEvent::Create(room_id)) instead\n",
+         room_id);
   if (jump_to_room_callback_) {
     jump_to_room_callback_(room_id);
-  } else {
-    auto it = registered_editors_.find(EditorType::kDungeon);
-    if (it != registered_editors_.end() && it->second) {
-      // Fallback logging if no callback registered
-      printf("[EditorRegistry] JumpToDungeonRoom(%d) called (no callback)\n",
-             room_id);
-    }
   }
 }
 
 void EditorRegistry::JumpToOverworldMap(int map_id) {
+  // DEPRECATED: Use EventBus::Publish(JumpToMapRequestEvent::Create(map_id))
+  // This method is kept for backward compatibility but will be removed.
+  printf("[EditorRegistry] DEPRECATED: JumpToOverworldMap(%d) - "
+         "Use EventBus::Publish(JumpToMapRequestEvent::Create(map_id)) instead\n",
+         map_id);
   if (jump_to_map_callback_) {
     jump_to_map_callback_(map_id);
-  } else {
-    auto it = registered_editors_.find(EditorType::kOverworld);
-    if (it != registered_editors_.end() && it->second) {
-      // Fallback logging if no callback registered
-      printf("[EditorRegistry] JumpToOverworldMap(%d) called (no callback)\n",
-             map_id);
-    }
   }
 }
 

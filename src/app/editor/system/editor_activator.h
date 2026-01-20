@@ -4,6 +4,7 @@
 #include <functional>
 #include <string>
 
+#include "app/editor/core/event_bus.h"
 #include "app/editor/editor.h"
 
 namespace yaze {
@@ -35,6 +36,7 @@ class EditorActivator {
     UICoordinator* ui_coordinator = nullptr;
     RightPanelManager* right_panel_manager = nullptr;
     ToastManager* toast_manager = nullptr;
+    EventBus* event_bus = nullptr;  // For navigation event subscriptions
     std::function<EditorSet*()> get_current_editor_set;
     std::function<size_t()> get_current_session_id;
     std::function<void(std::function<void()>)> queue_deferred_action;

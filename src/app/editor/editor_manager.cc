@@ -296,6 +296,16 @@ EditorManager::EditorManager()
     }
   });
 
+  // Subscribe to UIActionRequestEvent for activity bar actions
+  // This replaces direct callbacks from PanelManager
+  event_bus_.Subscribe<UIActionRequestEvent>(
+      [this](const UIActionRequestEvent& e) {
+        HandleUIActionRequest(e.action);
+      });
+
+  // Wire up EventBus to PanelManager for action event publishing
+  panel_manager_.SetEventBus(&event_bus_);
+
   // STEP 4: Initialize UICoordinator (depends on popup_manager_,
   // session_coordinator_, panel_manager_)
   ui_coordinator_ = std::make_unique<UICoordinator>(
@@ -391,6 +401,7 @@ EditorManager::EditorManager()
   activator_deps.ui_coordinator = ui_coordinator_.get();
   activator_deps.right_panel_manager = right_panel_manager_.get();
   activator_deps.toast_manager = &toast_manager_;
+  activator_deps.event_bus = &event_bus_;
   activator_deps.get_current_editor_set = [this]() {
     return GetCurrentEditorSet();
   };
@@ -510,6 +521,89 @@ void EditorManager::HandleSessionRomLoaded(size_t index, Rom* rom) {
 #endif
 
   LOG_INFO("EditorManager", "ROM loaded in session %zu via EventBus", index);
+}
+
+void EditorManager::HandleUIActionRequest(UIActionRequestEvent::Action action) {
+  using Action = UIActionRequestEvent::Action;
+  switch (action) {
+    case Action::kShowEmulator:
+      if (ui_coordinator_) {
+        ui_coordinator_->SetEmulatorVisible(true);
+      }
+      break;
+
+    case Action::kShowSettings:
+      SwitchToEditor(EditorType::kSettings);
+      break;
+
+    case Action::kShowPanelBrowser:
+      if (ui_coordinator_) {
+        ui_coordinator_->ShowPanelBrowser();
+      }
+      break;
+
+    case Action::kShowSearch:
+      if (ui_coordinator_) {
+        ui_coordinator_->ShowGlobalSearch();
+      }
+      break;
+
+    case Action::kShowShortcuts:
+      // Shortcut configuration is part of Settings
+      SwitchToEditor(EditorType::kSettings);
+      break;
+
+    case Action::kShowCommandPalette:
+      if (ui_coordinator_) {
+        ui_coordinator_->ShowCommandPalette();
+      }
+      break;
+
+    case Action::kShowHelp:
+      if (popup_manager_) {
+        popup_manager_->Show(PopupID::kAbout);
+      }
+      break;
+
+    case Action::kOpenRom:
+      // Open ROM dialog - handled elsewhere, but included for completeness
+      break;
+
+    case Action::kSaveRom:
+      if (GetCurrentRom() && GetCurrentRom()->is_loaded()) {
+        auto status = SaveRom();
+        if (status.ok()) {
+          toast_manager_.Show("ROM saved successfully", ToastType::kSuccess);
+        } else {
+          toast_manager_.Show(std::string("Save failed: ") +
+                                  std::string(status.message()),
+                              ToastType::kError);
+        }
+      }
+      break;
+
+    case Action::kUndo:
+      if (auto* current_editor = GetCurrentEditor()) {
+        auto status = current_editor->Undo();
+        if (!status.ok()) {
+          toast_manager_.Show(std::string("Undo failed: ") +
+                                  std::string(status.message()),
+                              ToastType::kError);
+        }
+      }
+      break;
+
+    case Action::kRedo:
+      if (auto* current_editor = GetCurrentEditor()) {
+        auto status = current_editor->Redo();
+        if (!status.ok()) {
+          toast_manager_.Show(std::string("Redo failed: ") +
+                                  std::string(status.message()),
+                              ToastType::kError);
+        }
+      }
+      break;
+  }
 }
 
 void EditorManager::InitializeTestSuites() {

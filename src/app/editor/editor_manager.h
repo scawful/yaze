@@ -347,6 +347,9 @@ class EditorManager {
   void HandleSessionClosed(size_t index);
   void HandleSessionRomLoaded(size_t index, Rom* rom);
 
+  // UI action event handler (EventBus subscriber for UIActionRequestEvent)
+  void HandleUIActionRequest(UIActionRequestEvent::Action action);
+
   bool quit_ = false;
 
   // Note: All show_* flags are being moved to UICoordinator

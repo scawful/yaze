@@ -372,6 +372,9 @@ void Arena::Shutdown() {
   // Process any remaining batch updates before shutdown
   ProcessTextureQueue(renderer_);
 
+  // Clear LRU cache tracking (doesn't destroy textures, just tracking)
+  ClearSheetCache();
+
   // Clear pool references first to prevent reuse during shutdown
   surface_pool_.available_surfaces_.clear();
   surface_pool_.surface_info_.clear();
@@ -448,6 +451,115 @@ void Arena::UnregisterPaletteListener(int listener_id) {
     palette_listeners_.erase(it);
     LOG_DEBUG("Arena", "Unregistered palette listener with ID %d", listener_id);
   }
+}
+
+// ========== LRU Sheet Texture Cache ==========
+
+void Arena::TouchSheet(int sheet_index) {
+  if (sheet_index < 0 || sheet_index >= 223) {
+    return;
+  }
+
+  auto map_it = sheet_lru_map_.find(sheet_index);
+  if (map_it != sheet_lru_map_.end()) {
+    // Sheet already in cache - move to front (most recently used)
+    sheet_lru_list_.erase(map_it->second);
+    sheet_lru_list_.push_front(sheet_index);
+    map_it->second = sheet_lru_list_.begin();
+  } else {
+    // New sheet - add to front
+    sheet_lru_list_.push_front(sheet_index);
+    sheet_lru_map_[sheet_index] = sheet_lru_list_.begin();
+  }
+}
+
+Bitmap* Arena::GetSheetWithCache(int sheet_index) {
+  if (sheet_index < 0 || sheet_index >= 223) {
+    return nullptr;
+  }
+
+  auto& sheet = gfx_sheets_[sheet_index];
+
+  // Check if sheet already has texture (cache hit)
+  bool had_texture = sheet.texture() != nullptr;
+
+  // Touch to update LRU order
+  TouchSheet(sheet_index);
+
+  if (had_texture) {
+    sheet_cache_stats_.hits++;
+  } else {
+    sheet_cache_stats_.misses++;
+
+    // Queue texture creation if sheet has valid surface
+    if (sheet.is_active() && sheet.surface()) {
+      QueueTextureCommand(TextureCommandType::CREATE, &sheet);
+    }
+
+    // Check if we need to evict LRU sheets
+    if (sheet_lru_map_.size() > sheet_cache_max_size_) {
+      EvictLRUSheets(0);  // Evict until under max
+    }
+  }
+
+  sheet_cache_stats_.current_size = sheet_lru_map_.size();
+  return &sheet;
+}
+
+void Arena::SetSheetCacheSize(size_t max_size) {
+  // Clamp to valid range
+  sheet_cache_max_size_ = std::clamp(max_size, size_t{16}, size_t{223});
+
+  // Evict if current cache exceeds new size
+  if (sheet_lru_map_.size() > sheet_cache_max_size_) {
+    EvictLRUSheets(0);
+  }
+
+  LOG_INFO("Arena", "Sheet cache size set to %zu", sheet_cache_max_size_);
+}
+
+size_t Arena::EvictLRUSheets(size_t count) {
+  size_t evicted = 0;
+  size_t target_evictions = count;
+
+  // If count is 0, evict until we're under the max size
+  if (count == 0 && sheet_lru_map_.size() > sheet_cache_max_size_) {
+    target_evictions = sheet_lru_map_.size() - sheet_cache_max_size_;
+  }
+
+  // Evict from back of list (least recently used)
+  while (!sheet_lru_list_.empty() && evicted < target_evictions) {
+    int sheet_index = sheet_lru_list_.back();
+    auto& sheet = gfx_sheets_[sheet_index];
+
+    // Destroy texture if it exists
+    if (sheet.texture()) {
+      QueueTextureCommand(TextureCommandType::DESTROY, &sheet);
+      LOG_DEBUG("Arena", "Evicted LRU sheet %d texture", sheet_index);
+      evicted++;
+      sheet_cache_stats_.evictions++;
+    }
+
+    // Remove from LRU tracking
+    sheet_lru_map_.erase(sheet_index);
+    sheet_lru_list_.pop_back();
+  }
+
+  sheet_cache_stats_.current_size = sheet_lru_map_.size();
+
+  if (evicted > 0) {
+    LOG_DEBUG("Arena", "Evicted %zu LRU sheet textures, %zu remaining",
+              evicted, sheet_lru_map_.size());
+  }
+
+  return evicted;
+}
+
+void Arena::ClearSheetCache() {
+  sheet_lru_list_.clear();
+  sheet_lru_map_.clear();
+  sheet_cache_stats_.current_size = 0;
+  LOG_DEBUG("Arena", "Cleared sheet cache tracking");
 }
 
 }  // namespace gfx

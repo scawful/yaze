@@ -4,6 +4,7 @@
 #include <array>
 #include <cstdint>
 #include <functional>
+#include <list>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -226,6 +227,103 @@ class Arena {
    */
   auto& bg2() { return bg2_; }
 
+  // ========== LRU Sheet Texture Cache ==========
+
+  /**
+   * @brief Mark a graphics sheet as recently accessed
+   * @param sheet_index Index of the sheet being accessed (0-222)
+   *
+   * Call this when a sheet is displayed or its texture is used.
+   * This moves the sheet to the front of the LRU list.
+   */
+  void TouchSheet(int sheet_index);
+
+  /**
+   * @brief Get a sheet with automatic LRU tracking and texture creation
+   * @param sheet_index Index of the sheet (0-222)
+   * @return Pointer to the Bitmap, or nullptr if out of bounds
+   *
+   * This is the preferred way to access sheets when you need their textures.
+   * It automatically:
+   * - Marks the sheet as recently used
+   * - Queues texture creation if not yet created
+   * - Evicts LRU sheets if cache is full
+   */
+  Bitmap* GetSheetWithCache(int sheet_index);
+
+  /**
+   * @brief Set the maximum number of sheet textures to keep cached
+   * @param max_size Maximum cache size (default 64, min 16, max 223)
+   *
+   * When more sheets than this have textures, the least recently used
+   * textures will be destroyed to free GPU memory.
+   */
+  void SetSheetCacheSize(size_t max_size);
+
+  /**
+   * @brief Get current sheet cache size limit
+   * @return Maximum number of cached sheet textures
+   */
+  size_t GetSheetCacheSize() const { return sheet_cache_max_size_; }
+
+  /**
+   * @brief Get number of sheets currently with textures
+   * @return Count of sheets that have active textures
+   */
+  size_t GetCachedSheetCount() const { return sheet_lru_map_.size(); }
+
+  /**
+   * @brief Evict least recently used sheet textures
+   * @param count Number of textures to evict (0 = evict until under max)
+   * @return Number of textures actually evicted
+   *
+   * Useful for proactive memory management before loading new content.
+   */
+  size_t EvictLRUSheets(size_t count = 0);
+
+  /**
+   * @brief Clear all sheet texture cache tracking
+   *
+   * Does NOT destroy textures - use this when manually managing textures
+   * or during shutdown.
+   */
+  void ClearSheetCache();
+
+  /**
+   * @brief Statistics for sheet cache performance
+   */
+  struct SheetCacheStats {
+    size_t hits = 0;           // Sheet accessed and already had texture
+    size_t misses = 0;         // Sheet accessed but needed texture creation
+    size_t evictions = 0;      // Textures evicted due to cache pressure
+    size_t current_size = 0;   // Current number of cached textures
+
+    void Reset() {
+      hits = 0;
+      misses = 0;
+      evictions = 0;
+      current_size = 0;
+    }
+
+    float HitRate() const {
+      size_t total = hits + misses;
+      return total > 0 ? static_cast<float>(hits) / total : 0.0f;
+    }
+  };
+
+  /**
+   * @brief Get sheet cache statistics
+   * @return Reference to current statistics
+   */
+  const SheetCacheStats& GetSheetCacheStats() const {
+    return sheet_cache_stats_;
+  }
+
+  /**
+   * @brief Reset sheet cache statistics
+   */
+  void ResetSheetCacheStats() { sheet_cache_stats_.Reset(); }
+
  private:
   Arena();
 
@@ -270,6 +368,14 @@ class Arena {
   // Palette change notification system
   std::unordered_map<int, PaletteChangeCallback> palette_listeners_;
   int next_palette_listener_id_ = 1;
+
+  // LRU sheet texture cache
+  // List stores sheet indices in access order (front = most recent)
+  std::list<int> sheet_lru_list_;
+  // Map from sheet index to iterator in lru_list for O(1) access
+  std::unordered_map<int, std::list<int>::iterator> sheet_lru_map_;
+  size_t sheet_cache_max_size_ = 64;  // Default: cache 64 sheet textures
+  SheetCacheStats sheet_cache_stats_;
 };
 
 }  // namespace gfx

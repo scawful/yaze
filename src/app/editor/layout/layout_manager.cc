@@ -319,15 +319,86 @@ void LayoutManager::BuildSettingsLayout(ImGuiID dockspace_id) { BuildLayoutFromP
 void LayoutManager::BuildEmulatorLayout(ImGuiID dockspace_id) { BuildLayoutFromPreset(EditorType::kEmulator, dockspace_id); }
 
 void LayoutManager::SaveCurrentLayout(const std::string& name) {
-  // TODO: [EditorManagerRefactor] Implement layout saving to file
-  // Use ImGui::SaveIniSettingsToMemory() and write to custom file
-  LOG_INFO("LayoutManager", "Saving layout: %s", name.c_str());
+  if (!panel_manager_) {
+    LOG_WARN("LayoutManager",
+             "Cannot save layout '%s': PanelManager not available",
+             name.c_str());
+    return;
+  }
+
+  // Serialize current panel visibility state
+  size_t session_id = panel_manager_->GetActiveSessionId();
+  auto visibility_state = panel_manager_->SerializeVisibilityState(session_id);
+
+  // Store in saved_layouts_ for later persistence
+  saved_layouts_[name] = visibility_state;
+
+  // Also save ImGui docking layout to memory
+  size_t ini_size = 0;
+  const char* ini_data = ImGui::SaveIniSettingsToMemory(&ini_size);
+  if (ini_data && ini_size > 0) {
+    saved_imgui_layouts_[name] = std::string(ini_data, ini_size);
+  }
+
+  LOG_INFO("LayoutManager", "Saved layout '%s' with %zu panel states",
+           name.c_str(), visibility_state.size());
 }
 
 void LayoutManager::LoadLayout(const std::string& name) {
-  // TODO: [EditorManagerRefactor] Implement layout loading from file
-  // Use ImGui::LoadIniSettingsFromMemory() and read from custom file
-  LOG_INFO("LayoutManager", "Loading layout: %s", name.c_str());
+  if (!panel_manager_) {
+    LOG_WARN("LayoutManager",
+             "Cannot load layout '%s': PanelManager not available",
+             name.c_str());
+    return;
+  }
+
+  // Find saved layout
+  auto layout_it = saved_layouts_.find(name);
+  if (layout_it == saved_layouts_.end()) {
+    LOG_WARN("LayoutManager", "Layout '%s' not found", name.c_str());
+    return;
+  }
+
+  // Restore panel visibility
+  size_t session_id = panel_manager_->GetActiveSessionId();
+  panel_manager_->RestoreVisibilityState(session_id, layout_it->second);
+
+  // Restore ImGui docking layout if available
+  auto imgui_it = saved_imgui_layouts_.find(name);
+  if (imgui_it != saved_imgui_layouts_.end() && !imgui_it->second.empty()) {
+    ImGui::LoadIniSettingsFromMemory(imgui_it->second.c_str(),
+                                      imgui_it->second.size());
+  }
+
+  LOG_INFO("LayoutManager", "Loaded layout '%s'", name.c_str());
+}
+
+bool LayoutManager::DeleteLayout(const std::string& name) {
+  auto layout_it = saved_layouts_.find(name);
+  if (layout_it == saved_layouts_.end()) {
+    LOG_WARN("LayoutManager", "Cannot delete layout '%s': not found",
+             name.c_str());
+    return false;
+  }
+
+  saved_layouts_.erase(layout_it);
+  saved_imgui_layouts_.erase(name);
+
+  LOG_INFO("LayoutManager", "Deleted layout '%s'", name.c_str());
+  return true;
+}
+
+std::vector<std::string> LayoutManager::GetSavedLayoutNames() const {
+  std::vector<std::string> names;
+  names.reserve(saved_layouts_.size());
+  for (const auto& [name, _] : saved_layouts_) {
+    names.push_back(name);
+  }
+  return names;
+}
+
+bool LayoutManager::HasLayout(const std::string& name) const {
+  return saved_layouts_.find(name) != saved_layouts_.end();
 }
 
 void LayoutManager::ResetToDefaultLayout(EditorType type) {

@@ -930,6 +930,131 @@ std::vector<std::string> PanelManager::GetAllCategories() const {
 }
 
 // ============================================================================
+// State Persistence
+// ============================================================================
+
+std::vector<std::string> PanelManager::GetVisiblePanelIds(
+    size_t session_id) const {
+  std::vector<std::string> visible_panels;
+
+  auto session_it = session_card_mapping_.find(session_id);
+  if (session_it == session_card_mapping_.end()) {
+    return visible_panels;
+  }
+
+  for (const auto& [base_id, prefixed_id] : session_it->second) {
+    auto card_it = cards_.find(prefixed_id);
+    if (card_it != cards_.end() && card_it->second.visibility_flag &&
+        *card_it->second.visibility_flag) {
+      visible_panels.push_back(base_id);
+    }
+  }
+
+  return visible_panels;
+}
+
+void PanelManager::SetVisiblePanels(
+    size_t session_id, const std::vector<std::string>& panel_ids) {
+  auto session_it = session_card_mapping_.find(session_id);
+  if (session_it == session_card_mapping_.end()) {
+    return;
+  }
+
+  // Convert panel_ids to a set for O(1) lookup
+  std::unordered_set<std::string> visible_set(panel_ids.begin(),
+                                               panel_ids.end());
+
+  // Update visibility for all panels in this session
+  for (const auto& [base_id, prefixed_id] : session_it->second) {
+    auto card_it = cards_.find(prefixed_id);
+    if (card_it != cards_.end() && card_it->second.visibility_flag) {
+      bool should_be_visible = visible_set.count(base_id) > 0;
+      *card_it->second.visibility_flag = should_be_visible;
+    }
+  }
+
+  LOG_INFO("PanelManager", "Set %zu panels visible for session %zu",
+           panel_ids.size(), session_id);
+}
+
+std::unordered_map<std::string, bool> PanelManager::SerializeVisibilityState(
+    size_t session_id) const {
+  std::unordered_map<std::string, bool> state;
+
+  auto session_it = session_card_mapping_.find(session_id);
+  if (session_it == session_card_mapping_.end()) {
+    return state;
+  }
+
+  for (const auto& [base_id, prefixed_id] : session_it->second) {
+    auto card_it = cards_.find(prefixed_id);
+    if (card_it != cards_.end() && card_it->second.visibility_flag) {
+      state[base_id] = *card_it->second.visibility_flag;
+    }
+  }
+
+  return state;
+}
+
+void PanelManager::RestoreVisibilityState(
+    size_t session_id, const std::unordered_map<std::string, bool>& state) {
+  auto session_it = session_card_mapping_.find(session_id);
+  if (session_it == session_card_mapping_.end()) {
+    LOG_WARN("PanelManager",
+             "Cannot restore visibility: session %zu not found", session_id);
+    return;
+  }
+
+  size_t restored = 0;
+  for (const auto& [base_id, visible] : state) {
+    auto mapping_it = session_it->second.find(base_id);
+    if (mapping_it != session_it->second.end()) {
+      auto card_it = cards_.find(mapping_it->second);
+      if (card_it != cards_.end() && card_it->second.visibility_flag) {
+        *card_it->second.visibility_flag = visible;
+        restored++;
+      }
+    }
+  }
+
+  LOG_INFO("PanelManager",
+           "Restored visibility for %zu/%zu panels in session %zu", restored,
+           state.size(), session_id);
+}
+
+std::unordered_map<std::string, bool> PanelManager::SerializePinnedState()
+    const {
+  std::unordered_map<std::string, bool> state;
+
+  for (const auto& [prefixed_id, pinned] : pinned_panels_) {
+    // Extract base ID by removing session prefix (format: "s{n}_{base_id}")
+    size_t underscore_pos = prefixed_id.find('_');
+    if (underscore_pos != std::string::npos) {
+      std::string base_id = prefixed_id.substr(underscore_pos + 1);
+      state[base_id] = pinned;
+    }
+  }
+
+  return state;
+}
+
+void PanelManager::RestorePinnedState(
+    const std::unordered_map<std::string, bool>& state) {
+  // Apply pinned state to all sessions
+  for (const auto& [session_id, card_mapping] : session_card_mapping_) {
+    for (const auto& [base_id, prefixed_id] : card_mapping) {
+      auto state_it = state.find(base_id);
+      if (state_it != state.end()) {
+        pinned_panels_[prefixed_id] = state_it->second;
+      }
+    }
+  }
+
+  LOG_INFO("PanelManager", "Restored pinned state for %zu panels",
+           state.size());
+}
+
+// ============================================================================
 // Sidebar Keyboard Navigation
 // ============================================================================
 
