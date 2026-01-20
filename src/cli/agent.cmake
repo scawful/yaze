@@ -13,33 +13,8 @@ if(EMSCRIPTEN)
     cli/service/ai/common.h
     cli/wasm_terminal_bridge.cc  # Web terminal integration
 
-    # Minimal command infrastructure for WASM
-    cli/flags.cc  # Define flags for handlers
-    cli/service/command_registry.cc
-    cli/service/resources/command_handler.cc
-    cli/service/resources/command_context.cc
-    cli/service/resources/resource_catalog.cc
-    cli/service/resources/resource_context_builder.cc
-
     # Browser specific implementations
     cli/service/ai/service_factory_browser.cc
-    cli/handlers/agent/browser_agent.cc
-    cli/handlers/command_handlers_browser.cc
-
-    # Basic handlers that don't require native dependencies
-    cli/handlers/game/dungeon_commands.cc
-    cli/handlers/game/overworld_commands.cc
-    cli/handlers/game/overworld_inspect.cc
-    cli/handlers/graphics/gfx.cc
-    cli/handlers/rom/rom_commands.cc
-    cli/handlers/rom/mock_rom.cc
-    cli/handlers/tools/resource_commands.cc
-    cli/handlers/tools/test_helpers_commands.cc
-
-    # Explicitly supported handlers
-    cli/handlers/graphics/hex_commands.cc
-    cli/handlers/graphics/palette_commands.cc
-    cli/handlers/agent/todo_commands.cc
     cli/service/agent/todo_manager.cc
     
     # Proposal and Sandbox support (needed by yaze_editor)
@@ -54,11 +29,7 @@ if(EMSCRIPTEN)
     cli/service/agent/agent_pretraining.cc
     cli/service/agent/proposal_executor.cc
 
-    # Additional Handlers required by ToolDispatcher
-    cli/handlers/game/message_commands.cc
-    cli/handlers/game/dialogue_commands.cc
-    cli/handlers/game/music_commands.cc
-    cli/handlers/graphics/sprite_commands.cc
+    # Additional tools required by ToolDispatcher
     cli/service/agent/tools/filesystem_tool.cc
     cli/service/agent/tools/memory_inspector_tool.cc
     cli/service/agent/tools/visual_analysis_tool.cc
@@ -72,6 +43,7 @@ if(EMSCRIPTEN)
   add_library(yaze_agent STATIC ${YAZE_BROWSER_AI_SOURCES})
 
   target_link_libraries(yaze_agent PUBLIC
+    yaze_cli_core
     yaze_common
     yaze_util
     yaze_app_core_lib  # For Rom class and core functionality
@@ -118,47 +90,7 @@ if(NOT _YAZE_NEEDS_AGENT)
 endif()
 
 set(YAZE_AGENT_CORE_SOURCES
-  # Core infrastructure
-  cli/flags.cc
-  cli/handlers/agent.cc
-  cli/handlers/agent/common.cc
-  cli/handlers/agent/conversation_test.cc
-  cli/handlers/agent/general_commands.cc
-  cli/handlers/agent/simple_chat_command.cc
-  cli/handlers/agent/test_commands.cc
-  cli/handlers/agent/test_common.cc
-  cli/handlers/agent/todo_commands.cc
-  cli/handlers/command_handlers.cc
-  cli/handlers/game/dialogue_commands.cc
-  cli/handlers/game/dungeon_commands.cc
-  cli/handlers/game/message.cc
-  cli/handlers/game/message_commands.cc
-  cli/handlers/game/music_commands.cc
-  cli/handlers/game/overworld.cc
-  cli/handlers/game/overworld_commands.cc
-  cli/handlers/game/overworld_inspect.cc
-  cli/handlers/graphics/gfx.cc
-  cli/handlers/graphics/hex_commands.cc
-  cli/handlers/graphics/palette.cc
-  cli/handlers/graphics/palette_commands.cc
-  cli/handlers/graphics/sprite_commands.cc
-  cli/handlers/net/net_commands.cc
-  cli/handlers/rom/mock_rom.cc
-  cli/handlers/rom/project_commands.cc
-  cli/handlers/rom/rom_commands.cc
-  cli/handlers/tools/dungeon_doctor_commands.cc
-  cli/handlers/tools/gui_commands.cc
-  cli/handlers/tools/overworld_doctor_commands.cc
-  cli/handlers/tools/overworld_validate_commands.cc
-  cli/handlers/tools/resource_commands.cc
-  cli/handlers/tools/rom_compare_commands.cc
-  cli/handlers/tools/rom_doctor_commands.cc
-  cli/handlers/tools/message_doctor_commands.cc
-  cli/handlers/tools/sprite_doctor_commands.cc
-  cli/handlers/tools/graphics_doctor_commands.cc
-  cli/handlers/tools/test_cli_commands.cc
-  cli/handlers/tools/test_helpers_commands.cc
-  cli/handlers/tools/hex_inspector_commands.cc
+  # Agent runtime and services
   cli/service/agent/conversational_agent_service.cc
   cli/service/agent/dev_assist_agent.cc
   cli/service/agent/enhanced_tui.cc
@@ -179,24 +111,14 @@ set(YAZE_AGENT_CORE_SOURCES
   cli/service/agent/tools/visual_analysis_tool.cc
   cli/service/agent/disassembler_65816.cc
   cli/service/agent/vim_mode.cc
-  cli/service/command_registry.cc
+
   cli/service/gui/gui_action_generator.cc
-  cli/service/gui/gui_automation_client.cc
-  cli/service/gui/canvas_automation_client.cc
-  cli/service/net/z3ed_network_client.cc
   cli/service/planning/policy_evaluator.cc
   cli/service/planning/proposal_registry.cc
   cli/service/planning/tile16_proposal_generator.cc
-  cli/service/resources/command_context.cc
-  cli/service/resources/command_handler.cc
-  cli/service/resources/resource_catalog.cc
-  cli/service/resources/resource_context_builder.cc
   cli/service/rom/rom_sandbox_manager.cc
   cli/service/agent/proposal_executor.cc
-  cli/service/testing/test_suite_loader.cc
-  cli/service/testing/test_suite_reporter.cc
-  cli/service/testing/test_suite_writer.cc
-  cli/service/testing/test_workflow_generator.cc
+
   cli/service/ai/ai_action_parser.cc
   cli/service/ai/ai_service.cc
   cli/service/ai/model_registry.cc
@@ -239,7 +161,6 @@ if(YAZE_ENABLE_REMOTE_AUTOMATION)
   list(APPEND YAZE_AGENT_SOURCES
     cli/service/agent/agent_control_server.cc
     cli/service/agent/emulator_service_impl.cc
-    cli/handlers/tools/emulator_commands.cc
   )
 endif()
 
@@ -254,6 +175,7 @@ endif()
 add_library(yaze_agent STATIC ${YAZE_AGENT_SOURCES})
 
 set(_yaze_agent_link_targets
+  yaze_cli_core
   yaze_common
   yaze_util
   yaze_gfx

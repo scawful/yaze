@@ -55,7 +55,7 @@ CommandRegistry& CommandRegistry::Instance() {
   static CommandRegistry instance;
   static bool initialized = false;
   if (!initialized) {
-    instance.RegisterAllCommands();
+    instance.RegisterCliCommands();
     initialized = true;
   }
   return instance;
@@ -76,6 +76,157 @@ void CommandRegistry::Register(
 
   // Store handler
   handlers_[name] = std::move(handler);
+}
+
+void CommandRegistry::RegisterHandlers(
+    std::vector<std::unique_ptr<resources::CommandHandler>> handlers) {
+  for (auto& handler : handlers) {
+    std::string name = handler->GetName();
+
+    if (handlers_.find(name) != handlers_.end()) {
+      continue;
+    }
+
+    // Build metadata from handler
+    auto descriptor = handler->Describe();
+    CommandMetadata metadata;
+    metadata.name = name;
+    metadata.usage = handler->GetUsage();
+    metadata.available_to_agent = true;  // Most commands available to agent
+    metadata.requires_rom = handler->RequiresRom();
+    metadata.requires_grpc = false;
+
+    // Categorize and enhance metadata based on command type
+    if (name.find("resource-") == 0) {
+      metadata.category = "resource";
+      metadata.description = "Resource inspection and search";
+      if (name == "resource-list") {
+        metadata.examples = {"z3ed resource-list --type=dungeon --format=json",
+                             "z3ed resource-list --type=sprite --format=table"};
+      }
+    } else if (name.find("dungeon-") == 0) {
+      metadata.category = "dungeon";
+      metadata.description = "Dungeon inspection and editing";
+      if (name == "dungeon-describe-room") {
+        metadata.examples = {
+            "z3ed dungeon-describe-room --room=5 --format=json"};
+      }
+    } else if (name.find("overworld-") == 0) {
+      metadata.category = "overworld";
+      metadata.description = "Overworld inspection and editing";
+      if (name == "overworld-find-tile") {
+        metadata.examples = {
+            "z3ed overworld-find-tile --tile=0x42 --format=json"};
+      }
+    } else if (name.find("rom-") == 0) {
+      metadata.category = "rom";
+      metadata.description = "ROM inspection and validation";
+      if (name == "rom-info") {
+        metadata.examples = {"z3ed rom-info --rom=zelda3.sfc"};
+      } else if (name == "rom-validate") {
+        metadata.examples = {"z3ed rom-validate --rom=zelda3.sfc"};
+      } else if (name == "rom-doctor") {
+        metadata.examples = {"z3ed rom-doctor --rom=zelda3.sfc --format=json"};
+      } else if (name == "rom-diff") {
+        metadata.examples = {
+            "z3ed rom-diff --rom_a=base.sfc --rom_b=target.sfc"};
+      } else if (name == "rom-compare") {
+        metadata.examples = {
+            "z3ed rom-compare --rom=target.sfc --baseline=vanilla.sfc"};
+      }
+    } else if (name.find("emulator-") == 0) {
+      metadata.category = "emulator";
+      metadata.description = "Emulator control and debugging";
+      metadata.requires_grpc = true;
+      if (name == "emulator-set-breakpoint") {
+        metadata.examples = {
+            "z3ed emulator-set-breakpoint --address=0x83D7 --description='NMI "
+            "handler'"};
+      }
+    } else if (name.find("gui-") == 0) {
+      metadata.category = "gui";
+      metadata.description = "GUI automation";
+      metadata.requires_grpc = true;
+    } else if (name.find("hex-") == 0) {
+      metadata.category = "graphics";
+      metadata.description = "Hex data manipulation";
+    } else if (name.find("palette-") == 0) {
+      metadata.category = "graphics";
+      metadata.description = "Palette operations";
+    } else if (name.find("sprite-") == 0) {
+      metadata.category = "graphics";
+      metadata.description = "Sprite operations";
+    } else if (name.find("message-") == 0 || name.find("dialogue-") == 0) {
+      metadata.category = "game";
+      metadata.description = name.find("message-") == 0 ? "Message inspection"
+                                                        : "Dialogue inspection";
+    } else if (name.find("music-") == 0) {
+      metadata.category = "game";
+      metadata.description = "Music/audio inspection";
+    } else if (name == "simple-chat" || name == "chat") {
+      metadata.category = "agent";
+      metadata.description = "AI conversational agent";
+      metadata.available_to_agent = false;  // Meta-command
+      metadata.requires_rom = false;
+      metadata.examples = {
+          "z3ed simple-chat --rom=zelda3.sfc",
+          "z3ed simple-chat \"What dungeons exist?\" --rom=zelda3.sfc"};
+    } else if (name.find("tools-") == 0) {
+      metadata.category = "tools";
+      if (name == "tools-list") {
+        metadata.description = "List available test helper tools";
+        metadata.requires_rom = false;
+        metadata.available_to_agent = true;
+      } else if (name == "tools-harness-state") {
+        metadata.description = "Generate WRAM state for test harnesses";
+        metadata.examples = {
+            "z3ed tools-harness-state --rom=zelda3.sfc --output=state.h"};
+      } else if (name == "tools-extract-values") {
+        metadata.description = "Extract vanilla ROM values";
+        metadata.examples = {"z3ed tools-extract-values --rom=zelda3.sfc"};
+      } else if (name == "tools-extract-golden") {
+        metadata.description = "Extract comprehensive golden data for testing";
+        metadata.examples = {
+            "z3ed tools-extract-golden --rom=zelda3.sfc --output=golden.h"};
+      } else if (name == "tools-patch-v3") {
+        metadata.description = "Create v3 ZSCustomOverworld patched ROM";
+        metadata.examples = {
+            "z3ed tools-patch-v3 --rom=zelda3.sfc --output=patched.sfc"};
+      } else {
+        metadata.description = "Test helper tool";
+      }
+    } else if (name.find("test-") == 0) {
+      metadata.category = "test";
+      metadata.description = "Test discovery and execution";
+      if (name == "test-list") {
+        metadata.requires_rom = false;
+        metadata.examples = {"z3ed test-list", "z3ed test-list --format json"};
+      } else if (name == "test-run") {
+        metadata.examples = {"z3ed test-run --label stable",
+                             "z3ed test-run --label gui"};
+      } else if (name == "test-status") {
+        metadata.requires_rom = false;
+        metadata.examples = {"z3ed test-status --format json"};
+      }
+    } else {
+      metadata.category = "misc";
+      metadata.description = "Miscellaneous command";
+    }
+
+    // Prefer handler-provided summary if present
+    if (!descriptor.summary.empty() &&
+        descriptor.summary != "Command summary not provided.") {
+      metadata.description = descriptor.summary;
+    }
+
+    // Keep TODO reference if supplied by handler
+    if (!descriptor.todo_reference.empty() &&
+        descriptor.todo_reference != "todo#unassigned") {
+      metadata.todo_reference = descriptor.todo_reference;
+    }
+
+    Register(std::move(handler), metadata);
+  }
 }
 
 resources::CommandHandler* CommandRegistry::Get(const std::string& name) const {
@@ -271,153 +422,8 @@ bool CommandRegistry::HasCommand(const std::string& name) const {
   return Get(name) != nullptr;
 }
 
-void CommandRegistry::RegisterAllCommands() {
-  // Get all command handlers from factory
-  auto all_handlers = handlers::CreateAllCommandHandlers();
-
-  for (auto& handler : all_handlers) {
-    std::string name = handler->GetName();
-
-    // Build metadata from handler
-    auto descriptor = handler->Describe();
-    CommandMetadata metadata;
-    metadata.name = name;
-    metadata.usage = handler->GetUsage();
-    metadata.available_to_agent = true;  // Most commands available to agent
-    metadata.requires_rom = handler->RequiresRom();
-    metadata.requires_grpc = false;
-
-    // Categorize and enhance metadata based on command type
-    if (name.find("resource-") == 0) {
-      metadata.category = "resource";
-      metadata.description = "Resource inspection and search";
-      if (name == "resource-list") {
-        metadata.examples = {"z3ed resource-list --type=dungeon --format=json",
-                             "z3ed resource-list --type=sprite --format=table"};
-      }
-    } else if (name.find("dungeon-") == 0) {
-      metadata.category = "dungeon";
-      metadata.description = "Dungeon inspection and editing";
-      if (name == "dungeon-describe-room") {
-        metadata.examples = {
-            "z3ed dungeon-describe-room --room=5 --format=json"};
-      }
-    } else if (name.find("overworld-") == 0) {
-      metadata.category = "overworld";
-      metadata.description = "Overworld inspection and editing";
-      if (name == "overworld-find-tile") {
-        metadata.examples = {
-            "z3ed overworld-find-tile --tile=0x42 --format=json"};
-      }
-    } else if (name.find("rom-") == 0) {
-      metadata.category = "rom";
-      metadata.description = "ROM inspection and validation";
-      if (name == "rom-info") {
-        metadata.examples = {"z3ed rom-info --rom=zelda3.sfc"};
-      } else if (name == "rom-validate") {
-        metadata.examples = {"z3ed rom-validate --rom=zelda3.sfc"};
-      } else if (name == "rom-doctor") {
-        metadata.examples = {"z3ed rom-doctor --rom=zelda3.sfc --format=json"};
-      } else if (name == "rom-diff") {
-        metadata.examples = {
-            "z3ed rom-diff --rom_a=base.sfc --rom_b=target.sfc"};
-      } else if (name == "rom-compare") {
-        metadata.examples = {
-            "z3ed rom-compare --rom=target.sfc --baseline=vanilla.sfc"};
-      }
-    } else if (name.find("emulator-") == 0) {
-      metadata.category = "emulator";
-      metadata.description = "Emulator control and debugging";
-      metadata.requires_grpc = true;
-      if (name == "emulator-set-breakpoint") {
-        metadata.examples = {
-            "z3ed emulator-set-breakpoint --address=0x83D7 --description='NMI "
-            "handler'"};
-      }
-    } else if (name.find("gui-") == 0) {
-      metadata.category = "gui";
-      metadata.description = "GUI automation";
-      metadata.requires_grpc = true;
-    } else if (name.find("hex-") == 0) {
-      metadata.category = "graphics";
-      metadata.description = "Hex data manipulation";
-    } else if (name.find("palette-") == 0) {
-      metadata.category = "graphics";
-      metadata.description = "Palette operations";
-    } else if (name.find("sprite-") == 0) {
-      metadata.category = "graphics";
-      metadata.description = "Sprite operations";
-    } else if (name.find("message-") == 0 || name.find("dialogue-") == 0) {
-      metadata.category = "game";
-      metadata.description = name.find("message-") == 0 ? "Message inspection"
-                                                        : "Dialogue inspection";
-    } else if (name.find("music-") == 0) {
-      metadata.category = "game";
-      metadata.description = "Music/audio inspection";
-    } else if (name == "simple-chat" || name == "chat") {
-      metadata.category = "agent";
-      metadata.description = "AI conversational agent";
-      metadata.available_to_agent = false;  // Meta-command
-      metadata.requires_rom = false;
-      metadata.examples = {
-          "z3ed simple-chat --rom=zelda3.sfc",
-          "z3ed simple-chat \"What dungeons exist?\" --rom=zelda3.sfc"};
-    } else if (name.find("tools-") == 0) {
-      metadata.category = "tools";
-      if (name == "tools-list") {
-        metadata.description = "List available test helper tools";
-        metadata.requires_rom = false;
-        metadata.available_to_agent = true;
-      } else if (name == "tools-harness-state") {
-        metadata.description = "Generate WRAM state for test harnesses";
-        metadata.examples = {
-            "z3ed tools-harness-state --rom=zelda3.sfc --output=state.h"};
-      } else if (name == "tools-extract-values") {
-        metadata.description = "Extract vanilla ROM values";
-        metadata.examples = {"z3ed tools-extract-values --rom=zelda3.sfc"};
-      } else if (name == "tools-extract-golden") {
-        metadata.description = "Extract comprehensive golden data for testing";
-        metadata.examples = {
-            "z3ed tools-extract-golden --rom=zelda3.sfc --output=golden.h"};
-      } else if (name == "tools-patch-v3") {
-        metadata.description = "Create v3 ZSCustomOverworld patched ROM";
-        metadata.examples = {
-            "z3ed tools-patch-v3 --rom=zelda3.sfc --output=patched.sfc"};
-      } else {
-        metadata.description = "Test helper tool";
-      }
-    } else if (name.find("test-") == 0) {
-      metadata.category = "test";
-      metadata.description = "Test discovery and execution";
-      if (name == "test-list") {
-        metadata.requires_rom = false;
-        metadata.examples = {"z3ed test-list", "z3ed test-list --format json"};
-      } else if (name == "test-run") {
-        metadata.examples = {"z3ed test-run --label stable",
-                             "z3ed test-run --label gui"};
-      } else if (name == "test-status") {
-        metadata.requires_rom = false;
-        metadata.examples = {"z3ed test-status --format json"};
-      }
-    } else {
-      metadata.category = "misc";
-      metadata.description = "Miscellaneous command";
-    }
-
-    // Prefer handler-provided summary if present
-    if (!descriptor.summary.empty() &&
-        descriptor.summary != "Command summary not provided.") {
-      metadata.description = descriptor.summary;
-    }
-
-    // Keep TODO reference if supplied by handler
-    if (!descriptor.todo_reference.empty() &&
-        descriptor.todo_reference != "todo#unassigned") {
-      metadata.todo_reference = descriptor.todo_reference;
-    }
-
-    Register(std::move(handler), metadata);
-  }
+void CommandRegistry::RegisterCliCommands() {
+  RegisterHandlers(handlers::CreateCliCommandHandlers());
 }
 
 }  // namespace cli

@@ -43,8 +43,13 @@ target_include_directories(z3ed PUBLIC
 
 target_link_libraries(z3ed PRIVATE
     yaze_core
-    yaze_agent
+    yaze_cli_core
 )
+
+if(YAZE_ENABLE_AGENT_CLI)
+  target_link_libraries(z3ed PRIVATE yaze_cli_agent)
+  target_compile_definitions(z3ed PRIVATE YAZE_ENABLE_AGENT_CLI)
+endif()
 
 # Only link ftxui for non-Emscripten builds
 if(NOT EMSCRIPTEN)
