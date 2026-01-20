@@ -1,16 +1,16 @@
 # Sunset Theme
 # Warm orange and purple sunset theme
 name=Sunset
-description=Warm orange and purple sunset theme
+description=Warm orange and purple sunset theme with cozy vibes
 author=YAZE Team
-version=1.0
+version=2.0
 
 [colors]
 # Primary colors (sunset)
-primary=255,140,60,255
-secondary=200,100,150,255
-accent=255,180,100,255
-background=30,20,35,255
+primary=255,140,60,255           # Warm orange
+secondary=200,100,150,255        # Dusty rose
+accent=255,180,100,255           # Golden orange
+background=30,20,35,255          # Dark purple
 surface=40,30,45,255
 
 # Status colors
@@ -20,8 +20,8 @@ success=150,255,150,255
 info=150,200,255,255
 
 # Text colors
-text_primary=255,245,235,255
-text_secondary=220,200,180,255
+text_primary=255,245,235,255     # Warm white
+text_secondary=220,200,180,255   # Warm gray
 text_disabled=150,130,120,255
 
 # Window colors
@@ -48,6 +48,61 @@ menu_bar_bg=35,25,45,255
 title_bg=40,30,50,255
 title_bg_active=50,35,60,255
 title_bg_collapsed=40,30,50,255
+
+# Borders and separators
+border=255,140,60,255            # Warm orange border
+border_shadow=0,0,0,0
+separator=150,120,130,153
+separator_hovered=200,150,160,200
+separator_active=255,180,100,255
+
+# Scrollbars
+scrollbar_bg=40,30,45,153
+scrollbar_grab=100,70,90,180
+scrollbar_grab_hovered=130,90,110,200
+scrollbar_grab_active=160,110,130,230
+
+# Resize grips
+resize_grip=255,255,255,26
+resize_grip_hovered=255,180,100,153
+resize_grip_active=255,180,100,230
+
+# Controls
+check_mark=255,200,120,255       # Golden checkmark
+slider_grab=255,140,60,255
+slider_grab_active=255,180,100,255
+
+# Tables
+table_header_bg=50,35,60,255
+table_border_strong=100,70,90,255
+table_border_light=60,50,65,255
+table_row_bg=0,0,0,0
+table_row_bg_alt=255,255,255,18
+
+# Links
+text_link=255,180,100,255        # Golden links
+
+# Navigation and special elements
+input_text_cursor=255,245,235,255
+nav_cursor=255,180,100,255
+nav_windowing_highlight=255,140,60,200
+nav_windowing_dim_bg=0,0,0,128
+modal_window_dim_bg=0,0,0,100
+text_selected_bg=255,140,60,100
+drag_drop_target=255,180,100,200
+
+# Docking
+docking_preview=255,140,60,180
+docking_empty_bg=35,25,45,255
+
+# Tree lines
+tree_lines=150,120,130,153
+
+# Tab variations
+tab_dimmed=30,22,38,255
+tab_dimmed_selected=60,45,70,255
+tab_dimmed_selected_overline=255,180,100,255
+tab_selected_overline=255,180,100,255
 
 [style]
 window_rounding=12.0

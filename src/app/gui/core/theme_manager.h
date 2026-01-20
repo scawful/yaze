@@ -14,6 +14,16 @@ namespace yaze {
 namespace gui {
 
 /**
+ * @enum DensityPreset
+ * @brief Typography and spacing density presets
+ */
+enum class DensityPreset {
+  kCompact,     // 0.75x - Dense UI, more content visible
+  kNormal,      // 1.0x - Default balanced spacing
+  kComfortable  // 1.25x - Spacious, easier to click
+};
+
+/**
  * @struct Theme
  * @brief Comprehensive theme structure for YAZE
  */
@@ -209,6 +219,7 @@ struct Theme {
   // Theme-aware sizing system (relative to font size)
   // compact_factor: 0.8 = very compact, 1.0 = normal, 1.2 = spacious
   float compact_factor = 1.0f;
+  DensityPreset density_preset = DensityPreset::kNormal;
 
   // Semantic sizing multipliers (applied on top of compact_factor)
   float widget_height_multiplier = 1.0f;     // Standard widget height
@@ -222,6 +233,7 @@ struct Theme {
 
   // Helper methods
   void ApplyToImGui() const;
+  void ApplyDensityPreset(DensityPreset preset);
 };
 
 /**
@@ -259,11 +271,20 @@ class ThemeManager {
   void ApplyTheme(const Theme& theme);
   void ApplyClassicYazeTheme();  // Apply original ColorsYaze() function
 
+  // Theme preview (for hover preview in selector)
+  void StartPreview(const std::string& theme_name);
+  void EndPreview();
+  bool IsPreviewActive() const;
+
   // Theme creation and editing
   Theme CreateCustomTheme(const std::string& name);
   void ShowThemeEditor(bool* p_open);
   void ShowThemeSelector(bool* p_open);
   void ShowSimpleThemeEditor(bool* p_open);
+
+  // Accent color derivation - generate harmonious theme from single color
+  Theme GenerateThemeFromAccent(const Color& accent, bool dark_mode = true);
+  void ApplyAccentColor(const Color& accent, bool dark_mode = true);
 
   // Integration with welcome screen
   Color GetWelcomeScreenBackground() const;
@@ -304,8 +325,14 @@ class ThemeManager {
   Theme current_theme_;
   std::string current_theme_name_ = "Classic YAZE";
 
+  // Preview state for hover preview in theme selector
+  bool preview_active_ = false;
+  Theme preview_original_theme_;
+  std::string preview_original_name_;
+
   void CreateFallbackYazeClassic();
   absl::Status ParseThemeFile(const std::string& content, Theme& theme);
+  void ApplySmartDefaults(Theme& theme);  // Fill missing properties from primary colors
   Color ParseColorFromString(const std::string& color_str) const;
   std::string SerializeTheme(const Theme& theme) const;
 

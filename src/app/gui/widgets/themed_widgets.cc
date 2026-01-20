@@ -1,5 +1,9 @@
 #include "app/gui/widgets/themed_widgets.h"
 
+#include <algorithm>
+#include <string>
+#include <unordered_map>
+
 #include "app/gui/animation/animator.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/theme_manager.h"
@@ -7,6 +11,159 @@
 
 namespace yaze {
 namespace gui {
+
+bool RippleButton(const char* label, const ImVec2& size,
+                  const ImVec4& ripple_color, const char* panel_id,
+                  const char* anim_id) {
+  const auto& theme = ThemeManager::Get().GetCurrentTheme();
+
+  // Track click state for ripple animation
+  const char* panel_key = panel_id ? panel_id : "global";
+  std::string anim_key = anim_id ? anim_id : std::string("ripple_") + label;
+  static std::unordered_map<std::string, float> click_times;
+  static std::unordered_map<std::string, ImVec2> click_positions;
+
+  ImGui::PushStyleColor(ImGuiCol_Button, ConvertColorToImVec4(theme.button));
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                        ConvertColorToImVec4(theme.button_hovered));
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                        ConvertColorToImVec4(theme.button_active));
+
+  bool clicked = ImGui::Button(label, size);
+
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
+  ImVec2 rect_min = ImGui::GetItemRectMin();
+  ImVec2 rect_max = ImGui::GetItemRectMax();
+  ImVec2 rect_center = ImVec2((rect_min.x + rect_max.x) * 0.5f,
+                              (rect_min.y + rect_max.y) * 0.5f);
+  float max_radius =
+      std::max(rect_max.x - rect_min.x, rect_max.y - rect_min.y) * 0.7f;
+
+  // Trigger ripple on click
+  if (clicked) {
+    click_times[anim_key] = 0.0f;
+    click_positions[anim_key] = ImGui::GetIO().MousePos;
+  }
+
+  // Animate ripple
+  auto time_iter = click_times.find(anim_key);
+  if (time_iter != click_times.end()) {
+    float& ripple_time = time_iter->second;
+    ripple_time += ImGui::GetIO().DeltaTime * 3.0f;  // Speed of ripple
+
+    if (ripple_time < 1.0f) {
+      // Ripple expanding
+      float eased_t = Animator::EaseOutCubic(ripple_time);
+      float radius = eased_t * max_radius;
+      float alpha = ripple_color.w * (1.0f - eased_t);  // Fade out
+
+      ImVec2 ripple_center = click_positions[anim_key];
+      ImU32 color = ImGui::GetColorU32(
+          ImVec4(ripple_color.x, ripple_color.y, ripple_color.z, alpha));
+
+      // Clip to button bounds
+      draw_list->PushClipRect(rect_min, rect_max, true);
+      draw_list->AddCircleFilled(ripple_center, radius, color, 32);
+      draw_list->PopClipRect();
+    } else {
+      // Animation complete, remove tracking
+      click_times.erase(anim_key);
+      click_positions.erase(anim_key);
+    }
+  }
+
+  // Hover effect
+  const bool hovered = ImGui::IsItemHovered();
+  float hover_t = GetAnimator().Animate(panel_key, anim_key + "_hover",
+                                        hovered ? 1.0f : 0.0f, 8.0f);
+  if (hover_t > 0.001f) {
+    ImVec4 overlay = ConvertColorToImVec4(theme.button_hovered);
+    overlay.w *= hover_t * 0.2f;
+    draw_list->AddRectFilled(rect_min, rect_max, ImGui::GetColorU32(overlay),
+                             ImGui::GetStyle().FrameRounding);
+  }
+
+  ImGui::PopStyleColor(3);
+  return clicked;
+}
+
+bool BouncyButton(const char* label, const ImVec2& size, const char* panel_id,
+                  const char* anim_id) {
+  const auto& theme = ThemeManager::Get().GetCurrentTheme();
+
+  const char* panel_key = panel_id ? panel_id : "global";
+  std::string anim_key = anim_id ? anim_id : std::string("bouncy_") + label;
+
+  // Track press state for bounce animation
+  static std::unordered_map<std::string, float> bounce_times;
+
+  // Determine current scale based on animation state
+  float target_scale = 1.0f;
+  bool is_pressed = ImGui::IsMouseDown(ImGuiMouseButton_Left) &&
+                    ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
+
+  auto bounce_iter = bounce_times.find(anim_key);
+  float current_scale = 1.0f;
+
+  if (bounce_iter != bounce_times.end()) {
+    float& bounce_time = bounce_iter->second;
+    bounce_time += ImGui::GetIO().DeltaTime * 8.0f;
+
+    if (bounce_time < 1.0f) {
+      // Bounce back with elastic easing
+      current_scale = 0.92f + 0.08f * Animator::EaseOutBack(bounce_time);
+    } else {
+      bounce_times.erase(anim_key);
+      current_scale = 1.0f;
+    }
+  } else if (is_pressed) {
+    target_scale = 0.92f;  // Pressed scale
+  }
+
+  // Animate scale
+  float scale = GetAnimator().Animate(panel_key, anim_key + "_scale",
+                                      target_scale, 15.0f);
+  if (bounce_iter != bounce_times.end()) {
+    scale = current_scale;  // Override with bounce animation
+  }
+
+  // Calculate scaled size
+  ImVec2 actual_size = size;
+  if (actual_size.x == 0 && actual_size.y == 0) {
+    actual_size = ImGui::CalcTextSize(label);
+    actual_size.x += ImGui::GetStyle().FramePadding.x * 2;
+    actual_size.y += ImGui::GetStyle().FramePadding.y * 2;
+  }
+
+  ImVec2 scaled_size = ImVec2(actual_size.x * scale, actual_size.y * scale);
+  ImVec2 offset = ImVec2((actual_size.x - scaled_size.x) * 0.5f,
+                         (actual_size.y - scaled_size.y) * 0.5f);
+
+  // Position adjustment for centering scaled button
+  ImVec2 cursor_pos = ImGui::GetCursorPos();
+  ImGui::SetCursorPos(ImVec2(cursor_pos.x + offset.x, cursor_pos.y + offset.y));
+
+  ImGui::PushStyleColor(ImGuiCol_Button, ConvertColorToImVec4(theme.button));
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                        ConvertColorToImVec4(theme.button_hovered));
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                        ConvertColorToImVec4(theme.button_active));
+
+  bool clicked = ImGui::Button(label, scaled_size);
+
+  // Trigger bounce on release
+  if (ImGui::IsItemDeactivated() && ImGui::IsItemHovered()) {
+    bounce_times[anim_key] = 0.0f;
+  }
+
+  ImGui::PopStyleColor(3);
+
+  // Restore cursor position for proper layout
+  ImGui::SetCursorPos(ImVec2(cursor_pos.x + actual_size.x + ImGui::GetStyle().ItemSpacing.x,
+                             cursor_pos.y));
+
+  return clicked;
+}
 
 bool ThemedIconButton(const char* icon, const char* tooltip,
                       const ImVec2& size, bool is_active,

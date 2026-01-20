@@ -140,6 +140,12 @@ class WelcomeScreen {
   float card_hover_scale_[6] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
   int hovered_card_ = -1;
 
+  // Staggered entry animations
+  bool entry_animations_started_ = false;
+  float entry_time_ = 0.0f;  // Time since welcome screen opened
+  static constexpr float kEntryAnimDuration = 0.4f;  // Duration per section
+  static constexpr float kEntryStaggerDelay = 0.08f;  // Delay between sections
+
   // Interactive triforce positions (smooth interpolation)
   static constexpr int kNumTriforces = 6;
   ImVec2 triforce_positions_[kNumTriforces] = {};

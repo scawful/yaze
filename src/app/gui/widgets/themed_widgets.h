@@ -11,6 +11,34 @@ namespace gui {
 // These abstract away the repetitive PushStyleColor/PopStyleColor calls.
 
 /**
+ * @brief Draw a button with animated click ripple effect.
+ *
+ * @param label The button label text
+ * @param size The size of the button (default: 0,0 = auto)
+ * @param ripple_color Optional ripple color (default: white)
+ * @param panel_id Optional animation scope key (panel ID)
+ * @param anim_id Optional animation key (defaults to ImGui ID)
+ * @return true if clicked
+ */
+bool RippleButton(const char* label, const ImVec2& size = ImVec2(0, 0),
+                  const ImVec4& ripple_color = ImVec4(1.0f, 1.0f, 1.0f, 0.3f),
+                  const char* panel_id = nullptr,
+                  const char* anim_id = nullptr);
+
+/**
+ * @brief Draw a bouncy animated button that scales on press.
+ *
+ * @param label The button label text
+ * @param size The size of the button (default: 0,0 = auto)
+ * @param panel_id Optional animation scope key (panel ID)
+ * @param anim_id Optional animation key (defaults to ImGui ID)
+ * @return true if clicked
+ */
+bool BouncyButton(const char* label, const ImVec2& size = ImVec2(0, 0),
+                  const char* panel_id = nullptr,
+                  const char* anim_id = nullptr);
+
+/**
  * @brief Draw a standard icon button with theme-aware colors.
  *
  * @param icon The icon string (e.g., ICON_MD_SETTINGS)

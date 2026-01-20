@@ -1,6 +1,8 @@
 #ifndef YAZE_GUI_COLOR_H
 #define YAZE_GUI_COLOR_H
 
+#include <algorithm>
+#include <cmath>
 #include <string>
 
 #include "absl/status/status.h"
@@ -18,6 +20,115 @@ struct Color {
   float alpha = 1.0f;
 
   operator ImVec4() const { return ImVec4(red, green, blue, alpha); }
+
+  // HSL conversion utilities for theme generation
+  struct HSL {
+    float h = 0.0f;  // 0-360
+    float s = 0.0f;  // 0-1
+    float l = 0.0f;  // 0-1
+  };
+
+  HSL ToHSL() const {
+    float max_val = std::max({red, green, blue});
+    float min_val = std::min({red, green, blue});
+    float delta = max_val - min_val;
+
+    HSL hsl;
+    hsl.l = (max_val + min_val) / 2.0f;
+
+    if (delta < 0.00001f) {
+      hsl.h = 0.0f;
+      hsl.s = 0.0f;
+    } else {
+      hsl.s = hsl.l > 0.5f ? delta / (2.0f - max_val - min_val)
+                           : delta / (max_val + min_val);
+
+      if (max_val == red) {
+        hsl.h = 60.0f * fmodf((green - blue) / delta, 6.0f);
+      } else if (max_val == green) {
+        hsl.h = 60.0f * ((blue - red) / delta + 2.0f);
+      } else {
+        hsl.h = 60.0f * ((red - green) / delta + 4.0f);
+      }
+      if (hsl.h < 0.0f) {
+        hsl.h += 360.0f;
+      }
+    }
+    return hsl;
+  }
+
+  static Color FromHSL(float h, float s, float l, float a = 1.0f) {
+    auto hue_to_rgb = [](float p, float q, float t) {
+      if (t < 0.0f) t += 1.0f;
+      if (t > 1.0f) t -= 1.0f;
+      if (t < 1.0f / 6.0f) return p + (q - p) * 6.0f * t;
+      if (t < 1.0f / 2.0f) return q;
+      if (t < 2.0f / 3.0f) return p + (q - p) * (2.0f / 3.0f - t) * 6.0f;
+      return p;
+    };
+
+    Color result;
+    result.alpha = a;
+
+    if (s < 0.00001f) {
+      result.red = result.green = result.blue = l;
+    } else {
+      float h_norm = h / 360.0f;
+      float q = l < 0.5f ? l * (1.0f + s) : l + s - l * s;
+      float p = 2.0f * l - q;
+      result.red = hue_to_rgb(p, q, h_norm + 1.0f / 3.0f);
+      result.green = hue_to_rgb(p, q, h_norm);
+      result.blue = hue_to_rgb(p, q, h_norm - 1.0f / 3.0f);
+    }
+    return result;
+  }
+
+  // Derive a new color by adjusting HSL components
+  Color WithHue(float new_hue) const {
+    HSL hsl = ToHSL();
+    return FromHSL(new_hue, hsl.s, hsl.l, alpha);
+  }
+
+  Color WithSaturation(float new_sat) const {
+    HSL hsl = ToHSL();
+    return FromHSL(hsl.h, std::clamp(new_sat, 0.0f, 1.0f), hsl.l, alpha);
+  }
+
+  Color WithLightness(float new_light) const {
+    HSL hsl = ToHSL();
+    return FromHSL(hsl.h, hsl.s, std::clamp(new_light, 0.0f, 1.0f), alpha);
+  }
+
+  Color Lighter(float amount) const {
+    HSL hsl = ToHSL();
+    return FromHSL(hsl.h, hsl.s, std::clamp(hsl.l + amount, 0.0f, 1.0f), alpha);
+  }
+
+  Color Darker(float amount) const {
+    HSL hsl = ToHSL();
+    return FromHSL(hsl.h, hsl.s, std::clamp(hsl.l - amount, 0.0f, 1.0f), alpha);
+  }
+
+  Color Saturate(float amount) const {
+    HSL hsl = ToHSL();
+    return FromHSL(hsl.h, std::clamp(hsl.s + amount, 0.0f, 1.0f), hsl.l, alpha);
+  }
+
+  Color Desaturate(float amount) const {
+    HSL hsl = ToHSL();
+    return FromHSL(hsl.h, std::clamp(hsl.s - amount, 0.0f, 1.0f), hsl.l, alpha);
+  }
+
+  Color ShiftHue(float degrees) const {
+    HSL hsl = ToHSL();
+    float new_hue = fmodf(hsl.h + degrees, 360.0f);
+    if (new_hue < 0.0f) new_hue += 360.0f;
+    return FromHSL(new_hue, hsl.s, hsl.l, alpha);
+  }
+
+  Color WithAlpha(float new_alpha) const {
+    return Color{red, green, blue, std::clamp(new_alpha, 0.0f, 1.0f)};
+  }
 };
 
 inline ImVec4 ConvertColorToImVec4(const Color& color) {

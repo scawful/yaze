@@ -204,6 +204,20 @@ WelcomeScreen::WelcomeScreen() {
   RefreshRecentProjects();
 }
 
+// Helper function to calculate staggered animation progress
+float GetStaggeredEntryProgress(float entry_time, int section_index,
+                                float duration, float stagger_delay) {
+  float section_start = section_index * stagger_delay;
+  float section_time = entry_time - section_start;
+  if (section_time < 0.0f) {
+    return 0.0f;
+  }
+  float progress = std::min(section_time / duration, 1.0f);
+  // Use EaseOutCubic for smooth deceleration
+  float inv = 1.0f - progress;
+  return 1.0f - (inv * inv * inv);
+}
+
 bool WelcomeScreen::Show(bool* p_open) {
   // Update theme colors each frame
   kTriforceGold = GetThemedColor("triforce_gold", kTriforceGoldFallback);
@@ -213,6 +227,13 @@ bool WelcomeScreen::Show(bool* p_open) {
   kGanonPurple = GetThemedColor("ganon_purple", kGanonPurpleFallback);
   kHeartRed = GetThemedColor("heart_red", kHeartRedFallback);
   kSpiritOrange = GetThemedColor("spirit_orange", kSpiritOrangeFallback);
+
+  // Update entry animation time
+  if (!entry_animations_started_) {
+    entry_time_ = 0.0f;
+    entry_animations_started_ = true;
+  }
+  entry_time_ += ImGui::GetIO().DeltaTime;
 
   UpdateAnimations();
 
@@ -614,6 +635,17 @@ void WelcomeScreen::RefreshRecentProjects() {
 void WelcomeScreen::DrawHeader() {
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
+  // Entry animation for header (section 0)
+  float header_progress =
+      GetStaggeredEntryProgress(entry_time_, 0, kEntryAnimDuration, kEntryStaggerDelay);
+  float header_alpha = header_progress;
+  float header_offset_y = (1.0f - header_progress) * 20.0f;
+
+  if (header_progress < 0.001f) {
+    ImGui::Dummy(ImVec2(0, 80));  // Reserve space
+    return;
+  }
+
   ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[2]);  // Large font
 
   // Simple centered title
@@ -622,47 +654,74 @@ void WelcomeScreen::DrawHeader() {
   auto textWidth = ImGui::CalcTextSize(title).x;
   float xPos = (windowWidth - textWidth) * 0.5f;
 
-  ImGui::SetCursorPosX(xPos);
+  // Apply entry offset
+  ImVec2 cursor_pos = ImGui::GetCursorPos();
+  ImGui::SetCursorPos(ImVec2(xPos, cursor_pos.y - header_offset_y));
   ImVec2 text_pos = ImGui::GetCursorScreenPos();
 
-  // Subtle static glow behind text
+  // Subtle static glow behind text (faded by entry alpha)
   float glow_size = 30.0f;
   ImU32 glow_color = ImGui::GetColorU32(
-      ImVec4(kTriforceGold.x, kTriforceGold.y, kTriforceGold.z, 0.15f));
+      ImVec4(kTriforceGold.x, kTriforceGold.y, kTriforceGold.z, 0.15f * header_alpha));
   draw_list->AddCircleFilled(
       ImVec2(text_pos.x + textWidth / 2, text_pos.y + 15), glow_size,
       glow_color, 32);
 
-  // Simple gold color for title
-  ImGui::TextColored(kTriforceGold, "%s", title);
+  // Simple gold color for title with entry alpha
+  ImVec4 title_color = kTriforceGold;
+  title_color.w *= header_alpha;
+  ImGui::TextColored(title_color, "%s", title);
   ImGui::PopFont();
 
-  // Static subtitle
+  // Static subtitle (entry animation section 1)
+  float subtitle_progress =
+      GetStaggeredEntryProgress(entry_time_, 1, kEntryAnimDuration, kEntryStaggerDelay);
+  float subtitle_alpha = subtitle_progress;
+
   const char* subtitle = "Yet Another Zelda3 Editor";
   textWidth = ImGui::CalcTextSize(subtitle).x;
   ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
 
-  ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "%s", subtitle);
+  ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, subtitle_alpha), "%s", subtitle);
 
   const std::string version_line =
       absl::StrFormat("v%s - AI workflows, CLI automation, and web preview",
                       YAZE_VERSION_STRING);
   textWidth = ImGui::CalcTextSize(version_line.c_str()).x;
   ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
-  ImGui::TextColored(ImVec4(0.55f, 0.55f, 0.55f, 1.0f), "%s",
+  ImGui::TextColored(ImVec4(0.55f, 0.55f, 0.55f, subtitle_alpha), "%s",
                      version_line.c_str());
 
   // Small decorative triforces flanking the title (static, transparent)
   // Positioned well away from text to avoid crowding
+  float tri_alpha = 0.12f * header_alpha;
   ImVec2 left_tri_pos(xPos - 80, text_pos.y + 20);
   ImVec2 right_tri_pos(xPos + textWidth + 50, text_pos.y + 20);
-  DrawTriforceBackground(draw_list, left_tri_pos, 20, 0.12f, 0.0f);
-  DrawTriforceBackground(draw_list, right_tri_pos, 20, 0.12f, 0.0f);
+  DrawTriforceBackground(draw_list, left_tri_pos, 20, tri_alpha, 0.0f);
+  DrawTriforceBackground(draw_list, right_tri_pos, 20, tri_alpha, 0.0f);
 
   ImGui::Spacing();
 }
 
 void WelcomeScreen::DrawQuickActions() {
+  // Entry animation for quick actions (section 2)
+  float actions_progress =
+      GetStaggeredEntryProgress(entry_time_, 2, kEntryAnimDuration, kEntryStaggerDelay);
+  float actions_alpha = actions_progress;
+  float actions_offset_x = (1.0f - actions_progress) * -30.0f;  // Slide from left
+
+  if (actions_progress < 0.001f) {
+    return;  // Don't draw yet
+  }
+
+  ImGui::PushStyleVar(ImGuiStyleVar_Alpha, actions_alpha);
+
+  // Apply horizontal offset for slide effect
+  float indent = std::max(0.0f, -actions_offset_x);
+  if (indent > 0.0f) {
+    ImGui::Indent(indent);
+  }
+
   ImGui::TextColored(kSpiritOrange, ICON_MD_BOLT " Quick Actions");
   const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
   ImGui::PushStyleColor(ImGuiCol_Text, text_secondary);
@@ -741,9 +800,25 @@ void WelcomeScreen::DrawQuickActions() {
                       " Ask the AI agent to guide edits in natural language "
                       "(requires Ollama, Gemini, OpenAI, or Anthropic)");
   }
+
+  // Clean up entry animation styles
+  if (indent > 0.0f) {
+    ImGui::Unindent(indent);
+  }
+  ImGui::PopStyleVar();  // Alpha
 }
 
 void WelcomeScreen::DrawRecentProjects() {
+  // Entry animation for recent projects (section 4)
+  float recent_progress =
+      GetStaggeredEntryProgress(entry_time_, 4, kEntryAnimDuration, kEntryStaggerDelay);
+
+  if (recent_progress < 0.001f) {
+    return;  // Don't draw yet
+  }
+
+  ImGui::PushStyleVar(ImGuiStyleVar_Alpha, recent_progress);
+
   ImGui::TextColored(kMasterSwordBlue, ICON_MD_HISTORY " Recent Projects");
   ImGui::Spacing();
 
@@ -801,6 +876,8 @@ void WelcomeScreen::DrawRecentProjects() {
   if (column != 0) {
     ImGui::NewLine();
   }
+
+  ImGui::PopStyleVar();  // Alpha (entry animation)
 }
 
 void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
@@ -961,6 +1038,16 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
 }
 
 void WelcomeScreen::DrawTemplatesSection() {
+  // Entry animation for templates (section 3)
+  float templates_progress =
+      GetStaggeredEntryProgress(entry_time_, 3, kEntryAnimDuration, kEntryStaggerDelay);
+
+  if (templates_progress < 0.001f) {
+    return;  // Don't draw yet
+  }
+
+  ImGui::PushStyleVar(ImGuiStyleVar_Alpha, templates_progress);
+
   // Header with visual settings button
   float content_width = ImGui::GetContentRegionAvail().x;
   ImGui::TextColored(kGanonPurple, ICON_MD_LAYERS " Project Templates");
@@ -1095,9 +1182,21 @@ void WelcomeScreen::DrawTemplatesSection() {
         "open a ROM and apply the template settings.",
         ICON_MD_INFO, templates[selected_template_].name);
   }
+
+  ImGui::PopStyleVar();  // Alpha (entry animation)
 }
 
 void WelcomeScreen::DrawTipsSection() {
+  // Entry animation for tips (section 6, appears last)
+  float tips_progress =
+      GetStaggeredEntryProgress(entry_time_, 6, kEntryAnimDuration, kEntryStaggerDelay);
+
+  if (tips_progress < 0.001f) {
+    return;  // Don't draw yet
+  }
+
+  ImGui::PushStyleVar(ImGuiStyleVar_Alpha, tips_progress);
+
   // Static tip (or could rotate based on session start time rather than
   // animation)
   const char* tips[] = {
@@ -1123,9 +1222,21 @@ void WelcomeScreen::DrawTipsSection() {
     manually_closed_ = true;
   }
   ImGui::PopStyleColor();
+
+  ImGui::PopStyleVar();  // Alpha (entry animation)
 }
 
 void WelcomeScreen::DrawWhatsNew() {
+  // Entry animation for what's new (section 5)
+  float whatsnew_progress =
+      GetStaggeredEntryProgress(entry_time_, 5, kEntryAnimDuration, kEntryStaggerDelay);
+
+  if (whatsnew_progress < 0.001f) {
+    return;  // Don't draw yet
+  }
+
+  ImGui::PushStyleVar(ImGuiStyleVar_Alpha, whatsnew_progress);
+
   ImGui::TextColored(kHeartRed, ICON_MD_NEW_RELEASES " What's New");
   ImGui::Spacing();
 
@@ -1185,6 +1296,8 @@ void WelcomeScreen::DrawWhatsNew() {
     // Open changelog or GitHub releases
   }
   ImGui::PopStyleColor(2);
+
+  ImGui::PopStyleVar();  // Alpha (entry animation)
 }
 
 }  // namespace editor
