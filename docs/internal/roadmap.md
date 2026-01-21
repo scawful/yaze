@@ -1,14 +1,14 @@
 # Roadmap
 
-**Last Updated: January 19, 2026**
+**Last Updated: January 20, 2026**
 
 This roadmap tracks upcoming releases and major ongoing initiatives.
 
-## Current Focus (v0.5.1)
+## Current Focus (v0.5.3)
 
-- **UX Polish**: Help/shortcuts discoverability, feature status clarity, settings polish
-- **Storage Consolidation**: `.yaze` unified app data across desktop/CLI/web with legacy migration
-- **Versioning + Docs**: Standardize version updates and refresh release documentation
+- **WASM/Web Infrastructure**: Service worker caching, persistent storage expansion, build tool stubs
+- **Local AI Support**: LMStudio and OpenAI-compatible local server support via `--openai_base_url`
+- **Release Packaging**: DMG validation improvements, VERSION file as source of truth
 
 ### WASM Web Port Status
 

@@ -1,6 +1,32 @@
 # Changelog
 
-## 0.5.1 (Draft)
+## 0.5.3 (January 2026)
+
+### Build & Release
+- Fix release validation scripts for DMG packaging.
+- Create VERSION file as canonical source of truth.
+- Improve DMG validation diagnostics.
+
+### AI & CLI
+- Add LMStudio support with configurable `--openai_base_url` flag.
+- Allow empty API key for local OpenAI-compatible servers.
+
+### WASM/Web
+- Add persistent directories for agent, proposals, themes, logs, etc.
+- Merge PWA caching with COI service worker for unified root-scope caching.
+- Add WASM stubs for build tools (return clear unavailable status).
+
+---
+
+## 0.5.2 (January 2026)
+
+### Build
+- Fix build when `YAZE_AI_RUNTIME` is disabled.
+- Add proper guards around AI runtime-dependent code paths.
+
+---
+
+## 0.5.1 (January 2026)
 
 ### UX & Guidance
 - Help panel now reflects configured shortcuts and adds shortcut search.
