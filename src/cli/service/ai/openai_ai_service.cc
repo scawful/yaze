@@ -192,10 +192,12 @@ absl::StatusOr<std::vector<ModelInfo>> OpenAIAIService::ListAvailableModels() {
 
   try {
     // Use curl to list models from the API
+    std::string auth_header = config_.api_key.empty()
+        ? ""
+        : "-H 'Authorization: Bearer " + config_.api_key + "' ";
     std::string curl_cmd =
-        "curl -s -X GET 'https://api.openai.com/v1/models' "
-        "-H 'Authorization: Bearer " +
-        config_.api_key + "' 2>&1";
+        "curl -s -X GET '" + config_.base_url + "/v1/models' " +
+        auth_header + "2>&1";
 
     if (config_.verbose) {
       std::cerr << "[DEBUG] Listing OpenAI models..." << std::endl;
@@ -287,20 +289,24 @@ absl::Status OpenAIAIService::CheckAvailability() {
       "-DYAZE_WITH_JSON=ON");
 #else
   try {
-    if (config_.api_key.empty()) {
+    // LMStudio and other local servers don't require API keys
+    bool is_local_server = config_.base_url != "https://api.openai.com";
+    if (config_.api_key.empty() && !is_local_server) {
       return absl::FailedPreconditionError(
           "❌ OpenAI API key not configured\n"
           "   Set OPENAI_API_KEY environment variable\n"
-          "   Get your API key at: https://platform.openai.com/api-keys");
+          "   Get your API key at: https://platform.openai.com/api-keys\n"
+          "   For LMStudio, use --openai_base_url=http://localhost:1234");
     }
 
     // Test API connectivity with a simple request
-    httplib::Client cli("https://api.openai.com");
+    httplib::Client cli(config_.base_url);
     cli.set_connection_timeout(5, 0);
 
-    httplib::Headers headers = {
-        {"Authorization", "Bearer " + config_.api_key},
-    };
+    httplib::Headers headers = {};
+    if (!config_.api_key.empty()) {
+      headers.emplace("Authorization", "Bearer " + config_.api_key);
+    }
 
     auto res = cli.Get("/v1/models", headers);
 
@@ -420,12 +426,13 @@ absl::StatusOr<AgentResponse> OpenAIAIService::GenerateResponse(
     out.close();
 
     // Use curl to make the request
+    std::string auth_header = config_.api_key.empty()
+        ? ""
+        : "-H 'Authorization: Bearer " + config_.api_key + "' ";
     std::string curl_cmd =
-        "curl -s -X POST 'https://api.openai.com/v1/chat/completions' "
-        "-H 'Content-Type: application/json' "
-        "-H 'Authorization: Bearer " +
-        config_.api_key +
-        "' "
+        "curl -s -X POST '" + config_.base_url + "/v1/chat/completions' "
+        "-H 'Content-Type: application/json' " +
+        auth_header +
         "-d @" +
         temp_file + " 2>&1";
 

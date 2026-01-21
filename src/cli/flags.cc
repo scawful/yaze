@@ -22,6 +22,8 @@ ABSL_FLAG(
     "Anthropic API key (can also use ANTHROPIC_API_KEY environment variable)");
 ABSL_FLAG(std::string, ollama_host, "http://localhost:11434",
           "Ollama server host URL");
+ABSL_FLAG(std::string, openai_base_url, "https://api.openai.com",
+          "OpenAI-compatible API base URL (LMStudio: http://localhost:1234)");
 ABSL_FLAG(std::string, prompt_version, "default",
           "Prompt version to use: 'default' or 'v2'");
 ABSL_FLAG(bool, use_function_calling, false,

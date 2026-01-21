@@ -18,8 +18,9 @@ struct AIServiceConfig {
   std::string model;
   // For Gemini.
   std::string gemini_api_key;
-  // For OpenAI.
+  // For OpenAI (and LMStudio/compatible APIs).
   std::string openai_api_key;
+  std::string openai_base_url = "https://api.openai.com";
   // For Anthropic.
   std::string anthropic_api_key;
   // For Ollama.
