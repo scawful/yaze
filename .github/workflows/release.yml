@@ -161,9 +161,9 @@ jobs:
           echo "=== Checking for DMG files ==="
           ls -la build/packages/ || echo "packages directory doesn't exist"
 
-          dmg_files=(build/packages/*.dmg)
+          dmg_files=(build/packages/yaze-*-macos*.dmg)
           if [[ ! -e "${dmg_files[0]}" ]]; then
-            echo "No DMG files found in build/packages/"
+            echo "No macOS DMG files found in build/packages/"
             exit 1
           fi
 
@@ -172,6 +172,17 @@ jobs:
               scripts/release/validate-dmg.sh "$dmg"
             fi
           done
+
+          bundle_dmgs=(build/packages/yaze-*-bundle.dmg)
+          if [[ -e "${bundle_dmgs[0]}" ]]; then
+            for dmg in "${bundle_dmgs[@]}"; do
+              if [[ -f "$dmg" ]]; then
+                scripts/release/validate-dmg.sh "$dmg"
+              fi
+            done
+          else
+            echo "No bundle DMG found; skipping bundle validation."
+          fi
 
       - name: Patch cmake_install.cmake (Windows)
         if: matrix.platform == 'windows'
