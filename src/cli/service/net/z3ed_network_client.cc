@@ -12,9 +12,12 @@
 
 #ifdef YAZE_WITH_JSON
 #include "nlohmann/json.hpp"
-#if !defined(_WIN32) && !defined(YAZE_IOS)
+#if !defined(_WIN32) && !defined(YAZE_IOS) && !defined(__EMSCRIPTEN__)
 #define CPPHTTPLIB_OPENSSL_SUPPORT
 #endif
+#endif
+
+#if defined(YAZE_WITH_JSON) && !defined(__EMSCRIPTEN__)
 #include "httplib.h"
 #endif
 
@@ -30,7 +33,7 @@ namespace yaze {
 namespace cli {
 namespace net {
 
-#ifdef YAZE_WITH_JSON
+#if defined(YAZE_WITH_JSON) && !defined(__EMSCRIPTEN__)
 
 // Implementation using httplib for cross-platform WebSocket support
 class Z3edNetworkClient::Impl {
@@ -284,37 +287,44 @@ class Z3edNetworkClient::Impl {
 
 #else
 
-// Stub implementation when JSON is not available
+// Stub implementation when JSON is not available or in WASM builds
 class Z3edNetworkClient::Impl {
  public:
+  static constexpr const char* kUnavailableMessage =
+#if defined(__EMSCRIPTEN__)
+      "Network support is not available in WASM builds";
+#else
+      "Network support requires JSON library";
+#endif
+
   absl::Status Connect(const std::string&, int) {
-    return absl::UnimplementedError("Network support requires JSON library");
+    return absl::UnimplementedError(kUnavailableMessage);
   }
   void Disconnect() {}
   absl::Status JoinSession(const std::string&, const std::string&) {
-    return absl::UnimplementedError("Network support requires JSON library");
+    return absl::UnimplementedError(kUnavailableMessage);
   }
   absl::Status SubmitProposal(const std::string&, const std::string&,
                               const std::string&) {
-    return absl::UnimplementedError("Network support requires JSON library");
+    return absl::UnimplementedError(kUnavailableMessage);
   }
   absl::StatusOr<std::string> GetProposalStatus(const std::string&) {
-    return absl::UnimplementedError("Network support requires JSON library");
+    return absl::UnimplementedError(kUnavailableMessage);
   }
   absl::StatusOr<bool> WaitForApproval(const std::string&, int) {
-    return absl::UnimplementedError("Network support requires JSON library");
+    return absl::UnimplementedError(kUnavailableMessage);
   }
   absl::Status SendMessage(const std::string&, const std::string&) {
-    return absl::UnimplementedError("Network support requires JSON library");
+    return absl::UnimplementedError(kUnavailableMessage);
   }
   absl::StatusOr<std::string> QueryAI(const std::string&, const std::string&) {
-    return absl::UnimplementedError("Network support requires JSON library");
+    return absl::UnimplementedError(kUnavailableMessage);
   }
   bool IsConnected() const { return false; }
   std::string GetLastProposalId() const { return ""; }
 };
 
-#endif  // YAZE_WITH_JSON
+#endif  // YAZE_WITH_JSON && !__EMSCRIPTEN__
 
 // ============================================================================
 // Z3edNetworkClient Implementation
