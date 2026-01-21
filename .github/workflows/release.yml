@@ -158,8 +158,19 @@ jobs:
         shell: bash
         run: |
           chmod +x scripts/release/validate-dmg.sh
-          for dmg in build/packages/*.dmg; do
-            scripts/release/validate-dmg.sh "$dmg"
+          echo "=== Checking for DMG files ==="
+          ls -la build/packages/ || echo "packages directory doesn't exist"
+
+          dmg_files=(build/packages/*.dmg)
+          if [[ ! -e "${dmg_files[0]}" ]]; then
+            echo "No DMG files found in build/packages/"
+            exit 1
+          fi
+
+          for dmg in "${dmg_files[@]}"; do
+            if [[ -f "$dmg" ]]; then
+              scripts/release/validate-dmg.sh "$dmg"
+            fi
           done
 
       - name: Patch cmake_install.cmake (Windows)
@@ -325,48 +336,41 @@ jobs:
           name: "YAZE ${{ env.VERSION }}"
           body: |
             ## What's Changed
-            
-            Highlights in v0.5.0:
-            - Agent control server support and gRPC automation stability improvements
-            - z3ed CLI test commands (`test-list`, `test-run`, `test-status`) and tool metadata for AI clients
-            - Web/WASM filesystem initialization and terminal stability fixes
-            - Graphics/palette reliability fixes across Tile16 and palette conversions
-            - iOS scaffolding (experimental) plus build/CI workflow cleanup
-            
+
+            See [release notes](https://github.com/scawful/yaze/blob/master/docs/public/release-notes.md) for detailed changelog.
+
             ## Downloads
-            
+
             ### Linux
             - **DEB Package**: `yaze-*.deb` (Ubuntu/Debian)
             - **Tarball**: `yaze-*.tar.gz` (Generic Linux)
-            
+
             ### macOS
             - **DMG**: `yaze-*.dmg` (macOS 11.0+)
-            
+
             ### Windows
             - **ZIP**: `yaze-*.zip` (Portable)
-            
+
             ## Installation
-            
+
             ### Linux (DEB)
             ```bash
             sudo dpkg -i yaze-*.deb
             ```
-            
+
             ### macOS
             ```bash
             # Mount the DMG and drag to Applications
             open yaze-*.dmg
             ```
-            
+
             ### Windows
-            ```bash
-            # Unzip and run the portable build
-            yaze-*.zip
-            ```
+            Extract the ZIP and run `yaze.exe` directly.
 
             ## Notes
 
-            - AI features require an Ollama server or Gemini/OpenAI/Anthropic API key.
+            - AI features require an Ollama server or Gemini/OpenAI/Anthropic/LMStudio API.
+            - z3ed CLI supports `--openai_base_url` for LMStudio and other local servers.
             - Collaboration server setup lives in the separate yaze-server repo.
           files: |
             release-files/*

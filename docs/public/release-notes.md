@@ -1,27 +1,60 @@
 # Release Notes
 
-## v0.5.1 (Draft)
+## v0.5.3 (Released January 2026)
 
-**Type:** UX + Storage Consolidation
-**Status:** In progress
+**Type:** Build & Versioning Fixes
+**Date:** 2026-01-20
 
-### ✨ UX & Guidance
-- Help panel now reflects configured shortcuts and adds searchable shortcut lists.
-- Supported Features popup lists platform status + persistence details for desktop/CLI/web.
-- User-facing warnings added for unimplemented collaboration and E2E menus.
+### 🔧 Build & Release
+- Fix release validation scripts for DMG packaging.
+- Create VERSION file as canonical source of truth (0.5.3).
+- Update CMakeLists.txt fallback version.
+
+### 🤖 AI & CLI
+- Add LMStudio support with configurable `--openai_base_url` flag.
+- Allow empty API key for local OpenAI-compatible servers.
+
+---
+
+## v0.5.2 (Released January 2026)
+
+**Type:** Build Fix
+**Date:** 2026-01-20
+
+### 🔧 Build
+- Fix build when `YAZE_AI_RUNTIME` is disabled.
+- Add proper guards around AI runtime-dependent code paths.
+
+---
+
+## v0.5.1 (Released January 2026)
+
+**Type:** UX + UI Polish
+**Date:** 2026-01-20
+
+### ✨ UI Modernization (ImHex-inspired)
+- Restructure menus and fix sidebar toggle icon.
+- Add comprehensive UI polish with animations and theming enhancements.
+- Cross-platform theme file system with `~/.yaze/themes/` support.
+- Complete ImHex UI modernization phases 2-5.
+- Animated hover effects for themed widget buttons.
+- List virtualization and expanded command palette.
+- Lazy panel initialization with `OnFirstDraw` hook.
+- GUI animation system with smooth hover effects.
+
+### 🧩 Architecture
+- ContentRegistry panel self-registration with `REGISTER_PANEL` macro.
+- Core UI events and texture queue budget.
+- Extract `yaze_cli_core` library for shared CLI infrastructure.
+- `ZoomChangedEvent` published from Canvas zoom methods.
 
 ### 🗂️ Storage & Paths
-- Unified app data under `~/.yaze` across desktop/CLI; legacy AppData/Library/XDG migrated.
-- Web build storage consolidated under `/.yaze` (IDBFS) for ROMs/saves/projects.
-- Project management panel now surfaces storage paths and version mismatch warnings.
+- Unified app data under `~/.yaze` across desktop/CLI.
+- Web build storage consolidated under `/.yaze` (IDBFS).
+- Project management panel now surfaces storage paths.
 
 ### 🧭 Versioning
 - Added `VERSION` file as the source of truth for build/versioning.
-- Web version badge now syncs to the runtime WASM version.
-
-### 🧪 Testing
-- Feature coverage report refreshed with storage and UI persistence notes.
-- New coverage plan items added for `.yaze` migration and layout/shortcut persistence.
 
 ---
 
