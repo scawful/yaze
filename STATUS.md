@@ -1,8 +1,8 @@
 # yaze Status
 
 ## Current Release
-- **Target**: v0.5.1 (January 2026)
-- **Focus**: UX polish, `.yaze` storage consolidation, and versioning/doc refresh
+- **Version**: v0.5.3 (January 2026)
+- **Focus**: Release packaging fixes, LMStudio support, WASM infrastructure
 
 ## CI/CD
 - GitHub Actions CI covers Linux/macOS/Windows with stable test labels.
