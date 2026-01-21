@@ -98,4 +98,11 @@ if(NOT EMSCRIPTEN AND YAZE_HTTPLIB_TARGETS)
   target_link_libraries(yaze_cli_core PUBLIC ${YAZE_HTTPLIB_TARGETS})
 endif()
 
+# When gRPC is enabled, cli_core needs proto files to be generated first
+# (gui_automation_client.h includes protos/imgui_test_harness.grpc.pb.h)
+if(YAZE_ENABLE_GRPC AND TARGET yaze_proto_gen)
+  add_dependencies(yaze_cli_core yaze_proto_gen)
+  target_link_libraries(yaze_cli_core PUBLIC yaze_grpc_support)
+endif()
+
 message(STATUS "✓ yaze_cli_core configured")
