@@ -12,14 +12,23 @@ if [[ ! -f "$dmg_path" ]]; then
   exit 2
 fi
 
+echo "Validating DMG: $dmg_path"
+
 mount_dir="$(mktemp -d)"
 cleanup() {
-  hdiutil detach "$mount_dir" -quiet || true
+  hdiutil detach "$mount_dir" -quiet 2>/dev/null || true
   rm -rf "$mount_dir"
 }
 trap cleanup EXIT
 
-hdiutil attach "$dmg_path" -mountpoint "$mount_dir" -nobrowse -quiet
+echo "Mounting DMG..."
+if ! hdiutil attach "$dmg_path" -mountpoint "$mount_dir" -nobrowse -quiet 2>&1; then
+  echo "Failed to mount DMG"
+  exit 1
+fi
+
+echo "DMG contents:"
+ls -la "$mount_dir/" || true
 
 required=(
   "README.md"
@@ -30,12 +39,20 @@ required=(
   "z3ed"
 )
 
+missing_items=()
 for item in "${required[@]}"; do
   if [[ ! -e "$mount_dir/$item" ]]; then
-    echo "Missing $item in DMG"
-    exit 1
+    missing_items+=("$item")
   fi
 done
+
+if [[ ${#missing_items[@]} -gt 0 ]]; then
+  echo "Missing required items in DMG:"
+  for item in "${missing_items[@]}"; do
+    echo "  - $item"
+  done
+  exit 1
+fi
 
 if [[ -d "$mount_dir/bin" ]]; then
   echo "Unexpected bin/ directory in DMG"

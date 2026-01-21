@@ -189,7 +189,17 @@ jobs:
         if: matrix.platform == 'windows'
         shell: pwsh
         run: |
-          python scripts/release/validate-archive.py build/packages/*.zip
+          $zips = Get-ChildItem -Path build/packages -Filter "*.zip" -ErrorAction SilentlyContinue
+          if ($zips.Count -eq 0) {
+            Write-Host "No ZIP files found in build/packages/"
+            Write-Host "Contents of build/packages/:"
+            Get-ChildItem -Path build/packages -ErrorAction SilentlyContinue | Format-Table
+            exit 1
+          }
+          foreach ($zip in $zips) {
+            Write-Host "Validating: $($zip.FullName)"
+            python scripts/release/validate-archive.py $zip.FullName
+          }
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
