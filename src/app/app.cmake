@@ -184,6 +184,11 @@ endif()
 
 # Post-build asset copying for non-macOS platforms
 if(NOT APPLE)
+  # Create assets directory first to avoid Windows copy_directory issues
+  add_custom_command(TARGET yaze POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:yaze>/assets
+    COMMENT "Creating assets directory"
+  )
   add_custom_command(TARGET yaze POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/assets/font $<TARGET_FILE_DIR:yaze>/assets/font
     COMMENT "Copying font assets"
@@ -194,6 +199,7 @@ if(NOT APPLE)
   )
   if(EXISTS ${CMAKE_SOURCE_DIR}/assets/agent)
     add_custom_command(TARGET yaze POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:yaze>/assets/agent
       COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/assets/agent $<TARGET_FILE_DIR:yaze>/assets/agent
       COMMENT "Copying agent assets"
     )
