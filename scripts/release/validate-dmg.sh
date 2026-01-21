@@ -32,7 +32,7 @@ cleanup() {
 trap cleanup EXIT
 
 echo "Mounting DMG..."
-mount_output=$(hdiutil attach "$dmg_path" -mountpoint "$mount_dir" -nobrowse -readonly -noverify -acceptlicense 2>&1) || {
+mount_output=$(hdiutil attach "$dmg_path" -mountpoint "$mount_dir" -nobrowse -readonly -noverify 2>&1) || {
   echo "Failed to mount DMG"
   echo "hdiutil output: $mount_output"
   echo "Checking DMG file integrity..."
