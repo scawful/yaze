@@ -56,17 +56,25 @@ def has_any(entries, root, options):
 
 
 def list_zip_entries(path):
-    with zipfile.ZipFile(path) as zf:
-        entries = [normalize_path(name) for name in zf.namelist()]
-        file_entries = [name for name in entries if name and not name.endswith("/")]
-        return entries, file_entries, zf
+    """Return entries list, file entries, and an open ZipFile handle.
+
+    Caller is responsible for closing the handle.
+    """
+    zf = zipfile.ZipFile(path)
+    entries = [normalize_path(name) for name in zf.namelist()]
+    file_entries = [name for name in entries if name and not name.endswith("/")]
+    return entries, file_entries, zf
 
 
 def list_tar_entries(path):
-    with tarfile.open(path) as tf:
-        members = [normalize_path(m.name) for m in tf.getmembers() if m.name]
-        files = [name for name in members if not name.endswith("/")]
-        return members, files, tf
+    """Return entries list, file entries, and an open TarFile handle.
+
+    Caller is responsible for closing the handle.
+    """
+    tf = tarfile.open(path)
+    members = [normalize_path(m.name) for m in tf.getmembers() if m.name]
+    files = [name for name in members if not name.endswith("/")]
+    return members, files, tf
 
 
 def list_deb_entries(path):
@@ -144,29 +152,35 @@ def validate_archive(path):
     lower = path.lower()
     if lower.endswith(".zip"):
         entries, files, zf = list_zip_entries(path)
-        root = detect_root(entries)
-        errors.extend(validate_common(entries, files, root))
-        manifest_path = join_root(root, "manifest.json")
-        if manifest_path in files:
-            try:
-                manifest = load_manifest_from_zip(zf, manifest_path)
-                validate_manifest(manifest)
-            except Exception as exc:  # noqa: BLE001
-                errors.append(f"manifest.json invalid: {exc}")
-        errors.extend(validate_windows_dlls(files))
+        try:
+            root = detect_root(entries)
+            errors.extend(validate_common(entries, files, root))
+            manifest_path = join_root(root, "manifest.json")
+            if manifest_path in files:
+                try:
+                    manifest = load_manifest_from_zip(zf, manifest_path)
+                    validate_manifest(manifest)
+                except Exception as exc:  # noqa: BLE001
+                    errors.append(f"manifest.json invalid: {exc}")
+            errors.extend(validate_windows_dlls(files))
+        finally:
+            zf.close()
         return errors
 
     if lower.endswith(".tar.gz") or lower.endswith(".tgz"):
         entries, files, tf = list_tar_entries(path)
-        root = detect_root(entries)
-        errors.extend(validate_common(entries, files, root))
-        manifest_path = join_root(root, "manifest.json")
-        if manifest_path in files:
-            try:
-                manifest = load_manifest_from_tar(tf, manifest_path)
-                validate_manifest(manifest)
-            except Exception as exc:  # noqa: BLE001
-                errors.append(f"manifest.json invalid: {exc}")
+        try:
+            root = detect_root(entries)
+            errors.extend(validate_common(entries, files, root))
+            manifest_path = join_root(root, "manifest.json")
+            if manifest_path in files:
+                try:
+                    manifest = load_manifest_from_tar(tf, manifest_path)
+                    validate_manifest(manifest)
+                except Exception as exc:  # noqa: BLE001
+                    errors.append(f"manifest.json invalid: {exc}")
+        finally:
+            tf.close()
         return errors
 
     if lower.endswith(".deb"):
