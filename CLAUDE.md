@@ -24,6 +24,17 @@ Presets: `mac-dbg`/`lin-dbg`/`win-dbg`, `mac-ai`/`win-ai`, `*-rel`. See `docs/pu
 | Zelda3 | `src/zelda3/` | Overworld (160 maps), Dungeon (296 rooms) |
 | Canvas | `src/app/gui/canvas.h` | ImGui canvas with pan/zoom |
 | CLI | `src/cli/z3ed.cc` | AI-powered ROM hacking tool |
+| Platform | `src/app/platform/` | SDL2/SDL3 backend abstraction |
+
+## Platform Backends
+
+| Backend | Status | Viewports | CMake Option |
+|---------|--------|-----------|--------------|
+| SDL2 | **Default** | Optional | (default) |
+| SDL3 | Experimental | Enabled | `YAZE_USE_SDL3=ON` |
+| GLFW | Not integrated | N/A | — |
+
+Key files: `IWindowBackend`, `WindowBackendFactory`, `sdl2_window_backend.cc`, `sdl3_window_backend.cc`
 
 ## Key Patterns
 

@@ -21,6 +21,14 @@ This directory contains detailed architectural documentation for the YAZE (Yet A
   - Canvas interactions and drawing operations
   - Best practices for graphics modifications
 
+### Platform Abstraction
+
+- **[platform_backends.md](platform_backends.md)** - Platform backend architecture
+  - SDL2/SDL3/GLFW backend abstraction layer
+  - IWindowBackend, IAudioBackend, IInputBackend interfaces
+  - WindowBackendFactory for runtime backend selection
+  - Viewport support differences between backends
+
 ### UI and Layout System
 
 - **[editor_card_layout_system.md](editor_card_layout_system.md)** - Card-based editor and layout architecture
@@ -101,6 +109,11 @@ This directory contains detailed architectural documentation for the YAZE (Yet A
 - See: [graphics_system_architecture.md](graphics_system_architecture.md)
 - Key Classes: Arena, Bitmap, SnesPalette, IRenderer
 - Key Files: `resource/arena.h`, `core/bitmap.h`, `util/compression.h`
+
+### Platform (`src/app/platform/`)
+- See: [platform_backends.md](platform_backends.md)
+- Key Classes: IWindowBackend, IAudioBackend, WindowBackendFactory
+- Key Files: `iwindow.h`, `sdl2_window_backend.cc`, `sdl3_window_backend.cc`, `window.cc`
 
 ### Dungeon Editor (`src/app/editor/dungeon/`, `src/zelda3/dungeon/`)
 - See: [dungeon_editor_system.md](dungeon_editor_system.md), [room_data_persistence.md](room_data_persistence.md)

@@ -2,13 +2,20 @@
 
 ## v0.5.3 (Released January 2026)
 
-**Type:** Build & Versioning Fixes
+**Type:** Build, WASM & Code Quality
 **Date:** 2026-01-20
 
 ### 🔧 Build & Release
 - Fix release validation scripts for DMG packaging.
 - Create VERSION file as canonical source of truth (0.5.3).
 - Update CMakeLists.txt fallback version.
+- Fix wasm-ai CMake preset (add `YAZE_ENABLE_AI=ON` for AI_RUNTIME dependency).
+
+### 🌐 WASM/Web
+- Service worker: Stream responses instead of buffering (fixes memory spikes for large assets).
+- Service worker: Throttle cache eviction to once per 60 seconds (reduces O(n) overhead).
+- Filesystem tool: Tighten path guard to prevent `/.yazeevil` bypass attack.
+- Build tool: Fix boolean output format for JSON responses.
 
 ### 🤖 AI & CLI
 - Add LMStudio support with configurable `--openai_base_url` flag.

@@ -90,6 +90,16 @@ As of v0.5.3, app data is consolidated under `~/.yaze` on desktop/CLI and
 - `.yaze` migration and path normalization lack targeted regression coverage.
 - Web build has automated debug API smoke; broader browser CI still light.
 
+### Newly Identified (v0.5.4 Scan)
+
+- **Palette serialization**: JSON import/export not implemented (`palette_group_panel.cc:529,534`)
+- **Music bank persistence**: SaveInstruments/SaveSamples return UnimplementedError (`music_bank.cc:925,996`)
+- **Screen editor operations**: Undo/Redo/Cut/Copy/Paste stubs (`screen_editor.h:46-52`)
+- **Workspace layout**: Save/Load/Reset are TODOs (`workspace_manager.cc:18,26,34`)
+- **Platform backend**: Minimal factory tests only (`window_backend_test.cc` - 38 lines)
+- **Room object types**: 12+ unknown object types in `room_object.h` need verification
+- **CRC32 calculation**: Stubbed with 0 in ASAR wrapper (`asar_wrapper.cc:330,501`)
+
 ## Coverage Plan (v0.5.x)
 
 1) [DONE] Add GUI smoke tests for Graphics, Sprite, Message, and Music editors.
@@ -100,3 +110,11 @@ As of v0.5.3, app data is consolidated under `~/.yaze` on desktop/CLI and
 6) [DONE] Promote WASM debug API checks into CI (automated browser run).
 7) [TODO] Add ROM-dependent tests for version-gated overworld saves and dungeon persistence.
 8) [TODO] Add web storage regression checks (IDBFS sync + file manager flows).
+
+### v0.5.4 Test Additions
+
+9) [TODO] Add palette JSON round-trip tests (`test/unit/palette_json_test.cc`)
+10) [TODO] Add workspace layout serialization tests (`test/integration/workspace_test.cc`)
+11) [TODO] Add BRR codec unit tests (`test/unit/brr_codec_test.cc`)
+12) [TODO] Add music bank save tests (`test/integration/music_bank_test.cc`)
+13) [TODO] Expand platform backend tests for SDL2/SDL3 feature parity
