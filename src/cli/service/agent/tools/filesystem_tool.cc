@@ -105,7 +105,9 @@ bool FileSystemToolBase::IsPathInProject(const fs::path& path) const {
   auto root_str = normalized_root.string();
 
 #ifdef __EMSCRIPTEN__
-  if (path_str.rfind("/.yaze", 0) == 0) {
+  // Allow paths that are exactly "/.yaze" or start with "/.yaze/"
+  // This prevents paths like "/.yazeevil" from bypassing the guard
+  if (path_str == "/.yaze" || path_str.rfind("/.yaze/", 0) == 0) {
     return true;
   }
 #endif
