@@ -161,8 +161,9 @@ jobs:
           echo "=== Checking for DMG files ==="
           ls -la build/packages/ || echo "packages directory doesn't exist"
 
-          dmg_files=(build/packages/yaze-*-macos*.dmg)
-          if [[ ! -e "${dmg_files[0]}" ]]; then
+          shopt -s nullglob
+          dmg_files=(build/packages/yaze-*-Darwin*.dmg build/packages/yaze-*-macos*.dmg)
+          if [[ ${#dmg_files[@]} -eq 0 ]]; then
             echo "No macOS DMG files found in build/packages/"
             exit 1
           fi
@@ -183,6 +184,7 @@ jobs:
           else
             echo "No bundle DMG found; skipping bundle validation."
           fi
+          shopt -u nullglob
 
       - name: Patch cmake_install.cmake (Windows)
         if: matrix.platform == 'windows'
