@@ -760,6 +760,7 @@
         "CMAKE_C_FLAGS": "-pthread -s USE_PTHREADS=1 -s FETCH=1 -s ASYNCIFY",
         "YAZE_WITH_IMGUI": "ON",
         "CMAKE_EXE_LINKER_FLAGS": "-pthread -s USE_SDL=2 -s USE_FREETYPE=1 -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=4 -s PTHREAD_POOL_SIZE_STRICT=0 -s PTHREAD_POOL_DELAY_LOAD=1 -s NO_DISABLE_EXCEPTION_CATCHING -s FETCH=1 -s FORCE_FILESYSTEM=1 -s OFFSCREENCANVAS_SUPPORT=1 -lidbfs.js --preload-file ${sourceDir}/assets@/assets -s ASSERTIONS=0 -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s STACK_OVERFLOW_CHECK=0 -s ASYNCIFY -s ASYNCIFY_STACK_SIZE=1048576 -s ASYNCIFY_IMPORTS=['idb_open_database','idb_save_binary','idb_load_binary','idb_save_string','idb_load_string','idb_delete_entry','idb_list_keys','idb_get_storage_usage','mq_save_queue','mq_load_queue','mq_clear_queue']",
+        "YAZE_ENABLE_AI": "ON",
         "YAZE_ENABLE_AI_RUNTIME": "ON",
         "YAZE_BUILD_EMU": "ON",
         "YAZE_ENABLE_GRPC": "OFF",

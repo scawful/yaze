@@ -200,12 +200,23 @@ if (typeof window === 'undefined') {
         }
     }
 
+    // Throttle cache eviction to avoid O(n) operations on every write
+    let lastEvictionTime = 0;
+    const EVICTION_THROTTLE_MS = 60000; // Run eviction at most once per minute
+
     async function addToRuntimeCacheWithEviction(request, response) {
         const cache = await caches.open(RUNTIME_CACHE);
         await cache.put(request, response);
         await setCacheTimestamp(request.url, Date.now());
-        await trimRuntimeCache();
-        await evictExpiredEntries();
+
+        // Only run eviction if throttle period has passed
+        const now = Date.now();
+        if (now - lastEvictionTime > EVICTION_THROTTLE_MS) {
+            lastEvictionTime = now;
+            // Run eviction async without blocking the response
+            trimRuntimeCache().catch(e => console.warn('[SW] Trim failed:', e));
+            evictExpiredEntries().catch(e => console.warn('[SW] Eviction failed:', e));
+        }
     }
 
     async function addCoiHeaders(response, isWorker) {
@@ -225,8 +236,9 @@ if (typeof window === 'undefined') {
             newHeaders.set("Content-Type", "application/javascript");
         }
 
-        const blob = await response.blob();
-        return new Response(blob, {
+        // Use streaming response.body instead of buffering with blob()
+        // This avoids memory spikes for large assets like yaze.wasm
+        return new Response(response.body, {
             status: response.status,
             statusText: response.statusText,
             headers: newHeaders,

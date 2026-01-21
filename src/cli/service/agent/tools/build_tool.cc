@@ -135,7 +135,7 @@ absl::Status BuildStatusCommandHandler::ValidateArgs(
 absl::Status BuildStatusCommandHandler::Execute(
     Rom*, const resources::ArgumentParser&, resources::OutputFormatter& formatter) {
   formatter.BeginObject("Build Status");
-  formatter.AddField("available", "false");
+  formatter.AddField("available", false);
   formatter.AddField("message",
                      "Build tools are not available in Web/WASM builds");
   formatter.EndObject();
