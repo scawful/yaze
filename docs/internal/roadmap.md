@@ -4,11 +4,40 @@
 
 This roadmap tracks upcoming releases and major ongoing initiatives.
 
-## Current Focus (v0.5.3)
+## Current Focus (v0.5.4)
+
+### Priority 1: Editor Feature Completion
+- **Palette JSON Import/Export**: Complete `palette_group_panel.cc:529,534` for palette file exchange
+- **Palette Clipboard Import**: Implement `palette_group_panel.cc:559` for copy/paste workflows
+- **Graphics Screen Editor**: Implement edit operations (Undo/Redo/Cut/Copy/Paste) in `screen_editor.h:46-52`
+- **Link Sprite Reset to Vanilla**: `link_sprite_panel.cc:339` - preserve vanilla backup
+
+### Priority 2: Music Editor Serialization
+- **SaveInstruments**: `music_bank.cc:925` - instrument data persistence
+- **SaveSamples (BRR encoding)**: `music_bank.cc:996` - sample data with BRR compression
+- **WAV/BRR Integration**: `music_bank.cc:400` - proper loading and encoding
+
+### Priority 3: Workspace & Layout
+- **Layout Serialization**: `workspace_manager.cc:18,26,34` - ImGui docking layout save/load/reset
+- **Preset Layouts**: Developer, Designer, Modder presets in `workspace_manager.cc:129,136,143`
+- **Window Cycling**: Forward/backward navigation in `workspace_manager.cc:242,246`
+
+### Priority 4: Platform & Performance
+- **Shutdown Performance**: Fix slow shutdown in `window.cc:168` (graphics arena ordering)
+- **CRC32 Calculation**: Complete ASAR checksums in `asar_wrapper.cc:330,501`
+- **ZScream Format**: Parse ZScream project format when spec available
+
+### Deferred to v0.5.5+
+- Room object type verification (12+ dungeon object unknowns)
+- WASM proposal system completion
+- AI Vision Verifier PNG/base64 encoding
+
+## v0.5.3 (Released)
 
 - **WASM/Web Infrastructure**: Service worker caching, persistent storage expansion, build tool stubs
 - **Local AI Support**: LMStudio and OpenAI-compatible local server support via `--openai_base_url`
 - **Release Packaging**: DMG validation improvements, VERSION file as source of truth
+- **Code Review Fixes**: build_tool boolean output, filesystem path guard, SW streaming/throttling
 
 ### WASM Web Port Status
 
@@ -104,7 +133,12 @@ This roadmap tracks upcoming releases and major ongoing initiatives.
 - 🟡 Input persistence (keyboard config, ImGui capture flag)
 - 🟡 Semantic API for AI agents (Phase 2 planned)
 - 🟡 State injection improvements
-- 🟡 SDL3 readiness report plus entry-point/flag cleanup (owned by another agent)
+- ✅ SDL3 backend infrastructure complete (17 abstraction files in `src/app/platform/`)
+- ✅ `IWindowBackend`/`IAudioBackend`/`IInputBackend`/`IRenderer` interfaces
+- ✅ `WindowBackendFactory` for runtime SDL2/SDL3 selection
+- ✅ `YAZE_USE_SDL3` CMake option (experimental, OFF by default)
+- 🟡 SDL3 enables ImGui viewports by default (multi-window support)
+- 🟡 GLFW not integrated - would require new backend implementation
 
 #### Music Editor Overhaul
 - 🟡 Tracker + piano roll + instrument/sample editors are in-flight; stabilize playback/export paths and polish UI/shortcuts.
