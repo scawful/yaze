@@ -79,6 +79,9 @@ elseif(APPLE)
     set(CPACK_GENERATOR "DragNDrop")
     set(CPACK_DMG_VOLUME_NAME "Yaze ${CPACK_PACKAGE_VERSION}")
     set(CPACK_DMG_FORMAT "UDZO")
+    # Disable SLA popup when mounting (LICENSE is still included in DMG contents)
+    # This is required for CI validation - see CMP0133
+    set(CPACK_DMG_SLA_USE_RESOURCE_FILE_LICENSE OFF)
     set(CPACK_PACKAGE_FILE_NAME "yaze-${CPACK_PACKAGE_VERSION}-macos")
     
     # macOS app bundle configuration
