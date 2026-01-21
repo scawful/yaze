@@ -164,6 +164,17 @@ EM_JS(void, MountFilesystems, (), {
     '/.yaze/projects', // Project files (IDBFS - persistent)
     '/.yaze/prompts',  // Agent prompts (IDBFS - persistent)
     '/.yaze/recent',   // Recent files metadata (IDBFS - persistent)
+    '/.yaze/agent',    // Agent chat/history (IDBFS - persistent)
+    '/.yaze/proposals', // Agent proposals (IDBFS - persistent)
+    '/.yaze/policies', // Agent policies (IDBFS - persistent)
+    '/.yaze/sandboxes', // ROM sandboxes (IDBFS - persistent)
+    '/.yaze/layouts',  // Layout presets (IDBFS - persistent)
+    '/.yaze/workspaces', // Workspace layouts (IDBFS - persistent)
+    '/.yaze/themes',   // Theme exports (IDBFS - persistent)
+    '/.yaze/logs',     // App logs (IDBFS - persistent)
+    '/.yaze/crash_logs', // Crash reports (IDBFS - persistent)
+    '/.yaze/states',   // Save states (IDBFS - persistent)
+    '/.yaze/screenshots', // Screenshots (IDBFS - persistent)
     '/.yaze/temp'      // Temporary files (MEMFS - non-persistent)
   ];
 
@@ -197,7 +208,18 @@ EM_JS(void, MountFilesystems, (), {
     '/.yaze/config',
     '/.yaze/projects',
     '/.yaze/prompts',
-    '/.yaze/recent'
+    '/.yaze/recent',
+    '/.yaze/agent',
+    '/.yaze/proposals',
+    '/.yaze/policies',
+    '/.yaze/sandboxes',
+    '/.yaze/layouts',
+    '/.yaze/workspaces',
+    '/.yaze/themes',
+    '/.yaze/logs',
+    '/.yaze/crash_logs',
+    '/.yaze/states',
+    '/.yaze/screenshots'
   ];
   var mountedCount = 0;
   var totalToMount = persistentDirs.length;

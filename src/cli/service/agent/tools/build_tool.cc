@@ -1,5 +1,154 @@
 #include "cli/service/agent/tools/build_tool.h"
 
+#ifdef __EMSCRIPTEN__
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
+
+namespace yaze {
+namespace cli {
+namespace agent {
+namespace tools {
+
+namespace {
+
+absl::Status BuildToolUnavailableStatus() {
+  return absl::FailedPreconditionError(
+      "Build tools are not available in Web/WASM builds");
+}
+
+}  // namespace
+
+BuildTool::BuildTool(const BuildConfig& config) : config_(config) {}
+
+BuildTool::~BuildTool() = default;
+
+absl::StatusOr<BuildTool::BuildResult> BuildTool::Configure(
+    const std::string&) {
+  return BuildToolUnavailableStatus();
+}
+
+absl::StatusOr<BuildTool::BuildResult> BuildTool::Build(const std::string&,
+                                                        const std::string&) {
+  return BuildToolUnavailableStatus();
+}
+
+absl::StatusOr<BuildTool::BuildResult> BuildTool::RunTests(
+    const std::string&, const std::string&) {
+  return BuildToolUnavailableStatus();
+}
+
+BuildTool::BuildStatus BuildTool::GetBuildStatus() const {
+  BuildStatus status;
+  status.is_running = false;
+  status.progress_percent = -1;
+  status.last_result_summary =
+      "Build tools are not available in Web/WASM builds";
+  return status;
+}
+
+absl::StatusOr<BuildTool::BuildResult> BuildTool::Clean() {
+  return BuildToolUnavailableStatus();
+}
+
+bool BuildTool::IsBuildDirectoryReady() const {
+  return false;
+}
+
+std::vector<std::string> BuildTool::ListAvailablePresets() const {
+  return {};
+}
+
+std::optional<BuildTool::BuildResult> BuildTool::GetLastResult() const {
+  return std::nullopt;
+}
+
+absl::Status BuildTool::CancelCurrentOperation() {
+  return BuildToolUnavailableStatus();
+}
+
+absl::StatusOr<BuildTool::BuildResult> BuildTool::ExecuteCommand(
+    const std::string&, const std::string&) {
+  return BuildToolUnavailableStatus();
+}
+
+absl::StatusOr<BuildTool::BuildResult> BuildTool::ExecuteCommandInternal(
+    const std::string&, const std::chrono::seconds&) {
+  return BuildToolUnavailableStatus();
+}
+
+std::string BuildTool::GetProjectRoot() const {
+  return "";
+}
+
+std::string BuildTool::GetCurrentPlatform() const {
+  return "wasm";
+}
+
+std::vector<std::string> BuildTool::ParsePresetsFile() const {
+  return {};
+}
+
+bool BuildTool::IsPresetValid(const std::string&) const {
+  return false;
+}
+
+void BuildTool::UpdateStatus(const std::string&, bool) {}
+
+absl::Status BuildConfigureCommandHandler::ValidateArgs(
+    const resources::ArgumentParser& parser) {
+  if (!parser.GetString("preset").has_value()) {
+    return absl::InvalidArgumentError("--preset is required");
+  }
+  return absl::OkStatus();
+}
+
+absl::Status BuildConfigureCommandHandler::Execute(
+    Rom*, const resources::ArgumentParser&, resources::OutputFormatter&) {
+  return BuildToolUnavailableStatus();
+}
+
+absl::Status BuildCompileCommandHandler::ValidateArgs(
+    const resources::ArgumentParser&) {
+  return absl::OkStatus();
+}
+
+absl::Status BuildCompileCommandHandler::Execute(
+    Rom*, const resources::ArgumentParser&, resources::OutputFormatter&) {
+  return BuildToolUnavailableStatus();
+}
+
+absl::Status BuildTestCommandHandler::ValidateArgs(
+    const resources::ArgumentParser&) {
+  return absl::OkStatus();
+}
+
+absl::Status BuildTestCommandHandler::Execute(
+    Rom*, const resources::ArgumentParser&, resources::OutputFormatter&) {
+  return BuildToolUnavailableStatus();
+}
+
+absl::Status BuildStatusCommandHandler::ValidateArgs(
+    const resources::ArgumentParser&) {
+  return absl::OkStatus();
+}
+
+absl::Status BuildStatusCommandHandler::Execute(
+    Rom*, const resources::ArgumentParser&, resources::OutputFormatter& formatter) {
+  formatter.BeginObject("Build Status");
+  formatter.AddField("available", "false");
+  formatter.AddField("message",
+                     "Build tools are not available in Web/WASM builds");
+  formatter.EndObject();
+  return absl::OkStatus();
+}
+
+}  // namespace tools
+}  // namespace agent
+}  // namespace cli
+}  // namespace yaze
+
+#else
+
 #include <array>
 #include <cstdio>
 #include <cstdlib>
@@ -923,3 +1072,5 @@ absl::Status BuildStatusCommandHandler::Execute(
 }  // namespace agent
 }  // namespace cli
 }  // namespace yaze
+
+#endif  // __EMSCRIPTEN__

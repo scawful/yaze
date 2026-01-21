@@ -102,8 +102,203 @@ if (typeof window !== 'undefined' && typeof SharedArrayBuffer === 'undefined') {
 
 let coepCredentialless = false;
 if (typeof window === 'undefined') {
-    self.addEventListener("install", () => self.skipWaiting());
-    self.addEventListener("activate", (e) => e.waitUntil(self.clients.claim()));
+    const CACHE_NAME = 'yaze-cache-v5';
+    const RUNTIME_CACHE = 'yaze-runtime-v5';
+    const CACHE_METADATA = 'yaze-metadata-v2';
+    const MAX_RUNTIME_CACHE_SIZE = 50;
+    const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+    const STALE_WHILE_REVALIDATE_PATTERNS = [
+        /\.css$/,
+        /\/styles\//,
+        /\/icons\//,
+        /\/assets\//
+    ];
+
+    function scopeUrl(path) {
+        return new URL(path, self.registration.scope).toString();
+    }
+
+    function getPrecacheAssets() {
+        return [
+            '',
+            'index.html',
+            'yaze.js',
+            'yaze.wasm',
+            'app.js',
+            'coi-serviceworker.js',
+            'pwa/offline.html',
+            'core/namespace.js',
+            'core/config.js',
+            'core/filesystem_manager.js',
+            'core/loading_indicator.js',
+            'core/error_handler.js',
+            'core/crash_reporter.js',
+            'core/wasm_recovery.js',
+            'core/debug.js',
+            'components/shortcuts_overlay.js',
+            'components/terminal.js',
+            'components/collab_console.js',
+            'components/touch_gestures.js',
+            'components/drop_zone.js',
+            'styles/main.css',
+            'styles/loading_indicator.css',
+            'styles/error_handler.css',
+            'styles/shortcuts_overlay.css',
+            'styles/terminal.css',
+            'styles/collab_console.css',
+            'styles/touch_gestures.css',
+            'styles/drop_zone.css'
+        ].map(scopeUrl);
+    }
+
+    function shouldUseStaleWhileRevalidate(url) {
+        return STALE_WHILE_REVALIDATE_PATTERNS.some(pattern => pattern.test(url));
+    }
+
+    async function setCacheTimestamp(url, timestamp) {
+        const metadataCache = await caches.open(CACHE_METADATA);
+        const metadata = new Response(JSON.stringify({ timestamp }));
+        await metadataCache.put(url + '__meta', metadata);
+    }
+
+    async function getCacheTimestamp(url) {
+        try {
+            const metadataCache = await caches.open(CACHE_METADATA);
+            const response = await metadataCache.match(url + '__meta');
+            if (response) {
+                const data = await response.json();
+                return data.timestamp;
+            }
+        } catch (e) {
+            console.warn('[ServiceWorker] Error reading cache timestamp:', e);
+        }
+        return null;
+    }
+
+    async function trimRuntimeCache() {
+        const cache = await caches.open(RUNTIME_CACHE);
+        const keys = await cache.keys();
+        if (keys.length > MAX_RUNTIME_CACHE_SIZE) {
+            const entriesToDelete = keys.length - MAX_RUNTIME_CACHE_SIZE;
+            for (let i = 0; i < entriesToDelete; i++) {
+                await cache.delete(keys[i]);
+            }
+        }
+    }
+
+    async function evictExpiredEntries() {
+        const cache = await caches.open(RUNTIME_CACHE);
+        const metadataCache = await caches.open(CACHE_METADATA);
+        const keys = await cache.keys();
+        const now = Date.now();
+        for (const request of keys) {
+            const timestamp = await getCacheTimestamp(request.url);
+            if (timestamp && (now - timestamp) > CACHE_TTL_MS) {
+                await cache.delete(request);
+                await metadataCache.delete(request.url + '__meta');
+            }
+        }
+    }
+
+    async function addToRuntimeCacheWithEviction(request, response) {
+        const cache = await caches.open(RUNTIME_CACHE);
+        await cache.put(request, response);
+        await setCacheTimestamp(request.url, Date.now());
+        await trimRuntimeCache();
+        await evictExpiredEntries();
+    }
+
+    async function addCoiHeaders(response, isWorker) {
+        if (!response || response.status === 0) {
+            return response;
+        }
+
+        const newHeaders = new Headers(response.headers);
+        newHeaders.set(
+            "Cross-Origin-Embedder-Policy",
+            coepCredentialless ? "credentialless" : "require-corp"
+        );
+        newHeaders.set("Cross-Origin-Opener-Policy", "same-origin");
+        newHeaders.set("Cross-Origin-Resource-Policy", "same-origin");
+
+        if (isWorker) {
+            newHeaders.set("Content-Type", "application/javascript");
+        }
+
+        const blob = await response.blob();
+        return new Response(blob, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: newHeaders,
+        });
+    }
+
+    async function fetchWithCoi(request, isWorker) {
+        const response = await fetch(request);
+        return addCoiHeaders(response, isWorker);
+    }
+
+    async function staleWhileRevalidate(cacheKey, fetchRequest, isWorker) {
+        const cache = await caches.open(RUNTIME_CACHE);
+        const cachedResponse = await cache.match(cacheKey);
+        const fetchPromise = fetchWithCoi(fetchRequest, isWorker)
+            .then(async (networkResponse) => {
+                if (networkResponse && networkResponse.status === 200) {
+                    await addToRuntimeCacheWithEviction(
+                        cacheKey,
+                        networkResponse.clone()
+                    );
+                }
+                return networkResponse;
+            })
+            .catch((error) => {
+                console.warn('[ServiceWorker] Background fetch failed:', error);
+                return null;
+            });
+
+        if (cachedResponse) {
+            fetchPromise;
+            return cachedResponse;
+        }
+
+        return fetchPromise;
+    }
+
+    self.addEventListener("install", (event) => {
+        self.skipWaiting();
+        event.waitUntil(
+            caches.open(CACHE_NAME)
+                .then((cache) => {
+                    return Promise.allSettled(
+                        getPrecacheAssets().map((url) => {
+                            return cache.add(url).catch((error) => {
+                                console.warn('[ServiceWorker] Failed to cache', url, error);
+                            });
+                        })
+                    );
+                })
+        );
+    });
+
+    self.addEventListener("activate", (event) => {
+        event.waitUntil(
+            caches.keys()
+                .then((cacheNames) => {
+                    return Promise.all(
+                        cacheNames
+                            .filter((cacheName) => {
+                                return cacheName.startsWith('yaze-') &&
+                                       cacheName !== CACHE_NAME &&
+                                       cacheName !== RUNTIME_CACHE &&
+                                       cacheName !== CACHE_METADATA;
+                            })
+                            .map((cacheName) => caches.delete(cacheName))
+                    );
+                })
+                .then(() => evictExpiredEntries())
+                .then(() => self.clients.claim())
+        );
+    });
 
     self.addEventListener("message", (ev) => {
         if (!ev.data) {
@@ -119,62 +314,36 @@ if (typeof window === 'undefined') {
                 });
         } else if (ev.data.type === "coepCredentialless") {
             coepCredentialless = ev.data.value;
+        } else if (ev.data.type === "SKIP_WAITING") {
+            self.skipWaiting();
+        } else if (ev.data.type === "CACHE_VERSION" && ev.ports && ev.ports[0]) {
+            ev.ports[0].postMessage({ version: CACHE_NAME });
         }
     });
 
     self.addEventListener("fetch", function (event) {
         const r = event.request;
-        // Skip invalid or empty URLs
         if (!r.url || r.url === '' || r.url === 'about:blank') {
             return;
         }
         if (r.cache === "only-if-cached" && r.mode !== "same-origin") {
             return;
         }
-        // For worker scripts, we need to ensure proper content-type
+
         const isWorker = r.url.endsWith('.worker.js') || r.destination === 'worker';
-
-        const request =
+        const cacheKey = r;
+        const fetchRequest =
             coepCredentialless && r.mode === "no-cors"
-                ? new Request(r, {
-                      credentials: "omit",
-                  })
+                ? new Request(r, { credentials: "omit" })
                 : r;
-        event.respondWith(
-            fetch(request)
-                .then(async (response) => {
-                    if (response.status === 0) {
-                        return response;
-                    }
 
-                    const newHeaders = new Headers(response.headers);
-                    newHeaders.set(
-                        "Cross-Origin-Embedder-Policy",
-                        coepCredentialless ? "credentialless" : "require-corp"
-                    );
-                    newHeaders.set("Cross-Origin-Opener-Policy", "same-origin");
-                    // Required for Firefox require-corp mode to allow subresources
-                    newHeaders.set("Cross-Origin-Resource-Policy", "same-origin");
-
-                    // Ensure worker scripts have correct MIME type
-                    if (isWorker) {
-                        newHeaders.set("Content-Type", "application/javascript");
-                    }
-
-                    // Use blob() to properly handle the response body
-                    const blob = await response.blob();
-                    return new Response(blob, {
-                        status: response.status,
-                        statusText: response.statusText,
-                        headers: newHeaders,
-                    });
-                })
-                .catch((e) => {
-                    // Only log non-empty URLs to reduce noise
+        const url = new URL(r.url);
+        if (url.origin !== self.location.origin) {
+            event.respondWith(
+                fetchWithCoi(fetchRequest, isWorker).catch((e) => {
                     if (r.url && r.url !== '') {
                         console.warn("[COI] Fetch failed for:", r.url, e.message || e);
                     }
-                    // CRITICAL: Must return a response, not undefined
                     return new Response(null, {
                         status: 502,
                         statusText: "COI Fetch Error",
@@ -185,6 +354,70 @@ if (typeof window === 'undefined') {
                         })
                     });
                 })
+            );
+            return;
+        }
+
+        if (r.mode === 'navigate') {
+            event.respondWith(
+                caches.match(cacheKey).then((cachedResponse) => {
+                    if (cachedResponse) {
+                        return cachedResponse;
+                    }
+                    return fetchWithCoi(fetchRequest, isWorker)
+                        .then(async (networkResponse) => {
+                            if (networkResponse && networkResponse.status === 200) {
+                                await addToRuntimeCacheWithEviction(
+                                    cacheKey,
+                                    networkResponse.clone()
+                                );
+                            }
+                            return networkResponse;
+                        })
+                        .catch(() => caches.match(scopeUrl('pwa/offline.html')));
+                })
+            );
+            return;
+        }
+
+        if (r.url.endsWith('.wasm') ||
+            r.url.endsWith('.data') ||
+            r.url.endsWith('.js')) {
+            event.respondWith(
+                caches.match(cacheKey).then((cachedResponse) => {
+                    if (cachedResponse) {
+                        return cachedResponse;
+                    }
+                    return fetchWithCoi(fetchRequest, isWorker)
+                        .then(async (networkResponse) => {
+                            if (networkResponse && networkResponse.status === 200) {
+                                const cache = await caches.open(CACHE_NAME);
+                                await cache.put(cacheKey, networkResponse.clone());
+                            }
+                            return networkResponse;
+                        });
+                })
+            );
+            return;
+        }
+
+        if (shouldUseStaleWhileRevalidate(r.url)) {
+            event.respondWith(staleWhileRevalidate(cacheKey, fetchRequest, isWorker));
+            return;
+        }
+
+        event.respondWith(
+            fetchWithCoi(fetchRequest, isWorker)
+                .then(async (networkResponse) => {
+                    if (networkResponse && networkResponse.status === 200) {
+                        await addToRuntimeCacheWithEviction(
+                            cacheKey,
+                            networkResponse.clone()
+                        );
+                    }
+                    return networkResponse;
+                })
+                .catch(() => caches.match(cacheKey))
         );
     });
 } else {
