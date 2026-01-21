@@ -203,7 +203,7 @@ jobs:
         shell: pwsh
         run: |
           cd build
-          cpack -G NSIS -G ZIP
+          cpack
           Write-Host "=== Contents of packages directory ==="
           Get-ChildItem packages -ErrorAction SilentlyContinue
           Write-Host "=== Package files created ==="
@@ -214,8 +214,15 @@ jobs:
         shell: pwsh
         run: |
           $zips = Get-ChildItem -Path build/packages -Filter "*.zip" -ErrorAction SilentlyContinue
+          $exes = Get-ChildItem -Path build/packages -Filter "*.exe" -ErrorAction SilentlyContinue
           if ($zips.Count -eq 0) {
             Write-Host "No ZIP files found in build/packages/"
+            Write-Host "Contents of build/packages/:"
+            Get-ChildItem -Path build/packages -ErrorAction SilentlyContinue | Format-Table
+            exit 1
+          }
+          if ($exes.Count -eq 0) {
+            Write-Host "No EXE files found in build/packages/"
             Write-Host "Contents of build/packages/:"
             Get-ChildItem -Path build/packages -ErrorAction SilentlyContinue | Format-Table
             exit 1
