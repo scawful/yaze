@@ -1,8 +1,14 @@
 #include "palette_group_panel.h"
 
 #include <chrono>
+#include <cctype>
+#include <string>
+#include <vector>
 
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/str_split.h"
+#include "absl/strings/strip.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/util/palette_manager.h"
 #include "app/gui/core/color.h"
@@ -10,6 +16,7 @@
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
+#include "util/json.h"
 
 namespace yaze {
 namespace editor {
@@ -20,6 +27,104 @@ using gui::PrimaryButton;
 using gui::SectionHeader;
 using gui::ThemedButton;
 using gui::ThemedIconButton;
+
+namespace {
+
+absl::StatusOr<uint16_t> ParseSnesHexToken(std::string token) {
+  token = std::string(absl::StripAsciiWhitespace(token));
+  if (token.empty()) {
+    return absl::InvalidArgumentError("Empty color token");
+  }
+
+  if (token[0] == '$') {
+    token.erase(0, 1);
+  } else if (token.size() > 2 && (token.rfind("0x", 0) == 0 ||
+                                  token.rfind("0X", 0) == 0)) {
+    token.erase(0, 2);
+  }
+
+  if (token.empty()) {
+    return absl::InvalidArgumentError("Color token is missing hex digits");
+  }
+
+  for (char ch : token) {
+    if (!std::isxdigit(static_cast<unsigned char>(ch))) {
+      return absl::InvalidArgumentError(
+          absl::StrCat("Invalid hex digit in color token: ", token));
+    }
+  }
+
+  if (token.size() > 4) {
+    return absl::InvalidArgumentError(
+        absl::StrCat("Color token is too long for SNES color: ", token));
+  }
+
+  uint32_t value = 0;
+  try {
+    value = static_cast<uint32_t>(std::stoul(token, nullptr, 16));
+  } catch (const std::exception&) {
+    return absl::InvalidArgumentError(
+        absl::StrCat("Failed to parse color token: ", token));
+  }
+
+  if (value > 0x7FFF) {
+    return absl::InvalidArgumentError(
+        absl::StrCat("SNES color out of range (0x0000-0x7FFF): ", token));
+  }
+
+  return static_cast<uint16_t>(value);
+}
+
+absl::StatusOr<std::vector<uint16_t>> ParseClipboardColors(
+    const std::string& clipboard) {
+  std::vector<uint16_t> colors;
+  for (const auto& raw_token : absl::StrSplit(
+           clipboard, absl::ByAnyChar(", \n\r\t"), absl::SkipEmpty())) {
+    const std::string token = std::string(absl::StripAsciiWhitespace(raw_token));
+    if (token.empty()) {
+      continue;
+    }
+    auto color_or = ParseSnesHexToken(token);
+    if (!color_or.ok()) {
+      return color_or.status();
+    }
+    colors.push_back(*color_or);
+  }
+
+  if (colors.empty()) {
+    return absl::InvalidArgumentError("No colors found in clipboard data");
+  }
+
+  return colors;
+}
+
+#if defined(YAZE_WITH_JSON)
+absl::StatusOr<uint16_t> ParseSnesColorJson(const yaze::Json& value) {
+  if (value.is_string()) {
+    return ParseSnesHexToken(value.get<std::string>());
+  }
+  if (value.is_number_integer()) {
+    int parsed = value.get<int>();
+    if (parsed < 0 || parsed > 0x7FFF) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("SNES color out of range: %d", parsed));
+    }
+    return static_cast<uint16_t>(parsed);
+  }
+  if (value.is_number_unsigned()) {
+    uint32_t parsed = value.get<uint32_t>();
+    if (parsed > 0x7FFF) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("SNES color out of range: %u", parsed));
+    }
+    return static_cast<uint16_t>(parsed);
+  }
+  return absl::InvalidArgumentError(
+      "Invalid color value type (expected string or number)");
+}
+#endif
+
+}  // namespace
 
 PaletteGroupPanel::PaletteGroupPanel(const std::string& group_name,
                                      const std::string& display_name, Rom* rom,
@@ -526,13 +631,170 @@ absl::Status PaletteGroupPanel::WriteColorToRom(int palette_index,
 // ========== Export/Import ==========
 
 std::string PaletteGroupPanel::ExportToJson() const {
-  // TODO: Implement JSON export
+#if defined(YAZE_WITH_JSON)
+  auto* palette_group = GetPaletteGroup();
+  if (!palette_group) {
+    return "{}";
+  }
+
+  yaze::Json root = yaze::Json::object();
+  root["version"] = 1;
+  root["group"] = group_name_;
+  root["display_name"] = display_name_;
+  root["palettes"] = yaze::Json::array();
+
+  for (size_t palette_index = 0; palette_index < palette_group->size();
+       palette_index++) {
+    const auto& palette =
+        palette_group->palette_ref(static_cast<int>(palette_index));
+    yaze::Json palette_json = yaze::Json::object();
+    palette_json["index"] = static_cast<int>(palette_index);
+    palette_json["colors"] = yaze::Json::array();
+
+    for (size_t color_index = 0; color_index < palette.size(); color_index++) {
+      palette_json["colors"].push_back(
+          absl::StrFormat("$%04X", palette[color_index].snes()));
+    }
+
+    root["palettes"].push_back(palette_json);
+  }
+
+  return root.dump(2);
+#else
   return "{}";
+#endif
 }
 
-absl::Status PaletteGroupPanel::ImportFromJson(const std::string& /*json*/) {
-  // TODO: Implement JSON import
-  return absl::UnimplementedError("Import from JSON not yet implemented");
+absl::Status PaletteGroupPanel::ImportFromJson(const std::string& json) {
+#if !defined(YAZE_WITH_JSON)
+  return absl::UnimplementedError("JSON support is disabled");
+#else
+  auto* palette_group = GetPaletteGroup();
+  if (!palette_group) {
+    return absl::FailedPreconditionError("Palette group is unavailable");
+  }
+
+  yaze::Json root;
+  try {
+    root = yaze::Json::parse(json);
+  } catch (const std::exception& e) {
+    return absl::InvalidArgumentError(
+        absl::StrCat("Failed to parse palette JSON: ", e.what()));
+  }
+
+  if (!root.is_object()) {
+    return absl::InvalidArgumentError("Palette JSON must be an object");
+  }
+
+  if (root.contains("version")) {
+    const auto& version_value = root["version"];
+    if (!version_value.is_number_integer() &&
+        !version_value.is_number_unsigned()) {
+      return absl::InvalidArgumentError(
+          "Palette JSON 'version' must be an integer");
+    }
+    int version = version_value.get<int>();
+    if (version != 1) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Unsupported palette JSON version: %d", version));
+    }
+  }
+
+  if (root.contains("group")) {
+    const auto& group_value = root["group"];
+    if (!group_value.is_string()) {
+      return absl::InvalidArgumentError(
+          "Palette JSON 'group' must be a string");
+    }
+    const std::string group = group_value.get<std::string>();
+    if (group != group_name_) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Palette JSON group '%s' does not match '%s'", group, group_name_));
+    }
+  }
+
+  if (!root.contains("palettes") || !root["palettes"].is_array()) {
+    return absl::InvalidArgumentError(
+        "Palette JSON must contain a 'palettes' array");
+  }
+
+  struct PaletteImport {
+    int index;
+    std::vector<uint16_t> colors;
+  };
+
+  std::vector<PaletteImport> imports;
+  for (const auto& palette_json : root["palettes"]) {
+    if (!palette_json.is_object()) {
+      return absl::InvalidArgumentError(
+          "Palette entry must be a JSON object");
+    }
+
+    if (!palette_json.contains("index") ||
+        !palette_json["index"].is_number_integer()) {
+      return absl::InvalidArgumentError(
+          "Palette entry is missing integer 'index'");
+    }
+
+    int palette_index = palette_json["index"].get<int>();
+    if (palette_index < 0 || palette_index >= palette_group->size()) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Palette index %d out of range [0, %d)", palette_index,
+          static_cast<int>(palette_group->size())));
+    }
+
+    if (!palette_json.contains("colors") ||
+        !palette_json["colors"].is_array()) {
+      return absl::InvalidArgumentError(
+          "Palette entry is missing 'colors' array");
+    }
+
+    std::vector<uint16_t> colors;
+    colors.reserve(palette_json["colors"].size());
+    for (const auto& color_json : palette_json["colors"]) {
+      auto color_or = ParseSnesColorJson(color_json);
+      if (!color_or.ok()) {
+        return color_or.status();
+      }
+      colors.push_back(*color_or);
+    }
+
+    const auto& palette = palette_group->palette_ref(palette_index);
+    if (colors.size() != palette.size()) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Palette %d expects %d colors but received %d", palette_index,
+          static_cast<int>(palette.size()),
+          static_cast<int>(colors.size())));
+    }
+
+    imports.push_back({palette_index, std::move(colors)});
+  }
+
+  auto& manager = gfx::PaletteManager::Get();
+  manager.BeginBatch();
+  for (const auto& import : imports) {
+    for (size_t color_index = 0; color_index < import.colors.size();
+         color_index++) {
+      auto status = manager.SetColor(
+          group_name_, import.index, static_cast<int>(color_index),
+          gfx::SnesColor(import.colors[color_index]));
+      if (!status.ok()) {
+        manager.EndBatch();
+        return status;
+      }
+    }
+  }
+  manager.EndBatch();
+
+  if (selected_palette_ >= 0 && selected_palette_ < palette_group->size()) {
+    const auto& palette = palette_group->palette_ref(selected_palette_);
+    if (selected_color_ >= 0 && selected_color_ < palette.size()) {
+      editing_color_ = palette[selected_color_];
+    }
+  }
+
+  return absl::OkStatus();
+#endif
 }
 
 std::string PaletteGroupPanel::ExportToClipboard() const {
@@ -556,8 +818,47 @@ std::string PaletteGroupPanel::ExportToClipboard() const {
 }
 
 absl::Status PaletteGroupPanel::ImportFromClipboard() {
-  // TODO: Implement clipboard import
-  return absl::UnimplementedError("Import from clipboard not yet implemented");
+  auto* palette = GetMutablePalette(selected_palette_);
+  if (!palette) {
+    return absl::FailedPreconditionError("No palette selected");
+  }
+
+  const char* clipboard = ImGui::GetClipboardText();
+  if (!clipboard || clipboard[0] == '\0') {
+    return absl::InvalidArgumentError("Clipboard is empty");
+  }
+
+  auto colors_or = ParseClipboardColors(clipboard);
+  if (!colors_or.ok()) {
+    return colors_or.status();
+  }
+
+  const auto& colors = *colors_or;
+  if (colors.size() != palette->size()) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Clipboard contains %d colors but palette expects %d",
+        static_cast<int>(colors.size()),
+        static_cast<int>(palette->size())));
+  }
+
+  auto& manager = gfx::PaletteManager::Get();
+  manager.BeginBatch();
+  for (size_t color_index = 0; color_index < colors.size(); color_index++) {
+    auto status = manager.SetColor(
+        group_name_, selected_palette_, static_cast<int>(color_index),
+        gfx::SnesColor(colors[color_index]));
+    if (!status.ok()) {
+      manager.EndBatch();
+      return status;
+    }
+  }
+  manager.EndBatch();
+
+  if (selected_color_ >= 0 && selected_color_ < palette->size()) {
+    editing_color_ = (*palette)[selected_color_];
+  }
+
+  return absl::OkStatus();
 }
 
 // ============================================================================

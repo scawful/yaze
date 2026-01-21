@@ -139,6 +139,7 @@ if(YAZE_BUILD_TESTS)
     unit/gfx/compression_test.cc
     unit/gfx/snes_palette_test.cc
     unit/gfx/bpp_conversion_test.cc
+    unit/palette_json_test.cc
     unit/snes_color_test.cc
     unit/gui/tile_selector_widget_test.cc
     unit/gui/canvas_automation_api_test.cc
