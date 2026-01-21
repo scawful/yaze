@@ -28,25 +28,39 @@ rm -rf "$APP_BUNDLE_NAME" dmg_staging
 
 # Find the build directory (support both single-config and multi-config generators)
 BUILD_DIR="build"
-if [ -f "$BUILD_DIR/bin/Release/yaze" ]; then
-    YAZE_BIN="$BUILD_DIR/bin/Release/yaze"
-    Z3ED_BIN="$BUILD_DIR/bin/Release/z3ed"
-elif [ -f "$BUILD_DIR/bin/yaze" ]; then
-    YAZE_BIN="$BUILD_DIR/bin/yaze"
-    Z3ED_BIN="$BUILD_DIR/bin/z3ed"
-elif [ -d "$BUILD_DIR/bin/yaze.app" ]; then
-    YAZE_BIN=""  # Will use bundle directly
-    Z3ED_BIN="$BUILD_DIR/bin/z3ed"
-else
+BUILD_BIN_DIRS=(
+    "$BUILD_DIR/bin/Release"
+    "$BUILD_DIR/bin/RelWithDebInfo"
+    "$BUILD_DIR/bin/Debug"
+    "$BUILD_DIR/bin"
+)
+
+YAZE_APP_DIR=""
+YAZE_BIN=""
+Z3ED_BIN=""
+
+for bin_dir in "${BUILD_BIN_DIRS[@]}"; do
+    if [ -z "$YAZE_APP_DIR" ] && [ -d "$bin_dir/yaze.app" ]; then
+        YAZE_APP_DIR="$bin_dir/yaze.app"
+    fi
+    if [ -z "$YAZE_BIN" ] && [ -f "$bin_dir/yaze" ]; then
+        YAZE_BIN="$bin_dir/yaze"
+    fi
+    if [ -z "$Z3ED_BIN" ] && [ -f "$bin_dir/z3ed" ]; then
+        Z3ED_BIN="$bin_dir/z3ed"
+    fi
+done
+
+if [ -z "$YAZE_APP_DIR" ] && [ -z "$YAZE_BIN" ]; then
     echo "ERROR: Cannot find yaze executable in $BUILD_DIR/bin/"
     ls -la "$BUILD_DIR/bin/" 2>/dev/null || echo "Directory doesn't exist"
     exit 1
 fi
 
 # macOS packaging
-if [ -d "$BUILD_DIR/bin/yaze.app" ]; then
+if [ -n "$YAZE_APP_DIR" ]; then
     echo "Found macOS bundle, using it directly"
-    cp -r "$BUILD_DIR/bin/yaze.app" "./$APP_BUNDLE_NAME"
+    cp -r "$YAZE_APP_DIR" "./$APP_BUNDLE_NAME"
 else
     echo "Creating manual bundle from executable"
     mkdir -p "$APP_BUNDLE_NAME/Contents/MacOS"
