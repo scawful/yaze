@@ -23,6 +23,17 @@ var FilesystemManager = {
     projects: '/.yaze/projects',
     prompts: '/.yaze/prompts',
     recent: '/.yaze/recent',
+    agent: '/.yaze/agent',
+    proposals: '/.yaze/proposals',
+    policies: '/.yaze/policies',
+    sandboxes: '/.yaze/sandboxes',
+    layouts: '/.yaze/layouts',
+    workspaces: '/.yaze/workspaces',
+    themes: '/.yaze/themes',
+    logs: '/.yaze/logs',
+    crash_logs: '/.yaze/crash_logs',
+    states: '/.yaze/states',
+    screenshots: '/.yaze/screenshots',
     temp: '/.yaze/temp'
   },
 

@@ -104,6 +104,12 @@ bool FileSystemToolBase::IsPathInProject(const fs::path& path) const {
   auto path_str = normalized_path.string();
   auto root_str = normalized_root.string();
 
+#ifdef __EMSCRIPTEN__
+  if (path_str.rfind("/.yaze", 0) == 0) {
+    return true;
+  }
+#endif
+
   return path_str.find(root_str) == 0;
 }
 
