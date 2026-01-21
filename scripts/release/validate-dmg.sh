@@ -7,12 +7,22 @@ if [[ $# -lt 1 ]]; then
 fi
 
 dmg_path="$1"
+
+# Handle glob expansion that didn't match any files
+if [[ "$dmg_path" == *"*"* ]]; then
+  echo "No DMG files found (glob pattern not expanded): $dmg_path"
+  exit 2
+fi
+
 if [[ ! -f "$dmg_path" ]]; then
   echo "DMG not found: $dmg_path"
+  echo "Contents of parent directory:"
+  ls -la "$(dirname "$dmg_path")" 2>/dev/null || echo "Directory doesn't exist"
   exit 2
 fi
 
 echo "Validating DMG: $dmg_path"
+echo "File size: $(ls -lh "$dmg_path" | awk '{print $5}')"
 
 mount_dir="$(mktemp -d)"
 cleanup() {
@@ -22,10 +32,14 @@ cleanup() {
 trap cleanup EXIT
 
 echo "Mounting DMG..."
-if ! hdiutil attach "$dmg_path" -mountpoint "$mount_dir" -nobrowse -quiet 2>&1; then
+mount_output=$(hdiutil attach "$dmg_path" -mountpoint "$mount_dir" -nobrowse 2>&1) || {
   echo "Failed to mount DMG"
+  echo "hdiutil output: $mount_output"
+  echo "Checking DMG file integrity..."
+  file "$dmg_path" || true
+  hdiutil imageinfo "$dmg_path" 2>&1 | head -20 || true
   exit 1
-fi
+}
 
 echo "DMG contents:"
 ls -la "$mount_dir/" || true

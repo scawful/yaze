@@ -1,4 +1,4 @@
-# YAZE 0.5.1 Release
+# YAZE Release
 
 YAZE is a cross-platform Zelda 3 editor. This package includes the desktop app
 (yaze), the z3ed CLI, and required assets.
@@ -10,6 +10,7 @@ ROMs are not included. You must supply a legally obtained A Link to the Past ROM
 - z3ed (CLI)
 - assets/ (required data)
 - LICENSE
+- manifest.json (build metadata)
 
 ## Quick Start
 
@@ -41,8 +42,8 @@ The multiplayer/collaboration service ships separately:
 
 ## AI Features (optional)
 - Cloud providers: set `GEMINI_API_KEY`, `OPENAI_API_KEY`, or `ANTHROPIC_API_KEY`.
-- Local Ollama: install Ollama and set `OLLAMA_MODEL` (example:
-  `qwen2.5-coder:0.5b`).
+- Local Ollama: install Ollama and set `OLLAMA_MODEL` (example: `qwen2.5-coder:0.5b`).
+- LMStudio: use `z3ed --ai_provider=openai --openai_base_url=http://localhost:1234`.
 
 ## Data Locations
 - Desktop/CLI: `~/.yaze` (Windows uses `%USERPROFILE%\\.yaze`)
