@@ -23,6 +23,7 @@ ABSL_DECLARE_FLAG(std::string, ai_model);
 ABSL_DECLARE_FLAG(std::string, gemini_api_key);
 ABSL_DECLARE_FLAG(std::string, anthropic_api_key);
 ABSL_DECLARE_FLAG(std::string, ollama_host);
+ABSL_DECLARE_FLAG(std::string, openai_base_url);
 ABSL_DECLARE_FLAG(std::string, prompt_version);
 ABSL_DECLARE_FLAG(bool, use_function_calling);
 
@@ -37,6 +38,7 @@ std::unique_ptr<AIService> CreateAIService() {
   config.gemini_api_key = absl::GetFlag(FLAGS_gemini_api_key);
   config.anthropic_api_key = absl::GetFlag(FLAGS_anthropic_api_key);
   config.ollama_host = absl::GetFlag(FLAGS_ollama_host);
+  config.openai_base_url = absl::GetFlag(FLAGS_openai_base_url);
 
   // Fall back to environment variables if flags not set
   if (config.gemini_api_key.empty()) {
@@ -174,11 +176,15 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
     return std::make_unique<AnthropicAIService>(anthropic_config);
   }
   if (provider == "openai") {
-    if (config.openai_api_key.empty()) {
+    // LMStudio doesn't require an API key - allow empty key for local servers
+    bool is_local_server = config.openai_base_url != "https://api.openai.com";
+    if (config.openai_api_key.empty() && !is_local_server) {
       return absl::FailedPreconditionError(
-          "OpenAI API key not provided. Set OPENAI_API_KEY.");
+          "OpenAI API key not provided. Set OPENAI_API_KEY.\n"
+          "For LMStudio, use --openai_base_url=http://localhost:1234");
     }
     OpenAIConfig openai_config(config.openai_api_key);
+    openai_config.base_url = config.openai_base_url;
     if (!config.model.empty()) {
       openai_config.model = config.model;
     }
