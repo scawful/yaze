@@ -57,6 +57,7 @@ set(CANVAS_SRC
   app/gui/canvas/canvas_touch_handler.cc
   app/gui/canvas/canvas_usage_tracker.cc
   app/gui/canvas/canvas_utils.cc
+  app/gui/canvas/coordinate_mapper.cc
 )
 
 # build_cleaner:auto-maintain
