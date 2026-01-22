@@ -28,6 +28,7 @@ namespace api {
 class HttpServer {
  public:
   using SymbolProviderSource = std::function<emu::debug::SymbolProvider*()>;
+  using WindowAction = std::function<bool()>;
 
   HttpServer();
   ~HttpServer();
@@ -46,6 +47,12 @@ class HttpServer {
     symbol_source_ = std::move(source);
   }
 
+  // Optional window control hooks (GUI builds only)
+  void SetWindowActions(WindowAction show, WindowAction hide) {
+    window_show_ = std::move(show);
+    window_hide_ = std::move(hide);
+  }
+
   // Get current symbol source
   SymbolProviderSource GetSymbolSource() const { return symbol_source_; }
 
@@ -57,6 +64,8 @@ class HttpServer {
   std::unique_ptr<std::thread> server_thread_;
   std::atomic<bool> is_running_{false};
   SymbolProviderSource symbol_source_;
+  WindowAction window_show_;
+  WindowAction window_hide_;
 };
 
 }  // namespace api
