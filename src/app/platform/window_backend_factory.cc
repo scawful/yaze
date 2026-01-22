@@ -3,6 +3,7 @@
 #include "app/platform/iwindow.h"
 
 #include "app/platform/sdl2_window_backend.h"
+#include "app/platform/null_window_backend.h"
 #include "util/log.h"
 
 #if defined(__APPLE__)
@@ -50,6 +51,9 @@ std::unique_ptr<IWindowBackend> WindowBackendFactory::Create(
       return nullptr;
 #endif
 
+    case WindowBackendType::Null:
+      return std::make_unique<NullWindowBackend>();
+
     case WindowBackendType::Auto:
     default:
       return Create(GetDefaultType());
@@ -92,6 +96,9 @@ bool WindowBackendFactory::IsAvailable(WindowBackendType type) {
 #else
       return false;
 #endif
+
+    case WindowBackendType::Null:
+      return true;
 
     default:
       return false;

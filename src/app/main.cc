@@ -10,6 +10,8 @@
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <set>
+#include <thread>
+#include <chrono>
 
 #include "absl/debugging/symbolize.h"
 #include "absl/strings/ascii.h"
@@ -65,6 +67,9 @@ DEFINE_FLAG(int, map, -1, "Open Overworld Editor at specific map ID (0-159).");
 // AI Agent API flags
 DEFINE_FLAG(bool, enable_api, false, "Enable the AI Agent API server.");
 DEFINE_FLAG(int, api_port, 8080, "Port for the AI Agent API server.");
+
+DEFINE_FLAG(bool, headless, false, "Run in headless mode without a GUI window.");
+DEFINE_FLAG(bool, server, false, "Run in server mode (implies --headless, --enable_api, --enable_test_harness).");
 
 #ifdef YAZE_WITH_GRPC
 // gRPC test harness flags
@@ -220,6 +225,16 @@ int main(int argc, char** argv) {
 
   // Build AppConfig from flags
   yaze::AppConfig config;
+
+  bool server_mode = FLAGS_server->Get();
+  config.headless = FLAGS_headless->Get() || server_mode;
+  config.enable_api = FLAGS_enable_api->Get() || server_mode;
+
+#ifdef YAZE_WITH_GRPC
+  config.enable_test_harness = FLAGS_enable_test_harness->Get() || server_mode;
+  config.test_harness_port = FLAGS_test_harness_port->Get();
+#endif
+
   config.rom_file = FLAGS_rom_file->Get();
   config.log_file = log_path;
   config.debug = (log_level == yaze::util::LogLevel::YAZE_DEBUG);
@@ -227,9 +242,8 @@ int main(int argc, char** argv) {
   config.startup_editor = FLAGS_editor->Get();
   config.jump_to_room = FLAGS_room->Get();
   config.jump_to_map = FLAGS_map->Get();
-  config.enable_api = FLAGS_enable_api->Get();
   config.api_port = FLAGS_api_port->Get();
-  
+
   config.welcome_mode =
       yaze::StartupVisibilityFromString(FLAGS_startup_welcome->Get());
   config.dashboard_mode =
@@ -239,7 +253,9 @@ int main(int argc, char** argv) {
   config.asset_load_mode =
       yaze::AssetLoadModeFromString(FLAGS_asset_mode->Get());
   if (config.asset_load_mode == yaze::AssetLoadMode::kAuto) {
-    config.asset_load_mode = yaze::AssetLoadMode::kFull;
+    config.asset_load_mode = (config.headless || server_mode)
+                                 ? yaze::AssetLoadMode::kLazy
+                                 : yaze::AssetLoadMode::kFull;
   }
 
   if (!FLAGS_open_panels->Get().empty()) {
@@ -247,23 +263,27 @@ int main(int argc, char** argv) {
   }
 
 #ifdef YAZE_WITH_GRPC
-  config.enable_test_harness = FLAGS_enable_test_harness->Get();
+  config.enable_test_harness = FLAGS_enable_test_harness->Get() || server_mode;
   config.test_harness_port = FLAGS_test_harness_port->Get();
 #endif
 
 #ifdef __APPLE__
-  return yaze_run_cocoa_app_delegate(config);
-#elif defined(_WIN32)
+  if (!config.headless) {
+    return yaze_run_cocoa_app_delegate(config);
+  }
+#endif
+
+#if defined(_WIN32) && !defined(__EMSCRIPTEN__)
   SDL_SetMainReady();
 #endif
 
 #ifdef __EMSCRIPTEN__
   yaze::app::wasm::InitializeWasmPlatform();
-  
+
   // Store config for deferred initialization
   static yaze::AppConfig s_wasm_config = config;
   static bool s_wasm_initialized = false;
-  
+
   // Main loop that handles deferred initialization for filesystem readiness
   auto WasmMainLoop = []() {
     // Wait for filesystem to be ready before initializing application
@@ -277,17 +297,17 @@ int main(int argc, char** argv) {
         return;
       }
     }
-    
+
     // Normal tick once initialized
     TickFrame();
   };
-  
+
   // Use 0 for frame rate to enable requestAnimationFrame (better performance)
   // The third parameter (1) simulates infinite loop
   emscripten_set_main_loop(WasmMainLoop, 0, 1);
 #else
   // Desktop Main Loop (Linux/Windows)
-  
+
   // API Server
   std::unique_ptr<yaze::cli::api::HttpServer> api_server;
   if (config.enable_api) {
@@ -301,11 +321,23 @@ int main(int argc, char** argv) {
   }
 
   yaze::Application::Instance().Initialize(config);
-  
-  while (yaze::Application::Instance().GetController()->IsActive()) {
+
+  if (config.headless) {
+    LOG_INFO("Main", "Running in HEADLESS mode (no GUI window)");
+    // Optimized headless loop
+    while (yaze::Application::Instance().GetController()->IsActive()) {
+      yaze::Application::Instance().Tick();
+      // Sleep to reduce CPU usage in headless mode
+      // 60Hz = ~16ms, but we can sleep longer if just serving API/gRPC
+      std::this_thread::sleep_for(std::chrono::milliseconds(16));
+    }
+  } else {
+    // Normal GUI loop
+    while (yaze::Application::Instance().GetController()->IsActive()) {
       TickFrame();
+    }
   }
-  
+
   yaze::Application::Instance().Shutdown();
 
   if (api_server) {

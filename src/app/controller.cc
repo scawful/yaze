@@ -30,6 +30,13 @@ absl::Status Controller::OnEntry(std::string filename) {
   // Create window backend using factory (auto-selects SDL2 or SDL3)
   auto backend_type = platform::WindowBackendFactory::GetDefaultType();
   auto renderer_type = gfx::RendererFactory::GetDefaultBackendType();
+
+  if (Application::Instance().GetConfig().headless) {
+    LOG_INFO("Controller", "Using Null Window Backend (Headless/Server Mode)");
+    backend_type = platform::WindowBackendType::Null;
+    renderer_type = gfx::RendererBackendType::Null;
+  }
+
 #if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
   backend_type = platform::WindowBackendType::IOS;
   renderer_type = gfx::RendererBackendType::Metal;
@@ -204,13 +211,20 @@ absl::Status Controller::OnLoad() {
 void Controller::DoRender() const {
   if (!window_backend_ || !renderer_) return;
 
+  // Render ImGui draw data and handle viewports via backend
+  // This MUST be called even in headless mode to end the ImGui frame
+  window_backend_->RenderImGui(renderer_.get());
+
+  // Skip actual rendering/present in headless/null backend
+  if (Application::Instance().GetConfig().headless) {
+    ProcessScreenshotRequests();
+    return;
+  }
+
   // Process pending texture commands (max 8 per frame for consistent performance)
   gfx::Arena::Get().ProcessTextureQueue(renderer_.get());
 
   renderer_->Clear();
-  
-  // Render ImGui draw data and handle viewports via backend
-  window_backend_->RenderImGui(renderer_.get());
 
   renderer_->Present();
 
