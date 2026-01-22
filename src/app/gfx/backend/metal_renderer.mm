@@ -19,6 +19,35 @@
 namespace yaze {
 namespace gfx {
 
+namespace {
+
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+MTLPixelFormat GetMetalPixelFormatForSDL(uint32_t format) {
+  switch (format) {
+    case SDL_PIXELFORMAT_ARGB8888:
+    case SDL_PIXELFORMAT_BGRA8888:
+      return MTLPixelFormatBGRA8Unorm;
+    case SDL_PIXELFORMAT_RGBA8888:
+    case SDL_PIXELFORMAT_ABGR8888:
+      return MTLPixelFormatRGBA8Unorm;
+    default:
+      return MTLPixelFormatRGBA8Unorm;
+  }
+}
+
+int BytesPerPixel(MTLPixelFormat format) {
+  switch (format) {
+    case MTLPixelFormatBGRA8Unorm:
+    case MTLPixelFormatRGBA8Unorm:
+      return 4;
+    default:
+      return 4;
+  }
+}
+#endif
+
+}  // namespace
+
 MetalRenderer::~MetalRenderer() {
   Shutdown();
 }
@@ -74,8 +103,13 @@ TextureHandle MetalRenderer::CreateTexture(int width, int height) {
     return nullptr;
   }
 
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+  MTLPixelFormat default_format = MTLPixelFormatRGBA8Unorm;
+#else
+  MTLPixelFormat default_format = MTLPixelFormatBGRA8Unorm;
+#endif
   MTLTextureDescriptor* descriptor =
-      [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatBGRA8Unorm
+      [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:default_format
                                                          width:width
                                                         height:height
                                                      mipmapped:NO];
@@ -94,9 +128,38 @@ TextureHandle MetalRenderer::CreateTexture(int width, int height) {
 TextureHandle MetalRenderer::CreateTextureWithFormat(int width, int height,
                                                      uint32_t format,
                                                      int access) {
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+  if (!metal_view_) {
+    return nullptr;
+  }
+  (void)access;
+
+  auto* view = static_cast<MTKView*>(metal_view_);
+  id<MTLDevice> device = view.device;
+  if (!device) {
+    device = MTLCreateSystemDefaultDevice();
+    view.device = device;
+  }
+  if (!device) {
+    return nullptr;
+  }
+
+  MTLPixelFormat pixel_format = GetMetalPixelFormatForSDL(format);
+  MTLTextureDescriptor* descriptor =
+      [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:pixel_format
+                                                         width:width
+                                                        height:height
+                                                     mipmapped:NO];
+  descriptor.usage = MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget;
+  descriptor.storageMode = MTLStorageModeShared;
+
+  id<MTLTexture> texture = [device newTextureWithDescriptor:descriptor];
+  return texture ? (__bridge_retained void*)texture : nullptr;
+#else
   (void)format;
   (void)access;
   return CreateTexture(width, height);
+#endif
 }
 
 void MetalRenderer::UpdateTexture(TextureHandle texture, const Bitmap& bitmap) {
@@ -110,14 +173,20 @@ void MetalRenderer::UpdateTexture(TextureHandle texture, const Bitmap& bitmap) {
     return;
   }
 
+  id<MTLTexture> metal_texture = (__bridge id<MTLTexture>)texture;
+  const MTLPixelFormat pixel_format = metal_texture.pixelFormat;
+  uint32_t target_format = SDL_PIXELFORMAT_RGBA8888;
+  if (pixel_format == MTLPixelFormatBGRA8Unorm) {
+    target_format = SDL_PIXELFORMAT_BGRA8888;
+  }
+
   auto converted_surface =
       std::unique_ptr<SDL_Surface, util::SDL_Surface_Deleter>(
-          platform::ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_BGRA8888));
+          platform::ConvertSurfaceFormat(surface, target_format));
   if (!converted_surface || !converted_surface->pixels) {
     return;
   }
 
-  id<MTLTexture> metal_texture = (__bridge id<MTLTexture>)texture;
   MTLRegion region = {
       {0, 0, 0},
       {static_cast<NSUInteger>(converted_surface->w),
@@ -140,6 +209,7 @@ void MetalRenderer::DestroyTexture(TextureHandle texture) {
   if (render_target_ == texture) {
     render_target_ = nullptr;
   }
+  staging_buffers_.erase(texture);
 #if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
   CFRelease(texture);
 #else
@@ -149,15 +219,74 @@ void MetalRenderer::DestroyTexture(TextureHandle texture) {
 
 bool MetalRenderer::LockTexture(TextureHandle texture, SDL_Rect* rect,
                                 void** pixels, int* pitch) {
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+  if (!texture || !pixels || !pitch) {
+    return false;
+  }
+
+  id<MTLTexture> metal_texture = (__bridge id<MTLTexture>)texture;
+  const int width = static_cast<int>(metal_texture.width);
+  const int height = static_cast<int>(metal_texture.height);
+  const int bytes_per_pixel = BytesPerPixel(metal_texture.pixelFormat);
+  const int row_pitch = width * bytes_per_pixel;
+  if (row_pitch <= 0 || height <= 0) {
+    return false;
+  }
+
+  auto& staging = staging_buffers_[texture];
+  staging.width = width;
+  staging.height = height;
+  staging.pitch = row_pitch;
+  staging.data.resize(static_cast<size_t>(row_pitch) *
+                      static_cast<size_t>(height));
+
+  if (rect) {
+    rect->x = 0;
+    rect->y = 0;
+    rect->w = width;
+    rect->h = height;
+  }
+
+  *pixels = staging.data.data();
+  *pitch = row_pitch;
+  return true;
+#else
   (void)texture;
   (void)rect;
   (void)pixels;
   (void)pitch;
   return false;
+#endif
 }
 
 void MetalRenderer::UnlockTexture(TextureHandle texture) {
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+  if (!texture) {
+    return;
+  }
+  auto it = staging_buffers_.find(texture);
+  if (it == staging_buffers_.end()) {
+    return;
+  }
+
+  id<MTLTexture> metal_texture = (__bridge id<MTLTexture>)texture;
+  auto& staging = it->second;
+  if (staging.data.empty()) {
+    return;
+  }
+
+  MTLRegion region = {
+      {0, 0, 0},
+      {static_cast<NSUInteger>(staging.width),
+       static_cast<NSUInteger>(staging.height),
+       1}};
+  [metal_texture replaceRegion:region
+                   mipmapLevel:0
+                     withBytes:staging.data.data()
+                   bytesPerRow:staging.pitch];
+#else
   (void)texture;
+#endif
 }
 
 void MetalRenderer::Clear() {
