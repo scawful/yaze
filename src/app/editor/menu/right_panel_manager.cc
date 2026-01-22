@@ -1,5 +1,6 @@
 #include "app/editor/menu/right_panel_manager.h"
 
+#include <algorithm>
 #include <chrono>
 #include <filesystem>
 
@@ -16,6 +17,9 @@
 #include "app/gui/core/platform_keys.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/theme_manager.h"
+#if defined(__APPLE__) && TARGET_OS_IOS == 1
+#include "app/platform/ios/ios_platform_state.h"
+#endif
 #include "imgui/imgui.h"
 #include "util/platform_paths.h"
 
@@ -196,8 +200,13 @@ void RightPanelManager::Draw() {
 
   const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
   const ImGuiViewport* viewport = ImGui::GetMainViewport();
-  const float viewport_height = viewport->WorkSize.y;
   const float viewport_width = viewport->WorkSize.x;
+  float top_inset = 0.0f;
+#if defined(__APPLE__) && TARGET_OS_IOS == 1
+  top_inset = ::yaze::platform::ios::GetOverlayTopInset();
+#endif
+  const float viewport_height =
+      std::max(0.0f, viewport->WorkSize.y - top_inset);
   const float panel_width = GetPanelWidth();
 
   // Use SurfaceContainer for slightly elevated panel background
@@ -210,8 +219,9 @@ void RightPanelManager::Draw() {
       ImGuiWindowFlags_NoNavFocus;
 
   // Position panel on right edge, full height
-  ImGui::SetNextWindowPos(ImVec2(
-      viewport->WorkPos.x + viewport_width - panel_width, viewport->WorkPos.y));
+  ImGui::SetNextWindowPos(
+      ImVec2(viewport->WorkPos.x + viewport_width - panel_width,
+             viewport->WorkPos.y + top_inset));
   ImGui::SetNextWindowSize(ImVec2(panel_width, viewport_height));
 
   ImGui::PushStyleColor(ImGuiCol_WindowBg, panel_bg);

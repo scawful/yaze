@@ -192,11 +192,15 @@ bool RomFileManager::IsValidRomFile(const std::string& filename) const {
     return false;
   }
 
-  if (!std::filesystem::exists(filename)) {
+  std::error_code ec;
+  if (!std::filesystem::exists(filename, ec) || ec) {
     return false;
   }
 
-  auto file_size = std::filesystem::file_size(filename);
+  auto file_size = std::filesystem::file_size(filename, ec);
+  if (ec) {
+    return false;
+  }
   // Zelda 3 ROMs are 1MB (0x100000 = 1,048,576 bytes), possibly with 512-byte
   // SMC header. Allow ROMs from 512KB to 8MB to be safe.
   if (file_size < 512 * 1024 || file_size > 8 * 1024 * 1024) {

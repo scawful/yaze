@@ -7,6 +7,7 @@ namespace ios {
 namespace {
 void* g_metal_view = nullptr;
 SafeAreaInsets g_safe_area_insets = {};
+float g_overlay_top_inset = 0.0f;
 }  // namespace
 
 void SetMetalView(void* view) {
@@ -23,6 +24,14 @@ void SetSafeAreaInsets(float left, float right, float top, float bottom) {
 
 SafeAreaInsets GetSafeAreaInsets() {
   return g_safe_area_insets;
+}
+
+void SetOverlayTopInset(float top) {
+  g_overlay_top_inset = top;
+}
+
+float GetOverlayTopInset() {
+  return g_overlay_top_inset;
 }
 
 }  // namespace ios

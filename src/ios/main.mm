@@ -156,6 +156,13 @@ yaze::ios::IOSHost g_ios_host;
   _swipeRecognizer.cancelsTouchesInView = NO;
   _swipeRecognizer.delegate = self;
   [self.view addGestureRecognizer:_swipeRecognizer];
+
+  if (@available(iOS 9.0, *)) {
+    NSArray<NSNumber *> *directTouches = @[ @(UITouchTypeDirect) ];
+    _pinchRecognizer.allowedTouchTypes = directTouches;
+    _longPressRecognizer.allowedTouchTypes = directTouches;
+    _swipeRecognizer.allowedTouchTypes = directTouches;
+  }
   
   return self;
 }
@@ -174,6 +181,9 @@ yaze::ios::IOSHost g_ios_host;
   self.view.multipleTouchEnabled = YES;
 
   self.mtkView.device = self.device;
+  self.mtkView.colorPixelFormat = MTLPixelFormatBGRA8Unorm;
+  self.mtkView.clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 1.0);
+  self.mtkView.framebufferOnly = NO;
   self.mtkView.delegate = self;
 
   if (!host_initialized_) {
@@ -266,13 +276,34 @@ yaze::ios::IOSHost g_ios_host;
 // interaction actually works surprisingly well.
 - (void)UpdateIOWithTouchEvent:(UIEvent *)event {
   ImGuiIO &io = ImGui::GetIO();
-  io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
 
   UITouch *active_touch = nil;
   if (primary_touch_ && [event.allTouches containsObject:primary_touch_]) {
     if (primary_touch_.phase != UITouchPhaseEnded &&
         primary_touch_.phase != UITouchPhaseCancelled) {
       active_touch = primary_touch_;
+    }
+  }
+
+  if (!active_touch) {
+    for (UITouch *touch in event.allTouches) {
+      if (touch.type == UITouchTypeDirect &&
+          touch.phase != UITouchPhaseEnded &&
+          touch.phase != UITouchPhaseCancelled) {
+        active_touch = touch;
+        break;
+      }
+    }
+  }
+
+  if (!active_touch) {
+    for (UITouch *touch in event.allTouches) {
+      if (touch.type == UITouchTypeStylus &&
+          touch.phase != UITouchPhaseEnded &&
+          touch.phase != UITouchPhaseCancelled) {
+        active_touch = touch;
+        break;
+      }
     }
   }
 
@@ -288,11 +319,19 @@ yaze::ios::IOSHost g_ios_host;
 
   if (active_touch) {
     primary_touch_ = active_touch;
+    ImGuiMouseSource source = ImGuiMouseSource_TouchScreen;
+    if (active_touch.type == UITouchTypeStylus) {
+      source = ImGuiMouseSource_Pen;
+    }
+    io.AddMouseSourceEvent(source);
     CGPoint touchLocation = [active_touch locationInView:self.view];
     io.AddMousePosEvent(touchLocation.x, touchLocation.y);
-    io.AddMouseButtonEvent(0, true);
+    bool is_down = active_touch.phase != UITouchPhaseEnded &&
+                   active_touch.phase != UITouchPhaseCancelled;
+    io.AddMouseButtonEvent(0, is_down);
   } else {
     primary_touch_ = nil;
+    io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
     io.AddMouseButtonEvent(0, false);
   }
 }
@@ -312,7 +351,7 @@ yaze::ios::IOSHost g_ios_host;
 
 - (void)HoverGesture:(UIHoverGestureRecognizer *)gesture {
   ImGuiIO &io = ImGui::GetIO();
-  io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
+  io.AddMouseSourceEvent(ImGuiMouseSource_Mouse);
   // Cast to UIGestureRecognizer to UIGestureRecognizer to get locationInView
   UIGestureRecognizer *gestureRecognizer = (UIGestureRecognizer *)gesture;
   if (gesture.zOffset < 0.50) {

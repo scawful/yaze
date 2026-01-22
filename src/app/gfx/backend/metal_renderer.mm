@@ -75,7 +75,7 @@ TextureHandle MetalRenderer::CreateTexture(int width, int height) {
   }
 
   MTLTextureDescriptor* descriptor =
-      [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
+      [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatBGRA8Unorm
                                                          width:width
                                                         height:height
                                                      mipmapped:NO];
@@ -112,7 +112,7 @@ void MetalRenderer::UpdateTexture(TextureHandle texture, const Bitmap& bitmap) {
 
   auto converted_surface =
       std::unique_ptr<SDL_Surface, util::SDL_Surface_Deleter>(
-          platform::ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA8888));
+          platform::ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_BGRA8888));
   if (!converted_surface || !converted_surface->pixels) {
     return;
   }

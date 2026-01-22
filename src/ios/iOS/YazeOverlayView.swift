@@ -33,16 +33,44 @@ struct YazeOverlayView: View {
   @State private var showProjectPicker = false
   @State private var showExportPicker = false
   @State private var exportURL: URL?
+  @State private var overlayCollapsed = false
+  @State private var overlayHeight: CGFloat = 0
 
   var body: some View {
-    ZStack(alignment: .top) {
-      Color.clear.allowsHitTesting(false)
-      VStack(spacing: 12) {
-        topBar
-        Spacer()
+    GeometryReader { proxy in
+      ZStack(alignment: .top) {
+        Color.clear.allowsHitTesting(false)
+        if overlayCollapsed {
+          collapsedHandle
+            .padding(.top, max(8, proxy.safeAreaInsets.top + 6))
+            .padding(.horizontal, 16)
+        } else {
+          VStack(spacing: 12) {
+            topBar
+              .background(
+                GeometryReader { barProxy in
+                  Color.clear.preference(
+                    key: OverlayTopInsetKey.self,
+                    value: barProxy.frame(in: .global).maxY
+                  )
+                }
+              )
+            Spacer()
+          }
+          .padding(.top, max(8, proxy.safeAreaInsets.top + 6))
+          .padding(.horizontal, 16)
+        }
       }
-      .padding(.top, 18)
-      .padding(.horizontal, 16)
+      .ignoresSafeArea(edges: .top)
+    }
+    .onPreferenceChange(OverlayTopInsetKey.self) { value in
+      overlayHeight = value
+      let inset = overlayCollapsed ? 0 : value
+      YazeIOSBridge.setOverlayTopInset(Double(inset))
+    }
+    .onChange(of: overlayCollapsed) { collapsed in
+      let inset = collapsed ? 0 : overlayHeight
+      YazeIOSBridge.setOverlayTopInset(Double(inset))
     }
     .sheet(isPresented: $showSettings) {
       SettingsView(settingsStore: settingsStore)
@@ -63,8 +91,12 @@ struct YazeOverlayView: View {
     .sheet(isPresented: $showRomPicker) {
       DocumentPicker(contentTypes: [UTType(filenameExtension: "sfc") ?? .data,
                                    UTType(filenameExtension: "smc") ?? .data]) { url in
-        settingsStore.updateCurrentRomPath(url.path)
-        YazeIOSBridge.loadRom(atPath: url.path)
+        if let imported = YazeFileImportService.importRom(from: url) {
+          settingsStore.updateCurrentRomPath(imported.path)
+          YazeIOSBridge.loadRom(atPath: imported.path)
+        } else {
+          settingsStore.statusMessage = "Failed to import ROM"
+        }
       }
     }
     .sheet(isPresented: $showProjectPicker) {
@@ -83,33 +115,100 @@ struct YazeOverlayView: View {
   }
 
   private var topBar: some View {
-    HStack(spacing: 12) {
-      VStack(alignment: .leading, spacing: 2) {
-        Text("Yaze iOS")
-          .font(.headline)
-        Text(settingsStore.settings.general.lastRomPath.isEmpty
-             ? "No ROM loaded"
-             : URL(fileURLWithPath: settingsStore.settings.general.lastRomPath).lastPathComponent)
-          .font(.caption)
-          .foregroundStyle(.secondary)
+    let romLabel = settingsStore.settings.general.lastRomPath.isEmpty
+      ? "No ROM loaded"
+      : URL(fileURLWithPath: settingsStore.settings.general.lastRomPath).lastPathComponent
+    let projectLabel = settingsStore.settings.general.lastProjectPath.isEmpty
+      ? "No project"
+      : URL(fileURLWithPath: settingsStore.settings.general.lastProjectPath).lastPathComponent
+    let statusLabel = settingsStore.statusMessage
+
+    return VStack(alignment: .leading, spacing: 6) {
+      HStack(spacing: 12) {
+        VStack(alignment: .leading, spacing: 2) {
+          Text("Yaze iOS")
+            .font(.headline)
+          Text(romLabel)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+        Spacer()
+        Button("ROM") { showRomPicker = true }
+          .buttonStyle(.bordered)
+        Button("AI") { showAiPanel = true }
+          .buttonStyle(.bordered)
+        Button("Build") { showBuildPanel = true }
+          .buttonStyle(.bordered)
+        Button("Files") { showFilesystemPanel = true }
+          .buttonStyle(.bordered)
+        Button("Settings") { showSettings = true }
+          .buttonStyle(.borderedProminent)
+        Button {
+          overlayCollapsed = true
+        } label: {
+          Image(systemName: "chevron.up")
+        }
+        .buttonStyle(.bordered)
       }
-      Spacer()
-      Button("ROM") { showRomPicker = true }
-        .buttonStyle(.bordered)
-      Button("AI") { showAiPanel = true }
-        .buttonStyle(.bordered)
-      Button("Build") { showBuildPanel = true }
-        .buttonStyle(.bordered)
-      Button("Files") { showFilesystemPanel = true }
-        .buttonStyle(.bordered)
-      Button("Settings") { showSettings = true }
-        .buttonStyle(.borderedProminent)
+
+      ScrollView(.horizontal, showsIndicators: false) {
+        HStack(spacing: 10) {
+          InfoPill(label: "ROM", value: romLabel)
+          InfoPill(label: "Project", value: projectLabel)
+          if !statusLabel.isEmpty {
+            InfoPill(label: "Status", value: statusLabel)
+          }
+        }
+      }
     }
-    .padding(.vertical, 8)
+    .padding(.vertical, 10)
     .padding(.horizontal, 12)
     .background(.ultraThinMaterial)
     .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.2)))
+  }
+
+  private var collapsedHandle: some View {
+    HStack {
+      Spacer()
+      Button {
+        overlayCollapsed = false
+      } label: {
+        Image(systemName: "line.3.horizontal")
+          .font(.headline)
+          .padding(.vertical, 6)
+          .padding(.horizontal, 10)
+      }
+      .buttonStyle(.borderedProminent)
+      .shadow(radius: 6)
+    }
+  }
+}
+
+private struct InfoPill: View {
+  let label: String
+  let value: String
+
+  var body: some View {
+    HStack(spacing: 6) {
+      Text(label.uppercased())
+        .font(.caption2)
+        .foregroundStyle(.secondary)
+      Text(value)
+        .font(.caption)
+        .lineLimit(1)
+    }
+    .padding(.vertical, 4)
+    .padding(.horizontal, 8)
+    .background(Color.black.opacity(0.2))
+    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+  }
+}
+
+private struct OverlayTopInsetKey: PreferenceKey {
+  static var defaultValue: CGFloat = 0
+  static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+    value = max(value, nextValue())
   }
 }
 
