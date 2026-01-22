@@ -175,9 +175,11 @@ void MetalRenderer::UpdateTexture(TextureHandle texture, const Bitmap& bitmap) {
 
   id<MTLTexture> metal_texture = (__bridge id<MTLTexture>)texture;
   const MTLPixelFormat pixel_format = metal_texture.pixelFormat;
-  uint32_t target_format = SDL_PIXELFORMAT_RGBA8888;
+  // SDL_PIXELFORMAT_*8888 names are bit-order, not byte-order on little-endian.
+  // Use *_32 aliases so byte order matches Metal's expected RGBA/BGRA layout.
+  uint32_t target_format = SDL_PIXELFORMAT_RGBA32;
   if (pixel_format == MTLPixelFormatBGRA8Unorm) {
-    target_format = SDL_PIXELFORMAT_BGRA8888;
+    target_format = SDL_PIXELFORMAT_BGRA32;
   }
 
   auto converted_surface =
