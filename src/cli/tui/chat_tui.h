@@ -4,6 +4,7 @@
 // FTXUI is not available on WASM builds
 #ifndef __EMSCRIPTEN__
 
+#if defined(YAZE_ENABLE_AGENT_CLI)
 #include <atomic>
 #include <chrono>
 #include <future>
@@ -17,6 +18,7 @@
 #include "cli/util/autocomplete.h"
 #include "ftxui/component/component.hpp"
 #include "ftxui/component/screen_interactive.hpp"
+#endif
 
 namespace yaze {
 
@@ -25,6 +27,7 @@ class Rom;
 namespace cli {
 namespace tui {
 
+#if defined(YAZE_ENABLE_AGENT_CLI)
 class ChatTUI {
  public:
   explicit ChatTUI(Rom* rom_context = nullptr);
@@ -77,6 +80,18 @@ class ChatTUI {
   bool shortcut_palette_visible_ = false;
   bool todo_manager_ready_ = false;
 };
+#else
+class ChatTUI {
+ public:
+  explicit ChatTUI(Rom* rom_context = nullptr) : rom_context_(rom_context) {}
+  ~ChatTUI() = default;
+  void Run() {}
+  void SetRomContext(Rom* rom_context) { rom_context_ = rom_context; }
+
+ private:
+  Rom* rom_context_ = nullptr;
+};
+#endif
 
 }  // namespace tui
 }  // namespace cli

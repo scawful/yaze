@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "rom/rom.h"
-#include "test/test_utils.h"
+#include "test_utils.h"
 #include "testing.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_map.h"

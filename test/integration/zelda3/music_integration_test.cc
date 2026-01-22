@@ -8,7 +8,7 @@
 
 #include "app/emu/emulator.h"
 #include "rom/rom.h"
-#include "test/test_utils.h"
+#include "test_utils.h"
 #include "zelda3/music/music_bank.h"
 #include "zelda3/music/song_data.h"
 #include "zelda3/music/spc_parser.h"

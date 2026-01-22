@@ -13,7 +13,7 @@
 #include "app/gfx/resource/arena.h"
 #include "app/platform/window.h"
 #include "rom/rom.h"
-#include "test/test_utils.h"
+#include "test_utils.h"
 #include "zelda3/overworld/overworld.h"
 
 namespace yaze {

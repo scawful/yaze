@@ -6,7 +6,7 @@
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/game_data.h"
 #include "rom/rom.h"
-#include "test/test_utils.h"
+#include "test_utils.h"
 
 namespace yaze {
 namespace zelda3 {

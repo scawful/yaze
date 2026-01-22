@@ -167,7 +167,7 @@ Potential tests to add:
 
 - **ImGui Test Engine**: `ext/imgui_test_engine/`
 - **Test Registration**: `test/yaze_test.cc`
-- **Test Utilities**: `test/test_utils.h`
+- **Test Utilities**: `test_utils.h`
 - **Working Examples**: See existing tests in this directory
 
 ## Status

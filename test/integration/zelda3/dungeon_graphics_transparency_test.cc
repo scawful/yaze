@@ -8,7 +8,7 @@
 #include <string>
 
 #include "rom/rom.h"
-#include "test/test_utils.h"
+#include "test_utils.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/game_data.h"

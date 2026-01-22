@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "rom/rom.h"
-#include "test/test_utils.h"
+#include "test_utils.h"
 #include "testing.h"
 #include "util/macro.h"
 
