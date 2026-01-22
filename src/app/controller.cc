@@ -23,6 +23,9 @@
 #include "app/platform/timing.h"
 #include "app/service/screenshot_utils.h"
 #include "imgui/imgui.h"
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+#include "app/platform/ios/ios_platform_state.h"
+#endif
 
 namespace yaze {
 
@@ -132,7 +135,6 @@ absl::Status Controller::OnLoad() {
     return absl::OkStatus();
   }
 
-#if TARGET_OS_IPHONE != 1
   // Start new ImGui frame via backend (handles SDL2/SDL3 automatically)
   window_backend_->NewImGuiFrame();
   ImGui::NewFrame();
@@ -144,13 +146,19 @@ absl::Status Controller::OnLoad() {
   const float right_offset = editor_manager_.GetRightLayoutOffset();
   const float bottom_offset = editor_manager_.GetBottomLayoutOffset();
 
+  float top_offset = 0.0f;
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+  top_offset = ::yaze::platform::ios::GetOverlayTopInset();
+#endif
+
   // Adjust dockspace position and size for sidebars and status bar
   ImVec2 dockspace_pos = viewport->WorkPos;
   ImVec2 dockspace_size = viewport->WorkSize;
 
   dockspace_pos.x += left_offset;
+  dockspace_pos.y += top_offset;
   dockspace_size.x -= (left_offset + right_offset);
-  dockspace_size.y -= bottom_offset;  // Reserve space for status bar at bottom
+  dockspace_size.y -= (bottom_offset + top_offset);
 
   ImGui::SetNextWindowPos(dockspace_pos);
   ImGui::SetNextWindowSize(dockspace_size);
@@ -161,6 +169,9 @@ absl::Status Controller::OnLoad() {
   if (editor_manager_.ui_coordinator()) {
     show_menu_bar = editor_manager_.ui_coordinator()->IsMenuBarVisible();
   }
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+  show_menu_bar = false;
+#endif
 
   ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
   if (show_menu_bar) {
@@ -194,18 +205,10 @@ absl::Status Controller::OnLoad() {
   }
   ImGui::End();
 
+#if !defined(__APPLE__) || (TARGET_OS_IPHONE != 1 && TARGET_IPHONE_SIMULATOR != 1)
   // Draw menu bar restore button when menu is hidden (WASM)
   if (!show_menu_bar && editor_manager_.ui_coordinator()) {
     editor_manager_.ui_coordinator()->DrawMenuBarRestoreButton();
-  }
-#else
-  if (window_backend_) {
-    window_backend_->NewImGuiFrame();
-    ImGui::NewFrame();
-    if (auto* bus = editor::ContentRegistry::Context::event_bus()) {
-      bus->Publish(
-          editor::FrameGuiBeginEvent::Create(ImGui::GetIO().DeltaTime));
-    }
   }
 #endif
   gui::WidgetIdRegistry::Instance().BeginFrame();
