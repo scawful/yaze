@@ -17,6 +17,7 @@ set(
   # yaze_agent -> yaze_app_core_lib -> yaze_editor -> yaze_agent
   app/platform/window.cc
   app/platform/window_backend_factory.cc
+  app/platform/null_window_backend.cc
 )
 
 if(YAZE_PLATFORM_IOS)

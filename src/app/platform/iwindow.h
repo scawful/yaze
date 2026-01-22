@@ -273,6 +273,7 @@ enum class WindowBackendType {
   SDL2,
   SDL3,
   IOS,
+  Null,  // Headless/Server mode
   Auto  // Automatically select based on availability
 };
 

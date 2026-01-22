@@ -42,6 +42,7 @@ struct AppConfig {
   int jump_to_map = -1;   // Overworld map ID (-1 to ignore)
   
   // Services
+  bool headless = false;   // Run without GUI (uses NullWindowBackend)
   bool enable_api = false;
   int api_port = 8080;
   bool enable_test_harness = false;
