@@ -202,9 +202,9 @@ struct YazeSettings: Codable {
   }
 
   struct Mobile: Codable {
-    var compactToolbar: Bool = false
-    var showQuickActions: Bool = true
-    var showStatusPills: Bool = true
+    var compactToolbar: Bool = true
+    var showQuickActions: Bool = false
+    var showStatusPills: Bool = false
     var largeTouchTargets: Bool = true
     var touchScale: Double = 1.0
 
