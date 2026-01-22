@@ -667,7 +667,9 @@ absl::StatusOr<Screenshot> VisualDiffEngine::DecodePng(
   }
 
   // Check PNG signature
-  if (png_sig_cmp(png_data.data(), 0, 8) != 0) {
+  if (png_sig_cmp(reinterpret_cast<png_bytep>(
+                      const_cast<uint8_t*>(png_data.data())),
+                  0, 8) != 0) {
     return absl::InvalidArgumentError("Invalid PNG signature");
   }
 
