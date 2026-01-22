@@ -2,6 +2,9 @@
 
 #include "app/gfx/backend/irenderer.h"
 
+#include <unordered_map>
+#include <vector>
+
 namespace yaze {
 namespace gfx {
 
@@ -33,9 +36,17 @@ class MetalRenderer final : public IRenderer {
   void SetMetalView(void* view);
 
  private:
+  struct StagingBuffer {
+    std::vector<uint8_t> data;
+    int pitch = 0;
+    int width = 0;
+    int height = 0;
+  };
+
   void* metal_view_ = nullptr;
   void* command_queue_ = nullptr;
   TextureHandle render_target_ = nullptr;
+  std::unordered_map<TextureHandle, StagingBuffer> staging_buffers_;
 };
 
 }  // namespace gfx
