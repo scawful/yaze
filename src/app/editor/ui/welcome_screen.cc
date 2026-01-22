@@ -5,7 +5,6 @@
 #include <cmath>
 #include <filesystem>
 #include <fstream>
-#include <string_view>
 
 #include "absl/strings/str_format.h"
 #include "absl/time/clock.h"
@@ -27,40 +26,27 @@ namespace editor {
 
 namespace {
 
-// Get Zelda-inspired colors from theme or use fallback
-ImVec4 GetThemedColor(const char* color_name, const ImVec4& fallback) {
+void UpdateWelcomeAccentPalette() {
   auto& theme_mgr = gui::ThemeManager::Get();
   const auto& theme = theme_mgr.GetCurrentTheme();
 
-  if (!color_name) {
-    return fallback;
-  }
+  const ImVec4 secondary = gui::ConvertColorToImVec4(theme.secondary);
+  const ImVec4 accent = gui::ConvertColorToImVec4(theme.accent);
+  const ImVec4 warning = gui::ConvertColorToImVec4(theme.warning);
+  const ImVec4 success = gui::ConvertColorToImVec4(theme.success);
+  const ImVec4 info = gui::ConvertColorToImVec4(theme.info);
+  const ImVec4 error = gui::ConvertColorToImVec4(theme.error);
+  const ImVec4 surface = gui::GetSurfaceVec4();
 
-  const std::string_view name(color_name);
-  if (name == "triforce_gold") {
-    return gui::ConvertColorToImVec4(theme.accent);
-  }
-  if (name == "hyrule_green") {
-    return gui::ConvertColorToImVec4(theme.success);
-  }
-  if (name == "master_sword_blue") {
-    return gui::ConvertColorToImVec4(theme.info);
-  }
-  if (name == "ganon_purple") {
-    return gui::ConvertColorToImVec4(theme.secondary);
-  }
-  if (name == "heart_red") {
-    return gui::ConvertColorToImVec4(theme.error);
-  }
-  if (name == "spirit_orange") {
-    return gui::ConvertColorToImVec4(theme.warning);
-  }
-  if (name == "shadow_purple") {
-    return ImLerp(gui::ConvertColorToImVec4(theme.secondary),
-                  gui::GetSurfaceVec4(), 0.4f);
-  }
+  // Welcome accent palette: themed, but with distinct flavor per role.
+  kTriforceGold = ImLerp(accent, warning, 0.55f);
+  kHyruleGreen = success;
+  kMasterSwordBlue = info;
+  kGanonPurple = secondary;
+  kHeartRed = error;
+  kSpiritOrange = ImLerp(warning, accent, 0.35f);
+  kShadowPurple = ImLerp(secondary, surface, 0.45f);
 
-  return fallback;
 }
 
 // Zelda-inspired color palette (fallbacks)
@@ -220,13 +206,7 @@ float GetStaggeredEntryProgress(float entry_time, int section_index,
 
 bool WelcomeScreen::Show(bool* p_open) {
   // Update theme colors each frame
-  kTriforceGold = GetThemedColor("triforce_gold", kTriforceGoldFallback);
-  kHyruleGreen = GetThemedColor("hyrule_green", kHyruleGreenFallback);
-  kMasterSwordBlue =
-      GetThemedColor("master_sword_blue", kMasterSwordBlueFallback);
-  kGanonPurple = GetThemedColor("ganon_purple", kGanonPurpleFallback);
-  kHeartRed = GetThemedColor("heart_red", kHeartRedFallback);
-  kSpiritOrange = GetThemedColor("spirit_orange", kSpiritOrangeFallback);
+  UpdateWelcomeAccentPalette();
 
   // Update entry animation time
   if (!entry_animations_started_) {
@@ -434,8 +414,8 @@ bool WelcomeScreen::Show(bool* p_open) {
               particles_[i].alpha * life_ratio * triforce_alpha_multiplier_;
 
           // Draw particle as small golden circle
-          ImU32 particle_color =
-              ImGui::GetColorU32(ImVec4(1.0f, 0.843f, 0.0f, alpha));
+          ImU32 particle_color = ImGui::GetColorU32(
+              ImVec4(kTriforceGold.x, kTriforceGold.y, kTriforceGold.z, alpha));
           bg_draw_list->AddCircleFilled(particles_[i].position,
                                         particles_[i].size, particle_color, 8);
         }
@@ -467,10 +447,12 @@ bool WelcomeScreen::Show(bool* p_open) {
     const float content_width = ImGui::GetContentRegionAvail().x;
     const float content_height = ImGui::GetContentRegionAvail().y;
     const bool narrow_layout = content_width < 900.0f;
+    const float layout_scale = ImGui::GetFontSize() / 16.0f;
 
     if (narrow_layout) {
+      float min_left_height = 240.0f * layout_scale;
       float left_height =
-          std::clamp(content_height * 0.45f, 260.0f, content_height);
+          std::clamp(content_height * 0.5f, min_left_height, content_height);
       ImGui::BeginChild("LeftPanel", ImVec2(0, left_height), true,
                         ImGuiWindowFlags_NoScrollbar);
       DrawQuickActions();
@@ -506,9 +488,10 @@ bool WelcomeScreen::Show(bool* p_open) {
       DrawWhatsNew();
       ImGui::EndChild();
     } else {
-      ImGui::BeginChild("LeftPanel",
-                        ImVec2(ImGui::GetContentRegionAvail().x * 0.3f, 0),
-                        true, ImGuiWindowFlags_NoScrollbar);
+      float left_width = std::clamp(ImGui::GetContentRegionAvail().x * 0.32f,
+                                    280.0f * layout_scale, 420.0f * layout_scale);
+      ImGui::BeginChild("LeftPanel", ImVec2(left_width, 0), true,
+                        ImGuiWindowFlags_NoScrollbar);
       DrawQuickActions();
       ImGui::Spacing();
 
@@ -685,7 +668,7 @@ void WelcomeScreen::DrawHeader() {
   ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, subtitle_alpha), "%s", subtitle);
 
   const std::string version_line =
-      absl::StrFormat("v%s - AI workflows, CLI automation, and web preview",
+      absl::StrFormat("v%s - projects, templates, and editor workflows",
                       YAZE_VERSION_STRING);
   textWidth = ImGui::CalcTextSize(version_line.c_str()).x;
   ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
@@ -726,12 +709,13 @@ void WelcomeScreen::DrawQuickActions() {
   const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
   ImGui::PushStyleColor(ImGuiCol_Text, text_secondary);
   ImGui::TextWrapped(
-      "New here? Start with Open ROM or New Project. For AI workflows, "
-      "configure a provider in Settings > Agent (Ollama/Gemini/OpenAI/"
-      "Anthropic) or use z3ed --tui for scripted flows.");
+      "Open a ROM or project, or start a new project with a template. "
+      "Project Management keeps ROM versions, storage, and snapshots together.");
   ImGui::PopStyleColor();
   ImGui::Spacing();
 
+  const float scale = ImGui::GetFontSize() / 16.0f;
+  const float button_height = std::max(32.0f, 36.0f * scale);
   float button_width = ImGui::GetContentRegionAvail().x;
 
   // Animated button colors (compact height)
@@ -750,9 +734,9 @@ void WelcomeScreen::DrawQuickActions() {
     if (!enabled)
       ImGui::BeginDisabled();
 
-    bool clicked =
-        ImGui::Button(absl::StrFormat("%s %s", icon, text).c_str(),
-                      ImVec2(button_width, 38));  // Reduced from 45 to 38
+    bool clicked = ImGui::Button(
+        absl::StrFormat("%s %s", icon, text).c_str(),
+        ImVec2(button_width, button_height));
 
     if (!enabled)
       ImGui::EndDisabled();
@@ -778,6 +762,20 @@ void WelcomeScreen::DrawQuickActions() {
 
   ImGui::Spacing();
 
+  // Open Project button - Blue for project workflows
+  if (draw_action_button(ICON_MD_FOLDER_SPECIAL, "Open Project",
+                         kMasterSwordBlue,
+                         open_project_dialog_callback_ != nullptr,
+                         open_project_dialog_callback_)) {
+    // Handled by callback
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(ICON_MD_INFO
+                      " Open an existing .yaze project file");
+  }
+
+  ImGui::Spacing();
+
   // New Project button - Gold like getting a treasure
   if (draw_action_button(ICON_MD_ADD_CIRCLE, "New Project", kTriforceGold, true,
                          new_project_callback_)) {
@@ -790,15 +788,32 @@ void WelcomeScreen::DrawQuickActions() {
 
   ImGui::Spacing();
 
-  // AI Agent button - Purple like magic
-  if (draw_action_button(ICON_MD_SMART_TOY, "AI Agent", kGanonPurple, true,
-                         open_agent_callback_)) {
+  // Project tools row
+  ImGui::TextColored(kMasterSwordBlue, ICON_MD_TUNE " Project Tools");
+  ImGui::PushStyleColor(ImGuiCol_Text, text_secondary);
+  ImGui::TextWrapped(
+      "Open project management and edit project metadata when needed.");
+  ImGui::PopStyleColor();
+  ImGui::Spacing();
+
+  float tool_spacing = ImGui::GetStyle().ItemSpacing.x;
+  float tool_width =
+      (ImGui::GetContentRegionAvail().x - tool_spacing) * 0.5f;
+
+  button_width = tool_width;
+  if (draw_action_button(ICON_MD_FOLDER_SPECIAL, "Project Manager",
+                         kMasterSwordBlue,
+                         open_project_management_callback_ != nullptr,
+                         open_project_management_callback_)) {
     // Handled by callback
   }
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(ICON_MD_INFO
-                      " Ask the AI agent to guide edits in natural language "
-                      "(requires Ollama, Gemini, OpenAI, or Anthropic)");
+  ImGui::SameLine(0.0f, tool_spacing);
+  button_width = tool_width;
+  if (draw_action_button(ICON_MD_DESCRIPTION, "Project File",
+                         kShadowPurple,
+                         open_project_file_editor_callback_ != nullptr,
+                         open_project_file_editor_callback_)) {
+    // Handled by callback
   }
 
   // Clean up entry animation styles
@@ -820,6 +835,44 @@ void WelcomeScreen::DrawRecentProjects() {
   ImGui::PushStyleVar(ImGuiStyleVar_Alpha, recent_progress);
 
   ImGui::TextColored(kMasterSwordBlue, ICON_MD_HISTORY " Recent Projects");
+
+  const float header_spacing = ImGui::GetStyle().ItemSpacing.x;
+  const float manage_width = ImGui::CalcTextSize(" Manage").x +
+                             ImGui::CalcTextSize(ICON_MD_FOLDER_SPECIAL).x +
+                             ImGui::GetStyle().FramePadding.x * 2.0f;
+  const float clear_width = ImGui::CalcTextSize(" Clear").x +
+                            ImGui::CalcTextSize(ICON_MD_DELETE_SWEEP).x +
+                            ImGui::GetStyle().FramePadding.x * 2.0f;
+  const float total_width = manage_width + clear_width + header_spacing;
+
+  ImGui::SameLine();
+  float start_x = ImGui::GetCursorPosX();
+  float right_edge = start_x + ImGui::GetContentRegionAvail().x;
+  float button_start = std::max(start_x, right_edge - total_width);
+  ImGui::SetCursorPosX(button_start);
+
+  bool can_manage = open_project_management_callback_ != nullptr;
+  if (!can_manage) {
+    ImGui::BeginDisabled();
+  }
+  if (ImGui::SmallButton(
+          absl::StrFormat("%s Manage", ICON_MD_FOLDER_SPECIAL).c_str())) {
+    if (open_project_management_callback_) {
+      open_project_management_callback_();
+    }
+  }
+  if (!can_manage) {
+    ImGui::EndDisabled();
+  }
+  ImGui::SameLine(0.0f, header_spacing);
+  if (ImGui::SmallButton(
+          absl::StrFormat("%s Clear", ICON_MD_DELETE_SWEEP).c_str())) {
+    auto& manager = project::RecentFilesManager::GetInstance();
+    manager.Clear();
+    manager.Save();
+    RefreshRecentProjects();
+  }
+
   ImGui::Spacing();
 
   if (recent_projects_.empty()) {
@@ -872,6 +925,11 @@ void WelcomeScreen::DrawRecentProjects() {
       column = 0;
       ImGui::Spacing();
     }
+  }
+
+  if (pending_recent_refresh_) {
+    RefreshRecentProjects();
+    pending_recent_refresh_ = false;
   }
 
   if (column != 0) {
@@ -950,6 +1008,25 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
   hovered_card_ =
       is_hovered ? index : (hovered_card_ == index ? -1 : hovered_card_);
 
+  if (ImGui::BeginPopupContextItem(
+          absl::StrFormat("ProjectPanelMenu_%d", index).c_str())) {
+    if (ImGui::MenuItem(ICON_MD_OPEN_IN_NEW " Open")) {
+      if (open_project_callback_) {
+        open_project_callback_(project.filepath);
+      }
+    }
+    if (ImGui::MenuItem(ICON_MD_CONTENT_COPY " Copy Path")) {
+      ImGui::SetClipboardText(project.filepath.c_str());
+    }
+    if (ImGui::MenuItem(ICON_MD_DELETE_SWEEP " Remove from Recents")) {
+      auto& manager = project::RecentFilesManager::GetInstance();
+      manager.RemoveFile(project.filepath);
+      manager.Save();
+      pending_recent_refresh_ = true;
+    }
+    ImGui::EndPopup();
+  }
+
   // Subtle hover glow (no particles)
   if (is_hovered) {
     ImU32 hover_color = ImGui::GetColorU32(
@@ -1024,6 +1101,7 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
     ImGui::Separator();
     ImGui::Text("Name: %s", project.name.c_str());
     ImGui::Text("ROM: %s", project.rom_title.c_str());
+    ImGui::Text("Last opened: %s", project.last_modified.c_str());
     ImGui::Text("Path: %s", project.filepath.c_str());
     ImGui::Separator();
     ImGui::TextColored(kTriforceGold, ICON_MD_TOUCH_APP " Click to open");
@@ -1108,47 +1186,113 @@ void WelcomeScreen::DrawTemplatesSection() {
     const char* name;
     const char* description;
     const char* template_id;
+    const char** details;
+    int detail_count;
     ImVec4 color;
   };
 
+  const char* vanilla_details[] = {"No custom ASM required",
+                                   "Best for vanilla-compatible edits",
+                                   "Overworld data stays vanilla"};
+  const char* zso3_details[] = {"Expanded overworld (wide/tall areas)",
+                                "Entrances, exits, items, and properties",
+                                "Palettes, GFX groups, dungeon maps"};
+  const char* zso2_details[] = {"Custom overworld maps + parent system",
+                                "Lightweight expansion for legacy hacks",
+                                "Palette + BG color support"};
+  const char* rando_details[] = {"Avoids overworld remap + ASM features",
+                                 "Safe for rando patch pipelines",
+                                 "Minimal save surface"};
+
   Template templates[] = {
       {ICON_MD_COTTAGE, "Vanilla ROM Hack",
-       "Standard editing without custom ASM", "Vanilla ROM Hack", kHyruleGreen},
-      {ICON_MD_MAP, "ZSCustomOverworld v3", "Full overworld expansion features",
-       "ZSCustomOverworld v3 (Recommended)", kMasterSwordBlue},
-      {ICON_MD_LAYERS, "ZSCustomOverworld v2", "Basic overworld expansion",
-       "ZSCustomOverworld v2", kShadowPurple},
+       "Standard editing without custom ASM patches. Ideal for vanilla edits.",
+       "Vanilla ROM Hack", vanilla_details,
+       static_cast<int>(sizeof(vanilla_details) / sizeof(vanilla_details[0])),
+       kHyruleGreen},
+      {ICON_MD_TERRAIN, "ZSCustomOverworld v3",
+       "Full overworld expansion with modern ZSO feature coverage.",
+       "ZSCustomOverworld v3", zso3_details,
+       static_cast<int>(sizeof(zso3_details) / sizeof(zso3_details[0])),
+       kMasterSwordBlue},
+      {ICON_MD_MAP, "ZSCustomOverworld v2",
+       "Legacy overworld expansion for older ZSO projects.",
+       "ZSCustomOverworld v2", zso2_details,
+       static_cast<int>(sizeof(zso2_details) / sizeof(zso2_details[0])),
+       kShadowPurple},
       {ICON_MD_SHUFFLE, "Randomizer Compatible",
-       "Minimal custom features for rando", "Randomizer Compatible",
+       "Minimal changes that stay friendly to randomizer patches.",
+       "Randomizer Compatible", rando_details,
+       static_cast<int>(sizeof(rando_details) / sizeof(rando_details[0])),
        kSpiritOrange},
   };
 
-  for (int i = 0; i < 4; ++i) {
-    bool is_selected = (selected_template_ == i);
+  const int template_count =
+      static_cast<int>(sizeof(templates) / sizeof(templates[0]));
+  if (selected_template_ < 0 || selected_template_ >= template_count) {
+    selected_template_ = 0;
+  }
 
-    // Subtle selection highlight (no animation)
-    if (is_selected) {
-      ImGui::PushStyleColor(
-          ImGuiCol_Header,
-          ImVec4(templates[i].color.x * 0.6f, templates[i].color.y * 0.6f,
-                 templates[i].color.z * 0.6f, 0.6f));
-    }
+  const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
+  if (ImGui::BeginTable("TemplateGrid", 2,
+                        ImGuiTableFlags_SizingStretchProp)) {
+    ImGui::TableSetupColumn("TemplateList", ImGuiTableColumnFlags_WidthStretch,
+                            0.42f);
+    ImGui::TableSetupColumn("TemplateDetails",
+                            ImGuiTableColumnFlags_WidthStretch, 0.58f);
 
-    if (ImGui::Selectable(
-            absl::StrFormat("%s %s", templates[i].icon, templates[i].name)
-                .c_str(),
-            is_selected)) {
-      selected_template_ = i;
-    }
+    ImGui::TableNextColumn();
+    ImGui::BeginChild("TemplateList", ImVec2(0, 0), true);
+    for (int i = 0; i < template_count; ++i) {
+      bool is_selected = (selected_template_ == i);
 
-    if (is_selected) {
+      if (is_selected) {
+        ImGui::PushStyleColor(
+            ImGuiCol_Header,
+            ImVec4(templates[i].color.x * 0.6f, templates[i].color.y * 0.6f,
+                   templates[i].color.z * 0.6f, 0.6f));
+      }
+
+      ImGui::PushID(i);
+      ImGui::PushStyleColor(ImGuiCol_Text, templates[i].color);
+      if (ImGui::Selectable(
+              absl::StrFormat("%s %s", templates[i].icon, templates[i].name)
+                  .c_str(),
+              is_selected)) {
+        selected_template_ = i;
+      }
       ImGui::PopStyleColor();
-    }
+      ImGui::PopID();
 
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("%s %s\n%s", ICON_MD_INFO, templates[i].name,
-                        templates[i].description);
+      if (is_selected) {
+        ImGui::PopStyleColor();
+      }
+
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("%s %s\n%s", ICON_MD_INFO, templates[i].name,
+                          templates[i].description);
+      }
     }
+    ImGui::EndChild();
+
+    ImGui::TableNextColumn();
+    ImGui::BeginChild("TemplateDetails", ImVec2(0, 0), true);
+    const Template& active = templates[selected_template_];
+    ImGui::TextColored(active.color, "%s %s", active.icon, active.name);
+    ImGui::Spacing();
+    ImGui::PushStyleColor(ImGuiCol_Text, text_secondary);
+    ImGui::TextWrapped("%s", active.description);
+    ImGui::PopStyleColor();
+    ImGui::Spacing();
+    ImGui::TextColored(kTriforceGold, ICON_MD_CHECK_CIRCLE " Includes");
+    for (int i = 0; i < active.detail_count; ++i) {
+      ImGui::Bullet();
+      ImGui::SameLine();
+      ImGui::TextColored(text_secondary, "%s", active.details[i]);
+    }
+    ImGui::EndChild();
+
+    ImGui::EndTable();
   }
 
   ImGui::Spacing();
@@ -1202,12 +1346,12 @@ void WelcomeScreen::DrawTipsSection() {
   // animation)
   const char* tips[] = {
       "Open a ROM first, then save a copy before editing",
+      "Projects track ROM versions, templates, and settings",
+      "Use Project Management to swap ROMs and manage snapshots",
       "Press Ctrl+Shift+P for the command palette and F1 for help",
       "Shortcuts are configurable in Settings > Keyboard Shortcuts",
       "Project + settings data live under ~/.yaze (user profile on Windows)",
-      "Use Ctrl+Shift+A for AI workflows (Ollama/Gemini/OpenAI/Anthropic)",
-      "Try z3ed --tui or the web terminal for scripting and automation",
-      "Enable collaboration only when yaze-server is running"};
+      "Use the panel browser to find any tool quickly"};
   int tip_index = 0;  // Show first tip, or could be random on screen open
 
   ImGui::Text(ICON_MD_LIGHTBULB);
@@ -1238,51 +1382,85 @@ void WelcomeScreen::DrawWhatsNew() {
 
   ImGui::PushStyleVar(ImGuiStyleVar_Alpha, whatsnew_progress);
 
-  ImGui::TextColored(kHeartRed, ICON_MD_NEW_RELEASES " What's New");
+  ImGui::TextColored(kHeartRed, ICON_MD_NEW_RELEASES " Release History");
   ImGui::Spacing();
 
   // Version badge (no animation)
-  ImGui::TextColored(kMasterSwordBlue, ICON_MD_VERIFIED "yaze v%s",
+  ImGui::TextColored(kMasterSwordBlue, ICON_MD_VERIFIED " Current: v%s",
                      YAZE_VERSION_STRING);
   ImGui::Spacing();
 
-  // Feature list with icons and colors
-  struct Feature {
+  struct ReleaseHighlight {
     const char* icon;
+    const char* text;
+  };
+
+  struct ReleaseEntry {
+    const char* icon;
+    const char* version;
     const char* title;
-    const char* desc;
+    const char* date;
     ImVec4 color;
+    const ReleaseHighlight* highlights;
+    int highlight_count;
   };
 
-  Feature features[] = {
-      {ICON_MD_FACT_CHECK, "Feature Status & Help",
-       "Clear status + persistence summaries for desktop, CLI, and web",
-       kMasterSwordBlue},
-      {ICON_MD_STORAGE, "Unified .yaze Storage",
-       "Consistent project/config paths across desktop, CLI, and web builds",
-       kHyruleGreen},
-      {ICON_MD_KEYBOARD, "Shortcut + Settings Polish",
-       "Help panel reflects your configured keybindings",
-       kSpiritOrange},
-      {ICON_MD_FOLDER_SPECIAL, "Project Clarity",
-       "Improved project metadata and workspace cues",
-       kTriforceGold},
-      {ICON_MD_PSYCHOLOGY, "AI + Automation",
-       "Agent workflows remain integrated across app and z3ed",
-       kGanonPurple},
+  const ReleaseHighlight highlights_053[] = {
+      {ICON_MD_BUILD, "DMG validation + build polish"},
+      {ICON_MD_PUBLIC, "WASM storage + service worker fixes"},
+      {ICON_MD_TERMINAL, "Local model support (LM Studio)"},
+  };
+  const ReleaseHighlight highlights_052[] = {
+      {ICON_MD_SHIELD, "AI runtime guard fixes"},
+      {ICON_MD_BUILD, "Build presets stabilized"},
+  };
+  const ReleaseHighlight highlights_051[] = {
+      {ICON_MD_PALETTE, "ImHex-style UI modernization"},
+      {ICON_MD_TUNE, "Theme system + layout polish"},
+      {ICON_MD_DASHBOARD, "Panel registry improvements"},
+  };
+  const ReleaseHighlight highlights_050[] = {
+      {ICON_MD_TABLET, "Platform expansion + iOS scaffolding"},
+      {ICON_MD_VISIBILITY, "Editor UX + stability"},
+      {ICON_MD_PUBLIC, "WASM preview hardening"},
   };
 
-  for (const auto& feature : features) {
-    ImGui::Bullet();
-    ImGui::SameLine();
-    ImGui::TextColored(feature.color, "%s ", feature.icon);
-    ImGui::SameLine();
-    ImGui::TextColored(ImVec4(0.95f, 0.95f, 0.95f, 1.0f), "%s", feature.title);
+  const ReleaseEntry releases[] = {
+      {ICON_MD_BUILD, "0.5.3", "Build + WASM improvements", "Jan 20, 2026",
+       kMasterSwordBlue, highlights_053,
+       static_cast<int>(sizeof(highlights_053) / sizeof(highlights_053[0]))},
+      {ICON_MD_TUNE, "0.5.2", "Runtime guards", "Jan 20, 2026", kSpiritOrange,
+       highlights_052,
+       static_cast<int>(sizeof(highlights_052) / sizeof(highlights_052[0]))},
+      {ICON_MD_AUTO_AWESOME, "0.5.1", "UI polish + templates", "Jan 20, 2026",
+       kTriforceGold, highlights_051,
+       static_cast<int>(sizeof(highlights_051) / sizeof(highlights_051[0]))},
+      {ICON_MD_ROCKET_LAUNCH, "0.5.0", "Platform expansion", "Jan 10, 2026",
+       kHyruleGreen, highlights_050,
+       static_cast<int>(sizeof(highlights_050) / sizeof(highlights_050[0]))},
+  };
 
-    ImGui::Indent(25);
-    ImGui::TextColored(ImVec4(0.65f, 0.65f, 0.65f, 1.0f), "%s", feature.desc);
-    ImGui::Unindent(25);
+  const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
+  for (int i = 0; i < static_cast<int>(sizeof(releases) / sizeof(releases[0]));
+       ++i) {
+    const auto& release = releases[i];
+    ImGui::PushID(release.version);
+    if (i > 0) {
+      ImGui::Separator();
+    }
+    ImGui::TextColored(release.color, "%s v%s", release.icon, release.version);
+    ImGui::SameLine();
+    ImGui::TextColored(text_secondary, "%s", release.date);
+    ImGui::TextColored(text_secondary, "%s", release.title);
+    for (int j = 0; j < release.highlight_count; ++j) {
+      ImGui::Bullet();
+      ImGui::SameLine();
+      ImGui::TextColored(release.color, "%s", release.highlights[j].icon);
+      ImGui::SameLine();
+      ImGui::TextColored(text_secondary, "%s", release.highlights[j].text);
+    }
     ImGui::Spacing();
+    ImGui::PopID();
   }
 
   ImGui::Spacing();
@@ -1293,7 +1471,8 @@ void WelcomeScreen::DrawWhatsNew() {
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered, kMasterSwordBlue);
   if (ImGui::Button(
           absl::StrFormat("%s View Full Changelog", ICON_MD_OPEN_IN_NEW)
-              .c_str())) {
+              .c_str(),
+          ImVec2(-1, 0))) {
     // Open changelog or GitHub releases
   }
   ImGui::PopStyleColor(2);

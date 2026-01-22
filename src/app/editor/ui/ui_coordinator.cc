@@ -128,6 +128,37 @@ UICoordinator::UICoordinator(
       // Keep welcome screen visible - user may want to do other things
     }
   });
+
+  welcome_screen_->SetOpenProjectDialogCallback([this]() {
+    if (editor_manager_) {
+      auto status = editor_manager_->OpenProject();
+      if (!status.ok()) {
+        toast_manager_.Show(
+            absl::StrFormat("Failed to open project: %s", status.message()),
+            ToastType::kError);
+      } else {
+        SetStartupSurface(StartupSurface::kDashboard);
+      }
+    }
+  });
+
+  welcome_screen_->SetOpenProjectManagementCallback([this]() {
+    if (editor_manager_) {
+      editor_manager_->ShowProjectManagement();
+    }
+  });
+
+  welcome_screen_->SetOpenProjectFileEditorCallback([this]() {
+    if (!editor_manager_) {
+      return;
+    }
+    const auto* project = editor_manager_->GetCurrentProject();
+    if (!project || project->filepath.empty()) {
+      toast_manager_.Show("No project file to edit", ToastType::kInfo);
+      return;
+    }
+    editor_manager_->ShowProjectFileEditor();
+  });
 }
 
 void UICoordinator::SetWelcomeScreenBehavior(StartupVisibility mode) {

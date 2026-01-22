@@ -9,6 +9,12 @@
 - STATUS: IN_PROGRESS
 - NOTES: Added `--asset_mode` and lazy asset loading (on-demand editor init/load + `EnsureGameDataLoaded`); verified `emu-agent-instance` multi-instance script; server-lite startup still pending.
 
+### 2026-01-22 imgui-frontend-engineer – ROM gRPC hardening + iOS UX + welcome screen refresh
+- TASK: Harden RomService RPCs (proposal routing, version-aware reads), continue iPad UI fixes, and modernize welcome screen.
+- SCOPE: src/app/service/rom_service_impl.cc, src/ios/*, src/app/platform/ios/*, src/app/gfx/backend/metal_renderer.mm, src/app/editor/ui/welcome_screen.*, src/app/editor/menu/menu_orchestrator.cc.
+- STATUS: IN_PROGRESS
+- NOTES: Added proposal routing + GameData-backed dungeon/overworld reads; adjusted sidebar icon visibility; welcome screen now has release history list + project tools, AI button removed, responsive sizing; added Agent Workspace menu entry. iOS fixes pending (color/touch/top-bar overlap).
+
 ### 2026-01-21 ai-infra-architect – Unified gRPC + Server mode & Mesen 2 integration
 - TASK: Consolidate redundant gRPC servers, implement headless/server mode with resource optimization, and add Mesen 2 symbol export/bridge support.
 - SCOPE: src/app/application.*, src/app/service/unified_grpc_server.*, src/app/platform/null_window_backend.*, src/app/gfx/backend/null_renderer.*, tools/mesen2/, docs/internal/agents/automation-workflows.md.

@@ -76,6 +76,27 @@ class WelcomeScreen {
   }
 
   /**
+   * @brief Set callback for opening the project file dialog
+   */
+  void SetOpenProjectDialogCallback(std::function<void()> callback) {
+    open_project_dialog_callback_ = callback;
+  }
+
+  /**
+   * @brief Set callback for showing project management
+   */
+  void SetOpenProjectManagementCallback(std::function<void()> callback) {
+    open_project_management_callback_ = callback;
+  }
+
+  /**
+   * @brief Set callback for showing the project file editor
+   */
+  void SetOpenProjectFileEditorCallback(std::function<void()> callback) {
+    open_project_file_editor_callback_ = callback;
+  }
+
+  /**
    * @brief Refresh recent projects list from the project manager
    */
   void RefreshRecentProjects();
@@ -130,6 +151,9 @@ class WelcomeScreen {
   std::function<void(const std::string&)> open_project_callback_;
   std::function<void(const std::string&)> new_project_with_template_callback_;
   std::function<void()> open_agent_callback_;
+  std::function<void()> open_project_dialog_callback_;
+  std::function<void()> open_project_management_callback_;
+  std::function<void()> open_project_file_editor_callback_;
 
   // UI state
   int selected_template_ = 0;
@@ -177,6 +201,9 @@ class WelcomeScreen {
   // Layout offsets for sidebar awareness (so welcome screen centers in dockspace)
   float left_offset_ = 0.0f;
   float right_offset_ = 0.0f;
+
+  // Deferred refresh for recent projects (avoid mutating during draw loop)
+  bool pending_recent_refresh_ = false;
 };
 
 }  // namespace editor

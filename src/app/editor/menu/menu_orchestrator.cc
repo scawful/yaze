@@ -342,6 +342,10 @@ void MenuOrchestrator::AddToolsMenuItems() {
             [this]() { popup_manager_.Show(PopupID::kFeatureFlags); })
       .Item("Performance Dashboard", ICON_MD_SPEED,
             [this]() { OnShowPerformanceDashboard(); })
+#ifdef YAZE_BUILD_AGENT_UI
+      .Item("Agent Workspace", ICON_MD_SMART_TOY,
+            [this]() { OnShowAIAgent(); })
+#endif
 #ifdef YAZE_WITH_GRPC
       .Item("Agent Proposals", ICON_MD_PREVIEW,
             [this]() { OnShowProposalDrawer(); })

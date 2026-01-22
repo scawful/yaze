@@ -142,6 +142,33 @@ absl::Status Rom::LoadFromFile(const std::string& filename,
     resource_label_manager_.LoadLabels(absl::StrFormat("%s.labels", filename));
   }
 
+  // Parse SNES Header for Title
+  if (rom_data_.size() >= 0x8000) {
+    // Check LoROM (0x7FC0) vs HiROM (0xFFC0)
+    // Simple heuristic: Z3 is LoROM
+    size_t header_offset = 0x7FC0;
+    if (rom_data_.size() >= 0x10000) {
+        // Compute checksums to verify?
+        // For now default to LoROM
+    }
+    
+    if (header_offset + 21 <= rom_data_.size()) {
+        char buffer[22] = {0};
+        for (int i = 0; i < 21; ++i) {
+            uint8_t c = rom_data_[header_offset + i];
+            buffer[i] = (c >= 32 && c <= 126) ? c : ' ';
+        }
+        title_ = std::string(buffer);
+        // Trim trailing spaces safely
+        auto last_non_space = title_.find_last_not_of(' ');
+        if (last_non_space == std::string::npos) {
+          title_.clear();
+        } else {
+          title_.erase(last_non_space + 1);
+        }
+    }
+  }
+
   return absl::OkStatus();
 }
 
@@ -158,6 +185,25 @@ absl::Status Rom::LoadFromData(const std::vector<uint8_t>& data,
     MaybeStripSmcHeader(rom_data_, size_);
   }
   size_ = rom_data_.size();
+
+  // Parse SNES Header for Title
+  if (rom_data_.size() >= 0x8000) {
+    size_t header_offset = 0x7FC0;
+    if (header_offset + 21 <= rom_data_.size()) {
+        char buffer[22] = {0};
+        for (int i = 0; i < 21; ++i) {
+            uint8_t c = rom_data_[header_offset + i];
+            buffer[i] = (c >= 32 && c <= 126) ? c : ' ';
+        }
+        title_ = std::string(buffer);
+        auto last_non_space = title_.find_last_not_of(' ');
+        if (last_non_space == std::string::npos) {
+          title_.clear();
+        } else {
+          title_.erase(last_non_space + 1);
+        }
+    }
+  }
 
   return absl::OkStatus();
 }
