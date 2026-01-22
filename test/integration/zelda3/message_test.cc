@@ -4,7 +4,7 @@
 
 #include "app/editor/message/message_data.h"
 #include "app/editor/message/message_editor.h"
-#include "test/test_utils.h"
+#include "test_utils.h"
 #include "testing.h"
 
 namespace yaze {

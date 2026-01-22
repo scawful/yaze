@@ -11,13 +11,12 @@ if(YAZE_BUILD_TESTS)
     # Only GUI tests need controller.cc (yaze_test.cc uses Controller when config.enable_ui_tests is true)
     # Controller is legacy code with circular dependencies - avoid it in non-GUI tests
     if(is_gui_test)
-      add_executable(${suite_name} yaze_test.cc ../src/app/controller.cc ${sources})
+      add_executable(${suite_name} yaze_test.cc ../src/app/application.cc ../src/app/controller.cc ${sources})
     else()
       add_executable(${suite_name} yaze_test.cc ${sources})
     endif()
 
     target_include_directories(${suite_name} PUBLIC
-      ${CMAKE_SOURCE_DIR}
       ${CMAKE_SOURCE_DIR}/src
       ${CMAKE_SOURCE_DIR}/incl
       ${CMAKE_SOURCE_DIR}/test
@@ -76,6 +75,9 @@ if(YAZE_BUILD_TESTS)
     if(TARGET httplib::httplib)
       target_link_libraries(${suite_name} PRIVATE httplib::httplib)
     endif()
+    if(TARGET yaze_cli_core)
+      target_link_libraries(${suite_name} PRIVATE yaze_cli_core)
+    endif()
 
     # Link ImGui Test Engine for GUI tests (always available when tests are built)
     if(is_gui_test AND TARGET ImGuiTestEngine)
@@ -130,9 +132,6 @@ if(YAZE_BUILD_TESTS)
     unit/deps/dependency_smoke_test.cc
     unit/cli/resource_catalog_test.cc
     unit/cli/command_registry_test.cc
-    unit/cli/conversational_agent_service_test.cc
-    unit/cli/ai_service_factory_test.cc
-    unit/cli/vision_action_refiner_test.cc
     unit/rom/rom_test.cc
     unit/emu/input_backend_test.cc
     unit/gfx/snes_tile_test.cc
@@ -143,7 +142,6 @@ if(YAZE_BUILD_TESTS)
     unit/snes_color_test.cc
     unit/gui/tile_selector_widget_test.cc
     unit/gui/canvas_automation_api_test.cc
-    unit/editor/agent_chat_test.cc
     unit/editor/message/message_data_test.cc
     unit/editor/panel_system_test.cc
     unit/zelda3/overworld_test.cc
@@ -169,13 +167,6 @@ if(YAZE_BUILD_TESTS)
     platform/sdl3_audio_backend_test.cc
     platform/window_backend_test.cc
     platform/wasm_async_guard_test.cc
-    # Agent Tools Tests
-    unit/tools/build_tool_test.cc
-    unit/tools/filesystem_tool_test.cc
-    unit/tools/memory_inspector_tool_test.cc
-    unit/tools/visual_analysis_tool_test.cc
-    unit/tools/project_tool_test.cc
-    unit/tools/code_gen_tool_test.cc
     ../src/cli/service/resources/resource_catalog.cc
     cli/service/resources/command_context_test.cc
     cli/service/resources/command_handler_test.cc
@@ -198,6 +189,30 @@ if(YAZE_BUILD_TESTS)
     integration/palette_manager_test.cc
     integration/object_selection_integration_test.cc
   )
+  if(YAZE_ENABLE_AGENT_CLI)
+    list(APPEND STABLE_TEST_SOURCES
+      unit/cli/conversational_agent_service_test.cc
+      unit/cli/ai_service_factory_test.cc
+      unit/cli/vision_action_refiner_test.cc
+      unit/tools/build_tool_test.cc
+      unit/tools/filesystem_tool_test.cc
+      unit/tools/memory_inspector_tool_test.cc
+      unit/tools/visual_analysis_tool_test.cc
+      unit/tools/project_tool_test.cc
+      unit/tools/code_gen_tool_test.cc
+    )
+  else()
+    message(STATUS "Skipping agent CLI/tool tests (YAZE_ENABLE_AGENT_CLI=OFF)")
+  endif()
+
+  if(YAZE_BUILD_AGENT_UI)
+    list(APPEND STABLE_TEST_SOURCES
+      unit/editor/agent_chat_test.cc
+    )
+  else()
+    message(STATUS "Skipping agent UI tests (YAZE_BUILD_AGENT_UI=OFF)")
+  endif()
+
   yaze_add_test_suite(yaze_test_stable "stable" OFF ${STABLE_TEST_SOURCES})
 
   # --- ROM Dependent Test Suite ---

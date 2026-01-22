@@ -4,7 +4,7 @@
 #include <string>
 
 #include "rom/rom.h"
-#include "test/test_utils.h"
+#include "test_utils.h"
 #include "zelda3/dungeon/room.h"
 
 namespace yaze {

@@ -1,5 +1,7 @@
 #include "cli/tui/chat_tui.h"
 
+#if defined(YAZE_ENABLE_AGENT_CLI)
+
 #include <algorithm>
 #include <cmath>
 #include <utility>
@@ -603,3 +605,5 @@ bool ChatTUI::IsPopupOpen() const {
 }  // namespace tui
 }  // namespace cli
 }  // namespace yaze
+
+#endif  // YAZE_ENABLE_AGENT_CLI

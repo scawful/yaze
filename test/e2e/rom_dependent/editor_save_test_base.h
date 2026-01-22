@@ -12,7 +12,7 @@
 #include "absl/status/status.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
-#include "test/test_utils.h"
+#include "test_utils.h"
 #include "testing.h"
 #include "util/macro.h"
 #include "zelda.h"

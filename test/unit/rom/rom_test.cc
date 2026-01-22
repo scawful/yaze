@@ -11,7 +11,7 @@
 #include "absl/status/statusor.h"
 #include "rom/transaction.h"
 #include "mocks/mock_rom.h"
-#include "test/test_utils.h"
+#include "test_utils.h"
 #include "testing.h"
 
 namespace yaze {

@@ -7,7 +7,7 @@
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "rom/rom.h"
 #include "gtest/gtest.h"
-#include "test/test_utils.h"
+#include "test_utils.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/game_data.h"
 

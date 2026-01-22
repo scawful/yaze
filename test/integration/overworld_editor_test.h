@@ -7,7 +7,7 @@
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "gtest/gtest.h"
-#include "test/test_utils.h"
+#include "test_utils.h"
 #include "zelda3/game_data.h"
 
 namespace yaze {

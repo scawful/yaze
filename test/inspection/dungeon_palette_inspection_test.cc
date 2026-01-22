@@ -4,7 +4,7 @@
 
 #include "rom/rom.h"
 #include "app/gfx/types/snes_palette.h"
-#include "test/test_utils.h"
+#include "test_utils.h"
 #include "util/log.h"
 
 namespace yaze {

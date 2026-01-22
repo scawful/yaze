@@ -11,7 +11,7 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/util/compression.h"
 #include "rom/rom.h"
-#include "test/test_utils.h"
+#include "test_utils.h"
 #include "zelda3/game_data.h"
 #include "zelda3/game_data.h"
 #include "testing.h"

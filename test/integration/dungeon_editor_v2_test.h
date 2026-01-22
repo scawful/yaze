@@ -9,7 +9,7 @@
 #include "rom/snes.h"
 #include "gtest/gtest.h"
 #include "imgui.h"
-#include "test/test_utils.h"
+#include "test_utils.h"
 #include "zelda3/game_data.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "framework/headless_editor_test.h"
