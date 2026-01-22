@@ -8,6 +8,7 @@ settings:
   base:
     PRODUCT_NAME: yaze
     PRODUCT_BUNDLE_IDENTIFIER: org.halext.yaze-ios
+    DEVELOPMENT_TEAM: SN8Z922TT6
     INFOPLIST_FILE: iOS/Info-iOS.plist
     CLANG_CXX_LANGUAGE_STANDARD: c++20
     GCC_C_LANGUAGE_STANDARD: c17
