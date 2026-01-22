@@ -72,9 +72,15 @@ struct YazeOverlayView: View {
       let inset = overlayCollapsed ? 0 : value
       YazeIOSBridge.setOverlayTopInset(Double(inset))
     }
+    .onAppear {
+      YazeIOSBridge.setTouchScale(settingsStore.settings.mobile.touchScale)
+    }
     .onChange(of: overlayCollapsed) { collapsed in
       let inset = collapsed ? 0 : overlayHeight
       YazeIOSBridge.setOverlayTopInset(Double(inset))
+    }
+    .onChange(of: settingsStore.settings.mobile.touchScale) { scale in
+      YazeIOSBridge.setTouchScale(scale)
     }
     .sheet(isPresented: $showSettings) {
       SettingsView(settingsStore: settingsStore)

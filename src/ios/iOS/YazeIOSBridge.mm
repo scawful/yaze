@@ -47,6 +47,10 @@
   yaze::platform::ios::SetOverlayTopInset(static_cast<float>(inset));
 }
 
++ (void)setTouchScale:(double)scale {
+  yaze::platform::ios::SetTouchScale(static_cast<float>(scale));
+}
+
 + (void)showProjectFileEditor {
   auto *controller = yaze::Application::Instance().GetController();
   if (!controller || !controller->editor_manager()) {
