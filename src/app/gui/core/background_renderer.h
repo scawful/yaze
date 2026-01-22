@@ -93,6 +93,9 @@ class DockSpaceRenderer {
                                      ImGuiDockNodeFlags flags = 0);
   static void EndEnhancedDockSpace();
 
+  static ImVec2 GetLastDockspacePos() { return last_dockspace_pos_; }
+  static ImVec2 GetLastDockspaceSize() { return last_dockspace_size_; }
+
   // Configuration
   static void SetBackgroundEnabled(bool enabled) {
     background_enabled_ = enabled;

@@ -2,6 +2,7 @@
 
 #include "app/editor/layout/layout_presets.h"
 #include "app/editor/system/panel_manager.h"
+#include "app/gui/core/background_renderer.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include "util/log.h"
@@ -46,7 +47,12 @@ void LayoutManager::InitializeEditorLayout(EditorType type,
   // Clear existing layout for this dockspace
   ImGui::DockBuilderRemoveNode(dockspace_id);
   ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
-  ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->WorkSize);
+  ImVec2 dockspace_size = ImGui::GetMainViewport()->WorkSize;
+  const ImVec2 last_size = gui::DockSpaceRenderer::GetLastDockspaceSize();
+  if (last_size.x > 0.0f && last_size.y > 0.0f) {
+    dockspace_size = last_size;
+  }
+  ImGui::DockBuilderSetNodeSize(dockspace_id, dockspace_size);
 
   // Build layout based on editor type using generic builder
   BuildLayoutFromPreset(type, dockspace_id);
@@ -83,7 +89,12 @@ void LayoutManager::RebuildLayout(EditorType type, ImGuiID dockspace_id) {
   // Clear existing layout for this dockspace
   ImGui::DockBuilderRemoveNode(dockspace_id);
   ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
-  ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->WorkSize);
+  ImVec2 dockspace_size = ImGui::GetMainViewport()->WorkSize;
+  const ImVec2 last_size = gui::DockSpaceRenderer::GetLastDockspaceSize();
+  if (last_size.x > 0.0f && last_size.y > 0.0f) {
+    dockspace_size = last_size;
+  }
+  ImGui::DockBuilderSetNodeSize(dockspace_id, dockspace_size);
 
   // Build layout based on editor type using generic builder
   BuildLayoutFromPreset(type, dockspace_id);
