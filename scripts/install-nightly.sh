@@ -65,12 +65,42 @@ ensure_app_link() {
   if [[ "$(uname -s)" != "Darwin" ]]; then
     return
   fi
-  local app_source="$nightly_prefix/current/yaze.app"
-  if [[ ! -d "$app_source" ]]; then
+  local app_source=""
+  for candidate in \
+    "$nightly_prefix/current/yaze.app" \
+    "$nightly_prefix/current/Yaze.app" \
+    "$nightly_prefix/current/Yaze Nightly.app"; do
+    if [[ -d "$candidate" ]]; then
+      app_source="$candidate"
+      break
+    fi
+  done
+  if [[ -z "$app_source" ]]; then
     return
   fi
   mkdir -p "$nightly_app_dir"
   ln -sfn "$app_source" "$nightly_app_link"
+}
+
+normalize_app_bundle() {
+  local app_dir=""
+  if [[ -d "$release_dir/yaze.app" ]]; then
+    app_dir="$release_dir/yaze.app"
+  elif [[ -d "$release_dir/Yaze.app" ]]; then
+    app_dir="$release_dir/Yaze.app"
+    ln -sfn "Yaze.app" "$release_dir/yaze.app"
+  elif [[ -d "$release_dir/Contents" ]]; then
+    mkdir -p "$release_dir/yaze.app"
+    mv "$release_dir/Contents" "$release_dir/yaze.app/"
+    app_dir="$release_dir/yaze.app"
+  fi
+
+  if [[ -n "$app_dir" ]]; then
+    local app_bin="$app_dir/Contents/MacOS/yaze"
+    if [[ -x "$app_bin" ]]; then
+      ln -sfn "$app_bin" "$release_dir/yaze"
+    fi
+  fi
 }
 
 fallback_install() {
@@ -160,6 +190,7 @@ if ! cmake --install "$nightly_build_dir" --prefix "$release_dir" --component "$
   echo "[nightly] cmake --install failed; attempting fallback copy." >&2
   fallback_install
 fi
+normalize_app_bundle
 ln -sfn "$release_dir" "$nightly_prefix/current"
 ensure_app_link
 
@@ -179,9 +210,22 @@ cat > "$nightly_bin_dir/yaze-nightly" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
 prefix="${YAZE_NIGHTLY_PREFIX:-$HOME/.local/yaze/nightly}"
-app="$prefix/current/yaze.app/Contents/MacOS/yaze"
 binary="$prefix/current/yaze"
 build_info="$prefix/current/BUILD_INFO.txt"
+
+resolve_app() {
+  local candidate
+  for candidate in \
+    "$prefix/current/yaze.app/Contents/MacOS/yaze" \
+    "$prefix/current/Yaze.app/Contents/MacOS/yaze" \
+    "$prefix/current/Contents/MacOS/yaze"; do
+    if [[ -x "$candidate" ]]; then
+      echo "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
 
 show_help() {
   cat <<'USAGE'
@@ -221,7 +265,7 @@ for arg in "$@"; do
   esac
 done
 
-if [[ -x "$app" ]]; then
+if app="$(resolve_app)"; then
   exec "$app" "$@"
 fi
 if [[ -x "$binary" ]]; then
@@ -237,9 +281,22 @@ cat > "$nightly_bin_dir/yaze-nightly-grpc" <<'EOF'
 set -euo pipefail
 prefix="${YAZE_NIGHTLY_PREFIX:-$HOME/.local/yaze/nightly}"
 port="${YAZE_GRPC_PORT:-50051}"
-app="$prefix/current/yaze.app/Contents/MacOS/yaze"
 binary="$prefix/current/yaze"
 build_info="$prefix/current/BUILD_INFO.txt"
+
+resolve_app() {
+  local candidate
+  for candidate in \
+    "$prefix/current/yaze.app/Contents/MacOS/yaze" \
+    "$prefix/current/Yaze.app/Contents/MacOS/yaze" \
+    "$prefix/current/Contents/MacOS/yaze"; do
+    if [[ -x "$candidate" ]]; then
+      echo "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
 
 show_help() {
   cat <<'USAGE'
@@ -279,7 +336,7 @@ for arg in "$@"; do
   esac
 done
 
-if [[ -x "$app" ]]; then
+if app="$(resolve_app)"; then
   exec "$app" --enable_test_harness --test_harness_port="$port" "$@"
 fi
 if [[ -x "$binary" ]]; then

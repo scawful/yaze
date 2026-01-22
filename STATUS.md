@@ -1,8 +1,8 @@
 # yaze Status
 
 ## Current Release
-- **Version**: v0.5.3 (January 2026)
-- **Focus**: Release packaging fixes, LMStudio support, WASM infrastructure
+- **Version**: v0.5.4 (January 2026)
+- **Focus**: Nightly packaging + launch reliability, message preview fixes, version alignment
 
 ## CI/CD
 - GitHub Actions CI covers Linux/macOS/Windows with stable test labels.
