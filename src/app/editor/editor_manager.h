@@ -101,6 +101,9 @@ class EditorManager {
   // Apply startup actions based on AppConfig
   void ProcessStartupActions(const AppConfig& config);
   void ApplyStartupVisibility(const AppConfig& config);
+
+  void SetAssetLoadMode(AssetLoadMode mode);
+  AssetLoadMode asset_load_mode() const { return asset_load_mode_; }
                                    
   absl::Status Update();
   void DrawMenuBar();
@@ -223,6 +226,10 @@ class EditorManager {
   // Clean up cards when switching editors
   void HideCurrentEditorPanels();
 
+  // Lazy asset loading helpers
+  absl::Status EnsureEditorAssetsLoaded(EditorType type);
+  absl::Status EnsureGameDataLoaded();
+
   // Session management
   void CreateNewSession();
   void DuplicateCurrentSession();
@@ -336,6 +343,16 @@ class EditorManager {
 
   // Optional loading_handle for WASM progress tracking (0 = create new)
   absl::Status LoadAssets(uint64_t loading_handle = 0);
+  absl::Status LoadAssetsForMode(uint64_t loading_handle = 0);
+  absl::Status LoadAssetsLazy(uint64_t loading_handle = 0);
+  absl::Status InitializeEditorForType(EditorType type, EditorSet* editor_set,
+                                       Rom* rom);
+  void ResetAssetState(RomSession* session);
+  void MarkEditorInitialized(RomSession* session, EditorType type);
+  void MarkEditorLoaded(RomSession* session, EditorType type);
+  Editor* GetEditorByType(EditorType type, EditorSet* editor_set) const;
+  bool EditorRequiresGameData(EditorType type) const;
+  bool EditorInitRequiresGameData(EditorType type) const;
 
   // Testing system
   void InitializeTestSuites();
@@ -382,6 +399,7 @@ class EditorManager {
   StartupVisibility welcome_mode_override_ = StartupVisibility::kAuto;
   StartupVisibility dashboard_mode_override_ = StartupVisibility::kAuto;
   StartupVisibility sidebar_mode_override_ = StartupVisibility::kAuto;
+  AssetLoadMode asset_load_mode_ = AssetLoadMode::kFull;
 
   // Properties panel for selection editing
   SelectionPropertiesPanel selection_properties_panel_;

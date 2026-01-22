@@ -56,6 +56,8 @@ DEFINE_FLAG(std::string, startup_dashboard, "auto",
             "Dashboard panel behavior at startup: auto, show, or hide.");
 DEFINE_FLAG(std::string, startup_sidebar, "auto",
             "Panel sidebar visibility at startup: auto, show, or hide.");
+DEFINE_FLAG(std::string, asset_mode, "auto",
+            "Asset load mode: auto, full, or lazy.");
 
 DEFINE_FLAG(int, room, -1, "Open Dungeon Editor at specific room ID (0-295).");
 DEFINE_FLAG(int, map, -1, "Open Overworld Editor at specific map ID (0-159).");
@@ -234,6 +236,11 @@ int main(int argc, char** argv) {
       yaze::StartupVisibilityFromString(FLAGS_startup_dashboard->Get());
   config.sidebar_mode =
       yaze::StartupVisibilityFromString(FLAGS_startup_sidebar->Get());
+  config.asset_load_mode =
+      yaze::AssetLoadModeFromString(FLAGS_asset_mode->Get());
+  if (config.asset_load_mode == yaze::AssetLoadMode::kAuto) {
+    config.asset_load_mode = yaze::AssetLoadMode::kFull;
+  }
 
   if (!FLAGS_open_panels->Get().empty()) {
     config.open_panels = ParseCommaList(FLAGS_open_panels->Get());

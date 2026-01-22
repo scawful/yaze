@@ -170,6 +170,13 @@ constexpr std::array<const char*, 14> kEditorNames = {
     "Message", "Hex",       "Agent",   "Settings",
 };
 
+constexpr size_t kEditorTypeCount =
+    static_cast<size_t>(EditorType::kSettings) + 1;
+
+inline size_t EditorTypeIndex(EditorType type) {
+  return static_cast<size_t>(type);
+}
+
 /**
  * @class Editor
  * @brief Interface for editor classes.
