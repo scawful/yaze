@@ -27,6 +27,10 @@
 #import <MetalKit/MetalKit.h>
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
+#if !TARGET_OS_OSX
+#import "yaze-Swift.h"
+#endif
+
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -57,6 +61,10 @@ yaze::ios::IOSHost g_ios_host;
 // ----------------------------------------------------------------------------
 // AppViewController
 // ----------------------------------------------------------------------------
+
+@interface AppViewController ()
+@property(nonatomic, strong) UIViewController *overlayController;
+@end
 
 @implementation AppViewController {
   yaze::AppConfig app_config_;
@@ -186,6 +194,8 @@ yaze::ios::IOSHost g_ios_host;
     }
     host_initialized_ = true;
   }
+
+  [self attachSwiftUIOverlayIfNeeded];
 }
 
 - (void)drawInMTKView:(MTKView *)view {
@@ -207,6 +217,37 @@ yaze::ios::IOSHost g_ios_host;
   io.DisplayFramebufferScale = ImVec2(framebufferScale, framebufferScale);
 
   g_ios_host.Tick();
+}
+
+- (void)viewDidLayoutSubviews {
+  [super viewDidLayoutSubviews];
+  if (self.overlayController) {
+    self.overlayController.view.frame = self.view.bounds;
+  }
+}
+
+- (void)attachSwiftUIOverlayIfNeeded {
+  if (self.overlayController) {
+    return;
+  }
+  Class overlayClass = NSClassFromString(@"YazeOverlayHostingController");
+  if (!overlayClass) {
+    NSLog(@"SwiftUI overlay controller not found");
+    return;
+  }
+  UIViewController *overlay = [[overlayClass alloc] init];
+  if (!overlay) {
+    return;
+  }
+  overlay.view.backgroundColor = [UIColor clearColor];
+  overlay.view.opaque = NO;
+  overlay.view.frame = self.view.bounds;
+  overlay.view.autoresizingMask =
+      UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+  [self addChildViewController:overlay];
+  [self.view addSubview:overlay.view];
+  [overlay didMoveToParentViewController:self];
+  self.overlayController = overlay;
 }
 
 - (void)mtkView:(MTKView *)view drawableSizeWillChange:(CGSize)size {
