@@ -49,6 +49,9 @@ void ApplyTouchStyle(MTKView* view) {
   static TouchStyleBaseline baseline;
 
   ImGuiStyle& style = ImGui::GetStyle();
+  ImGuiIO& io = ImGui::GetIO();
+  io.ConfigWindowsMoveFromTitleBarOnly = true;
+  io.ConfigWindowsResizeFromEdges = false;
   if (!baseline.initialized) {
     baseline.touch_extra = style.TouchExtraPadding;
     baseline.frame_padding = style.FramePadding;

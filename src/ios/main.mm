@@ -208,6 +208,214 @@ yaze::ios::IOSHost g_ios_host;
   [self attachSwiftUIOverlayIfNeeded];
 }
 
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+- (void)viewDidAppear:(BOOL)animated {
+  [super viewDidAppear:animated];
+  [self becomeFirstResponder];
+}
+
+- (BOOL)canBecomeFirstResponder {
+  return YES;
+}
+
+- (void)postOverlayCommand:(NSString *)command {
+  if (!command || command.length == 0) {
+    return;
+  }
+  [[NSNotificationCenter defaultCenter]
+      postNotificationName:@"yaze.overlay.command"
+                    object:nil
+                  userInfo:@{@"command": command}];
+}
+
+- (void)handleShowMenuCommand:(id)sender {
+  [self postOverlayCommand:@"show_menu"];
+}
+
+- (void)handleOpenRomCommand:(id)sender {
+  [self postOverlayCommand:@"open_rom"];
+}
+
+- (void)handleOpenProjectCommand:(id)sender {
+  [self postOverlayCommand:@"open_project"];
+}
+
+- (void)handleShowPanelBrowserCommand:(id)sender {
+  [self postOverlayCommand:@"show_panel_browser"];
+}
+
+- (void)handleShowCommandPaletteCommand:(id)sender {
+  [self postOverlayCommand:@"show_command_palette"];
+}
+
+- (void)handleOpenSettingsCommand:(id)sender {
+  [self postOverlayCommand:@"open_settings"];
+}
+
+- (void)handleOpenAiCommand:(id)sender {
+  [self postOverlayCommand:@"open_ai"];
+}
+
+- (void)handleOpenBuildCommand:(id)sender {
+  [self postOverlayCommand:@"open_build"];
+}
+
+- (void)handleOpenFilesCommand:(id)sender {
+  [self postOverlayCommand:@"open_files"];
+}
+
+- (void)handleHideOverlayCommand:(id)sender {
+  [self postOverlayCommand:@"hide_overlay"];
+}
+
+- (UIKeyCommand *)yazeKeyCommandWithTitle:(NSString *)title
+                                imageName:(NSString *)imageName
+                                    input:(NSString *)input
+                            modifierFlags:(UIKeyModifierFlags)flags
+                                   action:(SEL)action {
+  UIKeyCommand *command = nil;
+  if (@available(iOS 13.0, *)) {
+    UIImage *image = imageName.length > 0 ? [UIImage systemImageNamed:imageName] : nil;
+    command = [UIKeyCommand commandWithTitle:title
+                                       image:image
+                                      action:action
+                                       input:input
+                               modifierFlags:flags
+                                propertyList:nil];
+    command.discoverabilityTitle = title;
+  } else {
+    command = [UIKeyCommand keyCommandWithInput:input
+                                  modifierFlags:flags
+                                         action:action];
+    command.discoverabilityTitle = title;
+  }
+  return command;
+}
+
+- (NSArray<UIKeyCommand *> *)keyCommands {
+  if (@available(iOS 13.0, *)) {
+    UIKeyCommand *menu =
+        [self yazeKeyCommandWithTitle:@"Yaze Menu"
+                            imageName:@"line.3.horizontal"
+                                input:@"M"
+                        modifierFlags:UIKeyModifierCommand | UIKeyModifierShift
+                               action:@selector(handleShowMenuCommand:)];
+    UIKeyCommand *openRom =
+        [self yazeKeyCommandWithTitle:@"Open ROM"
+                            imageName:@"folder"
+                                input:@"O"
+                        modifierFlags:UIKeyModifierCommand
+                               action:@selector(handleOpenRomCommand:)];
+    UIKeyCommand *openProject =
+        [self yazeKeyCommandWithTitle:@"Open Project"
+                            imageName:@"folder.badge.person.crop"
+                                input:@"O"
+                        modifierFlags:UIKeyModifierCommand | UIKeyModifierShift
+                               action:@selector(handleOpenProjectCommand:)];
+    UIKeyCommand *panelBrowser =
+        [self yazeKeyCommandWithTitle:@"Panel Browser"
+                            imageName:@"rectangle.stack"
+                                input:@"B"
+                        modifierFlags:UIKeyModifierCommand | UIKeyModifierShift
+                               action:@selector(handleShowPanelBrowserCommand:)];
+    UIKeyCommand *commandPalette =
+        [self yazeKeyCommandWithTitle:@"Command Palette"
+                            imageName:@"command"
+                                input:@"P"
+                        modifierFlags:UIKeyModifierCommand | UIKeyModifierShift
+                               action:@selector(handleShowCommandPaletteCommand:)];
+    UIKeyCommand *settings =
+        [self yazeKeyCommandWithTitle:@"Settings"
+                            imageName:@"gearshape"
+                                input:@","
+                        modifierFlags:UIKeyModifierCommand
+                               action:@selector(handleOpenSettingsCommand:)];
+    return @[menu, openRom, openProject, panelBrowser, commandPalette, settings];
+  }
+  return @[];
+}
+
+- (void)buildMenuWithBuilder:(id<UIMenuBuilder>)builder {
+  [super buildMenuWithBuilder:builder];
+  if (@available(iOS 13.0, *)) {
+    UIKeyCommand *menu =
+        [self yazeKeyCommandWithTitle:@"Yaze Menu"
+                            imageName:@"line.3.horizontal"
+                                input:@"M"
+                        modifierFlags:UIKeyModifierCommand | UIKeyModifierShift
+                               action:@selector(handleShowMenuCommand:)];
+    UIKeyCommand *openRom =
+        [self yazeKeyCommandWithTitle:@"Open ROM"
+                            imageName:@"folder"
+                                input:@"O"
+                        modifierFlags:UIKeyModifierCommand
+                               action:@selector(handleOpenRomCommand:)];
+    UIKeyCommand *openProject =
+        [self yazeKeyCommandWithTitle:@"Open Project"
+                            imageName:@"folder.badge.person.crop"
+                                input:@"O"
+                        modifierFlags:UIKeyModifierCommand | UIKeyModifierShift
+                               action:@selector(handleOpenProjectCommand:)];
+    UIKeyCommand *panelBrowser =
+        [self yazeKeyCommandWithTitle:@"Panel Browser"
+                            imageName:@"rectangle.stack"
+                                input:@"B"
+                        modifierFlags:UIKeyModifierCommand | UIKeyModifierShift
+                               action:@selector(handleShowPanelBrowserCommand:)];
+    UIKeyCommand *commandPalette =
+        [self yazeKeyCommandWithTitle:@"Command Palette"
+                            imageName:@"command"
+                                input:@"P"
+                        modifierFlags:UIKeyModifierCommand | UIKeyModifierShift
+                               action:@selector(handleShowCommandPaletteCommand:)];
+    UICommand *settings =
+        [UICommand commandWithTitle:@"Settings"
+                              image:[UIImage systemImageNamed:@"gearshape"]
+                             action:@selector(handleOpenSettingsCommand:)
+                       propertyList:nil];
+    UICommand *aiHosts =
+        [UICommand commandWithTitle:@"AI Hosts"
+                              image:[UIImage systemImageNamed:@"sparkles"]
+                             action:@selector(handleOpenAiCommand:)
+                       propertyList:nil];
+    UICommand *remoteBuild =
+        [UICommand commandWithTitle:@"Remote Build"
+                              image:[UIImage systemImageNamed:@"hammer"]
+                             action:@selector(handleOpenBuildCommand:)
+                       propertyList:nil];
+    UICommand *files =
+        [UICommand commandWithTitle:@"Files"
+                              image:[UIImage systemImageNamed:@"doc.on.doc"]
+                             action:@selector(handleOpenFilesCommand:)
+                       propertyList:nil];
+    UICommand *hideOverlay =
+        [UICommand commandWithTitle:@"Hide Top Bar"
+                              image:[UIImage systemImageNamed:@"chevron.up"]
+                             action:@selector(handleHideOverlayCommand:)
+                       propertyList:nil];
+
+    UIMenu *yazeMenu = [UIMenu menuWithTitle:@"Yaze"
+                                       image:[UIImage systemImageNamed:@"line.3.horizontal"]
+                                  identifier:@"org.halext.yaze.menu"
+                                     options:UIMenuOptionsDisplayInline
+                                    children:@[
+                                      menu,
+                                      openRom,
+                                      openProject,
+                                      panelBrowser,
+                                      commandPalette,
+                                      settings,
+                                      aiHosts,
+                                      remoteBuild,
+                                      files,
+                                      hideOverlay
+                                    ]];
+
+    [builder insertChildMenu:yazeMenu atStartOfMenuForIdentifier:UIMenuFile];
+  }
+}
+#endif
+
 - (void)drawInMTKView:(MTKView *)view {
   auto& app = yaze::Application::Instance();
   if (!host_initialized_ || !app.IsReady() || !app.GetController()->IsActive()) {

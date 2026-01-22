@@ -1,6 +1,30 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+private enum OverlayCommand: String {
+  case showMenu = "show_menu"
+  case openRom = "open_rom"
+  case openProject = "open_project"
+  case openAi = "open_ai"
+  case openBuild = "open_build"
+  case openFiles = "open_files"
+  case openSettings = "open_settings"
+  case showPanelBrowser = "show_panel_browser"
+  case showCommandPalette = "show_command_palette"
+  case showProjectManager = "show_project_manager"
+  case showProjectFile = "show_project_file"
+  case hideOverlay = "hide_overlay"
+  case showOverlay = "show_overlay"
+}
+
+private extension Notification.Name {
+  static let yazeOverlayCommand = Notification.Name("yaze.overlay.command")
+}
+
+private enum OverlayCommandPayload {
+  static let key = "command"
+}
+
 @objc(YazeOverlayHostingController)
 final class YazeOverlayHostingController: UIHostingController<YazeOverlayView> {
   @objc init() {
@@ -74,12 +98,19 @@ struct YazeOverlayView: View {
     .onAppear {
       YazeIOSBridge.setTouchScale(settingsStore.settings.mobile.touchScale)
     }
-    .onChange(of: overlayCollapsed) { collapsed in
+    .onChange(of: overlayCollapsed) { _, collapsed in
       let inset = collapsed ? 0 : overlayHeight
       YazeIOSBridge.setOverlayTopInset(Double(inset))
     }
-    .onChange(of: settingsStore.settings.mobile.touchScale) { scale in
+    .onChange(of: settingsStore.settings.mobile.touchScale) { _, scale in
       YazeIOSBridge.setTouchScale(scale)
+    }
+    .onReceive(NotificationCenter.default.publisher(for: .yazeOverlayCommand)) { notification in
+      guard let payload = notification.userInfo?[OverlayCommandPayload.key] as? String,
+            let command = OverlayCommand(rawValue: payload) else {
+        return
+      }
+      handleOverlayCommand(command)
     }
     .sheet(isPresented: $showSettings) {
       SettingsView(settingsStore: settingsStore)
@@ -111,6 +142,8 @@ struct YazeOverlayView: View {
                           openProjectManager: { YazeIOSBridge.showProjectManagement() },
                           openProjectFile: { YazeIOSBridge.showProjectFileEditor() },
                           hideOverlay: { overlayCollapsed = true })
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
     }
     .sheet(isPresented: $showRomPicker) {
       DocumentPicker(contentTypes: [UTType(filenameExtension: "sfc") ?? .data,
@@ -160,11 +193,6 @@ struct YazeOverlayView: View {
                            iconSize: iconSize,
                            controlSize: controlSize) {
           YazeIOSBridge.showPanelBrowser()
-        }
-        OverlayGlyphButton(systemImage: "chevron.up",
-                           iconSize: iconSize,
-                           controlSize: controlSize) {
-          overlayCollapsed = true
         }
       }
       .padding(.vertical, 6)
@@ -222,6 +250,37 @@ struct YazeOverlayView: View {
     showMainMenu = false
     showProjectPicker = true
   }
+
+  private func handleOverlayCommand(_ command: OverlayCommand) {
+    switch command {
+    case .showMenu:
+      showMainMenu = true
+    case .openRom:
+      openRomPicker()
+    case .openProject:
+      openProjectPicker()
+    case .openAi:
+      openAiPanel()
+    case .openBuild:
+      openBuildPanel()
+    case .openFiles:
+      openFilesPanel()
+    case .openSettings:
+      openSettings()
+    case .showPanelBrowser:
+      YazeIOSBridge.showPanelBrowser()
+    case .showCommandPalette:
+      YazeIOSBridge.showCommandPalette()
+    case .showProjectManager:
+      YazeIOSBridge.showProjectManagement()
+    case .showProjectFile:
+      YazeIOSBridge.showProjectFileEditor()
+    case .hideOverlay:
+      overlayCollapsed = true
+    case .showOverlay:
+      overlayCollapsed = false
+    }
+  }
 }
 
 private struct OverlayGlyphButton: View {
@@ -277,49 +336,68 @@ private struct OverlayMainMenuView: View {
     let hasProject = !settingsStore.settings.general.lastProjectPath.isEmpty
 
     NavigationStack {
-      List {
-        Section("Quick Actions") {
-          Button("Open ROM", systemImage: "folder") { openRomPicker(); dismiss() }
-          Button("Open Project", systemImage: "folder.badge.person.crop") {
-            openProjectPicker(); dismiss()
-          }
-          Button("Panel Browser", systemImage: "rectangle.stack") {
-            openPanelBrowser(); dismiss()
-          }
-          Button("Command Palette", systemImage: "command") {
-            openCommandPalette(); dismiss()
-          }
-        }
-
-        Section("Project") {
-          if hasProject {
-            Button("Project Manager", systemImage: "tray.full") {
-              openProjectManager(); dismiss()
+      GeometryReader { proxy in
+        let columns = proxy.size.width > 700
+          ? [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
+          : [GridItem(.flexible()), GridItem(.flexible())]
+        ScrollView {
+          VStack(alignment: .leading, spacing: 18) {
+            LazyVGrid(columns: columns, spacing: 12) {
+              OverlayMenuTile(title: "Open ROM", systemImage: "folder") {
+                openRomPicker(); dismiss()
+              }
+              OverlayMenuTile(title: "Open Project", systemImage: "folder.badge.person.crop") {
+                openProjectPicker(); dismiss()
+              }
+              OverlayMenuTile(title: "Panel Browser", systemImage: "rectangle.stack") {
+                openPanelBrowser(); dismiss()
+              }
+              OverlayMenuTile(title: "Command Palette", systemImage: "command") {
+                openCommandPalette(); dismiss()
+              }
+              OverlayMenuTile(title: "AI Hosts", systemImage: "sparkles") {
+                openAiPanel(); dismiss()
+              }
+              OverlayMenuTile(title: "Remote Build", systemImage: "hammer") {
+                openBuildPanel(); dismiss()
+              }
+              OverlayMenuTile(title: "Files", systemImage: "doc.on.doc") {
+                openFilesPanel(); dismiss()
+              }
+              OverlayMenuTile(title: "Settings", systemImage: "gearshape") {
+                openSettings(); dismiss()
+              }
             }
-            Button("Project File", systemImage: "doc.text") {
-              openProjectFile(); dismiss()
+
+            VStack(alignment: .leading, spacing: 10) {
+              Text("Project")
+                .font(.headline)
+              HStack(spacing: 12) {
+                OverlayMenuTile(title: "Project Manager", systemImage: "tray.full",
+                                isEnabled: hasProject) {
+                  openProjectManager(); dismiss()
+                }
+                OverlayMenuTile(title: "Project File", systemImage: "doc.text",
+                                isEnabled: hasProject) {
+                  openProjectFile(); dismiss()
+                }
+              }
             }
-          } else {
-            Text("No project loaded yet.")
-              .foregroundStyle(.secondary)
+
+            VStack(alignment: .leading, spacing: 8) {
+              Text("Status")
+                .font(.headline)
+              OverlayStatusRow(label: "ROM", value: romLabel)
+              OverlayStatusRow(label: "Project", value: projectLabel)
+              OverlayStatusRow(label: "State", value: statusValue)
+            }
+
+            OverlayMenuTile(title: "Hide Top Bar", systemImage: "chevron.up") {
+              hideOverlay(); dismiss()
+            }
           }
-        }
-
-        Section("Tools") {
-          Button("AI Hosts", systemImage: "sparkles") { openAiPanel(); dismiss() }
-          Button("Remote Build", systemImage: "hammer") { openBuildPanel(); dismiss() }
-          Button("Files", systemImage: "doc.on.doc") { openFilesPanel(); dismiss() }
-          Button("Settings", systemImage: "gearshape") { openSettings(); dismiss() }
-        }
-
-        Section("Status") {
-          LabeledContent("ROM") { Text(romLabel).lineLimit(1) }
-          LabeledContent("Project") { Text(projectLabel).lineLimit(1) }
-          LabeledContent("State") { Text(statusValue).lineLimit(1) }
-        }
-
-        Section("Overlay") {
-          Button("Hide Top Bar", systemImage: "chevron.up") { hideOverlay(); dismiss() }
+          .padding(.horizontal, 18)
+          .padding(.vertical, 16)
         }
       }
       .navigationTitle("Yaze Menu")
@@ -329,6 +407,56 @@ private struct OverlayMainMenuView: View {
         }
       }
     }
+  }
+}
+
+private struct OverlayMenuTile: View {
+  let title: String
+  let systemImage: String
+  var isEnabled: Bool = true
+  let action: () -> Void
+
+  var body: some View {
+    Button(action: action) {
+      HStack(spacing: 12) {
+        Image(systemName: systemImage)
+          .font(.system(size: 20, weight: .semibold))
+          .frame(width: 32, height: 32)
+        Text(title)
+          .font(.body.weight(.semibold))
+        Spacer()
+      }
+      .padding(.vertical, 12)
+      .padding(.horizontal, 12)
+      .frame(maxWidth: .infinity)
+      .background(.ultraThinMaterial)
+      .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+      .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.18)))
+    }
+    .buttonStyle(.plain)
+    .disabled(!isEnabled)
+    .opacity(isEnabled ? 1.0 : 0.4)
+  }
+}
+
+private struct OverlayStatusRow: View {
+  let label: String
+  let value: String
+
+  var body: some View {
+    HStack {
+      Text(label)
+        .font(.caption)
+        .foregroundStyle(.secondary)
+      Spacer()
+      Text(value)
+        .font(.caption)
+        .lineLimit(1)
+    }
+    .padding(.vertical, 6)
+    .padding(.horizontal, 10)
+    .background(Color.black.opacity(0.15))
+    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
   }
 }
 
@@ -353,9 +481,6 @@ struct SettingsView: View {
                   step: 10)
         }
         Section("Mobile UI") {
-          Toggle("Compact toolbar", isOn: $settingsStore.settings.mobile.compactToolbar)
-          Toggle("Show quick actions", isOn: $settingsStore.settings.mobile.showQuickActions)
-          Toggle("Show status pills", isOn: $settingsStore.settings.mobile.showStatusPills)
           Toggle("Large touch targets", isOn: $settingsStore.settings.mobile.largeTouchTargets)
           Slider(value: $settingsStore.settings.mobile.touchScale, in: 0.85...1.4, step: 0.05) {
             Text("Touch scale")
