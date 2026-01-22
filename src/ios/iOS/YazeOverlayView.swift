@@ -33,6 +33,7 @@ struct YazeOverlayView: View {
   @State private var showProjectPicker = false
   @State private var showExportPicker = false
   @State private var exportURL: URL?
+  @State private var showMainMenu = false
   @State private var overlayCollapsed = false
   @State private var overlayHeight: CGFloat = 0
 
@@ -41,16 +42,14 @@ struct YazeOverlayView: View {
       ZStack(alignment: .top) {
         Color.clear.allowsHitTesting(false)
         let expandedTopPadding = max(8, proxy.safeAreaInsets.top + 6)
-        let collapsedTopPadding = max(16, proxy.safeAreaInsets.top + 14)
-        let collapsedTrailingPadding = max(24, proxy.safeAreaInsets.trailing + 10)
+        let collapsedTopPadding = max(18, proxy.safeAreaInsets.top + 12)
         if overlayCollapsed {
           collapsedHandle
             .padding(.top, collapsedTopPadding)
-            .padding(.leading, 16)
-            .padding(.trailing, collapsedTrailingPadding)
+            .padding(.horizontal, 16)
         } else {
           VStack(spacing: 12) {
-            topBar(width: proxy.size.width)
+            topBar()
               .background(
                 GeometryReader { barProxy in
                   Color.clear.preference(
@@ -98,6 +97,21 @@ struct YazeOverlayView: View {
                              exportURL: $exportURL,
                              showExportPicker: $showExportPicker)
     }
+    .sheet(isPresented: $showMainMenu) {
+      OverlayMainMenuView(settingsStore: settingsStore,
+                          buildStore: buildStore,
+                          openRomPicker: openRomPicker,
+                          openProjectPicker: openProjectPicker,
+                          openAiPanel: openAiPanel,
+                          openBuildPanel: openBuildPanel,
+                          openFilesPanel: openFilesPanel,
+                          openSettings: openSettings,
+                          openPanelBrowser: { YazeIOSBridge.showPanelBrowser() },
+                          openCommandPalette: { YazeIOSBridge.showCommandPalette() },
+                          openProjectManager: { YazeIOSBridge.showProjectManagement() },
+                          openProjectFile: { YazeIOSBridge.showProjectFileEditor() },
+                          hideOverlay: { overlayCollapsed = true })
+    }
     .sheet(isPresented: $showRomPicker) {
       DocumentPicker(contentTypes: [UTType(filenameExtension: "sfc") ?? .data,
                                    UTType(filenameExtension: "smc") ?? .data]) { url in
@@ -124,134 +138,42 @@ struct YazeOverlayView: View {
     }
   }
 
-  private func topBar(width: CGFloat) -> some View {
-    let romLabel = settingsStore.settings.general.lastRomPath.isEmpty
-      ? "No ROM loaded"
-      : URL(fileURLWithPath: settingsStore.settings.general.lastRomPath).lastPathComponent
-    let projectLabel = settingsStore.settings.general.lastProjectPath.isEmpty
-      ? "No project"
-      : URL(fileURLWithPath: settingsStore.settings.general.lastProjectPath).lastPathComponent
-    let statusLabel = settingsStore.statusMessage
-    let mobile = settingsStore.settings.mobile
-    let useCompact = mobile.compactToolbar || width < 720
-    let showQuickActions = mobile.showQuickActions
-    let showStatusPills = mobile.showStatusPills
-    let useLargeControls = mobile.largeTouchTargets
-    let controlSize: ControlSize = useLargeControls ? .large : .regular
-    let hasProject = !settingsStore.settings.general.lastProjectPath.isEmpty
+  private func topBar() -> some View {
+    let useLargeControls = settingsStore.settings.mobile.largeTouchTargets
+    let controlSize: CGFloat = useLargeControls ? 36 : 30
+    let iconSize: CGFloat = useLargeControls ? 20 : 18
 
-    return VStack(alignment: .leading, spacing: 6) {
-      HStack(spacing: 12) {
-        VStack(alignment: .leading, spacing: 2) {
-          Text("Yaze iOS")
-            .font(.headline)
-          Text(romLabel)
-            .font(.caption)
-            .foregroundStyle(.secondary)
+    return HStack {
+      Spacer()
+      HStack(spacing: 10) {
+        OverlayGlyphButton(systemImage: "line.3.horizontal",
+                           iconSize: iconSize,
+                           controlSize: controlSize) {
+          showMainMenu = true
         }
-        Spacer()
-        if useCompact {
-          Menu {
-            Button("Open ROM", systemImage: "folder") { showRomPicker = true }
-            Button("Open Project", systemImage: "folder.badge.person.crop") {
-              showProjectPicker = true
-            }
-            Button("AI Hosts", systemImage: "sparkles") { showAiPanel = true }
-            Button("Remote Build", systemImage: "hammer") { showBuildPanel = true }
-            Button("Files", systemImage: "doc.on.doc") { showFilesystemPanel = true }
-            Button("Settings", systemImage: "gearshape") { showSettings = true }
-            if hasProject {
-              Button("Project Manager", systemImage: "tray.full") {
-                YazeIOSBridge.showProjectManagement()
-              }
-              Button("Project File", systemImage: "doc.text") {
-                YazeIOSBridge.showProjectFileEditor()
-              }
-            }
-            Divider()
-            Button("Panel Browser", systemImage: "rectangle.stack") {
-              YazeIOSBridge.showPanelBrowser()
-            }
-            Button("Command Palette", systemImage: "command") {
-              YazeIOSBridge.showCommandPalette()
-            }
-          } label: {
-            Image(systemName: "ellipsis.circle")
-          }
-          .buttonStyle(.bordered)
-          .controlSize(controlSize)
-        } else {
-          OverlayIconButton(title: "ROM", systemImage: "folder",
-                            controlSize: controlSize) {
-            showRomPicker = true
-          }
-          OverlayIconButton(title: "AI", systemImage: "sparkles",
-                            controlSize: controlSize) {
-            showAiPanel = true
-          }
-          OverlayIconButton(title: "Build", systemImage: "hammer",
-                            controlSize: controlSize) {
-            showBuildPanel = true
-          }
-          OverlayIconButton(title: "Files", systemImage: "doc.on.doc",
-                            controlSize: controlSize) {
-            showFilesystemPanel = true
-          }
-          OverlayIconButton(title: "Settings", systemImage: "gearshape",
-                            style: .prominent, controlSize: controlSize) {
-            showSettings = true
-          }
+        OverlayGlyphButton(systemImage: "folder",
+                           iconSize: iconSize,
+                           controlSize: controlSize) {
+          showRomPicker = true
         }
-        Button {
+        OverlayGlyphButton(systemImage: "rectangle.stack",
+                           iconSize: iconSize,
+                           controlSize: controlSize) {
+          YazeIOSBridge.showPanelBrowser()
+        }
+        OverlayGlyphButton(systemImage: "chevron.up",
+                           iconSize: iconSize,
+                           controlSize: controlSize) {
           overlayCollapsed = true
-        } label: {
-          Image(systemName: "chevron.up")
-        }
-        .buttonStyle(.bordered)
-        .controlSize(controlSize)
-      }
-
-      if showQuickActions {
-        ScrollView(.horizontal, showsIndicators: false) {
-          HStack(spacing: 10) {
-            OverlayActionChip(title: "Open ROM", systemImage: "folder") {
-              showRomPicker = true
-            }
-            OverlayActionChip(title: "Open Project", systemImage: "folder.badge.person.crop") {
-              showProjectPicker = true
-            }
-            OverlayActionChip(title: "AI Hosts", systemImage: "sparkles") {
-              showAiPanel = true
-            }
-            OverlayActionChip(title: "Build", systemImage: "hammer") {
-              showBuildPanel = true
-            }
-            OverlayActionChip(title: "Files", systemImage: "doc.on.doc") {
-              showFilesystemPanel = true
-            }
-            OverlayActionChip(title: "Settings", systemImage: "gearshape") {
-              showSettings = true
-            }
-          }
         }
       }
-
-      if showStatusPills {
-        ScrollView(.horizontal, showsIndicators: false) {
-          HStack(spacing: 10) {
-            InfoPill(label: "ROM", value: romLabel)
-            InfoPill(label: "Project", value: projectLabel)
-            let statusValue = statusLabel.isEmpty ? "Ready" : statusLabel
-            InfoPill(label: "Status", value: statusValue)
-          }
-        }
-      }
+      .padding(.vertical, 6)
+      .padding(.horizontal, 10)
+      .background(.ultraThinMaterial)
+      .clipShape(Capsule())
+      .overlay(Capsule().stroke(Color.white.opacity(0.2)))
+      Spacer()
     }
-    .padding(.vertical, 10)
-    .padding(.horizontal, 12)
-    .background(.ultraThinMaterial)
-    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.2)))
   }
 
   private var collapsedHandle: some View {
@@ -263,80 +185,58 @@ struct YazeOverlayView: View {
         Image(systemName: "line.3.horizontal")
           .font(.headline)
           .padding(.vertical, 6)
-          .padding(.horizontal, 10)
+          .padding(.horizontal, 12)
       }
       .buttonStyle(.borderedProminent)
       .shadow(radius: 6)
+      Spacer()
     }
+  }
+
+  private func openSettings() {
+    showMainMenu = false
+    showSettings = true
+  }
+
+  private func openAiPanel() {
+    showMainMenu = false
+    showAiPanel = true
+  }
+
+  private func openBuildPanel() {
+    showMainMenu = false
+    showBuildPanel = true
+  }
+
+  private func openFilesPanel() {
+    showMainMenu = false
+    showFilesystemPanel = true
+  }
+
+  private func openRomPicker() {
+    showMainMenu = false
+    showRomPicker = true
+  }
+
+  private func openProjectPicker() {
+    showMainMenu = false
+    showProjectPicker = true
   }
 }
 
-private struct InfoPill: View {
-  let label: String
-  let value: String
-
-  var body: some View {
-    HStack(spacing: 6) {
-      Text(label.uppercased())
-        .font(.caption2)
-        .foregroundStyle(.secondary)
-      Text(value)
-        .font(.caption)
-        .lineLimit(1)
-    }
-    .padding(.vertical, 4)
-    .padding(.horizontal, 8)
-    .background(Color.black.opacity(0.2))
-    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-  }
-}
-
-private struct OverlayIconButton: View {
-  enum Style {
-    case normal
-    case prominent
-  }
-
-  let title: String
+private struct OverlayGlyphButton: View {
   let systemImage: String
-  var style: Style = .normal
-  var controlSize: ControlSize = .regular
-  let action: () -> Void
-
-  @ViewBuilder
-  var body: some View {
-    if style == .prominent {
-      Button(action: action) {
-        Label(title, systemImage: systemImage)
-      }
-      .buttonStyle(BorderedProminentButtonStyle())
-      .controlSize(controlSize)
-    } else {
-      Button(action: action) {
-        Label(title, systemImage: systemImage)
-      }
-      .buttonStyle(BorderedButtonStyle())
-      .controlSize(controlSize)
-    }
-  }
-}
-
-private struct OverlayActionChip: View {
-  let title: String
-  let systemImage: String
+  let iconSize: CGFloat
+  let controlSize: CGFloat
   let action: () -> Void
 
   var body: some View {
     Button(action: action) {
-      Label(title, systemImage: systemImage)
-        .labelStyle(.titleAndIcon)
-        .font(.caption)
-        .padding(.vertical, 6)
-        .padding(.horizontal, 10)
+      Image(systemName: systemImage)
+        .font(.system(size: iconSize, weight: .semibold))
+        .frame(width: controlSize, height: controlSize)
     }
-    .buttonStyle(.borderless)
-    .background(Color.black.opacity(0.2))
-    .clipShape(Capsule())
+    .buttonStyle(.plain)
   }
 }
 
@@ -344,6 +244,91 @@ private struct OverlayTopInsetKey: PreferenceKey {
   static var defaultValue: CGFloat = 0
   static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
     value = max(value, nextValue())
+  }
+}
+
+private struct OverlayMainMenuView: View {
+  @Environment(\.dismiss) private var dismiss
+  @ObservedObject var settingsStore: YazeSettingsStore
+  @ObservedObject var buildStore: RemoteBuildStore
+
+  let openRomPicker: () -> Void
+  let openProjectPicker: () -> Void
+  let openAiPanel: () -> Void
+  let openBuildPanel: () -> Void
+  let openFilesPanel: () -> Void
+  let openSettings: () -> Void
+  let openPanelBrowser: () -> Void
+  let openCommandPalette: () -> Void
+  let openProjectManager: () -> Void
+  let openProjectFile: () -> Void
+  let hideOverlay: () -> Void
+
+  var body: some View {
+    let romLabel = settingsStore.settings.general.lastRomPath.isEmpty
+      ? "No ROM loaded"
+      : URL(fileURLWithPath: settingsStore.settings.general.lastRomPath).lastPathComponent
+    let projectLabel = settingsStore.settings.general.lastProjectPath.isEmpty
+      ? "No project"
+      : URL(fileURLWithPath: settingsStore.settings.general.lastProjectPath).lastPathComponent
+    let statusValue = settingsStore.statusMessage.isEmpty
+      ? "Ready"
+      : settingsStore.statusMessage
+    let hasProject = !settingsStore.settings.general.lastProjectPath.isEmpty
+
+    NavigationStack {
+      List {
+        Section("Quick Actions") {
+          Button("Open ROM", systemImage: "folder") { openRomPicker(); dismiss() }
+          Button("Open Project", systemImage: "folder.badge.person.crop") {
+            openProjectPicker(); dismiss()
+          }
+          Button("Panel Browser", systemImage: "rectangle.stack") {
+            openPanelBrowser(); dismiss()
+          }
+          Button("Command Palette", systemImage: "command") {
+            openCommandPalette(); dismiss()
+          }
+        }
+
+        Section("Project") {
+          if hasProject {
+            Button("Project Manager", systemImage: "tray.full") {
+              openProjectManager(); dismiss()
+            }
+            Button("Project File", systemImage: "doc.text") {
+              openProjectFile(); dismiss()
+            }
+          } else {
+            Text("No project loaded yet.")
+              .foregroundStyle(.secondary)
+          }
+        }
+
+        Section("Tools") {
+          Button("AI Hosts", systemImage: "sparkles") { openAiPanel(); dismiss() }
+          Button("Remote Build", systemImage: "hammer") { openBuildPanel(); dismiss() }
+          Button("Files", systemImage: "doc.on.doc") { openFilesPanel(); dismiss() }
+          Button("Settings", systemImage: "gearshape") { openSettings(); dismiss() }
+        }
+
+        Section("Status") {
+          LabeledContent("ROM") { Text(romLabel).lineLimit(1) }
+          LabeledContent("Project") { Text(projectLabel).lineLimit(1) }
+          LabeledContent("State") { Text(statusValue).lineLimit(1) }
+        }
+
+        Section("Overlay") {
+          Button("Hide Top Bar", systemImage: "chevron.up") { hideOverlay(); dismiss() }
+        }
+      }
+      .navigationTitle("Yaze Menu")
+      .toolbar {
+        ToolbarItem(placement: .confirmationAction) {
+          Button("Done") { dismiss() }
+        }
+      }
+    }
   }
 }
 
