@@ -10,6 +10,12 @@ struct Response;
 }  // namespace httplib
 
 namespace yaze {
+namespace emu {
+namespace debug {
+class SymbolProvider;
+}
+}
+
 namespace cli {
 namespace api {
 
@@ -18,6 +24,10 @@ void HandleHealth(const httplib::Request& req, httplib::Response& res);
 
 // List available models
 void HandleListModels(const httplib::Request& req, httplib::Response& res);
+
+// Get current symbol table
+void HandleGetSymbols(const httplib::Request& req, httplib::Response& res,
+                      yaze::emu::debug::SymbolProvider* symbols);
 
 }  // namespace api
 }  // namespace cli

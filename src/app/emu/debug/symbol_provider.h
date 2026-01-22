@@ -182,6 +182,14 @@ class SymbolProvider {
    */
   std::function<std::string(uint32_t)> CreateResolver() const;
 
+  /**
+   * @brief Export all symbols to a string in the specified format
+   *
+   * @param format The format to export to (kMesen, kWlaDx, etc.)
+   * @return A string containing the formatted symbol data
+   */
+  absl::StatusOr<std::string> ExportSymbols(SymbolFormat format) const;
+
  private:
   // Parse different symbol file formats
   absl::Status ParseAsarAsmContent(const std::string& content,

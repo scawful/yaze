@@ -318,6 +318,67 @@ std::function<std::string(uint32_t)> SymbolProvider::CreateResolver() const {
   };
 }
 
+absl::StatusOr<std::string> SymbolProvider::ExportSymbols(
+    SymbolFormat format) const {
+  std::stringstream ss;
+
+  // Collect symbols into a sorted vector
+  std::vector<Symbol> sorted_symbols;
+  sorted_symbols.reserve(symbols_by_address_.size());
+  for (const auto& pair : symbols_by_address_) {
+    sorted_symbols.push_back(pair.second);
+  }
+  // Sort by address then name to ensure deterministic output
+  std::sort(sorted_symbols.begin(), sorted_symbols.end(),
+            [](const Symbol& a, const Symbol& b) {
+              if (a.address != b.address) return a.address < b.address;
+              return a.name < b.name;
+            });
+
+  switch (format) {
+    case SymbolFormat::kMesen: {
+      // Mesen .mlb format:
+      // PRG:start-end:label
+      // or simple address:label
+      // Mesen2 prefers simple address:label or range.
+      // We will use "address:label" for single addresses.
+      for (const auto& sym : sorted_symbols) {
+        ss << absl::StrFormat("PRG:%X:%s\n", sym.address, sym.name);
+      }
+      break;
+    }
+    case SymbolFormat::kWlaDx: {
+      ss << "[labels]\n";
+      for (const auto& sym : sorted_symbols) {
+        uint32_t bank = (sym.address >> 16) & 0xFF;
+        uint32_t offset = sym.address & 0xFFFF;
+        ss << absl::StrFormat("%02X:%04X %s\n", bank, offset, sym.name);
+      }
+      break;
+    }
+    case SymbolFormat::kAsar: {
+      // Export as simple labels.
+      // Note: This isn't perfect for recreating the full source,
+      // but good enough for symbol tables.
+      for (const auto& sym : sorted_symbols) {
+        ss << absl::StrFormat("org $%06X\n%s:\n", sym.address, sym.name);
+      }
+      break;
+    }
+    case SymbolFormat::kBsnes:
+    case SymbolFormat::kNo$snes: {
+      for (const auto& sym : sorted_symbols) {
+        ss << absl::StrFormat("%06X %s\n", sym.address, sym.name);
+      }
+      break;
+    }
+    default:
+      return absl::InvalidArgumentError("Unsupported export format");
+  }
+
+  return ss.str();
+}
+
 absl::Status SymbolProvider::ParseAsarAsmContent(const std::string& content,
                                                  const std::string& filename) {
   std::istringstream stream(content);

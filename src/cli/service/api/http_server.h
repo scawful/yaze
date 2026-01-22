@@ -2,15 +2,23 @@
 #define YAZE_SRC_CLI_SERVICE_API_HTTP_SERVER_H_
 
 #include <atomic>
+#include <functional>
 #include <memory>
 #include <string>
 #include <thread>
 
 #include "absl/status/status.h"
 
-// Forward declaration
 namespace httplib {
 class Server;
+}
+
+namespace yaze {
+namespace emu {
+namespace debug {
+class SymbolProvider;
+}
+}
 }
 
 namespace yaze {
@@ -19,6 +27,8 @@ namespace api {
 
 class HttpServer {
  public:
+  using SymbolProviderSource = std::function<emu::debug::SymbolProvider*()>;
+
   HttpServer();
   ~HttpServer();
 
@@ -31,6 +41,14 @@ class HttpServer {
   // Check if server is running
   bool IsRunning() const;
 
+  // Set the source for symbols
+  void SetSymbolProviderSource(SymbolProviderSource source) {
+    symbol_source_ = std::move(source);
+  }
+
+  // Get current symbol source
+  SymbolProviderSource GetSymbolSource() const { return symbol_source_; }
+
  private:
   void RunServer(int port);
   void RegisterRoutes();
@@ -38,6 +56,7 @@ class HttpServer {
   std::unique_ptr<httplib::Server> server_;
   std::unique_ptr<std::thread> server_thread_;
   std::atomic<bool> is_running_{false};
+  SymbolProviderSource symbol_source_;
 };
 
 }  // namespace api
