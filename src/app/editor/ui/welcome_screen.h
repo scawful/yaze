@@ -131,6 +131,14 @@ class WelcomeScreen {
     right_offset_ = right;
   }
 
+  /**
+   * @brief Set context state for gating actions
+   */
+  void SetContextState(bool has_rom, bool has_project) {
+    has_rom_ = has_rom;
+    has_project_ = has_project;
+  }
+
  private:
   void DrawHeader();
   void DrawQuickActions();
@@ -201,6 +209,10 @@ class WelcomeScreen {
   // Layout offsets for sidebar awareness (so welcome screen centers in dockspace)
   float left_offset_ = 0.0f;
   float right_offset_ = 0.0f;
+
+  // Context state for gating actions
+  bool has_rom_ = false;
+  bool has_project_ = false;
 
   // Deferred refresh for recent projects (avoid mutating during draw loop)
   bool pending_recent_refresh_ = false;
