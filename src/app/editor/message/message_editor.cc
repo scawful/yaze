@@ -154,6 +154,55 @@ absl::Status MessageEditor::Update() {
   return absl::OkStatus();
 }
 
+void MessageEditor::SetGameData(zelda3::GameData* game_data) {
+  Editor::SetGameData(game_data);
+  ApplyFontPalette();
+}
+
+void MessageEditor::ApplyFontPalette() {
+  if (!game_data()) {
+    return;
+  }
+
+  if (!game_data()->palette_groups.hud.empty()) {
+    font_preview_colors_ = game_data()->palette_groups.hud.palette(0);
+  }
+
+  if (font_preview_colors_.empty()) {
+    return;
+  }
+
+  auto queue_refresh = [](gfx::Bitmap& bitmap) {
+    if (!bitmap.is_active()) {
+      return;
+    }
+    const auto command = bitmap.texture()
+                             ? gfx::Arena::TextureCommandType::UPDATE
+                             : gfx::Arena::TextureCommandType::CREATE;
+    gfx::Arena::Get().QueueTextureCommand(command, &bitmap);
+  };
+
+  font_gfx_bitmap_.SetPalette(font_preview_colors_);
+  queue_refresh(font_gfx_bitmap_);
+
+  if (current_font_gfx16_bitmap_.is_active()) {
+    current_font_gfx16_bitmap_.SetPalette(font_preview_colors_);
+    queue_refresh(current_font_gfx16_bitmap_);
+  }
+}
+
+void MessageEditor::EnsureFontTexturesReady() {
+  if (font_gfx_bitmap_.is_active() && !font_gfx_bitmap_.texture()) {
+    gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
+                                          &font_gfx_bitmap_);
+  }
+  if (current_font_gfx16_bitmap_.is_active() &&
+      !current_font_gfx16_bitmap_.texture()) {
+    gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
+                                          &current_font_gfx16_bitmap_);
+  }
+}
+
 void MessageEditor::DrawMessageList() {
   gui::BeginNoPadding();
   if (BeginChild("##MessagesList", ImVec2(0, 0), true,
@@ -240,6 +289,7 @@ void MessageEditor::DrawCurrentMessage() {
   gui::MemoryEditorPopup("Message Data", current_message_.Data);
 
   ImGui::BeginChild("##MessagePreview", ImVec2(0, 0), true, 1);
+  EnsureFontTexturesReady();
   Text("Message Preview");
   if (Button("View Palette")) {
     ImGui::OpenPopup("Palette");
@@ -290,6 +340,7 @@ void MessageEditor::DrawCurrentMessage() {
 }
 
 void MessageEditor::DrawFontAtlas() {
+  EnsureFontTexturesReady();
   gui::BeginCanvas(font_gfx_canvas_, ImVec2(256, 256));
   font_gfx_canvas_.DrawBitmap(font_gfx_bitmap_, 0, 0, 2.0f);
   font_gfx_canvas_.DrawTileSelector(16, 32);
@@ -497,9 +548,11 @@ void MessageEditor::DrawMessagePreview() {
       return;
     }
 
-    // Queue texture update so changes are visible immediately
-    gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::UPDATE, &current_font_gfx16_bitmap_);
+    // Queue texture update (or create if missing) so changes are visible
+    const auto command = current_font_gfx16_bitmap_.texture()
+                             ? gfx::Arena::TextureCommandType::UPDATE
+                             : gfx::Arena::TextureCommandType::CREATE;
+    gfx::Arena::Get().QueueTextureCommand(command, &current_font_gfx16_bitmap_);
 
     LOG_DEBUG(
         "MessageEditor",

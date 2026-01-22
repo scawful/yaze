@@ -44,6 +44,7 @@ class MessageEditor : public Editor {
   void Initialize() override;
   absl::Status Load() override;
   absl::Status Update() override;
+  void SetGameData(zelda3::GameData* game_data) override;
 
   void DrawMessageList();
   void DrawCurrentMessage();
@@ -52,7 +53,7 @@ class MessageEditor : public Editor {
   void DrawSpecialCharacters();
   void DrawExpandedMessageSettings();
   void DrawDictionary();
-  void DrawMessagePreview();
+ void DrawMessagePreview();
   void UpdateCurrentMessageFromText(const std::string& text);
 
   absl::Status Save() override;
@@ -101,8 +102,11 @@ class MessageEditor : public Editor {
   // Panel visibility states
   bool show_message_list_ = false;
   bool show_message_editor_ = false;
-  bool show_font_atlas_ = false;
+ bool show_font_atlas_ = false;
   bool show_dictionary_ = false;
+
+  void ApplyFontPalette();
+  void EnsureFontTexturesReady();
 };
 
 }  // namespace editor
