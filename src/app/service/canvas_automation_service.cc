@@ -8,6 +8,7 @@
 
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/gui/canvas/canvas_automation_api.h"
+#include "app/gui/canvas/coordinate_mapper.h"
 #include "protos/canvas_automation.grpc.pb.h"
 #include "protos/canvas_automation.pb.h"
 
@@ -368,6 +369,74 @@ absl::Status CanvasAutomationServiceImpl::IsTileVisible(
 }
 
 // ============================================================================
+// Coordinate Mapping Operations
+// ============================================================================
+
+absl::Status CanvasAutomationServiceImpl::ScreenToTile(
+    const proto::ScreenToTileRequest* request,
+    proto::ScreenToTileResponse* response) {
+  auto* canvas = GetCanvas(request->canvas_id());
+  if (!canvas) {
+    response->set_success(false);
+    response->set_error("Canvas not found: " + request->canvas_id());
+    return absl::NotFoundError(response->error());
+  }
+
+  // Create a CoordinateMapper and configure it from canvas state
+  gui::CoordinateMapper mapper;
+  mapper.SetCanvasId(request->canvas_id());
+
+  // Get canvas geometry from current state
+  gui::CanvasGeometry geometry;
+  geometry.canvas_p0 = canvas->zero_point();
+  geometry.canvas_sz = canvas->canvas_size();
+  geometry.canvas_p1 = ImVec2(geometry.canvas_p0.x + geometry.canvas_sz.x,
+                               geometry.canvas_p0.y + geometry.canvas_sz.y);
+  geometry.scrolling = canvas->scrolling();
+  mapper.SetGeometry(geometry);
+  mapper.SetScale(canvas->global_scale());
+
+  // Configure tile settings from canvas
+  gui::CoordinateMapperConfig config;
+  config.tile_size = canvas->GetGridStep();
+  config.tiles_per_row = static_cast<int>(canvas->canvas_size().x / config.tile_size);
+  config.tiles_per_col = static_cast<int>(canvas->canvas_size().y / config.tile_size);
+  config.use_tile16 = (config.tile_size == 16.0f);
+  mapper.SetConfig(config);
+
+  // Perform the coordinate mapping
+  auto result = mapper.ScreenToTile(request->screen_x(), request->screen_y());
+
+  // Populate response
+  response->set_success(true);
+  response->set_screen_x(result.screen_x);
+  response->set_screen_y(result.screen_y);
+  response->set_canvas_x(result.canvas_x);
+  response->set_canvas_y(result.canvas_y);
+  response->set_content_x(result.content_x);
+  response->set_content_y(result.content_y);
+  response->set_in_canvas_bounds(result.in_canvas_bounds);
+
+  // Populate tile hit info
+  auto* tile_info = response->mutable_tile_info();
+  tile_info->set_tile_id(result.tile_info.tile_id);
+  tile_info->set_tile16_index(result.tile_info.tile16_index);
+  tile_info->set_rom_offset(result.tile_info.rom_offset);
+  tile_info->set_palette_group(result.tile_info.palette_group);
+  tile_info->set_palette_index(result.tile_info.palette_index);
+  tile_info->set_tile_origin_x(result.tile_info.tile_origin_px.x);
+  tile_info->set_tile_origin_y(result.tile_info.tile_origin_px.y);
+  tile_info->set_tile_width(result.tile_info.tile_size_px.x);
+  tile_info->set_tile_height(result.tile_info.tile_size_px.y);
+  tile_info->set_is_valid(result.tile_info.is_valid);
+  tile_info->set_map_x(result.tile_info.map_x);
+  tile_info->set_map_y(result.tile_info.map_y);
+  tile_info->set_local_map_id(result.tile_info.local_map_id);
+
+  return absl::OkStatus();
+}
+
+// ============================================================================
 // gRPC Service Wrapper
 // ============================================================================
 
@@ -471,6 +540,13 @@ class CanvasAutomationServiceGrpc final
                              const proto::IsTileVisibleRequest* request,
                              proto::IsTileVisibleResponse* response) override {
     return ConvertStatus(impl_->IsTileVisible(request, response));
+  }
+
+  // Coordinate Mapping Operations
+  grpc::Status ScreenToTile(grpc::ServerContext* context,
+                            const proto::ScreenToTileRequest* request,
+                            proto::ScreenToTileResponse* response) override {
+    return ConvertStatus(impl_->ScreenToTile(request, response));
   }
 
  private:

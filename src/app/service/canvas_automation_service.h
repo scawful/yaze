@@ -48,6 +48,8 @@ class GetVisibleRegionRequest;
 class GetVisibleRegionResponse;
 class IsTileVisibleRequest;
 class IsTileVisibleResponse;
+class ScreenToTileRequest;
+class ScreenToTileResponse;
 }  // namespace proto
 
 /**
@@ -112,6 +114,10 @@ class CanvasAutomationServiceImpl {
 
   absl::Status IsTileVisible(const proto::IsTileVisibleRequest* request,
                              proto::IsTileVisibleResponse* response);
+
+  // Coordinate Mapping Operations
+  absl::Status ScreenToTile(const proto::ScreenToTileRequest* request,
+                            proto::ScreenToTileResponse* response);
 
  private:
   gui::Canvas* GetCanvas(const std::string& canvas_id);

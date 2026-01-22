@@ -37,6 +37,9 @@ service CanvasAutomation {
   rpc GetDimensions(GetDimensionsRequest) returns (GetDimensionsResponse);
   rpc GetVisibleRegion(GetVisibleRegionRequest) returns (GetVisibleRegionResponse);
   rpc IsTileVisible(IsTileVisibleRequest) returns (IsTileVisibleResponse);
+
+  // Coordinate Mapping Operations (for visual debugging)
+  rpc ScreenToTile(ScreenToTileRequest) returns (ScreenToTileResponse);
 }
 
 // ============================================================================
@@ -232,5 +235,55 @@ message IsTileVisibleRequest {
 
 message IsTileVisibleResponse {
   bool is_visible = 1;
+}
+
+// ============================================================================
+// Coordinate Mapping Operations (Visual Debugging)
+// ============================================================================
+
+// Extended tile information for coordinate mapping
+message TileHitInfo {
+  int32 tile_id = 1;           // 8x8 tile ID (-1 if invalid)
+  int32 tile16_index = 2;      // 16x16 tile index (-1 if invalid)
+  uint32 rom_offset = 3;       // ROM offset for tile data
+  int32 palette_group = 4;     // Palette group index
+  int32 palette_index = 5;     // Palette index within group
+  float tile_origin_x = 6;     // Top-left X of tile in canvas space (pixels)
+  float tile_origin_y = 7;     // Top-left Y of tile in canvas space (pixels)
+  float tile_width = 8;        // Tile width in pixels
+  float tile_height = 9;       // Tile height in pixels
+  bool is_valid = 10;          // Whether the hit is valid
+  int32 map_x = 11;            // Tile X coordinate in map space
+  int32 map_y = 12;            // Tile Y coordinate in map space
+  int32 local_map_id = 13;     // Local map ID (for overworld)
+}
+
+message ScreenToTileRequest {
+  string canvas_id = 1;        // Canvas to query
+  float screen_x = 2;          // Screen X coordinate (from mouse position)
+  float screen_y = 3;          // Screen Y coordinate (from mouse position)
+}
+
+message ScreenToTileResponse {
+  bool success = 1;
+  string error = 2;
+
+  // Input coordinates
+  float screen_x = 3;
+  float screen_y = 4;
+
+  // Canvas-relative coordinates
+  float canvas_x = 5;
+  float canvas_y = 6;
+
+  // Content coordinates (after scroll/scale)
+  float content_x = 7;
+  float content_y = 8;
+
+  // Tile information
+  TileHitInfo tile_info = 9;
+
+  // Bounds checking
+  bool in_canvas_bounds = 10;
 }
 

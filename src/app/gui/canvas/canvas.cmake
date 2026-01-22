@@ -11,6 +11,7 @@ set(CANVAS_SOURCES
   canvas_performance_integration.cc
   canvas_interaction_handler.cc
   canvas_utils.cc
+  coordinate_mapper.cc
 )
 
 set(CANVAS_HEADERS
@@ -22,6 +23,7 @@ set(CANVAS_HEADERS
   canvas_performance_integration.h
   canvas_interaction_handler.h
   canvas_utils.h
+  coordinate_mapper.h
 )
 
 # Create canvas library
