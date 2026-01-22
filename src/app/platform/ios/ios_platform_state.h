@@ -20,6 +20,9 @@ SafeAreaInsets GetSafeAreaInsets();
 void SetOverlayTopInset(float top);
 float GetOverlayTopInset();
 
+void SetTouchScale(float scale);
+float GetTouchScale();
+
 }  // namespace ios
 }  // namespace platform
 }  // namespace yaze

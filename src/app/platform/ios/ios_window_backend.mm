@@ -37,27 +37,64 @@ UIEdgeInsets GetSafeAreaInsets(MTKView* view) {
 }
 
 void ApplyTouchStyle(MTKView* view) {
+  struct TouchStyleBaseline {
+    bool initialized = false;
+    ImVec2 touch_extra = ImVec2(0.0f, 0.0f);
+    ImVec2 frame_padding = ImVec2(0.0f, 0.0f);
+    ImVec2 item_spacing = ImVec2(0.0f, 0.0f);
+    float scrollbar_size = 0.0f;
+    float grab_min_size = 0.0f;
+  };
+
+  static TouchStyleBaseline baseline;
+
   ImGuiStyle& style = ImGui::GetStyle();
+  if (!baseline.initialized) {
+    baseline.touch_extra = style.TouchExtraPadding;
+    baseline.frame_padding = style.FramePadding;
+    baseline.item_spacing = style.ItemSpacing;
+    baseline.scrollbar_size = style.ScrollbarSize;
+    baseline.grab_min_size = style.GrabMinSize;
+    baseline.initialized = true;
+  }
+
+  float scale = ios::GetTouchScale();
+  if (scale < 0.75f) {
+    scale = 0.75f;
+  } else if (scale > 1.6f) {
+    scale = 1.6f;
+  }
+
   const float frame_height = ImGui::GetFrameHeight();
-  const float target_height = std::max(44.0f, frame_height);
+  const float target_height = std::max(44.0f * scale, frame_height);
   const float touch_extra =
-      std::clamp((target_height - frame_height) * 0.5f, 0.0f, 16.0f);
-  style.TouchExtraPadding = ImVec2(touch_extra, touch_extra);
+      std::clamp((target_height - frame_height) * 0.5f, 0.0f, 16.0f * scale);
+  style.TouchExtraPadding =
+      ImVec2(std::max(baseline.touch_extra.x * scale, touch_extra),
+             std::max(baseline.touch_extra.y * scale, touch_extra));
 
   const float font_size = ImGui::GetFontSize();
   if (font_size > 0.0f) {
-    style.ScrollbarSize = std::max(style.ScrollbarSize, font_size * 1.1f);
-    style.GrabMinSize = std::max(style.GrabMinSize, font_size * 0.9f);
-    style.FramePadding.x = std::max(style.FramePadding.x, font_size * 0.55f);
-    style.FramePadding.y = std::max(style.FramePadding.y, font_size * 0.35f);
-    style.ItemSpacing.x = std::max(style.ItemSpacing.x, font_size * 0.45f);
-    style.ItemSpacing.y = std::max(style.ItemSpacing.y, font_size * 0.35f);
+    style.ScrollbarSize = std::max(baseline.scrollbar_size * scale,
+                                   font_size * 1.1f * scale);
+    style.GrabMinSize =
+        std::max(baseline.grab_min_size * scale, font_size * 0.9f * scale);
+    style.FramePadding.x = std::max(baseline.frame_padding.x * scale,
+                                    font_size * 0.55f * scale);
+    style.FramePadding.y = std::max(baseline.frame_padding.y * scale,
+                                    font_size * 0.35f * scale);
+    style.ItemSpacing.x = std::max(baseline.item_spacing.x * scale,
+                                   font_size * 0.45f * scale);
+    style.ItemSpacing.y = std::max(baseline.item_spacing.y * scale,
+                                   font_size * 0.35f * scale);
   }
 
   const UIEdgeInsets insets = GetSafeAreaInsets(view);
   const float safe_x = std::max(insets.left, insets.right);
   const float safe_y = std::max(insets.top, insets.bottom);
-  style.DisplaySafeAreaPadding = ImVec2(safe_x, safe_y);
+  const float overlay_top = ios::GetOverlayTopInset();
+  const float padded_top = std::max(safe_y, overlay_top);
+  style.DisplaySafeAreaPadding = ImVec2(safe_x, padded_top);
   ios::SetSafeAreaInsets(insets.left, insets.right, insets.top,
                          insets.bottom);
 }
