@@ -220,11 +220,14 @@ yaze::ios::IOSHost g_ios_host;
   // OnInput handles SDL events.
   
   ImGuiIO &io = ImGui::GetIO();
-  io.DisplaySize.x = view.bounds.size.width;
-  io.DisplaySize.y = view.bounds.size.height;
+  const CGSize bounds = view.bounds.size;
+  io.DisplaySize = ImVec2(bounds.width, bounds.height);
 
-  CGFloat framebufferScale = view.window.screen.scale ?: UIScreen.mainScreen.scale;
-  io.DisplayFramebufferScale = ImVec2(framebufferScale, framebufferScale);
+  const float scale_x =
+      bounds.width > 0.0f ? view.drawableSize.width / bounds.width : 1.0f;
+  const float scale_y =
+      bounds.height > 0.0f ? view.drawableSize.height / bounds.height : 1.0f;
+  io.DisplayFramebufferScale = ImVec2(scale_x, scale_y);
 
   g_ios_host.Tick();
 }

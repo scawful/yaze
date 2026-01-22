@@ -40,13 +40,17 @@ struct YazeOverlayView: View {
     GeometryReader { proxy in
       ZStack(alignment: .top) {
         Color.clear.allowsHitTesting(false)
+        let expandedTopPadding = max(8, proxy.safeAreaInsets.top + 6)
+        let collapsedTopPadding = max(16, proxy.safeAreaInsets.top + 14)
+        let collapsedTrailingPadding = max(24, proxy.safeAreaInsets.trailing + 10)
         if overlayCollapsed {
           collapsedHandle
-            .padding(.top, max(8, proxy.safeAreaInsets.top + 6))
-            .padding(.horizontal, 16)
+            .padding(.top, collapsedTopPadding)
+            .padding(.leading, 16)
+            .padding(.trailing, collapsedTrailingPadding)
         } else {
           VStack(spacing: 12) {
-            topBar
+            topBar(width: proxy.size.width)
               .background(
                 GeometryReader { barProxy in
                   Color.clear.preference(
@@ -57,7 +61,7 @@ struct YazeOverlayView: View {
               )
             Spacer()
           }
-          .padding(.top, max(8, proxy.safeAreaInsets.top + 6))
+          .padding(.top, expandedTopPadding)
           .padding(.horizontal, 16)
         }
       }
@@ -114,7 +118,7 @@ struct YazeOverlayView: View {
     }
   }
 
-  private var topBar: some View {
+  private func topBar(width: CGFloat) -> some View {
     let romLabel = settingsStore.settings.general.lastRomPath.isEmpty
       ? "No ROM loaded"
       : URL(fileURLWithPath: settingsStore.settings.general.lastRomPath).lastPathComponent
@@ -122,6 +126,13 @@ struct YazeOverlayView: View {
       ? "No project"
       : URL(fileURLWithPath: settingsStore.settings.general.lastProjectPath).lastPathComponent
     let statusLabel = settingsStore.statusMessage
+    let mobile = settingsStore.settings.mobile
+    let useCompact = mobile.compactToolbar || width < 720
+    let showQuickActions = mobile.showQuickActions
+    let showStatusPills = mobile.showStatusPills
+    let useLargeControls = mobile.largeTouchTargets
+    let controlSize: ControlSize = useLargeControls ? .large : .regular
+    let hasProject = !settingsStore.settings.general.lastProjectPath.isEmpty
 
     return VStack(alignment: .leading, spacing: 6) {
       HStack(spacing: 12) {
@@ -133,30 +144,99 @@ struct YazeOverlayView: View {
             .foregroundStyle(.secondary)
         }
         Spacer()
-        Button("ROM") { showRomPicker = true }
+        if useCompact {
+          Menu {
+            Button("Open ROM", systemImage: "folder") { showRomPicker = true }
+            Button("Open Project", systemImage: "folder.badge.person.crop") {
+              showProjectPicker = true
+            }
+            Button("AI Hosts", systemImage: "sparkles") { showAiPanel = true }
+            Button("Remote Build", systemImage: "hammer") { showBuildPanel = true }
+            Button("Files", systemImage: "doc.on.doc") { showFilesystemPanel = true }
+            Button("Settings", systemImage: "gearshape") { showSettings = true }
+            if hasProject {
+              Button("Project Manager", systemImage: "tray.full") {
+                YazeIOSBridge.showProjectManagement()
+              }
+              Button("Project File", systemImage: "doc.text") {
+                YazeIOSBridge.showProjectFileEditor()
+              }
+            }
+            Divider()
+            Button("Panel Browser", systemImage: "rectangle.stack") {
+              YazeIOSBridge.showPanelBrowser()
+            }
+            Button("Command Palette", systemImage: "command") {
+              YazeIOSBridge.showCommandPalette()
+            }
+          } label: {
+            Image(systemName: "ellipsis.circle")
+          }
           .buttonStyle(.bordered)
-        Button("AI") { showAiPanel = true }
-          .buttonStyle(.bordered)
-        Button("Build") { showBuildPanel = true }
-          .buttonStyle(.bordered)
-        Button("Files") { showFilesystemPanel = true }
-          .buttonStyle(.bordered)
-        Button("Settings") { showSettings = true }
-          .buttonStyle(.borderedProminent)
+          .controlSize(controlSize)
+        } else {
+          OverlayIconButton(title: "ROM", systemImage: "folder",
+                            controlSize: controlSize) {
+            showRomPicker = true
+          }
+          OverlayIconButton(title: "AI", systemImage: "sparkles",
+                            controlSize: controlSize) {
+            showAiPanel = true
+          }
+          OverlayIconButton(title: "Build", systemImage: "hammer",
+                            controlSize: controlSize) {
+            showBuildPanel = true
+          }
+          OverlayIconButton(title: "Files", systemImage: "doc.on.doc",
+                            controlSize: controlSize) {
+            showFilesystemPanel = true
+          }
+          OverlayIconButton(title: "Settings", systemImage: "gearshape",
+                            style: .prominent, controlSize: controlSize) {
+            showSettings = true
+          }
+        }
         Button {
           overlayCollapsed = true
         } label: {
           Image(systemName: "chevron.up")
         }
         .buttonStyle(.bordered)
+        .controlSize(controlSize)
       }
 
-      ScrollView(.horizontal, showsIndicators: false) {
-        HStack(spacing: 10) {
-          InfoPill(label: "ROM", value: romLabel)
-          InfoPill(label: "Project", value: projectLabel)
-          if !statusLabel.isEmpty {
-            InfoPill(label: "Status", value: statusLabel)
+      if showQuickActions {
+        ScrollView(.horizontal, showsIndicators: false) {
+          HStack(spacing: 10) {
+            OverlayActionChip(title: "Open ROM", systemImage: "folder") {
+              showRomPicker = true
+            }
+            OverlayActionChip(title: "Open Project", systemImage: "folder.badge.person.crop") {
+              showProjectPicker = true
+            }
+            OverlayActionChip(title: "AI Hosts", systemImage: "sparkles") {
+              showAiPanel = true
+            }
+            OverlayActionChip(title: "Build", systemImage: "hammer") {
+              showBuildPanel = true
+            }
+            OverlayActionChip(title: "Files", systemImage: "doc.on.doc") {
+              showFilesystemPanel = true
+            }
+            OverlayActionChip(title: "Settings", systemImage: "gearshape") {
+              showSettings = true
+            }
+          }
+        }
+      }
+
+      if showStatusPills {
+        ScrollView(.horizontal, showsIndicators: false) {
+          HStack(spacing: 10) {
+            InfoPill(label: "ROM", value: romLabel)
+            InfoPill(label: "Project", value: projectLabel)
+            let statusValue = statusLabel.isEmpty ? "Ready" : statusLabel
+            InfoPill(label: "Status", value: statusValue)
           }
         }
       }
@@ -205,6 +285,55 @@ private struct InfoPill: View {
   }
 }
 
+private struct OverlayIconButton: View {
+  enum Style {
+    case normal
+    case prominent
+  }
+
+  let title: String
+  let systemImage: String
+  var style: Style = .normal
+  var controlSize: ControlSize = .regular
+  let action: () -> Void
+
+  @ViewBuilder
+  var body: some View {
+    if style == .prominent {
+      Button(action: action) {
+        Label(title, systemImage: systemImage)
+      }
+      .buttonStyle(BorderedProminentButtonStyle())
+      .controlSize(controlSize)
+    } else {
+      Button(action: action) {
+        Label(title, systemImage: systemImage)
+      }
+      .buttonStyle(BorderedButtonStyle())
+      .controlSize(controlSize)
+    }
+  }
+}
+
+private struct OverlayActionChip: View {
+  let title: String
+  let systemImage: String
+  let action: () -> Void
+
+  var body: some View {
+    Button(action: action) {
+      Label(title, systemImage: systemImage)
+        .labelStyle(.titleAndIcon)
+        .font(.caption)
+        .padding(.vertical, 6)
+        .padding(.horizontal, 10)
+    }
+    .buttonStyle(.borderless)
+    .background(Color.black.opacity(0.2))
+    .clipShape(Capsule())
+  }
+}
+
 private struct OverlayTopInsetKey: PreferenceKey {
   static var defaultValue: CGFloat = 0
   static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
@@ -231,6 +360,18 @@ struct SettingsView: View {
                   value: $settingsStore.settings.performance.targetFps,
                   in: 30...120,
                   step: 10)
+        }
+        Section("Mobile UI") {
+          Toggle("Compact toolbar", isOn: $settingsStore.settings.mobile.compactToolbar)
+          Toggle("Show quick actions", isOn: $settingsStore.settings.mobile.showQuickActions)
+          Toggle("Show status pills", isOn: $settingsStore.settings.mobile.showStatusPills)
+          Toggle("Large touch targets", isOn: $settingsStore.settings.mobile.largeTouchTargets)
+          Slider(value: $settingsStore.settings.mobile.touchScale, in: 0.85...1.4, step: 0.05) {
+            Text("Touch scale")
+          }
+          Text("Touch scale: \(settingsStore.settings.mobile.touchScale, specifier: "%.2f")")
+            .font(.caption)
+            .foregroundStyle(.secondary)
         }
         Section("AI Defaults") {
           TextField("Model", text: $settingsStore.settings.ai.model)
