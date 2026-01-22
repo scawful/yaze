@@ -201,6 +201,22 @@ struct YazeSettings: Codable {
     }
   }
 
+  struct Mobile: Codable {
+    var compactToolbar: Bool = false
+    var showQuickActions: Bool = true
+    var showStatusPills: Bool = true
+    var largeTouchTargets: Bool = true
+    var touchScale: Double = 1.0
+
+    enum CodingKeys: String, CodingKey {
+      case compactToolbar = "compact_toolbar"
+      case showQuickActions = "show_quick_actions"
+      case showStatusPills = "show_status_pills"
+      case largeTouchTargets = "large_touch_targets"
+      case touchScale = "touch_scale"
+    }
+  }
+
   var version: Int = 1
   var general: General = General()
   var editor: Editor = Editor()
@@ -212,6 +228,7 @@ struct YazeSettings: Codable {
   var statusBar: StatusBar = StatusBar()
   var layouts: Layouts = Layouts()
   var filesystem: Filesystem = Filesystem()
+  var mobile: Mobile = Mobile()
 }
 
 final class YazeSettingsStore: ObservableObject {

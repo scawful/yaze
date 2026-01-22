@@ -47,4 +47,36 @@
   yaze::platform::ios::SetOverlayTopInset(static_cast<float>(inset));
 }
 
++ (void)showProjectFileEditor {
+  auto *controller = yaze::Application::Instance().GetController();
+  if (!controller || !controller->editor_manager()) {
+    return;
+  }
+  controller->editor_manager()->ShowProjectFileEditor();
+}
+
++ (void)showProjectManagement {
+  auto *controller = yaze::Application::Instance().GetController();
+  if (!controller || !controller->editor_manager()) {
+    return;
+  }
+  controller->editor_manager()->ShowProjectManagement();
+}
+
++ (void)showPanelBrowser {
+  auto *controller = yaze::Application::Instance().GetController();
+  if (!controller || !controller->editor_manager()) {
+    return;
+  }
+  controller->editor_manager()->panel_manager().TriggerShowPanelBrowser();
+}
+
++ (void)showCommandPalette {
+  auto *controller = yaze::Application::Instance().GetController();
+  if (!controller || !controller->editor_manager()) {
+    return;
+  }
+  controller->editor_manager()->panel_manager().TriggerShowCommandPalette();
+}
+
 @end
