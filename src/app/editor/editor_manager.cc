@@ -844,6 +844,30 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
     // Keep welcome screen visible - user may want to do other things
   });
 
+  welcome_screen_.SetOpenProjectDialogCallback([this]() {
+    status_ = OpenProject();
+    if (status_.ok() && ui_coordinator_) {
+      ui_coordinator_->SetWelcomeScreenVisible(false);
+      ui_coordinator_->SetWelcomeScreenManuallyClosed(true);
+    } else if (!status_.ok()) {
+      toast_manager_.Show(
+          absl::StrFormat("Failed to open project: %s", status_.message()),
+          ToastType::kError);
+    }
+  });
+
+  welcome_screen_.SetOpenProjectManagementCallback([this]() {
+    ShowProjectManagement();
+  });
+
+  welcome_screen_.SetOpenProjectFileEditorCallback([this]() {
+    if (current_project_.filepath.empty()) {
+      toast_manager_.Show("No project file to edit", ToastType::kInfo);
+      return;
+    }
+    ShowProjectFileEditor();
+  });
+
   // Initialize editor selection dialog callback
   // editor_selection_dialog_.SetSelectionCallback([this](EditorType type) {
   //   editor_selection_dialog_.MarkRecentlyUsed(type);
