@@ -1,6 +1,7 @@
 #include "controller.h"
 
 #include "app/platform/sdl_compat.h"
+#include "app/application.h"
 
 #if defined(__APPLE__)
 #include <TargetConditionals.h>
@@ -64,6 +65,8 @@ absl::Status Controller::OnEntry(std::string filename) {
     editor_manager_.emulator().set_audio_buffer(audio_buffer.get());
   }
   editor_manager_.emulator().set_audio_device_id(window_backend_->GetAudioDevice());
+
+  editor_manager_.SetAssetLoadMode(Application::Instance().GetConfig().asset_load_mode);
 
   // Initialize editor manager with renderer
   editor_manager_.Initialize(renderer_.get(), filename);
@@ -239,9 +242,13 @@ absl::Status Controller::LoadRomForTesting(const std::string& rom_path) {
   // Use EditorManager's OpenRomOrProject which handles the full initialization:
   // 1. Load ROM file into session
   // 2. ConfigureEditorDependencies()
-  // 3. LoadAssets() - initializes all editors and loads graphics
+  // 3. LoadAssetsForMode() - initializes all editors and loads graphics
   // 4. Updates UI state (hides welcome screen, etc.)
-  return editor_manager_.OpenRomOrProject(rom_path);
+  auto previous_mode = editor_manager_.asset_load_mode();
+  editor_manager_.SetAssetLoadMode(AssetLoadMode::kFull);
+  auto status = editor_manager_.OpenRomOrProject(rom_path);
+  editor_manager_.SetAssetLoadMode(previous_mode);
+  return status;
 }
 
 void Controller::RequestScreenshot(const ScreenshotRequest& request) {

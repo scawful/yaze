@@ -503,13 +503,16 @@ void EditorManager::HandleSessionClosed(size_t index) {
 }
 
 void EditorManager::HandleSessionRomLoaded(size_t index, Rom* rom) {
+  auto* session =
+      static_cast<RomSession*>(session_coordinator_->GetSession(index));
+  ResetAssetState(session);
+
   // Update ContentRegistry when ROM is loaded (if this is the active session)
   if (rom && session_coordinator_ &&
       index == session_coordinator_->GetActiveSessionIndex()) {
     ContentRegistry::Context::SetRom(rom);
     // Also update GameData from the session
-    if (auto* session =
-            static_cast<RomSession*>(session_coordinator_->GetSession(index))) {
+    if (session) {
       ContentRegistry::Context::SetGameData(&session->game_data);
     }
   }
@@ -1144,6 +1147,10 @@ void EditorManager::ApplyStartupVisibility(const AppConfig& config) {
   ApplyStartupVisibilityOverrides();
 }
 
+void EditorManager::SetAssetLoadMode(AssetLoadMode mode) {
+  asset_load_mode_ = mode;
+}
+
 void EditorManager::ApplyStartupVisibilityOverrides() {
   if (ui_coordinator_) {
     ui_coordinator_->SetWelcomeScreenBehavior(welcome_mode_override_);
@@ -1193,6 +1200,194 @@ void EditorManager::ProcessStartupActions(const AppConfig& config) {
   if (config.jump_to_map >= 0) {
     JumpToOverworldMap(config.jump_to_map);
   }
+}
+
+absl::Status EditorManager::LoadAssetsForMode(uint64_t loading_handle) {
+  switch (asset_load_mode_) {
+    case AssetLoadMode::kLazy:
+      return LoadAssetsLazy(loading_handle);
+    case AssetLoadMode::kFull:
+    case AssetLoadMode::kAuto:
+    default:
+      return LoadAssets(loading_handle);
+  }
+}
+
+void EditorManager::ResetAssetState(RomSession* session) {
+  if (!session) {
+    return;
+  }
+  session->game_data_loaded = false;
+  session->editor_initialized.fill(false);
+  session->editor_assets_loaded.fill(false);
+}
+
+void EditorManager::MarkEditorInitialized(RomSession* session, EditorType type) {
+  if (!session) {
+    return;
+  }
+  const size_t index = EditorTypeIndex(type);
+  if (index < session->editor_initialized.size()) {
+    session->editor_initialized[index] = true;
+  }
+}
+
+void EditorManager::MarkEditorLoaded(RomSession* session, EditorType type) {
+  if (!session) {
+    return;
+  }
+  const size_t index = EditorTypeIndex(type);
+  if (index < session->editor_assets_loaded.size()) {
+    session->editor_assets_loaded[index] = true;
+  }
+}
+
+bool EditorManager::EditorRequiresGameData(EditorType type) const {
+  switch (type) {
+    case EditorType::kOverworld:
+    case EditorType::kDungeon:
+    case EditorType::kGraphics:
+    case EditorType::kPalette:
+    case EditorType::kScreen:
+    case EditorType::kSprite:
+    case EditorType::kMessage:
+      return true;
+    default:
+      return false;
+  }
+}
+
+bool EditorManager::EditorInitRequiresGameData(EditorType type) const {
+  return type == EditorType::kMessage;
+}
+
+Editor* EditorManager::GetEditorByType(EditorType type,
+                                       EditorSet* editor_set) const {
+  if (!editor_set) {
+    return nullptr;
+  }
+
+  switch (type) {
+    case EditorType::kAssembly:
+      return editor_set->GetAssemblyEditor();
+    case EditorType::kDungeon:
+      return editor_set->GetDungeonEditor();
+    case EditorType::kGraphics:
+      return editor_set->GetGraphicsEditor();
+    case EditorType::kMusic:
+      return editor_set->GetMusicEditor();
+    case EditorType::kOverworld:
+      return editor_set->GetOverworldEditor();
+    case EditorType::kPalette:
+      return editor_set->GetPaletteEditor();
+    case EditorType::kScreen:
+      return editor_set->GetScreenEditor();
+    case EditorType::kSprite:
+      return editor_set->GetSpriteEditor();
+    case EditorType::kMessage:
+      return editor_set->GetMessageEditor();
+    default:
+      return nullptr;
+  }
+}
+
+absl::Status EditorManager::InitializeEditorForType(EditorType type,
+                                                    EditorSet* editor_set,
+                                                    Rom* rom) {
+  if (!editor_set) {
+    return absl::FailedPreconditionError("No editor set available");
+  }
+
+  if (type == EditorType::kDungeon) {
+    editor_set->GetDungeonEditor()->Initialize(renderer_, rom);
+    return absl::OkStatus();
+  }
+
+  auto* editor = GetEditorByType(type, editor_set);
+  if (!editor) {
+    return absl::OkStatus();
+  }
+  editor->Initialize();
+  return absl::OkStatus();
+}
+
+absl::Status EditorManager::EnsureGameDataLoaded() {
+  auto* session = session_coordinator_
+                      ? session_coordinator_->GetActiveRomSession()
+                      : nullptr;
+  if (!session) {
+    return absl::FailedPreconditionError("No active session");
+  }
+  if (session->game_data_loaded) {
+    return absl::OkStatus();
+  }
+  if (!session->rom.is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+
+  RETURN_IF_ERROR(zelda3::LoadGameData(session->rom, session->game_data));
+  *gfx::Arena::Get().mutable_gfx_sheets() = session->game_data.gfx_bitmaps;
+
+  auto* game_data = &session->game_data;
+  auto* editor_set = &session->editors;
+  editor_set->GetDungeonEditor()->SetGameData(game_data);
+  editor_set->GetOverworldEditor()->SetGameData(game_data);
+  editor_set->GetGraphicsEditor()->SetGameData(game_data);
+  editor_set->GetScreenEditor()->SetGameData(game_data);
+  editor_set->GetPaletteEditor()->SetGameData(game_data);
+  editor_set->GetSpriteEditor()->SetGameData(game_data);
+  editor_set->GetMessageEditor()->SetGameData(game_data);
+
+  ContentRegistry::Context::SetGameData(game_data);
+  session->game_data_loaded = true;
+
+  return absl::OkStatus();
+}
+
+absl::Status EditorManager::EnsureEditorAssetsLoaded(EditorType type) {
+  if (asset_load_mode_ != AssetLoadMode::kLazy) {
+    return absl::OkStatus();
+  }
+
+  if (type == EditorType::kUnknown) {
+    return absl::OkStatus();
+  }
+
+  auto* session = session_coordinator_
+                      ? session_coordinator_->GetActiveRomSession()
+                      : nullptr;
+  if (!session || !session->rom.is_loaded()) {
+    return absl::OkStatus();
+  }
+
+  const size_t index = EditorTypeIndex(type);
+  if (index >= session->editor_initialized.size()) {
+    return absl::InvalidArgumentError("Invalid editor type");
+  }
+
+  if (EditorInitRequiresGameData(type)) {
+    RETURN_IF_ERROR(EnsureGameDataLoaded());
+  }
+
+  if (!session->editor_initialized[index]) {
+    RETURN_IF_ERROR(
+        InitializeEditorForType(type, &session->editors, &session->rom));
+    MarkEditorInitialized(session, type);
+  }
+
+  if (EditorRequiresGameData(type)) {
+    RETURN_IF_ERROR(EnsureGameDataLoaded());
+  }
+
+  if (!session->editor_assets_loaded[index]) {
+    auto* editor = GetEditorByType(type, &session->editors);
+    if (editor) {
+      RETURN_IF_ERROR(editor->Load());
+    }
+    MarkEditorLoaded(session, type);
+  }
+
+  return absl::OkStatus();
 }
 
 /**
@@ -1629,7 +1824,7 @@ void EditorManager::DrawMenuBar() {
  * - Session management: EditorManager (searches for empty session or creates
  * new)
  * - Dependency injection: ConfigureEditorDependencies()
- * - Asset loading: LoadAssets() (calls Initialize/Load on all editors)
+ * - Asset loading: LoadAssetsForMode() (calls Initialize/Load based on mode)
  * - UI updates: UICoordinator (hides welcome, shows editor selection)
  *
  * FLOW:
@@ -1639,7 +1834,7 @@ void EditorManager::DrawMenuBar() {
  * 4. Find empty session or create new session
  * 5. Move ROM into session and set current pointers
  * 6. Configure editor dependencies for the session
- * 7. Load all editor assets
+ * 7. Load editor assets (full or lazy mode)
  * 8. Update UI state and recent files
  */
 absl::Status EditorManager::LoadRom() {
@@ -1687,7 +1882,7 @@ absl::Status EditorManager::LoadRom() {
     manager.AddFile(file_name);
     manager.Save();
 
-    RETURN_IF_ERROR(LoadAssets());
+    RETURN_IF_ERROR(LoadAssetsForMode());
 
     if (ui_coordinator_) {
       ui_coordinator_->SetWelcomeScreenVisible(false);
@@ -1725,6 +1920,12 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
   if (!current_rom || !current_editor_set) {
     return absl::FailedPreconditionError("No ROM or editor set loaded");
   }
+
+  auto* current_session = session_coordinator_->GetActiveRomSession();
+  if (!current_session) {
+    return absl::FailedPreconditionError("No active ROM session");
+  }
+  ResetAssetState(current_session);
 
   auto start_time = std::chrono::steady_clock::now();
 
@@ -1775,29 +1976,33 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
   // Initialize all editors - this registers their cards with PanelManager
   // and sets up any editor-specific resources. Must be called before Load().
   current_editor_set->GetOverworldEditor()->Initialize();
+  MarkEditorInitialized(current_session, EditorType::kOverworld);
   current_editor_set->GetMessageEditor()->Initialize();
+  MarkEditorInitialized(current_session, EditorType::kMessage);
   current_editor_set->GetGraphicsEditor()->Initialize();
+  MarkEditorInitialized(current_session, EditorType::kGraphics);
   current_editor_set->GetScreenEditor()->Initialize();
+  MarkEditorInitialized(current_session, EditorType::kScreen);
   current_editor_set->GetSpriteEditor()->Initialize();
+  MarkEditorInitialized(current_session, EditorType::kSprite);
   current_editor_set->GetPaletteEditor()->Initialize();
+  MarkEditorInitialized(current_session, EditorType::kPalette);
   current_editor_set->GetAssemblyEditor()->Initialize();
+  MarkEditorInitialized(current_session, EditorType::kAssembly);
+  MarkEditorLoaded(current_session, EditorType::kAssembly);
   current_editor_set->GetMusicEditor()->Initialize();
+  MarkEditorInitialized(current_session, EditorType::kMusic);
 
   // Initialize the dungeon editor with the renderer
   current_editor_set->GetDungeonEditor()->Initialize(renderer_, current_rom);
+  MarkEditorInitialized(current_session, EditorType::kDungeon);
 
 #ifdef __EMSCRIPTEN__
   update_progress("Loading graphics sheets...");
 #endif
-  // Get current session's GameData and load Zelda3-specific game data
-  auto* current_session = session_coordinator_->GetActiveRomSession();
-  if (!current_session) {
-    return absl::FailedPreconditionError("No active ROM session");
-  }
-
   // Load all Zelda3-specific data (metadata, palettes, gfx groups, graphics)
-  RETURN_IF_ERROR(
-      zelda3::LoadGameData(*current_rom, current_session->game_data));
+  RETURN_IF_ERROR(zelda3::LoadGameData(*current_rom, current_session->game_data));
+  current_session->game_data_loaded = true;
 
   // Copy loaded graphics to Arena for global access
   *gfx::Arena::Get().mutable_gfx_sheets() =
@@ -1817,21 +2022,25 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
   update_progress("Loading overworld...");
 #endif
   RETURN_IF_ERROR(current_editor_set->GetOverworldEditor()->Load());
+  MarkEditorLoaded(current_session, EditorType::kOverworld);
 
 #ifdef __EMSCRIPTEN__
   update_progress("Loading dungeons...");
 #endif
   RETURN_IF_ERROR(current_editor_set->GetDungeonEditor()->Load());
+  MarkEditorLoaded(current_session, EditorType::kDungeon);
 
 #ifdef __EMSCRIPTEN__
   update_progress("Loading screen editor...");
 #endif
   RETURN_IF_ERROR(current_editor_set->GetScreenEditor()->Load());
+  MarkEditorLoaded(current_session, EditorType::kScreen);
 
 #ifdef __EMSCRIPTEN__
   update_progress("Loading graphics editor...");
 #endif
   RETURN_IF_ERROR(current_editor_set->GetGraphicsEditor()->Load());
+  MarkEditorLoaded(current_session, EditorType::kGraphics);
 
 #ifdef __EMSCRIPTEN__
   update_progress("Loading settings...");
@@ -1843,21 +2052,25 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
   update_progress("Loading sprites...");
 #endif
   RETURN_IF_ERROR(current_editor_set->GetSpriteEditor()->Load());
+  MarkEditorLoaded(current_session, EditorType::kSprite);
 
 #ifdef __EMSCRIPTEN__
   update_progress("Loading messages...");
 #endif
   RETURN_IF_ERROR(current_editor_set->GetMessageEditor()->Load());
+  MarkEditorLoaded(current_session, EditorType::kMessage);
 
 #ifdef __EMSCRIPTEN__
   update_progress("Loading music...");
 #endif
   RETURN_IF_ERROR(current_editor_set->GetMusicEditor()->Load());
+  MarkEditorLoaded(current_session, EditorType::kMusic);
 
 #ifdef __EMSCRIPTEN__
   update_progress("Loading palettes...");
 #endif
   RETURN_IF_ERROR(current_editor_set->GetPaletteEditor()->Load());
+  MarkEditorLoaded(current_session, EditorType::kPalette);
 
 #ifdef __EMSCRIPTEN__
   update_progress("Finishing up...");
@@ -1894,6 +2107,73 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
       end_time - start_time);
   LOG_DEBUG("EditorManager", "ROM assets loaded in %lld ms", duration.count());
 
+  return absl::OkStatus();
+}
+
+absl::Status EditorManager::LoadAssetsLazy(uint64_t passed_handle) {
+  auto* current_rom = GetCurrentRom();
+  auto* current_editor_set = GetCurrentEditorSet();
+  if (!current_rom || !current_editor_set) {
+    return absl::FailedPreconditionError("No ROM or editor set loaded");
+  }
+
+  auto* current_session = session_coordinator_->GetActiveRomSession();
+  if (!current_session) {
+    return absl::FailedPreconditionError("No active ROM session");
+  }
+  ResetAssetState(current_session);
+
+#ifdef __EMSCRIPTEN__
+  // Use passed handle if provided, otherwise create new one
+  auto loading_handle =
+      passed_handle != 0
+          ? static_cast<app::platform::WasmLoadingManager::LoadingHandle>(
+                passed_handle)
+          : app::platform::WasmLoadingManager::BeginLoading(
+                "Loading ROM (lazy assets)");
+  auto cleanup_loading = [&]() {
+    app::platform::WasmLoadingManager::EndLoading(loading_handle);
+  };
+  struct LoadingGuard {
+    std::function<void()> cleanup;
+    bool dismissed = false;
+    ~LoadingGuard() {
+      if (!dismissed) {
+        cleanup();
+      }
+    }
+    void dismiss() { dismissed = true; }
+  } loading_guard{cleanup_loading};
+#else
+  (void)passed_handle;  // Unused on non-WASM
+#endif
+
+  // Set renderer for emulator (lazy initialization happens in Run())
+  if (renderer_) {
+    emulator_.set_renderer(renderer_);
+  }
+
+  // Wire settings panel to right panel manager for the current session.
+  if (right_panel_manager_) {
+    auto* settings = current_editor_set->GetSettingsPanel();
+    right_panel_manager_->SetSettingsPanel(settings);
+    if (settings) {
+      settings->SetProject(&current_project_);
+    }
+  }
+  if (auto* settings = current_editor_set->GetSettingsPanel()) {
+    settings->SetStatusBar(&status_bar_);
+  }
+
+  // Apply user preferences to status bar
+  status_bar_.SetEnabled(user_settings_.prefs().show_status_bar);
+
+#ifdef __EMSCRIPTEN__
+  loading_guard.dismiss();
+  app::platform::WasmLoadingManager::EndLoading(loading_handle);
+#endif
+
+  LOG_INFO("EditorManager", "Lazy asset mode: editor assets deferred");
   return absl::OkStatus();
 }
 
@@ -2057,9 +2337,9 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
     // Pass the loading handle to LoadAssets and dismiss our guard
     // LoadAssets will manage closing the indicator when done
     loading_guard.dismiss();
-    RETURN_IF_ERROR(LoadAssets(loading_handle));
+    RETURN_IF_ERROR(LoadAssetsForMode(loading_handle));
 #else
-    RETURN_IF_ERROR(LoadAssets());
+    RETURN_IF_ERROR(LoadAssetsForMode());
 #endif
 
     // Hide welcome screen and show editor selection when ROM is loaded
@@ -2262,7 +2542,7 @@ absl::Status EditorManager::LoadProjectWithRom() {
     panel_manager_.SetFileBrowserPath("Assembly", current_project_.code_folder);
   }
 
-  RETURN_IF_ERROR(LoadAssets());
+  RETURN_IF_ERROR(LoadAssetsForMode());
 
   // Hide welcome screen and show editor selection when project ROM is loaded
   if (ui_coordinator_) {
@@ -2479,10 +2759,24 @@ std::string EditorManager::GenerateUniqueEditorTitle(
 // ============================================================================
 
 void EditorManager::JumpToDungeonRoom(int room_id) {
+  auto status = EnsureEditorAssetsLoaded(EditorType::kDungeon);
+  if (!status.ok()) {
+    toast_manager_.Show(
+        absl::StrFormat("Failed to prepare Dungeon editor: %s",
+                        status.message()),
+        ToastType::kError);
+  }
   editor_activator_.JumpToDungeonRoom(room_id);
 }
 
 void EditorManager::JumpToOverworldMap(int map_id) {
+  auto status = EnsureEditorAssetsLoaded(EditorType::kOverworld);
+  if (!status.ok()) {
+    toast_manager_.Show(
+        absl::StrFormat("Failed to prepare Overworld editor: %s",
+                        status.message()),
+        ToastType::kError);
+  }
   editor_activator_.JumpToOverworldMap(map_id);
 }
 
@@ -2495,6 +2789,15 @@ void EditorManager::SwitchToEditor(EditorType editor_type, bool force_visible,
     return;
   }
 #endif
+
+  auto status = EnsureEditorAssetsLoaded(editor_type);
+  if (!status.ok()) {
+    toast_manager_.Show(
+        absl::StrFormat("Failed to prepare %s: %s",
+                        kEditorNames[static_cast<int>(editor_type)],
+                        status.message()),
+        ToastType::kError);
+  }
 
   // Delegate all other editor switching to EditorActivator
   editor_activator_.SwitchToEditor(editor_type, force_visible, from_dialog);

@@ -31,6 +31,7 @@ struct AppConfig {
   StartupVisibility welcome_mode = StartupVisibility::kAuto;
   StartupVisibility dashboard_mode = StartupVisibility::kAuto;
   StartupVisibility sidebar_mode = StartupVisibility::kAuto;
+  AssetLoadMode asset_load_mode = AssetLoadMode::kAuto;
 
   // Startup navigation
   std::string startup_editor;            // Editor to open (e.g., "Dungeon")

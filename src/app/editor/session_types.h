@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_SESSION_TYPES_H_
 #define YAZE_APP_EDITOR_SESSION_TYPES_H_
 
+#include <array>
 #include <string>
 #include <vector>
 
@@ -83,6 +84,9 @@ struct RomSession {
   std::string custom_name;  // User-defined session name
   std::string filepath;     // ROM filepath for duplicate detection
   core::FeatureFlags::Flags feature_flags;  // Per-session feature flags
+  bool game_data_loaded = false;
+  std::array<bool, kEditorTypeCount> editor_initialized{};
+  std::array<bool, kEditorTypeCount> editor_assets_loaded{};
 
   RomSession() = default;
   explicit RomSession(Rom&& r, UserSettings* user_settings = nullptr,
