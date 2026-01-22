@@ -86,6 +86,9 @@ absl::Status SDL3WindowBackend::Initialize(const WindowConfig& config) {
   if (config.high_dpi) {
     flags |= SDL_WINDOW_HIGH_PIXEL_DENSITY;
   }
+  if (config.hidden) {
+    flags |= SDL_WINDOW_HIDDEN;
+  }
 
   // Create window
   // Note: SDL3 uses SDL_CreateWindow with different signature
@@ -374,6 +377,18 @@ std::string SDL3WindowBackend::GetTitle() const {
 void SDL3WindowBackend::SetTitle(const std::string& title) {
   if (window_) {
     SDL_SetWindowTitle(window_.get(), title.c_str());
+  }
+}
+
+void SDL3WindowBackend::ShowWindow() {
+  if (window_) {
+    SDL_ShowWindow(window_.get());
+  }
+}
+
+void SDL3WindowBackend::HideWindow() {
+  if (window_) {
+    SDL_HideWindow(window_.get());
   }
 }
 

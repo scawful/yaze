@@ -28,6 +28,8 @@ class IOSWindowBackend final : public IWindowBackend {
   void SetSize(int width, int height) override;
   std::string GetTitle() const override;
   void SetTitle(const std::string& title) override;
+  void ShowWindow() override;
+  void HideWindow() override;
 
   bool InitializeRenderer(gfx::IRenderer* renderer) override;
   SDL_Window* GetNativeWindow() override;

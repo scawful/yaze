@@ -2,11 +2,8 @@
 
 #include "cli/service/api/api_handlers.h"
 #include "util/log.h"
+#include "app/application.h"
 
-// Include httplib implementation in one file or just use the header if
-// header-only usually cpp-httplib is header only, so just including is enough.
-// However, we need to be careful about multiple definitions if we include it in
-// multiple .cc files without precautions? cpp-httplib is header only.
 #include "httplib.h"
 
 namespace yaze {
@@ -30,17 +27,12 @@ absl::Status HttpServer::Start(int port) {
 
   RegisterRoutes();
 
-  // Start server in a separate thread
   is_running_ = true;
-
-  // Capture server pointer to avoid race conditions if 'this' is destroyed
-  // (though HttpServer shouldn't be)
   server_thread_ = std::make_unique<std::thread>([this, port]() {
     LOG_INFO("HttpServer", "Starting API server on port %d", port);
     bool ret = server_->listen("0.0.0.0", port);
     if (!ret) {
-      LOG_ERROR("HttpServer",
-                "Failed to listen on port %d. Port might be in use.", port);
+      LOG_ERROR("HttpServer", "Failed to listen on port %d", port);
     }
     is_running_ = false;
   });
@@ -76,9 +68,35 @@ void HttpServer::RegisterRoutes() {
     HandleGetSymbols(req, res, symbols);
   });
 
-  // Handle CORS options for all routes?
-  // For now, we set CORS headers in individual handlers or via a middleware if
-  // httplib supported it easily.
+  server_->Post("/api/v1/window/show",
+                [](const httplib::Request&, httplib::Response& res) {
+                  auto* ctrl = Application::Instance().GetController();
+                  if (ctrl) {
+                    ctrl->ShowWindow();
+                    res.set_content(R"({"status":"ok", "window":"shown"})",
+                                    "application/json");
+                  } else {
+                    res.status = 500;
+                    res.set_content(
+                        R"({"status":"error", "message":"controller not ready"})",
+                        "application/json");
+                  }
+                });
+
+  server_->Post("/api/v1/window/hide",
+                [](const httplib::Request&, httplib::Response& res) {
+                  auto* ctrl = Application::Instance().GetController();
+                  if (ctrl) {
+                    ctrl->HideWindow();
+                    res.set_content(R"({"status":"ok", "window":"hidden"})",
+                                    "application/json");
+                  } else {
+                    res.status = 500;
+                    res.set_content(
+                        R"({"status":"error", "message":"controller not ready"})",
+                        "application/json");
+                  }
+                });
 }
 
 }  // namespace api

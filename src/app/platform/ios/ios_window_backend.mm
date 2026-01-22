@@ -179,6 +179,26 @@ void IOSWindowBackend::SetTitle(const std::string& title) {
   title_ = title;
 }
 
+void IOSWindowBackend::ShowWindow() {
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+  if (metal_view_) {
+    auto* view = static_cast<MTKView*>(metal_view_);
+    view.hidden = NO;
+  }
+#endif
+  status_.is_active = true;
+}
+
+void IOSWindowBackend::HideWindow() {
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+  if (metal_view_) {
+    auto* view = static_cast<MTKView*>(metal_view_);
+    view.hidden = YES;
+  }
+#endif
+  status_.is_active = false;
+}
+
 bool IOSWindowBackend::InitializeRenderer(gfx::IRenderer* renderer) {
   if (!renderer || !metal_view_) {
     return false;

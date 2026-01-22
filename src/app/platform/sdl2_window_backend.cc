@@ -80,6 +80,9 @@ absl::Status SDL2WindowBackend::Initialize(const WindowConfig& config) {
   if (config.high_dpi) {
     flags |= SDL_WINDOW_ALLOW_HIGHDPI;
   }
+  if (config.hidden) {
+    flags |= SDL_WINDOW_HIDDEN;
+  }
 
   // Create window
   window_ = std::unique_ptr<SDL_Window, util::SDL_Deleter>(
@@ -352,6 +355,18 @@ std::string SDL2WindowBackend::GetTitle() const {
 void SDL2WindowBackend::SetTitle(const std::string& title) {
   if (window_) {
     SDL_SetWindowTitle(window_.get(), title.c_str());
+  }
+}
+
+void SDL2WindowBackend::ShowWindow() {
+  if (window_) {
+    SDL_ShowWindow(window_.get());
+  }
+}
+
+void SDL2WindowBackend::HideWindow() {
+  if (window_) {
+    SDL_HideWindow(window_.get());
   }
 }
 
