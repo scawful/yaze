@@ -241,10 +241,15 @@ if(YAZE_PLATFORM_IOS)
   list(REMOVE_DUPLICATES YAZE_IOS_BUNDLE_INPUTS)
 
   if(YAZE_IOS_BUNDLE_INPUTS)
+    set(YAZE_IOS_BUNDLE_FILELIST "${CMAKE_BINARY_DIR}/ios/bundle_inputs.txt")
+    file(GENERATE
+      OUTPUT ${YAZE_IOS_BUNDLE_FILELIST}
+      CONTENT "$<JOIN:${YAZE_IOS_BUNDLE_INPUTS},\n>"
+    )
     add_custom_command(
       OUTPUT ${YAZE_IOS_BUNDLE_OUTPUT}
       COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/ios
-      COMMAND xcrun --sdk ${YAZE_IOS_SDK} libtool -static -o ${YAZE_IOS_BUNDLE_OUTPUT} ${YAZE_IOS_BUNDLE_INPUTS}
+      COMMAND xcrun --sdk ${YAZE_IOS_SDK} libtool -static -o ${YAZE_IOS_BUNDLE_OUTPUT} -filelist ${YAZE_IOS_BUNDLE_FILELIST}
       DEPENDS ${YAZE_IOS_BUNDLE_TARGETS} ${YAZE_IOS_ABSL_LIBS}
       COMMAND_EXPAND_LISTS
       COMMENT "Bundling yaze iOS static libraries"

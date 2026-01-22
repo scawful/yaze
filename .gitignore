@@ -36,6 +36,7 @@ CMakeUserPresets.json
 src/ios/yaze_ios.xcodeproj/
 src/ios/yaze.xcodeproj/xcuserdata/
 src/ios/yaze.xcodeproj/project.xcworkspace/xcuserdata/
+src/ios/build/
 
 # Test outputs
 test_screenshots/
