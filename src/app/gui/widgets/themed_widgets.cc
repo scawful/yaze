@@ -232,7 +232,13 @@ bool TransparentIconButton(const char* icon, const ImVec2& size,
       text_color = ConvertColorToImVec4(theme.primary);  // Default to theme primary
     }
   } else {
-    text_color = ConvertColorToImVec4(theme.text_secondary);
+    if (active_color.w > 0.0f) {
+      text_color = active_color;
+      text_color.w = std::min(text_color.w, 0.7f);
+    } else {
+      text_color = ConvertColorToImVec4(theme.text_primary);
+      text_color.w *= 0.7f;
+    }
   }
   ImGui::PushStyleColor(ImGuiCol_Text, text_color);
 

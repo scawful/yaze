@@ -39,17 +39,19 @@ class DashboardPanel {
     std::string shortcut;
     EditorType type;
     bool recently_used = false;
+    bool requires_rom = true;
   };
 
   void DrawWelcomeHeader();
   void DrawRecentEditors();
   void DrawEditorGrid();
   void DrawEditorPanel(const EditorInfo& info, int index,
-                       const ImVec2& card_size);
+                       const ImVec2& card_size, bool enabled);
 
   EditorManager* editor_manager_;
   gui::PanelWindow window_;
   bool show_ = true;
+  bool has_rom_ = false;
 
   std::vector<EditorInfo> editors_;
   std::vector<EditorType> recent_editors_;

@@ -202,11 +202,17 @@ bool EditorSelectionDialog::Show(bool* p_open) {
 
   // Set window properties immediately before Begin to prevent them from
   // affecting tooltips
-  ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+  ImGuiViewport* viewport = ImGui::GetMainViewport();
+  ImVec2 center = viewport->GetCenter();
+  ImVec2 view_size = viewport->WorkSize;
+  float target_width = std::clamp(view_size.x * 0.9f, 520.0f, 980.0f);
+  float target_height = std::clamp(view_size.y * 0.88f, 420.0f, 760.0f);
   ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-  ImGui::SetNextWindowSize(
-      ImVec2(950, 650),
-      ImGuiCond_Appearing);  // Slightly larger for better layout
+  ImGui::SetNextWindowSize(ImVec2(target_width, target_height),
+                           ImGuiCond_Appearing);
+  ImGui::SetNextWindowSizeConstraints(
+      ImVec2(420.0f, 360.0f),
+      ImVec2(view_size.x * 0.98f, view_size.y * 0.95f));
 
   if (ImGui::Begin("Editor Selection", window_open,
                    ImGuiWindowFlags_NoCollapse)) {
@@ -227,12 +233,18 @@ bool EditorSelectionDialog::Show(bool* p_open) {
     ImGui::Spacing();
 
     const float scale = GetEditorSelectScale();
-    const float min_width = kEditorSelectCardBaseWidth * scale;
-    const float max_width =
-        kEditorSelectCardBaseWidth * kEditorSelectCardWidthMaxFactor * scale;
-    const float min_height = kEditorSelectCardBaseHeight * scale;
-    const float max_height =
-        kEditorSelectCardBaseHeight * kEditorSelectCardHeightMaxFactor * scale;
+    const float compact_scale =
+        ImGui::GetContentRegionAvail().x < 620.0f ? 0.85f : 1.0f;
+    const float min_width =
+        kEditorSelectCardBaseWidth * scale * compact_scale;
+    const float max_width = kEditorSelectCardBaseWidth *
+                            kEditorSelectCardWidthMaxFactor * scale *
+                            compact_scale;
+    const float min_height =
+        kEditorSelectCardBaseHeight * scale * compact_scale;
+    const float max_height = kEditorSelectCardBaseHeight *
+                             kEditorSelectCardHeightMaxFactor * scale *
+                             compact_scale;
     const float spacing = ImGui::GetStyle().ItemSpacing.x;
     const float aspect_ratio = min_height / std::max(min_width, 1.0f);
     GridLayout layout = ComputeGridLayout(
@@ -317,9 +329,19 @@ void EditorSelectionDialog::DrawQuickAccessButtons() {
       kEditorSelectRecentBaseWidth * kEditorSelectRecentWidthMaxFactor * scale;
   const float height = kEditorSelectRecentBaseHeight * scale;
   const float spacing = ImGui::GetStyle().ItemSpacing.x;
-  GridLayout layout = ComputeGridLayout(
-      ImGui::GetContentRegionAvail().x, min_width, max_width, height, height,
-      min_width, height / std::max(min_width, 1.0f), spacing);
+  const float avail_width = ImGui::GetContentRegionAvail().x;
+  const bool stack_items = avail_width < min_width * 1.6f;
+  GridLayout layout{};
+  if (stack_items) {
+    layout.columns = 1;
+    layout.item_width = avail_width;
+    layout.item_height = height;
+    layout.spacing = spacing;
+  } else {
+    layout = ComputeGridLayout(
+        avail_width, min_width, max_width, height, height, min_width,
+        height / std::max(min_width, 1.0f), spacing);
+  }
 
   int column = 0;
   for (EditorType type : recent_editors_) {

@@ -171,7 +171,7 @@ DashboardPanel::DashboardPanel(EditorManager* editor_manager)
        absl::StrFormat("%s+Shift+E", ctrl), EditorType::kEmulator},
       {"AI Agent", ICON_MD_SMART_TOY,
        "Configure AI agent, collaboration, and automation",
-       absl::StrFormat("%s+Shift+A", ctrl), EditorType::kAgent},
+       absl::StrFormat("%s+Shift+A", ctrl), EditorType::kAgent, false, false},
   };
 
   LoadRecentEditors();
@@ -182,14 +182,33 @@ void DashboardPanel::Draw() {
     return;
 
   // Set window properties immediately before Begin
-  ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+  ImGuiViewport* viewport = ImGui::GetMainViewport();
+  ImVec2 center = viewport->GetCenter();
+  ImVec2 view_size = viewport->WorkSize;
+  float target_width = std::clamp(view_size.x * 0.9f, 520.0f, 1000.0f);
+  float target_height = std::clamp(view_size.y * 0.88f, 420.0f, 780.0f);
   ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-  ImGui::SetNextWindowSize(ImVec2(950, 650), ImGuiCond_Appearing);
+  ImGui::SetNextWindowSize(ImVec2(target_width, target_height),
+                           ImGuiCond_Appearing);
+  ImGui::SetNextWindowSizeConstraints(
+      ImVec2(420.0f, 360.0f),
+      ImVec2(view_size.x * 0.98f, view_size.y * 0.95f));
+
+  has_rom_ = editor_manager_ && editor_manager_->GetCurrentRom() &&
+             editor_manager_->GetCurrentRom()->is_loaded();
 
   if (window_.Begin(&show_)) {
     DrawWelcomeHeader();
     ImGui::Separator();
     ImGui::Spacing();
+
+    if (!has_rom_) {
+      const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+      ImVec4 info_color = gui::ConvertColorToImVec4(theme.text_secondary);
+      ImGui::TextColored(info_color,
+                         ICON_MD_INFO " Load a ROM to enable editors.");
+      ImGui::Spacing();
+    }
 
     DrawRecentEditors();
     if (!recent_editors_.empty()) {
@@ -265,29 +284,42 @@ void DashboardPanel::DrawRecentEditors() {
 
       ImGui::TableNextColumn();
 
+      const bool enabled = has_rom_ || !it->requires_rom;
+      const float alpha = enabled ? 1.0f : 0.35f;
       const ImVec4 base_color = GetEditorAccentColor(it->type, theme);
       ImGui::PushStyleColor(ImGuiCol_Button,
-                            ScaleColor(base_color, 0.5f, 0.7f));
+                            ScaleColor(base_color, 0.5f, 0.7f * alpha));
       ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                            ScaleColor(base_color, 0.7f, 0.9f));
-      ImGui::PushStyleColor(ImGuiCol_ButtonActive, WithAlpha(base_color, 1.0f));
+                            ScaleColor(base_color, 0.7f, 0.9f * alpha));
+      ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                            WithAlpha(base_color, 1.0f * alpha));
 
       ImVec2 button_size(
           stack_items ? avail_width : row_layout.item_width,
           row_layout.item_height > 0.0f ? row_layout.item_height : height);
+      if (!enabled) {
+        ImGui::BeginDisabled();
+      }
       if (ImGui::Button(absl::StrCat(it->icon, " ", it->name).c_str(),
                         button_size)) {
-        if (editor_manager_) {
+        if (enabled && editor_manager_) {
           MarkRecentlyUsed(type);
           editor_manager_->SwitchToEditor(type);
           show_ = false;
         }
       }
+      if (!enabled) {
+        ImGui::EndDisabled();
+      }
 
       ImGui::PopStyleColor(3);
 
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("%s", it->description.c_str());
+        if (!enabled) {
+          ImGui::SetTooltip("Load a ROM to open %s", it->name.c_str());
+        } else {
+          ImGui::SetTooltip("%s", it->description.c_str());
+        }
       }
     }
     ImGui::EndTable();
@@ -301,15 +333,21 @@ void DashboardPanel::DrawEditorGrid() {
 
   const ImGuiStyle& style = ImGui::GetStyle();
   const float avail_width = ImGui::GetContentRegionAvail().x;
+  const float scale = ImGui::GetFontSize() / 16.0f;
+  const float compact_scale = avail_width < 620.0f ? 0.85f : 1.0f;
   const float min_width =
-      kDashboardCardBaseWidth * kDashboardCardMinWidthFactor;
+      kDashboardCardBaseWidth * kDashboardCardMinWidthFactor * scale *
+      compact_scale;
   const float max_width =
-      kDashboardCardBaseWidth * kDashboardCardWidthMaxFactor;
+      kDashboardCardBaseWidth * kDashboardCardWidthMaxFactor * scale *
+      compact_scale;
   const float min_height =
-      std::max(kDashboardCardBaseHeight * kDashboardCardMinHeightFactor,
+      std::max(kDashboardCardBaseHeight * kDashboardCardMinHeightFactor * scale *
+                   compact_scale,
                ImGui::GetFrameHeight() * 3.2f);
   const float max_height =
-      kDashboardCardBaseHeight * kDashboardCardHeightMaxFactor;
+      kDashboardCardBaseHeight * kDashboardCardHeightMaxFactor * scale *
+      compact_scale;
   const float aspect_ratio =
       kDashboardCardBaseHeight / std::max(kDashboardCardBaseWidth, 1.0f);
   const float spacing = style.ItemSpacing.x;
@@ -325,8 +363,9 @@ void DashboardPanel::DrawEditorGrid() {
   if (ImGui::BeginTable("DashboardEditorGrid", layout.columns, table_flags)) {
     for (size_t i = 0; i < editors_.size(); ++i) {
       ImGui::TableNextColumn();
+      const bool enabled = has_rom_ || !editors_[i].requires_rom;
       DrawEditorPanel(editors_[i], static_cast<int>(i),
-                      ImVec2(layout.item_width, layout.item_height));
+                      ImVec2(layout.item_width, layout.item_height), enabled);
     }
     ImGui::EndTable();
   }
@@ -334,14 +373,17 @@ void DashboardPanel::DrawEditorGrid() {
 }
 
 void DashboardPanel::DrawEditorPanel(const EditorInfo& info, int index,
-                                     const ImVec2& card_size) {
+                                     const ImVec2& card_size, bool enabled) {
   ImGui::PushID(index);
 
   const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+  const float disabled_alpha = enabled ? 1.0f : 0.35f;
   const ImVec4 base_color = GetEditorAccentColor(info.type, theme);
-  const ImVec4 text_primary = gui::ConvertColorToImVec4(theme.text_primary);
-  const ImVec4 text_secondary = gui::ConvertColorToImVec4(theme.text_secondary);
+  ImVec4 text_primary = gui::ConvertColorToImVec4(theme.text_primary);
+  ImVec4 text_secondary = gui::ConvertColorToImVec4(theme.text_secondary);
   const ImVec4 accent = gui::ConvertColorToImVec4(theme.accent);
+  text_primary.w *= enabled ? 1.0f : 0.5f;
+  text_secondary.w *= enabled ? 1.0f : 0.5f;
   ImFont* text_font = ImGui::GetFont();
   const float text_font_size = ImGui::GetFontSize();
 
@@ -376,8 +418,10 @@ void DashboardPanel::DrawEditorPanel(const EditorInfo& info, int index,
                              info.type) != recent_editors_.end();
 
   // Create gradient background
-  ImU32 color_top = ImGui::GetColorU32(ScaleColor(base_color, 0.4f, 0.85f));
-  ImU32 color_bottom = ImGui::GetColorU32(ScaleColor(base_color, 0.2f, 0.9f));
+  ImU32 color_top =
+      ImGui::GetColorU32(ScaleColor(base_color, 0.4f, 0.85f * disabled_alpha));
+  ImU32 color_bottom =
+      ImGui::GetColorU32(ScaleColor(base_color, 0.2f, 0.9f * disabled_alpha));
 
   // Draw gradient card background
   draw_list->AddRectFilledMultiColor(
@@ -386,9 +430,12 @@ void DashboardPanel::DrawEditorPanel(const EditorInfo& info, int index,
       color_top, color_bottom, color_bottom);
 
   // Colored border
-  ImU32 border_color =
-      is_recent ? ImGui::GetColorU32(WithAlpha(base_color, 1.0f))
-                : ImGui::GetColorU32(ScaleColor(base_color, 0.6f, 0.7f));
+  ImU32 border_color = is_recent
+                           ? ImGui::GetColorU32(
+                                 WithAlpha(base_color, 1.0f * disabled_alpha))
+                           : ImGui::GetColorU32(
+                                 ScaleColor(base_color, 0.6f,
+                                            0.7f * disabled_alpha));
   const float rounding = std::max(style.FrameRounding, card_size.y * 0.05f);
   const float border_thickness =
       is_recent ? std::max(2.0f, style.FrameBorderSize + 1.0f)
@@ -420,18 +467,27 @@ void DashboardPanel::DrawEditorPanel(const EditorInfo& info, int index,
   button_bg.w = 0.0f;
   ImGui::PushStyleColor(ImGuiCol_Button, button_bg);
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                        ScaleColor(base_color, 0.3f, 0.5f));
+                        ScaleColor(base_color, 0.3f,
+                                   enabled ? 0.5f : 0.2f));
   ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                        ScaleColor(base_color, 0.5f, 0.7f));
+                        ScaleColor(base_color, 0.5f,
+                                   enabled ? 0.7f : 0.2f));
 
+  if (!enabled) {
+    ImGui::BeginDisabled();
+  }
   bool clicked =
       ImGui::Button(absl::StrCat("##", info.name).c_str(), card_size);
+  if (!enabled) {
+    ImGui::EndDisabled();
+  }
   bool is_hovered = ImGui::IsItemHovered();
 
   ImGui::PopStyleColor(3);
 
   // Draw icon with colored background circle
-  ImU32 icon_bg = ImGui::GetColorU32(base_color);
+  ImU32 icon_bg =
+      ImGui::GetColorU32(WithAlpha(base_color, 1.0f * disabled_alpha));
   draw_list->AddCircleFilled(icon_center, icon_radius, icon_bg, 32);
 
   // Draw icon
@@ -462,9 +518,10 @@ void DashboardPanel::DrawEditorPanel(const EditorInfo& info, int index,
   const ImVec2 name_pos(name_x, title_y);
   const ImVec4 name_clip(name_min_x, cursor_pos.y + padding_y, name_max_x,
                          footer_y);
-  draw_list->AddText(text_font, text_font_size, name_pos,
-                     ImGui::GetColorU32(base_color), info.name.c_str(), nullptr,
-                     0.0f, &name_clip);
+  draw_list->AddText(
+      text_font, text_font_size, name_pos,
+      ImGui::GetColorU32(WithAlpha(base_color, disabled_alpha)),
+      info.name.c_str(), nullptr, 0.0f, &name_clip);
 
   // Draw shortcut hint if available
   if (!info.shortcut.empty()) {
@@ -479,7 +536,9 @@ void DashboardPanel::DrawEditorPanel(const EditorInfo& info, int index,
 
   // Hover glow effect
   if (is_hovered) {
-    ImU32 glow_color = ImGui::GetColorU32(ScaleColor(base_color, 1.0f, 0.18f));
+    ImU32 glow_color =
+        ImGui::GetColorU32(ScaleColor(base_color, 1.0f,
+                                      enabled ? 0.18f : 0.08f));
     draw_list->AddRectFilled(
         cursor_pos,
         ImVec2(cursor_pos.x + card_size.x, cursor_pos.y + card_size.y),
@@ -492,17 +551,21 @@ void DashboardPanel::DrawEditorPanel(const EditorInfo& info, int index,
     ImGui::SetNextWindowSize(ImVec2(tooltip_width, 0), ImGuiCond_Always);
     ImGui::BeginTooltip();
     ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[1]);  // Medium font
-    ImGui::TextColored(base_color, "%s %s", info.icon.c_str(),
-                       info.name.c_str());
+    ImGui::TextColored(WithAlpha(base_color, disabled_alpha), "%s %s",
+                       info.icon.c_str(), info.name.c_str());
     ImGui::PopFont();
     ImGui::Separator();
     ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + tooltip_width - 20.0f);
-    ImGui::TextWrapped("%s", info.description.c_str());
+    if (!enabled) {
+      ImGui::TextWrapped("Load a ROM to open this editor.");
+    } else {
+      ImGui::TextWrapped("%s", info.description.c_str());
+    }
     ImGui::PopTextWrapPos();
-    if (!info.shortcut.empty()) {
+    if (enabled && !info.shortcut.empty()) {
       ImGui::Spacing();
-      ImGui::TextColored(base_color, ICON_MD_KEYBOARD " %s",
-                         info.shortcut.c_str());
+      ImGui::TextColored(WithAlpha(base_color, disabled_alpha),
+                         ICON_MD_KEYBOARD " %s", info.shortcut.c_str());
     }
     if (is_recent) {
       ImGui::Spacing();
@@ -511,7 +574,7 @@ void DashboardPanel::DrawEditorPanel(const EditorInfo& info, int index,
     ImGui::EndTooltip();
   }
 
-  if (clicked) {
+  if (clicked && enabled) {
     if (editor_manager_) {
       MarkRecentlyUsed(info.type);
       editor_manager_->SwitchToEditor(info.type);
