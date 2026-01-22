@@ -16,6 +16,8 @@ set(YAZE_TEST_SOURCES
   # AI Multimodal Testing Framework
   app/test/ai_vision_verifier.cc
   app/test/screenshot_assertion.cc
+  # Visual Diff Engine (for gRPC/MCP visual comparison)
+  app/test/visual_diff_engine.cc
 )
 
 # gRPC test harness services are now in yaze_grpc_support library

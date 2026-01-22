@@ -1,0 +1,277 @@
+syntax = "proto3";
+
+package yaze.proto;
+
+// ============================================================================
+// Visual Service
+// ============================================================================
+// Provides visual comparison and analysis tools for:
+// - AI agents via MCP tool calls
+// - Visual regression testing
+// - Screenshot-based debugging workflows
+// - Multimodal AI analysis integration
+//
+// All image data is transported as PNG-encoded bytes.
+
+service VisualService {
+  // Visual Comparison Operations
+  rpc ComparePngData(ComparePngDataRequest) returns (ComparePngDataResponse);
+  rpc ComparePngFiles(ComparePngFilesRequest) returns (ComparePngFilesResponse);
+  rpc CompareWithReference(CompareWithReferenceRequest) returns (CompareWithReferenceResponse);
+  rpc CompareRegion(CompareRegionRequest) returns (CompareRegionResponse);
+
+  // Diff Image Generation
+  rpc GenerateDiffImage(GenerateDiffImageRequest) returns (GenerateDiffImageResponse);
+
+  // Visual Regression Testing
+  rpc RunRegressionTest(RunRegressionTestRequest) returns (RunRegressionTestResponse);
+  rpc ListReferenceImages(ListReferenceImagesRequest) returns (ListReferenceImagesResponse);
+  rpc SaveReferenceImage(SaveReferenceImageRequest) returns (SaveReferenceImageResponse);
+
+  // AI Visual Analysis (delegates to AIVisionVerifier)
+  rpc AnalyzeScreenshot(AnalyzeScreenshotRequest) returns (AnalyzeScreenshotResponse);
+  rpc VerifyVisualCondition(VerifyVisualConditionRequest) returns (VerifyVisualConditionResponse);
+}
+
+// ============================================================================
+// Common Types
+// ============================================================================
+
+message ScreenRegion {
+  int32 x = 1;
+  int32 y = 2;
+  int32 width = 3;   // 0 = full width
+  int32 height = 4;  // 0 = full height
+}
+
+message DiffRegion {
+  int32 x = 1;
+  int32 y = 2;
+  int32 width = 3;
+  int32 height = 4;
+  float local_diff_pct = 5;  // Percentage of differing pixels in this region
+}
+
+message ComparisonConfig {
+  float tolerance = 1;           // Minimum similarity to pass (0.0 to 1.0)
+  int32 color_threshold = 2;     // Max RGB difference per channel (0-255)
+  bool generate_diff_image = 3;  // Whether to generate diff visualization
+
+  enum Algorithm {
+    PIXEL_EXACT = 0;       // Exact pixel comparison
+    SSIM = 1;              // Structural Similarity Index
+    PERCEPTUAL_HASH = 2;   // Perceptual hashing
+  }
+  Algorithm algorithm = 4;
+
+  enum DiffStyle {
+    RED_HIGHLIGHT = 0;   // Red overlay on different pixels
+    SIDE_BY_SIDE = 1;    // A | diff | B side by side
+    HEATMAP = 2;         // Gradient showing degree of difference
+  }
+  DiffStyle diff_style = 5;
+
+  repeated ScreenRegion ignore_regions = 6;  // Regions to ignore (dynamic content)
+}
+
+message VisualDiffResult {
+  bool identical = 1;       // True if images are pixel-perfect identical
+  bool passed = 2;          // True if similarity >= tolerance
+  float similarity = 3;     // 0.0 to 1.0 (1.0 = identical)
+  float difference_pct = 4; // Percentage of differing pixels
+
+  // Image dimensions
+  int32 width = 5;
+  int32 height = 6;
+  int32 total_pixels = 7;
+  int32 differing_pixels = 8;
+
+  // Diff visualization (PNG-encoded)
+  bytes diff_image_png = 9;
+  string diff_description = 10;
+
+  // Significant diff regions
+  repeated DiffRegion significant_regions = 11;
+
+  // Error info
+  string error = 12;
+}
+
+// ============================================================================
+// Comparison Requests/Responses
+// ============================================================================
+
+message ComparePngDataRequest {
+  bytes png_a = 1;  // First PNG image (raw bytes)
+  bytes png_b = 2;  // Second PNG image (raw bytes)
+  ComparisonConfig config = 3;
+}
+
+message ComparePngDataResponse {
+  VisualDiffResult result = 1;
+}
+
+message ComparePngFilesRequest {
+  string path_a = 1;  // Path to first PNG file
+  string path_b = 2;  // Path to second PNG file
+  ComparisonConfig config = 3;
+}
+
+message ComparePngFilesResponse {
+  VisualDiffResult result = 1;
+}
+
+message CompareWithReferenceRequest {
+  bytes png_data = 1;        // Current PNG image
+  string reference_path = 2;  // Path to reference PNG
+  ComparisonConfig config = 3;
+}
+
+message CompareWithReferenceResponse {
+  VisualDiffResult result = 1;
+}
+
+message CompareRegionRequest {
+  bytes png_a = 1;
+  bytes png_b = 2;
+  ScreenRegion region = 3;
+  ComparisonConfig config = 4;
+}
+
+message CompareRegionResponse {
+  VisualDiffResult result = 1;
+}
+
+// ============================================================================
+// Diff Image Generation
+// ============================================================================
+
+message GenerateDiffImageRequest {
+  bytes png_a = 1;
+  bytes png_b = 2;
+  ComparisonConfig.DiffStyle style = 3;
+}
+
+message GenerateDiffImageResponse {
+  bytes diff_image_png = 1;  // PNG-encoded diff image
+  bool success = 2;
+  string error = 3;
+}
+
+// ============================================================================
+// Visual Regression Testing
+// ============================================================================
+
+message RunRegressionTestRequest {
+  string test_name = 1;           // Name of the regression test
+  bytes current_screenshot = 2;   // Current screenshot (PNG)
+  string reference_id = 3;        // Reference image ID or path
+  ComparisonConfig config = 4;
+}
+
+message RunRegressionTestResponse {
+  bool passed = 1;
+  VisualDiffResult result = 2;
+
+  // Test metadata
+  string test_name = 3;
+  string reference_id = 4;
+  int64 timestamp_ms = 5;
+}
+
+message ListReferenceImagesRequest {
+  string category = 1;  // Optional category filter
+  string prefix = 2;    // Optional name prefix filter
+}
+
+message ListReferenceImagesResponse {
+  message ReferenceImage {
+    string id = 1;
+    string path = 2;
+    string category = 3;
+    int32 width = 4;
+    int32 height = 5;
+    int64 created_timestamp_ms = 6;
+    string description = 7;
+  }
+  repeated ReferenceImage images = 1;
+}
+
+message SaveReferenceImageRequest {
+  bytes png_data = 1;       // PNG image to save as reference
+  string reference_id = 2;  // ID/name for the reference
+  string category = 3;      // Optional category
+  string description = 4;   // Optional description
+}
+
+message SaveReferenceImageResponse {
+  bool success = 1;
+  string path = 2;  // Path where reference was saved
+  string error = 3;
+}
+
+// ============================================================================
+// AI Visual Analysis
+// ============================================================================
+
+message AnalyzeScreenshotRequest {
+  bytes screenshot_png = 1;  // Screenshot to analyze (PNG)
+  string prompt = 2;         // Analysis prompt/question
+
+  // Analysis options
+  bool capture_fresh = 3;    // If true, capture new screenshot from emulator
+  string canvas_id = 4;      // Canvas to capture from (if capture_fresh)
+
+  // AI model configuration
+  string model = 5;  // Optional: specific AI model to use
+  float temperature = 6;  // Optional: model temperature (0.0 to 1.0)
+}
+
+message AnalyzeScreenshotResponse {
+  bool success = 1;
+  string error = 2;
+
+  // Analysis results
+  string analysis = 3;       // AI's analysis text
+  float confidence = 4;      // Confidence in the analysis (0.0 to 1.0)
+
+  // Identified elements (if analysis included detection)
+  message DetectedElement {
+    string type = 1;        // Element type (sprite, tile, text, etc.)
+    string description = 2; // Description of the element
+    ScreenRegion location = 3;  // Bounding box
+    float confidence = 4;
+  }
+  repeated DetectedElement elements = 5;
+
+  // Token usage
+  int32 input_tokens = 6;
+  int32 output_tokens = 7;
+}
+
+message VerifyVisualConditionRequest {
+  bytes screenshot_png = 1;   // Screenshot to verify (PNG)
+  string condition = 2;       // Condition to verify (natural language)
+
+  // Examples:
+  // - "Link is visible on screen"
+  // - "There are no visual glitches"
+  // - "The sprite is not corrupted"
+  // - "The health bar shows 3 hearts"
+
+  bool capture_fresh = 3;
+  string canvas_id = 4;
+}
+
+message VerifyVisualConditionResponse {
+  bool success = 1;
+  string error = 2;
+
+  // Verification results
+  bool condition_met = 3;    // Whether the condition was met
+  float confidence = 4;      // Confidence in the determination
+  string explanation = 5;    // AI's explanation of the result
+
+  // Evidence
+  repeated ScreenRegion relevant_regions = 6;  // Regions relevant to the condition
+}

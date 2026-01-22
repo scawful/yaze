@@ -20,7 +20,8 @@ set(
   app/service/screenshot_utils.cc
   app/service/rom_service_impl.cc
   app/service/emulator_service_impl.cc
-  
+  app/service/visual_service_impl.cc
+
   # Test infrastructure
   app/test/test_recorder.cc
   app/test/test_script_parser.cc
@@ -102,6 +103,7 @@ target_add_protobuf(yaze_proto_gen
   ${PROJECT_SOURCE_DIR}/src/protos/canvas_automation.proto
   ${PROJECT_SOURCE_DIR}/src/protos/imgui_test_harness.proto
   ${PROJECT_SOURCE_DIR}/src/protos/emulator_service.proto
+  ${PROJECT_SOURCE_DIR}/src/protos/visual_service.proto
 )
 
 # Link proto gen to protobuf and ensure gRPC headers are on include path
