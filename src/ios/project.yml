@@ -32,6 +32,10 @@ settings:
       - "-ObjC"
       - "-force_load"
       - "$(SRCROOT)/../../build-ios/ios/libyaze_ios_bundle.a"
+    SWIFT_VERSION: "5.9"
+    SWIFT_OBJC_BRIDGING_HEADER: iOS/Yaze-Bridging-Header.h
+    SWIFT_OBJC_INTERFACE_HEADER_NAME: yaze-Swift.h
+    DEFINES_MODULE: YES
 targets:
   yaze_ios:
     type: application
@@ -39,6 +43,12 @@ targets:
     deploymentTarget: "17.0"
     sources:
       - path: main.mm
+      - path: iOS/YazeIOSBridge.mm
+      - path: iOS/YazeOverlayView.swift
+      - path: iOS/YazeSettingsStore.swift
+      - path: iOS/RemoteBuildClient.swift
+      - path: iOS/DocumentPickers.swift
+      - path: iOS/KeychainStore.swift
       - path: Media.xcassets
       - path: iOS/LaunchScreen.storyboard
     resources:
@@ -60,6 +70,7 @@ targets:
     dependencies:
       - sdk: UIKit.framework
       - sdk: Foundation.framework
+      - sdk: Security.framework
       - sdk: CoreBluetooth.framework
       - sdk: CoreHaptics.framework
       - sdk: Metal.framework
