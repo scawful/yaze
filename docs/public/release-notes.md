@@ -1,5 +1,22 @@
 # Release Notes
 
+## v0.5.4 (Released January 2026)
+
+**Type:** Desktop UX + Nightly Packaging
+**Date:** 2026-01-22
+
+### 🧰 Desktop UX
+- Fix message editor preview/font atlas rendering after ROM load.
+
+### 📦 Nightly Builds
+- Normalize macOS nightly bundle layout so launchers resolve `yaze.app`.
+- Refresh wrapper detection to handle alternate app locations.
+
+### 🧾 Versioning
+- Sync version strings across docs, build config, and project defaults.
+
+---
+
 ## v0.5.3 (Released January 2026)
 
 **Type:** Build, WASM & Code Quality

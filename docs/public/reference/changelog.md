@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.5.4 (January 2026)
+
+### Desktop & UX
+- Fix message editor preview and font atlas palette sync on load.
+
+### Nightly & Packaging
+- Normalize macOS nightly bundle layout so launchers find `yaze.app`.
+- Align version strings across builds and docs.
+
+---
+
 ## 0.5.3 (January 2026)
 
 ### Build & Release
