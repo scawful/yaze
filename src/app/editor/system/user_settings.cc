@@ -815,6 +815,10 @@ absl::Status UserSettings::Load() {
     }
 
     if (!loaded) {
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+      prefs_.sidebar_visible = false;
+      prefs_.sidebar_panel_expanded = false;
+#endif
       LOG_INFO("UserSettings",
                "Settings not found, creating defaults at: %s",
                settings_file_path_.c_str());
