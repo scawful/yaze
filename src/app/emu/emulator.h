@@ -9,6 +9,7 @@
 #include "app/emu/audio/audio_backend.h"
 #include "app/emu/debug/breakpoint_manager.h"
 #include "app/emu/debug/disassembly_viewer.h"
+#include "app/emu/debug/symbol_provider.h"
 #include "app/emu/input/input_manager.h"
 #include "app/emu/snes.h"
 #include "rom/rom.h"
@@ -114,6 +115,10 @@ class Emulator {
 
   // Debugger access
   BreakpointManager& breakpoint_manager() { return breakpoint_manager_; }
+  debug::SymbolProvider& symbol_provider() { return symbol_provider_; }
+  const debug::SymbolProvider& symbol_provider() const {
+    return symbol_provider_;
+  }
   debug::DisassemblyViewer& disassembly_viewer() { return disassembly_viewer_; }
   input::InputManager& input_manager() { return input_manager_; }
   bool is_debugging() const { return debugging_; }
@@ -249,6 +254,7 @@ class Emulator {
 
   // Debugger infrastructure
   BreakpointManager breakpoint_manager_;
+  debug::SymbolProvider symbol_provider_;
   debug::DisassemblyViewer disassembly_viewer_;
 
   std::vector<uint8_t> rom_data_;

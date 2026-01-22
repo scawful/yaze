@@ -68,6 +68,14 @@ void HttpServer::RegisterRoutes() {
   server_->Get("/api/v1/health", HandleHealth);
   server_->Get("/api/v1/models", HandleListModels);
 
+  server_->Get("/api/v1/symbols", [this](const httplib::Request& req, httplib::Response& res) {
+    emu::debug::SymbolProvider* symbols = nullptr;
+    if (symbol_source_) {
+      symbols = symbol_source_();
+    }
+    HandleGetSymbols(req, res, symbols);
+  });
+
   // Handle CORS options for all routes?
   // For now, we set CORS headers in individual handlers or via a middleware if
   // httplib supported it easily.
