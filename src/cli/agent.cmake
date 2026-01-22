@@ -158,10 +158,7 @@ set(YAZE_AGENT_SOURCES ${YAZE_AGENT_CORE_SOURCES})
 
 # gRPC-dependent sources (only added when remote automation is enabled)
 if(YAZE_ENABLE_REMOTE_AUTOMATION)
-  list(APPEND YAZE_AGENT_SOURCES
-    cli/service/agent/agent_control_server.cc
-    cli/service/agent/emulator_service_impl.cc
-  )
+  # emulator_service_impl moved to yaze_grpc_support
 endif()
 
 if(YAZE_ENABLE_AI_RUNTIME AND YAZE_ENABLE_JSON)

@@ -13,6 +13,7 @@
 #include "app/service/canvas_automation_service.h"
 #include "app/service/imgui_test_harness_service.h"
 #include "app/service/rom_service_impl.h"
+#include "app/service/emulator_service_impl.h"
 #include "protos/canvas_automation.grpc.pb.h"
 #include "rom/rom.h"
 
@@ -27,7 +28,11 @@ YazeGRPCServer::~YazeGRPCServer() {
 }
 
 absl::Status YazeGRPCServer::Initialize(
-    int port, test::TestManager* test_manager, RomGetter rom_getter,
+    int port,
+    yaze::emu::Emulator* emulator,
+    RomGetter rom_getter,
+    RomLoader rom_loader,
+    test::TestManager* test_manager,
     net::RomVersionManager* version_mgr,
     net::ProposalApprovalManager* approval_mgr,
     CanvasAutomationServiceImpl* canvas_service) {
@@ -42,6 +47,15 @@ absl::Status YazeGRPCServer::Initialize(
     test_harness_service_ =
         std::make_unique<test::ImGuiTestHarnessServiceImpl>(test_manager);
     std::cout << "✓ ImGuiTestHarness service initialized\n";
+  }
+
+  // Create Emulator service if emulator provided
+  if (config_.enable_emulator_service && emulator) {
+    emulator_service_ = std::make_unique<net::EmulatorServiceImpl>(
+        emulator, rom_getter, rom_loader);
+    std::cout << "✓ Emulator service initialized\n";
+  } else if (config_.enable_emulator_service) {
+    std::cout << "⚠ Emulator service requested but no emulator provided\n";
   }
 
   // Create ROM service if rom_getter provided
@@ -69,7 +83,7 @@ absl::Status YazeGRPCServer::Initialize(
     std::cout << "⚠ Canvas Automation requested but no service provided\n";
   }
 
-  if (!test_harness_service_ && !rom_service_ && !canvas_service_) {
+  if (!test_harness_service_ && !rom_service_ && !canvas_service_ && !emulator_service_) {
     return absl::InvalidArgumentError(
         "At least one service must be enabled and initialized");
   }
@@ -88,6 +102,9 @@ absl::Status YazeGRPCServer::Start() {
 
   if (test_harness_service_) {
     std::cout << "  ✓ ImGuiTestHarness available\n";
+  }
+  if (emulator_service_) {
+    std::cout << "  ✓ EmulatorService available\n";
   }
   if (rom_service_) {
     std::cout << "  ✓ ROM service available\n";
@@ -162,6 +179,11 @@ absl::Status YazeGRPCServer::BuildServer() {
         test::CreateImGuiTestHarnessServiceGrpc(test_harness_service_.get());
     std::cout << "  Registering ImGuiTestHarness service...\n";
     builder.RegisterService(test_harness_grpc_wrapper_.get());
+  }
+
+  if (emulator_service_) {
+    std::cout << "  Registering EmulatorService...\n";
+    builder.RegisterService(emulator_service_.get());
   }
 
   if (rom_service_) {

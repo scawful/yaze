@@ -11,7 +11,7 @@
 #include "absl/status/statusor.h"
 #include "app/emu/debug/symbol_provider.h"
 #include "cli/service/agent/disassembler_65816.h"
-#include "cli/service/agent/emulator_service_impl.h"
+#include "app/service/emulator_service_impl.h"
 #include "protos/emulator_service.grpc.pb.h"
 
 namespace yaze {

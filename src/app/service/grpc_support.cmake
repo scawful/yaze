@@ -19,6 +19,7 @@ set(
   app/service/widget_discovery_service.cc
   app/service/screenshot_utils.cc
   app/service/rom_service_impl.cc
+  app/service/emulator_service_impl.cc
   
   # Test infrastructure
   app/test/test_recorder.cc
