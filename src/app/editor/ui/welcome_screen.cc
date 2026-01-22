@@ -455,7 +455,7 @@ bool WelcomeScreen::Show(bool* p_open) {
     if (narrow_layout) {
       float min_left_height = 240.0f * layout_scale;
       float left_height =
-          std::clamp(content_height * 0.5f, min_left_height, content_height);
+          std::clamp(content_height * 0.55f, min_left_height, content_height);
       ImGui::BeginChild("LeftPanel", ImVec2(0, left_height), true,
                         ImGuiWindowFlags_NoScrollbar);
       DrawQuickActions();
@@ -491,8 +491,8 @@ bool WelcomeScreen::Show(bool* p_open) {
       DrawWhatsNew();
       ImGui::EndChild();
     } else {
-      float left_width = std::clamp(ImGui::GetContentRegionAvail().x * 0.32f,
-                                    280.0f * layout_scale, 420.0f * layout_scale);
+      float left_width = std::clamp(ImGui::GetContentRegionAvail().x * 0.38f,
+                                    320.0f * layout_scale, 520.0f * layout_scale);
       ImGui::BeginChild("LeftPanel", ImVec2(left_width, 0), true,
                         ImGuiWindowFlags_NoScrollbar);
       DrawQuickActions();
@@ -712,14 +712,17 @@ void WelcomeScreen::DrawQuickActions() {
   const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
   ImGui::PushStyleColor(ImGuiCol_Text, text_secondary);
   ImGui::TextWrapped(
-      "Open a ROM or project, or start a new project with a template. "
-      "Project Management keeps ROM versions, storage, and snapshots together.");
+      "Open a ROM or project, or start a new project from a template.");
   ImGui::PopStyleColor();
   ImGui::Spacing();
 
   const float scale = ImGui::GetFontSize() / 16.0f;
-  const float button_height = std::max(32.0f, 36.0f * scale);
-  float button_width = ImGui::GetContentRegionAvail().x;
+  const float button_height = std::max(38.0f, 40.0f * scale);
+  const float action_width = ImGui::GetContentRegionAvail().x;
+  const float action_spacing = ImGui::GetStyle().ItemSpacing.x;
+  const bool wide_actions = action_width > 360.0f;
+  float button_width = action_width;
+  const bool has_project = has_project_;
 
   // Animated button colors (compact height)
   auto draw_action_button = [&](const char* icon, const char* text,
@@ -753,31 +756,56 @@ void WelcomeScreen::DrawQuickActions() {
     return clicked;
   };
 
-  // Open ROM button - Green like finding an item
-  if (draw_action_button(ICON_MD_FOLDER_OPEN, "Open ROM", kHyruleGreen, true,
-                         open_rom_callback_)) {
-    // Handled by callback
-  }
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(ICON_MD_INFO
-                      " Open a clean, legally obtained ALttP (USA) ROM file");
-  }
+  if (wide_actions) {
+    const float half_width = (action_width - action_spacing) * 0.5f;
+    button_width = half_width;
+    if (draw_action_button(ICON_MD_FOLDER_OPEN, "Open ROM", kHyruleGreen, true,
+                           open_rom_callback_)) {
+      // Handled by callback
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          ICON_MD_INFO
+          " Open a clean, legally obtained ALttP (USA) ROM file");
+    }
+    ImGui::SameLine(0.0f, action_spacing);
+    if (draw_action_button(ICON_MD_FOLDER_SPECIAL, "Open Project",
+                           kMasterSwordBlue,
+                           open_project_dialog_callback_ != nullptr,
+                           open_project_dialog_callback_)) {
+      // Handled by callback
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(ICON_MD_INFO " Open an existing .yaze project file");
+    }
+    ImGui::Spacing();
+  } else {
+    // Open ROM button - Green like finding an item
+    if (draw_action_button(ICON_MD_FOLDER_OPEN, "Open ROM", kHyruleGreen, true,
+                           open_rom_callback_)) {
+      // Handled by callback
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          ICON_MD_INFO
+          " Open a clean, legally obtained ALttP (USA) ROM file");
+    }
 
-  ImGui::Spacing();
+    ImGui::Spacing();
 
-  // Open Project button - Blue for project workflows
-  if (draw_action_button(ICON_MD_FOLDER_SPECIAL, "Open Project",
-                         kMasterSwordBlue,
-                         open_project_dialog_callback_ != nullptr,
-                         open_project_dialog_callback_)) {
-    // Handled by callback
-  }
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(ICON_MD_INFO
-                      " Open an existing .yaze project file");
-  }
+    // Open Project button - Blue for project workflows
+    if (draw_action_button(ICON_MD_FOLDER_SPECIAL, "Open Project",
+                           kMasterSwordBlue,
+                           open_project_dialog_callback_ != nullptr,
+                           open_project_dialog_callback_)) {
+      // Handled by callback
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(ICON_MD_INFO " Open an existing .yaze project file");
+    }
 
-  ImGui::Spacing();
+    ImGui::Spacing();
+  }
 
   // New Project button - Gold like getting a treasure
   if (draw_action_button(ICON_MD_ADD_CIRCLE, "New Project", kTriforceGold, true,
@@ -794,8 +822,7 @@ void WelcomeScreen::DrawQuickActions() {
   // Project tools row
   ImGui::TextColored(kMasterSwordBlue, ICON_MD_TUNE " Project Tools");
   ImGui::PushStyleColor(ImGuiCol_Text, text_secondary);
-  ImGui::TextWrapped(
-      "Open project management and edit project metadata when needed.");
+  ImGui::TextWrapped("Manage snapshots and metadata for the active project.");
   ImGui::PopStyleColor();
   ImGui::Spacing();
 
@@ -803,20 +830,35 @@ void WelcomeScreen::DrawQuickActions() {
   float tool_width =
       (ImGui::GetContentRegionAvail().x - tool_spacing) * 0.5f;
 
+  const bool can_manage_project =
+      has_project && open_project_management_callback_ != nullptr;
+  const bool can_edit_project_file =
+      has_project && open_project_file_editor_callback_ != nullptr;
+
+  if (!has_project) {
+    ImGui::BeginDisabled();
+  }
   button_width = tool_width;
   if (draw_action_button(ICON_MD_FOLDER_SPECIAL, "Project Manager",
-                         kMasterSwordBlue,
-                         open_project_management_callback_ != nullptr,
+                         kMasterSwordBlue, can_manage_project,
                          open_project_management_callback_)) {
     // Handled by callback
+  }
+  if (!has_project && ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Load or create a project to use Project Manager");
   }
   ImGui::SameLine(0.0f, tool_spacing);
   button_width = tool_width;
   if (draw_action_button(ICON_MD_DESCRIPTION, "Project File",
-                         kShadowPurple,
-                         open_project_file_editor_callback_ != nullptr,
+                         kShadowPurple, can_edit_project_file,
                          open_project_file_editor_callback_)) {
     // Handled by callback
+  }
+  if (!has_project && ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Load a project to edit its .yaze file");
+  }
+  if (!has_project) {
+    ImGui::EndDisabled();
   }
 
   // Clean up entry animation styles
@@ -1237,15 +1279,11 @@ void WelcomeScreen::DrawTemplatesSection() {
   }
 
   const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
-  if (ImGui::BeginTable("TemplateGrid", 2,
-                        ImGuiTableFlags_SizingStretchProp)) {
-    ImGui::TableSetupColumn("TemplateList", ImGuiTableColumnFlags_WidthStretch,
-                            0.42f);
-    ImGui::TableSetupColumn("TemplateDetails",
-                            ImGuiTableColumnFlags_WidthStretch, 0.58f);
+  const float template_width = ImGui::GetContentRegionAvail().x;
+  const float scale = ImGui::GetFontSize() / 16.0f;
+  const bool stack_templates = template_width < 520.0f;
 
-    ImGui::TableNextColumn();
-    ImGui::BeginChild("TemplateList", ImVec2(0, 0), true);
+  auto draw_template_list = [&]() {
     for (int i = 0; i < template_count; ++i) {
       bool is_selected = (selected_template_ == i);
 
@@ -1276,10 +1314,9 @@ void WelcomeScreen::DrawTemplatesSection() {
                           templates[i].description);
       }
     }
-    ImGui::EndChild();
+  };
 
-    ImGui::TableNextColumn();
-    ImGui::BeginChild("TemplateDetails", ImVec2(0, 0), true);
+  auto draw_template_details = [&]() {
     const Template& active = templates[selected_template_];
     ImGui::TextColored(active.color, "%s %s", active.icon, active.name);
     ImGui::Spacing();
@@ -1293,6 +1330,39 @@ void WelcomeScreen::DrawTemplatesSection() {
       ImGui::SameLine();
       ImGui::TextColored(text_secondary, "%s", active.details[i]);
     }
+  };
+
+  if (stack_templates) {
+    const float row_height = ImGui::GetTextLineHeightWithSpacing() + 4.0f;
+    const float list_height =
+        std::clamp(row_height * (template_count + 1),
+                   120.0f * scale, 200.0f * scale);
+    ImGui::BeginChild("TemplateList", ImVec2(0, list_height), false,
+                      ImGuiWindowFlags_NoScrollbar);
+    draw_template_list();
+    ImGui::EndChild();
+    ImGui::Spacing();
+    ImGui::BeginChild("TemplateDetails", ImVec2(0, 0), false,
+                      ImGuiWindowFlags_NoScrollbar);
+    draw_template_details();
+    ImGui::EndChild();
+  } else if (ImGui::BeginTable("TemplateGrid", 2,
+                               ImGuiTableFlags_SizingStretchProp)) {
+    ImGui::TableSetupColumn("TemplateList", ImGuiTableColumnFlags_WidthStretch,
+                            0.42f);
+    ImGui::TableSetupColumn("TemplateDetails",
+                            ImGuiTableColumnFlags_WidthStretch, 0.58f);
+
+    ImGui::TableNextColumn();
+    ImGui::BeginChild("TemplateList", ImVec2(0, 0), false,
+                      ImGuiWindowFlags_NoScrollbar);
+    draw_template_list();
+    ImGui::EndChild();
+
+    ImGui::TableNextColumn();
+    ImGui::BeginChild("TemplateDetails", ImVec2(0, 0), false,
+                      ImGuiWindowFlags_NoScrollbar);
+    draw_template_details();
     ImGui::EndChild();
 
     ImGui::EndTable();
@@ -1408,6 +1478,11 @@ void WelcomeScreen::DrawWhatsNew() {
     int highlight_count;
   };
 
+  const ReleaseHighlight highlights_054[] = {
+      {ICON_MD_TEXT_FIELDS, "Message editor preview fixes"},
+      {ICON_MD_PALETTE, "Font atlas palette sync"},
+      {ICON_MD_BUILD, "Nightly build polish"},
+  };
   const ReleaseHighlight highlights_053[] = {
       {ICON_MD_BUILD, "DMG validation + build polish"},
       {ICON_MD_PUBLIC, "WASM storage + service worker fixes"},
@@ -1429,6 +1504,9 @@ void WelcomeScreen::DrawWhatsNew() {
   };
 
   const ReleaseEntry releases[] = {
+      {ICON_MD_TEXT_FIELDS, "0.5.4", "Editor previews + nightly polish",
+       "Jan 22, 2026", kMasterSwordBlue, highlights_054,
+       static_cast<int>(sizeof(highlights_054) / sizeof(highlights_054[0]))},
       {ICON_MD_BUILD, "0.5.3", "Build + WASM improvements", "Jan 20, 2026",
        kMasterSwordBlue, highlights_053,
        static_cast<int>(sizeof(highlights_053) / sizeof(highlights_053[0]))},

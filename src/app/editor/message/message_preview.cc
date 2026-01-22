@@ -5,8 +5,8 @@ namespace editor {
 
 void MessagePreview::DrawTileToPreview(int x, int y, int srcx, int srcy,
                                        int pal, int sizex, int sizey) {
-  const auto& font_data = !font_gfx16_data_2_.empty() ? font_gfx16_data_2_
-                                                      : font_gfx16_data_;
+  const auto& font_data =
+      !font_gfx16_data_.empty() ? font_gfx16_data_ : font_gfx16_data_2_;
   if (font_data.empty()) {
     return;
   }
