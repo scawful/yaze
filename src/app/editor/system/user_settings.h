@@ -3,6 +3,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "absl/status/status.h"
 
@@ -15,6 +16,28 @@ namespace editor {
 class UserSettings {
  public:
   struct Preferences {
+    struct AiHost {
+      std::string id;
+      std::string label;
+      std::string base_url;
+      std::string api_type;  // openai, ollama, gemini, lmstudio, grpc
+      bool supports_vision = false;
+      bool supports_tools = true;
+      bool supports_streaming = true;
+      bool allow_insecure = false;
+      std::string credential_id;  // Keychain reference (never store secrets here)
+    };
+
+    struct AiModelProfile {
+      std::string name;
+      std::string model;
+      float temperature = 0.25f;
+      float top_p = 0.95f;
+      int max_output_tokens = 2048;
+      bool supports_vision = false;
+      bool supports_tools = true;
+    };
+
     // General
     float font_global_scale = 1.0f;
     bool backup_rom = false;
@@ -40,6 +63,7 @@ class UserSettings {
 
     // AI Agent
     int ai_provider = 0;  // 0=Ollama, 1=Gemini, 2=Mock
+    std::string ai_model;
     std::string ollama_url = "http://localhost:11434";
     std::string gemini_api_key;
     float ai_temperature = 0.7f;
@@ -47,6 +71,11 @@ class UserSettings {
     bool ai_proactive = true;
     bool ai_auto_learn = true;
     bool ai_multimodal = true;
+    std::vector<AiHost> ai_hosts;
+    std::string active_ai_host_id;
+    std::vector<AiModelProfile> ai_profiles;
+    std::string active_ai_profile;
+    std::string remote_build_host_id;
 
     // CLI Logging
     int log_level = 1;  // 0=Debug, 1=Info, 2=Warning, 3=Error, 4=Fatal
@@ -56,6 +85,12 @@ class UserSettings {
     bool log_rom_operations = true;
     bool log_gui_automation = true;
     bool log_proposals = true;
+
+    // Filesystem (iOS + remote workflows)
+    std::vector<std::string> project_root_paths;
+    std::string default_project_root;
+    bool use_files_app = true;
+    bool use_icloud_sync = true;
 
     // Shortcut Overrides
     // Maps panel_id -> shortcut string (e.g., "dungeon.room_selector" -> "Ctrl+Shift+R")
@@ -100,6 +135,7 @@ class UserSettings {
  private:
   Preferences prefs_;
   std::string settings_file_path_;
+  std::string legacy_settings_file_path_;
 };
 
 }  // namespace editor
