@@ -103,8 +103,8 @@ void ActivityBar::DrawActivityBarStrip(
 
     // Draw ALL editor categories (not just active ones)
     for (const auto& cat : all_categories) {
-      bool is_selected =
-          (cat == active_category) && panel_manager_.IsPanelExpanded();
+      bool is_selected = (cat == active_category);
+      bool panel_expanded = panel_manager_.IsPanelExpanded();
       bool has_active_editor = active_editor_categories.count(cat) > 0;
 
       // Emulator is always available, others require ROM
@@ -117,7 +117,7 @@ void ActivityBar::DrawActivityBarStrip(
                         1.0f);
 
       // Active Indicator with category-specific colors
-      if (is_selected && category_enabled) {
+      if (is_selected && category_enabled && panel_expanded) {
         ImVec2 pos = ImGui::GetCursorScreenPos();
 
         // Outer glow shadow (subtle, category color at 15% opacity)
@@ -143,14 +143,31 @@ void ActivityBar::DrawActivityBarStrip(
 
       std::string icon = PanelManager::GetCategoryIcon(cat);
 
-      // Use ThemedWidgets with category-specific color when active
-      ImVec4 icon_color =
-          is_selected ? cat_color : ImVec4(0, 0, 0, 0);  // 0 = use default
+      // Subtle indicator even when collapsed
+      if (is_selected && category_enabled && !panel_expanded) {
+        ImVec2 pos = ImGui::GetCursorScreenPos();
+        ImVec4 highlight = glow_color;
+        highlight.w = 0.15f;
+        ImGui::GetWindowDrawList()->AddRectFilled(
+            pos, ImVec2(pos.x + 48.0f, pos.y + 40.0f),
+            ImGui::ColorConvertFloat4ToU32(highlight), 2.0f);
+        ImVec4 accent = cat_color;
+        accent.w = 0.6f;
+        ImGui::GetWindowDrawList()->AddRectFilled(
+            pos, ImVec2(pos.x + 3.0f, pos.y + 40.0f),
+            ImGui::ColorConvertFloat4ToU32(accent));
+      }
+
+      // Always pass category color so inactive icons remain visible
+      ImVec4 icon_color = cat_color;
+      if (!category_enabled) {
+        ImGui::BeginDisabled();
+      }
       if (gui::TransparentIconButton(icon.c_str(), ImVec2(48.0f, 40.0f),
                                      nullptr, is_selected, icon_color,
                                      "activity_bar", cat.c_str())) {
         if (category_enabled) {
-          if (cat == active_category && panel_manager_.IsPanelExpanded()) {
+          if (cat == active_category && panel_expanded) {
             panel_manager_.TogglePanelExpanded();
           } else {
             panel_manager_.SetActiveCategory(cat);
@@ -159,6 +176,9 @@ void ActivityBar::DrawActivityBarStrip(
             panel_manager_.TriggerCategorySelected(cat);
           }
         }
+      }
+      if (!category_enabled) {
+        ImGui::EndDisabled();
       }
 
       // Tooltip with status information

@@ -265,11 +265,12 @@ void UICoordinator::DrawMobileNavigation() {
   }
 #endif
   const float button_size = std::max(44.0f, ImGui::GetFontSize() * 2.1f);
-  const float padding = style.WindowPadding.x;
+  const float edge_padding = std::max(10.0f, style.WindowPadding.x);
+  const float container_size = button_size + 8.0f;
   const ImVec2 pos(viewport->WorkPos.x + viewport->WorkSize.x - safe.x -
-                       padding - button_size,
+                       edge_padding - container_size,
                    viewport->WorkPos.y + viewport->WorkSize.y - safe.y -
-                       padding - button_size);
+                       edge_padding - container_size);
 
   const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
   const ImVec4 button_color = gui::ConvertColorToImVec4(theme.button);
@@ -278,17 +279,25 @@ void UICoordinator::DrawMobileNavigation() {
   const ImVec4 button_text = gui::ConvertColorToImVec4(theme.accent);
 
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always);
-  ImGui::SetNextWindowSize(ImVec2(button_size, button_size), ImGuiCond_Always);
+  ImGui::SetNextWindowSize(ImVec2(container_size, container_size),
+                           ImGuiCond_Always);
 
   ImGuiWindowFlags flags =
       ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
       ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
       ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoFocusOnAppearing |
-      ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoSavedSettings |
-      ImGuiWindowFlags_NoBackground;
+      ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoSavedSettings;
 
+  ImGui::PushStyleColor(ImGuiCol_WindowBg, gui::GetSurfaceContainerHighVec4());
+  ImGui::PushStyleColor(ImGuiCol_Border,
+                        gui::GetSurfaceContainerHighestVec4());
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, container_size * 0.25f);
   if (ImGui::Begin("##MobileNavButton", nullptr, flags)) {
+    ImGui::SetCursorPos(
+        ImVec2((container_size - button_size) * 0.5f,
+               (container_size - button_size) * 0.5f));
     ImGui::PushStyleColor(ImGuiCol_Button, button_color);
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, button_hovered);
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, button_active);
@@ -304,7 +313,8 @@ void UICoordinator::DrawMobileNavigation() {
     ImGui::PopStyleColor(4);
   }
   ImGui::End();
-  ImGui::PopStyleVar();
+  ImGui::PopStyleVar(3);
+  ImGui::PopStyleColor(2);
 
   ImGui::PushStyleColor(ImGuiCol_PopupBg,
                         gui::ConvertColorToImVec4(theme.surface));
@@ -873,6 +883,10 @@ void UICoordinator::DrawWelcomeScreen() {
   if (!ShouldShowWelcome()) {
     return;
   }
+
+  // Provide context state for gating actions
+  welcome_screen_->SetContextState(rom_is_loaded,
+                                   project_manager_.HasActiveProject());
 
   // Reset first show flag to override ImGui ini state
   welcome_screen_->ResetFirstShow();
