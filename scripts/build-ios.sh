@@ -4,6 +4,10 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PRESET="${1:-ios-debug}"
 
+if [[ "${PRESET}" == ios-sim-* ]]; then
+  echo "Using iOS simulator preset: ${PRESET}"
+fi
+
 cmake --preset "${PRESET}"
 cmake --build --preset "${PRESET}"
 

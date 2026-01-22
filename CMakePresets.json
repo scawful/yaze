@@ -244,6 +244,12 @@
       "configurePreset": "ios-debug"
     },
     {
+      "displayName": "iOS Debug Build (simulator)",
+      "jobs": 8,
+      "name": "ios-sim-debug",
+      "configurePreset": "ios-sim-debug"
+    },
+    {
       "displayName": "iOS Release Build (device)",
       "jobs": 8,
       "name": "ios-release",
@@ -572,9 +578,55 @@
       "description": "Base iOS preset for building static libs"
     },
     {
+      "name": "ios-sim-base",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-ios-sim",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "rhs": "Darwin",
+        "lhs": "${hostSystemName}"
+      },
+      "cacheVariables": {
+        "CMAKE_SYSTEM_NAME": "iOS",
+        "CMAKE_OSX_SYSROOT": "iphonesimulator",
+        "CMAKE_OSX_ARCHITECTURES": "arm64",
+        "CMAKE_OSX_DEPLOYMENT_TARGET": "17.0",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "YAZE_IOS_SDK": "iphonesimulator",
+        "YAZE_BUILD_GUI": "OFF",
+        "YAZE_BUILD_CLI": "OFF",
+        "YAZE_BUILD_Z3ED": "OFF",
+        "YAZE_BUILD_TESTS": "OFF",
+        "YAZE_BUILD_TOOLS": "OFF",
+        "YAZE_BUILD_LAB": "OFF",
+        "YAZE_BUILD_EMU": "ON",
+        "YAZE_BUILD_LIB": "ON",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF",
+        "YAZE_ENABLE_HTTP_API": "OFF",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_AGENT_CLI": "OFF",
+        "YAZE_ENABLE_OPENCV": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_USE_SYSTEM_DEPS": "OFF"
+      },
+      "description": "Base iOS simulator preset for building static libs"
+    },
+    {
       "inherits": "ios-base",
       "name": "ios-debug",
       "displayName": "iOS Debug (device)",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "inherits": "ios-sim-base",
+      "name": "ios-sim-debug",
+      "displayName": "iOS Debug (simulator)",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }

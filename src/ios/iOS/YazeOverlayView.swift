@@ -373,6 +373,7 @@ struct FilesystemSettingsView: View {
   @Binding var showProjectPicker: Bool
   @Binding var exportURL: URL?
   @Binding var showExportPicker: Bool
+  @State private var showBundleImporter = false
   @State private var showFolderImporter = false
 
   var body: some View {
@@ -401,7 +402,8 @@ struct FilesystemSettingsView: View {
         Section("Quick Actions") {
           Button("Open ROM") { showRomPicker = true }
           Button("Open Project") { showProjectPicker = true }
-          Button("Export Snapshot") { exportSnapshot() }
+          Button("Export Project Bundle") { exportBundle() }
+          Button("Import Project Bundle") { showBundleImporter = true }
         }
       }
       .navigationTitle("Files")
@@ -422,15 +424,30 @@ struct FilesystemSettingsView: View {
           break
         }
       }
+      .sheet(isPresented: $showBundleImporter) {
+        DocumentPicker(contentTypes: [UTType(filenameExtension: "yazeproj") ?? .data]) { url in
+          if let imported = YazeProjectBundleService.importBundle(from: url, settingsStore: settingsStore) {
+            settingsStore.statusMessage = "Imported \(imported.lastPathComponent)"
+            if !settingsStore.settings.general.lastProjectPath.isEmpty {
+              YazeIOSBridge.openProject(atPath: settingsStore.settings.general.lastProjectPath)
+            }
+            if !settingsStore.settings.general.lastRomPath.isEmpty {
+              YazeIOSBridge.loadRom(atPath: settingsStore.settings.general.lastRomPath)
+            }
+          } else {
+            settingsStore.statusMessage = "Import failed"
+          }
+        }
+      }
     }
   }
 
-  private func exportSnapshot() {
-    let temp = FileManager.default.temporaryDirectory
-    let exportPath = temp.appendingPathComponent("yaze_snapshot.txt")
-    let payload = "Snapshot placeholder for \(settingsStore.settings.general.lastProjectPath)"
-    try? payload.data(using: .utf8)?.write(to: exportPath)
-    exportURL = exportPath
-    showExportPicker = true
+  private func exportBundle() {
+    if let bundleURL = YazeProjectBundleService.exportBundle(settingsStore: settingsStore) {
+      exportURL = bundleURL
+      showExportPicker = true
+    } else {
+      settingsStore.statusMessage = "Export failed"
+    }
   }
 }

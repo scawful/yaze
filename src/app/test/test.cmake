@@ -20,6 +20,12 @@ set(YAZE_TEST_SOURCES
   app/test/visual_diff_engine.cc
 )
 
+if(YAZE_PLATFORM_IOS)
+  # Visual diff engine requires libpng which we don't bundle on iOS.
+  list(REMOVE_ITEM YAZE_TEST_SOURCES app/test/visual_diff_engine.cc)
+  message(STATUS "○ visual_diff_engine disabled on iOS (libpng unavailable)")
+endif()
+
 # gRPC test harness services are now in yaze_grpc_support library
 
 add_library(yaze_test_support STATIC ${YAZE_TEST_SOURCES})

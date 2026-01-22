@@ -223,6 +223,10 @@ final class YazeSettingsStore: ObservableObject {
   private let encoder = JSONEncoder()
   private let decoder = JSONDecoder()
 
+  var settingsFileURL: URL {
+    fileURL
+  }
+
   init() {
     let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
     let root = documents?.appendingPathComponent("Yaze", isDirectory: true)

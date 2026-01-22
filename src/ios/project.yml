@@ -26,12 +26,16 @@ settings:
       - "$(SRCROOT)/../../build-ios/_deps/sdl2-src/include"
       - "$(SRCROOT)/../../ext/SDL/include"
       - "$(SRCROOT)/../../incl"
+    YAZE_IOS_LIBDIR: "$(SRCROOT)/../../build-ios/ios"
+    YAZE_IOS_LIBDIR[sdk=iphonesimulator*]: "$(SRCROOT)/../../build-ios-sim/ios"
+    YAZE_IOS_BUNDLE_LIB: "$(SRCROOT)/../../build-ios/ios/libyaze_ios_bundle.a"
+    YAZE_IOS_BUNDLE_LIB[sdk=iphonesimulator*]: "$(SRCROOT)/../../build-ios-sim/ios/libyaze_ios_bundle.a"
     LIBRARY_SEARCH_PATHS:
-      - "$(SRCROOT)/../../build-ios/ios"
+      - "$(YAZE_IOS_LIBDIR)"
     OTHER_LDFLAGS:
       - "-ObjC"
       - "-force_load"
-      - "$(SRCROOT)/../../build-ios/ios/libyaze_ios_bundle.a"
+      - "$(YAZE_IOS_BUNDLE_LIB)"
     SWIFT_VERSION: "5.9"
     SWIFT_OBJC_BRIDGING_HEADER: iOS/Yaze-Bridging-Header.h
     SWIFT_OBJC_INTERFACE_HEADER_NAME: yaze-Swift.h
@@ -49,6 +53,7 @@ targets:
       - path: iOS/RemoteBuildClient.swift
       - path: iOS/DocumentPickers.swift
       - path: iOS/KeychainStore.swift
+      - path: iOS/YazeProjectBundle.swift
       - path: Media.xcassets
       - path: iOS/LaunchScreen.storyboard
     resources:
