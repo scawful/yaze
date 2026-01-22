@@ -26,29 +26,6 @@ namespace editor {
 
 namespace {
 
-void UpdateWelcomeAccentPalette() {
-  auto& theme_mgr = gui::ThemeManager::Get();
-  const auto& theme = theme_mgr.GetCurrentTheme();
-
-  const ImVec4 secondary = gui::ConvertColorToImVec4(theme.secondary);
-  const ImVec4 accent = gui::ConvertColorToImVec4(theme.accent);
-  const ImVec4 warning = gui::ConvertColorToImVec4(theme.warning);
-  const ImVec4 success = gui::ConvertColorToImVec4(theme.success);
-  const ImVec4 info = gui::ConvertColorToImVec4(theme.info);
-  const ImVec4 error = gui::ConvertColorToImVec4(theme.error);
-  const ImVec4 surface = gui::GetSurfaceVec4();
-
-  // Welcome accent palette: themed, but with distinct flavor per role.
-  kTriforceGold = ImLerp(accent, warning, 0.55f);
-  kHyruleGreen = success;
-  kMasterSwordBlue = info;
-  kGanonPurple = secondary;
-  kHeartRed = error;
-  kSpiritOrange = ImLerp(warning, accent, 0.35f);
-  kShadowPurple = ImLerp(secondary, surface, 0.45f);
-
-}
-
 // Zelda-inspired color palette (fallbacks)
 const ImVec4 kTriforceGoldFallback = ImVec4(1.0f, 0.843f, 0.0f, 1.0f);
 const ImVec4 kHyruleGreenFallback = ImVec4(0.133f, 0.545f, 0.133f, 1.0f);
@@ -71,6 +48,28 @@ ImVec4 kGanonPurple = kGanonPurpleFallback;
 ImVec4 kHeartRed = kHeartRedFallback;
 ImVec4 kSpiritOrange = kSpiritOrangeFallback;
 ImVec4 kShadowPurple = kShadowPurpleFallback;
+
+void UpdateWelcomeAccentPalette() {
+  auto& theme_mgr = gui::ThemeManager::Get();
+  const auto& theme = theme_mgr.GetCurrentTheme();
+
+  const ImVec4 secondary = gui::ConvertColorToImVec4(theme.secondary);
+  const ImVec4 accent = gui::ConvertColorToImVec4(theme.accent);
+  const ImVec4 warning = gui::ConvertColorToImVec4(theme.warning);
+  const ImVec4 success = gui::ConvertColorToImVec4(theme.success);
+  const ImVec4 info = gui::ConvertColorToImVec4(theme.info);
+  const ImVec4 error = gui::ConvertColorToImVec4(theme.error);
+  const ImVec4 surface = gui::GetSurfaceVec4();
+
+  // Welcome accent palette: themed, but with distinct flavor per role.
+  kTriforceGold = ImLerp(accent, warning, 0.55f);
+  kHyruleGreen = success;
+  kMasterSwordBlue = info;
+  kGanonPurple = secondary;
+  kHeartRed = error;
+  kSpiritOrange = ImLerp(warning, accent, 0.35f);
+  kShadowPurple = ImLerp(secondary, surface, 0.45f);
+}
 
 std::string GetRelativeTimeString(
     const std::filesystem::file_time_type& ftime) {
@@ -229,13 +228,17 @@ bool WelcomeScreen::Show(bool* p_open) {
   // Calculate the dockspace region (excluding sidebars)
   float dockspace_x = viewport->WorkPos.x + left_offset_;
   float dockspace_width = viewport_size.x - left_offset_ - right_offset_;
+  if (dockspace_width < 200.0f) {
+    dockspace_x = viewport->WorkPos.x;
+    dockspace_width = viewport_size.x;
+  }
   float dockspace_center_x = dockspace_x + dockspace_width / 2.0f;
   float dockspace_center_y = viewport->WorkPos.y + viewport_size.y / 2.0f;
   ImVec2 center(dockspace_center_x, dockspace_center_y);
 
   // Size based on dockspace region, not full viewport
-  float width = std::min(dockspace_width * 0.85f, 1400.0f);
-  float height = std::min(viewport_size.y * 0.85f, 900.0f);
+  float width = std::clamp(dockspace_width * 0.85f, 480.0f, 1400.0f);
+  float height = std::clamp(viewport_size.y * 0.85f, 360.0f, 900.0f);
 
   ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
   ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Always);

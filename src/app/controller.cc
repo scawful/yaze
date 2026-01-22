@@ -211,10 +211,6 @@ absl::Status Controller::OnLoad() {
 void Controller::DoRender() const {
   if (!window_backend_ || !renderer_) return;
 
-  // Render ImGui draw data and handle viewports via backend
-  // This MUST be called even in headless mode to end the ImGui frame
-  window_backend_->RenderImGui(renderer_.get());
-
   // Skip actual rendering/present in headless/null backend
   if (Application::Instance().GetConfig().headless) {
     ProcessScreenshotRequests();
@@ -225,6 +221,10 @@ void Controller::DoRender() const {
   gfx::Arena::Get().ProcessTextureQueue(renderer_.get());
 
   renderer_->Clear();
+
+  // Render ImGui draw data and handle viewports via backend
+  // This MUST be called even in headless mode to end the ImGui frame
+  window_backend_->RenderImGui(renderer_.get());
 
   renderer_->Present();
 
