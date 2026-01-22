@@ -5,8 +5,6 @@ namespace editor {
 
 void MessagePreview::DrawTileToPreview(int x, int y, int srcx, int srcy,
                                        int pal, int sizex, int sizey) {
-  const int num_x_tiles = 16;
-  const int img_width = 512;  // (imgwidth/2)
   const auto& font_data = !font_gfx16_data_2_.empty() ? font_gfx16_data_2_
                                                       : font_gfx16_data_;
   if (font_data.empty()) {
@@ -14,34 +12,58 @@ void MessagePreview::DrawTileToPreview(int x, int y, int srcx, int srcy,
   }
   const size_t font_size = font_data.size();
   const size_t preview_size = current_preview_data_.size();
-  int draw_id = srcx + (srcy * 32);
-  for (int yl = 0; yl < sizey * 8; yl++) {
-    for (int xl = 0; xl < 4; xl++) {
-      int mx = xl;
-      int my = yl;
+  const int sheet_width = 128;
+  if (sheet_width <= 0) {
+    return;
+  }
+  const int sheet_height = static_cast<int>(font_size / sheet_width);
+  if (sheet_height <= 0) {
+    return;
+  }
 
-      // Formula information to get tile index position in the array.
-      int tx = ((draw_id / num_x_tiles) * img_width) + ((draw_id & 0xF) << 2);
-      const int pixel_index = tx + (yl * 64) + xl;
-      if (pixel_index < 0 ||
-          static_cast<size_t>(pixel_index) >= font_size) {
-        continue;
-      }
-      uint8_t pixel = font_data[pixel_index];
+  const int tile_size = 8;
+  const int palette_offset = pal * 4;
+  const int base_tile_y = srcy * sizey;
 
-      // nx,ny = object position, xx,yy = tile position, xl,yl = pixel
-      // position
-      int index = x + (y * 172) + (mx * 2) + (my * 172);
-      if (index < 0 || static_cast<size_t>(index + 1) >= preview_size) {
-        continue;
-      }
-      if ((pixel & 0x0F) != 0) {
-        current_preview_data_[index + 1] = (uint8_t)((pixel & 0x0F) + (0 * 4));
-      }
+  for (int tile_y = 0; tile_y < sizey; ++tile_y) {
+    for (int tile_x = 0; tile_x < sizex; ++tile_x) {
+      const int tile_px = (srcx + tile_x) * tile_size;
+      const int tile_py = (base_tile_y + tile_y) * tile_size;
 
-      if (((pixel >> 4) & 0x0F) != 0) {
-        current_preview_data_[index + 0] =
-            (uint8_t)(((pixel >> 4) & 0x0F) + (0 * 4));
+      for (int py = 0; py < tile_size; ++py) {
+        const int src_y = tile_py + py;
+        if (src_y < 0 || src_y >= sheet_height) {
+          continue;
+        }
+
+        for (int px = 0; px < tile_size; ++px) {
+          const int src_x = tile_px + px;
+          if (src_x < 0 || src_x >= sheet_width) {
+            continue;
+          }
+
+          const size_t src_index =
+              static_cast<size_t>(src_x + (src_y * sheet_width));
+          if (src_index >= font_size) {
+            continue;
+          }
+
+          const uint8_t pixel = font_data[src_index];
+          if ((pixel & 0x0F) == 0) {
+            continue;
+          }
+
+          const int dst_x = x + tile_x * tile_size + px;
+          const int dst_y = y + tile_y * tile_size + py;
+          const int dst_index = dst_x + (dst_y * kCurrentMessageWidth);
+          if (dst_index < 0 ||
+              static_cast<size_t>(dst_index) >= preview_size) {
+            continue;
+          }
+
+          current_preview_data_[dst_index] =
+              static_cast<uint8_t>(pixel + palette_offset);
+        }
       }
     }
   }

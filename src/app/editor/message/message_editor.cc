@@ -267,14 +267,21 @@ void MessageEditor::DrawCurrentMessage() {
   }
 
   // Draw only the visible portion of the text
-  current_font_gfx16_canvas_.DrawBitmap(
-      current_font_gfx16_bitmap_, ImVec2(0, 0),  // Destination position
-      ImVec2(340,
-             font_gfx_canvas_.canvas_size().y),      // Destination size
-      ImVec2(0, message_preview_.shown_lines * 16),  // Source position
-      ImVec2(170,
-             font_gfx_canvas_.canvas_size().y / 2)  // Source size
-  );
+  const ImVec2 preview_canvas_size = current_font_gfx16_canvas_.canvas_size();
+  const float dest_width = std::max(0.0f, preview_canvas_size.x - 8.0f);
+  const float dest_height = std::max(0.0f, preview_canvas_size.y - 8.0f);
+  if (dest_width > 0.0f && dest_height > 0.0f) {
+    const float src_width = std::min(dest_width * 0.5f,
+                                     static_cast<float>(kCurrentMessageWidth));
+    const float src_height = std::min(
+        dest_height * 0.5f, static_cast<float>(kCurrentMessageHeight));
+    current_font_gfx16_canvas_.DrawBitmap(
+        current_font_gfx16_bitmap_, ImVec2(0, 0),  // Destination position
+        ImVec2(dest_width, dest_height),           // Destination size
+        ImVec2(0, message_preview_.shown_lines * 16),  // Source position
+        ImVec2(src_width, src_height)                 // Source size
+    );
+  }
 
   current_font_gfx16_canvas_.DrawGrid();
   current_font_gfx16_canvas_.DrawOverlay();
@@ -478,6 +485,11 @@ void MessageEditor::DrawMessagePreview() {
     // CRITICAL: Use set_data() to properly update both data_ AND surface_
     // mutable_data() returns a reference but doesn't update the surface!
     current_font_gfx16_bitmap_.set_data(message_preview_.current_preview_data_);
+
+    if (current_font_gfx16_bitmap_.palette().empty() &&
+        !font_preview_colors_.empty()) {
+      current_font_gfx16_bitmap_.SetPalette(font_preview_colors_);
+    }
 
     // Validate surface was updated
     if (!current_font_gfx16_bitmap_.surface()) {
