@@ -44,6 +44,9 @@ class NullWindowBackend : public IWindowBackend {
   std::string GetTitle() const override { return "Headless"; }
   void SetTitle(const std::string& title) override {}
 
+  void ShowWindow() override {}
+  void HideWindow() override {}
+
   bool InitializeRenderer(gfx::IRenderer* renderer) override;
   SDL_Window* GetNativeWindow() override { return nullptr; }
 

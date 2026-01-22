@@ -50,6 +50,10 @@ class Controller {
   void SetStartupEditor(const std::string& editor_name,
                         const std::string& cards);
 
+  // Window visibility control (for service mode)
+  void ShowWindow() { if (window_backend_) window_backend_->ShowWindow(); }
+  void HideWindow() { if (window_backend_) window_backend_->HideWindow(); }
+
   auto window() -> SDL_Window* {
     return window_backend_ ? window_backend_->GetNativeWindow() : nullptr;
   }

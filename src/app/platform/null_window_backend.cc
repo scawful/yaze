@@ -101,7 +101,11 @@ void NullWindowBackend::ShutdownImGui() {
 }
 
 void NullWindowBackend::NewImGuiFrame() {
-  // No-op - controller calls ImGui::NewFrame()
+  if (imgui_initialized_) {
+      ImGuiIO& io = ImGui::GetIO();
+      io.DisplaySize = ImVec2((float)width_, (float)height_);
+      io.DeltaTime = 1.0f / 60.0f;
+  }
 }
 
 void NullWindowBackend::RenderImGui(gfx::IRenderer* renderer) {

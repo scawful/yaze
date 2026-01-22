@@ -42,6 +42,7 @@ struct AppConfig {
   
   // Services
   bool headless = false;   // Run without GUI (uses NullWindowBackend)
+  bool service_mode = false; // Run with GUI backend but hidden window
   bool enable_api = false;
   int api_port = 8080;
   bool enable_test_harness = false;

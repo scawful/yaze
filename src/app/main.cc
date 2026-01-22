@@ -73,7 +73,8 @@ DEFINE_FLAG(bool, enable_api, false, "Enable the AI Agent API server.");
 DEFINE_FLAG(int, api_port, 8080, "Port for the AI Agent API server.");
 
 DEFINE_FLAG(bool, headless, false, "Run in headless mode without a GUI window.");
-DEFINE_FLAG(bool, server, false, "Run in server mode (implies --headless, --enable_api, --enable_test_harness).");
+DEFINE_FLAG(bool, service, false, "Run in service mode (GUI backend initialized but window hidden).");
+DEFINE_FLAG(bool, server, false, "Run in server mode (implies --enable_api, --enable_test_harness). Defaults to --headless unless --service or --no-headless is specified.");
 
 #ifdef YAZE_WITH_GRPC
 // gRPC test harness flags
@@ -239,11 +240,18 @@ int main(int argc, char** argv) {
   yaze::AppConfig config;
 
   bool server_mode = FLAGS_server->Get();
-  config.headless = FLAGS_headless->Get() || server_mode;
-  config.enable_api = FLAGS_enable_api->Get() || server_mode;
+  bool service_mode = FLAGS_service->Get();
+  
+  // Headless is default for server, unless service mode is requested
+  // If user says --server --service, we get Hidden GUI.
+  // If user says --server, we get Headless (Null).
+  // If user says --service, we get Hidden GUI.
+  config.headless = FLAGS_headless->Get() || (server_mode && !service_mode);
+  config.service_mode = service_mode;
+  config.enable_api = FLAGS_enable_api->Get() || server_mode || service_mode;
 
 #ifdef YAZE_WITH_GRPC
-  config.enable_test_harness = FLAGS_enable_test_harness->Get() || server_mode;
+  config.enable_test_harness = FLAGS_enable_test_harness->Get() || server_mode || service_mode;
   config.test_harness_port = FLAGS_test_harness_port->Get();
 #endif
 
@@ -265,7 +273,10 @@ int main(int argc, char** argv) {
   config.asset_load_mode =
       yaze::AssetLoadModeFromString(FLAGS_asset_mode->Get());
   if (config.asset_load_mode == yaze::AssetLoadMode::kAuto) {
-    config.asset_load_mode = (config.headless || server_mode)
+    // Service mode might need full assets if the user shows the GUI later.
+    // Lazy loading is safer for startup speed, but might cause hitches on ShowGUI.
+    // Let's stick to Lazy for now to keep startup fast.
+    config.asset_load_mode = (config.headless || server_mode || service_mode)
                                  ? yaze::AssetLoadMode::kLazy
                                  : yaze::AssetLoadMode::kFull;
   }
@@ -464,7 +475,10 @@ int main(int argc, char** argv) {
       std::this_thread::sleep_for(std::chrono::milliseconds(16));
     }
   } else {
-    // Normal GUI loop
+    // Normal GUI loop (also used for Service Mode with hidden window)
+    if (config.service_mode) {
+        LOG_INFO("Main", "Running in SERVICE mode (Hidden GUI window)");
+    }
     while (yaze::Application::Instance().GetController()->IsActive()) {
       TickFrame();
     }

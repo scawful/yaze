@@ -30,6 +30,7 @@ struct WindowConfig {
   bool maximized = false;
   bool fullscreen = false;
   bool high_dpi = false;  // Disabled by default - causes issues on macOS Retina with SDL_Renderer
+  bool hidden = false;    // Start window hidden (for service mode)
 };
 
 /**
@@ -192,6 +193,16 @@ class IWindowBackend {
    * @brief Set window title
    */
   virtual void SetTitle(const std::string& title) = 0;
+
+  /**
+   * @brief Show the window
+   */
+  virtual void ShowWindow() = 0;
+
+  /**
+   * @brief Hide the window
+   */
+  virtual void HideWindow() = 0;
 
   // =========================================================================
   // Renderer Integration

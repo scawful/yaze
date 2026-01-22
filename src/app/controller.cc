@@ -31,8 +31,10 @@ absl::Status Controller::OnEntry(std::string filename) {
   auto backend_type = platform::WindowBackendFactory::GetDefaultType();
   auto renderer_type = gfx::RendererFactory::GetDefaultBackendType();
 
-  if (Application::Instance().GetConfig().headless) {
-    LOG_INFO("Controller", "Using Null Window Backend (Headless/Server Mode)");
+  const auto& app_config = Application::Instance().GetConfig();
+
+  if (app_config.headless) {
+    LOG_INFO("Controller", "Using Null Window Backend (Headless Mode)");
     backend_type = platform::WindowBackendType::Null;
     renderer_type = gfx::RendererBackendType::Null;
   }
@@ -51,6 +53,11 @@ absl::Status Controller::OnEntry(std::string filename) {
   config.title = "Yet Another Zelda3 Editor";
   config.resizable = true;
   config.high_dpi = false;  // Disabled to match legacy behavior (SDL_WINDOW_RESIZABLE only)
+  
+  if (app_config.service_mode) {
+    LOG_INFO("Controller", "Starting in Service Mode (Hidden Window)");
+    config.hidden = true;
+  }
 
   RETURN_IF_ERROR(window_backend_->Initialize(config));
 
@@ -211,14 +218,16 @@ absl::Status Controller::OnLoad() {
 void Controller::DoRender() const {
   if (!window_backend_ || !renderer_) return;
 
-  // Skip actual rendering/present in headless/null backend
+  // Process pending texture commands (max 8 per frame for consistent performance)
+  gfx::Arena::Get().ProcessTextureQueue(renderer_.get());
+
   if (Application::Instance().GetConfig().headless) {
+    // In HEADLESS mode, we MUST still end the ImGui frame to satisfy assertions
+    // even if we don't render to a window.
+    ImGui::Render();
     ProcessScreenshotRequests();
     return;
   }
-
-  // Process pending texture commands (max 8 per frame for consistent performance)
-  gfx::Arena::Get().ProcessTextureQueue(renderer_.get());
 
   renderer_->Clear();
 

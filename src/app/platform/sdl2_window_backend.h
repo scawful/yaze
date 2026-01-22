@@ -46,6 +46,9 @@ class SDL2WindowBackend : public IWindowBackend {
   std::string GetTitle() const override;
   void SetTitle(const std::string& title) override;
 
+  void ShowWindow() override;
+  void HideWindow() override;
+
   bool InitializeRenderer(gfx::IRenderer* renderer) override;
   SDL_Window* GetNativeWindow() override { return window_.get(); }
 
