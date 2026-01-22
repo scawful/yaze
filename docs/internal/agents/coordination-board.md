@@ -3,6 +3,18 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
+### 2026-01-22 ai-infra-architect – Server-lite mode + lazy asset init for gRPC automation
+- TASK: Add server-lite startup path for fast gRPC + symbol export; make editor assets lazy/on-demand; review Mesen2 multi-instance integration notes.
+- SCOPE: src/app/main.cc, src/app/application.*, src/app/editor/editor_manager.*, docs/internal/agents/automation-workflows.md.
+- STATUS: IN_PROGRESS
+- NOTES: Added `--asset_mode` and lazy asset loading (on-demand editor init/load + `EnsureGameDataLoaded`); verified `emu-agent-instance` multi-instance script; server-lite startup still pending.
+
+### 2026-01-21 ai-infra-architect – Unified gRPC + Server mode & Mesen 2 integration
+- TASK: Consolidate redundant gRPC servers, implement headless/server mode with resource optimization, and add Mesen 2 symbol export/bridge support.
+- SCOPE: src/app/application.*, src/app/service/unified_grpc_server.*, src/app/platform/null_window_backend.*, src/app/gfx/backend/null_renderer.*, tools/mesen2/, docs/internal/agents/automation-workflows.md.
+- STATUS: COMPLETE
+- NOTES: Unified gRPC on 50052; added --server/--headless flags; implemented Null window/renderer backends for zero-GUI automation; added .mlb symbol export for Mesen 2 debugger parity.
+
 ### 2026-01-19 imgui-frontend-engineer – ImHex UI modernization follow-ups
 - TASK: Add lifecycle addendum, animation utilities, and finish list virtualization (music/palette).
 - SCOPE: docs/internal/plans/imhex-ui-modernization.md, src/app/gui/animation/animator.*, src/app/gui/gui_library.cmake, src/app/editor/music/song_browser_view.cc, src/app/editor/palette/palette_group_panel.cc

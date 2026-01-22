@@ -958,6 +958,8 @@
         "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
         "YAZE_ENABLE_ROM_TESTS": "ON",
         "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_HTTP_API": "ON",
+        "YAZE_ENABLE_AGENT_CLI": "ON",
         "YAZE_ENABLE_AI_RUNTIME": "ON"
       },
       "displayName": "Windows AI Development",
@@ -1154,8 +1156,9 @@
         "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
         "YAZE_ENABLE_ROM_TESTS": "ON",
         "YAZE_ENABLE_JSON": "ON",
-        "YAZE_ENABLE_AI_RUNTIME": "ON",
-        "YAZE_USE_SDL3": "OFF"
+        "YAZE_ENABLE_HTTP_API": "ON",
+        "YAZE_ENABLE_AGENT_CLI": "ON",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF"
       },
       "displayName": "macOS AI Development",
       "name": "mac-ai",
@@ -1340,8 +1343,9 @@
         "YAZE_PREFER_SYSTEM_GRPC": "ON",
         "CMAKE_BUILD_TYPE": "Debug",
         "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
-        "YAZE_ENABLE_ROM_TESTS": "ON",
         "YAZE_ENABLE_JSON": "ON",
+        "YAZE_ENABLE_HTTP_API": "ON",
+        "YAZE_ENABLE_AGENT_CLI": "ON",
         "YAZE_ENABLE_AI_RUNTIME": "ON"
       },
       "displayName": "Linux AI Development",

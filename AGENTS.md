@@ -33,9 +33,10 @@ Project-specific operating procedures for AI agents contributing to `yaze`.
 *   Create a dedicated document using [docs/internal/agents/initiative-template.md](docs/internal/agents/initiative-template.md).
 *   Link to this document from the Coordination Board.
 
-### Specs & Docs
+### specs & docs
 *   Keep one canonical spec per initiative (link it from the board entry and back).
 *   Add a header with Status/Owner/Created/Last Reviewed/Next Review (≤14 days) and validation/exit criteria.
+*   **Automation:** See [docs/internal/agents/automation-workflows.md](docs/internal/agents/automation-workflows.md) for headless/server mode instructions.
 *   Use existing templates (`initiative-template.md`, `release-checklist-template.md`) instead of creating ad-hoc files.
 *   Archive idle or completed specs to `docs/internal/agents/archive/` with the date; do not open duplicate status pages.
 
