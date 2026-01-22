@@ -148,7 +148,9 @@ absl::Status Controller::OnLoad() {
 
   float top_offset = 0.0f;
 #if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
-  top_offset = ::yaze::platform::ios::GetOverlayTopInset();
+  // Overlay inset is already applied via DisplaySafeAreaPadding in iOS backend.
+  // Avoid double-counting here so the dockspace matches the visible area.
+  top_offset = 0.0f;
 #endif
 
   // Adjust dockspace position and size for sidebars and status bar
