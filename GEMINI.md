@@ -341,6 +341,11 @@ cmake --build build -v                  # Verbose build output
 ./build/bin/yaze --editor Dungeon                   # Open editor
 ./build/bin/yaze --rom_file zelda3.sfc --editor Dungeon  # Combined
 
+# === Automation ===
+./build/bin/yaze --headless                         # Run without GUI window
+./build/bin/yaze --server --rom_file zelda3.sfc      # Headless + API + gRPC
+./build/bin/yaze --export_symbols out.mlb            # Export Mesen labels
+
 # === Cleaning ===
 cmake --build build --target clean      # Clean build artifacts
 rm -rf build                            # Full clean (reconfigure needed)
@@ -352,3 +357,4 @@ rm -rf build                            # Full clean (reconfigure needed)
 - First builds: 10-20 min (normal), incremental: 10-60 sec
 - Build specific targets: `--target yaze` faster than full build
 - Some tests require ROM file to pass
+- **Automation**: Use `--server` for background agents and API access.
