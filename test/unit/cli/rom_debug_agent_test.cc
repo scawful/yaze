@@ -3,7 +3,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "cli/service/agent/emulator_service_impl.h"
+#include "app/service/emulator_service_impl.h"
 #include "protos/emulator_service.grpc.pb.h"
 
 namespace yaze {

@@ -8,6 +8,9 @@
 namespace yaze::cli {
 namespace {
 
+// These tests require AI runtime to be enabled (service_factory.cc vs stub)
+#ifdef YAZE_AI_RUNTIME_AVAILABLE
+
 TEST(AIServiceFactoryTest, OpenAIMissingKeyReturnsError) {
   AIServiceConfig config;
   config.provider = "openai";
@@ -87,7 +90,26 @@ TEST(AIServiceFactoryTest, OpenAIWithKeyCreatesService) {
   ASSERT_TRUE(service_or.ok());
   EXPECT_EQ(service_or.value()->GetProviderName(), "openai");
 }
-#endif
+#endif  // YAZE_WITH_JSON
+
+#endif  // YAZE_AI_RUNTIME_AVAILABLE
+
+// Test stub behavior when AI runtime is disabled
+#ifndef YAZE_AI_RUNTIME_AVAILABLE
+
+TEST(AIServiceFactoryTest, StubReturnsDisabledError) {
+  AIServiceConfig config;
+  config.provider = "openai";
+
+  auto service_or = CreateAIServiceStrict(config);
+
+  EXPECT_FALSE(service_or.ok());
+  EXPECT_EQ(service_or.status().code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_THAT(service_or.status().message(),
+              testing::HasSubstr("AI runtime features are disabled"));
+}
+
+#endif  // !YAZE_AI_RUNTIME_AVAILABLE
 
 }  // namespace
 }  // namespace yaze::cli

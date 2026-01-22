@@ -52,10 +52,6 @@
 #include "zelda3/overworld/overworld.h"
 
 // Forward declarations for gRPC-dependent types
-namespace yaze::agent {
-class AgentControlServer;
-}
-
 namespace yaze {
 class CanvasAutomationServiceImpl;
 }

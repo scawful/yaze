@@ -745,7 +745,7 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   agent_ui_.Initialize(&toast_manager_, &proposal_drawer_,
                        right_panel_manager_.get(), &panel_manager_);
 
-  // Note: AgentControlServer is started from Application::Initialize()
+  // Note: Unified gRPC Server is started from Application::Initialize()
   // after gRPC infrastructure is properly set up
 
   // Load critical user settings first
