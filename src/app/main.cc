@@ -397,6 +397,25 @@ int main(int argc, char** argv) {
       return nullptr;
     });
 
+    // Window control endpoints (service mode)
+    api_server->SetWindowActions(
+        []() -> bool {
+          auto* controller = yaze::Application::Instance().GetController();
+          if (!controller) {
+            return false;
+          }
+          controller->ShowWindow();
+          return true;
+        },
+        []() -> bool {
+          auto* controller = yaze::Application::Instance().GetController();
+          if (!controller) {
+            return false;
+          }
+          controller->HideWindow();
+          return true;
+        });
+
     auto status = api_server->Start(config.api_port);
     if (!status.ok()) {
       LOG_ERROR("Main", "Failed to start API server: %s", std::string(status.message()).c_str());

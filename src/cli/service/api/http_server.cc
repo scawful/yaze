@@ -2,7 +2,6 @@
 
 #include "cli/service/api/api_handlers.h"
 #include "util/log.h"
-#include "app/application.h"
 
 #include "httplib.h"
 
@@ -69,33 +68,45 @@ void HttpServer::RegisterRoutes() {
   });
 
   server_->Post("/api/v1/window/show",
-                [](const httplib::Request&, httplib::Response& res) {
-                  auto* ctrl = Application::Instance().GetController();
-                  if (ctrl) {
-                    ctrl->ShowWindow();
-                    res.set_content(R"({"status":"ok", "window":"shown"})",
-                                    "application/json");
-                  } else {
+                [this](const httplib::Request&, httplib::Response& res) {
+                  if (window_show_) {
+                    const bool ok = window_show_();
+                    if (ok) {
+                      res.set_content(R"({"status":"ok", "window":"shown"})",
+                                      "application/json");
+                      return;
+                    }
                     res.status = 500;
                     res.set_content(
-                        R"({"status":"error", "message":"controller not ready"})",
+                        R"({"status":"error", "message":"window action failed"})",
                         "application/json");
+                    return;
                   }
+                  res.status = 501;
+                  res.set_content(
+                      R"({"status":"error", "message":"window control unavailable"})",
+                      "application/json");
                 });
 
   server_->Post("/api/v1/window/hide",
-                [](const httplib::Request&, httplib::Response& res) {
-                  auto* ctrl = Application::Instance().GetController();
-                  if (ctrl) {
-                    ctrl->HideWindow();
-                    res.set_content(R"({"status":"ok", "window":"hidden"})",
-                                    "application/json");
-                  } else {
+                [this](const httplib::Request&, httplib::Response& res) {
+                  if (window_hide_) {
+                    const bool ok = window_hide_();
+                    if (ok) {
+                      res.set_content(R"({"status":"ok", "window":"hidden"})",
+                                      "application/json");
+                      return;
+                    }
                     res.status = 500;
                     res.set_content(
-                        R"({"status":"error", "message":"controller not ready"})",
+                        R"({"status":"error", "message":"window action failed"})",
                         "application/json");
+                    return;
                   }
+                  res.status = 501;
+                  res.set_content(
+                      R"({"status":"error", "message":"window control unavailable"})",
+                      "application/json");
                 });
 }
 
