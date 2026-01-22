@@ -242,6 +242,11 @@ bool TransparentIconButton(const char* icon, const ImVec2& size,
   }
   ImGui::PushStyleColor(ImGuiCol_Text, text_color);
 
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
+  ImDrawListSplitter splitter;
+  splitter.Split(draw_list, 2);
+  splitter.SetCurrentChannel(draw_list, 1);
+
   bool clicked = ImGui::Button(icon, size);
 
   const bool hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled);
@@ -252,16 +257,22 @@ bool TransparentIconButton(const char* icon, const ImVec2& size,
                                         10.0f);
 
   if (hover_t > 0.001f) {
-    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    splitter.SetCurrentChannel(draw_list, 0);
     ImVec2 rect_min = ImGui::GetItemRectMin();
     ImVec2 rect_max = ImGui::GetItemRectMax();
-    ImVec4 overlay = ConvertColorToImVec4(
-        is_active ? theme.header_active : theme.header_hovered);
-    overlay.w *= hover_t;
+    ImVec4 overlay =
+        is_active ? (active_color.w > 0.0f
+                         ? active_color
+                         : ConvertColorToImVec4(theme.header_active))
+                  : ConvertColorToImVec4(theme.header_hovered);
+    const float base_alpha = is_active ? 0.28f : 0.18f;
+    overlay.w *= (base_alpha * hover_t);
     draw_list->AddRectFilled(rect_min, rect_max,
                              ImGui::GetColorU32(overlay),
                              ImGui::GetStyle().FrameRounding);
   }
+
+  splitter.Merge(draw_list);
 
   ImGui::PopStyleColor(4);
 
