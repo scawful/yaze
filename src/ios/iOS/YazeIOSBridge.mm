@@ -5,6 +5,7 @@
 #include "app/application.h"
 #include "app/controller.h"
 #include "app/editor/editor_manager.h"
+#include "app/platform/ios/ios_platform_state.h"
 #include "rom/rom.h"
 
 @implementation YazeIOSBridge
@@ -40,6 +41,10 @@
     return @"";
   }
   return [NSString stringWithUTF8String:rom->title().c_str()];
+}
+
++ (void)setOverlayTopInset:(double)inset {
+  yaze::platform::ios::SetOverlayTopInset(static_cast<float>(inset));
 }
 
 @end

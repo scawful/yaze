@@ -54,6 +54,7 @@ targets:
       - path: iOS/RemoteBuildClient.swift
       - path: iOS/DocumentPickers.swift
       - path: iOS/KeychainStore.swift
+      - path: iOS/YazeFileImport.swift
       - path: iOS/YazeProjectBundle.swift
       - path: Media.xcassets
       - path: iOS/LaunchScreen.storyboard

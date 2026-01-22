@@ -17,6 +17,9 @@ void* GetMetalView();
 void SetSafeAreaInsets(float left, float right, float top, float bottom);
 SafeAreaInsets GetSafeAreaInsets();
 
+void SetOverlayTopInset(float top);
+float GetOverlayTopInset();
+
 }  // namespace ios
 }  // namespace platform
 }  // namespace yaze
