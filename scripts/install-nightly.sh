@@ -21,13 +21,18 @@ nightly_app_name="${YAZE_NIGHTLY_APP_NAME:-Yaze Nightly.app}"
 nightly_app_link="${YAZE_NIGHTLY_APP_LINK:-$nightly_app_dir/$nightly_app_name}"
 nightly_ai_runtime="${YAZE_NIGHTLY_AI_RUNTIME:-ON}"
 nightly_ai_features="${YAZE_NIGHTLY_AI_FEATURES:-$nightly_ai_runtime}"
-nightly_prefer_system_grpc="${YAZE_NIGHTLY_PREFER_SYSTEM_GRPC:-AUTO}"
+nightly_prefer_system_grpc="${YAZE_NIGHTLY_PREFER_SYSTEM_GRPC:-ON}"
 nightly_skip_install_rpath="${YAZE_NIGHTLY_SKIP_INSTALL_RPATH:-AUTO}"
 
 if [[ "$nightly_prefer_system_grpc" == "AUTO" ]]; then
   if command -v grpc_cpp_plugin >/dev/null 2>&1 && command -v protoc >/dev/null 2>&1; then
     nightly_prefer_system_grpc="ON"
   else
+    nightly_prefer_system_grpc="OFF"
+  fi
+elif [[ "$nightly_prefer_system_grpc" == "ON" ]]; then
+  if ! command -v grpc_cpp_plugin >/dev/null 2>&1 || ! command -v protoc >/dev/null 2>&1; then
+    echo "[nightly] System gRPC requested but protoc/grpc_cpp_plugin missing; falling back to CPM build." >&2
     nightly_prefer_system_grpc="OFF"
   fi
 fi
