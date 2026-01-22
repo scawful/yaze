@@ -838,6 +838,7 @@ void WelcomeScreen::DrawRecentProjects() {
         "No recent projects yet.\nOpen a ROM or start a new project to begin "
         "your adventure!");
     ImGui::PopStyleColor();
+    ImGui::PopStyleVar();  // Alpha (entry animation)
     return;
   }
 
