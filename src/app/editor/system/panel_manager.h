@@ -38,6 +38,7 @@ namespace editor {
 
 // Forward declarations
 enum class EditorType;
+class Editor;
 
 /**
  * @struct PanelDescriptor
@@ -625,6 +626,9 @@ class PanelManager {
   void SetOnCategorySelectedCallback(std::function<void(const std::string&)> callback) {
     on_category_selected_ = std::move(callback);
   }
+  void SetEditorResolver(std::function<Editor*(const std::string&)> resolver) {
+    editor_resolver_ = std::move(resolver);
+  }
 
   size_t GetActiveSessionId() const { return active_session_; }
 
@@ -767,6 +771,7 @@ class PanelManager {
   std::function<void(const std::string&)> on_category_selected_;  // Activity Bar icon clicked
   std::function<void(bool)> on_emulator_visibility_changed_;
   std::function<void(const std::string&, const std::string&)> on_file_clicked_;
+  std::function<Editor*(const std::string&)> editor_resolver_;
 
   // File browser for categories that support it (e.g., Assembly)
   std::unordered_map<std::string, std::unique_ptr<FileBrowser>>
