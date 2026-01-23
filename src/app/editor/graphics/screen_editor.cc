@@ -5,6 +5,7 @@
 #include <string>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/system/panel_manager.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
@@ -21,8 +22,6 @@
 
 namespace yaze {
 namespace editor {
-
-constexpr uint32_t kRedPen = 0xFF0000FF;
 
 void ScreenEditor::Initialize() {
   if (!dependencies_.panel_manager)
@@ -180,7 +179,8 @@ void ScreenEditor::DrawInventoryMenuEditor() {
       palette_ = inventory_.palette();
       inventory_loaded_ = true;
     } else {
-      ImGui::TextColored(ImVec4(1, 0, 0, 1), "Error loading inventory: %s",
+      const auto& theme = AgentUI::GetTheme();
+      ImGui::TextColored(theme.text_error_red, "Error loading inventory: %s",
                          status_.message().data());
       return;
     }
@@ -340,6 +340,7 @@ void ScreenEditor::DrawInventoryItemIcons() {
 void ScreenEditor::DrawDungeonMapScreen(int i) {
   gfx::ScopedTimer timer("screen_editor_draw_dungeon_map_screen");
 
+  const auto& theme = AgentUI::GetTheme();
   auto& current_dungeon = dungeon_maps_[selected_dungeon];
 
   floor_number = i;
@@ -413,7 +414,7 @@ void ScreenEditor::DrawDungeonMapScreen(int i) {
 
       if (current_dungeon.floor_rooms[floor_number][j] == boss_room) {
         screen_canvas_.DrawOutlineWithColor((posX * 2), (posY * 2), 64, 64,
-                                            kRedPen);
+                                            theme.status_error);
       }
 
       std::string label =
@@ -780,7 +781,8 @@ void ScreenEditor::DrawTitleScreenEditor() {
   if (!title_screen_loaded_ && rom()->is_loaded() && game_data()) {
     status_ = title_screen_.Create(rom(), game_data());
     if (!status_.ok()) {
-      ImGui::TextColored(ImVec4(1, 0, 0, 1), "Error loading title screen: %s",
+      const auto& theme = AgentUI::GetTheme();
+      ImGui::TextColored(theme.text_error_red, "Error loading title screen: %s",
                          status_.message().data());
       return;
     }
@@ -1041,7 +1043,8 @@ void ScreenEditor::DrawOverworldMapEditor() {
   if (!ow_map_loaded_ && rom()->is_loaded()) {
     status_ = ow_map_screen_.Create(rom());
     if (!status_.ok()) {
-      ImGui::TextColored(ImVec4(1, 0, 0, 1), "Error loading overworld map: %s",
+      const auto& theme = AgentUI::GetTheme();
+      ImGui::TextColored(theme.text_error_red, "Error loading overworld map: %s",
                          status_.message().data());
       return;
     }
