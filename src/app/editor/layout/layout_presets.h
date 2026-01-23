@@ -149,20 +149,20 @@ class LayoutPresets {
     static constexpr const char* kOverworldV3Settings = "overworld.v3_settings";
 
     // Dungeon cards (dungeon_editor_v2.cc)
-    static constexpr const char* kDungeonControlPanel = "dungeon.control_panel";
     static constexpr const char* kDungeonRoomSelector = "dungeon.room_selector";
     static constexpr const char* kDungeonRoomMatrix = "dungeon.room_matrix";
     static constexpr const char* kDungeonEntrances = "dungeon.entrances";
     static constexpr const char* kDungeonRoomGraphics = "dungeon.room_graphics";
     static constexpr const char* kDungeonObjectEditor = "dungeon.object_editor";
     static constexpr const char* kDungeonPaletteEditor = "dungeon.palette_editor";
-    static constexpr const char* kDungeonDebugControls = "dungeon.debug_controls";
 
     // Graphics cards (graphics_editor.cc)
-    static constexpr const char* kGraphicsSheetEditor = "graphics.sheet_editor";
-    static constexpr const char* kGraphicsSheetBrowser = "graphics.sheet_browser";
-    static constexpr const char* kGraphicsPlayerAnimations = "graphics.player_animations";
-    static constexpr const char* kGraphicsPrototypeViewer = "graphics.prototype_viewer";
+    static constexpr const char* kGraphicsSheetEditor = "graphics.pixel_editor";
+    static constexpr const char* kGraphicsSheetBrowser = "graphics.sheet_browser_v2";
+    static constexpr const char* kGraphicsPlayerAnimations = "graphics.link_sprite_editor";
+    static constexpr const char* kGraphicsPaletteControls = "graphics.palette_controls";
+    static constexpr const char* kGraphicsGfxGroupEditor = "graphics.gfx_group_editor";
+    static constexpr const char* kGraphicsPalettesetEditor = "graphics.paletteset_editor";
 
     // Palette cards (palette_editor.cc)
     static constexpr const char* kPaletteControlPanel = "palette.control_panel";

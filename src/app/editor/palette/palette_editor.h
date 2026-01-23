@@ -156,8 +156,6 @@ class PaletteEditor : public Editor {
 
   // Panel visibility flags (legacy; superseded by PanelManager visibility)
   bool show_control_panel_ = true;
-  bool control_panel_minimized_ = false;
-
   // Palette panel visibility flags
   bool show_ow_main_panel_ = false;
   bool show_ow_animated_panel_ = false;

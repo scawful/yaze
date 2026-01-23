@@ -56,7 +56,6 @@ void GraphicsEditor::Initialize() {
   pixel_editor_panel_ = std::make_unique<PixelEditorPanel>(&state_, rom_);
   palette_controls_panel_ = std::make_unique<PaletteControlsPanel>(&state_, rom_);
   link_sprite_panel_ = std::make_unique<LinkSpritePanel>(&state_, rom_);
-  polyhedral_panel_ = std::make_unique<PolyhedralEditorPanel>(rom_);
   gfx_group_panel_ = std::make_unique<GfxGroupEditor>();
   gfx_group_panel_->SetRom(rom_);
   gfx_group_panel_->SetGameData(game_data_);
@@ -99,13 +98,6 @@ void GraphicsEditor::Initialize() {
       }));
 
   panel_manager->RegisterEditorPanel(
-      std::make_unique<GraphicsPolyhedralPanel>([this]() {
-        if (polyhedral_panel_) {
-          status_ = polyhedral_panel_->Update();
-        }
-      }));
-
-  panel_manager->RegisterEditorPanel(
       std::make_unique<GraphicsGfxGroupPanel>([this]() {
         if (gfx_group_panel_) {
           status_ = gfx_group_panel_->Update();
@@ -120,11 +112,7 @@ void GraphicsEditor::Initialize() {
         }
       }));
 
-  // Prototype viewer for Super Donkey and dev format imports
-  panel_manager->RegisterEditorPanel(
-      std::make_unique<GraphicsPrototypeViewerPanel>([this]() {
-        DrawPrototypeViewer();
-      }));
+  // Prototype viewer and polyhedral panels are not registered by default.
 }
 
 absl::Status GraphicsEditor::Load() {
@@ -185,11 +173,6 @@ absl::Status GraphicsEditor::Load() {
 
     LOG_INFO("GraphicsEditor", "Queued texture creation for %d graphics sheets",
              sheets_queued);
-  }
-
-  if (polyhedral_panel_) {
-    polyhedral_panel_->SetRom(rom_);
-    RETURN_IF_ERROR(polyhedral_panel_->Load());
   }
 
   return absl::OkStatus();

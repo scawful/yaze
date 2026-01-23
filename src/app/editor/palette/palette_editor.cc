@@ -13,6 +13,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/popup_id.h"
 #include "app/gui/core/search.h"
+#include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -204,7 +205,7 @@ void PaletteEditor::Initialize() {
   panel_manager->RegisterPanel(
       {.card_id = "palette.control_panel",
        .display_name = "Palette Controls",
-       .window_title = " Group Manager",
+       .window_title = " Palette Controls",
        .icon = ICON_MD_PALETTE,
        .category = "Palette",
        .shortcut_hint = "Ctrl+Shift+P",
@@ -889,7 +890,7 @@ void PaletteEditor::DrawControlPanel() {
   ImGui::Separator();
 
   // Modified status indicator
-  ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.0f, 1.0f), "Modified Panels:");
+  ImGui::TextColored(gui::GetWarningColor(), "Modified Panels:");
   bool any_modified = false;
 
   if (ow_main_panel_ && ow_main_panel_->HasUnsavedChanges()) {
@@ -1005,7 +1006,7 @@ void PaletteEditor::DrawControlPanel() {
               .c_str(),
           nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
     ImGui::Text("Discard all unsaved changes?");
-    ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.0f, 1.0f),
+    ImGui::TextColored(gui::GetWarningColor(),
                        "This will revert %zu modified colors.",
                        modified_count);
     ImGui::Separator();
@@ -1026,7 +1027,7 @@ void PaletteEditor::DrawControlPanel() {
                                               gui::PopupNames::kSaveError)
                                  .c_str(),
                              nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f),
+    ImGui::TextColored(gui::GetErrorColor(),
                        "Failed to save changes");
     ImGui::Text("An error occurred while saving to ROM.");
     ImGui::Separator();
@@ -1039,36 +1040,7 @@ void PaletteEditor::DrawControlPanel() {
 
   ImGui::Separator();
 
-  // Editor Manager Menu Button
-  if (ImGui::Button(ICON_MD_DASHBOARD " Panel Manager", ImVec2(-1, 0))) {
-    ImGui::OpenPopup(gui::MakePopupId(gui::EditorNames::kPalette,
-                                      gui::PopupNames::kPalettePanelManager)
-                         .c_str());
-  }
-
-  if (ImGui::BeginPopup(
-          gui::MakePopupId(gui::EditorNames::kPalette,
-                           gui::PopupNames::kPalettePanelManager)
-              .c_str())) {
-    ImGui::TextColored(ImVec4(0.7f, 0.9f, 1.0f, 1.0f),
-                       "%s Palette Panel Manager", ICON_MD_PALETTE);
-    ImGui::Separator();
-
-    // View menu section now handled by PanelManager in EditorManager
-    if (!dependencies_.panel_manager) {
-      ImGui::TextDisabled("Panel manager unavailable");
-    }
-
-    ImGui::EndPopup();
-  }
-
-  ImGui::Separator();
-
-  // Minimize button
-  if (ImGui::SmallButton(ICON_MD_MINIMIZE " Minimize to Icon")) {
-    control_panel_minimized_ = true;
-    show_control_panel_ = false;
-  }
+  // Panel management handled globally in the sidebar/menu system.
 }
 
 void PaletteEditor::DrawQuickAccessPanel() {

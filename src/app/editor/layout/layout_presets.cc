@@ -41,13 +41,13 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       preset.name = "Dungeon Default";
       preset.description = "Room editor with object palette and properties";
       preset.default_visible_panels = {
-          Panels::kDungeonControlPanel,
           Panels::kDungeonRoomSelector,
+          Panels::kDungeonRoomMatrix,
       };
       preset.panel_positions = {
-          {Panels::kDungeonControlPanel, DockPosition::Center}, // Controls implies canvas usually
+          {Panels::kDungeonRoomMatrix, DockPosition::Center},
           {Panels::kDungeonRoomSelector, DockPosition::Left},
-          {Panels::kDungeonRoomMatrix, DockPosition::RightTop},
+          {Panels::kDungeonRoomGraphics, DockPosition::RightTop},
           {Panels::kDungeonEntrances, DockPosition::RightBottom},
           {Panels::kDungeonObjectEditor, DockPosition::Right},
           {Panels::kDungeonPaletteEditor, DockPosition::Bottom},
@@ -55,16 +55,14 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       preset.optional_panels = {
           Panels::kDungeonObjectEditor,
           Panels::kDungeonPaletteEditor,
-          Panels::kDungeonRoomMatrix,
           Panels::kDungeonEntrances,
           Panels::kDungeonRoomGraphics,
-          Panels::kDungeonDebugControls,
       };
       break;
 
     case EditorType::kGraphics:
       preset.name = "Graphics Default";
-      preset.description = "Sheet browser with editor";
+      preset.description = "Sheet browser with pixel editor";
       preset.default_visible_panels = {
           Panels::kGraphicsSheetBrowser,
           Panels::kGraphicsSheetEditor,
@@ -72,12 +70,16 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       preset.panel_positions = {
           {Panels::kGraphicsSheetEditor, DockPosition::Center},
           {Panels::kGraphicsSheetBrowser, DockPosition::Left},
+          {Panels::kGraphicsPaletteControls, DockPosition::Right},
           {Panels::kGraphicsPlayerAnimations, DockPosition::Bottom},
-          {Panels::kGraphicsPrototypeViewer, DockPosition::Right},
+          {Panels::kGraphicsGfxGroupEditor, DockPosition::RightTop},
+          {Panels::kGraphicsPalettesetEditor, DockPosition::RightBottom},
       };
       preset.optional_panels = {
+          Panels::kGraphicsPaletteControls,
           Panels::kGraphicsPlayerAnimations,
-          Panels::kGraphicsPrototypeViewer,
+          Panels::kGraphicsGfxGroupEditor,
+          Panels::kGraphicsPalettesetEditor,
       };
       break;
 
@@ -313,7 +315,7 @@ PanelLayoutPreset LayoutPresets::GetMinimalPreset() {
   // Core editing cards across editors
   preset.default_visible_panels = {
       Panels::kOverworldCanvas,
-      Panels::kDungeonControlPanel,
+      Panels::kDungeonRoomSelector,
       Panels::kGraphicsSheetEditor,
       Panels::kPaletteControlPanel,
       Panels::kSpriteVanillaEditor,
@@ -343,8 +345,6 @@ PanelLayoutPreset LayoutPresets::GetDeveloperPreset() {
       // Assembly editing
       Panels::kAssemblyEditor,
       Panels::kAssemblyFileBrowser,
-      // Dungeon debug controls
-      Panels::kDungeonDebugControls,
       // AI Agent for debugging assistance
       Panels::kEmulatorAiAgent,
   };
@@ -360,8 +360,10 @@ PanelLayoutPreset LayoutPresets::GetDesignerPreset() {
       // Graphics cards
       Panels::kGraphicsSheetBrowser,
       Panels::kGraphicsSheetEditor,
+      Panels::kGraphicsPaletteControls,
       Panels::kGraphicsPlayerAnimations,
-      Panels::kGraphicsPrototypeViewer,
+      Panels::kGraphicsGfxGroupEditor,
+      Panels::kGraphicsPalettesetEditor,
       // Palette cards
       Panels::kPaletteControlPanel,
       Panels::kPaletteOwMain,
@@ -392,8 +394,8 @@ PanelLayoutPreset LayoutPresets::GetModderPreset() {
       Panels::kOverworldAreaGraphics,
       Panels::kOverworldGfxGroups,
       // Dungeon cards
-      Panels::kDungeonControlPanel,
       Panels::kDungeonRoomSelector,
+      Panels::kDungeonRoomMatrix,
       Panels::kDungeonObjectEditor,
       Panels::kDungeonPaletteEditor,
       Panels::kDungeonEntrances,
@@ -448,14 +450,12 @@ PanelLayoutPreset LayoutPresets::GetDungeonExpertPreset() {
   preset.editor_type = EditorType::kDungeon;
   preset.default_visible_panels = {
       // All dungeon cards
-      Panels::kDungeonControlPanel,
       Panels::kDungeonRoomSelector,
       Panels::kDungeonRoomMatrix,
       Panels::kDungeonEntrances,
       Panels::kDungeonRoomGraphics,
       Panels::kDungeonObjectEditor,
       Panels::kDungeonPaletteEditor,
-      Panels::kDungeonDebugControls,
       // Palette support
       Panels::kPaletteControlPanel,
       Panels::kPaletteDungeonMain,
