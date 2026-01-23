@@ -389,6 +389,34 @@
     TestUtils.assertFunction(ai, 'startDeviceAuth', 'startDeviceAuth function exists');
     TestUtils.assertFunction(ai, 'pollForToken', 'pollForToken function exists');
     TestUtils.assertFunction(ai, 'logout', 'logout function exists');
+    TestUtils.assertFunction(ai, 'reloadConfigFromStorage', 'reloadConfigFromStorage function exists');
+    TestUtils.assertFunction(ai, 'getConfigSnapshot', 'getConfigSnapshot function exists');
+
+    if (typeof ai.reloadConfigFromStorage === 'function' &&
+        typeof ai.getConfigSnapshot === 'function') {
+      const prevProvider = localStorage.getItem('yaze_ai_provider');
+      const prevModel = localStorage.getItem('yaze_ai_model');
+      const prevBase = localStorage.getItem('yaze_openai_base_url');
+
+      localStorage.setItem('yaze_ai_provider', 'openai');
+      localStorage.setItem('yaze_ai_model', 'gpt-4o-mini');
+      localStorage.setItem('yaze_openai_base_url', 'http://localhost:1234');
+
+      ai.reloadConfigFromStorage();
+      const cfg = ai.getConfigSnapshot();
+      TestUtils.assertEqual(cfg.provider, 'openai', 'AI manager provider override');
+      TestUtils.assertEqual(cfg.model, 'gpt-4o-mini', 'AI manager model override');
+      TestUtils.assertEqual(cfg.openaiBaseUrl, 'http://localhost:1234/v1', 'AI manager base URL normalization');
+
+      if (prevProvider) localStorage.setItem('yaze_ai_provider', prevProvider);
+      else localStorage.removeItem('yaze_ai_provider');
+      if (prevModel) localStorage.setItem('yaze_ai_model', prevModel);
+      else localStorage.removeItem('yaze_ai_model');
+      if (prevBase) localStorage.setItem('yaze_openai_base_url', prevBase);
+      else localStorage.removeItem('yaze_openai_base_url');
+
+      ai.reloadConfigFromStorage();
+    }
   }
 
   // Test: AI Tools data

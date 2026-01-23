@@ -133,6 +133,9 @@ class BrowserAIService : public AIService {
   void UpdateApiKey(const std::string& api_key);
 
  private:
+  bool RequiresApiKey() const;
+  std::string GetOpenAIApiBase() const;
+
   /**
    * @brief Build the Gemini API URL for the configured model
    * @param endpoint API endpoint (e.g., "generateContent")

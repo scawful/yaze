@@ -30,6 +30,7 @@ class ToastManager;
 class ProposalDrawer;
 class RightPanelManager;
 class PanelManager;
+class UserSettings;
 
 // Forward declarations for when YAZE_BUILD_AGENT_UI is not defined
 #if !defined(YAZE_BUILD_AGENT_UI)
@@ -48,7 +49,10 @@ class AgentUiController {
   void Initialize(ToastManager* toast_manager,
                   ProposalDrawer* proposal_drawer,
                   RightPanelManager* right_panel_manager,
-                  PanelManager* panel_manager);
+                  PanelManager* panel_manager,
+                  UserSettings* user_settings);
+
+  void ApplyUserSettingsDefaults(bool force = false);
 
   void SetRomContext(Rom* rom);
   void SetProjectContext(project::YazeProject* project);
@@ -95,6 +99,7 @@ class AgentUiController {
   AgentConfigState last_synced_config_;
   RightPanelManager* right_panel_manager_ = nullptr;
   ToastManager* toast_manager_ = nullptr;
+  UserSettings* user_settings_ = nullptr;
 
 #if defined(Z3ED_AI)
   cli::agent::LearnedKnowledgeService learned_knowledge_;
@@ -110,7 +115,9 @@ class AgentUiController {
 #if !defined(YAZE_BUILD_AGENT_UI)
 inline void AgentUiController::Initialize(ToastManager*, ProposalDrawer*,
                                           RightPanelManager*,
-                                          PanelManager*) {}
+                                          PanelManager*,
+                                          UserSettings*) {}
+inline void AgentUiController::ApplyUserSettingsDefaults(bool) {}
 inline void AgentUiController::SetRomContext(Rom*) {}
 inline void AgentUiController::SetProjectContext(project::YazeProject*) {}
 inline void AgentUiController::SetAsarWrapperContext(core::AsarWrapper*) {}

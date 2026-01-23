@@ -59,6 +59,9 @@ class AgentChatHistoryCodec {
     std::string model;
     std::string ollama_host;
     std::string gemini_api_key;
+    std::string openai_api_key;
+    std::string openai_base_url;
+    std::string host_id;
     bool verbose = false;
     bool show_reasoning = true;
     int max_tool_iterations = 4;

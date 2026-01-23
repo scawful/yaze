@@ -43,7 +43,10 @@ final class RemoteBuildStore: ObservableObject {
       return
     }
 
-    URLSession.shared.dataTask(with: url) { data, _, error in
+    var request = URLRequest(url: url)
+    attachAuthHeaders(&request, host: host)
+
+    URLSession.shared.dataTask(with: request) { data, _, error in
       DispatchQueue.main.async {
         if let error = error {
           self.lastError = error.localizedDescription
@@ -73,6 +76,7 @@ final class RemoteBuildStore: ObservableObject {
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    attachAuthHeaders(&request, host: host)
 
     let body = ["kind": kind.rawValue, "payload": payload] as [String: Any]
     request.httpBody = try? JSONSerialization.data(withJSONObject: body)
@@ -97,5 +101,15 @@ final class RemoteBuildStore: ObservableObject {
         }
       }
     }.resume()
+  }
+
+  private func attachAuthHeaders(_ request: inout URLRequest, host: YazeSettings.AiHost) {
+    guard !host.credentialId.isEmpty else { return }
+    if let value = try? KeychainStore.load(key: host.credentialId),
+       let token = value,
+       !token.isEmpty {
+      request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+      request.setValue(token, forHTTPHeaderField: "X-API-Key")
+    }
   }
 }

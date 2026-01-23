@@ -1,5 +1,8 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 
+#include <algorithm>
+#include <functional>
+
 #include "app/gui/app/editor_layout.h"
 
 #include "absl/strings/str_format.h"
@@ -7,6 +10,7 @@
 #include "app/gui/automation/widget_measurement.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
+#include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
@@ -247,6 +251,7 @@ PanelWindow::PanelWindow(const char* title, const char* icon, bool* p_open)
 
 void PanelWindow::SetDefaultSize(float width, float height) {
   default_size_ = ImVec2(width, height);
+  default_size_set_ = true;
 }
 
 void PanelWindow::SetPosition(Position pos) {
@@ -320,34 +325,70 @@ bool PanelWindow::Begin(bool* p_open) {
   if (first_draw_) {
     float display_width = ImGui::GetIO().DisplaySize.x;
     float display_height = ImGui::GetIO().DisplaySize.y;
+    ImVec2 initial_size = default_size_;
+    ImVec2 start_offset = start_offset_;
+    const bool touch_device = LayoutHelpers::IsTouchDevice();
+
+    if (touch_device) {
+      ImVec2 work_size = ImGui::GetMainViewport()
+                             ? ImGui::GetMainViewport()->WorkSize
+                             : ImVec2(display_width, display_height);
+      ImVec2 min_size(work_size.x * 0.65f, work_size.y * 0.55f);
+      ImVec2 max_size(work_size.x * 0.96f, work_size.y * 0.92f);
+      ImVec2 desired = default_size_set_
+                           ? ImVec2(default_size_.x * 1.2f,
+                                    default_size_.y * 1.2f)
+                           : ImVec2(work_size.x * 0.9f, work_size.y * 0.82f);
+      initial_size.x = std::clamp(desired.x, min_size.x, max_size.x);
+      initial_size.y = std::clamp(desired.y, min_size.y, max_size.y);
+
+      if (!start_offset_set_) {
+        const size_t hash = std::hash<std::string>{}(window_name_);
+        const float step = 18.0f;
+        start_offset.x += step * static_cast<float>(hash % 5);
+        start_offset.y += step * static_cast<float>((hash / 5) % 5);
+      }
+    }
 
     switch (position_) {
       case Position::Right:
         ImGui::SetNextWindowPos(
-            ImVec2(display_width - default_size_.x - 10, 30),
+            ImVec2(display_width - initial_size.x - 10.0f, 30.0f) +
+                start_offset,
             ImGuiCond_FirstUseEver);
         break;
       case Position::Left:
-        ImGui::SetNextWindowPos(ImVec2(10, 30), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowPos(ImVec2(10.0f, 30.0f) + start_offset,
+                                ImGuiCond_FirstUseEver);
         break;
       case Position::Bottom:
         ImGui::SetNextWindowPos(
-            ImVec2(10, display_height - default_size_.y - 10),
+            ImVec2(10.0f, display_height - initial_size.y - 10.0f) +
+                start_offset,
             ImGuiCond_FirstUseEver);
         break;
       case Position::Top:
-        ImGui::SetNextWindowPos(ImVec2(10, 30), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowPos(ImVec2(10.0f, 30.0f) + start_offset,
+                                ImGuiCond_FirstUseEver);
+        break;
+      case Position::Center:
+        ImGui::SetNextWindowPos(
+            ImVec2(display_width * 0.5f - initial_size.x * 0.5f,
+                   display_height * 0.5f - initial_size.y * 0.5f) +
+                start_offset,
+            ImGuiCond_FirstUseEver);
         break;
       case Position::Floating:
       case Position::Free:
         ImGui::SetNextWindowPos(
-            ImVec2(display_width * 0.5f - default_size_.x * 0.5f,
-                   display_height * 0.3f),
+            ImVec2(display_width * 0.5f - initial_size.x * 0.5f,
+                   display_height * 0.3f) +
+                start_offset,
             ImGuiCond_FirstUseEver);
         break;
     }
 
-    ImGui::SetNextWindowSize(default_size_, ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(initial_size, ImGuiCond_FirstUseEver);
     first_draw_ = false;
   }
 

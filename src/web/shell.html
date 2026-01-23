@@ -640,6 +640,29 @@
               <label for="ai-client-id">OAuth 2.0 Client ID</label>
               <input type="text" id="ai-client-id" placeholder="e.g., 123456789-abc...apps.googleusercontent.com" style="width: 100%;">
             </div>
+            <div class="setting-group">
+              <label for="ai-provider">Provider</label>
+              <select id="ai-provider" style="width: 100%;">
+                <option value="gemini">Gemini (Browser)</option>
+                <option value="openai">OpenAI-Compatible (LMStudio/Local)</option>
+              </select>
+            </div>
+            <div class="setting-group">
+              <label for="ai-model">Model</label>
+              <input type="text" id="ai-model" placeholder="e.g., gemini-2.5-flash or gpt-4o-mini" style="width: 100%;">
+            </div>
+            <div class="setting-group">
+              <label for="ai-openai-base">OpenAI Base URL</label>
+              <input type="text" id="ai-openai-base" placeholder="http://localhost:1234/v1" style="width: 100%;">
+            </div>
+            <div class="setting-group">
+              <label for="ai-openai-key">OpenAI API Key (optional for local)</label>
+              <input type="password" id="ai-openai-key" placeholder="sk-..." style="width: 100%;">
+            </div>
+            <div class="setting-group">
+              <label for="ai-gemini-key">Gemini API Key</label>
+              <input type="password" id="ai-gemini-key" placeholder="AIza..." style="width: 100%;">
+            </div>
           </div>
 
           <div class="setting-section">

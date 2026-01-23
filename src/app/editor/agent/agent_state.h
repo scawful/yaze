@@ -180,6 +180,8 @@ struct AgentConfigState {
   std::string ollama_host = "http://localhost:11434";
   std::string gemini_api_key;
   std::string openai_api_key;
+  std::string openai_base_url = "https://api.openai.com";
+  std::string host_id;
   bool verbose = false;
   bool show_reasoning = true;
   int max_tool_iterations = 4;

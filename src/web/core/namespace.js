@@ -208,6 +208,10 @@
       storageKeys: {
         TERMINAL_HISTORY: 'z3ed_history',
         GEMINI_API_KEY: 'z3ed_gemini_api_key',
+        OPENAI_API_KEY: 'z3ed_openai_api_key',
+        AI_PROVIDER: 'yaze_ai_provider',
+        AI_MODEL: 'yaze_ai_model',
+        OPENAI_BASE_URL: 'yaze_openai_base_url',
         COLLAB_SESSION: 'collab-session',
         COLLAB_USERNAME: 'collab-username',
         COLLAB_SERVER_URL: 'collab-server-url'

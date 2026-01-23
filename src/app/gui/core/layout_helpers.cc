@@ -1,5 +1,6 @@
 #include "app/gui/core/layout_helpers.h"
 
+#include <algorithm>
 #include <vector>
 
 #include "absl/strings/str_format.h"
@@ -8,6 +9,14 @@
 #include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
+
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
+
+#if defined(__APPLE__) && TARGET_OS_IOS == 1
+#include "app/platform/ios/ios_platform_state.h"
+#endif
 
 namespace yaze {
 namespace gui {
@@ -59,6 +68,37 @@ float LayoutHelpers::GetCanvasToolbarHeight() {
   const auto& theme = GetTheme();
   return GetBaseFontSize() * theme.canvas_toolbar_multiplier *
          theme.compact_factor;
+}
+
+LayoutHelpers::SafeAreaInsets LayoutHelpers::GetSafeAreaInsets() {
+  SafeAreaInsets insets{};
+#if defined(__APPLE__) && TARGET_OS_IOS == 1
+  const auto ios_insets = ::yaze::platform::ios::GetSafeAreaInsets();
+  insets.left = ios_insets.left;
+  insets.right = ios_insets.right;
+  insets.top = ios_insets.top;
+  insets.bottom = ios_insets.bottom;
+#else
+  const ImVec2 pad = ImGui::GetStyle().DisplaySafeAreaPadding;
+  insets.left = pad.x;
+  insets.right = pad.x;
+  insets.top = pad.y;
+  insets.bottom = pad.y;
+#endif
+  return insets;
+}
+
+float LayoutHelpers::GetTopInset() {
+  float top = GetSafeAreaInsets().top;
+#if defined(__APPLE__) && TARGET_OS_IOS == 1
+  top = std::max(top, ::yaze::platform::ios::GetOverlayTopInset());
+#endif
+  return top;
+}
+
+bool LayoutHelpers::IsTouchDevice() {
+  ImGuiIO& io = ImGui::GetIO();
+  return (io.ConfigFlags & ImGuiConfigFlags_IsTouchScreen) != 0;
 }
 
 // Layout utilities

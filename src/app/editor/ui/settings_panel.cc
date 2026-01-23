@@ -9,6 +9,7 @@
 
 #include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
+#include "absl/strings/str_format.h"
 #include "app/editor/system/panel_manager.h"
 #include "app/editor/system/shortcut_manager.h"
 #include "app/gui/app/feature_flags_menu.h"
@@ -326,6 +327,114 @@ void SettingsPanel::DrawAIAgentSettings() {
   if (ImGui::Combo("##Provider", &user_settings_->prefs().ai_provider, providers,
             IM_ARRAYSIZE(providers))) {
     user_settings_->Save();
+  }
+
+  ImGui::Spacing();
+  ImGui::Text("%s AI Hosts", ICON_MD_STORAGE);
+  ImGui::Separator();
+
+  auto& prefs = user_settings_->prefs();
+  auto& hosts = prefs.ai_hosts;
+  static int selected_host_index = -1;
+
+  const char* active_preview = "None";
+  for (const auto& host : hosts) {
+    if (!prefs.active_ai_host_id.empty() &&
+        host.id == prefs.active_ai_host_id) {
+      active_preview = host.label.c_str();
+      break;
+    }
+  }
+
+  if (ImGui::BeginCombo("Active Host", active_preview)) {
+    for (size_t i = 0; i < hosts.size(); ++i) {
+      const bool is_selected =
+          (!prefs.active_ai_host_id.empty() &&
+           hosts[i].id == prefs.active_ai_host_id);
+      if (ImGui::Selectable(hosts[i].label.c_str(), is_selected)) {
+        prefs.active_ai_host_id = hosts[i].id;
+        prefs.remote_build_host_id = hosts[i].id;
+        user_settings_->Save();
+      }
+      if (is_selected) {
+        ImGui::SetItemDefaultFocus();
+      }
+    }
+    ImGui::EndCombo();
+  }
+
+  ImGui::BeginChild("##ai_host_list", ImVec2(0, 120), true);
+  for (size_t i = 0; i < hosts.size(); ++i) {
+    const bool is_selected = static_cast<int>(i) == selected_host_index;
+    if (ImGui::Selectable(hosts[i].label.c_str(), is_selected)) {
+      selected_host_index = static_cast<int>(i);
+    }
+  }
+  ImGui::EndChild();
+
+  if (ImGui::Button(ICON_MD_ADD " Add Host")) {
+    UserSettings::Preferences::AiHost host;
+    host.id = absl::StrFormat("host-%zu", hosts.size() + 1);
+    host.label = "New Host";
+    host.base_url = "http://localhost:1234";
+    host.api_type = "openai";
+    hosts.push_back(host);
+    selected_host_index = static_cast<int>(hosts.size() - 1);
+    if (prefs.active_ai_host_id.empty()) {
+      prefs.active_ai_host_id = host.id;
+      prefs.remote_build_host_id = host.id;
+    }
+    user_settings_->Save();
+  }
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_DELETE " Remove") && selected_host_index >= 0 &&
+      selected_host_index < static_cast<int>(hosts.size())) {
+    const std::string removed_id = hosts[selected_host_index].id;
+    hosts.erase(hosts.begin() + selected_host_index);
+    if (prefs.active_ai_host_id == removed_id) {
+      prefs.active_ai_host_id = hosts.empty() ? "" : hosts.front().id;
+    }
+    if (prefs.remote_build_host_id == removed_id) {
+      prefs.remote_build_host_id = prefs.active_ai_host_id;
+    }
+    selected_host_index =
+        hosts.empty() ? -1 : std::min(selected_host_index, static_cast<int>(hosts.size() - 1));
+    user_settings_->Save();
+  }
+
+  if (selected_host_index >= 0 &&
+      selected_host_index < static_cast<int>(hosts.size())) {
+    auto& host = hosts[static_cast<size_t>(selected_host_index)];
+    ImGui::Spacing();
+    ImGui::Text("Host Details");
+    ImGui::Separator();
+    if (ImGui::InputText("Label", &host.label)) {
+      user_settings_->Save();
+    }
+    if (ImGui::InputText("Base URL", &host.base_url)) {
+      user_settings_->Save();
+    }
+    if (ImGui::InputText("API Type", &host.api_type)) {
+      user_settings_->Save();
+    }
+    if (ImGui::InputText("API Key", &host.api_key,
+                         ImGuiInputTextFlags_Password)) {
+      user_settings_->Save();
+    }
+    if (ImGui::Checkbox("Supports Vision", &host.supports_vision)) {
+      user_settings_->Save();
+    }
+    ImGui::SameLine();
+    if (ImGui::Checkbox("Supports Tools", &host.supports_tools)) {
+      user_settings_->Save();
+    }
+    ImGui::SameLine();
+    if (ImGui::Checkbox("Supports Streaming", &host.supports_streaming)) {
+      user_settings_->Save();
+    }
+    if (ImGui::Checkbox("Allow Insecure HTTP", &host.allow_insecure)) {
+      user_settings_->Save();
+    }
   }
 
   ImGui::Spacing();

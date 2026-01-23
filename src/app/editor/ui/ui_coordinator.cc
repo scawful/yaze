@@ -11,12 +11,6 @@
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
-#ifdef __APPLE__
-#include <TargetConditionals.h>
-#endif
-#if defined(__APPLE__) && TARGET_OS_IOS == 1
-#include "app/platform/ios/ios_platform_state.h"
-#endif
 #include "app/editor/editor.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/layout/window_delegate.h"
@@ -226,6 +220,31 @@ void UICoordinator::DrawAllUI() {
   DrawProjectHelp();             // Project help
   DrawWindowManagementUI();      // Window management
 
+#ifdef YAZE_BUILD_AGENT_UI
+  if (show_ai_agent_) {
+    if (editor_manager_) {
+      editor_manager_->ShowAIAgent();
+    }
+    show_ai_agent_ = false;
+  }
+
+  if (show_chat_history_) {
+    if (editor_manager_) {
+      editor_manager_->ShowChatHistory();
+    }
+    show_chat_history_ = false;
+  }
+
+  if (show_proposal_drawer_) {
+    if (editor_manager_) {
+      if (auto* right_panel = editor_manager_->right_panel_manager()) {
+        right_panel->OpenPanel(RightPanelManager::PanelType::kProposals);
+      }
+    }
+    show_proposal_drawer_ = false;
+  }
+#endif
+
   // Draw popups and toasts
   DrawAllPopups();
   toast_manager_.Draw();
@@ -257,13 +276,11 @@ void UICoordinator::DrawMobileNavigation() {
 
   const ImGuiStyle& style = ImGui::GetStyle();
   ImVec2 safe = style.DisplaySafeAreaPadding;
-#if defined(__APPLE__) && TARGET_OS_IOS == 1
-  const auto safe_area = ::yaze::platform::ios::GetSafeAreaInsets();
+  const auto safe_area = gui::LayoutHelpers::GetSafeAreaInsets();
   if (safe_area.left != 0.0f || safe_area.right != 0.0f ||
       safe_area.top != 0.0f || safe_area.bottom != 0.0f) {
     safe = ImVec2(safe_area.right, safe_area.bottom);
   }
-#endif
   const float button_size = std::max(44.0f, ImGui::GetFontSize() * 2.1f);
   const float edge_padding = std::max(10.0f, style.WindowPadding.x);
   const float container_size = button_size + 8.0f;

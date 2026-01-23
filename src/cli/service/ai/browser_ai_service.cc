@@ -131,9 +131,14 @@ absl::StatusOr<AgentResponse> BrowserAIService::GenerateResponse(
     return absl::FailedPreconditionError("HTTP client not initialized");
   }
 
-  if (config_.api_key.empty()) {
+  if (RequiresApiKey() && config_.api_key.empty()) {
+    if (config_.provider == "openai") {
+      return absl::InvalidArgumentError(
+          "OpenAI API key not set. Provide a key for https://api.openai.com, "
+          "or use a local OpenAI-compatible endpoint.");
+    }
     return absl::InvalidArgumentError(
-        "API key not set. Please provide an API key.");
+        "API key not set. Please provide a Gemini API key.");
   }
 
   LogDebug(absl::StrFormat("Generating response for prompt: %s", prompt));
@@ -154,7 +159,7 @@ absl::StatusOr<AgentResponse> BrowserAIService::GenerateResponse(
   // Set headers
   net::Headers headers;
   headers["Content-Type"] = "application/json";
-  if (config_.provider == "openai") {
+  if (config_.provider == "openai" && !config_.api_key.empty()) {
     headers["Authorization"] = "Bearer " + config_.api_key;
   }
 
@@ -193,9 +198,14 @@ absl::StatusOr<AgentResponse> BrowserAIService::GenerateResponse(
     return absl::FailedPreconditionError("HTTP client not initialized");
   }
 
-  if (config_.api_key.empty()) {
+  if (RequiresApiKey() && config_.api_key.empty()) {
+    if (config_.provider == "openai") {
+      return absl::InvalidArgumentError(
+          "OpenAI API key not set. Provide a key for https://api.openai.com, "
+          "or use a local OpenAI-compatible endpoint.");
+    }
     return absl::InvalidArgumentError(
-        "API key not set. Please provide an API key.");
+        "API key not set. Please provide a Gemini API key.");
   }
 
   if (history.empty()) {
@@ -235,7 +245,7 @@ absl::StatusOr<AgentResponse> BrowserAIService::GenerateResponse(
   // Set headers
   net::Headers headers;
   headers["Content-Type"] = "application/json";
-  if (config_.provider == "openai") {
+  if (config_.provider == "openai" && !config_.api_key.empty()) {
     headers["Authorization"] = "Bearer " + config_.api_key;
   }
 
@@ -394,19 +404,24 @@ absl::Status BrowserAIService::CheckAvailability() {
     return absl::FailedPreconditionError("HTTP client not initialized");
   }
 
-  if (config_.api_key.empty()) {
-    return absl::InvalidArgumentError("API key not set");
+  if (RequiresApiKey() && config_.api_key.empty()) {
+    if (config_.provider == "openai") {
+      return absl::InvalidArgumentError(
+          "OpenAI API key not set. Provide a key for https://api.openai.com, "
+          "or use a local OpenAI-compatible endpoint.");
+    }
+    return absl::InvalidArgumentError("Gemini API key not set");
   }
 
   net::Headers headers;
   std::string url;
 
   if (config_.provider == "openai") {
-    url = config_.api_base.empty() ? kOpenAIApiBaseUrl : config_.api_base;
-    if (!url.empty() && url.back() == '/')
-      url.pop_back();
+    url = GetOpenAIApiBase();
     url += "/models";
-    headers["Authorization"] = "Bearer " + config_.api_key;
+    if (!config_.api_key.empty()) {
+      headers["Authorization"] = "Bearer " + config_.api_key;
+    }
   } else {
     url = absl::StrFormat("%s%s?key=%s", kGeminiApiBaseUrl, config_.model,
                           config_.api_key);
@@ -441,13 +456,25 @@ void BrowserAIService::UpdateApiKey(const std::string& api_key) {
   LogDebug("API key updated");
 }
 
+bool BrowserAIService::RequiresApiKey() const {
+  if (config_.provider == "openai") {
+    return GetOpenAIApiBase() == kOpenAIApiBaseUrl;
+  }
+  return true;
+}
+
+std::string BrowserAIService::GetOpenAIApiBase() const {
+  std::string base =
+      config_.api_base.empty() ? kOpenAIApiBaseUrl : config_.api_base;
+  if (!base.empty() && base.back() == '/') {
+    base.pop_back();
+  }
+  return base;
+}
+
 std::string BrowserAIService::BuildApiUrl(const std::string& endpoint) const {
   if (config_.provider == "openai") {
-    std::string base =
-        config_.api_base.empty() ? kOpenAIApiBaseUrl : config_.api_base;
-    if (!base.empty() && base.back() == '/') {
-      base.pop_back();
-    }
+    std::string base = GetOpenAIApiBase();
     return absl::StrFormat("%s/%s", base, endpoint);
   }
 
