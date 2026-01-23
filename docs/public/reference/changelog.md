@@ -4,6 +4,7 @@
 
 ### Desktop & UX
 - Fix message editor preview and font atlas palette sync on load.
+- Sync panel/editor context on category switches to avoid blank ImGui windows (e.g., Emulator ↔ Overworld).
 
 ### Nightly & Packaging
 - Normalize macOS nightly bundle layout so launchers find `yaze.app`.
