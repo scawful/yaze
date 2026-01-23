@@ -21,6 +21,7 @@
 #include "app/editor/agent/agent_chat.h"
 #include "app/editor/agent/agent_collaboration_coordinator.h"
 #include "app/editor/system/proposal_drawer.h"
+#include "app/editor/system/user_settings.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/platform/asset_loader.h"
@@ -44,6 +45,57 @@
 
 namespace yaze {
 namespace editor {
+
+namespace {
+
+std::string NormalizeOpenAIBaseUrl(std::string base) {
+  if (base.empty()) {
+    return "https://api.openai.com";
+  }
+  while (!base.empty() && base.back() == '/') {
+    base.pop_back();
+  }
+  if (absl::EndsWith(base, "/v1")) {
+    base.resize(base.size() - 3);
+    while (!base.empty() && base.back() == '/') {
+      base.pop_back();
+    }
+  }
+  return base;
+}
+
+void ApplyHostPresetToProfile(AgentEditor::BotProfile* profile,
+                              const UserSettings::Preferences::AiHost& host) {
+  if (!profile) {
+    return;
+  }
+  profile->host_id = host.id;
+  std::string api_type = host.api_type;
+  if (api_type == "lmstudio") {
+    api_type = "openai";
+  }
+  if (api_type == "openai" || api_type == "ollama" || api_type == "gemini") {
+    profile->provider = api_type;
+  }
+  if (profile->provider == "openai") {
+    if (!host.base_url.empty()) {
+      profile->openai_base_url = NormalizeOpenAIBaseUrl(host.base_url);
+    }
+    if (!host.api_key.empty()) {
+      profile->openai_api_key = host.api_key;
+    }
+  } else if (profile->provider == "ollama") {
+    if (!host.base_url.empty()) {
+      profile->ollama_host = host.base_url;
+    }
+  } else if (profile->provider == "gemini") {
+    if (!host.api_key.empty()) {
+      profile->gemini_api_key = host.api_key;
+    }
+  }
+}
+
+}  // namespace
 
 AgentEditor::AgentEditor() {
   type_ = EditorType::kAgent;
@@ -134,6 +186,39 @@ void AgentEditor::Initialize() {
                 "Build with Z3ED_AI=ON to enable the knowledge service.");
           }
         }));
+  }
+
+  ApplyUserSettingsDefaults();
+}
+
+void AgentEditor::ApplyUserSettingsDefaults(bool force) {
+  auto* settings = dependencies_.user_settings;
+  if (!settings) {
+    return;
+  }
+  const auto& prefs = settings->prefs();
+  if (prefs.ai_hosts.empty()) {
+    return;
+  }
+  if (!force) {
+    if (!current_profile_.host_id.empty()) {
+      return;
+    }
+    if (current_profile_.provider != "mock") {
+      return;
+    }
+  }
+  const std::string& active_id =
+      prefs.active_ai_host_id.empty() ? prefs.ai_hosts.front().id
+                                      : prefs.active_ai_host_id;
+  if (active_id.empty()) {
+    return;
+  }
+  for (const auto& host : prefs.ai_hosts) {
+    if (host.id == active_id) {
+      ApplyHostPresetToProfile(&current_profile_, host);
+      return;
+    }
   }
 }
 
@@ -279,6 +364,45 @@ void AgentEditor::DrawConfigurationPanel() {
   AgentUI::RenderSectionHeader(ICON_MD_SETTINGS, "AI Provider",
                                theme.accent_color);
 
+  if (dependencies_.user_settings) {
+    const auto& prefs = dependencies_.user_settings->prefs();
+    if (!prefs.ai_hosts.empty()) {
+      AgentUI::RenderSectionHeader(ICON_MD_STORAGE, "Host Presets",
+                                   theme.accent_color);
+      const auto& hosts = prefs.ai_hosts;
+      std::string active_id =
+          current_profile_.host_id.empty() ? prefs.active_ai_host_id
+                                           : current_profile_.host_id;
+      int active_index = -1;
+      for (size_t i = 0; i < hosts.size(); ++i) {
+        if (!active_id.empty() && hosts[i].id == active_id) {
+          active_index = static_cast<int>(i);
+          break;
+        }
+      }
+      const char* preview =
+          (active_index >= 0) ? hosts[active_index].label.c_str()
+                              : "Select host";
+      if (ImGui::BeginCombo("##ai_host_preset", preview)) {
+        for (size_t i = 0; i < hosts.size(); ++i) {
+          const bool selected = (static_cast<int>(i) == active_index);
+          if (ImGui::Selectable(hosts[i].label.c_str(), selected)) {
+            ApplyHostPresetToProfile(&current_profile_, hosts[i]);
+          }
+          if (selected) {
+            ImGui::SetItemDefaultFocus();
+          }
+        }
+        ImGui::EndCombo();
+      }
+      ImGui::TextDisabled(
+          "Host presets come from settings.json (Documents/Yaze).");
+      ImGui::Spacing();
+      ImGui::Separator();
+      ImGui::Spacing();
+    }
+  }
+
   float avail_width = ImGui::GetContentRegionAvail().x;
   ImVec2 button_size(avail_width / 2 - 8, 46);
 
@@ -288,6 +412,7 @@ void AgentEditor::DrawConfigurationPanel() {
     ImVec4 base_color = selected ? color : theme.panel_bg_darker;
     if (AgentUI::StyledButton(label, base_color, button_size)) {
       current_profile_.provider = provider_id;
+      current_profile_.host_id.clear();
     }
   };
 
@@ -408,6 +533,21 @@ void AgentEditor::DrawConfigurationPanel() {
       current_profile_.model = openai_model_buf;
     }
 
+    ImGui::Text("Base URL:");
+    ImGui::SetNextItemWidth(-1);
+    static char openai_base_buf[256] = "https://api.openai.com";
+    if (!current_profile_.openai_base_url.empty()) {
+      strncpy(openai_base_buf, current_profile_.openai_base_url.c_str(),
+              sizeof(openai_base_buf) - 1);
+      openai_base_buf[sizeof(openai_base_buf) - 1] = '\0';
+    }
+    if (ImGui::InputTextWithHint("##openai_base_url",
+                                 "e.g., http://localhost:1234",
+                                 openai_base_buf,
+                                 sizeof(openai_base_buf))) {
+      current_profile_.openai_base_url = openai_base_buf;
+    }
+
     ImGui::Text("API Key:");
     ImGui::SetNextItemWidth(-1);
     static char openai_key_buf[256] = "";
@@ -504,6 +644,7 @@ void AgentEditor::DrawConfigurationPanel() {
     current_config_.ollama_host = current_profile_.ollama_host;
     current_config_.gemini_api_key = current_profile_.gemini_api_key;
     current_config_.openai_api_key = current_profile_.openai_api_key;
+    current_config_.openai_base_url = current_profile_.openai_base_url;
     current_config_.verbose = current_profile_.verbose;
     current_config_.show_reasoning = current_profile_.show_reasoning;
     current_config_.max_tool_iterations = current_profile_.max_tool_iterations;
@@ -1355,6 +1496,7 @@ absl::Status AgentEditor::LoadBotProfile(const std::string& name) {
   current_config_.ollama_host = current_profile_.ollama_host;
   current_config_.gemini_api_key = current_profile_.gemini_api_key;
   current_config_.openai_api_key = current_profile_.openai_api_key;
+  current_config_.openai_base_url = current_profile_.openai_base_url;
   current_config_.verbose = current_profile_.verbose;
   current_config_.show_reasoning = current_profile_.show_reasoning;
   current_config_.max_tool_iterations = current_profile_.max_tool_iterations;
@@ -1395,6 +1537,7 @@ void AgentEditor::SetCurrentProfile(const BotProfile& profile) {
   current_config_.ollama_host = profile.ollama_host;
   current_config_.gemini_api_key = profile.gemini_api_key;
   current_config_.openai_api_key = profile.openai_api_key;
+  current_config_.openai_base_url = profile.openai_base_url;
   current_config_.verbose = profile.verbose;
   current_config_.show_reasoning = profile.show_reasoning;
   current_config_.max_tool_iterations = profile.max_tool_iterations;
@@ -1481,10 +1624,12 @@ std::string AgentEditor::ProfileToJson(const BotProfile& profile) const {
   json["name"] = profile.name;
   json["description"] = profile.description;
   json["provider"] = profile.provider;
+  json["host_id"] = profile.host_id;
   json["model"] = profile.model;
   json["ollama_host"] = profile.ollama_host;
   json["gemini_api_key"] = profile.gemini_api_key;
   json["openai_api_key"] = profile.openai_api_key;
+  json["openai_base_url"] = profile.openai_base_url;
   json["system_prompt"] = profile.system_prompt;
   json["verbose"] = profile.verbose;
   json["show_reasoning"] = profile.show_reasoning;
@@ -1516,10 +1661,13 @@ absl::StatusOr<AgentEditor::BotProfile> AgentEditor::JsonToProfile(
     profile.name = json.value("name", "Unnamed Profile");
     profile.description = json.value("description", "");
     profile.provider = json.value("provider", "mock");
+    profile.host_id = json.value("host_id", "");
     profile.model = json.value("model", "");
     profile.ollama_host = json.value("ollama_host", "http://localhost:11434");
     profile.gemini_api_key = json.value("gemini_api_key", "");
     profile.openai_api_key = json.value("openai_api_key", "");
+    profile.openai_base_url =
+        json.value("openai_base_url", "https://api.openai.com");
     profile.system_prompt = json.value("system_prompt", "");
     profile.verbose = json.value("verbose", false);
     profile.show_reasoning = json.value("show_reasoning", true);
@@ -1581,6 +1729,8 @@ void AgentEditor::ApplyConfig(const AgentConfig& config) {
       provider_config.ollama_host = config.ollama_host;
       provider_config.gemini_api_key = config.gemini_api_key;
       provider_config.openai_api_key = config.openai_api_key;
+      provider_config.openai_base_url =
+          NormalizeOpenAIBaseUrl(config.openai_base_url);
       provider_config.verbose = config.verbose;
 
       auto status = service->ConfigureProvider(provider_config);

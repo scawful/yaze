@@ -102,8 +102,15 @@
       // Enable AI features in terminal
       enabled: true,
 
+      // AI provider ("gemini" or "openai")
+      provider: 'gemini',
+
       // AI model to use (gemini-2.5-flash, gemini-2.5-pro, etc.)
       model: 'gemini-2.5-flash',
+
+      // OpenAI-compatible base URL (used when provider = openai)
+      // Examples: https://api.openai.com/v1, http://localhost:1234/v1
+      openaiBaseUrl: 'https://api.openai.com/v1',
 
       // Server endpoint for AI queries (empty = use collaboration server)
       // Set to your yaze-server URL if different from collaboration server

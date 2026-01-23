@@ -63,6 +63,7 @@ struct YazeSettings: Codable {
     var supportsTools: Bool
     var supportsStreaming: Bool
     var allowInsecure: Bool
+    var apiKey: String? = nil
     var credentialId: String
 
     enum CodingKeys: String, CodingKey {
@@ -74,6 +75,7 @@ struct YazeSettings: Codable {
       case supportsTools = "supports_tools"
       case supportsStreaming = "supports_streaming"
       case allowInsecure = "allow_insecure"
+      case apiKey = "api_key"
       case credentialId = "credential_id"
     }
   }

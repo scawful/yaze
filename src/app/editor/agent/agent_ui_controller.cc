@@ -8,6 +8,7 @@
 #include "app/editor/agent/agent_session.h"
 #include "app/editor/menu/right_panel_manager.h"
 #include "app/editor/system/proposal_drawer.h"
+#include "app/editor/system/user_settings.h"
 #include "app/editor/ui/toast_manager.h"
 #include "rom/rom.h"
 #include "util/log.h"
@@ -18,9 +19,11 @@ namespace editor {
 void AgentUiController::Initialize(ToastManager* toast_manager,
                                    ProposalDrawer* proposal_drawer,
                                    RightPanelManager* right_panel_manager,
-                                   PanelManager* panel_manager) {
+                                   PanelManager* panel_manager,
+                                   UserSettings* user_settings) {
   toast_manager_ = toast_manager;
   right_panel_manager_ = right_panel_manager;
+  user_settings_ = user_settings;
 
   // Create initial agent session
   session_manager_.CreateSession("Agent 1");
@@ -30,6 +33,7 @@ void AgentUiController::Initialize(ToastManager* toast_manager,
     EditorDependencies deps;
     deps.panel_manager = panel_manager;
     deps.toast_manager = toast_manager;
+    deps.user_settings = user_settings_;
     agent_editor_.SetDependencies(deps);
   }
 
@@ -97,6 +101,13 @@ void AgentUiController::Initialize(ToastManager* toast_manager,
   SyncStateFromEditor();
 }
 
+void AgentUiController::ApplyUserSettingsDefaults(bool force) {
+  if (!user_settings_) {
+    return;
+  }
+  agent_editor_.ApplyUserSettingsDefaults(force);
+}
+
 void AgentUiController::SetRomContext(Rom* rom) {
   agent_editor_.SetRomContext(rom);
   agent_ui_context_.SetRom(rom);
@@ -141,6 +152,16 @@ void AgentUiController::SyncStateFromEditor() {
     changed = true;
   if (ctx_config.ai_model != profile.model)
     changed = true;
+  if (ctx_config.ollama_host != profile.ollama_host)
+    changed = true;
+  if (ctx_config.gemini_api_key != profile.gemini_api_key)
+    changed = true;
+  if (ctx_config.openai_api_key != profile.openai_api_key)
+    changed = true;
+  if (ctx_config.openai_base_url != profile.openai_base_url)
+    changed = true;
+  if (ctx_config.host_id != profile.host_id)
+    changed = true;
   // ... (Simplified sync logic for now)
 
   if (changed) {
@@ -148,6 +169,9 @@ void AgentUiController::SyncStateFromEditor() {
     ctx_config.ai_model = profile.model;
     ctx_config.ollama_host = profile.ollama_host;
     ctx_config.gemini_api_key = profile.gemini_api_key;
+    ctx_config.openai_api_key = profile.openai_api_key;
+    ctx_config.openai_base_url = profile.openai_base_url;
+    ctx_config.host_id = profile.host_id;
 
     // Update last synced state
     last_synced_config_ = ctx_config;

@@ -489,27 +489,30 @@ yaze::ios::IOSHost g_ios_host;
   ImGuiIO &io = ImGui::GetIO();
 
   UITouch *active_touch = nil;
-  if (primary_touch_ && [event.allTouches containsObject:primary_touch_]) {
+
+  // Prefer Apple Pencil/stylus if present for precision input.
+  for (UITouch *touch in event.allTouches) {
+    if (touch.type == UITouchTypeStylus &&
+        touch.phase != UITouchPhaseEnded &&
+        touch.phase != UITouchPhaseCancelled) {
+      active_touch = touch;
+      break;
+    }
+  }
+
+  // If no stylus, keep the primary touch if it's still active.
+  if (!active_touch && primary_touch_ &&
+      [event.allTouches containsObject:primary_touch_]) {
     if (primary_touch_.phase != UITouchPhaseEnded &&
         primary_touch_.phase != UITouchPhaseCancelled) {
       active_touch = primary_touch_;
     }
   }
 
+  // Otherwise, fall back to any direct touch.
   if (!active_touch) {
     for (UITouch *touch in event.allTouches) {
       if (touch.type == UITouchTypeDirect &&
-          touch.phase != UITouchPhaseEnded &&
-          touch.phase != UITouchPhaseCancelled) {
-        active_touch = touch;
-        break;
-      }
-    }
-  }
-
-  if (!active_touch) {
-    for (UITouch *touch in event.allTouches) {
-      if (touch.type == UITouchTypeStylus &&
           touch.phase != UITouchPhaseEnded &&
           touch.phase != UITouchPhaseCancelled) {
         active_touch = touch;
@@ -529,13 +532,33 @@ yaze::ios::IOSHost g_ios_host;
   }
 
   if (active_touch) {
+    UITouch *sample_touch = active_touch;
+    if (@available(iOS 9.0, *)) {
+      NSArray<UITouch *> *coalesced =
+          [event coalescedTouchesForTouch:active_touch];
+      if (coalesced.count > 0) {
+        sample_touch = coalesced.lastObject;
+      }
+    }
+
     primary_touch_ = active_touch;
     ImGuiMouseSource source = ImGuiMouseSource_TouchScreen;
     if (active_touch.type == UITouchTypeStylus) {
       source = ImGuiMouseSource_Pen;
     }
     io.AddMouseSourceEvent(source);
-    CGPoint touchLocation = [active_touch locationInView:self.view];
+
+    CGPoint touchLocation = CGPointZero;
+    if (@available(iOS 9.0, *)) {
+      if (active_touch.type == UITouchTypeStylus) {
+        touchLocation = [sample_touch preciseLocationInView:self.view];
+      } else {
+        touchLocation = [sample_touch locationInView:self.view];
+      }
+    } else {
+      touchLocation = [sample_touch locationInView:self.view];
+    }
+
     io.AddMousePosEvent(touchLocation.x, touchLocation.y);
     bool is_down = active_touch.phase != UITouchPhaseEnded &&
                    active_touch.phase != UITouchPhaseCancelled;

@@ -192,6 +192,21 @@ void AgentConfigurationPanel::RenderModelConfigControls(
   }
 
   ImGui::Spacing();
+  ImGui::Text("OpenAI Base:");
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+  static char openai_base_buf[256] = "https://api.openai.com";
+  if (!config.openai_base_url.empty()) {
+    std::snprintf(openai_base_buf, sizeof(openai_base_buf), "%s",
+                  config.openai_base_url.c_str());
+  }
+  if (ImGui::InputTextWithHint("##openai_base", "http://localhost:1234",
+                               openai_base_buf,
+                               IM_ARRAYSIZE(openai_base_buf))) {
+    config.openai_base_url = openai_base_buf;
+  }
+
+  ImGui::Spacing();
 
   // Unified Model Selection
   if (ImGui::InputTextWithHint("##ai_model", "Model name...",

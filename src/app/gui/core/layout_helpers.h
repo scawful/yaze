@@ -18,6 +18,13 @@ namespace gui {
  */
 class LayoutHelpers {
  public:
+  struct SafeAreaInsets {
+    float left = 0.0f;
+    float right = 0.0f;
+    float top = 0.0f;
+    float bottom = 0.0f;
+  };
+
   // Core sizing functions (respect theme compact_factor + multipliers)
   static float GetStandardWidgetHeight();
   static float GetStandardSpacing();
@@ -73,6 +80,11 @@ class LayoutHelpers {
                           std::function<void()> widget_callback);
   static void SectionHeader(const char* label);
   static void HelpMarker(const char* desc);
+
+  // Platform/layout helpers
+  static SafeAreaInsets GetSafeAreaInsets();
+  static float GetTopInset();
+  static bool IsTouchDevice();
 
   // Get current theme
   static const Theme& GetTheme() {

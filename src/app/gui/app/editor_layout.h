@@ -148,6 +148,10 @@ class PanelWindow {
   void SetIconCollapsible(bool collapsible) { icon_collapsible_ = collapsible; }
   void SetPinnable(bool pinnable) { pinnable_ = pinnable; }
   void SetSaveSettings(bool save) { save_settings_ = save; }
+  void SetStartOffset(const ImVec2& offset) {
+    start_offset_ = offset;
+    start_offset_set_ = true;
+  }
 
   // Custom Title Bar Buttons (e.g., Pin, Help, Settings)
   // These will be drawn in the window header or top-right corner.
@@ -182,6 +186,7 @@ class PanelWindow {
   std::string icon_;
   std::string window_name_;  // Full window name with icon
   ImVec2 default_size_;
+  bool default_size_set_ = false;
   Position position_ = Position::Free;
   bool minimizable_ = true;
   bool closable_ = true;
@@ -197,6 +202,8 @@ class PanelWindow {
   bool icon_collapsible_ = false;            // Can collapse to floating icon
   bool collapsed_to_icon_ = false;           // Currently collapsed
   ImVec2 saved_icon_pos_ = ImVec2(10, 100);  // Position when collapsed to icon
+  ImVec2 start_offset_ = ImVec2(0, 0);
+  bool start_offset_set_ = false;
   
   // Pinning support
   bool pinnable_ = false;

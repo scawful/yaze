@@ -94,10 +94,12 @@ class AgentEditor : public Editor {
     std::string name = "Default Bot";
     std::string description;
     std::string provider = "mock";
+    std::string host_id;
     std::string model;
     std::string ollama_host = "http://localhost:11434";
     std::string gemini_api_key;
     std::string openai_api_key;
+    std::string openai_base_url = "https://api.openai.com";
     std::string system_prompt;
     bool verbose = false;
     bool show_reasoning = true;
@@ -123,6 +125,7 @@ class AgentEditor : public Editor {
     std::string ollama_host = "http://localhost:11434";
     std::string gemini_api_key;
     std::string openai_api_key;
+    std::string openai_base_url = "https://api.openai.com";
     bool verbose = false;
     bool show_reasoning = true;
     int max_tool_iterations = 4;
@@ -168,6 +171,7 @@ class AgentEditor : public Editor {
 
   AgentConfig GetCurrentConfig() const;
   void ApplyConfig(const AgentConfig& config);
+  void ApplyUserSettingsDefaults(bool force = false);
 
   // Bot Profile Management
   absl::Status SaveBotProfile(const BotProfile& profile);

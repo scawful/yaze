@@ -226,6 +226,11 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
           "agent.status",
           "agent.chat",
       };
+      preset.panel_positions = {
+          {"agent.chat", DockPosition::Center},
+          {"agent.configuration", DockPosition::Right},
+          {"agent.status", DockPosition::Bottom},
+      };
       preset.optional_panels = {
           "agent.prompt_editor",
           "agent.profiles",
@@ -503,4 +508,3 @@ PanelLayoutPreset LayoutPresets::GetAudioPreset() {
 
 }  // namespace editor
 }  // namespace yaze
-

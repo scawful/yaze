@@ -522,6 +522,7 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
             host.value("supports_streaming", entry.supports_streaming);
         entry.allow_insecure =
             host.value("allow_insecure", entry.allow_insecure);
+        entry.api_key = host.value("api_key", "");
         entry.credential_id = host.value("credential_id", "");
         prefs->ai_hosts.push_back(entry);
       }
@@ -676,6 +677,7 @@ absl::Status SavePreferencesToJson(const std::filesystem::path& path,
         {"supports_tools", host.supports_tools},
         {"supports_streaming", host.supports_streaming},
         {"allow_insecure", host.allow_insecure},
+        {"api_key", host.api_key},
         {"credential_id", host.credential_id},
     });
   }

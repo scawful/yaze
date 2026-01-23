@@ -185,13 +185,34 @@
     const stores = [sessionStorage, localStorage];
     let openaiKey = '';
     let geminiKey = '';
+    let provider = '';
+    let model = '';
+    let apiBase = '';
     for (const s of stores) {
       try {
         openaiKey = openaiKey || s.getItem('z3ed_openai_api_key') || s.getItem('OPENAI_API_KEY') || '';
         geminiKey = geminiKey || s.getItem('z3ed_gemini_api_key') || s.getItem('GEMINI_API_KEY') || '';
+        provider = provider || s.getItem('yaze_ai_provider') || '';
+        model = model || s.getItem('yaze_ai_model') || '';
+        apiBase = apiBase || s.getItem('yaze_openai_base_url') || '';
       } catch (_) {}
     }
-    if (openaiKey) return { provider: 'openai', key: openaiKey, model: 'gpt-4o-mini' };
+    if (provider === 'openai') {
+      return {
+        provider: 'openai',
+        key: openaiKey,
+        model: model || 'gpt-4o-mini',
+        api_base: apiBase || 'https://api.openai.com/v1'
+      };
+    }
+    if (provider === 'gemini') {
+      return {
+        provider: 'gemini',
+        key: geminiKey,
+        model: model || 'gemini-1.5-flash'
+      };
+    }
+    if (openaiKey) return { provider: 'openai', key: openaiKey, model: 'gpt-4o-mini', api_base: apiBase || 'https://api.openai.com/v1' };
     if (geminiKey) return { provider: 'gemini', key: geminiKey, model: 'gemini-1.5-flash' };
     return null;
   }
@@ -211,6 +232,9 @@
     if (!cfg) throw new Error('No AI key set. Add GEMINI_API_KEY or OPENAI_API_KEY in browser storage.');
 
     if (cfg.provider === 'openai') {
+      if (!cfg.key && (!cfg.api_base || cfg.api_base === 'https://api.openai.com/v1')) {
+        throw new Error('OpenAI API key missing. Use a local OpenAI-compatible endpoint or set a key.');
+      }
       const body = {
         model: cfg.model,
         messages: [
@@ -220,12 +244,13 @@
         max_tokens: 256,
         temperature: 0.5,
       };
+      const headers = { 'Content-Type': 'application/json' };
+      if (cfg.key) {
+        headers.Authorization = 'Bearer ' + cfg.key;
+      }
       const resp = await fetch((cfg.api_base || 'https://api.openai.com/v1') + '/chat/completions', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: 'Bearer ' + cfg.key,
-        },
+        headers,
         body: JSON.stringify(body),
       });
       if (!resp.ok) throw new Error(`OpenAI error ${resp.status}`);

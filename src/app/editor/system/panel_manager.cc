@@ -15,6 +15,7 @@
 #include "app/gui/animation/animator.h"
 #include "app/gui/app/editor_layout.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/layout_helpers.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"  // For ImGuiWindow and FindWindowByName
 #include "util/json.h"
@@ -535,6 +536,7 @@ void PanelManager::DrawAllVisiblePanels() {
 
   auto& animator = gui::GetAnimator();
   bool animations_enabled = animator.IsEnabled();
+  const bool touch_device = gui::LayoutHelpers::IsTouchDevice();
 
   for (auto& [panel_id, panel] : panel_instances_) {
     // Check visibility via PanelDescriptor
@@ -578,6 +580,9 @@ void PanelManager::DrawAllVisiblePanels() {
     // Create PanelWindow and draw content
     gui::PanelWindow window(display_name.c_str(), panel->GetIcon().c_str(),
                             visibility_flag);
+    if (touch_device) {
+      window.SetPosition(gui::PanelWindow::Position::Center);
+    }
 
     // Use preferred width from EditorPanel if specified
     float preferred_width = panel->GetPreferredWidth();

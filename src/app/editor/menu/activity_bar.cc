@@ -11,11 +11,9 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/system/panel_manager.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/widgets/themed_widgets.h"
-#if defined(__APPLE__) && TARGET_OS_IOS == 1
-#include "app/platform/ios/ios_platform_state.h"
-#endif
 #include "core/color.h"
 #include "imgui/imgui.h"
 
@@ -49,10 +47,7 @@ void ActivityBar::DrawActivityBarStrip(
 
   const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
   const ImGuiViewport* viewport = ImGui::GetMainViewport();
-  float top_inset = 0.0f;
-#if defined(__APPLE__) && TARGET_OS_IOS == 1
-  top_inset = ::yaze::platform::ios::GetOverlayTopInset();
-#endif
+  const float top_inset = gui::LayoutHelpers::GetTopInset();
   const float viewport_height =
       std::max(0.0f, viewport->WorkSize.y - top_inset);
   const float bar_width = 48.0f;  // Fixed width for Activity Bar
@@ -108,7 +103,8 @@ void ActivityBar::DrawActivityBarStrip(
       bool has_active_editor = active_editor_categories.count(cat) > 0;
 
       // Emulator is always available, others require ROM
-      bool category_enabled = rom_loaded || (cat == "Emulator");
+      bool category_enabled =
+          rom_loaded || (cat == "Emulator") || (cat == "Agent");
 
       // Get category-specific theme colors for expressive appearance
       auto cat_theme = PanelManager::GetCategoryTheme(cat);
@@ -248,10 +244,7 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
   const float panel_width =
       PanelManager::GetSidePanelWidthForViewport(viewport->WorkSize.x);
 
-  float top_inset = 0.0f;
-#if defined(__APPLE__) && TARGET_OS_IOS == 1
-  top_inset = ::yaze::platform::ios::GetOverlayTopInset();
-#endif
+  const float top_inset = gui::LayoutHelpers::GetTopInset();
   const float panel_height =
       std::max(0.0f, viewport->WorkSize.y - top_inset);
 

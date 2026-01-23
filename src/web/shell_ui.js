@@ -744,6 +744,27 @@ function showAiSetup() {
   if (stored) clientId = stored;
   
   document.getElementById('ai-client-id').value = clientId;
+
+  const provider = localStorage.getItem('yaze_ai_provider') ||
+                   (window.YAZE_CONFIG && window.YAZE_CONFIG.ai && window.YAZE_CONFIG.ai.provider) ||
+                   'gemini';
+  const model = localStorage.getItem('yaze_ai_model') ||
+                (window.YAZE_CONFIG && window.YAZE_CONFIG.ai && window.YAZE_CONFIG.ai.model) ||
+                '';
+  const openaiBase = localStorage.getItem('yaze_openai_base_url') ||
+                     (window.YAZE_CONFIG && window.YAZE_CONFIG.ai && window.YAZE_CONFIG.ai.openaiBaseUrl) ||
+                     '';
+
+  document.getElementById('ai-provider').value = provider;
+  document.getElementById('ai-model').value = model;
+  document.getElementById('ai-openai-base').value = openaiBase;
+
+  const openaiKey = sessionStorage.getItem('z3ed_openai_api_key') ||
+                    localStorage.getItem('z3ed_openai_api_key') || '';
+  const geminiKey = sessionStorage.getItem('z3ed_gemini_api_key') ||
+                    localStorage.getItem('z3ed_gemini_api_key') || '';
+  document.getElementById('ai-openai-key').value = openaiKey;
+  document.getElementById('ai-gemini-key').value = geminiKey;
 }
 
 function hideAiSetup() {
@@ -752,13 +773,42 @@ function hideAiSetup() {
 
 function saveAiConfig() {
   const clientId = document.getElementById('ai-client-id').value.trim();
-  if (!clientId) {
-    alert('Please enter a Client ID');
-    return;
+  const provider = document.getElementById('ai-provider').value.trim() || 'gemini';
+  const model = document.getElementById('ai-model').value.trim();
+  const openaiBase = document.getElementById('ai-openai-base').value.trim();
+  const openaiKey = document.getElementById('ai-openai-key').value.trim();
+  const geminiKey = document.getElementById('ai-gemini-key').value.trim();
+
+  if (provider === 'gemini' && !clientId) {
+    alert('Please enter a Client ID for Gemini OAuth flow (or use an API key).');
   }
   
   // Save to storage
-  localStorage.setItem('yaze_ai_client_id', clientId);
+  if (clientId) {
+    localStorage.setItem('yaze_ai_client_id', clientId);
+  }
+  localStorage.setItem('yaze_ai_provider', provider);
+  if (model) {
+    localStorage.setItem('yaze_ai_model', model);
+  } else {
+    localStorage.removeItem('yaze_ai_model');
+  }
+  if (openaiBase) {
+    localStorage.setItem('yaze_openai_base_url', openaiBase);
+  } else {
+    localStorage.removeItem('yaze_openai_base_url');
+  }
+
+  if (openaiKey) {
+    sessionStorage.setItem('z3ed_openai_api_key', openaiKey);
+  } else {
+    sessionStorage.removeItem('z3ed_openai_api_key');
+  }
+  if (geminiKey) {
+    sessionStorage.setItem('z3ed_gemini_api_key', geminiKey);
+  } else {
+    sessionStorage.removeItem('z3ed_gemini_api_key');
+  }
   
   // Update runtime config
   if (!window.YAZE_CONFIG) window.YAZE_CONFIG = {};
@@ -766,13 +816,19 @@ function saveAiConfig() {
   if (!window.YAZE_CONFIG.ai.auth) window.YAZE_CONFIG.ai.auth = {};
   
   window.YAZE_CONFIG.ai.auth.clientId = clientId;
+  window.YAZE_CONFIG.ai.provider = provider;
+  window.YAZE_CONFIG.ai.model = model;
+  window.YAZE_CONFIG.ai.openaiBaseUrl = openaiBase;
   
   // Force update AiManager if initialized
   if (window.yaze && window.yaze.ai) {
     window.yaze.ai.authConfig.clientId = clientId;
+    if (typeof window.yaze.ai.reloadConfigFromStorage === 'function') {
+      window.yaze.ai.reloadConfigFromStorage();
+    }
   }
   
-  alert('Configuration saved. You can now use /login in the terminal.');
+  alert('Configuration saved.');
   hideAiSetup();
 }
 

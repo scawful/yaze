@@ -3,6 +3,24 @@
 #include "cli/service/ai/browser_ai_service.h"
 #include "cli/service/ai/ai_service.h"
 #include "app/net/http_client.h"
+#include "absl/strings/match.h"
+
+namespace {
+
+std::string NormalizeOpenAIApiBase(std::string base) {
+  if (base.empty()) {
+    return base;
+  }
+  if (!base.empty() && base.back() == '/') {
+    base.pop_back();
+  }
+  if (!absl::EndsWith(base, "/v1")) {
+    base += "/v1";
+  }
+  return base;
+}
+
+}  // namespace
 
 #ifdef __EMSCRIPTEN__
 #include "app/net/wasm/emscripten_http_client.h"
@@ -31,9 +49,8 @@ std::unique_ptr<AIService> CreateAIService(const AIServiceConfig& config) {
                                               : "gemini-1.5-flash";
   }
   if (browser_config.provider == "openai") {
-    browser_config.api_key = config.openai_api_key.empty()
-                                 ? config.gemini_api_key  // fallback
-                                 : config.openai_api_key;
+    browser_config.api_key = config.openai_api_key;
+    browser_config.api_base = NormalizeOpenAIApiBase(config.openai_base_url);
   } else {
     browser_config.api_key = config.gemini_api_key;
   }

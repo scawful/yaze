@@ -40,6 +40,7 @@
 #include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/graphics/screen_editor.h"
 #include "app/editor/layout/layout_manager.h"
+#include "app/editor/layout/layout_presets.h"
 #include "app/editor/menu/activity_bar.h"
 #include "app/editor/menu/menu_orchestrator.h"
 #include "app/editor/music/music_editor.h"
@@ -182,6 +183,12 @@ void EditorManager::ShowAIAgent() {
   // UI to respect the user's preferred provider/model.
   // TODO: Implement LoadAgentSettingsFromProject in AgentChat or AgentEditor
   agent_ui_.ShowAgent();
+  panel_manager_.SetActiveCategory("Agent");
+  layout_coordinator_.InitializeEditorLayout(EditorType::kAgent);
+  for (const auto& panel_id :
+       LayoutPresets::GetDefaultPanels(EditorType::kAgent)) {
+    panel_manager_.ShowPanel(panel_id);
+  }
 }
 
 void EditorManager::ShowChatHistory() {
@@ -665,67 +672,56 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   // Using PanelManager directly
   panel_manager_.RegisterPanel({.card_id = "emulator.cpu_debugger",
                                 .display_name = "CPU Debugger",
-                                .window_title = " CPU Debugger",
                                 .icon = ICON_MD_BUG_REPORT,
                                 .category = "Emulator",
                                 .priority = 10});
   panel_manager_.RegisterPanel({.card_id = "emulator.ppu_viewer",
                                 .display_name = "PPU Viewer",
-                                .window_title = " PPU Viewer",
                                 .icon = ICON_MD_VIDEOGAME_ASSET,
                                 .category = "Emulator",
                                 .priority = 20});
   panel_manager_.RegisterPanel({.card_id = "emulator.memory_viewer",
                                 .display_name = "Memory Viewer",
-                                .window_title = " Memory Viewer",
                                 .icon = ICON_MD_MEMORY,
                                 .category = "Emulator",
                                 .priority = 30});
   panel_manager_.RegisterPanel({.card_id = "emulator.breakpoints",
                                 .display_name = "Breakpoints",
-                                .window_title = " Breakpoints",
                                 .icon = ICON_MD_STOP,
                                 .category = "Emulator",
                                 .priority = 40});
   panel_manager_.RegisterPanel({.card_id = "emulator.performance",
                                 .display_name = "Performance",
-                                .window_title = " Performance",
                                 .icon = ICON_MD_SPEED,
                                 .category = "Emulator",
                                 .priority = 50});
   panel_manager_.RegisterPanel({.card_id = "emulator.ai_agent",
                                 .display_name = "AI Agent",
-                                .window_title = " AI Agent",
                                 .icon = ICON_MD_SMART_TOY,
                                 .category = "Emulator",
                                 .priority = 60});
   panel_manager_.RegisterPanel({.card_id = "emulator.save_states",
                                 .display_name = "Save States",
-                                .window_title = " Save States",
                                 .icon = ICON_MD_SAVE,
                                 .category = "Emulator",
                                 .priority = 70});
   panel_manager_.RegisterPanel({.card_id = "emulator.keyboard_config",
                                 .display_name = "Keyboard Config",
-                                .window_title = " Keyboard Config",
                                 .icon = ICON_MD_KEYBOARD,
                                 .category = "Emulator",
                                 .priority = 80});
   panel_manager_.RegisterPanel({.card_id = "emulator.virtual_controller",
                                 .display_name = "Virtual Controller",
-                                .window_title = " Virtual Controller",
                                 .icon = ICON_MD_SPORTS_ESPORTS,
                                 .category = "Emulator",
                                 .priority = 85});
   panel_manager_.RegisterPanel({.card_id = "emulator.apu_debugger",
                                 .display_name = "APU Debugger",
-                                .window_title = " APU Debugger",
                                 .icon = ICON_MD_AUDIOTRACK,
                                 .category = "Emulator",
                                 .priority = 90});
   panel_manager_.RegisterPanel({.card_id = "emulator.audio_mixer",
                                 .display_name = "Audio Mixer",
-                                .window_title = " Audio Mixer",
                                 .icon = ICON_MD_AUDIO_FILE,
                                 .category = "Emulator",
                                 .priority = 100});
@@ -743,7 +739,8 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
 
   // Initialize agent UI (no-op when agent UI is disabled)
   agent_ui_.Initialize(&toast_manager_, &proposal_drawer_,
-                       right_panel_manager_.get(), &panel_manager_);
+                       right_panel_manager_.get(), &panel_manager_,
+                       &user_settings_);
 
   // Note: Unified gRPC Server is started from Application::Initialize()
   // after gRPC infrastructure is properly set up
@@ -754,6 +751,7 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
     LOG_WARN("EditorManager", "Failed to load user settings: %s",
              status_.ToString().c_str());
   }
+  agent_ui_.ApplyUserSettingsDefaults();
   // Apply sprite naming preference globally.
   yaze::zelda3::SetPreferHmagicSpriteNames(
       user_settings_.prefs().prefer_hmagic_sprite_names);
@@ -889,11 +887,8 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   // This will be called lazily when workspace features are accessed
 
   // Set up sidebar utility icon callbacks
-  panel_manager_.SetShowEmulatorCallback([this]() {
-    if (ui_coordinator_) {
-      ui_coordinator_->SetEmulatorVisible(true);
-    }
-  });
+  panel_manager_.SetShowEmulatorCallback(
+      [this]() { SwitchToEditor(EditorType::kEmulator, true); });
   panel_manager_.SetShowSettingsCallback(
       [this]() { SwitchToEditor(EditorType::kSettings); });
   panel_manager_.SetShowPanelBrowserCallback([this]() {
@@ -994,6 +989,15 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
         if (ui_coordinator_) {
           ui_coordinator_->SetStartupSurface(StartupSurface::kEditor);
         }
+
+        if (category == "Emulator") {
+          SwitchToEditor(EditorType::kEmulator, true);
+        }
+#ifdef YAZE_BUILD_AGENT_UI
+        if (category == "Agent") {
+          ShowAIAgent();
+        }
+#endif
       });
 
   // Enable file browser for Assembly category
@@ -1604,12 +1608,18 @@ absl::Status EditorManager::Update() {
   if (!current_editor_set) {
     // No ROM loaded - welcome screen shown by UICoordinator above
     // Sidebar and right panel have already been drawn above
+    if (panel_manager_.GetActiveCategory() == "Agent") {
+      panel_manager_.DrawAllVisiblePanels();
+    }
     return absl::OkStatus();
   }
 
   // Check if current ROM is valid
   if (!current_rom) {
     // No ROM loaded - welcome screen shown by UICoordinator above
+    if (panel_manager_.GetActiveCategory() == "Agent") {
+      panel_manager_.DrawAllVisiblePanels();
+    }
     return absl::OkStatus();
   }
 

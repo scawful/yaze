@@ -25,6 +25,7 @@ class UserSettings {
       bool supports_tools = true;
       bool supports_streaming = true;
       bool allow_insecure = false;
+      std::string api_key;  // Optional plaintext key (desktop/non-keychain)
       std::string credential_id;  // Keychain reference (never store secrets here)
     };
 

@@ -14,12 +14,10 @@
 #include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
+#include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/platform_keys.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/theme_manager.h"
-#if defined(__APPLE__) && TARGET_OS_IOS == 1
-#include "app/platform/ios/ios_platform_state.h"
-#endif
 #include "imgui/imgui.h"
 #include "util/platform_paths.h"
 
@@ -201,10 +199,7 @@ void RightPanelManager::Draw() {
   const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
   const ImGuiViewport* viewport = ImGui::GetMainViewport();
   const float viewport_width = viewport->WorkSize.x;
-  float top_inset = 0.0f;
-#if defined(__APPLE__) && TARGET_OS_IOS == 1
-  top_inset = ::yaze::platform::ios::GetOverlayTopInset();
-#endif
+  const float top_inset = gui::LayoutHelpers::GetTopInset();
   const float viewport_height =
       std::max(0.0f, viewport->WorkSize.y - top_inset);
   const float panel_width = GetPanelWidth();

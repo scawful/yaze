@@ -860,7 +860,7 @@ void Emulator::RenderEmulatorInterface() {
     if (!panel_manager_)
       return;  // Panel registry must be injected
 
-    static gui::PanelWindow cpu_card("CPU Debugger", ICON_MD_MEMORY);
+    static gui::PanelWindow cpu_card("CPU Debugger", ICON_MD_BUG_REPORT);
     static gui::PanelWindow ppu_card("PPU Viewer", ICON_MD_VIDEOGAME_ASSET);
     static gui::PanelWindow memory_card("Memory Viewer", ICON_MD_MEMORY);
     static gui::PanelWindow breakpoints_card("Breakpoints", ICON_MD_STOP);
@@ -868,7 +868,7 @@ void Emulator::RenderEmulatorInterface() {
     static gui::PanelWindow ai_card("AI Agent", ICON_MD_SMART_TOY);
     static gui::PanelWindow save_states_card("Save States", ICON_MD_SAVE);
     static gui::PanelWindow keyboard_card("Keyboard Config", ICON_MD_KEYBOARD);
-    static gui::PanelWindow apu_card("APU Debugger", ICON_MD_MUSIC_NOTE);
+    static gui::PanelWindow apu_card("APU Debugger", ICON_MD_AUDIOTRACK);
     static gui::PanelWindow audio_card("Audio Mixer", ICON_MD_AUDIO_FILE);
 
     cpu_card.SetDefaultSize(400, 500);
