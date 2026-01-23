@@ -266,7 +266,7 @@ absl::Status MusicEditor::Load() {
   }
 #endif
 
-  if (rom_) {
+  if (rom_ && rom_->is_loaded()) {
     if (music_player_) {
       music_player_->SetRom(rom_);
       LOG_INFO("MusicEditor", "Load(): Set ROM on MusicPlayer, IsAudioReady=%d",
@@ -367,12 +367,11 @@ absl::Status MusicEditor::Update() {
   }
 
   // Auto-show Piano Roll on first load
-  static bool piano_roll_auto_shown = false;
   bool* piano_roll_visible =
       panel_manager->GetVisibilityFlag("music.piano_roll");
-  if (piano_roll_visible && !piano_roll_auto_shown) {
+  if (piano_roll_visible && !piano_roll_auto_shown_) {
     *piano_roll_visible = true;
-    piano_roll_auto_shown = true;
+    piano_roll_auto_shown_ = true;
   }
 
   // ==========================================================================
@@ -1263,9 +1262,16 @@ void MusicEditor::DrawToolset() {
     ImGui::SetTooltip("Volume");
 
   ImGui::SameLine();
+  const bool rom_loaded = rom_ && rom_->is_loaded();
+  if (!rom_loaded) {
+    ImGui::BeginDisabled();
+  }
   if (ImGui::Button(ICON_MD_REFRESH)) {
     music_bank_.LoadFromRom(*rom_);
     song_names_.clear();
+  }
+  if (!rom_loaded) {
+    ImGui::EndDisabled();
   }
   if (ImGui::IsItemHovered())
     ImGui::SetTooltip("Reload from ROM");
