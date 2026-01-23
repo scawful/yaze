@@ -54,9 +54,6 @@ constexpr LabPanelSeed kLabPanels[] = {
      "Overworld", nullptr, nullptr, 50, false},
 
     // Dungeon
-    {"dungeon.control_panel", "Dungeon Controls", " Dungeon Controls",
-     ICON_MD_CASTLE, "Dungeon", "Ctrl+Shift+D",
-     "Load a ROM to access dungeon controls", 10, false},
     {"dungeon.room_selector", "Room List", " Room List", ICON_MD_LIST,
      "Dungeon", "Ctrl+Shift+R", "Load a ROM to browse dungeon rooms", 20,
      false},
@@ -90,17 +87,13 @@ constexpr LabPanelSeed kLabPanels[] = {
      "Graphics", nullptr, nullptr, 30, false},
     {"graphics.link_sprite_editor", "Link Sprite Editor", nullptr,
      ICON_MD_PERSON, "Graphics", nullptr, nullptr, 35, false},
-    {"graphics.polyhedral_editor", "3D Objects", nullptr, ICON_MD_VIEW_IN_AR,
-     "Graphics", nullptr, nullptr, 38, false},
     {"graphics.gfx_group_editor", "Graphics Groups", nullptr,
      ICON_MD_VIEW_MODULE, "Graphics", nullptr, nullptr, 39, false},
     {"graphics.paletteset_editor", "Palettesets", nullptr,
      ICON_MD_COLOR_LENS, "Graphics", nullptr, nullptr, 45, false},
-    {"graphics.prototype_viewer", "Prototype Viewer", nullptr,
-     ICON_MD_CONSTRUCTION, "Graphics", nullptr, nullptr, 50, false},
 
     // Palette
-    {"palette.control_panel", "Palette Controls", " Group Manager",
+    {"palette.control_panel", "Palette Controls", " Palette Controls",
      ICON_MD_PALETTE, "Palette", "Ctrl+Shift+P", "Load a ROM first", 10, false},
     {"palette.ow_main", "Overworld Main", " Overworld Main", ICON_MD_LANDSCAPE,
      "Palette", "Ctrl+Alt+1", "Load a ROM first", 20, false},
@@ -154,10 +147,6 @@ constexpr LabPanelSeed kLabPanels[] = {
      "Music", "Ctrl+Shift+S", nullptr, 25, false},
     {"music.assembly", "Assembly View", " Music Assembly", ICON_MD_CODE,
      "Music", "Ctrl+Shift+A", nullptr, 30, false},
-    {"music.audio_debug", "Audio Debug", " Audio Debug", ICON_MD_BUG_REPORT,
-     "Music", nullptr, nullptr, 95, false},
-    {"music.help", "Help", " Music Editor Help", ICON_MD_HELP, "Music", nullptr,
-     nullptr, 99, false},
 
     // Message
     {"message.message_list", "Message List", nullptr, ICON_MD_LIST, "Message",

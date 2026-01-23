@@ -175,7 +175,6 @@ class DungeonEditorV2 : public Editor {
   }
 
   // Panel card IDs for programmatic access
-  static constexpr const char* kControlPanelId = "dungeon.control_panel";
   static constexpr const char* kRoomSelectorId = "dungeon.room_selector";
   static constexpr const char* kEntranceListId = "dungeon.entrance_list";
   static constexpr const char* kRoomMatrixId = "dungeon.room_matrix";
@@ -231,8 +230,6 @@ class DungeonEditorV2 : public Editor {
   // Active room tabs and card tracking for jump-to
   ImVector<int> active_rooms_;
   int current_room_id_ = 0;
-
-  bool control_panel_minimized_ = false;
 
   // Palette management
   gfx::SnesPalette current_palette_;

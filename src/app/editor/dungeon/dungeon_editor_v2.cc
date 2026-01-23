@@ -85,18 +85,6 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
   // Register panels with PanelManager (no boolean flags - visibility is
   // managed entirely by PanelManager::ShowPanel/HidePanel/IsPanelVisible)
   panel_manager->RegisterPanel(
-      {.card_id = kControlPanelId,
-       .display_name = "Dungeon Controls",
-       .window_title = " Dungeon Controls",
-       .icon = ICON_MD_CASTLE,
-       .category = "Dungeon",
-       .shortcut_hint = "Ctrl+Shift+D",
-       .visibility_flag = nullptr,
-       .priority = 10,
-       .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-       .disabled_tooltip = "Load a ROM to access dungeon controls"});
-
-  panel_manager->RegisterPanel(
       {.card_id = kRoomSelectorId,
        .display_name = "Room List",
        .window_title = " Room List",
@@ -169,8 +157,8 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
        .disabled_tooltip = "Load a ROM to edit dungeon palettes"});
 
   // Show default panels on startup
-  panel_manager->ShowPanel(kControlPanelId);
   panel_manager->ShowPanel(kRoomSelectorId);
+  panel_manager->ShowPanel(kRoomMatrixId);
 
   // Register EditorPanel instances
   panel_manager->RegisterEditorPanel(std::make_unique<DungeonRoomSelectorPanel>(

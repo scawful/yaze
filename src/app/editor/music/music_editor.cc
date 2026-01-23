@@ -151,20 +151,6 @@ void MusicEditor::Initialize() {
                                 .category = "Music",
                                 .shortcut_hint = "Ctrl+Shift+A",
                                 .priority = 30});
-  panel_manager->RegisterPanel({.card_id = "music.audio_debug",
-                                .display_name = "Audio Debug",
-                                .window_title = " Audio Debug",
-                                .icon = ICON_MD_BUG_REPORT,
-                                .category = "Music",
-                                .shortcut_hint = "",
-                                .priority = 95});
-  panel_manager->RegisterPanel({.card_id = "music.help",
-                                .display_name = "Help",
-                                .window_title = " Music Editor Help",
-                                .icon = ICON_MD_HELP,
-                                .category = "Music",
-                                .priority = 99});
-
   // ==========================================================================
   // Phase 5: Create and register EditorPanel instances
   // Note: Callbacks are set up on the view classes during Draw() since
@@ -204,14 +190,7 @@ void MusicEditor::Initialize() {
   auto assembly = std::make_unique<MusicAssemblyPanel>(&assembly_editor_);
   panel_manager->RegisterEditorPanel(std::move(assembly));
 
-  // Audio Debug Panel
-  auto audio_debug =
-      std::make_unique<MusicAudioDebugPanel>(music_player_.get());
-  panel_manager->RegisterEditorPanel(std::move(audio_debug));
-
-  // Help Panel
-  auto help = std::make_unique<MusicHelpPanel>();
-  panel_manager->RegisterEditorPanel(std::move(help));
+  // Audio debug and help panels removed from the default panel roster.
 }
 
 void MusicEditor::set_emulator(emu::Emulator* emulator) {
