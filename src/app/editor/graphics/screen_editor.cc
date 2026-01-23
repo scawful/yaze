@@ -224,7 +224,7 @@ void ScreenEditor::DrawInventoryMenuEditor() {
     DrawInventoryItemIcons();
 
     ImGui::TableNextColumn();
-    gui::DisplayPalette(palette_, create);
+    gui::DisplayPalette(palette_, inventory_loaded_);
 
     ImGui::EndTable();
   }
