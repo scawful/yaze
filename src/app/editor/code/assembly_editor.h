@@ -70,9 +70,16 @@ class AssemblyEditor : public Editor {
   const std::map<std::string, core::AsarSymbol>& symbols() const {
     return symbols_;
   }
-  core::AsarWrapper* asar_wrapper() { return &asar_; }
+ core::AsarWrapper* asar_wrapper() { return &asar_; }
 
  private:
+  TextEditor* GetActiveEditor();
+  const TextEditor* GetActiveEditor() const;
+  bool HasActiveFile() const {
+    return active_file_id_ != -1 &&
+           active_file_id_ < static_cast<int>(open_files_.size());
+  }
+
   // Panel content drawing (called by EditorPanel instances)
   void DrawCodeEditor();
   void DrawFileBrowser();
