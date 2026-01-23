@@ -263,6 +263,9 @@ class EmulatorRenderServiceIntegrationTest
  protected:
   void SetUp() override {
     BoundRomTest::SetUp();
+    if (!rom_available()) {
+      return;
+    }
     service_ = std::make_unique<emu::render::EmulatorRenderService>(rom());
   }
 
@@ -382,6 +385,9 @@ class SaveStateManagerIntegrationTest : public TestRomManager::BoundRomTest {
  protected:
   void SetUp() override {
     BoundRomTest::SetUp();
+    if (!rom_available()) {
+      return;
+    }
     snes_ = std::make_unique<emu::Snes>();
     snes_->Init(rom()->vector());
     manager_ = std::make_unique<emu::render::SaveStateManager>(snes_.get(), rom());

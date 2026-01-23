@@ -17,7 +17,7 @@ class SpritePositionTest : public ::testing::Test {
  protected:
   void SetUp() override {
     rom_ = std::make_unique<Rom>();
-    yaze::test::TestRomManager::SkipIfRomMissing(
+    YAZE_SKIP_IF_ROM_MISSING(
         yaze::test::RomRole::kVanilla, "SpritePositionTest");
     const std::string rom_path =
         yaze::test::TestRomManager::GetRomPath(yaze::test::RomRole::kVanilla);

@@ -23,7 +23,7 @@ class DungeonEditorSystemIntegrationTest : public ::testing::Test {
     GTEST_SKIP() << "Dungeon editor tests require ROM file (unavailable on Linux CI)";
 #endif
 
-    yaze::test::TestRomManager::SkipIfRomMissing(
+    YAZE_SKIP_IF_ROM_MISSING(
         yaze::test::RomRole::kVanilla,
         "DungeonEditorSystemIntegrationTest");
     rom_path_ =

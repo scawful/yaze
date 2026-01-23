@@ -22,7 +22,7 @@ namespace test {
 class DungeonEditorIntegrationTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    TestRomManager::SkipIfRomMissing(RomRole::kVanilla,
+    YAZE_SKIP_IF_ROM_MISSING(RomRole::kVanilla,
                                      "DungeonEditorIntegrationTest");
     rom_ = std::make_unique<Rom>();
     const std::string rom_path = TestRomManager::GetRomPath(RomRole::kVanilla);

@@ -14,7 +14,7 @@ namespace test {
 TEST(DungeonPaletteInspection, VerifyColors) {
   // Load ROM
   Rom rom;
-  TestRomManager::SkipIfRomMissing(RomRole::kVanilla,
+  YAZE_SKIP_IF_ROM_MISSING(RomRole::kVanilla,
                                    "DungeonPaletteInspection");
   const std::string rom_path = TestRomManager::GetRomPath(RomRole::kVanilla);
   auto load_result = rom.LoadFromFile(rom_path);

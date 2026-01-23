@@ -32,6 +32,9 @@ class MusicPlayerHeadlessTest : public TestRomManager::BoundRomTest {
  protected:
   void SetUp() override {
     BoundRomTest::SetUp();
+    if (!rom_available()) {
+      return;
+    }
 
     // Create music bank from ROM
     music_bank_ = std::make_unique<zelda3::music::MusicBank>();

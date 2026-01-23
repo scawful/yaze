@@ -16,8 +16,7 @@ echo "Configuring preset: $PRESET"
 cmake --preset "$PRESET" || { echo "Configure failed for preset: $PRESET"; exit 1; }
 
 ROOT_DIR=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
-read -r GENERATOR BUILD_CONFIG <<EOF
-$(python - <<'PY' "$PRESET" "$ROOT_DIR"
+read -r GENERATOR BUILD_CONFIG < <(python - <<'PY' "$PRESET" "$ROOT_DIR"
 import json, sys, os
 preset = sys.argv[1]
 root = sys.argv[2]
@@ -60,8 +59,8 @@ if not config:
 
 print(generator or "")
 print(config or "")
-PY)
-EOF
+PY
+)
 
 echo "Building tests for preset: $PRESET"
 BUILD_CMD=(cmake --build --preset "$PRESET")

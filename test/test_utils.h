@@ -149,18 +149,21 @@ class TestRomManager {
   }
 
   /**
-   * @brief Skip test if the requested ROM role is not available
+   * @brief Return a skip message if ROM testing is disabled or ROM is missing
    */
-  static void SkipIfRomMissing(RomRole role, const std::string& test_name) {
+  static std::string GetSkipMessage(RomRole role,
+                                    const std::string& test_name) {
     if (std::getenv("YAZE_SKIP_ROM_TESTS")) {
-      GTEST_SKIP() << "ROM testing disabled via YAZE_SKIP_ROM_TESTS. Test: "
-                   << test_name;
+      return absl::StrFormat(
+          "ROM testing disabled via YAZE_SKIP_ROM_TESTS. Test: %s",
+          test_name);
     }
     if (!HasRom(role)) {
-      GTEST_SKIP() << "ROM not found for role " << GetRomRoleName(role)
-                   << ". Test: " << test_name << ". "
-                   << GetRomRoleHint(role);
+      return absl::StrFormat("ROM not found for role %s. Test: %s. %s",
+                             GetRomRoleName(role), test_name,
+                             GetRomRoleHint(role));
     }
+    return "";
   }
 
   /**
@@ -275,14 +278,6 @@ class TestRomManager {
     return rom_data;
   }
 
-  /**
-   * @brief Skip test if ROM testing is not enabled
-   * @param test_name Name of the test for logging
-   */
-  static void SkipIfRomTestingDisabled(const std::string& test_name) {
-    SkipIfRomMissing(RomRole::kVanilla, test_name);
-  }
-
  private:
   static std::string GetEnvRomPath(
       std::initializer_list<const char*> env_vars) {
@@ -353,7 +348,14 @@ class TestRomManager::BoundRomTest : public ::testing::Test {
       test_name = absl::StrFormat("%s.%s", info->test_suite_name(),
                                   info->name());
     }
-    TestRomManager::SkipIfRomMissing(RomRole::kVanilla, test_name);
+    const auto skip_message =
+        TestRomManager::GetSkipMessage(RomRole::kVanilla, test_name);
+    if (!skip_message.empty()) {
+      rom_available_ = false;
+      GTEST_SKIP() << skip_message;
+      return;
+    }
+    rom_available_ = true;
     rom_instance_ = std::make_unique<Rom>();
   }
 
@@ -367,6 +369,7 @@ class TestRomManager::BoundRomTest : public ::testing::Test {
     return rom_instance_.get();
   }
   const Rom* rom() const { return rom_instance_.get(); }
+  bool rom_available() const { return rom_available_; }
 
   std::string GetBoundRomPath() const {
     return TestRomManager::GetRomPath(RomRole::kVanilla);
@@ -375,6 +378,7 @@ class TestRomManager::BoundRomTest : public ::testing::Test {
  private:
   std::unique_ptr<Rom> rom_instance_;
   bool rom_loaded_ = false;
+  bool rom_available_ = false;
 
   void EnsureRomLoaded() {
     if (rom_loaded_) {
@@ -390,12 +394,21 @@ class TestRomManager::BoundRomTest : public ::testing::Test {
 /**
  * @brief Test macro for ROM-dependent tests
  */
-#define YAZE_ROM_TEST(test_case_name, test_name)                          \
-  TEST(test_case_name, test_name) {                                       \
-    yaze::test::TestRomManager::SkipIfRomTestingDisabled(#test_case_name  \
-                                                         "." #test_name); \
-    YAZE_ROM_TEST_BODY_##test_case_name##_##test_name();                  \
-  }                                                                       \
+#define YAZE_SKIP_IF_ROM_MISSING(role, test_name)                            \
+  do {                                                                       \
+    const auto skip_message =                                                \
+        ::yaze::test::TestRomManager::GetSkipMessage(role, test_name);       \
+    if (!skip_message.empty()) {                                             \
+      GTEST_SKIP() << skip_message;                                          \
+    }                                                                        \
+  } while (0)
+
+#define YAZE_ROM_TEST(test_case_name, test_name)                             \
+  TEST(test_case_name, test_name) {                                          \
+    YAZE_SKIP_IF_ROM_MISSING(::yaze::test::RomRole::kVanilla,                 \
+                             #test_case_name "." #test_name);               \
+    YAZE_ROM_TEST_BODY_##test_case_name##_##test_name();                     \
+  }                                                                          \
   void YAZE_ROM_TEST_BODY_##test_case_name##_##test_name()
 
 /**
@@ -404,7 +417,7 @@ class TestRomManager::BoundRomTest : public ::testing::Test {
 class RomDependentTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    TestRomManager::SkipIfRomTestingDisabled("RomDependentTest");
+    YAZE_SKIP_IF_ROM_MISSING(RomRole::kVanilla, "RomDependentTest");
     test_rom_ = TestRomManager::LoadTestRom();
     ASSERT_FALSE(test_rom_.empty()) << "Failed to load test ROM";
   }

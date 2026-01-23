@@ -27,7 +27,7 @@ class RoomIntegrationTest : public ::testing::Test {
     // Load the ROM file
     rom_ = std::make_unique<Rom>();
 
-    yaze::test::TestRomManager::SkipIfRomMissing(
+    YAZE_SKIP_IF_ROM_MISSING(
         yaze::test::RomRole::kVanilla, "RoomIntegrationTest");
     const std::string rom_path =
         yaze::test::TestRomManager::GetRomPath(yaze::test::RomRole::kVanilla);

@@ -40,7 +40,7 @@ TEST_F(RomTest, LoadFromFile) {
 #if defined(__linux__)
   GTEST_SKIP() << "ROM file loading skipped on Linux CI (no ROM available)";
 #endif
-  TestRomManager::SkipIfRomMissing(RomRole::kVanilla, "RomTest.LoadFromFile");
+  YAZE_SKIP_IF_ROM_MISSING(RomRole::kVanilla, "RomTest.LoadFromFile");
   const std::string rom_path = TestRomManager::GetRomPath(RomRole::kVanilla);
   EXPECT_OK(rom_.LoadFromFile(rom_path));
   EXPECT_EQ(rom_.size(), 0x200000);

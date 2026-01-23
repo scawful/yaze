@@ -44,7 +44,7 @@ struct RomVersionInfo {
 class EditorSaveTestBase : public ::testing::Test {
  protected:
   void SetUp() override {
-    TestRomManager::SkipIfRomMissing(RomRole::kVanilla, "EditorSaveTestBase");
+    YAZE_SKIP_IF_ROM_MISSING(RomRole::kVanilla, "EditorSaveTestBase");
     vanilla_rom_path_ = TestRomManager::GetRomPath(RomRole::kVanilla);
 
     // Create test file paths with unique names per test
@@ -320,7 +320,7 @@ class EditorSaveTestBase : public ::testing::Test {
    * @brief Skip test if expanded ROM is required but not available
    */
   void RequireExpandedRom() {
-    TestRomManager::SkipIfRomMissing(RomRole::kExpanded, "ExpandedRomSaveTest");
+    YAZE_SKIP_IF_ROM_MISSING(RomRole::kExpanded, "ExpandedRomSaveTest");
   }
 
   // ===========================================================================
@@ -362,7 +362,7 @@ class MultiVersionEditorSaveTest : public EditorSaveTestBase {
 class ExpandedRomSaveTest : public EditorSaveTestBase {
  protected:
   void SetUp() override {
-    TestRomManager::SkipIfRomMissing(RomRole::kExpanded, "ExpandedRomSaveTest");
+    YAZE_SKIP_IF_ROM_MISSING(RomRole::kExpanded, "ExpandedRomSaveTest");
     expanded_rom_path_ = TestRomManager::GetRomPath(RomRole::kExpanded);
 
     // Use vanilla for baseline comparison

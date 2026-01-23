@@ -38,7 +38,7 @@ class OverworldE2ETest : public ::testing::Test {
   }
 
   void SetUp() override {
-    yaze::test::TestRomManager::SkipIfRomMissing(
+    YAZE_SKIP_IF_ROM_MISSING(
         yaze::test::RomRole::kVanilla, "OverworldE2ETest");
     vanilla_rom_path_ =
         yaze::test::TestRomManager::GetRomPath(yaze::test::RomRole::kVanilla);

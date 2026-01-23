@@ -92,6 +92,9 @@ class HeadlessAudioDebugTest : public TestRomManager::BoundRomTest {
  protected:
   void SetUp() override {
     BoundRomTest::SetUp();
+    if (!rom_available()) {
+      return;
+    }
 
     snes_ = std::make_unique<emu::Snes>();
     snes_->Init(rom()->vector());

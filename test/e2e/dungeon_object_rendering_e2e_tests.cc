@@ -76,6 +76,9 @@ class DungeonObjectRenderingE2ETests : public TestRomManager::BoundRomTest {
  protected:
   void SetUp() override {
     BoundRomTest::SetUp();
+    if (!rom_available()) {
+      return;
+    }
 
     // Initialize test environment
     rom_ = std::shared_ptr<Rom>(rom(), [](Rom*) {});
