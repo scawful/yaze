@@ -1000,6 +1000,7 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
             category == PanelManager::kDashboardCategory) {
           return;
         }
+        SyncEditorContextForCategory(category);
         user_settings_.prefs().sidebar_active_category = category;
 
         const auto& prefs = user_settings_.prefs();
@@ -1011,6 +1012,11 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
 
         settings_dirty_ = true;
         settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
+      });
+
+  panel_manager_.SetEditorResolver(
+      [this](const std::string& category) -> Editor* {
+        return ResolveEditorForCategory(category);
       });
 
   panel_manager_.SetOnPanelClickedCallback([this](const std::string& category) {
@@ -1068,6 +1074,7 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   if (!user_settings_.prefs().sidebar_active_category.empty()) {
     const std::string& category = user_settings_.prefs().sidebar_active_category;
     panel_manager_.SetActiveCategory(category, /*notify=*/false);
+    SyncEditorContextForCategory(category);
     auto it = user_settings_.prefs().panel_visibility_state.find(category);
     if (it != user_settings_.prefs().panel_visibility_state.end()) {
       panel_manager_.RestoreVisibilityState(panel_manager_.GetActiveSessionId(),
@@ -1369,6 +1376,48 @@ Editor* EditorManager::GetEditorByType(EditorType type,
   }
 }
 
+Editor* EditorManager::ResolveEditorForCategory(
+    const std::string& category) const {
+  if (category.empty() || category == PanelManager::kDashboardCategory) {
+    return nullptr;
+  }
+
+  auto* editor_set = GetCurrentEditorSet();
+  if (!editor_set) {
+    return nullptr;
+  }
+
+  EditorType type = EditorRegistry::GetEditorTypeFromCategory(category);
+  switch (type) {
+    case EditorType::kHex:
+      return editor_set->GetMemoryEditor();
+    case EditorType::kAgent:
+#ifdef YAZE_BUILD_AGENT_UI
+      return agent_ui_.GetAgentEditor();
+#else
+      return nullptr;
+#endif
+    case EditorType::kEmulator:
+    case EditorType::kSettings:
+    case EditorType::kUnknown:
+      return nullptr;
+    default:
+      return GetEditorByType(type, editor_set);
+  }
+}
+
+void EditorManager::SyncEditorContextForCategory(
+    const std::string& category) {
+  if (Editor* resolved = ResolveEditorForCategory(category)) {
+    SetCurrentEditor(resolved);
+  } else if (!category.empty() &&
+             category != PanelManager::kDashboardCategory) {
+    LOG_DEBUG("EditorManager",
+              "No editor context available for category '%s'",
+              category.c_str());
+  }
+}
+
 absl::Status EditorManager::InitializeEditorForType(EditorType type,
                                                     EditorSet* editor_set,
                                                     Rom* rom) {
@@ -1614,6 +1663,7 @@ absl::Status EditorManager::Update() {
     if (sidebar_category.empty() && !all_categories.empty()) {
       sidebar_category = all_categories[0];
       panel_manager_.SetActiveCategory(sidebar_category, /*notify=*/false);
+      SyncEditorContextForCategory(sidebar_category);
       auto it =
           user_settings_.prefs().panel_visibility_state.find(sidebar_category);
       if (it != user_settings_.prefs().panel_visibility_state.end()) {

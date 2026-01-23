@@ -347,6 +347,8 @@ class EditorManager {
   void MarkEditorInitialized(RomSession* session, EditorType type);
   void MarkEditorLoaded(RomSession* session, EditorType type);
   Editor* GetEditorByType(EditorType type, EditorSet* editor_set) const;
+  Editor* ResolveEditorForCategory(const std::string& category) const;
+  void SyncEditorContextForCategory(const std::string& category);
   bool EditorRequiresGameData(EditorType type) const;
   bool EditorInitRequiresGameData(EditorType type) const;
 

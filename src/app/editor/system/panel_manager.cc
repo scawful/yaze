@@ -577,6 +577,12 @@ void PanelManager::DrawAllVisiblePanels() {
     // This fixes the double-icon issue where both descriptor and PanelWindow added icons
     std::string display_name = panel->GetDisplayName();
 
+    if (editor_resolver_) {
+      if (Editor* editor = editor_resolver_(panel->GetEditorCategory())) {
+        ContentRegistry::Context::SetCurrentEditor(editor);
+      }
+    }
+
     // Create PanelWindow and draw content
     gui::PanelWindow window(display_name.c_str(), panel->GetIcon().c_str(),
                             visibility_flag);
