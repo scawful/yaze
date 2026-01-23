@@ -351,6 +351,7 @@ class PaletteControlPanel : public EditorPanel {
   std::string GetIcon() const override { return ICON_MD_PALETTE; }
   std::string GetEditorCategory() const override { return "Palette"; }
   int GetPriority() const override { return 10; }
+  float GetPreferredWidth() const override { return 320.0f; }
 
   void Draw(bool* p_open) override {
     if (p_open && !*p_open)
@@ -373,6 +374,7 @@ class QuickAccessPalettePanel : public EditorPanel {
   std::string GetIcon() const override { return ICON_MD_COLOR_LENS; }
   std::string GetEditorCategory() const override { return "Palette"; }
   int GetPriority() const override { return 70; }
+  float GetPreferredWidth() const override { return 340.0f; }
 
   void Draw(bool* p_open) override {
     if (p_open && !*p_open)
@@ -395,6 +397,7 @@ class CustomPalettePanel : public EditorPanel {
   std::string GetIcon() const override { return ICON_MD_BRUSH; }
   std::string GetEditorCategory() const override { return "Palette"; }
   int GetPriority() const override { return 80; }
+  float GetPreferredWidth() const override { return 420.0f; }
 
   void Draw(bool* p_open) override {
     if (p_open && !*p_open)
@@ -875,364 +878,340 @@ void PaletteEditor::DrawToolset() {
 }
 
 void PaletteEditor::DrawControlPanel() {
-  ImGui::SetNextWindowSize(ImVec2(320, 420), ImGuiCond_FirstUseEver);
-  ImGui::SetNextWindowPos(ImVec2(10, 100), ImGuiCond_FirstUseEver);
+  // Toolbar with quick toggles
+  DrawToolset();
 
-  ImGuiWindowFlags flags = ImGuiWindowFlags_None;
+  ImGui::Separator();
 
-  if (ImGui::Begin(ICON_MD_PALETTE " Palette Controls", &show_control_panel_,
-                   flags)) {
-    // Toolbar with quick toggles
-    DrawToolset();
+  // Categorized palette list with search
+  DrawCategorizedPaletteList();
 
-    ImGui::Separator();
+  ImGui::Separator();
 
-    // Categorized palette list with search
-    DrawCategorizedPaletteList();
+  // Modified status indicator
+  ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.0f, 1.0f), "Modified Panels:");
+  bool any_modified = false;
 
-    ImGui::Separator();
+  if (ow_main_panel_ && ow_main_panel_->HasUnsavedChanges()) {
+    ImGui::BulletText("Overworld Main");
+    any_modified = true;
+  }
+  if (ow_anim_panel_ && ow_anim_panel_->HasUnsavedChanges()) {
+    ImGui::BulletText("Overworld Animated");
+    any_modified = true;
+  }
+  if (dungeon_main_panel_ && dungeon_main_panel_->HasUnsavedChanges()) {
+    ImGui::BulletText("Dungeon Main");
+    any_modified = true;
+  }
+  if (sprite_global_panel_ && sprite_global_panel_->HasUnsavedChanges()) {
+    ImGui::BulletText("Global Sprite Palettes");
+    any_modified = true;
+  }
+  if (sprite_aux1_panel_ && sprite_aux1_panel_->HasUnsavedChanges()) {
+    ImGui::BulletText("Sprites Aux 1");
+    any_modified = true;
+  }
+  if (sprite_aux2_panel_ && sprite_aux2_panel_->HasUnsavedChanges()) {
+    ImGui::BulletText("Sprites Aux 2");
+    any_modified = true;
+  }
+  if (sprite_aux3_panel_ && sprite_aux3_panel_->HasUnsavedChanges()) {
+    ImGui::BulletText("Sprites Aux 3");
+    any_modified = true;
+  }
+  if (equipment_panel_ && equipment_panel_->HasUnsavedChanges()) {
+    ImGui::BulletText("Equipment Palettes");
+    any_modified = true;
+  }
 
-    // Modified status indicator
-    ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.0f, 1.0f), "Modified Panels:");
-    bool any_modified = false;
+  if (!any_modified) {
+    ImGui::TextDisabled("No unsaved changes");
+  }
 
-    if (ow_main_panel_ && ow_main_panel_->HasUnsavedChanges()) {
-      ImGui::BulletText("Overworld Main");
-      any_modified = true;
-    }
-    if (ow_anim_panel_ && ow_anim_panel_->HasUnsavedChanges()) {
-      ImGui::BulletText("Overworld Animated");
-      any_modified = true;
-    }
-    if (dungeon_main_panel_ && dungeon_main_panel_->HasUnsavedChanges()) {
-      ImGui::BulletText("Dungeon Main");
-      any_modified = true;
-    }
-    if (sprite_global_panel_ && sprite_global_panel_->HasUnsavedChanges()) {
-      ImGui::BulletText("Global Sprite Palettes");
-      any_modified = true;
-    }
-    if (sprite_aux1_panel_ && sprite_aux1_panel_->HasUnsavedChanges()) {
-      ImGui::BulletText("Sprites Aux 1");
-      any_modified = true;
-    }
-    if (sprite_aux2_panel_ && sprite_aux2_panel_->HasUnsavedChanges()) {
-      ImGui::BulletText("Sprites Aux 2");
-      any_modified = true;
-    }
-    if (sprite_aux3_panel_ && sprite_aux3_panel_->HasUnsavedChanges()) {
-      ImGui::BulletText("Sprites Aux 3");
-      any_modified = true;
-    }
-    if (equipment_panel_ && equipment_panel_->HasUnsavedChanges()) {
-      ImGui::BulletText("Equipment Palettes");
-      any_modified = true;
-    }
+  ImGui::Separator();
 
-    if (!any_modified) {
-      ImGui::TextDisabled("No unsaved changes");
-    }
+  // Quick actions
+  ImGui::Text("Quick Actions:");
 
-    ImGui::Separator();
+  // Use centralized PaletteManager for global operations
+  bool has_unsaved = gfx::PaletteManager::Get().HasUnsavedChanges();
+  size_t modified_count = gfx::PaletteManager::Get().GetModifiedColorCount();
 
-    // Quick actions
-    ImGui::Text("Quick Actions:");
-
-    // Use centralized PaletteManager for global operations
-    bool has_unsaved = gfx::PaletteManager::Get().HasUnsavedChanges();
-    size_t modified_count = gfx::PaletteManager::Get().GetModifiedColorCount();
-
-    ImGui::BeginDisabled(!has_unsaved);
-    if (ImGui::Button(absl::StrFormat(ICON_MD_SAVE " Save All (%zu colors)",
-                                      modified_count)
-                          .c_str(),
-                      ImVec2(-1, 0))) {
-      auto status = gfx::PaletteManager::Get().SaveAllToRom();
-      if (!status.ok()) {
-        // TODO: Show error toast/notification
-        ImGui::OpenPopup(gui::MakePopupId(gui::EditorNames::kPalette,
-                                          gui::PopupNames::kSaveError)
-                             .c_str());
-      }
-    }
-    ImGui::EndDisabled();
-
-    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-      if (has_unsaved) {
-        ImGui::SetTooltip("Save all modified colors to ROM");
-      } else {
-        ImGui::SetTooltip("No unsaved changes");
-      }
-    }
-
-    // Apply to Editors button - preview changes without saving to ROM
-    ImGui::BeginDisabled(!has_unsaved);
-    if (ImGui::Button(ICON_MD_VISIBILITY " Apply to Editors", ImVec2(-1, 0))) {
-      auto status = gfx::PaletteManager::Get().ApplyPreviewChanges();
-      if (!status.ok()) {
-        ImGui::OpenPopup(gui::MakePopupId(gui::EditorNames::kPalette,
-                                          gui::PopupNames::kSaveError)
-                             .c_str());
-      }
-    }
-    ImGui::EndDisabled();
-
-    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-      if (has_unsaved) {
-        ImGui::SetTooltip(
-            "Preview palette changes in other editors without saving to ROM");
-      } else {
-        ImGui::SetTooltip("No changes to preview");
-      }
-    }
-
-    ImGui::BeginDisabled(!has_unsaved);
-    if (ImGui::Button(ICON_MD_UNDO " Discard All Changes", ImVec2(-1, 0))) {
+  ImGui::BeginDisabled(!has_unsaved);
+  if (ImGui::Button(absl::StrFormat(ICON_MD_SAVE " Save All (%zu colors)",
+                                    modified_count)
+                        .c_str(),
+                    ImVec2(-1, 0))) {
+    auto status = gfx::PaletteManager::Get().SaveAllToRom();
+    if (!status.ok()) {
+      // TODO: Show error toast/notification
       ImGui::OpenPopup(gui::MakePopupId(gui::EditorNames::kPalette,
-                                        gui::PopupNames::kConfirmDiscardAll)
+                                        gui::PopupNames::kSaveError)
                            .c_str());
-    }
-    ImGui::EndDisabled();
-
-    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-      if (has_unsaved) {
-        ImGui::SetTooltip("Discard all unsaved changes");
-      } else {
-        ImGui::SetTooltip("No changes to discard");
-      }
-    }
-
-    // Confirmation popup for discard
-    if (ImGui::BeginPopupModal(
-            gui::MakePopupId(gui::EditorNames::kPalette,
-                             gui::PopupNames::kConfirmDiscardAll)
-                .c_str(),
-            nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-      ImGui::Text("Discard all unsaved changes?");
-      ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.0f, 1.0f),
-                         "This will revert %zu modified colors.",
-                         modified_count);
-      ImGui::Separator();
-
-      if (ImGui::Button("Discard", ImVec2(120, 0))) {
-        gfx::PaletteManager::Get().DiscardAllChanges();
-        ImGui::CloseCurrentPopup();
-      }
-      ImGui::SameLine();
-      if (ImGui::Button("Cancel", ImVec2(120, 0))) {
-        ImGui::CloseCurrentPopup();
-      }
-      ImGui::EndPopup();
-    }
-
-    // Error popup for save failures
-    if (ImGui::BeginPopupModal(gui::MakePopupId(gui::EditorNames::kPalette,
-                                                gui::PopupNames::kSaveError)
-                                   .c_str(),
-                               nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-      ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f),
-                         "Failed to save changes");
-      ImGui::Text("An error occurred while saving to ROM.");
-      ImGui::Separator();
-
-      if (ImGui::Button("OK", ImVec2(120, 0))) {
-        ImGui::CloseCurrentPopup();
-      }
-      ImGui::EndPopup();
-    }
-
-    ImGui::Separator();
-
-    // Editor Manager Menu Button
-    if (ImGui::Button(ICON_MD_DASHBOARD " Panel Manager", ImVec2(-1, 0))) {
-      ImGui::OpenPopup(gui::MakePopupId(gui::EditorNames::kPalette,
-                                        gui::PopupNames::kPalettePanelManager)
-                           .c_str());
-    }
-
-    if (ImGui::BeginPopup(
-            gui::MakePopupId(gui::EditorNames::kPalette,
-                             gui::PopupNames::kPalettePanelManager)
-                .c_str())) {
-      ImGui::TextColored(ImVec4(0.7f, 0.9f, 1.0f, 1.0f),
-                         "%s Palette Panel Manager", ICON_MD_PALETTE);
-      ImGui::Separator();
-
-      // View menu section now handled by PanelManager in EditorManager
-      if (!dependencies_.panel_manager)
-        return;
-      auto* panel_manager = dependencies_.panel_manager;
-
-      ImGui::EndPopup();
-    }
-
-    ImGui::Separator();
-
-    // Minimize button
-    if (ImGui::SmallButton(ICON_MD_MINIMIZE " Minimize to Icon")) {
-      control_panel_minimized_ = true;
-      show_control_panel_ = false;
     }
   }
-  ImGui::End();
+  ImGui::EndDisabled();
+
+  if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+    if (has_unsaved) {
+      ImGui::SetTooltip("Save all modified colors to ROM");
+    } else {
+      ImGui::SetTooltip("No unsaved changes");
+    }
+  }
+
+  // Apply to Editors button - preview changes without saving to ROM
+  ImGui::BeginDisabled(!has_unsaved);
+  if (ImGui::Button(ICON_MD_VISIBILITY " Apply to Editors", ImVec2(-1, 0))) {
+    auto status = gfx::PaletteManager::Get().ApplyPreviewChanges();
+    if (!status.ok()) {
+      ImGui::OpenPopup(gui::MakePopupId(gui::EditorNames::kPalette,
+                                        gui::PopupNames::kSaveError)
+                           .c_str());
+    }
+  }
+  ImGui::EndDisabled();
+
+  if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+    if (has_unsaved) {
+      ImGui::SetTooltip(
+          "Preview palette changes in other editors without saving to ROM");
+    } else {
+      ImGui::SetTooltip("No changes to preview");
+    }
+  }
+
+  ImGui::BeginDisabled(!has_unsaved);
+  if (ImGui::Button(ICON_MD_UNDO " Discard All Changes", ImVec2(-1, 0))) {
+    ImGui::OpenPopup(gui::MakePopupId(gui::EditorNames::kPalette,
+                                      gui::PopupNames::kConfirmDiscardAll)
+                         .c_str());
+  }
+  ImGui::EndDisabled();
+
+  if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+    if (has_unsaved) {
+      ImGui::SetTooltip("Discard all unsaved changes");
+    } else {
+      ImGui::SetTooltip("No changes to discard");
+    }
+  }
+
+  // Confirmation popup for discard
+  if (ImGui::BeginPopupModal(
+          gui::MakePopupId(gui::EditorNames::kPalette,
+                           gui::PopupNames::kConfirmDiscardAll)
+              .c_str(),
+          nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::Text("Discard all unsaved changes?");
+    ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.0f, 1.0f),
+                       "This will revert %zu modified colors.",
+                       modified_count);
+    ImGui::Separator();
+
+    if (ImGui::Button("Discard", ImVec2(120, 0))) {
+      gfx::PaletteManager::Get().DiscardAllChanges();
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+  }
+
+  // Error popup for save failures
+  if (ImGui::BeginPopupModal(gui::MakePopupId(gui::EditorNames::kPalette,
+                                              gui::PopupNames::kSaveError)
+                                 .c_str(),
+                             nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f),
+                       "Failed to save changes");
+    ImGui::Text("An error occurred while saving to ROM.");
+    ImGui::Separator();
+
+    if (ImGui::Button("OK", ImVec2(120, 0))) {
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+  }
+
+  ImGui::Separator();
+
+  // Editor Manager Menu Button
+  if (ImGui::Button(ICON_MD_DASHBOARD " Panel Manager", ImVec2(-1, 0))) {
+    ImGui::OpenPopup(gui::MakePopupId(gui::EditorNames::kPalette,
+                                      gui::PopupNames::kPalettePanelManager)
+                         .c_str());
+  }
+
+  if (ImGui::BeginPopup(
+          gui::MakePopupId(gui::EditorNames::kPalette,
+                           gui::PopupNames::kPalettePanelManager)
+              .c_str())) {
+    ImGui::TextColored(ImVec4(0.7f, 0.9f, 1.0f, 1.0f),
+                       "%s Palette Panel Manager", ICON_MD_PALETTE);
+    ImGui::Separator();
+
+    // View menu section now handled by PanelManager in EditorManager
+    if (!dependencies_.panel_manager) {
+      ImGui::TextDisabled("Panel manager unavailable");
+    }
+
+    ImGui::EndPopup();
+  }
+
+  ImGui::Separator();
+
+  // Minimize button
+  if (ImGui::SmallButton(ICON_MD_MINIMIZE " Minimize to Icon")) {
+    control_panel_minimized_ = true;
+    show_control_panel_ = false;
+  }
 }
 
 void PaletteEditor::DrawQuickAccessPanel() {
-  gui::PanelWindow card("Quick Access Palette", ICON_MD_COLOR_LENS,
-                        &show_quick_access_);
-  card.SetDefaultSize(340, 300);
-  card.SetPosition(gui::PanelWindow::Position::Right);
+  // Current color picker with more options
+  ImGui::BeginGroup();
+  ImGui::Text("Current Color");
+  gui::SnesColorEdit4("##CurrentColorPicker", &current_color_,
+                      kColorPopupFlags);
 
-  if (card.Begin(&show_quick_access_)) {
-    // Current color picker with more options
-    ImGui::BeginGroup();
-    ImGui::Text("Current Color");
-    gui::SnesColorEdit4("##CurrentColorPicker", &current_color_,
-                        kColorPopupFlags);
+  char buf[64];
+  auto col = current_color_.rgb();
+  int cr = F32_TO_INT8_SAT(col.x / 255.0f);
+  int cg = F32_TO_INT8_SAT(col.y / 255.0f);
+  int cb = F32_TO_INT8_SAT(col.z / 255.0f);
 
-    char buf[64];
-    auto col = current_color_.rgb();
-    int cr = F32_TO_INT8_SAT(col.x / 255.0f);
-    int cg = F32_TO_INT8_SAT(col.y / 255.0f);
-    int cb = F32_TO_INT8_SAT(col.z / 255.0f);
+  CustomFormatString(buf, IM_ARRAYSIZE(buf), "RGB: %d, %d, %d", cr, cg, cb);
+  ImGui::Text("%s", buf);
 
-    CustomFormatString(buf, IM_ARRAYSIZE(buf), "RGB: %d, %d, %d", cr, cg, cb);
-    ImGui::Text("%s", buf);
+  CustomFormatString(buf, IM_ARRAYSIZE(buf), "SNES: $%04X",
+                     current_color_.snes());
+  ImGui::Text("%s", buf);
 
-    CustomFormatString(buf, IM_ARRAYSIZE(buf), "SNES: $%04X",
-                       current_color_.snes());
-    ImGui::Text("%s", buf);
+  if (ImGui::Button("Copy to Clipboard", ImVec2(-1, 0))) {
+    SetClipboardText(buf);
+  }
+  ImGui::EndGroup();
 
-    if (ImGui::Button("Copy to Clipboard", ImVec2(-1, 0))) {
-      SetClipboardText(buf);
-    }
-    ImGui::EndGroup();
+  ImGui::Separator();
 
-    ImGui::Separator();
-
-    // Recently used colors
-    ImGui::Text("Recently Used Colors");
-    if (recently_used_colors_.empty()) {
-      ImGui::TextDisabled("No recently used colors yet");
-    } else {
-      for (int i = 0; i < recently_used_colors_.size(); i++) {
-        PushID(i);
-        if (i % 8 != 0)
-          SameLine();
-        ImVec4 displayColor =
-            gui::ConvertSnesColorToImVec4(recently_used_colors_[i]);
-        if (ImGui::ColorButton("##recent", displayColor, kPalButtonFlags,
-                               ImVec2(28, 28))) {
-          // Set as current color
-          current_color_ = recently_used_colors_[i];
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("SNES: $%04X", recently_used_colors_[i].snes());
-        }
-        PopID();
+  // Recently used colors
+  ImGui::Text("Recently Used Colors");
+  if (recently_used_colors_.empty()) {
+    ImGui::TextDisabled("No recently used colors yet");
+  } else {
+    for (int i = 0; i < recently_used_colors_.size(); i++) {
+      PushID(i);
+      if (i % 8 != 0)
+        SameLine();
+      ImVec4 displayColor =
+          gui::ConvertSnesColorToImVec4(recently_used_colors_[i]);
+      if (ImGui::ColorButton("##recent", displayColor, kPalButtonFlags,
+                             ImVec2(28, 28))) {
+        // Set as current color
+        current_color_ = recently_used_colors_[i];
       }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("SNES: $%04X", recently_used_colors_[i].snes());
+      }
+      PopID();
     }
   }
-  card.End();
 }
 
 void PaletteEditor::DrawCustomPalettePanel() {
-  gui::PanelWindow card("Custom Palette", ICON_MD_BRUSH, &show_custom_palette_);
-  card.SetDefaultSize(420, 200);
-  card.SetPosition(gui::PanelWindow::Position::Bottom);
+  ImGui::TextWrapped(
+      "Create your own custom color palette for reference. "
+      "Colors can be added from any palette group or created from scratch.");
 
-  if (card.Begin(&show_custom_palette_)) {
-    ImGui::TextWrapped(
-        "Create your own custom color palette for reference. "
-        "Colors can be added from any palette group or created from scratch.");
+  ImGui::Separator();
 
-    ImGui::Separator();
+  // Custom palette color grid
+  if (custom_palette_.empty()) {
+    ImGui::TextDisabled("Your custom palette is empty.");
+    ImGui::Text("Click + to add colors or drag colors from any palette.");
+  } else {
+    for (int i = 0; i < custom_palette_.size(); i++) {
+      PushID(i);
+      if (i > 0 && i % 16 != 0)
+        SameLine(0.0f, 2.0f);
 
-    // Custom palette color grid
-    if (custom_palette_.empty()) {
-      ImGui::TextDisabled("Your custom palette is empty.");
-      ImGui::Text("Click + to add colors or drag colors from any palette.");
-    } else {
-      for (int i = 0; i < custom_palette_.size(); i++) {
-        PushID(i);
-        if (i > 0 && i % 16 != 0)
-          SameLine(0.0f, 2.0f);
+      // Enhanced color button with context menu and drag-drop support
+      ImVec4 displayColor = gui::ConvertSnesColorToImVec4(custom_palette_[i]);
+      bool open_color_picker =
+          ImGui::ColorButton(absl::StrFormat("##customPal%d", i).c_str(),
+                             displayColor, kPalButtonFlags, ImVec2(28, 28));
 
-        // Enhanced color button with context menu and drag-drop support
-        ImVec4 displayColor = gui::ConvertSnesColorToImVec4(custom_palette_[i]);
-        bool open_color_picker =
-            ImGui::ColorButton(absl::StrFormat("##customPal%d", i).c_str(),
-                               displayColor, kPalButtonFlags, ImVec2(28, 28));
+      if (open_color_picker) {
+        current_color_ = custom_palette_[i];
+        edit_palette_index_ = i;
+        ImGui::OpenPopup(gui::MakePopupId(gui::EditorNames::kPalette,
+                                          "PanelCustomPaletteColorEdit")
+                             .c_str());
+      }
 
-        if (open_color_picker) {
-          current_color_ = custom_palette_[i];
-          edit_palette_index_ = i;
-          ImGui::OpenPopup(gui::MakePopupId(gui::EditorNames::kPalette,
-                                            "PanelCustomPaletteColorEdit")
-                               .c_str());
+      if (BeginPopupContextItem()) {
+        // Edit color directly in the popup
+        SnesColor original_color = custom_palette_[i];
+        if (gui::SnesColorEdit4("Edit Color", &custom_palette_[i],
+                                kColorPopupFlags)) {
+          // Color was changed, add to recently used
+          AddRecentlyUsedColor(custom_palette_[i]);
         }
 
-        if (BeginPopupContextItem()) {
-          // Edit color directly in the popup
-          SnesColor original_color = custom_palette_[i];
-          if (gui::SnesColorEdit4("Edit Color", &custom_palette_[i],
-                                  kColorPopupFlags)) {
-            // Color was changed, add to recently used
-            AddRecentlyUsedColor(custom_palette_[i]);
-          }
-
-          if (ImGui::Button("Delete", ImVec2(-1, 0))) {
-            custom_palette_.erase(custom_palette_.begin() + i);
-            ImGui::CloseCurrentPopup();
-          }
-          ImGui::EndPopup();
+        if (ImGui::Button("Delete", ImVec2(-1, 0))) {
+          custom_palette_.erase(custom_palette_.begin() + i);
+          ImGui::CloseCurrentPopup();
         }
+        ImGui::EndPopup();
+      }
 
-        // Handle drag/drop for palette rearrangement
-        if (BeginDragDropTarget()) {
-          if (const ImGuiPayload* payload =
-                  AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_3F)) {
-            ImVec4 color;
-            memcpy((float*)&color, payload->Data, sizeof(float) * 3);
-            color.w = 1.0f;  // Set alpha to 1.0
-            custom_palette_[i] = SnesColor(color);
-            AddRecentlyUsedColor(custom_palette_[i]);
-          }
-          EndDragDropTarget();
+      // Handle drag/drop for palette rearrangement
+      if (BeginDragDropTarget()) {
+        if (const ImGuiPayload* payload =
+                AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_3F)) {
+          ImVec4 color;
+          memcpy((float*)&color, payload->Data, sizeof(float) * 3);
+          color.w = 1.0f;  // Set alpha to 1.0
+          custom_palette_[i] = SnesColor(color);
+          AddRecentlyUsedColor(custom_palette_[i]);
         }
-
-        PopID();
+        EndDragDropTarget();
       }
-    }
 
-    ImGui::Separator();
-
-    // Buttons for palette management
-    if (ImGui::Button(ICON_MD_ADD " Add Color")) {
-      custom_palette_.push_back(SnesColor(0x7FFF));
-    }
-
-    ImGui::SameLine();
-    if (ImGui::Button(ICON_MD_DELETE " Clear All")) {
-      custom_palette_.clear();
-    }
-
-    ImGui::SameLine();
-    if (ImGui::Button(ICON_MD_CONTENT_COPY " Export")) {
-      std::string clipboard;
-      for (const auto& color : custom_palette_) {
-        clipboard += absl::StrFormat("$%04X,", color.snes());
-      }
-      if (!clipboard.empty()) {
-        clipboard.pop_back();  // Remove trailing comma
-      }
-      SetClipboardText(clipboard.c_str());
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Copy palette as comma-separated SNES values");
+      PopID();
     }
   }
-  card.End();
+
+  ImGui::Separator();
+
+  // Buttons for palette management
+  if (ImGui::Button(ICON_MD_ADD " Add Color")) {
+    custom_palette_.push_back(SnesColor(0x7FFF));
+  }
+
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_DELETE " Clear All")) {
+    custom_palette_.clear();
+  }
+
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_CONTENT_COPY " Export")) {
+    std::string clipboard;
+    for (const auto& color : custom_palette_) {
+      clipboard += absl::StrFormat("$%04X,", color.snes());
+    }
+    if (!clipboard.empty()) {
+      clipboard.pop_back();  // Remove trailing comma
+    }
+    SetClipboardText(clipboard.c_str());
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Copy palette as comma-separated SNES values");
+  }
 
   // Color picker popup for custom palette editing
   if (ImGui::BeginPopup(gui::MakePopupId(gui::EditorNames::kPalette,

@@ -1,5 +1,7 @@
 #include "color.h"
 
+#include <algorithm>
+
 #include "absl/strings/str_format.h"
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_palette.h"
@@ -240,17 +242,17 @@ IMGUI_API bool DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
                                    ImGuiColorEditFlags_NoOptions;
 
   // Generate a default palette. The palette will persist and can be edited.
-  static bool init = false;
   static ImVec4 saved_palette[32] = {};
-  if (loaded && !init) {
-    for (int n = 0; n < palette.size(); n++) {
+  const int max_colors = std::min<int>(
+      static_cast<int>(palette.size()), static_cast<int>(IM_ARRAYSIZE(saved_palette)));
+  if (loaded) {
+    for (int n = 0; n < max_colors; n++) {
       auto color = palette[n];
       saved_palette[n].x = color.rgb().x / 255;
       saved_palette[n].y = color.rgb().y / 255;
       saved_palette[n].z = color.rgb().z / 255;
       saved_palette[n].w = 255;  // Alpha
     }
-    init = true;
   }
 
   static ImVec4 backup_color;
@@ -273,7 +275,7 @@ IMGUI_API bool DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
 
   ImGui::BeginGroup();  // Lock X position
   ImGui::Text("Palette");
-  for (int n = 0; n < IM_ARRAYSIZE(saved_palette); n++) {
+  for (int n = 0; n < max_colors; n++) {
     ImGui::PushID(n);
     if ((n % 4) != 0)
       ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);
