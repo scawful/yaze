@@ -79,7 +79,8 @@ void LayoutCoordinator::ResetWorkspaceLayout() {
   }
 
   if (ImGui::GetCurrentContext()) {
-    ImGui::ClearIniSettings();
+    static const char kEmptyIni[] = "\n";
+    ImGui::LoadIniSettingsFromMemory(kEmptyIni, sizeof(kEmptyIni) - 1);
   }
 
   if (auto ini_path = util::PlatformPaths::GetImGuiIniPath(); ini_path.ok()) {

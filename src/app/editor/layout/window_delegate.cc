@@ -180,7 +180,8 @@ absl::Status WindowDelegate::LoadLayout(const std::string& preset_name) {
 absl::Status WindowDelegate::ResetLayout() {
   printf("[WindowDelegate] ResetLayout()\n");
   if (ImGui::GetCurrentContext()) {
-    ImGui::ClearIniSettings();
+    static const char kEmptyIni[] = "\n";
+    ImGui::LoadIniSettingsFromMemory(kEmptyIni, sizeof(kEmptyIni) - 1);
   }
 
   auto ini_path = util::PlatformPaths::GetImGuiIniPath();
