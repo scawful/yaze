@@ -10,19 +10,24 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
   switch (type) {
     case EditorType::kOverworld:
       preset.name = "Overworld Default";
-      preset.description = "Main canvas with tile16 editor";
+      preset.description = "Maximized canvas with Tile16 editor docked right";
       preset.default_visible_panels = {
           Panels::kOverworldCanvas,
-          Panels::kOverworldTile16Selector,
+          Panels::kOverworldTile16Editor,
       };
       preset.panel_positions = {
           {Panels::kOverworldCanvas, DockPosition::Center},
+          {Panels::kOverworldTile16Editor, DockPosition::Right},
           {Panels::kOverworldTile16Selector, DockPosition::Right},
           {Panels::kOverworldTile8Selector, DockPosition::Right},
-          {Panels::kOverworldAreaGraphics, DockPosition::Left},
-          {Panels::kOverworldScratch, DockPosition::Bottom},
+          {Panels::kOverworldAreaGraphics, DockPosition::Right},
+          {Panels::kOverworldScratch, DockPosition::Right},
+          {Panels::kOverworldGfxGroups, DockPosition::Right},
+          {Panels::kOverworldUsageStats, DockPosition::Right},
+          {Panels::kOverworldV3Settings, DockPosition::Right},
       };
       preset.optional_panels = {
+          Panels::kOverworldTile16Selector,
           Panels::kOverworldTile8Selector,
           Panels::kOverworldAreaGraphics,
           Panels::kOverworldScratch,
@@ -417,6 +422,7 @@ PanelLayoutPreset LayoutPresets::GetOverworldExpertPreset() {
   preset.default_visible_panels = {
       // All overworld cards
       Panels::kOverworldCanvas,
+      Panels::kOverworldTile16Editor,
       Panels::kOverworldTile16Selector,
       Panels::kOverworldTile8Selector,
       Panels::kOverworldAreaGraphics,

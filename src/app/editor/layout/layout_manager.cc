@@ -134,7 +134,7 @@ struct DockSplitConfig {
         break;
       case EditorType::kOverworld:
         cfg.left = 0.20f;
-        cfg.right = 0.25f;
+        cfg.right = 0.22f;
         cfg.bottom = 0.25f;
         break;
       default:
