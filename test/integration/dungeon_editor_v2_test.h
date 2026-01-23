@@ -27,7 +27,7 @@ class DungeonEditorV2IntegrationTest : public HeadlessEditorTest {
   void SetUp() override {
     HeadlessEditorTest::SetUp();
 
-    TestRomManager::SkipIfRomMissing(RomRole::kVanilla,
+    YAZE_SKIP_IF_ROM_MISSING(RomRole::kVanilla,
                                      "DungeonEditorV2IntegrationTest");
     const std::string rom_path = TestRomManager::GetRomPath(RomRole::kVanilla);
     rom_ = std::make_unique<Rom>();

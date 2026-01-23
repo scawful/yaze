@@ -179,6 +179,9 @@ TEST_F(OverworldIntegrationTest, DISABLED_EntranceCoordinateCalculation) {
 
 // Test exit loading matches ZScream data structure
 TEST_F(OverworldIntegrationTest, ExitDataLoading) {
+  if (!use_real_rom_) {
+    GTEST_SKIP() << "Real ROM required for exit data loading validation";
+  }
   auto status = overworld_->Load(rom_.get());
   ASSERT_TRUE(status.ok()) << status.ToString();
 
@@ -219,6 +222,9 @@ TEST_F(OverworldIntegrationTest, DISABLED_ASMVersionItemLoading) {
 
 // Test map size assignment logic
 TEST_F(OverworldIntegrationTest, MapSizeAssignment) {
+  if (!use_real_rom_) {
+    GTEST_SKIP() << "Real ROM required for map size assignment validation";
+  }
   auto status = overworld_->Load(rom_.get());
   ASSERT_TRUE(status.ok());
 
@@ -314,6 +320,9 @@ TEST_F(OverworldIntegrationTest, RomDependentTestSuiteCompatibility) {
 
 // Test comprehensive overworld data integrity
 TEST_F(OverworldIntegrationTest, ComprehensiveDataIntegrity) {
+  if (!use_real_rom_) {
+    GTEST_SKIP() << "Real ROM required for comprehensive data integrity checks";
+  }
   auto status = overworld_->Load(rom_.get());
   ASSERT_TRUE(status.ok());
 
@@ -358,6 +367,9 @@ TEST_F(OverworldIntegrationTest, ComprehensiveDataIntegrity) {
 
 // Test ZScream coordinate calculation compatibility
 TEST_F(OverworldIntegrationTest, ZScreamCoordinateCompatibility) {
+  if (!use_real_rom_) {
+    GTEST_SKIP() << "Real ROM required for ZScream coordinate compatibility";
+  }
   auto status = overworld_->Load(rom_.get());
   ASSERT_TRUE(status.ok());
 

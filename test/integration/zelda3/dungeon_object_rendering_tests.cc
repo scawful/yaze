@@ -34,6 +34,9 @@ class DungeonObjectRenderingTests : public TestRomManager::BoundRomTest {
  protected:
   void SetUp() override {
     BoundRomTest::SetUp();
+    if (!rom_available()) {
+      return;
+    }
 
     // Create dummy graphics buffer
     gfx_buffer_.resize(0x10000, 1); // Fill with 1s so we see something

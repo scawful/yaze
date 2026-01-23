@@ -19,7 +19,7 @@ class OverworldEditorTest : public HeadlessEditorTest {
     HeadlessEditorTest::SetUp();
 
     // Load ROM
-    TestRomManager::SkipIfRomMissing(RomRole::kVanilla, "OverworldEditorTest");
+    YAZE_SKIP_IF_ROM_MISSING(RomRole::kVanilla, "OverworldEditorTest");
     const std::string rom_path = TestRomManager::GetRomPath(RomRole::kVanilla);
     rom_ = std::make_unique<Rom>();
     ASSERT_TRUE(rom_->LoadFromFile(rom_path).ok())

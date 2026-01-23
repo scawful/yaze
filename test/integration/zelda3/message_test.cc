@@ -13,7 +13,7 @@ namespace test {
 class MessageRomTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    TestRomManager::SkipIfRomMissing(RomRole::kVanilla, "MessageRomTest");
+    YAZE_SKIP_IF_ROM_MISSING(RomRole::kVanilla, "MessageRomTest");
     const std::string rom_path = TestRomManager::GetRomPath(RomRole::kVanilla);
     EXPECT_OK(rom_.LoadFromFile(rom_path));
     dictionary_ = editor::BuildDictionaryEntries(&rom_);

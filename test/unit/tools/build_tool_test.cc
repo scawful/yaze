@@ -41,9 +41,13 @@ class BuildToolTest : public ::testing::Test {
 
     // Create a minimal CMakePresets.json for testing
     CreateTestPresetsFile();
+
+    original_dir_ = std::filesystem::current_path();
+    std::filesystem::current_path(test_dir_);
   }
 
   void TearDown() override {
+    std::filesystem::current_path(original_dir_);
     // Clean up test directory
     std::filesystem::remove_all(test_dir_);
   }
@@ -143,6 +147,7 @@ class BuildToolTest : public ::testing::Test {
   }
 
   std::filesystem::path test_dir_;
+  std::filesystem::path original_dir_;
 };
 
 // =============================================================================
@@ -151,7 +156,7 @@ class BuildToolTest : public ::testing::Test {
 
 TEST_F(BuildToolTest, DefaultConfigUsesCorrectBuildDirectory) {
   BuildTool::BuildConfig config;
-  EXPECT_EQ(config.build_directory, "build_ai");
+  EXPECT_EQ(config.build_directory, "build");
 }
 
 TEST_F(BuildToolTest, DefaultConfigUsesCorrectTimeout) {

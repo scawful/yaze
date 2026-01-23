@@ -69,6 +69,9 @@ class AudioTimingTest : public TestRomManager::BoundRomTest {
  protected:
   void SetUp() override {
     BoundRomTest::SetUp();
+    if (!rom_available()) {
+      return;
+    }
 
     // Reset cumulative cycle counter for each test
     cumulative_master_cycles_ = 0;

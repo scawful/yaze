@@ -44,7 +44,7 @@ class Tile16EditorIntegrationTest : public ::testing::Test {
 
     // Load the test ROM
     rom_ = std::make_unique<Rom>();
-    yaze::test::TestRomManager::SkipIfRomMissing(
+    YAZE_SKIP_IF_ROM_MISSING(
         yaze::test::RomRole::kVanilla,
         "Tile16EditorIntegrationTest");
     const std::string rom_path =
@@ -333,9 +333,8 @@ TEST_F(Tile16EditorIntegrationTest, ScratchSpaceWithROM) {
 }
 
 // Palette slot calculation tests - these don't require ROM data
-// The new implementation uses row-based addressing: (kBaseRow + button) * 16
-// where kBaseRow = 2 (skipping HUD rows 0-1). Sheet index is now ignored
-// since all graphics use the same 16-color palette row structure.
+// Row-based addressing: (base_row + button) * 16, where base_row depends on
+// the sheet group (main/aux/animated) and skips HUD rows 0-1.
 TEST_F(Tile16EditorIntegrationTest, GetActualPaletteSlot_Aux1Sheets) {
   // Row-based: button 0 -> row 2 (32), button 1 -> row 3 (48), etc.
   EXPECT_EQ(editor_->GetActualPaletteSlot(0, 0), 32);   // Row 2
@@ -362,20 +361,20 @@ TEST_F(Tile16EditorIntegrationTest, GetActualPaletteSlot_MainSheets) {
 }
 
 TEST_F(Tile16EditorIntegrationTest, GetActualPaletteSlot_Aux2Sheets) {
-  // Row-based addressing is consistent
-  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 5), 32);   // Row 2
-  EXPECT_EQ(editor_->GetActualPaletteSlot(1, 5), 48);   // Row 3
-  EXPECT_EQ(editor_->GetActualPaletteSlot(7, 5), 144);  // Row 9
+  // AUX2 sheets use base row 5
+  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 5), 80);   // Row 5
+  EXPECT_EQ(editor_->GetActualPaletteSlot(1, 5), 96);   // Row 6
+  EXPECT_EQ(editor_->GetActualPaletteSlot(7, 5), 192);  // Row 12
 
-  // Sheet 6 uses same values
-  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 6), 32);
+  // Sheet 6 uses same values (AUX2)
+  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 6), 80);
 }
 
 TEST_F(Tile16EditorIntegrationTest, GetActualPaletteSlot_AnimatedSheet) {
-  // Row-based: all sheets use the same formula
-  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 7), 32);   // Row 2
-  EXPECT_EQ(editor_->GetActualPaletteSlot(1, 7), 48);   // Row 3
-  EXPECT_EQ(editor_->GetActualPaletteSlot(7, 7), 144);  // Row 9
+  // Animated sheet uses base row 7
+  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 7), 112);  // Row 7
+  EXPECT_EQ(editor_->GetActualPaletteSlot(1, 7), 128);  // Row 8
+  EXPECT_EQ(editor_->GetActualPaletteSlot(7, 7), 224);  // Row 14
 }
 
 TEST_F(Tile16EditorIntegrationTest, GetSheetIndexForTile8_BoundsCheck) {

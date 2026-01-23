@@ -204,6 +204,9 @@ class EmulatorObjectPreviewTest : public TestRomManager::BoundRomTest {
  protected:
   void SetUp() override {
     BoundRomTest::SetUp();
+    if (!rom_available()) {
+      return;
+    }
 
     // Initialize SNES emulator with ROM
     snes_ = std::make_unique<emu::Snes>();
@@ -504,6 +507,9 @@ class EmulatorStateInjectionTest : public TestRomManager::BoundRomTest {
  protected:
   void SetUp() override {
     BoundRomTest::SetUp();
+    if (!rom_available()) {
+      return;
+    }
     snes_ = std::make_unique<emu::Snes>();
     snes_->Init(rom()->vector());
   }
@@ -760,6 +766,9 @@ class HandlerExecutionTraceTest : public TestRomManager::BoundRomTest {
  protected:
   void SetUp() override {
     BoundRomTest::SetUp();
+    if (!rom_available()) {
+      return;
+    }
     snes_ = std::make_unique<emu::Snes>();
     snes_->Init(rom()->vector());
   }

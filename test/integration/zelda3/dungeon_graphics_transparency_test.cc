@@ -22,7 +22,7 @@ class DungeonGraphicsTransparencyTest : public ::testing::Test {
   void SetUp() override {
     rom_ = std::make_unique<Rom>();
 
-    yaze::test::TestRomManager::SkipIfRomMissing(
+    YAZE_SKIP_IF_ROM_MISSING(
         yaze::test::RomRole::kVanilla,
         "DungeonGraphicsTransparencyTest");
     const std::string rom_path =

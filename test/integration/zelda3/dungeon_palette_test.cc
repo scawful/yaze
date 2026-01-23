@@ -117,7 +117,7 @@ TEST_F(DungeonPaletteTest, PaletteOffsetWorksWithConvertedData) {
 
 TEST_F(DungeonPaletteTest, InspectActualPaletteColors) {
   // Load actual ROM file
-  yaze::test::TestRomManager::SkipIfRomMissing(
+  YAZE_SKIP_IF_ROM_MISSING(
       yaze::test::RomRole::kVanilla, "DungeonPaletteTest.InspectActualPaletteColors");
   const std::string rom_path =
       yaze::test::TestRomManager::GetRomPath(yaze::test::RomRole::kVanilla);

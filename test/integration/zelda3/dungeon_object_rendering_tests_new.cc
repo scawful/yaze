@@ -30,6 +30,9 @@ class DungeonObjectRenderingTests : public TestRomManager::BoundRomTest {
  protected:
   void SetUp() override {
     BoundRomTest::SetUp();
+    if (!rom_available()) {
+      return;
+    }
 
     // Create drawer
     drawer_ = std::make_unique<zelda3::ObjectDrawer>(rom(), 0);

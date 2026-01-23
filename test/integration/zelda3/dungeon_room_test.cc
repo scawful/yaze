@@ -17,7 +17,7 @@ class DungeonRoomTest : public ::testing::Test {
 #if defined(__linux__)
     GTEST_SKIP() << "Dungeon room tests require ROM file (unavailable on Linux CI)";
 #else
-    TestRomManager::SkipIfRomMissing(RomRole::kVanilla, "DungeonRoomTest");
+    YAZE_SKIP_IF_ROM_MISSING(RomRole::kVanilla, "DungeonRoomTest");
     const std::string rom_path = TestRomManager::GetRomPath(RomRole::kVanilla);
     if (!rom_.LoadFromFile(rom_path).ok()) {
       GTEST_SKIP() << "Failed to load test ROM (" << rom_path << ")";
