@@ -12,6 +12,7 @@
 #endif
 
 #include <algorithm>
+#include <string>
 
 #include "app/gfx/backend/metal_renderer.h"
 #include "app/gui/core/style.h"
@@ -20,6 +21,7 @@
 #include "imgui/backends/imgui_impl_metal.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
+#include "util/platform_paths.h"
 
 namespace yaze {
 namespace platform {
@@ -294,6 +296,18 @@ absl::Status IOSWindowBackend::InitializeImGui(gfx::IRenderer* renderer) {
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
   io.ConfigFlags |= ImGuiConfigFlags_IsTouchScreen;
+
+  if (auto ini_path = util::PlatformPaths::GetImGuiIniPath(); ini_path.ok()) {
+    static std::string ini_path_str;
+    if (ini_path_str.empty()) {
+      ini_path_str = ini_path->string();
+    }
+    io.IniFilename = ini_path_str.c_str();
+  } else {
+    io.IniFilename = nullptr;
+    LOG_WARN("IOSWindowBackend", "Failed to resolve ImGui ini path: %s",
+             ini_path.status().ToString().c_str());
+  }
 
   if (!ImGui_ImplMetal_Init(device)) {
     return absl::InternalError("ImGui_ImplMetal_Init failed");

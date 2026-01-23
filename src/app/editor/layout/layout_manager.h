@@ -34,6 +34,15 @@ enum class LayoutType {
 };
 
 /**
+ * @enum LayoutScope
+ * @brief Storage scope for saved layouts
+ */
+enum class LayoutScope {
+  kGlobal,
+  kProject
+};
+
+/**
  * @class LayoutManager
  * @brief Manages ImGui DockBuilder layouts for each editor type
  *
@@ -117,6 +126,27 @@ class LayoutManager {
   bool HasLayout(const std::string& name) const;
 
   /**
+   * @brief Load layouts for the active scope (global + optional project)
+   */
+  void LoadLayoutsFromDisk();
+
+  /**
+   * @brief Set the active project layout key (enables project scope)
+   * @param key Stable project storage key (sanitized)
+   */
+  void SetProjectLayoutKey(const std::string& key);
+
+  /**
+   * @brief Clear project scope and return to global layouts only
+   */
+  void UseGlobalLayouts();
+
+  /**
+   * @brief Get the active layout scope
+   */
+  LayoutScope GetActiveScope() const;
+
+  /**
    * @brief Reset the layout for an editor to its default
    * @param type The editor type to reset
    */
@@ -177,6 +207,9 @@ class LayoutManager {
   // DockBuilder layout implementations for each editor type
   void BuildLayoutFromPreset(EditorType type, ImGuiID dockspace_id);
 
+  void LoadLayoutsFromDiskInternal(LayoutScope scope, bool merge);
+  void SaveLayoutsToDisk(LayoutScope scope) const;
+
   // Deprecated individual builders - kept for compatibility or as wrappers
   void BuildOverworldLayout(ImGuiID dockspace_id);
   void BuildDungeonLayout(ImGuiID dockspace_id);
@@ -214,10 +247,19 @@ class LayoutManager {
 
   // Saved ImGui docking layouts (INI data)
   std::unordered_map<std::string, std::string> saved_imgui_layouts_;
+
+  // Saved pinned panel state for layouts
+  std::unordered_map<std::string, std::unordered_map<std::string, bool>>
+      saved_pinned_layouts_;
+
+  // Layout scope tracking
+  std::unordered_map<std::string, LayoutScope> layout_scopes_;
+
+  // Project storage key for project-scoped layouts
+  std::string project_layout_key_;
 };
 
 }  // namespace editor
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_LAYOUT_LAYOUT_MANAGER_H_
-

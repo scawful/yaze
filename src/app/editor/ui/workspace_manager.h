@@ -14,6 +14,7 @@ namespace editor {
 class EditorSet;
 class ToastManager;
 class PanelManager;
+class LayoutManager;
 
 /**
  * @brief Manages workspace layouts, sessions, and presets
@@ -34,6 +35,8 @@ class WorkspaceManager {
   void set_panel_manager(PanelManager* manager) {
     panel_manager_ = manager;
   }
+
+  void set_layout_manager(LayoutManager* manager) { layout_manager_ = manager; }
 
   // Layout management
   absl::Status SaveWorkspaceLayout(const std::string& name = "");
@@ -79,6 +82,7 @@ class WorkspaceManager {
  private:
   ToastManager* toast_manager_;
   PanelManager* panel_manager_ = nullptr;
+  LayoutManager* layout_manager_ = nullptr;
   std::deque<SessionInfo>* sessions_ = nullptr;
   std::string last_workspace_preset_;
   std::vector<std::string> workspace_presets_;

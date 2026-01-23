@@ -179,8 +179,19 @@ absl::Status WindowDelegate::LoadLayout(const std::string& preset_name) {
 
 absl::Status WindowDelegate::ResetLayout() {
   printf("[WindowDelegate] ResetLayout()\n");
-  // Load default ImGui layout
-  ImGui::LoadIniSettingsFromMemory(nullptr);
+  if (ImGui::GetCurrentContext()) {
+    ImGui::ClearIniSettings();
+  }
+
+  auto ini_path = util::PlatformPaths::GetImGuiIniPath();
+  if (ini_path.ok()) {
+    std::error_code ec;
+    std::filesystem::remove(*ini_path, ec);
+    if (ec) {
+      printf("[WindowDelegate] Failed to remove ImGui ini: %s\n",
+             ec.message().c_str());
+    }
+  }
   return absl::OkStatus();
 }
 

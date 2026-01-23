@@ -268,7 +268,8 @@ class PanelManager {
    * @param state Map of base_panel_id -> visible
    */
   void RestoreVisibilityState(
-      size_t session_id, const std::unordered_map<std::string, bool>& state);
+      size_t session_id, const std::unordered_map<std::string, bool>& state,
+      bool publish_events = false);
 
   /**
    * @brief Serialize pinned panel state for persistence
@@ -323,10 +324,10 @@ class PanelManager {
     }
   }
 
-  void SetSidebarVisible(bool visible) {
+  void SetSidebarVisible(bool visible, bool notify = true) {
     if (sidebar_visible_ != visible) {
       sidebar_visible_ = visible;
-      if (on_sidebar_state_changed_) {
+      if (notify && on_sidebar_state_changed_) {
         on_sidebar_state_changed_(sidebar_visible_, panel_expanded_);
       }
     }
@@ -341,10 +342,10 @@ class PanelManager {
     }
   }
 
-  void SetPanelExpanded(bool expanded) {
+  void SetPanelExpanded(bool expanded, bool notify = true) {
     if (panel_expanded_ != expanded) {
       panel_expanded_ = expanded;
-      if (on_sidebar_state_changed_) {
+      if (notify && on_sidebar_state_changed_) {
         on_sidebar_state_changed_(sidebar_visible_, panel_expanded_);
       }
     }
@@ -602,10 +603,10 @@ class PanelManager {
     HideAllPanelsInCategory(active_session_, category);
   }
   std::string GetActiveCategory() const { return active_category_; }
-  void SetActiveCategory(const std::string& category) {
+  void SetActiveCategory(const std::string& category, bool notify = true) {
     if (active_category_ != category) {
       active_category_ = category;
-      if (on_category_changed_) {
+      if (notify && on_category_changed_) {
         on_category_changed_(category);
       }
     }
