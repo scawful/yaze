@@ -80,9 +80,11 @@ struct MemoryEditorWidget {
   ImGuiDataType PreviewDataType;
 
   // Expanded
-  ImU8* ComparisonData;
+  const ImU8* ComparisonData;
 
-  void SetComparisonData(void* data) { ComparisonData = (ImU8*)data; }
+  void SetComparisonData(const void* data) {
+    ComparisonData = static_cast<const ImU8*>(data);
+  }
 
   MemoryEditorWidget() {
     // Settings
