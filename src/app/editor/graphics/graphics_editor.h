@@ -86,6 +86,12 @@ class GraphicsEditor : public Editor {
     if (palette_controls_panel_) {
       palette_controls_panel_->SetGameData(game_data);
     }
+    if (gfx_group_panel_) {
+      gfx_group_panel_->SetGameData(game_data);
+    }
+    if (paletteset_panel_) {
+      paletteset_panel_->SetGameData(game_data);
+    }
   }
 
   // Editor shortcuts
