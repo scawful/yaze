@@ -30,15 +30,15 @@ void MemoryEditor::Update(bool& show_memory_editor) {
 
   NEXT_COLUMN()
   Text("%s", rom()->filename().data());
-  memory_widget_.DrawContents((void*)&(*rom()), rom()->size());
+  memory_widget_.DrawContents(rom()->mutable_data(), rom()->size());
 
   NEXT_COLUMN()
   if (show_compare_rom_) {
-    comparison_widget_.SetComparisonData((void*)&(*rom()));
+    comparison_widget_.SetComparisonData(rom()->data());
     ImGui::BeginGroup();
     ImGui::BeginChild("Comparison ROM");
     Text("%s", comparison_rom_.filename().data());
-    comparison_widget_.DrawContents((void*)&(comparison_rom_),
+    comparison_widget_.DrawContents(comparison_rom_.mutable_data(),
                                     comparison_rom_.size());
     ImGui::EndChild();
     ImGui::EndGroup();

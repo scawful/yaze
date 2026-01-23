@@ -20,7 +20,7 @@ const std::unordered_map<EditorType, std::string>
                                          {EditorType::kMusic, "Music"},
                                          {EditorType::kAssembly, "Assembly"},
                                          {EditorType::kEmulator, "Emulator"},
-                                         {EditorType::kHex, "Hex"},
+                                         {EditorType::kHex, "Memory"},
                                          {EditorType::kAgent, "Agent"},
                                          {EditorType::kSettings, "System"}};
 
@@ -71,6 +71,9 @@ std::string EditorRegistry::GetEditorCategory(EditorType type) {
 
 EditorType EditorRegistry::GetEditorTypeFromCategory(
     const std::string& category) {
+  if (category == "Hex") {
+    return EditorType::kHex;
+  }
   for (const auto& [type, cat] : kEditorCategories) {
     if (cat == category) {
       return type;  // Return first match
