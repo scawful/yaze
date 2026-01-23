@@ -98,6 +98,7 @@ void ScreenEditor::Initialize() {
 
 absl::Status ScreenEditor::Load() {
   gfx::ScopedTimer timer("ScreenEditor::Load");
+  inventory_loaded_ = false;
 
   ASSIGN_OR_RETURN(dungeon_maps_,
                    zelda3::LoadDungeonMaps(*rom(), dungeon_map_labels_));
@@ -173,12 +174,11 @@ void ScreenEditor::DrawToolset() {
 }
 
 void ScreenEditor::DrawInventoryMenuEditor() {
-  static bool create = false;
-  if (!create && rom()->is_loaded() && game_data()) {
+  if (!inventory_loaded_ && rom()->is_loaded() && game_data()) {
     status_ = inventory_.Create(rom(), game_data());
     if (status_.ok()) {
       palette_ = inventory_.palette();
-      create = true;
+      inventory_loaded_ = true;
     } else {
       ImGui::TextColored(ImVec4(1, 0, 0, 1), "Error loading inventory: %s",
                          status_.message().data());
@@ -202,7 +202,8 @@ void ScreenEditor::DrawInventoryMenuEditor() {
       frame_opts.grid_step = 32.0f;
       frame_opts.render_popups = true;
       auto runtime = gui::BeginCanvas(screen_canvas_, frame_opts);
-      gui::DrawBitmap(runtime, inventory_.bitmap(), 2, create ? 1.0f : 0.0f);
+      gui::DrawBitmap(runtime, inventory_.bitmap(), 2,
+                      inventory_loaded_ ? 1.0f : 0.0f);
       gui::EndCanvas(screen_canvas_, runtime, frame_opts);
     }
 
@@ -214,7 +215,8 @@ void ScreenEditor::DrawInventoryMenuEditor() {
       frame_opts.grid_step = 16.0f;
       frame_opts.render_popups = true;
       auto runtime = gui::BeginCanvas(tilesheet_canvas_, frame_opts);
-      gui::DrawBitmap(runtime, inventory_.tilesheet(), 2, create ? 1.0f : 0.0f);
+      gui::DrawBitmap(runtime, inventory_.tilesheet(), 2,
+                      inventory_loaded_ ? 1.0f : 0.0f);
       gui::EndCanvas(tilesheet_canvas_, runtime, frame_opts);
     }
 
