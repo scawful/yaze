@@ -9,6 +9,12 @@
 - STATUS: IN_PROGRESS
 - NOTES: Added `--asset_mode` and lazy asset loading (on-demand editor init/load + `EnsureGameDataLoaded`); verified `emu-agent-instance` multi-instance script; server-lite startup still pending.
 
+### 2026-01-23 imgui-frontend-engineer – Editor review sweep tracking
+- TASK: Create tracking + systematically review all editor surfaces with layout/panel validation.
+- SCOPE: src/app/editor/*, src/app/editor/ui/*, layout + panel persistence.
+- STATUS: IN_PROGRESS
+- INITIATIVE_DOC: docs/internal/agents/initiative-editor-review-2026-01.md
+
 ### 2026-01-22 imgui-frontend-engineer – ROM gRPC hardening + iOS UX + welcome screen refresh
 - TASK: Harden RomService RPCs (proposal routing, version-aware reads), continue iPad UI fixes, and modernize welcome screen.
 - SCOPE: src/app/service/rom_service_impl.cc, src/ios/*, src/app/platform/ios/*, src/app/gfx/backend/metal_renderer.mm, src/app/editor/ui/welcome_screen.*, src/app/editor/menu/menu_orchestrator.cc, src/app/controller.cc.
