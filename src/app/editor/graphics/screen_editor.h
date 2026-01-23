@@ -125,6 +125,7 @@ class ScreenEditor : public Editor {
                                      gui::CanvasGridSize::k8x8, 2.0f};
 
   zelda3::Inventory inventory_;
+  bool inventory_loaded_ = false;
   zelda3::TitleScreen title_screen_;
   zelda3::OverworldMapScreen ow_map_screen_;
 
