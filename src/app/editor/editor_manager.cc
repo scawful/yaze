@@ -1377,7 +1377,7 @@ Editor* EditorManager::GetEditorByType(EditorType type,
 }
 
 Editor* EditorManager::ResolveEditorForCategory(
-    const std::string& category) const {
+    const std::string& category) {
   if (category.empty() || category == PanelManager::kDashboardCategory) {
     return nullptr;
   }
@@ -1389,8 +1389,6 @@ Editor* EditorManager::ResolveEditorForCategory(
 
   EditorType type = EditorRegistry::GetEditorTypeFromCategory(category);
   switch (type) {
-    case EditorType::kHex:
-      return editor_set->GetMemoryEditor();
     case EditorType::kAgent:
 #ifdef YAZE_BUILD_AGENT_UI
       return agent_ui_.GetAgentEditor();
