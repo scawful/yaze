@@ -592,7 +592,7 @@ absl::Status MessageEditor::Save() {
       if (value == kBlockTerminator) {
         // Make sure we didn't go over the space available in the first block.
         // 0x7FFF available.
-        if ((!in_second_bank & pos) > kTextDataEnd) {
+        if (!in_second_bank && pos > kTextDataEnd) {
           return absl::InternalError(DisplayTextOverflowError(pos, true));
         }
 
@@ -609,7 +609,7 @@ absl::Status MessageEditor::Save() {
 
   // Verify that we didn't go over the space available for the second block.
   // 0x14BF available.
-  if ((in_second_bank & pos) > kTextData2End) {
+  if (in_second_bank && pos > kTextData2End) {
     std::copy(backup.begin(), backup.end(), rom()->mutable_data());
     return absl::InternalError(DisplayTextOverflowError(pos, false));
   }
