@@ -51,7 +51,7 @@ Legend: TODO | IN_PROGRESS | DONE | BLOCKED
 | Dungeon | IN_PROGRESS | 2026-01-23 | Removed unused Dungeon Controls panel references; default layout now centers Room Matrix with Room List left; needs runtime validation. |
 | Graphics | IN_PROGRESS | 2026-01-23 | Removed polyhedral/prototype panels from default roster; aligned layout preset IDs with actual panel IDs (sheet browser v2, pixel editor, link sprite); added palette/gfx group/paletteset optional layout slots; needs runtime validation. |
 | Palette | IN_PROGRESS | 2026-01-23 | Replaced hardcoded warning/error/info TextColored with theme colors; removed local panel-manager/minimize UI; needs runtime validation + check alpha/initial palette values (w=255) in DisplayPalette. |
-| Screen | TODO | - | - |
+| Screen | IN_PROGRESS | 2026-01-23 | Replaced hardcoded error colors + boss-room outline with theme colors; needs runtime validation of Title/Overworld/Dungeon screens + naming screen stub. |
 | Sprite | TODO | - | - |
 | Music | IN_PROGRESS | 2026-01-23 | Removed Audio Debug + Help panels from panel roster; needs runtime validation. |
 | Assembly | TODO | - | - |

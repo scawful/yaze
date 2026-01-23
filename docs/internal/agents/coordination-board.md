@@ -14,7 +14,7 @@
 - SCOPE: src/app/editor/*, src/app/editor/ui/*, layout + panel persistence.
 - STATUS: IN_PROGRESS
 - INITIATIVE_DOC: docs/internal/agents/initiative-editor-review-2026-01.md
-- NOTES: Local smoke build `mac-ai` completed (143s). Warnings only (SDL2 deprecations, asar sprintf, duplicate libs during link). Updated Tile16 palette slot expectations + BuildTool default build dir test; `yaze_test_stable` full run: 694 passed, 114 skipped (ROM missing), 0 failed.
+- NOTES: Local smoke build `mac-ai` completed (143s). Warnings only (SDL2 deprecations, asar sprintf, duplicate libs during link). Updated Tile16 palette slot expectations + BuildTool default build dir test; `yaze_test_stable` full run: 694 passed, 114 skipped (ROM missing), 0 failed. Screen editor: removed hardcoded error colors + boss outline now uses theme.
 
 ### 2026-01-22 imgui-frontend-engineer – ROM gRPC hardening + iOS UX + welcome screen refresh
 - TASK: Harden RomService RPCs (proposal routing, version-aware reads), continue iPad UI fixes, and modernize welcome screen.
