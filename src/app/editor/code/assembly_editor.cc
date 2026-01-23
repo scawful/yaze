@@ -212,6 +212,20 @@ absl::Status AssemblyEditor::Load() {
   return absl::OkStatus();
 }
 
+TextEditor* AssemblyEditor::GetActiveEditor() {
+  if (HasActiveFile()) {
+    return &open_files_[active_file_id_];
+  }
+  return &text_editor_;
+}
+
+const TextEditor* AssemblyEditor::GetActiveEditor() const {
+  if (HasActiveFile()) {
+    return &open_files_[active_file_id_];
+  }
+  return &text_editor_;
+}
+
 void AssemblyEditor::OpenFolder(const std::string& folder_path) {
   current_folder_ = LoadFolder(folder_path);
 }
@@ -221,6 +235,7 @@ void AssemblyEditor::OpenFolder(const std::string& folder_path) {
 // =============================================================================
 
 void AssemblyEditor::DrawCodeEditor() {
+  TextEditor* editor = GetActiveEditor();
   // Menu bar for file operations
   if (ImGui::BeginMenuBar()) {
     DrawFileMenu();
@@ -230,16 +245,18 @@ void AssemblyEditor::DrawCodeEditor() {
   }
 
   // Status line
-  auto cpos = text_editor_.GetCursorPosition();
+  auto cpos = editor->GetCursorPosition();
+  const char* file_label =
+      current_file_.empty() ? "No file" : current_file_.c_str();
   ImGui::Text("%6d/%-6d %6d lines  | %s | %s | %s | %s", cpos.mLine + 1,
-              cpos.mColumn + 1, text_editor_.GetTotalLines(),
-              text_editor_.IsOverwrite() ? "Ovr" : "Ins",
-              text_editor_.CanUndo() ? "*" : " ",
-              text_editor_.GetLanguageDefinition().mName.c_str(),
-              current_file_.c_str());
+              cpos.mColumn + 1, editor->GetTotalLines(),
+              editor->IsOverwrite() ? "Ovr" : "Ins",
+              editor->CanUndo() ? "*" : " ",
+              editor->GetLanguageDefinition().mName.c_str(), file_label);
 
   // Main text editor
-  text_editor_.Render("##asm_editor", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()));
+  editor->Render("##asm_editor",
+                 ImVec2(0, -ImGui::GetFrameHeightWithSpacing()));
 
   // Draw open file tabs at bottom
   DrawFileTabView();
@@ -315,8 +332,7 @@ void AssemblyEditor::DrawBuildOutput() {
   ImGui::Separator();
 
   // Build buttons
-  bool has_active_file =
-      (active_file_id_ != -1 && active_file_id_ < open_files_.size());
+  bool has_active_file = HasActiveFile();
   bool has_rom = (rom_ && rom_->is_loaded());
 
   if (ImGui::Button(ICON_MD_CHECK_CIRCLE " Validate", ImVec2(120, 0))) {
@@ -364,8 +380,11 @@ void AssemblyEditor::DrawToolbarContent() {
   float button_size = 32.0f;
 
   if (ImGui::Button(ICON_MD_FOLDER_OPEN, ImVec2(button_size, button_size))) {
-        current_folder_ = LoadFolder(FileDialogWrapper::ShowOpenFolderDialog());
-      }
+    auto folder = FileDialogWrapper::ShowOpenFolderDialog();
+    if (!folder.empty()) {
+      current_folder_ = LoadFolder(folder);
+    }
+  }
   if (ImGui::IsItemHovered()) ImGui::SetTooltip("Open Folder");
 
   ImGui::SameLine();
@@ -378,7 +397,7 @@ void AssemblyEditor::DrawToolbarContent() {
   if (ImGui::IsItemHovered()) ImGui::SetTooltip("Open File");
 
   ImGui::SameLine();
-  bool can_save = (active_file_id_ != -1 && active_file_id_ < open_files_.size());
+  bool can_save = HasActiveFile();
   ImGui::BeginDisabled(!can_save);
   if (ImGui::Button(ICON_MD_SAVE, ImVec2(button_size, button_size))) {
     Save();
@@ -413,12 +432,15 @@ void AssemblyEditor::DrawFileTabView() {
     return;
   }
 
-  if (ImGui::BeginTabBar("##OpenFileTabs", ImGuiTabBarFlags_Reorderable |
-                                               ImGuiTabBarFlags_AutoSelectNewTabs |
-                                               ImGuiTabBarFlags_FittingPolicyScroll)) {
-  for (int i = 0; i < active_files_.Size; i++) {
-    int file_id = active_files_[i];
-      if (file_id >= files_.size()) continue;
+  if (ImGui::BeginTabBar(
+          "##OpenFileTabs",
+          ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_AutoSelectNewTabs |
+              ImGuiTabBarFlags_FittingPolicyScroll)) {
+    for (int i = 0; i < active_files_.Size; i++) {
+      int file_id = active_files_[i];
+      if (file_id >= files_.size()) {
+        continue;
+      }
 
       // Extract just the filename from the path
       std::string filename = files_[file_id];
@@ -434,24 +456,27 @@ void AssemblyEditor::DrawFileTabView() {
       if (ImGui::BeginTabItem(filename.c_str(), &tab_open, flags)) {
         // When tab is selected, update active file
         if (!is_active) {
-        active_file_id_ = file_id;
-          text_editor_ = open_files_[file_id];
-      }
+          active_file_id_ = file_id;
+          current_file_ = util::GetFileName(files_[file_id]);
+        }
         ImGui::EndTabItem();
-    }
+      }
 
       // Handle tab close
       if (!tab_open) {
-      active_files_.erase(active_files_.Data + i);
+        active_files_.erase(active_files_.Data + i);
         if (active_file_id_ == file_id) {
           active_file_id_ = active_files_.empty() ? -1 : active_files_[0];
-          if (active_file_id_ >= 0 && active_file_id_ < open_files_.size()) {
-            text_editor_ = open_files_[active_file_id_];
+          if (active_file_id_ >= 0 &&
+              active_file_id_ < static_cast<int>(open_files_.size())) {
+            current_file_ = util::GetFileName(files_[active_file_id_]);
+          } else {
+            current_file_.clear();
           }
         }
-      i--;
+        i--;
+      }
     }
-  }
     ImGui::EndTabBar();
   }
 }
@@ -472,15 +497,17 @@ void AssemblyEditor::Update(bool& is_loaded) {
 }
 
 void AssemblyEditor::InlineUpdate() {
-  auto cpos = text_editor_.GetCursorPosition();
+  TextEditor* editor = GetActiveEditor();
+  auto cpos = editor->GetCursorPosition();
+  const char* file_label =
+      current_file_.empty() ? "No file" : current_file_.c_str();
   ImGui::Text("%6d/%-6d %6d lines  | %s | %s | %s | %s", cpos.mLine + 1,
-              cpos.mColumn + 1, text_editor_.GetTotalLines(),
-              text_editor_.IsOverwrite() ? "Ovr" : "Ins",
-              text_editor_.CanUndo() ? "*" : " ",
-              text_editor_.GetLanguageDefinition().mName.c_str(),
-              current_file_.c_str());
+              cpos.mColumn + 1, editor->GetTotalLines(),
+              editor->IsOverwrite() ? "Ovr" : "Ins",
+              editor->CanUndo() ? "*" : " ",
+              editor->GetLanguageDefinition().mName.c_str(), file_label);
 
-  text_editor_.Render("##asm_editor", ImVec2(0, 0));
+  editor->Render("##asm_editor", ImVec2(0, 0));
 }
 
 void AssemblyEditor::UpdateCodeView() {
@@ -492,12 +519,20 @@ void AssemblyEditor::UpdateCodeView() {
 }
 
 absl::Status AssemblyEditor::Save() {
-  if (active_file_id_ != -1 && active_file_id_ < open_files_.size()) {
-    std::string content = open_files_[active_file_id_].GetText();
-    util::SaveFile(files_[active_file_id_], content);
-    return absl::OkStatus();
+  if (!HasActiveFile()) {
+    return absl::FailedPreconditionError("No active file to save.");
   }
-  return absl::FailedPreconditionError("No active file to save.");
+
+  const std::string& path = files_[active_file_id_];
+  std::ofstream file(path);
+  if (!file.is_open()) {
+    return absl::InvalidArgumentError(
+        absl::StrCat("Cannot write file: ", path));
+  }
+
+  file << GetActiveEditor()->GetText();
+  file.close();
+  return absl::OkStatus();
 }
 
 void AssemblyEditor::DrawToolset() {
@@ -572,10 +607,12 @@ void AssemblyEditor::DrawFileMenu() {
   if (ImGui::BeginMenu("File")) {
     if (ImGui::MenuItem(ICON_MD_FILE_OPEN " Open", "Ctrl+O")) {
       auto filename = util::FileDialogWrapper::ShowOpenFileDialog();
-      ChangeActiveFile(filename);
+      if (!filename.empty()) {
+        ChangeActiveFile(filename);
+      }
     }
     if (ImGui::MenuItem(ICON_MD_SAVE " Save", "Ctrl+S")) {
-      // TODO: Implement this
+      Save();
     }
     ImGui::EndMenu();
   }
@@ -584,20 +621,20 @@ void AssemblyEditor::DrawFileMenu() {
 void AssemblyEditor::DrawEditMenu() {
   if (ImGui::BeginMenu("Edit")) {
     if (ImGui::MenuItem(ICON_MD_UNDO " Undo", "Ctrl+Z")) {
-      text_editor_.Undo();
+      GetActiveEditor()->Undo();
     }
     if (ImGui::MenuItem(ICON_MD_REDO " Redo", "Ctrl+Y")) {
-      text_editor_.Redo();
+      GetActiveEditor()->Redo();
     }
     ImGui::Separator();
     if (ImGui::MenuItem(ICON_MD_CONTENT_CUT " Cut", "Ctrl+X")) {
-      text_editor_.Cut();
+      GetActiveEditor()->Cut();
     }
     if (ImGui::MenuItem(ICON_MD_CONTENT_COPY " Copy", "Ctrl+C")) {
-      text_editor_.Copy();
+      GetActiveEditor()->Copy();
     }
     if (ImGui::MenuItem(ICON_MD_CONTENT_PASTE " Paste", "Ctrl+V")) {
-      text_editor_.Paste();
+      GetActiveEditor()->Paste();
     }
     ImGui::Separator();
     if (ImGui::MenuItem(ICON_MD_SEARCH " Find", "Ctrl+F")) {
@@ -608,59 +645,67 @@ void AssemblyEditor::DrawEditMenu() {
 }
 
 void AssemblyEditor::ChangeActiveFile(const std::string_view& filename) {
+  if (filename.empty()) {
+    return;
+  }
+
   // Check if file is already open
   for (int i = 0; i < active_files_.Size; ++i) {
     int file_id = active_files_[i];
     if (files_[file_id] == filename) {
       // Optional: Focus window
+      active_file_id_ = file_id;
+      current_file_ = util::GetFileName(files_[file_id]);
       return;
     }
   }
 
-  // Add new file
-  int new_file_id = files_.size();
-  files_.push_back(std::string(filename));
-  active_files_.push_back(new_file_id);
-
-  // Resize open_files_ if needed
-  if (new_file_id >= open_files_.size()) {
-    open_files_.resize(new_file_id + 1);
-  }
-
   // Load file content using utility
-  std::string content = util::LoadFile(std::string(filename));
-  if (!content.empty()) {
+  try {
+    std::string content = util::LoadFile(std::string(filename));
+    int new_file_id = files_.size();
+    files_.push_back(std::string(filename));
+    active_files_.push_back(new_file_id);
+
+    // Resize open_files_ if needed
+    if (new_file_id >= open_files_.size()) {
+      open_files_.resize(new_file_id + 1);
+    }
+
     open_files_[new_file_id].SetText(content);
     open_files_[new_file_id].SetLanguageDefinition(GetAssemblyLanguageDef());
     open_files_[new_file_id].SetPalette(TextEditor::GetDarkPalette());
-  } else {
+    open_files_[new_file_id].SetShowWhitespaces(false);
+    active_file_id_ = new_file_id;
+    current_file_ = util::GetFileName(std::string(filename));
+  } catch (const std::exception& ex) {
     SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Error opening file: %s\n",
-                 std::string(filename).c_str());
+                 ex.what());
   }
 }
 
 absl::Status AssemblyEditor::Cut() {
-  text_editor_.Cut();
+  GetActiveEditor()->Cut();
   return absl::OkStatus();
 }
 
 absl::Status AssemblyEditor::Copy() {
-  text_editor_.Copy();
+  GetActiveEditor()->Copy();
   return absl::OkStatus();
 }
 
 absl::Status AssemblyEditor::Paste() {
-  text_editor_.Paste();
+  GetActiveEditor()->Paste();
   return absl::OkStatus();
 }
 
 absl::Status AssemblyEditor::Undo() {
-  text_editor_.Undo();
+  GetActiveEditor()->Undo();
   return absl::OkStatus();
 }
 
 absl::Status AssemblyEditor::Redo() {
-  text_editor_.Redo();
+  GetActiveEditor()->Redo();
   return absl::OkStatus();
 }
 
@@ -673,7 +718,7 @@ absl::Status AssemblyEditor::Update() {
 // ============================================================================
 
 absl::Status AssemblyEditor::ValidateCurrentFile() {
-  if (active_file_id_ == -1 || active_file_id_ >= open_files_.size()) {
+  if (!HasActiveFile()) {
     return absl::FailedPreconditionError("No file is currently active");
   }
 
@@ -717,7 +762,7 @@ absl::Status AssemblyEditor::ValidateCurrentFile() {
         }
       }
     }
-    open_files_[active_file_id_].SetErrorMarkers(markers);
+    GetActiveEditor()->SetErrorMarkers(markers);
     return status;
   }
 
@@ -731,7 +776,7 @@ absl::Status AssemblyEditor::ApplyPatchToRom() {
     return absl::FailedPreconditionError("No ROM is loaded");
   }
 
-  if (active_file_id_ == -1 || active_file_id_ >= open_files_.size()) {
+  if (!HasActiveFile()) {
     return absl::FailedPreconditionError("No file is currently active");
   }
 
@@ -781,7 +826,7 @@ void AssemblyEditor::UpdateErrorMarkers(const core::AsarPatchResult& result) {
   last_errors_ = result.errors;
   last_warnings_ = result.warnings;
 
-  if (active_file_id_ == -1 || active_file_id_ >= open_files_.size()) {
+  if (!HasActiveFile()) {
     return;
   }
 
@@ -809,24 +854,23 @@ void AssemblyEditor::UpdateErrorMarkers(const core::AsarPatchResult& result) {
     }
   }
 
-  open_files_[active_file_id_].SetErrorMarkers(markers);
+  GetActiveEditor()->SetErrorMarkers(markers);
 }
 
 void AssemblyEditor::ClearErrorMarkers() {
   last_errors_.clear();
 
-  if (active_file_id_ == -1 || active_file_id_ >= open_files_.size()) {
+  if (!HasActiveFile()) {
     return;
   }
 
   TextEditor::ErrorMarkers empty_markers;
-  open_files_[active_file_id_].SetErrorMarkers(empty_markers);
+  GetActiveEditor()->SetErrorMarkers(empty_markers);
 }
 
 void AssemblyEditor::DrawAssembleMenu() {
   if (ImGui::BeginMenu("Assemble")) {
-    bool has_active_file =
-        (active_file_id_ != -1 && active_file_id_ < open_files_.size());
+    bool has_active_file = HasActiveFile();
     bool has_rom = (rom_ && rom_->is_loaded());
 
     if (ImGui::MenuItem(ICON_MD_CHECK_CIRCLE " Validate", "Ctrl+B", false, has_active_file)) {
