@@ -1,6 +1,7 @@
 #include "app/platform/window.h"
 
 #include <filesystem>
+#include <string>
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
@@ -9,6 +10,7 @@
 #include "app/platform/font_loader.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
+#include "util/platform_paths.h"
 #include "util/sdl_deleter.h"
 
 #ifndef YAZE_USE_SDL3
@@ -33,13 +35,19 @@ void ImGuiAssertionHandler(const char* expr, const char* file, int line,
 
     // Backup and reset imgui.ini
     try {
-      if (std::filesystem::exists("imgui.ini")) {
+      const char* ini_filename =
+          ImGui::GetCurrentContext() ? ImGui::GetIO().IniFilename : nullptr;
+      if (ini_filename && std::filesystem::exists(ini_filename)) {
+        std::filesystem::path ini_path(ini_filename);
+        std::filesystem::path backup_path = ini_path;
+        backup_path += ".backup";
         std::filesystem::copy(
-            "imgui.ini", "imgui.ini.backup",
+            ini_path, backup_path,
             std::filesystem::copy_options::overwrite_existing);
-        std::filesystem::remove("imgui.ini");
+        std::filesystem::remove(ini_path);
         LOG_INFO("ImGui",
-                 "Workspace settings reset. Backup saved to imgui.ini.backup");
+                 "Workspace settings reset. Backup saved to %s",
+                 backup_path.string().c_str());
       }
     } catch (const std::exception& e) {
       LOG_ERROR("ImGui", "Failed to reset workspace: %s", e.what());
@@ -101,6 +109,18 @@ absl::Status CreateWindow(Window& window, gfx::IRenderer* renderer, int flags) {
 #ifdef __APPLE__
   io.ConfigMacOSXBehaviors = true;
 #endif
+
+  if (auto ini_path = util::PlatformPaths::GetImGuiIniPath(); ini_path.ok()) {
+    static std::string ini_path_str;
+    if (ini_path_str.empty()) {
+      ini_path_str = ini_path->string();
+    }
+    io.IniFilename = ini_path_str.c_str();
+  } else {
+    io.IniFilename = nullptr;
+    LOG_WARN("Window", "Failed to resolve ImGui ini path: %s",
+             ini_path.status().ToString().c_str());
+  }
 
   // Set custom assertion handler to prevent crashes
 #ifdef IMGUI_DISABLE_DEFAULT_ASSERT_HANDLER

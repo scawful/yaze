@@ -1002,7 +1002,8 @@ std::unordered_map<std::string, bool> PanelManager::SerializeVisibilityState(
 }
 
 void PanelManager::RestoreVisibilityState(
-    size_t session_id, const std::unordered_map<std::string, bool>& state) {
+    size_t session_id, const std::unordered_map<std::string, bool>& state,
+    bool publish_events) {
   auto session_it = session_card_mapping_.find(session_id);
   if (session_it == session_card_mapping_.end()) {
     LOG_WARN("PanelManager",
@@ -1017,6 +1018,13 @@ void PanelManager::RestoreVisibilityState(
       auto card_it = cards_.find(mapping_it->second);
       if (card_it != cards_.end() && card_it->second.visibility_flag) {
         *card_it->second.visibility_flag = visible;
+        if (publish_events) {
+          if (auto* bus = ContentRegistry::Context::event_bus()) {
+            bus->Publish(PanelVisibilityChangedEvent::Create(
+                mapping_it->second, base_id, card_it->second.category, visible,
+                session_id));
+          }
+        }
         restored++;
       }
     }

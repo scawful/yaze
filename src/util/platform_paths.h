@@ -55,6 +55,16 @@ class PlatformPaths {
   static absl::StatusOr<std::filesystem::path> GetConfigDirectory();
 
   /**
+   * @brief Get the ImGui ini path for YAZE.
+   *
+   * This ensures imgui.ini lives in the app config directory rather than the
+   * current working directory.
+   *
+   * @return StatusOr with path to imgui.ini
+   */
+  static absl::StatusOr<std::filesystem::path> GetImGuiIniPath();
+
+  /**
    * @brief Get the user's Documents directory.
    *
    * This is a visible, user-facing directory for storing projects, logs,

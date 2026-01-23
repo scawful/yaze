@@ -16,6 +16,7 @@
 #include "imgui/backends/imgui_impl_sdlrenderer3.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
+#include "util/platform_paths.h"
 
 namespace yaze {
 
@@ -426,6 +427,18 @@ absl::Status SDL3WindowBackend::InitializeImGui(gfx::IRenderer* renderer) {
 #ifdef __APPLE__
   io.ConfigMacOSXBehaviors = true;
 #endif
+
+  if (auto ini_path = util::PlatformPaths::GetImGuiIniPath(); ini_path.ok()) {
+    static std::string ini_path_str;
+    if (ini_path_str.empty()) {
+      ini_path_str = ini_path->string();
+    }
+    io.IniFilename = ini_path_str.c_str();
+  } else {
+    io.IniFilename = nullptr;
+    LOG_WARN("SDL3WindowBackend", "Failed to resolve ImGui ini path: %s",
+             ini_path.status().ToString().c_str());
+  }
 
   // Initialize ImGui backends for SDL3
   SDL_Renderer* sdl_renderer =

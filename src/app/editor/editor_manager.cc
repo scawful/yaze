@@ -310,6 +310,18 @@ EditorManager::EditorManager()
         HandleUIActionRequest(e.action);
       });
 
+  event_bus_.Subscribe<PanelVisibilityChangedEvent>(
+      [this](const PanelVisibilityChangedEvent& e) {
+        if (e.category.empty() ||
+            e.category == PanelManager::kDashboardCategory) {
+          return;
+        }
+        auto& prefs = user_settings_.prefs();
+        prefs.panel_visibility_state[e.category][e.base_panel_id] = e.visible;
+        settings_dirty_ = true;
+        settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
+      });
+
   // Wire up EventBus to PanelManager for action event publishing
   panel_manager_.SetEventBus(&event_bus_);
 
@@ -322,6 +334,9 @@ EditorManager::EditorManager()
 
   // STEP 4.5: Initialize LayoutManager (DockBuilder layouts for editors)
   layout_manager_ = std::make_unique<LayoutManager>();
+  layout_manager_->SetPanelManager(&panel_manager_);
+  layout_manager_->UseGlobalLayouts();
+  workspace_manager_.set_layout_manager(layout_manager_.get());
 
   // STEP 4.6: Initialize RightPanelManager (right-side sliding panels)
   right_panel_manager_ = std::make_unique<RightPanelManager>();
@@ -481,6 +496,14 @@ void EditorManager::HandleSessionSwitched(size_t new_index,
   ContentRegistry::Context::SetRom(session ? &session->rom : nullptr);
   ContentRegistry::Context::SetGameData(session ? &session->game_data : nullptr);
 
+  const std::string category = panel_manager_.GetActiveCategory();
+  if (!category.empty() && category != PanelManager::kDashboardCategory) {
+    auto it = user_settings_.prefs().panel_visibility_state.find(category);
+    if (it != user_settings_.prefs().panel_visibility_state.end()) {
+      panel_manager_.RestoreVisibilityState(new_index, it->second);
+    }
+  }
+
 #ifdef YAZE_ENABLE_TESTING
   test::TestManager::Get().SetCurrentRom(session ? &session->rom : nullptr);
 #endif
@@ -490,6 +513,7 @@ void EditorManager::HandleSessionSwitched(size_t new_index,
 
 void EditorManager::HandleSessionCreated(size_t index, RomSession* session) {
   panel_manager_.RegisterRegistryPanelsForSession(index);
+  panel_manager_.RestorePinnedState(user_settings_.prefs().pinned_panels);
   LOG_INFO("EditorManager", "Session %zu created via EventBus", index);
 }
 
@@ -756,6 +780,8 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   yaze::zelda3::SetPreferHmagicSpriteNames(
       user_settings_.prefs().prefer_hmagic_sprite_names);
 
+  panel_manager_.RestorePinnedState(user_settings_.prefs().pinned_panels);
+
   // Initialize WASM control and session APIs for browser/agent integration
 #ifdef __EMSCRIPTEN__
   app::platform::WasmControlApi::Initialize(this);
@@ -964,13 +990,27 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
       [this](bool visible, bool expanded) {
         user_settings_.prefs().sidebar_visible = visible;
         user_settings_.prefs().sidebar_panel_expanded = expanded;
-        PRINT_IF_ERROR(user_settings_.Save());
+        settings_dirty_ = true;
+        settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
       });
 
   panel_manager_.SetCategoryChangedCallback(
       [this](const std::string& category) {
+        if (category.empty() ||
+            category == PanelManager::kDashboardCategory) {
+          return;
+        }
         user_settings_.prefs().sidebar_active_category = category;
-        PRINT_IF_ERROR(user_settings_.Save());
+
+        const auto& prefs = user_settings_.prefs();
+        auto it = prefs.panel_visibility_state.find(category);
+        if (it != prefs.panel_visibility_state.end()) {
+          panel_manager_.RestoreVisibilityState(
+              panel_manager_.GetActiveSessionId(), it->second);
+        }
+
+        settings_dirty_ = true;
+        settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
       });
 
   panel_manager_.SetOnPanelClickedCallback([this](const std::string& category) {
@@ -1021,12 +1061,18 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
 
   // Apply sidebar state from settings AFTER registering callbacks
   // This triggers the callbacks but they should be safe now
-  panel_manager_.SetSidebarVisible(user_settings_.prefs().sidebar_visible);
+  panel_manager_.SetSidebarVisible(user_settings_.prefs().sidebar_visible,
+                                   /*notify=*/false);
   panel_manager_.SetPanelExpanded(
-      user_settings_.prefs().sidebar_panel_expanded);
+      user_settings_.prefs().sidebar_panel_expanded, /*notify=*/false);
   if (!user_settings_.prefs().sidebar_active_category.empty()) {
-    panel_manager_.SetActiveCategory(
-        user_settings_.prefs().sidebar_active_category);
+    const std::string& category = user_settings_.prefs().sidebar_active_category;
+    panel_manager_.SetActiveCategory(category, /*notify=*/false);
+    auto it = user_settings_.prefs().panel_visibility_state.find(category);
+    if (it != user_settings_.prefs().panel_visibility_state.end()) {
+      panel_manager_.RestoreVisibilityState(panel_manager_.GetActiveSessionId(),
+                                            it->second);
+    }
   }
 
   // Initialize testing system only when tests are enabled
@@ -1109,7 +1155,8 @@ void EditorManager::OpenEditorAndPanelsFromFlags(
       if (ui_coordinator_) {
         ui_coordinator_->SetDashboardBehavior(StartupVisibility::kShow);
       }
-      panel_manager_.SetActiveCategory(PanelManager::kDashboardCategory);
+      panel_manager_.SetActiveCategory(PanelManager::kDashboardCategory,
+                                       /*notify=*/false);
       continue;
     }
 
@@ -1191,7 +1238,7 @@ void EditorManager::ApplyStartupVisibilityOverrides() {
   if (sidebar_mode_override_ != StartupVisibility::kAuto) {
     const bool sidebar_visible =
         sidebar_mode_override_ == StartupVisibility::kShow;
-    panel_manager_.SetSidebarVisible(sidebar_visible);
+    panel_manager_.SetSidebarVisible(sidebar_visible, /*notify=*/false);
     if (ui_coordinator_) {
       ui_coordinator_->SetPanelSidebarVisible(sidebar_visible);
     }
@@ -1201,7 +1248,7 @@ void EditorManager::ApplyStartupVisibilityOverrides() {
   // This prevents visual overlap/clutter on startup
   if (welcome_mode_override_ == StartupVisibility::kShow ||
       dashboard_mode_override_ == StartupVisibility::kShow) {
-    panel_manager_.SetPanelExpanded(false);
+    panel_manager_.SetPanelExpanded(false, /*notify=*/false);
   }
 
   if (dashboard_panel_) {
@@ -1454,6 +1501,18 @@ absl::Status EditorManager::Update() {
       current_editor_ ? current_editor_->type() : EditorType::kUnknown;
   layout_coordinator_.ProcessLayoutRebuild(current_type, is_emulator_visible);
 
+  if (settings_dirty_) {
+    const float elapsed = TimingManager::Get().GetElapsedTime();
+    if (elapsed - settings_dirty_timestamp_ >= 1.0f) {
+      auto save_status = user_settings_.Save();
+      if (!save_status.ok()) {
+        LOG_WARN("EditorManager", "Failed to save user settings: %s",
+                 save_status.ToString().c_str());
+      }
+      settings_dirty_ = false;
+    }
+  }
+
   // Execute keyboard shortcuts (registered via ShortcutConfigurator)
   ExecuteShortcuts(shortcut_manager_);
 
@@ -1554,7 +1613,13 @@ absl::Status EditorManager::Update() {
     // If no active category, default to first in list
     if (sidebar_category.empty() && !all_categories.empty()) {
       sidebar_category = all_categories[0];
-      panel_manager_.SetActiveCategory(sidebar_category);
+      panel_manager_.SetActiveCategory(sidebar_category, /*notify=*/false);
+      auto it =
+          user_settings_.prefs().panel_visibility_state.find(sidebar_category);
+      if (it != user_settings_.prefs().panel_visibility_state.end()) {
+        panel_manager_.RestoreVisibilityState(panel_manager_.GetActiveSessionId(),
+                                              it->second);
+      }
     }
 
     // Callback to check if ROM is loaded (for category enabled state)
@@ -2385,7 +2450,8 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
     ui_coordinator_->SetEditorSelectionVisible(true);
 
     // Set Dashboard category to suppress panel drawing until user selects an editor
-    panel_manager_.SetActiveCategory(PanelManager::kDashboardCategory);
+    panel_manager_.SetActiveCategory(PanelManager::kDashboardCategory,
+                                     /*notify=*/false);
   }
   return absl::OkStatus();
 }
@@ -2395,6 +2461,10 @@ absl::Status EditorManager::CreateNewProject(const std::string& template_name) {
   auto status = project_manager_.CreateNewProject(template_name);
   if (status.ok()) {
     current_project_ = project_manager_.GetCurrentProject();
+    if (layout_manager_) {
+      layout_manager_->SetProjectLayoutKey(
+          current_project_.MakeStorageKey("layouts"));
+    }
 
     // Trigger ROM selection dialog - projects need a ROM to be useful
     // LoadRom() opens file dialog and shows ROM load options when ROM is loaded
@@ -2431,6 +2501,11 @@ absl::Status EditorManager::OpenProject() {
     }
 
     current_project_ = std::move(new_project);
+
+    if (layout_manager_) {
+      layout_manager_->SetProjectLayoutKey(
+          current_project_.MakeStorageKey("layouts"));
+    }
 
     // Initialize VersionManager for the project
     version_manager_ =
@@ -2588,7 +2663,8 @@ absl::Status EditorManager::LoadProjectWithRom() {
   }
 
   // Set Dashboard category to suppress panel drawing until user selects an editor
-  panel_manager_.SetActiveCategory(PanelManager::kDashboardCategory);
+  panel_manager_.SetActiveCategory(PanelManager::kDashboardCategory,
+                                   /*notify=*/false);
 
   // Apply workspace settings
   user_settings_.prefs().font_global_scale =

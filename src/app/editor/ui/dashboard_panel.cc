@@ -137,6 +137,7 @@ ImVec4 GetEditorAccentColor(EditorType type, const gui::Theme& theme) {
 
 DashboardPanel::DashboardPanel(EditorManager* editor_manager)
     : editor_manager_(editor_manager), window_("Dashboard", ICON_MD_DASHBOARD) {
+  window_.SetSaveSettings(false);
   window_.SetDefaultSize(950, 650);
   window_.SetPosition(gui::PanelWindow::Position::Center);
 

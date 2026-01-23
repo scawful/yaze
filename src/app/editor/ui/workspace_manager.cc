@@ -3,6 +3,7 @@
 #include "app/editor/ui/workspace_manager.h"
 
 #include "absl/strings/str_format.h"
+#include "app/editor/layout/layout_manager.h"
 #include "app/editor/system/panel_manager.h"
 #include "app/editor/ui/toast_manager.h"
 #include "imgui/imgui.h"
@@ -15,7 +16,10 @@ namespace yaze {
 namespace editor {
 
 absl::Status WorkspaceManager::SaveWorkspaceLayout(const std::string& name) {
-  // TODO: Serialize ImGui docking layout
+  if (layout_manager_) {
+    const std::string layout_name = name.empty() ? "workspace" : name;
+    layout_manager_->SaveCurrentLayout(layout_name);
+  }
   if (toast_manager_) {
     toast_manager_->Show("Layout saved", ToastType::kSuccess);
   }
@@ -23,8 +27,17 @@ absl::Status WorkspaceManager::SaveWorkspaceLayout(const std::string& name) {
 }
 
 absl::Status WorkspaceManager::LoadWorkspaceLayout(const std::string& name) {
-  // TODO: Deserialize ImGui docking layout
-  if (toast_manager_) {
+  bool loaded = false;
+  if (layout_manager_) {
+    const std::string layout_name = name.empty() ? "workspace" : name;
+    if (layout_manager_->HasLayout(layout_name)) {
+      layout_manager_->LoadLayout(layout_name);
+      loaded = true;
+    } else if (toast_manager_) {
+      toast_manager_->Show("Layout not found", ToastType::kWarning);
+    }
+  }
+  if (toast_manager_ && loaded) {
     toast_manager_->Show("Layout loaded", ToastType::kSuccess);
   }
   return absl::OkStatus();
@@ -41,6 +54,7 @@ absl::Status WorkspaceManager::ResetWorkspaceLayout() {
 void WorkspaceManager::SaveWorkspacePreset(const std::string& name) {
   if (name.empty())
     return;
+
   std::filesystem::path workspace_dir = std::filesystem::current_path();
   auto workspace_dir_status =
       util::PlatformPaths::GetAppDataSubdirectory("workspaces");
@@ -48,9 +62,13 @@ void WorkspaceManager::SaveWorkspacePreset(const std::string& name) {
     workspace_dir = *workspace_dir_status;
   }
 
-  std::filesystem::path ini_path =
-      workspace_dir / absl::StrFormat("workspace_%s.ini", name.c_str());
-  ImGui::SaveIniSettingsToDisk(ini_path.string().c_str());
+  if (layout_manager_) {
+    layout_manager_->SaveCurrentLayout(name);
+  } else {
+    std::filesystem::path ini_path =
+        workspace_dir / absl::StrFormat("workspace_%s.ini", name.c_str());
+    ImGui::SaveIniSettingsToDisk(ini_path.string().c_str());
+  }
 
   if (!workspace_presets_loaded_) {
     // RefreshWorkspacePresets(); // This will be implemented next
@@ -80,6 +98,18 @@ void WorkspaceManager::SaveWorkspacePreset(const std::string& name) {
 void WorkspaceManager::LoadWorkspacePreset(const std::string& name) {
   if (name.empty())
     return;
+
+  if (layout_manager_) {
+    if (layout_manager_->HasLayout(name)) {
+      layout_manager_->LoadLayout(name);
+      last_workspace_preset_ = name;
+      if (toast_manager_) {
+        toast_manager_->Show(absl::StrFormat("Preset '%s' loaded", name),
+                             ToastType::kSuccess);
+      }
+      return;
+    }
+  }
   std::filesystem::path workspace_dir = std::filesystem::current_path();
   auto workspace_dir_status =
       util::PlatformPaths::GetAppDataSubdirectory("workspaces");

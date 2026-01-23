@@ -1,11 +1,17 @@
 #include "app/editor/layout/layout_manager.h"
 
+#include <filesystem>
+#include <fstream>
+#include <string>
+
 #include "app/editor/layout/layout_presets.h"
 #include "app/editor/system/panel_manager.h"
 #include "app/gui/core/background_renderer.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
+#include "util/json.h"
 #include "util/log.h"
+#include "util/platform_paths.h"
 
 namespace yaze {
 namespace editor {
@@ -23,6 +29,47 @@ void ShowDefaultPanelsForEditor(PanelManager* registry, EditorType type) {
 
   LOG_INFO("LayoutManager", "Showing %zu default panels for editor type %d",
            default_panels.size(), static_cast<int>(type));
+}
+
+yaze::Json BoolMapToJson(const std::unordered_map<std::string, bool>& map) {
+  yaze::Json obj = yaze::Json::object();
+  for (const auto& [key, value] : map) {
+    obj[key] = value;
+  }
+  return obj;
+}
+
+void JsonToBoolMap(const yaze::Json& obj,
+                   std::unordered_map<std::string, bool>* map) {
+  if (!map || !obj.is_object()) {
+    return;
+  }
+  map->clear();
+  for (const auto& [key, value] : obj.items()) {
+    if (value.is_boolean()) {
+      (*map)[key] = value.get<bool>();
+    }
+  }
+}
+
+std::filesystem::path GetLayoutsFilePath(LayoutScope scope,
+                                         const std::string& project_key) {
+  auto layouts_dir = util::PlatformPaths::GetAppDataSubdirectory("layouts");
+  if (!layouts_dir.ok()) {
+    return {};
+  }
+
+  if (scope == LayoutScope::kProject && !project_key.empty()) {
+    std::filesystem::path projects_dir = *layouts_dir / "projects";
+    (void)util::PlatformPaths::EnsureDirectoryExists(projects_dir);
+    return projects_dir / (project_key + ".json");
+  }
+
+  if (scope == LayoutScope::kProject) {
+    return {};
+  }
+
+  return *layouts_dir / "layouts.json";
 }
 
 }  // namespace
@@ -337,12 +384,16 @@ void LayoutManager::SaveCurrentLayout(const std::string& name) {
     return;
   }
 
+  const LayoutScope scope = GetActiveScope();
+
   // Serialize current panel visibility state
   size_t session_id = panel_manager_->GetActiveSessionId();
   auto visibility_state = panel_manager_->SerializeVisibilityState(session_id);
 
   // Store in saved_layouts_ for later persistence
   saved_layouts_[name] = visibility_state;
+  saved_pinned_layouts_[name] = panel_manager_->SerializePinnedState();
+  layout_scopes_[name] = scope;
 
   // Also save ImGui docking layout to memory
   size_t ini_size = 0;
@@ -350,6 +401,8 @@ void LayoutManager::SaveCurrentLayout(const std::string& name) {
   if (ini_data && ini_size > 0) {
     saved_imgui_layouts_[name] = std::string(ini_data, ini_size);
   }
+
+  SaveLayoutsToDisk(scope);
 
   LOG_INFO("LayoutManager", "Saved layout '%s' with %zu panel states",
            name.c_str(), visibility_state.size());
@@ -372,7 +425,13 @@ void LayoutManager::LoadLayout(const std::string& name) {
 
   // Restore panel visibility
   size_t session_id = panel_manager_->GetActiveSessionId();
-  panel_manager_->RestoreVisibilityState(session_id, layout_it->second);
+  panel_manager_->RestoreVisibilityState(session_id, layout_it->second,
+                                         /*publish_events=*/true);
+
+  auto pinned_it = saved_pinned_layouts_.find(name);
+  if (pinned_it != saved_pinned_layouts_.end()) {
+    panel_manager_->RestorePinnedState(pinned_it->second);
+  }
 
   // Restore ImGui docking layout if available
   auto imgui_it = saved_imgui_layouts_.find(name);
@@ -392,8 +451,18 @@ bool LayoutManager::DeleteLayout(const std::string& name) {
     return false;
   }
 
+  LayoutScope scope = GetActiveScope();
+  auto scope_it = layout_scopes_.find(name);
+  if (scope_it != layout_scopes_.end()) {
+    scope = scope_it->second;
+  }
+
   saved_layouts_.erase(layout_it);
   saved_imgui_layouts_.erase(name);
+  saved_pinned_layouts_.erase(name);
+  layout_scopes_.erase(name);
+
+  SaveLayoutsToDisk(scope);
 
   LOG_INFO("LayoutManager", "Deleted layout '%s'", name.c_str());
   return true;
@@ -410,6 +479,158 @@ std::vector<std::string> LayoutManager::GetSavedLayoutNames() const {
 
 bool LayoutManager::HasLayout(const std::string& name) const {
   return saved_layouts_.find(name) != saved_layouts_.end();
+}
+
+void LayoutManager::LoadLayoutsFromDisk() {
+  saved_layouts_.clear();
+  saved_imgui_layouts_.clear();
+  saved_pinned_layouts_.clear();
+  layout_scopes_.clear();
+
+  LoadLayoutsFromDiskInternal(LayoutScope::kGlobal, /*merge=*/false);
+  if (!project_layout_key_.empty()) {
+    LoadLayoutsFromDiskInternal(LayoutScope::kProject, /*merge=*/true);
+  }
+}
+
+void LayoutManager::SetProjectLayoutKey(const std::string& key) {
+  if (key.empty()) {
+    UseGlobalLayouts();
+    return;
+  }
+  project_layout_key_ = key;
+  LoadLayoutsFromDisk();
+}
+
+void LayoutManager::UseGlobalLayouts() {
+  project_layout_key_.clear();
+  LoadLayoutsFromDisk();
+}
+
+LayoutScope LayoutManager::GetActiveScope() const {
+  return project_layout_key_.empty() ? LayoutScope::kGlobal
+                                     : LayoutScope::kProject;
+}
+
+void LayoutManager::LoadLayoutsFromDiskInternal(LayoutScope scope, bool merge) {
+  std::filesystem::path layout_path =
+      GetLayoutsFilePath(scope, project_layout_key_);
+  if (layout_path.empty()) {
+    return;
+  }
+
+  if (!std::filesystem::exists(layout_path)) {
+    if (!merge) {
+      LOG_INFO("LayoutManager", "No layouts file at %s",
+               layout_path.string().c_str());
+    }
+    return;
+  }
+
+  try {
+    std::ifstream file(layout_path);
+    if (!file.is_open()) {
+      LOG_WARN("LayoutManager", "Failed to open layouts file: %s",
+               layout_path.string().c_str());
+      return;
+    }
+
+    yaze::Json root;
+    file >> root;
+
+    if (!root.contains("layouts") || !root["layouts"].is_object()) {
+      LOG_WARN("LayoutManager", "Layouts file missing 'layouts' object: %s",
+               layout_path.string().c_str());
+      return;
+    }
+
+    for (auto& [name, entry] : root["layouts"].items()) {
+      if (!entry.is_object()) {
+        continue;
+      }
+
+      std::unordered_map<std::string, bool> panels;
+      std::unordered_map<std::string, bool> pinned;
+
+      if (entry.contains("panels")) {
+        JsonToBoolMap(entry["panels"], &panels);
+      }
+      if (entry.contains("pinned")) {
+        JsonToBoolMap(entry["pinned"], &pinned);
+      }
+
+      saved_layouts_[name] = std::move(panels);
+      saved_pinned_layouts_[name] = std::move(pinned);
+      layout_scopes_[name] = scope;
+
+      if (entry.contains("imgui_ini") && entry["imgui_ini"].is_string()) {
+        saved_imgui_layouts_[name] = entry["imgui_ini"].get<std::string>();
+      } else {
+        saved_imgui_layouts_.erase(name);
+      }
+    }
+
+    LOG_INFO("LayoutManager", "Loaded layouts from %s",
+             layout_path.string().c_str());
+  } catch (const std::exception& e) {
+    LOG_WARN("LayoutManager", "Failed to load layouts: %s", e.what());
+  }
+}
+
+void LayoutManager::SaveLayoutsToDisk(LayoutScope scope) const {
+  std::filesystem::path layout_path =
+      GetLayoutsFilePath(scope, project_layout_key_);
+  if (layout_path.empty()) {
+    LOG_WARN("LayoutManager", "No layout path resolved for scope");
+    return;
+  }
+
+  auto status = util::PlatformPaths::EnsureDirectoryExists(
+      layout_path.parent_path());
+  if (!status.ok()) {
+    LOG_WARN("LayoutManager", "Failed to create layout directory: %s",
+             status.ToString().c_str());
+    return;
+  }
+
+  try {
+    yaze::Json root;
+    root["version"] = 1;
+    root["layouts"] = yaze::Json::object();
+
+    for (const auto& [name, panels] : saved_layouts_) {
+      auto scope_it = layout_scopes_.find(name);
+      if (scope_it != layout_scopes_.end() && scope_it->second != scope) {
+        continue;
+      }
+
+      yaze::Json entry;
+      entry["panels"] = BoolMapToJson(panels);
+
+      auto pinned_it = saved_pinned_layouts_.find(name);
+      if (pinned_it != saved_pinned_layouts_.end()) {
+        entry["pinned"] = BoolMapToJson(pinned_it->second);
+      }
+
+      auto imgui_it = saved_imgui_layouts_.find(name);
+      if (imgui_it != saved_imgui_layouts_.end()) {
+        entry["imgui_ini"] = imgui_it->second;
+      }
+
+      root["layouts"][name] = entry;
+    }
+
+    std::ofstream file(layout_path);
+    if (!file.is_open()) {
+      LOG_WARN("LayoutManager", "Failed to open layouts file for write: %s",
+               layout_path.string().c_str());
+      return;
+    }
+    file << root.dump(2);
+    file.close();
+  } catch (const std::exception& e) {
+    LOG_WARN("LayoutManager", "Failed to save layouts: %s", e.what());
+  }
 }
 
 void LayoutManager::ResetToDefaultLayout(EditorType type) {

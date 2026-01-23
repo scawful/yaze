@@ -237,6 +237,14 @@ absl::StatusOr<std::filesystem::path> PlatformPaths::GetConfigDirectory() {
   return GetAppDataDirectory();
 }
 
+absl::StatusOr<std::filesystem::path> PlatformPaths::GetImGuiIniPath() {
+  auto config_dir = GetConfigDirectory();
+  if (!config_dir.ok()) {
+    return config_dir.status();
+  }
+  return *config_dir / "imgui.ini";
+}
+
 absl::StatusOr<std::filesystem::path>
 PlatformPaths::GetUserDocumentsDirectory() {
 #if defined(YAZE_IOS) || defined(YAZE_APPLE_MOBILE)

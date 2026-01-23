@@ -1,5 +1,7 @@
 #include "app/editor/layout/layout_coordinator.h"
 
+#include <filesystem>
+
 #include "absl/strings/str_format.h"
 #include "app/editor/menu/right_panel_manager.h"
 #include "app/editor/menu/status_bar.h"
@@ -9,6 +11,7 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include "util/log.h"
+#include "util/platform_paths.h"
 
 namespace yaze {
 namespace editor {
@@ -73,6 +76,19 @@ float LayoutCoordinator::GetBottomLayoutOffset() const {
 void LayoutCoordinator::ResetWorkspaceLayout() {
   if (!layout_manager_) {
     return;
+  }
+
+  if (ImGui::GetCurrentContext()) {
+    ImGui::ClearIniSettings();
+  }
+
+  if (auto ini_path = util::PlatformPaths::GetImGuiIniPath(); ini_path.ok()) {
+    std::error_code ec;
+    std::filesystem::remove(*ini_path, ec);
+    if (ec) {
+      LOG_WARN("LayoutCoordinator", "Failed to remove ImGui ini: %s",
+               ec.message().c_str());
+    }
   }
 
   layout_manager_->ClearInitializationFlags();

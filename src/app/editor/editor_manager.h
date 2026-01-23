@@ -236,8 +236,8 @@ class EditorManager {
 
   // Workspace layout management
   // Window management - inline delegation (reduces EditorManager bloat)
-  void SaveWorkspaceLayout() { window_delegate_.SaveWorkspaceLayout(); }
-  void LoadWorkspaceLayout() { window_delegate_.LoadWorkspaceLayout(); }
+  void SaveWorkspaceLayout() { workspace_manager_.SaveWorkspaceLayout(); }
+  void LoadWorkspaceLayout() { workspace_manager_.LoadWorkspaceLayout(); }
   void ResetWorkspaceLayout();
   void ShowAllWindows() {
     if (ui_coordinator_)
@@ -447,6 +447,8 @@ class EditorManager {
   void PersistInputConfig(const emu::input::InputConfig& config);
 
   float autosave_timer_ = 0.0f;
+  bool settings_dirty_ = false;
+  float settings_dirty_timestamp_ = 0.0f;
 
   // Deferred action queue - executed at the start of each frame
   std::vector<std::function<void()>> deferred_actions_;
