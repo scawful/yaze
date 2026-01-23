@@ -576,6 +576,11 @@ void DungeonEditorV2::DrawRoomTab(int room_id) {
 }
 
 void DungeonEditorV2::OnRoomSelected(int room_id, bool request_focus) {
+  if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
+    LOG_WARN("DungeonEditorV2", "Ignoring invalid room selection: %d",
+             room_id);
+    return;
+  }
   current_room_id_ = room_id;
 
   if (dungeon_editor_system_) {
