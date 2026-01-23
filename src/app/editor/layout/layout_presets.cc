@@ -218,6 +218,17 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       };
       break;
 
+    case EditorType::kHex:
+      preset.name = "Memory Default";
+      preset.description = "Hex editor and memory inspection";
+      preset.default_visible_panels = {
+          Panels::kMemoryHexEditor,
+      };
+      preset.panel_positions = {
+          {Panels::kMemoryHexEditor, DockPosition::Center},
+      };
+      break;
+
     case EditorType::kAgent:
       preset.name = "Agent";
       preset.description = "AI Agent Configuration and Chat";
@@ -261,6 +272,7 @@ std::unordered_map<EditorType, PanelLayoutPreset> LayoutPresets::GetAllPresets()
   presets[EditorType::kMessage] = GetDefaultPreset(EditorType::kMessage);
   presets[EditorType::kAssembly] = GetDefaultPreset(EditorType::kAssembly);
   presets[EditorType::kEmulator] = GetDefaultPreset(EditorType::kEmulator);
+  presets[EditorType::kHex] = GetDefaultPreset(EditorType::kHex);
   presets[EditorType::kAgent] = GetDefaultPreset(EditorType::kAgent);
 
   return presets;
