@@ -44,7 +44,7 @@ struct PanelLayoutPreset {
  * @brief Centralized definition of default layouts per editor
  *
  * Provides default panel configurations for each editor type:
- * - Overworld: Main canvas, Tile16 list (already good per user)
+ * - Overworld: Main canvas, Tile16 editor docked right
  * - Dungeon: Room selector, Object editor, Properties panel
  * - Graphics: Sheet browser, Palette editor, Preview pane
  * - Debug/Agent: Emulator, Memory editor, Disassembly, Agent chat
@@ -139,6 +139,7 @@ class LayoutPresets {
   struct Panels {
     // Overworld cards (overworld_editor.cc)
     static constexpr const char* kOverworldCanvas = "overworld.canvas";
+    static constexpr const char* kOverworldTile16Editor = "overworld.tile16_editor";
     static constexpr const char* kOverworldTile16Selector = "overworld.tile16_selector";
     static constexpr const char* kOverworldTile8Selector = "overworld.tile8_selector";
     static constexpr const char* kOverworldAreaGraphics = "overworld.area_graphics";
