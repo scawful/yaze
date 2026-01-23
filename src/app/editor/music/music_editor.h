@@ -201,6 +201,7 @@ class MusicEditor : public Editor {
   std::unique_ptr<emu::audio::IAudioBackend> audio_backend_;
   bool song_browser_auto_shown_ = false;
   bool tracker_auto_shown_ = false;
+  bool piano_roll_auto_shown_ = false;
   bool music_dirty_ = false;
   bool persist_custom_music_ = true;
   std::string music_storage_key_;
