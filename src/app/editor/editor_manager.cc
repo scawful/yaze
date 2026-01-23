@@ -990,14 +990,17 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
           ui_coordinator_->SetStartupSurface(StartupSurface::kEditor);
         }
 
-        if (category == "Emulator") {
-          SwitchToEditor(EditorType::kEmulator, true);
-        }
-#ifdef YAZE_BUILD_AGENT_UI
         if (category == "Agent") {
+#ifdef YAZE_BUILD_AGENT_UI
           ShowAIAgent();
-        }
 #endif
+          return;
+        }
+
+        EditorType type = EditorRegistry::GetEditorTypeFromCategory(category);
+        if (type != EditorType::kSettings) {
+          SwitchToEditor(type, true);
+        }
       });
 
   // Enable file browser for Assembly category

@@ -21,7 +21,7 @@ struct OverworldPanelIds {
   static constexpr const char* kTile16Editor = "overworld.tile16_editor";
   static constexpr const char* kTile16Selector = "overworld.tile16_selector";
   static constexpr const char* kTile8Selector = "overworld.tile8_selector";
-  static constexpr const char* kAreaGraphics = "overworld.area_gfx";
+  static constexpr const char* kAreaGraphics = "overworld.area_graphics";
   static constexpr const char* kGfxGroups = "overworld.gfx_groups";
   static constexpr const char* kUsageStats = "overworld.usage_stats";
   static constexpr const char* kScratchSpace = "overworld.scratch";

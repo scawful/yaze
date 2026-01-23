@@ -53,7 +53,7 @@ class MessageEditor : public Editor {
   void DrawSpecialCharacters();
   void DrawExpandedMessageSettings();
   void DrawDictionary();
- void DrawMessagePreview();
+  void DrawMessagePreview();
   void UpdateCurrentMessageFromText(const std::string& text);
 
   absl::Status Save() override;
@@ -102,11 +102,17 @@ class MessageEditor : public Editor {
   // Panel visibility states
   bool show_message_list_ = false;
   bool show_message_editor_ = false;
- bool show_font_atlas_ = false;
+  bool show_font_atlas_ = false;
   bool show_dictionary_ = false;
 
+  void ResolveFontPalette();
+  gfx::SnesPalette BuildFallbackFontPalette() const;
+  void LoadFontGraphics();
+  void RefreshFontAtlasBitmap(const std::vector<uint8_t>& font_data);
   void ApplyFontPalette();
   void EnsureFontTexturesReady();
+
+  bool font_graphics_loaded_ = false;
 };
 
 }  // namespace editor
