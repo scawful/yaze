@@ -1,5 +1,6 @@
 #include "app/editor/system/user_settings.h"
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -347,17 +348,37 @@ void EnsureDefaultFilesystemRoots(UserSettings::Preferences* prefs) {
     return;
   }
 
-  if (!prefs->project_root_paths.empty()) {
-    if (prefs->default_project_root.empty()) {
-      prefs->default_project_root = prefs->project_root_paths.front();
+  auto add_unique_root = [&](const std::filesystem::path& path) {
+    if (path.empty()) {
+      return;
     }
-    return;
-  }
+    const std::string path_str = path.string();
+    auto it = std::find(prefs->project_root_paths.begin(),
+                        prefs->project_root_paths.end(), path_str);
+    if (it == prefs->project_root_paths.end()) {
+      prefs->project_root_paths.push_back(path_str);
+    }
+  };
 
   auto docs_dir = util::PlatformPaths::GetUserDocumentsDirectory();
   if (docs_dir.ok()) {
-    prefs->project_root_paths.push_back(docs_dir->string());
-    prefs->default_project_root = docs_dir->string();
+    add_unique_root(*docs_dir);
+  }
+
+  if (prefs->use_icloud_sync) {
+    auto icloud_dir =
+        util::PlatformPaths::GetUserDocumentsSubdirectory("iCloud");
+    if (icloud_dir.ok()) {
+      add_unique_root(*icloud_dir);
+      if (prefs->default_project_root.empty()) {
+        prefs->default_project_root = icloud_dir->string();
+      }
+    }
+  }
+
+  if (prefs->default_project_root.empty() &&
+      !prefs->project_root_paths.empty()) {
+    prefs->default_project_root = prefs->project_root_paths.front();
   }
 }
 

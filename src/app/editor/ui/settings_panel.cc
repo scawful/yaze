@@ -22,11 +22,90 @@
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "util/log.h"
+#include "util/file_util.h"
 #include "util/platform_paths.h"
 #include "zelda3/sprite/sprite.h"
 
 namespace yaze {
 namespace editor {
+
+namespace {
+
+bool IsLocalEndpoint(const std::string& base_url) {
+  if (base_url.empty()) {
+    return false;
+  }
+  std::string lower = absl::AsciiStrToLower(base_url);
+  return absl::StrContains(lower, "localhost") ||
+         absl::StrContains(lower, "127.0.0.1") ||
+         absl::StrContains(lower, "::1") ||
+         absl::StrContains(lower, "0.0.0.0") ||
+         absl::StrContains(lower, "192.168.") ||
+         absl::StartsWith(lower, "10.");
+}
+
+bool IsTailscaleEndpoint(const std::string& base_url) {
+  if (base_url.empty()) {
+    return false;
+  }
+  std::string lower = absl::AsciiStrToLower(base_url);
+  return absl::StrContains(lower, ".ts.net") ||
+         absl::StrContains(lower, "100.64.");
+}
+
+std::string BuildHostTagString(
+    const UserSettings::Preferences::AiHost& host) {
+  std::vector<std::string> tags;
+  if (IsLocalEndpoint(host.base_url)) {
+    tags.push_back("local");
+  }
+  if (IsTailscaleEndpoint(host.base_url)) {
+    tags.push_back("tailscale");
+  }
+  if (absl::StartsWith(absl::AsciiStrToLower(host.base_url), "https://")) {
+    tags.push_back("https");
+  } else if (absl::StartsWith(absl::AsciiStrToLower(host.base_url), "http://") &&
+             !IsLocalEndpoint(host.base_url) &&
+             !IsTailscaleEndpoint(host.base_url)) {
+    tags.push_back("http");
+  }
+  if (host.supports_vision) {
+    tags.push_back("vision");
+  }
+  if (host.supports_tools) {
+    tags.push_back("tools");
+  }
+  if (host.supports_streaming) {
+    tags.push_back("stream");
+  }
+  if (tags.empty()) {
+    return "";
+  }
+  std::string result = "[";
+  for (size_t i = 0; i < tags.size(); ++i) {
+    result += tags[i];
+    if (i + 1 < tags.size()) {
+      result += ", ";
+    }
+  }
+  result += "]";
+  return result;
+}
+
+bool AddUniquePath(std::vector<std::string>* paths,
+                   const std::string& path) {
+  if (!paths || path.empty()) {
+    return false;
+  }
+  auto it = std::find(paths->begin(), paths->end(), path);
+  if (it != paths->end()) {
+    return false;
+  }
+  paths->push_back(path);
+  return true;
+}
+
+}  // namespace
 
 void SettingsPanel::Draw() {
   if (!user_settings_) {
@@ -48,6 +127,13 @@ void SettingsPanel::Draw() {
   if (ImGui::CollapsingHeader(ICON_MD_FOLDER " Project Configuration")) {
     ImGui::Indent();
     DrawProjectSettings();
+    ImGui::Unindent();
+    ImGui::Spacing();
+  }
+
+  if (ImGui::CollapsingHeader(ICON_MD_STORAGE " Files & Sync")) {
+    ImGui::Indent();
+    DrawFilesystemSettings();
     ImGui::Unindent();
     ImGui::Spacing();
   }
@@ -173,6 +259,146 @@ void SettingsPanel::DrawProjectSettings() {
   if (ImGui::InputText("Symbols File", &symbols_file)) {
     project_->symbols_filename = symbols_file;
     project_->Save();
+  }
+}
+
+void SettingsPanel::DrawFilesystemSettings() {
+  if (!user_settings_) {
+    return;
+  }
+
+  auto& prefs = user_settings_->prefs();
+  auto& roots = prefs.project_root_paths;
+  static int selected_root_index = -1;
+  static std::string new_root_path;
+
+  ImGui::Text("%s Project Roots", ICON_MD_FOLDER_OPEN);
+  ImGui::Separator();
+
+  if (roots.empty()) {
+    ImGui::TextDisabled("No project roots configured.");
+  }
+
+  if (ImGui::BeginChild("ProjectRootsList", ImVec2(0, 140), true)) {
+    for (size_t i = 0; i < roots.size(); ++i) {
+      const bool is_default = roots[i] == prefs.default_project_root;
+      std::string label =
+          util::PlatformPaths::NormalizePathForDisplay(roots[i]);
+      if (is_default) {
+        label += " (default)";
+      }
+      if (ImGui::Selectable(label.c_str(),
+                            selected_root_index == static_cast<int>(i))) {
+        selected_root_index = static_cast<int>(i);
+      }
+    }
+  }
+  ImGui::EndChild();
+
+  const bool has_selection =
+      selected_root_index >= 0 &&
+      selected_root_index < static_cast<int>(roots.size());
+  if (has_selection) {
+    if (ImGui::Button("Set Default")) {
+      prefs.default_project_root = roots[selected_root_index];
+      user_settings_->Save();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_DELETE " Remove")) {
+      const std::string removed = roots[selected_root_index];
+      roots.erase(roots.begin() + selected_root_index);
+      if (prefs.default_project_root == removed) {
+        prefs.default_project_root =
+            roots.empty() ? "" : roots.front();
+      }
+      selected_root_index =
+          roots.empty()
+              ? -1
+              : std::min(selected_root_index,
+                         static_cast<int>(roots.size() - 1));
+      user_settings_->Save();
+    }
+  }
+
+  ImGui::Spacing();
+  ImGui::Text("%s Add Root", ICON_MD_ADD);
+  ImGui::Separator();
+
+  ImGui::InputTextWithHint("##project_root_add", "Add folder path...",
+                           &new_root_path);
+  if (ImGui::Button(ICON_MD_ADD " Add Path")) {
+    const std::string trimmed =
+        std::string(absl::StripAsciiWhitespace(new_root_path));
+    if (!trimmed.empty()) {
+      if (AddUniquePath(&roots, trimmed) &&
+          prefs.default_project_root.empty()) {
+        prefs.default_project_root = trimmed;
+      }
+      user_settings_->Save();
+    }
+  }
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_FOLDER_OPEN " Browse")) {
+    const std::string folder = util::FileDialogWrapper::ShowOpenFolderDialog();
+    if (!folder.empty()) {
+      if (AddUniquePath(&roots, folder) &&
+          prefs.default_project_root.empty()) {
+        prefs.default_project_root = folder;
+      }
+      user_settings_->Save();
+    }
+  }
+
+  ImGui::Spacing();
+  ImGui::Text("%s Quick Add", ICON_MD_BOLT);
+  ImGui::Separator();
+
+  if (ImGui::Button(ICON_MD_HOME " Add Documents")) {
+    auto docs_dir = util::PlatformPaths::GetUserDocumentsDirectory();
+    if (docs_dir.ok()) {
+      if (AddUniquePath(&roots, docs_dir->string()) &&
+          prefs.default_project_root.empty()) {
+        prefs.default_project_root = docs_dir->string();
+      }
+      user_settings_->Save();
+    }
+  }
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_CLOUD " Add iCloud Projects")) {
+    auto icloud_dir =
+        util::PlatformPaths::GetUserDocumentsSubdirectory("iCloud");
+    if (icloud_dir.ok()) {
+      if (AddUniquePath(&roots, icloud_dir->string())) {
+        prefs.default_project_root = icloud_dir->string();
+      }
+      user_settings_->Save();
+    }
+  }
+  ImGui::TextDisabled(
+      "iCloud projects live in Documents/Yaze/iCloud on this Mac.");
+
+  ImGui::Spacing();
+  ImGui::Text("%s Sync Options", ICON_MD_SYNC);
+  ImGui::Separator();
+
+  bool use_icloud_sync = prefs.use_icloud_sync;
+  if (ImGui::Checkbox("Use iCloud sync (Documents)", &use_icloud_sync)) {
+    prefs.use_icloud_sync = use_icloud_sync;
+    if (use_icloud_sync) {
+      auto icloud_dir =
+          util::PlatformPaths::GetUserDocumentsSubdirectory("iCloud");
+      if (icloud_dir.ok()) {
+        AddUniquePath(&roots, icloud_dir->string());
+        prefs.default_project_root = icloud_dir->string();
+      }
+    }
+    user_settings_->Save();
+  }
+
+  bool use_files_app = prefs.use_files_app;
+  if (ImGui::Checkbox("Prefer Files app on iOS", &use_files_app)) {
+    prefs.use_files_app = use_files_app;
+    user_settings_->Save();
   }
 }
 
@@ -319,30 +545,34 @@ void SettingsPanel::DrawPerformanceSettings() {
 void SettingsPanel::DrawAIAgentSettings() {
   if (!user_settings_) return;
 
-  // Provider selection
-  ImGui::Text("%s Provider", ICON_MD_CLOUD);
-  ImGui::Separator();
-  
-  const char* providers[] = {"Ollama (Local)", "Gemini (Cloud)", "Mock (Testing)"};
-  if (ImGui::Combo("##Provider", &user_settings_->prefs().ai_provider, providers,
-            IM_ARRAYSIZE(providers))) {
-    user_settings_->Save();
-  }
-
-  ImGui::Spacing();
-  ImGui::Text("%s AI Hosts", ICON_MD_STORAGE);
-  ImGui::Separator();
-
   auto& prefs = user_settings_->prefs();
   auto& hosts = prefs.ai_hosts;
   static int selected_host_index = -1;
 
+  // Provider selection
+  ImGui::Text("%s Provider Defaults", ICON_MD_CLOUD);
+  ImGui::Separator();
+
+  const char* providers[] = {"Ollama (Local)", "Gemini (Cloud)", "Mock (Testing)"};
+  if (ImGui::Combo("##Provider", &prefs.ai_provider, providers,
+                   IM_ARRAYSIZE(providers))) {
+    user_settings_->Save();
+  }
+
+  ImGui::Spacing();
+  ImGui::Text("%s Host Routing", ICON_MD_STORAGE);
+  ImGui::Separator();
+
   const char* active_preview = "None";
+  const char* remote_preview = "None";
   for (const auto& host : hosts) {
     if (!prefs.active_ai_host_id.empty() &&
         host.id == prefs.active_ai_host_id) {
       active_preview = host.label.c_str();
-      break;
+    }
+    if (!prefs.remote_build_host_id.empty() &&
+        host.id == prefs.remote_build_host_id) {
+      remote_preview = host.label.c_str();
     }
   }
 
@@ -353,6 +583,24 @@ void SettingsPanel::DrawAIAgentSettings() {
            hosts[i].id == prefs.active_ai_host_id);
       if (ImGui::Selectable(hosts[i].label.c_str(), is_selected)) {
         prefs.active_ai_host_id = hosts[i].id;
+        if (prefs.remote_build_host_id.empty()) {
+          prefs.remote_build_host_id = hosts[i].id;
+        }
+        user_settings_->Save();
+      }
+      if (is_selected) {
+        ImGui::SetItemDefaultFocus();
+      }
+    }
+    ImGui::EndCombo();
+  }
+
+  if (ImGui::BeginCombo("Remote Build Host", remote_preview)) {
+    for (size_t i = 0; i < hosts.size(); ++i) {
+      const bool is_selected =
+          (!prefs.remote_build_host_id.empty() &&
+           hosts[i].id == prefs.remote_build_host_id);
+      if (ImGui::Selectable(hosts[i].label.c_str(), is_selected)) {
         prefs.remote_build_host_id = hosts[i].id;
         user_settings_->Save();
       }
@@ -363,28 +611,68 @@ void SettingsPanel::DrawAIAgentSettings() {
     ImGui::EndCombo();
   }
 
-  ImGui::BeginChild("##ai_host_list", ImVec2(0, 120), true);
+  ImGui::Spacing();
+  ImGui::Text("%s AI Hosts", ICON_MD_STORAGE);
+  ImGui::Separator();
+
+  if (selected_host_index >= static_cast<int>(hosts.size())) {
+    selected_host_index = hosts.empty() ? -1 : 0;
+  }
+  if (selected_host_index < 0 && !hosts.empty()) {
+    for (size_t i = 0; i < hosts.size(); ++i) {
+      if (!prefs.active_ai_host_id.empty() &&
+          hosts[i].id == prefs.active_ai_host_id) {
+        selected_host_index = static_cast<int>(i);
+        break;
+      }
+    }
+    if (selected_host_index < 0) {
+      selected_host_index = 0;
+    }
+  }
+
+  ImGui::BeginChild("##ai_host_list", ImVec2(0, 150), true);
   for (size_t i = 0; i < hosts.size(); ++i) {
     const bool is_selected = static_cast<int>(i) == selected_host_index;
-    if (ImGui::Selectable(hosts[i].label.c_str(), is_selected)) {
+    std::string label = hosts[i].label;
+    if (hosts[i].id == prefs.active_ai_host_id) {
+      label += " (active)";
+    }
+    if (hosts[i].id == prefs.remote_build_host_id) {
+      label += " (build)";
+    }
+    if (ImGui::Selectable(label.c_str(), is_selected)) {
       selected_host_index = static_cast<int>(i);
+    }
+    std::string tags = BuildHostTagString(hosts[i]);
+    if (!tags.empty()) {
+      ImGui::SameLine();
+      ImGui::TextDisabled("%s", tags.c_str());
     }
   }
   ImGui::EndChild();
 
-  if (ImGui::Button(ICON_MD_ADD " Add Host")) {
-    UserSettings::Preferences::AiHost host;
-    host.id = absl::StrFormat("host-%zu", hosts.size() + 1);
-    host.label = "New Host";
-    host.base_url = "http://localhost:1234";
-    host.api_type = "openai";
+  auto add_host = [&](UserSettings::Preferences::AiHost host) {
+    if (host.id.empty()) {
+      host.id = absl::StrFormat("host-%zu", hosts.size() + 1);
+    }
     hosts.push_back(host);
     selected_host_index = static_cast<int>(hosts.size() - 1);
     if (prefs.active_ai_host_id.empty()) {
       prefs.active_ai_host_id = host.id;
+    }
+    if (prefs.remote_build_host_id.empty()) {
       prefs.remote_build_host_id = host.id;
     }
     user_settings_->Save();
+  };
+
+  if (ImGui::Button(ICON_MD_ADD " Add Host")) {
+    UserSettings::Preferences::AiHost host;
+    host.label = "New Host";
+    host.base_url = "http://localhost:1234";
+    host.api_type = "openai";
+    add_host(host);
   }
   ImGui::SameLine();
   if (ImGui::Button(ICON_MD_DELETE " Remove") && selected_host_index >= 0 &&
@@ -398,8 +686,56 @@ void SettingsPanel::DrawAIAgentSettings() {
       prefs.remote_build_host_id = prefs.active_ai_host_id;
     }
     selected_host_index =
-        hosts.empty() ? -1 : std::min(selected_host_index, static_cast<int>(hosts.size() - 1));
+        hosts.empty()
+            ? -1
+            : std::min(selected_host_index,
+                       static_cast<int>(hosts.size() - 1));
     user_settings_->Save();
+  }
+
+  ImGui::SameLine();
+  if (ImGui::Button("Add LM Studio")) {
+    UserSettings::Preferences::AiHost host;
+    host.label = "LM Studio (local)";
+    host.base_url = "http://localhost:1234";
+    host.api_type = "lmstudio";
+    host.supports_tools = true;
+    host.supports_streaming = true;
+    add_host(host);
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Add Ollama")) {
+    UserSettings::Preferences::AiHost host;
+    host.label = "Ollama (local)";
+    host.base_url = "http://localhost:11434";
+    host.api_type = "ollama";
+    host.supports_tools = true;
+    host.supports_streaming = true;
+    add_host(host);
+  }
+
+  static std::string tailscale_host;
+  ImGui::InputTextWithHint("##tailscale_host", "host.ts.net:1234",
+                           &tailscale_host);
+  ImGui::SameLine();
+  if (ImGui::Button("Add Tailscale Host")) {
+    std::string trimmed =
+        std::string(absl::StripAsciiWhitespace(tailscale_host));
+    if (!trimmed.empty()) {
+      UserSettings::Preferences::AiHost host;
+      host.label = "Tailscale Host";
+      if (absl::StrContains(trimmed, "://")) {
+        host.base_url = trimmed;
+      } else {
+        host.base_url = "http://" + trimmed;
+      }
+      host.api_type = "openai";
+      host.supports_tools = true;
+      host.supports_streaming = true;
+      host.allow_insecure = true;
+      add_host(host);
+      tailscale_host.clear();
+    }
   }
 
   if (selected_host_index >= 0 &&
@@ -414,13 +750,37 @@ void SettingsPanel::DrawAIAgentSettings() {
     if (ImGui::InputText("Base URL", &host.base_url)) {
       user_settings_->Save();
     }
-    if (ImGui::InputText("API Type", &host.api_type)) {
+
+    const char* api_types[] = {"openai", "ollama", "gemini", "lmstudio", "grpc"};
+    int api_index = 0;
+    for (int i = 0; i < IM_ARRAYSIZE(api_types); ++i) {
+      if (host.api_type == api_types[i]) {
+        api_index = i;
+        break;
+      }
+    }
+    if (ImGui::Combo("API Type", &api_index, api_types,
+                     IM_ARRAYSIZE(api_types))) {
+      host.api_type = api_types[api_index];
       user_settings_->Save();
     }
+
     if (ImGui::InputText("API Key", &host.api_key,
                          ImGuiInputTextFlags_Password)) {
       user_settings_->Save();
     }
+    if (ImGui::InputText("Keychain ID", &host.credential_id)) {
+      user_settings_->Save();
+    }
+    ImGui::SameLine();
+    if (ImGui::SmallButton("Use Host ID")) {
+      host.credential_id = host.id;
+      user_settings_->Save();
+    }
+    if (!host.credential_id.empty() && host.api_key.empty()) {
+      ImGui::TextDisabled("Keychain lookup enabled (leave API key empty).");
+    }
+
     if (ImGui::Checkbox("Supports Vision", &host.supports_vision)) {
       user_settings_->Save();
     }

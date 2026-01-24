@@ -1,5 +1,7 @@
 #include "app/editor/ui/selection_properties_panel.h"
 
+#include <cstdio>
+
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/theme_manager.h"
@@ -51,6 +53,11 @@ void SelectionPropertiesPanel::ClearSelection() {
 }
 
 void SelectionPropertiesPanel::Draw() {
+  if (selection_.type != SelectionType::kNone) {
+    DrawSelectionSummary();
+    ImGui::Spacing();
+  }
+
   switch (selection_.type) {
     case SelectionType::kNone:
       DrawNoSelection();
@@ -144,6 +151,60 @@ void SelectionPropertiesPanel::DrawPropertyHeader(const char* icon,
 
   ImGui::Separator();
   ImGui::Spacing();
+}
+
+void SelectionPropertiesPanel::DrawSelectionSummary() {
+  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
+  ImGui::Text("%s Selection", ICON_MD_INFO);
+  ImGui::PopStyleColor();
+  ImGui::Separator();
+
+  ImGui::Text("Type: %s", GetSelectionTypeName(selection_.type));
+  if (!selection_.display_name.empty()) {
+    ImGui::Text("Name: %s", selection_.display_name.c_str());
+  }
+  if (selection_.id >= 0) {
+    ImGui::Text("ID: %d (0x%X)", selection_.id, selection_.id);
+  }
+  if (selection_.secondary_id >= 0) {
+    ImGui::Text("Secondary: %d (0x%X)", selection_.secondary_id,
+                selection_.secondary_id);
+  }
+  if (selection_.read_only) {
+    ImGui::TextDisabled("Read Only");
+  }
+
+  ImGui::Spacing();
+  bool wrote_action = false;
+  if (selection_.id >= 0) {
+    if (ImGui::SmallButton("Copy ID")) {
+      char buffer[32];
+      std::snprintf(buffer, sizeof(buffer), "%d", selection_.id);
+      ImGui::SetClipboardText(buffer);
+    }
+    wrote_action = true;
+  }
+  if (selection_.id >= 0) {
+    if (wrote_action) ImGui::SameLine();
+    if (ImGui::SmallButton("Copy Hex")) {
+      char buffer[32];
+      std::snprintf(buffer, sizeof(buffer), "0x%X", selection_.id);
+      ImGui::SetClipboardText(buffer);
+    }
+    wrote_action = true;
+  }
+  if (!selection_.display_name.empty()) {
+    if (wrote_action) ImGui::SameLine();
+    if (ImGui::SmallButton("Copy Name")) {
+      ImGui::SetClipboardText(selection_.display_name.c_str());
+    }
+    wrote_action = true;
+  }
+
+  if (show_raw_data_) {
+    ImGui::Spacing();
+    ImGui::TextDisabled("Data Ptr: %p", selection_.data);
+  }
 }
 
 bool SelectionPropertiesPanel::DrawPositionEditor(const char* label, int* x,

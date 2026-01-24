@@ -148,6 +148,7 @@ class SelectionPropertiesPanel {
   void DrawOverworldItemProperties();
   void DrawGraphicsSheetProperties();
   void DrawPaletteProperties();
+  void DrawSelectionSummary();
 
   // Helper methods
   void DrawPropertyHeader(const char* icon, const char* title);
