@@ -195,10 +195,22 @@ ln -sfn "$release_dir" "$nightly_prefix/current"
 ensure_app_link
 
 commit="$(git rev-parse HEAD)"
-describe="$(git describe --tags --always 2>/dev/null || echo "$commit")"
+short_commit="$(git rev-parse --short HEAD)"
+version=""
+if [[ -f "$nightly_repo/VERSION" ]]; then
+  version="$(tr -d ' \n' < "$nightly_repo/VERSION")"
+fi
+if [[ -n "$version" ]]; then
+  describe="v${version}-g${short_commit}"
+else
+  describe="$(git describe --tags --always 2>/dev/null || echo "$commit")"
+fi
 {
   echo "commit=$commit"
   echo "describe=$describe"
+  if [[ -n "$version" ]]; then
+    echo "version=$version"
+  fi
   echo "branch=$nightly_branch"
   echo "build_type=$nightly_build_type"
   echo "installed_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
