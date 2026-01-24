@@ -14,12 +14,14 @@
 #include "app/editor/system/panel_manager.h"
 #include "app/gui/app/editor_layout.h"
 
+#include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "app/editor/agent/agent_chat.h"
 #include "app/editor/agent/agent_collaboration_coordinator.h"
+#include "app/editor/agent/panels/agent_configuration_panel.h"
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/user_settings.h"
 #include "app/editor/ui/toast_manager.h"
@@ -64,6 +66,12 @@ std::string NormalizeOpenAIBaseUrl(std::string base) {
   return base;
 }
 
+template <size_t N>
+void CopyStringToBuffer(const std::string& src, char (&dest)[N]) {
+  std::strncpy(dest, src.c_str(), N - 1);
+  dest[N - 1] = '\0';
+}
+
 void ApplyHostPresetToProfile(AgentEditor::BotProfile* profile,
                               const UserSettings::Preferences::AiHost& host) {
   if (!profile) {
@@ -95,12 +103,34 @@ void ApplyHostPresetToProfile(AgentEditor::BotProfile* profile,
   }
 }
 
+std::string BuildTagsString(const std::vector<std::string>& tags) {
+  std::string result;
+  for (size_t i = 0; i < tags.size(); ++i) {
+    if (i > 0) {
+      result.append(", ");
+    }
+    result.append(tags[i]);
+  }
+  return result;
+}
+
+bool IsLocalOpenAiBaseUrl(const std::string& base_url) {
+  if (base_url.empty()) {
+    return false;
+  }
+  std::string lower = absl::AsciiStrToLower(base_url);
+  return lower.find("localhost") != std::string::npos ||
+         lower.find("127.0.0.1") != std::string::npos ||
+         lower.find("0.0.0.0") != std::string::npos;
+}
+
 }  // namespace
 
 AgentEditor::AgentEditor() {
   type_ = EditorType::kAgent;
   agent_chat_ = std::make_unique<AgentChat>();
   local_coordinator_ = std::make_unique<AgentCollaborationCoordinator>();
+  config_panel_ = std::make_unique<AgentConfigPanel>();
   prompt_editor_ = std::make_unique<TextEditor>();
   common_tiles_editor_ = std::make_unique<TextEditor>();
 
@@ -197,9 +227,10 @@ void AgentEditor::ApplyUserSettingsDefaults(bool force) {
     return;
   }
   const auto& prefs = settings->prefs();
-  if (prefs.ai_hosts.empty()) {
+  if (prefs.ai_hosts.empty() && prefs.ai_profiles.empty()) {
     return;
   }
+  bool applied = false;
   if (!force) {
     if (!current_profile_.host_id.empty()) {
       return;
@@ -208,18 +239,70 @@ void AgentEditor::ApplyUserSettingsDefaults(bool force) {
       return;
     }
   }
-  const std::string& active_id =
-      prefs.active_ai_host_id.empty() ? prefs.ai_hosts.front().id
-                                      : prefs.active_ai_host_id;
-  if (active_id.empty()) {
-    return;
-  }
-  for (const auto& host : prefs.ai_hosts) {
-    if (host.id == active_id) {
-      ApplyHostPresetToProfile(&current_profile_, host);
-      return;
+  if (!prefs.ai_hosts.empty()) {
+    const std::string& active_id =
+        prefs.active_ai_host_id.empty() ? prefs.ai_hosts.front().id
+                                        : prefs.active_ai_host_id;
+    if (!active_id.empty()) {
+      for (const auto& host : prefs.ai_hosts) {
+        if (host.id == active_id) {
+          ApplyHostPresetToProfile(&current_profile_, host);
+          applied = true;
+          break;
+        }
+      }
     }
   }
+  if (!prefs.ai_profiles.empty()) {
+    const UserSettings::Preferences::AiModelProfile* active_profile = nullptr;
+    if (!prefs.active_ai_profile.empty()) {
+      for (const auto& profile : prefs.ai_profiles) {
+        if (profile.name == prefs.active_ai_profile) {
+          active_profile = &profile;
+          break;
+        }
+      }
+    }
+    if (!active_profile) {
+      active_profile = &prefs.ai_profiles.front();
+    }
+    if (active_profile && (force || current_profile_.model.empty())) {
+      if (!active_profile->model.empty()) {
+        current_profile_.model = active_profile->model;
+        current_profile_.temperature = active_profile->temperature;
+        current_profile_.top_p = active_profile->top_p;
+        current_profile_.max_output_tokens = active_profile->max_output_tokens;
+        applied = true;
+      }
+    }
+  }
+  if (applied) {
+    MarkProfileUiDirty();
+  }
+}
+
+void AgentEditor::MarkProfileUiDirty() { profile_ui_state_.dirty = true; }
+
+void AgentEditor::SyncProfileUiState() {
+  if (!profile_ui_state_.dirty) {
+    return;
+  }
+  auto& ui = profile_ui_state_;
+  CopyStringToBuffer(current_profile_.model, ui.model_buf);
+  CopyStringToBuffer(
+      current_profile_.ollama_host.empty() ? "http://localhost:11434"
+                                           : current_profile_.ollama_host,
+      ui.ollama_host_buf);
+  CopyStringToBuffer(current_profile_.gemini_api_key, ui.gemini_key_buf);
+  CopyStringToBuffer(current_profile_.openai_api_key, ui.openai_key_buf);
+  CopyStringToBuffer(
+      current_profile_.openai_base_url.empty() ? "https://api.openai.com"
+                                               : current_profile_.openai_base_url,
+      ui.openai_base_buf);
+  CopyStringToBuffer(current_profile_.name, ui.name_buf);
+  CopyStringToBuffer(current_profile_.description, ui.desc_buf);
+  CopyStringToBuffer(BuildTagsString(current_profile_.tags), ui.tags_buf);
+  ui.dirty = false;
 }
 
 void AgentEditor::RegisterPanels() {
@@ -277,29 +360,108 @@ void AgentEditor::InitializeWithDependencies(ToastManager* toast_manager,
   rom_ = rom;
 
   // Auto-load API keys from environment
+  bool profile_updated = false;
+  auto env_value = [](const char* key) -> std::string {
+    const char* value = std::getenv(key);
+    return value ? std::string(value) : std::string();
+  };
+
+  std::string env_openai_base = env_value("OPENAI_BASE_URL");
+  if (env_openai_base.empty()) {
+    env_openai_base = env_value("OPENAI_API_BASE");
+  }
+  std::string env_openai_model = env_value("OPENAI_MODEL");
+  std::string env_ollama_host = env_value("OLLAMA_HOST");
+  std::string env_ollama_model = env_value("OLLAMA_MODEL");
+  std::string env_gemini_model = env_value("GEMINI_MODEL");
+
+  if (!env_ollama_host.empty() &&
+      current_profile_.ollama_host != env_ollama_host) {
+    current_profile_.ollama_host = env_ollama_host;
+    current_config_.ollama_host = env_ollama_host;
+    profile_updated = true;
+  }
+  if (!env_openai_base.empty()) {
+    std::string normalized_base = NormalizeOpenAIBaseUrl(env_openai_base);
+    if (current_profile_.openai_base_url.empty() ||
+        NormalizeOpenAIBaseUrl(current_profile_.openai_base_url) ==
+            "https://api.openai.com") {
+      current_profile_.openai_base_url = normalized_base;
+      current_config_.openai_base_url = normalized_base;
+      profile_updated = true;
+    }
+  }
+
   if (const char* gemini_key = std::getenv("GEMINI_API_KEY")) {
     current_profile_.gemini_api_key = gemini_key;
     current_config_.gemini_api_key = gemini_key;
-    // Auto-select gemini provider if key is available and no provider set
-    if (current_profile_.provider == "mock") {
-      current_profile_.provider = "gemini";
-      current_profile_.model = "gemini-2.5-flash";
-      current_config_.provider = "gemini";
-      current_config_.model = "gemini-2.5-flash";
-    }
+    profile_updated = true;
   }
 
   if (const char* openai_key = std::getenv("OPENAI_API_KEY")) {
     current_profile_.openai_api_key = openai_key;
     current_config_.openai_api_key = openai_key;
-    // Auto-select openai if no gemini key and provider is mock
-    if (current_profile_.provider == "mock" &&
-        current_profile_.gemini_api_key.empty()) {
+    profile_updated = true;
+  }
+
+  bool provider_is_default =
+      current_profile_.provider == "mock" &&
+      current_profile_.host_id.empty();
+
+  if (provider_is_default) {
+    if (!current_profile_.gemini_api_key.empty()) {
+      current_profile_.provider = "gemini";
+      current_config_.provider = "gemini";
+      if (current_profile_.model.empty()) {
+        current_profile_.model =
+            env_gemini_model.empty() ? "gemini-2.5-flash" : env_gemini_model;
+        current_config_.model = current_profile_.model;
+      }
+      profile_updated = true;
+    } else if (!current_profile_.openai_api_key.empty() ||
+               !env_openai_base.empty()) {
       current_profile_.provider = "openai";
-      current_profile_.model = "gpt-4o-mini";
       current_config_.provider = "openai";
-      current_config_.model = "gpt-4o-mini";
+      if (current_profile_.model.empty()) {
+        if (!env_openai_model.empty()) {
+          current_profile_.model = env_openai_model;
+        } else if (!current_profile_.openai_api_key.empty()) {
+          current_profile_.model = "gpt-4o-mini";
+        }
+        current_config_.model = current_profile_.model;
+      }
+      profile_updated = true;
+    } else if (!env_ollama_host.empty() || !env_ollama_model.empty()) {
+      current_profile_.provider = "ollama";
+      current_config_.provider = "ollama";
+      if (current_profile_.model.empty() && !env_ollama_model.empty()) {
+        current_profile_.model = env_ollama_model;
+        current_config_.model = current_profile_.model;
+      }
+      profile_updated = true;
     }
+  }
+
+  if (current_profile_.provider == "ollama" && current_profile_.model.empty() &&
+      !env_ollama_model.empty()) {
+    current_profile_.model = env_ollama_model;
+    current_config_.model = env_ollama_model;
+    profile_updated = true;
+  }
+  if (current_profile_.provider == "openai" && current_profile_.model.empty() &&
+      !env_openai_model.empty()) {
+    current_profile_.model = env_openai_model;
+    current_config_.model = env_openai_model;
+    profile_updated = true;
+  }
+  if (current_profile_.provider == "gemini" && current_profile_.model.empty() &&
+      !env_gemini_model.empty()) {
+    current_profile_.model = env_gemini_model;
+    current_config_.model = env_gemini_model;
+    profile_updated = true;
+  }
+  if (profile_updated) {
+    MarkProfileUiDirty();
   }
 
   if (agent_chat_) {
@@ -330,6 +492,301 @@ void AgentEditor::SetRomContext(Rom* rom) {
   }
 }
 
+void AgentEditor::SetContext(AgentUIContext* context) {
+  context_ = context;
+  if (agent_chat_) {
+    agent_chat_->SetContext(context_);
+  }
+  SyncContextFromProfile();
+}
+
+void AgentEditor::SyncContextFromProfile() {
+  if (!context_) {
+    return;
+  }
+
+  auto& ctx_config = context_->agent_config();
+  ctx_config.ai_provider =
+      current_profile_.provider.empty() ? "mock" : current_profile_.provider;
+  ctx_config.ai_model = current_profile_.model;
+  ctx_config.ollama_host = current_profile_.ollama_host.empty()
+                               ? "http://localhost:11434"
+                               : current_profile_.ollama_host;
+  ctx_config.gemini_api_key = current_profile_.gemini_api_key;
+  ctx_config.openai_api_key = current_profile_.openai_api_key;
+  ctx_config.openai_base_url =
+      NormalizeOpenAIBaseUrl(current_profile_.openai_base_url);
+  ctx_config.host_id = current_profile_.host_id;
+  ctx_config.verbose = current_profile_.verbose;
+  ctx_config.show_reasoning = current_profile_.show_reasoning;
+  ctx_config.max_tool_iterations = current_profile_.max_tool_iterations;
+  ctx_config.max_retry_attempts = current_profile_.max_retry_attempts;
+  ctx_config.temperature = current_profile_.temperature;
+  ctx_config.top_p = current_profile_.top_p;
+  ctx_config.max_output_tokens = current_profile_.max_output_tokens;
+  ctx_config.stream_responses = current_profile_.stream_responses;
+
+  CopyStringToBuffer(ctx_config.ai_provider, ctx_config.provider_buffer);
+  CopyStringToBuffer(ctx_config.ai_model, ctx_config.model_buffer);
+  CopyStringToBuffer(ctx_config.ollama_host, ctx_config.ollama_host_buffer);
+  CopyStringToBuffer(ctx_config.gemini_api_key, ctx_config.gemini_key_buffer);
+  CopyStringToBuffer(ctx_config.openai_api_key, ctx_config.openai_key_buffer);
+  CopyStringToBuffer(ctx_config.openai_base_url,
+                     ctx_config.openai_base_url_buffer);
+
+  current_config_.provider = ctx_config.ai_provider;
+  current_config_.model = ctx_config.ai_model;
+  current_config_.ollama_host = ctx_config.ollama_host;
+  current_config_.gemini_api_key = ctx_config.gemini_api_key;
+  current_config_.openai_api_key = ctx_config.openai_api_key;
+  current_config_.openai_base_url = ctx_config.openai_base_url;
+  current_config_.verbose = ctx_config.verbose;
+  current_config_.show_reasoning = ctx_config.show_reasoning;
+  current_config_.max_tool_iterations = ctx_config.max_tool_iterations;
+  current_config_.max_retry_attempts = ctx_config.max_retry_attempts;
+  current_config_.temperature = ctx_config.temperature;
+  current_config_.top_p = ctx_config.top_p;
+  current_config_.max_output_tokens = ctx_config.max_output_tokens;
+  current_config_.stream_responses = ctx_config.stream_responses;
+
+  context_->NotifyChanged();
+}
+
+void AgentEditor::ApplyConfigFromContext(const AgentConfigState& config) {
+  if (!context_) {
+    return;
+  }
+
+  auto& ctx_config = context_->agent_config();
+  const std::string prev_provider = ctx_config.ai_provider;
+  const std::string prev_openai_base = ctx_config.openai_base_url;
+  const std::string prev_ollama_host = ctx_config.ollama_host;
+  ctx_config.ai_provider = config.ai_provider.empty() ? "mock" : config.ai_provider;
+  ctx_config.ai_model = config.ai_model;
+  ctx_config.ollama_host =
+      config.ollama_host.empty() ? "http://localhost:11434" : config.ollama_host;
+  ctx_config.gemini_api_key = config.gemini_api_key;
+  ctx_config.openai_api_key = config.openai_api_key;
+  ctx_config.openai_base_url = NormalizeOpenAIBaseUrl(config.openai_base_url);
+  ctx_config.host_id = config.host_id;
+  ctx_config.verbose = config.verbose;
+  ctx_config.show_reasoning = config.show_reasoning;
+  ctx_config.max_tool_iterations = config.max_tool_iterations;
+  ctx_config.max_retry_attempts = config.max_retry_attempts;
+  ctx_config.temperature = config.temperature;
+  ctx_config.top_p = config.top_p;
+  ctx_config.max_output_tokens = config.max_output_tokens;
+  ctx_config.stream_responses = config.stream_responses;
+  ctx_config.favorite_models = config.favorite_models;
+  ctx_config.model_chain = config.model_chain;
+  ctx_config.model_presets = config.model_presets;
+  ctx_config.chain_mode = config.chain_mode;
+  ctx_config.tool_config = config.tool_config;
+
+  if (prev_provider != ctx_config.ai_provider ||
+      prev_openai_base != ctx_config.openai_base_url ||
+      prev_ollama_host != ctx_config.ollama_host) {
+    auto& model_cache = context_->model_cache();
+    model_cache.available_models.clear();
+    model_cache.model_names.clear();
+    model_cache.last_refresh = absl::InfinitePast();
+    model_cache.auto_refresh_requested = false;
+    model_cache.last_provider = ctx_config.ai_provider;
+    model_cache.last_openai_base = ctx_config.openai_base_url;
+    model_cache.last_ollama_host = ctx_config.ollama_host;
+  }
+
+  CopyStringToBuffer(ctx_config.ai_provider, ctx_config.provider_buffer);
+  CopyStringToBuffer(ctx_config.ai_model, ctx_config.model_buffer);
+  CopyStringToBuffer(ctx_config.ollama_host, ctx_config.ollama_host_buffer);
+  CopyStringToBuffer(ctx_config.gemini_api_key, ctx_config.gemini_key_buffer);
+  CopyStringToBuffer(ctx_config.openai_api_key, ctx_config.openai_key_buffer);
+  CopyStringToBuffer(ctx_config.openai_base_url,
+                     ctx_config.openai_base_url_buffer);
+
+  current_profile_.provider = ctx_config.ai_provider;
+  current_profile_.model = ctx_config.ai_model;
+  current_profile_.ollama_host = ctx_config.ollama_host;
+  current_profile_.gemini_api_key = ctx_config.gemini_api_key;
+  current_profile_.openai_api_key = ctx_config.openai_api_key;
+  current_profile_.openai_base_url = ctx_config.openai_base_url;
+  current_profile_.host_id = ctx_config.host_id;
+  current_profile_.verbose = ctx_config.verbose;
+  current_profile_.show_reasoning = ctx_config.show_reasoning;
+  current_profile_.max_tool_iterations = ctx_config.max_tool_iterations;
+  current_profile_.max_retry_attempts = ctx_config.max_retry_attempts;
+  current_profile_.temperature = ctx_config.temperature;
+  current_profile_.top_p = ctx_config.top_p;
+  current_profile_.max_output_tokens = ctx_config.max_output_tokens;
+  current_profile_.stream_responses = ctx_config.stream_responses;
+  current_profile_.modified_at = absl::Now();
+
+  MarkProfileUiDirty();
+
+  current_config_.provider = ctx_config.ai_provider;
+  current_config_.model = ctx_config.ai_model;
+  current_config_.ollama_host = ctx_config.ollama_host;
+  current_config_.gemini_api_key = ctx_config.gemini_api_key;
+  current_config_.openai_api_key = ctx_config.openai_api_key;
+  current_config_.openai_base_url = ctx_config.openai_base_url;
+  current_config_.verbose = ctx_config.verbose;
+  current_config_.show_reasoning = ctx_config.show_reasoning;
+  current_config_.max_tool_iterations = ctx_config.max_tool_iterations;
+  current_config_.max_retry_attempts = ctx_config.max_retry_attempts;
+  current_config_.temperature = ctx_config.temperature;
+  current_config_.top_p = ctx_config.top_p;
+  current_config_.max_output_tokens = ctx_config.max_output_tokens;
+  current_config_.stream_responses = ctx_config.stream_responses;
+
+  ApplyConfig(current_config_);
+  context_->NotifyChanged();
+}
+
+void AgentEditor::ApplyToolPreferencesFromContext() {
+  if (!context_ || !agent_chat_) {
+    return;
+  }
+  auto* service = agent_chat_->GetAgentService();
+  if (!service) {
+    return;
+  }
+
+  const auto& tool_config = context_->agent_config().tool_config;
+  cli::agent::ToolDispatcher::ToolPreferences prefs;
+  prefs.resources = tool_config.resources;
+  prefs.dungeon = tool_config.dungeon;
+  prefs.overworld = tool_config.overworld;
+  prefs.messages = tool_config.messages;
+  prefs.dialogue = tool_config.dialogue;
+  prefs.gui = tool_config.gui;
+  prefs.music = tool_config.music;
+  prefs.sprite = tool_config.sprite;
+#ifdef YAZE_WITH_GRPC
+  prefs.emulator = tool_config.emulator;
+#else
+  prefs.emulator = false;
+#endif
+  service->SetToolPreferences(prefs);
+}
+
+void AgentEditor::RefreshModelCache(bool force) {
+  if (!context_) {
+    return;
+  }
+
+  auto& model_cache = context_->model_cache();
+  if (model_cache.loading) {
+    return;
+  }
+  if (!force && model_cache.last_refresh != absl::InfinitePast()) {
+    absl::Duration since_refresh = absl::Now() - model_cache.last_refresh;
+    if (since_refresh < absl::Seconds(15)) {
+      return;
+    }
+  }
+
+  model_cache.loading = true;
+  model_cache.auto_refresh_requested = true;
+  model_cache.available_models.clear();
+  model_cache.model_names.clear();
+
+  const auto& config = context_->agent_config();
+  cli::AIServiceConfig service_config;
+  service_config.provider =
+      config.ai_provider.empty() ? "mock" : config.ai_provider;
+  service_config.model = config.ai_model;
+  service_config.ollama_host = config.ollama_host;
+  service_config.gemini_api_key = config.gemini_api_key;
+  service_config.openai_api_key = config.openai_api_key;
+  service_config.openai_base_url =
+      NormalizeOpenAIBaseUrl(config.openai_base_url);
+  service_config.verbose = config.verbose;
+
+  auto service_or = cli::CreateAIServiceStrict(service_config);
+  if (!service_or.ok()) {
+    model_cache.loading = false;
+    if (toast_manager_) {
+      toast_manager_->Show(std::string(service_or.status().message()),
+                           ToastType::kWarning, 2.0f);
+    }
+    return;
+  }
+
+  auto models_or = service_or.value()->ListAvailableModels();
+  if (!models_or.ok()) {
+    model_cache.loading = false;
+    if (toast_manager_) {
+      toast_manager_->Show(std::string(models_or.status().message()),
+                           ToastType::kWarning, 2.0f);
+    }
+    return;
+  }
+
+  model_cache.available_models = models_or.value();
+  model_cache.model_names.clear();
+  for (const auto& info : model_cache.available_models) {
+    if (!info.name.empty()) {
+      model_cache.model_names.push_back(info.name);
+    }
+  }
+  std::sort(model_cache.model_names.begin(), model_cache.model_names.end());
+  if (context_->agent_config().ai_model.empty()) {
+    auto& ctx_config = context_->agent_config();
+    std::string selected;
+    for (const auto& info : model_cache.available_models) {
+      if (ctx_config.ai_provider.empty() ||
+          info.provider == ctx_config.ai_provider) {
+        selected = info.name;
+        break;
+      }
+    }
+    if (selected.empty() && !model_cache.model_names.empty()) {
+      selected = model_cache.model_names.front();
+    }
+    if (!selected.empty()) {
+      ctx_config.ai_model = selected;
+      CopyStringToBuffer(ctx_config.ai_model, ctx_config.model_buffer);
+    }
+  }
+  model_cache.last_refresh = absl::Now();
+  model_cache.loading = false;
+}
+
+void AgentEditor::ApplyModelPreset(const ModelPreset& preset) {
+  if (!context_) {
+    return;
+  }
+
+  auto& config = context_->agent_config();
+  if (!preset.provider.empty()) {
+    config.ai_provider = preset.provider;
+  }
+  if (!preset.model.empty()) {
+    config.ai_model = preset.model;
+  }
+  if (!preset.host.empty()) {
+    if (config.ai_provider == "ollama") {
+      config.ollama_host = preset.host;
+    } else if (config.ai_provider == "openai") {
+      config.openai_base_url = NormalizeOpenAIBaseUrl(preset.host);
+    }
+  }
+
+  for (auto& entry : config.model_presets) {
+    if (entry.name == preset.name) {
+      entry.last_used = absl::Now();
+      break;
+    }
+  }
+
+  CopyStringToBuffer(config.ai_provider, config.provider_buffer);
+  CopyStringToBuffer(config.ai_model, config.model_buffer);
+  CopyStringToBuffer(config.ollama_host, config.ollama_host_buffer);
+  CopyStringToBuffer(config.openai_base_url, config.openai_base_url_buffer);
+
+  ApplyConfigFromContext(config);
+}
+
 void AgentEditor::DrawDashboard() {
   if (!active_) {
     return;
@@ -347,22 +804,13 @@ void AgentEditor::DrawDashboard() {
 }
 
 void AgentEditor::DrawConfigurationPanel() {
+  if (!context_) {
+    ImGui::TextDisabled("Agent configuration unavailable.");
+    ImGui::TextWrapped("Initialize the Agent UI to edit provider settings.");
+    return;
+  }
+
   const auto& theme = AgentUI::GetTheme();
-
-  auto HelpMarker = [](const char* desc) {
-    ImGui::SameLine();
-    ImGui::TextDisabled("(?)");
-    if (ImGui::IsItemHovered()) {
-      ImGui::BeginTooltip();
-      ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-      ImGui::TextUnformatted(desc);
-      ImGui::PopTextWrapPos();
-      ImGui::EndTooltip();
-    }
-  };
-
-  AgentUI::RenderSectionHeader(ICON_MD_SETTINGS, "AI Provider",
-                               theme.accent_color);
 
   if (dependencies_.user_settings) {
     const auto& prefs = dependencies_.user_settings->prefs();
@@ -388,6 +836,8 @@ void AgentEditor::DrawConfigurationPanel() {
           const bool selected = (static_cast<int>(i) == active_index);
           if (ImGui::Selectable(hosts[i].label.c_str(), selected)) {
             ApplyHostPresetToProfile(&current_profile_, hosts[i]);
+            MarkProfileUiDirty();
+            SyncContextFromProfile();
           }
           if (selected) {
             ImGui::SetItemDefaultFocus();
@@ -395,276 +845,38 @@ void AgentEditor::DrawConfigurationPanel() {
         }
         ImGui::EndCombo();
       }
-      ImGui::TextDisabled(
-          "Host presets come from settings.json (Documents/Yaze).");
+      if (active_index >= 0) {
+        const auto& host = hosts[active_index];
+        ImGui::TextDisabled("Active host: %s", host.label.c_str());
+        ImGui::TextDisabled("Endpoint: %s", host.base_url.c_str());
+        ImGui::TextDisabled("API type: %s",
+                            host.api_type.empty() ? "openai"
+                                                  : host.api_type.c_str());
+      } else {
+        ImGui::TextDisabled(
+            "Host presets come from settings.json (Documents/Yaze).");
+      }
       ImGui::Spacing();
       ImGui::Separator();
       ImGui::Spacing();
     }
   }
 
-  float avail_width = ImGui::GetContentRegionAvail().x;
-  ImVec2 button_size(avail_width / 2 - 8, 46);
-
-  auto ProviderButton = [&](const char* label, const char* provider_id,
-                            const ImVec4& color) {
-    bool selected = current_profile_.provider == provider_id;
-    ImVec4 base_color = selected ? color : theme.panel_bg_darker;
-    if (AgentUI::StyledButton(label, base_color, button_size)) {
-      current_profile_.provider = provider_id;
-      current_profile_.host_id.clear();
-    }
+  AgentConfigPanel::Callbacks callbacks;
+  callbacks.update_config = [this](const AgentConfigState& config) {
+    ApplyConfigFromContext(config);
+  };
+  callbacks.refresh_models = [this](bool force) { RefreshModelCache(force); };
+  callbacks.apply_preset = [this](const ModelPreset& preset) {
+    ApplyModelPreset(preset);
+  };
+  callbacks.apply_tool_preferences = [this]() {
+    ApplyToolPreferencesFromContext();
   };
 
-  ProviderButton(ICON_MD_SETTINGS " Mock", "mock", theme.provider_mock);
-  ImGui::SameLine();
-  ProviderButton(ICON_MD_CLOUD " Ollama", "ollama", theme.provider_ollama);
-  ProviderButton(ICON_MD_SMART_TOY " Gemini API", "gemini",
-                 theme.provider_gemini);
-  ImGui::SameLine();
-  ProviderButton(ICON_MD_TERMINAL " Local CLI", "gemini-cli",
-                 theme.provider_gemini);
-  ImGui::Spacing();
-  ProviderButton(ICON_MD_AUTO_AWESOME " OpenAI", "openai",
-                 theme.provider_openai);
-
-  ImGui::Spacing();
-  ImGui::Separator();
-  ImGui::Spacing();
-
-  // Provider-specific settings
-  if (current_profile_.provider == "ollama") {
-    AgentUI::RenderSectionHeader(ICON_MD_TUNE, "Ollama Settings",
-                                 theme.accent_color);
-    ImGui::Text("Model:");
-    ImGui::SetNextItemWidth(-1);
-    static char model_buf[128] = "qwen2.5-coder:7b";
-    if (!current_profile_.model.empty()) {
-      strncpy(model_buf, current_profile_.model.c_str(), sizeof(model_buf) - 1);
-    }
-    if (ImGui::InputTextWithHint("##ollama_model",
-                                 "e.g., qwen2.5-coder:7b, llama3.2", model_buf,
-                                 sizeof(model_buf))) {
-      current_profile_.model = model_buf;
-    }
-
-    ImGui::Text("Host URL:");
-    ImGui::SetNextItemWidth(-1);
-    static char host_buf[256] = "http://localhost:11434";
-    strncpy(host_buf, current_profile_.ollama_host.c_str(),
-            sizeof(host_buf) - 1);
-    if (ImGui::InputText("##ollama_host", host_buf, sizeof(host_buf))) {
-      current_profile_.ollama_host = host_buf;
-    }
-  } else if (current_profile_.provider == "gemini" ||
-             current_profile_.provider == "gemini-cli") {
-    AgentUI::RenderSectionHeader(ICON_MD_SMART_TOY, "Gemini Settings",
-                                 theme.accent_color);
-
-    if (ImGui::Button(ICON_MD_REFRESH " Load from Env (GEMINI_API_KEY)")) {
-      const char* gemini_key = std::getenv("GEMINI_API_KEY");
-      if (gemini_key) {
-        current_profile_.gemini_api_key = gemini_key;
-        ApplyConfig(current_config_);
-        if (toast_manager_) {
-          toast_manager_->Show("Gemini API key loaded", ToastType::kSuccess);
-        }
-      } else if (toast_manager_) {
-        toast_manager_->Show("GEMINI_API_KEY not found", ToastType::kWarning);
-      }
-    }
-    HelpMarker("Loads GEMINI_API_KEY from your environment");
-
-    ImGui::Spacing();
-    ImGui::Text("Model:");
-    ImGui::SetNextItemWidth(-1);
-    static char model_buf[128] = "gemini-2.5-flash";
-    if (!current_profile_.model.empty()) {
-      strncpy(model_buf, current_profile_.model.c_str(), sizeof(model_buf) - 1);
-    }
-    if (ImGui::InputTextWithHint("##gemini_model", "e.g., gemini-2.5-flash",
-                                 model_buf, sizeof(model_buf))) {
-      current_profile_.model = model_buf;
-    }
-
-    ImGui::Text("API Key:");
-    ImGui::SetNextItemWidth(-1);
-    static char key_buf[256] = "";
-    if (!current_profile_.gemini_api_key.empty() && key_buf[0] == '\0') {
-      strncpy(key_buf, current_profile_.gemini_api_key.c_str(),
-              sizeof(key_buf) - 1);
-    }
-    if (ImGui::InputText("##gemini_key", key_buf, sizeof(key_buf),
-                         ImGuiInputTextFlags_Password)) {
-      current_profile_.gemini_api_key = key_buf;
-    }
-    if (!current_profile_.gemini_api_key.empty()) {
-      ImGui::TextColored(theme.status_success,
-                         ICON_MD_CHECK_CIRCLE " API key configured");
-    }
-  } else if (current_profile_.provider == "openai") {
-    AgentUI::RenderSectionHeader(ICON_MD_AUTO_AWESOME, "OpenAI Settings",
-                                 theme.accent_color);
-
-    if (ImGui::Button(ICON_MD_REFRESH " Load from Env (OPENAI_API_KEY)")) {
-      const char* openai_key = std::getenv("OPENAI_API_KEY");
-      if (openai_key) {
-        current_profile_.openai_api_key = openai_key;
-        ApplyConfig(current_config_);
-        if (toast_manager_) {
-          toast_manager_->Show("OpenAI API key loaded", ToastType::kSuccess);
-        }
-      } else if (toast_manager_) {
-        toast_manager_->Show("OPENAI_API_KEY not found", ToastType::kWarning);
-      }
-    }
-    HelpMarker("Loads OPENAI_API_KEY from your environment");
-
-    ImGui::Spacing();
-    ImGui::Text("Model:");
-    ImGui::SetNextItemWidth(-1);
-    static char openai_model_buf[128] = "gpt-4o-mini";
-    if (!current_profile_.model.empty()) {
-      strncpy(openai_model_buf, current_profile_.model.c_str(),
-              sizeof(openai_model_buf) - 1);
-    }
-    if (ImGui::InputTextWithHint("##openai_model", "e.g., gpt-4o-mini",
-                                 openai_model_buf, sizeof(openai_model_buf))) {
-      current_profile_.model = openai_model_buf;
-    }
-
-    ImGui::Text("Base URL:");
-    ImGui::SetNextItemWidth(-1);
-    static char openai_base_buf[256] = "https://api.openai.com";
-    if (!current_profile_.openai_base_url.empty()) {
-      strncpy(openai_base_buf, current_profile_.openai_base_url.c_str(),
-              sizeof(openai_base_buf) - 1);
-      openai_base_buf[sizeof(openai_base_buf) - 1] = '\0';
-    }
-    if (ImGui::InputTextWithHint("##openai_base_url",
-                                 "e.g., http://localhost:1234",
-                                 openai_base_buf,
-                                 sizeof(openai_base_buf))) {
-      current_profile_.openai_base_url = openai_base_buf;
-    }
-
-    ImGui::Text("API Key:");
-    ImGui::SetNextItemWidth(-1);
-    static char openai_key_buf[256] = "";
-    if (!current_profile_.openai_api_key.empty() && openai_key_buf[0] == '\0') {
-      strncpy(openai_key_buf, current_profile_.openai_api_key.c_str(),
-              sizeof(openai_key_buf) - 1);
-    }
-    if (ImGui::InputText("##openai_key", openai_key_buf, sizeof(openai_key_buf),
-                         ImGuiInputTextFlags_Password)) {
-      current_profile_.openai_api_key = openai_key_buf;
-    }
-    if (!current_profile_.openai_api_key.empty()) {
-      ImGui::TextColored(theme.status_success,
-                         ICON_MD_CHECK_CIRCLE " API key configured");
-    }
+  if (config_panel_) {
+    config_panel_->Draw(context_, callbacks, toast_manager_);
   }
-
-  ImGui::Spacing();
-  AgentUI::RenderSectionHeader(ICON_MD_TUNE, "Behavior", theme.text_info);
-
-  ImGui::Checkbox("Verbose logging", &current_profile_.verbose);
-  HelpMarker("Logs provider requests/responses to console");
-  ImGui::Checkbox("Show reasoning traces", &current_profile_.show_reasoning);
-  ImGui::Checkbox("Stream responses", &current_profile_.stream_responses);
-
-  ImGui::SliderFloat("Temperature", &current_profile_.temperature, 0.0f, 1.0f);
-  ImGui::SliderFloat("Top P", &current_profile_.top_p, 0.0f, 1.0f);
-  ImGui::SliderInt("Max output tokens", &current_profile_.max_output_tokens,
-                   256, 4096);
-  ImGui::SliderInt(ICON_MD_LOOP " Max Tool Iterations",
-                   &current_profile_.max_tool_iterations, 1, 10);
-  HelpMarker(
-      "Maximum number of tool calls the agent can make while solving a single "
-      "request.");
-  ImGui::SliderInt(ICON_MD_REFRESH " Max Retry Attempts",
-                   &current_profile_.max_retry_attempts, 1, 10);
-  HelpMarker("Number of times to retry API calls on failure.");
-
-  ImGui::Spacing();
-  AgentUI::RenderSectionHeader(ICON_MD_INFO, "Profile",
-                               theme.text_secondary_gray);
-
-  static char name_buf[128];
-  strncpy(name_buf, current_profile_.name.c_str(), sizeof(name_buf) - 1);
-  if (ImGui::InputText("Name", name_buf, sizeof(name_buf))) {
-    current_profile_.name = name_buf;
-  }
-
-  static char desc_buf[256];
-  strncpy(desc_buf, current_profile_.description.c_str(), sizeof(desc_buf) - 1);
-  if (ImGui::InputTextMultiline("Description", desc_buf, sizeof(desc_buf),
-                                ImVec2(-1, 64))) {
-    current_profile_.description = desc_buf;
-  }
-
-  ImGui::Text("Tags (comma-separated)");
-  static char tags_buf[256];
-  if (tags_buf[0] == '\0' && !current_profile_.tags.empty()) {
-    std::string tags_str;
-    for (size_t i = 0; i < current_profile_.tags.size(); ++i) {
-      if (i > 0)
-        tags_str += ", ";
-      tags_str += current_profile_.tags[i];
-    }
-    strncpy(tags_buf, tags_str.c_str(), sizeof(tags_buf) - 1);
-  }
-  if (ImGui::InputText("##profile_tags", tags_buf, sizeof(tags_buf))) {
-    current_profile_.tags.clear();
-    std::string tags_str(tags_buf);
-    size_t pos = 0;
-    while ((pos = tags_str.find(',')) != std::string::npos) {
-      std::string tag = tags_str.substr(0, pos);
-      tag.erase(0, tag.find_first_not_of(" \t"));
-      tag.erase(tag.find_last_not_of(" \t") + 1);
-      if (!tag.empty()) {
-        current_profile_.tags.push_back(tag);
-      }
-      tags_str.erase(0, pos + 1);
-    }
-    tags_str.erase(0, tags_str.find_first_not_of(" \t"));
-    tags_str.erase(tags_str.find_last_not_of(" \t") + 1);
-    if (!tags_str.empty()) {
-      current_profile_.tags.push_back(tags_str);
-    }
-  }
-
-  ImGui::Spacing();
-  ImGui::PushStyleColor(ImGuiCol_Button, theme.status_success);
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, theme.status_success);
-  if (ImGui::Button(ICON_MD_CHECK " Apply & Save Configuration",
-                    ImVec2(-1, 40))) {
-    current_config_.provider = current_profile_.provider;
-    current_config_.model = current_profile_.model;
-    current_config_.ollama_host = current_profile_.ollama_host;
-    current_config_.gemini_api_key = current_profile_.gemini_api_key;
-    current_config_.openai_api_key = current_profile_.openai_api_key;
-    current_config_.openai_base_url = current_profile_.openai_base_url;
-    current_config_.verbose = current_profile_.verbose;
-    current_config_.show_reasoning = current_profile_.show_reasoning;
-    current_config_.max_tool_iterations = current_profile_.max_tool_iterations;
-    current_config_.max_retry_attempts = current_profile_.max_retry_attempts;
-    current_config_.temperature = current_profile_.temperature;
-    current_config_.top_p = current_profile_.top_p;
-    current_config_.max_output_tokens = current_profile_.max_output_tokens;
-    current_config_.stream_responses = current_profile_.stream_responses;
-
-    ApplyConfig(current_config_);
-    Save();
-
-    if (toast_manager_) {
-      toast_manager_->Show("Configuration applied and saved",
-                           ToastType::kSuccess);
-    }
-  }
-  ImGui::PopStyleColor(2);
-
-  DrawMetricsPanel();
 }
 
 void AgentEditor::DrawStatusPanel() {
@@ -830,6 +1042,7 @@ void AgentEditor::DrawBotProfilesPanel() {
     new_profile.created_at = absl::Now();
     new_profile.modified_at = absl::Now();
     current_profile_ = new_profile;
+    MarkProfileUiDirty();
     if (toast_manager_) {
       toast_manager_->Show("New profile created. Configure and save it.",
                            ToastType::kInfo);
@@ -1490,6 +1703,7 @@ absl::Status AgentEditor::LoadBotProfile(const std::string& name) {
     return profile_or.status();
   }
   current_profile_ = *profile_or;
+  MarkProfileUiDirty();
 
   current_config_.provider = current_profile_.provider;
   current_config_.model = current_profile_.model;
@@ -1507,6 +1721,7 @@ absl::Status AgentEditor::LoadBotProfile(const std::string& name) {
   current_config_.stream_responses = current_profile_.stream_responses;
 
   ApplyConfig(current_config_);
+  SyncContextFromProfile();
   return absl::OkStatus();
 #else
   return absl::UnimplementedError(
@@ -1547,6 +1762,8 @@ void AgentEditor::SetCurrentProfile(const BotProfile& profile) {
   current_config_.max_output_tokens = profile.max_output_tokens;
   current_config_.stream_responses = profile.stream_responses;
   ApplyConfig(current_config_);
+  MarkProfileUiDirty();
+  SyncContextFromProfile();
 }
 
 absl::Status AgentEditor::ExportProfile(const BotProfile& profile,

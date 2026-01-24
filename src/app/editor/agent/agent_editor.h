@@ -28,6 +28,7 @@ class ToastManager;
 class ProposalDrawer;
 class AgentChat;
 class AgentCollaborationCoordinator;
+class AgentConfigPanel;
 
 #ifdef YAZE_WITH_GRPC
 class NetworkCollaborationCoordinator;
@@ -85,6 +86,7 @@ class AgentEditor : public Editor {
   void InitializeWithDependencies(ToastManager* toast_manager,
                                   ProposalDrawer* proposal_drawer, Rom* rom);
   void SetRomContext(Rom* rom);
+  void SetContext(AgentUIContext* context);
 
   // Main rendering (called by Update())
   void DrawDashboard();
@@ -260,6 +262,11 @@ class AgentEditor : public Editor {
   void DrawCommonTilesEditor();
   void DrawNewPromptCreator();
   void DrawAgentBuilderPanel();
+  void SyncContextFromProfile();
+  void ApplyConfigFromContext(const AgentConfigState& config);
+  void ApplyToolPreferencesFromContext();
+  void RefreshModelCache(bool force);
+  void ApplyModelPreset(const ModelPreset& preset);
 
   // Setup callbacks
   void SetupMultimodalCallbacks();
@@ -273,9 +280,14 @@ class AgentEditor : public Editor {
   absl::Status SaveBuilderBlueprint(const std::filesystem::path& path);
   absl::Status LoadBuilderBlueprint(const std::filesystem::path& path);
 
+  // Profile UI state
+  void MarkProfileUiDirty();
+  void SyncProfileUiState();
+
   // Internal state
   std::unique_ptr<AgentChat> agent_chat_;  // Owned by AgentEditor
   std::unique_ptr<AgentCollaborationCoordinator> local_coordinator_;
+  std::unique_ptr<AgentConfigPanel> config_panel_;
 #ifdef YAZE_WITH_GRPC
   std::unique_ptr<NetworkCollaborationCoordinator> network_coordinator_;
   AutomationBridge harness_telemetry_bridge_;
@@ -284,6 +296,7 @@ class AgentEditor : public Editor {
   ToastManager* toast_manager_ = nullptr;
   ProposalDrawer* proposal_drawer_ = nullptr;
   Rom* rom_ = nullptr;
+  AgentUIContext* context_ = nullptr;
   // Note: Config syncing is managed by AgentUiController
 
   // Configuration state (legacy)
@@ -293,6 +306,19 @@ class AgentEditor : public Editor {
   BotProfile current_profile_;
   std::vector<BotProfile> loaded_profiles_;
   AgentBuilderState builder_state_;
+
+  struct ProfileUiState {
+    bool dirty = true;
+    char model_buf[128] = {};
+    char ollama_host_buf[256] = {};
+    char gemini_key_buf[256] = {};
+    char openai_key_buf[256] = {};
+    char openai_base_buf[256] = {};
+    char name_buf[128] = {};
+    char desc_buf[256] = {};
+    char tags_buf[256] = {};
+  };
+  ProfileUiState profile_ui_state_;
 
   // System Prompt Editor
   std::unique_ptr<TextEditor> prompt_editor_;

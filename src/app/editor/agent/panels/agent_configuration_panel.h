@@ -11,7 +11,7 @@ namespace editor {
 
 class ToastManager;
 
-class AgentConfigurationPanel {
+class AgentConfigPanel {
  public:
   struct Callbacks {
     std::function<void(const AgentConfigState&)> update_config;
@@ -20,13 +20,17 @@ class AgentConfigurationPanel {
     std::function<void()> apply_tool_preferences;
   };
 
-  AgentConfigurationPanel() = default;
+  AgentConfigPanel() = default;
 
-  void Draw(AgentUIContext* context, const Callbacks& callbacks, ToastManager* toast_manager);
+  void Draw(AgentUIContext* context, const Callbacks& callbacks,
+            ToastManager* toast_manager);
 
  private:
-  void RenderModelConfigControls(AgentUIContext* context, const Callbacks& callbacks, ToastManager* toast_manager);
-  void RenderModelDeck(AgentUIContext* context, const Callbacks& callbacks, ToastManager* toast_manager);
+  void RenderModelConfigControls(AgentUIContext* context,
+                                 const Callbacks& callbacks,
+                                 ToastManager* toast_manager);
+  void RenderModelDeck(AgentUIContext* context, const Callbacks& callbacks,
+                       ToastManager* toast_manager);
   void RenderParameterControls(AgentConfigState& config);
   void RenderToolingControls(AgentConfigState& config, const Callbacks& callbacks);
   void RenderChainModeControls(AgentConfigState& config);

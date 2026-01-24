@@ -52,12 +52,12 @@ Legend: TODO | IN_PROGRESS | DONE | BLOCKED
 | Graphics | IN_PROGRESS | 2026-01-23 | Removed polyhedral/prototype panels from default roster; aligned layout preset IDs with actual panel IDs (sheet browser v2, pixel editor, link sprite); added palette/gfx group/paletteset optional layout slots; needs runtime validation. |
 | Palette | IN_PROGRESS | 2026-01-23 | Replaced hardcoded warning/error/info TextColored with theme colors; removed local panel-manager/minimize UI; needs runtime validation + check alpha/initial palette values (w=255) in DisplayPalette. |
 | Screen | IN_PROGRESS | 2026-01-23 | Replaced hardcoded error colors + boss-room outline with theme colors; needs runtime validation of Title/Overworld/Dungeon screens + naming screen stub. |
-| Sprite | TODO | - | - |
+| Sprite | IN_PROGRESS | 2026-01-23 | Fixed tab add flags, safe stat parsing, selection reset, per-sprite save paths; needs runtime validation. |
 | Music | IN_PROGRESS | 2026-01-23 | Removed Audio Debug + Help panels from panel roster; needs runtime validation. |
 | Assembly | TODO | - | - |
 | Hex (Memory) | TODO | - | - |
-| Emulator | TODO | - | - |
-| Agent | TODO | - | - |
+| Emulator | IN_PROGRESS | 2026-01-23 | Emulator visibility now reflects any emulator panel; layout presets include virtual controller; needs runtime validation. |
+| Agent | IN_PROGRESS | 2026-01-23 | Synced Agent profile UI buffers + host summary; added LM Studio quick actions + OpenAI base normalization + knowledge panel preset; needs runtime validation. |
 | Settings | TODO | - | - |
 
 ## Issues Log

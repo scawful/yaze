@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_contains.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
 #include "absl/strings/strip.h"
@@ -247,14 +248,17 @@ absl::StatusOr<std::vector<ModelInfo>> OpenAIAIService::ListAvailableModels() {
       std::string id = m.value("id", "");
 
       // Filter for chat models (gpt-4*, gpt-3.5-turbo*, o1*, chatgpt*)
-      if (absl::StartsWith(id, "gpt-4") || absl::StartsWith(id, "gpt-3.5") ||
+      // For local servers (LM Studio), we accept all models.
+      bool is_local = !absl::StrContains(config_.base_url, "api.openai.com");
+      
+      if (is_local || absl::StartsWith(id, "gpt-4") || absl::StartsWith(id, "gpt-3.5") ||
           absl::StartsWith(id, "o1") || absl::StartsWith(id, "chatgpt")) {
         ModelInfo info;
         info.name = id;
         info.display_name = id;
         info.provider = "openai";
-        info.family = "gpt";
-        info.is_local = false;
+        info.family = is_local ? "local" : "gpt";
+        info.is_local = is_local;
 
         // Set display name based on model
         if (id == "gpt-4o")

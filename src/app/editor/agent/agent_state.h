@@ -10,6 +10,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/time/time.h"
+#include "cli/service/ai/common.h"
 #include "imgui/imgui.h"
 #include "core/project.h"
 #include "core/asar_wrapper.h"
@@ -141,6 +142,7 @@ struct AutomationState {
 struct ModelPreset {
   std::string name;
   std::string model;
+  std::string provider;
   std::string host;
   std::vector<std::string> tags;
   bool pinned = false;
@@ -169,6 +171,23 @@ enum class ChainMode {
   kDisabled = 0,
   kRoundRobin = 1,
   kConsensus = 2,
+};
+
+/**
+ * @brief Cached model list + UI helpers
+ */
+struct ModelCache {
+  std::vector<cli::ModelInfo> available_models;
+  std::vector<std::string> model_names;
+  absl::Time last_refresh = absl::InfinitePast();
+  bool loading = false;
+  bool auto_refresh_requested = false;
+  std::string last_provider;
+  std::string last_openai_base;
+  std::string last_ollama_host;
+  char search_buffer[128] = {};
+  char new_preset_name[128] = {};
+  int active_preset_index = -1;
 };
 
 /**
@@ -202,6 +221,7 @@ struct AgentConfigState {
   char ollama_host_buffer[256] = "http://localhost:11434";
   char gemini_key_buffer[256] = {};
   char openai_key_buffer[256] = {};
+  char openai_base_url_buffer[256] = "https://api.openai.com";
 };
 
 // ============================================================================
@@ -376,6 +396,9 @@ class AgentUIContext {
   AgentConfigState& agent_config() { return agent_config_; }
   const AgentConfigState& agent_config() const { return agent_config_; }
 
+  ModelCache& model_cache() { return model_cache_; }
+  const ModelCache& model_cache() const { return model_cache_; }
+
   RomSyncState& rom_sync_state() { return rom_sync_state_; }
   const RomSyncState& rom_sync_state() const { return rom_sync_state_; }
 
@@ -430,6 +453,7 @@ class AgentUIContext {
   MultimodalState multimodal_state_;
   AutomationState automation_state_;
   AgentConfigState agent_config_;
+  ModelCache model_cache_;
   RomSyncState rom_sync_state_;
   Z3EDCommandState z3ed_command_state_;
   PersonaProfile persona_profile_;

@@ -211,6 +211,7 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
           {Panels::kEmulatorCpuDebugger, DockPosition::Right},
           {Panels::kEmulatorMemoryViewer, DockPosition::Bottom},
           {Panels::kEmulatorAiAgent, DockPosition::RightBottom},
+          {Panels::kEmulatorVirtualController, DockPosition::LeftBottom},
       };
       preset.optional_panels = {
           Panels::kEmulatorCpuDebugger,
@@ -220,6 +221,7 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
           Panels::kEmulatorAiAgent,
           Panels::kEmulatorSaveStates,
           Panels::kEmulatorKeyboardConfig,
+          Panels::kEmulatorVirtualController,
           Panels::kEmulatorApuDebugger,
           Panels::kEmulatorAudioMixer,
       };
@@ -254,7 +256,8 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
           "agent.profiles",
           "agent.history",
           "agent.metrics",
-          "agent.builder"};
+          "agent.builder",
+          "agent.knowledge"};
       break;
 
     default:

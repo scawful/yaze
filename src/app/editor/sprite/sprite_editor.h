@@ -87,6 +87,9 @@ class SpriteEditor : public Editor {
   void LoadZsmFile(const std::string& path);
   void SaveZsmFile(const std::string& path);
   void SaveZsmFileAs();
+  void EnsureCustomSpritePaths();
+  const std::string& GetCurrentZsmPath() const;
+  void SetCurrentZsmPath(const std::string& path);
 
   // Properties panel
   void DrawSpritePropertiesPanel();
@@ -139,8 +142,8 @@ class SpriteEditor : public Editor {
   // Custom ZSM Sprite State
   // ============================================================
   std::vector<zsprite::ZSprite> custom_sprites_;
+  std::vector<std::string> custom_sprite_paths_;
   int current_custom_sprite_index_ = -1;
-  std::string current_zsm_path_;
   bool zsm_dirty_ = false;
 
   // Animation playback state
