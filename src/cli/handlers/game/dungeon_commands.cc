@@ -5,6 +5,7 @@
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
+#include "zelda3/resource_labels.h"
 #include "zelda3/sprite/sprite.h"
 
 namespace yaze {
@@ -94,6 +95,96 @@ absl::Status DungeonDescribeRoomCommandHandler::Execute(
 
   formatter.EndObject();
 
+  return absl::OkStatus();
+}
+
+absl::Status DungeonListChestsCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  auto room_id_opt = parser.GetString("room");
+
+  bool has_room_filter = room_id_opt.has_value();
+  int room_filter = -1;
+  if (has_room_filter) {
+    if (!ParseHexString(room_id_opt.value(), &room_filter)) {
+      return absl::InvalidArgumentError(
+          "Invalid room ID format. Must be hex.");
+    }
+  }
+
+  int total_rooms = 0;
+  int rooms_with_chests = 0;
+  int total_chests = 0;
+  std::map<int, int> item_counts;
+
+  formatter.BeginObject("Dungeon Chests");
+  formatter.AddField("room_filter",
+                     has_room_filter
+                         ? absl::StrFormat("0x%02X", room_filter)
+                         : "all");
+
+  formatter.BeginArray("rooms");
+  int start_room = has_room_filter ? room_filter : 0;
+  int end_room = has_room_filter ? room_filter : zelda3::NumberOfRooms - 1;
+
+  for (int room_id = start_room; room_id <= end_room; ++room_id) {
+    total_rooms++;
+    zelda3::Room room = zelda3::LoadRoomHeaderFromRom(rom, room_id);
+    room.LoadChests();
+
+    const auto& chests = room.GetChests();
+    if (chests.empty()) {
+      continue;
+    }
+
+    rooms_with_chests++;
+    total_chests += static_cast<int>(chests.size());
+
+    formatter.BeginObject();
+    formatter.AddField("room_id", absl::StrFormat("0x%02X", room_id));
+    formatter.AddField("room_name", zelda3::GetRoomLabel(room_id));
+    formatter.AddField("chest_count", static_cast<int>(chests.size()));
+
+    formatter.BeginArray("chests");
+    int chest_index = 0;
+    for (const auto& chest : chests) {
+      formatter.BeginObject();
+      formatter.AddField("index", chest_index++);
+      formatter.AddHexField("item_id", chest.id, 2);
+      formatter.AddField("item_name", zelda3::GetItemLabel(chest.id));
+      formatter.AddField("is_big_chest", chest.size);
+      formatter.EndObject();
+
+      if (chest.id != 0) {
+        item_counts[chest.id]++;
+      }
+    }
+    formatter.EndArray();
+    formatter.EndObject();
+  }
+  formatter.EndArray();
+
+  formatter.BeginObject("summary");
+  formatter.AddField("total_rooms", total_rooms);
+  formatter.AddField("rooms_with_chests", rooms_with_chests);
+  formatter.AddField("total_chests", total_chests);
+  formatter.AddField("unique_items", static_cast<int>(item_counts.size()));
+
+  formatter.BeginArray("duplicate_items");
+  for (const auto& [item_id, count] : item_counts) {
+    if (count < 2) {
+      continue;
+    }
+    formatter.BeginObject();
+    formatter.AddHexField("item_id", item_id, 2);
+    formatter.AddField("item_name", zelda3::GetItemLabel(item_id));
+    formatter.AddField("count", count);
+    formatter.EndObject();
+  }
+  formatter.EndArray();
+  formatter.EndObject();
+
+  formatter.EndObject();
   return absl::OkStatus();
 }
 

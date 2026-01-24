@@ -50,6 +50,27 @@ class DungeonDescribeRoomCommandHandler : public resources::CommandHandler {
 };
 
 /**
+ * @brief Command handler for listing chest items in dungeon rooms
+ */
+class DungeonListChestsCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const { return "dungeon-list-chests"; }
+  std::string GetDescription() const {
+    return "List chest contents for dungeon rooms";
+  }
+  std::string GetUsage() const {
+    return "dungeon-list-chests [--room <room_id>] [--format <json|text>]";
+  }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& /*parser*/) override {
+    return absl::OkStatus();
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+/**
  * @brief Command handler for inspecting a dungeon entrance
  */
 class DungeonGetEntranceCommandHandler : public resources::CommandHandler {
