@@ -553,6 +553,15 @@ void AgentEditor::Initialize() {
                 "Build with Z3ED_AI=ON to enable the knowledge service.");
           }
         }));
+
+    if (agent_chat_) {
+      agent_chat_->SetPanelOpener(
+          [panel_manager](const std::string& panel_id) {
+            if (!panel_id.empty()) {
+              panel_manager->ShowPanel(panel_id);
+            }
+          });
+    }
   }
 
   ApplyUserSettingsDefaults();
@@ -1518,17 +1527,6 @@ void AgentEditor::DrawStatusPanel() {
   }
   ImGui::EndChild();
 
-  ImGui::Spacing();
-
-  if (ImGui::BeginChild("QuickTipsCard", ImVec2(0, 110), true)) {
-    AgentUI::RenderSectionHeader(ICON_MD_TIPS_AND_UPDATES, "Quick Tips",
-                                 theme.accent_color);
-    ImGui::BulletText("Ctrl+H: Toggle chat popup");
-    ImGui::BulletText("Use New Chat to start a fresh thread");
-    ImGui::BulletText("Edit prompts in Prompt Editor");
-    ImGui::BulletText("Capture presets in the model deck");
-  }
-  ImGui::EndChild();
   AgentUI::PopPanelStyle();
 }
 

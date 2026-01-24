@@ -320,6 +320,45 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
                              sidebar_search, sizeof(sidebar_search));
     ImGui::Spacing();
 
+    const auto* agent_chat =
+        panel_manager_.GetPanelDescriptor(session_id, "agent.chat");
+    const auto* agent_config =
+        panel_manager_.GetPanelDescriptor(session_id, "agent.configuration");
+    const auto* agent_builder =
+        panel_manager_.GetPanelDescriptor(session_id, "agent.builder");
+    if (agent_chat || agent_config || agent_builder) {
+      if (ImGui::CollapsingHeader(ICON_MD_SMART_TOY " Agent",
+                                  ImGuiTreeNodeFlags_DefaultOpen)) {
+        if (agent_chat) {
+          if (ImGui::SmallButton(ICON_MD_CHAT " Chat")) {
+            panel_manager_.ShowPanel(session_id, agent_chat->card_id);
+          }
+          ImGui::SameLine();
+        }
+        if (agent_config) {
+          if (ImGui::SmallButton(ICON_MD_SETTINGS " Config")) {
+            panel_manager_.ShowPanel(session_id, agent_config->card_id);
+          }
+          ImGui::SameLine();
+        }
+        if (agent_builder) {
+          if (ImGui::SmallButton(ICON_MD_AUTO_FIX_HIGH " Builder")) {
+            panel_manager_.ShowPanel(session_id, agent_builder->card_id);
+          }
+        }
+        if (category != "Agent") {
+          ImGui::Spacing();
+          if (ImGui::SmallButton(ICON_MD_CHEVRON_RIGHT " Open Agent Sidebar")) {
+            panel_manager_.SetActiveCategory("Agent");
+            panel_manager_.SetPanelExpanded(true);
+          }
+        }
+      }
+      ImGui::Spacing();
+      ImGui::Separator();
+      ImGui::Spacing();
+    }
+
     // Disable non-emulator categories when no ROM is loaded
     const bool rom_loaded = has_rom ? has_rom() : true;
     const bool disable_cards = !rom_loaded && category != "Emulator";

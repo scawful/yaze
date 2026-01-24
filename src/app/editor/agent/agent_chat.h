@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_AGENT_AGENT_CHAT_H_
 
 #include <filesystem>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -37,6 +38,9 @@ class AgentChat {
   void Initialize(ToastManager* toast_manager, ProposalDrawer* proposal_drawer);
   void SetRomContext(Rom* rom);
   void SetContext(AgentUIContext* context);
+  void SetPanelOpener(std::function<void(const std::string&)> opener) {
+    panel_opener_ = std::move(opener);
+  }
 
   // Main Draw Loop
   // available_height: 0 = auto-resize to fit container
@@ -141,6 +145,7 @@ class AgentChat {
   // Automation Telemetry State
   std::vector<AutomationTelemetry> telemetry_history_;
   std::string last_plan_summary_;
+  std::function<void(const std::string&)> panel_opener_;
 };
 
 }  // namespace editor

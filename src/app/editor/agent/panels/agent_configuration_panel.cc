@@ -83,23 +83,21 @@ void AgentConfigPanel::Draw(AgentUIContext* context,
   AgentUI::RenderSectionHeader(ICON_MD_SETTINGS, "Agent Builder",
                                theme.command_text_color);
 
-  if (ImGui::BeginTabBar("AgentConfigTabs",
-                         ImGuiTabBarFlags_NoCloseWithMiddleMouseButton)) {
-    if (ImGui::BeginTabItem(ICON_MD_SMART_TOY " Models")) {
-      RenderModelConfigControls(context, callbacks, toast_manager);
-      ImGui::Separator();
-      RenderModelDeck(context, callbacks, toast_manager);
-      ImGui::EndTabItem();
-    }
-    if (ImGui::BeginTabItem(ICON_MD_TUNE " Parameters")) {
-      RenderParameterControls(context->agent_config());
-      ImGui::EndTabItem();
-    }
-    if (ImGui::BeginTabItem(ICON_MD_CONSTRUCTION " Tools")) {
-      RenderToolingControls(context->agent_config(), callbacks);
-      ImGui::EndTabItem();
-    }
-    ImGui::EndTabBar();
+  if (ImGui::CollapsingHeader(ICON_MD_SMART_TOY " Connection & Models",
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
+    RenderModelConfigControls(context, callbacks, toast_manager);
+    ImGui::Separator();
+    RenderModelDeck(context, callbacks, toast_manager);
+  }
+
+  if (ImGui::CollapsingHeader(ICON_MD_TUNE " Parameters",
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
+    RenderParameterControls(context->agent_config());
+  }
+
+  if (ImGui::CollapsingHeader(ICON_MD_CONSTRUCTION " Tools & Editor Hooks",
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
+    RenderToolingControls(context->agent_config(), callbacks);
   }
 
   ImGui::Spacing();
@@ -126,6 +124,7 @@ void AgentConfigPanel::RenderModelConfigControls(
   ImGuiStyle& style = ImGui::GetStyle();
   auto& config = context->agent_config();
   auto& model_cache = context->model_cache();
+  static bool filter_by_provider = false;
 
   if (model_cache.last_provider != config.ai_provider ||
       model_cache.last_openai_base != config.openai_base_url ||
@@ -141,12 +140,20 @@ void AgentConfigPanel::RenderModelConfigControls(
     model_cache.auto_refresh_requested = true;
     callbacks.refresh_models(false);
   }
+  const float label_width = 120.0f;
+  const ImVec2 compact_padding(style.FramePadding.x,
+                               std::max(2.0f, style.FramePadding.y * 0.6f));
+  const ImVec2 compact_spacing(style.ItemSpacing.x,
+                               std::max(3.0f, style.ItemSpacing.y * 0.6f));
+  const float env_button_width =
+      ImGui::CalcTextSize(ICON_MD_SYNC " Env").x + compact_padding.x * 2.0f;
 
-  ImGui::Text("Provider");
-  float provider_width = ImGui::GetContentRegionAvail().x;
-  int provider_columns = provider_width > 560.0f ? 3
-                         : provider_width > 360.0f ? 2
-                                                   : 1;
+  auto set_openai_base = [&](const std::string& base_url) {
+    std::snprintf(config.openai_base_url_buffer,
+                  sizeof(config.openai_base_url_buffer), "%s",
+                  base_url.c_str());
+    config.openai_base_url = config.openai_base_url_buffer;
+  };
 
   // Provider selection buttons using theme colors
   auto provider_button = [&](const char* label, const char* value,
@@ -159,7 +166,7 @@ void AgentConfigPanel::RenderModelConfigControls(
           ImGuiCol_ButtonHovered,
           ImVec4(color.x * 1.15f, color.y * 1.15f, color.z * 1.15f, color.w));
     }
-    if (ImGui::Button(label, ImVec2(-FLT_MIN, 30))) {
+    if (ImGui::Button(label, ImVec2(-FLT_MIN, 28))) {
       config.ai_provider = value;
       std::snprintf(config.provider_buffer, sizeof(config.provider_buffer),
                     "%s", value);
@@ -169,152 +176,144 @@ void AgentConfigPanel::RenderModelConfigControls(
     }
   };
 
-  if (ImGui::BeginTable("AgentProviderButtons", provider_columns,
-                        ImGuiTableFlags_SizingStretchSame)) {
-    provider_button(ICON_MD_SETTINGS " Mock", "mock", theme.provider_mock);
-    provider_button(ICON_MD_CLOUD " Ollama", "ollama", theme.provider_ollama);
-    provider_button(ICON_MD_SMART_TOY " Gemini", "gemini",
-                    theme.provider_gemini);
-    provider_button(ICON_MD_PSYCHOLOGY " Anthropic", "anthropic",
-                    theme.provider_openai);
-    provider_button(ICON_MD_AUTO_AWESOME " OpenAI", "openai",
-                    theme.provider_openai);
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, compact_padding);
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, compact_spacing);
+  if (ImGui::BeginTable("AgentProviderConfigTable", 2,
+                        ImGuiTableFlags_SizingFixedFit |
+                            ImGuiTableFlags_BordersInnerV)) {
+    ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed,
+                            label_width);
+    ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+
+    ImGui::TableNextRow();
+    ImGui::TableSetColumnIndex(0);
+    ImGui::TextDisabled("Provider");
+    ImGui::TableSetColumnIndex(1);
+    float provider_width = ImGui::GetContentRegionAvail().x;
+    int provider_columns = provider_width > 560.0f ? 3
+                           : provider_width > 360.0f ? 2
+                                                     : 1;
+    if (ImGui::BeginTable("AgentProviderButtons", provider_columns,
+                          ImGuiTableFlags_SizingStretchSame)) {
+      provider_button(ICON_MD_SETTINGS " Mock", "mock", theme.provider_mock);
+      provider_button(ICON_MD_CLOUD " Ollama", "ollama", theme.provider_ollama);
+      provider_button(ICON_MD_SMART_TOY " Gemini", "gemini",
+                      theme.provider_gemini);
+      provider_button(ICON_MD_PSYCHOLOGY " Anthropic", "anthropic",
+                      theme.provider_openai);
+      provider_button(ICON_MD_AUTO_AWESOME " OpenAI", "openai",
+                      theme.provider_openai);
+      ImGui::EndTable();
+    }
+
+    ImGui::TableNextRow();
+    ImGui::TableSetColumnIndex(0);
+    ImGui::TextDisabled("Ollama Host");
+    ImGui::TableSetColumnIndex(1);
+    ImGui::SetNextItemWidth(-1);
+    if (ImGui::InputTextWithHint("##ollama_host", "http://localhost:11434",
+                                 config.ollama_host_buffer,
+                                 IM_ARRAYSIZE(config.ollama_host_buffer))) {
+      config.ollama_host = config.ollama_host_buffer;
+    }
+
+    auto key_row = [&](const char* label, const char* hint, char* buffer,
+                       size_t buffer_len, std::string* target,
+                       const char* env_var, const char* input_id,
+                       const char* button_id) {
+      ImGui::TableNextRow();
+      ImGui::TableSetColumnIndex(0);
+      ImGui::TextDisabled("%s", label);
+      ImGui::TableSetColumnIndex(1);
+      float input_width =
+          ImGui::GetContentRegionAvail().x - env_button_width -
+          style.ItemSpacing.x;
+      bool stack = input_width < 140.0f;
+      ImGui::SetNextItemWidth(stack ? -1 : input_width);
+      if (ImGui::InputTextWithHint(input_id, hint, buffer, buffer_len,
+                                   ImGuiInputTextFlags_Password)) {
+        if (target) {
+          *target = buffer;
+        }
+      }
+      if (!stack) {
+        ImGui::SameLine();
+      }
+      if (ImGui::SmallButton(button_id)) {
+        const char* env_key = std::getenv(env_var);
+        if (env_key) {
+          std::snprintf(buffer, buffer_len, "%s", env_key);
+          if (target) {
+            *target = env_key;
+          }
+          if (toast_manager) {
+            toast_manager->Show(
+                absl::StrFormat("Loaded %s from environment", env_var),
+                ToastType::kInfo, 2.0f);
+          }
+        } else if (toast_manager) {
+          toast_manager->Show(
+              absl::StrFormat("%s not set", env_var), ToastType::kWarning,
+              2.0f);
+        }
+      }
+    };
+
+    key_row("Gemini Key", "API key...", config.gemini_key_buffer,
+            IM_ARRAYSIZE(config.gemini_key_buffer), &config.gemini_api_key,
+            "GEMINI_API_KEY", "##gemini_key",
+            ICON_MD_SYNC " Env##gemini");
+    key_row("Anthropic Key", "API key...", config.anthropic_key_buffer,
+            IM_ARRAYSIZE(config.anthropic_key_buffer),
+            &config.anthropic_api_key, "ANTHROPIC_API_KEY", "##anthropic_key",
+            ICON_MD_SYNC " Env##anthropic");
+    key_row("OpenAI Key", "API key...", config.openai_key_buffer,
+            IM_ARRAYSIZE(config.openai_key_buffer), &config.openai_api_key,
+            "OPENAI_API_KEY", "##openai_key", ICON_MD_SYNC " Env##openai");
+
+    ImGui::TableNextRow();
+    ImGui::TableSetColumnIndex(0);
+    ImGui::TextDisabled("OpenAI Base");
+    ImGui::TableSetColumnIndex(1);
+    float openai_button_width =
+        ImGui::CalcTextSize("OpenAI").x + compact_padding.x * 2.0f;
+    float lm_button_width =
+        ImGui::CalcTextSize("LM Studio").x + compact_padding.x * 2.0f;
+    float reset_button_width =
+        ImGui::CalcTextSize("Reset").x + compact_padding.x * 2.0f;
+    float total_buttons =
+        openai_button_width + lm_button_width + reset_button_width +
+        style.ItemSpacing.x * 2.0f;
+    float base_available = ImGui::GetContentRegionAvail().x;
+    bool base_stack = base_available < total_buttons + 160.0f;
+    ImGui::SetNextItemWidth(
+        base_stack ? -1 : base_available - total_buttons - style.ItemSpacing.x);
+    if (ImGui::InputTextWithHint("##openai_base", "http://localhost:1234",
+                                 config.openai_base_url_buffer,
+                                 IM_ARRAYSIZE(config.openai_base_url_buffer))) {
+      config.openai_base_url = config.openai_base_url_buffer;
+    }
+    if (base_stack) {
+      ImGui::Spacing();
+    } else {
+      ImGui::SameLine();
+    }
+    if (ImGui::SmallButton("OpenAI")) {
+      set_openai_base("https://api.openai.com");
+    }
+    ImGui::SameLine();
+    if (ImGui::SmallButton("LM Studio")) {
+      set_openai_base("http://localhost:1234");
+    }
+    ImGui::SameLine();
+    if (ImGui::SmallButton("Reset")) {
+      set_openai_base("https://api.openai.com");
+    }
+
     ImGui::EndTable();
   }
-  ImGui::NewLine();
+  ImGui::PopStyleVar(2);
 
-  // Provider-specific configuration
-  ImGui::Text("Ollama Host");
-  ImGui::SetNextItemWidth(-1);
-  if (ImGui::InputTextWithHint("##ollama_host", "http://localhost:11434",
-                               config.ollama_host_buffer,
-                               IM_ARRAYSIZE(config.ollama_host_buffer))) {
-    config.ollama_host = config.ollama_host_buffer;
-  }
-
-  ImGui::Spacing();
-  ImGui::Text("Gemini Key");
-  float env_button_width =
-      ImGui::CalcTextSize(ICON_MD_SYNC " Env").x + style.FramePadding.x * 2.0f;
-  float gemini_input_width =
-      ImGui::GetContentRegionAvail().x - env_button_width -
-      style.ItemSpacing.x;
-  bool gemini_stack = gemini_input_width < 160.0f;
-  if (!gemini_stack) {
-    ImGui::SetNextItemWidth(gemini_input_width);
-  } else {
-    ImGui::SetNextItemWidth(-1);
-  }
-  if (ImGui::InputTextWithHint("##gemini_key", "API key...",
-                               config.gemini_key_buffer,
-                               IM_ARRAYSIZE(config.gemini_key_buffer),
-                               ImGuiInputTextFlags_Password)) {
-    config.gemini_api_key = config.gemini_key_buffer;
-  }
-  if (!gemini_stack) {
-    ImGui::SameLine();
-  }
-  if (ImGui::SmallButton(ICON_MD_SYNC " Env##gemini")) {
-    const char* env_key = std::getenv("GEMINI_API_KEY");
-    if (env_key) {
-      std::snprintf(config.gemini_key_buffer, sizeof(config.gemini_key_buffer),
-                    "%s", env_key);
-      config.gemini_api_key = env_key;
-      if (toast_manager) {
-        toast_manager->Show("Loaded GEMINI_API_KEY from environment",
-                            ToastType::kInfo, 2.0f);
-      }
-    } else if (toast_manager) {
-      toast_manager->Show("GEMINI_API_KEY not set", ToastType::kWarning, 2.0f);
-    }
-  }
-
-  ImGui::Spacing();
-  ImGui::Text("Anthropic Key");
-  float anthropic_input_width =
-      ImGui::GetContentRegionAvail().x - env_button_width -
-      style.ItemSpacing.x;
-  bool anthropic_stack = anthropic_input_width < 160.0f;
-  if (!anthropic_stack) {
-    ImGui::SetNextItemWidth(anthropic_input_width);
-  } else {
-    ImGui::SetNextItemWidth(-1);
-  }
-  if (ImGui::InputTextWithHint("##anthropic_key", "API key...",
-                               config.anthropic_key_buffer,
-                               IM_ARRAYSIZE(config.anthropic_key_buffer),
-                               ImGuiInputTextFlags_Password)) {
-    config.anthropic_api_key = config.anthropic_key_buffer;
-  }
-  if (!anthropic_stack) {
-    ImGui::SameLine();
-  }
-  if (ImGui::SmallButton(ICON_MD_SYNC " Env##anthropic")) {
-    const char* env_key = std::getenv("ANTHROPIC_API_KEY");
-    if (env_key) {
-      std::snprintf(config.anthropic_key_buffer,
-                    sizeof(config.anthropic_key_buffer), "%s", env_key);
-      config.anthropic_api_key = env_key;
-      if (toast_manager) {
-        toast_manager->Show("Loaded ANTHROPIC_API_KEY from environment",
-                            ToastType::kInfo, 2.0f);
-      }
-    } else if (toast_manager) {
-      toast_manager->Show("ANTHROPIC_API_KEY not set", ToastType::kWarning,
-                          2.0f);
-    }
-  }
-
-  ImGui::Spacing();
-  ImGui::Text("OpenAI Key");
-  float openai_input_width =
-      ImGui::GetContentRegionAvail().x - env_button_width -
-      style.ItemSpacing.x;
-  bool openai_stack = openai_input_width < 160.0f;
-  if (!openai_stack) {
-    ImGui::SetNextItemWidth(openai_input_width);
-  } else {
-    ImGui::SetNextItemWidth(-1);
-  }
-  if (ImGui::InputTextWithHint("##openai_key", "API key...",
-                               config.openai_key_buffer,
-                               IM_ARRAYSIZE(config.openai_key_buffer),
-                               ImGuiInputTextFlags_Password)) {
-    config.openai_api_key = config.openai_key_buffer;
-  }
-  if (!openai_stack) {
-    ImGui::SameLine();
-  }
-  if (ImGui::SmallButton(ICON_MD_SYNC " Env##openai")) {
-    const char* env_key = std::getenv("OPENAI_API_KEY");
-    if (env_key) {
-      std::snprintf(config.openai_key_buffer, sizeof(config.openai_key_buffer),
-                    "%s", env_key);
-      config.openai_api_key = env_key;
-      if (toast_manager) {
-        toast_manager->Show("Loaded OPENAI_API_KEY from environment",
-                            ToastType::kInfo, 2.0f);
-      }
-    } else if (toast_manager) {
-      toast_manager->Show("OPENAI_API_KEY not set", ToastType::kWarning, 2.0f);
-    }
-  }
-
-  auto set_openai_base = [&](const std::string& base_url) {
-    std::snprintf(config.openai_base_url_buffer,
-                  sizeof(config.openai_base_url_buffer), "%s",
-                  base_url.c_str());
-    config.openai_base_url = config.openai_base_url_buffer;
-  };
-
-  ImGui::Spacing();
-  ImGui::Text("OpenAI Base URL");
-  ImGui::SetNextItemWidth(-1);
-  if (ImGui::InputTextWithHint("##openai_base", "http://localhost:1234",
-                               config.openai_base_url_buffer,
-                               IM_ARRAYSIZE(config.openai_base_url_buffer))) {
-    config.openai_base_url = config.openai_base_url_buffer;
-  }
   if (IsLocalEndpoint(config.openai_base_url)) {
     ImGui::TextColored(theme.status_success,
                        ICON_MD_COMPUTER " Local OpenAI-compatible server");
@@ -322,54 +321,71 @@ void AgentConfigPanel::RenderModelConfigControls(
     ImGui::TextColored(theme.text_secondary_color,
                        ICON_MD_PUBLIC " Remote OpenAI endpoint");
   }
-  if (ImGui::SmallButton("OpenAI")) {
-    set_openai_base("https://api.openai.com");
-  }
-  ImGui::SameLine();
-  if (ImGui::SmallButton("LM Studio")) {
-    set_openai_base("http://localhost:1234");
-  }
-  ImGui::SameLine();
-  if (ImGui::SmallButton("Reset Base")) {
-    set_openai_base("https://api.openai.com");
-  }
 
   ImGui::Spacing();
 
-  // Unified Model Selection
-  ImGui::SetNextItemWidth(-1);
-  if (ImGui::InputTextWithHint("##ai_model", "Model name...",
-                               config.model_buffer,
-                               IM_ARRAYSIZE(config.model_buffer))) {
-    config.ai_model = config.model_buffer;
-  }
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, compact_padding);
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, compact_spacing);
+  if (ImGui::BeginTable("AgentModelControls", 2,
+                        ImGuiTableFlags_SizingFixedFit |
+                            ImGuiTableFlags_BordersInnerV)) {
+    ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed,
+                            label_width);
+    ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
 
-  // Provider filter checkbox for unified model list
-  static bool filter_by_provider = false;
-  ImGui::Checkbox("Filter by selected provider", &filter_by_provider);
-  ImGui::SameLine();
-  AgentUI::HorizontalSpacing(8.0f);
-  ImGui::SameLine();
+    ImGui::TableNextRow();
+    ImGui::TableSetColumnIndex(0);
+    ImGui::TextDisabled("Model");
+    ImGui::TableSetColumnIndex(1);
+    ImGui::SetNextItemWidth(-1);
+    if (ImGui::InputTextWithHint("##ai_model", "Model name...",
+                                 config.model_buffer,
+                                 IM_ARRAYSIZE(config.model_buffer))) {
+      config.ai_model = config.model_buffer;
+    }
 
-  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 60.0f);
-  ImGui::InputTextWithHint("##model_search", "Search all models...",
-                           model_cache.search_buffer,
-                           IM_ARRAYSIZE(model_cache.search_buffer));
-  ImGui::SameLine();
-  if (model_cache.search_buffer[0] != '\0') {
-    if (ImGui::SmallButton(ICON_MD_CLEAR)) {
-      model_cache.search_buffer[0] = '\0';
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Clear search");
-    }
+    ImGui::TableNextRow();
+    ImGui::TableSetColumnIndex(0);
+    ImGui::TextDisabled("Filter");
+    ImGui::TableSetColumnIndex(1);
+    ImGui::Checkbox("Provider", &filter_by_provider);
     ImGui::SameLine();
-  }
-  if (ImGui::Button(model_cache.loading ? ICON_MD_SYNC : ICON_MD_REFRESH)) {
-    if (callbacks.refresh_models) {
-      callbacks.refresh_models(true);
+    AgentUI::HorizontalSpacing(6.0f);
+    ImGui::SameLine();
+
+    float refresh_width =
+        ImGui::CalcTextSize(ICON_MD_REFRESH).x + compact_padding.x * 2.0f;
+    float clear_width =
+        ImGui::CalcTextSize(ICON_MD_CLEAR).x + compact_padding.x * 2.0f;
+    float search_width = ImGui::GetContentRegionAvail().x - refresh_width -
+                         style.ItemSpacing.x;
+    if (model_cache.search_buffer[0] != '\0') {
+      search_width -= clear_width + style.ItemSpacing.x;
     }
+    ImGui::SetNextItemWidth(search_width);
+    ImGui::InputTextWithHint("##model_search", "Search models...",
+                             model_cache.search_buffer,
+                             IM_ARRAYSIZE(model_cache.search_buffer));
+    ImGui::SameLine();
+    if (model_cache.search_buffer[0] != '\0') {
+      if (ImGui::SmallButton(ICON_MD_CLEAR)) {
+        model_cache.search_buffer[0] = '\0';
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Clear search");
+      }
+      ImGui::SameLine();
+    }
+    if (ImGui::SmallButton(model_cache.loading ? ICON_MD_SYNC
+                                               : ICON_MD_REFRESH)) {
+      if (callbacks.refresh_models) {
+        callbacks.refresh_models(true);
+      }
+    }
+
+    ImGui::EndTable();
   }
+  ImGui::PopStyleVar(2);
   if (!model_cache.available_models.empty() ||
       !model_cache.local_model_names.empty()) {
     const int provider_count =
@@ -386,233 +402,231 @@ void AgentConfigPanel::RenderModelConfigControls(
     }
   }
 
-  // Use theme color for model list background
   ImGui::PushStyleColor(ImGuiCol_ChildBg, theme.panel_bg_darker);
   float list_height =
-      std::max(240.0f, ImGui::GetContentRegionAvail().y * 0.6f);
+      std::max(220.0f, ImGui::GetContentRegionAvail().y * 0.6f);
   ImGui::BeginChild("UnifiedModelList", ImVec2(0, list_height), true);
   std::string filter = absl::AsciiStrToLower(model_cache.search_buffer);
 
-  if (model_cache.available_models.empty() && model_cache.model_names.empty()) {
+  struct ModelRow {
+    std::string name;
+    std::string provider;
+    std::string param_size;
+    std::string quantization;
+    std::string family;
+    uint64_t size_bytes = 0;
+    bool is_local = false;
+    bool is_file = false;
+  };
+
+  std::vector<ModelRow> rows;
+  if (!model_cache.available_models.empty()) {
+    rows.reserve(model_cache.available_models.size());
+    for (const auto& info : model_cache.available_models) {
+      ModelRow row;
+      row.name = info.name;
+      row.provider = info.provider;
+      row.param_size = info.parameter_size;
+      row.quantization = info.quantization;
+      row.family = info.family;
+      row.size_bytes = info.size_bytes;
+      row.is_local = info.is_local;
+      rows.push_back(std::move(row));
+    }
+  } else {
+    rows.reserve(model_cache.model_names.size());
+    for (const auto& model_name : model_cache.model_names) {
+      ModelRow row;
+      row.name = model_name;
+      row.provider = config.ai_provider;
+      rows.push_back(std::move(row));
+    }
+  }
+
+  if (!filter_by_provider && !model_cache.local_model_names.empty()) {
+    for (const auto& model_name : model_cache.local_model_names) {
+      ModelRow row;
+      row.name = model_name;
+      row.provider = "local";
+      row.is_local = true;
+      row.is_file = true;
+      rows.push_back(std::move(row));
+    }
+  }
+
+  auto get_provider_color = [&theme](const std::string& provider) -> ImVec4 {
+    if (provider == "ollama")
+      return theme.provider_ollama;
+    if (provider == "gemini")
+      return theme.provider_gemini;
+    if (provider == "anthropic")
+      return theme.provider_openai;
+    if (provider == "openai")
+      return theme.provider_openai;
+    return theme.provider_mock;
+  };
+
+  auto matches_filter = [&](const ModelRow& row) {
+    if (filter.empty()) {
+      return true;
+    }
+    std::string lower_name = absl::AsciiStrToLower(row.name);
+    std::string lower_provider = absl::AsciiStrToLower(row.provider);
+    if (ContainsText(lower_name, filter) ||
+        ContainsText(lower_provider, filter)) {
+      return true;
+    }
+    if (!row.param_size.empty() &&
+        ContainsText(absl::AsciiStrToLower(row.param_size), filter)) {
+      return true;
+    }
+    if (!row.family.empty() &&
+        ContainsText(absl::AsciiStrToLower(row.family), filter)) {
+      return true;
+    }
+    if (!row.quantization.empty() &&
+        ContainsText(absl::AsciiStrToLower(row.quantization), filter)) {
+      return true;
+    }
+    return false;
+  };
+
+  if (rows.empty()) {
     ImGui::TextDisabled("No cached models. Refresh to discover.");
   } else {
-    auto get_provider_color = [&theme](const std::string& provider) -> ImVec4 {
-      if (provider == "ollama")
-        return theme.provider_ollama;
-      if (provider == "gemini")
-        return theme.provider_gemini;
-      if (provider == "anthropic")
-        return theme.provider_openai;
-      if (provider == "openai")
-        return theme.provider_openai;
-      return theme.provider_mock;
-    };
+    float list_width = ImGui::GetContentRegionAvail().x;
+    bool compact = list_width < 520.0f;
+    int column_count = compact ? 3 : 5;
+    ImGuiTableFlags table_flags =
+        ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH |
+        ImGuiTableFlags_SizingStretchProp;
+    if (ImGui::BeginTable("ModelTable", column_count, table_flags)) {
+      if (compact) {
+        ImGui::TableSetupColumn("Provider", ImGuiTableColumnFlags_WidthFixed,
+                                90.0f);
+        ImGui::TableSetupColumn("Model", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed,
+                                70.0f);
+      } else {
+        ImGui::TableSetupColumn("Provider", ImGuiTableColumnFlags_WidthFixed,
+                                90.0f);
+        ImGui::TableSetupColumn("Model", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("Size", ImGuiTableColumnFlags_WidthFixed,
+                                80.0f);
+        ImGui::TableSetupColumn("Meta", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed,
+                                80.0f);
+      }
+      ImGui::TableHeadersRow();
 
-    if (!model_cache.available_models.empty()) {
-      int model_index = 0;
-      for (const auto& info : model_cache.available_models) {
-        std::string lower_name = absl::AsciiStrToLower(info.name);
-        std::string lower_provider = absl::AsciiStrToLower(info.provider);
-
-        if (filter_by_provider && info.provider != config.ai_provider) {
-          continue;
-        }
-
-        if (!filter.empty()) {
-          bool match = ContainsText(lower_name, filter) ||
-                       ContainsText(lower_provider, filter);
-          if (!match && !info.parameter_size.empty()) {
-            match = ContainsText(absl::AsciiStrToLower(info.parameter_size),
-                                 filter);
+      int row_id = 0;
+      for (const auto& row : rows) {
+        if (filter_by_provider) {
+          if (row.provider == "local") {
+            continue;
           }
-          if (!match && !info.family.empty()) {
-            match = ContainsText(absl::AsciiStrToLower(info.family), filter);
-          }
-          if (!match) {
+          if (!row.provider.empty() && row.provider != config.ai_provider) {
             continue;
           }
         }
 
-        ImGui::PushID(model_index++);
-
-        bool is_selected = config.ai_model == info.name;
-
-        ImVec4 provider_color = get_provider_color(info.provider);
-        ImGui::PushStyleColor(ImGuiCol_Button, provider_color);
-        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 8.0f);
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 2));
-        ImGui::SmallButton(info.provider.c_str());
-        ImGui::PopStyleVar(2);
-        ImGui::PopStyleColor();
-        ImGui::SameLine();
-
-        if (ImGui::Selectable(
-                info.name.c_str(), is_selected, ImGuiSelectableFlags_None,
-                ImVec2(ImGui::GetContentRegionAvail().x - 60, 0))) {
-          config.ai_model = info.name;
-          config.ai_provider = info.provider;
-          std::snprintf(config.model_buffer, sizeof(config.model_buffer), "%s",
-                        info.name.c_str());
-          std::snprintf(config.provider_buffer, sizeof(config.provider_buffer),
-                        "%s", info.provider.c_str());
-        }
-
-        ImGui::SameLine();
-        bool is_favorite = std::find(config.favorite_models.begin(),
-                                     config.favorite_models.end(),
-                                     info.name) != config.favorite_models.end();
-        ImGui::PushStyleColor(ImGuiCol_Text, is_favorite
-                                                 ? theme.status_warning
-                                                 : theme.text_secondary_color);
-        if (ImGui::SmallButton(is_favorite ? ICON_MD_STAR
-                                           : ICON_MD_STAR_BORDER)) {
-          if (is_favorite) {
-            config.favorite_models.erase(
-                std::remove(config.favorite_models.begin(),
-                            config.favorite_models.end(), info.name),
-                config.favorite_models.end());
-            config.model_chain.erase(
-                std::remove(config.model_chain.begin(),
-                            config.model_chain.end(), info.name),
-                config.model_chain.end());
-          } else {
-            config.favorite_models.push_back(info.name);
-          }
-        }
-        ImGui::PopStyleColor();
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(is_favorite ? "Remove from favorites"
-                                        : "Favorite model");
-        }
-
-        ImGui::SameLine();
-        if (ImGui::SmallButton(ICON_MD_NOTE_ADD)) {
-          ModelPreset preset;
-          preset.name = info.name;
-          preset.model = info.name;
-          preset.provider = info.provider;
-          if (info.provider == "ollama") {
-            preset.host = config.ollama_host;
-          } else if (info.provider == "openai") {
-            preset.host = config.openai_base_url;
-          }
-          preset.tags = {info.provider};
-          preset.last_used = absl::Now();
-          config.model_presets.push_back(std::move(preset));
-          if (toast_manager) {
-            toast_manager->Show("Preset captured", ToastType::kSuccess, 2.0f);
-          }
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Capture preset from this model");
-        }
-
-        std::string size_label = info.parameter_size.empty()
-                                     ? FormatByteSize(info.size_bytes)
-                                     : info.parameter_size;
-        ImGui::TextColored(theme.text_secondary_color, "  %s",
-                           size_label.c_str());
-        if (!info.quantization.empty()) {
-          ImGui::SameLine();
-          ImGui::TextColored(theme.text_info, "  %s",
-                             info.quantization.c_str());
-        }
-        if (!info.family.empty()) {
-          ImGui::SameLine();
-          ImGui::TextColored(theme.text_secondary_gray, "  Family: %s",
-                             info.family.c_str());
-        }
-        if (info.is_local) {
-          ImGui::SameLine();
-          ImGui::TextColored(theme.status_success, "  " ICON_MD_COMPUTER);
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("Running locally");
-          }
-        }
-        ImGui::Separator();
-        ImGui::PopID();
-      }
-    } else {
-      // Fallback to just names
-      if (!model_cache.local_model_names.empty()) {
-        ImGui::TextDisabled(ICON_MD_FOLDER " Local model files");
-      }
-      int model_index = 0;
-      for (const auto& model_name : model_cache.model_names) {
-        std::string lower = absl::AsciiStrToLower(model_name);
-        if (!filter.empty() && !ContainsText(lower, filter)) {
+        if (!matches_filter(row)) {
           continue;
         }
 
-        ImGui::PushID(model_index++);
+        ImGui::PushID(row_id++);
+        ImGui::TableNextRow();
 
-        bool is_selected = config.ai_model == model_name;
-        if (ImGui::Selectable(model_name.c_str(), is_selected)) {
-          config.ai_model = model_name;
-          std::snprintf(config.model_buffer, sizeof(config.model_buffer), "%s",
-                        model_name.c_str());
+        ImGui::TableSetColumnIndex(0);
+        if (row.provider.empty()) {
+          ImGui::TextDisabled("-");
+        } else if (row.provider == "local") {
+          ImGui::TextDisabled(ICON_MD_FOLDER " local");
+        } else {
+          ImVec4 provider_color = get_provider_color(row.provider);
+          ImGui::PushStyleColor(ImGuiCol_Button, provider_color);
+          ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6.0f);
+          ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 1));
+          ImGui::SmallButton(row.provider.c_str());
+          ImGui::PopStyleVar(2);
+          ImGui::PopStyleColor();
         }
 
-        ImGui::SameLine();
-        bool is_favorite =
-            std::find(config.favorite_models.begin(),
-                      config.favorite_models.end(),
-                      model_name) != config.favorite_models.end();
-        ImGui::PushStyleColor(ImGuiCol_Text, is_favorite
-                                                 ? theme.status_warning
-                                                 : theme.text_secondary_color);
-        if (ImGui::SmallButton(is_favorite ? ICON_MD_STAR
-                                           : ICON_MD_STAR_BORDER)) {
-          if (is_favorite) {
-            config.favorite_models.erase(
-                std::remove(config.favorite_models.begin(),
-                            config.favorite_models.end(), model_name),
-                config.favorite_models.end());
-          } else {
-            config.favorite_models.push_back(model_name);
+        ImGui::TableSetColumnIndex(1);
+        bool is_selected = config.ai_model == row.name;
+        if (ImGui::Selectable(row.name.c_str(), is_selected)) {
+          config.ai_model = row.name;
+          std::snprintf(config.model_buffer, sizeof(config.model_buffer), "%s",
+                        row.name.c_str());
+          if (!row.provider.empty() && row.provider != "local") {
+            config.ai_provider = row.provider;
+            std::snprintf(config.provider_buffer,
+                          sizeof(config.provider_buffer), "%s",
+                          row.provider.c_str());
           }
         }
-        ImGui::PopStyleColor();
-        ImGui::Separator();
-        ImGui::PopID();
-      }
-    }
 
-    if (!filter_by_provider && !model_cache.local_model_names.empty() &&
-        !model_cache.available_models.empty()) {
-      ImGui::Spacing();
-      ImGui::Separator();
-      ImGui::TextDisabled(ICON_MD_FOLDER " Local model files");
-      int local_index = 0;
-      for (const auto& model_name : model_cache.local_model_names) {
-        std::string lower = absl::AsciiStrToLower(model_name);
-        if (!filter.empty() && !ContainsText(lower, filter)) {
-          continue;
-        }
-
-        ImGui::PushID(local_index++);
-
-        bool is_selected = config.ai_model == model_name;
-        ImGui::TextColored(theme.text_secondary_color, ICON_MD_COMPUTER);
-        ImGui::SameLine();
-        if (ImGui::Selectable(
-                model_name.c_str(), is_selected, ImGuiSelectableFlags_None,
-                ImVec2(ImGui::GetContentRegionAvail().x - 60, 0))) {
-          config.ai_model = model_name;
-          std::snprintf(config.model_buffer, sizeof(config.model_buffer), "%s",
-                        model_name.c_str());
-        }
-        if (ImGui::IsItemHovered()) {
+        if (row.is_file && ImGui::IsItemHovered()) {
           ImGui::SetTooltip(
               "Local file detected. Serve this model via LM Studio/Ollama to "
               "use it.");
         }
 
-        ImGui::SameLine();
+        std::string size_label = row.param_size;
+        if (size_label.empty() && row.size_bytes > 0) {
+          size_label = FormatByteSize(row.size_bytes);
+        }
+
+        if (!compact) {
+          ImGui::TableSetColumnIndex(2);
+          ImGui::TextColored(theme.text_secondary_color, "%s",
+                             size_label.c_str());
+
+          ImGui::TableSetColumnIndex(3);
+          if (!row.quantization.empty()) {
+            ImGui::TextColored(theme.text_info, "%s",
+                               row.quantization.c_str());
+            if (!row.family.empty()) {
+              ImGui::SameLine();
+            }
+          }
+          if (!row.family.empty()) {
+            ImGui::TextColored(theme.text_secondary_gray, "%s",
+                               row.family.c_str());
+          }
+          if (row.is_local && !row.is_file) {
+            ImGui::SameLine();
+            ImGui::TextColored(theme.status_success, ICON_MD_COMPUTER);
+          }
+        } else if (ImGui::IsItemHovered() && (!size_label.empty() ||
+                                             !row.quantization.empty() ||
+                                             !row.family.empty())) {
+          std::string meta;
+          if (!size_label.empty()) {
+            meta += size_label;
+          }
+          if (!row.quantization.empty()) {
+            if (!meta.empty()) {
+              meta += " • ";
+            }
+            meta += row.quantization;
+          }
+          if (!row.family.empty()) {
+            if (!meta.empty()) {
+              meta += " • ";
+            }
+            meta += row.family;
+          }
+          ImGui::SetTooltip("%s", meta.c_str());
+        }
+
+        int action_column = compact ? 2 : 4;
+        ImGui::TableSetColumnIndex(action_column);
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 1));
         bool is_favorite =
             std::find(config.favorite_models.begin(),
                       config.favorite_models.end(),
-                      model_name) != config.favorite_models.end();
+                      row.name) != config.favorite_models.end();
         ImGui::PushStyleColor(ImGuiCol_Text, is_favorite
                                                  ? theme.status_warning
                                                  : theme.text_secondary_color);
@@ -621,16 +635,52 @@ void AgentConfigPanel::RenderModelConfigControls(
           if (is_favorite) {
             config.favorite_models.erase(
                 std::remove(config.favorite_models.begin(),
-                            config.favorite_models.end(), model_name),
+                            config.favorite_models.end(), row.name),
                 config.favorite_models.end());
+            config.model_chain.erase(
+                std::remove(config.model_chain.begin(),
+                            config.model_chain.end(), row.name),
+                config.model_chain.end());
           } else {
-            config.favorite_models.push_back(model_name);
+            config.favorite_models.push_back(row.name);
           }
         }
         ImGui::PopStyleColor();
-        ImGui::Separator();
+
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(is_favorite ? "Remove from favorites"
+                                        : "Favorite model");
+        }
+
+        if (!row.provider.empty() && row.provider != "local") {
+          ImGui::SameLine();
+          if (ImGui::SmallButton(ICON_MD_NOTE_ADD)) {
+            ModelPreset preset;
+            preset.name = row.name;
+            preset.model = row.name;
+            preset.provider = row.provider;
+            if (row.provider == "ollama") {
+              preset.host = config.ollama_host;
+            } else if (row.provider == "openai") {
+              preset.host = config.openai_base_url;
+            }
+            preset.tags = {row.provider};
+            preset.last_used = absl::Now();
+            config.model_presets.push_back(std::move(preset));
+            if (toast_manager) {
+              toast_manager->Show("Preset captured", ToastType::kSuccess,
+                                  2.0f);
+            }
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Capture preset from this model");
+          }
+        }
+        ImGui::PopStyleVar();
+
         ImGui::PopID();
       }
+      ImGui::EndTable();
     }
   }
   ImGui::EndChild();
@@ -715,20 +765,30 @@ void AgentConfigPanel::RenderModelDeck(AgentUIContext* context,
                                        const Callbacks& callbacks,
                                        ToastManager* toast_manager) {
   const auto& theme = AgentUI::GetTheme();
+  ImGuiStyle& style = ImGui::GetStyle();
   auto& config = context->agent_config();
   auto& model_cache = context->model_cache();
 
-  ImGui::TextDisabled("Model Deck");
+  ImGui::TextDisabled("Presets");
   if (config.model_presets.empty()) {
-    ImGui::TextWrapped(
-        "Capture a preset to quickly swap between hosts/models with consistent "
-        "tool stacks.");
+    ImGui::TextDisabled("Capture a preset to swap models quickly.");
+  }
+
+  float capture_width =
+      ImGui::CalcTextSize(ICON_MD_NOTE_ADD " Capture").x +
+      style.FramePadding.x * 2.0f;
+  float capture_input_width = ImGui::GetContentRegionAvail().x -
+                              capture_width - style.ItemSpacing.x;
+  if (capture_input_width > 120.0f) {
+    ImGui::SetNextItemWidth(capture_input_width);
   }
   ImGui::InputTextWithHint("##new_preset_name", "Preset name...",
                            model_cache.new_preset_name,
                            IM_ARRAYSIZE(model_cache.new_preset_name));
-  ImGui::SameLine();
-  if (ImGui::SmallButton(ICON_MD_NOTE_ADD " Capture Current")) {
+  if (capture_input_width > 120.0f) {
+    ImGui::SameLine();
+  }
+  if (ImGui::SmallButton(ICON_MD_NOTE_ADD " Capture")) {
     ModelPreset preset;
     preset.name = model_cache.new_preset_name[0]
                       ? std::string(model_cache.new_preset_name)
@@ -751,58 +811,84 @@ void AgentConfigPanel::RenderModelDeck(AgentUIContext* context,
 
   ImGui::PushStyleColor(ImGuiCol_ChildBg, theme.panel_bg_darker);
   float deck_height =
-      std::max(120.0f, ImGui::GetContentRegionAvail().y * 0.5f);
+      std::max(90.0f, ImGui::GetContentRegionAvail().y * 0.32f);
   ImGui::BeginChild("PresetList", ImVec2(0, deck_height), true);
   if (config.model_presets.empty()) {
     ImGui::TextDisabled("No presets yet");
   } else {
-    for (int i = 0; i < static_cast<int>(config.model_presets.size()); ++i) {
-      auto& preset = config.model_presets[i];
-      ImGui::PushID(i);
-      bool selected = model_cache.active_preset_index == i;
-      if (ImGui::Selectable(preset.name.c_str(), selected)) {
-        model_cache.active_preset_index = i;
-        if (callbacks.apply_preset) {
-          callbacks.apply_preset(preset);
+    ImGuiTableFlags table_flags =
+        ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH |
+        ImGuiTableFlags_SizingStretchProp;
+    if (ImGui::BeginTable("PresetTable", 3, table_flags)) {
+      ImGui::TableSetupColumn("Preset", ImGuiTableColumnFlags_WidthStretch);
+      ImGui::TableSetupColumn("Host/Provider",
+                              ImGuiTableColumnFlags_WidthStretch);
+      ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed,
+                              90.0f);
+      ImGui::TableHeadersRow();
+
+      for (int i = 0; i < static_cast<int>(config.model_presets.size()); ++i) {
+        auto& preset = config.model_presets[i];
+        ImGui::PushID(i);
+        ImGui::TableNextRow();
+
+        ImGui::TableSetColumnIndex(0);
+        bool selected = model_cache.active_preset_index == i;
+        if (ImGui::Selectable(preset.name.c_str(), selected)) {
+          model_cache.active_preset_index = i;
+          if (callbacks.apply_preset) {
+            callbacks.apply_preset(preset);
+          }
         }
-      }
-      ImGui::SameLine();
-      if (ImGui::SmallButton(ICON_MD_PLAY_ARROW "##apply")) {
-        model_cache.active_preset_index = i;
-        if (callbacks.apply_preset) {
-          callbacks.apply_preset(preset);
+        if (ImGui::IsItemHovered()) {
+          std::string tooltip = absl::StrFormat("Model: %s", preset.model);
+          if (!preset.tags.empty()) {
+            tooltip += absl::StrFormat("\nTags: %s",
+                                       absl::StrJoin(preset.tags, ", "));
+          }
+          if (preset.last_used != absl::InfinitePast()) {
+            tooltip += absl::StrFormat("\nLast used %s",
+                                       FormatRelativeTime(preset.last_used));
+          }
+          ImGui::SetTooltip("%s", tooltip.c_str());
         }
-      }
-      ImGui::SameLine();
-      if (ImGui::SmallButton(preset.pinned ? ICON_MD_STAR
-                                           : ICON_MD_STAR_BORDER)) {
-        preset.pinned = !preset.pinned;
-      }
-      ImGui::SameLine();
-      if (ImGui::SmallButton(ICON_MD_DELETE)) {
-        config.model_presets.erase(config.model_presets.begin() + i);
-        if (model_cache.active_preset_index == i) {
-          model_cache.active_preset_index = -1;
+
+        ImGui::TableSetColumnIndex(1);
+        if (!preset.host.empty()) {
+          ImGui::TextDisabled("%s", preset.host.c_str());
+        } else if (!preset.provider.empty()) {
+          ImGui::TextDisabled("%s", preset.provider.c_str());
+        } else {
+          ImGui::TextDisabled("-");
         }
+
+        ImGui::TableSetColumnIndex(2);
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 1));
+        if (ImGui::SmallButton(ICON_MD_PLAY_ARROW "##apply")) {
+          model_cache.active_preset_index = i;
+          if (callbacks.apply_preset) {
+            callbacks.apply_preset(preset);
+          }
+        }
+        ImGui::SameLine();
+        if (ImGui::SmallButton(preset.pinned ? ICON_MD_STAR
+                                             : ICON_MD_STAR_BORDER)) {
+          preset.pinned = !preset.pinned;
+        }
+        ImGui::SameLine();
+        if (ImGui::SmallButton(ICON_MD_DELETE)) {
+          config.model_presets.erase(config.model_presets.begin() + i);
+          if (model_cache.active_preset_index == i) {
+            model_cache.active_preset_index = -1;
+          }
+          ImGui::PopStyleVar();
+          ImGui::PopID();
+          break;
+        }
+        ImGui::PopStyleVar();
         ImGui::PopID();
-        break;
       }
-      if (!preset.host.empty()) {
-        ImGui::TextDisabled("%s", preset.host.c_str());
-      }
-      if (!preset.provider.empty()) {
-        ImGui::TextDisabled("Provider: %s", preset.provider.c_str());
-      }
-      if (!preset.tags.empty()) {
-        ImGui::TextDisabled("Tags: %s",
-                            absl::StrJoin(preset.tags, ", ").c_str());
-      }
-      if (preset.last_used != absl::InfinitePast()) {
-        ImGui::TextDisabled("Last used %s",
-                            FormatRelativeTime(preset.last_used).c_str());
-      }
-      ImGui::Separator();
-      ImGui::PopID();
+      ImGui::EndTable();
     }
   }
   ImGui::EndChild();
@@ -840,20 +926,25 @@ void AgentConfigPanel::RenderToolingControls(
       {"Sprite", &config.tool_config.sprite, "Sprite palette/properties"},
       {"Emulator", &config.tool_config.emulator, "Emulator controls"}};
 
+  ImGui::TextDisabled(
+      "Expose tools in the agent sidebar and editor panels.");
   int columns = ImGui::GetContentRegionAvail().x > 360.0f ? 2 : 1;
-  ImGui::Columns(columns, nullptr, false);
-  for (size_t i = 0; i < std::size(entries); ++i) {
-    if (ImGui::Checkbox(entries[i].label, entries[i].flag)) {
-      if (callbacks.apply_tool_preferences) {
-        callbacks.apply_tool_preferences();
+  ImGuiTableFlags table_flags =
+      ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_RowBg;
+  if (ImGui::BeginTable("AgentToolTable", columns, table_flags)) {
+    for (size_t i = 0; i < std::size(entries); ++i) {
+      ImGui::TableNextColumn();
+      if (ImGui::Checkbox(entries[i].label, entries[i].flag)) {
+        if (callbacks.apply_tool_preferences) {
+          callbacks.apply_tool_preferences();
+        }
+      }
+      if (ImGui::IsItemHovered() && entries[i].hint) {
+        ImGui::SetTooltip("%s", entries[i].hint);
       }
     }
-    if (ImGui::IsItemHovered() && entries[i].hint) {
-      ImGui::SetTooltip("%s", entries[i].hint);
-    }
-    ImGui::NextColumn();
+    ImGui::EndTable();
   }
-  ImGui::Columns(1);
 }
 
 void AgentConfigPanel::RenderChainModeControls(
