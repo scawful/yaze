@@ -29,6 +29,11 @@ void HandleListModels(const httplib::Request& req, httplib::Response& res);
 void HandleGetSymbols(const httplib::Request& req, httplib::Response& res,
                       yaze::emu::debug::SymbolProvider* symbols);
 
+// Mesen2 bridge endpoints
+void HandleNavigate(const httplib::Request& req, httplib::Response& res);
+void HandleBreakpointHit(const httplib::Request& req, httplib::Response& res);
+void HandleStateUpdate(const httplib::Request& req, httplib::Response& res);
+
 }  // namespace api
 }  // namespace cli
 }  // namespace yaze

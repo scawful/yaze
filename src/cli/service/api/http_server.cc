@@ -67,6 +67,10 @@ void HttpServer::RegisterRoutes() {
     HandleGetSymbols(req, res, symbols);
   });
 
+  server_->Post("/api/v1/navigate", HandleNavigate);
+  server_->Post("/api/v1/breakpoint/hit", HandleBreakpointHit);
+  server_->Post("/api/v1/state/update", HandleStateUpdate);
+
   server_->Post("/api/v1/window/show",
                 [this](const httplib::Request&, httplib::Response& res) {
                   if (window_show_) {
