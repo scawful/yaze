@@ -104,6 +104,10 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
       prefs->ollama_url = val;
     } else if (key == "gemini_api_key") {
       prefs->gemini_api_key = val;
+    } else if (key == "openai_api_key") {
+      prefs->openai_api_key = val;
+    } else if (key == "anthropic_api_key") {
+      prefs->anthropic_api_key = val;
     } else if (key == "ai_temperature") {
       prefs->ai_temperature = std::stof(val);
     } else if (key == "ai_max_tokens") {
@@ -222,6 +226,8 @@ absl::Status SavePreferencesToIni(const std::filesystem::path& path,
   ss << "ai_model=" << prefs.ai_model << "\n";
   ss << "ollama_url=" << prefs.ollama_url << "\n";
   ss << "gemini_api_key=" << prefs.gemini_api_key << "\n";
+  ss << "openai_api_key=" << prefs.openai_api_key << "\n";
+  ss << "anthropic_api_key=" << prefs.anthropic_api_key << "\n";
   ss << "ai_temperature=" << prefs.ai_temperature << "\n";
   ss << "ai_max_tokens=" << prefs.ai_max_tokens << "\n";
   ss << "ai_proactive=" << (prefs.ai_proactive ? 1 : 0) << "\n";
@@ -382,6 +388,34 @@ void EnsureDefaultFilesystemRoots(UserSettings::Preferences* prefs) {
   }
 }
 
+void EnsureDefaultModelPaths(UserSettings::Preferences* prefs) {
+  if (!prefs) {
+    return;
+  }
+  if (!prefs->ai_model_paths.empty()) {
+    return;
+  }
+
+  auto add_unique_path = [&](const std::filesystem::path& path) {
+    if (path.empty()) {
+      return;
+    }
+    const std::string path_str = path.string();
+    auto it = std::find(prefs->ai_model_paths.begin(),
+                        prefs->ai_model_paths.end(), path_str);
+    if (it == prefs->ai_model_paths.end()) {
+      prefs->ai_model_paths.push_back(path_str);
+    }
+  };
+
+  const auto home_dir = util::PlatformPaths::GetHomeDirectory();
+  if (!home_dir.empty() && home_dir != ".") {
+    add_unique_path(home_dir / "models");
+    add_unique_path(home_dir / ".lmstudio" / "models");
+    add_unique_path(home_dir / ".ollama" / "models");
+  }
+}
+
 void LoadStringMap(const json& src,
                    std::unordered_map<std::string, std::string>* target) {
   if (!target || !src.is_object()) {
@@ -521,6 +555,13 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
     prefs->ai_model = ai.value("model", prefs->ai_model);
     prefs->ollama_url = ai.value("ollama_url", prefs->ollama_url);
     prefs->gemini_api_key = ai.value("gemini_api_key", prefs->gemini_api_key);
+    prefs->openai_api_key = ai.value("openai_api_key", prefs->openai_api_key);
+    prefs->anthropic_api_key =
+        ai.value("anthropic_api_key", prefs->anthropic_api_key);
+    std::string google_key = ai.value("google_api_key", std::string());
+    if (prefs->gemini_api_key.empty() && !google_key.empty()) {
+      prefs->gemini_api_key = google_key;
+    }
     prefs->ai_temperature =
         ai.value("temperature", prefs->ai_temperature);
     prefs->ai_max_tokens = ai.value("max_tokens", prefs->ai_max_tokens);
@@ -533,6 +574,14 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
         ai.value("active_profile", prefs->active_ai_profile);
     prefs->remote_build_host_id =
         ai.value("remote_build_host_id", prefs->remote_build_host_id);
+    if (ai.contains("model_paths") && ai["model_paths"].is_array()) {
+      prefs->ai_model_paths.clear();
+      for (const auto& item : ai["model_paths"]) {
+        if (item.is_string()) {
+          prefs->ai_model_paths.push_back(item.get<std::string>());
+        }
+      }
+    }
 
     if (ai.contains("hosts") && ai["hosts"].is_array()) {
       prefs->ai_hosts.clear();
@@ -731,6 +780,9 @@ absl::Status SavePreferencesToJson(const std::filesystem::path& path,
       {"model", prefs.ai_model},
       {"ollama_url", prefs.ollama_url},
       {"gemini_api_key", prefs.gemini_api_key},
+      {"google_api_key", prefs.gemini_api_key},
+      {"openai_api_key", prefs.openai_api_key},
+      {"anthropic_api_key", prefs.anthropic_api_key},
       {"temperature", prefs.ai_temperature},
       {"max_tokens", prefs.ai_max_tokens},
       {"proactive", prefs.ai_proactive},
@@ -741,6 +793,7 @@ absl::Status SavePreferencesToJson(const std::filesystem::path& path,
       {"profiles", ai_profiles},
       {"active_profile", prefs.active_ai_profile},
       {"remote_build_host_id", prefs.remote_build_host_id},
+      {"model_paths", prefs.ai_model_paths},
   };
 
   root["logging"] = {
@@ -862,6 +915,7 @@ absl::Status UserSettings::Load() {
     EnsureDefaultAiHosts(&prefs_);
     EnsureDefaultAiProfiles(&prefs_);
     EnsureDefaultFilesystemRoots(&prefs_);
+    EnsureDefaultModelPaths(&prefs_);
 #endif
 
     ImGui::GetIO().FontGlobalScale = prefs_.font_global_scale;

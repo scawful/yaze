@@ -169,7 +169,9 @@ absl::StatusOr<std::vector<ModelInfo>> OpenAIAIService::ListAvailableModels() {
 #ifndef YAZE_WITH_JSON
   return absl::UnimplementedError("OpenAI AI service requires JSON support");
 #else
-  if (config_.api_key.empty()) {
+  const bool is_openai_cloud =
+      absl::StrContains(config_.base_url, "api.openai.com");
+  if (config_.api_key.empty() && is_openai_cloud) {
     // Return default known models if API key is missing
     std::vector<ModelInfo> defaults = {
         {.name = "gpt-4o",

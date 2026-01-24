@@ -549,8 +549,47 @@ void SettingsPanel::DrawAIAgentSettings() {
   auto& hosts = prefs.ai_hosts;
   static int selected_host_index = -1;
 
+  auto draw_key_row = [&](const char* label, std::string* key,
+                          const char* env_var, const char* id) {
+    ImGui::PushID(id);
+    ImGui::Text("%s", label);
+    const ImVec2 button_size =
+        ImGui::CalcTextSize(ICON_MD_SYNC " Env");
+    float env_button_width =
+        button_size.x + ImGui::GetStyle().FramePadding.x * 2.0f;
+    float input_width = ImGui::GetContentRegionAvail().x - env_button_width -
+                        ImGui::GetStyle().ItemSpacing.x;
+    bool stack = input_width < 160.0f;
+    ImGui::SetNextItemWidth(stack ? -1.0f : input_width);
+    if (ImGui::InputTextWithHint("##key", "API key...", key,
+                                 ImGuiInputTextFlags_Password)) {
+      user_settings_->Save();
+    }
+    if (!stack) {
+      ImGui::SameLine();
+    }
+    if (ImGui::SmallButton(ICON_MD_SYNC " Env")) {
+      const char* env_key = std::getenv(env_var);
+      if (env_key) {
+        *key = env_key;
+        user_settings_->Save();
+      }
+    }
+    ImGui::Spacing();
+    ImGui::PopID();
+  };
+
+  ImGui::Text("%s Provider Keys", ICON_MD_VPN_KEY);
+  ImGui::Separator();
+  draw_key_row("OpenAI", &prefs.openai_api_key, "OPENAI_API_KEY", "openai_key");
+  draw_key_row("Anthropic", &prefs.anthropic_api_key, "ANTHROPIC_API_KEY",
+               "anthropic_key");
+  draw_key_row("Google (Gemini)", &prefs.gemini_api_key, "GEMINI_API_KEY",
+               "gemini_key");
+  ImGui::Spacing();
+
   // Provider selection
-  ImGui::Text("%s Provider Defaults", ICON_MD_CLOUD);
+  ImGui::Text("%s Provider Defaults (legacy)", ICON_MD_CLOUD);
   ImGui::Separator();
 
   const char* providers[] = {"Ollama (Local)", "Gemini (Cloud)", "Mock (Testing)"};
@@ -751,7 +790,8 @@ void SettingsPanel::DrawAIAgentSettings() {
       user_settings_->Save();
     }
 
-    const char* api_types[] = {"openai", "ollama", "gemini", "lmstudio", "grpc"};
+    const char* api_types[] = {"openai", "ollama", "gemini", "anthropic",
+                               "lmstudio", "grpc"};
     int api_index = 0;
     for (int i = 0; i < IM_ARRAYSIZE(api_types); ++i) {
       if (host.api_type == api_types[i]) {
@@ -798,25 +838,90 @@ void SettingsPanel::DrawAIAgentSettings() {
   }
 
   ImGui::Spacing();
+  ImGui::Text("%s Local Model Paths", ICON_MD_FOLDER);
+  ImGui::Separator();
 
-  if (user_settings_->prefs().ai_provider == 0) {  // Ollama
-    char url_buffer[256];
-    strncpy(url_buffer, user_settings_->prefs().ollama_url.c_str(),
-            sizeof(url_buffer) - 1);
-    url_buffer[sizeof(url_buffer) - 1] = '\0';
-    if (ImGui::InputText("URL", url_buffer, IM_ARRAYSIZE(url_buffer))) {
-      user_settings_->prefs().ollama_url = url_buffer;
+  auto& model_paths = prefs.ai_model_paths;
+  static int selected_model_path = -1;
+  static std::string new_model_path;
+
+  if (model_paths.empty()) {
+    ImGui::TextDisabled("No model paths configured.");
+  }
+
+  if (ImGui::BeginChild("ModelPathsList", ImVec2(0, 120), true)) {
+    for (size_t i = 0; i < model_paths.size(); ++i) {
+      std::string label =
+          util::PlatformPaths::NormalizePathForDisplay(model_paths[i]);
+      if (ImGui::Selectable(label.c_str(),
+                            selected_model_path == static_cast<int>(i))) {
+        selected_model_path = static_cast<int>(i);
+      }
+    }
+  }
+  ImGui::EndChild();
+
+  const bool has_model_selection =
+      selected_model_path >= 0 &&
+      selected_model_path < static_cast<int>(model_paths.size());
+  if (has_model_selection) {
+    if (ImGui::Button(ICON_MD_DELETE " Remove")) {
+      model_paths.erase(model_paths.begin() + selected_model_path);
+      selected_model_path =
+          model_paths.empty()
+              ? -1
+              : std::min(selected_model_path,
+                         static_cast<int>(model_paths.size() - 1));
       user_settings_->Save();
     }
-  } else if (user_settings_->prefs().ai_provider == 1) {  // Gemini
-    char key_buffer[128];
-    strncpy(key_buffer, user_settings_->prefs().gemini_api_key.c_str(),
-            sizeof(key_buffer) - 1);
-    key_buffer[sizeof(key_buffer) - 1] = '\0';
-    if (ImGui::InputText("API Key", key_buffer, IM_ARRAYSIZE(key_buffer),
-                  ImGuiInputTextFlags_Password)) {
-      user_settings_->prefs().gemini_api_key = key_buffer;
+  }
+
+  ImGui::Spacing();
+  ImGui::InputTextWithHint("##model_path_add", "Add folder path...",
+                           &new_model_path);
+  if (ImGui::Button(ICON_MD_ADD " Add Path")) {
+    const std::string trimmed =
+        std::string(absl::StripAsciiWhitespace(new_model_path));
+    if (!trimmed.empty() && AddUniquePath(&model_paths, trimmed)) {
       user_settings_->Save();
+      new_model_path.clear();
+    }
+  }
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_FOLDER_OPEN " Browse")) {
+    const std::string folder = util::FileDialogWrapper::ShowOpenFolderDialog();
+    if (!folder.empty() && AddUniquePath(&model_paths, folder)) {
+      user_settings_->Save();
+    }
+  }
+
+  ImGui::Spacing();
+  ImGui::Text("%s Quick Add", ICON_MD_BOLT);
+  ImGui::Separator();
+  const auto home_dir = util::PlatformPaths::GetHomeDirectory();
+  if (ImGui::Button(ICON_MD_HOME " Add ~/models")) {
+    if (!home_dir.empty() && home_dir != ".") {
+      if (AddUniquePath(&model_paths, (home_dir / "models").string())) {
+        user_settings_->Save();
+      }
+    }
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Add ~/.lmstudio/models")) {
+    if (!home_dir.empty() && home_dir != ".") {
+      if (AddUniquePath(&model_paths,
+                        (home_dir / ".lmstudio" / "models").string())) {
+        user_settings_->Save();
+      }
+    }
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Add ~/.ollama/models")) {
+    if (!home_dir.empty() && home_dir != ".") {
+      if (AddUniquePath(&model_paths,
+                        (home_dir / ".ollama" / "models").string())) {
+        user_settings_->Save();
+      }
     }
   }
 

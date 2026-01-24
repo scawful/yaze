@@ -120,7 +120,8 @@ UICoordinator::UICoordinator(
 #ifdef YAZE_BUILD_AGENT_UI
       editor_manager_->ShowAIAgent();
 #endif
-      // Keep welcome screen visible - user may want to do other things
+      // Exit welcome so the agent panels can be interacted with
+      SetStartupSurface(StartupSurface::kEditor);
     }
   });
 
@@ -140,6 +141,7 @@ UICoordinator::UICoordinator(
   welcome_screen_->SetOpenProjectManagementCallback([this]() {
     if (editor_manager_) {
       editor_manager_->ShowProjectManagement();
+      SetStartupSurface(StartupSurface::kDashboard);
     }
   });
 
@@ -153,6 +155,7 @@ UICoordinator::UICoordinator(
       return;
     }
     editor_manager_->ShowProjectFileEditor();
+    SetStartupSurface(StartupSurface::kDashboard);
   });
 }
 

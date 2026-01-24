@@ -1616,6 +1616,13 @@ absl::Status EditorManager::Update() {
     ui_coordinator_->DrawAllUI();
   }
 
+  if (ui_coordinator_ && ui_coordinator_->ShouldShowWelcome()) {
+    if (right_panel_manager_) {
+      right_panel_manager_->ClosePanel();
+    }
+    return absl::OkStatus();
+  }
+
   // Get current editor set for sidebar/panel logic (needed before early return)
   auto* current_editor_set = GetCurrentEditorSet();
 

@@ -84,23 +84,50 @@ void CopyStringToBuffer(const std::string& src, char (&dest)[N]) {
   dest[N - 1] = '\0';
 }
 
+std::string ResolveHostApiKey(
+    const UserSettings::Preferences* prefs,
+    const UserSettings::Preferences::AiHost& host) {
+  if (!host.api_key.empty()) {
+    return host.api_key;
+  }
+  if (!host.credential_id.empty()) {
+    if (auto key = LoadKeychainValue(host.credential_id)) {
+      return *key;
+    }
+  }
+  if (!prefs) {
+    return {};
+  }
+  std::string api_type = host.api_type.empty() ? "openai" : host.api_type;
+  if (api_type == "lmstudio") {
+    api_type = "openai";
+  }
+  if (api_type == "openai") {
+    return prefs->openai_api_key;
+  }
+  if (api_type == "gemini") {
+    return prefs->gemini_api_key;
+  }
+  if (api_type == "anthropic") {
+    return prefs->anthropic_api_key;
+  }
+  return {};
+}
+
 void ApplyHostPresetToProfile(AgentEditor::BotProfile* profile,
-                              const UserSettings::Preferences::AiHost& host) {
+                              const UserSettings::Preferences::AiHost& host,
+                              const UserSettings::Preferences* prefs) {
   if (!profile) {
     return;
   }
-  std::string api_key = host.api_key;
-  if (api_key.empty() && !host.credential_id.empty()) {
-    if (auto key = LoadKeychainValue(host.credential_id)) {
-      api_key = *key;
-    }
-  }
+  std::string api_key = ResolveHostApiKey(prefs, host);
   profile->host_id = host.id;
   std::string api_type = host.api_type;
   if (api_type == "lmstudio") {
     api_type = "openai";
   }
-  if (api_type == "openai" || api_type == "ollama" || api_type == "gemini") {
+  if (api_type == "openai" || api_type == "ollama" || api_type == "gemini" ||
+      api_type == "anthropic") {
     profile->provider = api_type;
   }
   if (profile->provider == "openai") {
@@ -117,6 +144,10 @@ void ApplyHostPresetToProfile(AgentEditor::BotProfile* profile,
   } else if (profile->provider == "gemini") {
     if (!api_key.empty()) {
       profile->gemini_api_key = api_key;
+    }
+  } else if (profile->provider == "anthropic") {
+    if (!api_key.empty()) {
+      profile->anthropic_api_key = api_key;
     }
   }
 }
@@ -372,7 +403,7 @@ void AgentEditor::ApplyUserSettingsDefaults(bool force) {
     if (!active_id.empty()) {
       for (const auto& host : prefs.ai_hosts) {
         if (host.id == active_id) {
-          ApplyHostPresetToProfile(&current_profile_, host);
+          ApplyHostPresetToProfile(&current_profile_, host, &prefs);
           applied = true;
           break;
         }
@@ -402,6 +433,21 @@ void AgentEditor::ApplyUserSettingsDefaults(bool force) {
       }
     }
   }
+  if (current_profile_.openai_api_key.empty() &&
+      !prefs.openai_api_key.empty()) {
+    current_profile_.openai_api_key = prefs.openai_api_key;
+    applied = true;
+  }
+  if (current_profile_.gemini_api_key.empty() &&
+      !prefs.gemini_api_key.empty()) {
+    current_profile_.gemini_api_key = prefs.gemini_api_key;
+    applied = true;
+  }
+  if (current_profile_.anthropic_api_key.empty() &&
+      !prefs.anthropic_api_key.empty()) {
+    current_profile_.anthropic_api_key = prefs.anthropic_api_key;
+    applied = true;
+  }
   if (applied) {
     MarkProfileUiDirty();
     SyncConfigFromProfile();
@@ -421,6 +467,7 @@ void AgentEditor::SyncProfileUiState() {
                                            : current_profile_.ollama_host,
       ui.ollama_host_buf);
   CopyStringToBuffer(current_profile_.gemini_api_key, ui.gemini_key_buf);
+  CopyStringToBuffer(current_profile_.anthropic_api_key, ui.anthropic_key_buf);
   CopyStringToBuffer(current_profile_.openai_api_key, ui.openai_key_buf);
   CopyStringToBuffer(
       current_profile_.openai_base_url.empty() ? "https://api.openai.com"
@@ -501,6 +548,7 @@ void AgentEditor::InitializeWithDependencies(ToastManager* toast_manager,
   std::string env_ollama_host = env_value("OLLAMA_HOST");
   std::string env_ollama_model = env_value("OLLAMA_MODEL");
   std::string env_gemini_model = env_value("GEMINI_MODEL");
+  std::string env_anthropic_model = env_value("ANTHROPIC_MODEL");
 
   if (!env_ollama_host.empty() &&
       current_profile_.ollama_host != env_ollama_host) {
@@ -525,6 +573,12 @@ void AgentEditor::InitializeWithDependencies(ToastManager* toast_manager,
     profile_updated = true;
   }
 
+  if (const char* anthropic_key = std::getenv("ANTHROPIC_API_KEY")) {
+    current_profile_.anthropic_api_key = anthropic_key;
+    current_config_.anthropic_api_key = anthropic_key;
+    profile_updated = true;
+  }
+
   if (const char* openai_key = std::getenv("OPENAI_API_KEY")) {
     current_profile_.openai_api_key = openai_key;
     current_config_.openai_api_key = openai_key;
@@ -542,6 +596,16 @@ void AgentEditor::InitializeWithDependencies(ToastManager* toast_manager,
       if (current_profile_.model.empty()) {
         current_profile_.model =
             env_gemini_model.empty() ? "gemini-2.5-flash" : env_gemini_model;
+        current_config_.model = current_profile_.model;
+      }
+      profile_updated = true;
+    } else if (!current_profile_.anthropic_api_key.empty()) {
+      current_profile_.provider = "anthropic";
+      current_config_.provider = "anthropic";
+      if (current_profile_.model.empty()) {
+        current_profile_.model = env_anthropic_model.empty()
+                                     ? "claude-3-5-sonnet-20241022"
+                                     : env_anthropic_model;
         current_config_.model = current_profile_.model;
       }
       profile_updated = true;
@@ -579,6 +643,12 @@ void AgentEditor::InitializeWithDependencies(ToastManager* toast_manager,
       !env_openai_model.empty()) {
     current_profile_.model = env_openai_model;
     current_config_.model = env_openai_model;
+    profile_updated = true;
+  }
+  if (current_profile_.provider == "anthropic" &&
+      current_profile_.model.empty() && !env_anthropic_model.empty()) {
+    current_profile_.model = env_anthropic_model;
+    current_config_.model = env_anthropic_model;
     profile_updated = true;
   }
   if (current_profile_.provider == "gemini" && current_profile_.model.empty() &&
@@ -636,6 +706,7 @@ void AgentEditor::SyncConfigFromProfile() {
   current_config_.model = current_profile_.model;
   current_config_.ollama_host = current_profile_.ollama_host;
   current_config_.gemini_api_key = current_profile_.gemini_api_key;
+  current_config_.anthropic_api_key = current_profile_.anthropic_api_key;
   current_config_.openai_api_key = current_profile_.openai_api_key;
   current_config_.openai_base_url =
       NormalizeOpenAIBaseUrl(current_profile_.openai_base_url);
@@ -662,6 +733,7 @@ void AgentEditor::SyncContextFromProfile() {
                                ? "http://localhost:11434"
                                : current_profile_.ollama_host;
   ctx_config.gemini_api_key = current_profile_.gemini_api_key;
+  ctx_config.anthropic_api_key = current_profile_.anthropic_api_key;
   ctx_config.openai_api_key = current_profile_.openai_api_key;
   ctx_config.openai_base_url =
       NormalizeOpenAIBaseUrl(current_profile_.openai_base_url);
@@ -680,6 +752,8 @@ void AgentEditor::SyncContextFromProfile() {
   CopyStringToBuffer(ctx_config.ai_model, ctx_config.model_buffer);
   CopyStringToBuffer(ctx_config.ollama_host, ctx_config.ollama_host_buffer);
   CopyStringToBuffer(ctx_config.gemini_api_key, ctx_config.gemini_key_buffer);
+  CopyStringToBuffer(ctx_config.anthropic_api_key,
+                     ctx_config.anthropic_key_buffer);
   CopyStringToBuffer(ctx_config.openai_api_key, ctx_config.openai_key_buffer);
   CopyStringToBuffer(ctx_config.openai_base_url,
                      ctx_config.openai_base_url_buffer);
@@ -703,6 +777,7 @@ void AgentEditor::ApplyConfigFromContext(const AgentConfigState& config) {
   ctx_config.ollama_host =
       config.ollama_host.empty() ? "http://localhost:11434" : config.ollama_host;
   ctx_config.gemini_api_key = config.gemini_api_key;
+  ctx_config.anthropic_api_key = config.anthropic_api_key;
   ctx_config.openai_api_key = config.openai_api_key;
   ctx_config.openai_base_url = NormalizeOpenAIBaseUrl(config.openai_base_url);
   ctx_config.host_id = config.host_id;
@@ -737,6 +812,8 @@ void AgentEditor::ApplyConfigFromContext(const AgentConfigState& config) {
   CopyStringToBuffer(ctx_config.ai_model, ctx_config.model_buffer);
   CopyStringToBuffer(ctx_config.ollama_host, ctx_config.ollama_host_buffer);
   CopyStringToBuffer(ctx_config.gemini_api_key, ctx_config.gemini_key_buffer);
+  CopyStringToBuffer(ctx_config.anthropic_api_key,
+                     ctx_config.anthropic_key_buffer);
   CopyStringToBuffer(ctx_config.openai_api_key, ctx_config.openai_key_buffer);
   CopyStringToBuffer(ctx_config.openai_base_url,
                      ctx_config.openai_base_url_buffer);
@@ -745,6 +822,7 @@ void AgentEditor::ApplyConfigFromContext(const AgentConfigState& config) {
   current_profile_.model = ctx_config.ai_model;
   current_profile_.ollama_host = ctx_config.ollama_host;
   current_profile_.gemini_api_key = ctx_config.gemini_api_key;
+  current_profile_.anthropic_api_key = ctx_config.anthropic_api_key;
   current_profile_.openai_api_key = ctx_config.openai_api_key;
   current_profile_.openai_base_url = ctx_config.openai_base_url;
   current_profile_.host_id = ctx_config.host_id;
@@ -834,6 +912,7 @@ void AgentEditor::RefreshModelCache(bool force) {
   service_config.model = config.ai_model;
   service_config.ollama_host = config.ollama_host;
   service_config.gemini_api_key = config.gemini_api_key;
+  service_config.anthropic_api_key = config.anthropic_api_key;
   service_config.openai_api_key = config.openai_api_key;
   service_config.openai_base_url =
       NormalizeOpenAIBaseUrl(config.openai_base_url);
@@ -943,30 +1022,16 @@ bool AgentEditor::MaybeAutoDetectLocalProviders() {
     return false;
   }
 
-  auto resolve_key = [](const UserSettings::Preferences::AiHost& host)
-      -> std::string {
-    if (!host.api_key.empty()) {
-      return host.api_key;
-    }
-    if (host.credential_id.empty()) {
-      return {};
-    }
-    if (auto key = LoadKeychainValue(host.credential_id)) {
-      return *key;
-    }
-    return {};
-  };
-
   auto build_host = [&](const UserSettings::Preferences::AiHost& host) {
     auto resolved = host;
     if (resolved.api_key.empty()) {
-      resolved.api_key = resolve_key(host);
+      resolved.api_key = ResolveHostApiKey(&prefs, host);
     }
     return resolved;
   };
 
   auto select_host = [&](const UserSettings::Preferences::AiHost& host) {
-    ApplyHostPresetToProfile(&current_profile_, host);
+    ApplyHostPresetToProfile(&current_profile_, host, &prefs);
     SyncConfigFromProfile();
     ApplyConfig(current_config_);
     MarkProfileUiDirty();
@@ -1020,6 +1085,13 @@ bool AgentEditor::MaybeAutoDetectLocalProviders() {
     }
 
     if (api_type == "gemini") {
+      if (!has_key) {
+        return false;
+      }
+      return select_host(resolved);
+    }
+
+    if (api_type == "anthropic") {
       if (!has_key) {
         return false;
       }
@@ -1107,7 +1179,7 @@ void AgentEditor::DrawConfigurationPanel() {
         for (size_t i = 0; i < hosts.size(); ++i) {
           const bool selected = (static_cast<int>(i) == active_index);
           if (ImGui::Selectable(hosts[i].label.c_str(), selected)) {
-            ApplyHostPresetToProfile(&current_profile_, hosts[i]);
+            ApplyHostPresetToProfile(&current_profile_, hosts[i], &prefs);
             MarkProfileUiDirty();
             SyncContextFromProfile();
           }
@@ -2117,6 +2189,7 @@ std::string AgentEditor::ProfileToJson(const BotProfile& profile) const {
   json["model"] = profile.model;
   json["ollama_host"] = profile.ollama_host;
   json["gemini_api_key"] = profile.gemini_api_key;
+  json["anthropic_api_key"] = profile.anthropic_api_key;
   json["openai_api_key"] = profile.openai_api_key;
   json["openai_base_url"] = profile.openai_base_url;
   json["system_prompt"] = profile.system_prompt;
@@ -2154,6 +2227,7 @@ absl::StatusOr<AgentEditor::BotProfile> AgentEditor::JsonToProfile(
     profile.model = json.value("model", "");
     profile.ollama_host = json.value("ollama_host", "http://localhost:11434");
     profile.gemini_api_key = json.value("gemini_api_key", "");
+    profile.anthropic_api_key = json.value("anthropic_api_key", "");
     profile.openai_api_key = json.value("openai_api_key", "");
     profile.openai_base_url =
         json.value("openai_base_url", "https://api.openai.com");
@@ -2217,6 +2291,7 @@ void AgentEditor::ApplyConfig(const AgentConfig& config) {
       provider_config.model = config.model;
       provider_config.ollama_host = config.ollama_host;
       provider_config.gemini_api_key = config.gemini_api_key;
+      provider_config.anthropic_api_key = config.anthropic_api_key;
       provider_config.openai_api_key = config.openai_api_key;
       provider_config.openai_base_url =
           NormalizeOpenAIBaseUrl(config.openai_base_url);
