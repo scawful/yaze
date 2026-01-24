@@ -2964,6 +2964,14 @@ void EditorManager::SwitchToEditor(EditorType editor_type, bool force_visible,
   editor_activator_.SwitchToEditor(editor_type, force_visible, from_dialog);
 }
 
+void EditorManager::DismissEditorSelection() {
+  if (!ui_coordinator_) {
+    return;
+  }
+  ui_coordinator_->SetEditorSelectionVisible(false);
+  ui_coordinator_->SetStartupSurface(StartupSurface::kEditor);
+}
+
 void EditorManager::ConfigureSession(RomSession* session) {
   if (!session)
     return;

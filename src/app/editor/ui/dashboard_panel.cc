@@ -306,6 +306,7 @@ void DashboardPanel::DrawRecentEditors() {
         if (enabled && editor_manager_) {
           MarkRecentlyUsed(type);
           editor_manager_->SwitchToEditor(type);
+          editor_manager_->DismissEditorSelection();
           show_ = false;
         }
       }
@@ -579,6 +580,7 @@ void DashboardPanel::DrawEditorPanel(const EditorInfo& info, int index,
     if (editor_manager_) {
       MarkRecentlyUsed(info.type);
       editor_manager_->SwitchToEditor(info.type);
+      editor_manager_->DismissEditorSelection();
       show_ = false;
     }
   }
