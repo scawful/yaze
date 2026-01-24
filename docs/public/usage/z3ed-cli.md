@@ -58,6 +58,26 @@ z3ed help dungeon-list-sprites
 
 ---
 
+## Mesen2 Live Debugging
+
+These commands talk to a running **Mesen2-OoS** instance over its local socket
+(`/tmp/mesen2-<pid>.sock`). No ROM is required for these commands.
+
+| Task | Command |
+|------|---------|
+| Game state | `z3ed mesen-gamestate` |
+| Active sprites | `z3ed mesen-sprites` |
+| Active + inactive sprites | `z3ed mesen-sprites --all` |
+| CPU registers | `z3ed mesen-cpu` |
+| Read memory | `z3ed mesen-memory-read --address=0x7E0020 --length=16` |
+| Write memory | `z3ed mesen-memory-write --address=0x7E0010 --data=01` |
+| Disassemble | `z3ed mesen-disasm --address=0x008000 --count=20` |
+| Trace | `z3ed mesen-trace --count=50` |
+| Breakpoints | `z3ed mesen-breakpoint --action=add --address=0x008000` |
+| Control | `z3ed mesen-control --action=pause` |
+
+---
+
 ## AI Agent Workflows
 
 ### Interactive Chat
@@ -129,6 +149,7 @@ echo "Describe room 1" | z3ed agent simple-chat --rom=zelda3.sfc --stdout
 | Issue | Solution |
 |-------|----------|
 | `agent simple-chat` hangs | Verify `ollama serve` is running or `GEMINI_API_KEY`/`OPENAI_API_KEY`/`ANTHROPIC_API_KEY` is set |
+| `mesen-*` commands fail to connect | Launch Mesen2-OoS and ensure the socket exists under `/tmp/mesen2-*.sock` |
 | Missing `libgrpc` or `absl` | Rebuild with `*-ai` preset |
 | ROM not found | Use absolute paths or set `YAZE_DEFAULT_ROM` |
 | Command not found | Run `z3ed --help` to verify build is current |
