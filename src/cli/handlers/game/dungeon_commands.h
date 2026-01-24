@@ -50,6 +50,28 @@ class DungeonDescribeRoomCommandHandler : public resources::CommandHandler {
 };
 
 /**
+ * @brief Command handler for inspecting a dungeon entrance
+ */
+class DungeonGetEntranceCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const { return "dungeon-get-entrance"; }
+  std::string GetDescription() const {
+    return "Get entrance metadata for a dungeon room";
+  }
+  std::string GetUsage() const {
+    return "dungeon-get-entrance --entrance <entrance_id> [--spawn] "
+           "[--format <json|text>]";
+  }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"entrance"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+/**
  * @brief Command handler for exporting room data
  */
 class DungeonExportRoomCommandHandler : public resources::CommandHandler {
