@@ -510,6 +510,9 @@ void AgentConfigPanel::RenderModelConfigControls(
       }
     } else {
       // Fallback to just names
+      if (!model_cache.local_model_names.empty()) {
+        ImGui::TextDisabled(ICON_MD_FOLDER " Local model files");
+      }
       int model_index = 0;
       for (const auto& model_name : model_cache.model_names) {
         std::string lower = absl::AsciiStrToLower(model_name);
@@ -524,6 +527,61 @@ void AgentConfigPanel::RenderModelConfigControls(
           config.ai_model = model_name;
           std::snprintf(config.model_buffer, sizeof(config.model_buffer), "%s",
                         model_name.c_str());
+        }
+
+        ImGui::SameLine();
+        bool is_favorite =
+            std::find(config.favorite_models.begin(),
+                      config.favorite_models.end(),
+                      model_name) != config.favorite_models.end();
+        ImGui::PushStyleColor(ImGuiCol_Text, is_favorite
+                                                 ? theme.status_warning
+                                                 : theme.text_secondary_color);
+        if (ImGui::SmallButton(is_favorite ? ICON_MD_STAR
+                                           : ICON_MD_STAR_BORDER)) {
+          if (is_favorite) {
+            config.favorite_models.erase(
+                std::remove(config.favorite_models.begin(),
+                            config.favorite_models.end(), model_name),
+                config.favorite_models.end());
+          } else {
+            config.favorite_models.push_back(model_name);
+          }
+        }
+        ImGui::PopStyleColor();
+        ImGui::Separator();
+        ImGui::PopID();
+      }
+    }
+
+    if (!filter_by_provider && !model_cache.local_model_names.empty() &&
+        !model_cache.available_models.empty()) {
+      ImGui::Spacing();
+      ImGui::Separator();
+      ImGui::TextDisabled(ICON_MD_FOLDER " Local model files");
+      int local_index = 0;
+      for (const auto& model_name : model_cache.local_model_names) {
+        std::string lower = absl::AsciiStrToLower(model_name);
+        if (!filter.empty() && !ContainsText(lower, filter)) {
+          continue;
+        }
+
+        ImGui::PushID(local_index++);
+
+        bool is_selected = config.ai_model == model_name;
+        ImGui::TextColored(theme.text_secondary_color, ICON_MD_COMPUTER);
+        ImGui::SameLine();
+        if (ImGui::Selectable(
+                model_name.c_str(), is_selected, ImGuiSelectableFlags_None,
+                ImVec2(ImGui::GetContentRegionAvail().x - 60, 0))) {
+          config.ai_model = model_name;
+          std::snprintf(config.model_buffer, sizeof(config.model_buffer), "%s",
+                        model_name.c_str());
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(
+              "Local file detected. Serve this model via LM Studio/Ollama to "
+              "use it.");
         }
 
         ImGui::SameLine();

@@ -7,6 +7,7 @@
 #include <fstream>
 #include <memory>
 #include <optional>
+#include <unordered_set>
 
 #include "app/editor/agent/agent_ui_theme.h"
 // Centralized UI theme
@@ -82,6 +83,189 @@ template <size_t N>
 void CopyStringToBuffer(const std::string& src, char (&dest)[N]) {
   std::strncpy(dest, src.c_str(), N - 1);
   dest[N - 1] = '\0';
+}
+
+std::filesystem::path ExpandUserPath(const std::string& input) {
+  if (input.empty()) {
+    return {};
+  }
+  if (input.front() != '~') {
+    return std::filesystem::path(input);
+  }
+  const auto home_dir = util::PlatformPaths::GetHomeDirectory();
+  if (home_dir.empty() || home_dir == ".") {
+    return std::filesystem::path(input);
+  }
+  if (input.size() == 1) {
+    return home_dir;
+  }
+  if (input[1] == '/' || input[1] == '\\') {
+    return home_dir / input.substr(2);
+  }
+  return home_dir / input.substr(1);
+}
+
+bool HasModelExtension(const std::filesystem::path& path) {
+  const std::string ext =
+      absl::AsciiStrToLower(path.extension().string());
+  return ext == ".gguf" || ext == ".ggml" || ext == ".bin" ||
+         ext == ".safetensors";
+}
+
+void AddUniqueModelName(const std::string& name,
+                        std::vector<std::string>* output,
+                        std::unordered_set<std::string>* seen) {
+  if (!output || !seen || name.empty()) {
+    return;
+  }
+  if (output->size() >= 512) {
+    return;
+  }
+  if (seen->insert(name).second) {
+    output->push_back(name);
+  }
+}
+
+bool IsOllamaModelsPath(const std::filesystem::path& path) {
+  if (path.filename() != "models") {
+    return false;
+  }
+  return path.parent_path().filename() == ".ollama";
+}
+
+void CollectOllamaManifestModels(const std::filesystem::path& models_root,
+                                 std::vector<std::string>* output,
+                                 std::unordered_set<std::string>* seen) {
+  if (!output || !seen) {
+    return;
+  }
+  std::error_code ec;
+  const auto library_path =
+      models_root / "manifests" / "registry.ollama.ai" / "library";
+  if (!std::filesystem::exists(library_path, ec)) {
+    return;
+  }
+  std::filesystem::directory_options options =
+      std::filesystem::directory_options::skip_permission_denied;
+  for (std::filesystem::recursive_directory_iterator it(library_path, options,
+                                                        ec),
+       end;
+       it != end; it.increment(ec)) {
+    if (ec) {
+      ec.clear();
+      continue;
+    }
+    if (!it->is_regular_file(ec)) {
+      continue;
+    }
+    const auto rel = it->path().lexically_relative(library_path);
+    if (rel.empty()) {
+      continue;
+    }
+    std::vector<std::string> parts;
+    for (const auto& part : rel) {
+      if (!part.empty()) {
+        parts.push_back(part.string());
+      }
+    }
+    if (parts.empty()) {
+      continue;
+    }
+    std::string model = parts.front();
+    std::string tag;
+    for (size_t i = 1; i < parts.size(); ++i) {
+      if (!tag.empty()) {
+        tag += "/";
+      }
+      tag += parts[i];
+    }
+    const std::string name = tag.empty() ? model : model + ":" + tag;
+    AddUniqueModelName(name, output, seen);
+    if (output->size() >= 512) {
+      return;
+    }
+  }
+}
+
+void CollectModelFiles(const std::filesystem::path& base_path,
+                       std::vector<std::string>* output,
+                       std::unordered_set<std::string>* seen) {
+  if (!output || !seen) {
+    return;
+  }
+  std::error_code ec;
+  if (!std::filesystem::exists(base_path, ec)) {
+    return;
+  }
+  std::filesystem::directory_options options =
+      std::filesystem::directory_options::skip_permission_denied;
+  constexpr int kMaxDepth = 4;
+  for (std::filesystem::recursive_directory_iterator it(base_path, options,
+                                                        ec),
+       end;
+       it != end; it.increment(ec)) {
+    if (ec) {
+      ec.clear();
+      continue;
+    }
+    if (it->is_directory(ec)) {
+      if (it.depth() >= kMaxDepth) {
+        it.disable_recursion_pending();
+      }
+      continue;
+    }
+    if (!it->is_regular_file(ec)) {
+      continue;
+    }
+    if (!HasModelExtension(it->path())) {
+      continue;
+    }
+    std::filesystem::path rel = it->path().lexically_relative(base_path);
+    if (rel.empty()) {
+      rel = it->path().filename();
+    }
+    rel.replace_extension();
+    std::string name = rel.generic_string();
+    AddUniqueModelName(name, output, seen);
+    if (output->size() >= 512) {
+      return;
+    }
+  }
+}
+
+std::vector<std::string> CollectLocalModelNames(
+    const UserSettings::Preferences* prefs) {
+  std::vector<std::string> results;
+  if (!prefs) {
+    return results;
+  }
+  std::unordered_set<std::string> seen;
+  for (const auto& raw_path : prefs->ai_model_paths) {
+    auto expanded = ExpandUserPath(raw_path);
+    if (expanded.empty()) {
+      continue;
+    }
+    std::error_code ec;
+    if (!std::filesystem::exists(expanded, ec)) {
+      continue;
+    }
+    if (std::filesystem::is_regular_file(expanded, ec)) {
+      std::filesystem::path rel = expanded.filename();
+      rel.replace_extension();
+      AddUniqueModelName(rel.string(), &results, &seen);
+      continue;
+    }
+    if (!std::filesystem::is_directory(expanded, ec)) {
+      continue;
+    }
+    if (IsOllamaModelsPath(expanded)) {
+      CollectOllamaManifestModels(expanded, &results, &seen);
+      continue;
+    }
+    CollectModelFiles(expanded, &results, &seen);
+  }
+  std::sort(results.begin(), results.end());
+  return results;
 }
 
 std::string ResolveHostApiKey(
@@ -904,6 +1088,12 @@ void AgentEditor::RefreshModelCache(bool force) {
   model_cache.auto_refresh_requested = true;
   model_cache.available_models.clear();
   model_cache.model_names.clear();
+  model_cache.local_model_names.clear();
+
+  if (dependencies_.user_settings) {
+    model_cache.local_model_names =
+        CollectLocalModelNames(&dependencies_.user_settings->prefs());
+  }
 
   const auto& config = context_->agent_config();
   cli::AIServiceConfig service_config;
@@ -921,6 +1111,8 @@ void AgentEditor::RefreshModelCache(bool force) {
   auto service_or = cli::CreateAIServiceStrict(service_config);
   if (!service_or.ok()) {
     model_cache.loading = false;
+    model_cache.model_names = model_cache.local_model_names;
+    model_cache.last_refresh = absl::Now();
     if (toast_manager_) {
       toast_manager_->Show(std::string(service_or.status().message()),
                            ToastType::kWarning, 2.0f);
@@ -931,6 +1123,8 @@ void AgentEditor::RefreshModelCache(bool force) {
   auto models_or = service_or.value()->ListAvailableModels();
   if (!models_or.ok()) {
     model_cache.loading = false;
+    model_cache.model_names = model_cache.local_model_names;
+    model_cache.last_refresh = absl::Now();
     if (toast_manager_) {
       toast_manager_->Show(std::string(models_or.status().message()),
                            ToastType::kWarning, 2.0f);
@@ -939,10 +1133,10 @@ void AgentEditor::RefreshModelCache(bool force) {
   }
 
   model_cache.available_models = models_or.value();
-  model_cache.model_names.clear();
+  std::unordered_set<std::string> seen;
   for (const auto& info : model_cache.available_models) {
     if (!info.name.empty()) {
-      model_cache.model_names.push_back(info.name);
+      AddUniqueModelName(info.name, &model_cache.model_names, &seen);
     }
   }
   std::sort(model_cache.model_names.begin(), model_cache.model_names.end());

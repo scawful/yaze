@@ -179,6 +179,7 @@ enum class ChainMode {
 struct ModelCache {
   std::vector<cli::ModelInfo> available_models;
   std::vector<std::string> model_names;
+  std::vector<std::string> local_model_names;
   absl::Time last_refresh = absl::InfinitePast();
   bool loading = false;
   bool auto_refresh_requested = false;
