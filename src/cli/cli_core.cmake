@@ -16,6 +16,7 @@ set(YAZE_CLI_CORE_SOURCES
   cli/service/resources/command_handler.cc
   cli/service/resources/resource_catalog.cc
   cli/service/resources/resource_context_builder.cc
+  cli/handlers/mesen_handlers.cc
   ${_YAZE_CLI_COMMAND_HANDLERS}
 
   cli/handlers/graphics/gfx.cc
@@ -23,8 +24,6 @@ set(YAZE_CLI_CORE_SOURCES
   cli/handlers/graphics/palette.cc
   cli/handlers/graphics/palette_commands.cc
   cli/handlers/graphics/sprite_commands.cc
-
-  cli/handlers/mesen_handlers.cc
 
   cli/handlers/game/dialogue_commands.cc
   cli/handlers/game/dungeon_commands.cc
