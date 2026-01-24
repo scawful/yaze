@@ -47,11 +47,12 @@ class SettingsPanel {
   void Draw();
 
  private:
-  void DrawGeneralSettings();
+ void DrawGeneralSettings();
   void DrawAppearanceSettings();
   void DrawEditorBehavior();
   void DrawPerformanceSettings();
   void DrawAIAgentSettings();
+  void DrawFilesystemSettings();
   void DrawKeyboardShortcuts();
   void DrawGlobalShortcuts();
   void DrawEditorShortcuts();
