@@ -60,6 +60,8 @@ namespace editor {
 
 namespace {
 
+std::optional<std::string> LoadKeychainValue(const std::string& key);
+
 std::string NormalizeOpenAIBaseUrl(std::string base) {
   if (base.empty()) {
     return "https://api.openai.com";
