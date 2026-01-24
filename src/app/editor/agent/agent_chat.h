@@ -82,9 +82,10 @@ class AgentChat {
 
  private:
   // UI Rendering
-  void RenderToolbar();
+  void RenderToolbar(bool compact);
+  void RenderConversationSidebar(float height);
   void RenderHistory();
-  void RenderInputBox();
+  void RenderInputBox(float height);
   void RenderMessage(const cli::agent::ChatMessage& msg, int index);
   void RenderThinkingIndicator();
   void RenderProposalQuickActions(const cli::agent::ChatMessage& msg, int index);
@@ -101,6 +102,8 @@ class AgentChat {
   };
   std::vector<ContentBlock> ParseMessageContent(const std::string& content);
   void HandleAgentResponse(const absl::StatusOr<cli::agent::ChatMessage>& response);
+  void RefreshConversationList(bool force = false);
+  void SelectConversation(const std::filesystem::path& path);
 
   // Dependencies
   AgentUIContext* context_ = nullptr;
@@ -116,6 +119,18 @@ class AgentChat {
   char input_buffer_[4096] = {};
   bool scroll_to_bottom_ = false;
   bool history_loaded_ = false;
+
+  struct ConversationEntry {
+    std::string title;
+    std::filesystem::path path;
+    absl::Time last_updated = absl::InfinitePast();
+    int message_count = 0;
+    bool is_active = false;
+  };
+  std::vector<ConversationEntry> conversations_;
+  absl::Time last_conversation_refresh_ = absl::InfinitePast();
+  std::filesystem::path active_history_path_;
+  char conversation_filter_[128] = {};
 
   // UI Options (from legacy AgentChatWidget)
   bool auto_scroll_ = true;

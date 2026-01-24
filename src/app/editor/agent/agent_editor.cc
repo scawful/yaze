@@ -35,6 +35,7 @@
 #include "cli/service/ai/service_factory.h"
 #include "httplib.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
+#include "implot.h"
 #include "rom/rom.h"
 #include "util/file_util.h"
 #include "util/platform_paths.h"
@@ -536,11 +537,6 @@ void AgentEditor::Initialize() {
         [this]() { DrawPromptEditorPanel(); }));
     panel_manager->RegisterEditorPanel(std::make_unique<AgentBotProfilesPanel>(
         [this]() { DrawBotProfilesPanel(); }));
-    panel_manager->RegisterEditorPanel(std::make_unique<AgentChatHistoryPanel>(
-        [this]() { DrawChatHistoryViewer(); }));
-    panel_manager->RegisterEditorPanel(
-        std::make_unique<AgentMetricsDashboardPanel>(
-            [this]() { DrawAdvancedMetricsPanel(); }));
     panel_manager->RegisterEditorPanel(std::make_unique<AgentBuilderPanel>(
         [this]() { DrawAgentBuilderPanel(); }));
     panel_manager->RegisterEditorPanel(
@@ -1421,52 +1417,116 @@ void AgentEditor::DrawStatusPanel() {
   const auto& theme = AgentUI::GetTheme();
 
   AgentUI::PushPanelStyle();
-  if (ImGui::BeginChild("ChatStatusCard", ImVec2(0, 140), true)) {
-    AgentUI::RenderSectionHeader(ICON_MD_CHAT, "Chat Status",
+  if (ImGui::BeginChild("AgentStatusCard", ImVec2(0, 150), true)) {
+    AgentUI::RenderSectionHeader(ICON_MD_CHAT, "Agent Status",
                                  theme.accent_color);
 
     bool chat_active = agent_chat_ && *agent_chat_->active();
-    AgentUI::RenderStatusIndicator(chat_active ? "Active" : "Inactive",
-                                   chat_active);
-    ImGui::SameLine();
-    if (!chat_active && ImGui::SmallButton("Open")) {
-      OpenChatWindow();
-    }
+    if (ImGui::BeginTable("AgentStatusTable", 2,
+                          ImGuiTableFlags_SizingStretchProp)) {
+      ImGui::TableNextRow();
+      ImGui::TableSetColumnIndex(0);
+      ImGui::TextDisabled("Chat");
+      ImGui::TableSetColumnIndex(1);
+      AgentUI::RenderStatusIndicator(chat_active ? "Active" : "Inactive",
+                                     chat_active);
+      if (!chat_active) {
+        ImGui::SameLine();
+        if (ImGui::SmallButton("Open")) {
+          OpenChatWindow();
+        }
+      }
 
-    ImGui::Spacing();
-    ImGui::Text("Provider:");
-    ImGui::SameLine();
-    AgentUI::RenderProviderBadge(current_profile_.provider.c_str());
-    if (!current_profile_.model.empty()) {
-      ImGui::TextDisabled("Model: %s", current_profile_.model.c_str());
+      ImGui::TableNextRow();
+      ImGui::TableSetColumnIndex(0);
+      ImGui::TextDisabled("Provider");
+      ImGui::TableSetColumnIndex(1);
+      AgentUI::RenderProviderBadge(current_profile_.provider.c_str());
+      if (!current_profile_.model.empty()) {
+        ImGui::SameLine();
+        ImGui::TextDisabled("%s", current_profile_.model.c_str());
+      }
+
+      ImGui::TableNextRow();
+      ImGui::TableSetColumnIndex(0);
+      ImGui::TextDisabled("ROM");
+      ImGui::TableSetColumnIndex(1);
+      if (rom_ && rom_->is_loaded()) {
+        ImGui::TextColored(theme.status_success, ICON_MD_CHECK_CIRCLE " Loaded");
+        ImGui::SameLine();
+        ImGui::TextDisabled("Tools ready");
+      } else {
+        ImGui::TextColored(theme.status_warning, ICON_MD_WARNING " Not Loaded");
+      }
+      ImGui::EndTable();
     }
   }
   ImGui::EndChild();
 
   ImGui::Spacing();
 
-  if (ImGui::BeginChild("RomStatusCard", ImVec2(0, 110), true)) {
-    AgentUI::RenderSectionHeader(ICON_MD_GAMEPAD, "ROM Context",
+  if (ImGui::BeginChild("AgentMetricsCard", ImVec2(0, 170), true)) {
+    AgentUI::RenderSectionHeader(ICON_MD_ANALYTICS, "Session Metrics",
                                  theme.accent_color);
-    if (rom_ && rom_->is_loaded()) {
-      ImGui::TextColored(theme.status_success, ICON_MD_CHECK_CIRCLE " Loaded");
-      ImGui::TextDisabled("Tools: Ready");
+    if (agent_chat_) {
+      auto metrics = agent_chat_->GetAgentService()->GetMetrics();
+      ImGui::TextDisabled("Messages: %d user / %d agent",
+                          metrics.total_user_messages,
+                          metrics.total_agent_messages);
+      ImGui::TextDisabled("Tool calls: %d  Proposals: %d  Commands: %d",
+                          metrics.total_tool_calls, metrics.total_proposals,
+                          metrics.total_commands);
+      ImGui::TextDisabled("Avg latency: %.2fs  Elapsed: %.2fs",
+                          metrics.average_latency_seconds,
+                          metrics.total_elapsed_seconds);
+
+      std::vector<double> latencies;
+      for (const auto& msg : agent_chat_->GetAgentService()->GetHistory()) {
+        if (msg.sender == cli::agent::ChatMessage::Sender::kAgent &&
+            msg.model_metadata.has_value() &&
+            msg.model_metadata->latency_seconds > 0.0) {
+          latencies.push_back(msg.model_metadata->latency_seconds);
+        }
+      }
+      if (latencies.size() > 30) {
+        latencies.erase(latencies.begin(),
+                        latencies.end() - static_cast<long>(30));
+      }
+      if (!latencies.empty()) {
+        std::vector<double> xs(latencies.size());
+        for (size_t i = 0; i < xs.size(); ++i) {
+          xs[i] = static_cast<double>(i);
+        }
+        ImPlotFlags plot_flags = ImPlotFlags_NoLegend | ImPlotFlags_NoMenus |
+                                 ImPlotFlags_NoBoxSelect;
+        if (ImPlot::BeginPlot("##LatencyPlot", ImVec2(-1, 90), plot_flags)) {
+          ImPlot::SetupAxes(nullptr, nullptr, ImPlotAxisFlags_NoDecorations,
+                            ImPlotAxisFlags_NoDecorations);
+          ImPlot::SetupAxisLimits(ImAxis_X1, 0, xs.back(), ImGuiCond_Always);
+          double max_latency = *std::max_element(latencies.begin(),
+                                                 latencies.end());
+          ImPlot::SetupAxisLimits(ImAxis_Y1, 0, max_latency * 1.2,
+                                  ImGuiCond_Always);
+          ImPlot::PlotLine("Latency", xs.data(), latencies.data(),
+                           static_cast<int>(latencies.size()));
+          ImPlot::EndPlot();
+        }
+      }
     } else {
-      ImGui::TextColored(theme.status_warning, ICON_MD_WARNING " Not Loaded");
-      ImGui::TextDisabled("Load a ROM to enable tool calls.");
+      ImGui::TextDisabled("Initialize the chat system to see metrics.");
     }
   }
   ImGui::EndChild();
 
   ImGui::Spacing();
 
-  if (ImGui::BeginChild("QuickTipsCard", ImVec2(0, 130), true)) {
+  if (ImGui::BeginChild("QuickTipsCard", ImVec2(0, 110), true)) {
     AgentUI::RenderSectionHeader(ICON_MD_TIPS_AND_UPDATES, "Quick Tips",
                                  theme.accent_color);
     ImGui::BulletText("Ctrl+H: Toggle chat popup");
-    ImGui::BulletText("Ctrl+P: View proposals");
+    ImGui::BulletText("Use New Chat to start a fresh thread");
     ImGui::BulletText("Edit prompts in Prompt Editor");
-    ImGui::BulletText("Create and save custom bots");
+    ImGui::BulletText("Capture presets in the model deck");
   }
   ImGui::EndChild();
   AgentUI::PopPanelStyle();
@@ -1906,25 +1966,6 @@ void AgentEditor::DrawAgentBuilderPanel() {
   }
 
   ImGui::BeginChild("AgentBuilderPanel", ImVec2(0, 0), false);
-  ImGui::Columns(2, nullptr, false);
-  ImGui::TextColored(theme.accent_color, "Stages");
-  ImGui::Separator();
-
-  for (size_t i = 0; i < builder_state_.stages.size(); ++i) {
-    auto& stage = builder_state_.stages[i];
-    ImGui::PushID(static_cast<int>(i));
-    bool selected = builder_state_.active_stage == static_cast<int>(i);
-    if (ImGui::Selectable(stage.name.c_str(), selected)) {
-      builder_state_.active_stage = static_cast<int>(i);
-    }
-    ImGui::SameLine(ImGui::GetContentRegionAvail().x - 24.0f);
-    ImGui::Checkbox("##stage_done", &stage.completed);
-    ImGui::PopID();
-  }
-
-  ImGui::NextColumn();
-  ImGui::TextColored(theme.text_info, "Stage Details");
-  ImGui::Separator();
 
   int stage_index =
       std::clamp(builder_state_.active_stage, 0,
@@ -1935,17 +1976,70 @@ void AgentEditor::DrawAgentBuilderPanel() {
       ++completed_stages;
     }
   }
+  float completion_ratio =
+      builder_state_.stages.empty()
+          ? 0.0f
+          : static_cast<float>(completed_stages) /
+                static_cast<float>(builder_state_.stages.size());
+  auto truncate_summary = [](const std::string& text) {
+    constexpr size_t kMaxLen = 64;
+    if (text.size() <= kMaxLen) {
+      return text;
+    }
+    return text.substr(0, kMaxLen - 3) + "...";
+  };
+
+  const float left_width = std::min(
+      260.0f, ImGui::GetContentRegionAvail().x * 0.32f);
+
+  ImGui::BeginChild("BuilderStages", ImVec2(left_width, 0), true);
+  AgentUI::RenderSectionHeader(ICON_MD_LIST, "Stages", theme.accent_color);
+  ImGui::TextDisabled("%d/%zu complete", completed_stages,
+                      builder_state_.stages.size());
+  ImGui::ProgressBar(completion_ratio, ImVec2(-1, 0));
+  ImGui::Spacing();
+
+  for (size_t i = 0; i < builder_state_.stages.size(); ++i) {
+    auto& stage = builder_state_.stages[i];
+    ImGui::PushID(static_cast<int>(i));
+    bool selected = builder_state_.active_stage == static_cast<int>(i);
+    if (ImGui::Selectable(stage.name.c_str(), selected)) {
+      builder_state_.active_stage = static_cast<int>(i);
+      stage_index = static_cast<int>(i);
+    }
+    ImGui::SameLine(ImGui::GetContentRegionAvail().x - 24.0f);
+    ImGui::Checkbox("##stage_done", &stage.completed);
+    ImGui::TextDisabled("%s", truncate_summary(stage.summary).c_str());
+    ImGui::Separator();
+    ImGui::PopID();
+  }
+  ImGui::EndChild();
+
+  ImGui::SameLine();
+
+  ImGui::BeginChild("BuilderDetails", ImVec2(0, 0), false);
+  AgentUI::RenderSectionHeader(ICON_MD_AUTO_FIX_HIGH, "Stage Details",
+                               theme.accent_color);
+  if (stage_index >= 0 &&
+      stage_index < static_cast<int>(builder_state_.stages.size())) {
+    ImGui::TextColored(theme.text_secondary_color, "%s",
+                       builder_state_.stages[stage_index].summary.c_str());
+  }
+  ImGui::Spacing();
 
   switch (stage_index) {
     case 0: {
       static std::string new_goal;
       ImGui::Text("Persona + Goals");
+      ImGui::TextWrapped(
+          "Define the agent's voice, boundaries, and success criteria. Keep "
+          "goals short and action-focused.");
       ImGui::InputTextMultiline("##persona_notes",
-                                &builder_state_.persona_notes, ImVec2(-1, 120));
+                                &builder_state_.persona_notes, ImVec2(-1, 140));
       ImGui::Spacing();
       ImGui::TextDisabled("Add Goal");
-      ImGui::InputTextWithHint("##goal_input", "e.g. Document dungeon plan",
-                               &new_goal);
+      ImGui::InputTextWithHint("##goal_input",
+                               "e.g. Review collision edge cases", &new_goal);
       ImGui::SameLine();
       if (ImGui::Button(ICON_MD_ADD) && !new_goal.empty()) {
         builder_state_.goals.push_back(new_goal);
@@ -1966,48 +2060,58 @@ void AgentEditor::DrawAgentBuilderPanel() {
     }
     case 1: {
       ImGui::Text("Tool Stack");
-      auto tool_checkbox = [&](const char* label, bool* value) {
+      ImGui::TextWrapped(
+          "Enable only what the plan needs. Fewer tools = clearer responses.");
+      auto tool_checkbox = [&](const char* label, bool* value,
+                               const char* hint) {
         ImGui::Checkbox(label, value);
+        ImGui::SameLine();
+        ImGui::TextDisabled("%s", hint);
       };
-      tool_checkbox("Resources", &builder_state_.tools.resources);
-      tool_checkbox("Dungeon", &builder_state_.tools.dungeon);
-      tool_checkbox("Overworld", &builder_state_.tools.overworld);
-      tool_checkbox("Dialogue", &builder_state_.tools.dialogue);
-      tool_checkbox("GUI Automation", &builder_state_.tools.gui);
-      tool_checkbox("Music", &builder_state_.tools.music);
-      tool_checkbox("Sprite", &builder_state_.tools.sprite);
-      tool_checkbox("Emulator", &builder_state_.tools.emulator);
+      tool_checkbox("Resources", &builder_state_.tools.resources,
+                    "Project files, docs, refs");
+      tool_checkbox("Dungeon", &builder_state_.tools.dungeon,
+                    "Rooms, objects, entrances");
+      tool_checkbox("Overworld", &builder_state_.tools.overworld,
+                    "Maps, tile16, entities");
+      tool_checkbox("Dialogue", &builder_state_.tools.dialogue,
+                    "NPC text + scripts");
+      tool_checkbox("GUI Automation", &builder_state_.tools.gui,
+                    "Test harness + screenshots");
+      tool_checkbox("Music", &builder_state_.tools.music, "Trackers + SPC");
+      tool_checkbox("Sprite", &builder_state_.tools.sprite,
+                    "Sprites + palettes");
+      tool_checkbox("Emulator", &builder_state_.tools.emulator,
+                    "Runtime probes");
       break;
     }
     case 2: {
       ImGui::Text("Automation");
+      ImGui::TextWrapped(
+          "Use automation to validate fixes quickly. Pair with gRPC harness "
+          "for repeatable checks.");
       ImGui::Checkbox("Auto-run harness plan", &builder_state_.auto_run_tests);
       ImGui::Checkbox("Auto-sync ROM context", &builder_state_.auto_sync_rom);
       ImGui::Checkbox("Auto-focus proposal drawer",
                       &builder_state_.auto_focus_proposals);
-      ImGui::TextWrapped(
-          "Enable these options to push harness dashboards/test plans when "
-          "executing plans.");
       break;
     }
     case 3: {
       ImGui::Text("Validation Criteria");
+      ImGui::TextWrapped(
+          "Capture the acceptance criteria and what a passing run looks like.");
       ImGui::InputTextMultiline("##validation_notes",
                                 &builder_state_.stages[stage_index].summary,
-                                ImVec2(-1, 120));
+                                ImVec2(-1, 140));
       break;
     }
     case 4: {
       ImGui::Text("E2E Checklist");
-      float progress =
-          builder_state_.stages.empty()
-              ? 0.0f
-              : static_cast<float>(completed_stages) /
-                    static_cast<float>(builder_state_.stages.size());
-      ImGui::ProgressBar(progress, ImVec2(-1, 0),
-                         absl::StrFormat("%d/%zu complete", completed_stages,
-                                         builder_state_.stages.size())
-                             .c_str());
+      ImGui::ProgressBar(
+          completion_ratio, ImVec2(-1, 0),
+          absl::StrFormat("%d/%zu complete", completed_stages,
+                          builder_state_.stages.size())
+              .c_str());
       ImGui::Checkbox("Ready for automation handoff",
                       &builder_state_.ready_for_e2e);
       ImGui::TextDisabled("Auto-sync ROM: %s",
@@ -2018,20 +2122,16 @@ void AgentEditor::DrawAgentBuilderPanel() {
     }
   }
 
-  ImGui::Columns(1);
+  ImGui::Spacing();
   ImGui::Separator();
+  ImGui::TextDisabled("Builder Output");
+  ImGui::BulletText("Persona notes sync to the chat summary");
+  ImGui::BulletText("Tool stack applies to the agent tool preferences");
+  ImGui::BulletText("E2E readiness gates automation handoff");
 
-  float completion_ratio =
-      builder_state_.stages.empty()
-          ? 0.0f
-          : static_cast<float>(completed_stages) /
-                static_cast<float>(builder_state_.stages.size());
-  ImGui::TextDisabled("Overall Progress");
-  ImGui::ProgressBar(completion_ratio, ImVec2(-1, 0));
-  ImGui::TextDisabled("E2E Ready: %s",
-                      builder_state_.ready_for_e2e ? "Yes" : "No");
-
-  if (ImGui::Button(ICON_MD_LINK " Apply to Chat")) {
+  ImGui::Spacing();
+  ImGui::PushStyleColor(ImGuiCol_Button, theme.accent_color);
+  if (ImGui::Button(ICON_MD_LINK " Apply to Chat", ImVec2(-1, 0))) {
     auto* service = agent_chat_->GetAgentService();
     if (service) {
       cli::agent::ToolDispatcher::ToolPreferences prefs;
@@ -2062,9 +2162,11 @@ void AgentEditor::DrawAgentBuilderPanel() {
                            ToastType::kSuccess, 2.0f);
     }
   }
-  ImGui::SameLine();
+  ImGui::PopStyleColor();
 
-  ImGui::InputTextWithHint("##blueprint_path", "Path to blueprint...",
+  ImGui::Spacing();
+  ImGui::InputTextWithHint("##blueprint_path",
+                           "Path to blueprint (optional)...",
                            &builder_state_.blueprint_path);
   std::filesystem::path blueprint_path =
       builder_state_.blueprint_path.empty()
@@ -2097,6 +2199,7 @@ void AgentEditor::DrawAgentBuilderPanel() {
     }
   }
 
+  ImGui::EndChild();
   ImGui::EndChild();
 }
 

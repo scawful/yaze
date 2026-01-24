@@ -29,9 +29,17 @@ std::vector<std::filesystem::path> AssetLoader::GetSearchPaths(
   // Try Contents/Resources first (standard bundle location)
   search_paths.push_back(std::filesystem::path(bundle_root) / "Contents" /
                          "Resources" / relative_path);
+  search_paths.push_back(std::filesystem::path(bundle_root) / "Contents" /
+                         "Resources" / "assets" / relative_path);
 
   // Try without Contents (if app is at root)
   search_paths.push_back(std::filesystem::path(bundle_root) / "Resources" /
+                         relative_path);
+  search_paths.push_back(std::filesystem::path(bundle_root) / "Resources" /
+                         "assets" / relative_path);
+
+  // Assets folder next to the app bundle (nightly installs)
+  search_paths.push_back(std::filesystem::path(bundle_root) / ".." / "assets" /
                          relative_path);
 
   // Development paths (when running from build dir)
