@@ -61,7 +61,7 @@ endif()
 
 target_include_directories(yaze PUBLIC
   ${CMAKE_SOURCE_DIR}/src
-  ${CMAKE_SOURCE_DIR}/incl
+  ${CMAKE_SOURCE_DIR}/inc
   ${PROJECT_BINARY_DIR}
 )
 
@@ -209,3 +209,22 @@ if(NOT APPLE)
     )
   endif()
 endif()
+
+# ==============================================================================
+# Test Runner Executable
+# ==============================================================================
+if(YAZE_BUILD_TESTS)
+  add_executable(yaze_test app/test/main_test.cc)
+  target_link_libraries(yaze_test PRIVATE
+    yaze_test_support
+    yaze_app_core_lib
+    absl::flags
+    absl::flags_parse
+  )
+  target_include_directories(yaze_test PUBLIC
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/inc
+    ${PROJECT_BINARY_DIR}
+  )
+endif()
+

@@ -13,11 +13,7 @@
 set(YAZE_TEST_SOURCES
   app/test/test_manager.cc
   app/test/z3ed_test_suite.cc
-  # AI Multimodal Testing Framework
-  app/test/ai_vision_verifier.cc
-  app/test/screenshot_assertion.cc
-  # Visual Diff Engine (for gRPC/MCP visual comparison)
-  app/test/visual_diff_engine.cc
+  app/test/agent_tools_test.cc
 )
 
 set(YAZE_ENABLE_VISUAL_DIFF_ENGINE ON)
@@ -47,7 +43,7 @@ target_precompile_headers(yaze_test_support PRIVATE
 
 target_include_directories(yaze_test_support PUBLIC
   ${CMAKE_SOURCE_DIR}/src
-  ${CMAKE_SOURCE_DIR}/incl
+  ${CMAKE_SOURCE_DIR}/inc
   ${CMAKE_SOURCE_DIR}/ext
   ${PROJECT_BINARY_DIR}
 )

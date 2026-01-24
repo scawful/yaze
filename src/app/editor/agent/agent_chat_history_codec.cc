@@ -345,6 +345,7 @@ absl::StatusOr<AgentChatHistoryCodec::Snapshot> AgentChatHistoryCodec::Load(
       config.tools.music = tools_json.value("music", true);
       config.tools.sprite = tools_json.value("sprite", true);
       config.tools.emulator = tools_json.value("emulator", true);
+      config.tools.memory_inspector = tools_json.value("memory_inspector", true);
     }
     config.persona_notes = config_json.value("persona_notes", "");
     snapshot.agent_config = config;
@@ -481,6 +482,7 @@ absl::Status AgentChatHistoryCodec::Save(const std::filesystem::path& path,
     tools_json["music"] = config.tools.music;
     tools_json["sprite"] = config.tools.sprite;
     tools_json["emulator"] = config.tools.emulator;
+    tools_json["memory_inspector"] = config.tools.memory_inspector;
     config_json["tools"] = std::move(tools_json);
 
     Json presets_json = Json::array();

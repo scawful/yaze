@@ -158,12 +158,12 @@ struct ToolConfig {
   bool overworld = true;
   bool dialogue = true;
   bool messages = true;
-  bool gui = true;
-  bool music = true;
-  bool sprite = true;
-  bool emulator = true;
-};
-
+      bool gui = true;
+      bool music = true;
+      bool sprite = true;
+      bool emulator = true;
+      bool memory_inspector = true;
+    };
 /**
  * @brief Model chain mode for multi-model responses
  */
