@@ -41,6 +41,7 @@ void AgentUiController::Initialize(ToastManager* toast_manager,
   agent_editor_.Initialize();
   agent_editor_.InitializeWithDependencies(toast_manager, proposal_drawer,
                                            /*rom=*/nullptr);
+  agent_editor_.SetContext(&agent_ui_context_);
 
   // Wire agent/chat into the right sidebar experience
   if (right_panel_manager_) {
@@ -132,9 +133,6 @@ void AgentUiController::SetAsarWrapperContext(core::AsarWrapper* asar_wrapper) {
 }
 
 absl::Status AgentUiController::Update() {
-  // Bidirectional sync between AgentEditor and SharedContext
-  SyncStateFromEditor();
-
   // Update the AgentEditor (draws its cards via PanelManager)
   auto status = agent_editor_.Update();
 

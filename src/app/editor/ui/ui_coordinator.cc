@@ -13,6 +13,7 @@
 #endif
 #include "app/editor/editor.h"
 #include "app/editor/editor_manager.h"
+#include "app/editor/layout/layout_presets.h"
 #include "app/editor/layout/window_delegate.h"
 #include "app/editor/menu/right_panel_manager.h"
 #include "app/editor/system/editor_registry.h"
@@ -838,15 +839,25 @@ void UICoordinator::SetSessionSwitcherVisible(bool visible) {
 // Emulator visibility delegates to PanelManager (single source of truth)
 bool UICoordinator::IsEmulatorVisible() const {
   size_t session_id = session_coordinator_.GetActiveSessionIndex();
-  return panel_manager_.IsPanelVisible(session_id, "emulator.cpu_debugger");
+  auto emulator_panels =
+      panel_manager_.GetPanelsInCategory(session_id, "Emulator");
+  for (const auto& panel : emulator_panels) {
+    if (panel.visibility_flag && *panel.visibility_flag) {
+      return true;
+    }
+  }
+  return false;
 }
 
 void UICoordinator::SetEmulatorVisible(bool visible) {
   size_t session_id = session_coordinator_.GetActiveSessionIndex();
   if (visible) {
-    panel_manager_.ShowPanel(session_id, "emulator.cpu_debugger");
+    auto default_panels = LayoutPresets::GetDefaultPanels(EditorType::kEmulator);
+    for (const auto& panel_id : default_panels) {
+      panel_manager_.ShowPanel(session_id, panel_id);
+    }
   } else {
-    panel_manager_.HidePanel(session_id, "emulator.cpu_debugger");
+    panel_manager_.HideAllPanelsInCategory(session_id, "Emulator");
   }
 }
 

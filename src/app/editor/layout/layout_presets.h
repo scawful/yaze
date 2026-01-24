@@ -215,6 +215,8 @@ class LayoutPresets {
     static constexpr const char* kEmulatorAiAgent = "emulator.ai_agent";
     static constexpr const char* kEmulatorSaveStates = "emulator.save_states";
     static constexpr const char* kEmulatorKeyboardConfig = "emulator.keyboard_config";
+    static constexpr const char* kEmulatorVirtualController =
+        "emulator.virtual_controller";
     static constexpr const char* kEmulatorApuDebugger = "emulator.apu_debugger";
     static constexpr const char* kEmulatorAudioMixer = "emulator.audio_mixer";
 

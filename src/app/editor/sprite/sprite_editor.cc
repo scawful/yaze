@@ -1,6 +1,8 @@
 #include "sprite_editor.h"
 
 #include <algorithm>
+#include <cerrno>
+#include <cstdlib>
 #include <cstring>
 
 #include "absl/strings/str_format.h"
@@ -29,6 +31,27 @@ using ImGui::TableNextColumn;
 using ImGui::TableNextRow;
 using ImGui::TableSetupColumn;
 using ImGui::Text;
+
+namespace {
+template <size_t N>
+void CopyStringToBuffer(const std::string& src, char (&dest)[N]) {
+  std::strncpy(dest, src.c_str(), N - 1);
+  dest[N - 1] = '\0';
+}
+
+int ParseIntOrDefault(const std::string& text, int fallback = 0) {
+  if (text.empty()) {
+    return fallback;
+  }
+  errno = 0;
+  char* end = nullptr;
+  long value = std::strtol(text.c_str(), &end, 0);
+  if (end == text.c_str() || errno == ERANGE) {
+    return fallback;
+  }
+  return static_cast<int>(value);
+}
+}  // namespace
 
 void SpriteEditor::Initialize() {
   if (!dependencies_.panel_manager)
@@ -111,10 +134,11 @@ void SpriteEditor::HandleEditorShortcuts() {
 absl::Status SpriteEditor::Save() {
   if (current_custom_sprite_index_ >= 0 &&
       current_custom_sprite_index_ < static_cast<int>(custom_sprites_.size())) {
-    if (current_zsm_path_.empty()) {
+    const std::string& zsm_path = GetCurrentZsmPath();
+    if (zsm_path.empty()) {
       SaveZsmFileAs();
     } else {
-      SaveZsmFile(current_zsm_path_);
+      SaveZsmFile(zsm_path);
     }
   }
   return absl::OkStatus();
@@ -145,7 +169,7 @@ void SpriteEditor::DrawVanillaSpriteEditor() {
     static int next_tab_id = 0;
 
     if (ImGui::BeginTabBar("SpriteTabBar", kSpriteTabBarFlags)) {
-      if (ImGui::TabItemButton(ICON_MD_ADD, kSpriteTabBarFlags)) {
+      if (ImGui::TabItemButton(ICON_MD_ADD, kSpriteTabFlags)) {
         if (std::find(active_sprites_.begin(), active_sprites_.end(),
                       current_sprite_id_) != active_sprites_.end()) {
           next_tab_id++;
@@ -376,10 +400,11 @@ void SpriteEditor::DrawCustomSpritesMetadata() {
   ImGui::SameLine();
   if (ImGui::Button(ICON_MD_SAVE " Save")) {
     if (current_custom_sprite_index_ >= 0) {
-      if (current_zsm_path_.empty()) {
+      const std::string& zsm_path = GetCurrentZsmPath();
+      if (zsm_path.empty()) {
         SaveZsmFileAs();
       } else {
-        SaveZsmFile(current_zsm_path_);
+        SaveZsmFile(zsm_path);
       }
     }
   }
@@ -399,6 +424,14 @@ void SpriteEditor::DrawCustomSpritesMetadata() {
                               : custom_sprites_[i].sprName;
       if (Selectable(label.c_str(), current_custom_sprite_index_ == (int)i)) {
         current_custom_sprite_index_ = static_cast<int>(i);
+        current_frame_ =
+            custom_sprites_[i].editor.Frames.empty() ? -1 : 0;
+        current_animation_index_ =
+            custom_sprites_[i].animations.empty() ? -1 : 0;
+        selected_tile_index_ = -1;
+        selected_routine_index_ = -1;
+        animation_playing_ = false;
+        frame_timer_ = 0.0f;
         preview_needs_update_ = true;
       }
     }
@@ -442,8 +475,14 @@ void SpriteEditor::CreateNewZSprite() {
   new_sprite.animations.emplace_back(0, 0, 1, "Idle");
 
   custom_sprites_.push_back(std::move(new_sprite));
+  custom_sprite_paths_.push_back(std::string());
   current_custom_sprite_index_ = static_cast<int>(custom_sprites_.size()) - 1;
-  current_zsm_path_.clear();
+  current_frame_ = 0;
+  current_animation_index_ = 0;
+  selected_tile_index_ = -1;
+  selected_routine_index_ = -1;
+  animation_playing_ = false;
+  frame_timer_ = 0.0f;
   zsm_dirty_ = true;
   preview_needs_update_ = true;
 }
@@ -453,8 +492,16 @@ void SpriteEditor::LoadZsmFile(const std::string& path) {
   status_ = sprite.Load(path);
   if (status_.ok()) {
     custom_sprites_.push_back(std::move(sprite));
+    custom_sprite_paths_.push_back(path);
     current_custom_sprite_index_ = static_cast<int>(custom_sprites_.size()) - 1;
-    current_zsm_path_ = path;
+    current_frame_ =
+        custom_sprites_.back().editor.Frames.empty() ? -1 : 0;
+    current_animation_index_ =
+        custom_sprites_.back().animations.empty() ? -1 : 0;
+    selected_tile_index_ = -1;
+    selected_routine_index_ = -1;
+    animation_playing_ = false;
+    frame_timer_ = 0.0f;
     zsm_dirty_ = false;
     preview_needs_update_ = true;
   }
@@ -465,7 +512,7 @@ void SpriteEditor::SaveZsmFile(const std::string& path) {
       current_custom_sprite_index_ < (int)custom_sprites_.size()) {
     status_ = custom_sprites_[current_custom_sprite_index_].Save(path);
     if (status_.ok()) {
-      current_zsm_path_ = path;
+      SetCurrentZsmPath(path);
       zsm_dirty_ = false;
     }
   }
@@ -493,7 +540,7 @@ void SpriteEditor::DrawSpritePropertiesPanel() {
   Separator();
 
   static char name_buf[256];
-  strncpy(name_buf, sprite.sprName.c_str(), sizeof(name_buf) - 1);
+  CopyStringToBuffer(sprite.sprName, name_buf);
   if (ImGui::InputText("Name", name_buf, sizeof(name_buf))) {
     sprite.sprName = name_buf;
     sprite.property_sprname.Text = name_buf;
@@ -501,7 +548,7 @@ void SpriteEditor::DrawSpritePropertiesPanel() {
   }
 
   static char id_buf[32];
-  strncpy(id_buf, sprite.property_sprid.Text.c_str(), sizeof(id_buf) - 1);
+  CopyStringToBuffer(sprite.property_sprid.Text, id_buf);
   if (ImGui::InputText("Sprite ID", id_buf, sizeof(id_buf))) {
     sprite.property_sprid.Text = id_buf;
     zsm_dirty_ = true;
@@ -520,49 +567,37 @@ void SpriteEditor::DrawStatProperties() {
   Text("Stats");
 
   // Use InputInt for numeric values
-  int prize = sprite.property_prize.Text.empty()
-                  ? 0
-                  : std::stoi(sprite.property_prize.Text);
+  int prize = ParseIntOrDefault(sprite.property_prize.Text);
   if (ImGui::InputInt("Prize", &prize)) {
     sprite.property_prize.Text = std::to_string(std::clamp(prize, 0, 255));
     zsm_dirty_ = true;
   }
 
-  int palette = sprite.property_palette.Text.empty()
-                    ? 0
-                    : std::stoi(sprite.property_palette.Text);
+  int palette = ParseIntOrDefault(sprite.property_palette.Text);
   if (ImGui::InputInt("Palette", &palette)) {
     sprite.property_palette.Text = std::to_string(std::clamp(palette, 0, 7));
     zsm_dirty_ = true;
   }
 
-  int oamnbr = sprite.property_oamnbr.Text.empty()
-                   ? 0
-                   : std::stoi(sprite.property_oamnbr.Text);
+  int oamnbr = ParseIntOrDefault(sprite.property_oamnbr.Text);
   if (ImGui::InputInt("OAM Count", &oamnbr)) {
     sprite.property_oamnbr.Text = std::to_string(std::clamp(oamnbr, 0, 255));
     zsm_dirty_ = true;
   }
 
-  int hitbox = sprite.property_hitbox.Text.empty()
-                   ? 0
-                   : std::stoi(sprite.property_hitbox.Text);
+  int hitbox = ParseIntOrDefault(sprite.property_hitbox.Text);
   if (ImGui::InputInt("Hitbox", &hitbox)) {
     sprite.property_hitbox.Text = std::to_string(std::clamp(hitbox, 0, 255));
     zsm_dirty_ = true;
   }
 
-  int health = sprite.property_health.Text.empty()
-                   ? 0
-                   : std::stoi(sprite.property_health.Text);
+  int health = ParseIntOrDefault(sprite.property_health.Text);
   if (ImGui::InputInt("Health", &health)) {
     sprite.property_health.Text = std::to_string(std::clamp(health, 0, 255));
     zsm_dirty_ = true;
   }
 
-  int damage = sprite.property_damage.Text.empty()
-                   ? 0
-                   : std::stoi(sprite.property_damage.Text);
+  int damage = ParseIntOrDefault(sprite.property_damage.Text);
   if (ImGui::InputInt("Damage", &damage)) {
     sprite.property_damage.Text = std::to_string(std::clamp(damage, 0, 255));
     zsm_dirty_ = true;
@@ -697,7 +732,7 @@ void SpriteEditor::DrawAnimationPanel() {
     Text("Animation Properties");
 
     static char anim_name[128];
-    strncpy(anim_name, anim.frame_name.c_str(), sizeof(anim_name) - 1);
+    CopyStringToBuffer(anim.frame_name, anim_name);
     if (ImGui::InputText("Name##Anim", anim_name, sizeof(anim_name))) {
       anim.frame_name = anim_name;
       zsm_dirty_ = true;
@@ -909,7 +944,7 @@ void SpriteEditor::DrawUserRoutinesPanel() {
     Separator();
 
     static char routine_name[128];
-    strncpy(routine_name, routine.name.c_str(), sizeof(routine_name) - 1);
+    CopyStringToBuffer(routine.name, routine_name);
     if (ImGui::InputText("Routine Name", routine_name, sizeof(routine_name))) {
       routine.name = routine_name;
       zsm_dirty_ = true;
@@ -919,8 +954,7 @@ void SpriteEditor::DrawUserRoutinesPanel() {
 
     // Multiline text input for code
     static char code_buffer[16384];
-    strncpy(code_buffer, routine.code.c_str(), sizeof(code_buffer) - 1);
-    code_buffer[sizeof(code_buffer) - 1] = '\0';
+    CopyStringToBuffer(routine.code, code_buffer);
     if (ImGui::InputTextMultiline("##RoutineCode", code_buffer,
                                   sizeof(code_buffer), ImVec2(-1, 200))) {
       routine.code = code_buffer;
@@ -1226,6 +1260,32 @@ void SpriteEditor::DrawZSpriteOnCanvas() {
     }
   }
   ImGui::EndChild();
+}
+
+void SpriteEditor::EnsureCustomSpritePaths() {
+  if (custom_sprite_paths_.size() < custom_sprites_.size()) {
+    custom_sprite_paths_.resize(custom_sprites_.size());
+  }
+}
+
+const std::string& SpriteEditor::GetCurrentZsmPath() const {
+  static const std::string kEmptyPath;
+  if (current_custom_sprite_index_ < 0 ||
+      current_custom_sprite_index_ >=
+          static_cast<int>(custom_sprite_paths_.size())) {
+    return kEmptyPath;
+  }
+  return custom_sprite_paths_[current_custom_sprite_index_];
+}
+
+void SpriteEditor::SetCurrentZsmPath(const std::string& path) {
+  EnsureCustomSpritePaths();
+  if (current_custom_sprite_index_ < 0 ||
+      current_custom_sprite_index_ >=
+          static_cast<int>(custom_sprite_paths_.size())) {
+    return;
+  }
+  custom_sprite_paths_[current_custom_sprite_index_] = path;
 }
 
 }  // namespace editor
