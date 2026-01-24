@@ -11,6 +11,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/editor/agent/panels/agent_editor_panels.h"
+#include "app/editor/agent/agent_state.h"
 #include "app/editor/editor.h"
 #include "app/gui/widgets/text_editor.h"
 #include "cli/service/agent/conversational_agent_service.h"
