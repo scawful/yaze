@@ -24,6 +24,8 @@ set(YAZE_CLI_CORE_SOURCES
   cli/handlers/graphics/palette_commands.cc
   cli/handlers/graphics/sprite_commands.cc
 
+  cli/handlers/mesen_handlers.cc
+
   cli/handlers/game/dialogue_commands.cc
   cli/handlers/game/dungeon_commands.cc
   cli/handlers/game/message.cc

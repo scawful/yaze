@@ -9,6 +9,7 @@
 #ifndef YAZE_SRC_CLI_SERVICE_AGENT_TOOL_SCHEMAS_H_
 #define YAZE_SRC_CLI_SERVICE_AGENT_TOOL_SCHEMAS_H_
 
+#include <map>
 #include <string>
 #include <vector>
 
@@ -730,6 +731,175 @@ class ToolSchemaRegistry {
               .examples = {"z3ed project-diff --snapshot1=v1 --snapshot2=v2"},
               .requires_rom = true,
               .related_tools = {"project-snapshot", "rom-diff"}});
+
+    // =========================================================================
+    // Mesen2 Debugging Tools (Live Emulator Integration)
+    // =========================================================================
+
+    Register({.name = "mesen-gamestate",
+              .category = "mesen2",
+              .description = "Get ALTTP game state from running Mesen2",
+              .detailed_help =
+                  "Queries the Mesen2 socket API for comprehensive ALTTP game "
+                  "state including Link's position, direction, health, items, "
+                  "and current game mode. Requires Mesen2-OoS running.",
+              .arguments = {},
+              .examples = {"z3ed mesen-gamestate"},
+              .requires_rom = false,
+              .requires_grpc = true,
+              .related_tools = {"mesen-sprites", "mesen-cpu"}});
+
+    Register({.name = "mesen-sprites",
+              .category = "mesen2",
+              .description = "Get active sprites from running Mesen2",
+              .detailed_help =
+                  "Queries sprite table from Mesen2 to show all active sprites "
+                  "with their type, position, health, and state. Useful for "
+                  "debugging sprite behavior and interactions.",
+              .arguments = {{.name = "all",
+                             .type = "boolean",
+                             .description = "Include inactive sprite slots",
+                             .required = false,
+                             .default_value = "false"}},
+              .examples = {"z3ed mesen-sprites", "z3ed mesen-sprites --all"},
+              .requires_rom = false,
+              .requires_grpc = true,
+              .related_tools = {"mesen-gamestate", "mesen-memory-read"}});
+
+    Register({.name = "mesen-cpu",
+              .category = "mesen2",
+              .description = "Get CPU register state from Mesen2",
+              .detailed_help =
+                  "Returns current 65816 CPU register state: A, X, Y, SP, D, "
+                  "PC, K (program bank), DBR (data bank), and P (processor "
+                  "status). Useful for debugging at breakpoints.",
+              .arguments = {},
+              .examples = {"z3ed mesen-cpu"},
+              .requires_rom = false,
+              .requires_grpc = true,
+              .related_tools = {"mesen-gamestate", "mesen-disasm"}});
+
+    Register({.name = "mesen-memory-read",
+              .category = "mesen2",
+              .description = "Read memory from Mesen2 emulator",
+              .detailed_help =
+                  "Reads a block of memory from the running Mesen2 instance. "
+                  "Returns hex dump of the specified region. Useful for "
+                  "inspecting live game state.",
+              .arguments = {{.name = "address",
+                             .type = "hex",
+                             .description = "Start address (hex)",
+                             .required = true},
+                            {.name = "length",
+                             .type = "number",
+                             .description = "Number of bytes to read",
+                             .required = false,
+                             .default_value = "16"}},
+              .examples = {"z3ed mesen-memory-read --address=0x7E0020 --length=16"},
+              .requires_rom = false,
+              .requires_grpc = true,
+              .related_tools = {"mesen-memory-write", "memory-analyze"}});
+
+    Register({.name = "mesen-memory-write",
+              .category = "mesen2",
+              .description = "Write memory in Mesen2 emulator",
+              .detailed_help =
+                  "Writes bytes to memory in the running Mesen2 instance. "
+                  "Useful for testing ROM patches or modifying game state.",
+              .arguments = {{.name = "address",
+                             .type = "hex",
+                             .description = "Target address (hex)",
+                             .required = true},
+                            {.name = "data",
+                             .type = "string",
+                             .description = "Hex bytes to write",
+                             .required = true}},
+              .examples = {"z3ed mesen-memory-write --address=0x7EF36D --data=A0"},
+              .requires_rom = false,
+              .requires_grpc = true,
+              .related_tools = {"mesen-memory-read"}});
+
+    Register({.name = "mesen-disasm",
+              .category = "mesen2",
+              .description = "Disassemble code at address in Mesen2",
+              .detailed_help =
+                  "Disassembles instructions at the specified address using "
+                  "Mesen2's built-in disassembler, which uses loaded symbols "
+                  "for labels.",
+              .arguments = {{.name = "address",
+                             .type = "hex",
+                             .description = "Start address (hex)",
+                             .required = true},
+                            {.name = "count",
+                             .type = "number",
+                             .description = "Number of instructions",
+                             .required = false,
+                             .default_value = "10"}},
+              .examples = {"z3ed mesen-disasm --address=0x008000 --count=20"},
+              .requires_rom = false,
+              .requires_grpc = true,
+              .related_tools = {"mesen-cpu", "mesen-trace"}});
+
+    Register({.name = "mesen-trace",
+              .category = "mesen2",
+              .description = "Get execution trace from Mesen2",
+              .detailed_help =
+                  "Returns the last N executed instructions from Mesen2's "
+                  "trace log. Useful for understanding control flow leading "
+                  "to a crash or unexpected behavior.",
+              .arguments = {{.name = "count",
+                             .type = "number",
+                             .description = "Number of trace entries",
+                             .required = false,
+                             .default_value = "20"}},
+              .examples = {"z3ed mesen-trace", "z3ed mesen-trace --count=50"},
+              .requires_rom = false,
+              .requires_grpc = true,
+              .related_tools = {"mesen-disasm", "mesen-cpu"}});
+
+    Register({.name = "mesen-breakpoint",
+              .category = "mesen2",
+              .description = "Manage breakpoints in Mesen2",
+              .detailed_help =
+                  "Add, remove, or list breakpoints in the running Mesen2 "
+                  "instance. Supports execution, read, and write breakpoints.",
+              .arguments = {{.name = "action",
+                             .type = "string",
+                             .description = "Breakpoint action",
+                             .required = true,
+                             .enum_values = {"add", "remove", "clear", "list"}},
+                            {.name = "address",
+                             .type = "hex",
+                             .description = "Address for add/remove",
+                             .required = false},
+                            {.name = "type",
+                             .type = "string",
+                             .description = "Breakpoint type",
+                             .required = false,
+                             .default_value = "exec",
+                             .enum_values = {"exec", "read", "write", "rw"}}},
+              .examples = {"z3ed mesen-breakpoint --action=add --address=0x008000",
+                           "z3ed mesen-breakpoint --action=clear"},
+              .requires_rom = false,
+              .requires_grpc = true,
+              .related_tools = {"mesen-cpu", "mesen-trace"}});
+
+    Register({.name = "mesen-control",
+              .category = "mesen2",
+              .description = "Control Mesen2 emulation state",
+              .detailed_help =
+                  "Pause, resume, step, or frame advance the running Mesen2 "
+                  "instance. For automated testing and debugging workflows.",
+              .arguments = {{.name = "action",
+                             .type = "string",
+                             .description = "Control action",
+                             .required = true,
+                             .enum_values = {"pause", "resume", "step", "frame", "reset"}}},
+              .examples = {"z3ed mesen-control --action=pause",
+                           "z3ed mesen-control --action=frame"},
+              .requires_rom = false,
+              .requires_grpc = true,
+              .related_tools = {"mesen-cpu", "mesen-gamestate"}});
   }
 
   std::map<std::string, ToolSchema> schemas_;
@@ -740,4 +910,3 @@ class ToolSchemaRegistry {
 }  // namespace yaze
 
 #endif  // YAZE_SRC_CLI_SERVICE_AGENT_TOOL_SCHEMAS_H_
-

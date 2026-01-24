@@ -12,6 +12,7 @@
 #include "cli/handlers/graphics/sprite_commands.h"
 #include "cli/handlers/rom/rom_commands.h"
 #include "cli/handlers/tools/dungeon_doctor_commands.h"
+#include "cli/handlers/mesen_handlers.h"
 #ifdef YAZE_WITH_GRPC
 #include "cli/handlers/tools/emulator_commands.h"
 #endif
@@ -117,6 +118,11 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<EmulatorGetRegistersCommandHandler>());
   handlers.push_back(std::make_unique<EmulatorGetMetricsCommandHandler>());
 #endif
+
+  // Mesen2 command handlers (socket-based)
+  for (auto& handler : CreateMesenCommandHandlers()) {
+    handlers.push_back(std::move(handler));
+  }
 
   // Test helper tools
   handlers.push_back(std::make_unique<ToolsListCommandHandler>());

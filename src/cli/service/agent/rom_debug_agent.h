@@ -4,12 +4,14 @@
 #include <cstdint>
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/emu/debug/symbol_provider.h"
+#include "app/emu/mesen/mesen_socket_client.h"
 #include "cli/service/agent/disassembler_65816.h"
 #include "app/service/emulator_service_impl.h"
 #include "protos/emulator_service.grpc.pb.h"
@@ -184,6 +186,48 @@ class RomDebugAgent {
    */
   void SetOriginalRom(const std::vector<uint8_t>& rom_data);
 
+  // --- Mesen2 Live Debugging Integration ---
+
+  /**
+   * @brief Set the Mesen2 socket client for live debugging
+   */
+  void SetMesenClient(std::shared_ptr<emu::mesen::MesenSocketClient> client);
+
+  /**
+   * @brief Check if connected to Mesen2
+   */
+  bool IsMesenConnected() const;
+
+  /**
+   * @brief Get live game state from Mesen2
+   */
+  absl::StatusOr<emu::mesen::GameState> GetLiveGameState();
+
+  /**
+   * @brief Get live sprite list from Mesen2
+   */
+  absl::StatusOr<std::vector<emu::mesen::SpriteInfo>> GetLiveSprites(bool all = false);
+
+  /**
+   * @brief Get live CPU state from Mesen2
+   */
+  absl::StatusOr<emu::mesen::CpuState> GetLiveCpuState();
+
+  /**
+   * @brief Analyze a live breakpoint hit from Mesen2
+   */
+  absl::StatusOr<BreakpointAnalysis> AnalyzeLiveBreakpoint(uint32_t address);
+
+  /**
+   * @brief Generate AI-friendly explanation of current game state
+   */
+  absl::StatusOr<std::string> ExplainCurrentGameState();
+
+  /**
+   * @brief Detect anomalies in current sprite table
+   */
+  std::vector<std::string> AnalyzeSpriteAnomalies();
+
  private:
   // --- ALTTP Memory Layout Constants ---
 
@@ -281,6 +325,7 @@ class RomDebugAgent {
   std::unique_ptr<Disassembler65816> disassembler_;
   std::unique_ptr<yaze::emu::debug::SymbolProvider> symbol_provider_;
   std::vector<uint8_t> original_rom_;  // Original ROM for comparison
+  std::shared_ptr<emu::mesen::MesenSocketClient> mesen_client_;  // Mesen2 integration
 
   // Cache for performance
   mutable std::map<uint32_t, std::string> address_description_cache_;
