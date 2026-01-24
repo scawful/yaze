@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.5.5 (January 2026)
+
+### Debugging & Mesen2
+- Add Mesen2 debug panel in the Agent editor (socket picker, overlay controls, save/load state, screenshot capture).
+- Add Mesen2 ↔ Yaze bridge endpoints + updated Lua bridge (symbol sync, PC navigation, breakpoint notifications, state telemetry).
+- Add z3ed `mesen-*` CLI tools for live Mesen2 inspection (state, sprites, CPU, memory, trace, breakpoints).
+- Add Mesen2 debug shortcut (Ctrl+Shift+M) and auto-refresh socket list on panel open.
+- Harden socket client response handling + JSON escaping.
+
+### Versioning
+- Bump release version to 0.5.5 across build + docs.
+
+---
+
 ## 0.5.4 (January 2026)
 
 ### Desktop & UX

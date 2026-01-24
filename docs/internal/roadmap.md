@@ -1,10 +1,10 @@
 # Roadmap
 
-**Last Updated: January 20, 2026**
+**Last Updated: January 24, 2026**
 
 This roadmap tracks upcoming releases and major ongoing initiatives.
 
-## Current Focus (v0.5.4)
+## Current Focus (v0.5.5)
 
 ### Priority 1: Editor Feature Completion
 - **Palette JSON Import/Export**: Complete `palette_group_panel.cc:529,534` for palette file exchange
@@ -27,7 +27,7 @@ This roadmap tracks upcoming releases and major ongoing initiatives.
 - **CRC32 Calculation**: Complete ASAR checksums in `asar_wrapper.cc:330,501`
 - **ZScream Format**: Parse ZScream project format when spec available
 
-### Deferred to v0.5.5+
+### Deferred to v0.5.6+
 - Room object type verification (12+ dungeon object unknowns)
 - WASM proposal system completion
 - AI Vision Verifier PNG/base64 encoding
