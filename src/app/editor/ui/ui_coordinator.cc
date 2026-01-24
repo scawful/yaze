@@ -895,10 +895,13 @@ void UICoordinator::DrawWelcomeScreen() {
   auto* current_rom = editor_manager_->GetCurrentRom();
   bool rom_is_loaded = current_rom && current_rom->is_loaded();
 
-  // Auto-transition: ROM loaded -> Dashboard (unless manually closed)
-  if (rom_is_loaded && current_startup_surface_ == StartupSurface::kWelcome &&
-      !welcome_screen_manually_closed_) {
-    SetStartupSurface(StartupSurface::kDashboard);
+  // Auto-transition: ROM loaded -> Dashboard or Editor
+  if (rom_is_loaded && current_startup_surface_ == StartupSurface::kWelcome) {
+    if (welcome_screen_manually_closed_) {
+      SetStartupSurface(StartupSurface::kEditor);
+    } else {
+      SetStartupSurface(StartupSurface::kDashboard);
+    }
   }
 
   // Auto-transition: ROM unloaded -> Welcome (reset to welcome state)

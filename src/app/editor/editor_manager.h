@@ -207,6 +207,7 @@ class EditorManager {
   void JumpToOverworldMap(int map_id);
   void SwitchToEditor(EditorType editor_type, bool force_visible = false,
                       bool from_dialog = false);
+  void DismissEditorSelection();
 
   // Panel-based editor registry
   static bool IsPanelBasedEditor(EditorType type);
