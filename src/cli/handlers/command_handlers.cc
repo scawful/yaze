@@ -91,6 +91,7 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<OverworldDescribeMapCommandHandler>());
   handlers.push_back(std::make_unique<OverworldListWarpsCommandHandler>());
   handlers.push_back(std::make_unique<OverworldListSpritesCommandHandler>());
+  handlers.push_back(std::make_unique<OverworldListItemsCommandHandler>());
   handlers.push_back(std::make_unique<OverworldGetEntranceCommandHandler>());
   handlers.push_back(std::make_unique<OverworldTileStatsCommandHandler>());
 

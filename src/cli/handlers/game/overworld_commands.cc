@@ -4,6 +4,8 @@
 #include "cli/handlers/game/overworld_inspect.h"
 #include "cli/util/hex_util.h"
 #include "zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld_item.h"
+#include "zelda3/zelda3_labels.h"
 
 namespace yaze {
 namespace cli {
@@ -268,6 +270,75 @@ absl::Status OverworldListSpritesCommandHandler::Execute(
     formatter.EndObject();
   }
   formatter.EndArray();
+  formatter.EndObject();
+
+  return absl::OkStatus();
+}
+
+absl::Status OverworldListItemsCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  auto screen_id_str = parser.GetString("screen").value_or("all");
+
+  // Load the Overworld from ROM
+  zelda3::Overworld overworld(rom);
+  auto ow_status = overworld.Load(rom);
+  if (!ow_status.ok()) {
+    return ow_status;
+  }
+
+  // Optional screen filter
+  std::optional<int> map_filter;
+  if (screen_id_str != "all") {
+    int map_id;
+    if (!ParseHexString(screen_id_str, &map_id)) {
+      return absl::InvalidArgumentError(
+          "Invalid screen ID format. Must be hex.");
+    }
+    map_filter = map_id;
+  }
+
+  auto maps = overworld.overworld_maps();
+  ASSIGN_OR_RETURN(auto items, zelda3::LoadItems(rom, maps));
+
+  const auto& item_names = zelda3::Zelda3Labels::GetItemNames();
+
+  formatter.BeginObject("Overworld Items");
+  formatter.AddField("screen_filter", screen_id_str);
+
+  formatter.BeginArray("items");
+  int total_items = 0;
+  for (const auto& item : items) {
+    if (map_filter.has_value() &&
+        static_cast<int>(item.room_map_id_) != map_filter.value()) {
+      continue;
+    }
+
+    std::string world_name = "Unknown";
+    auto world_or = overworld::InferWorldFromMapId(item.room_map_id_);
+    if (world_or.ok()) {
+      world_name = overworld::WorldName(world_or.value());
+    }
+
+    formatter.BeginObject();
+    formatter.AddField("item_id", absl::StrFormat("0x%02X", item.id_));
+
+    if (item.id_ < item_names.size()) {
+      formatter.AddField("item_name", item_names[item.id_]);
+    }
+
+    formatter.AddField("map_id", absl::StrFormat("0x%02X", item.room_map_id_));
+    formatter.AddField("world", world_name);
+    formatter.AddField("tile_pos",
+                       absl::StrFormat("(%d,%d)", item.game_x_, item.game_y_));
+    formatter.AddField("pixel_pos",
+                       absl::StrFormat("(%d,%d)", item.x_, item.y_));
+    formatter.EndObject();
+
+    total_items++;
+  }
+  formatter.EndArray();
+  formatter.AddField("total_items", total_items);
   formatter.EndObject();
 
   return absl::OkStatus();

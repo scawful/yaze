@@ -93,6 +93,28 @@ class OverworldListSpritesCommandHandler : public resources::CommandHandler {
 };
 
 /**
+ * @brief Command handler for listing items in overworld
+ */
+class OverworldListItemsCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const { return "overworld-list-items"; }
+  std::string GetDescription() const {
+    return "List all hidden item placements in overworld maps";
+  }
+  std::string GetUsage() const {
+    return "overworld-list-items [--screen <screen_id>] [--format "
+           "<json|text>]";
+  }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return absl::OkStatus();  // No required args
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+/**
  * @brief Command handler for getting entrance information
  */
 class OverworldGetEntranceCommandHandler : public resources::CommandHandler {
