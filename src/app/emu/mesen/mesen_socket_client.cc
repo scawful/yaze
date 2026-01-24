@@ -55,6 +55,19 @@ std::string ExtractJsonString(const std::string& json, const std::string& key) {
       pos++;
     }
     return json.substr(start, pos - start);
+  } else if (json[pos] == '[') {
+    // Array value - find matching bracket
+    int depth = 1;
+    size_t start = pos;
+    pos++;
+    while (pos < json.length() && depth > 0) {
+      if (json[pos] == '[')
+        depth++;
+      else if (json[pos] == ']')
+        depth--;
+      pos++;
+    }
+    return json.substr(start, pos - start);
   } else {
     // Number or boolean
     size_t start = pos;
@@ -110,13 +123,41 @@ std::string BuildJsonCommand(const std::string& type) {
   return absl::StrFormat("{\"type\":\"%s\"}\n", type);
 }
 
+std::string EscapeJsonValue(const std::string& value) {
+  std::string escaped;
+  escaped.reserve(value.size());
+  for (char c : value) {
+    switch (c) {
+      case '\\':
+        escaped += "\\\\";
+        break;
+      case '"':
+        escaped += "\\\"";
+        break;
+      case '\n':
+        escaped += "\\n";
+        break;
+      case '\r':
+        escaped += "\\r";
+        break;
+      case '\t':
+        escaped += "\\t";
+        break;
+      default:
+        escaped += c;
+        break;
+    }
+  }
+  return escaped;
+}
+
 std::string BuildJsonCommand(
     const std::string& type,
     const std::vector<std::pair<std::string, std::string>>& params) {
   std::stringstream ss;
   ss << "{\"type\":\"" << type << "\"";
   for (const auto& [key, value] : params) {
-    ss << ",\"" << key << "\":\"" << value << "\"";
+    ss << ",\"" << key << "\":\"" << EscapeJsonValue(value) << "\"";
   }
   ss << "}\n";
   return ss.str();
@@ -208,6 +249,10 @@ std::vector<std::string> MesenSocketClient::FindSocketPaths() {
   return paths;
 }
 
+std::vector<std::string> MesenSocketClient::ListAvailableSockets() {
+  return FindSocketPaths();
+}
+
 absl::StatusOr<std::string> MesenSocketClient::SendCommand(
     const std::string& json) {
   if (!IsConnected()) {
@@ -230,17 +275,38 @@ absl::StatusOr<std::string> MesenSocketClient::SendCommand(
 
   std::string response;
   char buffer[4096];
-  ssize_t received = recv(socket_fd_, buffer, sizeof(buffer) - 1, 0);
-  if (received < 0) {
-    if (errno == EAGAIN || errno == EWOULDBLOCK) {
-      return absl::DeadlineExceededError("Timeout waiting for response");
+  constexpr size_t kMaxResponseSize = 4 * 1024 * 1024;
+  while (true) {
+    ssize_t received = recv(socket_fd_, buffer, sizeof(buffer), 0);
+    if (received < 0) {
+      if (errno == EAGAIN || errno == EWOULDBLOCK) {
+        if (response.empty()) {
+          return absl::DeadlineExceededError("Timeout waiting for response");
+        }
+        break;
+      }
+      connected_ = false;
+      return absl::InternalError(
+          absl::StrCat("Failed to receive response: ", strerror(errno)));
     }
-    connected_ = false;
-    return absl::InternalError(
-        absl::StrCat("Failed to receive response: ", strerror(errno)));
+    if (received == 0) {
+      break;
+    }
+    response.append(buffer, static_cast<size_t>(received));
+    if (response.size() > kMaxResponseSize) {
+      return absl::ResourceExhaustedError("Mesen2 response too large");
+    }
+    if (response.find('\n') != std::string::npos) {
+      break;
+    }
   }
-  buffer[received] = '\0';
-  response = buffer;
+  if (response.empty()) {
+    return absl::DeadlineExceededError("Empty response from Mesen2");
+  }
+  auto newline_pos = response.find('\n');
+  if (newline_pos != std::string::npos) {
+    response = response.substr(0, newline_pos);
+  }
 
   return ParseResponse(response);
 }

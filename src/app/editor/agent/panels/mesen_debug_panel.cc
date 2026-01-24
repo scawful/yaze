@@ -1,6 +1,9 @@
 #include "app/editor/agent/panels/mesen_debug_panel.h"
 
+#include <algorithm>
 #include <cmath>
+#include <cstdio>
+#include <cstring>
 
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_ui_theme.h"
@@ -37,7 +40,14 @@ ImVec4 HealthColor(float ratio) {
 
 }  // namespace
 
-MesenDebugPanel::MesenDebugPanel() = default;
+MesenDebugPanel::MesenDebugPanel() {
+  RefreshSocketList();
+  if (!socket_paths_.empty()) {
+    selected_socket_index_ = 0;
+    std::snprintf(socket_path_buffer_, sizeof(socket_path_buffer_), "%s",
+                  socket_paths_[0].c_str());
+  }
+}
 MesenDebugPanel::~MesenDebugPanel() = default;
 
 void MesenDebugPanel::SetClient(
@@ -62,9 +72,38 @@ void MesenDebugPanel::Connect() {
   }
 }
 
+void MesenDebugPanel::ConnectToPath(const std::string& socket_path) {
+  if (!client_) {
+    client_ = std::make_shared<emu::mesen::MesenSocketClient>();
+  }
+  auto status = client_->Connect(socket_path);
+  if (!status.ok()) {
+    connection_error_ = std::string(status.message());
+  } else {
+    connection_error_.clear();
+    RefreshState();
+  }
+}
+
 void MesenDebugPanel::Disconnect() {
   if (client_) {
     client_->Disconnect();
+  }
+}
+
+void MesenDebugPanel::RefreshSocketList() {
+  socket_paths_ = emu::mesen::MesenSocketClient::ListAvailableSockets();
+  if (!socket_paths_.empty()) {
+    if (selected_socket_index_ < 0 ||
+        selected_socket_index_ >= static_cast<int>(socket_paths_.size())) {
+      selected_socket_index_ = 0;
+    }
+    if (socket_path_buffer_[0] == '\0') {
+      std::snprintf(socket_path_buffer_, sizeof(socket_path_buffer_), "%s",
+                    socket_paths_[selected_socket_index_].c_str());
+    }
+  } else {
+    selected_socket_index_ = -1;
   }
 }
 
@@ -151,11 +190,57 @@ void MesenDebugPanel::DrawConnectionHeader() {
 
   // Connection controls
   if (!IsConnected()) {
+    ImGui::TextDisabled("Socket");
+    const char* preview =
+        (selected_socket_index_ >= 0 &&
+         selected_socket_index_ < static_cast<int>(socket_paths_.size()))
+            ? socket_paths_[selected_socket_index_].c_str()
+            : "No sockets found";
+    ImGui::SetNextItemWidth(-40);
+    if (ImGui::BeginCombo("##mesen_socket_combo", preview)) {
+      for (int i = 0; i < static_cast<int>(socket_paths_.size()); ++i) {
+        bool selected = (i == selected_socket_index_);
+        if (ImGui::Selectable(socket_paths_[i].c_str(), selected)) {
+          selected_socket_index_ = i;
+          std::snprintf(socket_path_buffer_, sizeof(socket_path_buffer_), "%s",
+                        socket_paths_[i].c_str());
+        }
+        if (selected) {
+          ImGui::SetItemDefaultFocus();
+        }
+      }
+      ImGui::EndCombo();
+    }
+    ImGui::SameLine();
+    if (ImGui::SmallButton(ICON_MD_REFRESH "##mesen_refresh")) {
+      RefreshSocketList();
+    }
+
+    ImGui::TextDisabled("Path");
+    ImGui::SetNextItemWidth(-1);
+    ImGui::InputTextWithHint("##mesen_socket_path",
+                             "/tmp/mesen2-12345.sock",
+                             socket_path_buffer_,
+                             sizeof(socket_path_buffer_));
+
     if (ImGui::Button(ICON_MD_LINK " Connect")) {
+      std::string path = socket_path_buffer_;
+      if (path.empty() && selected_socket_index_ >= 0 &&
+          selected_socket_index_ < static_cast<int>(socket_paths_.size())) {
+        path = socket_paths_[selected_socket_index_];
+      }
+      if (path.empty()) {
+        Connect();
+      } else {
+        ConnectToPath(path);
+      }
+    }
+    ImGui::SameLine();
+    if (ImGui::SmallButton(ICON_MD_AUTO_MODE " Auto")) {
       Connect();
     }
     if (!connection_error_.empty()) {
-      ImGui::SameLine();
+      ImGui::Spacing();
       ImGui::TextColored(theme.status_error, "%s", connection_error_.c_str());
     }
   } else {
@@ -170,6 +255,12 @@ void MesenDebugPanel::DrawConnectionHeader() {
       ImGui::SliderFloat("##RefreshRate", &refresh_interval_, 0.05f, 1.0f,
                          "%.2fs");
     }
+  }
+
+  if (!status_message_.empty()) {
+    ImGui::Spacing();
+    ImGui::TextColored(theme.text_secondary_color, "%s",
+                       status_message_.c_str());
   }
 }
 
@@ -384,6 +475,76 @@ void MesenDebugPanel::DrawControlButtons() {
   ImGui::SameLine();
   if (ImGui::Button(ICON_MD_REFRESH " Refresh")) {
     RefreshState();
+  }
+
+  ImGui::Spacing();
+  DrawOverlayControls();
+  ImGui::Spacing();
+  DrawStateControls();
+}
+
+void MesenDebugPanel::DrawOverlayControls() {
+  if (!IsConnected()) return;
+
+  const char* colmaps[] = {"A", "B", "C"};
+  bool overlay_changed = false;
+
+  ImGui::TextDisabled("Collision Overlay");
+  if (ImGui::Checkbox("Enable overlay", &collision_overlay_enabled_)) {
+    overlay_changed = true;
+  }
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(60);
+  if (ImGui::Combo("##colmap", &collision_map_index_, colmaps,
+                   IM_ARRAYSIZE(colmaps))) {
+    overlay_changed = true;
+  }
+
+  if (overlay_changed) {
+    auto status = client_->SetCollisionOverlay(
+        collision_overlay_enabled_, colmaps[collision_map_index_]);
+    if (!status.ok()) {
+      status_message_ = std::string(status.message());
+    } else {
+      status_message_ = collision_overlay_enabled_
+                            ? "Collision overlay enabled"
+                            : "Collision overlay disabled";
+    }
+  }
+}
+
+void MesenDebugPanel::DrawStateControls() {
+  if (!IsConnected()) return;
+
+  ImGui::TextDisabled("Save States");
+  ImGui::SetNextItemWidth(60);
+  ImGui::InputInt("##state_slot", &save_state_slot_, 1, 1);
+  save_state_slot_ = std::clamp(save_state_slot_, 0, 9);
+
+  ImGui::SameLine();
+  if (ImGui::SmallButton(ICON_MD_SAVE " Save")) {
+    auto status = client_->SaveState(save_state_slot_);
+    status_message_ = status.ok()
+                          ? absl::StrFormat("Saved state %d", save_state_slot_)
+                          : std::string(status.message());
+  }
+  ImGui::SameLine();
+  if (ImGui::SmallButton(ICON_MD_UPLOAD " Load")) {
+    auto status = client_->LoadState(save_state_slot_);
+    status_message_ = status.ok()
+                          ? absl::StrFormat("Loaded state %d", save_state_slot_)
+                          : std::string(status.message());
+  }
+
+  ImGui::SameLine();
+  if (ImGui::SmallButton(ICON_MD_PHOTO_CAMERA " Screenshot")) {
+    auto screenshot = client_->Screenshot();
+    if (!screenshot.ok()) {
+      status_message_ = std::string(screenshot.status().message());
+    } else {
+      status_message_ = "Screenshot captured (base64 in clipboard)";
+      ImGui::SetClipboardText(screenshot->c_str());
+    }
   }
 }
 

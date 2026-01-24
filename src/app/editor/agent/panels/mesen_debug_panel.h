@@ -40,6 +40,7 @@ class MesenDebugPanel {
    * @brief Attempt to connect to Mesen2
    */
   void Connect();
+  void ConnectToPath(const std::string& socket_path);
 
   /**
    * @brief Disconnect from Mesen2
@@ -52,6 +53,9 @@ class MesenDebugPanel {
   void DrawSpriteList();
   void DrawGameMode();
   void DrawControlButtons();
+  void DrawOverlayControls();
+  void DrawStateControls();
+  void RefreshSocketList();
   void RefreshState();
 
   std::shared_ptr<emu::mesen::MesenSocketClient> client_;
@@ -69,6 +73,14 @@ class MesenDebugPanel {
   bool show_all_sprites_ = false;
   bool show_cpu_state_ = false;
   std::string connection_error_;
+  std::vector<std::string> socket_paths_;
+  int selected_socket_index_ = -1;
+  char socket_path_buffer_[256] = {};
+  std::string status_message_;
+
+  bool collision_overlay_enabled_ = false;
+  int collision_map_index_ = 0;
+  int save_state_slot_ = 0;
 
   // Section expansion state
   bool link_expanded_ = true;
