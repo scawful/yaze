@@ -2,9 +2,23 @@
 
 This document provides a reference for the yaze C and C++ APIs, intended for developers creating extensions or contributing to the core application.
 
-## C API (`incl/yaze.h`)
+## C API (`inc/yaze.h`)
 
 The C API provides a stable, language-agnostic interface for interacting with yaze's core functionalities.
+
+You can include the umbrella header:
+- `inc/yaze.h`
+
+Or include narrower headers to keep compile scopes small:
+- `inc/yaze_version.h`
+- `inc/yaze_errors.h`
+- `inc/yaze_core.h`
+- `inc/yaze_graphics.h`
+- `inc/yaze_rom.h`
+- `inc/yaze_overworld.h`
+- `inc/yaze_dungeon.h`
+- `inc/yaze_messages.h`
+- `inc/yaze_extensions.h`
 
 ### Core Library Functions
 ```c

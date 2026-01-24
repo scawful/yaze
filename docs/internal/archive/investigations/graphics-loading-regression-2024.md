@@ -133,7 +133,7 @@ Added comprehensive documentation to `DecompressV2()` with explicit warning abou
 - `src/app/rom.cc` - Main ROM handling and graphics loading
 - `src/app/gfx/util/compression.cc` - LC-LZ2 decompression implementation
 - `src/app/gfx/util/compression.h` - Decompression function declarations
-- `incl/zelda.h` - Version-specific pointer table offsets
+- `inc/zelda.h` - Version-specific pointer table offsets
 
 ## Commits
 

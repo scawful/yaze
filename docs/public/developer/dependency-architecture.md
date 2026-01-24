@@ -29,7 +29,7 @@ platforms: `mac-dbg`, `mac-ai`, `lin-dbg`, `win-dbg`, etc. The `*-ai` presets en
 
 ## Library Layers
 
-### 1. Foundation (`src/util`, `incl/`)
+### 1. Foundation (`src/util`, `inc/`)
 - **`yaze_common`**: cross-platform macros, generated headers, and lightweight helpers shared by
   every other target.
 - **`yaze_util`**: logging, file I/O, BPS patch helpers, and the legacy flag system. Only depends
@@ -80,7 +80,7 @@ alone. Touching editor UI code does **not** require rebuilding `yaze_emulator`.
 
 | Change | Targets Affected |
 | --- | --- |
-| `src/util/*.h` or `incl/yaze/*.h` | Everything (foundation dependency) |
+| `src/util/*.h` or `inc/*.h` | Everything (foundation dependency) |
 | `src/app/gfx/**` | `yaze_gfx`, `yaze_gui`, editors, CLI. Emulator core unaffected. |
 | `src/zelda3/**` | All editors, CLI, tests. Rebuild does **not** touch renderer-only changes. |
 | `src/app/editor/**` | GUI editor + CLI (shared panels). Emulator/test support untouched. |

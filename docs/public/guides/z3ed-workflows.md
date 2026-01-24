@@ -2,6 +2,11 @@
 
 This guide demonstrates practical workflows using z3ed CLI for common ROM hacking tasks, test automation, and AI-assisted development.
 
+> **Note:** This guide includes planned/experimental workflows and may reference
+> commands that are not yet implemented (e.g., `rom snapshot`, `editor batch`,
+> `query` commands). For current capabilities, use `z3ed --list-commands` and
+> the [CLI reference](../cli/README.md).
+
 ## Table of Contents
 
 1. [Basic ROM Editing Workflow](#basic-rom-editing-workflow)
@@ -869,6 +874,6 @@ z3ed --offline --cache-only
 ## Next Steps
 
 - Explore the [Z3ED Command Reference](z3ed-command-reference.md)
-- Read the [API Documentation](../reference/api/)
+- Read the [API Documentation](../reference/api.md)
 - Join the [YAZE Discord](https://discord.gg/yaze) for support
 - Contribute your workflows to the [Examples Repository](https://github.com/yaze/z3ed-examples)
