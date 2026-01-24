@@ -213,7 +213,7 @@ The WASM build includes a subset of z3ed commands that don't require native depe
 - `agent list` / `agent describe <resource>` - List or describe resources
 
 ### Graphics & Hex Commands
-- `hex-read --address <hex> --length <bytes>` - Read ROM bytes
+- `hex-read --address <hex> --length <bytes> [--data-format <hex|ascii|both>]` - Read ROM bytes
 - `hex-write --address <hex> --data <hex>` - Write ROM bytes
 - `hex-search --pattern <hex>` - Search for a byte pattern
 - `palette-get-colors --palette <id>` - Read palette colors

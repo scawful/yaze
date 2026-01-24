@@ -54,7 +54,7 @@ yaze/
 │   ├── web/            # WASM UI + browser integration
 │   ├── core/           # Shared core utilities/patch logic
 │   └── util/           # Logging, file IO, helpers
-├── incl/               # Public C API headers
+├── inc/               # Public C API headers
 ├── test/               # Unit/integration/e2e/benchmarks
 ├── tools/              # Dev tools and build helpers
 ├── assets/             # Built-in assets (no ROMs)
@@ -198,7 +198,7 @@ To ensure a consistent and polished look and feel, all new UI components must ad
 The repository ships curated `.clangd` and `.clang-tidy` files that mirror our
 Google-style C++23 guidelines while accommodating ROM hacking patterns.
 
-- `.clangd` consumes `build/compile_commands.json`, enumerates `src/`, `incl/`,
+- `.clangd` consumes `build/compile_commands.json`, enumerates `src/`, `inc/`,
   `third_party/`, generated directories, and sets feature flags such as
   `YAZE_WITH_GRPC`, `YAZE_WITH_JSON`, and `Z3ED_AI` so IntelliSense matches the
   active preset.

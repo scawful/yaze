@@ -65,14 +65,30 @@ To support the features above, the `run.sh` script in `Oracle-of-Secrets` needs 
 
 ```bash
 #!/bin/bash
-cp "Roms/oos168_test2.sfc" "Roms/oos91x.sfc"
+ROM_VERSION=168
+ROM_PATH="Roms/oos${ROM_VERSION}.sfc"
 # Generate WLA symbols for yaze integration
-asar --symbols=wla Oracle_main.asm Roms/oos91x.sfc
+asar --symbols=wla Oracle_main.asm "$ROM_PATH"
 # Rename to .symbols if yaze expects that, or configure yaze to read .sym
-mv Roms/oos91x.sym Roms/oos91x.symbols 
+mv "Roms/oos${ROM_VERSION}.sym" "Roms/oos${ROM_VERSION}.symbols"
 ```
 
+## 5. Implemented Debugging Workflows
+
+### A. Oracle RAM Live Panel
+*   **Status:** ✅ Completed
+*   **Features:**
+    *   30Hz live sync with Mesen2 memory.
+    *   Symbolic label resolution for OoS-specific addresses ($7E0010, $7E0739, etc.).
+    *   Integrated with `AgentUiController` and `PanelManager`.
+
+### B. ASM Follow Mode
+*   **Status:** ✅ Completed (Prototype)
+*   **Features:**
+    *   Real-time PC synchronization between emulator and source.
+    *   Symbol-to-source mapping via `AsmFollowService`.
+    *   `SymbolProvider` extensions for file/line lookup.
+
 ## Next Steps
-1.  **Assembly Editor:** Begin implementing Error Highlighting (Parsers & UI).
-2.  **Build System:** Update `run.sh` and test symbol generation.
-3.  **UI:** Prototype the "Snapshot" button.
+1.  **Dungeon Context Awareness:** Implement automatic watch updates based on room transitions.
+2.  **Sprite AI Regression Tests:** Utilize Mesen's `BATCH` command for automated validation.

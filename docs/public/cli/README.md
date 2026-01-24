@@ -22,6 +22,8 @@ Machine-readable test discovery and execution.
 
 | Command | Description |
 |---------|-------------|
+| `rom-read` | Read raw bytes from ROM |
+| `rom-write` | Write raw bytes to ROM |
 | `hex-read` | Read raw bytes from ROM |
 | `hex-search` | Search for byte patterns |
 | `palette-get-colors` | Extract palette data |
@@ -32,6 +34,7 @@ Machine-readable test discovery and execution.
 ### Mesen2 Live Debugging
 
 Requires Mesen2-OoS running with the socket API available under `/tmp/mesen2-*.sock`.
+Prefer `z3ed debug ...` as the front door (Mesen2 is the default backend).
 
 | Command | Description |
 |---------|-------------|
@@ -44,6 +47,9 @@ Requires Mesen2-OoS running with the socket API available under `/tmp/mesen2-*.s
 | `mesen-trace` | Fetch execution trace |
 | `mesen-breakpoint` | Manage breakpoints |
 | `mesen-control` | Pause/resume/step/frame/reset |
+| `debug state` | Alias for `mesen-gamestate` |
+| `debug mem read` | Alias for `mesen-memory-read` |
+| `debug mem write` | Alias for `mesen-memory-write` |
 
 ### Overworld Tools
 
@@ -69,11 +75,19 @@ Requires Mesen2-OoS running with the socket API available under `/tmp/mesen2-*.s
 | Flag | Description |
 |------|-------------|
 | `--rom <path>` | Path to ROM file |
+| `--sandbox` | Run ROM commands against a sandbox copy |
 | `--format json\|text` | Output format |
+| `--data-format hex\|ascii\|both` | Byte view for read commands |
 | `--verbose` | Detailed output |
 | `--ai_provider <name>` | AI provider for agent commands (ollama, gemini, openai, anthropic, mock) |
 | `--ai_model <name>` | Provider-specific model override |
+| `--openai_base_url <url>` | OpenAI-compatible base URL (LM Studio: `http://localhost:1234`) |
+| `--mesen-socket <path>` | Override Mesen2 socket path |
 | `--help` | Show command help |
+
+Environment variables for AI providers:
+`GEMINI_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`,
+`OPENAI_BASE_URL`/`OPENAI_API_BASE`, `OLLAMA_HOST`, `OLLAMA_MODEL`.
 
 ---
 
@@ -98,4 +112,5 @@ z3ed rom-doctor --rom zelda3.sfc --format json | jq '.checksum_valid'
 ## Related Documentation
 
 - [z3ed CLI Guide](../usage/z3ed-cli.md) - Usage tutorials and workflows
+- [API Reference](../reference/api.md) - HTTP + gRPC automation endpoints
 - [Getting Started](../overview/getting-started.md) - Quick start guide

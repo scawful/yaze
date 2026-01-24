@@ -37,18 +37,18 @@ Start z3ed with the `--http-port` flag:
 # Start on default port 8080
 ./build/bin/z3ed --http-port=8080
 
-# Start on custom port with specific host
-./build/bin/z3ed --http-port=9000 --http-host=0.0.0.0
+# Start on custom port with display host for printed URLs
+./build/bin/z3ed --http-port=9000 --http-host=example-host
 
 # Combine with other z3ed commands
 ./build/bin/z3ed agent --rom=zelda3.sfc --http-port=8080
 ```
 
-**Security Note**: The server defaults to `localhost` for safety. Only bind to `0.0.0.0` if you understand the security implications.
+**Security Note**: The server currently binds `0.0.0.0` (all interfaces). Use firewall rules or SSH tunnels to keep it private. The `--http-host` flag only controls the URLs printed by `z3ed`.
 
 ## API Endpoints
 
-All endpoints return JSON responses and support CORS headers.
+All endpoints return JSON responses and include CORS headers. Send an `OPTIONS` request for a `204` preflight response with `Access-Control-Allow-*` headers. `/api/v1/symbols` returns plain text by default.
 
 ### GET /api/v1/health
 
@@ -76,10 +76,16 @@ curl http://localhost:8080/api/v1/health
 ### GET /api/v1/models
 
 List all available AI models from all registered providers (Ollama, Gemini, etc.).
+Use `?refresh=1` (or `?refresh=true` / `?refresh`) to bypass the server-side model cache.
 
 **Request:**
 ```bash
 curl http://localhost:8080/api/v1/models
+```
+
+**Request (bypass cache):**
+```bash
+curl http://localhost:8080/api/v1/models?refresh=1
 ```
 
 **Response:**
@@ -88,6 +94,7 @@ curl http://localhost:8080/api/v1/models
   "models": [
     {
       "name": "qwen2.5-coder:7b",
+      "display_name": "Qwen 2.5 Coder 7B",
       "provider": "ollama",
       "description": "Qwen 2.5 Coder 7B model",
       "family": "qwen2.5",
@@ -98,6 +105,7 @@ curl http://localhost:8080/api/v1/models
     },
     {
       "name": "gemini-1.5-pro",
+      "display_name": "Gemini 1.5 Pro",
       "provider": "gemini",
       "description": "Gemini 1.5 Pro",
       "family": "gemini-1.5",
@@ -117,6 +125,7 @@ curl http://localhost:8080/api/v1/models
 
 **Response Fields:**
 - `name` (string) - Model identifier
+- `display_name` (string) - Human-friendly display name (falls back to `name`)
 - `provider` (string) - Provider name ("ollama", "gemini", etc.)
 - `description` (string) - Human-readable description
 - `family` (string) - Model family/series
@@ -124,6 +133,136 @@ curl http://localhost:8080/api/v1/models
 - `quantization` (string) - Quantization method (e.g., "Q4_0", "Q8_0")
 - `size_bytes` (number) - Model size in bytes
 - `is_local` (boolean) - Whether model is hosted locally
+
+---
+
+### GET /api/v1/symbols
+
+Export symbols from the active symbol provider. By default returns plain text; request JSON via `Accept: application/json`.
+Use `format=mesen|asar|wla|bsnes` to choose the export format (unsupported values return `400`).
+
+**Request (plain text):**
+```bash
+curl "http://localhost:8080/api/v1/symbols?format=mesen"
+```
+
+**Request (JSON):**
+```bash
+curl -H "Accept: application/json" \
+  "http://localhost:8080/api/v1/symbols?format=asar"
+```
+
+**Response (plain text):**
+```
+; sample output truncated
+some_symbol $008000
+```
+
+**Response (JSON):**
+```json
+{
+  "symbols": "...",
+  "format": "asar"
+}
+```
+
+**Status Codes:**
+- `200 OK` - Symbols retrieved successfully
+- `400 Bad Request` - Unsupported `format` value
+- `503 Service Unavailable` - Symbol provider not available
+- `500 Internal Server Error` - Export failed
+
+---
+
+### POST /api/v1/navigate
+
+Send a navigation request (for example, jump to a disassembly address).
+
+**Request:**
+```bash
+curl -X POST http://localhost:8080/api/v1/navigate \
+  -H "Content-Type: application/json" \
+  -d '{"address":4660,"source":"tool"}'
+```
+
+**Response:**
+```json
+{
+  "status": "ok",
+  "address": 4660,
+  "message": "Navigation request received"
+}
+```
+
+**Status Codes:**
+- `200 OK` - Navigation request accepted
+- `400 Bad Request` - Invalid JSON payload
+
+---
+
+### POST /api/v1/breakpoint/hit
+
+Notify YAZE that a breakpoint fired (optionally include CPU state).
+
+**Request:**
+```bash
+curl -X POST http://localhost:8080/api/v1/breakpoint/hit \
+  -H "Content-Type: application/json" \
+  -d '{"address":4660,"source":"mesen","cpu_state":{"a":1}}'
+```
+
+**Response:**
+```json
+{ "status": "ok", "address": 4660 }
+```
+
+**Status Codes:**
+- `200 OK` - Breakpoint report accepted
+- `400 Bad Request` - Invalid JSON payload
+
+---
+
+### POST /api/v1/state/update
+
+Send a free-form JSON payload to update panel state (schema evolving).
+
+**Request:**
+```bash
+curl -X POST http://localhost:8080/api/v1/state/update \
+  -H "Content-Type: application/json" \
+  -d '{"source":"tool","state":{"status":"ok"}}'
+```
+
+**Response:**
+```json
+{ "status": "ok" }
+```
+
+**Status Codes:**
+- `200 OK` - State update accepted
+- `400 Bad Request` - Invalid JSON payload
+
+---
+
+### POST /api/v1/window/show
+
+Show the desktop window (if supported).
+
+**Status Codes:**
+- `200 OK` - Window shown
+- `501 Not Implemented` - Window control unavailable
+- `500 Internal Server Error` - Window action failed
+
+---
+
+### POST /api/v1/window/hide
+
+Hide the desktop window (if supported).
+
+**Status Codes:**
+- `200 OK` - Window hidden
+- `501 Not Implemented` - Window control unavailable
+- `500 Internal Server Error` - Window action failed
 
 ---
 
@@ -236,10 +375,10 @@ See `docs/internal/AI_API_ENHANCEMENT_HANDOFF.md` for the full roadmap.
 
 ## Security Considerations
 
-- **Localhost Only**: Default host is `localhost` to prevent external access
-- **No Authentication**: Currently no authentication mechanism (planned for future)
-- **CORS Enabled**: Cross-origin requests allowed (may be restricted in future)
-- **Rate Limiting**: Not implemented (planned for future)
+- **Bind Address**: The server binds `0.0.0.0` (all interfaces) by default; use firewall rules or SSH tunnels to keep it private.
+- **No Authentication**: Currently no authentication mechanism (planned for future).
+- **CORS Enabled**: Cross-origin requests allowed (may be restricted in future).
+- **Rate Limiting**: Not implemented (planned for future).
 
 For production use, consider:
 1. Running behind a reverse proxy (nginx, Apache)
