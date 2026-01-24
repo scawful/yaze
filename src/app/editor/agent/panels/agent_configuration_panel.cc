@@ -356,16 +356,40 @@ void AgentConfigPanel::RenderModelConfigControls(
                            model_cache.search_buffer,
                            IM_ARRAYSIZE(model_cache.search_buffer));
   ImGui::SameLine();
+  if (model_cache.search_buffer[0] != '\0') {
+    if (ImGui::SmallButton(ICON_MD_CLEAR)) {
+      model_cache.search_buffer[0] = '\0';
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Clear search");
+    }
+    ImGui::SameLine();
+  }
   if (ImGui::Button(model_cache.loading ? ICON_MD_SYNC : ICON_MD_REFRESH)) {
     if (callbacks.refresh_models) {
       callbacks.refresh_models(true);
+    }
+  }
+  if (!model_cache.available_models.empty() ||
+      !model_cache.local_model_names.empty()) {
+    const int provider_count =
+        static_cast<int>(model_cache.available_models.size());
+    const int local_count =
+        static_cast<int>(model_cache.local_model_names.size());
+    if (provider_count > 0 && local_count > 0) {
+      ImGui::TextDisabled("Models: %d provider, %d local", provider_count,
+                          local_count);
+    } else if (provider_count > 0) {
+      ImGui::TextDisabled("Models: %d provider", provider_count);
+    } else if (local_count > 0) {
+      ImGui::TextDisabled("Models: %d local files", local_count);
     }
   }
 
   // Use theme color for model list background
   ImGui::PushStyleColor(ImGuiCol_ChildBg, theme.panel_bg_darker);
   float list_height =
-      std::max(160.0f, ImGui::GetContentRegionAvail().y * 0.45f);
+      std::max(240.0f, ImGui::GetContentRegionAvail().y * 0.6f);
   ImGui::BeginChild("UnifiedModelList", ImVec2(0, list_height), true);
   std::string filter = absl::AsciiStrToLower(model_cache.search_buffer);
 

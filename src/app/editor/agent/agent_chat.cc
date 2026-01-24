@@ -4,9 +4,15 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <unordered_set>
 
+#include "absl/strings/ascii.h"
+#include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/strip.h"
 #include "absl/time/time.h"
+#include "app/editor/agent/agent_chat_history_codec.h"
+#include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
@@ -38,6 +44,54 @@ std::string ResolveAgentChatHistoryPath() {
   return (std::filesystem::current_path() / "agent_chat_history.json").string();
 }
 
+std::optional<std::filesystem::path> ResolveAgentSessionsDir() {
+  auto agent_dir = util::PlatformPaths::GetAppDataSubdirectory("agent");
+  if (!agent_dir.ok()) {
+    return std::nullopt;
+  }
+  return *agent_dir / "sessions";
+}
+
+absl::Time FileTimeToAbsl(std::filesystem::file_time_type value) {
+  using FileClock = std::filesystem::file_time_type::clock;
+  auto now_file = FileClock::now();
+  auto now_sys = std::chrono::system_clock::now();
+  auto converted = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
+      value - now_file + now_sys);
+  return absl::FromChrono(converted);
+}
+
+std::string TrimTitle(const std::string& text) {
+  std::string trimmed = std::string(absl::StripAsciiWhitespace(text));
+  if (trimmed.empty()) {
+    return trimmed;
+  }
+  constexpr size_t kMaxLen = 64;
+  if (trimmed.size() > kMaxLen) {
+    trimmed = trimmed.substr(0, kMaxLen - 3);
+    trimmed.append("...");
+  }
+  return trimmed;
+}
+
+std::string BuildConversationTitle(const std::filesystem::path& path,
+                                   const std::vector<cli::agent::ChatMessage>& history) {
+  for (const auto& msg : history) {
+    if (msg.sender == cli::agent::ChatMessage::Sender::kUser &&
+        !msg.message.empty()) {
+      std::string title = TrimTitle(msg.message);
+      if (!title.empty()) {
+        return title;
+      }
+    }
+  }
+  std::string fallback = path.stem().string();
+  if (!fallback.empty()) {
+    return fallback;
+  }
+  return "Untitled";
+}
+
 }  // namespace
 
 AgentChat::AgentChat() {
@@ -48,6 +102,9 @@ void AgentChat::Initialize(ToastManager* toast_manager,
                            ProposalDrawer* proposal_drawer) {
   toast_manager_ = toast_manager;
   proposal_drawer_ = proposal_drawer;
+  if (active_history_path_.empty()) {
+    active_history_path_ = ResolveAgentChatHistoryPath();
+  }
 }
 
 void AgentChat::SetRomContext(Rom* rom) {
@@ -102,86 +159,325 @@ void AgentChat::HandleAgentResponse(
   }
 }
 
+void AgentChat::RefreshConversationList(bool force) {
+  if (!AgentChatHistoryCodec::Available()) {
+    conversations_.clear();
+    return;
+  }
+  if (!force && last_conversation_refresh_ != absl::InfinitePast()) {
+    absl::Duration since = absl::Now() - last_conversation_refresh_;
+    if (since < absl::Seconds(5)) {
+      return;
+    }
+  }
+
+  if (active_history_path_.empty()) {
+    active_history_path_ = ResolveAgentChatHistoryPath();
+  }
+
+  std::vector<std::filesystem::path> candidates;
+  std::unordered_set<std::string> seen;
+
+  if (!active_history_path_.empty()) {
+    candidates.push_back(active_history_path_);
+    seen.insert(active_history_path_.string());
+  }
+
+  if (auto sessions_dir = ResolveAgentSessionsDir()) {
+    std::error_code ec;
+    if (std::filesystem::exists(*sessions_dir, ec)) {
+      for (const auto& entry :
+           std::filesystem::directory_iterator(*sessions_dir, ec)) {
+        if (ec) {
+          break;
+        }
+        if (!entry.is_regular_file(ec)) {
+          continue;
+        }
+        auto path = entry.path();
+        if (path.extension() != ".json") {
+          continue;
+        }
+        if (!absl::EndsWith(path.stem().string(), "_history")) {
+          continue;
+        }
+        const std::string key = path.string();
+        if (seen.insert(key).second) {
+          candidates.push_back(std::move(path));
+        }
+      }
+    }
+  }
+
+  conversations_.clear();
+  for (const auto& path : candidates) {
+    ConversationEntry entry;
+    entry.path = path;
+    entry.is_active = (!active_history_path_.empty() &&
+                       path == active_history_path_);
+
+    auto snapshot_or = AgentChatHistoryCodec::Load(path);
+    if (snapshot_or.ok()) {
+      const auto& snapshot = snapshot_or.value();
+      entry.message_count = static_cast<int>(snapshot.history.size());
+      entry.title = BuildConversationTitle(path, snapshot.history);
+      if (!snapshot.history.empty()) {
+        entry.last_updated = snapshot.history.back().timestamp;
+      } else {
+        std::error_code ec;
+        if (std::filesystem::exists(path, ec)) {
+          entry.last_updated = FileTimeToAbsl(std::filesystem::last_write_time(path, ec));
+        }
+      }
+      if (entry.is_active && snapshot.history.empty()) {
+        entry.title = "Current Session";
+      }
+    } else {
+      entry.title = path.stem().string();
+    }
+
+    conversations_.push_back(std::move(entry));
+  }
+
+  std::sort(conversations_.begin(), conversations_.end(),
+            [](const ConversationEntry& a, const ConversationEntry& b) {
+              if (a.is_active != b.is_active) {
+                return a.is_active;
+              }
+              return a.last_updated > b.last_updated;
+            });
+
+  last_conversation_refresh_ = absl::Now();
+}
+
+void AgentChat::SelectConversation(const std::filesystem::path& path) {
+  if (path.empty()) {
+    return;
+  }
+  active_history_path_ = path;
+  auto status = LoadHistory(path.string());
+  if (!status.ok()) {
+    if (toast_manager_) {
+      toast_manager_->Show(std::string(status.message()), ToastType::kError,
+                           3.0f);
+    }
+  } else {
+    ScrollToBottom();
+  }
+  RefreshConversationList(true);
+}
+
 void AgentChat::Draw(float available_height) {
   if (!context_)
     return;
 
+  RefreshConversationList(false);
+
   // Chat container
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 4));
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6, 6));
+
+  const float content_width = ImGui::GetContentRegionAvail().x;
+  const bool wide_layout = content_width >= 680.0f;
 
   // 0. Toolbar at top
-  RenderToolbar();
+  RenderToolbar(!wide_layout);
   ImGui::Separator();
 
-  // 1. History Area (Available space - Input height - Toolbar height)
-  float input_height = ImGui::GetTextLineHeightWithSpacing() * 4 + 20.0f;
-  float toolbar_height = ImGui::GetFrameHeightWithSpacing() + 8.0f;
-  float history_height =
-      available_height > 0 ? (available_height - input_height - toolbar_height)
-                           : -input_height - toolbar_height;
+  float content_height =
+      available_height > 0 ? available_height : ImGui::GetContentRegionAvail().y;
 
-  if (ImGui::BeginChild("##ChatHistory", ImVec2(0, history_height), true)) {
-    RenderHistory();
-    // Handle auto-scroll
-    if (scroll_to_bottom_ ||
-        (auto_scroll_ && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())) {
-      ImGui::SetScrollHereY(1.0f);
-      scroll_to_bottom_ = false;
+  if (wide_layout) {
+    const float sidebar_width =
+        std::clamp(content_width * 0.28f, 220.0f, 320.0f);
+    if (ImGui::BeginChild("##ChatSidebar", ImVec2(sidebar_width, content_height),
+                          true, ImGuiWindowFlags_NoScrollbar)) {
+      RenderConversationSidebar(content_height);
     }
+    ImGui::EndChild();
+
+    ImGui::SameLine();
+  }
+
+  if (ImGui::BeginChild("##ChatMain", ImVec2(0, content_height), false,
+                        ImGuiWindowFlags_NoScrollbar)) {
+    const float input_height =
+        ImGui::GetTextLineHeightWithSpacing() * 3.5f + 24.0f;
+    const float history_height =
+        std::max(140.0f, ImGui::GetContentRegionAvail().y - input_height);
+
+    if (ImGui::BeginChild("##ChatHistory", ImVec2(0, history_height), true,
+                          ImGuiWindowFlags_NoScrollbar)) {
+      RenderHistory();
+      if (scroll_to_bottom_ ||
+          (auto_scroll_ && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())) {
+        ImGui::SetScrollHereY(1.0f);
+        scroll_to_bottom_ = false;
+      }
+    }
+    ImGui::EndChild();
+
+    RenderInputBox(input_height);
   }
   ImGui::EndChild();
-
-  // 2. Input Area
-  RenderInputBox();
 
   ImGui::PopStyleVar();
 }
 
-void AgentChat::RenderToolbar() {
+void AgentChat::RenderToolbar(bool compact) {
+  const auto& theme = AgentUI::GetTheme();
+
+  ImGui::PushStyleColor(ImGuiCol_Button, theme.status_success);
+  if (ImGui::Button(ICON_MD_ADD_COMMENT " New Chat")) {
+    ClearHistory();
+    active_history_path_ = ResolveAgentChatHistoryPath();
+    RefreshConversationList(true);
+  }
+  ImGui::PopStyleColor();
+  ImGui::SameLine();
+
   if (ImGui::Button(ICON_MD_DELETE_FOREVER " Clear")) {
     ClearHistory();
   }
   ImGui::SameLine();
 
+  const bool history_available = AgentChatHistoryCodec::Available();
+  ImGui::BeginDisabled(!history_available);
   if (ImGui::Button(ICON_MD_SAVE " Save")) {
-    std::string filepath = ResolveAgentChatHistoryPath();
+    const std::string filepath =
+        active_history_path_.empty() ? ResolveAgentChatHistoryPath()
+                                     : active_history_path_.string();
     if (auto status = SaveHistory(filepath); !status.ok()) {
       if (toast_manager_) {
         toast_manager_->Show(
             "Failed to save history: " + std::string(status.message()),
             ToastType::kError);
       }
-    } else {
-      if (toast_manager_) {
-        toast_manager_->Show("Chat history saved", ToastType::kSuccess);
-      }
+    } else if (toast_manager_) {
+      toast_manager_->Show("Chat history saved", ToastType::kSuccess);
     }
+    RefreshConversationList(true);
   }
   ImGui::SameLine();
 
   if (ImGui::Button(ICON_MD_FOLDER_OPEN " Load")) {
-    std::string filepath = ResolveAgentChatHistoryPath();
+    const std::string filepath =
+        active_history_path_.empty() ? ResolveAgentChatHistoryPath()
+                                     : active_history_path_.string();
     if (auto status = LoadHistory(filepath); !status.ok()) {
       if (toast_manager_) {
         toast_manager_->Show(
             "Failed to load history: " + std::string(status.message()),
             ToastType::kError);
       }
-    } else {
-      if (toast_manager_) {
-        toast_manager_->Show("Chat history loaded", ToastType::kSuccess);
+    } else if (toast_manager_) {
+      toast_manager_->Show("Chat history loaded", ToastType::kSuccess);
+    }
+  }
+  ImGui::EndDisabled();
+
+  if (compact && !conversations_.empty()) {
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(220.0f);
+    const char* current_label = "Current Session";
+    for (const auto& entry : conversations_) {
+      if (entry.is_active) {
+        current_label = entry.title.c_str();
+        break;
       }
+    }
+    if (ImGui::BeginCombo("##conversation_combo", current_label)) {
+      for (const auto& entry : conversations_) {
+        bool selected = entry.is_active;
+        if (ImGui::Selectable(entry.title.c_str(), selected)) {
+          SelectConversation(entry.path);
+        }
+        if (selected) {
+          ImGui::SetItemDefaultFocus();
+        }
+      }
+      ImGui::EndCombo();
     }
   }
 
   ImGui::SameLine();
-  ImGui::Checkbox("Auto-scroll", &auto_scroll_);
+  if (ImGui::Button(ICON_MD_TUNE)) {
+    ImGui::OpenPopup("ChatOptions");
+  }
+  if (ImGui::BeginPopup("ChatOptions")) {
+    ImGui::Checkbox("Auto-scroll", &auto_scroll_);
+    ImGui::Checkbox("Timestamps", &show_timestamps_);
+    ImGui::Checkbox("Reasoning", &show_reasoning_);
+    ImGui::EndPopup();
+  }
+}
 
-  ImGui::SameLine();
-  ImGui::Checkbox("Timestamps", &show_timestamps_);
+void AgentChat::RenderConversationSidebar(float height) {
+  const auto& theme = AgentUI::GetTheme();
 
+  if (!AgentChatHistoryCodec::Available()) {
+    ImGui::TextDisabled("Chat history persistence unavailable.");
+    ImGui::TextDisabled("Build with JSON support to enable sessions.");
+    return;
+  }
+
+  ImGui::TextColored(theme.text_secondary_color, "Conversations");
   ImGui::SameLine();
-  ImGui::Checkbox("Reasoning", &show_reasoning_);
+  if (ImGui::SmallButton(ICON_MD_REFRESH)) {
+    RefreshConversationList(true);
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Refresh list");
+  }
+
+  ImGui::Spacing();
+  ImGui::InputTextWithHint("##conversation_filter", "Search...",
+                           conversation_filter_, sizeof(conversation_filter_));
+  ImGui::Spacing();
+
+  const float list_height = std::max(0.0f, height - 80.0f);
+  if (ImGui::BeginChild("ConversationList", ImVec2(0, list_height), false,
+                        ImGuiWindowFlags_NoScrollbar)) {
+    std::string filter = absl::AsciiStrToLower(conversation_filter_);
+    if (conversations_.empty()) {
+      ImGui::TextDisabled("No saved conversations yet.");
+    } else {
+      int index = 0;
+      for (const auto& entry : conversations_) {
+        std::string title_lower = absl::AsciiStrToLower(entry.title);
+        if (!filter.empty() &&
+            title_lower.find(filter) == std::string::npos) {
+          continue;
+        }
+
+        ImGui::PushID(index++);
+        ImGui::PushStyleColor(ImGuiCol_Header,
+                              entry.is_active ? theme.status_active
+                                              : theme.panel_bg_darker);
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, theme.panel_bg_color);
+        ImGui::PushStyleColor(ImGuiCol_HeaderActive, theme.status_active);
+        if (ImGui::Selectable(entry.title.c_str(), entry.is_active,
+                              ImGuiSelectableFlags_SpanAllColumns)) {
+          SelectConversation(entry.path);
+        }
+        ImGui::PopStyleColor(3);
+
+        ImGui::TextDisabled("%d msg%s", entry.message_count,
+                            entry.message_count == 1 ? "" : "s");
+        if (entry.last_updated != absl::InfinitePast()) {
+          ImGui::SameLine();
+          ImGui::TextDisabled("%s",
+                              absl::FormatTime("%b %d, %H:%M",
+                                               entry.last_updated,
+                                               absl::LocalTimeZone())
+                                  .c_str());
+        }
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::PopID();
+      }
+    }
+  }
+  ImGui::EndChild();
 }
 
 void AgentChat::RenderHistory() {
@@ -298,35 +594,56 @@ void AgentChat::RenderThinkingIndicator() {
   ImGui::Unindent(10);
 }
 
-void AgentChat::RenderInputBox() {
-  ImGui::Separator();
+void AgentChat::RenderInputBox(float height) {
+  const auto& theme = AgentUI::GetTheme();
+  if (ImGui::BeginChild("ChatInput", ImVec2(0, height), false,
+                        ImGuiWindowFlags_NoScrollbar)) {
+    ImGui::Separator();
 
-  // Input flags
-  ImGuiInputTextFlags flags = ImGuiInputTextFlags_EnterReturnsTrue |
-                              ImGuiInputTextFlags_CtrlEnterForNewLine;
+    // Input flags
+    ImGuiInputTextFlags flags = ImGuiInputTextFlags_EnterReturnsTrue |
+                                ImGuiInputTextFlags_CtrlEnterForNewLine;
 
-  ImGui::PushItemWidth(-1);
-  if (ImGui::IsWindowAppearing()) {
-    ImGui::SetKeyboardFocusHere();
-  }
+    float button_row_height = ImGui::GetFrameHeightWithSpacing();
+    float input_height =
+        std::max(48.0f,
+                 ImGui::GetContentRegionAvail().y - button_row_height - 6.0f);
 
-  bool submit = ImGui::InputTextMultiline(
-      "##Input", input_buffer_, sizeof(input_buffer_), ImVec2(0, 0), flags);
-
-  if (submit) {
-    std::string msg(input_buffer_);
-    // Trim whitespace
-    while (!msg.empty() && std::isspace(msg.back()))
-      msg.pop_back();
-
-    if (!msg.empty()) {
-      SendMessage(msg);
-      input_buffer_[0] = '\0';
-      ImGui::SetKeyboardFocusHere(-1);  // Refocus
+    ImGui::PushItemWidth(-1);
+    if (ImGui::IsWindowAppearing()) {
+      ImGui::SetKeyboardFocusHere();
     }
-  }
 
-  ImGui::PopItemWidth();
+    bool submit = ImGui::InputTextMultiline(
+        "##Input", input_buffer_, sizeof(input_buffer_),
+        ImVec2(0, input_height), flags);
+
+    bool clicked_send = false;
+    ImGui::PushStyleColor(ImGuiCol_Button, theme.accent_color);
+    clicked_send = ImGui::Button(ICON_MD_SEND " Send", ImVec2(90, 0));
+    ImGui::PopStyleColor();
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_DELETE_FOREVER " Clear")) {
+      input_buffer_[0] = '\0';
+    }
+
+    if (submit || clicked_send) {
+      std::string msg(input_buffer_);
+      while (!msg.empty() &&
+             std::isspace(static_cast<unsigned char>(msg.back()))) {
+        msg.pop_back();
+      }
+
+      if (!msg.empty()) {
+        SendMessage(msg);
+        input_buffer_[0] = '\0';
+        ImGui::SetKeyboardFocusHere(-1);
+      }
+    }
+
+    ImGui::PopItemWidth();
+  }
+  ImGui::EndChild();
 }
 
 void AgentChat::RenderProposalQuickActions(const cli::agent::ChatMessage& msg,
@@ -503,26 +820,15 @@ void AgentChat::RenderToolTimeline(const cli::agent::ChatMessage& msg) {
 
 absl::Status AgentChat::LoadHistory(const std::string& filepath) {
 #ifdef YAZE_WITH_JSON
-  std::ifstream file(filepath);
-  if (!file.is_open()) {
-    return absl::NotFoundError(
-        absl::StrFormat("Could not open file: %s", filepath));
+  auto snapshot_or = AgentChatHistoryCodec::Load(filepath);
+  if (!snapshot_or.ok()) {
+    return snapshot_or.status();
   }
-
-  try {
-    nlohmann::json j;
-    file >> j;
-
-    // Parse and load messages
-    // Note: This would require exposing a LoadHistory method in
-    // ConversationalAgentService. For now, we'll just return success.
-    // TODO: Implement full history restoration when service supports it.
-
-    return absl::OkStatus();
-  } catch (const nlohmann::json::exception& e) {
-    return absl::InvalidArgumentError(
-        absl::StrFormat("Failed to parse JSON: %s", e.what()));
-  }
+  const auto& snapshot = snapshot_or.value();
+  agent_service_.ReplaceHistory(snapshot.history);
+  history_loaded_ = true;
+  scroll_to_bottom_ = true;
+  return absl::OkStatus();
 #else
   return absl::UnimplementedError("JSON support not available");
 #endif
@@ -530,10 +836,12 @@ absl::Status AgentChat::LoadHistory(const std::string& filepath) {
 
 absl::Status AgentChat::SaveHistory(const std::string& filepath) {
 #ifdef YAZE_WITH_JSON
-  // Create directory if needed
+  AgentChatHistoryCodec::Snapshot snapshot;
+  snapshot.history = agent_service_.GetHistory();
+
   std::filesystem::path path(filepath);
+  std::error_code ec;
   if (path.has_parent_path()) {
-    std::error_code ec;
     std::filesystem::create_directories(path.parent_path(), ec);
     if (ec) {
       return absl::InternalError(absl::StrFormat(
@@ -541,36 +849,7 @@ absl::Status AgentChat::SaveHistory(const std::string& filepath) {
     }
   }
 
-  std::ofstream file(filepath);
-  if (!file.is_open()) {
-    return absl::InternalError(
-        absl::StrFormat("Could not create file: %s", filepath));
-  }
-
-  try {
-    nlohmann::json j;
-    const auto& history = agent_service_.GetHistory();
-
-    j["version"] = 1;
-    j["messages"] = nlohmann::json::array();
-
-    for (const auto& msg : history) {
-      nlohmann::json msg_json;
-      msg_json["sender"] =
-          (msg.sender == cli::agent::ChatMessage::Sender::kUser) ? "user"
-                                                                 : "agent";
-      msg_json["message"] = msg.message;
-      msg_json["timestamp"] = absl::FormatTime(msg.timestamp);
-      j["messages"].push_back(msg_json);
-    }
-
-    file << j.dump(2);  // Pretty print with 2-space indent
-
-    return absl::OkStatus();
-  } catch (const nlohmann::json::exception& e) {
-    return absl::InternalError(
-        absl::StrFormat("Failed to serialize JSON: %s", e.what()));
-  }
+  return AgentChatHistoryCodec::Save(path, snapshot);
 #else
   return absl::UnimplementedError("JSON support not available");
 #endif
