@@ -1,10 +1,10 @@
 #include "cli/handlers/mesen_handlers.h"
 
+#include <cctype>
 #include <sstream>
 
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
-#include "absl/strings/str_split.h"
 
 namespace yaze {
 namespace cli {
@@ -27,26 +27,33 @@ absl::Status EnsureConnected() {
   return absl::OkStatus();
 }
 
-std::string GetArgValue(const std::vector<std::string>& args,
-                        const std::string& key,
-                        const std::string& default_value = "") {
-  std::string prefix = "--" + key + "=";
-  for (const auto& arg : args) {
-    if (arg.find(prefix) == 0) {
-      return arg.substr(prefix.length());
-    }
+absl::StatusOr<int> ParseOptionalInt(
+    const resources::ArgumentParser& parser,
+    const std::string& name,
+    int default_value) {
+  if (!parser.GetString(name).has_value()) {
+    return default_value;
   }
-  return default_value;
+  return parser.GetInt(name);
 }
 
-uint32_t ParseHexArg(const std::string& value) {
-  uint32_t result = 0;
-  std::string hex = value;
-  if (hex.length() > 2 && hex[0] == '0' && (hex[1] == 'x' || hex[1] == 'X')) {
-    hex = hex.substr(2);
+std::vector<uint8_t> ParseHexBytes(const std::string& data_str) {
+  std::string hex;
+  hex.reserve(data_str.size());
+  for (char c : data_str) {
+    if (std::isxdigit(static_cast<unsigned char>(c))) {
+      hex.push_back(c);
+    }
   }
-  absl::SimpleHexAtoi(hex, &result);
-  return result;
+
+  std::vector<uint8_t> data;
+  for (size_t i = 0; i + 1 < hex.size(); i += 2) {
+    int byte = 0;
+    if (absl::SimpleHexAtoi(hex.substr(i, 2), &byte)) {
+      data.push_back(static_cast<uint8_t>(byte));
+    }
+  }
+  return data;
 }
 
 }  // namespace
@@ -62,9 +69,17 @@ void MesenClientHolder::SetClient(
 }
 
 // MesenGamestateCommandHandler
+absl::Status MesenGamestateCommandHandler::ValidateArgs(
+    const resources::ArgumentParser& parser) {
+  (void)parser;
+  return absl::OkStatus();
+}
+
 absl::Status MesenGamestateCommandHandler::Execute(
-    const std::vector<std::string>& args, std::string* output) {
-  (void)args;
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  (void)rom;
+  (void)parser;
   auto status = EnsureConnected();
   if (!status.ok()) return status;
 
@@ -72,55 +87,71 @@ absl::Status MesenGamestateCommandHandler::Execute(
   if (!result.ok()) return result.status();
 
   const auto& state = *result;
-  std::stringstream ss;
-  ss << "=== ALTTP Game State ===\n";
-  ss << absl::StrFormat("Link: X=%d, Y=%d, Layer=%d, Direction=%d\n",
-                        state.link.x, state.link.y, state.link.layer,
-                        state.link.direction);
-  ss << absl::StrFormat("Health: %d/%d, Magic: %d\n", state.items.current_health,
-                        state.items.max_health, state.items.magic);
-  ss << absl::StrFormat("Rupees: %d, Bombs: %d, Arrows: %d\n",
-                        state.items.rupees, state.items.bombs,
-                        state.items.arrows);
-  ss << absl::StrFormat("Mode: %d, Submode: %d, Indoors: %s\n", state.game.mode,
-                        state.game.submode, state.game.indoors ? "yes" : "no");
+  formatter.AddField("link_x", state.link.x);
+  formatter.AddField("link_y", state.link.y);
+  formatter.AddField("link_layer", state.link.layer);
+  formatter.AddField("link_direction", static_cast<int>(state.link.direction));
+  formatter.AddField("health", static_cast<int>(state.items.current_health));
+  formatter.AddField("max_health", static_cast<int>(state.items.max_health));
+  formatter.AddField("magic", static_cast<int>(state.items.magic));
+  formatter.AddField("rupees", static_cast<int>(state.items.rupees));
+  formatter.AddField("bombs", static_cast<int>(state.items.bombs));
+  formatter.AddField("arrows", static_cast<int>(state.items.arrows));
+  formatter.AddField("mode", static_cast<int>(state.game.mode));
+  formatter.AddField("submode", static_cast<int>(state.game.submode));
+  formatter.AddField("indoors", state.game.indoors);
   if (state.game.indoors) {
-    ss << absl::StrFormat("Room: 0x%04X\n", state.game.room_id);
+    formatter.AddHexField("room_id", state.game.room_id, 4);
   } else {
-    ss << absl::StrFormat("Overworld Area: 0x%02X\n", state.game.overworld_area);
+    formatter.AddHexField("overworld_area", state.game.overworld_area, 2);
   }
-  *output = ss.str();
+
   return absl::OkStatus();
 }
 
 // MesenSpritesCommandHandler
+absl::Status MesenSpritesCommandHandler::ValidateArgs(
+    const resources::ArgumentParser& parser) {
+  (void)parser;
+  return absl::OkStatus();
+}
+
 absl::Status MesenSpritesCommandHandler::Execute(
-    const std::vector<std::string>& args, std::string* output) {
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  (void)rom;
   auto status = EnsureConnected();
   if (!status.ok()) return status;
 
-  bool show_all = GetArgValue(args, "all", "false") == "true";
+  bool show_all = parser.HasFlag("all");
   auto result = g_mesen_client->GetSprites(show_all);
   if (!result.ok()) return result.status();
 
-  std::stringstream ss;
-  ss << "=== Active Sprites ===\n";
+  formatter.AddField("count", static_cast<int>(result->size()));
+  formatter.BeginArray("sprites");
   for (const auto& sprite : *result) {
-    ss << absl::StrFormat("[%d] Type=0x%02X State=%d @ (%d,%d) HP=%d\n",
-                          sprite.slot, sprite.type, sprite.state, sprite.x,
-                          sprite.y, sprite.health);
+    formatter.AddArrayItem(
+        absl::StrFormat("[#%d] type=0x%02X state=%d @(%d,%d) hp=%d",
+                        sprite.slot, sprite.type, sprite.state, sprite.x,
+                        sprite.y, sprite.health));
   }
-  if (result->empty()) {
-    ss << "(No active sprites)\n";
-  }
-  *output = ss.str();
+  formatter.EndArray();
+
   return absl::OkStatus();
 }
 
 // MesenCpuCommandHandler
+absl::Status MesenCpuCommandHandler::ValidateArgs(
+    const resources::ArgumentParser& parser) {
+  (void)parser;
+  return absl::OkStatus();
+}
+
 absl::Status MesenCpuCommandHandler::Execute(
-    const std::vector<std::string>& args, std::string* output) {
-  (void)args;
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  (void)rom;
+  (void)parser;
   auto status = EnsureConnected();
   if (!status.ok()) return status;
 
@@ -128,210 +159,244 @@ absl::Status MesenCpuCommandHandler::Execute(
   if (!result.ok()) return result.status();
 
   const auto& cpu = *result;
-  std::stringstream ss;
-  ss << "=== CPU State ===\n";
-  ss << absl::StrFormat("PC=$%02X:%04X  A=$%04X  X=$%04X  Y=$%04X\n", cpu.K,
-                        cpu.PC & 0xFFFF, cpu.A, cpu.X, cpu.Y);
-  ss << absl::StrFormat("SP=$%04X  D=$%04X  DBR=$%02X  P=$%02X\n", cpu.SP, cpu.D,
-                        cpu.DBR, cpu.P);
-  ss << absl::StrFormat("Emulation: %s\n", cpu.emulation_mode ? "yes" : "no");
-  *output = ss.str();
+  uint32_t pc = (static_cast<uint32_t>(cpu.K) << 16) | (cpu.PC & 0xFFFF);
+  formatter.AddHexField("pc", pc, 6);
+  formatter.AddHexField("a", cpu.A, 4);
+  formatter.AddHexField("x", cpu.X, 4);
+  formatter.AddHexField("y", cpu.Y, 4);
+  formatter.AddHexField("sp", cpu.SP, 4);
+  formatter.AddHexField("d", cpu.D, 4);
+  formatter.AddHexField("dbr", cpu.DBR, 2);
+  formatter.AddHexField("p", cpu.P, 2);
+  formatter.AddField("emulation_mode", cpu.emulation_mode);
+
   return absl::OkStatus();
 }
 
 // MesenMemoryReadCommandHandler
+absl::Status MesenMemoryReadCommandHandler::ValidateArgs(
+    const resources::ArgumentParser& parser) {
+  return parser.RequireArgs({"address"});
+}
+
 absl::Status MesenMemoryReadCommandHandler::Execute(
-    const std::vector<std::string>& args, std::string* output) {
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  (void)rom;
   auto status = EnsureConnected();
   if (!status.ok()) return status;
 
-  std::string addr_str = GetArgValue(args, "address");
-  if (addr_str.empty()) {
-    return absl::InvalidArgumentError("--address is required");
-  }
+  auto addr_or = parser.GetHex("address");
+  if (!addr_or.ok()) return addr_or.status();
+  uint32_t addr = static_cast<uint32_t>(*addr_or);
 
-  uint32_t addr = ParseHexArg(addr_str);
-  int length = 16;
-  std::string len_str = GetArgValue(args, "length", "16");
-  absl::SimpleAtoi(len_str, &length);
+  auto length_or = ParseOptionalInt(parser, "length", 16);
+  if (!length_or.ok()) return length_or.status();
+  int length = *length_or;
 
   auto result = g_mesen_client->ReadBlock(addr, length);
   if (!result.ok()) return result.status();
 
-  std::stringstream ss;
-  ss << absl::StrFormat("=== Memory @ $%06X ===\n", addr);
-  for (size_t i = 0; i < result->size(); i += 16) {
-    ss << absl::StrFormat("$%06X: ", addr + i);
-    for (size_t j = 0; j < 16 && i + j < result->size(); ++j) {
-      ss << absl::StrFormat("%02X ", (*result)[i + j]);
-    }
-    ss << "\n";
+  formatter.AddHexField("address", addr, 6);
+  formatter.AddField("length", static_cast<int>(result->size()));
+  formatter.BeginArray("bytes");
+  for (uint8_t byte : *result) {
+    formatter.AddArrayItem(absl::StrFormat("%02X", byte));
   }
-  *output = ss.str();
+  formatter.EndArray();
+
   return absl::OkStatus();
 }
 
 // MesenMemoryWriteCommandHandler
+absl::Status MesenMemoryWriteCommandHandler::ValidateArgs(
+    const resources::ArgumentParser& parser) {
+  return parser.RequireArgs({"address", "data"});
+}
+
 absl::Status MesenMemoryWriteCommandHandler::Execute(
-    const std::vector<std::string>& args, std::string* output) {
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  (void)rom;
   auto status = EnsureConnected();
   if (!status.ok()) return status;
 
-  std::string addr_str = GetArgValue(args, "address");
-  std::string data_str = GetArgValue(args, "data");
-  if (addr_str.empty() || data_str.empty()) {
-    return absl::InvalidArgumentError("--address and --data are required");
+  auto addr_or = parser.GetHex("address");
+  if (!addr_or.ok()) return addr_or.status();
+  uint32_t addr = static_cast<uint32_t>(*addr_or);
+
+  auto data_str = parser.GetString("data");
+  if (!data_str.has_value()) {
+    return absl::InvalidArgumentError("--data is required");
   }
 
-  uint32_t addr = ParseHexArg(addr_str);
-
-  // Parse hex bytes
-  std::vector<uint8_t> data;
-  for (size_t i = 0; i + 1 < data_str.length(); i += 2) {
-    int byte;
-    if (absl::SimpleHexAtoi(data_str.substr(i, 2), &byte)) {
-      data.push_back(static_cast<uint8_t>(byte));
-    }
+  auto data = ParseHexBytes(*data_str);
+  if (data.empty()) {
+    return absl::InvalidArgumentError("Invalid --data hex string");
   }
 
   auto write_status = g_mesen_client->WriteBlock(addr, data);
   if (!write_status.ok()) return write_status;
 
-  *output = absl::StrFormat("Wrote %zu bytes to $%06X\n", data.size(), addr);
+  formatter.AddHexField("address", addr, 6);
+  formatter.AddField("bytes_written", static_cast<int>(data.size()));
+  formatter.AddField("status", "ok");
   return absl::OkStatus();
 }
 
 // MesenDisasmCommandHandler
+absl::Status MesenDisasmCommandHandler::ValidateArgs(
+    const resources::ArgumentParser& parser) {
+  return parser.RequireArgs({"address"});
+}
+
 absl::Status MesenDisasmCommandHandler::Execute(
-    const std::vector<std::string>& args, std::string* output) {
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  (void)rom;
   auto status = EnsureConnected();
   if (!status.ok()) return status;
 
-  std::string addr_str = GetArgValue(args, "address");
-  if (addr_str.empty()) {
-    return absl::InvalidArgumentError("--address is required");
-  }
+  auto addr_or = parser.GetHex("address");
+  if (!addr_or.ok()) return addr_or.status();
+  uint32_t addr = static_cast<uint32_t>(*addr_or);
 
-  uint32_t addr = ParseHexArg(addr_str);
-  int count = 10;
-  std::string count_str = GetArgValue(args, "count", "10");
-  absl::SimpleAtoi(count_str, &count);
+  auto count_or = ParseOptionalInt(parser, "count", 10);
+  if (!count_or.ok()) return count_or.status();
+  int count = *count_or;
 
   auto result = g_mesen_client->Disassemble(addr, count);
   if (!result.ok()) return result.status();
 
-  *output = absl::StrFormat("=== Disassembly @ $%06X ===\n%s", addr, *result);
+  formatter.AddHexField("address", addr, 6);
+  formatter.AddField("disassembly", *result);
   return absl::OkStatus();
 }
 
 // MesenTraceCommandHandler
+absl::Status MesenTraceCommandHandler::ValidateArgs(
+    const resources::ArgumentParser& parser) {
+  (void)parser;
+  return absl::OkStatus();
+}
+
 absl::Status MesenTraceCommandHandler::Execute(
-    const std::vector<std::string>& args, std::string* output) {
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  (void)rom;
   auto status = EnsureConnected();
   if (!status.ok()) return status;
 
-  int count = 20;
-  std::string count_str = GetArgValue(args, "count", "20");
-  absl::SimpleAtoi(count_str, &count);
+  auto count_or = ParseOptionalInt(parser, "count", 20);
+  if (!count_or.ok()) return count_or.status();
+  int count = *count_or;
 
   auto result = g_mesen_client->GetTrace(count);
   if (!result.ok()) return result.status();
 
-  *output = absl::StrFormat("=== Execution Trace (last %d) ===\n%s", count,
-                            *result);
+  formatter.AddField("count", count);
+  formatter.AddField("trace", *result);
   return absl::OkStatus();
 }
 
 // MesenBreakpointCommandHandler
+absl::Status MesenBreakpointCommandHandler::ValidateArgs(
+    const resources::ArgumentParser& parser) {
+  return parser.RequireArgs({"action"});
+}
+
 absl::Status MesenBreakpointCommandHandler::Execute(
-    const std::vector<std::string>& args, std::string* output) {
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  (void)rom;
   auto status = EnsureConnected();
   if (!status.ok()) return status;
 
-  std::string action = GetArgValue(args, "action");
-  if (action.empty()) {
-    return absl::InvalidArgumentError(
-        "--action is required (add, remove, clear, list)");
+  auto action = parser.GetString("action");
+  if (!action.has_value()) {
+    return absl::InvalidArgumentError("--action is required");
   }
 
-  if (action == "add") {
-    std::string addr_str = GetArgValue(args, "address");
-    if (addr_str.empty()) {
-      return absl::InvalidArgumentError("--address required for add");
-    }
-    uint32_t addr = ParseHexArg(addr_str);
+  if (*action == "add") {
+    auto addr_or = parser.GetHex("address");
+    if (!addr_or.ok()) return addr_or.status();
+    uint32_t addr = static_cast<uint32_t>(*addr_or);
 
-    std::string type_str = GetArgValue(args, "type", "exec");
+    std::string type_str = parser.GetString("type").value_or("exec");
     emu::mesen::BreakpointType type = emu::mesen::BreakpointType::kExecute;
-    if (type_str == "read") type = emu::mesen::BreakpointType::kRead;
-    else if (type_str == "write") type = emu::mesen::BreakpointType::kWrite;
-    else if (type_str == "rw") type = emu::mesen::BreakpointType::kReadWrite;
+    if (type_str == "read")
+      type = emu::mesen::BreakpointType::kRead;
+    else if (type_str == "write")
+      type = emu::mesen::BreakpointType::kWrite;
+    else if (type_str == "rw")
+      type = emu::mesen::BreakpointType::kReadWrite;
 
     auto result = g_mesen_client->AddBreakpoint(addr, type);
     if (!result.ok()) return result.status();
-    *output = absl::StrFormat("Added breakpoint #%d at $%06X\n", *result, addr);
+    formatter.AddField("breakpoint_id", *result);
+    formatter.AddHexField("address", addr, 6);
+    formatter.AddField("status", "added");
+  } else if (*action == "remove") {
+    auto id_or = parser.GetInt("id");
+    if (!id_or.ok()) return id_or.status();
+    int id = *id_or;
 
-  } else if (action == "remove") {
-    std::string id_str = GetArgValue(args, "id");
-    if (id_str.empty()) {
-      return absl::InvalidArgumentError("--id required for remove");
-    }
-    int id;
-    absl::SimpleAtoi(id_str, &id);
     auto remove_status = g_mesen_client->RemoveBreakpoint(id);
     if (!remove_status.ok()) return remove_status;
-    *output = absl::StrFormat("Removed breakpoint #%d\n", id);
-
-  } else if (action == "clear") {
+    formatter.AddField("breakpoint_id", id);
+    formatter.AddField("status", "removed");
+  } else if (*action == "clear") {
     auto clear_status = g_mesen_client->ClearBreakpoints();
     if (!clear_status.ok()) return clear_status;
-    *output = "Cleared all breakpoints\n";
-
-  } else if (action == "list") {
-    *output = "Breakpoint listing not yet implemented\n";
+    formatter.AddField("status", "cleared");
+  } else if (*action == "list") {
+    formatter.AddField("status", "not_implemented");
   } else {
-    return absl::InvalidArgumentError("Unknown action: " + action);
+    return absl::InvalidArgumentError("Unknown action: " + *action);
   }
 
   return absl::OkStatus();
 }
 
 // MesenControlCommandHandler
+absl::Status MesenControlCommandHandler::ValidateArgs(
+    const resources::ArgumentParser& parser) {
+  return parser.RequireArgs({"action"});
+}
+
 absl::Status MesenControlCommandHandler::Execute(
-    const std::vector<std::string>& args, std::string* output) {
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  (void)rom;
   auto status = EnsureConnected();
   if (!status.ok()) return status;
 
-  std::string action = GetArgValue(args, "action");
-  if (action.empty()) {
-    return absl::InvalidArgumentError(
-        "--action required (pause, resume, step, frame, reset)");
+  auto action = parser.GetString("action");
+  if (!action.has_value()) {
+    return absl::InvalidArgumentError("--action required");
   }
 
-  if (action == "pause") {
+  if (*action == "pause") {
     auto result = g_mesen_client->Pause();
     if (!result.ok()) return result;
-    *output = "Paused\n";
-  } else if (action == "resume") {
+  } else if (*action == "resume") {
     auto result = g_mesen_client->Resume();
     if (!result.ok()) return result;
-    *output = "Resumed\n";
-  } else if (action == "step") {
+  } else if (*action == "step") {
     auto result = g_mesen_client->Step(1);
     if (!result.ok()) return result;
-    *output = "Stepped 1 instruction\n";
-  } else if (action == "frame") {
+  } else if (*action == "frame") {
     auto result = g_mesen_client->Frame();
     if (!result.ok()) return result;
-    *output = "Advanced 1 frame\n";
-  } else if (action == "reset") {
+  } else if (*action == "reset") {
     auto result = g_mesen_client->Reset();
     if (!result.ok()) return result;
-    *output = "Reset\n";
   } else {
-    return absl::InvalidArgumentError("Unknown action: " + action);
+    return absl::InvalidArgumentError("Unknown action: " + *action);
   }
 
+  formatter.AddField("status", "ok");
+  formatter.AddField("action", *action);
   return absl::OkStatus();
 }
 
