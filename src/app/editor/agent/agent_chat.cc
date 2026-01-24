@@ -420,6 +420,29 @@ void AgentChat::RenderConversationSidebar(float height) {
     return;
   }
 
+  if (context_) {
+    const auto& config = context_->agent_config();
+    ImGui::TextColored(theme.text_secondary_color, "Agent");
+    if (panel_opener_) {
+      if (ImGui::SmallButton(ICON_MD_SETTINGS " Config")) {
+        panel_opener_("agent.configuration");
+      }
+      ImGui::SameLine();
+      if (ImGui::SmallButton(ICON_MD_AUTO_FIX_HIGH " Builder")) {
+        panel_opener_("agent.builder");
+      }
+    }
+    ImGui::TextDisabled("Provider: %s",
+                        config.ai_provider.empty() ? "mock"
+                                                   : config.ai_provider.c_str());
+    ImGui::TextDisabled("Model: %s",
+                        config.ai_model.empty() ? "not set"
+                                                : config.ai_model.c_str());
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+  }
+
   ImGui::TextColored(theme.text_secondary_color, "Conversations");
   ImGui::SameLine();
   if (ImGui::SmallButton(ICON_MD_REFRESH)) {
