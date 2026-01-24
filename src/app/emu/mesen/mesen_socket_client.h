@@ -169,6 +169,11 @@ class MesenSocketClient {
    */
   const std::string& GetSocketPath() const { return socket_path_; }
 
+  /**
+   * @brief List available Mesen2 sockets on the system
+   */
+  static std::vector<std::string> ListAvailableSockets();
+
   // ──────────────────────────────────────────────────────────────────────────
   // Control Commands
   // ──────────────────────────────────────────────────────────────────────────
@@ -351,7 +356,7 @@ class MesenSocketClient {
   /**
    * @brief Find available Mesen2 socket paths
    */
-  std::vector<std::string> FindSocketPaths();
+  static std::vector<std::string> FindSocketPaths();
 
   /**
    * @brief Parse JSON response for success/error

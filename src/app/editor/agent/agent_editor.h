@@ -30,6 +30,7 @@ class ProposalDrawer;
 class AgentChat;
 class AgentCollaborationCoordinator;
 class AgentConfigPanel;
+class MesenDebugPanel;
 
 #ifdef YAZE_WITH_GRPC
 class NetworkCollaborationCoordinator;
@@ -265,6 +266,7 @@ class AgentEditor : public Editor {
   void DrawCommonTilesEditor();
   void DrawNewPromptCreator();
   void DrawAgentBuilderPanel();
+  void DrawMesenDebugPanel();
   void SyncContextFromProfile();
   void SyncConfigFromProfile();
   void ApplyConfigFromContext(const AgentConfigState& config);
@@ -293,6 +295,7 @@ class AgentEditor : public Editor {
   std::unique_ptr<AgentChat> agent_chat_;  // Owned by AgentEditor
   std::unique_ptr<AgentCollaborationCoordinator> local_coordinator_;
   std::unique_ptr<AgentConfigPanel> config_panel_;
+  std::unique_ptr<MesenDebugPanel> mesen_debug_panel_;
 #ifdef YAZE_WITH_GRPC
   std::unique_ptr<NetworkCollaborationCoordinator> network_coordinator_;
   AutomationBridge harness_telemetry_bridge_;

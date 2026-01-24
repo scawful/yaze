@@ -201,6 +201,32 @@ class AgentBuilderPanel : public EditorPanel {
 };
 
 /**
+ * @brief EditorPanel for Mesen2 debug integration
+ */
+class AgentMesenDebugPanel : public EditorPanel {
+ public:
+  using DrawCallback = std::function<void()>;
+
+  explicit AgentMesenDebugPanel(DrawCallback draw_callback)
+      : draw_callback_(std::move(draw_callback)) {}
+
+  std::string GetId() const override { return "agent.mesen_debug"; }
+  std::string GetDisplayName() const override { return "Mesen2 Debug"; }
+  std::string GetIcon() const override { return ICON_MD_BUG_REPORT; }
+  std::string GetEditorCategory() const override { return "Agent"; }
+  int GetPriority() const override { return 80; }
+
+  void Draw(bool* p_open) override {
+    if (draw_callback_) {
+      draw_callback_();
+    }
+  }
+
+ private:
+  DrawCallback draw_callback_;
+};
+
+/**
  * @brief EditorPanel for Knowledge Base panel
  *
  * Displays learned patterns, preferences, project contexts, and conversation

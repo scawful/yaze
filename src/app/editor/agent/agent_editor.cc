@@ -24,6 +24,7 @@
 #include "app/editor/agent/agent_chat.h"
 #include "app/editor/agent/agent_collaboration_coordinator.h"
 #include "app/editor/agent/panels/agent_configuration_panel.h"
+#include "app/editor/agent/panels/mesen_debug_panel.h"
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/user_settings.h"
 #include "app/editor/ui/toast_manager.h"
@@ -473,6 +474,7 @@ AgentEditor::AgentEditor() {
   agent_chat_ = std::make_unique<AgentChat>();
   local_coordinator_ = std::make_unique<AgentCollaborationCoordinator>();
   config_panel_ = std::make_unique<AgentConfigPanel>();
+  mesen_debug_panel_ = std::make_unique<MesenDebugPanel>();
   prompt_editor_ = std::make_unique<TextEditor>();
   common_tiles_editor_ = std::make_unique<TextEditor>();
 
@@ -553,6 +555,10 @@ void AgentEditor::Initialize() {
                 "Build with Z3ED_AI=ON to enable the knowledge service.");
           }
         }));
+
+    panel_manager->RegisterEditorPanel(
+        std::make_unique<AgentMesenDebugPanel>(
+            [this]() { DrawMesenDebugPanel(); }));
 
     if (agent_chat_) {
       agent_chat_->SetPanelOpener(
@@ -2199,6 +2205,14 @@ void AgentEditor::DrawAgentBuilderPanel() {
 
   ImGui::EndChild();
   ImGui::EndChild();
+}
+
+void AgentEditor::DrawMesenDebugPanel() {
+  if (mesen_debug_panel_) {
+    mesen_debug_panel_->Draw();
+  } else {
+    ImGui::TextDisabled("Mesen2 debug panel unavailable.");
+  }
 }
 
 absl::Status AgentEditor::SaveBuilderBlueprint(
