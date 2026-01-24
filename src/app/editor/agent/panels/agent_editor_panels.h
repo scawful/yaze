@@ -214,6 +214,7 @@ class AgentMesenDebugPanel : public EditorPanel {
   std::string GetDisplayName() const override { return "Mesen2 Debug"; }
   std::string GetIcon() const override { return ICON_MD_BUG_REPORT; }
   std::string GetEditorCategory() const override { return "Agent"; }
+  std::string GetShortcutHint() const override { return "Ctrl+Shift+M"; }
   int GetPriority() const override { return 80; }
 
   void Draw(bool* p_open) override {

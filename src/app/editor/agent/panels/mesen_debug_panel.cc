@@ -151,6 +151,9 @@ void MesenDebugPanel::Draw() {
 
   AgentUI::PushPanelStyle();
   if (ImGui::BeginChild("MesenDebug_Panel", ImVec2(0, 0), true)) {
+    if (ImGui::IsWindowAppearing()) {
+      RefreshSocketList();
+    }
     DrawConnectionHeader();
 
     if (IsConnected()) {
