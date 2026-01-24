@@ -1314,6 +1314,155 @@ std::optional<std::string> RomDebugAgent::GetStructureInfo(
   return std::nullopt;
 }
 
+// --- Mesen2 Live Debugging Integration ---
+
+void RomDebugAgent::SetMesenClient(
+    std::shared_ptr<emu::mesen::MesenSocketClient> client) {
+  mesen_client_ = std::move(client);
+}
+
+bool RomDebugAgent::IsMesenConnected() const {
+  return mesen_client_ && mesen_client_->IsConnected();
+}
+
+absl::StatusOr<emu::mesen::GameState> RomDebugAgent::GetLiveGameState() {
+  if (!IsMesenConnected()) {
+    return absl::UnavailableError("Mesen2 not connected");
+  }
+  return mesen_client_->GetGameState();
+}
+
+absl::StatusOr<std::vector<emu::mesen::SpriteInfo>> RomDebugAgent::GetLiveSprites(
+    bool all) {
+  if (!IsMesenConnected()) {
+    return absl::UnavailableError("Mesen2 not connected");
+  }
+  return mesen_client_->GetSprites(all);
+}
+
+absl::StatusOr<emu::mesen::CpuState> RomDebugAgent::GetLiveCpuState() {
+  if (!IsMesenConnected()) {
+    return absl::UnavailableError("Mesen2 not connected");
+  }
+  return mesen_client_->GetCpuState();
+}
+
+absl::StatusOr<RomDebugAgent::BreakpointAnalysis>
+RomDebugAgent::AnalyzeLiveBreakpoint(uint32_t address) {
+  if (!IsMesenConnected()) {
+    return absl::UnavailableError("Mesen2 not connected");
+  }
+
+  BreakpointAnalysis analysis;
+  analysis.address = address;
+
+  // Get registers from live Mesen2
+  auto cpu_or = mesen_client_->GetCpuState();
+  if (cpu_or.ok()) {
+    const auto& cpu = *cpu_or;
+    analysis.registers["A"] = cpu.A;
+    analysis.registers["X"] = cpu.X;
+    analysis.registers["Y"] = cpu.Y;
+    analysis.registers["S"] = cpu.SP;
+    analysis.registers["PC"] = cpu.PC;
+    analysis.registers["P"] = cpu.P;
+    analysis.registers["DB"] = cpu.DBR;
+    analysis.registers["PB"] = cpu.K;
+  }
+
+  // Get disassembly from Mesen2
+  auto disasm_or = mesen_client_->Disassemble(address, 1);
+  if (disasm_or.ok()) {
+    analysis.disassembly = *disasm_or;
+  }
+
+  // Identify location
+  analysis.location_description = DescribeMemoryLocation(address);
+  if (analysis.location_description == FormatSnesAddress(address) &&
+      symbol_provider_->HasSymbols()) {
+    analysis.location_description = symbol_provider_->FormatAddress(address);
+  }
+
+  // Add suggestions based on game state
+  auto state_or = mesen_client_->GetGameState();
+  if (state_or.ok()) {
+    const auto& state = *state_or;
+    analysis.memory_context = absl::StrFormat(
+        "Game Mode: %d Submode: %d Link at (%d,%d)", state.game.mode,
+        state.game.submode, state.link.x, state.link.y);
+  }
+
+  return analysis;
+}
+
+absl::StatusOr<std::string> RomDebugAgent::ExplainCurrentGameState() {
+  auto state_or = GetLiveGameState();
+  if (!state_or.ok()) return state_or.status();
+
+  const auto& state = *state_or;
+  std::stringstream ss;
+  ss << "Current Game State Analysis:\n";
+  ss << absl::StrFormat("- Link is at (%d, %d) in area 0x%02X\n", state.link.x,
+                        state.link.y,
+                        state.game.indoors ? state.game.room_id
+                                           : state.game.overworld_area);
+  ss << absl::StrFormat("- Mode: %d (Submode: %d)\n", state.game.mode,
+                        state.game.submode);
+  ss << absl::StrFormat("- Direction: %d, Health: %d/%d\n",
+                        state.link.direction, state.items.current_health,
+                        state.items.max_health);
+
+  // Check for interesting conditions
+  if (state.game.mode == 0x07 || state.game.mode == 0x09) {
+    ss << "- Link is currently in the overworld/dungeon transition.\n";
+  }
+
+  if (state.items.current_health <= 2) {
+    ss << "- Warning: Link is at low health!\n";
+  }
+
+  // Analyze sprites
+  auto sprites_or = GetLiveSprites(false);
+  if (sprites_or.ok() && !sprites_or->empty()) {
+    ss << absl::StrFormat("- %zu active sprites nearby.\n",
+                          sprites_or->size());
+    for (const auto& sprite : *sprites_or) {
+      if (sprite.health > 0) {
+        ss << absl::StrFormat("  * Sprite 0x%02X at (%d,%d) HP=%d\n",
+                             sprite.type, sprite.x, sprite.y, sprite.health);
+      }
+    }
+  }
+
+  return ss.str();
+}
+
+std::vector<std::string> RomDebugAgent::AnalyzeSpriteAnomalies() {
+  std::vector<std::string> anomalies;
+  auto sprites_or = GetLiveSprites(true);
+  if (!sprites_or.ok()) return anomalies;
+
+  for (const auto& sprite : *sprites_or) {
+    if (sprite.state != 0) {
+      // Check for off-screen sprites
+      if (sprite.x > 512 || sprite.y > 512) {
+        anomalies.push_back(absl::StrFormat(
+            "Sprite %d (Type 0x%02X) is significantly off-screen at (%d,%d)",
+            sprite.slot, sprite.type, sprite.x, sprite.y));
+      }
+
+      // Check for unusual health
+      if (sprite.health > 200 && sprite.health != 255) {
+        anomalies.push_back(absl::StrFormat(
+            "Sprite %d has unusually high health: %d", sprite.slot,
+            sprite.health));
+      }
+    }
+  }
+
+  return anomalies;
+}
+
 }  // namespace agent
 }  // namespace cli
 }  // namespace yaze
