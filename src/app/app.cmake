@@ -131,7 +131,11 @@ if(WIN32)
 endif()
 
 if(YAZE_PLATFORM_MACOS)
-  target_link_libraries(yaze PUBLIC "-framework Cocoa")
+  target_link_libraries(yaze PUBLIC
+    "-framework Cocoa"
+    "-framework Security"
+    "-framework CoreFoundation"
+  )
 endif()
 
 # Emscripten-specific linker flags for yaze (not yaze_emu)

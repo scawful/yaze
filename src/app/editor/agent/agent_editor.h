@@ -264,10 +264,12 @@ class AgentEditor : public Editor {
   void DrawNewPromptCreator();
   void DrawAgentBuilderPanel();
   void SyncContextFromProfile();
+  void SyncConfigFromProfile();
   void ApplyConfigFromContext(const AgentConfigState& config);
   void ApplyToolPreferencesFromContext();
   void RefreshModelCache(bool force);
   void ApplyModelPreset(const ModelPreset& preset);
+  bool MaybeAutoDetectLocalProviders();
 
   // Setup callbacks
   void SetupMultimodalCallbacks();
@@ -353,6 +355,7 @@ class AgentEditor : public Editor {
   bool show_metrics_card_ = false;
   bool show_builder_card_ = false;
   bool show_chat_card_ = true;
+  bool auto_probe_done_ = false;
 
   // Panel registration helper
   void RegisterPanels();
