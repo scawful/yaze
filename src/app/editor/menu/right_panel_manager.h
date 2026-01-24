@@ -190,6 +190,7 @@ class RightPanelManager {
   void DrawNotificationsPanel();
   void DrawPropertiesPanel();
   void DrawProjectPanel();
+  bool DrawAgentQuickActions();
 
   // Help panel helpers for context-aware content
   void DrawEditorContextHeader();

@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_MENU_STATUS_BAR_H_
 #define YAZE_APP_EDITOR_MENU_STATUS_BAR_H_
 
+#include <functional>
 #include <string>
 #include <unordered_map>
 
@@ -134,6 +135,17 @@ class StatusBar {
   void ClearAllContext();
 
   // ============================================================================
+  // Agent Status
+  // ============================================================================
+
+  void SetAgentInfo(const std::string& provider, const std::string& model,
+                    bool active);
+  void ClearAgentInfo();
+  void SetAgentToggleCallback(std::function<void()> callback) {
+    agent_toggle_callback_ = std::move(callback);
+  }
+
+  // ============================================================================
   // Rendering
   // ============================================================================
 
@@ -162,6 +174,7 @@ class StatusBar {
   void DrawSelectionSegment();
   void DrawZoomSegment();
   void DrawModeSegment();
+  void DrawAgentSegment();
   void DrawCustomSegments();
   void DrawSeparator();
 
@@ -195,10 +208,16 @@ class StatusBar {
 
   // Custom segments
   std::unordered_map<std::string, std::string> custom_segments_;
+
+  // Agent status
+  bool has_agent_ = false;
+  bool agent_active_ = false;
+  std::string agent_provider_;
+  std::string agent_model_;
+  std::function<void()> agent_toggle_callback_;
 };
 
 }  // namespace editor
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_MENU_STATUS_BAR_H_
-

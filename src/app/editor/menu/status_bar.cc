@@ -119,6 +119,21 @@ void StatusBar::ClearAllContext() {
   custom_segments_.clear();
 }
 
+void StatusBar::SetAgentInfo(const std::string& provider,
+                             const std::string& model, bool active) {
+  has_agent_ = true;
+  agent_provider_ = provider;
+  agent_model_ = model;
+  agent_active_ = active;
+}
+
+void StatusBar::ClearAgentInfo() {
+  has_agent_ = false;
+  agent_provider_.clear();
+  agent_model_.clear();
+  agent_active_ = false;
+}
+
 void StatusBar::Draw() {
   if (!enabled_) {
     return;
@@ -178,6 +193,21 @@ void StatusBar::Draw() {
 
     // Right section: Zoom, Mode (right-aligned)
     float right_section_width = 0.0f;
+    std::string agent_label;
+    if (has_agent_) {
+      agent_label = agent_model_.empty() ? agent_provider_ : agent_model_;
+      if (agent_label.empty()) {
+        agent_label = "Agent";
+      }
+      const size_t max_len = 20;
+      if (agent_label.size() > max_len) {
+        agent_label = agent_label.substr(0, max_len - 3) + "...";
+      }
+      std::string label = std::string(ICON_MD_SMART_TOY " ") + agent_label;
+      right_section_width +=
+          ImGui::CalcTextSize(label.c_str()).x +
+          ImGui::GetStyle().FramePadding.x * 2.0f + 10.0f;
+    }
     if (has_zoom_) {
       right_section_width += ImGui::CalcTextSize("100%").x + 20.0f;
     }
@@ -189,6 +219,13 @@ void StatusBar::Draw() {
       float available = ImGui::GetContentRegionAvail().x;
       if (available > right_section_width + 20.0f) {
         ImGui::SameLine(ImGui::GetWindowWidth() - right_section_width - 16.0f);
+
+        if (has_agent_) {
+          DrawAgentSegment();
+          if (has_zoom_ || has_mode_) {
+            DrawSeparator();
+          }
+        }
 
         if (has_zoom_) {
           DrawZoomSegment();
@@ -207,6 +244,45 @@ void StatusBar::Draw() {
 
   ImGui::PopStyleVar(3);
   ImGui::PopStyleColor(2);
+}
+
+void StatusBar::DrawAgentSegment() {
+  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+  std::string label = agent_model_.empty() ? agent_provider_ : agent_model_;
+  if (label.empty()) {
+    label = "Agent";
+  }
+  const size_t max_len = 20;
+  if (label.size() > max_len) {
+    label = label.substr(0, max_len - 3) + "...";
+  }
+  std::string button_label = std::string(ICON_MD_SMART_TOY " ") + label;
+
+  ImVec4 text_color = agent_active_ ? gui::GetPrimaryVec4()
+                                    : gui::GetTextSecondaryVec4();
+  ImGui::PushStyleColor(ImGuiCol_Text, text_color);
+  ImGui::PushStyleColor(ImGuiCol_Button, gui::GetSurfaceContainerHighVec4());
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                        gui::GetSurfaceContainerHighestVec4());
+  if (ImGui::SmallButton(button_label.c_str())) {
+    if (agent_toggle_callback_) {
+      agent_toggle_callback_();
+    }
+  }
+  ImGui::PopStyleColor(3);
+
+  if (ImGui::IsItemHovered()) {
+    ImGui::BeginTooltip();
+    ImGui::Text("%s Agent", ICON_MD_SMART_TOY);
+    ImGui::TextDisabled("Provider: %s",
+                        agent_provider_.empty() ? "mock"
+                                                : agent_provider_.c_str());
+    ImGui::TextDisabled("Model: %s",
+                        agent_model_.empty() ? "not set"
+                                             : agent_model_.c_str());
+    ImGui::TextDisabled("Toggle chat panel");
+    ImGui::EndTooltip();
+  }
 }
 
 void StatusBar::DrawRomSegment() {
@@ -303,4 +379,3 @@ void StatusBar::DrawSeparator() {
 
 }  // namespace editor
 }  // namespace yaze
-

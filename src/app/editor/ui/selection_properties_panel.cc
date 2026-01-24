@@ -2,6 +2,7 @@
 
 #include <cstdio>
 
+#include "absl/strings/str_format.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/theme_manager.h"
@@ -201,9 +202,73 @@ void SelectionPropertiesPanel::DrawSelectionSummary() {
     wrote_action = true;
   }
 
+  DrawAgentActions();
+
   if (show_raw_data_) {
     ImGui::Spacing();
     ImGui::TextDisabled("Data Ptr: %p", selection_.data);
+  }
+}
+
+void SelectionPropertiesPanel::DrawAgentActions() {
+  if (!send_to_agent_) {
+    return;
+  }
+
+  ImGui::Spacing();
+  ImGui::Separator();
+  ImGui::Spacing();
+
+  ImGui::TextDisabled("%s Agent Actions", ICON_MD_SMART_TOY);
+  ImGui::BeginDisabled(selection_.type == SelectionType::kNone);
+  if (ImGui::SmallButton("Explain")) {
+    SendAgentPrompt("Explain this selection and how to edit it safely.");
+  }
+  ImGui::SameLine();
+  if (ImGui::SmallButton("Suggest Fixes")) {
+    SendAgentPrompt("Suggest improvements or checks for this selection.");
+  }
+  ImGui::SameLine();
+  if (ImGui::SmallButton("Audit")) {
+    SendAgentPrompt("Audit this selection for possible issues or conflicts.");
+  }
+  ImGui::EndDisabled();
+}
+
+std::string SelectionPropertiesPanel::BuildSelectionContext() const {
+  std::string context = absl::StrFormat("Selection Type: %s",
+                                        GetSelectionTypeName(selection_.type));
+  if (!selection_.display_name.empty()) {
+    context += absl::StrFormat("\nName: %s", selection_.display_name);
+  }
+  if (selection_.id >= 0) {
+    context += absl::StrFormat("\nID: 0x%X", selection_.id);
+  }
+  if (selection_.secondary_id >= 0) {
+    context += absl::StrFormat("\nSecondary ID: 0x%X",
+                               selection_.secondary_id);
+  }
+  if (selection_.read_only) {
+    context += "\nRead Only: true";
+  }
+  return context;
+}
+
+std::string SelectionPropertiesPanel::BuildAgentPrompt(const char* intent) const {
+  std::string prompt = intent ? intent : "Review this selection.";
+  prompt += "\n\n";
+  prompt += BuildSelectionContext();
+  prompt += "\n\nProvide actionable steps inside Yaze where possible.";
+  return prompt;
+}
+
+void SelectionPropertiesPanel::SendAgentPrompt(const char* intent) {
+  if (!send_to_agent_) {
+    return;
+  }
+  send_to_agent_(BuildAgentPrompt(intent));
+  if (focus_agent_panel_) {
+    focus_agent_panel_();
   }
 }
 

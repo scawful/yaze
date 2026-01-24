@@ -97,6 +97,11 @@ class SelectionPropertiesPanel {
   void SetChangeCallback(ChangeCallback callback) {
     on_change_ = std::move(callback);
   }
+  void SetAgentCallbacks(std::function<void(const std::string&)> send_callback,
+                         std::function<void()> focus_callback) {
+    send_to_agent_ = std::move(send_callback);
+    focus_agent_panel_ = std::move(focus_callback);
+  }
 
   // ============================================================================
   // Selection Management
@@ -149,6 +154,10 @@ class SelectionPropertiesPanel {
   void DrawGraphicsSheetProperties();
   void DrawPaletteProperties();
   void DrawSelectionSummary();
+  void DrawAgentActions();
+  std::string BuildSelectionContext() const;
+  std::string BuildAgentPrompt(const char* intent) const;
+  void SendAgentPrompt(const char* intent);
 
   // Helper methods
   void DrawPropertyHeader(const char* icon, const char* title);
@@ -172,6 +181,8 @@ class SelectionPropertiesPanel {
   SelectionContext selection_;
   Rom* rom_ = nullptr;
   ChangeCallback on_change_;
+  std::function<void(const std::string&)> send_to_agent_;
+  std::function<void()> focus_agent_panel_;
 
   // UI state
   bool show_advanced_ = false;
