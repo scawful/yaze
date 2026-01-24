@@ -33,6 +33,7 @@
 #include "app/service/screenshot_utils.h"
 #include "app/test/test_manager.h"
 #include "cli/service/agent/tool_dispatcher.h"
+#include "cli/service/ai/ai_config_utils.h"
 #include "cli/service/ai/service_factory.h"
 #include "httplib.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
@@ -64,22 +65,6 @@ namespace editor {
 namespace {
 
 std::optional<std::string> LoadKeychainValue(const std::string& key);
-
-std::string NormalizeOpenAIBaseUrl(std::string base) {
-  if (base.empty()) {
-    return "https://api.openai.com";
-  }
-  while (!base.empty() && base.back() == '/') {
-    base.pop_back();
-  }
-  if (absl::EndsWith(base, "/v1")) {
-    base.resize(base.size() - 3);
-    while (!base.empty() && base.back() == '/') {
-      base.pop_back();
-    }
-  }
-  return base;
-}
 
 template <size_t N>
 void CopyStringToBuffer(const std::string& src, char (&dest)[N]) {
@@ -318,7 +303,7 @@ void ApplyHostPresetToProfile(AgentEditor::BotProfile* profile,
   }
   if (profile->provider == "openai") {
     if (!host.base_url.empty()) {
-      profile->openai_base_url = NormalizeOpenAIBaseUrl(host.base_url);
+      profile->openai_base_url = cli::NormalizeOpenAiBaseUrl(host.base_url);
     }
     if (!api_key.empty()) {
       profile->openai_api_key = api_key;
@@ -752,9 +737,9 @@ void AgentEditor::InitializeWithDependencies(ToastManager* toast_manager,
     profile_updated = true;
   }
   if (!env_openai_base.empty()) {
-    std::string normalized_base = NormalizeOpenAIBaseUrl(env_openai_base);
+    std::string normalized_base = cli::NormalizeOpenAiBaseUrl(env_openai_base);
     if (current_profile_.openai_base_url.empty() ||
-        NormalizeOpenAIBaseUrl(current_profile_.openai_base_url) ==
+        cli::NormalizeOpenAiBaseUrl(current_profile_.openai_base_url) ==
             "https://api.openai.com") {
       current_profile_.openai_base_url = normalized_base;
       current_config_.openai_base_url = normalized_base;
@@ -904,7 +889,7 @@ void AgentEditor::SyncConfigFromProfile() {
   current_config_.anthropic_api_key = current_profile_.anthropic_api_key;
   current_config_.openai_api_key = current_profile_.openai_api_key;
   current_config_.openai_base_url =
-      NormalizeOpenAIBaseUrl(current_profile_.openai_base_url);
+      cli::NormalizeOpenAiBaseUrl(current_profile_.openai_base_url);
   current_config_.verbose = current_profile_.verbose;
   current_config_.show_reasoning = current_profile_.show_reasoning;
   current_config_.max_tool_iterations = current_profile_.max_tool_iterations;
@@ -931,7 +916,7 @@ void AgentEditor::SyncContextFromProfile() {
   ctx_config.anthropic_api_key = current_profile_.anthropic_api_key;
   ctx_config.openai_api_key = current_profile_.openai_api_key;
   ctx_config.openai_base_url =
-      NormalizeOpenAIBaseUrl(current_profile_.openai_base_url);
+      cli::NormalizeOpenAiBaseUrl(current_profile_.openai_base_url);
   current_profile_.openai_base_url = ctx_config.openai_base_url;
   ctx_config.host_id = current_profile_.host_id;
   ctx_config.verbose = current_profile_.verbose;
@@ -974,7 +959,7 @@ void AgentEditor::ApplyConfigFromContext(const AgentConfigState& config) {
   ctx_config.gemini_api_key = config.gemini_api_key;
   ctx_config.anthropic_api_key = config.anthropic_api_key;
   ctx_config.openai_api_key = config.openai_api_key;
-  ctx_config.openai_base_url = NormalizeOpenAIBaseUrl(config.openai_base_url);
+  ctx_config.openai_base_url = cli::NormalizeOpenAiBaseUrl(config.openai_base_url);
   ctx_config.host_id = config.host_id;
   ctx_config.verbose = config.verbose;
   ctx_config.show_reasoning = config.show_reasoning;
@@ -1076,6 +1061,7 @@ void AgentEditor::ApplyToolPreferencesFromContext() {
 #else
   prefs.emulator = false;
 #endif
+  prefs.memory_inspector = tool_config.memory_inspector;
   service->SetToolPreferences(prefs);
 }
 
@@ -1099,39 +1085,83 @@ void AgentEditor::RefreshModelCache(bool force) {
   model_cache.auto_refresh_requested = true;
   model_cache.available_models.clear();
   model_cache.model_names.clear();
-  model_cache.local_model_names.clear();
-
   if (dependencies_.user_settings) {
-    model_cache.local_model_names =
-        CollectLocalModelNames(&dependencies_.user_settings->prefs());
+    const auto& prefs = dependencies_.user_settings->prefs();
+    bool needs_local_refresh = force;
+    if (!needs_local_refresh) {
+      if (prefs.ai_model_paths != last_local_model_paths_) {
+        needs_local_refresh = true;
+      } else if (last_local_model_scan_ == absl::InfinitePast() ||
+                 (absl::Now() - last_local_model_scan_) >
+                     absl::Seconds(30)) {
+        needs_local_refresh = true;
+      }
+    }
+    if (needs_local_refresh) {
+      model_cache.local_model_names = CollectLocalModelNames(&prefs);
+      last_local_model_paths_ = prefs.ai_model_paths;
+      last_local_model_scan_ = absl::Now();
+    }
+  } else {
+    model_cache.local_model_names.clear();
   }
 
   const auto& config = context_->agent_config();
-  cli::AIServiceConfig service_config;
-  service_config.provider =
-      config.ai_provider.empty() ? "mock" : config.ai_provider;
-  service_config.model = config.ai_model;
-  service_config.ollama_host = config.ollama_host;
-  service_config.gemini_api_key = config.gemini_api_key;
-  service_config.anthropic_api_key = config.anthropic_api_key;
-  service_config.openai_api_key = config.openai_api_key;
-  service_config.openai_base_url =
-      NormalizeOpenAIBaseUrl(config.openai_base_url);
-  service_config.verbose = config.verbose;
+  ModelServiceKey next_key;
+  next_key.provider = config.ai_provider.empty() ? "mock" : config.ai_provider;
+  next_key.model = config.ai_model;
+  next_key.ollama_host = config.ollama_host;
+  next_key.gemini_api_key = config.gemini_api_key;
+  next_key.anthropic_api_key = config.anthropic_api_key;
+  next_key.openai_api_key = config.openai_api_key;
+  next_key.openai_base_url =
+      cli::NormalizeOpenAiBaseUrl(config.openai_base_url);
+  next_key.verbose = config.verbose;
 
-  auto service_or = cli::CreateAIServiceStrict(service_config);
-  if (!service_or.ok()) {
+  auto same_key = [](const ModelServiceKey& a, const ModelServiceKey& b) {
+    return a.provider == b.provider && a.model == b.model &&
+           a.ollama_host == b.ollama_host &&
+           a.gemini_api_key == b.gemini_api_key &&
+           a.anthropic_api_key == b.anthropic_api_key &&
+           a.openai_api_key == b.openai_api_key &&
+           a.openai_base_url == b.openai_base_url && a.verbose == b.verbose;
+  };
+
+  if (next_key.provider == "mock") {
     model_cache.loading = false;
     model_cache.model_names = model_cache.local_model_names;
     model_cache.last_refresh = absl::Now();
-    if (toast_manager_) {
-      toast_manager_->Show(std::string(service_or.status().message()),
-                           ToastType::kWarning, 2.0f);
-    }
     return;
   }
 
-  auto models_or = service_or.value()->ListAvailableModels();
+  if (!model_service_ || !same_key(next_key, last_model_service_key_)) {
+    cli::AIServiceConfig service_config;
+    service_config.provider = next_key.provider;
+    service_config.model = next_key.model;
+    service_config.ollama_host = next_key.ollama_host;
+    service_config.gemini_api_key = next_key.gemini_api_key;
+    service_config.anthropic_api_key = next_key.anthropic_api_key;
+    service_config.openai_api_key = next_key.openai_api_key;
+    service_config.openai_base_url = next_key.openai_base_url;
+    service_config.verbose = next_key.verbose;
+
+    auto service_or = cli::CreateAIServiceStrict(service_config);
+    if (!service_or.ok()) {
+      model_service_.reset();
+      model_cache.loading = false;
+      model_cache.model_names = model_cache.local_model_names;
+      model_cache.last_refresh = absl::Now();
+      if (toast_manager_) {
+        toast_manager_->Show(std::string(service_or.status().message()),
+                             ToastType::kWarning, 2.0f);
+      }
+      return;
+    }
+    model_service_ = std::move(service_or.value());
+    last_model_service_key_ = next_key;
+  }
+
+  auto models_or = model_service_->ListAvailableModels();
   if (!models_or.ok()) {
     model_cache.loading = false;
     model_cache.model_names = model_cache.local_model_names;
@@ -1189,7 +1219,7 @@ void AgentEditor::ApplyModelPreset(const ModelPreset& preset) {
     if (config.ai_provider == "ollama") {
       config.ollama_host = preset.host;
     } else if (config.ai_provider == "openai") {
-      config.openai_base_url = NormalizeOpenAIBaseUrl(preset.host);
+      config.openai_base_url = cli::NormalizeOpenAiBaseUrl(preset.host);
     }
   }
 
@@ -2087,6 +2117,8 @@ void AgentEditor::DrawAgentBuilderPanel() {
                     "Sprites + palettes");
       tool_checkbox("Emulator", &builder_state_.tools.emulator,
                     "Runtime probes");
+      tool_checkbox("Memory Inspector", &builder_state_.tools.memory_inspector,
+                    "RAM/SRAM watch + inspection");
       break;
     }
     case 2: {
@@ -2149,6 +2181,7 @@ void AgentEditor::DrawAgentBuilderPanel() {
 #ifdef YAZE_WITH_GRPC
       prefs.emulator = builder_state_.tools.emulator;
 #endif
+      prefs.memory_inspector = builder_state_.tools.memory_inspector;
       service->SetToolPreferences(prefs);
 
       auto agent_cfg = service->GetConfig();
@@ -2234,6 +2267,7 @@ absl::Status AgentEditor::SaveBuilderBlueprint(
       {"music", builder_state_.tools.music},
       {"sprite", builder_state_.tools.sprite},
       {"emulator", builder_state_.tools.emulator},
+      {"memory_inspector", builder_state_.tools.memory_inspector},
   };
   json["stages"] = nlohmann::json::array();
   for (const auto& stage : builder_state_.stages) {
@@ -2289,6 +2323,7 @@ absl::Status AgentEditor::LoadBuilderBlueprint(
     builder_state_.tools.music = tools.value("music", false);
     builder_state_.tools.sprite = tools.value("sprite", false);
     builder_state_.tools.emulator = tools.value("emulator", false);
+    builder_state_.tools.memory_inspector = tools.value("memory_inspector", false);
   }
   builder_state_.auto_run_tests = json.value("auto_run_tests", false);
   builder_state_.auto_sync_rom = json.value("auto_sync_rom", true);
@@ -2603,7 +2638,7 @@ void AgentEditor::ApplyConfig(const AgentConfig& config) {
       provider_config.anthropic_api_key = config.anthropic_api_key;
       provider_config.openai_api_key = config.openai_api_key;
       provider_config.openai_base_url =
-          NormalizeOpenAIBaseUrl(config.openai_base_url);
+          cli::NormalizeOpenAiBaseUrl(config.openai_base_url);
       provider_config.verbose = config.verbose;
 
       auto status = service->ConfigureProvider(provider_config);

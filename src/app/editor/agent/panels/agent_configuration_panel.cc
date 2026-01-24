@@ -922,10 +922,11 @@ void AgentConfigPanel::RenderToolingControls(
       {"Dialogue", &config.tool_config.dialogue, "Dialogue list/search"},
       {"Messages", &config.tool_config.messages, "Message table + ROM text"},
       {"GUI Automation", &config.tool_config.gui, "GUI automation tools"},
-      {"Music", &config.tool_config.music, "Music info & tracks"},
-      {"Sprite", &config.tool_config.sprite, "Sprite palette/properties"},
-      {"Emulator", &config.tool_config.emulator, "Emulator controls"}};
-
+          {"Music", &config.tool_config.music, "Music info & tracks"},
+          {"Sprite", &config.tool_config.sprite, "Sprite palette/properties"},
+          {"Emulator", &config.tool_config.emulator, "Emulator controls"},
+          {"Memory", &config.tool_config.memory_inspector, "RAM inspection & watch"}};
+      
   ImGui::TextDisabled(
       "Expose tools in the agent sidebar and editor panels.");
   int columns = ImGui::GetContentRegionAvail().x > 360.0f ? 2 : 1;
