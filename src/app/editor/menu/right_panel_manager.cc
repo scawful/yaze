@@ -38,6 +38,28 @@ std::string ResolveAgentChatHistoryPath() {
   return (std::filesystem::current_path() / "agent_chat_history.json").string();
 }
 
+std::string BuildSelectionContextSummary(
+    const SelectionContext& selection) {
+  if (selection.type == SelectionType::kNone) {
+    return "";
+  }
+  std::string context = absl::StrFormat(
+      "Selection: %s", GetSelectionTypeName(selection.type));
+  if (!selection.display_name.empty()) {
+    context += absl::StrFormat("\nName: %s", selection.display_name);
+  }
+  if (selection.id >= 0) {
+    context += absl::StrFormat("\nID: 0x%X", selection.id);
+  }
+  if (selection.secondary_id >= 0) {
+    context += absl::StrFormat("\nSecondary: 0x%X", selection.secondary_id);
+  }
+  if (selection.read_only) {
+    context += "\nRead Only: true";
+  }
+  return context;
+}
+
 }  // namespace
 
 const char* GetPanelTypeName(RightPanelManager::PanelType type) {
@@ -527,7 +549,13 @@ void RightPanelManager::DrawAgentChatPanel() {
 
   if (active_tab == 0) {
     if (ImGui::BeginChild("AgentChatBody", ImVec2(0, content_height), true)) {
-      agent_chat_->Draw(content_height);
+      bool drew_quick_actions = DrawAgentQuickActions();
+      if (drew_quick_actions) {
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+      }
+      agent_chat_->Draw(0.0f);
     }
     ImGui::EndChild();
   } else {
@@ -592,6 +620,131 @@ void RightPanelManager::DrawAgentChatPanel() {
   DrawPanelDescription(
       "The AI Agent requires agent UI support. "
       "Build with YAZE_BUILD_AGENT_UI=ON to enable.");
+#endif
+}
+
+bool RightPanelManager::DrawAgentQuickActions() {
+#ifdef YAZE_BUILD_AGENT_UI
+  if (!agent_chat_) {
+    return false;
+  }
+  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+  const ImVec4 accent = gui::GetPrimaryVec4();
+
+  std::string selection_context;
+  if (properties_panel_ && properties_panel_->HasSelection()) {
+    selection_context =
+        BuildSelectionContextSummary(properties_panel_->GetSelection());
+  }
+
+  struct QuickAction {
+    const char* label;
+    std::string prompt;
+  };
+
+  std::vector<QuickAction> actions;
+  if (!selection_context.empty()) {
+    actions.push_back({"Explain selection",
+                       "Explain this selection and how to edit it safely.\n\n" +
+                           selection_context});
+    actions.push_back({"Suggest fixes",
+                       "Suggest improvements or checks for this selection.\n\n" +
+                           selection_context});
+  }
+
+  switch (active_editor_type_) {
+    case EditorType::kOverworld:
+      actions.push_back({"Summarize map",
+                         "Summarize the current overworld map and its key "
+                         "features. Use overworld tools if available."});
+      actions.push_back({"List sprites/items",
+                         "List notable sprites or items on the current "
+                         "overworld map."});
+      break;
+    case EditorType::kDungeon:
+      actions.push_back({"Audit room",
+                         "Summarize the current dungeon room layout, doors, "
+                         "and object density."});
+      actions.push_back({"List sprites",
+                         "List sprites in the current dungeon room and any "
+                         "potential conflicts."});
+      break;
+    case EditorType::kGraphics:
+      actions.push_back({"Review tiles",
+                         "Review the current tileset usage and point out any "
+                         "obvious issues."});
+      actions.push_back({"Palette check",
+                         "Check palette usage for contrast/readability "
+                         "problems."});
+      break;
+    case EditorType::kPalette:
+      actions.push_back({"Palette audit",
+                         "Audit the active palette for hue/contrast balance "
+                         "and note risks."});
+      actions.push_back({"Theme ideas",
+                         "Suggest a palette variation that fits the current "
+                         "scene style."});
+      break;
+    case EditorType::kSprite:
+      actions.push_back({"Sprite review",
+                         "Review the selected sprite properties and suggest "
+                         "tuning."});
+      break;
+    case EditorType::kMessage:
+      actions.push_back({"Copy edit",
+                         "Review the current message text for clarity and "
+                         "style improvements."});
+      break;
+    case EditorType::kAssembly:
+      actions.push_back({"ASM review",
+                         "Review the current ASM changes for risks and style "
+                         "issues."});
+      break;
+    case EditorType::kHex:
+      actions.push_back({"Hex context",
+                         "Explain what the current hex selection likely "
+                         "represents."});
+      break;
+    case EditorType::kEmulator:
+      actions.push_back({"Test suggestion",
+                         "Propose a short emulator test to validate the "
+                         "current feature."});
+      break;
+    case EditorType::kAgent:
+      actions.push_back({"Agent config review",
+                         "Review current agent configuration for practical "
+                         "improvements."});
+      break;
+    default:
+      actions.push_back({"Agent overview",
+                         "Suggest the next best agent-assisted action for the "
+                         "current editor context."});
+      break;
+  }
+
+  if (actions.empty()) {
+    return false;
+  }
+
+  ImGui::TextColored(accent, "%s Editor Actions", ICON_MD_BOLT);
+  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
+  ImGui::Text("Send a context-aware prompt to the agent.");
+  ImGui::PopStyleColor();
+
+  int columns = ImGui::GetContentRegionAvail().x > 420.0f ? 2 : 1;
+  if (ImGui::BeginTable("AgentQuickActionsTable", columns,
+                        ImGuiTableFlags_SizingStretchSame)) {
+    for (const auto& action : actions) {
+      ImGui::TableNextColumn();
+      if (ImGui::Button(action.label, ImVec2(-1, 0))) {
+        agent_chat_->SendMessage(action.prompt);
+      }
+    }
+    ImGui::EndTable();
+  }
+  return true;
+#else
+  return false;
 #endif
 }
 

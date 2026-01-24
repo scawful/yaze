@@ -344,6 +344,33 @@ EditorManager::EditorManager()
   right_panel_manager_->SetProposalDrawer(&proposal_drawer_);
   right_panel_manager_->SetPropertiesPanel(&selection_properties_panel_);
   right_panel_manager_->SetShortcutManager(&shortcut_manager_);
+  selection_properties_panel_.SetAgentCallbacks(
+      [this](const std::string& prompt) {
+        auto* agent_editor = agent_ui_.GetAgentEditor();
+        if (!agent_editor) {
+          return;
+        }
+        auto* chat = agent_editor->GetAgentChat();
+        if (!chat) {
+          return;
+        }
+        chat->set_active(true);
+        chat->SendMessage(prompt);
+      },
+      [this]() {
+        if (right_panel_manager_) {
+          right_panel_manager_->OpenPanel(
+              RightPanelManager::PanelType::kAgentChat);
+        }
+      });
+  status_bar_.SetAgentToggleCallback([this]() {
+    if (right_panel_manager_) {
+      right_panel_manager_->TogglePanel(
+          RightPanelManager::PanelType::kAgentChat);
+    } else {
+      agent_ui_.ShowAgent();
+    }
+  });
 
   // Initialize ProjectManagementPanel for project/version management
   project_management_panel_ = std::make_unique<ProjectManagementPanel>();
@@ -1703,6 +1730,19 @@ absl::Status EditorManager::Update() {
   if (session_coordinator_) {
     status_bar_.SetSessionInfo(GetCurrentSessionId(),
                                session_coordinator_->GetActiveSessionCount());
+  }
+  if (auto* agent_editor = agent_ui_.GetAgentEditor()) {
+    auto* chat = agent_editor->GetAgentChat();
+    const auto* ctx = agent_ui_.GetContext();
+    if (ctx) {
+      const auto& config = ctx->agent_config();
+      bool active = chat && *chat->active();
+      status_bar_.SetAgentInfo(config.ai_provider, config.ai_model, active);
+    } else {
+      status_bar_.ClearAgentInfo();
+    }
+  } else {
+    status_bar_.ClearAgentInfo();
   }
   status_bar_.Draw();
 
