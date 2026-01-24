@@ -31,6 +31,7 @@ CreateCliCommandHandlers() {
   // Dungeon commands
   handlers.push_back(std::make_unique<DungeonListSpritesCommandHandler>());
   handlers.push_back(std::make_unique<DungeonDescribeRoomCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonListChestsCommandHandler>());
   handlers.push_back(std::make_unique<DungeonGetEntranceCommandHandler>());
   handlers.push_back(std::make_unique<DungeonExportRoomCommandHandler>());
   handlers.push_back(std::make_unique<DungeonListObjectsCommandHandler>());

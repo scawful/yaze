@@ -41,6 +41,7 @@ class ResourceSearchCommandHandler;
 
 class DungeonListSpritesCommandHandler;
 class DungeonDescribeRoomCommandHandler;
+class DungeonListChestsCommandHandler;
 class DungeonGetEntranceCommandHandler;
 class DungeonExportRoomCommandHandler;
 class DungeonListObjectsCommandHandler;
