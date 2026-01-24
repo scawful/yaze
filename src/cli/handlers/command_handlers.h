@@ -52,6 +52,7 @@ class OverworldFindTileCommandHandler;
 class OverworldDescribeMapCommandHandler;
 class OverworldListWarpsCommandHandler;
 class OverworldListSpritesCommandHandler;
+class OverworldListItemsCommandHandler;
 class OverworldGetEntranceCommandHandler;
 class OverworldTileStatsCommandHandler;
 
