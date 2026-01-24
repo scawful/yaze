@@ -29,6 +29,22 @@ Machine-readable test discovery and execution.
 | `music-list` | List music tracks |
 | `dialogue-list` | List dialogue entries |
 
+### Mesen2 Live Debugging
+
+Requires Mesen2-OoS running with the socket API available under `/tmp/mesen2-*.sock`.
+
+| Command | Description |
+|---------|-------------|
+| `mesen-gamestate` | Read live ALTTP game state from Mesen2 |
+| `mesen-sprites` | List active sprites |
+| `mesen-cpu` | Read CPU register state |
+| `mesen-memory-read` | Read emulator memory |
+| `mesen-memory-write` | Write emulator memory |
+| `mesen-disasm` | Disassemble code at an address |
+| `mesen-trace` | Fetch execution trace |
+| `mesen-breakpoint` | Manage breakpoints |
+| `mesen-control` | Pause/resume/step/frame/reset |
+
 ### Overworld Tools
 
 | Command | Description |

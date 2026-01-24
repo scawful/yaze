@@ -11,7 +11,8 @@ Complete command reference for the z3ed CLI tool, including all automation and A
 5. [Query & Discovery](#query--discovery)
 6. [Interactive REPL](#interactive-repl)
 7. [Network & Collaboration](#network--collaboration)
-8. [AI Integration](#ai-integration)
+8. [Mesen2 Live Debugging](#mesen2-live-debugging)
+9. [AI Integration](#ai-integration)
 
 ## ROM Operations
 
@@ -536,6 +537,130 @@ z3ed network sync --pull
 
 # Bidirectional sync with merge
 z3ed network sync --merge-strategy last-write-wins
+```
+
+## Mesen2 Live Debugging
+
+These commands connect to a running **Mesen2-OoS** instance via the local socket
+(`/tmp/mesen2-<pid>.sock`). They do **not** require a ROM argument.
+
+### `z3ed mesen-gamestate`
+Read ALTTP game state from Mesen2.
+
+**Syntax:**
+```bash
+z3ed mesen-gamestate [--format <json|text>]
+```
+
+**Examples:**
+```bash
+z3ed mesen-gamestate
+```
+
+### `z3ed mesen-sprites`
+List active sprites from Mesen2.
+
+**Syntax:**
+```bash
+z3ed mesen-sprites [--all] [--format <json|text>]
+```
+
+**Examples:**
+```bash
+z3ed mesen-sprites
+z3ed mesen-sprites --all
+```
+
+### `z3ed mesen-cpu`
+Read CPU register state.
+
+**Syntax:**
+```bash
+z3ed mesen-cpu [--format <json|text>]
+```
+
+**Examples:**
+```bash
+z3ed mesen-cpu
+```
+
+### `z3ed mesen-memory-read`
+Read emulator memory.
+
+**Syntax:**
+```bash
+z3ed mesen-memory-read --address <hex> [--length <n>] [--format <json|text>]
+```
+
+**Examples:**
+```bash
+z3ed mesen-memory-read --address 0x7E0020 --length 16
+```
+
+### `z3ed mesen-memory-write`
+Write emulator memory (hex bytes).
+
+**Syntax:**
+```bash
+z3ed mesen-memory-write --address <hex> --data <hexbytes> [--format <json|text>]
+```
+
+**Examples:**
+```bash
+z3ed mesen-memory-write --address 0x7E0010 --data 01
+```
+
+### `z3ed mesen-disasm`
+Disassemble code at an address.
+
+**Syntax:**
+```bash
+z3ed mesen-disasm --address <hex> [--count <n>] [--format <json|text>]
+```
+
+**Examples:**
+```bash
+z3ed mesen-disasm --address 0x008000 --count 20
+```
+
+### `z3ed mesen-trace`
+Fetch execution trace.
+
+**Syntax:**
+```bash
+z3ed mesen-trace [--count <n>] [--format <json|text>]
+```
+
+**Examples:**
+```bash
+z3ed mesen-trace --count 50
+```
+
+### `z3ed mesen-breakpoint`
+Manage breakpoints.
+
+**Syntax:**
+```bash
+z3ed mesen-breakpoint --action <add|remove|clear|list> [--address <hex>] [--id <n>] [--type <exec|read|write|rw>]
+```
+
+**Examples:**
+```bash
+z3ed mesen-breakpoint --action add --address 0x008000
+z3ed mesen-breakpoint --action clear
+```
+
+### `z3ed mesen-control`
+Control emulation state.
+
+**Syntax:**
+```bash
+z3ed mesen-control --action <pause|resume|step|frame|reset>
+```
+
+**Examples:**
+```bash
+z3ed mesen-control --action pause
 ```
 
 ## AI Integration
