@@ -1,10 +1,10 @@
-# Feature & Test Coverage Report (v0.5.4)
+# Feature & Test Coverage Report (v0.5.5)
 
 This report summarizes feature status and persistence behavior across the
 desktop app (yaze), z3ed CLI, and the web/WASM preview, and maps those features
 to current automated test coverage. Status levels follow the desktop rubric:
 Stable = reliable core workflows, Beta = usable but incomplete, Experimental = WIP.
-As of v0.5.4, app data is consolidated under `~/.yaze` on desktop/CLI and
+As of v0.5.5, app data is consolidated under `~/.yaze` on desktop/CLI and
 `/.yaze` in the web build (IDBFS), with legacy migrations from AppData/Library/XDG.
 
 ## Desktop App (yaze)
@@ -90,7 +90,7 @@ As of v0.5.4, app data is consolidated under `~/.yaze` on desktop/CLI and
 - `.yaze` migration and path normalization lack targeted regression coverage.
 - Web build has automated debug API smoke; broader browser CI still light.
 
-### Newly Identified (v0.5.4 Scan)
+### Newly Identified (v0.5.5 Scan)
 
 - **Palette serialization**: JSON import/export not implemented (`palette_group_panel.cc:529,534`)
 - **Music bank persistence**: SaveInstruments/SaveSamples return UnimplementedError (`music_bank.cc:925,996`)
@@ -111,7 +111,7 @@ As of v0.5.4, app data is consolidated under `~/.yaze` on desktop/CLI and
 7) [TODO] Add ROM-dependent tests for version-gated overworld saves and dungeon persistence.
 8) [TODO] Add web storage regression checks (IDBFS sync + file manager flows).
 
-### v0.5.4 Test Additions
+### v0.5.5 Test Additions
 
 9) [TODO] Add palette JSON round-trip tests (`test/unit/palette_json_test.cc`)
 10) [TODO] Add workspace layout serialization tests (`test/integration/workspace_test.cc`)

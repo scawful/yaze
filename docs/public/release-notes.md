@@ -1,5 +1,24 @@
 # Release Notes
 
+## v0.5.5 (Released January 2026)
+
+**Type:** Debugging + Mesen2 Bridge
+**Date:** 2026-01-24
+
+### 🐞 Mesen2 Debugging
+- New Mesen2 debug panel in the Agent editor (socket picker, overlay controls, save/load, screenshot capture).
+- Mesen2 debug shortcut (Ctrl+Shift+M) and socket list refresh on panel open.
+- New z3ed `mesen-*` CLI commands for live Mesen2 inspection and control.
+
+### 🔗 Bridge & API
+- New HTTP endpoints for PC navigation, breakpoint hits, and state updates.
+- Updated Mesen2 Lua bridge for symbol sync and state telemetry.
+
+### 🧾 Versioning
+- Bump version strings and project defaults to 0.5.5.
+
+---
+
 ## v0.5.4 (Released January 2026)
 
 **Type:** Desktop UX + Nightly Packaging
