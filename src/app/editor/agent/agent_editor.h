@@ -101,6 +101,7 @@ class AgentEditor : public Editor {
     std::string model;
     std::string ollama_host = "http://localhost:11434";
     std::string gemini_api_key;
+    std::string anthropic_api_key;
     std::string openai_api_key;
     std::string openai_base_url = "https://api.openai.com";
     std::string system_prompt;
@@ -127,6 +128,7 @@ class AgentEditor : public Editor {
     std::string model;
     std::string ollama_host = "http://localhost:11434";
     std::string gemini_api_key;
+    std::string anthropic_api_key;
     std::string openai_api_key;
     std::string openai_base_url = "https://api.openai.com";
     bool verbose = false;
@@ -315,6 +317,7 @@ class AgentEditor : public Editor {
     char model_buf[128] = {};
     char ollama_host_buf[256] = {};
     char gemini_key_buf[256] = {};
+    char anthropic_key_buf[256] = {};
     char openai_key_buf[256] = {};
     char openai_base_buf[256] = {};
     char name_buf[128] = {};

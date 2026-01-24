@@ -154,6 +154,8 @@ void AgentUiController::SyncStateFromEditor() {
     changed = true;
   if (ctx_config.gemini_api_key != profile.gemini_api_key)
     changed = true;
+  if (ctx_config.anthropic_api_key != profile.anthropic_api_key)
+    changed = true;
   if (ctx_config.openai_api_key != profile.openai_api_key)
     changed = true;
   if (ctx_config.openai_base_url != profile.openai_base_url)
@@ -167,6 +169,7 @@ void AgentUiController::SyncStateFromEditor() {
     ctx_config.ai_model = profile.model;
     ctx_config.ollama_host = profile.ollama_host;
     ctx_config.gemini_api_key = profile.gemini_api_key;
+    ctx_config.anthropic_api_key = profile.anthropic_api_key;
     ctx_config.openai_api_key = profile.openai_api_key;
     ctx_config.openai_base_url = profile.openai_base_url;
     ctx_config.host_id = profile.host_id;

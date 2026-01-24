@@ -63,10 +63,12 @@ class UserSettings {
     int undo_history_size = 50;
 
     // AI Agent
-    int ai_provider = 0;  // 0=Ollama, 1=Gemini, 2=Mock
+    int ai_provider = 0;  // Legacy default provider (0=Ollama, 1=Gemini, 2=Mock)
     std::string ai_model;
     std::string ollama_url = "http://localhost:11434";
     std::string gemini_api_key;
+    std::string openai_api_key;
+    std::string anthropic_api_key;
     float ai_temperature = 0.7f;
     int ai_max_tokens = 2048;
     bool ai_proactive = true;
@@ -77,6 +79,7 @@ class UserSettings {
     std::vector<AiModelProfile> ai_profiles;
     std::string active_ai_profile;
     std::string remote_build_host_id;
+    std::vector<std::string> ai_model_paths;
 
     // CLI Logging
     int log_level = 1;  // 0=Debug, 1=Info, 2=Warning, 3=Error, 4=Fatal

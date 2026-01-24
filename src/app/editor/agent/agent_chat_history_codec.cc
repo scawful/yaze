@@ -276,6 +276,7 @@ absl::StatusOr<AgentChatHistoryCodec::Snapshot> AgentChatHistoryCodec::Load(
     config.ollama_host =
         config_json.value("ollama_host", "http://localhost:11434");
     config.gemini_api_key = config_json.value("gemini_api_key", "");
+    config.anthropic_api_key = config_json.value("anthropic_api_key", "");
     config.openai_api_key = config_json.value("openai_api_key", "");
     config.openai_base_url =
         config_json.value("openai_base_url", "https://api.openai.com");
@@ -452,6 +453,7 @@ absl::Status AgentChatHistoryCodec::Save(const std::filesystem::path& path,
     config_json["model"] = config.model;
     config_json["ollama_host"] = config.ollama_host;
     config_json["gemini_api_key"] = config.gemini_api_key;
+    config_json["anthropic_api_key"] = config.anthropic_api_key;
     config_json["openai_api_key"] = config.openai_api_key;
     config_json["openai_base_url"] = config.openai_base_url;
     config_json["host_id"] = config.host_id;

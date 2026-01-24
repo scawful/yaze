@@ -144,7 +144,9 @@ void AgentConfigPanel::RenderModelConfigControls(
 
   ImGui::Text("Provider");
   float provider_width = ImGui::GetContentRegionAvail().x;
-  int provider_columns = provider_width > 420.0f ? 2 : 1;
+  int provider_columns = provider_width > 560.0f ? 3
+                         : provider_width > 360.0f ? 2
+                                                   : 1;
 
   // Provider selection buttons using theme colors
   auto provider_button = [&](const char* label, const char* value,
@@ -173,6 +175,8 @@ void AgentConfigPanel::RenderModelConfigControls(
     provider_button(ICON_MD_CLOUD " Ollama", "ollama", theme.provider_ollama);
     provider_button(ICON_MD_SMART_TOY " Gemini", "gemini",
                     theme.provider_gemini);
+    provider_button(ICON_MD_PSYCHOLOGY " Anthropic", "anthropic",
+                    theme.provider_openai);
     provider_button(ICON_MD_AUTO_AWESOME " OpenAI", "openai",
                     theme.provider_openai);
     ImGui::EndTable();
@@ -222,6 +226,42 @@ void AgentConfigPanel::RenderModelConfigControls(
       }
     } else if (toast_manager) {
       toast_manager->Show("GEMINI_API_KEY not set", ToastType::kWarning, 2.0f);
+    }
+  }
+
+  ImGui::Spacing();
+  ImGui::Text("Anthropic Key");
+  float anthropic_input_width =
+      ImGui::GetContentRegionAvail().x - env_button_width -
+      style.ItemSpacing.x;
+  bool anthropic_stack = anthropic_input_width < 160.0f;
+  if (!anthropic_stack) {
+    ImGui::SetNextItemWidth(anthropic_input_width);
+  } else {
+    ImGui::SetNextItemWidth(-1);
+  }
+  if (ImGui::InputTextWithHint("##anthropic_key", "API key...",
+                               config.anthropic_key_buffer,
+                               IM_ARRAYSIZE(config.anthropic_key_buffer),
+                               ImGuiInputTextFlags_Password)) {
+    config.anthropic_api_key = config.anthropic_key_buffer;
+  }
+  if (!anthropic_stack) {
+    ImGui::SameLine();
+  }
+  if (ImGui::SmallButton(ICON_MD_SYNC " Env##anthropic")) {
+    const char* env_key = std::getenv("ANTHROPIC_API_KEY");
+    if (env_key) {
+      std::snprintf(config.anthropic_key_buffer,
+                    sizeof(config.anthropic_key_buffer), "%s", env_key);
+      config.anthropic_api_key = env_key;
+      if (toast_manager) {
+        toast_manager->Show("Loaded ANTHROPIC_API_KEY from environment",
+                            ToastType::kInfo, 2.0f);
+      }
+    } else if (toast_manager) {
+      toast_manager->Show("ANTHROPIC_API_KEY not set", ToastType::kWarning,
+                          2.0f);
     }
   }
 
@@ -337,6 +377,8 @@ void AgentConfigPanel::RenderModelConfigControls(
         return theme.provider_ollama;
       if (provider == "gemini")
         return theme.provider_gemini;
+      if (provider == "anthropic")
+        return theme.provider_openai;
       if (provider == "openai")
         return theme.provider_openai;
       return theme.provider_mock;
@@ -546,6 +588,8 @@ void AgentConfigPanel::RenderModelConfigControls(
           badge_color = theme.provider_ollama;
         else if (provider_name == "gemini")
           badge_color = theme.provider_gemini;
+        else if (provider_name == "anthropic")
+          badge_color = theme.provider_openai;
         else if (provider_name == "openai")
           badge_color = theme.provider_openai;
         ImGui::PushStyleColor(ImGuiCol_Button, badge_color);

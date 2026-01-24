@@ -194,10 +194,11 @@ struct ModelCache {
  * @brief Agent configuration state
  */
 struct AgentConfigState {
-  std::string ai_provider = "mock";  // mock, ollama, gemini, openai
+  std::string ai_provider = "mock";  // mock, ollama, gemini, anthropic, openai
   std::string ai_model;
   std::string ollama_host = "http://localhost:11434";
   std::string gemini_api_key;
+  std::string anthropic_api_key;
   std::string openai_api_key;
   std::string openai_base_url = "https://api.openai.com";
   std::string host_id;
@@ -220,6 +221,7 @@ struct AgentConfigState {
   char model_buffer[128] = {};
   char ollama_host_buffer[256] = "http://localhost:11434";
   char gemini_key_buffer[256] = {};
+  char anthropic_key_buffer[256] = {};
   char openai_key_buffer[256] = {};
   char openai_base_url_buffer[256] = "https://api.openai.com";
 };

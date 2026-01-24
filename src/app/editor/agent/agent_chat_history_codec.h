@@ -59,6 +59,7 @@ class AgentChatHistoryCodec {
     std::string model;
     std::string ollama_host;
     std::string gemini_api_key;
+    std::string anthropic_api_key;
     std::string openai_api_key;
     std::string openai_base_url;
     std::string host_id;

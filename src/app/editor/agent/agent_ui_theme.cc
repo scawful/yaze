@@ -157,6 +157,8 @@ void RenderProviderBadge(const char* provider) {
     color = theme.provider_ollama;
   } else if (strcmp(provider, "gemini") == 0) {
     color = theme.provider_gemini;
+  } else if (strcmp(provider, "anthropic") == 0) {
+    color = theme.provider_openai;
   } else if (strcmp(provider, "openai") == 0) {
     color = theme.provider_openai;
   }
