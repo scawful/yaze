@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <fstream>
 #include <memory>
+#include <optional>
 
 #include "app/editor/agent/agent_ui_theme.h"
 // Centralized UI theme
@@ -31,10 +32,19 @@
 #include "app/test/test_manager.h"
 #include "cli/service/agent/tool_dispatcher.h"
 #include "cli/service/ai/service_factory.h"
+#include "httplib.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "rom/rom.h"
 #include "util/file_util.h"
 #include "util/platform_paths.h"
+
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#if !TARGET_OS_IPHONE
+#include <CoreFoundation/CoreFoundation.h>
+#include <Security/Security.h>
+#endif
+#endif
 
 #ifdef YAZE_WITH_GRPC
 #include "app/editor/agent/network_collaboration_coordinator.h"
@@ -77,6 +87,12 @@ void ApplyHostPresetToProfile(AgentEditor::BotProfile* profile,
   if (!profile) {
     return;
   }
+  std::string api_key = host.api_key;
+  if (api_key.empty() && !host.credential_id.empty()) {
+    if (auto key = LoadKeychainValue(host.credential_id)) {
+      api_key = *key;
+    }
+  }
   profile->host_id = host.id;
   std::string api_type = host.api_type;
   if (api_type == "lmstudio") {
@@ -89,16 +105,16 @@ void ApplyHostPresetToProfile(AgentEditor::BotProfile* profile,
     if (!host.base_url.empty()) {
       profile->openai_base_url = NormalizeOpenAIBaseUrl(host.base_url);
     }
-    if (!host.api_key.empty()) {
-      profile->openai_api_key = host.api_key;
+    if (!api_key.empty()) {
+      profile->openai_api_key = api_key;
     }
   } else if (profile->provider == "ollama") {
     if (!host.base_url.empty()) {
       profile->ollama_host = host.base_url;
     }
   } else if (profile->provider == "gemini") {
-    if (!host.api_key.empty()) {
-      profile->gemini_api_key = host.api_key;
+    if (!api_key.empty()) {
+      profile->gemini_api_key = api_key;
     }
   }
 }
@@ -114,14 +130,122 @@ std::string BuildTagsString(const std::vector<std::string>& tags) {
   return result;
 }
 
+bool ContainsText(const std::string& haystack, const std::string& needle) {
+  return haystack.find(needle) != std::string::npos;
+}
+
+bool StartsWithText(const std::string& text, const std::string& prefix) {
+  return text.rfind(prefix, 0) == 0;
+}
+
 bool IsLocalOpenAiBaseUrl(const std::string& base_url) {
   if (base_url.empty()) {
     return false;
   }
   std::string lower = absl::AsciiStrToLower(base_url);
-  return lower.find("localhost") != std::string::npos ||
-         lower.find("127.0.0.1") != std::string::npos ||
-         lower.find("0.0.0.0") != std::string::npos;
+  return ContainsText(lower, "localhost") ||
+         ContainsText(lower, "127.0.0.1") ||
+         ContainsText(lower, "0.0.0.0");
+}
+
+bool IsTailscaleEndpoint(const std::string& base_url) {
+  if (base_url.empty()) {
+    return false;
+  }
+  std::string lower = absl::AsciiStrToLower(base_url);
+  return ContainsText(lower, ".ts.net") ||
+         ContainsText(lower, "tailscale");
+}
+
+bool IsLocalOrTrustedEndpoint(const std::string& base_url, bool allow_insecure) {
+  if (allow_insecure) {
+    return true;
+  }
+  if (IsTailscaleEndpoint(base_url)) {
+    return true;
+  }
+  if (base_url.empty()) {
+    return false;
+  }
+  std::string lower = absl::AsciiStrToLower(base_url);
+  return ContainsText(lower, "localhost") ||
+         ContainsText(lower, "127.0.0.1") ||
+         ContainsText(lower, "0.0.0.0") ||
+         ContainsText(lower, "::1") ||
+         ContainsText(lower, "192.168.") ||
+         StartsWithText(lower, "10.") ||
+         ContainsText(lower, "100.64.");
+}
+
+bool ProbeHttpEndpoint(const std::string& base_url, const char* path) {
+  if (base_url.empty()) {
+    return false;
+  }
+  httplib::Client client(base_url);
+  client.set_connection_timeout(0, 200000);
+  client.set_read_timeout(0, 250000);
+  client.set_write_timeout(0, 250000);
+  client.set_follow_location(true);
+  auto response = client.Get(path);
+  if (!response) {
+    return false;
+  }
+  return response->status > 0 && response->status < 500;
+}
+
+bool ProbeOllamaHost(const std::string& base_url) {
+  return ProbeHttpEndpoint(base_url, "/api/version");
+}
+
+bool ProbeOpenAICompatible(const std::string& base_url) {
+  return ProbeHttpEndpoint(base_url, "/v1/models");
+}
+
+std::optional<std::string> LoadKeychainValue(const std::string& key) {
+#if defined(__APPLE__) && !TARGET_OS_IPHONE
+  if (key.empty()) {
+    return std::nullopt;
+  }
+  CFStringRef key_ref =
+      CFStringCreateWithCString(kCFAllocatorDefault, key.c_str(),
+                                kCFStringEncodingUTF8);
+  const void* keys[] = {kSecClass, kSecAttrAccount, kSecReturnData,
+                        kSecMatchLimit};
+  const void* values[] = {kSecClassGenericPassword, key_ref, kCFBooleanTrue,
+                          kSecMatchLimitOne};
+  CFDictionaryRef query =
+      CFDictionaryCreate(kCFAllocatorDefault, keys, values,
+                         static_cast<CFIndex>(sizeof(keys) / sizeof(keys[0])),
+                         &kCFTypeDictionaryKeyCallBacks,
+                         &kCFTypeDictionaryValueCallBacks);
+  CFTypeRef item = nullptr;
+  OSStatus status = SecItemCopyMatching(query, &item);
+  if (query) {
+    CFRelease(query);
+  }
+  if (key_ref) {
+    CFRelease(key_ref);
+  }
+  if (status == errSecItemNotFound) {
+    return std::nullopt;
+  }
+  if (status != errSecSuccess || !item) {
+    if (item) {
+      CFRelease(item);
+    }
+    return std::nullopt;
+  }
+  CFDataRef data_ref = static_cast<CFDataRef>(item);
+  const UInt8* data_ptr = CFDataGetBytePtr(data_ref);
+  CFIndex data_len = CFDataGetLength(data_ref);
+  std::string value(reinterpret_cast<const char*>(data_ptr),
+                    static_cast<size_t>(data_len));
+  CFRelease(item);
+  return value;
+#else
+  (void)key;
+  return std::nullopt;
+#endif
 }
 
 }  // namespace
@@ -278,6 +402,7 @@ void AgentEditor::ApplyUserSettingsDefaults(bool force) {
   }
   if (applied) {
     MarkProfileUiDirty();
+    SyncConfigFromProfile();
   }
 }
 
@@ -464,6 +589,10 @@ void AgentEditor::InitializeWithDependencies(ToastManager* toast_manager,
     MarkProfileUiDirty();
   }
 
+  if (MaybeAutoDetectLocalProviders()) {
+    profile_updated = true;
+  }
+
   if (agent_chat_) {
     agent_chat_->Initialize(toast_manager, proposal_drawer);
     if (rom) {
@@ -500,6 +629,24 @@ void AgentEditor::SetContext(AgentUIContext* context) {
   SyncContextFromProfile();
 }
 
+void AgentEditor::SyncConfigFromProfile() {
+  current_config_.provider = current_profile_.provider;
+  current_config_.model = current_profile_.model;
+  current_config_.ollama_host = current_profile_.ollama_host;
+  current_config_.gemini_api_key = current_profile_.gemini_api_key;
+  current_config_.openai_api_key = current_profile_.openai_api_key;
+  current_config_.openai_base_url =
+      NormalizeOpenAIBaseUrl(current_profile_.openai_base_url);
+  current_config_.verbose = current_profile_.verbose;
+  current_config_.show_reasoning = current_profile_.show_reasoning;
+  current_config_.max_tool_iterations = current_profile_.max_tool_iterations;
+  current_config_.max_retry_attempts = current_profile_.max_retry_attempts;
+  current_config_.temperature = current_profile_.temperature;
+  current_config_.top_p = current_profile_.top_p;
+  current_config_.max_output_tokens = current_profile_.max_output_tokens;
+  current_config_.stream_responses = current_profile_.stream_responses;
+}
+
 void AgentEditor::SyncContextFromProfile() {
   if (!context_) {
     return;
@@ -516,6 +663,7 @@ void AgentEditor::SyncContextFromProfile() {
   ctx_config.openai_api_key = current_profile_.openai_api_key;
   ctx_config.openai_base_url =
       NormalizeOpenAIBaseUrl(current_profile_.openai_base_url);
+  current_profile_.openai_base_url = ctx_config.openai_base_url;
   ctx_config.host_id = current_profile_.host_id;
   ctx_config.verbose = current_profile_.verbose;
   ctx_config.show_reasoning = current_profile_.show_reasoning;
@@ -534,20 +682,7 @@ void AgentEditor::SyncContextFromProfile() {
   CopyStringToBuffer(ctx_config.openai_base_url,
                      ctx_config.openai_base_url_buffer);
 
-  current_config_.provider = ctx_config.ai_provider;
-  current_config_.model = ctx_config.ai_model;
-  current_config_.ollama_host = ctx_config.ollama_host;
-  current_config_.gemini_api_key = ctx_config.gemini_api_key;
-  current_config_.openai_api_key = ctx_config.openai_api_key;
-  current_config_.openai_base_url = ctx_config.openai_base_url;
-  current_config_.verbose = ctx_config.verbose;
-  current_config_.show_reasoning = ctx_config.show_reasoning;
-  current_config_.max_tool_iterations = ctx_config.max_tool_iterations;
-  current_config_.max_retry_attempts = ctx_config.max_retry_attempts;
-  current_config_.temperature = ctx_config.temperature;
-  current_config_.top_p = ctx_config.top_p;
-  current_config_.max_output_tokens = ctx_config.max_output_tokens;
-  current_config_.stream_responses = ctx_config.stream_responses;
+  SyncConfigFromProfile();
 
   context_->NotifyChanged();
 }
@@ -785,6 +920,141 @@ void AgentEditor::ApplyModelPreset(const ModelPreset& preset) {
   CopyStringToBuffer(config.openai_base_url, config.openai_base_url_buffer);
 
   ApplyConfigFromContext(config);
+}
+
+bool AgentEditor::MaybeAutoDetectLocalProviders() {
+  if (auto_probe_done_) {
+    return false;
+  }
+  auto_probe_done_ = true;
+
+  auto* settings = dependencies_.user_settings;
+  if (!settings) {
+    return false;
+  }
+  const auto& prefs = settings->prefs();
+  if (prefs.ai_hosts.empty()) {
+    return false;
+  }
+  if (!current_profile_.host_id.empty() ||
+      current_profile_.provider != "mock") {
+    return false;
+  }
+
+  auto resolve_key = [](const UserSettings::Preferences::AiHost& host)
+      -> std::string {
+    if (!host.api_key.empty()) {
+      return host.api_key;
+    }
+    if (host.credential_id.empty()) {
+      return {};
+    }
+    if (auto key = LoadKeychainValue(host.credential_id)) {
+      return *key;
+    }
+    return {};
+  };
+
+  auto build_host = [&](const UserSettings::Preferences::AiHost& host) {
+    auto resolved = host;
+    if (resolved.api_key.empty()) {
+      resolved.api_key = resolve_key(host);
+    }
+    return resolved;
+  };
+
+  auto select_host = [&](const UserSettings::Preferences::AiHost& host) {
+    ApplyHostPresetToProfile(&current_profile_, host);
+    SyncConfigFromProfile();
+    ApplyConfig(current_config_);
+    MarkProfileUiDirty();
+    if (context_) {
+      SyncContextFromProfile();
+    }
+    return true;
+  };
+
+  auto try_host = [&](const UserSettings::Preferences::AiHost& host,
+                      bool probe_only_local) {
+    std::string api_type =
+        host.api_type.empty() ? "openai" : host.api_type;
+    if (api_type == "lmstudio") {
+      api_type = "openai";
+    }
+    auto resolved = build_host(host);
+    bool has_key = !resolved.api_key.empty();
+
+    if (api_type == "ollama") {
+      if (resolved.base_url.empty()) {
+        return false;
+      }
+      if (probe_only_local &&
+          !IsLocalOrTrustedEndpoint(resolved.base_url,
+                                    resolved.allow_insecure)) {
+        return false;
+      }
+      if (!ProbeOllamaHost(resolved.base_url)) {
+        return false;
+      }
+      return select_host(resolved);
+    }
+
+    if (api_type == "openai") {
+      if (resolved.base_url.empty()) {
+        return false;
+      }
+      bool trusted =
+          IsLocalOrTrustedEndpoint(resolved.base_url, resolved.allow_insecure);
+      if (probe_only_local && !trusted) {
+        return false;
+      }
+      if (trusted && ProbeOpenAICompatible(resolved.base_url)) {
+        return select_host(resolved);
+      }
+      if (!probe_only_local && has_key) {
+        return select_host(resolved);
+      }
+      return false;
+    }
+
+    if (api_type == "gemini") {
+      if (!has_key) {
+        return false;
+      }
+      return select_host(resolved);
+    }
+
+    return false;
+  };
+
+  std::vector<const UserSettings::Preferences::AiHost*> candidates;
+  if (!prefs.active_ai_host_id.empty()) {
+    for (const auto& host : prefs.ai_hosts) {
+      if (host.id == prefs.active_ai_host_id) {
+        candidates.push_back(&host);
+        break;
+      }
+    }
+  }
+  for (const auto& host : prefs.ai_hosts) {
+    if (!candidates.empty() && candidates.front()->id == host.id) {
+      continue;
+    }
+    candidates.push_back(&host);
+  }
+
+  for (const auto* host : candidates) {
+    if (try_host(*host, true)) {
+      return true;
+    }
+  }
+  for (const auto* host : candidates) {
+    if (try_host(*host, false)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 void AgentEditor::DrawDashboard() {

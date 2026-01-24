@@ -304,6 +304,16 @@ void EnsureDefaultAiHosts(UserSettings::Preferences* prefs) {
     prefs->ai_hosts.push_back(host);
   }
 
+  // Provide a local OpenAI-compatible host for LM Studio by default.
+  UserSettings::Preferences::AiHost lmstudio;
+  lmstudio.id = "lmstudio-local";
+  lmstudio.label = "LM Studio (local)";
+  lmstudio.base_url = "http://localhost:1234";
+  lmstudio.api_type = "lmstudio";
+  lmstudio.supports_tools = true;
+  lmstudio.supports_streaming = true;
+  prefs->ai_hosts.push_back(lmstudio);
+
   if (!prefs->ai_hosts.empty() && prefs->active_ai_host_id.empty()) {
     prefs->active_ai_host_id = prefs->ai_hosts.front().id;
   }
