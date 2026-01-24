@@ -194,6 +194,8 @@ constexpr LabPanelSeed kLabPanels[] = {
      ICON_MD_AUDIOTRACK, "Emulator", nullptr, nullptr, 90, false},
     {"emulator.audio_mixer", "Audio Mixer", " Audio Mixer", ICON_MD_AUDIO_FILE,
      "Emulator", nullptr, nullptr, 100, false},
+    {"emulator.mesen2_debug", "Mesen2 Debug", " Mesen2 Debug", ICON_MD_BUG_REPORT,
+     "Emulator", "Ctrl+Shift+M", "Connect to Mesen2-OoS for debugging", 105, false},
     {"memory.hex_editor", "Hex Editor", nullptr, ICON_MD_MEMORY, "Memory",
      nullptr, nullptr, 10, false},
 };

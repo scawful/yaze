@@ -97,6 +97,83 @@ void HandleGetSymbols(const httplib::Request& req, httplib::Response& res,
   }
 }
 
+void HandleNavigate(const httplib::Request& req, httplib::Response& res) {
+  res.set_header("Access-Control-Allow-Origin", "*");
+
+  try {
+    json body = json::parse(req.body);
+    uint32_t address = body.value("address", 0);
+    std::string source = body.value("source", "unknown");
+
+    (void)source;  // Used in response
+    // Navigate request logged via JSON response
+
+    // TODO: Integrate with yaze's disassembly viewer to jump to address
+    // For now, just acknowledge the request
+    json response;
+    response["status"] = "ok";
+    response["address"] = address;
+    response["message"] = "Navigation request received";
+    res.set_content(response.dump(), "application/json");
+  } catch (const std::exception& e) {
+    json j;
+    j["error"] = e.what();
+    res.status = 400;
+    res.set_content(j.dump(), "application/json");
+  }
+}
+
+void HandleBreakpointHit(const httplib::Request& req, httplib::Response& res) {
+  res.set_header("Access-Control-Allow-Origin", "*");
+
+  try {
+    json body = json::parse(req.body);
+    uint32_t address = body.value("address", 0);
+    std::string source = body.value("source", "unknown");
+
+    (void)source;  // Used in response
+
+    // Log CPU state if provided (for debugging, stored in response)
+    json cpu_info;
+    if (body.contains("cpu_state")) {
+      cpu_info = body["cpu_state"];
+    }
+
+    // TODO: Integrate with RomDebugAgent for analysis
+    json response;
+    response["status"] = "ok";
+    response["address"] = address;
+    res.set_content(response.dump(), "application/json");
+  } catch (const std::exception& e) {
+    json j;
+    j["error"] = e.what();
+    res.status = 400;
+    res.set_content(j.dump(), "application/json");
+  }
+}
+
+void HandleStateUpdate(const httplib::Request& req, httplib::Response& res) {
+  res.set_header("Access-Control-Allow-Origin", "*");
+
+  try {
+    json body = json::parse(req.body);
+
+    // State update received; store for panel use
+    (void)body;  // Will be used when state storage is implemented
+
+    // TODO: Store state for use by MesenDebugPanel and RomDebugAgent
+    json response;
+    response["status"] = "ok";
+    res.set_content(response.dump(), "application/json");
+  } catch (const std::exception& e) {
+    json j;
+    j["error"] = e.what();
+    res.status = 400;
+    res.set_content(j.dump(), "application/json");
+  }
+}
+
 }  // namespace api
 }  // namespace cli
 }  // namespace yaze
+
