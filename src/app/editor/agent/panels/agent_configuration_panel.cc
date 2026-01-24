@@ -47,20 +47,28 @@ std::string FormatRelativeTime(absl::Time timestamp) {
   return absl::StrFormat("%.0fd ago", absl::ToDoubleHours(delta) / 24.0);
 }
 
+bool ContainsText(const std::string& haystack, const std::string& needle) {
+  return haystack.find(needle) != std::string::npos;
+}
+
+bool StartsWithText(const std::string& text, const std::string& prefix) {
+  return text.rfind(prefix, 0) == 0;
+}
+
 bool IsLocalEndpoint(const std::string& base_url) {
   if (base_url.empty()) {
     return false;
   }
   std::string lower = absl::AsciiStrToLower(base_url);
   // Check for common local identifiers
-  return absl::StrContains(lower, "localhost") ||
-         absl::StrContains(lower, "127.0.0.1") ||
-         absl::StrContains(lower, "0.0.0.0") ||
-         absl::StrContains(lower, "::1") ||
+  return ContainsText(lower, "localhost") ||
+         ContainsText(lower, "127.0.0.1") ||
+         ContainsText(lower, "0.0.0.0") ||
+         ContainsText(lower, "::1") ||
          // LAN IPs (rudimentary check)
-         absl::StrContains(lower, "192.168.") || absl::StartsWith(lower, "10.") ||
+         ContainsText(lower, "192.168.") || StartsWithText(lower, "10.") ||
          // LM Studio default port check just in case domain differs
-         absl::StrContains(lower, ":1234");
+         ContainsText(lower, ":1234");
 }
 
 }  // namespace
@@ -345,16 +353,18 @@ void AgentConfigPanel::RenderModelConfigControls(
         }
 
         if (!filter.empty()) {
-          bool match = absl::StrContains(lower_name, filter) ||
-                       absl::StrContains(lower_provider, filter);
+          bool match = ContainsText(lower_name, filter) ||
+                       ContainsText(lower_provider, filter);
           if (!match && !info.parameter_size.empty()) {
-            match = absl::StrContains(absl::AsciiStrToLower(info.parameter_size),
-                                      filter);
+            match = ContainsText(absl::AsciiStrToLower(info.parameter_size),
+                                 filter);
           }
           if (!match && !info.family.empty()) {
-            match = absl::StrContains(absl::AsciiStrToLower(info.family), filter);
+            match = ContainsText(absl::AsciiStrToLower(info.family), filter);
           }
-          if (!match) continue;
+          if (!match) {
+            continue;
+          }
         }
 
         ImGui::PushID(model_index++);
@@ -461,7 +471,7 @@ void AgentConfigPanel::RenderModelConfigControls(
       int model_index = 0;
       for (const auto& model_name : model_cache.model_names) {
         std::string lower = absl::AsciiStrToLower(model_name);
-        if (!filter.empty() && !absl::StrContains(lower, filter)) {
+        if (!filter.empty() && !ContainsText(lower, filter)) {
           continue;
         }
 
