@@ -6530,7 +6530,7 @@
 				SYSTEM_HEADER_SEARCH_PATHS = (
 					"\"$(SRCROOT)/../../ext/SDL/include\"",
 					"\"$(SRCROOT)/../lib/libpng\"",
-					"\"$(SRCROOT)/../../incl\"",
+					"\"$(SRCROOT)/../../inc\"",
 					"\"$(SRCROOT)/../../build/_deps/nlohmann_json-src/include\"",
 				);
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -6590,7 +6590,7 @@
 				SYSTEM_HEADER_SEARCH_PATHS = (
 					"\"$(SRCROOT)/../../ext/SDL/include\"",
 					"\"$(SRCROOT)/../lib/libpng\"",
-					"\"$(SRCROOT)/../../incl\"",
+					"\"$(SRCROOT)/../../inc\"",
 					"\"$(SRCROOT)/../../build/_deps/nlohmann_json-src/include\"",
 				);
 				TARGETED_DEVICE_FAMILY = "1,2";

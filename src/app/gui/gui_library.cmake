@@ -129,7 +129,7 @@ foreach(LIB ${GUI_SUB_LIBS})
   )
   target_include_directories(${LIB} PUBLIC
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/incl
+    ${CMAKE_SOURCE_DIR}/inc
     ${CMAKE_SOURCE_DIR}/src/app/gui
     ${SDL2_INCLUDE_DIR}
     ${PROJECT_BINARY_DIR}

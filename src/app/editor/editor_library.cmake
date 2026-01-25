@@ -142,7 +142,7 @@ foreach(target_name IN ITEMS
     ${CMAKE_SOURCE_DIR}/ext
     ${CMAKE_SOURCE_DIR}/ext/imgui
     ${CMAKE_SOURCE_DIR}/ext/imgui_test_engine
-    ${CMAKE_SOURCE_DIR}/incl
+    ${CMAKE_SOURCE_DIR}/inc
     ${SDL2_INCLUDE_DIR}
     ${PROJECT_BINARY_DIR}
   )
@@ -187,8 +187,10 @@ if(YAZE_BUILD_AGENT_UI)
     app/editor/agent/agent_proposals_panel.cc
     app/editor/agent/agent_session.cc
     app/editor/agent/agent_ui_controller.cc
+    app/editor/agent/asm_follow_service.cc
     app/editor/agent/automation_bridge.cc
     app/editor/agent/network_collaboration_coordinator.cc
+    app/editor/agent/oracle_ram_panel.cc
     app/editor/agent/panels/agent_automation_panel.cc
     app/editor/agent/panels/agent_configuration_panel.cc
     app/editor/agent/panels/agent_editor_panels.cc
@@ -243,7 +245,7 @@ target_include_directories(yaze_editor PUBLIC
   ${CMAKE_SOURCE_DIR}/ext
   ${CMAKE_SOURCE_DIR}/ext/imgui
   ${CMAKE_SOURCE_DIR}/ext/imgui_test_engine
-  ${CMAKE_SOURCE_DIR}/incl
+  ${CMAKE_SOURCE_DIR}/inc
   ${SDL2_INCLUDE_DIR}
   ${PROJECT_BINARY_DIR}
 )

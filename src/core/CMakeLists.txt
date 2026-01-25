@@ -34,7 +34,7 @@ target_include_directories(yaze_core_lib PUBLIC
   ${CMAKE_SOURCE_DIR}/ext/asar/src/asar
   ${CMAKE_SOURCE_DIR}/ext/asar/src/asar-dll-bindings/c
   ${CMAKE_SOURCE_DIR}/ext/imgui  # Needed for ImGui in project.cc temporarily
-  ${CMAKE_SOURCE_DIR}/incl
+  ${CMAKE_SOURCE_DIR}/inc
   ${PROJECT_BINARY_DIR}
 )
 

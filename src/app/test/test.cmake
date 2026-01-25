@@ -14,6 +14,8 @@ set(YAZE_TEST_SOURCES
   app/test/test_manager.cc
   app/test/z3ed_test_suite.cc
   app/test/agent_tools_test.cc
+  app/test/ai_vision_verifier.cc
+  app/test/screenshot_assertion.cc
 )
 
 set(YAZE_ENABLE_VISUAL_DIFF_ENGINE ON)

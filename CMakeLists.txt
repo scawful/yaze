@@ -24,7 +24,7 @@ else()
         file(READ "${_yaze_version_file}" YAZE_VERSION)
         string(STRIP "${YAZE_VERSION}" YAZE_VERSION)
     else()
-        set(YAZE_VERSION "0.5.5")
+        set(YAZE_VERSION "0.5.4")
     endif()
 endif()
 if(NOT DEFINED YAZE_VERSION_SUFFIX)
@@ -141,6 +141,7 @@ endif()
 
 # Tests
 if(YAZE_BUILD_TESTS)
+  enable_testing()
   add_subdirectory(test)
 endif()
 

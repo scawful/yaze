@@ -24,7 +24,7 @@ target_include_directories(yaze_lab PUBLIC
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/ext
   ${CMAKE_SOURCE_DIR}/ext/imgui
-  ${CMAKE_SOURCE_DIR}/incl
+  ${CMAKE_SOURCE_DIR}/inc
   ${SDL2_INCLUDE_DIR}
   ${PROJECT_BINARY_DIR}
 )

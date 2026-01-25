@@ -340,6 +340,24 @@
       "description": "Run all tests including ROM-dependent tests"
     },
     {
+      "displayName": "AI Tests (macOS)",
+      "name": "mac-ai",
+      "configurePreset": "mac-ai",
+      "filter": {
+        "include": {
+          "label": "stable"
+        }
+      },
+      "output": {
+        "outputOnFailure": true,
+        "shortProgress": true
+      },
+      "execution": {
+        "jobs": 8
+      },
+      "description": "Run stable tests against the mac-ai build"
+    },
+    {
       "filter": {
         "include": {
           "label": "stable"
