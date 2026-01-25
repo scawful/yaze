@@ -213,7 +213,10 @@ grpc::Status EmulatorServiceImpl::ControlEmulator(
   } else if (action == "init" || action == "initialize") {
     Rom* rom = rom_getter_ ? rom_getter_() : nullptr;
     if (rom && rom->is_loaded()) {
-      emulator_->EnsureInitialized(rom);
+      if (!emulator_->EnsureInitialized(rom)) {
+        return grpc::Status(grpc::StatusCode::INTERNAL,
+                            "Failed to initialize emulator.");
+      }
       response->set_message("Emulator initialized with active ROM.");
     } else {
       return grpc::Status(grpc::StatusCode::FAILED_PRECONDITION,
@@ -359,19 +362,24 @@ grpc::Status EmulatorServiceImpl::GetGameState(
     return grpc::Status(grpc::StatusCode::UNAVAILABLE,
                         "SNES is not initialized.");
   }
-  auto& memory = emulator_->snes().memory();
-  response->set_game_mode(memory.ReadByte(0x7E0010));
-  response->set_link_state(memory.ReadByte(0x7E005D));
-  response->set_link_pos_x(memory.ReadWord(0x7E0020));
-  response->set_link_pos_y(memory.ReadWord(0x7E0022));
-  response->set_link_health(memory.ReadByte(0x7EF36D));
+  auto& snes = emulator_->snes();
+  auto read8 = [&snes](uint32_t addr) { return snes.Read(addr); };
+  auto read16 = [&read8](uint32_t addr) {
+    return static_cast<uint16_t>(read8(addr)) |
+           (static_cast<uint16_t>(read8(addr + 1)) << 8);
+  };
+  response->set_game_mode(read8(0x7E0010));
+  response->set_link_state(read8(0x7E005D));
+  response->set_link_pos_x(read16(0x7E0020));
+  response->set_link_pos_y(read16(0x7E0022));
+  response->set_link_health(read8(0x7EF36D));
 
   for (const auto& mem_req : request->memory_reads()) {
     auto* mem_resp = response->add_memory_responses();
     mem_resp->set_address(mem_req.address());
     std::vector<uint8_t> data(mem_req.size());
     for (uint32_t i = 0; i < mem_req.size(); ++i) {
-      data[i] = memory.ReadByte(mem_req.address() + i);
+      data[i] = read8(mem_req.address() + i);
     }
     mem_resp->set_data(data.data(), data.size());
   }
@@ -417,10 +425,10 @@ grpc::Status EmulatorServiceImpl::WriteMemory(
     return grpc::Status(grpc::StatusCode::UNAVAILABLE,
                         "SNES is not initialized.");
   }
-  auto& memory = emulator_->snes().memory();
+  auto& snes = emulator_->snes();
   const std::string& data = request->data();
   for (uint32_t i = 0; i < data.size(); ++i) {
-    memory.WriteByte(request->address() + i, static_cast<uint8_t>(data[i]));
+    snes.Write(request->address() + i, static_cast<uint8_t>(data[i]));
   }
   response->set_success(true);
   return grpc::Status::OK;
@@ -567,12 +575,11 @@ grpc::Status EmulatorServiceImpl::TestRun(grpc::ServerContext* context,
     return grpc::Status(grpc::StatusCode::UNAVAILABLE, "SNES not initialized.");
   auto& snes = emulator_->snes();
   auto& cpu = snes.cpu();
-  auto& memory = snes.memory();
 
   uint32_t addr = request->address();
   const std::string& data = request->data();
   for (size_t i = 0; i < data.size(); ++i) {
-    memory.WriteByte(addr + i, (uint8_t)data[i]);
+    snes.Write(addr + i, static_cast<uint8_t>(data[i]));
   }
 
   bool was_running = emulator_->running();
@@ -611,10 +618,24 @@ void EmulatorServiceImpl::InitializeStepController() {
 grpc::Status EmulatorServiceImpl::SaveState(
     grpc::ServerContext* context, const agent::SaveStateRequest* request,
     agent::SaveStateResponse* response) {
-  if (!emulator_ || !emulator_->is_snes_initialized()) {
+  if (!emulator_) {
     response->set_success(false);
-    response->set_message("SNES not initialized");
+    response->set_message("Emulator not initialized");
     return grpc::Status::OK;
+  }
+  if (!emulator_->is_snes_initialized()) {
+    Rom* rom = rom_getter_ ? rom_getter_() : nullptr;
+    if (rom && rom->is_loaded()) {
+      if (!emulator_->EnsureInitialized(rom)) {
+        response->set_success(false);
+        response->set_message("Failed to initialize emulator");
+        return grpc::Status::OK;
+      }
+    } else {
+      response->set_success(false);
+      response->set_message("SNES not initialized");
+      return grpc::Status::OK;
+    }
   }
 
   const std::string& filepath = request->filepath();
@@ -678,10 +699,24 @@ grpc::Status EmulatorServiceImpl::SaveState(
 grpc::Status EmulatorServiceImpl::LoadState(
     grpc::ServerContext* context, const agent::LoadStateRequest* request,
     agent::LoadStateResponse* response) {
-  if (!emulator_ || !emulator_->is_snes_initialized()) {
+  if (!emulator_) {
     response->set_success(false);
-    response->set_message("SNES not initialized");
+    response->set_message("Emulator not initialized");
     return grpc::Status::OK;
+  }
+  if (!emulator_->is_snes_initialized()) {
+    Rom* rom = rom_getter_ ? rom_getter_() : nullptr;
+    if (rom && rom->is_loaded()) {
+      if (!emulator_->EnsureInitialized(rom)) {
+        response->set_success(false);
+        response->set_message("Failed to initialize emulator");
+        return grpc::Status::OK;
+      }
+    } else {
+      response->set_success(false);
+      response->set_message("SNES not initialized");
+      return grpc::Status::OK;
+    }
   }
 
   const std::string& filepath = request->filepath();

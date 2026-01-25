@@ -285,11 +285,6 @@ int main(int argc, char** argv) {
     config.open_panels = ParseCommaList(FLAGS_open_panels->Get());
   }
 
-#ifdef YAZE_WITH_GRPC
-  config.enable_test_harness = FLAGS_enable_test_harness->Get() || server_mode;
-  config.test_harness_port = FLAGS_test_harness_port->Get();
-#endif
-
   // Fast symbol export path (no UI initialization)
   if (!FLAGS_export_symbols->Get().empty() && FLAGS_export_symbols_fast->Get()) {
     yaze::emu::debug::SymbolProvider symbols;
