@@ -16,7 +16,7 @@ settings:
     ENABLE_USER_SCRIPT_SANDBOXING: NO
     HEADER_SEARCH_PATHS:
       - "$(SRCROOT)/../../src"
-      - "$(SRCROOT)/../../incl"
+      - "$(SRCROOT)/../../inc"
       - "$(SRCROOT)/../../ext"
       - "$(SRCROOT)/../../ext/imgui"
       - "$(SRCROOT)/../../build-ios"
@@ -26,7 +26,7 @@ settings:
       - "$(SRCROOT)/../../build-ios/_deps/SDL2-src/include"
       - "$(SRCROOT)/../../build-ios/_deps/sdl2-src/include"
       - "$(SRCROOT)/../../ext/SDL/include"
-      - "$(SRCROOT)/../../incl"
+      - "$(SRCROOT)/../../inc"
     YAZE_IOS_LIBDIR: "$(SRCROOT)/../../build-ios/ios"
     YAZE_IOS_LIBDIR[sdk=iphonesimulator*]: "$(SRCROOT)/../../build-ios-sim/ios"
     YAZE_IOS_BUNDLE_LIB: "$(SRCROOT)/../../build-ios/ios/libyaze_ios_bundle.a"

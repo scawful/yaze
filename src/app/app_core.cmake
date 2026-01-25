@@ -15,6 +15,7 @@ set(
   # Note: controller.cc is built directly into the yaze executable (not this library)
   # because it depends on yaze_editor and yaze_gui, which would create a cycle:
   # yaze_agent -> yaze_app_core_lib -> yaze_editor -> yaze_agent
+  app/activity_file.cc
   app/platform/window.cc
   app/platform/window_backend_factory.cc
   app/platform/null_window_backend.cc
@@ -114,7 +115,7 @@ if(APPLE)
       ${CMAKE_SOURCE_DIR}/src/app
       ${CMAKE_SOURCE_DIR}/ext
       ${CMAKE_SOURCE_DIR}/ext/imgui
-      ${CMAKE_SOURCE_DIR}/incl
+      ${CMAKE_SOURCE_DIR}/inc
       ${PROJECT_BINARY_DIR}
     )
 
@@ -156,7 +157,7 @@ target_include_directories(yaze_app_core_lib PUBLIC
   ${CMAKE_SOURCE_DIR}/src/app
   ${CMAKE_SOURCE_DIR}/ext
   ${CMAKE_SOURCE_DIR}/ext/imgui
-  ${CMAKE_SOURCE_DIR}/incl
+  ${CMAKE_SOURCE_DIR}/inc
   ${SDL2_INCLUDE_DIR}
   ${PROJECT_BINARY_DIR}
 )

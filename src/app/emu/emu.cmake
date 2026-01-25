@@ -18,7 +18,7 @@ if(YAZE_BUILD_EMU AND NOT YAZE_MINIMAL_BUILD AND NOT YAZE_PLATFORM_IOS)
 
   target_include_directories(yaze_emu PUBLIC
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/incl
+    ${CMAKE_SOURCE_DIR}/inc
     ${PROJECT_BINARY_DIR}
   )
 
@@ -51,7 +51,7 @@ if(YAZE_BUILD_EMU AND NOT YAZE_MINIMAL_BUILD AND NOT YAZE_PLATFORM_IOS)
   add_executable(yaze_emu_test emu_test.cc)
   target_include_directories(yaze_emu_test PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/incl
+    ${CMAKE_SOURCE_DIR}/inc
     ${PROJECT_BINARY_DIR}
   )
   target_link_libraries(yaze_emu_test PRIVATE

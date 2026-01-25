@@ -57,6 +57,7 @@ set(YAZE_CLI_CORE_SOURCES
   cli/service/gui/canvas_automation_client.cc
   cli/service/gui/gui_automation_client.cc
   cli/service/net/z3ed_network_client.cc
+  cli/service/rom/rom_sandbox_manager.cc
   cli/service/testing/test_suite_loader.cc
   cli/service/testing/test_suite_reporter.cc
   cli/service/testing/test_suite_writer.cc
@@ -75,7 +76,7 @@ set_target_properties(yaze_cli_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 target_include_directories(yaze_cli_core PUBLIC
   ${CMAKE_SOURCE_DIR}/src
-  ${CMAKE_SOURCE_DIR}/incl
+  ${CMAKE_SOURCE_DIR}/inc
   ${CMAKE_SOURCE_DIR}/src/lib
   ${CMAKE_BINARY_DIR}/gens
 )

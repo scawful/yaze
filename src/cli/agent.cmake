@@ -64,7 +64,7 @@ if(EMSCRIPTEN)
 
   target_include_directories(yaze_agent PUBLIC
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/incl
+    ${CMAKE_SOURCE_DIR}/inc
   )
 
   set_target_properties(yaze_agent PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -205,6 +205,11 @@ endif()
 
 target_link_libraries(yaze_agent PUBLIC ${_yaze_agent_link_targets})
 
+# Agent keychain storage (API keys) requires Security/CoreFoundation on macOS.
+if(APPLE)
+  target_link_libraries(yaze_agent PUBLIC "-framework Security" "-framework CoreFoundation")
+endif()
+
 if(NOT EMSCRIPTEN AND YAZE_HTTPLIB_TARGETS)
   target_link_libraries(yaze_agent PUBLIC ${YAZE_HTTPLIB_TARGETS})
 endif()
@@ -226,7 +231,7 @@ endif()
 target_include_directories(yaze_agent
   PUBLIC
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/incl
+    ${CMAKE_SOURCE_DIR}/inc
     ${CMAKE_SOURCE_DIR}/src/lib
     ${CMAKE_SOURCE_DIR}/src/cli/handlers
     ${CMAKE_BINARY_DIR}/gens

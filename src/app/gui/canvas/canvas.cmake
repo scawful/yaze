@@ -44,7 +44,7 @@ target_include_directories(yaze_canvas PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/..
   ${CMAKE_CURRENT_SOURCE_DIR}/../../..
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../../incl
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../../inc
 )
 
 # Link dependencies

@@ -74,7 +74,7 @@ target_precompile_headers(yaze_zelda3 PRIVATE
 target_include_directories(yaze_zelda3 PUBLIC
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/src/lib
-  ${CMAKE_SOURCE_DIR}/incl
+  ${CMAKE_SOURCE_DIR}/inc
   ${PROJECT_BINARY_DIR}
 )
 

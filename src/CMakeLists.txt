@@ -32,6 +32,7 @@ set(
   app/emu/render/render_context.cc
   app/emu/render/emulator_render_service.cc
   app/emu/render/save_state_manager.cc
+  app/emu/mesen/mesen_client_registry.cc
   app/emu/mesen/mesen_socket_client.cc
 )
 

@@ -18,7 +18,7 @@ if(YAZE_BUILD_TESTS)
 
     target_include_directories(${suite_name} PUBLIC
       ${CMAKE_SOURCE_DIR}/src
-      ${CMAKE_SOURCE_DIR}/incl
+      ${CMAKE_SOURCE_DIR}/inc
       ${CMAKE_SOURCE_DIR}/test
       ${CMAKE_SOURCE_DIR}/test/framework
       ${CMAKE_SOURCE_DIR}/ext
@@ -192,7 +192,10 @@ if(YAZE_BUILD_TESTS)
   if(YAZE_ENABLE_AGENT_CLI)
     list(APPEND STABLE_TEST_SOURCES
       unit/cli/conversational_agent_service_test.cc
+      unit/cli/ai_config_utils_test.cc
       unit/cli/ai_service_factory_test.cc
+      unit/cli/model_registry_test.cc
+      unit/cli/http_api_handlers_test.cc
       unit/cli/vision_action_refiner_test.cc
       unit/tools/build_tool_test.cc
       unit/tools/filesystem_tool_test.cc
