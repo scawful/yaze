@@ -6,7 +6,12 @@
 | `get-gh-workflow-status.sh` | Checks the status of a GitHub Actions workflow run using `gh run view`. |
 | `smoke-build.sh` | Runs `cmake --preset` configure/build in place and reports timing. |
 | `run-tests.sh` | Configures the preset (if needed), builds `yaze_test`, and runs `ctest` with optional args. |
-| `test-http-api.sh` | Polls the HTTP API `/api/v1/health` endpoint using curl (defaults to localhost:8080). |
+| `test-http-api.sh` | Smoke-checks HTTP API endpoints (health/models/symbols + core POSTs) via curl; defaults to localhost:8080. |
+| `test-grpc-api.sh` | Smoke-checks gRPC automation API via grpcurl; defaults to localhost:50052 and the ImGui test harness Ping. |
+| `ralph-loop-codex.sh` | Runs a Ralph Wiggum loop with Codex CLI using a mission prompt file. |
+| `ralph-loop-report.sh` | Builds a Markdown report from Ralph loop logs for structured review. |
+| `ralph-loop-lock.sh` | Acquire/release simple lock files to prevent multi-agent overlap. |
+| `ralph-loop-status.sh` | Print key fields from the Ralph loop state file (delegates to the OOS helper). |
 | `windows-smoke-build.ps1` | PowerShell variant of the smoke build helper for Visual Studio/Ninja presets on Windows. |
 
 Usage examples:
@@ -24,8 +29,32 @@ scripts/agents/smoke-build.sh mac-ai
 # Build & run tests for mac-dbg preset with verbose ctest output
 scripts/agents/run-tests.sh mac-dbg --output-on-failure
 
-# Check HTTP API health (defaults to localhost:8080)
+# Smoke-check HTTP API endpoints (defaults to localhost:8080)
 scripts/agents/test-http-api.sh
+
+# Smoke-check gRPC automation API (defaults to localhost:50052)
+scripts/agents/test-grpc-api.sh
+
+# Run the Codex Ralph loop with the yaze mission prompt
+scripts/agents/ralph-loop-codex.sh --mission docs/internal/plans/ralph-wiggum-codex-mission.md \
+  --max-iterations 15 --auto-extend --extend-by 20 --report-every 3 --report-limit 20 \
+  --heartbeat-seconds 30 --watchdog-seconds 300 --watchdog-retries 1 \
+  --completion-promise "YAZE_RALPH_DONE" -- --full-auto
+
+# Disable colors/prefixing if desired (NO_COLOR also works)
+scripts/agents/ralph-loop-codex.sh --mission docs/internal/plans/ralph-wiggum-codex-mission.md \
+  --no-color --no-prefix-output -- --profile mac-ai --full-auto
+
+# Generate a Markdown report from loop logs
+scripts/agents/ralph-loop-report.sh --limit 25
+
+# Print loop state summary (uses RALPH_OOS_ROOT for the consolidated helper)
+scripts/agents/ralph-loop-status.sh
+
+# Lock an area while working on it
+scripts/agents/ralph-loop-lock.sh acquire --area ai-integration --owner codex
+scripts/agents/ralph-loop-lock.sh status
+scripts/agents/ralph-loop-lock.sh release --area ai-integration
 
 # Windows smoke build using PowerShell
 pwsh -File scripts/agents/windows-smoke-build.ps1 -Preset win-ai -Target z3ed
@@ -33,6 +62,24 @@ pwsh -File scripts/agents/windows-smoke-build.ps1 -Preset win-ai -Target z3ed
 
 When invoking these scripts, log the results on the coordination board so other agents know which
 workflows/builds were triggered and where to find artifacts/logs.
+
+Ralph loop logs:
+- `.claude/ralph-loop.codex/iteration-*.log` (full console stream per iteration)
+- `.claude/ralph-loop.codex/iteration-*.last.txt` (last message per iteration)
+- `.claude/ralph-loop.codex/index.md` (embedded last messages for search)
+- `.claude/ralph-loop.codex/combined.log` (concatenated console stream)
+- `.claude/ralph-loop.codex/iteration-*.repo.txt` (git status snapshot per iteration)
+- `.claude/ralph-loop.codex/iteration-*.heartbeat` (heartbeat timestamps)
+- `.claude/ralph-loop.codex/iteration-*.watchdog` (watchdog notes if triggered)
+
+Ralph loop state:
+- `.claude/ralph-loop.codex.md` (YAML front matter with active flag, iteration counters, timestamps)
+- Includes per-iteration metadata like `last_preflight_status`, `last_sanity_status`, `last_exit_status`,
+  `last_outcome_status`, `watchdog_triggered`, and resolved Mesen2 socket fields (`mesen_socket_resolved`,
+  `mesen_socket_source`, `mesen_socket_resolved_at`).
+- `RALPH_OOS_ROOT` overrides the Oracle-of-Secrets root used for default sanity/preflight/registry scripts.
+
+Note: AFS CLI writes to `~/.context/projects/yaze` are blocked by the sandbox. Use repo `.context` paths for scratchpad updates.
 
 ## Reducing Build Times
 
