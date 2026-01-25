@@ -140,3 +140,6 @@ zelda3.sfc
 yaze_manual.log
 yaze_startup.log
 roms/
+
+# AFS context (local only - use afs CLI or manual tools to search)
+.context/

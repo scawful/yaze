@@ -6,6 +6,12 @@ This roadmap tracks upcoming releases and major ongoing initiatives.
 
 ## Current Focus (v0.5.5)
 
+### Priority 0: AI Registry & Model Context
+- **AI Registry (Phase 1)**: unify provider/model discovery across UI + CLI; surface model metadata, display names, and refresh controls.
+- **Model Context Settings**: per-profile context presets (system prompts, tool scopes, cache TTLs) with safe defaults for local vs hosted providers.
+- **Provider Parity**: align OpenAI/Anthropic/Gemini/Ollama/LM Studio base URL handling and configuration UX.
+- **In Progress**: ModelRegistry foundation (caching + HTTP API refresh) landing in CLI/API.
+
 ### Priority 1: Editor Feature Completion
 - **Palette JSON Import/Export**: Complete `palette_group_panel.cc:529,534` for palette file exchange
 - **Palette Clipboard Import**: Implement `palette_group_panel.cc:559` for copy/paste workflows

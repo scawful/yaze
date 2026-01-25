@@ -346,8 +346,8 @@ cmake --build build -v                  # Verbose build output
 ./build/bin/yaze --server --rom_file zelda3.sfc      # Headless + API + gRPC
 ./build/bin/yaze --export_symbols out.mlb            # Export Mesen labels
 
-# For advanced Mesen2 automation (Headless/CI), use the shared tool:
-# ~/src/tools/mesen2-mcp (Python MCP server with HTTP bridge)
+# For advanced Mesen2 automation (Headless/CI), see the Golden Path:
+# [Mesen2 Architecture Ref](../oracle-of-secrets/Docs/Tooling/Mesen2_Architecture.md)
 
 # === Cleaning ===
 cmake --build build --target clean      # Clean build artifacts

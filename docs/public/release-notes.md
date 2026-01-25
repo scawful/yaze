@@ -1,38 +1,30 @@
 # Release Notes
 
-## v0.5.5 (Released January 2026)
+## v0.5.4 (Release Candidate January 2026)
 
-**Type:** Debugging + Mesen2 Bridge
-**Date:** 2026-01-24
+**Type:** Stability + Mesen2 Debugging
+**Date:** 2026-01-25
 
 ### 🐞 Mesen2 Debugging
 - New Mesen2 debug panel in the Agent editor (socket picker, overlay controls, save/load, screenshot capture).
 - Mesen2 debug shortcut (Ctrl+Shift+M) and socket list refresh on panel open.
 - New z3ed `mesen-*` CLI commands for live Mesen2 inspection and control.
 
-### 🔗 Bridge & API
-- New HTTP endpoints for PC navigation, breakpoint hits, and state updates.
-- Updated Mesen2 Lua bridge for symbol sync and state telemetry.
-
-### 🧾 Versioning
-- Bump version strings and project defaults to 0.5.5.
-
----
-
-## v0.5.4 (Released January 2026)
-
-**Type:** Desktop UX + Nightly Packaging
-**Date:** 2026-01-22
+### 🤖 AI & HTTP API
+- Model registry caching with `/api/v1/models?refresh` support.
+- CORS + error handling for HTTP API endpoints and `/symbols` format validation.
+- Normalized OpenAI base URL detection for local OpenAI-compatible servers.
 
 ### 🧰 Desktop UX
 - Fix message editor preview/font atlas rendering after ROM load.
+- Sync editor/panel context on category switches to avoid blank views.
 
 ### 📦 Nightly Builds
 - Normalize macOS nightly bundle layout so launchers resolve `yaze.app`.
 - Refresh wrapper detection to handle alternate app locations.
 
 ### 🧾 Versioning
-- Sync version strings across docs, build config, and project defaults.
+- Sync version strings across docs, build config, and project defaults to 0.5.4.
 
 ---
 
