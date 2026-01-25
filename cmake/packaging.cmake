@@ -209,8 +209,9 @@ if(YAZE_INSTALL_LIB)
         COMPONENT libraries
     )
     
-    install(FILES ${CMAKE_SOURCE_DIR}/incl/yaze.h ${CMAKE_SOURCE_DIR}/incl/zelda.h
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/inc/
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/yaze
+        FILES_MATCHING PATTERN "*.h"
         COMPONENT headers
     )
 endif()
