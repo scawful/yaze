@@ -1,6 +1,13 @@
 #include "app/application.h"
 
+#include <ctime>
+
+#ifndef _WIN32
+#include <unistd.h>  // getpid()
+#endif
+
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
 #include "app/editor/core/content_registry.h"
 #include "app/editor/events/core_events.h"
 #include "util/log.h"
@@ -123,6 +130,13 @@ void Application::Initialize(const AppConfig& config) {
   yaze::app::wasm::SetRomLoadHandler([](std::string path) {
     Application::Instance().LoadRom(path);
   });
+#else
+  // Create activity file for instance discovery (non-WASM only)
+  auto pid = getpid();
+  activity_file_ = std::make_unique<app::ActivityFile>(
+      absl::StrFormat("/tmp/yaze-%d.status", pid));
+  UpdateActivityStatus();
+  LOG_INFO("App", "Activity file created: %s", activity_file_->GetPath().c_str());
 #endif
 }
 
@@ -216,6 +230,11 @@ void Application::LoadRom(const std::string& path) {
     // Actually, simpler: just run them. The user can close cards if they want.
     RunStartupActions();
 
+#ifndef __EMSCRIPTEN__
+    // Update activity file with new ROM path
+    UpdateActivityStatus();
+#endif
+
 #ifdef __EMSCRIPTEN__
     EM_ASM({
       console.log("ROM loaded successfully: " + UTF8ToString($0));
@@ -230,6 +249,30 @@ void Application::RunStartupActions() {
   auto* manager = controller_->editor_manager();
   manager->ProcessStartupActions(config_);
 }
+
+#ifndef __EMSCRIPTEN__
+void Application::UpdateActivityStatus() {
+  if (!activity_file_) return;
+
+  app::ActivityStatus status;
+  status.pid = getpid();
+  status.version = YAZE_VERSION_STRING;
+  status.start_timestamp = std::time(nullptr);
+
+  if (controller_ && controller_->editor_manager()) {
+    auto* rom = controller_->GetCurrentRom();
+    status.active_rom = rom ? rom->filename() : "";
+  }
+
+#ifdef YAZE_WITH_GRPC
+  if (config_.enable_test_harness && config_.test_harness_port > 0) {
+    status.socket_path = absl::StrFormat("localhost:%d", config_.test_harness_port);
+  }
+#endif
+
+  activity_file_->Update(status);
+}
+#endif
 
 #ifdef __EMSCRIPTEN__
 extern "C" void SyncFilesystem();
@@ -249,6 +292,14 @@ void Application::Shutdown() {
     grpc_server_.reset();
   }
   canvas_automation_service_.reset();
+#endif
+
+#ifndef __EMSCRIPTEN__
+  // Clean up activity file for instance discovery
+  if (activity_file_) {
+    LOG_INFO("App", "Removing activity file: %s", activity_file_->GetPath().c_str());
+    activity_file_.reset();  // Destructor deletes the file
+  }
 #endif
 
   if (controller_) {

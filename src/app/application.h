@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "app/activity_file.h"
 #include "app/controller.h"
 #include "app/startup_flags.h"
 #include "yaze_config.h"
@@ -97,6 +98,12 @@ class Application {
   // For non-WASM builds, we need a local queue for ROMs requested before
   // the controller is initialized.
   std::string pending_rom_;
+
+  // Activity file for instance discovery by Oracle Agent Manager
+  std::unique_ptr<app::ActivityFile> activity_file_;
+
+  // Update the activity status file with current state
+  void UpdateActivityStatus();
 #endif
 
   // Helper to run startup actions (jumps, card opening) after ROM load
