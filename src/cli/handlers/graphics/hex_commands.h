@@ -17,8 +17,8 @@ class HexReadCommandHandler : public resources::CommandHandler {
     return "Read hex data from ROM at specified address";
   }
   std::string GetUsage() const {
-    return "hex-read --address <address> [--length <length>] [--format "
-           "<format>]";
+    return "hex-read --address <address> [--length <length>] "
+           "[--data-format <hex|ascii|both>] [--format <json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {

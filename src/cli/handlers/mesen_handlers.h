@@ -1,25 +1,14 @@
 #ifndef YAZE_CLI_HANDLERS_MESEN_HANDLERS_H_
 #define YAZE_CLI_HANDLERS_MESEN_HANDLERS_H_
 
-#include <memory>
 #include <string>
 #include <vector>
 
-#include "app/emu/mesen/mesen_socket_client.h"
 #include "cli/service/resources/command_handler.h"
 
 namespace yaze {
 namespace cli {
 namespace handlers {
-
-/**
- * @brief Shared Mesen2 socket client for all mesen-* handlers
- */
-class MesenClientHolder {
- public:
-  static std::shared_ptr<emu::mesen::MesenSocketClient>& GetClient();
-  static void SetClient(std::shared_ptr<emu::mesen::MesenSocketClient> client);
-};
 
 // Handler implementations for Mesen2 commands
 

@@ -1,6 +1,7 @@
 #ifndef YAZE_SRC_CLI_SERVICE_AI_MODEL_REGISTRY_H_
 #define YAZE_SRC_CLI_SERVICE_AI_MODEL_REGISTRY_H_
 
+#include <chrono>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -24,7 +25,8 @@ class ModelRegistry {
   void ClearServices();
 
   // List models from all registered services
-  absl::StatusOr<std::vector<ModelInfo>> ListAllModels();
+  absl::StatusOr<std::vector<ModelInfo>> ListAllModels(
+      bool force_refresh = false);
 
  private:
   ModelRegistry() = default;
@@ -32,7 +34,12 @@ class ModelRegistry {
   ModelRegistry(const ModelRegistry&) = delete;
   ModelRegistry& operator=(const ModelRegistry&) = delete;
 
+  void InvalidateCacheLocked();
+
   std::vector<std::shared_ptr<AIService>> services_;
+  std::vector<ModelInfo> cached_models_;
+  std::chrono::steady_clock::time_point cache_timestamp_{};
+  bool cache_valid_ = false;
   std::mutex mutex_;
 };
 

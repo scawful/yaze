@@ -8,6 +8,49 @@ namespace cli {
 namespace handlers {
 
 /**
+ * @brief Command handler for reading raw ROM bytes
+ */
+class RomReadCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "rom-read"; }
+  std::string GetDescription() const {
+    return "Read raw bytes from ROM at an address";
+  }
+  std::string GetUsage() const override {
+    return "rom-read --address <hex> [--length <bytes>] "
+           "[--data-format <hex|ascii|both>] [--format <json|text>]";
+  }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"address"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+/**
+ * @brief Command handler for writing raw ROM bytes
+ */
+class RomWriteCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "rom-write"; }
+  std::string GetDescription() const {
+    return "Write raw bytes to ROM at an address";
+  }
+  std::string GetUsage() const override {
+    return "rom-write --address <hex> --data <hex_string>";
+  }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"address", "data"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+/**
  * @brief Command handler for displaying ROM information
  */
 class RomInfoCommandHandler : public resources::CommandHandler {

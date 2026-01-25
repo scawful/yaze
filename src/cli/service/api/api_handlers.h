@@ -1,6 +1,7 @@
 #ifndef YAZE_SRC_CLI_SERVICE_API_API_HANDLERS_H_
 #define YAZE_SRC_CLI_SERVICE_API_API_HANDLERS_H_
 
+#include <functional>
 #include <string>
 
 // Forward declarations to avoid exposing httplib headers everywhere
@@ -33,6 +34,18 @@ void HandleGetSymbols(const httplib::Request& req, httplib::Response& res,
 void HandleNavigate(const httplib::Request& req, httplib::Response& res);
 void HandleBreakpointHit(const httplib::Request& req, httplib::Response& res);
 void HandleStateUpdate(const httplib::Request& req, httplib::Response& res);
+
+// Window control endpoints
+void HandleWindowShow(const httplib::Request& req, httplib::Response& res,
+                      const std::function<bool()>& action);
+void HandleWindowHide(const httplib::Request& req, httplib::Response& res,
+                      const std::function<bool()>& action);
+
+// Apply common CORS headers to a response.
+void ApplyCorsHeaders(httplib::Response& res);
+
+// CORS preflight handler for OPTIONS requests.
+void HandleCorsPreflight(const httplib::Request& req, httplib::Response& res);
 
 }  // namespace api
 }  // namespace cli

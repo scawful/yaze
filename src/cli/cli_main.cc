@@ -1,7 +1,11 @@
+#include <atomic>
+#include <chrono>
+#include <csignal>
 #include <cstdlib>
 #include <iostream>
 #include <optional>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "absl/flags/declare.h"
@@ -29,6 +33,7 @@
 // Define all CLI flags
 ABSL_FLAG(bool, tui, false, "Launch interactive Text User Interface");
 ABSL_DECLARE_FLAG(bool, quiet);
+ABSL_DECLARE_FLAG(bool, sandbox);
 ABSL_FLAG(bool, version, false, "Show version information");
 ABSL_FLAG(bool, self_test, false,
           "Run self-test diagnostics to verify CLI functionality");
@@ -44,6 +49,7 @@ ABSL_DECLARE_FLAG(std::string, ai_model);
 ABSL_DECLARE_FLAG(std::string, gemini_api_key);
 ABSL_DECLARE_FLAG(std::string, anthropic_api_key);
 ABSL_DECLARE_FLAG(std::string, ollama_host);
+ABSL_DECLARE_FLAG(std::string, mesen_socket);
 ABSL_DECLARE_FLAG(std::string, gui_server_address);
 ABSL_DECLARE_FLAG(std::string, prompt_version);
 ABSL_DECLARE_FLAG(bool, use_function_calling);
@@ -157,6 +163,7 @@ void PrintCompactHelp() {
 
   std::cout << "\033[1;36mCOMMON FLAGS:\033[0m\n";
   std::cout << "  --rom=<path>           Path to ROM file\n";
+  std::cout << "  --sandbox              Run ROM commands in a sandbox copy\n";
   std::cout << "  --tui                  Launch interactive TUI\n";
   std::cout << "  --quiet, -q            Suppress output\n";
   std::cout << "  --ai_provider=<name>   AI provider (auto, ollama, gemini, "
@@ -170,8 +177,11 @@ void PrintCompactHelp() {
 #ifdef YAZE_HTTP_API_ENABLED
   std::cout << "  --http-port=<port>     HTTP API server port (0=disabled)\n";
   std::cout
-      << "  --http-host=<host>     HTTP API server host (default: localhost)\n";
+      << "  --http-host=<host>     HTTP API display host (printed URLs)\n";
+  std::cout
+      << "                         (no command keeps server alive until Ctrl+C)\n";
 #endif
+  std::cout << "  --mesen-socket=<path>  Override Mesen2 socket path\n";
   std::cout << "\n";
 
   std::cout << "\033[1;36mEXAMPLES:\033[0m\n";
@@ -179,6 +189,8 @@ void PrintCompactHelp() {
   std::cout << "  z3ed agent simple-chat --rom=zelda3.sfc\n";
 #endif
   std::cout << "  z3ed rom-info --rom=zelda3.sfc\n";
+  std::cout << "  z3ed rom read --address=0x1000 --length=16 --rom=zelda3.sfc\n";
+  std::cout << "  z3ed debug state\n";
   std::cout
       << "  z3ed message-search --rom=zelda3.sfc --query=\"Master Sword\"\n";
   std::cout << "  z3ed dungeon-export --rom=zelda3.sfc --id=1\n\n";
@@ -186,6 +198,22 @@ void PrintCompactHelp() {
   std::cout << "For detailed help: z3ed help <command>\n";
   std::cout << "For all commands:  z3ed --list-commands\n\n";
 }
+
+#ifdef YAZE_HTTP_API_ENABLED
+std::atomic<bool> g_http_shutdown_requested{false};
+
+void HandleHttpShutdownSignal(int) {
+  g_http_shutdown_requested.store(true);
+}
+
+void WaitForHttpServer() {
+  std::signal(SIGINT, HandleHttpShutdownSignal);
+  std::signal(SIGTERM, HandleHttpShutdownSignal);
+  while (!g_http_shutdown_requested.load()) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+  }
+}
+#endif
 
 struct ParsedGlobals {
   std::vector<char*> positional;
@@ -276,6 +304,17 @@ ParsedGlobals ParseGlobalFlags(int argc, char* argv[]) {
       if (absl::StartsWith(token, "--quiet=")) {
         std::string value(token.substr(8));
         absl::SetFlag(&FLAGS_quiet, value == "true" || value == "1");
+        continue;
+      }
+
+      // Sandbox mode
+      if (token == "--sandbox") {
+        absl::SetFlag(&FLAGS_sandbox, true);
+        continue;
+      }
+      if (absl::StartsWith(token, "--sandbox=")) {
+        std::string value(token.substr(10));
+        absl::SetFlag(&FLAGS_sandbox, value == "true" || value == "1");
         continue;
       }
 
@@ -386,6 +425,22 @@ ParsedGlobals ParseGlobalFlags(int argc, char* argv[]) {
           return result;
         }
         absl::SetFlag(&FLAGS_ollama_host, std::string(argv[++i]));
+        continue;
+      }
+
+      if (absl::StartsWith(token, "--mesen-socket=") ||
+          absl::StartsWith(token, "--mesen_socket=")) {
+        size_t eq_pos = token.find('=');
+        absl::SetFlag(&FLAGS_mesen_socket,
+                      std::string(token.substr(eq_pos + 1)));
+        continue;
+      }
+      if (token == "--mesen-socket" || token == "--mesen_socket") {
+        if (i + 1 >= argc) {
+          result.error = "--mesen-socket flag requires a value";
+          return result;
+        }
+        absl::SetFlag(&FLAGS_mesen_socket, std::string(argv[++i]));
         continue;
       }
 
@@ -589,6 +644,17 @@ int main(int argc, char* argv[]) {
     cli.PrintCommandSummary();
     return EXIT_SUCCESS;
   }
+
+#ifdef YAZE_HTTP_API_ENABLED
+  if (!globals.show_help && globals.positional.size() <= 1 && http_server &&
+      http_server->IsRunning()) {
+    if (!absl::GetFlag(FLAGS_quiet)) {
+      std::cout << "HTTP API server running. Press Ctrl+C to exit.\n";
+    }
+    WaitForHttpServer();
+    return EXIT_SUCCESS;
+  }
+#endif
 
   // Handle general help or no arguments
   if (globals.show_help || globals.positional.size() <= 1) {

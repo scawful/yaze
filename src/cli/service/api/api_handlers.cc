@@ -1,5 +1,8 @@
 #include "cli/service/api/api_handlers.h"
 
+#include <algorithm>
+#include <cctype>
+
 #include "app/emu/debug/symbol_provider.h"
 #include "cli/service/ai/model_registry.h"
 #include "httplib.h"
@@ -12,6 +15,68 @@ namespace api {
 
 using json = nlohmann::json;
 
+namespace {
+
+constexpr const char* kCorsAllowOrigin = "*";
+constexpr const char* kCorsAllowHeaders = "Content-Type, Authorization, Accept";
+constexpr const char* kCorsAllowMethods = "GET, POST, OPTIONS";
+constexpr const char* kCorsMaxAge = "86400";
+
+bool IsTruthyParam(const std::string& value, bool param_present) {
+  if (value.empty()) {
+    return param_present;
+  }
+  std::string normalized = value;
+  std::transform(normalized.begin(), normalized.end(), normalized.begin(),
+                 [](unsigned char c) {
+                   return static_cast<char>(std::tolower(c));
+                 });
+  return normalized == "1" || normalized == "true" || normalized == "yes" ||
+         normalized == "on";
+}
+
+}  // namespace
+
+void ApplyCorsHeaders(httplib::Response& res) {
+  res.set_header("Access-Control-Allow-Origin", kCorsAllowOrigin);
+  res.set_header("Access-Control-Allow-Headers", kCorsAllowHeaders);
+  res.set_header("Access-Control-Allow-Methods", kCorsAllowMethods);
+  res.set_header("Access-Control-Max-Age", kCorsMaxAge);
+}
+
+namespace {
+
+void HandleWindowAction(const std::function<bool()>& action,
+                        const char* window_state,
+                        httplib::Response& res) {
+  ApplyCorsHeaders(res);
+
+  if (action) {
+    if (action()) {
+      json response;
+      response["status"] = "ok";
+      response["window"] = window_state;
+      res.status = 200;
+      res.set_content(response.dump(), "application/json");
+      return;
+    }
+    res.status = 500;
+    json response;
+    response["status"] = "error";
+    response["message"] = "window action failed";
+    res.set_content(response.dump(), "application/json");
+    return;
+  }
+
+  res.status = 501;
+  json response;
+  response["status"] = "error";
+  response["message"] = "window control unavailable";
+  res.set_content(response.dump(), "application/json");
+}
+
+}  // namespace
+
 void HandleHealth(const httplib::Request& req, httplib::Response& res) {
   (void)req;
   json j;
@@ -19,16 +84,18 @@ void HandleHealth(const httplib::Request& req, httplib::Response& res) {
   j["version"] = "1.0";
   j["service"] = "yaze-agent-api";
 
+  res.status = 200;
   res.set_content(j.dump(), "application/json");
-  res.set_header("Access-Control-Allow-Origin", "*");
+  ApplyCorsHeaders(res);
 }
 
 void HandleListModels(const httplib::Request& req, httplib::Response& res) {
-  (void)req;
   auto& registry = ModelRegistry::GetInstance();
-  auto models_or = registry.ListAllModels();
+  const bool force_refresh = IsTruthyParam(req.get_param_value("refresh"),
+                                           req.has_param("refresh"));
+  auto models_or = registry.ListAllModels(force_refresh);
 
-  res.set_header("Access-Control-Allow-Origin", "*");
+  ApplyCorsHeaders(res);
 
   if (!models_or.ok()) {
     json j;
@@ -42,6 +109,7 @@ void HandleListModels(const httplib::Request& req, httplib::Response& res) {
   for (const auto& info : *models_or) {
     json j_model;
     j_model["name"] = info.name;
+    j_model["display_name"] = info.display_name;
     j_model["provider"] = info.provider;
     j_model["description"] = info.description;
     j_model["family"] = info.family;
@@ -56,12 +124,35 @@ void HandleListModels(const httplib::Request& req, httplib::Response& res) {
   response["models"] = j_models;
   response["count"] = j_models.size();
 
+  res.status = 200;
   res.set_content(response.dump(), "application/json");
 }
 
 void HandleGetSymbols(const httplib::Request& req, httplib::Response& res,
                       yaze::emu::debug::SymbolProvider* symbols) {
-  res.set_header("Access-Control-Allow-Origin", "*");
+  ApplyCorsHeaders(res);
+
+  std::string format_str = req.get_param_value("format");
+  if (format_str.empty()) format_str = "mesen";
+
+  yaze::emu::debug::SymbolFormat format = yaze::emu::debug::SymbolFormat::kMesen;
+  if (format_str == "mesen") {
+    format = yaze::emu::debug::SymbolFormat::kMesen;
+  } else if (format_str == "asar") {
+    format = yaze::emu::debug::SymbolFormat::kAsar;
+  } else if (format_str == "wla") {
+    format = yaze::emu::debug::SymbolFormat::kWlaDx;
+  } else if (format_str == "bsnes") {
+    format = yaze::emu::debug::SymbolFormat::kBsnes;
+  } else {
+    json j;
+    j["error"] = "Unsupported symbol format";
+    j["format"] = format_str;
+    j["supported"] = {"mesen", "asar", "wla", "bsnes"};
+    res.status = 400;
+    res.set_content(j.dump(), "application/json");
+    return;
+  }
 
   if (!symbols) {
     json j;
@@ -71,22 +162,21 @@ void HandleGetSymbols(const httplib::Request& req, httplib::Response& res,
     return;
   }
 
-  std::string format_str = req.get_param_value("format");
-  if (format_str.empty()) format_str = "mesen";
-
-  yaze::emu::debug::SymbolFormat format = yaze::emu::debug::SymbolFormat::kMesen;
-  if (format_str == "asar") format = yaze::emu::debug::SymbolFormat::kAsar;
-  else if (format_str == "wla") format = yaze::emu::debug::SymbolFormat::kWlaDx;
-  else if (format_str == "bsnes") format = yaze::emu::debug::SymbolFormat::kBsnes;
-
   auto export_or = symbols->ExportSymbols(format);
   if (export_or.ok()) {
-    if (req.has_header("Accept") && req.get_header_value("Accept") == "application/json") {
+    const std::string accept = req.has_header("Accept")
+                                   ? req.get_header_value("Accept")
+                                   : std::string();
+    const bool wants_json =
+        accept.find("application/json") != std::string::npos;
+    if (wants_json) {
       json j;
       j["symbols"] = *export_or;
       j["format"] = format_str;
+      res.status = 200;
       res.set_content(j.dump(), "application/json");
     } else {
+      res.status = 200;
       res.set_content(*export_or, "text/plain");
     }
   } else {
@@ -98,7 +188,7 @@ void HandleGetSymbols(const httplib::Request& req, httplib::Response& res,
 }
 
 void HandleNavigate(const httplib::Request& req, httplib::Response& res) {
-  res.set_header("Access-Control-Allow-Origin", "*");
+  ApplyCorsHeaders(res);
 
   try {
     json body = json::parse(req.body);
@@ -114,6 +204,7 @@ void HandleNavigate(const httplib::Request& req, httplib::Response& res) {
     response["status"] = "ok";
     response["address"] = address;
     response["message"] = "Navigation request received";
+    res.status = 200;
     res.set_content(response.dump(), "application/json");
   } catch (const std::exception& e) {
     json j;
@@ -124,7 +215,7 @@ void HandleNavigate(const httplib::Request& req, httplib::Response& res) {
 }
 
 void HandleBreakpointHit(const httplib::Request& req, httplib::Response& res) {
-  res.set_header("Access-Control-Allow-Origin", "*");
+  ApplyCorsHeaders(res);
 
   try {
     json body = json::parse(req.body);
@@ -143,6 +234,7 @@ void HandleBreakpointHit(const httplib::Request& req, httplib::Response& res) {
     json response;
     response["status"] = "ok";
     response["address"] = address;
+    res.status = 200;
     res.set_content(response.dump(), "application/json");
   } catch (const std::exception& e) {
     json j;
@@ -153,7 +245,7 @@ void HandleBreakpointHit(const httplib::Request& req, httplib::Response& res) {
 }
 
 void HandleStateUpdate(const httplib::Request& req, httplib::Response& res) {
-  res.set_header("Access-Control-Allow-Origin", "*");
+  ApplyCorsHeaders(res);
 
   try {
     json body = json::parse(req.body);
@@ -164,6 +256,7 @@ void HandleStateUpdate(const httplib::Request& req, httplib::Response& res) {
     // TODO: Store state for use by MesenDebugPanel and RomDebugAgent
     json response;
     response["status"] = "ok";
+    res.status = 200;
     res.set_content(response.dump(), "application/json");
   } catch (const std::exception& e) {
     json j;
@@ -173,7 +266,24 @@ void HandleStateUpdate(const httplib::Request& req, httplib::Response& res) {
   }
 }
 
+void HandleWindowShow(const httplib::Request& req, httplib::Response& res,
+                      const std::function<bool()>& action) {
+  (void)req;
+  HandleWindowAction(action, "shown", res);
+}
+
+void HandleWindowHide(const httplib::Request& req, httplib::Response& res,
+                      const std::function<bool()>& action) {
+  (void)req;
+  HandleWindowAction(action, "hidden", res);
+}
+
+void HandleCorsPreflight(const httplib::Request& req, httplib::Response& res) {
+  (void)req;
+  ApplyCorsHeaders(res);
+  res.status = 204;
+}
+
 }  // namespace api
 }  // namespace cli
 }  // namespace yaze
-

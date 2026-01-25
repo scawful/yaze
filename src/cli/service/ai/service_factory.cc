@@ -8,6 +8,7 @@
 #include "absl/flags/flag.h"
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_format.h"
+#include "cli/service/ai/ai_config_utils.h"
 #include "cli/service/ai/ai_service.h"
 #include "cli/service/ai/local_gemini_cli_service.h"
 #include "cli/service/ai/ollama_ai_service.h"
@@ -17,6 +18,25 @@
 #include "cli/service/ai/gemini_ai_service.h"
 #include "cli/service/ai/openai_ai_service.h"
 #endif
+
+namespace {
+
+constexpr char kDefaultOpenAiBaseUrl[] = "https://api.openai.com";
+constexpr char kDefaultOllamaHost[] = "http://localhost:11434";
+
+bool HasOllamaHint(const yaze::cli::AIServiceConfig& config) {
+  if (config.ollama_host != kDefaultOllamaHost) {
+    return true;
+  }
+  const char* env_ollama_host = std::getenv("OLLAMA_HOST");
+  if (env_ollama_host && *env_ollama_host) {
+    return true;
+  }
+  const char* env_ollama_model = std::getenv("OLLAMA_MODEL");
+  return env_ollama_model && *env_ollama_model;
+}
+
+}  // namespace
 
 ABSL_DECLARE_FLAG(std::string, ai_provider);
 ABSL_DECLARE_FLAG(std::string, ai_model);
@@ -57,17 +77,36 @@ std::unique_ptr<AIService> CreateAIService() {
       config.openai_api_key = openai_key;
     }
   }
+  if (config.openai_base_url.empty() ||
+      config.openai_base_url == kDefaultOpenAiBaseUrl) {
+    const char* env_openai_base = std::getenv("OPENAI_BASE_URL");
+    if (!env_openai_base || !*env_openai_base) {
+      env_openai_base = std::getenv("OPENAI_API_BASE");
+    }
+    if (env_openai_base && *env_openai_base) {
+      config.openai_base_url = env_openai_base;
+    }
+  }
+  if (config.ollama_host.empty() || config.ollama_host == kDefaultOllamaHost) {
+    const char* env_ollama_host = std::getenv("OLLAMA_HOST");
+    if (env_ollama_host && *env_ollama_host) {
+      config.ollama_host = env_ollama_host;
+    }
+  }
   if (config.model.empty()) {
     const char* env_model = std::getenv("OLLAMA_MODEL");
     if (env_model)
       config.model = env_model;
   }
+  config.openai_base_url = NormalizeOpenAiBaseUrl(config.openai_base_url);
 
   return CreateAIService(config);
 }
 
 std::unique_ptr<AIService> CreateAIService(const AIServiceConfig& config) {
   AIServiceConfig effective_config = config;
+  effective_config.openai_base_url =
+      NormalizeOpenAiBaseUrl(effective_config.openai_base_url);
   if (effective_config.provider.empty()) {
     effective_config.provider = "auto";
   }
@@ -89,12 +128,23 @@ std::unique_ptr<AIService> CreateAIService(const AIServiceConfig& config) {
       if (effective_config.model.empty()) {
         effective_config.model = "gpt-4o-mini";
       }
+    } else if (effective_config.openai_base_url != kDefaultOpenAiBaseUrl) {
+      std::cout << "🤖 Auto-detecting AI provider...\n";
+      std::cout << "   Found OpenAI-compatible base URL, using OpenAI\n";
+      if (effective_config.model.empty()) {
+        std::cout << "   Tip: Set --ai_model for local servers\n";
+      }
+      effective_config.provider = "openai";
     } else
 #endif
-    {
+    if (HasOllamaHint(effective_config)) {
+      std::cout << "🤖 Auto-detecting AI provider...\n";
+      std::cout << "   Found Ollama configuration, using Ollama\n";
+      effective_config.provider = "ollama";
+    } else {
       std::cout << "🤖 No AI provider configured, using MockAIService\n";
-      std::cout << "   Tip: Set GEMINI_API_KEY, ANTHROPIC_API_KEY, or "
-                   "OPENAI_API_KEY\n";
+      std::cout << "   Tip: Set GEMINI_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY,"
+                   " OPENAI_BASE_URL, or OLLAMA_HOST/OLLAMA_MODEL\n";
       effective_config.provider = "mock";
     }
   }
@@ -177,7 +227,7 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
   }
   if (provider == "openai") {
     // LMStudio doesn't require an API key - allow empty key for local servers
-    bool is_local_server = config.openai_base_url != "https://api.openai.com";
+    bool is_local_server = config.openai_base_url != kDefaultOpenAiBaseUrl;
     if (config.openai_api_key.empty() && !is_local_server) {
       return absl::FailedPreconditionError(
           "OpenAI API key not provided. Set OPENAI_API_KEY.\n"
