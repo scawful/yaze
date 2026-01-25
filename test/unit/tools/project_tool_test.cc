@@ -12,6 +12,8 @@
 #include <gtest/gtest.h>
 
 #include <array>
+#include <chrono>
+#include <cctype>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
@@ -35,6 +37,35 @@ using ::testing::Not;
 using ::testing::SizeIs;
 
 namespace fs = std::filesystem;
+
+std::string SanitizeForPath(const std::string& value) {
+  std::string sanitized;
+  sanitized.reserve(value.size());
+  for (unsigned char ch : value) {
+    if (std::isalnum(ch) || ch == '-' || ch == '_') {
+      sanitized.push_back(static_cast<char>(ch));
+    } else {
+      sanitized.push_back('_');
+    }
+  }
+  return sanitized;
+}
+
+std::string CurrentTestName() {
+  const auto* info = ::testing::UnitTest::GetInstance()->current_test_info();
+  if (!info) {
+    return "unknown_test";
+  }
+  return std::string(info->test_suite_name()) + "_" + info->name();
+}
+
+fs::path MakeUniqueTempDir(const std::string& prefix) {
+  const auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+  const auto name =
+      prefix + "_" + SanitizeForPath(CurrentTestName()) + "_" +
+      std::to_string(now);
+  return fs::temp_directory_path() / name;
+}
 
 // =============================================================================
 // EditFileHeader Tests
@@ -214,7 +245,7 @@ class ProjectManagerTest : public ::testing::Test {
  protected:
   void SetUp() override {
     // Create a temporary directory for tests
-    test_dir_ = fs::temp_directory_path() / "yaze_project_test";
+    test_dir_ = MakeUniqueTempDir("yaze_project_test");
     fs::create_directories(test_dir_);
   }
 

@@ -75,7 +75,7 @@ TEST(AgentChatTest, SaveHistoryWritesChatMessages) {
   nlohmann::json data;
   file >> data;
 
-  EXPECT_EQ(data["version"], 1);
+  EXPECT_EQ(data["version"], 4);
   ASSERT_TRUE(data.contains("messages"));
   ASSERT_EQ(data["messages"].size(), 2);
   EXPECT_EQ(data["messages"][0]["sender"], "user");

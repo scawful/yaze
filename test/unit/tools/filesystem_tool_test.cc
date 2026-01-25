@@ -11,8 +11,11 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <chrono>
+#include <cctype>
 #include <filesystem>
 #include <fstream>
+#include <string>
 
 #include "absl/status/status.h"
 #include "cli/service/resources/command_context.h"
@@ -38,13 +41,43 @@ std::filesystem::path FindProjectRoot() {
   return std::filesystem::current_path();
 }
 
+std::string SanitizeForPath(const std::string& value) {
+  std::string sanitized;
+  sanitized.reserve(value.size());
+  for (unsigned char ch : value) {
+    if (std::isalnum(ch) || ch == '-' || ch == '_') {
+      sanitized.push_back(static_cast<char>(ch));
+    } else {
+      sanitized.push_back('_');
+    }
+  }
+  return sanitized;
+}
+
+std::string CurrentTestName() {
+  const auto* info = ::testing::UnitTest::GetInstance()->current_test_info();
+  if (!info) {
+    return "unknown_test";
+  }
+  return std::string(info->test_suite_name()) + "_" + info->name();
+}
+
+std::filesystem::path MakeUniqueTestDir(const std::filesystem::path& base_dir,
+                                        const std::string& prefix) {
+  const auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+  const auto name =
+      prefix + "_" + SanitizeForPath(CurrentTestName()) + "_" +
+      std::to_string(now);
+  return base_dir / name;
+}
+
 // Test fixture for FileSystemTool tests
 class FileSystemToolTest : public ::testing::Test {
  protected:
   void SetUp() override {
     // Create test directories and files
     test_dir_ =
-        FindProjectRoot() / "test_temp" / "yaze_fs_tool_test";
+        MakeUniqueTestDir(FindProjectRoot() / "test_temp", "yaze_fs_tool_test");
     std::filesystem::create_directories(test_dir_ / "subdir");
 
     // Create test files
