@@ -182,12 +182,14 @@ bool Emulator::EnsureInitialized(Rom* rom) {
 
   // Initialize audio backend if not already done
   // Skip if using external (shared) audio backend
-  if (!audio_backend_ && !external_audio_backend_) {
+  if (external_audio_backend_) {
+    LOG_INFO("Emulator", "Using external (shared) audio backend");
+  } else if (!audio_backend_ || !audio_backend_->IsInitialized()) {
 #ifdef __EMSCRIPTEN__
-    audio_backend_ = audio::AudioBackendFactory::Create(
+    auto backend = audio::AudioBackendFactory::Create(
         audio::AudioBackendFactory::BackendType::WASM);
 #else
-    audio_backend_ = audio::AudioBackendFactory::Create(
+    auto backend = audio::AudioBackendFactory::Create(
         audio::AudioBackendFactory::BackendType::SDL2);
 #endif
 
@@ -197,13 +199,21 @@ bool Emulator::EnsureInitialized(Rom* rom) {
     config.buffer_frames = 1024;
     config.format = audio::SampleFormat::INT16;
 
-    if (!audio_backend_->Initialize(config)) {
-      LOG_ERROR("Emulator", "Failed to initialize audio backend");
-      return false;
+    if (!backend->Initialize(config)) {
+      LOG_WARN("Emulator",
+               "Failed to initialize audio backend; falling back to Null");
+      backend = audio::AudioBackendFactory::Create(
+          audio::AudioBackendFactory::BackendType::NULL_BACKEND);
+      if (!backend->Initialize(config)) {
+        LOG_ERROR("Emulator", "Failed to initialize Null audio backend");
+        return false;
+      }
     }
-    LOG_INFO("Emulator", "Audio backend initialized for headless mode");
-  } else if (external_audio_backend_) {
-    LOG_INFO("Emulator", "Using external (shared) audio backend");
+
+    audio_backend_ = std::move(backend);
+    audio_stream_config_dirty_ = true;
+    LOG_INFO("Emulator", "Audio backend initialized for headless mode: %s",
+             audio_backend_->GetBackendName().c_str());
   }
 
   // Initialize SNES if not already done
