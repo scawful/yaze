@@ -14,7 +14,16 @@ absl::Status HexReadCommandHandler::Execute(
     resources::OutputFormatter& formatter) {
   auto address_str = parser.GetString("address").value();
   auto length = parser.GetInt("length").value_or(16);
-  auto format = parser.GetString("format").value_or("both");
+  std::string format = "both";
+  if (auto data_format = parser.GetString("data-format");
+      data_format.has_value()) {
+    format = *data_format;
+  } else if (auto fmt = parser.GetString("format"); fmt.has_value()) {
+    if (*fmt == "hex" || *fmt == "ascii" || *fmt == "both" ||
+        *fmt == "binary") {
+      format = *fmt;
+    }
+  }
 
   // Parse address
   uint32_t address;
@@ -43,22 +52,27 @@ absl::Status HexReadCommandHandler::Execute(
   formatter.AddField("length", length);
   formatter.AddField("format", format);
 
-  // Format hex data
-  std::string hex_data;
-  for (int i = 0; i < length; ++i) {
-    absl::StrAppendFormat(&hex_data, "%02X", data[i]);
-    if (i < length - 1)
-      hex_data += " ";
-  }
-  formatter.AddField("hex_data", hex_data);
+  bool include_hex = (format == "hex" || format == "both" || format == "binary");
+  bool include_ascii = (format == "ascii" || format == "both");
 
-  // Format ASCII data
-  std::string ascii_data;
-  for (int i = 0; i < length; ++i) {
-    char c = static_cast<char>(data[i]);
-    ascii_data += (std::isprint(c) ? c : '.');
+  if (include_hex) {
+    std::string hex_data;
+    for (int i = 0; i < length; ++i) {
+      absl::StrAppendFormat(&hex_data, "%02X", data[i]);
+      if (i < length - 1)
+        hex_data += " ";
+    }
+    formatter.AddField("hex_data", hex_data);
   }
-  formatter.AddField("ascii_data", ascii_data);
+
+  if (include_ascii) {
+    std::string ascii_data;
+    for (int i = 0; i < length; ++i) {
+      char c = static_cast<char>(data[i]);
+      ascii_data += (std::isprint(static_cast<unsigned char>(c)) ? c : '.');
+    }
+    formatter.AddField("ascii_data", ascii_data);
+  }
   formatter.EndObject();
 
   return absl::OkStatus();

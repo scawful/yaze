@@ -7,6 +7,8 @@ ABSL_FLAG(bool, mock_rom, false,
           "Use mock ROM mode for testing without requiring an actual ROM file. "
           "Loads all Zelda3 embedded labels but no actual ROM data.");
 ABSL_FLAG(bool, quiet, false, "Suppress non-essential output");
+ABSL_FLAG(bool, sandbox, false,
+          "Run ROM commands against a sandbox copy of the ROM");
 
 // AI Service Configuration Flags
 ABSL_FLAG(std::string, ai_provider, "auto",
@@ -22,6 +24,8 @@ ABSL_FLAG(
     "Anthropic API key (can also use ANTHROPIC_API_KEY environment variable)");
 ABSL_FLAG(std::string, ollama_host, "http://localhost:11434",
           "Ollama server host URL");
+ABSL_FLAG(std::string, mesen_socket, "",
+          "Override Mesen2 socket path (e.g. /tmp/mesen2-1234.sock)");
 ABSL_FLAG(std::string, openai_base_url, "https://api.openai.com",
           "OpenAI-compatible API base URL (LMStudio: http://localhost:1234)");
 ABSL_FLAG(std::string, prompt_version, "default",

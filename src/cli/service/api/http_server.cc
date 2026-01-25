@@ -1,5 +1,7 @@
 #include "cli/service/api/http_server.h"
 
+#include <string>
+
 #include "cli/service/api/api_handlers.h"
 #include "util/log.h"
 
@@ -56,8 +58,44 @@ bool HttpServer::IsRunning() const {
 }
 
 void HttpServer::RegisterRoutes() {
+  server_->set_error_handler([](const httplib::Request& req,
+                                httplib::Response& res) {
+    (void)req;
+    ApplyCorsHeaders(res);
+    if (!res.body.empty()) {
+      return;
+    }
+    const char* message = "Request failed";
+    switch (res.status) {
+      case 400:
+        message = "Bad request";
+        break;
+      case 404:
+        message = "Not found";
+        break;
+      case 405:
+        message = "Method not allowed";
+        break;
+      case 501:
+        message = "Not implemented";
+        break;
+      case 503:
+        message = "Service unavailable";
+        break;
+      case 500:
+        message = "Internal server error";
+        break;
+      default:
+        break;
+    }
+    std::string body = std::string("{\"error\":\"") + message + "\"}";
+    res.set_content(body, "application/json");
+  });
+
   server_->Get("/api/v1/health", HandleHealth);
   server_->Get("/api/v1/models", HandleListModels);
+  server_->Options("/api/v1/health", HandleCorsPreflight);
+  server_->Options("/api/v1/models", HandleCorsPreflight);
 
   server_->Get("/api/v1/symbols", [this](const httplib::Request& req, httplib::Response& res) {
     emu::debug::SymbolProvider* symbols = nullptr;
@@ -66,52 +104,28 @@ void HttpServer::RegisterRoutes() {
     }
     HandleGetSymbols(req, res, symbols);
   });
+  server_->Options("/api/v1/symbols", HandleCorsPreflight);
 
   server_->Post("/api/v1/navigate", HandleNavigate);
   server_->Post("/api/v1/breakpoint/hit", HandleBreakpointHit);
   server_->Post("/api/v1/state/update", HandleStateUpdate);
+  server_->Options("/api/v1/navigate", HandleCorsPreflight);
+  server_->Options("/api/v1/breakpoint/hit", HandleCorsPreflight);
+  server_->Options("/api/v1/state/update", HandleCorsPreflight);
 
-  server_->Post("/api/v1/window/show",
-                [this](const httplib::Request&, httplib::Response& res) {
-                  if (window_show_) {
-                    const bool ok = window_show_();
-                    if (ok) {
-                      res.set_content(R"({"status":"ok", "window":"shown"})",
-                                      "application/json");
-                      return;
-                    }
-                    res.status = 500;
-                    res.set_content(
-                        R"({"status":"error", "message":"window action failed"})",
-                        "application/json");
-                    return;
-                  }
-                  res.status = 501;
-                  res.set_content(
-                      R"({"status":"error", "message":"window control unavailable"})",
-                      "application/json");
-                });
+  server_->Post(
+      "/api/v1/window/show",
+      [this](const httplib::Request& req, httplib::Response& res) {
+        HandleWindowShow(req, res, window_show_);
+      });
+  server_->Options("/api/v1/window/show", HandleCorsPreflight);
 
-  server_->Post("/api/v1/window/hide",
-                [this](const httplib::Request&, httplib::Response& res) {
-                  if (window_hide_) {
-                    const bool ok = window_hide_();
-                    if (ok) {
-                      res.set_content(R"({"status":"ok", "window":"hidden"})",
-                                      "application/json");
-                      return;
-                    }
-                    res.status = 500;
-                    res.set_content(
-                        R"({"status":"error", "message":"window action failed"})",
-                        "application/json");
-                    return;
-                  }
-                  res.status = 501;
-                  res.set_content(
-                      R"({"status":"error", "message":"window control unavailable"})",
-                      "application/json");
-                });
+  server_->Post(
+      "/api/v1/window/hide",
+      [this](const httplib::Request& req, httplib::Response& res) {
+        HandleWindowHide(req, res, window_hide_);
+      });
+  server_->Options("/api/v1/window/hide", HandleCorsPreflight);
 }
 
 }  // namespace api

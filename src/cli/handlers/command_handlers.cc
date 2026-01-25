@@ -68,6 +68,8 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<MessageSearchCommandHandler>());
 
   // ROM commands
+  handlers.push_back(std::make_unique<RomReadCommandHandler>());
+  handlers.push_back(std::make_unique<RomWriteCommandHandler>());
   handlers.push_back(std::make_unique<RomInfoCommandHandler>());
   handlers.push_back(std::make_unique<RomValidateCommandHandler>());
   handlers.push_back(std::make_unique<RomDiffCommandHandler>());

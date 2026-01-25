@@ -1,5 +1,6 @@
 #include "cli/service/ai/service_factory.h"
 
+#include "cli/service/ai/ai_config_utils.h"
 #include "cli/service/ai/browser_ai_service.h"
 #include "cli/service/ai/ai_service.h"
 #include "app/net/http_client.h"
@@ -11,9 +12,7 @@ std::string NormalizeOpenAIApiBase(std::string base) {
   if (base.empty()) {
     return base;
   }
-  if (!base.empty() && base.back() == '/') {
-    base.pop_back();
-  }
+  base = yaze::cli::NormalizeOpenAiBaseUrl(base);
   if (!absl::EndsWith(base, "/v1")) {
     base += "/v1";
   }

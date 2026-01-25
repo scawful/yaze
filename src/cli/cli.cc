@@ -5,6 +5,7 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
+#include "absl/strings/match.h"
 #include "cli/handlers/command_handlers.h"
 #include "cli/service/command_registry.h"
 #ifndef __EMSCRIPTEN__
@@ -64,6 +65,136 @@ absl::Status ModernCLI::Run(int argc, char* argv[]) {
     return absl::FailedPreconditionError(
         "Agent CLI is disabled in this build");
 #endif
+  }
+
+  // Special case: "rom" subcommands (rom read/write/info/validate/etc.)
+  if (args[0] == "rom") {
+    if (args.size() < 2) {
+      return absl::InvalidArgumentError(
+          "Missing rom subcommand (expected read/write/info/validate/...)");
+    }
+    const std::string& sub = args[1];
+    std::string mapped;
+    if (sub == "read") {
+      mapped = "rom-read";
+    } else if (sub == "write") {
+      mapped = "rom-write";
+    } else if (sub == "info") {
+      mapped = "rom-info";
+    } else if (sub == "validate") {
+      mapped = "rom-validate";
+    } else if (sub == "diff") {
+      mapped = "rom-diff";
+    } else if (sub == "compare") {
+      mapped = "rom-compare";
+    } else if (sub == "doctor") {
+      mapped = "rom-doctor";
+    } else {
+      return absl::InvalidArgumentError(
+          absl::StrCat("Unknown rom subcommand: ", sub));
+    }
+
+    auto& registry = CommandRegistry::Instance();
+    std::vector<std::string> command_args(args.begin() + 2, args.end());
+    if (registry.HasCommand(mapped)) {
+      return registry.Execute(mapped, command_args, nullptr);
+    }
+    return absl::NotFoundError(
+        absl::StrCat("Command not found for rom subcommand: ", mapped));
+  }
+
+  // Special case: "debug" subcommands (Mesen2 primary, gRPC optional)
+  if (args[0] == "debug") {
+    if (args.size() < 2) {
+      return absl::InvalidArgumentError(
+          "Missing debug subcommand (state/sprites/cpu/mem/trace/disasm/...)");
+    }
+
+    std::string backend = "mesen";
+    std::vector<std::string> filtered_args;
+    filtered_args.reserve(args.size());
+    filtered_args.push_back(args[0]);
+    for (size_t i = 1; i < args.size(); ++i) {
+      const std::string& token = args[i];
+      if (absl::StartsWith(token, "--backend=") ||
+          absl::StartsWith(token, "--debug-backend=")) {
+        backend = token.substr(token.find('=') + 1);
+        continue;
+      }
+      if (token == "--backend" || token == "--debug-backend") {
+        if (i + 1 < args.size()) {
+          backend = args[i + 1];
+          ++i;
+          continue;
+        }
+      }
+      filtered_args.push_back(token);
+    }
+
+    const std::string& topic = filtered_args[1];
+    std::string mapped;
+
+    auto require_grpc = [&]() -> absl::Status {
+      return absl::FailedPreconditionError(
+          "Requested gRPC backend, but this debug subcommand is not supported");
+    };
+
+    if (topic == "state" || topic == "gamestate") {
+      mapped = (backend == "grpc") ? "emulator-get-state" : "mesen-gamestate";
+    } else if (topic == "sprites") {
+      if (backend == "grpc") return require_grpc();
+      mapped = "mesen-sprites";
+    } else if (topic == "cpu") {
+      if (backend == "grpc") return require_grpc();
+      mapped = "mesen-cpu";
+    } else if (topic == "mem" || topic == "memory") {
+      if (filtered_args.size() < 3) {
+        return absl::InvalidArgumentError(
+            "debug mem requires read/write subcommand");
+      }
+      const std::string& action = filtered_args[2];
+      if (action == "read") {
+        mapped =
+            (backend == "grpc") ? "emulator-read-memory" : "mesen-memory-read";
+        filtered_args.erase(filtered_args.begin() + 2);
+      } else if (action == "write") {
+        mapped =
+            (backend == "grpc") ? "emulator-write-memory" : "mesen-memory-write";
+        filtered_args.erase(filtered_args.begin() + 2);
+      } else {
+        return absl::InvalidArgumentError(
+            "debug mem subcommand must be read or write");
+      }
+    } else if (topic == "disasm") {
+      if (backend == "grpc") return require_grpc();
+      mapped = "mesen-disasm";
+    } else if (topic == "trace") {
+      if (backend == "grpc") return require_grpc();
+      mapped = "mesen-trace";
+    } else if (topic == "breakpoint" || topic == "bp") {
+      if (backend == "grpc") return require_grpc();
+      mapped = "mesen-breakpoint";
+    } else if (topic == "control") {
+      if (backend == "grpc") return require_grpc();
+      mapped = "mesen-control";
+    } else if (topic == "reset") {
+      mapped = (backend == "grpc") ? "emulator-reset" : "mesen-control";
+      if (backend != "grpc") {
+        filtered_args.push_back("--action=reset");
+      }
+    } else {
+      return absl::InvalidArgumentError(
+          absl::StrCat("Unknown debug subcommand: ", topic));
+    }
+
+    auto& registry = CommandRegistry::Instance();
+    std::vector<std::string> command_args(filtered_args.begin() + 2,
+                                          filtered_args.end());
+    if (registry.HasCommand(mapped)) {
+      return registry.Execute(mapped, command_args, nullptr);
+    }
+    return absl::NotFoundError(
+        absl::StrCat("Command not found for debug subcommand: ", mapped));
   }
 
   // Use CommandRegistry for unified command execution
