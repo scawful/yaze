@@ -1,8 +1,11 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <chrono>
+#include <cctype>
 #include <filesystem>
 #include <fstream>
+#include <string>
 
 #include "absl/status/status.h"
 #include "rom/rom.h"
@@ -13,14 +16,42 @@ namespace yaze {
 namespace test {
 namespace integration {
 
+std::string SanitizeForPath(const std::string& value) {
+  std::string sanitized;
+  sanitized.reserve(value.size());
+  for (unsigned char ch : value) {
+    if (std::isalnum(ch) || ch == '-' || ch == '_') {
+      sanitized.push_back(static_cast<char>(ch));
+    } else {
+      sanitized.push_back('_');
+    }
+  }
+  return sanitized;
+}
+
+std::string CurrentTestName() {
+  const auto* info = ::testing::UnitTest::GetInstance()->current_test_info();
+  if (!info) {
+    return "unknown_test";
+  }
+  return std::string(info->test_suite_name()) + "_" + info->name();
+}
+
+std::filesystem::path MakeUniqueTempDir(const std::string& prefix) {
+  const auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+  const auto name =
+      prefix + "_" + SanitizeForPath(CurrentTestName()) + "_" +
+      std::to_string(now);
+  return std::filesystem::temp_directory_path() / name;
+}
+
 class AsarIntegrationTest : public ::testing::Test {
  protected:
   void SetUp() override {
     wrapper_ = std::make_unique<core::AsarWrapper>();
 
     // Create test directory
-    test_dir_ =
-        std::filesystem::temp_directory_path() / "yaze_asar_integration";
+    test_dir_ = MakeUniqueTempDir("yaze_asar_integration");
     std::filesystem::create_directories(test_dir_);
 
     CreateTestRom();
