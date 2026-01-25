@@ -343,6 +343,9 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
        << (agent_settings.enable_tool_sprite ? "true" : "false") << "\n";
   file << "enable_tool_emulator="
        << (agent_settings.enable_tool_emulator ? "true" : "false") << "\n";
+  file << "enable_tool_memory_inspector="
+       << (agent_settings.enable_tool_memory_inspector ? "true" : "false")
+       << "\n";
   file << "builder_blueprint_path=" << agent_settings.builder_blueprint_path
        << "\n\n";
 
@@ -561,6 +564,8 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         agent_settings.enable_tool_sprite = ParseBool(value);
       else if (key == "enable_tool_emulator")
         agent_settings.enable_tool_emulator = ParseBool(value);
+      else if (key == "enable_tool_memory_inspector")
+        agent_settings.enable_tool_memory_inspector = ParseBool(value);
       else if (key == "builder_blueprint_path")
         agent_settings.builder_blueprint_path = value;
     } else if (current_section == "build") {
@@ -1622,6 +1627,9 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
             "enable_tool_sprite", agent_settings.enable_tool_sprite);
         agent_settings.enable_tool_emulator = agent.value(
             "enable_tool_emulator", agent_settings.enable_tool_emulator);
+        agent_settings.enable_tool_memory_inspector = agent.value(
+            "enable_tool_memory_inspector",
+            agent_settings.enable_tool_memory_inspector);
         agent_settings.builder_blueprint_path = agent.value(
             "builder_blueprint_path", agent_settings.builder_blueprint_path);
       }
@@ -1712,6 +1720,8 @@ absl::Status YazeProject::SaveToJsonFormat() {
   agent["enable_tool_music"] = agent_settings.enable_tool_music;
   agent["enable_tool_sprite"] = agent_settings.enable_tool_sprite;
   agent["enable_tool_emulator"] = agent_settings.enable_tool_emulator;
+  agent["enable_tool_memory_inspector"] =
+      agent_settings.enable_tool_memory_inspector;
   agent["builder_blueprint_path"] = agent_settings.builder_blueprint_path;
 
   // Build settings

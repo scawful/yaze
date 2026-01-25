@@ -156,6 +156,7 @@ struct YazeProject {
     bool enable_tool_music = true;
     bool enable_tool_sprite = true;
     bool enable_tool_emulator = true;
+    bool enable_tool_memory_inspector = true;
     std::string builder_blueprint_path;  // Saved agent builder configuration
   } agent_settings;
 
