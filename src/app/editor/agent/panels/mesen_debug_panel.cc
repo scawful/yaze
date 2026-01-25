@@ -7,6 +7,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_ui_theme.h"
+#include "app/emu/mesen/mesen_client_registry.h"
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
 
@@ -41,6 +42,7 @@ ImVec4 HealthColor(float ratio) {
 }  // namespace
 
 MesenDebugPanel::MesenDebugPanel() {
+  client_ = emu::mesen::MesenClientRegistry::GetOrCreate();
   RefreshSocketList();
   if (!socket_paths_.empty()) {
     selected_socket_index_ = 0;
@@ -53,6 +55,7 @@ MesenDebugPanel::~MesenDebugPanel() = default;
 void MesenDebugPanel::SetClient(
     std::shared_ptr<emu::mesen::MesenSocketClient> client) {
   client_ = std::move(client);
+  emu::mesen::MesenClientRegistry::SetClient(client_);
 }
 
 bool MesenDebugPanel::IsConnected() const {
@@ -61,26 +64,28 @@ bool MesenDebugPanel::IsConnected() const {
 
 void MesenDebugPanel::Connect() {
   if (!client_) {
-    client_ = std::make_shared<emu::mesen::MesenSocketClient>();
+    client_ = emu::mesen::MesenClientRegistry::GetOrCreate();
   }
   auto status = client_->Connect();
   if (!status.ok()) {
     connection_error_ = std::string(status.message());
   } else {
     connection_error_.clear();
+    emu::mesen::MesenClientRegistry::SetClient(client_);
     RefreshState();
   }
 }
 
 void MesenDebugPanel::ConnectToPath(const std::string& socket_path) {
   if (!client_) {
-    client_ = std::make_shared<emu::mesen::MesenSocketClient>();
+    client_ = emu::mesen::MesenClientRegistry::GetOrCreate();
   }
   auto status = client_->Connect(socket_path);
   if (!status.ok()) {
     connection_error_ = std::string(status.message());
   } else {
     connection_error_.clear();
+    emu::mesen::MesenClientRegistry::SetClient(client_);
     RefreshState();
   }
 }

@@ -1479,14 +1479,9 @@ void WelcomeScreen::DrawWhatsNew() {
   };
 
   const ReleaseHighlight highlights_054[] = {
-      {ICON_MD_TEXT_FIELDS, "Message editor preview fixes"},
-      {ICON_MD_PALETTE, "Font atlas palette sync"},
-      {ICON_MD_BUILD, "Nightly build polish"},
-  };
-  const ReleaseHighlight highlights_055[] = {
       {ICON_MD_BUG_REPORT, "Mesen2 debug panel + socket controls"},
-      {ICON_MD_SYNC, "Mesen2 ↔ Yaze symbol/PC/state sync"},
-      {ICON_MD_TUNE, "Agent debug UX refinements"},
+      {ICON_MD_SYNC, "Model registry + API refresh stability"},
+      {ICON_MD_TERMINAL, "ROM/debug CLI workflows"},
   };
   const ReleaseHighlight highlights_053[] = {
       {ICON_MD_BUILD, "DMG validation + build polish"},
@@ -1509,11 +1504,8 @@ void WelcomeScreen::DrawWhatsNew() {
   };
 
   const ReleaseEntry releases[] = {
-      {ICON_MD_BUG_REPORT, "0.5.5", "Mesen2 bridge + agent debugging",
-       "Jan 24, 2026", kMasterSwordBlue, highlights_055,
-       static_cast<int>(sizeof(highlights_055) / sizeof(highlights_055[0]))},
-      {ICON_MD_TEXT_FIELDS, "0.5.4", "Editor previews + nightly polish",
-       "Jan 22, 2026", kMasterSwordBlue, highlights_054,
+      {ICON_MD_BUG_REPORT, "0.5.4", "Stability + Mesen2 debugging",
+       "Jan 25, 2026", kMasterSwordBlue, highlights_054,
        static_cast<int>(sizeof(highlights_054) / sizeof(highlights_054[0]))},
       {ICON_MD_BUILD, "0.5.3", "Build + WASM improvements", "Jan 20, 2026",
        kMasterSwordBlue, highlights_053,

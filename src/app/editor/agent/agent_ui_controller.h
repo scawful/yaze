@@ -11,6 +11,7 @@
 #if defined(YAZE_BUILD_AGENT_UI)
 #include "app/editor/agent/agent_editor.h"
 #include "app/editor/agent/agent_session.h"
+#include "app/editor/agent/asm_follow_service.h"
 #include "app/editor/agent/agent_state.h"
 #include "app/editor/agent/panels/agent_knowledge_panel.h"
 #endif
@@ -35,6 +36,7 @@ class UserSettings;
 // Forward declarations for when YAZE_BUILD_AGENT_UI is not defined
 #if !defined(YAZE_BUILD_AGENT_UI)
 class AgentEditor;
+class AgentUIContext;
 #endif
 
 /**
@@ -68,15 +70,13 @@ class AgentUiController {
 
   // Component access
   AgentEditor* GetAgentEditor();
+  AgentUIContext* GetContext();
+  const AgentUIContext* GetContext() const;
 
 #if defined(YAZE_BUILD_AGENT_UI)
   // Direct access to session manager for advanced use cases
   AgentSessionManager& GetSessionManager() { return session_manager_; }
   const AgentSessionManager& GetSessionManager() const { return session_manager_; }
-
-  // Direct access to active session's context (legacy compatibility)
-  AgentUIContext* GetContext();
-  const AgentUIContext* GetContext() const;
 
   // Knowledge service access (requires Z3ED_AI build)
 #if defined(Z3ED_AI)
@@ -97,6 +97,7 @@ class AgentUiController {
   AgentEditor agent_editor_;
   AgentUIContext agent_ui_context_;
   AgentConfigState last_synced_config_;
+  std::unique_ptr<AsmFollowService> asm_follow_service_;
   RightPanelManager* right_panel_manager_ = nullptr;
   ToastManager* toast_manager_ = nullptr;
   UserSettings* user_settings_ = nullptr;
@@ -127,6 +128,8 @@ inline void AgentUiController::ShowChatHistory() {}
 inline bool AgentUiController::IsAvailable() const { return false; }
 inline void AgentUiController::DrawPopups() {}
 inline AgentEditor* AgentUiController::GetAgentEditor() { return nullptr; }
+inline AgentUIContext* AgentUiController::GetContext() { return nullptr; }
+inline const AgentUIContext* AgentUiController::GetContext() const { return nullptr; }
 #endif
 
 }  // namespace editor

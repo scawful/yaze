@@ -317,6 +317,7 @@ struct UIActionRequestEvent : public Event {
     kSaveRom,
     kUndo,
     kRedo,
+    kShowOracleRam,
   };
 
   Action action;
