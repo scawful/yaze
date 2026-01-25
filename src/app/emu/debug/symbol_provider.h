@@ -2,6 +2,7 @@
 #define YAZE_APP_EMU_DEBUG_SYMBOL_PROVIDER_H_
 
 #include <cstdint>
+#include <functional>
 #include <map>
 #include <optional>
 #include <string>
@@ -165,7 +166,12 @@ class SymbolProvider {
    *   "$00804D" (no nearby symbol)
    */
   std::string FormatAddress(uint32_t address,
-                            uint32_t max_offset = 0x100) const;
+                             uint32_t max_offset = 0x100) const;
+
+  /**
+   * @brief Get source file and line for an address (for VS Code integration)
+   */
+  std::string GetSourceLocation(uint32_t address) const;
 
   /**
    * @brief Get total number of loaded symbols

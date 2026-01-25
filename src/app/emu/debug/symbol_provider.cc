@@ -312,6 +312,21 @@ std::string SymbolProvider::FormatAddress(uint32_t address,
   return absl::StrFormat("$%06X", address);
 }
 
+std::string SymbolProvider::GetSourceLocation(uint32_t address) const {
+  auto exact = GetSymbol(address);
+  if (exact && !exact->file.empty()) {
+    return absl::StrFormat("%s:%d", exact->file, exact->line);
+  }
+
+  auto nearest = GetNearestSymbol(address);
+  if (nearest && !nearest->file.empty()) {
+    // We could add the offset too, but file:line is usually what IDEs want
+    return absl::StrFormat("%s:%d", nearest->file, nearest->line);
+  }
+
+  return "";
+}
+
 std::function<std::string(uint32_t)> SymbolProvider::CreateResolver() const {
   return [this](uint32_t address) -> std::string {
     return GetSymbolName(address);
