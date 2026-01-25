@@ -3,10 +3,11 @@
 
 #if defined(YAZE_BUILD_AGENT_UI)
 
-#include "app/editor/agent/agent_chat.h"
 #include "app/editor/agent/agent_editor.h"
+#include "app/editor/agent/oracle_ram_panel.h"
 #include "app/editor/agent/agent_session.h"
 #include "app/editor/menu/right_panel_manager.h"
+#include "app/editor/system/panel_manager.h"
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/user_settings.h"
 #include "app/editor/ui/toast_manager.h"
@@ -27,6 +28,11 @@ void AgentUiController::Initialize(ToastManager* toast_manager,
 
   // Create initial agent session
   session_manager_.CreateSession("Agent 1");
+
+  // Register OracleRamPanel
+  if (panel_manager) {
+    panel_manager->RegisterEditorPanel(std::make_unique<OracleRamPanel>());
+  }
 
   // Provide minimal dependencies so panels register with the activity bar
   if (panel_manager) {

@@ -346,6 +346,7 @@ EditorManager::EditorManager()
   right_panel_manager_->SetShortcutManager(&shortcut_manager_);
   selection_properties_panel_.SetAgentCallbacks(
       [this](const std::string& prompt) {
+#if defined(YAZE_BUILD_AGENT_UI)
         auto* agent_editor = agent_ui_.GetAgentEditor();
         if (!agent_editor) {
           return;
@@ -356,12 +357,17 @@ EditorManager::EditorManager()
         }
         chat->set_active(true);
         chat->SendMessage(prompt);
+#else
+        (void)prompt;
+#endif
       },
       [this]() {
+#if defined(YAZE_BUILD_AGENT_UI)
         if (right_panel_manager_) {
           right_panel_manager_->OpenPanel(
               RightPanelManager::PanelType::kAgentChat);
         }
+#endif
       });
   status_bar_.SetAgentToggleCallback([this]() {
     if (right_panel_manager_) {
@@ -1731,6 +1737,8 @@ absl::Status EditorManager::Update() {
     status_bar_.SetSessionInfo(GetCurrentSessionId(),
                                session_coordinator_->GetActiveSessionCount());
   }
+  bool has_agent_info = false;
+#if defined(YAZE_BUILD_AGENT_UI)
   if (auto* agent_editor = agent_ui_.GetAgentEditor()) {
     auto* chat = agent_editor->GetAgentChat();
     const auto* ctx = agent_ui_.GetContext();
@@ -1738,10 +1746,11 @@ absl::Status EditorManager::Update() {
       const auto& config = ctx->agent_config();
       bool active = chat && *chat->active();
       status_bar_.SetAgentInfo(config.ai_provider, config.ai_model, active);
-    } else {
-      status_bar_.ClearAgentInfo();
+      has_agent_info = true;
     }
-  } else {
+  }
+#endif
+  if (!has_agent_info) {
     status_bar_.ClearAgentInfo();
   }
   status_bar_.Draw();

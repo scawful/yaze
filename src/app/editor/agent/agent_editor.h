@@ -22,6 +22,9 @@
 namespace yaze {
 
 class Rom;
+namespace cli {
+class AIService;
+}  // namespace cli
 
 namespace editor {
 
@@ -161,6 +164,7 @@ class AgentEditor : public Editor {
       bool music = false;
       bool sprite = false;
       bool emulator = false;
+      bool memory_inspector = false;
     } tools;
     bool auto_run_tests = false;
     bool auto_sync_rom = true;
@@ -309,6 +313,21 @@ class AgentEditor : public Editor {
 
   // Configuration state (legacy)
   AgentConfig current_config_;
+
+  struct ModelServiceKey {
+    std::string provider;
+    std::string model;
+    std::string ollama_host;
+    std::string gemini_api_key;
+    std::string anthropic_api_key;
+    std::string openai_api_key;
+    std::string openai_base_url;
+    bool verbose = false;
+  };
+  ModelServiceKey last_model_service_key_;
+  std::unique_ptr<cli::AIService> model_service_;
+  std::vector<std::string> last_local_model_paths_;
+  absl::Time last_local_model_scan_ = absl::InfinitePast();
 
   // Bot Profile System
   BotProfile current_profile_;

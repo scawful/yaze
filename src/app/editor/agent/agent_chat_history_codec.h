@@ -45,6 +45,7 @@ class AgentChatHistoryCodec {
       bool music = true;
       bool sprite = true;
       bool emulator = true;
+      bool memory_inspector = true;
     };
     struct ModelPreset {
       std::string name;
