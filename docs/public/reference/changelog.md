@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.5.5 (January 2026)
+## 0.5.4 (January 2026)
 
 ### Debugging & Mesen2
 - Add Mesen2 debug panel in the Agent editor (socket picker, overlay controls, save/load state, screenshot capture).
@@ -9,12 +9,16 @@
 - Add Mesen2 debug shortcut (Ctrl+Shift+M) and auto-refresh socket list on panel open.
 - Harden socket client response handling + JSON escaping.
 
-### Versioning
-- Bump release version to 0.5.5 across build + docs.
+### AI, HTTP API & CLI
+- Add ModelRegistry caching + `refresh` query support for `/api/v1/models`.
+- Normalize OpenAI base URLs and auto-detect local OpenAI-compatible endpoints.
+- Add CORS/error handling for HTTP API endpoints and `/symbols` format validation.
+- Add `rom` and `debug` CLI routing plus sandbox flag for safe ROM edits.
 
----
-
-## 0.5.4 (January 2026)
+### Emulator & gRPC Stability
+- Use SNES Read/Write for gRPC memory operations to avoid crashes.
+- Auto-initialize emulator on SaveState/LoadState when a ROM is loaded.
+- Fall back to Null audio backend for headless init failures.
 
 ### Desktop & UX
 - Fix message editor preview and font atlas palette sync on load.
@@ -23,6 +27,15 @@
 ### Nightly & Packaging
 - Normalize macOS nightly bundle layout so launchers find `yaze.app`.
 - Align version strings across builds and docs.
+- Move public headers to `inc/` and update build/install include paths.
+
+---
+
+## 0.5.5 (Planned)
+
+### AI Registry & Model Context
+- Expose AI registry UI + CLI parity for provider/model discovery.
+- Add model context settings (scoping, caching, context presets) for agent workflows.
 
 ---
 

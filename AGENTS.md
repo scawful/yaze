@@ -1,8 +1,8 @@
 # Agent Protocol
 
-_Extends: ~/AGENTS.md_
+_Extends: [unified_agent_protocol.md](file:///Users/scawful/.context/memory/unified_agent_protocol.md)_
 
-Project-specific operating procedures for AI agents contributing to `yaze`.
+Project-specific operating procedures for AI agents contributing to `yaze` (~/src/hobby/yaze).
 
 ## 1. Persona Adoption
 **Rule:** You must adopt a specific persona for every session.
