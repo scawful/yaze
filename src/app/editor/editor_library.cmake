@@ -198,6 +198,7 @@ if(YAZE_BUILD_AGENT_UI)
     app/editor/agent/panels/agent_rom_sync_panel.cc
     app/editor/agent/panels/agent_z3ed_command_panel.cc
     app/editor/agent/panels/mesen_debug_panel.cc
+    app/editor/agent/panels/oracle_state_library_panel.cc
   )
 endif()
 

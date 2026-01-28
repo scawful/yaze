@@ -276,6 +276,39 @@ class AgentChatPanel : public EditorPanel {
   AgentChat* chat_;
 };
 
+/**
+ * @brief EditorPanel for Oracle State Library management
+ *
+ * Provides UI for managing Oracle of Secrets save states:
+ * - View all states with status (canon/draft/deprecated)
+ * - Load states into Mesen2 emulator
+ * - Verify and promote draft states to canon
+ * - Deprecate bad states
+ */
+class OracleStateLibraryEditorPanel : public EditorPanel {
+ public:
+  using DrawCallback = std::function<void()>;
+
+  explicit OracleStateLibraryEditorPanel(DrawCallback draw_callback)
+      : draw_callback_(std::move(draw_callback)) {}
+
+  std::string GetId() const override { return "agent.oracle_states"; }
+  std::string GetDisplayName() const override { return "Oracle States"; }
+  std::string GetIcon() const override { return ICON_MD_SAVE; }
+  std::string GetEditorCategory() const override { return "Agent"; }
+  std::string GetShortcutHint() const override { return "Ctrl+Shift+O"; }
+  int GetPriority() const override { return 85; }
+
+  void Draw(bool* p_open) override {
+    if (draw_callback_) {
+      draw_callback_();
+    }
+  }
+
+ private:
+  DrawCallback draw_callback_;
+};
+
 }  // namespace editor
 }  // namespace yaze
 

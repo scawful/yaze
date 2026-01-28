@@ -43,6 +43,7 @@ enum class SymbolFormat {
   kMesen,     // Mesen .mlb format (address:name)
   kBsnes,     // bsnes .sym format (address name)
   kNo$snes,   // No$snes .sym format (bank:addr name)
+  kSourceMap, // JSON source map format (address, file, line)
 };
 
 /**
@@ -203,6 +204,7 @@ class SymbolProvider {
   absl::Status ParseWlaDxSymFile(const std::string& content);
   absl::Status ParseMesenMlbFile(const std::string& content);
   absl::Status ParseBsnesSymFile(const std::string& content);
+  absl::Status ParseSourceMapJson(const std::string& content);
 
   // Detect format from file content
   SymbolFormat DetectFormat(const std::string& content,

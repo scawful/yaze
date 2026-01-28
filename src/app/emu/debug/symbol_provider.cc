@@ -10,6 +10,7 @@
 #include <filesystem>
 #endif
 
+#include "nlohmann/json.hpp"
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
@@ -196,6 +197,8 @@ absl::Status SymbolProvider::LoadSymbolFile(const std::string& path,
     case SymbolFormat::kBsnes:
     case SymbolFormat::kNo$snes:
       return ParseBsnesSymFile(content);
+    case SymbolFormat::kSourceMap:
+      return ParseSourceMapJson(content);
     default:
       return absl::InvalidArgumentError("Unknown symbol format");
   }
@@ -571,6 +574,64 @@ absl::Status SymbolProvider::ParseBsnesSymFile(const std::string& content) {
   return absl::OkStatus();
 }
 
+absl::Status SymbolProvider::ParseSourceMapJson(const std::string& content) {
+  try {
+    auto j = nlohmann::json::parse(content);
+    if (!j.contains("entries") || !j["entries"].is_array()) {
+      return absl::InvalidArgumentError("Invalid source map: missing entries");
+    }
+
+    // Map file IDs to paths
+    std::map<int, std::string> file_map;
+    if (j.contains("files") && j["files"].is_array()) {
+      for (const auto& f : j["files"]) {
+        int id = f.value("id", -1);
+        std::string path = f.value("path", "");
+        if (id != -1 && !path.empty()) {
+          file_map[id] = path;
+        }
+      }
+    }
+
+    // Process entries
+    for (const auto& entry : j["entries"]) {
+      std::string addr_str = entry.value("address", "");
+      auto addr_opt = ParseAddress(addr_str);
+      if (!addr_opt) continue;
+
+      int file_id = entry.value("file_id", -1);
+      int line = entry.value("line", 0);
+      std::string symbol_name = entry.value("symbol", "");
+
+      Symbol sym;
+      sym.address = *addr_opt;
+      sym.line = line;
+      if (file_map.count(file_id)) {
+        sym.file = file_map[file_id];
+      }
+
+      if (!symbol_name.empty()) {
+        sym.name = symbol_name;
+        AddSymbol(sym);
+      } else {
+        // If it's just a source mapping without a symbol name, 
+        // we can still store it, but we might want a special name 
+        // or just let it exist for GetSourceLocation.
+        // For now, let's give it a placeholder if we want it in GetSymbol info.
+        // But GetSourceLocation uses symbols_by_address_.
+        // Multi-map allows multiple symbols at same address.
+        sym.name = absl::StrFormat("src_%06X", sym.address);
+        AddSymbol(sym);
+      }
+    }
+  } catch (const std::exception& e) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Failed to parse source map JSON: %s", e.what()));
+  }
+
+  return absl::OkStatus();
+}
+
 SymbolFormat SymbolProvider::DetectFormat(const std::string& content,
                                           const std::string& extension) const {
   // Check extension first
@@ -579,6 +640,9 @@ SymbolFormat SymbolProvider::DetectFormat(const std::string& content,
   }
   if (extension == ".mlb") {
     return SymbolFormat::kMesen;
+  }
+  if (extension == ".json") {
+    return SymbolFormat::kSourceMap;
   }
 
   // Check content for format hints
