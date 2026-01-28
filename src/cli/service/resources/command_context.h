@@ -7,6 +7,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "app/emu/debug/symbol_provider.h"
 #include "rom/rom.h"
 
 namespace yaze {
@@ -27,6 +28,7 @@ class CommandContext {
    */
   struct Config {
     std::optional<std::string> rom_path;
+    std::optional<std::string> symbols_path;
     bool use_mock_rom = false;
     std::string format = "json";  // "json" or "text"
     bool verbose = false;
@@ -49,6 +51,11 @@ class CommandContext {
   absl::StatusOr<Rom*> GetRom();
 
   /**
+   * @brief Get the SymbolProvider instance
+   */
+  emu::debug::SymbolProvider* GetSymbolProvider();
+
+  /**
    * @brief Get the output format ("json" or "text")
    */
   const std::string& GetFormat() const { return config_.format; }
@@ -68,6 +75,7 @@ class CommandContext {
   Rom rom_storage_;  // Owned ROM if loaded from file
   Rom* active_rom_ =
       nullptr;  // Points to either rom_storage_ or external_rom_context
+  emu::debug::SymbolProvider symbol_provider_;
   bool initialized_ = false;
 };
 

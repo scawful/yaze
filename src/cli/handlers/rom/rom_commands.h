@@ -126,6 +126,46 @@ class RomGenerateGoldenCommandHandler : public resources::CommandHandler {
                        resources::OutputFormatter& formatter) override;
 };
 
+/**
+ * @brief Command handler for resolving an address to a symbol
+ */
+class RomResolveAddressCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "rom-resolve-address"; }
+  std::string GetDescription() const {
+    return "Resolve an address to a symbol name";
+  }
+  std::string GetUsage() const override {
+    return "rom-resolve-address --address <hex> [--max-offset <bytes>]";
+  }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"address"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+/**
+ * @brief Command handler for finding a symbol by name
+ */
+class RomFindSymbolCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "rom-find-symbol"; }
+  std::string GetDescription() const { return "Find a symbol by name or pattern"; }
+  std::string GetUsage() const override {
+    return "rom-find-symbol --name <string>";
+  }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"name"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
 }  // namespace handlers
 }  // namespace cli
 }  // namespace yaze

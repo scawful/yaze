@@ -7,6 +7,7 @@
 #include "cli/handlers/game/message_commands.h"
 #include "cli/handlers/game/music_commands.h"
 #include "cli/handlers/game/overworld_commands.h"
+#include "cli/handlers/game/overworld_graph_commands.h"
 #include "cli/handlers/graphics/hex_commands.h"
 #include "cli/handlers/graphics/palette_commands.h"
 #include "cli/handlers/graphics/sprite_commands.h"
@@ -74,6 +75,8 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<RomValidateCommandHandler>());
   handlers.push_back(std::make_unique<RomDiffCommandHandler>());
   handlers.push_back(std::make_unique<RomGenerateGoldenCommandHandler>());
+  handlers.push_back(std::make_unique<RomResolveAddressCommandHandler>());
+  handlers.push_back(std::make_unique<RomFindSymbolCommandHandler>());
 
   // Resource inspection tools
   handlers.push_back(std::make_unique<ResourceListCommandHandler>());
@@ -97,6 +100,7 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<OverworldListItemsCommandHandler>());
   handlers.push_back(std::make_unique<OverworldGetEntranceCommandHandler>());
   handlers.push_back(std::make_unique<OverworldTileStatsCommandHandler>());
+  handlers.push_back(std::make_unique<OverworldExportGraphCommandHandler>());
 
   // GUI automation tools
   handlers.push_back(std::make_unique<GuiPlaceTileCommandHandler>());

@@ -1,5 +1,6 @@
 #include "cli/service/resources/command_context.h"
 
+#include <fstream>
 #include <iostream>
 
 #include "absl/flags/declare.h"
@@ -33,53 +34,65 @@ absl::Status CommandContext::Initialize() {
     return absl::OkStatus();
   }
 
-  // If external ROM context is provided, use it
+  // Determine ROM source
+  std::string rom_path = config_.rom_path.has_value() ? *config_.rom_path : absl::GetFlag(FLAGS_rom);
+
   if (config_.external_rom_context != nullptr &&
       config_.external_rom_context->is_loaded()) {
     active_rom_ = config_.external_rom_context;
-    initialized_ = true;
-    return absl::OkStatus();
-  }
-
-  // Check if mock ROM mode is enabled
-  if (config_.use_mock_rom) {
+  } else if (config_.use_mock_rom) {
     auto status = cli::InitializeMockRom(rom_storage_);
     if (!status.ok()) {
       return status;
     }
     active_rom_ = &rom_storage_;
-    initialized_ = true;
-    return absl::OkStatus();
-  }
-
-  // Load ROM from file if path is provided
-  if (config_.rom_path.has_value() && !config_.rom_path->empty()) {
-    auto status = rom_storage_.LoadFromFile(*config_.rom_path);
+  } else if (!rom_path.empty()) {
+    auto status = rom_storage_.LoadFromFile(rom_path);
     if (!status.ok()) {
       return absl::FailedPreconditionError(
-          absl::StrFormat("Failed to load ROM from '%s': %s", *config_.rom_path,
+          absl::StrFormat("Failed to load ROM from '%s': %s", rom_path,
                           status.message()));
     }
     active_rom_ = &rom_storage_;
-    initialized_ = true;
-    return absl::OkStatus();
   }
 
-  // Try loading from flags as fallback
-  std::string rom_path = absl::GetFlag(FLAGS_rom);
-  if (!rom_path.empty()) {
-    auto status = rom_storage_.LoadFromFile(rom_path);
-    if (!status.ok()) {
-      return absl::FailedPreconditionError(absl::StrFormat(
-          "Failed to load ROM from '%s': %s", rom_path, status.message()));
+  if (active_rom_ == nullptr) {
+    return absl::FailedPreconditionError(
+        "No ROM loaded. Use --rom=<path> or --mock-rom for testing.");
+  }
+
+  initialized_ = true;
+
+  // Auto-load symbols if available
+  std::string symbols_path = config_.symbols_path.has_value() ? *config_.symbols_path : "";
+  if (symbols_path.empty() && !rom_path.empty()) {
+    // Try ROM name with .mlb or .sym
+    std::string base = rom_path;
+    size_t last_dot = base.find_last_of('.');
+    if (last_dot != std::string::npos) {
+      base = base.substr(0, last_dot);
     }
-    active_rom_ = &rom_storage_;
-    initialized_ = true;
-    return absl::OkStatus();
+    
+    // Try common extensions
+    std::vector<std::string> exts = {".mlb", ".sfc.mlb", ".sym", ".cpu.sym", "sourcemap.json"};
+    for (const auto& ext : exts) {
+      std::string path = base + ext;
+      if (std::ifstream(path).good()) {
+        auto sym_status = symbol_provider_.LoadSymbolFile(path);
+        if (sym_status.ok() && symbol_provider_.HasSymbols()) {
+          symbols_path = path;
+          break;
+        }
+      }
+    }
+  } else if (!symbols_path.empty()) {
+    auto sym_status = symbol_provider_.LoadSymbolFile(symbols_path);
+    if (!sym_status.ok() && config_.verbose) {
+      std::cerr << "Warning: Failed to load symbols from " << symbols_path << ": " << sym_status.message() << std::endl;
+    }
   }
 
-  return absl::FailedPreconditionError(
-      "No ROM loaded. Use --rom=<path> or --mock-rom for testing.");
+  return absl::OkStatus();
 }
 
 absl::StatusOr<Rom*> CommandContext::GetRom() {
@@ -95,6 +108,13 @@ absl::StatusOr<Rom*> CommandContext::GetRom() {
   }
 
   return active_rom_;
+}
+
+emu::debug::SymbolProvider* CommandContext::GetSymbolProvider() {
+  if (!initialized_) {
+    Initialize().IgnoreError();
+  }
+  return &symbol_provider_;
 }
 
 absl::Status CommandContext::EnsureLabelsLoaded(Rom* rom) {
@@ -262,7 +282,16 @@ absl::StatusOr<OutputFormatter> OutputFormatter::FromString(
 
 void OutputFormatter::BeginObject(const std::string& title) {
   if (IsJson()) {
-    buffer_ += "{\n";
+    if (!first_field_) {
+      buffer_ += ",\n";
+    }
+    AddIndent();
+    // Only output a key if we are inside another object (indent > 0) and not in an array
+    if (!title.empty() && !in_array_ && indent_level_ > 0) {
+      buffer_ += absl::StrFormat("\"%s\": {\n", EscapeJson(title));
+    } else {
+      buffer_ += "{\n";
+    }
     indent_level_++;
     first_field_ = true;
   } else if (IsText() && !title.empty()) {
@@ -372,6 +401,7 @@ void OutputFormatter::BeginArray(const std::string& key) {
     AddIndent();
     buffer_ += absl::StrFormat("\"%s\": [\n", EscapeJson(key));
     indent_level_++;
+    first_field_ = true; // Reset for array elements
   } else {
     buffer_ += absl::StrFormat("  %s:\n", key);
   }
@@ -387,11 +417,12 @@ void OutputFormatter::EndArray() {
         buffer_.pop_back();
       }
       buffer_ += "]";
-      return;
+    } else {
+      buffer_ += "\n";
+      AddIndent();
+      buffer_ += "]";
     }
-    buffer_ += "\n";
-    AddIndent();
-    buffer_ += "]";
+    first_field_ = false; // Array itself was a field, so next field needs a comma
   }
 }
 

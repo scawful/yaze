@@ -84,7 +84,6 @@ absl::Status OverworldDescribeMapCommandHandler::Execute(
   const auto& summary = summary_or.value();
 
   // Format the output using OutputFormatter
-  formatter.BeginObject("Overworld Map Description");
   formatter.AddField("screen_id", absl::StrFormat("0x%02X", summary.map_id));
   formatter.AddField("world", overworld::WorldName(summary.world));
 
@@ -116,7 +115,53 @@ absl::Status OverworldDescribeMapCommandHandler::Execute(
   formatter.AddField("area_specific_bg_color",
                      absl::StrFormat("0x%04X", summary.area_specific_bg_color));
 
-  // Format array fields
+  // Entrances
+  formatter.BeginArray("entrances");
+  auto entrances_or = zelda3::LoadEntrances(rom);
+  if (entrances_or.ok()) {
+    for (const auto& entrance : entrances_or.value()) {
+      if (entrance.map_id_ == screen_id) {
+        formatter.BeginObject();
+        formatter.AddField("entrance_id", entrance.entrance_id_);
+        formatter.AddField("x", entrance.x_);
+        formatter.AddField("y", entrance.y_);
+        formatter.AddField("is_hole", false);
+        formatter.EndObject();
+      }
+    }
+  }
+  // Holes (as entrances)
+  auto holes_or = zelda3::LoadHoles(rom);
+  if (holes_or.ok()) {
+    for (const auto& hole : holes_or.value()) {
+      if (hole.map_id_ == screen_id) {
+        formatter.BeginObject();
+        formatter.AddField("entrance_id", hole.entrance_id_);
+        formatter.AddField("x", hole.x_);
+        formatter.AddField("y", hole.y_);
+        formatter.AddField("is_hole", true);
+        formatter.EndObject();
+      }
+    }
+  }
+  formatter.EndArray();
+
+  // Exits
+  formatter.BeginArray("exits");
+  auto exits_or = zelda3::LoadExits(rom);
+  if (exits_or.ok()) {
+    for (const auto& exit : exits_or.value()) {
+      if (exit.map_id_ == screen_id) {
+        formatter.BeginObject();
+        formatter.AddField("room_id", exit.room_id_);
+        formatter.AddField("x", exit.x_);
+        formatter.AddField("y", exit.y_);
+        formatter.EndObject();
+      }
+    }
+  }
+  formatter.EndArray();
+
   formatter.BeginArray("sprite_graphics");
   for (uint8_t gfx : summary.sprite_graphics) {
     formatter.AddArrayItem(absl::StrFormat("0x%02X", gfx));

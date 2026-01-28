@@ -122,12 +122,16 @@ class CommandHandler {
    */
   virtual void SetRomContext(Rom* rom) { rom_ = rom; }
 
+  /**
+   * @brief Set the SymbolProvider context.
+   */
+  virtual void SetSymbolProvider(emu::debug::SymbolProvider* provider) {
+    symbol_provider_ = provider;
+  }
+
  protected:
   /**
    * @brief Validate command arguments
-   *
-   * Override this to check required arguments and perform custom validation.
-   * Called before Execute().
    */
   virtual absl::Status ValidateArgs(const ArgumentParser& parser) = 0;
 
@@ -151,6 +155,7 @@ class CommandHandler {
   virtual std::string GetOutputTitle() const { return "Result"; }
 
   Rom* rom_ = nullptr;
+  emu::debug::SymbolProvider* symbol_provider_ = nullptr;
   project::YazeProject* project_ = nullptr;
   core::AsarWrapper* asar_wrapper_ = nullptr;
 };

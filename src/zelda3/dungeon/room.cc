@@ -190,6 +190,7 @@ Room LoadRoomFromRom(Rom* rom, int room_id) {
   int sprite_address = SnesToPc(dungeon_spr_ptrs | spr_ptr + (room_id * 2));
 
   // Load additional room features
+  room.LoadObjects();
   room.LoadDoors();
   room.LoadPotItems();
   room.LoadTorches();

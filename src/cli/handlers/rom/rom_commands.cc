@@ -286,6 +286,105 @@ absl::Status RomGenerateGoldenCommandHandler::Execute(
   return absl::OkStatus();
 }
 
+absl::Status RomResolveAddressCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  auto address_str = parser.GetString("address").value();
+  auto max_offset = parser.GetInt("max-offset").value_or(0x100);
+
+  uint32_t address = 0;
+  if (!ParseHexString(address_str, &address)) {
+    return absl::InvalidArgumentError("Invalid hex address format");
+  }
+
+  if (symbol_provider_ == nullptr || !symbol_provider_->HasSymbols()) {
+    formatter.AddField("status", "no_symbols_loaded");
+    formatter.AddHexField("address", address, 6);
+    return absl::OkStatus();
+  }
+
+  auto symbols = symbol_provider_->GetSymbolsAtAddress(address);
+  if (!symbols.empty()) {
+    formatter.AddField("status", "success");
+    formatter.AddField("match_type", "exact");
+    if (symbols.size() == 1) {
+      formatter.AddField("name", symbols[0].name);
+      if (!symbols[0].file.empty()) {
+        formatter.AddField("file", symbols[0].file);
+        formatter.AddField("line", symbols[0].line);
+      }
+    } else {
+      formatter.BeginArray("names");
+      for (const auto& sym : symbols) {
+        formatter.AddArrayItem(sym.name);
+      }
+      formatter.EndArray();
+    }
+    formatter.AddHexField("address", address, 6);
+  } else {
+    auto nearest = symbol_provider_->GetNearestSymbol(address);
+    if (nearest) {
+      uint32_t offset = address - nearest->address;
+      if (offset <= static_cast<uint32_t>(max_offset)) {
+        formatter.AddField("status", "success");
+        formatter.AddField("match_type", "nearest");
+        formatter.AddField("name", nearest->name);
+        formatter.AddHexField("symbol_address", nearest->address, 6);
+        formatter.AddHexField("offset", offset);
+        formatter.AddField("formatted", absl::StrFormat("%s+$%X", nearest->name, offset));
+      } else {
+        formatter.AddField("status", "not_found");
+        formatter.AddField("message", "Nearest symbol too far away");
+      }
+    } else {
+      formatter.AddField("status", "not_found");
+    }
+  }
+
+  formatter.AddHexField("requested_address", address, 6);
+  return absl::OkStatus();
+}
+
+absl::Status RomFindSymbolCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  auto name = parser.GetString("name").value();
+
+  if (symbol_provider_ == nullptr || !symbol_provider_->HasSymbols()) {
+    return absl::FailedPreconditionError("No symbols loaded. Provide a ROM with .mlb/.sym file.");
+  }
+
+  auto symbol = symbol_provider_->FindSymbol(name);
+  if (symbol) {
+    formatter.AddField("status", "success");
+    formatter.AddField("name", symbol->name);
+    formatter.AddHexField("address", symbol->address, 6);
+    if (!symbol->file.empty()) {
+      formatter.AddField("file", symbol->file);
+      formatter.AddField("line", symbol->line);
+    }
+  } else {
+    // Try wildcard search
+    auto matches = symbol_provider_->FindSymbolsMatching(name);
+    if (!matches.empty()) {
+      formatter.AddField("status", "success");
+      formatter.AddField("match_type", "partial");
+      formatter.BeginArray("matches");
+      for (const auto& m : matches) {
+        formatter.BeginObject();
+        formatter.AddField("name", m.name);
+        formatter.AddHexField("address", m.address, 6);
+        formatter.EndObject();
+      }
+      formatter.EndArray();
+    } else {
+      formatter.AddField("status", "not_found");
+    }
+  }
+
+  return absl::OkStatus();
+}
+
 }  // namespace handlers
 }  // namespace cli
 }  // namespace yaze
