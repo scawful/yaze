@@ -5,6 +5,7 @@
 
 #include "cli/handlers/game/dungeon_commands.h"
 #include "cli/handlers/game/overworld_commands.h"
+#include "cli/handlers/game/overworld_graph_commands.h"
 #include "cli/handlers/graphics/hex_commands.h"
 #include "cli/handlers/graphics/palette_commands.h"
 #include "cli/handlers/rom/rom_commands.h"
@@ -46,6 +47,7 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<OverworldListItemsCommandHandler>());
   handlers.push_back(std::make_unique<OverworldGetEntranceCommandHandler>());
   handlers.push_back(std::make_unique<OverworldTileStatsCommandHandler>());
+  handlers.push_back(std::make_unique<OverworldExportGraphCommandHandler>());
 
   // Resource commands
   handlers.push_back(std::make_unique<ResourceListCommandHandler>());

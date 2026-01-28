@@ -64,11 +64,10 @@ absl::Status DungeonDescribeRoomCommandHandler::Execute(
     return absl::InvalidArgumentError("Invalid room ID format. Must be hex.");
   }
 
-  formatter.BeginObject("Dungeon Room Description");
   formatter.AddField("room_id", room_id);
 
-  zelda3::Room room = zelda3::LoadRoomHeaderFromRom(rom, room_id);
-  room.LoadObjects();
+  // Load full room to get objects, doors, and stairs
+  zelda3::Room room = zelda3::LoadRoomFromRom(rom, room_id);
 
   formatter.AddField("status", "success");
   formatter.AddField("name", absl::StrFormat("Room %d", room.id()));
@@ -93,7 +92,41 @@ absl::Status DungeonDescribeRoomCommandHandler::Execute(
 
   formatter.EndObject();
 
-  formatter.EndObject();
+  // Export Doors
+  formatter.BeginArray("doors");
+  for (const auto& door : room.GetDoors()) {
+    formatter.BeginObject();
+    formatter.AddField("position", door.position);
+    formatter.AddField("direction", std::string(door.GetDirectionName()));
+    formatter.AddField("type", std::string(door.GetTypeName()));
+    auto [tx, ty] = door.GetTileCoords();
+    formatter.AddField("tile_x", tx);
+    formatter.AddField("tile_y", ty);
+    formatter.EndObject();
+  }
+  formatter.EndArray();
+
+  // Export Staircases
+  formatter.BeginArray("staircases");
+  for (const auto& stair : room.GetStairs()) {
+    formatter.BeginObject();
+    formatter.AddField("tile_x", stair.id); // 'id' field stores X in struct staircase
+    formatter.AddField("tile_y", stair.room); // 'room' field stores Y in struct staircase
+    formatter.AddField("label", stair.label);
+    formatter.EndObject();
+  }
+  formatter.EndArray();
+
+  // Export Chests
+  formatter.BeginArray("chests");
+  for (const auto& chest : room.GetChests()) {
+    formatter.BeginObject();
+    formatter.AddHexField("item_id", chest.id, 2);
+    formatter.AddField("item_name", zelda3::GetItemLabel(chest.id));
+    formatter.AddField("is_big_chest", chest.size);
+    formatter.EndObject();
+  }
+  formatter.EndArray();
 
   return absl::OkStatus();
 }
@@ -203,7 +236,6 @@ absl::Status DungeonGetEntranceCommandHandler::Execute(
   zelda3::RoomEntrance entrance(rom, static_cast<uint8_t>(entrance_id),
                                 is_spawn_point);
 
-  formatter.BeginObject("Dungeon Entrance");
   formatter.AddField("entrance_id", absl::StrFormat("0x%02X", entrance_id));
   formatter.AddField("is_spawn_point", is_spawn_point);
   formatter.AddField("room_id", absl::StrFormat("0x%04X", entrance.room_));
@@ -253,8 +285,6 @@ absl::Status DungeonGetEntranceCommandHandler::Execute(
                      absl::StrFormat("0x%02X", entrance.camera_boundary_qe_));
   formatter.AddField("fe",
                      absl::StrFormat("0x%02X", entrance.camera_boundary_fe_));
-  formatter.EndObject();
-
   formatter.EndObject();
 
   return absl::OkStatus();
