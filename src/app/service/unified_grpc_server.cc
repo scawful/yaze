@@ -29,7 +29,7 @@ YazeGRPCServer::~YazeGRPCServer() {
 
 absl::Status YazeGRPCServer::Initialize(
     int port,
-    yaze::emu::Emulator* emulator,
+    emu::IEmulator* emulator,
     RomGetter rom_getter,
     RomLoader rom_loader,
     test::TestManager* test_manager,

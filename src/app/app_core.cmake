@@ -19,6 +19,8 @@ set(
   app/platform/window.cc
   app/platform/window_backend_factory.cc
   app/platform/null_window_backend.cc
+  app/emu/internal_emulator_adapter.cc
+  app/emu/mesen/mesen_emulator_adapter.cc
 )
 
 if(YAZE_PLATFORM_IOS)
@@ -117,6 +119,7 @@ if(APPLE)
       ${CMAKE_SOURCE_DIR}/ext/imgui
       ${CMAKE_SOURCE_DIR}/inc
       ${PROJECT_BINARY_DIR}
+      ${CMAKE_BINARY_DIR}/gens
     )
 
     if(YAZE_ENABLE_JSON)
@@ -140,6 +143,10 @@ if(APPLE)
       endif()
       set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -framework ServiceManagement -framework Foundation -framework Cocoa")
     endif()
+
+    if(TARGET yaze_proto_gen)
+      add_dependencies(yaze_app_objcxx yaze_proto_gen)
+    endif()
 endif()
 
 # Create the application core library
@@ -160,6 +167,7 @@ target_include_directories(yaze_app_core_lib PUBLIC
   ${CMAKE_SOURCE_DIR}/inc
   ${SDL2_INCLUDE_DIR}
   ${PROJECT_BINARY_DIR}
+  ${CMAKE_BINARY_DIR}/gens
 )
 
 if(YAZE_ENABLE_JSON)
@@ -182,6 +190,10 @@ target_link_libraries(yaze_app_core_lib PUBLIC
   ${YAZE_SDL2_TARGETS}
   ${CMAKE_DL_LIBS}
 )
+
+if(TARGET yaze_proto_gen)
+  add_dependencies(yaze_app_core_lib yaze_proto_gen)
+endif()
 
 # gRPC Services (Optional)
 if(YAZE_WITH_GRPC)
