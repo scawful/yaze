@@ -80,8 +80,11 @@ DEFINE_FLAG(bool, server, false, "Run in server mode (implies --enable_api, --en
 // gRPC test harness flags
 DEFINE_FLAG(bool, enable_test_harness, false,
             "Start gRPC test harness server for automated GUI testing.");
+
 DEFINE_FLAG(int, test_harness_port, 50052,
             "Port for Unified gRPC server (default: 50052).");
+DEFINE_FLAG(std::string, backend, "internal",
+            "Emulator backend for gRPC service: 'internal' or 'mesen'.");
 #endif
 
 // Symbol Export Flags
@@ -253,6 +256,7 @@ int main(int argc, char** argv) {
 #ifdef YAZE_WITH_GRPC
   config.enable_test_harness = FLAGS_enable_test_harness->Get() || server_mode || service_mode;
   config.test_harness_port = FLAGS_test_harness_port->Get();
+  config.backend = FLAGS_backend->Get();
 #endif
 
   config.rom_file = FLAGS_rom_file->Get();

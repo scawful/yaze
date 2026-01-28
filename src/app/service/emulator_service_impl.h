@@ -10,10 +10,12 @@
 #include "app/emu/debug/symbol_provider.h"
 #include "protos/emulator_service.grpc.pb.h"
 
+#include "app/emu/i_emulator.h"
+
 namespace yaze {
 class Rom;
 namespace emu {
-class Emulator;
+// Emulator forward decl no longer needed here if we include i_emulator.h
 }
 }
 
@@ -23,7 +25,7 @@ class EmulatorServiceImpl final : public agent::EmulatorService::Service {
  public:
   using RomGetter = std::function<Rom*()>;
   using RomLoader = std::function<bool(const std::string& path)>;
-  explicit EmulatorServiceImpl(yaze::emu::Emulator* emulator,
+  explicit EmulatorServiceImpl(emu::IEmulator* emulator,
                                RomGetter rom_getter = nullptr,
                                RomLoader rom_loader = nullptr);
 
@@ -114,16 +116,10 @@ class EmulatorServiceImpl final : public agent::EmulatorService::Service {
                           agent::ListStatesResponse* response) override;
 
  private:
-  void InitializeStepController();
-  void CaptureCPUState(agent::CPUState* state);
-
-  yaze::emu::Emulator*
-      emulator_;  // Non-owning pointer to the emulator instance
+  emu::IEmulator* emulator_;  // Non-owning pointer to the emulator interface interface
   RomGetter rom_getter_;
   RomLoader rom_loader_;
-  yaze::emu::debug::SymbolProvider symbol_provider_;  // Symbol table for debugging
-
-  yaze::emu::debug::StepController step_controller_;
+  emu::debug::SymbolProvider symbol_provider_;  // Symbol table for debugging
 };
 
 }  // namespace yaze::net

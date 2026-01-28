@@ -18,11 +18,13 @@
 namespace yaze {
 
 // Forward declarations
+#include "app/service/visual_service_impl.h"
+#include "app/emu/i_emulator.h"
 class CanvasAutomationServiceImpl;
 class Rom;
 
 namespace emu {
-class Emulator;
+// class Emulator; // Forward decl handled by i_emulator.h if needed, or unnecessary now
 }
 
 namespace editor {
@@ -75,7 +77,7 @@ class YazeGRPCServer {
    */
   absl::Status Initialize(
       int port,
-      yaze::emu::Emulator* emulator = nullptr,
+      emu::IEmulator* emulator = nullptr,
       RomGetter rom_getter = nullptr,
       RomLoader rom_loader = nullptr,
       test::TestManager* test_manager = nullptr,

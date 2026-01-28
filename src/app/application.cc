@@ -16,6 +16,8 @@
 #include "app/service/canvas_automation_service.h"
 #include "app/service/unified_grpc_server.h"
 #include "app/test/test_manager.h"
+#include "app/emu/internal_emulator_adapter.h"
+#include "app/emu/mesen/mesen_emulator_adapter.h"
 #endif
 
 #ifdef __EMSCRIPTEN__
@@ -87,17 +89,39 @@ void Application::Initialize(const AppConfig& config) {
          return status.ok();
        };
 
-       yaze::emu::Emulator* emulator = nullptr;
-       if (controller_->editor_manager()) {
-           emulator = &controller_->editor_manager()->emulator();
+       emu::IEmulator* emulator_interface = nullptr;
+
+       if (config_.backend == "mesen") {
+           LOG_INFO("App", "Using Mesen2 backend for emulator service");
+           emulator_backend_ = std::make_unique<emu::mesen::MesenEmulatorAdapter>();
+           emulator_interface = emulator_backend_.get();
        } else {
-           LOG_WARN("App", "EditorManager not ready; emulator gRPC services may be limited");
+           emu::Emulator* internal_emulator = nullptr;
+           if (controller_->editor_manager()) {
+               internal_emulator = &controller_->editor_manager()->emulator();
+           } else {
+               LOG_WARN("App", "EditorManager not ready; internal emulator services may be limited");
+           }
+           
+           auto adapter = std::make_unique<emu::InternalEmulatorAdapter>(internal_emulator);
+           
+           // Set up internal helpers for the adapter
+           adapter->SetRomLoader([this](const std::string& path) -> bool {
+             if (!controller_ || !controller_->editor_manager()) return false;
+             auto status = controller_->editor_manager()->OpenRomOrProject(path);
+             return status.ok();
+           });
+           
+           adapter->SetRomGetter([this]() { return controller_->GetCurrentRom(); });
+           
+           emulator_backend_ = std::move(adapter);
+           emulator_interface = emulator_backend_.get();
        }
 
        // Initialize server with all services
        auto status = grpc_server_->Initialize(
            config_.test_harness_port,
-           emulator,
+           emulator_interface,
            rom_getter,
            rom_loader,
            &yaze::test::TestManager::Get(),

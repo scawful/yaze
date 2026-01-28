@@ -11,6 +11,7 @@
 #include "app/controller.h"
 #include "app/startup_flags.h"
 #include "yaze_config.h"
+#include "app/emu/i_emulator.h"
 
 #ifdef YAZE_WITH_GRPC
 #include "app/service/unified_grpc_server.h"
@@ -48,6 +49,7 @@ struct AppConfig {
   int api_port = 8080;
   bool enable_test_harness = false;
   int test_harness_port = 50052;  // Unified gRPC server port (GUI automation + Emulator service)
+  std::string backend = "internal"; // Emulator backend: "internal" or "mesen"
 };
 
 /**
@@ -112,6 +114,7 @@ class Application {
 #ifdef YAZE_WITH_GRPC
   std::unique_ptr<YazeGRPCServer> grpc_server_;
   std::unique_ptr<CanvasAutomationServiceImpl> canvas_automation_service_;
+  std::unique_ptr<emu::IEmulator> emulator_backend_; // Owned adapter for gRPC service
 #endif
 };
 
