@@ -3,6 +3,7 @@
 
 #if defined(YAZE_BUILD_AGENT_UI)
 
+#include "app/editor/agent/agent_chat.h"
 #include "app/editor/agent/agent_editor.h"
 #include "app/editor/agent/oracle_ram_panel.h"
 #include "app/editor/agent/agent_session.h"

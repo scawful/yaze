@@ -34,6 +34,7 @@ class AgentChat;
 class AgentCollaborationCoordinator;
 class AgentConfigPanel;
 class MesenDebugPanel;
+class OracleStateLibraryPanel;
 
 #ifdef YAZE_WITH_GRPC
 class NetworkCollaborationCoordinator;
@@ -271,6 +272,7 @@ class AgentEditor : public Editor {
   void DrawNewPromptCreator();
   void DrawAgentBuilderPanel();
   void DrawMesenDebugPanel();
+  void DrawOracleStatePanel();
   void SyncContextFromProfile();
   void SyncConfigFromProfile();
   void ApplyConfigFromContext(const AgentConfigState& config);
@@ -300,6 +302,7 @@ class AgentEditor : public Editor {
   std::unique_ptr<AgentCollaborationCoordinator> local_coordinator_;
   std::unique_ptr<AgentConfigPanel> config_panel_;
   std::unique_ptr<MesenDebugPanel> mesen_debug_panel_;
+  std::unique_ptr<OracleStateLibraryPanel> oracle_state_panel_;
 #ifdef YAZE_WITH_GRPC
   std::unique_ptr<NetworkCollaborationCoordinator> network_coordinator_;
   AutomationBridge harness_telemetry_bridge_;

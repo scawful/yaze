@@ -108,6 +108,11 @@
 #include "app/test/z3ed_test_suite.h"
 #endif
 
+// Conditional agent UI headers
+#ifdef YAZE_BUILD_AGENT_UI
+#include "app/editor/agent/agent_chat.h"
+#endif
+
 namespace yaze::editor {
 
 namespace {
