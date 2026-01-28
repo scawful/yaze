@@ -1,6 +1,6 @@
 # GEMINI.md - YAZE Build Instructions
 
-_Extends: ~/AGENTS.md, ~/GEMINI.md_
+_Extends: ~/AGENTS.md, ~/GEMINI.md, file:///Users/scawful/src/config/zelda-dev/rules.md_
 
 Build and test instructions for YAZE project. Follow commands exactly.
 
@@ -11,6 +11,10 @@ Build and test instructions for YAZE project. Follow commands exactly.
 3. **Load persona** - Check `.claude/agents/<agent-id>.md` for system prompt
 4. **Use helper script:**
    ```bash
+   # Recommended: Use mesen-agent for unified workflow
+   mesen-agent build
+
+   # Legacy: Use helper script
    ./scripts/agent_build.sh [target]
    ```
    *Example:* `./scripts/agent_build.sh yaze` or `./scripts/agent_build.sh yaze_test`
@@ -79,11 +83,11 @@ cmake --build build_ai --preset win-ai
 ### Running All Tests
 
 ```bash
-# Build tests first
-cmake --build build_ai --target yaze_test
+# Recommended: Use mesen-agent for unified testing
+mesen-agent test
 
-# Run all tests
-./build_ai/bin/yaze_test
+# Legacy: Build tests first
+cmake --build build_ai --target yaze_test
 ```
 
 ### Running Specific Test Categories
@@ -361,3 +365,5 @@ rm -rf build                            # Full clean (reconfigure needed)
 - Build specific targets: `--target yaze` faster than full build
 - Some tests require ROM file to pass
 - **Automation**: Use `--server` for background agents and API access.
+
+**DEPRECATION NOTICE**: The `yaze-mcp` tool is deprecated. Use the direct CLI flags (`--server`) and the gRPC/Socket API for automation.
