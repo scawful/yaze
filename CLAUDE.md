@@ -68,6 +68,35 @@ Google C++ Style. Use `absl::Status`/`StatusOr<T>` with `RETURN_IF_ERROR()`/`ASS
 
 Format: `cmake --build build --target format`
 
+## AI Debugging Scripts
+
+Located in `scripts/ai/`, these tools integrate with Mesen2-OOS for Oracle of Secrets debugging:
+
+| Script | Purpose |
+|--------|---------|
+| `sentinel.py` | Real-time soft lock detection (B007, B009, INIDISP) |
+| `crash_dump.py` | Post-mortem trace capture + symbol resolution |
+| `profiler.py` | CPU hotspot analysis (lag detection) |
+| `fuzzer.py` | Chaos Monkey automated stress testing |
+| `state_query.py` | Semantic game state queries |
+| `code_graph.py` | Static ASM call graph analysis |
+| `memory_cartographer.py` | RAM search (Cheat Engine-style) |
+
+**Dependencies:**
+- Requires `mesen2_client_lib` from Oracle: `~/src/hobby/oracle-of-secrets/scripts/`
+- Requires `z3ed` binary for symbol resolution: `build_ai/bin/Debug/z3ed`
+
+**Quick Start:**
+```bash
+# Run Sentinel watchdog
+python3 scripts/ai/sentinel.py --z3ed build_ai/bin/Debug/z3ed --rom ~/src/hobby/oracle-of-secrets/Roms/oos168x.sfc
+
+# Run profiler
+python3 scripts/ai/profiler.py --duration 10
+```
+
+**Full Documentation:** `~/src/hobby/oracle-of-secrets/Docs/Tooling/Debugging_Tools_Index.md`
+
 ## Docs
 
 - Architecture: `docs/internal/architecture/`

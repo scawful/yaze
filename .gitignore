@@ -143,3 +143,5 @@ roms/
 
 # AFS context (local only - use afs CLI or manual tools to search)
 .context/
+yaze.code-workspace
+world_graph.json
