@@ -70,10 +70,17 @@ void SectionHeader(const char* icon, const char* label,
 bool IconButton(const char* icon, const char* label,
                 const ImVec2& size = ImVec2(0, 0));
 
+// Icon-only button (AgentUI style)
+bool IconButton(const char* icon, const char* tooltip = nullptr);
+
 // Colored button for status actions
 enum class ButtonType { Default, Success, Warning, Error, Info };
 bool ColoredButton(const char* label, ButtonType type,
                    const ImVec2& size = ImVec2(0, 0));
+
+// Styled button with custom color (AgentUI style)
+bool StyledButton(const char* label, const ImVec4& color,
+                  const ImVec2& size = ImVec2(0, 0));
 
 // Toggle button with visual state
 bool ToggleIconButton(const char* icon_on, const char* icon_off, bool* state,
@@ -121,6 +128,9 @@ bool ConfirmationDialog(const char* id, const char* title, const char* message,
 // Status indicator dot + label
 void StatusIndicator(const char* label, bool active,
                      const char* tooltip = nullptr);
+
+// Provider badge (AgentUI style)
+void RenderProviderBadge(const char* provider);
 
 // ROM version badge
 void RomVersionBadge(const char* version, bool is_vanilla);

@@ -183,24 +183,44 @@ struct Theme {
   } dungeon;
 
   // Nested struct for chat/agent colors
-  struct ChatColors {
+  struct AgentTheme {
     Color user_message;
     Color agent_message;
     Color system_message;
+    Color text_secondary;
+
     Color json_text;
     Color command_text;
     Color code_background;
+
+    Color panel_bg;
+    Color panel_bg_darker;
+    Color panel_border;
+    Color accent;
+
+    Color status_active;
+    Color status_inactive;
+    Color status_success;
+    Color status_warning;
+    Color status_error;
+
     Color provider_ollama;
     Color provider_gemini;
     Color provider_mock;
     Color provider_openai;
+
+    Color collaboration_active;
+    Color collaboration_inactive;
+
     Color proposal_panel_bg;
     Color proposal_accent;
+
     Color button_copy;
     Color button_copy_hover;
+
     Color gradient_top;
     Color gradient_bottom;
-  } chat;
+  } agent;
 
   // Style parameters
   float window_rounding = 0.0f;

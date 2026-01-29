@@ -345,23 +345,39 @@ void ThemeManager::CreateFallbackYazeClassic() {
   theme.dungeon.outline_layer2 = RGBA(51, 51, 255, 255);  // Blue
 
   // Chat/agent colors
-  theme.chat.user_message = RGBA(102, 179, 255, 255);
-  theme.chat.agent_message = RGBA(102, 230, 102, 255);
-  theme.chat.system_message = RGBA(179, 179, 179, 255);
-  theme.chat.json_text = RGBA(230, 179, 102, 255);
-  theme.chat.command_text = RGBA(230, 102, 102, 255);
-  theme.chat.code_background = RGBA(26, 26, 31, 255);
-  theme.chat.provider_ollama = RGBA(230, 230, 230, 255);
-  theme.chat.provider_gemini = RGBA(77, 153, 230, 255);
-  theme.chat.provider_mock = RGBA(128, 128, 128, 255);
-  theme.chat.provider_openai =
-      RGBA(51, 204, 153, 255);  // Teal/green for OpenAI
-  theme.chat.proposal_panel_bg = RGBA(38, 38, 46, 255);
-  theme.chat.proposal_accent = RGBA(102, 153, 230, 255);
-  theme.chat.button_copy = RGBA(77, 77, 89, 255);
-  theme.chat.button_copy_hover = RGBA(102, 102, 115, 255);
-  theme.chat.gradient_top = theme.primary;
-  theme.chat.gradient_bottom = theme.secondary;
+  theme.agent.user_message = RGBA(102, 179, 255, 255);
+  theme.agent.agent_message = RGBA(102, 230, 102, 255);
+  theme.agent.system_message = RGBA(179, 179, 179, 255);
+  theme.agent.text_secondary = theme.text_secondary;
+  theme.agent.json_text = RGBA(230, 179, 102, 255);
+  theme.agent.command_text = RGBA(230, 102, 102, 255);
+  theme.agent.code_background = RGBA(26, 26, 31, 255);
+
+  theme.agent.panel_bg = theme.child_bg;
+  theme.agent.panel_bg_darker = RGBA(0, 0, 0, 50);
+  theme.agent.panel_border = theme.border;
+  theme.agent.accent = theme.accent;
+
+  theme.agent.status_active = theme.success;
+  theme.agent.status_inactive = theme.text_disabled;
+  theme.agent.status_success = theme.success;
+  theme.agent.status_warning = theme.warning;
+  theme.agent.status_error = theme.error;
+
+  theme.agent.provider_ollama = RGBA(230, 230, 230, 255);
+  theme.agent.provider_gemini = RGBA(77, 153, 230, 255);
+  theme.agent.provider_mock = RGBA(128, 128, 128, 255);
+  theme.agent.provider_openai = RGBA(51, 204, 153, 255);  // Teal/green for OpenAI
+
+  theme.agent.collaboration_active = theme.success;
+  theme.agent.collaboration_inactive = theme.text_disabled;
+
+  theme.agent.proposal_panel_bg = RGBA(38, 38, 46, 255);
+  theme.agent.proposal_accent = RGBA(102, 153, 230, 255);
+  theme.agent.button_copy = RGBA(77, 77, 89, 255);
+  theme.agent.button_copy_hover = RGBA(102, 102, 115, 255);
+  theme.agent.gradient_top = theme.primary;
+  theme.agent.gradient_bottom = theme.secondary;
 
   // Apply original style settings
   theme.window_rounding = 0.0f;
