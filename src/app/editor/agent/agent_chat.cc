@@ -10,6 +10,7 @@
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/strip.h"
+#include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "app/editor/agent/agent_chat_history_codec.h"
 #include "app/editor/agent/agent_ui_theme.h"
