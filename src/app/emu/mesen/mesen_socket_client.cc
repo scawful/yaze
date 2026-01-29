@@ -16,6 +16,8 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
 
+#include <charconv>
+
 namespace yaze {
 namespace emu {
 namespace mesen {
@@ -88,7 +90,9 @@ int64_t ExtractJsonInt(const std::string& json, const std::string& key,
   if (value.length() > 2 && value[0] == '0' &&
       (value[1] == 'x' || value[1] == 'X')) {
     int64_t result;
-    if (absl::SimpleHexAtoi(value.substr(2), &result)) {
+    std::string hex_str = value.substr(2);
+    auto [ptr, ec] = std::from_chars(hex_str.data(), hex_str.data() + hex_str.size(), result, 16);
+    if (ec == std::errc()) {
       return result;
     }
   }
@@ -411,7 +415,9 @@ absl::StatusOr<std::vector<uint8_t>> MesenSocketClient::ReadBlock(
 
   for (size_t i = 0; i + 1 < hex.length(); i += 2) {
     int byte;
-    if (absl::SimpleHexAtoi(hex.substr(i, 2), &byte)) {
+    std::string byte_hex = hex.substr(i, 2);
+    auto [ptr, ec] = std::from_chars(byte_hex.data(), byte_hex.data() + byte_hex.size(), byte, 16);
+    if (ec == std::errc()) {
       data.push_back(static_cast<uint8_t>(byte));
     }
   }
