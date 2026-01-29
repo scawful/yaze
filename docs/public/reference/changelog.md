@@ -31,11 +31,13 @@
 
 ---
 
-## 0.5.5 (Planned)
+## 0.5.5 (January 2026)
 
-### AI Registry & Model Context
-- Expose AI registry UI + CLI parity for provider/model discovery.
-- Add model context settings (scoping, caching, context presets) for agent workflows.
+### Editor & Architecture
+- **EditorManager Refactor**: Modernized `EditorManager` for better testability and isolation; introduced `yaze_core_lib` to separate core logic from the app shell.
+- **Improved Testing**: Added `AsarCompilerTest` and `EditorManagerTest` suites.
+- **Robust Graphics Loading**: Added fallback to grayscale palette for graphics sheets missing a palette, preventing crashes.
+- **Build System**: Cleaned up CMake entry points and presets; unified `main` entry point logic.
 
 ---
 

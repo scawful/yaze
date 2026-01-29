@@ -336,6 +336,126 @@ absl::Status SaveGfxGroups(Rom& rom, const GameData& data) {
 ///          Passing size=0 causes immediate return of empty data, which
 ///          was a regression bug that caused all graphics to appear as
 ///          solid purple/brown (0xFF fill).
+struct SheetLoadResult {
+  std::vector<uint8_t> data;
+  bool is_compressed = false;
+  bool decompression_succeeded = false;
+  bool is_bpp3 = false; // true if 3BPP, false if skipped/2BPP
+  uint32_t pc_offset = 0;
+};
+
+SheetLoadResult LoadSheetRaw(const Rom& rom, uint32_t i, 
+                             const zelda3_version_pointers& version_constants) {
+  SheetLoadResult result;
+  result.data.assign(zelda3::kUncompressedSheetSize, 0); // Default empty
+
+  // Uncompressed 3BPP (115-126)
+  if (i >= 115 && i <= 126) {
+    result.is_compressed = false;
+    result.pc_offset =
+        GetGraphicsAddress(rom.data(), i, version_constants.kOverworldGfxPtr1,
+                           version_constants.kOverworldGfxPtr2,
+                           version_constants.kOverworldGfxPtr3, rom.size());
+
+    auto read_res =
+        rom.ReadByteVector(result.pc_offset, zelda3::kUncompressedSheetSize);
+    if (read_res.ok()) {
+      result.data = *read_res;
+      result.decompression_succeeded = true;
+      result.is_bpp3 = true;
+    } else {
+      result.decompression_succeeded = false;
+    }
+  }
+  // 2BPP (113-114, 218+) - Skipped in main loop
+  else if (i == 113 || i == 114 || i >= 218) {
+    result.is_compressed = true;
+    result.is_bpp3 = false;
+  }
+  // Compressed 3BPP (Standard)
+  else {
+    result.is_compressed = true;
+    result.pc_offset =
+        GetGraphicsAddress(rom.data(), i, version_constants.kOverworldGfxPtr1,
+                           version_constants.kOverworldGfxPtr2,
+                           version_constants.kOverworldGfxPtr3, rom.size());
+
+    if (result.pc_offset < rom.size()) {
+      auto decomp_res =
+          gfx::lc_lz2::DecompressV2(rom.data(), result.pc_offset, 0x800, 1, rom.size());
+      if (decomp_res.ok()) {
+        result.data = *decomp_res;
+        result.decompression_succeeded = true;
+        result.is_bpp3 = true;
+      } else {
+        result.decompression_succeeded = false;
+      }
+    }
+  }
+  return result;
+}
+
+void ProcessSheetBitmap(GameData& data, uint32_t i, const SheetLoadResult& result) {
+  if (result.is_bpp3) {
+    auto converted_sheet = gfx::SnesTo8bppSheet(result.data, 3);
+    if (converted_sheet.size() != 4096)
+      converted_sheet.resize(4096, 0);
+
+    data.raw_gfx_sheets[i] = converted_sheet;
+    data.gfx_bitmaps[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
+                               gfx::kTilesheetDepth, converted_sheet);
+
+    // Apply default palettes
+    if (!data.palette_groups.empty()) {
+      gfx::SnesPalette default_palette;
+      if (i < 113 && data.palette_groups.dungeon_main.size() > 0) {
+        default_palette = data.palette_groups.dungeon_main[0];
+      } else if (i < 128 && data.palette_groups.sprites_aux1.size() > 0) {
+        default_palette = data.palette_groups.sprites_aux1[0];
+      } else if (data.palette_groups.hud.size() > 0) {
+        default_palette = data.palette_groups.hud.palette(0);
+      }
+
+      if (!default_palette.empty()) {
+        ApplyDefaultPalette(data.gfx_bitmaps[i], default_palette);
+      } else {
+        // Fallback to grayscale if no palette found
+        std::vector<gfx::SnesColor> grayscale;
+        for (int color_idx = 0; color_idx < 16; ++color_idx) {
+          float val = color_idx / 15.0f;
+          grayscale.emplace_back(ImVec4(val, val, val, 1.0f));
+        }
+        if (!grayscale.empty()) {
+          grayscale[0].set_transparent(true);
+        }
+        data.gfx_bitmaps[i].SetPalette(gfx::SnesPalette(grayscale));
+      }
+    } else {
+      // Fallback to grayscale if no palette groups loaded
+      std::vector<gfx::SnesColor> grayscale;
+      for (int color_idx = 0; color_idx < 16; ++color_idx) {
+        float val = color_idx / 15.0f;
+        grayscale.emplace_back(ImVec4(val, val, val, 1.0f));
+      }
+      if (!grayscale.empty()) {
+        grayscale[0].set_transparent(true);
+      }
+      data.gfx_bitmaps[i].SetPalette(gfx::SnesPalette(grayscale));
+    }
+
+    data.graphics_buffer.insert(
+        data.graphics_buffer.end(), data.gfx_bitmaps[i].data(),
+        data.gfx_bitmaps[i].data() + data.gfx_bitmaps[i].size());
+  } else {
+    // Placeholder - Fill with 0 (transparent) instead of 0xFF (white)
+    std::vector<uint8_t> placeholder(4096, 0);
+    data.raw_gfx_sheets[i] = placeholder;
+    data.gfx_bitmaps[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
+                               gfx::kTilesheetDepth, placeholder);
+    data.graphics_buffer.resize(data.graphics_buffer.size() + 4096, 0);
+  }
+}
+
 absl::Status LoadGraphics(Rom& rom, GameData& data) {
   if (kVersionConstantsMap.find(data.version) == kVersionConstantsMap.end()) {
     return absl::FailedPreconditionError(
@@ -357,132 +477,43 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
   diag.ptr2_loc = version_constants.kOverworldGfxPtr2;
   diag.ptr3_loc = version_constants.kOverworldGfxPtr3;
 
+  LOG_INFO("Graphics", "Loading %d graphics sheets...", kNumGfxSheets);
+
   for (uint32_t i = 0; i < kNumGfxSheets; i++) {
 #ifdef __EMSCRIPTEN__
     app::platform::WasmLoadingManager::UpdateProgress(
         loading_handle, static_cast<float>(i) / kNumGfxSheets);
 #endif
 
-    diag.sheets[i].index = i;
-    std::vector<uint8_t> sheet;
-    bool bpp3 = false;
-    uint32_t offset = 0;
-
-    // Uncompressed 3BPP (115-126)
-    if (i >= 115 && i <= 126) {
-      diag.sheets[i].is_compressed = false;
-      offset =
-          GetGraphicsAddress(rom.data(), i, version_constants.kOverworldGfxPtr1,
-                             version_constants.kOverworldGfxPtr2,
-                             version_constants.kOverworldGfxPtr3, rom.size());
-      diag.sheets[i].pc_offset = offset;
-
-      auto read_res =
-          rom.ReadByteVector(offset, zelda3::kUncompressedSheetSize);
-      if (read_res.ok()) {
-        sheet = *read_res;
-        diag.sheets[i].decompression_succeeded = true;
-        bpp3 = true;
-      } else {
-        sheet.assign(zelda3::kUncompressedSheetSize, 0);
-        diag.sheets[i].decompression_succeeded = false;
-      }
+    // Inside LoadGraphics loop:
+    auto result = LoadSheetRaw(rom, i, version_constants);
+    
+    // Update Diagnostics
+    auto& sd = diag.sheets[i];
+    sd.index = i;
+    sd.is_compressed = result.is_compressed;
+    sd.pc_offset = result.pc_offset;
+    sd.decompression_succeeded = result.decompression_succeeded;
+    sd.actual_decomp_size = result.data.size();
+    if (!result.data.empty()) {
+        size_t count = std::min<size_t>(result.data.size(), 8);
+        sd.first_bytes.assign(result.data.begin(), result.data.begin() + count);
     }
-    // 2BPP (113-114, 218+) - Skipped in main loop
-    else if (i == 113 || i == 114 || i >= 218) {
-      diag.sheets[i].is_compressed = true;
-      bpp3 = false;
-    }
-    // Compressed 3BPP (Standard)
-    else {
-      diag.sheets[i].is_compressed = true;
-      offset =
-          GetGraphicsAddress(rom.data(), i, version_constants.kOverworldGfxPtr1,
-                             version_constants.kOverworldGfxPtr2,
-                             version_constants.kOverworldGfxPtr3, rom.size());
-      diag.sheets[i].pc_offset = offset;
-
-      if (offset < rom.size()) {
-        // Decompress using LC-LZ2 algorithm with 0x800 byte output buffer.
-        // IMPORTANT: The size parameter (0x800) must NOT be 0, or DecompressV2
-        // returns an empty vector immediately. This was a regression bug.
-        // See: docs/internal/graphics-loading-regression-2024.md
-        auto decomp_res =
-            gfx::lc_lz2::DecompressV2(rom.data(), offset, 0x800, 1, rom.size());
-        if (decomp_res.ok()) {
-          sheet = *decomp_res;
-          diag.sheets[i].decompression_succeeded = true;
-          bpp3 = true;
-        } else {
-          diag.sheets[i].decompression_succeeded = false;
-        }
-      }
+    if (result.is_compressed && !result.is_bpp3) {
+        sd.decomp_size_param = 0x800; // Expected for LC-LZ2
     }
 
-    // Post-process
-    if (bpp3) {
-      auto converted_sheet = gfx::SnesTo8bppSheet(sheet, 3);
-      if (converted_sheet.size() != 4096)
-        converted_sheet.resize(4096, 0);
-
-      data.raw_gfx_sheets[i] = converted_sheet;
-      data.gfx_bitmaps[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
-                                 gfx::kTilesheetDepth, converted_sheet);
-
-      // Apply default palettes
-      if (!data.palette_groups.empty()) {
-        gfx::SnesPalette default_palette;
-        if (i < 113 && data.palette_groups.dungeon_main.size() > 0) {
-          default_palette = data.palette_groups.dungeon_main[0];
-        } else if (i < 128 && data.palette_groups.sprites_aux1.size() > 0) {
-          default_palette = data.palette_groups.sprites_aux1[0];
-        } else if (data.palette_groups.hud.size() > 0) {
-          default_palette = data.palette_groups.hud.palette(0);
-        }
-
-        if (!default_palette.empty()) {
-          ApplyDefaultPalette(data.gfx_bitmaps[i], default_palette);
-        } else {
-          // Fallback to grayscale if no palette found
-          std::vector<gfx::SnesColor> grayscale;
-          for (int color_idx = 0; color_idx < 16; ++color_idx) {
-            float val = color_idx / 15.0f;
-            grayscale.emplace_back(ImVec4(val, val, val, 1.0f));
-          }
-          // Ensure index 0 is transparent for SNES compatibility
-          if (!grayscale.empty()) {
-            grayscale[0].set_transparent(true);
-          }
-          data.gfx_bitmaps[i].SetPalette(gfx::SnesPalette(grayscale));
-        }
-      } else {
-        // Fallback to grayscale if no palette groups loaded
-        std::vector<gfx::SnesColor> grayscale;
-        for (int color_idx = 0; color_idx < 16; ++color_idx) {
-          float val = color_idx / 15.0f;
-          grayscale.emplace_back(ImVec4(val, val, val, 1.0f));
-        }
-        // Ensure index 0 is transparent for SNES compatibility
-        if (!grayscale.empty()) {
-          grayscale[0].set_transparent(true);
-        }
-        data.gfx_bitmaps[i].SetPalette(gfx::SnesPalette(grayscale));
-      }
-
-      data.graphics_buffer.insert(
-          data.graphics_buffer.end(), data.gfx_bitmaps[i].data(),
-          data.gfx_bitmaps[i].data() + data.gfx_bitmaps[i].size());
-    } else {
-      // Placeholder - Fill with 0 (transparent) instead of 0xFF (white)
-      std::vector<uint8_t> placeholder(4096, 0);
-      data.raw_gfx_sheets[i] = placeholder;
-      data.gfx_bitmaps[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
-                                 gfx::kTilesheetDepth, placeholder);
-      data.graphics_buffer.resize(data.graphics_buffer.size() + 4096, 0);
+    ProcessSheetBitmap(data, i, result);
+    
+    if (i % 50 == 0 || i == kNumGfxSheets - 1) {
+        LOG_DEBUG("Graphics", "Sheet %d: offset=0x%06X, size=%zu, %s", 
+                  i, result.pc_offset, result.data.size(), 
+                  result.decompression_succeeded ? "OK" : "FAILED");
     }
   }
 
   diag.Analyze();
+  LOG_INFO("Graphics", "Graphics loading complete. Sheets processed: %d", kNumGfxSheets);
 
 #ifdef __EMSCRIPTEN__
   app::platform::WasmLoadingManager::EndLoading(loading_handle);

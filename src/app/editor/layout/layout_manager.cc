@@ -94,7 +94,12 @@ void LayoutManager::InitializeEditorLayout(EditorType type,
   // Clear existing layout for this dockspace
   ImGui::DockBuilderRemoveNode(dockspace_id);
   ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
-  ImVec2 dockspace_size = ImGui::GetMainViewport()->WorkSize;
+  
+  ImVec2 dockspace_size = ImVec2(1280, 720); // Safe default
+  if (auto* viewport = ImGui::GetMainViewport()) {
+    dockspace_size = viewport->WorkSize;
+  }
+  
   const ImVec2 last_size = gui::DockSpaceRenderer::GetLastDockspaceSize();
   if (last_size.x > 0.0f && last_size.y > 0.0f) {
     dockspace_size = last_size;

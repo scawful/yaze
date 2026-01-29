@@ -102,7 +102,7 @@ class EditorManager {
   AssetLoadMode asset_load_mode() const { return asset_load_mode_; }
                                    
   absl::Status Update();
-  void DrawMenuBar();
+  void DrawMainMenuBar();
 
   auto emulator() -> emu::Emulator& { return emulator_; }
   auto quit() const { return quit_; }
@@ -361,6 +361,24 @@ class EditorManager {
   void HandleSessionSwitched(size_t new_index, RomSession* session);
   void HandleSessionCreated(size_t index, RomSession* session);
   void HandleSessionClosed(size_t index);
+  // Initialization helpers (extracted from constructor for readability)
+  void SubscribeToEvents();
+  void InitializeSubsystems();
+  void RegisterEditors();
+  void RegisterEmulatorPanels();
+  void InitializeServices();
+  void SetupComponentCallbacks();
+  void SetupDialogCallbacks();
+  void SetupWelcomeScreenCallbacks();
+  void SetupSidebarCallbacks();
+  void InitializeShortcutSystem();
+  void ProcessInput();
+  void UpdateEditorState();
+  void DrawInterface();
+  void DrawSecondaryWindows();
+  void UpdateSystemUIs();
+  void RunEmulator();
+
   void HandleSessionRomLoaded(size_t index, Rom* rom);
 
   // UI action event handler (EventBus subscriber for UIActionRequestEvent)

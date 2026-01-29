@@ -19,7 +19,7 @@
       "configurePreset": "dev"
     },
     {
-      "displayName": "Developer Build (System gRPC)",
+      "displayName": "Dev (Sys gRPC)",
       "jobs": 8,
       "name": "dev-system-grpc",
       "configurePreset": "dev-system-grpc"
@@ -133,11 +133,22 @@
       "configurePreset": "win-dev"
     },
     {
-      "displayName": "Windows AI Development Build",
+      "displayName": "Win AI Dev",
       "configuration": "Debug",
       "jobs": 8,
       "name": "win-ai",
-      "configurePreset": "win-ai"
+      "configurePreset": "win-ai",
+      "vendor": {
+        "microsoft.com/VisualStudioCode": {
+          "cmake.debugConfig": {
+            "args": [
+              "--debug",
+              "--rom_file",
+              "zelda3.sfc"
+            ]
+          }
+        }
+      }
     },
     {
       "displayName": "Windows z3ed CLI Build",
@@ -182,7 +193,7 @@
       "configurePreset": "win-vs-ai"
     },
     {
-      "displayName": "macOS Debug Build",
+      "displayName": "Mac Debug",
       "configuration": "Debug",
       "jobs": 8,
       "name": "mac-dbg",
@@ -196,7 +207,7 @@
       "configurePreset": "mac-dbg-v"
     },
     {
-      "displayName": "macOS Release Build",
+      "displayName": "Mac Release",
       "configuration": "Release",
       "jobs": 8,
       "name": "mac-rel",
@@ -210,14 +221,14 @@
       "configurePreset": "mac-dev"
     },
     {
-      "displayName": "macOS AI Development Build",
+      "displayName": "Mac AI Dev",
       "configuration": "Debug",
       "jobs": 8,
       "name": "mac-ai",
       "configurePreset": "mac-ai"
     },
     {
-      "displayName": "macOS AI Fast Build (System gRPC)",
+      "displayName": "Mac AI Fast",
       "configuration": "Debug",
       "jobs": 8,
       "name": "mac-ai-fast",
@@ -270,7 +281,7 @@
       "configurePreset": "lin-sdl3"
     },
     {
-      "displayName": "Linux Debug Build",
+      "displayName": "Lin Debug",
       "configuration": "Debug",
       "jobs": 8,
       "name": "lin-dbg",
@@ -284,7 +295,7 @@
       "configurePreset": "lin-dbg-v"
     },
     {
-      "displayName": "Linux Release Build",
+      "displayName": "Lin Release",
       "configuration": "Release",
       "jobs": 8,
       "name": "lin-rel",
@@ -298,11 +309,22 @@
       "configurePreset": "lin-dev"
     },
     {
-      "displayName": "Linux AI Development Build",
+      "displayName": "Lin AI Dev",
       "configuration": "Debug",
       "jobs": 8,
       "name": "lin-ai",
-      "configurePreset": "lin-ai"
+      "configurePreset": "lin-ai",
+      "vendor": {
+        "microsoft.com/VisualStudioCode": {
+          "cmake.debugConfig": {
+            "args": [
+              "--debug",
+              "--rom_file",
+              "zelda3.sfc"
+            ]
+          }
+        }
+      }
     },
     {
       "displayName": "macOS Fast Test Build",
@@ -1254,7 +1276,7 @@
         "YAZE_ENABLE_JSON": "ON",
         "YAZE_ENABLE_AI_RUNTIME": "ON"
       },
-      "displayName": "macOS AI Development (Fast - System gRPC)",
+      "displayName": "Mac AI Fast",
       "name": "mac-ai-fast",
       "binaryDir": "${sourceDir}/build_ai",
       "condition": {
@@ -1262,7 +1284,18 @@
         "rhs": "Darwin",
         "lhs": "${hostSystemName}"
       },
-      "description": "Fast AI development build using Homebrew gRPC/protobuf (brew install grpc protobuf abseil)"
+      "description": "Fast AI development build using Homebrew gRPC/protobuf (brew install grpc protobuf abseil)",
+      "vendor": {
+        "microsoft.com/VisualStudioCode": {
+          "cmake.debugConfig": {
+            "args": [
+              "--debug",
+              "--rom_file",
+              "zelda3.sfc"
+            ]
+          }
+        }
+      }
     },
     {
       "inherits": "mac-base",
