@@ -218,6 +218,8 @@ if(YAZE_BUILD_TESTS)
   target_link_libraries(yaze_test PRIVATE
     yaze_test_support
     yaze_app_core_lib
+    yaze_core_lib
+    yaze_zelda3
     absl::flags
     absl::flags_parse
   )
@@ -227,4 +229,3 @@ if(YAZE_BUILD_TESTS)
     ${PROJECT_BINARY_DIR}
   )
 endif()
-
