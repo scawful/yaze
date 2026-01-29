@@ -24,7 +24,7 @@ target_include_directories(yaze_rom PUBLIC
 
 target_link_libraries(yaze_rom PUBLIC
   yaze_util
-  yaze_core
+  yaze_core_lib
   yaze_gfx
   ${ABSL_TARGETS}
   ${YAZE_SDL2_TARGETS}

@@ -11,11 +11,14 @@
 // Forward declare proto types to avoid heavy includes if possible,
 // or include them if necessary for usage.
 // Since this is for the service, we can likely include the service protos.
+#ifdef YAZE_WITH_GRPC
 #include "protos/emulator_service.pb.h"
+#endif
 
 namespace yaze {
 namespace emu {
 
+#ifdef YAZE_WITH_GRPC
 /**
  * @brief Abstract interface for emulator backends (Internal vs Mesen2)
  * 
@@ -73,6 +76,7 @@ class IEmulator {
   // --- Analysis ---
 //   virtual absl::StatusOr<std::string> Disassemble(uint32_t addr, int count) = 0;
 };
+#endif
 
 }  // namespace emu
 }  // namespace yaze

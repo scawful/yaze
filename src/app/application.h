@@ -11,11 +11,11 @@
 #include "app/controller.h"
 #include "app/startup_flags.h"
 #include "yaze_config.h"
-#include "app/emu/i_emulator.h"
 
 #ifdef YAZE_WITH_GRPC
 #include "app/service/unified_grpc_server.h"
 #include "app/service/canvas_automation_service.h"
+#include "app/emu/i_emulator.h"
 #endif
 
 namespace yaze {
