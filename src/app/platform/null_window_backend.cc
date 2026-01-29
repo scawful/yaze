@@ -73,6 +73,7 @@ absl::Status NullWindowBackend::InitializeImGui(gfx::IRenderer* renderer) {
       IMGUI_CHECKVERSION();
       ImGui::CreateContext();
       ImGuiIO& io = ImGui::GetIO();
+      io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Required for layout initialization
       io.IniFilename = nullptr;
       io.DisplaySize = ImVec2((float)width_, (float)height_);
       io.DeltaTime = 1.0f / 60.0f;

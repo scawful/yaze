@@ -21,7 +21,7 @@ constexpr uint16_t TileVFlipBit = 0x8000;
 // Bits used for tile name
 constexpr uint16_t TileNameMask = 0x03FF;
 
-snes_tile8 UnpackBppTile(std::span<uint8_t> data, const uint32_t offset,
+snes_tile8 UnpackBppTile(std::span<const uint8_t> data, const uint32_t offset,
                          const uint32_t bpp) {
   snes_tile8 tile = {};  // Initialize to zero
   assert(bpp >= 1 && bpp <= 8);
@@ -115,7 +115,7 @@ std::vector<uint8_t> PackBppTile(const snes_tile8& tile, const uint32_t bpp) {
   return output;
 }
 
-std::vector<uint8_t> ConvertBpp(std::span<uint8_t> tiles, uint32_t from_bpp,
+std::vector<uint8_t> ConvertBpp(std::span<const uint8_t> tiles, uint32_t from_bpp,
                                 uint32_t to_bpp) {
   unsigned int nb_tile = tiles.size() / (from_bpp * 8);
   std::vector<uint8_t> converted(nb_tile * to_bpp * 8);
@@ -129,7 +129,7 @@ std::vector<uint8_t> ConvertBpp(std::span<uint8_t> tiles, uint32_t from_bpp,
   return converted;
 }
 
-std::vector<uint8_t> SnesTo8bppSheet(std::span<uint8_t> sheet, int bpp,
+std::vector<uint8_t> SnesTo8bppSheet(std::span<const uint8_t> sheet, int bpp,
                                      int num_sheets) {
   int xx = 0;  // positions where we are at on the sheet
   int yy = 0;
@@ -391,19 +391,6 @@ TileInfo WordToTileInfo(uint16_t word) {
 }
 
 uint16_t TileInfoToShort(TileInfo tile_info) {
-  // uint16_t result = 0;
-
-  // Copy the id_ value
-  // result |= tile_info.id_ & 0x3FF;  // ids are 10 bits
-
-  // Set the vertical_mirror_, horizontal_mirror_, and over_ flags
-  // result |= (tile_info.vertical_mirror_ ? 1 : 0) << 10;
-  // result |= (tile_info.horizontal_mirror_ ? 1 : 0) << 11;
-  // result |= (tile_info.over_ ? 1 : 0) << 12;
-
-  // Set the palette_
-  // result |= (tile_info.palette_ & 0x07) << 13;  // palettes are 3 bits
-
   uint16_t value = 0;
   // vhopppcc cccccccc
   if (tile_info.over_) {
@@ -447,7 +434,7 @@ void CopyTile8bpp16(int x, int y, int tile, std::vector<uint8_t>& bitmap,
 }
 
 std::vector<uint8_t> LoadSNES4bppGFXToIndexedColorMatrix(
-    std::span<uint8_t> src) {
+    std::span<const uint8_t> src) {
   std::vector<uint8_t> dest;
   uint8_t b0;
   uint8_t b1;
@@ -460,17 +447,20 @@ std::vector<uint8_t> LoadSNES4bppGFXToIndexedColorMatrix(
   int dest_x;
   int dest_y;
   int dest_index;
-  int main_index_limit = src.size() / 32;
+  int main_index_limit = static_cast<int>(src.size() / 32);
   for (int main_index = 0; main_index <= main_index_limit; main_index += 32) {
     src_index = (main_index << 5);
-    if (src_index + 31 >= src.size()) {
+    if (static_cast<size_t>(src_index + 31) >= src.size()) {
       throw std::invalid_argument("src_index + 31 >= src.size()");
     }
     dest_x = main_index & 0x0F;
     dest_y = main_index >> 4;
     dest_index = ((dest_y << 7) + dest_x) << 3;
-    if (dest_index + 903 >= dest.size()) {
-      throw std::invalid_argument("dest_index + 903 >= dest.size()");
+    if (static_cast<size_t>(dest_index + 903) >= dest.size()) {  // Fixed: dest.size() check might fail if dest is empty
+       // dest might need to be pre-allocated or resized
+       if (dest.size() < static_cast<size_t>(dest_index + 904)) {
+           dest.resize(dest_index + 904);
+       }
     }
     for (int i = 0; i < 16; i += 2) {
       mul = 1;
@@ -482,7 +472,7 @@ std::vector<uint8_t> LoadSNES4bppGFXToIndexedColorMatrix(
         res = ((b0 & mul) | ((b1 & mul) << 1) | ((b2 & mul) << 2) |
                ((b3 & mul) << 3)) >>
               j;
-        dest[dest_index + (7 - j) + y_adder] = res;
+        dest[dest_index + (7 - j) + y_adder] = (uint8_t)res;
         mul <<= 1;
       }
       y_adder += 128;

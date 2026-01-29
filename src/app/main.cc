@@ -196,20 +196,16 @@ void TickFrame() {
   yaze::Application::Instance().Tick();
 }
 
-int main(int argc, char** argv) {
-  absl::InitializeSymbolizer(argv[0]);
+// Helper Functions
 
+void SetupCrashHandling() {
 #ifndef __EMSCRIPTEN__
   yaze::util::CrashHandler::Initialize(YAZE_VERSION_STRING);
   yaze::util::CrashHandler::CleanupOldLogs(5);
 #endif
+}
 
-  yaze::util::FlagParser parser(yaze::util::global_flag_registry());
-  RETURN_IF_EXCEPTION(parser.Parse(argc, argv));
-
-  // Set up logging
-  const bool debug_flag = FLAGS_debug->Get();
-  const bool log_to_console_flag = FLAGS_log_to_console->Get();
+yaze::util::LogLevel ResolveLogConfig(bool debug_flag, bool log_to_console_flag) {
   yaze::util::LogLevel log_level =
       ParseLogLevelFlag(FLAGS_log_level->Get(), debug_flag);
   std::set<std::string> log_categories =
@@ -238,17 +234,15 @@ int main(int argc, char** argv) {
            log_path.empty() ? "<stderr>" : log_path.c_str(),
            (debug_flag || log_to_console_flag) ? "on" : "off",
            log_categories.size());
+  return log_level;
+}
 
-  // Build AppConfig from flags
+yaze::AppConfig BuildAppConfig(yaze::util::LogLevel log_level, std::string log_path) {
   yaze::AppConfig config;
 
   bool server_mode = FLAGS_server->Get();
   bool service_mode = FLAGS_service->Get();
   
-  // Headless is default for server, unless service mode is requested
-  // If user says --server --service, we get Hidden GUI.
-  // If user says --server, we get Headless (Null).
-  // If user says --service, we get Hidden GUI.
   config.headless = FLAGS_headless->Get() || (server_mode && !service_mode);
   config.service_mode = service_mode;
   config.enable_api = FLAGS_enable_api->Get() || server_mode || service_mode;
@@ -277,9 +271,6 @@ int main(int argc, char** argv) {
   config.asset_load_mode =
       yaze::AssetLoadModeFromString(FLAGS_asset_mode->Get());
   if (config.asset_load_mode == yaze::AssetLoadMode::kAuto) {
-    // Service mode might need full assets if the user shows the GUI later.
-    // Lazy loading is safer for startup speed, but might cause hitches on ShowGUI.
-    // Let's stick to Lazy for now to keep startup fast.
     config.asset_load_mode = (config.headless || server_mode || service_mode)
                                  ? yaze::AssetLoadMode::kLazy
                                  : yaze::AssetLoadMode::kFull;
@@ -288,8 +279,10 @@ int main(int argc, char** argv) {
   if (!FLAGS_open_panels->Get().empty()) {
     config.open_panels = ParseCommaList(FLAGS_open_panels->Get());
   }
+  return config;
+}
 
-  // Fast symbol export path (no UI initialization)
+bool RunSymbolExportFastPath() {
   if (!FLAGS_export_symbols->Get().empty() && FLAGS_export_symbols_fast->Get()) {
     yaze::emu::debug::SymbolProvider symbols;
     bool loaded = false;
@@ -316,7 +309,7 @@ int main(int argc, char** argv) {
 
     if (!loaded) {
       LOG_ERROR("Main", "No symbols loaded. Use --load_symbols or --load_asar_symbols.");
-      return EXIT_FAILURE;
+      return false;
     }
 
     LOG_INFO("Main", "Exporting symbols to %s...", FLAGS_export_symbols->Get().c_str());
@@ -332,14 +325,94 @@ int main(int argc, char** argv) {
       if (out.is_open()) {
         out << *export_or;
         LOG_INFO("Main", "Symbols exported successfully (fast path)");
-        return EXIT_SUCCESS;
+        return true;
       }
       LOG_ERROR("Main", "Failed to open output file: %s", FLAGS_export_symbols->Get().c_str());
-      return EXIT_FAILURE;
+      return false;
     }
     LOG_ERROR("Main", "Failed to export symbols: %s", export_or.status().ToString().c_str());
-    return EXIT_FAILURE;
+    return false;
   }
+  return false;
+}
+
+#ifndef __EMSCRIPTEN__
+std::unique_ptr<yaze::cli::api::HttpServer> SetupApiServer(const yaze::AppConfig& config) {
+  if (!config.enable_api) {
+    return nullptr;
+  }
+
+  auto api_server = std::make_unique<yaze::cli::api::HttpServer>();
+
+  // Wire up symbol provider source
+  api_server->SetSymbolProviderSource([]() -> yaze::emu::debug::SymbolProvider* {
+    auto* manager = yaze::app::GetGlobalEditorManager();
+    if (manager) {
+      return &manager->emulator().symbol_provider();
+    }
+    return nullptr;
+  });
+
+  // Window control endpoints (service mode)
+  api_server->SetWindowActions(
+      []() -> bool {
+        auto* controller = yaze::Application::Instance().GetController();
+        return controller ? (controller->ShowWindow(), true) : false;
+      },
+      []() -> bool {
+        auto* controller = yaze::Application::Instance().GetController();
+        return controller ? (controller->HideWindow(), false) : false; // HideWindow returns void usually
+      });
+
+  auto status = api_server->Start(config.api_port);
+  if (!status.ok()) {
+    LOG_ERROR("Main", "Failed to start API server: %s", std::string(status.message()).c_str());
+    return nullptr;
+  }
+  
+  LOG_INFO("Main", "API Server started on port %d", config.api_port);
+  return api_server;
+}
+#endif
+
+// Main Entry Point
+
+int main(int argc, char** argv) {
+  absl::InitializeSymbolizer(argv[0]);
+
+  SetupCrashHandling();
+
+  yaze::util::FlagParser parser(yaze::util::global_flag_registry());
+  RETURN_IF_EXCEPTION(parser.Parse(argc, argv));
+
+  // Set up logging
+  const bool debug_flag = FLAGS_debug->Get();
+  const bool log_to_console_flag = FLAGS_log_to_console->Get();
+  auto log_level = ResolveLogConfig(debug_flag, log_to_console_flag);
+  std::string log_path = FLAGS_log_file->Get();
+  if (log_path.empty()) {
+     auto logs_dir = yaze::util::PlatformPaths::GetAppDataSubdirectory("logs");
+     if (logs_dir.ok()) {
+       log_path = (*logs_dir / "yaze.log").string();
+     }
+  }
+
+  // Build AppConfig from flags
+  auto config = BuildAppConfig(log_level, log_path);
+
+  // Fast symbol export path (no UI initialization)
+  if (RunSymbolExportFastPath()) {
+    return EXIT_SUCCESS;
+  }
+#if !defined(__EMSCRIPTEN__)
+  // If fast export failed but was requested, and we are not emscripten, we should probably exit or continue?
+  // The helper returns false if not requested OR if failed.
+  // If requested and failed, it logs errors.
+  // To match original logic:
+  if (!FLAGS_export_symbols->Get().empty() && FLAGS_export_symbols_fast->Get()) {
+      return EXIT_FAILURE;
+  }
+#endif
 
 #ifdef __APPLE__
   if (!config.headless) {
@@ -383,45 +456,7 @@ int main(int argc, char** argv) {
   // Desktop Main Loop (Linux/Windows)
 
   // API Server
-  std::unique_ptr<yaze::cli::api::HttpServer> api_server;
-  if (config.enable_api) {
-    api_server = std::make_unique<yaze::cli::api::HttpServer>();
-
-    // Wire up symbol provider source
-    api_server->SetSymbolProviderSource([]() -> yaze::emu::debug::SymbolProvider* {
-      auto* manager = yaze::app::GetGlobalEditorManager();
-      if (manager) {
-        return &manager->emulator().symbol_provider();
-      }
-      return nullptr;
-    });
-
-    // Window control endpoints (service mode)
-    api_server->SetWindowActions(
-        []() -> bool {
-          auto* controller = yaze::Application::Instance().GetController();
-          if (!controller) {
-            return false;
-          }
-          controller->ShowWindow();
-          return true;
-        },
-        []() -> bool {
-          auto* controller = yaze::Application::Instance().GetController();
-          if (!controller) {
-            return false;
-          }
-          controller->HideWindow();
-          return true;
-        });
-
-    auto status = api_server->Start(config.api_port);
-    if (!status.ok()) {
-      LOG_ERROR("Main", "Failed to start API server: %s", std::string(status.message()).c_str());
-    } else {
-      LOG_INFO("Main", "API Server started on port %d", config.api_port);
-    }
-  }
+  auto api_server = SetupApiServer(config);
 
   yaze::Application::Instance().Initialize(config);
 
@@ -447,7 +482,7 @@ int main(int argc, char** argv) {
     }
   }
 
-  // Handle symbol export if requested
+  // Handle symbol export if requested (GUI mode)
   if (!FLAGS_export_symbols->Get().empty()) {
     LOG_INFO("Main", "Exporting symbols to %s...", FLAGS_export_symbols->Get().c_str());
 

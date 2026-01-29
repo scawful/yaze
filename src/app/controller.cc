@@ -197,7 +197,7 @@ absl::Status Controller::OnLoad() {
       dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
 
   if (show_menu_bar) {
-    editor_manager_.DrawMenuBar();  // Draw the fixed menu bar at the top
+    editor_manager_.DrawMainMenuBar();  // Draw the fixed menu bar at the top
   }
 
   gui::DockSpaceRenderer::EndEnhancedDockSpace();

@@ -15,11 +15,12 @@
 #include <grpcpp/impl/service_type.h>
 #include <grpcpp/server.h>
 
+#include "app/service/visual_service_impl.h"
+#include "app/emu/i_emulator.h"
+
 namespace yaze {
 
 // Forward declarations
-#include "app/service/visual_service_impl.h"
-#include "app/emu/i_emulator.h"
 class CanvasAutomationServiceImpl;
 class Rom;
 

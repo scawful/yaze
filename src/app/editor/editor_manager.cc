@@ -212,38 +212,15 @@ EditorManager::EditorManager()
   editor_context_ = std::make_unique<GlobalEditorContext>(event_bus_);
   status_bar_.Initialize(editor_context_.get());
 
-  // ============================================================================
-  // DELEGATION INFRASTRUCTURE INITIALIZATION
-  // ============================================================================
-  // EditorManager delegates responsibilities to specialized components:
-  // - SessionCoordinator: Multi-session UI and lifecycle management
-  // - MenuOrchestrator: Menu building and action routing
-  // - UICoordinator: UI drawing and state management
-  // - RomFileManager: ROM file I/O operations
-  // - ProjectManager: Project file operations
-  // - PanelManager: Panel-based editor UI management
-  // - ShortcutConfigurator: Keyboard shortcut registration
-  // - WindowDelegate: Window layout operations
-  // - PopupManager: Modal popup/dialog management
-  //
-  // EditorManager retains:
-  // - Session storage (sessions_) and current pointers (current_rom_, etc.)
-  // - Main update loop (iterates sessions, calls editor updates)
-  // - Asset loading (Initialize/Load on all editors)
-  // - Session ID tracking (current_session_id_)
-  //
-  // INITIALIZATION ORDER (CRITICAL):
-  // 1. PopupManager - MUST be first, MenuOrchestrator/UICoordinator take ref to
-  // it
-  // 2. SessionCoordinator - Independent, can be early
-  // 3. MenuOrchestrator - Depends on PopupManager, SessionCoordinator
-  // 4. UICoordinator - Depends on PopupManager, SessionCoordinator
-  // 5. ShortcutConfigurator - Created in Initialize(), depends on all above
-  //
-  // If this order is violated, you will get SIGSEGV crashes when menu callbacks
-  // try to call popup_manager_.Show() with an uninitialized PopupManager!
-  // ============================================================================
+  InitializeSubsystems();
+  RegisterEditors();
+  SubscribeToEvents();
 
+  // STEP 5: ShortcutConfigurator created later in Initialize() method
+  // It depends on all above coordinators being available
+}
+
+void EditorManager::InitializeSubsystems() {
   // STEP 1: Initialize PopupManager FIRST
   popup_manager_ = std::make_unique<PopupManager>(this);
   popup_manager_->Initialize();  // Registers all popups with PopupID constants
@@ -266,69 +243,6 @@ EditorManager::EditorManager()
   session_coordinator_->SetEditorManager(this);
   session_coordinator_->SetEventBus(&event_bus_);  // Enable event publishing
   ContentRegistry::Context::SetEventBus(&event_bus_);  // Global event bus access
-
-  // Auto-register panels from ContentRegistry (Unified Panel System)
-  auto registry_panels = ContentRegistry::Panels::CreateAll();
-  for (auto& panel : registry_panels) {
-    panel_manager_.RegisterRegistryPanel(std::move(panel));
-  }
-
-  // Subscribe to session lifecycle events via EventBus
-  // (replaces SessionObserver pattern)
-  event_bus_.Subscribe<SessionSwitchedEvent>(
-      [this](const SessionSwitchedEvent& e) {
-        HandleSessionSwitched(e.new_index, e.session);
-      });
-
-  event_bus_.Subscribe<SessionCreatedEvent>(
-      [this](const SessionCreatedEvent& e) {
-        HandleSessionCreated(e.index, e.session);
-      });
-
-  event_bus_.Subscribe<SessionClosedEvent>(
-      [this](const SessionClosedEvent& e) { HandleSessionClosed(e.index); });
-
-  event_bus_.Subscribe<RomLoadedEvent>([this](const RomLoadedEvent& e) {
-    HandleSessionRomLoaded(e.session_id, e.rom);
-  });
-
-  // Subscribe to FrameGuiBeginEvent for ImGui-safe deferred action processing
-  // This replaces scattered manual processing calls with event-driven execution
-  event_bus_.Subscribe<FrameGuiBeginEvent>([this](const FrameGuiBeginEvent&) {
-    // Process LayoutCoordinator's deferred actions
-    layout_coordinator_.ProcessDeferredActions();
-
-    // Process EditorManager's deferred actions
-    if (!deferred_actions_.empty()) {
-      std::vector<std::function<void()>> actions_to_execute;
-      actions_to_execute.swap(deferred_actions_);
-      for (auto& action : actions_to_execute) {
-        action();
-      }
-    }
-  });
-
-  // Subscribe to UIActionRequestEvent for activity bar actions
-  // This replaces direct callbacks from PanelManager
-  event_bus_.Subscribe<UIActionRequestEvent>(
-      [this](const UIActionRequestEvent& e) {
-        HandleUIActionRequest(e.action);
-      });
-
-  event_bus_.Subscribe<PanelVisibilityChangedEvent>(
-      [this](const PanelVisibilityChangedEvent& e) {
-        if (e.category.empty() ||
-            e.category == PanelManager::kDashboardCategory) {
-          return;
-        }
-        auto& prefs = user_settings_.prefs();
-        prefs.panel_visibility_state[e.category][e.base_panel_id] = e.visible;
-        settings_dirty_ = true;
-        settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
-      });
-
-  // Wire up EventBus to PanelManager for action event publishing
-  panel_manager_.SetEventBus(&event_bus_);
 
   // STEP 4: Initialize UICoordinator (depends on popup_manager_,
   // session_coordinator_, panel_manager_)
@@ -437,8 +351,8 @@ EditorManager::EditorManager()
             current_project_.assets_folder = folder_path;
           }
           toast_manager_.Show(absl::StrFormat("%s folder set: %s", type.c_str(),
-                                              folder_path.c_str()),
-                              ToastType::kSuccess);
+                                               folder_path.c_str()),
+                               ToastType::kSuccess);
         }
       });
   right_panel_manager_->SetProjectManagementPanel(
@@ -489,6 +403,17 @@ EditorManager::EditorManager()
     }
   });
 
+  // Wire up EventBus to PanelManager for action event publishing
+  panel_manager_.SetEventBus(&event_bus_);
+}
+
+void EditorManager::RegisterEditors() {
+  // Auto-register panels from ContentRegistry (Unified Panel System)
+  auto registry_panels = ContentRegistry::Panels::CreateAll();
+  for (auto& panel : registry_panels) {
+    panel_manager_.RegisterRegistryPanel(std::move(panel));
+  }
+
   // STEP 4.8: Initialize DashboardPanel
   dashboard_panel_ = std::make_unique<DashboardPanel>(this);
   panel_manager_.RegisterPanel(
@@ -500,9 +425,62 @@ EditorManager::EditorManager()
        .shortcut_hint = "F1",
        .visibility_flag = dashboard_panel_->visibility_flag(),
        .priority = 0});
+}
 
-  // STEP 5: ShortcutConfigurator created later in Initialize() method
-  // It depends on all above coordinators being available
+void EditorManager::SubscribeToEvents() {
+  // Subscribe to session lifecycle events via EventBus
+  // (replaces SessionObserver pattern)
+  event_bus_.Subscribe<SessionSwitchedEvent>(
+      [this](const SessionSwitchedEvent& e) {
+        HandleSessionSwitched(e.new_index, e.session);
+      });
+
+  event_bus_.Subscribe<SessionCreatedEvent>(
+      [this](const SessionCreatedEvent& e) {
+        HandleSessionCreated(e.index, e.session);
+      });
+
+  event_bus_.Subscribe<SessionClosedEvent>(
+      [this](const SessionClosedEvent& e) { HandleSessionClosed(e.index); });
+
+  event_bus_.Subscribe<RomLoadedEvent>([this](const RomLoadedEvent& e) {
+    HandleSessionRomLoaded(e.session_id, e.rom);
+  });
+
+  // Subscribe to FrameGuiBeginEvent for ImGui-safe deferred action processing
+  // This replaces scattered manual processing calls with event-driven execution
+  event_bus_.Subscribe<FrameGuiBeginEvent>([this](const FrameGuiBeginEvent&) {
+    // Process LayoutCoordinator's deferred actions
+    layout_coordinator_.ProcessDeferredActions();
+
+    // Process EditorManager's deferred actions
+    if (!deferred_actions_.empty()) {
+      std::vector<std::function<void()>> actions_to_execute;
+      actions_to_execute.swap(deferred_actions_);
+      for (auto& action : actions_to_execute) {
+        action();
+      }
+    }
+  });
+
+  // Subscribe to UIActionRequestEvent for activity bar actions
+  // This replaces direct callbacks from PanelManager
+  event_bus_.Subscribe<UIActionRequestEvent>(
+      [this](const UIActionRequestEvent& e) {
+        HandleUIActionRequest(e.action);
+      });
+
+  event_bus_.Subscribe<PanelVisibilityChangedEvent>(
+      [this](const PanelVisibilityChangedEvent& e) {
+        if (e.category.empty() ||
+            e.category == PanelManager::kDashboardCategory) {
+          return;
+        }
+        auto& prefs = user_settings_.prefs();
+        prefs.panel_visibility_state[e.category][e.base_panel_id] = e.visible;
+        settings_dirty_ = true;
+        settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
+      });
 }
 
 EditorManager::~EditorManager() {
@@ -730,6 +708,38 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   // MenuOrchestrator This ensures all menu callbacks can safely call
   // popup_manager_.Show()
 
+  RegisterEmulatorPanels();
+  InitializeServices();
+  SetupComponentCallbacks();
+
+  // Apply sidebar state from settings AFTER registering callbacks
+  // This triggers the callbacks but they should be safe now
+  panel_manager_.SetSidebarVisible(user_settings_.prefs().sidebar_visible,
+                                   /*notify=*/false);
+  panel_manager_.SetPanelExpanded(
+      user_settings_.prefs().sidebar_panel_expanded, /*notify=*/false);
+  if (!user_settings_.prefs().sidebar_active_category.empty()) {
+    const std::string& category = user_settings_.prefs().sidebar_active_category;
+    panel_manager_.SetActiveCategory(category, /*notify=*/false);
+    SyncEditorContextForCategory(category);
+    auto it = user_settings_.prefs().panel_visibility_state.find(category);
+    if (it != user_settings_.prefs().panel_visibility_state.end()) {
+      panel_manager_.RestoreVisibilityState(panel_manager_.GetActiveSessionId(),
+                                            it->second);
+    }
+  }
+
+  // Initialize testing system only when tests are enabled
+#ifdef YAZE_ENABLE_TESTING
+  InitializeTestSuites();
+#endif
+
+  // TestManager will be updated when ROMs are loaded via SetCurrentRom calls
+
+  InitializeShortcutSystem();
+}
+
+void EditorManager::RegisterEmulatorPanels() {
   // Register emulator cards early (emulator Initialize might not be called)
   // Using PanelManager directly
   panel_manager_.RegisterPanel({.card_id = "emulator.cpu_debugger",
@@ -795,7 +805,9 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
                                 .icon = ICON_MD_MEMORY,
                                 .category = "Memory",
                                 .priority = 10});
+}
 
+void EditorManager::InitializeServices() {
   // Initialize project file editor
   project_file_editor_.SetToastManager(&toast_manager_);
 
@@ -820,13 +832,24 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
 
   panel_manager_.RestorePinnedState(user_settings_.prefs().pinned_panels);
 
+  // Apply font scale after loading
+  ImGui::GetIO().FontGlobalScale = user_settings_.prefs().font_global_scale;
+
   // Initialize WASM control and session APIs for browser/agent integration
 #ifdef __EMSCRIPTEN__
   app::platform::WasmControlApi::Initialize(this);
   app::platform::WasmSessionBridge::Initialize(this);
   LOG_INFO("EditorManager", "WASM Control and Session APIs initialized");
 #endif
+}
 
+void EditorManager::SetupComponentCallbacks() {
+  SetupDialogCallbacks();
+  SetupWelcomeScreenCallbacks();
+  SetupSidebarCallbacks();
+}
+
+void EditorManager::SetupDialogCallbacks() {
   // Initialize ROM load options dialog callbacks
   rom_load_options_dialog_.SetConfirmCallback(
       [this](const RomLoadOptionsDialog::LoadOptions& options) {
@@ -858,19 +881,18 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
         // Close dialog and show editor selection
         show_rom_load_options_ = false;
         if (ui_coordinator_) {
-          // dashboard_panel_->ClearRecentEditors();
           ui_coordinator_->SetEditorSelectionVisible(true);
         }
 
         LOG_INFO("EditorManager", "ROM load options applied: preset=%s",
                  options.selected_preset.c_str());
       });
+}
 
+void EditorManager::SetupWelcomeScreenCallbacks() {
   // Initialize welcome screen callbacks
   welcome_screen_.SetOpenRomCallback([this]() {
     status_ = LoadRom();
-    // LoadRom() already handles closing welcome screen and showing editor
-    // selection
   });
 
   welcome_screen_.SetNewProjectCallback([this]() {
@@ -883,7 +905,6 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
 
   welcome_screen_.SetNewProjectWithTemplateCallback(
       [this](const std::string& template_name) {
-        // Set the template for the ROM load options dialog
         status_ = CreateNewProject(template_name);
         if (status_.ok() && ui_coordinator_) {
           ui_coordinator_->SetWelcomeScreenVisible(false);
@@ -903,7 +924,6 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
 #ifdef YAZE_BUILD_AGENT_UI
     ShowAIAgent();
 #endif
-    // Keep welcome screen visible - user may want to do other things
   });
 
   welcome_screen_.SetOpenProjectDialogCallback([this]() {
@@ -930,26 +950,14 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
     ShowProjectFileEditor();
   });
 
-  // Initialize editor selection dialog callback
-  // editor_selection_dialog_.SetSelectionCallback([this](EditorType type) {
-  //   editor_selection_dialog_.MarkRecentlyUsed(type);
-  //   // Pass true for from_dialog so the dialog isn't automatically dismissed
-  //   SwitchToEditor(type, /*force_visible=*/false, /*from_dialog=*/true);
-  // });
-
-  // Load user settings - this must happen after context is initialized
-  // Apply font scale after loading
-  ImGui::GetIO().FontGlobalScale = user_settings_.prefs().font_global_scale;
-
   // Apply welcome screen preference
   if (ui_coordinator_ && !user_settings_.prefs().show_welcome_on_startup) {
     ui_coordinator_->SetWelcomeScreenVisible(false);
     ui_coordinator_->SetWelcomeScreenManuallyClosed(true);
   }
+}
 
-  // Defer workspace presets loading to avoid initialization crashes
-  // This will be called lazily when workspace features are accessed
-
+void EditorManager::SetupSidebarCallbacks() {
   // Set up sidebar utility icon callbacks
   panel_manager_.SetShowEmulatorCallback(
       [this]() { SwitchToEditor(EditorType::kEmulator, true); });
@@ -1005,7 +1013,6 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
 
   panel_manager_.SetShowShortcutsCallback([this]() {
     if (ui_coordinator_) {
-      // Shortcut configuration is part of Settings
       SwitchToEditor(EditorType::kSettings);
     }
   });
@@ -1022,8 +1029,6 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
     }
   });
 
-  // Set up sidebar state change callbacks for persistence
-  // IMPORTANT: Register callbacks BEFORE applying state to avoid triggering Save() during init
   panel_manager_.SetSidebarStateChangedCallback(
       [this](bool visible, bool expanded) {
         user_settings_.prefs().sidebar_visible = visible;
@@ -1059,17 +1064,13 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
 
   panel_manager_.SetOnPanelClickedCallback([this](const std::string& category) {
     EditorType type = EditorRegistry::GetEditorTypeFromCategory(category);
-    // Switch to the editor associated with this card's category
-    // This ensures clicking a card opens/focuses the parent editor
     if (type != EditorType::kSettings && type != EditorType::kUnknown) {
       SwitchToEditor(type, true);
     }
   });
 
-  // Handle Activity Bar category selection - dismisses dashboard
   panel_manager_.SetOnCategorySelectedCallback(
       [this](const std::string& category) {
-        // Transition startup surface to Editor state (dismisses dashboard)
         if (ui_coordinator_) {
           ui_coordinator_->SetStartupSurface(StartupSurface::kEditor);
         }
@@ -1087,46 +1088,20 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
         }
       });
 
-  // Enable file browser for Assembly category
   panel_manager_.EnableFileBrowser("Assembly");
 
-  // Set up file clicked callback to open files in Assembly editor
   panel_manager_.SetFileClickedCallback(
       [this](const std::string& category, const std::string& path) {
         if (category == "Assembly") {
-          // Open the file in the Assembly editor
           if (auto* editor_set = GetCurrentEditorSet()) {
             editor_set->GetAssemblyEditor()->ChangeActiveFile(path);
-            // Make sure Assembly editor is active
             SwitchToEditor(EditorType::kAssembly, true);
           }
         }
       });
+}
 
-  // Apply sidebar state from settings AFTER registering callbacks
-  // This triggers the callbacks but they should be safe now
-  panel_manager_.SetSidebarVisible(user_settings_.prefs().sidebar_visible,
-                                   /*notify=*/false);
-  panel_manager_.SetPanelExpanded(
-      user_settings_.prefs().sidebar_panel_expanded, /*notify=*/false);
-  if (!user_settings_.prefs().sidebar_active_category.empty()) {
-    const std::string& category = user_settings_.prefs().sidebar_active_category;
-    panel_manager_.SetActiveCategory(category, /*notify=*/false);
-    SyncEditorContextForCategory(category);
-    auto it = user_settings_.prefs().panel_visibility_state.find(category);
-    if (it != user_settings_.prefs().panel_visibility_state.end()) {
-      panel_manager_.RestoreVisibilityState(panel_manager_.GetActiveSessionId(),
-                                            it->second);
-    }
-  }
-
-  // Initialize testing system only when tests are enabled
-#ifdef YAZE_ENABLE_TESTING
-  InitializeTestSuites();
-#endif
-
-  // TestManager will be updated when ROMs are loaded via SetCurrentRom calls
-
+void EditorManager::InitializeShortcutSystem() {
   ShortcutDependencies shortcut_deps;
   shortcut_deps.editor_manager = this;
   shortcut_deps.editor_registry = &editor_registry_;
@@ -1570,15 +1545,23 @@ absl::Status EditorManager::EnsureEditorAssetsLoaded(EditorType type) {
  * components.
  */
 absl::Status EditorManager::Update() {
-  // NOTE: Deferred actions are now processed via FrameGuiBeginEvent subscription
-  // in the constructor. This ensures actions run at the start of each frame
-  // before controller processing, avoiding ImGui state modification issues.
+  ProcessInput();
+  UpdateEditorState();
+  DrawInterface();
 
+  return status_;
+}
+
+void EditorManager::ProcessInput() {
   // Update timing manager for accurate delta time across the application
-  // This fixes animation timing issues that occur when mouse isn't moving
-  // or window loses focus
   TimingManager::Get().Update();
 
+  // Execute keyboard shortcuts (registered via ShortcutConfigurator)
+  ExecuteShortcuts(shortcut_manager_);
+}
+
+void EditorManager::UpdateEditorState() {
+  status_ = absl::OkStatus();
   // Check for layout rebuild requests and execute if needed (delegated to LayoutCoordinator)
   bool is_emulator_visible =
       ui_coordinator_ && ui_coordinator_->IsEmulatorVisible();
@@ -1586,6 +1569,7 @@ absl::Status EditorManager::Update() {
       current_editor_ ? current_editor_->type() : EditorType::kUnknown;
   layout_coordinator_.ProcessLayoutRebuild(current_type, is_emulator_visible);
 
+  // Periodic user settings auto-save
   if (settings_dirty_) {
     const float elapsed = TimingManager::Get().GetElapsedTime();
     if (elapsed - settings_dirty_timestamp_ >= 1.0f) {
@@ -1598,9 +1582,60 @@ absl::Status EditorManager::Update() {
     }
   }
 
-  // Execute keyboard shortcuts (registered via ShortcutConfigurator)
-  ExecuteShortcuts(shortcut_manager_);
+  // Update agent editor dashboard
+  status_ = agent_ui_.Update();
 
+  // Ensure TestManager always has the current ROM
+  static Rom* last_test_rom = nullptr;
+  auto* current_rom = GetCurrentRom();
+  if (last_test_rom != current_rom) {
+    LOG_DEBUG(
+        "EditorManager",
+        "EditorManager::Update - ROM changed, updating TestManager: %p -> %p",
+        (void*)last_test_rom, (void*)current_rom);
+    test::TestManager::Get().SetCurrentRom(current_rom);
+    last_test_rom = current_rom;
+  }
+
+  // Autosave timer
+  if (user_settings_.prefs().autosave_enabled && current_rom &&
+      current_rom->dirty()) {
+    autosave_timer_ += ImGui::GetIO().DeltaTime;
+    if (autosave_timer_ >= user_settings_.prefs().autosave_interval) {
+      autosave_timer_ = 0.0f;
+      Rom::SaveSettings s;
+      s.backup = true;
+      s.save_new = false;
+      auto st = current_rom->SaveToFile(s);
+      if (st.ok()) {
+        toast_manager_.Show("Autosave completed", editor::ToastType::kSuccess);
+      } else {
+        toast_manager_.Show(std::string(st.message()),
+                            editor::ToastType::kError, 5.0f);
+      }
+    }
+  } else {
+    autosave_timer_ = 0.0f;
+  }
+
+  // Update ROM context for agent UI
+  if (current_rom && current_rom->is_loaded()) {
+    agent_ui_.SetRomContext(current_rom);
+    agent_ui_.SetProjectContext(&current_project_);
+    if (auto* editor_set = GetCurrentEditorSet()) {
+      agent_ui_.SetAsarWrapperContext(
+          editor_set->GetAssemblyEditor()->asar_wrapper());
+    }
+  }
+
+  // Delegate session updates to SessionCoordinator
+  if (session_coordinator_) {
+    session_coordinator_->UpdateSessions();
+  }
+}
+
+void EditorManager::DrawInterface() {
+  
   // Draw editor selection dialog (managed by UICoordinator)
   if (ui_coordinator_ && ui_coordinator_->IsEditorSelectionVisible()) {
     dashboard_panel_->Show();
@@ -1626,83 +1661,60 @@ absl::Status EditorManager::Update() {
     }
   }
 
-  // Update agent editor dashboard (chat drawn via RightPanelManager)
-  status_ = agent_ui_.Update();
-
-  // Draw background grid effects for the entire viewport
+  // Draw background grid effects
   if (ui_coordinator_) {
     ui_coordinator_->DrawBackground();
   }
 
-  // Ensure TestManager always has the current ROM
-  static Rom* last_test_rom = nullptr;
-  auto* current_rom = GetCurrentRom();
-  if (last_test_rom != current_rom) {
-    LOG_DEBUG(
-        "EditorManager",
-        "EditorManager::Update - ROM changed, updating TestManager: %p -> "
-        "%p",
-        (void*)last_test_rom, (void*)current_rom);
-    test::TestManager::Get().SetCurrentRom(current_rom);
-    last_test_rom = current_rom;
-  }
-
-  // CRITICAL: Draw UICoordinator UI components FIRST (before ROM checks)
-  // This ensures Welcome Screen, Command Palette, etc. work even without ROM
-  // loaded
+  // Draw UICoordinator UI components (Welcome Screen, Command Palette, etc.)
   if (ui_coordinator_) {
     ui_coordinator_->DrawAllUI();
   }
 
+  // Handle Welcome screen early-exit for rendering
   if (ui_coordinator_ && ui_coordinator_->ShouldShowWelcome()) {
     if (right_panel_manager_) {
       right_panel_manager_->ClosePanel();
     }
-    return absl::OkStatus();
+    return;
   }
 
-  // Get current editor set for sidebar/panel logic (needed before early return)
-  auto* current_editor_set = GetCurrentEditorSet();
+  DrawSecondaryWindows();
+  UpdateSystemUIs();
+  RunEmulator();
 
-  // Draw sidebar BEFORE early return so it appears even when no ROM is loaded
-  // This fixes the issue where sidebar/panel drawing was unreachable without ROM
+  // Draw sidebar
   if (ui_coordinator_ && ui_coordinator_->IsPanelSidebarVisible()) {
-    // Get ALL editor categories (static list, always shown)
     auto all_categories = EditorRegistry::GetAllEditorCategories();
-
-    // Track which editors are currently active (for visual highlighting)
     std::unordered_set<std::string> active_editor_categories;
 
-    if (current_editor_set && session_coordinator_) {
-      // ROM is loaded - collect active editors for highlighting
-      for (size_t session_idx = 0;
-           session_idx < session_coordinator_->GetTotalSessionCount();
-           ++session_idx) {
-        auto* session = static_cast<RomSession*>(
-            session_coordinator_->GetSession(session_idx));
-        if (!session || !session->rom.is_loaded()) {
-          continue;
-        }
+    if (auto* current_editor_set = GetCurrentEditorSet()) {
+      if (session_coordinator_) {
+        for (size_t session_idx = 0;
+             session_idx < session_coordinator_->GetTotalSessionCount();
+             ++session_idx) {
+          auto* session = static_cast<RomSession*>(
+              session_coordinator_->GetSession(session_idx));
+          if (!session || !session->rom.is_loaded()) {
+            continue;
+          }
 
-        for (auto* editor : session->editors.active_editors_) {
-          if (*editor->active() && IsPanelBasedEditor(editor->type())) {
-            std::string category =
-                EditorRegistry::GetEditorCategory(editor->type());
-            active_editor_categories.insert(category);
+          for (auto* editor : session->editors.active_editors_) {
+            if (*editor->active() && IsPanelBasedEditor(editor->type())) {
+              std::string category =
+                  EditorRegistry::GetEditorCategory(editor->type());
+              active_editor_categories.insert(category);
+            }
           }
         }
-      }
 
-      // Add Emulator to active categories when it's visible
-      if (ui_coordinator_->IsEmulatorVisible()) {
-        active_editor_categories.insert("Emulator");
+        if (ui_coordinator_->IsEmulatorVisible()) {
+          active_editor_categories.insert("Emulator");
+        }
       }
     }
 
-    // Determine which category to show in sidebar
     std::string sidebar_category = panel_manager_.GetActiveCategory();
-
-    // If no active category, default to first in list
     if (sidebar_category.empty() && !all_categories.empty()) {
       sidebar_category = all_categories[0];
       panel_manager_.SetActiveCategory(sidebar_category, /*notify=*/false);
@@ -1715,14 +1727,11 @@ absl::Status EditorManager::Update() {
       }
     }
 
-    // Callback to check if ROM is loaded (for category enabled state)
     auto has_rom_callback = [this]() -> bool {
       auto* rom = GetCurrentRom();
       return rom && rom->is_loaded();
     };
 
-    // Draw VSCode-style sidebar with ALL categories (highlighting active ones)
-    // Activity Bar is hidden until ROM is loaded (per startup flow design)
     if (activity_bar_ && ui_coordinator_->ShouldShowActivityBar()) {
       activity_bar_->Render(GetCurrentSessionId(), sidebar_category,
                             all_categories, active_editor_categories,
@@ -1730,7 +1739,7 @@ absl::Status EditorManager::Update() {
     }
   }
 
-  // Draw right panel BEFORE early return (agent chat, proposals, settings)
+  // Draw right panel
   if (right_panel_manager_) {
     right_panel_manager_->SetRom(GetCurrentRom());
     right_panel_manager_->Draw();
@@ -1742,6 +1751,7 @@ absl::Status EditorManager::Update() {
     status_bar_.SetSessionInfo(GetCurrentSessionId(),
                                session_coordinator_->GetActiveSessionCount());
   }
+  
   bool has_agent_info = false;
 #if defined(YAZE_BUILD_AGENT_UI)
   if (auto* agent_editor = agent_ui_.GetAgentEditor()) {
@@ -1760,74 +1770,20 @@ absl::Status EditorManager::Update() {
   }
   status_bar_.Draw();
 
-  // Autosave timer
-  if (user_settings_.prefs().autosave_enabled && current_rom &&
-      current_rom->dirty()) {
-    autosave_timer_ += ImGui::GetIO().DeltaTime;
-    if (autosave_timer_ >= user_settings_.prefs().autosave_interval) {
-      autosave_timer_ = 0.0f;
-      Rom::SaveSettings s;
-      s.backup = true;
-      s.save_new = false;
-      auto st = current_rom->SaveToFile(s);
-      if (st.ok()) {
-        toast_manager_.Show("Autosave completed", editor::ToastType::kSuccess);
-      } else {
-        toast_manager_.Show(std::string(st.message()),
-                            editor::ToastType::kError, 5.0f);
-      }
-    }
-  } else {
-    autosave_timer_ = 0.0f;
-  }
-
-  // Check if ROM is loaded before allowing editor updates
-  if (!current_editor_set) {
-    // No ROM loaded - welcome screen shown by UICoordinator above
-    // Sidebar and right panel have already been drawn above
+  // Check if ROM is loaded before drawing panels
+  auto* current_editor_set = GetCurrentEditorSet();
+  if (!current_editor_set || !GetCurrentRom()) {
     if (panel_manager_.GetActiveCategory() == "Agent") {
       panel_manager_.DrawAllVisiblePanels();
     }
-    return absl::OkStatus();
+    return;
   }
 
-  // Check if current ROM is valid
-  if (!current_rom) {
-    // No ROM loaded - welcome screen shown by UICoordinator above
-    if (panel_manager_.GetActiveCategory() == "Agent") {
-      panel_manager_.DrawAllVisiblePanels();
-    }
-    return absl::OkStatus();
-  }
-
-  // ROM is loaded and valid - don't auto-show welcome screen
-  // Welcome screen should only be shown manually at this point
-
-  // Delegate session updates to SessionCoordinator
-  if (session_coordinator_) {
-    session_coordinator_->UpdateSessions();
-  }
-
-  // Central panel drawing - once per frame for all EditorPanel instances
-  // This draws panels based on active category, respecting pinned and persistent panels
+  // Central panel drawing
   panel_manager_.DrawAllVisiblePanels();
 
   if (ui_coordinator_ && ui_coordinator_->IsPerformanceDashboardVisible()) {
     gfx::PerformanceDashboard::Get().Render();
-  }
-
-  // Proposal drawer is now drawn through RightPanelManager
-  // Removed duplicate direct call - DrawProposalsPanel() in RightPanelManager handles it
-
-  // Update ROM context for agent UI
-  if (current_rom && current_rom->is_loaded()) {
-    agent_ui_.SetRomContext(current_rom);
-    agent_ui_.SetProjectContext(&current_project_);
-    // Pass AsarWrapper instance from AssemblyEditor
-    if (auto* editor_set = GetCurrentEditorSet()) {
-      agent_ui_.SetAsarWrapperContext(
-          editor_set->GetAssemblyEditor()->asar_wrapper());
-    }
   }
 
   // Draw SessionCoordinator UI components
@@ -1836,55 +1792,28 @@ absl::Status EditorManager::Update() {
     session_coordinator_->DrawSessionManager();
     session_coordinator_->DrawSessionRenameDialog();
   }
-
-  return absl::OkStatus();
 }
 
-// DrawContextSensitivePanelControl removed - card control is now in the sidebar
-
-/**
- * @brief Draw the main menu bar
- *
- * DELEGATION:
- * - Menu items: MenuOrchestrator::BuildMainMenu()
- * - ROM selector: EditorManager::DrawRomSelector() (inline, needs current_rom_
- * access)
- * - Menu bar extras: UICoordinator::DrawMenuBarExtras() (session indicator,
- * version)
- *
- * Note: ROM selector stays in EditorManager because it needs direct access to
- * sessions_ and current_rom_ for the combo box. Could be extracted to
- * SessionCoordinator in future.
- */
-void EditorManager::DrawMenuBar() {
-  static bool show_display_settings = false;
-
+void EditorManager::DrawMainMenuBar() {
   if (ImGui::BeginMenuBar()) {
-    // Sidebar toggle - Activity Bar visibility
-    // Consistent button styling with other menubar buttons
+    // Consistent button styling for sidebar toggle
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
                           gui::GetSurfaceContainerHighVec4());
     ImGui::PushStyleColor(ImGuiCol_ButtonActive,
                           gui::GetSurfaceContainerHighestVec4());
 
-    // Highlight when active/visible
     if (panel_manager_.IsSidebarVisible()) {
       ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
     } else {
       ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
     }
 
-    // Show hamburger when sidebar is hidden (click to open)
-    // Show "menu open" icon when sidebar is visible (click to collapse)
-    if (ui_coordinator_ && ui_coordinator_->IsPanelSidebarVisible()) {
-      if (ImGui::SmallButton(ICON_MD_MENU_OPEN)) {
-        panel_manager_.ToggleSidebarVisibility();
-      }
-    } else {
-      if (ImGui::SmallButton(ICON_MD_MENU)) {
-        panel_manager_.ToggleSidebarVisibility();
-      }
+    const char* icon = (ui_coordinator_ && ui_coordinator_->IsPanelSidebarVisible())
+                           ? ICON_MD_MENU_OPEN
+                           : ICON_MD_MENU;
+    if (ImGui::SmallButton(icon)) {
+      panel_manager_.ToggleSidebarVisibility();
     }
 
     ImGui::PopStyleColor(4);
@@ -1901,40 +1830,34 @@ void EditorManager::DrawMenuBar() {
       menu_orchestrator_->BuildMainMenu();
     }
 
-    // Delegate menu bar extras to UICoordinator (status cluster on right)
+    // Delegate menu bar extras to UICoordinator
     if (ui_coordinator_) {
       ui_coordinator_->DrawMenuBarExtras();
     }
 
     ImGui::EndMenuBar();
   }
+}
 
-  if (show_display_settings) {
-    // Use the popup manager instead of a separate window
-    popup_manager_->Show(PopupID::kDisplaySettings);
-    show_display_settings = false;  // Close the old-style window
-  }
+void EditorManager::DrawSecondaryWindows() {
 
-  // ImGui debug windows (delegated to UICoordinator for visibility state)
-  if (ui_coordinator_ && ui_coordinator_->IsImGuiDemoVisible()) {
-    bool visible = true;
-    ImGui::ShowDemoWindow(&visible);
-    if (!visible) {
-      ui_coordinator_->SetImGuiDemoVisible(false);
+  // ImGui debug windows
+  if (ui_coordinator_) {
+    if (ui_coordinator_->IsImGuiDemoVisible()) {
+      bool visible = true;
+      ImGui::ShowDemoWindow(&visible);
+      if (!visible) ui_coordinator_->SetImGuiDemoVisible(false);
+    }
+
+    if (ui_coordinator_->IsImGuiMetricsVisible()) {
+      bool visible = true;
+      ImGui::ShowMetricsWindow(&visible);
+      if (!visible) ui_coordinator_->SetImGuiMetricsVisible(false);
     }
   }
 
-  if (ui_coordinator_ && ui_coordinator_->IsImGuiMetricsVisible()) {
-    bool visible = true;
-    ImGui::ShowMetricsWindow(&visible);
-    if (!visible) {
-      ui_coordinator_->SetImGuiMetricsVisible(false);
-    }
-  }
-
-  // Using PanelManager directly
+  // Legacy window-based editors
   if (auto* editor_set = GetCurrentEditorSet()) {
-    // Pass the actual visibility flag pointer so the X button works
     bool* hex_visibility =
         panel_manager_.GetVisibilityFlag("memory.hex_editor");
     if (hex_visibility && *hex_visibility) {
@@ -1944,14 +1867,13 @@ void EditorManager::DrawMenuBar() {
     if (ui_coordinator_ && ui_coordinator_->IsAsmEditorVisible()) {
       bool visible = true;
       editor_set->GetAssemblyEditor()->Update(visible);
-      if (!visible) {
-        ui_coordinator_->SetAsmEditorVisible(false);
-      }
+      if (!visible) ui_coordinator_->SetAsmEditorVisible(false);
     }
   }
 
-  // Project file editor
+  // Project and performance tools
   project_file_editor_.Draw();
+  
   if (ui_coordinator_ && ui_coordinator_->IsPerformanceDashboardVisible()) {
     gfx::PerformanceDashboard::Get().SetVisible(true);
     gfx::PerformanceDashboard::Get().Update();
@@ -1961,48 +1883,22 @@ void EditorManager::DrawMenuBar() {
     }
   }
 
-  // Testing interface (only when tests are enabled)
 #ifdef YAZE_ENABLE_TESTING
   if (show_test_dashboard_) {
-    auto& test_manager = test::TestManager::Get();
-    test_manager.UpdateResourceStats();  // Update monitoring data
-    test_manager.DrawTestDashboard(&show_test_dashboard_);
+    test::TestManager::Get().UpdateResourceStats();
+    test::TestManager::Get().DrawTestDashboard(&show_test_dashboard_);
   }
 #endif
+}
 
-  // Update proposal drawer ROM context (drawing handled by RightPanelManager)
+void EditorManager::UpdateSystemUIs() {
+  // Update proposal drawer context
   proposal_drawer_.SetRom(GetCurrentRom());
 
-  // Agent chat history popup (left side)
+  // Agent UI popups
   agent_ui_.DrawPopups();
 
-  // Welcome screen is now drawn by UICoordinator::DrawAllUI()
-  // Removed duplicate call to avoid showing welcome screen twice
-
-  // Emulator handling - run with UI when visible, or headless when running in background
-  if (auto* current_rom = GetCurrentRom()) {
-    if (ui_coordinator_ && ui_coordinator_->IsEmulatorVisible()) {
-      // Full emulator with UI
-      emulator_.Run(current_rom);
-    } else if (emulator_.running() && emulator_.is_snes_initialized()) {
-      // Emulator running in background (e.g., for music editor playback)
-      // Use audio-focused mode when available for lower overhead and authentic sound
-      if (emulator_.is_audio_focus_mode()) {
-        emulator_.RunAudioFrame();
-      } else {
-        emulator_.RunFrameOnly();
-      }
-    }
-  }
-
-  // Enhanced Global Search UI (managed by UICoordinator)
-  // No longer here - handled by ui_coordinator_->DrawAllUI()
-
-  // NOTE: Editor updates are handled by SessionCoordinator::UpdateSessions()
-  // which is called in EditorManager::Update(). Removed duplicate update loop
-  // here that was causing EditorPanel::Begin() to be called twice per frame,
-  // resulting in duplicate rendering detection logs.
-
+  // Resource label management
   if (ui_coordinator_ && ui_coordinator_->IsResourceLabelManagerVisible() &&
       GetCurrentRom()) {
     bool visible = true;
@@ -2012,17 +1908,26 @@ void EditorManager::DrawMenuBar() {
       current_project_.labels_filename =
           GetCurrentRom()->resource_label()->filename_;
     }
-    if (!visible) {
-      ui_coordinator_->SetResourceLabelManagerVisible(false);
-    }
+    if (!visible) ui_coordinator_->SetResourceLabelManagerVisible(false);
   }
 
-  // Workspace preset dialogs are now in UICoordinator
-
-  // Layout presets UI (session dialogs are drawn by SessionCoordinator at lines
-  // 907-915)
+  // Layout presets
   if (ui_coordinator_) {
     ui_coordinator_->DrawLayoutPresets();
+  }
+}
+
+void EditorManager::RunEmulator() {
+  if (auto* current_rom = GetCurrentRom()) {
+    if (ui_coordinator_ && ui_coordinator_->IsEmulatorVisible()) {
+      emulator_.Run(current_rom);
+    } else if (emulator_.running() && emulator_.is_snes_initialized()) {
+      if (emulator_.is_audio_focus_mode()) {
+        emulator_.RunAudioFrame();
+      } else {
+        emulator_.RunFrameOnly();
+      }
+    }
   }
 }
 

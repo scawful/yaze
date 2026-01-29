@@ -4,6 +4,7 @@
 #include <sstream>
 
 #include "absl/strings/str_cat.h"
+#include "util/log.h"
 
 namespace yaze {
 
@@ -24,12 +25,24 @@ void GraphicsLoadDiagnostics::Analyze() {
     }
   }
 
-  // Check for header misalignment
-  // If pointer tables point to 0 or weird locations, it might be misalignment
-  // A simple heuristic: if sheet 0 offset is > rom_size, it's definitely broken.
   if (sheets[0].pc_offset > rom_size) {
       header_misalignment = true;
   }
+
+  if (size_zero_regression) {
+      LOG_ERROR("Graphics", "CRITICAL: Graphics size zero regression detected!");
+  }
+  if (header_misalignment) {
+      LOG_ERROR("Graphics", "CRITICAL: Graphics header misalignment detected! (Sheet 0 offset 0x%X > ROM size 0x%X)", 
+                sheets[0].pc_offset, (uint32_t)rom_size);
+  }
+  if (all_sheets_0xFF) {
+      LOG_WARN("Graphics", "WARNING: All graphics sheets appear to be empty (0xFF).");
+  }
+
+  LOG_INFO("Graphics", "Diagnostics: %d sheets processed, size_zero_fault=%s, alignment_fault=%s, empty_fault=%s",
+           (int)sheets.size(), size_zero_regression ? "YES" : "NO", 
+           header_misalignment ? "YES" : "NO", all_sheets_0xFF ? "YES" : "NO");
 }
 
 std::string GraphicsLoadDiagnostics::ToJson() const {

@@ -10,6 +10,8 @@ High-level release summary. For detailed notes, see
 - gRPC stability: SNES Read/Write, auto-init for SaveState/LoadState, Null audio fallback.
 - Build/packaging: public headers moved to `inc/`, ccache setup in agent scripts.
 
-## 0.5.5 (Planned)
-- AI registry UI/CLI parity for provider/model discovery.
-- Model context presets and safe caching controls for agent workflows.
+## 0.5.5 (January 28, 2026)
+- EditorManager refactored for better testability and architecture.
+- New test suites: `EditorManagerTest` and `AsarCompilerTest`.
+- Robust graphics sheet loading with grayscale fallback.
+- Build system improvements: `yaze_core_lib` added, main entry point cleaned up.

@@ -35,6 +35,7 @@ if(YAZE_BUILD_TESTS)
       yaze_editor
       yaze_emulator
       yaze_emulator_ui
+      yaze_core_lib
     )
 
     # Linux static linking needs a rescan to resolve yaze_test_support/editor
@@ -144,6 +145,8 @@ if(YAZE_BUILD_TESTS)
     unit/gui/canvas_automation_api_test.cc
     unit/editor/message/message_data_test.cc
     unit/editor/panel_system_test.cc
+    unit/editor/editor_manager_test.cc
+    unit/core/asar_compiler_test.cc
     unit/zelda3/overworld_test.cc
     unit/zelda3/overworld_regression_test.cc
     unit/zelda3/overworld_version_helper_test.cc

@@ -20,26 +20,26 @@ constexpr int kTilesheetDepth = 8;
 constexpr uint8_t kGraphicsBitmap[8] = {0x80, 0x40, 0x20, 0x10,
                                         0x08, 0x04, 0x02, 0x01};
 
-std::vector<uint8_t> SnesTo8bppSheet(std::span<uint8_t> sheet, int bpp,
+std::vector<uint8_t> SnesTo8bppSheet(std::span<const uint8_t> sheet, int bpp,
                                      int num_sheets = 1);
 std::vector<uint8_t> IndexedToSnesSheet(std::span<const uint8_t> sheet,
                                         int bpp, int num_sheets = 1);
 std::vector<uint8_t> Bpp8SnesToIndexed(std::vector<uint8_t> data,
                                        uint64_t bpp = 0);
 
-snes_tile8 UnpackBppTile(std::span<uint8_t> data, const uint32_t offset,
+snes_tile8 UnpackBppTile(std::span<const uint8_t> data, const uint32_t offset,
                          const uint32_t bpp);
 
 std::vector<uint8_t> PackBppTile(const snes_tile8& tile, const uint32_t bpp);
 
-std::vector<uint8_t> ConvertBpp(std::span<uint8_t> tiles, uint32_t from_bpp,
+std::vector<uint8_t> ConvertBpp(std::span<const uint8_t> tiles, uint32_t from_bpp,
                                 uint32_t to_bpp);
 
 void CopyTile8bpp16(int x, int y, int tile, std::vector<uint8_t>& bitmap,
                     std::vector<uint8_t>& blockset);
 
 std::vector<uint8_t> LoadSNES4bppGFXToIndexedColorMatrix(
-    std::span<uint8_t> src);
+    std::span<const uint8_t> src);
 
 /**
  * @brief SNES 16-bit tile metadata container
