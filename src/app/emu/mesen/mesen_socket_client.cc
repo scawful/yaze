@@ -1,11 +1,21 @@
 #include "app/emu/mesen/mesen_socket_client.h"
 
-#include <dirent.h>
+#include <filesystem>
 #include <fcntl.h>
-#include <sys/socket.h>
 #include <sys/stat.h>
+
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <afunix.h>
+#define close closesocket
+// unistd.h not available on Windows
+#else
+#include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
+// dirent.h replaced by std::filesystem
+#endif
 
 #include <cstdlib>
 
@@ -242,24 +252,37 @@ std::vector<std::string> MesenSocketClient::FindSocketPaths() {
   const char* env_path = std::getenv("MESEN2_SOCKET_PATH");
   if (env_path && env_path[0] != '\0') {
     struct stat st;
-    if (stat(env_path, &st) == 0 && S_ISSOCK(st.st_mode)) {
+    if (stat(env_path, &st) == 0 && (st.st_mode & S_IFMT) == S_IFSOCK) {
       return {std::string(env_path)};
     }
   }
 
   std::vector<std::string> paths;
+  namespace fs = std::filesystem;
+  std::vector<fs::path> search_paths;
 
-  DIR* dir = opendir("/tmp");
-  if (!dir) return paths;
+#ifdef _WIN32
+  search_paths.push_back(fs::temp_directory_path());
+#else
+  search_paths.push_back("/tmp");
+#endif
 
   std::regex socket_pattern("mesen2-\\d+\\.sock");
-  struct dirent* entry;
-  while ((entry = readdir(dir)) != nullptr) {
-    if (std::regex_match(entry->d_name, socket_pattern)) {
-      paths.push_back(std::string("/tmp/") + entry->d_name);
+
+  for (const auto& search_path : search_paths) {
+    std::error_code ec;
+    if (!fs::exists(search_path, ec)) continue;
+
+    for (const auto& entry : fs::directory_iterator(search_path, ec)) {
+        if (ec) break;
+        // On Windows, checking is_socket might be unreliable or not supported for AF_UNIX files,
+        // so we mainly rely on the filename pattern.
+        std::string filename = entry.path().filename().string();
+        if (std::regex_match(filename, socket_pattern)) {
+            paths.push_back(entry.path().string());
+        }
     }
   }
-  closedir(dir);
 
   return paths;
 }
@@ -286,7 +309,7 @@ absl::StatusOr<std::string> MesenSocketClient::SendCommand(
   struct timeval tv;
   tv.tv_sec = 5;
   tv.tv_usec = 0;
-  setsockopt(socket_fd_, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+  setsockopt(socket_fd_, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv));
 
   std::string response;
   char buffer[4096];
@@ -294,7 +317,12 @@ absl::StatusOr<std::string> MesenSocketClient::SendCommand(
   while (true) {
     ssize_t received = recv(socket_fd_, buffer, sizeof(buffer), 0);
     if (received < 0) {
+#ifdef _WIN32
+      int err = WSAGetLastError();
+      if (err == WSAEWOULDBLOCK || err == WSAETIMEDOUT) {
+#else
       if (errno == EAGAIN || errno == EWOULDBLOCK) {
+#endif
         if (response.empty()) {
           return absl::DeadlineExceededError("Timeout waiting for response");
         }
