@@ -200,10 +200,23 @@ absl::Status OracleStateLibraryPanel::LoadState(const std::string& state_id) {
 
   // Use the Python CLI to load the state (supports path-based loading)
   const char* home = std::getenv("HOME");
+  std::string socket_arg;
+  if (client_ && client_->IsConnected()) {
+    std::string path = client_->GetSocketPath();
+    std::string escaped;
+    escaped.reserve(path.size() + 2);
+    escaped += '"';
+    for (char c : path) {
+      if (c == '\\' || c == '"') escaped += '\\';
+      escaped += c;
+    }
+    escaped += '"';
+    socket_arg = " --socket " + escaped;
+  }
   std::string cmd = absl::StrFormat(
-      "python3 %s/src/hobby/oracle-of-secrets/scripts/mesen2_client.py "
+      "python3 %s/src/hobby/oracle-of-secrets/scripts/mesen2_client.py%s "
       "lib-load %s 2>&1",
-      home ? home : "", state_id.c_str());
+      home ? home : "", socket_arg, state_id.c_str());
 
   FILE* pipe = popen(cmd.c_str(), "r");
   if (!pipe) {
