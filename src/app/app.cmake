@@ -7,7 +7,7 @@
 # ==============================================================================
 
 # Always create the application core library (needed by yaze_agent)
-include(app/app_core.cmake)
+# include(app/app_core.cmake) # Moved to src/CMakeLists.txt to resolve dependency cycles
 
 # Only build GUI executable when explicitly requested
 if(NOT YAZE_BUILD_GUI)
@@ -115,7 +115,10 @@ endif()
 
 # Link test support library (yaze_editor needs TestManager)
 if(TARGET yaze_test_support)
-  target_link_libraries(yaze PRIVATE yaze_test_support)
+  # Link yaze_test_support
+  # Note: Also link yaze_editor and yaze_agent again to resolve circular dependencies
+  # between editor/agent/test_support in static builds
+  target_link_libraries(yaze PRIVATE yaze_test_support yaze_editor yaze_agent)
   message(STATUS "✓ yaze executable linked to yaze_test_support")
 else()
   message(WARNING "yaze needs yaze_test_support but TARGET not found")

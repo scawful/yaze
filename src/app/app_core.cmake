@@ -22,10 +22,8 @@ set(
 )
 
 if(YAZE_ENABLE_GRPC)
-  list(APPEND YAZE_APP_CORE_SRC
-    app/emu/internal_emulator_adapter.cc
-    app/emu/mesen/mesen_emulator_adapter.cc
-  )
+  # Adapter implementations moved to yaze_emulator to avoid circular dependencies
+  # (yaze_app_core_lib -> yaze_emulator -> yaze_app_core_lib)
 endif()
 
 if(YAZE_PLATFORM_IOS)
