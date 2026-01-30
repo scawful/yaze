@@ -120,6 +120,10 @@ if(TARGET yaze_test_support)
   # between editor/agent/test_support in static builds.
   # Using link groups for Linux/GNU to ensure circular deps are resolved.
   if(UNIX AND NOT APPLE)
+    # Force whole-archive for test support to ensure TestManager is available to editor
+    target_link_options(yaze PRIVATE
+      "-Wl,--whole-archive" "$<TARGET_LINKER_FILE:yaze_test_support>" "-Wl,--no-whole-archive"
+    )
     target_link_libraries(yaze PRIVATE "-Wl,--start-group" yaze_test_support yaze_editor yaze_agent "-Wl,--end-group")
   else()
     target_link_libraries(yaze PRIVATE yaze_test_support yaze_editor yaze_agent)

@@ -3,8 +3,11 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <sys/un.h>
 #include <unistd.h>
+
+#include <cstdlib>
 
 #include <cerrno>
 #include <cstring>
@@ -236,6 +239,14 @@ void MesenSocketClient::Disconnect() {
 bool MesenSocketClient::IsConnected() const { return connected_; }
 
 std::vector<std::string> MesenSocketClient::FindSocketPaths() {
+  const char* env_path = std::getenv("MESEN2_SOCKET_PATH");
+  if (env_path && env_path[0] != '\0') {
+    struct stat st;
+    if (stat(env_path, &st) == 0 && S_ISSOCK(st.st_mode)) {
+      return {std::string(env_path)};
+    }
+  }
+
   std::vector<std::string> paths;
 
   DIR* dir = opendir("/tmp");

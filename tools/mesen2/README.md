@@ -40,7 +40,11 @@ The script currently attempts to connect to `yaze`. Future updates will allow li
 *   PC syncing (click in `yaze` assembly view to move Mesen PC).
 *   Watchpoints.
 
-## 3. Recommended Mesen 2 Settings
+## 3. Socket targeting (Mesen2-OoS fork)
+
+When multiple Mesen2 instances are running, set `MESEN2_SOCKET_PATH` to the desired socket (e.g. `/tmp/mesen2-12345.sock`). The yaze C++ Mesen client, CLI (`--mesen_socket` or env), and Oracle state library panel (when loading states) all respect this so the same instance is used.
+
+## 4. Recommended Mesen 2 Settings
 
 *   **Debugger > Options > Auto-load .mlb files**: Enabled.
 *   **Debugger > Options > Allow 24-bit addresses in symbols**: Enabled (for SNES HiROM/ExHiROM).
