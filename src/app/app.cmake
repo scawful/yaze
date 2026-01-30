@@ -117,8 +117,13 @@ endif()
 if(TARGET yaze_test_support)
   # Link yaze_test_support
   # Note: Also link yaze_editor and yaze_agent again to resolve circular dependencies
-  # between editor/agent/test_support in static builds
-  target_link_libraries(yaze PRIVATE yaze_test_support yaze_editor yaze_agent)
+  # between editor/agent/test_support in static builds.
+  # Using link groups for Linux/GNU to ensure circular deps are resolved.
+  if(UNIX AND NOT APPLE)
+    target_link_libraries(yaze PRIVATE "-Wl,--start-group" yaze_test_support yaze_editor yaze_agent "-Wl,--end-group")
+  else()
+    target_link_libraries(yaze PRIVATE yaze_test_support yaze_editor yaze_agent)
+  endif()
   message(STATUS "✓ yaze executable linked to yaze_test_support")
 else()
   message(WARNING "yaze needs yaze_test_support but TARGET not found")
