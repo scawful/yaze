@@ -58,6 +58,7 @@ target_include_directories(yaze_grpc_support PUBLIC
 target_link_libraries(yaze_grpc_support PUBLIC
   yaze_util
   yaze_common
+  yaze_emulator
   ${ABSL_TARGETS}
   ${YAZE_SDL2_TARGETS}
 )
