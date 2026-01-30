@@ -85,6 +85,7 @@ Located in `scripts/ai/`, these tools integrate with Mesen2-OOS for Oracle of Se
 **Dependencies:**
 - Requires `mesen2_client_lib` from Oracle: `~/src/hobby/oracle-of-secrets/scripts/`
 - Requires `z3ed` binary for symbol resolution: `build_ai/bin/Debug/z3ed`
+- When multiple Mesen2 instances exist (or for headless/CI), set `MESEN2_SOCKET_PATH` so the yaze C++ client, CLI (`--mesen_socket` fallback), and AI scripts all target the same instance.
 
 **Quick Start:**
 ```bash
@@ -96,6 +97,14 @@ python3 scripts/ai/profiler.py --duration 10
 ```
 
 **Full Documentation:** `~/src/hobby/oracle-of-secrets/Docs/Tooling/Debugging_Tools_Index.md`
+
+## Cross-Project Integration
+
+| Project | Path | Relationship |
+|---------|------|-------------|
+| **oracle-of-secrets** | `~/src/hobby/oracle-of-secrets/` | Primary debugging target. AI scripts use its `mesen2_client_lib` |
+| **mesen2-oos** | `~/src/hobby/mesen2-oos/` | Emulator fork. Socket API at `/tmp/mesen2-*.sock` via `MESEN2_SOCKET_PATH` |
+| **z3dk** | `~/src/hobby/z3dk/` | `scripts/ai/asm_tuner.py` uses z3asm for syntax validation. libz3dk planned for embedded assembly |
 
 ## Docs
 

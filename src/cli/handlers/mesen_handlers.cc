@@ -1,6 +1,7 @@
 #include "cli/handlers/mesen_handlers.h"
 
 #include <cctype>
+#include <cstdlib>
 #include <sstream>
 
 #include "absl/flags/declare.h"
@@ -21,6 +22,12 @@ namespace {
   auto client = emu::mesen::MesenClientRegistry::GetOrCreate();
   if (!client->IsConnected()) {
     std::string socket_path = ::absl::GetFlag(FLAGS_mesen_socket);
+    if (socket_path.empty()) {
+      const char* env_path = std::getenv("MESEN2_SOCKET_PATH");
+      if (env_path && env_path[0] != '\0') {
+        socket_path = env_path;
+      }
+    }
     auto status = socket_path.empty() ? client->Connect()
                                       : client->Connect(socket_path);
     if (!status.ok()) {
