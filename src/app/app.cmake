@@ -229,6 +229,7 @@ if(YAZE_BUILD_TESTS)
   add_executable(yaze_test app/test/main_test.cc)
   target_link_libraries(yaze_test PRIVATE
     yaze_test_support
+    yaze_editor
     yaze_app_core_lib
     yaze_core_lib
     yaze_zelda3
