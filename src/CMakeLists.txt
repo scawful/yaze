@@ -100,6 +100,23 @@ include(app/net/net_library.cmake)
 include(app/gui/gui_library.cmake)
 # NOTE: app/core/core_library.cmake merged into app/app.cmake
 
+# Define core application library early (needed by agent)
+include(app/app_core.cmake)
+
+# Include gRPC support library (consolidates all protobuf/gRPC usage)
+if(YAZE_ENABLE_REMOTE_AUTOMATION)
+  include(app/service/grpc_support.cmake)
+endif()
+
+if(YAZE_BUILD_GUI OR YAZE_BUILD_Z3ED OR YAZE_BUILD_TESTS OR YAZE_BUILD_CLI)
+  include(cli/cli_core.cmake)
+endif()
+
+# Include agent before test support (test support depends on agent)
+if(YAZE_BUILD_GUI OR YAZE_BUILD_Z3ED OR YAZE_BUILD_TESTS)
+  include(cli/agent.cmake)
+endif()
+
 # Include test support library BEFORE yaze_editor so it can link against it
 # (yaze_editor needs TestManager for editor features)
 # Test executables are only built when YAZE_BUILD_TESTS=ON (handled in test/CMakeLists.txt)
@@ -107,24 +124,11 @@ if(YAZE_BUILD_TESTS OR NOT YAZE_MINIMAL_BUILD)
   include(app/test/test.cmake)
 endif()
 
-# Include gRPC support library (consolidates all protobuf/gRPC usage)
-if(YAZE_ENABLE_REMOTE_AUTOMATION)
-  include(app/service/grpc_support.cmake)
-endif()
-
 # Include agent/CLI components (needed by yaze_editor for agent features)
 # NOTE: yaze_agent depends on yaze_app_core_lib, so we must include app.cmake
 # BEFORE cli/agent.cmake when building agent features
 if(YAZE_BUILD_GUI OR YAZE_BUILD_Z3ED OR YAZE_BUILD_TESTS OR YAZE_BUILD_LAB OR YAZE_PLATFORM_IOS)
   include(app/app.cmake)
-endif()
-
-if(YAZE_BUILD_GUI OR YAZE_BUILD_Z3ED OR YAZE_BUILD_TESTS OR YAZE_BUILD_CLI)
-  include(cli/cli_core.cmake)
-endif()
-
-if(YAZE_BUILD_GUI OR YAZE_BUILD_Z3ED OR YAZE_BUILD_TESTS)
-  include(cli/agent.cmake)
 endif()
 
 if(YAZE_ENABLE_AGENT_CLI AND (YAZE_BUILD_CLI OR YAZE_BUILD_Z3ED))
