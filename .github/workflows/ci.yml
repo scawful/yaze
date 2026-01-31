@@ -372,7 +372,7 @@ jobs:
       run: |
         cmake -B build_test -G Ninja \
           -DCMAKE_BUILD_TYPE=Release \
-          -DZ3ED_AI=ON \
+          -DYAZE_ENABLE_AI=ON \
           -DYAZE_BUILD_Z3ED=ON \
           -DYAZE_ENABLE_AI_RUNTIME=ON \
           -DYAZE_ENABLE_GRPC=ON \
