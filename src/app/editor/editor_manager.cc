@@ -2321,6 +2321,10 @@ absl::Status EditorManager::SaveRom() {
         *current_rom, current_editor_set->GetScreenEditor()->dungeon_maps_));
   }
 
+  // Persist dungeon room objects, sprites, door pointers, and palettes when
+  // saving ROM (matches ZScreamDungeon behavior so "Save ROM" keeps dungeon edits).
+  RETURN_IF_ERROR(current_editor_set->GetDungeonEditor()->Save());
+
   RETURN_IF_ERROR(current_editor_set->GetOverworldEditor()->Save());
 
   if (core::FeatureFlags::get().kSaveGraphicsSheet)

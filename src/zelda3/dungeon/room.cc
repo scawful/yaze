@@ -302,7 +302,11 @@ Room LoadRoomHeaderFromRom(Rom* rom, int room_id) {
                   (rom->data()[table_offset_2 + 1] << 8) +
                   rom->data()[table_offset_2];
 
-  room.SetMessageIdDirect(messages_id_dungeon + (room_id * 2));
+  int msg_addr = messages_id_dungeon + (room_id * 2);
+  if (msg_addr >= 0 && msg_addr + 1 < static_cast<int>(rom->size())) {
+    uint16_t msg_val = (rom->data()[msg_addr + 1] << 8) | rom->data()[msg_addr];
+    room.SetMessageId(msg_val);
+  }
 
   auto hpos = SnesToPc(address_2);
 
@@ -1342,6 +1346,15 @@ std::vector<uint8_t> Room::EncodeObjects() const {
   bytes.push_back(0xFF);
   bytes.push_back(0xFF);
 
+  // ASM marker 0xF0 0xFF - start of door list (per ZScreamDungeon / RoomDraw_DoorObject)
+  bytes.push_back(0xF0);
+  bytes.push_back(0xFF);
+  for (const auto& door : doors_) {
+    auto [b1, b2] = door.EncodeBytes();
+    bytes.push_back(b1);
+    bytes.push_back(b2);
+  }
+
   return bytes;
 }
 
@@ -1425,8 +1438,19 @@ absl::Status Room::SaveObjects() {
         encoded_bytes.size(), available_size - 2));
   }
 
-  // Write encoded bytes to ROM using WriteVector
-  return rom_->WriteVector(write_pos, encoded_bytes);
+  // Write encoded bytes to ROM (includes 0xF0 0xFF + door list)
+  RETURN_IF_ERROR(rom_->WriteVector(write_pos, encoded_bytes));
+
+  // Write door pointer: first byte after 0xF0 0xFF (per ZScreamDungeon Save.cs)
+  const int door_list_offset =
+      static_cast<int>(encoded_bytes.size()) -
+      static_cast<int>(doors_.size()) * 2;
+  const int door_pointer_pc = write_pos + door_list_offset;
+  RETURN_IF_ERROR(rom_->WriteLong(
+      doorPointers + (room_id_ * 3),
+      static_cast<uint32_t>(PcToSnes(door_pointer_pc))));
+
+  return absl::OkStatus();
 }
 
 absl::Status Room::SaveSprites() {
@@ -1505,6 +1529,75 @@ absl::Status Room::SaveSprites() {
   }
 
   return rom_->WriteVector(sprite_address, encoded_bytes);
+}
+
+absl::Status Room::SaveRoomHeader() {
+  if (rom_ == nullptr) {
+    return absl::InvalidArgumentError("ROM pointer is null");
+  }
+
+  const auto& rom_data = rom()->vector();
+  if (kRoomHeaderPointer < 0 ||
+      kRoomHeaderPointer + 2 >= static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError("Room header pointer out of range");
+  }
+  if (kRoomHeaderPointerBank < 0 ||
+      kRoomHeaderPointerBank >= static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError("Room header pointer bank out of range");
+  }
+
+  int header_pointer = (rom_data[kRoomHeaderPointer + 2] << 16) +
+                       (rom_data[kRoomHeaderPointer + 1] << 8) +
+                       rom_data[kRoomHeaderPointer];
+  header_pointer = SnesToPc(header_pointer);
+
+  int table_offset = header_pointer + (room_id_ * 2);
+  if (table_offset < 0 || table_offset + 1 >= static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError("Room header table offset out of range");
+  }
+
+  int address = (rom_data[kRoomHeaderPointerBank] << 16) +
+                (rom_data[table_offset + 1] << 8) + rom_data[table_offset];
+  int header_location = SnesToPc(address);
+
+  if (header_location < 0 ||
+      header_location + 13 >= static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError("Room header location out of range");
+  }
+
+  // Build 14-byte header to match LoadRoomHeaderFromRom layout
+  uint8_t byte0 = (static_cast<uint8_t>(bg2()) << 5) |
+                  (static_cast<uint8_t>(collision()) << 2) |
+                  (IsLight() ? 1 : 0);
+  uint8_t byte1 = palette & 0x3F;
+  uint8_t byte7 = (staircase_plane(0) << 2) | (staircase_plane(1) << 4) |
+                  (staircase_plane(2) << 6);
+
+  RETURN_IF_ERROR(rom_->WriteByte(header_location + 0, byte0));
+  RETURN_IF_ERROR(rom_->WriteByte(header_location + 1, byte1));
+  RETURN_IF_ERROR(rom_->WriteByte(header_location + 2, blockset));
+  RETURN_IF_ERROR(rom_->WriteByte(header_location + 3, spriteset));
+  RETURN_IF_ERROR(rom_->WriteByte(header_location + 4,
+                                   static_cast<uint8_t>(effect())));
+  RETURN_IF_ERROR(rom_->WriteByte(header_location + 5,
+                                   static_cast<uint8_t>(tag1())));
+  RETURN_IF_ERROR(rom_->WriteByte(header_location + 6,
+                                   static_cast<uint8_t>(tag2())));
+  RETURN_IF_ERROR(rom_->WriteByte(header_location + 7, byte7));
+  RETURN_IF_ERROR(rom_->WriteByte(header_location + 8, staircase_plane(3)));
+  RETURN_IF_ERROR(rom_->WriteByte(header_location + 9, holewarp));
+  RETURN_IF_ERROR(rom_->WriteByte(header_location + 10, staircase_room(0)));
+  RETURN_IF_ERROR(rom_->WriteByte(header_location + 11, staircase_room(1)));
+  RETURN_IF_ERROR(rom_->WriteByte(header_location + 12, staircase_room(2)));
+  RETURN_IF_ERROR(rom_->WriteByte(header_location + 13, staircase_room(3)));
+
+  int msg_addr = kMessagesIdDungeon + (room_id_ * 2);
+  if (msg_addr < 0 || msg_addr + 1 >= static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError("Message ID address out of range");
+  }
+  RETURN_IF_ERROR(rom_->WriteWord(msg_addr, message_id_));
+
+  return absl::OkStatus();
 }
 
 // ============================================================================
@@ -1784,6 +1877,284 @@ void Room::LoadTorches() {
       }
     }
   }
+}
+
+namespace {
+
+constexpr int kTorchesMaxSize = 0x120;  // ZScream Constants.TorchesMaxSize
+
+// Parse current ROM torch blob into per-room segments for preserve-merge.
+std::vector<std::vector<uint8_t>> ParseRomTorchSegments(const std::vector<uint8_t>& rom_data,
+                                                         int bytes_count) {
+  std::vector<std::vector<uint8_t>> segments(kNumberOfRooms);
+  int i = 0;
+  while (i + 1 < bytes_count && i < kTorchesMaxSize) {
+    uint8_t b1 = rom_data[kTorchData + i];
+    uint8_t b2 = rom_data[kTorchData + i + 1];
+    if (b1 == 0xFF && b2 == 0xFF) {
+      i += 2;
+      continue;
+    }
+    uint16_t room_id = (b2 << 8) | b1;
+    if (room_id >= kNumberOfRooms) {
+      i += 2;
+      continue;
+    }
+    std::vector<uint8_t> seg;
+    seg.push_back(b1);
+    seg.push_back(b2);
+    i += 2;
+    while (i + 1 < bytes_count && i < kTorchesMaxSize) {
+      b1 = rom_data[kTorchData + i];
+      b2 = rom_data[kTorchData + i + 1];
+      if (b1 == 0xFF && b2 == 0xFF) {
+        seg.push_back(0xFF);
+        seg.push_back(0xFF);
+        i += 2;
+        break;
+      }
+      seg.push_back(b1);
+      seg.push_back(b2);
+      i += 2;
+    }
+    if (room_id < segments.size()) {
+      segments[room_id] = std::move(seg);
+    }
+  }
+  return segments;
+}
+
+}  // namespace
+
+absl::Status SaveAllTorches(Rom* rom,
+                            const std::vector<Room>& rooms) {
+  if (!rom || !rom->is_loaded()) {
+    return absl::InvalidArgumentError("ROM not loaded");
+  }
+
+  const auto& rom_data = rom->vector();
+  int existing_count = (rom_data[kTorchesLengthPointer + 1] << 8) |
+                       rom_data[kTorchesLengthPointer];
+  if (existing_count > kTorchesMaxSize) {
+    existing_count = kTorchesMaxSize;
+  }
+  auto rom_segments = ParseRomTorchSegments(rom_data, existing_count);
+
+  std::vector<uint8_t> bytes;
+  for (size_t room_id = 0; room_id < rooms.size() && room_id < rom_segments.size(); ++room_id) {
+    const auto& room = rooms[room_id];
+    bool has_torch_objects = false;
+    for (const auto& obj : room.GetTileObjects()) {
+      if ((obj.options() & ObjectOption::Torch) != ObjectOption::Nothing) {
+        has_torch_objects = true;
+        break;
+      }
+    }
+    if (has_torch_objects) {
+      bytes.push_back(room_id & 0xFF);
+      bytes.push_back((room_id >> 8) & 0xFF);
+      for (const auto& obj : room.GetTileObjects()) {
+        if ((obj.options() & ObjectOption::Torch) == ObjectOption::Nothing) {
+          continue;
+        }
+        int address = obj.x() + (obj.y() * 64);
+        int word = address << 1;
+        uint8_t b1 = word & 0xFF;
+        uint8_t b2 = ((word >> 8) & 0x1F) |
+                     ((obj.GetLayerValue() & 1) << 5);
+        bytes.push_back(b1);
+        bytes.push_back(b2);
+      }
+      bytes.push_back(0xFF);
+      bytes.push_back(0xFF);
+    } else if (!rom_segments[room_id].empty()) {
+      for (uint8_t b : rom_segments[room_id]) {
+        bytes.push_back(b);
+      }
+    }
+  }
+
+  if (bytes.size() > kTorchesMaxSize) {
+    return absl::ResourceExhaustedError(absl::StrFormat(
+        "Torch data too large: %d bytes (max %d)", bytes.size(),
+        kTorchesMaxSize));
+  }
+
+  RETURN_IF_ERROR(rom->WriteWord(kTorchesLengthPointer,
+                                  static_cast<uint16_t>(bytes.size())));
+  return rom->WriteVector(kTorchData, bytes);
+}
+
+absl::Status SaveAllPits(Rom* rom) {
+  if (!rom || !rom->is_loaded()) {
+    return absl::InvalidArgumentError("ROM not loaded");
+  }
+  const auto& rom_data = rom->vector();
+  if (kPitCount < 0 || kPitCount >= static_cast<int>(rom_data.size()) ||
+      kPitPointer + 2 >= static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError("Pit count/pointer out of range");
+  }
+  int pit_count_byte = rom_data[kPitCount];
+  int pit_entries = pit_count_byte / 2;
+  if (pit_entries <= 0) {
+    return absl::OkStatus();
+  }
+  int pit_ptr_snes = (rom_data[kPitPointer + 2] << 16) |
+                     (rom_data[kPitPointer + 1] << 8) |
+                     rom_data[kPitPointer];
+  int pit_data_pc = SnesToPc(pit_ptr_snes);
+  int data_len = pit_entries * 2;
+  if (pit_data_pc < 0 || pit_data_pc + data_len > static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError("Pit data region out of range");
+  }
+  std::vector<uint8_t> data(rom_data.begin() + pit_data_pc,
+                            rom_data.begin() + pit_data_pc + data_len);
+  RETURN_IF_ERROR(rom->WriteByte(kPitCount, pit_count_byte));
+  RETURN_IF_ERROR(rom->WriteByte(kPitPointer, pit_ptr_snes & 0xFF));
+  RETURN_IF_ERROR(rom->WriteByte(kPitPointer + 1, (pit_ptr_snes >> 8) & 0xFF));
+  RETURN_IF_ERROR(rom->WriteByte(kPitPointer + 2, (pit_ptr_snes >> 16) & 0xFF));
+  return rom->WriteVector(pit_data_pc, data);
+}
+
+absl::Status SaveAllBlocks(Rom* rom) {
+  if (!rom || !rom->is_loaded()) {
+    return absl::InvalidArgumentError("ROM not loaded");
+  }
+  const auto& rom_data = rom->vector();
+  if (kBlocksLength + 1 >= static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError("Blocks length out of range");
+  }
+  int blocks_count = (rom_data[kBlocksLength + 1] << 8) | rom_data[kBlocksLength];
+  if (blocks_count <= 0) {
+    return absl::OkStatus();
+  }
+  const int kRegionSize = 0x80;
+  int ptrs[4] = {kBlocksPointer1, kBlocksPointer2, kBlocksPointer3, kBlocksPointer4};
+  for (int r = 0; r < 4; ++r) {
+    if (ptrs[r] + 2 >= static_cast<int>(rom_data.size())) {
+      return absl::OutOfRangeError("Blocks pointer out of range");
+    }
+    int snes = (rom_data[ptrs[r] + 2] << 16) | (rom_data[ptrs[r] + 1] << 8) |
+               rom_data[ptrs[r]];
+    int pc = SnesToPc(snes);
+    int off = r * kRegionSize;
+    int len = std::min(kRegionSize, blocks_count - off);
+    if (len <= 0) break;
+    if (pc < 0 || pc + len > static_cast<int>(rom_data.size())) {
+      return absl::OutOfRangeError("Blocks data region out of range");
+    }
+    std::vector<uint8_t> chunk(rom_data.begin() + pc,
+                               rom_data.begin() + pc + len);
+    RETURN_IF_ERROR(rom->WriteVector(pc, chunk));
+  }
+  RETURN_IF_ERROR(rom->WriteWord(kBlocksLength, static_cast<uint16_t>(blocks_count)));
+  return absl::OkStatus();
+}
+
+namespace {
+
+// Parse current ROM chest data into per-room lists (room_id, chest_data).
+std::vector<std::vector<std::pair<uint8_t, bool>>> ParseRomChests(
+    const std::vector<uint8_t>& rom_data, int cpos, int clength) {
+  std::vector<std::vector<std::pair<uint8_t, bool>>> per_room(kNumberOfRooms);
+  for (int i = 0; i < clength && cpos + i * 3 + 2 < static_cast<int>(rom_data.size()); ++i) {
+    int off = cpos + i * 3;
+    uint16_t word = (rom_data[off + 1] << 8) | rom_data[off];
+    uint16_t room_id = word & 0x7FFF;
+    bool big = (word & 0x8000) != 0;
+    uint8_t id = rom_data[off + 2];
+    if (room_id < kNumberOfRooms) {
+      per_room[room_id].emplace_back(id, big);
+    }
+  }
+  return per_room;
+}
+
+}  // namespace
+
+absl::Status SaveAllChests(Rom* rom, const std::vector<Room>& rooms) {
+  if (!rom || !rom->is_loaded()) {
+    return absl::InvalidArgumentError("ROM not loaded");
+  }
+  const auto& rom_data = rom->vector();
+  if (kChestsLengthPointer + 1 >= static_cast<int>(rom_data.size()) ||
+      kChestsDataPointer1 + 2 >= static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError("Chest pointers out of range");
+  }
+  int clength = (rom_data[kChestsLengthPointer + 1] << 8) | rom_data[kChestsLengthPointer];
+  int cpos = SnesToPc((rom_data[kChestsDataPointer1 + 2] << 16) |
+                      (rom_data[kChestsDataPointer1 + 1] << 8) |
+                      rom_data[kChestsDataPointer1]);
+  auto rom_chests = ParseRomChests(rom_data, cpos, clength);
+
+  std::vector<uint8_t> bytes;
+  for (size_t room_id = 0; room_id < rooms.size() && room_id < rom_chests.size(); ++room_id) {
+    const auto& room = rooms[room_id];
+    const auto& chests = room.GetChests();
+    if (chests.empty()) {
+      for (const auto& [id, big] : rom_chests[room_id]) {
+        uint16_t word = room_id | (big ? 0x8000 : 0);
+        bytes.push_back(word & 0xFF);
+        bytes.push_back((word >> 8) & 0xFF);
+        bytes.push_back(id);
+      }
+    } else {
+      for (const auto& c : chests) {
+        uint16_t word = room_id | (c.size ? 0x8000 : 0);
+        bytes.push_back(word & 0xFF);
+        bytes.push_back((word >> 8) & 0xFF);
+        bytes.push_back(c.id);
+      }
+    }
+  }
+
+  if (cpos < 0 || cpos + static_cast<int>(bytes.size()) > static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError("Chest data region out of range");
+  }
+  RETURN_IF_ERROR(rom->WriteWord(kChestsLengthPointer,
+                                  static_cast<uint16_t>(bytes.size() / 3)));
+  return rom->WriteVector(cpos, bytes);
+}
+
+absl::Status SaveAllPotItems(Rom* rom, const std::vector<Room>& rooms) {
+  if (!rom || !rom->is_loaded()) {
+    return absl::InvalidArgumentError("ROM not loaded");
+  }
+  const auto& rom_data = rom->vector();
+  int table_addr = kRoomItemsPointers;
+  if (table_addr + (kNumberOfRooms * 2) > static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError("Room items pointer table out of range");
+  }
+  for (size_t room_id = 0; room_id < rooms.size() && room_id < kNumberOfRooms; ++room_id) {
+    const auto& pot_items = rooms[room_id].GetPotItems();
+    int ptr_off = table_addr + (room_id * 2);
+    uint16_t item_ptr = (rom_data[ptr_off + 1] << 8) | rom_data[ptr_off];
+    int item_addr = SnesToPc(0x010000 | item_ptr);
+    if (item_addr < 0 || item_addr + 2 >= static_cast<int>(rom_data.size())) {
+      continue;
+    }
+    int next_ptr_off = table_addr + ((room_id + 1) * 2);
+    int next_item_addr = (room_id + 1 < kNumberOfRooms)
+                             ? SnesToPc(0x010000 |
+                                        ((rom_data[next_ptr_off + 1] << 8) |
+                                         rom_data[next_ptr_off]))
+                             : item_addr + 0x100;
+    int max_len = next_item_addr - item_addr;
+    if (max_len <= 0) continue;
+    std::vector<uint8_t> bytes;
+    for (const auto& pi : pot_items) {
+      bytes.push_back(pi.position & 0xFF);
+      bytes.push_back((pi.position >> 8) & 0xFF);
+      bytes.push_back(pi.item);
+    }
+    bytes.push_back(0xFF);
+    bytes.push_back(0xFF);
+    if (static_cast<int>(bytes.size()) > max_len) {
+      continue;
+    }
+    RETURN_IF_ERROR(rom->WriteVector(item_addr, bytes));
+  }
+  return absl::OkStatus();
 }
 
 void Room::LoadBlocks() {

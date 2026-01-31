@@ -92,6 +92,30 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Windows")
     set(YAZE_PLATFORM_WINDOWS ON)
 endif()
 
+# macOS: ensure C++ standard library headers are searched before /usr/local/include
+# so that <cmath> gets libc++'s <math.h> and not the C library's (avoids isinf/signbit conflicts)
+if(YAZE_PLATFORM_MACOS AND NOT CMAKE_TOOLCHAIN_FILE MATCHES "llvm-brew")
+    set(_yaze_sdk_path "${CMAKE_OSX_SYSROOT}")
+    if(NOT _yaze_sdk_path)
+        execute_process(
+            COMMAND xcrun --show-sdk-path
+            OUTPUT_VARIABLE _yaze_sdk_path
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            ERROR_QUIET
+        )
+    endif()
+    if(_yaze_sdk_path)
+        set(_yaze_cxx_headers "${_yaze_sdk_path}/usr/include/c++/v1")
+        if(EXISTS "${_yaze_cxx_headers}")
+            set(CMAKE_INCLUDE_DIRECTORIES_BEFORE ON)
+            include_directories(BEFORE SYSTEM "${_yaze_cxx_headers}")
+            message(STATUS "✓ C++ stdlib headers first: ${_yaze_cxx_headers}")
+        endif()
+    endif()
+    unset(_yaze_sdk_path)
+    unset(_yaze_cxx_headers)
+endif()
+
 # Include utility functions
 include(cmake/utils.cmake)
 

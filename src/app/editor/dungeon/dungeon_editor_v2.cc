@@ -380,6 +380,19 @@ absl::Status DungeonEditorV2::Save() {
     if (!status.ok()) {
       LOG_ERROR("DungeonEditorV2", "Failed to save room objects: %s",
                 status.message().data());
+      return status;
+    }
+    status = room.SaveSprites();
+    if (!status.ok()) {
+      LOG_ERROR("DungeonEditorV2", "Failed to save room sprites: %s",
+                status.message().data());
+      return status;
+    }
+    status = room.SaveRoomHeader();
+    if (!status.ok()) {
+      LOG_ERROR("DungeonEditorV2", "Failed to save room header: %s",
+                status.message().data());
+      return status;
     }
 
     if (dungeon_editor_system_) {
@@ -398,6 +411,42 @@ absl::Status DungeonEditorV2::Save() {
                 status.message().data());
       return status;
     }
+  }
+
+  std::vector<zelda3::Room> rooms_vec(rooms_.begin(), rooms_.end());
+  auto status = zelda3::SaveAllTorches(rom_, rooms_vec);
+  if (!status.ok()) {
+    LOG_ERROR("DungeonEditorV2", "Failed to save torches: %s",
+              status.message().data());
+    return status;
+  }
+
+  status = zelda3::SaveAllPits(rom_);
+  if (!status.ok()) {
+    LOG_ERROR("DungeonEditorV2", "Failed to save pits: %s",
+              status.message().data());
+    return status;
+  }
+
+  status = zelda3::SaveAllBlocks(rom_);
+  if (!status.ok()) {
+    LOG_ERROR("DungeonEditorV2", "Failed to save blocks: %s",
+              status.message().data());
+    return status;
+  }
+
+  status = zelda3::SaveAllChests(rom_, rooms_vec);
+  if (!status.ok()) {
+    LOG_ERROR("DungeonEditorV2", "Failed to save chests: %s",
+              status.message().data());
+    return status;
+  }
+
+  status = zelda3::SaveAllPotItems(rom_, rooms_vec);
+  if (!status.ok()) {
+    LOG_ERROR("DungeonEditorV2", "Failed to save pot items: %s",
+              status.message().data());
+    return status;
   }
 
   return absl::OkStatus();

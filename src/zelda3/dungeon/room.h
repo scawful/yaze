@@ -479,11 +479,18 @@ class Room {
   void SetLoaded(bool loaded) { is_loaded_ = loaded; }
 
   // Read-only accessors for metadata
+  background2 bg2() const { return bg2_; }
   EffectKey effect() const { return effect_; }
   TagKey tag1() const { return tag1_; }
   TagKey tag2() const { return tag2_; }
   CollisionKey collision() const { return collision_; }
   const LayerMergeType& layer_merging() const { return layer_merging_; }
+  uint8_t staircase_plane(int index) const {
+    return (index >= 0 && index < 4) ? staircase_plane_[index] : 0;
+  }
+  uint8_t staircase_room(int index) const {
+    return (index >= 0 && index < 4) ? staircase_rooms_[index] : 0;
+  }
 
   int id() const { return room_id_; }
 
@@ -521,6 +528,7 @@ class Room {
   std::vector<uint8_t> EncodeObjects() const;
   absl::Status SaveSprites();
   std::vector<uint8_t> EncodeSprites() const;
+  absl::Status SaveRoomHeader();
 
   auto blocks() const { return blocks_; }
   auto& mutable_blocks() { return blocks_; }
@@ -653,6 +661,22 @@ struct RoomSize {
 
 // Calculates the size of a room in the ROM.
 RoomSize CalculateRoomSize(Rom* rom, int room_id);
+
+// Dungeon-level save: aggregate torches from all rooms and write to ROM.
+absl::Status SaveAllTorches(Rom* rom,
+                            const std::vector<Room>& rooms);
+
+// Preserve pit count, pointer, and data (read from ROM, write back). No edit support yet.
+absl::Status SaveAllPits(Rom* rom);
+
+// Preserve blocks length and the four block regions (read from ROM, write back). No edit support yet.
+absl::Status SaveAllBlocks(Rom* rom);
+
+// Aggregate chests from all rooms and write to ROM. Preserves ROM data for rooms not loaded.
+absl::Status SaveAllChests(Rom* rom, const std::vector<Room>& rooms);
+
+// Save pot items for all rooms. Preserves ROM data for rooms not loaded.
+absl::Status SaveAllPotItems(Rom* rom, const std::vector<Room>& rooms);
 
 // RoomEffect names defined in room.cc to avoid static initialization order issues
 extern const std::string RoomEffect[8];

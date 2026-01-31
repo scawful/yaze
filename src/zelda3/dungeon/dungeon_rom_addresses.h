@@ -74,6 +74,11 @@ constexpr int kDungeonSpritePointers =
 // === Messages ===
 constexpr int kMessagesIdDungeon = 0x3F61D;  // Dungeon message IDs
 
+// === Custom Collision (ZScream expanded region) ===
+constexpr int kCustomCollisionRoomPointers = 0x128090;  // 296 rooms × 3 bytes
+constexpr int kCustomCollisionDataPosition = 0x128450;
+constexpr int kCustomCollisionDataEnd = 0x130000;
+
 // === Room Metadata ===
 constexpr int kNumberOfRooms = 296;  // Total dungeon rooms (0x00-0x127)
 

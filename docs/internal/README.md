@@ -28,7 +28,7 @@ Internal documentation for planning, AI agents, research, and historical build n
 | `archive/` | Retired plans, completed features, closed investigations, and maintenance logs |
 | `debug/` | Debugging guides, active logs, and accuracy reports |
 | `gui/` | GUI abstraction layer reference (canvas, widgets) |
-| `hand-off/` | Active handoff documents for in-progress work |
+| `hand-off/` | Active handoff documents for in-progress work (e.g. [Editor comparison & plan](hand-off/HANDOFF_EDITOR_COMPARISON_AND_PLAN.md)) |
 | `plans/` | Active implementation plans and roadmaps |
 | `research/` | Exploratory notes, ideas, and technical analysis |
 | `templates/` | Document templates (checklists, initiatives) |
