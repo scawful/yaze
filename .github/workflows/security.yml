@@ -55,7 +55,7 @@ jobs:
 
     - name: Configure (no gRPC for security scan)
       run: |
-        cmake --preset ci-linux -DYAZE_ENABLE_GRPC=OFF
+        cmake --preset ci-linux -DYAZE_ENABLE_GRPC=OFF -DYAZE_ENABLE_REMOTE_AUTOMATION=OFF
 
     - name: Build
       run: |
