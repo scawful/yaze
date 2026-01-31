@@ -1,20 +1,20 @@
 #include "app/emu/mesen/mesen_socket_client.h"
 
-#include <filesystem>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <filesystem>
 
 #ifdef _WIN32
+#include <afunix.h>
+#include <io.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#include <afunix.h>
 #define close closesocket
-// unistd.h not available on Windows
+typedef int ssize_t;
 #else
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
-// dirent.h replaced by std::filesystem
 #endif
 
 #include <cstdlib>
@@ -41,12 +41,15 @@ namespace {
 std::string ExtractJsonString(const std::string& json, const std::string& key) {
   std::string search = "\"" + key + "\":";
   size_t pos = json.find(search);
-  if (pos == std::string::npos) return "";
+  if (pos == std::string::npos)
+    return "";
 
   pos += search.length();
-  while (pos < json.length() && (json[pos] == ' ' || json[pos] == '\t')) pos++;
+  while (pos < json.length() && (json[pos] == ' ' || json[pos] == '\t'))
+    pos++;
 
-  if (pos >= json.length()) return "";
+  if (pos >= json.length())
+    return "";
 
   if (json[pos] == '"') {
     // String value
@@ -55,7 +58,8 @@ std::string ExtractJsonString(const std::string& json, const std::string& key) {
     while (end != std::string::npos && end > 0 && json[end - 1] == '\\') {
       end = json.find('"', end + 1);
     }
-    if (end == std::string::npos) return "";
+    if (end == std::string::npos)
+      return "";
     return json.substr(start, end - start);
   } else if (json[pos] == '{') {
     // Object value - find matching brace
@@ -97,14 +101,16 @@ std::string ExtractJsonString(const std::string& json, const std::string& key) {
 int64_t ExtractJsonInt(const std::string& json, const std::string& key,
                        int64_t default_value = 0) {
   std::string value = ExtractJsonString(json, key);
-  if (value.empty()) return default_value;
+  if (value.empty())
+    return default_value;
 
   // Handle hex strings like "0x7E0000"
   if (value.length() > 2 && value[0] == '0' &&
       (value[1] == 'x' || value[1] == 'X')) {
     int64_t result;
     std::string hex_str = value.substr(2);
-    auto [ptr, ec] = std::from_chars(hex_str.data(), hex_str.data() + hex_str.size(), result, 16);
+    auto [ptr, ec] = std::from_chars(
+        hex_str.data(), hex_str.data() + hex_str.size(), result, 16);
     if (ec == std::errc()) {
       return result;
     }
@@ -120,7 +126,8 @@ int64_t ExtractJsonInt(const std::string& json, const std::string& key,
 double ExtractJsonDouble(const std::string& json, const std::string& key,
                          double default_value = 0.0) {
   std::string value = ExtractJsonString(json, key);
-  if (value.empty()) return default_value;
+  if (value.empty())
+    return default_value;
 
   double result;
   if (absl::SimpleAtod(value, &result)) {
@@ -132,7 +139,8 @@ double ExtractJsonDouble(const std::string& json, const std::string& key,
 bool ExtractJsonBool(const std::string& json, const std::string& key,
                      bool default_value = false) {
   std::string value = ExtractJsonString(json, key);
-  if (value.empty()) return default_value;
+  if (value.empty())
+    return default_value;
   return value == "true";
 }
 
@@ -184,7 +192,9 @@ std::string BuildJsonCommand(
 
 MesenSocketClient::MesenSocketClient() = default;
 
-MesenSocketClient::~MesenSocketClient() { Disconnect(); }
+MesenSocketClient::~MesenSocketClient() {
+  Disconnect();
+}
 
 absl::Status MesenSocketClient::Connect() {
   auto paths = FindSocketPaths();
@@ -214,9 +224,8 @@ absl::Status MesenSocketClient::Connect(const std::string& socket_path) {
   if (connect(socket_fd_, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
     close(socket_fd_);
     socket_fd_ = -1;
-    return absl::UnavailableError(
-        absl::StrCat("Failed to connect to ", socket_path, ": ",
-                     strerror(errno)));
+    return absl::UnavailableError(absl::StrCat(
+        "Failed to connect to ", socket_path, ": ", strerror(errno)));
   }
 
   socket_path_ = socket_path;
@@ -246,15 +255,24 @@ void MesenSocketClient::Disconnect() {
   connected_ = false;
 }
 
-bool MesenSocketClient::IsConnected() const { return connected_; }
+bool MesenSocketClient::IsConnected() const {
+  return connected_;
+}
 
 std::vector<std::string> MesenSocketClient::FindSocketPaths() {
   const char* env_path = std::getenv("MESEN2_SOCKET_PATH");
   if (env_path && env_path[0] != '\0') {
+#ifdef _WIN32
+    // Windows AF_UNIX sockets don't report S_IFSOCK via stat; trust the env var
+    if (std::filesystem::exists(env_path)) {
+      return {std::string(env_path)};
+    }
+#else
     struct stat st;
     if (stat(env_path, &st) == 0 && (st.st_mode & S_IFMT) == S_IFSOCK) {
       return {std::string(env_path)};
     }
+#endif
   }
 
   std::vector<std::string> paths;
@@ -271,16 +289,18 @@ std::vector<std::string> MesenSocketClient::FindSocketPaths() {
 
   for (const auto& search_path : search_paths) {
     std::error_code ec;
-    if (!fs::exists(search_path, ec)) continue;
+    if (!fs::exists(search_path, ec))
+      continue;
 
     for (const auto& entry : fs::directory_iterator(search_path, ec)) {
-        if (ec) break;
-        // On Windows, checking is_socket might be unreliable or not supported for AF_UNIX files,
-        // so we mainly rely on the filename pattern.
-        std::string filename = entry.path().filename().string();
-        if (std::regex_match(filename, socket_pattern)) {
-            paths.push_back(entry.path().string());
-        }
+      if (ec)
+        break;
+      // On Windows, checking is_socket might be unreliable or not supported for AF_UNIX files,
+      // so we mainly rely on the filename pattern.
+      std::string filename = entry.path().filename().string();
+      if (std::regex_match(filename, socket_pattern)) {
+        paths.push_back(entry.path().string());
+      }
     }
   }
 
@@ -359,7 +379,8 @@ absl::StatusOr<std::string> MesenSocketClient::ParseResponse(
   bool success = ExtractJsonBool(response, "success");
   if (!success) {
     std::string error = ExtractJsonString(response, "error");
-    if (error.empty()) error = "Unknown Mesen2 error";
+    if (error.empty())
+      error = "Unknown Mesen2 error";
     return absl::InternalError(error);
   }
 
@@ -373,13 +394,15 @@ absl::StatusOr<std::string> MesenSocketClient::ParseResponse(
 
 absl::Status MesenSocketClient::Ping() {
   auto result = SendCommand(BuildJsonCommand("PING"));
-  if (!result.ok()) return result.status();
+  if (!result.ok())
+    return result.status();
   return absl::OkStatus();
 }
 
 absl::StatusOr<MesenState> MesenSocketClient::GetState() {
   auto result = SendCommand(BuildJsonCommand("STATE"));
-  if (!result.ok()) return result.status();
+  if (!result.ok())
+    return result.status();
 
   MesenState state;
   state.running = ExtractJsonBool(*result, "running");
@@ -412,8 +435,8 @@ absl::Status MesenSocketClient::Frame() {
 }
 
 absl::Status MesenSocketClient::Step(int count) {
-  auto result = SendCommand(
-      BuildJsonCommand("STEP", {{"count", std::to_string(count)}}));
+  auto result =
+      SendCommand(BuildJsonCommand("STEP", {{"count", std::to_string(count)}}));
   return result.status();
 }
 
@@ -424,23 +447,26 @@ absl::Status MesenSocketClient::Step(int count) {
 absl::StatusOr<uint8_t> MesenSocketClient::ReadByte(uint32_t addr) {
   auto result = SendCommand(
       BuildJsonCommand("READ", {{"addr", absl::StrFormat("0x%06X", addr)}}));
-  if (!result.ok()) return result.status();
+  if (!result.ok())
+    return result.status();
   return static_cast<uint8_t>(ExtractJsonInt(*result, "data", 0));
 }
 
 absl::StatusOr<uint16_t> MesenSocketClient::ReadWord(uint32_t addr) {
   auto result = SendCommand(
       BuildJsonCommand("READ16", {{"addr", absl::StrFormat("0x%06X", addr)}}));
-  if (!result.ok()) return result.status();
+  if (!result.ok())
+    return result.status();
   return static_cast<uint16_t>(ExtractJsonInt(*result, "data", 0));
 }
 
-absl::StatusOr<std::vector<uint8_t>> MesenSocketClient::ReadBlock(
-    uint32_t addr, size_t len) {
-  auto result =
-      SendCommand(BuildJsonCommand("READBLOCK", {{"addr", absl::StrFormat("0x%06X", addr)},
-                                                  {"len", std::to_string(len)}}));
-  if (!result.ok()) return result.status();
+absl::StatusOr<std::vector<uint8_t>> MesenSocketClient::ReadBlock(uint32_t addr,
+                                                                  size_t len) {
+  auto result = SendCommand(
+      BuildJsonCommand("READBLOCK", {{"addr", absl::StrFormat("0x%06X", addr)},
+                                     {"len", std::to_string(len)}}));
+  if (!result.ok())
+    return result.status();
 
   // Response is hex string
   std::string hex = ExtractJsonString(*result, "data");
@@ -455,7 +481,8 @@ absl::StatusOr<std::vector<uint8_t>> MesenSocketClient::ReadBlock(
   for (size_t i = 0; i + 1 < hex.length(); i += 2) {
     int byte;
     std::string byte_hex = hex.substr(i, 2);
-    auto [ptr, ec] = std::from_chars(byte_hex.data(), byte_hex.data() + byte_hex.size(), byte, 16);
+    auto [ptr, ec] = std::from_chars(
+        byte_hex.data(), byte_hex.data() + byte_hex.size(), byte, 16);
     if (ec == std::errc()) {
       data.push_back(static_cast<uint8_t>(byte));
     }
@@ -464,9 +491,9 @@ absl::StatusOr<std::vector<uint8_t>> MesenSocketClient::ReadBlock(
 }
 
 absl::Status MesenSocketClient::WriteByte(uint32_t addr, uint8_t value) {
-  auto result = SendCommand(BuildJsonCommand(
-      "WRITE", {{"addr", absl::StrFormat("0x%06X", addr)},
-                {"value", absl::StrFormat("0x%02X", value)}}));
+  auto result = SendCommand(
+      BuildJsonCommand("WRITE", {{"addr", absl::StrFormat("0x%06X", addr)},
+                                 {"value", absl::StrFormat("0x%02X", value)}}));
   return result.status();
 }
 
@@ -478,14 +505,14 @@ absl::Status MesenSocketClient::WriteWord(uint32_t addr, uint16_t value) {
 }
 
 absl::Status MesenSocketClient::WriteBlock(uint32_t addr,
-                                            const std::vector<uint8_t>& data) {
+                                           const std::vector<uint8_t>& data) {
   std::stringstream hex;
   for (uint8_t byte : data) {
     hex << absl::StrFormat("%02X", byte);
   }
-  auto result =
-      SendCommand(BuildJsonCommand("WRITEBLOCK", {{"addr", absl::StrFormat("0x%06X", addr)},
-                                                   {"hex", hex.str()}}));
+  auto result = SendCommand(BuildJsonCommand(
+      "WRITEBLOCK",
+      {{"addr", absl::StrFormat("0x%06X", addr)}, {"hex", hex.str()}}));
   return result.status();
 }
 
@@ -495,7 +522,8 @@ absl::Status MesenSocketClient::WriteBlock(uint32_t addr,
 
 absl::StatusOr<CpuState> MesenSocketClient::GetCpuState() {
   auto result = SendCommand(BuildJsonCommand("CPU"));
-  if (!result.ok()) return result.status();
+  if (!result.ok())
+    return result.status();
 
   CpuState state;
   state.A = static_cast<uint16_t>(ExtractJsonInt(*result, "A"));
@@ -512,11 +540,12 @@ absl::StatusOr<CpuState> MesenSocketClient::GetCpuState() {
 }
 
 absl::StatusOr<std::string> MesenSocketClient::Disassemble(uint32_t addr,
-                                                            int count) {
+                                                           int count) {
   auto result = SendCommand(
       BuildJsonCommand("DISASM", {{"addr", absl::StrFormat("0x%06X", addr)},
                                   {"count", std::to_string(count)}}));
-  if (!result.ok()) return result.status();
+  if (!result.ok())
+    return result.status();
   return *result;
 }
 
@@ -548,7 +577,8 @@ absl::StatusOr<int> MesenSocketClient::AddBreakpoint(
   }
 
   auto result = SendCommand(BuildJsonCommand("BREAKPOINT", params));
-  if (!result.ok()) return result.status();
+  if (!result.ok())
+    return result.status();
 
   return static_cast<int>(ExtractJsonInt(*result, "id", -1));
 }
@@ -566,9 +596,10 @@ absl::Status MesenSocketClient::ClearBreakpoints() {
 }
 
 absl::StatusOr<std::string> MesenSocketClient::GetTrace(int count) {
-  auto result =
-      SendCommand(BuildJsonCommand("TRACE", {{"count", std::to_string(count)}}));
-  if (!result.ok()) return result.status();
+  auto result = SendCommand(
+      BuildJsonCommand("TRACE", {{"count", std::to_string(count)}}));
+  if (!result.ok())
+    return result.status();
   return *result;
 }
 
@@ -578,7 +609,8 @@ absl::StatusOr<std::string> MesenSocketClient::GetTrace(int count) {
 
 absl::StatusOr<GameState> MesenSocketClient::GetGameState() {
   auto result = SendCommand(BuildJsonCommand("GAMESTATE"));
-  if (!result.ok()) return result.status();
+  if (!result.ok())
+    return result.status();
 
   GameState state;
 
@@ -632,7 +664,8 @@ absl::StatusOr<std::vector<SpriteInfo>> MesenSocketClient::GetSprites(
   auto result =
       SendCommand(params.empty() ? BuildJsonCommand("SPRITES")
                                  : BuildJsonCommand("SPRITES", params));
-  if (!result.ok()) return result.status();
+  if (!result.ok())
+    return result.status();
 
   std::vector<SpriteInfo> sprites;
 
@@ -650,7 +683,8 @@ absl::StatusOr<std::vector<SpriteInfo>> MesenSocketClient::GetSprites(
   size_t pos = 0;
   while ((pos = array_content.find("{", pos)) != std::string::npos) {
     size_t end = array_content.find("}", pos);
-    if (end == std::string::npos) break;
+    if (end == std::string::npos)
+      break;
 
     std::string sprite_json = array_content.substr(pos, end - pos + 1);
 
@@ -660,8 +694,7 @@ absl::StatusOr<std::vector<SpriteInfo>> MesenSocketClient::GetSprites(
     sprite.state = static_cast<uint8_t>(ExtractJsonInt(sprite_json, "state"));
     sprite.x = static_cast<uint16_t>(ExtractJsonInt(sprite_json, "x"));
     sprite.y = static_cast<uint16_t>(ExtractJsonInt(sprite_json, "y"));
-    sprite.health =
-        static_cast<uint8_t>(ExtractJsonInt(sprite_json, "health"));
+    sprite.health = static_cast<uint8_t>(ExtractJsonInt(sprite_json, "health"));
     sprite.subtype =
         static_cast<uint8_t>(ExtractJsonInt(sprite_json, "subtype"));
 
@@ -673,11 +706,10 @@ absl::StatusOr<std::vector<SpriteInfo>> MesenSocketClient::GetSprites(
 }
 
 absl::Status MesenSocketClient::SetCollisionOverlay(bool enable,
-                                                     const std::string& colmap) {
-  auto result =
-      SendCommand(BuildJsonCommand("COLLISION_OVERLAY",
-                                   {{"action", enable ? "enable" : "disable"},
-                                    {"colmap", colmap}}));
+                                                    const std::string& colmap) {
+  auto result = SendCommand(BuildJsonCommand(
+      "COLLISION_OVERLAY",
+      {{"action", enable ? "enable" : "disable"}, {"colmap", colmap}}));
   return result.status();
 }
 
@@ -699,7 +731,8 @@ absl::Status MesenSocketClient::LoadState(int slot) {
 
 absl::StatusOr<std::string> MesenSocketClient::Screenshot() {
   auto result = SendCommand(BuildJsonCommand("SCREENSHOT"));
-  if (!result.ok()) return result.status();
+  if (!result.ok())
+    return result.status();
   return *result;  // Base64 PNG data
 }
 
@@ -711,7 +744,8 @@ absl::Status MesenSocketClient::Subscribe(
     const std::vector<std::string>& events) {
   std::stringstream ss;
   for (size_t i = 0; i < events.size(); ++i) {
-    if (i > 0) ss << ",";
+    if (i > 0)
+      ss << ",";
     ss << events[i];
   }
   auto result =

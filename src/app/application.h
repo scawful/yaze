@@ -13,9 +13,9 @@
 #include "yaze_config.h"
 
 #ifdef YAZE_WITH_GRPC
-#include "app/service/unified_grpc_server.h"
-#include "app/service/canvas_automation_service.h"
 #include "app/emu/i_emulator.h"
+#include "app/service/canvas_automation_service.h"
+#include "app/service/unified_grpc_server.h"
 #endif
 
 namespace yaze {
@@ -35,21 +35,23 @@ struct AppConfig {
   AssetLoadMode asset_load_mode = AssetLoadMode::kAuto;
 
   // Startup navigation
-  std::string startup_editor;            // Editor to open (e.g., "Dungeon")
-  std::vector<std::string> open_panels;  // Panel IDs to show (e.g., "dungeon.room_list")
-  
+  std::string startup_editor;  // Editor to open (e.g., "Dungeon")
+  std::vector<std::string>
+      open_panels;  // Panel IDs to show (e.g., "dungeon.room_list")
+
   // Jump targets
   int jump_to_room = -1;  // Dungeon room ID (-1 to ignore)
   int jump_to_map = -1;   // Overworld map ID (-1 to ignore)
-  
+
   // Services
-  bool headless = false;   // Run without GUI (uses NullWindowBackend)
-  bool service_mode = false; // Run with GUI backend but hidden window
+  bool headless = false;      // Run without GUI (uses NullWindowBackend)
+  bool service_mode = false;  // Run with GUI backend but hidden window
   bool enable_api = false;
   int api_port = 8080;
   bool enable_test_harness = false;
-  int test_harness_port = 50052;  // Unified gRPC server port (GUI automation + Emulator service)
-  std::string backend = "internal"; // Emulator backend: "internal" or "mesen"
+  int test_harness_port =
+      50052;  // Unified gRPC server port (GUI automation + Emulator service)
+  std::string backend = "internal";  // Emulator backend: "internal" or "mesen"
 };
 
 /**
@@ -62,19 +64,19 @@ class Application {
 
   // Initialize the application with configuration
   void Initialize(const AppConfig& config);
-  
+
   // Default initialization (empty config)
   void Initialize() { Initialize(AppConfig{}); }
 
   // Main loop tick
   void Tick();
-  
+
   // Shutdown application
   void Shutdown();
 
   // Unified ROM loading
   void LoadRom(const std::string& path);
-  
+
   // Accessors
   Controller* GetController() { return controller_.get(); }
   bool IsReady() const { return controller_ != nullptr; }
@@ -83,7 +85,7 @@ class Application {
  private:
   Application() = default;
   ~Application() = default;
-  
+
   // Non-copyable
   Application(const Application&) = delete;
   Application& operator=(const Application&) = delete;
@@ -114,7 +116,8 @@ class Application {
 #ifdef YAZE_WITH_GRPC
   std::unique_ptr<YazeGRPCServer> grpc_server_;
   std::unique_ptr<CanvasAutomationServiceImpl> canvas_automation_service_;
-  std::unique_ptr<emu::IEmulator> emulator_backend_; // Owned adapter for gRPC service
+  std::unique_ptr<emu::IEmulator>
+      emulator_backend_;  // Owned adapter for gRPC service
 #endif
 };
 
