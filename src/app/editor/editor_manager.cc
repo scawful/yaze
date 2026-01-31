@@ -242,7 +242,8 @@ void EditorManager::InitializeSubsystems() {
 
   session_coordinator_->SetEditorManager(this);
   session_coordinator_->SetEventBus(&event_bus_);  // Enable event publishing
-  ContentRegistry::Context::SetEventBus(&event_bus_);  // Global event bus access
+  ContentRegistry::Context::SetEventBus(
+      &event_bus_);  // Global event bus access
 
   // STEP 4: Initialize UICoordinator (depends on popup_manager_,
   // session_coordinator_, panel_manager_)
@@ -351,8 +352,8 @@ void EditorManager::InitializeSubsystems() {
             current_project_.assets_folder = folder_path;
           }
           toast_manager_.Show(absl::StrFormat("%s folder set: %s", type.c_str(),
-                                               folder_path.c_str()),
-                               ToastType::kSuccess);
+                                              folder_path.c_str()),
+                              ToastType::kSuccess);
         }
       });
   right_panel_manager_->SetProjectManagementPanel(
@@ -510,7 +511,8 @@ void EditorManager::HandleSessionSwitched(size_t new_index,
 
   // Update ContentRegistry context with current session's ROM and GameData
   ContentRegistry::Context::SetRom(session ? &session->rom : nullptr);
-  ContentRegistry::Context::SetGameData(session ? &session->game_data : nullptr);
+  ContentRegistry::Context::SetGameData(session ? &session->game_data
+                                                : nullptr);
 
   const std::string category = panel_manager_.GetActiveCategory();
   if (!category.empty() && category != PanelManager::kDashboardCategory) {
@@ -625,9 +627,9 @@ void EditorManager::HandleUIActionRequest(UIActionRequestEvent::Action action) {
         if (status.ok()) {
           toast_manager_.Show("ROM saved successfully", ToastType::kSuccess);
         } else {
-          toast_manager_.Show(std::string("Save failed: ") +
-                                  std::string(status.message()),
-                              ToastType::kError);
+          toast_manager_.Show(
+              std::string("Save failed: ") + std::string(status.message()),
+              ToastType::kError);
         }
       }
       break;
@@ -636,9 +638,9 @@ void EditorManager::HandleUIActionRequest(UIActionRequestEvent::Action action) {
       if (auto* current_editor = GetCurrentEditor()) {
         auto status = current_editor->Undo();
         if (!status.ok()) {
-          toast_manager_.Show(std::string("Undo failed: ") +
-                                  std::string(status.message()),
-                              ToastType::kError);
+          toast_manager_.Show(
+              std::string("Undo failed: ") + std::string(status.message()),
+              ToastType::kError);
         }
       }
       break;
@@ -647,9 +649,9 @@ void EditorManager::HandleUIActionRequest(UIActionRequestEvent::Action action) {
       if (auto* current_editor = GetCurrentEditor()) {
         auto status = current_editor->Redo();
         if (!status.ok()) {
-          toast_manager_.Show(std::string("Redo failed: ") +
-                                  std::string(status.message()),
-                              ToastType::kError);
+          toast_manager_.Show(
+              std::string("Redo failed: ") + std::string(status.message()),
+              ToastType::kError);
         }
       }
       break;
@@ -661,7 +663,8 @@ void EditorManager::InitializeTestSuites() {
 
 #ifdef YAZE_ENABLE_TESTING
   // Register comprehensive test suites
-  test_manager.RegisterTestSuite(std::make_unique<test::CoreSystemsTestSuite>());
+  test_manager.RegisterTestSuite(
+      std::make_unique<test::CoreSystemsTestSuite>());
   test_manager.RegisterTestSuite(std::make_unique<test::IntegratedTestSuite>());
   test_manager.RegisterTestSuite(
       std::make_unique<test::PerformanceTestSuite>());
@@ -716,10 +719,11 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   // This triggers the callbacks but they should be safe now
   panel_manager_.SetSidebarVisible(user_settings_.prefs().sidebar_visible,
                                    /*notify=*/false);
-  panel_manager_.SetPanelExpanded(
-      user_settings_.prefs().sidebar_panel_expanded, /*notify=*/false);
+  panel_manager_.SetPanelExpanded(user_settings_.prefs().sidebar_panel_expanded,
+                                  /*notify=*/false);
   if (!user_settings_.prefs().sidebar_active_category.empty()) {
-    const std::string& category = user_settings_.prefs().sidebar_active_category;
+    const std::string& category =
+        user_settings_.prefs().sidebar_active_category;
     panel_manager_.SetActiveCategory(category, /*notify=*/false);
     SyncEditorContextForCategory(category);
     auto it = user_settings_.prefs().panel_visibility_state.find(category);
@@ -891,9 +895,7 @@ void EditorManager::SetupDialogCallbacks() {
 
 void EditorManager::SetupWelcomeScreenCallbacks() {
   // Initialize welcome screen callbacks
-  welcome_screen_.SetOpenRomCallback([this]() {
-    status_ = LoadRom();
-  });
+  welcome_screen_.SetOpenRomCallback([this]() { status_ = LoadRom(); });
 
   welcome_screen_.SetNewProjectCallback([this]() {
     status_ = CreateNewProject();
@@ -938,9 +940,8 @@ void EditorManager::SetupWelcomeScreenCallbacks() {
     }
   });
 
-  welcome_screen_.SetOpenProjectManagementCallback([this]() {
-    ShowProjectManagement();
-  });
+  welcome_screen_.SetOpenProjectManagementCallback(
+      [this]() { ShowProjectManagement(); });
 
   welcome_screen_.SetOpenProjectFileEditorCallback([this]() {
     if (current_project_.filepath.empty()) {
@@ -1039,8 +1040,7 @@ void EditorManager::SetupSidebarCallbacks() {
 
   panel_manager_.SetCategoryChangedCallback(
       [this](const std::string& category) {
-        if (category.empty() ||
-            category == PanelManager::kDashboardCategory) {
+        if (category.empty() || category == PanelManager::kDashboardCategory) {
           return;
         }
         SyncEditorContextForCategory(category);
@@ -1320,7 +1320,8 @@ void EditorManager::ResetAssetState(RomSession* session) {
   session->editor_assets_loaded.fill(false);
 }
 
-void EditorManager::MarkEditorInitialized(RomSession* session, EditorType type) {
+void EditorManager::MarkEditorInitialized(RomSession* session,
+                                          EditorType type) {
   if (!session) {
     return;
   }
@@ -1389,8 +1390,7 @@ Editor* EditorManager::GetEditorByType(EditorType type,
   }
 }
 
-Editor* EditorManager::ResolveEditorForCategory(
-    const std::string& category) {
+Editor* EditorManager::ResolveEditorForCategory(const std::string& category) {
   if (category.empty() || category == PanelManager::kDashboardCategory) {
     return nullptr;
   }
@@ -1417,14 +1417,12 @@ Editor* EditorManager::ResolveEditorForCategory(
   }
 }
 
-void EditorManager::SyncEditorContextForCategory(
-    const std::string& category) {
+void EditorManager::SyncEditorContextForCategory(const std::string& category) {
   if (Editor* resolved = ResolveEditorForCategory(category)) {
     SetCurrentEditor(resolved);
   } else if (!category.empty() &&
              category != PanelManager::kDashboardCategory) {
-    LOG_DEBUG("EditorManager",
-              "No editor context available for category '%s'",
+    LOG_DEBUG("EditorManager", "No editor context available for category '%s'",
               category.c_str());
   }
 }
@@ -1635,7 +1633,7 @@ void EditorManager::UpdateEditorState() {
 }
 
 void EditorManager::DrawInterface() {
-  
+
   // Draw editor selection dialog (managed by UICoordinator)
   if (ui_coordinator_ && ui_coordinator_->IsEditorSelectionVisible()) {
     dashboard_panel_->Show();
@@ -1722,8 +1720,8 @@ void EditorManager::DrawInterface() {
       auto it =
           user_settings_.prefs().panel_visibility_state.find(sidebar_category);
       if (it != user_settings_.prefs().panel_visibility_state.end()) {
-        panel_manager_.RestoreVisibilityState(panel_manager_.GetActiveSessionId(),
-                                              it->second);
+        panel_manager_.RestoreVisibilityState(
+            panel_manager_.GetActiveSessionId(), it->second);
       }
     }
 
@@ -1751,7 +1749,7 @@ void EditorManager::DrawInterface() {
     status_bar_.SetSessionInfo(GetCurrentSessionId(),
                                session_coordinator_->GetActiveSessionCount());
   }
-  
+
   bool has_agent_info = false;
 #if defined(YAZE_BUILD_AGENT_UI)
   if (auto* agent_editor = agent_ui_.GetAgentEditor()) {
@@ -1809,9 +1807,10 @@ void EditorManager::DrawMainMenuBar() {
       ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
     }
 
-    const char* icon = (ui_coordinator_ && ui_coordinator_->IsPanelSidebarVisible())
-                           ? ICON_MD_MENU_OPEN
-                           : ICON_MD_MENU;
+    const char* icon =
+        (ui_coordinator_ && ui_coordinator_->IsPanelSidebarVisible())
+            ? ICON_MD_MENU_OPEN
+            : ICON_MD_MENU;
     if (ImGui::SmallButton(icon)) {
       panel_manager_.ToggleSidebarVisibility();
     }
@@ -1846,13 +1845,15 @@ void EditorManager::DrawSecondaryWindows() {
     if (ui_coordinator_->IsImGuiDemoVisible()) {
       bool visible = true;
       ImGui::ShowDemoWindow(&visible);
-      if (!visible) ui_coordinator_->SetImGuiDemoVisible(false);
+      if (!visible)
+        ui_coordinator_->SetImGuiDemoVisible(false);
     }
 
     if (ui_coordinator_->IsImGuiMetricsVisible()) {
       bool visible = true;
       ImGui::ShowMetricsWindow(&visible);
-      if (!visible) ui_coordinator_->SetImGuiMetricsVisible(false);
+      if (!visible)
+        ui_coordinator_->SetImGuiMetricsVisible(false);
     }
   }
 
@@ -1867,13 +1868,14 @@ void EditorManager::DrawSecondaryWindows() {
     if (ui_coordinator_ && ui_coordinator_->IsAsmEditorVisible()) {
       bool visible = true;
       editor_set->GetAssemblyEditor()->Update(visible);
-      if (!visible) ui_coordinator_->SetAsmEditorVisible(false);
+      if (!visible)
+        ui_coordinator_->SetAsmEditorVisible(false);
     }
   }
 
   // Project and performance tools
   project_file_editor_.Draw();
-  
+
   if (ui_coordinator_ && ui_coordinator_->IsPerformanceDashboardVisible()) {
     gfx::PerformanceDashboard::Get().SetVisible(true);
     gfx::PerformanceDashboard::Get().Update();
@@ -1908,7 +1910,8 @@ void EditorManager::UpdateSystemUIs() {
       current_project_.labels_filename =
           GetCurrentRom()->resource_label()->filename_;
     }
-    if (!visible) ui_coordinator_->SetResourceLabelManagerVisible(false);
+    if (!visible)
+      ui_coordinator_->SetResourceLabelManagerVisible(false);
   }
 
   // Layout presets
@@ -2117,7 +2120,8 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
   update_progress("Loading graphics sheets...");
 #endif
   // Load all Zelda3-specific data (metadata, palettes, gfx groups, graphics)
-  RETURN_IF_ERROR(zelda3::LoadGameData(*current_rom, current_session->game_data));
+  RETURN_IF_ERROR(
+      zelda3::LoadGameData(*current_rom, current_session->game_data));
   current_session->game_data_loaded = true;
 
   // Copy loaded graphics to Arena for global access
@@ -2892,10 +2896,9 @@ std::string EditorManager::GenerateUniqueEditorTitle(
 void EditorManager::JumpToDungeonRoom(int room_id) {
   auto status = EnsureEditorAssetsLoaded(EditorType::kDungeon);
   if (!status.ok()) {
-    toast_manager_.Show(
-        absl::StrFormat("Failed to prepare Dungeon editor: %s",
-                        status.message()),
-        ToastType::kError);
+    toast_manager_.Show(absl::StrFormat("Failed to prepare Dungeon editor: %s",
+                                        status.message()),
+                        ToastType::kError);
   }
   editor_activator_.JumpToDungeonRoom(room_id);
 }

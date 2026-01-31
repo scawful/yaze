@@ -10,14 +10,16 @@
 #include <utility>
 #include <vector>
 
+#include "absl/types/span.h"
+
 #include "app/gfx/render/background_buffer.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/door_position.h"
 #include "zelda3/dungeon/door_types.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
-#include "zelda3/game_data.h"
 #include "zelda3/dungeon/room_layout.h"
 #include "zelda3/dungeon/room_object.h"
+#include "zelda3/game_data.h"
 #include "zelda3/sprite/sprite.h"
 
 namespace yaze {
@@ -90,7 +92,7 @@ struct LayerMergeType {
 };
 
 // LayerMergeType(id, name, Layer2Visible, Layer2OnTop, Layer2Translucent)
-// 
+//
 // SNES Mode 1 Layer Priority: BG1 is ALWAYS rendered on top of BG2 by default.
 // The flags control COLOR MATH effects, not Z-order:
 // - Layer2Visible: Whether BG2 is enabled on main screen
@@ -135,12 +137,12 @@ enum EffectKey {
 struct PotItem {
   uint16_t position = 0;  // Raw position word from ROM
   uint8_t item = 0;       // Item type (0 = nothing)
-  
+
   // Decode pixel coordinates from position word
   // Format: high byte * 16 = Y, low byte * 4 = X
   int GetPixelX() const { return (position & 0xFF) * 4; }
   int GetPixelY() const { return ((position >> 8) & 0xFF) * 16; }
-  
+
   // Get tile coordinates (8-pixel tiles)
   int GetTileX() const { return GetPixelX() / 8; }
   int GetTileY() const { return GetPixelY() / 8; }
@@ -261,9 +263,9 @@ class Room {
    * They are placed at fixed positions along room walls.
    */
   struct Door {
-    uint8_t position;       ///< Encoded position (5-bit, 0-31)
-    DoorType type;          ///< Door type (determines appearance/behavior)
-    DoorDirection direction; ///< Which wall the door is on
+    uint8_t position;         ///< Encoded position (5-bit, 0-31)
+    DoorType type;            ///< Door type (determines appearance/behavior)
+    DoorDirection direction;  ///< Which wall the door is on
 
     uint8_t byte1;  ///< Original ROM byte 1 (position data)
     uint8_t byte2;  ///< Original ROM byte 2 (type + direction)
@@ -537,10 +539,11 @@ class Room {
   void SetRom(Rom* rom) { rom_ = rom; }
   auto game_data() { return game_data_; }
   void SetGameData(GameData* data) { game_data_ = data; }
-  
+
   // Helper to get version constants from game_data or default to US
   zelda3_version_pointers version_constants() const {
-    return kVersionConstantsMap.at(game_data_ ? game_data_->version : zelda3_version::US);
+    return kVersionConstantsMap.at(game_data_ ? game_data_->version
+                                              : zelda3_version::US);
   }
   const std::array<uint8_t, 0x10000>& get_gfx_buffer() const {
     return current_gfx16_;
@@ -663,8 +666,7 @@ struct RoomSize {
 RoomSize CalculateRoomSize(Rom* rom, int room_id);
 
 // Dungeon-level save: aggregate torches from all rooms and write to ROM.
-absl::Status SaveAllTorches(Rom* rom,
-                            const std::vector<Room>& rooms);
+absl::Status SaveAllTorches(Rom* rom, absl::Span<const Room> rooms);
 
 // Preserve pit count, pointer, and data (read from ROM, write back). No edit support yet.
 absl::Status SaveAllPits(Rom* rom);
@@ -672,11 +674,14 @@ absl::Status SaveAllPits(Rom* rom);
 // Preserve blocks length and the four block regions (read from ROM, write back). No edit support yet.
 absl::Status SaveAllBlocks(Rom* rom);
 
+// Preserve custom collision region (read from ROM, write back). No edit support yet; ensures validate-yaze --feature=collision does not regress.
+absl::Status SaveAllCollision(Rom* rom);
+
 // Aggregate chests from all rooms and write to ROM. Preserves ROM data for rooms not loaded.
-absl::Status SaveAllChests(Rom* rom, const std::vector<Room>& rooms);
+absl::Status SaveAllChests(Rom* rom, absl::Span<const Room> rooms);
 
 // Save pot items for all rooms. Preserves ROM data for rooms not loaded.
-absl::Status SaveAllPotItems(Rom* rom, const std::vector<Room>& rooms);
+absl::Status SaveAllPotItems(Rom* rom, absl::Span<const Room> rooms);
 
 // RoomEffect names defined in room.cc to avoid static initialization order issues
 extern const std::string RoomEffect[8];

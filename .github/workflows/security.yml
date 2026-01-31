@@ -50,15 +50,16 @@ jobs:
       uses: ./.github/actions/setup-build
       with:
         platform: linux
-        preset: ci
+        preset: ci-linux
         cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
 
-    - name: Build project
-      uses: ./.github/actions/build-project
-      with:
-        platform: linux
-        preset: ci
-        build-type: RelWithDebInfo
+    - name: Configure (no gRPC for security scan)
+      run: |
+        cmake --preset ci-linux -DYAZE_ENABLE_GRPC=OFF
+
+    - name: Build
+      run: |
+        cmake --build build --config RelWithDebInfo --parallel $(nproc)
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3

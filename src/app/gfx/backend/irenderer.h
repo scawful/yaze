@@ -2,6 +2,26 @@
 
 #include "app/platform/sdl_compat.h"
 
+// Undef C math macros that can be defined by /usr/local/include/math.h (e.g.
+// Homebrew on macOS). They conflict with libc++ __math/traits.h when <memory>
+// or other C++ headers use these identifiers. Must run after sdl_compat (SDL
+// can pull in C math) and before any C++ stdlib includes.
+#ifdef isfinite
+#undef isfinite
+#endif
+#ifdef isinf
+#undef isinf
+#endif
+#ifdef isnan
+#undef isnan
+#endif
+#ifdef isnormal
+#undef isnormal
+#endif
+#ifdef signbit
+#undef signbit
+#endif
+
 #include <memory>
 #include <vector>
 

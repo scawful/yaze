@@ -413,8 +413,7 @@ absl::Status DungeonEditorV2::Save() {
     }
   }
 
-  std::vector<zelda3::Room> rooms_vec(rooms_.begin(), rooms_.end());
-  auto status = zelda3::SaveAllTorches(rom_, rooms_vec);
+  auto status = zelda3::SaveAllTorches(rom_, rooms_);
   if (!status.ok()) {
     LOG_ERROR("DungeonEditorV2", "Failed to save torches: %s",
               status.message().data());
@@ -435,14 +434,21 @@ absl::Status DungeonEditorV2::Save() {
     return status;
   }
 
-  status = zelda3::SaveAllChests(rom_, rooms_vec);
+  status = zelda3::SaveAllCollision(rom_);
+  if (!status.ok()) {
+    LOG_ERROR("DungeonEditorV2", "Failed to save collision: %s",
+              status.message().data());
+    return status;
+  }
+
+  status = zelda3::SaveAllChests(rom_, rooms_);
   if (!status.ok()) {
     LOG_ERROR("DungeonEditorV2", "Failed to save chests: %s",
               status.message().data());
     return status;
   }
 
-  status = zelda3::SaveAllPotItems(rom_, rooms_vec);
+  status = zelda3::SaveAllPotItems(rom_, rooms_);
   if (!status.ok()) {
     LOG_ERROR("DungeonEditorV2", "Failed to save pot items: %s",
               status.message().data());
@@ -614,8 +620,7 @@ void DungeonEditorV2::DrawRoomTab(int room_id) {
 
 void DungeonEditorV2::OnRoomSelected(int room_id, bool request_focus) {
   if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
-    LOG_WARN("DungeonEditorV2", "Ignoring invalid room selection: %d",
-             room_id);
+    LOG_WARN("DungeonEditorV2", "Ignoring invalid room selection: %d", room_id);
     return;
   }
   current_room_id_ = room_id;

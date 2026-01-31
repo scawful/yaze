@@ -141,6 +141,7 @@ source_group("Tests\\Integration\\Zelda3" FILES
   integration/zelda3/dungeon_object_rendering_tests.cc
   integration/zelda3/dungeon_object_rendering_tests_new.cc
   integration/zelda3/room_integration_test.cc
+  integration/zelda3/dungeon_save_region_test.cc
   integration/zelda3/dungeon_room_test.cc
   integration/zelda3/dungeon_palette_test.cc
   integration/zelda3/sprite_position_test.cc
