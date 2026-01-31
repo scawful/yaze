@@ -77,9 +77,11 @@ Enable **Object Labels** from the toolbar to display layer-colored labels.
 
 ### Saving
 
+- **File > Save ROM** persists dungeon data in this order: dungeon maps (when **Save Dungeon Maps** is enabled), then per-room **objects**, **sprites**, **room headers** (14-byte header + message IDs), **door pointers** (with `0xF0 0xFF` marker), then **palettes**, **torches**, **pits**, **blocks**, **chests**, and **pot items**. No need to save from the Dungeon Editor separately for ROM file writes.
 - **Undo/Redo**: `Cmd/Ctrl+Z` and `Cmd/Ctrl+Shift+Z`
 - Changes are tracked across all panels
 - Keep backups enabled in `File > Options > Experiment Flags`
+- To validate output against ZScream golden ROMs on macOS, see [ZScreamCLI Validation](zscream-validation.md).
 
 ---
 

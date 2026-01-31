@@ -57,13 +57,16 @@ if (ImGui::BeginChild("##RoomsList", ImVec2(0, 0), true)) {
    - Selection/drag/copy/paste adjust `RoomObject` instances directly, then invalidate room graphics to trigger re-render.
 
 4. **Save**  
-   - `DungeonEditorV2::Save` currently saves palettes via `PaletteManager` then calls `Room::SaveObjects()` for all rooms.  
-   - Other entities (sprites, doors, chests, entrances, items, room metadata) are not persisted yet.
+   - **Save ROM** (EditorManager::SaveRom) now calls `GetDungeonEditor()->Save()`, so File > Save ROM persists dungeon objects, sprites, door pointers, room headers (14-byte header + message IDs), and palettes in addition to dungeon maps (when kSaveDungeonMaps is on).  
+   - `DungeonEditorV2::Save` saves palettes via `PaletteManager`, then per room: `Room::SaveObjects()`, `Room::SaveSprites()`, `Room::SaveRoomHeader()`, then `DungeonEditorSystem::SaveDungeon()`.  
+   - `Room::EncodeObjects()` emits the door marker `0xF0 0xFF` and the door list (per ZScreamDungeon); `Room::SaveObjects()` writes the door pointer table at `kDoorPointers` so the pointer points to the first byte after the marker.  
+   - **Dungeon layout vs ZScream**: yaze writes room object data in-place at each room’s existing object pointer. ZScreamDungeon repacks room data into five fixed sections (DungeonSection1–5). So `validate-yaze --feature=dungeon` may report byte differences in object layout regions even when object and door content are equivalent; semantic comparison or “in-place” documentation applies.  
+   - Other entities (chests, pots, collision, torches, pits, blocks) have load paths; save paths are added per plan (Phase B/C).
 
 ## Current Limitations / Gaps
 
 - **Undo/Redo**: `DungeonEditorV2` methods return `Unimplemented`; no command history is wired.  
-- **Persistence coverage**: Only tile objects (and palettes) are written back. Sprites, doors, chests, entrances, collision, pot drops, and room metadata are UI-only stubs through `DungeonEditorSystem`.  
+- **Persistence coverage**: Tile objects, sprites, doors (marker + pointer table), room headers (14 bytes + message IDs), and palettes are written back. Chests, pots, collision, torches, pits, and blocks have load paths; save paths are in progress or stubs.  
 - **DungeonEditorSystem**: Exists as API scaffolding but does not load/save or render; panels in `DungeonObjectSelector` cannot commit changes to the ROM.  
 - **Object previews**: Selector uses primitive rectangles; no `ObjectDrawer`/real tiles are shown.  
 - **Tests**: Integration/E2E cover loading and card plumbing but not ROM writes for doors/chests/entrances or undo/redo flows.

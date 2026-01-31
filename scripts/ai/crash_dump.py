@@ -32,7 +32,7 @@ class CrashInvestigator:
         print(f"Capturing last {count} frames of trace...")
         # Note: 'TRACE' command in Mesen2-OoS returns list of {pc, a, x, y, sp, p}
         try:
-            # mesen2-mcp expects params dict; tolerate older signatures
+            # Older bridge signatures omit params; tolerate both.
             res = self.client.bridge.send_command("TRACE", {"count": count})
         except TypeError:
             res = self.client.bridge.send_command("TRACE")
