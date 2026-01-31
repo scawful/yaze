@@ -1,6 +1,7 @@
 #include "cli/handlers/mesen_handlers.h"
 
 #include <cctype>
+#include <charconv>
 #include <cstdlib>
 #include <sstream>
 
@@ -60,7 +61,8 @@ std::vector<uint8_t> ParseHexBytes(const std::string& data_str) {
   std::vector<uint8_t> data;
   for (size_t i = 0; i + 1 < hex.size(); i += 2) {
     int byte = 0;
-    if (::absl::SimpleHexAtoi(hex.substr(i, 2), &byte)) {
+    auto res = std::from_chars(hex.data() + i, hex.data() + i + 2, byte, 16);
+    if (res.ec == std::errc()) {
       data.push_back(static_cast<uint8_t>(byte));
     }
   }

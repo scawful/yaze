@@ -11,6 +11,13 @@
 # Dependencies: yaze_util, SDL2
 # ==============================================================================
 
+if(YAZE_ENABLE_GRPC)
+  list(APPEND YAZE_APP_EMU_SRC
+    app/emu/internal_emulator_adapter.cc
+    app/emu/mesen/mesen_emulator_adapter.cc
+  )
+endif()
+
 add_library(yaze_emulator STATIC ${YAZE_APP_EMU_SRC})
 
 target_precompile_headers(yaze_emulator PRIVATE
@@ -36,6 +43,7 @@ endif()
 target_link_libraries(yaze_emulator PUBLIC
   yaze_util
   yaze_common
+  yaze_app_core_lib
   ${ABSL_TARGETS}
   ${SDL_TARGETS}
 )
@@ -95,6 +103,17 @@ if(YAZE_USE_SDL3)
   target_compile_definitions(yaze_emulator PRIVATE YAZE_USE_SDL3=1 YAZE_SDL3=1)
 else()
   target_compile_definitions(yaze_emulator PRIVATE YAZE_SDL2=1)
+endif()
+
+# Handle circular dependency: yaze_emulator calls UI functions
+target_link_libraries(yaze_emulator PUBLIC yaze_emulator_ui)
+
+# If adapters are included, we need generated proto headers
+if(YAZE_ENABLE_GRPC)
+  if(TARGET yaze_proto_gen)
+    add_dependencies(yaze_emulator yaze_proto_gen)
+    target_include_directories(yaze_emulator PRIVATE ${CMAKE_BINARY_DIR}/gens)
+  endif()
 endif()
 
 message(STATUS "✓ yaze_emulator library configured")

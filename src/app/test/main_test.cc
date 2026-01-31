@@ -35,6 +35,20 @@ int main(int argc, char** argv) {
   if (status.ok()) {
     const auto& results = yaze::test::TestManager::Get().GetLastResults();
     LOG_INFO("Test", "Tests passed: %zu/%zu", results.passed_tests, results.total_tests);
+
+    if (results.failed_tests > 0) {
+      LOG_ERROR("Test", "--- FAILED TESTS ---");
+      for (const auto& result : results.individual_results) {
+        if (result.status == yaze::test::TestStatus::kFailed) {
+          LOG_ERROR("Test", "[FAILED] %s::%s - %s",
+              result.suite_name.c_str(),
+              result.name.c_str(),
+              result.error_message.c_str());
+        }
+      }
+      LOG_ERROR("Test", "--------------------");
+    }
+
     return (results.failed_tests == 0) ? 0 : 1;
   } else {
     LOG_ERROR("Test", "Test execution failed: %s", status.ToString().c_str());

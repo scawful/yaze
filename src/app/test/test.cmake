@@ -51,7 +51,7 @@ target_include_directories(yaze_test_support PUBLIC
 )
 
 target_link_libraries(yaze_test_support PUBLIC
-  yaze_editor
+  # yaze_editor # Removed to avoid circular dep with yaze_editor->yaze_test_support
   yaze_emulator_ui
   yaze_app_core_lib  # Changed from yaze_core_lib - app layer needs app core
   yaze_gui

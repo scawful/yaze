@@ -83,6 +83,7 @@ target_link_libraries(yaze_zelda3 PUBLIC
   yaze_gfx
   yaze_util
   yaze_common
+  yaze_gui_core
   ${ABSL_TARGETS}
   nlohmann_json::nlohmann_json
   ImGui

@@ -174,11 +174,6 @@ target_link_libraries(yaze_editor_system_shortcuts PUBLIC
   ImGui
 )
 
-# Agent UI Theme is always needed (used by dungeon editor, etc.)
-list(APPEND YAZE_APP_EDITOR_SRC
-  app/editor/agent/agent_ui_theme.cc
-)
-
 if(YAZE_BUILD_AGENT_UI)
   list(APPEND YAZE_APP_EDITOR_SRC
     app/editor/agent/agent_chat.cc

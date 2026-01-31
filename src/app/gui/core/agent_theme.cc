@@ -9,53 +9,52 @@ AgentUITheme AgentUITheme::FromCurrentTheme() {
   AgentUITheme t;
   const auto& theme = yaze::gui::ThemeManager::Get().GetCurrentTheme();
 
-  // Message colors - derived from theme.chat
-  t.user_message_color = gui::ConvertColorToImVec4(theme.chat.user_message);
-  t.agent_message_color = gui::ConvertColorToImVec4(theme.chat.agent_message);
-  t.system_message_color = gui::ConvertColorToImVec4(theme.chat.system_message);
+  // Message colors - derived from theme.agent
+  t.user_message_color = gui::ConvertColorToImVec4(theme.agent.user_message);
+  t.agent_message_color = gui::ConvertColorToImVec4(theme.agent.agent_message);
+  t.system_message_color = gui::ConvertColorToImVec4(theme.agent.system_message);
 
-  t.text_secondary_color = gui::ConvertColorToImVec4(theme.text_secondary);
+  t.text_secondary_color = gui::ConvertColorToImVec4(theme.agent.text_secondary);
 
-  // Content colors - derived from theme.chat
-  t.json_text_color = gui::ConvertColorToImVec4(theme.chat.json_text);
-  t.command_text_color = gui::ConvertColorToImVec4(theme.chat.command_text);
-  t.code_bg_color = gui::ConvertColorToImVec4(theme.chat.code_background);
+  // Content colors - derived from theme.agent
+  t.json_text_color = gui::ConvertColorToImVec4(theme.agent.json_text);
+  t.command_text_color = gui::ConvertColorToImVec4(theme.agent.command_text);
+  t.code_bg_color = gui::ConvertColorToImVec4(theme.agent.code_background);
 
-  // UI element colors - derived from base theme
-  t.panel_bg_color = gui::ConvertColorToImVec4(theme.window_bg);
-  t.panel_bg_darker = ImVec4(theme.window_bg.red * 0.8f, theme.window_bg.green * 0.8f,
-                             theme.window_bg.blue * 0.8f, 1.0f);
-  t.panel_border_color = gui::ConvertColorToImVec4(theme.border);
-  t.accent_color = gui::ConvertColorToImVec4(theme.primary);
+  // UI element colors - derived from theme.agent
+  t.panel_bg_color = gui::ConvertColorToImVec4(theme.agent.panel_bg);
+  t.panel_bg_darker = gui::ConvertColorToImVec4(theme.agent.panel_bg_darker);
+  t.panel_border_color = gui::ConvertColorToImVec4(theme.agent.panel_border);
+  t.accent_color = gui::ConvertColorToImVec4(theme.agent.accent);
 
-  // Status colors - derived from base theme
-  t.status_active = gui::ConvertColorToImVec4(theme.success);
-  t.status_inactive = gui::ConvertColorToImVec4(theme.text_disabled);
-  t.status_success = gui::ConvertColorToImVec4(theme.success);
-  t.status_warning = gui::ConvertColorToImVec4(theme.warning);
-  t.status_error = gui::ConvertColorToImVec4(theme.error);
+  // Status colors - derived from theme.agent
+  t.status_active = gui::ConvertColorToImVec4(theme.agent.status_active);
+  t.status_inactive = gui::ConvertColorToImVec4(theme.agent.status_inactive);
+  t.status_success = gui::ConvertColorToImVec4(theme.agent.status_success);
+  t.status_warning = gui::ConvertColorToImVec4(theme.agent.status_warning);
+  t.status_error = gui::ConvertColorToImVec4(theme.agent.status_error);
 
-  // Provider colors - derived from theme.chat
-  t.provider_ollama = gui::ConvertColorToImVec4(theme.chat.provider_ollama);
-  t.provider_gemini = gui::ConvertColorToImVec4(theme.chat.provider_gemini);
-  t.provider_mock = gui::ConvertColorToImVec4(theme.chat.provider_mock);
-  t.provider_openai = gui::ConvertColorToImVec4(theme.chat.provider_openai);
+  // Provider colors - derived from theme.agent
+  t.provider_ollama = gui::ConvertColorToImVec4(theme.agent.provider_ollama);
+  t.provider_gemini = gui::ConvertColorToImVec4(theme.agent.provider_gemini);
+  t.provider_mock = gui::ConvertColorToImVec4(theme.agent.provider_mock);
+  t.provider_openai = gui::ConvertColorToImVec4(theme.agent.provider_openai);
 
   // Collaboration colors
-  t.collaboration_active = gui::ConvertColorToImVec4(theme.success);
-  t.collaboration_inactive = gui::ConvertColorToImVec4(theme.text_disabled);
+  t.collaboration_active = gui::ConvertColorToImVec4(theme.agent.collaboration_active);
+  t.collaboration_inactive = gui::ConvertColorToImVec4(theme.agent.collaboration_inactive);
 
-  // Proposal colors - derived from theme.chat
-  t.proposal_panel_bg = gui::ConvertColorToImVec4(theme.chat.proposal_panel_bg);
-  t.proposal_accent = gui::ConvertColorToImVec4(theme.chat.proposal_accent);
+  // Proposal colors - derived from theme.agent
+  t.proposal_panel_bg = gui::ConvertColorToImVec4(theme.agent.proposal_panel_bg);
+  t.proposal_accent = gui::ConvertColorToImVec4(theme.agent.proposal_accent);
 
-  // Button colors - derived from theme.chat
-  t.button_copy = gui::ConvertColorToImVec4(theme.chat.button_copy);
-  t.button_copy_hover = gui::ConvertColorToImVec4(theme.chat.button_copy_hover);
+  // Button colors - derived from theme.agent
+  t.button_copy = gui::ConvertColorToImVec4(theme.agent.button_copy);
+  t.button_copy_hover = gui::ConvertColorToImVec4(theme.agent.button_copy_hover);
 
-  // Gradient colors - derived from theme.chat
-  t.gradient_top = gui::ConvertColorToImVec4(theme.chat.gradient_top);
-  t.gradient_bottom = gui::ConvertColorToImVec4(theme.chat.gradient_bottom);
+  // Gradient colors - derived from theme.agent
+  t.gradient_top = gui::ConvertColorToImVec4(theme.agent.gradient_top);
+  t.gradient_bottom = gui::ConvertColorToImVec4(theme.agent.gradient_bottom);
 
   // Dungeon editor colors - derived from theme.dungeon
   t.dungeon_selection_primary = gui::ConvertColorToImVec4(theme.dungeon.selection_primary);
