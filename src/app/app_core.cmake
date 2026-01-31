@@ -19,9 +19,12 @@ set(
   app/platform/window.cc
   app/platform/window_backend_factory.cc
   app/platform/null_window_backend.cc
-  app/emu/internal_emulator_adapter.cc
-  app/emu/mesen/mesen_emulator_adapter.cc
 )
+
+if(YAZE_ENABLE_GRPC)
+  # Adapter implementations moved to yaze_emulator to avoid circular dependencies
+  # (yaze_app_core_lib -> yaze_emulator -> yaze_app_core_lib)
+endif()
 
 if(YAZE_PLATFORM_IOS)
   list(APPEND YAZE_APP_CORE_SRC

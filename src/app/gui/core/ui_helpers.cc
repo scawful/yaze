@@ -166,6 +166,17 @@ bool IconButton(const char* icon, const char* label, const ImVec2& size) {
   return ImGui::Button(button_text.c_str(), size);
 }
 
+bool IconButton(const char* icon, const char* tooltip) {
+  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+  bool clicked = ImGui::Button(icon);
+  ImGui::PopStyleColor();
+
+  if (tooltip && ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("%s", tooltip);
+  }
+  return clicked;
+}
+
 bool ColoredButton(const char* label, ButtonType type, const ImVec2& size) {
   ImVec4 color;
   switch (type) {
@@ -186,6 +197,21 @@ bool ColoredButton(const char* label, ButtonType type, const ImVec2& size) {
       break;
   }
 
+  ImGui::PushStyleColor(ImGuiCol_Button, color);
+  ImGui::PushStyleColor(
+      ImGuiCol_ButtonHovered,
+      ImVec4(color.x * 1.2f, color.y * 1.2f, color.z * 1.2f, color.w));
+  ImGui::PushStyleColor(
+      ImGuiCol_ButtonActive,
+      ImVec4(color.x * 0.8f, color.y * 0.8f, color.z * 0.8f, color.w));
+
+  bool result = ImGui::Button(label, size);
+
+  ImGui::PopStyleColor(3);
+  return result;
+}
+
+bool StyledButton(const char* label, const ImVec4& color, const ImVec2& size) {
   ImGui::PushStyleColor(ImGuiCol_Button, color);
   ImGui::PushStyleColor(
       ImGuiCol_ButtonHovered,
@@ -379,6 +405,25 @@ void StatusIndicator(const char* label, bool active, const char* tooltip) {
   if (tooltip && ImGui::IsItemHovered()) {
     ImGui::SetTooltip("%s", tooltip);
   }
+}
+
+void RenderProviderBadge(const char* provider) {
+  const auto& theme = ThemeManager::Get().GetCurrentTheme();
+  ImVec4 color = ConvertColorToImVec4(theme.agent.provider_mock);
+
+  if (strcmp(provider, "ollama") == 0) {
+    color = ConvertColorToImVec4(theme.agent.provider_ollama);
+  } else if (strcmp(provider, "gemini") == 0) {
+    color = ConvertColorToImVec4(theme.agent.provider_gemini);
+  } else if (strcmp(provider, "anthropic") == 0) {
+    color = ConvertColorToImVec4(theme.agent.provider_openai);
+  } else if (strcmp(provider, "openai") == 0) {
+    color = ConvertColorToImVec4(theme.agent.provider_openai);
+  }
+
+  ImGui::PushStyleColor(ImGuiCol_Text, color);
+  ImGui::Text("[%s]", provider);
+  ImGui::PopStyleColor();
 }
 
 void RomVersionBadge(const char* version, bool is_vanilla) {

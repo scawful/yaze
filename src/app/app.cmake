@@ -7,7 +7,7 @@
 # ==============================================================================
 
 # Always create the application core library (needed by yaze_agent)
-include(app/app_core.cmake)
+# include(app/app_core.cmake) # Moved to src/CMakeLists.txt to resolve dependency cycles
 
 # Only build GUI executable when explicitly requested
 if(NOT YAZE_BUILD_GUI)
@@ -115,7 +115,19 @@ endif()
 
 # Link test support library (yaze_editor needs TestManager)
 if(TARGET yaze_test_support)
-  target_link_libraries(yaze PRIVATE yaze_test_support)
+  # Link yaze_test_support
+  # Note: Also link yaze_editor and yaze_agent again to resolve circular dependencies
+  # between editor/agent/test_support in static builds.
+  # Using link groups for Linux/GNU to ensure circular deps are resolved.
+  if(UNIX AND NOT APPLE)
+    # Force whole-archive for test support to ensure TestManager is available to editor
+    target_link_options(yaze PRIVATE
+      "-Wl,--whole-archive" "$<TARGET_LINKER_FILE:yaze_test_support>" "-Wl,--no-whole-archive"
+    )
+    target_link_libraries(yaze PRIVATE "-Wl,--start-group" yaze_test_support yaze_editor yaze_agent "-Wl,--end-group")
+  else()
+    target_link_libraries(yaze PRIVATE yaze_test_support yaze_editor yaze_agent)
+  endif()
   message(STATUS "✓ yaze executable linked to yaze_test_support")
 else()
   message(WARNING "yaze needs yaze_test_support but TARGET not found")
@@ -217,7 +229,10 @@ if(YAZE_BUILD_TESTS)
   add_executable(yaze_test app/test/main_test.cc)
   target_link_libraries(yaze_test PRIVATE
     yaze_test_support
+    yaze_editor
     yaze_app_core_lib
+    yaze_core_lib
+    yaze_zelda3
     absl::flags
     absl::flags_parse
   )
@@ -227,4 +242,3 @@ if(YAZE_BUILD_TESTS)
     ${PROJECT_BINARY_DIR}
   )
 endif()
-
