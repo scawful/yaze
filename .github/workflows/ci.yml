@@ -375,6 +375,7 @@ jobs:
           -DZ3ED_AI=ON \
           -DYAZE_BUILD_Z3ED=ON \
           -DYAZE_ENABLE_AI_RUNTIME=ON \
+          -DYAZE_ENABLE_GRPC=ON \
           -DYAZE_ENABLE_REMOTE_AUTOMATION=ON \
           -DYAZE_BUILD_AGENT_UI=ON
         cmake --build build_test --target z3ed
