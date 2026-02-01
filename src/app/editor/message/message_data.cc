@@ -380,7 +380,7 @@ std::vector<std::string> ParseMessageData(
   return parsed_messages;
 }
 
-std::vector<MessageData> ReadAllTextData(uint8_t* rom, int pos) {
+std::vector<MessageData> ReadAllTextData(uint8_t* rom, int pos, int max_pos) {
   std::vector<MessageData> list_of_texts;
   int message_id = 0;
 
@@ -389,8 +389,10 @@ std::vector<MessageData> ReadAllTextData(uint8_t* rom, int pos) {
   std::string current_raw_message;
   std::string current_parsed_message;
 
+  bool did_bank_switch = false;
   uint8_t current_byte = 0;
   while (current_byte != 0xFF) {
+    if (max_pos > 0 && pos >= max_pos) break;
     current_byte = rom[pos++];
     if (current_byte == kMessageTerminator) {
       list_of_texts.push_back(
@@ -419,7 +421,8 @@ std::vector<MessageData> ReadAllTextData(uint8_t* rom, int pos) {
       current_raw_message.append(text_element->GetParamToken(current_byte));
       current_parsed_message.append(text_element->GetParamToken(current_byte));
 
-      if (text_element->Token == kBankToken) {
+      if (text_element->Token == kBankToken && !did_bank_switch) {
+        did_bank_switch = true;
         pos = kTextData2;
       }
 
