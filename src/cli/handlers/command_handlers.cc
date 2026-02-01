@@ -67,6 +67,13 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<MessageListCommandHandler>());
   handlers.push_back(std::make_unique<MessageReadCommandHandler>());
   handlers.push_back(std::make_unique<MessageSearchCommandHandler>());
+  handlers.push_back(std::make_unique<MessageEncodeCommandHandler>());
+  handlers.push_back(std::make_unique<MessageDecodeCommandHandler>());
+  handlers.push_back(std::make_unique<MessageImportOrgCommandHandler>());
+  handlers.push_back(std::make_unique<MessageExportOrgCommandHandler>());
+  handlers.push_back(std::make_unique<MessageWriteCommandHandler>());
+  handlers.push_back(std::make_unique<MessageExportBinCommandHandler>());
+  handlers.push_back(std::make_unique<MessageExportAsmCommandHandler>());
 
   // ROM commands
   handlers.push_back(std::make_unique<RomReadCommandHandler>());

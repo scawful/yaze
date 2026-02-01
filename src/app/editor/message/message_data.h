@@ -463,6 +463,60 @@ nlohmann::json SerializeMessagesToJson(const std::vector<MessageData>& messages)
 absl::Status ExportMessagesToJson(const std::string& path,
                                   const std::vector<MessageData>& messages);
 
+// ===========================================================================
+// Line Width Validation
+// ===========================================================================
+
+constexpr int kMaxLineWidth = 32;  // Maximum visible characters per line
+
+// Validates that no line in a message exceeds kMaxLineWidth visible characters.
+// Splits on line break tokens: [1], [2], [3], [V], [K]
+// Returns a vector of warning strings (empty if all lines are within bounds).
+// Command tokens like [W:02], [SFX:2D] etc. are not counted as visible chars.
+std::vector<std::string> ValidateMessageLineWidths(const std::string& message);
+
+// ===========================================================================
+// Org Format (.org) Import/Export
+// ===========================================================================
+
+// Parses an org-mode header line like "** 0F - Skeleton Guard"
+// Returns {message_id, label} pair, or nullopt if not a valid header.
+std::optional<std::pair<int, std::string>> ParseOrgHeader(
+    const std::string& line);
+
+// Parses the full content of a .org file into message entries.
+// Returns a vector of {message_id, body_text} pairs.
+std::vector<std::pair<int, std::string>> ParseOrgContent(
+    const std::string& content);
+
+// Exports messages to .org format string.
+// messages: vector of {message_id, body_text} pairs
+// labels: parallel vector of human-readable labels for each message
+std::string ExportToOrgFormat(
+    const std::vector<std::pair<int, std::string>>& messages,
+    const std::vector<std::string>& labels);
+
+// ===========================================================================
+// Expanded Message Bank (Oracle of Secrets: $2F8000)
+// ===========================================================================
+
+// PC address of SNES $2F8000 (expanded message region start)
+constexpr int kExpandedTextData = 0x178000;
+// PC address of SNES $2FFFFF (expanded message region end)
+constexpr int kExpandedTextDataEnd = 0x17FFFF;
+
+// Reads expanded messages from a ROM buffer at the given PC address.
+// Messages are 0x7F-terminated, region is 0xFF-terminated.
+// Uses the same parsing as ReadAllTextData but for the expanded bank.
+std::vector<MessageData> ReadExpandedTextData(uint8_t* rom, int pos);
+
+// Writes encoded messages to the expanded region of a ROM buffer.
+// Each message text is encoded via ParseMessageToData, terminated with 0x7F.
+// The region is terminated with 0xFF.
+// Returns error if total size exceeds (end - start + 1).
+absl::Status WriteExpandedTextData(uint8_t* rom, int start, int end,
+                                   const std::vector<std::string>& messages);
+
 }  // namespace editor
 }  // namespace yaze
 
