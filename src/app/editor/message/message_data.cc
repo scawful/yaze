@@ -1,9 +1,11 @@
 #include "message_data.h"
 
 #include <optional>
+#include <sstream>
 #include <string>
 
 #include "absl/strings/str_format.h"
+#include "absl/strings/str_split.h"
 #include "rom/snes.h"
 #include "util/hex.h"
 #include "util/log.h"
@@ -80,8 +82,10 @@ ParsedElement FindMatchingElement(const std::string& str) {
   match = dictionary_element.MatchMe(str);
   if (match.size() > 0) {
     try {
+      // match[1] captures ":XX" — strip the leading colon
+      std::string dict_arg = match[1].str().substr(1);
       return ParsedElement(dictionary_element,
-                           DICTOFF + std::stoi(match[1].str(), nullptr, 16));
+                           DICTOFF + std::stoi(dict_arg, nullptr, 16));
     } catch (const std::exception& e) {
       util::logf("Error parsing dictionary token: %s", match[1].str().c_str());
       return ParsedElement();
@@ -509,6 +513,217 @@ absl::Status ExportMessagesToJson(const std::string& path,
     return absl::InternalError(
         absl::StrFormat("JSON export failed: %s", e.what()));
   }
+}
+
+// ===========================================================================
+// Line Width Validation
+// ===========================================================================
+
+std::vector<std::string> ValidateMessageLineWidths(
+    const std::string& message) {
+  std::vector<std::string> warnings;
+
+  // Split message into lines on line-break tokens: [1], [2], [3], [V], [K]
+  // We walk through the string, counting visible characters per line.
+  int line_num = 1;
+  int visible_chars = 0;
+  size_t pos = 0;
+
+  while (pos < message.size()) {
+    if (message[pos] == '[') {
+      // Find the closing bracket
+      size_t close = message.find(']', pos);
+      if (close == std::string::npos) break;
+
+      std::string token = message.substr(pos, close - pos + 1);
+      pos = close + 1;
+
+      // Check if this token is a line-breaking command
+      // Line breaks: [1], [2], [3], [V], [K]
+      if (token == "[1]" || token == "[2]" || token == "[3]" ||
+          token == "[V]" || token == "[K]") {
+        // Check current line width before breaking
+        if (visible_chars > kMaxLineWidth) {
+          warnings.push_back(
+              absl::StrFormat("Line %d: %d visible characters (max %d)",
+                              line_num, visible_chars, kMaxLineWidth));
+        }
+        line_num++;
+        visible_chars = 0;
+      }
+      // Other command tokens ([W:02], [S:03], [SFX:2D], [L], [...], etc.)
+      // are not counted as visible characters - they're control codes or
+      // expand to game-rendered content that we can't measure in chars.
+      // Exception: [L] expands to player name but width varies (1-6 chars).
+      // For simplicity, we don't count command tokens.
+      continue;
+    }
+
+    // Regular visible character
+    visible_chars++;
+    pos++;
+  }
+
+  // Check the last line
+  if (visible_chars > kMaxLineWidth) {
+    warnings.push_back(
+        absl::StrFormat("Line %d: %d visible characters (max %d)", line_num,
+                        visible_chars, kMaxLineWidth));
+  }
+
+  return warnings;
+}
+
+// ===========================================================================
+// Org Format (.org) Import/Export
+// ===========================================================================
+
+std::optional<std::pair<int, std::string>> ParseOrgHeader(
+    const std::string& line) {
+  // Expected format: "** XX - Label Text"
+  // where XX is a hex message ID
+  if (line.size() < 6 || line[0] != '*' || line[1] != '*' || line[2] != ' ') {
+    return std::nullopt;
+  }
+
+  // Find the " - " separator
+  size_t sep = line.find(" - ", 3);
+  if (sep == std::string::npos) {
+    return std::nullopt;
+  }
+
+  // Parse hex ID between "** " and " - "
+  std::string hex_id = line.substr(3, sep - 3);
+  int message_id;
+  try {
+    message_id = std::stoi(hex_id, nullptr, 16);
+  } catch (const std::exception&) {
+    return std::nullopt;
+  }
+
+  // Extract label after " - "
+  std::string label = line.substr(sep + 3);
+
+  return std::make_pair(message_id, label);
+}
+
+std::vector<std::pair<int, std::string>> ParseOrgContent(
+    const std::string& content) {
+  std::vector<std::pair<int, std::string>> messages;
+  std::istringstream stream(content);
+  std::string line;
+
+  int current_id = -1;
+  std::string current_body;
+
+  while (std::getline(stream, line)) {
+    // Check if this is a header line
+    auto header = ParseOrgHeader(line);
+    if (header.has_value()) {
+      // Save previous message if any
+      if (current_id >= 0) {
+        // Trim trailing newline from body
+        while (!current_body.empty() && current_body.back() == '\n') {
+          current_body.pop_back();
+        }
+        messages.push_back({current_id, current_body});
+      }
+
+      current_id = header->first;
+      current_body.clear();
+      continue;
+    }
+
+    // Skip top-level org headers (single *)
+    if (!line.empty() && line[0] == '*' && (line.size() < 2 || line[1] != '*')) {
+      continue;
+    }
+
+    // Accumulate body text
+    if (current_id >= 0) {
+      if (!current_body.empty()) {
+        current_body += "\n";
+      }
+      current_body += line;
+    }
+  }
+
+  // Save last message
+  if (current_id >= 0) {
+    while (!current_body.empty() && current_body.back() == '\n') {
+      current_body.pop_back();
+    }
+    messages.push_back({current_id, current_body});
+  }
+
+  return messages;
+}
+
+std::string ExportToOrgFormat(
+    const std::vector<std::pair<int, std::string>>& messages,
+    const std::vector<std::string>& labels) {
+  std::string output;
+  output += "* Oracle of Secrets English Dialogue\n";
+
+  for (size_t i = 0; i < messages.size(); ++i) {
+    const auto& [msg_id, body] = messages[i];
+    std::string label =
+        (i < labels.size()) ? labels[i] : absl::StrFormat("Message %02X", msg_id);
+
+    output += absl::StrFormat("** %02X - %s\n", msg_id, label);
+    output += body;
+    output += "\n\n";
+  }
+
+  return output;
+}
+
+// ===========================================================================
+// Expanded Message Bank
+// ===========================================================================
+
+std::vector<MessageData> ReadExpandedTextData(uint8_t* rom, int pos) {
+  // Reuse ReadAllTextData — it already handles 0x7F terminators and 0xFF end
+  return ReadAllTextData(rom, pos);
+}
+
+absl::Status WriteExpandedTextData(uint8_t* rom, int start, int end,
+                                   const std::vector<std::string>& messages) {
+  int pos = start;
+  int capacity = end - start + 1;
+
+  for (size_t i = 0; i < messages.size(); ++i) {
+    auto bytes = ParseMessageToData(messages[i]);
+
+    // Check space: bytes + terminator (0x7F) + final end marker (0xFF)
+    int needed = static_cast<int>(bytes.size()) + 1;  // +1 for 0x7F
+    if (i == messages.size() - 1) {
+      needed += 1;  // +1 for final 0xFF
+    }
+
+    if (pos + needed - start > capacity) {
+      return absl::ResourceExhaustedError(absl::StrFormat(
+          "Expanded message data exceeds bank boundary "
+          "(at message %d, pos 0x%06X, end 0x%06X)",
+          static_cast<int>(i), pos, end));
+    }
+
+    // Write encoded bytes
+    for (uint8_t byte : bytes) {
+      rom[pos++] = byte;
+    }
+    // Write message terminator
+    rom[pos++] = kMessageTerminator;
+  }
+
+  // Write end-of-region marker
+  if (pos - start >= capacity) {
+    return absl::ResourceExhaustedError(
+        "No space for end-of-region marker (0xFF)");
+  }
+  rom[pos++] = 0xFF;
+
+  return absl::OkStatus();
 }
 
 }  // namespace editor

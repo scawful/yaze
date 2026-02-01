@@ -1,5 +1,8 @@
 #include "cli/handlers/game/message_commands.h"
 
+#include <fstream>
+#include <sstream>
+
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_format.h"
 
@@ -8,6 +11,10 @@
 namespace yaze {
 namespace cli {
 namespace handlers {
+
+// ===========================================================================
+// Existing Commands
+// ===========================================================================
 
 absl::Status MessageListCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
@@ -118,6 +125,379 @@ absl::Status MessageSearchCommandHandler::Execute(
     match_count++;
   }
   formatter.EndArray();
+  formatter.EndObject();
+
+  return absl::OkStatus();
+}
+
+// ===========================================================================
+// New: Encode Command
+// ===========================================================================
+
+absl::Status MessageEncodeCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  auto text = parser.GetString("text").value();
+
+  auto bytes = editor::ParseMessageToData(text);
+
+  // Build hex string
+  std::string hex_str;
+  for (size_t i = 0; i < bytes.size(); ++i) {
+    if (i > 0) hex_str += " ";
+    hex_str += absl::StrFormat("%02X", bytes[i]);
+  }
+
+  formatter.BeginObject("Encoded Message");
+  formatter.AddField("input", text);
+  formatter.AddField("hex", hex_str);
+  formatter.AddField("length", static_cast<int>(bytes.size()));
+
+  // Also output as byte array for JSON consumers
+  formatter.BeginArray("bytes");
+  for (uint8_t byte : bytes) {
+    formatter.AddArrayItem(absl::StrFormat("0x%02X", byte));
+  }
+  formatter.EndArray();
+
+  // Run line width validation
+  auto warnings = editor::ValidateMessageLineWidths(text);
+  if (!warnings.empty()) {
+    formatter.BeginArray("line_width_warnings");
+    for (const auto& warning : warnings) {
+      formatter.AddArrayItem(warning);
+    }
+    formatter.EndArray();
+  }
+
+  formatter.EndObject();
+
+  return absl::OkStatus();
+}
+
+// ===========================================================================
+// New: Decode Command
+// ===========================================================================
+
+absl::Status MessageDecodeCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  auto hex_input = parser.GetString("hex").value();
+
+  // Parse hex string to bytes
+  std::vector<uint8_t> bytes;
+  std::istringstream hex_stream(hex_input);
+  std::string hex_byte;
+  while (hex_stream >> hex_byte) {
+    try {
+      bytes.push_back(
+          static_cast<uint8_t>(std::stoi(hex_byte, nullptr, 16)));
+    } catch (const std::exception&) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Invalid hex byte: '%s'", hex_byte));
+    }
+  }
+
+  // Decode bytes to text, handling commands with arguments
+  std::string decoded;
+  for (size_t i = 0; i < bytes.size(); ++i) {
+    uint8_t byte = bytes[i];
+
+    // Check for command (may consume next byte as argument)
+    auto cmd = editor::FindMatchingCommand(byte);
+    if (cmd.has_value()) {
+      if (cmd->HasArgument && i + 1 < bytes.size()) {
+        decoded += cmd->GetParamToken(bytes[++i]);
+      } else {
+        decoded += cmd->GetParamToken();
+      }
+      continue;
+    }
+
+    // Single-byte lookup for chars, specials, dictionary
+    decoded += editor::ParseTextDataByte(byte);
+  }
+
+  formatter.BeginObject("Decoded Message");
+  formatter.AddField("hex", hex_input);
+  formatter.AddField("text", decoded);
+  formatter.AddField("length", static_cast<int>(bytes.size()));
+  formatter.EndObject();
+
+  return absl::OkStatus();
+}
+
+// ===========================================================================
+// New: Import Org Command
+// ===========================================================================
+
+absl::Status MessageImportOrgCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  auto file_path = parser.GetString("file").value();
+
+  // Read the .org file
+  std::ifstream file(file_path);
+  if (!file.is_open()) {
+    return absl::NotFoundError(
+        absl::StrFormat("Cannot open file: %s", file_path));
+  }
+
+  std::string content((std::istreambuf_iterator<char>(file)),
+                       std::istreambuf_iterator<char>());
+  file.close();
+
+  auto messages = editor::ParseOrgContent(content);
+
+  formatter.BeginObject("Org Import Results");
+  formatter.AddField("file", file_path);
+  formatter.AddField("messages_parsed", static_cast<int>(messages.size()));
+
+  formatter.BeginArray("messages");
+  for (const auto& [msg_id, body] : messages) {
+    // Encode the body text to bytes
+    auto bytes = editor::ParseMessageToData(body);
+    auto warnings = editor::ValidateMessageLineWidths(body);
+
+    std::string hex_str;
+    for (size_t i = 0; i < bytes.size(); ++i) {
+      if (i > 0) hex_str += " ";
+      hex_str += absl::StrFormat("%02X", bytes[i]);
+    }
+
+    formatter.BeginObject();
+    formatter.AddHexField("id", msg_id, 2);
+    formatter.AddField("text", body);
+    formatter.AddField("hex", hex_str);
+    formatter.AddField("encoded_length", static_cast<int>(bytes.size()));
+    if (!warnings.empty()) {
+      formatter.BeginArray("warnings");
+      for (const auto& warning : warnings) {
+        formatter.AddArrayItem(warning);
+      }
+      formatter.EndArray();
+    }
+    formatter.EndObject();
+  }
+  formatter.EndArray();
+  formatter.EndObject();
+
+  return absl::OkStatus();
+}
+
+// ===========================================================================
+// New: Export Org Command
+// ===========================================================================
+
+absl::Status MessageExportOrgCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  auto output_path = parser.GetString("output").value();
+
+  auto messages = editor::ReadAllTextData(const_cast<uint8_t*>(rom->data()),
+                                          editor::kTextData);
+
+  // Build message pairs and labels
+  std::vector<std::pair<int, std::string>> msg_pairs;
+  std::vector<std::string> labels;
+  for (const auto& msg : messages) {
+    msg_pairs.push_back({msg.ID, msg.RawString});
+    labels.push_back(absl::StrFormat("Message %02X", msg.ID));
+  }
+
+  std::string org_content = editor::ExportToOrgFormat(msg_pairs, labels);
+
+  // Write to file
+  std::ofstream file(output_path);
+  if (!file.is_open()) {
+    return absl::InternalError(
+        absl::StrFormat("Cannot write to file: %s", output_path));
+  }
+  file << org_content;
+  file.close();
+
+  formatter.BeginObject("Org Export Results");
+  formatter.AddField("output", output_path);
+  formatter.AddField("messages_exported", static_cast<int>(messages.size()));
+  formatter.AddField("status", "success");
+  formatter.EndObject();
+
+  return absl::OkStatus();
+}
+
+// ===========================================================================
+// New: Message Write Command
+// ===========================================================================
+
+absl::Status MessageWriteCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  auto id_or = parser.GetInt("id");
+  if (!id_or.ok()) return id_or.status();
+  int msg_id = id_or.value();
+
+  auto text = parser.GetString("text").value();
+
+  // Validate line widths first
+  auto warnings = editor::ValidateMessageLineWidths(text);
+
+  // Encode to bytes
+  auto bytes = editor::ParseMessageToData(text);
+  if (bytes.empty() && !text.empty()) {
+    return absl::InvalidArgumentError("Encoding produced no bytes");
+  }
+
+  // Read existing expanded messages to find the target
+  auto expanded = editor::ReadExpandedTextData(
+      const_cast<uint8_t*>(rom->data()), editor::kExpandedTextData);
+
+  // Build the full message list, inserting/replacing at msg_id
+  std::vector<std::string> all_texts;
+  bool replaced = false;
+  for (const auto& msg : expanded) {
+    if (msg.ID == msg_id) {
+      all_texts.push_back(text);
+      replaced = true;
+    } else {
+      all_texts.push_back(msg.RawString);
+    }
+  }
+  if (!replaced) {
+    // Append as new message
+    all_texts.push_back(text);
+  }
+
+  // Write back
+  auto status = editor::WriteExpandedTextData(
+      const_cast<uint8_t*>(rom->mutable_data()), editor::kExpandedTextData,
+      editor::kExpandedTextDataEnd, all_texts);
+  if (!status.ok()) return status;
+
+  formatter.BeginObject("Message Write Result");
+  formatter.AddField("id", msg_id);
+  formatter.AddField("text", text);
+  formatter.AddField("encoded_length", static_cast<int>(bytes.size()));
+  formatter.AddField("status", "success");
+  if (!warnings.empty()) {
+    formatter.BeginArray("line_width_warnings");
+    for (const auto& warning : warnings) {
+      formatter.AddArrayItem(warning);
+    }
+    formatter.EndArray();
+  }
+  formatter.EndObject();
+
+  return absl::OkStatus();
+}
+
+// ===========================================================================
+// New: Export BIN Command
+// ===========================================================================
+
+absl::Status MessageExportBinCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  auto output_path = parser.GetString("output").value();
+  auto range = parser.GetString("range").value_or("expanded");
+
+  int start, end_addr;
+  if (range == "expanded") {
+    start = editor::kExpandedTextData;
+    end_addr = editor::kExpandedTextDataEnd;
+  } else {
+    start = editor::kTextData;
+    end_addr = editor::kTextDataEnd;
+  }
+
+  // Find the actual end of data (scan for 0xFF terminator)
+  const uint8_t* data = rom->data();
+  int data_end = start;
+  while (data_end <= end_addr && data[data_end] != 0xFF) {
+    data_end++;
+  }
+  if (data_end <= end_addr) {
+    data_end++;  // Include the 0xFF terminator
+  }
+
+  int size = data_end - start;
+
+  std::ofstream file(output_path, std::ios::binary);
+  if (!file.is_open()) {
+    return absl::InternalError(
+        absl::StrFormat("Cannot write to file: %s", output_path));
+  }
+  file.write(reinterpret_cast<const char*>(data + start), size);
+  file.close();
+
+  formatter.BeginObject("BIN Export Result");
+  formatter.AddField("output", output_path);
+  formatter.AddField("range", range);
+  formatter.AddHexField("start_address", start, 6);
+  formatter.AddHexField("end_address", data_end - 1, 6);
+  formatter.AddField("size_bytes", size);
+  formatter.AddField("status", "success");
+  formatter.EndObject();
+
+  return absl::OkStatus();
+}
+
+// ===========================================================================
+// New: Export ASM Command
+// ===========================================================================
+
+absl::Status MessageExportAsmCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  auto output_path = parser.GetString("output").value();
+  auto range = parser.GetString("range").value_or("expanded");
+
+  int start;
+  uint32_t snes_addr;
+  if (range == "expanded") {
+    start = editor::kExpandedTextData;
+    snes_addr = 0x2F8000;
+  } else {
+    start = editor::kTextData;
+    snes_addr = 0x1C0000;
+  }
+
+  // Read messages from the specified region
+  auto messages = editor::ReadAllTextData(
+      const_cast<uint8_t*>(rom->data()), start);
+
+  std::ofstream file(output_path);
+  if (!file.is_open()) {
+    return absl::InternalError(
+        absl::StrFormat("Cannot write to file: %s", output_path));
+  }
+
+  // Write ASM header
+  file << "; Auto-generated message data\n";
+  file << absl::StrFormat("; Source: %s region\n", range);
+  file << absl::StrFormat("; Messages: %d\n\n", messages.size());
+  file << absl::StrFormat("org $%06X\n\n", snes_addr);
+
+  // Write each message as db directives
+  for (const auto& msg : messages) {
+    file << absl::StrFormat("; Message $%02X: %s\n", msg.ID,
+                            msg.ContentsParsed.substr(0, 60));
+    file << "db ";
+    for (size_t i = 0; i < msg.Data.size(); ++i) {
+      if (i > 0) file << ", ";
+      file << absl::StrFormat("$%02X", msg.Data[i]);
+    }
+    file << ", $7F  ; terminator\n\n";
+  }
+
+  // End-of-region marker
+  file << "db $FF  ; end of message data\n";
+  file.close();
+
+  formatter.BeginObject("ASM Export Result");
+  formatter.AddField("output", output_path);
+  formatter.AddField("range", range);
+  formatter.AddField("messages_exported", static_cast<int>(messages.size()));
+  formatter.AddField("status", "success");
   formatter.EndObject();
 
   return absl::OkStatus();

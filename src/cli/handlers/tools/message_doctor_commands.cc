@@ -153,6 +153,23 @@ void CheckCorruptionPatterns(const editor::MessageData& msg,
   }
 }
 
+// Validate line widths in messages
+void ValidateLineWidths(const editor::MessageData& msg,
+                        DiagnosticReport& report) {
+  auto warnings = editor::ValidateMessageLineWidths(msg.ContentsParsed);
+  for (const auto& warning : warnings) {
+    DiagnosticFinding finding;
+    finding.id = "line_too_wide";
+    finding.severity = DiagnosticSeverity::kWarning;
+    finding.message =
+        absl::StrFormat("Message %d: %s", msg.ID, warning);
+    finding.location = absl::StrFormat("Message %d", msg.ID);
+    finding.suggested_action = "Shorten line or add a line break command";
+    finding.fixable = true;
+    report.AddFinding(finding);
+  }
+}
+
 }  // namespace
 
 absl::Status MessageDoctorCommandHandler::Execute(
@@ -217,6 +234,7 @@ absl::Status MessageDoctorCommandHandler::Execute(
     ValidateTerminators(msg, report);
     ValidateDictionaryRefs(msg, dictionary, report);
     CheckCorruptionPatterns(msg, report);
+    ValidateLineWidths(msg, report);
 
     valid_count++;
   }

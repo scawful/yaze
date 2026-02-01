@@ -67,6 +67,154 @@ class MessageSearchCommandHandler : public resources::CommandHandler {
                        resources::OutputFormatter& formatter) override;
 };
 
+/**
+ * @brief Encode a human-readable message string to ROM bytes
+ *
+ * Takes text with [command] tokens and produces raw byte sequence.
+ * Does not require a ROM — encoding uses static tables only.
+ */
+class MessageEncodeCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "message-encode"; }
+  std::string GetUsage() const override {
+    return "message-encode --text <text> [--format <json|text>]";
+  }
+  bool RequiresRom() const override { return false; }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"text"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+/**
+ * @brief Decode raw ROM bytes (hex string) to human-readable text
+ *
+ * Takes a hex byte string and produces text with [command] tokens.
+ * Does not require a ROM — decoding uses static tables only.
+ */
+class MessageDecodeCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "message-decode"; }
+  std::string GetUsage() const override {
+    return "message-decode --hex <hex_bytes> [--format <json|text>]";
+  }
+  bool RequiresRom() const override { return false; }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"hex"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+/**
+ * @brief Import messages from .org format file
+ *
+ * Parses a messages.org file and encodes each message to bytes.
+ * Reports results including any validation warnings.
+ */
+class MessageImportOrgCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "message-import-org"; }
+  std::string GetUsage() const override {
+    return "message-import-org --file <path> [--format <json|text>]";
+  }
+  bool RequiresRom() const override { return false; }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"file"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+/**
+ * @brief Export messages from ROM as .org format
+ *
+ * Reads all messages from the ROM and exports them as .org format text.
+ */
+class MessageExportOrgCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "message-export-org"; }
+  std::string GetUsage() const override {
+    return "message-export-org --output <path> [--format <json|text>]";
+  }
+  bool RequiresRom() const override { return true; }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"output"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+/**
+ * @brief Write an encoded message to the expanded message bank
+ *
+ * Encodes text and writes to the expanded message region at a given ID.
+ */
+class MessageWriteCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "message-write"; }
+  std::string GetUsage() const override {
+    return "message-write --id <id> --text <text> [--format <json|text>]";
+  }
+  bool RequiresRom() const override { return true; }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"id", "text"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+/**
+ * @brief Export expanded message region as binary or assembly
+ */
+class MessageExportBinCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "message-export-bin"; }
+  std::string GetUsage() const override {
+    return "message-export-bin --output <path> [--range expanded] "
+           "[--format <json|text>]";
+  }
+  bool RequiresRom() const override { return true; }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"output"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+/**
+ * @brief Export expanded message region as assembly source
+ */
+class MessageExportAsmCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "message-export-asm"; }
+  std::string GetUsage() const override {
+    return "message-export-asm --output <path> [--range expanded] "
+           "[--format <json|text>]";
+  }
+  bool RequiresRom() const override { return true; }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"output"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
 }  // namespace handlers
 }  // namespace cli
 }  // namespace yaze
