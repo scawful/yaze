@@ -448,7 +448,9 @@ constexpr int kTextData2 = 0x75F40;
 constexpr int kTextData2End = 0x773FF;
 
 // Reads all text data from the ROM and returns a vector of MessageData objects.
-std::vector<MessageData> ReadAllTextData(uint8_t* rom, int pos = kTextData);
+// When max_pos > 0, the parser stops if pos exceeds max_pos (safety bound).
+std::vector<MessageData> ReadAllTextData(uint8_t* rom, int pos = kTextData,
+                                         int max_pos = -1);
 
 // Calls the file dialog and loads expanded messages from a BIN file.
 absl::Status LoadExpandedMessages(std::string& expanded_message_path,

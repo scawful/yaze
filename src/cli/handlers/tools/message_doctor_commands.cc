@@ -207,7 +207,8 @@ absl::Status MessageDoctorCommandHandler::Execute(
   std::vector<editor::MessageData> messages;
   try {
     uint8_t* mutable_data = const_cast<uint8_t*>(rom->data());
-    messages = editor::ReadAllTextData(mutable_data, editor::kTextData);
+    messages = editor::ReadAllTextData(mutable_data, editor::kTextData,
+                                       editor::kTextDataEnd);
 
   } catch (const std::exception& e) {
     DiagnosticFinding finding;
@@ -230,8 +231,10 @@ absl::Status MessageDoctorCommandHandler::Execute(
     }
 
     // Run all validations
+    // Note: ValidateTerminators is skipped because ReadAllTextData strips
+    // the 0x7F terminator from stored Data (it's used as the delimiter).
+    // Messages returned by the parser are guaranteed to be properly terminated.
     ValidateControlCodes(msg, report);
-    ValidateTerminators(msg, report);
     ValidateDictionaryRefs(msg, dictionary, report);
     CheckCorruptionPatterns(msg, report);
     ValidateLineWidths(msg, report);
