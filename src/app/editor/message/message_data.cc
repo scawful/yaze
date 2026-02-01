@@ -530,6 +530,7 @@ std::vector<std::string> ValidateMessageLineWidths(
   // We walk through the string, counting visible characters per line.
   int line_num = 1;
   int visible_chars = 0;
+  bool all_spaces_this_line = true;
   size_t pos = 0;
 
   while (pos < message.size()) {
@@ -545,14 +546,16 @@ std::vector<std::string> ValidateMessageLineWidths(
       // Line breaks: [1], [2], [3], [V], [K]
       if (token == "[1]" || token == "[2]" || token == "[3]" ||
           token == "[V]" || token == "[K]") {
-        // Check current line width before breaking
-        if (visible_chars > kMaxLineWidth) {
+        // Check current line width before breaking.
+        // Exempt whitespace-only lines (used as screen clears in ALTTP).
+        if (visible_chars > kMaxLineWidth && !all_spaces_this_line) {
           warnings.push_back(
               absl::StrFormat("Line %d: %d visible characters (max %d)",
                               line_num, visible_chars, kMaxLineWidth));
         }
         line_num++;
         visible_chars = 0;
+        all_spaces_this_line = true;
       }
       // Other command tokens ([W:02], [S:03], [SFX:2D], [L], [...], etc.)
       // are not counted as visible characters - they're control codes or
@@ -563,12 +566,13 @@ std::vector<std::string> ValidateMessageLineWidths(
     }
 
     // Regular visible character
+    if (message[pos] != ' ') all_spaces_this_line = false;
     visible_chars++;
     pos++;
   }
 
-  // Check the last line
-  if (visible_chars > kMaxLineWidth) {
+  // Check the last line (exempt whitespace-only lines)
+  if (visible_chars > kMaxLineWidth && !all_spaces_this_line) {
     warnings.push_back(
         absl::StrFormat("Line %d: %d visible characters (max %d)", line_num,
                         visible_chars, kMaxLineWidth));
