@@ -224,7 +224,7 @@ void ActivityBar::DrawActivityBarStrip(
     }
     ImGui::Separator();
     if (ImGui::MenuItem("Reset Layout")) {
-      // TODO: Implement layout reset
+      panel_manager_.TriggerResetLayout();
     }
     ImGui::EndPopup();
   }

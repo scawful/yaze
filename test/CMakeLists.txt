@@ -144,6 +144,7 @@ if(YAZE_BUILD_TESTS)
     unit/gui/tile_selector_widget_test.cc
     unit/gui/canvas_automation_api_test.cc
     unit/gui/window_clamp_test.cc
+    unit/gui/panel_window_test.cc
     unit/editor/message/message_data_test.cc
     unit/editor/panel_system_test.cc
     unit/editor/editor_manager_test.cc

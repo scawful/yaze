@@ -141,6 +141,12 @@ struct ReportPaths {
   std::string csv_path;
 };
 
+struct TraceDumpCase {
+  int object_id = 0;
+  int size = 0;
+  std::vector<zelda3::ObjectDrawer::TileTrace> tiles;
+};
+
 bool EndsWith(const std::string& value, const std::string& suffix) {
   if (value.size() < suffix.size()) {
     return false;
@@ -239,6 +245,80 @@ absl::Status WriteCsvReport(const ReportPaths& paths,
   return absl::OkStatus();
 }
 
+std::vector<zelda3::ObjectDrawer::TileTrace> NormalizeTrace(
+    const std::vector<zelda3::ObjectDrawer::TileTrace>& trace) {
+  std::vector<zelda3::ObjectDrawer::TileTrace> normalized = trace;
+  std::sort(normalized.begin(), normalized.end(),
+            [](const zelda3::ObjectDrawer::TileTrace& left,
+               const zelda3::ObjectDrawer::TileTrace& right) {
+              if (left.y_tile != right.y_tile) {
+                return left.y_tile < right.y_tile;
+              }
+              if (left.x_tile != right.x_tile) {
+                return left.x_tile < right.x_tile;
+              }
+              if (left.tile_id != right.tile_id) {
+                return left.tile_id < right.tile_id;
+              }
+              if (left.layer != right.layer) {
+                return left.layer < right.layer;
+              }
+              return left.flags < right.flags;
+            });
+  return normalized;
+}
+
+absl::Status WriteTraceDump(const std::string& path,
+                            int empty_case_count,
+                            const std::vector<TraceDumpCase>& cases) {
+  std::ofstream out(path);
+  if (!out.is_open()) {
+    return absl::InternalError(
+        absl::StrFormat("Failed to open trace dump file: %s", path));
+  }
+
+  out << "{\n";
+  out << absl::StrFormat("  \"case_count\": %d,\n",
+                         static_cast<int>(cases.size()));
+  out << absl::StrFormat("  \"empty_case_count\": %d,\n", empty_case_count);
+  out << "  \"cases\": [\n";
+
+  for (size_t i = 0; i < cases.size(); ++i) {
+    const auto& entry = cases[i];
+    out << "    {\n";
+    out << absl::StrFormat("      \"object_id\": \"0x%03X\",\n",
+                           entry.object_id);
+    out << absl::StrFormat("      \"object_id_dec\": %d,\n",
+                           entry.object_id);
+    out << absl::StrFormat("      \"size\": %d,\n", entry.size);
+    out << "      \"tiles\": [\n";
+
+    for (size_t t = 0; t < entry.tiles.size(); ++t) {
+      const auto& tile = entry.tiles[t];
+      out << absl::StrFormat(
+          "        {\"x_tile\":%d,\"y_tile\":%d,"
+          "\"tile_id\":\"0x%04X\",\"tile_id_dec\":%d,"
+          "\"layer\":%d,\"flags\":%d}",
+          tile.x_tile, tile.y_tile, tile.tile_id, tile.tile_id, tile.layer,
+          tile.flags);
+      if (t + 1 < entry.tiles.size()) {
+        out << ",";
+      }
+      out << "\n";
+    }
+    out << "      ]\n";
+    out << "    }";
+    if (i + 1 < cases.size()) {
+      out << ",";
+    }
+    out << "\n";
+  }
+
+  out << "  ]\n";
+  out << "}\n";
+  return absl::OkStatus();
+}
+
 }  // namespace
 
 absl::Status DungeonObjectValidateCommandHandler::Execute(
@@ -247,6 +327,7 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
   auto object_arg = parser.GetInt("object");
   auto size_arg = parser.GetInt("size");
   auto report_arg = parser.GetString("report");
+  auto trace_out_arg = parser.GetString("trace-out");
   bool verbose = parser.HasFlag("verbose");
 
   auto& dimension_table = zelda3::ObjectDimensionTable::Get();
@@ -273,9 +354,14 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
   int skipped_nothing = 0;
   std::vector<ValidationResult> mismatches;
   std::vector<ValidationResult> empty_traces;
+  std::vector<TraceDumpCase> trace_cases;
 
   ReportPaths report_paths = ResolveReportPaths(
       report_arg.has_value() ? report_arg.value() : std::string());
+  const bool write_trace_dump = trace_out_arg.has_value();
+  if (write_trace_dump) {
+    trace_cases.reserve(object_ids.size() * sizes.size());
+  }
 
   bool prev_custom_objects = core::FeatureFlags::get().kEnableCustomObjects;
   core::FeatureFlags::get().kEnableCustomObjects = false;
@@ -302,6 +388,13 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
           dimension_table.GetSelectionBounds(object_id, size);
 
       TraceBounds bounds = ComputeBounds(trace);
+      if (write_trace_dump) {
+        TraceDumpCase trace_case{};
+        trace_case.object_id = object_id;
+        trace_case.size = size;
+        trace_case.tiles = NormalizeTrace(trace);
+        trace_cases.push_back(std::move(trace_case));
+      }
       if (!bounds.has_tiles) {
         empty_trace_count++;
         ValidationResult result{};
@@ -371,6 +464,15 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
   auto csv_status = WriteCsvReport(report_paths, mismatches);
   if (!csv_status.ok()) {
     return csv_status;
+  }
+
+  if (write_trace_dump) {
+    auto trace_status =
+        WriteTraceDump(trace_out_arg.value(), empty_trace_count, trace_cases);
+    if (!trace_status.ok()) {
+      return trace_status;
+    }
+    formatter.AddField("trace_dump", trace_out_arg.value());
   }
 
   formatter.AddField("object_count", static_cast<int>(object_ids.size()));

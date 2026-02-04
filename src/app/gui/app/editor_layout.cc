@@ -240,13 +240,13 @@ bool Toolset::AddUsageStatsButton(const char* tooltip) {
 
 PanelWindow::PanelWindow(const char* title, const char* icon)
     : title_(title), icon_(icon ? icon : ""), default_size_(400, 300) {
-  window_name_ = icon_.empty() ? title_ : icon_ + " " + title_;
+  UpdateWindowName();
 }
 
 PanelWindow::PanelWindow(const char* title, const char* icon, bool* p_open)
     : title_(title), icon_(icon ? icon : ""), default_size_(400, 300) {
   p_open_ = p_open;
-  window_name_ = icon_.empty() ? title_ : icon_ + " " + title_;
+  UpdateWindowName();
 }
 
 void PanelWindow::SetDefaultSize(float width, float height) {
@@ -256,6 +256,11 @@ void PanelWindow::SetDefaultSize(float width, float height) {
 
 void PanelWindow::SetPosition(Position pos) {
   position_ = pos;
+}
+
+void PanelWindow::SetStableId(const std::string& stable_id) {
+  stable_id_ = stable_id;
+  UpdateWindowName();
 }
 
 void PanelWindow::AddHeaderButton(const char* icon, const char* tooltip,
@@ -392,9 +397,6 @@ bool PanelWindow::Begin(bool* p_open) {
     first_draw_ = false;
   }
 
-  // Create window title with icon
-  std::string window_title = icon_.empty() ? title_ : icon_ + " " + title_;
-
   // Modern panel styling
   ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10, 10));
@@ -405,7 +407,7 @@ bool PanelWindow::Begin(bool* p_open) {
   bool* actual_p_open = p_open ? p_open : p_open_;
 
   // If closable is false, don't pass p_open (removes X button)
-  bool visible = ImGui::Begin(window_title.c_str(),
+  bool visible = ImGui::Begin(window_name_.c_str(),
                               closable_ ? actual_p_open : nullptr, flags);
 
   // Mark that ImGui::Begin() was called - End() must always be called now
@@ -509,6 +511,15 @@ void PanelWindow::DrawHeaderButtons() {
   // Skip drawing header buttons in content area - they interfere with docking
   // and take up vertical space. The pin state is still tracked and used by
   // PanelManager for category filtering.
+}
+
+void PanelWindow::UpdateWindowName() {
+  std::string label = icon_.empty() ? title_ : icon_ + " " + title_;
+  if (!stable_id_.empty()) {
+    window_name_ = label + "##" + stable_id_;
+  } else {
+    window_name_ = label;
+  }
 }
 
 // ============================================================================

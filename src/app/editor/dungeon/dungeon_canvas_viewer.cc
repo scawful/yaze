@@ -737,6 +737,52 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   if (rooms_ && rom_->is_loaded()) {
     auto& room = (*rooms_)[room_id];
 
+    // === Room Menu ===
+    gui::CanvasMenuItem room_menu;
+    room_menu.label = "Room";
+    room_menu.icon = ICON_MD_HOME;
+
+    const std::string room_label = zelda3::GetRoomLabel(room_id);
+    room_menu.subitems.push_back(gui::CanvasMenuItem::Disabled(
+        absl::StrFormat("Room 0x%03X: %s", room_id, room_label.c_str())));
+
+    room_menu.subitems.push_back(gui::CanvasMenuItem(
+        "Copy Room ID", ICON_MD_CONTENT_COPY, [room_id]() {
+          ImGui::SetClipboardText(absl::StrFormat("0x%03X", room_id).c_str());
+        }));
+    room_menu.subitems.push_back(
+        gui::CanvasMenuItem("Copy Room Name", ICON_MD_CONTENT_COPY,
+                            [room_label]() {
+                              ImGui::SetClipboardText(room_label.c_str());
+                            }));
+
+    room_menu.subitems.push_back(gui::CanvasMenuItem(
+        "Open Room List", ICON_MD_LIST, [this]() {
+          if (show_room_list_callback_) {
+            show_room_list_callback_();
+          }
+        }));
+    room_menu.subitems.push_back(gui::CanvasMenuItem(
+        "Open Room Matrix", ICON_MD_GRID_VIEW, [this]() {
+          if (show_room_matrix_callback_) {
+            show_room_matrix_callback_();
+          }
+        }));
+    room_menu.subitems.push_back(gui::CanvasMenuItem(
+        "Open Entrance List", ICON_MD_DOOR_FRONT, [this]() {
+          if (show_entrance_list_callback_) {
+            show_entrance_list_callback_();
+          }
+        }));
+    room_menu.subitems.push_back(gui::CanvasMenuItem(
+        "Open Room Graphics", ICON_MD_IMAGE, [this]() {
+          if (show_room_graphics_callback_) {
+            show_room_graphics_callback_();
+          }
+        }));
+
+    canvas_.AddContextMenuItem(room_menu);
+
     // === Entity Placement Menu ===
     gui::CanvasMenuItem place_menu;
     place_menu.label = "Place Entity";

@@ -17,9 +17,9 @@ selection, and room context actions.
 | Selection priority | Needs capture | Needs capture | Unknown | Capture overlap rules; match priority order | TODO |
 | Marquee select | Needs capture | Needs capture | Unknown | Match box inclusion rules (edge inclusion, multi-select) | TODO |
 | Drag modifiers | Needs capture | Shift locks axis; Alt clears selection | Missing capture + duplicate/snap parity | Capture ZScream drag modifiers; add duplicate/snap rules if needed | PARTIAL |
-| Context menu (room) | Needs capture; includes room ops | Room matrix context menu: open/focus, swap with current, copy ID/name | Missing ZScream parity actions + ordering | Audit ZScream actions; add missing actions + reorder | PARTIAL |
+| Context menu (room) | Needs capture; includes room ops | Canvas room menu: copy ID/name + open Room List/Matrix/Entrance List/Room Graphics | Missing ZScream parity actions + ordering | Audit ZScream actions; add missing actions + reorder | PARTIAL |
 | Context menu (objects) | Needs capture | Needs capture | Unknown | Align actions + add key shortcuts | TODO |
-| Panel persistence | Window positions persist | Floating panels are clamped to viewport; layout reset still needed | Missing full persistence + reset layout | Persist window state + clamp to screen; add reset layout | PARTIAL |
+| Panel persistence | Window positions persist | Stable panel IDs + viewport clamp; Reset Layout action restores defaults | Needs cross-session verification + ensure ini save/restore stays consistent | Verify ini persistence and docking save/restore | PARTIAL |
 | Object palette filtering | Basic filter | Limited | Possible parity gap | Add fast filter/search + favorites | TODO |
 | Custom overlays toggle | Toggle for extra overlays | Toolbar + context menu toggle (minecart) | Needs persistence + more overlays | Persist overlay state; add additional overlay toggles | PARTIAL |
 | Minecart overlays | Needs capture | Track origin overlay drawn + picking highlight | Needs full ZScream parity check | Verify coordinates/picking parity and add selection snapping if needed | PARTIAL |

@@ -299,10 +299,15 @@ Toolbar toggle + visibility state; ensure minecart overlays are selectable.
 yaze dungeon-object-validate --rom /path/to/alttp.sfc
 ```
 
+**Command (with trace dump):**
+```
+yaze dungeon-object-validate --rom /path/to/alttp.sfc --trace-out /tmp/dungeon_object_trace_dump.json
+```
+
 **Artifacts:**
 - `dungeon_object_validation_report.json`
 - `dungeon_object_validation_report.csv`
-- Optional per-object trace dumps
+- Optional per-object trace dumps (`--trace-out`)
 
 ## CI Strategy
 - Start as non-blocking (report only).

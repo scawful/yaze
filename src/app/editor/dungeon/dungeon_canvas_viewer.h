@@ -86,6 +86,18 @@ class DungeonCanvasViewer {
   void SetShowItemPanelCallback(std::function<void()> callback) {
     show_item_panel_callback_ = std::move(callback);
   }
+  void SetShowRoomListCallback(std::function<void()> callback) {
+    show_room_list_callback_ = std::move(callback);
+  }
+  void SetShowRoomMatrixCallback(std::function<void()> callback) {
+    show_room_matrix_callback_ = std::move(callback);
+  }
+  void SetShowEntranceListCallback(std::function<void()> callback) {
+    show_entrance_list_callback_ = std::move(callback);
+  }
+  void SetShowRoomGraphicsCallback(std::function<void()> callback) {
+    show_room_graphics_callback_ = std::move(callback);
+  }
   void SetMinecartTrackPanel(MinecartTrackEditorPanel* panel) {
     minecart_track_panel_ = panel;
   }
@@ -300,6 +312,10 @@ class DungeonCanvasViewer {
   std::function<void()> show_object_panel_callback_;
   std::function<void()> show_sprite_panel_callback_;
   std::function<void()> show_item_panel_callback_;
+  std::function<void()> show_room_list_callback_;
+  std::function<void()> show_room_matrix_callback_;
+  std::function<void()> show_entrance_list_callback_;
+  std::function<void()> show_room_graphics_callback_;
   MinecartTrackEditorPanel* minecart_track_panel_ = nullptr;
   bool show_minecart_tracks_ = false;
 

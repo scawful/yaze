@@ -141,6 +141,7 @@ class PanelWindow {
   // Set panel properties
   void SetDefaultSize(float width, float height);
   void SetPosition(Position pos);
+  void SetStableId(const std::string& stable_id);
   void SetMinimizable(bool minimizable) { minimizable_ = minimizable; }
   void SetClosable(bool closable) { closable_ = closable; }
   void SetHeadless(bool headless) { headless_ = headless; }
@@ -185,6 +186,7 @@ class PanelWindow {
   std::string title_;
   std::string icon_;
   std::string window_name_;  // Full window name with icon
+  std::string stable_id_;
   ImVec2 default_size_;
   bool default_size_set_ = false;
   Position position_ = Position::Free;
@@ -223,6 +225,7 @@ class PanelWindow {
 
   void DrawFloatingIconButton();
   void DrawHeaderButtons();
+  void UpdateWindowName();
 };
 
 /**

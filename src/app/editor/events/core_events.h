@@ -318,6 +318,7 @@ struct UIActionRequestEvent : public Event {
     kUndo,
     kRedo,
     kShowOracleRam,
+    kResetLayout,
   };
 
   Action action;

@@ -438,6 +438,12 @@ class PanelManager {
       on_show_help_();
     }
   }
+  void TriggerResetLayout() {
+    if (event_bus_) {
+      event_bus_->Publish(UIActionRequestEvent::Create(
+          UIActionRequestEvent::Action::kResetLayout));
+    }
+  }
   void TriggerOpenRom() {
     if (event_bus_) {
       event_bus_->Publish(UIActionRequestEvent::OpenRom());
