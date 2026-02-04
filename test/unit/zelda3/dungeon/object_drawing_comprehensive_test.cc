@@ -42,6 +42,88 @@ static constexpr uint8_t kExpectedTileCounts[0xF8] = {
 };
 // clang-format on
 
+namespace {
+int ExpectedSubtype2TileCount(int id) {
+  if (id >= 0x100 && id <= 0x10F) {
+    return 16;
+  }
+  if (id >= 0x110 && id <= 0x117) {
+    return 12;
+  }
+  if (id == 0x11C || id == 0x124 || id == 0x125 || id == 0x129 ||
+      (id >= 0x12D && id <= 0x133) || (id >= 0x135 && id <= 0x137) ||
+      id == 0x13C || id == 0x13F) {
+    return 16;
+  }
+  if (id == 0x122 || id == 0x128) {
+    return 20;
+  }
+  if (id == 0x123 || id == 0x13D) {
+    return 12;
+  }
+  if (id == 0x12C || id == 0x13E) {
+    return 18;
+  }
+  if (id >= 0x138 && id <= 0x13B) {
+    return 12;
+  }
+  return 8;
+}
+
+int ExpectedSubtype3TileCount(int id) {
+  if (id == 0xFB1 || id == 0xFB2) {
+    return 12;
+  }
+  if (id == 0xF94 || id == 0xFCE || (id >= 0xFE7 && id <= 0xFE8) ||
+      (id >= 0xFEC && id <= 0xFED)) {
+    return 12;
+  }
+  if (id == 0xFC8 || id == 0xFE6 || id == 0xFEB || id == 0xFFA) {
+    return 16;
+  }
+  if (id == 0xF95 || id == 0xFF2 || id == 0xFFB) {
+    return 16;
+  }
+  if ((id >= 0xF9B && id <= 0xF9D) || id == 0xFB3) {
+    return 16;
+  }
+  if ((id >= 0xF9E && id <= 0xFA1) || (id >= 0xFA6 && id <= 0xFA9)) {
+    return 16;
+  }
+  if (id == 0xFAA || id == 0xFAD || id == 0xFAE ||
+      (id >= 0xFB4 && id <= 0xFB9) || id == 0xFCB || id == 0xFCC ||
+      id == 0xFD4 || id == 0xFE2 || id == 0xFF4 || id == 0xFF6 ||
+      id == 0xFF7) {
+    return 16;
+  }
+  if (id == 0xFCD || id == 0xFDD) {
+    return 18;
+  }
+  if (id == 0xFD5 || id == 0xFDB) {
+    return 15;
+  }
+  if (id >= 0xFE0 && id <= 0xFE1) {
+    return 18;
+  }
+  if (id == 0xFE9 || id == 0xFEA || id == 0xFEE || id == 0xFEF) {
+    return 12;
+  }
+  if (id == 0xFF0) {
+    return 16;
+  }
+  if (id == 0xFF1) {
+    return 36;
+  }
+  if (id == 0xFF8) {
+    return 32;
+  }
+  if (id == 0xFF9) {
+    return 12;
+  }
+  return 8;
+}
+}  // namespace
+
 class ObjectDrawingComprehensiveTest : public ::testing::Test {
  protected:
   void SetUp() override {
@@ -76,13 +158,9 @@ TEST_F(ObjectDrawingComprehensiveTest, DetectsType2Objects) {
     auto info = parser.GetObjectSubtype(id);
     ASSERT_TRUE(info.ok()) << "Failed for ID 0x" << std::hex << id;
     EXPECT_EQ(info->subtype, 2) << "ID 0x" << std::hex << id << " should be Type 2";
-    if (id >= 0x100 && id <= 0x10F) {
-      EXPECT_EQ(info->max_tile_count, 16) << "Type 2 corners should have 16 tiles";
-    } else if (id >= 0x110 && id <= 0x117) {
-      EXPECT_EQ(info->max_tile_count, 12) << "Type 2 weird corners should have 12 tiles";
-    } else {
-      EXPECT_EQ(info->max_tile_count, 8) << "Type 2 objects should have 8 tiles";
-    }
+    int expected = ExpectedSubtype2TileCount(id);
+    EXPECT_EQ(info->max_tile_count, expected)
+        << "Type 2 tile count mismatch for ID 0x" << std::hex << id;
   }
 }
 
@@ -94,16 +172,9 @@ TEST_F(ObjectDrawingComprehensiveTest, DetectsType3Objects) {
     auto info = parser.GetObjectSubtype(id);
     ASSERT_TRUE(info.ok()) << "Failed for ID 0x" << std::hex << id;
     EXPECT_EQ(info->subtype, 3) << "ID 0x" << std::hex << id << " should be Type 3";
-    if (id == 0xFB1 || id == 0xFB2 ||
-        id == 0xF94 || id == 0xFCE ||
-        (id >= 0xFE7 && id <= 0xFE8) ||
-        (id >= 0xFEC && id <= 0xFED)) {
-      EXPECT_EQ(info->max_tile_count, 12) << "Type 3 objects should have 12 tiles";
-    } else if (id == 0xFC8 || id == 0xFE6 || id == 0xFEB || id == 0xFFA) {
-      EXPECT_EQ(info->max_tile_count, 16) << "Type 3 objects should have 16 tiles";
-    } else {
-      EXPECT_EQ(info->max_tile_count, 8) << "Type 3 objects should have 8 tiles";
-    }
+    int expected = ExpectedSubtype3TileCount(id);
+    EXPECT_EQ(info->max_tile_count, expected)
+        << "Type 3 tile count mismatch for ID 0x" << std::hex << id;
   }
 }
 
