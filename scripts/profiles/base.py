@@ -74,6 +74,9 @@ class LocationConfig:
     # Special area fields
     purpose: Optional[str] = None
 
+    # General metadata
+    notes: Optional[str] = None
+
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization."""
         result = {
@@ -88,7 +91,8 @@ class LocationConfig:
         optional_fields = [
             "dungeon_id", "boss", "dungeon_item", "big_chest_room",
             "entrance_room", "boss_room", "reward", "cave_type", "region",
-            "connects", "contents", "ow_screen", "notable", "inventory", "purpose"
+            "connects", "contents", "ow_screen", "notable", "inventory", "purpose",
+            "notes"
         ]
 
         for field_name in optional_fields:
