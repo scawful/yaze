@@ -185,15 +185,21 @@ def generate_dungeon_doc(rom_path: str, location_key: str, config: LocationConfi
         miniboss_name, miniboss_room = config.miniboss
         lines.append(f"**Miniboss:** {miniboss_name} in Room 0x{miniboss_room:02X}")
 
+    if config.entrance_room:
+        lines.append(f"**Entrance Room:** 0x{config.entrance_room:02X}")
+
+    if config.notes:
+        lines.append(f"\n*{config.notes}*")
+
     lines.append("\n---\n")
 
     # Check if we have room data
     all_rooms = config.all_rooms
     if not all_rooms:
         lines.append("## Room Data\n")
-        lines.append("*Room layout not yet discovered. Use `--discover` with entrance ID to map rooms.*\n")
+        lines.append("*Room layout not yet discovered. Use `z3ed dungeon-discover` to map rooms.*\n")
         if config.entrance_ids:
-            lines.append(f"```bash\npython3 location_mapper.py --discover 0x{config.entrance_ids[0]:02X}\n```\n")
+            lines.append(f"```bash\nz3ed dungeon-discover --rom=<rom.sfc> --entrance=0x{config.entrance_ids[0]:02X} --depth=15\n```\n")
         return "\n".join(lines)
 
     # Analyze all rooms

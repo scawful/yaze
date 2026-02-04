@@ -69,8 +69,10 @@ def _build_oracle_locations() -> dict:
         entrance_ids=[0x26],
         ow_screen=0x10,
         dungeon_id="D1",
+        entrance_room=0x4A,  # ROM dungeon_id=0x0C
         boss="TBD",
         dungeon_item="TBD",
+        notes="First dungeon, forest themed",
     )
 
     locations["tail_palace"] = LocationConfig(
@@ -79,8 +81,10 @@ def _build_oracle_locations() -> dict:
         entrance_ids=[0x15],
         ow_screen=0x2F,
         dungeon_id="D2",
+        entrance_room=0x5F,  # ROM dungeon_id=0x0A
         boss="TBD",
         dungeon_item="TBD",
+        notes="Second dungeon, toad/frog themed",
     )
 
     locations["kalyxo_castle"] = LocationConfig(
@@ -89,8 +93,10 @@ def _build_oracle_locations() -> dict:
         entrance_ids=[0x28, 0x2B, 0x2A, 0x32],  # West, Main, Basement, Prison
         ow_screen=0x0B,
         dungeon_id="D3",
+        entrance_room=0x56,  # ROM dungeon_id=0x10 (main entrance)
         boss="TBD",
         dungeon_item="TBD",
+        notes="Third dungeon, castle with multiple entrances",
     )
 
     locations["zora_temple"] = LocationConfig(
@@ -99,8 +105,10 @@ def _build_oracle_locations() -> dict:
         entrance_ids=[0x25, 0x4E],  # Main, Waterfall
         ow_screen=0x1E,
         dungeon_id="D4",
+        entrance_room=0x28,  # ROM dungeon_id=0x16
         boss="TBD",
         dungeon_item="TBD",
+        notes="Fourth dungeon, water themed",
     )
 
     locations["glacia_estate"] = LocationConfig(
@@ -109,8 +117,10 @@ def _build_oracle_locations() -> dict:
         entrance_ids=[0x34],
         ow_screen=0x06,
         dungeon_id="D5",
+        entrance_room=0xDB,  # ROM dungeon_id=0x12
         boss="TBD",
         dungeon_item="TBD",
+        notes="Fifth dungeon, ice/snow themed",
     )
 
     locations["dragon_ship"] = LocationConfig(
@@ -119,8 +129,10 @@ def _build_oracle_locations() -> dict:
         entrance_ids=[0x35],
         ow_screen=0x30,
         dungeon_id="D7",
+        entrance_room=0xD6,  # ROM dungeon_id=0x18
         boss="TBD",
         dungeon_item="TBD",
+        notes="Seventh dungeon, naval/ship themed",
     )
 
     # =========================================================================
