@@ -76,6 +76,14 @@ struct DrawRoutineInfo {
  */
 namespace DrawRoutineUtils {
 
+using TraceHookFn =
+    void (*)(int tile_x, int tile_y, const gfx::TileInfo& tile_info,
+             void* user_data);
+
+// Optional trace hook for validation/testing (used by ObjectDrawer).
+void SetTraceHook(TraceHookFn hook, void* user_data, bool trace_only);
+void ClearTraceHook();
+
 /**
  * @brief Check if tile position is within canvas bounds
  */

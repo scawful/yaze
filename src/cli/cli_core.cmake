@@ -27,6 +27,9 @@ set(YAZE_CLI_CORE_SOURCES
 
   cli/handlers/game/dialogue_commands.cc
   cli/handlers/game/dungeon_commands.cc
+  cli/handlers/game/dungeon_graph_commands.cc
+  cli/handlers/game/dungeon_group_commands.cc
+  cli/handlers/game/dungeon_map_commands.cc
   cli/handlers/game/message.cc
   cli/handlers/game/message_commands.cc
   cli/handlers/game/music_commands.cc
@@ -42,6 +45,7 @@ set(YAZE_CLI_CORE_SOURCES
   cli/handlers/rom/rom_commands.cc
 
   cli/handlers/tools/dungeon_doctor_commands.cc
+  cli/handlers/tools/dungeon_object_validate_commands.cc
   cli/handlers/tools/graphics_doctor_commands.cc
   cli/handlers/tools/gui_commands.cc
   cli/handlers/tools/hex_inspector_commands.cc

@@ -22,6 +22,56 @@ ObjectDrawer::ObjectDrawer(Rom* rom, int room_id, const uint8_t* room_gfx_buffer
   InitializeDrawRoutines();
 }
 
+void ObjectDrawer::SetTraceCollector(std::vector<TileTrace>* collector,
+                                     bool trace_only) {
+  trace_collector_ = collector;
+  trace_only_ = trace_only;
+}
+
+void ObjectDrawer::ClearTraceCollector() {
+  trace_collector_ = nullptr;
+  trace_only_ = false;
+}
+
+void ObjectDrawer::SetTraceContext(const RoomObject& object,
+                                   RoomObject::LayerType layer) {
+  trace_context_.object_id = static_cast<uint16_t>(object.id_);
+  trace_context_.size = object.size_;
+  trace_context_.layer = static_cast<uint8_t>(layer);
+}
+
+void ObjectDrawer::PushTrace(int tile_x, int tile_y,
+                             const gfx::TileInfo& tile_info) {
+  if (!trace_collector_) {
+    return;
+  }
+  uint8_t flags = 0;
+  if (tile_info.horizontal_mirror_) flags |= 0x1;
+  if (tile_info.vertical_mirror_) flags |= 0x2;
+  if (tile_info.over_) flags |= 0x4;
+  flags |= static_cast<uint8_t>((tile_info.palette_ & 0x7) << 3);
+
+  TileTrace trace{};
+  trace.object_id = trace_context_.object_id;
+  trace.size = trace_context_.size;
+  trace.layer = trace_context_.layer;
+  trace.x_tile = static_cast<int16_t>(tile_x);
+  trace.y_tile = static_cast<int16_t>(tile_y);
+  trace.tile_id = tile_info.id_;
+  trace.flags = flags;
+  trace_collector_->push_back(trace);
+}
+
+void ObjectDrawer::TraceHookThunk(int tile_x, int tile_y,
+                                  const gfx::TileInfo& tile_info,
+                                  void* user_data) {
+  auto* drawer = static_cast<ObjectDrawer*>(user_data);
+  if (!drawer) {
+    return;
+  }
+  drawer->PushTrace(tile_x, tile_y, tile_info);
+}
+
 absl::Status ObjectDrawer::DrawObject(const RoomObject& object,
                                       gfx::BackgroundBuffer& bg1,
                                       gfx::BackgroundBuffer& bg2,
@@ -60,20 +110,25 @@ absl::Status ObjectDrawer::DrawObject(const RoomObject& object,
     return absl::OkStatus();
   }
 
-  // Check for custom object override first
-  // We check this BEFORE routine lookup to allow overriding vanilla objects
+  // Check for custom object override first (guarded by feature flag).
+  // We check this BEFORE routine lookup to allow overriding vanilla objects.
   int subtype = object.size_ & 0x1F;
-  if (CustomObjectManager::Get().GetObjectInternal(object.id_, subtype).ok()) {
+  if (core::FeatureFlags::get().kEnableCustomObjects &&
+      CustomObjectManager::Get().GetObjectInternal(object.id_, subtype).ok()) {
     // Custom objects default to drawing on the target layer only, unless all_bgs_ is set
     // Mask propagation is difficult without dimensions, so we rely on explicit transparency in the custom object tiles if needed
     
     // Draw to target layer
+    SetTraceContext(object, use_bg2 ? RoomObject::LayerType::BG2
+                                    : RoomObject::LayerType::BG1);
     DrawCustomObject(object, target_bg, mutable_obj.tiles(), state);
 
     // If marked for both BGs, draw to the other layer too
     if (object.all_bgs_) {
       auto& other_bg = (object.layer_ == RoomObject::LayerType::BG2 ||
                         object.layer_ == RoomObject::LayerType::BG3) ? bg1 : bg2;
+      SetTraceContext(object, (&other_bg == &bg1) ? RoomObject::LayerType::BG1
+                                                  : RoomObject::LayerType::BG2);
       DrawCustomObject(object, other_bg, mutable_obj.tiles(), state);
     }
     // return absl::OkStatus();
@@ -95,9 +150,18 @@ absl::Status ObjectDrawer::DrawObject(const RoomObject& object,
     // Fallback to simple 1x1 drawing using first 8x8 tile
     if (!mutable_obj.tiles().empty()) {
       const auto& tile_info = mutable_obj.tiles()[0];
+      SetTraceContext(object, use_bg2 ? RoomObject::LayerType::BG2
+                                      : RoomObject::LayerType::BG1);
       WriteTile8(target_bg, object.x_, object.y_, tile_info);
     }
     return absl::OkStatus();
+  }
+
+  bool trace_hook_active = false;
+  if (trace_collector_) {
+    DrawRoutineUtils::SetTraceHook(&ObjectDrawer::TraceHookThunk, this,
+                                   trace_only_);
+    trace_hook_active = true;
   }
 
   // Check if this should draw to both BG layers
@@ -109,11 +173,19 @@ absl::Status ObjectDrawer::DrawObject(const RoomObject& object,
 
   if (is_both_bg) {
     // Draw to both background layers
+    SetTraceContext(object, RoomObject::LayerType::BG1);
     draw_routines_[routine_id](this, object, bg1, mutable_obj.tiles(), state);
+    SetTraceContext(object, RoomObject::LayerType::BG2);
     draw_routines_[routine_id](this, object, bg2, mutable_obj.tiles(), state);
   } else {
     // Execute the appropriate draw routine on target buffer only
+    SetTraceContext(object, use_bg2 ? RoomObject::LayerType::BG2
+                                    : RoomObject::LayerType::BG1);
     draw_routines_[routine_id](this, object, target_bg, mutable_obj.tiles(), state);
+  }
+
+  if (trace_hook_active) {
+    DrawRoutineUtils::ClearTraceHook();
   }
 
   // BG2 Mask Propagation: ONLY pit/mask objects should mark BG1 as transparent.
@@ -128,7 +200,8 @@ absl::Status ObjectDrawer::DrawObject(const RoomObject& object,
                         (object.id_ == 0xFE6) ||  // Type 3 pit
                         (object.id_ == 0xFBE || object.id_ == 0xFBF);  // Layer 2 pit masks
 
-  if (is_pit_or_mask && object.layer_ == RoomObject::LayerType::BG2 && !is_both_bg) {
+  if (!trace_only_ && is_pit_or_mask &&
+      object.layer_ == RoomObject::LayerType::BG2 && !is_both_bg) {
     auto [pixel_width, pixel_height] = CalculateObjectDimensions(object);
 
     // Log pit/mask transparency propagation
@@ -409,7 +482,7 @@ void ObjectDrawer::InitializeDrawRoutines() {
   // 0x5E: RoomDraw_RightwardsBlock2x2spaced2_1to16 (bank_01.asm line 363)
   object_to_routine_map_[0x5E] = 55;  // Block2x2spaced2
   // 0x5F: RoomDraw_RightwardsHasEdge1x1_1to16_plus23
-  object_to_routine_map_[0x5F] = 22;  // edge 1x1
+  object_to_routine_map_[0x5F] = DrawRoutineIds::kRightwardsHasEdge1x1_1to16_plus23;
 
   // Subtype 1 Object Mappings (Vertical 0x60-0x6F)
   object_to_routine_map_[0x60] = 7;
@@ -1895,53 +1968,46 @@ void ObjectDrawer::InitializeDrawRoutines() {
         self->DrawActual4x4(obj, bg, tiles, state);
       });
 
-  // Fill gaps between 116 and 130 with Nothing routines
-  // This ensures the routine vector is large enough for custom object ID 130
-  while (draw_routines_.size() < 130) {
-    draw_routines_.push_back(
-        [](ObjectDrawer* self, const RoomObject& obj,
-           gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
-           [[maybe_unused]] const DungeonState* state) {
-          self->DrawNothing(obj, bg, tiles, state);
-        });
-  }
+  auto ensure_index = [this](size_t index) {
+    while (draw_routines_.size() <= index) {
+      draw_routines_.push_back(
+          [](ObjectDrawer* self, const RoomObject& obj,
+             gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
+             [[maybe_unused]] const DungeonState* state) {
+            self->DrawNothing(obj, bg, tiles, state);
+          });
+    }
+  };
 
   // Routine 117 - Vertical rails with CORNER+MIDDLE+END pattern (0x8A-0x8C)
   // ASM: RoomDraw_DownwardsHasEdge1x1_1to16_plus23 - matches horizontal 0x22
-  while (draw_routines_.size() < 117) {
-    draw_routines_.push_back(
-        [](ObjectDrawer* self, const RoomObject& obj,
-           gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
-           [[maybe_unused]] const DungeonState* state) {
-          self->DrawNothing(obj, bg, tiles, state);
-        });
-  }
-  draw_routines_.push_back(
+  ensure_index(117);
+  draw_routines_[117] =
       [](ObjectDrawer* self, const RoomObject& obj,
          gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
          [[maybe_unused]] const DungeonState* state) {
         self->DrawDownwardsHasEdge1x1_1to16_plus23(obj, bg, tiles, state);
-      });
+      };
 
-  // Fill to routine 130
-  while (draw_routines_.size() < 130) {
-    draw_routines_.push_back(
-        [](ObjectDrawer* self, const RoomObject& obj,
-           gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
-           [[maybe_unused]] const DungeonState* state) {
-          self->DrawNothing(obj, bg, tiles, state);
-        });
-  }
+  // Routine 118 - Horizontal long rails with CORNER+MIDDLE+END pattern (0x5F)
+  ensure_index(118);
+  draw_routines_[118] =
+      [](ObjectDrawer* self, const RoomObject& obj,
+         gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
+         [[maybe_unused]] const DungeonState* state) {
+        self->DrawRightwardsHasEdge1x1_1to16_plus23(obj, bg, tiles, state);
+      };
 
   // Routine 130 - Custom Object (Oracle of Secrets 0x31, 0x32)
   // Uses external binary files instead of ROM tile data.
   // Requires CustomObjectManager initialization and enable_custom_objects flag.
-  draw_routines_.push_back(
+  ensure_index(130);
+  draw_routines_[130] =
       [](ObjectDrawer* self, const RoomObject& obj,
          gfx::BackgroundBuffer& bg, std::span<const gfx::TileInfo> tiles,
          [[maybe_unused]] const DungeonState* state) {
         self->DrawCustomObject(obj, bg, tiles, state);
-      });
+      };
 
   routines_initialized_ = true;
 }
@@ -2546,15 +2612,35 @@ void ObjectDrawer::DrawCorner4x4(const RoomObject& obj,
 void ObjectDrawer::DrawRightwards1x2_1to16_plus2(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
-  // Pattern: 1x2 tiles rightward with +2 offset (object 0x21)
+  // Pattern: 1x3 tiles rightward with caps (object 0x21)
+  // ZScream: left cap (tiles 0-2), middle columns (tiles 3-5), right cap (tiles 6-8)
   int size = obj.size_ & 0x0F;
 
-  // Assembly: (size << 1) + 1 = (size * 2) + 1
-  int count = (size * 2) + 1;
+  if (tiles.size() >= 9) {
+    auto draw_column = [&](int x, int base) {
+      WriteTile8(bg, x, obj.y_, tiles[base + 0]);
+      WriteTile8(bg, x, obj.y_ + 1, tiles[base + 1]);
+      WriteTile8(bg, x, obj.y_ + 2, tiles[base + 2]);
+    };
 
+    // Left cap at origin
+    draw_column(obj.x_, 0);
+
+    // Middle columns: two per size step (size + 1 iterations)
+    int mid_cols = (size + 1) * 2;
+    for (int s = 0; s < mid_cols; s++) {
+      draw_column(obj.x_ + 1 + s, 3);
+    }
+
+    // Right cap
+    draw_column(obj.x_ + 1 + mid_cols, 6);
+    return;
+  }
+
+  // Fallback: simple 1x2 pattern
+  int count = (size * 2) + 1;
   for (int s = 0; s < count; s++) {
     if (tiles.size() >= 2) {
-      // Use first tile span for 1x2 pattern
       WriteTile8(bg, obj.x_ + s + 2, obj.y_, tiles[0]);
       WriteTile8(bg, obj.x_ + s + 2, obj.y_ + 1, tiles[1]);
     }
@@ -2564,12 +2650,12 @@ void ObjectDrawer::DrawRightwards1x2_1to16_plus2(
 void ObjectDrawer::DrawRightwardsHasEdge1x1_1to16_plus3(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
-   // Pattern: Rail with corner check (object 0x22 small rails)
+  // Pattern: Rail with corner check (object 0x22 small rails)
   // ASM: RoomDraw_RightwardsHasEdge1x1_1to16_plus3
-  // Uses GetSize_1to16_timesA(2), count = (size & 0x0F + 1) * 2
-  // Structure: [CORNER if needed] -> [MIDDLE * count] -> [END]
+  // ZScream: count = size + 2
+  // Structure: [CORNER] -> [MIDDLE * count] -> [END]
   int size = obj.size_ & 0x0F;
-  int count = (size + 1) * 2;  // timesA with A=2
+  int count = size + 2;
 
   if (tiles.size() < 3) return;
 
@@ -2586,6 +2672,28 @@ void ObjectDrawer::DrawRightwardsHasEdge1x1_1to16_plus3(
   }
   
   // Draw end tile (tile 2)
+  WriteTile8(bg, x, obj.y_, tiles[2]);
+}
+
+void ObjectDrawer::DrawRightwardsHasEdge1x1_1to16_plus23(
+    const RoomObject& obj, gfx::BackgroundBuffer& bg,
+    std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
+  // Pattern: Long rail with corner/middle/end (object 0x5F)
+  // ZScream: count = size + 21
+  int size = obj.size_ & 0x0F;
+  int count = size + 21;
+
+  if (tiles.size() < 3) return;
+
+  int x = obj.x_;
+  WriteTile8(bg, x, obj.y_, tiles[0]);
+  x++;
+
+  for (int s = 0; s < count; s++) {
+    WriteTile8(bg, x, obj.y_, tiles[1]);
+    x++;
+  }
+
   WriteTile8(bg, x, obj.y_, tiles[2]);
 }
 
@@ -2827,22 +2935,26 @@ void ObjectDrawer::DrawRightwardsDecor4x3spaced4_1to16(
 void ObjectDrawer::DrawRightwardsDoubled2x2spaced2_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Doubled 2x2 with spacing (object 0x3C)
-  // 4 columns × 2 rows = 8 tiles in COLUMN-MAJOR order
+  // Pattern: 2x2 block repeated with a vertical gap (object 0x3C)
   int size = obj.size_ & 0x0F;
-
-  // Assembly: GetSize_1to16, so count = size + 1
   int count = size + 1;
 
+  if (tiles.size() < 4) return;
+
   for (int s = 0; s < count; s++) {
-    if (tiles.size() >= 8) {
-      // Draw doubled 2x2 pattern in COLUMN-MAJOR order (matching assembly)
-      for (int x = 0; x < 4; ++x) {
-        for (int y = 0; y < 2; ++y) {
-          WriteTile8(bg, obj.x_ + (s * 6) + x, obj.y_ + y, tiles[x * 2 + y]);
-        }
-      }
-    }
+    int base_x = obj.x_ + (s * 4);
+
+    // Top 2x2 block
+    WriteTile8(bg, base_x, obj.y_, tiles[0]);
+    WriteTile8(bg, base_x + 1, obj.y_, tiles[2]);
+    WriteTile8(bg, base_x, obj.y_ + 1, tiles[1]);
+    WriteTile8(bg, base_x + 1, obj.y_ + 1, tiles[3]);
+
+    // Bottom 2x2 block (offset by 6 tiles)
+    WriteTile8(bg, base_x, obj.y_ + 6, tiles[0]);
+    WriteTile8(bg, base_x + 1, obj.y_ + 6, tiles[2]);
+    WriteTile8(bg, base_x, obj.y_ + 7, tiles[1]);
+    WriteTile8(bg, base_x + 1, obj.y_ + 7, tiles[3]);
   }
 }
 
@@ -2980,31 +3092,33 @@ void ObjectDrawer::DrawRightwardsLine1x1_1to16plus1(
 void ObjectDrawer::DrawRightwardsBar4x3_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
-  // Pattern: 4x3 bar rightward with 6-tile X spacing (object 0x4C)
-  // Assembly: RoomDraw_RightwardsBar4x3_1to16 - adds $0006 to X per iteration
+  // Pattern: 4x3 bar with left/right caps and repeating middle columns
   int size = obj.size_ & 0x0F;
   int count = size + 1;
 
+  if (tiles.size() < 9) return;
+
+  // Middle columns
   for (int s = 0; s < count; s++) {
-    if (tiles.size() >= 12) {
-      int base_x = obj.x_ + (s * 6);  // 6-tile X spacing
-      // Row 0
-      WriteTile8(bg, base_x, obj.y_, tiles[0]);
-      WriteTile8(bg, base_x + 1, obj.y_, tiles[1]);
-      WriteTile8(bg, base_x + 2, obj.y_, tiles[2]);
-      WriteTile8(bg, base_x + 3, obj.y_, tiles[3]);
-      // Row 1
-      WriteTile8(bg, base_x, obj.y_ + 1, tiles[4]);
-      WriteTile8(bg, base_x + 1, obj.y_ + 1, tiles[5]);
-      WriteTile8(bg, base_x + 2, obj.y_ + 1, tiles[6]);
-      WriteTile8(bg, base_x + 3, obj.y_ + 1, tiles[7]);
-      // Row 2
-      WriteTile8(bg, base_x, obj.y_ + 2, tiles[8]);
-      WriteTile8(bg, base_x + 1, obj.y_ + 2, tiles[9]);
-      WriteTile8(bg, base_x + 2, obj.y_ + 2, tiles[10]);
-      WriteTile8(bg, base_x + 3, obj.y_ + 2, tiles[11]);
-    }
+    int base_x = obj.x_ + (s * 2);
+    WriteTile8(bg, base_x + 1, obj.y_, tiles[3]);
+    WriteTile8(bg, base_x + 2, obj.y_, tiles[3]);
+    WriteTile8(bg, base_x + 1, obj.y_ + 1, tiles[4]);
+    WriteTile8(bg, base_x + 2, obj.y_ + 1, tiles[4]);
+    WriteTile8(bg, base_x + 1, obj.y_ + 2, tiles[5]);
+    WriteTile8(bg, base_x + 2, obj.y_ + 2, tiles[5]);
   }
+
+  // Left cap
+  WriteTile8(bg, obj.x_, obj.y_, tiles[0]);
+  WriteTile8(bg, obj.x_, obj.y_ + 1, tiles[1]);
+  WriteTile8(bg, obj.x_, obj.y_ + 2, tiles[2]);
+
+  // Right cap
+  int right_x = obj.x_ + (size * 2) + 3;
+  WriteTile8(bg, right_x, obj.y_, tiles[6]);
+  WriteTile8(bg, right_x, obj.y_ + 1, tiles[7]);
+  WriteTile8(bg, right_x, obj.y_ + 2, tiles[8]);
 }
 
 void ObjectDrawer::DrawRightwardsShelf4x4_1to16(
@@ -3227,18 +3341,22 @@ void ObjectDrawer::DrawDownwards2x2_1to16(
 void ObjectDrawer::DrawDownwardsHasEdge1x1_1to16_plus3(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
-  // Pattern: 1x1 tiles with edge detection +3 offset downward (object 0x69)
+  // Pattern: Vertical rail with corner/middle/end (object 0x69)
   int size = obj.size_ & 0x0F;
+  int count = size + 1;
 
-  // Assembly: GetSize_1to16_timesA(2), so count = size + 2
-  int count = size + 2;
+  if (tiles.size() < 3) return;
+
+  int y = obj.y_;
+  WriteTile8(bg, obj.x_, y, tiles[0]);
+  y++;
 
   for (int s = 0; s < count; s++) {
-    if (tiles.size() >= 1) {
-      // Use first 8x8 tile from span
-      WriteTile8(bg, obj.x_ + 3, obj.y_ + s, tiles[0]);
-    }
+    WriteTile8(bg, obj.x_, y, tiles[1]);
+    y++;
   }
+
+  WriteTile8(bg, obj.x_, y, tiles[2]);
 }
 
 void ObjectDrawer::DrawDownwardsHasEdge1x1_1to16_plus23(
@@ -3246,10 +3364,10 @@ void ObjectDrawer::DrawDownwardsHasEdge1x1_1to16_plus23(
     std::span<const gfx::TileInfo> tiles, [[maybe_unused]] const DungeonState* state) {
   // Pattern: Vertical rail with CORNER+MIDDLE+END pattern (objects 0x8A-0x8C)
   // ASM: RoomDraw_DownwardsHasEdge1x1_1to16_plus23 ($019314)
-  // Matches horizontal rail 0x22 but in vertical orientation
-  // Structure: [CORNER if needed] -> [MIDDLE * count] -> [END]
+  // ZScream: count = size + 21
+  // Structure: [CORNER] -> [MIDDLE * count] -> [END]
   int size = obj.size_ & 0x0F;
-  int count = (size + 1) * 2;  // Same calculation as horizontal rails
+  int count = size + 21;
 
   if (tiles.size() < 3) return;
 
@@ -3998,6 +4116,10 @@ void ObjectDrawer::MarkBG1Transparent(gfx::BackgroundBuffer& bg1, int tile_x,
 
 void ObjectDrawer::WriteTile8(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
                               const gfx::TileInfo& tile_info) {
+  PushTrace(tile_x, tile_y, tile_info);
+  if (trace_only_) {
+    return;
+  }
   // Draw directly to bitmap instead of tile buffer to avoid being overwritten
   auto& bitmap = bg.bitmap();
   if (!bitmap.is_active() || bitmap.width() == 0) {
@@ -4417,17 +4539,16 @@ void ObjectDrawer::DrawVerticalTurtleRockPipe(const RoomObject& obj,
   // Objects: 0xFBA, 0xFBB (ASM 23A, 23B)
   constexpr int kWidth = 2;
   constexpr int kHeight = 6;
-  
-  if (tiles.size() >= kWidth * kHeight) {
-    int tid = 0;
-    for (int x = 0; x < kWidth && tid < static_cast<int>(tiles.size()); ++x) {
-      for (int y = 0; y < kHeight && tid < static_cast<int>(tiles.size()); ++y) {
-        WriteTile8(bg, obj.x_ + x, obj.y_ + y, tiles[tid++]);
-      }
+
+  if (tiles.empty()) return;
+
+  int tid = 0;
+  int num_tiles = static_cast<int>(tiles.size());
+  for (int x = 0; x < kWidth; ++x) {
+    for (int y = 0; y < kHeight; ++y) {
+      WriteTile8(bg, obj.x_ + x, obj.y_ + y, tiles[tid % num_tiles]);
+      tid++;
     }
-  } else if (tiles.size() >= 4) {
-    // Fallback: draw as 2x2
-    DrawRightwards2x2_1to16(obj, bg, tiles);
   }
 }
 
@@ -4439,17 +4560,16 @@ void ObjectDrawer::DrawHorizontalTurtleRockPipe(const RoomObject& obj,
   // Objects: 0xFBC, 0xFBD, 0xFDC (ASM 23C, 23D, 25C)
   constexpr int kWidth = 6;
   constexpr int kHeight = 2;
-  
-  if (tiles.size() >= kWidth * kHeight) {
-    int tid = 0;
-    for (int y = 0; y < kHeight && tid < static_cast<int>(tiles.size()); ++y) {
-      for (int x = 0; x < kWidth && tid < static_cast<int>(tiles.size()); ++x) {
-        WriteTile8(bg, obj.x_ + x, obj.y_ + y, tiles[tid++]);
-      }
+
+  if (tiles.empty()) return;
+
+  int tid = 0;
+  int num_tiles = static_cast<int>(tiles.size());
+  for (int y = 0; y < kHeight; ++y) {
+    for (int x = 0; x < kWidth; ++x) {
+      WriteTile8(bg, obj.x_ + x, obj.y_ + y, tiles[tid % num_tiles]);
+      tid++;
     }
-  } else if (tiles.size() >= 4) {
-    // Fallback: draw as 2x2
-    DrawRightwards2x2_1to16(obj, bg, tiles);
   }
 }
 
@@ -4861,14 +4981,21 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(const 
       break;
     }
 
-    case 12: // 2x2 downwards extended
-    case 13:
-    case 14:
-    case 15:
-      // 2x2 base with size extension downward
+    case 12: // RoomDraw_DownwardsHasEdge1x1_1to16_plus3
+      size = size & 0x0F;
+      width = 8;
+      height = (size + 3) * 8;
+      break;
+    case 13: // RoomDraw_DownwardsEdge1x1_1to16
+      size = size & 0x0F;
+      width = 8;
+      height = (size + 1) * 8;
+      break;
+    case 14: // RoomDraw_DownwardsLeftCorners2x1_1to16_plus12
+    case 15: // RoomDraw_DownwardsRightCorners2x1_1to16_plus12
       size = size & 0x0F;
       width = 16;
-      height = 16 + size * 16;
+      height = (size + 10) * 8;
       break;
 
     case 16: // DrawRightwards4x4_1to16 (Routine 16)
@@ -4902,21 +5029,18 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(const 
 
     case 20: // Edge 1x2 (RoomDraw_Rightwards1x2_1to16_plus2)
     {
-      // ASM: count = (size * 2) + 1, draws 1x2 tiles
+      // ZScream: width = size * 2 + 4, height = 3 tiles
       size = size & 0x0F;
-      int count = (size * 2) + 1;
-      width = count * 8;
-      height = 16;
+      width = (size * 2 + 4) * 8;
+      height = 24;
       break;
     }
 
     case 21: // RoomDraw_RightwardsHasEdge1x1_1to16_plus3 (small rails 0x22)
     {
-      // ASM: GetSize_1to16_timesA(2), count = (size + 1) * 2
-      // Plus corner (1) + end (1) = count + 2 total width
+      // ZScream: count = size + 2 (corner + middle*count + end)
       size = size & 0x0F;
-      int count = (size + 1) * 2;
-      width = (count + 2) * 8;  // corner + middle*count + end
+      width = (size + 4) * 8;
       height = 8;
       break;
     }
@@ -4927,6 +5051,13 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(const 
       size = size & 0x0F;
       int count = size + 1;
       width = (count + 2) * 8;  // corner + middle*count + end
+      height = 8;
+      break;
+    }
+    case 118: // RoomDraw_RightwardsHasEdge1x1_1to16_plus23 (long rails 0x5F)
+    {
+      size = size & 0x0F;
+      width = (size + 23) * 8;
       height = 8;
       break;
     }

@@ -192,8 +192,8 @@ std::tuple<int, int, int, int> ObjectSelection::GetRectangleSelectionBounds()
 
 void ObjectSelection::DrawSelectionHighlights(
     gui::Canvas* canvas, const std::vector<zelda3::RoomObject>& objects,
-    std::function<std::pair<int, int>(const zelda3::RoomObject&)>
-        dimension_calculator) {
+    std::function<std::tuple<int, int, int, int>(const zelda3::RoomObject&)>
+        bounds_calculator) {
   if (selected_indices_.empty() || !canvas) {
     return;
   }
@@ -212,18 +212,27 @@ void ObjectSelection::DrawSelectionHighlights(
     // Calculate object position in canvas coordinates
     auto [obj_x, obj_y] = RoomToCanvasCoordinates(object.x_, object.y_);
 
-    // Calculate object dimensions
-    int pixel_width, pixel_height;
-    if (dimension_calculator) {
-      auto dims = dimension_calculator(object);
-      pixel_width = dims.first;
-      pixel_height = dims.second;
+    int offset_x = 0;
+    int offset_y = 0;
+    int pixel_width = 0;
+    int pixel_height = 0;
+    if (bounds_calculator) {
+      auto [dx, dy, w, h] = bounds_calculator(object);
+      offset_x = dx;
+      offset_y = dy;
+      pixel_width = w;
+      pixel_height = h;
     } else {
       // Fallback to old logic if no calculator provided
       auto [tile_x, tile_y, tile_width, tile_height] = GetObjectBounds(object);
+      offset_x = (tile_x - object.x_) * 8;
+      offset_y = (tile_y - object.y_) * 8;
       pixel_width = tile_width * 8;
       pixel_height = tile_height * 8;
     }
+
+    obj_x += offset_x;
+    obj_y += offset_y;
 
     // Apply scale and canvas offset
     ImVec2 obj_start(canvas_pos.x + obj_x * scale,

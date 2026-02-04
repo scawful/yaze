@@ -159,19 +159,20 @@ void DrawDownwards2x2_1to16(const DrawContext& ctx) {
 }
 
 void DrawDownwardsHasEdge1x1_1to16_plus3(const DrawContext& ctx) {
-  // Pattern: 1x1 tiles with edge detection +3 offset downward (object 0x69)
+  // Pattern: Vertical rail with corner/middle/end (object 0x69)
   int size = ctx.object.size_ & 0x0F;
+  int count = size + 1;
 
-  // Assembly: GetSize_1to16_timesA(2), so count = size + 2
-  int count = size + 2;
+  if (ctx.tiles.size() < 3) return;
 
+  int y = ctx.object.y_;
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, y, ctx.tiles[0]);
+  y++;
   for (int s = 0; s < count; s++) {
-    if (ctx.tiles.size() >= 1) {
-      // Use first 8x8 tile from span
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 3,
-                                    ctx.object.y_ + s, ctx.tiles[0]);
-    }
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, y, ctx.tiles[1]);
+    y++;
   }
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, y, ctx.tiles[2]);
 }
 
 void DrawDownwardsEdge1x1_1to16(const DrawContext& ctx) {
@@ -280,7 +281,7 @@ void RegisterDownwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .function = DrawDownwardsHasEdge1x1_1to16_plus3,
       .draws_to_both_bgs = false,
       .base_width = 1,
-      .base_height = 1,
+      .base_height = 3,
       .category = Category::Downwards});
 
   registry.push_back(DrawRoutineInfo{

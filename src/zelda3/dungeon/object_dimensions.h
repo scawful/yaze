@@ -30,6 +30,13 @@ class ObjectDimensionTable {
  public:
   static ObjectDimensionTable& Get();
 
+  struct SelectionBounds {
+    int offset_x = 0;   // Offset from object x in tiles
+    int offset_y = 0;   // Offset from object y in tiles
+    int width = 1;      // Width in tiles
+    int height = 1;     // Height in tiles
+  };
+
   // Load dimension data from ROM
   absl::Status LoadFromRom(Rom* rom);
 
@@ -42,6 +49,9 @@ class ObjectDimensionTable {
   // Get dimensions for selection bounds (without size=0 inflation)
   // This version caps the size and doesn't use 32-when-zero for display
   std::pair<int, int> GetSelectionDimensions(int object_id, int size) const;
+
+  // Get selection bounds with offsets in tile coordinates
+  SelectionBounds GetSelectionBounds(int object_id, int size) const;
 
   // Get hit-test bounds in tile coordinates (x, y, width, height)
   std::tuple<int, int, int, int> GetHitTestBounds(const RoomObject& obj) const;
@@ -67,11 +77,14 @@ class ObjectDimensionTable {
     enum class ExtendDir { None, Horizontal, Vertical, Both, Diagonal, SuperSquare } extend_dir = ExtendDir::None;
     int extend_multiplier = 1;  // Tiles added per size unit
     bool use_32_when_zero = false;  // ASM: GetSize_1to15or32 uses 32 when size=0
+    int zero_size_override = -1;  // Optional override (e.g., 26) when size=0
   };
 
   // Object ID -> dimension entry
   std::unordered_map<int, DimensionEntry> dimensions_;
   bool loaded_ = false;
+
+  int ResolveEffectiveSize(const DimensionEntry& entry, int size) const;
 
   // Initialize default dimensions based on draw routine patterns
   void InitializeDefaults();

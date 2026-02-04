@@ -3,6 +3,12 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
+### 2026-02-03 ai-infra-architect – Dungeon object validation reports
+- Update 2026-02-03 (ai-infra-architect): adding dungeon-object-validate CLI JSON/CSV mismatch reports with draw trace capture; tests not run.
+- Update 2026-02-03 (ai-infra-architect): expanded dungeon-object-validation-spec with UX parity audit scope, panel persistence, custom overlay toggle, glossary; no tests run.
+- Update 2026-02-03 (ai-infra-architect): added UX parity matrix doc + size-zero selection alignment in ObjectDimensionTable; rebuilt z3ed with CCACHE_DIR=/tmp/ccache and ran dungeon-object-validate (v3 report, mismatches unchanged).
+- Update 2026-02-03 (ai-infra-architect): fixed size semantics for 1to15or32/26, updated rail/edge routines to ZScream parity (plus2/plus3/plus23), corrected routine vector indexing for 117/118, set selection min size to 1; ran dungeon-object-validate v5 (mismatch_count 1082).
+
 ### 2026-01-25 ai-infra-architect – Ralph loop env sync
 - Update 2026-01-25 (ai-infra-architect): synced `scripts/agents/ralph-loop-codex.sh` to export `MESEN2_INSTANCE` + `MESEN2_SOCKET_PATH` after socket resolution; no tests run.
 

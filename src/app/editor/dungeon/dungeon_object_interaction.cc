@@ -229,19 +229,20 @@ void DungeonObjectInteraction::DrawSelectionHighlights() {
   // Use ObjectSelection's rendering (handles pulsing border, corner handles)
   selection_.DrawSelectionHighlights(
       canvas_, objects, [this](const zelda3::RoomObject& obj) {
-        // Use GetSelectionDimensions for accurate visual bounds
+        // Use GetSelectionBounds for accurate visual bounds + offsets
         // (doesn't inflate size=0 to 32 like the game's GetSize_1to15or32)
         auto& dim_table = zelda3::ObjectDimensionTable::Get();
         if (dim_table.IsLoaded()) {
-          auto [w_tiles, h_tiles] =
-              dim_table.GetSelectionDimensions(obj.id_, obj.size_);
-          return std::make_pair(w_tiles * 8, h_tiles * 8);
+          auto bounds = dim_table.GetSelectionBounds(obj.id_, obj.size_);
+          return std::make_tuple(bounds.offset_x * 8, bounds.offset_y * 8,
+                                 bounds.width * 8, bounds.height * 8);
         }
         // Fallback to drawer (aligns with render) if table not loaded
         if (object_drawer_) {
-          return object_drawer_->CalculateObjectDimensions(obj);
+          auto dims = object_drawer_->CalculateObjectDimensions(obj);
+          return std::make_tuple(0, 0, dims.first, dims.second);
         }
-        return std::make_pair(16, 16);  // Safe fallback
+        return std::make_tuple(0, 0, 16, 16);  // Safe fallback
       });
 
   // Enhanced hover tooltip showing object info (always visible on hover)

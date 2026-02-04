@@ -30,6 +30,7 @@ constexpr int kRightwards4x4_1to16 = 16;
 constexpr int kRightwards1x2_1to16_plus2 = 20;
 constexpr int kRightwardsHasEdge1x1_1to16_plus3 = 21;
 constexpr int kRightwardsHasEdge1x1_1to16_plus2 = 22;
+constexpr int kRightwardsHasEdge1x1_1to16_plus23 = 118;
 constexpr int kRightwardsTopCorners1x2_1to16_plus13 = 23;
 constexpr int kRightwardsBottomCorners1x2_1to16_plus13 = 24;
 constexpr int kRightwards1x1Solid_1to16_plus3 = 25;
@@ -202,4 +203,3 @@ class DrawRoutineRegistry {
 }  // namespace yaze
 
 #endif  // YAZE_ZELDA3_DUNGEON_DRAW_ROUTINES_DRAW_ROUTINE_REGISTRY_H
-

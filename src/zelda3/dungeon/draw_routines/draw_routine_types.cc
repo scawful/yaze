@@ -7,10 +7,36 @@ namespace yaze {
 namespace zelda3 {
 namespace DrawRoutineUtils {
 
+namespace {
+struct TraceState {
+  TraceHookFn hook = nullptr;
+  void* user_data = nullptr;
+  bool trace_only = false;
+};
+
+thread_local TraceState g_trace_state;
+}  // namespace
+
+void SetTraceHook(TraceHookFn hook, void* user_data, bool trace_only) {
+  g_trace_state.hook = hook;
+  g_trace_state.user_data = user_data;
+  g_trace_state.trace_only = trace_only;
+}
+
+void ClearTraceHook() {
+  g_trace_state = TraceState{};
+}
+
 void WriteTile8(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
                 const gfx::TileInfo& tile_info) {
   if (!IsValidTilePosition(tile_x, tile_y)) {
     return;
+  }
+  if (g_trace_state.hook) {
+    g_trace_state.hook(tile_x, tile_y, tile_info, g_trace_state.user_data);
+    if (g_trace_state.trace_only) {
+      return;
+    }
   }
   // Convert TileInfo to the 16-bit word format and store in tile buffer
   uint16_t word = gfx::TileInfoToWord(tile_info);
