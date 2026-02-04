@@ -902,8 +902,8 @@ void ObjectDimensionTable::InitializeDefaults() {
   dimensions_[0xFE6] = {4, 4, Dir::None, 0, false};
   dimensions_[0xFE7] = {4, 3, Dir::Horizontal, 8, false};
   dimensions_[0xFE8] = {4, 3, Dir::Horizontal, 8, false};
-  // Single 4x4 tile16 (8x8 tile8)
-  dimensions_[0xFEB] = {8, 8, Dir::None, 0, false};
+  // Single 4x4 tile8 (large decor)
+  dimensions_[0xFEB] = {4, 4, Dir::None, 0, false};
   // Single 4x3
   dimensions_[0xFEC] = {4, 3, Dir::None, 0, false};
   dimensions_[0xFED] = {4, 3, Dir::None, 0, false};
