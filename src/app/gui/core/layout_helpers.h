@@ -25,6 +25,11 @@ class LayoutHelpers {
     float bottom = 0.0f;
   };
 
+  struct WindowClampResult {
+    ImVec2 pos{};
+    bool clamped = false;
+  };
+
   // Core sizing functions (respect theme compact_factor + multipliers)
   static float GetStandardWidgetHeight();
   static float GetStandardSpacing();
@@ -85,6 +90,13 @@ class LayoutHelpers {
   static SafeAreaInsets GetSafeAreaInsets();
   static float GetTopInset();
   static bool IsTouchDevice();
+
+  // Clamp a window position so at least min_visible pixels remain within rect.
+  static WindowClampResult ClampWindowToRect(const ImVec2& pos,
+                                             const ImVec2& size,
+                                             const ImVec2& rect_pos,
+                                             const ImVec2& rect_size,
+                                             float min_visible = 32.0f);
 
   // Get current theme
   static const Theme& GetTheme() {

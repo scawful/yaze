@@ -10,6 +10,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_ui_theme.h"
+#include "app/editor/dungeon/panels/minecart_track_editor_panel.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas_menu.h"
@@ -712,6 +713,17 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       ImGui::SetTooltip(door_mode ? "Click to cancel door placement"
                                   : "Click to place doors");
     }
+
+    if (minecart_track_panel_) {
+      ImGui::SameLine();
+      bool show_tracks = show_minecart_tracks_;
+      if (ImGui::Checkbox(ICON_MD_TRAIN " Tracks", &show_tracks)) {
+        show_minecart_tracks_ = show_tracks;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Toggle minecart track origin overlay");
+      }
+    }
     ImGui::EndGroup();
     ImGui::Separator();
   }
@@ -814,6 +826,22 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
         }));
 
     canvas_.AddContextMenuItem(entity_menu);
+
+    // Custom overlays (minecart tracks, etc.)
+    gui::CanvasMenuItem custom_menu;
+    custom_menu.label = "Custom Overlays";
+    custom_menu.icon = ICON_MD_TRAIN;
+
+    gui::CanvasMenuItem minecart_toggle(
+        show_minecart_tracks_ ? "Hide Minecart Tracks"
+                              : "Show Minecart Tracks",
+        ICON_MD_TRAIN, [this]() { show_minecart_tracks_ = !show_minecart_tracks_; });
+    minecart_toggle.enabled_condition = [this]() {
+      return minecart_track_panel_ != nullptr;
+    };
+    custom_menu.subitems.push_back(minecart_toggle);
+
+    canvas_.AddContextMenuItem(custom_menu);
 
     // Add re-render option
     canvas_.AddContextMenuItem(gui::CanvasMenuItem(
@@ -1414,6 +1442,53 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     // This shows where objects are placed regardless of whether graphics render
     if (show_object_bounds_) {
       DrawObjectPositionOutlines(canvas_rt, room);
+    }
+
+    if (minecart_track_panel_) {
+      const bool show_tracks = show_minecart_tracks_ ||
+                               minecart_track_panel_->IsPickingCoordinates();
+      const auto& tracks = minecart_track_panel_->GetTracks();
+      if (show_tracks && !tracks.empty()) {
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        ImVec2 canvas_pos = canvas_.zero_point();
+        float scale = canvas_.global_scale();
+        const auto& theme = AgentUI::GetTheme();
+        const int active_track =
+            minecart_track_panel_->IsPickingCoordinates()
+                ? minecart_track_panel_->GetPickingTrackIndex()
+                : -1;
+
+        for (const auto& track : tracks) {
+          auto local = dungeon_coords::CameraToLocalCoords(
+              static_cast<uint16_t>(track.start_x),
+              static_cast<uint16_t>(track.start_y));
+          if (local.room_id != room_id) {
+            continue;
+          }
+
+          ImVec4 marker_color = theme.dungeon_selection_primary;
+          if (track.id == active_track) {
+            marker_color = theme.text_warning_yellow;
+          }
+
+          const float px = static_cast<float>(local.local_pixel_x) * scale;
+          const float py = static_cast<float>(local.local_pixel_y) * scale;
+          ImVec2 center(canvas_pos.x + px, canvas_pos.y + py);
+          const float radius = 6.0f * scale;
+
+          draw_list->AddCircleFilled(center, radius,
+                                     ImGui::GetColorU32(marker_color));
+          draw_list->AddCircle(center, radius + 2.0f,
+                               ImGui::GetColorU32(ImVec4(0, 0, 0, 0.6f)), 0,
+                               2.0f);
+
+          std::string label = absl::StrFormat("T%d", track.id);
+          draw_list->AddText(ImVec2(center.x + 8.0f * scale,
+                                    center.y - 6.0f * scale),
+                             ImGui::GetColorU32(theme.text_primary),
+                             label.c_str());
+        }
+      }
     }
   }
 

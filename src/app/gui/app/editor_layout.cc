@@ -413,6 +413,25 @@ bool PanelWindow::Begin(bool* p_open) {
 
   // Draw custom header buttons if visible
   if (visible) {
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    if (window && !window->DockNode && !window->Collapsed) {
+      const ImGuiViewport* viewport =
+          window->Viewport ? window->Viewport : ImGui::GetMainViewport();
+      const bool dragging =
+          ImGui::IsMouseDragging(ImGuiMouseButton_Left) &&
+          ImGui::IsWindowHovered(
+              ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
+      if (!dragging && viewport) {
+        constexpr float kMinVisible = 32.0f;
+        const auto clamp =
+            LayoutHelpers::ClampWindowToRect(window->Pos, window->Size,
+                                             viewport->WorkPos,
+                                             viewport->WorkSize, kMinVisible);
+        if (clamp.clamped) {
+          ImGui::SetWindowPos(clamp.pos, ImGuiCond_Always);
+        }
+      }
+    }
     DrawHeaderButtons();
   }
 

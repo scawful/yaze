@@ -19,6 +19,8 @@
 namespace yaze {
 namespace editor {
 
+class MinecartTrackEditorPanel;
+
 /**
  * @brief Handles the main dungeon canvas rendering and interaction
  */
@@ -83,6 +85,9 @@ class DungeonCanvasViewer {
   }
   void SetShowItemPanelCallback(std::function<void()> callback) {
     show_item_panel_callback_ = std::move(callback);
+  }
+  void SetMinecartTrackPanel(MinecartTrackEditorPanel* panel) {
+    minecart_track_panel_ = panel;
   }
 
   // Canvas access
@@ -295,6 +300,8 @@ class DungeonCanvasViewer {
   std::function<void()> show_object_panel_callback_;
   std::function<void()> show_sprite_panel_callback_;
   std::function<void()> show_item_panel_callback_;
+  MinecartTrackEditorPanel* minecart_track_panel_ = nullptr;
+  bool show_minecart_tracks_ = false;
 
   // Object rendering cache
   struct ObjectRenderCache {

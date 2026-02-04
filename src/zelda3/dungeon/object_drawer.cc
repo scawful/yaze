@@ -4716,21 +4716,15 @@ void ObjectDrawer::DrawSingle4x4(const RoomObject& obj,
                                  gfx::BackgroundBuffer& bg,
                                  std::span<const gfx::TileInfo> tiles,
                                  [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Single 4x4 block in TILE16 terms = 8x8 in TILE8 terms
-  // ASM: RoomDraw_4x4 draws in TILE16 units (each tile16 is 2x2 tile8s)
-  // So 4x4 tile16 = 8x8 tile8 = 64x64 pixels
+  // Pattern: Single 4x4 block (NO repetition based on size)
+  // Used for: 0xFEB (large decor) and other single 4x4 objects
   // Tile order is COLUMN-MAJOR: tiles advance down each column, then right
-  
-  // For 8x8 pattern (64 tiles needed), or use available tiles with wrapping
+  if (tiles.size() < 16) return;
+
   int tid = 0;
-  int num_tiles = static_cast<int>(tiles.size());
-  if (num_tiles == 0) return;
-  
-  for (int x = 0; x < 8; ++x) {
-    for (int y = 0; y < 8; ++y) {
-      // Wrap tile index if not enough tiles
-      WriteTile8(bg, obj.x_ + x, obj.y_ + y, tiles[tid % num_tiles]);
-      tid++;
+  for (int x = 0; x < 4; ++x) {
+    for (int y = 0; y < 4; ++y) {
+      WriteTile8(bg, obj.x_ + x, obj.y_ + y, tiles[tid++]);
     }
   }
 }

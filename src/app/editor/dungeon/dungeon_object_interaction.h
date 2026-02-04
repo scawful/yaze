@@ -327,6 +327,7 @@ class DungeonObjectInteraction {
 
   // Helper to calculate object bounds
   std::pair<int, int> CalculateObjectBounds(const zelda3::RoomObject& object);
+  ImVec2 ApplyDragModifiers(const ImVec2& delta) const;
 
   // Preview object state (used by ModeState but kept here for ghost bitmap)
   zelda3::RoomObject preview_object_{0, 0, 0, 0, 0};

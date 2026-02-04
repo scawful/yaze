@@ -186,6 +186,17 @@ std::tuple<int, int, int, int> ObjectSelection::GetRectangleSelectionBounds()
   return {min_x, min_y, max_x, max_y};
 }
 
+bool ObjectSelection::IsRectangleLargeEnough(int min_pixels) const {
+  if (!rectangle_selection_active_) {
+    return false;
+  }
+
+  auto [min_x, min_y, max_x, max_y] = GetRectangleSelectionBounds();
+  const int width = std::abs(max_x - min_x);
+  const int height = std::abs(max_y - min_y);
+  return (width >= min_pixels) || (height >= min_pixels);
+}
+
 // ============================================================================
 // Visual Rendering
 // ============================================================================

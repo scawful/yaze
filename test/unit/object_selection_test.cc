@@ -303,6 +303,23 @@ TEST(ObjectSelectionTest, RectangleSelectionBoundsNormalized) {
   EXPECT_EQ(max_y, 40);
 }
 
+TEST(ObjectSelectionTest, RectangleSelectionLargeEnough) {
+  ObjectSelection selection;
+
+  selection.BeginRectangleSelection(10, 10);
+  selection.UpdateRectangleSelection(12, 12);
+  EXPECT_TRUE(selection.IsRectangleLargeEnough(1));
+  EXPECT_FALSE(selection.IsRectangleLargeEnough(6));
+}
+
+TEST(ObjectSelectionTest, RectangleSelectionLargeEnoughNormalizesSize) {
+  ObjectSelection selection;
+
+  selection.BeginRectangleSelection(40, 40);
+  selection.UpdateRectangleSelection(10, 20);
+  EXPECT_TRUE(selection.IsRectangleLargeEnough(10));
+}
+
 // ============================================================================
 // Get Selected Indices Tests
 // ============================================================================

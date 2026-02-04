@@ -170,7 +170,9 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
 
   panel_manager->RegisterEditorPanel(std::make_unique<DungeonRoomMatrixPanel>(
       &current_room_id_, &active_rooms_,
-      [this](int room_id) { OnRoomSelected(room_id); }, &rooms_));
+      [this](int room_id) { OnRoomSelected(room_id); },
+      [this](int old_room, int new_room) { SwapRoomInPanel(old_room, new_room); },
+      &rooms_));
 
   panel_manager->RegisterEditorPanel(std::make_unique<DungeonEntrancesPanel>(
       &entrances_, &current_entrance_id_,
@@ -899,6 +901,7 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
         [this]() { ShowPanel("dungeon.sprite_editor"); });
     viewer->SetShowItemPanelCallback(
         [this]() { ShowPanel("dungeon.item_editor"); });
+    viewer->SetMinecartTrackPanel(minecart_track_editor_panel_);
 
     room_viewers_[room_id] = std::move(viewer);
     return room_viewers_[room_id].get();
