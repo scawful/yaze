@@ -4,12 +4,14 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/layout/layout_manager.h"
+#include "app/editor/system/editor_registry.h"
 #include "app/editor/system/panel_manager.h"
 #include "app/editor/ui/toast_manager.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include "rom/rom.h"
 #include "util/file_util.h"
+#include "util/log.h"
 #include "util/platform_paths.h"
 
 namespace yaze {
@@ -44,7 +46,32 @@ absl::Status WorkspaceManager::LoadWorkspaceLayout(const std::string& name) {
 }
 
 absl::Status WorkspaceManager::ResetWorkspaceLayout() {
-  // TODO: Reset to default layout
+  if (ImGui::GetCurrentContext()) {
+    static const char kEmptyIni[] = "\n";
+    ImGui::LoadIniSettingsFromMemory(kEmptyIni, sizeof(kEmptyIni) - 1);
+  }
+
+  if (auto ini_path = util::PlatformPaths::GetImGuiIniPath(); ini_path.ok()) {
+    std::error_code ec;
+    std::filesystem::remove(*ini_path, ec);
+    if (ec) {
+      LOG_WARN("WorkspaceManager", "Failed to remove ImGui ini: %s",
+               ec.message().c_str());
+    }
+  }
+
+  if (layout_manager_) {
+    layout_manager_->ClearInitializationFlags();
+
+    EditorType editor_type = EditorType::kSettings;
+    if (panel_manager_) {
+      editor_type =
+          EditorRegistry::GetEditorTypeFromCategory(
+              panel_manager_->GetActiveCategory());
+    }
+    layout_manager_->ResetToDefaultLayout(editor_type);
+    layout_manager_->RequestRebuild();
+  }
   if (toast_manager_) {
     toast_manager_->Show("Layout reset to default", ToastType::kInfo);
   }

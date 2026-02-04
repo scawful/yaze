@@ -586,6 +586,7 @@ void PanelManager::DrawAllVisiblePanels() {
     // Create PanelWindow and draw content
     gui::PanelWindow window(display_name.c_str(), panel->GetIcon().c_str(),
                             visibility_flag);
+    window.SetStableId(panel_id);
     if (touch_device) {
       window.SetPosition(gui::PanelWindow::Position::Center);
     }

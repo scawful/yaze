@@ -655,6 +655,10 @@ void EditorManager::HandleUIActionRequest(UIActionRequestEvent::Action action) {
         }
       }
       break;
+
+    case Action::kResetLayout:
+      ResetWorkspaceLayout();
+      break;
   }
 }
 

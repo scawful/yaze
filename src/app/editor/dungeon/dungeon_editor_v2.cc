@@ -901,6 +901,10 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
         [this]() { ShowPanel("dungeon.sprite_editor"); });
     viewer->SetShowItemPanelCallback(
         [this]() { ShowPanel("dungeon.item_editor"); });
+    viewer->SetShowRoomListCallback([this]() { ShowPanel(kRoomSelectorId); });
+    viewer->SetShowRoomMatrixCallback([this]() { ShowPanel(kRoomMatrixId); });
+    viewer->SetShowEntranceListCallback([this]() { ShowPanel(kEntranceListId); });
+    viewer->SetShowRoomGraphicsCallback([this]() { ShowPanel(kRoomGraphicsId); });
     viewer->SetMinecartTrackPanel(minecart_track_editor_panel_);
 
     room_viewers_[room_id] = std::move(viewer);

@@ -15,7 +15,8 @@ class DungeonObjectValidateCommandHandler : public resources::CommandHandler {
 
   std::string GetUsage() const override {
     return "dungeon-object-validate --rom <path> [--object <hex>] [--size <n>] "
-           "[--report <path>] [--format json|text] [--verbose]";
+           "[--report <path>] [--trace-out <path>] [--format json|text] "
+           "[--verbose]";
   }
 
   std::string GetDefaultFormat() const override { return "text"; }
