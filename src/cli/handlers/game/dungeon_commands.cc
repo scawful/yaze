@@ -2,7 +2,10 @@
 
 #include "absl/strings/str_format.h"
 #include "cli/util/hex_util.h"
+#include "rom/rom.h"
+#include "rom/snes.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
+#include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/resource_labels.h"
@@ -459,6 +462,93 @@ absl::Status DungeonSetRoomPropertyCommandHandler::Execute(
                      "Property setting requires room property system");
   formatter.EndObject();
 
+  return absl::OkStatus();
+}
+
+absl::Status DungeonRoomHeaderCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  auto room_id_str = parser.GetString("room").value();
+
+  int room_id;
+  if (!ParseHexString(room_id_str, &room_id)) {
+    return absl::InvalidArgumentError("Invalid room ID format. Must be hex.");
+  }
+
+  formatter.BeginObject("Room Header Debug");
+  formatter.AddField("room_id", room_id);
+  formatter.AddHexField("room_id_hex", room_id, 2);
+
+  // Show ROM address constants
+  formatter.BeginObject("rom_addresses");
+  formatter.AddHexField("kRoomHeaderPointer", zelda3::kRoomHeaderPointer, 4);
+  formatter.AddHexField("kRoomHeaderPointerBank",
+                        zelda3::kRoomHeaderPointerBank, 4);
+  formatter.EndObject();
+
+  // Read the pointer table address
+  int header_pointer = (rom->data()[zelda3::kRoomHeaderPointer + 2] << 16) +
+                       (rom->data()[zelda3::kRoomHeaderPointer + 1] << 8) +
+                       (rom->data()[zelda3::kRoomHeaderPointer]);
+  int header_pointer_pc = SnesToPc(header_pointer);
+
+  formatter.BeginObject("pointer_table");
+  formatter.AddHexField("snes_address", header_pointer, 6);
+  formatter.AddHexField("pc_address", header_pointer_pc, 6);
+  formatter.EndObject();
+
+  // Read the room's specific header address from the table
+  int table_offset = header_pointer_pc + (room_id * 2);
+  int room_header_addr = (rom->data()[zelda3::kRoomHeaderPointerBank] << 16) +
+                         (rom->data()[table_offset + 1] << 8) +
+                         rom->data()[table_offset];
+  int room_header_pc = SnesToPc(room_header_addr);
+
+  formatter.BeginObject("room_header_address");
+  formatter.AddHexField("table_offset_pc", table_offset, 6);
+  formatter.AddHexField("snes_address", room_header_addr, 6);
+  formatter.AddHexField("pc_address", room_header_pc, 6);
+  formatter.EndObject();
+
+  // Read and display raw header bytes (14 bytes)
+  formatter.BeginArray("raw_bytes");
+  for (int i = 0; i < 14; ++i) {
+    if (room_header_pc + i < static_cast<int>(rom->size())) {
+      formatter.AddArrayItem(
+          absl::StrFormat("0x%02X", rom->data()[room_header_pc + i]));
+    }
+  }
+  formatter.EndArray();
+
+  // Decode the header bytes
+  if (room_header_pc >= 0 &&
+      room_header_pc + 13 < static_cast<int>(rom->size())) {
+    uint8_t byte0 = rom->data()[room_header_pc];
+    uint8_t byte1 = rom->data()[room_header_pc + 1];
+    uint8_t byte2 = rom->data()[room_header_pc + 2];
+    uint8_t byte3 = rom->data()[room_header_pc + 3];
+
+    formatter.BeginObject("decoded");
+    formatter.AddField("bg2", (byte0 >> 5) & 0x07);
+    formatter.AddField("collision", (byte0 >> 2) & 0x07);
+    formatter.AddField("is_light", (byte0 & 0x01) == 1);
+    formatter.AddField("palette", byte1 & 0x3F);
+    formatter.AddField("blockset", byte2);
+    formatter.AddField("spriteset", byte3);
+    formatter.AddField("effect", rom->data()[room_header_pc + 4]);
+    formatter.AddField("tag1", rom->data()[room_header_pc + 5]);
+    formatter.AddField("tag2", rom->data()[room_header_pc + 6]);
+    formatter.AddField("holewarp", rom->data()[room_header_pc + 9]);
+    formatter.AddField("stair1_room", rom->data()[room_header_pc + 10]);
+    formatter.AddField("stair2_room", rom->data()[room_header_pc + 11]);
+    formatter.AddField("stair3_room", rom->data()[room_header_pc + 12]);
+    formatter.AddField("stair4_room", rom->data()[room_header_pc + 13]);
+    formatter.EndObject();
+  } else {
+    formatter.AddField("error", "Room header address out of range");
+  }
+
+  formatter.EndObject();
   return absl::OkStatus();
 }
 
