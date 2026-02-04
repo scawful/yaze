@@ -68,9 +68,9 @@ class EntranceInfoCommandHandler : public resources::CommandHandler {
 /**
  * @brief Command handler for auto-discovering dungeon rooms
  *
- * Starting from an entrance ID, performs BFS/DFS through stair, holewarp,
- * and door connections to discover all reachable rooms. Returns the room
- * list and connection graph.
+ * Starting from an entrance ID, performs BFS through staircase and holewarp
+ * connections to discover reachable rooms. Returns the room list and
+ * connection graph.
  */
 class DungeonDiscoverCommandHandler : public resources::CommandHandler {
  public:

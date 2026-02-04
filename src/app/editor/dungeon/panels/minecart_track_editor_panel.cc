@@ -22,6 +22,13 @@ void MinecartTrackEditorPanel::SetProjectRoot(const std::string& root) {
   }
 }
 
+const std::vector<MinecartTrack>& MinecartTrackEditorPanel::GetTracks() {
+  if (!loaded_) {
+    LoadTracks();
+  }
+  return tracks_;
+}
+
 void MinecartTrackEditorPanel::SetPickedCoordinates(int room_id,
                                                     uint16_t camera_x,
                                                     uint16_t camera_y) {

@@ -43,6 +43,7 @@ class MinecartTrackEditorPanel : public EditorPanel {
   void SetPickedCoordinates(int room_id, uint16_t camera_x, uint16_t camera_y);
   bool IsPickingCoordinates() const { return picking_mode_; }
   int GetPickingTrackIndex() const { return picking_track_index_; }
+  const std::vector<MinecartTrack>& GetTracks();
   
   // Callback to navigate to a specific room for coordinate picking
   using RoomNavigationCallback = std::function<void(int room_id)>;

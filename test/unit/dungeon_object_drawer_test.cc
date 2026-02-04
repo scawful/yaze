@@ -77,6 +77,16 @@ class TestableObjectDrawer : public ObjectDrawer {
                        std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
     DrawChest(obj, bg, tiles, state);
   }
+
+  void PublicDrawSingle4x4(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                           std::span<const gfx::TileInfo> tiles,
+                           const DungeonState* state) {
+    DrawSingle4x4(obj, bg, tiles, state);
+  }
+
+  void PublicSetTraceContext(const RoomObject& obj, RoomObject::LayerType layer) {
+    SetTraceContext(obj, layer);
+  }
   
   void ResetIndex() {
     ResetChestIndex();
@@ -109,6 +119,34 @@ TEST_F(ObjectDrawerTest, ChestStateHandlingDirect) {
   // Verify no crash.
   // To verify logic, we'd need to inspect bg pixels or mock WriteTile8.
   // For now, this ensures the code path is executed and state is queried.
+}
+
+TEST_F(ObjectDrawerTest, Single4x4DrawsColumnMajorTiles) {
+  TestableObjectDrawer test_drawer(nullptr, 0);
+  RoomObject obj(0xFEB, 2, 3, 0);
+  gfx::BackgroundBuffer bg(64, 64);
+
+  std::vector<gfx::TileInfo> tiles;
+  tiles.reserve(16);
+  for (int i = 0; i < 16; ++i) {
+    tiles.emplace_back(i, 0, false, false, false);
+  }
+
+  std::vector<ObjectDrawer::TileTrace> trace;
+  test_drawer.SetTraceCollector(&trace, true);
+  test_drawer.PublicSetTraceContext(obj, RoomObject::LayerType::BG1);
+  test_drawer.PublicDrawSingle4x4(obj, bg, tiles, nullptr);
+
+  ASSERT_EQ(trace.size(), 16u);
+  for (int x = 0; x < 4; ++x) {
+    for (int y = 0; y < 4; ++y) {
+      int index = x * 4 + y;
+      EXPECT_EQ(trace[index].x_tile, obj.x_ + x);
+      EXPECT_EQ(trace[index].y_tile, obj.y_ + y);
+      EXPECT_EQ(trace[index].tile_id, tiles[index].id_);
+      EXPECT_EQ(trace[index].object_id, static_cast<uint16_t>(obj.id_));
+    }
+  }
 }
 
 }  // namespace

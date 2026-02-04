@@ -168,6 +168,12 @@ class ObjectSelection {
    */
   std::tuple<int, int, int, int> GetRectangleSelectionBounds() const;
 
+  /**
+   * @brief Check if rectangle selection exceeds a minimum pixel size
+   * @param min_pixels Minimum size along either axis in canvas pixels
+   */
+  bool IsRectangleLargeEnough(int min_pixels) const;
+
   // ============================================================================
   // Visual Rendering
   // ============================================================================

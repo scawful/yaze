@@ -44,6 +44,15 @@
 - Panel management is poor: windows pop out of view and do not persist positions.
 - Custom elements need a toolbar toggle; minecart origin/track setup needs reliable overlays.
 
+## Progress Updates
+**2026-02-04**
+- Panel/window management: added viewport clamping for floating panels so at least 32px stays visible (PanelWindow).
+- Selection UX: added rectangle size threshold to avoid accidental marquee selection; Alt now clears selection; Shift locks drag axis for object dragging.
+- Custom overlays: added minecart track origin overlay + toolbar/context-menu toggle (uses ASM data from track editor panel).
+- Room matrix context menu: added open/focus, swap-with-current, and copy room id/name actions.
+- Large decor fix: corrected Single4x4 draw routine to render 4x4 tile8 (matches ZScream object_FEB) instead of 8x8 repeat.
+- Tests: added unit tests for window clamping, rectangle size threshold, and Single4x4 trace order.
+
 ## Glossary
 - **TileTrace:** A captured list of tile writes from a draw routine (tile ID + tile coordinates). It is just instrumentation data collected during validation, not a separate tool.
 - **Oracle (validation):** A secondary implementation used as a reference for draw output (ROM-static interpreter, later a ROM micro-emu).

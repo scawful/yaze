@@ -41,11 +41,13 @@ class DungeonRoomMatrixPanel : public EditorPanel {
    */
   DungeonRoomMatrixPanel(int* current_room_id, ImVector<int>* active_rooms,
                          std::function<void(int)> on_room_selected,
+                         std::function<void(int, int)> on_room_swap = nullptr,
                          std::array<zelda3::Room, 0x128>* rooms = nullptr)
       : current_room_id_(current_room_id),
         active_rooms_(active_rooms),
         rooms_(rooms),
-        on_room_selected_(std::move(on_room_selected)) {}
+        on_room_selected_(std::move(on_room_selected)),
+        on_room_swap_(std::move(on_room_swap)) {}
 
   // ==========================================================================
   // EditorPanel Identity
@@ -145,6 +147,40 @@ class DungeonRoomMatrixPanel : public EditorPanel {
 
           if (ImGui::IsItemClicked() && on_room_selected_) {
             on_room_selected_(room_id);
+          }
+
+          if (ImGui::BeginPopupContextItem()) {
+            const bool can_swap =
+                on_room_swap_ && current_room_id_ &&
+                *current_room_id_ >= 0 && *current_room_id_ < kTotalRooms &&
+                *current_room_id_ != room_id;
+
+            std::string open_label = is_open ? "Focus Room" : "Open Room";
+            if (ImGui::MenuItem(open_label.c_str())) {
+              if (on_room_selected_) {
+                on_room_selected_(room_id);
+              }
+            }
+
+            if (ImGui::MenuItem("Swap With Current Room", nullptr, false,
+                                can_swap)) {
+              on_room_swap_(*current_room_id_, room_id);
+            }
+
+            ImGui::Separator();
+
+            char id_buf[16];
+            snprintf(id_buf, sizeof(id_buf), "0x%02X", room_id);
+            if (ImGui::MenuItem("Copy Room ID")) {
+              ImGui::SetClipboardText(id_buf);
+            }
+
+            const std::string& room_label = zelda3::GetRoomLabel(room_id);
+            if (ImGui::MenuItem("Copy Room Name")) {
+              ImGui::SetClipboardText(room_label.c_str());
+            }
+
+            ImGui::EndPopup();
           }
 
           // Tooltip with more info
@@ -249,6 +285,7 @@ class DungeonRoomMatrixPanel : public EditorPanel {
   ImVector<int>* active_rooms_ = nullptr;
   std::array<zelda3::Room, 0x128>* rooms_ = nullptr;
   std::function<void(int)> on_room_selected_;
+  std::function<void(int, int)> on_room_swap_;
 };
 
 }  // namespace editor

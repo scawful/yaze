@@ -101,6 +101,36 @@ bool LayoutHelpers::IsTouchDevice() {
   return (io.ConfigFlags & ImGuiConfigFlags_IsTouchScreen) != 0;
 }
 
+LayoutHelpers::WindowClampResult LayoutHelpers::ClampWindowToRect(
+    const ImVec2& pos, const ImVec2& size, const ImVec2& rect_pos,
+    const ImVec2& rect_size, float min_visible) {
+  WindowClampResult result{pos, false};
+
+  if (rect_size.x <= 0.0f || rect_size.y <= 0.0f) {
+    return result;
+  }
+
+  const float max_visible_x = std::max(1.0f, size.x - 1.0f);
+  const float max_visible_y = std::max(1.0f, size.y - 1.0f);
+  float min_visible_x = std::min(min_visible, max_visible_x);
+  float min_visible_y = std::min(min_visible, max_visible_y);
+
+  // Avoid impossible constraints on tiny viewports.
+  min_visible_x = std::min(min_visible_x, rect_size.x * 0.5f);
+  min_visible_y = std::min(min_visible_y, rect_size.y * 0.5f);
+
+  const float min_x = rect_pos.x + min_visible_x - size.x;
+  const float max_x = rect_pos.x + rect_size.x - min_visible_x;
+  const float min_y = rect_pos.y + min_visible_y - size.y;
+  const float max_y = rect_pos.y + rect_size.y - min_visible_y;
+
+  result.pos.x = std::clamp(pos.x, min_x, max_x);
+  result.pos.y = std::clamp(pos.y, min_y, max_y);
+  result.clamped =
+      (result.pos.x != pos.x) || (result.pos.y != pos.y);
+  return result;
+}
+
 // Layout utilities
 void LayoutHelpers::BeginPaddedPanel(const char* label, float padding) {
   if (padding < 0.0f) {

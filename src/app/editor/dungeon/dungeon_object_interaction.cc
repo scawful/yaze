@@ -4,6 +4,7 @@
 
 // C++ standard library headers
 #include <algorithm>
+#include <cmath>
 
 // Third-party library headers
 #include "imgui/imgui.h"
@@ -133,6 +134,7 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
       auto& room = (*rooms_)[current_room_id_];
       ImVec2 drag_delta = ImVec2(state.drag_current.x - state.drag_start.x,
                                  state.drag_current.y - state.drag_start.y);
+      drag_delta = ApplyDragModifiers(drag_delta);
 
       // Convert pixel delta to tile delta
       int tile_delta_x = static_cast<int>(drag_delta.x) / 8;
@@ -200,16 +202,27 @@ void DungeonObjectInteraction::DrawObjectSelectRect() {
       !ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
     auto& room = (*rooms_)[current_room_id_];
 
-    // Determine selection mode based on modifiers
-    ObjectSelection::SelectionMode mode =
-        ObjectSelection::SelectionMode::Single;
-    if (io.KeyShift) {
-      mode = ObjectSelection::SelectionMode::Add;
-    } else if (io.KeyCtrl) {
-      mode = ObjectSelection::SelectionMode::Toggle;
+    constexpr int kMinRectPixels = 6;
+    if (io.KeyAlt || !selection_.IsRectangleLargeEnough(kMinRectPixels)) {
+      selection_.CancelRectangleSelection();
+      if (!io.KeyShift && !io.KeyCtrl) {
+        selection_.ClearSelection();
+        ClearEntitySelection();
+      }
+    } else {
+      // Determine selection mode based on modifiers
+      ObjectSelection::SelectionMode mode =
+          ObjectSelection::SelectionMode::Single;
+      if (io.KeyShift) {
+        mode = ObjectSelection::SelectionMode::Add;
+      } else if (io.KeyCtrl) {
+        mode = ObjectSelection::SelectionMode::Toggle;
+      }
+
+      selection_.EndRectangleSelection(room.GetTileObjects(), mode);
     }
 
-    selection_.EndRectangleSelection(room.GetTileObjects(), mode);
+    mode_manager_.SetMode(InteractionMode::Select);
   }
 }
 
@@ -447,6 +460,7 @@ void DungeonObjectInteraction::DrawDragPreview() {
   const auto& state = mode_manager_.GetModeState();
   ImVec2 drag_delta = ImVec2(state.drag_current.x - state.drag_start.x,
                              state.drag_current.y - state.drag_start.y);
+  drag_delta = ApplyDragModifiers(drag_delta);
 
   auto& room = (*rooms_)[current_room_id_];
   const auto& objects = room.GetTileObjects();
@@ -609,6 +623,10 @@ bool DungeonObjectInteraction::TrySelectObjectAtCursor() {
   }
 
   const ImGuiIO& io = ImGui::GetIO();
+  if (io.KeyAlt) {
+    selection_.ClearSelection();
+    return false;
+  }
   ObjectSelection::SelectionMode mode = ObjectSelection::SelectionMode::Single;
 
   if (io.KeyShift) {
@@ -1709,6 +1727,11 @@ bool DungeonObjectInteraction::TrySelectEntityAtCursor() {
     return false;
 
   const ImGuiIO& io = ImGui::GetIO();
+  if (io.KeyAlt) {
+    selection_.ClearSelection();
+    ClearEntitySelection();
+    return false;
+  }
   ImVec2 canvas_pos = canvas_->zero_point();
   int canvas_x = static_cast<int>(io.MousePos.x - canvas_pos.x);
   int canvas_y = static_cast<int>(io.MousePos.y - canvas_pos.y);
@@ -2008,6 +2031,18 @@ void DungeonObjectInteraction::DrawDoorSnapIndicators() {
                          0, 1.0f);
     }
   }
+}
+
+ImVec2 DungeonObjectInteraction::ApplyDragModifiers(const ImVec2& delta) const {
+  const ImGuiIO& io = ImGui::GetIO();
+  if (!io.KeyShift) {
+    return delta;
+  }
+
+  if (std::abs(delta.x) >= std::abs(delta.y)) {
+    return ImVec2(delta.x, 0.0f);
+  }
+  return ImVec2(0.0f, delta.y);
 }
 
 }  // namespace yaze::editor
