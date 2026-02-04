@@ -177,6 +177,27 @@ class DungeonSetRoomPropertyCommandHandler : public resources::CommandHandler {
                        resources::OutputFormatter& formatter) override;
 };
 
+/**
+ * @brief Command handler for reading raw room header bytes (diagnostic)
+ */
+class DungeonRoomHeaderCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const { return "dungeon-room-header"; }
+  std::string GetDescription() const {
+    return "Read raw room header bytes for debugging ROM address issues";
+  }
+  std::string GetUsage() const {
+    return "dungeon-room-header --room <room_id> [--format <json|text>]";
+  }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"room"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
 }  // namespace handlers
 }  // namespace cli
 }  // namespace yaze

@@ -81,6 +81,7 @@ REGISTER_AGENT_TOOL("dungeon-export-room", "dungeon", "Export room data", "dunge
 REGISTER_AGENT_TOOL("dungeon-list-objects", "dungeon", "List room objects", "dungeon-list-objects --room=<id>", {}, true, false, DungeonListObjectsCommandHandler)
 REGISTER_AGENT_TOOL("dungeon-get-room-tiles", "dungeon", "Get room tiles", "dungeon-get-room-tiles --room=<id>", {}, true, false, DungeonGetRoomTilesCommandHandler)
 REGISTER_AGENT_TOOL("dungeon-set-room-property", "dungeon", "Set room property", "dungeon-set-room-property --room=<id> --key=<key> --value=<val>", {}, true, false, DungeonSetRoomPropertyCommandHandler)
+REGISTER_AGENT_TOOL("dungeon-room-header", "dungeon", "Debug room header bytes", "dungeon-room-header --room=<id>", {}, true, false, DungeonRoomHeaderCommandHandler)
 
 // Overworld commands
 REGISTER_AGENT_TOOL("overworld-find-tile", "overworld", "Find tile locations", "overworld-find-tile --tile=<id>", {}, true, false, OverworldFindTileCommandHandler)

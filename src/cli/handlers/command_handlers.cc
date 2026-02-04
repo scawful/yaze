@@ -102,6 +102,7 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<DungeonListObjectsCommandHandler>());
   handlers.push_back(std::make_unique<DungeonGetRoomTilesCommandHandler>());
   handlers.push_back(std::make_unique<DungeonSetRoomPropertyCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonRoomHeaderCommandHandler>());
   handlers.push_back(std::make_unique<DungeonGraphCommandHandler>());
   handlers.push_back(std::make_unique<DungeonGroupCommandHandler>());
   handlers.push_back(std::make_unique<DungeonMapCommandHandler>());
