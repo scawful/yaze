@@ -143,6 +143,21 @@ class ObjectDrawer {
    */
   std::pair<int, int> CalculateObjectDimensions(const RoomObject& object);
 
+  struct TileTrace {
+    uint16_t object_id = 0;
+    uint8_t size = 0;
+    uint8_t layer = 0;
+    int16_t x_tile = 0;
+    int16_t y_tile = 0;
+    uint16_t tile_id = 0;
+    uint8_t flags = 0;
+  };
+
+  void SetTraceCollector(std::vector<TileTrace>* collector,
+                         bool trace_only = false);
+  void ClearTraceCollector();
+  bool TraceOnly() const { return trace_only_; }
+
  protected:
   // Draw routine function type
   using DrawRoutine = std::function<void(ObjectDrawer*, const RoomObject&,
@@ -188,6 +203,9 @@ class ObjectDrawer {
       const RoomObject& obj, gfx::BackgroundBuffer& bg,
       std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
   void DrawRightwardsHasEdge1x1_1to16_plus2(
+      const RoomObject& obj, gfx::BackgroundBuffer& bg,
+      std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
+  void DrawRightwardsHasEdge1x1_1to16_plus23(
       const RoomObject& obj, gfx::BackgroundBuffer& bg,
       std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
   void DrawRightwardsTopCorners1x2_1to16_plus13(
@@ -450,6 +468,22 @@ class ObjectDrawer {
   std::unordered_map<int16_t, int> object_to_routine_map_;
   std::vector<DrawRoutine> draw_routines_;
   bool routines_initialized_ = false;
+
+  struct TraceContext {
+    uint16_t object_id = 0;
+    uint8_t size = 0;
+    uint8_t layer = 0;
+  };
+
+  void SetTraceContext(const RoomObject& object, RoomObject::LayerType layer);
+  void PushTrace(int tile_x, int tile_y, const gfx::TileInfo& tile_info);
+  static void TraceHookThunk(int tile_x, int tile_y,
+                             const gfx::TileInfo& tile_info,
+                             void* user_data);
+
+  TraceContext trace_context_{};
+  std::vector<TileTrace>* trace_collector_ = nullptr;
+  bool trace_only_ = false;
 
   Rom* rom_;
   int room_id_;

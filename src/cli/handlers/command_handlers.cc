@@ -4,6 +4,9 @@
 
 #include "cli/handlers/game/dialogue_commands.h"
 #include "cli/handlers/game/dungeon_commands.h"
+#include "cli/handlers/game/dungeon_graph_commands.h"
+#include "cli/handlers/game/dungeon_group_commands.h"
+#include "cli/handlers/game/dungeon_map_commands.h"
 #include "cli/handlers/game/message_commands.h"
 #include "cli/handlers/game/music_commands.h"
 #include "cli/handlers/game/overworld_commands.h"
@@ -13,6 +16,7 @@
 #include "cli/handlers/graphics/sprite_commands.h"
 #include "cli/handlers/rom/rom_commands.h"
 #include "cli/handlers/tools/dungeon_doctor_commands.h"
+#include "cli/handlers/tools/dungeon_object_validate_commands.h"
 #include "cli/handlers/mesen_handlers.h"
 #ifdef YAZE_WITH_GRPC
 #include "cli/handlers/tools/emulator_commands.h"
@@ -98,6 +102,9 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<DungeonListObjectsCommandHandler>());
   handlers.push_back(std::make_unique<DungeonGetRoomTilesCommandHandler>());
   handlers.push_back(std::make_unique<DungeonSetRoomPropertyCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonGraphCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonGroupCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonMapCommandHandler>());
 
   // Overworld inspection
   handlers.push_back(std::make_unique<OverworldFindTileCommandHandler>());
@@ -158,6 +165,7 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<OverworldValidateCommandHandler>());
   handlers.push_back(std::make_unique<OverworldDoctorCommandHandler>());
   handlers.push_back(std::make_unique<DungeonDoctorCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonObjectValidateCommandHandler>());
   handlers.push_back(std::make_unique<RomDoctorCommandHandler>());
   handlers.push_back(std::make_unique<MessageDoctorCommandHandler>());
   handlers.push_back(std::make_unique<SpriteDoctorCommandHandler>());

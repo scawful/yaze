@@ -233,8 +233,8 @@ void Draw4x4BlocksIn4x4SuperSquare(const DrawContext& ctx) {
   // ASM: RoomDraw_4x4BlocksIn4x4SuperSquare ($018B94)
   // Draws solid 4x4 blocks using a single tile, repeated in a grid pattern.
   // Size determines number of super squares in X and Y directions.
-  int size_x = (ctx.object.size_ & 0x0F) + 1;
-  int size_y = ((ctx.object.size_ >> 4) & 0x0F) + 1;
+  int size_x = ((ctx.object.size_ >> 2) & 0x03) + 1;
+  int size_y = (ctx.object.size_ & 0x03) + 1;
 
   LOG_DEBUG("DrawRoutines",
             "Draw4x4BlocksIn4x4SuperSquare: obj=0x%03X pos=(%d,%d) size=0x%02X "
@@ -274,25 +274,21 @@ void Draw4x4BlocksIn4x4SuperSquare(const DrawContext& ctx) {
 void Draw3x3FloorIn4x4SuperSquare(const DrawContext& ctx) {
   // ASM: RoomDraw_3x3FloorIn4x4SuperSquare ($018D8A)
   // Draws 3x3 floor patterns within super square units.
-  int size_x = (ctx.object.size_ & 0x0F) + 1;
-  int size_y = ((ctx.object.size_ >> 4) & 0x0F) + 1;
+  int size_x = ((ctx.object.size_ >> 2) & 0x03) + 1;
+  int size_y = (ctx.object.size_ & 0x03) + 1;
 
-  if (ctx.tiles.size() < 9) return;  // Need at least 9 tiles for 3x3
+  if (ctx.tiles.empty()) return;
 
+  const auto& tile = ctx.tiles[0];
   for (int sy = 0; sy < size_y; ++sy) {
     for (int sx = 0; sx < size_x; ++sx) {
-      // Each super square positions a 3x3 pattern
-      int base_x = ctx.object.x_ + (sx * 4);
-      int base_y = ctx.object.y_ + (sy * 4);
+      int base_x = ctx.object.x_ + (sx * 3);
+      int base_y = ctx.object.y_ + (sy * 3);
 
-      // Draw 3x3 pattern (centered or offset in 4x4 space)
       for (int y = 0; y < 3; ++y) {
         for (int x = 0; x < 3; ++x) {
-          size_t tile_idx = static_cast<size_t>(y * 3 + x);
-          if (tile_idx < ctx.tiles.size()) {
-            DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + y,
-                                         ctx.tiles[tile_idx]);
-          }
+          DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + y,
+                                       tile);
         }
       }
     }
@@ -303,25 +299,26 @@ void Draw4x4FloorIn4x4SuperSquare(const DrawContext& ctx) {
   // ASM: RoomDraw_4x4FloorIn4x4SuperSquare ($018FA5)
   // Most common floor pattern - draws 4x4 floor tiles in super square units.
   // Uses RoomDraw_A_Many32x32Blocks internally in assembly.
-  int size_x = (ctx.object.size_ & 0x0F) + 1;
-  int size_y = ((ctx.object.size_ >> 4) & 0x0F) + 1;
+  int size_x = ((ctx.object.size_ >> 2) & 0x03) + 1;
+  int size_y = (ctx.object.size_ & 0x03) + 1;
 
-  if (ctx.tiles.size() < 16) return;  // Need 16 tiles for 4x4
+  if (ctx.tiles.size() < 8) return;
 
   for (int sy = 0; sy < size_y; ++sy) {
     for (int sx = 0; sx < size_x; ++sx) {
       int base_x = ctx.object.x_ + (sx * 4);
       int base_y = ctx.object.y_ + (sy * 4);
 
-      // Draw 4x4 pattern
-      for (int y = 0; y < 4; ++y) {
-        for (int x = 0; x < 4; ++x) {
-          size_t tile_idx = static_cast<size_t>(y * 4 + x);
-          if (tile_idx < ctx.tiles.size()) {
-            DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + y,
-                                         ctx.tiles[tile_idx]);
-          }
-        }
+      // Draw 4x4 pattern using 8 tiles (rows 0/2 use 0-3, rows 1/3 use 4-7)
+      for (int x = 0; x < 4; ++x) {
+        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y,
+                                     ctx.tiles[x]);
+        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 2,
+                                     ctx.tiles[x]);
+        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 1,
+                                     ctx.tiles[4 + x]);
+        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 3,
+                                     ctx.tiles[4 + x]);
       }
     }
   }
@@ -331,15 +328,10 @@ void Draw4x4FloorOneIn4x4SuperSquare(const DrawContext& ctx) {
   // ASM: RoomDraw_4x4FloorOneIn4x4SuperSquare ($018FA2)
   // Single 4x4 floor pattern (starts at different tile offset in assembly).
   // For our purposes, same as 4x4FloorIn4x4SuperSquare with offset tiles.
-  int size_x = (ctx.object.size_ & 0x0F) + 1;
-  int size_y = ((ctx.object.size_ >> 4) & 0x0F) + 1;
+  int size_x = ((ctx.object.size_ >> 2) & 0x03) + 1;
+  int size_y = (ctx.object.size_ & 0x03) + 1;
 
-  // Use tiles starting at offset (assembly uses $046A index)
-  size_t tile_offset = 0;
-  if (ctx.tiles.size() >= 32) tile_offset = 16;  // Use second set if available
-
-  if (ctx.tiles.size() < tile_offset + 16) {
-    // Fall back to standard 4x4
+  if (ctx.tiles.size() < 8) {
     Draw4x4FloorIn4x4SuperSquare(ctx);
     return;
   }
@@ -349,14 +341,15 @@ void Draw4x4FloorOneIn4x4SuperSquare(const DrawContext& ctx) {
       int base_x = ctx.object.x_ + (sx * 4);
       int base_y = ctx.object.y_ + (sy * 4);
 
-      for (int y = 0; y < 4; ++y) {
-        for (int x = 0; x < 4; ++x) {
-          size_t tile_idx = tile_offset + static_cast<size_t>(y * 4 + x);
-          if (tile_idx < ctx.tiles.size()) {
-            DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + y,
-                                         ctx.tiles[tile_idx]);
-          }
-        }
+      for (int x = 0; x < 4; ++x) {
+        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y,
+                                     ctx.tiles[x]);
+        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 2,
+                                     ctx.tiles[x]);
+        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 1,
+                                     ctx.tiles[4 + x]);
+        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 3,
+                                     ctx.tiles[4 + x]);
       }
     }
   }
@@ -365,14 +358,10 @@ void Draw4x4FloorOneIn4x4SuperSquare(const DrawContext& ctx) {
 void Draw4x4FloorTwoIn4x4SuperSquare(const DrawContext& ctx) {
   // ASM: RoomDraw_4x4FloorTwoIn4x4SuperSquare ($018F9D)
   // Two 4x4 floor patterns (uses $0490 offset in assembly).
-  int size_x = (ctx.object.size_ & 0x0F) + 1;
-  int size_y = ((ctx.object.size_ >> 4) & 0x0F) + 1;
+  int size_x = ((ctx.object.size_ >> 2) & 0x03) + 1;
+  int size_y = (ctx.object.size_ & 0x03) + 1;
 
-  // Use tiles starting at different offset
-  size_t tile_offset = 0;
-  if (ctx.tiles.size() >= 48) tile_offset = 32;
-
-  if (ctx.tiles.size() < tile_offset + 16) {
+  if (ctx.tiles.size() < 8) {
     Draw4x4FloorIn4x4SuperSquare(ctx);
     return;
   }
@@ -382,14 +371,15 @@ void Draw4x4FloorTwoIn4x4SuperSquare(const DrawContext& ctx) {
       int base_x = ctx.object.x_ + (sx * 4);
       int base_y = ctx.object.y_ + (sy * 4);
 
-      for (int y = 0; y < 4; ++y) {
-        for (int x = 0; x < 4; ++x) {
-          size_t tile_idx = tile_offset + static_cast<size_t>(y * 4 + x);
-          if (tile_idx < ctx.tiles.size()) {
-            DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + y,
-                                         ctx.tiles[tile_idx]);
-          }
-        }
+      for (int x = 0; x < 4; ++x) {
+        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y,
+                                     ctx.tiles[x]);
+        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 2,
+                                     ctx.tiles[x]);
+        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 1,
+                                     ctx.tiles[4 + x]);
+        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 3,
+                                     ctx.tiles[4 + x]);
       }
     }
   }
@@ -397,47 +387,64 @@ void Draw4x4FloorTwoIn4x4SuperSquare(const DrawContext& ctx) {
 
 void DrawBigHole4x4_1to16(const DrawContext& ctx) {
   // ASM: Object 0xA4 - Big hole pattern
-  // Draws a 4x4 hole pattern that repeats based on size
-  int count = (ctx.object.size_ & 0x0F) + 1;
+  // Draws a rectangular hole with border tiles using Size as the expansion.
+  int size = ctx.object.size_ & 0x0F;
 
-  if (ctx.tiles.size() < 16) return;
+  if (ctx.tiles.size() < 24) return;
 
-  for (int s = 0; s < count; ++s) {
-    int base_x = ctx.object.x_;
-    int base_y = ctx.object.y_ + (s * 4);
+  int base_x = ctx.object.x_;
+  int base_y = ctx.object.y_;
+  int max = size + 3;  // Bottom/right edge offset
 
-    // Draw 4x4 pattern
-    for (int y = 0; y < 4; ++y) {
-      for (int x = 0; x < 4; ++x) {
-        size_t tile_idx = static_cast<size_t>(y * 4 + x);
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + y,
-                                     ctx.tiles[tile_idx]);
-      }
+  // Corners
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, base_y, ctx.tiles[8]);
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + max, base_y,
+                               ctx.tiles[14]);
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, base_y + max,
+                               ctx.tiles[17]);
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + max, base_y + max,
+                               ctx.tiles[23]);
+
+  // Edges and interior
+  for (int xx = 1; xx < max; ++xx) {
+    for (int yy = 1; yy < max; ++yy) {
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + xx, base_y + yy,
+                                   ctx.tiles[0]);
     }
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + xx, base_y,
+                                 ctx.tiles[10]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + xx, base_y + max,
+                                 ctx.tiles[19]);
+  }
+
+  for (int yy = 1; yy < max; ++yy) {
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, base_y + yy,
+                                 ctx.tiles[9]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + max, base_y + yy,
+                                 ctx.tiles[15]);
   }
 }
 
 void DrawSpike2x2In4x4SuperSquare(const DrawContext& ctx) {
   // ASM: RoomDraw_Spike2x2In4x4SuperSquare ($019708)
-  // Draws 2x2 spike patterns within super square units
-  int size_x = (ctx.object.size_ & 0x0F) + 1;
-  int size_y = ((ctx.object.size_ >> 4) & 0x0F) + 1;
+  // Draws 2x2 spike patterns in a tiled grid
+  int size_x = ((ctx.object.size_ >> 2) & 0x03) + 1;
+  int size_y = (ctx.object.size_ & 0x03) + 1;
 
   if (ctx.tiles.size() < 4) return;
 
   for (int sy = 0; sy < size_y; ++sy) {
     for (int sx = 0; sx < size_x; ++sx) {
-      int base_x = ctx.object.x_ + (sx * 4);
-      int base_y = ctx.object.y_ + (sy * 4);
+      int base_x = ctx.object.x_ + (sx * 2);
+      int base_y = ctx.object.y_ + (sy * 2);
 
-      // Draw 2x2 spike pattern (centered in 4x4 area)
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, base_y + 1,
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, base_y,
                                    ctx.tiles[0]);
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 2, base_y + 1,
-                                   ctx.tiles[1]);
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, base_y + 2,
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, base_y,
                                    ctx.tiles[2]);
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 2, base_y + 2,
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, base_y + 1,
+                                   ctx.tiles[1]);
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, base_y + 1,
                                    ctx.tiles[3]);
     }
   }
@@ -445,23 +452,67 @@ void DrawSpike2x2In4x4SuperSquare(const DrawContext& ctx) {
 
 void DrawTableRock4x4_1to16(const DrawContext& ctx) {
   // ASM: Object 0xDD - Table rock pattern
-  // 4x4 rock pattern that repeats
-  int count = (ctx.object.size_ & 0x0F) + 1;
+  int size_x = ((ctx.object.size_ >> 2) & 0x03);
+  int size_y = (ctx.object.size_ & 0x03);
 
   if (ctx.tiles.size() < 16) return;
 
-  for (int s = 0; s < count; ++s) {
-    int base_x = ctx.object.x_ + (s * 4);
-    int base_y = ctx.object.y_;
+  int right_x = ctx.object.x_ + (3 + (size_x * 2));
+  int bottom_y = ctx.object.y_ + (3 + (size_y * 2));
 
-    for (int y = 0; y < 4; ++y) {
-      for (int x = 0; x < 4; ++x) {
-        size_t tile_idx = static_cast<size_t>(y * 4 + x);
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + y,
-                                     ctx.tiles[tile_idx]);
-      }
+  // Interior
+  for (int xx = 0; xx < size_x + 1; ++xx) {
+    for (int yy = 0; yy < size_y + 1; ++yy) {
+      int base_x = ctx.object.x_ + (xx * 2);
+      int base_y = ctx.object.y_ + (yy * 2);
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, base_y + 1,
+                                   ctx.tiles[5]);
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 2, base_y + 1,
+                                   ctx.tiles[6]);
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, base_y + 2,
+                                   ctx.tiles[9]);
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 2, base_y + 2,
+                                   ctx.tiles[10]);
     }
   }
+
+  // Left/right borders
+  for (int yy = 0; yy < size_y + 1; ++yy) {
+    int base_y = ctx.object.y_ + (yy * 2);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, base_y + 1,
+                                 ctx.tiles[4]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, base_y + 2,
+                                 ctx.tiles[8]);
+
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, right_x, base_y + 1,
+                                 ctx.tiles[7]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, right_x, base_y + 2,
+                                 ctx.tiles[11]);
+  }
+
+  // Top/bottom borders
+  for (int xx = 0; xx < size_x + 1; ++xx) {
+    int base_x = ctx.object.x_ + (xx * 2);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, ctx.object.y_,
+                                 ctx.tiles[1]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 2, ctx.object.y_,
+                                 ctx.tiles[2]);
+
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, bottom_y,
+                                 ctx.tiles[13]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 2, bottom_y,
+                                 ctx.tiles[14]);
+  }
+
+  // Corners
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, ctx.object.y_,
+                               ctx.tiles[0]);
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, bottom_y,
+                               ctx.tiles[12]);
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, right_x, ctx.object.y_,
+                               ctx.tiles[3]);
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, right_x, bottom_y,
+                               ctx.tiles[15]);
 }
 
 void DrawWaterOverlay8x8_1to16(const DrawContext& ctx) {
@@ -470,30 +521,28 @@ void DrawWaterOverlay8x8_1to16(const DrawContext& ctx) {
   // the wavy water distortion effect. It doesn't draw tiles directly.
   // For the editor, we draw the available tile data as a visual indicator.
   
-  int size_x = (ctx.object.size_ & 0x0F) + 1;
-  int size_y = ((ctx.object.size_ >> 4) & 0x0F) + 1;
+  int size_x = ((ctx.object.size_ >> 2) & 0x03);
+  int size_y = (ctx.object.size_ & 0x03);
 
-  // Handle case where we have fewer tiles than expected
-  // Water objects load 8 tiles, we'll use what we have
-  if (ctx.tiles.empty()) return;
+  if (ctx.tiles.size() < 8) return;
 
-  size_t num_tiles = ctx.tiles.size();
-  
-  for (int sy = 0; sy < size_y; ++sy) {
-    for (int sx = 0; sx < size_x; ++sx) {
-      int base_x = ctx.object.x_ + (sx * 8);
-      int base_y = ctx.object.y_ + (sy * 8);
+  int count_x = size_x + 2;
+  int count_y = size_y + 2;
 
-      // Draw 8x8 area using available tiles with wrapping
-      for (int y = 0; y < 8; ++y) {
-        for (int x = 0; x < 8; ++x) {
-          // Wrap tile index to available tiles
-          size_t tile_idx = static_cast<size_t>((y * 8 + x) % num_tiles);
-          DrawRoutineUtils::WriteTile8(ctx.target_bg,
-                                       base_x + x,
-                                       base_y + y,
-                                       ctx.tiles[tile_idx]);
-        }
+  for (int yy = 0; yy < count_y; ++yy) {
+    for (int xx = 0; xx < count_x; ++xx) {
+      int base_x = ctx.object.x_ + (xx * 4);
+      int base_y = ctx.object.y_ + (yy * 4);
+
+      for (int x = 0; x < 4; ++x) {
+        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y,
+                                     ctx.tiles[x]);
+        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 2,
+                                     ctx.tiles[x]);
+        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 1,
+                                     ctx.tiles[4 + x]);
+        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 3,
+                                     ctx.tiles[4 + x]);
       }
     }
   }
@@ -1110,7 +1159,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .function = [](const DrawContext& ctx) {
         // CORNER+MIDDLE+END pattern vertically
         int size = ctx.object.size_ & 0x0F;
-        int count = (size + 1) * 2;
+        int count = size + 21;
         if (ctx.tiles.size() < 3) return;
         
         int tile_y = ctx.object.y_;
@@ -1127,7 +1176,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       },
       .draws_to_both_bgs = false,
       .base_width = 1,
-      .base_height = 0,  // Variable: count + 2
+      .base_height = 23,  // size + 23
       .category = DrawRoutineInfo::Category::Special,
   });
 

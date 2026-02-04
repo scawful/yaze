@@ -60,31 +60,40 @@ void DrawRightwards2x4_1to16_BothBG(const DrawContext& ctx);
 void DrawRightwards2x2_1to16(const DrawContext& ctx);
 
 /**
- * @brief Draw 1x2 tiles rightward with +2 offset
+ * @brief Draw 1x3 tiles rightward with caps
  *
- * Pattern: 1x2 tiles rightward with +2 offset (object 0x21)
+ * Pattern: 1x3 tiles rightward with caps (object 0x21)
  *
  * @param ctx Draw context containing object, tiles, and target buffer
  */
 void DrawRightwards1x2_1to16_plus2(const DrawContext& ctx);
 
 /**
- * @brief Draw 1x1 tiles with edge detection +3 offset
+ * @brief Draw 1x1 tiles with edge detection +3
  *
- * Pattern: 1x1 tiles with edge detection +3 offset (object 0x22)
+ * Pattern: 1x1 tiles with edge detection +3 (object 0x22)
  *
  * @param ctx Draw context containing object, tiles, and target buffer
  */
 void DrawRightwardsHasEdge1x1_1to16_plus3(const DrawContext& ctx);
 
 /**
- * @brief Draw 1x1 tiles with edge detection +2 offset
+ * @brief Draw 1x1 tiles with edge detection +2
  *
- * Pattern: 1x1 tiles with edge detection +2 offset (objects 0x23-0x2E, 0x3F-0x46)
+ * Pattern: 1x1 tiles with edge detection +2 (objects 0x23-0x2E, 0x3F-0x46)
  *
  * @param ctx Draw context containing object, tiles, and target buffer
  */
 void DrawRightwardsHasEdge1x1_1to16_plus2(const DrawContext& ctx);
+
+/**
+ * @brief Draw 1x1 tiles with edge detection +23
+ *
+ * Pattern: 1x1 tiles with edge detection +23 (object 0x5F)
+ *
+ * @param ctx Draw context containing object, tiles, and target buffer
+ */
+void DrawRightwardsHasEdge1x1_1to16_plus23(const DrawContext& ctx);
 
 /**
  * @brief Draw top corner 1x2 tiles with +13 offset

@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <functional>
 #include <set>
+#include <tuple>
 #include <vector>
 
 #include "app/gui/canvas/canvas.h"
@@ -175,12 +176,12 @@ class ObjectSelection {
    * @brief Draw selection highlights for all selected objects
    * @param canvas Canvas to draw on
    * @param objects Object list for position/size information
-   * @param dimension_calculator Callback to calculate object dimensions (width, height) in pixels
+   * @param bounds_calculator Callback to calculate selection bounds (offset_x, offset_y, width, height) in pixels
    */
   void DrawSelectionHighlights(
       gui::Canvas* canvas, const std::vector<zelda3::RoomObject>& objects,
-      std::function<std::pair<int, int>(const zelda3::RoomObject&)>
-          dimension_calculator);
+      std::function<std::tuple<int, int, int, int>(const zelda3::RoomObject&)>
+          bounds_calculator);
 
   /**
    * @brief Draw the active rectangle selection box

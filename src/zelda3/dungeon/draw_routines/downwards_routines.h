@@ -61,9 +61,9 @@ void DrawDownwardsDecor4x2spaced4_1to16(const DrawContext& ctx);
 void DrawDownwards2x2_1to16(const DrawContext& ctx);
 
 /**
- * @brief Draw 1x1 tiles with edge detection +3 offset downward
+ * @brief Draw 1x1 tiles with edge detection +3 downward
  *
- * Pattern: 1x1 tiles with edge detection +3 offset downward (object 0x69)
+ * Pattern: 1x1 tiles with edge detection +3 downward (object 0x69)
  * Based on bank_01.asm RoomDraw_DownwardsHasEdge1x1_1to16_plus3
  *
  * @param ctx Draw context containing object, tiles, and target buffer

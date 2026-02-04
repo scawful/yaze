@@ -346,6 +346,29 @@ int ObjectParser::GetSubtype2TileCount(int16_t object_id) const {
   if (object_id >= 0x110 && object_id <= 0x117) {
     return 12;
   }
+  // 4x4 fixed patterns (stairs/altars/walls)
+  if (object_id == 0x11C || object_id == 0x124 || object_id == 0x125 ||
+      object_id == 0x129 || (object_id >= 0x12D && object_id <= 0x133) ||
+      (object_id >= 0x135 && object_id <= 0x137) || object_id == 0x13C ||
+      object_id == 0x13F) {
+    return 16;
+  }
+  // Beds (4x5)
+  if (object_id == 0x122 || object_id == 0x128) {
+    return 20;
+  }
+  // Tables (4x3)
+  if (object_id == 0x123 || object_id == 0x13D) {
+    return 12;
+  }
+  // 3x6 and 6x3 utility patterns
+  if (object_id == 0x12C || object_id == 0x13E) {
+    return 18;
+  }
+  // Spiral stairs (4x3)
+  if (object_id >= 0x138 && object_id <= 0x13B) {
+    return 12;
+  }
   // Default: 8 tiles for other subtype 2 objects
   return 8;
 }
@@ -367,6 +390,58 @@ int ObjectParser::GetSubtype3TileCount(int16_t object_id) const {
   if (object_id == 0xFC8 || object_id == 0xFE6 || object_id == 0xFEB ||
       object_id == 0xFFA) {
     return 16;
+  }
+  // Boss shells (4x4)
+  if (object_id == 0xF95 || object_id == 0xFF2 || object_id == 0xFFB) {
+    return 16;
+  }
+  // Auto stairs (4x4)
+  if ((object_id >= 0xF9B && object_id <= 0xF9D) || object_id == 0xFB3) {
+    return 16;
+  }
+  // Straight inter-room stairs (4x4)
+  if ((object_id >= 0xF9E && object_id <= 0xFA1) ||
+      (object_id >= 0xFA6 && object_id <= 0xFA9)) {
+    return 16;
+  }
+  // 4x4 single-pattern objects
+  if (object_id == 0xFAA || object_id == 0xFAD || object_id == 0xFAE ||
+      (object_id >= 0xFB4 && object_id <= 0xFB9) || object_id == 0xFCB ||
+      object_id == 0xFCC || object_id == 0xFD4 || object_id == 0xFE2 ||
+      object_id == 0xFF4 || object_id == 0xFF6 || object_id == 0xFF7) {
+    return 16;
+  }
+  // Utility 6x3 (18 tiles)
+  if (object_id == 0xFCD || object_id == 0xFDD) {
+    return 18;
+  }
+  // Utility 3x5 (15 tiles)
+  if (object_id == 0xFD5 || object_id == 0xFDB) {
+    return 15;
+  }
+  // Archery game target door (3x6, 18 tiles)
+  if (object_id >= 0xFE0 && object_id <= 0xFE1) {
+    return 18;
+  }
+  // Solid wall decor 3x4 (12 tiles)
+  if (object_id == 0xFE9 || object_id == 0xFEA || object_id == 0xFEE ||
+      object_id == 0xFEF) {
+    return 12;
+  }
+  // Light beams
+  if (object_id == 0xFF0) {
+    return 16;
+  }
+  if (object_id == 0xFF1) {
+    return 36;
+  }
+  // Ganon Triforce floor decor (two 4x4 blocks -> 32 tiles)
+  if (object_id == 0xFF8) {
+    return 32;
+  }
+  // Table rock 4x3
+  if (object_id == 0xFF9) {
+    return 12;
   }
   // Default: 8 tiles for most subtype 3 objects
   return 8;

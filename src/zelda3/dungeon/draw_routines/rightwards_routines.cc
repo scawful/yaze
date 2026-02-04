@@ -150,15 +150,33 @@ void DrawRightwards2x2_1to16(const DrawContext& ctx) {
 }
 
 void DrawRightwards1x2_1to16_plus2(const DrawContext& ctx) {
-  // Pattern: 1x2 tiles rightward with +2 offset (object 0x21)
+  // Pattern: 1x3 tiles rightward with caps (object 0x21)
   int size = ctx.object.size_ & 0x0F;
 
-  // Assembly: (size << 1) + 1 = (size * 2) + 1
-  int count = (size * 2) + 1;
+  if (ctx.tiles.size() >= 9) {
+    auto draw_column = [&](int x, int base) {
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_,
+                                   ctx.tiles[base + 0]);
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_ + 1,
+                                   ctx.tiles[base + 1]);
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_ + 2,
+                                   ctx.tiles[base + 2]);
+    };
 
+    draw_column(ctx.object.x_, 0);
+
+    int mid_cols = (size + 1) * 2;
+    for (int s = 0; s < mid_cols; s++) {
+      draw_column(ctx.object.x_ + 1 + s, 3);
+    }
+
+    draw_column(ctx.object.x_ + 1 + mid_cols, 6);
+    return;
+  }
+
+  int count = (size * 2) + 1;
   for (int s = 0; s < count; s++) {
     if (ctx.tiles.size() >= 2) {
-      // Use first tile span for 1x2 pattern
       DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + s + 2,
                                    ctx.object.y_, ctx.tiles[0]);
       DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + s + 2,
@@ -168,35 +186,53 @@ void DrawRightwards1x2_1to16_plus2(const DrawContext& ctx) {
 }
 
 void DrawRightwardsHasEdge1x1_1to16_plus3(const DrawContext& ctx) {
-  // Pattern: 1x1 tiles with edge detection +3 offset (object 0x22)
+  // Pattern: Rail with corner/middle/end (object 0x22)
   int size = ctx.object.size_ & 0x0F;
 
-  // Assembly: GetSize_1to16_timesA(2), so count = size + 2
   int count = size + 2;
+  if (ctx.tiles.size() < 3) return;
 
+  int x = ctx.object.x_;
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_, ctx.tiles[0]);
+  x++;
   for (int s = 0; s < count; s++) {
-    if (ctx.tiles.size() >= 1) {
-      // Use first 8x8 tile from span
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + s + 3,
-                                   ctx.object.y_, ctx.tiles[0]);
-    }
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_, ctx.tiles[1]);
+    x++;
   }
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_, ctx.tiles[2]);
 }
 
 void DrawRightwardsHasEdge1x1_1to16_plus2(const DrawContext& ctx) {
-  // Pattern: 1x1 tiles with edge detection +2 offset (objects 0x23-0x2E, 0x3F-0x46)
+  // Pattern: Rail with corner/middle/end (objects 0x23-0x2E, 0x3F-0x46)
   int size = ctx.object.size_ & 0x0F;
 
-  // Assembly: GetSize_1to16, so count = size + 1
   int count = size + 1;
+  if (ctx.tiles.size() < 3) return;
 
+  int x = ctx.object.x_;
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_, ctx.tiles[0]);
+  x++;
   for (int s = 0; s < count; s++) {
-    if (ctx.tiles.size() >= 1) {
-      // Use first 8x8 tile from span
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + s + 2,
-                                   ctx.object.y_, ctx.tiles[0]);
-    }
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_, ctx.tiles[1]);
+    x++;
   }
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_, ctx.tiles[2]);
+}
+
+void DrawRightwardsHasEdge1x1_1to16_plus23(const DrawContext& ctx) {
+  // Pattern: Long rail with corner/middle/end (object 0x5F)
+  int size = ctx.object.size_ & 0x0F;
+  int count = size + 21;
+  if (ctx.tiles.size() < 3) return;
+
+  int x = ctx.object.x_;
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_, ctx.tiles[0]);
+  x++;
+  for (int s = 0; s < count; s++) {
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_, ctx.tiles[1]);
+    x++;
+  }
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_, ctx.tiles[2]);
 }
 
 void DrawRightwardsTopCorners1x2_1to16_plus13(const DrawContext& ctx) {
@@ -462,8 +498,8 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .name = "Rightwards1x2_1to16_plus2",
       .function = DrawRightwards1x2_1to16_plus2,
       .draws_to_both_bgs = false,
-      .base_width = 1,
-      .base_height = 2,
+      .base_width = 4,
+      .base_height = 3,
       .category = DrawRoutineInfo::Category::Rightwards,
   });
 
@@ -472,7 +508,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .name = "RightwardsHasEdge1x1_1to16_plus3",
       .function = DrawRightwardsHasEdge1x1_1to16_plus3,
       .draws_to_both_bgs = false,
-      .base_width = 1,
+      .base_width = 4,
       .base_height = 1,
       .category = DrawRoutineInfo::Category::Rightwards,
   });
@@ -482,7 +518,17 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .name = "RightwardsHasEdge1x1_1to16_plus2",
       .function = DrawRightwardsHasEdge1x1_1to16_plus2,
       .draws_to_both_bgs = false,
-      .base_width = 1,
+      .base_width = 3,
+      .base_height = 1,
+      .category = DrawRoutineInfo::Category::Rightwards,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kRightwardsHasEdge1x1_1to16_plus23,
+      .name = "RightwardsHasEdge1x1_1to16_plus23",
+      .function = DrawRightwardsHasEdge1x1_1to16_plus23,
+      .draws_to_both_bgs = false,
+      .base_width = 23,
       .base_height = 1,
       .category = DrawRoutineInfo::Category::Rightwards,
   });
