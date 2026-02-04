@@ -27,3 +27,11 @@ selection, and room context actions.
 ## Notes
 - "Needs capture" means we need concrete ZScream behavior notes before finalizing.
 - User reports are flagged where we haven't verified the current yaze behavior.
+- Capture log lives at `docs/internal/agents/zscream-capture-log.md`.
+
+## Capture Checklist (ZScreamDungeon)
+- Selection priority: click overlapping objects in each layer order (BG1/BG2/BG3), note which object wins.
+- Marquee select: drag box on partial overlaps (edge-only, corner-only, inside) and note inclusion rules.
+- Drag modifiers: confirm Shift/Alt/Ctrl behaviors (axis lock, duplicate, snap, additive) and cursor feedback.
+- Room context menu: capture full action list + ordering + separators + key modifiers.
+- Object context menu: capture full action list + ordering + shortcuts + multi-select behavior.

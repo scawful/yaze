@@ -529,6 +529,40 @@ yaze dungeon-object-validate --rom /path/to/alttp.sfc --trace-out /tmp/dungeon_o
 - Selection bounds now match draw traces for all validated objects.  
 - Reports: `/tmp/dungeon_object_validation_report_v14.json` and `/tmp/dungeon_object_validation_report_v14.csv`.  
 
+## Run Results (2026-02-04, v15)
+**Command:**  
+`z3ed dungeon-object-validate --rom zelda3.sfc --report /tmp/dungeon_object_validation_report_v15 --trace-out /tmp/dungeon_object_trace_dump_v15.json --format json`
+
+**Summary:**  
+- object_count: 440  
+- size_cases: 5  
+- test_cases: 1950  
+- mismatch_count: 5  
+- empty_traces: 0  
+- negative_offsets: 0  
+- skipped_nothing: 50  
+
+**Notes:**  
+- Remaining mismatches are all `0xFEB` (sizes 0/1/2/7/15): trace 4x4 vs expected 8x8.  
+- Trace dump: `/tmp/dungeon_object_trace_dump_v15.json`.  
+
+## Run Results (2026-02-04, v16)
+**Command:**  
+`z3ed dungeon-object-validate --rom zelda3.sfc --report /tmp/dungeon_object_validation_report_v16 --trace-out /tmp/dungeon_object_trace_dump_v16.json --format json`
+
+**Summary:**  
+- object_count: 440  
+- size_cases: 5  
+- test_cases: 1950  
+- mismatch_count: 0  
+- empty_traces: 0  
+- negative_offsets: 0  
+- skipped_nothing: 50  
+
+**Notes:**  
+- Adjusted `0xFEB` selection bounds to 4x4 (matches trace).  
+- Trace dump: `/tmp/dungeon_object_trace_dump_v16.json`.  
+
 ## Implementation Notes (2026-02-04, v10–v12)
 - Added a TileTrace hook in `draw_routine_types` + `ObjectDrawer` to capture draw writes without rendering (trace-only mode).  
 - SuperSquare size bits corrected to use 2-bit X/Y fields (affects 4x4 block and floor/spike variants).  
