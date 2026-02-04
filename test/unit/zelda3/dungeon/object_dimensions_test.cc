@@ -52,10 +52,15 @@ TEST_F(ObjectDimensionTableTest, GetBaseDimensionsReturnsDefaults) {
   auto& table = ObjectDimensionTable::Get();
   table.LoadFromRom(rom_.get());
 
-  // Walls should have base dimensions
-  auto [w, h] = table.GetBaseDimensions(0x00);
+  // Well-known object should have base dimensions
+  auto [w, h] = table.GetBaseDimensions(0x07);
   EXPECT_GT(w, 0);
   EXPECT_GT(h, 0);
+
+  // Unknown objects should fall back to 2x2 defaults
+  auto [dw, dh] = table.GetBaseDimensions(0xFFFF);
+  EXPECT_EQ(dw, 2);
+  EXPECT_EQ(dh, 2);
 }
 
 TEST_F(ObjectDimensionTableTest, GetDimensionsAccountsForSize) {
