@@ -105,6 +105,8 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<DungeonGraphCommandHandler>());
   handlers.push_back(std::make_unique<DungeonGroupCommandHandler>());
   handlers.push_back(std::make_unique<DungeonMapCommandHandler>());
+  handlers.push_back(std::make_unique<EntranceInfoCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonDiscoverCommandHandler>());
 
   // Overworld inspection
   handlers.push_back(std::make_unique<OverworldFindTileCommandHandler>());

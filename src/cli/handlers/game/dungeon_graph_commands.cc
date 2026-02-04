@@ -1,6 +1,8 @@
 #include "cli/handlers/game/dungeon_graph_commands.h"
 
+#include <algorithm>
 #include <cstdint>
+#include <queue>
 #include <set>
 #include <string>
 #include <vector>
@@ -216,6 +218,197 @@ absl::Status DungeonGraphCommandHandler::Execute(
   formatter.AddField("staircase_connections", stair_edges);
   formatter.AddField("holewarp_connections", hole_edges);
   formatter.EndObject();
+
+  formatter.EndObject();
+
+  return absl::OkStatus();
+}
+
+absl::Status EntranceInfoCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  auto entrance_id_str = parser.GetString("entrance").value();
+  bool is_spawn_point = parser.HasFlag("spawn");
+
+  int entrance_id;
+  if (!ParseHexString(entrance_id_str, &entrance_id)) {
+    return absl::InvalidArgumentError(
+        "Invalid entrance ID format. Must be hex (e.g., 0x08).");
+  }
+
+  // Validate entrance ID range
+  if (entrance_id < 0 || entrance_id > 0x84) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Entrance ID 0x%02X out of range (0x00-0x84).",
+                        entrance_id));
+  }
+
+  zelda3::RoomEntrance entrance(rom, static_cast<uint8_t>(entrance_id),
+                                is_spawn_point);
+
+  formatter.BeginObject("entrance");
+  formatter.AddField("entrance_id", absl::StrFormat("0x%02X", entrance_id));
+  formatter.AddField("is_spawn_point", is_spawn_point);
+  formatter.AddField("room_id", absl::StrFormat("0x%02X", entrance.room_ & 0xFF));
+  formatter.AddField("room_id_full", absl::StrFormat("0x%04X", entrance.room_));
+  formatter.AddField("dungeon_id", absl::StrFormat("0x%02X", entrance.dungeon_id_));
+  formatter.AddField("exit_id", absl::StrFormat("0x%04X", entrance.exit_));
+
+  formatter.BeginObject("position");
+  formatter.AddField("x", entrance.x_position_);
+  formatter.AddField("y", entrance.y_position_);
+  formatter.EndObject();
+
+  formatter.BeginObject("camera");
+  formatter.AddField("x", entrance.camera_x_);
+  formatter.AddField("y", entrance.camera_y_);
+  formatter.AddField("trigger_x", entrance.camera_trigger_x_);
+  formatter.AddField("trigger_y", entrance.camera_trigger_y_);
+  formatter.EndObject();
+
+  formatter.BeginObject("properties");
+  formatter.AddField("blockset", absl::StrFormat("0x%02X", entrance.blockset_));
+  formatter.AddField("floor", absl::StrFormat("0x%02X", entrance.floor_));
+  formatter.AddField("door", absl::StrFormat("0x%02X", entrance.door_));
+  formatter.AddField("ladder_bg", absl::StrFormat("0x%02X", entrance.ladder_bg_));
+  formatter.AddField("scrolling", absl::StrFormat("0x%02X", entrance.scrolling_));
+  formatter.AddField("scroll_quadrant",
+                     absl::StrFormat("0x%02X", entrance.scroll_quadrant_));
+  formatter.AddField("music", absl::StrFormat("0x%02X", entrance.music_));
+  formatter.EndObject();
+
+  formatter.BeginObject("camera_boundaries");
+  formatter.AddField("qn", absl::StrFormat("0x%02X", entrance.camera_boundary_qn_));
+  formatter.AddField("fn", absl::StrFormat("0x%02X", entrance.camera_boundary_fn_));
+  formatter.AddField("qs", absl::StrFormat("0x%02X", entrance.camera_boundary_qs_));
+  formatter.AddField("fs", absl::StrFormat("0x%02X", entrance.camera_boundary_fs_));
+  formatter.AddField("qw", absl::StrFormat("0x%02X", entrance.camera_boundary_qw_));
+  formatter.AddField("fw", absl::StrFormat("0x%02X", entrance.camera_boundary_fw_));
+  formatter.AddField("qe", absl::StrFormat("0x%02X", entrance.camera_boundary_qe_));
+  formatter.AddField("fe", absl::StrFormat("0x%02X", entrance.camera_boundary_fe_));
+  formatter.EndObject();
+
+  formatter.EndObject();
+
+  return absl::OkStatus();
+}
+
+absl::Status DungeonDiscoverCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  auto entrance_id_str = parser.GetString("entrance").value();
+  auto depth_opt = parser.GetString("depth");
+
+  int entrance_id;
+  if (!ParseHexString(entrance_id_str, &entrance_id)) {
+    return absl::InvalidArgumentError(
+        "Invalid entrance ID format. Must be hex (e.g., 0x08).");
+  }
+
+  // Validate entrance ID range
+  if (entrance_id < 0 || entrance_id > 0x84) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Entrance ID 0x%02X out of range (0x00-0x84).",
+                        entrance_id));
+  }
+
+  int max_depth = 20;  // Default depth limit
+  if (depth_opt.has_value()) {
+    max_depth = std::stoi(depth_opt.value());
+    if (max_depth < 1 || max_depth > 100) {
+      return absl::InvalidArgumentError("Depth must be between 1 and 100.");
+    }
+  }
+
+  // Get starting room from entrance
+  zelda3::RoomEntrance entrance(rom, static_cast<uint8_t>(entrance_id), false);
+  int start_room = entrance.room_ & 0xFF;
+
+  // BFS to discover all connected rooms
+  std::set<int> discovered_rooms;
+  std::vector<RoomEdge> edges;
+  std::queue<std::pair<int, int>> to_visit;  // (room_id, depth)
+
+  to_visit.push({start_room, 0});
+  discovered_rooms.insert(start_room);
+
+  while (!to_visit.empty()) {
+    auto [current_room, current_depth] = to_visit.front();
+    to_visit.pop();
+
+    if (current_depth >= max_depth) {
+      continue;
+    }
+
+    // Load room to get connections
+    zelda3::Room room = zelda3::LoadRoomHeaderFromRom(rom, current_room);
+
+    // Check staircase connections
+    for (int i = 0; i < 4; ++i) {
+      uint8_t dest = room.staircase_room(i);
+      if (dest != 0 && discovered_rooms.find(dest) == discovered_rooms.end()) {
+        discovered_rooms.insert(dest);
+        to_visit.push({dest, current_depth + 1});
+      }
+      if (dest != 0) {
+        RoomEdge edge;
+        edge.from_room = current_room;
+        edge.to_room = dest;
+        edge.type = absl::StrFormat("stair%d", i + 1);
+        edges.push_back(edge);
+      }
+    }
+
+    // Check holewarp connection
+    if (room.holewarp != 0 &&
+        discovered_rooms.find(room.holewarp) == discovered_rooms.end()) {
+      discovered_rooms.insert(room.holewarp);
+      to_visit.push({room.holewarp, current_depth + 1});
+    }
+    if (room.holewarp != 0) {
+      RoomEdge edge;
+      edge.from_room = current_room;
+      edge.to_room = room.holewarp;
+      edge.type = "holewarp";
+      edges.push_back(edge);
+    }
+  }
+
+  // Output results
+  formatter.BeginObject("discovery");
+  formatter.AddField("entrance_id", absl::StrFormat("0x%02X", entrance_id));
+  formatter.AddField("start_room", absl::StrFormat("0x%02X", start_room));
+  formatter.AddField("dungeon_id", absl::StrFormat("0x%02X", entrance.dungeon_id_));
+  formatter.AddField("max_depth", max_depth);
+  formatter.AddField("rooms_discovered", static_cast<int>(discovered_rooms.size()));
+
+  // Room list
+  formatter.BeginArray("discovered_rooms");
+  std::vector<int> sorted_rooms(discovered_rooms.begin(), discovered_rooms.end());
+  std::sort(sorted_rooms.begin(), sorted_rooms.end());
+  for (int room_id : sorted_rooms) {
+    formatter.BeginObject();
+    formatter.AddField("room_id", absl::StrFormat("0x%02X", room_id));
+    // Bounds check for kRoomNames
+    if (room_id >= 0 && room_id < 297) {
+      formatter.AddField("name", std::string(zelda3::kRoomNames[room_id]));
+    } else {
+      formatter.AddField("name", absl::StrFormat("Room 0x%02X", room_id));
+    }
+    formatter.EndObject();
+  }
+  formatter.EndArray();
+
+  // Connection graph
+  formatter.BeginArray("connections");
+  for (const auto& edge : edges) {
+    formatter.BeginObject();
+    formatter.AddField("from", absl::StrFormat("0x%02X", edge.from_room));
+    formatter.AddField("to", absl::StrFormat("0x%02X", edge.to_room));
+    formatter.AddField("type", edge.type);
+    formatter.EndObject();
+  }
+  formatter.EndArray();
 
   formatter.EndObject();
 
