@@ -40,6 +40,143 @@ constexpr int kRoomMatrixCols = 16;
 constexpr int kRoomMatrixRows = 19;
 constexpr int kRoomPropertyColumns = 2;
 
+enum class TrackDir : uint8_t { North, East, South, West };
+
+constexpr uint8_t kTrackDirNorth = 1 << 0;
+constexpr uint8_t kTrackDirEast = 1 << 1;
+constexpr uint8_t kTrackDirSouth = 1 << 2;
+constexpr uint8_t kTrackDirWest = 1 << 3;
+
+struct TrackDirectionMasks {
+  uint8_t primary = 0;
+  uint8_t secondary = 0;
+};
+
+TrackDirectionMasks GetTrackDirectionMasks(uint8_t tile) {
+  TrackDirectionMasks masks{};
+  switch (tile) {
+    case 0xB0:
+      masks.primary = kTrackDirEast | kTrackDirWest;
+      break;
+    case 0xB1:
+      masks.primary = kTrackDirNorth | kTrackDirSouth;
+      break;
+    case 0xB2:
+      masks.primary = kTrackDirNorth | kTrackDirEast;
+      break;
+    case 0xB3:
+      masks.primary = kTrackDirSouth | kTrackDirEast;
+      break;
+    case 0xB4:
+      masks.primary = kTrackDirNorth | kTrackDirWest;
+      break;
+    case 0xB5:
+      masks.primary = kTrackDirSouth | kTrackDirWest;
+      break;
+    case 0xB6:
+      masks.primary =
+          kTrackDirNorth | kTrackDirEast | kTrackDirSouth | kTrackDirWest;
+      break;
+    case 0xB7:
+      masks.primary = kTrackDirSouth;
+      break;
+    case 0xB8:
+      masks.primary = kTrackDirNorth;
+      break;
+    case 0xB9:
+      masks.primary = kTrackDirEast;
+      break;
+    case 0xBA:
+      masks.primary = kTrackDirWest;
+      break;
+    case 0xBB:
+      masks.primary = kTrackDirNorth | kTrackDirEast | kTrackDirWest;
+      break;
+    case 0xBC:
+      masks.primary = kTrackDirSouth | kTrackDirEast | kTrackDirWest;
+      break;
+    case 0xBD:
+      masks.primary = kTrackDirNorth | kTrackDirSouth | kTrackDirEast;
+      break;
+    case 0xBE:
+      masks.primary = kTrackDirNorth | kTrackDirSouth | kTrackDirWest;
+      break;
+    case 0xD0:
+      masks.primary = kTrackDirNorth | kTrackDirEast;
+      masks.secondary = kTrackDirNorth | kTrackDirWest;
+      break;
+    case 0xD1:
+      masks.primary = kTrackDirSouth | kTrackDirEast;
+      masks.secondary = kTrackDirNorth | kTrackDirEast;
+      break;
+    case 0xD2:
+      masks.primary = kTrackDirNorth | kTrackDirWest;
+      masks.secondary = kTrackDirSouth | kTrackDirWest;
+      break;
+    case 0xD3:
+      masks.primary = kTrackDirSouth | kTrackDirWest;
+      masks.secondary = kTrackDirSouth | kTrackDirEast;
+      break;
+    default:
+      break;
+  }
+  return masks;
+}
+
+void DrawTrackArrowHead(ImDrawList* draw_list, const ImVec2& tip, TrackDir dir,
+                        float size, ImU32 color) {
+  ImVec2 a, b;
+  switch (dir) {
+    case TrackDir::North:
+      a = ImVec2(tip.x - size, tip.y + size);
+      b = ImVec2(tip.x + size, tip.y + size);
+      break;
+    case TrackDir::East:
+      a = ImVec2(tip.x - size, tip.y - size);
+      b = ImVec2(tip.x - size, tip.y + size);
+      break;
+    case TrackDir::South:
+      a = ImVec2(tip.x - size, tip.y - size);
+      b = ImVec2(tip.x + size, tip.y - size);
+      break;
+    case TrackDir::West:
+      a = ImVec2(tip.x + size, tip.y - size);
+      b = ImVec2(tip.x + size, tip.y + size);
+      break;
+  }
+  draw_list->AddTriangleFilled(tip, a, b, color);
+}
+
+void DrawTrackDirectionMask(ImDrawList* draw_list, const ImVec2& min,
+                            float tile_size, uint8_t mask, ImU32 color) {
+  if (!mask) {
+    return;
+  }
+  const ImVec2 center(min.x + tile_size * 0.5f, min.y + tile_size * 0.5f);
+  const float line_len = tile_size * 0.32f;
+  const float head_size = std::max(2.0f, tile_size * 0.18f);
+  const float thickness = std::max(1.0f, tile_size * 0.08f);
+
+  auto draw_dir = [&](TrackDir dir, float dx, float dy) {
+    ImVec2 tip(center.x + dx * line_len, center.y + dy * line_len);
+    draw_list->AddLine(center, tip, color, thickness);
+    DrawTrackArrowHead(draw_list, tip, dir, head_size, color);
+  };
+
+  if (mask & kTrackDirNorth) {
+    draw_dir(TrackDir::North, 0.0f, -1.0f);
+  }
+  if (mask & kTrackDirEast) {
+    draw_dir(TrackDir::East, 1.0f, 0.0f);
+  }
+  if (mask & kTrackDirSouth) {
+    draw_dir(TrackDir::South, 0.0f, 1.0f);
+  }
+  if (mask & kTrackDirWest) {
+    draw_dir(TrackDir::West, -1.0f, 0.0f);
+  }
+}
+
 }  // namespace
 
 // Use shared GetObjectName() from zelda3/dungeon/room_object.h
@@ -2099,12 +2236,17 @@ void DungeonCanvasViewer::DrawTrackCollisionOverlay(
   const ImU32 switch_color =
       ImGui::GetColorU32(ImVec4(0.95f, 0.8f, 0.2f, 0.45f));
   const ImU32 outline_color = ImGui::GetColorU32(ImVec4(0, 0, 0, 0.4f));
+  const ImU32 arrow_color =
+      ImGui::GetColorU32(ImVec4(0.05f, 0.05f, 0.05f, 0.75f));
+  const ImU32 arrow_color_dim =
+      ImGui::GetColorU32(ImVec4(0.05f, 0.05f, 0.05f, 0.4f));
 
   for (const auto& entry : cache.entries) {
     const float px = static_cast<float>(entry.x * 8) * scale;
     const float py = static_cast<float>(entry.y * 8) * scale;
     ImVec2 min(canvas_pos.x + px, canvas_pos.y + py);
-    ImVec2 max(min.x + (8.0f * scale), min.y + (8.0f * scale));
+    const float tile_size = 8.0f * scale;
+    ImVec2 max(min.x + tile_size, min.y + tile_size);
 
     ImU32 color = track_color;
     if (track_collision_config_.stop_tiles[entry.tile]) {
@@ -2115,6 +2257,16 @@ void DungeonCanvasViewer::DrawTrackCollisionOverlay(
 
     draw_list->AddRectFilled(min, max, color);
     draw_list->AddRect(min, max, outline_color);
+
+    const auto masks = GetTrackDirectionMasks(entry.tile);
+    if (masks.primary != 0) {
+      DrawTrackDirectionMask(draw_list, min, tile_size, masks.primary,
+                             arrow_color);
+      if (masks.secondary != 0) {
+        DrawTrackDirectionMask(draw_list, min, tile_size, masks.secondary,
+                               arrow_color_dim);
+      }
+    }
   }
 
   if (show_track_collision_legend_) {
@@ -2144,6 +2296,8 @@ void DungeonCanvasViewer::DrawTrackCollisionOverlay(
                       text_color, item.label);
       y += swatch + 4.0f;
     }
+    legend->AddText(ImVec2(legend_pos.x, y + 2.0f), text_color,
+                    "Arrows: track directions");
   }
 }
 
