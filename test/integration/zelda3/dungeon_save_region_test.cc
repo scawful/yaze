@@ -53,14 +53,16 @@ TEST_F(DungeonSaveRegionTest, SaveAllCollisionPreservesRegion) {
   const auto& data = rom_->vector();
   const int ptrs_size = kNumberOfRooms * 3;
   const int data_size = kCustomCollisionDataEnd - kCustomCollisionDataPosition;
-  if (kCustomCollisionRoomPointers + ptrs_size > static_cast<int>(data.size()) ||
-      kCustomCollisionDataPosition + data_size > static_cast<int>(data.size())) {
+  if (kCustomCollisionRoomPointers + ptrs_size >
+          static_cast<int>(data.size()) ||
+      kCustomCollisionDataPosition + data_size >
+          static_cast<int>(data.size())) {
     GTEST_SKIP() << "ROM too small for collision region";
   }
 
-  std::vector<uint8_t> ptrs_before(data.begin() + kCustomCollisionRoomPointers,
-                                    data.begin() + kCustomCollisionRoomPointers +
-                                        ptrs_size);
+  std::vector<uint8_t> ptrs_before(
+      data.begin() + kCustomCollisionRoomPointers,
+      data.begin() + kCustomCollisionRoomPointers + ptrs_size);
   std::vector<uint8_t> data_before(
       data.begin() + kCustomCollisionDataPosition,
       data.begin() + kCustomCollisionDataPosition + data_size);
@@ -69,9 +71,9 @@ TEST_F(DungeonSaveRegionTest, SaveAllCollisionPreservesRegion) {
   ASSERT_TRUE(status.ok()) << status.message();
 
   const auto& after = rom_->vector();
-  std::vector<uint8_t> ptrs_after(after.begin() + kCustomCollisionRoomPointers,
-                                  after.begin() + kCustomCollisionRoomPointers +
-                                      ptrs_size);
+  std::vector<uint8_t> ptrs_after(
+      after.begin() + kCustomCollisionRoomPointers,
+      after.begin() + kCustomCollisionRoomPointers + ptrs_size);
   std::vector<uint8_t> data_after(
       after.begin() + kCustomCollisionDataPosition,
       after.begin() + kCustomCollisionDataPosition + data_size);
@@ -91,16 +93,16 @@ TEST_F(DungeonSaveRegionTest, SaveAllPitsPreservesRegion) {
 
   int count_before = data[kPitCount];
   int entries = count_before / 2;
-  std::vector<uint8_t> count_and_ptr_before(
-      data.begin() + kPitCount,
-      data.begin() + kPitCount + 1);
+  std::vector<uint8_t> count_and_ptr_before(data.begin() + kPitCount,
+                                            data.begin() + kPitCount + 1);
   count_and_ptr_before.insert(count_and_ptr_before.end(),
                               data.begin() + kPitPointer,
                               data.begin() + kPitPointer + 3);
 
-  int pit_ptr_snes = (data[kPitPointer + 2] << 16) | (data[kPitPointer + 1] << 8) |
-                     data[kPitPointer];
-  int pit_data_pc = static_cast<int>(SnesToPc(static_cast<uint32_t>(pit_ptr_snes)));
+  int pit_ptr_snes = (data[kPitPointer + 2] << 16) |
+                     (data[kPitPointer + 1] << 8) | data[kPitPointer];
+  int pit_data_pc =
+      static_cast<int>(SnesToPc(static_cast<uint32_t>(pit_ptr_snes)));
   int data_len = entries * 2;
   std::vector<uint8_t> pit_data_before;
   if (entries > 0 && pit_data_pc >= 0 &&
@@ -146,14 +148,17 @@ TEST_F(DungeonSaveRegionTest, SaveAllBlocksPreservesRegion) {
                  kBlocksPointer4};
   std::vector<std::vector<uint8_t>> regions_before;
   for (int r = 0; r < 4; ++r) {
-    if (ptrs[r] + 2 >= static_cast<int>(data.size())) break;
-    int snes = (data[ptrs[r] + 2] << 16) | (data[ptrs[r] + 1] << 8) |
-               data[ptrs[r]];
+    if (ptrs[r] + 2 >= static_cast<int>(data.size()))
+      break;
+    int snes =
+        (data[ptrs[r] + 2] << 16) | (data[ptrs[r] + 1] << 8) | data[ptrs[r]];
     int pc = static_cast<int>(SnesToPc(static_cast<uint32_t>(snes)));
     int off = r * kRegionSize;
     int len = std::min(kRegionSize, blocks_count - off);
-    if (len <= 0) break;
-    if (pc < 0 || pc + len > static_cast<int>(data.size())) break;
+    if (len <= 0)
+      break;
+    if (pc < 0 || pc + len > static_cast<int>(data.size()))
+      break;
     regions_before.emplace_back(data.begin() + pc, data.begin() + pc + len);
   }
 
@@ -164,9 +169,10 @@ TEST_F(DungeonSaveRegionTest, SaveAllBlocksPreservesRegion) {
   EXPECT_EQ((after[kBlocksLength + 1] << 8) | after[kBlocksLength],
             blocks_count);
   for (size_t r = 0; r < regions_before.size(); ++r) {
-    if (ptrs[r] + 2 >= static_cast<int>(after.size())) break;
-    int snes = (after[ptrs[r] + 2] << 16) | (after[ptrs[r] + 1] << 8) |
-               after[ptrs[r]];
+    if (ptrs[r] + 2 >= static_cast<int>(after.size()))
+      break;
+    int snes =
+        (after[ptrs[r] + 2] << 16) | (after[ptrs[r] + 1] << 8) | after[ptrs[r]];
     int pc = static_cast<int>(SnesToPc(static_cast<uint32_t>(snes)));
     int len = static_cast<int>(regions_before[r].size());
     ASSERT_GE(static_cast<int>(after.size()), pc + len);
@@ -179,7 +185,8 @@ TEST_F(DungeonSaveRegionTest, SaveAllBlocksPreservesRegion) {
 
 // --- Torches (length @ kTorchesLengthPointer, data @ kTorchData, max 0x120) ---
 
-TEST_F(DungeonSaveRegionTest, SaveAllTorchesPreservesRegionWhenRoomsUnmodified) {
+TEST_F(DungeonSaveRegionTest,
+       SaveAllTorchesPreservesRegionWhenRoomsUnmodified) {
   const auto& data = rom_->vector();
   constexpr int kTorchesMaxSize = 0x120;
   if (kTorchesLengthPointer + 1 >= static_cast<int>(data.size()) ||
@@ -187,9 +194,10 @@ TEST_F(DungeonSaveRegionTest, SaveAllTorchesPreservesRegionWhenRoomsUnmodified) 
     GTEST_SKIP() << "ROM too small for torches region";
   }
 
-  int len_before = (data[kTorchesLengthPointer + 1] << 8) |
-                   data[kTorchesLengthPointer];
-  if (len_before > kTorchesMaxSize) len_before = kTorchesMaxSize;
+  int len_before =
+      (data[kTorchesLengthPointer + 1] << 8) | data[kTorchesLengthPointer];
+  if (len_before > kTorchesMaxSize)
+    len_before = kTorchesMaxSize;
   std::vector<uint8_t> torch_region_before(
       data.begin() + kTorchesLengthPointer,
       data.begin() + kTorchesLengthPointer + 2);
@@ -208,8 +216,8 @@ TEST_F(DungeonSaveRegionTest, SaveAllTorchesPreservesRegionWhenRoomsUnmodified) 
   ASSERT_TRUE(status.ok()) << status.message();
 
   const auto& after = rom_->vector();
-  int len_after = (after[kTorchesLengthPointer + 1] << 8) |
-                  after[kTorchesLengthPointer];
+  int len_after =
+      (after[kTorchesLengthPointer + 1] << 8) | after[kTorchesLengthPointer];
   EXPECT_EQ(len_after, len_before) << "Torch length changed";
   for (int i = 0; i < len_before && i < len_after; ++i) {
     EXPECT_EQ(after[kTorchData + i], torch_region_before[2 + i])
