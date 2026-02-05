@@ -75,6 +75,7 @@
 - Reviewed Goron Mines minecart design plan and aligned editor tooling priorities.
 - Added camera quadrant boundary overlay (toolbar + context menu toggle) to help plan cart routes in layout-7 rooms.
 - Added minecart sprite alignment overlay to highlight carts not placed on stop tiles (uses configured sprite IDs + collision tiles).
+- Added per-project `[dungeon_overlay]` config for track/stop/switch tiles, track object IDs, and minecart sprite IDs; collision overlay shows direction arrows when full tile sets are configured.
 
 ## Glossary
 - **TileTrace:** A captured list of tile writes from a draw routine (tile ID + tile coordinates). It is internal instrumentation only, not a user-facing tool.

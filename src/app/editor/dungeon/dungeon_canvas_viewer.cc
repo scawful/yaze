@@ -1296,6 +1296,11 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     room_menu.subitems.push_back(gui::CanvasMenuItem::Disabled(
         absl::StrFormat("Room 0x%03X: %s", room_id, room_label.c_str())));
 
+    if (save_room_callback_) {
+      room_menu.subitems.push_back(gui::CanvasMenuItem(
+          "Save Room", ICON_MD_SAVE,
+          [this, room_id]() { save_room_callback_(room_id); }, "Ctrl+Shift+S"));
+    }
     room_menu.subitems.push_back(
         gui::CanvasMenuItem("Copy Room ID", ICON_MD_CONTENT_COPY, [room_id]() {
           ImGui::SetClipboardText(absl::StrFormat("0x%03X", room_id).c_str());

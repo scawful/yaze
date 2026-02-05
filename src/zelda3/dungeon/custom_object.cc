@@ -44,6 +44,32 @@ void CustomObjectManager::Initialize(const std::string& custom_objects_folder) {
   cache_.clear();
 }
 
+void CustomObjectManager::SetObjectFileMap(
+    const std::unordered_map<int, std::vector<std::string>>& map) {
+  custom_file_map_ = map;
+  cache_.clear();
+}
+
+void CustomObjectManager::ClearObjectFileMap() {
+  custom_file_map_.clear();
+  cache_.clear();
+}
+
+const std::vector<std::string>* CustomObjectManager::ResolveFileList(
+    int object_id) const {
+  auto custom_it = custom_file_map_.find(object_id);
+  if (custom_it != custom_file_map_.end()) {
+    return &custom_it->second;
+  }
+  if (object_id == 0x31) {
+    return &kSubtype1Filenames;
+  }
+  if (object_id == 0x32) {
+    return &kSubtype2Filenames;
+  }
+  return nullptr;
+}
+
 absl::StatusOr<std::shared_ptr<CustomObject>> CustomObjectManager::LoadObject(
     const std::string& filename) {
   if (cache_.contains(filename)) {
@@ -133,28 +159,25 @@ absl::StatusOr<CustomObject> CustomObjectManager::ParseBinaryData(const std::vec
 }
 
 absl::StatusOr<std::shared_ptr<CustomObject>> CustomObjectManager::GetObjectInternal(int object_id, int subtype) {
-  const std::vector<std::string>* list = nullptr;
+  const std::vector<std::string>* list = ResolveFileList(object_id);
   int index = subtype;
 
-  if (object_id == 0x31) {
-    list = &kSubtype1Filenames;
-  } else if (object_id == 0x32) {
-    list = &kSubtype2Filenames;
-  } else if (object_id >= 0x100 && object_id <= 0x103) {
+  if (!list && object_id >= 0x100 && object_id <= 0x103) {
     // Minecart Track Override for standard corners
     // 0x100 = TL -> index 2 (track_corner_TL.bin)
     // 0x101 = BL -> index 4 (track_corner_BL.bin)
     // 0x102 = TR -> index 3 (track_corner_TR.bin)
     // 0x103 = BR -> index 5 (track_corner_BR.bin)
-    switch(object_id) {
+    switch (object_id) {
       case 0x100: index = 2; break;
       case 0x101: index = 4; break;
       case 0x102: index = 3; break;
       case 0x103: index = 5; break;
     }
-    list = &kSubtype1Filenames;
-  } else {
-    // Not a supported custom object ID
+    list = ResolveFileList(0x31);
+  }
+
+  if (!list) {
     return absl::NotFoundError("Object ID not mapped to custom object");
   }
 
@@ -166,10 +189,14 @@ absl::StatusOr<std::shared_ptr<CustomObject>> CustomObjectManager::GetObjectInte
 }
 
 int CustomObjectManager::GetSubtypeCount(int object_id) const {
-  if (object_id == 0x31 || (object_id >= 0x100 && object_id <= 0x103)) {
-     return kSubtype1Filenames.size();
+  if (const auto* list = ResolveFileList(object_id)) {
+    return static_cast<int>(list->size());
   }
-  if (object_id == 0x32) return kSubtype2Filenames.size();
+  if (object_id >= 0x100 && object_id <= 0x103) {
+    if (const auto* list = ResolveFileList(0x31)) {
+      return static_cast<int>(list->size());
+    }
+  }
   return 0;
 }
 

@@ -47,8 +47,9 @@ class MinecartTrackEditorPanel : public EditorPanel {
     rooms_ = rooms;
     audit_dirty_ = true;
   }
-  void SetProject(const project::YazeProject* project) {
+  void SetProject(project::YazeProject* project) {
     project_ = project;
+    overlay_inputs_initialized_ = false;
     audit_dirty_ = true;
   }
   void SaveTracks();
@@ -77,6 +78,10 @@ class MinecartTrackEditorPanel : public EditorPanel {
   void CancelCoordinatePicking();
   void RebuildAuditCache();
   bool IsDefaultTrack(const MinecartTrack& track) const;
+  void DrawOverlaySettings();
+  void InitializeOverlayInputs();
+  bool UpdateOverlayList(const char* label, std::string& input,
+                         std::vector<uint16_t>& target);
 
   struct RoomTrackAudit {
     bool has_track_collision = false;
@@ -89,7 +94,7 @@ class MinecartTrackEditorPanel : public EditorPanel {
   std::vector<MinecartTrack> tracks_;
   std::string project_root_;
   std::array<zelda3::Room, 0x128>* rooms_ = nullptr;
-  const project::YazeProject* project_ = nullptr;
+  project::YazeProject* project_ = nullptr;
   std::unordered_map<int, RoomTrackAudit> room_audit_;
   std::unordered_map<int, std::vector<int>> track_usage_rooms_;
   std::vector<bool> track_subtype_used_;
@@ -109,6 +114,14 @@ class MinecartTrackEditorPanel : public EditorPanel {
   bool has_picked_coords_ = false;
 
   RoomNavigationCallback room_navigation_callback_;
+
+  // Overlay config input state
+  bool overlay_inputs_initialized_ = false;
+  std::string overlay_track_tiles_input_;
+  std::string overlay_track_stop_tiles_input_;
+  std::string overlay_track_switch_tiles_input_;
+  std::string overlay_track_object_ids_input_;
+  std::string overlay_minecart_sprite_ids_input_;
 };
 
 }  // namespace yaze::editor

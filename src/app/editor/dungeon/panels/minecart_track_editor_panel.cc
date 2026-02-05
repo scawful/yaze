@@ -2,9 +2,11 @@
 #include <fstream>
 #include <iomanip>
 #include <sstream>
+#include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
 #include "imgui/imgui.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
 
 #include <filesystem>
 #include <iostream>
@@ -21,6 +23,44 @@ constexpr int kTrackSlotCount = 32;
 constexpr int kDefaultTrackRoom = 0x89;
 constexpr int kDefaultTrackX = 0x1300;
 constexpr int kDefaultTrackY = 0x1100;
+
+std::string FormatHexList(const std::vector<uint16_t>& values) {
+  std::string out;
+  for (size_t i = 0; i < values.size(); ++i) {
+    if (i > 0) {
+      out += ", ";
+    }
+    out += absl::StrFormat("0x%X", values[i]);
+  }
+  return out;
+}
+
+std::vector<uint16_t> ParseHexList(const std::string& input) {
+  std::vector<uint16_t> out;
+  for (std::string token : absl::StrSplit(
+           input, absl::ByAnyChar(", \n\t"), absl::SkipEmpty())) {
+    if (token.empty()) {
+      continue;
+    }
+    if (token[0] == '$') {
+      token = "0x" + token.substr(1);
+    }
+    int base = 10;
+    if (token.rfind("0x", 0) == 0 || token.rfind("0X", 0) == 0) {
+      token = token.substr(2);
+      base = 16;
+    }
+    try {
+      auto value = std::stoul(token, nullptr, base);
+      if (value <= 0xFFFF) {
+        out.push_back(static_cast<uint16_t>(value));
+      }
+    } catch (...) {
+      continue;
+    }
+  }
+  return out;
+}
 }  // namespace
 
 void MinecartTrackEditorPanel::SetProjectRoot(const std::string& root) {
@@ -28,6 +68,88 @@ void MinecartTrackEditorPanel::SetProjectRoot(const std::string& root) {
     project_root_ = root;
     loaded_ = false;  // Trigger reload on next draw
     audit_dirty_ = true;
+  }
+}
+
+void MinecartTrackEditorPanel::InitializeOverlayInputs() {
+  if (overlay_inputs_initialized_ || !project_) {
+    return;
+  }
+  overlay_track_tiles_input_ =
+      FormatHexList(project_->dungeon_overlay.track_tiles);
+  overlay_track_stop_tiles_input_ =
+      FormatHexList(project_->dungeon_overlay.track_stop_tiles);
+  overlay_track_switch_tiles_input_ =
+      FormatHexList(project_->dungeon_overlay.track_switch_tiles);
+  overlay_track_object_ids_input_ =
+      FormatHexList(project_->dungeon_overlay.track_object_ids);
+  overlay_minecart_sprite_ids_input_ =
+      FormatHexList(project_->dungeon_overlay.minecart_sprite_ids);
+  overlay_inputs_initialized_ = true;
+}
+
+bool MinecartTrackEditorPanel::UpdateOverlayList(
+    const char* label, std::string& input, std::vector<uint16_t>& target) {
+  bool changed = ImGui::InputText(label, &input);
+  if (changed && ImGui::IsItemDeactivatedAfterEdit()) {
+    target = ParseHexList(input);
+    audit_dirty_ = true;
+    return true;
+  }
+  return false;
+}
+
+void MinecartTrackEditorPanel::DrawOverlaySettings() {
+  if (!project_) {
+    return;
+  }
+
+  InitializeOverlayInputs();
+
+  if (!ImGui::CollapsingHeader(ICON_MD_TUNE " Overlay Config",
+                               ImGuiTreeNodeFlags_DefaultOpen)) {
+    return;
+  }
+
+  ImGui::TextDisabled("Empty list = defaults. Use hex (0xB0) or decimal.");
+  ImGui::TextDisabled(
+      "Defaults: Track 0xB0-0xBE | Stop 0xB7-0xBA | Switch 0xD0-0xD3 | "
+      "Track Obj 0x31 | Cart Sprite 0xA3");
+
+  bool changed = false;
+  changed |= UpdateOverlayList("Track Tiles",
+                               overlay_track_tiles_input_,
+                               project_->dungeon_overlay.track_tiles);
+  changed |= UpdateOverlayList("Stop Tiles",
+                               overlay_track_stop_tiles_input_,
+                               project_->dungeon_overlay.track_stop_tiles);
+  changed |= UpdateOverlayList("Switch Tiles",
+                               overlay_track_switch_tiles_input_,
+                               project_->dungeon_overlay.track_switch_tiles);
+  changed |= UpdateOverlayList("Track Object IDs",
+                               overlay_track_object_ids_input_,
+                               project_->dungeon_overlay.track_object_ids);
+  changed |= UpdateOverlayList("Minecart Sprite IDs",
+                               overlay_minecart_sprite_ids_input_,
+                               project_->dungeon_overlay.minecart_sprite_ids);
+
+  if (ImGui::Button("Reset Overlay Defaults")) {
+    project_->dungeon_overlay.track_tiles.clear();
+    project_->dungeon_overlay.track_stop_tiles.clear();
+    project_->dungeon_overlay.track_switch_tiles.clear();
+    project_->dungeon_overlay.track_object_ids.clear();
+    project_->dungeon_overlay.minecart_sprite_ids.clear();
+    overlay_track_tiles_input_.clear();
+    overlay_track_stop_tiles_input_.clear();
+    overlay_track_switch_tiles_input_.clear();
+    overlay_track_object_ids_input_.clear();
+    overlay_minecart_sprite_ids_input_.clear();
+    audit_dirty_ = true;
+    changed = true;
+  }
+
+  if (changed) {
+    ImGui::TextDisabled("Remember to save the project to persist changes.");
   }
 }
 
@@ -238,6 +360,25 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
   if (ImGui::Button(ICON_MD_SAVE " Save Tracks")) {
     SaveTracks();
   }
+  ImGui::SameLine();
+  const bool can_save_project = project_ && project_->project_opened();
+  if (!can_save_project) {
+    ImGui::BeginDisabled();
+  }
+  if (ImGui::Button(ICON_MD_SAVE " Save Project")) {
+    auto status = project_->Save();
+    if (status.ok()) {
+      status_message_ = "Project saved.";
+      show_success_ = true;
+    } else {
+      status_message_ =
+          absl::StrFormat("Project save failed: %s", status.message());
+      show_success_ = false;
+    }
+  }
+  if (!can_save_project) {
+    ImGui::EndDisabled();
+  }
 
   // Show picking mode indicator
   if (picking_mode_) {
@@ -257,6 +398,7 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
                        "%s", status_message_.c_str());
   }
 
+  DrawOverlaySettings();
   ImGui::Separator();
 
   // Coordinate format help
