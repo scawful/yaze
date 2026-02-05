@@ -670,6 +670,25 @@ void DungeonObjectInteraction::HandleDeleteSelected() {
   interaction_context_.NotifyInvalidateCache();
 }
 
+void DungeonObjectInteraction::HandleDeleteAllObjects() {
+  if (!rooms_)
+    return;
+  if (current_room_id_ < 0 || current_room_id_ >= 296)
+    return;
+
+  auto& room = (*rooms_)[current_room_id_];
+  if (room.GetTileObjects().empty()) {
+    return;
+  }
+
+  interaction_context_.NotifyMutation();
+
+  room.ClearTileObjects();
+  selection_.ClearSelection();
+
+  interaction_context_.NotifyInvalidateCache();
+}
+
 void DungeonObjectInteraction::HandleCopySelected() {
   auto indices = selection_.GetSelectedIndices();
   if (indices.empty() || !rooms_)

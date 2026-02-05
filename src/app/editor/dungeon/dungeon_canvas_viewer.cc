@@ -1325,6 +1325,11 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     const bool single_selection = selected.size() == 1;
     const bool has_clipboard = interaction.HasClipboardData();
     const bool placing_object = interaction.IsObjectLoaded();
+    const bool door_mode = interaction.IsDoorPlacementActive();
+    bool has_objects = false;
+    if (rooms_ && room_id >= 0 && room_id < 296) {
+      has_objects = !(*rooms_)[room_id].GetTileObjects().empty();
+    }
 
     if (single_selection && rooms_) {
       auto& room = (*rooms_)[room_id];
@@ -1343,6 +1348,51 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       };
     };
 
+    // Insert menu (parity with ZScream "Insert new <mode>")
+    gui::CanvasMenuItem insert_menu;
+    insert_menu.label = "Insert";
+    insert_menu.icon = ICON_MD_ADD_CIRCLE;
+
+    gui::CanvasMenuItem insert_object_item(
+        "Object...", ICON_MD_WIDGETS, [this]() {
+          if (show_object_panel_callback_) {
+            show_object_panel_callback_();
+          }
+        });
+    insert_object_item.enabled_condition =
+        enabled_if(show_object_panel_callback_ != nullptr);
+    insert_menu.subitems.push_back(insert_object_item);
+
+    gui::CanvasMenuItem insert_sprite_item(
+        "Sprite...", ICON_MD_PERSON, [this]() {
+          if (show_sprite_panel_callback_) {
+            show_sprite_panel_callback_();
+          }
+        });
+    insert_sprite_item.enabled_condition =
+        enabled_if(show_sprite_panel_callback_ != nullptr);
+    insert_menu.subitems.push_back(insert_sprite_item);
+
+    gui::CanvasMenuItem insert_item_item(
+        "Item...", ICON_MD_INVENTORY, [this]() {
+          if (show_item_panel_callback_) {
+            show_item_panel_callback_();
+          }
+        });
+    insert_item_item.enabled_condition =
+        enabled_if(show_item_panel_callback_ != nullptr);
+    insert_menu.subitems.push_back(insert_item_item);
+
+    gui::CanvasMenuItem insert_door_item(
+        door_mode ? "Cancel Door Placement" : "Door (Normal)",
+        ICON_MD_DOOR_FRONT, [&interaction, door_mode]() {
+          interaction.SetDoorPlacementMode(!door_mode,
+                                           zelda3::DoorType::NormalDoor);
+        });
+    insert_menu.subitems.push_back(insert_door_item);
+
+    canvas_.AddContextMenuItem(insert_menu);
+
     gui::CanvasMenuItem cut_item(
         "Cut", ICON_MD_CONTENT_CUT,
         [&interaction]() {
@@ -1358,6 +1408,12 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
         [&interaction]() { interaction.HandleCopySelected(); }, "Ctrl+C");
     copy_item.enabled_condition = enabled_if(has_selection);
     canvas_.AddContextMenuItem(copy_item);
+
+    gui::CanvasMenuItem paste_item(
+        "Paste", ICON_MD_CONTENT_PASTE,
+        [&interaction]() { interaction.HandlePasteObjects(); }, "Ctrl+V");
+    paste_item.enabled_condition = enabled_if(has_clipboard);
+    canvas_.AddContextMenuItem(paste_item);
 
     gui::CanvasMenuItem duplicate_item(
         "Duplicate", ICON_MD_CONTENT_PASTE,
@@ -1375,11 +1431,11 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     delete_item.enabled_condition = enabled_if(has_selection);
     canvas_.AddContextMenuItem(delete_item);
 
-    gui::CanvasMenuItem paste_item(
-        "Paste", ICON_MD_CONTENT_PASTE,
-        [&interaction]() { interaction.HandlePasteObjects(); }, "Ctrl+V");
-    paste_item.enabled_condition = enabled_if(has_clipboard);
-    canvas_.AddContextMenuItem(paste_item);
+    gui::CanvasMenuItem delete_all_item(
+        "Delete All Objects", ICON_MD_DELETE_FOREVER,
+        [&interaction]() { interaction.HandleDeleteAllObjects(); });
+    delete_all_item.enabled_condition = enabled_if(has_objects);
+    canvas_.AddContextMenuItem(delete_all_item);
 
     gui::CanvasMenuItem cancel_item(
         "Cancel Placement", ICON_MD_CANCEL,
