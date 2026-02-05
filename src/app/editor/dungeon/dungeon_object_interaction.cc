@@ -78,21 +78,26 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
         if (!TrySelectEntityAtCursor()) {
           // No entity - try to select object at cursor
           if (!TrySelectObjectAtCursor()) {
+            const bool had_selection =
+                selection_.HasSelection() || HasEntitySelection();
             // Clicked empty space - start rectangle selection
             if (!io.KeyShift && !io.KeyCtrl) {
               // Clear selection unless modifier held
               selection_.ClearSelection();
               ClearEntitySelection();
             }
-            // Begin rectangle selection for multi-select
-            mode_manager_.SetMode(InteractionMode::RectangleSelect);
-            auto& state = mode_manager_.GetModeState();
-            state.rect_start_x = static_cast<int>(canvas_mouse_pos.x);
-            state.rect_start_y = static_cast<int>(canvas_mouse_pos.y);
-            state.rect_end_x = state.rect_start_x;
-            state.rect_end_y = state.rect_start_y;
-            selection_.BeginRectangleSelection(state.rect_start_x,
-                                               state.rect_start_y);
+            if (!had_selection) {
+              // Begin rectangle selection for multi-select only when no prior
+              // selection exists (matches ZScream behavior).
+              mode_manager_.SetMode(InteractionMode::RectangleSelect);
+              auto& state = mode_manager_.GetModeState();
+              state.rect_start_x = static_cast<int>(canvas_mouse_pos.x);
+              state.rect_start_y = static_cast<int>(canvas_mouse_pos.y);
+              state.rect_end_x = state.rect_start_x;
+              state.rect_end_y = state.rect_start_y;
+              selection_.BeginRectangleSelection(state.rect_start_x,
+                                                 state.rect_start_y);
+            }
           } else {
             // Clicked on an object - start drag if we have selected objects
             ClearEntitySelection();  // Clear entity selection when selecting object
