@@ -192,20 +192,27 @@ void UICoordinator::SetDashboardBehavior(StartupVisibility mode) {
 }
 
 void UICoordinator::DrawBackground() {
-  if (ImGui::GetCurrentContext()) {
-    ImDrawList* bg_draw_list = ImGui::GetBackgroundDrawList();
-    const ImGuiViewport* viewport = ImGui::GetMainViewport();
-
-    auto& theme_manager = gui::ThemeManager::Get();
-    auto current_theme = theme_manager.GetCurrentTheme();
-    auto& bg_renderer = gui::BackgroundRenderer::Get();
-
-    // Draw grid covering the entire main viewport
-    ImVec2 grid_pos = viewport->WorkPos;
-    ImVec2 grid_size = viewport->WorkSize;
-    bg_renderer.RenderDockingBackground(bg_draw_list, grid_pos, grid_size,
-                                        current_theme.primary);
+  if (!ImGui::GetCurrentContext()) {
+    return;
   }
+
+  const ImGuiViewport* viewport = ImGui::GetMainViewport();
+  if (!viewport) {
+    return;
+  }
+
+  ImDrawList* bg_draw_list = ImGui::GetBackgroundDrawList(
+      const_cast<ImGuiViewport*>(viewport));
+
+  auto& theme_manager = gui::ThemeManager::Get();
+  auto current_theme = theme_manager.GetCurrentTheme();
+  auto& bg_renderer = gui::BackgroundRenderer::Get();
+
+  // Draw grid covering the entire main viewport
+  ImVec2 grid_pos = viewport->WorkPos;
+  ImVec2 grid_size = viewport->WorkSize;
+  bg_renderer.RenderDockingBackground(bg_draw_list, grid_pos, grid_size,
+                                      current_theme.primary);
 }
 
 void UICoordinator::DrawAllUI() {
