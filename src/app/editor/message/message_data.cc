@@ -1,17 +1,31 @@
 #include "message_data.h"
 
+#include <fstream>
 #include <optional>
 #include <sstream>
 #include <string>
 
+#include "absl/strings/ascii.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
+#include "core/rom_settings.h"
 #include "rom/snes.h"
 #include "util/hex.h"
 #include "util/log.h"
+#include "util/macro.h"
 
 namespace yaze {
 namespace editor {
+
+int GetExpandedTextDataStart() {
+  return static_cast<int>(core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kExpandedMessageStart, kExpandedTextDataDefault));
+}
+
+int GetExpandedTextDataEnd() {
+  return static_cast<int>(core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kExpandedMessageEnd, kExpandedTextDataEndDefault));
+}
 
 uint8_t FindMatchingCharacter(char value) {
   for (const auto [key, char_value] : CharEncoder) {
@@ -167,6 +181,102 @@ std::vector<uint8_t> ParseMessageToData(std::string str) {
   }
 
   return bytes;
+}
+
+MessageParseResult ParseMessageToDataWithDiagnostics(std::string_view str) {
+  MessageParseResult result;
+  std::string temp_string(str);
+  size_t pos = 0;
+  bool warned_newline = false;
+
+  while (pos < temp_string.size()) {
+    char current = temp_string[pos];
+    if (current == '\r' || current == '\n') {
+      if (!warned_newline) {
+        result.warnings.push_back(
+            "Literal newlines are ignored; use [1], [2], [3], [V], or [K] "
+            "tokens for line breaks.");
+        warned_newline = true;
+      }
+      pos++;
+      continue;
+    }
+
+    if (current == '[') {
+      size_t close = temp_string.find(']', pos);
+      if (close == std::string::npos) {
+        result.errors.push_back(
+            absl::StrFormat("Unclosed token starting at position %zu", pos));
+        break;
+      }
+
+      std::string token = temp_string.substr(pos, close - pos + 1);
+      ParsedElement parsed_element = FindMatchingElement(token);
+      const auto dictionary_element =
+          TextElement(0x80, DICTIONARYTOKEN, true, "Dictionary");
+
+      if (!parsed_element.Active) {
+        result.errors.push_back(absl::StrFormat("Unknown token: %s", token));
+        pos = close + 1;
+        continue;
+      }
+
+      if (!parsed_element.Parent.HasArgument) {
+        if (token != parsed_element.Parent.GetParamToken()) {
+          result.errors.push_back(absl::StrFormat("Unknown token: %s", token));
+          pos = close + 1;
+          continue;
+        }
+      }
+
+      if (parsed_element.Parent == dictionary_element) {
+        result.bytes.push_back(parsed_element.Value);
+      } else {
+        result.bytes.push_back(parsed_element.Parent.ID);
+        if (parsed_element.Parent.HasArgument) {
+          result.bytes.push_back(parsed_element.Value);
+        }
+      }
+
+      pos = close + 1;
+      continue;
+    }
+
+    uint8_t bb = FindMatchingCharacter(current);
+    if (bb == 0xFF) {
+      result.errors.push_back(absl::StrFormat(
+          "Unsupported character '%c' at position %zu", current, pos));
+      pos++;
+      continue;
+    }
+
+    result.bytes.push_back(bb);
+    pos++;
+  }
+
+  return result;
+}
+
+std::string MessageBankToString(MessageBank bank) {
+  switch (bank) {
+    case MessageBank::kVanilla:
+      return "vanilla";
+    case MessageBank::kExpanded:
+      return "expanded";
+  }
+  return "vanilla";
+}
+
+absl::StatusOr<MessageBank> MessageBankFromString(std::string_view value) {
+  const std::string lowered = absl::AsciiStrToLower(value);
+  if (lowered == "vanilla") {
+    return MessageBank::kVanilla;
+  }
+  if (lowered == "expanded") {
+    return MessageBank::kExpanded;
+  }
+  return absl::InvalidArgumentError(
+      absl::StrFormat("Unknown message bank: %s", value));
 }
 
 std::vector<DictionaryEntry> BuildDictionaryEntries(Rom* rom) {
@@ -518,6 +628,179 @@ absl::Status ExportMessagesToJson(const std::string& path,
   }
 }
 
+nlohmann::json SerializeMessageBundle(const std::vector<MessageData>& vanilla,
+                                      const std::vector<MessageData>& expanded) {
+  nlohmann::json j;
+  j["format"] = "yaze-message-bundle";
+  j["version"] = kMessageBundleVersion;
+  j["counts"] = {{"vanilla", vanilla.size()}, {"expanded", expanded.size()}};
+  j["messages"] = nlohmann::json::array();
+
+  auto append_messages = [&j](const std::vector<MessageData>& messages,
+                              MessageBank bank) {
+    for (const auto& msg : messages) {
+      nlohmann::json entry;
+      entry["id"] = msg.ID;
+      entry["bank"] = MessageBankToString(bank);
+      entry["address"] = msg.Address;
+      entry["raw"] = msg.RawString;
+      entry["parsed"] = msg.ContentsParsed;
+      entry["length"] = msg.Data.size();
+      auto warnings = ValidateMessageLineWidths(msg.RawString);
+      if (!warnings.empty()) {
+        entry["line_width_warnings"] = warnings;
+      }
+      j["messages"].push_back(entry);
+    }
+  };
+
+  append_messages(vanilla, MessageBank::kVanilla);
+  append_messages(expanded, MessageBank::kExpanded);
+
+  return j;
+}
+
+absl::Status ExportMessageBundleToJson(
+    const std::string& path, const std::vector<MessageData>& vanilla,
+    const std::vector<MessageData>& expanded) {
+  try {
+    nlohmann::json j = SerializeMessageBundle(vanilla, expanded);
+    std::ofstream file(path);
+    if (!file.is_open()) {
+      return absl::InternalError(
+          absl::StrFormat("Failed to open file for writing: %s", path));
+    }
+    file << j.dump(2);
+    return absl::OkStatus();
+  } catch (const std::exception& e) {
+    return absl::InternalError(
+        absl::StrFormat("Message bundle export failed: %s", e.what()));
+  }
+}
+
+namespace {
+absl::StatusOr<MessageBundleEntry> ParseMessageBundleEntry(
+    const nlohmann::json& entry, MessageBank default_bank) {
+  if (!entry.is_object()) {
+    return absl::InvalidArgumentError("Message entry must be an object");
+  }
+
+  MessageBundleEntry result;
+  result.id = entry.value("id", -1);
+  if (result.id < 0) {
+    return absl::InvalidArgumentError("Message entry missing valid id");
+  }
+
+  if (entry.contains("bank")) {
+    if (!entry["bank"].is_string()) {
+      return absl::InvalidArgumentError("Message entry bank must be string");
+    }
+    auto bank_or = MessageBankFromString(entry["bank"].get<std::string>());
+    if (!bank_or.ok()) {
+      return bank_or.status();
+    }
+    result.bank = bank_or.value();
+  } else {
+    result.bank = default_bank;
+  }
+
+  if (entry.contains("raw") && entry["raw"].is_string()) {
+    result.raw = entry["raw"].get<std::string>();
+  } else if (entry.contains("raw_string") && entry["raw_string"].is_string()) {
+    result.raw = entry["raw_string"].get<std::string>();
+  }
+
+  if (entry.contains("parsed") && entry["parsed"].is_string()) {
+    result.parsed = entry["parsed"].get<std::string>();
+  } else if (entry.contains("parsed_string") &&
+             entry["parsed_string"].is_string()) {
+    result.parsed = entry["parsed_string"].get<std::string>();
+  }
+
+  if (entry.contains("text") && entry["text"].is_string()) {
+    result.text = entry["text"].get<std::string>();
+  }
+
+  if (result.text.empty()) {
+    if (!result.raw.empty()) {
+      result.text = result.raw;
+    } else if (!result.parsed.empty()) {
+      result.text = result.parsed;
+    }
+  }
+
+  if (result.text.empty()) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Message entry %d missing text content", result.id));
+  }
+
+  return result;
+}
+}  // namespace
+
+absl::StatusOr<std::vector<MessageBundleEntry>> ParseMessageBundleJson(
+    const nlohmann::json& json) {
+  std::vector<MessageBundleEntry> entries;
+
+  if (json.is_array()) {
+    for (const auto& entry : json) {
+      auto parsed_or =
+          ParseMessageBundleEntry(entry, MessageBank::kVanilla);
+      if (!parsed_or.ok()) {
+        return parsed_or.status();
+      }
+      entries.push_back(parsed_or.value());
+    }
+    return entries;
+  }
+
+  if (!json.is_object()) {
+    return absl::InvalidArgumentError("Message bundle JSON must be object");
+  }
+
+  if (json.contains("version") && json["version"].is_number_integer()) {
+    int version = json["version"].get<int>();
+    if (version != kMessageBundleVersion) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Unsupported message bundle version: %d", version));
+    }
+  }
+
+  if (!json.contains("messages") || !json["messages"].is_array()) {
+    return absl::InvalidArgumentError("Message bundle missing messages array");
+  }
+
+  for (const auto& entry : json["messages"]) {
+    auto parsed_or =
+        ParseMessageBundleEntry(entry, MessageBank::kVanilla);
+    if (!parsed_or.ok()) {
+      return parsed_or.status();
+    }
+    entries.push_back(parsed_or.value());
+  }
+
+  return entries;
+}
+
+absl::StatusOr<std::vector<MessageBundleEntry>> LoadMessageBundleFromJson(
+    const std::string& path) {
+  std::ifstream file(path);
+  if (!file.is_open()) {
+    return absl::NotFoundError(
+        absl::StrFormat("Cannot open message bundle: %s", path));
+  }
+
+  nlohmann::json json;
+  try {
+    file >> json;
+  } catch (const std::exception& e) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Failed to parse JSON: %s", e.what()));
+  }
+
+  return ParseMessageBundleJson(json);
+}
+
 // ===========================================================================
 // Line Width Validation
 // ===========================================================================
@@ -730,6 +1013,48 @@ absl::Status WriteExpandedTextData(uint8_t* rom, int start, int end,
   }
   rom[pos++] = 0xFF;
 
+  return absl::OkStatus();
+}
+
+absl::Status WriteAllTextData(Rom* rom,
+                              const std::vector<MessageData>& messages) {
+  if (rom == nullptr || !rom->is_loaded()) {
+    return absl::InvalidArgumentError("ROM not loaded");
+  }
+
+  int pos = kTextData;
+  bool in_second_bank = false;
+
+  for (const auto& message : messages) {
+    for (uint8_t value : message.Data) {
+      RETURN_IF_ERROR(rom->WriteByte(pos, value));
+
+      if (value == kBankSwitchCommand) {
+        if (!in_second_bank && pos > kTextDataEnd) {
+          return absl::ResourceExhaustedError(absl::StrFormat(
+              "Text data exceeds first bank (pos 0x%06X)", pos));
+        }
+        pos = kTextData2 - 1;
+        in_second_bank = true;
+      }
+
+      pos++;
+    }
+
+    RETURN_IF_ERROR(rom->WriteByte(pos++, kMessageTerminator));
+  }
+
+  if (!in_second_bank && pos > kTextDataEnd) {
+    return absl::ResourceExhaustedError(
+        absl::StrFormat("Text data exceeds first bank (pos 0x%06X)", pos));
+  }
+
+  if (in_second_bank && pos > kTextData2End) {
+    return absl::ResourceExhaustedError(
+        absl::StrFormat("Text data exceeds second bank (pos 0x%06X)", pos));
+  }
+
+  RETURN_IF_ERROR(rom->WriteByte(pos, 0xFF));
   return absl::OkStatus();
 }
 

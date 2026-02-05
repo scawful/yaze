@@ -86,6 +86,8 @@
 #include <vector>
 
 #include <nlohmann/json.hpp>
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_replace.h"
@@ -99,6 +101,7 @@ const std::string DICTIONARYTOKEN = "D";
 constexpr uint8_t kMessageTerminator = 0x7F;  // Marks end of message in ROM
 constexpr uint8_t DICTOFF = 0x88;  // Dictionary entries start at byte 0x88
 constexpr uint8_t kWidthArraySize = 100;
+constexpr uint8_t kBankSwitchCommand = 0x80;
 
 // Character encoding table: Maps ROM byte values to displayable characters
 // Used for both parsing ROM data into text and converting text back to bytes
@@ -133,6 +136,27 @@ int8_t FindDictionaryEntry(uint8_t value);
 // Converts a human-readable message string (with [command] tokens) into ROM
 // bytes This is the inverse operation of ParseMessageData
 std::vector<uint8_t> ParseMessageToData(std::string str);
+
+// Result of parsing text into message bytes with diagnostics.
+struct MessageParseResult {
+  std::vector<uint8_t> bytes;
+  std::vector<std::string> errors;
+  std::vector<std::string> warnings;
+
+  bool ok() const { return errors.empty(); }
+};
+
+// Converts text into message bytes and captures parse errors/warnings.
+MessageParseResult ParseMessageToDataWithDiagnostics(std::string_view str);
+
+// Message bank for bundle import/export.
+enum class MessageBank {
+  kVanilla,
+  kExpanded,
+};
+
+std::string MessageBankToString(MessageBank bank);
+absl::StatusOr<MessageBank> MessageBankFromString(std::string_view value);
 
 // Represents a single dictionary entry (common word/phrase) used for text
 // compression Dictionary entries are stored separately in ROM and referenced by
@@ -272,6 +296,17 @@ struct MessageData {
     ContentsParsed = OptimizeMessageForDictionary(message, dictionary);
   }
 };
+
+// Message bundle entry for JSON import/export.
+struct MessageBundleEntry {
+  int id = 0;
+  MessageBank bank = MessageBank::kVanilla;
+  std::string raw;
+  std::string parsed;
+  std::string text;
+};
+
+constexpr int kMessageBundleVersion = 1;
 
 // Represents a text command or special character definition
 // Text commands control message display (line breaks, colors, choices, etc.)
@@ -465,6 +500,23 @@ nlohmann::json SerializeMessagesToJson(const std::vector<MessageData>& messages)
 absl::Status ExportMessagesToJson(const std::string& path,
                                   const std::vector<MessageData>& messages);
 
+// Serializes message bundles (vanilla + expanded) to JSON.
+nlohmann::json SerializeMessageBundle(const std::vector<MessageData>& vanilla,
+                                      const std::vector<MessageData>& expanded);
+
+// Exports message bundle to JSON file.
+absl::Status ExportMessageBundleToJson(
+    const std::string& path, const std::vector<MessageData>& vanilla,
+    const std::vector<MessageData>& expanded);
+
+// Parses message bundle JSON into entries.
+absl::StatusOr<std::vector<MessageBundleEntry>> ParseMessageBundleJson(
+    const nlohmann::json& json);
+
+// Loads message bundle entries from a JSON file.
+absl::StatusOr<std::vector<MessageBundleEntry>> LoadMessageBundleFromJson(
+    const std::string& path);
+
 // ===========================================================================
 // Line Width Validation
 // ===========================================================================
@@ -503,9 +555,12 @@ std::string ExportToOrgFormat(
 // ===========================================================================
 
 // PC address of SNES $2F8000 (expanded message region start)
-constexpr int kExpandedTextData = 0x178000;
+constexpr int kExpandedTextDataDefault = 0x178000;
 // PC address of SNES $2FFFFF (expanded message region end)
-constexpr int kExpandedTextDataEnd = 0x17FFFF;
+constexpr int kExpandedTextDataEndDefault = 0x17FFFF;
+
+int GetExpandedTextDataStart();
+int GetExpandedTextDataEnd();
 
 // Reads expanded messages from a ROM buffer at the given PC address.
 // Messages are 0x7F-terminated, region is 0xFF-terminated.
@@ -518,6 +573,10 @@ std::vector<MessageData> ReadExpandedTextData(uint8_t* rom, int pos);
 // Returns error if total size exceeds (end - start + 1).
 absl::Status WriteExpandedTextData(uint8_t* rom, int start, int end,
                                    const std::vector<std::string>& messages);
+
+// Writes all vanilla message data back to the ROM with bank switching.
+absl::Status WriteAllTextData(Rom* rom,
+                              const std::vector<MessageData>& messages);
 
 }  // namespace editor
 }  // namespace yaze

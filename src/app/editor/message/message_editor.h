@@ -111,8 +111,11 @@ class MessageEditor : public Editor {
   void RefreshFontAtlasBitmap(const std::vector<uint8_t>& font_data);
   void ApplyFontPalette();
   void EnsureFontTexturesReady();
+  void ImportMessageBundleFromFile(const std::string& path);
 
   bool font_graphics_loaded_ = false;
+  std::string message_bundle_status_;
+  bool message_bundle_status_error_ = false;
 };
 
 }  // namespace editor

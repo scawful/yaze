@@ -75,6 +75,8 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<MessageDecodeCommandHandler>());
   handlers.push_back(std::make_unique<MessageImportOrgCommandHandler>());
   handlers.push_back(std::make_unique<MessageExportOrgCommandHandler>());
+  handlers.push_back(std::make_unique<MessageExportBundleCommandHandler>());
+  handlers.push_back(std::make_unique<MessageImportBundleCommandHandler>());
   handlers.push_back(std::make_unique<MessageWriteCommandHandler>());
   handlers.push_back(std::make_unique<MessageExportBinCommandHandler>());
   handlers.push_back(std::make_unique<MessageExportAsmCommandHandler>());

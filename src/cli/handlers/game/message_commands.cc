@@ -12,6 +12,24 @@ namespace yaze {
 namespace cli {
 namespace handlers {
 
+namespace {
+std::string NormalizeRange(const std::string& range) {
+  return absl::AsciiStrToLower(range);
+}
+
+bool IncludeVanilla(const std::string& range) {
+  return range == "all" || range == "vanilla";
+}
+
+bool IncludeExpanded(const std::string& range) {
+  return range == "all" || range == "expanded";
+}
+
+std::string BankLabel(editor::MessageBank bank) {
+  return editor::MessageBankToString(bank);
+}
+}  // namespace
+
 // ===========================================================================
 // Existing Commands
 // ===========================================================================
@@ -139,7 +157,8 @@ absl::Status MessageEncodeCommandHandler::Execute(
     resources::OutputFormatter& formatter) {
   auto text = parser.GetString("text").value();
 
-  auto bytes = editor::ParseMessageToData(text);
+  auto parse_result = editor::ParseMessageToDataWithDiagnostics(text);
+  auto bytes = parse_result.bytes;
 
   // Build hex string
   std::string hex_str;
@@ -166,6 +185,20 @@ absl::Status MessageEncodeCommandHandler::Execute(
     formatter.BeginArray("line_width_warnings");
     for (const auto& warning : warnings) {
       formatter.AddArrayItem(warning);
+    }
+    formatter.EndArray();
+  }
+  if (!parse_result.warnings.empty()) {
+    formatter.BeginArray("warnings");
+    for (const auto& warning : parse_result.warnings) {
+      formatter.AddArrayItem(warning);
+    }
+    formatter.EndArray();
+  }
+  if (!parse_result.errors.empty()) {
+    formatter.BeginArray("errors");
+    for (const auto& error : parse_result.errors) {
+      formatter.AddArrayItem(error);
     }
     formatter.EndArray();
   }
@@ -255,8 +288,9 @@ absl::Status MessageImportOrgCommandHandler::Execute(
 
   formatter.BeginArray("messages");
   for (const auto& [msg_id, body] : messages) {
-    // Encode the body text to bytes
-    auto bytes = editor::ParseMessageToData(body);
+    // Encode the body text to bytes with diagnostics
+    auto parse_result = editor::ParseMessageToDataWithDiagnostics(body);
+    auto bytes = parse_result.bytes;
     auto warnings = editor::ValidateMessageLineWidths(body);
 
     std::string hex_str;
@@ -274,6 +308,20 @@ absl::Status MessageImportOrgCommandHandler::Execute(
       formatter.BeginArray("warnings");
       for (const auto& warning : warnings) {
         formatter.AddArrayItem(warning);
+      }
+      formatter.EndArray();
+    }
+    if (!parse_result.warnings.empty()) {
+      formatter.BeginArray("parse_warnings");
+      for (const auto& warning : parse_result.warnings) {
+        formatter.AddArrayItem(warning);
+      }
+      formatter.EndArray();
+    }
+    if (!parse_result.errors.empty()) {
+      formatter.BeginArray("errors");
+      for (const auto& error : parse_result.errors) {
+        formatter.AddArrayItem(error);
       }
       formatter.EndArray();
     }
@@ -326,6 +374,272 @@ absl::Status MessageExportOrgCommandHandler::Execute(
 }
 
 // ===========================================================================
+// New: Export Bundle Command
+// ===========================================================================
+
+absl::Status MessageExportBundleCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  auto output_path = parser.GetString("output").value();
+  auto range = NormalizeRange(parser.GetString("range").value_or("all"));
+  if (!IncludeVanilla(range) && !IncludeExpanded(range)) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Invalid range: %s", range));
+  }
+
+  std::vector<editor::MessageData> vanilla;
+  std::vector<editor::MessageData> expanded;
+
+  if (IncludeVanilla(range)) {
+    vanilla = editor::ReadAllTextData(const_cast<uint8_t*>(rom->data()),
+                                      editor::kTextData);
+  }
+
+  if (IncludeExpanded(range)) {
+    expanded = editor::ReadExpandedTextData(
+        const_cast<uint8_t*>(rom->data()), editor::GetExpandedTextDataStart());
+  }
+
+  auto status =
+      editor::ExportMessageBundleToJson(output_path, vanilla, expanded);
+  if (!status.ok()) {
+    return status;
+  }
+
+  formatter.BeginObject("Message Bundle Export");
+  formatter.AddField("output", output_path);
+  formatter.AddField("range", range);
+  formatter.AddField("vanilla_count", static_cast<int>(vanilla.size()));
+  formatter.AddField("expanded_count", static_cast<int>(expanded.size()));
+  formatter.AddField("status", "success");
+  formatter.EndObject();
+
+  return absl::OkStatus();
+}
+
+// ===========================================================================
+// New: Import Bundle Command
+// ===========================================================================
+
+absl::Status MessageImportBundleCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  auto file_path = parser.GetString("file").value();
+  const bool apply = parser.HasFlag("apply");
+  const bool strict = parser.HasFlag("strict");
+  auto range = NormalizeRange(parser.GetString("range").value_or("all"));
+  if (!IncludeVanilla(range) && !IncludeExpanded(range)) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Invalid range: %s", range));
+  }
+
+  auto entries_or = editor::LoadMessageBundleFromJson(file_path);
+  if (!entries_or.ok()) {
+    return entries_or.status();
+  }
+  auto entries = entries_or.value();
+
+  formatter.BeginObject("Message Bundle Import");
+  formatter.AddField("file", file_path);
+  formatter.AddField("range", range);
+  formatter.AddField("apply", apply);
+  formatter.AddField("strict", strict);
+  formatter.AddField("entries", static_cast<int>(entries.size()));
+
+  bool has_errors = false;
+  int parse_error_count = 0;
+  int error_count = 0;
+  int applied_updates = 0;
+  bool has_vanilla_entries = false;
+  bool has_expanded_entries = false;
+
+  struct ParsedEntry {
+    editor::MessageBundleEntry entry;
+    editor::MessageParseResult parse;
+    std::vector<std::string> line_warnings;
+  };
+  std::vector<ParsedEntry> parsed_entries;
+  parsed_entries.reserve(entries.size());
+
+  for (const auto& entry : entries) {
+    if ((entry.bank == editor::MessageBank::kVanilla &&
+         !IncludeVanilla(range)) ||
+        (entry.bank == editor::MessageBank::kExpanded &&
+         !IncludeExpanded(range))) {
+      continue;
+    }
+
+    ParsedEntry parsed{entry, editor::ParseMessageToDataWithDiagnostics(entry.text),
+                       editor::ValidateMessageLineWidths(entry.text)};
+    if (!parsed.parse.ok()) {
+      has_errors = true;
+      parse_error_count += static_cast<int>(parsed.parse.errors.size());
+      error_count += static_cast<int>(parsed.parse.errors.size());
+    }
+    if (entry.bank == editor::MessageBank::kVanilla) {
+      has_vanilla_entries = true;
+    } else {
+      has_expanded_entries = true;
+    }
+    parsed_entries.push_back(std::move(parsed));
+  }
+
+  formatter.BeginArray("messages");
+  for (const auto& parsed : parsed_entries) {
+    formatter.BeginObject();
+    formatter.AddField("id", parsed.entry.id);
+    formatter.AddField("bank", BankLabel(parsed.entry.bank));
+    formatter.AddField("text", parsed.entry.text);
+    formatter.AddField("encoded_length",
+                       static_cast<int>(parsed.parse.bytes.size()));
+    if (!parsed.line_warnings.empty()) {
+      formatter.BeginArray("line_width_warnings");
+      for (const auto& warning : parsed.line_warnings) {
+        formatter.AddArrayItem(warning);
+      }
+      formatter.EndArray();
+    }
+    if (!parsed.parse.warnings.empty()) {
+      formatter.BeginArray("warnings");
+      for (const auto& warning : parsed.parse.warnings) {
+        formatter.AddArrayItem(warning);
+      }
+      formatter.EndArray();
+    }
+    if (!parsed.parse.errors.empty()) {
+      formatter.BeginArray("errors");
+      for (const auto& error : parsed.parse.errors) {
+        formatter.AddArrayItem(error);
+      }
+      formatter.EndArray();
+    }
+    formatter.EndObject();
+  }
+  formatter.EndArray();
+
+  if (apply) {
+    if (rom == nullptr || !rom->is_loaded()) {
+      error_count++;
+      formatter.AddField("status", "error");
+      formatter.AddField("error", "ROM not loaded; cannot apply changes");
+      formatter.AddField("parse_error_count", parse_error_count);
+      formatter.AddField("error_count", error_count);
+      formatter.EndObject();
+      return absl::OkStatus();
+    }
+
+    if (has_errors) {
+      formatter.AddField("status", "error");
+      formatter.AddField("error",
+                          "Parse errors present; no changes applied");
+      formatter.AddField("parse_error_count", parse_error_count);
+      formatter.AddField("error_count", error_count);
+      formatter.EndObject();
+      if (strict && parse_error_count > 0) {
+        formatter.EndObject();
+        formatter.Print();
+        return absl::FailedPreconditionError(
+            "Strict validation failed due to parse errors");
+      }
+      return absl::OkStatus();
+    }
+
+    if (IncludeVanilla(range) && has_vanilla_entries) {
+      auto vanilla_messages = editor::ReadAllTextData(
+          const_cast<uint8_t*>(rom->data()), editor::kTextData);
+      for (const auto& parsed : parsed_entries) {
+        if (parsed.entry.bank != editor::MessageBank::kVanilla) {
+          continue;
+        }
+        if (parsed.entry.id < 0 ||
+            parsed.entry.id >= static_cast<int>(vanilla_messages.size())) {
+          has_errors = true;
+          error_count++;
+          continue;
+        }
+        auto& msg = vanilla_messages[parsed.entry.id];
+        msg.RawString = parsed.entry.text;
+        msg.ContentsParsed = parsed.entry.text;
+        msg.Data = parsed.parse.bytes;
+        msg.DataParsed = parsed.parse.bytes;
+        applied_updates++;
+      }
+
+      if (!has_errors) {
+        auto status = editor::WriteAllTextData(rom, vanilla_messages);
+        if (!status.ok()) {
+          formatter.AddField("status", "error");
+          formatter.AddField("error", std::string(status.message()));
+          formatter.EndObject();
+          return absl::OkStatus();
+        }
+      }
+    }
+
+    if (IncludeExpanded(range) && has_expanded_entries) {
+      auto expanded_messages = editor::ReadExpandedTextData(
+          const_cast<uint8_t*>(rom->data()),
+          editor::GetExpandedTextDataStart());
+      std::vector<std::string> expanded_texts;
+      expanded_texts.reserve(expanded_messages.size());
+      for (const auto& msg : expanded_messages) {
+        expanded_texts.push_back(msg.RawString);
+      }
+
+      for (const auto& parsed : parsed_entries) {
+        if (parsed.entry.bank != editor::MessageBank::kExpanded) {
+          continue;
+        }
+        if (parsed.entry.id < 0) {
+          has_errors = true;
+          error_count++;
+          continue;
+        }
+        if (parsed.entry.id >= static_cast<int>(expanded_texts.size())) {
+          expanded_texts.resize(parsed.entry.id + 1);
+        }
+        expanded_texts[parsed.entry.id] = parsed.entry.text;
+        applied_updates++;
+      }
+
+      if (!has_errors) {
+        auto status = editor::WriteExpandedTextData(
+            rom->mutable_data(), editor::GetExpandedTextDataStart(),
+            editor::GetExpandedTextDataEnd(), expanded_texts);
+        if (!status.ok()) {
+          formatter.AddField("status", "error");
+          formatter.AddField("error", std::string(status.message()));
+          formatter.EndObject();
+          return absl::OkStatus();
+        }
+        rom->set_dirty(true);
+      }
+    }
+
+    if (has_errors) {
+      formatter.AddField("status", "error");
+      formatter.AddField("error",
+                          "Invalid message IDs; no changes applied");
+    } else {
+      formatter.AddField("status", "success");
+      formatter.AddField("applied_messages", applied_updates);
+    }
+  } else {
+    formatter.AddField("status", has_errors ? "error" : "success");
+  }
+
+  formatter.AddField("error_count", error_count);
+  formatter.AddField("parse_error_count", parse_error_count);
+  formatter.EndObject();
+  if (strict && parse_error_count > 0) {
+    formatter.EndObject();
+    formatter.Print();
+    return absl::FailedPreconditionError("Strict validation failed");
+  }
+  return absl::OkStatus();
+}
+
+// ===========================================================================
 // New: Message Write Command
 // ===========================================================================
 
@@ -349,7 +663,7 @@ absl::Status MessageWriteCommandHandler::Execute(
 
   // Read existing expanded messages to find the target
   auto expanded = editor::ReadExpandedTextData(
-      const_cast<uint8_t*>(rom->data()), editor::kExpandedTextData);
+      const_cast<uint8_t*>(rom->data()), editor::GetExpandedTextDataStart());
 
   // Build the full message list, inserting/replacing at msg_id
   std::vector<std::string> all_texts;
@@ -369,8 +683,9 @@ absl::Status MessageWriteCommandHandler::Execute(
 
   // Write back
   auto status = editor::WriteExpandedTextData(
-      const_cast<uint8_t*>(rom->mutable_data()), editor::kExpandedTextData,
-      editor::kExpandedTextDataEnd, all_texts);
+      const_cast<uint8_t*>(rom->mutable_data()),
+      editor::GetExpandedTextDataStart(), editor::GetExpandedTextDataEnd(),
+      all_texts);
   if (!status.ok()) return status;
 
   formatter.BeginObject("Message Write Result");
@@ -402,8 +717,8 @@ absl::Status MessageExportBinCommandHandler::Execute(
 
   int start, end_addr;
   if (range == "expanded") {
-    start = editor::kExpandedTextData;
-    end_addr = editor::kExpandedTextDataEnd;
+    start = editor::GetExpandedTextDataStart();
+    end_addr = editor::GetExpandedTextDataEnd();
   } else {
     start = editor::kTextData;
     end_addr = editor::kTextDataEnd;
@@ -454,7 +769,7 @@ absl::Status MessageExportAsmCommandHandler::Execute(
   int start;
   uint32_t snes_addr;
   if (range == "expanded") {
-    start = editor::kExpandedTextData;
+    start = editor::GetExpandedTextDataStart();
     snes_addr = 0x2F8000;
   } else {
     start = editor::kTextData;
