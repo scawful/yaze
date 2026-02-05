@@ -14,7 +14,7 @@ selection, and room context actions.
 | Area | ZScream behavior | yaze current behavior | Gap | Proposed fix | Status |
 | --- | --- | --- | --- | --- | --- |
 | Selection bounds (size=0) | Uses routine-specific size rules (e.g., 32 or 26) | Size-zero overrides + min clamp to 1 tile | Offsets still mismatch for diagonals/rails | Add per-routine offsets in hit-test/selection | PARTIAL |
-| Selection priority | Needs capture | Needs capture | Unknown | Capture overlap rules; match priority order | TODO |
+| Selection priority | Iterates objects from end (last added wins); filtered by active layer unless Bgallmode; collisionPoint check for most objects | Reverse-order hit test now respects layer filter | CollisionPoint vs bounds parity unverified | Validate collisionPoint selection behavior; decide if bounds-only is sufficient | PARTIAL |
 | Marquee select | Needs capture | Needs capture | Unknown | Match box inclusion rules (edge inclusion, multi-select) | TODO |
 | Drag modifiers | Needs capture | Shift locks axis; Alt clears selection | Missing capture + duplicate/snap parity | Capture ZScream drag modifiers; add duplicate/snap rules if needed | PARTIAL |
 | Context menu (room) | Needs capture; includes room ops | Canvas room menu: copy ID/name + open Room List/Matrix/Entrance List/Room Graphics | Missing ZScream parity actions + ordering | Audit ZScream actions; add missing actions + reorder | PARTIAL |

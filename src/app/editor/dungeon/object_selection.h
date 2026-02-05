@@ -268,6 +268,15 @@ class ObjectSelection {
   bool IsMaskModeActive() const { return active_layer_filter_ == kMaskLayer; }
 
   /**
+   * @brief Check if an object passes the current layer filter
+   * @param object Room object to evaluate
+   * @return true if selectable under current filter
+   */
+  bool PassesLayerFilterForObject(const zelda3::RoomObject& object) const {
+    return PassesLayerFilter(object);
+  }
+
+  /**
    * @brief Set whether layers are currently merged in the room
    *
    * When layers are merged, this information helps the UI provide

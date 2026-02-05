@@ -999,6 +999,10 @@ size_t DungeonObjectInteraction::GetHoveredObjectIndex() const {
     size_t index = i - 1;
     const auto& object = objects[index];
 
+    if (!selection_.PassesLayerFilterForObject(object)) {
+      continue;
+    }
+
     // Calculate object bounds using accurate logic
     auto [width, height] = mutable_this->CalculateObjectBounds(object);
 
