@@ -29,6 +29,7 @@
 #include "app/editor/dungeon/panels/minecart_track_editor_panel.h"
 #include "app/editor/dungeon/panels/object_editor_panel.h"
 #include "app/editor/dungeon/panels/sprite_editor_panel.h"
+#include "app/editor/editor_manager.h"
 #include "app/editor/system/panel_manager.h"
 #include "app/emu/render/emulator_render_service.h"
 #include "app/gfx/backend/irenderer.h"
@@ -796,6 +797,52 @@ void DungeonEditorV2::HandleObjectPlaced(const zelda3::RoomObject& obj) {
             "Object placed and room re-rendered successfully");
 }
 
+void DungeonEditorV2::OpenGraphicsEditorForObject(
+    int room_id, const zelda3::RoomObject& object) {
+  if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
+    LOG_WARN("DungeonEditorV2",
+             "Edit Graphics ignored (invalid room id %d)", room_id);
+    return;
+  }
+
+  auto* editor_manager =
+      static_cast<EditorManager*>(dependencies_.custom_data);
+  if (!editor_manager) {
+    LOG_WARN("DungeonEditorV2",
+             "Edit Graphics ignored (editor manager unavailable)");
+    return;
+  }
+
+  auto& room = rooms_[room_id];
+  room.LoadRoomGraphics(room.blockset);
+
+  uint16_t sheet_id = 0;
+  bool resolved_sheet = false;
+  if (auto tiles_or = object.GetTiles(); tiles_or.ok() &&
+      !tiles_or.value().empty()) {
+    const uint16_t tile_id = tiles_or.value().front().id_;
+    const size_t block_index = static_cast<size_t>(tile_id / 64);
+    const auto blocks = room.blocks();
+    if (block_index < blocks.size()) {
+      sheet_id = blocks[block_index];
+      resolved_sheet = true;
+    }
+  }
+
+  editor_manager->SwitchToEditor(EditorType::kGraphics, true);
+  if (auto* editor_set = editor_manager->GetCurrentEditorSet()) {
+    if (auto* graphics = editor_set->GetGraphicsEditor()) {
+      if (resolved_sheet) {
+        graphics->SelectSheet(sheet_id);
+      }
+    }
+  }
+
+  if (dependencies_.panel_manager) {
+    dependencies_.panel_manager->ShowAllPanelsInCategory("Graphics");
+  }
+}
+
 void DungeonEditorV2::SwapRoomInPanel(int old_room_id, int new_room_id) {
   // Defer the swap until after the current frame's draw phase completes
   // This prevents modifying data structures while ImGui is still using them
@@ -917,6 +964,10 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
         [this]() { ShowPanel(kEntranceListId); });
     viewer->SetShowRoomGraphicsCallback(
         [this]() { ShowPanel(kRoomGraphicsId); });
+    viewer->SetEditGraphicsCallback(
+        [this](int target_room_id, const zelda3::RoomObject& object) {
+          OpenGraphicsEditorForObject(target_room_id, object);
+        });
     viewer->SetMinecartTrackPanel(minecart_track_editor_panel_);
     viewer->SetProject(dependencies_.project);
 

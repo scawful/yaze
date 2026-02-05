@@ -3055,6 +3055,7 @@ void EditorManager::ConfigureEditorDependencies(EditorSet* editor_set, Rom* rom,
   deps.version_manager = version_manager_.get();
   deps.renderer = renderer_;
   deps.emulator = &emulator_;
+  deps.custom_data = this;
 
   editor_set->ApplyDependencies(deps);
 

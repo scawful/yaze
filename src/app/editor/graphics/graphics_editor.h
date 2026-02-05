@@ -96,6 +96,7 @@ class GraphicsEditor : public Editor {
   // Editor shortcuts
   void NextSheet();
   void PrevSheet();
+  void SelectSheet(uint16_t sheet_id);
 
   // Get the ROM pointer
   Rom* rom() const { return rom_; }

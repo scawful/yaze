@@ -772,5 +772,12 @@ void GraphicsEditor::PrevSheet() {
   }
 }
 
+void GraphicsEditor::SelectSheet(uint16_t sheet_id) {
+  if (sheet_id >= zelda3::kNumGfxSheets) {
+    return;
+  }
+  state_.SelectSheet(sheet_id);
+}
+
 }  // namespace editor
 }  // namespace yaze

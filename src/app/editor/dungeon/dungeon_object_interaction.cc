@@ -106,6 +106,7 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
               auto& state = mode_manager_.GetModeState();
               state.drag_start = canvas_mouse_pos;
               state.drag_current = canvas_mouse_pos;
+              state.duplicate_on_drag = false;
             }
           }
         }
@@ -121,7 +122,9 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
   // Handle drag in progress
   if (mode_manager_.GetMode() == InteractionMode::DraggingObjects &&
       ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
-    mode_manager_.GetModeState().drag_current = canvas_mouse_pos;
+    auto& state = mode_manager_.GetModeState();
+    state.drag_current = canvas_mouse_pos;
+    state.duplicate_on_drag = state.duplicate_on_drag || ImGui::GetIO().KeyAlt;
     DrawDragPreview();
   }
 
@@ -148,7 +151,31 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
       // Only apply if there's meaningful movement
       if (tile_delta_x != 0 || tile_delta_y != 0) {
         auto& objects = room.GetTileObjects();
-        for (size_t index : selected_indices) {
+        auto target_indices = selected_indices;
+        if (state.duplicate_on_drag) {
+          std::vector<zelda3::RoomObject> clones;
+          clones.reserve(selected_indices.size());
+          for (size_t index : selected_indices) {
+            if (index < objects.size()) {
+              clones.push_back(objects[index]);
+            }
+          }
+          const size_t base_index = objects.size();
+          for (auto& clone : clones) {
+            objects.push_back(clone);
+          }
+
+          selection_.ClearSelection();
+          target_indices.clear();
+          for (size_t i = 0; i < clones.size(); ++i) {
+            const size_t new_index = base_index + i;
+            target_indices.push_back(new_index);
+            selection_.SelectObject(new_index,
+                                    ObjectSelection::SelectionMode::Add);
+          }
+        }
+
+        for (size_t index : target_indices) {
           if (index < objects.size()) {
             objects[index].x_ += tile_delta_x;
             objects[index].y_ += tile_delta_y;
@@ -629,6 +656,9 @@ bool DungeonObjectInteraction::TrySelectObjectAtCursor() {
 
   const ImGuiIO& io = ImGui::GetIO();
   if (io.KeyAlt) {
+    if (selection_.IsObjectSelected(hovered)) {
+      return true;
+    }
     selection_.ClearSelection();
     return false;
   }
