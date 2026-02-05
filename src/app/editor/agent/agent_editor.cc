@@ -36,7 +36,9 @@
 #include "cli/service/agent/tool_dispatcher.h"
 #include "cli/service/ai/ai_config_utils.h"
 #include "cli/service/ai/service_factory.h"
+#ifndef __EMSCRIPTEN__
 #include "httplib.h"
+#endif
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "implot.h"
 #include "rom/rom.h"
@@ -382,6 +384,7 @@ bool IsLocalOrTrustedEndpoint(const std::string& base_url, bool allow_insecure) 
          ContainsText(lower, "100.64.");
 }
 
+#ifndef __EMSCRIPTEN__
 bool ProbeHttpEndpoint(const std::string& base_url, const char* path) {
   if (base_url.empty()) {
     return false;
@@ -405,6 +408,10 @@ bool ProbeOllamaHost(const std::string& base_url) {
 bool ProbeOpenAICompatible(const std::string& base_url) {
   return ProbeHttpEndpoint(base_url, "/v1/models");
 }
+#else
+bool ProbeOllamaHost(const std::string&) { return false; }
+bool ProbeOpenAICompatible(const std::string&) { return false; }
+#endif
 
 std::optional<std::string> LoadKeychainValue(const std::string& key) {
 #if defined(__APPLE__) && !TARGET_OS_IPHONE
