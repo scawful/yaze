@@ -27,7 +27,7 @@ class Yaze < Formula
 
   def install
     args = %w[
-      -DYAZE_BUILD_APP=ON
+      -DYAZE_BUILD_GUI=ON
       -DYAZE_BUILD_CLI=ON
       -DYAZE_BUILD_TESTS=OFF
       -DYAZE_ENABLE_AI=OFF
