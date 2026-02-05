@@ -1057,31 +1057,37 @@ size_t DungeonObjectInteraction::GetHoveredObjectIndex() const {
       continue;
     }
 
-    // Calculate object bounds using accurate logic
-    auto [width, height] = mutable_this->CalculateObjectBounds(object);
+    int obj_tile_x = object.x_;
+    int obj_tile_y = object.y_;
+    int width_tiles = 0;
+    int height_tiles = 0;
 
-    // Convert width/height (pixels) to tiles for comparison with room_x/room_y
-    // room_x/room_y are in tiles (8x8 pixels)
-    // object.x_/y_ are in tiles
-
-    int obj_x = object.x_;
-    int obj_y = object.y_;
-
-    // Check if mouse is within object bounds
-    // Note: room_x/y are tile coordinates. width/height are pixels.
-    // We need to check pixel coordinates or convert width/height to tiles.
-    // Let's check pixel coordinates for better precision if needed,
-    // but room_x/y are integers (tiles).
+    auto& dim_table = zelda3::ObjectDimensionTable::Get();
+    if (dim_table.IsLoaded()) {
+      auto bounds = dim_table.GetSelectionBounds(object.id_, object.size_);
+      obj_tile_x += bounds.offset_x;
+      obj_tile_y += bounds.offset_y;
+      width_tiles = std::max(1, bounds.width);
+      height_tiles = std::max(1, bounds.height);
+    } else {
+      auto [width_px, height_px] = mutable_this->CalculateObjectBounds(object);
+      width_tiles = std::max(1, width_px / 8);
+      height_tiles = std::max(1, height_px / 8);
+    }
 
     // Convert mouse to pixels relative to room origin
     int mouse_pixel_x = static_cast<int>(canvas_mouse_pos.x);
     int mouse_pixel_y = static_cast<int>(canvas_mouse_pos.y);
 
-    int obj_pixel_x = obj_x * 8;
-    int obj_pixel_y = obj_y * 8;
+    int obj_pixel_x = obj_tile_x * 8;
+    int obj_pixel_y = obj_tile_y * 8;
+    int width_px = width_tiles * 8;
+    int height_px = height_tiles * 8;
 
-    if (mouse_pixel_x >= obj_pixel_x && mouse_pixel_x < obj_pixel_x + width &&
-        mouse_pixel_y >= obj_pixel_y && mouse_pixel_y < obj_pixel_y + height) {
+    if (mouse_pixel_x >= obj_pixel_x &&
+        mouse_pixel_x < obj_pixel_x + width_px &&
+        mouse_pixel_y >= obj_pixel_y &&
+        mouse_pixel_y < obj_pixel_y + height_px) {
       return index;
     }
   }

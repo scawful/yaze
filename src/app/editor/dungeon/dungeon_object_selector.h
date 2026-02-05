@@ -109,6 +109,8 @@ class DungeonObjectSelector {
  private:
   void DrawRoomGraphics();
   bool MatchesObjectFilter(int obj_id, int filter_type);
+  bool MatchesObjectSearch(int obj_id, const std::string& name,
+                           int subtype = -1) const;
   void CalculateObjectDimensions(const zelda3::RoomObject& object, int& width,
                                  int& height);
   void PlaceObjectAtPosition(int x, int y);
@@ -173,6 +175,7 @@ class DungeonObjectSelector {
   // UI state for object browser filter
   int object_type_filter_ = 0;
   int object_subtype_tab_ = 0;  // 0=Type1, 1=Type2, 2=Type3
+  char object_search_buffer_[64] = {0};
 
   // UI state for compact sprite editor
   int new_sprite_id_ = 0;

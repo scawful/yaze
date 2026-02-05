@@ -7,6 +7,7 @@
 
 // C++ standard library headers
 #include <algorithm>
+#include <cctype>
 #include <iterator>
 
 // Third-party library headers
@@ -14,6 +15,7 @@
 
 // Project headers
 #include "app/editor/agent/agent_ui_theme.h"
+#include "app/gui/core/icons.h"
 #include "app/gui/widgets/asset_browser.h"
 #include "app/platform/window.h"
 #include "core/features.h"
@@ -517,6 +519,26 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
   ImGui::SameLine();
   ImGui::TextDisabled("(%d objects)", total_objects);
 
+  // Search + category filter
+  ImGui::SetNextItemWidth(-1.0f);
+  ImGui::InputTextWithHint("##ObjectSearch",
+                           ICON_MD_SEARCH " Filter by name or hex...",
+                           object_search_buffer_,
+                           sizeof(object_search_buffer_));
+  static const char* kFilterLabels[] = {
+      "All", "Walls", "Floors", "Chests", "Doors", "Decor", "Stairs"};
+  ImGui::SetNextItemWidth(160.0f);
+  ImGui::Combo("##ObjectFilterType", &object_type_filter_, kFilterLabels,
+               IM_ARRAYSIZE(kFilterLabels));
+  ImGui::SameLine();
+  if (ImGui::SmallButton(ICON_MD_CLEAR " Clear")) {
+    object_search_buffer_[0] = '\0';
+    object_type_filter_ = 0;
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Clear search and category filter");
+  }
+
   // Create asset browser-style grid
   const float item_size = 72.0f;
   const float item_spacing = 6.0f;
@@ -551,6 +573,15 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
       int current_column = 0;
 
       for (int obj_id = range.start; obj_id <= range.end; ++obj_id) {
+        if (!MatchesObjectFilter(obj_id, object_type_filter_)) {
+          continue;
+        }
+
+        std::string full_name = zelda3::GetObjectName(obj_id);
+        if (!MatchesObjectSearch(obj_id, full_name)) {
+          continue;
+        }
+
         if (current_column > 0) {
           ImGui::SameLine();
         }
@@ -655,8 +686,6 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
         }
 
         // Get object name for display
-        std::string full_name = zelda3::GetObjectName(obj_id);
-
         // Truncate name for display
         std::string display_name = full_name;
         const size_t kMaxDisplayChars = 12;
@@ -723,8 +752,18 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
       // GetSubtypeCount checks static lists, so it's safe even if not fully init with paths.
 
       for (int obj_id : {0x31, 0x32}) {
+        if (!MatchesObjectFilter(obj_id, object_type_filter_)) {
+          continue;
+        }
         int subtype_count = obj_manager.GetSubtypeCount(obj_id);
         for (int subtype = 0; subtype < subtype_count; ++subtype) {
+          std::string base_name = zelda3::GetObjectName(obj_id);
+          std::string subtype_name =
+              absl::StrFormat("%s %02X", base_name.c_str(), subtype);
+          if (!MatchesObjectSearch(obj_id, subtype_name, subtype)) {
+            continue;
+          }
+
           if (custom_col > 0)
             ImGui::SameLine();
 
@@ -828,6 +867,48 @@ bool DungeonObjectSelector::MatchesObjectFilter(int obj_id, int filter_type) {
     default:  // All
       return true;
   }
+}
+
+bool DungeonObjectSelector::MatchesObjectSearch(int obj_id,
+                                                const std::string& name,
+                                                int subtype) const {
+  if (object_search_buffer_[0] == '\0') {
+    return true;
+  }
+
+  auto to_lower = [](std::string value) {
+    std::transform(value.begin(), value.end(), value.begin(),
+                   [](unsigned char c) { return std::tolower(c); });
+    return value;
+  };
+
+  std::string needle = to_lower(object_search_buffer_);
+  std::string name_lower = to_lower(name);
+
+  std::string id_hex = absl::StrFormat("%03X", obj_id);
+  std::string id_lower = to_lower(id_hex);
+  std::string id_pref = "0x" + id_lower;
+
+  if (name_lower.find(needle) != std::string::npos) {
+    return true;
+  }
+  if (id_lower.find(needle) != std::string::npos ||
+      id_pref.find(needle) != std::string::npos) {
+    return true;
+  }
+
+  if (subtype >= 0) {
+    std::string sub_hex = absl::StrFormat("%02X", subtype);
+    std::string sub_lower = to_lower(sub_hex);
+    std::string combined = id_lower + ":" + sub_lower;
+    std::string combined_pref = "0x" + combined;
+    if (combined.find(needle) != std::string::npos ||
+        combined_pref.find(needle) != std::string::npos) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 void DungeonObjectSelector::CalculateObjectDimensions(

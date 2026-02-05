@@ -50,6 +50,7 @@ modifiers, and context menus to align yaze UX.
 - Steps: Right-click empty space (no selection).
 - Observed (code-skim, needs runtime validation):
   - Base menu items come from `nothingselectedcontextMenu` (Insert/Paste/Delete/Delete All).
+  - Order (Designer.cs): Insert, Paste, Delete, Delete All.
   - Menu item visibility toggles by mode (e.g., Spritemode hides Insert; CollisionMap hides Insert/Paste).
   - Insert label text becomes "Insert new <mode>" (door, torch, block, etc).
 - Notes: `ZeldaFullEditor/Gui/Scene/SceneUW.cs` `onMouseUp()` mode switch + `DungeonMain.Designer.cs`.
@@ -70,7 +71,7 @@ modifiers, and context menus to align yaze UX.
     - Send to Layer 2
     - Send to Layer 3
     - Edit Graphics (disabled)
-  - Group selection:
+  - Group selection (Designer.cs order):
     - Insert
     - Cut
     - Copy
