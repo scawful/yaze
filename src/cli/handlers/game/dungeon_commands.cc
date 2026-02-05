@@ -1,5 +1,8 @@
 #include "cli/handlers/game/dungeon_commands.h"
 
+#include <fstream>
+#include <sstream>
+
 #include "absl/strings/str_format.h"
 #include "cli/util/hex_util.h"
 #include "rom/rom.h"
@@ -17,9 +20,38 @@ namespace handlers {
 
 using util::ParseHexString;
 
+namespace {
+
+// Helper to load sprite registry from file if --sprite-registry flag is provided
+absl::Status MaybeLoadSpriteRegistry(const resources::ArgumentParser& parser) {
+  auto registry_path = parser.GetString("sprite-registry");
+  if (!registry_path.has_value()) {
+    return absl::OkStatus();  // Flag not provided, nothing to load
+  }
+
+  std::ifstream file(registry_path.value());
+  if (!file.is_open()) {
+    return absl::NotFoundError(
+        absl::StrFormat("Could not open sprite registry: %s",
+                        registry_path.value()));
+  }
+
+  std::stringstream buffer;
+  buffer << file.rdbuf();
+  return zelda3::GetResourceLabels().ImportOracleSpriteRegistry(buffer.str());
+}
+
+}  // namespace
+
 absl::Status DungeonListSpritesCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
+  // Load custom sprite registry if provided (e.g., Oracle of Secrets)
+  auto registry_status = MaybeLoadSpriteRegistry(parser);
+  if (!registry_status.ok()) {
+    return registry_status;
+  }
+
   auto room_id_str = parser.GetString("room").value();
 
   int room_id;
@@ -60,6 +92,12 @@ absl::Status DungeonListSpritesCommandHandler::Execute(
 absl::Status DungeonDescribeRoomCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
+  // Load custom sprite registry if provided (e.g., Oracle of Secrets)
+  auto registry_status = MaybeLoadSpriteRegistry(parser);
+  if (!registry_status.ok()) {
+    return registry_status;
+  }
+
   auto room_id_str = parser.GetString("room").value();
 
   int room_id;

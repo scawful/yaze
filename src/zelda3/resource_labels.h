@@ -145,6 +145,16 @@ class ResourceLabelProvider {
    */
   std::string ExportToZScreamFormat() const;
 
+  /**
+   * @brief Import sprite labels from Oracle of Secrets registry.csv format
+   * @param csv_content The CSV file content (name,id,paths,group,notes,allow_dupe)
+   * @return Status indicating success or parse errors
+   *
+   * CSV format: name,id,paths,group,notes,allow_dupe
+   * Example: Sprite_Manhandla,$88,Sprites/Bosses/manhandla.asm,manhandla,,
+   */
+  absl::Status ImportOracleSpriteRegistry(const std::string& csv_content);
+
   // =========================================================================
   // Utility Methods
   // =========================================================================
