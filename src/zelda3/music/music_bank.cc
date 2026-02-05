@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "absl/strings/str_format.h"
+#include "core/rom_settings.h"
 #include "nlohmann/json.hpp"
 #include "rom/rom.h"
 #include "util/macro.h"
@@ -25,6 +26,21 @@ namespace zelda3 {
 namespace music {
 
 namespace {
+
+uint32_t ExpandedMusicHookAddress() {
+  return core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kExpandedMusicHook, kExpandedMusicHookAddress);
+}
+
+uint32_t ExpandedOverworldBankRom() {
+  return core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kExpandedMusicMain, kExpandedOverworldBankRom);
+}
+
+uint32_t ExpandedAuxBankRom() {
+  return core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kExpandedMusicAux, kExpandedAuxBankRom);
+}
 
 // Vanilla song table (1-indexed song IDs)
 struct VanillaSongInfo {
@@ -481,9 +497,9 @@ uint32_t MusicBank::GetBankRomAddress(Bank bank) {
     case Bank::Credits:
       return kCreditsBankRom;
     case Bank::OverworldExpanded:
-      return kExpandedOverworldBankRom;
+      return ExpandedOverworldBankRom();
     case Bank::Auxiliary:
-      return kExpandedAuxBankRom;
+      return ExpandedAuxBankRom();
   }
   return 0;
 }
@@ -519,11 +535,12 @@ absl::Status MusicBank::DetectExpandedMusicPatch(Rom& rom) {
   // Check if ROM has the Oracle of Secrets expanded music hook at $008919
   // The vanilla code at this address is NOT a JSL, but the expanded patch
   // replaces it with: JSL LoadOverworldSongsExpanded
-  if (kExpandedMusicHookAddress >= rom.size()) {
+  const uint32_t hook_address = ExpandedMusicHookAddress();
+  if (hook_address >= rom.size()) {
     return absl::OkStatus();  // ROM too small, no expanded patch
   }
 
-  auto opcode_result = rom.ReadByte(kExpandedMusicHookAddress);
+  auto opcode_result = rom.ReadByte(hook_address);
   if (!opcode_result.ok()) {
     return absl::OkStatus();  // Can't read, assume no patch
   }
@@ -533,9 +550,9 @@ absl::Status MusicBank::DetectExpandedMusicPatch(Rom& rom) {
   }
 
   // Read the JSL target address (3 bytes: low, mid, bank)
-  auto addr_low = rom.ReadByte(kExpandedMusicHookAddress + 1);
-  auto addr_mid = rom.ReadByte(kExpandedMusicHookAddress + 2);
-  auto addr_bank = rom.ReadByte(kExpandedMusicHookAddress + 3);
+  auto addr_low = rom.ReadByte(hook_address + 1);
+  auto addr_mid = rom.ReadByte(hook_address + 2);
+  auto addr_bank = rom.ReadByte(hook_address + 3);
 
   if (!addr_low.ok() || !addr_mid.ok() || !addr_bank.ok()) {
     return absl::OkStatus();  // Can't read address, assume no patch
@@ -559,8 +576,8 @@ absl::Status MusicBank::DetectExpandedMusicPatch(Rom& rom) {
 
   // Use known Oracle of Secrets bank locations
   // These are the standard locations used by the Oracle of Secrets expanded music patch
-  expanded_bank_info_.main_rom_offset = kExpandedOverworldBankRom;
-  expanded_bank_info_.aux_rom_offset = kExpandedAuxBankRom;
+  expanded_bank_info_.main_rom_offset = ExpandedOverworldBankRom();
+  expanded_bank_info_.aux_rom_offset = ExpandedAuxBankRom();
   expanded_bank_info_.aux_aram_address = kAuxSongTableAram;
 
   return absl::OkStatus();

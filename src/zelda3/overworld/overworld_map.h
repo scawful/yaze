@@ -9,6 +9,7 @@
 #include "absl/status/status.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
+#include "core/rom_settings.h"
 #include "rom/rom.h"
 #include "zelda3/game_data.h"
 #include "zelda3/overworld/overworld_version_helper.h"
@@ -64,6 +65,54 @@ constexpr int kOverworldScreenTileMapChangeByScreen1Expanded = 0x140A38;
 constexpr int kOverworldScreenTileMapChangeByScreen2Expanded = 0x140B78;
 constexpr int kOverworldScreenTileMapChangeByScreen3Expanded = 0x140CB8;
 constexpr int kOverworldScreenTileMapChangeByScreen4Expanded = 0x140DF8;
+
+inline int GetOverworldMessagesExpanded() {
+  return static_cast<int>(core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kOverworldMessagesExpanded,
+      kOverworldMessagesExpanded));
+}
+
+inline int GetOverworldMapParentIdExpanded() {
+  return static_cast<int>(core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kOverworldMapParentExpanded,
+      kOverworldMapParentIdExpanded));
+}
+
+inline int GetOverworldTransitionPositionYExpanded() {
+  return static_cast<int>(core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kOverworldTransitionPosYExpanded,
+      kOverworldTransitionPositionYExpanded));
+}
+
+inline int GetOverworldTransitionPositionXExpanded() {
+  return static_cast<int>(core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kOverworldTransitionPosXExpanded,
+      kOverworldTransitionPositionXExpanded));
+}
+
+inline int GetOverworldScreenChange1Expanded() {
+  return static_cast<int>(core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kOverworldScreenChange1Expanded,
+      kOverworldScreenTileMapChangeByScreen1Expanded));
+}
+
+inline int GetOverworldScreenChange2Expanded() {
+  return static_cast<int>(core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kOverworldScreenChange2Expanded,
+      kOverworldScreenTileMapChangeByScreen2Expanded));
+}
+
+inline int GetOverworldScreenChange3Expanded() {
+  return static_cast<int>(core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kOverworldScreenChange3Expanded,
+      kOverworldScreenTileMapChangeByScreen3Expanded));
+}
+
+inline int GetOverworldScreenChange4Expanded() {
+  return static_cast<int>(core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kOverworldScreenChange4Expanded,
+      kOverworldScreenTileMapChangeByScreen4Expanded));
+}
 
 constexpr int kOverworldSpecialSpriteGFXGroup = 0x016811;
 constexpr int kOverworldSpecialGFXGroup = 0x016821;

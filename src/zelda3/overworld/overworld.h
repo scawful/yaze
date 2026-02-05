@@ -11,6 +11,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/gfx/types/snes_tile.h"
+#include "core/rom_settings.h"
 #include "imgui.h"
 #include "rom/rom.h"
 #include "zelda3/common.h"
@@ -185,6 +186,49 @@ constexpr int kExpandedMapCount = 192;              // 0x00-0xBF
 constexpr int overworldTilesType = 0x071459;
 constexpr int overworldMessages = 0x03F51D;
 constexpr int overworldMessagesExpanded = 0x1417F8;
+
+inline int GetMap16TilesExpanded() {
+  return static_cast<int>(core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kOverworldMap16Expanded, kMap16TilesExpanded));
+}
+
+inline int GetMap32TileTRExpanded() {
+  return static_cast<int>(core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kOverworldMap32TrExpanded, kMap32TileTRExpanded));
+}
+
+inline int GetMap32TileBLExpanded() {
+  return static_cast<int>(core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kOverworldMap32BlExpanded, kMap32TileBLExpanded));
+}
+
+inline int GetMap32TileBRExpanded() {
+  return static_cast<int>(core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kOverworldMap32BrExpanded, kMap32TileBRExpanded));
+}
+
+inline int GetExpandedPtrTableMarker() {
+  return static_cast<int>(core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kOverworldExpandedPtrMarker,
+      kExpandedPtrTableMarker));
+}
+
+inline uint8_t GetExpandedPtrTableMagic() {
+  return static_cast<uint8_t>(core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kOverworldExpandedPtrMagic,
+      kExpandedPtrTableMagic));
+}
+
+inline int GetExpandedPtrTableHigh() {
+  return static_cast<int>(core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kOverworldExpandedPtrHigh, kExpandedPtrTableHigh));
+}
+
+inline int GetExpandedPtrTableLow() {
+  return static_cast<int>(core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kOverworldExpandedPtrLow, kExpandedPtrTableLow));
+}
+
 
 constexpr int kOverworldCompressedMapPos = 0x058000;
 constexpr int kOverworldCompressedOverflowPos = 0x137FFF;
@@ -423,10 +467,11 @@ class Overworld {
    * marker byte at 0x1423FF being 0xEA.
    */
   bool HasExpandedPointerTables() const {
-    if (!rom_ || kExpandedPtrTableMarker >= rom_->size()) {
+    const int marker_addr = GetExpandedPtrTableMarker();
+    if (!rom_ || marker_addr >= rom_->size()) {
       return false;
     }
-    return rom_->data()[kExpandedPtrTableMarker] == kExpandedPtrTableMagic;
+    return rom_->data()[marker_addr] == GetExpandedPtrTableMagic();
   }
 
   void Destroy() {

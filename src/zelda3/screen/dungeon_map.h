@@ -7,6 +7,7 @@
 #include "absl/status/status.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"
+#include "core/rom_settings.h"
 #include "rom/rom.h"
 
 namespace yaze::zelda3 {
@@ -28,6 +29,12 @@ constexpr int kDungeonMapDataLimit = 0x57CE0;
 constexpr int kDungeonMapExpCheck = 0x56652;         // $0A:E652
 constexpr int kDungeonMapTile16 = 0x57009;           // $0A:F009
 constexpr int kDungeonMapTile16Expanded = 0x109010;  // $21:9010
+
+inline int GetDungeonMapTile16Expanded() {
+  return static_cast<int>(core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kDungeonMapTile16Expanded,
+      kDungeonMapTile16Expanded));
+}
 
 // 14 words values 0x000F = no boss
 constexpr int kDungeonMapBossRooms = 0x56807;

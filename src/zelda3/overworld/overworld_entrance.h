@@ -8,6 +8,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "core/rom_settings.h"
 #include "rom/rom.h"
 #include "util/macro.h"
 #include "zelda3/common.h"
@@ -54,6 +55,30 @@ constexpr int kOverworldEntrancePosExpanded = 0x0DB35F;
 constexpr int kOverworldEntranceEntranceIdExpanded = 0x0DB75F;
 
 constexpr int kOverworldEntranceExpandedFlagPos = 0x0DB895;  // 0xB8
+
+inline int GetOverworldEntranceMapExpanded() {
+  return static_cast<int>(core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kOverworldEntranceMapExpanded,
+      kOverworldEntranceMapExpanded));
+}
+
+inline int GetOverworldEntrancePosExpanded() {
+  return static_cast<int>(core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kOverworldEntrancePosExpanded,
+      kOverworldEntrancePosExpanded));
+}
+
+inline int GetOverworldEntranceIdExpanded() {
+  return static_cast<int>(core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kOverworldEntranceIdExpanded,
+      kOverworldEntranceEntranceIdExpanded));
+}
+
+inline int GetOverworldEntranceFlagExpanded() {
+  return static_cast<int>(core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kOverworldEntranceFlagExpanded,
+      kOverworldEntranceExpandedFlagPos));
+}
 
 // (0x13 entries, 2 bytes each) modified(less 0x400)
 // map16 coordinates for each hole

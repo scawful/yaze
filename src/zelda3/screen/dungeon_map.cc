@@ -180,7 +180,7 @@ absl::Status LoadDungeonMapTile16(gfx::Tilemap& tile16_blockset, Rom& rom,
   for (int i = 0; i < kNumDungeonMapTile16; i++) {
     int addr = kDungeonMapTile16;
     if (rom.data()[kDungeonMapExpCheck] != 0xB9) {
-      addr = kDungeonMapTile16Expanded;
+      addr = GetDungeonMapTile16Expanded();
     }
 
     ASSIGN_OR_RETURN(auto tl, rom.ReadWord(addr + (i * 8)));
@@ -218,7 +218,7 @@ absl::Status SaveDungeonMapTile16(gfx::Tilemap& tile16_blockset, Rom& rom) {
   for (int i = 0; i < kNumDungeonMapTile16; i++) {
     int addr = kDungeonMapTile16;
     if (rom.data()[kDungeonMapExpCheck] != 0xB9) {
-      addr = kDungeonMapTile16Expanded;
+      addr = GetDungeonMapTile16Expanded();
     }
 
     gfx::TileInfo t1 = tile16_blockset.tile_info[i][0];
