@@ -52,6 +52,12 @@ class CustomObjectManager {
   // e.g., "/path/to/project/Dungeons/Objects/Data"
   void Initialize(const std::string& custom_objects_folder);
 
+  // Override object/subtype filename mapping from project config.
+  void SetObjectFileMap(
+      const std::unordered_map<int, std::vector<std::string>>& map);
+  void ClearObjectFileMap();
+  bool HasCustomFileMap() const { return !custom_file_map_.empty(); }
+
   // Load a custom object from a binary file
   absl::StatusOr<std::shared_ptr<CustomObject>> LoadObject(const std::string& filename);
   
@@ -69,9 +75,11 @@ class CustomObjectManager {
   CustomObjectManager() = default;
 
   absl::StatusOr<CustomObject> ParseBinaryData(const std::vector<uint8_t>& data);
+  const std::vector<std::string>* ResolveFileList(int object_id) const;
 
   std::string base_path_;
   std::unordered_map<std::string, std::shared_ptr<CustomObject>> cache_;
+  std::unordered_map<int, std::vector<std::string>> custom_file_map_;
   
   // Mapping from subtype index to filename for ID 0x31
   static const std::vector<std::string> kSubtype1Filenames;
