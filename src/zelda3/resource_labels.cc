@@ -451,5 +451,81 @@ std::string ResourceLabelProvider::ExportToZScreamFormat() const {
   return output.str();
 }
 
+// ============================================================================
+// Oracle of Secrets Sprite Registry Import
+// ============================================================================
+
+absl::Status ResourceLabelProvider::ImportOracleSpriteRegistry(
+    const std::string& csv_content) {
+  // Create local storage if project_labels_ not set
+  static ProjectLabels local_labels;
+  if (!project_labels_) {
+    project_labels_ = &local_labels;
+  }
+
+  std::istringstream stream(csv_content);
+  std::string line;
+  int line_number = 0;
+  int imported_count = 0;
+
+  while (std::getline(stream, line)) {
+    line_number++;
+
+    // Trim whitespace
+    std::string trimmed = std::string(absl::StripAsciiWhitespace(line));
+
+    // Skip empty lines and header row
+    if (trimmed.empty() || line_number == 1) {
+      continue;
+    }
+
+    // Parse CSV: name,id,paths,group,notes,allow_dupe
+    std::vector<std::string> fields = absl::StrSplit(trimmed, ',');
+    if (fields.size() < 2) {
+      continue;  // Need at least name and id
+    }
+
+    std::string name = std::string(absl::StripAsciiWhitespace(fields[0]));
+    std::string id_str = std::string(absl::StripAsciiWhitespace(fields[1]));
+
+    // Parse sprite ID (format: $XX or 0xXX or just XX)
+    int sprite_id = -1;
+    if (id_str.empty()) {
+      continue;
+    }
+
+    // Handle $XX format
+    if (id_str[0] == '$') {
+      id_str = id_str.substr(1);
+    }
+    // Handle 0xXX format
+    if (id_str.size() >= 2 && id_str[0] == '0' &&
+        (id_str[1] == 'x' || id_str[1] == 'X')) {
+      id_str = id_str.substr(2);
+    }
+
+    try {
+      sprite_id = std::stoi(id_str, nullptr, 16);
+    } catch (...) {
+      continue;  // Skip invalid IDs
+    }
+
+    if (sprite_id < 0 || sprite_id > 255) {
+      continue;  // Invalid sprite ID range
+    }
+
+    // Store the sprite name
+    (*project_labels_)["sprite"][std::to_string(sprite_id)] = name;
+    imported_count++;
+  }
+
+  if (imported_count == 0) {
+    return absl::InvalidArgumentError(
+        "No valid sprite entries found in registry CSV");
+  }
+
+  return absl::OkStatus();
+}
+
 }  // namespace zelda3
 }  // namespace yaze

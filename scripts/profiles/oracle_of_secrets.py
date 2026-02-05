@@ -69,10 +69,15 @@ def _build_oracle_locations() -> dict:
         entrance_ids=[0x26],
         ow_screen=0x10,
         dungeon_id="D1",
-        entrance_room=0x4A,  # ROM dungeon_id=0x0C
+        entrance_room=0x4A,
         boss="TBD",
         dungeon_item="TBD",
-        notes="First dungeon, forest themed",
+        notes="First dungeon, forest themed (blockset=7, palette=15)",
+        all_rooms=[
+            0x07, 0x09, 0x0A, 0x0B, 0x17, 0x19, 0x1A, 0x1B,
+            0x2A, 0x2B, 0x32, 0x33, 0x3A, 0x3B, 0x43, 0x4A,
+            0x4B, 0x53, 0x5B, 0x63, 0x6A,
+        ],
     )
 
     locations["tail_palace"] = LocationConfig(
@@ -81,10 +86,14 @@ def _build_oracle_locations() -> dict:
         entrance_ids=[0x15],
         ow_screen=0x2F,
         dungeon_id="D2",
-        entrance_room=0x5F,  # ROM dungeon_id=0x0A
+        entrance_room=0x5F,
         boss="TBD",
         dungeon_item="TBD",
-        notes="Second dungeon, toad/frog themed",
+        notes="Second dungeon, toad/frog themed (blockset=5, palette=6)",
+        all_rooms=[
+            0x0E, 0x1E, 0x2E, 0x3E, 0x3F, 0x4E, 0x4F, 0x5E,
+            0x5F, 0x6E, 0x6F, 0x7E, 0x7F, 0x8E, 0x8F, 0xA7, 0xDE,
+        ],
     )
 
     locations["kalyxo_castle"] = LocationConfig(
@@ -93,10 +102,14 @@ def _build_oracle_locations() -> dict:
         entrance_ids=[0x28, 0x2B, 0x2A, 0x32],  # West, Main, Basement, Prison
         ow_screen=0x0B,
         dungeon_id="D3",
-        entrance_room=0x56,  # ROM dungeon_id=0x10 (main entrance)
+        entrance_room=0x56,
         boss="TBD",
         dungeon_item="TBD",
-        notes="Third dungeon, castle with multiple entrances",
+        notes="Third dungeon, castle with multiple entrances (blockset=2, palette=12)",
+        all_rooms=[
+            0x29, 0x30, 0x39, 0x47, 0x48, 0x49, 0x51, 0x56,
+            0x57, 0x58, 0x59, 0x66, 0x67, 0x68,
+        ],
     )
 
     locations["zora_temple"] = LocationConfig(
@@ -105,10 +118,14 @@ def _build_oracle_locations() -> dict:
         entrance_ids=[0x25, 0x4E],  # Main, Waterfall
         ow_screen=0x1E,
         dungeon_id="D4",
-        entrance_room=0x28,  # ROM dungeon_id=0x16
+        entrance_room=0x28,
         boss="TBD",
         dungeon_item="TBD",
-        notes="Fourth dungeon, water themed",
+        notes="Fourth dungeon, water themed (blockset=1, palette=9)",
+        all_rooms=[
+            0x06, 0x16, 0x18, 0x25, 0x26, 0x27, 0x28, 0x34,
+            0x35, 0x36, 0x37, 0x38, 0x44, 0x45, 0x46,
+        ],
     )
 
     locations["glacia_estate"] = LocationConfig(
@@ -117,10 +134,15 @@ def _build_oracle_locations() -> dict:
         entrance_ids=[0x34],
         ow_screen=0x06,
         dungeon_id="D5",
-        entrance_room=0xDB,  # ROM dungeon_id=0x12
+        entrance_room=0xDB,
         boss="TBD",
         dungeon_item="TBD",
-        notes="Fifth dungeon, ice/snow themed",
+        notes="Fifth dungeon, ice/snow themed (blockset=11, palette=19)",
+        all_rooms=[
+            0x9E, 0x9F, 0xAC, 0xAD, 0xAE, 0xAF, 0xBB, 0xBC,
+            0xBD, 0xBE, 0xBF, 0xCB, 0xCC, 0xCD, 0xCE, 0xCF,
+            0xDB, 0xDC, 0xDD,
+        ],
     )
 
     locations["dragon_ship"] = LocationConfig(
@@ -129,10 +151,11 @@ def _build_oracle_locations() -> dict:
         entrance_ids=[0x35],
         ow_screen=0x30,
         dungeon_id="D7",
-        entrance_room=0xD6,  # ROM dungeon_id=0x18
+        entrance_room=0xD6,
         boss="TBD",
         dungeon_item="TBD",
-        notes="Seventh dungeon, naval/ship themed",
+        notes="Seventh dungeon, naval/ship themed (blockset=9, palette=5)",
+        all_rooms=[0xB7, 0xC6, 0xC7, 0xD5, 0xD6],
     )
 
     # =========================================================================
@@ -587,6 +610,20 @@ def _build_oracle_locations() -> dict:
         ow_screen=0x1A,
         purpose="Minigame",
     )
+
+    # Fill in a placeholder floor layout for dungeons that list rooms but
+    # don't yet have floor segmentation. This keeps docs generation useful
+    # without implying a real floor map.
+    for config in locations.values():
+        if (config.type == LocationType.DUNGEON and config.all_rooms and
+                not config.floors):
+            config.floors = {
+                "F?": {
+                    "name": "Unsorted Rooms",
+                    "grid": "unknown",
+                    "rooms": list(config.all_rooms),
+                }
+            }
 
     return locations
 

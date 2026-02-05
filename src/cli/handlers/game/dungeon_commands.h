@@ -17,7 +17,8 @@ class DungeonListSpritesCommandHandler : public resources::CommandHandler {
     return "List all sprites in a dungeon room";
   }
   std::string GetUsage() const {
-    return "dungeon-list-sprites --room <room_id> [--format <json|text>]";
+    return "dungeon-list-sprites --room <room_id> [--sprite-registry <path>] "
+           "[--format <json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
@@ -38,7 +39,8 @@ class DungeonDescribeRoomCommandHandler : public resources::CommandHandler {
     return "Get detailed description of a dungeon room";
   }
   std::string GetUsage() const {
-    return "dungeon-describe-room --room <room_id> [--format <json|text>]";
+    return "dungeon-describe-room --room <room_id> [--sprite-registry <path>] "
+           "[--format <json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
