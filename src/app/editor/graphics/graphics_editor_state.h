@@ -5,6 +5,7 @@
 #include <functional>
 #include <set>
 #include <stack>
+#include <string>
 #include <vector>
 
 #include "app/gfx/core/bitmap.h"
@@ -47,6 +48,25 @@ struct PixelSelection {
     x = y = width = height = 0;
     is_active = false;
     is_floating = false;
+  }
+};
+
+/**
+ * @brief Transient highlight for focusing a tile in the pixel editor.
+ */
+struct TileHighlight {
+  uint16_t sheet_id = 0;
+  uint16_t tile_index = 0;
+  double start_time = 0.0;
+  double duration = 0.0;
+  bool active = false;
+  std::string label;
+
+  void Clear() {
+    active = false;
+    label.clear();
+    duration = 0.0;
+    start_time = 0.0;
   }
 };
 
@@ -107,6 +127,7 @@ class GraphicsEditorState {
   PixelSelection selection;
   ImVec2 selection_start;           // Drag start point
   bool is_selecting = false;        // Currently drawing selection
+  TileHighlight tile_highlight;     // Active tile focus hint
 
   // --- Undo/Redo ---
   std::vector<PixelEditorSnapshot> undo_stack;
@@ -204,6 +225,20 @@ class GraphicsEditorState {
     if (on_sheet_selected) {
       on_sheet_selected(sheet_id);
     }
+  }
+
+  /**
+   * @brief Highlight a tile in the current sheet for quick visual focus
+   */
+  void HighlightTile(uint16_t sheet_id, uint16_t tile_index,
+                     const std::string& label = "",
+                     double duration_secs = 3.0) {
+    tile_highlight.sheet_id = sheet_id;
+    tile_highlight.tile_index = tile_index;
+    tile_highlight.label = label;
+    tile_highlight.start_time = ImGui::GetTime();
+    tile_highlight.duration = duration_secs;
+    tile_highlight.active = true;
   }
 
   /**

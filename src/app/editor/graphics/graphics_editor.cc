@@ -779,5 +779,14 @@ void GraphicsEditor::SelectSheet(uint16_t sheet_id) {
   state_.SelectSheet(sheet_id);
 }
 
+void GraphicsEditor::HighlightTile(uint16_t sheet_id, uint16_t tile_index,
+                                   const std::string& label,
+                                   double duration_secs) {
+  if (sheet_id >= zelda3::kNumGfxSheets) {
+    return;
+  }
+  state_.HighlightTile(sheet_id, tile_index, label, duration_secs);
+}
+
 }  // namespace editor
 }  // namespace yaze

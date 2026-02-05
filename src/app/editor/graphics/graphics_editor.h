@@ -97,6 +97,9 @@ class GraphicsEditor : public Editor {
   void NextSheet();
   void PrevSheet();
   void SelectSheet(uint16_t sheet_id);
+  void HighlightTile(uint16_t sheet_id, uint16_t tile_index,
+                     const std::string& label = "",
+                     double duration_secs = 3.0);
 
   // Get the ROM pointer
   Rom* rom() const { return rom_; }
