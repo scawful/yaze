@@ -15,7 +15,7 @@ class Z3ed < Formula
 
   def install
     args = %w[
-      -DYAZE_BUILD_APP=OFF
+      -DYAZE_BUILD_GUI=OFF
       -DYAZE_BUILD_CLI=ON
       -DYAZE_BUILD_Z3ED=ON
       -DYAZE_BUILD_TESTS=OFF
