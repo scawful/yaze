@@ -1,10 +1,15 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_PANELS_MINECART_TRACK_EDITOR_PANEL_H
 #define YAZE_APP_EDITOR_DUNGEON_PANELS_MINECART_TRACK_EDITOR_PANEL_H
 
+#include <array>
 #include <cstdint>
 #include <functional>
+#include <unordered_map>
 #include <string>
 #include <vector>
+
+#include "core/project.h"
+#include "zelda3/dungeon/room.h"
 
 namespace yaze::editor {
 
@@ -35,6 +40,14 @@ class MinecartTrackEditorPanel : public EditorPanel {
 
   // Custom methods
   void SetProjectRoot(const std::string& root);
+  void SetRooms(std::array<zelda3::Room, 0x128>* rooms) {
+    rooms_ = rooms;
+    audit_dirty_ = true;
+  }
+  void SetProject(const project::YazeProject* project) {
+    project_ = project;
+    audit_dirty_ = true;
+  }
   void SaveTracks();
   
   // Coordinate picking from dungeon canvas
@@ -57,9 +70,25 @@ class MinecartTrackEditorPanel : public EditorPanel {
   std::string FormatSection(const std::string& label, const std::vector<int>& values);
   void StartCoordinatePicking(int track_index);
   void CancelCoordinatePicking();
+  void RebuildAuditCache();
+  bool IsDefaultTrack(const MinecartTrack& track) const;
+
+  struct RoomTrackAudit {
+    bool has_track_collision = false;
+    bool has_stop_tiles = false;
+    bool has_minecart_sprite = false;
+    bool has_minecart_on_stop = false;
+    std::vector<int> track_subtypes;
+  };
 
   std::vector<MinecartTrack> tracks_;
   std::string project_root_;
+  std::array<zelda3::Room, 0x128>* rooms_ = nullptr;
+  const project::YazeProject* project_ = nullptr;
+  std::unordered_map<int, RoomTrackAudit> room_audit_;
+  std::unordered_map<int, std::vector<int>> track_usage_rooms_;
+  std::vector<bool> track_subtype_used_;
+  bool audit_dirty_ = true;
   bool loaded_ = false;
   std::string status_message_;
   bool show_success_ = false;

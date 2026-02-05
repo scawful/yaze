@@ -1,13 +1,17 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_DUNGEON_CANVAS_VIEWER_H
 #define YAZE_APP_EDITOR_DUNGEON_DUNGEON_CANVAS_VIEWER_H
 
+#include <array>
 #include <functional>
 #include <map>
+#include <unordered_map>
+#include <vector>
 
 #include "app/editor/editor.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas.h"
+#include "core/project.h"
 #include "dungeon_object_interaction.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
@@ -101,6 +105,7 @@ class DungeonCanvasViewer {
   void SetMinecartTrackPanel(MinecartTrackEditorPanel* panel) {
     minecart_track_panel_ = panel;
   }
+  void SetProject(const project::YazeProject* project);
 
   // Canvas access
   gui::Canvas& canvas() { return canvas_; }
@@ -272,6 +277,14 @@ class DungeonCanvasViewer {
   // Visualization
   void DrawObjectPositionOutlines(const gui::CanvasRuntime& rt,
                                   const zelda3::Room& room);
+  void ApplyTrackCollisionConfig();
+  void DrawTrackCollisionOverlay(const gui::CanvasRuntime& rt,
+                                 const zelda3::Room& room);
+  void DrawCameraQuadrantOverlay(const gui::CanvasRuntime& rt,
+                                 const zelda3::Room& room);
+  void DrawMinecartSpriteOverlay(const gui::CanvasRuntime& rt,
+                                 const zelda3::Room& room);
+  const CollisionOverlayCache& GetCollisionOverlayCache(int room_id);
 
   // Draw semi-transparent overlay on BG2/Layer 1 objects when mask mode is active
   void DrawMaskHighlights(const gui::CanvasRuntime& rt,
@@ -318,6 +331,44 @@ class DungeonCanvasViewer {
   std::function<void()> show_room_graphics_callback_;
   MinecartTrackEditorPanel* minecart_track_panel_ = nullptr;
   bool show_minecart_tracks_ = false;
+  const project::YazeProject* project_ = nullptr;
+
+  struct TrackCollisionConfig {
+    std::array<bool, 256> track_tiles{};
+    std::array<bool, 256> stop_tiles{};
+    std::array<bool, 256> switch_tiles{};
+    bool IsEmpty() const {
+      for (bool v : track_tiles) {
+        if (v) return false;
+      }
+      for (bool v : stop_tiles) {
+        if (v) return false;
+      }
+      for (bool v : switch_tiles) {
+        if (v) return false;
+      }
+      return true;
+    }
+  };
+
+  struct CollisionOverlayEntry {
+    uint8_t x = 0;
+    uint8_t y = 0;
+    uint8_t tile = 0;
+  };
+
+  struct CollisionOverlayCache {
+    bool has_data = false;
+    std::vector<CollisionOverlayEntry> entries;
+  };
+
+  bool show_track_collision_overlay_ = false;
+  bool show_track_collision_legend_ = true;
+  bool show_camera_quadrant_overlay_ = false;
+  bool show_minecart_sprite_overlay_ = false;
+  TrackCollisionConfig track_collision_config_;
+  std::unordered_map<int, CollisionOverlayCache> collision_overlay_cache_;
+  std::array<bool, 256> minecart_sprite_ids_{};
 
   // Object rendering cache
   struct ObjectRenderCache {

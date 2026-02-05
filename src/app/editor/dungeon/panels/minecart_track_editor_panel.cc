@@ -12,13 +12,22 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "util/log.h"
+#include "zelda3/dungeon/custom_collision.h"
 
 namespace yaze::editor {
+
+namespace {
+constexpr int kTrackSlotCount = 32;
+constexpr int kDefaultTrackRoom = 0x89;
+constexpr int kDefaultTrackX = 0x1300;
+constexpr int kDefaultTrackY = 0x1100;
+}  // namespace
 
 void MinecartTrackEditorPanel::SetProjectRoot(const std::string& root) {
   if (project_root_ != root) {
     project_root_ = root;
     loaded_ = false;  // Trigger reload on next draw
+    audit_dirty_ = true;
   }
 }
 
@@ -41,6 +50,7 @@ void MinecartTrackEditorPanel::SetPickedCoordinates(int room_id,
     last_picked_x_ = camera_x;
     last_picked_y_ = camera_y;
     has_picked_coords_ = true;
+    audit_dirty_ = true;
 
     status_message_ =
         absl::StrFormat("Track %d: Set to Room $%04X, Pos ($%04X, $%04X)",
@@ -67,6 +77,149 @@ void MinecartTrackEditorPanel::CancelCoordinatePicking() {
   status_message_ = "";
 }
 
+bool MinecartTrackEditorPanel::IsDefaultTrack(
+    const MinecartTrack& track) const {
+  return track.room_id == kDefaultTrackRoom &&
+         track.start_x == kDefaultTrackX && track.start_y == kDefaultTrackY;
+}
+
+void MinecartTrackEditorPanel::RebuildAuditCache() {
+  room_audit_.clear();
+  track_usage_rooms_.clear();
+  track_subtype_used_.assign(kTrackSlotCount, false);
+
+  if (!rooms_) {
+    audit_dirty_ = false;
+    return;
+  }
+
+  std::array<bool, 256> track_tiles{};
+  std::array<bool, 256> stop_tiles{};
+  std::array<bool, 256> switch_tiles{};
+  auto apply_list = [](std::array<bool, 256>& dest,
+                       const std::vector<uint16_t>& values) {
+    dest.fill(false);
+    for (uint16_t value : values) {
+      if (value < dest.size()) {
+        dest[value] = true;
+      }
+    }
+  };
+
+  if (project_ && !project_->dungeon_overlay.track_tiles.empty()) {
+    apply_list(track_tiles, project_->dungeon_overlay.track_tiles);
+  } else {
+    std::vector<uint16_t> default_track_tiles;
+    for (uint16_t tile = 0xB0; tile <= 0xBE; ++tile) {
+      default_track_tiles.push_back(tile);
+    }
+    apply_list(track_tiles, default_track_tiles);
+  }
+
+  if (project_ && !project_->dungeon_overlay.track_stop_tiles.empty()) {
+    apply_list(stop_tiles, project_->dungeon_overlay.track_stop_tiles);
+  } else {
+    apply_list(stop_tiles, {0xB7, 0xB8, 0xB9, 0xBA});
+  }
+
+  if (project_ && !project_->dungeon_overlay.track_switch_tiles.empty()) {
+    apply_list(switch_tiles, project_->dungeon_overlay.track_switch_tiles);
+  } else {
+    apply_list(switch_tiles, {0xD0, 0xD1, 0xD2, 0xD3});
+  }
+
+  std::vector<uint16_t> track_object_ids = {0x31};
+  std::vector<uint16_t> minecart_sprite_ids = {0xA3};
+  if (project_) {
+    if (!project_->dungeon_overlay.track_object_ids.empty()) {
+      track_object_ids = project_->dungeon_overlay.track_object_ids;
+    }
+    if (!project_->dungeon_overlay.minecart_sprite_ids.empty()) {
+      minecart_sprite_ids = project_->dungeon_overlay.minecart_sprite_ids;
+    }
+  }
+
+  std::unordered_map<int, bool> track_object_id_map;
+  for (uint16_t id : track_object_ids) {
+    track_object_id_map[static_cast<int>(id)] = true;
+  }
+  std::unordered_map<int, bool> minecart_sprite_id_map;
+  for (uint16_t id : minecart_sprite_ids) {
+    minecart_sprite_id_map[static_cast<int>(id)] = true;
+  }
+
+  for (int room_id = 0; room_id < static_cast<int>(rooms_->size()); ++room_id) {
+    auto& room = (*rooms_)[room_id];
+    RoomTrackAudit audit;
+
+    if (room.GetTileObjects().empty()) {
+      room.LoadObjects();
+    }
+    if (room.GetSprites().empty()) {
+      room.LoadSprites();
+    }
+
+    std::array<bool, kTrackSlotCount> seen_subtype{};
+
+    for (const auto& obj : room.GetTileObjects()) {
+      if (!track_object_id_map[static_cast<int>(obj.id_)]) {
+        continue;
+      }
+      int subtype = obj.size_ & 0x1F;
+      if (subtype >= 0 && subtype < kTrackSlotCount) {
+        if (!seen_subtype[static_cast<size_t>(subtype)]) {
+          seen_subtype[static_cast<size_t>(subtype)] = true;
+          track_subtype_used_[static_cast<size_t>(subtype)] = true;
+          track_usage_rooms_[subtype].push_back(room_id);
+          audit.track_subtypes.push_back(subtype);
+        }
+      }
+    }
+
+    std::unordered_map<int, bool> stop_positions;
+    auto map_or = zelda3::LoadCustomCollisionMap(room.rom(), room_id);
+    if (map_or.ok() && map_or.value().has_data) {
+      const auto& map = map_or.value().tiles;
+      for (int y = 0; y < 64; ++y) {
+        for (int x = 0; x < 64; ++x) {
+          uint8_t tile = map[static_cast<size_t>(y * 64 + x)];
+          if (track_tiles[tile] || stop_tiles[tile] || switch_tiles[tile]) {
+            audit.has_track_collision = true;
+          }
+          if (stop_tiles[tile]) {
+            audit.has_stop_tiles = true;
+            stop_positions[y * 64 + x] = true;
+          }
+        }
+      }
+    }
+
+    if (audit.has_track_collision) {
+      for (const auto& sprite : room.GetSprites()) {
+        if (!minecart_sprite_id_map[static_cast<int>(sprite.id())]) {
+          continue;
+        }
+        audit.has_minecart_sprite = true;
+        int tile_x = sprite.x() * 2;
+        int tile_y = sprite.y() * 2;
+        if (tile_x >= 0 && tile_x < 64 && tile_y >= 0 && tile_y < 64) {
+          int idx = tile_y * 64 + tile_x;
+          if (stop_positions[idx]) {
+            audit.has_minecart_on_stop = true;
+          }
+        }
+      }
+    }
+
+    if (audit.has_track_collision || !audit.track_subtypes.empty() ||
+        audit.has_minecart_sprite) {
+      room_audit_[room_id] = audit;
+    }
+  }
+
+  audit_dirty_ = false;
+}
+
 void MinecartTrackEditorPanel::Draw(bool* p_open) {
   if (project_root_.empty()) {
     ImGui::TextColored(ImVec4(1, 0, 0, 1), "Project root not set.");
@@ -75,6 +228,10 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
 
   if (!loaded_) {
     LoadTracks();
+  }
+
+  if (audit_dirty_) {
+    RebuildAuditCache();
   }
 
   ImGui::Text("Minecart Track Editor");
@@ -110,7 +267,7 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
       "Hover over dungeon canvas to see coordinates, or click 'Pick' button.");
   ImGui::Separator();
 
-  if (ImGui::BeginTable("TracksTable", 6,
+  if (ImGui::BeginTable("TracksTable", 7,
                         ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
                             ImGuiTableFlags_Resizable)) {
     ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 30.0f);
@@ -121,10 +278,25 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
                             80.0f);
     ImGui::TableSetupColumn("Pick", ImGuiTableColumnFlags_WidthFixed, 50.0f);
     ImGui::TableSetupColumn("Go", ImGuiTableColumnFlags_WidthFixed, 40.0f);
+    ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed, 60.0f);
     ImGui::TableHeadersRow();
 
     for (auto& track : tracks_) {
       ImGui::TableNextRow();
+
+      const bool is_default = IsDefaultTrack(track);
+      const bool used_in_rooms =
+          track.id >= 0 && track.id < static_cast<int>(track_subtype_used_.size()) &&
+          track_subtype_used_[track.id];
+      const bool missing_start = used_in_rooms && is_default;
+
+      if (missing_start) {
+        ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,
+                               IM_COL32(120, 40, 40, 120));
+      } else if (is_default) {
+        ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,
+                               IM_COL32(60, 60, 60, 80));
+      }
 
       // Highlight the row being picked
       if (picking_mode_ && track.id == picking_track_index_) {
@@ -193,9 +365,96 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
         ImGui::SetTooltip("Navigate to room $%04X", track.room_id);
       }
       ImGui::PopID();
+
+      // Status column
+      ImGui::TableNextColumn();
+      if (missing_start) {
+        ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.1f, 1.0f),
+                           ICON_MD_WARNING_AMBER);
+      } else if (is_default) {
+        ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), ICON_MD_INFO);
+      } else if (used_in_rooms) {
+        ImGui::TextColored(ImVec4(0.4f, 0.9f, 0.4f, 1.0f),
+                           ICON_MD_CHECK_CIRCLE);
+      } else {
+        ImGui::Text("-");
+      }
+
+      if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip();
+        if (missing_start) {
+          ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.1f, 1.0f),
+                             "Used in rooms but still default");
+        } else if (is_default) {
+          ImGui::Text("Default filler slot");
+        } else if (used_in_rooms) {
+          ImGui::Text("Used in rooms");
+        } else {
+          ImGui::Text("No usage detected");
+        }
+
+        auto rooms_it = track_usage_rooms_.find(track.id);
+        if (rooms_it != track_usage_rooms_.end()) {
+          ImGui::Separator();
+          ImGui::Text("Rooms:");
+          for (int room_id : rooms_it->second) {
+            ImGui::BulletText("0x%03X", room_id);
+          }
+        }
+        ImGui::EndTooltip();
+      }
     }
 
     ImGui::EndTable();
+  }
+
+  // Summary + room audit
+  int default_count = 0;
+  int used_count = 0;
+  int missing_start_count = 0;
+  for (const auto& track : tracks_) {
+    bool is_default = IsDefaultTrack(track);
+    bool used_in_rooms =
+        track.id >= 0 && track.id < static_cast<int>(track_subtype_used_.size()) &&
+        track_subtype_used_[track.id];
+    if (is_default) {
+      default_count++;
+    }
+    if (used_in_rooms) {
+      used_count++;
+    }
+    if (used_in_rooms && is_default) {
+      missing_start_count++;
+    }
+  }
+
+  ImGui::Separator();
+  ImGui::Text("Usage Summary: used %d/%d, default %d, missing starts %d",
+              used_count, kTrackSlotCount, default_count, missing_start_count);
+
+  if (!room_audit_.empty()) {
+    ImGui::Separator();
+    ImGui::Text("Rooms with track collision but no cart on a stop tile:");
+    ImGui::BeginChild("##TrackAuditRooms", ImVec2(0, 120), true);
+    for (const auto& [room_id, audit] : room_audit_) {
+      if (!audit.has_track_collision || audit.has_minecart_on_stop) {
+        continue;
+      }
+      ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.1f, 1.0f),
+                         ICON_MD_WARNING_AMBER " Room 0x%03X", room_id);
+      ImGui::SameLine();
+      ImGui::PushID(room_id);
+      if (ImGui::SmallButton(ICON_MD_ARROW_FORWARD)) {
+        if (room_navigation_callback_) {
+          room_navigation_callback_(room_id);
+        }
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Navigate to room 0x%03X", room_id);
+      }
+      ImGui::PopID();
+    }
+    ImGui::EndChild();
   }
 }
 
@@ -231,9 +490,14 @@ void MinecartTrackEditorPanel::LoadTracks() {
     for (size_t i = 0; i < count; ++i) {
       tracks_.push_back({(int)i, rooms[i], xs[i], ys[i]});
     }
+    while (tracks_.size() < kTrackSlotCount) {
+      tracks_.push_back({static_cast<int>(tracks_.size()), kDefaultTrackRoom,
+                         kDefaultTrackX, kDefaultTrackY});
+    }
     status_message_ = "";
     show_success_ = true;
   }
+  audit_dirty_ = true;
   loaded_ = true;
 }
 

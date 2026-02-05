@@ -23,6 +23,7 @@
 #include "rom/rom.h"
 #include "util/log.h"
 #include "util/macro.h"
+#include "zelda3/dungeon/custom_collision.h"
 #include "zelda3/dungeon/object_dimensions.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room.h"
@@ -44,6 +45,62 @@ constexpr int kRoomPropertyColumns = 2;
 // Use shared GetObjectName() from zelda3/dungeon/room_object.h
 using zelda3::GetObjectName;
 using zelda3::GetObjectSubtype;
+
+void DungeonCanvasViewer::SetProject(const project::YazeProject* project) {
+  project_ = project;
+  ApplyTrackCollisionConfig();
+}
+
+void DungeonCanvasViewer::ApplyTrackCollisionConfig() {
+  auto apply_list = [](std::array<bool, 256>& dest,
+                       const std::vector<uint16_t>& values) {
+    dest.fill(false);
+    for (uint16_t value : values) {
+      if (value < dest.size()) {
+        dest[value] = true;
+      }
+    }
+  };
+
+  if (project_ && !project_->dungeon_overlay.track_tiles.empty()) {
+    apply_list(track_collision_config_.track_tiles,
+               project_->dungeon_overlay.track_tiles);
+  } else {
+    std::vector<uint16_t> default_track_tiles;
+    for (uint16_t tile = 0xB0; tile <= 0xBE; ++tile) {
+      default_track_tiles.push_back(tile);
+    }
+    apply_list(track_collision_config_.track_tiles, default_track_tiles);
+  }
+
+  if (project_ && !project_->dungeon_overlay.track_stop_tiles.empty()) {
+    apply_list(track_collision_config_.stop_tiles,
+               project_->dungeon_overlay.track_stop_tiles);
+  } else {
+    apply_list(track_collision_config_.stop_tiles, {0xB7, 0xB8, 0xB9, 0xBA});
+  }
+
+  if (project_ && !project_->dungeon_overlay.track_switch_tiles.empty()) {
+    apply_list(track_collision_config_.switch_tiles,
+               project_->dungeon_overlay.track_switch_tiles);
+  } else {
+    apply_list(track_collision_config_.switch_tiles,
+               {0xD0, 0xD1, 0xD2, 0xD3});
+  }
+
+  minecart_sprite_ids_.fill(false);
+  std::vector<uint16_t> minecart_ids = {0xA3};
+  if (project_ && !project_->dungeon_overlay.minecart_sprite_ids.empty()) {
+    minecart_ids = project_->dungeon_overlay.minecart_sprite_ids;
+  }
+  for (uint16_t id : minecart_ids) {
+    if (id < minecart_sprite_ids_.size()) {
+      minecart_sprite_ids_[id] = true;
+    }
+  }
+
+  collision_overlay_cache_.clear();
+}
 
 void DungeonCanvasViewer::Draw(int room_id) {
   DrawDungeonCanvas(room_id);
@@ -724,6 +781,33 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
         ImGui::SetTooltip("Toggle minecart track origin overlay");
       }
     }
+
+    ImGui::SameLine();
+    bool show_track_collision = show_track_collision_overlay_;
+    if (ImGui::Checkbox(ICON_MD_LAYERS " Track Coll", &show_track_collision)) {
+      show_track_collision_overlay_ = show_track_collision;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Toggle track collision overlay (custom collision)");
+    }
+
+    ImGui::SameLine();
+    bool show_quadrants = show_camera_quadrant_overlay_;
+    if (ImGui::Checkbox(ICON_MD_GRID_VIEW " Quads", &show_quadrants)) {
+      show_camera_quadrant_overlay_ = show_quadrants;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Toggle camera quadrant boundaries");
+    }
+
+    ImGui::SameLine();
+    bool show_cart_sprites = show_minecart_sprite_overlay_;
+    if (ImGui::Checkbox(ICON_MD_TRAIN " Cart Spr", &show_cart_sprites)) {
+      show_minecart_sprite_overlay_ = show_cart_sprites;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Highlight minecart sprites and stop alignment");
+    }
     ImGui::EndGroup();
     ImGui::Separator();
   }
@@ -886,6 +970,40 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       return minecart_track_panel_ != nullptr;
     };
     custom_menu.subitems.push_back(minecart_toggle);
+
+    gui::CanvasMenuItem collision_toggle(
+        show_track_collision_overlay_ ? "Hide Track Collision"
+                                      : "Show Track Collision",
+        ICON_MD_LAYERS, [this]() {
+          show_track_collision_overlay_ = !show_track_collision_overlay_;
+        });
+    custom_menu.subitems.push_back(collision_toggle);
+
+    gui::CanvasMenuItem quadrant_toggle(
+        show_camera_quadrant_overlay_ ? "Hide Camera Quadrants"
+                                      : "Show Camera Quadrants",
+        ICON_MD_GRID_VIEW, [this]() {
+          show_camera_quadrant_overlay_ = !show_camera_quadrant_overlay_;
+        });
+    custom_menu.subitems.push_back(quadrant_toggle);
+
+    gui::CanvasMenuItem cart_sprite_toggle(
+        show_minecart_sprite_overlay_ ? "Hide Minecart Sprites"
+                                      : "Show Minecart Sprites",
+        ICON_MD_TRAIN, [this]() {
+          show_minecart_sprite_overlay_ = !show_minecart_sprite_overlay_;
+        });
+    custom_menu.subitems.push_back(cart_sprite_toggle);
+
+    if (show_track_collision_overlay_) {
+      gui::CanvasMenuItem legend_toggle(
+          show_track_collision_legend_ ? "Hide Collision Legend"
+                                       : "Show Collision Legend",
+          ICON_MD_INFO, [this]() {
+            show_track_collision_legend_ = !show_track_collision_legend_;
+          });
+      custom_menu.subitems.push_back(legend_toggle);
+    }
 
     canvas_.AddContextMenuItem(custom_menu);
 
@@ -1490,6 +1608,19 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       DrawObjectPositionOutlines(canvas_rt, room);
     }
 
+    // Track collision overlay (custom collision tiles)
+    if (show_track_collision_overlay_) {
+      DrawTrackCollisionOverlay(canvas_rt, room);
+    }
+
+    if (show_camera_quadrant_overlay_) {
+      DrawCameraQuadrantOverlay(canvas_rt, room);
+    }
+
+    if (show_minecart_sprite_overlay_) {
+      DrawMinecartSpriteOverlay(canvas_rt, room);
+    }
+
     if (minecart_track_panel_) {
       const bool show_tracks = show_minecart_tracks_ ||
                                minecart_track_panel_->IsPickingCoordinates();
@@ -1896,6 +2027,211 @@ void DungeonCanvasViewer::DrawObjectPositionOutlines(
                               width, height);
     }
     gui::DrawText(rt, label, canvas_x + 1, canvas_y + 1);
+  }
+}
+
+const DungeonCanvasViewer::CollisionOverlayCache&
+DungeonCanvasViewer::GetCollisionOverlayCache(int room_id) {
+  auto it = collision_overlay_cache_.find(room_id);
+  if (it != collision_overlay_cache_.end()) {
+    return it->second;
+  }
+
+  CollisionOverlayCache cache;
+  cache.entries.clear();
+
+  if (!rom_ || !rom_->is_loaded()) {
+    collision_overlay_cache_.emplace(room_id, cache);
+    return collision_overlay_cache_.at(room_id);
+  }
+
+  auto map_or = zelda3::LoadCustomCollisionMap(rom_, room_id);
+  if (!map_or.ok()) {
+    collision_overlay_cache_.emplace(room_id, cache);
+    return collision_overlay_cache_.at(room_id);
+  }
+
+  const auto& map = map_or.value();
+  cache.has_data = map.has_data;
+  if (cache.has_data && !track_collision_config_.IsEmpty()) {
+    for (int y = 0; y < 64; ++y) {
+      for (int x = 0; x < 64; ++x) {
+        const uint8_t tile =
+            map.tiles[static_cast<size_t>(y * 64 + x)];
+        if (tile < 256 &&
+            (track_collision_config_.track_tiles[tile] ||
+             track_collision_config_.stop_tiles[tile] ||
+             track_collision_config_.switch_tiles[tile])) {
+          cache.entries.push_back(
+              CollisionOverlayEntry{static_cast<uint8_t>(x),
+                                    static_cast<uint8_t>(y), tile});
+        }
+      }
+    }
+  }
+
+  collision_overlay_cache_.emplace(room_id, std::move(cache));
+  return collision_overlay_cache_.at(room_id);
+}
+
+void DungeonCanvasViewer::DrawTrackCollisionOverlay(
+    const gui::CanvasRuntime& rt, const zelda3::Room& room) {
+  if (!show_track_collision_overlay_) {
+    return;
+  }
+  if (!rom_ || !rom_->is_loaded()) {
+    return;
+  }
+
+  const auto& cache = GetCollisionOverlayCache(room.id());
+  if (!cache.has_data || cache.entries.empty()) {
+    return;
+  }
+
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
+  ImVec2 canvas_pos = canvas_.zero_point();
+  float scale = canvas_.global_scale();
+
+  const ImU32 track_color =
+      ImGui::GetColorU32(ImVec4(0.2f, 0.8f, 0.4f, 0.35f));
+  const ImU32 stop_color =
+      ImGui::GetColorU32(ImVec4(0.9f, 0.3f, 0.2f, 0.45f));
+  const ImU32 switch_color =
+      ImGui::GetColorU32(ImVec4(0.95f, 0.8f, 0.2f, 0.45f));
+  const ImU32 outline_color = ImGui::GetColorU32(ImVec4(0, 0, 0, 0.4f));
+
+  for (const auto& entry : cache.entries) {
+    const float px = static_cast<float>(entry.x * 8) * scale;
+    const float py = static_cast<float>(entry.y * 8) * scale;
+    ImVec2 min(canvas_pos.x + px, canvas_pos.y + py);
+    ImVec2 max(min.x + (8.0f * scale), min.y + (8.0f * scale));
+
+    ImU32 color = track_color;
+    if (track_collision_config_.stop_tiles[entry.tile]) {
+      color = stop_color;
+    } else if (track_collision_config_.switch_tiles[entry.tile]) {
+      color = switch_color;
+    }
+
+    draw_list->AddRectFilled(min, max, color);
+    draw_list->AddRect(min, max, outline_color);
+  }
+
+  if (show_track_collision_legend_) {
+    ImVec2 legend_pos(canvas_pos.x + 8.0f, canvas_pos.y + 8.0f);
+    ImDrawList* legend = draw_list;
+    const float swatch = 10.0f;
+    const float pad = 6.0f;
+    const ImU32 text_color = ImGui::GetColorU32(ImVec4(1, 1, 1, 0.85f));
+
+    struct LegendItem {
+      const char* label;
+      ImU32 color;
+    };
+    const LegendItem items[] = {
+        {"Track", track_color},
+        {"Stop", stop_color},
+        {"Switch", switch_color},
+    };
+
+    float y = legend_pos.y;
+    for (const auto& item : items) {
+      ImVec2 swatch_min(legend_pos.x, y);
+      ImVec2 swatch_max(legend_pos.x + swatch, y + swatch);
+      legend->AddRectFilled(swatch_min, swatch_max, item.color);
+      legend->AddRect(swatch_min, swatch_max, outline_color);
+      legend->AddText(ImVec2(legend_pos.x + swatch + pad, y - 1.0f),
+                      text_color, item.label);
+      y += swatch + 4.0f;
+    }
+  }
+}
+
+void DungeonCanvasViewer::DrawCameraQuadrantOverlay(
+    const gui::CanvasRuntime& rt, const zelda3::Room& room) {
+  (void)rt;
+  if (!show_camera_quadrant_overlay_) {
+    return;
+  }
+
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
+  ImVec2 canvas_pos = canvas_.zero_point();
+  float scale = canvas_.global_scale();
+
+  const float room_size_px = 512.0f * scale;
+  const float mid_px = 256.0f * scale;
+  const float thickness = std::max(1.0f, 1.0f * scale);
+  const ImU32 line_color =
+      ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 0.35f));
+
+  ImVec2 v_start(canvas_pos.x + mid_px, canvas_pos.y);
+  ImVec2 v_end(canvas_pos.x + mid_px, canvas_pos.y + room_size_px);
+  ImVec2 h_start(canvas_pos.x, canvas_pos.y + mid_px);
+  ImVec2 h_end(canvas_pos.x + room_size_px, canvas_pos.y + mid_px);
+  draw_list->AddLine(v_start, v_end, line_color, thickness);
+  draw_list->AddLine(h_start, h_end, line_color, thickness);
+
+  // Optional label with layout id for quick context.
+  const ImU32 text_color =
+      ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 0.6f));
+  std::string label = absl::StrFormat("Layout %d", room.layout);
+  draw_list->AddText(ImVec2(canvas_pos.x + 6.0f, canvas_pos.y + 6.0f),
+                     text_color, label.c_str());
+}
+
+void DungeonCanvasViewer::DrawMinecartSpriteOverlay(
+    const gui::CanvasRuntime& rt, const zelda3::Room& room) {
+  (void)rt;
+  if (!show_minecart_sprite_overlay_) {
+    return;
+  }
+  if (!rom_ || !rom_->is_loaded()) {
+    return;
+  }
+
+  auto map_or = zelda3::LoadCustomCollisionMap(rom_, room.id());
+  const bool has_collision = map_or.ok() && map_or.value().has_data;
+
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
+  ImVec2 canvas_pos = canvas_.zero_point();
+  float scale = canvas_.global_scale();
+
+  const ImU32 ok_color =
+      ImGui::GetColorU32(ImVec4(0.2f, 0.9f, 0.4f, 0.9f));
+  const ImU32 warn_color =
+      ImGui::GetColorU32(ImVec4(0.95f, 0.5f, 0.2f, 0.95f));
+  const ImU32 unknown_color =
+      ImGui::GetColorU32(ImVec4(0.7f, 0.7f, 0.7f, 0.8f));
+
+  for (const auto& sprite : room.GetSprites()) {
+    if (sprite.id() >= minecart_sprite_ids_.size() ||
+        !minecart_sprite_ids_[sprite.id()]) {
+      continue;
+    }
+
+    bool on_stop_tile = false;
+    bool has_tile = false;
+    if (has_collision) {
+      int tile_x = sprite.x() * 2;
+      int tile_y = sprite.y() * 2;
+      if (tile_x >= 0 && tile_x < 64 && tile_y >= 0 && tile_y < 64) {
+        uint8_t tile =
+            map_or.value().tiles[static_cast<size_t>(tile_y * 64 + tile_x)];
+        has_tile = true;
+        on_stop_tile = track_collision_config_.stop_tiles[tile];
+      }
+    }
+
+    ImU32 color = unknown_color;
+    if (has_tile) {
+      color = on_stop_tile ? ok_color : warn_color;
+    }
+
+    const float px = static_cast<float>(sprite.x() * 16) * scale;
+    const float py = static_cast<float>(sprite.y() * 16) * scale;
+    ImVec2 min(canvas_pos.x + px, canvas_pos.y + py);
+    ImVec2 max(min.x + (16.0f * scale), min.y + (16.0f * scale));
+    draw_list->AddRect(min, max, color, 0.0f, 0, 2.0f);
   }
 }
 

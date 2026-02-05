@@ -1,5 +1,9 @@
 #include "object_dimensions.h"
 
+#include <limits>
+
+#include "core/features.h"
+#include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
@@ -255,6 +259,36 @@ std::pair<int, int> ObjectDimensionTable::GetSelectionDimensions(int object_id, 
 
 ObjectDimensionTable::SelectionBounds ObjectDimensionTable::GetSelectionBounds(
     int object_id, int size) const {
+  if (core::FeatureFlags::get().kEnableCustomObjects) {
+    int subtype = size & 0x1F;
+    auto custom_or = CustomObjectManager::Get().GetObjectInternal(object_id, subtype);
+    if (custom_or.ok()) {
+      auto custom = custom_or.value();
+      if (custom && !custom->IsEmpty()) {
+        int min_x = std::numeric_limits<int>::max();
+        int min_y = std::numeric_limits<int>::max();
+        int max_x = std::numeric_limits<int>::min();
+        int max_y = std::numeric_limits<int>::min();
+
+        for (const auto& entry : custom->tiles) {
+          min_x = std::min(min_x, entry.rel_x);
+          min_y = std::min(min_y, entry.rel_y);
+          max_x = std::max(max_x, entry.rel_x);
+          max_y = std::max(max_y, entry.rel_y);
+        }
+
+        if (min_x != std::numeric_limits<int>::max()) {
+          SelectionBounds bounds;
+          bounds.offset_x = min_x;
+          bounds.offset_y = min_y;
+          bounds.width = (max_x - min_x) + 1;
+          bounds.height = (max_y - min_y) + 1;
+          return bounds;
+        }
+      }
+    }
+  }
+
   auto [w, h] = GetSelectionDimensions(object_id, size);
   SelectionBounds bounds{0, 0, w, h};
 

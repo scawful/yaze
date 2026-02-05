@@ -78,6 +78,21 @@ struct WorkspaceSettings {
 };
 
 /**
+ * @struct DungeonOverlaySettings
+ * @brief Dungeon overlay configuration (per-project).
+ */
+struct DungeonOverlaySettings {
+  // Collision tile IDs used by minecart tracks and interactions.
+  std::vector<uint16_t> track_tiles;
+  std::vector<uint16_t> track_stop_tiles;
+  std::vector<uint16_t> track_switch_tiles;
+
+  // Object/Sprite IDs used for minecart tooling and validation.
+  std::vector<uint16_t> track_object_ids;
+  std::vector<uint16_t> minecart_sprite_ids;
+};
+
+/**
  * @struct YazeProject
  * @brief Modern project structure with comprehensive settings consolidation
  */
@@ -105,6 +120,7 @@ struct YazeProject {
   // Consolidated settings (previously scattered across multiple files)
   core::FeatureFlags::Flags feature_flags;
   WorkspaceSettings workspace_settings;
+  DungeonOverlaySettings dungeon_overlay;
   std::unordered_map<std::string, std::unordered_map<std::string, std::string>>
       resource_labels;
 

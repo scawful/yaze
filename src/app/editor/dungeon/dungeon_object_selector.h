@@ -75,6 +75,7 @@ class DungeonObjectSelector {
   void SetCurrentPaletteId(uint64_t palette_id) {
     current_palette_id_ = palette_id;
   }
+  void SetCustomObjectsFolder(const std::string& folder);
 
   // Object selection callbacks
   void SetObjectSelectedCallback(
@@ -99,7 +100,7 @@ class DungeonObjectSelector {
   void DrawObjectAssetBrowser();
 
   // Programmatic selection
-  void SelectObject(int obj_id);
+  void SelectObject(int obj_id, int subtype = -1);
 
   // Static editor indicator (highlights which object is being viewed in detail)
   void SetStaticEditorObjectId(int obj_id) {
@@ -127,6 +128,7 @@ class DungeonObjectSelector {
   ImU32 GetObjectTypeColor(int object_id);
   std::string GetObjectTypeSymbol(int object_id);
   void RenderObjectPrimitive(const zelda3::RoomObject& object, int x, int y);
+  void EnsureCustomObjectsInitialized();
 
   Rom* rom_ = nullptr;
   zelda3::GameData* game_data_ = nullptr;
@@ -138,6 +140,8 @@ class DungeonObjectSelector {
   std::unique_ptr<zelda3::DungeonEditorSystem>* dungeon_editor_system_ =
       nullptr;
   zelda3::DungeonObjectEditor* object_editor_ = nullptr;
+  std::string custom_objects_folder_;
+  bool custom_objects_initialized_ = false;
 
   // Room data
   std::array<zelda3::Room, 0x128>* rooms_ = nullptr;
@@ -216,14 +220,16 @@ class DungeonObjectSelector {
   bool enable_object_previews_ = false;
 
   // Preview cache for object selector grid
-  // Key: object_id, Value: BackgroundBuffer with rendered preview
+  // Key: object_id (or object_id+subtype for custom objects)
+  // Value: BackgroundBuffer with rendered preview
   std::map<int, std::unique_ptr<gfx::BackgroundBuffer>> preview_cache_;
   uint8_t cached_preview_blockset_ = 0xFF;
   uint8_t cached_preview_palette_ = 0xFF;
   int cached_preview_room_id_ = -1;
 
   void InvalidatePreviewCache();
-  bool GetOrCreatePreview(int obj_id, float size, gfx::BackgroundBuffer** out);
+  bool GetOrCreatePreview(const zelda3::RoomObject& object, float size,
+                          gfx::BackgroundBuffer** out);
 
   MinecartTrackEditorPanel minecart_track_editor_;
 };
