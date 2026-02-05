@@ -80,6 +80,24 @@ struct FlagsMenu {
   void DrawDungeonFlags() {
     const auto& theme = ThemeManager::Get().GetCurrentTheme();
     Checkbox("Save Dungeon Maps", &core::FeatureFlags::get().kSaveDungeonMaps);
+    ImGui::Separator();
+    ImGui::TextColored(ConvertColorToImVec4(theme.text_secondary),
+                       "Dungeon Save Controls");
+    Checkbox("Save Objects", &core::FeatureFlags::get().dungeon.kSaveObjects);
+    Checkbox("Save Sprites", &core::FeatureFlags::get().dungeon.kSaveSprites);
+    Checkbox("Save Room Headers",
+             &core::FeatureFlags::get().dungeon.kSaveRoomHeaders);
+    Checkbox("Save Torches", &core::FeatureFlags::get().dungeon.kSaveTorches);
+    Checkbox("Save Pits", &core::FeatureFlags::get().dungeon.kSavePits);
+    Checkbox("Save Blocks", &core::FeatureFlags::get().dungeon.kSaveBlocks);
+    Checkbox("Save Collision",
+             &core::FeatureFlags::get().dungeon.kSaveCollision);
+    Checkbox("Save Chests", &core::FeatureFlags::get().dungeon.kSaveChests);
+    Checkbox("Save Pot Items",
+             &core::FeatureFlags::get().dungeon.kSavePotItems);
+    Checkbox("Save Palettes",
+             &core::FeatureFlags::get().dungeon.kSavePalettes);
+    ImGui::Separator();
     Checkbox("Enable Custom Objects", &core::FeatureFlags::get().kEnableCustomObjects);
     ImGui::SameLine();
     if (ImGui::Button("?##CustomObjHelp")) {
@@ -102,6 +120,7 @@ struct FlagsMenu {
     Checkbox("Save Gfx Groups", &core::FeatureFlags::get().kSaveGfxGroups);
     Checkbox("Save Graphics Sheets",
              &core::FeatureFlags::get().kSaveGraphicsSheet);
+    Checkbox("Save Messages", &core::FeatureFlags::get().kSaveMessages);
   }
 
   void DrawSystemFlags() {

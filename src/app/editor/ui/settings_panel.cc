@@ -26,6 +26,7 @@
 #include "util/file_util.h"
 #include "util/log.h"
 #include "util/platform_paths.h"
+#include "util/rom_hash.h"
 #include "zelda3/sprite/sprite.h"
 
 namespace yaze {
@@ -362,6 +363,50 @@ void SettingsPanel::DrawProjectSettings() {
   ImGui::Text("Path: %s", project_->filepath.c_str());
 
   ImGui::Spacing();
+  ImGui::Text("%s ROM Identity", ICON_MD_VIDEOGAME_ASSET);
+  ImGui::Separator();
+
+  const char* roles[] = {"base", "dev", "patched", "release"};
+  int role_index = static_cast<int>(project_->rom_metadata.role);
+  if (ImGui::Combo("Role", &role_index, roles, IM_ARRAYSIZE(roles))) {
+    project_->rom_metadata.role =
+        static_cast<project::RomRole>(role_index);
+    project_->Save();
+  }
+
+  const char* policies[] = {"allow", "warn", "block"};
+  int policy_index = static_cast<int>(project_->rom_metadata.write_policy);
+  if (ImGui::Combo("Write Policy", &policy_index, policies,
+                   IM_ARRAYSIZE(policies))) {
+    project_->rom_metadata.write_policy =
+        static_cast<project::RomWritePolicy>(policy_index);
+    project_->Save();
+  }
+
+  std::string expected_hash = project_->rom_metadata.expected_hash;
+  if (ImGui::InputText("Expected Hash", &expected_hash)) {
+    project_->rom_metadata.expected_hash = expected_hash;
+    project_->Save();
+  }
+
+  static std::string cached_rom_hash;
+  static std::string cached_rom_path;
+  if (rom_ && rom_->is_loaded()) {
+    if (cached_rom_path != rom_->filename()) {
+      cached_rom_path = rom_->filename();
+      cached_rom_hash = util::ComputeRomHash(rom_->data(), rom_->size());
+    }
+    ImGui::Text("Current ROM Hash: %s",
+                cached_rom_hash.empty() ? "(unknown)" : cached_rom_hash.c_str());
+    if (ImGui::Button("Use Current ROM Hash")) {
+      project_->rom_metadata.expected_hash = cached_rom_hash;
+      project_->Save();
+    }
+  } else {
+    ImGui::TextDisabled("Current ROM Hash: (no ROM loaded)");
+  }
+
+  ImGui::Spacing();
   ImGui::Text("%s Paths", ICON_MD_FOLDER_OPEN);
   ImGui::Separator();
 
@@ -394,6 +439,42 @@ void SettingsPanel::DrawProjectSettings() {
   std::string symbols_file = project_->symbols_filename;
   if (ImGui::InputText("Symbols File", &symbols_file)) {
     project_->symbols_filename = symbols_file;
+    project_->Save();
+  }
+
+  ImGui::Spacing();
+  ImGui::Text("%s Backup Settings", ICON_MD_BACKUP);
+  ImGui::Separator();
+
+  std::string backup_folder = project_->rom_backup_folder;
+  if (ImGui::InputText("Backup Folder", &backup_folder)) {
+    project_->rom_backup_folder = backup_folder;
+    project_->Save();
+  }
+
+  bool backup_on_save = project_->workspace_settings.backup_on_save;
+  if (ImGui::Checkbox("Backup Before Save", &backup_on_save)) {
+    project_->workspace_settings.backup_on_save = backup_on_save;
+    project_->Save();
+  }
+
+  int retention = project_->workspace_settings.backup_retention_count;
+  if (ImGui::InputInt("Retention Count", &retention)) {
+    project_->workspace_settings.backup_retention_count =
+        std::max(0, retention);
+    project_->Save();
+  }
+
+  bool keep_daily = project_->workspace_settings.backup_keep_daily;
+  if (ImGui::Checkbox("Keep Daily Snapshots", &keep_daily)) {
+    project_->workspace_settings.backup_keep_daily = keep_daily;
+    project_->Save();
+  }
+
+  int keep_days = project_->workspace_settings.backup_keep_daily_days;
+  if (ImGui::InputInt("Keep Daily Days", &keep_days)) {
+    project_->workspace_settings.backup_keep_daily_days =
+        std::max(1, keep_days);
     project_->Save();
   }
 

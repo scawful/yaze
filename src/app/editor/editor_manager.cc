@@ -2,13 +2,16 @@
 #include "editor_manager.h"
 
 // C system headers
+#include <cctype>
 #include <cstdint>
 #include <cstring>
 
 // C++ standard library headers
+#include <algorithm>
 #include <chrono>
 #include <exception>
 #include <functional>
+#include <initializer_list>
 #include <memory>
 #include <optional>
 #include <sstream>
@@ -43,6 +46,7 @@
 #include "app/editor/layout/layout_presets.h"
 #include "app/editor/menu/activity_bar.h"
 #include "app/editor/menu/menu_orchestrator.h"
+#include "app/editor/message/message_data.h"
 #include "app/editor/music/music_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/palette/palette_editor.h"
@@ -56,6 +60,7 @@
 #include "app/editor/ui/project_management_panel.h"
 #include "app/editor/ui/settings_panel.h"
 #include "app/editor/ui/toast_manager.h"
+#include "util/rom_hash.h"
 #include "app/editor/ui/ui_coordinator.h"
 #include "app/emu/emulator.h"
 #include "app/gfx/debug/performance/performance_dashboard.h"
@@ -66,6 +71,7 @@
 #include "app/platform/timing.h"
 #include "app/test/test_manager.h"
 #include "core/features.h"
+#include "core/rom_settings.h"
 #include "core/project.h"
 #include "editor/core/content_registry.h"
 #include "editor/core/editor_context.h"
@@ -81,7 +87,11 @@
 #include "util/log.h"
 #include "util/macro.h"
 #include "yaze_config.h"
+#include "zelda3/dungeon/custom_object.h"
 #include "zelda3/game_data.h"
+#include "zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld_entrance.h"
+#include "zelda3/overworld/overworld_map.h"
 #include "zelda3/resource_labels.h"
 #include "zelda3/screen/dungeon_map.h"
 #include "zelda3/sprite/sprite.h"
@@ -119,6 +129,128 @@ namespace {
 // TODO: Move to EditorRegistry
 std::string GetEditorName(EditorType type) {
   return kEditorNames[static_cast<int>(type)];
+}
+
+std::string NormalizeHash(std::string value) {
+  absl::AsciiStrToLower(&value);
+  if (absl::StartsWith(value, "0x")) {
+    value = value.substr(2);
+  }
+  value.erase(std::remove_if(value.begin(), value.end(),
+                             [](unsigned char c) { return std::isspace(c); }),
+              value.end());
+  return value;
+}
+
+bool HasAnyOverride(const core::RomAddressOverrides& overrides,
+                    std::initializer_list<const char*> keys) {
+  for (const char* key : keys) {
+    if (overrides.addresses.find(key) != overrides.addresses.end()) {
+      return true;
+    }
+  }
+  return false;
+}
+
+std::vector<std::string> ValidateRomAddressOverrides(
+    const core::RomAddressOverrides& overrides, const Rom& rom) {
+  std::vector<std::string> warnings;
+  if (overrides.addresses.empty()) {
+    return warnings;
+  }
+
+  const auto rom_size = rom.size();
+  auto warn = [&](const std::string& message) { warnings.push_back(message); };
+
+  auto check_range = [&](const std::string& label, uint32_t addr,
+                         size_t span) {
+    const size_t addr_size = static_cast<size_t>(addr);
+    if (addr_size >= rom_size || addr_size + span > rom_size) {
+      warn(absl::StrFormat("ROM override '%s' out of range: 0x%X (size 0x%X)",
+                           label, addr, rom_size));
+    }
+  };
+
+  for (const auto& [key, value] : overrides.addresses) {
+    check_range(key, value, 1);
+  }
+
+  if (HasAnyOverride(overrides, {core::RomAddressKey::kExpandedMessageStart,
+                                 core::RomAddressKey::kExpandedMessageEnd})) {
+    const uint32_t start =
+        overrides.GetAddress(core::RomAddressKey::kExpandedMessageStart)
+            .value_or(kExpandedTextDataDefault);
+    const uint32_t end =
+        overrides.GetAddress(core::RomAddressKey::kExpandedMessageEnd)
+            .value_or(kExpandedTextDataEndDefault);
+    if (start >= rom_size || end >= rom_size) {
+      warn(absl::StrFormat("Expanded message range out of ROM bounds: 0x%X-0x%X",
+                           start, end));
+    } else if (end < start) {
+      warn(absl::StrFormat("Expanded message range invalid: 0x%X-0x%X",
+                           start, end));
+    }
+  }
+
+  if (auto hook =
+          overrides.GetAddress(core::RomAddressKey::kExpandedMusicHook)) {
+    check_range(core::RomAddressKey::kExpandedMusicHook, *hook, 4);
+    if (*hook < rom_size) {
+      auto opcode = rom.ReadByte(*hook);
+      if (opcode.ok() && opcode.value() != 0x22) {
+        warn(absl::StrFormat(
+            "Expanded music hook at 0x%X is not a JSL opcode (0x%02X)",
+            *hook, opcode.value()));
+      }
+    }
+  }
+
+  if (auto main =
+          overrides.GetAddress(core::RomAddressKey::kExpandedMusicMain)) {
+    check_range(core::RomAddressKey::kExpandedMusicMain, *main, 4);
+  }
+
+  if (auto aux =
+          overrides.GetAddress(core::RomAddressKey::kExpandedMusicAux)) {
+    check_range(core::RomAddressKey::kExpandedMusicAux, *aux, 4);
+  }
+
+  if (HasAnyOverride(overrides, {core::RomAddressKey::kOverworldExpandedPtrMarker,
+                                 core::RomAddressKey::kOverworldExpandedPtrMagic,
+                                 core::RomAddressKey::kOverworldExpandedPtrHigh,
+                                 core::RomAddressKey::kOverworldExpandedPtrLow})) {
+    const uint32_t marker =
+        overrides.GetAddress(core::RomAddressKey::kOverworldExpandedPtrMarker)
+            .value_or(zelda3::kExpandedPtrTableMarker);
+    const uint32_t magic =
+        overrides.GetAddress(core::RomAddressKey::kOverworldExpandedPtrMagic)
+            .value_or(zelda3::kExpandedPtrTableMagic);
+    check_range("overworld_ptr_marker", marker, 1);
+    if (marker < rom_size) {
+      if (rom.data()[marker] != static_cast<uint8_t>(magic)) {
+        warn(absl::StrFormat(
+            "Overworld expanded pointer marker mismatch at 0x%X: expected 0x%02X, found 0x%02X",
+            marker, static_cast<uint8_t>(magic), rom.data()[marker]));
+      }
+    }
+  }
+
+  if (HasAnyOverride(overrides, {core::RomAddressKey::kOverworldEntranceMapExpanded,
+                                 core::RomAddressKey::kOverworldEntrancePosExpanded,
+                                 core::RomAddressKey::kOverworldEntranceIdExpanded,
+                                 core::RomAddressKey::kOverworldEntranceFlagExpanded})) {
+    const uint32_t flag_addr =
+        overrides.GetAddress(core::RomAddressKey::kOverworldEntranceFlagExpanded)
+            .value_or(zelda3::kOverworldEntranceExpandedFlagPos);
+    check_range("overworld_entrance_flag_expanded", flag_addr, 1);
+    if (flag_addr < rom_size && rom.data()[flag_addr] == 0xB8) {
+      warn(absl::StrFormat(
+          "Overworld entrance flag at 0x%X is still 0xB8 (vanilla); expanded entrance tables may be ignored",
+          flag_addr));
+    }
+  }
+
+  return warnings;
 }
 
 std::optional<EditorType> ParseEditorTypeFromString(absl::string_view name) {
@@ -626,7 +758,7 @@ void EditorManager::HandleUIActionRequest(UIActionRequestEvent::Action action) {
         auto status = SaveRom();
         if (status.ok()) {
           toast_manager_.Show("ROM saved successfully", ToastType::kSuccess);
-        } else {
+        } else if (!absl::IsCancelled(status)) {
           toast_manager_.Show(
               std::string("Save failed: ") + std::string(status.message()),
               ToastType::kError);
@@ -985,7 +1117,7 @@ void EditorManager::SetupSidebarCallbacks() {
       auto status = SaveRom();
       if (status.ok()) {
         toast_manager_.Show("ROM saved successfully", ToastType::kSuccess);
-      } else {
+      } else if (!absl::IsCancelled(status)) {
         toast_manager_.Show(
             absl::StrFormat("Failed to save ROM: %s", status.message()),
             ToastType::kError);
@@ -1994,6 +2126,23 @@ absl::Status EditorManager::LoadRom() {
 
     ConfigureEditorDependencies(GetCurrentEditorSet(), GetCurrentRom(),
                                 GetCurrentSessionId());
+    UpdateCurrentRomHash();
+    rom_file_manager_.SetBackupBeforeSave(
+        user_settings_.prefs().backup_before_save);
+    rom_file_manager_.SetBackupFolder("");
+    rom_file_manager_.SetBackupRetentionCount(20);
+    rom_file_manager_.SetBackupKeepDaily(true);
+    rom_file_manager_.SetBackupKeepDailyDays(14);
+    UpdateCurrentRomHash();
+
+    core::RomSettings::Get().ClearOverrides();
+    zelda3::CustomObjectManager::Get().ClearObjectFileMap();
+    rom_file_manager_.SetBackupBeforeSave(
+        user_settings_.prefs().backup_before_save);
+    rom_file_manager_.SetBackupFolder("");
+    rom_file_manager_.SetBackupRetentionCount(20);
+    rom_file_manager_.SetBackupKeepDaily(true);
+    rom_file_manager_.SetBackupKeepDailyDays(14);
 
     // Initialize resource labels for LoadRom() - use defaults with current project settings
     auto& label_provider = zelda3::GetResourceLabels();
@@ -2321,11 +2470,126 @@ absl::Status EditorManager::LoadAssetsLazy(uint64_t passed_handle) {
  * This stays in EditorManager because it requires knowledge of all editors
  * and the order in which they must be saved to maintain ROM integrity.
  */
+absl::Status EditorManager::CheckRomWritePolicy() {
+  if (!current_project_.project_opened()) {
+    return absl::OkStatus();
+  }
+
+  const auto policy = current_project_.rom_metadata.write_policy;
+  const auto expected =
+      NormalizeHash(current_project_.rom_metadata.expected_hash);
+  const auto actual = NormalizeHash(current_rom_hash_);
+
+  if (expected.empty() || actual.empty() || expected == actual) {
+    return absl::OkStatus();
+  }
+
+  if (policy == project::RomWritePolicy::kAllow) {
+    return absl::OkStatus();
+  }
+
+  if (policy == project::RomWritePolicy::kBlock) {
+    toast_manager_.Show(
+        "ROM write blocked: project expects a different ROM hash",
+        ToastType::kError);
+    return absl::PermissionDeniedError(
+        "ROM write blocked by project write policy");
+  }
+
+  if (!bypass_rom_write_confirm_once_) {
+    pending_rom_write_confirm_ = true;
+    if (popup_manager_) {
+      popup_manager_->Show(PopupID::kRomWriteConfirm);
+    }
+    toast_manager_.Show(
+        "ROM hash mismatch: confirmation required to save",
+        ToastType::kWarning);
+    return absl::CancelledError("ROM write confirmation required");
+  }
+
+  return absl::OkStatus();
+}
+
 absl::Status EditorManager::SaveRom() {
   auto* current_rom = GetCurrentRom();
   auto* current_editor_set = GetCurrentEditorSet();
   if (!current_rom || !current_editor_set) {
     return absl::FailedPreconditionError("No ROM or editor set loaded");
+  }
+
+  if (pending_rom_write_confirm_) {
+    return absl::CancelledError("Save pending confirmation");
+  }
+
+  RETURN_IF_ERROR(CheckRomWritePolicy());
+
+  if (pending_pot_item_save_confirm_) {
+    return absl::CancelledError("Save pending confirmation");
+  }
+
+  auto* dungeon_editor = current_editor_set->GetDungeonEditor();
+  const bool pot_items_enabled =
+      core::FeatureFlags::get().dungeon.kSavePotItems;
+  if (!bypass_pot_item_confirm_once_ && !suppress_pot_item_save_once_ &&
+      pot_items_enabled && dungeon_editor) {
+    const int loaded_rooms = dungeon_editor->LoadedRoomCount();
+    const int total_rooms = dungeon_editor->TotalRoomCount();
+    if (loaded_rooms < total_rooms) {
+      pending_pot_item_save_confirm_ = true;
+      pending_pot_item_unloaded_rooms_ = total_rooms - loaded_rooms;
+      pending_pot_item_total_rooms_ = total_rooms;
+      if (popup_manager_) {
+        popup_manager_->Show(PopupID::kDungeonPotItemSaveConfirm);
+      }
+      toast_manager_.Show(
+          absl::StrFormat("Save paused: pot items enabled with %d unloaded rooms",
+                          pending_pot_item_unloaded_rooms_),
+          ToastType::kWarning);
+      return absl::CancelledError("Pot item save confirmation required");
+    }
+  }
+
+  const bool bypass_confirm = bypass_pot_item_confirm_once_;
+  const bool suppress_pot_items = suppress_pot_item_save_once_;
+  bypass_pot_item_confirm_once_ = false;
+  suppress_pot_item_save_once_ = false;
+
+  struct PotItemFlagGuard {
+    bool restore = false;
+    bool previous = false;
+    ~PotItemFlagGuard() {
+      if (restore) {
+        core::FeatureFlags::get().dungeon.kSavePotItems = previous;
+      }
+    }
+  } pot_item_guard;
+
+  if (suppress_pot_items) {
+    pot_item_guard.previous = core::FeatureFlags::get().dungeon.kSavePotItems;
+    pot_item_guard.restore = true;
+    core::FeatureFlags::get().dungeon.kSavePotItems = false;
+  } else if (bypass_confirm) {
+    // Explicitly allow pot item save once after confirmation.
+  }
+
+  if (current_project_.project_opened()) {
+    rom_file_manager_.SetBackupBeforeSave(
+        current_project_.workspace_settings.backup_on_save);
+    rom_file_manager_.SetBackupFolder(
+        current_project_.GetAbsolutePath(current_project_.rom_backup_folder));
+    rom_file_manager_.SetBackupRetentionCount(
+        current_project_.workspace_settings.backup_retention_count);
+    rom_file_manager_.SetBackupKeepDaily(
+        current_project_.workspace_settings.backup_keep_daily);
+    rom_file_manager_.SetBackupKeepDailyDays(
+        current_project_.workspace_settings.backup_keep_daily_days);
+  } else {
+    rom_file_manager_.SetBackupBeforeSave(
+        user_settings_.prefs().backup_before_save);
+    rom_file_manager_.SetBackupFolder("");
+    rom_file_manager_.SetBackupRetentionCount(20);
+    rom_file_manager_.SetBackupKeepDaily(true);
+    rom_file_manager_.SetBackupKeepDailyDays(14);
   }
 
   // Save editor-specific data first
@@ -2340,12 +2604,21 @@ absl::Status EditorManager::SaveRom() {
 
   RETURN_IF_ERROR(current_editor_set->GetOverworldEditor()->Save());
 
+  if (core::FeatureFlags::get().kSaveMessages) {
+    RETURN_IF_ERROR(EnsureEditorAssetsLoaded(EditorType::kMessage));
+    RETURN_IF_ERROR(current_editor_set->GetMessageEditor()->Save());
+  }
+
   if (core::FeatureFlags::get().kSaveGraphicsSheet)
     RETURN_IF_ERROR(zelda3::SaveAllGraphicsData(
         *current_rom, gfx::Arena::Get().gfx_sheets()));
 
   // Delegate final ROM file writing to RomFileManager
-  return rom_file_manager_.SaveRom(current_rom);
+  auto save_status = rom_file_manager_.SaveRom(current_rom);
+  if (save_status.ok()) {
+    bypass_rom_write_confirm_once_ = false;
+  }
+  return save_status;
 }
 
 absl::Status EditorManager::SaveRomAs(const std::string& filename) {
@@ -2664,10 +2937,55 @@ absl::Status EditorManager::LoadProjectWithRom() {
 
   ConfigureEditorDependencies(GetCurrentEditorSet(), GetCurrentRom(),
                               GetCurrentSessionId());
+  UpdateCurrentRomHash();
 
   // Apply project feature flags to both session and global singleton
   session->feature_flags = current_project_.feature_flags;
   core::FeatureFlags::get() = current_project_.feature_flags;
+
+  core::RomSettings::Get().SetAddressOverrides(
+      current_project_.rom_address_overrides);
+  if (!current_project_.custom_object_files.empty()) {
+    zelda3::CustomObjectManager::Get().SetObjectFileMap(
+        current_project_.custom_object_files);
+  } else {
+    zelda3::CustomObjectManager::Get().ClearObjectFileMap();
+  }
+  if (!current_project_.custom_objects_folder.empty()) {
+    zelda3::CustomObjectManager::Get().Initialize(
+        current_project_.GetAbsolutePath(
+            current_project_.custom_objects_folder));
+  }
+  rom_file_manager_.SetBackupBeforeSave(
+      current_project_.workspace_settings.backup_on_save);
+  rom_file_manager_.SetBackupFolder(
+      current_project_.GetAbsolutePath(current_project_.rom_backup_folder));
+  rom_file_manager_.SetBackupRetentionCount(
+      current_project_.workspace_settings.backup_retention_count);
+  rom_file_manager_.SetBackupKeepDaily(
+      current_project_.workspace_settings.backup_keep_daily);
+  rom_file_manager_.SetBackupKeepDailyDays(
+      current_project_.workspace_settings.backup_keep_daily_days);
+
+  if (auto* rom = GetCurrentRom(); rom && rom->is_loaded()) {
+    if (IsRomHashMismatch()) {
+      toast_manager_.Show(
+          "Project ROM hash mismatch detected. Check ROM Identity settings.",
+          ToastType::kWarning);
+    }
+    auto warnings =
+        ValidateRomAddressOverrides(current_project_.rom_address_overrides,
+                                    *rom);
+    if (!warnings.empty()) {
+      for (const auto& warning : warnings) {
+        LOG_WARN("EditorManager", "%s", warning.c_str());
+      }
+      toast_manager_.Show(
+          absl::StrFormat("ROM override warnings: %d (see log)",
+                          warnings.size()),
+          ToastType::kWarning);
+    }
+  }
 
   // Update test manager with current ROM for ROM-dependent tests (only when
   // tests are enabled)
@@ -2704,6 +3022,8 @@ absl::Status EditorManager::LoadProjectWithRom() {
       current_project_.workspace_settings.autosave_enabled;
   user_settings_.prefs().autosave_interval =
       current_project_.workspace_settings.autosave_interval_secs;
+  user_settings_.prefs().backup_before_save =
+      current_project_.workspace_settings.backup_on_save;
   ImGui::GetIO().FontGlobalScale = user_settings_.prefs().font_global_scale;
 
   // Initialize resource labels early - before any editors access them
@@ -2750,6 +3070,8 @@ absl::Status EditorManager::SaveProject() {
         user_settings_.prefs().autosave_enabled;
     current_project_.workspace_settings.autosave_interval_secs =
         user_settings_.prefs().autosave_interval;
+    current_project_.workspace_settings.backup_on_save =
+        user_settings_.prefs().backup_before_save;
 
     // Save recent files
     auto& manager = project::RecentFilesManager::GetInstance();
@@ -2760,6 +3082,32 @@ absl::Status EditorManager::SaveProject() {
   }
 
   return current_project_.Save();
+}
+
+void EditorManager::ResolvePotItemSaveConfirmation(
+    PotItemSaveDecision decision) {
+  pending_pot_item_save_confirm_ = false;
+  pending_pot_item_unloaded_rooms_ = 0;
+  pending_pot_item_total_rooms_ = 0;
+
+  if (decision == PotItemSaveDecision::kCancel) {
+    toast_manager_.Show("Save cancelled", ToastType::kInfo);
+    return;
+  }
+
+  if (decision == PotItemSaveDecision::kSaveWithoutPotItems) {
+    suppress_pot_item_save_once_ = true;
+  }
+  bypass_pot_item_confirm_once_ = true;
+
+  auto status = SaveRom();
+  if (status.ok()) {
+    toast_manager_.Show("ROM saved successfully", ToastType::kSuccess);
+  } else if (!absl::IsCancelled(status)) {
+    toast_manager_.Show(
+        absl::StrFormat("Failed to save ROM: %s", status.message()),
+        ToastType::kError);
+  }
 }
 
 absl::Status EditorManager::SaveProjectAs() {
@@ -2838,6 +3186,7 @@ absl::Status EditorManager::SetCurrentRom(Rom* rom) {
         session_coordinator_->SwitchToSession(i);
         // Update test manager with current ROM for ROM-dependent tests
         test::TestManager::Get().SetCurrentRom(GetCurrentRom());
+        UpdateCurrentRomHash();
         return absl::OkStatus();
       }
     }
@@ -2845,6 +3194,73 @@ absl::Status EditorManager::SetCurrentRom(Rom* rom) {
   // If ROM wasn't found in existing sessions, treat as new session.
   // Copying an external ROM object is avoided; instead, fail.
   return absl::NotFoundError("ROM not found in existing sessions");
+}
+
+void EditorManager::UpdateCurrentRomHash() {
+  auto* rom = GetCurrentRom();
+  if (!rom || !rom->is_loaded()) {
+    current_rom_hash_.clear();
+    return;
+  }
+  current_rom_hash_ = util::ComputeRomHash(rom->data(), rom->size());
+}
+
+bool EditorManager::IsRomHashMismatch() const {
+  if (!current_project_.project_opened()) {
+    return false;
+  }
+  const auto expected = NormalizeHash(current_project_.rom_metadata.expected_hash);
+  const auto actual = NormalizeHash(current_rom_hash_);
+  if (expected.empty() || actual.empty()) {
+    return false;
+  }
+  return expected != actual;
+}
+
+std::vector<RomFileManager::BackupEntry> EditorManager::GetRomBackups() const {
+  auto* rom = GetCurrentRom();
+  if (!rom) {
+    return {};
+  }
+  return rom_file_manager_.ListBackups(rom->filename());
+}
+
+absl::Status EditorManager::RestoreRomBackup(const std::string& backup_path) {
+  auto* rom = GetCurrentRom();
+  if (!rom) {
+    return absl::FailedPreconditionError("No ROM loaded");
+  }
+  const std::string original_filename = rom->filename();
+  RETURN_IF_ERROR(rom_file_manager_.LoadRom(rom, backup_path));
+  if (!original_filename.empty()) {
+    rom->set_filename(original_filename);
+  }
+
+  if (session_coordinator_) {
+    if (auto* session = session_coordinator_->GetActiveRomSession()) {
+      ResetAssetState(session);
+    }
+  }
+  UpdateCurrentRomHash();
+  return LoadAssetsForMode();
+}
+
+absl::Status EditorManager::PruneRomBackups() {
+  auto* rom = GetCurrentRom();
+  if (!rom) {
+    return absl::FailedPreconditionError("No ROM loaded");
+  }
+  return rom_file_manager_.PruneBackups(rom->filename());
+}
+
+void EditorManager::ConfirmRomWrite() {
+  bypass_rom_write_confirm_once_ = true;
+  pending_rom_write_confirm_ = false;
+}
+
+void EditorManager::CancelRomWriteConfirm() {
+  bypass_rom_write_confirm_once_ = false;
+  pending_rom_write_confirm_ = false;
 }
 
 void EditorManager::CreateNewSession() {

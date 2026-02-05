@@ -1,7 +1,10 @@
 #ifndef YAZE_APP_EDITOR_SYSTEM_ROM_FILE_MANAGER_H_
 #define YAZE_APP_EDITOR_SYSTEM_ROM_FILE_MANAGER_H_
 
+#include <ctime>
+#include <filesystem>
 #include <string>
+#include <vector>
 
 #include "absl/status/status.h"
 #include "rom/rom.h"
@@ -34,6 +37,23 @@ class RomFileManager {
   absl::Status CreateBackup(Rom* rom);
   absl::Status ValidateRom(Rom* rom);
 
+  void SetBackupFolder(const std::string& folder) { backup_folder_ = folder; }
+  void SetBackupBeforeSave(bool enabled) { backup_before_save_ = enabled; }
+  void SetBackupRetentionCount(int count) { backup_retention_count_ = count; }
+  void SetBackupKeepDaily(bool enabled) { backup_keep_daily_ = enabled; }
+  void SetBackupKeepDailyDays(int days) { backup_keep_daily_days_ = days; }
+
+  struct BackupEntry {
+    std::string path;
+    std::string filename;
+    std::time_t timestamp = 0;
+    uintmax_t size_bytes = 0;
+  };
+
+  std::vector<BackupEntry> ListBackups(
+      const std::string& rom_filename) const;
+  absl::Status PruneBackups(const std::string& rom_filename) const;
+
   // Utility helpers
   bool IsRomLoaded(Rom* rom) const;
   std::string GetRomFilename(Rom* rom) const;
@@ -44,7 +64,15 @@ class RomFileManager {
   absl::Status LoadRomFromFile(Rom* rom, const std::string& filename);
   std::string GenerateBackupFilename(
       const std::string& original_filename) const;
+  std::filesystem::path GetBackupDirectory(
+      const std::string& original_filename) const;
   bool IsValidRomFile(const std::string& filename) const;
+
+  bool backup_before_save_ = true;
+  std::string backup_folder_;
+  int backup_retention_count_ = 20;
+  bool backup_keep_daily_ = true;
+  int backup_keep_daily_days_ = 14;
 };
 
 }  // namespace editor

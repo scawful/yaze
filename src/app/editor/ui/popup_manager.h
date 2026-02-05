@@ -59,8 +59,10 @@ struct PopupParams {
 namespace PopupID {
 // File Operations
 constexpr const char* kSaveAs = "Save As..";
+constexpr const char* kSaveScope = "Save Scope";
 constexpr const char* kNewProject = "New Project";
 constexpr const char* kManageProject = "Manage Project";
+constexpr const char* kRomBackups = "ROM Backups";
 
 // Information
 constexpr const char* kAbout = "About";
@@ -91,6 +93,11 @@ constexpr const char* kSessionManager = "Session Manager";
 
 // Debug/Testing
 constexpr const char* kDataIntegrity = "Data Integrity Check";
+
+// Editor safety confirmations
+constexpr const char* kDungeonPotItemSaveConfirm =
+    "Dungeon Pot Item Save Confirmation";
+constexpr const char* kRomWriteConfirm = "ROM Write Confirmation";
 
 // Future expansion
 constexpr const char* kQuickExport = "Quick Export";
@@ -139,6 +146,7 @@ class PopupManager {
 
   // Draw the save as popup
   void DrawSaveAsPopup();
+  void DrawSaveScopePopup();
 
   // Draw the new project popup
   void DrawNewProjectPopup();
@@ -174,6 +182,9 @@ class PopupManager {
 
   // Debug/Testing popups
   void DrawDataIntegrityPopup();
+  void DrawDungeonPotItemSaveConfirmPopup();
+  void DrawRomBackupManagerPopup();
+  void DrawRomWriteConfirmPopup();
 
   EditorManager* editor_manager_;
   std::unordered_map<std::string, PopupParams> popups_;
