@@ -11,7 +11,7 @@ can treat it as a quick reference while editing.
 
 | CMake option | Default | Effect |
 | --- | --- | --- |
-| `YAZE_BUILD_APP` | `ON` | Build the main GUI editor (`yaze`). Disable when you only need CLI/tests. |
+| `YAZE_BUILD_GUI` | `ON` | Build the main GUI editor (`yaze`). Disable when you only need CLI/tests. (`YAZE_BUILD_APP` is deprecated alias.) |
 | `YAZE_BUILD_Z3ED` | `ON` | Build the `z3ed` automation tool and supporting agent libraries. |
 | `YAZE_BUILD_EMU` | `OFF` | Build the standalone emulator binary. Always enabled inside the GUI build. |
 | `YAZE_BUILD_TESTS` | `ON` in `*-dbg` presets | Compiles test helpers plus `yaze_test`. Required for GUI test dashboard. |
