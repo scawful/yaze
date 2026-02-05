@@ -987,6 +987,303 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   // called immediately after (OpenPopupOnItemClick requires this ordering)
   canvas_.ClearContextMenuItems();
 
+  // Add object interaction menu items to canvas context menu
+  if (object_interaction_enabled_) {
+    auto& interaction = object_interaction_;
+    auto selected = interaction.GetSelectedObjectIndices();
+    const bool has_selection = !selected.empty();
+    const bool single_selection = selected.size() == 1;
+    const bool group_selection = selected.size() > 1;
+    const bool has_clipboard = interaction.HasClipboardData();
+    const bool placing_object = interaction.IsObjectLoaded();
+    const bool door_mode = interaction.IsDoorPlacementActive();
+    bool has_objects = false;
+    if (rooms_ && room_id >= 0 && room_id < 296) {
+      has_objects = !(*rooms_)[room_id].GetTileObjects().empty();
+    }
+
+    if (single_selection && rooms_) {
+      auto& room = (*rooms_)[room_id];
+      const auto& objects = room.GetTileObjects();
+      if (selected[0] < objects.size()) {
+        const auto& obj = objects[selected[0]];
+        std::string name = GetObjectName(obj.id_);
+        canvas_.AddContextMenuItem(gui::CanvasMenuItem::Disabled(
+            absl::StrFormat("Object 0x%02X: %s", obj.id_, name.c_str())));
+      }
+    }
+
+    auto enabled_if = [](bool enabled) {
+      return [enabled]() {
+        return enabled;
+      };
+    };
+
+    // Insert menu (parity with ZScream "Insert new <mode>")
+    gui::CanvasMenuItem insert_menu;
+    insert_menu.label = "Insert";
+    insert_menu.icon = ICON_MD_ADD_CIRCLE;
+
+    gui::CanvasMenuItem insert_object_item(
+        "Object...", ICON_MD_WIDGETS, [this]() {
+          if (show_object_panel_callback_) {
+            show_object_panel_callback_();
+          }
+        });
+    insert_object_item.enabled_condition =
+        enabled_if(show_object_panel_callback_ != nullptr);
+    insert_menu.subitems.push_back(insert_object_item);
+
+    gui::CanvasMenuItem insert_sprite_item(
+        "Sprite...", ICON_MD_PERSON, [this]() {
+          if (show_sprite_panel_callback_) {
+            show_sprite_panel_callback_();
+          }
+        });
+    insert_sprite_item.enabled_condition =
+        enabled_if(show_sprite_panel_callback_ != nullptr);
+    insert_menu.subitems.push_back(insert_sprite_item);
+
+    gui::CanvasMenuItem insert_item_item(
+        "Item...", ICON_MD_INVENTORY, [this]() {
+          if (show_item_panel_callback_) {
+            show_item_panel_callback_();
+          }
+        });
+    insert_item_item.enabled_condition =
+        enabled_if(show_item_panel_callback_ != nullptr);
+    insert_menu.subitems.push_back(insert_item_item);
+
+    gui::CanvasMenuItem insert_door_item(
+        door_mode ? "Cancel Door Placement" : "Door (Normal)",
+        ICON_MD_DOOR_FRONT, [&interaction, door_mode]() {
+          interaction.SetDoorPlacementMode(!door_mode,
+                                           zelda3::DoorType::NormalDoor);
+        });
+    insert_menu.subitems.push_back(insert_door_item);
+
+    canvas_.AddContextMenuItem(insert_menu);
+
+    gui::CanvasMenuItem cut_item(
+        "Cut", ICON_MD_CONTENT_CUT,
+        [&interaction]() {
+          interaction.HandleCopySelected();
+          interaction.HandleDeleteSelected();
+        },
+        "Ctrl+X");
+    cut_item.enabled_condition = enabled_if(has_selection);
+    canvas_.AddContextMenuItem(cut_item);
+
+    gui::CanvasMenuItem copy_item(
+        "Copy", ICON_MD_CONTENT_COPY,
+        [&interaction]() { interaction.HandleCopySelected(); }, "Ctrl+C");
+    copy_item.enabled_condition = enabled_if(has_selection);
+    canvas_.AddContextMenuItem(copy_item);
+
+    gui::CanvasMenuItem paste_item(
+        "Paste", ICON_MD_CONTENT_PASTE,
+        [&interaction]() { interaction.HandlePasteObjects(); }, "Ctrl+V");
+    paste_item.enabled_condition = enabled_if(has_clipboard);
+    canvas_.AddContextMenuItem(paste_item);
+
+    gui::CanvasMenuItem duplicate_item(
+        "Duplicate", ICON_MD_CONTENT_PASTE,
+        [&interaction]() {
+          interaction.HandleCopySelected();
+          interaction.HandlePasteObjects();
+        },
+        "Ctrl+D");
+    duplicate_item.enabled_condition = enabled_if(has_selection);
+    canvas_.AddContextMenuItem(duplicate_item);
+
+    gui::CanvasMenuItem delete_item(
+        "Delete", ICON_MD_DELETE,
+        [&interaction]() { interaction.HandleDeleteSelected(); }, "Del");
+    delete_item.enabled_condition = enabled_if(has_selection);
+    canvas_.AddContextMenuItem(delete_item);
+
+    gui::CanvasMenuItem delete_all_item(
+        "Delete All Objects", ICON_MD_DELETE_FOREVER,
+        [&interaction]() { interaction.HandleDeleteAllObjects(); });
+    delete_all_item.enabled_condition = enabled_if(has_objects);
+    canvas_.AddContextMenuItem(delete_all_item);
+
+    gui::CanvasMenuItem cancel_item(
+        "Cancel Placement", ICON_MD_CANCEL,
+        [&interaction]() { interaction.CancelPlacement(); }, "Esc");
+    cancel_item.enabled_condition = enabled_if(placing_object);
+    canvas_.AddContextMenuItem(cancel_item);
+
+    // Arrange submenu (object draw order)
+    gui::CanvasMenuItem arrange_menu;
+    arrange_menu.label = "Arrange";
+    arrange_menu.icon = ICON_MD_SWAP_VERT;
+    arrange_menu.enabled_condition = enabled_if(has_selection);
+
+    gui::CanvasMenuItem bring_front_item(
+        "Bring to Front", ICON_MD_FLIP_TO_FRONT,
+        [&interaction]() { interaction.SendSelectedToFront(); },
+        "Ctrl+Shift+]");
+    bring_front_item.enabled_condition = enabled_if(has_selection);
+    arrange_menu.subitems.push_back(bring_front_item);
+
+    gui::CanvasMenuItem send_back_item(
+        "Send to Back", ICON_MD_FLIP_TO_BACK,
+        [&interaction]() { interaction.SendSelectedToBack(); }, "Ctrl+Shift+[");
+    send_back_item.enabled_condition = enabled_if(has_selection);
+    arrange_menu.subitems.push_back(send_back_item);
+
+    gui::CanvasMenuItem bring_forward_item(
+        "Bring Forward", ICON_MD_ARROW_UPWARD,
+        [&interaction]() { interaction.BringSelectedForward(); }, "Ctrl+]");
+    bring_forward_item.enabled_condition = enabled_if(has_selection);
+    arrange_menu.subitems.push_back(bring_forward_item);
+
+    gui::CanvasMenuItem send_backward_item(
+        "Send Backward", ICON_MD_ARROW_DOWNWARD,
+        [&interaction]() { interaction.SendSelectedBackward(); }, "Ctrl+[");
+    send_backward_item.enabled_condition = enabled_if(has_selection);
+    arrange_menu.subitems.push_back(send_backward_item);
+
+    canvas_.AddContextMenuItem(arrange_menu);
+
+    // Send to Layer submenu
+    gui::CanvasMenuItem layer_menu;
+    layer_menu.label = "Send to Layer";
+    layer_menu.icon = ICON_MD_LAYERS;
+    layer_menu.enabled_condition = enabled_if(has_selection);
+
+    gui::CanvasMenuItem layer1_item(
+        "Layer 1 (BG1)", ICON_MD_LOOKS_ONE,
+        [&interaction]() { interaction.SendSelectedToLayer(0); }, "1");
+    layer1_item.enabled_condition = enabled_if(has_selection);
+    layer_menu.subitems.push_back(layer1_item);
+
+    gui::CanvasMenuItem layer2_item(
+        "Layer 2 (BG2)", ICON_MD_LOOKS_TWO,
+        [&interaction]() { interaction.SendSelectedToLayer(1); }, "2");
+    layer2_item.enabled_condition = enabled_if(has_selection);
+    layer_menu.subitems.push_back(layer2_item);
+
+    gui::CanvasMenuItem layer3_item(
+        "Layer 3 (BG3)", ICON_MD_LOOKS_3,
+        [&interaction]() { interaction.SendSelectedToLayer(2); }, "3");
+    layer3_item.enabled_condition = enabled_if(has_selection);
+    layer_menu.subitems.push_back(layer3_item);
+
+    canvas_.AddContextMenuItem(layer_menu);
+
+    if (group_selection) {
+      canvas_.AddContextMenuItem(
+          gui::CanvasMenuItem::Disabled("Save As New Layout..."));
+    }
+
+    if (single_selection && rooms_) {
+      auto& room = (*rooms_)[room_id];
+      const auto& objects = room.GetTileObjects();
+      if (selected[0] < objects.size()) {
+        const auto object = objects[selected[0]];
+        gui::CanvasMenuItem edit_graphics_item(
+            "Edit Graphics...", ICON_MD_IMAGE,
+            [this, room_id, object]() {
+              if (edit_graphics_callback_) {
+                edit_graphics_callback_(room_id, object);
+              } else if (show_room_graphics_callback_) {
+                show_room_graphics_callback_();
+              }
+            });
+        edit_graphics_item.enabled_condition =
+            enabled_if(edit_graphics_callback_ != nullptr ||
+                       show_room_graphics_callback_ != nullptr);
+        canvas_.AddContextMenuItem(edit_graphics_item);
+      }
+    }
+
+    // === Entity Selection Actions (Doors, Sprites, Items) ===
+    const auto& selected_entity = interaction.GetSelectedEntity();
+    const bool has_entity_selection = interaction.HasEntitySelection();
+
+    if (has_entity_selection && rooms_) {
+      auto& room = (*rooms_)[room_id];
+
+      // Show selected entity info header
+      std::string entity_info;
+      switch (selected_entity.type) {
+        case EntityType::Door: {
+          const auto& doors = room.GetDoors();
+          if (selected_entity.index < doors.size()) {
+            const auto& door = doors[selected_entity.index];
+            entity_info = absl::StrFormat(
+                ICON_MD_DOOR_FRONT " Door: %s",
+                std::string(zelda3::GetDoorTypeName(door.type)).c_str());
+          }
+          break;
+        }
+        case EntityType::Sprite: {
+          const auto& sprites = room.GetSprites();
+          if (selected_entity.index < sprites.size()) {
+            const auto& sprite = sprites[selected_entity.index];
+            entity_info = absl::StrFormat(
+                ICON_MD_PERSON " Sprite: %s (0x%02X)",
+                zelda3::ResolveSpriteName(sprite.id()), sprite.id());
+          }
+          break;
+        }
+        case EntityType::Item: {
+          const auto& items = room.GetPotItems();
+          if (selected_entity.index < items.size()) {
+            const auto& item = items[selected_entity.index];
+            entity_info =
+                absl::StrFormat(ICON_MD_INVENTORY " Item: 0x%02X", item.item);
+          }
+          break;
+        }
+        default:
+          break;
+      }
+
+      if (!entity_info.empty()) {
+        canvas_.AddContextMenuItem(gui::CanvasMenuItem::Disabled(entity_info));
+
+        // Delete entity action
+        gui::CanvasMenuItem delete_entity_item(
+            "Delete Entity", ICON_MD_DELETE,
+            [this, &room, selected_entity]() {
+              switch (selected_entity.type) {
+                case EntityType::Door: {
+                  auto& doors = room.GetDoors();
+                  if (selected_entity.index < doors.size()) {
+                    doors.erase(doors.begin() +
+                                static_cast<long>(selected_entity.index));
+                  }
+                  break;
+                }
+                case EntityType::Sprite: {
+                  auto& sprites = room.GetSprites();
+                  if (selected_entity.index < sprites.size()) {
+                    sprites.erase(sprites.begin() +
+                                  static_cast<long>(selected_entity.index));
+                  }
+                  break;
+                }
+                case EntityType::Item: {
+                  auto& items = room.GetPotItems();
+                  if (selected_entity.index < items.size()) {
+                    items.erase(items.begin() +
+                                static_cast<long>(selected_entity.index));
+                  }
+                  break;
+                }
+                default:
+                  break;
+              }
+              object_interaction_.ClearEntitySelection();
+            },
+            "Del");
+        canvas_.AddContextMenuItem(delete_entity_item);
+      }
+    }
+  }
   if (rooms_ && rom_->is_loaded()) {
     auto& room = (*rooms_)[room_id];
 
@@ -1317,276 +1614,6 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     canvas_.AddContextMenuItem(debug_menu);
   }
 
-  // Add object interaction menu items to canvas context menu
-  if (object_interaction_enabled_) {
-    auto& interaction = object_interaction_;
-    auto selected = interaction.GetSelectedObjectIndices();
-    const bool has_selection = !selected.empty();
-    const bool single_selection = selected.size() == 1;
-    const bool has_clipboard = interaction.HasClipboardData();
-    const bool placing_object = interaction.IsObjectLoaded();
-    const bool door_mode = interaction.IsDoorPlacementActive();
-    bool has_objects = false;
-    if (rooms_ && room_id >= 0 && room_id < 296) {
-      has_objects = !(*rooms_)[room_id].GetTileObjects().empty();
-    }
-
-    if (single_selection && rooms_) {
-      auto& room = (*rooms_)[room_id];
-      const auto& objects = room.GetTileObjects();
-      if (selected[0] < objects.size()) {
-        const auto& obj = objects[selected[0]];
-        std::string name = GetObjectName(obj.id_);
-        canvas_.AddContextMenuItem(gui::CanvasMenuItem::Disabled(
-            absl::StrFormat("Object 0x%02X: %s", obj.id_, name.c_str())));
-      }
-    }
-
-    auto enabled_if = [](bool enabled) {
-      return [enabled]() {
-        return enabled;
-      };
-    };
-
-    // Insert menu (parity with ZScream "Insert new <mode>")
-    gui::CanvasMenuItem insert_menu;
-    insert_menu.label = "Insert";
-    insert_menu.icon = ICON_MD_ADD_CIRCLE;
-
-    gui::CanvasMenuItem insert_object_item(
-        "Object...", ICON_MD_WIDGETS, [this]() {
-          if (show_object_panel_callback_) {
-            show_object_panel_callback_();
-          }
-        });
-    insert_object_item.enabled_condition =
-        enabled_if(show_object_panel_callback_ != nullptr);
-    insert_menu.subitems.push_back(insert_object_item);
-
-    gui::CanvasMenuItem insert_sprite_item(
-        "Sprite...", ICON_MD_PERSON, [this]() {
-          if (show_sprite_panel_callback_) {
-            show_sprite_panel_callback_();
-          }
-        });
-    insert_sprite_item.enabled_condition =
-        enabled_if(show_sprite_panel_callback_ != nullptr);
-    insert_menu.subitems.push_back(insert_sprite_item);
-
-    gui::CanvasMenuItem insert_item_item(
-        "Item...", ICON_MD_INVENTORY, [this]() {
-          if (show_item_panel_callback_) {
-            show_item_panel_callback_();
-          }
-        });
-    insert_item_item.enabled_condition =
-        enabled_if(show_item_panel_callback_ != nullptr);
-    insert_menu.subitems.push_back(insert_item_item);
-
-    gui::CanvasMenuItem insert_door_item(
-        door_mode ? "Cancel Door Placement" : "Door (Normal)",
-        ICON_MD_DOOR_FRONT, [&interaction, door_mode]() {
-          interaction.SetDoorPlacementMode(!door_mode,
-                                           zelda3::DoorType::NormalDoor);
-        });
-    insert_menu.subitems.push_back(insert_door_item);
-
-    canvas_.AddContextMenuItem(insert_menu);
-
-    gui::CanvasMenuItem cut_item(
-        "Cut", ICON_MD_CONTENT_CUT,
-        [&interaction]() {
-          interaction.HandleCopySelected();
-          interaction.HandleDeleteSelected();
-        },
-        "Ctrl+X");
-    cut_item.enabled_condition = enabled_if(has_selection);
-    canvas_.AddContextMenuItem(cut_item);
-
-    gui::CanvasMenuItem copy_item(
-        "Copy", ICON_MD_CONTENT_COPY,
-        [&interaction]() { interaction.HandleCopySelected(); }, "Ctrl+C");
-    copy_item.enabled_condition = enabled_if(has_selection);
-    canvas_.AddContextMenuItem(copy_item);
-
-    gui::CanvasMenuItem paste_item(
-        "Paste", ICON_MD_CONTENT_PASTE,
-        [&interaction]() { interaction.HandlePasteObjects(); }, "Ctrl+V");
-    paste_item.enabled_condition = enabled_if(has_clipboard);
-    canvas_.AddContextMenuItem(paste_item);
-
-    gui::CanvasMenuItem duplicate_item(
-        "Duplicate", ICON_MD_CONTENT_PASTE,
-        [&interaction]() {
-          interaction.HandleCopySelected();
-          interaction.HandlePasteObjects();
-        },
-        "Ctrl+D");
-    duplicate_item.enabled_condition = enabled_if(has_selection);
-    canvas_.AddContextMenuItem(duplicate_item);
-
-    gui::CanvasMenuItem delete_item(
-        "Delete", ICON_MD_DELETE,
-        [&interaction]() { interaction.HandleDeleteSelected(); }, "Del");
-    delete_item.enabled_condition = enabled_if(has_selection);
-    canvas_.AddContextMenuItem(delete_item);
-
-    gui::CanvasMenuItem delete_all_item(
-        "Delete All Objects", ICON_MD_DELETE_FOREVER,
-        [&interaction]() { interaction.HandleDeleteAllObjects(); });
-    delete_all_item.enabled_condition = enabled_if(has_objects);
-    canvas_.AddContextMenuItem(delete_all_item);
-
-    gui::CanvasMenuItem cancel_item(
-        "Cancel Placement", ICON_MD_CANCEL,
-        [&interaction]() { interaction.CancelPlacement(); }, "Esc");
-    cancel_item.enabled_condition = enabled_if(placing_object);
-    canvas_.AddContextMenuItem(cancel_item);
-
-    // Send to Layer submenu
-    gui::CanvasMenuItem layer_menu;
-    layer_menu.label = "Send to Layer";
-    layer_menu.icon = ICON_MD_LAYERS;
-    layer_menu.enabled_condition = enabled_if(has_selection);
-
-    gui::CanvasMenuItem layer1_item(
-        "Layer 1 (BG1)", ICON_MD_LOOKS_ONE,
-        [&interaction]() { interaction.SendSelectedToLayer(0); }, "1");
-    layer1_item.enabled_condition = enabled_if(has_selection);
-    layer_menu.subitems.push_back(layer1_item);
-
-    gui::CanvasMenuItem layer2_item(
-        "Layer 2 (BG2)", ICON_MD_LOOKS_TWO,
-        [&interaction]() { interaction.SendSelectedToLayer(1); }, "2");
-    layer2_item.enabled_condition = enabled_if(has_selection);
-    layer_menu.subitems.push_back(layer2_item);
-
-    gui::CanvasMenuItem layer3_item(
-        "Layer 3 (BG3)", ICON_MD_LOOKS_3,
-        [&interaction]() { interaction.SendSelectedToLayer(2); }, "3");
-    layer3_item.enabled_condition = enabled_if(has_selection);
-    layer_menu.subitems.push_back(layer3_item);
-
-    canvas_.AddContextMenuItem(layer_menu);
-
-    // Arrange submenu (object draw order)
-    gui::CanvasMenuItem arrange_menu;
-    arrange_menu.label = "Arrange";
-    arrange_menu.icon = ICON_MD_SWAP_VERT;
-    arrange_menu.enabled_condition = enabled_if(has_selection);
-
-    gui::CanvasMenuItem bring_front_item(
-        "Bring to Front", ICON_MD_FLIP_TO_FRONT,
-        [&interaction]() { interaction.SendSelectedToFront(); },
-        "Ctrl+Shift+]");
-    bring_front_item.enabled_condition = enabled_if(has_selection);
-    arrange_menu.subitems.push_back(bring_front_item);
-
-    gui::CanvasMenuItem send_back_item(
-        "Send to Back", ICON_MD_FLIP_TO_BACK,
-        [&interaction]() { interaction.SendSelectedToBack(); }, "Ctrl+Shift+[");
-    send_back_item.enabled_condition = enabled_if(has_selection);
-    arrange_menu.subitems.push_back(send_back_item);
-
-    gui::CanvasMenuItem bring_forward_item(
-        "Bring Forward", ICON_MD_ARROW_UPWARD,
-        [&interaction]() { interaction.BringSelectedForward(); }, "Ctrl+]");
-    bring_forward_item.enabled_condition = enabled_if(has_selection);
-    arrange_menu.subitems.push_back(bring_forward_item);
-
-    gui::CanvasMenuItem send_backward_item(
-        "Send Backward", ICON_MD_ARROW_DOWNWARD,
-        [&interaction]() { interaction.SendSelectedBackward(); }, "Ctrl+[");
-    send_backward_item.enabled_condition = enabled_if(has_selection);
-    arrange_menu.subitems.push_back(send_backward_item);
-
-    canvas_.AddContextMenuItem(arrange_menu);
-
-    // === Entity Selection Actions (Doors, Sprites, Items) ===
-    const auto& selected_entity = interaction.GetSelectedEntity();
-    const bool has_entity_selection = interaction.HasEntitySelection();
-
-    if (has_entity_selection && rooms_) {
-      auto& room = (*rooms_)[room_id];
-
-      // Show selected entity info header
-      std::string entity_info;
-      switch (selected_entity.type) {
-        case EntityType::Door: {
-          const auto& doors = room.GetDoors();
-          if (selected_entity.index < doors.size()) {
-            const auto& door = doors[selected_entity.index];
-            entity_info = absl::StrFormat(
-                ICON_MD_DOOR_FRONT " Door: %s",
-                std::string(zelda3::GetDoorTypeName(door.type)).c_str());
-          }
-          break;
-        }
-        case EntityType::Sprite: {
-          const auto& sprites = room.GetSprites();
-          if (selected_entity.index < sprites.size()) {
-            const auto& sprite = sprites[selected_entity.index];
-            entity_info = absl::StrFormat(
-                ICON_MD_PERSON " Sprite: %s (0x%02X)",
-                zelda3::ResolveSpriteName(sprite.id()), sprite.id());
-          }
-          break;
-        }
-        case EntityType::Item: {
-          const auto& items = room.GetPotItems();
-          if (selected_entity.index < items.size()) {
-            const auto& item = items[selected_entity.index];
-            entity_info =
-                absl::StrFormat(ICON_MD_INVENTORY " Item: 0x%02X", item.item);
-          }
-          break;
-        }
-        default:
-          break;
-      }
-
-      if (!entity_info.empty()) {
-        canvas_.AddContextMenuItem(gui::CanvasMenuItem::Disabled(entity_info));
-
-        // Delete entity action
-        gui::CanvasMenuItem delete_entity_item(
-            "Delete Entity", ICON_MD_DELETE,
-            [this, &room, selected_entity]() {
-              switch (selected_entity.type) {
-                case EntityType::Door: {
-                  auto& doors = room.GetDoors();
-                  if (selected_entity.index < doors.size()) {
-                    doors.erase(doors.begin() +
-                                static_cast<long>(selected_entity.index));
-                  }
-                  break;
-                }
-                case EntityType::Sprite: {
-                  auto& sprites = room.GetSprites();
-                  if (selected_entity.index < sprites.size()) {
-                    sprites.erase(sprites.begin() +
-                                  static_cast<long>(selected_entity.index));
-                  }
-                  break;
-                }
-                case EntityType::Item: {
-                  auto& items = room.GetPotItems();
-                  if (selected_entity.index < items.size()) {
-                    items.erase(items.begin() +
-                                static_cast<long>(selected_entity.index));
-                  }
-                  break;
-                }
-                default:
-                  break;
-              }
-              object_interaction_.ClearEntitySelection();
-            },
-            "Del");
-        canvas_.AddContextMenuItem(delete_entity_item);
-      }
-    }
-  }
 
   // CRITICAL: Begin canvas frame using modern BeginCanvas/EndCanvas pattern
   // This replaces DrawBackground + DrawContextMenu with a unified frame

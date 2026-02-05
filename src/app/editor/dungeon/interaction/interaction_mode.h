@@ -57,6 +57,7 @@ struct ModeState {
   // Drag state
   ImVec2 drag_start = ImVec2(0, 0);
   ImVec2 drag_current = ImVec2(0, 0);
+  bool duplicate_on_drag = false;
 
   // Rectangle selection bounds (canvas coordinates)
   int rect_start_x = 0;
@@ -80,6 +81,7 @@ struct ModeState {
     snapped_door_position = 0;
     drag_start = ImVec2(0, 0);
     drag_current = ImVec2(0, 0);
+    duplicate_on_drag = false;
     rect_start_x = 0;
     rect_start_y = 0;
     rect_end_x = 0;
@@ -106,6 +108,7 @@ struct ModeState {
   void ClearDragData() {
     drag_start = ImVec2(0, 0);
     drag_current = ImVec2(0, 0);
+    duplicate_on_drag = false;
     entity_drag_start = ImVec2(0, 0);
     entity_drag_current = ImVec2(0, 0);
   }

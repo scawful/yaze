@@ -214,6 +214,8 @@ class DungeonEditorV2 : public Editor {
 
   // Object placement callback
   void HandleObjectPlaced(const zelda3::RoomObject& obj);
+  void OpenGraphicsEditorForObject(int room_id,
+                                   const zelda3::RoomObject& object);
 
   // Helper to get or create a viewer for a specific room
   DungeonCanvasViewer* GetViewerForRoom(int room_id);
