@@ -31,8 +31,25 @@ class FeatureFlags {
     // Save dungeon map edits to the Rom.
     bool kSaveDungeonMaps = false;
 
+    // Dungeon save controls (granular safety)
+    struct Dungeon {
+      bool kSaveObjects = true;
+      bool kSaveSprites = true;
+      bool kSaveRoomHeaders = true;
+      bool kSaveTorches = true;
+      bool kSavePits = true;
+      bool kSaveBlocks = true;
+      bool kSaveCollision = true;
+      bool kSaveChests = true;
+      bool kSavePotItems = true;
+      bool kSavePalettes = true;
+    } dungeon;
+
     // Save graphics sheet to the Rom.
     bool kSaveGraphicsSheet = false;
+
+    // Save message text to the Rom.
+    bool kSaveMessages = true;
 
     // Log to the console.
     bool kLogToConsole = false;
@@ -105,6 +122,27 @@ class FeatureFlags {
         "\n";
     result +=
         "kSaveDungeonMaps: " + std::to_string(get().kSaveDungeonMaps) + "\n";
+    result += "kSaveDungeonObjects: " +
+              std::to_string(get().dungeon.kSaveObjects) + "\n";
+    result += "kSaveDungeonSprites: " +
+              std::to_string(get().dungeon.kSaveSprites) + "\n";
+    result += "kSaveDungeonRoomHeaders: " +
+              std::to_string(get().dungeon.kSaveRoomHeaders) + "\n";
+    result += "kSaveDungeonTorches: " +
+              std::to_string(get().dungeon.kSaveTorches) + "\n";
+    result += "kSaveDungeonPits: " +
+              std::to_string(get().dungeon.kSavePits) + "\n";
+    result += "kSaveDungeonBlocks: " +
+              std::to_string(get().dungeon.kSaveBlocks) + "\n";
+    result += "kSaveDungeonCollision: " +
+              std::to_string(get().dungeon.kSaveCollision) + "\n";
+    result += "kSaveDungeonChests: " +
+              std::to_string(get().dungeon.kSaveChests) + "\n";
+    result += "kSaveDungeonPotItems: " +
+              std::to_string(get().dungeon.kSavePotItems) + "\n";
+    result += "kSaveDungeonPalettes: " +
+              std::to_string(get().dungeon.kSavePalettes) + "\n";
+    result += "kSaveMessages: " + std::to_string(get().kSaveMessages) + "\n";
     result += "kLogToConsole: " + std::to_string(get().kLogToConsole) + "\n";
     result += "kDrawOverworldSprites: " +
               std::to_string(get().overworld.kDrawOverworldSprites) + "\n";

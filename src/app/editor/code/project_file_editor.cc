@@ -282,17 +282,66 @@ symbols_filename=symbols.txt
 output_folder=build
 additional_roms=
 
+[rom]
+role=dev
+expected_hash=
+write_policy=warn
+
 [feature_flags]
 # REMOVED: kLogInstructions - DisassemblyViewer is always active
+kSaveOverworldMaps=true
+kSaveOverworldEntrances=true
+kSaveOverworldExits=true
+kSaveOverworldItems=true
+kSaveOverworldProperties=true
 kSaveDungeonMaps=true
+kSaveDungeonObjects=true
+kSaveDungeonSprites=true
+kSaveDungeonRoomHeaders=true
+kSaveDungeonTorches=true
+kSaveDungeonPits=true
+kSaveDungeonBlocks=true
+kSaveDungeonCollision=true
+kSaveDungeonChests=true
+kSaveDungeonPotItems=true
+kSaveDungeonPalettes=true
 kSaveGraphicsSheet=true
+kSaveAllPalettes=true
+kSaveGfxGroups=true
+kSaveMessages=true
 kLoadCustomOverworld=false
 
 [workspace]
 font_global_scale=1.0
 autosave_enabled=true
 autosave_interval_secs=300
+backup_on_save=true
+backup_retention_count=20
+backup_keep_daily=true
+backup_keep_daily_days=14
 theme=dark
+
+[rom_addresses]
+# expanded_message_start=0x178000
+# expanded_message_end=0x17FFFF
+# expanded_music_hook=0x008919
+# expanded_music_main=0x1A9EF5
+# expanded_music_aux=0x1ACCA7
+# overworld_messages_expanded=0x1417F8
+# overworld_map16_expanded=0x1E8000
+# overworld_map32_tr_expanded=0x020000
+# overworld_map32_bl_expanded=0x1F0000
+# overworld_map32_br_expanded=0x1F8000
+# overworld_entrance_map_expanded=0x0DB55F
+# overworld_entrance_pos_expanded=0x0DB35F
+# overworld_entrance_id_expanded=0x0DB75F
+# overworld_entrance_flag_expanded=0x0DB895
+# overworld_ptr_marker_expanded=0x1423FF
+# overworld_ptr_magic_expanded=0xEA
+
+[custom_objects]
+# object_0x31=track_LR.bin,track_UD.bin,track_corner_TL.bin
+# object_0x32=furnace.bin,firewood.bin,ice_chair.bin
 
 [build]
 build_script=
@@ -346,7 +395,9 @@ void ProjectFileEditor::ValidateContent() {
       if (current_section != "project" && current_section != "files" &&
           current_section != "feature_flags" &&
           current_section != "workspace" &&
-          current_section != "workspace_settings" &&
+          current_section != "workspace_settings" && current_section != "rom" &&
+          current_section != "rom_addresses" &&
+          current_section != "custom_objects" &&
           current_section != "dungeon_overlay" && current_section != "build" &&
           current_section != "agent_settings" && current_section != "music" &&
           current_section != "keybindings" &&
