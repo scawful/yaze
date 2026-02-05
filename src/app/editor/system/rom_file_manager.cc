@@ -1,16 +1,44 @@
 #include "rom_file_manager.h"
 
+#include <algorithm>
 #include <chrono>
+#include <ctime>
 #include <filesystem>
 #include <fstream>
+#include <unordered_set>
 
 #include "absl/strings/str_format.h"
 #include "app/editor/ui/toast_manager.h"
 #include "rom/rom.h"
 #include "util/file_util.h"
+#include "util/log.h"
 #include "zelda3/game_data.h"
 
 namespace yaze::editor {
+
+namespace {
+
+std::time_t ToTimeT(const std::filesystem::file_time_type& ftime) {
+  using namespace std::chrono;
+  auto sctp = time_point_cast<system_clock::duration>(
+      ftime - std::filesystem::file_time_type::clock::now() +
+      system_clock::now());
+  return system_clock::to_time_t(sctp);
+}
+
+std::string DayKey(std::time_t timestamp) {
+  std::tm local_tm{};
+#ifdef _WIN32
+  localtime_s(&local_tm, &timestamp);
+#else
+  localtime_r(&timestamp, &local_tm);
+#endif
+  char buffer[16];
+  std::strftime(buffer, sizeof(buffer), "%Y-%m-%d", &local_tm);
+  return std::string(buffer);
+}
+
+}  // namespace
 
 RomFileManager::RomFileManager(ToastManager* toast_manager)
     : toast_manager_(toast_manager) {}
@@ -30,10 +58,21 @@ absl::Status RomFileManager::SaveRom(Rom* rom) {
     return absl::FailedPreconditionError("No ROM loaded to save");
   }
 
+  if (backup_before_save_) {
+    auto backup_status = CreateBackup(rom);
+    if (!backup_status.ok()) {
+      if (toast_manager_) {
+        toast_manager_->Show(
+            absl::StrFormat("Backup failed: %s", backup_status.message()),
+            ToastType::kError);
+      }
+      return backup_status;
+    }
+  }
+
   Rom::SaveSettings settings;
-  settings.backup = true;
+  settings.backup = false;
   settings.save_new = false;
-  // settings.z3_save = true; // Deprecated: Handled by save callback or controller
 
   auto status = rom->SaveToFile(settings);
   if (!status.ok() && toast_manager_) {
@@ -52,6 +91,18 @@ absl::Status RomFileManager::SaveRomAs(Rom* rom, const std::string& filename) {
   }
   if (filename.empty()) {
     return absl::InvalidArgumentError("No filename provided for save as");
+  }
+
+  if (backup_before_save_) {
+    auto backup_status = CreateBackup(rom);
+    if (!backup_status.ok()) {
+      if (toast_manager_) {
+        toast_manager_->Show(
+            absl::StrFormat("Backup failed: %s", backup_status.message()),
+            ToastType::kError);
+      }
+      return backup_status;
+    }
   }
 
   Rom::SaveSettings settings;
@@ -98,7 +149,7 @@ absl::Status RomFileManager::CreateBackup(Rom* rom) {
   std::string backup_filename = GenerateBackupFilename(rom->filename());
 
   Rom::SaveSettings settings;
-  settings.backup = true;
+  settings.backup = false;
   settings.filename = backup_filename;
   // settings.z3_save = true; // Deprecated
 
@@ -110,6 +161,13 @@ absl::Status RomFileManager::CreateBackup(Rom* rom) {
   } else if (toast_manager_) {
     toast_manager_->Show(absl::StrFormat("Backup created: %s", backup_filename),
                          ToastType::kSuccess);
+  }
+  if (status.ok()) {
+    auto prune_status = PruneBackups(rom->filename());
+    if (!prune_status.ok()) {
+      LOG_WARN("RomFileManager", "Backup prune failed: %s",
+               prune_status.message().data());
+    }
   }
   return status;
 }
@@ -184,7 +242,123 @@ std::string RomFileManager::GenerateBackupFilename(
   auto now = std::chrono::system_clock::now();
   auto time_t = std::chrono::system_clock::to_time_t(now);
 
-  return absl::StrFormat("%s_backup_%ld%s", stem, time_t, extension);
+  std::filesystem::path backup_dir = GetBackupDirectory(original_filename);
+
+  std::string filename =
+      absl::StrFormat("%s_backup_%ld%s", stem, time_t, extension);
+  return (backup_dir / filename).string();
+}
+
+std::filesystem::path RomFileManager::GetBackupDirectory(
+    const std::string& original_filename) const {
+  std::filesystem::path path(original_filename);
+  std::filesystem::path backup_dir = path.parent_path();
+  if (!backup_folder_.empty()) {
+    backup_dir = std::filesystem::path(backup_folder_);
+  }
+  std::error_code ec;
+  std::filesystem::create_directories(backup_dir, ec);
+  return backup_dir;
+}
+
+std::vector<RomFileManager::BackupEntry> RomFileManager::ListBackups(
+    const std::string& rom_filename) const {
+  std::vector<BackupEntry> backups;
+  if (rom_filename.empty()) {
+    return backups;
+  }
+
+  std::filesystem::path rom_path(rom_filename);
+  const std::string stem = rom_path.stem().string();
+  const std::string extension = rom_path.extension().string();
+  const std::string prefix = stem + "_backup_";
+  std::filesystem::path backup_dir = GetBackupDirectory(rom_filename);
+
+  std::error_code ec;
+  for (const auto& entry : std::filesystem::directory_iterator(backup_dir, ec)) {
+    if (ec || !entry.is_regular_file()) {
+      continue;
+    }
+    const auto path = entry.path();
+    if (path.extension() != extension) {
+      continue;
+    }
+    const std::string filename = path.filename().string();
+    if (filename.rfind(prefix, 0) != 0) {
+      continue;
+    }
+
+    BackupEntry backup;
+    backup.path = path.string();
+    backup.filename = filename;
+    backup.size_bytes = entry.file_size(ec);
+    auto ftime = entry.last_write_time(ec);
+    if (!ec) {
+      backup.timestamp = ToTimeT(ftime);
+    }
+    backups.push_back(std::move(backup));
+  }
+
+  std::sort(backups.begin(), backups.end(),
+            [](const BackupEntry& a, const BackupEntry& b) {
+              return a.timestamp > b.timestamp;
+            });
+  return backups;
+}
+
+absl::Status RomFileManager::PruneBackups(
+    const std::string& rom_filename) const {
+  if (backup_retention_count_ <= 0) {
+    return absl::OkStatus();
+  }
+
+  auto backups = ListBackups(rom_filename);
+  if (backups.size() <= static_cast<size_t>(backup_retention_count_)) {
+    return absl::OkStatus();
+  }
+
+  std::unordered_set<std::string> keep_paths;
+  const auto now = std::chrono::system_clock::now();
+  const auto keep_daily_days =
+      std::chrono::hours(24 * std::max(1, backup_keep_daily_days_));
+
+  if (backup_keep_daily_) {
+    std::unordered_set<std::string> seen_days;
+    for (const auto& backup : backups) {
+      if (backup.timestamp == 0) {
+        continue;
+      }
+      const auto backup_time =
+          std::chrono::system_clock::from_time_t(backup.timestamp);
+      if (now - backup_time > keep_daily_days) {
+        continue;
+      }
+      std::string day = DayKey(backup.timestamp);
+      if (seen_days.insert(day).second) {
+        keep_paths.insert(backup.path);
+      }
+    }
+  }
+
+  for (size_t i = 0; i < backups.size() &&
+                     keep_paths.size() < static_cast<size_t>(backup_retention_count_);
+       ++i) {
+    keep_paths.insert(backups[i].path);
+  }
+
+  for (const auto& backup : backups) {
+    if (keep_paths.count(backup.path) > 0) {
+      continue;
+    }
+    std::error_code remove_ec;
+    std::filesystem::remove(backup.path, remove_ec);
+    if (remove_ec) {
+      LOG_WARN("RomFileManager", "Failed to delete backup: %s",
+               backup.path.c_str());
+    }
+  }
+
+  return absl::OkStatus();
 }
 
 bool RomFileManager::IsValidRomFile(const std::string& filename) const {

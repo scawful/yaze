@@ -83,6 +83,12 @@ namespace editor {
  */
 class EditorManager {
  public:
+  enum class PotItemSaveDecision {
+    kSaveWithPotItems,
+    kSaveWithoutPotItems,
+    kCancel
+  };
+
   // Constructor and destructor must be defined in .cc file for std::unique_ptr
   // with forward-declared types
   EditorManager();
@@ -113,6 +119,7 @@ class EditorManager {
   WorkspaceManager* workspace_manager() { return &workspace_manager_; }
   RightPanelManager* right_panel_manager() { return right_panel_manager_.get(); }
   StatusBar* status_bar() { return &status_bar_; }
+  ToastManager* toast_manager() { return &toast_manager_; }
   PanelManager* GetPanelManager() { return &panel_manager_; }
   PanelManager& panel_manager() { return panel_manager_; }
   const PanelManager& panel_manager() const { return panel_manager_; }
@@ -147,6 +154,23 @@ class EditorManager {
                                 : nullptr;
   }
   auto GetCurrentEditor() const -> Editor* { return current_editor_; }
+  std::string GetCurrentRomHash() const { return current_rom_hash_; }
+  project::RomRole GetProjectRomRole() const {
+    return current_project_.rom_metadata.role;
+  }
+  project::RomWritePolicy GetProjectRomWritePolicy() const {
+    return current_project_.rom_metadata.write_policy;
+  }
+  std::string GetProjectExpectedRomHash() const {
+    return current_project_.rom_metadata.expected_hash;
+  }
+  bool IsRomHashMismatch() const;
+  std::vector<editor::RomFileManager::BackupEntry> GetRomBackups() const;
+  absl::Status RestoreRomBackup(const std::string& backup_path);
+  absl::Status PruneRomBackups();
+  void ConfirmRomWrite();
+  void CancelRomWriteConfirm();
+  bool IsRomWriteConfirmPending() const { return pending_rom_write_confirm_; }
   void SetCurrentEditor(Editor* editor) {
     current_editor_ = editor;
     // Update ContentRegistry context for panel access
@@ -319,6 +343,17 @@ class EditorManager {
   absl::Status OpenProject();
   absl::Status SaveProject();
   absl::Status SaveProjectAs();
+
+  bool HasPendingPotItemSaveConfirmation() const {
+    return pending_pot_item_save_confirm_;
+  }
+  int pending_pot_item_unloaded_rooms() const {
+    return pending_pot_item_unloaded_rooms_;
+  }
+  int pending_pot_item_total_rooms() const {
+    return pending_pot_item_total_rooms_;
+  }
+  void ResolvePotItemSaveConfirmation(PotItemSaveDecision decision);
   absl::Status ImportProject(const std::string& project_path);
   absl::Status RepairCurrentProject();
 
@@ -466,10 +501,22 @@ class EditorManager {
 
   emu::input::InputConfig BuildInputConfigFromSettings() const;
   void PersistInputConfig(const emu::input::InputConfig& config);
+  void UpdateCurrentRomHash();
+  absl::Status CheckRomWritePolicy();
 
   float autosave_timer_ = 0.0f;
   bool settings_dirty_ = false;
   float settings_dirty_timestamp_ = 0.0f;
+
+  // Save safety prompt state
+  bool pending_pot_item_save_confirm_ = false;
+  int pending_pot_item_unloaded_rooms_ = 0;
+  int pending_pot_item_total_rooms_ = 0;
+  bool bypass_pot_item_confirm_once_ = false;
+  bool suppress_pot_item_save_once_ = false;
+  bool pending_rom_write_confirm_ = false;
+  bool bypass_rom_write_confirm_once_ = false;
+  std::string current_rom_hash_;
 
   // Deferred action queue - executed at the start of each frame
   std::vector<std::function<void()>> deferred_actions_;

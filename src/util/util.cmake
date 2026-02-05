@@ -18,6 +18,7 @@ set(YAZE_UTIL_SRC
   util/log.cc
   util/platform_paths.cc
   util/file_util.cc
+  util/rom_hash.cc
   util/hyrule_magic.cc  # Byte order utilities (moved from zelda3)
 )
 

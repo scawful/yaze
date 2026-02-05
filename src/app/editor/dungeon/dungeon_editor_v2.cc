@@ -31,6 +31,7 @@
 #include "app/editor/dungeon/panels/sprite_editor_panel.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/system/panel_manager.h"
+#include "app/editor/ui/toast_manager.h"
 #include "app/emu/render/emulator_render_service.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/resource/arena.h"
@@ -275,7 +276,8 @@ absl::Status DungeonEditorV2::Load() {
   }
   if (dependencies_.project) {
     object_editor_panel_->object_selector().SetCustomObjectsFolder(
-        dependencies_.project->custom_objects_folder);
+        dependencies_.project->GetAbsolutePath(
+            dependencies_.project->custom_objects_folder));
   }
 
   // Register the ObjectEditorPanel directly (it inherits from EditorPanel)
@@ -318,7 +320,8 @@ absl::Status DungeonEditorV2::Load() {
         // Initialize custom object manager with project-configured path
         if (!dependencies_.project->custom_objects_folder.empty()) {
           zelda3::CustomObjectManager::Get().Initialize(
-              dependencies_.project->custom_objects_folder);
+              dependencies_.project->GetAbsolutePath(
+                  dependencies_.project->custom_objects_folder));
         }
       }
     }
@@ -378,7 +381,10 @@ absl::Status DungeonEditorV2::Save() {
     return absl::FailedPreconditionError("ROM not loaded");
   }
 
-  if (gfx::PaletteManager::Get().HasUnsavedChanges()) {
+  const auto& flags = core::FeatureFlags::get().dungeon;
+
+  if (flags.kSavePalettes &&
+      gfx::PaletteManager::Get().HasUnsavedChanges()) {
     auto status = gfx::PaletteManager::Get().SaveAllToRom();
     if (!status.ok()) {
       LOG_ERROR("DungeonEditorV2", "Failed to save palette changes: %s",
@@ -389,84 +395,173 @@ absl::Status DungeonEditorV2::Save() {
              gfx::PaletteManager::Get().GetModifiedColorCount());
   }
 
-  for (auto& room : rooms_) {
+  if (flags.kSaveObjects || flags.kSaveSprites || flags.kSaveRoomHeaders) {
+    for (auto& room : rooms_) {
+      auto status = SaveRoomData(room.id());
+      if (!status.ok()) {
+        return status;
+      }
+    }
+  }
+
+  if (flags.kSaveTorches) {
+    auto status = zelda3::SaveAllTorches(rom_, rooms_);
+    if (!status.ok()) {
+      LOG_ERROR("DungeonEditorV2", "Failed to save torches: %s",
+                status.message().data());
+      return status;
+    }
+  }
+
+  if (flags.kSavePits) {
+    auto status = zelda3::SaveAllPits(rom_);
+    if (!status.ok()) {
+      LOG_ERROR("DungeonEditorV2", "Failed to save pits: %s",
+                status.message().data());
+      return status;
+    }
+  }
+
+  if (flags.kSaveBlocks) {
+    auto status = zelda3::SaveAllBlocks(rom_);
+    if (!status.ok()) {
+      LOG_ERROR("DungeonEditorV2", "Failed to save blocks: %s",
+                status.message().data());
+      return status;
+    }
+  }
+
+  if (flags.kSaveCollision) {
+    auto status = zelda3::SaveAllCollision(rom_);
+    if (!status.ok()) {
+      LOG_ERROR("DungeonEditorV2", "Failed to save collision: %s",
+                status.message().data());
+      return status;
+    }
+  }
+
+  if (flags.kSaveChests) {
+    auto status = zelda3::SaveAllChests(rom_, rooms_);
+    if (!status.ok()) {
+      LOG_ERROR("DungeonEditorV2", "Failed to save chests: %s",
+                status.message().data());
+      return status;
+    }
+  }
+
+  if (flags.kSavePotItems) {
+    auto status = zelda3::SaveAllPotItems(rom_, rooms_);
+    if (!status.ok()) {
+      LOG_ERROR("DungeonEditorV2", "Failed to save pot items: %s",
+                status.message().data());
+      return status;
+    }
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status DungeonEditorV2::SaveRoom(int room_id) {
+  if (!rom_ || !rom_->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+  if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
+    return absl::InvalidArgumentError("Invalid room ID");
+  }
+
+  const auto& flags = core::FeatureFlags::get().dungeon;
+  if (flags.kSavePalettes &&
+      gfx::PaletteManager::Get().HasUnsavedChanges()) {
+    auto status = gfx::PaletteManager::Get().SaveAllToRom();
+    if (!status.ok()) {
+      LOG_ERROR("DungeonEditorV2", "Failed to save palette changes: %s",
+                status.message().data());
+      return status;
+    }
+  }
+  if (flags.kSaveObjects || flags.kSaveSprites || flags.kSaveRoomHeaders) {
+    RETURN_IF_ERROR(SaveRoomData(room_id));
+  }
+
+  if (flags.kSaveTorches) {
+    RETURN_IF_ERROR(zelda3::SaveAllTorches(rom_, rooms_));
+  }
+  if (flags.kSavePits) {
+    RETURN_IF_ERROR(zelda3::SaveAllPits(rom_));
+  }
+  if (flags.kSaveBlocks) {
+    RETURN_IF_ERROR(zelda3::SaveAllBlocks(rom_));
+  }
+  if (flags.kSaveCollision) {
+    RETURN_IF_ERROR(zelda3::SaveAllCollision(rom_));
+  }
+  if (flags.kSaveChests) {
+    RETURN_IF_ERROR(zelda3::SaveAllChests(rom_, rooms_));
+  }
+  if (flags.kSavePotItems) {
+    RETURN_IF_ERROR(zelda3::SaveAllPotItems(rom_, rooms_));
+  }
+
+  return absl::OkStatus();
+}
+
+int DungeonEditorV2::LoadedRoomCount() const {
+  int count = 0;
+  for (const auto& room : rooms_) {
+    if (room.IsLoaded()) {
+      ++count;
+    }
+  }
+  return count;
+}
+
+absl::Status DungeonEditorV2::SaveRoomData(int room_id) {
+  if (!rom_ || !rom_->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+  if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
+    return absl::InvalidArgumentError("Invalid room ID");
+  }
+
+  auto& room = rooms_[room_id];
+  if (!room.IsLoaded()) {
+    return absl::OkStatus();
+  }
+
+  const auto& flags = core::FeatureFlags::get().dungeon;
+  if (flags.kSaveObjects) {
     auto status = room.SaveObjects();
     if (!status.ok()) {
       LOG_ERROR("DungeonEditorV2", "Failed to save room objects: %s",
                 status.message().data());
       return status;
     }
-    status = room.SaveSprites();
+  }
+
+  if (flags.kSaveSprites) {
+    auto status = room.SaveSprites();
     if (!status.ok()) {
       LOG_ERROR("DungeonEditorV2", "Failed to save room sprites: %s",
                 status.message().data());
       return status;
     }
-    status = room.SaveRoomHeader();
+  }
+
+  if (flags.kSaveRoomHeaders) {
+    auto status = room.SaveRoomHeader();
     if (!status.ok()) {
       LOG_ERROR("DungeonEditorV2", "Failed to save room header: %s",
                 status.message().data());
       return status;
     }
+  }
 
-    if (dungeon_editor_system_) {
-      auto sys_status = dungeon_editor_system_->SaveRoom(room.id());
-      if (!sys_status.ok()) {
-        LOG_ERROR("DungeonEditorV2", "Failed to save room system data: %s",
-                  sys_status.message().data());
-      }
+  if (flags.kSaveObjects && dungeon_editor_system_) {
+    auto sys_status = dungeon_editor_system_->SaveRoom(room.id());
+    if (!sys_status.ok()) {
+      LOG_ERROR("DungeonEditorV2", "Failed to save room system data: %s",
+                sys_status.message().data());
     }
-  }
-
-  if (dungeon_editor_system_) {
-    auto status = dungeon_editor_system_->SaveDungeon();
-    if (!status.ok()) {
-      LOG_ERROR("DungeonEditorV2", "DungeonEditorSystem save failed: %s",
-                status.message().data());
-      return status;
-    }
-  }
-
-  auto status = zelda3::SaveAllTorches(rom_, rooms_);
-  if (!status.ok()) {
-    LOG_ERROR("DungeonEditorV2", "Failed to save torches: %s",
-              status.message().data());
-    return status;
-  }
-
-  status = zelda3::SaveAllPits(rom_);
-  if (!status.ok()) {
-    LOG_ERROR("DungeonEditorV2", "Failed to save pits: %s",
-              status.message().data());
-    return status;
-  }
-
-  status = zelda3::SaveAllBlocks(rom_);
-  if (!status.ok()) {
-    LOG_ERROR("DungeonEditorV2", "Failed to save blocks: %s",
-              status.message().data());
-    return status;
-  }
-
-  status = zelda3::SaveAllCollision(rom_);
-  if (!status.ok()) {
-    LOG_ERROR("DungeonEditorV2", "Failed to save collision: %s",
-              status.message().data());
-    return status;
-  }
-
-  status = zelda3::SaveAllChests(rom_, rooms_);
-  if (!status.ok()) {
-    LOG_ERROR("DungeonEditorV2", "Failed to save chests: %s",
-              status.message().data());
-    return status;
-  }
-
-  status = zelda3::SaveAllPotItems(rom_, rooms_);
-  if (!status.ok()) {
-    LOG_ERROR("DungeonEditorV2", "Failed to save pot items: %s",
-              status.message().data());
-    return status;
   }
 
   return absl::OkStatus();
@@ -979,6 +1074,23 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
         [this](int target_room_id, const zelda3::RoomObject& object) {
           OpenGraphicsEditorForObject(target_room_id, object);
         });
+    viewer->SetSaveRoomCallback([this](int target_room_id) {
+      auto status = SaveRoom(target_room_id);
+      if (!status.ok()) {
+        LOG_ERROR("DungeonEditorV2", "Save Room failed: %s",
+                  status.message().data());
+        if (dependencies_.toast_manager) {
+          dependencies_.toast_manager->Show(
+              absl::StrFormat("Save Room failed: %s", status.message()),
+              ToastType::kError);
+        }
+        return;
+      }
+      if (dependencies_.toast_manager) {
+        dependencies_.toast_manager->Show("Room saved",
+                                          ToastType::kSuccess);
+      }
+    });
     viewer->SetMinecartTrackPanel(minecart_track_editor_panel_);
     viewer->SetProject(dependencies_.project);
 

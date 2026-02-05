@@ -1,5 +1,6 @@
 #include "menu_orchestrator.h"
 
+#include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/editor.h"
 #include "app/editor/editor_manager.h"
@@ -77,6 +78,8 @@ void MenuOrchestrator::AddFileMenuItems() {
       .Item(
           "Save As...", ICON_MD_SAVE_AS, [this]() { OnSaveRomAs(); }, nullptr,
           [this]() { return CanSaveRom(); })
+      .Item("Save Scope...", ICON_MD_TUNE,
+            [this]() { popup_manager_.Show(PopupID::kSaveScope); })
       .Separator();
 
   // Project Operations
@@ -109,6 +112,9 @@ void MenuOrchestrator::AddFileMenuItems() {
       .Item(
           "Create Backup", ICON_MD_BACKUP, [this]() { OnCreateBackup(); },
           nullptr, [this]() { return HasActiveRom(); })
+      .Item("ROM Backups...", ICON_MD_BACKUP,
+            [this]() { popup_manager_.Show(PopupID::kRomBackups); }, nullptr,
+            [this]() { return HasActiveRom(); })
       .Item(
           "Validate ROM", ICON_MD_CHECK_CIRCLE, [this]() { OnValidateRom(); },
           nullptr, [this]() { return HasActiveRom(); })
@@ -559,6 +565,9 @@ void MenuOrchestrator::OnSaveRom() {
   if (editor_manager_) {
     auto status = editor_manager_->SaveRom();
     if (!status.ok()) {
+      if (absl::IsCancelled(status)) {
+        return;
+      }
       toast_manager_.Show(
           absl::StrFormat("Failed to save ROM: %s", status.message()),
           ToastType::kError);
@@ -1038,20 +1047,13 @@ void MenuOrchestrator::OnShowRomInfo() {
 
 void MenuOrchestrator::OnCreateBackup() {
   if (editor_manager_) {
-    // Create backup via ROM directly (from original implementation)
-    auto* rom = editor_manager_->GetCurrentRom();
-    if (rom && rom->is_loaded()) {
-      Rom::SaveSettings settings;
-      settings.backup = true;
-      settings.filename = rom->filename();
-      auto status = rom->SaveToFile(settings);
-      if (status.ok()) {
-        toast_manager_.Show("Backup created successfully", ToastType::kSuccess);
-      } else {
-        toast_manager_.Show(
-            absl::StrFormat("Backup failed: %s", status.message()),
-            ToastType::kError);
-      }
+    auto status = rom_manager_.CreateBackup(editor_manager_->GetCurrentRom());
+    if (status.ok()) {
+      toast_manager_.Show("Backup created successfully", ToastType::kSuccess);
+    } else {
+      toast_manager_.Show(
+          absl::StrFormat("Backup failed: %s", status.message()),
+          ToastType::kError);
     }
   }
 }

@@ -123,6 +123,9 @@ class DungeonEditorV2 : public Editor {
   absl::Status Paste() override;
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   absl::Status Save() override;
+  absl::Status SaveRoom(int room_id);
+  int LoadedRoomCount() const;
+  int TotalRoomCount() const { return static_cast<int>(rooms_.size()); }
 
   // ROM management
   void SetRom(Rom* rom) {
@@ -219,6 +222,8 @@ class DungeonEditorV2 : public Editor {
 
   // Helper to get or create a viewer for a specific room
   DungeonCanvasViewer* GetViewerForRoom(int room_id);
+
+  absl::Status SaveRoomData(int room_id);
 
   // Data
   Rom* rom_;

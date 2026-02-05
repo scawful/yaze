@@ -1,9 +1,12 @@
 #include "popup_manager.h"
 
 #include <cstring>
+#include <ctime>
+#include <filesystem>
 #include <functional>
 #include <initializer_list>
 
+#include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/layout/layout_presets.h"
@@ -48,6 +51,10 @@ void PopupManager::Initialize() {
                                false, false, [this]() {
                                  DrawSaveAsPopup();
                                }};
+  popups_[PopupID::kSaveScope] = {PopupID::kSaveScope, PopupType::kSettings,
+                                  false, true, [this]() {
+                                    DrawSaveScopePopup();
+                                  }};
   popups_[PopupID::kNewProject] = {
       PopupID::kNewProject, PopupType::kFileOperation, false, false, [this]() {
         DrawNewProjectPopup();
@@ -57,6 +64,9 @@ void PopupManager::Initialize() {
                                       [this]() {
                                         DrawManageProjectPopup();
                                       }};
+  popups_[PopupID::kRomBackups] = {PopupID::kRomBackups,
+                                   PopupType::kFileOperation, false, true,
+                                   [this]() { DrawRomBackupManagerPopup(); }};
 
   // Information
   popups_[PopupID::kAbout] = {PopupID::kAbout, PopupType::kInfo, false, false,
@@ -151,6 +161,13 @@ void PopupManager::Initialize() {
                                       [this]() {
                                         DrawDataIntegrityPopup();
                                       }};
+
+  popups_[PopupID::kDungeonPotItemSaveConfirm] = {
+      PopupID::kDungeonPotItemSaveConfirm, PopupType::kConfirmation, false,
+      false, [this]() { DrawDungeonPotItemSaveConfirmPopup(); }};
+  popups_[PopupID::kRomWriteConfirm] = {
+      PopupID::kRomWriteConfirm, PopupType::kConfirmation, false, false,
+      [this]() { DrawRomWriteConfirmPopup(); }};
 }
 
 void PopupManager::DrawPopups() {
@@ -281,6 +298,28 @@ void PopupManager::DrawRomInfoPopup() {
 
   Text("Title: %s", current_rom->title().c_str());
   Text("ROM Size: %s", util::HexLongLong(current_rom->size()).c_str());
+  Text("ROM Hash: %s",
+       editor_manager_->GetCurrentRomHash().empty()
+           ? "(unknown)"
+           : editor_manager_->GetCurrentRomHash().c_str());
+
+  auto* project = editor_manager_->GetCurrentProject();
+  if (project && project->project_opened()) {
+    Separator();
+    Text("Role: %s", project::RomRoleToString(project->rom_metadata.role).c_str());
+    Text("Write Policy: %s",
+         project::RomWritePolicyToString(project->rom_metadata.write_policy)
+             .c_str());
+    Text("Expected Hash: %s",
+         project->rom_metadata.expected_hash.empty()
+             ? "(unset)"
+             : project->rom_metadata.expected_hash.c_str());
+    if (editor_manager_->IsRomHashMismatch()) {
+      const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+      TextColored(gui::ConvertColorToImVec4(theme.warning),
+                  "ROM hash mismatch detected");
+    }
+  }
 
   if (Button("Close", gui::kDefaultModalSize) ||
       IsKeyPressed(ImGuiKey_Escape)) {
@@ -335,6 +374,190 @@ void PopupManager::DrawSaveAsPopup() {
              gui::kDefaultModalSize)) {
     save_as_filename = "";
     Hide(PopupID::kSaveAs);
+  }
+}
+
+void PopupManager::DrawSaveScopePopup() {
+  using namespace ImGui;
+
+  Text("%s Save Scope", ICON_MD_SAVE);
+  Separator();
+  TextWrapped(
+      "Controls which data is written during File > Save ROM. "
+      "Changes apply immediately.");
+  Separator();
+
+  if (CollapsingHeader("Overworld", ImGuiTreeNodeFlags_DefaultOpen)) {
+    Checkbox("Save Overworld Maps",
+             &core::FeatureFlags::get().overworld.kSaveOverworldMaps);
+    Checkbox("Save Overworld Entrances",
+             &core::FeatureFlags::get().overworld.kSaveOverworldEntrances);
+    Checkbox("Save Overworld Exits",
+             &core::FeatureFlags::get().overworld.kSaveOverworldExits);
+    Checkbox("Save Overworld Items",
+             &core::FeatureFlags::get().overworld.kSaveOverworldItems);
+    Checkbox("Save Overworld Properties",
+             &core::FeatureFlags::get().overworld.kSaveOverworldProperties);
+  }
+
+  if (CollapsingHeader("Dungeon", ImGuiTreeNodeFlags_DefaultOpen)) {
+    Checkbox("Save Dungeon Maps", &core::FeatureFlags::get().kSaveDungeonMaps);
+    Checkbox("Save Objects", &core::FeatureFlags::get().dungeon.kSaveObjects);
+    Checkbox("Save Sprites", &core::FeatureFlags::get().dungeon.kSaveSprites);
+    Checkbox("Save Room Headers",
+             &core::FeatureFlags::get().dungeon.kSaveRoomHeaders);
+    Checkbox("Save Torches", &core::FeatureFlags::get().dungeon.kSaveTorches);
+    Checkbox("Save Pits", &core::FeatureFlags::get().dungeon.kSavePits);
+    Checkbox("Save Blocks", &core::FeatureFlags::get().dungeon.kSaveBlocks);
+    Checkbox("Save Collision",
+             &core::FeatureFlags::get().dungeon.kSaveCollision);
+    Checkbox("Save Chests", &core::FeatureFlags::get().dungeon.kSaveChests);
+    Checkbox("Save Pot Items",
+             &core::FeatureFlags::get().dungeon.kSavePotItems);
+    Checkbox("Save Palettes",
+             &core::FeatureFlags::get().dungeon.kSavePalettes);
+  }
+
+  if (CollapsingHeader("Graphics", ImGuiTreeNodeFlags_DefaultOpen)) {
+    Checkbox("Save Graphics Sheets",
+             &core::FeatureFlags::get().kSaveGraphicsSheet);
+    Checkbox("Save All Palettes", &core::FeatureFlags::get().kSaveAllPalettes);
+    Checkbox("Save Gfx Groups", &core::FeatureFlags::get().kSaveGfxGroups);
+  }
+
+  if (CollapsingHeader("Messages", ImGuiTreeNodeFlags_DefaultOpen)) {
+    Checkbox("Save Message Text", &core::FeatureFlags::get().kSaveMessages);
+  }
+
+  Separator();
+  if (Button("Close", gui::kDefaultModalSize)) {
+    Hide(PopupID::kSaveScope);
+  }
+}
+
+void PopupManager::DrawRomBackupManagerPopup() {
+  using namespace ImGui;
+
+  auto* rom = editor_manager_->GetCurrentRom();
+  if (!rom || !rom->is_loaded()) {
+    Text("No ROM loaded.");
+    if (Button("Close", gui::kDefaultModalSize)) {
+      Hide(PopupID::kRomBackups);
+    }
+    return;
+  }
+
+  const auto* project = editor_manager_->GetCurrentProject();
+  std::string backup_dir;
+  if (project && project->project_opened() &&
+      !project->rom_backup_folder.empty()) {
+    backup_dir = project->GetAbsolutePath(project->rom_backup_folder);
+  } else {
+    backup_dir = std::filesystem::path(rom->filename()).parent_path().string();
+  }
+
+  Text("%s ROM Backups", ICON_MD_BACKUP);
+  Separator();
+  TextWrapped("Backup folder: %s", backup_dir.c_str());
+
+  if (Button(ICON_MD_DELETE_SWEEP " Prune Backups")) {
+    auto status = editor_manager_->PruneRomBackups();
+    if (!status.ok()) {
+      if (auto* toast = editor_manager_->toast_manager()) {
+        toast->Show(absl::StrFormat("Prune failed: %s", status.message()),
+                    ToastType::kError);
+      }
+    } else if (auto* toast = editor_manager_->toast_manager()) {
+      toast->Show("Backups pruned", ToastType::kSuccess);
+    }
+  }
+
+  Separator();
+  auto backups = editor_manager_->GetRomBackups();
+  if (backups.empty()) {
+    TextDisabled("No backups found.");
+  } else if (BeginTable("RomBackupTable", 4,
+                        ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders |
+                            ImGuiTableFlags_Resizable)) {
+    TableSetupColumn("Timestamp");
+    TableSetupColumn("Size");
+    TableSetupColumn("Filename");
+    TableSetupColumn("Actions");
+    TableHeadersRow();
+
+    auto format_size = [](uintmax_t bytes) {
+      if (bytes > (1024 * 1024)) {
+        return absl::StrFormat("%.2f MB",
+                               static_cast<double>(bytes) / (1024 * 1024));
+      }
+      if (bytes > 1024) {
+        return absl::StrFormat("%.1f KB",
+                               static_cast<double>(bytes) / 1024.0);
+      }
+      return absl::StrFormat("%llu B",
+                             static_cast<unsigned long long>(bytes));
+    };
+
+    for (size_t i = 0; i < backups.size(); ++i) {
+      const auto& backup = backups[i];
+      TableNextRow();
+      TableNextColumn();
+      char time_buffer[32] = "unknown";
+      if (backup.timestamp != 0) {
+        std::tm local_tm{};
+#ifdef _WIN32
+        localtime_s(&local_tm, &backup.timestamp);
+#else
+        localtime_r(&backup.timestamp, &local_tm);
+#endif
+        std::strftime(time_buffer, sizeof(time_buffer), "%Y-%m-%d %H:%M:%S",
+                      &local_tm);
+      }
+      TextUnformatted(time_buffer);
+
+      TableNextColumn();
+      TextUnformatted(format_size(backup.size_bytes).c_str());
+
+      TableNextColumn();
+      TextUnformatted(backup.filename.c_str());
+
+      TableNextColumn();
+      PushID(static_cast<int>(i));
+      if (Button(ICON_MD_RESTORE " Restore")) {
+        auto status = editor_manager_->RestoreRomBackup(backup.path);
+        if (!status.ok()) {
+          if (auto* toast = editor_manager_->toast_manager()) {
+            toast->Show(
+                absl::StrFormat("Restore failed: %s", status.message()),
+                ToastType::kError);
+          }
+        } else if (auto* toast = editor_manager_->toast_manager()) {
+          toast->Show("ROM restored from backup", ToastType::kSuccess);
+        }
+      }
+      SameLine();
+      if (Button(ICON_MD_OPEN_IN_NEW " Open")) {
+        auto status = editor_manager_->OpenRomOrProject(backup.path);
+        if (!status.ok()) {
+          if (auto* toast = editor_manager_->toast_manager()) {
+            toast->Show(
+                absl::StrFormat("Open failed: %s", status.message()),
+                ToastType::kError);
+          }
+        }
+      }
+      SameLine();
+      if (Button(ICON_MD_CONTENT_COPY " Copy")) {
+        SetClipboardText(backup.path.c_str());
+      }
+      PopID();
+    }
+    EndTable();
+  }
+
+  Separator();
+  if (Button("Close", gui::kDefaultModalSize)) {
+    Hide(PopupID::kRomBackups);
   }
 }
 
@@ -1135,6 +1358,104 @@ void PopupManager::DrawDataIntegrityPopup() {
   Separator();
   if (Button("Close", gui::kDefaultModalSize)) {
     Hide(PopupID::kDataIntegrity);
+  }
+}
+
+void PopupManager::DrawDungeonPotItemSaveConfirmPopup() {
+  using namespace ImGui;
+
+  if (!editor_manager_) {
+    Text("Editor manager unavailable.");
+    if (Button("Close", gui::kDefaultModalSize)) {
+      Hide(PopupID::kDungeonPotItemSaveConfirm);
+    }
+    return;
+  }
+
+  const int unloaded = editor_manager_->pending_pot_item_unloaded_rooms();
+  const int total = editor_manager_->pending_pot_item_total_rooms();
+
+  Text("Pot Item Save Confirmation");
+  Separator();
+  TextWrapped(
+      "Dungeon pot item saving is enabled, but %d of %d rooms are not loaded.",
+      unloaded, total);
+  Spacing();
+  TextWrapped(
+      "Saving now can overwrite pot items in unloaded rooms. Choose how to "
+      "proceed:");
+
+  Spacing();
+  if (Button("Save without pot items", ImVec2(0, 0))) {
+    editor_manager_->ResolvePotItemSaveConfirmation(
+        EditorManager::PotItemSaveDecision::kSaveWithoutPotItems);
+    Hide(PopupID::kDungeonPotItemSaveConfirm);
+    return;
+  }
+  SameLine();
+  if (Button("Save anyway", ImVec2(0, 0))) {
+    editor_manager_->ResolvePotItemSaveConfirmation(
+        EditorManager::PotItemSaveDecision::kSaveWithPotItems);
+    Hide(PopupID::kDungeonPotItemSaveConfirm);
+    return;
+  }
+  SameLine();
+  if (Button("Cancel", ImVec2(0, 0))) {
+    editor_manager_->ResolvePotItemSaveConfirmation(
+        EditorManager::PotItemSaveDecision::kCancel);
+    Hide(PopupID::kDungeonPotItemSaveConfirm);
+  }
+}
+
+void PopupManager::DrawRomWriteConfirmPopup() {
+  using namespace ImGui;
+
+  if (!editor_manager_) {
+    Text("Editor manager unavailable.");
+    if (Button("Close", gui::kDefaultModalSize)) {
+      Hide(PopupID::kRomWriteConfirm);
+    }
+    return;
+  }
+
+  auto role = project::RomRoleToString(editor_manager_->GetProjectRomRole());
+  auto policy =
+      project::RomWritePolicyToString(editor_manager_->GetProjectRomWritePolicy());
+  const auto expected = editor_manager_->GetProjectExpectedRomHash();
+  const auto actual = editor_manager_->GetCurrentRomHash();
+
+  Text("ROM Write Confirmation");
+  Separator();
+  TextWrapped(
+      "The loaded ROM hash does not match the project's expected hash.");
+  Spacing();
+  Text("Role: %s", role.c_str());
+  Text("Write policy: %s", policy.c_str());
+  Text("Expected: %s", expected.empty() ? "(unset)" : expected.c_str());
+  Text("Actual:   %s", actual.empty() ? "(unknown)" : actual.c_str());
+  Spacing();
+  TextWrapped(
+      "Proceeding will write to the current ROM file. This may corrupt a base "
+      "or release ROM if it is not the intended dev ROM.");
+
+  Spacing();
+  if (Button("Save anyway", ImVec2(0, 0))) {
+    editor_manager_->ConfirmRomWrite();
+    Hide(PopupID::kRomWriteConfirm);
+    auto status = editor_manager_->SaveRom();
+    if (!status.ok() && !absl::IsCancelled(status)) {
+      if (auto* toast = editor_manager_->toast_manager()) {
+        toast->Show(
+            absl::StrFormat("Save failed: %s", status.message()),
+            ToastType::kError);
+      }
+    }
+    return;
+  }
+  SameLine();
+  if (Button("Cancel", ImVec2(0, 0)) || IsKeyPressed(ImGuiKey_Escape)) {
+    editor_manager_->CancelRomWriteConfirm();
+    Hide(PopupID::kRomWriteConfirm);
   }
 }
 
