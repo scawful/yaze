@@ -96,8 +96,7 @@ std::filesystem::path ExpandUserPath(const std::string& input) {
 }
 
 bool HasModelExtension(const std::filesystem::path& path) {
-  const std::string ext =
-      absl::AsciiStrToLower(path.extension().string());
+  const std::string ext = absl::AsciiStrToLower(path.extension().string());
   return ext == ".gguf" || ext == ".ggml" || ext == ".bin" ||
          ext == ".safetensors";
 }
@@ -137,8 +136,8 @@ void CollectOllamaManifestModels(const std::filesystem::path& models_root,
   }
   std::filesystem::directory_options options =
       std::filesystem::directory_options::skip_permission_denied;
-  for (std::filesystem::recursive_directory_iterator it(library_path, options,
-                                                        ec),
+  for (std::filesystem::recursive_directory_iterator
+           it(library_path, options, ec),
        end;
        it != end; it.increment(ec)) {
     if (ec) {
@@ -190,8 +189,7 @@ void CollectModelFiles(const std::filesystem::path& base_path,
   std::filesystem::directory_options options =
       std::filesystem::directory_options::skip_permission_denied;
   constexpr int kMaxDepth = 4;
-  for (std::filesystem::recursive_directory_iterator it(base_path, options,
-                                                        ec),
+  for (std::filesystem::recursive_directory_iterator it(base_path, options, ec),
        end;
        it != end; it.increment(ec)) {
     if (ec) {
@@ -258,9 +256,8 @@ std::vector<std::string> CollectLocalModelNames(
   return results;
 }
 
-std::string ResolveHostApiKey(
-    const UserSettings::Preferences* prefs,
-    const UserSettings::Preferences::AiHost& host) {
+std::string ResolveHostApiKey(const UserSettings::Preferences* prefs,
+                              const UserSettings::Preferences::AiHost& host) {
   if (!host.api_key.empty()) {
     return host.api_key;
   }
@@ -350,8 +347,7 @@ bool IsLocalOpenAiBaseUrl(const std::string& base_url) {
     return false;
   }
   std::string lower = absl::AsciiStrToLower(base_url);
-  return ContainsText(lower, "localhost") ||
-         ContainsText(lower, "127.0.0.1") ||
+  return ContainsText(lower, "localhost") || ContainsText(lower, "127.0.0.1") ||
          ContainsText(lower, "0.0.0.0");
 }
 
@@ -360,11 +356,11 @@ bool IsTailscaleEndpoint(const std::string& base_url) {
     return false;
   }
   std::string lower = absl::AsciiStrToLower(base_url);
-  return ContainsText(lower, ".ts.net") ||
-         ContainsText(lower, "tailscale");
+  return ContainsText(lower, ".ts.net") || ContainsText(lower, "tailscale");
 }
 
-bool IsLocalOrTrustedEndpoint(const std::string& base_url, bool allow_insecure) {
+bool IsLocalOrTrustedEndpoint(const std::string& base_url,
+                              bool allow_insecure) {
   if (allow_insecure) {
     return true;
   }
@@ -375,12 +371,9 @@ bool IsLocalOrTrustedEndpoint(const std::string& base_url, bool allow_insecure) 
     return false;
   }
   std::string lower = absl::AsciiStrToLower(base_url);
-  return ContainsText(lower, "localhost") ||
-         ContainsText(lower, "127.0.0.1") ||
-         ContainsText(lower, "0.0.0.0") ||
-         ContainsText(lower, "::1") ||
-         ContainsText(lower, "192.168.") ||
-         StartsWithText(lower, "10.") ||
+  return ContainsText(lower, "localhost") || ContainsText(lower, "127.0.0.1") ||
+         ContainsText(lower, "0.0.0.0") || ContainsText(lower, "::1") ||
+         ContainsText(lower, "192.168.") || StartsWithText(lower, "10.") ||
          ContainsText(lower, "100.64.");
 }
 
@@ -409,8 +402,12 @@ bool ProbeOpenAICompatible(const std::string& base_url) {
   return ProbeHttpEndpoint(base_url, "/v1/models");
 }
 #else
-bool ProbeOllamaHost(const std::string&) { return false; }
-bool ProbeOpenAICompatible(const std::string&) { return false; }
+bool ProbeOllamaHost(const std::string&) {
+  return false;
+}
+bool ProbeOpenAICompatible(const std::string&) {
+  return false;
+}
 #endif
 
 std::optional<std::string> LoadKeychainValue(const std::string& key) {
@@ -418,18 +415,16 @@ std::optional<std::string> LoadKeychainValue(const std::string& key) {
   if (key.empty()) {
     return std::nullopt;
   }
-  CFStringRef key_ref =
-      CFStringCreateWithCString(kCFAllocatorDefault, key.c_str(),
-                                kCFStringEncodingUTF8);
+  CFStringRef key_ref = CFStringCreateWithCString(
+      kCFAllocatorDefault, key.c_str(), kCFStringEncodingUTF8);
   const void* keys[] = {kSecClass, kSecAttrAccount, kSecReturnData,
                         kSecMatchLimit};
   const void* values[] = {kSecClassGenericPassword, key_ref, kCFBooleanTrue,
                           kSecMatchLimitOne};
-  CFDictionaryRef query =
-      CFDictionaryCreate(kCFAllocatorDefault, keys, values,
-                         static_cast<CFIndex>(sizeof(keys) / sizeof(keys[0])),
-                         &kCFTypeDictionaryKeyCallBacks,
-                         &kCFTypeDictionaryValueCallBacks);
+  CFDictionaryRef query = CFDictionaryCreate(
+      kCFAllocatorDefault, keys, values,
+      static_cast<CFIndex>(sizeof(keys) / sizeof(keys[0])),
+      &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
   CFTypeRef item = nullptr;
   OSStatus status = SecItemCopyMatching(query, &item);
   if (query) {
@@ -550,21 +545,19 @@ void AgentEditor::Initialize() {
           }
         }));
 
-    panel_manager->RegisterEditorPanel(
-        std::make_unique<AgentMesenDebugPanel>(
-            [this]() { DrawMesenDebugPanel(); }));
+    panel_manager->RegisterEditorPanel(std::make_unique<AgentMesenDebugPanel>(
+        [this]() { DrawMesenDebugPanel(); }));
 
     panel_manager->RegisterEditorPanel(
         std::make_unique<OracleStateLibraryEditorPanel>(
             [this]() { DrawOracleStatePanel(); }));
 
     if (agent_chat_) {
-      agent_chat_->SetPanelOpener(
-          [panel_manager](const std::string& panel_id) {
-            if (!panel_id.empty()) {
-              panel_manager->ShowPanel(panel_id);
-            }
-          });
+      agent_chat_->SetPanelOpener([panel_manager](const std::string& panel_id) {
+        if (!panel_id.empty()) {
+          panel_manager->ShowPanel(panel_id);
+        }
+      });
     }
   }
 
@@ -590,9 +583,9 @@ void AgentEditor::ApplyUserSettingsDefaults(bool force) {
     }
   }
   if (!prefs.ai_hosts.empty()) {
-    const std::string& active_id =
-        prefs.active_ai_host_id.empty() ? prefs.ai_hosts.front().id
-                                        : prefs.active_ai_host_id;
+    const std::string& active_id = prefs.active_ai_host_id.empty()
+                                       ? prefs.ai_hosts.front().id
+                                       : prefs.active_ai_host_id;
     if (!active_id.empty()) {
       for (const auto& host : prefs.ai_hosts) {
         if (host.id == active_id) {
@@ -647,7 +640,9 @@ void AgentEditor::ApplyUserSettingsDefaults(bool force) {
   }
 }
 
-void AgentEditor::MarkProfileUiDirty() { profile_ui_state_.dirty = true; }
+void AgentEditor::MarkProfileUiDirty() {
+  profile_ui_state_.dirty = true;
+}
 
 void AgentEditor::SyncProfileUiState() {
   if (!profile_ui_state_.dirty) {
@@ -655,17 +650,17 @@ void AgentEditor::SyncProfileUiState() {
   }
   auto& ui = profile_ui_state_;
   CopyStringToBuffer(current_profile_.model, ui.model_buf);
-  CopyStringToBuffer(
-      current_profile_.ollama_host.empty() ? "http://localhost:11434"
-                                           : current_profile_.ollama_host,
-      ui.ollama_host_buf);
+  CopyStringToBuffer(current_profile_.ollama_host.empty()
+                         ? "http://localhost:11434"
+                         : current_profile_.ollama_host,
+                     ui.ollama_host_buf);
   CopyStringToBuffer(current_profile_.gemini_api_key, ui.gemini_key_buf);
   CopyStringToBuffer(current_profile_.anthropic_api_key, ui.anthropic_key_buf);
   CopyStringToBuffer(current_profile_.openai_api_key, ui.openai_key_buf);
-  CopyStringToBuffer(
-      current_profile_.openai_base_url.empty() ? "https://api.openai.com"
-                                               : current_profile_.openai_base_url,
-      ui.openai_base_buf);
+  CopyStringToBuffer(current_profile_.openai_base_url.empty()
+                         ? "https://api.openai.com"
+                         : current_profile_.openai_base_url,
+                     ui.openai_base_buf);
   CopyStringToBuffer(current_profile_.name, ui.name_buf);
   CopyStringToBuffer(current_profile_.description, ui.desc_buf);
   CopyStringToBuffer(BuildTagsString(current_profile_.tags), ui.tags_buf);
@@ -779,8 +774,7 @@ void AgentEditor::InitializeWithDependencies(ToastManager* toast_manager,
   }
 
   bool provider_is_default =
-      current_profile_.provider == "mock" &&
-      current_profile_.host_id.empty();
+      current_profile_.provider == "mock" && current_profile_.host_id.empty();
 
   if (provider_is_default) {
     if (!current_profile_.gemini_api_key.empty()) {
@@ -965,14 +959,16 @@ void AgentEditor::ApplyConfigFromContext(const AgentConfigState& config) {
   const std::string prev_provider = ctx_config.ai_provider;
   const std::string prev_openai_base = ctx_config.openai_base_url;
   const std::string prev_ollama_host = ctx_config.ollama_host;
-  ctx_config.ai_provider = config.ai_provider.empty() ? "mock" : config.ai_provider;
+  ctx_config.ai_provider =
+      config.ai_provider.empty() ? "mock" : config.ai_provider;
   ctx_config.ai_model = config.ai_model;
-  ctx_config.ollama_host =
-      config.ollama_host.empty() ? "http://localhost:11434" : config.ollama_host;
+  ctx_config.ollama_host = config.ollama_host.empty() ? "http://localhost:11434"
+                                                      : config.ollama_host;
   ctx_config.gemini_api_key = config.gemini_api_key;
   ctx_config.anthropic_api_key = config.anthropic_api_key;
   ctx_config.openai_api_key = config.openai_api_key;
-  ctx_config.openai_base_url = cli::NormalizeOpenAiBaseUrl(config.openai_base_url);
+  ctx_config.openai_base_url =
+      cli::NormalizeOpenAiBaseUrl(config.openai_base_url);
   ctx_config.host_id = config.host_id;
   ctx_config.verbose = config.verbose;
   ctx_config.show_reasoning = config.show_reasoning;
@@ -1105,8 +1101,7 @@ void AgentEditor::RefreshModelCache(bool force) {
       if (prefs.ai_model_paths != last_local_model_paths_) {
         needs_local_refresh = true;
       } else if (last_local_model_scan_ == absl::InfinitePast() ||
-                 (absl::Now() - last_local_model_scan_) >
-                     absl::Seconds(30)) {
+                 (absl::Now() - last_local_model_scan_) > absl::Seconds(30)) {
         needs_local_refresh = true;
       }
     }
@@ -1291,8 +1286,7 @@ bool AgentEditor::MaybeAutoDetectLocalProviders() {
 
   auto try_host = [&](const UserSettings::Preferences::AiHost& host,
                       bool probe_only_local) {
-    std::string api_type =
-        host.api_type.empty() ? "openai" : host.api_type;
+    std::string api_type = host.api_type.empty() ? "openai" : host.api_type;
     if (api_type == "lmstudio") {
       api_type = "openai";
     }
@@ -1303,9 +1297,8 @@ bool AgentEditor::MaybeAutoDetectLocalProviders() {
       if (resolved.base_url.empty()) {
         return false;
       }
-      if (probe_only_local &&
-          !IsLocalOrTrustedEndpoint(resolved.base_url,
-                                    resolved.allow_insecure)) {
+      if (probe_only_local && !IsLocalOrTrustedEndpoint(
+                                  resolved.base_url, resolved.allow_insecure)) {
         return false;
       }
       if (!ProbeOllamaHost(resolved.base_url)) {
@@ -1410,9 +1403,9 @@ void AgentEditor::DrawConfigurationPanel() {
       AgentUI::RenderSectionHeader(ICON_MD_STORAGE, "Host Presets",
                                    theme.accent_color);
       const auto& hosts = prefs.ai_hosts;
-      std::string active_id =
-          current_profile_.host_id.empty() ? prefs.active_ai_host_id
-                                           : current_profile_.host_id;
+      std::string active_id = current_profile_.host_id.empty()
+                                  ? prefs.active_ai_host_id
+                                  : current_profile_.host_id;
       int active_index = -1;
       for (size_t i = 0; i < hosts.size(); ++i) {
         if (!active_id.empty() && hosts[i].id == active_id) {
@@ -1420,9 +1413,9 @@ void AgentEditor::DrawConfigurationPanel() {
           break;
         }
       }
-      const char* preview =
-          (active_index >= 0) ? hosts[active_index].label.c_str()
-                              : "Select host";
+      const char* preview = (active_index >= 0)
+                                ? hosts[active_index].label.c_str()
+                                : "Select host";
       if (ImGui::BeginCombo("##ai_host_preset", preview)) {
         for (size_t i = 0; i < hosts.size(); ++i) {
           const bool selected = (static_cast<int>(i) == active_index);
@@ -1441,9 +1434,9 @@ void AgentEditor::DrawConfigurationPanel() {
         const auto& host = hosts[active_index];
         ImGui::TextDisabled("Active host: %s", host.label.c_str());
         ImGui::TextDisabled("Endpoint: %s", host.base_url.c_str());
-        ImGui::TextDisabled("API type: %s",
-                            host.api_type.empty() ? "openai"
-                                                  : host.api_type.c_str());
+        ImGui::TextDisabled("API type: %s", host.api_type.empty()
+                                                ? "openai"
+                                                : host.api_type.c_str());
       } else {
         ImGui::TextDisabled(
             "Host presets come from settings.json (Documents/Yaze).");
@@ -1458,7 +1451,9 @@ void AgentEditor::DrawConfigurationPanel() {
   callbacks.update_config = [this](const AgentConfigState& config) {
     ApplyConfigFromContext(config);
   };
-  callbacks.refresh_models = [this](bool force) { RefreshModelCache(force); };
+  callbacks.refresh_models = [this](bool force) {
+    RefreshModelCache(force);
+  };
   callbacks.apply_preset = [this](const ModelPreset& preset) {
     ApplyModelPreset(preset);
   };
@@ -1510,7 +1505,8 @@ void AgentEditor::DrawStatusPanel() {
       ImGui::TextDisabled("ROM");
       ImGui::TableSetColumnIndex(1);
       if (rom_ && rom_->is_loaded()) {
-        ImGui::TextColored(theme.status_success, ICON_MD_CHECK_CIRCLE " Loaded");
+        ImGui::TextColored(theme.status_success,
+                           ICON_MD_CHECK_CIRCLE " Loaded");
         ImGui::SameLine();
         ImGui::TextDisabled("Tools ready");
       } else {
@@ -1561,8 +1557,8 @@ void AgentEditor::DrawStatusPanel() {
           ImPlot::SetupAxes(nullptr, nullptr, ImPlotAxisFlags_NoDecorations,
                             ImPlotAxisFlags_NoDecorations);
           ImPlot::SetupAxisLimits(ImAxis_X1, 0, xs.back(), ImGuiCond_Always);
-          double max_latency = *std::max_element(latencies.begin(),
-                                                 latencies.end());
+          double max_latency =
+              *std::max_element(latencies.begin(), latencies.end());
           ImPlot::SetupAxisLimits(ImAxis_Y1, 0, max_latency * 1.2,
                                   ImGuiCond_Always);
           ImPlot::PlotLine("Latency", xs.data(), latencies.data(),
@@ -2036,8 +2032,8 @@ void AgentEditor::DrawAgentBuilderPanel() {
     return text.substr(0, kMaxLen - 3) + "...";
   };
 
-  const float left_width = std::min(
-      260.0f, ImGui::GetContentRegionAvail().x * 0.32f);
+  const float left_width =
+      std::min(260.0f, ImGui::GetContentRegionAvail().x * 0.32f);
 
   ImGui::BeginChild("BuilderStages", ImVec2(left_width, 0), true);
   AgentUI::RenderSectionHeader(ICON_MD_LIST, "Stages", theme.accent_color);
@@ -2156,11 +2152,10 @@ void AgentEditor::DrawAgentBuilderPanel() {
     }
     case 4: {
       ImGui::Text("E2E Checklist");
-      ImGui::ProgressBar(
-          completion_ratio, ImVec2(-1, 0),
-          absl::StrFormat("%d/%zu complete", completed_stages,
-                          builder_state_.stages.size())
-              .c_str());
+      ImGui::ProgressBar(completion_ratio, ImVec2(-1, 0),
+                         absl::StrFormat("%d/%zu complete", completed_stages,
+                                         builder_state_.stages.size())
+                             .c_str());
       ImGui::Checkbox("Ready for automation handoff",
                       &builder_state_.ready_for_e2e);
       ImGui::TextDisabled("Auto-sync ROM: %s",
@@ -2348,7 +2343,8 @@ absl::Status AgentEditor::LoadBuilderBlueprint(
     builder_state_.tools.music = tools.value("music", false);
     builder_state_.tools.sprite = tools.value("sprite", false);
     builder_state_.tools.emulator = tools.value("emulator", false);
-    builder_state_.tools.memory_inspector = tools.value("memory_inspector", false);
+    builder_state_.tools.memory_inspector =
+        tools.value("memory_inspector", false);
   }
   builder_state_.auto_run_tests = json.value("auto_run_tests", false);
   builder_state_.auto_sync_rom = json.value("auto_sync_rom", true);
