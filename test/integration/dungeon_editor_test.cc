@@ -1,5 +1,7 @@
 #include "integration/dungeon_editor_test.h"
 
+#include <algorithm>
+
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
 
@@ -49,7 +51,11 @@ TEST_F(DungeonEditorIntegrationTest, ObjectEncodingRoundTrip) {
 
   auto encoded = room.EncodeObjects();
   EXPECT_FALSE(encoded.empty());
-  EXPECT_EQ(encoded[encoded.size() - 1], 0xFF);  // Terminator
+  // Expect door marker (0xF0, 0xFF) after final object terminator (0xFF, 0xFF)
+  const std::vector<uint8_t> marker{0xFF, 0xFF, 0xF0, 0xFF};
+  auto it = std::search(encoded.begin(), encoded.end(), marker.begin(),
+                        marker.end());
+  EXPECT_NE(it, encoded.end()) << "Missing object terminator/door marker";
 }
 
 TEST_F(DungeonEditorIntegrationTest, EncodeType1Object) {

@@ -1931,6 +1931,22 @@ absl::Status SaveAllTorches(Rom* rom, absl::Span<const Room> rooms) {
     return absl::InvalidArgumentError("ROM not loaded");
   }
 
+  bool any_torch_objects = false;
+  for (const auto& room : rooms) {
+    for (const auto& obj : room.GetTileObjects()) {
+      if ((obj.options() & ObjectOption::Torch) != ObjectOption::Nothing) {
+        any_torch_objects = true;
+        break;
+      }
+    }
+    if (any_torch_objects) {
+      break;
+    }
+  }
+  if (!any_torch_objects) {
+    return absl::OkStatus();
+  }
+
   const auto& rom_data = rom->vector();
   int existing_count = (rom_data[kTorchesLengthPointer + 1] << 8) |
                        rom_data[kTorchesLengthPointer];
