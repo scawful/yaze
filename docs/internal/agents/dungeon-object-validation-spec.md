@@ -229,6 +229,7 @@ Minimum required fields: `object_id`, `size`, `x_tile`, `y_tile`, `tile_id`.
    - Emphasize track tiles (`0xB0–0xBE`, `0xD0–0xD3`) with a distinct color legend.
    - Mark stop tiles (`0xB7–0xBA`) and switch tiles (`0xD0–0xD3`) separately.
    - Draw per-tile direction arrows for straights/corners/Ts; show both routes on switch tiles.
+   - If project overrides collision IDs, arrows are disabled unless a mapping table is added.
 
 3) **Sprite/stop-tile validation**
    - Detect rooms with track collision tiles but no minecart sprite placed on a stop tile.

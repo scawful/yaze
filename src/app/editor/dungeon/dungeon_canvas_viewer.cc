@@ -199,15 +199,26 @@ void DungeonCanvasViewer::ApplyTrackCollisionConfig() {
     }
   };
 
+  std::array<bool, 256> default_track_tiles{};
+  std::array<bool, 256> default_stop_tiles{};
+  std::array<bool, 256> default_switch_tiles{};
+
   if (project_ && !project_->dungeon_overlay.track_tiles.empty()) {
     apply_list(track_collision_config_.track_tiles,
                project_->dungeon_overlay.track_tiles);
   } else {
-    std::vector<uint16_t> default_track_tiles;
+    std::vector<uint16_t> default_track_tile_list;
     for (uint16_t tile = 0xB0; tile <= 0xBE; ++tile) {
-      default_track_tiles.push_back(tile);
+      default_track_tile_list.push_back(tile);
     }
-    apply_list(track_collision_config_.track_tiles, default_track_tiles);
+    apply_list(track_collision_config_.track_tiles, default_track_tile_list);
+  }
+  {
+    std::vector<uint16_t> default_track_tile_list;
+    for (uint16_t tile = 0xB0; tile <= 0xBE; ++tile) {
+      default_track_tile_list.push_back(tile);
+    }
+    apply_list(default_track_tiles, default_track_tile_list);
   }
 
   if (project_ && !project_->dungeon_overlay.track_stop_tiles.empty()) {
@@ -216,6 +227,7 @@ void DungeonCanvasViewer::ApplyTrackCollisionConfig() {
   } else {
     apply_list(track_collision_config_.stop_tiles, {0xB7, 0xB8, 0xB9, 0xBA});
   }
+  apply_list(default_stop_tiles, {0xB7, 0xB8, 0xB9, 0xBA});
 
   if (project_ && !project_->dungeon_overlay.track_switch_tiles.empty()) {
     apply_list(track_collision_config_.switch_tiles,
@@ -223,6 +235,12 @@ void DungeonCanvasViewer::ApplyTrackCollisionConfig() {
   } else {
     apply_list(track_collision_config_.switch_tiles, {0xD0, 0xD1, 0xD2, 0xD3});
   }
+  apply_list(default_switch_tiles, {0xD0, 0xD1, 0xD2, 0xD3});
+
+  use_default_track_direction_map_ =
+      (track_collision_config_.track_tiles == default_track_tiles) &&
+      (track_collision_config_.stop_tiles == default_stop_tiles) &&
+      (track_collision_config_.switch_tiles == default_switch_tiles);
 
   minecart_sprite_ids_.fill(false);
   std::vector<uint16_t> minecart_ids = {0xA3};
@@ -2249,13 +2267,15 @@ void DungeonCanvasViewer::DrawTrackCollisionOverlay(
     draw_list->AddRectFilled(min, max, color);
     draw_list->AddRect(min, max, outline_color);
 
-    const auto masks = GetTrackDirectionMasks(entry.tile);
-    if (masks.primary != 0) {
-      DrawTrackDirectionMask(draw_list, min, tile_size, masks.primary,
-                             arrow_color);
-      if (masks.secondary != 0) {
-        DrawTrackDirectionMask(draw_list, min, tile_size, masks.secondary,
-                               arrow_color_dim);
+    if (use_default_track_direction_map_) {
+      const auto masks = GetTrackDirectionMasks(entry.tile);
+      if (masks.primary != 0) {
+        DrawTrackDirectionMask(draw_list, min, tile_size, masks.primary,
+                               arrow_color);
+        if (masks.secondary != 0) {
+          DrawTrackDirectionMask(draw_list, min, tile_size, masks.secondary,
+                                 arrow_color_dim);
+        }
       }
     }
   }
@@ -2287,8 +2307,10 @@ void DungeonCanvasViewer::DrawTrackCollisionOverlay(
                       item.label);
       y += swatch + 4.0f;
     }
-    legend->AddText(ImVec2(legend_pos.x, y + 2.0f), text_color,
-                    "Arrows: track directions");
+    const char* arrow_label = use_default_track_direction_map_
+                                  ? "Arrows: track directions"
+                                  : "Arrows: disabled (custom mapping)";
+    legend->AddText(ImVec2(legend_pos.x, y + 2.0f), text_color, arrow_label);
   }
 }
 
