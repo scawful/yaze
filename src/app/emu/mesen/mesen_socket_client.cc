@@ -5,10 +5,13 @@
 #include <filesystem>
 
 #ifdef _WIN32
+// clang-format off
+// winsock2.h must precede afunix.h (defines ADDRESS_FAMILY)
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <afunix.h>
 #include <io.h>
+// clang-format on
 #define close closesocket
 typedef int ssize_t;
 #else
