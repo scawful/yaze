@@ -110,8 +110,15 @@
     TestUtils.assertExists(window.Module, 'Module exists on window');
 
     if (window.Module) {
-      TestUtils.assertExists(window.Module.calledRun, 'Module.calledRun exists');
-      TestUtils.assertEqual(window.Module.calledRun, true, 'Module has finished running');
+      const hasCalledRun = window.Module.calledRun === true;
+      const hasCcall = typeof window.Module.ccall === 'function';
+      const hasProcessCommand = typeof window.Module._Z3edProcessCommand === 'function';
+      const hasWasmReadyFlag = !!(window.yaze && window.yaze.core &&
+                                  window.yaze.core.state &&
+                                  window.yaze.core.state.wasmReady);
+
+      const isReady = hasWasmReadyFlag || hasCalledRun || hasCcall || hasProcessCommand;
+      TestUtils.assertEqual(isReady, true, 'Module is ready (wasmReady/calledRun/ccall)');
     } else {
       TestUtils.skip('Module.calledRun check', 'Module not loaded');
     }

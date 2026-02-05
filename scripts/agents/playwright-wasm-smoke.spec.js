@@ -4,6 +4,25 @@ const path = require('path');
 
 const baseUrl = process.env.YAZE_WASM_URL || 'https://yaze.halext.org';
 
+async function waitForWasmReady(page, timeout = 120000) {
+  await page.waitForFunction(
+    () => {
+      if (window.yaze && window.yaze.core && window.yaze.core.state &&
+          window.yaze.core.state.wasmReady) {
+        return true;
+      }
+      if (typeof Module !== 'undefined') {
+        return Module.calledRun === true ||
+          typeof Module.ccall === 'function' ||
+          typeof Module._Z3edProcessCommand === 'function';
+      }
+      return false;
+    },
+    null,
+    { timeout }
+  );
+}
+
 test.describe('yaze wasm smoke', () => {
   test('terminal + filesystem operations', async ({ page }) => {
     test.setTimeout(180000);
@@ -16,8 +35,17 @@ test.describe('yaze wasm smoke', () => {
     const terminalToggle = page.locator(
       '.nav-btn.panel-toggle[data-panel="terminal"]'
     );
-    await expect(terminalToggle).toBeVisible({ timeout: 60000 });
-    await terminalToggle.click();
+    if (await terminalToggle.count()) {
+      await expect(terminalToggle.first()).toBeVisible({ timeout: 60000 });
+      await terminalToggle.first().click();
+    } else {
+      await page.waitForFunction(
+        () => window.panels && window.panels.container,
+        null,
+        { timeout: 60000 }
+      );
+      await page.evaluate(() => window.panels.open('terminal'));
+    }
 
     const input = page.locator('#terminal-input');
     await expect(input).toBeVisible({ timeout: 60000 });
@@ -75,11 +103,7 @@ test.describe('yaze wasm smoke', () => {
     const overlay = page.locator('#loading-overlay');
     await overlay.waitFor({ state: 'hidden', timeout: 120000 });
 
-    await page.waitForFunction(
-      () => window.Module && window.Module.calledRun === true,
-      null,
-      { timeout: 120000 }
-    );
+    await waitForWasmReady(page, 120000);
 
     const debugScriptPath = path.join(
       __dirname,

@@ -25,6 +25,14 @@ option(YAZE_PREFER_SYSTEM_GRPC "Prefer system-installed gRPC/protobuf over CPM" 
 if(YAZE_PREFER_SYSTEM_GRPC OR YAZE_USE_SYSTEM_DEPS)
   message(STATUS "Attempting to use system gRPC/protobuf packages...")
 
+  # Ensure OpenSSL is discoverable for Homebrew gRPC on macOS.
+  # gRPC's CMake config references OpenSSL::SSL and fails hard if missing.
+  find_package(OpenSSL QUIET)
+  if(APPLE AND NOT OpenSSL_FOUND)
+    set(OPENSSL_ROOT_DIR "/opt/homebrew/opt/openssl@3")
+    find_package(OpenSSL QUIET)
+  endif()
+
   # Try CMake's find_package first (works with Homebrew on macOS)
   find_package(gRPC CONFIG QUIET)
   find_package(Protobuf CONFIG QUIET)
