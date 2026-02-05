@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.5.6 (February 2026)
+
+### Dungeon & Minecart Tooling
+- Add configurable minecart collision/track IDs via project `[dungeon_overlay]`.
+- Add track collision overlay with per-tile direction arrows + legend.
+- Add minecart sprite overlay to flag carts off stop tiles.
+- Expand Minecart Track Editor audit (32 slots, filler warnings, room coverage reporting).
+- Add camera quadrant overlay for dungeon layout planning.
+
+### Object Editing UX
+- Custom object previews keyed by subtype; selection bounds use custom extents.
+- Hover/selection respects active layer filters.
+
+### Testing & Stability
+- Harden headless ImGui initialization for editor tests.
+
+---
+
+## 0.5.5 (January 2026)
+
+### Editor & Architecture
+- **EditorManager Refactor**: Modernized `EditorManager` for better testability and isolation; introduced `yaze_core_lib` to separate core logic from the app shell.
+- **Improved Testing**: Added `AsarCompilerTest` and `EditorManagerTest` suites.
+- **Robust Graphics Loading**: Added fallback to grayscale palette for graphics sheets missing a palette, preventing crashes.
+- **Build System**: Cleaned up CMake entry points and presets; unified `main` entry point logic.
+
+---
+
 ## 0.5.4 (January 2026)
 
 ### Debugging & Mesen2
@@ -28,16 +56,6 @@
 - Normalize macOS nightly bundle layout so launchers find `yaze.app`.
 - Align version strings across builds and docs.
 - Move public headers to `inc/` and update build/install include paths.
-
----
-
-## 0.5.5 (January 2026)
-
-### Editor & Architecture
-- **EditorManager Refactor**: Modernized `EditorManager` for better testability and isolation; introduced `yaze_core_lib` to separate core logic from the app shell.
-- **Improved Testing**: Added `AsarCompilerTest` and `EditorManagerTest` suites.
-- **Robust Graphics Loading**: Added fallback to grayscale palette for graphics sheets missing a palette, preventing crashes.
-- **Build System**: Cleaned up CMake entry points and presets; unified `main` entry point logic.
 
 ---
 

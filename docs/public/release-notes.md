@@ -1,5 +1,46 @@
 # Release Notes
 
+## v0.5.6 (February 2026)
+
+**Type:** Dungeon Editor UX + Minecart Tooling
+**Date:** 2026-02-05
+
+### ⛏️ Dungeon & Minecart Tooling
+- Configurable minecart collision IDs and track object IDs (project-level `[dungeon_overlay]` settings).
+- Track collision overlay with legend + per-tile direction arrows (straights, corners, T-junctions, switches).
+- Minecart Track Editor audit: 32 slots, filler detection, missing-start warnings, and room coverage reporting.
+- Minecart sprite overlay to flag carts placed off stop tiles.
+- Camera quadrant overlay to plan fast cart routes.
+
+### 🎯 Object Editing UX
+- Custom object previews keyed by subtype and bounds derived from custom extents.
+- Hover/selection now respects the active layer filter.
+
+### 🧪 Stability
+- Headless ImGui initialization hardened for editor tests.
+
+---
+
+## v0.5.5 (January 2026)
+
+**Type:** Editor Foundations + Stability
+**Date:** 2026-01-31
+
+### 🧰 Editor & Architecture
+- Modernized `EditorManager` for better isolation and testability.
+- Introduced `yaze_core_lib` to separate core logic from the app shell.
+
+### 🧪 Tests
+- Added `AsarCompilerTest` and `EditorManagerTest` suites.
+
+### 🎨 Graphics
+- Fallback to grayscale palette for graphics sheets missing a palette.
+
+### 🧱 Build
+- Cleaned up CMake entry points and presets; unified `main` entry point logic.
+
+---
+
 ## v0.5.4 (Release Candidate January 2026)
 
 **Type:** Stability + Mesen2 Debugging

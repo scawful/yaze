@@ -1,10 +1,10 @@
 # Roadmap
 
-**Last Updated: January 24, 2026**
+**Last Updated: February 5, 2026**
 
 This roadmap tracks upcoming releases and major ongoing initiatives.
 
-## Current Focus (v0.5.5)
+## Current Focus (v0.5.6)
 
 ### Priority 0: AI Registry & Model Context
 - **AI Registry (Phase 1)**: unify provider/model discovery across UI + CLI; surface model metadata, display names, and refresh controls.
@@ -33,7 +33,7 @@ This roadmap tracks upcoming releases and major ongoing initiatives.
 - **CRC32 Calculation**: Complete ASAR checksums in `asar_wrapper.cc:330,501`
 - **ZScream Format**: Parse ZScream project format when spec available
 
-### Deferred to v0.5.6+
+### Deferred to v0.5.7+
 - Room object type verification (12+ dungeon object unknowns)
 - WASM proposal system completion
 - AI Vision Verifier PNG/base64 encoding
