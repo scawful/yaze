@@ -198,6 +198,11 @@ class PixelEditorPanel : public EditorPanel {
    */
   void DrawPixelInfoTooltip(const gfx::Bitmap& sheet);
 
+  /**
+   * @brief Draw a transient highlight for a target tile
+   */
+  void DrawTileHighlight(const gfx::Bitmap& sheet);
+
   GraphicsEditorState* state_;
   Rom* rom_;
   gui::Canvas canvas_{"PixelEditorCanvas", ImVec2(128, 32),

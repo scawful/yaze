@@ -35,6 +35,7 @@
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
+#include "app/gfx/types/snes_tile.h"
 #include "app/gfx/util/palette_manager.h"
 #include "app/gui/core/icons.h"
 #include "core/features.h"
@@ -817,6 +818,7 @@ void DungeonEditorV2::OpenGraphicsEditorForObject(
   room.LoadRoomGraphics(room.blockset);
 
   uint16_t sheet_id = 0;
+  uint16_t tile_index = 0;
   bool resolved_sheet = false;
   if (auto tiles_or = object.GetTiles(); tiles_or.ok() &&
       !tiles_or.value().empty()) {
@@ -827,6 +829,12 @@ void DungeonEditorV2::OpenGraphicsEditorForObject(
       sheet_id = blocks[block_index];
       resolved_sheet = true;
     }
+    const int tiles_per_row = gfx::kTilesheetWidth / 8;
+    const int tiles_per_col = gfx::kTilesheetHeight / 8;
+    const int tiles_per_sheet = tiles_per_row * tiles_per_col;
+    if (tiles_per_sheet > 0) {
+      tile_index = static_cast<uint16_t>(tile_id % tiles_per_sheet);
+    }
   }
 
   editor_manager->SwitchToEditor(EditorType::kGraphics, true);
@@ -834,6 +842,9 @@ void DungeonEditorV2::OpenGraphicsEditorForObject(
     if (auto* graphics = editor_set->GetGraphicsEditor()) {
       if (resolved_sheet) {
         graphics->SelectSheet(sheet_id);
+        graphics->HighlightTile(
+            sheet_id, tile_index,
+            absl::StrFormat("Object 0x%02X", object.id_));
       }
     }
   }

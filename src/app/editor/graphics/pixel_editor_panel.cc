@@ -1,6 +1,7 @@
 #include "app/editor/graphics/pixel_editor_panel.h"
 
 #include <algorithm>
+#include <cmath>
 #include <queue>
 
 #include "absl/strings/str_format.h"
@@ -263,6 +264,9 @@ void PixelEditorPanel::DrawCanvas() {
           canvas_.DrawGrid(8.0f * state_->zoom_level);
         }
 
+        // Draw transient tile highlight (e.g., from "Edit Graphics" jump)
+        DrawTileHighlight(sheet);
+
         // Draw selection rectangle if active
         if (state_->selection.is_active) {
           ImVec2 sel_min =
@@ -435,6 +439,52 @@ void PixelEditorPanel::DrawPixelInfoTooltip(const gfx::Bitmap& sheet) {
   ImGui::EndTooltip();
 }
 
+void PixelEditorPanel::DrawTileHighlight(const gfx::Bitmap& sheet) {
+  if (!state_->tile_highlight.active) {
+    return;
+  }
+  if (state_->tile_highlight.sheet_id != state_->current_sheet_id) {
+    return;
+  }
+
+  const double now = ImGui::GetTime();
+  const double elapsed = now - state_->tile_highlight.start_time;
+  if (elapsed > state_->tile_highlight.duration) {
+    state_->tile_highlight.Clear();
+    return;
+  }
+
+  const int tiles_per_row = sheet.width() / 8;
+  if (tiles_per_row <= 0) {
+    return;
+  }
+  const uint16_t tile_index = state_->tile_highlight.tile_index;
+  const int tile_x = static_cast<int>(tile_index % tiles_per_row);
+  const int tile_y = static_cast<int>(tile_index / tiles_per_row);
+
+  const float pulse = 0.5f + 0.5f * std::sin(static_cast<float>(elapsed) * 6.0f);
+  const float alpha = 0.25f + (pulse * 0.35f);
+
+  ImVec2 min = PixelToScreen(tile_x * 8, tile_y * 8);
+  ImVec2 max = PixelToScreen(tile_x * 8 + 8, tile_y * 8 + 8);
+
+  const ImU32 fill_color = ImGui::GetColorU32(ImVec4(1.0f, 0.8f, 0.2f, alpha));
+  const ImU32 outline_color =
+      ImGui::GetColorU32(ImVec4(1.0f, 0.9f, 0.4f, 0.9f));
+  canvas_.draw_list()->AddRectFilled(min, max, fill_color);
+  canvas_.draw_list()->AddRect(min, max, outline_color, 0.0f, 0, 2.0f);
+
+  if (ImGui::IsMouseHoveringRect(min, max)) {
+    ImGui::BeginTooltip();
+    ImGui::Text("Focus tile: %d (sheet %02X)", tile_index,
+                state_->tile_highlight.sheet_id);
+    if (!state_->tile_highlight.label.empty()) {
+      ImGui::Text("%s", state_->tile_highlight.label.c_str());
+    }
+    ImGui::EndTooltip();
+  }
+}
+
 void PixelEditorPanel::DrawColorPicker() {
   ImGui::Text("Colors");
 
@@ -554,6 +604,13 @@ void PixelEditorPanel::DrawStatusBar() {
   // Sheet info
   ImGui::Text("Sheet: %02X", state_->current_sheet_id);
   ImGui::SameLine();
+
+  if (state_->tile_highlight.active &&
+      state_->tile_highlight.sheet_id == state_->current_sheet_id) {
+    ImGui::TextColored(ImVec4(1.0f, 0.85f, 0.3f, 1.0f), "Focus: %d",
+                       state_->tile_highlight.tile_index);
+    ImGui::SameLine();
+  }
 
   // Modified indicator
   if (state_->modified_sheets.count(state_->current_sheet_id) > 0) {
