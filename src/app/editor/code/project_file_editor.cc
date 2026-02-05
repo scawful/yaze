@@ -347,6 +347,7 @@ void ProjectFileEditor::ValidateContent() {
           current_section != "feature_flags" &&
           current_section != "workspace" &&
           current_section != "workspace_settings" &&
+          current_section != "dungeon_overlay" &&
           current_section != "build" && current_section != "agent_settings" &&
           current_section != "music" && current_section != "keybindings" &&
           current_section != "editor_visibility") {

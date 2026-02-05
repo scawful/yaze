@@ -463,11 +463,15 @@ void DungeonObjectSelector::RenderObjectPrimitive(
   object_canvas_.DrawText(obj_text, x + obj_width + 2, y + 4);
 }
 
-void DungeonObjectSelector::SelectObject(int obj_id) {
+void DungeonObjectSelector::SelectObject(int obj_id, int subtype) {
   selected_object_id_ = obj_id;
 
   // Create and update preview object
-  preview_object_ = zelda3::RoomObject(obj_id, 0, 0, 0x12, 0);
+  uint8_t size = 0x12;
+  if (subtype >= 0) {
+    size = static_cast<uint8_t>(subtype & 0x1F);
+  }
+  preview_object_ = zelda3::RoomObject(obj_id, 0, 0, size, 0);
   preview_object_.SetRom(rom_);
   if (game_data_) {
     auto palette =
@@ -699,6 +703,8 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
       }  // end object loop
     }    // end range loop
 
+    EnsureCustomObjectsInitialized();
+
     // Custom Objects Section
     ImGui::PushStyleColor(ImGuiCol_Header, IM_COL32(100, 180, 120, 255));
     ImGui::PushStyleColor(ImGuiCol_HeaderHovered, IM_COL32(130, 210, 150, 255));
@@ -731,9 +737,7 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
           if (ImGui::Selectable("", is_selected,
                                 ImGuiSelectableFlags_AllowDoubleClick,
                                 button_size)) {
-            SelectObject(obj_id);
-            // Update size to subtype
-            preview_object_.size_ = subtype;
+            SelectObject(obj_id, subtype);
 
             if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
               if (object_double_click_callback_)
@@ -1092,6 +1096,25 @@ void DungeonObjectSelector::EnsureRegistryInitialized() {
   registry_initialized_ = true;
 }
 
+void DungeonObjectSelector::SetCustomObjectsFolder(const std::string& folder) {
+  if (custom_objects_folder_ != folder) {
+    custom_objects_folder_ = folder;
+    custom_objects_initialized_ = false;
+    InvalidatePreviewCache();
+  }
+  EnsureCustomObjectsInitialized();
+}
+
+void DungeonObjectSelector::EnsureCustomObjectsInitialized() {
+  if (custom_objects_initialized_) {
+    return;
+  }
+  if (!custom_objects_folder_.empty()) {
+    zelda3::CustomObjectManager::Get().Initialize(custom_objects_folder_);
+    custom_objects_initialized_ = true;
+  }
+}
+
 zelda3::RoomObject DungeonObjectSelector::MakePreviewObject(int obj_id) const {
   zelda3::RoomObject obj(obj_id, 0, 0, 0x12, 0);
   obj.SetRom(rom_);
@@ -1103,11 +1126,13 @@ void DungeonObjectSelector::InvalidatePreviewCache() {
   preview_cache_.clear();
 }
 
-bool DungeonObjectSelector::GetOrCreatePreview(int obj_id, float size,
-                                               gfx::BackgroundBuffer** out) {
+bool DungeonObjectSelector::GetOrCreatePreview(
+    const zelda3::RoomObject& object, float size,
+    gfx::BackgroundBuffer** out) {
   if (!rom_ || !rom_->is_loaded()) {
     return false;
   }
+  EnsureCustomObjectsInitialized();
 
   // Check if room context changed - invalidate cache if so
   if (rooms_ && current_room_id_ < static_cast<int>(rooms_->size())) {
@@ -1130,7 +1155,13 @@ bool DungeonObjectSelector::GetOrCreatePreview(int obj_id, float size,
   }
 
   // Check if already in cache
-  auto it = preview_cache_.find(obj_id);
+  int cache_key = object.id_;
+  if (object.id_ == 0x31 || object.id_ == 0x32 ||
+      (object.id_ >= 0x100 && object.id_ <= 0x103)) {
+    cache_key = (object.id_ << 8) | (object.size_ & 0x1F);
+  }
+
+  auto it = preview_cache_.find(cache_key);
   if (it != preview_cache_.end()) {
     *out = it->second.get();
     return (*out)->bitmap().texture() != nullptr;
@@ -1151,7 +1182,9 @@ bool DungeonObjectSelector::GetOrCreatePreview(int obj_id, float size,
 
   // Create object and render it at (1,1) for preview with small margin
   // This places the object at pixel (8,8) giving some padding from edges
-  zelda3::RoomObject obj(obj_id, 1, 1, 0x12, 0);
+  zelda3::RoomObject obj = object;
+  obj.x_ = 1;
+  obj.y_ = 1;
   obj.SetRom(rom_);
   obj.EnsureTilesLoaded();
 
@@ -1224,14 +1257,14 @@ bool DungeonObjectSelector::GetOrCreatePreview(int obj_id, float size,
 
   // Store in cache and return
   *out = preview.get();
-  preview_cache_[obj_id] = std::move(preview);
+  preview_cache_[cache_key] = std::move(preview);
   return true;
 }
 
 bool DungeonObjectSelector::DrawObjectPreview(const zelda3::RoomObject& object,
                                               ImVec2 top_left, float size) {
   gfx::BackgroundBuffer* preview = nullptr;
-  if (!GetOrCreatePreview(object.id_, size, &preview)) {
+  if (!GetOrCreatePreview(object, size, &preview)) {
     return false;
   }
 

@@ -269,6 +269,10 @@ absl::Status DungeonEditorV2::Load() {
   if (game_data()) {
     object_editor_panel_->SetGameData(game_data());
   }
+  if (dependencies_.project) {
+    object_editor_panel_->object_selector().SetCustomObjectsFolder(
+        dependencies_.project->custom_objects_folder);
+  }
 
   // Register the ObjectEditorPanel directly (it inherits from EditorPanel)
   // Panel manager takes ownership
@@ -301,6 +305,10 @@ absl::Status DungeonEditorV2::Load() {
         if (minecart_track_editor_panel_) {
           minecart_track_editor_panel_->SetProjectRoot(
               dependencies_.project->code_folder);
+          minecart_track_editor_panel_->SetRooms(&rooms_);
+          minecart_track_editor_panel_->SetProject(dependencies_.project);
+          minecart_track_editor_panel_->SetRoomNavigationCallback(
+              [this](int room_id) { OnRoomSelected(room_id); });
         }
 
         // Initialize custom object manager with project-configured path
@@ -906,6 +914,7 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
     viewer->SetShowEntranceListCallback([this]() { ShowPanel(kEntranceListId); });
     viewer->SetShowRoomGraphicsCallback([this]() { ShowPanel(kRoomGraphicsId); });
     viewer->SetMinecartTrackPanel(minecart_track_editor_panel_);
+    viewer->SetProject(dependencies_.project);
 
     room_viewers_[room_id] = std::move(viewer);
     return room_viewers_[room_id].get();

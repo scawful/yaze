@@ -80,6 +80,40 @@ std::vector<std::string> ParseStringList(const std::string& value) {
   return result;
 }
 
+std::vector<uint16_t> ParseHexUintList(const std::string& value) {
+  std::vector<uint16_t> result;
+  if (value.empty()) {
+    return result;
+  }
+
+  auto parts = ParseStringList(value);
+  result.reserve(parts.size());
+  for (const auto& part : parts) {
+    std::string token = part;
+    if (token.rfind("0x", 0) == 0 || token.rfind("0X", 0) == 0) {
+      token = token.substr(2);
+      try {
+        result.push_back(static_cast<uint16_t>(std::stoul(token, nullptr, 16)));
+      } catch (...) {
+        // Ignore malformed entries
+      }
+    } else {
+      try {
+        result.push_back(static_cast<uint16_t>(std::stoul(token, nullptr, 10)));
+      } catch (...) {
+        // Ignore malformed entries
+      }
+    }
+  }
+  return result;
+}
+
+std::string FormatHexUintList(const std::vector<uint16_t>& values) {
+  return absl::StrJoin(values, ",", [](std::string* out, uint16_t value) {
+    out->append(absl::StrFormat("0x%02X", value));
+  });
+}
+
 std::string SanitizeStorageKey(absl::string_view input) {
   std::string key(input);
   for (char& c : key) {
@@ -300,6 +334,41 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
   file << "recent_files=" << absl::StrJoin(workspace_settings.recent_files, ",")
        << "\n\n";
 
+  // Dungeon overlay settings section
+  auto track_tiles = dungeon_overlay.track_tiles;
+  if (track_tiles.empty()) {
+    for (uint16_t tile = 0xB0; tile <= 0xBE; ++tile) {
+      track_tiles.push_back(tile);
+    }
+  }
+  auto track_stop_tiles = dungeon_overlay.track_stop_tiles;
+  if (track_stop_tiles.empty()) {
+    track_stop_tiles = {0xB7, 0xB8, 0xB9, 0xBA};
+  }
+  auto track_switch_tiles = dungeon_overlay.track_switch_tiles;
+  if (track_switch_tiles.empty()) {
+    track_switch_tiles = {0xD0, 0xD1, 0xD2, 0xD3};
+  }
+  auto track_object_ids = dungeon_overlay.track_object_ids;
+  if (track_object_ids.empty()) {
+    track_object_ids = {0x31};
+  }
+  auto minecart_sprite_ids = dungeon_overlay.minecart_sprite_ids;
+  if (minecart_sprite_ids.empty()) {
+    minecart_sprite_ids = {0xA3};
+  }
+  file << "[dungeon_overlay]\n";
+  file << "track_tiles=" << FormatHexUintList(track_tiles)
+       << "\n";
+  file << "track_stop_tiles="
+       << FormatHexUintList(track_stop_tiles) << "\n";
+  file << "track_switch_tiles="
+       << FormatHexUintList(track_switch_tiles) << "\n";
+  file << "track_object_ids="
+       << FormatHexUintList(track_object_ids) << "\n";
+  file << "minecart_sprite_ids="
+       << FormatHexUintList(minecart_sprite_ids) << "\n\n";
+
   // AI Agent settings section
   file << "[agent_settings]\n";
   file << "ai_provider=" << agent_settings.ai_provider << "\n";
@@ -511,6 +580,17 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         workspace_settings.saved_layouts = ParseStringList(value);
       else if (key == "recent_files")
         workspace_settings.recent_files = ParseStringList(value);
+    } else if (current_section == "dungeon_overlay") {
+      if (key == "track_tiles")
+        dungeon_overlay.track_tiles = ParseHexUintList(value);
+      else if (key == "track_stop_tiles")
+        dungeon_overlay.track_stop_tiles = ParseHexUintList(value);
+      else if (key == "track_switch_tiles")
+        dungeon_overlay.track_switch_tiles = ParseHexUintList(value);
+      else if (key == "track_object_ids")
+        dungeon_overlay.track_object_ids = ParseHexUintList(value);
+      else if (key == "minecart_sprite_ids")
+        dungeon_overlay.minecart_sprite_ids = ParseHexUintList(value);
     } else if (current_section == "agent_settings") {
       if (key == "ai_provider")
         agent_settings.ai_provider = value;
@@ -906,6 +986,16 @@ void YazeProject::InitializeDefaults() {
   workspace_settings.backup_on_save = true;
   workspace_settings.show_grid = true;
   workspace_settings.show_collision = false;
+
+  // Initialize default dungeon overlay settings (minecart tracks)
+  dungeon_overlay.track_tiles.clear();
+  for (uint16_t tile = 0xB0; tile <= 0xBE; ++tile) {
+    dungeon_overlay.track_tiles.push_back(tile);
+  }
+  dungeon_overlay.track_stop_tiles = {0xB7, 0xB8, 0xB9, 0xBA};
+  dungeon_overlay.track_switch_tiles = {0xD0, 0xD1, 0xD2, 0xD3};
+  dungeon_overlay.track_object_ids = {0x31};
+  dungeon_overlay.minecart_sprite_ids = {0xA3};
 
   // Initialize default build configurations
   build_configurations = {"Debug", "Release", "Distribution"};

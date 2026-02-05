@@ -44,6 +44,24 @@
 - Panel management is poor: windows pop out of view and do not persist positions.
 - Custom elements need a toolbar toggle; minecart origin/track setup needs reliable overlays.
 
+## Goron Mines / Minecart System Insights (Claude, 2026-02-05)
+**Context:** These inform editor overlays and validation helpers (not draw validation for custom objects).
+**Design plan:** `oracle-of-secrets/Docs/Plans/goron_mines_minecart_design.md` (track slot assignments, phased rollout, camera origin strategy).
+
+**Data gaps & design risks**
+- **4-of-32 track data populated:** Only track subtypes 0–3 have real starting data; subtypes 4–31 are filler (room `0x89`, X `0x1300`, Y `0x1100`). This makes most rooms with track tiles non-functional without manual cart placement.
+- **Camera origin gap:** The cart movement uses indoor camera logic; at cart speed (`0x20` subpixels/frame), camera can lag or snap at quadrant boundaries. A pre-scroll origin hint is needed for smooth cart rides in layout-7 rooms.
+- **Dead mechanics:** `RoomTag_ShutterDoorRequiresCart` hook is present but commented out, and the `$36` speed switch infra exists but is unused.
+
+**Room audit summary**
+- Track-heavy rooms without cart access: `0x77`, `0x79`, `0x89`, `0x97`, `0xA8`, `0xB8`, `0xB9`, `0xD7`, `0xD8`, `0xD9`, `0xDA` (see `oracle-of-secrets/Docs/World/Dungeons/GoronMines_Map.md`).
+- Rooms with functional minecarts (tracks 0–3): `0x98`, `0x88`, `0x87`.
+
+**Tooling opportunities (z3ed/yaze)**
+- Enumerate all track objects (ID `0x31`) per room to align visuals with collision tiles.
+- Render collision layer (`$7F2000+`) and highlight track tiles `0xB0–0xBE` + `0xD0–0xD3`.
+- Validate that every room with track collision tiles has a minecart sprite on a stop tile (`0xB7–0xBA`).
+
 ## Progress Updates
 **2026-02-04**
 - Panel/window management: added viewport clamping for floating panels so at least 32px stays visible (PanelWindow).
@@ -53,8 +71,13 @@
 - Large decor fix: corrected Single4x4 draw routine to render 4x4 tile8 (matches ZScream object_FEB) instead of 8x8 repeat.
 - Tests: added unit tests for window clamping, rectangle size threshold, and Single4x4 trace order.
 
+**2026-02-05**
+- Reviewed Goron Mines minecart design plan and aligned editor tooling priorities.
+- Added camera quadrant boundary overlay (toolbar + context menu toggle) to help plan cart routes in layout-7 rooms.
+- Added minecart sprite alignment overlay to highlight carts not placed on stop tiles (uses configured sprite IDs + collision tiles).
+
 ## Glossary
-- **TileTrace:** A captured list of tile writes from a draw routine (tile ID + tile coordinates). It is just instrumentation data collected during validation, not a separate tool.
+- **TileTrace:** A captured list of tile writes from a draw routine (tile ID + tile coordinates). It is internal instrumentation only, not a user-facing tool.
 - **Oracle (validation):** A secondary implementation used as a reference for draw output (ROM-static interpreter, later a ROM micro-emu).
 - **Parity Audit:** A structured comparison between ZScreamDungeon and yaze to list gaps and planned fixes.
 
@@ -184,6 +207,45 @@ Minimum required fields: `object_id`, `size`, `x_tile`, `y_tile`, `tile_id`.
 - Add fast object filtering in palette/search.
 - Quick toggle for collision/selection bounds overlay.
 - Keyboard-first commands for frequent actions (place, rotate, flip, duplicate).
+
+## Minecart Track Visualization + Validation Helpers (Oracle of Secrets)
+**Goal:** Make minecart tracks + collision readable and editable in yaze without requiring emulator correctness.
+
+**Data sources**
+- Track starts: `oracle-of-secrets/Sprites/Objects/data/minecart_tracks.asm`
+- Collision tiles: `$7F2000+` collision map (track tiles `0xB0–0xBE`, `0xD0–0xD3`) via ROM/room dump
+- Track objects: dungeon object ID `0x31` (custom object binaries)
+- Room audit: `oracle-of-secrets/Docs/World/Dungeons/GoronMines_Map.md`
+- Config overrides: project file `[dungeon_overlay]` (track/stop/switch tiles, track object IDs, minecart sprite IDs)
+
+**Work items (editor + tooling)**
+1) **Track-start coverage audit**
+   - Show all 32 track slots in the Minecart Track Editor and flag filler entries.
+   - Highlight track subtypes used in a room with missing start data (room/x/y still filler).
+   - Provide quick-jump from track slot → room in the editor.
+
+2) **Collision overlay (track tiles)**
+   - Render collision layer with a toggle (default off).
+   - Emphasize track tiles (`0xB0–0xBE`, `0xD0–0xD3`) with a distinct color legend.
+   - Mark stop tiles (`0xB7–0xBA`) and switch tiles (`0xD0–0xD3`) separately.
+
+3) **Sprite/stop-tile validation**
+   - Detect rooms with track collision tiles but no minecart sprite placed on a stop tile.
+   - Warn if minecart sprites exist without any stop tile under them.
+   - Provide a canvas overlay that highlights minecart sprites on/off stop tiles.
+
+4) **Custom object draw + selection stability**
+   - Ensure `DrawCustomObject` always uses custom object tile data (not ROM tiles).
+   - Compute selection bounds from custom object extents, not size nibble.
+   - Add a dedicated preview path for custom objects in the object selector.
+
+5) **Camera origin hints (design aid)**
+   - Show layout quadrant boundaries and allow a per-room “camera origin” note.
+   - Use the note to pre-scroll camera in editor previews only (no ROM changes).
+
+6) **Deferred mechanics (document only)**
+   - `RoomTag_ShutterDoorRequiresCart` and `$36` speed switch are ready in ROM but unused.
+   - Track in design docs; do not hook until stability goals are met.
 
 ## Test Matrix
 **Default sizes:** `0, 1, 2, 7, 15`

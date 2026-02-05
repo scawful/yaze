@@ -103,18 +103,13 @@ absl::Status ObjectDrawer::DrawObject(const RoomObject& object,
             object.id_, static_cast<int>(object.layer_),
             use_bg2 ? "BG2 (behind layout)" : "BG1 (on top of layout)");
 
-  // Skip objects that don't have tiles loaded
-  if (mutable_obj.tiles().empty()) {
-    LOG_DEBUG("ObjectDrawer", "Object 0x%03X at (%d,%d) has NO TILES - skipping",
-              object.id_, object.x_, object.y_);
-    return absl::OkStatus();
-  }
-
   // Check for custom object override first (guarded by feature flag).
   // We check this BEFORE routine lookup to allow overriding vanilla objects.
   int subtype = object.size_ & 0x1F;
+  bool is_custom_object = false;
   if (core::FeatureFlags::get().kEnableCustomObjects &&
       CustomObjectManager::Get().GetObjectInternal(object.id_, subtype).ok()) {
+    is_custom_object = true;
     // Custom objects default to drawing on the target layer only, unless all_bgs_ is set
     // Mask propagation is difficult without dimensions, so we rely on explicit transparency in the custom object tiles if needed
     
@@ -131,7 +126,14 @@ absl::Status ObjectDrawer::DrawObject(const RoomObject& object,
                                                   : RoomObject::LayerType::BG2);
       DrawCustomObject(object, other_bg, mutable_obj.tiles(), state);
     }
-    // return absl::OkStatus();
+    return absl::OkStatus();
+  }
+
+  // Skip objects that don't have tiles loaded
+  if (!is_custom_object && mutable_obj.tiles().empty()) {
+    LOG_DEBUG("ObjectDrawer", "Object 0x%03X at (%d,%d) has NO TILES - skipping",
+              object.id_, object.x_, object.y_);
+    return absl::OkStatus();
   }
 
   // Look up draw routine for this object

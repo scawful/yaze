@@ -5,6 +5,8 @@
 #include <cstring>
 #include <filesystem>
 #include <set>
+#include <sstream>
+#include <unordered_set>
 #include <vector>
 
 #include "absl/strings/ascii.h"
@@ -30,6 +32,143 @@ namespace yaze {
 namespace editor {
 
 namespace {
+
+struct HexListEditorState {
+  std::string text;
+  std::string error;
+};
+
+bool ParseHexToken(const std::string& token, uint16_t* out) {
+  if (!out) {
+    return false;
+  }
+  if (token.empty()) {
+    return false;
+  }
+  std::string trimmed = token;
+  if (absl::StartsWithIgnoreCase(trimmed, "0x")) {
+    trimmed = trimmed.substr(2);
+  }
+  if (trimmed.empty()) {
+    return false;
+  }
+  char* end = nullptr;
+  unsigned long value = std::strtoul(trimmed.c_str(), &end, 16);
+  if (end == nullptr || *end != '\0') {
+    return false;
+  }
+  if (value > 0xFFFFu) {
+    return false;
+  }
+  *out = static_cast<uint16_t>(value);
+  return true;
+}
+
+bool ParseHexList(const std::string& input, std::vector<uint16_t>* out,
+                  std::string* error) {
+  if (!out) {
+    return false;
+  }
+  out->clear();
+  if (error) {
+    error->clear();
+  }
+  if (input.empty()) {
+    return true;
+  }
+
+  std::string normalized = input;
+  for (char& c : normalized) {
+    if (c == ',' || c == ';') {
+      c = ' ';
+    }
+  }
+
+  std::stringstream ss(normalized);
+  std::string token;
+  std::unordered_set<uint16_t> seen;
+  while (ss >> token) {
+    auto dash = token.find('-');
+    if (dash != std::string::npos) {
+      std::string left = token.substr(0, dash);
+      std::string right = token.substr(dash + 1);
+      uint16_t start = 0;
+      uint16_t end = 0;
+      if (!ParseHexToken(left, &start) || !ParseHexToken(right, &end)) {
+        if (error) {
+          *error = absl::StrFormat("Invalid range: %s", token);
+        }
+        return false;
+      }
+      if (end < start) {
+        if (error) {
+          *error = absl::StrFormat("Range end before start: %s", token);
+        }
+        return false;
+      }
+      for (uint16_t value = start; value <= end; ++value) {
+        if (seen.insert(value).second) {
+          out->push_back(value);
+        }
+        if (value == 0xFFFF) {
+          break;
+        }
+      }
+    } else {
+      uint16_t value = 0;
+      if (!ParseHexToken(token, &value)) {
+        if (error) {
+          *error = absl::StrFormat("Invalid hex value: %s", token);
+        }
+        return false;
+      }
+      if (seen.insert(value).second) {
+        out->push_back(value);
+      }
+    }
+  }
+  return true;
+}
+
+std::string FormatHexList(const std::vector<uint16_t>& values) {
+  std::string result;
+  result.reserve(values.size() * 6);
+  for (size_t i = 0; i < values.size(); ++i) {
+    const uint16_t value = values[i];
+    std::string token =
+        value <= 0xFF ? absl::StrFormat("0x%02X", value)
+                      : absl::StrFormat("0x%04X", value);
+    if (!result.empty()) {
+      result.append(", ");
+    }
+    result.append(token);
+  }
+  return result;
+}
+
+std::vector<uint16_t> DefaultTrackTiles() {
+  std::vector<uint16_t> values;
+  for (uint16_t tile = 0xB0; tile <= 0xBE; ++tile) {
+    values.push_back(tile);
+  }
+  return values;
+}
+
+std::vector<uint16_t> DefaultStopTiles() {
+  return {0xB7, 0xB8, 0xB9, 0xBA};
+}
+
+std::vector<uint16_t> DefaultSwitchTiles() {
+  return {0xD0, 0xD1, 0xD2, 0xD3};
+}
+
+std::vector<uint16_t> DefaultTrackObjectIds() {
+  return {0x31};
+}
+
+std::vector<uint16_t> DefaultMinecartSpriteIds() {
+  return {0xA3};
+}
 
 bool IsLocalEndpoint(const std::string& base_url) {
   if (base_url.empty()) {
@@ -260,6 +399,136 @@ void SettingsPanel::DrawProjectSettings() {
     project_->symbols_filename = symbols_file;
     project_->Save();
   }
+
+  ImGui::Spacing();
+  ImGui::Text("%s Dungeon Overlay", ICON_MD_TRAIN);
+  ImGui::Separator();
+  ImGui::TextWrapped(
+      "Configure collision/object IDs used by minecart overlays and audits. "
+      "Hex values, ranges allowed (e.g. B0-BE).");
+
+  static std::string overlay_project_path;
+  static HexListEditorState track_tiles_state;
+  static HexListEditorState stop_tiles_state;
+  static HexListEditorState switch_tiles_state;
+  static HexListEditorState track_object_state;
+  static HexListEditorState minecart_sprite_state;
+
+  if (overlay_project_path != project_->filepath) {
+    overlay_project_path = project_->filepath;
+    track_tiles_state.text = FormatHexList(project_->dungeon_overlay.track_tiles);
+    stop_tiles_state.text =
+        FormatHexList(project_->dungeon_overlay.track_stop_tiles);
+    switch_tiles_state.text =
+        FormatHexList(project_->dungeon_overlay.track_switch_tiles);
+    track_object_state.text =
+        FormatHexList(project_->dungeon_overlay.track_object_ids);
+    minecart_sprite_state.text =
+        FormatHexList(project_->dungeon_overlay.minecart_sprite_ids);
+    track_tiles_state.error.clear();
+    stop_tiles_state.error.clear();
+    switch_tiles_state.error.clear();
+    track_object_state.error.clear();
+    minecart_sprite_state.error.clear();
+  }
+
+  auto draw_hex_list = [&](const char* label, const char* hint,
+                           HexListEditorState& state,
+                           const std::vector<uint16_t>& defaults,
+                           std::vector<uint16_t>* target) {
+    if (!target) {
+      return;
+    }
+
+    bool apply = false;
+    ImGui::PushItemWidth(-180.0f);
+    if (ImGui::InputTextWithHint(label, hint, &state.text)) {
+      state.error.clear();
+    }
+    ImGui::PopItemWidth();
+    if (ImGui::IsItemDeactivatedAfterEdit()) {
+      apply = true;
+    }
+
+    ImGui::SameLine();
+    if (ImGui::SmallButton(absl::StrFormat("Apply##%s", label).c_str())) {
+      apply = true;
+    }
+    ImGui::SameLine();
+    if (ImGui::SmallButton(absl::StrFormat("Defaults##%s", label).c_str())) {
+      state.text = FormatHexList(defaults);
+      apply = true;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Reset to defaults");
+    }
+    ImGui::SameLine();
+    if (ImGui::SmallButton(absl::StrFormat("Clear##%s", label).c_str())) {
+      state.text.clear();
+      apply = true;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Clear list (empty uses defaults)");
+    }
+
+    const bool uses_defaults = target->empty();
+    const std::vector<uint16_t>& effective_values =
+        uses_defaults ? defaults : *target;
+    ImGui::SameLine();
+    ImGui::TextDisabled(ICON_MD_INFO);
+    if (ImGui::IsItemHovered()) {
+      ImGui::BeginTooltip();
+      ImGui::Text("Effective: %s", FormatHexList(effective_values).c_str());
+      if (uses_defaults) {
+        ImGui::TextDisabled("Using defaults (list is empty)");
+      }
+      ImGui::EndTooltip();
+    }
+
+    if (apply) {
+      std::vector<uint16_t> parsed;
+      std::string error;
+      if (ParseHexList(state.text, &parsed, &error)) {
+        *target = parsed;
+        project_->Save();
+        state.error.clear();
+        state.text = FormatHexList(parsed);
+      } else {
+        state.error = error;
+      }
+    }
+
+    if (!state.error.empty()) {
+      ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.4f, 1.0f), "%s",
+                         state.error.c_str());
+    }
+  };
+
+  draw_hex_list("Track Tiles",
+                "0xB0-0xBE",
+                track_tiles_state,
+                DefaultTrackTiles(),
+                &project_->dungeon_overlay.track_tiles);
+  draw_hex_list("Stop Tiles",
+                "0xB7, 0xB8, 0xB9, 0xBA",
+                stop_tiles_state,
+                DefaultStopTiles(),
+                &project_->dungeon_overlay.track_stop_tiles);
+  draw_hex_list("Switch Tiles",
+                "0xD0-0xD3",
+                switch_tiles_state,
+                DefaultSwitchTiles(),
+                &project_->dungeon_overlay.track_switch_tiles);
+  draw_hex_list("Track Object IDs",
+                "0x31",
+                track_object_state,
+                DefaultTrackObjectIds(),
+                &project_->dungeon_overlay.track_object_ids);
+  draw_hex_list("Minecart Sprite IDs",
+                "0xA3",
+                minecart_sprite_state,
+                DefaultMinecartSpriteIds(),
+                &project_->dungeon_overlay.minecart_sprite_ids);
 }
 
 void SettingsPanel::DrawFilesystemSettings() {
