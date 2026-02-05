@@ -5,10 +5,10 @@
 #include <filesystem>
 
 #ifdef _WIN32
-#include <afunix.h>
-#include <io.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <afunix.h>
+#include <io.h>
 #define close closesocket
 typedef int ssize_t;
 #else
