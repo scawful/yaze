@@ -6,6 +6,11 @@
 #include <fstream>
 #include <sstream>
 
+#ifdef _WIN32
+#define popen _popen
+#define pclose _pclose
+#endif
+
 #include "absl/strings/str_format.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
@@ -33,9 +38,12 @@ ImVec4 GetStatusColor(const std::string& status) {
 }
 
 std::string GetStatusBadge(const std::string& status) {
-  if (status == "canon") return "[CANON]";
-  if (status == "draft") return "[draft]";
-  if (status == "deprecated") return "[DEPR]";
+  if (status == "canon")
+    return "[CANON]";
+  if (status == "draft")
+    return "[draft]";
+  if (status == "deprecated")
+    return "[DEPR]";
   return "[???]";
 }
 
@@ -86,8 +94,8 @@ void OracleStateLibraryPanel::LoadManifest() {
       for (const auto& entry_json : data["entries"]) {
         StateEntry entry;
         entry.id = entry_json.value("id", "");
-        entry.label = entry_json.value("label",
-                                        entry_json.value("description", ""));
+        entry.label =
+            entry_json.value("label", entry_json.value("description", ""));
         entry.path = entry_json.value("path", "");
         entry.status = entry_json.value("status", "draft");
         entry.md5 = entry_json.value("md5", "");
@@ -207,7 +215,8 @@ absl::Status OracleStateLibraryPanel::LoadState(const std::string& state_id) {
     escaped.reserve(path.size() + 2);
     escaped += '"';
     for (char c : path) {
-      if (c == '\\' || c == '"') escaped += '\\';
+      if (c == '\\' || c == '"')
+        escaped += '\\';
       escaped += c;
     }
     escaped += '"';
@@ -321,21 +330,24 @@ void OracleStateLibraryPanel::DrawToolbar() {
   // Status message
   if (!status_message_.empty()) {
     ImGui::SameLine();
-    ImGui::TextColored(status_is_error_ ? ImVec4(1, 0.3f, 0.3f, 1)
-                                        : ImVec4(0.3f, 1, 0.3f, 1),
-                       "%s", status_message_.c_str());
+    ImGui::TextColored(
+        status_is_error_ ? ImVec4(1, 0.3f, 0.3f, 1) : ImVec4(0.3f, 1, 0.3f, 1),
+        "%s", status_message_.c_str());
   }
 
   // Stats
   int canon_count = 0, draft_count = 0, depr_count = 0;
   for (const auto& e : entries_) {
-    if (e.status == "canon") canon_count++;
-    else if (e.status == "draft") draft_count++;
-    else if (e.status == "deprecated") depr_count++;
+    if (e.status == "canon")
+      canon_count++;
+    else if (e.status == "draft")
+      draft_count++;
+    else if (e.status == "deprecated")
+      depr_count++;
   }
   ImGui::SameLine();
-  ImGui::TextDisabled("| %d canon, %d draft, %d deprecated",
-                      canon_count, draft_count, depr_count);
+  ImGui::TextDisabled("| %d canon, %d draft, %d deprecated", canon_count,
+                      draft_count, depr_count);
 }
 
 void OracleStateLibraryPanel::DrawStateList() {
@@ -348,9 +360,12 @@ void OracleStateLibraryPanel::DrawStateList() {
     const auto& entry = entries_[i];
 
     // Filter by status
-    if (entry.status == "canon" && !show_canon_) continue;
-    if (entry.status == "draft" && !show_draft_) continue;
-    if (entry.status == "deprecated" && !show_deprecated_) continue;
+    if (entry.status == "canon" && !show_canon_)
+      continue;
+    if (entry.status == "draft" && !show_draft_)
+      continue;
+    if (entry.status == "deprecated" && !show_deprecated_)
+      continue;
 
     // Filter by text
     if (!filter_lower.empty()) {
@@ -358,8 +373,8 @@ void OracleStateLibraryPanel::DrawStateList() {
       std::transform(label_lower.begin(), label_lower.end(),
                      label_lower.begin(), ::tolower);
       std::string id_lower = entry.id;
-      std::transform(id_lower.begin(), id_lower.end(),
-                     id_lower.begin(), ::tolower);
+      std::transform(id_lower.begin(), id_lower.end(), id_lower.begin(),
+                     ::tolower);
       if (label_lower.find(filter_lower) == std::string::npos &&
           id_lower.find(filter_lower) == std::string::npos) {
         continue;
@@ -407,9 +422,10 @@ void OracleStateLibraryPanel::DrawStateList() {
       ImGui::BeginTooltip();
       ImGui::Text("Tags: ");
       for (size_t t = 0; t < entry.tags.size(); ++t) {
-        if (t > 0) ImGui::SameLine();
+        if (t > 0)
+          ImGui::SameLine();
         ImGui::TextColored(ImVec4(0.6f, 0.8f, 1.0f, 1.0f), "[%s]",
-                          entry.tags[t].c_str());
+                           entry.tags[t].c_str());
       }
       ImGui::EndTooltip();
     }
@@ -483,8 +499,8 @@ void OracleStateLibraryPanel::DrawStateDetails() {
   }
 
   if (entry.health > 0) {
-    float ratio = static_cast<float>(entry.health) /
-                  std::max(1, entry.max_health);
+    float ratio =
+        static_cast<float>(entry.health) / std::max(1, entry.max_health);
     ImGui::Text("Health: %d/%d", entry.health, entry.max_health);
     ImGui::ProgressBar(ratio, ImVec2(-1, 0));
   }
@@ -494,16 +510,16 @@ void OracleStateLibraryPanel::DrawStateDetails() {
   }
 
   if (!entry.verified_by.empty()) {
-    ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f),
-                       "Verified by: %s", entry.verified_by.c_str());
+    ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "Verified by: %s",
+                       entry.verified_by.c_str());
     if (!entry.verified_at.empty()) {
       ImGui::TextDisabled("at %s", entry.verified_at.c_str());
     }
   }
 
   if (!entry.deprecated_reason.empty()) {
-    ImGui::TextColored(ImVec4(0.8f, 0.3f, 0.3f, 1.0f),
-                       "Deprecated: %s", entry.deprecated_reason.c_str());
+    ImGui::TextColored(ImVec4(0.8f, 0.3f, 0.3f, 1.0f), "Deprecated: %s",
+                       entry.deprecated_reason.c_str());
   }
 
   // Tags
