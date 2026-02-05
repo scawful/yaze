@@ -377,7 +377,9 @@ class DungeonCanvasViewer {
   bool show_track_collision_legend_ = true;
   bool show_camera_quadrant_overlay_ = false;
   bool show_minecart_sprite_overlay_ = false;
-  bool use_default_track_direction_map_ = true;
+  bool track_direction_map_enabled_ = true;
+  std::vector<uint16_t> track_tile_order_;
+  std::vector<uint16_t> switch_tile_order_;
   TrackCollisionConfig track_collision_config_;
   std::unordered_map<int, CollisionOverlayCache> collision_overlay_cache_;
   std::array<bool, 256> minecart_sprite_ids_{};
