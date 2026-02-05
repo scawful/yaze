@@ -11,6 +11,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
 #include "core/features.h"
+#include "core/rom_settings.h"
 #include "zelda3/resource_labels.h"
 
 namespace yaze {
@@ -68,6 +69,11 @@ struct WorkspaceSettings {
   bool show_grid = true;
   bool show_collision = false;
 
+  // Backup management
+  int backup_retention_count = 20;  // Keep last N backups (0 = unlimited)
+  bool backup_keep_daily = true;    // Keep one backup per day
+  int backup_keep_daily_days = 14;  // Days to retain daily snapshots
+
   // Label preferences
   bool prefer_hmagic_names = true;  // Prefer Hyrule Magic sprite names
 
@@ -92,6 +98,20 @@ struct DungeonOverlaySettings {
   std::vector<uint16_t> minecart_sprite_ids;
 };
 
+enum class RomRole { kBase, kDev, kPatched, kRelease };
+enum class RomWritePolicy { kAllow, kWarn, kBlock };
+
+struct RomMetadata {
+  RomRole role = RomRole::kDev;
+  std::string expected_hash;  // CRC32 or SHA1 (hex)
+  RomWritePolicy write_policy = RomWritePolicy::kWarn;
+};
+
+std::string RomRoleToString(RomRole role);
+RomRole ParseRomRole(absl::string_view value);
+std::string RomWritePolicyToString(RomWritePolicy policy);
+RomWritePolicy ParseRomWritePolicy(absl::string_view value);
+
 /**
  * @struct YazeProject
  * @brief Modern project structure with comprehensive settings consolidation
@@ -107,6 +127,7 @@ struct YazeProject {
   std::string rom_filename;
   std::string rom_backup_folder;
   std::vector<std::string> additional_roms;  // For multi-ROM projects
+  RomMetadata rom_metadata;
 
   // Code and assets
   std::string code_folder;
@@ -117,10 +138,14 @@ struct YazeProject {
   std::string
       custom_objects_folder;  // Folder containing custom object .bin files
 
+  // Optional custom object file mapping (object_id -> filenames per subtype).
+  std::unordered_map<int, std::vector<std::string>> custom_object_files;
+
   // Consolidated settings (previously scattered across multiple files)
   core::FeatureFlags::Flags feature_flags;
   WorkspaceSettings workspace_settings;
   DungeonOverlaySettings dungeon_overlay;
+  core::RomAddressOverrides rom_address_overrides;
   std::unordered_map<std::string, std::unordered_map<std::string, std::string>>
       resource_labels;
 

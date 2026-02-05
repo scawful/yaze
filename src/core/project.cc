@@ -1,5 +1,6 @@
 #include "core/project.h"
 
+#include <algorithm>
 #include <cctype>
 #include <chrono>
 #include <filesystem>
@@ -7,6 +8,7 @@
 #include <iomanip>
 #include <sstream>
 
+#include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "absl/strings/str_split.h"
@@ -33,6 +35,12 @@ namespace yaze {
 namespace project {
 
 namespace {
+std::string ToLowerCopy(std::string value) {
+  std::transform(value.begin(), value.end(), value.begin(),
+                 [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+  return value;
+}
+
 // Helper functions for parsing key-value pairs
 std::pair<std::string, std::string> ParseKeyValue(const std::string& line) {
   size_t eq_pos = line.find('=');
@@ -108,10 +116,34 @@ std::vector<uint16_t> ParseHexUintList(const std::string& value) {
   return result;
 }
 
+std::optional<uint32_t> ParseHexUint32(const std::string& value) {
+  if (value.empty()) {
+    return std::nullopt;
+  }
+  std::string token = value;
+  if (token.rfind("0x", 0) == 0 || token.rfind("0X", 0) == 0) {
+    token = token.substr(2);
+    try {
+      return static_cast<uint32_t>(std::stoul(token, nullptr, 16));
+    } catch (...) {
+      return std::nullopt;
+    }
+  }
+  try {
+    return static_cast<uint32_t>(std::stoul(token, nullptr, 10));
+  } catch (...) {
+    return std::nullopt;
+  }
+}
+
 std::string FormatHexUintList(const std::vector<uint16_t>& values) {
   return absl::StrJoin(values, ",", [](std::string* out, uint16_t value) {
     out->append(absl::StrFormat("0x%02X", value));
   });
+}
+
+std::string FormatHexUint32(uint32_t value) {
+  return absl::StrFormat("0x%06X", value);
 }
 
 std::string SanitizeStorageKey(absl::string_view input) {
@@ -127,6 +159,57 @@ std::string SanitizeStorageKey(absl::string_view input) {
   return key;
 }
 }  // namespace
+
+std::string RomRoleToString(RomRole role) {
+  switch (role) {
+    case RomRole::kBase:
+      return "base";
+    case RomRole::kPatched:
+      return "patched";
+    case RomRole::kRelease:
+      return "release";
+    case RomRole::kDev:
+    default:
+      return "dev";
+  }
+}
+
+RomRole ParseRomRole(absl::string_view value) {
+  std::string lower = ToLowerCopy(std::string(value));
+  if (lower == "base") {
+    return RomRole::kBase;
+  }
+  if (lower == "patched") {
+    return RomRole::kPatched;
+  }
+  if (lower == "release") {
+    return RomRole::kRelease;
+  }
+  return RomRole::kDev;
+}
+
+std::string RomWritePolicyToString(RomWritePolicy policy) {
+  switch (policy) {
+    case RomWritePolicy::kAllow:
+      return "allow";
+    case RomWritePolicy::kBlock:
+      return "block";
+    case RomWritePolicy::kWarn:
+    default:
+      return "warn";
+  }
+}
+
+RomWritePolicy ParseRomWritePolicy(absl::string_view value) {
+  std::string lower = ToLowerCopy(std::string(value));
+  if (lower == "allow") {
+    return RomWritePolicy::kAllow;
+  }
+  if (lower == "block") {
+    return RomWritePolicy::kBlock;
+  }
+  return RomWritePolicy::kWarn;
+}
 
 // YazeProject Implementation
 absl::Status YazeProject::Create(const std::string& project_name,
@@ -293,6 +376,13 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
        << "\n";
   file << "additional_roms=" << absl::StrJoin(additional_roms, ",") << "\n\n";
 
+  // ROM metadata section
+  file << "[rom]\n";
+  file << "role=" << RomRoleToString(rom_metadata.role) << "\n";
+  file << "expected_hash=" << rom_metadata.expected_hash << "\n";
+  file << "write_policy=" << RomWritePolicyToString(rom_metadata.write_policy)
+       << "\n\n";
+
   // Feature flags section
   file << "[feature_flags]\n";
   file << "load_custom_overworld="
@@ -304,8 +394,49 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
        << "\n";
   file << "save_dungeon_maps="
        << (feature_flags.kSaveDungeonMaps ? "true" : "false") << "\n";
+  file << "save_overworld_maps="
+       << (feature_flags.overworld.kSaveOverworldMaps ? "true" : "false")
+       << "\n";
+  file << "save_overworld_entrances="
+       << (feature_flags.overworld.kSaveOverworldEntrances ? "true" : "false")
+       << "\n";
+  file << "save_overworld_exits="
+       << (feature_flags.overworld.kSaveOverworldExits ? "true" : "false")
+       << "\n";
+  file << "save_overworld_items="
+       << (feature_flags.overworld.kSaveOverworldItems ? "true" : "false")
+       << "\n";
+  file << "save_overworld_properties="
+       << (feature_flags.overworld.kSaveOverworldProperties ? "true" : "false")
+       << "\n";
+  file << "save_dungeon_objects="
+       << (feature_flags.dungeon.kSaveObjects ? "true" : "false") << "\n";
+  file << "save_dungeon_sprites="
+       << (feature_flags.dungeon.kSaveSprites ? "true" : "false") << "\n";
+  file << "save_dungeon_room_headers="
+       << (feature_flags.dungeon.kSaveRoomHeaders ? "true" : "false") << "\n";
+  file << "save_dungeon_torches="
+       << (feature_flags.dungeon.kSaveTorches ? "true" : "false") << "\n";
+  file << "save_dungeon_pits="
+       << (feature_flags.dungeon.kSavePits ? "true" : "false") << "\n";
+  file << "save_dungeon_blocks="
+       << (feature_flags.dungeon.kSaveBlocks ? "true" : "false") << "\n";
+  file << "save_dungeon_collision="
+       << (feature_flags.dungeon.kSaveCollision ? "true" : "false") << "\n";
+  file << "save_dungeon_chests="
+       << (feature_flags.dungeon.kSaveChests ? "true" : "false") << "\n";
+  file << "save_dungeon_pot_items="
+       << (feature_flags.dungeon.kSavePotItems ? "true" : "false") << "\n";
+  file << "save_dungeon_palettes="
+       << (feature_flags.dungeon.kSavePalettes ? "true" : "false") << "\n";
   file << "save_graphics_sheet="
        << (feature_flags.kSaveGraphicsSheet ? "true" : "false") << "\n";
+  file << "save_all_palettes="
+       << (feature_flags.kSaveAllPalettes ? "true" : "false") << "\n";
+  file << "save_gfx_groups="
+       << (feature_flags.kSaveGfxGroups ? "true" : "false") << "\n";
+  file << "save_messages="
+       << (feature_flags.kSaveMessages ? "true" : "false") << "\n";
   file << "enable_custom_objects="
        << (feature_flags.kEnableCustomObjects ? "true" : "false") << "\n\n";
 
@@ -321,6 +452,12 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
        << "\n";
   file << "backup_on_save="
        << (workspace_settings.backup_on_save ? "true" : "false") << "\n";
+  file << "backup_retention_count="
+       << workspace_settings.backup_retention_count << "\n";
+  file << "backup_keep_daily="
+       << (workspace_settings.backup_keep_daily ? "true" : "false") << "\n";
+  file << "backup_keep_daily_days="
+       << workspace_settings.backup_keep_daily_days << "\n";
   file << "show_grid=" << (workspace_settings.show_grid ? "true" : "false")
        << "\n";
   file << "show_collision="
@@ -365,6 +502,23 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
   file << "track_object_ids=" << FormatHexUintList(track_object_ids) << "\n";
   file << "minecart_sprite_ids=" << FormatHexUintList(minecart_sprite_ids)
        << "\n\n";
+
+  if (!rom_address_overrides.addresses.empty()) {
+    file << "[rom_addresses]\n";
+    for (const auto& [key, value] : rom_address_overrides.addresses) {
+      file << key << "=" << FormatHexUint32(value) << "\n";
+    }
+    file << "\n";
+  }
+
+  if (!custom_object_files.empty()) {
+    file << "[custom_objects]\n";
+    for (const auto& [object_id, files] : custom_object_files) {
+      file << absl::StrFormat("object_0x%X", object_id) << "="
+           << absl::StrJoin(files, ",") << "\n";
+    }
+    file << "\n";
+  }
 
   // AI Agent settings section
   file << "[agent_settings]\n";
@@ -541,6 +695,13 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         custom_objects_folder = value;
       else if (key == "additional_roms")
         additional_roms = ParseStringList(value);
+    } else if (current_section == "rom") {
+      if (key == "role")
+        rom_metadata.role = ParseRomRole(value);
+      else if (key == "expected_hash")
+        rom_metadata.expected_hash = value;
+      else if (key == "write_policy")
+        rom_metadata.write_policy = ParseRomWritePolicy(value);
     } else if (current_section == "feature_flags") {
       if (key == "load_custom_overworld")
         feature_flags.overworld.kLoadCustomOverworld = ParseBool(value);
@@ -548,8 +709,44 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         feature_flags.overworld.kApplyZSCustomOverworldASM = ParseBool(value);
       else if (key == "save_dungeon_maps")
         feature_flags.kSaveDungeonMaps = ParseBool(value);
+      else if (key == "save_overworld_maps")
+        feature_flags.overworld.kSaveOverworldMaps = ParseBool(value);
+      else if (key == "save_overworld_entrances")
+        feature_flags.overworld.kSaveOverworldEntrances = ParseBool(value);
+      else if (key == "save_overworld_exits")
+        feature_flags.overworld.kSaveOverworldExits = ParseBool(value);
+      else if (key == "save_overworld_items")
+        feature_flags.overworld.kSaveOverworldItems = ParseBool(value);
+      else if (key == "save_overworld_properties")
+        feature_flags.overworld.kSaveOverworldProperties = ParseBool(value);
+      else if (key == "save_dungeon_objects")
+        feature_flags.dungeon.kSaveObjects = ParseBool(value);
+      else if (key == "save_dungeon_sprites")
+        feature_flags.dungeon.kSaveSprites = ParseBool(value);
+      else if (key == "save_dungeon_room_headers")
+        feature_flags.dungeon.kSaveRoomHeaders = ParseBool(value);
+      else if (key == "save_dungeon_torches")
+        feature_flags.dungeon.kSaveTorches = ParseBool(value);
+      else if (key == "save_dungeon_pits")
+        feature_flags.dungeon.kSavePits = ParseBool(value);
+      else if (key == "save_dungeon_blocks")
+        feature_flags.dungeon.kSaveBlocks = ParseBool(value);
+      else if (key == "save_dungeon_collision")
+        feature_flags.dungeon.kSaveCollision = ParseBool(value);
+      else if (key == "save_dungeon_chests")
+        feature_flags.dungeon.kSaveChests = ParseBool(value);
+      else if (key == "save_dungeon_pot_items")
+        feature_flags.dungeon.kSavePotItems = ParseBool(value);
+      else if (key == "save_dungeon_palettes")
+        feature_flags.dungeon.kSavePalettes = ParseBool(value);
       else if (key == "save_graphics_sheet")
         feature_flags.kSaveGraphicsSheet = ParseBool(value);
+      else if (key == "save_all_palettes")
+        feature_flags.kSaveAllPalettes = ParseBool(value);
+      else if (key == "save_gfx_groups")
+        feature_flags.kSaveGfxGroups = ParseBool(value);
+      else if (key == "save_messages")
+        feature_flags.kSaveMessages = ParseBool(value);
       else if (key == "enable_custom_objects")
         feature_flags.kEnableCustomObjects = ParseBool(value);
     } else if (current_section == "workspace") {
@@ -565,6 +762,12 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         workspace_settings.autosave_interval_secs = ParseFloat(value);
       else if (key == "backup_on_save")
         workspace_settings.backup_on_save = ParseBool(value);
+      else if (key == "backup_retention_count")
+        workspace_settings.backup_retention_count = std::stoi(value);
+      else if (key == "backup_keep_daily")
+        workspace_settings.backup_keep_daily = ParseBool(value);
+      else if (key == "backup_keep_daily_days")
+        workspace_settings.backup_keep_daily_days = std::stoi(value);
       else if (key == "show_grid")
         workspace_settings.show_grid = ParseBool(value);
       else if (key == "show_collision")
@@ -588,6 +791,21 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         dungeon_overlay.track_object_ids = ParseHexUintList(value);
       else if (key == "minecart_sprite_ids")
         dungeon_overlay.minecart_sprite_ids = ParseHexUintList(value);
+    } else if (current_section == "rom_addresses") {
+      auto parsed = ParseHexUint32(value);
+      if (parsed.has_value()) {
+        rom_address_overrides.addresses[key] = *parsed;
+      }
+    } else if (current_section == "custom_objects") {
+      std::string id_token = key;
+      if (absl::StartsWith(id_token, "object_")) {
+        id_token = id_token.substr(7);
+      }
+      auto parsed = ParseHexUint32(id_token);
+      if (parsed.has_value()) {
+        custom_object_files[static_cast<int>(*parsed)] =
+            ParseStringList(value);
+      }
     } else if (current_section == "agent_settings") {
       if (key == "ai_provider")
         agent_settings.ai_provider = value;
@@ -939,7 +1157,11 @@ std::string YazeProject::GetAbsolutePath(
 
   std::filesystem::path project_dir =
       std::filesystem::path(filepath).parent_path();
-  std::filesystem::path abs_path = project_dir / relative_path;
+  std::filesystem::path abs_path(relative_path);
+  if (abs_path.is_absolute()) {
+    return abs_path.string();
+  }
+  abs_path = project_dir / abs_path;
 
   return abs_path.string();
 }
@@ -971,6 +1193,16 @@ void YazeProject::InitializeDefaults() {
   feature_flags.overworld.kLoadCustomOverworld = false;
   feature_flags.overworld.kApplyZSCustomOverworldASM = false;
   feature_flags.kSaveDungeonMaps = true;
+  feature_flags.dungeon.kSaveObjects = true;
+  feature_flags.dungeon.kSaveSprites = true;
+  feature_flags.dungeon.kSaveRoomHeaders = true;
+  feature_flags.dungeon.kSaveTorches = true;
+  feature_flags.dungeon.kSavePits = true;
+  feature_flags.dungeon.kSaveBlocks = true;
+  feature_flags.dungeon.kSaveCollision = true;
+  feature_flags.dungeon.kSaveChests = true;
+  feature_flags.dungeon.kSavePotItems = true;
+  feature_flags.dungeon.kSavePalettes = true;
   feature_flags.kSaveGraphicsSheet = true;
   // REMOVED: kLogInstructions (deprecated)
 
@@ -981,6 +1213,9 @@ void YazeProject::InitializeDefaults() {
   workspace_settings.autosave_enabled = true;
   workspace_settings.autosave_interval_secs = 300.0f;  // 5 minutes
   workspace_settings.backup_on_save = true;
+  workspace_settings.backup_retention_count = 20;
+  workspace_settings.backup_keep_daily = true;
+  workspace_settings.backup_keep_daily_days = 14;
   workspace_settings.show_grid = true;
   workspace_settings.show_collision = false;
 
@@ -993,6 +1228,10 @@ void YazeProject::InitializeDefaults() {
   dungeon_overlay.track_switch_tiles = {0xD0, 0xD1, 0xD2, 0xD3};
   dungeon_overlay.track_object_ids = {0x31};
   dungeon_overlay.minecart_sprite_ids = {0xA3};
+
+  rom_metadata.role = RomRole::kDev;
+  rom_metadata.expected_hash.clear();
+  rom_metadata.write_policy = RomWritePolicy::kWarn;
 
   // Initialize default build configurations
   build_configurations = {"Debug", "Release", "Distribution"};
@@ -1609,6 +1848,8 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
       // Files
       if (proj.contains("rom_filename"))
         rom_filename = proj["rom_filename"].get<std::string>();
+      if (proj.contains("rom_backup_folder"))
+        rom_backup_folder = proj["rom_backup_folder"].get<std::string>();
       if (proj.contains("code_folder"))
         code_folder = proj["code_folder"].get<std::string>();
       if (proj.contains("assets_folder"))
@@ -1619,6 +1860,18 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
         labels_filename = proj["labels_filename"].get<std::string>();
       if (proj.contains("symbols_filename"))
         symbols_filename = proj["symbols_filename"].get<std::string>();
+
+      if (proj.contains("rom") && proj["rom"].is_object()) {
+        auto& rom = proj["rom"];
+        if (rom.contains("role"))
+          rom_metadata.role = ParseRomRole(rom["role"].get<std::string>());
+        if (rom.contains("expected_hash"))
+          rom_metadata.expected_hash =
+              rom["expected_hash"].get<std::string>();
+        if (rom.contains("write_policy"))
+          rom_metadata.write_policy =
+              ParseRomWritePolicy(rom["write_policy"].get<std::string>());
+      }
 
       // Embedded labels flag
       if (proj.contains("use_embedded_labels")) {
@@ -1633,9 +1886,62 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
         if (flags.contains("kSaveDungeonMaps"))
           feature_flags.kSaveDungeonMaps =
               flags["kSaveDungeonMaps"].get<bool>();
+        if (flags.contains("kSaveOverworldMaps"))
+          feature_flags.overworld.kSaveOverworldMaps =
+              flags["kSaveOverworldMaps"].get<bool>();
+        if (flags.contains("kSaveOverworldEntrances"))
+          feature_flags.overworld.kSaveOverworldEntrances =
+              flags["kSaveOverworldEntrances"].get<bool>();
+        if (flags.contains("kSaveOverworldExits"))
+          feature_flags.overworld.kSaveOverworldExits =
+              flags["kSaveOverworldExits"].get<bool>();
+        if (flags.contains("kSaveOverworldItems"))
+          feature_flags.overworld.kSaveOverworldItems =
+              flags["kSaveOverworldItems"].get<bool>();
+        if (flags.contains("kSaveOverworldProperties"))
+          feature_flags.overworld.kSaveOverworldProperties =
+              flags["kSaveOverworldProperties"].get<bool>();
+        if (flags.contains("kSaveDungeonObjects"))
+          feature_flags.dungeon.kSaveObjects =
+              flags["kSaveDungeonObjects"].get<bool>();
+        if (flags.contains("kSaveDungeonSprites"))
+          feature_flags.dungeon.kSaveSprites =
+              flags["kSaveDungeonSprites"].get<bool>();
+        if (flags.contains("kSaveDungeonRoomHeaders"))
+          feature_flags.dungeon.kSaveRoomHeaders =
+              flags["kSaveDungeonRoomHeaders"].get<bool>();
+        if (flags.contains("kSaveDungeonTorches"))
+          feature_flags.dungeon.kSaveTorches =
+              flags["kSaveDungeonTorches"].get<bool>();
+        if (flags.contains("kSaveDungeonPits"))
+          feature_flags.dungeon.kSavePits =
+              flags["kSaveDungeonPits"].get<bool>();
+        if (flags.contains("kSaveDungeonBlocks"))
+          feature_flags.dungeon.kSaveBlocks =
+              flags["kSaveDungeonBlocks"].get<bool>();
+        if (flags.contains("kSaveDungeonCollision"))
+          feature_flags.dungeon.kSaveCollision =
+              flags["kSaveDungeonCollision"].get<bool>();
+        if (flags.contains("kSaveDungeonChests"))
+          feature_flags.dungeon.kSaveChests =
+              flags["kSaveDungeonChests"].get<bool>();
+        if (flags.contains("kSaveDungeonPotItems"))
+          feature_flags.dungeon.kSavePotItems =
+              flags["kSaveDungeonPotItems"].get<bool>();
+        if (flags.contains("kSaveDungeonPalettes"))
+          feature_flags.dungeon.kSavePalettes =
+              flags["kSaveDungeonPalettes"].get<bool>();
         if (flags.contains("kSaveGraphicsSheet"))
           feature_flags.kSaveGraphicsSheet =
               flags["kSaveGraphicsSheet"].get<bool>();
+        if (flags.contains("kSaveAllPalettes"))
+          feature_flags.kSaveAllPalettes =
+              flags["kSaveAllPalettes"].get<bool>();
+        if (flags.contains("kSaveGfxGroups"))
+          feature_flags.kSaveGfxGroups =
+              flags["kSaveGfxGroups"].get<bool>();
+        if (flags.contains("kSaveMessages"))
+          feature_flags.kSaveMessages = flags["kSaveMessages"].get<bool>();
       }
 
       // Workspace settings
@@ -1647,6 +1953,57 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
         if (ws.contains("auto_save_interval"))
           workspace_settings.autosave_interval_secs =
               ws["auto_save_interval"].get<float>();
+        if (ws.contains("backup_on_save"))
+          workspace_settings.backup_on_save =
+              ws["backup_on_save"].get<bool>();
+        if (ws.contains("backup_retention_count"))
+          workspace_settings.backup_retention_count =
+              ws["backup_retention_count"].get<int>();
+        if (ws.contains("backup_keep_daily"))
+          workspace_settings.backup_keep_daily =
+              ws["backup_keep_daily"].get<bool>();
+        if (ws.contains("backup_keep_daily_days"))
+          workspace_settings.backup_keep_daily_days =
+              ws["backup_keep_daily_days"].get<int>();
+      }
+
+      if (proj.contains("rom_addresses") && proj["rom_addresses"].is_object()) {
+        rom_address_overrides.addresses.clear();
+        for (auto it = proj["rom_addresses"].begin();
+             it != proj["rom_addresses"].end(); ++it) {
+          if (it.value().is_number_unsigned()) {
+            rom_address_overrides.addresses[it.key()] =
+                it.value().get<uint32_t>();
+          } else if (it.value().is_string()) {
+            auto parsed = ParseHexUint32(it.value().get<std::string>());
+            if (parsed.has_value()) {
+              rom_address_overrides.addresses[it.key()] = *parsed;
+            }
+          }
+        }
+      }
+
+      if (proj.contains("custom_objects") &&
+          proj["custom_objects"].is_object()) {
+        custom_object_files.clear();
+        for (auto it = proj["custom_objects"].begin();
+             it != proj["custom_objects"].end(); ++it) {
+          if (!it.value().is_array())
+            continue;
+          auto parsed = ParseHexUint32(it.key());
+          if (!parsed.has_value()) {
+            continue;
+          }
+          std::vector<std::string> files;
+          for (const auto& entry : it.value()) {
+            if (entry.is_string()) {
+              files.push_back(entry.get<std::string>());
+            }
+          }
+          if (!files.empty()) {
+            custom_object_files[static_cast<int>(*parsed)] = std::move(files);
+          }
+        }
       }
 
       if (proj.contains("agent_settings") &&
@@ -1758,6 +2115,7 @@ absl::Status YazeProject::SaveToJsonFormat() {
 
   // Files
   proj["rom_filename"] = rom_filename;
+  proj["rom_backup_folder"] = rom_backup_folder;
   proj["code_folder"] = code_folder;
   proj["assets_folder"] = assets_folder;
   proj["patches_folder"] = patches_folder;
@@ -1765,20 +2123,65 @@ absl::Status YazeProject::SaveToJsonFormat() {
   proj["symbols_filename"] = symbols_filename;
   proj["output_folder"] = output_folder;
 
+  proj["rom"]["role"] = RomRoleToString(rom_metadata.role);
+  proj["rom"]["expected_hash"] = rom_metadata.expected_hash;
+  proj["rom"]["write_policy"] =
+      RomWritePolicyToString(rom_metadata.write_policy);
+
   // Embedded labels
   proj["use_embedded_labels"] = use_embedded_labels;
 
   // Feature flags
   // REMOVED: kLogInstructions (deprecated)
   proj["feature_flags"]["kSaveDungeonMaps"] = feature_flags.kSaveDungeonMaps;
+  proj["feature_flags"]["kSaveOverworldMaps"] =
+      feature_flags.overworld.kSaveOverworldMaps;
+  proj["feature_flags"]["kSaveOverworldEntrances"] =
+      feature_flags.overworld.kSaveOverworldEntrances;
+  proj["feature_flags"]["kSaveOverworldExits"] =
+      feature_flags.overworld.kSaveOverworldExits;
+  proj["feature_flags"]["kSaveOverworldItems"] =
+      feature_flags.overworld.kSaveOverworldItems;
+  proj["feature_flags"]["kSaveOverworldProperties"] =
+      feature_flags.overworld.kSaveOverworldProperties;
+  proj["feature_flags"]["kSaveDungeonObjects"] =
+      feature_flags.dungeon.kSaveObjects;
+  proj["feature_flags"]["kSaveDungeonSprites"] =
+      feature_flags.dungeon.kSaveSprites;
+  proj["feature_flags"]["kSaveDungeonRoomHeaders"] =
+      feature_flags.dungeon.kSaveRoomHeaders;
+  proj["feature_flags"]["kSaveDungeonTorches"] =
+      feature_flags.dungeon.kSaveTorches;
+  proj["feature_flags"]["kSaveDungeonPits"] = feature_flags.dungeon.kSavePits;
+  proj["feature_flags"]["kSaveDungeonBlocks"] =
+      feature_flags.dungeon.kSaveBlocks;
+  proj["feature_flags"]["kSaveDungeonCollision"] =
+      feature_flags.dungeon.kSaveCollision;
+  proj["feature_flags"]["kSaveDungeonChests"] =
+      feature_flags.dungeon.kSaveChests;
+  proj["feature_flags"]["kSaveDungeonPotItems"] =
+      feature_flags.dungeon.kSavePotItems;
+  proj["feature_flags"]["kSaveDungeonPalettes"] =
+      feature_flags.dungeon.kSavePalettes;
   proj["feature_flags"]["kSaveGraphicsSheet"] =
       feature_flags.kSaveGraphicsSheet;
+  proj["feature_flags"]["kSaveAllPalettes"] = feature_flags.kSaveAllPalettes;
+  proj["feature_flags"]["kSaveGfxGroups"] = feature_flags.kSaveGfxGroups;
+  proj["feature_flags"]["kSaveMessages"] = feature_flags.kSaveMessages;
 
   // Workspace settings
   proj["workspace_settings"]["auto_save_enabled"] =
       workspace_settings.autosave_enabled;
   proj["workspace_settings"]["auto_save_interval"] =
       workspace_settings.autosave_interval_secs;
+  proj["workspace_settings"]["backup_on_save"] =
+      workspace_settings.backup_on_save;
+  proj["workspace_settings"]["backup_retention_count"] =
+      workspace_settings.backup_retention_count;
+  proj["workspace_settings"]["backup_keep_daily"] =
+      workspace_settings.backup_keep_daily;
+  proj["workspace_settings"]["backup_keep_daily_days"] =
+      workspace_settings.backup_keep_daily_days;
 
   auto& agent = proj["agent_settings"];
   agent["ai_provider"] = agent_settings.ai_provider;
@@ -1810,6 +2213,20 @@ absl::Status YazeProject::SaveToJsonFormat() {
   agent["enable_tool_memory_inspector"] =
       agent_settings.enable_tool_memory_inspector;
   agent["builder_blueprint_path"] = agent_settings.builder_blueprint_path;
+
+  if (!rom_address_overrides.addresses.empty()) {
+    auto& addrs = proj["rom_addresses"];
+    for (const auto& [key, value] : rom_address_overrides.addresses) {
+      addrs[key] = value;
+    }
+  }
+
+  if (!custom_object_files.empty()) {
+    auto& objs = proj["custom_objects"];
+    for (const auto& [object_id, files] : custom_object_files) {
+      objs[absl::StrFormat("0x%X", object_id)] = files;
+    }
+  }
 
   // Build settings
   proj["build_script"] = build_script;
