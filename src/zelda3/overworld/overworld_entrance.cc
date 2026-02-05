@@ -19,11 +19,11 @@ absl::StatusOr<std::vector<OverworldEntrance>> LoadEntrances(Rom* rom) {
   // Check if expanded entrance data is actually present in ROM
   // The flag position should contain 0xB8 for vanilla, something else for
   // expanded
-  if (rom->data()[kOverworldEntranceExpandedFlagPos] != 0xB8) {
+  if (rom->data()[GetOverworldEntranceFlagExpanded()] != 0xB8) {
     // ROM has expanded entrance data - use expanded addresses
-    ow_entrance_map_ptr = kOverworldEntranceMapExpanded;
-    ow_entrance_pos_ptr = kOverworldEntrancePosExpanded;
-    ow_entrance_id_ptr = kOverworldEntranceEntranceIdExpanded;
+    ow_entrance_map_ptr = GetOverworldEntranceMapExpanded();
+    ow_entrance_pos_ptr = GetOverworldEntrancePosExpanded();
+    ow_entrance_id_ptr = GetOverworldEntranceIdExpanded();
     num_entrances = 256;  // Expanded entrance count
   }
   // Otherwise use vanilla addresses (already set above)
@@ -94,9 +94,10 @@ absl::Status SaveEntrances(Rom* rom,
     // For ZS v3+ ROMs, mirror writes into the expanded tables the way
     // ZeldaFullEditor does when the ASM patch is active.
     for (int i = 0; i < kNumOverworldEntrances; ++i) {
-      RETURN_IF_ERROR(write_entrance(i, kOverworldEntranceMapExpanded + (i * 2),
-                                     kOverworldEntrancePosExpanded + (i * 2),
-                                     kOverworldEntranceEntranceIdExpanded + i));
+      RETURN_IF_ERROR(
+          write_entrance(i, GetOverworldEntranceMapExpanded() + (i * 2),
+                         GetOverworldEntrancePosExpanded() + (i * 2),
+                         GetOverworldEntranceIdExpanded() + i));
     }
   }
 

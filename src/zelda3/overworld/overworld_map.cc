@@ -30,7 +30,7 @@ OverworldMap::OverworldMap(int index, Rom* rom, GameData* game_data)
   auto version = OverworldVersionHelper::GetVersion(*rom_);
   if (version >= OverworldVersion::kZSCustomV3) {
     // For v3+, parent ID is stored in expanded table (0x140998) with 160 entries
-    parent_ = (*rom_)[kOverworldMapParentIdExpanded + index_];
+    parent_ = (*rom_)[GetOverworldMapParentIdExpanded() + index_];
   } else {
     // For vanilla/v1/v2, parent ID table at 0x125EC only has 64 entries (LW only)
     // DW maps mirror LW parents with +0x40 offset
@@ -179,8 +179,8 @@ void OverworldMap::LoadAreaInfo() {
     // All area sizes are now stored in the expanded table, supporting all size
     // types
     message_id_ =
-        (*rom_)[kOverworldMessagesExpanded + (parent_ * 2)] |
-        ((*rom_)[kOverworldMessagesExpanded + (parent_ * 2) + 1] << 8);
+        (*rom_)[GetOverworldMessagesExpanded() + (parent_ * 2)] |
+        ((*rom_)[GetOverworldMessagesExpanded() + (parent_ * 2) + 1] << 8);
     area_size_ =
         static_cast<AreaSizeEnum>((*rom_)[kOverworldScreenSize + index_]);
   }
