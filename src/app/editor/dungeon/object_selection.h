@@ -42,11 +42,12 @@ class ObjectSelection {
   };
 
   // Layer filter constants
-  static constexpr int kLayerAll = -1;    // Select from all layers
-  static constexpr int kMaskLayer = -2;   // Mask mode: only BG2/Layer 1 objects (overlays)
-  static constexpr int kLayer1 = 0;       // BG1 (Layer 0)
-  static constexpr int kLayer2 = 1;       // BG2 (Layer 1) - overlay objects
-  static constexpr int kLayer3 = 2;       // BG3 (Layer 2)
+  static constexpr int kLayerAll = -1;  // Select from all layers
+  static constexpr int kMaskLayer =
+      -2;  // Mask mode: only BG2/Layer 1 objects (overlays)
+  static constexpr int kLayer1 = 0;  // BG1 (Layer 0)
+  static constexpr int kLayer2 = 1;  // BG2 (Layer 1) - overlay objects
+  static constexpr int kLayer3 = 2;  // BG3 (Layer 2)
 
   explicit ObjectSelection() = default;
 
@@ -146,9 +147,8 @@ class ObjectSelection {
    * @param objects Object list to select from
    * @param mode How to modify the selection
    */
-  void EndRectangleSelection(
-      const std::vector<zelda3::RoomObject>& objects,
-      SelectionMode mode = SelectionMode::Single);
+  void EndRectangleSelection(const std::vector<zelda3::RoomObject>& objects,
+                             SelectionMode mode = SelectionMode::Single);
 
   /**
    * @brief Cancel rectangle selection without modifying selection
@@ -253,11 +253,16 @@ class ObjectSelection {
    */
   const char* GetLayerFilterName() const {
     switch (active_layer_filter_) {
-      case kMaskLayer: return "Mask Mode (BG2 Overlays)";
-      case kLayer1: return "Layer 1 (BG1)";
-      case kLayer2: return "Layer 2 (BG2)";
-      case kLayer3: return "Layer 3 (BG3)";
-      default: return "All Layers";
+      case kMaskLayer:
+        return "Mask Mode (BG2 Overlays)";
+      case kLayer1:
+        return "Layer 1 (BG1)";
+      case kLayer2:
+        return "Layer 2 (BG2)";
+      case kLayer3:
+        return "Layer 3 (BG3)";
+      default:
+        return "All Layers";
     }
   }
 
@@ -308,7 +313,7 @@ class ObjectSelection {
    * @return {room_x, room_y} in tiles (0-63)
    */
   static std::pair<int, int> CanvasToRoomCoordinates(int canvas_x,
-                                                      int canvas_y);
+                                                     int canvas_y);
 
   /**
    * @brief Calculate the bounding box of an object
@@ -320,7 +325,8 @@ class ObjectSelection {
 
  private:
   // Selection state
-  std::set<size_t> selected_indices_;  // Using set for fast lookup and auto-sort
+  std::set<size_t>
+      selected_indices_;  // Using set for fast lookup and auto-sort
 
   // Rectangle selection state
   bool rectangle_selection_active_ = false;
@@ -330,8 +336,9 @@ class ObjectSelection {
   int rect_end_y_ = 0;
 
   // Layer filtering state
-  int active_layer_filter_ = kLayerAll;  // -1 = all layers, 0/1/2 = specific layer
-  bool layers_merged_ = false;           // Whether room has merged layers
+  int active_layer_filter_ =
+      kLayerAll;                // -1 = all layers, 0/1/2 = specific layer
+  bool layers_merged_ = false;  // Whether room has merged layers
 
   // Callbacks
   std::function<void()> selection_changed_callback_;
