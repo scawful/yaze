@@ -1,7 +1,7 @@
 class Z3ed < Formula
   desc "AI-powered CLI tool for Zelda: A Link to the Past ROM hacking"
   homepage "https://github.com/scawful/yaze"
-  url "https://github.com/scawful/yaze/archive/refs/tags/v0.5.5.tar.gz"
+  url "https://github.com/scawful/yaze/archive/refs/tags/v0.5.6.tar.gz"
   sha256 ""  # TODO: fill after release is published
   license "GPL-3.0-or-later"
   head "https://github.com/scawful/yaze.git", branch: "master"
