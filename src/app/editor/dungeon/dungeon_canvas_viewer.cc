@@ -52,75 +52,89 @@ struct TrackDirectionMasks {
   uint8_t secondary = 0;
 };
 
-TrackDirectionMasks GetTrackDirectionMasks(uint8_t tile) {
-  TrackDirectionMasks masks{};
-  switch (tile) {
-    case 0xB0:
-      masks.primary = kTrackDirEast | kTrackDirWest;
-      break;
-    case 0xB1:
-      masks.primary = kTrackDirNorth | kTrackDirSouth;
-      break;
-    case 0xB2:
-      masks.primary = kTrackDirNorth | kTrackDirEast;
-      break;
-    case 0xB3:
-      masks.primary = kTrackDirSouth | kTrackDirEast;
-      break;
-    case 0xB4:
-      masks.primary = kTrackDirNorth | kTrackDirWest;
-      break;
-    case 0xB5:
-      masks.primary = kTrackDirSouth | kTrackDirWest;
-      break;
-    case 0xB6:
-      masks.primary =
-          kTrackDirNorth | kTrackDirEast | kTrackDirSouth | kTrackDirWest;
-      break;
-    case 0xB7:
-      masks.primary = kTrackDirSouth;
-      break;
-    case 0xB8:
-      masks.primary = kTrackDirNorth;
-      break;
-    case 0xB9:
-      masks.primary = kTrackDirEast;
-      break;
-    case 0xBA:
-      masks.primary = kTrackDirWest;
-      break;
-    case 0xBB:
-      masks.primary = kTrackDirNorth | kTrackDirEast | kTrackDirWest;
-      break;
-    case 0xBC:
-      masks.primary = kTrackDirSouth | kTrackDirEast | kTrackDirWest;
-      break;
-    case 0xBD:
-      masks.primary = kTrackDirNorth | kTrackDirSouth | kTrackDirEast;
-      break;
-    case 0xBE:
-      masks.primary = kTrackDirNorth | kTrackDirSouth | kTrackDirWest;
-      break;
-    case 0xD0:
-      masks.primary = kTrackDirNorth | kTrackDirEast;
-      masks.secondary = kTrackDirNorth | kTrackDirWest;
-      break;
-    case 0xD1:
-      masks.primary = kTrackDirSouth | kTrackDirEast;
-      masks.secondary = kTrackDirNorth | kTrackDirEast;
-      break;
-    case 0xD2:
-      masks.primary = kTrackDirNorth | kTrackDirWest;
-      masks.secondary = kTrackDirSouth | kTrackDirWest;
-      break;
-    case 0xD3:
-      masks.primary = kTrackDirSouth | kTrackDirWest;
-      masks.secondary = kTrackDirSouth | kTrackDirEast;
-      break;
+TrackDirectionMasks GetTrackDirectionMasksForTrackIndex(size_t index) {
+  switch (index) {
+    case 0:
+      return TrackDirectionMasks{kTrackDirEast | kTrackDirWest, 0};
+    case 1:
+      return TrackDirectionMasks{kTrackDirNorth | kTrackDirSouth, 0};
+    case 2:
+      return TrackDirectionMasks{kTrackDirNorth | kTrackDirEast, 0};
+    case 3:
+      return TrackDirectionMasks{kTrackDirSouth | kTrackDirEast, 0};
+    case 4:
+      return TrackDirectionMasks{kTrackDirNorth | kTrackDirWest, 0};
+    case 5:
+      return TrackDirectionMasks{kTrackDirSouth | kTrackDirWest, 0};
+    case 6:
+      return TrackDirectionMasks{
+          kTrackDirNorth | kTrackDirEast | kTrackDirSouth | kTrackDirWest, 0};
+    case 7:
+      return TrackDirectionMasks{kTrackDirSouth, 0};
+    case 8:
+      return TrackDirectionMasks{kTrackDirNorth, 0};
+    case 9:
+      return TrackDirectionMasks{kTrackDirEast, 0};
+    case 10:
+      return TrackDirectionMasks{kTrackDirWest, 0};
+    case 11:
+      return TrackDirectionMasks{kTrackDirNorth | kTrackDirEast | kTrackDirWest,
+                                 0};
+    case 12:
+      return TrackDirectionMasks{kTrackDirSouth | kTrackDirEast | kTrackDirWest,
+                                 0};
+    case 13:
+      return TrackDirectionMasks{kTrackDirNorth | kTrackDirSouth | kTrackDirEast,
+                                 0};
+    case 14:
+      return TrackDirectionMasks{kTrackDirNorth | kTrackDirSouth | kTrackDirWest,
+                                 0};
     default:
-      break;
+      return {};
   }
-  return masks;
+}
+
+TrackDirectionMasks GetTrackDirectionMasksForSwitchIndex(size_t index) {
+  switch (index) {
+    case 0:
+      return TrackDirectionMasks{
+          kTrackDirNorth | kTrackDirEast,
+          kTrackDirNorth | kTrackDirWest};
+    case 1:
+      return TrackDirectionMasks{
+          kTrackDirSouth | kTrackDirEast,
+          kTrackDirNorth | kTrackDirEast};
+    case 2:
+      return TrackDirectionMasks{
+          kTrackDirNorth | kTrackDirWest,
+          kTrackDirSouth | kTrackDirWest};
+    case 3:
+      return TrackDirectionMasks{
+          kTrackDirSouth | kTrackDirWest,
+          kTrackDirSouth | kTrackDirEast};
+    default:
+      return {};
+  }
+}
+
+TrackDirectionMasks GetTrackDirectionMasksFromConfig(
+    uint8_t tile, const std::vector<uint16_t>& track_tiles,
+    const std::vector<uint16_t>& switch_tiles) {
+  auto track_it =
+      std::find(track_tiles.begin(), track_tiles.end(), tile);
+  if (track_it != track_tiles.end()) {
+    return GetTrackDirectionMasksForTrackIndex(
+        static_cast<size_t>(track_it - track_tiles.begin()));
+  }
+
+  auto switch_it =
+      std::find(switch_tiles.begin(), switch_tiles.end(), tile);
+  if (switch_it != switch_tiles.end()) {
+    return GetTrackDirectionMasksForSwitchIndex(
+        static_cast<size_t>(switch_it - switch_tiles.begin()));
+  }
+
+  return {};
 }
 
 void DrawTrackArrowHead(ImDrawList* draw_list, const ImVec2& tip, TrackDir dir,
@@ -198,49 +212,50 @@ void DungeonCanvasViewer::ApplyTrackCollisionConfig() {
       }
     }
   };
-
-  std::array<bool, 256> default_track_tiles{};
-  std::array<bool, 256> default_stop_tiles{};
-  std::array<bool, 256> default_switch_tiles{};
-
-  if (project_ && !project_->dungeon_overlay.track_tiles.empty()) {
-    apply_list(track_collision_config_.track_tiles,
-               project_->dungeon_overlay.track_tiles);
-  } else {
-    std::vector<uint16_t> default_track_tile_list;
-    for (uint16_t tile = 0xB0; tile <= 0xBE; ++tile) {
-      default_track_tile_list.push_back(tile);
+  auto ids_valid = [](const std::vector<uint16_t>& values) {
+    std::array<bool, 256> seen{};
+    for (uint16_t value : values) {
+      if (value >= seen.size() || seen[value]) {
+        return false;
+      }
+      seen[value] = true;
     }
-    apply_list(track_collision_config_.track_tiles, default_track_tile_list);
-  }
-  {
-    std::vector<uint16_t> default_track_tile_list;
-    for (uint16_t tile = 0xB0; tile <= 0xBE; ++tile) {
-      default_track_tile_list.push_back(tile);
-    }
-    apply_list(default_track_tiles, default_track_tile_list);
-  }
+    return true;
+  };
 
-  if (project_ && !project_->dungeon_overlay.track_stop_tiles.empty()) {
-    apply_list(track_collision_config_.stop_tiles,
-               project_->dungeon_overlay.track_stop_tiles);
-  } else {
-    apply_list(track_collision_config_.stop_tiles, {0xB7, 0xB8, 0xB9, 0xBA});
+  std::vector<uint16_t> default_track_tile_list;
+  for (uint16_t tile = 0xB0; tile <= 0xBE; ++tile) {
+    default_track_tile_list.push_back(tile);
   }
-  apply_list(default_stop_tiles, {0xB7, 0xB8, 0xB9, 0xBA});
+  const std::vector<uint16_t> default_stop_tile_list = {0xB7, 0xB8, 0xB9,
+                                                        0xBA};
+  const std::vector<uint16_t> default_switch_tile_list = {0xD0, 0xD1, 0xD2,
+                                                          0xD3};
 
-  if (project_ && !project_->dungeon_overlay.track_switch_tiles.empty()) {
-    apply_list(track_collision_config_.switch_tiles,
-               project_->dungeon_overlay.track_switch_tiles);
-  } else {
-    apply_list(track_collision_config_.switch_tiles, {0xD0, 0xD1, 0xD2, 0xD3});
-  }
-  apply_list(default_switch_tiles, {0xD0, 0xD1, 0xD2, 0xD3});
+  const auto& track_tiles =
+      (project_ && !project_->dungeon_overlay.track_tiles.empty())
+          ? project_->dungeon_overlay.track_tiles
+          : default_track_tile_list;
+  apply_list(track_collision_config_.track_tiles, track_tiles);
+  track_tile_order_ = track_tiles;
 
-  use_default_track_direction_map_ =
-      (track_collision_config_.track_tiles == default_track_tiles) &&
-      (track_collision_config_.stop_tiles == default_stop_tiles) &&
-      (track_collision_config_.switch_tiles == default_switch_tiles);
+  const auto& stop_tiles =
+      (project_ && !project_->dungeon_overlay.track_stop_tiles.empty())
+          ? project_->dungeon_overlay.track_stop_tiles
+          : default_stop_tile_list;
+  apply_list(track_collision_config_.stop_tiles, stop_tiles);
+
+  const auto& switch_tiles =
+      (project_ && !project_->dungeon_overlay.track_switch_tiles.empty())
+          ? project_->dungeon_overlay.track_switch_tiles
+          : default_switch_tile_list;
+  apply_list(track_collision_config_.switch_tiles, switch_tiles);
+  switch_tile_order_ = switch_tiles;
+
+  track_direction_map_enabled_ =
+      (track_tile_order_.size() == default_track_tile_list.size()) &&
+      (switch_tile_order_.size() == default_switch_tile_list.size()) &&
+      ids_valid(track_tile_order_) && ids_valid(switch_tile_order_);
 
   minecart_sprite_ids_.fill(false);
   std::vector<uint16_t> minecart_ids = {0xA3};
@@ -2267,8 +2282,9 @@ void DungeonCanvasViewer::DrawTrackCollisionOverlay(
     draw_list->AddRectFilled(min, max, color);
     draw_list->AddRect(min, max, outline_color);
 
-    if (use_default_track_direction_map_) {
-      const auto masks = GetTrackDirectionMasks(entry.tile);
+    if (track_direction_map_enabled_) {
+      const auto masks = GetTrackDirectionMasksFromConfig(
+          entry.tile, track_tile_order_, switch_tile_order_);
       if (masks.primary != 0) {
         DrawTrackDirectionMask(draw_list, min, tile_size, masks.primary,
                                arrow_color);
@@ -2307,9 +2323,10 @@ void DungeonCanvasViewer::DrawTrackCollisionOverlay(
                       item.label);
       y += swatch + 4.0f;
     }
-    const char* arrow_label = use_default_track_direction_map_
-                                  ? "Arrows: track directions"
-                                  : "Arrows: disabled (custom mapping)";
+    const char* arrow_label =
+        track_direction_map_enabled_
+            ? "Arrows: track directions"
+            : "Arrows: disabled (need 15 track + 4 switch IDs)";
     legend->AddText(ImVec2(legend_pos.x, y + 2.0f), text_color, arrow_label);
   }
 }
