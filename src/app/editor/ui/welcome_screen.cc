@@ -632,7 +632,16 @@ void WelcomeScreen::DrawHeader() {
     return;
   }
 
-  ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[2]);  // Large font
+  ImFont* header_font = nullptr;
+  const auto& font_list = ImGui::GetIO().Fonts->Fonts;
+  if (font_list.Size > 2) {
+    header_font = font_list[2];
+  } else if (font_list.Size > 0) {
+    header_font = font_list[0];
+  }
+  if (header_font) {
+    ImGui::PushFont(header_font);  // Large font (fallback to default)
+  }
 
   // Simple centered title
   const char* title = ICON_MD_CASTLE " yaze";
@@ -657,7 +666,9 @@ void WelcomeScreen::DrawHeader() {
   ImVec4 title_color = kTriforceGold;
   title_color.w *= header_alpha;
   ImGui::TextColored(title_color, "%s", title);
-  ImGui::PopFont();
+  if (header_font) {
+    ImGui::PopFont();
+  }
 
   // Static subtitle (entry animation section 1)
   float subtitle_progress =

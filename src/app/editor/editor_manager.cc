@@ -840,8 +840,13 @@ void EditorManager::InitializeServices() {
 
   panel_manager_.RestorePinnedState(user_settings_.prefs().pinned_panels);
 
-  // Apply font scale after loading
-  ImGui::GetIO().FontGlobalScale = user_settings_.prefs().font_global_scale;
+  // Apply font scale after loading (only if ImGui context exists)
+  if (ImGui::GetCurrentContext() != nullptr) {
+    ImGui::GetIO().FontGlobalScale = user_settings_.prefs().font_global_scale;
+  } else {
+    LOG_WARN("EditorManager",
+             "ImGui context not available; skipping FontGlobalScale update");
+  }
 
   // Initialize WASM control and session APIs for browser/agent integration
 #ifdef __EMSCRIPTEN__

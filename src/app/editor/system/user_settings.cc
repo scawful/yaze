@@ -918,7 +918,12 @@ absl::Status UserSettings::Load() {
     EnsureDefaultModelPaths(&prefs_);
 #endif
 
-    ImGui::GetIO().FontGlobalScale = prefs_.font_global_scale;
+    if (ImGui::GetCurrentContext() != nullptr) {
+      ImGui::GetIO().FontGlobalScale = prefs_.font_global_scale;
+    } else {
+      LOG_WARN("UserSettings",
+               "ImGui context not available; skipping FontGlobalScale update");
+    }
   } catch (const std::exception& e) {
     return absl::InternalError(
         absl::StrFormat("Failed to load user settings: %s", e.what()));
