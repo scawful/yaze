@@ -155,6 +155,46 @@ class MessageExportOrgCommandHandler : public resources::CommandHandler {
 };
 
 /**
+ * @brief Export messages as a bundle JSON for round-trip editing
+ */
+class MessageExportBundleCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "message-export-bundle"; }
+  std::string GetUsage() const override {
+    return "message-export-bundle --output <path> [--range <all|vanilla|expanded>]"
+           " [--format <json|text>]";
+  }
+  bool RequiresRom() const override { return true; }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"output"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+/**
+ * @brief Import messages from a bundle JSON for validation or apply to ROM
+ */
+class MessageImportBundleCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "message-import-bundle"; }
+  std::string GetUsage() const override {
+    return "message-import-bundle --file <path> [--apply] [--strict]"
+           " [--range <all|vanilla|expanded>] [--format <json|text>]";
+  }
+  bool RequiresRom() const override { return false; }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"file"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+/**
  * @brief Write an encoded message to the expanded message bank
  *
  * Encodes text and writes to the expanded message region at a given ID.

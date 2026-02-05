@@ -204,6 +204,13 @@ Check test execution status.
 - `resource-list --type <type>`
 - `resource-search --query <text> [--type <type>]`
 - `message-list`, `message-read`, `message-search --query <text>`
+- `message-encode --text <text>`, `message-decode --hex <hex_bytes>`
+- `message-export-org --output <path>`, `message-import-org --file <path>`
+- `message-export-bundle --output <path> [--range <all|vanilla|expanded>]`
+- `message-import-bundle --file <path> [--apply] [--strict] [--range <all|vanilla|expanded>]`
+- `message-write --id <id> --text <text>`
+- `message-export-bin --output <path> [--range expanded]`
+- `message-export-asm --output <path> [--range expanded]`
 - `dialogue-list`, `dialogue-read`, `dialogue-search --query <text>`
 - `hex-search --pattern <hex>`
 

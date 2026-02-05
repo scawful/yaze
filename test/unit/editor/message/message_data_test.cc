@@ -194,6 +194,56 @@ TEST(ParseTextDataByteTest, UnknownByte) {
 }
 
 // ===========================================================================
+// ParseMessageToDataWithDiagnostics Tests
+// ===========================================================================
+
+TEST(MessageParseResultTest, ReportsUnknownToken) {
+  auto result = ParseMessageToDataWithDiagnostics("Hello [BAD]");
+  EXPECT_FALSE(result.ok());
+  EXPECT_FALSE(result.errors.empty());
+}
+
+TEST(MessageParseResultTest, ReportsNewlineWarning) {
+  auto result = ParseMessageToDataWithDiagnostics("Hello\nWorld");
+  EXPECT_TRUE(result.errors.empty());
+  EXPECT_FALSE(result.warnings.empty());
+}
+
+// ===========================================================================
+// Message Bundle Tests
+// ===========================================================================
+
+TEST(MessageBundleTest, SerializeMessageBundle) {
+  std::vector<MessageData> vanilla;
+  std::vector<MessageData> expanded;
+
+  vanilla.push_back(
+      MessageData(0, 0x100, "Hello", {}, "Hello", {}));
+  expanded.push_back(
+      MessageData(1, 0x200, "Expanded", {}, "Expanded", {}));
+
+  nlohmann::json bundle = SerializeMessageBundle(vanilla, expanded);
+  EXPECT_EQ(bundle["format"], "yaze-message-bundle");
+  EXPECT_EQ(bundle["version"], kMessageBundleVersion);
+  ASSERT_TRUE(bundle["messages"].is_array());
+  ASSERT_EQ(bundle["messages"].size(), 2);
+  EXPECT_EQ(bundle["messages"][0]["bank"], "vanilla");
+  EXPECT_EQ(bundle["messages"][1]["bank"], "expanded");
+}
+
+TEST(MessageBundleTest, ParseLegacyArrayBundle) {
+  nlohmann::json legacy = nlohmann::json::array();
+  legacy.push_back({{"id", 2}, {"raw_string", "Legacy"}});
+  auto entries_or = ParseMessageBundleJson(legacy);
+  ASSERT_TRUE(entries_or.ok());
+  auto entries = entries_or.value();
+  ASSERT_EQ(entries.size(), 1);
+  EXPECT_EQ(entries[0].id, 2);
+  EXPECT_EQ(entries[0].text, "Legacy");
+  EXPECT_EQ(entries[0].bank, MessageBank::kVanilla);
+}
+
+// ===========================================================================
 // FindDictionaryEntry Tests
 // ===========================================================================
 

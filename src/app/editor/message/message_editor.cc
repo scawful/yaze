@@ -288,6 +288,36 @@ void MessageEditor::DrawMessageList() {
   if (BeginChild("##MessagesList", ImVec2(0, 0), true,
                  ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
     gui::EndNoPadding();
+    if (ImGui::Button("Import Bundle")) {
+      std::string path = util::FileDialogWrapper::ShowOpenFileDialog();
+      if (!path.empty()) {
+        ImportMessageBundleFromFile(path);
+      }
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Export Bundle")) {
+      std::string path = util::FileDialogWrapper::ShowSaveFileDialog();
+      if (!path.empty()) {
+        auto status =
+            ExportMessageBundleToJson(path, list_of_texts_, expanded_messages_);
+        if (!status.ok()) {
+          message_bundle_status_ =
+              absl::StrFormat("Export failed: %s", status.message());
+          message_bundle_status_error_ = true;
+        } else {
+          message_bundle_status_ =
+              absl::StrFormat("Exported bundle: %s", path);
+          message_bundle_status_error_ = false;
+        }
+      }
+    }
+    if (!message_bundle_status_.empty()) {
+      ImVec4 color = message_bundle_status_error_
+                         ? ImVec4(1.0f, 0.4f, 0.4f, 1.0f)
+                         : ImVec4(0.6f, 0.9f, 0.6f, 1.0f);
+      ImGui::TextColored(color, "%s", message_bundle_status_.c_str());
+    }
+    ImGui::Separator();
     if (BeginTable("##MessagesTable", 3, kMessageTableFlags)) {
       TableSetupColumn("ID");
       TableSetupColumn("Contents");
@@ -364,6 +394,14 @@ void MessageEditor::DrawCurrentMessage() {
   if (InputTextMultiline("##MessageEditor", &message_text_box_.text,
                          ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
     UpdateCurrentMessageFromText(message_text_box_.text);
+  }
+  auto line_warnings = ValidateMessageLineWidths(message_text_box_.text);
+  if (!line_warnings.empty()) {
+    ImGui::TextColored(ImVec4(1.0f, 0.75f, 0.3f, 1.0f),
+                       "Line width warnings");
+    for (const auto& warning : line_warnings) {
+      ImGui::BulletText("%s", warning.c_str());
+    }
   }
   Separator();
   gui::MemoryEditorPopup("Message Data", current_message_.Data);
@@ -600,6 +638,99 @@ void MessageEditor::UpdateCurrentMessageFromText(const std::string& text) {
   }
 
   DrawMessagePreview();
+}
+
+void MessageEditor::ImportMessageBundleFromFile(const std::string& path) {
+  message_bundle_status_.clear();
+  message_bundle_status_error_ = false;
+
+  auto entries_or = LoadMessageBundleFromJson(path);
+  if (!entries_or.ok()) {
+    message_bundle_status_ =
+        absl::StrFormat("Import failed: %s", entries_or.status().message());
+    message_bundle_status_error_ = true;
+    return;
+  }
+
+  int applied = 0;
+  int errors = 0;
+  int warnings = 0;
+  bool expanded_modified = false;
+
+  auto entries = entries_or.value();
+  for (const auto& entry : entries) {
+    auto parse_result = ParseMessageToDataWithDiagnostics(entry.text);
+    auto line_warnings = ValidateMessageLineWidths(entry.text);
+    warnings += static_cast<int>(parse_result.warnings.size());
+    warnings += static_cast<int>(line_warnings.size());
+
+    if (!parse_result.ok()) {
+      errors++;
+      continue;
+    }
+
+    if (entry.bank == MessageBank::kVanilla) {
+      if (entry.id < 0 ||
+          entry.id >= static_cast<int>(list_of_texts_.size())) {
+        errors++;
+        continue;
+      }
+      auto& message = list_of_texts_[entry.id];
+      message.RawString = entry.text;
+      message.ContentsParsed = entry.text;
+      message.Data = parse_result.bytes;
+      message.DataParsed = parse_result.bytes;
+      if (entry.id >= 0 &&
+          entry.id < static_cast<int>(parsed_messages_.size())) {
+        parsed_messages_[entry.id] = entry.text;
+      }
+      applied++;
+    } else {
+      if (entry.id < 0) {
+        errors++;
+        continue;
+      }
+      if (entry.id >= static_cast<int>(expanded_messages_.size())) {
+        const int target_size = entry.id + 1;
+        expanded_messages_.resize(target_size);
+        for (int i = 0; i < target_size; ++i) {
+          expanded_messages_[i].ID = i;
+        }
+      }
+      auto& message = expanded_messages_[entry.id];
+      message.RawString = entry.text;
+      message.ContentsParsed = entry.text;
+      message.Data = parse_result.bytes;
+      message.DataParsed = parse_result.bytes;
+      const int parsed_index = expanded_message_base_id_ + entry.id;
+      if (parsed_index >= 0) {
+        if (static_cast<size_t>(parsed_index) >= parsed_messages_.size()) {
+          parsed_messages_.resize(parsed_index + 1);
+        }
+        parsed_messages_[parsed_index] = entry.text;
+      }
+      expanded_modified = true;
+      applied++;
+    }
+  }
+
+  if (expanded_modified) {
+    int pos = GetExpandedTextDataStart();
+    for (auto& message : expanded_messages_) {
+      message.Address = pos;
+      pos += static_cast<int>(message.Data.size()) + 1;
+    }
+  }
+
+  if (errors > 0) {
+    message_bundle_status_ = absl::StrFormat(
+        "Import finished with %d errors (%d applied, %d warnings).", errors,
+        applied, warnings);
+    message_bundle_status_error_ = true;
+  } else {
+    message_bundle_status_ = absl::StrFormat(
+        "Imported %d messages (%d warnings).", applied, warnings);
+  }
 }
 
 void MessageEditor::DrawMessagePreview() {
