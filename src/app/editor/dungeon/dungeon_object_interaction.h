@@ -238,6 +238,7 @@ class DungeonObjectInteraction {
   size_t GetHoveredObjectIndex() const;  // Get index of object under cursor
 
   void HandleDeleteSelected();
+  void HandleDeleteAllObjects();
   void HandleCopySelected();
   void HandlePasteObjects();
   bool HasClipboardData() const { return has_clipboard_data_; }
