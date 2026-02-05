@@ -286,7 +286,8 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
 
       const bool is_default = IsDefaultTrack(track);
       const bool used_in_rooms =
-          track.id >= 0 && track.id < static_cast<int>(track_subtype_used_.size()) &&
+          track.id >= 0 &&
+          track.id < static_cast<int>(track_subtype_used_.size()) &&
           track_subtype_used_[track.id];
       const bool missing_start = used_in_rooms && is_default;
 
@@ -415,7 +416,8 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
   for (const auto& track : tracks_) {
     bool is_default = IsDefaultTrack(track);
     bool used_in_rooms =
-        track.id >= 0 && track.id < static_cast<int>(track_subtype_used_.size()) &&
+        track.id >= 0 &&
+        track.id < static_cast<int>(track_subtype_used_.size()) &&
         track_subtype_used_[track.id];
     if (is_default) {
       default_count++;

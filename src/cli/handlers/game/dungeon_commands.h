@@ -64,7 +64,8 @@ class DungeonListChestsCommandHandler : public resources::CommandHandler {
     return "dungeon-list-chests [--room <room_id>] [--format <json|text>]";
   }
 
-  absl::Status ValidateArgs(const resources::ArgumentParser& /*parser*/) override {
+  absl::Status ValidateArgs(
+      const resources::ArgumentParser& /*parser*/) override {
     return absl::OkStatus();
   }
 

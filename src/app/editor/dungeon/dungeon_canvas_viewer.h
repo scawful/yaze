@@ -155,13 +155,15 @@ class DungeonCanvasViewer {
   }
   bool IsBG1Visible(int room_id) const {
     auto it = room_layer_managers_.find(room_id);
-    if (it == room_layer_managers_.end()) return true;
+    if (it == room_layer_managers_.end())
+      return true;
     return it->second.IsLayerVisible(zelda3::LayerType::BG1_Layout) ||
            it->second.IsLayerVisible(zelda3::LayerType::BG1_Objects);
   }
   bool IsBG2Visible(int room_id) const {
     auto it = room_layer_managers_.find(room_id);
-    if (it == room_layer_managers_.end()) return true;
+    if (it == room_layer_managers_.end())
+      return true;
     return it->second.IsLayerVisible(zelda3::LayerType::BG2_Layout) ||
            it->second.IsLayerVisible(zelda3::LayerType::BG2_Objects);
   }
@@ -182,8 +184,8 @@ class DungeonCanvasViewer {
   // Per-object translucency
   void SetObjectTranslucent(int room_id, size_t object_index, bool translucent,
                             uint8_t alpha = 128) {
-    GetRoomLayerManager(room_id).SetObjectTranslucency(object_index, translucent,
-                                                       alpha);
+    GetRoomLayerManager(room_id).SetObjectTranslucency(object_index,
+                                                       translucent, alpha);
   }
 
   // Layer manager access
@@ -255,9 +257,13 @@ class DungeonCanvasViewer {
   void DeleteSelectedObjects() { object_interaction_.HandleDeleteSelected(); }
 
   // Entity visibility controls
-  void SetSpritesVisible(bool visible) { entity_visibility_.show_sprites = visible; }
+  void SetSpritesVisible(bool visible) {
+    entity_visibility_.show_sprites = visible;
+  }
   bool AreSpritesVisible() const { return entity_visibility_.show_sprites; }
-  void SetPotItemsVisible(bool visible) { entity_visibility_.show_pot_items = visible; }
+  void SetPotItemsVisible(bool visible) {
+    entity_visibility_.show_pot_items = visible;
+  }
   bool ArePotItemsVisible() const { return entity_visibility_.show_pot_items; }
 
  private:
@@ -273,6 +279,18 @@ class DungeonCanvasViewer {
   std::pair<int, int> RoomToCanvasCoordinates(int room_x, int room_y) const;
   std::pair<int, int> CanvasToRoomCoordinates(int canvas_x, int canvas_y) const;
   bool IsWithinCanvasBounds(int canvas_x, int canvas_y, int margin = 32) const;
+
+  // Collision overlay types (needed before method declarations)
+  struct CollisionOverlayEntry {
+    uint8_t x = 0;
+    uint8_t y = 0;
+    uint8_t tile = 0;
+  };
+
+  struct CollisionOverlayCache {
+    bool has_data = false;
+    std::vector<CollisionOverlayEntry> entries;
+  };
 
   // Visualization
   void DrawObjectPositionOutlines(const gui::CanvasRuntime& rt,
@@ -321,7 +339,8 @@ class DungeonCanvasViewer {
   uint64_t current_palette_id_ = 0;
   gfx::PaletteGroup current_palette_group_;
   std::function<void(int)> room_navigation_callback_;
-  std::function<void(int, int)> room_swap_callback_;  // (old_room_id, new_room_id)
+  std::function<void(int, int)>
+      room_swap_callback_;  // (old_room_id, new_room_id)
   std::function<void()> show_object_panel_callback_;
   std::function<void()> show_sprite_panel_callback_;
   std::function<void()> show_item_panel_callback_;
@@ -339,27 +358,19 @@ class DungeonCanvasViewer {
     std::array<bool, 256> switch_tiles{};
     bool IsEmpty() const {
       for (bool v : track_tiles) {
-        if (v) return false;
+        if (v)
+          return false;
       }
       for (bool v : stop_tiles) {
-        if (v) return false;
+        if (v)
+          return false;
       }
       for (bool v : switch_tiles) {
-        if (v) return false;
+        if (v)
+          return false;
       }
       return true;
     }
-  };
-
-  struct CollisionOverlayEntry {
-    uint8_t x = 0;
-    uint8_t y = 0;
-    uint8_t tile = 0;
-  };
-
-  struct CollisionOverlayCache {
-    bool has_data = false;
-    std::vector<CollisionOverlayEntry> entries;
   };
 
   bool show_track_collision_overlay_ = false;
@@ -387,7 +398,8 @@ class DungeonCanvasViewer {
   bool show_object_bounds_ = false;
   bool show_layer_info_ = false;
   bool show_grid_ = false;  // Grid off by default for dungeon editor
-  bool show_coordinate_overlay_ = false;  // Show camera coordinates on hover (toggle via Debug menu)
+  bool show_coordinate_overlay_ =
+      false;  // Show camera coordinates on hover (toggle via Debug menu)
   int layout_override_ = -1;  // -1 for no override
   int custom_grid_size_ = 8;
   ObjectRenderMode object_render_mode_ =
@@ -406,9 +418,9 @@ class DungeonCanvasViewer {
 
   // Entity overlay visibility toggles
   struct EntityVisibility {
-    bool show_sprites = true;      // Show sprite entities
-    bool show_pot_items = true;    // Show pot item entities
-    bool show_chests = true;       // Show chest entities (future)
+    bool show_sprites = true;    // Show sprite entities
+    bool show_pot_items = true;  // Show pot item entities
+    bool show_chests = true;     // Show chest entities (future)
   };
   EntityVisibility entity_visibility_;
 

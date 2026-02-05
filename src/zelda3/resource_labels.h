@@ -263,4 +263,3 @@ inline std::string GetRoomTagLabel(int id) {
 }  // namespace yaze
 
 #endif  // YAZE_ZELDA3_RESOURCE_LABELS_H
-
