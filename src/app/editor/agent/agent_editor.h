@@ -10,6 +10,8 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/time/clock.h"
+#include "absl/time/time.h"
 #include "app/editor/agent/panels/agent_editor_panels.h"
 #include "app/editor/agent/agent_state.h"
 #include "app/editor/editor.h"
