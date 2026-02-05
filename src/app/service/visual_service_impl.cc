@@ -50,9 +50,8 @@ test::VisualDiffConfig ProtoToConfig(const proto::ComparisonConfig& proto) {
 
   // Convert ignore regions
   for (const auto& region : proto.ignore_regions()) {
-    config.ignore_regions.push_back(
-        test::ScreenRegion{region.x(), region.y(), region.width(),
-                           region.height()});
+    config.ignore_regions.push_back(test::ScreenRegion{
+        region.x(), region.y(), region.width(), region.height()});
   }
 
   return config;
@@ -350,11 +349,13 @@ absl::Status VisualServiceImpl::ListReferenceImages(
         img->set_height(screenshot->height);
       }
 
-      // Get file creation time
+      // Get file creation time (portable: avoid file_clock::to_sys which
+      // is missing on MSVC's STL)
       auto ftime = std::filesystem::last_write_time(entry);
-      auto sctp = std::chrono::time_point_cast<std::chrono::milliseconds>(
-          std::chrono::file_clock::to_sys(ftime));
-      img->set_created_timestamp_ms(sctp.time_since_epoch().count());
+      auto file_duration = ftime.time_since_epoch();
+      auto ms =
+          std::chrono::duration_cast<std::chrono::milliseconds>(file_duration);
+      img->set_created_timestamp_ms(ms.count());
     }
   }
 
@@ -379,7 +380,8 @@ absl::Status VisualServiceImpl::SaveReferenceImage(
   std::ofstream file(path, std::ios::binary);
   if (!file) {
     response->set_success(false);
-    response->set_error(absl::StrCat("Failed to open file for writing: ", path));
+    response->set_error(
+        absl::StrCat("Failed to open file for writing: ", path));
     return absl::OkStatus();
   }
 
@@ -432,17 +434,17 @@ class VisualServiceGrpc final : public proto::VisualService::Service {
  public:
   explicit VisualServiceGrpc(VisualServiceImpl* impl) : impl_(impl) {}
 
-#define IMPL_RPC(method)                                               \
-  grpc::Status method(grpc::ServerContext* context,                    \
-                      const proto::method##Request* request,           \
-                      proto::method##Response* response) override {    \
-    (void)context;                                                     \
-    auto status = impl_->method(request, response);                    \
-    if (!status.ok()) {                                                \
-      return grpc::Status(grpc::StatusCode::INTERNAL,                  \
-                          std::string(status.message()));              \
-    }                                                                  \
-    return grpc::Status::OK;                                           \
+#define IMPL_RPC(method)                                            \
+  grpc::Status method(grpc::ServerContext* context,                 \
+                      const proto::method##Request* request,        \
+                      proto::method##Response* response) override { \
+    (void)context;                                                  \
+    auto status = impl_->method(request, response);                 \
+    if (!status.ok()) {                                             \
+      return grpc::Status(grpc::StatusCode::INTERNAL,               \
+                          std::string(status.message()));           \
+    }                                                               \
+    return grpc::Status::OK;                                        \
   }
 
   IMPL_RPC(ComparePngData)
