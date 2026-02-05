@@ -16,7 +16,8 @@ struct CustomCollisionMap {
 };
 
 // Load the ZScream custom collision map for a dungeon room.
-absl::StatusOr<CustomCollisionMap> LoadCustomCollisionMap(Rom* rom, int room_id);
+absl::StatusOr<CustomCollisionMap> LoadCustomCollisionMap(Rom* rom,
+                                                          int room_id);
 
 }  // namespace zelda3
 }  // namespace yaze

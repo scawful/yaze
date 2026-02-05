@@ -206,8 +206,7 @@ absl::Status SavePreferencesToIni(const std::filesystem::path& path,
   ss << "last_project_path=" << prefs.last_project_path << "\n";
   ss << "show_welcome_on_startup=" << (prefs.show_welcome_on_startup ? 1 : 0)
      << "\n";
-  ss << "restore_last_session=" << (prefs.restore_last_session ? 1 : 0)
-     << "\n";
+  ss << "restore_last_session=" << (prefs.restore_last_session ? 1 : 0) << "\n";
   ss << "prefer_hmagic_sprite_names="
      << (prefs.prefer_hmagic_sprite_names ? 1 : 0) << "\n";
 
@@ -480,9 +479,8 @@ json ToBoolMap(const std::unordered_map<std::string, bool>& map) {
   return obj;
 }
 
-json ToNestedBoolMap(
-    const std::unordered_map<std::string, std::unordered_map<std::string, bool>>&
-        map) {
+json ToNestedBoolMap(const std::unordered_map<
+                     std::string, std::unordered_map<std::string, bool>>& map) {
   json obj = json::object();
   for (const auto& [outer_key, inner] : map) {
     obj[outer_key] = ToBoolMap(inner);
@@ -562,8 +560,7 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
     if (prefs->gemini_api_key.empty() && !google_key.empty()) {
       prefs->gemini_api_key = google_key;
     }
-    prefs->ai_temperature =
-        ai.value("temperature", prefs->ai_temperature);
+    prefs->ai_temperature = ai.value("temperature", prefs->ai_temperature);
     prefs->ai_max_tokens = ai.value("max_tokens", prefs->ai_max_tokens);
     prefs->ai_proactive = ai.value("proactive", prefs->ai_proactive);
     prefs->ai_auto_learn = ai.value("auto_learn", prefs->ai_auto_learn);
@@ -617,8 +614,7 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
         UserSettings::Preferences::AiModelProfile entry;
         entry.name = profile.value("name", "");
         entry.model = profile.value("model", "");
-        entry.temperature =
-            profile.value("temperature", entry.temperature);
+        entry.temperature = profile.value("temperature", entry.temperature);
         entry.top_p = profile.value("top_p", entry.top_p);
         entry.max_output_tokens =
             profile.value("max_output_tokens", entry.max_output_tokens);
@@ -659,8 +655,7 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
 
   if (root.contains("sidebar")) {
     const auto& sidebar = root["sidebar"];
-    prefs->sidebar_visible =
-        sidebar.value("visible", prefs->sidebar_visible);
+    prefs->sidebar_visible = sidebar.value("visible", prefs->sidebar_visible);
     prefs->sidebar_panel_expanded =
         sidebar.value("panel_expanded", prefs->sidebar_panel_expanded);
     prefs->sidebar_active_category =
@@ -701,7 +696,8 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
     prefs->default_project_root =
         fs.value("default_project_root", prefs->default_project_root);
     prefs->use_files_app = fs.value("use_files_app", prefs->use_files_app);
-    prefs->use_icloud_sync = fs.value("use_icloud_sync", prefs->use_icloud_sync);
+    prefs->use_icloud_sync =
+        fs.value("use_icloud_sync", prefs->use_icloud_sync);
   }
 
   EnsureDefaultAiHosts(prefs);
@@ -857,7 +853,8 @@ UserSettings::UserSettings() {
     settings_file_path_ = (*config_dir_status / "settings.json").string();
   } else {
     LOG_WARN("UserSettings",
-             "Could not determine user documents or config directory. Using local settings.json.");
+             "Could not determine user documents or config directory. Using "
+             "local settings.json.");
     settings_file_path_ = "settings.json";
   }
 
@@ -875,8 +872,7 @@ absl::Status UserSettings::Load() {
 #ifdef YAZE_WITH_JSON
     bool json_exists = util::PlatformPaths::Exists(settings_file_path_);
     if (json_exists) {
-      auto status =
-          LoadPreferencesFromJson(settings_file_path_, &prefs_);
+      auto status = LoadPreferencesFromJson(settings_file_path_, &prefs_);
       if (status.ok()) {
         loaded = true;
       } else {
@@ -887,8 +883,7 @@ absl::Status UserSettings::Load() {
 #endif
 
     if (!loaded && util::PlatformPaths::Exists(legacy_settings_file_path_)) {
-      auto status =
-          LoadPreferencesFromIni(legacy_settings_file_path_, &prefs_);
+      auto status = LoadPreferencesFromIni(legacy_settings_file_path_, &prefs_);
       if (!status.ok()) {
         return status;
       }
@@ -901,12 +896,12 @@ absl::Status UserSettings::Load() {
     }
 
     if (!loaded) {
-#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+#if defined(__APPLE__) && \
+    (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
       prefs_.sidebar_visible = false;
       prefs_.sidebar_panel_expanded = false;
 #endif
-      LOG_INFO("UserSettings",
-               "Settings not found, creating defaults at: %s",
+      LOG_INFO("UserSettings", "Settings not found, creating defaults at: %s",
                settings_file_path_.c_str());
       return Save();
     }

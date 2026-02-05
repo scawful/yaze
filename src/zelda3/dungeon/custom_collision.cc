@@ -33,8 +33,7 @@ absl::StatusOr<CustomCollisionMap> LoadCustomCollisionMap(Rom* rom,
     return absl::OutOfRangeError("Collision pointer table out of range");
   }
 
-  uint32_t snes_ptr = data[pointer_offset] |
-                      (data[pointer_offset + 1] << 8) |
+  uint32_t snes_ptr = data[pointer_offset] | (data[pointer_offset + 1] << 8) |
                       (data[pointer_offset + 2] << 16);
 
   CustomCollisionMap result;

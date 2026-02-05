@@ -358,16 +358,13 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
     minecart_sprite_ids = {0xA3};
   }
   file << "[dungeon_overlay]\n";
-  file << "track_tiles=" << FormatHexUintList(track_tiles)
+  file << "track_tiles=" << FormatHexUintList(track_tiles) << "\n";
+  file << "track_stop_tiles=" << FormatHexUintList(track_stop_tiles) << "\n";
+  file << "track_switch_tiles=" << FormatHexUintList(track_switch_tiles)
        << "\n";
-  file << "track_stop_tiles="
-       << FormatHexUintList(track_stop_tiles) << "\n";
-  file << "track_switch_tiles="
-       << FormatHexUintList(track_switch_tiles) << "\n";
-  file << "track_object_ids="
-       << FormatHexUintList(track_object_ids) << "\n";
-  file << "minecart_sprite_ids="
-       << FormatHexUintList(minecart_sprite_ids) << "\n\n";
+  file << "track_object_ids=" << FormatHexUintList(track_object_ids) << "\n";
+  file << "minecart_sprite_ids=" << FormatHexUintList(minecart_sprite_ids)
+       << "\n\n";
 
   // AI Agent settings section
   file << "[agent_settings]\n";
@@ -1717,9 +1714,9 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
             "enable_tool_sprite", agent_settings.enable_tool_sprite);
         agent_settings.enable_tool_emulator = agent.value(
             "enable_tool_emulator", agent_settings.enable_tool_emulator);
-        agent_settings.enable_tool_memory_inspector = agent.value(
-            "enable_tool_memory_inspector",
-            agent_settings.enable_tool_memory_inspector);
+        agent_settings.enable_tool_memory_inspector =
+            agent.value("enable_tool_memory_inspector",
+                        agent_settings.enable_tool_memory_inspector);
         agent_settings.builder_blueprint_path = agent.value(
             "builder_blueprint_path", agent_settings.builder_blueprint_path);
       }

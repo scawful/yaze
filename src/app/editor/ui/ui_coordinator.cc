@@ -201,8 +201,8 @@ void UICoordinator::DrawBackground() {
     return;
   }
 
-  ImDrawList* bg_draw_list = ImGui::GetBackgroundDrawList(
-      const_cast<ImGuiViewport*>(viewport));
+  ImDrawList* bg_draw_list =
+      ImGui::GetBackgroundDrawList(const_cast<ImGuiViewport*>(viewport));
 
   auto& theme_manager = gui::ThemeManager::Get();
   auto current_theme = theme_manager.GetCurrentTheme();
@@ -317,15 +317,13 @@ void UICoordinator::DrawMobileNavigation() {
       ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoSavedSettings;
 
   ImGui::PushStyleColor(ImGuiCol_WindowBg, gui::GetSurfaceContainerHighVec4());
-  ImGui::PushStyleColor(ImGuiCol_Border,
-                        gui::GetSurfaceContainerHighestVec4());
+  ImGui::PushStyleColor(ImGuiCol_Border, gui::GetSurfaceContainerHighestVec4());
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
   ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, container_size * 0.25f);
   if (ImGui::Begin("##MobileNavButton", nullptr, flags)) {
-    ImGui::SetCursorPos(
-        ImVec2((container_size - button_size) * 0.5f,
-               (container_size - button_size) * 0.5f));
+    ImGui::SetCursorPos(ImVec2((container_size - button_size) * 0.5f,
+                               (container_size - button_size) * 0.5f));
     ImGui::PushStyleColor(ImGuiCol_Button, button_color);
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, button_hovered);
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, button_active);
@@ -862,7 +860,8 @@ bool UICoordinator::IsEmulatorVisible() const {
 void UICoordinator::SetEmulatorVisible(bool visible) {
   size_t session_id = session_coordinator_.GetActiveSessionIndex();
   if (visible) {
-    auto default_panels = LayoutPresets::GetDefaultPanels(EditorType::kEmulator);
+    auto default_panels =
+        LayoutPresets::GetDefaultPanels(EditorType::kEmulator);
     for (const auto& panel_id : default_panels) {
       panel_manager_.ShowPanel(session_id, panel_id);
     }
@@ -1171,14 +1170,18 @@ void UICoordinator::DrawCommandPalette() {
       std::transform(text_lower.begin(), text_lower.end(), text_lower.begin(),
                      ::tolower);
 
-      if (query_lower.empty()) return 1;
-      if (text_lower.find(query_lower) == 0) return 1000;
-      if (text_lower.find(query_lower) != std::string::npos) return 500;
+      if (query_lower.empty())
+        return 1;
+      if (text_lower.find(query_lower) == 0)
+        return 1000;
+      if (text_lower.find(query_lower) != std::string::npos)
+        return 500;
 
       // Fuzzy match
       size_t text_idx = 0, query_idx = 0;
       int score = 0;
-      while (text_idx < text_lower.length() && query_idx < query_lower.length()) {
+      while (text_idx < text_lower.length() &&
+             query_idx < query_lower.length()) {
         if (text_lower[text_idx] == query_lower[query_idx]) {
           score += 10;
           query_idx++;
@@ -1196,8 +1199,8 @@ void UICoordinator::DrawCommandPalette() {
             shortcut.keys.empty()
                 ? ""
                 : absl::StrFormat("(%s)", PrintShortcut(shortcut.keys).c_str());
-        scored_commands.push_back({score, name, "Shortcuts", shortcut_text,
-                                   shortcut.callback});
+        scored_commands.push_back(
+            {score, name, "Shortcuts", shortcut_text, shortcut.callback});
       }
     }
 
@@ -1227,9 +1230,12 @@ void UICoordinator::DrawCommandPalette() {
                 ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg |
                     ImGuiTableFlags_SizingStretchProp,
                 ImVec2(0, -30))) {
-          TableSetupColumn("Command", ImGuiTableColumnFlags_WidthStretch, 0.45f);
-          TableSetupColumn("Category", ImGuiTableColumnFlags_WidthStretch, 0.2f);
-          TableSetupColumn("Shortcut", ImGuiTableColumnFlags_WidthStretch, 0.2f);
+          TableSetupColumn("Command", ImGuiTableColumnFlags_WidthStretch,
+                           0.45f);
+          TableSetupColumn("Category", ImGuiTableColumnFlags_WidthStretch,
+                           0.2f);
+          TableSetupColumn("Shortcut", ImGuiTableColumnFlags_WidthStretch,
+                           0.2f);
           TableSetupColumn("Score", ImGuiTableColumnFlags_WidthStretch, 0.15f);
           TableHeadersRow();
 
@@ -1268,7 +1274,7 @@ void UICoordinator::DrawCommandPalette() {
 
             TableNextColumn();
             PushStyleColor(ImGuiCol_Text,
-                             gui::ConvertColorToImVec4(theme.text_disabled));
+                           gui::ConvertColorToImVec4(theme.text_disabled));
             Text("%d", cmd.score);
             PopStyleColor();
           }
@@ -1303,7 +1309,8 @@ void UICoordinator::DrawCommandPalette() {
         } else {
           for (const auto& entry : frequent) {
             if (Selectable(absl::StrFormat("%s (%d uses)", entry.name,
-                                           entry.usage_count).c_str())) {
+                                           entry.usage_count)
+                               .c_str())) {
               if (entry.callback) {
                 entry.callback();
                 show_command_palette_ = false;
@@ -1349,13 +1356,12 @@ void UICoordinator::InitializeCommandPalette(size_t session_id) {
   command_palette_.RegisterPanelCommands(&panel_manager_, session_id);
 
   // Register editor switch commands
-  command_palette_.RegisterEditorCommands(
-      [this](const std::string& category) {
-        auto type = EditorRegistry::GetEditorTypeFromCategory(category);
-        if (type != EditorType::kSettings) {  // kSettings is used as "unknown"
-          editor_registry_.SwitchToEditor(type);
-        }
-      });
+  command_palette_.RegisterEditorCommands([this](const std::string& category) {
+    auto type = EditorRegistry::GetEditorTypeFromCategory(category);
+    if (type != EditorType::kSettings) {  // kSettings is used as "unknown"
+      editor_registry_.SwitchToEditor(type);
+    }
+  });
 
   // Register layout preset commands
   command_palette_.RegisterLayoutCommands([this](const std::string& preset) {

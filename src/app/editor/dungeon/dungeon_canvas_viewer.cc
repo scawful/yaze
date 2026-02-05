@@ -221,8 +221,7 @@ void DungeonCanvasViewer::ApplyTrackCollisionConfig() {
     apply_list(track_collision_config_.switch_tiles,
                project_->dungeon_overlay.track_switch_tiles);
   } else {
-    apply_list(track_collision_config_.switch_tiles,
-               {0xD0, 0xD1, 0xD2, 0xD3});
+    apply_list(track_collision_config_.switch_tiles, {0xD0, 0xD1, 0xD2, 0xD3});
   }
 
   minecart_sprite_ids_.fill(false);
@@ -967,36 +966,34 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     room_menu.subitems.push_back(gui::CanvasMenuItem::Disabled(
         absl::StrFormat("Room 0x%03X: %s", room_id, room_label.c_str())));
 
-    room_menu.subitems.push_back(gui::CanvasMenuItem(
-        "Copy Room ID", ICON_MD_CONTENT_COPY, [room_id]() {
+    room_menu.subitems.push_back(
+        gui::CanvasMenuItem("Copy Room ID", ICON_MD_CONTENT_COPY, [room_id]() {
           ImGui::SetClipboardText(absl::StrFormat("0x%03X", room_id).c_str());
         }));
-    room_menu.subitems.push_back(
-        gui::CanvasMenuItem("Copy Room Name", ICON_MD_CONTENT_COPY,
-                            [room_label]() {
-                              ImGui::SetClipboardText(room_label.c_str());
-                            }));
-
     room_menu.subitems.push_back(gui::CanvasMenuItem(
-        "Open Room List", ICON_MD_LIST, [this]() {
+        "Copy Room Name", ICON_MD_CONTENT_COPY,
+        [room_label]() { ImGui::SetClipboardText(room_label.c_str()); }));
+
+    room_menu.subitems.push_back(
+        gui::CanvasMenuItem("Open Room List", ICON_MD_LIST, [this]() {
           if (show_room_list_callback_) {
             show_room_list_callback_();
           }
         }));
-    room_menu.subitems.push_back(gui::CanvasMenuItem(
-        "Open Room Matrix", ICON_MD_GRID_VIEW, [this]() {
+    room_menu.subitems.push_back(
+        gui::CanvasMenuItem("Open Room Matrix", ICON_MD_GRID_VIEW, [this]() {
           if (show_room_matrix_callback_) {
             show_room_matrix_callback_();
           }
         }));
-    room_menu.subitems.push_back(gui::CanvasMenuItem(
-        "Open Entrance List", ICON_MD_DOOR_FRONT, [this]() {
+    room_menu.subitems.push_back(
+        gui::CanvasMenuItem("Open Entrance List", ICON_MD_DOOR_FRONT, [this]() {
           if (show_entrance_list_callback_) {
             show_entrance_list_callback_();
           }
         }));
-    room_menu.subitems.push_back(gui::CanvasMenuItem(
-        "Open Room Graphics", ICON_MD_IMAGE, [this]() {
+    room_menu.subitems.push_back(
+        gui::CanvasMenuItem("Open Room Graphics", ICON_MD_IMAGE, [this]() {
           if (show_room_graphics_callback_) {
             show_room_graphics_callback_();
           }
@@ -1100,9 +1097,9 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     custom_menu.icon = ICON_MD_TRAIN;
 
     gui::CanvasMenuItem minecart_toggle(
-        show_minecart_tracks_ ? "Hide Minecart Tracks"
-                              : "Show Minecart Tracks",
-        ICON_MD_TRAIN, [this]() { show_minecart_tracks_ = !show_minecart_tracks_; });
+        show_minecart_tracks_ ? "Hide Minecart Tracks" : "Show Minecart Tracks",
+        ICON_MD_TRAIN,
+        [this]() { show_minecart_tracks_ = !show_minecart_tracks_; });
     minecart_toggle.enabled_condition = [this]() {
       return minecart_track_panel_ != nullptr;
     };
@@ -1797,10 +1794,9 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
                                2.0f);
 
           std::string label = absl::StrFormat("T%d", track.id);
-          draw_list->AddText(ImVec2(center.x + 8.0f * scale,
-                                    center.y - 6.0f * scale),
-                             ImGui::GetColorU32(theme.text_primary),
-                             label.c_str());
+          draw_list->AddText(
+              ImVec2(center.x + 8.0f * scale, center.y - 6.0f * scale),
+              ImGui::GetColorU32(theme.text_primary), label.c_str());
         }
       }
     }
@@ -2193,15 +2189,12 @@ DungeonCanvasViewer::GetCollisionOverlayCache(int room_id) {
   if (cache.has_data && !track_collision_config_.IsEmpty()) {
     for (int y = 0; y < 64; ++y) {
       for (int x = 0; x < 64; ++x) {
-        const uint8_t tile =
-            map.tiles[static_cast<size_t>(y * 64 + x)];
-        if (tile < 256 &&
-            (track_collision_config_.track_tiles[tile] ||
-             track_collision_config_.stop_tiles[tile] ||
-             track_collision_config_.switch_tiles[tile])) {
-          cache.entries.push_back(
-              CollisionOverlayEntry{static_cast<uint8_t>(x),
-                                    static_cast<uint8_t>(y), tile});
+        const uint8_t tile = map.tiles[static_cast<size_t>(y * 64 + x)];
+        if (tile < 256 && (track_collision_config_.track_tiles[tile] ||
+                           track_collision_config_.stop_tiles[tile] ||
+                           track_collision_config_.switch_tiles[tile])) {
+          cache.entries.push_back(CollisionOverlayEntry{
+              static_cast<uint8_t>(x), static_cast<uint8_t>(y), tile});
         }
       }
     }
@@ -2229,10 +2222,8 @@ void DungeonCanvasViewer::DrawTrackCollisionOverlay(
   ImVec2 canvas_pos = canvas_.zero_point();
   float scale = canvas_.global_scale();
 
-  const ImU32 track_color =
-      ImGui::GetColorU32(ImVec4(0.2f, 0.8f, 0.4f, 0.35f));
-  const ImU32 stop_color =
-      ImGui::GetColorU32(ImVec4(0.9f, 0.3f, 0.2f, 0.45f));
+  const ImU32 track_color = ImGui::GetColorU32(ImVec4(0.2f, 0.8f, 0.4f, 0.35f));
+  const ImU32 stop_color = ImGui::GetColorU32(ImVec4(0.9f, 0.3f, 0.2f, 0.45f));
   const ImU32 switch_color =
       ImGui::GetColorU32(ImVec4(0.95f, 0.8f, 0.2f, 0.45f));
   const ImU32 outline_color = ImGui::GetColorU32(ImVec4(0, 0, 0, 0.4f));
@@ -2292,8 +2283,8 @@ void DungeonCanvasViewer::DrawTrackCollisionOverlay(
       ImVec2 swatch_max(legend_pos.x + swatch, y + swatch);
       legend->AddRectFilled(swatch_min, swatch_max, item.color);
       legend->AddRect(swatch_min, swatch_max, outline_color);
-      legend->AddText(ImVec2(legend_pos.x + swatch + pad, y - 1.0f),
-                      text_color, item.label);
+      legend->AddText(ImVec2(legend_pos.x + swatch + pad, y - 1.0f), text_color,
+                      item.label);
       y += swatch + 4.0f;
     }
     legend->AddText(ImVec2(legend_pos.x, y + 2.0f), text_color,
@@ -2315,8 +2306,7 @@ void DungeonCanvasViewer::DrawCameraQuadrantOverlay(
   const float room_size_px = 512.0f * scale;
   const float mid_px = 256.0f * scale;
   const float thickness = std::max(1.0f, 1.0f * scale);
-  const ImU32 line_color =
-      ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 0.35f));
+  const ImU32 line_color = ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 0.35f));
 
   ImVec2 v_start(canvas_pos.x + mid_px, canvas_pos.y);
   ImVec2 v_end(canvas_pos.x + mid_px, canvas_pos.y + room_size_px);
@@ -2326,8 +2316,7 @@ void DungeonCanvasViewer::DrawCameraQuadrantOverlay(
   draw_list->AddLine(h_start, h_end, line_color, thickness);
 
   // Optional label with layout id for quick context.
-  const ImU32 text_color =
-      ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 0.6f));
+  const ImU32 text_color = ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 0.6f));
   std::string label = absl::StrFormat("Layout %d", room.layout);
   draw_list->AddText(ImVec2(canvas_pos.x + 6.0f, canvas_pos.y + 6.0f),
                      text_color, label.c_str());
@@ -2350,10 +2339,8 @@ void DungeonCanvasViewer::DrawMinecartSpriteOverlay(
   ImVec2 canvas_pos = canvas_.zero_point();
   float scale = canvas_.global_scale();
 
-  const ImU32 ok_color =
-      ImGui::GetColorU32(ImVec4(0.2f, 0.9f, 0.4f, 0.9f));
-  const ImU32 warn_color =
-      ImGui::GetColorU32(ImVec4(0.95f, 0.5f, 0.2f, 0.95f));
+  const ImU32 ok_color = ImGui::GetColorU32(ImVec4(0.2f, 0.9f, 0.4f, 0.9f));
+  const ImU32 warn_color = ImGui::GetColorU32(ImVec4(0.95f, 0.5f, 0.2f, 0.95f));
   const ImU32 unknown_color =
       ImGui::GetColorU32(ImVec4(0.7f, 0.7f, 0.7f, 0.8f));
 

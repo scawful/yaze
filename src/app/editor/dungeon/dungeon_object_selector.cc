@@ -701,7 +701,7 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
 
         current_column = (current_column + 1) % columns;
       }  // end object loop
-    }    // end range loop
+    }  // end range loop
 
     EnsureCustomObjectsInitialized();
 
@@ -1126,9 +1126,9 @@ void DungeonObjectSelector::InvalidatePreviewCache() {
   preview_cache_.clear();
 }
 
-bool DungeonObjectSelector::GetOrCreatePreview(
-    const zelda3::RoomObject& object, float size,
-    gfx::BackgroundBuffer** out) {
+bool DungeonObjectSelector::GetOrCreatePreview(const zelda3::RoomObject& object,
+                                               float size,
+                                               gfx::BackgroundBuffer** out) {
   if (!rom_ || !rom_->is_loaded()) {
     return false;
   }

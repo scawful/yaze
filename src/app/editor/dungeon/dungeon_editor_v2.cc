@@ -171,7 +171,9 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
   panel_manager->RegisterEditorPanel(std::make_unique<DungeonRoomMatrixPanel>(
       &current_room_id_, &active_rooms_,
       [this](int room_id) { OnRoomSelected(room_id); },
-      [this](int old_room, int new_room) { SwapRoomInPanel(old_room, new_room); },
+      [this](int old_room, int new_room) {
+        SwapRoomInPanel(old_room, new_room);
+      },
       &rooms_));
 
   panel_manager->RegisterEditorPanel(std::make_unique<DungeonEntrancesPanel>(
@@ -911,8 +913,10 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
         [this]() { ShowPanel("dungeon.item_editor"); });
     viewer->SetShowRoomListCallback([this]() { ShowPanel(kRoomSelectorId); });
     viewer->SetShowRoomMatrixCallback([this]() { ShowPanel(kRoomMatrixId); });
-    viewer->SetShowEntranceListCallback([this]() { ShowPanel(kEntranceListId); });
-    viewer->SetShowRoomGraphicsCallback([this]() { ShowPanel(kRoomGraphicsId); });
+    viewer->SetShowEntranceListCallback(
+        [this]() { ShowPanel(kEntranceListId); });
+    viewer->SetShowRoomGraphicsCallback(
+        [this]() { ShowPanel(kRoomGraphicsId); });
     viewer->SetMinecartTrackPanel(minecart_track_editor_panel_);
     viewer->SetProject(dependencies_.project);
 

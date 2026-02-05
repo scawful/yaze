@@ -15,13 +15,11 @@
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/game_data.h"
 // object_renderer.h removed - using ObjectDrawer for production rendering
+#include "app/editor/dungeon/panels/minecart_track_editor_panel.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/dungeon_object_editor.h"
-#include "zelda3/dungeon/dungeon_editor_system.h"
-#include "zelda3/dungeon/dungeon_object_editor.h"
 #include "zelda3/dungeon/dungeon_object_registry.h"
-#include "app/editor/dungeon/panels/minecart_track_editor_panel.h"
 
 namespace yaze {
 namespace editor {

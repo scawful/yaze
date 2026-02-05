@@ -31,9 +31,8 @@ absl::Status MaybeLoadSpriteRegistry(const resources::ArgumentParser& parser) {
 
   std::ifstream file(registry_path.value());
   if (!file.is_open()) {
-    return absl::NotFoundError(
-        absl::StrFormat("Could not open sprite registry: %s",
-                        registry_path.value()));
+    return absl::NotFoundError(absl::StrFormat(
+        "Could not open sprite registry: %s", registry_path.value()));
   }
 
   std::stringstream buffer;
@@ -151,8 +150,10 @@ absl::Status DungeonDescribeRoomCommandHandler::Execute(
   formatter.BeginArray("staircases");
   for (const auto& stair : room.GetStairs()) {
     formatter.BeginObject();
-    formatter.AddField("tile_x", stair.id); // 'id' field stores X in struct staircase
-    formatter.AddField("tile_y", stair.room); // 'room' field stores Y in struct staircase
+    formatter.AddField("tile_x",
+                       stair.id);  // 'id' field stores X in struct staircase
+    formatter.AddField(
+        "tile_y", stair.room);  // 'room' field stores Y in struct staircase
     formatter.AddField("label", stair.label);
     formatter.EndObject();
   }
@@ -181,8 +182,7 @@ absl::Status DungeonListChestsCommandHandler::Execute(
   int room_filter = -1;
   if (has_room_filter) {
     if (!ParseHexString(room_id_opt.value(), &room_filter)) {
-      return absl::InvalidArgumentError(
-          "Invalid room ID format. Must be hex.");
+      return absl::InvalidArgumentError("Invalid room ID format. Must be hex.");
     }
   }
 
@@ -192,10 +192,9 @@ absl::Status DungeonListChestsCommandHandler::Execute(
   std::map<int, int> item_counts;
 
   formatter.BeginObject("Dungeon Chests");
-  formatter.AddField("room_filter",
-                     has_room_filter
-                         ? absl::StrFormat("0x%02X", room_filter)
-                         : "all");
+  formatter.AddField("room_filter", has_room_filter
+                                        ? absl::StrFormat("0x%02X", room_filter)
+                                        : "all");
 
   formatter.BeginArray("rooms");
   int start_room = has_room_filter ? room_filter : 0;

@@ -18,13 +18,13 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/theme_manager.h"
-#include "rom/rom.h"
 #include "core/patch/asm_patch.h"
 #include "core/patch/patch_manager.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
-#include "util/log.h"
+#include "rom/rom.h"
 #include "util/file_util.h"
+#include "util/log.h"
 #include "util/platform_paths.h"
 #include "zelda3/sprite/sprite.h"
 
@@ -135,9 +135,8 @@ std::string FormatHexList(const std::vector<uint16_t>& values) {
   result.reserve(values.size() * 6);
   for (size_t i = 0; i < values.size(); ++i) {
     const uint16_t value = values[i];
-    std::string token =
-        value <= 0xFF ? absl::StrFormat("0x%02X", value)
-                      : absl::StrFormat("0x%04X", value);
+    std::string token = value <= 0xFF ? absl::StrFormat("0x%02X", value)
+                                      : absl::StrFormat("0x%04X", value);
     if (!result.empty()) {
       result.append(", ");
     }
@@ -179,8 +178,7 @@ bool IsLocalEndpoint(const std::string& base_url) {
          absl::StrContains(lower, "127.0.0.1") ||
          absl::StrContains(lower, "::1") ||
          absl::StrContains(lower, "0.0.0.0") ||
-         absl::StrContains(lower, "192.168.") ||
-         absl::StartsWith(lower, "10.");
+         absl::StrContains(lower, "192.168.") || absl::StartsWith(lower, "10.");
 }
 
 bool IsTailscaleEndpoint(const std::string& base_url) {
@@ -192,8 +190,7 @@ bool IsTailscaleEndpoint(const std::string& base_url) {
          absl::StrContains(lower, "100.64.");
 }
 
-std::string BuildHostTagString(
-    const UserSettings::Preferences::AiHost& host) {
+std::string BuildHostTagString(const UserSettings::Preferences::AiHost& host) {
   std::vector<std::string> tags;
   if (IsLocalEndpoint(host.base_url)) {
     tags.push_back("local");
@@ -203,7 +200,8 @@ std::string BuildHostTagString(
   }
   if (absl::StartsWith(absl::AsciiStrToLower(host.base_url), "https://")) {
     tags.push_back("https");
-  } else if (absl::StartsWith(absl::AsciiStrToLower(host.base_url), "http://") &&
+  } else if (absl::StartsWith(absl::AsciiStrToLower(host.base_url),
+                              "http://") &&
              !IsLocalEndpoint(host.base_url) &&
              !IsTailscaleEndpoint(host.base_url)) {
     tags.push_back("http");
@@ -231,8 +229,7 @@ std::string BuildHostTagString(
   return result;
 }
 
-bool AddUniquePath(std::vector<std::string>* paths,
-                   const std::string& path) {
+bool AddUniquePath(std::vector<std::string>* paths, const std::string& path) {
   if (!paths || path.empty()) {
     return false;
   }
@@ -360,10 +357,10 @@ void SettingsPanel::DrawProjectSettings() {
 
   ImGui::Text("%s Project Info", ICON_MD_INFO);
   ImGui::Separator();
-  
+
   ImGui::Text("Name: %s", project_->name.c_str());
   ImGui::Text("Path: %s", project_->filepath.c_str());
-  
+
   ImGui::Spacing();
   ImGui::Text("%s Paths", ICON_MD_FOLDER_OPEN);
   ImGui::Separator();
@@ -416,7 +413,8 @@ void SettingsPanel::DrawProjectSettings() {
 
   if (overlay_project_path != project_->filepath) {
     overlay_project_path = project_->filepath;
-    track_tiles_state.text = FormatHexList(project_->dungeon_overlay.track_tiles);
+    track_tiles_state.text =
+        FormatHexList(project_->dungeon_overlay.track_tiles);
     stop_tiles_state.text =
         FormatHexList(project_->dungeon_overlay.track_stop_tiles);
     switch_tiles_state.text =
@@ -504,29 +502,18 @@ void SettingsPanel::DrawProjectSettings() {
     }
   };
 
-  draw_hex_list("Track Tiles",
-                "0xB0-0xBE",
-                track_tiles_state,
-                DefaultTrackTiles(),
-                &project_->dungeon_overlay.track_tiles);
-  draw_hex_list("Stop Tiles",
-                "0xB7, 0xB8, 0xB9, 0xBA",
-                stop_tiles_state,
+  draw_hex_list("Track Tiles", "0xB0-0xBE", track_tiles_state,
+                DefaultTrackTiles(), &project_->dungeon_overlay.track_tiles);
+  draw_hex_list("Stop Tiles", "0xB7, 0xB8, 0xB9, 0xBA", stop_tiles_state,
                 DefaultStopTiles(),
                 &project_->dungeon_overlay.track_stop_tiles);
-  draw_hex_list("Switch Tiles",
-                "0xD0-0xD3",
-                switch_tiles_state,
+  draw_hex_list("Switch Tiles", "0xD0-0xD3", switch_tiles_state,
                 DefaultSwitchTiles(),
                 &project_->dungeon_overlay.track_switch_tiles);
-  draw_hex_list("Track Object IDs",
-                "0x31",
-                track_object_state,
+  draw_hex_list("Track Object IDs", "0x31", track_object_state,
                 DefaultTrackObjectIds(),
                 &project_->dungeon_overlay.track_object_ids);
-  draw_hex_list("Minecart Sprite IDs",
-                "0xA3",
-                minecart_sprite_state,
+  draw_hex_list("Minecart Sprite IDs", "0xA3", minecart_sprite_state,
                 DefaultMinecartSpriteIds(),
                 &project_->dungeon_overlay.minecart_sprite_ids);
 }
@@ -577,14 +564,12 @@ void SettingsPanel::DrawFilesystemSettings() {
       const std::string removed = roots[selected_root_index];
       roots.erase(roots.begin() + selected_root_index);
       if (prefs.default_project_root == removed) {
-        prefs.default_project_root =
-            roots.empty() ? "" : roots.front();
+        prefs.default_project_root = roots.empty() ? "" : roots.front();
       }
-      selected_root_index =
-          roots.empty()
-              ? -1
-              : std::min(selected_root_index,
-                         static_cast<int>(roots.size() - 1));
+      selected_root_index = roots.empty()
+                                ? -1
+                                : std::min(selected_root_index,
+                                           static_cast<int>(roots.size() - 1));
       user_settings_->Save();
     }
   }
@@ -610,8 +595,7 @@ void SettingsPanel::DrawFilesystemSettings() {
   if (ImGui::Button(ICON_MD_FOLDER_OPEN " Browse")) {
     const std::string folder = util::FileDialogWrapper::ShowOpenFolderDialog();
     if (!folder.empty()) {
-      if (AddUniquePath(&roots, folder) &&
-          prefs.default_project_root.empty()) {
+      if (AddUniquePath(&roots, folder) && prefs.default_project_root.empty()) {
         prefs.default_project_root = folder;
       }
       user_settings_->Save();
@@ -687,7 +671,7 @@ void SettingsPanel::DrawAppearanceSettings() {
 
   // Available themes list (instead of grid for sidebar)
   ImGui::Text("Available Themes:");
-  
+
   if (ImGui::BeginChild("ThemeList", ImVec2(0, 150), true)) {
     for (const auto& theme_name : theme_manager.GetAvailableThemes()) {
       ImGui::PushID(theme_name.c_str());
@@ -696,7 +680,7 @@ void SettingsPanel::DrawAppearanceSettings() {
       if (ImGui::Selectable(theme_name.c_str(), is_current)) {
         theme_manager.LoadTheme(theme_name);
       }
-      
+
       ImGui::PopID();
     }
   }
@@ -719,18 +703,20 @@ void SettingsPanel::DrawAppearanceSettings() {
     }
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Display ROM, session, cursor, and zoom info at bottom of window");
+    ImGui::SetTooltip(
+        "Display ROM, session, cursor, and zoom info at bottom of window");
   }
 }
 
 void SettingsPanel::DrawEditorBehavior() {
-  if (!user_settings_) return;
+  if (!user_settings_)
+    return;
 
   ImGui::Text("%s Auto-Save", ICON_MD_SAVE);
   ImGui::Separator();
-  
+
   if (ImGui::Checkbox("Enable Auto-Save",
-               &user_settings_->prefs().autosave_enabled)) {
+                      &user_settings_->prefs().autosave_enabled)) {
     user_settings_->Save();
   }
 
@@ -743,42 +729,45 @@ void SettingsPanel::DrawEditorBehavior() {
     }
 
     if (ImGui::Checkbox("Backup Before Save",
-                 &user_settings_->prefs().backup_before_save)) {
+                        &user_settings_->prefs().backup_before_save)) {
       user_settings_->Save();
     }
     ImGui::Unindent();
   }
-  
+
   ImGui::Spacing();
   ImGui::Text("%s Recent Files", ICON_MD_HISTORY);
   ImGui::Separator();
-  
-  if (ImGui::SliderInt("Limit",
-                &user_settings_->prefs().recent_files_limit, 5, 50)) {
+
+  if (ImGui::SliderInt("Limit", &user_settings_->prefs().recent_files_limit, 5,
+                       50)) {
     user_settings_->Save();
   }
 
   ImGui::Spacing();
   ImGui::Text("%s Default Editor", ICON_MD_EDIT);
   ImGui::Separator();
-  
+
   const char* editors[] = {"None", "Overworld", "Dungeon", "Graphics"};
   if (ImGui::Combo("##DefaultEditor", &user_settings_->prefs().default_editor,
-            editors, IM_ARRAYSIZE(editors))) {
+                   editors, IM_ARRAYSIZE(editors))) {
     user_settings_->Save();
   }
 
   ImGui::Spacing();
   ImGui::Text("%s Sprite Names", ICON_MD_LABEL);
   ImGui::Separator();
-  if (ImGui::Checkbox("Use HMagic sprite names (expanded)", &user_settings_->prefs().prefer_hmagic_sprite_names)) {
-    yaze::zelda3::SetPreferHmagicSpriteNames(user_settings_->prefs().prefer_hmagic_sprite_names);
+  if (ImGui::Checkbox("Use HMagic sprite names (expanded)",
+                      &user_settings_->prefs().prefer_hmagic_sprite_names)) {
+    yaze::zelda3::SetPreferHmagicSpriteNames(
+        user_settings_->prefs().prefer_hmagic_sprite_names);
     user_settings_->Save();
   }
 }
 
 void SettingsPanel::DrawPerformanceSettings() {
-  if (!user_settings_) return;
+  if (!user_settings_)
+    return;
 
   ImGui::Text("%s Graphics", ICON_MD_IMAGE);
   ImGui::Separator();
@@ -787,7 +776,8 @@ void SettingsPanel::DrawPerformanceSettings() {
     user_settings_->Save();
   }
 
-  if (ImGui::SliderInt("Target FPS", &user_settings_->prefs().target_fps, 30, 144)) {
+  if (ImGui::SliderInt("Target FPS", &user_settings_->prefs().target_fps, 30,
+                       144)) {
     user_settings_->Save();
   }
 
@@ -795,13 +785,13 @@ void SettingsPanel::DrawPerformanceSettings() {
   ImGui::Text("%s Memory", ICON_MD_MEMORY);
   ImGui::Separator();
 
-  if (ImGui::SliderInt("Cache Size (MB)", &user_settings_->prefs().cache_size_mb,
-                128, 2048)) {
+  if (ImGui::SliderInt("Cache Size (MB)",
+                       &user_settings_->prefs().cache_size_mb, 128, 2048)) {
     user_settings_->Save();
   }
 
-  if (ImGui::SliderInt("Undo History", &user_settings_->prefs().undo_history_size,
-                10, 200)) {
+  if (ImGui::SliderInt("Undo History",
+                       &user_settings_->prefs().undo_history_size, 10, 200)) {
     user_settings_->Save();
   }
 
@@ -812,7 +802,8 @@ void SettingsPanel::DrawPerformanceSettings() {
 }
 
 void SettingsPanel::DrawAIAgentSettings() {
-  if (!user_settings_) return;
+  if (!user_settings_)
+    return;
 
   auto& prefs = user_settings_->prefs();
   auto& hosts = prefs.ai_hosts;
@@ -822,8 +813,7 @@ void SettingsPanel::DrawAIAgentSettings() {
                           const char* env_var, const char* id) {
     ImGui::PushID(id);
     ImGui::Text("%s", label);
-    const ImVec2 button_size =
-        ImGui::CalcTextSize(ICON_MD_SYNC " Env");
+    const ImVec2 button_size = ImGui::CalcTextSize(ICON_MD_SYNC " Env");
     float env_button_width =
         button_size.x + ImGui::GetStyle().FramePadding.x * 2.0f;
     float input_width = ImGui::GetContentRegionAvail().x - env_button_width -
@@ -861,7 +851,8 @@ void SettingsPanel::DrawAIAgentSettings() {
   ImGui::Text("%s Provider Defaults (legacy)", ICON_MD_CLOUD);
   ImGui::Separator();
 
-  const char* providers[] = {"Ollama (Local)", "Gemini (Cloud)", "Mock (Testing)"};
+  const char* providers[] = {"Ollama (Local)", "Gemini (Cloud)",
+                             "Mock (Testing)"};
   if (ImGui::Combo("##Provider", &prefs.ai_provider, providers,
                    IM_ARRAYSIZE(providers))) {
     user_settings_->Save();
@@ -886,9 +877,8 @@ void SettingsPanel::DrawAIAgentSettings() {
 
   if (ImGui::BeginCombo("Active Host", active_preview)) {
     for (size_t i = 0; i < hosts.size(); ++i) {
-      const bool is_selected =
-          (!prefs.active_ai_host_id.empty() &&
-           hosts[i].id == prefs.active_ai_host_id);
+      const bool is_selected = (!prefs.active_ai_host_id.empty() &&
+                                hosts[i].id == prefs.active_ai_host_id);
       if (ImGui::Selectable(hosts[i].label.c_str(), is_selected)) {
         prefs.active_ai_host_id = hosts[i].id;
         if (prefs.remote_build_host_id.empty()) {
@@ -905,9 +895,8 @@ void SettingsPanel::DrawAIAgentSettings() {
 
   if (ImGui::BeginCombo("Remote Build Host", remote_preview)) {
     for (size_t i = 0; i < hosts.size(); ++i) {
-      const bool is_selected =
-          (!prefs.remote_build_host_id.empty() &&
-           hosts[i].id == prefs.remote_build_host_id);
+      const bool is_selected = (!prefs.remote_build_host_id.empty() &&
+                                hosts[i].id == prefs.remote_build_host_id);
       if (ImGui::Selectable(hosts[i].label.c_str(), is_selected)) {
         prefs.remote_build_host_id = hosts[i].id;
         user_settings_->Save();
@@ -996,8 +985,7 @@ void SettingsPanel::DrawAIAgentSettings() {
     selected_host_index =
         hosts.empty()
             ? -1
-            : std::min(selected_host_index,
-                       static_cast<int>(hosts.size() - 1));
+            : std::min(selected_host_index, static_cast<int>(hosts.size() - 1));
     user_settings_->Save();
   }
 
@@ -1059,8 +1047,8 @@ void SettingsPanel::DrawAIAgentSettings() {
       user_settings_->Save();
     }
 
-    const char* api_types[] = {"openai", "ollama", "gemini", "anthropic",
-                               "lmstudio", "grpc"};
+    const char* api_types[] = {"openai",    "ollama",   "gemini",
+                               "anthropic", "lmstudio", "grpc"};
     int api_index = 0;
     for (int i = 0; i < IM_ARRAYSIZE(api_types); ++i) {
       if (host.api_type == api_types[i]) {
@@ -1199,13 +1187,13 @@ void SettingsPanel::DrawAIAgentSettings() {
   ImGui::Separator();
 
   if (ImGui::SliderFloat("Temperature", &user_settings_->prefs().ai_temperature,
-                  0.0f, 2.0f)) {
+                         0.0f, 2.0f)) {
     user_settings_->Save();
   }
   ImGui::TextDisabled("Higher = more creative");
 
-  if (ImGui::SliderInt("Max Tokens", &user_settings_->prefs().ai_max_tokens, 256,
-                8192)) {
+  if (ImGui::SliderInt("Max Tokens", &user_settings_->prefs().ai_max_tokens,
+                       256, 8192)) {
     user_settings_->Save();
   }
 
@@ -1214,34 +1202,35 @@ void SettingsPanel::DrawAIAgentSettings() {
   ImGui::Separator();
 
   if (ImGui::Checkbox("Proactive Suggestions",
-               &user_settings_->prefs().ai_proactive)) {
+                      &user_settings_->prefs().ai_proactive)) {
     user_settings_->Save();
   }
 
   if (ImGui::Checkbox("Auto-Learn Preferences",
-               &user_settings_->prefs().ai_auto_learn)) {
+                      &user_settings_->prefs().ai_auto_learn)) {
     user_settings_->Save();
   }
 
   if (ImGui::Checkbox("Enable Vision",
-               &user_settings_->prefs().ai_multimodal)) {
+                      &user_settings_->prefs().ai_multimodal)) {
     user_settings_->Save();
   }
-  
+
   ImGui::Spacing();
   ImGui::Text("%s Logging", ICON_MD_TERMINAL);
   ImGui::Separator();
-  
+
   const char* log_levels[] = {"Debug", "Info", "Warning", "Error", "Fatal"};
   if (ImGui::Combo("Log Level", &user_settings_->prefs().log_level, log_levels,
-            IM_ARRAYSIZE(log_levels))) {
-      // Apply log level logic here if needed
-      user_settings_->Save();
+                   IM_ARRAYSIZE(log_levels))) {
+    // Apply log level logic here if needed
+    user_settings_->Save();
   }
 }
 
 void SettingsPanel::DrawKeyboardShortcuts() {
-  if (ImGui::TreeNodeEx(ICON_MD_KEYBOARD " Shortcuts", ImGuiTreeNodeFlags_DefaultOpen)) {
+  if (ImGui::TreeNodeEx(ICON_MD_KEYBOARD " Shortcuts",
+                        ImGuiTreeNodeFlags_DefaultOpen)) {
     ImGui::InputTextWithHint("##shortcut_filter", "Filter shortcuts...",
                              &shortcut_filter_);
     if (ImGui::IsItemHovered()) {
@@ -1261,7 +1250,9 @@ void SettingsPanel::DrawKeyboardShortcuts() {
       DrawPanelShortcuts();
       ImGui::TreePop();
     }
-    ImGui::TextDisabled("Tip: Use Cmd/Opt labels on macOS or Ctrl/Alt on Windows/Linux. Function keys and symbols (/, -) are supported.");
+    ImGui::TextDisabled(
+        "Tip: Use Cmd/Opt labels on macOS or Ctrl/Alt on Windows/Linux. "
+        "Function keys and symbols (/, -) are supported.");
     ImGui::TreePop();
   }
 }
@@ -1281,7 +1272,8 @@ void SettingsPanel::DrawGlobalShortcuts() {
     return;
   }
 
-  auto shortcuts = shortcut_manager_->GetShortcutsByScope(Shortcut::Scope::kGlobal);
+  auto shortcuts =
+      shortcut_manager_->GetShortcutsByScope(Shortcut::Scope::kGlobal);
   if (shortcuts.empty()) {
     ImGui::TextDisabled("No global shortcuts registered.");
     return;
@@ -1341,13 +1333,15 @@ void SettingsPanel::DrawEditorShortcuts() {
     return;
   }
 
-  auto shortcuts = shortcut_manager_->GetShortcutsByScope(Shortcut::Scope::kEditor);
+  auto shortcuts =
+      shortcut_manager_->GetShortcutsByScope(Shortcut::Scope::kEditor);
   std::map<std::string, std::vector<Shortcut>> grouped;
   static std::unordered_map<std::string, std::string> editing;
-  
+
   for (const auto& sc : shortcuts) {
     auto pos = sc.name.find(".");
-    std::string group = pos != std::string::npos ? sc.name.substr(0, pos) : "general";
+    std::string group =
+        pos != std::string::npos ? sc.name.substr(0, pos) : "general";
     grouped[group].push_back(sc);
   }
   bool has_match = false;
@@ -1379,7 +1373,9 @@ void SettingsPanel::DrawEditorShortcuts() {
             value = u->second;
           }
         }
-        if (ImGui::InputText("##editor", &value, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll)) {
+        if (ImGui::InputText("##editor", &value,
+                             ImGuiInputTextFlags_EnterReturnsTrue |
+                                 ImGuiInputTextFlags_AutoSelectAll)) {
           auto parsed = ParseShortcut(value);
           if (!parsed.empty() || value.empty()) {
             shortcut_manager_->UpdateShortcutKeys(sc.name, parsed);
@@ -1429,9 +1425,9 @@ void SettingsPanel::DrawPanelShortcuts() {
 
       for (const auto& card : filtered_cards) {
         ImGui::PushID(card.card_id.c_str());
-        
+
         ImGui::Text("%s %s", card.icon.c_str(), card.display_name.c_str());
-        
+
         std::string current_shortcut;
         auto it = user_settings_->prefs().panel_shortcuts.find(card.card_id);
         if (it != user_settings_->prefs().panel_shortcuts.end()) {
@@ -1450,39 +1446,41 @@ void SettingsPanel::DrawPanelShortcuts() {
         }
 
         if (is_editing_shortcut_ && editing_card_id_ == card.card_id) {
-            ImGui::SetNextItemWidth(120);
-            ImGui::SetKeyboardFocusHere();
-            if (ImGui::InputText("##Edit", shortcut_edit_buffer_, 
-                                 sizeof(shortcut_edit_buffer_), 
-                                 ImGuiInputTextFlags_EnterReturnsTrue)) {
-              if (strlen(shortcut_edit_buffer_) > 0) {
-                user_settings_->prefs().panel_shortcuts[card.card_id] = shortcut_edit_buffer_;
-              } else {
-                user_settings_->prefs().panel_shortcuts.erase(card.card_id);
-              }
-              user_settings_->Save();
-              is_editing_shortcut_ = false;
-              editing_card_id_.clear();
+          ImGui::SetNextItemWidth(120);
+          ImGui::SetKeyboardFocusHere();
+          if (ImGui::InputText("##Edit", shortcut_edit_buffer_,
+                               sizeof(shortcut_edit_buffer_),
+                               ImGuiInputTextFlags_EnterReturnsTrue)) {
+            if (strlen(shortcut_edit_buffer_) > 0) {
+              user_settings_->prefs().panel_shortcuts[card.card_id] =
+                  shortcut_edit_buffer_;
+            } else {
+              user_settings_->prefs().panel_shortcuts.erase(card.card_id);
             }
-            ImGui::SameLine();
-            if (ImGui::Button(ICON_MD_CLOSE)) {
-              is_editing_shortcut_ = false;
-              editing_card_id_.clear();
-            }
+            user_settings_->Save();
+            is_editing_shortcut_ = false;
+            editing_card_id_.clear();
+          }
+          ImGui::SameLine();
+          if (ImGui::Button(ICON_MD_CLOSE)) {
+            is_editing_shortcut_ = false;
+            editing_card_id_.clear();
+          }
         } else {
-            if (ImGui::Button(display_shortcut.c_str(), ImVec2(120, 0))) {
-                is_editing_shortcut_ = true;
-                editing_card_id_ = card.card_id;
-                strncpy(shortcut_edit_buffer_, current_shortcut.c_str(), sizeof(shortcut_edit_buffer_) - 1);
-            }
-            if (ImGui::IsItemHovered()) {
-                ImGui::SetTooltip("Click to edit shortcut");
-            }
+          if (ImGui::Button(display_shortcut.c_str(), ImVec2(120, 0))) {
+            is_editing_shortcut_ = true;
+            editing_card_id_ = card.card_id;
+            strncpy(shortcut_edit_buffer_, current_shortcut.c_str(),
+                    sizeof(shortcut_edit_buffer_) - 1);
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Click to edit shortcut");
+          }
         }
-        
+
         ImGui::PopID();
       }
-      
+
       ImGui::TreePop();
     }
   }
@@ -1528,7 +1526,8 @@ void SettingsPanel::DrawPatchSettings() {
   ImGui::Spacing();
 
   // Folder tabs
-  if (ImGui::BeginTabBar("##PatchFolders", ImGuiTabBarFlags_FittingPolicyScroll)) {
+  if (ImGui::BeginTabBar("##PatchFolders",
+                         ImGuiTabBarFlags_FittingPolicyScroll)) {
     for (const auto& folder : patch_manager_.folders()) {
       if (ImGui::BeginTabItem(folder.c_str())) {
         selected_folder_ = folder;
@@ -1617,7 +1616,8 @@ void SettingsPanel::DrawPatchList(const std::string& folder) {
 }
 
 void SettingsPanel::DrawPatchDetails() {
-  if (!selected_patch_) return;
+  if (!selected_patch_)
+    return;
 
   ImGui::Text("%s %s", ICON_MD_INFO, selected_patch_->name().c_str());
 
@@ -1650,7 +1650,8 @@ void SettingsPanel::DrawPatchDetails() {
 }
 
 void SettingsPanel::DrawParameterWidget(core::PatchParameter* param) {
-  if (!param) return;
+  if (!param)
+    return;
 
   ImGui::PushID(param->define_name.c_str());
 

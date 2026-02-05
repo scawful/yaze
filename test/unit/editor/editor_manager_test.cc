@@ -1,10 +1,10 @@
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #include "app/editor/editor_manager.h"
 #include "app/gfx/backend/irenderer.h"
-#include "app/platform/null_window_backend.h"
 #include "app/gfx/backend/null_renderer.h"
+#include "app/platform/null_window_backend.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -43,7 +43,7 @@ class EditorManagerTest : public ::testing::Test {
 TEST_F(EditorManagerTest, Initialization) {
   // Verify basic initialization doesn't crash
   editor_manager_->Initialize(renderer_.get(), "");
-  EXPECT_TRUE(true); // Should reach here
+  EXPECT_TRUE(true);  // Should reach here
 }
 
 TEST_F(EditorManagerTest, UpdateWithoutCrash) {
@@ -65,11 +65,11 @@ TEST_F(EditorManagerTest, UpdateWithoutCrash) {
 TEST_F(EditorManagerTest, PublicAPISurface) {
   // Just verifying the API exists and links
   editor_manager_->Initialize(renderer_.get(), "");
-  
+
   // This function is now public, we can call it (though it requires ImGui context)
-  // We can't easily test DrawMainMenuBar without a full ImGui setup, 
+  // We can't easily test DrawMainMenuBar without a full ImGui setup,
   // but we can verify it compiles.
-  // editor_manager_->DrawMainMenuBar(); 
+  // editor_manager_->DrawMainMenuBar();
 }
 
 }  // namespace

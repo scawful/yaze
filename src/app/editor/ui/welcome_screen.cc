@@ -491,8 +491,9 @@ bool WelcomeScreen::Show(bool* p_open) {
       DrawWhatsNew();
       ImGui::EndChild();
     } else {
-      float left_width = std::clamp(ImGui::GetContentRegionAvail().x * 0.38f,
-                                    320.0f * layout_scale, 520.0f * layout_scale);
+      float left_width =
+          std::clamp(ImGui::GetContentRegionAvail().x * 0.38f,
+                     320.0f * layout_scale, 520.0f * layout_scale);
       ImGui::BeginChild("LeftPanel", ImVec2(left_width, 0), true,
                         ImGuiWindowFlags_NoScrollbar);
       DrawQuickActions();
@@ -622,8 +623,8 @@ void WelcomeScreen::DrawHeader() {
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
   // Entry animation for header (section 0)
-  float header_progress =
-      GetStaggeredEntryProgress(entry_time_, 0, kEntryAnimDuration, kEntryStaggerDelay);
+  float header_progress = GetStaggeredEntryProgress(
+      entry_time_, 0, kEntryAnimDuration, kEntryStaggerDelay);
   float header_alpha = header_progress;
   float header_offset_y = (1.0f - header_progress) * 20.0f;
 
@@ -656,8 +657,8 @@ void WelcomeScreen::DrawHeader() {
 
   // Subtle static glow behind text (faded by entry alpha)
   float glow_size = 30.0f;
-  ImU32 glow_color = ImGui::GetColorU32(
-      ImVec4(kTriforceGold.x, kTriforceGold.y, kTriforceGold.z, 0.15f * header_alpha));
+  ImU32 glow_color = ImGui::GetColorU32(ImVec4(
+      kTriforceGold.x, kTriforceGold.y, kTriforceGold.z, 0.15f * header_alpha));
   draw_list->AddCircleFilled(
       ImVec2(text_pos.x + textWidth / 2, text_pos.y + 15), glow_size,
       glow_color, 32);
@@ -671,8 +672,8 @@ void WelcomeScreen::DrawHeader() {
   }
 
   // Static subtitle (entry animation section 1)
-  float subtitle_progress =
-      GetStaggeredEntryProgress(entry_time_, 1, kEntryAnimDuration, kEntryStaggerDelay);
+  float subtitle_progress = GetStaggeredEntryProgress(
+      entry_time_, 1, kEntryAnimDuration, kEntryStaggerDelay);
   float subtitle_alpha = subtitle_progress;
 
   const char* subtitle = "Yet Another Zelda3 Editor";
@@ -681,9 +682,8 @@ void WelcomeScreen::DrawHeader() {
 
   ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, subtitle_alpha), "%s", subtitle);
 
-  const std::string version_line =
-      absl::StrFormat("v%s - projects, templates, and editor workflows",
-                      YAZE_VERSION_STRING);
+  const std::string version_line = absl::StrFormat(
+      "v%s - projects, templates, and editor workflows", YAZE_VERSION_STRING);
   textWidth = ImGui::CalcTextSize(version_line.c_str()).x;
   ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
   ImGui::TextColored(ImVec4(0.55f, 0.55f, 0.55f, subtitle_alpha), "%s",
@@ -702,10 +702,11 @@ void WelcomeScreen::DrawHeader() {
 
 void WelcomeScreen::DrawQuickActions() {
   // Entry animation for quick actions (section 2)
-  float actions_progress =
-      GetStaggeredEntryProgress(entry_time_, 2, kEntryAnimDuration, kEntryStaggerDelay);
+  float actions_progress = GetStaggeredEntryProgress(
+      entry_time_, 2, kEntryAnimDuration, kEntryStaggerDelay);
   float actions_alpha = actions_progress;
-  float actions_offset_x = (1.0f - actions_progress) * -30.0f;  // Slide from left
+  float actions_offset_x =
+      (1.0f - actions_progress) * -30.0f;  // Slide from left
 
   if (actions_progress < 0.001f) {
     return;  // Don't draw yet
@@ -751,9 +752,8 @@ void WelcomeScreen::DrawQuickActions() {
     if (!enabled)
       ImGui::BeginDisabled();
 
-    bool clicked = ImGui::Button(
-        absl::StrFormat("%s %s", icon, text).c_str(),
-        ImVec2(button_width, button_height));
+    bool clicked = ImGui::Button(absl::StrFormat("%s %s", icon, text).c_str(),
+                                 ImVec2(button_width, button_height));
 
     if (!enabled)
       ImGui::EndDisabled();
@@ -775,9 +775,8 @@ void WelcomeScreen::DrawQuickActions() {
       // Handled by callback
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(
-          ICON_MD_INFO
-          " Open a clean, legally obtained ALttP (USA) ROM file");
+      ImGui::SetTooltip(ICON_MD_INFO
+                        " Open a clean, legally obtained ALttP (USA) ROM file");
     }
     ImGui::SameLine(0.0f, action_spacing);
     if (draw_action_button(ICON_MD_FOLDER_SPECIAL, "Open Project",
@@ -797,9 +796,8 @@ void WelcomeScreen::DrawQuickActions() {
       // Handled by callback
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(
-          ICON_MD_INFO
-          " Open a clean, legally obtained ALttP (USA) ROM file");
+      ImGui::SetTooltip(ICON_MD_INFO
+                        " Open a clean, legally obtained ALttP (USA) ROM file");
     }
 
     ImGui::Spacing();
@@ -838,8 +836,7 @@ void WelcomeScreen::DrawQuickActions() {
   ImGui::Spacing();
 
   float tool_spacing = ImGui::GetStyle().ItemSpacing.x;
-  float tool_width =
-      (ImGui::GetContentRegionAvail().x - tool_spacing) * 0.5f;
+  float tool_width = (ImGui::GetContentRegionAvail().x - tool_spacing) * 0.5f;
 
   const bool can_manage_project =
       has_project && open_project_management_callback_ != nullptr;
@@ -860,8 +857,8 @@ void WelcomeScreen::DrawQuickActions() {
   }
   ImGui::SameLine(0.0f, tool_spacing);
   button_width = tool_width;
-  if (draw_action_button(ICON_MD_DESCRIPTION, "Project File",
-                         kShadowPurple, can_edit_project_file,
+  if (draw_action_button(ICON_MD_DESCRIPTION, "Project File", kShadowPurple,
+                         can_edit_project_file,
                          open_project_file_editor_callback_)) {
     // Handled by callback
   }
@@ -881,8 +878,8 @@ void WelcomeScreen::DrawQuickActions() {
 
 void WelcomeScreen::DrawRecentProjects() {
   // Entry animation for recent projects (section 4)
-  float recent_progress =
-      GetStaggeredEntryProgress(entry_time_, 4, kEntryAnimDuration, kEntryStaggerDelay);
+  float recent_progress = GetStaggeredEntryProgress(
+      entry_time_, 4, kEntryAnimDuration, kEntryStaggerDelay);
 
   if (recent_progress < 0.001f) {
     return;  // Don't draw yet
@@ -1174,8 +1171,8 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
 
 void WelcomeScreen::DrawTemplatesSection() {
   // Entry animation for templates (section 3)
-  float templates_progress =
-      GetStaggeredEntryProgress(entry_time_, 3, kEntryAnimDuration, kEntryStaggerDelay);
+  float templates_progress = GetStaggeredEntryProgress(
+      entry_time_, 3, kEntryAnimDuration, kEntryStaggerDelay);
 
   if (templates_progress < 0.001f) {
     return;  // Don't draw yet
@@ -1345,9 +1342,8 @@ void WelcomeScreen::DrawTemplatesSection() {
 
   if (stack_templates) {
     const float row_height = ImGui::GetTextLineHeightWithSpacing() + 4.0f;
-    const float list_height =
-        std::clamp(row_height * (template_count + 1),
-                   120.0f * scale, 200.0f * scale);
+    const float list_height = std::clamp(row_height * (template_count + 1),
+                                         120.0f * scale, 200.0f * scale);
     ImGui::BeginChild("TemplateList", ImVec2(0, list_height), false,
                       ImGuiWindowFlags_NoScrollbar);
     draw_template_list();
@@ -1417,8 +1413,8 @@ void WelcomeScreen::DrawTemplatesSection() {
 
 void WelcomeScreen::DrawTipsSection() {
   // Entry animation for tips (section 6, appears last)
-  float tips_progress =
-      GetStaggeredEntryProgress(entry_time_, 6, kEntryAnimDuration, kEntryStaggerDelay);
+  float tips_progress = GetStaggeredEntryProgress(
+      entry_time_, 6, kEntryAnimDuration, kEntryStaggerDelay);
 
   if (tips_progress < 0.001f) {
     return;  // Don't draw yet
@@ -1457,8 +1453,8 @@ void WelcomeScreen::DrawTipsSection() {
 
 void WelcomeScreen::DrawWhatsNew() {
   // Entry animation for what's new (section 5)
-  float whatsnew_progress =
-      GetStaggeredEntryProgress(entry_time_, 5, kEntryAnimDuration, kEntryStaggerDelay);
+  float whatsnew_progress = GetStaggeredEntryProgress(
+      entry_time_, 5, kEntryAnimDuration, kEntryStaggerDelay);
 
   if (whatsnew_progress < 0.001f) {
     return;  // Don't draw yet

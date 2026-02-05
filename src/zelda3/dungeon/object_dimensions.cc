@@ -10,7 +10,8 @@ namespace yaze {
 namespace zelda3 {
 
 namespace {
-bool GetSomariaLineDimensions(int object_id, int size, int* width, int* height) {
+bool GetSomariaLineDimensions(int object_id, int size, int* width,
+                              int* height) {
   if (!width || !height) {
     return false;
   }
@@ -24,19 +25,58 @@ bool GetSomariaLineDimensions(int object_id, int size, int* width, int* height) 
   int dx = 1;
   int dy = 0;
   switch (sub_id) {
-    case 0x03: dx = 1; dy = 0; break;
-    case 0x04: dx = 0; dy = 1; break;
-    case 0x05: dx = 1; dy = 1; break;
-    case 0x06: dx = -1; dy = 1; break;
-    case 0x07: dx = 1; dy = 0; break;
-    case 0x08: dx = 0; dy = 1; break;
-    case 0x09: dx = 1; dy = 1; break;
-    case 0x0A: dx = 1; dy = 0; break;
-    case 0x0B: dx = 0; dy = 1; break;
-    case 0x0C: dx = 1; dy = 1; break;
-    case 0x0E: dx = 1; dy = 0; break;
-    case 0x0F: dx = 0; dy = 1; break;
-    default: dx = 1; dy = 0; break;
+    case 0x03:
+      dx = 1;
+      dy = 0;
+      break;
+    case 0x04:
+      dx = 0;
+      dy = 1;
+      break;
+    case 0x05:
+      dx = 1;
+      dy = 1;
+      break;
+    case 0x06:
+      dx = -1;
+      dy = 1;
+      break;
+    case 0x07:
+      dx = 1;
+      dy = 0;
+      break;
+    case 0x08:
+      dx = 0;
+      dy = 1;
+      break;
+    case 0x09:
+      dx = 1;
+      dy = 1;
+      break;
+    case 0x0A:
+      dx = 1;
+      dy = 0;
+      break;
+    case 0x0B:
+      dx = 0;
+      dy = 1;
+      break;
+    case 0x0C:
+      dx = 1;
+      dy = 1;
+      break;
+    case 0x0E:
+      dx = 1;
+      dy = 0;
+      break;
+    case 0x0F:
+      dx = 0;
+      dy = 1;
+      break;
+    default:
+      dx = 1;
+      dy = 0;
+      break;
   }
 
   if (dx != 0 && dy != 0) {
@@ -75,7 +115,8 @@ absl::Status ObjectDimensionTable::LoadFromRom(Rom* rom) {
   return absl::OkStatus();
 }
 
-std::pair<int, int> ObjectDimensionTable::GetBaseDimensions(int object_id) const {
+std::pair<int, int> ObjectDimensionTable::GetBaseDimensions(
+    int object_id) const {
   auto it = dimensions_.find(object_id);
   if (it != dimensions_.end()) {
     return {it->second.base_width, it->second.base_height};
@@ -97,10 +138,12 @@ int ObjectDimensionTable::ResolveEffectiveSize(const DimensionEntry& entry,
   return 0;
 }
 
-std::pair<int, int> ObjectDimensionTable::GetDimensions(int object_id, int size) const {
+std::pair<int, int> ObjectDimensionTable::GetDimensions(int object_id,
+                                                        int size) const {
   int somaria_width = 0;
   int somaria_height = 0;
-  if (GetSomariaLineDimensions(object_id, size, &somaria_width, &somaria_height)) {
+  if (GetSomariaLineDimensions(object_id, size, &somaria_width,
+                               &somaria_height)) {
     return {somaria_width, somaria_height};
   }
   if (object_id == 0xC1) {
@@ -177,10 +220,12 @@ std::pair<int, int> ObjectDimensionTable::GetDimensions(int object_id, int size)
   return {w, h};
 }
 
-std::pair<int, int> ObjectDimensionTable::GetSelectionDimensions(int object_id, int size) const {
+std::pair<int, int> ObjectDimensionTable::GetSelectionDimensions(
+    int object_id, int size) const {
   int somaria_width = 0;
   int somaria_height = 0;
-  if (GetSomariaLineDimensions(object_id, size, &somaria_width, &somaria_height)) {
+  if (GetSomariaLineDimensions(object_id, size, &somaria_width,
+                               &somaria_height)) {
     return {somaria_width, somaria_height};
   }
   if (object_id == 0xC1) {
@@ -220,7 +265,7 @@ std::pair<int, int> ObjectDimensionTable::GetSelectionDimensions(int object_id, 
 
   // Selection bounds should match draw-size semantics.
   int effective_size = ResolveEffectiveSize(entry, size);
-  
+
   switch (entry.extend_dir) {
     case DimensionEntry::ExtendDir::Horizontal:
       w += effective_size * entry.extend_multiplier;
@@ -261,7 +306,8 @@ ObjectDimensionTable::SelectionBounds ObjectDimensionTable::GetSelectionBounds(
     int object_id, int size) const {
   if (core::FeatureFlags::get().kEnableCustomObjects) {
     int subtype = size & 0x1F;
-    auto custom_or = CustomObjectManager::Get().GetObjectInternal(object_id, subtype);
+    auto custom_or =
+        CustomObjectManager::Get().GetObjectInternal(object_id, subtype);
     if (custom_or.ok()) {
       auto custom = custom_or.value();
       if (custom && !custom->IsEmpty()) {
@@ -327,7 +373,6 @@ ObjectDimensionTable::SelectionBounds ObjectDimensionTable::GetSelectionBounds(
       bounds.offset_x = -(length - 1);
       break;
     }
-
 
     default:
       break;
@@ -395,12 +440,14 @@ void ObjectDimensionTable::InitializeDefaults() {
   // Height = count + 4 tiles (5 tiles per column + diagonal extent)
   for (int id = 0x09; id <= 0x14; id++) {
     // Diagonal pattern: width = count tiles, height = count + 4 tiles
-    dimensions_[id] = {7, 11, Dir::Diagonal, 1, false};  // base 7 + size*1, height 11 + size*1
+    dimensions_[id] = {7, 11, Dir::Diagonal, 1,
+                       false};  // base 7 + size*1, height 11 + size*1
   }
 
   // 0x15-0x20: Diagonal walls - BothBG (count = size + 6)
   for (int id = 0x15; id <= 0x20; id++) {
-    dimensions_[id] = {6, 10, Dir::Diagonal, 1, false};  // base 6 + size*1, height 10 + size*1
+    dimensions_[id] = {6, 10, Dir::Diagonal, 1,
+                       false};  // base 6 + size*1, height 10 + size*1
   }
 
   // 0x21: Edge 1x3 +2 (width = size*2 + 4)
@@ -829,7 +876,8 @@ void ObjectDimensionTable::InitializeDefaults() {
 
   // Tables, beds, etc
   dimensions_[0x122] = {4, 5, Dir::None, 0, false};  // Bed
-  dimensions_[0x123] = {4, 3, Dir::Horizontal, 8, false};  // Table (8-tile spacing)
+  dimensions_[0x123] = {4, 3, Dir::Horizontal, 8,
+                        false};  // Table (8-tile spacing)
   // 0x124-0x125: 4x4
   dimensions_[0x124] = {4, 4, Dir::Horizontal, 4, false};
   dimensions_[0x125] = {4, 4, Dir::Horizontal, 4, false};
@@ -952,7 +1000,6 @@ void ObjectDimensionTable::InitializeDefaults() {
   // 0xFB1-0xFB2: Big Chest 4x3
   dimensions_[0xFB1] = {4, 3, Dir::None, 0, false};
   dimensions_[0xFB2] = {4, 3, Dir::None, 0, false};
-
 }
 
 void ObjectDimensionTable::ParseSubtype1Tables(Rom* rom) {
@@ -967,7 +1014,8 @@ void ObjectDimensionTable::ParseSubtype1Tables(Rom* rom) {
   // Read tile count for each object to refine dimensions
   for (int id = 0; id < 0xF8; id++) {
     auto offset_result = rom->ReadWord(kSubtype1TileOffsets + id * 2);
-    if (!offset_result.ok()) continue;
+    if (!offset_result.ok())
+      continue;
 
     // Tile count can inform base size
     // This is a simplified heuristic - full accuracy requires parsing
