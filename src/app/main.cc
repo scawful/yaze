@@ -336,8 +336,9 @@ bool RunSymbolExportFastPath() {
   return false;
 }
 
-#ifndef __EMSCRIPTEN__
-std::unique_ptr<yaze::cli::api::HttpServer> SetupApiServer(const yaze::AppConfig& config) {
+#if !defined(__EMSCRIPTEN__) && defined(YAZE_HTTP_API_ENABLED)
+std::unique_ptr<yaze::cli::api::HttpServer> SetupApiServer(
+    const yaze::AppConfig& config) {
   if (!config.enable_api) {
     return nullptr;
   }
@@ -456,7 +457,16 @@ int main(int argc, char** argv) {
   // Desktop Main Loop (Linux/Windows)
 
   // API Server
-  auto api_server = SetupApiServer(config);
+  std::unique_ptr<yaze::cli::api::HttpServer> api_server;
+#if defined(YAZE_HTTP_API_ENABLED)
+  api_server = SetupApiServer(config);
+#else
+  if (config.enable_api) {
+    LOG_WARN("Main",
+             "HTTP API requested but not enabled at build time "
+             "(set -DYAZE_ENABLE_HTTP_API=ON and rebuild).");
+  }
+#endif
 
   yaze::Application::Instance().Initialize(config);
 
@@ -539,9 +549,11 @@ int main(int argc, char** argv) {
 
   yaze::Application::Instance().Shutdown();
 
+#if defined(YAZE_HTTP_API_ENABLED)
   if (api_server) {
     api_server->Stop();
   }
+#endif
 
 #endif // __EMSCRIPTEN__
 
