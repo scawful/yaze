@@ -201,6 +201,36 @@ class DungeonRoomHeaderCommandHandler : public resources::CommandHandler {
                        resources::OutputFormatter& formatter) override;
 };
 
+/**
+ * @brief Generate track collision data from rail objects in a room.
+ *
+ * Reads Object 0x31 (rail) positions, classifies tiles by neighbor
+ * connectivity, and optionally writes the collision map to ROM.
+ * Dry-run by default (preview only). Use --write to commit.
+ */
+class DungeonGenerateTrackCollisionCommandHandler
+    : public resources::CommandHandler {
+ public:
+  std::string GetName() const {
+    return "dungeon-generate-track-collision";
+  }
+  std::string GetDescription() const {
+    return "Generate collision overlay from rail objects for minecart rooms";
+  }
+  std::string GetUsage() const {
+    return "dungeon-generate-track-collision --room <room_id> "
+           "[--write] [--visualize] [--promote-switch X,Y] "
+           "[--format <json|text>]";
+  }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"room"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
 }  // namespace handlers
 }  // namespace cli
 }  // namespace yaze

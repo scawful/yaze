@@ -4,6 +4,7 @@
 #include <sstream>
 
 #include "absl/strings/str_format.h"
+#include "absl/strings/str_split.h"
 #include "cli/util/hex_util.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
@@ -11,6 +12,7 @@
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
+#include "zelda3/dungeon/track_collision_generator.h"
 #include "zelda3/resource_labels.h"
 #include "zelda3/sprite/sprite.h"
 
@@ -583,6 +585,81 @@ absl::Status DungeonRoomHeaderCommandHandler::Execute(
     formatter.EndObject();
   } else {
     formatter.AddField("error", "Room header address out of range");
+  }
+
+  formatter.EndObject();
+  return absl::OkStatus();
+}
+
+absl::Status DungeonGenerateTrackCollisionCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  auto room_id_str = parser.GetString("room").value();
+
+  int room_id;
+  if (!ParseHexString(room_id_str, &room_id)) {
+    return absl::InvalidArgumentError("Invalid room ID format. Must be hex.");
+  }
+
+  zelda3::Room room = zelda3::LoadRoomHeaderFromRom(rom, room_id);
+  room.LoadObjects();
+
+  // Build generator options
+  zelda3::GeneratorOptions options;
+
+  // Parse --promote-switch X,Y pairs
+  auto switch_str = parser.GetString("promote-switch");
+  if (switch_str.has_value()) {
+    for (absl::string_view pair :
+         absl::StrSplit(switch_str.value(), ' ', absl::SkipEmpty())) {
+      std::vector<std::string> coords =
+          absl::StrSplit(pair, ',', absl::SkipEmpty());
+      if (coords.size() == 2) {
+        int sx, sy;
+        if (ParseHexString(coords[0], &sx) && ParseHexString(coords[1], &sy)) {
+          options.switch_promotions.emplace_back(sx, sy);
+        }
+      }
+    }
+  }
+
+  // Generate collision
+  auto result = zelda3::GenerateTrackCollision(&room, options);
+  if (!result.ok()) {
+    return result.status();
+  }
+
+  formatter.BeginObject("Track Collision Generation");
+  formatter.AddHexField("room_id", room_id, 3);
+  formatter.AddField("tiles_generated", result->tiles_generated);
+  formatter.AddField("stop_count", result->stop_count);
+  formatter.AddField("corner_count", result->corner_count);
+  formatter.AddField("switch_count", result->switch_count);
+
+  bool do_write = parser.HasFlag("write");
+  formatter.AddField("mode", do_write ? "write" : "dry-run");
+
+  if (parser.HasFlag("visualize") || !do_write) {
+    formatter.AddField("visualization", result->ascii_visualization);
+  }
+
+  if (do_write) {
+    auto write_status =
+        zelda3::WriteTrackCollision(rom, room_id, result->collision_map);
+    if (!write_status.ok()) {
+      formatter.AddField("write_error", std::string(write_status.message()));
+    } else {
+      formatter.AddField("write_status", "success");
+      // Save ROM back to disk
+      Rom::SaveSettings save_settings;
+      save_settings.backup = true;
+      auto save_status = rom->SaveToFile(save_settings);
+      if (!save_status.ok()) {
+        formatter.AddField("save_error", std::string(save_status.message()));
+      } else {
+        formatter.AddField("save_status", "saved");
+      }
+    }
   }
 
   formatter.EndObject();

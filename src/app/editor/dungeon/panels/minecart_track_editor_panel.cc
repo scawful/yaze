@@ -15,6 +15,7 @@
 #include "app/gui/core/input.h"
 #include "util/log.h"
 #include "zelda3/dungeon/custom_collision.h"
+#include "zelda3/dungeon/track_collision_generator.h"
 
 namespace yaze::editor {
 
@@ -37,11 +38,12 @@ std::string FormatHexList(const std::vector<uint16_t>& values) {
 
 std::vector<uint16_t> ParseHexList(const std::string& input) {
   std::vector<uint16_t> out;
-  for (std::string token : absl::StrSplit(
+  for (absl::string_view token_view : absl::StrSplit(
            input, absl::ByAnyChar(", \n\t"), absl::SkipEmpty())) {
-    if (token.empty()) {
+    if (token_view.empty()) {
       continue;
     }
+    std::string token(token_view);
     if (token[0] == '$') {
       token = "0x" + token.substr(1);
     }
@@ -578,14 +580,27 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
 
   if (!room_audit_.empty()) {
     ImGui::Separator();
-    ImGui::Text("Rooms with track collision but no cart on a stop tile:");
-    ImGui::BeginChild("##TrackAuditRooms", ImVec2(0, 120), true);
+    ImGui::Text("Rooms with track objects:");
+    ImGui::BeginChild("##TrackAuditRooms", ImVec2(0, 160), true);
     for (const auto& [room_id, audit] : room_audit_) {
-      if (!audit.has_track_collision || audit.has_minecart_on_stop) {
+      if (audit.track_subtypes.empty() && !audit.has_track_collision) {
         continue;
       }
-      ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.1f, 1.0f),
-                         ICON_MD_WARNING_AMBER " Room 0x%03X", room_id);
+
+      // Status icon
+      if (!audit.has_track_collision) {
+        ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.1f, 1.0f),
+                           ICON_MD_ERROR " Room 0x%03X (no collision)",
+                           room_id);
+      } else if (!audit.has_minecart_on_stop) {
+        ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.1f, 1.0f),
+                           ICON_MD_WARNING_AMBER " Room 0x%03X (no cart on stop)",
+                           room_id);
+      } else {
+        ImGui::TextColored(ImVec4(0.4f, 0.9f, 0.4f, 1.0f),
+                           ICON_MD_CHECK_CIRCLE " Room 0x%03X", room_id);
+      }
+
       ImGui::SameLine();
       ImGui::PushID(room_id);
       if (ImGui::SmallButton(ICON_MD_ARROW_FORWARD)) {
@@ -596,6 +611,44 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Navigate to room 0x%03X", room_id);
       }
+
+      // Generate Collision button (only if rom available and no collision yet)
+      if (rom_ && rooms_ && !audit.has_track_collision) {
+        ImGui::SameLine();
+        if (ImGui::SmallButton(
+                absl::StrFormat(ICON_MD_AUTO_FIX_HIGH " Generate##%d",
+                                room_id).c_str())) {
+          auto& target_room = (*rooms_)[room_id];
+          zelda3::GeneratorOptions opts;
+          auto gen_result =
+              zelda3::GenerateTrackCollision(&target_room, opts);
+          if (gen_result.ok()) {
+            auto write_status = zelda3::WriteTrackCollision(
+                rom_, room_id, gen_result->collision_map);
+            if (write_status.ok()) {
+              status_message_ = absl::StrFormat(
+                  "Room 0x%03X: Generated %d tiles (%d stops, %d corners)",
+                  room_id, gen_result->tiles_generated,
+                  gen_result->stop_count, gen_result->corner_count);
+              show_success_ = true;
+              audit_dirty_ = true;
+            } else {
+              status_message_ = absl::StrFormat(
+                  "Write failed: %s", write_status.message());
+              show_success_ = false;
+            }
+          } else {
+            status_message_ = absl::StrFormat(
+                "Generate failed: %s", gen_result.status().message());
+            show_success_ = false;
+          }
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(
+              "Auto-generate collision tiles from rail objects in this room");
+        }
+      }
+
       ImGui::PopID();
     }
     ImGui::EndChild();

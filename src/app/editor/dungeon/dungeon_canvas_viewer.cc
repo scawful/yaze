@@ -84,11 +84,11 @@ TrackDirectionMasks GetTrackDirectionMasksForTrackIndex(size_t index) {
       return TrackDirectionMasks{kTrackDirSouth | kTrackDirEast | kTrackDirWest,
                                  0};
     case 13:
-      return TrackDirectionMasks{kTrackDirNorth | kTrackDirSouth | kTrackDirEast,
-                                 0};
+      return TrackDirectionMasks{
+          kTrackDirNorth | kTrackDirSouth | kTrackDirEast, 0};
     case 14:
-      return TrackDirectionMasks{kTrackDirNorth | kTrackDirSouth | kTrackDirWest,
-                                 0};
+      return TrackDirectionMasks{
+          kTrackDirNorth | kTrackDirSouth | kTrackDirWest, 0};
     default:
       return {};
   }
@@ -97,21 +97,17 @@ TrackDirectionMasks GetTrackDirectionMasksForTrackIndex(size_t index) {
 TrackDirectionMasks GetTrackDirectionMasksForSwitchIndex(size_t index) {
   switch (index) {
     case 0:
-      return TrackDirectionMasks{
-          kTrackDirNorth | kTrackDirEast,
-          kTrackDirNorth | kTrackDirWest};
+      return TrackDirectionMasks{kTrackDirNorth | kTrackDirEast,
+                                 kTrackDirNorth | kTrackDirWest};
     case 1:
-      return TrackDirectionMasks{
-          kTrackDirSouth | kTrackDirEast,
-          kTrackDirNorth | kTrackDirEast};
+      return TrackDirectionMasks{kTrackDirSouth | kTrackDirEast,
+                                 kTrackDirNorth | kTrackDirEast};
     case 2:
-      return TrackDirectionMasks{
-          kTrackDirNorth | kTrackDirWest,
-          kTrackDirSouth | kTrackDirWest};
+      return TrackDirectionMasks{kTrackDirNorth | kTrackDirWest,
+                                 kTrackDirSouth | kTrackDirWest};
     case 3:
-      return TrackDirectionMasks{
-          kTrackDirSouth | kTrackDirWest,
-          kTrackDirSouth | kTrackDirEast};
+      return TrackDirectionMasks{kTrackDirSouth | kTrackDirWest,
+                                 kTrackDirSouth | kTrackDirEast};
     default:
       return {};
   }
@@ -120,15 +116,13 @@ TrackDirectionMasks GetTrackDirectionMasksForSwitchIndex(size_t index) {
 TrackDirectionMasks GetTrackDirectionMasksFromConfig(
     uint8_t tile, const std::vector<uint16_t>& track_tiles,
     const std::vector<uint16_t>& switch_tiles) {
-  auto track_it =
-      std::find(track_tiles.begin(), track_tiles.end(), tile);
+  auto track_it = std::find(track_tiles.begin(), track_tiles.end(), tile);
   if (track_it != track_tiles.end()) {
     return GetTrackDirectionMasksForTrackIndex(
         static_cast<size_t>(track_it - track_tiles.begin()));
   }
 
-  auto switch_it =
-      std::find(switch_tiles.begin(), switch_tiles.end(), tile);
+  auto switch_it = std::find(switch_tiles.begin(), switch_tiles.end(), tile);
   if (switch_it != switch_tiles.end()) {
     return GetTrackDirectionMasksForSwitchIndex(
         static_cast<size_t>(switch_it - switch_tiles.begin()));
@@ -227,8 +221,7 @@ void DungeonCanvasViewer::ApplyTrackCollisionConfig() {
   for (uint16_t tile = 0xB0; tile <= 0xBE; ++tile) {
     default_track_tile_list.push_back(tile);
   }
-  const std::vector<uint16_t> default_stop_tile_list = {0xB7, 0xB8, 0xB9,
-                                                        0xBA};
+  const std::vector<uint16_t> default_stop_tile_list = {0xB7, 0xB8, 0xB9, 0xBA};
   const std::vector<uint16_t> default_switch_tile_list = {0xD0, 0xD1, 0xD2,
                                                           0xD3};
 
@@ -713,13 +706,39 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       ImGui::TableNextColumn();
       // Empty - compass takes vertical space
       ImGui::TableNextColumn();
+      // Helper: get tag display name, overlaying manifest labels when available
+      auto get_tag_display_name = [&](int tag_idx) -> std::string {
+        const char* vanilla = (tag_idx >= 0 && tag_idx < kNumTags)
+                                  ? tag_names[tag_idx]
+                                  : "Unknown";
+        if (project_ && project_->hack_manifest.loaded()) {
+          auto tag =
+              project_->hack_manifest.GetRoomTag(static_cast<uint8_t>(tag_idx));
+          if (tag.has_value() && !tag->name.empty()) {
+            if (!tag->enabled && !tag->feature_flag.empty()) {
+              return absl::StrFormat("%s [%s] (disabled by %s)", vanilla,
+                                     tag->name.c_str(),
+                                     tag->feature_flag.c_str());
+            }
+            if (!tag->enabled) {
+              return absl::StrFormat("%s [%s] (disabled)", vanilla,
+                                     tag->name.c_str());
+            }
+            return absl::StrFormat("%s [%s]", vanilla, tag->name.c_str());
+          }
+        }
+        return vanilla;
+      };
+
       ImGui::TextDisabled(ICON_MD_LABEL);
       ImGui::SameLine(0, 2);
       int tag1_idx = std::clamp(tag1_val, 0, kNumTags - 1);
       ImGui::SetNextItemWidth(240);
-      if (ImGui::BeginCombo("##Tag1", tag_names[tag1_idx])) {
+      auto tag1_display = get_tag_display_name(tag1_idx);
+      if (ImGui::BeginCombo("##Tag1", tag1_display.c_str())) {
         for (int i = 0; i < kNumTags; i++) {
-          if (ImGui::Selectable(tag_names[i], tag1_idx == i)) {
+          auto item_label = get_tag_display_name(i);
+          if (ImGui::Selectable(item_label.c_str(), tag1_idx == i)) {
             room.SetTag1(static_cast<zelda3::TagKey>(i));
             if (room.rom() && room.rom()->is_loaded())
               room.RenderRoomGraphics();
@@ -734,9 +753,11 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       ImGui::SameLine(0, 2);
       int tag2_idx = std::clamp(tag2_val, 0, kNumTags - 1);
       ImGui::SetNextItemWidth(240);
-      if (ImGui::BeginCombo("##Tag2", tag_names[tag2_idx])) {
+      auto tag2_display = get_tag_display_name(tag2_idx);
+      if (ImGui::BeginCombo("##Tag2", tag2_display.c_str())) {
         for (int i = 0; i < kNumTags; i++) {
-          if (ImGui::Selectable(tag_names[i], tag2_idx == i)) {
+          auto item_label = get_tag_display_name(i);
+          if (ImGui::Selectable(item_label.c_str(), tag2_idx == i)) {
             room.SetTag2(static_cast<zelda3::TagKey>(i));
             if (room.rom() && room.rom()->is_loaded())
               room.RenderRoomGraphics();
@@ -1024,32 +1045,32 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     insert_menu.label = "Insert";
     insert_menu.icon = ICON_MD_ADD_CIRCLE;
 
-    gui::CanvasMenuItem insert_object_item(
-        "Object...", ICON_MD_WIDGETS, [this]() {
-          if (show_object_panel_callback_) {
-            show_object_panel_callback_();
-          }
-        });
+    gui::CanvasMenuItem insert_object_item("Object...", ICON_MD_WIDGETS,
+                                           [this]() {
+                                             if (show_object_panel_callback_) {
+                                               show_object_panel_callback_();
+                                             }
+                                           });
     insert_object_item.enabled_condition =
         enabled_if(show_object_panel_callback_ != nullptr);
     insert_menu.subitems.push_back(insert_object_item);
 
-    gui::CanvasMenuItem insert_sprite_item(
-        "Sprite...", ICON_MD_PERSON, [this]() {
-          if (show_sprite_panel_callback_) {
-            show_sprite_panel_callback_();
-          }
-        });
+    gui::CanvasMenuItem insert_sprite_item("Sprite...", ICON_MD_PERSON,
+                                           [this]() {
+                                             if (show_sprite_panel_callback_) {
+                                               show_sprite_panel_callback_();
+                                             }
+                                           });
     insert_sprite_item.enabled_condition =
         enabled_if(show_sprite_panel_callback_ != nullptr);
     insert_menu.subitems.push_back(insert_sprite_item);
 
-    gui::CanvasMenuItem insert_item_item(
-        "Item...", ICON_MD_INVENTORY, [this]() {
-          if (show_item_panel_callback_) {
-            show_item_panel_callback_();
-          }
-        });
+    gui::CanvasMenuItem insert_item_item("Item...", ICON_MD_INVENTORY,
+                                         [this]() {
+                                           if (show_item_panel_callback_) {
+                                             show_item_panel_callback_();
+                                           }
+                                         });
     insert_item_item.enabled_condition =
         enabled_if(show_item_panel_callback_ != nullptr);
     insert_menu.subitems.push_back(insert_item_item);
@@ -1184,8 +1205,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       if (selected[0] < objects.size()) {
         const auto object = objects[selected[0]];
         gui::CanvasMenuItem edit_graphics_item(
-            "Edit Graphics...", ICON_MD_IMAGE,
-            [this, room_id, object]() {
+            "Edit Graphics...", ICON_MD_IMAGE, [this, room_id, object]() {
               if (edit_graphics_callback_) {
                 edit_graphics_callback_(room_id, object);
               } else if (show_room_graphics_callback_) {
@@ -1618,7 +1638,6 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
 
     canvas_.AddContextMenuItem(debug_menu);
   }
-
 
   // CRITICAL: Begin canvas frame using modern BeginCanvas/EndCanvas pattern
   // This replaces DrawBackground + DrawContextMenu with a unified frame

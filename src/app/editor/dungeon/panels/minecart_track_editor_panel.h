@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "core/project.h"
+#include "rom/rom.h"
 #include "zelda3/dungeon/room.h"
 
 namespace yaze::editor {
@@ -52,6 +53,7 @@ class MinecartTrackEditorPanel : public EditorPanel {
     overlay_inputs_initialized_ = false;
     audit_dirty_ = true;
   }
+  void SetRom(Rom* rom) { rom_ = rom; }
   void SaveTracks();
 
   // Coordinate picking from dungeon canvas
@@ -93,6 +95,7 @@ class MinecartTrackEditorPanel : public EditorPanel {
 
   std::vector<MinecartTrack> tracks_;
   std::string project_root_;
+  Rom* rom_ = nullptr;
   std::array<zelda3::Room, 0x128>* rooms_ = nullptr;
   project::YazeProject* project_ = nullptr;
   std::unordered_map<int, RoomTrackAudit> room_audit_;

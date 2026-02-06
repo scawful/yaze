@@ -312,6 +312,7 @@ absl::Status DungeonEditorV2::Load() {
           minecart_track_editor_panel_->SetProjectRoot(
               dependencies_.project->code_folder);
           minecart_track_editor_panel_->SetRooms(&rooms_);
+          minecart_track_editor_panel_->SetRom(rom_);
           minecart_track_editor_panel_->SetProject(dependencies_.project);
           minecart_track_editor_panel_->SetRoomNavigationCallback(
               [this](int room_id) { OnRoomSelected(room_id); });
