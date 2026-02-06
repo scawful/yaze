@@ -70,6 +70,10 @@ TraceBounds ComputeBounds(const std::vector<zelda3::ObjectDrawer::TileTrace>& tr
   return bounds;
 }
 
+}  // namespace
+
+namespace detail {
+
 zelda3::ObjectDimensionTable::SelectionBounds ClipSelectionBoundsToRoom(
     const zelda3::ObjectDimensionTable& dimension_table, int object_id,
     int size, const zelda3::ObjectDimensionTable::SelectionBounds& bounds,
@@ -134,6 +138,10 @@ zelda3::ObjectDimensionTable::SelectionBounds ClipSelectionBoundsToRoom(
   clipped.height = std::max(0, clipped_max_y - clipped_min_y + 1);
   return clipped;
 }
+
+}  // namespace detail
+
+namespace {
 
 std::vector<int> BuildObjectIds(const absl::StatusOr<int>& object_arg) {
   std::vector<int> object_ids;
@@ -536,7 +544,7 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
 
       auto expected_bounds =
           dimension_table.GetSelectionBounds(object_id, obj.size_);
-      expected_bounds = ClipSelectionBoundsToRoom(
+      expected_bounds = detail::ClipSelectionBoundsToRoom(
           dimension_table, object_id, obj.size_, expected_bounds, obj.x_,
           obj.y_);
 
