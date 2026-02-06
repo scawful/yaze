@@ -10,6 +10,10 @@
 ### 2026-02-06 docs-janitor – Room-mode validation + skill
 - Update 2026-02-06 (docs-janitor): built z3ed, ran `dungeon-object-validate --room` on vanilla + oos168 copy (Goron Mines focus), documented results/mismatches in `docs/internal/agents/dungeon-object-validation-spec.md`, and created `yaze-z3ed-workflow` skill; no GUI launched.
 
+### 2026-02-06 ai-infra-architect – OOS Guardrails + Analyzer Delta
+- COMPLETE 2026-02-06 (ai-infra-architect): added z3dk analyzer delta script (baseline vs current JSON) and documented the workflow in Oracle-of-Secrets; added a minecart planned-track-table feature flag guardrail + clarified minecart plan terminology/checklists; made `scripts/build_rom.sh` analysis non-fatal by default (set `OOS_ANALYSIS_FATAL=1` to block builds).
+- Update 2026-02-06 (ai-infra-architect): added `dungeon-list-custom-collision` + `dungeon-minecart-audit`, and updated `dungeon-map` to overlay Oracle custom collision tiles (minecart tracks/stops); added `scripts/z3ed` wrapper to prefer the newest built z3ed binary and documented usage in public CLI docs.
+
 ### 2026-02-03 ai-infra-architect – Dungeon object validation reports
 - Update 2026-02-03 (ai-infra-architect): adding dungeon-object-validate CLI JSON/CSV mismatch reports with draw trace capture; tests not run.
 - Update 2026-02-03 (ai-infra-architect): expanded dungeon-object-validation-spec with UX parity audit scope, panel persistence, custom overlay toggle, glossary; no tests run.

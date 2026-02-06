@@ -11,13 +11,13 @@ The `z3ed` command-line tool provides scriptable ROM editing, AI-assisted workfl
 cmake --preset mac-ai
 cmake --build --preset mac-ai --target z3ed
 
-# Run the text UI
-./build/bin/z3ed --tui
+# Run the text UI (wrapper auto-selects a suitable z3ed binary)
+./scripts/z3ed --tui
 ```
 
 > **Binary path note**: On macOS/Windows multi-config builds, use
 > `./build/bin/Debug/z3ed` or `./build/bin/Release/z3ed`. Linux uses
-> `./build/bin/z3ed`.
+> `./build/bin/z3ed`. `./scripts/z3ed` will auto-select from common build dirs.
 
 ## AI Provider Configuration
 
@@ -51,6 +51,9 @@ your local model name.
 | Read ROM bytes | `z3ed rom read --address=0x1000 --length=16 --rom=zelda3.sfc` |
 | List dungeon sprites | `z3ed dungeon-list-sprites --room=1 --rom=zelda3.sfc` |
 | Describe dungeon room | `z3ed dungeon-describe-room --room=1 --rom=zelda3.sfc` |
+| Show minecart collision (Oracle) | `z3ed dungeon-list-custom-collision --room=0x77 --tiles=0xB7,0xB8,0xB9,0xBA --rom=roms/oos168.sfc` |
+| Minecart audit (Oracle) | `z3ed dungeon-minecart-audit --rooms=0x77,0xA8,0xB8 --only-issues --rom=roms/oos168.sfc` |
+| ASCII room map (Oracle overlay) | `z3ed dungeon-map --room=0x77 --rom=roms/oos168.sfc` |
 | Describe overworld map | `z3ed overworld-describe-map --map=80 --rom=zelda3.sfc` |
 | List messages | `z3ed message-list --rom=zelda3.sfc` |
 | Search messages | `z3ed message-search --query="sword" --rom=zelda3.sfc` |

@@ -7,6 +7,7 @@
 #include "absl/strings/str_format.h"
 #include "cli/util/hex_util.h"
 #include "rom/rom.h"
+#include "zelda3/dungeon/custom_collision.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
 
@@ -99,40 +100,6 @@ char ClassifyObject(uint16_t object_id) {
     return kCharSwitch;
   }
 
-  // Oracle custom collision tiles (minecart tracks)
-  // $B0 = horizontal, $B1 = vertical
-  if (object_id == 0x0B0) {
-    return kCharTrackH;
-  }
-  if (object_id == 0x0B1) {
-    return kCharTrackV;
-  }
-  // $B2-$B5 = corners, $B6 = intersection
-  if (object_id >= 0x0B2 && object_id <= 0x0B6) {
-    return kCharTrackX;
-  }
-  // $B7-$BA = stop tiles
-  if (object_id == 0x0B7) {
-    return kCharStopN;
-  }
-  if (object_id == 0x0B8) {
-    return kCharStopS;
-  }
-  if (object_id == 0x0B9) {
-    return kCharStopW;
-  }
-  if (object_id == 0x0BA) {
-    return kCharStopE;
-  }
-  // $BB-$BE = T-junctions
-  if (object_id >= 0x0BB && object_id <= 0x0BE) {
-    return kCharTrackX;
-  }
-  // $D0-$D3 = switch tracks
-  if (object_id >= 0x0D0 && object_id <= 0x0D3) {
-    return kCharSwitch;
-  }
-
   // Walls (common high-range objects)
   if (object_id >= 0x200 && object_id <= 0x2FF) {
     return kCharWall;
@@ -216,6 +183,60 @@ void PlaceChests(std::vector<std::string>& grid,
   (void)chests;  // Suppress unused warning
 }
 
+char ClassifyCustomCollisionTile(uint8_t tile) {
+  // Oracle-of-Secrets minecart tracks/stops are stored in the custom collision
+  // map (ZScream format), not as tile objects.
+  switch (tile) {
+    case 0xB0:  // horizontal
+      return kCharTrackH;
+    case 0xB1:  // vertical
+      return kCharTrackV;
+    case 0xB7:
+      return kCharStopN;
+    case 0xB8:
+      return kCharStopS;
+    case 0xB9:
+      return kCharStopW;
+    case 0xBA:
+      return kCharStopE;
+    default:
+      break;
+  }
+
+  if ((tile >= 0xB2 && tile <= 0xB6) || (tile >= 0xBB && tile <= 0xBE)) {
+    return kCharTrackX;
+  }
+  if (tile >= 0xD0 && tile <= 0xD3) {
+    return kCharSwitch;
+  }
+  return 0;
+}
+
+void OverlayCustomCollision(std::vector<std::string>& grid, Rom* rom,
+                            int room_id) {
+  auto map_or = zelda3::LoadCustomCollisionMap(rom, room_id);
+  if (!map_or.ok() || !map_or.value().has_data) {
+    return;
+  }
+
+  const auto& map = map_or.value().tiles;
+  for (int y = 0; y < kRoomHeight; ++y) {
+    for (int x = 0; x < kRoomWidth; ++x) {
+      uint8_t tile = map[static_cast<size_t>(y * kRoomWidth + x)];
+      char ch = ClassifyCustomCollisionTile(tile);
+      if (ch == 0) {
+        continue;
+      }
+
+      // Overlay tracks/stops on top of floor/unknown. Preserve higher-signal
+      // markers like doors/walls.
+      if (grid[y][x] == kCharFloor || grid[y][x] == kCharUnknown) {
+        grid[y][x] = ch;
+      }
+    }
+  }
+}
+
 }  // namespace
 
 absl::Status DungeonMapCommandHandler::Execute(
@@ -271,6 +292,9 @@ absl::Status DungeonMapCommandHandler::Execute(
 
   // Place chests (if position data available)
   PlaceChests(grid, room.GetChests());
+
+  // Overlay Oracle custom collision tiles (minecart tracks/stops/switches).
+  OverlayCustomCollision(grid, rom, room_id);
 
   // Output
   formatter.BeginObject("dungeon_map");

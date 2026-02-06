@@ -151,6 +151,9 @@ These commands operate directly on ROM data (no GUI required).
 - `dungeon-describe-room --room <hex>`
 - `dungeon-list-sprites --room <hex>`
 - `dungeon-list-objects --room <hex>`
+- `dungeon-list-custom-collision --room <hex> [--tiles <hex,hex,...>] [--nonzero] [--all]`
+- `dungeon-minecart-audit [--room <hex> | --rooms <hex,hex,...> | --all] [--only-issues]`
+- `dungeon-map --room <hex> [--layer <0|1|2>]` *(overlays Oracle custom collision tiles when present)*
 - `dungeon-list-chests --room <hex>`
 - `dungeon-get-entrance --entrance <hex> [--spawn]`
 - `dungeon-export-room --room <hex> --output <file>`
