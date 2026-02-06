@@ -2,8 +2,18 @@
 #define YAZE_CLI_HANDLERS_TOOLS_DUNGEON_OBJECT_VALIDATE_COMMANDS_H
 
 #include "cli/service/resources/command_handler.h"
+#include "zelda3/dungeon/object_dimensions.h"
 
 namespace yaze::cli {
+
+namespace detail {
+
+zelda3::ObjectDimensionTable::SelectionBounds ClipSelectionBoundsToRoom(
+    const zelda3::ObjectDimensionTable& dimension_table, int object_id,
+    int size, const zelda3::ObjectDimensionTable::SelectionBounds& bounds,
+    int object_x, int object_y);
+
+}  // namespace detail
 
 class DungeonObjectValidateCommandHandler : public resources::CommandHandler {
  public:
@@ -15,8 +25,8 @@ class DungeonObjectValidateCommandHandler : public resources::CommandHandler {
 
   std::string GetUsage() const override {
     return "dungeon-object-validate --rom <path> [--object <hex>] [--size <n>] "
-           "[--report <path>] [--trace-out <path>] [--format json|text] "
-           "[--verbose]";
+           "[--room <id>] [--report <path>] [--trace-out <path>] "
+           "[--format json|text] [--verbose]";
   }
 
   std::string GetDefaultFormat() const override { return "text"; }

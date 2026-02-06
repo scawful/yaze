@@ -3,8 +3,8 @@
 **Status:** Draft
 **Owner:** TBD (High model)
 **Created:** 2026-02-03
-**Last Reviewed:** 2026-02-05
-**Next Review:** 2026-02-17
+**Last Reviewed:** 2026-02-06
+**Next Review:** 2026-02-20
 **Validation/Exit Criteria:** See "Acceptance Criteria" and "UX Parity Exit Criteria".
 **Coordination Board:** `docs/internal/agents/coordination-board.md` (2026-02-03 ai-infra-architect entry)
 
@@ -666,6 +666,30 @@ gap-only trailing tiles at the room edge don’t cause off-by-one mismatches.
 in-room footprint.
 
 **Artifacts (local):** `/tmp/yaze_room_validation_20260206b/vanilla/*` and `/tmp/yaze_room_validation_20260206b/oos168/*`.
+
+## Run Results (2026-02-06, room-mode samples - non-Goron Mines)
+**Tool:** `build/bin/Debug/z3ed dungeon-object-validate --room ...`
+
+**ROMs (re-verified)**
+- Vanilla (USA): `/Users/scawful/src/ZScreamCLI-test-roms/vanilla/alttp_us_vanilla.sfc`  
+  SHA-256 `5ccf8f15ca4a4f16c969164ac112db91d3a80345b7e5a041dd7dbca08faba4f3`  
+  `rom-doctor`: `is_vanilla=true`, `checksum_valid=true`, warnings at `0x1E878B`, `0x1E95A3`, `0x1ED6F3`, `0x1EF540`.
+- OOS dev (copy): `/tmp/oos168_copy_20260206c.sfc` (copied from `/Users/scawful/src/hobby/oracle-of-secrets/Roms/oos168.sfc`)  
+  SHA-256 `c275cdbc032544e7b7ab8766c5c4d2caa70cee7ac9431757f5c24895faebd21f`  
+  `rom-doctor`: `zs_custom_version=ZSCustomOverworld v3`, `expanded_tile16=true`, `expanded_tile32=true`, `checksum_valid=true`, warnings at `0x1E878B`, `0x1EF540`.
+
+**OOS extra rooms (non-Goron Mines, 8)**  
+Mushroom Grotto: `0x07`, `0x33`.  
+Tail Palace: `0x5F`, `0x8F`.  
+Zora Temple: `0x25`, `0x37`.  
+Dragon Ship: `0xB7`, `0xD6`.  
+**Summary:** All rooms `mismatch_count=0`, `empty_traces=0`, `negative_offsets=0`.
+
+**Notes:** With room-edge clipping in place, any remaining room-mode mismatch is
+likely a true draw/bounds discrepancy (dimension table vs trace), not a repeat
+spacing overrun.
+
+**Artifacts (local):** `/tmp/yaze_room_validation_20260206c/oos168_extra/*`.
 
 ## Implementation Notes (2026-02-04, v10–v12)
 - Added a TileTrace hook in `draw_routine_types` + `ObjectDrawer` to capture draw writes without rendering (trace-only mode).  
