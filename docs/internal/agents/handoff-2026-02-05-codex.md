@@ -171,3 +171,13 @@ Progress logs saved in `.context/scratchpad/yaze-oos-readiness.md`.
 1) Run ZScream runtime capture and update parity docs.  
 2) Validate graphics pointer overrides on OOS ROMs that relocate graphics
    pointer tables.  
+
+## Continuation (2026-02-06, ai-infra-architect)
+- Added `z3ed` CLI commands to audit Oracle-of-Secrets minecart signals and custom collision:
+  - `dungeon-minecart-audit` (collision tiles + minecart sprites + track objects)
+  - `dungeon-list-custom-collision` (lists per-room custom collision tiles)
+- Updated `dungeon-map` to overlay Oracle custom collision tiles (minecart tracks/stops/switches) on the ASCII grid.
+- Added `scripts/z3ed` wrapper to prefer the newest built `z3ed` binary (avoids stale build dirs).
+- Updated public `z3ed` docs to recommend `./scripts/z3ed` and documented the new commands.
+- Validation: built `z3ed` in `build_agent` (`YAZE_ENABLE_GRPC=OFF`) and ran the minecart audit on OOS + vanilla ROMs.
+- Commit: `b96aed6a` (`ai-infra-architect: add minecart audit + custom collision CLI`)
