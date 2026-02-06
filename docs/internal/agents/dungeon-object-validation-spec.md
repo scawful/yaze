@@ -657,14 +657,15 @@ yaze dungeon-object-validate --rom /path/to/alttp.sfc --trace-out /tmp/dungeon_o
 
 **OOS sample rooms (Goron Mines focus, 14)**  
 0x77, 0x79, 0x89, 0x97, 0xA8, 0xB8, 0xB9, 0xD7, 0xD8, 0xD9, 0xDA, 0x98, 0x88, 0x87.  
-**Summary:** 5 rooms with 1 mismatch each; all other rooms `mismatch_count=0`, `empty_traces=0`, `negative_offsets=0`.  
-- Room 0x77: object `0x0C0` size 7, trace `8x8` vs expected `8x16`.  
-- Room 0x79: object `0x0C4` size 15, trace `16x8` vs expected `16x16`.  
-- Room 0x87: object `0x0C5` size 9, trace `12x5` vs expected `12x8`.  
-- Room 0x89: object `0x0C5` size 5, trace `8x6` vs expected `8x8`.  
-- Room 0xA8: object `0x0C0` size 5, trace `8x7` vs expected `8x8`.
+**Summary:** All rooms `mismatch_count=0`, `empty_traces=0`, `negative_offsets=0`.
 
-**Artifacts (local):** `/tmp/yaze_room_validation_20260206/vanilla/*` and `/tmp/yaze_room_validation_20260206/oos168/*`.
+**Note:** Room-mode validation now clips expected bounds to the 64x64 room
+canvas. Repeatable patterns with spacing snap to the last in-room repeat so
+gap-only trailing tiles at the room edge don’t cause off-by-one mismatches.
+`ObjectDrawer::WriteTile8` drops out-of-bounds tiles so traces reflect the
+in-room footprint.
+
+**Artifacts (local):** `/tmp/yaze_room_validation_20260206b/vanilla/*` and `/tmp/yaze_room_validation_20260206b/oos168/*`.
 
 ## Implementation Notes (2026-02-04, v10–v12)
 - Added a TileTrace hook in `draw_routine_types` + `ObjectDrawer` to capture draw writes without rendering (trace-only mode).  
