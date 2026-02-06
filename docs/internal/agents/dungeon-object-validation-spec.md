@@ -3,7 +3,7 @@
 **Status:** Draft
 **Owner:** TBD (High model)
 **Created:** 2026-02-03
-**Last Reviewed:** 2026-02-04
+**Last Reviewed:** 2026-02-05
 **Next Review:** 2026-02-17
 **Validation/Exit Criteria:** See "Acceptance Criteria" and "UX Parity Exit Criteria".
 **Coordination Board:** `docs/internal/agents/coordination-board.md` (2026-02-03 ai-infra-architect entry)
@@ -76,9 +76,17 @@
 - Added camera quadrant boundary overlay (toolbar + context menu toggle) to help plan cart routes in layout-7 rooms.
 - Added minecart sprite alignment overlay to highlight carts not placed on stop tiles (uses configured sprite IDs + collision tiles).
 - Added per-project `[dungeon_overlay]` config for track/stop/switch tiles, track object IDs, and minecart sprite IDs; collision overlay shows direction arrows when full tile sets are configured.
+- Implemented `dungeon-object-validate --room <id>` to trace actual room objects
+  and compare bounds/offsets against the ROM dimension table, with optional
+  `--trace-out` JSON for per-object tile traces.
 
 ## Glossary
-- **TileTrace:** A captured list of tile writes from a draw routine (tile ID + tile coordinates). It is internal instrumentation only, not a user-facing tool.
+- **TileTrace:** A captured list of tile writes from a draw routine (tile ID +
+  tile coordinates). It’s the internal “receipt” we compare against expected
+  bounds. Example: a 2×2 object emits 4 TileTrace entries at (x,y) grid
+  positions. We compare the trace extents/offsets to the selection bounds.
+  If you're running the CLI, TileTrace only appears in `--trace-out` dumps and
+  can be ignored unless you're debugging a specific object.
 - **Oracle (validation):** A secondary implementation used as a reference for draw output (ROM-static interpreter, later a ROM micro-emu).
 - **Parity Audit:** A structured comparison between ZScreamDungeon and yaze to list gaps and planned fixes.
 
@@ -627,6 +635,36 @@ yaze dungeon-object-validate --rom /path/to/alttp.sfc --trace-out /tmp/dungeon_o
 **Notes:**  
 - Adjusted `0xFEB` selection bounds to 4x4 (matches trace).  
 - Trace dump: `/tmp/dungeon_object_trace_dump_v16.json`.  
+
+## Run Results (2026-02-06, room-mode samples)
+**Tool:** `build/bin/Debug/z3ed dungeon-object-validate --room ...`
+
+**ROMs**
+- Vanilla (USA): `/Users/scawful/src/ZScreamCLI-test-roms/vanilla/alttp_us_vanilla.sfc`  
+  SHA-256 `5ccf8f15ca4a4f16c969164ac112db91d3a80345b7e5a041dd7dbca08faba4f3`  
+  `rom-doctor`: `is_vanilla=true`, `checksum_valid=true`, warnings at `0x1E878B`, `0x1E95A3`, `0x1ED6F3`, `0x1EF540`.
+- OOS dev (copy): `/tmp/oos168_copy_20260206.sfc` (copied from `/Users/scawful/src/hobby/oracle-of-secrets/Roms/oos168.sfc`)  
+  SHA-256 `c275cdbc032544e7b7ab8766c5c4d2caa70cee7ac9431757f5c24895faebd21f`  
+  `rom-doctor`: `zs_custom_version=ZSCustomOverworld v3`, `expanded_tile16=true`, `expanded_tile32=true`, `checksum_valid=true`, warnings at `0x1E878B`, `0x1EF540`.
+
+**Vanilla sample rooms (13, various dungeons)**  
+0x01 Hyrule Castle (North Corridor), 0x04 Turtle Rock (Crysta-Roller), 0x06 Swamp Palace (Arrghus[Boss]),  
+0x07 Tower of Hera (Moldorm[Boss]), 0x09 Palace of Darkness, 0x0C Ganon's Tower (Entrance),  
+0x0E Ice Palace (Entrance), 0x20 Agahnim's Tower (Agahnim[Boss]), 0x29 Skull Woods (Mothula[Boss]),  
+0x33 Desert Palace (Lanmolas[Boss]) [object_count=0], 0x44 Thieves Town (Big Chest),  
+0x89 Eastern Palace (Fairy), 0x90 Misery Mire (Vitreous[Boss]).  
+**Summary:** All rooms `mismatch_count=0`, `empty_traces=0`, `negative_offsets=0`.
+
+**OOS sample rooms (Goron Mines focus, 14)**  
+0x77, 0x79, 0x89, 0x97, 0xA8, 0xB8, 0xB9, 0xD7, 0xD8, 0xD9, 0xDA, 0x98, 0x88, 0x87.  
+**Summary:** 5 rooms with 1 mismatch each; all other rooms `mismatch_count=0`, `empty_traces=0`, `negative_offsets=0`.  
+- Room 0x77: object `0x0C0` size 7, trace `8x8` vs expected `8x16`.  
+- Room 0x79: object `0x0C4` size 15, trace `16x8` vs expected `16x16`.  
+- Room 0x87: object `0x0C5` size 9, trace `12x5` vs expected `12x8`.  
+- Room 0x89: object `0x0C5` size 5, trace `8x6` vs expected `8x8`.  
+- Room 0xA8: object `0x0C0` size 5, trace `8x7` vs expected `8x8`.
+
+**Artifacts (local):** `/tmp/yaze_room_validation_20260206/vanilla/*` and `/tmp/yaze_room_validation_20260206/oos168/*`.
 
 ## Implementation Notes (2026-02-04, v10–v12)
 - Added a TileTrace hook in `draw_routine_types` + `ObjectDrawer` to capture draw writes without rendering (trace-only mode).  

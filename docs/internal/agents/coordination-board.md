@@ -3,6 +3,9 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
+### 2026-02-06 docs-janitor – Room-mode validation + skill
+- Update 2026-02-06 (docs-janitor): built z3ed, ran `dungeon-object-validate --room` on vanilla + oos168 copy (Goron Mines focus), documented results/mismatches in `docs/internal/agents/dungeon-object-validation-spec.md`, and created `yaze-z3ed-workflow` skill; no GUI launched.
+
 ### 2026-02-03 ai-infra-architect – Dungeon object validation reports
 - Update 2026-02-03 (ai-infra-architect): adding dungeon-object-validate CLI JSON/CSV mismatch reports with draw trace capture; tests not run.
 - Update 2026-02-03 (ai-infra-architect): expanded dungeon-object-validation-spec with UX parity audit scope, panel persistence, custom overlay toggle, glossary; no tests run.
