@@ -196,6 +196,11 @@ endif()
 if(NOT DEFINED YAZE_ENABLE_ROM_TESTS)
   option(YAZE_ENABLE_ROM_TESTS "Enable tests that require ROM files" ${_PROFILE_ROM_TESTS})
 endif()
+if(NOT DEFINED YAZE_ENABLE_EXPERIMENTAL_APP_TEST_SUITES)
+  option(YAZE_ENABLE_EXPERIMENTAL_APP_TEST_SUITES
+    "Enable experimental app test suites in the yaze_test runner"
+    OFF)
+endif()
 if(NOT DEFINED YAZE_ENABLE_BENCHMARK_TESTS)
   option(YAZE_ENABLE_BENCHMARK_TESTS "Enable benchmark/performance tests" OFF)
 endif()

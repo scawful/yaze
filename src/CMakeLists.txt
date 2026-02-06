@@ -103,11 +103,6 @@ include(app/gui/gui_library.cmake)
 # Define core application library early (needed by agent)
 include(app/app_core.cmake)
 
-# Include gRPC support library (consolidates all protobuf/gRPC usage)
-if(YAZE_ENABLE_REMOTE_AUTOMATION)
-  include(app/service/grpc_support.cmake)
-endif()
-
 if(YAZE_BUILD_GUI OR YAZE_BUILD_Z3ED OR YAZE_BUILD_TESTS OR YAZE_BUILD_CLI)
   include(cli/cli_core.cmake)
 endif()
@@ -138,6 +133,12 @@ endif()
 # Editor and emulator (depend on test support when tests are enabled)
 include(app/editor/editor_library.cmake)
 include(app/emu/emu_library.cmake)
+
+# Include gRPC support library (consolidates all protobuf/gRPC usage)
+# Needs yaze_emulator target, so include after emu_library.cmake.
+if(YAZE_ENABLE_GRPC)
+  include(app/service/grpc_support.cmake)
+endif()
 
 # Build standalone emulator
 if(YAZE_BUILD_EMU)

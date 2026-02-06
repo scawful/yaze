@@ -115,12 +115,26 @@ target_include_directories(
     $<TARGET_PROPERTY:${_YAZE_GRPCPP_TARGET},INTERFACE_INCLUDE_DIRECTORIES>
 )
 
-# Add proto objects to grpc_support
-target_sources(yaze_grpc_support PRIVATE $<TARGET_OBJECTS:yaze_proto_gen>)
+# Package proto objects into a single static lib to avoid duplicate symbols.
+add_library(yaze_proto_lib STATIC)
+target_sources(yaze_proto_lib PRIVATE $<TARGET_OBJECTS:yaze_proto_gen>)
+target_include_directories(
+  yaze_proto_lib
+  PUBLIC
+    ${CMAKE_BINARY_DIR}/gens
+    $<TARGET_PROPERTY:${_YAZE_GRPCPP_TARGET},INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_link_libraries(yaze_proto_lib PUBLIC ${YAZE_PROTOBUF_TARGETS})
+
 target_include_directories(yaze_grpc_support PUBLIC ${CMAKE_BINARY_DIR}/gens)
+
+if(TARGET yaze_emulator)
+  target_link_libraries(yaze_emulator PUBLIC yaze_proto_lib)
+endif()
 
 # Link gRPC and protobuf libraries (single point of linking)
 target_link_libraries(yaze_grpc_support PUBLIC
+  yaze_proto_lib
   ${_YAZE_GRPCPP_TARGET}
   ${_YAZE_GRPCPP_REFLECTION_TARGET}
   ${YAZE_PROTOBUF_TARGETS}
@@ -145,6 +159,14 @@ set_target_properties(yaze_grpc_support PROPERTIES
   ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
   LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
 )
+
+# Ensure proto generation completes before any target that consumes the headers.
+if(TARGET yaze_app_core_lib)
+  add_dependencies(yaze_app_core_lib yaze_proto_gen)
+endif()
+if(TARGET yaze_app_objcxx)
+  add_dependencies(yaze_app_objcxx yaze_proto_gen)
+endif()
 
 # Platform-specific compile definitions
 if(UNIX AND NOT APPLE)

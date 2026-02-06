@@ -528,7 +528,9 @@ message(STATUS "gRPC setup complete - targets available: ${YAZE_GRPC_TARGETS}")
 
 # Setup protobuf generation directory (use CACHE so it's available in functions)
 set(_gRPC_PROTO_GENS_DIR ${CMAKE_BINARY_DIR}/gens CACHE INTERNAL "Protobuf generated files directory")
-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/gens)
+# Ensure stale protobuf outputs don't survive protoc version changes.
+file(REMOVE_RECURSE ${_gRPC_PROTO_GENS_DIR})
+file(MAKE_DIRECTORY ${_gRPC_PROTO_GENS_DIR})
 
 # Get protobuf include directories (extract from generator expression or direct path)
 if(TARGET libprotobuf)
