@@ -104,12 +104,12 @@ elseif(MSVC)
   )
 endif()
 # gRPC/protobuf linking is now handled by yaze_grpc_support library
-if(YAZE_ENABLE_REMOTE_AUTOMATION)
+if(YAZE_WITH_GRPC)
   if(TARGET yaze_grpc_support)
     target_link_libraries(yaze PRIVATE yaze_grpc_support)
     message(STATUS "✓ yaze executable linked to yaze_grpc_support")
   else()
-    message(FATAL_ERROR "YAZE_ENABLE_REMOTE_AUTOMATION=ON but yaze_grpc_support target missing")
+    message(FATAL_ERROR "YAZE_WITH_GRPC=ON but yaze_grpc_support target missing")
   endif()
 endif()
 
@@ -241,4 +241,8 @@ if(YAZE_BUILD_TESTS)
     ${CMAKE_SOURCE_DIR}/inc
     ${PROJECT_BINARY_DIR}
   )
+  if(YAZE_ENABLE_EXPERIMENTAL_APP_TEST_SUITES)
+    target_compile_definitions(yaze_test PRIVATE
+      YAZE_ENABLE_EXPERIMENTAL_APP_TEST_SUITES=1)
+  endif()
 endif()

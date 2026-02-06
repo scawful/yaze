@@ -12,18 +12,30 @@
     }
   ],
   "buildPresets": [
-    {
-      "displayName": "Developer Build",
-      "jobs": 8,
-      "name": "dev",
-      "configurePreset": "dev"
-    },
-    {
-      "displayName": "Dev (Sys gRPC)",
-      "jobs": 8,
-      "name": "dev-system-grpc",
-      "configurePreset": "dev-system-grpc"
-    },
+  {
+    "displayName": "Developer Build (Default, no gRPC/AI/tests)",
+    "jobs": 1,
+    "name": "dev",
+    "configurePreset": "dev"
+  },
+  {
+    "displayName": "Dev (AI + Tests)",
+    "jobs": 1,
+    "name": "dev-test-ai",
+    "configurePreset": "dev-test-ai"
+  },
+  {
+    "displayName": "Dev (gRPC from source)",
+    "jobs": 1,
+    "name": "dev-grpc",
+    "configurePreset": "dev-grpc"
+  },
+  {
+    "displayName": "Dev (Sys gRPC)",
+    "jobs": 1,
+    "name": "dev-system-grpc",
+    "configurePreset": "dev-system-grpc"
+  },
     {
       "displayName": "CI Build",
       "jobs": 8,
@@ -213,13 +225,13 @@
       "name": "mac-rel",
       "configurePreset": "mac-rel"
     },
-    {
-      "displayName": "macOS Development Build",
-      "configuration": "Debug",
-      "jobs": 8,
-      "name": "mac-dev",
-      "configurePreset": "mac-dev"
-    },
+  {
+    "displayName": "macOS Development Build",
+    "configuration": "Debug",
+    "jobs": 1,
+    "name": "mac-dev",
+    "configurePreset": "mac-dev"
+  },
     {
       "displayName": "Mac AI Dev",
       "configuration": "Debug",
@@ -682,19 +694,41 @@
     {
       "inherits": "base",
       "cacheVariables": {
-        "YAZE_ENABLE_AI": "ON",
-        "YAZE_ENABLE_GRPC": "ON",
-        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_BUILD_TESTS": "OFF",
         "CMAKE_BUILD_TYPE": "Debug",
-        "YAZE_ENABLE_ROM_TESTS": "ON",
-        "YAZE_ENABLE_JSON": "ON"
+        "YAZE_ENABLE_ROM_TESTS": "OFF",
+        "YAZE_ENABLE_JSON": "ON",
+        "YAZE_MINIMAL_BUILD": "OFF"
       },
-      "displayName": "Developer Build",
+      "displayName": "Developer Build (Default, no gRPC/AI/tests)",
       "name": "dev",
-      "description": "Full development build with all features"
+      "description": "Default editor-focused dev build without gRPC, AI, or tests"
     },
     {
       "inherits": "dev",
+      "cacheVariables": {
+        "YAZE_ENABLE_AI": "ON",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_ROM_TESTS": "ON"
+      },
+      "displayName": "Developer Build (AI + Tests)",
+      "name": "dev-test-ai",
+      "description": "Dev build with AI features and test suites enabled"
+    },
+    {
+      "inherits": "dev",
+      "cacheVariables": {
+        "YAZE_ENABLE_GRPC": "ON",
+        "YAZE_PREFER_SYSTEM_GRPC": "OFF"
+      },
+      "displayName": "Developer Build (gRPC from source)",
+      "name": "dev-grpc",
+      "description": "Dev build with gRPC enabled (builds from source)"
+    },
+    {
+      "inherits": "dev-grpc",
       "cacheVariables": {
         "YAZE_PREFER_SYSTEM_GRPC": "ON"
       },
@@ -848,7 +882,6 @@
         "CMAKE_BUILD_TYPE": "Release",
         "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
         "YAZE_WITH_SDL": "ON",
-        "YAZE_BUILD_GUI": "ON",
         "YAZE_BUILD_GUI": "ON",
         "CMAKE_C_FLAGS": "-pthread -s USE_PTHREADS=1 -s FETCH=1 -s ASYNCIFY",
         "YAZE_WITH_IMGUI": "ON",

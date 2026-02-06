@@ -12,6 +12,7 @@ include(${CMAKE_CURRENT_LIST_DIR}/options-simple.cmake)
 #===============================================================================
 # Set preprocessor definitions based on options
 #===============================================================================
+set(YAZE_WITH_GRPC ${YAZE_ENABLE_GRPC})
 if(YAZE_ENABLE_GRPC)
   add_compile_definitions(YAZE_WITH_GRPC)
 endif()
