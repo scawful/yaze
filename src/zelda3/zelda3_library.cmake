@@ -5,6 +5,7 @@ set(
   zelda3/dungeon/door_position.cc
   zelda3/dungeon/dungeon_editor_system.cc
   zelda3/dungeon/custom_collision.cc
+  zelda3/dungeon/track_collision_generator.cc
   zelda3/dungeon/custom_object.cc
   zelda3/dungeon/dungeon_object_editor.cc
   zelda3/dungeon/dungeon_object_registry.cc
