@@ -32,6 +32,7 @@
 #include "app/gui/imgui_memory_editor.h"
 #include "app/gui/widgets/asset_browser.h"
 #include "app/platform/window.h"
+#include "core/rom_settings.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "util/file_util.h"
@@ -232,12 +233,20 @@ absl::Status GraphicsEditor::Save() {
 
     // Calculate ROM offset for this sheet
     // Get version constants from game_data
-    auto version_constants = zelda3::kVersionConstantsMap.at(game_data()->version);
+    auto version_constants =
+        zelda3::kVersionConstantsMap.at(game_data()->version);
+    const uint32_t gfx_ptr1 = core::RomSettings::Get().GetAddressOr(
+        core::RomAddressKey::kOverworldGfxPtr1,
+        version_constants.kOverworldGfxPtr1);
+    const uint32_t gfx_ptr2 = core::RomSettings::Get().GetAddressOr(
+        core::RomAddressKey::kOverworldGfxPtr2,
+        version_constants.kOverworldGfxPtr2);
+    const uint32_t gfx_ptr3 = core::RomSettings::Get().GetAddressOr(
+        core::RomAddressKey::kOverworldGfxPtr3,
+        version_constants.kOverworldGfxPtr3);
     uint32_t offset = zelda3::GetGraphicsAddress(
-        rom_->data(), static_cast<uint8_t>(sheet_id),
-        version_constants.kOverworldGfxPtr1,
-        version_constants.kOverworldGfxPtr2,
-        version_constants.kOverworldGfxPtr3, rom_->size());
+        rom_->data(), static_cast<uint8_t>(sheet_id), gfx_ptr1, gfx_ptr2,
+        gfx_ptr3, rom_->size());
 
     // Convert 8BPP bitmap data to SNES planar format
     auto snes_tile_data = gfx::IndexedToSnesSheet(sheet.vector(), bpp);

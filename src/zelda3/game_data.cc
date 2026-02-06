@@ -2,6 +2,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/gfx/util/compression.h"
+#include "core/rom_settings.h"
 #include "util/log.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
@@ -344,8 +345,8 @@ struct SheetLoadResult {
   uint32_t pc_offset = 0;
 };
 
-SheetLoadResult LoadSheetRaw(const Rom& rom, uint32_t i, 
-                             const zelda3_version_pointers& version_constants) {
+SheetLoadResult LoadSheetRaw(const Rom& rom, uint32_t i, uint32_t ptr1,
+                             uint32_t ptr2, uint32_t ptr3) {
   SheetLoadResult result;
   result.data.assign(zelda3::kUncompressedSheetSize, 0); // Default empty
 
@@ -353,9 +354,7 @@ SheetLoadResult LoadSheetRaw(const Rom& rom, uint32_t i,
   if (i >= 115 && i <= 126) {
     result.is_compressed = false;
     result.pc_offset =
-        GetGraphicsAddress(rom.data(), i, version_constants.kOverworldGfxPtr1,
-                           version_constants.kOverworldGfxPtr2,
-                           version_constants.kOverworldGfxPtr3, rom.size());
+        GetGraphicsAddress(rom.data(), i, ptr1, ptr2, ptr3, rom.size());
 
     auto read_res =
         rom.ReadByteVector(result.pc_offset, zelda3::kUncompressedSheetSize);
@@ -376,9 +375,7 @@ SheetLoadResult LoadSheetRaw(const Rom& rom, uint32_t i,
   else {
     result.is_compressed = true;
     result.pc_offset =
-        GetGraphicsAddress(rom.data(), i, version_constants.kOverworldGfxPtr1,
-                           version_constants.kOverworldGfxPtr2,
-                           version_constants.kOverworldGfxPtr3, rom.size());
+        GetGraphicsAddress(rom.data(), i, ptr1, ptr2, ptr3, rom.size());
 
     if (result.pc_offset < rom.size()) {
       auto decomp_res =
@@ -462,6 +459,15 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
         "Unsupported ROM version for graphics");
   }
   auto version_constants = kVersionConstantsMap.at(data.version);
+  const uint32_t gfx_ptr1 = core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kOverworldGfxPtr1,
+      version_constants.kOverworldGfxPtr1);
+  const uint32_t gfx_ptr2 = core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kOverworldGfxPtr2,
+      version_constants.kOverworldGfxPtr2);
+  const uint32_t gfx_ptr3 = core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kOverworldGfxPtr3,
+      version_constants.kOverworldGfxPtr3);
 
   data.graphics_buffer.clear();
 
@@ -473,9 +479,9 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
   // Initialize Diagnostics
   auto& diag = data.diagnostics;
   diag.rom_size = rom.size();
-  diag.ptr1_loc = version_constants.kOverworldGfxPtr1;
-  diag.ptr2_loc = version_constants.kOverworldGfxPtr2;
-  diag.ptr3_loc = version_constants.kOverworldGfxPtr3;
+  diag.ptr1_loc = gfx_ptr1;
+  diag.ptr2_loc = gfx_ptr2;
+  diag.ptr3_loc = gfx_ptr3;
 
   LOG_INFO("Graphics", "Loading %d graphics sheets...", kNumGfxSheets);
 
@@ -486,7 +492,7 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
 #endif
 
     // Inside LoadGraphics loop:
-    auto result = LoadSheetRaw(rom, i, version_constants);
+    auto result = LoadSheetRaw(rom, i, gfx_ptr1, gfx_ptr2, gfx_ptr3);
     
     // Update Diagnostics
     auto& sd = diag.sheets[i];
@@ -558,12 +564,19 @@ absl::StatusOr<std::vector<uint8_t>> Load2BppGraphics(const Rom& rom) {
 
   // Get version constants - default to US if we don't know
   auto version_constants = kVersionConstantsMap.at(zelda3_version::US);
+  const uint32_t gfx_ptr1 = core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kOverworldGfxPtr1,
+      version_constants.kOverworldGfxPtr1);
+  const uint32_t gfx_ptr2 = core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kOverworldGfxPtr2,
+      version_constants.kOverworldGfxPtr2);
+  const uint32_t gfx_ptr3 = core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kOverworldGfxPtr3,
+      version_constants.kOverworldGfxPtr3);
 
   for (const auto& sheet_id : sheets) {
-    auto offset = GetGraphicsAddress(
-        rom.data(), sheet_id, version_constants.kOverworldGfxPtr1,
-        version_constants.kOverworldGfxPtr2,
-        version_constants.kOverworldGfxPtr3, rom.size());
+    auto offset = GetGraphicsAddress(rom.data(), sheet_id, gfx_ptr1, gfx_ptr2,
+                                     gfx_ptr3, rom.size());
 
     if (offset >= rom.size()) {
       return absl::OutOfRangeError(absl::StrFormat(

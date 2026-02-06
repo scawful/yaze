@@ -11,6 +11,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
 #include "core/features.h"
+#include "core/hack_manifest.h"
 #include "core/rom_settings.h"
 #include "zelda3/resource_labels.h"
 
@@ -137,6 +138,8 @@ struct YazeProject {
   std::string symbols_filename;
   std::string
       custom_objects_folder;  // Folder containing custom object .bin files
+  std::string
+      hack_manifest_file;  // Path to hack_manifest.json (ASM integration)
 
   // Optional custom object file mapping (object_id -> filenames per subtype).
   std::unordered_map<int, std::vector<std::string>> custom_object_files;
@@ -152,6 +155,9 @@ struct YazeProject {
   // Embedded labels flag - when true, resource_labels contains all default
   // Zelda3 labels
   bool use_embedded_labels = true;
+
+  // ASM hack integration manifest (loaded from hack_manifest_file)
+  core::HackManifest hack_manifest;
 
   // Build and deployment
   std::string build_script;
@@ -268,6 +274,9 @@ struct YazeProject {
   // Project state
   bool project_opened() const { return !name.empty() && !filepath.empty(); }
 
+  // Hack manifest (ASM integration) reload hook (safe no-op if unset).
+  void ReloadHackManifest();
+
  private:
   absl::StatusOr<std::string> SerializeToString() const;
   absl::Status ParseFromString(const std::string& content);
@@ -281,6 +290,7 @@ struct YazeProject {
 #endif
 
   void InitializeDefaults();
+  void TryLoadHackManifest();
   std::string GenerateProjectId() const;
 };
 

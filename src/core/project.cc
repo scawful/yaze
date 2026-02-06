@@ -36,8 +36,9 @@ namespace project {
 
 namespace {
 std::string ToLowerCopy(std::string value) {
-  std::transform(value.begin(), value.end(), value.begin(),
-                 [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+  std::transform(
+      value.begin(), value.end(), value.begin(),
+      [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
   return value;
 }
 
@@ -277,6 +278,7 @@ absl::Status YazeProject::Open(const std::string& project_path) {
 #endif
 
   // Determine format and load accordingly
+  absl::Status load_status;
   if (project_path.ends_with(".yaze")) {
     format = ProjectFormat::kYazeNative;
 
@@ -290,21 +292,32 @@ absl::Status YazeProject::Open(const std::string& project_path) {
 #ifdef YAZE_ENABLE_JSON_PROJECT_FORMAT
       if (!content.empty() && content.front() == '{') {
         LOG_DEBUG("Project", "Detected JSON format project file");
-        return LoadFromJsonFormat(project_path);
+        load_status = LoadFromJsonFormat(project_path);
+      } else {
+        load_status = ParseFromString(content);
       }
+#else
+      load_status = ParseFromString(content);
 #endif
-
-      return ParseFromString(content);
+    } else {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Cannot open project file: %s", project_path));
     }
-
-    return absl::InvalidArgumentError(
-        absl::StrFormat("Cannot open project file: %s", project_path));
   } else if (project_path.ends_with(".zsproj")) {
     format = ProjectFormat::kZScreamCompat;
-    return ImportFromZScreamFormat(project_path);
+    load_status = ImportFromZScreamFormat(project_path);
+  } else {
+    return absl::InvalidArgumentError("Unsupported project file format");
   }
 
-  return absl::InvalidArgumentError("Unsupported project file format");
+  if (!load_status.ok()) {
+    return load_status;
+  }
+
+  // Auto-load hack manifest if configured or discoverable
+  TryLoadHackManifest();
+
+  return absl::OkStatus();
 }
 
 absl::Status YazeProject::Save() {
@@ -374,6 +387,7 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
   file << "output_folder=" << GetRelativePath(output_folder) << "\n";
   file << "custom_objects_folder=" << GetRelativePath(custom_objects_folder)
        << "\n";
+  file << "hack_manifest_file=" << GetRelativePath(hack_manifest_file) << "\n";
   file << "additional_roms=" << absl::StrJoin(additional_roms, ",") << "\n\n";
 
   // ROM metadata section
@@ -435,8 +449,8 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
        << (feature_flags.kSaveAllPalettes ? "true" : "false") << "\n";
   file << "save_gfx_groups="
        << (feature_flags.kSaveGfxGroups ? "true" : "false") << "\n";
-  file << "save_messages="
-       << (feature_flags.kSaveMessages ? "true" : "false") << "\n";
+  file << "save_messages=" << (feature_flags.kSaveMessages ? "true" : "false")
+       << "\n";
   file << "enable_custom_objects="
        << (feature_flags.kEnableCustomObjects ? "true" : "false") << "\n\n";
 
@@ -452,12 +466,12 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
        << "\n";
   file << "backup_on_save="
        << (workspace_settings.backup_on_save ? "true" : "false") << "\n";
-  file << "backup_retention_count="
-       << workspace_settings.backup_retention_count << "\n";
+  file << "backup_retention_count=" << workspace_settings.backup_retention_count
+       << "\n";
   file << "backup_keep_daily="
        << (workspace_settings.backup_keep_daily ? "true" : "false") << "\n";
-  file << "backup_keep_daily_days="
-       << workspace_settings.backup_keep_daily_days << "\n";
+  file << "backup_keep_daily_days=" << workspace_settings.backup_keep_daily_days
+       << "\n";
   file << "show_grid=" << (workspace_settings.show_grid ? "true" : "false")
        << "\n";
   file << "show_collision="
@@ -693,6 +707,8 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         output_folder = value;
       else if (key == "custom_objects_folder")
         custom_objects_folder = value;
+      else if (key == "hack_manifest_file")
+        hack_manifest_file = value;
       else if (key == "additional_roms")
         additional_roms = ParseStringList(value);
     } else if (current_section == "rom") {
@@ -803,8 +819,7 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
       }
       auto parsed = ParseHexUint32(id_token);
       if (parsed.has_value()) {
-        custom_object_files[static_cast<int>(*parsed)] =
-            ParseStringList(value);
+        custom_object_files[static_cast<int>(*parsed)] = ParseStringList(value);
       }
     } else if (current_section == "agent_settings") {
       if (key == "ai_provider")
@@ -1182,6 +1197,45 @@ absl::Status YazeProject::ImportFromZScreamFormat(
   InitializeDefaults();
 
   return absl::OkStatus();
+}
+
+void YazeProject::ReloadHackManifest() {
+  TryLoadHackManifest();
+}
+
+void YazeProject::TryLoadHackManifest() {
+#ifdef __EMSCRIPTEN__
+  return;  // Hack manifests not supported in web builds
+#endif
+
+  // Priority 1: Explicit hack_manifest_file setting from project
+  if (!hack_manifest_file.empty()) {
+    auto manifest_path = GetAbsolutePath(hack_manifest_file);
+    if (std::filesystem::exists(manifest_path)) {
+      auto status = hack_manifest.LoadFromFile(manifest_path);
+      if (status.ok()) {
+        LOG_DEBUG("Project", "Loaded hack manifest: %s", manifest_path.c_str());
+      } else {
+        LOG_WARN("Project", "Failed to load hack manifest %s: %s",
+                 manifest_path.c_str(), std::string(status.message()).c_str());
+      }
+      return;
+    }
+  }
+
+  // Priority 2: Auto-discover hack_manifest.json in code_folder
+  if (!code_folder.empty()) {
+    auto code_path = GetAbsolutePath(code_folder);
+    auto candidate = std::filesystem::path(code_path) / "hack_manifest.json";
+    if (std::filesystem::exists(candidate)) {
+      auto status = hack_manifest.LoadFromFile(candidate.string());
+      if (status.ok()) {
+        hack_manifest_file = GetRelativePath(candidate.string());
+        LOG_DEBUG("Project", "Auto-discovered hack manifest: %s",
+                  candidate.string().c_str());
+      }
+    }
+  }
 }
 
 void YazeProject::InitializeDefaults() {
@@ -1860,14 +1914,15 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
         labels_filename = proj["labels_filename"].get<std::string>();
       if (proj.contains("symbols_filename"))
         symbols_filename = proj["symbols_filename"].get<std::string>();
+      if (proj.contains("hack_manifest_file"))
+        hack_manifest_file = proj["hack_manifest_file"].get<std::string>();
 
       if (proj.contains("rom") && proj["rom"].is_object()) {
         auto& rom = proj["rom"];
         if (rom.contains("role"))
           rom_metadata.role = ParseRomRole(rom["role"].get<std::string>());
         if (rom.contains("expected_hash"))
-          rom_metadata.expected_hash =
-              rom["expected_hash"].get<std::string>();
+          rom_metadata.expected_hash = rom["expected_hash"].get<std::string>();
         if (rom.contains("write_policy"))
           rom_metadata.write_policy =
               ParseRomWritePolicy(rom["write_policy"].get<std::string>());
@@ -1938,8 +1993,7 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
           feature_flags.kSaveAllPalettes =
               flags["kSaveAllPalettes"].get<bool>();
         if (flags.contains("kSaveGfxGroups"))
-          feature_flags.kSaveGfxGroups =
-              flags["kSaveGfxGroups"].get<bool>();
+          feature_flags.kSaveGfxGroups = flags["kSaveGfxGroups"].get<bool>();
         if (flags.contains("kSaveMessages"))
           feature_flags.kSaveMessages = flags["kSaveMessages"].get<bool>();
       }
@@ -1954,8 +2008,7 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
           workspace_settings.autosave_interval_secs =
               ws["auto_save_interval"].get<float>();
         if (ws.contains("backup_on_save"))
-          workspace_settings.backup_on_save =
-              ws["backup_on_save"].get<bool>();
+          workspace_settings.backup_on_save = ws["backup_on_save"].get<bool>();
         if (ws.contains("backup_retention_count"))
           workspace_settings.backup_retention_count =
               ws["backup_retention_count"].get<int>();
@@ -2121,6 +2174,7 @@ absl::Status YazeProject::SaveToJsonFormat() {
   proj["patches_folder"] = patches_folder;
   proj["labels_filename"] = labels_filename;
   proj["symbols_filename"] = symbols_filename;
+  proj["hack_manifest_file"] = hack_manifest_file;
   proj["output_folder"] = output_folder;
 
   proj["rom"]["role"] = RomRoleToString(rom_metadata.role);

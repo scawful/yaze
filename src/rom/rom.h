@@ -57,9 +57,9 @@ class Rom {
   }
 
   // Raw access
-  absl::StatusOr<uint8_t> ReadByte(int offset);
-  absl::StatusOr<uint16_t> ReadWord(int offset);
-  absl::StatusOr<uint32_t> ReadLong(int offset);
+  absl::StatusOr<uint8_t> ReadByte(int offset) const;
+  absl::StatusOr<uint16_t> ReadWord(int offset) const;
+  absl::StatusOr<uint32_t> ReadLong(int offset) const;
   absl::StatusOr<std::vector<uint8_t>> ReadByteVector(uint32_t offset,
                                                       uint32_t length) const;
   absl::StatusOr<gfx::Tile16> ReadTile16(uint32_t tile16_id, uint32_t tile16_ptr);
@@ -173,4 +173,3 @@ class Rom {
 }  // namespace yaze
 
 #endif  // YAZE_ROM_ROM_H
-

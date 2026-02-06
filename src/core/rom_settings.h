@@ -44,6 +44,9 @@ constexpr char kOverworldExpandedPtrHigh[] = "overworld_ptr_high_expanded";
 constexpr char kOverworldExpandedPtrLow[] = "overworld_ptr_low_expanded";
 constexpr char kOverworldExpandedPtrMagic[] = "overworld_ptr_magic_expanded";
 constexpr char kDungeonMapTile16Expanded[] = "dungeon_map_tile16_expanded";
+constexpr char kOverworldGfxPtr1[] = "overworld_gfx_ptr1";
+constexpr char kOverworldGfxPtr2[] = "overworld_gfx_ptr2";
+constexpr char kOverworldGfxPtr3[] = "overworld_gfx_ptr3";
 }  // namespace RomAddressKey
 
 struct RomAddressOverrides {

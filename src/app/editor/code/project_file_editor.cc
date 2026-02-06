@@ -280,6 +280,9 @@ patches_folder=patches
 labels_filename=labels.txt
 symbols_filename=symbols.txt
 output_folder=build
+custom_objects_folder=
+# Optional: ASM integration (e.g. Oracle-of-Secrets hack_manifest.json)
+hack_manifest_file=
 additional_roms=
 
 [rom]
@@ -338,6 +341,9 @@ theme=dark
 # overworld_entrance_flag_expanded=0x0DB895
 # overworld_ptr_marker_expanded=0x1423FF
 # overworld_ptr_magic_expanded=0xEA
+# overworld_gfx_ptr1=0x004F80
+# overworld_gfx_ptr2=0x00505F
+# overworld_gfx_ptr3=0x00513E
 
 [custom_objects]
 # object_0x31=track_LR.bin,track_UD.bin,track_corner_TL.bin

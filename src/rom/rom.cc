@@ -265,7 +265,7 @@ absl::Status Rom::SaveToFile(const SaveSettings& settings) {
   return absl::OkStatus();
 }
 
-absl::StatusOr<uint8_t> Rom::ReadByte(int offset) {
+absl::StatusOr<uint8_t> Rom::ReadByte(int offset) const {
   if (offset < 0 || offset >= static_cast<int>(rom_data_.size())) {
     return absl::OutOfRangeError(absl::StrFormat(
         "Offset %d out of range (size: %d)", offset, rom_data_.size()));
@@ -273,14 +273,14 @@ absl::StatusOr<uint8_t> Rom::ReadByte(int offset) {
   return rom_data_[offset];
 }
 
-absl::StatusOr<uint16_t> Rom::ReadWord(int offset) {
+absl::StatusOr<uint16_t> Rom::ReadWord(int offset) const {
   if (offset < 0 || offset + 1 >= static_cast<int>(rom_data_.size())) {
     return absl::OutOfRangeError("Offset out of range");
   }
   return (uint16_t)(rom_data_[offset] | (rom_data_[offset + 1] << 8));
 }
 
-absl::StatusOr<uint32_t> Rom::ReadLong(int offset) {
+absl::StatusOr<uint32_t> Rom::ReadLong(int offset) const {
   if (offset < 0 || offset + 2 >= static_cast<int>(rom_data_.size())) {
     return absl::OutOfRangeError("Offset out of range");
   }
