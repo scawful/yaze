@@ -3,6 +3,9 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
+### 2026-02-06 zelda3-hacking-expert – Room-mode bounds clipping
+- Update 2026-02-06 (zelda3-hacking-expert): added room bounds guard to `ObjectDrawer::WriteTile8` plus repeat-aware clipping for spaced patterns in `dungeon-object-validate --room`; re-ran vanilla + oos168 samples (Goron Mines focus) with `mismatch_count=0`; updated `dungeon-object-validation-spec.md`. No GUI launched.
+
 ### 2026-02-06 docs-janitor – Room-mode validation + skill
 - Update 2026-02-06 (docs-janitor): built z3ed, ran `dungeon-object-validate --room` on vanilla + oos168 copy (Goron Mines focus), documented results/mismatches in `docs/internal/agents/dungeon-object-validation-spec.md`, and created `yaze-z3ed-workflow` skill; no GUI launched.
 

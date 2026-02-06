@@ -4265,6 +4265,9 @@ void ObjectDrawer::MarkBG1Transparent(gfx::BackgroundBuffer& bg1, int tile_x,
 
 void ObjectDrawer::WriteTile8(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
                               const gfx::TileInfo& tile_info) {
+  if (!IsValidTilePosition(tile_x, tile_y)) {
+    return;
+  }
   PushTrace(tile_x, tile_y, tile_info);
   if (trace_only_) {
     return;
