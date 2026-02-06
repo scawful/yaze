@@ -3,7 +3,9 @@
 #include <memory>
 #include <vector>
 
+#include "cli/handlers/game/dungeon_collision_commands.h"
 #include "cli/handlers/game/dungeon_commands.h"
+#include "cli/handlers/game/minecart_commands.h"
 #include "cli/handlers/game/overworld_commands.h"
 #include "cli/handlers/game/overworld_graph_commands.h"
 #include "cli/handlers/graphics/hex_commands.h"
@@ -36,8 +38,10 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<DungeonGetEntranceCommandHandler>());
   handlers.push_back(std::make_unique<DungeonExportRoomCommandHandler>());
   handlers.push_back(std::make_unique<DungeonListObjectsCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonListCustomCollisionCommandHandler>());
   handlers.push_back(std::make_unique<DungeonGetRoomTilesCommandHandler>());
   handlers.push_back(std::make_unique<DungeonSetRoomPropertyCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonMinecartAuditCommandHandler>());
 
   // Overworld commands
   handlers.push_back(std::make_unique<OverworldFindTileCommandHandler>());

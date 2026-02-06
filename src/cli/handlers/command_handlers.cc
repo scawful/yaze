@@ -3,10 +3,12 @@
 #include <memory>
 
 #include "cli/handlers/game/dialogue_commands.h"
+#include "cli/handlers/game/dungeon_collision_commands.h"
 #include "cli/handlers/game/dungeon_commands.h"
 #include "cli/handlers/game/dungeon_graph_commands.h"
 #include "cli/handlers/game/dungeon_group_commands.h"
 #include "cli/handlers/game/dungeon_map_commands.h"
+#include "cli/handlers/game/minecart_commands.h"
 #include "cli/handlers/game/message_commands.h"
 #include "cli/handlers/game/music_commands.h"
 #include "cli/handlers/game/overworld_commands.h"
@@ -102,12 +104,14 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<DungeonGetEntranceCommandHandler>());
   handlers.push_back(std::make_unique<DungeonExportRoomCommandHandler>());
   handlers.push_back(std::make_unique<DungeonListObjectsCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonListCustomCollisionCommandHandler>());
   handlers.push_back(std::make_unique<DungeonGetRoomTilesCommandHandler>());
   handlers.push_back(std::make_unique<DungeonSetRoomPropertyCommandHandler>());
   handlers.push_back(std::make_unique<DungeonRoomHeaderCommandHandler>());
   handlers.push_back(std::make_unique<DungeonGraphCommandHandler>());
   handlers.push_back(std::make_unique<DungeonGroupCommandHandler>());
   handlers.push_back(std::make_unique<DungeonMapCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonMinecartAuditCommandHandler>());
   handlers.push_back(std::make_unique<EntranceInfoCommandHandler>());
   handlers.push_back(std::make_unique<DungeonDiscoverCommandHandler>());
 

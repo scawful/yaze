@@ -2,8 +2,10 @@
 
 #include "cli/service/resources/command_context.h"
 #include "cli/handlers/game/dialogue_commands.h"
+#include "cli/handlers/game/dungeon_collision_commands.h"
 #include "cli/handlers/game/dungeon_commands.h"
 #include "cli/handlers/game/message_commands.h"
+#include "cli/handlers/game/minecart_commands.h"
 #include "cli/handlers/game/music_commands.h"
 #include "cli/handlers/game/overworld_commands.h"
 #include "cli/handlers/graphics/sprite_commands.h"
@@ -79,6 +81,8 @@ REGISTER_AGENT_TOOL("dungeon-list-sprites", "dungeon", "List sprites in a dungeo
 REGISTER_AGENT_TOOL("dungeon-describe-room", "dungeon", "Describe a room", "dungeon-describe-room --room=<id>", {}, true, false, DungeonDescribeRoomCommandHandler)
 REGISTER_AGENT_TOOL("dungeon-export-room", "dungeon", "Export room data", "dungeon-export-room --room=<id>", {}, true, false, DungeonExportRoomCommandHandler)
 REGISTER_AGENT_TOOL("dungeon-list-objects", "dungeon", "List room objects", "dungeon-list-objects --room=<id>", {}, true, false, DungeonListObjectsCommandHandler)
+REGISTER_AGENT_TOOL("dungeon-list-custom-collision", "dungeon", "List custom collision tiles for a room", "dungeon-list-custom-collision --room=<id>", {}, true, false, DungeonListCustomCollisionCommandHandler)
+REGISTER_AGENT_TOOL("dungeon-minecart-audit", "dungeon", "Audit minecart-related room data (objects/sprites/collision)", "dungeon-minecart-audit --room=<id>", {}, true, false, DungeonMinecartAuditCommandHandler)
 REGISTER_AGENT_TOOL("dungeon-get-room-tiles", "dungeon", "Get room tiles", "dungeon-get-room-tiles --room=<id>", {}, true, false, DungeonGetRoomTilesCommandHandler)
 REGISTER_AGENT_TOOL("dungeon-set-room-property", "dungeon", "Set room property", "dungeon-set-room-property --room=<id> --key=<key> --value=<val>", {}, true, false, DungeonSetRoomPropertyCommandHandler)
 REGISTER_AGENT_TOOL("dungeon-room-header", "dungeon", "Debug room header bytes", "dungeon-room-header --room=<id>", {}, true, false, DungeonRoomHeaderCommandHandler)

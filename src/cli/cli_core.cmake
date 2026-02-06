@@ -26,12 +26,14 @@ set(YAZE_CLI_CORE_SOURCES
   cli/handlers/graphics/sprite_commands.cc
 
   cli/handlers/game/dialogue_commands.cc
+  cli/handlers/game/dungeon_collision_commands.cc
   cli/handlers/game/dungeon_commands.cc
   cli/handlers/game/dungeon_graph_commands.cc
   cli/handlers/game/dungeon_group_commands.cc
   cli/handlers/game/dungeon_map_commands.cc
   cli/handlers/game/message.cc
   cli/handlers/game/message_commands.cc
+  cli/handlers/game/minecart_commands.cc
   cli/handlers/game/music_commands.cc
   cli/handlers/game/overworld.cc
   cli/handlers/game/overworld_commands.cc

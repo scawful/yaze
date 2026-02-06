@@ -47,6 +47,8 @@ class DungeonExportRoomCommandHandler;
 class DungeonListObjectsCommandHandler;
 class DungeonGetRoomTilesCommandHandler;
 class DungeonSetRoomPropertyCommandHandler;
+class DungeonListCustomCollisionCommandHandler;
+class DungeonMinecartAuditCommandHandler;
 
 class OverworldFindTileCommandHandler;
 class OverworldDescribeMapCommandHandler;

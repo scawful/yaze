@@ -332,6 +332,28 @@ class ToolSchemaRegistry {
               .related_tools = {"resource-search"}});
 
     // Dungeon tools
+    Register({.name = "dungeon-list-sprites",
+              .category = "dungeon",
+              .description = "List sprites in a dungeon room",
+              .detailed_help =
+                  "Lists all sprites in the room, including ID, resolved name, "
+                  "X/Y, subtype, and layer. Use --sprite-registry to load "
+                  "Oracle-of-Secrets custom sprite names.",
+              .arguments = {{.name = "room",
+                             .type = "number",
+                             .description = "Room ID (0-319)",
+                             .required = true},
+                            {.name = "sprite-registry",
+                             .type = "string",
+                             .description =
+                                 "Optional path to an Oracle sprite registry "
+                                 "JSON to resolve custom sprite names",
+                             .required = false}},
+              .examples = {"z3ed dungeon-list-sprites --room=0x77",
+                           "z3ed dungeon-list-sprites --room=0x77 "
+                           "--sprite-registry=oracle_sprite_registry.json"},
+              .related_tools = {"dungeon-describe-room", "dungeon-list-objects"}});
+
     Register(
         {.name = "dungeon-describe-room",
          .category = "dungeon",
@@ -345,6 +367,103 @@ class ToolSchemaRegistry {
                         .required = true}},
          .examples = {"z3ed dungeon-describe-room --room=5"},
          .related_tools = {"dungeon-list-sprites", "dungeon-list-objects"}});
+
+    Register({.name = "dungeon-list-objects",
+              .category = "dungeon",
+              .description = "List tile objects in a dungeon room",
+              .detailed_help =
+                  "Lists all tile objects for a room (ID, X/Y, size, layer).",
+              .arguments = {{.name = "room",
+                             .type = "number",
+                             .description = "Room ID (0-319)",
+                             .required = true}},
+              .examples = {"z3ed dungeon-list-objects --room=0x77"},
+              .related_tools = {"dungeon-describe-room", "dungeon-list-sprites"}});
+
+    Register(
+        {.name = "dungeon-list-custom-collision",
+         .category = "dungeon",
+         .description = "List custom collision tiles for a dungeon room",
+         .detailed_help =
+             "Loads the ZScream-style custom collision map (64x64) for a room. "
+             "This is where Oracle-of-Secrets stores minecart tracks/stop tiles "
+             "(B0-BE, B7-BA) and switch tiles (D0-D3). By default, returns only "
+             "nonzero entries unless you pass --all or --tiles.",
+         .arguments =
+             {{.name = "room",
+               .type = "number",
+               .description = "Room ID (0-319)",
+               .required = true},
+              {.name = "tiles",
+               .type = "string",
+               .description =
+                   "Comma-separated list of tile values to filter (hex), e.g. "
+                   "0xB7,0xB8,0xB9,0xBA",
+               .required = false},
+              {.name = "nonzero",
+               .type = "boolean",
+               .description = "If true, return only nonzero collision tiles",
+               .required = false},
+              {.name = "all",
+               .type = "boolean",
+               .description = "If true, return all 4096 tiles (including 0x00)",
+               .required = false}},
+         .examples = {"z3ed dungeon-list-custom-collision --room=0x77",
+                      "z3ed dungeon-list-custom-collision --room=0x77 "
+                      "--tiles=0xB7,0xB8,0xB9,0xBA"},
+         .related_tools = {"dungeon-map", "dungeon-minecart-audit"}});
+
+    Register(
+        {.name = "dungeon-minecart-audit",
+         .category = "dungeon",
+         .description = "Audit minecart-related room data",
+         .detailed_help =
+             "Checks for minecart track objects (default: 0x31), minecart "
+             "sprites (default: 0xA3), and minecart collision tiles in the "
+             "custom collision map. Emits heuristics for common mismatches.",
+         .arguments =
+             {{.name = "room",
+               .type = "number",
+               .description = "Room ID (0-319). Mutually exclusive with rooms/all",
+               .required = false},
+              {.name = "rooms",
+               .type = "string",
+               .description =
+                   "Comma-separated room list (hex), e.g. 0x77,0xA8,0xB8",
+               .required = false},
+              {.name = "all",
+               .type = "boolean",
+               .description = "If true, audit all rooms (0-319)",
+               .required = false},
+              {.name = "only-issues",
+               .type = "boolean",
+               .description = "If true, emit only rooms with issues",
+               .required = false},
+              {.name = "only-matches",
+               .type = "boolean",
+               .description =
+                   "If true, emit only rooms with minecart-related data",
+               .required = false},
+              {.name = "include-track-objects",
+               .type = "boolean",
+               .description =
+                   "If true, treat track objects as a match even if collision "
+                   "data is absent (useful when collision work is unfinished)",
+               .required = false},
+              {.name = "track-object-id",
+               .type = "number",
+               .description = "Track object ID (default: 0x31)",
+               .required = false},
+              {.name = "minecart-sprite-id",
+               .type = "number",
+               .description = "Minecart sprite ID (default: 0xA3)",
+               .required = false}},
+         .examples = {"z3ed dungeon-minecart-audit --room=0x77 --only-issues",
+                      "z3ed dungeon-minecart-audit --rooms=0x77,0xA8,0xB8"},
+         .related_tools = {"dungeon-list-sprites",
+                           "dungeon-list-objects",
+                           "dungeon-list-custom-collision",
+                           "dungeon-map"}});
 
     // Overworld tools
     Register({.name = "overworld-describe-map",
