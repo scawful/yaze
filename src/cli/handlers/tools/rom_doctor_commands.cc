@@ -1,6 +1,8 @@
 #include "cli/handlers/tools/rom_doctor_commands.h"
 
+#include <cmath>
 #include <iostream>
+#include <numeric>
 
 #include "absl/status/status.h"
 #include "absl/strings/match.h"
@@ -15,7 +17,6 @@ namespace yaze::cli {
 
 namespace {
 
-// ROM header locations (LoROM)
 // ROM header locations (LoROM)
 // kSnesHeaderBase, kChecksumComplementPos, kChecksumPos defined in diagnostic_types.h
 
@@ -155,17 +156,31 @@ RomFeatures DetectRomFeaturesLocal(Rom* rom) {
   return features;
 }
 
-void CheckCorruptionHeuristics(Rom* rom, DiagnosticReport& report) {
+double CalculateEntropy(const uint8_t* data, size_t size) {
+  if (size == 0)
+    return 0.0;
+  std::array<size_t, 256> counts = {0};
+  for (size_t i = 0; i < size; ++i) {
+    counts[data[i]]++;
+  }
+
+  double entropy = 0.0;
+  for (size_t count : counts) {
+    if (count > 0) {
+      double p = static_cast<double>(count) / size;
+      entropy -= p * std::log2(p);
+    }
+  }
+  return entropy;
+}
+
+void CheckCorruptionHeuristics(Rom* rom, DiagnosticReport& report, bool deep) {
   const auto* data = rom->data();
   size_t size = rom->size();
 
   // Check known problematic addresses
   for (uint32_t addr : kProblemAddresses) {
     if (addr < size) {
-      // Heuristic: If we find 0x00 or 0xFF in the middle of what should be Tile16 data,
-      // it might be suspicious, but we need a better heuristic.
-      // For now, let's just check if it's a known bad value from a specific bug.
-      // Example: A previous bug wrote 0x00 to these locations.
       if (data[addr] == 0x00) {
         DiagnosticFinding finding;
         finding.id = "known_corruption_pattern";
@@ -183,8 +198,6 @@ void CheckCorruptionHeuristics(Rom* rom, DiagnosticReport& report) {
   }
 
   // Check for zero-filled blocks in critical code regions (Bank 00)
-  // 0x0000-0x7FFF is code/data. Large blocks of 0x00 might indicate erasure.
-  // We'll scan a small sample.
   int zero_run = 0;
   for (uint32_t i = 0x0000; i < 0x1000; ++i) {
     if (data[i] == 0x00)
@@ -205,6 +218,59 @@ void CheckCorruptionHeuristics(Rom* rom, DiagnosticReport& report) {
       break;
     }
   }
+
+  if (deep) {
+    // Perform full ROM entropy scan per 32KB bank
+    for (uint32_t bank = 0; bank < size / 0x8000; ++bank) {
+      double entropy = CalculateEntropy(data + (bank * 0x8000), 0x8000);
+      if (entropy < 0.5) {
+        DiagnosticFinding finding;
+        finding.id = "low_entropy_bank";
+        finding.severity = DiagnosticSeverity::kWarning;
+        finding.message = absl::StrFormat(
+            "Very low entropy (%.2f) detected in Bank %02X. Region might be erased or uninitialized.",
+            entropy, bank);
+        finding.location = absl::StrFormat("Bank %02X", bank);
+        finding.suggested_action = "Verify if this bank should contain data.";
+        finding.fixable = false;
+        report.AddFinding(finding);
+      }
+    }
+
+    // Check for pointer chain integrity in overworld maps
+    uint32_t high_table =
+        report.features.has_expanded_pointer_tables ? kExpandedPtrTableHigh : kPtrTableHighBase;
+    uint32_t low_table =
+        report.features.has_expanded_pointer_tables ? kExpandedPtrTableLow : kPtrTableLowBase;
+    int map_count =
+        report.features.has_expanded_pointer_tables ? kExpandedMapCount : kVanillaMapCount;
+
+    if (high_table + map_count < size && low_table + map_count < size) {
+      for (int i = 0; i < map_count; ++i) {
+        uint8_t high = data[high_table + i];
+        uint16_t low = data[low_table + i] | (data[low_table + i + map_count] << 8);
+        uint32_t target = (high << 16) | low;
+
+        // LoROM address translation (simplified check)
+        uint32_t pc_addr = 0;
+        if ((target & 0x7FFF) >= 0 && target < 0xFF0000) {
+            pc_addr = ((target & 0x7F0000) >> 1) | (target & 0x7FFF);
+        }
+
+        if (pc_addr >= size && target != 0) {
+          DiagnosticFinding finding;
+          finding.id = "invalid_map_pointer";
+          finding.severity = DiagnosticSeverity::kError;
+          finding.message = absl::StrFormat(
+              "Map %02X points to invalid SNES address 0x%06X", i, target);
+          finding.location = absl::StrFormat("Map %02X Pointer", i);
+          finding.suggested_action = "Fix the pointer in the overworld editor.";
+          finding.fixable = false;
+          report.AddFinding(finding);
+        }
+      }
+    }
+  }
 }
 
 void ValidateExpandedTables(Rom* rom, DiagnosticReport& report) {
@@ -215,7 +281,6 @@ void ValidateExpandedTables(Rom* rom, DiagnosticReport& report) {
   size_t size = rom->size();
 
   // Check Tile16 expansion region (0x1E8000 - 0x1F0000)
-  // This region should contain data, not be all empty.
   if (size >= kMap16TilesExpandedEnd) {
     bool all_empty = true;
     for (uint32_t i = kMap16TilesExpanded; i < kMap16TilesExpandedEnd;
@@ -312,6 +377,7 @@ absl::Status RomDoctorCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
   const bool verbose = parser.HasFlag("verbose");
+  const bool deep = parser.HasFlag("deep");
   const bool is_json = formatter.IsJson();
 
   OutputTextBanner(is_json);
@@ -412,7 +478,7 @@ absl::Status RomDoctorCommandHandler::Execute(
   }
 
   // 3. Check for corruption heuristics
-  CheckCorruptionHeuristics(rom, report);
+  CheckCorruptionHeuristics(rom, report, deep);
 
   // 4. Hyrule Magic / Parallel Worlds Analysis
   yaze::rom::HyruleMagicValidator hm_validator(rom);

@@ -181,3 +181,11 @@ Progress logs saved in `.context/scratchpad/yaze-oos-readiness.md`.
 - Updated public `z3ed` docs to recommend `./scripts/z3ed` and documented the new commands.
 - Validation: built `z3ed` in `build_agent` (`YAZE_ENABLE_GRPC=OFF`) and ran the minecart audit on OOS + vanilla ROMs.
 - Commit: `b96aed6a` (`ai-infra-architect: add minecart audit + custom collision CLI`)
+
+## Continuation (2026-02-06, ai-infra-architect)
+- Added `core::HackManifest` for ASM integration (manifest parsing, address classification, write-range conflict analysis).
+- Project support: new `hack_manifest_file` key, auto-discovery under `code_folder`, and `ReloadHackManifest()` for UI reload.
+- UI: Settings panel renders manifest summary (pipeline, expanded messages, feature flags, room tags) and dungeon tag dropdowns overlay manifest tag names + disabled-by-flag hints.
+- Guardrail: WIP app test suites in `yaze_test` are now gated behind `YAZE_ENABLE_EXPERIMENTAL_APP_TEST_SUITES=ON` so baseline test builds aren’t blocked.
+- Validation: `bash scripts/agents/smoke-build.sh minimal` (pass) and `ctest -R HackManifestTest` (2 tests passed).
+- Minecart audit follow-up (oos168x): `0xA8`/`0xD8`/`0xDA` have minecart sprites in room data but they are not placed on stop tiles; `0xB8` has no carts and no stop tiles; `0xD0`-`0xD3` switch corners and `Sprite_SwitchTrack (0xB0)` are missing in all four rooms.

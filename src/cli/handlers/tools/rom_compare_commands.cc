@@ -24,17 +24,26 @@ struct RomRegion {
   uint32_t start;
   uint32_t end;
   bool critical;
+  const char* category;
 };
 
 const RomRegion kCriticalRegions[] = {
-    {"Map32 Ptr Low", 0x1794D, 0x17B2D, true},
-    {"Map32 Ptr High", 0x17B2D, 0x17D0D, true},
-    {"Tile16 Vanilla", 0x78000, 0x78000 + (3752 * 8), false},
-    {"Tile16 Expanded", 0x1E8000, 0x1F0000, false},
-    {"Tile32 BL Expanded", 0x1F0000, 0x1F8000, false},
-    {"Tile32 BR Expanded", 0x1F8000, 0x200000, false},
-    {"ZSCustom Tables", 0x140000, 0x142000, false},
-    {"Overlay Space", 0x120000, 0x130000, false},
+    {"Map32 Ptr Low", 0x1794D, 0x17B2D, true, "overworld"},
+    {"Map32 Ptr High", 0x17B2D, 0x17D0D, true, "overworld"},
+    {"Overworld Data", 0x70000, 0x78000, true, "overworld"},
+    {"Tile16 Vanilla", 0x78000, 0x78000 + (3752 * 8), false, "overworld"},
+    {"Tile16 Expanded", 0x1E8000, 0x1F0000, false, "overworld"},
+    {"Tile32 BL Expanded", 0x1F0000, 0x1F8000, false, "overworld"},
+    {"Tile32 BR Expanded", 0x1F8000, 0x200000, false, "overworld"},
+    {"Dungeon Ptr Table", 0x01F800, 0x01FB00, true, "dungeon"},
+    {"Dungeon Room Data", 0x1D8000, 0x1E8000, true, "dungeon"},
+    {"Message Data", 0x1C0000, 0x1D8000, false, "text"},
+    {"ZSCustom Tables", 0x140000, 0x142000, false, "system"},
+    {"Overlay Space", 0x120000, 0x130000, false, "overworld"},
+    {"SNES Header", 0x7FC0, 0x8000, true, "system"},
+    {"Bank 00 Code", 0x000000, 0x008000, true, "code"},
+    {"Bank 01 Code", 0x008000, 0x010000, true, "code"},
+    {"Bank 02 Code", 0x010000, 0x018000, true, "code"},
 };
 
 // =============================================================================
@@ -88,10 +97,57 @@ std::string GetVersionString(uint8_t version) {
 
 void FindDiffRegions(const std::vector<uint8_t>& target,
                      const std::vector<uint8_t>& baseline,
-                     RomCompareResult& result, bool smart_diff) {
+                     RomCompareResult& result, bool smart_diff,
+                     const std::string& region_filter, bool scan_all) {
   size_t min_size = std::min(target.size(), baseline.size());
 
+  auto is_ignored = [&](uint32_t i) {
+    if (!smart_diff) return false;
+    // SNES Checksum region
+    if (i >= yaze::cli::kChecksumComplementPos && i <= yaze::cli::kChecksumPos + 1)
+      return true;
+    // ZSCustom Version/Flags region
+    if (i >= 0x140141 && i <= 0x140148)
+      return true;
+    return false;
+  };
+
+  if (scan_all) {
+    // Perform full ROM scan for differences
+    uint32_t start = 0;
+    bool in_diff = false;
+    size_t diff_count = 0;
+
+    for (uint32_t i = 0; i < min_size; ++i) {
+      if (is_ignored(i)) continue;
+
+      if (target[i] != baseline[i]) {
+        if (!in_diff) {
+          start = i;
+          in_diff = true;
+          diff_count = 0;
+        }
+        diff_count++;
+      } else if (in_diff) {
+        RomCompareResult::DiffRegion diff;
+        diff.start = start;
+        diff.end = i;
+        diff.diff_count = diff_count;
+        diff.region_name = "Modified Region";
+        diff.critical = false;
+        result.diff_regions.push_back(diff);
+        result.total_diff_bytes += diff_count;
+        in_diff = false;
+      }
+    }
+    return;
+  }
+
   for (const auto& region : kCriticalRegions) {
+    if (!region_filter.empty() && region.category != region_filter) {
+      continue;
+    }
+
     if (region.start >= min_size) {
       continue;
     }
@@ -100,13 +156,7 @@ void FindDiffRegions(const std::vector<uint8_t>& target,
     size_t diff_count = 0;
 
     for (uint32_t i = region.start; i < end; ++i) {
-      // Smart diff: Ignore checksum bytes
-      if (smart_diff) {
-        if (i >= yaze::cli::kChecksumComplementPos &&
-            i <= yaze::cli::kChecksumPos + 1)
-          continue;
-        // Ignore ZSCustom timestamp/version if needed (optional)
-      }
+      if (is_ignored(i)) continue;
 
       if (target[i] != baseline[i]) {
         diff_count++;
@@ -182,7 +232,7 @@ void OutputTextDiffSummary(const RomCompareResult& result) {
   std::cout << "\n=== Difference Summary ===\n";
 
   if (result.diff_regions.empty()) {
-    std::cout << "No differences found in critical regions.\n";
+    std::cout << "No differences found in specified regions.\n";
     return;
   }
 
@@ -210,7 +260,7 @@ void OutputTextDetailedDiff(const std::vector<uint8_t>& target,
        ++i) {
     if (target[i] != baseline[i]) {
       std::cout << absl::StrFormat(
-          "    0x%06X: baseline=0x%02X target=0x%02X\n", i, baseline[i],
+          "    0x%06X:  base 0x%02X  |  target 0x%02X\n", i, baseline[i],
           target[i]);
       samples_shown++;
     }
@@ -250,10 +300,10 @@ void OutputTextAssessment(const RomCompareResult& result) {
 
   if (!has_issues && result.diff_regions.empty()) {
     std::cout
-        << "║  ROMs are identical in all critical regions                  ║\n";
+        << "║  ROMs are identical in all checked regions                   ║\n";
   } else if (!has_issues) {
     std::cout
-        << "║  ROMs have expected differences (version upgrade, etc.)      ║\n";
+        << "║  ROMs have expected differences (modifications detected)     ║\n";
   }
 
   std::cout
@@ -269,6 +319,8 @@ absl::Status RomCompareCommandHandler::Execute(
   bool verbose = parser.HasFlag("verbose");
   bool show_diff = parser.HasFlag("show-diff");
   bool smart_diff = parser.HasFlag("smart");
+  bool scan_all = parser.HasFlag("all");
+  std::string region_filter = parser.GetString("region").value_or("");
   bool is_json = formatter.IsJson();
 
   if (!baseline_path.has_value()) {
@@ -312,7 +364,7 @@ absl::Status RomCompareCommandHandler::Execute(
                            result.baseline.has_expanded_tile32);
 
   // Find differences
-  FindDiffRegions(target_data, baseline_data, result, smart_diff);
+  FindDiffRegions(target_data, baseline_data, result, smart_diff, region_filter, scan_all);
 
   // JSON output
   OutputRomInfoJson(formatter, "baseline", result.baseline);
