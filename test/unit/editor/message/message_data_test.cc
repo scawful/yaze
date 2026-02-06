@@ -849,16 +849,16 @@ TEST(ExpandedBankTest, ConstantsCorrect) {
   // Bank $2F: SNES $2F8000 = PC ((0x2F >> 1) << 16) | (0x8000 & 0x7FFF)
   //         = (0x17 << 16) | 0x0000 = 0x178000 - wait, let's just use SnesToPc
   uint32_t pc = SnesToPc(0x2F8000);
-  EXPECT_EQ(pc, kExpandedTextData);
+  EXPECT_EQ(pc, kExpandedTextDataDefault);
 
   uint32_t pc_end = SnesToPc(0x2FFFFF);
-  EXPECT_EQ(pc_end, kExpandedTextDataEnd);
+  EXPECT_EQ(pc_end, kExpandedTextDataEndDefault);
 }
 
 TEST(ExpandedBankTest, ReadExpandedTextDataSimple) {
   // Two messages: "AB" + terminator + "CD" + terminator + end marker
   std::vector<uint8_t> rom_data(0x180000, 0x00);
-  int base = kExpandedTextData;
+  int base = kExpandedTextDataDefault;
   rom_data[base + 0] = 0x00;  // A
   rom_data[base + 1] = 0x01;  // B
   rom_data[base + 2] = 0x7F;  // terminator
@@ -876,9 +876,9 @@ TEST(ExpandedBankTest, ReadExpandedTextDataSimple) {
 TEST(ExpandedBankTest, ReadExpandedTextDataEmpty) {
   // Immediately terminated
   std::vector<uint8_t> rom_data(0x180000, 0x00);
-  rom_data[kExpandedTextData] = 0xFF;
+  rom_data[kExpandedTextDataDefault] = 0xFF;
 
-  auto messages = ReadExpandedTextData(rom_data.data(), kExpandedTextData);
+  auto messages = ReadExpandedTextData(rom_data.data(), kExpandedTextDataDefault);
   EXPECT_TRUE(messages.empty());
 }
 
@@ -886,12 +886,12 @@ TEST(ExpandedBankTest, WriteExpandedTextData) {
   std::vector<uint8_t> rom_data(0x180000, 0x00);
 
   std::vector<std::string> texts = {"AB", "CD"};
-  auto status = WriteExpandedTextData(rom_data.data(), kExpandedTextData,
-                                      kExpandedTextDataEnd, texts);
+  auto status = WriteExpandedTextData(rom_data.data(), kExpandedTextDataDefault,
+                                      kExpandedTextDataEndDefault, texts);
   ASSERT_TRUE(status.ok());
 
   // Verify written data
-  int base = kExpandedTextData;
+  int base = kExpandedTextDataDefault;
   EXPECT_EQ(rom_data[base + 0], 0x00);  // A
   EXPECT_EQ(rom_data[base + 1], 0x01);  // B
   EXPECT_EQ(rom_data[base + 2], 0x7F);  // terminator
@@ -904,7 +904,7 @@ TEST(ExpandedBankTest, WriteExpandedTextData) {
 TEST(ExpandedBankTest, WriteExpandedTextDataOverflow) {
   // Tiny buffer — should fail
   std::vector<uint8_t> rom_data(0x180000, 0x00);
-  int start = kExpandedTextData;
+  int start = kExpandedTextDataDefault;
   int end = start + 2;  // Only 3 bytes available
 
   std::vector<std::string> texts = {"Hello, world!"};
@@ -916,12 +916,12 @@ TEST(ExpandedBankTest, WriteAndReadRoundTrip) {
   std::vector<uint8_t> rom_data(0x180000, 0x00);
 
   std::vector<std::string> texts = {"Hello", "[L]", "Test[2]msg"};
-  auto status = WriteExpandedTextData(rom_data.data(), kExpandedTextData,
-                                      kExpandedTextDataEnd, texts);
+  auto status = WriteExpandedTextData(rom_data.data(), kExpandedTextDataDefault,
+                                      kExpandedTextDataEndDefault, texts);
   ASSERT_TRUE(status.ok());
 
   auto messages =
-      ReadExpandedTextData(rom_data.data(), kExpandedTextData);
+      ReadExpandedTextData(rom_data.data(), kExpandedTextDataDefault);
   ASSERT_EQ(messages.size(), 3);
   EXPECT_EQ(messages[0].ContentsParsed, "Hello");
   EXPECT_EQ(messages[1].ContentsParsed, "[L]");

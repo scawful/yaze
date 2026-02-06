@@ -130,6 +130,7 @@ if(YAZE_BUILD_TESTS)
     # Unit Tests
     unit/core/asar_wrapper_test.cc
     unit/core/hex_test.cc
+    unit/core/hack_manifest_test.cc
     unit/deps/dependency_smoke_test.cc
     unit/cli/resource_catalog_test.cc
     unit/cli/command_registry_test.cc

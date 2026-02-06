@@ -26,7 +26,8 @@ class RomCompareCommandHandler : public resources::CommandHandler {
 
   std::string GetUsage() const override {
     return "rom-compare --rom <path> --baseline <path> [--verbose] "
-           "[--show-diff] [--format json|text]";
+           "[--show-diff] [--format json|text] [--smart] [--all] "
+           "[--region <category>]";
   }
 
   std::string GetDefaultFormat() const override { return "text"; }
@@ -37,7 +38,8 @@ class RomCompareCommandHandler : public resources::CommandHandler {
     Descriptor desc;
     desc.display_name = "rom-compare";
     desc.summary = "Compare a target ROM against a baseline to identify "
-                   "differences, detect corruption, and verify data integrity.";
+                   "differences, detect corruption, and verify data integrity "
+                   "with optional region filtering and smart diffing.";
     desc.todo_reference = "todo#rom-compare";
     return desc;
   }

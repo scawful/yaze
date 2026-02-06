@@ -35,6 +35,8 @@ const TestSuite kTestSuites[] = {
      false},
     {"rom_dependent", "Tests requiring actual Zelda3 ROM",
      "YAZE_ENABLE_ROM_TESTS=ON + ROM path", true, false},
+    {"integration", "End-to-end editor and ROM integration tests",
+     "ROM path", true, false},
     {"experimental", "AI runtime features and experiments",
      "YAZE_ENABLE_AI_RUNTIME=ON", false, true},
     {"benchmark", "Performance and optimization tests", "None", false, false},
@@ -166,6 +168,7 @@ absl::Status TestRunCommandHandler::Execute(
     resources::OutputFormatter& formatter) {
   auto label = parser.GetString("label").value_or("stable");
   auto preset = parser.GetString("preset").value_or("");
+  auto filter = parser.GetString("filter").value_or("");
   bool verbose = parser.HasFlag("verbose");
   bool is_json = formatter.IsJson();
 
@@ -188,9 +191,15 @@ absl::Status TestRunCommandHandler::Execute(
   formatter.AddField("build_directory", build_dir);
   formatter.AddField("label", label);
   formatter.AddField("preset", preset.empty() ? "default" : preset);
+  if (!filter.empty()) {
+    formatter.AddField("filter", filter);
+  }
 
   // Build ctest command
   std::string ctest_cmd = "ctest --test-dir " + build_dir + " -L " + label;
+  if (!filter.empty()) {
+    ctest_cmd += " -R \"" + filter + "\"";
+  }
   if (verbose) {
     ctest_cmd += " --output-on-failure";
   }

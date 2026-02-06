@@ -27,6 +27,84 @@ integration (z3dk, z3ed, mesen2-oos).
 | Graphics | **Yellow** (partially stable) | Sheet/palette mismatch; inconsistent saves | “Edit Graphics” now jumps to object sheet; add palette warnings + better jump hints. |
 | Messages | **Yellow** (usable) | Width validation + control code handling; import/export errors | Bundle export/import added; needs strict round‑trip validation UX. |
 
+## Detailed Evaluation (2026-02-05)
+
+### Overworld
+**What works**
+- Map canvas editing, tile16/tile8 editing, entrances/exits, and map properties.
+- ZSCustomOverworld v2/v3 presets and version detection with ROM markers.
+- Per-project ROM address overrides for expanded tables.
+- Save toggles for maps/entrances/exits/items/properties.
+
+**Risks / gaps**
+- Save operations still write whole tables (map16/map32), so blast radius is
+  large even when editing a single map.
+- ZSCustomOverworld detection relies on markers; a patched ROM with relocated
+  markers can mis-detect and write wrong offsets if overrides are incomplete.
+- SaveMapProperties includes music/palettes; needs clear scope labeling to
+  avoid unintended overwrites in OOS patches.
+- Limited automated validation of pointer tables and map data integrity.
+
+**Validation checklist**
+- Compare exported map data vs z3ed dump for a known room set.
+- Validate ROM markers and pointer tables before/after save (hash + offsets).
+- Confirm Save Scope respects overworld flags (maps, entrances, exits, items).
+
+### Dungeon
+**What works**
+- Room editing, object/sprite editing, and room graphics rendering.
+- Custom collision overlay + minecart overlay config (track/stop/switch IDs).
+- Custom object preview cache + subtype-aware selection bounds.
+- Save Scope toggles and per-room save actions.
+
+**Risks / gaps**
+- ZScream parity still incomplete (selection bounds, drag modifiers, context
+  menu ordering, and room actions).
+- Large decor selection/preview remains inconsistent for some routines.
+- Custom object file map requires correct project configuration; missing files
+  lead to empty renders/selection with minimal UX guidance.
+- Collision/pot/door tables are global; per-room save still risks unintended
+  updates if not explicitly gated.
+
+**Validation checklist**
+- ZScream runtime capture pass for selection/drag/context menus.
+- Room audit: object draw routines vs expected extents and collision tiles.
+- Verify Save Room does not write global tables unless explicitly enabled.
+
+### Graphics
+**What works**
+- Sheet browser + pixel editor + palette controls + link sprite editor.
+- Per-sheet save of modified graphics (LC-LZ2 compress/decompress path).
+- "Edit Graphics" in dungeon objects now jumps to associated sheet.
+
+**Risks / gaps**
+- Graphics pointers are derived from version constants; OOS patches with
+  relocated pointer tables need explicit overrides (now supported via
+  `rom_addresses` keys for `overworld_gfx_ptr1/2/3`, but still needs validation).
+- Compression output can exceed original block size; no fit check or relocation.
+- Save path writes directly to ROM; needs clear scope warning and backup.
+
+**Validation checklist**
+- Round-trip save on a single sheet, compare ROM bytes to baseline.
+- Confirm pointer table addresses on OOS patched ROMs.
+- Add size/fit diagnostics for compressed outputs.
+
+### Messages
+**What works**
+- Message list editor with preview and dictionary support.
+- Bundle import/export (JSON) and width warnings.
+- Expanded message bank support (OOS) with configurable addresses.
+
+**Risks / gaps**
+- Line width warnings are best-effort; no hard enforcement in UI.
+- Editor import path is lenient unless using strict CLI.
+- Expanded message save assumes patched ROM; needs clear ROM policy gating.
+
+**Validation checklist**
+- Export bundle, re-import, diff vs baseline (vanilla + expanded).
+- Validate strict parsing in CLI and surface errors in UI.
+- Confirm expanded bank boundaries match ROM markers/overrides.
+
 ## Known Divergence & Risk Sources
 - **ROM address drift:** OOS patches move tables; any hard-coded addresses can
   silently write wrong offsets.
@@ -71,6 +149,8 @@ integration (z3dk, z3ed, mesen2-oos).
 - Track collision overlay now supports direction arrows when IDs are configured.
 - “Edit Graphics…” from dungeon objects now jumps to the associated sheet.
 - Message bundle import/export support (CLI + docs) with line‑width diagnostics.
+- Build stability: purge generated protobuf outputs on configure to avoid
+  protoc/runtime version mismatches.
 
 **Still pending**
 - UI/UX parity capture vs ZScream (selection, drag modifiers, context menus).

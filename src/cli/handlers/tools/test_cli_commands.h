@@ -63,7 +63,7 @@ class TestRunCommandHandler : public resources::CommandHandler {
 
   std::string GetUsage() const override {
     return "test-run [--label <label>] [--preset <preset>] "
-           "[--format json|text] [--verbose]";
+           "[--format json|text] [--verbose] [--filter <regex>]";
   }
 
   std::string GetDefaultFormat() const override { return "text"; }
@@ -76,7 +76,7 @@ class TestRunCommandHandler : public resources::CommandHandler {
     Descriptor desc;
     desc.display_name = "test-run";
     desc.summary = "Run ctest with specified label/preset and produce "
-                   "structured output for agents.";
+                   "structured output. Supports regex filtering of tests.";
     desc.todo_reference = "todo#test-run";
     return desc;
   }

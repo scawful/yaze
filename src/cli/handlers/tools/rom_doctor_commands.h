@@ -26,7 +26,7 @@ class RomDoctorCommandHandler : public resources::CommandHandler {
   }
 
   std::string GetUsage() const override {
-    return "rom-doctor --rom <path> [--format json|text] [--verbose]";
+    return "rom-doctor --rom <path> [--format json|text] [--verbose] [--deep]";
   }
 
   std::string GetDefaultFormat() const override { return "text"; }
@@ -37,7 +37,8 @@ class RomDoctorCommandHandler : public resources::CommandHandler {
     Descriptor desc;
     desc.display_name = "rom-doctor";
     desc.summary = "Diagnose ROM file integrity including checksums, "
-                   "header validation, expansion status, and version markers.";
+                   "header validation, expansion status, and deep corruption "
+                   "scans.";
     desc.todo_reference = "todo#rom-doctor";
     return desc;
   }

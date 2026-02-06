@@ -9,8 +9,16 @@ fi
 
 candidates=(
   "${ROOT}/build_ai/bin/Debug/z3ed"
+  "${ROOT}/build_ai/bin/RelWithDebInfo/z3ed"
+  "${ROOT}/build_ai/bin/Release/z3ed"
   "${ROOT}/build_ai/bin/z3ed"
   "${ROOT}/build_agent/bin/Debug/z3ed"
+  "${ROOT}/build_agent/bin/RelWithDebInfo/z3ed"
+  "${ROOT}/build_agent/bin/Release/z3ed"
+  "${ROOT}/build_agent/bin/z3ed"
+  "${ROOT}/build/bin/Debug/z3ed"
+  "${ROOT}/build/bin/RelWithDebInfo/z3ed"
+  "${ROOT}/build/bin/Release/z3ed"
   "${ROOT}/build/bin/z3ed"
 )
 
