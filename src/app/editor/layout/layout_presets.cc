@@ -1,5 +1,7 @@
 #include "app/editor/layout/layout_presets.h"
 
+#include "core/features.h"
+
 namespace yaze {
 namespace editor {
 
@@ -39,25 +41,53 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
 
     case EditorType::kDungeon:
       preset.name = "Dungeon Default";
-      preset.description = "Room editor with object palette and properties";
-      preset.default_visible_panels = {
-          Panels::kDungeonRoomSelector,
-          Panels::kDungeonRoomMatrix,
-      };
-      preset.panel_positions = {
-          {Panels::kDungeonRoomMatrix, DockPosition::Center},
-          {Panels::kDungeonRoomSelector, DockPosition::Left},
-          {Panels::kDungeonRoomGraphics, DockPosition::RightTop},
-          {Panels::kDungeonEntrances, DockPosition::RightBottom},
-          {Panels::kDungeonObjectEditor, DockPosition::Right},
-          {Panels::kDungeonPaletteEditor, DockPosition::Bottom},
-      };
-      preset.optional_panels = {
-          Panels::kDungeonObjectEditor,
-          Panels::kDungeonPaletteEditor,
-          Panels::kDungeonEntrances,
-          Panels::kDungeonRoomGraphics,
-      };
+      preset.description = "Room workbench with inspector and fast navigation";
+
+      if (core::FeatureFlags::get().dungeon.kUseWorkbench) {
+        preset.default_visible_panels = {
+            Panels::kDungeonWorkbench,
+        };
+
+        // Place optional panels around the workbench so they dock predictably
+        // if/when the user opens them.
+        preset.panel_positions = {
+            {Panels::kDungeonWorkbench, DockPosition::Center},
+            {Panels::kDungeonRoomSelector, DockPosition::Left},
+            {Panels::kDungeonRoomMatrix, DockPosition::LeftBottom},
+            {Panels::kDungeonRoomGraphics, DockPosition::RightTop},
+            {Panels::kDungeonEntrances, DockPosition::RightBottom},
+            {Panels::kDungeonObjectEditor, DockPosition::Right},
+            {Panels::kDungeonPaletteEditor, DockPosition::Bottom},
+        };
+
+        preset.optional_panels = {
+            Panels::kDungeonRoomSelector,
+            Panels::kDungeonRoomMatrix,
+            Panels::kDungeonObjectEditor,
+            Panels::kDungeonPaletteEditor,
+            Panels::kDungeonEntrances,
+            Panels::kDungeonRoomGraphics,
+        };
+      } else {
+        preset.default_visible_panels = {
+            Panels::kDungeonRoomSelector,
+            Panels::kDungeonRoomMatrix,
+        };
+        preset.panel_positions = {
+            {Panels::kDungeonRoomMatrix, DockPosition::Center},
+            {Panels::kDungeonRoomSelector, DockPosition::Left},
+            {Panels::kDungeonRoomGraphics, DockPosition::RightTop},
+            {Panels::kDungeonEntrances, DockPosition::RightBottom},
+            {Panels::kDungeonObjectEditor, DockPosition::Right},
+            {Panels::kDungeonPaletteEditor, DockPosition::Bottom},
+        };
+        preset.optional_panels = {
+            Panels::kDungeonObjectEditor,
+            Panels::kDungeonPaletteEditor,
+            Panels::kDungeonEntrances,
+            Panels::kDungeonRoomGraphics,
+        };
+      }
       break;
 
     case EditorType::kGraphics:

@@ -149,6 +149,7 @@ if(YAZE_BUILD_TESTS)
     unit/gui/panel_window_test.cc
     unit/editor/message/message_data_test.cc
     unit/editor/panel_system_test.cc
+    unit/editor/panel_manager_policy_test.cc
     unit/editor/editor_manager_test.cc
     unit/core/asar_compiler_test.cc
     unit/zelda3/overworld_test.cc

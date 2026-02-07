@@ -727,47 +727,17 @@ void PanelManager::OnEditorSwitch(const std::string& from_category,
   LOG_INFO("PanelManager", "Switching from category '%s' to '%s'",
            from_category.c_str(), to_category.c_str());
 
-  // Hide non-pinned, non-persistent panels from previous category.
-  // Important: apply this to *all* cards, not just panels with EditorPanel
-  // instances, otherwise descriptor-only panels can leak across editors.
-  const size_t session_id = active_session_;
-  auto sit = session_cards_.find(session_id);
-  if (sit != session_cards_.end()) {
-    for (const auto& prefixed_id : sit->second) {
-      auto dit = cards_.find(prefixed_id);
-      if (dit == cards_.end()) {
-        continue;
-      }
-      const PanelDescriptor& desc = dit->second;
-      if (desc.category != from_category) {
-        continue;
-      }
-      if (!desc.visibility_flag || !*desc.visibility_flag) {
-        continue;
-      }
-      if (IsPanelPinned(prefixed_id)) {
-        continue;
-      }
-      if (desc.panel_category == PanelCategory::Persistent) {
-        continue;
-      }
-
-      const std::string base_id = GetBaseIdForPrefixedId(session_id, prefixed_id);
-      if (!base_id.empty()) {
-        (void)HidePanel(session_id, base_id);
-      }
-    }
-  }
-
-  // Show default panels for new category
-  EditorType editor_type =
-      EditorRegistry::GetEditorTypeFromCategory(to_category);
-  auto defaults = LayoutPresets::GetDefaultPanels(editor_type);
-  for (const auto& panel_id : defaults) {
-    ShowPanel(panel_id);
-  }
-
-  // Update active category
+  // IMPORTANT:
+  // Editor switching must *not* be treated as a user-initiated hide/show.
+  //
+  // Historically this function toggled visibility flags (HidePanel/ShowPanel),
+  // which publishes PanelVisibilityChangedEvent and permanently overwrote user
+  // prefs. Worse, dynamic "resource windows" (rooms/songs) interpret
+  // IsPanelVisible()==false as "user closed", unregistering themselves.
+  //
+  // Visibility persistence is handled by EditorManager's category-changed
+  // callback (RestoreVisibilityState / default policy). Drawing is filtered by
+  // active category + pinned/persistent state in DrawAllVisiblePanels().
   SetActiveCategory(to_category);
 }
 

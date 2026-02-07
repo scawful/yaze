@@ -1200,6 +1200,29 @@ void EditorManager::SetupSidebarCallbacks() {
         if (it != prefs.panel_visibility_state.end()) {
           panel_manager_.RestoreVisibilityState(
               panel_manager_.GetActiveSessionId(), it->second);
+        } else {
+          // No saved visibility state for this category yet.
+          //
+          // Apply LayoutPresets defaults only when this category has *no*
+          // visible panels (editors may have already shown their own defaults,
+          // e.g. Dungeon Workbench).
+          const size_t session_id = panel_manager_.GetActiveSessionId();
+          bool any_visible = false;
+          for (const auto& desc :
+               panel_manager_.GetPanelsInCategory(session_id, category)) {
+            if (desc.visibility_flag && *desc.visibility_flag) {
+              any_visible = true;
+              break;
+            }
+          }
+
+          if (!any_visible) {
+            const EditorType type =
+                EditorRegistry::GetEditorTypeFromCategory(category);
+            for (const auto& panel_id : LayoutPresets::GetDefaultPanels(type)) {
+              panel_manager_.ShowPanel(session_id, panel_id);
+            }
+          }
         }
 
         settings_dirty_ = true;
