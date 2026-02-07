@@ -104,23 +104,21 @@ static inline float color_saturate(float f) {
  * - Batch palette updates to minimize ROM writes
  */
 absl::Status DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
-  static ImVec4 color = ImVec4(0, 0, 0, 255.f);
+  static ImVec4 color = ImVec4(0, 0, 0, 1.0f);
   static ImVec4 current_palette[256] = {};
   ImGuiColorEditFlags misc_flags = ImGuiColorEditFlags_AlphaPreview |
                                    ImGuiColorEditFlags_NoDragDrop |
                                    ImGuiColorEditFlags_NoOptions;
 
-  // Generate a default palette. The palette will persist and can be edited.
-  static bool init = false;
-  if (loaded && !init) {
-    for (int n = 0; n < palette.size(); n++) {
+  // Reload palette colors whenever the palette data is available.
+  if (loaded) {
+    for (size_t n = 0; n < palette.size(); n++) {
       auto color = palette[n];
-      current_palette[n].x = color.rgb().x / 255;
-      current_palette[n].y = color.rgb().y / 255;
-      current_palette[n].z = color.rgb().z / 255;
-      current_palette[n].w = 255;  // Alpha
+      current_palette[n].x = color.rgb().x / 255.0f;
+      current_palette[n].y = color.rgb().y / 255.0f;
+      current_palette[n].z = color.rgb().z / 255.0f;
+      current_palette[n].w = 1.0f;
     }
-    init = true;
   }
 
   static ImVec4 backup_color;
