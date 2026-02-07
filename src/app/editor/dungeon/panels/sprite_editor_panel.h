@@ -204,9 +204,23 @@ class SpriteEditorPanel : public EditorPanel {
   void DrawRoomSprites() {
     const auto& theme = AgentUI::GetTheme();
     auto& room = (*rooms_)[*current_room_id_];
-    const auto& sprites = room.GetSprites();
+    auto& sprites = room.GetSprites();
 
-    ImGui::Text(ICON_MD_LIST " Room Sprites (%zu):", sprites.size());
+    // Sprite count with limit warning
+    int sprite_count = static_cast<int>(sprites.size());
+    ImVec4 count_color =
+        sprite_count > 16 ? theme.text_error_red : theme.text_primary;
+    ImGui::TextColored(count_color, ICON_MD_LIST " Room Sprites: %d/16", 
+                       sprite_count);
+
+    if (sprite_count > 16) {
+      ImGui::SameLine();
+      ImGui::TextColored(theme.text_warning_yellow, ICON_MD_WARNING);
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Room exceeds sprite limit (16 max)!\n"
+                          "This may cause game crashes.");
+      }
+    }
 
     if (sprites.empty()) {
       ImGui::TextColored(theme.text_secondary_gray,
@@ -214,30 +228,154 @@ class SpriteEditorPanel : public EditorPanel {
       return;
     }
 
-    // Responsive list height - use remaining available space
-    float list_height = std::max(120.0f, ImGui::GetContentRegionAvail().y - 10.0f);
+    // Split view: list on top, properties below
+    float available = ImGui::GetContentRegionAvail().y;
+    float list_height = std::max(100.0f, available * 0.4f);
+    
     ImGui::BeginChild("##SpriteList", ImVec2(0, list_height), true);
     for (size_t i = 0; i < sprites.size(); ++i) {
       const auto& sprite = sprites[i];
+      bool is_selected = (selected_sprite_list_index_ == static_cast<int>(i));
 
       ImGui::PushID(static_cast<int>(i));
 
-      ImGui::Text("[%zu] %s (0x%02X)", i,
-          zelda3::ResolveSpriteName(sprite.id()), sprite.id());
-      ImGui::SameLine();
-      ImGui::TextColored(theme.text_secondary_gray,
-          "@ (%d,%d) L%d", sprite.x(), sprite.y(), sprite.layer());
-
-      ImGui::SameLine();
-      if (ImGui::SmallButton(ICON_MD_DELETE "##Del")) {
-        auto& mutable_room = (*rooms_)[*current_room_id_];
-        mutable_room.GetSprites().erase(
-            mutable_room.GetSprites().begin() + static_cast<long>(i));
+      // Build display string with indicators
+      std::string label = absl::StrFormat("[%02X] %s", 
+          sprite.id(), zelda3::ResolveSpriteName(sprite.id()));
+      
+      // Add key drop indicator
+      if (sprite.key_drop() == 1) {
+        label += " " ICON_MD_KEY;  // Small key
+      } else if (sprite.key_drop() == 2) {
+        label += " " ICON_MD_VPN_KEY;  // Big key
       }
+      
+      // Add overlord indicator
+      if (sprite.IsOverlord()) {
+        label += " " ICON_MD_STAR;
+      }
+
+      if (ImGui::Selectable(label.c_str(), is_selected)) {
+        selected_sprite_list_index_ = static_cast<int>(i);
+      }
+      
+      // Show position on same line
+      ImGui::SameLine(ImGui::GetContentRegionAvail().x - 80);
+      ImGui::TextColored(theme.text_secondary_gray,
+          "(%d,%d) L%d", sprite.x(), sprite.y(), sprite.layer());
 
       ImGui::PopID();
     }
     ImGui::EndChild();
+
+    // Sprite properties panel
+    DrawSpriteProperties();
+  }
+
+  void DrawSpriteProperties() {
+    const auto& theme = AgentUI::GetTheme();
+    auto& room = (*rooms_)[*current_room_id_];
+    auto& sprites = room.GetSprites();
+
+    if (selected_sprite_list_index_ < 0 || 
+        selected_sprite_list_index_ >= static_cast<int>(sprites.size())) {
+      ImGui::TextColored(theme.text_secondary_gray,
+          ICON_MD_INFO " Select a sprite to edit properties");
+      return;
+    }
+
+    auto& sprite = sprites[selected_sprite_list_index_];
+    
+    ImGui::Separator();
+    ImGui::Text(ICON_MD_EDIT " Sprite Properties");
+
+    // Overlord badge (read-only)
+    if (sprite.IsOverlord()) {
+      ImGui::SameLine();
+      ImGui::TextColored(theme.status_warning, 
+          ICON_MD_STAR " OVERLORD");
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("This is an Overlord sprite.\n"
+                          "Overlords have separate limits (8 max).");
+      }
+    }
+
+    // ID and Name (read-only)
+    ImGui::Text("ID: 0x%02X - %s", sprite.id(), 
+                zelda3::ResolveSpriteName(sprite.id()));
+
+    // Position (editable)
+    int pos_x = sprite.x();
+    int pos_y = sprite.y();
+    ImGui::SetNextItemWidth(60);
+    if (ImGui::InputInt("X##SpriteX", &pos_x, 1, 8)) {
+      pos_x = std::clamp(pos_x, 0, 63);
+      // Note: Need setter in Sprite class
+    }
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(60);
+    if (ImGui::InputInt("Y##SpriteY", &pos_y, 1, 8)) {
+      pos_y = std::clamp(pos_y, 0, 63);
+      // Note: Need setter in Sprite class
+    }
+
+    // Subtype selector (0-7)
+    int subtype = sprite.subtype();
+    ImGui::SetNextItemWidth(80);
+    if (ImGui::Combo("Subtype##SpriteSubtype", &subtype, 
+                     "0\0001\0002\0003\0004\0005\0006\0007\0")) {
+      sprite.set_subtype(subtype);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Controls sprite behavior variant.\n"
+                        "Effect varies by sprite type.");
+    }
+
+    // Layer selector
+    int layer = sprite.layer();
+    ImGui::SetNextItemWidth(80);
+    if (ImGui::Combo("Layer##SpriteLayer", &layer, 
+                     "Upper (0)\0Lower (1)\0Both (2)\0")) {
+      sprite.set_layer(layer);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Which layer the sprite appears on.\n"
+                        "Upper = main floor, Lower = basement.");
+    }
+
+    // Key drop selector
+    int key_drop = sprite.key_drop();
+    ImGui::Text("Key Drop:");
+    ImGui::SameLine();
+    if (ImGui::RadioButton("None##KeyNone", key_drop == 0)) {
+      sprite.set_key_drop(0);
+    }
+    ImGui::SameLine();
+    if (ImGui::RadioButton(ICON_MD_KEY " Small##KeySmall", key_drop == 1)) {
+      sprite.set_key_drop(1);
+    }
+    ImGui::SameLine();
+    if (ImGui::RadioButton(ICON_MD_VPN_KEY " Big##KeyBig", key_drop == 2)) {
+      sprite.set_key_drop(2);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Key dropped when sprite is defeated.");
+    }
+
+    // Delete button
+    ImGui::Spacing();
+    ImGui::PushStyleColor(ImGuiCol_Button, theme.status_error);
+    if (ImGui::Button(ICON_MD_DELETE " Delete Sprite")) {
+      sprites.erase(sprites.begin() + selected_sprite_list_index_);
+      selected_sprite_list_index_ = -1;
+    }
+    ImGui::PopStyleColor();
+    
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_CONTENT_COPY " Duplicate")) {
+      zelda3::Sprite copy = sprite;
+      sprites.push_back(copy);
+    }
   }
 
   bool MatchesFilter(int sprite_id) {
@@ -312,6 +450,7 @@ class SpriteEditorPanel : public EditorPanel {
   
   // Selection state
   int selected_sprite_id_ = 0;
+  int selected_sprite_list_index_ = -1;  // Selected sprite in room list
   int selected_category_ = 0;
   char search_filter_[64] = {0};
   bool placement_mode_ = false;
@@ -323,4 +462,3 @@ class SpriteEditorPanel : public EditorPanel {
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_DUNGEON_PANELS_SPRITE_EDITOR_PANEL_H_
-
