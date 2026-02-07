@@ -243,6 +243,17 @@ class HackManifest {
 
   [[nodiscard]] bool IsExpandedMessage(uint16_t message_id) const;
 
+  // ─── Protected Regions ──────────────────────────────────
+
+  [[nodiscard]] const std::vector<ProtectedRegion>& protected_regions() const {
+    return protected_regions_;
+  }
+
+  [[nodiscard]] const std::unordered_map<uint8_t, OwnedBank>& owned_banks()
+      const {
+    return owned_banks_;
+  }
+
   // ─── Write Conflict Analysis ─────────────────────────────
 
   /**

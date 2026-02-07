@@ -24,8 +24,12 @@
 #include "app/editor/agent/agent_chat.h"
 #include "app/editor/agent/agent_collaboration_coordinator.h"
 #include "app/editor/agent/panels/agent_configuration_panel.h"
+#include "app/editor/agent/panels/feature_flag_editor_panel.h"
+#include "app/editor/agent/panels/manifest_panel.h"
 #include "app/editor/agent/panels/mesen_debug_panel.h"
+#include "app/editor/agent/panels/mesen_screenshot_panel.h"
 #include "app/editor/agent/panels/oracle_state_library_panel.h"
+#include "app/editor/agent/panels/sram_viewer_panel.h"
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/user_settings.h"
 #include "app/editor/ui/toast_manager.h"
@@ -462,8 +466,12 @@ AgentEditor::AgentEditor() {
   agent_chat_ = std::make_unique<AgentChat>();
   local_coordinator_ = std::make_unique<AgentCollaborationCoordinator>();
   config_panel_ = std::make_unique<AgentConfigPanel>();
+  feature_flag_panel_ = std::make_unique<FeatureFlagEditorPanel>();
+  manifest_panel_ = std::make_unique<ManifestPanel>();
   mesen_debug_panel_ = std::make_unique<MesenDebugPanel>();
+  mesen_screenshot_panel_ = std::make_unique<MesenScreenshotPanel>();
   oracle_state_panel_ = std::make_unique<OracleStateLibraryPanel>();
+  sram_viewer_panel_ = std::make_unique<SramViewerPanel>();
   prompt_editor_ = std::make_unique<TextEditor>();
   common_tiles_editor_ = std::make_unique<TextEditor>();
 
@@ -549,8 +557,24 @@ void AgentEditor::Initialize() {
         [this]() { DrawMesenDebugPanel(); }));
 
     panel_manager->RegisterEditorPanel(
+        std::make_unique<MesenScreenshotEditorPanel>(
+            [this]() { DrawMesenScreenshotPanel(); }));
+
+    panel_manager->RegisterEditorPanel(
         std::make_unique<OracleStateLibraryEditorPanel>(
             [this]() { DrawOracleStatePanel(); }));
+
+    panel_manager->RegisterEditorPanel(
+        std::make_unique<FeatureFlagEditorEditorPanel>(
+            [this]() { DrawFeatureFlagPanel(); }));
+
+    panel_manager->RegisterEditorPanel(
+        std::make_unique<ManifestEditorPanel>(
+            [this]() { DrawManifestPanel(); }));
+
+    panel_manager->RegisterEditorPanel(
+        std::make_unique<SramViewerEditorPanel>(
+            [this]() { DrawSramViewerPanel(); }));
 
     if (agent_chat_) {
       agent_chat_->SetPanelOpener([panel_manager](const std::string& panel_id) {
@@ -2256,6 +2280,14 @@ void AgentEditor::DrawMesenDebugPanel() {
   }
 }
 
+void AgentEditor::DrawMesenScreenshotPanel() {
+  if (mesen_screenshot_panel_) {
+    mesen_screenshot_panel_->Draw();
+  } else {
+    ImGui::TextDisabled("Mesen2 screenshot panel unavailable.");
+  }
+}
+
 void AgentEditor::DrawOracleStatePanel() {
   if (oracle_state_panel_) {
     // Share the Mesen client if available
@@ -2265,6 +2297,34 @@ void AgentEditor::DrawOracleStatePanel() {
     oracle_state_panel_->Draw();
   } else {
     ImGui::TextDisabled("Oracle state panel unavailable.");
+  }
+}
+
+void AgentEditor::DrawFeatureFlagPanel() {
+  if (feature_flag_panel_) {
+    // Wire up the project pointer so the panel can access the manifest
+    feature_flag_panel_->SetProject(dependencies_.project);
+    feature_flag_panel_->Draw();
+  } else {
+    ImGui::TextDisabled("Feature flag panel unavailable.");
+  }
+}
+
+void AgentEditor::DrawManifestPanel() {
+  if (manifest_panel_) {
+    manifest_panel_->SetProject(dependencies_.project);
+    manifest_panel_->Draw();
+  } else {
+    ImGui::TextDisabled("Manifest panel unavailable.");
+  }
+}
+
+void AgentEditor::DrawSramViewerPanel() {
+  if (sram_viewer_panel_) {
+    sram_viewer_panel_->SetProject(dependencies_.project);
+    sram_viewer_panel_->Draw();
+  } else {
+    ImGui::TextDisabled("SRAM viewer panel unavailable.");
   }
 }
 

@@ -389,6 +389,14 @@ void EditorManager::InitializeSubsystems() {
   layout_manager_->SetPanelManager(&panel_manager_);
   layout_manager_->UseGlobalLayouts();
   workspace_manager_.set_layout_manager(layout_manager_.get());
+  workspace_manager_.set_apply_preset_callback(
+      [this](const std::string& preset_name) {
+        ApplyLayoutPreset(preset_name);
+      });
+  window_delegate_.set_apply_preset_callback(
+      [this](const std::string& preset_name) {
+        ApplyLayoutPreset(preset_name);
+      });
 
   // STEP 4.6: Initialize RightPanelManager (right-side sliding panels)
   right_panel_manager_ = std::make_unique<RightPanelManager>();
@@ -2522,6 +2530,35 @@ absl::Status EditorManager::SaveRom() {
   }
 
   RETURN_IF_ERROR(CheckRomWritePolicy());
+
+  // Write conflict check: warn if dungeon save would overwrite ASM-owned data
+  if (current_project_.project_opened() &&
+      current_project_.hack_manifest.loaded() &&
+      !bypass_write_conflict_once_) {
+    auto* dungeon_editor = current_editor_set->GetDungeonEditor();
+    if (dungeon_editor) {
+      auto write_ranges = dungeon_editor->CollectWriteRanges();
+      if (!write_ranges.empty()) {
+        auto conflicts =
+            current_project_.hack_manifest.AnalyzePcWriteRanges(write_ranges);
+        if (!conflicts.empty()) {
+          pending_write_conflicts_ = std::move(conflicts);
+          if (popup_manager_) {
+            popup_manager_->Show(PopupID::kWriteConflictWarning);
+          }
+          toast_manager_.Show(
+              absl::StrFormat("Save paused: %zu write conflict(s) with ASM hooks",
+                              pending_write_conflicts_.size()),
+              ToastType::kWarning);
+          return absl::CancelledError("Write conflict confirmation required");
+        }
+      }
+    }
+  }
+  if (bypass_write_conflict_once_) {
+    bypass_write_conflict_once_ = false;
+    pending_write_conflicts_.clear();
+  }
 
   if (pending_pot_item_save_confirm_) {
     return absl::CancelledError("Save pending confirmation");

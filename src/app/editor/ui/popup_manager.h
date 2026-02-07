@@ -98,6 +98,7 @@ constexpr const char* kDataIntegrity = "Data Integrity Check";
 constexpr const char* kDungeonPotItemSaveConfirm =
     "Dungeon Pot Item Save Confirmation";
 constexpr const char* kRomWriteConfirm = "ROM Write Confirmation";
+constexpr const char* kWriteConflictWarning = "Write Conflict Warning";
 
 // Future expansion
 constexpr const char* kQuickExport = "Quick Export";
@@ -185,6 +186,7 @@ class PopupManager {
   void DrawDungeonPotItemSaveConfirmPopup();
   void DrawRomBackupManagerPopup();
   void DrawRomWriteConfirmPopup();
+  void DrawWriteConflictWarningPopup();
 
   EditorManager* editor_manager_;
   std::unordered_map<std::string, PopupParams> popups_;

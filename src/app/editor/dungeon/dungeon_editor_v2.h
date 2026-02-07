@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -35,6 +36,7 @@ namespace yaze {
 namespace editor {
 
 class MinecartTrackEditorPanel;
+class RoomTagEditorPanel;
 
 /**
  * @brief DungeonEditorV2 - Simplified dungeon editor using component delegation
@@ -126,6 +128,11 @@ class DungeonEditorV2 : public Editor {
   absl::Status SaveRoom(int room_id);
   int LoadedRoomCount() const;
   int TotalRoomCount() const { return static_cast<int>(rooms_.size()); }
+
+  // Collect PC write ranges for all dirty/loaded rooms (for write conflict
+  // analysis). Returns pairs of (start_pc, end_pc) covering header and object
+  // regions that would be written during save.
+  std::vector<std::pair<uint32_t, uint32_t>> CollectWriteRanges() const;
 
   // ROM management
   void SetRom(Rom* rom) {
@@ -258,6 +265,7 @@ class DungeonEditorV2 : public Editor {
   class SpriteEditorPanel* sprite_editor_panel_ = nullptr;
   class ItemEditorPanel* item_editor_panel_ = nullptr;
   class MinecartTrackEditorPanel* minecart_track_editor_panel_ = nullptr;
+  class RoomTagEditorPanel* room_tag_editor_panel_ = nullptr;
 
   // Fallback ownership for tests when PanelManager is not available.
   // In production, this remains nullptr and panels are owned by PanelManager.
