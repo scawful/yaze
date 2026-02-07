@@ -581,6 +581,77 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
   if (!room_audit_.empty()) {
     ImGui::Separator();
     ImGui::Text("Rooms with track objects:");
+
+    // "Generate All" button: batch-generate collision for all rooms that have
+    // rail objects but no collision data yet.
+    if (rom_ && rooms_) {
+      // Count rooms that need generation
+      int rooms_needing_collision = 0;
+      for (const auto& [rid, audit] : room_audit_) {
+        if (!audit.track_subtypes.empty() && !audit.has_track_collision) {
+          rooms_needing_collision++;
+        }
+      }
+
+      if (rooms_needing_collision > 0) {
+        if (ImGui::Button(
+                absl::StrFormat(ICON_MD_AUTO_FIX_HIGH
+                                " Generate All (%d rooms)",
+                                rooms_needing_collision).c_str())) {
+          int generated_rooms = 0;
+          int total_tiles = 0;
+          bool had_error = false;
+
+          for (auto& [rid, audit] : room_audit_) {
+            if (audit.track_subtypes.empty() || audit.has_track_collision) {
+              continue;
+            }
+
+            auto& target_room = (*rooms_)[rid];
+            zelda3::GeneratorOptions opts;
+            auto gen_result =
+                zelda3::GenerateTrackCollision(&target_room, opts);
+            if (!gen_result.ok()) {
+              status_message_ = absl::StrFormat(
+                  "Generate failed for room 0x%03X: %s", rid,
+                  gen_result.status().message());
+              show_success_ = false;
+              had_error = true;
+              break;
+            }
+
+            auto write_status = zelda3::WriteTrackCollision(
+                rom_, rid, gen_result->collision_map);
+            if (!write_status.ok()) {
+              status_message_ = absl::StrFormat(
+                  "Write failed for room 0x%03X: %s", rid,
+                  write_status.message());
+              show_success_ = false;
+              had_error = true;
+              break;
+            }
+
+            generated_rooms++;
+            total_tiles += gen_result->tiles_generated;
+          }
+
+          if (!had_error) {
+            status_message_ = absl::StrFormat(
+                "Generated collision for %d rooms (%d tiles total)",
+                generated_rooms, total_tiles);
+            show_success_ = true;
+          }
+          audit_dirty_ = true;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(
+              "Generate collision for all %d rooms with rail objects "
+              "but no collision data",
+              rooms_needing_collision);
+        }
+      }
+    }
+
     ImGui::BeginChild("##TrackAuditRooms", ImVec2(0, 160), true);
     for (const auto& [room_id, audit] : room_audit_) {
       if (audit.track_subtypes.empty() && !audit.has_track_collision) {
