@@ -594,17 +594,7 @@ absl::Status DungeonRoomHeaderCommandHandler::Execute(
 absl::Status DungeonGenerateTrackCollisionCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  auto room_id_str = parser.GetString("room").value();
-
-  int room_id;
-  if (!ParseHexString(room_id_str, &room_id)) {
-    return absl::InvalidArgumentError("Invalid room ID format. Must be hex.");
-  }
-
-  zelda3::Room room = zelda3::LoadRoomHeaderFromRom(rom, room_id);
-  room.LoadObjects();
-
-  // Build generator options
+  // Build generator options (shared by single and batch modes)
   zelda3::GeneratorOptions options;
 
   // Parse --promote-switch X,Y pairs
@@ -623,34 +613,112 @@ absl::Status DungeonGenerateTrackCollisionCommandHandler::Execute(
     }
   }
 
-  // Generate collision
-  auto result = zelda3::GenerateTrackCollision(&room, options);
-  if (!result.ok()) {
-    return result.status();
-  }
-
-  formatter.BeginObject("Track Collision Generation");
-  formatter.AddHexField("room_id", room_id, 3);
-  formatter.AddField("tiles_generated", result->tiles_generated);
-  formatter.AddField("stop_count", result->stop_count);
-  formatter.AddField("corner_count", result->corner_count);
-  formatter.AddField("switch_count", result->switch_count);
-
   bool do_write = parser.HasFlag("write");
-  formatter.AddField("mode", do_write ? "write" : "dry-run");
+  bool do_visualize = parser.HasFlag("visualize");
 
-  if (parser.HasFlag("visualize") || !do_write) {
-    formatter.AddField("visualization", result->ascii_visualization);
+  // Determine room list: --rooms (batch) or --room (single)
+  std::vector<int> room_ids;
+  auto rooms_arg = parser.GetString("rooms");
+  auto room_arg = parser.GetString("room");
+
+  if (rooms_arg.has_value()) {
+    // Batch mode: parse comma-separated hex room IDs
+    for (absl::string_view token :
+         absl::StrSplit(rooms_arg.value(), ',', absl::SkipEmpty())) {
+      int rid;
+      std::string token_str(token);
+      if (!ParseHexString(token_str, &rid)) {
+        return absl::InvalidArgumentError(absl::StrFormat(
+            "Invalid room ID '%s' in --rooms list. Must be hex.", token_str));
+      }
+      room_ids.push_back(rid);
+    }
+    if (room_ids.empty()) {
+      return absl::InvalidArgumentError("--rooms list is empty.");
+    }
+  } else if (room_arg.has_value()) {
+    // Single room mode (backwards compatible)
+    int rid;
+    if (!ParseHexString(room_arg.value(), &rid)) {
+      return absl::InvalidArgumentError(
+          "Invalid room ID format. Must be hex.");
+    }
+    room_ids.push_back(rid);
+  } else {
+    return absl::InvalidArgumentError("Either --room or --rooms is required.");
   }
 
-  if (do_write) {
-    auto write_status =
-        zelda3::WriteTrackCollision(rom, room_id, result->collision_map);
-    if (!write_status.ok()) {
-      formatter.AddField("write_error", std::string(write_status.message()));
-    } else {
-      formatter.AddField("write_status", "success");
-      // Save ROM back to disk
+  bool is_batch = room_ids.size() > 1;
+
+  if (is_batch) {
+    // Batch mode: aggregate results with per-room detail
+    formatter.BeginObject("Batch Track Collision Generation");
+    formatter.AddField("mode", do_write ? "write" : "dry-run");
+    formatter.AddField("room_count", static_cast<int>(room_ids.size()));
+
+    int total_tiles = 0;
+    int total_stops = 0;
+    int total_corners = 0;
+    int total_switches = 0;
+    int rooms_succeeded = 0;
+
+    formatter.BeginArray("rooms");
+    for (int room_id : room_ids) {
+      zelda3::Room room = zelda3::LoadRoomHeaderFromRom(rom, room_id);
+      room.LoadObjects();
+
+      auto result = zelda3::GenerateTrackCollision(&room, options);
+      if (!result.ok()) {
+        // Stop on first error and report which room failed
+        formatter.EndArray();
+        formatter.AddHexField("failed_room", room_id, 3);
+        formatter.AddField("error", std::string(result.status().message()));
+        formatter.EndObject();
+        return absl::InternalError(absl::StrFormat(
+            "Generation failed for room 0x%03X: %s", room_id,
+            result.status().message()));
+      }
+
+      formatter.BeginObject();
+      formatter.AddHexField("room_id", room_id, 3);
+      formatter.AddField("tiles_generated", result->tiles_generated);
+      formatter.AddField("stop_count", result->stop_count);
+      formatter.AddField("corner_count", result->corner_count);
+      formatter.AddField("switch_count", result->switch_count);
+
+      if (do_visualize) {
+        formatter.AddField("visualization", result->ascii_visualization);
+      }
+
+      if (do_write) {
+        auto write_status =
+            zelda3::WriteTrackCollision(rom, room_id, result->collision_map);
+        if (!write_status.ok()) {
+          // Stop on first write error
+          formatter.AddField("write_error",
+                             std::string(write_status.message()));
+          formatter.EndObject();
+          formatter.EndArray();
+          formatter.EndObject();
+          return absl::InternalError(absl::StrFormat(
+              "Write failed for room 0x%03X: %s", room_id,
+              write_status.message()));
+        }
+        formatter.AddField("write_status", "success");
+      }
+
+      total_tiles += result->tiles_generated;
+      total_stops += result->stop_count;
+      total_corners += result->corner_count;
+      total_switches += result->switch_count;
+      rooms_succeeded++;
+
+      formatter.EndObject();
+    }
+    formatter.EndArray();
+
+    // Save ROM once after all rooms are written
+    if (do_write) {
       Rom::SaveSettings save_settings;
       save_settings.backup = true;
       auto save_status = rom->SaveToFile(save_settings);
@@ -660,9 +728,63 @@ absl::Status DungeonGenerateTrackCollisionCommandHandler::Execute(
         formatter.AddField("save_status", "saved");
       }
     }
+
+    // Aggregated totals
+    formatter.BeginObject("totals");
+    formatter.AddField("rooms_succeeded", rooms_succeeded);
+    formatter.AddField("tiles_generated", total_tiles);
+    formatter.AddField("stop_count", total_stops);
+    formatter.AddField("corner_count", total_corners);
+    formatter.AddField("switch_count", total_switches);
+    formatter.EndObject();
+
+    formatter.EndObject();
+  } else {
+    // Single room mode (original behavior, backwards compatible)
+    int room_id = room_ids[0];
+
+    zelda3::Room room = zelda3::LoadRoomHeaderFromRom(rom, room_id);
+    room.LoadObjects();
+
+    auto result = zelda3::GenerateTrackCollision(&room, options);
+    if (!result.ok()) {
+      return result.status();
+    }
+
+    formatter.BeginObject("Track Collision Generation");
+    formatter.AddHexField("room_id", room_id, 3);
+    formatter.AddField("tiles_generated", result->tiles_generated);
+    formatter.AddField("stop_count", result->stop_count);
+    formatter.AddField("corner_count", result->corner_count);
+    formatter.AddField("switch_count", result->switch_count);
+    formatter.AddField("mode", do_write ? "write" : "dry-run");
+
+    if (do_visualize || !do_write) {
+      formatter.AddField("visualization", result->ascii_visualization);
+    }
+
+    if (do_write) {
+      auto write_status =
+          zelda3::WriteTrackCollision(rom, room_id, result->collision_map);
+      if (!write_status.ok()) {
+        formatter.AddField("write_error", std::string(write_status.message()));
+      } else {
+        formatter.AddField("write_status", "success");
+        // Save ROM back to disk
+        Rom::SaveSettings save_settings;
+        save_settings.backup = true;
+        auto save_status = rom->SaveToFile(save_settings);
+        if (!save_status.ok()) {
+          formatter.AddField("save_error", std::string(save_status.message()));
+        } else {
+          formatter.AddField("save_status", "saved");
+        }
+      }
+    }
+
+    formatter.EndObject();
   }
 
-  formatter.EndObject();
   return absl::OkStatus();
 }
 

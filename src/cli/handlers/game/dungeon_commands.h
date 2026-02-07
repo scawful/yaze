@@ -218,13 +218,20 @@ class DungeonGenerateTrackCollisionCommandHandler
     return "Generate collision overlay from rail objects for minecart rooms";
   }
   std::string GetUsage() const {
-    return "dungeon-generate-track-collision --room <room_id> "
+    return "dungeon-generate-track-collision --room <room_id> | "
+           "--rooms <hex,hex,...> "
            "[--write] [--visualize] [--promote-switch X,Y] "
            "[--format <json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
-    return parser.RequireArgs({"room"});
+    // Accept either --room (single) or --rooms (batch)
+    if (parser.GetString("room").has_value() ||
+        parser.GetString("rooms").has_value()) {
+      return absl::OkStatus();
+    }
+    return absl::InvalidArgumentError(
+        "Either --room or --rooms is required");
   }
 
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,

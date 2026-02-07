@@ -309,6 +309,10 @@ class DungeonCanvasViewer {
                                  const zelda3::Room& room);
   void DrawMinecartSpriteOverlay(const gui::CanvasRuntime& rt,
                                  const zelda3::Room& room);
+  void DrawTrackGapOverlay(const gui::CanvasRuntime& rt,
+                           const zelda3::Room& room);
+  void DrawTrackRouteOverlay(const gui::CanvasRuntime& rt,
+                             const zelda3::Room& room);
   const CollisionOverlayCache& GetCollisionOverlayCache(int room_id);
 
   // Draw semi-transparent overlay on BG2/Layer 1 objects when mask mode is active
@@ -386,6 +390,8 @@ class DungeonCanvasViewer {
   bool show_track_collision_legend_ = true;
   bool show_camera_quadrant_overlay_ = false;
   bool show_minecart_sprite_overlay_ = false;
+  bool show_track_gap_overlay_ = false;
+  bool show_track_route_overlay_ = false;
   bool track_direction_map_enabled_ = true;
   std::vector<uint16_t> track_tile_order_;
   std::vector<uint16_t> switch_tile_order_;
