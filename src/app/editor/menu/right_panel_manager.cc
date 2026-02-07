@@ -406,7 +406,7 @@ void RightPanelManager::DrawPanelHeader(const char* title, const char* icon) {
   ImGui::PopStyleColor();
 
   // Right-aligned buttons
-  const float button_size = 28.0f;
+  const float button_size = gui::LayoutHelpers::GetStandardWidgetHeight();
   float current_x = ImGui::GetWindowWidth() - button_size - padding;
 
   // Close button
