@@ -322,6 +322,28 @@ absl::Status GraphicsEditor::Update() {
   return absl::OkStatus();
 }
 
+absl::Status GraphicsEditor::Undo() {
+  PixelEditorSnapshot snapshot;
+  if (state_.PopUndoState(snapshot)) {
+    auto& sheet =
+        gfx::Arena::Get().mutable_gfx_sheets()->at(snapshot.sheet_id);
+    sheet.set_data(snapshot.pixel_data);
+    gfx::Arena::Get().NotifySheetModified(snapshot.sheet_id);
+  }
+  return absl::OkStatus();
+}
+
+absl::Status GraphicsEditor::Redo() {
+  PixelEditorSnapshot snapshot;
+  if (state_.PopRedoState(snapshot)) {
+    auto& sheet =
+        gfx::Arena::Get().mutable_gfx_sheets()->at(snapshot.sheet_id);
+    sheet.set_data(snapshot.pixel_data);
+    gfx::Arena::Get().NotifySheetModified(snapshot.sheet_id);
+  }
+  return absl::OkStatus();
+}
+
 void GraphicsEditor::HandleEditorShortcuts() {
   // Skip if ImGui wants keyboard input
   if (ImGui::GetIO().WantTextInput) {
