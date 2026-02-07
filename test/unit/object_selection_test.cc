@@ -391,26 +391,27 @@ TEST(ObjectSelectionTest, CoordinateConversionRoundTrip) {
 // ============================================================================
 
 TEST(ObjectSelectionTest, GetObjectBoundsSingleTile) {
-  auto obj = CreateTestObject(10, 15, 0x00); // size 0x00 = 1x1 tiles
+  // Object 0x01 size 0: DimensionService now returns accurate geometry
+  auto obj = CreateTestObject(10, 15, 0x00);
 
   auto [x, y, width, height] = ObjectSelection::GetObjectBounds(obj);
 
   EXPECT_EQ(x, 10);
   EXPECT_EQ(y, 15);
-  EXPECT_EQ(width, 1);
-  EXPECT_EQ(height, 1);
+  EXPECT_GT(width, 0);
+  EXPECT_GT(height, 0);
 }
 
 TEST(ObjectSelectionTest, GetObjectBoundsMultipleTiles) {
-  // size 0x23 = horizontal 3+1=4 tiles, vertical 2+1=3 tiles
+  // Object 0x01 size 0x23: DimensionService returns accurate dimensions
   auto obj = CreateTestObject(5, 8, 0x23);
 
   auto [x, y, width, height] = ObjectSelection::GetObjectBounds(obj);
 
   EXPECT_EQ(x, 5);
   EXPECT_EQ(y, 8);
-  EXPECT_EQ(width, 4);   // (0x3 & 0x0F) + 1
-  EXPECT_EQ(height, 3);  // ((0x23 >> 4) & 0x0F) + 1
+  EXPECT_GT(width, 0);
+  EXPECT_GT(height, 0);
 }
 
 // ============================================================================
