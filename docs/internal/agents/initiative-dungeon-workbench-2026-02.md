@@ -66,24 +66,70 @@ Next Review: 2026-02-14
   - `scripts/install-nightly-local.sh`
 
 ## Timeline / Checkpoints
-- Milestone 1: Fix pin cutoff + stabilize per-room window identity (DONE/IN-PROGRESS).
-- Milestone 2: Ship “Dungeon Workbench” behind a feature flag with a default layout preset.
-- Milestone 3: Add Context Inspector (selection-driven UI) and reduce tall room header.
-- Milestone 4: Introduce Panel Scopes (opt-in) and migrate Dungeon to scoped behavior.
-- Milestone 5: MRU room tabs + split view inside Workbench.
-- Milestone 6: Command palette for room navigation + panel actions.
+- Milestone 1 (Step 1): Fix clipping/cutoff + preserve panel/viewer state when navigating.
+- Milestone 2 (Step 2): Ship “Dungeon Workbench” behind a feature flag with a default layout preset.
+- Milestone 3 (Step 3): Add Context Inspector (selection-driven UI) and migrate tall always-on controls into it.
+- Milestone 4 (Step 5): Introduce Panel Scopes (opt-in) and migrate Dungeon to scoped behavior.
+- Milestone 5 (Step 6): MRU room tabs + split view inside Workbench.
+- Milestone 6 (Step 7): Command palette for room navigation + panel actions.
 
 ## Implementation Order (Requested)
-1. Pin placement + clipping fixes (no more cut-off controls).
+1. Pin placement + clipping fixes (no more cut-off controls), and preserve canvas/panel state when navigating.
 2. Room Workbench window (single stable container, no per-room windows by default).
 3. Context Inspector (selection-driven; reduces always-on chrome).
-4. Panel scopes (Global/Per-Dungeon/Per-Room/Per-Selection) + default policy engine.
-5. Room tabs (MRU) + split view.
-6. Command palette.
+5. Panel scopes (Global/Per-Dungeon/Per-Room/Per-Selection) + default policy engine.
+6. Room tabs (MRU) + split view.
+7. Command palette.
+
+## Step Plans (Details)
+### Step 1: Header + Navigation Stability
+- Make the room header “two-tier” by default: always show nav + core room id/blockset/palette/layout/spriteset, hide advanced rows behind a one-click expand affordance.
+- Ensure arrow navigation does not reset panel state:
+  - Preserve ImGui window identity (slot IDs).
+  - Preserve viewer state (canvas pan/zoom, toggles) across swaps.
+- Ensure the nav strip never clips at higher DPI by using frame-height-based sizing rather than fixed widths.
+
+### Step 2: Room Workbench (Single Stable Window)
+- Add a new `DungeonWorkbenchPanel` that owns a dedicated dockspace:
+  - Center: room canvas
+  - Right: Inspector (Step 3)
+  - Bottom (optional): log/diagnostics
+  - Left (optional): room browser / MRU list
+- Provide “Good defaults”:
+  - Workbench opens in a sane layout without user docking.
+  - Legacy multi-window room panels remain available behind a toggle initially.
+
+### Step 3: Context Inspector
+- Replace tall always-on controls with selection-driven sections:
+  - No selection: show room metadata + a few “room” actions.
+  - Object selected: show object properties and placement/mode tools.
+  - Sprite/item selected: show entity properties.
+- Keep high-frequency actions reachable from the canvas (context menu + command palette), but move low-frequency settings out of the header.
+
+### Step 5: Panel Scopes
+- Extend PanelManager policy to support:
+  - Global: persists across editor switches
+  - Per-Dungeon: persists within dungeon editor but closes elsewhere
+  - Per-Room: tied to a room context (rare; mostly for inspector subviews)
+  - Per-Selection: ephemeral, selection-driven
+- Default policy should avoid “mystery panels”:
+  - Most panels are Per-Dungeon.
+  - Only explicitly pinned panels become Global.
+
+### Step 6: MRU Tabs + Split View
+- MRU room tabs inside Workbench (not separate floating windows).
+- Split view:
+  - Two canvases, independent viewer state, shared selection model with explicit “active pane”.
+  - Defaults: off; easy toggle and easy “swap panes”.
+
+### Step 7: Command Palette
+- Fuzzy actions: open room by id/label, toggle overlays, open panels, switch tools/modes.
+- Power-user defaults:
+  - `Ctrl+P` (or configurable) opens palette.
+  - “Recent rooms” as top results.
 
 ## Exit Criteria (for “Workbench GA”)
 - Workbench layout is default for new users (fresh settings file).
 - No known “layout lost” issues when navigating rooms or switching editors.
 - At least one stable e2e test covers: open dungeon, open room, navigate rooms, verify panel/window persistence.
 - User can revert to legacy layout mode via a setting.
-
