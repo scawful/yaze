@@ -14,6 +14,8 @@ set(
   app/editor/dungeon/dungeon_room_selector.cc
   app/editor/dungeon/dungeon_toolset.cc
   app/editor/dungeon/dungeon_usage_tracker.cc
+  app/editor/dungeon/widgets/dungeon_room_nav_widget.cc
+  app/editor/dungeon/widgets/dungeon_workbench_toolbar.cc
   app/editor/dungeon/interaction/door_interaction_handler.cc
   app/editor/dungeon/interaction/item_interaction_handler.cc
   app/editor/dungeon/interaction/sprite_interaction_handler.cc
