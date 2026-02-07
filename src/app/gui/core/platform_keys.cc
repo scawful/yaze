@@ -270,8 +270,10 @@ std::string FormatShortcut(const std::vector<ImGuiKey>& keys) {
     result += "+";
   }
   if (has_super) {
-    // Super key (Cmd on macOS, Win/Super elsewhere)
-    result += IsMacPlatform() ? "Cmd" : "Win";
+    // Super key:
+    // - non-macOS: Win/Super
+    // - macOS (ImGui mac behaviors): Control
+    result += IsMacPlatform() ? "Ctrl" : "Win";
     result += "+";
   }
   if (has_alt) {

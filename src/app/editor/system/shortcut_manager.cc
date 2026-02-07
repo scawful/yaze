@@ -93,8 +93,14 @@ std::vector<ImGuiKey> ParseShortcut(const std::string& shortcut) {
       keys.push_back(ImGuiMod_Ctrl);
       continue;
     }
-    if (lower == "cmd" || lower == "command" || lower == "win" ||
-        lower == "super") {
+    if (lower == "cmd" || lower == "command") {
+      // ImGui's macOS behaviors swap Cmd/Super into ImGuiMod_Ctrl at the
+      // time of io.AddKeyEvent(), so using ImGuiMod_Ctrl here makes "Cmd"
+      // bindings work as expected and round-trip with PrintShortcut().
+      keys.push_back(gui::IsMacPlatform() ? ImGuiMod_Ctrl : ImGuiMod_Super);
+      continue;
+    }
+    if (lower == "win" || lower == "super") {
       keys.push_back(ImGuiMod_Super);
       continue;
     }
