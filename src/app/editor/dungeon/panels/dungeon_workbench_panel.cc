@@ -143,10 +143,13 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
   } else {
     ImGui::BeginChild("##DungeonWorkbenchSidebarCollapsed", ImVec2(0, 0), true);
     const float avail = ImGui::GetContentRegionAvail().x;
-    ImGui::SetCursorPosX(std::max(0.0f, (avail - btn) * 0.5f));
+    const float expand_btn_w =
+        std::max(btn, ImGui::CalcTextSize(ICON_MD_CHEVRON_RIGHT).x +
+                          (ImGui::GetStyle().FramePadding.x * 2.0f) + 2.0f);
+    ImGui::SetCursorPosX(std::max(0.0f, (avail - expand_btn_w) * 0.5f));
     ImGui::SetCursorPosY(6.0f);
     if (ImGui::Button(ICON_MD_CHEVRON_RIGHT "##ExpandRooms",
-                      ImVec2(btn, btn))) {
+                      ImVec2(expand_btn_w, btn))) {
       if (layout_state_) {
         layout_state_->show_left_sidebar = true;
       }
@@ -189,10 +192,13 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
     ImGui::BeginChild("##DungeonWorkbenchInspectorCollapsed", ImVec2(0, 0),
                       true);
     const float avail = ImGui::GetContentRegionAvail().x;
-    ImGui::SetCursorPosX(std::max(0.0f, (avail - btn) * 0.5f));
+    const float expand_btn_w =
+        std::max(btn, ImGui::CalcTextSize(ICON_MD_CHEVRON_LEFT).x +
+                          (ImGui::GetStyle().FramePadding.x * 2.0f) + 2.0f);
+    ImGui::SetCursorPosX(std::max(0.0f, (avail - expand_btn_w) * 0.5f));
     ImGui::SetCursorPosY(6.0f);
     if (ImGui::Button(ICON_MD_CHEVRON_LEFT "##ExpandInspector",
-                      ImVec2(btn, btn))) {
+                      ImVec2(expand_btn_w, btn))) {
       if (layout_state_) {
         layout_state_->show_right_inspector = true;
       }
