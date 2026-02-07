@@ -296,6 +296,12 @@ class DungeonEditorV2 : public Editor {
   // Dynamic room cards - created per open room
   std::unordered_map<int, std::shared_ptr<gui::PanelWindow>> room_cards_;
 
+  // Stable window slot mapping: room_id -> slot_id.
+  // Slot IDs are used in the "###" part of the window title so ImGui treats the
+  // window as the same entity even when its displayed room changes.
+  int next_room_panel_slot_id_ = 1;
+  std::unordered_map<int, int> room_panel_slot_ids_;
+
   // Undo/Redo history: store snapshots of room objects
   std::unordered_map<int, std::vector<std::vector<zelda3::RoomObject>>>
       undo_history_;
@@ -315,6 +321,12 @@ class DungeonEditorV2 : public Editor {
                                    std::vector<zelda3::RoomObject> snapshot);
   void ClearRedo(int room_id);
   void ProcessPendingSwap();  // Process deferred swap after draw
+
+  // Room panel slot IDs provide stable ImGui window IDs across "swap room in
+  // panel" navigation. This keeps the window position/dock state when the room
+  // changes via the directional arrows.
+  int GetOrCreateRoomPanelSlotId(int room_id);
+  void ReleaseRoomPanelSlotId(int room_id);
 };
 
 }  // namespace editor

@@ -373,8 +373,9 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     auto draw_navigation = [&]() {
       // Use swap callback (swaps room in current panel) if available,
       // otherwise fall back to navigation callback (opens new panel)
-      if (!room_swap_callback_ && !room_navigation_callback_)
+      if (!room_swap_callback_ && !room_navigation_callback_) {
         return;
+      }
 
       const int col = room_id % kRoomMatrixCols;
       const int row = room_id / kRoomMatrixCols;
@@ -422,33 +423,17 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
           ImGui::SetTooltip("%s", tooltip.c_str());
       };
 
-      // Compass-style cross layout:
-      //        [N]
-      //    [W]     [E]
-      //        [S]
-      float button_width = ImGui::GetFrameHeight();
-      float spacing = ImGui::GetStyle().ItemSpacing.x;
-
+      // Single-row nav to keep the room header compact in narrow docks.
       ImGui::BeginGroup();
-      // Row 1: North button centered
-      ImGui::SetCursorPosX(ImGui::GetCursorPosX() + button_width + spacing);
+      nav_button("RoomNavWest", ImGuiDir_Left, west, make_tooltip(west, "West"));
+      ImGui::SameLine();
       nav_button("RoomNavNorth", ImGuiDir_Up, north,
                  make_tooltip(north, "North"));
-
-      // Row 2: West and East buttons
-      nav_button("RoomNavWest", ImGuiDir_Left, west,
-                 make_tooltip(west, "West"));
       ImGui::SameLine();
-      ImGui::Dummy(ImVec2(button_width, 0));  // Spacer for center
-      ImGui::SameLine();
-      nav_button("RoomNavEast", ImGuiDir_Right, east,
-                 make_tooltip(east, "East"));
-
-      // Row 3: South button centered
-      ImGui::SetCursorPosX(ImGui::GetCursorPosX() + button_width + spacing);
       nav_button("RoomNavSouth", ImGuiDir_Down, south,
                  make_tooltip(south, "South"));
-      ImGui::EndGroup();
+      ImGui::SameLine();
+      nav_button("RoomNavEast", ImGuiDir_Right, east, make_tooltip(east, "East"));
       ImGui::SameLine();
 
       // Pin button
@@ -460,10 +445,11 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
         }
       }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(is_pinned_ ? "Unpin Room (Close when switching editors)"
-                                     : "Pin Room (Keep open when switching editors)");
+        ImGui::SetTooltip(is_pinned_
+                              ? "Unpin Room (Close when switching editors)"
+                              : "Pin Room (Keep open when switching editors)");
       }
-      ImGui::SameLine();
+      ImGui::EndGroup();
     };
 
     auto& layer_mgr = GetRoomLayerManager(room_id);
@@ -512,7 +498,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     constexpr ImGuiTableFlags kPropsTableFlags =
         ImGuiTableFlags_NoPadOuterX | ImGuiTableFlags_NoBordersInBody;
     if (ImGui::BeginTable("##RoomPropsTable", 2, kPropsTableFlags)) {
-      ImGui::TableSetupColumn("NavCol", ImGuiTableColumnFlags_WidthFixed, 90);
+      ImGui::TableSetupColumn("NavCol", ImGuiTableColumnFlags_WidthFixed, 140);
       ImGui::TableSetupColumn("PropsCol", ImGuiTableColumnFlags_WidthStretch);
 
       // Row 1: Navigation + Room ID + Core properties (Blockset, Palette, Layout, Spriteset)
@@ -797,169 +783,170 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       if (ImGui::IsItemHovered())
         ImGui::SetTooltip("Merge type");
 
-      // Row 4: Selection filter
+      // Row 4: Selection filter + quick actions (kept to one row for compactness)
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::TextDisabled(ICON_MD_SELECT_ALL " Select");
       ImGui::TableNextColumn();
+
+      const auto& theme = AgentUI::GetTheme();
+
       object_interaction_.SetLayersMerged(layer_mgr.AreLayersMerged());
       int current_filter = object_interaction_.GetLayerFilter();
       if (ImGui::RadioButton("All",
-                             current_filter == ObjectSelection::kLayerAll))
+                             current_filter == ObjectSelection::kLayerAll)) {
         object_interaction_.SetLayerFilter(ObjectSelection::kLayerAll);
+      }
       ImGui::SameLine();
-      if (ImGui::RadioButton("L1", current_filter == ObjectSelection::kLayer1))
+      if (ImGui::RadioButton("L1", current_filter == ObjectSelection::kLayer1)) {
         object_interaction_.SetLayerFilter(ObjectSelection::kLayer1);
+      }
       ImGui::SameLine();
-      if (ImGui::RadioButton("L2", current_filter == ObjectSelection::kLayer2))
+      if (ImGui::RadioButton("L2", current_filter == ObjectSelection::kLayer2)) {
         object_interaction_.SetLayerFilter(ObjectSelection::kLayer2);
+      }
       ImGui::SameLine();
-      if (ImGui::RadioButton("L3", current_filter == ObjectSelection::kLayer3))
+      if (ImGui::RadioButton("L3", current_filter == ObjectSelection::kLayer3)) {
         object_interaction_.SetLayerFilter(ObjectSelection::kLayer3);
+      }
       ImGui::SameLine();
+
       // Mask mode: filter to BG2/Layer 1 overlay objects only (platforms, statues, etc.)
       bool is_mask_mode = current_filter == ObjectSelection::kMaskLayer;
-      if (is_mask_mode)
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4f, 0.8f, 1.0f, 1.0f));
-      if (ImGui::RadioButton("Mask", is_mask_mode))
+      if (is_mask_mode) {
+        ImGui::PushStyleColor(ImGuiCol_Text, theme.text_info);
+      }
+      if (ImGui::RadioButton("Mask", is_mask_mode)) {
         object_interaction_.SetLayerFilter(ObjectSelection::kMaskLayer);
-      if (is_mask_mode)
+      }
+      if (is_mask_mode) {
         ImGui::PopStyleColor();
+      }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip(
             "Mask Selection Mode\n"
-            "Only select BG2/Layer 1 overlay objects (platforms, statues, "
-            "stairs)\n"
+            "Only select BG2/Layer 1 overlay objects (platforms, statues, stairs)\n"
             "These are the objects that create transparency holes in BG1");
       }
+
       if (object_interaction_.IsLayerFilterActive() && !is_mask_mode) {
         ImGui::SameLine();
-        ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), ICON_MD_FILTER_ALT);
+        ImGui::TextColored(theme.text_warning_yellow, ICON_MD_FILTER_ALT);
       }
       if (layer_mgr.AreLayersMerged()) {
         ImGui::SameLine();
-        ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f), ICON_MD_MERGE_TYPE);
+        ImGui::TextColored(theme.text_info, ICON_MD_MERGE_TYPE);
+      }
+
+      // Inline quick actions to avoid adding additional rows (prevents the
+      // header area from growing tall in narrow docks).
+      auto toolbar_icon_button = [&](const char* id, const char* icon,
+                                     const char* tooltip,
+                                     bool active = false) -> bool {
+        ImGui::SameLine();
+        ImGui::PushID(id);
+        const ImVec2 btn_size(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
+        if (active) {
+          const ImVec4 base = theme.accent_color;
+          const ImVec4 hover =
+              ImVec4(base.x * 1.2f, base.y * 1.2f, base.z * 1.2f, base.w);
+          const ImVec4 down =
+              ImVec4(base.x * 0.85f, base.y * 0.85f, base.z * 0.85f, base.w);
+          ImGui::PushStyleColor(ImGuiCol_Button, base);
+          ImGui::PushStyleColor(ImGuiCol_ButtonHovered, hover);
+          ImGui::PushStyleColor(ImGuiCol_ButtonActive, down);
+        }
+        bool clicked = ImGui::Button(icon, btn_size);
+        if (active) {
+          ImGui::PopStyleColor(3);
+        }
+        if (tooltip && ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("%s", tooltip);
+        }
+        ImGui::PopID();
+        return clicked;
+      };
+
+      // Spacer before the quick actions group.
+      ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x * 3.0f);
+
+      // Place pickers (open their dedicated panels).
+      if (show_object_panel_callback_) {
+        if (toolbar_icon_button("PlaceObject", ICON_MD_WIDGETS,
+                                "Open Object Editor panel")) {
+          show_object_panel_callback_();
+        }
+      }
+      if (show_sprite_panel_callback_) {
+        if (toolbar_icon_button("PlaceSprite", ICON_MD_PERSON,
+                                "Open Sprite Editor panel")) {
+          show_sprite_panel_callback_();
+        }
+      }
+      if (show_item_panel_callback_) {
+        if (toolbar_icon_button("PlaceItem", ICON_MD_INVENTORY,
+                                "Open Item Editor panel")) {
+          show_item_panel_callback_();
+        }
+      }
+
+      // Door placement toggle (stays in-room).
+      bool door_mode = object_interaction_.IsDoorPlacementActive();
+      if (toolbar_icon_button("DoorMode", ICON_MD_DOOR_FRONT,
+                              door_mode ? "Cancel door placement"
+                                        : "Place doors",
+                              door_mode)) {
+        object_interaction_.SetDoorPlacementMode(!door_mode,
+                                                 zelda3::DoorType::NormalDoor);
+      }
+
+      // Overlays popup to avoid wrapping a long line of toggles.
+      ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x * 2.0f);
+      ImGui::PushID("OverlaysMenu");
+      if (toolbar_icon_button("Overlays", ICON_MD_VISIBILITY, "Overlays")) {
+        ImGui::OpenPopup("##OverlaysPopup");
+      }
+      if (ImGui::BeginPopup("##OverlaysPopup")) {
+        if (minecart_track_panel_) {
+          ImGui::MenuItem("Minecart Tracks", nullptr, &show_minecart_tracks_);
+        } else {
+          ImGui::BeginDisabled();
+          bool dummy = false;
+          ImGui::MenuItem("Minecart Tracks", nullptr, &dummy);
+          ImGui::EndDisabled();
+        }
+
+        ImGui::MenuItem("Track Collision Overlay", nullptr,
+                        &show_track_collision_overlay_);
+        ImGui::MenuItem("Track Gaps", nullptr, &show_track_gap_overlay_);
+        ImGui::MenuItem("Track Route", nullptr, &show_track_route_overlay_);
+        ImGui::MenuItem("Camera Quadrants", nullptr,
+                        &show_camera_quadrant_overlay_);
+        ImGui::MenuItem("Minecart Sprites", nullptr,
+                        &show_minecart_sprite_overlay_);
+        ImGui::EndPopup();
+      }
+      ImGui::PopID();
+
+      // Object limit warning indicator (kept inline to avoid adding height).
+      if (rooms_) {
+        auto exceeded = room.GetExceededLimitDetails();
+        if (!exceeded.empty()) {
+          ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x * 2.0f);
+          ImGui::TextColored(theme.text_error_red, ICON_MD_WARNING);
+          if (ImGui::IsItemHovered()) {
+            ImGui::BeginTooltip();
+            ImGui::Text("Object Limit Warnings:");
+            for (const auto& e : exceeded) {
+              ImGui::BulletText("%s: %d / %d", e.name.c_str(), e.count, e.max);
+            }
+            ImGui::EndTooltip();
+          }
+        }
       }
 
       ImGui::EndTable();
     }
-
-    // === Quick Access Toolbar for Entity Pickers ===
-    ImGui::Spacing();
-    ImGui::BeginGroup();
-    ImGui::TextDisabled(ICON_MD_ADD_CIRCLE " Place:");
-    ImGui::SameLine();
-
-    // Object picker button
-    if (ImGui::Button(ICON_MD_WIDGETS " Object")) {
-      if (show_object_panel_callback_) {
-        show_object_panel_callback_();
-      }
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(
-          "Open Object Editor panel to select objects for placement");
-    }
-    ImGui::SameLine();
-
-    // Sprite picker button
-    if (ImGui::Button(ICON_MD_PERSON " Sprite")) {
-      if (show_sprite_panel_callback_) {
-        show_sprite_panel_callback_();
-      }
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(
-          "Open Sprite Editor panel to select sprites for placement");
-    }
-    ImGui::SameLine();
-
-    // Item picker button
-    if (ImGui::Button(ICON_MD_INVENTORY " Item")) {
-      if (show_item_panel_callback_) {
-        show_item_panel_callback_();
-      }
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Open Item Editor panel to select items for placement");
-    }
-    ImGui::SameLine();
-
-    // Door placement toggle (inline)
-    bool door_mode = object_interaction_.IsDoorPlacementActive();
-    if (door_mode) {
-      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.6f, 0.9f, 1.0f));
-    }
-    if (ImGui::Button(ICON_MD_DOOR_FRONT " Door")) {
-      object_interaction_.SetDoorPlacementMode(!door_mode,
-                                               zelda3::DoorType::NormalDoor);
-    }
-    if (door_mode) {
-      ImGui::PopStyleColor();
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(door_mode ? "Click to cancel door placement"
-                                  : "Click to place doors");
-    }
-
-    if (minecart_track_panel_) {
-      ImGui::SameLine();
-      bool show_tracks = show_minecart_tracks_;
-      if (ImGui::Checkbox(ICON_MD_TRAIN " Tracks", &show_tracks)) {
-        show_minecart_tracks_ = show_tracks;
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Toggle minecart track origin overlay");
-      }
-    }
-
-    ImGui::SameLine();
-    bool show_track_collision = show_track_collision_overlay_;
-    if (ImGui::Checkbox(ICON_MD_LAYERS " Track Coll", &show_track_collision)) {
-      show_track_collision_overlay_ = show_track_collision;
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Toggle track collision overlay (custom collision)");
-    }
-
-    ImGui::SameLine();
-    bool show_quadrants = show_camera_quadrant_overlay_;
-    if (ImGui::Checkbox(ICON_MD_GRID_VIEW " Quads", &show_quadrants)) {
-      show_camera_quadrant_overlay_ = show_quadrants;
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Toggle camera quadrant boundaries");
-    }
-
-    ImGui::SameLine();
-    bool show_cart_sprites = show_minecart_sprite_overlay_;
-    if (ImGui::Checkbox(ICON_MD_TRAIN " Cart Spr", &show_cart_sprites)) {
-      show_minecart_sprite_overlay_ = show_cart_sprites;
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Highlight minecart sprites and stop alignment");
-    }
-
-    ImGui::SameLine();
-    bool show_gap = show_track_gap_overlay_;
-    if (ImGui::Checkbox(ICON_MD_COMPARE " Gaps", &show_gap)) {
-      show_track_gap_overlay_ = show_gap;
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(
-          "Show gaps between rail objects and collision data");
-    }
-
-    ImGui::SameLine();
-    bool show_route = show_track_route_overlay_;
-    if (ImGui::Checkbox(ICON_MD_ROUTE " Route", &show_route)) {
-      show_track_route_overlay_ = show_route;
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Draw connected route lines through track tiles");
-    }
-    ImGui::EndGroup();
-    ImGui::Separator();
   }
 
   ImGui::EndGroup();

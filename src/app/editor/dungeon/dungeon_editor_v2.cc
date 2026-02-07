@@ -836,6 +836,7 @@ void DungeonEditorV2::DrawRoomPanels() {
       dependencies_.panel_manager->UnregisterPanel(card_id);
       room_cards_.erase(room_id);
       active_rooms_.erase(active_rooms_.Data + i);
+      ReleaseRoomPanelSlotId(room_id);
       // Clean up viewer
       room_viewers_.erase(room_id);
       i--;
@@ -859,8 +860,9 @@ void DungeonEditorV2::DrawRoomPanels() {
     std::string base_name = absl::StrFormat(
         "[%03X] %s", room_id, zelda3::GetRoomLabel(room_id).c_str());
 
+    const int slot_id = GetOrCreateRoomPanelSlotId(room_id);
     std::string card_name_str = absl::StrFormat(
-        "%s###RoomPanel%d", MakePanelTitle(base_name).c_str(), room_id);
+        "%s###RoomPanelSlot%d", MakePanelTitle(base_name).c_str(), slot_id);
 
     if (room_cards_.find(room_id) == room_cards_.end()) {
       room_cards_[room_id] = std::make_shared<gui::PanelWindow>(
@@ -898,9 +900,24 @@ void DungeonEditorV2::DrawRoomPanels() {
       room_cards_.erase(room_id);
       active_rooms_.erase(active_rooms_.Data + i);
       room_viewers_.erase(room_id);
+      ReleaseRoomPanelSlotId(room_id);
       i--;
     }
   }
+}
+
+int DungeonEditorV2::GetOrCreateRoomPanelSlotId(int room_id) {
+  if (auto it = room_panel_slot_ids_.find(room_id);
+      it != room_panel_slot_ids_.end()) {
+    return it->second;
+  }
+  const int slot_id = next_room_panel_slot_id_++;
+  room_panel_slot_ids_[room_id] = slot_id;
+  return slot_id;
+}
+
+void DungeonEditorV2::ReleaseRoomPanelSlotId(int room_id) {
+  room_panel_slot_ids_.erase(room_id);
 }
 
 void DungeonEditorV2::DrawRoomTab(int room_id) {
@@ -1292,6 +1309,27 @@ void DungeonEditorV2::ProcessPendingSwap() {
     return;
   }
 
+  // Avoid swapping into an already-open room panel (the per-room maps assume
+  // room IDs are unique). In this case, just focus/select the existing room.
+  for (int i = 0; i < active_rooms_.Size; i++) {
+    if (i != swap_index && active_rooms_[i] == new_room_id) {
+      OnRoomSelected(new_room_id);
+      return;
+    }
+  }
+
+  // Preserve the old panel's stable ImGui window identity by transferring its
+  // slot id to the new room id.
+  int slot_id = -1;
+  if (auto it = room_panel_slot_ids_.find(old_room_id);
+      it != room_panel_slot_ids_.end()) {
+    slot_id = it->second;
+    room_panel_slot_ids_.erase(it);
+  } else {
+    slot_id = next_room_panel_slot_id_++;
+  }
+  room_panel_slot_ids_[new_room_id] = slot_id;
+
   // Replace old room with new room in active_rooms_
   active_rooms_[swap_index] = new_room_id;
   room_selector_.set_active_rooms(active_rooms_);
@@ -1299,15 +1337,10 @@ void DungeonEditorV2::ProcessPendingSwap() {
   // Unregister old panel
   if (dependencies_.panel_manager) {
     std::string old_card_id = absl::StrFormat("dungeon.room_%d", old_room_id);
+    const bool old_pinned = dependencies_.panel_manager->IsPanelPinned(old_card_id);
     dependencies_.panel_manager->UnregisterPanel(old_card_id);
-  }
 
-  // Clean up old room's card and viewer
-  room_cards_.erase(old_room_id);
-  room_viewers_.erase(old_room_id);
-
-  // Register new panel
-  if (dependencies_.panel_manager) {
+    // Register new panel
     // Use unified ResourceLabelProvider for room names
     std::string new_room_name = absl::StrFormat(
         "[%03X] %s", new_room_id, zelda3::GetRoomLabel(new_room_id).c_str());
@@ -1324,8 +1357,15 @@ void DungeonEditorV2::ProcessPendingSwap() {
          .visibility_flag = nullptr,
          .priority = 200 + new_room_id});
 
+    if (old_pinned) {
+      dependencies_.panel_manager->SetPanelPinned(new_card_id, true);
+    }
     dependencies_.panel_manager->ShowPanel(new_card_id);
   }
+
+  // Clean up old room's card and viewer
+  room_cards_.erase(old_room_id);
+  room_viewers_.erase(old_room_id);
 
   // Update current selection
   OnRoomSelected(new_room_id, /*request_focus=*/false);
