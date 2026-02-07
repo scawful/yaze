@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <string>
 
+#include "rom/snes.h"
 #include "gtest/gtest.h"
 
 namespace yaze::core {
@@ -70,6 +71,10 @@ TEST(HackManifestTest, LoadsAndClassifiesAddresses) {
   EXPECT_EQ(manifest.ClassifyAddress(0x008003), AddressOwnership::kHookPatched);
   EXPECT_EQ(manifest.ClassifyAddress(0x008004), AddressOwnership::kVanillaSafe);
 
+  // FastROM mirrors ($80-$FF banks) should classify the same as canonical banks.
+  EXPECT_EQ(manifest.ClassifyAddress(0x808000), AddressOwnership::kHookPatched);
+  EXPECT_EQ(manifest.ClassifyAddress(0x81CC14), AddressOwnership::kHookPatched);
+
   // Bank ownership has priority over protected regions.
   EXPECT_EQ(manifest.ClassifyAddress(0x1E8000), AddressOwnership::kAsmOwned);
   EXPECT_FALSE(manifest.IsWriteOverwritten(0x20AF20));  // shared bank
@@ -107,6 +112,18 @@ TEST(HackManifestTest, LoadsAndClassifiesAddresses) {
   }
   EXPECT_TRUE(saw_hook_patched);
   EXPECT_TRUE(saw_asm_owned);
+
+  // PC-offset ranges should be converted and checked against SNES ranges.
+  const uint32_t pc_hook = yaze::SnesToPc(0x01CC14);
+  auto pc_conflicts = manifest.AnalyzePcWriteRanges({
+      {pc_hook, pc_hook + 4},
+  });
+  ASSERT_FALSE(pc_conflicts.empty());
+  bool saw_pc_hook_patched = false;
+  for (const auto& c : pc_conflicts) {
+    saw_pc_hook_patched |= (c.ownership == AddressOwnership::kHookPatched);
+  }
+  EXPECT_TRUE(saw_pc_hook_patched);
 }
 
 TEST(HackManifestTest, ReloadClearsPreviousState) {
@@ -137,6 +154,68 @@ TEST(HackManifestTest, ReloadClearsPreviousState) {
   EXPECT_FALSE(manifest.IsFeatureEnabled("!B"));
   EXPECT_EQ(manifest.hack_name(), "B");
   EXPECT_EQ(manifest.feature_flags().size(), 1u);
+}
+
+TEST(HackManifestTest, ParsesMessageLayout) {
+  constexpr const char* kJson = R"json(
+{
+  "manifest_version": 2,
+  "messages": {
+    "hook_address": "0x0ED436",
+    "data_start": "0x2F8000",
+    "data_end": "0x2FFFFF",
+    "expanded_range": {"first":"0x18D","last":"0x1D1","count":69},
+    "vanilla_count": 397
+  }
+}
+)json";
+
+  HackManifest manifest;
+  ASSERT_TRUE(manifest.LoadFromString(kJson).ok());
+
+  const auto& layout = manifest.message_layout();
+  EXPECT_EQ(layout.hook_address, 0x0ED436);
+  EXPECT_EQ(layout.data_start, 0x2F8000);
+  EXPECT_EQ(layout.first_expanded_id, 0x18D);
+  EXPECT_EQ(layout.expanded_count, 69);
+  EXPECT_EQ(layout.vanilla_count, 397);
+  
+  EXPECT_TRUE(manifest.IsExpandedMessage(0x18D));
+  EXPECT_TRUE(manifest.IsExpandedMessage(0x1D1));
+  EXPECT_FALSE(manifest.IsExpandedMessage(0x18C));
+  EXPECT_FALSE(manifest.IsExpandedMessage(0x1D2));
+}
+
+TEST(HackManifestTest, NormalizesMirroredAddressesOnLoad) {
+  constexpr const char* kJson = R"json(
+{
+  "manifest_version": 2,
+  "hack_name": "Test Mirrors",
+  "protected_regions": {
+    "total_hooks": 1,
+    "regions": [
+      {"start":"0x81CC14","end":"0x81CC18","size":4,"hook_count":1,"module":"Dungeons"}
+    ]
+  },
+  "owned_banks": {
+    "banks": [
+      {"bank":"0x9E","bank_start":"0x9E8000","bank_end":"0x9EFFFF","ownership":"asm_owned","ownership_note":"Mirror bank"}
+    ]
+  }
+}
+)json";
+
+  HackManifest manifest;
+  ASSERT_TRUE(manifest.LoadFromString(std::string(kJson)).ok());
+  ASSERT_TRUE(manifest.loaded());
+
+  // Protected region in a mirrored bank should still classify correctly.
+  EXPECT_EQ(manifest.ClassifyAddress(0x01CC14), AddressOwnership::kHookPatched);
+  EXPECT_EQ(manifest.ClassifyAddress(0x81CC14), AddressOwnership::kHookPatched);
+
+  // Owned bank in a mirrored bank should still classify correctly.
+  EXPECT_EQ(manifest.ClassifyAddress(0x1E8000), AddressOwnership::kAsmOwned);
+  EXPECT_EQ(manifest.ClassifyAddress(0x9E8000), AddressOwnership::kAsmOwned);
 }
 
 }  // namespace yaze::core

@@ -161,6 +161,14 @@ class HackManifest {
    */
   [[nodiscard]] bool loaded() const { return loaded_; }
 
+  /**
+   * @brief Clear any loaded manifest state.
+   *
+   * This is primarily used when switching projects to ensure we never keep a
+   * stale manifest across loads.
+   */
+  void Clear() { Reset(); }
+
   // ─── Address Classification ───────────────────────────────
 
   /**
@@ -246,6 +254,18 @@ class HackManifest {
    */
   [[nodiscard]] std::vector<WriteConflict> AnalyzeWriteRanges(
       const std::vector<std::pair<uint32_t, uint32_t>>& ranges) const;
+
+  /**
+   * @brief Analyze a set of PC-offset ranges for write conflicts.
+   *
+   * Editors typically operate on raw ROM offsets (PC). The hack manifest uses
+   * SNES addresses (LoROM) as emitted by `org $XXXXXX` in ASM.
+   *
+   * This helper converts PC ranges to SNES ranges (splitting at LoROM bank
+   * boundaries) and then runs the same conflict analysis.
+   */
+  [[nodiscard]] std::vector<WriteConflict> AnalyzePcWriteRanges(
+      const std::vector<std::pair<uint32_t, uint32_t>>& pc_ranges) const;
 
   // ─── Build Pipeline ───────────────────────────────────────
 
