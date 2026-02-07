@@ -149,6 +149,7 @@ class LayoutPresets {
     static constexpr const char* kOverworldV3Settings = "overworld.v3_settings";
 
     // Dungeon cards (dungeon_editor_v2.cc)
+    static constexpr const char* kDungeonWorkbench = "dungeon.workbench";
     static constexpr const char* kDungeonRoomSelector = "dungeon.room_selector";
     static constexpr const char* kDungeonRoomMatrix = "dungeon.room_matrix";
     static constexpr const char* kDungeonEntrances = "dungeon.entrances";

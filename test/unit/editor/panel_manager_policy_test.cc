@@ -55,7 +55,7 @@ TEST(PanelManagerPolicyTest, ShowHideCallsOnOpenOnCloseForEditorPanelInstances) 
   EXPECT_EQ(panel->close_count, 1);
 }
 
-TEST(PanelManagerPolicyTest, OnEditorSwitchHidesDescriptorOnlyPanelsUnlessPinnedOrPersistent) {
+TEST(PanelManagerPolicyTest, OnEditorSwitchDoesNotMutateVisibilityFlags) {
   PanelManager pm;
   pm.RegisterSession(0);
   pm.SetActiveSession(0);
@@ -91,7 +91,11 @@ TEST(PanelManagerPolicyTest, OnEditorSwitchHidesDescriptorOnlyPanelsUnlessPinned
 
   pm.OnEditorSwitch("Dungeon", "Graphics");
 
-  EXPECT_FALSE(pm.IsPanelVisible(0, "dungeon.manual_ephemeral"));
+  EXPECT_EQ(pm.GetActiveCategory(), "Graphics");
+
+  // Switching editors should not be treated as "user closed this panel".
+  // Visibility persistence and default rules are owned by EditorManager.
+  EXPECT_TRUE(pm.IsPanelVisible(0, "dungeon.manual_ephemeral"));
   EXPECT_TRUE(pm.IsPanelVisible(0, "dungeon.manual_pinned"));
   EXPECT_TRUE(pm.IsPanelVisible(0, "dungeon.manual_persistent"));
 }
