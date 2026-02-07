@@ -173,7 +173,8 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
        .window_title = " Palette Editor",
        .icon = ICON_MD_PALETTE,
        .category = "Dungeon",
-       .shortcut_hint = "Ctrl+Shift+P",
+       // Avoid conflicting with the global Command Palette (Ctrl/Cmd+Shift+P).
+       .shortcut_hint = "Ctrl+Shift+Alt+P",
        .visibility_flag = nullptr,
        .priority = 70,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },

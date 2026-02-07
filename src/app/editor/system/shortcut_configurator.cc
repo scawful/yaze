@@ -325,117 +325,132 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
 
   // Editor-scoped Music shortcuts (toggle playback, speed controls)
   if (editor_manager) {
-    auto* editor_set = editor_manager->GetCurrentEditorSet();
-    if (editor_set && editor_set->GetMusicEditor()) {
-      auto* music_editor = editor_set->GetMusicEditor();
-      for (const auto& def : kMusicEditorShortcuts) {
-        RegisterIfValid(
-            shortcut_manager, def.id, def.keys,
-            [music_editor, id = def.id]() {
-              if (!music_editor)
-                return;
-              if (id == "music.play_pause") {
-                music_editor->TogglePlayPause();
-              } else if (id == "music.stop") {
-                music_editor->StopPlayback();
-              } else if (id == "music.speed_up" ||
-                         id == "music.speed_up_keypad") {
-                music_editor->SpeedUp();
-              } else if (id == "music.speed_down" ||
-                         id == "music.speed_down_keypad") {
-                music_editor->SlowDown();
-              }
-            },
-            Shortcut::Scope::kEditor);
-      }
+    for (const auto& def : kMusicEditorShortcuts) {
+      RegisterIfValid(
+          shortcut_manager, def.id, def.keys,
+          [editor_manager, id = def.id]() {
+            if (!editor_manager) return;
+            auto* current_editor = editor_manager->GetCurrentEditor();
+            if (!current_editor || current_editor->type() != EditorType::kMusic) {
+              return;
+            }
+            auto* editor_set = editor_manager->GetCurrentEditorSet();
+            auto* music_editor = editor_set ? editor_set->GetMusicEditor() : nullptr;
+            if (!music_editor) return;
+
+            if (id == "music.play_pause") {
+              music_editor->TogglePlayPause();
+            } else if (id == "music.stop") {
+              music_editor->StopPlayback();
+            } else if (id == "music.speed_up" || id == "music.speed_up_keypad") {
+              music_editor->SpeedUp();
+            } else if (id == "music.speed_down" ||
+                       id == "music.speed_down_keypad") {
+              music_editor->SlowDown();
+            }
+          },
+          Shortcut::Scope::kEditor);
     }
   }
 
   // Editor-scoped Dungeon shortcuts (object tools)
   if (editor_manager) {
-    auto* editor_set = editor_manager->GetCurrentEditorSet();
-    if (editor_set && editor_set->GetDungeonEditor()) {
-      auto* dungeon_editor = editor_set->GetDungeonEditor();
-      for (const auto& def : kDungeonEditorShortcuts) {
-        RegisterIfValid(
-            shortcut_manager, def.id, def.keys,
-            [dungeon_editor, id = def.id]() {
-              if (!dungeon_editor)
-                return;
-              auto* obj_panel = dungeon_editor->object_editor_panel();
-              if (!obj_panel)
-                return;
-              if (id == "dungeon.object.select_tool") {
-                // Unified mode: cancel placement to switch to selection
-                obj_panel->CancelPlacement();
-              } else if (id == "dungeon.object.place_tool") {
-                // Unified mode: handled by object selector click
-                // No-op (mode is controlled by selecting an object)
-              } else if (id == "dungeon.object.delete_tool") {
-                // Unified mode: delete selected objects
-                obj_panel->DeleteSelectedObjects();
-              } else if (id == "dungeon.object.next_object") {
-                obj_panel->CycleObjectSelection(1);
-              } else if (id == "dungeon.object.prev_object") {
-                obj_panel->CycleObjectSelection(-1);
-              } else if (id == "dungeon.object.copy") {
-                obj_panel->CopySelectedObjects();
-              } else if (id == "dungeon.object.paste") {
-                obj_panel->PasteObjects();
-              } else if (id == "dungeon.object.delete") {
-                obj_panel->DeleteSelectedObjects();
-              }
-            },
-            Shortcut::Scope::kEditor);
-      }
+    for (const auto& def : kDungeonEditorShortcuts) {
+      RegisterIfValid(
+          shortcut_manager, def.id, def.keys,
+          [editor_manager, id = def.id]() {
+            if (!editor_manager) return;
+            auto* current_editor = editor_manager->GetCurrentEditor();
+            if (!current_editor ||
+                current_editor->type() != EditorType::kDungeon) {
+              return;
+            }
+            auto* editor_set = editor_manager->GetCurrentEditorSet();
+            auto* dungeon_editor = editor_set ? editor_set->GetDungeonEditor() : nullptr;
+            if (!dungeon_editor) return;
+            auto* obj_panel = dungeon_editor->object_editor_panel();
+            if (!obj_panel) return;
+
+            if (id == "dungeon.object.select_tool") {
+              // Unified mode: cancel placement to switch to selection
+              obj_panel->CancelPlacement();
+            } else if (id == "dungeon.object.place_tool") {
+              // Unified mode: handled by object selector click
+              // No-op (mode is controlled by selecting an object)
+            } else if (id == "dungeon.object.delete_tool") {
+              // Unified mode: delete selected objects
+              obj_panel->DeleteSelectedObjects();
+            } else if (id == "dungeon.object.next_object") {
+              obj_panel->CycleObjectSelection(1);
+            } else if (id == "dungeon.object.prev_object") {
+              obj_panel->CycleObjectSelection(-1);
+            } else if (id == "dungeon.object.copy") {
+              obj_panel->CopySelectedObjects();
+            } else if (id == "dungeon.object.paste") {
+              obj_panel->PasteObjects();
+            } else if (id == "dungeon.object.delete") {
+              obj_panel->DeleteSelectedObjects();
+            }
+          },
+          Shortcut::Scope::kEditor);
     }
   }
 
   // Editor-scoped Overworld shortcuts (basic tools)
   if (editor_manager) {
-    auto* editor_set = editor_manager->GetCurrentEditorSet();
-    if (editor_set && editor_set->GetOverworldEditor()) {
-      auto* overworld_editor = editor_set->GetOverworldEditor();
-      for (const auto& def : kOverworldShortcuts) {
-        RegisterIfValid(
-            shortcut_manager, def.id, def.keys,
-            [overworld_editor, id = def.id]() {
-              if (!overworld_editor)
-                return;
-              if (id == "overworld.brush_toggle") {
-                overworld_editor->ToggleBrushTool();
-              } else if (id == "overworld.fill") {
-                overworld_editor->ActivateFillTool();
-              } else if (id == "overworld.next_tile") {
-                overworld_editor->CycleTileSelection(1);
-              } else if (id == "overworld.prev_tile") {
-                overworld_editor->CycleTileSelection(-1);
-              }
-            },
-            Shortcut::Scope::kEditor);
-      }
+    for (const auto& def : kOverworldShortcuts) {
+      RegisterIfValid(
+          shortcut_manager, def.id, def.keys,
+          [editor_manager, id = def.id]() {
+            if (!editor_manager) return;
+            auto* current_editor = editor_manager->GetCurrentEditor();
+            if (!current_editor ||
+                current_editor->type() != EditorType::kOverworld) {
+              return;
+            }
+            auto* editor_set = editor_manager->GetCurrentEditorSet();
+            auto* overworld_editor =
+                editor_set ? editor_set->GetOverworldEditor() : nullptr;
+            if (!overworld_editor) return;
+
+            if (id == "overworld.brush_toggle") {
+              overworld_editor->ToggleBrushTool();
+            } else if (id == "overworld.fill") {
+              overworld_editor->ActivateFillTool();
+            } else if (id == "overworld.next_tile") {
+              overworld_editor->CycleTileSelection(1);
+            } else if (id == "overworld.prev_tile") {
+              overworld_editor->CycleTileSelection(-1);
+            }
+          },
+          Shortcut::Scope::kEditor);
     }
   }
 
   // Editor-scoped Graphics shortcuts (sheet navigation)
   if (editor_manager) {
-    auto* editor_set = editor_manager->GetCurrentEditorSet();
-    if (editor_set && editor_set->GetGraphicsEditor()) {
-      auto* graphics_editor = editor_set->GetGraphicsEditor();
-      for (const auto& def : kGraphicsShortcuts) {
-        RegisterIfValid(
-            shortcut_manager, def.id, def.keys,
-            [graphics_editor, id = def.id]() {
-              if (!graphics_editor)
-                return;
-              if (id == "graphics.next_sheet") {
-                graphics_editor->NextSheet();
-              } else if (id == "graphics.prev_sheet") {
-                graphics_editor->PrevSheet();
-              }
-            },
-            Shortcut::Scope::kEditor);
-      }
+    for (const auto& def : kGraphicsShortcuts) {
+      RegisterIfValid(
+          shortcut_manager, def.id, def.keys,
+          [editor_manager, id = def.id]() {
+            if (!editor_manager) return;
+            auto* current_editor = editor_manager->GetCurrentEditor();
+            if (!current_editor ||
+                current_editor->type() != EditorType::kGraphics) {
+              return;
+            }
+            auto* editor_set = editor_manager->GetCurrentEditorSet();
+            auto* graphics_editor =
+                editor_set ? editor_set->GetGraphicsEditor() : nullptr;
+            if (!graphics_editor) return;
+
+            if (id == "graphics.next_sheet") {
+              graphics_editor->NextSheet();
+            } else if (id == "graphics.prev_sheet") {
+              graphics_editor->PrevSheet();
+            }
+          },
+          Shortcut::Scope::kEditor);
     }
   }
 

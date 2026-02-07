@@ -87,7 +87,9 @@ class ShortcutManager {
     return PrintShortcut(shortcuts_.at(name).keys);
   }
 
-  auto GetShortcuts() const { return shortcuts_; }
+  const std::unordered_map<std::string, Shortcut>& GetShortcuts() const {
+    return shortcuts_;
+  }
   bool UpdateShortcutKeys(const std::string& name,
                           const std::vector<ImGuiKey>& keys);
   std::vector<Shortcut> GetShortcutsByScope(Shortcut::Scope scope) const {
