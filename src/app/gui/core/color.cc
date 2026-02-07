@@ -236,7 +236,7 @@ IMGUI_API bool PopupPaletteEditor(const char* popup_id,
 // ============================================================================
 
 IMGUI_API bool DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
-  static ImVec4 color = ImVec4(0, 0, 0, 255.f);
+  static ImVec4 color = ImVec4(0, 0, 0, 1.0f);
   ImGuiColorEditFlags misc_flags = ImGuiColorEditFlags_AlphaPreview |
                                    ImGuiColorEditFlags_NoDragDrop |
                                    ImGuiColorEditFlags_NoOptions;
@@ -248,10 +248,10 @@ IMGUI_API bool DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
   if (loaded) {
     for (int n = 0; n < max_colors; n++) {
       auto color = palette[n];
-      saved_palette[n].x = color.rgb().x / 255;
-      saved_palette[n].y = color.rgb().y / 255;
-      saved_palette[n].z = color.rgb().z / 255;
-      saved_palette[n].w = 255;  // Alpha
+      saved_palette[n].x = color.rgb().x / 255.0f;
+      saved_palette[n].y = color.rgb().y / 255.0f;
+      saved_palette[n].z = color.rgb().z / 255.0f;
+      saved_palette[n].w = 1.0f;
     }
   }
 
