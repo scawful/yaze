@@ -21,6 +21,9 @@ class DungeonWorkbenchPanel : public EditorPanel {
  public:
   DungeonWorkbenchPanel(DungeonRoomSelector* room_selector,
                         int* current_room_id,
+                        int* previous_room_id,
+                        bool* split_view_enabled,
+                        int* compare_room_id,
                         std::function<void(int)> on_room_selected,
                         std::function<DungeonCanvasViewer*()> get_viewer,
                         std::function<DungeonCanvasViewer*()> get_compare_viewer,
@@ -47,6 +50,9 @@ class DungeonWorkbenchPanel : public EditorPanel {
 
   DungeonRoomSelector* room_selector_ = nullptr;
   int* current_room_id_ = nullptr;
+  int* previous_room_id_ = nullptr;
+  bool* split_view_enabled_ = nullptr;
+  int* compare_room_id_ = nullptr;
   std::function<void(int)> on_room_selected_;
   std::function<DungeonCanvasViewer*()> get_viewer_;
   std::function<DungeonCanvasViewer*()> get_compare_viewer_;
@@ -54,9 +60,6 @@ class DungeonWorkbenchPanel : public EditorPanel {
   std::function<void(int)> forget_recent_room_;
   std::function<void(const std::string&)> show_panel_;
   Rom* rom_ = nullptr;
-
-  bool split_view_enabled_ = false;
-  int compare_room_id_ = -1;
 };
 
 }  // namespace yaze::editor

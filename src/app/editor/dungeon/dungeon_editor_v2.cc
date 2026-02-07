@@ -233,7 +233,8 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
       &rooms_));
 
   panel_manager->RegisterEditorPanel(std::make_unique<DungeonWorkbenchPanel>(
-      &room_selector_, &current_room_id_,
+      &room_selector_, &current_room_id_, &workbench_previous_room_id_,
+      &workbench_split_view_enabled_, &workbench_compare_room_id_,
       [this](int room_id) { OnRoomSelected(room_id); },
       [this]() { return GetWorkbenchViewer(); },
       [this]() { return GetWorkbenchCompareViewer(); },
@@ -1112,6 +1113,9 @@ void DungeonEditorV2::OnRoomSelected(int room_id, bool request_focus) {
   if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
     LOG_WARN("DungeonEditorV2", "Ignoring invalid room selection: %d", room_id);
     return;
+  }
+  if (room_id != current_room_id_) {
+    workbench_previous_room_id_ = current_room_id_;
   }
   current_room_id_ = room_id;
   room_selector_.set_current_room_id(static_cast<uint16_t>(room_id));
