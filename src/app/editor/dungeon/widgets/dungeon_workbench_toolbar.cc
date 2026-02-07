@@ -20,6 +20,25 @@ namespace {
 
 constexpr float kTightCompareStackThreshold = 520.0f;
 
+float CalcIconButtonWidth(const char* icon, float btn_height) {
+  if (!icon || !*icon) {
+    return btn_height;
+  }
+
+  const ImGuiStyle& style = ImGui::GetStyle();
+  // ImGui buttons include horizontal frame padding, so a strict square (w==h)
+  // can clip wider glyphs. Size to content, but never smaller than btn_height.
+  const float text_w = ImGui::CalcTextSize(icon).x;
+  const float needed_w = text_w + (style.FramePadding.x * 2.0f) + 2.0f;
+  return std::max(btn_height, needed_w);
+}
+
+float CalcIconToggleButtonWidth(const char* icon_on, const char* icon_off,
+                                float btn_height) {
+  return std::max(CalcIconButtonWidth(icon_on, btn_height),
+                  CalcIconButtonWidth(icon_off, btn_height));
+}
+
 struct CompareDefaultResult {
   bool found = false;
   int room_id = -1;
@@ -50,6 +69,7 @@ bool IconToggleButton(const char* id, const char* icon_on, const char* icon_off,
   }
 
   const float btn = btn_size;
+  const float btn_w = CalcIconToggleButtonWidth(icon_on, icon_off, btn);
   const bool active = *value;
 
   const ImVec4 col_btn = ImGui::GetStyleColorVec4(ImGuiCol_Button);
@@ -58,7 +78,7 @@ bool IconToggleButton(const char* id, const char* icon_on, const char* icon_off,
   ImGui::PushID(id);
   ImGui::PushStyleColor(ImGuiCol_Button, active ? col_active : col_btn);
   const bool pressed =
-      ImGui::Button(active ? icon_on : icon_off, ImVec2(btn, btn));
+      ImGui::Button(active ? icon_on : icon_off, ImVec2(btn_w, btn));
   ImGui::PopStyleColor();
 
   if (ImGui::IsItemHovered()) {
@@ -74,7 +94,10 @@ bool IconToggleButton(const char* id, const char* icon_on, const char* icon_off,
 bool SquareIconButton(const char* id, const char* icon, float btn_size,
                       const char* tooltip) {
   const float btn = btn_size;
-  const bool pressed = ImGui::Button(icon, ImVec2(btn, btn));
+  const float btn_w = CalcIconButtonWidth(icon, btn);
+  ImGui::PushID(id);
+  const bool pressed = ImGui::Button(icon, ImVec2(btn_w, btn));
+  ImGui::PopID();
   if (ImGui::IsItemHovered() && tooltip && *tooltip) {
     ImGui::SetTooltip("%s", tooltip);
   }
@@ -196,8 +219,14 @@ void DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
       ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_NoPadInnerX |
       ImGuiTableFlags_NoPadOuterX;
   if (ImGui::BeginTable("##DungeonWorkbenchToolbarTable", 3, kFlags)) {
-    const float right_cluster_w = (btn * 4.0f) + (spacing * 3.0f);
-    const float right_w = right_cluster_w + 4.0f;  // Avoid 1px clip at edges.
+    const float w_grid = CalcIconToggleButtonWidth(ICON_MD_GRID_ON,
+                                                   ICON_MD_GRID_OFF, btn);
+    const float w_bounds = CalcIconButtonWidth(ICON_MD_CROP_SQUARE, btn);
+    const float w_coords = CalcIconButtonWidth(ICON_MD_MY_LOCATION, btn);
+    const float w_camera = CalcIconButtonWidth(ICON_MD_GRID_VIEW, btn);
+    const float right_cluster_w =
+        w_grid + w_bounds + w_coords + w_camera + (spacing * 3.0f);
+    const float right_w = right_cluster_w + 6.0f;  // Avoid edge clipping.
     ImGui::TableSetupColumn("Left", ImGuiTableColumnFlags_WidthStretch);
     ImGui::TableSetupColumn("Middle", ImGuiTableColumnFlags_WidthStretch);
     ImGui::TableSetupColumn("Right", ImGuiTableColumnFlags_WidthFixed, right_w);
