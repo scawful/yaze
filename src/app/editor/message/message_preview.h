@@ -31,6 +31,9 @@ struct MessagePreview {
   int text_position = 0;
   int shown_lines = 0;
 
+  // Line numbers where scroll breaks occur (populated during preview render)
+  std::vector<int> scroll_marker_lines;
+
   std::array<uint8_t, kWidthArraySize> width_array = {0};
   std::vector<uint8_t> font_gfx16_data_;
   std::vector<uint8_t> font_gfx16_data_2_;

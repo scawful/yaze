@@ -58,6 +58,8 @@ class MessageEditor : public Editor {
 
   absl::Status Save() override;
   absl::Status SaveExpandedMessages();
+  absl::Status LoadExpandedMessagesFromRom();
+  int CalculateExpandedBankUsage() const;
 
   absl::Status Cut() override;
   absl::Status Copy() override;
@@ -112,6 +114,7 @@ class MessageEditor : public Editor {
   void ApplyFontPalette();
   void EnsureFontTexturesReady();
   void ImportMessageBundleFromFile(const std::string& path);
+  int ResolveExpandedMessageBaseId() const;
 
   bool font_graphics_loaded_ = false;
   std::string message_bundle_status_;
