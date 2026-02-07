@@ -7,6 +7,7 @@
 
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
+#include "rom/snes.h"
 #include "util/json.h"
 #include "util/macro.h"
 
@@ -80,6 +81,16 @@ bool IsAsmOwned(AddressOwnership ownership) {
   return false;
 }
 
+uint32_t NormalizeSnesAddress(uint32_t address) {
+  // Treat FastROM mirrors ($80-$FF) as equivalent to the canonical banks
+  // ($00-$7F). The hack manifest is emitted from ASM `org $XXXXXX` directives
+  // and typically uses canonical addresses.
+  if (address >= 0x800000 && address <= 0xFFFFFF) {
+    address &= 0x7FFFFF;
+  }
+  return address;
+}
+
 }  // namespace
 
 void HackManifest::Reset() {
@@ -145,6 +156,8 @@ absl::Status HackManifest::LoadFromString(const std::string& json_content) {
                                            "start", "0x000000")));
         ASSIGN_OR_RETURN(region.end,
                          ParseHexAddress(region_json.value("end", "0x000000")));
+        region.start = NormalizeSnesAddress(region.start);
+        region.end = NormalizeSnesAddress(region.end);
         region.hook_count = region_json.value("hook_count", 0);
         region.module = region_json.value("module", "");
         protected_regions_.push_back(region);
@@ -166,10 +179,15 @@ absl::Status HackManifest::LoadFromString(const std::string& json_content) {
       ASSIGN_OR_RETURN(bank_u32,
                        ParseHexAddress(bank_json.value("bank", "0x00")));
       bank.bank = static_cast<uint8_t>(bank_u32 & 0xFF);
+      if (bank.bank >= 0x80) {
+        bank.bank &= 0x7F;
+      }
       ASSIGN_OR_RETURN(bank.bank_start, ParseHexAddress(bank_json.value(
                                             "bank_start", "0x000000")));
       ASSIGN_OR_RETURN(bank.bank_end, ParseHexAddress(bank_json.value(
                                           "bank_end", "0x000000")));
+      bank.bank_start = NormalizeSnesAddress(bank.bank_start);
+      bank.bank_end = NormalizeSnesAddress(bank.bank_end);
       ASSIGN_OR_RETURN(bank.ownership, ParseOwnership(bank_json.value(
                                            "ownership", "asm_owned")));
       bank.ownership_note = bank_json.value("ownership_note", "");
@@ -187,6 +205,7 @@ absl::Status HackManifest::LoadFromString(const std::string& json_content) {
       tag.tag_id = static_cast<uint8_t>(tag_id_u32 & 0xFF);
       ASSIGN_OR_RETURN(tag.address,
                        ParseHexAddress(tag_json.value("address", "0x000000")));
+      tag.address = NormalizeSnesAddress(tag.address);
       tag.name = tag_json.value("name", "");
       tag.purpose = tag_json.value("purpose", "");
       tag.source = tag_json.value("source", "");
@@ -230,14 +249,18 @@ absl::Status HackManifest::LoadFromString(const std::string& json_content) {
     if (msg.contains("hook_address") && msg["hook_address"].is_string()) {
       ASSIGN_OR_RETURN(message_layout_.hook_address,
                        ParseHexAddress(msg["hook_address"].get<std::string>()));
+      message_layout_.hook_address =
+          NormalizeSnesAddress(message_layout_.hook_address);
     }
     if (msg.contains("data_start")) {
       ASSIGN_OR_RETURN(message_layout_.data_start,
                        ParseHexAddress(msg.value("data_start", "0x000000")));
+      message_layout_.data_start = NormalizeSnesAddress(message_layout_.data_start);
     }
     if (msg.contains("data_end")) {
       ASSIGN_OR_RETURN(message_layout_.data_end,
                        ParseHexAddress(msg.value("data_end", "0x000000")));
+      message_layout_.data_end = NormalizeSnesAddress(message_layout_.data_end);
     }
     message_layout_.vanilla_count = msg.value("vanilla_count", 397);
     if (msg.contains("expanded_range")) {
@@ -264,6 +287,8 @@ AddressOwnership HackManifest::ClassifyAddress(uint32_t address) const {
   if (!loaded_)
     return AddressOwnership::kVanillaSafe;
 
+  address = NormalizeSnesAddress(address);
+
   // Check bank ownership first
   uint8_t bank = static_cast<uint8_t>((address >> 16) & 0xFF);
   auto bank_it = owned_banks_.find(bank);
@@ -287,6 +312,8 @@ bool HackManifest::IsWriteOverwritten(uint32_t address) const {
 }
 
 bool HackManifest::IsProtected(uint32_t address) const {
+  address = NormalizeSnesAddress(address);
+
   // Binary search for the region containing this address
   auto iter = std::upper_bound(
       protected_regions_.begin(), protected_regions_.end(), address,
@@ -305,6 +332,9 @@ bool HackManifest::IsProtected(uint32_t address) const {
 
 std::optional<AddressOwnership> HackManifest::GetBankOwnership(
     uint8_t bank) const {
+  if (bank >= 0x80) {
+    bank &= 0x7F;
+  }
   auto iter = owned_banks_.find(bank);
   if (iter == owned_banks_.end())
     return std::nullopt;
@@ -340,8 +370,8 @@ std::vector<WriteConflict> HackManifest::AnalyzeWriteRanges(
   }
 
   for (const auto& range : ranges) {
-    const uint32_t start = range.first;
-    const uint32_t end = range.second;
+    const uint32_t start = NormalizeSnesAddress(range.first);
+    const uint32_t end = NormalizeSnesAddress(range.second);
     if (end <= start) {
       continue;
     }
@@ -400,6 +430,38 @@ std::vector<WriteConflict> HackManifest::AnalyzeWriteRanges(
   }
 
   return conflicts;
+}
+
+std::vector<WriteConflict> HackManifest::AnalyzePcWriteRanges(
+    const std::vector<std::pair<uint32_t, uint32_t>>& pc_ranges) const {
+  if (!loaded_) {
+    return {};
+  }
+
+  std::vector<std::pair<uint32_t, uint32_t>> snes_ranges;
+  snes_ranges.reserve(pc_ranges.size());
+
+  for (const auto& range : pc_ranges) {
+    uint32_t pc_start = range.first;
+    const uint32_t pc_end = range.second;
+    if (pc_end <= pc_start) {
+      continue;
+    }
+
+    // Split at LoROM bank boundaries (0x8000 bytes per bank segment in PC
+    // space). PcToSnes() is linear within these segments.
+    while (pc_start < pc_end) {
+      const uint32_t next_boundary = (pc_start & ~0x7FFFu) + 0x8000u;
+      const uint32_t seg_end = std::min(pc_end, next_boundary);
+      const uint32_t seg_len = seg_end - pc_start;
+      const uint32_t snes_start = PcToSnes(pc_start);
+      const uint32_t snes_end = snes_start + seg_len;
+      snes_ranges.emplace_back(snes_start, snes_end);
+      pc_start = seg_end;
+    }
+  }
+
+  return AnalyzeWriteRanges(snes_ranges);
 }
 
 std::string HackManifest::GetSramVariableName(uint32_t address) const {
