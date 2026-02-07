@@ -728,6 +728,8 @@ void MessageEditor::DrawDictionary() {
 }
 
 void MessageEditor::UpdateCurrentMessageFromText(const std::string& text) {
+  PushUndoSnapshot();
+
   std::string raw_text = text;
   raw_text.erase(std::remove(raw_text.begin(), raw_text.end(), '\n'),
                  raw_text.end());
@@ -1065,21 +1067,101 @@ absl::Status MessageEditor::Copy() {
   return absl::OkStatus();
 }
 
-absl::Status MessageEditor::Undo() {
-  // Determine if last operation can be undone in text box.
-  if (message_text_box_.can_undo) {
-    // Undo the last operation.
-    message_text_box_.Undo();
+void MessageEditor::PushUndoSnapshot() {
+  redo_stack_.clear();
 
-    // clear the undo buffer to prevent last action from being redone.
-    message_text_box_.clearUndo();
+  int parsed_index = current_message_index_;
+  if (current_message_is_expanded_) {
+    parsed_index = expanded_message_base_id_ + current_message_index_;
   }
+  std::string text;
+  if (parsed_index >= 0 &&
+      parsed_index < static_cast<int>(parsed_messages_.size())) {
+    text = parsed_messages_[parsed_index];
+  }
+
+  undo_stack_.push_back({current_message_, text, current_message_index_,
+                         current_message_is_expanded_});
+
+  if (undo_stack_.size() > kMaxUndoHistory) {
+    undo_stack_.pop_front();
+  }
+}
+
+void MessageEditor::ApplySnapshot(const MessageSnapshot& snapshot) {
+  current_message_ = snapshot.message;
+  current_message_index_ = snapshot.message_index;
+  current_message_is_expanded_ = snapshot.is_expanded;
+  message_text_box_.text = snapshot.parsed_text;
+
+  int parsed_index = snapshot.message_index;
+  if (snapshot.is_expanded) {
+    parsed_index = expanded_message_base_id_ + snapshot.message_index;
+  }
+  if (parsed_index >= 0 &&
+      parsed_index < static_cast<int>(parsed_messages_.size())) {
+    parsed_messages_[parsed_index] = snapshot.parsed_text;
+  }
+
+  if (snapshot.is_expanded) {
+    if (snapshot.message_index >= 0 &&
+        snapshot.message_index <
+            static_cast<int>(expanded_messages_.size())) {
+      expanded_messages_[snapshot.message_index] = snapshot.message;
+    }
+  } else {
+    if (snapshot.message_index >= 0 &&
+        snapshot.message_index < static_cast<int>(list_of_texts_.size())) {
+      list_of_texts_[snapshot.message_index] = snapshot.message;
+    }
+  }
+
+  DrawMessagePreview();
+}
+
+absl::Status MessageEditor::Undo() {
+  if (undo_stack_.empty()) {
+    return absl::OkStatus();
+  }
+
+  // Save current state to redo stack before undoing
+  int parsed_index = current_message_index_;
+  if (current_message_is_expanded_) {
+    parsed_index = expanded_message_base_id_ + current_message_index_;
+  }
+  std::string current_text;
+  if (parsed_index >= 0 &&
+      parsed_index < static_cast<int>(parsed_messages_.size())) {
+    current_text = parsed_messages_[parsed_index];
+  }
+  redo_stack_.push_back({current_message_, current_text,
+                         current_message_index_, current_message_is_expanded_});
+
+  ApplySnapshot(undo_stack_.back());
+  undo_stack_.pop_back();
   return absl::OkStatus();
 }
 
 absl::Status MessageEditor::Redo() {
-  // Implementation of redo functionality
-  // This would require tracking a redo stack in the TextBox struct
+  if (redo_stack_.empty()) {
+    return absl::OkStatus();
+  }
+
+  // Save current state to undo stack before redoing
+  int parsed_index = current_message_index_;
+  if (current_message_is_expanded_) {
+    parsed_index = expanded_message_base_id_ + current_message_index_;
+  }
+  std::string current_text;
+  if (parsed_index >= 0 &&
+      parsed_index < static_cast<int>(parsed_messages_.size())) {
+    current_text = parsed_messages_[parsed_index];
+  }
+  undo_stack_.push_back({current_message_, current_text,
+                         current_message_index_, current_message_is_expanded_});
+
+  ApplySnapshot(redo_stack_.back());
+  redo_stack_.pop_back();
   return absl::OkStatus();
 }
 
