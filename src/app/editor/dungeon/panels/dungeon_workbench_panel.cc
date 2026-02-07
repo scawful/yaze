@@ -130,6 +130,13 @@ void DungeonWorkbenchPanel::DrawRecentRoomTabs() {
       ImGuiTabBarFlags_FittingPolicyScroll |
       ImGuiTabBarFlags_TabListPopupButton;
 
+  // Some Material icon glyphs can get clipped at small tab heights; slightly
+  // increasing Y padding here keeps the trailing toggle readable without
+  // affecting global theme metrics.
+  const ImVec2 frame_pad = ImGui::GetStyle().FramePadding;
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,
+                      ImVec2(frame_pad.x, frame_pad.y + 1.0f));
+
   if (ImGui::BeginTabBar("##DungeonRecentRooms", kFlags)) {
     // Trailing split toggle.
     if (ImGui::TabItemButton(
@@ -183,6 +190,8 @@ void DungeonWorkbenchPanel::DrawRecentRoomTabs() {
 
     ImGui::EndTabBar();
   }
+
+  ImGui::PopStyleVar();
 
   if (!to_forget.empty() && forget_recent_room_) {
     for (int rid : to_forget) {
