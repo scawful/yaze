@@ -11,6 +11,7 @@
 
 ### 2026-02-07 imgui-frontend-engineer – Dungeon Workbench + Panel Scopes
 - Update 2026-02-07 (imgui-frontend-engineer): shipped Workbench + Inspector (Steps 1-3) + started Step 5 by extending `PanelDescriptor` with explicit lifecycle/category fields and context scope, fixing editor-switch hiding for descriptor-only panels, and wiring `ShowPanel/HidePanel` to call `EditorPanel::OnOpen/OnClose`. Added unit coverage (`test/unit/editor/panel_manager_policy_test.cc`) and fixed macOS system gRPC configure by ensuring `OpenSSL::SSL` targets exist (`cmake/dependencies/grpc.cmake`). Ran `ctest --test-dir build_ai -C Debug -L stable` (100% pass).
+- Update 2026-02-07 (imgui-frontend-engineer): implemented Step 6 Workbench MRU room tabs + split compare view; fixed room header button clipping (line height) and added read-only header mode for compare panes. Ran `ctest --test-dir build_ai -C Debug -R DungeonEditorV2IntegrationTest` (pass) and installed nightly `v0.5.6-gc495d083` (`/Users/scawful/Applications/Yaze Nightly.app`).
 
 ### 2026-02-06 zelda3-hacking-expert – Room-mode bounds clipping
 - Update 2026-02-06 (zelda3-hacking-expert): added room bounds guard to `ObjectDrawer::WriteTile8` plus repeat-aware clipping for spaced patterns in `dungeon-object-validate --room`; re-ran vanilla + oos168 samples (Goron Mines focus) with `mismatch_count=0`; updated `dungeon-object-validation-spec.md`. No GUI launched.
