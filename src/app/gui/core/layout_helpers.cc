@@ -323,8 +323,15 @@ void LayoutHelpers::BeginToolbar(const char* label) {
                         ConvertColorToImVec4(theme.menu_bar_bg));
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,
                       ImVec2(GetButtonPadding(), GetButtonPadding()));
+
+  // Ensure the toolbar is tall enough to fit standard widgets without clipping,
+  // especially at higher DPI or with larger icon glyphs.
+  const float min_height =
+      GetStandardWidgetHeight() + (GetButtonPadding() * 2.0f) + 1.0f;
+  const float height = std::max(GetToolbarHeight(), min_height);
+
   ImGui::BeginChild(
-      label, ImVec2(0, GetToolbarHeight()), true,
+      label, ImVec2(0, height), true,
       ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 }
 
