@@ -3,6 +3,8 @@
 #include "absl/strings/str_format.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
+#include "app/gui/core/layout_helpers.h"
+#include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -50,8 +52,9 @@ void MemoryEditor::Update(bool& show_memory_editor) {
 
 void MemoryEditor::DrawToolbar() {
   // Modern compact toolbar with icon-only buttons
-  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 4));
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 4));
+  const float pad = gui::LayoutHelpers::GetButtonPadding();
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(pad, pad * 0.67f));
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(pad * 0.67f, pad * 0.67f));
 
   if (ImGui::Button(ICON_MD_LOCATION_SEARCHING " Jump")) {
     ImGui::OpenPopup("JumpToAddress");
@@ -82,7 +85,7 @@ void MemoryEditor::DrawToolbar() {
 
   // Show current address
   if (current_address_ != 0) {
-    ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f),
+    ImGui::TextColored(gui::GetInfoColor(),
                        ICON_MD_LOCATION_ON " 0x%06X", current_address_);
   }
 
@@ -97,7 +100,7 @@ void MemoryEditor::DrawToolbar() {
 void MemoryEditor::DrawJumpToAddressPopup() {
   if (ImGui::BeginPopupModal("JumpToAddress", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f),
+    ImGui::TextColored(gui::GetInfoColor(),
                        ICON_MD_LOCATION_SEARCHING " Jump to Address");
     ImGui::Separator();
     ImGui::Spacing();
@@ -140,7 +143,7 @@ void MemoryEditor::DrawJumpToAddressPopup() {
 void MemoryEditor::DrawSearchPopup() {
   if (ImGui::BeginPopupModal("SearchPattern", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::TextColored(ImVec4(0.4f, 0.8f, 0.4f, 1.0f),
+    ImGui::TextColored(gui::GetSuccessColor(),
                        ICON_MD_SEARCH " Search Hex Pattern");
     ImGui::Separator();
     ImGui::Spacing();
@@ -188,7 +191,7 @@ void MemoryEditor::DrawSearchPopup() {
 void MemoryEditor::DrawBookmarksPopup() {
   if (ImGui::BeginPopupModal("Bookmarks", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f),
+    ImGui::TextColored(gui::GetWarningColor(),
                        ICON_MD_BOOKMARK " Memory Bookmarks");
     ImGui::Separator();
     ImGui::Spacing();
@@ -209,7 +212,7 @@ void MemoryEditor::DrawBookmarksPopup() {
       }
     } else {
       // Bookmarks table
-      ImGui::BeginChild("##bookmarks_list", ImVec2(500, 300), true);
+      ImGui::BeginChild("##bookmarks_list", ImVec2(0, 300), true);
       if (ImGui::BeginTable("##bookmarks_table", 3,
                             ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
                                 ImGuiTableFlags_Resizable)) {
@@ -234,7 +237,7 @@ void MemoryEditor::DrawBookmarksPopup() {
           }
 
           ImGui::TableNextColumn();
-          ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "0x%06X",
+          ImGui::TextColored(gui::GetInfoColor(), "0x%06X",
                              bm.address);
 
           ImGui::TableNextColumn();
