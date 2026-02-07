@@ -281,23 +281,27 @@ void WindowDelegate::UnregisterWindow(const std::string& window_id) {
 }
 
 void WindowDelegate::LoadDeveloperLayout() {
-  printf("[WindowDelegate] LoadDeveloperLayout()\n");
-  // TODO: Implement developer-specific layout
+  if (apply_preset_callback_) {
+    apply_preset_callback_("Developer");
+  }
 }
 
 void WindowDelegate::LoadDesignerLayout() {
-  printf("[WindowDelegate] LoadDesignerLayout()\n");
-  // TODO: Implement designer-specific layout
+  if (apply_preset_callback_) {
+    apply_preset_callback_("Designer");
+  }
 }
 
 void WindowDelegate::LoadModderLayout() {
-  printf("[WindowDelegate] LoadModderLayout()\n");
-  // TODO: Implement modder-specific layout
+  if (apply_preset_callback_) {
+    apply_preset_callback_("Modder");
+  }
 }
 
 void WindowDelegate::LoadMinimalLayout() {
-  printf("[WindowDelegate] LoadMinimalLayout()\n");
-  // TODO: Implement minimal layout
+  if (apply_preset_callback_) {
+    apply_preset_callback_("Minimal");
+  }
 }
 
 bool WindowDelegate::IsWindowRegistered(const std::string& window_id) const {

@@ -210,6 +210,35 @@ void MenuOrchestrator::AddViewMenuItems() {
       .Item("Welcome Screen", ICON_MD_HOME, [this]() { OnShowWelcomeScreen(); })
       .Separator();
 
+  // Layout presets (quick access — full options under Window > Layout Presets)
+  const auto layout_enabled = [this]() { return HasCurrentEditor(); };
+  const auto apply = [this](const char* name) {
+    if (editor_manager_) {
+      editor_manager_->ApplyLayoutPreset(name);
+    }
+  };
+  menu_builder_.BeginSubMenu("Layout", ICON_MD_VIEW_QUILT)
+      .Item(
+          "Developer", ICON_MD_DEVELOPER_MODE,
+          [apply]() { apply("Developer"); }, nullptr, layout_enabled)
+      .Item(
+          "Designer", ICON_MD_DESIGN_SERVICES,
+          [apply]() { apply("Designer"); }, nullptr, layout_enabled)
+      .Item(
+          "Modder", ICON_MD_BUILD, [apply]() { apply("Modder"); }, nullptr,
+          layout_enabled)
+      .Separator()
+      .Item(
+          "Reset Current Editor", ICON_MD_REFRESH,
+          [this]() {
+            if (editor_manager_) {
+              editor_manager_->ResetCurrentEditorLayout();
+            }
+          },
+          nullptr, layout_enabled)
+      .EndMenu()
+      .Separator();
+
   // Editor selection (Switch Editor)
   menu_builder_.Item(
       "Switch Editor...", ICON_MD_SWAP_HORIZ,

@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_UI_WORKSPACE_MANAGER_H_
 
 #include <deque>
+#include <functional>
 #include <string>
 
 #include "absl/status/status.h"
@@ -37,6 +38,10 @@ class WorkspaceManager {
   }
 
   void set_layout_manager(LayoutManager* manager) { layout_manager_ = manager; }
+  void set_apply_preset_callback(
+      std::function<void(const std::string&)> callback) {
+    apply_preset_callback_ = std::move(callback);
+  }
 
   // Layout management
   absl::Status SaveWorkspaceLayout(const std::string& name = "");
@@ -83,6 +88,7 @@ class WorkspaceManager {
   ToastManager* toast_manager_;
   PanelManager* panel_manager_ = nullptr;
   LayoutManager* layout_manager_ = nullptr;
+  std::function<void(const std::string&)> apply_preset_callback_;
   std::deque<SessionInfo>* sessions_ = nullptr;
   std::string last_workspace_preset_;
   std::vector<std::string> workspace_presets_;

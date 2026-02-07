@@ -774,9 +774,8 @@ void DrawDisplaySettings(ImGuiStyle* ref) {
               "%.2f",
               ImGuiSliderFlags_AlwaysClamp))  // Scale only this window
         ImGui::SetWindowFontScale(window_scale);
-      ImGui::DragFloat("global scale", &io.FontGlobalScale, 0.005f, MIN_SCALE,
-                       MAX_SCALE, "%.2f",
-                       ImGuiSliderFlags_AlwaysClamp);  // Scale everything
+      // Global scale is handled by the caller (PopupManager or
+      // SettingsPanel) to enable persistence via UserSettings.
       ImGui::PopItemWidth();
 
       ImGui::EndTabItem();
@@ -1230,9 +1229,8 @@ void DrawDisplaySettingsForPopup(ImGuiStyle* ref) {
               "%.2f",
               ImGuiSliderFlags_AlwaysClamp))  // Scale only this window
         ImGui::SetWindowFontScale(window_scale);
-      ImGui::DragFloat("global scale", &io.FontGlobalScale, 0.005f, MIN_SCALE,
-                       MAX_SCALE, "%.2f",
-                       ImGuiSliderFlags_AlwaysClamp);  // Scale everything
+      // Global scale is handled by the caller (PopupManager or
+      // SettingsPanel) to enable persistence via UserSettings.
       ImGui::PopItemWidth();
 
       ImGui::EndTabItem();

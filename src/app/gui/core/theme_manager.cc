@@ -401,6 +401,10 @@ absl::Status ThemeManager::LoadTheme(const std::string& theme_name) {
   current_theme_ = it->second;
   current_theme_name_ = theme_name;
   current_theme_.ApplyToImGui();
+  // Cancel any in-progress color transition so the requested theme applies
+  // immediately and doesn't get overridden by UpdateTransition().
+  transitioning_ = false;
+  transition_progress_ = 0.0f;
 
   return absl::OkStatus();
 }
@@ -488,9 +492,71 @@ void ThemeManager::ApplyTheme(const std::string& theme_name) {
 }
 
 void ThemeManager::ApplyTheme(const Theme& theme) {
+  // Capture current ImGui colors as transition start
+  const bool should_transition =
+      current_theme_.enable_animations && !preview_active_;
+
+  if (should_transition) {
+    ImVec4* colors = ImGui::GetStyle().Colors;
+    for (int idx = 0; idx < ImGuiCol_COUNT; ++idx) {
+      transition_from_[idx] = colors[idx];
+    }
+  }
+
   current_theme_ = theme;
   current_theme_name_ = theme.name;  // CRITICAL: Update the name tracking
   current_theme_.ApplyToImGui();
+
+  if (should_transition) {
+    // Capture the target colors after applying
+    ImVec4* colors = ImGui::GetStyle().Colors;
+    for (int idx = 0; idx < ImGuiCol_COUNT; ++idx) {
+      transition_to_[idx] = colors[idx];
+    }
+    // Restore the starting colors — UpdateTransition() will lerp toward target
+    for (int idx = 0; idx < ImGuiCol_COUNT; ++idx) {
+      colors[idx] = transition_from_[idx];
+    }
+    transitioning_ = true;
+    transition_progress_ = 0.0f;
+  } else {
+    // Ensure non-transition theme changes are not overridden by a previous
+    // transition in progress (e.g. selecting a theme while a density transition
+    // is running, or starting a live preview).
+    transitioning_ = false;
+    transition_progress_ = 0.0f;
+  }
+}
+
+void ThemeManager::UpdateTransition() {
+  if (!transitioning_) {
+    return;
+  }
+
+  const float delta_time = ImGui::GetIO().DeltaTime;
+  constexpr float kTransitionSpeed = 4.0f;  // ~250ms to complete
+
+  transition_progress_ += delta_time * kTransitionSpeed;
+  if (transition_progress_ >= 1.0f) {
+    transition_progress_ = 1.0f;
+    transitioning_ = false;
+  }
+
+  // Smooth ease-out curve: t' = 1 - (1 - t)^2
+  const float eased =
+      1.0f - (1.0f - transition_progress_) * (1.0f - transition_progress_);
+
+  ImVec4* colors = ImGui::GetStyle().Colors;
+  for (int idx = 0; idx < ImGuiCol_COUNT; ++idx) {
+    colors[idx].x =
+        transition_from_[idx].x + (transition_to_[idx].x - transition_from_[idx].x) * eased;
+    colors[idx].y =
+        transition_from_[idx].y + (transition_to_[idx].y - transition_from_[idx].y) * eased;
+    colors[idx].z =
+        transition_from_[idx].z + (transition_to_[idx].z - transition_from_[idx].z) * eased;
+    colors[idx].w =
+        transition_from_[idx].w + (transition_to_[idx].w - transition_from_[idx].w) * eased;
+  }
 }
 
 Color ThemeManager::GetWelcomeScreenBackground() const {

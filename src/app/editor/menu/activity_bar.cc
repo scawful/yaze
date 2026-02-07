@@ -13,6 +13,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/theme_manager.h"
+#include "app/gui/core/ui_config.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "core/color.h"
 #include "imgui/imgui.h"
@@ -50,7 +51,7 @@ void ActivityBar::DrawActivityBarStrip(
   const float top_inset = gui::LayoutHelpers::GetTopInset();
   const float viewport_height =
       std::max(0.0f, viewport->WorkSize.y - top_inset);
-  const float bar_width = 48.0f;  // Fixed width for Activity Bar
+  const float bar_width = gui::UIConfig::kActivityBarWidth;
 
   // Position on left edge, full height
   ImGui::SetNextWindowPos(
