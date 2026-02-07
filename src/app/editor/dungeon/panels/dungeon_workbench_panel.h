@@ -27,6 +27,7 @@ class DungeonWorkbenchPanel : public EditorPanel {
                         int* compare_room_id,
                         DungeonWorkbenchLayoutState* layout_state,
                         std::function<void(int)> on_room_selected,
+                        std::function<void(int)> on_save_room,
                         std::function<DungeonCanvasViewer*()> get_viewer,
                         std::function<DungeonCanvasViewer*()> get_compare_viewer,
                         std::function<const std::deque<int>&()> get_recent_rooms,
@@ -48,6 +49,11 @@ class DungeonWorkbenchPanel : public EditorPanel {
   void DrawRecentRoomTabs();
   void DrawSplitView(DungeonCanvasViewer& primary_viewer);
   void DrawInspector(DungeonCanvasViewer& viewer);
+  void DrawInspectorShelf(DungeonCanvasViewer& viewer);
+  void DrawInspectorShelfRoom(DungeonCanvasViewer& viewer);
+  void DrawInspectorShelfSelection(DungeonCanvasViewer& viewer);
+  void DrawInspectorShelfView(DungeonCanvasViewer& viewer);
+  void DrawInspectorShelfTools(DungeonCanvasViewer& viewer);
 
   DungeonRoomSelector* room_selector_ = nullptr;
   int* current_room_id_ = nullptr;
@@ -56,6 +62,7 @@ class DungeonWorkbenchPanel : public EditorPanel {
   int* compare_room_id_ = nullptr;
   DungeonWorkbenchLayoutState* layout_state_ = nullptr;
   std::function<void(int)> on_room_selected_;
+  std::function<void(int)> on_save_room_;
   std::function<DungeonCanvasViewer*()> get_viewer_;
   std::function<DungeonCanvasViewer*()> get_compare_viewer_;
   std::function<const std::deque<int>&()> get_recent_rooms_;

@@ -26,6 +26,7 @@ DungeonWorkbenchPanel::DungeonWorkbenchPanel(
     int* previous_room_id, bool* split_view_enabled, int* compare_room_id,
     DungeonWorkbenchLayoutState* layout_state,
     std::function<void(int)> on_room_selected,
+    std::function<void(int)> on_save_room,
     std::function<DungeonCanvasViewer*()> get_viewer,
     std::function<DungeonCanvasViewer*()> get_compare_viewer,
     std::function<const std::deque<int>&()> get_recent_rooms,
@@ -38,6 +39,7 @@ DungeonWorkbenchPanel::DungeonWorkbenchPanel(
       compare_room_id_(compare_room_id),
       layout_state_(layout_state),
       on_room_selected_(std::move(on_room_selected)),
+      on_save_room_(std::move(on_save_room)),
       get_viewer_(std::move(get_viewer)),
       get_compare_viewer_(std::move(get_compare_viewer)),
       get_recent_rooms_(std::move(get_recent_rooms)),
@@ -124,9 +126,13 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
   ImGui::TableSetupColumn("Inspector", right_flags, right_w);
   ImGui::TableNextRow();
 
+  float measured_left_w = 0.0f;
+  float measured_right_w = 0.0f;
+
   // Sidebar: room navigation (list + filter)
   ImGui::TableNextColumn();
   if (show_left) {
+    measured_left_w = ImGui::GetContentRegionAvail().x;
     ImGui::BeginChild("##DungeonWorkbenchSidebar", ImVec2(0, 0), true);
     ImGui::TextDisabled(ICON_MD_LIST " Rooms");
     ImGui::Separator();
@@ -169,6 +175,7 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
   // Inspector: placeholder (step 3 will replace this)
   ImGui::TableNextColumn();
   if (show_right) {
+    measured_right_w = ImGui::GetContentRegionAvail().x;
     ImGui::BeginChild("##DungeonWorkbenchInspector", ImVec2(0, 0), true);
     ImGui::TextDisabled(ICON_MD_TUNE " Inspector");
     ImGui::Separator();
@@ -198,11 +205,11 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
 
   // Remember widths for next frame.
   if (layout_state_) {
-    if (show_left) {
-      layout_state_->left_width = ImGui::TableGetColumnWidth(0);
+    if (show_left && measured_left_w > 0.0f) {
+      layout_state_->left_width = measured_left_w;
     }
-    if (show_right) {
-      layout_state_->right_width = ImGui::TableGetColumnWidth(2);
+    if (show_right && measured_right_w > 0.0f) {
+      layout_state_->right_width = measured_right_w;
     }
   }
 
@@ -352,175 +359,330 @@ void DungeonWorkbenchPanel::DrawSplitView(DungeonCanvasViewer& primary_viewer) {
 }
 
 void DungeonWorkbenchPanel::DrawInspector(DungeonCanvasViewer& viewer) {
-  const auto& theme = AgentUI::GetTheme();
-  auto& interaction = viewer.object_interaction();
+  DrawInspectorShelf(viewer);
+}
 
-  const int room_id = viewer.current_room_id();
+void DungeonWorkbenchPanel::DrawInspectorShelf(DungeonCanvasViewer& viewer) {
+  constexpr ImGuiTabBarFlags kFlags = ImGuiTabBarFlags_FittingPolicyResizeDown;
+
+  if (!ImGui::BeginTabBar("##DungeonWorkbenchInspectorTabs", kFlags)) {
+    return;
+  }
+
+  if (ImGui::BeginTabItem(ICON_MD_CASTLE " Room")) {
+    DrawInspectorShelfRoom(viewer);
+    ImGui::EndTabItem();
+  }
+  if (ImGui::BeginTabItem(ICON_MD_SELECT_ALL " Selection")) {
+    DrawInspectorShelfSelection(viewer);
+    ImGui::EndTabItem();
+  }
+  if (ImGui::BeginTabItem(ICON_MD_VISIBILITY " View")) {
+    DrawInspectorShelfView(viewer);
+    ImGui::EndTabItem();
+  }
+  if (ImGui::BeginTabItem(ICON_MD_BUILD " Tools")) {
+    DrawInspectorShelfTools(viewer);
+    ImGui::EndTabItem();
+  }
+
+  ImGui::EndTabBar();
+}
+
+void DungeonWorkbenchPanel::DrawInspectorShelfRoom(DungeonCanvasViewer& viewer) {
+  const auto& theme = AgentUI::GetTheme();
+
+  int room_id = viewer.current_room_id();
+  if (room_id < 0 && current_room_id_) {
+    room_id = *current_room_id_;
+  }
+
   const std::string room_label =
       (room_id >= 0) ? zelda3::GetRoomLabel(room_id) : std::string("None");
 
-  if (ImGui::CollapsingHeader(ICON_MD_CASTLE " Room",
-                              ImGuiTreeNodeFlags_DefaultOpen)) {
-    ImGui::Text("Room: 0x%03X", room_id);
-    ImGui::TextDisabled("%s", room_label.c_str());
+  ImGui::Text("Room: 0x%03X", room_id);
+  ImGui::TextDisabled("%s", room_label.c_str());
 
-    ImGui::Spacing();
-    if (show_panel_) {
-      if (ImGui::SmallButton(ICON_MD_WIDGETS " Objects")) {
-        show_panel_("dungeon.object_tools");
-      }
-      ImGui::SameLine();
-      if (ImGui::SmallButton(ICON_MD_PERSON " Sprites")) {
-        show_panel_("dungeon.sprite_editor");
-      }
-      ImGui::SameLine();
-      if (ImGui::SmallButton(ICON_MD_INVENTORY " Items")) {
-        show_panel_("dungeon.item_editor");
-      }
-      ImGui::SameLine();
-      if (ImGui::SmallButton(ICON_MD_SETTINGS " Settings")) {
-        show_panel_("dungeon.settings");
-      }
-    }
-
-    ImGui::Separator();
-    ImGui::TextDisabled(ICON_MD_BUILD " Tools");
-
-    const bool placing = interaction.mode_manager().IsPlacementActive();
-    if (placing) {
-      ImGui::TextColored(theme.text_info, "Placement active");
-      ImGui::SameLine();
-      if (ImGui::SmallButton(ICON_MD_CLOSE " Cancel")) {
-        interaction.mode_manager().CancelCurrentMode();
-      }
+  // Quick actions.
+  ImGui::Spacing();
+  if (on_save_room_ && room_id >= 0) {
+    if (ImGui::Button(ICON_MD_SAVE " Save Room", ImVec2(-1, 0))) {
+      on_save_room_(room_id);
     }
   }
 
-  if (ImGui::CollapsingHeader(ICON_MD_SELECT_ALL " Selection",
-                              ImGuiTreeNodeFlags_DefaultOpen)) {
-    const size_t obj_count = interaction.GetSelectionCount();
-    const bool has_entity = interaction.HasEntitySelection();
+  if (show_panel_) {
+    if (ImGui::Button(ICON_MD_IMAGE " Room Graphics", ImVec2(-1, 0))) {
+      show_panel_("dungeon.room_graphics");
+    }
+    if (ImGui::Button(ICON_MD_SETTINGS " Settings", ImVec2(-1, 0))) {
+      show_panel_("dungeon.settings");
+    }
+  }
 
-    if (!has_entity && obj_count == 0) {
-      ImGui::TextDisabled(ICON_MD_INFO " Nothing selected");
+  ImGui::Separator();
+
+  // Core room properties (moved from canvas header).
+  if (auto* rooms = viewer.rooms();
+      rooms && room_id >= 0 && room_id < static_cast<int>(rooms->size())) {
+    auto& room = (*rooms)[room_id];
+
+    uint8_t blockset_val = room.blockset;
+    uint8_t palette_val = room.palette;
+    uint8_t layout_val = room.layout;
+    uint8_t spriteset_val = room.spriteset;
+
+    constexpr float kHexW = 92.0f;
+
+    constexpr ImGuiTableFlags kPropsFlags =
+        ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_RowBg |
+        ImGuiTableFlags_NoPadOuterX;
+    if (ImGui::BeginTable("##WorkbenchRoomProps", 2, kPropsFlags)) {
+      ImGui::TableSetupColumn("Prop", ImGuiTableColumnFlags_WidthFixed, 90.0f);
+      ImGui::TableSetupColumn("Val", ImGuiTableColumnFlags_WidthStretch);
+
+      gui::LayoutHelpers::PropertyRow("Blockset", [&]() {
+      if (auto res = gui::InputHexByteEx("##Blockset", &blockset_val, 81, kHexW,
+                                         true);
+          res.ShouldApply()) {
+        room.SetBlockset(blockset_val);
+        if (room.rom() && room.rom()->is_loaded()) {
+          room.RenderRoomGraphics();
+        }
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Blockset (0-51)");
+      }
+      });
+      gui::LayoutHelpers::PropertyRow("Palette", [&]() {
+      if (auto res = gui::InputHexByteEx("##Palette", &palette_val, 71, kHexW,
+                                         true);
+          res.ShouldApply()) {
+        room.SetPalette(palette_val);
+        if (room.rom() && room.rom()->is_loaded()) {
+          room.RenderRoomGraphics();
+        }
+        // Re-run editor sync so palette group + dependent panels update.
+        if (on_room_selected_) {
+          on_room_selected_(room_id);
+        }
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Palette (0-47)");
+      }
+      });
+      gui::LayoutHelpers::PropertyRow("Layout", [&]() {
+      if (auto res =
+              gui::InputHexByteEx("##Layout", &layout_val, 7, kHexW, true);
+          res.ShouldApply()) {
+        room.layout = layout_val;
+        room.MarkLayoutDirty();
+        if (room.rom() && room.rom()->is_loaded()) {
+          room.RenderRoomGraphics();
+        }
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Layout (0-7)");
+      }
+      });
+      gui::LayoutHelpers::PropertyRow("Spriteset", [&]() {
+      if (auto res = gui::InputHexByteEx("##Spriteset", &spriteset_val, 143,
+                                         kHexW, true);
+          res.ShouldApply()) {
+        room.SetSpriteset(spriteset_val);
+        if (room.rom() && room.rom()->is_loaded()) {
+          room.RenderRoomGraphics();
+        }
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Spriteset (0-8F)");
+      }
+      });
+
+      ImGui::EndTable();
+    }
+  } else {
+    ImGui::TextDisabled("Room properties unavailable");
+  }
+
+  ImGui::Spacing();
+  auto& interaction = viewer.object_interaction();
+  const bool placing = interaction.mode_manager().IsPlacementActive();
+  if (placing) {
+    ImGui::TextColored(theme.text_info, "Placement active");
+    ImGui::SameLine();
+    if (ImGui::SmallButton(ICON_MD_CLOSE " Cancel")) {
+      interaction.mode_manager().CancelCurrentMode();
+    }
+  }
+}
+
+void DungeonWorkbenchPanel::DrawInspectorShelfSelection(
+    DungeonCanvasViewer& viewer) {
+  auto& interaction = viewer.object_interaction();
+
+  const int room_id = viewer.current_room_id();
+  const size_t obj_count = interaction.GetSelectionCount();
+  const bool has_entity = interaction.HasEntitySelection();
+
+  if (!has_entity && obj_count == 0) {
+    ImGui::TextDisabled(ICON_MD_INFO " Nothing selected");
+  }
+
+  if (obj_count > 0) {
+    ImGui::Text("%zu object(s) selected", obj_count);
+    ImGui::SameLine();
+    if (ImGui::SmallButton(ICON_MD_CLEAR " Clear")) {
+      interaction.ClearSelection();
     }
 
-    if (obj_count > 0) {
-      ImGui::Text("%zu object(s) selected", obj_count);
-      ImGui::SameLine();
-      if (ImGui::SmallButton(ICON_MD_CLEAR " Clear")) {
-        interaction.ClearSelection();
-      }
+    const auto indices = interaction.GetSelectedObjectIndices();
+    if (indices.size() == 1 && room_id >= 0 && viewer.rooms()) {
+      auto& room = (*viewer.rooms())[room_id];
+      auto& objects = room.GetTileObjects();
+      const size_t idx = indices.front();
+      if (idx < objects.size()) {
+        auto& obj = objects[idx];
 
-      const auto indices = interaction.GetSelectedObjectIndices();
-      if (indices.size() == 1 && room_id >= 0 && viewer.rooms()) {
-        auto& room = (*viewer.rooms())[room_id];
-        auto& objects = room.GetTileObjects();
-        const size_t idx = indices.front();
-        if (idx < objects.size()) {
-          auto& obj = objects[idx];
+        ImGui::Separator();
+        ImGui::TextDisabled("Primary object");
 
-          ImGui::Separator();
-          ImGui::TextDisabled("Primary object");
+        uint16_t id = static_cast<uint16_t>(obj.id_ & 0x0FFF);
+        ImGui::TextDisabled("ID");
+        ImGui::SameLine();
+        if (auto res = gui::InputHexWordEx("##SelObjId", &id, 80.0f, true);
+            res.ShouldApply()) {
+          id &= 0x0FFF;
+          interaction.SetObjectId(idx, static_cast<int16_t>(id));
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Object ID (0x000-0xFFF)");
+        }
 
-          uint16_t id = static_cast<uint16_t>(obj.id_ & 0x0FFF);
-          ImGui::TextDisabled("ID");
-          ImGui::SameLine();
-          if (auto res = gui::InputHexWordEx("##SelObjId", &id, 80.0f, true);
-              res.ShouldApply()) {
-            id &= 0x0FFF;
-            interaction.SetObjectId(idx, static_cast<int16_t>(id));
-          }
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("Object ID (0x000-0xFFF)");
-          }
+        int x = obj.x_;
+        int y = obj.y_;
+        ImGui::TextDisabled("Pos");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(70);
+        bool x_changed = ImGui::DragInt("##SelObjX", &x, 0.1f, 0, 63, "X:%d");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(70);
+        bool y_changed = ImGui::DragInt("##SelObjY", &y, 0.1f, 0, 63, "Y:%d");
+        if (x_changed || y_changed) {
+          interaction.SetObjectPosition(idx, x, y);
+        }
 
-          int x = obj.x_;
-          int y = obj.y_;
-          ImGui::TextDisabled("Pos");
-          ImGui::SameLine();
-          ImGui::SetNextItemWidth(70);
-          bool x_changed =
-              ImGui::DragInt("##SelObjX", &x, 0.1f, 0, 63, "X:%d");
-          ImGui::SameLine();
-          ImGui::SetNextItemWidth(70);
-          bool y_changed =
-              ImGui::DragInt("##SelObjY", &y, 0.1f, 0, 63, "Y:%d");
-          if (x_changed || y_changed) {
-            interaction.SetObjectPosition(idx, x, y);
-          }
+        uint8_t size = obj.size_ & 0x0F;
+        ImGui::TextDisabled("Size");
+        ImGui::SameLine();
+        if (auto res =
+                gui::InputHexByteEx("##SelObjSize", &size, 0x0F, 60.0f, true);
+            res.ShouldApply()) {
+          interaction.SetObjectSize(idx, size);
+        }
 
-          uint8_t size = obj.size_ & 0x0F;
-          ImGui::TextDisabled("Size");
-          ImGui::SameLine();
-          if (auto res =
-                  gui::InputHexByteEx("##SelObjSize", &size, 0x0F, 60.0f, true);
-              res.ShouldApply()) {
-            interaction.SetObjectSize(idx, size);
-          }
-
-          int layer = static_cast<int>(obj.GetLayerValue());
-          const char* layer_names[] = {"BG1", "BG2", "BG3"};
-          ImGui::TextDisabled("Layer");
-          ImGui::SameLine();
-          ImGui::SetNextItemWidth(-1);
-          if (ImGui::Combo("##SelObjLayer", &layer, layer_names,
-                           IM_ARRAYSIZE(layer_names))) {
-            layer = std::clamp(layer, 0, 2);
-            interaction.SetObjectLayer(
-                idx, static_cast<zelda3::RoomObject::LayerType>(layer));
-          }
+        int layer = static_cast<int>(obj.GetLayerValue());
+        const char* layer_names[] = {"BG1", "BG2", "BG3"};
+        ImGui::TextDisabled("Layer");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(-1);
+        if (ImGui::Combo("##SelObjLayer", &layer, layer_names,
+                         IM_ARRAYSIZE(layer_names))) {
+          layer = std::clamp(layer, 0, 2);
+          interaction.SetObjectLayer(
+              idx, static_cast<zelda3::RoomObject::LayerType>(layer));
         }
       }
     }
+  }
 
-    if (has_entity) {
-      const auto sel = interaction.GetSelectedEntity();
-      ImGui::Separator();
-      switch (sel.type) {
-        case EntityType::Door:
-          ImGui::Text("Door selected (index %zu)", sel.index);
-          break;
-        case EntityType::Sprite:
-          ImGui::Text("Sprite selected (index %zu)", sel.index);
-          break;
-        case EntityType::Item:
-          ImGui::Text("Item selected (index %zu)", sel.index);
-          break;
-        default:
-          break;
-      }
-      if (ImGui::SmallButton(ICON_MD_DELETE " Delete Entity")) {
-        interaction.entity_coordinator().DeleteSelectedEntity();
-        interaction.ClearEntitySelection();
-      }
+  if (has_entity) {
+    const auto sel = interaction.GetSelectedEntity();
+    ImGui::Separator();
+    switch (sel.type) {
+      case EntityType::Door:
+        ImGui::Text("Door selected (index %zu)", sel.index);
+        break;
+      case EntityType::Sprite:
+        ImGui::Text("Sprite selected (index %zu)", sel.index);
+        break;
+      case EntityType::Item:
+        ImGui::Text("Item selected (index %zu)", sel.index);
+        break;
+      default:
+        break;
+    }
+    if (ImGui::SmallButton(ICON_MD_DELETE " Delete Entity")) {
+      interaction.entity_coordinator().DeleteSelectedEntity();
+      interaction.ClearEntitySelection();
     }
   }
+}
 
-  if (ImGui::CollapsingHeader(ICON_MD_VISIBILITY " View",
-                              ImGuiTreeNodeFlags_DefaultOpen)) {
-    bool val = viewer.show_grid();
-    if (ImGui::Checkbox("Grid (8x8)", &val)) viewer.set_show_grid(val);
+void DungeonWorkbenchPanel::DrawInspectorShelfView(DungeonCanvasViewer& viewer) {
+  bool val = viewer.show_grid();
+  if (ImGui::Checkbox("Grid (8x8)", &val)) viewer.set_show_grid(val);
 
-    val = viewer.show_object_bounds();
-    if (ImGui::Checkbox("Object Bounds", &val)) viewer.set_show_object_bounds(val);
-
-    val = viewer.show_coordinate_overlay();
-    if (ImGui::Checkbox("Hover Coordinates", &val))
-      viewer.set_show_coordinate_overlay(val);
-
-    val = viewer.show_camera_quadrant_overlay();
-    if (ImGui::Checkbox("Camera Quadrants", &val))
-      viewer.set_show_camera_quadrant_overlay(val);
-
-    val = viewer.show_track_collision_overlay();
-    if (ImGui::Checkbox("Track Collision", &val))
-      viewer.set_show_track_collision_overlay(val);
-
-    val = viewer.show_custom_collision_overlay();
-    if (ImGui::Checkbox("Custom Collision", &val))
-      viewer.set_show_custom_collision_overlay(val);
+  val = viewer.show_object_bounds();
+  if (ImGui::Checkbox("Object Bounds", &val)) {
+    viewer.set_show_object_bounds(val);
   }
+
+  val = viewer.show_coordinate_overlay();
+  if (ImGui::Checkbox("Hover Coordinates", &val)) {
+    viewer.set_show_coordinate_overlay(val);
+  }
+
+  val = viewer.show_camera_quadrant_overlay();
+  if (ImGui::Checkbox("Camera Quadrants", &val)) {
+    viewer.set_show_camera_quadrant_overlay(val);
+  }
+
+  val = viewer.show_track_collision_overlay();
+  if (ImGui::Checkbox("Track Collision", &val)) {
+    viewer.set_show_track_collision_overlay(val);
+  }
+
+  val = viewer.show_custom_collision_overlay();
+  if (ImGui::Checkbox("Custom Collision", &val)) {
+    viewer.set_show_custom_collision_overlay(val);
+  }
+}
+
+void DungeonWorkbenchPanel::DrawInspectorShelfTools(
+    DungeonCanvasViewer& /*viewer*/) {
+  if (!show_panel_) {
+    ImGui::TextDisabled("No panel launcher available");
+    return;
+  }
+
+  constexpr ImGuiTableFlags kFlags =
+      ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_NoPadOuterX;
+  if (!ImGui::BeginTable("##WorkbenchToolsGrid", 2, kFlags)) {
+    return;
+  }
+
+  ImGui::TableNextRow();
+  ImGui::TableNextColumn();
+  if (ImGui::Button(ICON_MD_WIDGETS " Objects", ImVec2(-1, 0))) {
+    show_panel_("dungeon.object_tools");
+  }
+  ImGui::TableNextColumn();
+  if (ImGui::Button(ICON_MD_PERSON " Sprites", ImVec2(-1, 0))) {
+    show_panel_("dungeon.sprite_editor");
+  }
+
+  ImGui::TableNextRow();
+  ImGui::TableNextColumn();
+  if (ImGui::Button(ICON_MD_INVENTORY " Items", ImVec2(-1, 0))) {
+    show_panel_("dungeon.item_editor");
+  }
+  ImGui::TableNextColumn();
+  if (ImGui::Button(ICON_MD_SETTINGS " Settings", ImVec2(-1, 0))) {
+    show_panel_("dungeon.settings");
+  }
+
+  ImGui::EndTable();
 }
 
 }  // namespace yaze::editor
