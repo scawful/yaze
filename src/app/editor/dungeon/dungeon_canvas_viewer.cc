@@ -270,6 +270,7 @@ void DungeonCanvasViewer::Draw(int room_id) {
 }
 
 void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
+  current_room_id_ = room_id;
   // Validate room_id and ROM
   if (room_id < 0 || room_id >= 0x128) {
     ImGui::Text("Invalid room ID: %d", room_id);
@@ -434,7 +435,6 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
                  make_tooltip(south, "South"));
       ImGui::SameLine();
       nav_button("RoomNavEast", ImGuiDir_Right, east, make_tooltip(east, "East"));
-      ImGui::SameLine();
 
       ImGui::EndGroup();
     };
@@ -485,7 +485,13 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     constexpr ImGuiTableFlags kPropsTableFlags =
         ImGuiTableFlags_NoPadOuterX | ImGuiTableFlags_NoBordersInBody;
     if (ImGui::BeginTable("##RoomPropsTable", 2, kPropsTableFlags)) {
-      ImGui::TableSetupColumn("NavCol", ImGuiTableColumnFlags_WidthFixed, 140);
+      // Avoid clipping at higher DPI / larger fonts by sizing the nav column
+      // to the current frame height.
+      const float nav_col_width = (ImGui::GetFrameHeight() * 4.0f) +
+                                  (ImGui::GetStyle().ItemSpacing.x * 3.0f) +
+                                  (ImGui::GetStyle().FramePadding.x * 2.0f);
+      ImGui::TableSetupColumn("NavCol", ImGuiTableColumnFlags_WidthFixed,
+                              nav_col_width);
       ImGui::TableSetupColumn("PropsCol", ImGuiTableColumnFlags_WidthStretch);
 
       // Row 1: Navigation + Room ID + Core properties (Blockset, Palette, Layout, Spriteset)
@@ -508,6 +514,15 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
         ImGui::SetTooltip(is_pinned_
                               ? "Unpin Room (Close when switching editors)"
                               : "Pin Room (Keep open when switching editors)");
+      }
+      ImGui::SameLine();
+      if (ImGui::SmallButton(show_room_details_ ? ICON_MD_EXPAND_LESS "##RoomDetails"
+                                                : ICON_MD_EXPAND_MORE "##RoomDetails")) {
+        show_room_details_ = !show_room_details_;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(show_room_details_ ? "Hide room details"
+                                             : "Show room details");
       }
       ImGui::SameLine();
       ImGui::TextDisabled(ICON_MD_VIEW_MODULE);
@@ -585,204 +600,205 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       if (ImGui::IsItemHovered())
         ImGui::SetTooltip("Spriteset (0-8F)");
 
-      // Row 2: Floor graphics + Effect (using vertical space from compass)
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      // Empty - compass takes vertical space
-      ImGui::TableNextColumn();
-      ImGui::TextDisabled(ICON_MD_SQUARE);
-      ImGui::SameLine(0, 2);
-      // Floor graphics: max 15 (4-bit value, 0-F)
-      if (auto res =
-              gui::InputHexByteEx("##Floor1", &floor1_val, 15, 32.f, true);
-          res.ShouldApply()) {
-        room.set_floor1(floor1_val);
-        if (room.rom() && room.rom()->is_loaded())
-          room.RenderRoomGraphics();
-      }
-      if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("Floor 1 (0-F)");
-      ImGui::SameLine();
-      ImGui::TextDisabled(ICON_MD_SQUARE_FOOT);
-      ImGui::SameLine(0, 2);
-      // Floor graphics: max 15 (4-bit value, 0-F)
-      if (auto res =
-              gui::InputHexByteEx("##Floor2", &floor2_val, 15, 32.f, true);
-          res.ShouldApply()) {
-        room.set_floor2(floor2_val);
-        if (room.rom() && room.rom()->is_loaded())
-          room.RenderRoomGraphics();
-      }
-      if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("Floor 2 (0-F)");
-      ImGui::SameLine();
-      ImGui::TextDisabled(ICON_MD_AUTO_AWESOME);
-      ImGui::SameLine(0, 2);
-      constexpr int kNumEffects = IM_ARRAYSIZE(effect_names);
-      if (effect_val < 0)
-        effect_val = 0;
-      if (effect_val >= kNumEffects)
-        effect_val = kNumEffects - 1;
-      ImGui::SetNextItemWidth(140);
-      if (ImGui::BeginCombo("##Effect", effect_names[effect_val])) {
-        for (int i = 0; i < kNumEffects; i++) {
-          if (ImGui::Selectable(effect_names[i], effect_val == i)) {
-            room.SetEffect(static_cast<zelda3::EffectKey>(i));
-            if (room.rom() && room.rom()->is_loaded())
-              room.RenderRoomGraphics();
+      if (show_room_details_) {
+        // Row 2: Floor graphics + Effect
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TableNextColumn();
+        ImGui::TextDisabled(ICON_MD_SQUARE);
+        ImGui::SameLine(0, 2);
+        // Floor graphics: max 15 (4-bit value, 0-F)
+        if (auto res =
+                gui::InputHexByteEx("##Floor1", &floor1_val, 15, 32.f, true);
+            res.ShouldApply()) {
+          room.set_floor1(floor1_val);
+          if (room.rom() && room.rom()->is_loaded())
+            room.RenderRoomGraphics();
+        }
+        if (ImGui::IsItemHovered())
+          ImGui::SetTooltip("Floor 1 (0-F)");
+        ImGui::SameLine();
+        ImGui::TextDisabled(ICON_MD_SQUARE_FOOT);
+        ImGui::SameLine(0, 2);
+        if (auto res =
+                gui::InputHexByteEx("##Floor2", &floor2_val, 15, 32.f, true);
+            res.ShouldApply()) {
+          room.set_floor2(floor2_val);
+          if (room.rom() && room.rom()->is_loaded())
+            room.RenderRoomGraphics();
+        }
+        if (ImGui::IsItemHovered())
+          ImGui::SetTooltip("Floor 2 (0-F)");
+        ImGui::SameLine();
+        ImGui::TextDisabled(ICON_MD_AUTO_AWESOME);
+        ImGui::SameLine(0, 2);
+        constexpr int kNumEffects = IM_ARRAYSIZE(effect_names);
+        if (effect_val < 0)
+          effect_val = 0;
+        if (effect_val >= kNumEffects)
+          effect_val = kNumEffects - 1;
+        ImGui::SetNextItemWidth(140);
+        if (ImGui::BeginCombo("##Effect", effect_names[effect_val])) {
+          for (int i = 0; i < kNumEffects; i++) {
+            if (ImGui::Selectable(effect_names[i], effect_val == i)) {
+              room.SetEffect(static_cast<zelda3::EffectKey>(i));
+              if (room.rom() && room.rom()->is_loaded())
+                room.RenderRoomGraphics();
+            }
           }
+          ImGui::EndCombo();
         }
-        ImGui::EndCombo();
-      }
-      if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("Effect");
+        if (ImGui::IsItemHovered())
+          ImGui::SetTooltip("Effect");
 
-      // Row 3: Tags (using vertical space from compass)
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      // Empty - compass takes vertical space
-      ImGui::TableNextColumn();
-      // Helper: get tag display name using the global provider
-      auto get_tag_display_name = [&](int tag_idx) -> std::string {
-        std::string label = zelda3::GetRoomTagLabel(tag_idx);
-        if (project_ && project_->hack_manifest.loaded()) {
-          auto tag =
-              project_->hack_manifest.GetRoomTag(static_cast<uint8_t>(tag_idx));
-          if (tag.has_value() && !tag->enabled) {
-            return absl::StrCat(label, " (disabled",
-                                tag->feature_flag.empty()
-                                    ? ")"
-                                    : absl::StrCat(" by ", tag->feature_flag, ")"));
+        // Row 3: Tags
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TableNextColumn();
+        auto get_tag_display_name = [&](int tag_idx) -> std::string {
+          std::string label = zelda3::GetRoomTagLabel(tag_idx);
+          if (project_ && project_->hack_manifest.loaded()) {
+            auto tag = project_->hack_manifest.GetRoomTag(
+                static_cast<uint8_t>(tag_idx));
+            if (tag.has_value() && !tag->enabled) {
+              return absl::StrCat(
+                  label, " (disabled",
+                  tag->feature_flag.empty()
+                      ? ")"
+                      : absl::StrCat(" by ", tag->feature_flag, ")"));
+            }
           }
-        }
-        return label;
-      };
+          return label;
+        };
 
-      ImGui::TextDisabled(ICON_MD_LABEL);
-      ImGui::SameLine(0, 2);
-      int tag1_idx = std::clamp(tag1_val, 0, kNumTags - 1);
-      ImGui::SetNextItemWidth(240);
-      auto tag1_display = get_tag_display_name(tag1_idx);
-      if (ImGui::BeginCombo("##Tag1", tag1_display.c_str())) {
-        for (int i = 0; i < kNumTags; i++) {
-          auto item_label = get_tag_display_name(i);
-          if (ImGui::Selectable(item_label.c_str(), tag1_idx == i)) {
-            room.SetTag1(static_cast<zelda3::TagKey>(i));
-            if (room.rom() && room.rom()->is_loaded())
-              room.RenderRoomGraphics();
+        ImGui::TextDisabled(ICON_MD_LABEL);
+        ImGui::SameLine(0, 2);
+        int tag1_idx = std::clamp(tag1_val, 0, kNumTags - 1);
+        ImGui::SetNextItemWidth(240);
+        auto tag1_display = get_tag_display_name(tag1_idx);
+        if (ImGui::BeginCombo("##Tag1", tag1_display.c_str())) {
+          for (int i = 0; i < kNumTags; i++) {
+            auto item_label = get_tag_display_name(i);
+            if (ImGui::Selectable(item_label.c_str(), tag1_idx == i)) {
+              room.SetTag1(static_cast<zelda3::TagKey>(i));
+              if (room.rom() && room.rom()->is_loaded())
+                room.RenderRoomGraphics();
+            }
           }
+          ImGui::EndCombo();
         }
-        ImGui::EndCombo();
-      }
-      if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("Tag 1");
-      ImGui::SameLine();
-      ImGui::TextDisabled(ICON_MD_LABEL_OUTLINE);
-      ImGui::SameLine(0, 2);
-      int tag2_idx = std::clamp(tag2_val, 0, kNumTags - 1);
-      ImGui::SetNextItemWidth(240);
-      auto tag2_display = get_tag_display_name(tag2_idx);
-      if (ImGui::BeginCombo("##Tag2", tag2_display.c_str())) {
-        for (int i = 0; i < kNumTags; i++) {
-          auto item_label = get_tag_display_name(i);
-          if (ImGui::Selectable(item_label.c_str(), tag2_idx == i)) {
-            room.SetTag2(static_cast<zelda3::TagKey>(i));
-            if (room.rom() && room.rom()->is_loaded())
-              room.RenderRoomGraphics();
+        if (ImGui::IsItemHovered())
+          ImGui::SetTooltip("Tag 1");
+        ImGui::SameLine();
+        ImGui::TextDisabled(ICON_MD_LABEL_OUTLINE);
+        ImGui::SameLine(0, 2);
+        int tag2_idx = std::clamp(tag2_val, 0, kNumTags - 1);
+        ImGui::SetNextItemWidth(240);
+        auto tag2_display = get_tag_display_name(tag2_idx);
+        if (ImGui::BeginCombo("##Tag2", tag2_display.c_str())) {
+          for (int i = 0; i < kNumTags; i++) {
+            auto item_label = get_tag_display_name(i);
+            if (ImGui::Selectable(item_label.c_str(), tag2_idx == i)) {
+              room.SetTag2(static_cast<zelda3::TagKey>(i));
+              if (room.rom() && room.rom()->is_loaded())
+                room.RenderRoomGraphics();
+            }
           }
+          ImGui::EndCombo();
         }
-        ImGui::EndCombo();
-      }
-      if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("Tag 2");
+        if (ImGui::IsItemHovered())
+          ImGui::SetTooltip("Tag 2");
 
-      // Row 3: Layer visibility + Blend/Merge
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::TextDisabled(ICON_MD_LAYERS " Layers");
-      ImGui::TableNextColumn();
-      bool bg1_layout = layer_mgr.IsLayerVisible(zelda3::LayerType::BG1_Layout);
-      bool bg1_objects =
-          layer_mgr.IsLayerVisible(zelda3::LayerType::BG1_Objects);
-      bool bg2_layout = layer_mgr.IsLayerVisible(zelda3::LayerType::BG2_Layout);
-      bool bg2_objects =
-          layer_mgr.IsLayerVisible(zelda3::LayerType::BG2_Objects);
+        // Row 4: Layer visibility + Blend/Merge
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TextDisabled(ICON_MD_LAYERS " Layers");
+        ImGui::TableNextColumn();
+        bool bg1_layout =
+            layer_mgr.IsLayerVisible(zelda3::LayerType::BG1_Layout);
+        bool bg1_objects =
+            layer_mgr.IsLayerVisible(zelda3::LayerType::BG1_Objects);
+        bool bg2_layout =
+            layer_mgr.IsLayerVisible(zelda3::LayerType::BG2_Layout);
+        bool bg2_objects =
+            layer_mgr.IsLayerVisible(zelda3::LayerType::BG2_Objects);
 
-      // Helper to mark layer bitmaps as needing texture update
-      auto mark_layers_dirty = [&]() {
-        if (rooms_) {
-          auto& r = (*rooms_)[room_id];
-          r.bg1_buffer().bitmap().set_modified(true);
-          r.bg2_buffer().bitmap().set_modified(true);
-          r.object_bg1_buffer().bitmap().set_modified(true);
-          r.object_bg2_buffer().bitmap().set_modified(true);
-          r.MarkCompositeDirty();
+        auto mark_layers_dirty = [&]() {
+          if (rooms_) {
+            auto& r = (*rooms_)[room_id];
+            r.bg1_buffer().bitmap().set_modified(true);
+            r.bg2_buffer().bitmap().set_modified(true);
+            r.object_bg1_buffer().bitmap().set_modified(true);
+            r.object_bg2_buffer().bitmap().set_modified(true);
+            r.MarkCompositeDirty();
+          }
+        };
+
+        if (ImGui::Checkbox("BG1##L", &bg1_layout)) {
+          layer_mgr.SetLayerVisible(zelda3::LayerType::BG1_Layout, bg1_layout);
+          mark_layers_dirty();
         }
-      };
-
-      if (ImGui::Checkbox("BG1##L", &bg1_layout)) {
-        layer_mgr.SetLayerVisible(zelda3::LayerType::BG1_Layout, bg1_layout);
-        mark_layers_dirty();
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(
+              "BG1 Layout: Main floor tiles (rendered on top of BG2)");
+        }
+        ImGui::SameLine();
+        if (ImGui::Checkbox("O1##O", &bg1_objects)) {
+          layer_mgr.SetLayerVisible(zelda3::LayerType::BG1_Objects, bg1_objects);
+          mark_layers_dirty();
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(
+              "BG1 Objects: Walls, pots, interactive objects (topmost layer)");
+        }
+        ImGui::SameLine();
+        if (ImGui::Checkbox("BG2##L2", &bg2_layout)) {
+          layer_mgr.SetLayerVisible(zelda3::LayerType::BG2_Layout, bg2_layout);
+          mark_layers_dirty();
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(
+              "BG2 Layout: Background floor patterns (behind BG1)");
+        }
+        ImGui::SameLine();
+        if (ImGui::Checkbox("O2##O2", &bg2_objects)) {
+          layer_mgr.SetLayerVisible(zelda3::LayerType::BG2_Objects, bg2_objects);
+          mark_layers_dirty();
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("BG2 Objects: Background details (behind BG1)");
+        }
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(60);
+        int bg2_blend = static_cast<int>(
+            layer_mgr.GetLayerBlendMode(zelda3::LayerType::BG2_Layout));
+        if (ImGui::Combo("##Bld", &bg2_blend, blend_modes,
+                         IM_ARRAYSIZE(blend_modes))) {
+          auto mode = static_cast<zelda3::LayerBlendMode>(bg2_blend);
+          layer_mgr.SetLayerBlendMode(zelda3::LayerType::BG2_Layout, mode);
+          layer_mgr.SetLayerBlendMode(zelda3::LayerType::BG2_Objects, mode);
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(
+              "BG2 Blend Mode (color math effect):\n"
+              "- Normal: Opaque pixels\n"
+              "- Translucent: 50% alpha\n"
+              "- Addition: Additive blending\n"
+              "Does not change layer order (BG1 always on top)");
+        }
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(70);
+        int merge_val = room.layer_merging().ID;
+        if (ImGui::Combo("##Mrg", &merge_val, merge_types,
+                         IM_ARRAYSIZE(merge_types))) {
+          room.SetLayerMerging(zelda3::kLayerMergeTypeList[merge_val]);
+          layer_mgr.ApplyLayerMergingPreserveVisibility(room.layer_merging());
+          if (room.rom() && room.rom()->is_loaded())
+            room.RenderRoomGraphics();
+        }
+        if (ImGui::IsItemHovered())
+          ImGui::SetTooltip("Merge type");
       }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(
-            "BG1 Layout: Main floor tiles (rendered on top of BG2)");
-      }
-      ImGui::SameLine();
-      if (ImGui::Checkbox("O1##O", &bg1_objects)) {
-        layer_mgr.SetLayerVisible(zelda3::LayerType::BG1_Objects, bg1_objects);
-        mark_layers_dirty();
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(
-            "BG1 Objects: Walls, pots, interactive objects (topmost layer)");
-      }
-      ImGui::SameLine();
-      if (ImGui::Checkbox("BG2##L2", &bg2_layout)) {
-        layer_mgr.SetLayerVisible(zelda3::LayerType::BG2_Layout, bg2_layout);
-        mark_layers_dirty();
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("BG2 Layout: Background floor patterns (behind BG1)");
-      }
-      ImGui::SameLine();
-      if (ImGui::Checkbox("O2##O2", &bg2_objects)) {
-        layer_mgr.SetLayerVisible(zelda3::LayerType::BG2_Objects, bg2_objects);
-        mark_layers_dirty();
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("BG2 Objects: Background details (behind BG1)");
-      }
-      ImGui::SameLine();
-      ImGui::SetNextItemWidth(60);
-      int bg2_blend = static_cast<int>(
-          layer_mgr.GetLayerBlendMode(zelda3::LayerType::BG2_Layout));
-      if (ImGui::Combo("##Bld", &bg2_blend, blend_modes,
-                       IM_ARRAYSIZE(blend_modes))) {
-        auto mode = static_cast<zelda3::LayerBlendMode>(bg2_blend);
-        layer_mgr.SetLayerBlendMode(zelda3::LayerType::BG2_Layout, mode);
-        layer_mgr.SetLayerBlendMode(zelda3::LayerType::BG2_Objects, mode);
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(
-            "BG2 Blend Mode (color math effect):\n"
-            "- Normal: Opaque pixels\n"
-            "- Translucent: 50% alpha\n"
-            "- Addition: Additive blending\n"
-            "Does not change layer order (BG1 always on top)");
-      }
-      ImGui::SameLine();
-      ImGui::SetNextItemWidth(70);
-      int merge_val = room.layer_merging().ID;
-      if (ImGui::Combo("##Mrg", &merge_val, merge_types,
-                       IM_ARRAYSIZE(merge_types))) {
-        room.SetLayerMerging(zelda3::kLayerMergeTypeList[merge_val]);
-        layer_mgr.ApplyLayerMergingPreserveVisibility(room.layer_merging());
-        if (room.rom() && room.rom()->is_loaded())
-          room.RenderRoomGraphics();
-      }
-      if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("Merge type");
 
       // Row 4: Selection filter + quick actions (kept to one row for compactness)
       ImGui::TableNextRow();
@@ -1408,6 +1424,14 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     };
     custom_menu.subitems.push_back(minecart_toggle);
 
+    custom_menu.subitems.push_back(gui::CanvasMenuItem(
+        show_custom_collision_overlay_ ? "Hide Custom Collision"
+                                       : "Show Custom Collision",
+        ICON_MD_GRID_ON,
+        [this]() {
+          show_custom_collision_overlay_ = !show_custom_collision_overlay_;
+        }));
+
     gui::CanvasMenuItem collision_toggle(
         show_track_collision_overlay_ ? "Hide Track Collision"
                                       : "Show Track Collision",
@@ -1443,6 +1467,14 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     }
 
     canvas_.AddContextMenuItem(custom_menu);
+
+    // Dungeon Settings panel access
+    canvas_.AddContextMenuItem(gui::CanvasMenuItem(
+        "Dungeon Settings", ICON_MD_SETTINGS, [this]() {
+          if (show_dungeon_settings_callback_) {
+            show_dungeon_settings_callback_();
+          }
+        }));
 
     // Add re-render option
     canvas_.AddContextMenuItem(gui::CanvasMenuItem(
@@ -1833,6 +1865,10 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     // Track collision overlay (custom collision tiles)
     if (show_track_collision_overlay_) {
       DrawTrackCollisionOverlay(canvas_rt, room);
+    }
+
+    if (show_custom_collision_overlay_) {
+      DrawCustomCollisionOverlay(canvas_rt, room);
     }
 
     if (show_camera_quadrant_overlay_) {
@@ -2408,6 +2444,88 @@ void DungeonCanvasViewer::DrawTrackCollisionOverlay(
             ? "Arrows: track directions"
             : "Arrows: disabled (need 15 track + 4 switch IDs)";
     legend->AddText(ImVec2(legend_pos.x, y + 2.0f), text_color, arrow_label);
+  }
+}
+
+void DungeonCanvasViewer::DrawCustomCollisionOverlay(
+    const gui::CanvasRuntime& rt, const zelda3::Room& room) {
+  if (!show_custom_collision_overlay_) {
+    return;
+  }
+
+  const auto& theme = AgentUI::GetTheme();
+  const auto& custom = room.custom_collision();
+  if (!custom.has_data) {
+    return;
+  }
+
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
+  ImVec2 canvas_pos = canvas_.zero_point();
+  float scale = canvas_.global_scale();
+  const float tile_size = 8.0f * scale;
+
+  auto apply_alpha = [](ImVec4 c, float a) -> ImVec4 {
+    c.w = a;
+    return c;
+  };
+
+  for (int y = 0; y < 64; ++y) {
+    for (int x = 0; x < 64; ++x) {
+      uint8_t tile = custom.tiles[static_cast<size_t>(y * 64 + x)];
+      if (tile == 0) continue; // Skip default floor for clarity
+
+      const float px = static_cast<float>(x * 8) * scale;
+      const float py = static_cast<float>(y * 8) * scale;
+      ImVec2 min(canvas_pos.x + px, canvas_pos.y + py);
+      ImVec2 max(min.x + tile_size, min.y + tile_size);
+
+      ImVec4 fill = apply_alpha(theme.panel_border_color, 0.25f);
+      // Color coding based on common Zelda 3 physics types (semantic colors).
+      switch (tile) {
+        case 0x08:
+          fill = apply_alpha(theme.text_info, 0.35f);  // Deep water
+          break;
+        case 0x09:
+          fill = apply_alpha(theme.text_info, 0.25f);  // Shallow water
+          break;
+        case 0x1B:
+          fill = apply_alpha(theme.box_bg_dark, 0.50f);  // Pit
+          break;
+        case 0x0E:
+        case 0x3C:
+          fill = apply_alpha(theme.status_error, 0.30f);  // Spikes
+          break;
+        case 0x1C:
+          fill = apply_alpha(theme.status_warning, 0.30f);  // Stairs
+          break;
+        case 0x21:
+        case 0x22:
+        case 0x23:
+          fill = apply_alpha(theme.accent_color, 0.30f);  // Switch-like tiles
+          break;
+      }
+
+      const ImU32 fill_u32 = ImGui::ColorConvertFloat4ToU32(fill);
+      ImVec4 border = apply_alpha(theme.text_primary, 0.10f);
+      const ImU32 border_u32 = ImGui::ColorConvertFloat4ToU32(border);
+
+      draw_list->AddRectFilled(min, max, fill_u32);
+      draw_list->AddRect(min, max, border_u32);
+      
+      // Only draw text if zoomed in enough
+      if (scale >= 4.0f) {
+        char buf[4];
+        snprintf(buf, sizeof(buf), "%02X", tile);
+        ImVec2 text_size = ImGui::CalcTextSize(buf);
+        if (text_size.x < tile_size * 0.9f) {
+          ImVec2 text_pos(min.x + (tile_size - text_size.x) * 0.5f,
+                          min.y + (tile_size - text_size.y) * 0.5f);
+          ImVec4 text = apply_alpha(theme.text_primary, 0.85f);
+          draw_list->AddText(text_pos, ImGui::ColorConvertFloat4ToU32(text),
+                             buf);
+        }
+      }
+    }
   }
 }
 

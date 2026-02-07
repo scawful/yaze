@@ -19,6 +19,7 @@
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room_layout.h"
 #include "zelda3/dungeon/room_object.h"
+#include "zelda3/dungeon/custom_collision.h"
 #include "zelda3/dungeon/dungeon_limits.h"
 #include "zelda3/game_data.h"
 #include "zelda3/sprite/sprite.h"
@@ -415,6 +416,23 @@ class Room {
    */
   std::vector<DungeonLimitInfo> GetExceededLimitDetails() const;
 
+  // Custom Collision access
+  const CustomCollisionMap& custom_collision() const { return custom_collision_; }
+  CustomCollisionMap& custom_collision() { return custom_collision_; }
+  bool has_custom_collision() const { return custom_collision_.has_data; }
+  void set_has_custom_collision(bool has) { custom_collision_.has_data = has; }
+  
+  uint8_t GetCollisionTile(int x, int y) const {
+    if (x < 0 || x >= 64 || y < 0 || y >= 64) return 0;
+    return custom_collision_.tiles[y * 64 + x];
+  }
+  
+  void SetCollisionTile(int x, int y, uint8_t tile) {
+    if (x < 0 || x >= 64 || y < 0 || y >= 64) return;
+    custom_collision_.tiles[y * 64 + x] = tile;
+    custom_collision_.has_data = true;
+  }
+
   // For undo/redo functionality
   void SetTileObjects(const std::vector<RoomObject>& objects) {
     tile_objects_ = objects;
@@ -671,6 +689,7 @@ class Room {
   destination stair3_;
   destination stair4_;
 
+  CustomCollisionMap custom_collision_;
   std::unique_ptr<DungeonState> dungeon_state_;
 };
 

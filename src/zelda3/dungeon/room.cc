@@ -8,7 +8,6 @@
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
-#include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/platform/sdl_compat.h"
@@ -1186,6 +1185,11 @@ void Room::LoadObjects() {
 
   // Parse objects with enhanced error handling
   ParseObjectsFromLocation(objects_location + 2);
+
+  // Load custom collision map if present
+  if (auto res = LoadCustomCollisionMap(rom_, room_id_); res.ok()) {
+    custom_collision_ = std::move(res.value());
+  }
 }
 
 void Room::ParseObjectsFromLocation(int objects_location) {

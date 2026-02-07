@@ -61,7 +61,13 @@ class DungeonCanvasViewer {
 
   // Room data access
   void SetRooms(std::array<zelda3::Room, 0x128>* rooms) { rooms_ = rooms; }
+  std::array<zelda3::Room, 0x128>* rooms() const { return rooms_; }
   bool HasRooms() const { return rooms_ != nullptr; }
+
+  // Best-effort "current room" context for auxiliary panels that are driven by
+  // whichever room the viewer is currently drawing.
+  int current_room_id() const { return current_room_id_; }
+
   // Used by overworld editor when double-clicking entrances
   void set_active_rooms(const ImVector<int>& rooms) { active_rooms_ = rooms; }
   void set_current_active_room_tab(int tab) { current_active_room_tab_ = tab; }
@@ -99,8 +105,45 @@ class DungeonCanvasViewer {
   void SetShowEntranceListCallback(std::function<void()> callback) {
     show_entrance_list_callback_ = std::move(callback);
   }
+
+  void set_show_custom_collision_overlay(bool show) {
+    show_custom_collision_overlay_ = show;
+  }
+  bool show_custom_collision_overlay() const {
+    return show_custom_collision_overlay_;
+  }
+
+  // Overlay toggles (used by settings panels / workbench UI).
+  bool show_track_collision_overlay() const { return show_track_collision_overlay_; }
+  void set_show_track_collision_overlay(bool show) {
+    show_track_collision_overlay_ = show;
+  }
+  bool show_camera_quadrant_overlay() const {
+    return show_camera_quadrant_overlay_;
+  }
+  void set_show_camera_quadrant_overlay(bool show) {
+    show_camera_quadrant_overlay_ = show;
+  }
+  bool show_minecart_sprite_overlay() const { return show_minecart_sprite_overlay_; }
+  void set_show_minecart_sprite_overlay(bool show) {
+    show_minecart_sprite_overlay_ = show;
+  }
+  bool show_track_gap_overlay() const { return show_track_gap_overlay_; }
+  void set_show_track_gap_overlay(bool show) { show_track_gap_overlay_ = show; }
+  bool show_track_route_overlay() const { return show_track_route_overlay_; }
+  void set_show_track_route_overlay(bool show) { show_track_route_overlay_ = show; }
+
+  bool show_grid() const { return show_grid_; }
+  void set_show_grid(bool show) { show_grid_ = show; }
+  bool show_object_bounds() const { return show_object_bounds_; }
+  void set_show_object_bounds(bool show) { show_object_bounds_ = show; }
+  bool show_coordinate_overlay() const { return show_coordinate_overlay_; }
+  void set_show_coordinate_overlay(bool show) { show_coordinate_overlay_ = show; }
   void SetShowRoomGraphicsCallback(std::function<void()> callback) {
     show_room_graphics_callback_ = std::move(callback);
+  }
+  void SetShowDungeonSettingsCallback(std::function<void()> callback) {
+    show_dungeon_settings_callback_ = std::move(callback);
   }
   void SetSaveRoomCallback(std::function<void(int)> callback) {
     save_room_callback_ = std::move(callback);
@@ -309,6 +352,8 @@ class DungeonCanvasViewer {
   void ApplyTrackCollisionConfig();
   void DrawTrackCollisionOverlay(const gui::CanvasRuntime& rt,
                                  const zelda3::Room& room);
+  void DrawCustomCollisionOverlay(const gui::CanvasRuntime& rt,
+                                  const zelda3::Room& room);
   void DrawCameraQuadrantOverlay(const gui::CanvasRuntime& rt,
                                  const zelda3::Room& room);
   void DrawMinecartSpriteOverlay(const gui::CanvasRuntime& rt,
@@ -339,6 +384,7 @@ class DungeonCanvasViewer {
 
   // Room data
   std::array<zelda3::Room, 0x128>* rooms_ = nullptr;
+  int current_room_id_ = -1;
   // Used by overworld editor for double-click entrance → open dungeon room
   ImVector<int> active_rooms_;
   int current_active_room_tab_ = 0;
@@ -363,6 +409,7 @@ class DungeonCanvasViewer {
   std::function<void()> show_room_matrix_callback_;
   std::function<void()> show_entrance_list_callback_;
   std::function<void()> show_room_graphics_callback_;
+  std::function<void()> show_dungeon_settings_callback_;
   std::function<void(int)> save_room_callback_;
   std::function<void(int, const zelda3::RoomObject&)> edit_graphics_callback_;
   MinecartTrackEditorPanel* minecart_track_panel_ = nullptr;
@@ -398,6 +445,8 @@ class DungeonCanvasViewer {
   bool show_minecart_sprite_overlay_ = false;
   bool show_track_gap_overlay_ = false;
   bool show_track_route_overlay_ = false;
+  bool show_custom_collision_overlay_ = false;
+  bool show_room_details_ = false;
   bool track_direction_map_enabled_ = true;
   std::vector<uint16_t> track_tile_order_;
   std::vector<uint16_t> switch_tile_order_;
