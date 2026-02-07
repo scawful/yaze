@@ -31,6 +31,7 @@
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/resource_labels.h"
 #include "zelda3/sprite/sprite.h"
+#include "zelda3/zelda3_labels.h"
 
 namespace yaze::editor {
 
@@ -481,75 +482,9 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
         "Ganon's Darkness"     // 7
     };
 
-    // Tag names matching RoomTag array in room.cc
-    const char* tag_names[] = {
-        "Nothing",                     // 0
-        "NW Kill Enemy to Open",       // 1
-        "NE Kill Enemy to Open",       // 2
-        "SW Kill Enemy to Open",       // 3
-        "SE Kill Enemy to Open",       // 4
-        "W Kill Enemy to Open",        // 5
-        "E Kill Enemy to Open",        // 6
-        "N Kill Enemy to Open",        // 7
-        "S Kill Enemy to Open",        // 8
-        "Clear Quadrant to Open",      // 9
-        "Clear Full Tile to Open",     // 10
-        "NW Push Block to Open",       // 11
-        "NE Push Block to Open",       // 12
-        "SW Push Block to Open",       // 13
-        "SE Push Block to Open",       // 14
-        "W Push Block to Open",        // 15
-        "E Push Block to Open",        // 16
-        "N Push Block to Open",        // 17
-        "S Push Block to Open",        // 18
-        "Push Block to Open",          // 19
-        "Pull Lever to Open",          // 20
-        "Collect Prize to Open",       // 21
-        "Hold Switch Open Door",       // 22
-        "Toggle Switch to Open",       // 23
-        "Turn off Water",              // 24
-        "Turn on Water",               // 25
-        "Water Gate",                  // 26
-        "Water Twin",                  // 27
-        "Moving Wall Right",           // 28
-        "Moving Wall Left",            // 29
-        "Crash (30)",                  // 30
-        "Crash (31)",                  // 31
-        "Push Switch Exploding Wall",  // 32
-        "Holes 0",                     // 33
-        "Open Chest (Holes 0)",        // 34
-        "Holes 1",                     // 35
-        "Holes 2",                     // 36
-        "Defeat Boss for Prize",       // 37
-        "SE Kill Enemy Push Block",    // 38
-        "Trigger Switch Chest",        // 39
-        "Pull Lever Exploding Wall",   // 40
-        "NW Kill Enemy for Chest",     // 41
-        "NE Kill Enemy for Chest",     // 42
-        "SW Kill Enemy for Chest",     // 43
-        "SE Kill Enemy for Chest",     // 44
-        "W Kill Enemy for Chest",      // 45
-        "E Kill Enemy for Chest",      // 46
-        "N Kill Enemy for Chest",      // 47
-        "S Kill Enemy for Chest",      // 48
-        "Clear Quadrant for Chest",    // 49
-        "Clear Full Tile for Chest",   // 50
-        "Light Torches to Open",       // 51
-        "Holes 3",                     // 52
-        "Holes 4",                     // 53
-        "Holes 5",                     // 54
-        "Holes 6",                     // 55
-        "Agahnim Room",                // 56
-        "Holes 7",                     // 57
-        "Holes 8",                     // 58
-        "Open Chest for Holes 8",      // 59
-        "Push Block for Chest",        // 60
-        "Clear Room for Triforce",     // 61
-        "Light Torches for Chest",     // 62
-        "Kill Boss Again",             // 63
-        "64 (Unused)"                  // 64
-    };
-    constexpr int kNumTags = IM_ARRAYSIZE(tag_names);
+    // Note: tag_names removed in favor of zelda3::GetRoomTagLabel
+    const auto& vanilla_tags = zelda3::Zelda3Labels::GetRoomTagNames();
+    const int kNumTags = static_cast<int>(vanilla_tags.size());
 
     const char* merge_types[] = {"Off",    "Parallax",    "Dark",
                                  "On top", "Translucent", "Addition",
@@ -706,28 +641,20 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       ImGui::TableNextColumn();
       // Empty - compass takes vertical space
       ImGui::TableNextColumn();
-      // Helper: get tag display name, overlaying manifest labels when available
+      // Helper: get tag display name using the global provider
       auto get_tag_display_name = [&](int tag_idx) -> std::string {
-        const char* vanilla = (tag_idx >= 0 && tag_idx < kNumTags)
-                                  ? tag_names[tag_idx]
-                                  : "Unknown";
+        std::string label = zelda3::GetRoomTagLabel(tag_idx);
         if (project_ && project_->hack_manifest.loaded()) {
           auto tag =
               project_->hack_manifest.GetRoomTag(static_cast<uint8_t>(tag_idx));
-          if (tag.has_value() && !tag->name.empty()) {
-            if (!tag->enabled && !tag->feature_flag.empty()) {
-              return absl::StrFormat("%s [%s] (disabled by %s)", vanilla,
-                                     tag->name.c_str(),
-                                     tag->feature_flag.c_str());
-            }
-            if (!tag->enabled) {
-              return absl::StrFormat("%s [%s] (disabled)", vanilla,
-                                     tag->name.c_str());
-            }
-            return absl::StrFormat("%s [%s]", vanilla, tag->name.c_str());
+          if (tag.has_value() && !tag->enabled) {
+            return absl::StrCat(label, " (disabled",
+                                tag->feature_flag.empty()
+                                    ? ")"
+                                    : absl::StrCat(" by ", tag->feature_flag, ")"));
           }
         }
-        return vanilla;
+        return label;
       };
 
       ImGui::TextDisabled(ICON_MD_LABEL);

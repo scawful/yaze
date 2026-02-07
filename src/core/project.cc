@@ -1205,8 +1205,14 @@ void YazeProject::ReloadHackManifest() {
 
 void YazeProject::TryLoadHackManifest() {
 #ifdef __EMSCRIPTEN__
+  hack_manifest.Clear();
+  zelda3::GetResourceLabels().SetHackManifest(nullptr);
   return;  // Hack manifests not supported in web builds
 #endif
+
+  // Clear previous state so we never keep a stale manifest across project loads.
+  hack_manifest.Clear();
+  zelda3::GetResourceLabels().SetHackManifest(nullptr);
 
   // Priority 1: Explicit hack_manifest_file setting from project
   if (!hack_manifest_file.empty()) {
@@ -1215,6 +1221,7 @@ void YazeProject::TryLoadHackManifest() {
       auto status = hack_manifest.LoadFromFile(manifest_path);
       if (status.ok()) {
         LOG_DEBUG("Project", "Loaded hack manifest: %s", manifest_path.c_str());
+        zelda3::GetResourceLabels().SetHackManifest(&hack_manifest);
       } else {
         LOG_WARN("Project", "Failed to load hack manifest %s: %s",
                  manifest_path.c_str(), std::string(status.message()).c_str());
@@ -1233,8 +1240,17 @@ void YazeProject::TryLoadHackManifest() {
         hack_manifest_file = GetRelativePath(candidate.string());
         LOG_DEBUG("Project", "Auto-discovered hack manifest: %s",
                   candidate.string().c_str());
+      } else {
+        LOG_WARN("Project", "Failed to load auto-discovered hack manifest %s: %s",
+                 candidate.string().c_str(),
+                 std::string(status.message()).c_str());
       }
     }
+  }
+
+  // Update resource labels with the loaded manifest
+  if (hack_manifest.loaded()) {
+    zelda3::GetResourceLabels().SetHackManifest(&hack_manifest);
   }
 }
 
@@ -1853,10 +1869,13 @@ void YazeProject::InitializeResourceLabelProvider() {
   auto& provider = zelda3::GetResourceLabels();
   provider.SetProjectLabels(&resource_labels);
   provider.SetPreferHMagicNames(workspace_settings.prefer_hmagic_names);
+  provider.SetHackManifest(hack_manifest.loaded() ? &hack_manifest : nullptr);
 
   LOG_DEBUG("Project", "Initialized ResourceLabelProvider with project labels");
   LOG_DEBUG("Project", "   - prefer_hmagic_names: %s",
             workspace_settings.prefer_hmagic_names ? "true" : "false");
+  LOG_DEBUG("Project", "   - hack_manifest: %s",
+            hack_manifest.loaded() ? "loaded" : "not loaded");
 }
 
 // ============================================================================

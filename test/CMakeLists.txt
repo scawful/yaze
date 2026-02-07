@@ -154,6 +154,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/overworld_test.cc
     unit/zelda3/overworld_regression_test.cc
     unit/zelda3/overworld_version_helper_test.cc
+    unit/zelda3/resource_labels_test.cc
     unit/zelda3/object_parser_test.cc
     unit/zelda3/object_parser_structs_test.cc
     unit/zelda3/sprite_builder_test.cc

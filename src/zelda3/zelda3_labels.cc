@@ -384,8 +384,72 @@ const std::vector<std::string>& Zelda3Labels::GetRoomEffectNames() {
 // Room tag names
 const std::vector<std::string>& Zelda3Labels::GetRoomTagNames() {
   static const std::vector<std::string> tag_names = {
-      "No Tag", "NW",    "NE",       "SW",       "SE",   "West", "East",
-      "North",  "South", "Entrance", "Treasure", "Boss", "Dark"};
+      "Nothing",                     // 0
+      "NW Kill Enemy to Open",       // 1
+      "NE Kill Enemy to Open",       // 2
+      "SW Kill Enemy to Open",       // 3
+      "SE Kill Enemy to Open",       // 4
+      "W Kill Enemy to Open",        // 5
+      "E Kill Enemy to Open",        // 6
+      "N Kill Enemy to Open",        // 7
+      "S Kill Enemy to Open",        // 8
+      "Clear Quadrant to Open",      // 9
+      "Clear Room to Open",          // 10
+      "NW Push Block to Open",       // 11
+      "NE Push Block to Open",       // 12
+      "SW Push Block to Open",       // 13
+      "SE Push Block to Open",       // 14
+      "W Push Block to Open",        // 15
+      "E Push Block to Open",        // 16
+      "N Push Block to Open",        // 17
+      "S Push Block to Open",        // 18
+      "Push Block to Open",          // 19
+      "Pull Lever to Open",          // 20
+      "Collect Prize to Open",       // 21
+      "Hold Switch Open Door",       // 22
+      "Toggle Switch to Open Door",  // 23
+      "Turn off Water",              // 24
+      "Turn on Water",               // 25
+      "Water Gate",                  // 26
+      "Water Twin",                  // 27
+      "Moving Wall Right",           // 28
+      "Moving Wall Left",            // 29
+      "Crash1",                      // 30
+      "Crash2",                      // 31
+      "Push Switch Exploding Wall",  // 32
+      "Holes 0",                     // 33
+      "Open Chest for Holes 0",      // 34
+      "Holes 1",                     // 35
+      "Holes 2",                     // 36
+      "Defeat Boss for Prize",       // 37
+      "SE Kill Enemy for Push Blk",  // 38
+      "Trigger Switch Chest",        // 39
+      "Pull Lever Exploding Wall",   // 40
+      "NW Kill Enemy for Chest",     // 41
+      "NE Kill Enemy for Chest",     // 42
+      "SW Kill Enemy for Chest",     // 43
+      "SE Kill Enemy for Chest",     // 44
+      "W Kill Enemy for Chest",      // 45
+      "E Kill Enemy for Chest",      // 46
+      "N Kill Enemy for Chest",      // 47
+      "S Kill Enemy for Chest",      // 48
+      "Clear Quadrant for Chest",    // 49
+      "Clear Room for Chest",        // 50
+      "Light Torches to Open",       // 51
+      "Holes 3",                     // 52
+      "Holes 4",                     // 53
+      "Holes 5",                     // 54
+      "Holes 6",                     // 55
+      "Agahnim Room",                // 56
+      "Holes 7",                     // 57
+      "Holes 8",                     // 58
+      "Open Chest for Holes 8",      // 59
+      "Push Block for Chest",        // 60
+      "Clear Room for Triforce",     // 61
+      "Light Torches for Chest",     // 62
+      "Kill Boss Again",             // 63
+      "64 (Unused)"                  // 64
+  };
   return tag_names;
 }
 
