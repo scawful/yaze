@@ -9,7 +9,6 @@
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
-#include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
 
@@ -305,7 +304,7 @@ void PaletteControlsPanel::DrawPaletteDisplay() {
       ImGui::SameLine();
     bool selected = (state_->sub_palette_index == static_cast<uint64_t>(i));
     if (selected) {
-      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.5f, 0.8f, 1.0f));
+      ImGui::PushStyleColor(ImGuiCol_Button, gui::GetSelectedColor());
     }
     if (ImGui::SmallButton(absl::StrFormat("%d", i).c_str())) {
       state_->sub_palette_index = static_cast<uint64_t>(i);
