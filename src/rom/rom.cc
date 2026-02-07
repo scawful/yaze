@@ -29,6 +29,15 @@
 #include "app/platform/wasm/wasm_collaboration.h"
 #endif
 
+#if !defined(__EMSCRIPTEN__)
+#if defined(_WIN32)
+#include <windows.h>
+#else
+#include <fcntl.h>
+#include <unistd.h>
+#endif
+#endif
+
 namespace yaze {
 
 namespace {
@@ -69,6 +78,49 @@ inline void MaybeBroadcastChange(uint32_t offset,
   (void)collab.BroadcastChange(offset, old_bytes, new_bytes);
 }
 #endif
+
+#if !defined(__EMSCRIPTEN__)
+void BestEffortFsyncFile(const std::filesystem::path& path) {
+#if defined(_WIN32)
+  // FlushFileBuffers requires GENERIC_WRITE access.
+  HANDLE handle = CreateFileW(path.wstring().c_str(), GENERIC_WRITE,
+                              FILE_SHARE_READ | FILE_SHARE_WRITE |
+                                  FILE_SHARE_DELETE,
+                              nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL,
+                              nullptr);
+  if (handle == INVALID_HANDLE_VALUE) {
+    return;
+  }
+  (void)FlushFileBuffers(handle);
+  (void)CloseHandle(handle);
+#else
+  int fd = open(path.c_str(), O_RDONLY);
+  if (fd < 0) {
+    return;
+  }
+  (void)fsync(fd);
+  (void)close(fd);
+#endif
+}
+
+void BestEffortFsyncParentDir(const std::filesystem::path& file_path) {
+#if defined(_WIN32)
+  (void)file_path;
+  // Best-effort only; Windows directory fsync is not portable here.
+#else
+  std::filesystem::path dir_path = file_path.parent_path();
+  if (dir_path.empty()) {
+    dir_path = ".";
+  }
+  int fd = open(dir_path.c_str(), O_RDONLY);
+  if (fd < 0) {
+    return;
+  }
+  (void)fsync(fd);
+  (void)close(fd);
+#endif
+}
+#endif  // !defined(__EMSCRIPTEN__)
 
 }  // namespace
 
@@ -249,17 +301,58 @@ absl::Status Rom::SaveToFile(const SaveSettings& settings) {
     filename = filename + ".sfc";
   }
 
-  std::ofstream file(filename.data(), std::ios::binary | std::ios::trunc);
+  // Save stability: write to a temp file in the same directory and rename into
+  // place. If we crash mid-write, the original ROM stays intact.
+  const std::filesystem::path target_path(filename);
+  std::filesystem::path temp_path = target_path;
+  temp_path += ".tmp";
+
+  std::ofstream file(temp_path, std::ios::binary | std::ios::trunc);
   if (!file) {
-    return absl::InternalError(
-        absl::StrCat("Could not open ROM file for writing: ", filename));
+    return absl::InternalError(absl::StrCat(
+        "Could not open temp ROM file for writing: ", temp_path.string()));
   }
 
   file.write(reinterpret_cast<const char*>(rom_data_.data()), rom_data_.size());
+  file.flush();
   if (!file) {
-    return absl::InternalError(
-        absl::StrCat("Error while writing to ROM file: ", filename));
+    file.close();
+    std::error_code rm_ec;
+    std::filesystem::remove(temp_path, rm_ec);
+    return absl::InternalError(absl::StrCat("Error while writing ROM file: ",
+                                            temp_path.string()));
   }
+
+  file.close();
+
+#if !defined(__EMSCRIPTEN__)
+  // Best-effort fsync so temp file contents are durable before rename.
+  BestEffortFsyncFile(temp_path);
+#endif
+
+  std::error_code rename_ec;
+  std::filesystem::rename(temp_path, target_path, rename_ec);
+#if defined(_WIN32)
+  // Windows may fail rename when the destination exists; fall back to remove +
+  // rename (non-atomic but still avoids partial/truncated writes).
+  if (rename_ec && std::filesystem::exists(target_path)) {
+    std::error_code rm_target_ec;
+    std::filesystem::remove(target_path, rm_target_ec);
+    rename_ec.clear();
+    std::filesystem::rename(temp_path, target_path, rename_ec);
+  }
+#endif
+  if (rename_ec) {
+    std::error_code rm_ec;
+    std::filesystem::remove(temp_path, rm_ec);
+    return absl::InternalError(absl::StrCat(
+        "Failed to move temp ROM into place: ", rename_ec.message()));
+  }
+
+#if !defined(__EMSCRIPTEN__)
+  // Best-effort fsync the parent dir so the rename is durable.
+  BestEffortFsyncParentDir(target_path);
+#endif
 
   dirty_ = false;
   return absl::OkStatus();

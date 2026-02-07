@@ -58,7 +58,7 @@ inline constexpr float kCompactFramePadding = 2.f;
 
 // Map Size Constants - using the one from overworld_editor.h
 
-enum class EditingMode { MOUSE = 0, DRAW_TILE = 1 };
+enum class EditingMode { MOUSE = 0, DRAW_TILE = 1, FILL_TILE = 2 };
 
 enum class EntityEditMode {
   NONE = 0,
