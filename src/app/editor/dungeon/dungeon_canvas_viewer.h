@@ -185,6 +185,11 @@ class DungeonCanvasViewer {
     return object_interaction_enabled_;
   }
 
+  // Make the room header controls non-interactive while still allowing canvas
+  // pan/zoom (useful for split/compare views).
+  void SetHeaderReadOnly(bool read_only) { header_read_only_ = read_only; }
+  bool header_read_only() const { return header_read_only_; }
+
   // Set and get the object render mode
   void SetObjectRenderMode(ObjectRenderMode mode) {
     object_render_mode_ = mode;
@@ -453,6 +458,7 @@ class DungeonCanvasViewer {
   bool show_custom_collision_overlay_ = false;
   bool show_room_details_ = false;
   bool compact_header_mode_ = false;
+  bool header_read_only_ = false;
   bool track_direction_map_enabled_ = true;
   std::vector<uint16_t> track_tile_order_;
   std::vector<uint16_t> switch_tile_order_;
