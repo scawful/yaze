@@ -23,6 +23,7 @@ namespace yaze::editor {
 DungeonWorkbenchPanel::DungeonWorkbenchPanel(
     DungeonRoomSelector* room_selector, int* current_room_id,
     int* previous_room_id, bool* split_view_enabled, int* compare_room_id,
+    DungeonWorkbenchLayoutState* layout_state,
     std::function<void(int)> on_room_selected,
     std::function<DungeonCanvasViewer*()> get_viewer,
     std::function<DungeonCanvasViewer*()> get_compare_viewer,
@@ -34,6 +35,7 @@ DungeonWorkbenchPanel::DungeonWorkbenchPanel(
       previous_room_id_(previous_room_id),
       split_view_enabled_(split_view_enabled),
       compare_room_id_(compare_room_id),
+      layout_state_(layout_state),
       on_room_selected_(std::move(on_room_selected)),
       get_viewer_(std::move(get_viewer)),
       get_compare_viewer_(std::move(get_compare_viewer)),

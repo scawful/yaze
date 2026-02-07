@@ -235,6 +235,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
   panel_manager->RegisterEditorPanel(std::make_unique<DungeonWorkbenchPanel>(
       &room_selector_, &current_room_id_, &workbench_previous_room_id_,
       &workbench_split_view_enabled_, &workbench_compare_room_id_,
+      &workbench_layout_state_,
       [this](int room_id) { OnRoomSelected(room_id); },
       [this]() { return GetWorkbenchViewer(); },
       [this]() { return GetWorkbenchCompareViewer(); },

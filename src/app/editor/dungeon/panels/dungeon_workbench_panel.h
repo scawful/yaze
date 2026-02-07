@@ -5,6 +5,7 @@
 #include <functional>
 #include <string>
 
+#include "app/editor/dungeon/dungeon_workbench_state.h"
 #include "app/editor/system/editor_panel.h"
 
 namespace yaze {
@@ -24,6 +25,7 @@ class DungeonWorkbenchPanel : public EditorPanel {
                         int* previous_room_id,
                         bool* split_view_enabled,
                         int* compare_room_id,
+                        DungeonWorkbenchLayoutState* layout_state,
                         std::function<void(int)> on_room_selected,
                         std::function<DungeonCanvasViewer*()> get_viewer,
                         std::function<DungeonCanvasViewer*()> get_compare_viewer,
@@ -53,6 +55,7 @@ class DungeonWorkbenchPanel : public EditorPanel {
   int* previous_room_id_ = nullptr;
   bool* split_view_enabled_ = nullptr;
   int* compare_room_id_ = nullptr;
+  DungeonWorkbenchLayoutState* layout_state_ = nullptr;
   std::function<void(int)> on_room_selected_;
   std::function<DungeonCanvasViewer*()> get_viewer_;
   std::function<DungeonCanvasViewer*()> get_compare_viewer_;
