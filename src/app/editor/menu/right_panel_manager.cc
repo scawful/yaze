@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <filesystem>
 
 #include "absl/strings/str_format.h"
@@ -18,6 +19,7 @@
 #include "app/gui/core/platform_keys.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/theme_manager.h"
+#include "app/gui/core/ui_config.h"
 #include "imgui/imgui.h"
 #include "util/platform_paths.h"
 
@@ -112,29 +114,65 @@ void RightPanelManager::TogglePanel(PanelType type) {
   if (active_panel_ == type) {
     ClosePanel();
   } else {
+    // Opens the requested panel (also handles re-opening during close animation)
     OpenPanel(type);
   }
 }
 
+bool RightPanelManager::IsPanelExpanded() const {
+  return active_panel_ != PanelType::kNone || closing_;
+}
+
 void RightPanelManager::OpenPanel(PanelType type) {
+  // If we were closing, cancel the close animation
+  closing_ = false;
+  closing_panel_ = PanelType::kNone;
+
   active_panel_ = type;
   animating_ = true;
-  panel_animation_ = 0.0f;
+  animation_target_ = 1.0f;
+
+  // Check if animations are enabled
+  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+  if (!theme.enable_animations) {
+    panel_animation_ = 1.0f;
+    animating_ = false;
+  }
+  // Otherwise keep current panel_animation_ for smooth transition
 }
 
 void RightPanelManager::ClosePanel() {
+  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+  if (!theme.enable_animations) {
+    // Instant close
+    active_panel_ = PanelType::kNone;
+    closing_ = false;
+    closing_panel_ = PanelType::kNone;
+    panel_animation_ = 0.0f;
+    animating_ = false;
+    return;
+  }
+
+  // Start close animation — keep the panel type so we can still draw it
+  closing_ = true;
+  closing_panel_ = active_panel_;
   active_panel_ = PanelType::kNone;
-  animating_ = false;
-  panel_animation_ = 0.0f;
+  animating_ = true;
+  animation_target_ = 0.0f;
 }
 
 float RightPanelManager::GetPanelWidth() const {
-  if (active_panel_ == PanelType::kNone) {
+  // Determine which panel to measure: active panel, or the one being closed
+  PanelType effective_panel = active_panel_;
+  if (effective_panel == PanelType::kNone && closing_) {
+    effective_panel = closing_panel_;
+  }
+  if (effective_panel == PanelType::kNone) {
     return 0.0f;
   }
 
   float width = 0.0f;
-  switch (active_panel_) {
+  switch (effective_panel) {
     case PanelType::kAgentChat:
       width = agent_chat_width_;
       break;
@@ -163,20 +201,21 @@ float RightPanelManager::GetPanelWidth() const {
 
   ImGuiContext* context = ImGui::GetCurrentContext();
   if (!context) {
-    return width;
+    return width * panel_animation_;
   }
 
   const ImGuiViewport* viewport = ImGui::GetMainViewport();
   if (!viewport) {
-    return width;
+    return width * panel_animation_;
   }
 
-  const float max_width = viewport->WorkSize.x * 0.35f;
+  const float max_width = viewport->WorkSize.x * gui::UIConfig::kMaxPanelWidthRatio;
   if (max_width > 0.0f && width > max_width) {
     width = max_width;
   }
 
-  return width;
+  // Scale by animation progress for smooth docking space adjustment
+  return width * panel_animation_;
 }
 
 void RightPanelManager::SetPanelWidth(PanelType type, float width) {
@@ -208,23 +247,59 @@ void RightPanelManager::SetPanelWidth(PanelType type, float width) {
 }
 
 void RightPanelManager::Draw() {
-  if (active_panel_ == PanelType::kNone) {
+  // Nothing to draw if no panel is active and no close animation running
+  if (active_panel_ == PanelType::kNone && !closing_) {
     return;
   }
 
   // Handle Escape key to close panel
-  if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+  if (active_panel_ != PanelType::kNone &&
+      ImGui::IsKeyPressed(ImGuiKey_Escape)) {
     ClosePanel();
-    return;
+    // Don't return — we need to start drawing the close animation this frame
+    if (!closing_) return;
   }
 
-  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+  // Advance animation
+  if (animating_) {
+    float delta_time = ImGui::GetIO().DeltaTime;
+    float speed = gui::UIConfig::kAnimationSpeed;
+    float diff = animation_target_ - panel_animation_;
+    panel_animation_ += diff * std::min(1.0f, delta_time * speed);
+
+    // Snap to target when close enough
+    if (std::abs(animation_target_ - panel_animation_) <
+        gui::UIConfig::kAnimationSnapThreshold) {
+      panel_animation_ = animation_target_;
+      animating_ = false;
+
+      // Close animation finished — fully clean up
+      if (closing_ && animation_target_ == 0.0f) {
+        closing_ = false;
+        closing_panel_ = PanelType::kNone;
+        return;
+      }
+    }
+  }
+
+  // Determine which panel type to draw content for
+  PanelType draw_panel = active_panel_;
+  if (draw_panel == PanelType::kNone && closing_) {
+    draw_panel = closing_panel_;
+  }
+
   const ImGuiViewport* viewport = ImGui::GetMainViewport();
   const float viewport_width = viewport->WorkSize.x;
   const float top_inset = gui::LayoutHelpers::GetTopInset();
   const float viewport_height =
       std::max(0.0f, viewport->WorkSize.y - top_inset);
-  const float panel_width = GetPanelWidth();
+
+  // GetPanelWidth() already factors in panel_animation_ for docking space.
+  // For the window itself, use the full (unanimated) width and slide position.
+  const float animated_width = GetPanelWidth();
+  // Avoid division by zero
+  const float full_width =
+      (panel_animation_ > 0.001f) ? animated_width / panel_animation_ : 0.0f;
 
   // Use SurfaceContainer for slightly elevated panel background
   ImVec4 panel_bg = gui::GetSurfaceContainerVec4();
@@ -235,11 +310,12 @@ void RightPanelManager::Draw() {
       ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking |
       ImGuiWindowFlags_NoNavFocus;
 
-  // Position panel on right edge, full height
+  // Position panel: slides from right edge. At animation=1.0, fully visible.
+  // At animation=0.0, fully off-screen to the right.
+  float panel_x = viewport->WorkPos.x + viewport_width - animated_width;
   ImGui::SetNextWindowPos(
-      ImVec2(viewport->WorkPos.x + viewport_width - panel_width,
-             viewport->WorkPos.y + top_inset));
-  ImGui::SetNextWindowSize(ImVec2(panel_width, viewport_height));
+      ImVec2(panel_x, viewport->WorkPos.y + top_inset));
+  ImGui::SetNextWindowSize(ImVec2(full_width, viewport_height));
 
   ImGui::PushStyleColor(ImGuiCol_WindowBg, panel_bg);
   ImGui::PushStyleColor(ImGuiCol_Border, panel_border);
@@ -248,8 +324,8 @@ void RightPanelManager::Draw() {
 
   if (ImGui::Begin("##RightPanel", nullptr, panel_flags)) {
     // Draw enhanced panel header
-    DrawPanelHeader(GetPanelTypeName(active_panel_),
-                    GetPanelTypeIcon(active_panel_));
+    DrawPanelHeader(GetPanelTypeName(draw_panel),
+                    GetPanelTypeIcon(draw_panel));
 
     // Content area with padding
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12.0f, 8.0f));
@@ -257,7 +333,7 @@ void RightPanelManager::Draw() {
                       ImGuiWindowFlags_AlwaysUseWindowPadding);
 
     // Draw panel content based on type
-    switch (active_panel_) {
+    switch (draw_panel) {
       case PanelType::kAgentChat:
         DrawAgentChatPanel();
         break;
@@ -294,7 +370,7 @@ void RightPanelManager::Draw() {
 
 void RightPanelManager::DrawPanelHeader(const char* title, const char* icon) {
   const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
-  const float header_height = 44.0f;
+  const float header_height = gui::UIConfig::kPanelHeaderHeight;
   const float padding = 12.0f;
 
   // Header background - slightly elevated surface
@@ -1383,8 +1459,8 @@ bool RightPanelManager::DrawPanelToggleButtons() {
   bool clicked = false;
 
   // Helper lambda for drawing panel toggle buttons with consistent styling
-  auto DrawPanelButton = [&](const char* icon, const char* tooltip,
-                             PanelType type) {
+  auto DrawPanelButton = [&](const char* icon, const char* base_tooltip,
+                             const char* shortcut_action, PanelType type) {
     bool is_active = IsPanelActive(type);
 
     // Consistent button styling - transparent background with hover states
@@ -1406,28 +1482,38 @@ bool RightPanelManager::DrawPanelToggleButtons() {
     ImGui::PopStyleColor(4);
 
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("%s", tooltip);
+      std::string shortcut = GetShortcutLabel(shortcut_action, "");
+      if (shortcut.empty() || shortcut == "Unassigned") {
+        ImGui::SetTooltip("%s", base_tooltip);
+      } else {
+        ImGui::SetTooltip("%s (%s)", base_tooltip, shortcut.c_str());
+      }
     }
   };
 
   // Project button
-  DrawPanelButton(ICON_MD_FOLDER_SPECIAL, "Project Panel", PanelType::kProject);
+  DrawPanelButton(ICON_MD_FOLDER_SPECIAL, "Project Panel",
+                  "View: Toggle Project Panel", PanelType::kProject);
   ImGui::SameLine();
 
   // Agent Chat button
-  DrawPanelButton(ICON_MD_SMART_TOY, "AI Agent Panel", PanelType::kAgentChat);
+  DrawPanelButton(ICON_MD_SMART_TOY, "AI Agent Panel",
+                  "View: Toggle AI Agent Panel", PanelType::kAgentChat);
   ImGui::SameLine();
 
   // Help button
-  DrawPanelButton(ICON_MD_HELP_OUTLINE, "Help Panel (F1)", PanelType::kHelp);
+  DrawPanelButton(ICON_MD_HELP_OUTLINE, "Help Panel",
+                  "View: Toggle Help Panel", PanelType::kHelp);
   ImGui::SameLine();
 
   // Settings button
-  DrawPanelButton(ICON_MD_SETTINGS, "Settings Panel", PanelType::kSettings);
+  DrawPanelButton(ICON_MD_SETTINGS, "Settings Panel",
+                  "View: Toggle Settings Panel", PanelType::kSettings);
   ImGui::SameLine();
 
   // Properties button (last button - no SameLine after)
-  DrawPanelButton(ICON_MD_LIST_ALT, "Properties Panel", PanelType::kProperties);
+  DrawPanelButton(ICON_MD_LIST_ALT, "Properties Panel",
+                  "View: Toggle Properties Panel", PanelType::kProperties);
 
   return clicked;
 }

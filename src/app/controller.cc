@@ -139,6 +139,9 @@ absl::Status Controller::OnLoad() {
   window_backend_->NewImGuiFrame();
   ImGui::NewFrame();
 
+  // Advance any in-progress theme color transitions
+  gui::ThemeManager::Get().UpdateTransition();
+
   const ImGuiViewport* viewport = ImGui::GetMainViewport();
 
   // Calculate layout offsets for sidebars and status bar

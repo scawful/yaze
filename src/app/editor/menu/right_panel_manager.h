@@ -5,6 +5,7 @@
 #include <string>
 
 #include "app/editor/editor.h"
+#include "app/gui/core/ui_config.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -119,9 +120,9 @@ class RightPanelManager {
   void ClosePanel();
 
   /**
-   * @brief Check if any panel is currently expanded
+   * @brief Check if any panel is currently expanded (or animating closed)
    */
-  bool IsPanelExpanded() const { return active_panel_ != PanelType::kNone; }
+  bool IsPanelExpanded() const;
 
   /**
    * @brief Get the currently active panel type
@@ -220,13 +221,13 @@ class RightPanelManager {
   EditorType active_editor_type_ = EditorType::kUnknown;
 
   // Panel widths (customizable per panel type) - consistent sizing
-  float agent_chat_width_ = 420.0f;  // Match proposals for consistency
-  float proposals_width_ = 420.0f;
-  float settings_width_ = 420.0f;    // Same width for unified look
-  float help_width_ = 380.0f;        // Wider for better readability
-  float notifications_width_ = 420.0f;
-  float properties_width_ = 320.0f;  // Narrower for properties
-  float project_width_ = 380.0f;     // Project management panel
+  float agent_chat_width_ = gui::UIConfig::kPanelWidthWide;
+  float proposals_width_ = gui::UIConfig::kPanelWidthWide;
+  float settings_width_ = gui::UIConfig::kPanelWidthWide;
+  float help_width_ = gui::UIConfig::kPanelWidthMedium;
+  float notifications_width_ = gui::UIConfig::kPanelWidthWide;
+  float properties_width_ = gui::UIConfig::kPanelWidthNarrow;
+  float project_width_ = gui::UIConfig::kPanelWidthMedium;
 
   // Component references (not owned)
   AgentChat* agent_chat_ = nullptr;
@@ -239,8 +240,11 @@ class RightPanelManager {
   Rom* rom_ = nullptr;
 
   // Animation state
-  float panel_animation_ = 0.0f;
+  float panel_animation_ = 0.0f;   // 0.0 = fully closed, 1.0 = fully open
+  float animation_target_ = 0.0f;  // Target value for lerp
   bool animating_ = false;
+  bool closing_ = false;           // True during close animation
+  PanelType closing_panel_ = PanelType::kNone;  // Panel being animated closed
 };
 
 /**

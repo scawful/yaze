@@ -296,6 +296,10 @@ class ThemeManager {
   void EndPreview();
   bool IsPreviewActive() const;
 
+  // Smooth theme transitions
+  void UpdateTransition();
+  bool IsTransitioning() const { return transitioning_; }
+
   // Theme creation and editing
   Theme CreateCustomTheme(const std::string& name);
   void ShowThemeEditor(bool* p_open);
@@ -349,6 +353,12 @@ class ThemeManager {
   bool preview_active_ = false;
   Theme preview_original_theme_;
   std::string preview_original_name_;
+
+  // Smooth transition state (lerps ImGui colors per-frame)
+  bool transitioning_ = false;
+  float transition_progress_ = 0.0f;
+  ImVec4 transition_from_[ImGuiCol_COUNT] = {};
+  ImVec4 transition_to_[ImGuiCol_COUNT] = {};
 
   void CreateFallbackYazeClassic();
   absl::Status ParseThemeFile(const std::string& content, Theme& theme);

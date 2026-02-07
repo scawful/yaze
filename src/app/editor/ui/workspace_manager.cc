@@ -183,23 +183,26 @@ void WorkspaceManager::RefreshPresets() {
 }
 
 void WorkspaceManager::LoadDeveloperLayout() {
-  // TODO: Load preset with all debug tools
-  if (toast_manager_) {
-    toast_manager_->Show("Developer layout loaded", ToastType::kInfo);
+  if (apply_preset_callback_) {
+    apply_preset_callback_("Developer");
+  } else if (toast_manager_) {
+    toast_manager_->Show("Layout presets not available", ToastType::kWarning);
   }
 }
 
 void WorkspaceManager::LoadDesignerLayout() {
-  // TODO: Load preset focused on graphics
-  if (toast_manager_) {
-    toast_manager_->Show("Designer layout loaded", ToastType::kInfo);
+  if (apply_preset_callback_) {
+    apply_preset_callback_("Designer");
+  } else if (toast_manager_) {
+    toast_manager_->Show("Layout presets not available", ToastType::kWarning);
   }
 }
 
 void WorkspaceManager::LoadModderLayout() {
-  // TODO: Load preset for ROM hacking
-  if (toast_manager_) {
-    toast_manager_->Show("Modder layout loaded", ToastType::kInfo);
+  if (apply_preset_callback_) {
+    apply_preset_callback_("Modder");
+  } else if (toast_manager_) {
+    toast_manager_->Show("Layout presets not available", ToastType::kWarning);
   }
 }
 

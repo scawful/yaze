@@ -5,6 +5,7 @@
 #include "absl/strings/str_split.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/menu/menu_orchestrator.h"
+#include "app/editor/menu/right_panel_manager.h"
 #include "app/editor/system/panel_manager.h"
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/rom_file_manager.h"
@@ -575,6 +576,35 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
           editor_manager->ResetCurrentEditorLayout();
         }
       });
+
+  // ============================================================================
+  // Right Panel Toggle Commands (command palette only)
+  // ============================================================================
+  if (editor_manager) {
+    using PanelType = RightPanelManager::PanelType;
+    auto* rpm = editor_manager->right_panel_manager();
+    if (rpm) {
+      struct PanelCmd {
+        const char* label;
+        PanelType type;
+      };
+      PanelCmd panel_cmds[] = {
+          {"View: Toggle AI Agent Panel", PanelType::kAgentChat},
+          {"View: Toggle Proposals Panel", PanelType::kProposals},
+          {"View: Toggle Settings Panel", PanelType::kSettings},
+          {"View: Toggle Help Panel", PanelType::kHelp},
+          {"View: Toggle Notifications", PanelType::kNotifications},
+          {"View: Toggle Properties Panel", PanelType::kProperties},
+          {"View: Toggle Project Panel", PanelType::kProject},
+      };
+      for (const auto& cmd : panel_cmds) {
+        shortcut_manager->RegisterCommand(
+            cmd.label, [rpm, panel_type = cmd.type]() {
+              rpm->TogglePanel(panel_type);
+            });
+      }
+    }
+  }
 
   // ============================================================================
   // Panel Visibility Toggle Commands (command palette only)

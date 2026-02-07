@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_LAYOUT_WINDOW_DELEGATE_H_
 #define YAZE_APP_EDITOR_LAYOUT_WINDOW_DELEGATE_H_
 
+#include <functional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -84,6 +85,11 @@ class WindowDelegate {
   // Layout presets
   void LoadMinimalLayout();
 
+  void set_apply_preset_callback(
+      std::function<void(const std::string&)> callback) {
+    apply_preset_callback_ = std::move(callback);
+  }
+
  private:
   // Window registry for tracking
   struct WindowInfo {
@@ -93,6 +99,7 @@ class WindowDelegate {
   };
 
   std::unordered_map<std::string, WindowInfo> registered_windows_;
+  std::function<void(const std::string&)> apply_preset_callback_;
 
   // Helper methods
   bool IsWindowRegistered(const std::string& window_id) const;

@@ -816,24 +816,104 @@ void SettingsPanel::DrawAppearanceSettings() {
   ImGui::Text("%s Theme Management", ICON_MD_PALETTE);
   ImGui::Separator();
 
-  // Current theme selection
+  // Current theme with color swatches
+  const auto& current = theme_manager.GetCurrentThemeName();
+  const auto& current_theme = theme_manager.GetCurrentTheme();
+
   ImGui::Text("Current Theme:");
   ImGui::SameLine();
-  auto current = theme_manager.GetCurrentThemeName();
+
+  // Draw 3 color swatches inline: primary, surface, accent
+  {
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    ImVec2 cursor = ImGui::GetCursorScreenPos();
+    const float swatch_size = 12.0f;
+    const float spacing = 2.0f;
+
+    auto draw_swatch = [&](const gui::Color& color, float offset_x) {
+      ImVec2 p_min(cursor.x + offset_x, cursor.y);
+      ImVec2 p_max(p_min.x + swatch_size, p_min.y + swatch_size);
+      ImU32 col = ImGui::ColorConvertFloat4ToU32(
+          gui::ConvertColorToImVec4(color));
+      draw_list->AddRectFilled(p_min, p_max, col);
+      draw_list->AddRect(p_min, p_max,
+                         ImGui::ColorConvertFloat4ToU32(
+                             ImVec4(0.5f, 0.5f, 0.5f, 0.6f)));
+    };
+
+    draw_swatch(current_theme.primary, 0.0f);
+    draw_swatch(current_theme.surface, swatch_size + spacing);
+    draw_swatch(current_theme.accent, 2.0f * (swatch_size + spacing));
+
+    // Advance cursor past the swatches
+    ImGui::Dummy(ImVec2(3.0f * swatch_size + 2.0f * spacing + 4.0f,
+                        swatch_size));
+  }
+
+  ImGui::SameLine();
   ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "%s", current.c_str());
 
   ImGui::Spacing();
 
-  // Available themes list (instead of grid for sidebar)
+  // Available themes list with hover preview and color swatches
   ImGui::Text("Available Themes:");
 
-  if (ImGui::BeginChild("ThemeList", ImVec2(0, 150), true)) {
+  bool any_theme_hovered = false;
+  if (ImGui::BeginChild("ThemeList", ImVec2(0, 200), true)) {
     for (const auto& theme_name : theme_manager.GetAvailableThemes()) {
       ImGui::PushID(theme_name.c_str());
       bool is_current = (theme_name == current);
 
-      if (ImGui::Selectable(theme_name.c_str(), is_current)) {
+      // Draw color swatches before the theme name
+      const gui::Theme* theme_data = theme_manager.GetTheme(theme_name);
+      if (theme_data) {
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        ImVec2 cursor = ImGui::GetCursorScreenPos();
+        const float swatch_size = 10.0f;
+        const float swatch_spacing = 2.0f;
+        const float total_swatch_width =
+            3.0f * swatch_size + 2.0f * swatch_spacing + 6.0f;
+
+        auto draw_small_swatch = [&](const gui::Color& color,
+                                     float offset_x) {
+          ImVec2 p_min(cursor.x + offset_x, cursor.y + 2.0f);
+          ImVec2 p_max(p_min.x + swatch_size, p_min.y + swatch_size);
+          ImU32 col = ImGui::ColorConvertFloat4ToU32(
+              gui::ConvertColorToImVec4(color));
+          draw_list->AddRectFilled(p_min, p_max, col);
+          draw_list->AddRect(p_min, p_max,
+                             ImGui::ColorConvertFloat4ToU32(
+                                 ImVec4(0.4f, 0.4f, 0.4f, 0.5f)));
+        };
+
+        draw_small_swatch(theme_data->primary, 0.0f);
+        draw_small_swatch(theme_data->surface, swatch_size + swatch_spacing);
+        draw_small_swatch(theme_data->accent,
+                          2.0f * (swatch_size + swatch_spacing));
+
+        // Reserve space for swatches then draw the selectable
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + total_swatch_width);
+      }
+
+      // Checkmark prefix for the active theme
+      std::string label = is_current
+                              ? std::string(ICON_MD_CHECK " ") + theme_name
+                              : std::string("   ") + theme_name;
+
+      if (ImGui::Selectable(label.c_str(), is_current)) {
+        // If we're previewing, end preview first so the selected theme becomes
+        // the new baseline (otherwise EndPreview would restore the pre-preview
+        // theme when the cursor leaves the list).
+        if (theme_manager.IsPreviewActive()) {
+          theme_manager.EndPreview();
+        }
         theme_manager.LoadTheme(theme_name);
+      }
+
+      // Hover triggers live preview
+      if (ImGui::IsItemHovered()) {
+        any_theme_hovered = true;
+        theme_manager.StartPreview(theme_name);
       }
 
       ImGui::PopID();
@@ -841,8 +921,55 @@ void SettingsPanel::DrawAppearanceSettings() {
   }
   ImGui::EndChild();
 
+  // Restore original theme when nothing is hovered
+  if (!any_theme_hovered && theme_manager.IsPreviewActive()) {
+    theme_manager.EndPreview();
+  }
+
+  // Refresh button
+  if (ImGui::Button(ICON_MD_REFRESH " Refresh Themes")) {
+    theme_manager.RefreshAvailableThemes();
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Re-scan theme directories for new or changed themes");
+  }
+
+  ImGui::Spacing();
+  ImGui::SeparatorText("Display Density");
+
+  {
+    auto preset = theme_manager.GetCurrentTheme().density_preset;
+    int density = static_cast<int>(preset);
+    bool changed = false;
+    changed |= ImGui::RadioButton("Compact (0.75x)", &density, 0);
+    ImGui::SameLine();
+    changed |= ImGui::RadioButton("Normal (1.0x)", &density, 1);
+    ImGui::SameLine();
+    changed |= ImGui::RadioButton("Comfortable (1.25x)", &density, 2);
+
+    if (changed) {
+      auto new_preset = static_cast<gui::DensityPreset>(density);
+      auto theme = theme_manager.GetCurrentTheme();
+      theme.ApplyDensityPreset(new_preset);
+      theme_manager.ApplyTheme(theme);
+    }
+  }
+
   ImGui::Spacing();
   gui::DrawFontManager();
+
+  // Global font scale with persistence
+  if (user_settings_) {
+    ImGui::Separator();
+    ImGui::Text("Global Font Scale");
+    float scale = user_settings_->prefs().font_global_scale;
+    if (ImGui::SliderFloat("##global_font_scale", &scale, 0.5f, 2.0f,
+                           "%.2f")) {
+      user_settings_->prefs().font_global_scale = scale;
+      ImGui::GetIO().FontGlobalScale = scale;
+      user_settings_->Save();
+    }
+  }
 
   ImGui::Spacing();
   ImGui::Text("%s Status Bar", ICON_MD_HORIZONTAL_RULE);
