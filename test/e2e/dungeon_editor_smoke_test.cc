@@ -107,6 +107,21 @@ void E2ETest_DungeonEditorV2SmokeTest(ImGuiTestContext* ctx) {
     ctx->LogInfo("Toggled Palette Editor visibility");
   }
 
+  // Test 7.5: Dungeon Map Panel
+  ctx->LogInfo("--- Test 7.5: Dungeon Map Panel ---");
+  if (ctx->WindowInfo("Dungeon Controls").Window != nullptr) {
+    ctx->SetRef("Dungeon Controls");
+    if (ctx->ItemExists("Dungeon Map")) {
+      ctx->ItemClick("Dungeon Map");
+      ctx->Yield();
+      ctx->LogInfo("Toggled Dungeon Map visibility");
+
+      if (ctx->WindowInfo(" Dungeon Map").Window != nullptr) {
+        ctx->LogInfo("Dungeon Map window is visible");
+      }
+    }
+  }
+
   // Test 8: Independent Cards can be closed
   ctx->LogInfo("--- Test 8: Close Independent Cards ---");
   // Close room card if it's open

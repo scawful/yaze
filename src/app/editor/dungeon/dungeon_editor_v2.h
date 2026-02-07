@@ -3,6 +3,7 @@
 
 #include <array>
 #include <cstdint>
+#include <deque>
 #include <map>
 #include <memory>
 #include <string>
@@ -205,6 +206,12 @@ class DungeonEditorV2 : public Editor {
     return object_editor_panel_;
   }
 
+  /**
+   * @brief Get the list of recently visited room IDs
+   * @return Deque of room IDs, most recent first (max 10 entries)
+   */
+  const std::deque<int>& GetRecentRooms() const { return recent_rooms_; }
+
  private:
   gfx::IRenderer* renderer_ = nullptr;
 
@@ -244,6 +251,11 @@ class DungeonEditorV2 : public Editor {
   // Active room tabs and card tracking for jump-to
   ImVector<int> active_rooms_;
   int current_room_id_ = 0;
+
+  // Recent rooms history for quick navigation (most recent first, max 10)
+  static constexpr size_t kMaxRecentRooms = 10;
+  std::deque<int> recent_rooms_;
+  std::vector<int> pinned_rooms_;
 
   // Palette management
   gfx::SnesPalette current_palette_;

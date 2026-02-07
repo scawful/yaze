@@ -5,6 +5,7 @@
 #include <cstdio>
 
 // C++ standard library headers
+#include <algorithm>
 #include <iterator>
 #include <memory>
 #include <string>
@@ -21,6 +22,7 @@
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/panels/dungeon_entrance_list_panel.h"
 #include "app/editor/dungeon/panels/dungeon_entrances_panel.h"
+#include "app/editor/dungeon/panels/dungeon_map_panel.h"
 #include "app/editor/dungeon/panels/dungeon_palette_editor_panel.h"
 #include "app/editor/dungeon/panels/dungeon_room_graphics_panel.h"
 #include "app/editor/dungeon/panels/dungeon_room_matrix_panel.h"
@@ -174,6 +176,18 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
        .disabled_tooltip = "Load a ROM to view room tags"});
 
+  panel_manager->RegisterPanel(
+      {.card_id = "dungeon.dungeon_map",
+       .display_name = "Dungeon Map",
+       .window_title = " Dungeon Map",
+       .icon = ICON_MD_MAP,
+       .category = "Dungeon",
+       .shortcut_hint = "Ctrl+Shift+D",
+       .visibility_flag = nullptr,
+       .priority = 32,
+       .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+       .disabled_tooltip = "Load a ROM to view the dungeon map"});
+
   // Show default panels on startup
   panel_manager->ShowPanel(kRoomSelectorId);
   panel_manager->ShowPanel(kRoomMatrixId);
@@ -192,6 +206,11 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
       [this](int old_room, int new_room) {
         SwapRoomInPanel(old_room, new_room);
       },
+      &rooms_));
+
+  panel_manager->RegisterEditorPanel(std::make_unique<DungeonMapPanel>(
+      &current_room_id_, &active_rooms_,
+      [this](int room_id) { OnRoomSelected(room_id); },
       &rooms_));
 
   panel_manager->RegisterEditorPanel(std::make_unique<DungeonEntrancesPanel>(
@@ -393,6 +412,59 @@ absl::Status DungeonEditorV2::Update() {
     // Delegate delete to current room viewer
     if (auto* viewer = GetViewerForRoom(current_room_id_)) {
       viewer->DeleteSelectedObjects();
+    }
+  }
+
+  // Keyboard Shortcuts (only if not typing in a text field)
+  if (!ImGui::GetIO().WantTextInput) {
+    // Room Cycling (Ctrl+Tab)
+    if (ImGui::IsKeyPressed(ImGuiKey_Tab) && ImGui::GetIO().KeyCtrl) {
+      if (active_rooms_.size() > 1) {
+        int current_idx = -1;
+        for (int i = 0; i < active_rooms_.size(); ++i) {
+          if (active_rooms_[i] == current_room_id_) {
+            current_idx = i;
+            break;
+          }
+        }
+
+        if (current_idx != -1) {
+          int next_idx;
+          if (ImGui::GetIO().KeyShift) {
+            next_idx =
+                (current_idx - 1 + active_rooms_.size()) % active_rooms_.size();
+          } else {
+            next_idx = (current_idx + 1) % active_rooms_.size();
+          }
+          OnRoomSelected(active_rooms_[next_idx]);
+        }
+      }
+    }
+
+    // Adjacent Room Navigation (Ctrl+Arrows)
+    if (ImGui::GetIO().KeyCtrl) {
+      int next_room = -1;
+      const int kCols = 16;
+      const int kTotalRooms = 0x128;
+
+      if (ImGui::IsKeyPressed(ImGuiKey_UpArrow)) {
+        if (current_room_id_ >= kCols)
+          next_room = current_room_id_ - kCols;
+      } else if (ImGui::IsKeyPressed(ImGuiKey_DownArrow)) {
+        if (current_room_id_ < kTotalRooms - kCols)
+          next_room = current_room_id_ + kCols;
+      } else if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) {
+        if (current_room_id_ % kCols > 0)
+          next_room = current_room_id_ - 1;
+      } else if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) {
+        if (current_room_id_ % kCols < kCols - 1 &&
+            current_room_id_ < kTotalRooms - 1)
+          next_room = current_room_id_ + 1;
+      }
+
+      if (next_room != -1) {
+        SwapRoomInPanel(current_room_id_, next_room);
+      }
     }
   }
 
@@ -956,6 +1028,15 @@ void DungeonEditorV2::OnRoomSelected(int room_id, bool request_focus) {
   }
   current_room_id_ = room_id;
 
+  // Track recent rooms (remove if already present, add to front)
+  recent_rooms_.erase(
+      std::remove(recent_rooms_.begin(), recent_rooms_.end(), room_id),
+      recent_rooms_.end());
+  recent_rooms_.push_front(room_id);
+  if (recent_rooms_.size() > kMaxRecentRooms) {
+    recent_rooms_.pop_back();
+  }
+
   if (dungeon_editor_system_) {
     dungeon_editor_system_->SetExternalRoom(&rooms_[room_id]);
   }
@@ -1314,16 +1395,38 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
         return;
       }
       if (dependencies_.toast_manager) {
-        dependencies_.toast_manager->Show("Room saved",
-                                          ToastType::kSuccess);
+        dependencies_.toast_manager->Show("Room saved", ToastType::kSuccess);
       }
     });
+
+    // Wire up pinning for room panels
+    if (dependencies_.panel_manager) {
+      std::string card_id = absl::StrFormat("dungeon.room_%d", room_id);
+      viewer->SetPinned(dependencies_.panel_manager->IsPanelPinned(card_id));
+      viewer->SetPinCallback([this, card_id, room_id](bool pinned) {
+        if (dependencies_.panel_manager) {
+          dependencies_.panel_manager->SetPanelPinned(card_id, pinned);
+          // Sync state back to viewer in all panels showing this room
+          if (auto* v = GetViewerForRoom(room_id)) {
+            v->SetPinned(pinned);
+          }
+        }
+      });
+    }
+
     viewer->SetMinecartTrackPanel(minecart_track_editor_panel_);
     viewer->SetProject(dependencies_.project);
 
     room_viewers_[room_id] = std::move(viewer);
     return room_viewers_[room_id].get();
   }
+
+  // Update pinned state from manager even if viewer already exists
+  if (dependencies_.panel_manager) {
+    std::string card_id = absl::StrFormat("dungeon.room_%d", room_id);
+    it->second->SetPinned(dependencies_.panel_manager->IsPanelPinned(card_id));
+  }
+
   return it->second.get();
 }
 
