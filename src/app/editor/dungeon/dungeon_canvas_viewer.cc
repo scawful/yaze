@@ -436,19 +436,6 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       nav_button("RoomNavEast", ImGuiDir_Right, east, make_tooltip(east, "East"));
       ImGui::SameLine();
 
-      // Pin button
-      // icons.h does not currently ship an outlined push-pin glyph; use PIN as
-      // the "unpinned" state to keep the affordance distinct.
-      if (ImGui::Button(is_pinned_ ? ICON_MD_PUSH_PIN : ICON_MD_PIN)) {
-        if (pin_callback_) {
-          pin_callback_(!is_pinned_);
-        }
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(is_pinned_
-                              ? "Unpin Room (Close when switching editors)"
-                              : "Pin Room (Keep open when switching editors)");
-      }
       ImGui::EndGroup();
     };
 
@@ -508,6 +495,20 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       ImGui::TableNextColumn();
       // Room ID and hex property inputs with icons
       ImGui::Text(ICON_MD_TUNE " %03X", room_id);
+      ImGui::SameLine();
+      // Pin is a panel-level affordance; keep it in the main header row instead
+      // of inside the nav column to avoid clipping in narrow docks.
+      if (ImGui::SmallButton(is_pinned_ ? ICON_MD_PUSH_PIN "##RoomPin"
+                                       : ICON_MD_PIN "##RoomPin")) {
+        if (pin_callback_) {
+          pin_callback_(!is_pinned_);
+        }
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(is_pinned_
+                              ? "Unpin Room (Close when switching editors)"
+                              : "Pin Room (Keep open when switching editors)");
+      }
       ImGui::SameLine();
       ImGui::TextDisabled(ICON_MD_VIEW_MODULE);
       ImGui::SameLine(0, 2);
