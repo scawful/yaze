@@ -2,9 +2,11 @@
 #define YAZE_APP_EDITOR_DUNGEON_PANELS_DUNGEON_ROOM_MATRIX_PANEL_H_
 
 #include <array>
+#include <cctype>
 #include <cmath>
 #include <functional>
 #include <string>
+#include <unordered_map>
 
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/system/editor_panel.h"
@@ -113,6 +115,16 @@ class DungeonRoomMatrixPanel : public EditorPanel {
 
           // Draw outline based on state using theme colors
           if (is_current) {
+            // Add glow effect for current room (outer glow layers)
+            ImVec4 glow_color = theme.dungeon_selection_primary;
+            glow_color.w = 0.3f;  // 30% opacity outer glow
+            ImVec2 glow_min(cell_min.x - 2, cell_min.y - 2);
+            ImVec2 glow_max(cell_max.x + 2, cell_max.y + 2);
+            draw_list->AddRect(glow_min, glow_max, 
+                              ImGui::ColorConvertFloat4ToU32(glow_color), 
+                              0.0f, 0, 3.0f);
+            
+            // Inner bright border
             ImU32 sel_color = ImGui::ColorConvertFloat4ToU32(
                 theme.dungeon_selection_primary);
             draw_list->AddRect(cell_min, cell_max, sel_color, 0.0f, 0, 2.5f);
@@ -183,16 +195,30 @@ class DungeonRoomMatrixPanel : public EditorPanel {
             ImGui::EndPopup();
           }
 
-          // Tooltip with more info
+          // Tooltip with room info and thumbnail preview
           if (ImGui::IsItemHovered()) {
             ImGui::BeginTooltip();
             // Use unified ResourceLabelProvider for room names
             ImGui::Text("%s", zelda3::GetRoomLabel(room_id).c_str());
-            // Show palette info if room is loaded
+            
             if (rooms_ && (*rooms_)[room_id].IsLoaded()) {
-              ImGui::TextDisabled("Palette: %d", (*rooms_)[room_id].palette);
+              // Show palette info
+              ImGui::TextDisabled("Palette: %d | Blockset: %d", 
+                                  (*rooms_)[room_id].palette,
+                                  (*rooms_)[room_id].blockset);
+              
+              // Show thumbnail preview of the room
+              auto& bg1_bitmap = (*rooms_)[room_id].bg1_buffer().bitmap();
+              if (bg1_bitmap.is_active() && bg1_bitmap.texture() != 0) {
+                ImGui::Separator();
+                // Render at thumbnail size (80x80 from 512x512)
+                constexpr float kThumbnailSize = 80.0f;
+                ImGui::Image((ImTextureID)(intptr_t)bg1_bitmap.texture(),
+                             ImVec2(kThumbnailSize, kThumbnailSize));
+              }
             }
-            ImGui::Text("Click to %s", is_open ? "focus" : "open");
+            
+            ImGui::TextDisabled("Click to %s", is_open ? "focus" : "open");
             ImGui::EndTooltip();
           }
         } else {

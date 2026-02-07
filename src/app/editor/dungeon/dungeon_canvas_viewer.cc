@@ -450,6 +450,20 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
                  make_tooltip(south, "South"));
       ImGui::EndGroup();
       ImGui::SameLine();
+
+      // Pin button
+      // icons.h does not currently ship an outlined push-pin glyph; use PIN as
+      // the "unpinned" state to keep the affordance distinct.
+      if (ImGui::Button(is_pinned_ ? ICON_MD_PUSH_PIN : ICON_MD_PIN)) {
+        if (pin_callback_) {
+          pin_callback_(!is_pinned_);
+        }
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(is_pinned_ ? "Unpin Room (Close when switching editors)"
+                                     : "Pin Room (Keep open when switching editors)");
+      }
+      ImGui::SameLine();
     };
 
     auto& layer_mgr = GetRoomLayerManager(room_id);

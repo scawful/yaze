@@ -112,6 +112,10 @@ class DungeonCanvasViewer {
   void SetMinecartTrackPanel(MinecartTrackEditorPanel* panel) {
     minecart_track_panel_ = panel;
   }
+  void SetPinned(bool pinned) { is_pinned_ = pinned; }
+  void SetPinCallback(std::function<void(bool)> callback) {
+    pin_callback_ = std::move(callback);
+  }
   void SetProject(const project::YazeProject* project);
 
   // Canvas access
@@ -363,6 +367,8 @@ class DungeonCanvasViewer {
   std::function<void(int, const zelda3::RoomObject&)> edit_graphics_callback_;
   MinecartTrackEditorPanel* minecart_track_panel_ = nullptr;
   bool show_minecart_tracks_ = false;
+  bool is_pinned_ = false;
+  std::function<void(bool)> pin_callback_;
   const project::YazeProject* project_ = nullptr;
 
   struct TrackCollisionConfig {
