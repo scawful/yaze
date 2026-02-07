@@ -24,7 +24,9 @@
 #include "app/controller.h"
 #include "app/editor/editor_manager.h"
 #include "app/emu/debug/symbol_provider.h"
+#if !defined(__EMSCRIPTEN__) && defined(YAZE_HTTP_API_ENABLED)
 #include "cli/service/api/http_server.h"
+#endif
 #include "core/features.h"
 #include "util/crash_handler.h"
 #include "util/flag.h"
@@ -457,7 +459,9 @@ int main(int argc, char** argv) {
   // Desktop Main Loop (Linux/Windows)
 
   // API Server
+#if defined(YAZE_HTTP_API_ENABLED)
   std::unique_ptr<yaze::cli::api::HttpServer> api_server;
+#endif
 #if defined(YAZE_HTTP_API_ENABLED)
   api_server = SetupApiServer(config);
 #else
