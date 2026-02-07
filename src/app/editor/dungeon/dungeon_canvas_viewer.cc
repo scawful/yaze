@@ -356,9 +356,10 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       prev_layout_ = room.layout;
       prev_spriteset_ = room.spriteset;
     }
-    ImGui::Separator();
+    if (header_visible_) {
+      ImGui::Separator();
 
-    auto draw_navigation = [&]() {
+      auto draw_navigation = [&]() {
       // Use swap callback (swaps room in current panel) if available,
       // otherwise fall back to navigation callback (opens new panel)
       if (!room_swap_callback_ && !room_navigation_callback_) {
@@ -424,28 +425,28 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       nav_button("RoomNavEast", ImGuiDir_Right, east, make_tooltip(east, "East"));
 
       ImGui::EndGroup();
-    };
+      };
 
-    auto& layer_mgr = GetRoomLayerManager(room_id);
+      auto& layer_mgr = GetRoomLayerManager(room_id);
     // TODO(zelda3-hacking-expert): The SNES path allows BG merge flags and
     // layer types to coexist (four object streams with BothBG routines); make
     // sure UI toggles here don’t enforce mutual exclusivity. See
     // docs/internal/agents/dungeon-object-rendering-spec.md for the expected
     // layering/merge semantics from bank_01.asm.
-    layer_mgr.ApplyLayerMerging(room.layer_merging());
+      layer_mgr.ApplyLayerMerging(room.layer_merging());
 
-    uint8_t blockset_val = room.blockset;
-    uint8_t spriteset_val = room.spriteset;
-    uint8_t palette_val = room.palette;
-    uint8_t floor1_val = room.floor1();
-    uint8_t floor2_val = room.floor2();
-    int effect_val = static_cast<int>(room.effect());
-    int tag1_val = static_cast<int>(room.tag1());
-    int tag2_val = static_cast<int>(room.tag2());
-    uint8_t layout_val = room.layout;
+      uint8_t blockset_val = room.blockset;
+      uint8_t spriteset_val = room.spriteset;
+      uint8_t palette_val = room.palette;
+      uint8_t floor1_val = room.floor1();
+      uint8_t floor2_val = room.floor2();
+      int effect_val = static_cast<int>(room.effect());
+      int tag1_val = static_cast<int>(room.tag1());
+      int tag2_val = static_cast<int>(room.tag2());
+      uint8_t layout_val = room.layout;
 
     // Effect names matching RoomEffect array in room.cc (8 entries, 0-7)
-    const char* effect_names[] = {
+      const char* effect_names[] = {
         "Nothing",             // 0
         "Nothing (1)",         // 1 - unused but exists in ROM
         "Moving Floor",        // 2
@@ -457,13 +458,13 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     };
 
     // Note: tag_names removed in favor of zelda3::GetRoomTagLabel
-    const auto& vanilla_tags = zelda3::Zelda3Labels::GetRoomTagNames();
-    const int kNumTags = static_cast<int>(vanilla_tags.size());
+      const auto& vanilla_tags = zelda3::Zelda3Labels::GetRoomTagNames();
+      const int kNumTags = static_cast<int>(vanilla_tags.size());
 
-    const char* merge_types[] = {"Off",    "Parallax",    "Dark",
-                                 "On top", "Translucent", "Addition",
-                                 "Normal", "Transparent", "Dark room"};
-    const char* blend_modes[] = {"Normal", "Trans", "Add", "Dark", "Off"};
+      const char* merge_types[] = {"Off",    "Parallax",    "Dark",
+                                   "On top", "Translucent", "Addition",
+                                   "Normal", "Transparent", "Dark room"};
+      const char* blend_modes[] = {"Normal", "Trans", "Add", "Dark", "Off"};
 
     // ========================================================================
     // ROOM PROPERTIES TABLE - Compact layout for docking
@@ -969,6 +970,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     if (header_read_only_) {
       ImGui::EndDisabled();
     }
+    }  // header_visible_
   }
 
   ImGui::EndGroup();
@@ -1627,6 +1629,28 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   // CRITICAL: Begin canvas frame using modern BeginCanvas/EndCanvas pattern
   // This replaces DrawBackground + DrawContextMenu with a unified frame
   auto canvas_rt = gui::BeginCanvas(canvas_, frame_opts);
+
+  // When the header is hidden (e.g. split/compare stitched views), draw a small
+  // in-canvas label so the user always knows what they're looking at.
+  if (!header_visible_) {
+    const auto& label = zelda3::GetRoomLabel(room_id);
+    char text[160];
+    snprintf(text, sizeof(text), "[%03X] %s", room_id, label.c_str());
+
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    const ImVec2 pad(8.0f, 6.0f);
+    const ImVec2 zp = canvas_.zero_point();
+    const ImVec2 p0(zp.x + 10.0f, zp.y + 10.0f);
+    const ImVec2 ts = ImGui::CalcTextSize(text);
+    const ImVec2 p1(p0.x + ts.x + pad.x * 2.0f, p0.y + ts.y + pad.y * 2.0f);
+
+    ImVec4 bg = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+    bg.w = std::min(0.90f, bg.w + 0.25f);
+    dl->AddRectFilled(p0, p1, ImGui::ColorConvertFloat4ToU32(bg), 6.0f);
+    dl->AddRect(p0, p1, ImGui::GetColorU32(ImGuiCol_Border), 6.0f);
+    dl->AddText(ImVec2(p0.x + pad.x, p0.y + pad.y),
+                ImGui::GetColorU32(ImGuiCol_Text), text);
+  }
 
   // Draw persistent debug overlays
   if (show_room_debug_info_ && rooms_ && rom_->is_loaded()) {

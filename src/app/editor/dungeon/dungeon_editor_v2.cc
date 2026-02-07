@@ -1718,6 +1718,7 @@ DungeonCanvasViewer* DungeonEditorV2::GetWorkbenchCompareViewer() {
     // still allows canvas pan/zoom.
     viewer->SetObjectInteractionEnabled(false);
     viewer->SetHeaderReadOnly(true);
+    viewer->SetHeaderVisible(false);
 
     if (dungeon_editor_system_) {
       // Allows consistent rendering paths that depend on the editor system, but
