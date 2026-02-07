@@ -435,20 +435,20 @@ void RightPanelManager::DrawPanelHeader(const char* title, const char* icon) {
     current_x -= (button_size + 4.0f);
     ImGui::SameLine(current_x);
 
-    // TODO: Hook up to actual lock state in SelectionPropertiesPanel
-    static bool is_locked = false;
-    ImVec4 lock_color =
-        is_locked ? gui::GetPrimaryVec4() : gui::GetTextSecondaryVec4();
+    ImVec4 lock_color = properties_locked_ ? gui::GetPrimaryVec4()
+                                           : gui::GetTextSecondaryVec4();
     ImGui::PushStyleColor(ImGuiCol_Text, lock_color);
 
-    if (ImGui::Button(is_locked ? ICON_MD_LOCK : ICON_MD_LOCK_OPEN,
-                      ImVec2(button_size, button_size))) {
-      is_locked = !is_locked;
+    if (ImGui::Button(
+            properties_locked_ ? ICON_MD_LOCK : ICON_MD_LOCK_OPEN,
+            ImVec2(button_size, button_size))) {
+      properties_locked_ = !properties_locked_;
     }
     ImGui::PopStyleColor();
 
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(is_locked ? "Unlock Selection" : "Lock Selection");
+      ImGui::SetTooltip(properties_locked_ ? "Unlock Selection"
+                                           : "Lock Selection");
     }
   }
 
