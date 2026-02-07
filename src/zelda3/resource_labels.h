@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "core/hack_manifest.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -64,6 +65,13 @@ class ResourceLabelProvider {
    * @brief Set the project labels reference (typically from YazeProject)
    */
   void SetProjectLabels(ProjectLabels* labels) { project_labels_ = labels; }
+
+  /**
+   * @brief Set the hack manifest reference for ASM-defined labels
+   */
+  void SetHackManifest(const core::HackManifest* manifest) {
+    hack_manifest_ = manifest;
+  }
 
   /**
    * @brief Get a label for a resource by type and ID
@@ -182,6 +190,9 @@ class ResourceLabelProvider {
  private:
   // Project-specific label overrides (owned by YazeProject)
   ProjectLabels* project_labels_ = nullptr;
+
+  // Hack manifest reference (owned by YazeProject)
+  const core::HackManifest* hack_manifest_ = nullptr;
 
   // Whether to prefer Hyrule Magic sprite names
   bool prefer_hmagic_ = true;

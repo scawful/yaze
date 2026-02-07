@@ -107,7 +107,18 @@ std::string ResourceLabelProvider::GetLabel(ResourceType type, int id) const {
     }
   }
 
-  // 2. For sprites, check Hyrule Magic names if preferred
+  // 2. Check Hack Manifest for ASM-defined labels
+  if (hack_manifest_ && hack_manifest_->loaded()) {
+    if (type == ResourceType::kRoomTag) {
+      std::string manifest_label = hack_manifest_->GetRoomTagLabel(id);
+      if (!manifest_label.empty()) {
+        return manifest_label;
+      }
+    }
+    // Future: Add message label lookup if we add GetMessageLabel to HackManifest
+  }
+
+  // 3. For sprites, check Hyrule Magic names if preferred
   if (type == ResourceType::kSprite && prefer_hmagic_) {
     std::string hmagic = GetHMagicLabel(type, id);
     if (!hmagic.empty()) {
@@ -115,7 +126,7 @@ std::string ResourceLabelProvider::GetLabel(ResourceType type, int id) const {
     }
   }
 
-  // 3. Fall back to vanilla labels
+  // 4. Fall back to vanilla labels
   return GetVanillaLabel(type, id);
 }
 

@@ -90,6 +90,7 @@ source_group("Tests\\Unit" FILES
   unit/zelda3/overworld_test.cc
   unit/zelda3/overworld_regression_test.cc
   unit/zelda3/overworld_version_helper_test.cc
+  unit/zelda3/resource_labels_test.cc
   unit/diggable_tiles_test.cc
   unit/zelda3/object_parser_test.cc
   unit/zelda3/object_parser_structs_test.cc

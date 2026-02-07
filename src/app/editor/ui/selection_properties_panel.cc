@@ -8,6 +8,9 @@
 #include "app/gui/core/theme_manager.h"
 #include "rom/rom.h"
 #include "imgui/imgui.h"
+#include "zelda3/dungeon/room.h"
+#include "zelda3/zelda3_labels.h"
+#include "zelda3/resource_labels.h"
 
 namespace yaze {
 namespace editor {
@@ -431,26 +434,70 @@ void SelectionPropertiesPanel::NotifyChange() {
 void SelectionPropertiesPanel::DrawDungeonRoomProperties() {
   DrawPropertyHeader(ICON_MD_GRID_VIEW, "Dungeon Room");
 
+  if (!selection_.data) {
+    ImGui::TextDisabled("No room data available.");
+    return;
+  }
+
+  auto* room = static_cast<zelda3::Room*>(selection_.data);
+
   if (ImGui::CollapsingHeader("Identity", ImGuiTreeNodeFlags_DefaultOpen)) {
     DrawReadOnlyHex("Room ID", selection_.id, 4);
     DrawReadOnlyText("Name", selection_.display_name.c_str());
   }
 
-  if (ImGui::CollapsingHeader("Layout", ImGuiTreeNodeFlags_DefaultOpen)) {
-    // Placeholder - actual implementation would use real room data
-    ImGui::TextDisabled("Layout properties would appear here");
-    ImGui::BulletText("Floor 1 tileset");
-    ImGui::BulletText("Floor 2 tileset");
-    ImGui::BulletText("Sprite graphics");
-    ImGui::BulletText("Room palette");
+  if (ImGui::CollapsingHeader("Graphics & Layout", ImGuiTreeNodeFlags_DefaultOpen)) {
+    uint8_t blockset = room->blockset;
+    if (DrawByteProperty("Blockset", &blockset, "Tile graphics and layout definition")) {
+      room->SetBlockset(blockset);
+      NotifyChange();
+    }
+
+    uint8_t palette = room->palette;
+    if (DrawByteProperty("Palette", &palette, "Room color scheme")) {
+      room->SetPalette(palette);
+      NotifyChange();
+    }
+
+    uint8_t spriteset = room->spriteset;
+    if (DrawByteProperty("Spriteset", &spriteset, "Enemy graphics and behavior")) {
+      room->SetSpriteset(spriteset);
+      NotifyChange();
+    }
   }
 
   if (show_advanced_ &&
-      ImGui::CollapsingHeader("Advanced", ImGuiTreeNodeFlags_None)) {
-    ImGui::TextDisabled("Advanced room settings");
-    ImGui::BulletText("Room effects");
-    ImGui::BulletText("Message ID");
-    ImGui::BulletText("Tag 1 / Tag 2");
+      ImGui::CollapsingHeader("Advanced Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+    
+    // Room Tags with manifest integration
+    auto draw_tag_combo = [&](const char* label, zelda3::TagKey current, std::function<void(zelda3::TagKey)> setter) {
+      std::string current_label = zelda3::GetRoomTagLabel(static_cast<int>(current));
+      if (ImGui::BeginCombo(label, current_label.c_str())) {
+        const auto& vanilla_tags = zelda3::Zelda3Labels::GetRoomTagNames();
+        for (int i = 0; i < static_cast<int>(vanilla_tags.size()); ++i) {
+          std::string item_label = zelda3::GetRoomTagLabel(i);
+          if (ImGui::Selectable(item_label.c_str(), static_cast<int>(current) == i)) {
+            setter(static_cast<zelda3::TagKey>(i));
+            NotifyChange();
+          }
+        }
+        ImGui::EndCombo();
+      }
+    };
+
+    draw_tag_combo("Tag 1", room->tag1(), [&](zelda3::TagKey val) { room->SetTag1(val); });
+    draw_tag_combo("Tag 2", room->tag2(), [&](zelda3::TagKey val) { room->SetTag2(val); });
+
+    // Room Effect
+    int effect = static_cast<int>(room->effect());
+    const auto& effects = zelda3::Zelda3Labels::GetRoomEffectNames();
+    std::vector<const char*> effect_ptrs;
+    for (const auto& s : effects) effect_ptrs.push_back(s.c_str());
+    
+    if (ImGui::Combo("Effect", &effect, effect_ptrs.data(), static_cast<int>(effect_ptrs.size()))) {
+       room->SetEffect(static_cast<zelda3::EffectKey>(effect));
+       NotifyChange();
+    }
   }
 }
 

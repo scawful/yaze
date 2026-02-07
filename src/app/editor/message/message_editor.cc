@@ -106,7 +106,16 @@ void MessageEditor::Initialize() {
   }
   parsed_messages_ =
       ParseMessageData(list_of_texts_, message_preview_.all_dictionaries_);
-  expanded_message_base_id_ = static_cast<int>(list_of_texts_.size());
+
+  if (dependencies_.project && dependencies_.project->hack_manifest.loaded()) {
+    const auto& layout = dependencies_.project->hack_manifest.message_layout();
+    expanded_message_base_id_ =
+        (layout.first_expanded_id != 0)
+            ? static_cast<int>(layout.first_expanded_id)
+            : static_cast<int>(list_of_texts_.size());
+  } else {
+    expanded_message_base_id_ = static_cast<int>(list_of_texts_.size());
+  }
 
   if (!list_of_texts_.empty()) {
     // Default to message 1 if available, otherwise 0
@@ -318,10 +327,11 @@ void MessageEditor::DrawMessageList() {
       ImGui::TextColored(color, "%s", message_bundle_status_.c_str());
     }
     ImGui::Separator();
-    if (BeginTable("##MessagesTable", 3, kMessageTableFlags)) {
-      TableSetupColumn("ID");
-      TableSetupColumn("Contents");
-      TableSetupColumn("Data");
+    if (BeginTable("##MessagesTable", 4, kMessageTableFlags)) {
+      TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 50);
+      TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, 80);
+      TableSetupColumn("Contents", ImGuiTableColumnFlags_WidthStretch);
+      TableSetupColumn("Address", ImGuiTableColumnFlags_WidthFixed, 100);
 
       TableHeadersRow();
 
@@ -349,11 +359,15 @@ void MessageEditor::DrawMessageList() {
               DrawMessagePreview();
             }
             PopID();
+            
+            TableNextColumn();
+            ImGui::TextColored(ImVec4(0.6f, 0.6f, 1.0f, 1.0f), "Vanilla");
+            
             TableNextColumn();
             TextWrapped("%s", parsed_messages_[message.ID].c_str());
+            
             TableNextColumn();
-            TextWrapped(
-                "%s", util::HexLong(list_of_texts_[message.ID].Address).c_str());
+            TextWrapped("%s", util::HexLong(message.Address).c_str());
           } else {
             // Expanded message
             int expanded_idx = row - vanilla_count;
@@ -375,8 +389,13 @@ void MessageEditor::DrawMessageList() {
               DrawMessagePreview();
             }
             PopID();
+            
+            TableNextColumn();
+            ImGui::TextColored(ImVec4(1.0f, 0.7f, 0.4f, 1.0f), "Expanded");
+            
             TableNextColumn();
             TextWrapped("%s", display_text);
+            
             TableNextColumn();
             TextWrapped("%s", util::HexLong(expanded_message.Address).c_str());
           }
