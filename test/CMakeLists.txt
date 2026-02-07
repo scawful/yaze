@@ -165,7 +165,9 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/room_manipulation_test.cc
     unit/zelda3/dungeon/dungeon_save_test.cc
     unit/zelda3/dungeon/bpp_conversion_test.cc
+    unit/zelda3/dungeon/dimension_service_test.cc
     unit/zelda3/dungeon/object_dimensions_test.cc
+    unit/zelda3/dungeon/object_geometry_test.cc
     unit/zelda3/dungeon/room_layer_manager_test.cc
     unit/zelda3/dungeon/draw_routine_mapping_test.cc
     unit/zelda3/dungeon/object_drawing_comprehensive_test.cc

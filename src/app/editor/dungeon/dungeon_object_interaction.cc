@@ -14,6 +14,7 @@
 #include "app/editor/dungeon/dungeon_coordinates.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
+#include "zelda3/dungeon/dimension_service.h"
 
 namespace yaze::editor {
 
@@ -297,21 +298,11 @@ void DungeonObjectInteraction::DrawSelectionHighlights() {
 
   // Use ObjectSelection's rendering (handles pulsing border, corner handles)
   selection_.DrawSelectionHighlights(
-      canvas_, objects, [this](const zelda3::RoomObject& obj) {
-        // Use GetSelectionBounds for accurate visual bounds + offsets
-        // (doesn't inflate size=0 to 32 like the game's GetSize_1to15or32)
-        auto& dim_table = zelda3::ObjectDimensionTable::Get();
-        if (dim_table.IsLoaded()) {
-          auto bounds = dim_table.GetSelectionBounds(obj.id_, obj.size_);
-          return std::make_tuple(bounds.offset_x * 8, bounds.offset_y * 8,
-                                 bounds.width * 8, bounds.height * 8);
-        }
-        // Fallback to drawer (aligns with render) if table not loaded
-        if (object_drawer_) {
-          auto dims = object_drawer_->CalculateObjectDimensions(obj);
-          return std::make_tuple(0, 0, dims.first, dims.second);
-        }
-        return std::make_tuple(0, 0, 16, 16);  // Safe fallback
+      canvas_, objects, [](const zelda3::RoomObject& obj) {
+        auto result = zelda3::DimensionService::Get().GetDimensions(obj);
+        return std::make_tuple(result.offset_x_tiles * 8,
+                               result.offset_y_tiles * 8,
+                               result.width_pixels(), result.height_pixels());
       });
 
   // Enhanced hover tooltip showing object info (always visible on hover)
@@ -414,21 +405,8 @@ void DungeonObjectInteraction::DrawHoverHighlight(
   auto [obj_x, obj_y] =
       selection_.RoomToCanvasCoordinates(object.x_, object.y_);
 
-  int pixel_width, pixel_height;
-  auto& dim_table = zelda3::ObjectDimensionTable::Get();
-  if (dim_table.IsLoaded()) {
-    auto [w_tiles, h_tiles] =
-        dim_table.GetSelectionDimensions(object.id_, object.size_);
-    pixel_width = w_tiles * 8;
-    pixel_height = h_tiles * 8;
-  } else if (object_drawer_) {
-    auto dims = object_drawer_->CalculateObjectDimensions(object);
-    pixel_width = dims.first;
-    pixel_height = dims.second;
-  } else {
-    pixel_width = 16;
-    pixel_height = 16;
-  }
+  auto [pixel_width, pixel_height] =
+      zelda3::DimensionService::Get().GetPixelDimensions(object);
 
   // Apply scale and canvas offset
   ImVec2 obj_start(canvas_pos.x + obj_x * scale, canvas_pos.y + obj_y * scale);
@@ -1094,36 +1072,7 @@ bool DungeonObjectInteraction::SetObjectLayer(size_t index,
 
 std::pair<int, int> DungeonObjectInteraction::CalculateObjectBounds(
     const zelda3::RoomObject& object) {
-  // Try dimension table first for consistency with selection/highlights
-  auto& dim_table = zelda3::ObjectDimensionTable::Get();
-  if (dim_table.IsLoaded()) {
-    auto [w_tiles, h_tiles] = dim_table.GetDimensions(object.id_, object.size_);
-    return {w_tiles * 8, h_tiles * 8};
-  }
-
-  // If we have a ROM, use ObjectDrawer to calculate accurate dimensions
-  if (rom_) {
-    if (!object_drawer_) {
-      object_drawer_ =
-          std::make_unique<zelda3::ObjectDrawer>(rom_, current_room_id_);
-    }
-    return object_drawer_->CalculateObjectDimensions(object);
-  }
-
-  // Fallback to simplified calculation if no ROM available
-  // Size is a single 4-bit value (0-15), NOT two separate nibbles
-  int size = object.size_ & 0x0F;
-  int width, height;
-  if (object.id_ >= 0x60 && object.id_ <= 0x7F) {
-    // Vertical objects
-    width = 16;
-    height = 16 + size * 16;
-  } else {
-    // Horizontal objects (default)
-    width = 16 + size * 16;
-    height = 16;
-  }
-  return {width, height};
+  return zelda3::DimensionService::Get().GetPixelDimensions(object);
 }
 
 size_t DungeonObjectInteraction::GetHoveredObjectIndex() const {
@@ -1158,23 +1107,8 @@ size_t DungeonObjectInteraction::GetHoveredObjectIndex() const {
       continue;
     }
 
-    int obj_tile_x = object.x_;
-    int obj_tile_y = object.y_;
-    int width_tiles = 0;
-    int height_tiles = 0;
-
-    auto& dim_table = zelda3::ObjectDimensionTable::Get();
-    if (dim_table.IsLoaded()) {
-      auto bounds = dim_table.GetSelectionBounds(object.id_, object.size_);
-      obj_tile_x += bounds.offset_x;
-      obj_tile_y += bounds.offset_y;
-      width_tiles = std::max(1, bounds.width);
-      height_tiles = std::max(1, bounds.height);
-    } else {
-      auto [width_px, height_px] = mutable_this->CalculateObjectBounds(object);
-      width_tiles = std::max(1, width_px / 8);
-      height_tiles = std::max(1, height_px / 8);
-    }
+    auto [obj_tile_x, obj_tile_y, width_tiles, height_tiles] =
+        zelda3::DimensionService::Get().GetHitTestBounds(object);
 
     // Convert mouse to pixels relative to room origin
     int mouse_pixel_x = static_cast<int>(canvas_mouse_pos.x);

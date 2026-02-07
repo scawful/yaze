@@ -10,6 +10,7 @@ set(
   zelda3/dungeon/dungeon_object_editor.cc
   zelda3/dungeon/dungeon_object_registry.cc
   zelda3/dungeon/dungeon_validator.cc
+  zelda3/dungeon/dimension_service.cc
   zelda3/dungeon/object_dimensions.cc
   zelda3/dungeon/geometry/object_geometry.cc
   zelda3/dungeon/object_drawer.cc

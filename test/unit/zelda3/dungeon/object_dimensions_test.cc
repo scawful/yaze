@@ -1,4 +1,5 @@
 #include "gtest/gtest.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/object_dimensions.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room_object.h"
@@ -6,6 +7,49 @@
 
 namespace yaze {
 namespace zelda3 {
+
+// =============================================================================
+// DrawRoutineRegistry Object Mapping Tests (Phase 1)
+// =============================================================================
+
+TEST(DrawRoutineRegistryTest, GetRoutineIdForRepresentativeObjects) {
+  auto& reg = DrawRoutineRegistry::Get();
+  // 0x00 -> routine 0 (Rightwards2x2_1to15or32)
+  EXPECT_EQ(reg.GetRoutineIdForObject(0x00), 0);
+  // 0x09 -> routine 5 (DiagonalAcute_1to16)
+  EXPECT_EQ(reg.GetRoutineIdForObject(0x09), 5);
+  // 0x60 -> routine 7 (Downwards2x2_1to15or32)
+  EXPECT_EQ(reg.GetRoutineIdForObject(0x60), 7);
+  // 0xF9 -> routine 39 (Chest)
+  EXPECT_EQ(reg.GetRoutineIdForObject(0xF9), 39);
+  // 0xC0 -> routine 56 (4x4BlocksIn4x4SuperSquare)
+  EXPECT_EQ(reg.GetRoutineIdForObject(0xC0), 56);
+  // Type 2: 0x100 -> routine 16 (Rightwards4x4_1to16)
+  EXPECT_EQ(reg.GetRoutineIdForObject(0x100), 16);
+  // Type 3: 0xF80 -> routine 94 (EmptyWaterFace)
+  EXPECT_EQ(reg.GetRoutineIdForObject(0xF80), 94);
+}
+
+TEST(DrawRoutineRegistryTest, UnmappedObjectReturnsNegativeOne) {
+  auto& reg = DrawRoutineRegistry::Get();
+  EXPECT_EQ(reg.GetRoutineIdForObject(0xF8), -1);
+  EXPECT_EQ(reg.GetRoutineIdForObject(0x7FFF), -1);
+}
+
+TEST(DrawRoutineRegistryTest, RegistryMatchesObjectDrawer) {
+  // Verify the registry returns the same IDs as ObjectDrawer for key objects
+  Rom rom;
+  std::vector<uint8_t> mock(1024 * 1024, 0);
+  rom.LoadFromData(mock);
+  ObjectDrawer drawer(&rom, 0);
+  auto& reg = DrawRoutineRegistry::Get();
+
+  for (int16_t obj_id : {0x00, 0x09, 0x22, 0x60, 0xA4, 0xC0, 0xF9}) {
+    EXPECT_EQ(drawer.GetDrawRoutineId(obj_id),
+              reg.GetRoutineIdForObject(obj_id))
+        << "Mismatch for object 0x" << std::hex << obj_id;
+  }
+}
 
 // =============================================================================
 // ObjectDimensionTable Tests (Phase 3)

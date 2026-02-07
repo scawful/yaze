@@ -37,4 +37,47 @@ TEST(ObjectGeometryTest, DiagonalAcuteExtendsUpward) {
   EXPECT_EQ(bounds->min_y_tiles, -6);   // routine walks upward from origin
 }
 
+TEST(ObjectGeometryTest, MeasureByObjectIdKnownObject) {
+  // Object 0x00 -> routine 0 (Rightwards2x2_1to15or32)
+  RoomObject obj(/*id=*/0x00, /*x=*/0, /*y=*/0, /*size=*/0);
+  auto bounds = ObjectGeometry::Get().MeasureByObjectId(obj);
+  ASSERT_TRUE(bounds.ok());
+  EXPECT_EQ(bounds->width_tiles, 64);   // 32 repeats × 2 tiles wide
+  EXPECT_EQ(bounds->height_tiles, 2);
+}
+
+TEST(ObjectGeometryTest, MeasureByObjectIdUnmappedReturnsError) {
+  RoomObject obj(/*id=*/0xF8, /*x=*/0, /*y=*/0, /*size=*/0);
+  auto bounds = ObjectGeometry::Get().MeasureByObjectId(obj);
+  EXPECT_FALSE(bounds.ok());
+}
+
+TEST(ObjectGeometryTest, MeasureByObjectIdCachePopulated) {
+  ObjectGeometry::Get().ClearCache();
+  RoomObject obj(/*id=*/0x60, /*x=*/0, /*y=*/0, /*size=*/3);
+
+  // First call: measures
+  auto bounds1 = ObjectGeometry::Get().MeasureByObjectId(obj);
+  ASSERT_TRUE(bounds1.ok());
+
+  // Second call: should return cached result (same values)
+  auto bounds2 = ObjectGeometry::Get().MeasureByObjectId(obj);
+  ASSERT_TRUE(bounds2.ok());
+  EXPECT_EQ(bounds1->width_tiles, bounds2->width_tiles);
+  EXPECT_EQ(bounds1->height_tiles, bounds2->height_tiles);
+}
+
+TEST(ObjectGeometryTest, ClearCacheWorks) {
+  ObjectGeometry::Get().ClearCache();
+  RoomObject obj(/*id=*/0x00, /*x=*/0, /*y=*/0, /*size=*/0);
+  auto bounds = ObjectGeometry::Get().MeasureByObjectId(obj);
+  ASSERT_TRUE(bounds.ok());
+
+  ObjectGeometry::Get().ClearCache();
+  // Should still work after clearing
+  auto bounds2 = ObjectGeometry::Get().MeasureByObjectId(obj);
+  ASSERT_TRUE(bounds2.ok());
+  EXPECT_EQ(bounds->width_tiles, bounds2->width_tiles);
+}
+
 }  // namespace yaze::zelda3

@@ -464,8 +464,7 @@ class ObjectDrawer {
   void DrawDoorIndicator(gfx::Bitmap& bitmap, int tile_x, int tile_y,
                          int width, int height, DoorType type, DoorDirection direction);
 
-  // Draw routine registry
-  std::unordered_map<int16_t, int> object_to_routine_map_;
+  // Draw routine function array (indexed by routine ID from DrawRoutineRegistry)
   std::vector<DrawRoutine> draw_routines_;
   bool routines_initialized_ = false;
 

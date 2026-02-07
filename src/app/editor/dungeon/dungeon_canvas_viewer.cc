@@ -24,6 +24,7 @@
 #include "util/log.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/custom_collision.h"
+#include "zelda3/dungeon/dimension_service.h"
 #include "zelda3/dungeon/object_dimensions.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room.h"
@@ -2239,19 +2240,9 @@ void DungeonCanvasViewer::DrawObjectPositionOutlines(
     // (UNSCALED)
     auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(obj.x(), obj.y());
 
-    // Calculate object dimensions using the shared dimension table when loaded
-    int width = 16;
-    int height = 16;
-    auto& dim_table = zelda3::ObjectDimensionTable::Get();
-    if (dim_table.IsLoaded()) {
-      auto [w_tiles, h_tiles] = dim_table.GetDimensions(obj.id_, obj.size_);
-      width = w_tiles * 8;
-      height = h_tiles * 8;
-    } else {
-      auto [w, h] = drawer.CalculateObjectDimensions(obj);
-      width = w;
-      height = h;
-    }
+    // Calculate object dimensions via DimensionService
+    auto [width, height] =
+        zelda3::DimensionService::Get().GetPixelDimensions(obj);
 
     // IMPORTANT: Do NOT apply canvas scale here - DrawRect handles it
     // Clamp to reasonable sizes (in logical space)
@@ -2626,16 +2617,10 @@ void DungeonCanvasViewer::DrawTrackGapOverlay(const gui::CanvasRuntime& rt,
     if (obj.id_ != 0x31) {
       continue;
     }
-    // Object extents: position (x_, y_) and size (size_ encodes extent).
-    // Use ObjectDimensionTable for accurate width/height in tiles.
-    int w_tiles = 2;
-    int h_tiles = 2;
-    auto& dim_table = zelda3::ObjectDimensionTable::Get();
-    if (dim_table.IsLoaded()) {
-      auto [w, h] = dim_table.GetDimensions(obj.id_, obj.size_);
-      w_tiles = w;
-      h_tiles = h;
-    }
+    // Object extents via DimensionService
+    auto dim_result = zelda3::DimensionService::Get().GetDimensions(obj);
+    int w_tiles = dim_result.width_tiles;
+    int h_tiles = dim_result.height_tiles;
     // Convert from 16px tile coords to 8px collision coords (multiply by 2)
     int base_x = obj.x() * 2;
     int base_y = obj.y() * 2;
@@ -2863,19 +2848,9 @@ void DungeonCanvasViewer::DrawMaskHighlights(const gui::CanvasRuntime& rt,
     // Convert object position to canvas coordinates
     auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(obj.x(), obj.y());
 
-    // Calculate object dimensions
-    int width = 16;
-    int height = 16;
-    auto& dim_table = zelda3::ObjectDimensionTable::Get();
-    if (dim_table.IsLoaded()) {
-      auto [w_tiles, h_tiles] = dim_table.GetDimensions(obj.id_, obj.size_);
-      width = w_tiles * 8;
-      height = h_tiles * 8;
-    } else {
-      auto [w, h] = drawer.CalculateObjectDimensions(obj);
-      width = w;
-      height = h;
-    }
+    // Calculate object dimensions via DimensionService
+    auto [width, height] =
+        zelda3::DimensionService::Get().GetPixelDimensions(obj);
 
     // Clamp to reasonable sizes
     width = std::min(width, 512);

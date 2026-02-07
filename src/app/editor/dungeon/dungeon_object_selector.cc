@@ -18,6 +18,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/widgets/asset_browser.h"
 #include "app/platform/window.h"
+#include "zelda3/dungeon/dimension_service.h"
 #include "core/features.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/custom_object.h"  // For CustomObjectManager
@@ -913,24 +914,9 @@ bool DungeonObjectSelector::MatchesObjectSearch(int obj_id,
 
 void DungeonObjectSelector::CalculateObjectDimensions(
     const zelda3::RoomObject& object, int& width, int& height) {
-  // Size is a single 4-bit value (0-15), NOT two separate nibbles
-  // Size represents repetition count for the object's draw routine
-  int size = object.size_ & 0x0F;
-
-  // Base 16x16 (2x2 tiles), extension depends on object orientation
-  // Most objects extend horizontally, some (0x60-0x7F) extend vertically
-  if (object.id_ >= 0x60 && object.id_ <= 0x7F) {
-    // Vertical objects
-    width = 16;
-    height = 16 + size * 16;
-  } else {
-    // Horizontal objects (default)
-    width = 16 + size * 16;
-    height = 16;
-  }
-
-  width = std::min(width, 256);
-  height = std::min(height, 256);
+  auto [w, h] = zelda3::DimensionService::Get().GetPixelDimensions(object);
+  width = std::min(w, 256);
+  height = std::min(h, 256);
 }
 
 void DungeonObjectSelector::PlaceObjectAtPosition(int x, int y) {

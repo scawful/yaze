@@ -1,6 +1,7 @@
 #ifndef YAZE_ZELDA3_DUNGEON_GEOMETRY_OBJECT_GEOMETRY_H
 #define YAZE_ZELDA3_DUNGEON_GEOMETRY_OBJECT_GEOMETRY_H
 
+#include <cstdint>
 #include <optional>
 #include <tuple>
 #include <unordered_map>
@@ -124,6 +125,14 @@ class ObjectGeometry {
   absl::StatusOr<GeometryBounds> MeasureByRoutineId(
       int routine_id, const RoomObject& object) const;
 
+  // Measure bounds by object ID (resolves object_id -> routine_id internally).
+  // Results are cached by (routine_id, object_id, size).
+  absl::StatusOr<GeometryBounds> MeasureByObjectId(
+      const RoomObject& object) const;
+
+  // Clear the measurement cache (e.g., after routine registry changes).
+  void ClearCache();
+
   // Measure bounds for a specific routine metadata entry.
   absl::StatusOr<GeometryBounds> MeasureRoutine(
       const DrawRoutineInfo& routine, const RoomObject& object) const;
@@ -175,8 +184,28 @@ class ObjectGeometry {
   ObjectGeometry();
   void BuildRegistry();
 
+  // Cache key: combines routine_id, object_id, and size into a single uint64.
+  struct CacheKey {
+    int routine_id;
+    int16_t object_id;
+    uint8_t size;
+    bool operator==(const CacheKey& o) const {
+      return routine_id == o.routine_id && object_id == o.object_id &&
+             size == o.size;
+    }
+  };
+  struct CacheKeyHash {
+    size_t operator()(const CacheKey& k) const {
+      return std::hash<uint64_t>()(
+          (static_cast<uint64_t>(k.routine_id) << 32) |
+          (static_cast<uint64_t>(static_cast<uint16_t>(k.object_id)) << 8) |
+          k.size);
+    }
+  };
+
   std::vector<DrawRoutineInfo> routines_;
   std::unordered_map<int, DrawRoutineInfo> routine_map_;
+  mutable std::unordered_map<CacheKey, GeometryBounds, CacheKeyHash> cache_;
 };
 
 }  // namespace zelda3
