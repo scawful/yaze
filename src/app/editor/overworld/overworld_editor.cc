@@ -59,8 +59,10 @@
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/imgui_memory_editor.h"
 #include "app/gui/widgets/tile_selector_widget.h"
+#include "app/editor/ui/toast_manager.h"
 #include "core/asar_wrapper.h"
 #include "core/features.h"
+#include "core/project.h"
 #include "rom/rom.h"
 #include "util/file_util.h"
 #include "util/hex.h"
@@ -1703,7 +1705,57 @@ void OverworldEditor::DrawMapProperties() {
 }
 
 absl::Status OverworldEditor::Save() {
-  if (core::FeatureFlags::get().overworld.kSaveOverworldMaps) {
+  // HACK MANIFEST VALIDATION
+  const bool saving_maps = core::FeatureFlags::get().overworld.kSaveOverworldMaps;
+  if (saving_maps && dependencies_.project &&
+      dependencies_.project->hack_manifest.loaded()) {
+    const auto& manifest = dependencies_.project->hack_manifest;
+    const auto write_policy = dependencies_.project->rom_metadata.write_policy;
+
+    // Calculate memory ranges that would be written by overworld map saves.
+    // `ranges` are PC offsets (ROM file offsets). The hack manifest is in SNES
+    // address space (LoROM), so convert before analysis.
+    auto ranges = overworld_.GetProjectedWriteRanges();
+    auto conflicts = manifest.AnalyzePcWriteRanges(ranges);
+    if (!conflicts.empty()) {
+      std::string error_msg =
+          "Hack manifest write conflicts while saving overworld maps:\n\n";
+      for (const auto& conflict : conflicts) {
+        absl::StrAppend(
+            &error_msg,
+            absl::StrFormat("- Address 0x%06X is %s", conflict.address,
+                            core::AddressOwnershipToString(conflict.ownership)));
+        if (!conflict.module.empty()) {
+          absl::StrAppend(&error_msg, " (Module: ", conflict.module, ")");
+        }
+        absl::StrAppend(&error_msg, "\n");
+      }
+
+      if (write_policy == project::RomWritePolicy::kAllow) {
+        LOG_DEBUG("OverworldEditor", "%s", error_msg.c_str());
+      } else {
+        LOG_WARN("OverworldEditor", "%s", error_msg.c_str());
+      }
+
+      if (dependencies_.toast_manager &&
+          write_policy == project::RomWritePolicy::kWarn) {
+        dependencies_.toast_manager->Show(
+            "Save warning: write conflict with hack manifest (see log)",
+            ToastType::kWarning);
+      }
+
+      if (write_policy == project::RomWritePolicy::kBlock) {
+        if (dependencies_.toast_manager) {
+          dependencies_.toast_manager->Show(
+              "Save blocked: write conflict with hack manifest (see log)",
+              ToastType::kError);
+        }
+        return absl::PermissionDeniedError("Write conflict with Hack Manifest");
+      }
+    }
+  }
+
+  if (saving_maps) {
     RETURN_IF_ERROR(overworld_.CreateTile32Tilemap());
     RETURN_IF_ERROR(overworld_.SaveMap32Tiles());
     RETURN_IF_ERROR(overworld_.SaveMap16Tiles());

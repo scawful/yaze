@@ -530,6 +530,101 @@ absl::Status DungeonEditorV2::SaveRoomData(int room_id) {
   }
 
   const auto& flags = core::FeatureFlags::get().dungeon;
+
+  // HACK MANIFEST VALIDATION
+  if (dependencies_.project && dependencies_.project->hack_manifest.loaded()) {
+    std::vector<std::pair<uint32_t, uint32_t>> ranges;
+    const auto& manifest = dependencies_.project->hack_manifest;
+    const auto& rom_data = rom_->vector();
+
+    // 1. Validate Header Range
+    if (flags.kSaveRoomHeaders) {
+      if (zelda3::kRoomHeaderPointer + 2 < static_cast<int>(rom_data.size())) {
+        int header_ptr_table = (rom_data[zelda3::kRoomHeaderPointer + 2] << 16) |
+                               (rom_data[zelda3::kRoomHeaderPointer + 1] << 8) |
+                               rom_data[zelda3::kRoomHeaderPointer];
+        header_ptr_table = SnesToPc(header_ptr_table);
+        int table_offset = header_ptr_table + (room_id * 2);
+
+        if (table_offset + 1 < static_cast<int>(rom_data.size())) {
+          int address = (rom_data[zelda3::kRoomHeaderPointerBank] << 16) |
+                        (rom_data[table_offset + 1] << 8) |
+                        rom_data[table_offset];
+          int header_location = SnesToPc(address);
+          ranges.emplace_back(header_location, header_location + 14);
+        }
+      }
+    }
+
+    // 2. Validate Object Range
+    if (flags.kSaveObjects) {
+      if (zelda3::kRoomObjectPointer + 2 < static_cast<int>(rom_data.size())) {
+        int obj_ptr_table = (rom_data[zelda3::kRoomObjectPointer + 2] << 16) |
+                            (rom_data[zelda3::kRoomObjectPointer + 1] << 8) |
+                            rom_data[zelda3::kRoomObjectPointer];
+        obj_ptr_table = SnesToPc(obj_ptr_table);
+        int entry_offset = obj_ptr_table + (room_id * 3);
+
+        if (entry_offset + 2 < static_cast<int>(rom_data.size())) {
+          int tile_addr = (rom_data[entry_offset + 2] << 16) |
+                          (rom_data[entry_offset + 1] << 8) |
+                          rom_data[entry_offset];
+          int objects_location = SnesToPc(tile_addr);
+
+          // Estimate size based on current encoding
+          // Note: we check the *target* location (where we will write)
+          // The EncodeObjects() size is what we *will* write.
+          // We add 2 bytes for the size/header that SaveObjects writes.
+          auto encoded = room.EncodeObjects();
+          ranges.emplace_back(objects_location,
+                              objects_location + encoded.size() + 2);
+        }
+      }
+    }
+
+    // `ranges` are PC offsets (ROM file offsets). The hack manifest is in SNES
+    // address space (LoROM), so convert before analysis.
+    auto conflicts = manifest.AnalyzePcWriteRanges(ranges);
+    if (!conflicts.empty()) {
+      const auto write_policy = dependencies_.project->rom_metadata.write_policy;
+      std::string error_msg =
+          absl::StrFormat("Hack manifest write conflicts while saving room 0x%03X:\n\n",
+                          room_id);
+      for (const auto& conflict : conflicts) {
+        absl::StrAppend(
+            &error_msg,
+            absl::StrFormat("- Address 0x%06X is %s", conflict.address,
+                            core::AddressOwnershipToString(conflict.ownership)));
+        if (!conflict.module.empty()) {
+          absl::StrAppend(&error_msg, " (Module: ", conflict.module, ")");
+        }
+        absl::StrAppend(&error_msg, "\n");
+      }
+
+      if (write_policy == project::RomWritePolicy::kAllow) {
+        LOG_DEBUG("DungeonEditorV2", "%s", error_msg.c_str());
+      } else {
+        LOG_WARN("DungeonEditorV2", "%s", error_msg.c_str());
+      }
+
+      if (dependencies_.toast_manager &&
+          write_policy == project::RomWritePolicy::kWarn) {
+        dependencies_.toast_manager->Show(
+            "Save warning: write conflict with hack manifest (see log)",
+            ToastType::kWarning);
+      }
+
+      if (write_policy == project::RomWritePolicy::kBlock) {
+        if (dependencies_.toast_manager) {
+          dependencies_.toast_manager->Show(
+              "Save blocked: write conflict with hack manifest (see log)",
+              ToastType::kError);
+        }
+        return absl::PermissionDeniedError("Write conflict with Hack Manifest");
+      }
+    }
+  }
+
   if (flags.kSaveObjects) {
     auto status = room.SaveObjects();
     if (!status.ok()) {
