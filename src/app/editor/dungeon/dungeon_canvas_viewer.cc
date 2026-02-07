@@ -471,6 +471,9 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     // Minimal table flags: no padding, no borders between body cells
     constexpr ImGuiTableFlags kPropsTableFlags =
         ImGuiTableFlags_NoPadOuterX | ImGuiTableFlags_NoBordersInBody;
+    if (header_read_only_) {
+      ImGui::BeginDisabled();
+    }
     if (ImGui::BeginTable("##RoomPropsTable", 2, kPropsTableFlags)) {
       // Avoid clipping at higher DPI / larger fonts by sizing the nav column
       // to the current frame height.
@@ -487,6 +490,9 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       draw_navigation();
       ImGui::TableNextColumn();
       // Room ID and hex property inputs with icons
+      // Ensure subsequent frame-sized widgets on the same line (pin/details)
+      // don't get clipped when the first item is text.
+      ImGui::AlignTextToFramePadding();
       ImGui::Text(ICON_MD_TUNE " %03X", room_id);
       ImGui::SameLine();
       // Pin is a panel-level affordance; keep it in the main header row instead
@@ -959,6 +965,9 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       }
 
       ImGui::EndTable();
+    }
+    if (header_read_only_) {
+      ImGui::EndDisabled();
     }
   }
 
