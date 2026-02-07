@@ -22,6 +22,7 @@ struct CommandCategory {
   static constexpr const char* kFile = "File";
   static constexpr const char* kEdit = "Edit";
   static constexpr const char* kView = "View";
+  static constexpr const char* kNavigation = "Navigation";
   static constexpr const char* kTools = "Tools";
   static constexpr const char* kHelp = "Help";
 };
@@ -100,6 +101,14 @@ class CommandPalette {
    */
   void RegisterRecentFilesCommands(
       std::function<void(const std::string&)> open_callback);
+
+  /**
+   * @brief Register dungeon room navigation commands.
+   *
+   * Adds one command per room ID (0x000-0x127) using the ResourceLabelProvider
+   * label (when available). Commands publish JumpToRoomRequestEvent.
+   */
+  void RegisterDungeonRoomCommands(size_t session_id);
 
   /**
    * @brief Save command usage history to disk
