@@ -6,6 +6,9 @@
 ### 2026-02-07 ai-infra-architect – HackManifest Guardrails
 - Update 2026-02-07 (ai-infra-architect): fixed HTTP API disabled build link (`YAZE_HTTP_API_ENABLED` gating in `src/app/main.cc`), added HackManifest PC write-range analysis + mirror normalization, added save conflict guardrails (respect `rom_metadata.write_policy`) + manifest-backed room tag labels; ran `ctest --test-dir build_agent -C RelWithDebInfo -R "HackManifestTest|ResourceLabelsTest"` (8 passed).
 
+### 2026-02-07 ai-infra-architect – Overworld UX Parity (ZScream)
+- COMPLETE 2026-02-07 (ai-infra-architect): added ZScream-style Overworld "Fill Screen" tool (toolbar + `F`, brush toggle `B`), fixed overworld tile XY indexing + DW/SW local-map placement, made ROM saves more resilient (temp-write + rename + best-effort `fsync`), and polished UI UX (right panel slide animation, theme preview/density + smooth theme transitions, quick layout preset menu). Added parity doc `docs/internal/agents/overworld-ux-parity-matrix.md`; ran `ctest --test-dir build_agent -C RelWithDebInfo -L stable` (692 passed; disabled/skipped excluded).
+
 ### 2026-02-06 zelda3-hacking-expert – Room-mode bounds clipping
 - Update 2026-02-06 (zelda3-hacking-expert): added room bounds guard to `ObjectDrawer::WriteTile8` plus repeat-aware clipping for spaced patterns in `dungeon-object-validate --room`; re-ran vanilla + oos168 samples (Goron Mines focus) with `mismatch_count=0`; updated `dungeon-object-validation-spec.md`. No GUI launched.
 - Update 2026-02-06 (zelda3-hacking-expert): added unit tests for room-mode clipping (repeat spacing + base_h=0) and expanded OOS room-mode samples beyond Goron Mines (Mushroom Grotto, Tail Palace, Zora Temple, Dragon Ship) with `mismatch_count=0`; re-verified ROM hashes/rom-doctor. No GUI launched.
