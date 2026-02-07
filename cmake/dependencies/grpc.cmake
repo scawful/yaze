@@ -28,9 +28,46 @@ if(YAZE_PREFER_SYSTEM_GRPC OR YAZE_USE_SYSTEM_DEPS)
   # Ensure OpenSSL is discoverable for Homebrew gRPC on macOS.
   # gRPC's CMake config references OpenSSL::SSL and fails hard if missing.
   find_package(OpenSSL QUIET)
-  if(APPLE AND NOT OpenSSL_FOUND)
+  if(APPLE AND (NOT OpenSSL_FOUND OR NOT TARGET OpenSSL::SSL))
     set(OPENSSL_ROOT_DIR "/opt/homebrew/opt/openssl@3")
     find_package(OpenSSL QUIET)
+  endif()
+  if(NOT TARGET OpenSSL::SSL)
+    # Fallback: synthesize imported targets when OpenSSL is installed but the
+    # FindOpenSSL module wasn't able to produce modern targets. Homebrew gRPC
+    # exports OpenSSL::SSL in its link interface, so we must define it.
+    if(NOT DEFINED OPENSSL_ROOT_DIR AND APPLE)
+      set(OPENSSL_ROOT_DIR "/opt/homebrew/opt/openssl@3")
+    endif()
+    set(_YAZE_OPENSSL_HINT_LIBS "")
+    set(_YAZE_OPENSSL_HINT_INCS "")
+    if(DEFINED OPENSSL_ROOT_DIR)
+      list(APPEND _YAZE_OPENSSL_HINT_LIBS "${OPENSSL_ROOT_DIR}/lib")
+      list(APPEND _YAZE_OPENSSL_HINT_INCS "${OPENSSL_ROOT_DIR}/include")
+    endif()
+    if(APPLE)
+      list(APPEND _YAZE_OPENSSL_HINT_LIBS "/opt/homebrew/opt/openssl@3/lib")
+      list(APPEND _YAZE_OPENSSL_HINT_INCS "/opt/homebrew/opt/openssl@3/include")
+    endif()
+
+    find_library(_YAZE_OPENSSL_SSL_LIB NAMES ssl HINTS ${_YAZE_OPENSSL_HINT_LIBS})
+    find_library(_YAZE_OPENSSL_CRYPTO_LIB NAMES crypto HINTS ${_YAZE_OPENSSL_HINT_LIBS})
+    find_path(_YAZE_OPENSSL_INCLUDE_DIR openssl/ssl.h HINTS ${_YAZE_OPENSSL_HINT_INCS})
+
+    if(_YAZE_OPENSSL_SSL_LIB AND _YAZE_OPENSSL_CRYPTO_LIB AND _YAZE_OPENSSL_INCLUDE_DIR)
+      add_library(OpenSSL::Crypto UNKNOWN IMPORTED)
+      set_target_properties(OpenSSL::Crypto PROPERTIES
+        IMPORTED_LOCATION "${_YAZE_OPENSSL_CRYPTO_LIB}"
+        INTERFACE_INCLUDE_DIRECTORIES "${_YAZE_OPENSSL_INCLUDE_DIR}"
+      )
+
+      add_library(OpenSSL::SSL UNKNOWN IMPORTED)
+      set_target_properties(OpenSSL::SSL PROPERTIES
+        IMPORTED_LOCATION "${_YAZE_OPENSSL_SSL_LIB}"
+        INTERFACE_LINK_LIBRARIES OpenSSL::Crypto
+        INTERFACE_INCLUDE_DIRECTORIES "${_YAZE_OPENSSL_INCLUDE_DIR}"
+      )
+    endif()
   endif()
 
   # Try CMake's find_package first (works with Homebrew on macOS)
