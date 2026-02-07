@@ -1,8 +1,10 @@
 #include "app/editor/dungeon/panels/dungeon_workbench_panel.h"
 
 #include <algorithm>
+#include <cctype>
 #include <cstdio>
 #include <cstdint>
+#include <cstring>
 #include <utility>
 #include <vector>
 
@@ -297,6 +299,97 @@ void DungeonWorkbenchPanel::DrawCompareHeader() {
   ImGui::TextDisabled(ICON_MD_COMPARE_ARROWS " Compare");
   ImGui::SameLine();
 
+  // Picker: MRU + searchable full list.
+  {
+    char preview[128];
+    const auto label = zelda3::GetRoomLabel(*compare_room_id_);
+    snprintf(preview, sizeof(preview), "[%03X] %s", *compare_room_id_,
+             label.c_str());
+
+    ImGui::SetNextItemWidth(240.0f);
+    if (ImGui::BeginCombo("##CompareRoomPicker", preview,
+                          ImGuiComboFlags_HeightLarge)) {
+      auto to_lower = [](unsigned char c) {
+        return static_cast<char>(std::tolower(c));
+      };
+      auto icontains = [&](const std::string& haystack,
+                           const char* needle) -> bool {
+        if (!needle || *needle == '\0') {
+          return true;
+        }
+        // Case-insensitive substring search.
+        const size_t nlen = std::strlen(needle);
+        for (size_t i = 0; i + nlen <= haystack.size(); ++i) {
+          bool match = true;
+          for (size_t j = 0; j < nlen; ++j) {
+            if (to_lower(static_cast<unsigned char>(haystack[i + j])) !=
+                to_lower(static_cast<unsigned char>(needle[j]))) {
+              match = false;
+              break;
+            }
+          }
+          if (match) return true;
+        }
+        return false;
+      };
+
+      ImGui::TextDisabled(ICON_MD_HISTORY " Recent");
+      if (get_recent_rooms_) {
+        const auto& mru = get_recent_rooms_();
+        for (int rid : mru) {
+          if (rid == *current_room_id_) {
+            continue;
+          }
+          char item[128];
+          const auto rid_label = zelda3::GetRoomLabel(rid);
+          snprintf(item, sizeof(item), "[%03X] %s", rid, rid_label.c_str());
+          const bool is_selected = (rid == *compare_room_id_);
+          if (ImGui::Selectable(item, is_selected)) {
+            *compare_room_id_ = rid;
+          }
+        }
+      }
+
+      ImGui::Separator();
+      ImGui::TextDisabled(ICON_MD_SEARCH " Search");
+      ImGui::SetNextItemWidth(-1.0f);
+      ImGui::InputTextWithHint("##CompareSearch", "Type to filter rooms...",
+                               compare_search_buf_, sizeof(compare_search_buf_));
+
+      ImGui::Spacing();
+      ImGui::BeginChild("##CompareSearchList", ImVec2(0, 220), true);
+      ImGuiListClipper clipper;
+      clipper.Begin(0x128);
+      while (clipper.Step()) {
+        for (int rid = clipper.DisplayStart; rid < clipper.DisplayEnd; ++rid) {
+          if (rid == *current_room_id_) {
+            continue;
+          }
+          const auto rid_label = zelda3::GetRoomLabel(rid);
+          char hex_buf[8];
+          snprintf(hex_buf, sizeof(hex_buf), "%03X", rid);
+          if (!icontains(rid_label, compare_search_buf_) &&
+              !icontains(hex_buf, compare_search_buf_)) {
+            continue;
+          }
+          char item[128];
+          snprintf(item, sizeof(item), "[%03X] %s", rid, rid_label.c_str());
+          const bool is_selected = (rid == *compare_room_id_);
+          if (ImGui::Selectable(item, is_selected)) {
+            *compare_room_id_ = rid;
+          }
+        }
+      }
+      ImGui::EndChild();
+
+      ImGui::EndCombo();
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Pick a room to compare");
+    }
+  }
+
+  ImGui::SameLine();
   uint16_t rid = static_cast<uint16_t>(std::clamp(*compare_room_id_, 0, 0x127));
   if (auto res = gui::InputHexWordEx("##CompareRoomId", &rid, 70.0f, true);
       res.ShouldApply()) {

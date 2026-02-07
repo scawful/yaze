@@ -60,6 +60,8 @@ class DungeonWorkbenchPanel : public EditorPanel {
   std::function<void(int)> forget_recent_room_;
   std::function<void(const std::string&)> show_panel_;
   Rom* rom_ = nullptr;
+
+  char compare_search_buf_[64] = {};
 };
 
 }  // namespace yaze::editor
