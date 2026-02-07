@@ -8,6 +8,8 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
+#include "app/gui/core/theme_manager.h"
+#include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -18,36 +20,8 @@ void PixelEditorPanel::Initialize() {
 }
 
 void PixelEditorPanel::Draw(bool* p_open) {
-  // EditorPanel interface - delegate to existing Update() logic
-  // Top toolbar
-  DrawToolbar();
-  ImGui::SameLine();
-  DrawViewControls();
-
-  ImGui::Separator();
-
-  // Main content area with canvas and side panels
-  ImGui::BeginChild("##PixelEditorContent", ImVec2(0, -24), false);
-
-  // Color picker on the left
-  ImGui::BeginChild("##ColorPickerSide", ImVec2(120, 0), true);
-  DrawColorPicker();
-  ImGui::Separator();
-  DrawMiniMap();
-  ImGui::EndChild();
-
-  ImGui::SameLine();
-
-  // Main canvas
-  ImGui::BeginChild("##CanvasArea", ImVec2(0, 0), true,
-                    ImGuiWindowFlags_HorizontalScrollbar);
-  DrawCanvas();
-  ImGui::EndChild();
-
-  ImGui::EndChild();
-
-  // Status bar
-  DrawStatusBar();
+  // EditorPanel interface - delegate to Update()
+  Update().IgnoreError();
 }
 
 absl::Status PixelEditorPanel::Update() {
@@ -58,11 +32,15 @@ absl::Status PixelEditorPanel::Update() {
 
   ImGui::Separator();
 
+  constexpr float kColorPickerWidth = 200.0f;
+  constexpr float kStatusBarHeight = 24.0f;
+
   // Main content area with canvas and side panels
-  ImGui::BeginChild("##PixelEditorContent", ImVec2(0, -24), false);
+  ImGui::BeginChild("##PixelEditorContent", ImVec2(0, -kStatusBarHeight),
+                    false);
 
   // Color picker on the left
-  ImGui::BeginChild("##ColorPickerSide", ImVec2(200, 0), true);
+  ImGui::BeginChild("##ColorPickerSide", ImVec2(kColorPickerWidth, 0), true);
   DrawColorPicker();
   ImGui::Separator();
   DrawMiniMap();
@@ -90,7 +68,7 @@ void PixelEditorPanel::DrawToolbar() {
                             const char* tooltip) {
     bool is_selected = state_->current_tool == tool;
     if (is_selected) {
-      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.5f, 0.8f, 1.0f));
+      ImGui::PushStyleColor(ImGuiCol_Button, gui::GetPrimaryVec4());
     }
     if (ImGui::Button(icon)) {
       state_->SetTool(tool);
@@ -468,9 +446,12 @@ void PixelEditorPanel::DrawTileHighlight(const gfx::Bitmap& sheet) {
   ImVec2 min = PixelToScreen(tile_x * 8, tile_y * 8);
   ImVec2 max = PixelToScreen(tile_x * 8 + 8, tile_y * 8 + 8);
 
-  const ImU32 fill_color = ImGui::GetColorU32(ImVec4(1.0f, 0.8f, 0.2f, alpha));
-  const ImU32 outline_color =
-      ImGui::GetColorU32(ImVec4(1.0f, 0.9f, 0.4f, 0.9f));
+  ImVec4 sel = gui::GetSelectedColor();
+  sel.w = alpha;
+  const ImU32 fill_color = ImGui::GetColorU32(sel);
+  ImVec4 sel_outline = gui::GetSelectedColor();
+  sel_outline.w = 0.9f;
+  const ImU32 outline_color = ImGui::GetColorU32(sel_outline);
   canvas_.draw_list()->AddRectFilled(min, max, fill_color);
   canvas_.draw_list()->AddRect(min, max, outline_color, 0.0f, 0, 2.0f);
 
@@ -511,7 +492,7 @@ void PixelEditorPanel::DrawColorPicker() {
     bool is_selected = state_->current_color_index == i;
     if (is_selected) {
       ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2.0f);
-      ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1.0f, 1.0f, 0.0f, 1.0f));
+      ImGui::PushStyleColor(ImGuiCol_Border, gui::GetWarningColor());
     }
 
     std::string id = absl::StrFormat("##Color%d", i);
@@ -607,14 +588,14 @@ void PixelEditorPanel::DrawStatusBar() {
 
   if (state_->tile_highlight.active &&
       state_->tile_highlight.sheet_id == state_->current_sheet_id) {
-    ImGui::TextColored(ImVec4(1.0f, 0.85f, 0.3f, 1.0f), "Focus: %d",
+    ImGui::TextColored(gui::GetWarningColor(), "Focus: %d",
                        state_->tile_highlight.tile_index);
     ImGui::SameLine();
   }
 
   // Modified indicator
   if (state_->modified_sheets.count(state_->current_sheet_id) > 0) {
-    ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.2f, 1.0f), "(Modified)");
+    ImGui::TextColored(gui::GetModifiedColor(), "(Modified)");
   }
 
   // Zoom level

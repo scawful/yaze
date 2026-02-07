@@ -9,6 +9,8 @@
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
+#include "app/gui/core/theme_manager.h"
+#include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -268,7 +270,7 @@ void PaletteControlsPanel::DrawPaletteDisplay() {
           (row == static_cast<int>(state_->sub_palette_index));
       if (in_sub_palette) {
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2.0f);
-        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1.0f, 1.0f, 0.0f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Border, gui::GetWarningColor());
       }
 
       std::string id = absl::StrFormat("##PalColor%d", idx);

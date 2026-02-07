@@ -7,6 +7,7 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
+#include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -144,9 +145,13 @@ void SheetBrowserPanel::DrawSheetThumbnail(int sheet_id, gfx::Bitmap& bitmap) {
 
   // Selection highlight
   if (is_selected) {
-    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.3f, 0.5f, 0.8f, 0.3f));
+    ImVec4 sel_bg = gui::GetSelectedColor();
+    sel_bg.w = 0.3f;
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, sel_bg);
   } else if (is_multi_selected) {
-    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.5f, 0.5f, 0.2f, 0.3f));
+    ImVec4 multi_bg = gui::GetModifiedColor();
+    multi_bg.w = 0.3f;
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, multi_bg);
   }
 
   ImGui::BeginChild(absl::StrFormat("##Sheet%02X", sheet_id).c_str(),
@@ -230,7 +235,7 @@ void SheetBrowserPanel::DrawSheetThumbnail(int sheet_id, gfx::Bitmap& bitmap) {
       ImGui::Text("(Inactive)");
     }
     if (is_modified) {
-      ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.2f, 1.0f), "Modified");
+      ImGui::TextColored(gui::GetModifiedColor(), "Modified");
     }
     ImGui::EndTooltip();
   }
