@@ -432,7 +432,7 @@ void MessageEditor::DrawCurrentMessage() {
   Separator();
   gui::MemoryEditorPopup("Message Data", current_message_.Data);
 
-  ImGui::BeginChild("##MessagePreview", ImVec2(0, 0), true, 1);
+  ImGui::BeginChild("##MessagePreview", ImVec2(0, 0), true);
   EnsureFontTexturesReady();
   Text("Message Preview");
   if (Button("View Palette")) {
