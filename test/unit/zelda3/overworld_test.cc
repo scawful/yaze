@@ -258,6 +258,39 @@ TEST_F(OverworldTest, OverworldMapDestroy) {
   EXPECT_FALSE(map.is_initialized());
 }
 
+TEST_F(OverworldTest, GetSetTileUsesXYIndexing) {
+  // Map tiles are stored as [x][y] (tile16 grid coordinates across the full
+  // 256x256 world). This test guards against accidental transposition.
+  // Note: map_tiles_ is lazily sized during Overworld load; size it here to
+  // keep the test lightweight and avoid calling the full Overworld::Load path.
+  {
+    auto* tiles = overworld_->mutable_map_tiles();
+    tiles->light_world.resize(0x200);
+    tiles->dark_world.resize(0x200);
+    tiles->special_world.resize(0x200);
+    for (int i = 0; i < 0x200; ++i) {
+      tiles->light_world[i].resize(0x200);
+      tiles->dark_world[i].resize(0x200);
+      tiles->special_world[i].resize(0x200);
+    }
+  }
+
+  overworld_->set_current_world(0);
+  overworld_->SetTile(5, 7, 0x1234);
+  EXPECT_EQ(overworld_->mutable_map_tiles()->light_world[5][7], 0x1234);
+  EXPECT_EQ(overworld_->GetTile(5, 7), 0x1234);
+
+  overworld_->set_current_world(1);
+  overworld_->SetTile(1, 2, 0x00AA);
+  EXPECT_EQ(overworld_->mutable_map_tiles()->dark_world[1][2], 0x00AA);
+  EXPECT_EQ(overworld_->GetTile(1, 2), 0x00AA);
+
+  overworld_->set_current_world(2);
+  overworld_->SetTile(3, 4, 0x00BB);
+  EXPECT_EQ(overworld_->mutable_map_tiles()->special_world[3][4], 0x00BB);
+  EXPECT_EQ(overworld_->GetTile(3, 4), 0x00BB);
+}
+
 // Integration test for world-based sprite filtering
 TEST_F(OverworldTest, WorldBasedSpriteFiltering) {
   // This test verifies the logic used in DrawOverworldSprites

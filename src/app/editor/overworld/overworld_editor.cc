@@ -383,21 +383,37 @@ void OverworldEditor::HandleKeyboardShortcuts() {
 
   using enum EditingMode;
 
+  const bool ctrl_held = ImGui::IsKeyDown(ImGuiKey_LeftCtrl) ||
+                         ImGui::IsKeyDown(ImGuiKey_RightCtrl);
+  const bool alt_held = ImGui::IsKeyDown(ImGuiKey_LeftAlt) ||
+                        ImGui::IsKeyDown(ImGuiKey_RightAlt);
+
   // Track mode changes for canvas usage mode updates
   EditingMode old_mode = current_mode;
 
   // Tool shortcuts (1-2 for mode selection)
-  if (ImGui::IsKeyDown(ImGuiKey_1)) {
+  if (ImGui::IsKeyPressed(ImGuiKey_1, false)) {
     current_mode = EditingMode::MOUSE;
-  } else if (ImGui::IsKeyDown(ImGuiKey_2)) {
+  } else if (ImGui::IsKeyPressed(ImGuiKey_2, false)) {
     current_mode = EditingMode::DRAW_TILE;
+  }
+
+  // Brush/Fill shortcuts (avoid clobbering Ctrl-based shortcuts).
+  if (!ctrl_held && !alt_held) {
+    if (ImGui::IsKeyPressed(ImGuiKey_B, false)) {
+      ToggleBrushTool();
+    }
+    if (ImGui::IsKeyPressed(ImGuiKey_F, false)) {
+      ActivateFillTool();
+    }
   }
 
   // Update canvas usage mode when mode changes
   if (old_mode != current_mode) {
     if (current_mode == EditingMode::MOUSE) {
       ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
-    } else if (current_mode == EditingMode::DRAW_TILE) {
+    } else {
+      // DRAW_TILE and FILL_TILE are both tile painting interactions.
       ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kTilePainting);
     }
   }
@@ -406,17 +422,17 @@ void OverworldEditor::HandleKeyboardShortcuts() {
   HandleEntityEditingShortcuts();
 
   // View shortcuts
-  if (ImGui::IsKeyDown(ImGuiKey_F11)) {
+  if (ImGui::IsKeyPressed(ImGuiKey_F11, false)) {
     overworld_canvas_fullscreen_ = !overworld_canvas_fullscreen_;
   }
 
   // Toggle map lock with Ctrl+L
-  if (ImGui::IsKeyDown(ImGuiKey_L) && ImGui::IsKeyDown(ImGuiKey_LeftCtrl)) {
+  if (ctrl_held && ImGui::IsKeyPressed(ImGuiKey_L, false)) {
     current_map_lock_ = !current_map_lock_;
   }
 
   // Toggle Tile16 editor with Ctrl+T
-  if (ImGui::IsKeyDown(ImGuiKey_T) && ImGui::IsKeyDown(ImGuiKey_LeftCtrl)) {
+  if (ctrl_held && ImGui::IsKeyPressed(ImGuiKey_T, false)) {
     if (dependencies_.panel_manager) {
       dependencies_.panel_manager->TogglePanel(
           0, OverworldPanelIds::kTile16Editor);
@@ -710,8 +726,10 @@ void OverworldEditor::DrawOverworldEdits() {
   RenderUpdatedMapBitmap(mouse_position, tile_data);
 
   // Calculate the correct superX and superY values
-  int superY = current_map_ / 8;
-  int superX = current_map_ % 8;
+  const int world_offset = current_world_ * 0x40;
+  const int local_map = current_map_ - world_offset;
+  const int superY = local_map / 8;
+  const int superX = local_map % 8;
   int mouse_x = static_cast<int>(mouse_position.x);
   int mouse_y = static_cast<int>(mouse_position.y);
   // Calculate the correct tile16_x and tile16_y positions
@@ -734,6 +752,7 @@ void OverworldEditor::DrawOverworldEdits() {
   if (old_tile_id != current_tile16_) {
     CreateUndoPoint(current_map_, current_world_, index_x, index_y,
                     old_tile_id);
+    rom_->set_dirty(true);
   }
 
   selected_world[index_x][index_y] = current_tile16_;
@@ -824,12 +843,111 @@ void OverworldEditor::CheckForOverworldEdits() {
   // and clicked on the canvas.
   // Note: With TileSelectorWidget, we check if a valid tile is selected instead
   // of canvas points
-  if (current_tile16_ >= 0 && !ow_map_canvas_.select_rect_active() &&
+  if (current_mode == EditingMode::DRAW_TILE && current_tile16_ >= 0 &&
+      !ow_map_canvas_.select_rect_active() &&
       ow_map_canvas_.DrawTilemapPainter(tile16_blockset_, current_tile16_)) {
     DrawOverworldEdits();
   }
 
-  if (ow_map_canvas_.select_rect_active()) {
+  // Fill tool: fill the entire 32x32 tile16 screen under the cursor using the
+  // current selection pattern (if any) or the current tile16.
+  if (current_mode == EditingMode::FILL_TILE && ow_map_canvas_.IsMouseHovering() &&
+      ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+    float scale = ow_map_canvas_.global_scale();
+    if (scale <= 0.0f) {
+      scale = 1.0f;
+    }
+
+    const bool allow_special_tail =
+        core::FeatureFlags::get().overworld.kEnableSpecialWorldExpansion;
+    const auto scaled_position = ow_map_canvas_.hover_mouse_pos();
+    const int map_x =
+        static_cast<int>(scaled_position.x / scale) / kOverworldMapSize;
+    const int map_y =
+        static_cast<int>(scaled_position.y / scale) / kOverworldMapSize;
+
+    // Bounds guard.
+    if (map_x >= 0 && map_x < 8 && map_y >= 0 && map_y < 8) {
+      // Special world only renders 4 rows unless tail expansion is enabled.
+      if (allow_special_tail || current_world_ != 2 || map_y < 4) {
+        const int local_map = map_x + (map_y * 8);
+        const int target_map = local_map + (current_world_ * 0x40);
+        if (target_map >= 0 && target_map < zelda3::kNumOverworldMaps) {
+          // Build pattern from active rectangle selection (if present).
+          std::vector<int> pattern_ids;
+          int pattern_w = 1;
+          int pattern_h = 1;
+
+          if (ow_map_canvas_.select_rect_active() &&
+              ow_map_canvas_.selected_points().size() >= 2) {
+            const auto start = ow_map_canvas_.selected_points()[0];
+            const auto end = ow_map_canvas_.selected_points()[1];
+
+            const int start_x =
+                static_cast<int>(std::floor(std::min(start.x, end.x) / 16.0f));
+            const int end_x =
+                static_cast<int>(std::floor(std::max(start.x, end.x) / 16.0f));
+            const int start_y =
+                static_cast<int>(std::floor(std::min(start.y, end.y) / 16.0f));
+            const int end_y =
+                static_cast<int>(std::floor(std::max(start.y, end.y) / 16.0f));
+
+            pattern_w = std::max(1, end_x - start_x + 1);
+            pattern_h = std::max(1, end_y - start_y + 1);
+            pattern_ids.reserve(pattern_w * pattern_h);
+
+            overworld_.set_current_world(current_world_);
+            overworld_.set_current_map(target_map);
+            for (int y = start_y; y <= end_y; ++y) {
+              for (int x = start_x; x <= end_x; ++x) {
+                pattern_ids.push_back(overworld_.GetTile(x, y));
+              }
+            }
+          } else {
+            pattern_ids = {current_tile16_};
+          }
+
+          auto& world_tiles =
+              (current_world_ == 0)   ? overworld_.mutable_map_tiles()->light_world
+              : (current_world_ == 1) ? overworld_.mutable_map_tiles()->dark_world
+                                      : overworld_.mutable_map_tiles()->special_world;
+
+          // Apply the fill (repeat pattern across 32x32).
+          for (int y = 0; y < 32; ++y) {
+            for (int x = 0; x < 32; ++x) {
+              const int pattern_x = x % pattern_w;
+              const int pattern_y = y % pattern_h;
+              const int new_tile_id = pattern_ids[pattern_y * pattern_w + pattern_x];
+
+              const int global_x = map_x * 32 + x;
+              const int global_y = map_y * 32 + y;
+              if (global_x < 0 || global_x >= 256 || global_y < 0 ||
+                  global_y >= 256) {
+                continue;
+              }
+
+              const int old_tile_id = world_tiles[global_x][global_y];
+              if (old_tile_id == new_tile_id) {
+                continue;
+              }
+
+              CreateUndoPoint(target_map, current_world_, global_x, global_y,
+                              old_tile_id);
+              world_tiles[global_x][global_y] = new_tile_id;
+            }
+          }
+
+          rom_->set_dirty(true);
+          FinalizePaintOperation();
+          current_map_ = target_map;
+          RefreshOverworldMapOnDemand(target_map);
+        }
+      }
+    }
+  }
+
+  // Rectangle selection stamping (brush mode only).
+  if (current_mode == EditingMode::DRAW_TILE && ow_map_canvas_.select_rect_active()) {
     if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) ||
         ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
       LOG_DEBUG("OverworldEditor",
@@ -940,6 +1058,7 @@ void OverworldEditor::CheckForOverworldEdits() {
       // Finalize the undo batch operation after all tiles are placed
       FinalizePaintOperation();
 
+      rom_->set_dirty(true);
       RefreshOverworldMap();
       // Clear the rectangle selection after applying
       // This is commented out for now, will come back to later.
@@ -1067,9 +1186,10 @@ absl::Status OverworldEditor::Paste() {
       : (current_world_ == 1) ? overworld_.mutable_map_tiles()->dark_world
                               : overworld_.mutable_map_tiles()->special_world;
 
-  const int superY = current_map_ / 8;
-  const int superX = current_map_ % 8;
-  const int tiles_per_local_map = 512 / kTile16Size;
+  const int world_offset = current_world_ * 0x40;
+  const int local_map = current_map_ - world_offset;
+  const int superY = local_map / 8;
+  const int superX = local_map % 8;
 
   const int width = dependencies_.shared_clipboard->overworld_width;
   const int height = dependencies_.shared_clipboard->overworld_height;
@@ -1090,10 +1210,12 @@ absl::Status OverworldEditor::Paste() {
       const int global_y = superY * 32 + gy;
       if (global_x < 0 || global_x >= 256 || global_y < 0 || global_y >= 256)
         continue;
+      // TODO: Track undo points for paste operations (treated as a batch).
       selected_world[global_x][global_y] = id;
     }
   }
 
+  rom_->set_dirty(true);
   RefreshOverworldMap();
   return absl::OkStatus();
 }
@@ -1353,6 +1475,7 @@ void OverworldEditor::DrawOverworldCanvas() {
   // Simplified map settings - compact row with popup panels for detailed
   // editing
   if (rom_->is_loaded() && overworld_.is_loaded() && map_properties_system_) {
+    const EditingMode old_mode = current_mode;
     bool has_selection = ow_map_canvas_.select_rect_active() &&
                          !ow_map_canvas_.selected_tiles().empty();
 
@@ -1363,6 +1486,15 @@ void OverworldEditor::DrawOverworldCanvas() {
     toolbar_->Draw(current_world_, current_map_, current_map_lock_,
                    current_mode, entity_edit_mode_, dependencies_.panel_manager,
                    has_selection, scratch_has_data, rom_, &overworld_);
+
+    // Toolbar toggles don't currently update canvas usage mode.
+    if (old_mode != current_mode) {
+      if (current_mode == EditingMode::MOUSE) {
+        ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
+      } else {
+        ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kTilePainting);
+      }
+    }
   }
 
   // ==========================================================================
@@ -1408,7 +1540,8 @@ void OverworldEditor::DrawOverworldCanvas() {
   HandleOverworldZoom();
 
   // Tile painting mode - handle tile edits and right-click tile picking
-  if (current_mode == EditingMode::DRAW_TILE) {
+  if (current_mode == EditingMode::DRAW_TILE ||
+      current_mode == EditingMode::FILL_TILE) {
     HandleMapInteraction();
   }
 
@@ -1430,7 +1563,8 @@ void OverworldEditor::DrawOverworldCanvas() {
           current_map_, current_world_, show_overlay_preview_);
     }
 
-    if (current_mode == EditingMode::DRAW_TILE) {
+    if (current_mode == EditingMode::DRAW_TILE ||
+        current_mode == EditingMode::FILL_TILE) {
       CheckForOverworldEdits();
     }
 
@@ -3241,11 +3375,28 @@ void OverworldEditor::UpdateBlocksetSelectorState() {
 }
 
 void OverworldEditor::ToggleBrushTool() {
-  // Stub: toggle brush mode if available
+  if (current_mode == EditingMode::DRAW_TILE) {
+    current_mode = EditingMode::MOUSE;
+  } else {
+    current_mode = EditingMode::DRAW_TILE;
+  }
+
+  if (current_mode == EditingMode::MOUSE) {
+    ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
+  } else {
+    ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kTilePainting);
+  }
 }
 
 void OverworldEditor::ActivateFillTool() {
-  // Stub: activate fill tool
+  if (current_mode == EditingMode::FILL_TILE) {
+    current_mode = EditingMode::DRAW_TILE;
+  } else {
+    current_mode = EditingMode::FILL_TILE;
+  }
+
+  // Fill tool is still a tile painting interaction.
+  ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kTilePainting);
 }
 
 void OverworldEditor::CycleTileSelection(int delta) {

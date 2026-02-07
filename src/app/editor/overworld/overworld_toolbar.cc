@@ -31,7 +31,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
     ImGui::TableSetupColumn("Lock", ImGuiTableColumnFlags_WidthFixed,
                             kTableColumnLock);
     ImGui::TableSetupColumn("Mode", ImGuiTableColumnFlags_WidthFixed,
-                            80.0f);  // Mouse/Paint
+                            124.0f);  // Mouse/Brush/Fill
     ImGui::TableSetupColumn("Entity",
                             ImGuiTableColumnFlags_WidthStretch);  // Entity status
     ImGui::TableSetupColumn("Panels", ImGuiTableColumnFlags_WidthFixed, 320.0f);
@@ -108,7 +108,18 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
                           ImVec2(kIconButtonWidth, 0))) {
       current_mode = EditingMode::DRAW_TILE;
     }
-    HOVER_HINT("Tile Paint Mode (2)\nDraw tiles on the map");
+    HOVER_HINT("Brush Mode (2/B)\nDraw tiles on the map");
+
+    ImGui::SameLine();
+    if (gui::ToggleButton(ICON_MD_FORMAT_COLOR_FILL,
+                          current_mode == EditingMode::FILL_TILE,
+                          ImVec2(kIconButtonWidth, 0))) {
+      current_mode = EditingMode::FILL_TILE;
+    }
+    HOVER_HINT(
+        "Fill Screen Mode (F)\n"
+        "Fill the 32x32 screen under the cursor with the selected tile\n"
+        "or a repeating selection pattern");
     ImGui::PopStyleVar();
 
     TableNextColumn();

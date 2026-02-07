@@ -590,20 +590,20 @@ class Overworld {
   void set_current_world(int world) { current_world_ = world; }
   uint16_t GetTile(int x, int y) const {
     if (current_world_ == 0) {
-      return map_tiles_.light_world[y][x];
+      return map_tiles_.light_world[x][y];
     } else if (current_world_ == 1) {
-      return map_tiles_.dark_world[y][x];
+      return map_tiles_.dark_world[x][y];
     } else {
-      return map_tiles_.special_world[y][x];
+      return map_tiles_.special_world[x][y];
     }
   }
   void SetTile(int x, int y, uint16_t tile_id) {
     if (current_world_ == 0) {
-      map_tiles_.light_world[y][x] = tile_id;
+      map_tiles_.light_world[x][y] = tile_id;
     } else if (current_world_ == 1) {
-      map_tiles_.dark_world[y][x] = tile_id;
+      map_tiles_.dark_world[x][y] = tile_id;
     } else {
-      map_tiles_.special_world[y][x] = tile_id;
+      map_tiles_.special_world[x][y] = tile_id;
     }
   }
   auto map_tiles() const { return map_tiles_; }
