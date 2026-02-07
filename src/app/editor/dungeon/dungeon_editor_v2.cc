@@ -237,6 +237,22 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
       &workbench_split_view_enabled_, &workbench_compare_room_id_,
       &workbench_layout_state_,
       [this](int room_id) { OnRoomSelected(room_id); },
+      [this](int room_id) {
+        auto status = SaveRoom(room_id);
+        if (!status.ok()) {
+          LOG_ERROR("DungeonEditorV2", "Save Room failed: %s",
+                    status.message().data());
+          if (dependencies_.toast_manager) {
+            dependencies_.toast_manager->Show(
+                absl::StrFormat("Save Room failed: %s", status.message()),
+                ToastType::kError);
+          }
+          return;
+        }
+        if (dependencies_.toast_manager) {
+          dependencies_.toast_manager->Show("Room saved", ToastType::kSuccess);
+        }
+      },
       [this]() { return GetWorkbenchViewer(); },
       [this]() { return GetWorkbenchCompareViewer(); },
       [this]() -> const std::deque<int>& { return recent_rooms_; },
@@ -1624,6 +1640,7 @@ DungeonCanvasViewer* DungeonEditorV2::GetWorkbenchViewer() {
     auto* viewer = workbench_viewer_.get();
     viewer->SetCompactHeaderMode(true);
     viewer->SetRoomDetailsExpanded(false);
+    viewer->SetHeaderVisible(false);
     viewer->SetRooms(&rooms_);
     viewer->SetRenderer(renderer_);
     viewer->SetCurrentPaletteGroup(current_palette_group_);

@@ -340,4 +340,3 @@ void DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
 }
 
 }  // namespace yaze::editor
-
