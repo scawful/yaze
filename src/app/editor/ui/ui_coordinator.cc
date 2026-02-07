@@ -460,31 +460,47 @@ void UICoordinator::DrawMenuBarExtras() {
       absl::StrFormat("v%s", editor_manager_->version().c_str());
 
   const float item_spacing = 6.0f;
-  const float button_width = GetMenuBarIconButtonWidth();
   const float padding = 8.0f;
+
+  auto CalcSmallButtonWidth = [] (const char* label) -> float {
+    // SmallButton width = text width + frame padding * 2
+    const float frame_padding = ImGui::GetStyle().FramePadding.x;
+    const float text_w = ImGui::CalcTextSize(label).x;
+    return text_w + frame_padding * 2.0f;
+  };
 
   // Get TRUE viewport dimensions (not affected by dockspace resize)
   const ImGuiViewport* viewport = ImGui::GetMainViewport();
   const float true_viewport_right = viewport->WorkPos.x + viewport->WorkSize.x;
 
   // Calculate panel toggle region width
-  // Buttons: Project, Agent (GRPC only), Help, Settings, Properties
-  int panel_button_count = 0;
-  if (editor_manager_->right_panel_manager()) {
-#ifdef YAZE_WITH_GRPC
-    panel_button_count = 5;  // Project, Agent, Help, Settings, Properties
-#else
-    panel_button_count = 4;  // Project, Help, Settings, Properties
-#endif
+  // Keep this in sync with RightPanelManager::DrawPanelToggleButtons().
+  const bool has_panel_toggles = editor_manager_->right_panel_manager() != nullptr;
+  float panel_buttons_width = 0.0f;
+  if (has_panel_toggles) {
+    const char* kIcons[] = {
+        ICON_MD_FOLDER_SPECIAL,  // Project
+        ICON_MD_SMART_TOY,       // Agent
+        ICON_MD_HELP_OUTLINE,    // Help
+        ICON_MD_SETTINGS,        // Settings
+        ICON_MD_LIST_ALT,        // Properties
+    };
+    constexpr size_t kIconCount = sizeof(kIcons) / sizeof(kIcons[0]);
+
+    for (size_t i = 0; i < kIconCount; ++i) {
+      panel_buttons_width += CalcSmallButtonWidth(kIcons[i]);
+      if (i + 1 < kIconCount) {
+        panel_buttons_width += item_spacing;
+      }
+    }
   }
 
-  float panel_region_width = 0.0f;
-  if (panel_button_count > 0) {
-    panel_region_width = (button_width * panel_button_count) +
-                         (item_spacing * (panel_button_count - 1)) + padding;
-  }
+  float panel_region_width = (panel_buttons_width > 0.0f)
+                                 ? (panel_buttons_width + padding)
+                                 : 0.0f;
 #ifdef __EMSCRIPTEN__
-  panel_region_width += button_width + item_spacing;  // WASM toggle
+  // WASM hide menu bar toggle (drawn inline after panel buttons).
+  panel_region_width += CalcSmallButtonWidth(ICON_MD_EXPAND_LESS) + item_spacing;
 #endif
 
   // Calculate screen X position for panel toggles (fixed at viewport right edge)
@@ -513,12 +529,12 @@ void UICoordinator::DrawMenuBarExtras() {
   float version_width = ImGui::CalcTextSize(full_version.c_str()).x;
   float dirty_width =
       ImGui::CalcTextSize(ICON_MD_FIBER_MANUAL_RECORD).x + item_spacing;
-  float session_width = button_width;
+  const float session_width = CalcSmallButtonWidth(ICON_MD_LAYERS);
 
   const float available_width = region_end - menu_items_end - padding;
 
   // Minimum required width: just the bell (always visible)
-  float required_width = button_width;
+  float required_width = CalcSmallButtonWidth(ICON_MD_NOTIFICATIONS);
 
   // Progressive show/hide based on available space
   // Priority (highest to lowest): Bell > Dirty > Session > Version
@@ -589,7 +605,7 @@ void UICoordinator::DrawMenuBarExtras() {
   // =========================================================================
   // DRAW PANEL TOGGLES (fixed screen position, unaffected by dockspace resize)
   // =========================================================================
-  if (panel_button_count > 0) {
+  if (has_panel_toggles) {
     // Get current Y position within menu bar
     float menu_bar_y = ImGui::GetCursorScreenPos().y;
 
