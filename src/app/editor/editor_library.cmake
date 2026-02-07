@@ -22,6 +22,7 @@ set(
   app/editor/dungeon/panels/dungeon_room_graphics_panel.cc
   app/editor/dungeon/panels/object_editor_panel.cc
   app/editor/dungeon/panels/minecart_track_editor_panel.cc
+  app/editor/dungeon/panels/room_tag_editor_panel.cc
   app/editor/editor_manager.cc
   app/editor/session_types.cc
   app/editor/graphics/gfx_group_editor.cc
@@ -189,11 +190,15 @@ if(YAZE_BUILD_AGENT_UI)
     app/editor/agent/panels/agent_automation_panel.cc
     app/editor/agent/panels/agent_configuration_panel.cc
     app/editor/agent/panels/agent_editor_panels.cc
+    app/editor/agent/panels/feature_flag_editor_panel.cc
+    app/editor/agent/panels/manifest_panel.cc
     app/editor/agent/panels/agent_knowledge_panel.cc
     app/editor/agent/panels/agent_rom_sync_panel.cc
     app/editor/agent/panels/agent_z3ed_command_panel.cc
     app/editor/agent/panels/mesen_debug_panel.cc
+    app/editor/agent/panels/mesen_screenshot_panel.cc
     app/editor/agent/panels/oracle_state_library_panel.cc
+    app/editor/agent/panels/sram_viewer_panel.cc
   )
 endif()
 
@@ -253,6 +258,15 @@ if(YAZE_BUILD_AGENT_UI AND NOT YAZE_MINIMAL_BUILD)
     message(STATUS "✓ yaze_editor linked to yaze_agent (UI panels)")
   else()
     message(WARNING "Agent UI requested but yaze_agent target not found")
+  endif()
+
+  # MesenScreenshotPanel needs libpng for PNG decode
+  find_package(PNG QUIET)
+  if(PNG_FOUND)
+    target_link_libraries(yaze_editor PUBLIC PNG::PNG)
+    message(STATUS "✓ yaze_editor linked to PNG::PNG (screenshot panel)")
+  else()
+    message(STATUS "○ libpng not found — MesenScreenshotPanel PNG decode unavailable")
   endif()
 endif()
 

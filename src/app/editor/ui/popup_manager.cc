@@ -168,6 +168,9 @@ void PopupManager::Initialize() {
   popups_[PopupID::kRomWriteConfirm] = {
       PopupID::kRomWriteConfirm, PopupType::kConfirmation, false, false,
       [this]() { DrawRomWriteConfirmPopup(); }};
+  popups_[PopupID::kWriteConflictWarning] = {
+      PopupID::kWriteConflictWarning, PopupType::kWarning, false, true,
+      [this]() { DrawWriteConflictWarningPopup(); }};
 }
 
 void PopupManager::DrawPopups() {
@@ -1276,7 +1279,7 @@ void PopupManager::DrawDisplaySettingsPopup() {
     ImGuiIO& io = GetIO();
     Separator();
     Text("Global Font Scale");
-    static float font_global_scale = io.FontGlobalScale;
+    float font_global_scale = io.FontGlobalScale;
     if (SliderFloat("##global_scale", &font_global_scale, 0.5f, 1.8f, "%.2f")) {
       if (editor_manager_) {
         editor_manager_->SetFontGlobalScale(font_global_scale);
@@ -1456,6 +1459,78 @@ void PopupManager::DrawRomWriteConfirmPopup() {
   if (Button("Cancel", ImVec2(0, 0)) || IsKeyPressed(ImGuiKey_Escape)) {
     editor_manager_->CancelRomWriteConfirm();
     Hide(PopupID::kRomWriteConfirm);
+  }
+}
+
+void PopupManager::DrawWriteConflictWarningPopup() {
+  using namespace ImGui;
+
+  if (!editor_manager_) {
+    Text("Editor manager unavailable.");
+    if (Button("Close", gui::kDefaultModalSize)) {
+      Hide(PopupID::kWriteConflictWarning);
+    }
+    return;
+  }
+
+  const auto& conflicts = editor_manager_->pending_write_conflicts();
+
+  TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "%s Write Conflict Warning",
+              ICON_MD_WARNING);
+  Separator();
+  TextWrapped(
+      "The following ROM addresses are owned by ASM hooks and will be "
+      "overwritten on next build. Saving now will write data that asar "
+      "will replace.");
+  Spacing();
+
+  if (!conflicts.empty()) {
+    if (BeginTable("WriteConflictTable", 3,
+                   ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders |
+                       ImGuiTableFlags_Resizable)) {
+      TableSetupColumn("Address", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+      TableSetupColumn("Ownership", ImGuiTableColumnFlags_WidthFixed, 140.0f);
+      TableSetupColumn("Module", ImGuiTableColumnFlags_WidthStretch);
+      TableHeadersRow();
+
+      for (const auto& conflict : conflicts) {
+        TableNextRow();
+        TableNextColumn();
+        Text("$%06X", conflict.address);
+        TableNextColumn();
+        TextUnformatted(
+            core::AddressOwnershipToString(conflict.ownership).c_str());
+        TableNextColumn();
+        if (!conflict.module.empty()) {
+          TextUnformatted(conflict.module.c_str());
+        } else {
+          TextDisabled("(unknown)");
+        }
+      }
+      EndTable();
+    }
+  }
+
+  Spacing();
+  Text("%zu conflict(s) detected.", conflicts.size());
+  Spacing();
+
+  if (Button("Save Anyway", ImVec2(0, 0))) {
+    editor_manager_->BypassWriteConflictOnce();
+    Hide(PopupID::kWriteConflictWarning);
+    auto status = editor_manager_->SaveRom();
+    if (!status.ok() && !absl::IsCancelled(status)) {
+      if (auto* toast = editor_manager_->toast_manager()) {
+        toast->Show(absl::StrFormat("Save failed: %s", status.message()),
+                    ToastType::kError);
+      }
+    }
+    return;
+  }
+  SameLine();
+  if (Button("Cancel", ImVec2(0, 0)) || IsKeyPressed(ImGuiKey_Escape)) {
+    editor_manager_->ClearPendingWriteConflicts();
+    Hide(PopupID::kWriteConflictWarning);
   }
 }
 

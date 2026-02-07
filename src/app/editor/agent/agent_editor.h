@@ -35,8 +35,12 @@ class ProposalDrawer;
 class AgentChat;
 class AgentCollaborationCoordinator;
 class AgentConfigPanel;
+class FeatureFlagEditorPanel;
+class ManifestPanel;
 class MesenDebugPanel;
+class MesenScreenshotPanel;
 class OracleStateLibraryPanel;
+class SramViewerPanel;
 
 #ifdef YAZE_WITH_GRPC
 class NetworkCollaborationCoordinator;
@@ -273,8 +277,12 @@ class AgentEditor : public Editor {
   void DrawCommonTilesEditor();
   void DrawNewPromptCreator();
   void DrawAgentBuilderPanel();
+  void DrawFeatureFlagPanel();
+  void DrawManifestPanel();
   void DrawMesenDebugPanel();
+  void DrawMesenScreenshotPanel();
   void DrawOracleStatePanel();
+  void DrawSramViewerPanel();
   void SyncContextFromProfile();
   void SyncConfigFromProfile();
   void ApplyConfigFromContext(const AgentConfigState& config);
@@ -303,8 +311,12 @@ class AgentEditor : public Editor {
   std::unique_ptr<AgentChat> agent_chat_;  // Owned by AgentEditor
   std::unique_ptr<AgentCollaborationCoordinator> local_coordinator_;
   std::unique_ptr<AgentConfigPanel> config_panel_;
+  std::unique_ptr<FeatureFlagEditorPanel> feature_flag_panel_;
+  std::unique_ptr<ManifestPanel> manifest_panel_;
   std::unique_ptr<MesenDebugPanel> mesen_debug_panel_;
+  std::unique_ptr<MesenScreenshotPanel> mesen_screenshot_panel_;
   std::unique_ptr<OracleStateLibraryPanel> oracle_state_panel_;
+  std::unique_ptr<SramViewerPanel> sram_viewer_panel_;
 #ifdef YAZE_WITH_GRPC
   std::unique_ptr<NetworkCollaborationCoordinator> network_coordinator_;
   AutomationBridge harness_telemetry_bridge_;

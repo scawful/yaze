@@ -309,6 +309,124 @@ class OracleStateLibraryEditorPanel : public EditorPanel {
   DrawCallback draw_callback_;
 };
 
+/**
+ * @brief EditorPanel for Feature Flag Editor
+ *
+ * Displays ASM feature flags from hack_manifest.json and allows toggling
+ * them by writing to Config/feature_flags.asm.
+ */
+class FeatureFlagEditorEditorPanel : public EditorPanel {
+ public:
+  using DrawCallback = std::function<void()>;
+
+  explicit FeatureFlagEditorEditorPanel(DrawCallback draw_callback)
+      : draw_callback_(std::move(draw_callback)) {}
+
+  std::string GetId() const override { return "agent.feature_flags"; }
+  std::string GetDisplayName() const override { return "Feature Flags"; }
+  std::string GetIcon() const override { return ICON_MD_FLAG; }
+  std::string GetEditorCategory() const override { return "Agent"; }
+  int GetPriority() const override { return 90; }
+
+  void Draw(bool* p_open) override {
+    if (draw_callback_) {
+      draw_callback_();
+    }
+  }
+
+ private:
+  DrawCallback draw_callback_;
+};
+
+/**
+ * @brief EditorPanel for Hack Manifest Status + Protected Regions Inspector
+ *
+ * Card B3: manifest freshness (path, mtime, reload button)
+ * Card B4: searchable protected regions table
+ */
+class ManifestEditorPanel : public EditorPanel {
+ public:
+  using DrawCallback = std::function<void()>;
+
+  explicit ManifestEditorPanel(DrawCallback draw_callback)
+      : draw_callback_(std::move(draw_callback)) {}
+
+  std::string GetId() const override { return "agent.manifest"; }
+  std::string GetDisplayName() const override { return "Hack Manifest"; }
+  std::string GetIcon() const override { return ICON_MD_DESCRIPTION; }
+  std::string GetEditorCategory() const override { return "Agent"; }
+  int GetPriority() const override { return 95; }
+
+  void Draw(bool* p_open) override {
+    if (draw_callback_) {
+      draw_callback_();
+    }
+  }
+
+ private:
+  DrawCallback draw_callback_;
+};
+
+/**
+ * @brief EditorPanel for SRAM Variable Viewer
+ *
+ * Displays live SRAM variable values from a running Mesen2 emulator,
+ * using variable definitions from hack_manifest.json.
+ */
+class SramViewerEditorPanel : public EditorPanel {
+ public:
+  using DrawCallback = std::function<void()>;
+
+  explicit SramViewerEditorPanel(DrawCallback draw_callback)
+      : draw_callback_(std::move(draw_callback)) {}
+
+  std::string GetId() const override { return "agent.sram_viewer"; }
+  std::string GetDisplayName() const override { return "SRAM Viewer"; }
+  std::string GetIcon() const override { return ICON_MD_MEMORY; }
+  std::string GetEditorCategory() const override { return "Agent"; }
+  int GetPriority() const override { return 88; }
+
+  void Draw(bool* p_open) override {
+    if (draw_callback_) {
+      draw_callback_();
+    }
+  }
+
+ private:
+  DrawCallback draw_callback_;
+};
+
+/**
+ * @brief EditorPanel for Mesen2 live screenshot preview
+ *
+ * Polls screenshots from a running Mesen2 emulator and renders them as a
+ * GPU texture in the ImGui viewport.
+ */
+class MesenScreenshotEditorPanel : public EditorPanel {
+ public:
+  using DrawCallback = std::function<void()>;
+
+  explicit MesenScreenshotEditorPanel(DrawCallback draw_callback)
+      : draw_callback_(std::move(draw_callback)) {}
+
+  std::string GetId() const override { return "agent.mesen_screenshot"; }
+  std::string GetDisplayName() const override {
+    return "Mesen2 Screenshot Preview";
+  }
+  std::string GetIcon() const override { return ICON_MD_CAMERA_ALT; }
+  std::string GetEditorCategory() const override { return "Agent"; }
+  int GetPriority() const override { return 82; }
+
+  void Draw(bool* p_open) override {
+    if (draw_callback_) {
+      draw_callback_();
+    }
+  }
+
+ private:
+  DrawCallback draw_callback_;
+};
+
 }  // namespace editor
 }  // namespace yaze
 

@@ -171,6 +171,13 @@ class EditorManager {
   void ConfirmRomWrite();
   void CancelRomWriteConfirm();
   bool IsRomWriteConfirmPending() const { return pending_rom_write_confirm_; }
+
+  // Write conflict warning (ASM-owned address protection)
+  const std::vector<core::WriteConflict>& pending_write_conflicts() const {
+    return pending_write_conflicts_;
+  }
+  void BypassWriteConflictOnce() { bypass_write_conflict_once_ = true; }
+  void ClearPendingWriteConflicts() { pending_write_conflicts_.clear(); }
   void SetCurrentEditor(Editor* editor) {
     current_editor_ = editor;
     // Update ContentRegistry context for panel access
@@ -517,6 +524,10 @@ class EditorManager {
   bool pending_rom_write_confirm_ = false;
   bool bypass_rom_write_confirm_once_ = false;
   std::string current_rom_hash_;
+
+  // Write conflict warning state (ASM-owned address protection)
+  std::vector<core::WriteConflict> pending_write_conflicts_;
+  bool bypass_write_conflict_once_ = false;
 
   // Deferred action queue - executed at the start of each frame
   std::vector<std::function<void()>> deferred_actions_;

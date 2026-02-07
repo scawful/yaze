@@ -28,10 +28,13 @@
 #include "app/editor/dungeon/panels/item_editor_panel.h"
 #include "app/editor/dungeon/panels/minecart_track_editor_panel.h"
 #include "app/editor/dungeon/panels/object_editor_panel.h"
+#include "app/editor/dungeon/panels/room_tag_editor_panel.h"
 #include "app/editor/dungeon/panels/sprite_editor_panel.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/system/panel_manager.h"
 #include "app/editor/ui/toast_manager.h"
+#include "app/emu/mesen/mesen_client_registry.h"
+#include "app/emu/mesen/mesen_socket_client.h"
 #include "app/emu/render/emulator_render_service.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/resource/arena.h"
@@ -158,6 +161,18 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
        .priority = 70,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
        .disabled_tooltip = "Load a ROM to edit dungeon palettes"});
+
+  panel_manager->RegisterPanel(
+      {.card_id = "dungeon.room_tags",
+       .display_name = "Room Tags",
+       .window_title = " Room Tags",
+       .icon = ICON_MD_LABEL,
+       .category = "Dungeon",
+       .shortcut_hint = "",
+       .visibility_flag = nullptr,
+       .priority = 45,
+       .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+       .disabled_tooltip = "Load a ROM to view room tags"});
 
   // Show default panels on startup
   panel_manager->ShowPanel(kRoomSelectorId);
@@ -296,6 +311,17 @@ absl::Status DungeonEditorV2::Load() {
         std::make_unique<ItemEditorPanel>(&current_room_id_, &rooms_, nullptr);
     item_editor_panel_ = item_panel.get();
     dependencies_.panel_manager->RegisterEditorPanel(std::move(item_panel));
+
+    // Room Tag Editor Panel
+    {
+      auto room_tag_panel = std::make_unique<RoomTagEditorPanel>();
+      room_tag_panel->SetProject(dependencies_.project);
+      room_tag_panel->SetRooms(&rooms_);
+      room_tag_panel->SetCurrentRoomId(current_room_id_);
+      room_tag_editor_panel_ = room_tag_panel.get();
+      dependencies_.panel_manager->RegisterEditorPanel(
+          std::move(room_tag_panel));
+    }
 
     // Feature Flag: Custom Objects / Minecart Tracks
     if (core::FeatureFlags::get().kEnableCustomObjects) {
@@ -460,6 +486,68 @@ absl::Status DungeonEditorV2::Save() {
   }
 
   return absl::OkStatus();
+}
+
+std::vector<std::pair<uint32_t, uint32_t>>
+DungeonEditorV2::CollectWriteRanges() const {
+  std::vector<std::pair<uint32_t, uint32_t>> ranges;
+
+  if (!rom_ || !rom_->is_loaded()) {
+    return ranges;
+  }
+
+  const auto& flags = core::FeatureFlags::get().dungeon;
+  const auto& rom_data = rom_->vector();
+
+  for (const auto& room : rooms_) {
+    if (!room.IsLoaded()) {
+      continue;
+    }
+    int room_id = room.id();
+
+    // Header range
+    if (flags.kSaveRoomHeaders) {
+      if (zelda3::kRoomHeaderPointer + 2 < static_cast<int>(rom_data.size())) {
+        int header_ptr_table = (rom_data[zelda3::kRoomHeaderPointer + 2] << 16) |
+                               (rom_data[zelda3::kRoomHeaderPointer + 1] << 8) |
+                               rom_data[zelda3::kRoomHeaderPointer];
+        header_ptr_table = SnesToPc(header_ptr_table);
+        int table_offset = header_ptr_table + (room_id * 2);
+
+        if (table_offset + 1 < static_cast<int>(rom_data.size())) {
+          int address = (rom_data[zelda3::kRoomHeaderPointerBank] << 16) |
+                        (rom_data[table_offset + 1] << 8) |
+                        rom_data[table_offset];
+          int header_location = SnesToPc(address);
+          ranges.emplace_back(header_location, header_location + 14);
+        }
+      }
+    }
+
+    // Object range
+    if (flags.kSaveObjects) {
+      if (zelda3::kRoomObjectPointer + 2 < static_cast<int>(rom_data.size())) {
+        int obj_ptr_table = (rom_data[zelda3::kRoomObjectPointer + 2] << 16) |
+                            (rom_data[zelda3::kRoomObjectPointer + 1] << 8) |
+                            rom_data[zelda3::kRoomObjectPointer];
+        obj_ptr_table = SnesToPc(obj_ptr_table);
+        int entry_offset = obj_ptr_table + (room_id * 3);
+
+        if (entry_offset + 2 < static_cast<int>(rom_data.size())) {
+          int tile_addr = (rom_data[entry_offset + 2] << 16) |
+                          (rom_data[entry_offset + 1] << 8) |
+                          rom_data[entry_offset];
+          int objects_location = SnesToPc(tile_addr);
+
+          auto encoded = room.EncodeObjects();
+          ranges.emplace_back(objects_location,
+                              objects_location + encoded.size() + 2);
+        }
+      }
+    }
+  }
+
+  return ranges;
 }
 
 absl::Status DungeonEditorV2::SaveRoom(int room_id) {
@@ -815,6 +903,44 @@ void DungeonEditorV2::DrawRoomTab(int room_id) {
   ImGui::SameLine();
   ImGui::TextDisabled("Objects: %zu", room.GetTileObjects().size());
 
+  // Warp to Room button — sends room ID to running Mesen2 emulator
+  ImGui::SameLine();
+  {
+    auto client = emu::mesen::MesenClientRegistry::GetClient();
+    bool connected = client && client->IsConnected();
+    if (!connected) {
+      ImGui::BeginDisabled();
+    }
+    std::string warp_label =
+        absl::StrFormat(ICON_MD_ROCKET_LAUNCH " Warp##warp_%03X", room_id);
+    if (ImGui::SmallButton(warp_label.c_str())) {
+      auto status = client->WriteWord(0x7E00A0, static_cast<uint16_t>(room_id));
+      if (status.ok()) {
+        if (dependencies_.toast_manager) {
+          dependencies_.toast_manager->Show(
+              absl::StrFormat("Warped to room 0x%03X", room_id),
+              ToastType::kSuccess);
+        }
+      } else {
+        if (dependencies_.toast_manager) {
+          dependencies_.toast_manager->Show(
+              absl::StrFormat("Warp failed: %s", status.message()),
+              ToastType::kError);
+        }
+      }
+    }
+    if (!connected) {
+      ImGui::EndDisabled();
+      if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+        ImGui::SetTooltip("Connect to Mesen2 first");
+      }
+    } else {
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Warp to room 0x%03X in Mesen2", room_id);
+      }
+    }
+  }
+
   ImGui::Separator();
 
   // Use per-room viewer
@@ -847,6 +973,11 @@ void DungeonEditorV2::OnRoomSelected(int room_id, bool request_focus) {
   }
   if (item_editor_panel_) {
     item_editor_panel_->SetCanvasViewer(GetViewerForRoom(room_id));
+  }
+
+  // Update room tag editor panel with current room
+  if (room_tag_editor_panel_) {
+    room_tag_editor_panel_->SetCurrentRoomId(room_id);
   }
 
   // Sync palette with current room (must happen before early return for focus changes)
