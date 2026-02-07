@@ -19,6 +19,7 @@ namespace yaze::editor {
 
 DungeonWorkbenchPanel::DungeonWorkbenchPanel(
     DungeonRoomSelector* room_selector, int* current_room_id,
+    int* previous_room_id, bool* split_view_enabled, int* compare_room_id,
     std::function<void(int)> on_room_selected,
     std::function<DungeonCanvasViewer*()> get_viewer,
     std::function<DungeonCanvasViewer*()> get_compare_viewer,
@@ -27,6 +28,9 @@ DungeonWorkbenchPanel::DungeonWorkbenchPanel(
     std::function<void(const std::string&)> show_panel, Rom* rom)
     : room_selector_(room_selector),
       current_room_id_(current_room_id),
+      previous_room_id_(previous_room_id),
+      split_view_enabled_(split_view_enabled),
+      compare_room_id_(compare_room_id),
       on_room_selected_(std::move(on_room_selected)),
       get_viewer_(std::move(get_viewer)),
       get_compare_viewer_(std::move(get_compare_viewer)),
@@ -86,7 +90,7 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
   ImGui::BeginChild("##DungeonWorkbenchCanvas", ImVec2(0, 0), false);
   if (auto* viewer = get_viewer_()) {
     DrawRecentRoomTabs();
-    if (split_view_enabled_) {
+    if (split_view_enabled_ && *split_view_enabled_) {
       DrawSplitView(*viewer);
     } else {
       viewer->DrawDungeonCanvas(*current_room_id_);
@@ -112,7 +116,8 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
 }
 
 void DungeonWorkbenchPanel::DrawRecentRoomTabs() {
-  if (!get_recent_rooms_ || !current_room_id_ || !on_room_selected_) {
+  if (!get_recent_rooms_ || !current_room_id_ || !on_room_selected_ ||
+      !split_view_enabled_) {
     return;
   }
 
@@ -140,14 +145,14 @@ void DungeonWorkbenchPanel::DrawRecentRoomTabs() {
   if (ImGui::BeginTabBar("##DungeonRecentRooms", kFlags)) {
     // Trailing split toggle.
     if (ImGui::TabItemButton(
-            split_view_enabled_ ? (ICON_MD_VERTICAL_SPLIT "##SplitOn")
-                                : (ICON_MD_VERTICAL_SPLIT "##SplitOff"),
+            (*split_view_enabled_) ? (ICON_MD_VERTICAL_SPLIT "##SplitOn")
+                                   : (ICON_MD_VERTICAL_SPLIT "##SplitOff"),
             ImGuiTabItemFlags_Trailing)) {
-      split_view_enabled_ = !split_view_enabled_;
+      *split_view_enabled_ = !*split_view_enabled_;
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(split_view_enabled_ ? "Disable split view"
-                                           : "Enable split view (compare)");
+      ImGui::SetTooltip((*split_view_enabled_) ? "Disable split view"
+                                               : "Enable split view (compare)");
     }
 
     for (int room_id : recent_ids) {
@@ -174,8 +179,10 @@ void DungeonWorkbenchPanel::DrawRecentRoomTabs() {
 
       if (ImGui::BeginPopupContextItem()) {
         if (ImGui::MenuItem(ICON_MD_COMPARE_ARROWS " Compare")) {
-          split_view_enabled_ = true;
-          compare_room_id_ = room_id;
+          *split_view_enabled_ = true;
+          if (compare_room_id_) {
+            *compare_room_id_ = room_id;
+          }
         }
         if (forget_recent_room_ && ImGui::MenuItem(ICON_MD_CLOSE " Close")) {
           to_forget.push_back(room_id);
@@ -201,26 +208,28 @@ void DungeonWorkbenchPanel::DrawRecentRoomTabs() {
 }
 
 void DungeonWorkbenchPanel::DrawSplitView(DungeonCanvasViewer& primary_viewer) {
-  if (!current_room_id_) {
-    split_view_enabled_ = false;
+  if (!current_room_id_ || !split_view_enabled_ || !compare_room_id_) {
+    if (split_view_enabled_) {
+      *split_view_enabled_ = false;
+    }
     return;
   }
 
   // Choose a sensible default compare room (most-recent non-current).
-  if (compare_room_id_ < 0 || compare_room_id_ == *current_room_id_) {
+  if (*compare_room_id_ < 0 || *compare_room_id_ == *current_room_id_) {
     if (get_recent_rooms_) {
       for (int rid : get_recent_rooms_()) {
         if (rid != *current_room_id_) {
-          compare_room_id_ = rid;
+          *compare_room_id_ = rid;
           break;
         }
       }
     }
   }
 
-  if (compare_room_id_ < 0) {
+  if (*compare_room_id_ < 0) {
     // Nothing to compare yet.
-    split_view_enabled_ = false;
+    *split_view_enabled_ = false;
     primary_viewer.DrawDungeonCanvas(*current_room_id_);
     return;
   }
@@ -250,7 +259,7 @@ void DungeonWorkbenchPanel::DrawSplitView(DungeonCanvasViewer& primary_viewer) {
   DrawCompareHeader();
   if (auto* compare_viewer =
           get_compare_viewer_ ? get_compare_viewer_() : nullptr) {
-    compare_viewer->DrawDungeonCanvas(compare_room_id_);
+    compare_viewer->DrawDungeonCanvas(*compare_room_id_);
   } else {
     ImGui::TextDisabled("No compare viewer");
   }
@@ -260,14 +269,18 @@ void DungeonWorkbenchPanel::DrawSplitView(DungeonCanvasViewer& primary_viewer) {
 }
 
 void DungeonWorkbenchPanel::DrawCompareHeader() {
+  if (!compare_room_id_ || !current_room_id_) {
+    return;
+  }
+
   ImGui::AlignTextToFramePadding();
   ImGui::TextDisabled(ICON_MD_COMPARE_ARROWS " Compare");
   ImGui::SameLine();
 
-  uint16_t rid = static_cast<uint16_t>(std::clamp(compare_room_id_, 0, 0x127));
+  uint16_t rid = static_cast<uint16_t>(std::clamp(*compare_room_id_, 0, 0x127));
   if (auto res = gui::InputHexWordEx("##CompareRoomId", &rid, 70.0f, true);
       res.ShouldApply()) {
-    compare_room_id_ = std::clamp<int>(rid, 0, 0x127);
+    *compare_room_id_ = std::clamp<int>(rid, 0, 0x127);
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Compare room ID");
@@ -275,7 +288,7 @@ void DungeonWorkbenchPanel::DrawCompareHeader() {
 
   ImGui::SameLine();
   if (ImGui::SmallButton(ICON_MD_SWAP_HORIZ "##SwapPanes")) {
-    std::swap(compare_room_id_, *current_room_id_);
+    std::swap(*compare_room_id_, *current_room_id_);
     on_room_selected_(*current_room_id_);
   }
   if (ImGui::IsItemHovered()) {

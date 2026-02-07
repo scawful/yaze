@@ -141,6 +141,11 @@ class DungeonEditorV2 : public Editor {
     room_loader_ = DungeonRoomLoader(rom);
     room_selector_.SetRom(rom);
 
+    // Reset workbench UI state on ROM change.
+    workbench_previous_room_id_ = -1;
+    workbench_split_view_enabled_ = false;
+    workbench_compare_room_id_ = -1;
+
     // Propagate ROM to all rooms
     if (rom) {
       for (auto& room : rooms_) {
@@ -261,6 +266,11 @@ class DungeonEditorV2 : public Editor {
   static constexpr size_t kMaxRecentRooms = 10;
   std::deque<int> recent_rooms_;
   std::vector<int> pinned_rooms_;
+
+  // Workbench-only UI state (persisted per ROM session).
+  int workbench_previous_room_id_ = -1;
+  bool workbench_split_view_enabled_ = false;
+  int workbench_compare_room_id_ = -1;
 
   // Palette management
   gfx::SnesPalette current_palette_;
