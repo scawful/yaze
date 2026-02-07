@@ -320,12 +320,17 @@ void PaletteControlsPanel::DrawApplyButtons() {
   gui::TextWithSeparators("Apply Palette");
 
   // Apply to current sheet
-  ImGui::BeginDisabled(state_->open_sheets.empty());
+  bool no_sheets = state_->open_sheets.empty();
+  ImGui::BeginDisabled(no_sheets);
   if (ImGui::Button(ICON_MD_BRUSH " Apply to Current Sheet")) {
     ApplyPaletteToSheet(state_->current_sheet_id);
   }
   ImGui::EndDisabled();
-  HOVER_HINT("Apply palette to the currently selected sheet");
+  if (no_sheets && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+    ImGui::SetTooltip("Open a graphics sheet first");
+  } else {
+    HOVER_HINT("Apply palette to the currently selected sheet");
+  }
 
   ImGui::SameLine();
 

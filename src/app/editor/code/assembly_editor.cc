@@ -344,7 +344,8 @@ void AssemblyEditor::DrawBuildOutput() {
     }
   }
   ImGui::SameLine();
-  ImGui::BeginDisabled(!has_rom || !has_active_file);
+  bool apply_disabled = !has_rom || !has_active_file;
+  ImGui::BeginDisabled(apply_disabled);
   if (ImGui::Button(ICON_MD_BUILD " Apply to ROM", ImVec2(140, 0))) {
     auto status = ApplyPatchToRom();
     if (status.ok() && dependencies_.toast_manager) {
@@ -352,6 +353,13 @@ void AssemblyEditor::DrawBuildOutput() {
     }
   }
   ImGui::EndDisabled();
+  if (apply_disabled &&
+      ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+    if (!has_rom)
+      ImGui::SetTooltip("Load a ROM first");
+    else
+      ImGui::SetTooltip("Open an assembly file first");
+  }
 
   ImGui::Separator();
 
