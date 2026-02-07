@@ -13,6 +13,7 @@
 #include "app/editor/dungeon/dungeon_room_selector.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
+#include "app/gui/core/layout_helpers.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
 #include "zelda3/resource_labels.h"
@@ -297,6 +298,7 @@ void DungeonWorkbenchPanel::DrawCompareHeader() {
 
   ImGui::AlignTextToFramePadding();
   ImGui::TextDisabled(ICON_MD_COMPARE_ARROWS " Compare");
+  const float line_start_x = ImGui::GetCursorPosX();
   ImGui::SameLine();
 
   // Picker: MRU + searchable full list.
@@ -306,7 +308,22 @@ void DungeonWorkbenchPanel::DrawCompareHeader() {
     snprintf(preview, sizeof(preview), "[%03X] %s", *compare_room_id_,
              label.c_str());
 
-    ImGui::SetNextItemWidth(240.0f);
+    const float avail = ImGui::GetContentRegionAvail().x;
+    const float btn = gui::LayoutHelpers::GetStandardWidgetHeight();
+    const float hex_w = 80.0f;
+    const float picker_w =
+        std::clamp(avail - (hex_w + btn + ImGui::GetStyle().ItemSpacing.x * 3.0f),
+                   180.0f, 420.0f);
+
+    // When tight, stack controls to avoid clipping.
+    const bool stacked = avail < 420.0f;
+
+    if (stacked) {
+      ImGui::SetCursorPosX(line_start_x);
+      ImGui::NewLine();
+    }
+
+    ImGui::SetNextItemWidth(picker_w);
     if (ImGui::BeginCombo("##CompareRoomPicker", preview,
                           ImGuiComboFlags_HeightLarge)) {
       auto to_lower = [](unsigned char c) {
@@ -400,7 +417,8 @@ void DungeonWorkbenchPanel::DrawCompareHeader() {
   }
 
   ImGui::SameLine();
-  if (ImGui::SmallButton(ICON_MD_SWAP_HORIZ "##SwapPanes")) {
+  const float btn = gui::LayoutHelpers::GetStandardWidgetHeight();
+  if (ImGui::Button(ICON_MD_SWAP_HORIZ "##SwapPanes", ImVec2(btn, btn))) {
     std::swap(*compare_room_id_, *current_room_id_);
     on_room_selected_(*current_room_id_);
   }

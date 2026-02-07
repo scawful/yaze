@@ -190,6 +190,11 @@ class DungeonCanvasViewer {
   void SetHeaderReadOnly(bool read_only) { header_read_only_ = read_only; }
   bool header_read_only() const { return header_read_only_; }
 
+  // Hide the header chrome entirely (useful for stitched/split layouts where a
+  // parent container provides its own metadata/controls).
+  void SetHeaderVisible(bool visible) { header_visible_ = visible; }
+  bool header_visible() const { return header_visible_; }
+
   // Set and get the object render mode
   void SetObjectRenderMode(ObjectRenderMode mode) {
     object_render_mode_ = mode;
@@ -459,6 +464,7 @@ class DungeonCanvasViewer {
   bool show_room_details_ = false;
   bool compact_header_mode_ = false;
   bool header_read_only_ = false;
+  bool header_visible_ = true;
   bool track_direction_map_enabled_ = true;
   std::vector<uint16_t> track_tile_order_;
   std::vector<uint16_t> switch_tile_order_;
