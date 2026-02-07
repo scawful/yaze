@@ -23,6 +23,7 @@
 #include "dungeon_canvas_viewer.h"
 #include "dungeon_room_loader.h"
 #include "dungeon_room_selector.h"
+#include "dungeon_workbench_state.h"
 #include "imgui/imgui.h"
 #include "panels/dungeon_room_graphics_panel.h"
 #include "panels/object_editor_panel.h"
@@ -145,6 +146,7 @@ class DungeonEditorV2 : public Editor {
     workbench_previous_room_id_ = -1;
     workbench_split_view_enabled_ = false;
     workbench_compare_room_id_ = -1;
+    workbench_layout_state_ = DungeonWorkbenchLayoutState{};
 
     // Propagate ROM to all rooms
     if (rom) {
@@ -271,6 +273,7 @@ class DungeonEditorV2 : public Editor {
   int workbench_previous_room_id_ = -1;
   bool workbench_split_view_enabled_ = false;
   int workbench_compare_room_id_ = -1;
+  DungeonWorkbenchLayoutState workbench_layout_state_{};
 
   // Palette management
   gfx::SnesPalette current_palette_;
