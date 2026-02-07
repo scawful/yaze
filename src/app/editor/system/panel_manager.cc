@@ -36,6 +36,8 @@ PanelDescriptor BuildDescriptorFromPanel(const EditorPanel& panel) {
   descriptor.priority = panel.GetPriority();
   descriptor.shortcut_hint = panel.GetShortcutHint();
   descriptor.scope = panel.GetScope();
+  descriptor.panel_category = panel.GetPanelCategory();
+  descriptor.context_scope = panel.GetContextScope();
   descriptor.visibility_flag = nullptr;  // Created by RegisterPanel
   descriptor.window_title = panel.GetIcon() + " " + panel.GetDisplayName();
   return descriptor;
@@ -152,6 +154,8 @@ void PanelManager::RegisterSession(size_t session_id) {
     session_cards_[session_id] = std::vector<std::string>();
     session_card_mapping_[session_id] =
         std::unordered_map<std::string, std::string>();
+    session_reverse_card_mapping_[session_id] =
+        std::unordered_map<std::string, std::string>();
     UpdateSessionCount();
     LOG_INFO("PanelManager", "Registered session %zu (total: %zu)", session_id,
              session_count_);
@@ -164,6 +168,8 @@ void PanelManager::UnregisterSession(size_t session_id) {
     UnregisterSessionPanels(session_id);
     session_cards_.erase(it);
     session_card_mapping_.erase(session_id);
+    session_reverse_card_mapping_.erase(session_id);
+    session_context_keys_.erase(session_id);
     UpdateSessionCount();
 
     // Reset active session if it was the one being removed
@@ -181,6 +187,90 @@ void PanelManager::UnregisterSession(size_t session_id) {
 
 void PanelManager::SetActiveSession(size_t session_id) {
   active_session_ = session_id;
+}
+
+// ============================================================================
+// Context Keys (Optional Policy Engine)
+// ============================================================================
+
+void PanelManager::SetContextKey(size_t session_id, PanelContextScope scope,
+                                 std::string key) {
+  RegisterSession(session_id);
+  auto& session_map = session_context_keys_[session_id];
+  const std::string old_key =
+      (session_map.find(scope) != session_map.end()) ? session_map[scope] : "";
+  if (old_key == key) {
+    return;
+  }
+  session_map[scope] = std::move(key);
+  ApplyContextPolicy(session_id, scope, old_key, session_map[scope]);
+}
+
+std::string PanelManager::GetContextKey(size_t session_id,
+                                       PanelContextScope scope) const {
+  auto sit = session_context_keys_.find(session_id);
+  if (sit == session_context_keys_.end()) {
+    return "";
+  }
+  const auto& session_map = sit->second;
+  auto it = session_map.find(scope);
+  if (it == session_map.end()) {
+    return "";
+  }
+  return it->second;
+}
+
+void PanelManager::ApplyContextPolicy(size_t session_id, PanelContextScope scope,
+                                      const std::string& old_key,
+                                      const std::string& new_key) {
+  (void)old_key;
+  // Conservative default: if a context is cleared, auto-hide panels that were
+  // explicitly bound to it (unless pinned). This reduces stale "mystery panels"
+  // without being aggressive when context changes (selection A -> selection B).
+  if (!new_key.empty()) {
+    return;
+  }
+
+  auto sit = session_cards_.find(session_id);
+  if (sit == session_cards_.end()) {
+    return;
+  }
+
+  for (const auto& prefixed_id : sit->second) {
+    auto dit = cards_.find(prefixed_id);
+    if (dit == cards_.end()) {
+      continue;
+    }
+    const PanelDescriptor& desc = dit->second;
+    if (desc.context_scope != scope) {
+      continue;
+    }
+    if (!desc.visibility_flag || !*desc.visibility_flag) {
+      continue;
+    }
+    if (IsPanelPinned(prefixed_id)) {
+      continue;
+    }
+
+    const std::string base_id = GetBaseIdForPrefixedId(session_id, prefixed_id);
+    if (!base_id.empty()) {
+      (void)HidePanel(session_id, base_id);
+    }
+  }
+}
+
+std::string PanelManager::GetBaseIdForPrefixedId(
+    size_t session_id, const std::string& prefixed_id) const {
+  auto sit = session_reverse_card_mapping_.find(session_id);
+  if (sit == session_reverse_card_mapping_.end()) {
+    return "";
+  }
+  const auto& reverse = sit->second;
+  auto it = reverse.find(prefixed_id);
+  if (it == reverse.end()) {
+    return "";
+  }
+  return it->second;
 }
 
 // ============================================================================
@@ -324,6 +414,8 @@ void PanelManager::ClearAllPanels() {
   pinned_panels_.clear();
   session_cards_.clear();
   session_card_mapping_.clear();
+  session_reverse_card_mapping_.clear();
+  session_context_keys_.clear();
   panel_instances_.clear();
   registry_panel_ids_.clear();
   global_panel_ids_.clear();
@@ -635,12 +727,35 @@ void PanelManager::OnEditorSwitch(const std::string& from_category,
   LOG_INFO("PanelManager", "Switching from category '%s' to '%s'",
            from_category.c_str(), to_category.c_str());
 
-  // Hide non-pinned, non-persistent panels from previous category
-  for (const auto& [panel_id, panel] : panel_instances_) {
-    if (panel->GetEditorCategory() == from_category &&
-        !IsPanelPinned(panel_id) &&
-        panel->GetPanelCategory() != PanelCategory::Persistent) {
-      HidePanel(panel_id);
+  // Hide non-pinned, non-persistent panels from previous category.
+  // Important: apply this to *all* cards, not just panels with EditorPanel
+  // instances, otherwise descriptor-only panels can leak across editors.
+  const size_t session_id = active_session_;
+  auto sit = session_cards_.find(session_id);
+  if (sit != session_cards_.end()) {
+    for (const auto& prefixed_id : sit->second) {
+      auto dit = cards_.find(prefixed_id);
+      if (dit == cards_.end()) {
+        continue;
+      }
+      const PanelDescriptor& desc = dit->second;
+      if (desc.category != from_category) {
+        continue;
+      }
+      if (!desc.visibility_flag || !*desc.visibility_flag) {
+        continue;
+      }
+      if (IsPanelPinned(prefixed_id)) {
+        continue;
+      }
+      if (desc.panel_category == PanelCategory::Persistent) {
+        continue;
+      }
+
+      const std::string base_id = GetBaseIdForPrefixedId(session_id, prefixed_id);
+      if (!base_id.empty()) {
+        (void)HidePanel(session_id, base_id);
+      }
     }
   }
 
@@ -669,11 +784,19 @@ bool PanelManager::ShowPanel(size_t session_id,
 
   auto it = cards_.find(prefixed_id);
   if (it != cards_.end()) {
+    const bool was_visible =
+        (it->second.visibility_flag && *it->second.visibility_flag);
     if (it->second.visibility_flag) {
       *it->second.visibility_flag = true;
     }
     if (it->second.on_show) {
       it->second.on_show();
+    }
+    if (!was_visible) {
+      auto pit = panel_instances_.find(prefixed_id);
+      if (pit != panel_instances_.end() && pit->second) {
+        pit->second->OnOpen();
+      }
     }
 
     // Publish visibility changed event
@@ -695,11 +818,19 @@ bool PanelManager::HidePanel(size_t session_id,
 
   auto it = cards_.find(prefixed_id);
   if (it != cards_.end()) {
+    const bool was_visible =
+        (it->second.visibility_flag && *it->second.visibility_flag);
     if (it->second.visibility_flag) {
       *it->second.visibility_flag = false;
     }
     if (it->second.on_hide) {
       it->second.on_hide();
+    }
+    if (was_visible) {
+      auto pit = panel_instances_.find(prefixed_id);
+      if (pit != panel_instances_.end() && pit->second) {
+        pit->second->OnClose();
+      }
     }
 
     // Publish visibility changed event
@@ -728,6 +859,14 @@ bool PanelManager::TogglePanel(size_t session_id,
       it->second.on_show();
     } else if (!new_state && it->second.on_hide) {
       it->second.on_hide();
+    }
+    auto pit = panel_instances_.find(prefixed_id);
+    if (pit != panel_instances_.end() && pit->second) {
+      if (new_state) {
+        pit->second->OnOpen();
+      } else {
+        pit->second->OnClose();
+      }
     }
 
     // Publish visibility changed event
@@ -1362,6 +1501,7 @@ void PanelManager::TrackPanelForSession(size_t session_id,
     card_list.push_back(panel_id);
   }
   session_card_mapping_[session_id][base_id] = panel_id;
+  session_reverse_card_mapping_[session_id][panel_id] = base_id;
 }
 
 void PanelManager::UnregisterSessionPanels(size_t session_id) {

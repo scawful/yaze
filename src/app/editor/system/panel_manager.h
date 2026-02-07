@@ -50,6 +50,13 @@ struct PanelDescriptor {
   std::string window_title;  // ImGui window title for DockBuilder (e.g., " Rooms List")
   std::string icon;          // Material icon
   std::string category;      // Category (e.g., "Dungeon", "Graphics", "Palette")
+
+  // Lifecycle behavior on editor switches (default: EditorBound).
+  PanelCategory panel_category = PanelCategory::EditorBound;
+
+  // Optional context binding (default: none).
+  PanelContextScope context_scope = PanelContextScope::kNone;
+
   PanelScope scope = PanelScope::kSession;
   enum class ShortcutScope {
     kGlobal,   // Available regardless of active editor
@@ -106,6 +113,20 @@ class PanelManager {
   void RegisterSession(size_t session_id);
   void UnregisterSession(size_t session_id);
   void SetActiveSession(size_t session_id);
+
+  // ============================================================================
+  // Context Keys (Optional Policy Engine)
+  // ============================================================================
+
+  /**
+   * @brief Set a string key for a given context scope (room/selection/etc)
+   *
+   * This is an opt-in policy hook. PanelManager can apply default rules when
+   * context becomes invalid (e.g., selection cleared) to avoid stale panels.
+   */
+  void SetContextKey(size_t session_id, PanelContextScope scope,
+                     std::string key);
+  std::string GetContextKey(size_t session_id, PanelContextScope scope) const;
 
   // ============================================================================
   // Panel Registration
@@ -696,6 +717,18 @@ class PanelManager {
   void MarkPanelUsed(const std::string& panel_id);
 
  private:
+  struct PanelContextScopeHash {
+    size_t operator()(PanelContextScope scope) const noexcept {
+      return static_cast<size_t>(scope);
+    }
+  };
+
+  void ApplyContextPolicy(size_t session_id, PanelContextScope scope,
+                          const std::string& old_key,
+                          const std::string& new_key);
+  std::string GetBaseIdForPrefixedId(size_t session_id,
+                                    const std::string& prefixed_id) const;
+
   // ... existing private members ...
 
   // Resource panel tracking: type -> list of panel_ids (front = LRU, back = MRU)
@@ -734,6 +767,16 @@ class PanelManager {
   // Maps session_id → (base_card_id → prefixed_card_id)
   std::unordered_map<size_t, std::unordered_map<std::string, std::string>>
       session_card_mapping_;
+
+  // Maps session_id → (prefixed_card_id → base_card_id)
+  std::unordered_map<size_t, std::unordered_map<std::string, std::string>>
+      session_reverse_card_mapping_;
+
+  // Context keys per session (used by SetContextKey/GetContextKey).
+  std::unordered_map<size_t,
+                     std::unordered_map<PanelContextScope, std::string,
+                                        PanelContextScopeHash>>
+      session_context_keys_;
 
   // Workspace presets
   std::unordered_map<std::string, WorkspacePreset> presets_;
