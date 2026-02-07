@@ -105,6 +105,7 @@ void MessagePreview::DrawCharacterToPreview(const std::vector<uint8_t>& text) {
     } else if (value == kScrollVertical) {
       text_position = 0;
       text_line += 1;
+      scroll_marker_lines.push_back(text_line);
     } else if (value == kLine2) {
       text_position = 0;
       text_line = 1;
@@ -146,6 +147,7 @@ void MessagePreview::DrawMessagePreview(const MessageData& message) {
   text_line = 0;
   std::fill(current_preview_data_.begin(), current_preview_data_.end(), 0);
   text_position = 0;
+  scroll_marker_lines.clear();
   DrawCharacterToPreview(message.Data);
   shown_lines = 0;
 }

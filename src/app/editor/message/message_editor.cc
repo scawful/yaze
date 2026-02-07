@@ -107,15 +107,7 @@ void MessageEditor::Initialize() {
   parsed_messages_ =
       ParseMessageData(list_of_texts_, message_preview_.all_dictionaries_);
 
-  if (dependencies_.project && dependencies_.project->hack_manifest.loaded()) {
-    const auto& layout = dependencies_.project->hack_manifest.message_layout();
-    expanded_message_base_id_ =
-        (layout.first_expanded_id != 0)
-            ? static_cast<int>(layout.first_expanded_id)
-            : static_cast<int>(list_of_texts_.size());
-  } else {
-    expanded_message_base_id_ = static_cast<int>(list_of_texts_.size());
-  }
+  expanded_message_base_id_ = ResolveExpandedMessageBaseId();
 
   if (!list_of_texts_.empty()) {
     // Default to message 1 if available, otherwise 0
@@ -128,6 +120,21 @@ void MessageEditor::Initialize() {
   } else {
     LOG_ERROR("MessageEditor", "No messages found in ROM!");
   }
+}
+
+int MessageEditor::ResolveExpandedMessageBaseId() const {
+  int base_id = static_cast<int>(list_of_texts_.size());
+  if (dependencies_.project && dependencies_.project->hack_manifest.loaded()) {
+    const auto& layout = dependencies_.project->hack_manifest.message_layout();
+    if (layout.first_expanded_id != 0) {
+      base_id = static_cast<int>(layout.first_expanded_id);
+    }
+  }
+
+  // Never allow the expanded base to precede the vanilla message count; this
+  // prevents truncating/overlapping IDs when the manifest is missing/mistyped.
+  base_id = std::max(base_id, static_cast<int>(list_of_texts_.size()));
+  return base_id;
 }
 
 void MessageEditor::ResolveFontPalette() {
@@ -457,11 +464,12 @@ void MessageEditor::DrawCurrentMessage() {
   const ImVec2 preview_canvas_size = current_font_gfx16_canvas_.canvas_size();
   const float dest_width = std::max(0.0f, preview_canvas_size.x - 8.0f);
   const float dest_height = std::max(0.0f, preview_canvas_size.y - 8.0f);
+  float src_height = 0.0f;
   if (dest_width > 0.0f && dest_height > 0.0f) {
     const float src_width = std::min(dest_width * 0.5f,
                                      static_cast<float>(kCurrentMessageWidth));
-    const float src_height = std::min(
-        dest_height * 0.5f, static_cast<float>(kCurrentMessageHeight));
+    src_height = std::min(dest_height * 0.5f,
+                          static_cast<float>(kCurrentMessageHeight));
     current_font_gfx16_canvas_.DrawBitmap(
         current_font_gfx16_bitmap_, ImVec2(0, 0),  // Destination position
         ImVec2(dest_width, dest_height),           // Destination size
@@ -470,9 +478,97 @@ void MessageEditor::DrawCurrentMessage() {
     );
   }
 
+  // Draw scroll break separator lines on the preview canvas
+  {
+    ImDrawList* overlay_draw_list = ImGui::GetWindowDrawList();
+    ImVec2 canvas_p0 = current_font_gfx16_canvas_.zero_point();
+    ImVec2 canvas_sz = current_font_gfx16_canvas_.canvas_size();
+    float line_height = 16.0f;
+    // The bitmap is drawn scaled: dest occupies full canvas, so compute the
+    // vertical scale factor from destination height to source height.
+    float scale_y = 1.0f;
+    if (dest_height > 0.0f && src_height > 0.0f) {
+      scale_y = dest_height / src_height;
+    }
+    for (int marker_line : message_preview_.scroll_marker_lines) {
+      float src_y = (marker_line - message_preview_.shown_lines) * line_height;
+      float y = canvas_p0.y + src_y * scale_y;
+      if (y >= canvas_p0.y && y <= canvas_p0.y + canvas_sz.y) {
+        overlay_draw_list->AddLine(
+            ImVec2(canvas_p0.x, y),
+            ImVec2(canvas_p0.x + canvas_sz.x, y),
+            IM_COL32(100, 180, 255, 180), 1.5f);
+        overlay_draw_list->AddText(
+            ImVec2(canvas_p0.x + canvas_sz.x + 4, y - 6),
+            IM_COL32(100, 180, 255, 200), "[V]");
+      }
+    }
+  }
+
   current_font_gfx16_canvas_.DrawGrid();
   current_font_gfx16_canvas_.DrawOverlay();
   EndChild();
+
+  // Message Structure info panel
+  if (ImGui::CollapsingHeader("Message Structure",
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
+    ImGui::Text("Lines: %d", message_preview_.text_line + 1);
+
+    int scroll_count = 0;
+    int current_line_chars = 0;
+    int line_num = 0;
+
+    for (size_t i = 0; i < current_message_.Data.size(); i++) {
+      uint8_t byte = current_message_.Data[i];
+      if (byte == kScrollVertical) {
+        scroll_count++;
+        ImGui::TextColored(
+            ImVec4(0.4f, 0.7f, 1.0f, 1.0f),
+            "  [V] Scroll at byte %zu (line %d, %d chars)",
+            i, line_num, current_line_chars);
+        current_line_chars = 0;
+        line_num++;
+      } else if (byte == kLine1) {
+        ImGui::TextColored(ImVec4(0.7f, 0.85f, 0.5f, 1.0f),
+                           "  [1] Line 1 at byte %zu", i);
+        current_line_chars = 0;
+        line_num = 0;
+      } else if (byte == kLine2) {
+        ImGui::TextColored(ImVec4(0.7f, 0.85f, 0.5f, 1.0f),
+                           "  [2] Line 2 at byte %zu", i);
+        current_line_chars = 0;
+        line_num = 1;
+      } else if (byte == kLine3) {
+        ImGui::TextColored(ImVec4(0.7f, 0.85f, 0.5f, 1.0f),
+                           "  [3] Line 3 at byte %zu", i);
+        current_line_chars = 0;
+        line_num = 2;
+      } else if (byte < 100) {
+        current_line_chars++;
+      }
+    }
+
+    if (scroll_count == 0) {
+      ImGui::TextDisabled("No scroll breaks in this message");
+    } else {
+      ImGui::Text("Total scroll breaks: %d", scroll_count);
+    }
+
+    // Character width budget
+    ImGui::Separator();
+    ImGui::TextDisabled("Line width budget (max ~170px):");
+    int estimated_line_width = current_line_chars * 8;
+    float width_ratio = static_cast<float>(estimated_line_width) / 170.0f;
+    ImVec4 width_color =
+        (width_ratio > 1.0f)
+            ? ImVec4(0.9f, 0.2f, 0.2f, 1.0f)
+            : (width_ratio > 0.85f)
+                  ? ImVec4(0.9f, 0.7f, 0.1f, 1.0f)
+                  : ImVec4(0.2f, 0.8f, 0.2f, 1.0f);
+    ImGui::TextColored(width_color, "Last line: ~%dpx / 170px (%d chars)",
+                       estimated_line_width, current_line_chars);
+  }
+
   ImGui::EndChild();
 }
 
@@ -485,34 +581,61 @@ void MessageEditor::DrawFontAtlas() {
 }
 
 void MessageEditor::DrawExpandedMessageSettings() {
-  ImGui::BeginChild("##ExpandedMessageSettings", ImVec2(0, 100), true,
+  ImGui::BeginChild("##ExpandedMessageSettings", ImVec2(0, 130), true,
                     ImGuiWindowFlags_AlwaysVerticalScrollbar);
   ImGui::Text("Expanded Messages");
 
-  if (ImGui::Button("Load Expanded Message")) {
+  if (ImGui::Button("Load from ROM")) {
+    auto status = LoadExpandedMessagesFromRom();
+    if (!status.ok()) {
+      LOG_WARN("MessageEditor", "Load from ROM: %s",
+               std::string(status.message()).c_str());
+    }
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Load from File")) {
     std::string path = util::FileDialogWrapper::ShowOpenFileDialog();
     if (!path.empty()) {
       expanded_message_path_ = path;
-      expanded_message_base_id_ = static_cast<int>(list_of_texts_.size());
-      if (parsed_messages_.size() >
-          static_cast<size_t>(expanded_message_base_id_)) {
-        parsed_messages_.resize(expanded_message_base_id_);
-      }
+      expanded_message_base_id_ = ResolveExpandedMessageBaseId();
+      parsed_messages_.resize(expanded_message_base_id_);
       expanded_messages_.clear();
-      if (!LoadExpandedMessages(expanded_message_path_, parsed_messages_,
-                                expanded_messages_,
-                                message_preview_.all_dictionaries_)
-               .ok()) {
+      std::vector<std::string> parsed_expanded;
+      auto status = LoadExpandedMessages(expanded_message_path_, parsed_expanded,
+                                         expanded_messages_,
+                                         message_preview_.all_dictionaries_);
+      if (!status.ok()) {
         if (auto* popup_manager = dependencies_.popup_manager) {
           popup_manager->Show("Error");
         }
+      } else {
+        parsed_messages_.insert(parsed_messages_.end(), parsed_expanded.begin(),
+                                parsed_expanded.end());
       }
     }
   }
 
   if (expanded_messages_.size() > 0) {
-    ImGui::Text("Expanded Path: %s", expanded_message_path_.c_str());
-    ImGui::Text("Expanded Messages: %lu", expanded_messages_.size());
+    ImGui::Text("Source: %s", expanded_message_path_.c_str());
+    ImGui::Text("Messages: %lu", expanded_messages_.size());
+
+    // Capacity indicator
+    int capacity = GetExpandedTextDataEnd() - GetExpandedTextDataStart() + 1;
+    int used = CalculateExpandedBankUsage();
+    int remaining = capacity - used;
+    float usage_ratio = static_cast<float>(used) / static_cast<float>(capacity);
+
+    ImVec4 capacity_color;
+    if (usage_ratio < 0.75f) {
+      capacity_color = ImVec4(0.2f, 0.8f, 0.2f, 1.0f);  // Green
+    } else if (usage_ratio < 0.90f) {
+      capacity_color = ImVec4(0.9f, 0.7f, 0.1f, 1.0f);  // Yellow
+    } else {
+      capacity_color = ImVec4(0.9f, 0.2f, 0.2f, 1.0f);  // Red
+    }
+    ImGui::TextColored(capacity_color, "Bank: %d / %d bytes (%d free)",
+                       used, capacity, remaining);
+
     if (ImGui::Button("Add New Message")) {
       MessageData new_message;
       new_message.ID = expanded_messages_.back().ID + 1;
@@ -523,24 +646,6 @@ void MessageEditor::DrawExpandedMessageSettings() {
       if (display_id >= 0 &&
           static_cast<size_t>(display_id) >= parsed_messages_.size()) {
         parsed_messages_.resize(display_id + 1);
-      }
-    }
-
-    if (ImGui::Button("Save Expanded Messages")) {
-      if (expanded_message_path_.empty()) {
-        expanded_message_path_ = util::FileDialogWrapper::ShowSaveFileDialog();
-      }
-      if (!expanded_message_path_.empty()) {
-        PRINT_IF_ERROR(SaveExpandedMessages());
-      }
-    }
-
-    ImGui::SameLine();
-    if (ImGui::Button("Save As...")) {
-      std::string path = util::FileDialogWrapper::ShowSaveFileDialog();
-      if (!path.empty()) {
-        expanded_message_path_ = path;
-        PRINT_IF_ERROR(SaveExpandedMessages());
       }
     }
 
@@ -846,63 +951,91 @@ absl::Status MessageEditor::Save() {
 
   RETURN_IF_ERROR(rom()->WriteByte(pos, 0xFF));
 
+  // Also save expanded messages to main ROM if any are loaded
+  if (!expanded_messages_.empty()) {
+    auto status = SaveExpandedMessages();
+    if (!status.ok()) {
+      std::copy(backup.begin(), backup.end(), rom()->mutable_data());
+      return status;
+    }
+  }
+
   return absl::OkStatus();
 }
 
 absl::Status MessageEditor::SaveExpandedMessages() {
-  if (expanded_message_path_.empty()) {
-    return absl::InvalidArgumentError(
-        "No path specified for expanded messages");
+  if (expanded_messages_.empty()) {
+    return absl::OkStatus();
   }
 
-  // Ensure the ROM object is loaded/initialized if needed, or just use it as a buffer
-  // The original code used expanded_message_bin_ which wasn't clearly initialized in this scope
-  // except potentially in LoadExpandedMessages via a static local?
-  // Wait, LoadExpandedMessages used a static local Rom.
-  // We need to ensure expanded_message_bin_ member is populated or we load it.
-
-  if (!expanded_message_bin_.is_loaded()) {
-    // Try to load from the path if it exists, otherwise create new?
-    // For now, let's assume we are overwriting or updating.
-    // If we are just writing raw data, maybe we don't need a full ROM load if we just write bytes?
-    // But SaveToFile expects a loaded ROM structure.
-    // Let's try to load it first.
-    auto status = expanded_message_bin_.LoadFromFile(expanded_message_path_);
-    if (!status.ok()) {
-      // If file doesn't exist, maybe we should create a buffer?
-      // For now, let's propagate error if we can't load it to update it.
-      // Or if it's a new file, we might need to handle that.
-      // Let's assume for this task we are updating an existing BIN or creating one.
-      // If creating, we might need to initialize expanded_message_bin_ with enough size.
-      // Let's just try to load, and if it fails (e.g. new file), initialize empty.
-      expanded_message_bin_.Expand(0x200000);  // Default 2MB? Or just enough?
-    }
+  if (!rom_ || !rom_->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
   }
 
-  for (const auto& expanded_message : expanded_messages_) {
-    // Ensure vector is large enough
-    if (expanded_message.Address + expanded_message.Data.size() >
-        expanded_message_bin_.size()) {
-      expanded_message_bin_.Expand(expanded_message.Address +
-                                   expanded_message.Data.size() + 0x1000);
-    }
-    std::copy(expanded_message.Data.begin(), expanded_message.Data.end(),
-              expanded_message_bin_.mutable_data() + expanded_message.Address);
+  // Collect all expanded message text strings (mirrors CLI message-write path)
+  std::vector<std::string> all_texts;
+  all_texts.reserve(expanded_messages_.size());
+  for (const auto& msg : expanded_messages_) {
+    all_texts.push_back(msg.RawString);
   }
 
-  // Write terminator
-  if (!expanded_messages_.empty()) {
-    size_t end_pos = expanded_messages_.back().Address +
-                     expanded_messages_.back().Data.size();
-    if (end_pos < expanded_message_bin_.size()) {
-      expanded_message_bin_.WriteByte(end_pos, 0xFF);
-    }
+  // Write to main ROM buffer at the expanded text data region
+  RETURN_IF_ERROR(WriteExpandedTextData(
+      rom_->mutable_data(),
+      GetExpandedTextDataStart(),
+      GetExpandedTextDataEnd(),
+      all_texts));
+
+  // Recalculate addresses after sequential write
+  int pos = GetExpandedTextDataStart();
+  for (auto& msg : expanded_messages_) {
+    msg.Address = pos;
+    auto bytes = ParseMessageToData(msg.RawString);
+    pos += static_cast<int>(bytes.size()) + 1;  // +1 for 0x7F terminator
   }
 
-  expanded_message_bin_.set_filename(expanded_message_path_);
-  RETURN_IF_ERROR(expanded_message_bin_.SaveToFile(
-      Rom::SaveSettings{.backup = true, .save_new = false}));
   return absl::OkStatus();
+}
+
+absl::Status MessageEditor::LoadExpandedMessagesFromRom() {
+  if (!rom_ || !rom_->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+
+  expanded_message_base_id_ = ResolveExpandedMessageBaseId();
+  parsed_messages_.resize(expanded_message_base_id_);
+
+  expanded_messages_.clear();
+  expanded_messages_ = ReadExpandedTextData(
+      rom_->mutable_data(), GetExpandedTextDataStart());
+
+  if (expanded_messages_.empty()) {
+    return absl::NotFoundError(
+        "No expanded messages found in ROM at expanded text region");
+  }
+
+  // Parse the expanded messages and append to the unified list
+  auto parsed_expanded =
+      ParseMessageData(expanded_messages_, message_preview_.all_dictionaries_);
+  for (const auto& msg : expanded_messages_) {
+    if (msg.ID >= 0 &&
+        msg.ID < static_cast<int>(parsed_expanded.size())) {
+      parsed_messages_.push_back(parsed_expanded[msg.ID]);
+    }
+  }
+
+  expanded_message_path_ = "(ROM)";
+  return absl::OkStatus();
+}
+
+int MessageEditor::CalculateExpandedBankUsage() const {
+  if (expanded_messages_.empty()) return 0;
+  int total = 0;
+  for (const auto& msg : expanded_messages_) {
+    total += static_cast<int>(msg.Data.size()) + 1;  // +1 for 0x7F
+  }
+  total += 1;  // +1 for final 0xFF
+  return total;
 }
 
 absl::Status MessageEditor::Cut() {
