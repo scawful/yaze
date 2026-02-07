@@ -861,8 +861,12 @@ void MusicEditor::DrawSongTrackerWindow(int song_index) {
   if (ImGui::IsItemHovered())
     ImGui::SetTooltip("Stop playback");
 
-  if (!can_play)
+  if (!can_play) {
     ImGui::EndDisabled();
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+      ImGui::SetTooltip("Audio not ready - initialize music player first");
+    }
+  }
 
   // Keyboard shortcuts (when window is focused)
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&

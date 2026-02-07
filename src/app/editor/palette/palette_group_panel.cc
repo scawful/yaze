@@ -205,6 +205,10 @@ void PaletteGroupPanel::DrawToolbar() {
     }
   }
   ImGui::EndDisabled();
+  if (!has_changes &&
+      ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+    ImGui::SetTooltip("No palette changes to save");
+  }
 
   ImGui::SameLine();
 
@@ -214,6 +218,10 @@ void PaletteGroupPanel::DrawToolbar() {
     DiscardChanges();
   }
   ImGui::EndDisabled();
+  if (!has_changes &&
+      ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+    ImGui::SetTooltip("No palette changes to discard");
+  }
 
   ImGui::SameLine();
 
@@ -237,18 +245,28 @@ void PaletteGroupPanel::DrawToolbar() {
   ImGui::SameLine();
 
   // Undo/Redo (global operations via PaletteManager)
-  ImGui::BeginDisabled(!gfx::PaletteManager::Get().CanUndo());
+  bool can_undo = gfx::PaletteManager::Get().CanUndo();
+  ImGui::BeginDisabled(!can_undo);
   if (ThemedIconButton(ICON_MD_UNDO, "Undo")) {
     Undo();
   }
   ImGui::EndDisabled();
+  if (!can_undo &&
+      ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+    ImGui::SetTooltip("Nothing to undo");
+  }
 
   ImGui::SameLine();
-  ImGui::BeginDisabled(!gfx::PaletteManager::Get().CanRedo());
+  bool can_redo = gfx::PaletteManager::Get().CanRedo();
+  ImGui::BeginDisabled(!can_redo);
   if (ThemedIconButton(ICON_MD_REDO, "Redo")) {
     Redo();
   }
   ImGui::EndDisabled();
+  if (!can_redo &&
+      ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+    ImGui::SetTooltip("Nothing to redo");
+  }
 
   ImGui::SameLine();
   ImGui::Dummy(ImVec2(20, 0));  // Spacer

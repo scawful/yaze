@@ -223,7 +223,8 @@ void SelectionPropertiesPanel::DrawAgentActions() {
   ImGui::Spacing();
 
   ImGui::TextDisabled("%s Agent Actions", ICON_MD_SMART_TOY);
-  ImGui::BeginDisabled(selection_.type == SelectionType::kNone);
+  bool no_selection = (selection_.type == SelectionType::kNone);
+  ImGui::BeginDisabled(no_selection);
   if (ImGui::SmallButton("Explain")) {
     SendAgentPrompt("Explain this selection and how to edit it safely.");
   }
@@ -236,6 +237,10 @@ void SelectionPropertiesPanel::DrawAgentActions() {
     SendAgentPrompt("Audit this selection for possible issues or conflicts.");
   }
   ImGui::EndDisabled();
+  if (no_selection &&
+      ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+    ImGui::SetTooltip("Select an object first to use agent actions");
+  }
 }
 
 std::string SelectionPropertiesPanel::BuildSelectionContext() const {
