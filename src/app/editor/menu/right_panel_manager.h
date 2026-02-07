@@ -239,6 +239,9 @@ class RightPanelManager {
   ToastManager* toast_manager_ = nullptr;
   Rom* rom_ = nullptr;
 
+  // Properties panel lock state
+  bool properties_locked_ = false;
+
   // Animation state
   float panel_animation_ = 0.0f;   // 0.0 = fully closed, 1.0 = fully open
   float animation_target_ = 0.0f;  // Target value for lerp
