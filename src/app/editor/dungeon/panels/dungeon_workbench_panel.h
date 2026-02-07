@@ -47,7 +47,6 @@ class DungeonWorkbenchPanel : public EditorPanel {
  private:
   void DrawRecentRoomTabs();
   void DrawSplitView(DungeonCanvasViewer& primary_viewer);
-  void DrawCompareHeader();
   void DrawInspector(DungeonCanvasViewer& viewer);
 
   DungeonRoomSelector* room_selector_ = nullptr;
