@@ -7,11 +7,14 @@
 #include <fstream>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/core/content_registry.h"
+#include "app/editor/events/core_events.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/panel_manager.h"
 #include "core/project.h"
 #include "util/json.h"
 #include "util/log.h"
+#include "zelda3/resource_labels.h"
 
 namespace yaze {
 namespace editor {
@@ -355,6 +358,28 @@ void CommandPalette::RegisterRecentFilesCommands(
 
     AddCommand(name, CommandCategory::kFile, desc, "",
                [open_callback, filepath]() { open_callback(filepath); });
+  }
+}
+
+void CommandPalette::RegisterDungeonRoomCommands(size_t session_id) {
+  constexpr int kTotalRooms = 0x128;
+  for (int room_id = 0; room_id < kTotalRooms; ++room_id) {
+    const std::string label = zelda3::GetRoomLabel(room_id);
+    const std::string room_name =
+        label.empty() ? absl::StrFormat("Room %03X", room_id) : label;
+
+    const std::string name =
+        absl::StrFormat("Dungeon: Open Room [%03X] %s", room_id, room_name);
+    const std::string desc =
+        absl::StrFormat("Jump to dungeon room %03X", room_id);
+
+    AddCommand(name, CommandCategory::kNavigation, desc, "",
+               [room_id, session_id]() {
+                 if (auto* bus = ContentRegistry::Context::event_bus()) {
+                   bus->Publish(
+                       JumpToRoomRequestEvent::Create(room_id, session_id));
+                 }
+               });
   }
 }
 

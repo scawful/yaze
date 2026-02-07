@@ -1385,6 +1385,9 @@ void UICoordinator::InitializeCommandPalette(size_t session_id) {
         }
       });
 
+  // Dungeon navigation helpers (room jump by id/label).
+  command_palette_.RegisterDungeonRoomCommands(session_id);
+
   // Load command usage history
   auto config_dir = util::PlatformPaths::GetConfigDirectory();
   if (config_dir.ok()) {
