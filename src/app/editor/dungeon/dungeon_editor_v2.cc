@@ -236,6 +236,13 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
       &room_selector_, &current_room_id_,
       [this](int room_id) { OnRoomSelected(room_id); },
       [this]() { return GetWorkbenchViewer(); },
+      [this]() { return GetWorkbenchCompareViewer(); },
+      [this]() -> const std::deque<int>& { return recent_rooms_; },
+      [this](int room_id) {
+        recent_rooms_.erase(
+            std::remove(recent_rooms_.begin(), recent_rooms_.end(), room_id),
+            recent_rooms_.end());
+      },
       [this](const std::string& id) { ShowPanel(id); }, rom_));
 
   panel_manager->RegisterEditorPanel(std::make_unique<DungeonEntrancesPanel>(
@@ -1689,6 +1696,36 @@ DungeonCanvasViewer* DungeonEditorV2::GetWorkbenchViewer() {
   }
 
   return workbench_viewer_.get();
+}
+
+DungeonCanvasViewer* DungeonEditorV2::GetWorkbenchCompareViewer() {
+  if (!workbench_compare_viewer_) {
+    workbench_compare_viewer_ = std::make_unique<DungeonCanvasViewer>(rom_);
+    auto* viewer = workbench_compare_viewer_.get();
+    viewer->SetCompactHeaderMode(true);
+    viewer->SetRoomDetailsExpanded(false);
+    viewer->SetRooms(&rooms_);
+    viewer->SetRenderer(renderer_);
+    viewer->SetCurrentPaletteGroup(current_palette_group_);
+    viewer->SetCurrentPaletteId(current_palette_id_);
+    viewer->SetGameData(game_data_);
+
+    // Compare viewer is read-only by default: no object selection/mutation, but
+    // still allows canvas pan/zoom.
+    viewer->SetObjectInteractionEnabled(false);
+    viewer->SetHeaderReadOnly(true);
+
+    if (dungeon_editor_system_) {
+      // Allows consistent rendering paths that depend on the editor system, but
+      // interaction is still disabled.
+      viewer->SetEditorSystem(dungeon_editor_system_.get());
+    }
+
+    viewer->SetMinecartTrackPanel(minecart_track_editor_panel_);
+    viewer->SetProject(dependencies_.project);
+  }
+
+  return workbench_compare_viewer_.get();
 }
 
 absl::Status DungeonEditorV2::Undo() {
