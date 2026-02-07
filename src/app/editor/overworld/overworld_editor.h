@@ -210,8 +210,6 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
     }
   }
 
-  void set_current_tile16(int tile_id) { current_tile16_ = tile_id; }
-
   // ===========================================================================
   // Graphics Loading
   // ===========================================================================

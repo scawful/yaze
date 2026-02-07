@@ -2,7 +2,6 @@
 #define YAZE_APP_EDITOR_MESSAGE_EDITOR_H
 
 #include <array>
-#include <deque>
 #include <string>
 #include <vector>
 
@@ -101,19 +100,6 @@ class MessageEditor : public Editor {
   int expanded_message_base_id_ = 0;
   int current_message_index_ = 0;
   bool current_message_is_expanded_ = false;
-
-  // Undo/Redo - snapshot-based history
-  struct MessageSnapshot {
-    MessageData message;
-    std::string parsed_text;
-    int message_index;
-    bool is_expanded;
-  };
-  static constexpr size_t kMaxUndoHistory = 50;
-  std::deque<MessageSnapshot> undo_stack_;
-  std::deque<MessageSnapshot> redo_stack_;
-  void PushUndoSnapshot();
-  void ApplySnapshot(const MessageSnapshot& snapshot);
 
   // Panel visibility states
   bool show_message_list_ = false;

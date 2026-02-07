@@ -1,6 +1,5 @@
 #pragma once
 
-#include <memory>
 #include <string>
 
 #include "framework/headless_editor_test.h"
@@ -31,13 +30,11 @@ class OverworldEditorTest : public HeadlessEditorTest {
     ASSERT_TRUE(zelda3::LoadGameData(*rom_, *game_data_).ok());
 
     // Create Dependencies
-    shared_clipboard_ = std::make_unique<editor::EditorDependencies::SharedClipboard>();
     editor::EditorDependencies deps;
     deps.rom = rom_.get();
     deps.game_data = game_data_.get();
     deps.panel_manager = panel_manager_.get();
     deps.renderer = renderer_.get();
-    deps.shared_clipboard = shared_clipboard_.get();
 
     // Create Editor
     overworld_editor_ = std::make_unique<editor::OverworldEditor>(rom_.get(), deps);
@@ -56,7 +53,6 @@ class OverworldEditorTest : public HeadlessEditorTest {
 
   std::unique_ptr<editor::OverworldEditor> overworld_editor_;
   std::unique_ptr<zelda3::GameData> game_data_;
-  std::unique_ptr<editor::EditorDependencies::SharedClipboard> shared_clipboard_;
 };
 
 }  // namespace test

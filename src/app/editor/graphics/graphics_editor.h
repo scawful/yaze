@@ -72,8 +72,8 @@ class GraphicsEditor : public Editor {
   absl::Status Cut() override { return absl::UnimplementedError("Cut"); }
   absl::Status Copy() override { return absl::UnimplementedError("Copy"); }
   absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
-  absl::Status Undo() override;
-  absl::Status Redo() override;
+  absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
+  absl::Status Redo() override { return absl::UnimplementedError("Redo"); }
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
 
   // Set the ROM pointer
