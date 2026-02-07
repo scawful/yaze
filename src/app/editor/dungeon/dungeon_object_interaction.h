@@ -243,6 +243,14 @@ class DungeonObjectInteraction {
   void HandlePasteObjects();
   bool HasClipboardData() const { return has_clipboard_data_; }
 
+  // Inspector-friendly mutation helpers (with undo + rerender integration).
+  // These are intended for UI panels that want to edit a single object without
+  // duplicating mutation/invalidation boilerplate.
+  bool SetObjectId(size_t index, int16_t id);
+  bool SetObjectPosition(size_t index, int x, int y);
+  bool SetObjectSize(size_t index, uint8_t size);
+  bool SetObjectLayer(size_t index, zelda3::RoomObject::LayerType layer);
+
   // Layer assignment for selected objects
   void SendSelectedToLayer(int target_layer);
 
