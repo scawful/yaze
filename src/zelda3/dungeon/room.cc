@@ -2409,5 +2409,116 @@ void Room::LoadPits() {
             pits_.target, pits_.target_layer);
 }
 
+// ============================================================================
+// Object Limit Counting (ZScream Feature Parity)
+// ============================================================================
+
+std::map<DungeonLimit, int> Room::GetLimitedObjectCounts() const {
+  auto counts = CreateLimitCounter();
+
+  // Count sprites
+  counts[DungeonLimit::Sprites] = static_cast<int>(sprites_.size());
+
+  // Count overlords (sprites with ID > 0x40 are overlords in ALTTP)
+  for (const auto& sprite : sprites_) {
+    if (sprite.IsOverlord()) {
+      counts[DungeonLimit::Overlords]++;
+    }
+  }
+
+  // Count chests
+  counts[DungeonLimit::Chests] = static_cast<int>(chests_in_room_.size());
+
+  // Count doors (total and special)
+  counts[DungeonLimit::Doors] = static_cast<int>(doors_.size());
+  for (const auto& door : doors_) {
+    // Special doors: shutters and key-locked doors.
+    const bool is_special = [&]() -> bool {
+      switch (door.type) {
+        case DoorType::SmallKeyDoor:
+        case DoorType::BigKeyDoor:
+        case DoorType::UnopenableBigKeyDoor:
+        case DoorType::DoubleSidedShutter:
+        case DoorType::UnusedDoubleSidedShutter:
+        case DoorType::DoubleSidedShutterLower:
+        case DoorType::BottomSidedShutter:
+        case DoorType::TopSidedShutter:
+        case DoorType::BottomShutterLower:
+        case DoorType::TopShutterLower:
+        case DoorType::UnusableBottomShutter:
+        case DoorType::NormalDoorOneSidedShutter:
+        case DoorType::CurtainDoor:
+        case DoorType::EyeWatchDoor:
+          return true;
+        default:
+          return false;
+      }
+    }();
+    if (is_special) {
+      counts[DungeonLimit::SpecialDoors]++;
+    }
+  }
+
+  // Count stairs
+  counts[DungeonLimit::StairsTransition] = static_cast<int>(z3_staircases_.size());
+
+  // Count objects with specific options
+  for (const auto& obj : tile_objects_) {
+    auto options = obj.options();
+
+    // Count blocks
+    if ((options & ObjectOption::Block) != ObjectOption::Nothing) {
+      counts[DungeonLimit::Blocks]++;
+    }
+
+    // Count torches
+    if ((options & ObjectOption::Torch) != ObjectOption::Nothing) {
+      counts[DungeonLimit::Torches]++;
+    }
+
+    // Count star tiles (object IDs 0x11E and 0x11F)
+    if (obj.id_ == 0x11E || obj.id_ == 0x11F) {
+      counts[DungeonLimit::StarTiles]++;
+    }
+
+    // Count somaria paths (object IDs in 0xF83-0xF8F range)
+    if (obj.id_ >= 0xF83 && obj.id_ <= 0xF8F) {
+      counts[DungeonLimit::SomariaLine]++;
+    }
+
+    // Count staircase objects based on direction
+    if ((options & ObjectOption::Stairs) != ObjectOption::Nothing) {
+      // North-facing stairs: IDs 0x130-0x135
+      if ((obj.id_ >= 0x130 && obj.id_ <= 0x135) ||
+          obj.id_ == 0x139 || obj.id_ == 0x13A || obj.id_ == 0x13B) {
+        counts[DungeonLimit::StairsNorth]++;
+      }
+      // South-facing stairs: IDs 0x13B-0x13D
+      else if (obj.id_ >= 0x13C && obj.id_ <= 0x13F) {
+        counts[DungeonLimit::StairsSouth]++;
+      }
+    }
+
+    // Count general manipulable objects
+    if ((options & ObjectOption::Block) != ObjectOption::Nothing ||
+        (options & ObjectOption::Chest) != ObjectOption::Nothing ||
+        (options & ObjectOption::Torch) != ObjectOption::Nothing) {
+      counts[DungeonLimit::GeneralManipulable]++;
+    }
+  }
+
+  return counts;
+}
+
+bool Room::HasExceededLimits() const {
+  auto counts = GetLimitedObjectCounts();
+  return yaze::zelda3::HasExceededLimits(counts);
+}
+
+std::vector<DungeonLimitInfo> Room::GetExceededLimitDetails() const {
+  auto counts = GetLimitedObjectCounts();
+  return GetExceededLimits(counts);
+}
+
 }  // namespace zelda3
 }  // namespace yaze

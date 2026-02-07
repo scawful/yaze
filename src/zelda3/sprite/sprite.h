@@ -114,6 +114,9 @@ class Sprite : public GameEntity {
   auto set_key_drop(int key) { key_drop_ = key; }
   auto key_drop() const { return key_drop_; }
 
+  // Check if this sprite is an overlord (special sprite type with different limits)
+  bool IsOverlord() const { return overlord_ != 0; }
+
  private:
   uint8_t map_id_;
   uint8_t game_state_;
