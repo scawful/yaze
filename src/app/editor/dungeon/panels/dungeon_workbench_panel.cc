@@ -155,6 +155,26 @@ void DungeonWorkbenchPanel::DrawRecentRoomTabs() {
                                                : "Enable split view (compare)");
     }
 
+    // Quick action: set compare = previous room.
+    if (compare_room_id_ && ImGui::TabItemButton(ICON_MD_HISTORY "##ComparePrev",
+                                                 ImGuiTabItemFlags_Trailing)) {
+      int prev = previous_room_id_ ? *previous_room_id_ : -1;
+      if (prev < 0 || prev == *current_room_id_) {
+        // Fallback to MRU "previous" if available.
+        const auto& mru = get_recent_rooms_();
+        if (mru.size() > 1 && mru[1] != *current_room_id_) {
+          prev = mru[1];
+        }
+      }
+      if (prev >= 0 && prev != *current_room_id_) {
+        *split_view_enabled_ = true;
+        *compare_room_id_ = prev;
+      }
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Compare previous room");
+    }
+
     for (int room_id : recent_ids) {
       bool open = true;
       const ImGuiTabItemFlags tab_flags =
