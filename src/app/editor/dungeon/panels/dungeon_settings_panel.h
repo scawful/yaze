@@ -25,6 +25,19 @@ class DungeonSettingsPanel : public EditorPanel {
   void Draw(bool* p_open) override {
     (void)p_open;
 
+    if (ImGui::CollapsingHeader(ICON_MD_WORKSPACES " UI", ImGuiTreeNodeFlags_DefaultOpen)) {
+        ImGui::Indent();
+        auto& flags = core::FeatureFlags::get().dungeon;
+        ImGui::Checkbox("Use Dungeon Workbench (single window)",
+                        &flags.kUseWorkbench);
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(
+              "When enabled, the dungeon editor uses a single stable Workbench "
+              "window instead of opening one panel per room.");
+        }
+        ImGui::Unindent();
+    }
+
     if (ImGui::CollapsingHeader(ICON_MD_SAVE " Save Control", ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::Indent();
         auto& flags = core::FeatureFlags::get().dungeon;

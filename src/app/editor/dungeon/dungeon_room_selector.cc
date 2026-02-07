@@ -41,7 +41,22 @@ void DungeonRoomSelector::DrawRoomSelector() {
     return;
   }
 
-  gui::InputHexWord("Room ID", &current_room_id_, 50.f, true);
+  if (gui::InputHexWord("Room ID", &current_room_id_, 50.f, true)) {
+    if (current_room_id_ >= zelda3::kNumberOfRooms) {
+      current_room_id_ = static_cast<uint16_t>(zelda3::kNumberOfRooms - 1);
+    }
+
+    // Publish selection changed event
+    if (auto* bus = ContentRegistry::Context::event_bus()) {
+      bus->Publish(SelectionChangedEvent::CreateSingle("dungeon_room",
+                                                       current_room_id_));
+    }
+
+    // Callback support
+    if (room_selected_callback_) {
+      room_selected_callback_(current_room_id_);
+    }
+  }
   ImGui::Separator();
 
   room_filter_.Draw("Filter", ImGui::GetContentRegionAvail().x);
