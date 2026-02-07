@@ -496,6 +496,11 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       ImGui::AlignTextToFramePadding();
       ImGui::Text(ICON_MD_TUNE " %03X", room_id);
       ImGui::SameLine();
+      // Material icon glyphs can clip at tight line heights; slightly more Y
+      // padding keeps the pin/details affordances readable across DPI.
+      const ImVec2 frame_pad = ImGui::GetStyle().FramePadding;
+      ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,
+                          ImVec2(frame_pad.x, frame_pad.y + 1.0f));
       // Pin is a panel-level affordance; keep it in the main header row instead
       // of inside the nav column to avoid clipping in narrow docks.
       if (pin_callback_) {
@@ -518,6 +523,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
         ImGui::SetTooltip(show_room_details_ ? "Hide room details"
                                              : "Show room details");
       }
+      ImGui::PopStyleVar();
       ImGui::SameLine();
       ImGui::TextDisabled(ICON_MD_VIEW_MODULE);
       ImGui::SameLine(0, 2);
@@ -1634,22 +1640,48 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   // in-canvas label so the user always knows what they're looking at.
   if (!header_visible_) {
     const auto& label = zelda3::GetRoomLabel(room_id);
-    char text[160];
-    snprintf(text, sizeof(text), "[%03X] %s", room_id, label.c_str());
+    char text1[160];
+    snprintf(text1, sizeof(text1), "[%03X] %s", room_id, label.c_str());
+
+    char text2[96] = {};
+    bool show_meta = false;
+    if (rooms_ && room_id >= 0 && room_id < static_cast<int>(rooms_->size())) {
+      const auto& room = (*rooms_)[room_id];
+      if (!object_interaction_enabled_) {
+        snprintf(text2, sizeof(text2), "B:%02X P:%02X L:%02X S:%02X  RO",
+                 room.blockset, room.palette, room.layout, room.spriteset);
+      } else {
+        snprintf(text2, sizeof(text2), "B:%02X P:%02X L:%02X S:%02X",
+                 room.blockset, room.palette, room.layout, room.spriteset);
+      }
+      show_meta = true;
+    } else if (!object_interaction_enabled_) {
+      snprintf(text2, sizeof(text2), "Read-only");
+      show_meta = true;
+    }
 
     ImDrawList* dl = ImGui::GetWindowDrawList();
     const ImVec2 pad(8.0f, 6.0f);
     const ImVec2 zp = canvas_.zero_point();
     const ImVec2 p0(zp.x + 10.0f, zp.y + 10.0f);
-    const ImVec2 ts = ImGui::CalcTextSize(text);
-    const ImVec2 p1(p0.x + ts.x + pad.x * 2.0f, p0.y + ts.y + pad.y * 2.0f);
+    const ImVec2 ts1 = ImGui::CalcTextSize(text1);
+    const ImVec2 ts2 = show_meta ? ImGui::CalcTextSize(text2) : ImVec2(0, 0);
+    const float gap = show_meta ? 2.0f : 0.0f;
+    const float w = std::max(ts1.x, ts2.x);
+    const float h = ts1.y + (show_meta ? (gap + ts2.y) : 0.0f);
+    const ImVec2 p1(p0.x + w + pad.x * 2.0f, p0.y + h + pad.y * 2.0f);
 
     ImVec4 bg = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
     bg.w = std::min(0.90f, bg.w + 0.25f);
     dl->AddRectFilled(p0, p1, ImGui::ColorConvertFloat4ToU32(bg), 6.0f);
     dl->AddRect(p0, p1, ImGui::GetColorU32(ImGuiCol_Border), 6.0f);
-    dl->AddText(ImVec2(p0.x + pad.x, p0.y + pad.y),
-                ImGui::GetColorU32(ImGuiCol_Text), text);
+
+    const ImVec2 t0(p0.x + pad.x, p0.y + pad.y);
+    dl->AddText(t0, ImGui::GetColorU32(ImGuiCol_Text), text1);
+    if (show_meta) {
+      dl->AddText(ImVec2(t0.x, t0.y + ts1.y + gap),
+                  ImGui::GetColorU32(ImGuiCol_Text), text2);
+    }
   }
 
   // Draw persistent debug overlays

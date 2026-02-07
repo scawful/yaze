@@ -43,13 +43,13 @@ CompareDefaultResult PickDefaultCompareRoom(
 }
 
 bool IconToggleButton(const char* id, const char* icon_on, const char* icon_off,
-                      bool* value, const char* tooltip_on,
+                      bool* value, float btn_size, const char* tooltip_on,
                       const char* tooltip_off) {
   if (!value) {
     return false;
   }
 
-  const float btn = gui::LayoutHelpers::GetStandardWidgetHeight();
+  const float btn = btn_size;
   const bool active = *value;
 
   const ImVec4 col_btn = ImGui::GetStyleColorVec4(ImGuiCol_Button);
@@ -71,8 +71,9 @@ bool IconToggleButton(const char* id, const char* icon_on, const char* icon_off,
   return pressed;
 }
 
-bool SquareIconButton(const char* id, const char* icon, const char* tooltip) {
-  const float btn = gui::LayoutHelpers::GetStandardWidgetHeight();
+bool SquareIconButton(const char* id, const char* icon, float btn_size,
+                      const char* tooltip) {
+  const float btn = btn_size;
   const bool pressed = ImGui::Button(icon, ImVec2(btn, btn));
   if (ImGui::IsItemHovered() && tooltip && *tooltip) {
     ImGui::SetTooltip("%s", tooltip);
@@ -183,17 +184,20 @@ void DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
     return;
   }
 
-  const float btn = gui::LayoutHelpers::GetStandardWidgetHeight();
-  const float spacing = ImGui::GetStyle().ItemSpacing.x;
-
   // Use a themed, compact toolbar container.
   gui::LayoutHelpers::BeginToolbar("##DungeonWorkbenchToolbar");
+
+  const float desired_btn = gui::LayoutHelpers::GetStandardWidgetHeight();
+  const float btn =
+      std::min(desired_btn, std::max(18.0f, ImGui::GetContentRegionAvail().y));
+  const float spacing = ImGui::GetStyle().ItemSpacing.x;
 
   constexpr ImGuiTableFlags kFlags =
       ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_NoPadInnerX |
       ImGuiTableFlags_NoPadOuterX;
   if (ImGui::BeginTable("##DungeonWorkbenchToolbarTable", 3, kFlags)) {
-    const float right_w = (btn * 4.0f) + (spacing * 3.0f);
+    const float right_cluster_w = (btn * 4.0f) + (spacing * 3.0f);
+    const float right_w = right_cluster_w + 4.0f;  // Avoid 1px clip at edges.
     ImGui::TableSetupColumn("Left", ImGuiTableColumnFlags_WidthStretch);
     ImGui::TableSetupColumn("Middle", ImGuiTableColumnFlags_WidthStretch);
     ImGui::TableSetupColumn("Right", ImGuiTableColumnFlags_WidthFixed, right_w);
@@ -203,10 +207,12 @@ void DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
     ImGui::TableNextColumn();
     (void)IconToggleButton(
         "RoomsToggle", ICON_MD_LIST, ICON_MD_LIST, &p.layout->show_left_sidebar,
+        btn,
         "Hide room browser", "Show room browser");
     ImGui::SameLine();
     (void)IconToggleButton("InspectorToggle", ICON_MD_TUNE, ICON_MD_TUNE,
-                           &p.layout->show_right_inspector, "Hide inspector",
+                           &p.layout->show_right_inspector, btn,
+                           "Hide inspector",
                            "Show inspector");
     ImGui::SameLine();
 
@@ -227,7 +233,7 @@ void DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
     ImGui::TableNextColumn();
     ImGui::BeginGroup();
     if (!*p.split_view_enabled) {
-      if (SquareIconButton("##EnableSplit", ICON_MD_COMPARE_ARROWS,
+      if (SquareIconButton("##EnableSplit", ICON_MD_COMPARE_ARROWS, btn,
                            "Enable split view (compare)")) {
         const CompareDefaultResult def =
             PickDefaultCompareRoom(*p.current_room_id,
@@ -265,7 +271,7 @@ void DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
       }
 
       ImGui::SameLine();
-      if (SquareIconButton("##SwapRooms", ICON_MD_SWAP_HORIZ,
+      if (SquareIconButton("##SwapRooms", ICON_MD_SWAP_HORIZ, btn,
                            "Swap active and compare rooms")) {
         const int old_current = *p.current_room_id;
         const int old_compare = *p.compare_room_id;
@@ -280,13 +286,13 @@ void DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
       ImGui::SameLine();
       if (IconToggleButton(
               "##SyncView", ICON_MD_LINK, ICON_MD_LINK_OFF,
-              &p.layout->sync_split_view, "Unsync compare view",
+              &p.layout->sync_split_view, btn, "Unsync compare view",
               "Sync compare view to active")) {
         // toggle handled inside IconToggleButton
       }
 
       ImGui::SameLine();
-      if (SquareIconButton("##CloseSplit", ICON_MD_CLOSE,
+      if (SquareIconButton("##CloseSplit", ICON_MD_CLOSE, btn,
                            "Disable split view")) {
         *p.split_view_enabled = false;
       }
@@ -297,21 +303,23 @@ void DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
     ImGui::TableNextColumn();
     if (p.primary_viewer) {
       // Right-align by manually moving cursor to the end of the cell.
-      const float total_w = (btn * 4.0f) + (spacing * 3.0f);
+      const float total_w = right_cluster_w;
       const float start_x =
-          ImGui::GetCursorPosX() + std::max(0.0f, ImGui::GetContentRegionAvail().x - total_w);
+          ImGui::GetCursorPosX() +
+          std::max(0.0f, ImGui::GetContentRegionAvail().x - total_w);
       ImGui::SetCursorPosX(start_x);
 
       bool v = p.primary_viewer->show_grid();
       if (SquareIconButton("##GridToggle",
                            v ? ICON_MD_GRID_ON : ICON_MD_GRID_OFF,
+                           btn,
                            v ? "Hide grid" : "Show grid")) {
         p.primary_viewer->set_show_grid(!v);
       }
       ImGui::SameLine();
 
       v = p.primary_viewer->show_object_bounds();
-      if (SquareIconButton("##BoundsToggle", ICON_MD_CROP_SQUARE,
+      if (SquareIconButton("##BoundsToggle", ICON_MD_CROP_SQUARE, btn,
                            v ? "Hide object bounds" : "Show object bounds")) {
         p.primary_viewer->set_show_object_bounds(!v);
       }
@@ -319,6 +327,7 @@ void DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
 
       v = p.primary_viewer->show_coordinate_overlay();
       if (SquareIconButton("##CoordsToggle", ICON_MD_MY_LOCATION,
+                           btn,
                            v ? "Hide hover coordinates"
                              : "Show hover coordinates")) {
         p.primary_viewer->set_show_coordinate_overlay(!v);
@@ -327,6 +336,7 @@ void DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
 
       v = p.primary_viewer->show_camera_quadrant_overlay();
       if (SquareIconButton("##CameraToggle", ICON_MD_GRID_VIEW,
+                           btn,
                            v ? "Hide camera quadrants"
                              : "Show camera quadrants")) {
         p.primary_viewer->set_show_camera_quadrant_overlay(!v);
