@@ -1,6 +1,7 @@
 #ifndef YAZE_ZELDA3_DUNGEON_DRAW_ROUTINES_DRAW_ROUTINE_REGISTRY_H
 #define YAZE_ZELDA3_DUNGEON_DRAW_ROUTINES_DRAW_ROUTINE_REGISTRY_H
 
+#include <cstdint>
 #include <unordered_map>
 #include <vector>
 
@@ -190,12 +191,17 @@ class DrawRoutineRegistry {
   // Get routine metadata for dimension calculation
   bool GetRoutineDimensions(int routine_id, int* base_width, int* base_height) const;
 
+  // Look up draw routine ID for an object ID. Returns -1 if unmapped.
+  int GetRoutineIdForObject(int16_t object_id) const;
+
  private:
   DrawRoutineRegistry() = default;
   void BuildRegistry();
+  void BuildObjectMapping();
 
   std::vector<DrawRoutineInfo> routines_;
   std::unordered_map<int, const DrawRoutineInfo*> routine_map_;
+  std::unordered_map<int16_t, int> object_to_routine_map_;
   bool initialized_ = false;
 };
 

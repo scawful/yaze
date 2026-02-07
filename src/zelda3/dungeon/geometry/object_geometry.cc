@@ -152,6 +152,32 @@ absl::StatusOr<GeometryBounds> ObjectGeometry::MeasureRoutine(
   return bounds;
 }
 
+absl::StatusOr<GeometryBounds> ObjectGeometry::MeasureByObjectId(
+    const RoomObject& object) const {
+  int routine_id =
+      DrawRoutineRegistry::Get().GetRoutineIdForObject(object.id_);
+  if (routine_id < 0) {
+    return absl::NotFoundError(
+        absl::StrFormat("No routine mapping for object 0x%03X", object.id_));
+  }
+
+  // Check cache
+  CacheKey key{routine_id, object.id_, object.size_};
+  auto cache_it = cache_.find(key);
+  if (cache_it != cache_.end()) {
+    return cache_it->second;
+  }
+
+  // Measure and cache
+  auto result = MeasureByRoutineId(routine_id, object);
+  if (result.ok()) {
+    cache_[key] = *result;
+  }
+  return result;
+}
+
+void ObjectGeometry::ClearCache() { cache_.clear(); }
+
 absl::StatusOr<GeometryBounds> ObjectGeometry::MeasureForLayerCompositing(
     int routine_id, const RoomObject& object) const {
   auto result = MeasureByRoutineId(routine_id, object);
