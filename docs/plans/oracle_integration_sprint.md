@@ -582,6 +582,17 @@ Use this as the execution checklist. Each card is intended to be doable independ
   - Save from GUI modifies the ROM data in-place and survives reload.
   - Capacity/overflow errors are surfaced to the user.
 
+### Card A2: Dialogue Preview UX Parity + Scroll Break Visibility (Feature 8)
+
+- Files: `src/app/editor/message/message_editor.cc`, `src/app/editor/message/message_preview.cc`, `src/app/editor/message/message_preview.h`
+- Work:
+  - Make scroll markers (`0x73` and line markers `0x74-0x76`) visible in the preview as explicit separators (so message structure is obvious without launching Mesen2).
+  - Show basic capacity/structure hints near the preview (e.g., number of scroll breaks, lines per page, and a "bytes used" estimate based on encoded message bytes).
+  - Ensure the preview works for both vanilla and expanded messages (expanded message base ID sourced from HackManifest when available).
+- Done when:
+  - A known Oracle message with scroll markers renders with clearly visible breakpoints in the preview.
+  - Editing message text updates the preview without flicker and without runaway allocations/texture churn.
+
 ### Card B1: Save-Time Write Conflict Popup Is Blocking (Feature 3)
 
 - Files: `src/app/editor/editor_manager.cc`, `src/app/editor/editor_manager.h`, `src/app/editor/ui/popup_manager.cc`, `src/app/editor/ui/popup_manager.h`
@@ -674,6 +685,45 @@ Use this as the execution checklist. Each card is intended to be doable independ
   - Opt-in polling, decode base64 PNG, upload texture, show overlay info.
 - Done when:
   - Can pause/resume and adjust FPS; no runaway allocations.
+
+### Card D3: Warp To Room From Dungeon Editor (Feature 10c)
+
+- Files: `src/app/editor/dungeon/dungeon_editor_v2.cc`, `src/app/emu/mesen/mesen_client_registry.*`, `src/app/emu/mesen/mesen_socket_client.*`
+- Work:
+  - Add/verify a "Warp" affordance next to the room selector that only enables when a Mesen2 client is connected.
+  - Implement warp using explicit WRAM writes (prefer a manifest-backed variable if available; otherwise use the canonical ALTTP-style room index address) plus any transition trigger needed for the target ROM.
+  - Make failures obvious (toast + log) and add a lightweight guardrail tooltip ("debug-only, may desync state").
+- Done when:
+  - Clicking "Warp" reliably moves the running Mesen2-OOS instance into the requested room for at least a small sample set (e.g. D6 rooms 0xA8/0xD8/0xDA).
+
+### Card D4: SRAM Viewer Live Sync Tuning (Feature 10b)
+
+- Files: `src/app/editor/agent/panels/sram_viewer_panel.*`
+- Work:
+  - Add a visible "Auto refresh" toggle + rate control (default <= 5 Hz), with change highlighting (yellow fade) on value changes.
+  - Ensure reads are batched (`ReadBlock`) and panel update work is capped so the UI stays responsive.
+- Done when:
+  - With Mesen2 connected, SRAM values update continuously and changes are highlighted without noticeably impacting frame time.
+
+### Card D5: Breakpoint Snapshot Log Panel (Feature 10d)
+
+- Files: `src/app/editor/agent/panels/breakpoint_log_panel.h/.cc` (new), `src/app/emu/mesen/mesen_socket_client.*`
+- Work:
+  - Subscribe to breakpoint events (or poll if subscription is unavailable) and append entries to a bounded ring buffer (timestamp, PC, optional symbol, optional room id).
+  - Optional but recommended: capture a screenshot thumbnail per hit (reusing the screenshot decode path from Feature 10a).
+  - Provide controls: clear log, pause capture, and "copy details".
+- Done when:
+  - Hitting a breakpoint in Mesen2 produces a new log entry in yaze without freezing the UI.
+
+### Card E1: Progression Flow Visualizer Panel (Feature 7)
+
+- Files: `src/app/editor/agent/panels/progression_flow_panel.h/.cc` (new), plus a small `core::ProgressionGraph` helper if needed
+- Work:
+  - Prefer a generated JSON input (e.g. `progression_graph.json`) from the Oracle build pipeline to avoid writing a fragile ASM parser in yaze.
+  - Render a searchable, readable graph/tree (not a full node editor) that answers: "What dungeons/events unblock which hints/dialogue?"
+  - Add click-through affordances (open message editor at ID, open file path if present).
+- Done when:
+  - A developer can open the panel and trace at least one end-to-end progression chain (dungeon completion -> NPC reaction -> hint message) without leaving yaze.
 
 ## Risk Register / Known Pitfalls
 
