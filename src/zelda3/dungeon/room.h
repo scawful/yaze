@@ -19,6 +19,7 @@
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room_layout.h"
 #include "zelda3/dungeon/room_object.h"
+#include "zelda3/dungeon/dungeon_limits.h"
 #include "zelda3/game_data.h"
 #include "zelda3/sprite/sprite.h"
 
@@ -391,6 +392,28 @@ class Room {
   const RoomObject& GetTileObject(size_t index) const {
     return tile_objects_[index];
   }
+
+  // =========================================================================
+  // Object Limit Tracking (ZScream Feature Parity)
+  // =========================================================================
+
+  /**
+   * @brief Count limited objects in this room.
+   *
+   * Returns a map of DungeonLimit types to their current counts.
+   * Use with GetDungeonLimitMax() to check for limit violations.
+   */
+  std::map<DungeonLimit, int> GetLimitedObjectCounts() const;
+
+  /**
+   * @brief Check if any object limits are exceeded.
+   */
+  bool HasExceededLimits() const;
+
+  /**
+   * @brief Get list of exceeded limits with details.
+   */
+  std::vector<DungeonLimitInfo> GetExceededLimitDetails() const;
 
   // For undo/redo functionality
   void SetTileObjects(const std::vector<RoomObject>& objects) {
