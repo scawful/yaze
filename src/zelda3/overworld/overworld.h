@@ -460,6 +460,16 @@ class Overworld {
   auto mutable_rom() { return rom_; }
 
   /**
+   * @brief Get the projected write ranges (PC offsets) for overworld map saves.
+   *
+   * Returns a list of memory ranges (start, end) in PC offset space that are
+   * expected to be written by saving overworld map data (Map32/Map16 plus
+   * compressed map pointer tables and data). This is intended for detecting
+   * conflicts with ASM-managed regions (HackManifest).
+   */
+  std::vector<std::pair<uint32_t, uint32_t>> GetProjectedWriteRanges() const;
+
+  /**
    * @brief Check if the ROM has expanded pointer tables for tail maps
    *
    * Returns true if the TailMapExpansion.asm patch has been applied,

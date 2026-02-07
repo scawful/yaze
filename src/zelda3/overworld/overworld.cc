@@ -1427,8 +1427,63 @@ absl::Status Overworld::SaveOverworldMaps() {
     return absl::AbortedError("Too many maps data " + std::to_string(pos));
   }
 
-  RETURN_IF_ERROR(SaveLargeMaps())
+  RETURN_IF_ERROR(SaveLargeMaps());
   return absl::OkStatus();
+}
+
+std::vector<std::pair<uint32_t, uint32_t>> Overworld::GetProjectedWriteRanges()
+    const {
+  std::vector<std::pair<uint32_t, uint32_t>> ranges;
+
+  // 1) Map32 Tiles (4 quadrants)
+  uint32_t map32address[4] = {
+      version_constants().kMap32TileTL, version_constants().kMap32TileTR,
+      version_constants().kMap32TileBL, version_constants().kMap32TileBR};
+  int map32_len = 0x33F0;  // Vanilla length
+
+  // Mirror AssembleMap32Tiles() logic: if expanded tile32 is present, the three
+  // non-TL quadrants are relocated and the logical length changes.
+  if (expanded_tile32_) {
+    map32address[1] = GetMap32TileTRExpanded();
+    map32address[2] = GetMap32TileBLExpanded();
+    map32address[3] = GetMap32TileBRExpanded();
+    map32_len = kMap32TileCountExpanded;
+  }
+
+  for (int i = 0; i < 4; ++i) {
+    if (map32address[i] > 0) {  // Valid address
+      ranges.emplace_back(map32address[i], map32address[i] + map32_len);
+    }
+  }
+
+  // 2) Map16 Tiles
+  int map16_addr = kMap16Tiles;
+  int map16_len = kNumTile16Individual * 8;  // Vanilla: 4096 * 8 = 32KB
+  if (expanded_tile16_) {
+    map16_addr = GetMap16TilesExpanded();
+    map16_len = NumberOfMap16Ex * 8;
+  }
+  ranges.emplace_back(map16_addr, map16_addr + map16_len);
+
+  // 3) Overworld map compressed pointer tables + data regions.
+  // SaveOverworldMaps() writes two 3-byte pointer tables for all maps, plus the
+  // compressed data itself. This is a conservative superset of the possible
+  // write footprint.
+  constexpr uint32_t kCompressedBank0bEnd = 0x5FE70;
+  constexpr uint32_t kCompressedBank0cStart = 0x60000;
+  constexpr uint32_t kCompressedBank0cEnd = 0x6411F;
+
+  const uint32_t ptr_low = version_constants().kCompressedAllMap32PointersLow;
+  const uint32_t ptr_high = version_constants().kCompressedAllMap32PointersHigh;
+  ranges.emplace_back(ptr_low, ptr_low + (3 * kNumOverworldMaps));
+  ranges.emplace_back(ptr_high, ptr_high + (3 * kNumOverworldMaps));
+
+  ranges.emplace_back(kOverworldCompressedMapPos, kCompressedBank0bEnd);  // Bank 0B
+  ranges.emplace_back(kCompressedBank0cStart, kCompressedBank0cEnd);      // Bank 0C
+  ranges.emplace_back(kOverworldMapDataOverflow,
+                      kOverworldCompressedOverflowPos);  // Overflow Area
+
+  return ranges;
 }
 
 absl::Status Overworld::SaveLargeMaps() {
