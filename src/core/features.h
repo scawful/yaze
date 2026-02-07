@@ -43,6 +43,11 @@ class FeatureFlags {
       bool kSaveChests = true;
       bool kSavePotItems = true;
       bool kSavePalettes = true;
+
+      // UI/UX
+      // When enabled, the dungeon editor uses a single stable "Workbench"
+      // window instead of spawning a panel per open room.
+      bool kUseWorkbench = true;
     } dungeon;
 
     // Save graphics sheet to the Rom.
@@ -142,6 +147,8 @@ class FeatureFlags {
               std::to_string(get().dungeon.kSavePotItems) + "\n";
     result += "kSaveDungeonPalettes: " +
               std::to_string(get().dungeon.kSavePalettes) + "\n";
+    result += "kDungeonUseWorkbench: " +
+              std::to_string(get().dungeon.kUseWorkbench) + "\n";
     result += "kSaveMessages: " + std::to_string(get().kSaveMessages) + "\n";
     result += "kLogToConsole: " + std::to_string(get().kLogToConsole) + "\n";
     result += "kDrawOverworldSprites: " +

@@ -239,6 +239,7 @@ class DungeonEditorV2 : public Editor {
 
   // Helper to get or create a viewer for a specific room
   DungeonCanvasViewer* GetViewerForRoom(int room_id);
+  DungeonCanvasViewer* GetWorkbenchViewer();
 
   absl::Status SaveRoomData(int room_id);
 
@@ -271,6 +272,7 @@ class DungeonEditorV2 : public Editor {
   DungeonRoomSelector room_selector_;
   // canvas_viewer_ removed in favor of room_viewers_
   std::map<int, std::unique_ptr<DungeonCanvasViewer>> room_viewers_;
+  std::unique_ptr<DungeonCanvasViewer> workbench_viewer_;
 
   gui::PaletteEditorWidget palette_editor_;
   // Panel pointers - these are owned by PanelManager when available.

@@ -504,18 +504,18 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       ImGui::SameLine();
       // Pin is a panel-level affordance; keep it in the main header row instead
       // of inside the nav column to avoid clipping in narrow docks.
-      if (ImGui::SmallButton(is_pinned_ ? ICON_MD_PUSH_PIN "##RoomPin"
-                                       : ICON_MD_PIN "##RoomPin")) {
-        if (pin_callback_) {
+      if (pin_callback_) {
+        if (ImGui::SmallButton(is_pinned_ ? ICON_MD_PUSH_PIN "##RoomPin"
+                                         : ICON_MD_PIN "##RoomPin")) {
           pin_callback_(!is_pinned_);
         }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(
+              is_pinned_ ? "Unpin Room (Close when switching editors)"
+                         : "Pin Room (Keep open when switching editors)");
+        }
+        ImGui::SameLine();
       }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(is_pinned_
-                              ? "Unpin Room (Close when switching editors)"
-                              : "Pin Room (Keep open when switching editors)");
-      }
-      ImGui::SameLine();
       if (ImGui::SmallButton(show_room_details_ ? ICON_MD_EXPAND_LESS "##RoomDetails"
                                                 : ICON_MD_EXPAND_MORE "##RoomDetails")) {
         show_room_details_ = !show_room_details_;
