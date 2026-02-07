@@ -335,20 +335,6 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   // Legacy configuration for context menu and interaction systems
   canvas_.SetShowBuiltinContextMenu(false);  // Hide default canvas debug items
 
-  // DEBUG: Log canvas configuration
-  static int debug_frame_count = 0;
-  if (debug_frame_count++ % 60 == 0) {  // Log once per second (assuming 60fps)
-    LOG_DEBUG("[DungeonCanvas]",
-              "Canvas config: size=(%.0f,%.0f) scale=%.2f grid=%.0f",
-              canvas_.width(), canvas_.height(), canvas_.global_scale(),
-              canvas_.custom_step());
-    LOG_DEBUG(
-        "[DungeonCanvas]", "Canvas viewport: p0=(%.0f,%.0f) p1=(%.0f,%.0f)",
-        canvas_.zero_point().x, canvas_.zero_point().y,
-        canvas_.zero_point().x + canvas_.width() * canvas_.global_scale(),
-        canvas_.zero_point().y + canvas_.height() * canvas_.global_scale());
-  }
-
   if (rooms_) {
     auto& room = (*rooms_)[room_id];
 
@@ -801,163 +787,172 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       }
 
       // Row 4: Selection filter + quick actions (kept to one row for compactness)
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::TextDisabled(ICON_MD_SELECT_ALL " Select");
-      ImGui::TableNextColumn();
+      // In workbench mode, keep the header minimal and move tools/filters into
+      // the Inspector. The user can always expand details if needed.
+      if (!compact_header_mode_ || show_room_details_) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TextDisabled(ICON_MD_SELECT_ALL " Select");
+        ImGui::TableNextColumn();
 
-      const auto& theme = AgentUI::GetTheme();
+        const auto& theme = AgentUI::GetTheme();
 
-      object_interaction_.SetLayersMerged(layer_mgr.AreLayersMerged());
-      int current_filter = object_interaction_.GetLayerFilter();
-      if (ImGui::RadioButton("All",
-                             current_filter == ObjectSelection::kLayerAll)) {
-        object_interaction_.SetLayerFilter(ObjectSelection::kLayerAll);
-      }
-      ImGui::SameLine();
-      if (ImGui::RadioButton("L1", current_filter == ObjectSelection::kLayer1)) {
-        object_interaction_.SetLayerFilter(ObjectSelection::kLayer1);
-      }
-      ImGui::SameLine();
-      if (ImGui::RadioButton("L2", current_filter == ObjectSelection::kLayer2)) {
-        object_interaction_.SetLayerFilter(ObjectSelection::kLayer2);
-      }
-      ImGui::SameLine();
-      if (ImGui::RadioButton("L3", current_filter == ObjectSelection::kLayer3)) {
-        object_interaction_.SetLayerFilter(ObjectSelection::kLayer3);
-      }
-      ImGui::SameLine();
-
-      // Mask mode: filter to BG2/Layer 1 overlay objects only (platforms, statues, etc.)
-      bool is_mask_mode = current_filter == ObjectSelection::kMaskLayer;
-      if (is_mask_mode) {
-        ImGui::PushStyleColor(ImGuiCol_Text, theme.text_info);
-      }
-      if (ImGui::RadioButton("Mask", is_mask_mode)) {
-        object_interaction_.SetLayerFilter(ObjectSelection::kMaskLayer);
-      }
-      if (is_mask_mode) {
-        ImGui::PopStyleColor();
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(
-            "Mask Selection Mode\n"
-            "Only select BG2/Layer 1 overlay objects (platforms, statues, stairs)\n"
-            "These are the objects that create transparency holes in BG1");
-      }
-
-      if (object_interaction_.IsLayerFilterActive() && !is_mask_mode) {
-        ImGui::SameLine();
-        ImGui::TextColored(theme.text_warning_yellow, ICON_MD_FILTER_ALT);
-      }
-      if (layer_mgr.AreLayersMerged()) {
-        ImGui::SameLine();
-        ImGui::TextColored(theme.text_info, ICON_MD_MERGE_TYPE);
-      }
-
-      // Inline quick actions to avoid adding additional rows (prevents the
-      // header area from growing tall in narrow docks).
-      auto toolbar_icon_button = [&](const char* id, const char* icon,
-                                     const char* tooltip,
-                                     bool active = false) -> bool {
-        ImGui::SameLine();
-        ImGui::PushID(id);
-        const ImVec2 btn_size(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
-        if (active) {
-          const ImVec4 base = theme.accent_color;
-          const ImVec4 hover =
-              ImVec4(base.x * 1.2f, base.y * 1.2f, base.z * 1.2f, base.w);
-          const ImVec4 down =
-              ImVec4(base.x * 0.85f, base.y * 0.85f, base.z * 0.85f, base.w);
-          ImGui::PushStyleColor(ImGuiCol_Button, base);
-          ImGui::PushStyleColor(ImGuiCol_ButtonHovered, hover);
-          ImGui::PushStyleColor(ImGuiCol_ButtonActive, down);
+        object_interaction_.SetLayersMerged(layer_mgr.AreLayersMerged());
+        int current_filter = object_interaction_.GetLayerFilter();
+        if (ImGui::RadioButton("All",
+                               current_filter == ObjectSelection::kLayerAll)) {
+          object_interaction_.SetLayerFilter(ObjectSelection::kLayerAll);
         }
-        bool clicked = ImGui::Button(icon, btn_size);
-        if (active) {
-          ImGui::PopStyleColor(3);
+        ImGui::SameLine();
+        if (ImGui::RadioButton("L1",
+                               current_filter == ObjectSelection::kLayer1)) {
+          object_interaction_.SetLayerFilter(ObjectSelection::kLayer1);
         }
-        if (tooltip && ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("%s", tooltip);
+        ImGui::SameLine();
+        if (ImGui::RadioButton("L2",
+                               current_filter == ObjectSelection::kLayer2)) {
+          object_interaction_.SetLayerFilter(ObjectSelection::kLayer2);
+        }
+        ImGui::SameLine();
+        if (ImGui::RadioButton("L3",
+                               current_filter == ObjectSelection::kLayer3)) {
+          object_interaction_.SetLayerFilter(ObjectSelection::kLayer3);
+        }
+        ImGui::SameLine();
+
+        // Mask mode: filter to BG2/Layer 1 overlay objects only (platforms,
+        // statues, etc.)
+        bool is_mask_mode = current_filter == ObjectSelection::kMaskLayer;
+        if (is_mask_mode) {
+          ImGui::PushStyleColor(ImGuiCol_Text, theme.text_info);
+        }
+        if (ImGui::RadioButton("Mask", is_mask_mode)) {
+          object_interaction_.SetLayerFilter(ObjectSelection::kMaskLayer);
+        }
+        if (is_mask_mode) {
+          ImGui::PopStyleColor();
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(
+              "Mask Selection Mode\n"
+              "Only select BG2/Layer 1 overlay objects (platforms, statues, stairs)\n"
+              "These are the objects that create transparency holes in BG1");
+        }
+
+        if (object_interaction_.IsLayerFilterActive() && !is_mask_mode) {
+          ImGui::SameLine();
+          ImGui::TextColored(theme.text_warning_yellow, ICON_MD_FILTER_ALT);
+        }
+        if (layer_mgr.AreLayersMerged()) {
+          ImGui::SameLine();
+          ImGui::TextColored(theme.text_info, ICON_MD_MERGE_TYPE);
+        }
+
+        // Inline quick actions to avoid adding additional rows (prevents the
+        // header area from growing tall in narrow docks).
+        auto toolbar_icon_button = [&](const char* id, const char* icon,
+                                       const char* tooltip,
+                                       bool active = false) -> bool {
+          ImGui::SameLine();
+          ImGui::PushID(id);
+          const ImVec2 btn_size(ImGui::GetFrameHeight(),
+                                ImGui::GetFrameHeight());
+          if (active) {
+            const ImVec4 base = theme.accent_color;
+            const ImVec4 hover =
+                ImVec4(base.x * 1.2f, base.y * 1.2f, base.z * 1.2f, base.w);
+            const ImVec4 down =
+                ImVec4(base.x * 0.85f, base.y * 0.85f, base.z * 0.85f, base.w);
+            ImGui::PushStyleColor(ImGuiCol_Button, base);
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, hover);
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, down);
+          }
+          bool clicked = ImGui::Button(icon, btn_size);
+          if (active) {
+            ImGui::PopStyleColor(3);
+          }
+          if (tooltip && ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("%s", tooltip);
+          }
+          ImGui::PopID();
+          return clicked;
+        };
+
+        // Spacer before the quick actions group.
+        ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x * 3.0f);
+
+        // Place pickers (open their dedicated panels).
+        if (show_object_panel_callback_) {
+          if (toolbar_icon_button("PlaceObject", ICON_MD_WIDGETS,
+                                  "Open Object Editor panel")) {
+            show_object_panel_callback_();
+          }
+        }
+        if (show_sprite_panel_callback_) {
+          if (toolbar_icon_button("PlaceSprite", ICON_MD_PERSON,
+                                  "Open Sprite Editor panel")) {
+            show_sprite_panel_callback_();
+          }
+        }
+        if (show_item_panel_callback_) {
+          if (toolbar_icon_button("PlaceItem", ICON_MD_INVENTORY,
+                                  "Open Item Editor panel")) {
+            show_item_panel_callback_();
+          }
+        }
+        // Door placement toggle (stays in-room).
+        bool door_mode = object_interaction_.IsDoorPlacementActive();
+        if (toolbar_icon_button("DoorMode", ICON_MD_DOOR_FRONT,
+                                door_mode ? "Cancel door placement"
+                                          : "Place doors",
+                                door_mode)) {
+          object_interaction_.SetDoorPlacementMode(
+              !door_mode, zelda3::DoorType::NormalDoor);
+        }
+
+        // Overlays popup to avoid wrapping a long line of toggles.
+        ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x * 2.0f);
+        ImGui::PushID("OverlaysMenu");
+        if (toolbar_icon_button("Overlays", ICON_MD_VISIBILITY, "Overlays")) {
+          ImGui::OpenPopup("##OverlaysPopup");
+        }
+        if (ImGui::BeginPopup("##OverlaysPopup")) {
+          if (minecart_track_panel_) {
+            ImGui::MenuItem("Minecart Tracks", nullptr, &show_minecart_tracks_);
+          } else {
+            ImGui::BeginDisabled();
+            bool dummy = false;
+            ImGui::MenuItem("Minecart Tracks", nullptr, &dummy);
+            ImGui::EndDisabled();
+          }
+
+          ImGui::MenuItem("Track Collision Overlay", nullptr,
+                          &show_track_collision_overlay_);
+          ImGui::MenuItem("Track Gaps", nullptr, &show_track_gap_overlay_);
+          ImGui::MenuItem("Track Route", nullptr, &show_track_route_overlay_);
+          ImGui::MenuItem("Camera Quadrants", nullptr,
+                          &show_camera_quadrant_overlay_);
+          ImGui::MenuItem("Minecart Sprites", nullptr,
+                          &show_minecart_sprite_overlay_);
+          ImGui::EndPopup();
         }
         ImGui::PopID();
-        return clicked;
-      };
 
-      // Spacer before the quick actions group.
-      ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x * 3.0f);
-
-      // Place pickers (open their dedicated panels).
-      if (show_object_panel_callback_) {
-        if (toolbar_icon_button("PlaceObject", ICON_MD_WIDGETS,
-                                "Open Object Editor panel")) {
-          show_object_panel_callback_();
-        }
-      }
-      if (show_sprite_panel_callback_) {
-        if (toolbar_icon_button("PlaceSprite", ICON_MD_PERSON,
-                                "Open Sprite Editor panel")) {
-          show_sprite_panel_callback_();
-        }
-      }
-      if (show_item_panel_callback_) {
-        if (toolbar_icon_button("PlaceItem", ICON_MD_INVENTORY,
-                                "Open Item Editor panel")) {
-          show_item_panel_callback_();
-        }
-      }
-
-      // Door placement toggle (stays in-room).
-      bool door_mode = object_interaction_.IsDoorPlacementActive();
-      if (toolbar_icon_button("DoorMode", ICON_MD_DOOR_FRONT,
-                              door_mode ? "Cancel door placement"
-                                        : "Place doors",
-                              door_mode)) {
-        object_interaction_.SetDoorPlacementMode(!door_mode,
-                                                 zelda3::DoorType::NormalDoor);
-      }
-
-      // Overlays popup to avoid wrapping a long line of toggles.
-      ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x * 2.0f);
-      ImGui::PushID("OverlaysMenu");
-      if (toolbar_icon_button("Overlays", ICON_MD_VISIBILITY, "Overlays")) {
-        ImGui::OpenPopup("##OverlaysPopup");
-      }
-      if (ImGui::BeginPopup("##OverlaysPopup")) {
-        if (minecart_track_panel_) {
-          ImGui::MenuItem("Minecart Tracks", nullptr, &show_minecart_tracks_);
-        } else {
-          ImGui::BeginDisabled();
-          bool dummy = false;
-          ImGui::MenuItem("Minecart Tracks", nullptr, &dummy);
-          ImGui::EndDisabled();
-        }
-
-        ImGui::MenuItem("Track Collision Overlay", nullptr,
-                        &show_track_collision_overlay_);
-        ImGui::MenuItem("Track Gaps", nullptr, &show_track_gap_overlay_);
-        ImGui::MenuItem("Track Route", nullptr, &show_track_route_overlay_);
-        ImGui::MenuItem("Camera Quadrants", nullptr,
-                        &show_camera_quadrant_overlay_);
-        ImGui::MenuItem("Minecart Sprites", nullptr,
-                        &show_minecart_sprite_overlay_);
-        ImGui::EndPopup();
-      }
-      ImGui::PopID();
-
-      // Object limit warning indicator (kept inline to avoid adding height).
-      if (rooms_) {
-        auto exceeded = room.GetExceededLimitDetails();
-        if (!exceeded.empty()) {
-          ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x * 2.0f);
-          ImGui::TextColored(theme.text_error_red, ICON_MD_WARNING);
-          if (ImGui::IsItemHovered()) {
-            ImGui::BeginTooltip();
-            ImGui::Text("Object Limit Warnings:");
-            for (const auto& e : exceeded) {
-              ImGui::BulletText("%s: %d / %d", e.name.c_str(), e.count, e.max);
+        // Object limit warning indicator (kept inline to avoid adding height).
+        if (rooms_) {
+          auto exceeded = room.GetExceededLimitDetails();
+          if (!exceeded.empty()) {
+            ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x * 2.0f);
+            ImGui::TextColored(theme.text_error_red, ICON_MD_WARNING);
+            if (ImGui::IsItemHovered()) {
+              ImGui::BeginTooltip();
+              ImGui::Text("Object Limit Warnings:");
+              for (const auto& e : exceeded) {
+                ImGui::BulletText("%s: %d / %d", e.name.c_str(), e.count,
+                                  e.max);
+              }
+              ImGui::EndTooltip();
             }
-            ImGui::EndTooltip();
           }
         }
       }

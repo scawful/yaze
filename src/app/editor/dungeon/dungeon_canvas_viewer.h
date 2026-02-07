@@ -68,6 +68,11 @@ class DungeonCanvasViewer {
   // whichever room the viewer is currently drawing.
   int current_room_id() const { return current_room_id_; }
 
+  // Workbench/Inspector integration.
+  void SetCompactHeaderMode(bool compact) { compact_header_mode_ = compact; }
+  bool compact_header_mode() const { return compact_header_mode_; }
+  void SetRoomDetailsExpanded(bool expanded) { show_room_details_ = expanded; }
+
   // Used by overworld editor when double-clicking entrances
   void set_active_rooms(const ImVector<int>& rooms) { active_rooms_ = rooms; }
   void set_current_active_room_tab(int tab) { current_active_room_tab_ = tab; }
@@ -447,6 +452,7 @@ class DungeonCanvasViewer {
   bool show_track_route_overlay_ = false;
   bool show_custom_collision_overlay_ = false;
   bool show_room_details_ = false;
+  bool compact_header_mode_ = false;
   bool track_direction_map_enabled_ = true;
   std::vector<uint16_t> track_tile_order_;
   std::vector<uint16_t> switch_tile_order_;

@@ -1015,6 +1015,83 @@ void DungeonObjectInteraction::HandleScrollWheelResize() {
   interaction_context_.NotifyInvalidateCache();
 }
 
+bool DungeonObjectInteraction::SetObjectId(size_t index, int16_t id) {
+  if (!rooms_ || current_room_id_ < 0 || current_room_id_ >= 296) {
+    return false;
+  }
+  auto& room = (*rooms_)[current_room_id_];
+  auto& objects = room.GetTileObjects();
+  if (index >= objects.size()) {
+    return false;
+  }
+
+  interaction_context_.NotifyMutation();
+  objects[index].id_ = id;
+  objects[index].tiles_loaded_ = false;  // force reload for accurate preview
+  room.MarkObjectsDirty();
+  interaction_context_.NotifyInvalidateCache();
+  return true;
+}
+
+bool DungeonObjectInteraction::SetObjectPosition(size_t index, int x, int y) {
+  if (!rooms_ || current_room_id_ < 0 || current_room_id_ >= 296) {
+    return false;
+  }
+  auto& room = (*rooms_)[current_room_id_];
+  auto& objects = room.GetTileObjects();
+  if (index >= objects.size()) {
+    return false;
+  }
+
+  x = std::clamp(x, 0, 63);
+  y = std::clamp(y, 0, 63);
+
+  interaction_context_.NotifyMutation();
+  objects[index].set_x(static_cast<uint8_t>(x));
+  objects[index].set_y(static_cast<uint8_t>(y));
+  room.MarkObjectsDirty();
+  interaction_context_.NotifyInvalidateCache();
+  return true;
+}
+
+bool DungeonObjectInteraction::SetObjectSize(size_t index, uint8_t size) {
+  if (!rooms_ || current_room_id_ < 0 || current_room_id_ >= 296) {
+    return false;
+  }
+  auto& room = (*rooms_)[current_room_id_];
+  auto& objects = room.GetTileObjects();
+  if (index >= objects.size()) {
+    return false;
+  }
+
+  size &= 0x0F;
+
+  interaction_context_.NotifyMutation();
+  objects[index].set_size(size);
+  objects[index].tiles_loaded_ = false;
+  room.MarkObjectsDirty();
+  interaction_context_.NotifyInvalidateCache();
+  return true;
+}
+
+bool DungeonObjectInteraction::SetObjectLayer(size_t index,
+                                             zelda3::RoomObject::LayerType layer) {
+  if (!rooms_ || current_room_id_ < 0 || current_room_id_ >= 296) {
+    return false;
+  }
+  auto& room = (*rooms_)[current_room_id_];
+  auto& objects = room.GetTileObjects();
+  if (index >= objects.size()) {
+    return false;
+  }
+
+  interaction_context_.NotifyMutation();
+  objects[index].layer_ = layer;
+  room.MarkObjectsDirty();
+  interaction_context_.NotifyInvalidateCache();
+  return true;
+}
+
 std::pair<int, int> DungeonObjectInteraction::CalculateObjectBounds(
     const zelda3::RoomObject& object) {
   // Try dimension table first for consistency with selection/highlights

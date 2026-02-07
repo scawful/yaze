@@ -235,7 +235,8 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
   panel_manager->RegisterEditorPanel(std::make_unique<DungeonWorkbenchPanel>(
       &room_selector_, &current_room_id_,
       [this](int room_id) { OnRoomSelected(room_id); },
-      [this]() { return GetWorkbenchViewer(); }, rom_));
+      [this]() { return GetWorkbenchViewer(); },
+      [this](const std::string& id) { ShowPanel(id); }, rom_));
 
   panel_manager->RegisterEditorPanel(std::make_unique<DungeonEntrancesPanel>(
       &entrances_, &current_entrance_id_,
@@ -1486,6 +1487,8 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
   auto it = room_viewers_.find(room_id);
   if (it == room_viewers_.end()) {
     auto viewer = std::make_unique<DungeonCanvasViewer>(rom_);
+    viewer->SetCompactHeaderMode(false);
+    viewer->SetRoomDetailsExpanded(true);
     DungeonCanvasViewer* viewer_ptr = viewer.get();
     viewer->SetRooms(&rooms_);
     viewer->SetRenderer(renderer_);
@@ -1607,6 +1610,8 @@ DungeonCanvasViewer* DungeonEditorV2::GetWorkbenchViewer() {
   if (!workbench_viewer_) {
     workbench_viewer_ = std::make_unique<DungeonCanvasViewer>(rom_);
     auto* viewer = workbench_viewer_.get();
+    viewer->SetCompactHeaderMode(true);
+    viewer->SetRoomDetailsExpanded(false);
     viewer->SetRooms(&rooms_);
     viewer->SetRenderer(renderer_);
     viewer->SetCurrentPaletteGroup(current_palette_group_);
