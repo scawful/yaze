@@ -35,6 +35,7 @@ enum class InteractionMode {
   DraggingObjects,  // Dragging selected tile objects
   DraggingEntity,   // Dragging selected door/sprite/item
   RectangleSelect,  // Drawing rectangle selection box
+  PaintCollision,   // Painting custom collision tiles
 };
 
 /**
@@ -68,6 +69,10 @@ struct ModeState {
   // Entity drag state
   ImVec2 entity_drag_start = ImVec2(0, 0);
   ImVec2 entity_drag_current = ImVec2(0, 0);
+
+  // Collision paint state
+  uint8_t paint_collision_value = 0;
+  bool is_painting = false;
 
   /**
    * @brief Clear all mode state

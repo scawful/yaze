@@ -23,6 +23,8 @@
 #include "app/editor/dungeon/panels/dungeon_entrance_list_panel.h"
 #include "app/editor/dungeon/panels/dungeon_entrances_panel.h"
 #include "app/editor/dungeon/panels/dungeon_map_panel.h"
+#include "app/editor/dungeon/panels/custom_collision_panel.h"
+#include "app/editor/dungeon/panels/dungeon_settings_panel.h"
 #include "app/editor/dungeon/panels/dungeon_palette_editor_panel.h"
 #include "app/editor/dungeon/panels/dungeon_room_graphics_panel.h"
 #include "app/editor/dungeon/panels/dungeon_room_matrix_panel.h"
@@ -330,6 +332,17 @@ absl::Status DungeonEditorV2::Load() {
         std::make_unique<ItemEditorPanel>(&current_room_id_, &rooms_, nullptr);
     item_editor_panel_ = item_panel.get();
     dependencies_.panel_manager->RegisterEditorPanel(std::move(item_panel));
+
+    auto collision_panel = std::make_unique<CustomCollisionPanel>(nullptr, nullptr); // Placeholder, will be set in OnRoomSelected
+    custom_collision_panel_ = collision_panel.get();
+    dependencies_.panel_manager->RegisterEditorPanel(std::move(collision_panel));
+
+    auto settings_panel = std::make_unique<DungeonSettingsPanel>(nullptr);
+    settings_panel->SetSaveRoomCallback([this](int id) { SaveRoom(id); });
+    settings_panel->SetSaveAllRoomsCallback([this]() { SaveAllRooms(); });
+    settings_panel->SetCurrentRoomId(&current_room_id_);
+    dungeon_settings_panel_ = settings_panel.get();
+    dependencies_.panel_manager->RegisterEditorPanel(std::move(settings_panel));
 
     // Room Tag Editor Panel
     {
@@ -1072,6 +1085,17 @@ void DungeonEditorV2::OnRoomSelected(int room_id, bool request_focus) {
   if (item_editor_panel_) {
     item_editor_panel_->SetCanvasViewer(GetViewerForRoom(room_id));
   }
+  if (custom_collision_panel_) {
+    auto* viewer = GetViewerForRoom(room_id);
+    custom_collision_panel_->SetCanvasViewer(viewer);
+    if (viewer) {
+      custom_collision_panel_->SetInteraction(&viewer->object_interaction());
+    }
+  }
+
+  if (dungeon_settings_panel_) {
+    dungeon_settings_panel_->SetCanvasViewer(GetViewerForRoom(room_id));
+  }
 
   // Update room tag editor panel with current room
   if (room_tag_editor_panel_) {
@@ -1164,6 +1188,23 @@ void DungeonEditorV2::OnEntranceSelected(int entrance_id) {
   }
   int room_id = entrances_[entrance_id].room_;
   OnRoomSelected(room_id);
+}
+
+void DungeonEditorV2::SaveAllRooms() {
+  auto status = Save();
+  if (status.ok()) {
+    if (dependencies_.toast_manager) {
+      dependencies_.toast_manager->Show("All rooms saved", ToastType::kSuccess);
+    }
+  } else {
+    LOG_ERROR("DungeonEditorV2", "SaveAllRooms failed: %s",
+              status.message().data());
+    if (dependencies_.toast_manager) {
+      dependencies_.toast_manager->Show(
+          absl::StrFormat("Save all failed: %s", status.message()),
+          ToastType::kError);
+    }
+  }
 }
 
 void DungeonEditorV2::add_room(int room_id) {
@@ -1330,6 +1371,13 @@ void DungeonEditorV2::ProcessPendingSwap() {
   }
   room_panel_slot_ids_[new_room_id] = slot_id;
 
+  // Preserve the viewer instance so canvas pan/zoom and UI state don't reset
+  // when navigating with arrows (swap-in-panel).
+  if (auto it = room_viewers_.find(old_room_id); it != room_viewers_.end()) {
+    room_viewers_[new_room_id] = std::move(it->second);
+    room_viewers_.erase(it);
+  }
+
   // Replace old room with new room in active_rooms_
   active_rooms_[swap_index] = new_room_id;
   room_selector_.set_active_rooms(active_rooms_);
@@ -1365,7 +1413,6 @@ void DungeonEditorV2::ProcessPendingSwap() {
 
   // Clean up old room's card and viewer
   room_cards_.erase(old_room_id);
-  room_viewers_.erase(old_room_id);
 
   // Update current selection
   OnRoomSelected(new_room_id, /*request_focus=*/false);
@@ -1375,20 +1422,30 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
   auto it = room_viewers_.find(room_id);
   if (it == room_viewers_.end()) {
     auto viewer = std::make_unique<DungeonCanvasViewer>(rom_);
+    DungeonCanvasViewer* viewer_ptr = viewer.get();
     viewer->SetRooms(&rooms_);
     viewer->SetRenderer(renderer_);
     viewer->SetCurrentPaletteGroup(current_palette_group_);
     viewer->SetCurrentPaletteId(current_palette_id_);
     viewer->SetGameData(game_data_);
 
-    viewer->object_interaction().SetMutationHook(
-        [this, room_id]() { PushUndoSnapshot(room_id); });
+    // These hooks must remain correct even when a room panel swaps rooms while
+    // keeping the same viewer instance (to preserve canvas pan/zoom + UI
+    // state). Use the viewer's best-effort current room context instead of
+    // capturing room_id at creation time.
+    viewer->object_interaction().SetMutationHook([this, viewer_ptr]() {
+      const int rid = viewer_ptr ? viewer_ptr->current_room_id() : -1;
+      if (rid >= 0 && rid < static_cast<int>(rooms_.size())) {
+        PushUndoSnapshot(rid);
+      }
+    });
 
     viewer->object_interaction().SetCacheInvalidationCallback(
-        [this, room_id]() {
-          if (room_id >= 0 && room_id < static_cast<int>(rooms_.size())) {
-            rooms_[room_id].MarkObjectsDirty();
-            rooms_[room_id].RenderRoomGraphics();
+        [this, viewer_ptr]() {
+          const int rid = viewer_ptr ? viewer_ptr->current_room_id() : -1;
+          if (rid >= 0 && rid < static_cast<int>(rooms_.size())) {
+            rooms_[rid].MarkObjectsDirty();
+            rooms_[rid].RenderRoomGraphics();
           }
         });
 
@@ -1418,6 +1475,8 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
         [this]() { ShowPanel(kEntranceListId); });
     viewer->SetShowRoomGraphicsCallback(
         [this]() { ShowPanel(kRoomGraphicsId); });
+    viewer->SetShowDungeonSettingsCallback(
+        [this]() { ShowPanel("dungeon.settings"); });
     viewer->SetEditGraphicsCallback(
         [this](int target_room_id, const zelda3::RoomObject& object) {
           OpenGraphicsEditorForObject(target_room_id, object);
@@ -1465,6 +1524,16 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
   if (dependencies_.panel_manager) {
     std::string card_id = absl::StrFormat("dungeon.room_%d", room_id);
     it->second->SetPinned(dependencies_.panel_manager->IsPanelPinned(card_id));
+    // Ensure pin callback matches the current room_id, even if the viewer
+    // instance was preserved across an in-panel room swap.
+    it->second->SetPinCallback([this, card_id, room_id](bool pinned) {
+      if (dependencies_.panel_manager) {
+        dependencies_.panel_manager->SetPanelPinned(card_id, pinned);
+        if (auto* v = GetViewerForRoom(room_id)) {
+          v->SetPinned(pinned);
+        }
+      }
+    });
   }
 
   return it->second.get();

@@ -229,6 +229,9 @@ class DungeonEditorV2 : public Editor {
   // Swap room in current panel (for arrow navigation)
   void SwapRoomInPanel(int old_room_id, int new_room_id);
 
+  // Convenience action for Settings panel.
+  void SaveAllRooms();
+
   // Object placement callback
   void HandleObjectPlaced(const zelda3::RoomObject& obj);
   void OpenGraphicsEditorForObject(int room_id,
@@ -278,6 +281,8 @@ class DungeonEditorV2 : public Editor {
   class ItemEditorPanel* item_editor_panel_ = nullptr;
   class MinecartTrackEditorPanel* minecart_track_editor_panel_ = nullptr;
   class RoomTagEditorPanel* room_tag_editor_panel_ = nullptr;
+  class CustomCollisionPanel* custom_collision_panel_ = nullptr;
+  class DungeonSettingsPanel* dungeon_settings_panel_ = nullptr;
 
   // Fallback ownership for tests when PanelManager is not available.
   // In production, this remains nullptr and panels are owned by PanelManager.

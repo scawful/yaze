@@ -117,6 +117,10 @@ class Sprite : public GameEntity {
   // Check if this sprite is an overlord (special sprite type with different limits)
   bool IsOverlord() const { return overlord_ != 0; }
 
+  // Setters for editable properties
+  void set_subtype(int subtype) { subtype_ = subtype; }
+  void set_layer(int layer) { layer_ = layer; }
+
  private:
   uint8_t map_id_;
   uint8_t game_state_;

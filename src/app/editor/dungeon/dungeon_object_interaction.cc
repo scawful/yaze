@@ -72,6 +72,10 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
         break;
       }
 
+      case InteractionMode::PaintCollision:
+        // Handled below for continuous painting
+        break;
+
       case InteractionMode::Select:
       default:
         // Selection mode: try to select entity (door/sprite/item) first, then objects
@@ -111,6 +115,26 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
           }
         }
         break;
+    }
+  }
+
+  // Handle continuous painting for collision
+  if (mode_manager_.GetMode() == InteractionMode::PaintCollision &&
+      ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+    auto [room_x, room_y] = CanvasToRoomCoordinates(
+        static_cast<int>(canvas_mouse_pos.x), static_cast<int>(canvas_mouse_pos.y));
+    if (rooms_ && current_room_id_ >= 0 && current_room_id_ < 296) {
+      auto& room = (*rooms_)[current_room_id_];
+      auto& state = mode_manager_.GetModeState();
+      
+      // Only set for valid interior tiles (0-63)
+      if (room_x >= 0 && room_x < 64 && room_y >= 0 && room_y < 64) {
+        if (room.GetCollisionTile(room_x, room_y) != state.paint_collision_value) {
+          room.SetCollisionTile(room_x, room_y, state.paint_collision_value);
+          interaction_context_.NotifyMutation();
+          interaction_context_.NotifyInvalidateCache();
+        }
+      }
     }
   }
 
