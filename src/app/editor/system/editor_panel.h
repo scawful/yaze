@@ -25,6 +25,22 @@ enum class PanelCategory {
 };
 
 /**
+ * @enum PanelContextScope
+ * @brief Optional context binding for a panel's behavior within an editor
+ *
+ * This does not change panel IDs by itself. PanelManager can use it to apply
+ * predictable default rules when a context becomes invalid (e.g. selection
+ * cleared) to avoid "mystery panels".
+ *
+ * Most panels should remain kNone.
+ */
+enum class PanelContextScope : uint8_t {
+  kNone = 0,
+  kRoom,
+  kSelection,
+};
+
+/**
  * @enum PanelScope
  * @brief Defines whether a panel is session-scoped or global
  *
@@ -190,6 +206,14 @@ class EditorPanel {
    */
   virtual PanelCategory GetPanelCategory() const {
     return PanelCategory::EditorBound;
+  }
+
+  /**
+   * @brief Optional context binding for this panel (room/selection/etc)
+   * @return PanelContextScope used by PanelManager policy (default: none)
+   */
+  virtual PanelContextScope GetContextScope() const {
+    return PanelContextScope::kNone;
   }
 
   /**
