@@ -9,17 +9,11 @@ RED='\033[0;31m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-BUILD_DIR="${YAZE_BUILD_DIR:-./build}"
-Z3ED="${BUILD_DIR}/bin/z3ed"
-if [ ! -f "$Z3ED" ]; then
-    for candidate in ./build ./build_test ./build-ai ./build_agent; do
-        if [ -f "${candidate}/bin/z3ed" ]; then
-            BUILD_DIR="$candidate"
-            Z3ED="${candidate}/bin/z3ed"
-            break
-        fi
-    done
-fi
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# Prefer the repo wrapper which selects the newest z3ed binary (build_ai first).
+Z3ED="${Z3ED_BIN:-$ROOT_DIR/scripts/z3ed}"
 RESULTS_FILE="/tmp/z3ed_ai_test_results.txt"
 USE_MOCK_ROM=true  # Set to false if you want to test with a real ROM
 OLLAMA_MODEL="${OLLAMA_MODEL:-qwen2.5-coder:0.5b}"
@@ -156,9 +150,10 @@ if [ "$PROVIDER" == "ollama" ]; then
 fi
 
 # Check binary exists
-if [ ! -f "$Z3ED" ]; then
+if [ ! -x "$Z3ED" ]; then
     echo -e "${RED}✗ z3ed binary not found at: $Z3ED${NC}"
-    echo "Run: cmake --build $BUILD_DIR"
+    echo "Build with: cmake --preset mac-ai && cmake --build build_ai --target z3ed"
+    echo "Or set Z3ED_BIN to a specific z3ed path."
     exit 1
 fi
 echo "✅ z3ed binary found"
