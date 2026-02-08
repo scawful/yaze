@@ -71,6 +71,31 @@ Outputs:
 - `build-ios/ios/libyaze_ios_bundle.a`
 - `src/ios/yaze_ios.xcodeproj`
 
+## xcodebuild-ios.sh
+
+Builds (and optionally archives/exports) the iOS app via `xcodebuild`.
+
+```bash
+# Simulator build (no signing)
+scripts/xcodebuild-ios.sh ios-sim-debug build
+
+# Device build (requires signing)
+scripts/xcodebuild-ios.sh ios-debug build
+
+# Device archive + export development .ipa
+scripts/xcodebuild-ios.sh ios-debug ipa
+```
+
+If you see `No Accounts` or provisioning errors when building on a headless/CI
+machine, pass an App Store Connect authentication key (avoids Xcode Accounts):
+
+```bash
+export XCODE_AUTH_KEY_PATH=/path/to/AuthKey_XXXXXX.p8
+export XCODE_AUTH_KEY_ID=XXXXXX
+export XCODE_AUTH_KEY_ISSUER_ID=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+scripts/xcodebuild-ios.sh ios-debug ipa
+```
+
 ## build_cleaner.py
 
 Automates CMake source list maintenance and header include management with IWYU-style analysis.
