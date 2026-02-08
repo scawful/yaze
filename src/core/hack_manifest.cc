@@ -1,6 +1,7 @@
 #include "core/hack_manifest.h"
 
 #include <algorithm>
+#include <filesystem>
 #include <fstream>
 #include <sstream>
 #include <utility>
@@ -9,6 +10,7 @@
 #include "absl/strings/str_format.h"
 #include "rom/snes.h"
 #include "util/json.h"
+#include "util/log.h"
 #include "util/macro.h"
 
 namespace yaze::core {
@@ -108,6 +110,7 @@ void HackManifest::Reset() {
   sram_variables_.clear();
   message_layout_ = MessageLayout{};
   build_pipeline_ = BuildPipeline{};
+  project_registry_ = ProjectRegistry{};
 }
 
 absl::Status HackManifest::LoadFromFile(const std::string& filepath) {
@@ -474,6 +477,186 @@ std::string HackManifest::GetSramVariableName(uint32_t address) const {
 bool HackManifest::IsExpandedMessage(uint16_t message_id) const {
   return message_id >= message_layout_.first_expanded_id &&
          message_id <= message_layout_.last_expanded_id;
+}
+
+// ============================================================================
+// Project Registry Loading
+// ============================================================================
+
+absl::Status HackManifest::LoadProjectRegistry(
+    const std::string& code_folder) {
+  namespace fs = std::filesystem;
+
+  project_registry_ = ProjectRegistry{};
+  fs::path base(code_folder);
+
+  // Look for data files in Docs/Dev/Planning/ (generated output location)
+  fs::path planning = base / "Docs" / "Dev" / "Planning";
+
+  // ── Load dungeons.json ──────────────────────────────────────────────────
+  fs::path dungeons_path = planning / "dungeons.json";
+  if (fs::exists(dungeons_path)) {
+    std::ifstream file(dungeons_path);
+    if (file.is_open()) {
+      std::stringstream buffer;
+      buffer << file.rdbuf();
+      try {
+        Json root = Json::parse(buffer.str());
+        if (root.contains("dungeons") && root["dungeons"].is_array()) {
+          for (const auto& dj : root["dungeons"]) {
+            DungeonEntry entry;
+            entry.id = dj.value("id", "");
+            entry.name = dj.value("name", "");
+            entry.vanilla_name = dj.value("vanilla_name", "");
+
+            // Rooms
+            if (dj.contains("rooms") && dj["rooms"].is_array()) {
+              for (const auto& rj : dj["rooms"]) {
+                DungeonRoom room;
+                std::string id_str = rj.value("id", "0x00");
+                auto parsed = ParseHexAddress(id_str);
+                room.id = parsed.ok() ? static_cast<int>(*parsed) : 0;
+                room.name = rj.value("name", "");
+                room.grid_row = rj.value("grid_row", 0);
+                room.grid_col = rj.value("grid_col", 0);
+                room.type = rj.value("type", "normal");
+                room.palette = rj.value("palette", 0);
+                room.blockset = rj.value("blockset", 0);
+                room.spriteset = rj.value("spriteset", 0);
+                room.tag1 = static_cast<uint8_t>(rj.value("tag1", 0));
+                room.tag2 = static_cast<uint8_t>(rj.value("tag2", 0));
+                entry.rooms.push_back(std::move(room));
+              }
+            }
+
+            // Stairs
+            if (dj.contains("stairs") && dj["stairs"].is_array()) {
+              for (const auto& sj : dj["stairs"]) {
+                DungeonConnection conn;
+                std::string from_str = sj.value("from", "0x00");
+                std::string to_str = sj.value("to", "0x00");
+                auto from_parsed = ParseHexAddress(from_str);
+                auto to_parsed = ParseHexAddress(to_str);
+                conn.from_room = from_parsed.ok()
+                                     ? static_cast<int>(*from_parsed)
+                                     : 0;
+                conn.to_room =
+                    to_parsed.ok() ? static_cast<int>(*to_parsed) : 0;
+                conn.label = sj.value("label", "");
+                entry.stairs.push_back(std::move(conn));
+              }
+            }
+
+            // Holewarps
+            if (dj.contains("holewarps") && dj["holewarps"].is_array()) {
+              for (const auto& hj : dj["holewarps"]) {
+                DungeonConnection conn;
+                std::string from_str = hj.value("from", "0x00");
+                std::string to_str = hj.value("to", "0x00");
+                auto from_parsed = ParseHexAddress(from_str);
+                auto to_parsed = ParseHexAddress(to_str);
+                conn.from_room = from_parsed.ok()
+                                     ? static_cast<int>(*from_parsed)
+                                     : 0;
+                conn.to_room =
+                    to_parsed.ok() ? static_cast<int>(*to_parsed) : 0;
+                conn.label = hj.value("label", "");
+                entry.holewarps.push_back(std::move(conn));
+              }
+            }
+
+            // Doors
+            if (dj.contains("doors") && dj["doors"].is_array()) {
+              for (const auto& doorj : dj["doors"]) {
+                DungeonConnection conn;
+                std::string from_str = doorj.value("from", "0x00");
+                std::string to_str = doorj.value("to", "0x00");
+                auto from_parsed = ParseHexAddress(from_str);
+                auto to_parsed = ParseHexAddress(to_str);
+                conn.from_room = from_parsed.ok()
+                                     ? static_cast<int>(*from_parsed)
+                                     : 0;
+                conn.to_room =
+                    to_parsed.ok() ? static_cast<int>(*to_parsed) : 0;
+                conn.label = doorj.value("label", "");
+                conn.direction = doorj.value("direction", "");
+                entry.doors.push_back(std::move(conn));
+              }
+            }
+
+            project_registry_.dungeons.push_back(std::move(entry));
+          }
+        }
+      } catch (const std::exception& exc) {
+        LOG_WARN("HackManifest", "Failed to parse dungeons.json: %s",
+                 exc.what());
+      }
+    }
+  }
+
+  // ── Load overworld.json ─────────────────────────────────────────────────
+  fs::path overworld_path = planning / "overworld.json";
+  if (fs::exists(overworld_path)) {
+    std::ifstream file(overworld_path);
+    if (file.is_open()) {
+      std::stringstream buffer;
+      buffer << file.rdbuf();
+      try {
+        Json root = Json::parse(buffer.str());
+        if (root.contains("areas") && root["areas"].is_array()) {
+          for (const auto& aj : root["areas"]) {
+            OverworldArea area;
+            std::string id_str = aj.value("area_id", "0x00");
+            auto parsed = ParseHexAddress(id_str);
+            area.area_id = parsed.ok() ? static_cast<int>(*parsed) : 0;
+            area.name = aj.value("name", "");
+            area.world = aj.value("world", "");
+            area.grid_row = aj.value("grid_row", 0);
+            area.grid_col = aj.value("grid_col", 0);
+            project_registry_.overworld_areas.push_back(std::move(area));
+          }
+        }
+      } catch (const std::exception& exc) {
+        LOG_WARN("HackManifest", "Failed to parse overworld.json: %s",
+                 exc.what());
+      }
+    }
+  }
+
+  // ── Load oracle_room_labels.json ────────────────────────────────────────
+  fs::path labels_path = planning / "oracle_room_labels.json";
+  if (fs::exists(labels_path)) {
+    std::ifstream file(labels_path);
+    if (file.is_open()) {
+      std::stringstream buffer;
+      buffer << file.rdbuf();
+      try {
+        Json root = Json::parse(buffer.str());
+        if (root.contains("resource_labels") &&
+            root["resource_labels"].contains("room")) {
+          for (auto& [key, value] : root["resource_labels"]["room"].items()) {
+            project_registry_.room_labels[key] = value.get<std::string>();
+          }
+        }
+      } catch (const std::exception& exc) {
+        LOG_WARN("HackManifest", "Failed to parse oracle_room_labels.json: %s",
+                 exc.what());
+      }
+    }
+  }
+
+  if (!project_registry_.dungeons.empty() ||
+      !project_registry_.overworld_areas.empty() ||
+      !project_registry_.room_labels.empty()) {
+    LOG_DEBUG("HackManifest",
+              "Loaded project registry: %zu dungeons, %zu overworld areas, "
+              "%zu room labels",
+              project_registry_.dungeons.size(),
+              project_registry_.overworld_areas.size(),
+              project_registry_.room_labels.size());
+  }
+
+  return absl::OkStatus();
 }
 
 }  // namespace yaze::core
