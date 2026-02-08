@@ -19,6 +19,7 @@ set(
   app/editor/dungeon/interaction/door_interaction_handler.cc
   app/editor/dungeon/interaction/item_interaction_handler.cc
   app/editor/dungeon/interaction/sprite_interaction_handler.cc
+  app/editor/dungeon/interaction/tile_object_handler.cc
   app/editor/dungeon/interaction/interaction_coordinator.cc
   app/editor/dungeon/interaction/interaction_mode.cc
   app/editor/dungeon/panels/dungeon_room_graphics_panel.cc

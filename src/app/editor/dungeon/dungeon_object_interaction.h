@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "app/editor/dungeon/dungeon_coordinates.h"
+#include "app/editor/dungeon/dungeon_snapping.h"
 #include "app/editor/dungeon/interaction/interaction_context.h"
 #include "app/editor/dungeon/interaction/interaction_coordinator.h"
 #include "app/editor/dungeon/interaction/interaction_mode.h"
@@ -29,28 +30,7 @@
 namespace yaze {
 namespace editor {
 
-/**
- * @brief Type of entity that can be selected in the dungeon editor
- */
-enum class EntityType {
-  None,
-  Object,   // Room tile objects
-  Door,     // Door entities
-  Sprite,   // Enemy/NPC sprites
-  Item      // Pot items
-};
 
-/**
- * @brief Represents a selected entity in the dungeon editor
- */
-struct SelectedEntity {
-  EntityType type = EntityType::None;
-  size_t index = 0;  // Index into the respective container
-  
-  bool operator==(const SelectedEntity& other) const {
-    return type == other.type && index == other.index;
-  }
-};
 
 /**
  * @brief Handles object selection, placement, and interaction within the
@@ -65,6 +45,7 @@ class DungeonObjectInteraction {
   explicit DungeonObjectInteraction(gui::Canvas* canvas) : canvas_(canvas) {
     // Set up initial context
     interaction_context_.canvas = canvas;
+    interaction_context_.selection = &selection_;
     entity_coordinator_.SetContext(&interaction_context_);
   }
 
@@ -81,6 +62,7 @@ class DungeonObjectInteraction {
   void SetContext(const InteractionContext& ctx) {
     interaction_context_ = ctx;
     interaction_context_.canvas = canvas_;  // Always use our canvas
+    interaction_context_.selection = &selection_;
     entity_coordinator_.SetContext(&interaction_context_);
   }
 
@@ -96,7 +78,6 @@ class DungeonObjectInteraction {
 
   // Legacy setter - kept for backwards compatibility
   void SetRom(Rom* rom) {
-    rom_ = rom;
     interaction_context_.rom = rom;
     entity_coordinator_.SetContext(&interaction_context_);
   }
@@ -108,16 +89,12 @@ class DungeonObjectInteraction {
 
   // Selection rectangle (like OverworldEditor)
   void DrawObjectSelectRect();
-  void SelectObjectsInRect();
   void DrawSelectionHighlights();  // Draw highlights for selected objects
   void DrawHoverHighlight(const std::vector<zelda3::RoomObject>& objects);  // Draw hover indicator
 
   // Drag and select box functionality
   void DrawSelectBox();
-  void DrawDragPreview();
   void DrawGhostPreview();  // Draw ghost preview for object placement
-  void UpdateSelectedObjects();
-  bool IsObjectInSelectBox(const zelda3::RoomObject& object) const;
 
   // Coordinate conversion
   std::pair<int, int> RoomToCanvasCoordinates(int room_x, int room_y) const;
@@ -143,10 +120,7 @@ class DungeonObjectInteraction {
     return mode_manager_.GetMode() == InteractionMode::PlaceObject;
   }
 
-  void CancelPlacement() {
-    mode_manager_.CancelCurrentMode();
-    ghost_preview_buffer_.reset();
-  }
+  void CancelPlacement();
 
   // Door placement mode
   void SetDoorPlacementMode(bool enabled, zelda3::DoorType type = zelda3::DoorType::NormalDoor);
@@ -160,8 +134,6 @@ class DungeonObjectInteraction {
     return mode_manager_.GetModeState().preview_door_type.value_or(
         zelda3::DoorType::NormalDoor);
   }
-  void DrawDoorGhostPreview();  // Draw door ghost preview with wall snapping
-  void PlaceDoorAtPosition(int canvas_x, int canvas_y);  // Place door at snapped position
   void CancelDoorPlacement() {
     if (mode_manager_.GetMode() == InteractionMode::PlaceDoor) {
       mode_manager_.CancelCurrentMode();
@@ -179,8 +151,6 @@ class DungeonObjectInteraction {
   uint8_t GetPreviewSpriteId() const {
     return mode_manager_.GetModeState().preview_sprite_id.value_or(0);
   }
-  void DrawSpriteGhostPreview();  // Draw sprite ghost preview
-  void PlaceSpriteAtPosition(int canvas_x, int canvas_y);
   void CancelSpritePlacement() {
     if (mode_manager_.GetMode() == InteractionMode::PlaceSprite) {
       mode_manager_.CancelCurrentMode();
@@ -198,8 +168,6 @@ class DungeonObjectInteraction {
   uint8_t GetPreviewItemId() const {
     return mode_manager_.GetModeState().preview_item_id.value_or(0);
   }
-  void DrawItemGhostPreview();  // Draw item ghost preview
-  void PlaceItemAtPosition(int canvas_x, int canvas_y);
   void CancelItemPlacement() {
     if (mode_manager_.GetMode() == InteractionMode::PlaceItem) {
       mode_manager_.CancelCurrentMode();
@@ -231,23 +199,22 @@ class DungeonObjectInteraction {
   }
 
   // Helper for click selection with proper mode handling
-  bool TrySelectObjectAtCursor();
 
   // Object manipulation
   void HandleScrollWheelResize();  // Resize selected objects with scroll wheel
-  size_t GetHoveredObjectIndex() const;  // Get index of object under cursor
 
   void HandleDeleteSelected();
   void HandleDeleteAllObjects();
   void HandleCopySelected();
   void HandlePasteObjects();
-  bool HasClipboardData() const { return has_clipboard_data_; }
+  bool HasClipboardData() const {
+    return entity_coordinator_.tile_handler().HasClipboardData();
+  }
 
   // Inspector-friendly mutation helpers (with undo + rerender integration).
   // These are intended for UI panels that want to edit a single object without
   // duplicating mutation/invalidation boilerplate.
   bool SetObjectId(size_t index, int16_t id);
-  bool SetObjectPosition(size_t index, int x, int y);
   bool SetObjectSize(size_t index, uint8_t size);
   bool SetObjectLayer(size_t index, zelda3::RoomObject::LayerType layer);
 
@@ -299,18 +266,18 @@ class DungeonObjectInteraction {
   // Entity selection (doors, sprites, items)
   void SelectEntity(EntityType type, size_t index);
   void ClearEntitySelection();
-  bool HasEntitySelection() const { return selected_entity_.type != EntityType::None; }
-  const SelectedEntity& GetSelectedEntity() const { return selected_entity_; }
+  bool HasEntitySelection() const {
+    return entity_coordinator_.HasEntitySelection();
+  }
+  SelectedEntity GetSelectedEntity() const {
+    return entity_coordinator_.GetSelectedEntity();
+  }
   
-  // Entity hit detection
-  std::optional<SelectedEntity> GetEntityAtPosition(int canvas_x, int canvas_y) const;
   
   // Draw entity selection highlights
   void DrawEntitySelectionHighlights();
   void DrawDoorSnapIndicators();  // Show valid snap positions during door drag
 
-  // Entity interaction
-  bool TrySelectEntityAtCursor();  // Try to select door/sprite/item at cursor
   void HandleEntityDrag();         // Handle dragging selected entity
   
   // Callbacks for entity changes
@@ -324,8 +291,6 @@ class DungeonObjectInteraction {
   zelda3::DungeonEditorSystem* editor_system_ = nullptr;
   std::array<zelda3::Room, dungeon_coords::kRoomCount>* rooms_ = nullptr;
   int current_room_id_ = 0;
-  Rom* rom_ = nullptr;
-  std::unique_ptr<zelda3::ObjectDrawer> object_drawer_;
 
   // Unified interaction context and coordinator for entity handling
   InteractionContext interaction_context_;
@@ -338,31 +303,28 @@ class DungeonObjectInteraction {
   std::pair<int, int> CalculateObjectBounds(const zelda3::RoomObject& object);
   ImVec2 ApplyDragModifiers(const ImVec2& delta) const;
 
+  // Refactored input handlers
+  void HandleLeftClick(const ImVec2& canvas_mouse_pos);
+  void UpdateCollisionPainting(const ImVec2& canvas_mouse_pos);
+  void HandleObjectSelectionStart(const ImVec2& canvas_mouse_pos);
+  void HandleEmptySpaceClick(const ImVec2& canvas_mouse_pos);
+  void UpdateObjectDragging(const ImVec2& canvas_mouse_pos);
+  void HandleMouseRelease();
+
   // Preview object state (used by ModeState but kept here for ghost bitmap)
   zelda3::RoomObject preview_object_{0, 0, 0, 0, 0};
 
   // Ghost preview bitmap (persists across frames for placement preview)
-  std::unique_ptr<gfx::BackgroundBuffer> ghost_preview_buffer_;
   gfx::PaletteGroup current_palette_group_;
-  void RenderGhostPreviewBitmap();
 
   // Unified selection system - replaces legacy selection state
   ObjectSelection selection_;
 
-  // Hover detection for resize
-  size_t hovered_object_index_ = static_cast<size_t>(-1);
-  bool has_hovered_object_ = false;
-
   // Callbacks - stored only in interaction_context_ (no duplication)
   std::function<void(const zelda3::RoomObject&)> object_placed_callback_;
 
-  // Clipboard for copy/paste
-  std::vector<zelda3::RoomObject> clipboard_;
-  bool has_clipboard_data_ = false;
-
   // Entity selection state (doors, sprites, items)
-  SelectedEntity selected_entity_;
-  bool is_entity_mode_ = false;  // When true, suppress all object interactions
+  // Note: entity selection is owned by InteractionCoordinator/handlers.
 };
 
 }  // namespace editor

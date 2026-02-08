@@ -59,6 +59,10 @@ struct ModeState {
   ImVec2 drag_start = ImVec2(0, 0);
   ImVec2 drag_current = ImVec2(0, 0);
   bool duplicate_on_drag = false;
+  bool drag_mutation_started = false;
+  bool drag_has_duplicated = false;
+  int drag_last_tile_dx = 0;
+  int drag_last_tile_dy = 0;
 
   // Rectangle selection bounds (canvas coordinates)
   int rect_start_x = 0;
@@ -87,12 +91,18 @@ struct ModeState {
     drag_start = ImVec2(0, 0);
     drag_current = ImVec2(0, 0);
     duplicate_on_drag = false;
+    drag_mutation_started = false;
+    drag_has_duplicated = false;
+    drag_last_tile_dx = 0;
+    drag_last_tile_dy = 0;
     rect_start_x = 0;
     rect_start_y = 0;
     rect_end_x = 0;
     rect_end_y = 0;
     entity_drag_start = ImVec2(0, 0);
     entity_drag_current = ImVec2(0, 0);
+    paint_collision_value = 0;
+    is_painting = false;
   }
 
   /**
@@ -114,6 +124,10 @@ struct ModeState {
     drag_start = ImVec2(0, 0);
     drag_current = ImVec2(0, 0);
     duplicate_on_drag = false;
+    drag_mutation_started = false;
+    drag_has_duplicated = false;
+    drag_last_tile_dx = 0;
+    drag_last_tile_dy = 0;
     entity_drag_start = ImVec2(0, 0);
     entity_drag_current = ImVec2(0, 0);
   }

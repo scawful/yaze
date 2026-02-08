@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cmath>
 #include <cstdio>
 #include <cstdint>
 #include <cstring>
@@ -144,8 +145,9 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
     ImGui::BeginChild("##DungeonWorkbenchSidebarCollapsed", ImVec2(0, 0), true);
     const float avail = ImGui::GetContentRegionAvail().x;
     const float expand_btn_w =
-        std::max(btn, ImGui::CalcTextSize(ICON_MD_CHEVRON_RIGHT).x +
-                          (ImGui::GetStyle().FramePadding.x * 2.0f) + 2.0f);
+        std::max(btn, std::ceil(ImGui::CalcTextSize(ICON_MD_CHEVRON_RIGHT).x +
+                                (ImGui::GetStyle().FramePadding.x * 2.0f) +
+                                std::max(2.0f, ImGui::GetStyle().FramePadding.x)));
     ImGui::SetCursorPosX(std::max(0.0f, (avail - expand_btn_w) * 0.5f));
     ImGui::SetCursorPosY(6.0f);
     if (ImGui::Button(ICON_MD_CHEVRON_RIGHT "##ExpandRooms",
@@ -193,8 +195,9 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
                       true);
     const float avail = ImGui::GetContentRegionAvail().x;
     const float expand_btn_w =
-        std::max(btn, ImGui::CalcTextSize(ICON_MD_CHEVRON_LEFT).x +
-                          (ImGui::GetStyle().FramePadding.x * 2.0f) + 2.0f);
+        std::max(btn, std::ceil(ImGui::CalcTextSize(ICON_MD_CHEVRON_LEFT).x +
+                                (ImGui::GetStyle().FramePadding.x * 2.0f) +
+                                std::max(2.0f, ImGui::GetStyle().FramePadding.x)));
     ImGui::SetCursorPosX(std::max(0.0f, (avail - expand_btn_w) * 0.5f));
     ImGui::SetCursorPosY(6.0f);
     if (ImGui::Button(ICON_MD_CHEVRON_LEFT "##ExpandInspector",
@@ -575,7 +578,9 @@ void DungeonWorkbenchPanel::DrawInspectorShelfSelection(
         ImGui::SetNextItemWidth(70);
         bool y_changed = ImGui::DragInt("##SelObjY", &y, 0.1f, 0, 63, "Y:%d");
         if (x_changed || y_changed) {
-          interaction.SetObjectPosition(idx, x, y);
+          int dx = x - obj.x_;
+          int dy = y - obj.y_;
+          interaction.entity_coordinator().tile_handler().MoveObjects(room_id, {idx}, dx, dy);
         }
 
         uint8_t size = obj.size_ & 0x0F;

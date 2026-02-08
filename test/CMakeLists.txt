@@ -176,6 +176,8 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/object_drawing_comprehensive_test.cc
     unit/dungeon_object_drawer_test.cc
     unit/object_selection_test.cc
+    unit/editor/tile_object_handler_test.cc
+    unit/editor/interaction_coordinator_test.cc
     # Platform Tests
     platform/sdl3_audio_backend_test.cc
     platform/window_backend_test.cc
@@ -202,6 +204,7 @@ if(YAZE_BUILD_TESTS)
     integration/zelda3/message_test.cc
     integration/palette_manager_test.cc
     integration/object_selection_integration_test.cc
+    integration/interaction_delegation_test.cc
   )
   if(YAZE_ENABLE_AGENT_CLI)
     list(APPEND STABLE_TEST_SOURCES

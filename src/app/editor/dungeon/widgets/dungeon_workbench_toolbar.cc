@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -29,7 +30,9 @@ float CalcIconButtonWidth(const char* icon, float btn_height) {
   // ImGui buttons include horizontal frame padding, so a strict square (w==h)
   // can clip wider glyphs. Size to content, but never smaller than btn_height.
   const float text_w = ImGui::CalcTextSize(icon).x;
-  const float needed_w = text_w + (style.FramePadding.x * 2.0f) + 2.0f;
+  const float fudge = std::max(2.0f, style.FramePadding.x);
+  const float needed_w =
+      std::ceil(text_w + (style.FramePadding.x * 2.0f) + fudge);
   return std::max(btn_height, needed_w);
 }
 
