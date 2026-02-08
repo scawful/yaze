@@ -1,5 +1,6 @@
 #include "core/asar_wrapper.h"
 
+#include <atomic>
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
@@ -137,16 +138,20 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchFromString(
   // Write patch content to temporary file
   // NOTE: Must be unique across processes. Tests run `ctest -jN` which launches
   // many AsarWrapper instances concurrently.
+  static std::atomic<uint64_t> seq{0};
   const auto timestamp =
       std::chrono::steady_clock::now().time_since_epoch().count();
+  const uint64_t nonce = seq.fetch_add(1, std::memory_order_relaxed);
 #ifdef _WIN32
   const int pid = _getpid();
 #else
   const int pid = getpid();
 #endif
-  fs::path temp_patch_path = fs::temp_directory_path() /
-                             absl::StrFormat("yaze_asar_temp_%d_%lld.asm", pid,
-                                             static_cast<long long>(timestamp));
+  fs::path temp_patch_path =
+      fs::temp_directory_path() /
+      absl::StrFormat("yaze_asar_temp_%d_%lld_%llu.asm", pid,
+                      static_cast<long long>(timestamp),
+                      static_cast<unsigned long long>(nonce));
 
   std::ofstream temp_patch_file(temp_patch_path);
   if (!temp_patch_file) {
