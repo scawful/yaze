@@ -10,6 +10,10 @@ namespace yaze {
 class Rom;
 class EventBus;
 
+namespace project {
+struct YazeProject;
+}  // namespace project
+
 namespace zelda3 {
 class GameData;
 }  // namespace zelda3
@@ -97,6 +101,20 @@ namespace Context {
    * Called when loading a ROM or switching sessions.
    */
   void SetGameData(::yaze::zelda3::GameData* data);
+
+  /**
+   * @brief Get the current project instance.
+   * @return Pointer to the current YazeProject, or nullptr if not set.
+   */
+  ::yaze::project::YazeProject* current_project();
+
+  /**
+   * @brief Set the current project instance.
+   * @param project Pointer to the project to set as current.
+   *
+   * Called when opening or switching projects.
+   */
+  void SetCurrentProject(::yaze::project::YazeProject* project);
 
   /**
    * @brief Clear all context state.
