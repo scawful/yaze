@@ -288,11 +288,11 @@ absl::Status WriteTrackCollision(Rom* rom, int room_id,
 
   // Check if there's enough space
   uint32_t write_pos = max_used_pc;
-  if (write_pos + encoded.size() > kCustomCollisionDataEnd) {
+  if (write_pos + encoded.size() > kCustomCollisionDataSoftEnd) {
     return absl::ResourceExhaustedError(absl::StrFormat(
         "Not enough collision data space. Need %d bytes at 0x%06X, "
         "region ends at 0x%06X",
-        encoded.size(), write_pos, kCustomCollisionDataEnd));
+        encoded.size(), write_pos, kCustomCollisionDataSoftEnd));
   }
 
   // Ensure ROM vector is large enough

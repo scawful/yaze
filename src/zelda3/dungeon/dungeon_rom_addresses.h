@@ -79,6 +79,20 @@ constexpr int kCustomCollisionRoomPointers = 0x128090;  // 296 rooms × 3 bytes
 constexpr int kCustomCollisionDataPosition = 0x128450;
 constexpr int kCustomCollisionDataEnd = 0x130000;
 
+// === Water Fill Zones (Oracle of Secrets) ===
+// Reserve a tail region inside the custom collision bank for editor-authored
+// water fill zone data. This prevents collision writers from ever overwriting
+// the water table.
+//
+// NOTE: This region is intentionally small; the format is compact (room list +
+// offset lists) and should comfortably fit in a few KiB.
+constexpr int kWaterFillTableReservedSize = 0x2000;  // 8 KiB
+constexpr int kWaterFillTableStart = kCustomCollisionDataEnd - kWaterFillTableReservedSize;
+constexpr int kWaterFillTableEnd = kCustomCollisionDataEnd;
+
+// Soft end of collision data to avoid clobbering the reserved WaterFill table.
+constexpr int kCustomCollisionDataSoftEnd = kWaterFillTableStart;
+
 // === Room Metadata ===
 constexpr int kNumberOfRooms = 296;  // Total dungeon rooms (0x00-0x127)
 
