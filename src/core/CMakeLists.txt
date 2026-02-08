@@ -15,7 +15,9 @@ include(${CMAKE_SOURCE_DIR}/cmake/asar.cmake)
 set(YAZE_CORE_LIB_SOURCES
   asar_wrapper.cc
   hack_manifest.cc
+  oracle_progression.cc
   project.cc
+  story_event_graph.cc
   version_manager.cc
   patch/asm_patch.cc
   patch/patch_manager.cc
