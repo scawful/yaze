@@ -13,8 +13,12 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 # Configuration
-YAZE_BIN="${YAZE_BIN:-./build/bin/yaze}"
-Z3ED_BIN="${Z3ED_BIN:-./build/bin/z3ed}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+YAZE_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# Prefer repo wrapper scripts (build_ai first) so we use the newest AI features.
+YAZE_BIN="${YAZE_BIN:-$YAZE_ROOT/scripts/yaze}"
+Z3ED_BIN="${Z3ED_BIN:-$YAZE_ROOT/scripts/z3ed}"
 TEST_ROM="${TEST_ROM:-${YAZE_TEST_ROM_VANILLA:-./roms/alttp_vanilla.sfc}}"
 GEMINI_API_KEY="${GEMINI_API_KEY:-}"
 SCREENSHOTS_DIR="./test_screenshots"
@@ -52,14 +56,14 @@ function check_prerequisites() {
     local all_ok=true
     
     # Check binaries
-    if [[ -f "$YAZE_BIN" ]]; then
+    if [[ -x "$YAZE_BIN" ]]; then
         print_success "YAZE GUI found: $YAZE_BIN"
     else
         print_error "YAZE GUI not found: $YAZE_BIN"
         all_ok=false
     fi
     
-    if [[ -f "$Z3ED_BIN" ]]; then
+    if [[ -x "$Z3ED_BIN" ]]; then
         print_success "z3ed CLI found: $Z3ED_BIN"
     else
         print_error "z3ed CLI not found: $Z3ED_BIN"
@@ -89,7 +93,7 @@ function check_prerequisites() {
         echo ""
         print_error "Prerequisites not met. Please build the project first:"
         echo "  cmake --preset mac-ai"
-        echo "  cmake --build build --target yaze z3ed"
+        echo "  cmake --build build_ai --target yaze z3ed"
         exit 1
     fi
 }
@@ -207,7 +211,7 @@ function test_gui_automation_preparation() {
     fi
     
     print_test "Verifying screenshot utils"
-    if [[ -f "build/lib/libyaze_core_lib.a" ]]; then
+    if [[ -f "build_ai/lib/libyaze_core_lib.a" ]] || [[ -f "build/lib/libyaze_core_lib.a" ]]; then
         print_success "Core library with screenshot utils found"
     else
         print_warning "Core library not found (needed for GUI automation)"
@@ -256,7 +260,7 @@ function print_summary() {
 
 print_header
 
-cd "$(dirname "$0")/.."
+cd "$YAZE_ROOT"
 
 check_prerequisites
 

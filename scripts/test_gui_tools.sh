@@ -4,13 +4,13 @@
 echo "=== Testing GUI Automation Tools ==="
 echo ""
 
-# Workspace root (override with TRUNK_ROOT)
-TRUNK_ROOT="${TRUNK_ROOT:-$HOME/src/trunk}"
-
 # Set up environment
 export AI_PROVIDER=mock
 export MOCK_RESPONSE="Testing GUI tools"
-cd "$TRUNK_ROOT/scawful/retro/yaze"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+YAZE_ROOT="${YAZE_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd)}"
+cd "$YAZE_ROOT"
 
 echo "1. Testing gui-discover tool..."
 echo "Query: What buttons are available?"
@@ -64,11 +64,10 @@ fi
 
 echo ""
 echo "=== Build Check ==="
-if [ -f "build/bin/z3ed" ]; then
-    echo "✓ z3ed binary exists"
-    ls -lh build/bin/z3ed | awk '{print "  Size:", $5}'
+if [ -x "scripts/z3ed" ]; then
+    echo "✓ z3ed wrapper exists: ./scripts/z3ed"
 else
-    echo "✗ z3ed binary not found"
+    echo "✗ z3ed wrapper not found: ./scripts/z3ed"
 fi
 
 echo ""
@@ -94,10 +93,10 @@ echo ""
 echo "=== Ready to Test! ==="
 echo ""
 echo "To start testing:"
-echo "1. Terminal 1: ./build/bin/yaze roms/alttp_vanilla.sfc --enable-test-harness"
-echo "2. Terminal 2: export AI_PROVIDER=ollama && ./build/bin/z3ed agent chat --rom roms/alttp_vanilla.sfc"
+echo "1. Terminal 1: ./scripts/yaze roms/alttp_vanilla.sfc --enable-test-harness"
+echo "2. Terminal 2: export AI_PROVIDER=ollama && ./scripts/z3ed agent chat --rom roms/alttp_vanilla.sfc"
 echo "3. Try: 'What buttons are available in the Overworld editor?'"
 echo ""
 echo "Or use Gemini:"
-echo "2. Terminal 2: export AI_PROVIDER=gemini && export GEMINI_API_KEY='...' && ./build/bin/z3ed agent chat --rom roms/alttp_vanilla.sfc"
+echo "2. Terminal 2: export AI_PROVIDER=gemini && export GEMINI_API_KEY='...' && ./scripts/z3ed agent chat --rom roms/alttp_vanilla.sfc"
 echo ""
