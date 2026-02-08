@@ -3,6 +3,9 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
+### 2026-02-08 imgui-frontend-engineer – Dungeon Interaction + Shortcuts
+- COMPLETE 2026-02-08 (imgui-frontend-engineer): landed dungeon interaction coordinator + `TileObjectHandler` (snapped live drag, better entity selection plumbing) with unit/integration tests; normalized mac Cmd/Ctrl shortcut matching + enabled panel shortcuts at startup; updated interaction docs; installed nightly `v0.5.6-g06d4111f` (`/Users/scawful/Applications/Yaze Nightly.app`).
+
 ### 2026-02-07 ai-infra-architect – HackManifest Guardrails
 - Update 2026-02-07 (ai-infra-architect): fixed HTTP API disabled build link (`YAZE_HTTP_API_ENABLED` gating in `src/app/main.cc`), added HackManifest PC write-range analysis + mirror normalization, added save conflict guardrails (respect `rom_metadata.write_policy`) + manifest-backed room tag labels; ran `ctest --test-dir build_agent -C RelWithDebInfo -R "HackManifestTest|ResourceLabelsTest"` (8 passed).
 
