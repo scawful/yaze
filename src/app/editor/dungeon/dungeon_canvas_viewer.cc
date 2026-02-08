@@ -1313,6 +1313,10 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       DrawCustomCollisionOverlay(canvas_rt, room);
     }
 
+    if (show_water_fill_overlay_) {
+      DrawWaterFillOverlay(canvas_rt, room);
+    }
+
     if (show_camera_quadrant_overlay_) {
       DrawCameraQuadrantOverlay(canvas_rt, room);
     }
@@ -1957,6 +1961,51 @@ void DungeonCanvasViewer::DrawCustomCollisionOverlay(
                              buf);
         }
       }
+    }
+  }
+}
+
+void DungeonCanvasViewer::DrawWaterFillOverlay(const gui::CanvasRuntime& rt,
+                                               const zelda3::Room& room) {
+  (void)rt;
+  if (!show_water_fill_overlay_) {
+    return;
+  }
+
+  const auto& theme = AgentUI::GetTheme();
+  const auto& zone = room.water_fill_zone();
+  if (!zone.has_data) {
+    return;
+  }
+
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
+  ImVec2 canvas_pos = canvas_.zero_point();
+  float scale = canvas_.global_scale();
+  const float tile_size = 8.0f * scale;
+
+  auto apply_alpha = [](ImVec4 c, float a) -> ImVec4 {
+    c.w = a;
+    return c;
+  };
+
+  const ImU32 fill_u32 =
+      ImGui::ColorConvertFloat4ToU32(apply_alpha(theme.text_info, 0.30f));
+  const ImU32 border_u32 =
+      ImGui::ColorConvertFloat4ToU32(apply_alpha(theme.text_primary, 0.08f));
+
+  for (int y = 0; y < 64; ++y) {
+    for (int x = 0; x < 64; ++x) {
+      if (zone.tiles[static_cast<size_t>(y * 64 + x)] == 0) {
+        continue;
+      }
+
+      const float px = static_cast<float>(x * 8) * scale;
+      const float py = static_cast<float>(y * 8) * scale;
+      ImVec2 min(canvas_pos.x + px, canvas_pos.y + py);
+      ImVec2 max(min.x + tile_size, min.y + tile_size);
+
+      draw_list->AddRectFilled(min, max, fill_u32);
+      draw_list->AddRect(min, max, border_u32);
     }
   }
 }

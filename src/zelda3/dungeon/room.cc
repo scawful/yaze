@@ -19,6 +19,7 @@
 #include "zelda3/dungeon/palette_debug.h"
 #include "zelda3/dungeon/room_layer_manager.h"
 #include "zelda3/dungeon/room_object.h"
+#include "zelda3/dungeon/track_collision_generator.h"
 #include "zelda3/sprite/sprite.h"
 
 namespace yaze {
@@ -1190,6 +1191,9 @@ void Room::LoadObjects() {
   if (auto res = LoadCustomCollisionMap(rom_, room_id_); res.ok()) {
     custom_collision_ = std::move(res.value());
   }
+
+  // Freshly loaded from ROM; not dirty until the editor mutates it.
+  custom_collision_dirty_ = false;
 }
 
 void Room::ParseObjectsFromLocation(int objects_location) {
@@ -2074,27 +2078,63 @@ absl::Status SaveAllBlocks(Rom* rom) {
   return absl::OkStatus();
 }
 
-absl::Status SaveAllCollision(Rom* rom) {
+absl::Status SaveAllCollision(Rom* rom, absl::Span<Room> rooms) {
   if (!rom || !rom->is_loaded()) {
     return absl::InvalidArgumentError("ROM not loaded");
   }
+
+  // If the custom collision region doesn't exist (vanilla ROM), treat as noop.
   const auto& rom_data = rom->vector();
   const int ptrs_size = kNumberOfRooms * 3;
-  const int data_size = kCustomCollisionDataEnd - kCustomCollisionDataPosition;
   if (kCustomCollisionRoomPointers + ptrs_size >
-          static_cast<int>(rom_data.size()) ||
-      kCustomCollisionDataPosition + data_size >
-          static_cast<int>(rom_data.size())) {
-    return absl::OutOfRangeError("Custom collision region out of range");
+      static_cast<int>(rom_data.size())) {
+    return absl::OkStatus();
   }
-  std::vector<uint8_t> ptrs(
-      rom_data.begin() + kCustomCollisionRoomPointers,
-      rom_data.begin() + kCustomCollisionRoomPointers + ptrs_size);
-  std::vector<uint8_t> data(
-      rom_data.begin() + kCustomCollisionDataPosition,
-      rom_data.begin() + kCustomCollisionDataPosition + data_size);
-  RETURN_IF_ERROR(rom->WriteVector(kCustomCollisionRoomPointers, ptrs));
-  return rom->WriteVector(kCustomCollisionDataPosition, data);
+
+  for (auto& room : rooms) {
+    if (!room.IsLoaded()) {
+      continue;
+    }
+    if (!room.custom_collision_dirty()) {
+      continue;
+    }
+
+    const int room_id = room.id();
+    const int ptr_offset = kCustomCollisionRoomPointers + (room_id * 3);
+    if (ptr_offset + 2 >= static_cast<int>(rom_data.size())) {
+      return absl::OutOfRangeError("Custom collision pointer out of range");
+    }
+
+    if (!room.has_custom_collision()) {
+      // Disable: clear the pointer entry.
+      RETURN_IF_ERROR(rom->WriteByte(ptr_offset, 0));
+      RETURN_IF_ERROR(rom->WriteByte(ptr_offset + 1, 0));
+      RETURN_IF_ERROR(rom->WriteByte(ptr_offset + 2, 0));
+      room.ClearCustomCollisionDirty();
+      continue;
+    }
+
+    // Treat an all-zero map as disabled to avoid wasting space.
+    bool any = false;
+    for (uint8_t v : room.custom_collision().tiles) {
+      if (v != 0) {
+        any = true;
+        break;
+      }
+    }
+    if (!any) {
+      RETURN_IF_ERROR(rom->WriteByte(ptr_offset, 0));
+      RETURN_IF_ERROR(rom->WriteByte(ptr_offset + 1, 0));
+      RETURN_IF_ERROR(rom->WriteByte(ptr_offset + 2, 0));
+      room.ClearCustomCollisionDirty();
+      continue;
+    }
+
+    RETURN_IF_ERROR(WriteTrackCollision(rom, room_id, room.custom_collision()));
+    room.ClearCustomCollisionDirty();
+  }
+
+  return absl::OkStatus();
 }
 
 namespace {

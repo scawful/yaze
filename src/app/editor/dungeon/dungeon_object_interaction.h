@@ -300,6 +300,7 @@ class DungeonObjectInteraction {
   // Refactored input handlers
   void HandleLeftClick(const ImVec2& canvas_mouse_pos);
   void UpdateCollisionPainting(const ImVec2& canvas_mouse_pos);
+  void UpdateWaterFillPainting(const ImVec2& canvas_mouse_pos);
   void HandleObjectSelectionStart(const ImVec2& canvas_mouse_pos);
   void HandleEmptySpaceClick(const ImVec2& canvas_mouse_pos);
   void HandleMouseRelease();

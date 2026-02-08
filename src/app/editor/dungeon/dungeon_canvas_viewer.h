@@ -118,6 +118,9 @@ class DungeonCanvasViewer {
     return show_custom_collision_overlay_;
   }
 
+  void set_show_water_fill_overlay(bool show) { show_water_fill_overlay_ = show; }
+  bool show_water_fill_overlay() const { return show_water_fill_overlay_; }
+
   // Overlay toggles (used by settings panels / workbench UI).
   bool show_track_collision_overlay() const { return show_track_collision_overlay_; }
   void set_show_track_collision_overlay(bool show) {
@@ -373,6 +376,8 @@ class DungeonCanvasViewer {
                                  const zelda3::Room& room);
   void DrawCustomCollisionOverlay(const gui::CanvasRuntime& rt,
                                   const zelda3::Room& room);
+  void DrawWaterFillOverlay(const gui::CanvasRuntime& rt,
+                            const zelda3::Room& room);
   void DrawCameraQuadrantOverlay(const gui::CanvasRuntime& rt,
                                  const zelda3::Room& room);
   void DrawMinecartSpriteOverlay(const gui::CanvasRuntime& rt,
@@ -465,6 +470,7 @@ class DungeonCanvasViewer {
   bool show_track_gap_overlay_ = false;
   bool show_track_route_overlay_ = false;
   bool show_custom_collision_overlay_ = false;
+  bool show_water_fill_overlay_ = false;
   bool show_room_details_ = false;
   bool compact_header_mode_ = false;
   bool header_read_only_ = false;

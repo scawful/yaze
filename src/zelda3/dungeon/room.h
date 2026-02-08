@@ -217,6 +217,15 @@ enum TagKey {
   Kill_boss_Again
 };
 
+// Editor-authored water fill zones (Oracle of Secrets).
+// Stored as a 64x64 boolean map (0/1 per 8x8 tile). At runtime, the hack
+// consumes a compact offset list derived from these tiles.
+struct WaterFillZoneMap {
+  std::array<uint8_t, 64 * 64> tiles{};
+  bool has_data = false;
+  uint8_t sram_bit_mask = 0;  // Bit in $7EF411 (e.g. 0x01)
+};
+
 class Room {
  public:
   Room();
@@ -420,7 +429,12 @@ class Room {
   const CustomCollisionMap& custom_collision() const { return custom_collision_; }
   CustomCollisionMap& custom_collision() { return custom_collision_; }
   bool has_custom_collision() const { return custom_collision_.has_data; }
-  void set_has_custom_collision(bool has) { custom_collision_.has_data = has; }
+  void set_has_custom_collision(bool has) {
+    if (custom_collision_.has_data != has) {
+      custom_collision_.has_data = has;
+      custom_collision_dirty_ = true;
+    }
+  }
   
   uint8_t GetCollisionTile(int x, int y) const {
     if (x < 0 || x >= 64 || y < 0 || y >= 64) return 0;
@@ -431,7 +445,67 @@ class Room {
     if (x < 0 || x >= 64 || y < 0 || y >= 64) return;
     custom_collision_.tiles[y * 64 + x] = tile;
     custom_collision_.has_data = true;
+    custom_collision_dirty_ = true;
   }
+
+  bool custom_collision_dirty() const { return custom_collision_dirty_; }
+  void ClearCustomCollisionDirty() { custom_collision_dirty_ = false; }
+  void MarkCustomCollisionDirty() { custom_collision_dirty_ = true; }
+
+  // Water fill zones (Oracle of Secrets)
+  const WaterFillZoneMap& water_fill_zone() const { return water_fill_zone_; }
+  WaterFillZoneMap& water_fill_zone() { return water_fill_zone_; }
+  bool has_water_fill_zone() const { return water_fill_zone_.has_data; }
+
+  bool GetWaterFillTile(int x, int y) const {
+    if (x < 0 || x >= 64 || y < 0 || y >= 64) return false;
+    return water_fill_zone_.tiles[y * 64 + x] != 0;
+  }
+
+  void SetWaterFillTile(int x, int y, bool filled) {
+    if (x < 0 || x >= 64 || y < 0 || y >= 64) return;
+    const uint8_t val = filled ? 1 : 0;
+    const size_t idx = static_cast<size_t>(y * 64 + x);
+    const uint8_t prev = water_fill_zone_.tiles[idx];
+    if (prev == val) return;
+    water_fill_zone_.tiles[idx] = val;
+    if (val) {
+      ++water_fill_tile_count_;
+      water_fill_zone_.has_data = true;
+    } else {
+      if (water_fill_tile_count_ > 0) {
+        --water_fill_tile_count_;
+      }
+      if (water_fill_tile_count_ == 0) {
+        water_fill_zone_.has_data = false;
+      }
+    }
+    water_fill_dirty_ = true;
+  }
+
+  void ClearWaterFillZone() {
+    water_fill_zone_.tiles.fill(0);
+    water_fill_zone_.has_data = false;
+    water_fill_zone_.sram_bit_mask = 0;
+    water_fill_tile_count_ = 0;
+    water_fill_dirty_ = true;
+  }
+
+  int WaterFillTileCount() const {
+    return water_fill_tile_count_;
+  }
+
+  uint8_t water_fill_sram_bit_mask() const { return water_fill_zone_.sram_bit_mask; }
+  void set_water_fill_sram_bit_mask(uint8_t mask) {
+    if (water_fill_zone_.sram_bit_mask != mask) {
+      water_fill_zone_.sram_bit_mask = mask;
+      water_fill_dirty_ = true;
+    }
+  }
+
+  bool water_fill_dirty() const { return water_fill_dirty_; }
+  void ClearWaterFillDirty() { water_fill_dirty_ = false; }
+  void MarkWaterFillDirty() { water_fill_dirty_ = true; }
 
   // For undo/redo functionality
   void SetTileObjects(const std::vector<RoomObject>& objects) {
@@ -690,6 +764,11 @@ class Room {
   destination stair4_;
 
   CustomCollisionMap custom_collision_;
+  bool custom_collision_dirty_ = false;
+
+  WaterFillZoneMap water_fill_zone_;
+  bool water_fill_dirty_ = false;
+  int water_fill_tile_count_ = 0;
   std::unique_ptr<DungeonState> dungeon_state_;
 };
 
@@ -716,8 +795,11 @@ absl::Status SaveAllPits(Rom* rom);
 // Preserve blocks length and the four block regions (read from ROM, write back). No edit support yet.
 absl::Status SaveAllBlocks(Rom* rom);
 
-// Preserve custom collision region (read from ROM, write back). No edit support yet; ensures validate-yaze --feature=collision does not regress.
-absl::Status SaveAllCollision(Rom* rom);
+// Save custom collision maps for any rooms marked dirty.
+//
+// This writes into the ZScream expanded collision region and updates the room
+// pointer table. Rooms not loaded (or not dirty) are preserved.
+absl::Status SaveAllCollision(Rom* rom, absl::Span<Room> rooms);
 
 // Aggregate chests from all rooms and write to ROM. Preserves ROM data for rooms not loaded.
 absl::Status SaveAllChests(Rom* rom, absl::Span<const Room> rooms);

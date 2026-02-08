@@ -57,15 +57,21 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
   ImVec2 canvas_mouse_pos =
       ImVec2(mouse_pos.x - canvas_pos.x, mouse_pos.y - canvas_pos.y);
 
-  if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-    HandleLeftClick(canvas_mouse_pos);
+  // Painting modes are exclusive; don't also select/drag/mutate entities.
+  if (hovered && mouse_left_down) {
+    const auto mode = mode_manager_.GetMode();
+    if (mode == InteractionMode::PaintCollision) {
+      UpdateCollisionPainting(canvas_mouse_pos);
+      return;
+    }
+    if (mode == InteractionMode::PaintWaterFill) {
+      UpdateWaterFillPainting(canvas_mouse_pos);
+      return;
+    }
   }
 
-  // Handle continuous painting for collision
-  if (mode_manager_.GetMode() == InteractionMode::PaintCollision &&
-      hovered && mouse_left_down) {
-    UpdateCollisionPainting(canvas_mouse_pos);
-    return;  // Painting is exclusive; don't also drag/mutate entities.
+  if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+    HandleLeftClick(canvas_mouse_pos);
   }
 
   // Dispatch drag to coordinator (handlers gate internally via drag state).
@@ -107,6 +113,29 @@ void DungeonObjectInteraction::UpdateCollisionPainting(const ImVec2& canvas_mous
     if (room_x >= 0 && room_x < 64 && room_y >= 0 && room_y < 64) {
       if (room.GetCollisionTile(room_x, room_y) != state.paint_collision_value) {
         room.SetCollisionTile(room_x, room_y, state.paint_collision_value);
+        interaction_context_.NotifyMutation();
+        interaction_context_.NotifyInvalidateCache();
+      }
+    }
+  }
+}
+
+void DungeonObjectInteraction::UpdateWaterFillPainting(
+    const ImVec2& canvas_mouse_pos) {
+  const ImGuiIO& io = ImGui::GetIO();
+  const bool erase = io.KeyAlt;
+
+  auto [room_x, room_y] = CanvasToRoomCoordinates(
+      static_cast<int>(canvas_mouse_pos.x),
+      static_cast<int>(canvas_mouse_pos.y));
+  if (rooms_ && current_room_id_ >= 0 && current_room_id_ < 296) {
+    auto& room = (*rooms_)[current_room_id_];
+
+    // Only set for valid interior tiles (0-63)
+    if (room_x >= 0 && room_x < 64 && room_y >= 0 && room_y < 64) {
+      const bool new_val = !erase;
+      if (room.GetWaterFillTile(room_x, room_y) != new_val) {
+        room.SetWaterFillTile(room_x, room_y, new_val);
         interaction_context_.NotifyMutation();
         interaction_context_.NotifyInvalidateCache();
       }
