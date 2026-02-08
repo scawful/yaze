@@ -46,7 +46,7 @@ Coordination Board: docs/internal/agents/coordination-board.md
 - ROM availability in CI → tests must skip or degrade gracefully when ROM env vars are missing.
 
 ## Testing & Validation
-- Required test targets: `yaze_test_gui`, `yaze_test_stable` (optional), Playwright smoke for web.
+- Required test targets: `yaze_test_gui`, `yaze_test_unit`, `yaze_test_integration`, Playwright smoke for web.
 - ROM/test data requirements: `YAZE_TEST_ROM_VANILLA` for GUI editor tests with ROM-dependent widgets.
 - Manual validation (if needed): run `./build/bin/yaze_test --ui --show-gui --gtest_filter="*Editor*Smoke*"` locally.
 

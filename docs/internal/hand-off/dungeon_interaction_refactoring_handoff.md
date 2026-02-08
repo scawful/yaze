@@ -109,12 +109,12 @@ See:
 
 ```bash
 # Build stable tests
-cmake --build build_ai --target yaze_test_stable -j8
+cmake --build build_ai --target yaze_test_unit yaze_test_integration -j8
 
 # Run interaction tests
-./build_ai/bin/Debug/yaze_test_stable "*TileObjectHandler*"
-./build_ai/bin/Debug/yaze_test_stable "*InteractionCoordinator*"
-./build_ai/bin/Debug/yaze_test_stable "*InteractionDelegation*"
+./build_ai/bin/Debug/yaze_test_unit "*TileObjectHandler*"
+./build_ai/bin/Debug/yaze_test_unit "*InteractionCoordinator*"
+./build_ai/bin/Debug/yaze_test_integration "*InteractionDelegation*"
 ```
 
 If you see an `exit code 130` during build, it generally indicates a SIGINT

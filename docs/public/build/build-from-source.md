@@ -202,18 +202,19 @@ You can also run tests by invoking the test executable directly or using CTest w
 ```bash
 # Run tests via the executables (multi-config paths on macOS/Windows)
 ./build/bin/Debug/yaze_emu_test --emu_test_rom=roms/alttp_vanilla.sfc
-./build/bin/Debug/yaze_test_stable --rom=roms/alttp_vanilla.sfc
+./build/bin/Debug/yaze_test_unit --rom=roms/alttp_vanilla.sfc
+./build/bin/Debug/yaze_test_integration --rom=roms/alttp_vanilla.sfc
 ./build/bin/Debug/yaze_test_gui --rom=roms/alttp_vanilla.sfc
 ./build/bin/Debug/yaze_test_benchmark --rom=roms/alttp_vanilla.sfc
 
 # Run only stable tests using CTest labels
-ctest --test-dir build --label-regex "STABLE"
+ctest --test-dir build -L stable
 
 # Run tests matching a name
 ctest --test-dir build -R "AsarWrapperTest"
 
 # Exclude ROM-dependent tests
-ctest --test-dir build --label-exclude "ROM_DEPENDENT"
+ctest --test-dir build --label-exclude "rom_dependent"
 ```
 
 ## 6. IDE Integration

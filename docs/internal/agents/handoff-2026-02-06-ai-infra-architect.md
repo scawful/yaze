@@ -124,7 +124,7 @@ Fix options (pick one):
 
 Workaround to keep testing moving (until link is fixed):
 - Build only the unit test binary:
-  - `cmake --build build_agent --config RelWithDebInfo --target yaze_test_stable`
+  - `cmake --build build_agent --config RelWithDebInfo --target yaze_test_unit`
   - then run `ctest --test-dir build_agent -C RelWithDebInfo -R \"HackManifestTest|ResourceLabelsTest\" --output-on-failure`
 
 ### Update (2026-02-07)

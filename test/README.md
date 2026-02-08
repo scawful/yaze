@@ -292,7 +292,7 @@ run tests without setting `YAZE_TEST_ROM_VANILLA`:
 
 ```bash
 # Just works if you have roms/alttp_vanilla.sfc
-./build/bin/Debug/yaze_test_stable
+ctest --test-dir build -L stable
 ```
 
 The environment variable still takes precedence if set.
@@ -359,7 +359,8 @@ The test suite is optimized for AI agent automation:
 
 6. **Build separate test binaries for isolation**
    ```bash
-   cmake --build build --target yaze_test_stable       # Stable tests only
+   cmake --build build --target yaze_test_unit           # Stable unit tests
+   cmake --build build --target yaze_test_integration    # Stable integration tests
    cmake --build build --target yaze_test_rom_dependent  # ROM tests
    cmake --build build --target yaze_test_experimental   # AI tests
    ```
@@ -464,7 +465,7 @@ cmake --build . --target yaze_test_rom_dependent
 ### Tests Not Discovered
 ```bash
 # Rebuild test targets
-cmake --build build --target yaze_test_stable
+cmake --build build --target yaze_test_unit yaze_test_integration
 ctest --test-dir build --verbose
 ```
 

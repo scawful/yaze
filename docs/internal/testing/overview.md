@@ -295,8 +295,9 @@ ctest --test-dir build -L stable
 ctest --test-dir build -R "Dungeon"
 
 # Gtest approach (direct binary execution)
-./build/bin/yaze_test_stable --gtest_filter="*Dungeon*"
-./build/bin/yaze_test_stable --show-gui
+./build/bin/yaze_test_unit --gtest_filter="*Asar*"
+./build/bin/yaze_test_integration --gtest_filter="*Dungeon*"
+./build/bin/yaze_test_gui --show-gui
 ```
 
 ## Adding Tests
@@ -317,7 +318,7 @@ test/
 1. Create file: `test/unit/new_feature_test.cc`
 2. Include headers and use `gtest_add_tests()`
 3. File auto-discovered by CMakeLists.txt
-4. Automatically labeled as `stable`
+4. Automatically labeled as `stable` + `unit`
 
 ```cpp
 #include <gtest/gtest.h>
@@ -333,7 +334,7 @@ TEST(NewFeatureTest, BasicFunctionality) {
 1. Create file: `test/integration/new_feature_test.cc`
 2. Same pattern as unit tests
 3. May access ROM files via `YAZE_TEST_ROM_VANILLA` or `TestRomManager`
-4. Automatically labeled as `stable` (unless in special subdirectory)
+4. Automatically labeled as `stable` + `integration` (unless in special subdirectory)
 
 ### Adding ROM-Dependent Test
 
@@ -389,7 +390,8 @@ The test configuration in `test/CMakeLists.txt` follows this pattern:
 ```cmake
 if(YAZE_BUILD_TESTS)
   # Define test suites with labels
-  yaze_add_test_suite(yaze_test_stable "stable" OFF ${STABLE_SOURCES})
+  yaze_add_test_suite(yaze_test_unit "stable;unit" OFF ${UNIT_SOURCES})
+  yaze_add_test_suite(yaze_test_integration "stable;integration" OFF ${INTEGRATION_SOURCES})
 
   if(YAZE_ENABLE_ROM_TESTS)
     yaze_add_test_suite(yaze_test_rom_dependent "rom_dependent" OFF ${ROM_SOURCES})
@@ -486,7 +488,7 @@ ctest --test-dir build -T performance
 ctest --test-dir build -T performance | grep "Wall Time"
 
 # Profile specific test
-time ./build/bin/yaze_test_stable "*SlowTest*"
+time ctest --test-dir build -R "SlowTest" --output-on-failure
 ```
 
 ## References

@@ -242,7 +242,8 @@ ctest --test-dir build -R "Dungeon"
 ```bash
 # macOS/Windows (multi-config)
 ./build/bin/Debug/yaze_emu_test --emu_test_rom=roms/alttp_vanilla.sfc
-./build/bin/Debug/yaze_test_stable --rom=roms/alttp_vanilla.sfc
+./build/bin/Debug/yaze_test_unit --rom=roms/alttp_vanilla.sfc
+./build/bin/Debug/yaze_test_integration --rom=roms/alttp_vanilla.sfc
 ./build/bin/Debug/yaze_test_gui --rom=roms/alttp_vanilla.sfc
 ./build/bin/Debug/yaze_test_benchmark --rom=roms/alttp_vanilla.sfc
 

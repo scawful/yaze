@@ -18,12 +18,12 @@ This file is a quick entrypoint. The canonical handoff doc is:
 ## Verification
 
 ```bash
-cmake --build build_ai --target yaze_test_stable -j8
+cmake --build build_ai --target yaze_test_unit yaze_test_integration -j8
 
-./build_ai/bin/Debug/yaze_test_stable "*TileObjectHandler*"
-./build_ai/bin/Debug/yaze_test_stable "*InteractionCoordinator*"
-./build_ai/bin/Debug/yaze_test_stable "*InteractionDelegation*"
-./build_ai/bin/Debug/yaze_test_stable --gtest_filter="DungeonEditorV2IntegrationTest*"
+./build_ai/bin/Debug/yaze_test_unit "*TileObjectHandler*"
+./build_ai/bin/Debug/yaze_test_unit "*InteractionCoordinator*"
+./build_ai/bin/Debug/yaze_test_integration "*InteractionDelegation*"
+./build_ai/bin/Debug/yaze_test_integration --gtest_filter="DungeonEditorV2IntegrationTest*"
 ```
 
 If you see an `exit code 130` during build, it generally indicates a SIGINT
