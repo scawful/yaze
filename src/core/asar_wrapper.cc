@@ -9,7 +9,10 @@
 #include <iterator>
 #include <sstream>
 #ifndef _WIN32
+#include <unistd.h>
 #include <sys/wait.h>
+#else
+#include <process.h>
 #endif
 
 #include "absl/strings/str_format.h"
@@ -132,7 +135,18 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchFromString(
   Reset();
 
   // Write patch content to temporary file
-  fs::path temp_patch_path = fs::temp_directory_path() / "yaze_asar_temp.asm";
+  // NOTE: Must be unique across processes. Tests run `ctest -jN` which launches
+  // many AsarWrapper instances concurrently.
+  const auto timestamp =
+      std::chrono::steady_clock::now().time_since_epoch().count();
+#ifdef _WIN32
+  const int pid = _getpid();
+#else
+  const int pid = getpid();
+#endif
+  fs::path temp_patch_path = fs::temp_directory_path() /
+                             absl::StrFormat("yaze_asar_temp_%d_%lld.asm", pid,
+                                             static_cast<long long>(timestamp));
 
   std::ofstream temp_patch_file(temp_patch_path);
   if (!temp_patch_file) {
