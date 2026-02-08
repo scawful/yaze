@@ -61,9 +61,13 @@ Key files:
 - Update `InteractionCoordinator` to dispatch drag events to `TileObjectHandler`.
 
 ### Next Steps (Immediate)
-1.  **Resolve Build Issues**: Investigate persistent exit code 130.
-2.  **Migrate Marquee Selection**: Move `DrawObjectSelectRect` and related logic to `InteractionCoordinator` or `ObjectSelection`.
-3.  **Consolidate Mode Management**: Fully deprecate `ModeManager` in favor of `InteractionCoordinator`.
+1.  **Selection + Mode Consolidation (Phase 6)**:
+    - DONE: Marquee/rectangle selection for tile objects now lives in `TileObjectHandler` (see `BeginMarqueeSelection` / `HandleMarqueeSelection`).
+    - TODO: Consolidate (or delete) redundant mode state between `InteractionModeManager` and `InteractionCoordinator`.
+2.  **Finish Interaction Cleanup**:
+    - Remove unused/duplicated interaction modes and state (e.g. stale `RectangleSelect` / `DraggingEntity` scaffolding).
+    - Ensure canvas interactions continue when the cursor leaves bounds mid-drag (release should never leave handlers “stuck”).
+3.  **Continue UX Parity Audits** (Oracle-of-Secrets readiness): fix mis-rendered objects and validate against ZScream/HM baselines.
 
 ## Known Limitations / Follow-Ups
 
@@ -113,3 +117,6 @@ cmake --build build_ai --target yaze_test_stable -j8
 ./build_ai/bin/Debug/yaze_test_stable "*InteractionDelegation*"
 ```
 
+If you see an `exit code 130` during build, it generally indicates a SIGINT
+(manual interrupt) or a transient resource issue. Retrying with lower
+parallelism (e.g. `-j2`) or building targets incrementally can help isolate it.
