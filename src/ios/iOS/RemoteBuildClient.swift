@@ -105,8 +105,7 @@ final class RemoteBuildStore: ObservableObject {
 
   private func attachAuthHeaders(_ request: inout URLRequest, host: YazeSettings.AiHost) {
     guard !host.credentialId.isEmpty else { return }
-    if let value = try? KeychainStore.load(key: host.credentialId),
-       let token = value,
+    if let token = try? KeychainStore.load(key: host.credentialId),
        !token.isEmpty {
       request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
       request.setValue(token, forHTTPHeaderField: "X-API-Key")
