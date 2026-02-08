@@ -7,8 +7,13 @@ options:
 settings:
   base:
     PRODUCT_NAME: yaze
-    PRODUCT_BUNDLE_IDENTIFIER: org.halext.yaze-ios
-    DEVELOPMENT_TEAM: SN8Z922TT6
+    # Override these at build time by passing KEY=VALUE to xcodebuild (see scripts/xcodebuild-ios.sh).
+    YAZE_IOS_BUNDLE_ID: org.halext.yaze-ios
+    PRODUCT_BUNDLE_IDENTIFIER: "$(YAZE_IOS_BUNDLE_ID)"
+    YAZE_IOS_TEAM_ID: SN8Z922TT6
+    DEVELOPMENT_TEAM: "$(YAZE_IOS_TEAM_ID)"
+    YAZE_ICLOUD_CONTAINER_ID: iCloud.org.halext.yaze
+    CODE_SIGN_STYLE: Automatic
     INFOPLIST_FILE: iOS/Info-iOS.plist
     CLANG_CXX_LANGUAGE_STANDARD: c++20
     GCC_C_LANGUAGE_STANDARD: c17
@@ -77,9 +82,9 @@ targets:
           - CloudDocuments
           - CloudKit
         com.apple.developer.ubiquity-container-identifiers:
-          - "iCloud.org.halext.yaze"
+          - "$(YAZE_ICLOUD_CONTAINER_ID)"
         com.apple.developer.icloud-container-identifiers:
-          - "iCloud.org.halext.yaze"
+          - "$(YAZE_ICLOUD_CONTAINER_ID)"
     settings:
       base:
         ASSETCATALOG_COMPILER_APPICON_NAME: yaze

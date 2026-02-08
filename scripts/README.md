@@ -96,6 +96,22 @@ export XCODE_AUTH_KEY_ISSUER_ID=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
 scripts/xcodebuild-ios.sh ios-debug ipa
 ```
 
+If you need to sign with your own Team / bundle ID (recommended for local device
+builds), override these build settings:
+
+```bash
+export YAZE_IOS_TEAM_ID=DW6CMXGXZP
+export YAZE_IOS_BUNDLE_ID=com.scawful.yaze-ios
+export YAZE_ICLOUD_CONTAINER_ID="iCloud.${YAZE_IOS_BUNDLE_ID}"
+scripts/xcodebuild-ios.sh ios-debug build
+```
+
+If you see iCloud/CloudKit entitlement errors, ensure the App ID has iCloud
+capability enabled and the referenced iCloud container exists under your team.
+
+Tip: put your exports in `scripts/signing.env` (gitignored). `scripts/xcodebuild-ios.sh`
+will auto-source it.
+
 ## build_cleaner.py
 
 Automates CMake source list maintenance and header include management with IWYU-style analysis.

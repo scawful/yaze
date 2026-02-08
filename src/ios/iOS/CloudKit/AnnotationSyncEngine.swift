@@ -1,5 +1,6 @@
 import CloudKit
 import Combine
+import Foundation
 
 /// Manages push/pull synchronization between local AnnotationStore and CloudKit.
 ///
@@ -15,9 +16,12 @@ final class AnnotationSyncEngine: ObservableObject {
   private var subscription: CKDatabaseSubscription?
   private var cancellables = Set<AnyCancellable>()
 
-  init(store: AnnotationStore, containerID: String = "iCloud.org.halext.yaze") {
+  init(store: AnnotationStore, containerID: String? = nil) {
     self.store = store
-    let container = CKContainer(identifier: containerID)
+    let resolvedContainerID = containerID
+      ?? (Bundle.main.object(forInfoDictionaryKey: "YazeICloudContainerID") as? String)
+      ?? "iCloud.org.halext.yaze"
+    let container = CKContainer(identifier: resolvedContainerID)
     self.database = container.privateCloudDatabase
   }
 
