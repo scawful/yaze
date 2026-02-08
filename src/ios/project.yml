@@ -56,13 +56,37 @@ targets:
       - path: iOS/KeychainStore.swift
       - path: iOS/YazeFileImport.swift
       - path: iOS/YazeProjectBundle.swift
+      - path: iOS/YazeProjectDocument.swift
+      - path: iOS/YazeDocumentManager.swift
+      - path: iOS/YazeConflictResolverView.swift
+      - path: iOS/CloudKit/AnnotationStore.swift
+      - path: iOS/CloudKit/AnnotationSyncEngine.swift
+      - path: iOS/ProjectBrowserView.swift
+      - path: iOS/AnnotationEditorView.swift
+      - path: iOS/ProgressionDashboardView.swift
+      - path: iOS/StoryGraphBrowserView.swift
+      - path: iOS/OracleToolsTab.swift
       - path: Media.xcassets
       - path: iOS/LaunchScreen.storyboard
     resources:
       - path: ../../assets
+    entitlements:
+      path: iOS/yaze.entitlements
+      properties:
+        com.apple.developer.icloud-services:
+          - CloudDocuments
+          - CloudKit
+        com.apple.developer.ubiquity-container-identifiers:
+          - "iCloud.org.halext.yaze"
+        com.apple.developer.icloud-container-identifiers:
+          - "iCloud.org.halext.yaze"
     settings:
       base:
         ASSETCATALOG_COMPILER_APPICON_NAME: yaze
+        CODE_SIGN_ENTITLEMENTS: iOS/yaze.entitlements
+      configs:
+        Debug:
+          ONLY_ACTIVE_ARCH: YES
     postBuildScripts:
       - name: Copy assets
         script: |
@@ -93,3 +117,5 @@ targets:
       - sdk: GameController.framework
       - sdk: UniformTypeIdentifiers.framework
       - sdk: CoreText.framework
+      - sdk: CloudKit.framework
+      - sdk: PencilKit.framework
