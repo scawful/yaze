@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "core/oracle_progression.h"
 
 namespace yaze::core {
 
@@ -30,6 +31,25 @@ struct StoryLocation {
   std::string overworld_id;      // e.g., "0x33"
   std::string special_world_id;  // e.g., "0x80"
   std::string room_id;           // e.g., "0x202"
+};
+
+/**
+ * @brief A predicate for determining event completion from SRAM state.
+ *
+ * This is intentionally minimal and "data-driven": it allows the story graph
+ * to evolve without hardcoding each event ID in C++.
+ *
+ * Supported `op` values:
+ * - "==" / "!=" / ">=" / "<=" : compares register value to `value`
+ * - "bit_set" / "bit_clear"   : tests `bit` in register value
+ * - "mask_any" / "mask_all"   : tests `mask` against register value
+ */
+struct StoryPredicate {
+  std::string reg;  // e.g., "GAMESTATE", "CRYSTALS", "OOSPROG"
+  std::string op;
+  int value = 0;
+  int bit = -1;
+  uint32_t mask = 0;
 };
 
 /**
@@ -69,6 +89,10 @@ struct StoryEventNode {
   std::vector<StoryLocation> locations;
   std::vector<std::string> scripts;
   std::vector<std::string> text_ids;  // hex: "0x1F"
+
+  // Optional completion predicates. If empty, the graph falls back to
+  // heuristics based on game_state/crystals (legacy behavior).
+  std::vector<StoryPredicate> completed_when;
 
   std::vector<std::string> dependencies;  // Inbound edge source IDs
   std::vector<std::string> unlocks;       // Outbound edge target IDs
@@ -139,10 +163,21 @@ class StoryEventGraph {
   void UpdateStatus(uint8_t crystal_bitfield, uint8_t game_state);
 
   /**
+   * @brief Update node completion status based on Oracle progression state.
+   */
+  void UpdateStatus(const OracleProgressionState& state);
+
+  /**
    * @brief Get IDs of events that are completed based on SRAM state.
    */
   [[nodiscard]] std::vector<std::string> GetCompletedNodes(
       uint8_t crystal_bitfield, uint8_t game_state) const;
+
+  /**
+   * @brief Get IDs of events that are completed based on Oracle progression state.
+   */
+  [[nodiscard]] std::vector<std::string> GetCompletedNodes(
+      const OracleProgressionState& state) const;
 
   // ─── Accessors ─────────────────────────────────────────────────
 
