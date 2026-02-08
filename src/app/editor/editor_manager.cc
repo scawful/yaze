@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <chrono>
 #include <exception>
+#include <fstream>
 #include <functional>
 #include <initializer_list>
 #include <memory>
@@ -58,6 +59,7 @@
 #include "app/editor/ui/dashboard_panel.h"
 #include "app/editor/ui/popup_manager.h"
 #include "app/editor/ui/project_management_panel.h"
+#include "rom/rom_diff.h"
 #include "app/editor/ui/settings_panel.h"
 #include "app/editor/ui/toast_manager.h"
 #include "util/rom_hash.h"
@@ -2556,35 +2558,6 @@ absl::Status EditorManager::SaveRom() {
 
   RETURN_IF_ERROR(CheckRomWritePolicy());
 
-  // Write conflict check: warn if dungeon save would overwrite ASM-owned data
-  if (current_project_.project_opened() &&
-      current_project_.hack_manifest.loaded() &&
-      !bypass_write_conflict_once_) {
-    auto* dungeon_editor = current_editor_set->GetDungeonEditor();
-    if (dungeon_editor) {
-      auto write_ranges = dungeon_editor->CollectWriteRanges();
-      if (!write_ranges.empty()) {
-        auto conflicts =
-            current_project_.hack_manifest.AnalyzePcWriteRanges(write_ranges);
-        if (!conflicts.empty()) {
-          pending_write_conflicts_ = std::move(conflicts);
-          if (popup_manager_) {
-            popup_manager_->Show(PopupID::kWriteConflictWarning);
-          }
-          toast_manager_.Show(
-              absl::StrFormat("Save paused: %zu write conflict(s) with ASM hooks",
-                              pending_write_conflicts_.size()),
-              ToastType::kWarning);
-          return absl::CancelledError("Write conflict confirmation required");
-        }
-      }
-    }
-  }
-  if (bypass_write_conflict_once_) {
-    bypass_write_conflict_once_ = false;
-    pending_write_conflicts_.clear();
-  }
-
   if (pending_pot_item_save_confirm_) {
     return absl::CancelledError("Save pending confirmation");
   }
@@ -2674,6 +2647,70 @@ absl::Status EditorManager::SaveRom() {
   if (core::FeatureFlags::get().kSaveGraphicsSheet)
     RETURN_IF_ERROR(zelda3::SaveAllGraphicsData(
         *current_rom, gfx::Arena::Get().gfx_sheets()));
+
+  // Write conflict check: analyze actual byte diffs against the on-disk ROM and
+  // warn if we touch ASM-owned/hook-patched regions (asar will overwrite).
+  if (current_project_.project_opened() &&
+      current_project_.hack_manifest.loaded()) {
+    if (!bypass_write_conflict_once_) {
+      std::vector<std::pair<uint32_t, uint32_t>> write_ranges;
+      bool diff_computed = false;
+
+      // Prefer an exact diff (disk vs in-memory) to avoid false positives when
+      // we rewrite bytes that are already identical on disk.
+      if (!current_rom->filename().empty()) {
+        std::ifstream file(current_rom->filename(), std::ios::binary);
+        if (file.is_open()) {
+          file.seekg(0, std::ios::end);
+          const std::streampos end = file.tellg();
+          if (end >= 0) {
+            std::vector<uint8_t> disk_data(static_cast<size_t>(end));
+            file.seekg(0, std::ios::beg);
+            file.read(reinterpret_cast<char*>(disk_data.data()),
+                      static_cast<std::streamsize>(disk_data.size()));
+            if (file) {
+              diff_computed = true;
+              auto diff = yaze::rom::ComputeDiffRanges(disk_data,
+                                                       current_rom->vector());
+              if (!diff.ranges.empty()) {
+                LOG_DEBUG("EditorManager",
+                          "ROM save diff: %zu bytes changed in %zu range(s)",
+                          diff.total_bytes_changed, diff.ranges.size());
+                write_ranges = std::move(diff.ranges);
+              }
+            }
+          }
+        }
+      }
+
+      // Fallback: best-effort editor-provided ranges (may be incomplete).
+      if (write_ranges.empty() && !diff_computed) {
+        if (auto* dungeon_editor = current_editor_set->GetDungeonEditor()) {
+          write_ranges = dungeon_editor->CollectWriteRanges();
+        }
+      }
+
+      if (!write_ranges.empty()) {
+        auto conflicts =
+            current_project_.hack_manifest.AnalyzePcWriteRanges(write_ranges);
+        if (!conflicts.empty()) {
+          pending_write_conflicts_ = std::move(conflicts);
+          if (popup_manager_) {
+            popup_manager_->Show(PopupID::kWriteConflictWarning);
+          }
+          toast_manager_.Show(
+              absl::StrFormat("Save paused: %zu write conflict(s) with ASM hooks",
+                              pending_write_conflicts_.size()),
+              ToastType::kWarning);
+          return absl::CancelledError("Write conflict confirmation required");
+        }
+      }
+    } else {
+      // Bypass is single-use, set by the warning popup.
+      bypass_write_conflict_once_ = false;
+      pending_write_conflicts_.clear();
+    }
+  }
 
   // Delegate final ROM file writing to RomFileManager
   auto save_status = rom_file_manager_.SaveRom(current_rom);
