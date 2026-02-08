@@ -145,6 +145,7 @@ if(YAZE_BUILD_TESTS)
     unit/cli/resource_catalog_test.cc
     unit/cli/command_registry_test.cc
     unit/cli/dungeon_object_validate_test.cc
+    unit/rom/rom_diff_test.cc
     unit/rom/rom_test.cc
     unit/emu/input_backend_test.cc
     unit/gfx/snes_tile_test.cc

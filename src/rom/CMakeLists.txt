@@ -9,6 +9,7 @@
 
 set(YAZE_ROM_LIB_SOURCES
   rom.cc
+  rom_diff.cc
   rom_diagnostics.cc
   hm_support.cc
 )
@@ -41,4 +42,3 @@ set_target_properties(yaze_rom PROPERTIES
 )
 
 message(STATUS "✓ yaze_rom library configured")
-
