@@ -130,18 +130,16 @@ struct ProjectBrowserView: View {
       documentManager.downloadDocument(at: doc.url)
       return
     }
-    // Open via bridge
-    let projectPath = doc.url.appendingPathComponent("project").path
+    // Open via bridge: pass the bundle root so the core can resolve
+    // `project.yaze` + `rom` consistently across desktop/iOS.
+    let bundlePath = doc.url.path
     let romPath = doc.url.appendingPathComponent("rom").path
 
-    if FileManager.default.fileExists(atPath: projectPath) {
-      settingsStore.updateCurrentProjectPath(projectPath)
-      YazeIOSBridge.openProject(atPath: projectPath)
-    }
+    settingsStore.updateCurrentProjectPath(bundlePath)
     if FileManager.default.fileExists(atPath: romPath) {
       settingsStore.updateCurrentRomPath(romPath)
-      YazeIOSBridge.loadRom(atPath: romPath)
     }
+    YazeIOSBridge.openProject(atPath: bundlePath)
   }
 
   private func createProject() {
