@@ -16,6 +16,7 @@ set(YAZE_CORE_LIB_SOURCES
   asar_wrapper.cc
   hack_manifest.cc
   oracle_progression.cc
+  oracle_progression_loader.cc
   project.cc
   story_event_graph.cc
   version_manager.cc

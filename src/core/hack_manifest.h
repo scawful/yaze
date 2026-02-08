@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "core/oracle_progression.h"
 #include "core/story_event_graph.h"
 
 namespace yaze::core {
@@ -375,6 +376,21 @@ class HackManifest {
            project_registry_.story_events.loaded();
   }
 
+  // ─── Oracle Progression (SRAM) ─────────────────────────────
+
+  // Updates story event completion coloring based on progression state parsed
+  // from an emulator SRAM file (.srm).
+  void SetOracleProgressionState(const OracleProgressionState& state);
+
+  // Clears any loaded progression state and resets story graph status to
+  // default (no progress).
+  void ClearOracleProgressionState();
+
+  [[nodiscard]] std::optional<OracleProgressionState> oracle_progression_state()
+      const {
+    return oracle_progression_state_;
+  }
+
   // ─── Build Pipeline ───────────────────────────────────────
 
   [[nodiscard]] const BuildPipeline& build_pipeline() const {
@@ -421,6 +437,10 @@ class HackManifest {
 
   // Project registry (loaded from code_folder JSON files)
   ProjectRegistry project_registry_;
+
+  // Optional: live progression state derived from SRAM/.srm. This is used to
+  // color story event nodes and can be updated at runtime by editor panels.
+  std::optional<OracleProgressionState> oracle_progression_state_;
 };
 
 }  // namespace yaze::core

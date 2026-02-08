@@ -155,6 +155,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/hex_test.cc
     unit/core/hack_manifest_test.cc
     unit/core/oracle_progression_test.cc
+    unit/core/oracle_progression_loader_test.cc
     unit/core/story_event_graph_test.cc
     unit/core/project_paths_test.cc
     unit/core/project_bundle_test.cc
@@ -275,6 +276,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/asar_wrapper_test.cc
     unit/core/hack_manifest_test.cc
     unit/core/oracle_progression_test.cc
+    unit/core/oracle_progression_loader_test.cc
     unit/core/story_event_graph_test.cc
     unit/core/project_bundle_test.cc
     unit/core/project_paths_test.cc
