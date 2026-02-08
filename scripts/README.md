@@ -100,8 +100,8 @@ If you need to sign with your own Team / bundle ID (recommended for local device
 builds), override these build settings:
 
 ```bash
-export YAZE_IOS_TEAM_ID=DW6CMXGXZP
-export YAZE_IOS_BUNDLE_ID=com.scawful.yaze-ios
+export YAZE_IOS_TEAM_ID=YOUR_TEAM_ID
+export YAZE_IOS_BUNDLE_ID=com.yourcompany.yaze-ios
 export YAZE_ICLOUD_CONTAINER_ID="iCloud.${YAZE_IOS_BUNDLE_ID}"
 scripts/xcodebuild-ios.sh ios-debug build
 ```

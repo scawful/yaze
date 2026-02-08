@@ -40,8 +40,8 @@ Identifier overrides (optional):
   Use these if you need to sign with your own team/bundle ID (recommended for
   local device builds; upstream IDs may not be available on your account).
 
-    export YAZE_IOS_TEAM_ID=DW6CMXGXZP
-    export YAZE_IOS_BUNDLE_ID=com.scawful.yaze-ios
+    export YAZE_IOS_TEAM_ID=YOUR_TEAM_ID
+    export YAZE_IOS_BUNDLE_ID=com.yourcompany.yaze-ios
     export YAZE_ICLOUD_CONTAINER_ID="iCloud.${YAZE_IOS_BUNDLE_ID}"
 EOF
 }
