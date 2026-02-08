@@ -3,6 +3,13 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+# Optional local overrides (gitignored).
+SIGNING_ENV="${ROOT_DIR}/scripts/signing.env"
+if [[ -f "${SIGNING_ENV}" ]]; then
+  # shellcheck disable=SC1090
+  source "${SIGNING_ENV}"
+fi
+
 usage() {
   cat <<'EOF'
 Usage:
@@ -28,6 +35,14 @@ Signing notes (device builds):
 
   Then run:
     scripts/xcodebuild-ios.sh ios-debug ipa
+
+Identifier overrides (optional):
+  Use these if you need to sign with your own team/bundle ID (recommended for
+  local device builds; upstream IDs may not be available on your account).
+
+    export YAZE_IOS_TEAM_ID=DW6CMXGXZP
+    export YAZE_IOS_BUNDLE_ID=com.scawful.yaze-ios
+    export YAZE_ICLOUD_CONTAINER_ID="iCloud.${YAZE_IOS_BUNDLE_ID}"
 EOF
 }
 
@@ -71,6 +86,17 @@ COMMON_ARGS=(
   -derivedDataPath "${DERIVED_DATA}"
 )
 
+SETTING_OVERRIDES=()
+if [[ -n "${YAZE_IOS_TEAM_ID:-}" ]]; then
+  SETTING_OVERRIDES+=(YAZE_IOS_TEAM_ID="${YAZE_IOS_TEAM_ID}")
+fi
+if [[ -n "${YAZE_IOS_BUNDLE_ID:-}" ]]; then
+  SETTING_OVERRIDES+=(YAZE_IOS_BUNDLE_ID="${YAZE_IOS_BUNDLE_ID}")
+fi
+if [[ -n "${YAZE_ICLOUD_CONTAINER_ID:-}" ]]; then
+  SETTING_OVERRIDES+=(YAZE_ICLOUD_CONTAINER_ID="${YAZE_ICLOUD_CONTAINER_ID}")
+fi
+
 timestamp() {
   date "+%Y%m%d-%H%M%S"
 }
@@ -90,6 +116,7 @@ if [[ "${PRESET}" == ios-sim-* ]]; then
     ARCHS="${HOST_ARCH}" \
     CODE_SIGNING_ALLOWED=NO \
     CODE_SIGNING_REQUIRED=NO \
+    "${SETTING_OVERRIDES[@]}" \
     build
   exit 0
 fi
@@ -108,6 +135,7 @@ case "${ACTION}" in
       -sdk iphoneos \
       -destination "generic/platform=iOS" \
       "${PROVISIONING_ARGS[@]}" \
+      "${SETTING_OVERRIDES[@]}" \
       build
     ;;
   archive|ipa)
@@ -121,6 +149,7 @@ case "${ACTION}" in
       -destination "generic/platform=iOS" \
       -archivePath "${ARCHIVE_PATH}" \
       "${PROVISIONING_ARGS[@]}" \
+      "${SETTING_OVERRIDES[@]}" \
       archive
 
     if [[ "${ACTION}" == "ipa" ]]; then

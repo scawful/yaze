@@ -145,3 +145,6 @@ roms/
 .context/
 yaze.code-workspace
 world_graph.json
+
+# Local signing defaults (keep out of git)
+scripts/signing.env
