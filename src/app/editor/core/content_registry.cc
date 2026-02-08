@@ -9,6 +9,7 @@
 #include "app/editor/core/event_bus.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/editor/editor.h"
+#include "core/project.h"
 #include "rom/rom.h"
 #include "zelda3/game_data.h"
 
@@ -24,6 +25,7 @@ struct RegistryState {
   ::yaze::EventBus* event_bus = nullptr;
   Editor* current_editor = nullptr;
   ::yaze::zelda3::GameData* game_data = nullptr;
+  ::yaze::project::YazeProject* current_project = nullptr;
   std::vector<std::unique_ptr<EditorPanel>> panels;
   std::vector<ContentRegistry::Panels::PanelFactory> factories;
   std::vector<ContentRegistry::Editors::EditorFactory> editor_factories;
@@ -86,12 +88,23 @@ void SetGameData(::yaze::zelda3::GameData* data) {
   RegistryState::Get().game_data = data;
 }
 
+::yaze::project::YazeProject* current_project() {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  return RegistryState::Get().current_project;
+}
+
+void SetCurrentProject(::yaze::project::YazeProject* project) {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  RegistryState::Get().current_project = project;
+}
+
 void Clear() {
   std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
   RegistryState::Get().current_rom = nullptr;
   RegistryState::Get().event_bus = nullptr;
   RegistryState::Get().current_editor = nullptr;
   RegistryState::Get().game_data = nullptr;
+  RegistryState::Get().current_project = nullptr;
 }
 
 }  // namespace Context

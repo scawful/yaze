@@ -3093,6 +3093,9 @@ absl::Status EditorManager::LoadProjectWithRom() {
   LOG_INFO("EditorManager",
            "Initialized ResourceLabelProvider with project labels");
 
+  // Publish project context for Oracle panels and other consumers
+  ContentRegistry::Context::SetCurrentProject(&current_project_);
+
   // Add to recent files
   auto& manager = project::RecentFilesManager::GetInstance();
   manager.AddFile(current_project_.filepath);
