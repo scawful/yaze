@@ -5,7 +5,7 @@
 **Created:** 2025-11-24
 **Last Reviewed:** 2025-11-24
 **Next Review:** 2025-12-08
-**Coordination:** [coordination-board entry](./coordination-board.md#2025-11-24-docs-janitor--wasm-docs-consolidation-for-antigravity-gemini)
+**Coordination:** [coordination-board entry](../agents/coordination-board.md#2025-11-24-docs-janitor--wasm-docs-consolidation-for-antigravity-gemini)
 
 ---
 
