@@ -236,27 +236,63 @@ if(YAZE_PLATFORM_IOS)
     endif()
   endforeach()
 
-  file(GLOB_RECURSE YAZE_IOS_ABSL_LIBS CONFIGURE_DEPENDS
-    "${CMAKE_BINARY_DIR}/_deps/absl-build/absl/*/libabsl_*.a"
-  )
-  if(YAZE_IOS_ABSL_LIBS)
-    list(REMOVE_DUPLICATES YAZE_IOS_ABSL_LIBS)
-    list(APPEND YAZE_IOS_BUNDLE_INPUTS ${YAZE_IOS_ABSL_LIBS})
-  endif()
-
   list(REMOVE_DUPLICATES YAZE_IOS_BUNDLE_INPUTS)
 
   if(YAZE_IOS_BUNDLE_INPUTS)
+    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/ios")
+
+    # Generate a base filelist from known CMake targets. We then append Abseil
+    # static libs at build time so the final bundle is self-contained.
+    set(YAZE_IOS_BUNDLE_FILELIST_BASE "${CMAKE_BINARY_DIR}/ios/bundle_inputs_base.txt")
     set(YAZE_IOS_BUNDLE_FILELIST "${CMAKE_BINARY_DIR}/ios/bundle_inputs.txt")
+    set(YAZE_IOS_BUNDLE_GEN_SCRIPT "${CMAKE_BINARY_DIR}/ios/gen_ios_bundle_filelist.cmake")
+
     file(GENERATE
-      OUTPUT ${YAZE_IOS_BUNDLE_FILELIST}
+      OUTPUT ${YAZE_IOS_BUNDLE_FILELIST_BASE}
       CONTENT "$<JOIN:${YAZE_IOS_BUNDLE_INPUTS},\n>"
     )
+
+    file(GENERATE
+      OUTPUT ${YAZE_IOS_BUNDLE_GEN_SCRIPT}
+      CONTENT [=[
+if(NOT DEFINED BASE_FILELIST OR NOT DEFINED OUTPUT_FILELIST OR NOT DEFINED BINARY_DIR)
+  message(FATAL_ERROR "Missing BASE_FILELIST/OUTPUT_FILELIST/BINARY_DIR")
+endif()
+
+file(READ "${BASE_FILELIST}" base)
+string(REPLACE "\r\n" "\n" base "${base}")
+string(REPLACE "\r" "\n" base "${base}")
+string(REPLACE "\n" ";" inputs "${base}")
+list(FILTER inputs EXCLUDE REGEX "^$")
+
+# Abseil is a transitive dependency that doesn't appear as a direct CMake target
+# in our bundle target list. Include it so the final archive links cleanly.
+file(GLOB_RECURSE absl_libs
+  "${BINARY_DIR}/_deps/absl-build/absl/*/libabsl_*.a"
+  "${BINARY_DIR}/_deps/abseil-cpp-build/absl/*/libabsl_*.a"
+)
+list(REMOVE_DUPLICATES absl_libs)
+list(APPEND inputs ${absl_libs})
+list(REMOVE_DUPLICATES inputs)
+
+list(LENGTH inputs inputs_len)
+list(LENGTH absl_libs absl_len)
+string(REPLACE ";" "\n" out "${inputs}")
+file(WRITE "${OUTPUT_FILELIST}" "${out}\n")
+message(STATUS "iOS bundle inputs: ${inputs_len} (absl: ${absl_len})")
+]=]
+    )
+
     add_custom_command(
       OUTPUT ${YAZE_IOS_BUNDLE_OUTPUT}
       COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/ios
+      COMMAND ${CMAKE_COMMAND}
+        -DBASE_FILELIST=${YAZE_IOS_BUNDLE_FILELIST_BASE}
+        -DOUTPUT_FILELIST=${YAZE_IOS_BUNDLE_FILELIST}
+        -DBINARY_DIR=${CMAKE_BINARY_DIR}
+        -P ${YAZE_IOS_BUNDLE_GEN_SCRIPT}
       COMMAND xcrun --sdk ${YAZE_IOS_SDK} libtool -static -o ${YAZE_IOS_BUNDLE_OUTPUT} -filelist ${YAZE_IOS_BUNDLE_FILELIST}
-      DEPENDS ${YAZE_IOS_BUNDLE_TARGETS} ${YAZE_IOS_ABSL_LIBS}
+      DEPENDS ${YAZE_IOS_BUNDLE_TARGETS}
       COMMAND_EXPAND_LISTS
       COMMENT "Bundling yaze iOS static libraries"
     )
