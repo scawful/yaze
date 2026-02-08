@@ -111,22 +111,31 @@ if(YAZE_BUILD_TESTS)
     endif()
 
     include(GoogleTest)
+    # gtest_discover_tests expects PROPERTIES to be key/value pairs. For LABELS,
+    # we want to support multiple labels (e.g. "stable;unit"), but must pass the
+    # label list as a *single* value. Escaping semicolons preserves it as one
+    # argument so the generated CTest file sets all labels correctly.
+    string(REPLACE ";" "\\;" _suite_labels "${label}")
     if(WIN32)
       gtest_discover_tests(${suite_name}
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         DISCOVERY_TIMEOUT 60
-        PROPERTIES LABELS "${label}"
+        PROPERTIES LABELS "${_suite_labels}"
       )
     else()
       gtest_discover_tests(${suite_name}
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-        PROPERTIES LABELS "${label}"
+        PROPERTIES LABELS "${_suite_labels}"
       )
     endif()
   endfunction()
 
-  # --- Stable Test Suite (Valid Contracts) ---
-  set(STABLE_TEST_SOURCES
+  # --- Stable Test Suites (Valid Contracts) ---
+  # Note: stable tests are split into unit + integration so you can run:
+  #   ctest --test-dir build_ai -L unit
+  #   ctest --test-dir build_ai -L integration
+  # without running everything (still included in `-L stable`).
+  set(STABLE_UNIT_TEST_SOURCES
     # Unit Tests
     unit/core/asar_wrapper_test.cc
     unit/core/hex_test.cc
@@ -186,6 +195,8 @@ if(YAZE_BUILD_TESTS)
     ../src/cli/service/resources/resource_catalog.cc
     cli/service/resources/command_context_test.cc
     cli/service/resources/command_handler_test.cc
+  )
+  set(STABLE_INTEGRATION_TEST_SOURCES
     # Integration Tests
     integration/asar_integration_test.cc
     integration/dungeon_editor_test.cc
@@ -208,7 +219,7 @@ if(YAZE_BUILD_TESTS)
     integration/interaction_delegation_test.cc
   )
   if(YAZE_ENABLE_AGENT_CLI)
-    list(APPEND STABLE_TEST_SOURCES
+    list(APPEND STABLE_UNIT_TEST_SOURCES
       unit/cli/conversational_agent_service_test.cc
       unit/cli/ai_config_utils_test.cc
       unit/cli/ai_service_factory_test.cc
@@ -227,14 +238,15 @@ if(YAZE_BUILD_TESTS)
   endif()
 
   if(YAZE_BUILD_AGENT_UI)
-    list(APPEND STABLE_TEST_SOURCES
+    list(APPEND STABLE_UNIT_TEST_SOURCES
       unit/editor/agent_chat_test.cc
     )
   else()
     message(STATUS "Skipping agent UI tests (YAZE_BUILD_AGENT_UI=OFF)")
   endif()
 
-  yaze_add_test_suite(yaze_test_stable "stable" OFF ${STABLE_TEST_SOURCES})
+  yaze_add_test_suite(yaze_test_unit "stable;unit" OFF ${STABLE_UNIT_TEST_SOURCES})
+  yaze_add_test_suite(yaze_test_integration "stable;integration" OFF ${STABLE_INTEGRATION_TEST_SOURCES})
 
   # --- ROM Dependent Test Suite ---
   if(YAZE_ENABLE_ROM_TESTS)
