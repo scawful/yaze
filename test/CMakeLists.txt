@@ -116,17 +116,31 @@ if(YAZE_BUILD_TESTS)
     # label list as a *single* value. Escaping semicolons preserves it as one
     # argument so the generated CTest file sets all labels correctly.
     string(REPLACE ";" "\\;" _suite_labels "${label}")
+    # Avoid duplicate CTest names across multiple suites that compile the same
+    # gtest sources (e.g. quick vs stable). Only the quick suites need a prefix.
+    set(_test_prefix "")
+    if(label MATCHES "(^|;)quick(;|$)")
+      set(_test_prefix "${suite_name}::")
+    endif()
     if(WIN32)
-      gtest_discover_tests(${suite_name}
+      set(_gtest_discover_args
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         DISCOVERY_TIMEOUT 60
         PROPERTIES LABELS "${_suite_labels}"
       )
+      if(NOT "${_test_prefix}" STREQUAL "")
+        list(APPEND _gtest_discover_args TEST_PREFIX "${_test_prefix}")
+      endif()
+      gtest_discover_tests(${suite_name} ${_gtest_discover_args})
     else()
-      gtest_discover_tests(${suite_name}
+      set(_gtest_discover_args
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         PROPERTIES LABELS "${_suite_labels}"
       )
+      if(NOT "${_test_prefix}" STREQUAL "")
+        list(APPEND _gtest_discover_args TEST_PREFIX "${_test_prefix}")
+      endif()
+      gtest_discover_tests(${suite_name} ${_gtest_discover_args})
     endif()
   endfunction()
 
@@ -253,6 +267,26 @@ if(YAZE_BUILD_TESTS)
 
   yaze_add_test_suite(yaze_test_unit "stable;unit" OFF ${STABLE_UNIT_TEST_SOURCES})
   yaze_add_test_suite(yaze_test_integration "stable;integration" OFF ${STABLE_INTEGRATION_TEST_SOURCES})
+
+  # --- Quick Test Suites (Fast Iteration) ---
+  # These suites are intentionally NOT labeled "stable" to avoid duplicate runs
+  # when running `ctest -L stable`. Use `ctest -L quick` for fast feedback.
+  set(QUICK_UNIT_TEST_SOURCES
+    unit/core/asar_wrapper_test.cc
+    unit/core/hack_manifest_test.cc
+    unit/core/oracle_progression_test.cc
+    unit/core/story_event_graph_test.cc
+    unit/core/project_bundle_test.cc
+    unit/core/project_paths_test.cc
+    unit/rom/rom_diff_test.cc
+    unit/zelda3/resource_labels_test.cc
+    unit/zelda3/dungeon/water_fill_zone_test.cc
+  )
+  set(QUICK_INTEGRATION_TEST_SOURCES
+    integration/zelda3/dungeon_save_region_test.cc
+  )
+  yaze_add_test_suite(yaze_test_quick_unit "quick;fast_unit" OFF ${QUICK_UNIT_TEST_SOURCES})
+  yaze_add_test_suite(yaze_test_quick_integration "quick;fast_integration" OFF ${QUICK_INTEGRATION_TEST_SOURCES})
 
   # --- ROM Dependent Test Suite ---
   if(YAZE_ENABLE_ROM_TESTS)

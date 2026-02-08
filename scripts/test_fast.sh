@@ -39,7 +39,7 @@ RUN_UNIT=1
 RUN_INTEGRATION=1
 DO_CONFIGURE=1
 DO_BUILD=1
-MODE="fast" # or "full"
+MODE="fast" # fast (regex subset), quick (labeled suite), or full (stable label)
 LIST_ONLY=0
 
 mktemp_file() {
@@ -73,6 +73,7 @@ Fast loop (default):
   - runs a curated subset via ctest name regex (-R)
 
 Options:
+  --quick                 Run the `quick` labeled suites (fastest; builds smaller targets).
   --full                  Run full stable suite via ctest (-L stable).
   --list                  List matching tests and exit (ctest -N).
   --unit-only              Only run the unit subset.
@@ -95,6 +96,7 @@ Environment overrides:
 
 Examples:
   $0
+  $0 --quick
   $0 --unit-only
   $0 --full
   $0 --unit-regex '^WaterFillZoneTest\\.'
@@ -108,6 +110,10 @@ is_multi_config() {
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --quick)
+      MODE="quick"
+      shift
+      ;;
     --full)
       MODE="full"
       shift
@@ -192,7 +198,18 @@ fi
 
 if [[ "$DO_BUILD" == "1" ]]; then
   echo -e "${YELLOW}→${NC} Building test targets..."
-  build_args=(--build "$BUILD_DIR" --target yaze_test_unit yaze_test_integration --parallel "$JOBS")
+  build_targets=()
+  if [[ "$MODE" == "quick" ]]; then
+    [[ "$RUN_UNIT" == "1" ]] && build_targets+=(yaze_test_quick_unit)
+    [[ "$RUN_INTEGRATION" == "1" ]] && build_targets+=(yaze_test_quick_integration)
+  else
+    [[ "$RUN_UNIT" == "1" ]] && build_targets+=(yaze_test_unit)
+    [[ "$RUN_INTEGRATION" == "1" ]] && build_targets+=(yaze_test_integration)
+    if [[ "$MODE" == "full" ]]; then
+      build_targets=(yaze_test_unit yaze_test_integration)
+    fi
+  fi
+  build_args=(--build "$BUILD_DIR" --target "${build_targets[@]}" --parallel "$JOBS")
   if is_multi_config; then
     build_args+=(--config "$CONFIG")
   fi
@@ -212,6 +229,24 @@ if [[ "$MODE" == "full" ]]; then
   else
     echo -e "${YELLOW}→${NC} Running full stable suite via ctest (-L stable)..."
     ctest "${ctest_common[@]}" -L stable
+  fi
+  exit 0
+fi
+
+if [[ "$MODE" == "quick" ]]; then
+  label="quick"
+  if [[ "$RUN_UNIT" == "1" && "$RUN_INTEGRATION" == "0" ]]; then
+    label="fast_unit"
+  elif [[ "$RUN_UNIT" == "0" && "$RUN_INTEGRATION" == "1" ]]; then
+    label="fast_integration"
+  fi
+
+  if [[ "$LIST_ONLY" == "1" ]]; then
+    echo -e "${YELLOW}→${NC} Listing quick tests (ctest -N -L ${label})..."
+    ctest "${ctest_common[@]}" -N -L "${label}"
+  else
+    echo -e "${YELLOW}→${NC} Running quick suites via ctest (-L ${label})..."
+    ctest "${ctest_common[@]}" -L "${label}"
   fi
   exit 0
 fi
