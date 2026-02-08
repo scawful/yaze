@@ -1,12 +1,71 @@
 #include "core/hack_manifest.h"
 
+#include <cctype>
+#include <chrono>
 #include <cstdint>
+#include <filesystem>
+#include <fstream>
 #include <string>
 
 #include "rom/snes.h"
 #include "gtest/gtest.h"
 
 namespace yaze::core {
+
+namespace {
+
+std::string SanitizeForPath(const std::string& value) {
+  std::string sanitized;
+  sanitized.reserve(value.size());
+  for (unsigned char ch : value) {
+    if (std::isalnum(ch) || ch == '-' || ch == '_') {
+      sanitized.push_back(static_cast<char>(ch));
+    } else {
+      sanitized.push_back('_');
+    }
+  }
+  return sanitized;
+}
+
+std::filesystem::path MakeUniqueTempDir(const std::string& prefix) {
+  const auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+  const auto* info = ::testing::UnitTest::GetInstance()->current_test_info();
+  const std::string name =
+      prefix + "_" +
+      (info ? (std::string(info->test_suite_name()) + "_" + info->name())
+            : "unknown_test") +
+      "_" + std::to_string(now);
+  return std::filesystem::temp_directory_path() / SanitizeForPath(name);
+}
+
+class ScopedTempDir {
+ public:
+  explicit ScopedTempDir(std::filesystem::path path) : path_(std::move(path)) {
+    std::filesystem::create_directories(path_);
+  }
+
+  ~ScopedTempDir() {
+    std::error_code ec;
+    std::filesystem::remove_all(path_, ec);
+  }
+
+  const std::filesystem::path& path() const { return path_; }
+
+ private:
+  std::filesystem::path path_;
+};
+
+void WriteTextFile(const std::filesystem::path& path,
+                   const std::string& content) {
+  std::filesystem::create_directories(path.parent_path());
+  std::ofstream file(path);
+  ASSERT_TRUE(file.is_open()) << "Failed to open file for writing: "
+                              << path.string();
+  file << content;
+  file.close();
+}
+
+}  // namespace
 
 TEST(HackManifestTest, LoadsAndClassifiesAddresses) {
   constexpr const char* kJson = R"json(
@@ -216,6 +275,103 @@ TEST(HackManifestTest, NormalizesMirroredAddressesOnLoad) {
   // Owned bank in a mirrored bank should still classify correctly.
   EXPECT_EQ(manifest.ClassifyAddress(0x1E8000), AddressOwnership::kAsmOwned);
   EXPECT_EQ(manifest.ClassifyAddress(0x9E8000), AddressOwnership::kAsmOwned);
+}
+
+TEST(HackManifestTest, LoadsUnifiedResourceLabelsFromProjectRegistry) {
+  namespace fs = std::filesystem;
+
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_project_registry"));
+  const fs::path planning = temp.path() / "Docs" / "Dev" / "Planning";
+
+  WriteTextFile(planning / "oracle_resource_labels.json", R"json(
+{
+  "room": {
+    "0x06": "Arrghus Boss",
+    "7": "Transit Room"
+  },
+  "sprite": {
+    "0x39": "Zora Baby"
+  },
+  "music": {
+    "12": "Zora Temple Theme"
+  }
+}
+)json");
+
+  HackManifest manifest;
+  ASSERT_TRUE(manifest.LoadProjectRegistry(temp.path().string()).ok());
+
+  const auto& labels = manifest.project_registry().all_resource_labels;
+  ASSERT_TRUE(labels.contains("room"));
+  ASSERT_TRUE(labels.contains("sprite"));
+  ASSERT_TRUE(labels.contains("music"));
+
+  // Keys are normalized to decimal strings for project resource_labels.
+  EXPECT_EQ(labels.at("room").at("6"), "Arrghus Boss");
+  EXPECT_EQ(labels.at("room").at("7"), "Transit Room");
+  EXPECT_EQ(labels.at("sprite").at("57"), "Zora Baby");
+  EXPECT_EQ(labels.at("music").at("12"), "Zora Temple Theme");
+}
+
+TEST(HackManifestTest, FallsBackToLegacyRoomLabelsFromProjectRegistry) {
+  namespace fs = std::filesystem;
+
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_project_registry_legacy"));
+  const fs::path planning = temp.path() / "Docs" / "Dev" / "Planning";
+
+  WriteTextFile(planning / "oracle_room_labels.json", R"json(
+{
+  "resource_labels": {
+    "room": {
+      "0x06": "Legacy Boss Room"
+    }
+  }
+}
+)json");
+
+  HackManifest manifest;
+  ASSERT_TRUE(manifest.LoadProjectRegistry(temp.path().string()).ok());
+
+  const auto& labels = manifest.project_registry().all_resource_labels;
+  ASSERT_TRUE(labels.contains("room"));
+  EXPECT_EQ(labels.at("room").at("6"), "Legacy Boss Room");
+}
+
+TEST(HackManifestTest, LoadsStoryEventsFromProjectRegistry) {
+  namespace fs = std::filesystem;
+
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_project_registry_story"));
+  const fs::path planning = temp.path() / "Docs" / "Dev" / "Planning";
+
+  WriteTextFile(planning / "story_events.json", R"json(
+{
+  "events": [
+    { "id": "A", "name": "Start", "dependencies": [], "unlocks": ["B"] },
+    { "id": "B", "name": "Next", "dependencies": ["A"] }
+  ],
+  "edges": [
+    { "from": "A", "to": "B", "type": "dependency" }
+  ]
+}
+)json");
+
+  HackManifest manifest;
+  ASSERT_TRUE(manifest.LoadProjectRegistry(temp.path().string()).ok());
+
+  const auto& graph = manifest.project_registry().story_events;
+  ASSERT_TRUE(graph.loaded());
+  ASSERT_EQ(graph.nodes().size(), 2u);
+  ASSERT_EQ(graph.edges().size(), 1u);
+
+  // AutoLayout assigns x by dependency depth: A in layer 0, B in layer 1.
+  EXPECT_EQ(graph.nodes()[0].id, "A");
+  EXPECT_EQ(graph.nodes()[1].id, "B");
+  EXPECT_FLOAT_EQ(graph.nodes()[0].pos_x, 0.0f);
+  EXPECT_FLOAT_EQ(graph.nodes()[1].pos_x, 200.0f);
+
+  // UpdateStatus (0,0) makes start nodes available and dependent nodes locked.
+  EXPECT_EQ(graph.nodes()[0].status, StoryNodeStatus::kAvailable);
+  EXPECT_EQ(graph.nodes()[1].status, StoryNodeStatus::kLocked);
 }
 
 }  // namespace yaze::core
