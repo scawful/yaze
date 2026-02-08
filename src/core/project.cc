@@ -1257,14 +1257,18 @@ void YazeProject::TryLoadHackManifest() {
       auto status =
           hack_manifest.LoadProjectRegistry(GetAbsolutePath(code_folder));
       if (status.ok() && hack_manifest.HasProjectRegistry()) {
-        // Inject Oracle room labels into project resource_labels
-        for (const auto& [id_str, label] :
-             hack_manifest.project_registry().room_labels) {
-          resource_labels["room"][id_str] = label;
+        // Inject all Oracle resource labels into project resource_labels
+        size_t injected = 0;
+        for (const auto& [type_key, labels] :
+             hack_manifest.project_registry().all_resource_labels) {
+          for (const auto& [id_str, label] : labels) {
+            resource_labels[type_key][id_str] = label;
+            ++injected;
+          }
         }
         LOG_DEBUG("Project",
-                  "Loaded project registry: %zu room labels injected",
-                  hack_manifest.project_registry().room_labels.size());
+                  "Loaded project registry: %zu resource labels injected",
+                  injected);
       }
     }
   }
