@@ -55,7 +55,7 @@
    15       |
    16       v
    17 +-----------------------------------------------------------------+
-   18 | Test Executables (yaze_test_stable, etc.)                       |
+	   18 | Test Executables (yaze_test_unit, yaze_test_integration, etc.)   |
    19 | (Link against test_framework and test_suites)                   |
    20 +-----------------------------------------------------------------+
 
