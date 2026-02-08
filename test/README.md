@@ -28,6 +28,12 @@ For detailed CI configuration, see the CI/CD section below.
 ## Quick Start
 
 ```bash
+# Fast sanity subset (curated stable unit + integration; recommended for tight edit/test loops)
+# Defaults: build_ai + mac-ai/lin-ai/win-ai (override with YAZE_BUILD_DIR / YAZE_PRESET)
+scripts/test_fast.sh
+scripts/test_fast.sh --list
+scripts/test_fast.sh --full
+
 # Run default tests (what PR CI runs - ~5 minutes)
 ctest --test-dir build -L stable
 
@@ -194,6 +200,8 @@ Tests are organized by ctest labels for flexible execution. Labels determine whi
 | Label | Description | PR/Push CI? | Nightly? | Requirements |
 |-------|-------------|-----------|----------|--------------|
 | `stable` | Core unit and integration tests (fast, reliable) | Yes | Yes | None |
+| `unit` | Stable unit tests only | Yes | Yes | None |
+| `integration` | Stable integration tests only | Yes | Yes | None |
 | `gui` | GUI smoke tests (ImGui framework validation) | Yes | Yes | SDL display or headless |
 | `z3ed` | z3ed CLI self-test and smoke tests | Yes | Yes | z3ed target built |
 | `rom_dependent` | Tests requiring actual Zelda3 ROM | No | Yes | `YAZE_ENABLE_ROM_TESTS=ON` + ROM path |
@@ -205,15 +213,21 @@ Tests are organized by ctest labels for flexible execution. Labels determine whi
 
 ### Stable Tests Only (Default)
 ```bash
-ctest --preset default -L stable
-# or
+# Any configured build dir
 ctest --test-dir build -L stable
+ctest --test-dir build -L unit
+ctest --test-dir build -L integration
+
+# mac-ai preset convenience (macOS, build_ai)
+ctest --preset mac-ai
+ctest --preset mac-ai-unit
+ctest --preset mac-ai-integration
 ```
 
 ### GUI Smoke Tests
 ```bash
-# Run all GUI tests
-ctest --preset default -L gui
+# Run all GUI tests (any configured build dir)
+ctest --test-dir build -L gui
 
 # Run headlessly (CI mode)
 ctest --test-dir build -L headless_gui
