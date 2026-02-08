@@ -1,4 +1,6 @@
 #include "app/editor/dungeon/interaction/tile_object_handler.h"
+#include "app/editor/dungeon/object_selection.h"
+#include "imgui/imgui.h"
 
 #include <gtest/gtest.h>
 #include <array>
@@ -22,9 +24,14 @@ class TileObjectHandlerTest : public ::testing::Test {
   void SetUp() override {
     // Rooms use default constructor - no ROM needed for basic tests
 
+    // Initialize ImGui
+    ImGui::CreateContext();
+    ImGui::GetIO().DisplaySize = ImVec2(1024, 768);
+
     // Set up context
     ctx_.rooms = &rooms_;
     ctx_.current_room_id = 0;
+    ctx_.selection = &selection_;
     ctx_.on_mutation = [this]() { mutation_count_++; };
     ctx_.on_invalidate_cache = [this]() { invalidate_count_++; };
 
@@ -34,6 +41,7 @@ class TileObjectHandlerTest : public ::testing::Test {
   void TearDown() override {
     // Clear any test objects
     rooms_[0].ClearTileObjects();
+    ImGui::DestroyContext();
   }
 
   // Helper to add test objects to room 0
@@ -44,6 +52,7 @@ class TileObjectHandlerTest : public ::testing::Test {
   }
 
   std::array<zelda3::Room, dungeon_coords::kRoomCount> rooms_;
+  ObjectSelection selection_;
   InteractionContext ctx_;
   TileObjectHandler handler_;
   int mutation_count_ = 0;
@@ -255,6 +264,49 @@ TEST_F(TileObjectHandlerTest, MoveObjectsClampsPosition) {
 }
 
 // ============================================================================
+// Drag Tests
+// ============================================================================
+
+TEST_F(TileObjectHandlerTest, DragMovesSelectedObjectsSnapped) {
+  AddTestObjects({CreateTestObject(10, 10, 0x00, 0x01)});
+  selection_.SelectObject(0);
+
+  const int initial_mutations = mutation_count_;
+
+  // Tile (10,10) = pixel (80,80). Move to (96,96) = +2 tiles.
+  handler_.InitDrag(ImVec2(80.0f, 80.0f));
+  handler_.HandleDrag(ImVec2(96.0f, 96.0f), ImVec2(16.0f, 16.0f));
+  handler_.HandleRelease();
+
+  const auto& objects = rooms_[0].GetTileObjects();
+  ASSERT_EQ(objects.size(), 1);
+  EXPECT_EQ(objects[0].x_, 12);
+  EXPECT_EQ(objects[0].y_, 12);
+  EXPECT_EQ(mutation_count_, initial_mutations + 1);
+}
+
+TEST_F(TileObjectHandlerTest, AltDragDuplicatesOnceThenMovesClones) {
+  AddTestObjects({CreateTestObject(10, 10, 0x00, 0x42)});
+  selection_.SelectObject(0);
+
+  const int initial_mutations = mutation_count_;
+
+  handler_.InitDrag(ImVec2(80.0f, 80.0f));
+  ImGui::GetIO().KeyAlt = true;
+  handler_.HandleDrag(ImVec2(96.0f, 80.0f), ImVec2(16.0f, 0.0f));
+  ImGui::GetIO().KeyAlt = false;
+  handler_.HandleRelease();
+
+  const auto& objects = rooms_[0].GetTileObjects();
+  ASSERT_EQ(objects.size(), 2);
+  EXPECT_EQ(objects[0].x_, 10);
+  EXPECT_EQ(objects[0].y_, 10);
+  EXPECT_EQ(objects[1].x_, 12);
+  EXPECT_EQ(objects[1].y_, 10);
+  EXPECT_EQ(mutation_count_, initial_mutations + 1);
+}
+
+// ============================================================================
 // Duplicate Tests
 // ============================================================================
 
@@ -410,6 +462,7 @@ TEST_F(TileObjectHandlerTest, GetEntityAtPositionPrioritizesTopmost) {
 // Context Validation Tests
 // ============================================================================
 
+
 TEST_F(TileObjectHandlerTest, HasValidContextReturnsFalseWithoutContext) {
   TileObjectHandler handler;  // No context set
   
@@ -526,6 +579,37 @@ TEST_F(TileObjectHandlerTest, PasteInvalidatesCache) {
   handler_.PasteFromClipboard(0, 1, 1);
   
   EXPECT_GT(invalidate_count_, initial_count);
+}
+
+
+TEST_F(TileObjectHandlerTest, DragMovesObject) {
+  // Setup: Add object at (10, 10)
+  auto obj = CreateTestObject(10, 10);
+  rooms_[0].AddTileObject(obj);
+  
+  // Select object
+  selection_.SelectObject(0);
+  
+  // Start drag at (80, 80) pixels (tile 10, 10)
+  // Note: HandleDrag logic uses snapped delta. 
+  // If we start at 80, 80, and move to 96, 96 (delta +16, +16)
+  // The object should move +2 tiles (+2, +2)
+  
+  ImVec2 start_pos(80.0f, 80.0f);
+  handler_.InitDrag(start_pos);
+  
+  ImVec2 current_pos(96.0f, 96.0f);
+  ImVec2 delta(16.0f, 16.0f); // Passed but ignored by implementation logic which uses current-start
+  
+  handler_.HandleDrag(current_pos, delta);
+  
+  // Verify object moved to (12, 12)
+  auto& objects = rooms_[0].GetTileObjects();
+  ASSERT_EQ(objects.size(), 1);
+  EXPECT_EQ(objects[0].x_, 12);
+  EXPECT_EQ(objects[0].y_, 12);
+  
+  handler_.HandleRelease();
 }
 
 }  // namespace

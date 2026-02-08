@@ -54,6 +54,17 @@ Key files:
   - Unit tests for `TileObjectHandler` and `InteractionCoordinator`.
   - Integration test for delegation wiring through `DungeonObjectInteraction`.
 
+### Phase 5: Handoff to Drag/Release logic (DONE)
+- Migrate `UpdateObjectDragging` to `TileObjectHandler::HandleDrag` (Done).
+- Migrate `HandleMouseRelease` to `TileObjectHandler::HandleRelease` (Done).
+- Delegate drag events in `DungeonObjectInteraction::HandleCanvasMouseInput`.
+- Update `InteractionCoordinator` to dispatch drag events to `TileObjectHandler`.
+
+### Next Steps (Immediate)
+1.  **Resolve Build Issues**: Investigate persistent exit code 130.
+2.  **Migrate Marquee Selection**: Move `DrawObjectSelectRect` and related logic to `InteractionCoordinator` or `ObjectSelection`.
+3.  **Consolidate Mode Management**: Fully deprecate `ModeManager` in favor of `InteractionCoordinator`.
+
 ## Known Limitations / Follow-Ups
 
 ### 1) Mode Consolidation
@@ -78,11 +89,10 @@ Follow-up:
 - Define and document a single “current selection” concept (tile multi-select +
   single entity selection) and make the exclusivity rules explicit.
 
-### 3) Move Drag State Into Handler (Optional)
+### 3) Move Drag State Into Handler (Completed)
 
-Tile-object drag state still lives in `DungeonObjectInteraction` (for now).
-It could be moved into `TileObjectHandler::HandleDrag/HandleRelease` once
-selection ownership is clarified.
+Tile-object drag state has been moved into `TileObjectHandler` (members `is_dragging_`, `drag_start_`, etc.).
+`DungeonObjectInteraction` now delegates drag initialization and updates.
 
 ### 4) UX Parity Audits
 
