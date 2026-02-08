@@ -38,6 +38,19 @@ class TileObjectHandler : public BaseEntityHandler {
   void DrawSelectionHighlight() override;
   
   void InitDrag(const ImVec2& start_pos);
+
+  // ========================================================================
+  // Marquee (Rectangle) Selection
+  // ========================================================================
+
+  // Begin a rectangle selection drag on empty space (canvas-local coords).
+  void BeginMarqueeSelection(const ImVec2& start_pos);
+
+  // Update/draw active marquee selection and finalize on mouse release.
+  void HandleMarqueeSelection(const ImVec2& mouse_pos, bool mouse_left_down,
+                              bool mouse_left_released, bool shift_down,
+                              bool toggle_down, bool alt_down,
+                              bool draw_box = true);
   
   std::optional<size_t> GetEntityAtPosition(int canvas_x, int canvas_y) const override;
 

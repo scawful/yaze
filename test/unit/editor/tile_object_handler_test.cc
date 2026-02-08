@@ -307,6 +307,88 @@ TEST_F(TileObjectHandlerTest, AltDragDuplicatesOnceThenMovesClones) {
 }
 
 // ============================================================================
+// Marquee (Rectangle) Selection Tests
+// ============================================================================
+
+TEST_F(TileObjectHandlerTest, MarqueeSelectsObjectsInRect) {
+  AddTestObjects({
+      CreateTestObject(5, 5, 0x00, 0x01),
+      CreateTestObject(20, 20, 0x00, 0x02),
+      CreateTestObject(40, 40, 0x00, 0x03),
+  });
+
+  // Drag from (0,0) to (200,200) which covers room tiles [0..25].
+  handler_.BeginMarqueeSelection(ImVec2(0.0f, 0.0f));
+  handler_.HandleMarqueeSelection(
+      /*mouse_pos=*/ImVec2(200.0f, 200.0f),
+      /*mouse_left_down=*/true,
+      /*mouse_left_released=*/false,
+      /*shift_down=*/false,
+      /*toggle_down=*/false,
+      /*alt_down=*/false,
+      /*draw_box=*/false);
+  handler_.HandleMarqueeSelection(
+      /*mouse_pos=*/ImVec2(200.0f, 200.0f),
+      /*mouse_left_down=*/false,
+      /*mouse_left_released=*/true,
+      /*shift_down=*/false,
+      /*toggle_down=*/false,
+      /*alt_down=*/false,
+      /*draw_box=*/false);
+
+  EXPECT_TRUE(selection_.IsObjectSelected(0));
+  EXPECT_TRUE(selection_.IsObjectSelected(1));
+  EXPECT_FALSE(selection_.IsObjectSelected(2));
+}
+
+TEST_F(TileObjectHandlerTest, ShiftMarqueeAddsToSelection) {
+  AddTestObjects({
+      CreateTestObject(5, 5, 0x00, 0x01),
+      CreateTestObject(20, 20, 0x00, 0x02),
+  });
+
+  selection_.SelectObject(0);
+
+  handler_.BeginMarqueeSelection(ImVec2(120.0f, 120.0f));  // Near (15,15)
+  handler_.HandleMarqueeSelection(
+      /*mouse_pos=*/ImVec2(200.0f, 200.0f),  // Covers object 1
+      /*mouse_left_down=*/false,
+      /*mouse_left_released=*/true,
+      /*shift_down=*/true,
+      /*toggle_down=*/false,
+      /*alt_down=*/false,
+      /*draw_box=*/false);
+
+  EXPECT_TRUE(selection_.IsObjectSelected(0));
+  EXPECT_TRUE(selection_.IsObjectSelected(1));
+}
+
+TEST_F(TileObjectHandlerTest, CtrlMarqueeTogglesSelection) {
+  AddTestObjects({
+      CreateTestObject(5, 5, 0x00, 0x01),
+      CreateTestObject(20, 20, 0x00, 0x02),
+  });
+
+  // Preselect both.
+  selection_.SelectObject(0);
+  selection_.SelectObject(1, ObjectSelection::SelectionMode::Add);
+
+  // Toggle only object 1 via marquee.
+  handler_.BeginMarqueeSelection(ImVec2(120.0f, 120.0f));
+  handler_.HandleMarqueeSelection(
+      /*mouse_pos=*/ImVec2(200.0f, 200.0f),
+      /*mouse_left_down=*/false,
+      /*mouse_left_released=*/true,
+      /*shift_down=*/false,
+      /*toggle_down=*/true,
+      /*alt_down=*/false,
+      /*draw_box=*/false);
+
+  EXPECT_TRUE(selection_.IsObjectSelected(0));
+  EXPECT_FALSE(selection_.IsObjectSelected(1));
+}
+
+// ============================================================================
 // Duplicate Tests
 // ============================================================================
 

@@ -83,6 +83,61 @@ void TileObjectHandler::InitDrag(const ImVec2& start_pos) {
   drag_mutation_started_ = false;
 }
 
+void TileObjectHandler::BeginMarqueeSelection(const ImVec2& start_pos) {
+  if (!ctx_ || !ctx_->selection) return;
+  ctx_->selection->BeginRectangleSelection(static_cast<int>(start_pos.x),
+                                           static_cast<int>(start_pos.y));
+}
+
+void TileObjectHandler::HandleMarqueeSelection(const ImVec2& mouse_pos,
+                                               bool mouse_left_down,
+                                               bool mouse_left_released,
+                                               bool shift_down,
+                                               bool toggle_down,
+                                               bool alt_down,
+                                               bool draw_box) {
+  if (!ctx_ || !ctx_->selection) return;
+  if (!ctx_->selection->IsRectangleSelectionActive()) return;
+
+  // Update + draw while the drag is in progress.
+  if (mouse_left_down) {
+    ctx_->selection->UpdateRectangleSelection(static_cast<int>(mouse_pos.x),
+                                              static_cast<int>(mouse_pos.y));
+    if (draw_box) {
+      if (ctx_->canvas) {
+        ctx_->selection->DrawRectangleSelectionBox(ctx_->canvas);
+      }
+    }
+  }
+
+  // Finalize selection on release.
+  if (mouse_left_released) {
+    ctx_->selection->UpdateRectangleSelection(static_cast<int>(mouse_pos.x),
+                                              static_cast<int>(mouse_pos.y));
+
+    auto* room = GetRoom(ctx_->current_room_id);
+    if (!room) {
+      ctx_->selection->CancelRectangleSelection();
+      return;
+    }
+
+    constexpr int kMinRectPixels = 6;
+    if (alt_down || !ctx_->selection->IsRectangleLargeEnough(kMinRectPixels)) {
+      ctx_->selection->CancelRectangleSelection();
+      return;
+    }
+
+    ObjectSelection::SelectionMode mode = ObjectSelection::SelectionMode::Single;
+    if (shift_down) {
+      mode = ObjectSelection::SelectionMode::Add;
+    } else if (toggle_down) {
+      mode = ObjectSelection::SelectionMode::Toggle;
+    }
+
+    ctx_->selection->EndRectangleSelection(room->GetTileObjects(), mode);
+  }
+}
+
 void TileObjectHandler::HandleDrag(ImVec2 current_pos, ImVec2 delta) {
   (void)delta;
   if (!is_dragging_ || !ctx_ || !ctx_->selection) return;
