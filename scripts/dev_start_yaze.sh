@@ -10,7 +10,8 @@ TRUNK_ROOT="${TRUNK_ROOT:-$HOME/src/trunk}"
 
 # Project root
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-BUILD_DIR="${YAZE_BUILD_DIR:-${PROJECT_ROOT}/build}"
+# Prefer the AI build dir (the mac-ai preset uses binaryDir=build_ai).
+BUILD_DIR="${YAZE_BUILD_DIR:-${PROJECT_ROOT}/build_ai}"
 # Prefer Debug binary (agent preset builds Debug by default)
 YAZE_BIN="${BUILD_DIR}/bin/Debug/yaze.app/Contents/MacOS/yaze"
 TEST_HARNESS_PORT="${YAZE_GRPC_PORT:-50052}"

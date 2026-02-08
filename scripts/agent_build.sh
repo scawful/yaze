@@ -16,7 +16,10 @@ case "${OS}" in
     *)          echo "Unknown OS: ${OS}"; exit 1;;
 esac
 
-BUILD_DIR="${YAZE_BUILD_DIR:-build}"
+# For AI-enabled presets (mac-ai/win-ai/lin-ai), the preset uses binaryDir
+# "build_ai". Default to that here so we consistently build the most feature-
+# complete binaries unless explicitly overridden.
+BUILD_DIR="${YAZE_BUILD_DIR:-build_ai}"
 TARGET="${1:-yaze}"
 
 echo "=================================================="
