@@ -182,6 +182,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/panel_manager_policy_test.cc
     unit/editor/editor_manager_test.cc
     unit/editor/shortcut_manager_test.cc
+    unit/editor/dungeon_editor_v2_rom_safety_test.cc
     unit/core/asar_compiler_test.cc
     unit/zelda3/overworld_test.cc
     unit/zelda3/overworld_regression_test.cc
@@ -278,6 +279,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/oracle_progression_test.cc
     unit/core/oracle_progression_loader_test.cc
     unit/core/story_event_graph_test.cc
+    unit/editor/dungeon_editor_v2_rom_safety_test.cc
     unit/core/project_bundle_test.cc
     unit/core/project_paths_test.cc
     unit/rom/rom_diff_test.cc
