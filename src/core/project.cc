@@ -314,6 +314,10 @@ absl::Status YazeProject::Open(const std::string& project_path) {
     return load_status;
   }
 
+  // Normalize project-relative paths so downstream code never depends on the
+  // process working directory (important for iOS and portable bundles).
+  NormalizePathsToAbsolute();
+
   // Auto-load hack manifest if configured or discoverable
   TryLoadHackManifest();
 
@@ -966,6 +970,10 @@ absl::Status YazeProject::SaveToYazeFormat() {
     music_persistence.storage_key = MakeStorageKey("music");
   }
 
+  // Ensure we serialize clean relative paths even if the user edited fields
+  // into relative form (and avoid relying on cwd when opening later).
+  NormalizePathsToAbsolute();
+
   ASSIGN_OR_RETURN(auto serialized, SerializeToString());
 
 #ifdef __EMSCRIPTEN__
@@ -1179,6 +1187,40 @@ std::string YazeProject::GetAbsolutePath(
   abs_path = project_dir / abs_path;
 
   return abs_path.string();
+}
+
+void YazeProject::NormalizePathsToAbsolute() {
+#ifdef __EMSCRIPTEN__
+  // Web builds rely on a virtual filesystem and often use relative paths.
+  return;
+#endif
+  if (filepath.empty()) {
+    return;
+  }
+
+  auto normalize = [this](std::string* path) {
+    if (!path || path->empty()) {
+      return;
+    }
+    *path = GetAbsolutePath(*path);
+  };
+
+  normalize(&rom_filename);
+  normalize(&rom_backup_folder);
+  normalize(&code_folder);
+  normalize(&assets_folder);
+  normalize(&patches_folder);
+  normalize(&labels_filename);
+  normalize(&symbols_filename);
+  normalize(&custom_objects_folder);
+  normalize(&hack_manifest_file);
+  normalize(&output_folder);
+
+  for (auto& rom_path : additional_roms) {
+    if (!rom_path.empty()) {
+      rom_path = GetAbsolutePath(rom_path);
+    }
+  }
 }
 
 bool YazeProject::IsEmpty() const {
