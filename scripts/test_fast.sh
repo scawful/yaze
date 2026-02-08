@@ -30,7 +30,7 @@ BUILD_DIR="${YAZE_BUILD_DIR:-$ROOT_DIR/build_ai}"
 CONFIG="${YAZE_CONFIG:-Debug}"
 JOBS="${YAZE_JOBS:-8}"
 
-UNIT_REGEX_DEFAULT="^(HackManifestTest|ResourceLabelsTest|AsarWrapperTest|AsarCompilerReproTest|WaterFillZoneTest)\\."
+UNIT_REGEX_DEFAULT="^(HackManifestTest|ResourceLabelsTest|OracleProgressionStateTest|AsarWrapperTest|AsarCompilerReproTest|WaterFillZoneTest)\\."
 INTEGRATION_REGEX_DEFAULT="^DungeonSaveRegionTest\\."
 UNIT_REGEX="${YAZE_FAST_UNIT_REGEX:-$UNIT_REGEX_DEFAULT}"
 INTEGRATION_REGEX="${YAZE_FAST_INTEGRATION_REGEX:-$INTEGRATION_REGEX_DEFAULT}"
