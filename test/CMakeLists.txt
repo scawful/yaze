@@ -141,6 +141,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/hex_test.cc
     unit/core/hack_manifest_test.cc
     unit/core/oracle_progression_test.cc
+    unit/core/story_event_graph_test.cc
     unit/deps/dependency_smoke_test.cc
     unit/cli/resource_catalog_test.cc
     unit/cli/command_registry_test.cc
