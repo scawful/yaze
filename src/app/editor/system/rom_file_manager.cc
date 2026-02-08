@@ -146,30 +146,42 @@ absl::Status RomFileManager::CreateBackup(Rom* rom) {
     return absl::FailedPreconditionError("No ROM loaded to backup");
   }
 
-  std::string backup_filename = GenerateBackupFilename(rom->filename());
+  const std::string source_filename = rom->filename();
+  if (source_filename.empty()) {
+    return absl::InvalidArgumentError("ROM has no filename to backup");
+  }
 
-  Rom::SaveSettings settings;
-  settings.backup = false;
-  settings.filename = backup_filename;
-  // settings.z3_save = true; // Deprecated
+  // Safety: create backups from the on-disk ROM file, not the in-memory buffer.
+  // This ensures the backup represents the last saved state before overwrite.
+  std::string backup_filename = GenerateBackupFilename(source_filename);
 
-  auto status = rom->SaveToFile(settings);
-  if (!status.ok() && toast_manager_) {
-    toast_manager_->Show(
-        absl::StrFormat("Failed to create backup: %s", status.message()),
-        ToastType::kError);
-  } else if (toast_manager_) {
+  std::error_code ec;
+  std::filesystem::copy_file(source_filename, backup_filename,
+                             std::filesystem::copy_options::overwrite_existing,
+                             ec);
+  if (ec) {
+    auto status = absl::InternalError(
+        absl::StrFormat("Failed to create backup: %s", ec.message()));
+    if (toast_manager_) {
+      toast_manager_->Show(
+          absl::StrFormat("Backup failed: %s", status.message()),
+          ToastType::kError);
+    }
+    return status;
+  }
+
+  if (toast_manager_) {
     toast_manager_->Show(absl::StrFormat("Backup created: %s", backup_filename),
                          ToastType::kSuccess);
   }
-  if (status.ok()) {
-    auto prune_status = PruneBackups(rom->filename());
-    if (!prune_status.ok()) {
-      LOG_WARN("RomFileManager", "Backup prune failed: %s",
-               prune_status.message().data());
-    }
+
+  auto prune_status = PruneBackups(source_filename);
+  if (!prune_status.ok()) {
+    LOG_WARN("RomFileManager", "Backup prune failed: %s",
+             prune_status.message().data());
   }
-  return status;
+
+  return absl::OkStatus();
 }
 
 absl::Status RomFileManager::ValidateRom(Rom* rom) {
@@ -241,11 +253,18 @@ std::string RomFileManager::GenerateBackupFilename(
 
   auto now = std::chrono::system_clock::now();
   auto time_t = std::chrono::system_clock::to_time_t(now);
+  const auto ms_since_epoch =
+      std::chrono::duration_cast<std::chrono::milliseconds>(
+          now.time_since_epoch())
+          .count();
+  const auto ms_part = ms_since_epoch % 1000;
 
   std::filesystem::path backup_dir = GetBackupDirectory(original_filename);
 
   std::string filename =
-      absl::StrFormat("%s_backup_%ld%s", stem, time_t, extension);
+      absl::StrFormat("%s_backup_%lld_%03lld%s", stem,
+                      static_cast<long long>(time_t),
+                      static_cast<long long>(ms_part), extension);
   return (backup_dir / filename).string();
 }
 
