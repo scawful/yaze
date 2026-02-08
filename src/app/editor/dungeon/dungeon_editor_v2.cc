@@ -55,6 +55,7 @@
 #include "util/macro.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
+#include "zelda3/dungeon/dungeon_validator.h"
 #include "zelda3/dungeon/object_dimensions.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/water_fill_zone.h"
@@ -813,8 +814,8 @@ absl::Status DungeonEditorV2::Save() {
   }
 
   if (flags.kSaveObjects || flags.kSaveSprites || flags.kSaveRoomHeaders) {
-    for (auto& room : rooms_) {
-      auto status = SaveRoomData(room.id());
+    for (int room_id = 0; room_id < static_cast<int>(rooms_.size()); ++room_id) {
+      auto status = SaveRoomData(room_id);
       if (!status.ok()) {
         return status;
       }
@@ -1013,6 +1014,31 @@ absl::Status DungeonEditorV2::SaveRoomData(int room_id) {
   auto& room = rooms_[room_id];
   if (!room.IsLoaded()) {
     return absl::OkStatus();
+  }
+
+  // ROM safety: validate loaded room content before writing any bytes.
+  {
+    zelda3::DungeonValidator validator;
+    const auto result = validator.ValidateRoom(room);
+    for (const auto& w : result.warnings) {
+      LOG_WARN("DungeonEditorV2", "Room 0x%03X validation warning: %s", room_id,
+               w.c_str());
+    }
+    if (!result.is_valid) {
+      for (const auto& e : result.errors) {
+        LOG_ERROR("DungeonEditorV2", "Room 0x%03X validation error: %s",
+                  room_id, e.c_str());
+      }
+      if (dependencies_.toast_manager) {
+        dependencies_.toast_manager->Show(
+            absl::StrFormat(
+                "Save blocked: room 0x%03X failed validation (%zu error(s))",
+                room_id, result.errors.size()),
+            ToastType::kError);
+      }
+      return absl::FailedPreconditionError(
+          absl::StrFormat("Room 0x%03X failed validation", room_id));
+    }
   }
 
   const auto& flags = core::FeatureFlags::get().dungeon;
