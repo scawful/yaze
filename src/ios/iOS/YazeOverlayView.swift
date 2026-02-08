@@ -786,8 +786,8 @@ struct FilesystemSettingsView: View {
             settingsStore.statusMessage = "Imported \(imported.lastPathComponent)"
             if !settingsStore.settings.general.lastProjectPath.isEmpty {
               YazeIOSBridge.openProject(atPath: settingsStore.settings.general.lastProjectPath)
-            }
-            if !settingsStore.settings.general.lastRomPath.isEmpty {
+            } else if !settingsStore.settings.general.lastRomPath.isEmpty {
+              // Fallback for older imports without a project bundle root.
               YazeIOSBridge.loadRom(atPath: settingsStore.settings.general.lastRomPath)
             }
           } else {

@@ -32,12 +32,35 @@ final class YazeProjectBundleService {
 
       if !settingsStore.settings.general.lastProjectPath.isEmpty {
         let projectURL = URL(fileURLWithPath: settingsStore.settings.general.lastProjectPath)
-        projectName = projectURL.lastPathComponent
-        let dest = bundleURL.appendingPathComponent("project", isDirectory: true)
-        try copyDirectory(from: projectURL, to: dest)
+        if projectURL.pathExtension == "yazeproj" {
+          // New unified bundle format: the "project" folder inside the bundle
+          // is the code snapshot. Prefer `project/`, fallback to `code/`.
+          projectName = projectURL.deletingPathExtension().lastPathComponent
+          let codeA = projectURL.appendingPathComponent("project", isDirectory: true)
+          let codeB = projectURL.appendingPathComponent("code", isDirectory: true)
+          let codeSrc = fileManager.fileExists(atPath: codeA.path) ? codeA : codeB
+          if fileManager.fileExists(atPath: codeSrc.path) {
+            let dest = bundleURL.appendingPathComponent("project", isDirectory: true)
+            try copyDirectory(from: codeSrc, to: dest)
+          }
+
+          let romSrc = projectURL.appendingPathComponent("rom")
+          if fileManager.fileExists(atPath: romSrc.path) {
+            romName = romSrc.lastPathComponent
+            let dest = bundleURL.appendingPathComponent("rom")
+            if fileManager.fileExists(atPath: dest.path) {
+              try fileManager.removeItem(at: dest)
+            }
+            try fileManager.copyItem(at: romSrc, to: dest)
+          }
+        } else {
+          projectName = projectURL.lastPathComponent
+          let dest = bundleURL.appendingPathComponent("project", isDirectory: true)
+          try copyDirectory(from: projectURL, to: dest)
+        }
       }
 
-      if !settingsStore.settings.general.lastRomPath.isEmpty {
+      if !settingsStore.settings.general.lastRomPath.isEmpty && romName.isEmpty {
         let romURL = URL(fileURLWithPath: settingsStore.settings.general.lastRomPath)
         romName = romURL.lastPathComponent
         let dest = bundleURL.appendingPathComponent("rom")
@@ -73,7 +96,7 @@ final class YazeProjectBundleService {
     }
 
     let bundleName = url.deletingPathExtension().lastPathComponent
-    let destination = importRoot.appendingPathComponent(bundleName, isDirectory: true)
+    let destination = importRoot.appendingPathComponent("\(bundleName).yazeproj")
 
     do {
       if fileManager.fileExists(atPath: destination.path) {
@@ -81,15 +104,12 @@ final class YazeProjectBundleService {
       }
       try fileManager.copyItem(at: url, to: destination)
 
-      let projectDir = destination.appendingPathComponent("project", isDirectory: true)
-      if fileManager.fileExists(atPath: projectDir.path) {
-        settingsStore.updateCurrentProjectPath(projectDir.path)
-      }
-
       let romFile = destination.appendingPathComponent("rom")
       if fileManager.fileExists(atPath: romFile.path) {
         settingsStore.updateCurrentRomPath(romFile.path)
       }
+      // Prefer opening the bundle root; core resolves `project.yaze` + paths.
+      settingsStore.updateCurrentProjectPath(destination.path)
 
       return destination
     } catch {
