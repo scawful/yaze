@@ -1,6 +1,8 @@
 #include "core/hack_manifest.h"
 
 #include <algorithm>
+#include <cctype>
+#include <limits>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -623,10 +625,80 @@ absl::Status HackManifest::LoadProjectRegistry(
     }
   }
 
-  // ── Load oracle_room_labels.json ────────────────────────────────────────
-  fs::path labels_path = planning / "oracle_room_labels.json";
-  if (fs::exists(labels_path)) {
-    std::ifstream file(labels_path);
+  // ── Load resource labels ────────────────────────────────────────────────
+  // Priority 1: Unified oracle_resource_labels.json (all types)
+  // Priority 2: Legacy oracle_room_labels.json (room type only)
+  fs::path unified_path = planning / "oracle_resource_labels.json";
+  fs::path legacy_path = planning / "oracle_room_labels.json";
+
+  auto normalize_label_id = [](const std::string& raw) -> std::string {
+    // Project resource_labels keys are decimal strings (std::to_string(id)).
+    // Support either decimal ("57") or explicit hex ("0x39") here.
+    std::string s = raw;
+    while (!s.empty() && std::isspace(static_cast<unsigned char>(s.front()))) {
+      s.erase(s.begin());
+    }
+    while (!s.empty() && std::isspace(static_cast<unsigned char>(s.back()))) {
+      s.pop_back();
+    }
+    if (s.empty()) {
+      return raw;
+    }
+
+    int base = 10;
+    if (s.size() >= 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X')) {
+      base = 16;
+      s = s.substr(2);
+      if (s.empty()) {
+        return raw;
+      }
+    }
+
+    try {
+      size_t idx = 0;
+      const unsigned long value = std::stoul(s, &idx, base);
+      if (idx != s.size()) {
+        return raw;
+      }
+      if (value > static_cast<unsigned long>(std::numeric_limits<int>::max())) {
+        return raw;
+      }
+      return std::to_string(static_cast<int>(value));
+    } catch (...) {
+      return raw;
+    }
+  };
+
+  if (fs::exists(unified_path)) {
+    std::ifstream file(unified_path);
+    if (file.is_open()) {
+      std::stringstream buffer;
+      buffer << file.rdbuf();
+      try {
+        Json root = Json::parse(buffer.str());
+        // Parse all type sections (room, sprite, item, entrance, etc.)
+        const std::vector<std::string> label_types = {
+            "room", "sprite", "item", "entrance", "overworld_map", "music"};
+        for (const auto& type_key : label_types) {
+          if (root.contains(type_key) && root[type_key].is_object()) {
+            for (const auto& [key, value] : root[type_key].items()) {
+              if (value.is_string()) {
+                const std::string normalized_key = normalize_label_id(key);
+                project_registry_.all_resource_labels[type_key][normalized_key] =
+                    value.get<std::string>();
+              }
+            }
+          }
+        }
+      } catch (const std::exception& exc) {
+        LOG_WARN("HackManifest",
+                 "Failed to parse oracle_resource_labels.json: %s",
+                 exc.what());
+      }
+    }
+  } else if (fs::exists(legacy_path)) {
+    // Backward compat: load room-only labels from legacy file
+    std::ifstream file(legacy_path);
     if (file.is_open()) {
       std::stringstream buffer;
       buffer << file.rdbuf();
@@ -634,26 +706,53 @@ absl::Status HackManifest::LoadProjectRegistry(
         Json root = Json::parse(buffer.str());
         if (root.contains("resource_labels") &&
             root["resource_labels"].contains("room")) {
-          for (auto& [key, value] : root["resource_labels"]["room"].items()) {
-            project_registry_.room_labels[key] = value.get<std::string>();
+          for (const auto& [key, value] :
+               root["resource_labels"]["room"].items()) {
+            const std::string normalized_key = normalize_label_id(key);
+            project_registry_.all_resource_labels["room"][normalized_key] =
+                value.get<std::string>();
           }
         }
       } catch (const std::exception& exc) {
-        LOG_WARN("HackManifest", "Failed to parse oracle_room_labels.json: %s",
-                 exc.what());
+        LOG_WARN("HackManifest",
+                 "Failed to parse oracle_room_labels.json: %s", exc.what());
       }
     }
   }
 
+  // ── Load story events ──────────────────────────────────────────────────
+  fs::path story_events_path = planning / "story_events.json";
+  if (fs::exists(story_events_path)) {
+    auto story_status = project_registry_.story_events.LoadFromJson(
+        story_events_path.string());
+    if (story_status.ok()) {
+      project_registry_.story_events.AutoLayout();
+      // Default to an initial "no progress" state so the graph renders with
+      // sensible locked/available coloring even before live SRAM is wired up.
+      project_registry_.story_events.UpdateStatus(/*crystal_bitfield=*/0,
+                                                 /*game_state=*/0);
+      LOG_DEBUG("HackManifest", "Loaded story events: %zu nodes, %zu edges",
+                project_registry_.story_events.nodes().size(),
+                project_registry_.story_events.edges().size());
+    } else {
+      LOG_WARN("HackManifest", "Failed to load story_events.json: %s",
+               std::string(story_status.message()).c_str());
+    }
+  }
+
+  size_t total_labels = 0;
+  for (const auto& [type, labels] : project_registry_.all_resource_labels) {
+    total_labels += labels.size();
+  }
+
   if (!project_registry_.dungeons.empty() ||
-      !project_registry_.overworld_areas.empty() ||
-      !project_registry_.room_labels.empty()) {
+      !project_registry_.overworld_areas.empty() || total_labels > 0) {
     LOG_DEBUG("HackManifest",
               "Loaded project registry: %zu dungeons, %zu overworld areas, "
-              "%zu room labels",
+              "%zu resource labels (%zu types)",
               project_registry_.dungeons.size(),
-              project_registry_.overworld_areas.size(),
-              project_registry_.room_labels.size());
+              project_registry_.overworld_areas.size(), total_labels,
+              project_registry_.all_resource_labels.size());
   }
 
   return absl::OkStatus();

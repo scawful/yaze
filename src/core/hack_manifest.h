@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "core/story_event_graph.h"
 
 namespace yaze::core {
 
@@ -166,7 +167,7 @@ struct OverworldArea {
 };
 
 /**
- * @brief Project-level registry data loaded from dungeons.json + overworld.json.
+ * @brief Project-level registry data loaded from the Oracle planning outputs.
  *
  * This data supplements the hack manifest with game-world structural info
  * that yaze uses for dungeon map visualization and room labeling.
@@ -174,7 +175,25 @@ struct OverworldArea {
 struct ProjectRegistry {
   std::vector<DungeonEntry> dungeons;
   std::vector<OverworldArea> overworld_areas;
-  std::unordered_map<std::string, std::string> room_labels;  // "0x06" -> label
+  StoryEventGraph story_events;
+
+  // Universal resource labels: type -> {id_str -> label}
+  //
+  // Notes:
+  // - Keys are normalized to decimal strings for project::YazeProject::resource_labels.
+  // - Input JSON may use either decimal ("57") or hex ("0x39") IDs.
+  //
+  // Types: "room", "sprite", "item", "entrance", "overworld_map", "music"
+  std::unordered_map<std::string,
+                     std::unordered_map<std::string, std::string>>
+      all_resource_labels;
+
+  // Backward-compat accessor for room labels only
+  const std::unordered_map<std::string, std::string>& room_labels() const {
+    static const std::unordered_map<std::string, std::string> empty;
+    auto it = all_resource_labels.find("room");
+    return it != all_resource_labels.end() ? it->second : empty;
+  }
 };
 
 /**
@@ -339,8 +358,10 @@ class HackManifest {
   // ─── Project Registry ────────────────────────────────────
 
   /**
-   * @brief Load project registry data (dungeons.json, overworld.json,
-   * oracle_room_labels.json) from the code folder.
+   * @brief Load project registry data from the code folder.
+   *
+   * Loads dungeons.json, overworld.json, and resource labels from
+   * oracle_resource_labels.json (unified) or oracle_room_labels.json (legacy).
    */
   absl::Status LoadProjectRegistry(const std::string& code_folder);
 
@@ -349,7 +370,9 @@ class HackManifest {
   }
 
   [[nodiscard]] bool HasProjectRegistry() const {
-    return !project_registry_.dungeons.empty();
+    return !project_registry_.dungeons.empty() ||
+           !project_registry_.all_resource_labels.empty() ||
+           project_registry_.story_events.loaded();
   }
 
   // ─── Build Pipeline ───────────────────────────────────────
