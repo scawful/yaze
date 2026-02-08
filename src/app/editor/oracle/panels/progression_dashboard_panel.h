@@ -2,13 +2,19 @@
 #define YAZE_APP_EDITOR_ORACLE_PANELS_PROGRESSION_DASHBOARD_PANEL_H
 
 #include <cstdio>
+#include <filesystem>
 #include <string>
 #include <vector>
 
+#include "app/editor/core/content_registry.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gui/core/icons.h"
+#include "core/hack_manifest.h"
 #include "core/oracle_progression.h"
+#include "core/oracle_progression_loader.h"
+#include "core/project.h"
 #include "imgui/imgui.h"
+#include "util/file_util.h"
 
 namespace yaze::editor {
 
@@ -35,6 +41,18 @@ class ProgressionDashboardPanel : public EditorPanel {
 
   void Draw(bool* p_open) override {
     (void)p_open;
+
+    // Lazily resolve the manifest from the project context.
+    if (!manifest_) {
+      auto* project = ContentRegistry::Context::current_project();
+      if (project && project->hack_manifest.loaded()) {
+        manifest_ = &project->hack_manifest;
+      }
+    }
+
+    DrawSrmImportControls();
+    ImGui::Separator();
+
     DrawCrystalTracker();
     ImGui::Separator();
     DrawGameState();
@@ -44,9 +62,83 @@ class ProgressionDashboardPanel : public EditorPanel {
     DrawStoryFlags();
     ImGui::Separator();
     DrawManualControls();
+
+    PushStateToManifestIfNeeded();
   }
 
  private:
+  static bool StatesEqual(const core::OracleProgressionState& a,
+                          const core::OracleProgressionState& b) {
+    return a.crystal_bitfield == b.crystal_bitfield &&
+           a.game_state == b.game_state && a.oosprog == b.oosprog &&
+           a.oosprog2 == b.oosprog2 && a.side_quest == b.side_quest &&
+           a.pendants == b.pendants;
+  }
+
+  void DrawSrmImportControls() {
+    ImGui::Text("SRAM (.srm)");
+
+    util::FileDialogOptions options;
+    options.filters = {
+        {"SRAM (.srm)", "srm"},
+        {"All Files", "*"},
+    };
+
+    if (ImGui::Button("Import...")) {
+      std::string file_path =
+          util::FileDialogWrapper::ShowOpenFileDialog(options);
+      if (!file_path.empty()) {
+        auto state_or = core::LoadOracleProgressionFromSrmFile(file_path);
+        if (state_or.ok()) {
+          state_ = *state_or;
+          game_state_slider_ = static_cast<int>(state_.game_state);
+          loaded_srm_path_ = file_path;
+          last_srm_error_.clear();
+        } else {
+          last_srm_error_ = std::string(state_or.status().message());
+        }
+      }
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("Clear")) {
+      state_ = core::OracleProgressionState();
+      game_state_slider_ = 0;
+      loaded_srm_path_.clear();
+      last_srm_error_.clear();
+      if (manifest_) {
+        manifest_->ClearOracleProgressionState();
+      }
+    }
+
+    if (!loaded_srm_path_.empty()) {
+      const std::filesystem::path p(loaded_srm_path_);
+      ImGui::TextDisabled("Loaded: %s", p.filename().string().c_str());
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("%s", loaded_srm_path_.c_str());
+      }
+    } else {
+      ImGui::TextDisabled("Loaded: (none)");
+    }
+
+    if (!last_srm_error_.empty()) {
+      ImGui::TextColored(ImVec4(1.0f, 0.35f, 0.35f, 1.0f), "Error: %s",
+                         last_srm_error_.c_str());
+    }
+  }
+
+  void PushStateToManifestIfNeeded() {
+    if (!manifest_ || !manifest_->loaded()) {
+      return;
+    }
+
+    const auto existing = manifest_->oracle_progression_state();
+    if (existing.has_value() && StatesEqual(*existing, state_)) {
+      return;
+    }
+    manifest_->SetOracleProgressionState(state_);
+  }
+
   void DrawCrystalTracker() {
     ImGui::Text("Crystal Tracker");
     ImGui::Spacing();
@@ -220,6 +312,10 @@ class ProgressionDashboardPanel : public EditorPanel {
 
   core::OracleProgressionState state_;
   int game_state_slider_ = 0;
+
+  core::HackManifest* manifest_ = nullptr;
+  std::string loaded_srm_path_;
+  std::string last_srm_error_;
 
   // Bit labels for flag grids
   static constexpr const char* oosprog_labels_[8] = {
