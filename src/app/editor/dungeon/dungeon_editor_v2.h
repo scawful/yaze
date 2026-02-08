@@ -299,6 +299,7 @@ class DungeonEditorV2 : public Editor {
   class MinecartTrackEditorPanel* minecart_track_editor_panel_ = nullptr;
   class RoomTagEditorPanel* room_tag_editor_panel_ = nullptr;
   class CustomCollisionPanel* custom_collision_panel_ = nullptr;
+  class WaterFillPanel* water_fill_panel_ = nullptr;
   class DungeonSettingsPanel* dungeon_settings_panel_ = nullptr;
 
   // Fallback ownership for tests when PanelManager is not available.

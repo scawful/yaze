@@ -111,7 +111,9 @@ class CustomCollisionPanel : public EditorPanel {
         ImGui::Separator();
         if (ImGui::Button("Clear All Custom Collision")) {
             room.custom_collision().tiles.fill(0);
-            room.custom_collision().has_data = true; // Still marked as having custom data (all floor)
+            // Clearing should remove the override (room falls back to vanilla).
+            room.custom_collision().has_data = false;
+            room.MarkCustomCollisionDirty();
         }
     } else {
         ImGui::TextWrapped("Custom collision allows you to override the physics of individual 8x8 tiles in the room. This is useful for creating water, pits, or other effects that don't match the background tiles.");

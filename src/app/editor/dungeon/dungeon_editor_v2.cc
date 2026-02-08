@@ -15,6 +15,7 @@
 // Third-party library headers
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
+#include "absl/types/span.h"
 #include "imgui/imgui.h"
 
 // Project headers
@@ -24,6 +25,7 @@
 #include "app/editor/dungeon/panels/dungeon_entrances_panel.h"
 #include "app/editor/dungeon/panels/dungeon_map_panel.h"
 #include "app/editor/dungeon/panels/custom_collision_panel.h"
+#include "app/editor/dungeon/panels/water_fill_panel.h"
 #include "app/editor/dungeon/panels/dungeon_settings_panel.h"
 #include "app/editor/dungeon/panels/dungeon_workbench_panel.h"
 #include "app/editor/dungeon/panels/dungeon_palette_editor_panel.h"
@@ -55,9 +57,150 @@
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/object_dimensions.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/water_fill_zone.h"
 #include "zelda3/resource_labels.h"
 
 namespace yaze::editor {
+
+namespace {
+
+bool IsSingleBitMask(uint8_t mask) {
+  return mask != 0 && (mask & (mask - 1)) == 0;
+}
+
+int MaskIndex(uint8_t mask) {
+  switch (mask) {
+    case 0x01:
+      return 0;
+    case 0x02:
+      return 1;
+    case 0x04:
+      return 2;
+    case 0x08:
+      return 3;
+    case 0x10:
+      return 4;
+    case 0x20:
+      return 5;
+    case 0x40:
+      return 6;
+    case 0x80:
+      return 7;
+    default:
+      return -1;
+  }
+}
+
+absl::Status SaveWaterFillZones(Rom* rom, std::array<zelda3::Room, 0x128>& rooms) {
+  if (!rom || !rom->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+
+  bool any_dirty = false;
+  for (const auto& room : rooms) {
+    if (room.water_fill_dirty()) {
+      any_dirty = true;
+      break;
+    }
+  }
+  if (!any_dirty) {
+    return absl::OkStatus();
+  }
+
+  std::vector<zelda3::WaterFillZoneEntry> zones;
+  zones.reserve(8);
+  for (int room_id = 0; room_id < static_cast<int>(rooms.size()); ++room_id) {
+    auto& room = rooms[room_id];
+    if (!room.has_water_fill_zone()) {
+      continue;
+    }
+
+    const int tile_count = room.WaterFillTileCount();
+    if (tile_count <= 0) {
+      continue;
+    }
+    if (tile_count > 255) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Water fill zone in room 0x%02X has %d tiles (max 255)",
+          room_id, tile_count));
+    }
+
+    zelda3::WaterFillZoneEntry z;
+    z.room_id = room_id;
+    z.sram_bit_mask = room.water_fill_sram_bit_mask();
+    z.fill_offsets.reserve(static_cast<size_t>(tile_count));
+
+    const auto& map = room.water_fill_zone().tiles;
+    for (size_t i = 0; i < map.size(); ++i) {
+      if (map[i] != 0) {
+        z.fill_offsets.push_back(static_cast<uint16_t>(i));
+      }
+    }
+    zones.push_back(std::move(z));
+  }
+
+  if (zones.size() > 8) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Too many water fill zones: %zu (max 8 fits in $7EF411 bitfield)",
+        zones.size()));
+  }
+
+  uint8_t used_masks = 0;
+  int room_for_bit[8] = {-1, -1, -1, -1, -1, -1, -1, -1};
+  std::vector<zelda3::WaterFillZoneEntry*> unassigned;
+  for (auto& z : zones) {
+    if (z.sram_bit_mask == 0) {
+      unassigned.push_back(&z);
+      continue;
+    }
+    if (!IsSingleBitMask(z.sram_bit_mask) || MaskIndex(z.sram_bit_mask) < 0) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Invalid SRAM bit mask 0x%02X for room 0x%02X (must be one of 0x01..0x80)",
+          z.sram_bit_mask, z.room_id));
+    }
+    const int bit = MaskIndex(z.sram_bit_mask);
+    if ((used_masks & z.sram_bit_mask) != 0) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Duplicate SRAM bit mask 0x%02X used by rooms 0x%02X and 0x%02X",
+          z.sram_bit_mask, room_for_bit[bit], z.room_id));
+    }
+    used_masks |= z.sram_bit_mask;
+    room_for_bit[bit] = z.room_id;
+  }
+
+  std::sort(unassigned.begin(), unassigned.end(),
+            [](const zelda3::WaterFillZoneEntry* a,
+               const zelda3::WaterFillZoneEntry* b) {
+              return a->room_id < b->room_id;
+            });
+
+  constexpr uint8_t kBits[8] = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80};
+  for (auto* z : unassigned) {
+    uint8_t assigned = 0;
+    for (uint8_t bit : kBits) {
+      if ((used_masks & bit) == 0) {
+        assigned = bit;
+        break;
+      }
+    }
+    if (assigned == 0) {
+      return absl::ResourceExhaustedError(
+          "No free SRAM bits left in $7EF411 for water fill zones");
+    }
+    z->sram_bit_mask = assigned;
+    used_masks |= assigned;
+    rooms[z->room_id].set_water_fill_sram_bit_mask(assigned);
+  }
+
+  RETURN_IF_ERROR(zelda3::WriteWaterFillTable(rom, zones));
+  for (auto& room : rooms) {
+    room.ClearWaterFillDirty();
+  }
+
+  return absl::OkStatus();
+}
+
+}  // namespace
 
 DungeonEditorV2::~DungeonEditorV2() {
   // Clear viewer references in panels BEFORE room_viewers_ is destroyed.
@@ -71,6 +214,17 @@ DungeonEditorV2::~DungeonEditorV2() {
   }
   if (item_editor_panel_) {
     item_editor_panel_->SetCanvasViewer(nullptr);
+  }
+  if (custom_collision_panel_) {
+    custom_collision_panel_->SetCanvasViewer(nullptr);
+    custom_collision_panel_->SetInteraction(nullptr);
+  }
+  if (water_fill_panel_) {
+    water_fill_panel_->SetCanvasViewer(nullptr);
+    water_fill_panel_->SetInteraction(nullptr);
+  }
+  if (dungeon_settings_panel_) {
+    dungeon_settings_panel_->SetCanvasViewer(nullptr);
   }
 }
 
@@ -228,10 +382,15 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
       },
       &rooms_));
 
-  panel_manager->RegisterEditorPanel(std::make_unique<DungeonMapPanel>(
-      &current_room_id_, &active_rooms_,
-      [this](int room_id) { OnRoomSelected(room_id); },
-      &rooms_));
+  {
+    auto dungeon_map = std::make_unique<DungeonMapPanel>(
+        &current_room_id_, &active_rooms_,
+        [this](int room_id) { OnRoomSelected(room_id); }, &rooms_);
+    if (dependencies_.project) {
+      dungeon_map->SetHackManifest(&dependencies_.project->hack_manifest);
+    }
+    panel_manager->RegisterEditorPanel(std::move(dungeon_map));
+  }
 
   panel_manager->RegisterEditorPanel(std::make_unique<DungeonWorkbenchPanel>(
       &room_selector_, &current_room_id_, &workbench_previous_room_id_,
@@ -386,6 +545,11 @@ absl::Status DungeonEditorV2::Load() {
     custom_collision_panel_ = collision_panel.get();
     dependencies_.panel_manager->RegisterEditorPanel(std::move(collision_panel));
 
+    auto water_fill_panel =
+        std::make_unique<WaterFillPanel>(nullptr, nullptr);  // Placeholder
+    water_fill_panel_ = water_fill_panel.get();
+    dependencies_.panel_manager->RegisterEditorPanel(std::move(water_fill_panel));
+
     auto settings_panel = std::make_unique<DungeonSettingsPanel>(nullptr);
     settings_panel->SetSaveRoomCallback([this](int id) { SaveRoom(id); });
     settings_panel->SetSaveAllRoomsCallback([this]() { SaveAllRooms(); });
@@ -445,6 +609,71 @@ absl::Status DungeonEditorV2::Load() {
       }
     }
   });
+
+  // Oracle of Secrets: load editor-authored water fill zones (best-effort).
+  {
+    for (auto& room : rooms_) {
+      room.ClearWaterFillZone();
+      room.ClearWaterFillDirty();
+    }
+
+    bool legacy_imported = false;
+    std::vector<zelda3::WaterFillZoneEntry> zones;
+
+    auto zones_or = zelda3::LoadWaterFillTable(rom_);
+    if (zones_or.ok()) {
+      zones = std::move(zones_or.value());
+    } else {
+      LOG_WARN("DungeonEditorV2", "WaterFillTable parse failed: %s",
+               zones_or.status().message().data());
+      if (dependencies_.toast_manager) {
+        dependencies_.toast_manager->Show(
+            absl::StrFormat("WaterFill table parse failed: %s",
+                            zones_or.status().message()),
+            ToastType::kWarning);
+      }
+    }
+
+    if (zones.empty()) {
+      std::string sym_path;
+      if (dependencies_.project &&
+          !dependencies_.project->symbols_filename.empty()) {
+        sym_path = dependencies_.project->GetAbsolutePath(
+            dependencies_.project->symbols_filename);
+      }
+      auto legacy_or = zelda3::LoadLegacyWaterGateZones(rom_, sym_path);
+      if (legacy_or.ok()) {
+        zones = std::move(legacy_or.value());
+        legacy_imported = !zones.empty();
+      } else {
+        LOG_WARN("DungeonEditorV2", "Legacy water gate import failed: %s",
+                 legacy_or.status().message().data());
+      }
+    }
+
+    for (const auto& z : zones) {
+      if (z.room_id < 0 || z.room_id >= static_cast<int>(rooms_.size())) {
+        continue;
+      }
+      auto& room = rooms_[z.room_id];
+      room.set_water_fill_sram_bit_mask(z.sram_bit_mask);
+      for (uint16_t off : z.fill_offsets) {
+        const int x = static_cast<int>(off % 64);
+        const int y = static_cast<int>(off / 64);
+        room.SetWaterFillTile(x, y, true);
+      }
+
+      if (!legacy_imported) {
+        room.ClearWaterFillDirty();
+      }
+    }
+
+    if (legacy_imported && dependencies_.toast_manager) {
+      dependencies_.toast_manager->Show(
+          "Imported legacy water gate zones (save to write new table)",
+          ToastType::kInfo);
+    }
+  }
 
   is_loaded_ = true;
   return absl::OkStatus();
@@ -620,9 +849,16 @@ absl::Status DungeonEditorV2::Save() {
   }
 
   if (flags.kSaveCollision) {
-    auto status = zelda3::SaveAllCollision(rom_);
+    auto status = zelda3::SaveAllCollision(rom_, absl::MakeSpan(rooms_));
     if (!status.ok()) {
       LOG_ERROR("DungeonEditorV2", "Failed to save collision: %s",
+                status.message().data());
+      return status;
+    }
+
+    status = SaveWaterFillZones(rom_, rooms_);
+    if (!status.ok()) {
+      LOG_ERROR("DungeonEditorV2", "Failed to save water fill zones: %s",
                 status.message().data());
       return status;
     }
@@ -743,7 +979,8 @@ absl::Status DungeonEditorV2::SaveRoom(int room_id) {
     RETURN_IF_ERROR(zelda3::SaveAllBlocks(rom_));
   }
   if (flags.kSaveCollision) {
-    RETURN_IF_ERROR(zelda3::SaveAllCollision(rom_));
+    RETURN_IF_ERROR(zelda3::SaveAllCollision(rom_, absl::MakeSpan(rooms_)));
+    RETURN_IF_ERROR(SaveWaterFillZones(rom_, rooms_));
   }
   if (flags.kSaveChests) {
     RETURN_IF_ERROR(zelda3::SaveAllChests(rom_, rooms_));
@@ -1170,6 +1407,13 @@ void DungeonEditorV2::OnRoomSelected(int room_id, bool request_focus) {
     custom_collision_panel_->SetCanvasViewer(viewer);
     if (viewer) {
       custom_collision_panel_->SetInteraction(&viewer->object_interaction());
+    }
+  }
+  if (water_fill_panel_) {
+    auto* viewer = GetViewerForRoom(room_id);
+    water_fill_panel_->SetCanvasViewer(viewer);
+    if (viewer) {
+      water_fill_panel_->SetInteraction(&viewer->object_interaction());
     }
   }
 

@@ -32,6 +32,12 @@ void InteractionModeManager::SetMode(InteractionMode mode) {
       mode_state_.ClearRectangleData();
       break;
 
+    case InteractionMode::PaintCollision:
+    case InteractionMode::PaintWaterFill:
+      // Leaving paint modes - clear paint state
+      mode_state_.is_painting = false;
+      break;
+
     case InteractionMode::Select:
       // Leaving select mode - nothing special to clear
       break;
@@ -65,6 +71,10 @@ const char* InteractionModeManager::GetModeName() const {
       return "Dragging Entity";
     case InteractionMode::RectangleSelect:
       return "Rectangle Select";
+    case InteractionMode::PaintCollision:
+      return "Paint Collision";
+    case InteractionMode::PaintWaterFill:
+      return "Paint Water Fill";
     default:
       return "Unknown";
   }

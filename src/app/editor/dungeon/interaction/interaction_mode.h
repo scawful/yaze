@@ -36,6 +36,7 @@ enum class InteractionMode {
   DraggingEntity,   // Dragging selected door/sprite/item
   RectangleSelect,  // Drawing rectangle selection box
   PaintCollision,   // Painting custom collision tiles
+  PaintWaterFill,   // Painting water fill zones (Oracle of Secrets)
 };
 
 /**

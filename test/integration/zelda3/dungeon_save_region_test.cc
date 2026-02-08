@@ -6,8 +6,10 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <array>
 #include <vector>
 
+#include "absl/types/span.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "test_utils.h"
@@ -67,7 +69,8 @@ TEST_F(DungeonSaveRegionTest, SaveAllCollisionPreservesRegion) {
       data.begin() + kCustomCollisionDataPosition,
       data.begin() + kCustomCollisionDataPosition + data_size);
 
-  auto status = SaveAllCollision(rom_.get());
+  std::array<Room, kNumberOfRooms> rooms;
+  auto status = SaveAllCollision(rom_.get(), absl::MakeSpan(rooms));
   ASSERT_TRUE(status.ok()) << status.message();
 
   const auto& after = rom_->vector();
