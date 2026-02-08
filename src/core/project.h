@@ -265,6 +265,10 @@ struct YazeProject {
   absl::Status RepairProject();
 
   // Utilities
+  // Normalize filesystem paths to absolute paths based on the project file
+  // location. This avoids relying on the process working directory when
+  // opening ROMs/projects (important for iOS and portable bundles).
+  void NormalizePathsToAbsolute();
   std::string GetDisplayName() const;
   std::string GetRelativePath(const std::string& absolute_path) const;
   std::string GetAbsolutePath(const std::string& relative_path) const;
