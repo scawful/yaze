@@ -2139,7 +2139,8 @@ absl::Status EditorManager::LoadRom() {
     }
 
     // Check if this is a project file - route to project loading
-    if (absl::StrContains(file_name, ".yaze")) {
+    if (absl::EndsWith(file_name, ".yaze") || absl::EndsWith(file_name, ".zsproj") ||
+        absl::EndsWith(file_name, ".yazeproj")) {
       return OpenRomOrProject(file_name);
     }
 
@@ -2775,7 +2776,8 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
   } loading_guard{loading_handle};
 #endif
 
-  if (absl::StrContains(filename, ".yaze")) {
+  if (absl::EndsWith(filename, ".yaze") || absl::EndsWith(filename, ".zsproj") ||
+      absl::EndsWith(filename, ".yazeproj")) {
     // Open the project file
     RETURN_IF_ERROR(current_project_.Open(filename));
 
