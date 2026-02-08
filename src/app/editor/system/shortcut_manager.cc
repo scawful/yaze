@@ -58,6 +58,43 @@ int ScopePriority(Shortcut::Scope scope) {
   }
   return 0;
 }
+
+bool ModsSatisfied(int pressed_mods, int required_mods) {
+  if (required_mods == 0) {
+    return true;
+  }
+
+  auto has = [&](int mod) -> bool { return (pressed_mods & mod) != 0; };
+
+  // macOS: ImGui may swap Cmd(Super) and Ctrl at the io.AddKeyEvent() layer
+  // (ConfigMacOSXBehaviors). Treat Ctrl and Super as equivalent requirements so
+  // shortcuts work regardless of that swap and for users who press either key.
+  const bool mac = gui::IsMacPlatform();
+
+  if (required_mods & ImGuiMod_Shift) {
+    if (!has(ImGuiMod_Shift)) return false;
+  }
+  if (required_mods & ImGuiMod_Alt) {
+    if (!has(ImGuiMod_Alt)) return false;
+  }
+
+  if (required_mods & ImGuiMod_Ctrl) {
+    if (mac) {
+      if (!(has(ImGuiMod_Ctrl) || has(ImGuiMod_Super))) return false;
+    } else {
+      if (!has(ImGuiMod_Ctrl)) return false;
+    }
+  }
+  if (required_mods & ImGuiMod_Super) {
+    if (mac) {
+      if (!(has(ImGuiMod_Super) || has(ImGuiMod_Ctrl))) return false;
+    } else {
+      if (!has(ImGuiMod_Super)) return false;
+    }
+  }
+
+  return true;
+}
 }  // namespace
 
 std::string PrintShortcut(const std::vector<ImGuiKey>& keys) {
@@ -185,8 +222,9 @@ void ExecuteShortcuts(const ShortcutManager& shortcut_manager) {
       continue;
     }
 
-    // Modifier satisfaction (ImGui handles Cmd/Ctrl swap on macOS internally).
-    if ((io.KeyMods & chord.required_mods) != chord.required_mods) {
+    // Modifier satisfaction (macOS Cmd/Ctrl handling is normalized by
+    // ModsSatisfied()).
+    if (!ModsSatisfied(io.KeyMods, chord.required_mods)) {
       continue;
     }
 

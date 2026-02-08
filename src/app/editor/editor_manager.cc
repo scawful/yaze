@@ -1286,9 +1286,11 @@ void EditorManager::InitializeShortcutSystem() {
   shortcut_deps.popup_manager = popup_manager_.get();
   shortcut_deps.toast_manager = &toast_manager_;
   shortcut_deps.panel_manager = &panel_manager_;
+  shortcut_deps.user_settings = &user_settings_;
 
   ConfigureEditorShortcuts(shortcut_deps, &shortcut_manager_);
   ConfigureMenuShortcuts(shortcut_deps, &shortcut_manager_);
+  ConfigurePanelShortcuts(shortcut_deps, &shortcut_manager_);
 }
 
 void EditorManager::OpenEditorAndPanelsFromFlags(

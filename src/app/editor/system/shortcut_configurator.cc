@@ -2,7 +2,6 @@
 
 #include "absl/functional/bind_front.h"
 #include "absl/strings/str_format.h"
-#include "absl/strings/str_split.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/menu/menu_orchestrator.h"
 #include "app/editor/menu/right_panel_manager.h"
@@ -769,71 +768,6 @@ void ConfigureMenuShortcuts(const ShortcutDependencies& deps,
 #endif
 }
 
-namespace {
-
-// Helper to parse shortcut strings like "Ctrl+Shift+R" into ImGuiKey combinations
-std::vector<ImGuiKey> ParseShortcutString(const std::string& shortcut) {
-  std::vector<ImGuiKey> keys;
-  if (shortcut.empty()) {
-    return keys;
-  }
-
-  std::vector<std::string> parts = absl::StrSplit(shortcut, '+');
-
-  for (const auto& part : parts) {
-    std::string trimmed = part;
-    // Trim whitespace
-    while (!trimmed.empty() &&
-           (trimmed.front() == ' ' || trimmed.front() == '\t')) {
-      trimmed = trimmed.substr(1);
-    }
-    while (!trimmed.empty() &&
-           (trimmed.back() == ' ' || trimmed.back() == '\t')) {
-      trimmed.pop_back();
-    }
-
-    if (trimmed.empty())
-      continue;
-
-    // Modifiers
-    if (trimmed == "Ctrl" || trimmed == "Control") {
-      keys.push_back(ImGuiMod_Ctrl);
-    } else if (trimmed == "Shift") {
-      keys.push_back(ImGuiMod_Shift);
-    } else if (trimmed == "Alt") {
-      keys.push_back(ImGuiMod_Alt);
-    } else if (trimmed == "Super" || trimmed == "Win" || trimmed == "Cmd") {
-      keys.push_back(ImGuiMod_Super);
-    }
-    // Letter keys
-    else if (trimmed.length() == 1 && trimmed[0] >= 'A' && trimmed[0] <= 'Z') {
-      keys.push_back(static_cast<ImGuiKey>(ImGuiKey_A + (trimmed[0] - 'A')));
-    } else if (trimmed.length() == 1 && trimmed[0] >= 'a' &&
-               trimmed[0] <= 'z') {
-      keys.push_back(static_cast<ImGuiKey>(ImGuiKey_A + (trimmed[0] - 'a')));
-    }
-    // Number keys
-    else if (trimmed.length() == 1 && trimmed[0] >= '0' && trimmed[0] <= '9') {
-      keys.push_back(static_cast<ImGuiKey>(ImGuiKey_0 + (trimmed[0] - '0')));
-    }
-    // Function keys
-    else if (trimmed[0] == 'F' && trimmed.length() >= 2) {
-      try {
-        int fnum = std::stoi(trimmed.substr(1));
-        if (fnum >= 1 && fnum <= 12) {
-          keys.push_back(static_cast<ImGuiKey>(ImGuiKey_F1 + (fnum - 1)));
-        }
-      } catch (const std::exception&) {
-        // Invalid function key format (e.g., "Fabc") - skip this key
-      }
-    }
-  }
-
-  return keys;
-}
-
-}  // namespace
-
 void ConfigurePanelShortcuts(const ShortcutDependencies& deps,
                              ShortcutManager* shortcut_manager) {
   if (!shortcut_manager || !deps.panel_manager) {
@@ -870,7 +804,7 @@ void ConfigurePanelShortcuts(const ShortcutDependencies& deps,
 
       // If we have a shortcut, parse and register it
       if (!shortcut_string.empty()) {
-        auto keys = ParseShortcutString(shortcut_string);
+        auto keys = ParseShortcut(shortcut_string);
         if (!keys.empty()) {
           std::string panel_id_copy = panel.card_id;
           // Toggle panel visibility shortcut
