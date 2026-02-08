@@ -279,7 +279,79 @@ absl::Status YazeProject::Open(const std::string& project_path) {
 
   // Determine format and load accordingly
   absl::Status load_status;
-  if (project_path.ends_with(".yaze")) {
+  if (project_path.ends_with(".yazeproj")) {
+    format = ProjectFormat::kYazeNative;
+
+    const std::filesystem::path bundle_path(project_path);
+    std::error_code ec;
+    if (!std::filesystem::exists(bundle_path, ec) || ec ||
+        !std::filesystem::is_directory(bundle_path, ec) || ec) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Project bundle does not exist: %s", project_path));
+    }
+
+    // Bundle convention: store the actual project config at the root so both
+    // desktop and iOS can open the same `.yazeproj` directory.
+    const std::filesystem::path project_file = bundle_path / "project.yaze";
+    filepath = project_file.string();
+
+    if (!std::filesystem::exists(project_file, ec) || ec) {
+      // Create a minimal portable project file for the bundle if missing.
+      InitializeDefaults();
+      name = bundle_path.stem().string();
+
+      // Initialize metadata timestamps (Create() normally does this).
+      auto now = std::chrono::system_clock::now();
+      auto time_t = std::chrono::system_clock::to_time_t(now);
+      std::stringstream ss;
+      ss << std::put_time(std::localtime(&time_t), "%Y-%m-%d %H:%M:%S");
+      if (metadata.created_date.empty()) {
+        metadata.created_date = ss.str();
+      }
+      metadata.last_modified = ss.str();
+      if (metadata.yaze_version.empty()) {
+        metadata.yaze_version = YAZE_VERSION_STRING;
+      }
+      if (metadata.version.empty()) {
+        metadata.version = "2.0";
+      }
+      if (metadata.created_by.empty()) {
+        metadata.created_by = "YAZE";
+      }
+      if (metadata.project_id.empty()) {
+        metadata.project_id = GenerateProjectId();
+      }
+
+      // Bundle layout defaults (paths stored as absolute; serializer writes
+      // relative values for portability).
+      const std::filesystem::path rom_candidate = bundle_path / "rom";
+      if (std::filesystem::exists(rom_candidate, ec) &&
+          std::filesystem::is_regular_file(rom_candidate, ec) && !ec) {
+        rom_filename = rom_candidate.string();
+      }
+
+      const std::filesystem::path project_dir = bundle_path / "project";
+      const std::filesystem::path code_dir = bundle_path / "code";
+      if (std::filesystem::exists(project_dir, ec) &&
+          std::filesystem::is_directory(project_dir, ec) && !ec) {
+        code_folder = project_dir.string();
+      } else if (std::filesystem::exists(code_dir, ec) &&
+                 std::filesystem::is_directory(code_dir, ec) && !ec) {
+        code_folder = code_dir.string();
+      }
+
+      assets_folder = (bundle_path / "assets").string();
+      patches_folder = (bundle_path / "patches").string();
+      rom_backup_folder = (bundle_path / "backups").string();
+      output_folder = (bundle_path / "output").string();
+      labels_filename = (bundle_path / "labels.txt").string();
+      symbols_filename = (bundle_path / "symbols.txt").string();
+
+      load_status = SaveToYazeFormat();
+    } else {
+      load_status = LoadFromYazeFormat(project_file.string());
+    }
+  } else if (project_path.ends_with(".yaze")) {
     format = ProjectFormat::kYazeNative;
 
     // Try to detect if it's JSON format by peeking at first character
@@ -1595,6 +1667,11 @@ std::vector<std::string> ProjectManager::FindProjectsInDirectory(
       if (entry.is_regular_file()) {
         std::string filename = entry.path().filename().string();
         if (filename.ends_with(".yaze") || filename.ends_with(".zsproj")) {
+          projects.push_back(entry.path().string());
+        }
+      } else if (entry.is_directory()) {
+        std::string filename = entry.path().filename().string();
+        if (filename.ends_with(".yazeproj")) {
           projects.push_back(entry.path().string());
         }
       }
