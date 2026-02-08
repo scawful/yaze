@@ -339,6 +339,10 @@ class DungeonCanvasViewer {
   void DisplayObjectInfo(const gui::CanvasRuntime& rt,
                          const zelda3::RoomObject& object, int canvas_x,
                          int canvas_y);
+  void DrawRoomHeader(zelda3::Room& room, int room_id);
+  void DrawRoomNavigation(int room_id);
+  void DrawRoomPropertyTable(zelda3::Room& room, int room_id);
+  void DrawLayerControls(zelda3::Room& room, int room_id);
   void RenderSprites(const gui::CanvasRuntime& rt, const zelda3::Room& room);
   void RenderPotItems(const gui::CanvasRuntime& rt, const zelda3::Room& room);
   void RenderEntityOverlay(const gui::CanvasRuntime& rt,

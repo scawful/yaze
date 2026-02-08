@@ -13,6 +13,31 @@
 namespace yaze {
 namespace editor {
 
+class ObjectSelection;
+
+/**
+ * @brief Type of entity that can be selected in the dungeon editor
+ */
+enum class EntityType {
+  None,
+  Object,   // Room tile objects
+  Door,     // Door entities
+  Sprite,   // Enemy/NPC sprites
+  Item      // Pot items
+};
+
+/**
+ * @brief Represents a selected entity in the dungeon editor
+ */
+struct SelectedEntity {
+  EntityType type = EntityType::None;
+  size_t index = 0;  // Index into the respective container
+  
+  bool operator==(const SelectedEntity& other) const {
+    return type == other.type && index == other.index;
+  }
+};
+
 /**
  * @brief Shared context for all interaction handlers
  *
@@ -35,6 +60,7 @@ struct InteractionContext {
   Rom* rom = nullptr;
   std::array<zelda3::Room, dungeon_coords::kRoomCount>* rooms = nullptr;
   int current_room_id = 0;
+  ObjectSelection* selection = nullptr;
 
   // Palette for rendering previews
   gfx::PaletteGroup current_palette_group;

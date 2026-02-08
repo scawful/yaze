@@ -90,6 +90,7 @@ class BaseEntityHandler {
    * Called when left mouse button is released after a drag.
    */
   virtual void HandleRelease() = 0;
+  virtual bool HandleMouseWheel(float delta) { return false; }
 
   // ========================================================================
   // Rendering

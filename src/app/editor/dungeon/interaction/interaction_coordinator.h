@@ -5,6 +5,7 @@
 #include "app/editor/dungeon/interaction/interaction_context.h"
 #include "app/editor/dungeon/interaction/item_interaction_handler.h"
 #include "app/editor/dungeon/interaction/sprite_interaction_handler.h"
+#include "app/editor/dungeon/interaction/tile_object_handler.h"
 
 namespace yaze {
 namespace editor {
@@ -27,6 +28,10 @@ class InteractionCoordinator {
     PlaceSprite,  // Sprite placement mode
     PlaceItem     // Item placement mode
   };
+
+  InteractionCoordinator()
+      : current_mode_(Mode::Select),
+        ctx_(nullptr) {}
 
   /**
    * @brief Set the shared interaction context
@@ -72,6 +77,9 @@ class InteractionCoordinator {
   ItemInteractionHandler& item_handler() { return item_handler_; }
   const ItemInteractionHandler& item_handler() const { return item_handler_; }
 
+  TileObjectHandler& tile_handler() { return tile_handler_; }
+  const TileObjectHandler& tile_handler() const { return tile_handler_; }
+
   // ========================================================================
   // Unified Interaction Methods
   // ========================================================================
@@ -83,6 +91,19 @@ class InteractionCoordinator {
    * @return true if click was handled
    */
   bool HandleClick(int canvas_x, int canvas_y);
+  bool HandleMouseWheel(float delta);
+
+  void SelectEntity(EntityType type, size_t index);
+  void ClearEntitySelection();
+  bool HasEntitySelection() const;
+  void CancelPlacement();
+
+  // Doors/sprites/items only (tile objects are handled by ObjectSelection).
+  std::optional<SelectedEntity> GetEntityAtPosition(int canvas_x,
+                                                    int canvas_y) const;
+
+  // Current selection (doors/sprites/items only). Returns {None,0} if none.
+  SelectedEntity GetSelectedEntity() const;
 
   /**
    * @brief Handle drag operation
@@ -117,11 +138,6 @@ class InteractionCoordinator {
   bool TrySelectEntityAtCursor(int canvas_x, int canvas_y);
 
   /**
-   * @brief Check if any entity is selected
-   */
-  bool HasEntitySelection() const;
-
-  /**
    * @brief Clear all entity selections
    */
   void ClearAllEntitySelections();
@@ -144,6 +160,7 @@ class InteractionCoordinator {
   DoorInteractionHandler door_handler_;
   SpriteInteractionHandler sprite_handler_;
   ItemInteractionHandler item_handler_;
+  TileObjectHandler tile_handler_;
 
   /**
    * @brief Get active handler based on current mode
