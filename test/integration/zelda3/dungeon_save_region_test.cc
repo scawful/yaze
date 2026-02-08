@@ -69,7 +69,10 @@ TEST_F(DungeonSaveRegionTest, SaveAllCollisionPreservesRegion) {
       data.begin() + kCustomCollisionDataPosition,
       data.begin() + kCustomCollisionDataPosition + data_size);
 
-  std::array<Room, kNumberOfRooms> rooms;
+  // Avoid large stack allocations: Room is a heavy type (e.g. 64KB gfx buffer).
+  // A full kNumberOfRooms array can overflow the default ~8MB main-thread stack
+  // when running tests directly (outside of ctest).
+  std::vector<Room> rooms(static_cast<size_t>(kNumberOfRooms));
   auto status = SaveAllCollision(rom_.get(), absl::MakeSpan(rooms));
   ASSERT_TRUE(status.ok()) << status.message();
 
