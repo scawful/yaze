@@ -119,6 +119,64 @@ struct WriteConflict {
   std::string module;  // From protected region, if applicable
 };
 
+// ─── Project Registry (Dungeon + Overworld data) ─────────────────────────
+
+/**
+ * @brief A room within a dungeon, with spatial and metadata info.
+ */
+struct DungeonRoom {
+  int id;
+  std::string name;
+  int grid_row, grid_col;
+  std::string type;  // "entrance", "boss", "mini_boss", "connector", "normal"
+  int palette, blockset, spriteset;
+  uint8_t tag1, tag2;
+};
+
+/**
+ * @brief A connection between two rooms (stair, holewarp, or door).
+ */
+struct DungeonConnection {
+  int from_room, to_room;
+  std::string label;
+  std::string direction;  // For doors: "north"/"south"/"east"/"west"
+};
+
+/**
+ * @brief A complete dungeon entry with rooms and connections.
+ */
+struct DungeonEntry {
+  std::string id;            // "D4"
+  std::string name;          // "Zora Temple"
+  std::string vanilla_name;  // "Thieves' Town"
+  std::vector<DungeonRoom> rooms;
+  std::vector<DungeonConnection> stairs;
+  std::vector<DungeonConnection> holewarps;
+  std::vector<DungeonConnection> doors;
+};
+
+/**
+ * @brief An overworld area from the overworld registry.
+ */
+struct OverworldArea {
+  int area_id;
+  std::string name;
+  std::string world;  // "LW", "DW", "SW"
+  int grid_row, grid_col;
+};
+
+/**
+ * @brief Project-level registry data loaded from dungeons.json + overworld.json.
+ *
+ * This data supplements the hack manifest with game-world structural info
+ * that yaze uses for dungeon map visualization and room labeling.
+ */
+struct ProjectRegistry {
+  std::vector<DungeonEntry> dungeons;
+  std::vector<OverworldArea> overworld_areas;
+  std::unordered_map<std::string, std::string> room_labels;  // "0x06" -> label
+};
+
 /**
  * @class HackManifest
  * @brief Loads and queries the hack manifest JSON for yaze-ASM integration.
@@ -278,6 +336,22 @@ class HackManifest {
   [[nodiscard]] std::vector<WriteConflict> AnalyzePcWriteRanges(
       const std::vector<std::pair<uint32_t, uint32_t>>& pc_ranges) const;
 
+  // ─── Project Registry ────────────────────────────────────
+
+  /**
+   * @brief Load project registry data (dungeons.json, overworld.json,
+   * oracle_room_labels.json) from the code folder.
+   */
+  absl::Status LoadProjectRegistry(const std::string& code_folder);
+
+  [[nodiscard]] const ProjectRegistry& project_registry() const {
+    return project_registry_;
+  }
+
+  [[nodiscard]] bool HasProjectRegistry() const {
+    return !project_registry_.dungeons.empty();
+  }
+
   // ─── Build Pipeline ───────────────────────────────────────
 
   [[nodiscard]] const BuildPipeline& build_pipeline() const {
@@ -321,6 +395,9 @@ class HackManifest {
 
   // Build pipeline
   BuildPipeline build_pipeline_;
+
+  // Project registry (loaded from code_folder JSON files)
+  ProjectRegistry project_registry_;
 };
 
 }  // namespace yaze::core

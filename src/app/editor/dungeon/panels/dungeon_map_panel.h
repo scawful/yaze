@@ -12,6 +12,7 @@
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gui/core/icons.h"
+#include "core/hack_manifest.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/resource_labels.h"
@@ -107,6 +108,30 @@ class DungeonMapPanel : public EditorPanel {
 
   void SetRooms(std::array<zelda3::Room, 0x128>* rooms) { rooms_ = rooms; }
 
+  /**
+   * @brief Set the hack manifest for project registry access
+   */
+  void SetHackManifest(const core::HackManifest* manifest) {
+    hack_manifest_ = manifest;
+  }
+
+  /**
+   * @brief Load rooms and connections from a DungeonEntry in the project registry
+   */
+  void LoadFromRegistry(const core::DungeonEntry& dungeon) {
+    ClearRooms();
+    current_dungeon_name_ = dungeon.name;
+    for (const auto& room : dungeon.rooms) {
+      dungeon_room_ids_.push_back(room.id);
+      room_positions_[room.id] =
+          ImVec2(static_cast<float>(room.grid_col),
+                 static_cast<float>(room.grid_row));
+      room_types_[room.id] = room.type;
+    }
+    stair_connections_ = dungeon.stairs;
+    holewarp_connections_ = dungeon.holewarps;
+  }
+
   // ==========================================================================
   // EditorPanel Drawing
   // ==========================================================================
@@ -154,7 +179,19 @@ class DungeonMapPanel : public EditorPanel {
                                     canvas_pos.y + canvas_size.y),
                              bg_color);
 
-    // Draw connections between adjacent rooms (before drawing rooms so lines are behind)
+    // Helper lambda: compute the center pixel position for a room on the canvas
+    auto RoomCenter = [&](int room_id) -> ImVec2 {
+      auto it = room_positions_.find(room_id);
+      if (it == room_positions_.end()) return ImVec2(0, 0);
+      ImVec2 pos = it->second;
+      return ImVec2(
+          canvas_pos.x + kRoomSpacing +
+              pos.x * (kRoomWidth + kRoomSpacing) + kRoomWidth * 0.5f,
+          canvas_pos.y + kRoomSpacing +
+              pos.y * (kRoomHeight + kRoomSpacing) + kRoomHeight * 0.5f);
+    };
+
+    // Draw connections between adjacent rooms (gray lines — doors)
     ImVec4 connection_color = theme.dungeon_room_border_dark;
     connection_color.w = 0.45f;
     for (size_t i = 0; i < dungeon_room_ids_.size(); i++) {
@@ -162,12 +199,10 @@ class DungeonMapPanel : public EditorPanel {
         int room_a = dungeon_room_ids_[i];
         int room_b = dungeon_room_ids_[j];
 
-        // Binary adjacency check (Z3 matrix neighbors)
         bool adjacent = false;
         if (std::abs(room_a - room_b) == 16) {
           adjacent = true;
         } else if (std::abs(room_a - room_b) == 1) {
-          // Check same row (col check)
           int col_a = room_a % 16;
           int col_b = room_b % 16;
           if (std::abs(col_a - col_b) == 1) {
@@ -176,22 +211,34 @@ class DungeonMapPanel : public EditorPanel {
         }
 
         if (adjacent) {
-          ImVec2 pos_a = room_positions_[room_a];
-          ImVec2 pos_b = room_positions_[room_b];
-
-          ImVec2 p_a(canvas_pos.x + kRoomSpacing +
-                         pos_a.x * (kRoomWidth + kRoomSpacing) + kRoomWidth * 0.5f,
-                     canvas_pos.y + kRoomSpacing +
-                         pos_a.y * (kRoomHeight + kRoomSpacing) + kRoomHeight * 0.5f);
-          ImVec2 p_b(canvas_pos.x + kRoomSpacing +
-                         pos_b.x * (kRoomWidth + kRoomSpacing) + kRoomWidth * 0.5f,
-                     canvas_pos.y + kRoomSpacing +
-                         pos_b.y * (kRoomHeight + kRoomSpacing) + kRoomHeight * 0.5f);
-
-          draw_list->AddLine(p_a, p_b,
+          draw_list->AddLine(RoomCenter(room_a), RoomCenter(room_b),
                              ImGui::ColorConvertFloat4ToU32(connection_color),
                              1.5f);
         }
+      }
+    }
+
+    // Draw stair connections (blue dashed lines — bidirectional)
+    for (const auto& conn : stair_connections_) {
+      if (room_positions_.count(conn.from_room) &&
+          room_positions_.count(conn.to_room)) {
+        ImVec2 from = RoomCenter(conn.from_room);
+        ImVec2 to = RoomCenter(conn.to_room);
+        DrawDashedLine(draw_list, from, to,
+                       IM_COL32(100, 149, 237, 200), 1.5f, 6.0f);
+      }
+    }
+
+    // Draw holewarp connections (red lines with arrow — one-way falls)
+    for (const auto& conn : holewarp_connections_) {
+      if (room_positions_.count(conn.from_room) &&
+          room_positions_.count(conn.to_room)) {
+        ImVec2 from = RoomCenter(conn.from_room);
+        ImVec2 to = RoomCenter(conn.to_room);
+        ImU32 red = IM_COL32(220, 60, 60, 200);
+        draw_list->AddLine(from, to, red, 2.0f);
+        // Arrowhead at destination
+        DrawArrowhead(draw_list, from, to, red, 6.0f);
       }
     }
 
@@ -275,6 +322,23 @@ class DungeonMapPanel : public EditorPanel {
                           0.0f, 0, 1.0f);
       }
 
+      // Room type badge (small colored dot in top-left corner)
+      auto type_it = room_types_.find(room_id);
+      if (type_it != room_types_.end()) {
+        ImU32 badge_color = 0;
+        if (type_it->second == "entrance") {
+          badge_color = IM_COL32(76, 175, 80, 220);   // Green
+        } else if (type_it->second == "boss") {
+          badge_color = IM_COL32(244, 67, 54, 220);   // Red
+        } else if (type_it->second == "mini_boss") {
+          badge_color = IM_COL32(255, 152, 0, 220);   // Orange
+        }
+        if (badge_color != 0) {
+          ImVec2 badge_center(room_min.x + 6.0f, room_min.y + 6.0f);
+          draw_list->AddCircleFilled(badge_center, 4.0f, badge_color);
+        }
+      }
+
       // Handle clicks
       ImGui::SetCursorScreenPos(room_min);
       char btn_id[32];
@@ -326,50 +390,16 @@ class DungeonMapPanel : public EditorPanel {
   }
 
   /**
-   * @brief Draw dungeon preset selector
+   * @brief Draw dungeon preset selector — uses project registry if available,
+   *        falls back to vanilla ALTTP presets.
    */
   void DrawDungeonSelector() {
-    // Dungeon presets (approximate room ranges)
-    struct DungeonPreset {
-      const char* name;
-      int start_room;
-      int count;
-    };
-    
-    static const DungeonPreset kPresets[] = {
-        {"Eastern Palace", 0xC8, 8},
-        {"Desert Palace", 0x33, 8},
-        {"Tower of Hera", 0x07, 8},
-        {"Palace of Darkness", 0x09, 12},
-        {"Swamp Palace", 0x28, 10},
-        {"Skull Woods", 0x29, 10},
-        {"Thieves' Town", 0x44, 8},
-        {"Ice Palace", 0x0E, 12},
-        {"Misery Mire", 0x61, 10},
-        {"Turtle Rock", 0x04, 12},
-        {"Ganon's Tower", 0x0C, 16},
-        {"Hyrule Castle", 0x01, 12},
-    };
+    bool has_registry = hack_manifest_ && hack_manifest_->HasProjectRegistry();
 
-    if (ImGui::BeginCombo("##DungeonPreset", 
-                          selected_preset_ >= 0 
-                              ? kPresets[selected_preset_].name 
-                              : "Select Dungeon...")) {
-      for (int i = 0; i < IM_ARRAYSIZE(kPresets); i++) {
-        if (ImGui::Selectable(kPresets[i].name, selected_preset_ == i)) {
-          selected_preset_ = i;
-          // Load rooms for this dungeon
-          dungeon_room_ids_.clear();
-          for (int j = 0; j < kPresets[i].count; j++) {
-            int room_id = kPresets[i].start_room + j;
-            if (room_id < 0x128) {
-              dungeon_room_ids_.push_back(room_id);
-            }
-          }
-          AutoLayoutRooms();
-        }
-      }
-      ImGui::EndCombo();
+    if (has_registry) {
+      DrawRegistrySelector();
+    } else {
+      DrawVanillaPresetSelector();
     }
 
     ImGui::SameLine();
@@ -385,8 +415,138 @@ class DungeonMapPanel : public EditorPanel {
     ImGui::SameLine();
     if (ImGui::Button(ICON_MD_CLEAR " Clear")) {
       ClearRooms();
+      stair_connections_.clear();
+      holewarp_connections_.clear();
+      room_types_.clear();
+      current_dungeon_name_ = "Select Dungeon...";
       selected_preset_ = -1;
     }
+  }
+
+  /**
+   * @brief Selector using Oracle project registry dungeon entries
+   */
+  void DrawRegistrySelector() {
+    const auto& registry = hack_manifest_->project_registry();
+
+    if (ImGui::BeginCombo("##DungeonRegistry",
+                          current_dungeon_name_.c_str())) {
+      for (size_t i = 0; i < registry.dungeons.size(); i++) {
+        const auto& dungeon = registry.dungeons[i];
+        // Show as "D4: Zora Temple (Thieves' Town)"
+        char label[128];
+        if (!dungeon.vanilla_name.empty()) {
+          snprintf(label, sizeof(label), "%s: %s (%s)",
+                   dungeon.id.c_str(), dungeon.name.c_str(),
+                   dungeon.vanilla_name.c_str());
+        } else {
+          snprintf(label, sizeof(label), "%s: %s",
+                   dungeon.id.c_str(), dungeon.name.c_str());
+        }
+        bool selected = (current_dungeon_name_ == dungeon.name);
+        if (ImGui::Selectable(label, selected)) {
+          LoadFromRegistry(dungeon);
+          selected_preset_ = static_cast<int>(i);
+        }
+      }
+      ImGui::EndCombo();
+    }
+  }
+
+  /**
+   * @brief Fallback selector using vanilla ALTTP dungeon presets
+   */
+  void DrawVanillaPresetSelector() {
+    struct DungeonPreset {
+      const char* name;
+      int start_room;
+      int count;
+    };
+
+    static const DungeonPreset kPresets[] = {
+        {"Eastern Palace", 0xC8, 8},
+        {"Desert Palace", 0x33, 8},
+        {"Tower of Hera", 0x07, 8},
+        {"Palace of Darkness", 0x09, 12},
+        {"Swamp Palace", 0x28, 10},
+        {"Skull Woods", 0x29, 10},
+        {"Thieves' Town", 0x44, 8},
+        {"Ice Palace", 0x0E, 12},
+        {"Misery Mire", 0x61, 10},
+        {"Turtle Rock", 0x04, 12},
+        {"Ganon's Tower", 0x0C, 16},
+        {"Hyrule Castle", 0x01, 12},
+    };
+
+    if (ImGui::BeginCombo("##DungeonPreset",
+                          selected_preset_ >= 0
+                              ? kPresets[selected_preset_].name
+                              : "Select Dungeon...")) {
+      for (int i = 0; i < IM_ARRAYSIZE(kPresets); i++) {
+        if (ImGui::Selectable(kPresets[i].name, selected_preset_ == i)) {
+          selected_preset_ = i;
+          dungeon_room_ids_.clear();
+          for (int j = 0; j < kPresets[i].count; j++) {
+            int room_id = kPresets[i].start_room + j;
+            if (room_id < 0x128) {
+              dungeon_room_ids_.push_back(room_id);
+            }
+          }
+          AutoLayoutRooms();
+        }
+      }
+      ImGui::EndCombo();
+    }
+  }
+
+  /**
+   * @brief Draw a dashed line between two points
+   */
+  static void DrawDashedLine(ImDrawList* dl, ImVec2 from, ImVec2 to,
+                              ImU32 color, float thickness, float dash_len) {
+    float dx = to.x - from.x;
+    float dy = to.y - from.y;
+    float length = std::sqrt(dx * dx + dy * dy);
+    if (length < 1.0f) return;
+    float nx = dx / length;
+    float ny = dy / length;
+
+    float drawn = 0.0f;
+    bool visible = true;
+    while (drawn < length) {
+      float seg = std::min(dash_len, length - drawn);
+      ImVec2 seg_start(from.x + nx * drawn, from.y + ny * drawn);
+      ImVec2 seg_end(from.x + nx * (drawn + seg),
+                     from.y + ny * (drawn + seg));
+      if (visible) {
+        dl->AddLine(seg_start, seg_end, color, thickness);
+      }
+      drawn += seg;
+      visible = !visible;
+    }
+  }
+
+  /**
+   * @brief Draw a small triangle arrowhead at the 'to' end of a line
+   */
+  static void DrawArrowhead(ImDrawList* dl, ImVec2 from, ImVec2 to,
+                             ImU32 color, float size) {
+    float dx = to.x - from.x;
+    float dy = to.y - from.y;
+    float length = std::sqrt(dx * dx + dy * dy);
+    if (length < 1.0f) return;
+    float nx = dx / length;
+    float ny = dy / length;
+    // Perpendicular
+    float px = -ny;
+    float py = nx;
+
+    ImVec2 tip = to;
+    ImVec2 left(to.x - nx * size + px * size * 0.5f,
+                to.y - ny * size + py * size * 0.5f);
+    ImVec2 right(to.x - nx * size - px * size * 0.5f,
+                 to.y - ny * size - py * size * 0.5f);
+    dl->AddTriangleFilled(tip, left, right, color);
   }
 
   int* current_room_id_ = nullptr;
@@ -394,9 +554,17 @@ class DungeonMapPanel : public EditorPanel {
   std::array<zelda3::Room, 0x128>* rooms_ = nullptr;
   std::function<void(int)> on_room_selected_;
 
+  // Room data
   std::vector<int> dungeon_room_ids_;
   std::map<int, ImVec2> room_positions_;
+  std::map<int, std::string> room_types_;
   int selected_preset_ = -1;
+
+  // Project registry integration
+  const core::HackManifest* hack_manifest_ = nullptr;
+  std::vector<core::DungeonConnection> stair_connections_;
+  std::vector<core::DungeonConnection> holewarp_connections_;
+  std::string current_dungeon_name_ = "Select Dungeon...";
 };
 
 }  // namespace editor

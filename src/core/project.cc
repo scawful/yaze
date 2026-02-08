@@ -1251,6 +1251,22 @@ void YazeProject::TryLoadHackManifest() {
   // Update resource labels with the loaded manifest
   if (hack_manifest.loaded()) {
     zelda3::GetResourceLabels().SetHackManifest(&hack_manifest);
+
+    // Load project registry (dungeons.json, overworld.json, room labels)
+    if (!code_folder.empty()) {
+      auto status =
+          hack_manifest.LoadProjectRegistry(GetAbsolutePath(code_folder));
+      if (status.ok() && hack_manifest.HasProjectRegistry()) {
+        // Inject Oracle room labels into project resource_labels
+        for (const auto& [id_str, label] :
+             hack_manifest.project_registry().room_labels) {
+          resource_labels["room"][id_str] = label;
+        }
+        LOG_DEBUG("Project",
+                  "Loaded project registry: %zu room labels injected",
+                  hack_manifest.project_registry().room_labels.size());
+      }
+    }
   }
 }
 
