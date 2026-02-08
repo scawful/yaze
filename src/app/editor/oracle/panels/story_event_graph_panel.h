@@ -76,6 +76,15 @@ class StoryEventGraphPanel : public EditorPanel {
     ImGui::SameLine();
     ImGui::Text("Nodes: %zu  Edges: %zu", graph.nodes().size(),
                 graph.edges().size());
+    ImGui::SameLine();
+    const auto prog_opt = manifest_->oracle_progression_state();
+    if (prog_opt.has_value()) {
+      ImGui::TextDisabled("Crystals: %d  State: %s",
+                          prog_opt->GetCrystalCount(),
+                          prog_opt->GetGameStateName().c_str());
+    } else {
+      ImGui::TextDisabled("No SRAM loaded");
+    }
 
     ImGui::Separator();
 
