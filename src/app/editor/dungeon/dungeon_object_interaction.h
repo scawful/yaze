@@ -87,13 +87,10 @@ class DungeonObjectInteraction {
   void CheckForObjectSelection();
   void PlaceObjectAtPosition(int room_x, int room_y);
 
-  // Selection rectangle (like OverworldEditor)
-  void DrawObjectSelectRect();
   void DrawSelectionHighlights();  // Draw highlights for selected objects
   void DrawHoverHighlight(const std::vector<zelda3::RoomObject>& objects);  // Draw hover indicator
 
   // Drag and select box functionality
-  void DrawSelectBox();
   void DrawGhostPreview();  // Draw ghost preview for object placement
 
   // Coordinate conversion
@@ -278,8 +275,6 @@ class DungeonObjectInteraction {
   void DrawEntitySelectionHighlights();
   void DrawDoorSnapIndicators();  // Show valid snap positions during door drag
 
-  void HandleEntityDrag();         // Handle dragging selected entity
-  
   // Callbacks for entity changes
   void SetEntityChangedCallback(std::function<void()> callback) {
     interaction_context_.on_entity_changed = std::move(callback);

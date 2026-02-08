@@ -20,51 +20,61 @@ namespace yaze::editor {
 
 void DungeonObjectInteraction::HandleCanvasMouseInput() {
   const ImGuiIO& io = ImGui::GetIO();
+  const bool hovered = canvas_->IsMouseHovering();
+  const bool mouse_left_down = ImGui::IsMouseDown(ImGuiMouseButton_Left);
+  const bool mouse_left_released = ImGui::IsMouseReleased(ImGuiMouseButton_Left);
 
-  if (!canvas_->IsMouseHovering()) {
+  // Keep processing drag/release if an interaction started on the canvas but
+  // the cursor left the bounds before the mouse button was released.
+  const bool has_active_marquee = selection_.IsRectangleSelectionActive();
+  const bool should_process_without_hover =
+      has_active_marquee ||
+      mode_manager_.GetMode() == InteractionMode::DraggingObjects ||
+      (entity_coordinator_.HasEntitySelection() &&
+       (mouse_left_down || mouse_left_released)) ||
+      mouse_left_released;
+
+  if (!hovered && !should_process_without_hover) {
     return;
   }
 
   // Handle Escape key to cancel any active placement mode
   if (ImGui::IsKeyPressed(ImGuiKey_Escape) &&
-      mode_manager_.IsPlacementActive()) {
+      entity_coordinator_.IsPlacementActive()) {
     CancelPlacement();
     return;
   }
 
-  if (entity_coordinator_.HandleMouseWheel(io.MouseWheel)) {
-    return;
+  if (hovered) {
+    if (entity_coordinator_.HandleMouseWheel(io.MouseWheel)) {
+      return;
+    }
+    HandleLayerKeyboardShortcuts();
   }
-  HandleLayerKeyboardShortcuts();
 
   ImVec2 mouse_pos = io.MousePos;
   ImVec2 canvas_pos = canvas_->zero_point();
   ImVec2 canvas_mouse_pos =
       ImVec2(mouse_pos.x - canvas_pos.x, mouse_pos.y - canvas_pos.y);
 
-  if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+  if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
     HandleLeftClick(canvas_mouse_pos);
   }
 
   // Handle continuous painting for collision
   if (mode_manager_.GetMode() == InteractionMode::PaintCollision &&
-      ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+      hovered && mouse_left_down) {
     UpdateCollisionPainting(canvas_mouse_pos);
+    return;  // Painting is exclusive; don't also drag/mutate entities.
   }
 
-  // Handle entity drag if active
-  if (mode_manager_.GetMode() == InteractionMode::DraggingEntity) {
-    HandleEntityDrag();
-  }
-
-  // Handle drag in progress
-  if (mode_manager_.GetMode() == InteractionMode::DraggingObjects &&
-      ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+  // Dispatch drag to coordinator (handlers gate internally via drag state).
+  if (ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
     entity_coordinator_.HandleDrag(canvas_mouse_pos, io.MouseDelta);
   }
 
   // Handle mouse release - complete drag operation
-  if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+  if (mouse_left_released) {
     HandleMouseRelease();
   }
 }
@@ -114,24 +124,19 @@ void DungeonObjectInteraction::HandleObjectSelectionStart(const ImVec2& canvas_m
 
 void DungeonObjectInteraction::HandleEmptySpaceClick(const ImVec2& canvas_mouse_pos) {
   const ImGuiIO& io = ImGui::GetIO();
-  const bool had_selection = selection_.HasSelection() || HasEntitySelection();
-  
-  // Clear selection unless modifier held
-  if (!io.KeyShift && !io.KeyCtrl) {
+  const bool additive = io.KeyShift || io.KeyCtrl || io.KeySuper;
+
+  // Tile-object marquee selection is exclusive of door/sprite/item selection.
+  ClearEntitySelection();
+
+  // Clear existing object selection unless modifier held (Shift/Ctrl/Cmd).
+  if (!additive) {
     selection_.ClearSelection();
-    ClearEntitySelection();
   }
 
-  if (!had_selection) {
-    // Begin rectangle selection
-    mode_manager_.SetMode(InteractionMode::RectangleSelect);
-    auto& state = mode_manager_.GetModeState();
-    state.rect_start_x = static_cast<int>(canvas_mouse_pos.x);
-    state.rect_start_y = static_cast<int>(canvas_mouse_pos.y);
-    state.rect_end_x = state.rect_start_x;
-    state.rect_end_y = state.rect_start_y;
-    selection_.BeginRectangleSelection(state.rect_start_x, state.rect_start_y);
-  }
+  // Always start a marquee selection drag on empty space; click-release without
+  // dragging behaves like a normal "clear selection" click.
+  entity_coordinator_.tile_handler().BeginMarqueeSelection(canvas_mouse_pos);
 }
 
 
@@ -140,66 +145,24 @@ void DungeonObjectInteraction::HandleMouseRelease() {
     mode_manager_.SetMode(InteractionMode::Select);
   }
   entity_coordinator_.HandleRelease();
-  
-  // Rectangle selection release is handled in DrawObjectSelectRect for now 
-  // to maintain consistency with existing selection logic.
+  // Marquee selection finalization is handled by TileObjectHandler via
+  // CheckForObjectSelection().
 }
 
 void DungeonObjectInteraction::CheckForObjectSelection() {
-  // Draw and handle object selection rectangle
-  DrawObjectSelectRect();
-}
-
-void DungeonObjectInteraction::DrawObjectSelectRect() {
-  if (!canvas_->IsMouseHovering())
-    return;
-  if (!rooms_ || current_room_id_ < 0 || current_room_id_ >= 296)
-    return;
-
+  // Draw/update active marquee selection for tile objects (delegated).
   const ImGuiIO& io = ImGui::GetIO();
   const ImVec2 canvas_pos = canvas_->zero_point();
   const ImVec2 mouse_pos =
       ImVec2(io.MousePos.x - canvas_pos.x, io.MousePos.y - canvas_pos.y);
 
-  // Rectangle selection is started in HandleCanvasMouseInput on left-click
-  // Here we just update and draw during drag
-
-  // Update rectangle during left-click drag
-  if (selection_.IsRectangleSelectionActive() &&
-      ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
-    selection_.UpdateRectangleSelection(static_cast<int>(mouse_pos.x),
-                                        static_cast<int>(mouse_pos.y));
-    // Use ObjectSelection's drawing (themed, consistent)
-    selection_.DrawRectangleSelectionBox(canvas_);
-  }
-
-  // Complete selection on left mouse release
-  if (selection_.IsRectangleSelectionActive() &&
-      !ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
-    auto& room = (*rooms_)[current_room_id_];
-
-    constexpr int kMinRectPixels = 6;
-    if (io.KeyAlt || !selection_.IsRectangleLargeEnough(kMinRectPixels)) {
-      selection_.CancelRectangleSelection();
-      if (!io.KeyShift && !io.KeyCtrl) {
-        selection_.ClearSelection();
-        ClearEntitySelection();
-      }
-    } else {
-      // Determine selection mode based on modifiers
-      ObjectSelection::SelectionMode mode =
-          ObjectSelection::SelectionMode::Single;
-      if (io.KeyShift) {
-        mode = ObjectSelection::SelectionMode::Add;
-      } else if (io.KeyCtrl) {
-        mode = ObjectSelection::SelectionMode::Toggle;
-      }
-
-      selection_.EndRectangleSelection(room.GetTileObjects(), mode);
-    }
-
-    mode_manager_.SetMode(InteractionMode::Select);
-  }
+  entity_coordinator_.tile_handler().HandleMarqueeSelection(
+      mouse_pos,
+      /*mouse_left_down=*/ImGui::IsMouseDown(ImGuiMouseButton_Left),
+      /*mouse_left_released=*/ImGui::IsMouseReleased(ImGuiMouseButton_Left),
+      /*shift_down=*/io.KeyShift,
+      /*toggle_down=*/io.KeyCtrl || io.KeySuper,
+      /*alt_down=*/io.KeyAlt);
 }
 
 void DungeonObjectInteraction::DrawSelectionHighlights() {
@@ -358,14 +321,6 @@ void DungeonObjectInteraction::PlaceObjectAtPosition(int room_x, int room_y) {
 
   interaction_context_.NotifyInvalidateCache();
   CancelPlacement();
-}
-
-void DungeonObjectInteraction::DrawSelectBox() {
-  // Legacy method - rectangle selection now handled by ObjectSelection
-  // Delegates to ObjectSelection's DrawRectangleSelectionBox if active
-  if (selection_.IsRectangleSelectionActive()) {
-    selection_.DrawRectangleSelectionBox(canvas_);
-  }
 }
 
 std::pair<int, int> DungeonObjectInteraction::RoomToCanvasCoordinates(
@@ -632,12 +587,6 @@ void DungeonObjectInteraction::SelectEntity(EntityType type, size_t index) {
 
 void DungeonObjectInteraction::ClearEntitySelection() {
   entity_coordinator_.ClearEntitySelection();
-}
-
-
-void DungeonObjectInteraction::HandleEntityDrag() {
-  const ImGuiIO& io = ImGui::GetIO();
-  entity_coordinator_.HandleDrag(io.MousePos, io.MouseDelta);
 }
 
 void DungeonObjectInteraction::CancelPlacement() {

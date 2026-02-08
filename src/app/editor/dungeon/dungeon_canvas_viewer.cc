@@ -1283,7 +1283,6 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     if (object_interaction_enabled_) {
       object_interaction_.HandleCanvasMouseInput();
       object_interaction_.CheckForObjectSelection();
-      object_interaction_.DrawSelectBox();
       object_interaction_
           .DrawSelectionHighlights();  // Draw object selection highlights
       object_interaction_
