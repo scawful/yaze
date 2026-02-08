@@ -238,8 +238,20 @@ class CrashInvestigator:
 
 def main():
     parser = argparse.ArgumentParser(description="Crash Investigator")
-    parser.add_argument("--z3ed", default=os.path.expanduser("~/src/hobby/yaze/build_ai/bin/Debug/z3ed"), help="Path to z3ed binary")
-    parser.add_argument("--rom", default=os.path.expanduser("~/src/hobby/oracle-of-secrets/Roms/oos168x.sfc"), help="Path to ROM")
+    default_z3ed = (
+        os.environ.get("Z3ED_BIN")
+        or os.environ.get("Z3ED_PATH")
+        or os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "z3ed"))
+    )
+    parser.add_argument("--z3ed", default=default_z3ed, help="Path to z3ed binary")
+    parser.add_argument(
+        "--rom",
+        default=os.environ.get(
+            "OOS_ROM",
+            os.path.expanduser("~/src/hobby/oracle-of-secrets/Roms/oos168x.sfc"),
+        ),
+        help="Path to ROM",
+    )
     
     subparsers = parser.add_subparsers(dest="command")
     subparsers.add_parser("monitor", help="Monitor for crashes/pauses")

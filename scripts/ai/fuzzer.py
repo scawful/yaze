@@ -107,8 +107,20 @@ class ChaosMonkey:
 
 def main():
     parser = argparse.ArgumentParser(description="Chaos Monkey: Automated Fuzzer")
-    parser.add_argument("--z3ed", default=os.path.expanduser("~/src/hobby/yaze/build_ai/bin/Debug/z3ed"), help="Path to z3ed binary")
-    parser.add_argument("--rom", default=os.path.expanduser("~/src/hobby/oracle-of-secrets/Roms/oos168x.sfc"), help="Path to ROM")
+    default_z3ed = (
+        os.environ.get("Z3ED_BIN")
+        or os.environ.get("Z3ED_PATH")
+        or os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "z3ed"))
+    )
+    parser.add_argument("--z3ed", default=default_z3ed, help="Path to z3ed binary")
+    parser.add_argument(
+        "--rom",
+        default=os.environ.get(
+            "OOS_ROM",
+            os.path.expanduser("~/src/hobby/oracle-of-secrets/Roms/oos168x.sfc"),
+        ),
+        help="Path to ROM",
+    )
     parser.add_argument("--mode", default="gameplay", choices=["gameplay", "glitch"], help="Fuzzing strategy")
     parser.add_argument("--duration", type=float, default=60.0, help="Duration in seconds")
     

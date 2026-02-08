@@ -37,7 +37,14 @@ from profiles import (
 from profiles.detect import get_profile_by_name, list_profiles
 
 # Path to z3ed binary
-Z3ED = os.environ.get("Z3ED_PATH", "/Users/scawful/src/hobby/yaze/build/bin/Debug/z3ed")
+# Prefer the repo wrapper script which selects the newest build (build_ai first).
+Z3ED = os.environ.get(
+    "Z3ED_BIN",
+    os.environ.get(
+        "Z3ED_PATH",
+        os.path.join(os.path.dirname(__file__), "z3ed"),
+    ),
+)
 
 # Default ROM path (used if --rom not specified and detection fails)
 DEFAULT_ROM = os.environ.get("ALTTP_ROM", "/Users/scawful/src/hobby/oracle-of-secrets/Roms/oos168x.sfc")

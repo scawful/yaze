@@ -22,11 +22,17 @@ from dataclasses import dataclass, field
 from typing import Optional, List, Dict
 from collections import defaultdict
 
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
 # Path to z3ed binary
-Z3ED = "/Users/scawful/src/hobby/yaze/build/bin/Debug/z3ed"
+# Prefer the repo wrapper script which selects the newest build (build_ai first).
+Z3ED = os.environ.get("Z3ED_BIN") or os.environ.get("Z3ED_PATH") or os.path.join(ROOT, "scripts", "z3ed")
 
 # Default ROM path
-DEFAULT_ROM = "/Users/scawful/src/hobby/oracle-of-secrets/Roms/oos168x.sfc"
+DEFAULT_ROM = os.environ.get(
+    "OOS_ROM",
+    "/Users/scawful/src/hobby/oracle-of-secrets/Roms/oos168x.sfc",
+)
 
 # Output directory for generated docs
 DOCS_OUTPUT = "/Users/scawful/src/hobby/oracle-of-secrets/Docs/World/Dungeons"

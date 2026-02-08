@@ -31,7 +31,14 @@ from typing import Optional, List, Dict, Set, Tuple
 from dataclasses import dataclass, field
 
 # Path to z3ed binary
-Z3ED = os.environ.get("Z3ED_PATH", "/Users/scawful/src/hobby/yaze/build/bin/Debug/z3ed")
+# Prefer the repo wrapper script which selects the newest build (build_ai first).
+Z3ED = os.environ.get(
+    "Z3ED_BIN",
+    os.environ.get(
+        "Z3ED_PATH",
+        os.path.join(os.path.dirname(__file__), "z3ed"),
+    ),
+)
 
 
 @dataclass
