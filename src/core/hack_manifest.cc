@@ -113,6 +113,7 @@ void HackManifest::Reset() {
   message_layout_ = MessageLayout{};
   build_pipeline_ = BuildPipeline{};
   project_registry_ = ProjectRegistry{};
+  oracle_progression_state_.reset();
 }
 
 absl::Status HackManifest::LoadFromFile(const std::string& filepath) {
@@ -727,10 +728,14 @@ absl::Status HackManifest::LoadProjectRegistry(
         story_events_path.string());
     if (story_status.ok()) {
       project_registry_.story_events.AutoLayout();
-      // Default to an initial "no progress" state so the graph renders with
-      // sensible locked/available coloring even before live SRAM is wired up.
-      project_registry_.story_events.UpdateStatus(/*crystal_bitfield=*/0,
-                                                 /*game_state=*/0);
+      if (oracle_progression_state_.has_value()) {
+        project_registry_.story_events.UpdateStatus(*oracle_progression_state_);
+      } else {
+        // Default to an initial "no progress" state so the graph renders with
+        // sensible locked/available coloring even before live SRAM is wired up.
+        project_registry_.story_events.UpdateStatus(/*crystal_bitfield=*/0,
+                                                   /*game_state=*/0);
+      }
       LOG_DEBUG("HackManifest", "Loaded story events: %zu nodes, %zu edges",
                 project_registry_.story_events.nodes().size(),
                 project_registry_.story_events.edges().size());
@@ -756,6 +761,21 @@ absl::Status HackManifest::LoadProjectRegistry(
   }
 
   return absl::OkStatus();
+}
+
+void HackManifest::SetOracleProgressionState(const OracleProgressionState& state) {
+  oracle_progression_state_ = state;
+  if (project_registry_.story_events.loaded()) {
+    project_registry_.story_events.UpdateStatus(state);
+  }
+}
+
+void HackManifest::ClearOracleProgressionState() {
+  oracle_progression_state_.reset();
+  if (project_registry_.story_events.loaded()) {
+    project_registry_.story_events.UpdateStatus(/*crystal_bitfield=*/0,
+                                               /*game_state=*/0);
+  }
 }
 
 }  // namespace yaze::core

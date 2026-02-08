@@ -374,4 +374,52 @@ TEST(HackManifestTest, LoadsStoryEventsFromProjectRegistry) {
   EXPECT_EQ(graph.nodes()[1].status, StoryNodeStatus::kLocked);
 }
 
+TEST(HackManifestTest, UpdatesStoryEventsFromOracleProgressionState) {
+  namespace fs = std::filesystem;
+
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_project_registry_story_state"));
+  const fs::path planning = temp.path() / "Docs" / "Dev" / "Planning";
+
+  WriteTextFile(planning / "story_events.json", R"json(
+{
+  "events": [
+    {
+      "id": "A",
+      "name": "Start",
+      "dependencies": [],
+      "unlocks": ["B"],
+      "completed_when": [
+        {"reg": "GAMESTATE", "op": ">=", "value": 1}
+      ]
+    },
+    { "id": "B", "name": "Next", "dependencies": ["A"] }
+  ],
+  "edges": [
+    { "from": "A", "to": "B", "type": "dependency" }
+  ]
+}
+)json");
+
+  HackManifest manifest;
+  ASSERT_TRUE(manifest.LoadProjectRegistry(temp.path().string()).ok());
+
+  // Default state (0,0): A is available, B is locked.
+  const auto& graph0 = manifest.project_registry().story_events;
+  ASSERT_TRUE(graph0.loaded());
+  ASSERT_EQ(graph0.nodes().size(), 2u);
+  EXPECT_EQ(graph0.nodes()[0].id, "A");
+  EXPECT_EQ(graph0.nodes()[1].id, "B");
+  EXPECT_EQ(graph0.nodes()[0].status, StoryNodeStatus::kAvailable);
+  EXPECT_EQ(graph0.nodes()[1].status, StoryNodeStatus::kLocked);
+
+  OracleProgressionState state;
+  state.game_state = 1;
+  manifest.SetOracleProgressionState(state);
+
+  // After update: A completed (game_state>=1), B becomes available.
+  const auto& graph1 = manifest.project_registry().story_events;
+  EXPECT_EQ(graph1.nodes()[0].status, StoryNodeStatus::kCompleted);
+  EXPECT_EQ(graph1.nodes()[1].status, StoryNodeStatus::kAvailable);
+}
+
 }  // namespace yaze::core
