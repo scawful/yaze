@@ -301,14 +301,12 @@ class DungeonObjectInteraction {
 
   // Helper to calculate object bounds
   std::pair<int, int> CalculateObjectBounds(const zelda3::RoomObject& object);
-  ImVec2 ApplyDragModifiers(const ImVec2& delta) const;
 
   // Refactored input handlers
   void HandleLeftClick(const ImVec2& canvas_mouse_pos);
   void UpdateCollisionPainting(const ImVec2& canvas_mouse_pos);
   void HandleObjectSelectionStart(const ImVec2& canvas_mouse_pos);
   void HandleEmptySpaceClick(const ImVec2& canvas_mouse_pos);
-  void UpdateObjectDragging(const ImVec2& canvas_mouse_pos);
   void HandleMouseRelease();
 
   // Preview object state (used by ModeState but kept here for ghost bitmap)

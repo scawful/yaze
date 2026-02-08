@@ -1,5 +1,6 @@
 #include "tile_object_handler.h"
 #include <algorithm>
+#include <cmath>
 #include "absl/strings/str_format.h"
 #include "imgui/imgui.h"
 #include "app/editor/agent/agent_ui_theme.h"
@@ -8,6 +9,8 @@
 #include "zelda3/dungeon/dimension_service.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "app/editor/dungeon/object_selection.h"
+
+#include "app/editor/dungeon/dungeon_snapping.h"
 
 namespace yaze::editor {
 
@@ -41,22 +44,23 @@ bool TileObjectHandler::HandleClick(int canvas_x, int canvas_y) {
 
   if (object_placement_mode_) {
     auto [room_x, room_y] = CanvasToRoom(canvas_x, canvas_y);
-    PlaceObjectAt(ctx_->current_room_id, preview_object_, room_x, room_y);
-    return true;
+    if (IsWithinBounds(canvas_x, canvas_y)) {
+      PlaceObjectAt(ctx_->current_room_id, preview_object_, room_x, room_y);
+    }
+    return true;  // Placement click is handled even if outside bounds.
   }
 
-  // Handle selection
+  // Handle selection (click)
+  if (!ctx_ || !ctx_->selection) return false;
+
   auto hovered = GetEntityAtPosition(canvas_x, canvas_y);
-  if (!hovered.has_value() || !ctx_->selection) {
-    return false;
-  }
+  if (!hovered.has_value()) return false;
 
   const ImGuiIO& io = ImGui::GetIO();
-  if (io.KeyAlt) {
-    // Alt-click is handled by the caller (likely for specialized property inspection)
-    // but we can return true if it's over an object.
-    return ctx_->selection->IsObjectSelected(*hovered);
-  }
+
+  // Alt-click is reserved for caller-specific behaviors (inspector/etc). Treat
+  // it as a handled click over an object without changing selection.
+  if (io.KeyAlt) return true;
 
   ObjectSelection::SelectionMode mode = ObjectSelection::SelectionMode::Single;
   if (io.KeyShift) {
@@ -69,16 +73,89 @@ bool TileObjectHandler::HandleClick(int canvas_x, int canvas_y) {
   return true;
 }
 
+void TileObjectHandler::InitDrag(const ImVec2& start_pos) {
+  is_dragging_ = true;
+  drag_start_ = snapping::SnapToTileGrid(start_pos);
+  drag_current_ = drag_start_;
+  drag_last_dx_ = 0;
+  drag_last_dy_ = 0;
+  drag_has_duplicated_ = false;
+  drag_mutation_started_ = false;
+}
+
 void TileObjectHandler::HandleDrag(ImVec2 current_pos, ImVec2 delta) {
-  // Dragging is still coordinated by DungeonObjectInteraction for now 
-  // until we move the selection state here.
+  (void)delta;
+  if (!is_dragging_ || !ctx_ || !ctx_->selection) return;
+
+  drag_current_ = snapping::SnapToTileGrid(current_pos);
+  const bool alt_down = ImGui::GetIO().KeyAlt;
+  
+  // Calculate total drag delta from start (snapped)
+  ImVec2 drag_delta = ImVec2(drag_current_.x - drag_start_.x,
+                             drag_current_.y - drag_start_.y);
+  drag_delta = ApplyDragModifiers(drag_delta);
+
+  const int tile_dx = static_cast<int>(drag_delta.x) / 8;
+  const int tile_dy = static_cast<int>(drag_delta.y) / 8;
+
+  // Option-drag (Alt) duplicates once
+  if (alt_down && !drag_has_duplicated_) {
+    if (!drag_mutation_started_) {
+      ctx_->NotifyMutation();
+      drag_mutation_started_ = true;
+    }
+    
+    // Duplicate objects at current position (delta 0 initially)
+    auto new_indices = DuplicateObjects(
+        ctx_->current_room_id, ctx_->selection->GetSelectedIndices(),
+        /*delta_x=*/0, /*delta_y=*/0,
+        /*notify_mutation=*/false);
+        
+    // Update selection to the new clones
+    ctx_->selection->ClearSelection();
+    for (size_t idx : new_indices) {
+      ctx_->selection->SelectObject(idx, ObjectSelection::SelectionMode::Add);
+    }
+    drag_has_duplicated_ = true;
+  }
+
+  // Calculate incremental move
+  const int inc_dx = tile_dx - drag_last_dx_;
+  const int inc_dy = tile_dy - drag_last_dy_;
+
+  if (inc_dx != 0 || inc_dy != 0) {
+    if (!drag_mutation_started_) {
+      ctx_->NotifyMutation();
+      drag_mutation_started_ = true;
+    }
+    
+    MoveObjects(ctx_->current_room_id, ctx_->selection->GetSelectedIndices(),
+                inc_dx, inc_dy,
+                /*notify_mutation=*/false);
+                
+    drag_last_dx_ = tile_dx;
+    drag_last_dy_ = tile_dy;
+  }
 }
 
 void TileObjectHandler::HandleRelease() {
+  if (is_dragging_) {
+    is_dragging_ = false;
+    drag_mutation_started_ = false;
+    drag_has_duplicated_ = false;
+  }
 }
 
+ImVec2 TileObjectHandler::ApplyDragModifiers(const ImVec2& delta) const {
+  const ImGuiIO& io = ImGui::GetIO();
+  if (!io.KeyShift) return delta;
+  if (std::abs(delta.x) >= std::abs(delta.y)) return ImVec2(delta.x, 0.0f);
+  return ImVec2(0.0f, delta.y);
+}
+
+
 bool TileObjectHandler::HandleMouseWheel(float delta) {
-  if (!HasValidContext() || delta == 0.0f) return false;
+  if (!HasValidContext() || !ctx_ || !ctx_->selection || delta == 0.0f) return false;
   
   auto indices = ctx_->selection->GetSelectedIndices();
   if (indices.empty()) return false;
@@ -136,7 +213,19 @@ void TileObjectHandler::DrawGhostPreview() {
 }
 
 void TileObjectHandler::DrawSelectionHighlight() {
-  // Selection rendering is complex and still in DungeonObjectInteraction/ObjectSelection
+  if (!HasValidContext() || !ctx_->selection) return;
+
+  auto* room = GetCurrentRoom();
+  if (!room) return;
+
+  // Use ObjectSelection's rendering (handles pulsing border, corner handles)
+  ctx_->selection->DrawSelectionHighlights(
+      ctx_->canvas, room->GetTileObjects(), [](const zelda3::RoomObject& obj) {
+        auto result = zelda3::DimensionService::Get().GetDimensions(obj);
+        return std::make_tuple(result.offset_x_tiles * 8,
+                               result.offset_y_tiles * 8,
+                               result.width_pixels(), result.height_pixels());
+      });
 }
 
 std::optional<size_t> TileObjectHandler::GetEntityAtPosition(int canvas_x, int canvas_y) const {

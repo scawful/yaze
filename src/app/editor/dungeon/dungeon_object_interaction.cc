@@ -60,7 +60,7 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
   // Handle drag in progress
   if (mode_manager_.GetMode() == InteractionMode::DraggingObjects &&
       ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
-    UpdateObjectDragging(canvas_mouse_pos);
+    entity_coordinator_.HandleDrag(canvas_mouse_pos, io.MouseDelta);
   }
 
   // Handle mouse release - complete drag operation
@@ -108,16 +108,7 @@ void DungeonObjectInteraction::HandleObjectSelectionStart(const ImVec2& canvas_m
   ClearEntitySelection();
   if (selection_.HasSelection()) {
     mode_manager_.SetMode(InteractionMode::DraggingObjects);
-    auto& state = mode_manager_.GetModeState();
-    
-    // Snapping is still here for now as tile dragging is in this class
-    state.drag_start = snapping::SnapToTileGrid(canvas_mouse_pos);
-    state.drag_current = state.drag_start;
-    state.duplicate_on_drag = false;
-    state.drag_last_tile_dx = 0;
-    state.drag_last_tile_dy = 0;
-    state.drag_mutation_started = false;
-    state.drag_has_duplicated = false;
+    entity_coordinator_.tile_handler().InitDrag(canvas_mouse_pos);
   }
 }
 
@@ -143,58 +134,12 @@ void DungeonObjectInteraction::HandleEmptySpaceClick(const ImVec2& canvas_mouse_
   }
 }
 
-void DungeonObjectInteraction::UpdateObjectDragging(const ImVec2& canvas_mouse_pos) {
-  auto& state = mode_manager_.GetModeState();
-  state.drag_current = snapping::SnapToTileGrid(canvas_mouse_pos);
-  const bool alt_down = ImGui::GetIO().KeyAlt;
-  state.duplicate_on_drag = state.duplicate_on_drag || alt_down;
-
-  // Live-update in snapped tile increments to reduce "slide-y" feel.
-  // Mutate only when the snapped delta changes; emit a single undo snapshot.
-  ImVec2 drag_delta = ImVec2(state.drag_current.x - state.drag_start.x,
-                             state.drag_current.y - state.drag_start.y);
-  drag_delta = ApplyDragModifiers(drag_delta);
-
-  const int tile_dx = static_cast<int>(drag_delta.x) / 8;
-  const int tile_dy = static_cast<int>(drag_delta.y) / 8;
-
-  // Option-drag (Alt) duplicates once, then moves the clones.
-  if (alt_down && !state.drag_has_duplicated) {
-    if (!state.drag_mutation_started) {
-      interaction_context_.NotifyMutation();
-      state.drag_mutation_started = true;
-    }
-    auto new_indices = entity_coordinator_.tile_handler().DuplicateObjects(
-        current_room_id_, selection_.GetSelectedIndices(), /*delta_x=*/0,
-        /*delta_y=*/0, /*notify_mutation=*/false);
-    selection_.ClearSelection();
-    for (size_t idx : new_indices) {
-      selection_.SelectObject(idx, ObjectSelection::SelectionMode::Add);
-    }
-    state.drag_has_duplicated = true;
-  }
-
-  const int inc_dx = tile_dx - state.drag_last_tile_dx;
-  const int inc_dy = tile_dy - state.drag_last_tile_dy;
-  if (inc_dx != 0 || inc_dy != 0) {
-    if (!state.drag_mutation_started) {
-      interaction_context_.NotifyMutation();
-      state.drag_mutation_started = true;
-    }
-    entity_coordinator_.tile_handler().MoveObjects(
-        current_room_id_, selection_.GetSelectedIndices(), inc_dx, inc_dy,
-        /*notify_mutation=*/false);
-    state.drag_last_tile_dx = tile_dx;
-    state.drag_last_tile_dy = tile_dy;
-  }
-}
 
 void DungeonObjectInteraction::HandleMouseRelease() {
   if (mode_manager_.GetMode() == InteractionMode::DraggingObjects) {
-    // Live drag already applied incremental moves; finalize by returning to
-    // select mode.
     mode_manager_.SetMode(InteractionMode::Select);
   }
+  entity_coordinator_.HandleRelease();
   
   // Rectangle selection release is handled in DrawObjectSelectRect for now 
   // to maintain consistency with existing selection logic.
@@ -711,11 +656,5 @@ void DungeonObjectInteraction::DrawDoorSnapIndicators() {
   // through the entity coordinator. No-op here for backward compatibility.
 }
 
-ImVec2 DungeonObjectInteraction::ApplyDragModifiers(const ImVec2& delta) const {
-  const ImGuiIO& io = ImGui::GetIO();
-  if (!io.KeyShift) return delta;
-  if (std::abs(delta.x) >= std::abs(delta.y)) return ImVec2(delta.x, 0.0f);
-  return ImVec2(0.0f, delta.y);
-}
 
 }  // namespace yaze::editor

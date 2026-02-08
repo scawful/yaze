@@ -37,6 +37,8 @@ class TileObjectHandler : public BaseEntityHandler {
   void DrawGhostPreview() override;
   void DrawSelectionHighlight() override;
   
+  void InitDrag(const ImVec2& start_pos);
+  
   std::optional<size_t> GetEntityAtPosition(int canvas_x, int canvas_y) const override;
 
   /**
@@ -135,6 +137,17 @@ class TileObjectHandler : public BaseEntityHandler {
 
   void RenderGhostPreviewBitmap();
   std::pair<int, int> CalculateObjectBounds(const zelda3::RoomObject& object);
+  
+  // Drag state
+  bool is_dragging_ = false;
+  ImVec2 drag_start_{0, 0};
+  ImVec2 drag_current_{0, 0};
+  int drag_last_dx_ = 0;
+  int drag_last_dy_ = 0;
+  bool drag_has_duplicated_ = false;
+  bool drag_mutation_started_ = false;
+
+  ImVec2 ApplyDragModifiers(const ImVec2& delta) const;
 
   zelda3::Room* GetRoom(int room_id);
   void NotifyChange(zelda3::Room* room);

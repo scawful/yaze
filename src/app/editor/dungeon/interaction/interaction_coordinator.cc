@@ -197,13 +197,18 @@ void InteractionCoordinator::HandleDrag(ImVec2 current_pos, ImVec2 delta) {
   if (item_handler_.HasSelection()) {
     item_handler_.HandleDrag(current_pos, delta);
   }
+  
+  // Tile objects (managed by ObjectSelection)
+  if (tile_handler_.IsPlacementActive() || (ctx_ && ctx_->selection && ctx_->selection->HasSelection())) {
+    tile_handler_.HandleDrag(current_pos, delta);
+  }
 }
 
 void InteractionCoordinator::HandleRelease() {
-  // Forward release to all handlers
   door_handler_.HandleRelease();
   sprite_handler_.HandleRelease();
   item_handler_.HandleRelease();
+  tile_handler_.HandleRelease();
 }
 
 void InteractionCoordinator::DrawGhostPreviews() {
