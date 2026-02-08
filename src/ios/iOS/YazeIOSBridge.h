@@ -2,7 +2,26 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+/// Interop structs for passing data from C++ to Swift.
+typedef struct {
+  uint8_t crystal_bitfield;
+  uint8_t game_state;
+  uint8_t oosprog;
+  uint8_t oosprog2;
+  uint8_t side_quest;
+  uint8_t pendants;
+  int crystal_count;
+} OracleProgressionData;
+
+typedef struct {
+  int room_id;
+  const char *name;
+  const char *type;
+} RoomInfoData;
+
 @interface YazeIOSBridge : NSObject
+
+// ─── Core ────────────────────────────────────────
 + (void)loadRomAtPath:(NSString *)path NS_SWIFT_NAME(loadRom(atPath:));
 + (void)openProjectAtPath:(NSString *)path NS_SWIFT_NAME(openProject(atPath:));
 + (NSString *)currentRomTitle NS_SWIFT_NAME(currentRomTitle());
@@ -12,6 +31,18 @@ NS_ASSUME_NONNULL_BEGIN
 + (void)showProjectManagement NS_SWIFT_NAME(showProjectManagement());
 + (void)showPanelBrowser NS_SWIFT_NAME(showPanelBrowser());
 + (void)showCommandPalette NS_SWIFT_NAME(showCommandPalette());
+
+// ─── Oracle Integration ──────────────────────────
+/// Returns the current Oracle progression state, or zeros if unavailable.
++ (OracleProgressionData)getProgressionState NS_SWIFT_NAME(getProgressionState());
+
+/// Returns story events as a JSON string (array of event objects).
++ (nullable NSString *)getStoryEventsJSON NS_SWIFT_NAME(getStoryEventsJSON());
+
+/// Returns the list of dungeon rooms for a given dungeon ID (e.g., "D4").
++ (NSArray<NSDictionary *> *)getDungeonRooms:(NSString *)dungeonId
+    NS_SWIFT_NAME(getDungeonRooms(_:));
+
 @end
 
 NS_ASSUME_NONNULL_END
