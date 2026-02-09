@@ -4,6 +4,7 @@
 #include "app/editor/session_types.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
+#include "app/editor/message/message_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/panel_manager.h"
@@ -33,6 +34,11 @@ void EditorActivator::Initialize(const Dependencies& deps) {
     deps_.event_bus->Subscribe<JumpToMapRequestEvent>(
         [this](const JumpToMapRequestEvent& event) {
           JumpToOverworldMap(event.map_id);
+        });
+
+    deps_.event_bus->Subscribe<JumpToMessageRequestEvent>(
+        [this](const JumpToMessageRequestEvent& event) {
+          JumpToMessage(event.message_id);
         });
 
     LOG_INFO("EditorActivator", "Subscribed to navigation events");
@@ -218,6 +224,18 @@ void EditorActivator::JumpToDungeonRoom(int room_id) {
   auto* editor_set = deps_.get_current_editor_set ? deps_.get_current_editor_set() : nullptr;
   if (!editor_set) return;
 
+  if (deps_.ensure_editor_assets_loaded) {
+    const auto status = deps_.ensure_editor_assets_loaded(EditorType::kDungeon);
+    if (!status.ok()) {
+      if (deps_.toast_manager) {
+        deps_.toast_manager->Show(
+            "Failed to prepare Dungeon editor: " + std::string(status.message()),
+            ToastType::kError);
+      }
+      return;
+    }
+  }
+
   // Switch to dungeon editor
   SwitchToEditor(EditorType::kDungeon);
 
@@ -229,6 +247,19 @@ void EditorActivator::JumpToOverworldMap(int map_id) {
   auto* editor_set = deps_.get_current_editor_set ? deps_.get_current_editor_set() : nullptr;
   if (!editor_set) return;
 
+  if (deps_.ensure_editor_assets_loaded) {
+    const auto status =
+        deps_.ensure_editor_assets_loaded(EditorType::kOverworld);
+    if (!status.ok()) {
+      if (deps_.toast_manager) {
+        deps_.toast_manager->Show("Failed to prepare Overworld editor: " +
+                                      std::string(status.message()),
+                                  ToastType::kError);
+      }
+      return;
+    }
+  }
+
   // Switch to overworld editor
   SwitchToEditor(EditorType::kOverworld);
 
@@ -236,6 +267,38 @@ void EditorActivator::JumpToOverworldMap(int map_id) {
   editor_set->GetOverworldEditor()->set_current_map(map_id);
 }
 
+void EditorActivator::JumpToMessage(int message_id) {
+  if (message_id < 0) return;
+
+  auto* editor_set =
+      deps_.get_current_editor_set ? deps_.get_current_editor_set() : nullptr;
+  if (!editor_set) return;
+
+  if (deps_.ensure_editor_assets_loaded) {
+    const auto status = deps_.ensure_editor_assets_loaded(EditorType::kMessage);
+    if (!status.ok()) {
+      if (deps_.toast_manager) {
+        deps_.toast_manager->Show("Failed to prepare Message editor: " +
+                                      std::string(status.message()),
+                                  ToastType::kError);
+      }
+      return;
+    }
+  }
+
+  // Switch to message editor (force visible so this behaves like navigation).
+  SwitchToEditor(EditorType::kMessage, /*force_visible=*/true);
+
+  if (auto* message_editor = editor_set->GetMessageEditor()) {
+    if (!message_editor->OpenMessageById(message_id)) {
+      if (deps_.toast_manager) {
+        deps_.toast_manager->Show("Message ID not found: " +
+                                      std::to_string(message_id),
+                                  ToastType::kWarning);
+      }
+    }
+  }
+}
+
 }  // namespace editor
 }  // namespace yaze
-

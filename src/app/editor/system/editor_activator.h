@@ -4,6 +4,7 @@
 #include <functional>
 #include <string>
 
+#include "absl/status/status.h"
 #include "app/editor/core/event_bus.h"
 #include "app/editor/editor.h"
 
@@ -37,6 +38,7 @@ class EditorActivator {
     RightPanelManager* right_panel_manager = nullptr;
     ToastManager* toast_manager = nullptr;
     EventBus* event_bus = nullptr;  // For navigation event subscriptions
+    std::function<absl::Status(EditorType)> ensure_editor_assets_loaded;
     std::function<EditorSet*()> get_current_editor_set;
     std::function<size_t()> get_current_session_id;
     std::function<void(std::function<void()>)> queue_deferred_action;
@@ -74,6 +76,12 @@ class EditorActivator {
    */
   void JumpToOverworldMap(int map_id);
 
+  /**
+   * @brief Jump to a specific message ID in the Message editor.
+   * @param message_id Vanilla or expanded message ID.
+   */
+  void JumpToMessage(int message_id);
+
  private:
   void ActivatePanelBasedEditor(EditorType type, Editor* editor);
   void DeactivatePanelBasedEditor(EditorType type, Editor* editor,
@@ -88,4 +96,3 @@ class EditorActivator {
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_SYSTEM_EDITOR_ACTIVATOR_H_
-

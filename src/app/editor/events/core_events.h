@@ -294,6 +294,24 @@ struct JumpToMapRequestEvent : public Event {
   }
 };
 
+/**
+ * @brief Request to navigate to a specific message ID.
+ *
+ * Published by components that want to open the Message editor at a specific
+ * text/message ID (vanilla or expanded).
+ */
+struct JumpToMessageRequestEvent : public Event {
+  int message_id = -1;
+  size_t session_id = 0;
+
+  static JumpToMessageRequestEvent Create(int message, size_t session = 0) {
+    JumpToMessageRequestEvent e;
+    e.message_id = message;
+    e.session_id = session;
+    return e;
+  }
+};
+
 // =============================================================================
 // UI Action Request Events (activity bar, menus, shortcuts)
 // =============================================================================

@@ -8,6 +8,7 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/system/panel_manager.h"
+#include "app/editor/message/message_id_resolver.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/resource/arena.h"
@@ -120,6 +121,69 @@ void MessageEditor::Initialize() {
   } else {
     LOG_ERROR("MessageEditor", "No messages found in ROM!");
   }
+}
+
+bool MessageEditor::OpenMessageById(int display_id) {
+  const int vanilla_count = static_cast<int>(list_of_texts_.size());
+  const int expanded_count = static_cast<int>(expanded_messages_.size());
+  const int expanded_base_id = expanded_message_base_id_;
+
+  const auto resolved =
+      ResolveMessageDisplayId(display_id, vanilla_count, expanded_base_id,
+                              expanded_count);
+  if (!resolved.has_value()) {
+    return false;
+  }
+
+  if (dependencies_.panel_manager) {
+    const size_t session_id = dependencies_.session_id;
+    dependencies_.panel_manager->ShowPanel(session_id, "message.message_list");
+    dependencies_.panel_manager->ShowPanel(session_id, "message.message_editor");
+  }
+
+  if (!resolved->is_expanded) {
+    const int idx = resolved->index;
+    if (idx < 0 || idx >= vanilla_count) {
+      return false;
+    }
+
+    const auto& message = list_of_texts_[idx];
+    current_message_ = message;
+    current_message_index_ = message.ID;
+    current_message_is_expanded_ = false;
+
+    const int parsed_idx = resolved->display_id;
+    if (parsed_idx >= 0 &&
+        parsed_idx < static_cast<int>(parsed_messages_.size())) {
+      message_text_box_.text = parsed_messages_[parsed_idx];
+    } else {
+      message_text_box_.text.clear();
+    }
+
+    DrawMessagePreview();
+    return true;
+  }
+
+  // Expanded message.
+  const int idx = resolved->index;
+  if (idx < 0 || idx >= expanded_count) {
+    return false;
+  }
+
+  const auto& message = expanded_messages_[idx];
+  current_message_ = message;
+  current_message_index_ = message.ID;
+  current_message_is_expanded_ = true;
+
+  const int parsed_idx = resolved->display_id;
+  if (parsed_idx >= 0 && parsed_idx < static_cast<int>(parsed_messages_.size())) {
+    message_text_box_.text = parsed_messages_[parsed_idx];
+  } else {
+    message_text_box_.text.clear();
+  }
+
+  DrawMessagePreview();
+  return true;
 }
 
 int MessageEditor::ResolveExpandedMessageBaseId() const {

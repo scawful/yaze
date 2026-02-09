@@ -519,6 +519,9 @@ void EditorManager::InitializeSubsystems() {
   activator_deps.right_panel_manager = right_panel_manager_.get();
   activator_deps.toast_manager = &toast_manager_;
   activator_deps.event_bus = &event_bus_;
+  activator_deps.ensure_editor_assets_loaded = [this](EditorType type) {
+    return EnsureEditorAssetsLoaded(type);
+  };
   activator_deps.get_current_editor_set = [this]() {
     return GetCurrentEditorSet();
   };
