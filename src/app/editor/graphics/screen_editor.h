@@ -49,7 +49,7 @@ class ScreenEditor : public Editor {
   absl::Status Copy() override { return absl::UnimplementedError("Copy"); }
   absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
-  absl::Status Save() override { return absl::UnimplementedError("Save"); }
+  absl::Status Save() override;
   void set_rom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }
 
