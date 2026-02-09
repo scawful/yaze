@@ -786,7 +786,8 @@ void WelcomeScreen::DrawQuickActions() {
       // Handled by callback
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(ICON_MD_INFO " Open an existing .yaze project file");
+      ImGui::SetTooltip(ICON_MD_INFO
+                        " Open an existing .yazeproj bundle or .yaze project file");
     }
     ImGui::Spacing();
   } else {
@@ -810,7 +811,8 @@ void WelcomeScreen::DrawQuickActions() {
       // Handled by callback
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(ICON_MD_INFO " Open an existing .yaze project file");
+      ImGui::SetTooltip(ICON_MD_INFO
+                        " Open an existing .yazeproj bundle or .yaze project file");
     }
 
     ImGui::Spacing();

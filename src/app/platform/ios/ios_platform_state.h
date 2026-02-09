@@ -23,6 +23,10 @@ float GetOverlayTopInset();
 void SetTouchScale(float scale);
 float GetTouchScale();
 
+// Post a command to the SwiftUI overlay (iOS only).
+// Commands map to OverlayCommand in `src/ios/iOS/YazeOverlayView.swift`.
+void PostOverlayCommand(const char* command);
+
 }  // namespace ios
 }  // namespace platform
 }  // namespace yaze
