@@ -34,6 +34,10 @@ class AssemblyEditor : public Editor {
     type_ = EditorType::kAssembly;
   }
   void ChangeActiveFile(const std::string_view& filename);
+  absl::Status JumpToSymbolDefinition(const std::string& symbol);
+
+  [[nodiscard]] std::string active_file_path() const;
+  [[nodiscard]] TextEditor::Coordinates active_cursor_position() const;
 
   void Initialize() override;
   absl::Status Load() override;

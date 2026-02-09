@@ -312,6 +312,27 @@ struct JumpToMessageRequestEvent : public Event {
   }
 };
 
+/**
+ * @brief Request to navigate to an assembly symbol definition.
+ *
+ * Published by components that want to open the Assembly editor at a specific
+ * label/routine name (stable identifier). The editor resolves the current
+ * file/line dynamically so the story graph does not need brittle file:line
+ * references.
+ */
+struct JumpToAssemblySymbolRequestEvent : public Event {
+  std::string symbol;
+  size_t session_id = 0;
+
+  static JumpToAssemblySymbolRequestEvent Create(std::string sym,
+                                                 size_t session = 0) {
+    JumpToAssemblySymbolRequestEvent e;
+    e.symbol = std::move(sym);
+    e.session_id = session;
+    return e;
+  }
+};
+
 // =============================================================================
 // UI Action Request Events (activity bar, menus, shortcuts)
 // =============================================================================

@@ -41,6 +41,11 @@ void EditorActivator::Initialize(const Dependencies& deps) {
           JumpToMessage(event.message_id);
         });
 
+    deps_.event_bus->Subscribe<JumpToAssemblySymbolRequestEvent>(
+        [this](const JumpToAssemblySymbolRequestEvent& event) {
+          JumpToAssemblySymbol(event.symbol);
+        });
+
     LOG_INFO("EditorActivator", "Subscribed to navigation events");
   }
 }
@@ -142,8 +147,12 @@ void EditorActivator::HandleNonEditorClassSwitch(EditorType type, bool force_vis
   switch (type) {
     case EditorType::kAssembly:
       if (deps_.ui_coordinator) {
-        deps_.ui_coordinator->SetAsmEditorVisible(
-            !deps_.ui_coordinator->IsAsmEditorVisible());
+        if (force_visible) {
+          deps_.ui_coordinator->SetAsmEditorVisible(true);
+        } else {
+          deps_.ui_coordinator->SetAsmEditorVisible(
+              !deps_.ui_coordinator->IsAsmEditorVisible());
+        }
       }
       break;
 
@@ -296,6 +305,42 @@ void EditorActivator::JumpToMessage(int message_id) {
                                       std::to_string(message_id),
                                   ToastType::kWarning);
       }
+    }
+  }
+}
+
+void EditorActivator::JumpToAssemblySymbol(const std::string& symbol) {
+  if (symbol.empty()) return;
+
+  auto* editor_set =
+      deps_.get_current_editor_set ? deps_.get_current_editor_set() : nullptr;
+  if (!editor_set) return;
+
+  if (deps_.ensure_editor_assets_loaded) {
+    const auto status =
+        deps_.ensure_editor_assets_loaded(EditorType::kAssembly);
+    if (!status.ok()) {
+      if (deps_.toast_manager) {
+        deps_.toast_manager->Show("Failed to prepare Assembly editor: " +
+                                      std::string(status.message()),
+                                  ToastType::kError);
+      }
+      return;
+    }
+  }
+
+  // Switch to assembly editor (force visible so this behaves like navigation).
+  SwitchToEditor(EditorType::kAssembly, /*force_visible=*/true);
+
+  if (auto* asm_editor = editor_set->GetAssemblyEditor()) {
+    const auto status = asm_editor->JumpToSymbolDefinition(symbol);
+    if (!status.ok()) {
+      if (deps_.toast_manager) {
+        deps_.toast_manager->Show(
+            "Symbol jump failed: " + std::string(status.message()),
+            ToastType::kWarning);
+      }
+      return;
     }
   }
 }
