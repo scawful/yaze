@@ -272,6 +272,7 @@ if(YAZE_BUILD_TESTS)
       unit/tools/memory_inspector_tool_test.cc
       unit/tools/visual_analysis_tool_test.cc
       unit/tools/project_tool_test.cc
+      unit/tools/project_graph_tool_test.cc
       unit/tools/code_gen_tool_test.cc
     )
   else()

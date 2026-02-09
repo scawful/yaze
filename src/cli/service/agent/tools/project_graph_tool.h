@@ -7,8 +7,6 @@
 #include "absl/status/status.h"
 #include "cli/service/resources/command_context.h"
 #include "cli/service/resources/command_handler.h"
-#include "core/project.h" // For YazeProject
-#include "core/asar_wrapper.h" // For AsarWrapper
 
 namespace yaze {
 namespace cli {
@@ -33,11 +31,7 @@ class ProjectGraphTool : public resources::CommandHandler {
   std::string GetUsage() const override {
     return "project-graph --query=<info|files|symbols> [--path=<folder>]";
   }
-  bool RequiresRom() const override { return true; } // Requires ROM to get symbols
-
-  // Override to receive project and asar contexts
-  void SetProjectContext(project::YazeProject* project) override { project_ = project; }
-  void SetAsarWrapper(core::AsarWrapper* asar_wrapper) override { asar_wrapper_ = asar_wrapper; }
+  bool RequiresRom() const override { return false; }
 
  protected:
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
