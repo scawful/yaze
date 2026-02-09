@@ -40,7 +40,7 @@ Build and test instructions for YAZE project. Follow commands exactly.
 cmake --preset mac-ai
 
 # Step 2: Build the entire project
-cmake --build build_ai --preset mac-ai
+cmake --build build_ai --parallel 8
 
 # Step 3: Build specific targets (faster for incremental work)
 cmake --build build_ai --target yaze                  # GUI application only
@@ -50,7 +50,6 @@ cmake --build build_ai --target ylib                 # Core library only
 
 **Available macOS Presets**:
 - `mac-ai` - **Preferred for Agents**. Configured to use system gRPC/protobuf if available (brew installed) and defaults to `build_ai`.
-- `mac-dbg` - User's debug build (DO NOT USE).
 
 ### Linux
 
@@ -59,7 +58,7 @@ cmake --build build_ai --target ylib                 # Core library only
 cmake --preset lin-ai
 
 # Step 2: Build
-cmake --build build_ai --preset lin-ai
+cmake --build build_ai --parallel 8
 ```
 
 **Available Linux Presets**:
@@ -72,7 +71,7 @@ cmake --build build_ai --preset lin-ai
 cmake --preset win-ai
 
 # Step 2: Build
-cmake --build build_ai --preset win-ai
+cmake --build build_ai --parallel 8
 ```
 
 **Available Windows Presets**:
@@ -94,33 +93,33 @@ cmake --build build_ai --target yaze_test
 
 ```bash
 # Unit tests only (fast, ~5-10 seconds)
-./build/bin/yaze_test --unit
+./scripts/yaze_test --unit
 
 # Integration tests (requires ROM file)
-./build/bin/yaze_test --integration --rom-path /path/to/zelda3.sfc
+./scripts/yaze_test --integration --rom-path /path/to/zelda3.sfc
 
 # End-to-end GUI tests
-./build/bin/yaze_test --e2e --show-gui
+./scripts/yaze_test --e2e --show-gui
 
 # Run specific test by name pattern
-./build/bin/yaze_test "*Asar*"          # All tests with "Asar" in name
-./build/bin/yaze_test "*Dungeon*"       # All dungeon-related tests
+./scripts/yaze_test "*Asar*"          # All tests with "Asar" in name
+./scripts/yaze_test "*Dungeon*"       # All dungeon-related tests
 ```
 
 ### Test Output Modes
 
 ```bash
 # Minimal output (default)
-./build/bin/yaze_test
+./scripts/yaze_test
 
 # Verbose output (shows all test names)
-./build/bin/yaze_test -v
+./scripts/yaze_test -v
 
 # Very verbose (shows detailed test execution)
-./build/bin/yaze_test -vv
+./scripts/yaze_test -vv
 
 # List all available tests without running
-./build/bin/yaze_test --list-tests
+./scripts/yaze_test --list-tests
 ```
 
 ## Common Build Issues and Solutions
@@ -137,9 +136,9 @@ cmake --list-presets
 
 # Common mistake: Using wrong platform prefix
 cmake --preset dbg          # ❌ WRONG
-cmake --preset mac-dbg      # ✅ CORRECT (macOS)
-cmake --preset lin-dbg      # ✅ CORRECT (Linux)
-cmake --preset win-dbg      # ✅ CORRECT (Windows)
+cmake --preset mac-ai       # ✅ CORRECT (macOS)
+cmake --preset lin-ai       # ✅ CORRECT (Linux)
+cmake --preset win-ai       # ✅ CORRECT (Windows)
 ```
 
 ### Issue 2: "Build directory exists but is outdated"
@@ -150,10 +149,10 @@ cmake --preset win-dbg      # ✅ CORRECT (Windows)
 
 ```bash
 # Remove old build directory
-rm -rf build
+rm -rf build_ai
 
 # Reconfigure from scratch
-cmake --preset mac-dbg  # or lin-dbg / win-dbg
+cmake --preset mac-ai  # or lin-ai / win-ai
 ```
 
 ### Issue 3: "Tests fail with 'ROM not found'"
@@ -164,10 +163,10 @@ cmake --preset mac-dbg  # or lin-dbg / win-dbg
 
 ```bash
 # Skip ROM-dependent tests
-./build/bin/yaze_test --unit
+./scripts/yaze_test --unit
 
 # Or provide ROM path
-./build/bin/yaze_test --integration --rom-path zelda3.sfc
+./scripts/yaze_test --integration --rom-path zelda3.sfc
 ```
 
 ### Issue 4: Long build times on first run
@@ -184,7 +183,7 @@ cmake --preset mac-dbg  # or lin-dbg / win-dbg
 
 ```bash
 # Monitor build progress with verbose output
-cmake --build build --preset mac-dbg -v | tee build.log
+cmake --build build_ai -v | tee build.log
 
 # Check build log for specific step taking long
 grep "Linking" build.log
@@ -196,12 +195,12 @@ grep "Linking" build.log
 
 ```bash
 # Instead of rebuilding everything:
-cmake --build build --preset mac-dbg              # ❌ Rebuilds all targets
+cmake --build build_ai                               # ❌ Rebuilds all targets
 
 # Build only what you need:
-cmake --build build --target yaze                 # ✅ Just the GUI app
-cmake --build build --target ylib                 # ✅ Just the core library
-cmake --build build --target object_editor_card   # ✅ Just one component
+cmake --build build_ai --target yaze                 # ✅ Just the GUI app
+cmake --build build_ai --target ylib                 # ✅ Just the core library
+cmake --build build_ai --target object_editor_card   # ✅ Just one component
 ```
 
 ## Development Workflow
@@ -210,18 +209,18 @@ cmake --build build --target object_editor_card   # ✅ Just one component
 
 ```bash
 # 1. Configure once (first time only)
-cmake --preset mac-dbg
+cmake --preset mac-ai
 
 # 2. Make code changes to src/app/editor/dungeon/object_editor_card.cc
 
 # 3. Rebuild only the affected target (fast!)
-cmake --build build --target yaze
+cmake --build build_ai --target yaze
 
 # 4. Run the application to test manually
-./build/bin/yaze --rom_file zelda3.sfc --editor Dungeon
+./scripts/yaze --rom_file zelda3.sfc --editor Dungeon
 
 # 5. Run automated tests to verify
-./build/bin/yaze_test --unit
+./scripts/yaze_test --unit
 
 # 6. If tests pass, commit
 git add src/app/editor/dungeon/object_editor_card.cc
@@ -232,10 +231,10 @@ git commit -m "feat(dungeon): add feature X"
 
 ```bash
 # 1. Build just the GUI app (includes dungeon editor)
-cmake --build build --target yaze
+cmake --build build_ai --target yaze
 
 # 2. Launch directly to dungeon editor with ROM
-./build/bin/yaze --rom_file zelda3.sfc --editor Dungeon
+./scripts/yaze --rom_file zelda3.sfc --editor Dungeon
 
 # 3. To test keyboard shortcuts specifically:
 #    - Open Object Editor card
@@ -250,34 +249,25 @@ cmake --build build --target yaze
 
 ```bash
 # 1. Run unit tests (fast check)
-./build/bin/yaze_test --unit
+./scripts/yaze_test --unit
 
 # 2. Run format check (ensure code style)
-cmake --build build --target format-check
+cmake --build build_ai --target format-check
 
 # 3. If format check fails, auto-format
-cmake --build build --target format
+cmake --build build_ai --target format
 
 # 4. Build in release mode to catch optimization warnings
-cmake --preset mac-rel
-cmake --build build --preset mac-rel
+cmake --build build_ai --config Release --target yaze z3ed yaze_test
 
 # 5. If all passes, you're ready to commit!
 ```
 
-## Preset Comparison Matrix
+## Presets
 
-| Preset     | Platform | Build Type | AI Features | gRPC | Agent UI | Use Case |
-|------------|----------|------------|-------------|------|----------|----------|
-| mac-dbg    | macOS    | Debug      | No          | No   | No       | Daily development |
-| mac-rel    | macOS    | Release    | No          | No   | No       | Performance testing |
-| mac-ai     | macOS    | Debug      | Yes         | Yes  | Yes      | z3ed development |
-| lin-dbg    | Linux    | Debug      | No          | No   | No       | Daily development |
-| lin-rel    | Linux    | Release    | No          | No   | No       | Performance testing |
-| lin-ai     | Linux    | Debug      | Yes         | Yes  | Yes      | z3ed development |
-| win-dbg    | Windows  | Debug      | No          | No   | No       | Daily development |
-| win-rel    | Windows  | Release    | No          | No   | No       | Performance testing |
-| win-ai     | Windows  | Debug      | Yes         | Yes  | Yes      | z3ed development |
+This file is intentionally agent-centric; it assumes `*-ai` presets and the
+`build_ai/` directory. For the full preset list (dbg/rel/dev/wasm/ios), see:
+`docs/public/build/quick-reference.md`.
 
 ## CI/CD Build Times (For Reference)
 
@@ -325,37 +315,40 @@ yaze_test (test suite)
 ```bash
 # === Configuration ===
 cmake --list-presets                    # Show available presets
-cmake --preset mac-dbg                  # Configure for macOS debug
+cmake --preset mac-ai                   # Configure (macOS)
 
 # === Building ===
-cmake --build build --target yaze       # Build GUI app
-cmake --build build --target yaze_test  # Build test suite
-cmake --build build --target format     # Format all code
-cmake --build build -v                  # Verbose build output
+cmake --build build_ai --target yaze       # Build GUI app
+cmake --build build_ai --target yaze_test  # Build test suite
+cmake --build build_ai --target format     # Format all code
+cmake --build build_ai -v                  # Verbose build output
 
 # === Testing ===
-./build/bin/yaze_test                   # Run all tests
-./build/bin/yaze_test --unit            # Unit tests only
-./build/bin/yaze_test "*Asar*"          # Specific test pattern
-./build/bin/yaze_test --list-tests      # List available tests
+./scripts/test_fast.sh --quick            # Fast, high-signal suites (ctest -L quick)
+ctest --preset mac-ai-quick-unit          # Quick unit suite (macOS)
+ctest --preset mac-ai-quick-integration   # Quick integration suite (macOS)
+./scripts/yaze_test                   # Run all tests
+./scripts/yaze_test --unit            # Unit tests only
+./scripts/yaze_test "*Asar*"          # Specific test pattern
+./scripts/yaze_test --list-tests      # List available tests
 
 # === Running ===
-./build/bin/yaze                                    # Launch GUI
-./build/bin/yaze --rom_file zelda3.sfc              # Load ROM
-./build/bin/yaze --editor Dungeon                   # Open editor
-./build/bin/yaze --rom_file zelda3.sfc --editor Dungeon  # Combined
+./scripts/yaze                                    # Launch GUI
+./scripts/yaze --rom_file zelda3.sfc              # Load ROM
+./scripts/yaze --editor Dungeon                   # Open editor
+./scripts/yaze --rom_file zelda3.sfc --editor Dungeon  # Combined
 
 # === Automation ===
-./build/bin/yaze --headless                         # Run without GUI window
-./build/bin/yaze --server --rom_file zelda3.sfc      # Headless + API + gRPC
-./build/bin/yaze --export_symbols out.mlb            # Export Mesen labels
+./scripts/yaze --headless                         # Run without GUI window
+./scripts/yaze --server --rom_file zelda3.sfc      # Headless + API + gRPC
+./scripts/yaze --export_symbols out.mlb            # Export Mesen labels
 
 # For advanced Mesen2 automation (Headless/CI), see the Golden Path:
 # [Mesen2 Architecture Ref](../oracle-of-secrets/Docs/Tooling/Mesen2_Architecture.md)
 
 # === Cleaning ===
-cmake --build build --target clean      # Clean build artifacts
-rm -rf build                            # Full clean (reconfigure needed)
+cmake --build build_ai --target clean      # Clean build artifacts
+rm -rf build_ai                            # Full clean (reconfigure needed)
 ```
 
 ## Key Reminders
