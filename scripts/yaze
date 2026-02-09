@@ -7,14 +7,15 @@ if [[ -n "${YAZE_BIN:-}" ]]; then
   exec "${YAZE_BIN}" "$@"
 fi
 
-# Prefer the AI build outputs when available.
-candidates=(
+ai_candidates=(
   "${ROOT}/build_ai/bin/Debug/yaze.app/Contents/MacOS/yaze"
   "${ROOT}/build_ai/bin/RelWithDebInfo/yaze.app/Contents/MacOS/yaze"
   "${ROOT}/build_ai/bin/Release/yaze.app/Contents/MacOS/yaze"
   "${ROOT}/build_ai/bin/Debug/yaze"
   "${ROOT}/build_ai/bin/RelWithDebInfo/yaze"
   "${ROOT}/build_ai/bin/Release/yaze"
+)
+other_candidates=(
   "${ROOT}/build/bin/Debug/yaze.app/Contents/MacOS/yaze"
   "${ROOT}/build/bin/RelWithDebInfo/yaze.app/Contents/MacOS/yaze"
   "${ROOT}/build/bin/Release/yaze.app/Contents/MacOS/yaze"
@@ -32,17 +33,30 @@ _mtime() {
   fi
 }
 
-bin=""
-best_mtime="-1"
-for c in "${candidates[@]}"; do
-  if [[ -x "${c}" ]]; then
-    m="$(_mtime "${c}" || echo 0)"
-    if [[ "${m}" -gt "${best_mtime}" ]]; then
-      best_mtime="${m}"
-      bin="${c}"
+pick_newest() {
+  local best=""
+  local best_mtime="-1"
+  local c=""
+  local m=""
+
+  for c in "$@"; do
+    if [[ -x "${c}" ]]; then
+      m="$(_mtime "${c}" || echo 0)"
+      if [[ "${m}" -gt "${best_mtime}" ]]; then
+        best_mtime="${m}"
+        best="${c}"
+      fi
     fi
-  fi
-done
+  done
+
+  echo "${best}"
+}
+
+# Prefer build_ai whenever it exists, even if build/ is newer.
+bin="$(pick_newest "${ai_candidates[@]}")"
+if [[ -z "${bin}" ]]; then
+  bin="$(pick_newest "${other_candidates[@]}")"
+fi
 
 if [[ -z "${bin}" ]]; then
   cat >&2 <<EOF
@@ -57,9 +71,4 @@ EOF
   exit 1
 fi
 
-if [[ "${bin}" == *"/build/bin/"* ]] && [[ -x "${ROOT}/build_ai/bin/Debug/yaze.app/Contents/MacOS/yaze" ]] && [[ "${YAZE_WARN_STALE:-1}" == "1" ]]; then
-  echo "warning: using ${bin}, but ${ROOT}/build_ai/bin/Debug/yaze.app/... exists; prefer build_ai for latest AI features. Set YAZE_BIN to override." >&2
-fi
-
 exec "${bin}" "$@"
-
