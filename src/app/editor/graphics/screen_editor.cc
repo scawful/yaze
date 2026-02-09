@@ -160,6 +160,16 @@ absl::Status ScreenEditor::Load() {
   return absl::OkStatus();
 }
 
+absl::Status ScreenEditor::Save() {
+  if (core::FeatureFlags::get().kSaveDungeonMaps) {
+    RETURN_IF_ERROR(zelda3::SaveDungeonMaps(*rom(), dungeon_maps_));
+  }
+  // Title screen and overworld maps are currently saved via their respective
+  // 'Save' buttons in the UI, but we could also trigger them here for a full
+  // save.
+  return absl::OkStatus();
+}
+
 absl::Status ScreenEditor::Update() {
   // Panel drawing is handled centrally by PanelManager::DrawAllVisiblePanels()
   // via the EditorPanel implementations registered in Initialize().

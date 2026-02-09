@@ -39,6 +39,7 @@
 // Project headers
 #include "app/application.h"
 #include "app/editor/code/assembly_editor.h"
+#include "app/editor/code/memory_editor.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/editor.h"
 #include "app/editor/graphics/graphics_editor.h"
@@ -48,6 +49,7 @@
 #include "app/editor/menu/activity_bar.h"
 #include "app/editor/menu/menu_orchestrator.h"
 #include "app/editor/message/message_data.h"
+#include "app/editor/message/message_editor.h"
 #include "app/editor/music/music_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/palette/palette_editor.h"
@@ -1611,7 +1613,8 @@ absl::Status EditorManager::InitializeEditorForType(EditorType type,
   }
 
   if (type == EditorType::kDungeon) {
-    editor_set->GetDungeonEditor()->Initialize(renderer_, rom);
+    auto* editor = editor_set->GetDungeonEditor();
+    editor->Initialize();
     return absl::OkStatus();
   }
 
@@ -2037,14 +2040,20 @@ void EditorManager::DrawSecondaryWindows() {
   if (auto* editor_set = GetCurrentEditorSet()) {
     bool* hex_visibility =
         panel_manager_.GetVisibilityFlag("memory.hex_editor");
-    if (hex_visibility && *hex_visibility) {
-      editor_set->GetMemoryEditor()->Update(*hex_visibility);
+    if (hex_visibility) {
+      auto* editor = editor_set->GetMemoryEditor();
+      // Keep the legacy panel visibility flag in sync with the window close
+      // button (ImGui::Begin will toggle Editor::active_).
+      editor->set_active(*hex_visibility);
+      editor->Update();
+      *hex_visibility = *editor->active();
     }
 
     if (ui_coordinator_ && ui_coordinator_->IsAsmEditorVisible()) {
-      bool visible = true;
-      editor_set->GetAssemblyEditor()->Update(visible);
-      if (!visible)
+      auto* editor = editor_set->GetAssemblyEditor();
+      editor->set_active(true);
+      editor->Update();
+      if (!*editor->active())
         ui_coordinator_->SetAsmEditorVisible(false);
     }
   }
@@ -2306,8 +2315,8 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
   current_editor_set->GetMusicEditor()->Initialize();
   MarkEditorInitialized(current_session, EditorType::kMusic);
 
-  // Initialize the dungeon editor with the renderer
-  current_editor_set->GetDungeonEditor()->Initialize(renderer_, current_rom);
+  // Initialize the dungeon editor
+  current_editor_set->GetDungeonEditor()->Initialize();
   MarkEditorInitialized(current_session, EditorType::kDungeon);
 
 #ifdef __EMSCRIPTEN__
@@ -2629,10 +2638,7 @@ absl::Status EditorManager::SaveRom() {
   }
 
   // Save editor-specific data first
-  if (core::FeatureFlags::get().kSaveDungeonMaps) {
-    RETURN_IF_ERROR(zelda3::SaveDungeonMaps(
-        *current_rom, current_editor_set->GetScreenEditor()->dungeon_maps_));
-  }
+  RETURN_IF_ERROR(current_editor_set->GetScreenEditor()->Save());
 
   // Persist dungeon room objects, sprites, door pointers, and palettes when
   // saving ROM (matches ZScreamDungeon behavior so "Save ROM" keeps dungeon edits).
@@ -3226,8 +3232,9 @@ absl::Status EditorManager::SaveProjectAs() {
     return absl::OkStatus();
   }
 
-  // Ensure .yaze extension
-  if (file_path.find(".yaze") == std::string::npos) {
+  // Ensure a project extension.
+  if (!(absl::EndsWith(file_path, ".yaze") ||
+        absl::EndsWith(file_path, ".yazeproj"))) {
     file_path += ".yaze";
   }
 
@@ -3273,6 +3280,13 @@ absl::Status EditorManager::RepairCurrentProject() {
                       editor::ToastType::kSuccess);
 
   return absl::OkStatus();
+}
+
+yaze::zelda3::Overworld* EditorManager::overworld() const {
+  if (auto* editor_set = GetCurrentEditorSet()) {
+    return &editor_set->GetOverworldEditor()->overworld();
+  }
+  return nullptr;
 }
 
 absl::Status EditorManager::SetCurrentRom(Rom* rom) {

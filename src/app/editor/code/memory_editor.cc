@@ -10,11 +10,15 @@
 namespace yaze {
 namespace editor {
 
-void MemoryEditor::Update(bool& show_memory_editor) {
+absl::Status MemoryEditor::Update() {
+  if (!active_) {
+    return absl::OkStatus();
+  }
+
   DrawToolbar();
   ImGui::Separator();
 
-  ImGui::Begin("Hex Editor", &show_memory_editor);
+  ImGui::Begin("Hex Editor", &active_);
   if (ImGui::Button("Compare Rom")) {
     auto file_name = util::FileDialogWrapper::ShowOpenFileDialog();
     PRINT_IF_ERROR(comparison_rom_.LoadFromFile(file_name));
@@ -48,6 +52,8 @@ void MemoryEditor::Update(bool& show_memory_editor) {
   END_TABLE()
 
   ImGui::End();
+
+  return absl::OkStatus();
 }
 
 void MemoryEditor::DrawToolbar() {

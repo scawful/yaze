@@ -493,15 +493,21 @@ void AssemblyEditor::DrawFileTabView() {
 // Legacy Update Methods (kept for backward compatibility)
 // =============================================================================
 
-void AssemblyEditor::Update(bool& is_loaded) {
+absl::Status AssemblyEditor::Update() {
+  if (!active_) {
+    return absl::OkStatus();
+  }
+
   // Legacy window-based update - kept for backward compatibility
   // New code should use the panel system via DrawCodeEditor()
-  ImGui::Begin("Assembly Editor", &is_loaded, ImGuiWindowFlags_MenuBar);
+  ImGui::Begin("Assembly Editor", &active_, ImGuiWindowFlags_MenuBar);
   DrawCodeEditor();
   ImGui::End();
 
   // Draw symbol panel as separate window if visible (legacy)
   DrawSymbolPanel();
+
+  return absl::OkStatus();
 }
 
 void AssemblyEditor::InlineUpdate() {
@@ -714,10 +720,6 @@ absl::Status AssemblyEditor::Undo() {
 
 absl::Status AssemblyEditor::Redo() {
   GetActiveEditor()->Redo();
-  return absl::OkStatus();
-}
-
-absl::Status AssemblyEditor::Update() {
   return absl::OkStatus();
 }
 

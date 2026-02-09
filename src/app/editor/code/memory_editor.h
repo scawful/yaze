@@ -17,10 +17,23 @@ namespace editor {
 using ImGui::SameLine;
 using ImGui::Text;
 
-struct MemoryEditor {
-  explicit MemoryEditor(Rom* rom = nullptr) : rom_(rom) {}
+class MemoryEditor : public Editor {
+ public:
+  explicit MemoryEditor(Rom* rom = nullptr) : rom_(rom) {
+    type_ = EditorType::kHex;
+  }
 
-  void Update(bool& show_memory_editor);
+  void Initialize() override {}
+  absl::Status Load() override { return absl::OkStatus(); }
+  absl::Status Save() override { return absl::OkStatus(); }
+  absl::Status Update() override;
+
+  absl::Status Undo() override { return absl::OkStatus(); }
+  absl::Status Redo() override { return absl::OkStatus(); }
+  absl::Status Cut() override { return absl::OkStatus(); }
+  absl::Status Copy() override { return absl::OkStatus(); }
+  absl::Status Paste() override { return absl::OkStatus(); }
+  absl::Status Find() override { return absl::OkStatus(); }
 
   // Set the ROM pointer
   void SetRom(Rom* rom) { rom_ = rom; }

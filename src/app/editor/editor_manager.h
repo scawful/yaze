@@ -48,6 +48,7 @@
 #include "core/project.h"
 #include "core/version_manager.h"
 #include "imgui/imgui.h"
+#include "util/log.h"
 #include "yaze_config.h"
 #include "zelda3/overworld/overworld.h"
 
@@ -192,12 +193,7 @@ class EditorManager {
                                 : 0;
   }
   UICoordinator* ui_coordinator() { return ui_coordinator_.get(); }
-  auto overworld() const -> yaze::zelda3::Overworld* {
-    if (auto* editor_set = GetCurrentEditorSet()) {
-      return &editor_set->GetOverworldEditor()->overworld();
-    }
-    return nullptr;
-  }
+  yaze::zelda3::Overworld* overworld() const;
 
   // Session management helpers
   size_t GetCurrentSessionIndex() const;

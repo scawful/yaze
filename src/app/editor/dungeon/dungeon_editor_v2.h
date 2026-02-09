@@ -116,9 +116,8 @@ class DungeonEditorV2 : public Editor {
   }
 
   // Editor interface
-  void Initialize(gfx::IRenderer* renderer, Rom* rom);
   void Initialize() override;
-  absl::Status Load();
+  absl::Status Load() override;
   absl::Status Update() override;
   absl::Status Undo() override;
   absl::Status Redo() override;

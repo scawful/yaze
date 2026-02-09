@@ -38,6 +38,7 @@
 #include "app/editor/dungeon/panels/room_tag_editor_panel.h"
 #include "app/editor/dungeon/panels/sprite_editor_panel.h"
 #include "app/editor/editor_manager.h"
+#include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/system/panel_manager.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/emu/mesen/mesen_client_registry.h"
@@ -51,6 +52,7 @@
 #include "app/gui/core/icons.h"
 #include "core/features.h"
 #include "core/project.h"
+#include "rom/snes.h"
 #include "util/log.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/custom_object.h"
@@ -229,14 +231,20 @@ DungeonEditorV2::~DungeonEditorV2() {
   }
 }
 
-void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
-  renderer_ = renderer;
-  rom_ = rom;
-
-  // Propagate ROM to all rooms
-  if (rom_) {
-    for (auto& room : rooms_) {
-      room.SetRom(rom_);
+void DungeonEditorV2::Initialize() {
+  if (dependencies_.renderer) {
+    renderer_ = dependencies_.renderer;
+  }
+  const bool rom_changed = dependencies_.rom && dependencies_.rom != rom_;
+  if (rom_changed) {
+    SetRom(dependencies_.rom);
+    // The system owns ROM-backed views; ensure it matches the current ROM.
+    dungeon_editor_system_.reset();
+  }
+  if (rom_ && !dungeon_editor_system_) {
+    dungeon_editor_system_ = zelda3::CreateDungeonEditorSystem(rom_);
+    if (game_data_) {
+      dungeon_editor_system_->SetGameData(game_data_);
     }
   }
 
@@ -431,8 +439,6 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
   // Note: DungeonRoomGraphicsPanel and DungeonPaletteEditorPanel are registered
   // in Load() after their dependencies (renderer_, palette_editor_) are initialized
 }
-
-void DungeonEditorV2::Initialize() {}
 
 absl::Status DungeonEditorV2::Load() {
   if (!rom_ || !rom_->is_loaded()) {
@@ -909,14 +915,14 @@ DungeonEditorV2::CollectWriteRanges() const {
         int header_ptr_table = (rom_data[zelda3::kRoomHeaderPointer + 2] << 16) |
                                (rom_data[zelda3::kRoomHeaderPointer + 1] << 8) |
                                rom_data[zelda3::kRoomHeaderPointer];
-        header_ptr_table = SnesToPc(header_ptr_table);
+        header_ptr_table = yaze::SnesToPc(header_ptr_table);
         int table_offset = header_ptr_table + (room_id * 2);
 
         if (table_offset + 1 < static_cast<int>(rom_data.size())) {
           int address = (rom_data[zelda3::kRoomHeaderPointerBank] << 16) |
                         (rom_data[table_offset + 1] << 8) |
                         rom_data[table_offset];
-          int header_location = SnesToPc(address);
+          int header_location = yaze::SnesToPc(address);
           ranges.emplace_back(header_location, header_location + 14);
         }
       }
@@ -928,14 +934,14 @@ DungeonEditorV2::CollectWriteRanges() const {
         int obj_ptr_table = (rom_data[zelda3::kRoomObjectPointer + 2] << 16) |
                             (rom_data[zelda3::kRoomObjectPointer + 1] << 8) |
                             rom_data[zelda3::kRoomObjectPointer];
-        obj_ptr_table = SnesToPc(obj_ptr_table);
+        obj_ptr_table = yaze::SnesToPc(obj_ptr_table);
         int entry_offset = obj_ptr_table + (room_id * 3);
 
         if (entry_offset + 2 < static_cast<int>(rom_data.size())) {
           int tile_addr = (rom_data[entry_offset + 2] << 16) |
                           (rom_data[entry_offset + 1] << 8) |
                           rom_data[entry_offset];
-          int objects_location = SnesToPc(tile_addr);
+          int objects_location = yaze::SnesToPc(tile_addr);
 
           auto encoded = room.EncodeObjects();
           ranges.emplace_back(objects_location,
@@ -1055,14 +1061,14 @@ absl::Status DungeonEditorV2::SaveRoomData(int room_id) {
         int header_ptr_table = (rom_data[zelda3::kRoomHeaderPointer + 2] << 16) |
                                (rom_data[zelda3::kRoomHeaderPointer + 1] << 8) |
                                rom_data[zelda3::kRoomHeaderPointer];
-        header_ptr_table = SnesToPc(header_ptr_table);
+        header_ptr_table = yaze::SnesToPc(header_ptr_table);
         int table_offset = header_ptr_table + (room_id * 2);
 
         if (table_offset + 1 < static_cast<int>(rom_data.size())) {
           int address = (rom_data[zelda3::kRoomHeaderPointerBank] << 16) |
                         (rom_data[table_offset + 1] << 8) |
                         rom_data[table_offset];
-          int header_location = SnesToPc(address);
+          int header_location = yaze::SnesToPc(address);
           ranges.emplace_back(header_location, header_location + 14);
         }
       }
@@ -1074,14 +1080,14 @@ absl::Status DungeonEditorV2::SaveRoomData(int room_id) {
         int obj_ptr_table = (rom_data[zelda3::kRoomObjectPointer + 2] << 16) |
                             (rom_data[zelda3::kRoomObjectPointer + 1] << 8) |
                             rom_data[zelda3::kRoomObjectPointer];
-        obj_ptr_table = SnesToPc(obj_ptr_table);
+        obj_ptr_table = yaze::SnesToPc(obj_ptr_table);
         int entry_offset = obj_ptr_table + (room_id * 3);
 
         if (entry_offset + 2 < static_cast<int>(rom_data.size())) {
           int tile_addr = (rom_data[entry_offset + 2] << 16) |
                           (rom_data[entry_offset + 1] << 8) |
                           rom_data[entry_offset];
-          int objects_location = SnesToPc(tile_addr);
+          int objects_location = yaze::SnesToPc(tile_addr);
 
           // Estimate size based on current encoding
           // Note: we check the *target* location (where we will write)
