@@ -31,6 +31,10 @@ TEST_F(UnitTest_EditorSet, GenericContainerOperations) {
   EXPECT_NE(editor_set.GetEditorAs<AssemblyEditor>(EditorType::kAssembly),
             nullptr);
   EXPECT_NE(editor_set.GetAsarWrapper(), nullptr);
+  EXPECT_GT(editor_set.TotalDungeonRoomCount(), 0);
+  EXPECT_GE(editor_set.LoadedDungeonRoomCount(), 0);
+  EXPECT_LE(editor_set.LoadedDungeonRoomCount(),
+            editor_set.TotalDungeonRoomCount());
 
   // Verify unknown type returns nullptr
   EXPECT_EQ(editor_set.GetEditor(EditorType::kUnknown), nullptr);

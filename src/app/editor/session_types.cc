@@ -120,6 +120,28 @@ core::AsarWrapper* EditorSet::GetAsarWrapper() const {
   return nullptr;
 }
 
+int EditorSet::LoadedDungeonRoomCount() const {
+  if (auto* editor = GetDungeonEditor()) {
+    return editor->LoadedRoomCount();
+  }
+  return 0;
+}
+
+int EditorSet::TotalDungeonRoomCount() const {
+  if (auto* editor = GetDungeonEditor()) {
+    return editor->TotalRoomCount();
+  }
+  return 0;
+}
+
+std::vector<std::pair<uint32_t, uint32_t>> EditorSet::CollectDungeonWriteRanges()
+    const {
+  if (auto* editor = GetDungeonEditor()) {
+    return editor->CollectWriteRanges();
+  }
+  return {};
+}
+
 // Deprecated named accessors
 AssemblyEditor* EditorSet::GetAssemblyEditor() const {
   return GetEditorAs<AssemblyEditor>(EditorType::kAssembly);
