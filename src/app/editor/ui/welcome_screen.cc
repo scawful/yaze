@@ -584,26 +584,40 @@ void WelcomeScreen::RefreshRecentProjects() {
 
     std::filesystem::path path(filepath);
 
-    // Skip and mark for removal if file doesn't exist
-    if (!std::filesystem::exists(path)) {
-      files_to_remove.push_back(filepath);
-      continue;
-    }
-
     RecentProject project;
     project.filepath = filepath;
     project.name = path.filename().string();
 
-    // Get file modification time
-    try {
-      auto ftime = std::filesystem::last_write_time(path);
-      project.last_modified = GetRelativeTimeString(ftime);
-      project.rom_title = "ALTTP ROM";
-    } catch (const std::filesystem::filesystem_error&) {
-      // File became inaccessible between exists() check and last_write_time()
+    // Skip and mark for removal if file doesn't exist.
+    //
+    // IMPORTANT (iOS): `std::filesystem::exists(path)` may throw if the app
+    // doesn't have permission to access the path (e.g. iCloud Drive open-in-
+    // place URLs without an active security scope). Use the error_code
+    // overload to avoid crashing at startup.
+    std::error_code exists_ec;
+    const bool exists = std::filesystem::exists(path, exists_ec);
+    if (exists_ec) {
+      // Keep the entry but mark it as unavailable; the user can re-open via the
+      // iOS document picker to re-grant access.
+      project.last_modified = "Unavailable";
+      project.rom_title = "Tap to re-open";
+      recent_projects_.push_back(project);
+      continue;
+    }
+    if (!exists) {
       files_to_remove.push_back(filepath);
       continue;
     }
+
+    // Get file modification time
+    std::error_code time_ec;
+    auto ftime = std::filesystem::last_write_time(path, time_ec);
+    if (!time_ec) {
+      project.last_modified = GetRelativeTimeString(ftime);
+    } else {
+      project.last_modified = "Unknown";
+    }
+    project.rom_title = "ALTTP ROM";
 
     recent_projects_.push_back(project);
   }
