@@ -91,25 +91,6 @@ void EditorSet::ApplyDependencies(const EditorDependencies& dependencies) {
   for (auto& [type, editor] : editors_) {
     editor->SetDependencies(dependencies);
   }
-
-  // Legacy wiring (to be moved to SetDependencies overrides in Phase 4)
-  GetMemoryEditor()->SetRom(dependencies.rom);
-  if (auto* music = GetMusicEditor()) {
-    music->SetProject(dependencies.project);
-  }
-
-  // MusicEditor needs emulator for audio playback
-  if (dependencies.emulator) {
-    GetMusicEditor()->set_emulator(dependencies.emulator);
-  }
-
-  // Configure SettingsPanel
-  if (auto* settings = GetSettingsPanel()) {
-    settings->SetRom(dependencies.rom);
-    settings->SetUserSettings(dependencies.user_settings);
-    settings->SetPanelRegistry(dependencies.panel_manager);
-    settings->SetShortcutManager(dependencies.shortcut_manager);
-  }
 }
 
 Editor* EditorSet::GetEditor(EditorType type) const {

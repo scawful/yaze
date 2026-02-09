@@ -188,7 +188,9 @@ class Editor {
   Editor() = default;
   virtual ~Editor() = default;
 
-  void SetDependencies(const EditorDependencies& deps) { dependencies_ = deps; }
+  virtual void SetDependencies(const EditorDependencies& deps) {
+    dependencies_ = deps;
+  }
 
   // Set GameData for Zelda3-specific data access
   virtual void SetGameData(zelda3::GameData* game_data) {

@@ -32,6 +32,15 @@
 namespace yaze {
 namespace editor {
 
+void SettingsPanel::SetDependencies(const EditorDependencies& deps) {
+  Editor::SetDependencies(deps);
+  SetRom(deps.rom);
+  SetUserSettings(deps.user_settings);
+  SetPanelManager(deps.panel_manager);
+  SetShortcutManager(deps.shortcut_manager);
+  SetProject(deps.project);
+}
+
 namespace {
 
 struct HexListEditorState {
