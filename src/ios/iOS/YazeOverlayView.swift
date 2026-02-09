@@ -158,21 +158,13 @@ struct YazeOverlayView: View {
     }
     .sheet(isPresented: $showProjectPicker) {
       DocumentPicker(
-        contentTypes: [
-          UTType(filenameExtension: "yazeproj") ?? .data,
-          .folder,
-        ],
+        contentTypes: [.yazeProject],
         asCopy: false
       ) { url in
-        if url.pathExtension.lowercased() == "yazeproj" {
-          do {
-            try YazeProjectOpenService.openBundle(at: url, settingsStore: settingsStore)
-          } catch {
-            settingsStore.statusMessage = "Open failed: \(error.localizedDescription)"
-          }
-        } else {
-          // Fallback: allow selecting a project root folder (legacy workflow).
-          settingsStore.updateCurrentProjectPath(url.path)
+        do {
+          try YazeProjectOpenService.openBundle(at: url, settingsStore: settingsStore)
+        } catch {
+          settingsStore.statusMessage = "Open failed: \(error.localizedDescription)"
         }
       }
     }
@@ -797,7 +789,7 @@ struct FilesystemSettingsView: View {
       }
       .sheet(isPresented: $showBundleImporter) {
         DocumentPicker(
-          contentTypes: [UTType(filenameExtension: "yazeproj") ?? .data],
+          contentTypes: [.yazeProject],
           asCopy: false
         ) { url in
           do {

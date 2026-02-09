@@ -8,23 +8,32 @@ import Foundation
 final class YazeSecurityScopeManager {
   static let shared = YazeSecurityScopeManager()
 
-  private var currentURL: URL?
-  private var currentGranted: Bool = false
+  private var grantedURLs: [URL] = []
 
   private init() {}
 
   func beginAccess(to url: URL) {
+    beginAccess(toAnyOf: [url])
+  }
+
+  func beginAccess(toAnyOf urls: [URL]) {
     endAccess()
-    currentURL = url
-    currentGranted = url.startAccessingSecurityScopedResource()
+
+    // Keep the access set minimal and deterministic.
+    var seen = Set<URL>()
+    for url in urls {
+      if seen.contains(url) { continue }
+      seen.insert(url)
+      if url.startAccessingSecurityScopedResource() {
+        grantedURLs.append(url)
+      }
+    }
   }
 
   func endAccess() {
-    if let url = currentURL, currentGranted {
+    for url in grantedURLs {
       url.stopAccessingSecurityScopedResource()
     }
-    currentURL = nil
-    currentGranted = false
+    grantedURLs.removeAll()
   }
 }
-
