@@ -39,6 +39,7 @@ void SettingsPanel::SetDependencies(const EditorDependencies& deps) {
   SetPanelManager(deps.panel_manager);
   SetShortcutManager(deps.shortcut_manager);
   SetProject(deps.project);
+  SetStatusBar(deps.status_bar);
 }
 
 namespace {

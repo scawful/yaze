@@ -46,6 +46,7 @@ namespace editor {
 class PanelManager;
 class ToastManager;
 class UserSettings;
+class StatusBar;
 
 /**
  * @struct EditorContext
@@ -133,6 +134,7 @@ struct EditorDependencies {
   UserSettings* user_settings = nullptr;
   project::YazeProject* project = nullptr;
   core::VersionManager* version_manager = nullptr;
+  StatusBar* status_bar = nullptr;
   size_t session_id = 0;
 
   gfx::IRenderer* renderer = nullptr;
