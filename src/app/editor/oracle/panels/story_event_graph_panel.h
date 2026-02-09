@@ -430,6 +430,20 @@ class StoryEventGraphPanel : public EditorPanel {
     }
   }
 
+  uint64_t ComputeProgressionFingerprint() const {
+    if (!manifest_) return 0;
+    const auto prog_opt = manifest_->oracle_progression_state();
+    if (!prog_opt.has_value()) return 0;
+
+    const auto& s = *prog_opt;
+    return static_cast<uint64_t>(s.crystal_bitfield) |
+           (static_cast<uint64_t>(s.game_state) << 8) |
+           (static_cast<uint64_t>(s.oosprog) << 16) |
+           (static_cast<uint64_t>(s.oosprog2) << 24) |
+           (static_cast<uint64_t>(s.side_quest) << 32) |
+           (static_cast<uint64_t>(s.pendants) << 40);
+  }
+
   void DrawFilterControls(const core::StoryEventGraph& graph) {
     (void)graph;
 
@@ -494,16 +508,19 @@ class StoryEventGraphPanel : public EditorPanel {
   void UpdateFilterCache(const core::StoryEventGraph& graph) {
     const uint8_t status_mask =
         StatusMask(show_completed_, show_available_, show_locked_, show_blocked_);
+    const uint64_t progress_fp = ComputeProgressionFingerprint();
 
     const size_t node_count = graph.nodes().size();
     if (!filter_dirty_ && node_count == last_node_count_ &&
-        filter_query_ == last_filter_query_ && status_mask == last_status_mask_) {
+        filter_query_ == last_filter_query_ && status_mask == last_status_mask_ &&
+        progress_fp == last_progress_fp_) {
       return;
     }
 
     last_node_count_ = node_count;
     last_filter_query_ = filter_query_;
     last_status_mask_ = status_mask;
+    last_progress_fp_ = progress_fp;
     filter_dirty_ = false;
 
     core::StoryEventNodeFilter filter;
@@ -596,6 +613,8 @@ class StoryEventGraphPanel : public EditorPanel {
   // SRAM import state (purely UI; the actual progression state lives in HackManifest).
   std::string loaded_srm_path_;
   std::string last_srm_error_;
+
+  uint64_t last_progress_fp_ = 0;
 };
 
 }  // namespace yaze::editor
