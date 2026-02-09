@@ -4,11 +4,13 @@
 #include <cmath>
 #include <cstdint>
 #include <filesystem>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 #include "app/editor/core/content_registry.h"
+#include "app/editor/events/core_events.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gui/core/icons.h"
 #include "core/hack_manifest.h"
@@ -316,24 +318,72 @@ class StoryEventGraphPanel : public EditorPanel {
     if (!node->locations.empty()) {
       ImGui::Spacing();
       ImGui::Text("Locations:");
-      for (const auto& loc : node->locations) {
+      for (size_t i = 0; i < node->locations.size(); ++i) {
+        const auto& loc = node->locations[i];
+        ImGui::PushID(static_cast<int>(i));
+
         ImGui::BulletText("%s", loc.name.c_str());
+
+        if (auto room_id = ParseIntLoose(loc.room_id)) {
+          ImGui::SameLine();
+          if (ImGui::SmallButton("Room")) {
+            PublishJumpToRoom(*room_id);
+          }
+        }
+        if (auto map_id = ParseIntLoose(loc.overworld_id)) {
+          ImGui::SameLine();
+          if (ImGui::SmallButton("Map")) {
+            PublishJumpToMap(*map_id);
+          }
+        }
+
+        if (!loc.room_id.empty() || !loc.overworld_id.empty() ||
+            !loc.entrance_id.empty()) {
+          ImGui::TextDisabled("room=%s  map=%s  entrance=%s",
+                              loc.room_id.empty() ? "-" : loc.room_id.c_str(),
+                              loc.overworld_id.empty() ? "-" : loc.overworld_id.c_str(),
+                              loc.entrance_id.empty() ? "-" : loc.entrance_id.c_str());
+        }
+
+        ImGui::PopID();
       }
     }
 
     if (!node->text_ids.empty()) {
       ImGui::Spacing();
       ImGui::Text("Text IDs:");
-      for (const auto& tid : node->text_ids) {
+      for (size_t i = 0; i < node->text_ids.size(); ++i) {
+        const auto& tid = node->text_ids[i];
+        ImGui::PushID(static_cast<int>(i));
+
         ImGui::BulletText("%s", tid.c_str());
+        ImGui::SameLine();
+        if (ImGui::SmallButton("Open")) {
+          if (auto msg_id = ParseIntLoose(tid)) {
+            PublishJumpToMessage(*msg_id);
+          }
+        }
+        ImGui::SameLine();
+        if (ImGui::SmallButton("Copy")) {
+          ImGui::SetClipboardText(tid.c_str());
+        }
+
+        ImGui::PopID();
       }
     }
 
     if (!node->scripts.empty()) {
       ImGui::Spacing();
       ImGui::Text("Scripts:");
-      for (const auto& script : node->scripts) {
+      for (size_t i = 0; i < node->scripts.size(); ++i) {
+        const auto& script = node->scripts[i];
+        ImGui::PushID(static_cast<int>(i));
         ImGui::BulletText("%s", script.c_str());
+        ImGui::SameLine();
+        if (ImGui::SmallButton("Copy")) {
+          ImGui::SetClipboardText(script.c_str());
+        }
+        ImGui::PopID();
       }
     }
 
@@ -343,6 +393,41 @@ class StoryEventGraphPanel : public EditorPanel {
     }
 
     ImGui::EndChild();
+  }
+
+  static std::optional<int> ParseIntLoose(const std::string& input) {
+    // Trim whitespace.
+    size_t start = input.find_first_not_of(" \t\r\n");
+    if (start == std::string::npos) return std::nullopt;
+    size_t end = input.find_last_not_of(" \t\r\n");
+    std::string trimmed = input.substr(start, end - start + 1);
+
+    try {
+      size_t idx = 0;
+      int value = std::stoi(trimmed, &idx, /*base=*/0);
+      if (idx != trimmed.size()) return std::nullopt;
+      return value;
+    } catch (...) {
+      return std::nullopt;
+    }
+  }
+
+  void PublishJumpToRoom(int room_id) const {
+    if (auto* bus = ContentRegistry::Context::event_bus()) {
+      bus->Publish(JumpToRoomRequestEvent::Create(room_id));
+    }
+  }
+
+  void PublishJumpToMap(int map_id) const {
+    if (auto* bus = ContentRegistry::Context::event_bus()) {
+      bus->Publish(JumpToMapRequestEvent::Create(map_id));
+    }
+  }
+
+  void PublishJumpToMessage(int message_id) const {
+    if (auto* bus = ContentRegistry::Context::event_bus()) {
+      bus->Publish(JumpToMessageRequestEvent::Create(message_id));
+    }
   }
 
   void DrawFilterControls(const core::StoryEventGraph& graph) {
