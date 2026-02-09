@@ -23,6 +23,7 @@ absl::Status ProjectGraphTool::ValidateArgs(
 absl::Status ProjectGraphTool::Execute(Rom* rom,
                                        const resources::ArgumentParser& parser,
                                        resources::OutputFormatter& formatter) {
+  (void)rom;
   if (!project_) {
     return absl::FailedPreconditionError("Project context not available.");
   }
