@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <cstdint>
+#include <filesystem>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -11,11 +12,13 @@
 #include "app/editor/system/editor_panel.h"
 #include "app/gui/core/icons.h"
 #include "core/hack_manifest.h"
+#include "core/oracle_progression_loader.h"
 #include "core/project.h"
 #include "core/story_event_graph.h"
 #include "core/story_event_graph_query.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
+#include "util/file_util.h"
 
 namespace yaze::editor {
 
@@ -89,6 +92,28 @@ class StoryEventGraphPanel : public EditorPanel {
                           prog_opt->GetGameStateName().c_str());
     } else {
       ImGui::TextDisabled("No SRAM loaded");
+    }
+
+    ImGui::SameLine();
+    if (ImGui::SmallButton("Import .srm...")) {
+      ImportOracleSramFromFileDialog();
+    }
+    ImGui::SameLine();
+    if (ImGui::SmallButton("Clear SRAM")) {
+      ClearOracleSramState();
+    }
+    if (!loaded_srm_path_.empty()) {
+      const std::filesystem::path p(loaded_srm_path_);
+      ImGui::SameLine();
+      ImGui::TextDisabled("SRM: %s", p.filename().string().c_str());
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("%s", loaded_srm_path_.c_str());
+      }
+    }
+
+    if (!last_srm_error_.empty()) {
+      ImGui::TextColored(ImVec4(1.0f, 0.35f, 0.35f, 1.0f), "SRM error: %s",
+                         last_srm_error_.c_str());
     }
 
     ImGui::Separator();
@@ -424,6 +449,43 @@ class StoryEventGraphPanel : public EditorPanel {
     }
   }
 
+  void ImportOracleSramFromFileDialog() {
+    if (!manifest_) return;
+
+    util::FileDialogOptions options;
+    options.filters = {
+        {"SRAM (.srm)", "srm"},
+        {"All Files", "*"},
+    };
+
+    std::string file_path =
+        util::FileDialogWrapper::ShowOpenFileDialog(options);
+    if (file_path.empty()) {
+      return;
+    }
+
+    auto state_or = core::LoadOracleProgressionFromSrmFile(file_path);
+    if (!state_or.ok()) {
+      last_srm_error_ = std::string(state_or.status().message());
+      return;
+    }
+
+    manifest_->SetOracleProgressionState(*state_or);
+    loaded_srm_path_ = file_path;
+    last_srm_error_.clear();
+
+    // Status coloring changed; refresh filter cache visibility.
+    filter_dirty_ = true;
+  }
+
+  void ClearOracleSramState() {
+    if (!manifest_) return;
+    manifest_->ClearOracleProgressionState();
+    loaded_srm_path_.clear();
+    last_srm_error_.clear();
+    filter_dirty_ = true;
+  }
+
   core::HackManifest* manifest_ = nullptr;
   std::string selected_node_;
   float scroll_x_ = 0;
@@ -445,6 +507,10 @@ class StoryEventGraphPanel : public EditorPanel {
   uint8_t last_status_mask_ = 0;
   std::unordered_map<std::string, bool> node_query_match_by_id_;
   std::unordered_map<std::string, bool> node_visible_by_id_;
+
+  // SRAM import state (purely UI; the actual progression state lives in HackManifest).
+  std::string loaded_srm_path_;
+  std::string last_srm_error_;
 };
 
 }  // namespace yaze::editor
