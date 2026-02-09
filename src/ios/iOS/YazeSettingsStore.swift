@@ -1,6 +1,10 @@
 import Foundation
 import Combine
 
+extension Notification.Name {
+  static let yazeSettingsReload = Notification.Name("yaze.settings.reload")
+}
+
 struct YazeSettings: Codable {
   struct General: Codable {
     var fontGlobalScale: Double = 1.0
@@ -251,6 +255,13 @@ final class YazeSettingsStore: ObservableObject {
     let root = documents?.appendingPathComponent("Yaze", isDirectory: true)
     fileURL = root?.appendingPathComponent("settings.json") ?? URL(fileURLWithPath: "settings.json")
     encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+    NotificationCenter.default.addObserver(
+      forName: .yazeSettingsReload,
+      object: nil,
+      queue: .main
+    ) { [weak self] _ in
+      self?.load()
+    }
     load()
   }
 
