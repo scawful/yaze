@@ -222,6 +222,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/object_geometry_test.cc
     unit/zelda3/dungeon/room_layer_manager_test.cc
     unit/zelda3/dungeon/water_fill_zone_test.cc
+    unit/zelda3/dungeon/room_water_fill_state_test.cc
     unit/zelda3/dungeon/draw_routine_mapping_test.cc
     unit/zelda3/dungeon/object_drawing_comprehensive_test.cc
     unit/dungeon_object_drawer_test.cc
@@ -312,6 +313,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/editor_manager_oracle_rom_safety_test.cc
     unit/editor/editor_set_test.cc
     unit/zelda3/dungeon/water_fill_zone_test.cc
+    unit/zelda3/dungeon/room_water_fill_state_test.cc
   )
   set(QUICK_INTEGRATION_TEST_SOURCES
     integration/zelda3/dungeon_save_region_test.cc
