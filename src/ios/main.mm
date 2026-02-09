@@ -698,6 +698,8 @@ yaze::ios::IOSHost g_ios_host;
   ImGuiIO &io = ImGui::GetIO();
 
   UITouch *active_touch = nil;
+  const bool primary_was_stylus =
+      primary_touch_ != nil && primary_touch_.type == UITouchTypeStylus;
 
   // Prefer Apple Pencil/stylus if present for precision input.
   for (UITouch *touch in event.allTouches) {
@@ -718,12 +720,22 @@ yaze::ios::IOSHost g_ios_host;
     }
   }
 
-  // Otherwise, fall back to any direct touch.
+  // If we were interacting with the stylus and it just lifted, do NOT adopt a
+  // different in-flight touch (e.g. palm/finger resting on the screen). This
+  // prevents ImGui drags (like moving windows) from snapping back when the
+  // stylus ends.
+  if (!active_touch && primary_was_stylus) {
+    primary_touch_ = nil;
+    io.AddMouseSourceEvent(ImGuiMouseSource_Pen);
+    io.AddMouseButtonEvent(0, false);
+    return;
+  }
+
+  // Otherwise, fall back to a new direct touch (only on Began).
   if (!active_touch) {
     for (UITouch *touch in event.allTouches) {
       if (touch.type == UITouchTypeDirect &&
-          touch.phase != UITouchPhaseEnded &&
-          touch.phase != UITouchPhaseCancelled) {
+          touch.phase == UITouchPhaseBegan) {
         active_touch = touch;
         break;
       }
@@ -732,8 +744,7 @@ yaze::ios::IOSHost g_ios_host;
 
   if (!active_touch) {
     for (UITouch *touch in event.allTouches) {
-      if (touch.phase != UITouchPhaseEnded &&
-          touch.phase != UITouchPhaseCancelled) {
+      if (touch.phase == UITouchPhaseBegan) {
         active_touch = touch;
         break;
       }

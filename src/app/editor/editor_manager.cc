@@ -62,6 +62,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/platform/timing.h"
+#include "app/platform/ios/ios_platform_state.h"
 #include "app/test/test_manager.h"
 #include "core/features.h"
 #include "core/rom_settings.h"
@@ -2860,16 +2861,9 @@ absl::Status EditorManager::OpenProject() {
   };
 
 #if defined(__APPLE__) && TARGET_OS_IOS == 1
-  util::FileDialogWrapper::ShowOpenFileDialogAsync(
-      util::FileDialogOptions{},
-      [this, open_project_from_path](const std::string& file_path) {
-        auto status = open_project_from_path(file_path);
-        if (!status.ok()) {
-          toast_manager_.Show(
-              absl::StrFormat("Failed to open project: %s", status.message()),
-              ToastType::kError);
-        }
-      });
+  // On iOS, route project selection through the SwiftUI overlay document picker
+  // so we get open-in-place + security-scoped access for iCloud Drive bundles.
+  platform::ios::PostOverlayCommand("open_project");
   return absl::OkStatus();
 #else
   auto file_path = util::FileDialogWrapper::ShowOpenFileDialog();
