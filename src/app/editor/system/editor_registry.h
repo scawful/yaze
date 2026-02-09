@@ -1,6 +1,8 @@
 #ifndef YAZE_APP_EDITOR_SYSTEM_EDITOR_REGISTRY_H_
 #define YAZE_APP_EDITOR_SYSTEM_EDITOR_REGISTRY_H_
 
+#include <functional>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -22,6 +24,8 @@ namespace editor {
  */
 class EditorRegistry {
  public:
+  using EditorFactory = std::function<std::unique_ptr<Editor>(Rom*)>;
+
   EditorRegistry() = default;
   ~EditorRegistry() = default;
 
@@ -70,6 +74,12 @@ class EditorRegistry {
   void UnregisterEditor(EditorType type);
   Editor* GetEditor(EditorType type) const;
 
+  // Factory lifecycle (Phase 3: registry-based instantiation)
+  void RegisterFactory(EditorType type, EditorFactory factory);
+  void UnregisterFactory(EditorType type);
+  bool HasFactory(EditorType type) const;
+  std::unique_ptr<Editor> CreateEditor(EditorType type, Rom* rom) const;
+
   // Editor state queries
   bool IsEditorActive(EditorType type) const;
   bool IsEditorVisible(EditorType type) const;
@@ -83,6 +93,9 @@ class EditorRegistry {
 
   // Registered editors
   std::unordered_map<EditorType, Editor*> registered_editors_;
+
+  // Editor factories (for EditorSet/session creation).
+  std::unordered_map<EditorType, EditorFactory> editor_factories_;
 
   // Navigation callbacks
   std::function<void(int)> jump_to_room_callback_;

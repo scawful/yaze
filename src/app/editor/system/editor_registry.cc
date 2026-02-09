@@ -1,6 +1,7 @@
 #include "editor_registry.h"
 
 #include <unordered_set>
+#include <utility>
 
 #include "absl/strings/str_format.h"
 #include "app/editor/editor.h"
@@ -217,6 +218,34 @@ void EditorRegistry::RegisterEditor(EditorType type, Editor* editor) {
   registered_editors_[type] = editor;
   printf("[EditorRegistry] Registered %s\n",
          GetEditorDisplayName(type).c_str());
+}
+
+void EditorRegistry::RegisterFactory(EditorType type, EditorFactory factory) {
+  ValidateEditorType(type);
+  if (!factory) {
+    throw std::invalid_argument("Editor factory cannot be null");
+  }
+  editor_factories_[type] = std::move(factory);
+}
+
+void EditorRegistry::UnregisterFactory(EditorType type) {
+  ValidateEditorType(type);
+  editor_factories_.erase(type);
+}
+
+bool EditorRegistry::HasFactory(EditorType type) const {
+  ValidateEditorType(type);
+  return editor_factories_.find(type) != editor_factories_.end();
+}
+
+std::unique_ptr<Editor> EditorRegistry::CreateEditor(EditorType type,
+                                                     Rom* rom) const {
+  ValidateEditorType(type);
+  auto it = editor_factories_.find(type);
+  if (it == editor_factories_.end()) {
+    return nullptr;
+  }
+  return it->second(rom);
 }
 
 void EditorRegistry::UnregisterEditor(EditorType type) {
