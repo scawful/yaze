@@ -2740,6 +2740,7 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
 
     ConfigureEditorDependencies(GetCurrentEditorSet(), GetCurrentRom(),
                                 GetCurrentSessionId());
+    UpdateCurrentRomHash();
 
     // Apply project feature flags to both session and global singleton
     session->feature_flags = current_project_.feature_flags;
