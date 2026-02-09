@@ -19,6 +19,10 @@ namespace yaze::core {
 class AsarWrapper;
 }
 
+namespace yaze::zelda3 {
+class Overworld;
+}
+
 namespace yaze::editor {
 
 class EditorDependencies;
@@ -73,6 +77,7 @@ class EditorSet {
   int LoadedDungeonRoomCount() const;
   int TotalDungeonRoomCount() const;
   std::vector<std::pair<uint32_t, uint32_t>> CollectDungeonWriteRanges() const;
+  zelda3::Overworld* GetOverworldData() const;
 
   // Deprecated named accessors (legacy compatibility)
   [[deprecated("Use GetEditorAs<AssemblyEditor>(EditorType::kAssembly)")]]

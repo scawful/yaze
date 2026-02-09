@@ -35,6 +35,7 @@ TEST_F(UnitTest_EditorSet, GenericContainerOperations) {
   EXPECT_GE(editor_set.LoadedDungeonRoomCount(), 0);
   EXPECT_LE(editor_set.LoadedDungeonRoomCount(),
             editor_set.TotalDungeonRoomCount());
+  EXPECT_NE(editor_set.GetOverworldData(), nullptr);
 
   // Verify unknown type returns nullptr
   EXPECT_EQ(editor_set.GetEditor(EditorType::kUnknown), nullptr);
