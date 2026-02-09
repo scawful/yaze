@@ -1583,32 +1583,7 @@ bool EditorManager::EditorInitRequiresGameData(EditorType type) const {
 
 Editor* EditorManager::GetEditorByType(EditorType type,
                                        EditorSet* editor_set) const {
-  if (!editor_set) {
-    return nullptr;
-  }
-
-  switch (type) {
-    case EditorType::kAssembly:
-      return editor_set->GetAssemblyEditor();
-    case EditorType::kDungeon:
-      return editor_set->GetDungeonEditor();
-    case EditorType::kGraphics:
-      return editor_set->GetGraphicsEditor();
-    case EditorType::kMusic:
-      return editor_set->GetMusicEditor();
-    case EditorType::kOverworld:
-      return editor_set->GetOverworldEditor();
-    case EditorType::kPalette:
-      return editor_set->GetPaletteEditor();
-    case EditorType::kScreen:
-      return editor_set->GetScreenEditor();
-    case EditorType::kSprite:
-      return editor_set->GetSpriteEditor();
-    case EditorType::kMessage:
-      return editor_set->GetMessageEditor();
-    default:
-      return nullptr;
-  }
+  return editor_set ? editor_set->GetEditor(type) : nullptr;
 }
 
 Editor* EditorManager::ResolveEditorForCategory(const std::string& category) {
@@ -1688,13 +1663,14 @@ absl::Status EditorManager::EnsureGameDataLoaded() {
 
   auto* game_data = &session->game_data;
   auto* editor_set = &session->editors;
-  editor_set->GetDungeonEditor()->SetGameData(game_data);
-  editor_set->GetOverworldEditor()->SetGameData(game_data);
-  editor_set->GetGraphicsEditor()->SetGameData(game_data);
-  editor_set->GetScreenEditor()->SetGameData(game_data);
-  editor_set->GetPaletteEditor()->SetGameData(game_data);
-  editor_set->GetSpriteEditor()->SetGameData(game_data);
-  editor_set->GetMessageEditor()->SetGameData(game_data);
+  for (EditorType type :
+       {EditorType::kDungeon, EditorType::kOverworld, EditorType::kGraphics,
+        EditorType::kScreen, EditorType::kPalette, EditorType::kSprite,
+        EditorType::kMessage}) {
+    if (auto* editor = editor_set->GetEditor(type)) {
+      editor->SetGameData(game_data);
+    }
+  }
 
   ContentRegistry::Context::SetGameData(game_data);
   session->game_data_loaded = true;
@@ -2340,27 +2316,26 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
 
   // Initialize all editors - this registers their cards with PanelManager
   // and sets up any editor-specific resources. Must be called before Load().
-  current_editor_set->GetOverworldEditor()->Initialize();
-  MarkEditorInitialized(current_session, EditorType::kOverworld);
-  current_editor_set->GetMessageEditor()->Initialize();
-  MarkEditorInitialized(current_session, EditorType::kMessage);
-  current_editor_set->GetGraphicsEditor()->Initialize();
-  MarkEditorInitialized(current_session, EditorType::kGraphics);
-  current_editor_set->GetScreenEditor()->Initialize();
-  MarkEditorInitialized(current_session, EditorType::kScreen);
-  current_editor_set->GetSpriteEditor()->Initialize();
-  MarkEditorInitialized(current_session, EditorType::kSprite);
-  current_editor_set->GetPaletteEditor()->Initialize();
-  MarkEditorInitialized(current_session, EditorType::kPalette);
-  current_editor_set->GetAssemblyEditor()->Initialize();
-  MarkEditorInitialized(current_session, EditorType::kAssembly);
-  MarkEditorLoaded(current_session, EditorType::kAssembly);
-  current_editor_set->GetMusicEditor()->Initialize();
-  MarkEditorInitialized(current_session, EditorType::kMusic);
-
-  // Initialize the dungeon editor
-  current_editor_set->GetDungeonEditor()->Initialize();
-  MarkEditorInitialized(current_session, EditorType::kDungeon);
+  struct InitStep {
+    EditorType type;
+    bool mark_loaded;
+  };
+  const InitStep init_steps[] = {
+      {EditorType::kOverworld, false}, {EditorType::kMessage, false},
+      {EditorType::kGraphics, false},  {EditorType::kScreen, false},
+      {EditorType::kSprite, false},    {EditorType::kPalette, false},
+      {EditorType::kAssembly, true},   {EditorType::kMusic, false},
+      {EditorType::kDungeon, false},
+  };
+  for (const auto& step : init_steps) {
+    if (auto* editor = current_editor_set->GetEditor(step.type)) {
+      editor->Initialize();
+      MarkEditorInitialized(current_session, step.type);
+      if (step.mark_loaded) {
+        MarkEditorLoaded(current_session, step.type);
+      }
+    }
+  }
 
 #ifdef __EMSCRIPTEN__
   update_progress("Loading graphics sheets...");
@@ -2376,67 +2351,38 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
 
   // Propagate GameData to all editors that need it
   auto* game_data = &current_session->game_data;
-  current_editor_set->GetDungeonEditor()->SetGameData(game_data);
-  current_editor_set->GetOverworldEditor()->SetGameData(game_data);
-  current_editor_set->GetGraphicsEditor()->SetGameData(game_data);
-  current_editor_set->GetScreenEditor()->SetGameData(game_data);
-  current_editor_set->GetPaletteEditor()->SetGameData(game_data);
-  current_editor_set->GetSpriteEditor()->SetGameData(game_data);
-  current_editor_set->GetMessageEditor()->SetGameData(game_data);
+  for (EditorType type :
+       {EditorType::kDungeon, EditorType::kOverworld, EditorType::kGraphics,
+        EditorType::kScreen, EditorType::kPalette, EditorType::kSprite,
+        EditorType::kMessage}) {
+    if (auto* editor = current_editor_set->GetEditor(type)) {
+      editor->SetGameData(game_data);
+    }
+  }
 
+  struct LoadStep {
+    EditorType type;
+    const char* progress_message;
+  };
+  const LoadStep load_steps[] = {
+      {EditorType::kOverworld, "Loading overworld..."},
+      {EditorType::kDungeon, "Loading dungeons..."},
+      {EditorType::kScreen, "Loading screen editor..."},
+      {EditorType::kGraphics, "Loading graphics editor..."},
+      {EditorType::kSprite, "Loading sprites..."},
+      {EditorType::kMessage, "Loading messages..."},
+      {EditorType::kMusic, "Loading music..."},
+      {EditorType::kPalette, "Loading palettes..."},
+  };
+  for (const auto& step : load_steps) {
 #ifdef __EMSCRIPTEN__
-  update_progress("Loading overworld...");
+    update_progress(step.progress_message);
 #endif
-  RETURN_IF_ERROR(current_editor_set->GetOverworldEditor()->Load());
-  MarkEditorLoaded(current_session, EditorType::kOverworld);
-
-#ifdef __EMSCRIPTEN__
-  update_progress("Loading dungeons...");
-#endif
-  RETURN_IF_ERROR(current_editor_set->GetDungeonEditor()->Load());
-  MarkEditorLoaded(current_session, EditorType::kDungeon);
-
-#ifdef __EMSCRIPTEN__
-  update_progress("Loading screen editor...");
-#endif
-  RETURN_IF_ERROR(current_editor_set->GetScreenEditor()->Load());
-  MarkEditorLoaded(current_session, EditorType::kScreen);
-
-#ifdef __EMSCRIPTEN__
-  update_progress("Loading graphics editor...");
-#endif
-  RETURN_IF_ERROR(current_editor_set->GetGraphicsEditor()->Load());
-  MarkEditorLoaded(current_session, EditorType::kGraphics);
-
-#ifdef __EMSCRIPTEN__
-  update_progress("Loading settings...");
-#endif
-  // Settings panel doesn't need Load()
-  // RETURN_IF_ERROR(current_editor_set->settings_editor_.Load());
-
-#ifdef __EMSCRIPTEN__
-  update_progress("Loading sprites...");
-#endif
-  RETURN_IF_ERROR(current_editor_set->GetSpriteEditor()->Load());
-  MarkEditorLoaded(current_session, EditorType::kSprite);
-
-#ifdef __EMSCRIPTEN__
-  update_progress("Loading messages...");
-#endif
-  RETURN_IF_ERROR(current_editor_set->GetMessageEditor()->Load());
-  MarkEditorLoaded(current_session, EditorType::kMessage);
-
-#ifdef __EMSCRIPTEN__
-  update_progress("Loading music...");
-#endif
-  RETURN_IF_ERROR(current_editor_set->GetMusicEditor()->Load());
-  MarkEditorLoaded(current_session, EditorType::kMusic);
-
-#ifdef __EMSCRIPTEN__
-  update_progress("Loading palettes...");
-#endif
-  RETURN_IF_ERROR(current_editor_set->GetPaletteEditor()->Load());
-  MarkEditorLoaded(current_session, EditorType::kPalette);
+    if (auto* editor = current_editor_set->GetEditor(step.type)) {
+      RETURN_IF_ERROR(editor->Load());
+      MarkEditorLoaded(current_session, step.type);
+    }
+  }
 
 #ifdef __EMSCRIPTEN__
   update_progress("Finishing up...");
@@ -2681,17 +2627,25 @@ absl::Status EditorManager::SaveRom() {
   }
 
   // Save editor-specific data first
-  RETURN_IF_ERROR(current_editor_set->GetScreenEditor()->Save());
+  if (auto* editor = current_editor_set->GetEditor(EditorType::kScreen)) {
+    RETURN_IF_ERROR(editor->Save());
+  }
 
   // Persist dungeon room objects, sprites, door pointers, and palettes when
   // saving ROM (matches ZScreamDungeon behavior so "Save ROM" keeps dungeon edits).
-  RETURN_IF_ERROR(current_editor_set->GetDungeonEditor()->Save());
+  if (auto* editor = current_editor_set->GetEditor(EditorType::kDungeon)) {
+    RETURN_IF_ERROR(editor->Save());
+  }
 
-  RETURN_IF_ERROR(current_editor_set->GetOverworldEditor()->Save());
+  if (auto* editor = current_editor_set->GetEditor(EditorType::kOverworld)) {
+    RETURN_IF_ERROR(editor->Save());
+  }
 
   if (core::FeatureFlags::get().kSaveMessages) {
     RETURN_IF_ERROR(EnsureEditorAssetsLoaded(EditorType::kMessage));
-    RETURN_IF_ERROR(current_editor_set->GetMessageEditor()->Save());
+    if (auto* editor = current_editor_set->GetEditor(EditorType::kMessage)) {
+      RETURN_IF_ERROR(editor->Save());
+    }
   }
 
   if (core::FeatureFlags::get().kSaveGraphicsSheet)
