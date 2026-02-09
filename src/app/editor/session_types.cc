@@ -12,25 +12,59 @@
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/palette/palette_editor.h"
 #include "app/editor/sprite/sprite_editor.h"
+#include "app/editor/system/editor_registry.h"
 #include "app/editor/system/user_settings.h"
 #include "app/editor/ui/settings_panel.h"
 
 namespace yaze::editor {
 
 EditorSet::EditorSet(Rom* rom, zelda3::GameData* game_data,
-                     UserSettings* user_settings, size_t session_id)
+                     UserSettings* user_settings, size_t session_id,
+                     EditorRegistry* editor_registry)
     : session_id_(session_id), game_data_(game_data) {
-  editors_[EditorType::kAssembly] = std::make_unique<AssemblyEditor>(rom);
-  editors_[EditorType::kDungeon] = std::make_unique<DungeonEditorV2>(rom);
-  editors_[EditorType::kGraphics] = std::make_unique<GraphicsEditor>(rom);
-  editors_[EditorType::kMusic] = std::make_unique<MusicEditor>(rom);
-  editors_[EditorType::kOverworld] = std::make_unique<OverworldEditor>(rom);
-  editors_[EditorType::kPalette] = std::make_unique<PaletteEditor>(rom);
-  editors_[EditorType::kScreen] = std::make_unique<ScreenEditor>(rom);
-  editors_[EditorType::kSprite] = std::make_unique<SpriteEditor>(rom);
-  editors_[EditorType::kMessage] = std::make_unique<MessageEditor>(rom);
-  editors_[EditorType::kHex] = std::make_unique<MemoryEditor>(rom);
-  editors_[EditorType::kSettings] = std::make_unique<SettingsPanel>();
+  auto create_editor = [&](EditorType type,
+                           auto&& fallback) -> std::unique_ptr<Editor> {
+    if (editor_registry) {
+      if (auto created = editor_registry->CreateEditor(type, rom)) {
+        return created;
+      }
+    }
+    return fallback();
+  };
+
+  editors_[EditorType::kAssembly] =
+      create_editor(EditorType::kAssembly,
+                    [&]() { return std::make_unique<AssemblyEditor>(rom); });
+  editors_[EditorType::kDungeon] =
+      create_editor(EditorType::kDungeon,
+                    [&]() { return std::make_unique<DungeonEditorV2>(rom); });
+  editors_[EditorType::kGraphics] =
+      create_editor(EditorType::kGraphics,
+                    [&]() { return std::make_unique<GraphicsEditor>(rom); });
+  editors_[EditorType::kMusic] =
+      create_editor(EditorType::kMusic,
+                    [&]() { return std::make_unique<MusicEditor>(rom); });
+  editors_[EditorType::kOverworld] =
+      create_editor(EditorType::kOverworld,
+                    [&]() { return std::make_unique<OverworldEditor>(rom); });
+  editors_[EditorType::kPalette] =
+      create_editor(EditorType::kPalette,
+                    [&]() { return std::make_unique<PaletteEditor>(rom); });
+  editors_[EditorType::kScreen] =
+      create_editor(EditorType::kScreen,
+                    [&]() { return std::make_unique<ScreenEditor>(rom); });
+  editors_[EditorType::kSprite] =
+      create_editor(EditorType::kSprite,
+                    [&]() { return std::make_unique<SpriteEditor>(rom); });
+  editors_[EditorType::kMessage] =
+      create_editor(EditorType::kMessage,
+                    [&]() { return std::make_unique<MessageEditor>(rom); });
+  editors_[EditorType::kHex] =
+      create_editor(EditorType::kHex,
+                    [&]() { return std::make_unique<MemoryEditor>(rom); });
+  editors_[EditorType::kSettings] =
+      create_editor(EditorType::kSettings,
+                    [&]() { return std::make_unique<SettingsPanel>(); });
 
   // Propagate game_data to editors that need it
   if (game_data) {

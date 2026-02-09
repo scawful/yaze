@@ -1,9 +1,12 @@
 #include <gtest/gtest.h>
 
+#include <memory>
+
 #include "app/editor/code/memory_editor.h"
 #include "app/editor/editor.h"
 #include "app/editor/session_types.h"
 #include "app/editor/code/assembly_editor.h"
+#include "app/editor/system/editor_registry.h"
 #include "rom/rom.h"
 
 namespace yaze::editor {
@@ -65,6 +68,24 @@ TEST_F(UnitTest_EditorSet, ApplyDependenciesSetsRomAndWiresMemoryEditor) {
   // MemoryEditor also has an internal ROM pointer that must be updated.
   ASSERT_NE(editor_set.GetMemoryEditor(), nullptr);
   EXPECT_EQ(editor_set.GetMemoryEditor()->rom(), &rom);
+}
+
+TEST_F(UnitTest_EditorSet, UsesEditorRegistryFactoriesWhenProvided) {
+  Rom rom;
+  EditorRegistry registry;
+  bool factory_called = false;
+
+  registry.RegisterFactory(EditorType::kAssembly,
+                           [&factory_called](Rom* arg_rom) {
+                             factory_called = true;
+                             return std::make_unique<AssemblyEditor>(arg_rom);
+                           });
+
+  EditorSet editor_set(&rom, /*game_data=*/nullptr, /*user_settings=*/nullptr,
+                       /*session_id=*/0, &registry);
+
+  EXPECT_TRUE(factory_called);
+  EXPECT_NE(editor_set.GetEditor(EditorType::kAssembly), nullptr);
 }
 
 }  // namespace

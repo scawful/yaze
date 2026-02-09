@@ -13,6 +13,7 @@
 namespace yaze::editor {
 
 class EditorDependencies;
+class EditorRegistry;
 class UserSettings;
 
 // Forward declarations for legacy accessors
@@ -36,7 +37,8 @@ class EditorSet {
  public:
   explicit EditorSet(Rom* rom = nullptr, zelda3::GameData* game_data = nullptr,
                      UserSettings* user_settings = nullptr,
-                     size_t session_id = 0);
+                     size_t session_id = 0,
+                     EditorRegistry* editor_registry = nullptr);
   ~EditorSet();
 
   void set_user_settings(UserSettings* settings);
