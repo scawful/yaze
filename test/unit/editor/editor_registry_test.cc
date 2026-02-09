@@ -1,9 +1,11 @@
 #include <gtest/gtest.h>
 
+#include <memory>
 #include <stdexcept>
 
 #include "app/editor/editor.h"
 #include "app/editor/system/editor_registry.h"
+#include "rom/rom.h"
 
 namespace yaze::editor {
 namespace {
@@ -84,6 +86,30 @@ TEST_F(UnitTest_EditorRegistry, NullEditorPointerThrows) {
                std::invalid_argument);
 }
 
+TEST_F(UnitTest_EditorRegistry, CreateEditorWithoutFactoryReturnsNullptr) {
+  Rom rom;
+  EXPECT_EQ(registry_.CreateEditor(EditorType::kOverworld, &rom), nullptr);
+}
+
+TEST_F(UnitTest_EditorRegistry, FactoryRegistrationAndExecution) {
+  Rom rom;
+  Rom* seen_rom = nullptr;
+  registry_.RegisterFactory(EditorType::kOverworld, [&seen_rom](Rom* arg_rom) {
+    seen_rom = arg_rom;
+    return std::make_unique<FakeEditor>(EditorType::kOverworld);
+  });
+
+  auto editor = registry_.CreateEditor(EditorType::kOverworld, &rom);
+  ASSERT_NE(editor, nullptr);
+  EXPECT_EQ(seen_rom, &rom);
+  EXPECT_EQ(editor->type(), EditorType::kOverworld);
+}
+
+TEST_F(UnitTest_EditorRegistry, NullFactoryThrows) {
+  EditorRegistry::EditorFactory factory;
+  EXPECT_THROW(registry_.RegisterFactory(EditorType::kOverworld, factory),
+               std::invalid_argument);
+}
+
 }  // namespace
 }  // namespace yaze::editor
-
