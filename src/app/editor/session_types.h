@@ -1,21 +1,11 @@
 #ifndef YAZE_APP_EDITOR_SESSION_TYPES_H_
 #define YAZE_APP_EDITOR_SESSION_TYPES_H_
 
-#include <array>
-#include <string>
+#include <memory>
+#include <unordered_map>
 #include <vector>
 
-#include "app/editor/code/assembly_editor.h"
-#include "app/editor/code/memory_editor.h"
-#include "app/editor/dungeon/dungeon_editor_v2.h"
-#include "app/editor/graphics/graphics_editor.h"
-#include "app/editor/graphics/screen_editor.h"
-#include "app/editor/message/message_editor.h"
-#include "app/editor/music/music_editor.h"
-#include "app/editor/overworld/overworld_editor.h"
-#include "app/editor/palette/palette_editor.h"
-#include "app/editor/sprite/sprite_editor.h"
-#include "app/editor/ui/settings_panel.h"
+#include "app/editor/editor.h"
 #include "rom/rom.h"
 #include "zelda3/game_data.h"
 #include "core/features.h"
@@ -23,6 +13,20 @@
 namespace yaze::editor {
 
 class EditorDependencies;
+class UserSettings;
+
+// Forward declarations for legacy accessors
+class AssemblyEditor;
+class MemoryEditor;
+class DungeonEditorV2;
+class GraphicsEditor;
+class ScreenEditor;
+class MessageEditor;
+class MusicEditor;
+class OverworldEditor;
+class PaletteEditor;
+class SpriteEditor;
+class SettingsPanel;
 
 /**
  * @class EditorSet
@@ -30,7 +34,8 @@ class EditorDependencies;
  */
 class EditorSet {
  public:
-  explicit EditorSet(Rom* rom = nullptr, zelda3::GameData* game_data = nullptr, UserSettings* user_settings = nullptr,
+  explicit EditorSet(Rom* rom = nullptr, zelda3::GameData* game_data = nullptr,
+                     UserSettings* user_settings = nullptr,
                      size_t session_id = 0);
   ~EditorSet();
 
@@ -40,18 +45,37 @@ class EditorSet {
 
   size_t session_id() const { return session_id_; }
 
-  // Accessors
-  AssemblyEditor* GetAssemblyEditor() const { return assembly_editor_.get(); }
-  DungeonEditorV2* GetDungeonEditor() const { return dungeon_editor_.get(); }
-  GraphicsEditor* GetGraphicsEditor() const { return graphics_editor_.get(); }
-  MusicEditor* GetMusicEditor() const { return music_editor_.get(); }
-  OverworldEditor* GetOverworldEditor() const { return overworld_editor_.get(); }
-  PaletteEditor* GetPaletteEditor() const { return palette_editor_.get(); }
-  ScreenEditor* GetScreenEditor() const { return screen_editor_.get(); }
-  SpriteEditor* GetSpriteEditor() const { return sprite_editor_.get(); }
-  SettingsPanel* GetSettingsPanel() const { return settings_panel_.get(); }
-  MessageEditor* GetMessageEditor() const { return message_editor_.get(); }
-  MemoryEditor* GetMemoryEditor() const { return memory_editor_.get(); }
+  // Generic accessors
+  Editor* GetEditor(EditorType type) const;
+
+  template <typename T>
+  T* GetEditorAs(EditorType type) const {
+    return static_cast<T*>(GetEditor(type));
+  }
+
+  // Deprecated named accessors (legacy compatibility)
+  [[deprecated("Use GetEditorAs<AssemblyEditor>(EditorType::kAssembly)")]]
+  AssemblyEditor* GetAssemblyEditor() const;
+  [[deprecated("Use GetEditorAs<DungeonEditorV2>(EditorType::kDungeon)")]]
+  DungeonEditorV2* GetDungeonEditor() const;
+  [[deprecated("Use GetEditorAs<GraphicsEditor>(EditorType::kGraphics)")]]
+  GraphicsEditor* GetGraphicsEditor() const;
+  [[deprecated("Use GetEditorAs<MusicEditor>(EditorType::kMusic)")]]
+  MusicEditor* GetMusicEditor() const;
+  [[deprecated("Use GetEditorAs<OverworldEditor>(EditorType::kOverworld)")]]
+  OverworldEditor* GetOverworldEditor() const;
+  [[deprecated("Use GetEditorAs<PaletteEditor>(EditorType::kPalette)")]]
+  PaletteEditor* GetPaletteEditor() const;
+  [[deprecated("Use GetEditorAs<ScreenEditor>(EditorType::kScreen)")]]
+  ScreenEditor* GetScreenEditor() const;
+  [[deprecated("Use GetEditorAs<SpriteEditor>(EditorType::kSprite)")]]
+  SpriteEditor* GetSpriteEditor() const;
+  [[deprecated("Use GetEditorAs<SettingsPanel>(EditorType::kSettings)")]]
+  SettingsPanel* GetSettingsPanel() const;
+  [[deprecated("Use GetEditorAs<MessageEditor>(EditorType::kMessage)")]]
+  MessageEditor* GetMessageEditor() const;
+  [[deprecated("Use GetEditorAs<MemoryEditor>(EditorType::kHex)")]]
+  MemoryEditor* GetMemoryEditor() const;
 
   std::vector<Editor*> active_editors_;
 
@@ -59,17 +83,7 @@ class EditorSet {
   size_t session_id_ = 0;
   zelda3::GameData* game_data_ = nullptr;
 
-  std::unique_ptr<AssemblyEditor> assembly_editor_;
-  std::unique_ptr<DungeonEditorV2> dungeon_editor_;
-  std::unique_ptr<GraphicsEditor> graphics_editor_;
-  std::unique_ptr<MusicEditor> music_editor_;
-  std::unique_ptr<OverworldEditor> overworld_editor_;
-  std::unique_ptr<PaletteEditor> palette_editor_;
-  std::unique_ptr<ScreenEditor> screen_editor_;
-  std::unique_ptr<SpriteEditor> sprite_editor_;
-  std::unique_ptr<SettingsPanel> settings_panel_;
-  std::unique_ptr<MessageEditor> message_editor_;
-  std::unique_ptr<MemoryEditor> memory_editor_;
+  std::unordered_map<EditorType, std::unique_ptr<Editor>> editors_;
 };
 
 /**
