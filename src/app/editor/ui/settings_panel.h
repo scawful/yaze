@@ -37,6 +37,8 @@ class SettingsPanel : public Editor {
     type_ = EditorType::kSettings;
   }
 
+  void SetDependencies(const EditorDependencies& deps) override;
+
   void Initialize() override {}
   absl::Status Load() override { return absl::OkStatus(); }
   absl::Status Save() override { return absl::OkStatus(); }

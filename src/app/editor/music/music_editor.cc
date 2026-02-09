@@ -38,6 +38,13 @@
 namespace yaze {
 namespace editor {
 
+void MusicEditor::SetDependencies(const EditorDependencies& deps) {
+  Editor::SetDependencies(deps);
+  set_rom(deps.rom);
+  SetProject(deps.project);
+  set_emulator(deps.emulator);
+}
+
 void MusicEditor::Initialize() {
   LOG_INFO("MusicEditor", "Initialize() START: rom_=%p, emulator_=%p",
            static_cast<void*>(rom_), static_cast<void*>(emulator_));

@@ -92,6 +92,8 @@ class MusicEditor : public Editor {
     type_ = EditorType::kMusic;
   }
 
+  void SetDependencies(const EditorDependencies& deps) override;
+
   void Initialize() override;
   absl::Status Load() override;
   absl::Status Save() override;

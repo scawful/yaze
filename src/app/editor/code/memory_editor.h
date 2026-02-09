@@ -23,6 +23,11 @@ class MemoryEditor : public Editor {
     type_ = EditorType::kHex;
   }
 
+  void SetDependencies(const EditorDependencies& deps) override {
+    Editor::SetDependencies(deps);
+    rom_ = deps.rom;
+  }
+
   void Initialize() override {}
   absl::Status Load() override { return absl::OkStatus(); }
   absl::Status Save() override { return absl::OkStatus(); }
