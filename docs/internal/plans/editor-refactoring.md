@@ -26,7 +26,7 @@ Refactor the core editor architecture (`EditorManager`, `EditorSet`) to move fro
 4.  **AssemblyEditor**: [DONE]
     Standardized `Update()` signature.
 
-### Phase 2: Dynamic Editor Container
+### Phase 2: Dynamic Editor Container [COMPLETE]
 **Target**: `src/app/editor/session_types.h`, `src/app/editor/session_types.cc`
 
 1.  **Refactor `EditorSet`**:
@@ -35,7 +35,7 @@ Refactor the core editor architecture (`EditorManager`, `EditorSet`) to move fro
     *   Implement `Editor* GetEditor(EditorType type) const`.
     *   Implement `template <typename T> T* GetEditorAs(EditorType type)`.
 
-### Phase 3: Registry-Based Instantiation
+### Phase 3: Registry-Based Instantiation [COMPLETE]
 **Target**: `src/app/editor/system/editor_registry.h`, `src/app/editor/editor_manager.cc`
 
 1.  **Factory Registry**:
@@ -44,7 +44,7 @@ Refactor the core editor architecture (`EditorManager`, `EditorSet`) to move fro
     *   Register factories in `EditorManager::Initialize`.
     *   Update `EditorSet` constructor to use the registry.
 
-### Phase 4: Polymorphic Wiring
+### Phase 4: Polymorphic Wiring [COMPLETE]
 **Target**: `src/app/editor/editor.h`, specific editor implementations
 
 1.  **Virtual Configuration**:
@@ -54,7 +54,7 @@ Refactor the core editor architecture (`EditorManager`, `EditorSet`) to move fro
 3.  **Simplify `ApplyDependencies`**:
     *   Reduce to a generic loop.
 
-### Phase 5: Decoupling EditorManager
+### Phase 5: Decoupling EditorManager [COMPLETE]
 **Target**: `src/app/editor/editor_manager.cc`
 
 1.  **Event-Driven Navigation**:
