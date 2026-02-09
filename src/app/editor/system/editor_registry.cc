@@ -245,7 +245,7 @@ bool EditorRegistry::IsEditorActive(EditorType type) const {
 
   auto it = registered_editors_.find(type);
   if (it != registered_editors_.end() && it->second) {
-    return it->second->active();
+    return *it->second->active();
   }
   return false;
 }
@@ -255,7 +255,7 @@ bool EditorRegistry::IsEditorVisible(EditorType type) const {
 
   auto it = registered_editors_.find(type);
   if (it != registered_editors_.end() && it->second) {
-    return it->second->active();
+    return *it->second->active();
   }
   return false;
 }

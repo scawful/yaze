@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
 
   // Configure minimal logging
   yaze::util::LogManager::instance().configure(
-      yaze::util::LogLevel::INFO, "", {"Test"});
+      yaze::util::LogLevel::INFO, "", {"Test", "Error"});
 
   LOG_INFO("Test", "Registering test suites...");
   yaze::test::RegisterZ3edTestSuites();
