@@ -102,6 +102,8 @@ ctest --test-dir build_ai -C Debug -L integration
 
 # Preset-based runs (see CMakePresets.json testPresets)
 ctest --preset mac-ai-unit
+ctest --preset mac-ai-quick-unit
+ctest --preset mac-ai-quick-integration
 ```
 
 Some tests require a ROM. Set `YAZE_TEST_ROM_VANILLA` or
