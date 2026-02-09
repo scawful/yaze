@@ -167,6 +167,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/oracle_progression_test.cc
     unit/core/oracle_progression_loader_test.cc
     unit/core/story_event_graph_test.cc
+    unit/core/story_event_graph_query_test.cc
     unit/core/project_paths_test.cc
     unit/core/project_bundle_test.cc
     unit/deps/dependency_smoke_test.cc
