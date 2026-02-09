@@ -73,6 +73,10 @@ final class YazeProjectOpenService {
       // iCloud Drive items may be lazily downloaded. Request a download if needed.
       // (Safe no-op for non-ubiquitous URLs.)
       try? fm.startDownloadingUbiquitousItem(at: bundleRoot)
+      // Also request the key bundle members we depend on during open.
+      try? fm.startDownloadingUbiquitousItem(at: bundleRoot.appendingPathComponent("project.yaze"))
+      try? fm.startDownloadingUbiquitousItem(at: bundleRoot.appendingPathComponent("rom"))
+      try? fm.startDownloadingUbiquitousItem(at: bundleRoot.appendingPathComponent("manifest.json"))
 
       // Keep access alive for the duration of the project session.
       // Prefer the bundle root, but also include the originally picked URL in
