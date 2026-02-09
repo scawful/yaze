@@ -1409,7 +1409,7 @@
         "YAZE_ENABLE_JSON": "ON",
         "YAZE_ENABLE_HTTP_API": "ON",
         "YAZE_ENABLE_AGENT_CLI": "ON",
-        "YAZE_ENABLE_AI_RUNTIME": "OFF"
+        "YAZE_ENABLE_AI_RUNTIME": "ON"
       },
       "displayName": "macOS AI Development",
       "name": "mac-ai",
