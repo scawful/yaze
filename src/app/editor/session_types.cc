@@ -142,6 +142,13 @@ std::vector<std::pair<uint32_t, uint32_t>> EditorSet::CollectDungeonWriteRanges(
   return {};
 }
 
+zelda3::Overworld* EditorSet::GetOverworldData() const {
+  if (auto* editor = GetOverworldEditor()) {
+    return &editor->overworld();
+  }
+  return nullptr;
+}
+
 // Deprecated named accessors
 AssemblyEditor* EditorSet::GetAssemblyEditor() const {
   return GetEditorAs<AssemblyEditor>(EditorType::kAssembly);

@@ -43,7 +43,6 @@
 #include "app/editor/layout/layout_presets.h"
 #include "app/editor/menu/activity_bar.h"
 #include "app/editor/menu/menu_orchestrator.h"
-#include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/session_types.h"
 #include "app/editor/system/default_editor_factories.h"
 #include "app/editor/system/editor_registry.h"
@@ -3210,7 +3209,7 @@ absl::Status EditorManager::RepairCurrentProject() {
 
 yaze::zelda3::Overworld* EditorManager::overworld() const {
   if (auto* editor_set = GetCurrentEditorSet()) {
-    return &editor_set->GetOverworldEditor()->overworld();
+    return editor_set->GetOverworldData();
   }
   return nullptr;
 }
