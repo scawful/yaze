@@ -184,6 +184,11 @@ absl::StatusOr<std::vector<WaterFillZoneEntry>> LoadWaterFillTable(Rom* rom) {
     return std::vector<WaterFillZoneEntry>{};
   }
 
+  // ROM safety: ensure custom collision does not overlap the reserved WaterFill
+  // table region. This catches corrupted ROM layouts early and prevents the
+  // editor from presenting potentially invalid authoring state.
+  RETURN_IF_ERROR(ValidateCustomCollisionDoesNotOverlapWaterFillReserved(data));
+
   const uint8_t zone_count = data[static_cast<size_t>(kWaterFillTableStart)];
   if (zone_count == 0) {
     return std::vector<WaterFillZoneEntry>{};

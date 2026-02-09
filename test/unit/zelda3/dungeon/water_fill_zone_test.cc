@@ -188,6 +188,20 @@ TEST(WaterFillZoneTest, WriteRejectsWhenCollisionPointerOverlapsReserved) {
   EXPECT_FALSE(status.ok());
 }
 
+TEST(WaterFillZoneTest, LoadRejectsWhenCollisionPointerOverlapsReserved) {
+  auto rom = MakeDummyRom(0x200000);
+
+  // Make room 0 custom collision pointer point into the reserved region.
+  const uint32_t snes = PcToSnes(static_cast<uint32_t>(kWaterFillTableStart));
+  const int ptr_offset = kCustomCollisionRoomPointers + 0;
+  ASSERT_TRUE(rom->WriteByte(ptr_offset + 0, snes & 0xFF).ok());
+  ASSERT_TRUE(rom->WriteByte(ptr_offset + 1, (snes >> 8) & 0xFF).ok());
+  ASSERT_TRUE(rom->WriteByte(ptr_offset + 2, (snes >> 16) & 0xFF).ok());
+
+  auto loaded_or = LoadWaterFillTable(rom.get());
+  EXPECT_FALSE(loaded_or.ok());
+}
+
 TEST(WaterFillZoneTest, WriteRejectsWhenCollisionDataOverlapsReserved) {
   auto rom = MakeDummyRom(0x200000);
 
@@ -212,6 +226,27 @@ TEST(WaterFillZoneTest, WriteRejectsWhenCollisionDataOverlapsReserved) {
 
   auto status = WriteWaterFillTable(rom.get(), {z});
   EXPECT_FALSE(status.ok());
+}
+
+TEST(WaterFillZoneTest, LoadRejectsWhenCollisionDataOverlapsReserved) {
+  auto rom = MakeDummyRom(0x200000);
+
+  // Create a minimal single-tile collision blob that crosses into the reserved
+  // WaterFill region. Start just before reserved start.
+  const uint32_t start_pc = static_cast<uint32_t>(kWaterFillTableStart - 4);
+  const uint32_t snes = PcToSnes(start_pc);
+  const int ptr_offset = kCustomCollisionRoomPointers + 0;
+  ASSERT_TRUE(rom->WriteByte(ptr_offset + 0, snes & 0xFF).ok());
+  ASSERT_TRUE(rom->WriteByte(ptr_offset + 1, (snes >> 8) & 0xFF).ok());
+  ASSERT_TRUE(rom->WriteByte(ptr_offset + 2, (snes >> 16) & 0xFF).ok());
+
+  // Blob: F0 F0 (single tile mode), 00 00 08, FF FF.
+  // Total 7 bytes; end marker lands after kWaterFillTableStart.
+  std::vector<uint8_t> blob = {0xF0, 0xF0, 0x00, 0x00, 0x08, 0xFF, 0xFF};
+  ASSERT_TRUE(rom->WriteVector(static_cast<int>(start_pc), blob).ok());
+
+  auto loaded_or = LoadWaterFillTable(rom.get());
+  EXPECT_FALSE(loaded_or.ok());
 }
 
 TEST(WaterFillZoneTest, LoadLegacyWaterGateZonesParsesSym) {
