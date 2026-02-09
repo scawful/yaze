@@ -158,7 +158,9 @@ struct YazeOverlayView: View {
     }
     .sheet(isPresented: $showProjectPicker) {
       DocumentPicker(
-        contentTypes: [.yazeProject],
+        // Files app sometimes exposes package directories as folders in the picker.
+        // Accept `.folder` as a fallback and validate by contents in the open service.
+        contentTypes: [.yazeProject, .folder],
         asCopy: false
       ) { url in
         do {
@@ -789,7 +791,9 @@ struct FilesystemSettingsView: View {
       }
       .sheet(isPresented: $showBundleImporter) {
         DocumentPicker(
-          contentTypes: [.yazeProject],
+          // Files app sometimes exposes package directories as folders in the picker.
+          // Accept `.folder` as a fallback and validate by contents in the open service.
+          contentTypes: [.yazeProject, .folder],
           asCopy: false
         ) { url in
           do {
