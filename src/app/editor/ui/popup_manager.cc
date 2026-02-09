@@ -7,11 +7,13 @@
 #include <initializer_list>
 
 #include "absl/status/status.h"
+#include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/layout/layout_presets.h"
 #include "app/gui/app/feature_flags_menu.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/input.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/theme_manager.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
@@ -270,7 +272,7 @@ void PopupManager::DrawStatusPopup() {
     Separator();
     NewLine();
     SameLine(128);
-    if (Button("OK", gui::kDefaultModalSize) || IsKeyPressed(ImGuiKey_Space)) {
+    if (Button("OK", ::yaze::gui::kDefaultModalSize) || IsKeyPressed(ImGuiKey_Space)) {
       show_status_ = false;
       status_ = absl::OkStatus();
     }
@@ -289,7 +291,7 @@ void PopupManager::DrawAboutPopup() {
   Text("Special Thanks: Zarby89, JaredBrian");
   Separator();
 
-  if (Button("Close", gui::kDefaultModalSize)) {
+  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
     Hide("About");
   }
 }
@@ -324,7 +326,7 @@ void PopupManager::DrawRomInfoPopup() {
     }
   }
 
-  if (Button("Close", gui::kDefaultModalSize) ||
+  if (Button("Close", ::yaze::gui::kDefaultModalSize) ||
       IsKeyPressed(ImGuiKey_Escape)) {
     Hide("ROM Information");
   }
@@ -345,7 +347,7 @@ void PopupManager::DrawSaveAsPopup() {
   Separator();
 
   if (Button(absl::StrFormat("%s Browse...", ICON_MD_FOLDER_OPEN).c_str(),
-             gui::kDefaultModalSize)) {
+             ::yaze::gui::kDefaultModalSize)) {
     auto file_path =
         util::FileDialogWrapper::ShowSaveFileDialog(save_as_filename, "sfc");
     if (!file_path.empty()) {
@@ -355,7 +357,7 @@ void PopupManager::DrawSaveAsPopup() {
 
   SameLine();
   if (Button(absl::StrFormat("%s Save", ICON_MD_SAVE).c_str(),
-             gui::kDefaultModalSize)) {
+             ::yaze::gui::kDefaultModalSize)) {
     if (!save_as_filename.empty()) {
       // Ensure proper file extension
       std::string final_filename = save_as_filename;
@@ -374,7 +376,7 @@ void PopupManager::DrawSaveAsPopup() {
 
   SameLine();
   if (Button(absl::StrFormat("%s Cancel", ICON_MD_CANCEL).c_str(),
-             gui::kDefaultModalSize)) {
+             ::yaze::gui::kDefaultModalSize)) {
     save_as_filename = "";
     Hide(PopupID::kSaveAs);
   }
@@ -433,7 +435,7 @@ void PopupManager::DrawSaveScopePopup() {
   }
 
   Separator();
-  if (Button("Close", gui::kDefaultModalSize)) {
+  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
     Hide(PopupID::kSaveScope);
   }
 }
@@ -444,7 +446,7 @@ void PopupManager::DrawRomBackupManagerPopup() {
   auto* rom = editor_manager_->GetCurrentRom();
   if (!rom || !rom->is_loaded()) {
     Text("No ROM loaded.");
-    if (Button("Close", gui::kDefaultModalSize)) {
+    if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
       Hide(PopupID::kRomBackups);
     }
     return;
@@ -559,7 +561,7 @@ void PopupManager::DrawRomBackupManagerPopup() {
   }
 
   Separator();
-  if (Button("Close", gui::kDefaultModalSize)) {
+  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
     Hide(PopupID::kRomBackups);
   }
 }
@@ -576,14 +578,14 @@ void PopupManager::DrawNewProjectPopup() {
   InputText("Project Name", &project_name);
 
   if (Button(absl::StrFormat("%s Destination Folder", ICON_MD_FOLDER).c_str(),
-             gui::kDefaultModalSize)) {
+             ::yaze::gui::kDefaultModalSize)) {
     project_filepath = util::FileDialogWrapper::ShowOpenFolderDialog();
   }
   SameLine();
   Text("%s", project_filepath.empty() ? "(Not set)" : project_filepath.c_str());
 
   if (Button(absl::StrFormat("%s ROM File", ICON_MD_VIDEOGAME_ASSET).c_str(),
-             gui::kDefaultModalSize)) {
+             ::yaze::gui::kDefaultModalSize)) {
     rom_filename = util::FileDialogWrapper::ShowOpenFileDialog(
         util::MakeRomFileDialogOptions(false));
   }
@@ -591,14 +593,14 @@ void PopupManager::DrawNewProjectPopup() {
   Text("%s", rom_filename.empty() ? "(Not set)" : rom_filename.c_str());
 
   if (Button(absl::StrFormat("%s Labels File", ICON_MD_LABEL).c_str(),
-             gui::kDefaultModalSize)) {
+             ::yaze::gui::kDefaultModalSize)) {
     labels_filename = util::FileDialogWrapper::ShowOpenFileDialog();
   }
   SameLine();
   Text("%s", labels_filename.empty() ? "(Not set)" : labels_filename.c_str());
 
   if (Button(absl::StrFormat("%s Code Folder", ICON_MD_CODE).c_str(),
-             gui::kDefaultModalSize)) {
+             ::yaze::gui::kDefaultModalSize)) {
     code_folder = util::FileDialogWrapper::ShowOpenFolderDialog();
   }
   SameLine();
@@ -608,11 +610,12 @@ void PopupManager::DrawNewProjectPopup() {
 
   if (Button(absl::StrFormat("%s Choose Project File Location", ICON_MD_SAVE)
                  .c_str(),
-             gui::kDefaultModalSize)) {
+             ::yaze::gui::kDefaultModalSize)) {
     auto project_file_path =
         util::FileDialogWrapper::ShowSaveFileDialog(project_name, "yaze");
     if (!project_file_path.empty()) {
-      if (project_file_path.find(".yaze") == std::string::npos) {
+      if (!(absl::EndsWith(project_file_path, ".yaze") ||
+            absl::EndsWith(project_file_path, ".yazeproj"))) {
         project_file_path += ".yaze";
       }
       project_filepath = project_file_path;
@@ -620,7 +623,7 @@ void PopupManager::DrawNewProjectPopup() {
   }
 
   if (Button(absl::StrFormat("%s Create Project", ICON_MD_ADD).c_str(),
-             gui::kDefaultModalSize)) {
+             ::yaze::gui::kDefaultModalSize)) {
     if (!project_filepath.empty() && !project_name.empty()) {
       auto status = editor_manager_->CreateNewProject();
       if (status.ok()) {
@@ -636,7 +639,7 @@ void PopupManager::DrawNewProjectPopup() {
   }
   SameLine();
   if (Button(absl::StrFormat("%s Cancel", ICON_MD_CANCEL).c_str(),
-             gui::kDefaultModalSize)) {
+             ::yaze::gui::kDefaultModalSize)) {
     // Clear fields
     project_name = "";
     project_filepath = "";
@@ -781,7 +784,7 @@ void PopupManager::DrawSupportedFeaturesPopup() {
         });
   }
 
-  if (Button("Close", gui::kDefaultModalSize)) {
+  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
     Hide(PopupID::kSupportedFeatures);
   }
 }
@@ -796,7 +799,7 @@ void PopupManager::DrawOpenRomHelpPopup() {
   Spacing();
   TextWrapped("ROM files are not bundled. Use a clean, legally obtained copy.");
 
-  if (Button("Close", gui::kDefaultModalSize)) {
+  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
     Hide("Open a ROM");
   }
 }
@@ -811,7 +814,7 @@ void PopupManager::DrawManageProjectPopup() {
       "the View menu. Code path is set in the Code editor after opening a "
       "folder.");
 
-  if (Button("Close", gui::kDefaultModalSize)) {
+  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
     Hide("Manage Project");
   }
 }
@@ -836,7 +839,7 @@ void PopupManager::DrawGettingStartedPopup() {
       "Configure AI providers (Ollama/Gemini/OpenAI/Anthropic) in Settings > "
       "Agent");
 
-  if (Button("Close", gui::kDefaultModalSize)) {
+  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
     Hide("Getting Started");
   }
 }
@@ -852,7 +855,7 @@ void PopupManager::DrawAsarIntegrationPopup() {
   BulletText("Assembly validation with detailed error reporting");
   BulletText("Memory-safe patch application with size checks");
 
-  if (Button("Close", gui::kDefaultModalSize)) {
+  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
     Hide("Asar Integration");
   }
 }
@@ -871,7 +874,7 @@ void PopupManager::DrawBuildInstructionsPopup() {
   Spacing();
   TextWrapped("Docs: docs/public/build/quick-reference.md");
 
-  if (Button("Close", gui::kDefaultModalSize)) {
+  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
     Hide("Build Instructions");
   }
 }
@@ -891,7 +894,7 @@ void PopupManager::DrawCLIUsagePopup() {
   TextWrapped("Storage:");
   BulletText("Agent plans/proposals live under ~/.yaze (see docs for details)");
 
-  if (Button("Close", gui::kDefaultModalSize)) {
+  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
     Hide("CLI Usage");
   }
 }
@@ -909,7 +912,7 @@ void PopupManager::DrawTroubleshootingPopup() {
   BulletText("Crashes: Check ROM file integrity and available memory");
   BulletText("Layout issues: Reset workspace layouts from View > Layouts");
 
-  if (Button("Close", gui::kDefaultModalSize)) {
+  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
     Hide("Troubleshooting");
   }
 }
@@ -925,7 +928,7 @@ void PopupManager::DrawContributingPopup() {
   BulletText("Include tests for new features");
   BulletText("Submit pull requests for review");
 
-  if (Button("Close", gui::kDefaultModalSize)) {
+  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
     Hide("Contributing");
   }
 }
@@ -979,7 +982,7 @@ void PopupManager::DrawWhatsNewPopup() {
     // Could trigger release notes panel opening here
   }
 
-  if (Button("Close", gui::kDefaultModalSize)) {
+  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
     Hide(PopupID::kWhatsNew);
   }
 }
@@ -1009,7 +1012,7 @@ void PopupManager::DrawWorkspaceHelpPopup() {
   BulletText("Designer: Graphics, palettes, sprites");
   BulletText("Modder: All gameplay editing tools");
 
-  if (Button("Close", gui::kDefaultModalSize)) {
+  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
     Hide("Workspace Help");
   }
 }
@@ -1021,11 +1024,11 @@ void PopupManager::DrawSessionLimitWarningPopup() {
   Spacing();
   TextWrapped("Consider closing unused sessions or saving your work.");
 
-  if (Button("Understood", gui::kDefaultModalSize)) {
+  if (Button("Understood", ::yaze::gui::kDefaultModalSize)) {
     Hide("Session Limit Warning");
   }
   SameLine();
-  if (Button("Open Session Manager", gui::kDefaultModalSize)) {
+  if (Button("Open Session Manager", ::yaze::gui::kDefaultModalSize)) {
     Hide("Session Limit Warning");
     // This would trigger the session manager to open
   }
@@ -1039,12 +1042,12 @@ void PopupManager::DrawLayoutResetConfirmPopup() {
   Spacing();
   TextWrapped("Do you want to continue?");
 
-  if (Button("Reset Layout", gui::kDefaultModalSize)) {
+  if (Button("Reset Layout", ::yaze::gui::kDefaultModalSize)) {
     Hide("Layout Reset Confirm");
     // This would trigger the actual reset
   }
   SameLine();
-  if (Button("Cancel", gui::kDefaultModalSize)) {
+  if (Button("Cancel", ::yaze::gui::kDefaultModalSize)) {
     Hide("Layout Reset Confirm");
   }
 }
@@ -1291,7 +1294,7 @@ void PopupManager::DrawDisplaySettingsPopup() {
   EndChild();
 
   Separator();
-  if (Button("Close", gui::kDefaultModalSize)) {
+  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
     Hide("Display Settings");
   }
 }
@@ -1331,7 +1334,7 @@ void PopupManager::DrawFeatureFlagsPopup() {
   EndChild();
 
   Separator();
-  if (Button("Close", gui::kDefaultModalSize)) {
+  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
     Hide(PopupID::kFeatureFlags);
   }
 }
@@ -1359,7 +1362,7 @@ void PopupManager::DrawDataIntegrityPopup() {
   EndChild();
 
   Separator();
-  if (Button("Close", gui::kDefaultModalSize)) {
+  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
     Hide(PopupID::kDataIntegrity);
   }
 }
@@ -1369,7 +1372,7 @@ void PopupManager::DrawDungeonPotItemSaveConfirmPopup() {
 
   if (!editor_manager_) {
     Text("Editor manager unavailable.");
-    if (Button("Close", gui::kDefaultModalSize)) {
+    if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
       Hide(PopupID::kDungeonPotItemSaveConfirm);
     }
     return;
@@ -1415,7 +1418,7 @@ void PopupManager::DrawRomWriteConfirmPopup() {
 
   if (!editor_manager_) {
     Text("Editor manager unavailable.");
-    if (Button("Close", gui::kDefaultModalSize)) {
+    if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
       Hide(PopupID::kRomWriteConfirm);
     }
     return;
@@ -1467,7 +1470,7 @@ void PopupManager::DrawWriteConflictWarningPopup() {
 
   if (!editor_manager_) {
     Text("Editor manager unavailable.");
-    if (Button("Close", gui::kDefaultModalSize)) {
+    if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
       Hide(PopupID::kWriteConflictWarning);
     }
     return;

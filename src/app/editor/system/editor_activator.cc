@@ -2,6 +2,9 @@
 
 #include "app/editor/events/core_events.h"
 #include "app/editor/session_types.h"
+#include "app/editor/code/assembly_editor.h"
+#include "app/editor/dungeon/dungeon_editor_v2.h"
+#include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/panel_manager.h"
 #include "app/editor/layout/layout_manager.h"

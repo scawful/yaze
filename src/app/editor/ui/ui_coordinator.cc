@@ -25,6 +25,7 @@
 #include "app/editor/ui/welcome_screen.h"
 #include "app/gui/core/background_renderer.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/input.h"
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/theme_manager.h"

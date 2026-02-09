@@ -3,6 +3,7 @@
 
 #include <string>
 
+#include "app/editor/editor.h"
 #include "app/editor/menu/status_bar.h"
 #include "app/editor/system/user_settings.h"
 #include "core/patch/patch_manager.h"
@@ -30,9 +31,23 @@ class ShortcutManager;
  * - Keyboard shortcuts
  * - Project configuration
  */
-class SettingsPanel {
+class SettingsPanel : public Editor {
  public:
-  SettingsPanel() = default;
+  SettingsPanel() {
+    type_ = EditorType::kSettings;
+  }
+
+  void Initialize() override {}
+  absl::Status Load() override { return absl::OkStatus(); }
+  absl::Status Save() override { return absl::OkStatus(); }
+  absl::Status Update() override { Draw(); return absl::OkStatus(); }
+
+  absl::Status Undo() override { return absl::OkStatus(); }
+  absl::Status Redo() override { return absl::OkStatus(); }
+  absl::Status Cut() override { return absl::OkStatus(); }
+  absl::Status Copy() override { return absl::OkStatus(); }
+  absl::Status Paste() override { return absl::OkStatus(); }
+  absl::Status Find() override { return absl::OkStatus(); }
 
   void SetUserSettings(UserSettings* settings) { user_settings_ = settings; }
   void SetPanelManager(PanelManager* registry) { panel_manager_ = registry; }
