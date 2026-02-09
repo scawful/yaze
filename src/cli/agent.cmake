@@ -105,6 +105,7 @@ set(YAZE_AGENT_CORE_SOURCES
   cli/service/agent/tools/code_gen_tool.cc
   cli/service/agent/tools/filesystem_tool.cc
   cli/service/agent/tools/memory_inspector_tool.cc
+  cli/service/agent/tools/project_graph_tool.cc
   cli/service/agent/tools/project_tool.cc
   cli/service/agent/tools/rom_diff_tool.cc
   cli/service/agent/tools/validation_tool.cc
@@ -116,7 +117,6 @@ set(YAZE_AGENT_CORE_SOURCES
   cli/service/planning/policy_evaluator.cc
   cli/service/planning/proposal_registry.cc
   cli/service/planning/tile16_proposal_generator.cc
-  cli/service/rom/rom_sandbox_manager.cc
   cli/service/agent/proposal_executor.cc
 
   cli/service/ai/ai_action_parser.cc
@@ -125,10 +125,6 @@ set(YAZE_AGENT_CORE_SOURCES
   cli/service/ai/vision_action_refiner.cc
   cli/service/api/http_server.cc
   cli/service/api/api_handlers.cc
-  
-  app/editor/agent/agent_chat.cc # New unified chat component
-  app/editor/agent/agent_editor.cc
-  app/editor/agent/panels/agent_editor_panels.cc
 )
 
 if(YAZE_ENABLE_REMOTE_AUTOMATION)
@@ -155,6 +151,13 @@ else()
 endif()
 
 set(YAZE_AGENT_SOURCES ${YAZE_AGENT_CORE_SOURCES})
+
+# iOS: use NSURLSession-backed HTTP helper for AI providers (TLS without OpenSSL)
+if(YAZE_PLATFORM_IOS)
+  list(APPEND YAZE_AGENT_SOURCES
+    cli/service/ai/ios_urlsession_http_client.mm
+  )
+endif()
 
 # gRPC-dependent sources (only added when remote automation is enabled)
 if(YAZE_ENABLE_REMOTE_AUTOMATION)

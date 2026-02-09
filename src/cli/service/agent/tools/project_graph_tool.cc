@@ -84,7 +84,7 @@ absl::Status ProjectGraphTool::GetSymbolTable(
     resources::OutputFormatter& formatter) const {
   const auto& symbols = asar_wrapper_->GetSymbolTable();
   if (symbols.empty()) {
-    return absl::NotFound(
+    return absl::NotFoundError(
         "No symbols loaded. Load symbols via the Assemble menu or ensure the "
         "build script generates them.");
   }

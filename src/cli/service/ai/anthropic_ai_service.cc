@@ -3,6 +3,7 @@
 #include <atomic>
 #include <cstdlib>
 #include <iostream>
+#include <map>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -15,6 +16,15 @@
 #include "absl/time/time.h"
 #include "cli/service/agent/conversational_agent_service.h"
 #include "util/platform_paths.h"
+
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
+
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+#include "cli/service/ai/ios_urlsession_http_client.h"
+#define YAZE_AI_IOS_URLSESSION 1
+#endif
 
 #ifdef YAZE_WITH_JSON
 #include <filesystem>
@@ -263,6 +273,25 @@ absl::StatusOr<AgentResponse> AnthropicAIService::GenerateResponse(
                 << " messages to Anthropic" << std::endl;
     }
 
+    std::string response_str;
+#if defined(YAZE_AI_IOS_URLSESSION)
+    std::map<std::string, std::string> headers;
+    headers.emplace("x-api-key", config_.api_key);
+    headers.emplace("anthropic-version", "2023-06-01");
+    headers.emplace("content-type", "application/json");
+    auto resp_or = ios::UrlSessionHttpRequest(
+        "POST", "https://api.anthropic.com/v1/messages", headers,
+        request_body.dump(), 60000);
+    if (!resp_or.ok()) {
+      return resp_or.status();
+    }
+    if (resp_or->status_code != 200) {
+      return absl::InternalError(
+          absl::StrCat("Anthropic API error: ", resp_or->status_code, "\n",
+                       resp_or->body));
+    }
+    response_str = resp_or->body;
+#else
     // Write request body to temp file
     std::string temp_file = "/tmp/anthropic_request.json";
     std::ofstream out(temp_file);
@@ -293,7 +322,6 @@ absl::StatusOr<AgentResponse> AnthropicAIService::GenerateResponse(
       return absl::InternalError("Failed to execute curl command");
     }
 
-    std::string response_str;
     char buffer[4096];
     while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
       response_str += buffer;
@@ -310,6 +338,7 @@ absl::StatusOr<AgentResponse> AnthropicAIService::GenerateResponse(
       return absl::InternalError(
           absl::StrCat("Curl failed with status ", status));
     }
+#endif  // YAZE_AI_IOS_URLSESSION
 
     if (response_str.empty()) {
       return absl::InternalError("Empty response from Anthropic API");

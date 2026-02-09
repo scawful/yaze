@@ -51,10 +51,8 @@
 
 #if defined(__APPLE__)
 #include <TargetConditionals.h>
-#if !TARGET_OS_IPHONE
 #include <CoreFoundation/CoreFoundation.h>
 #include <Security/Security.h>
-#endif
 #endif
 
 #ifdef YAZE_WITH_GRPC
@@ -415,7 +413,7 @@ bool ProbeOpenAICompatible(const std::string&) {
 #endif
 
 std::optional<std::string> LoadKeychainValue(const std::string& key) {
-#if defined(__APPLE__) && !TARGET_OS_IPHONE
+#if defined(__APPLE__)
   if (key.empty()) {
     return std::nullopt;
   }
