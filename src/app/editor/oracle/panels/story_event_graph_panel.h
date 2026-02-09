@@ -2,7 +2,10 @@
 #define YAZE_APP_EDITOR_ORACLE_PANELS_STORY_EVENT_GRAPH_PANEL_H
 
 #include <cmath>
+#include <cstdint>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 #include "app/editor/core/content_registry.h"
 #include "app/editor/system/editor_panel.h"
@@ -10,7 +13,9 @@
 #include "core/hack_manifest.h"
 #include "core/project.h"
 #include "core/story_event_graph.h"
+#include "core/story_event_graph_query.h"
 #include "imgui/imgui.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
 
 namespace yaze::editor {
 
@@ -88,6 +93,11 @@ class StoryEventGraphPanel : public EditorPanel {
 
     ImGui::Separator();
 
+    DrawFilterControls(graph);
+    UpdateFilterCache(graph);
+
+    ImGui::Separator();
+
     // Main canvas area
     ImVec2 canvas_pos = ImGui::GetCursorScreenPos();
     ImVec2 canvas_size = ImGui::GetContentRegionAvail();
@@ -139,6 +149,9 @@ class StoryEventGraphPanel : public EditorPanel {
       const auto* from_node = graph.GetNode(edge.from);
       const auto* to_node = graph.GetNode(edge.to);
       if (!from_node || !to_node) continue;
+      if (hide_non_matching_) {
+        if (!IsNodeVisible(edge.from) || !IsNodeVisible(edge.to)) continue;
+      }
 
       ImVec2 p1(cx + from_node->pos_x * zoom_ + kNodeWidth * zoom_ * 0.5f,
                 cy + from_node->pos_y * zoom_);
@@ -173,6 +186,10 @@ class StoryEventGraphPanel : public EditorPanel {
     ImVec2 mouse_pos = ImGui::GetIO().MousePos;
 
     for (const auto& node : graph.nodes()) {
+      if (hide_non_matching_ && !IsNodeVisible(node.id)) {
+        continue;
+      }
+
       float nx = cx + node.pos_x * zoom_ - kNodeWidth * zoom_ * 0.5f;
       float ny = cy + node.pos_y * zoom_ - kNodeHeight * zoom_ * 0.5f;
       float nw = kNodeWidth * zoom_;
@@ -183,9 +200,11 @@ class StoryEventGraphPanel : public EditorPanel {
 
       // Color by status
       ImU32 fill_color = GetStatusColor(node.status);
-      ImU32 border_color = (node.id == selected_node_)
-                               ? IM_COL32(255, 255, 100, 255)
-                               : IM_COL32(60, 60, 60, 255);
+      const bool selected = (node.id == selected_node_);
+      const bool query_match = (HasNonEmptyQuery() && IsNodeQueryMatch(node.id));
+      ImU32 border_color = selected ? IM_COL32(255, 255, 100, 255)
+                                    : (query_match ? IM_COL32(220, 220, 220, 255)
+                                                   : IM_COL32(60, 60, 60, 255));
 
       draw_list->AddRectFilled(node_min, node_max, fill_color, 8.0f * zoom_);
       draw_list->AddRect(node_min, node_max, border_color, 8.0f * zoom_,
@@ -301,11 +320,131 @@ class StoryEventGraphPanel : public EditorPanel {
     ImGui::EndChild();
   }
 
+  void DrawFilterControls(const core::StoryEventGraph& graph) {
+    (void)graph;
+
+    ImGui::Text("Filter");
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(260.0f);
+    if (ImGui::InputTextWithHint("##story_graph_filter",
+                                 "Search id/name/text/script/flag/room...",
+                                 &filter_query_)) {
+      filter_dirty_ = true;
+    }
+    ImGui::SameLine();
+    if (ImGui::SmallButton("Clear")) {
+      if (!filter_query_.empty()) {
+        filter_query_.clear();
+        filter_dirty_ = true;
+      }
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Checkbox("Hide non-matching", &hide_non_matching_)) {
+      // Hiding doesn't change matches, but it can invalidate selection.
+      filter_dirty_ = true;
+    }
+
+    ImGui::SameLine();
+    bool toggles_changed = false;
+    toggles_changed |= ImGui::Checkbox("Completed", &show_completed_);
+    ImGui::SameLine();
+    toggles_changed |= ImGui::Checkbox("Available", &show_available_);
+    ImGui::SameLine();
+    toggles_changed |= ImGui::Checkbox("Locked", &show_locked_);
+    ImGui::SameLine();
+    toggles_changed |= ImGui::Checkbox("Blocked", &show_blocked_);
+    if (toggles_changed) {
+      filter_dirty_ = true;
+    }
+  }
+
+  static uint8_t StatusMask(bool completed, bool available, bool locked,
+                            bool blocked) {
+    uint8_t mask = 0;
+    if (completed) mask |= 1u << 0;
+    if (available) mask |= 1u << 1;
+    if (locked) mask |= 1u << 2;
+    if (blocked) mask |= 1u << 3;
+    return mask;
+  }
+
+  bool HasNonEmptyQuery() const { return !filter_query_.empty(); }
+
+  bool IsNodeVisible(const std::string& id) const {
+    auto it = node_visible_by_id_.find(id);
+    return it != node_visible_by_id_.end() ? it->second : true;
+  }
+
+  bool IsNodeQueryMatch(const std::string& id) const {
+    auto it = node_query_match_by_id_.find(id);
+    return it != node_query_match_by_id_.end() ? it->second : false;
+  }
+
+  void UpdateFilterCache(const core::StoryEventGraph& graph) {
+    const uint8_t status_mask =
+        StatusMask(show_completed_, show_available_, show_locked_, show_blocked_);
+
+    const size_t node_count = graph.nodes().size();
+    if (!filter_dirty_ && node_count == last_node_count_ &&
+        filter_query_ == last_filter_query_ && status_mask == last_status_mask_) {
+      return;
+    }
+
+    last_node_count_ = node_count;
+    last_filter_query_ = filter_query_;
+    last_status_mask_ = status_mask;
+    filter_dirty_ = false;
+
+    core::StoryEventNodeFilter filter;
+    filter.query = filter_query_;
+    filter.include_completed = show_completed_;
+    filter.include_available = show_available_;
+    filter.include_locked = show_locked_;
+    filter.include_blocked = show_blocked_;
+
+    node_query_match_by_id_.clear();
+    node_visible_by_id_.clear();
+    node_query_match_by_id_.reserve(node_count);
+    node_visible_by_id_.reserve(node_count);
+
+    for (const auto& node : graph.nodes()) {
+      const bool query_match = core::StoryEventNodeMatchesQuery(node, filter.query);
+      const bool visible =
+          query_match && core::StoryNodeStatusAllowed(node.status, filter);
+      node_query_match_by_id_[node.id] = query_match;
+      node_visible_by_id_[node.id] = visible;
+    }
+
+    // If we're hiding nodes and the selection becomes invisible, clear it to
+    // avoid a "ghost sidebar" pointing at a filtered-out node.
+    if (hide_non_matching_ && !selected_node_.empty() &&
+        !IsNodeVisible(selected_node_)) {
+      selected_node_.clear();
+    }
+  }
+
   core::HackManifest* manifest_ = nullptr;
   std::string selected_node_;
   float scroll_x_ = 0;
   float scroll_y_ = 0;
   float zoom_ = 1.0f;
+
+  // Filter state
+  std::string filter_query_;
+  bool hide_non_matching_ = false;
+  bool show_completed_ = true;
+  bool show_available_ = true;
+  bool show_locked_ = true;
+  bool show_blocked_ = true;
+
+  // Filter cache (recomputed only when query/toggles change)
+  bool filter_dirty_ = true;
+  size_t last_node_count_ = 0;
+  std::string last_filter_query_;
+  uint8_t last_status_mask_ = 0;
+  std::unordered_map<std::string, bool> node_query_match_by_id_;
+  std::unordered_map<std::string, bool> node_visible_by_id_;
 };
 
 }  // namespace yaze::editor
