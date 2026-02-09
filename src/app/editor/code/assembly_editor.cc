@@ -184,13 +184,7 @@ FolderItem LoadFolder(const std::string& folder) {
   return current_folder;
 }
 
-struct SymbolLocation {
-  std::string file;
-  int line = 0;    // 0-based
-  int column = 0;  // 0-based
-};
-
-std::optional<SymbolLocation> FindLabelInFile(
+std::optional<AsmSymbolLocation> FindLabelInFile(
     const std::filesystem::path& path, const std::string& label) {
   std::ifstream file(path);
   if (!file.is_open()) {
@@ -217,7 +211,7 @@ std::optional<SymbolLocation> FindLabelInFile(
     }
 
     if (pos < line.size() && line[pos] == ':') {
-      SymbolLocation loc;
+      AsmSymbolLocation loc;
       loc.file = path.string();
       loc.line = line_index;
       loc.column = static_cast<int>(start);
@@ -235,7 +229,7 @@ bool IsAssemblyLikeFile(const std::filesystem::path& path) {
   return ext == ".asm" || ext == ".inc" || ext == ".s";
 }
 
-std::optional<SymbolLocation> FindLabelInFolder(
+std::optional<AsmSymbolLocation> FindLabelInFolder(
     const std::filesystem::path& root, const std::string& label) {
   std::error_code ec;
   if (!std::filesystem::exists(root, ec)) {
@@ -327,14 +321,47 @@ absl::Status AssemblyEditor::JumpToSymbolDefinition(const std::string& symbol) {
         "No code folder loaded (open a folder or set project code_folder)");
   }
 
+  const std::string root_string = root.string();
+  if (symbol_jump_root_ != root_string) {
+    symbol_jump_root_ = root_string;
+    symbol_jump_cache_.clear();
+    symbol_jump_negative_cache_.clear();
+  }
+
   if (current_folder_.name.empty()) {
-    OpenFolder(root.string());
+    OpenFolder(root_string);
+  }
+
+  if (auto it = symbol_jump_cache_.find(symbol); it != symbol_jump_cache_.end()) {
+    const auto& cached = it->second;
+    ChangeActiveFile(cached.file);
+    if (!HasActiveFile()) {
+      return absl::InternalError("Failed to open file for symbol: " + symbol);
+    }
+
+    auto* editor = GetActiveEditor();
+    if (!editor) {
+      return absl::InternalError("No active text editor");
+    }
+
+    editor->SetCursorPosition(
+        TextEditor::Coordinates(cached.line, cached.column));
+    editor->SelectWordUnderCursor();
+    return absl::OkStatus();
+  }
+
+  if (symbol_jump_negative_cache_.contains(symbol)) {
+    return absl::NotFoundError("Symbol not found: " + symbol);
   }
 
   const auto loc = FindLabelInFolder(root, symbol);
   if (!loc.has_value()) {
+    symbol_jump_negative_cache_.insert(symbol);
     return absl::NotFoundError("Symbol not found: " + symbol);
   }
+
+  symbol_jump_cache_[symbol] = *loc;
+  symbol_jump_negative_cache_.erase(symbol);
 
   ChangeActiveFile(loc->file);
   if (!HasActiveFile()) {
@@ -382,6 +409,15 @@ const TextEditor* AssemblyEditor::GetActiveEditor() const {
 
 void AssemblyEditor::OpenFolder(const std::string& folder_path) {
   current_folder_ = LoadFolder(folder_path);
+  if (symbol_jump_root_ != folder_path) {
+    symbol_jump_root_ = folder_path;
+    ClearSymbolJumpCache();
+  }
+}
+
+void AssemblyEditor::ClearSymbolJumpCache() {
+  symbol_jump_cache_.clear();
+  symbol_jump_negative_cache_.clear();
 }
 
 // =============================================================================

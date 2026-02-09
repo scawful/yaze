@@ -75,7 +75,14 @@ TEST(AssemblyEditorSymbolJumpTest, JumpToSymbolDefinitionOpensFileAndMovesCursor
   AssemblyEditor editor(nullptr);
   editor.SetDependencies(deps);
 
-  const auto status = editor.JumpToSymbolDefinition("TestSymbol");
+  auto status = editor.JumpToSymbolDefinition("TestSymbol");
+  EXPECT_TRUE(status.ok()) << status;
+  EXPECT_EQ(editor.active_file_path(), asm_file.string());
+  EXPECT_EQ(editor.active_cursor_position().mLine, 1);
+  EXPECT_EQ(editor.active_cursor_position().mColumn, 0);
+
+  // Second jump should reuse cached location (no behavioral change).
+  status = editor.JumpToSymbolDefinition("TestSymbol");
   EXPECT_TRUE(status.ok()) << status;
   EXPECT_EQ(editor.active_file_path(), asm_file.string());
   EXPECT_EQ(editor.active_cursor_position().mLine, 1);
@@ -108,10 +115,13 @@ TEST(AssemblyEditorSymbolJumpTest, JumpToSymbolDefinitionReturnsNotFoundForUnkno
   AssemblyEditor editor(nullptr);
   editor.SetDependencies(deps);
 
-  const auto status = editor.JumpToSymbolDefinition("MissingLabel");
+  auto status = editor.JumpToSymbolDefinition("MissingLabel");
+  EXPECT_EQ(status.code(), absl::StatusCode::kNotFound) << status;
+
+  // Repeating should still return NotFound (and should hit negative cache).
+  status = editor.JumpToSymbolDefinition("MissingLabel");
   EXPECT_EQ(status.code(), absl::StatusCode::kNotFound) << status;
 }
 
 }  // namespace
 }  // namespace yaze::editor
-
