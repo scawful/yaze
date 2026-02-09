@@ -32,17 +32,17 @@ You can control logging behavior using command-line flags when launching `yaze` 
 
 -   **Set Log Level & Categories** (allowlist or blocklist by prefixing with `-`; tokens are trimmed and case-sensitive):
     ```bash
-    ./build/bin/yaze --log_level=debug --log_categories="OverworldEditor,-Audio"
+    ./scripts/yaze --log_level=debug --log_categories="OverworldEditor,-Audio"
     ```
 
 -   **Log to a File (and mirror to console if needed)**:
     ```bash
-    ./build/bin/yaze --log_file=yaze_debug.log --log_to_console
+    ./scripts/yaze --log_file=yaze_debug.log --log_to_console
     ```
 
 -   **Enable Verbose Debug Logging** (forces console logging and `debug` level):
     ```bash
-    ./build/bin/yaze --debug --log_file=yaze_debug.log
+    ./scripts/yaze --debug --log_file=yaze_debug.log
     ```
 
 **Best Practice**: When debugging a specific component, add detailed `LOG_DEBUG` statements with a unique category. Then, run `yaze` with the appropriate flags to isolate the output.
@@ -57,38 +57,38 @@ The `yaze` ecosystem provides several executables and flags to streamline testin
 
 -   **Load a ROM on Startup**: To immediately test a specific ROM, use the `--rom_file` flag. This bypasses the welcome screen.
     ```bash
-    ./build/bin/yaze --rom_file /path/to/your/zelda3.sfc
+    ./scripts/yaze --rom_file /path/to/your/zelda3.sfc
     ```
 
 -   **Enable the GUI Test Harness**: To allow the `z3ed` CLI to automate the GUI, you must start `yaze` with the gRPC server enabled.
     ```bash
-    ./build/bin/yaze --rom_file zelda3.sfc --enable_test_harness
+    ./scripts/yaze --rom_file zelda3.sfc --enable_test_harness
     ```
 
 -   **Open a Specific Editor and Panels**: Use `--editor` and `--open_panels` (panel IDs or display names, comma-separated, case-insensitive) to land exactly where you need. Combine with startup visibility flags to hide chrome for automation:
     ```bash
     # Open the Dungeon editor with a couple panels pre-visible
-    ./build/bin/yaze --rom_file zelda3.sfc --editor=Dungeon --open_panels="dungeon.room_list,Room 105"
+    ./scripts/yaze --rom_file zelda3.sfc --editor=Dungeon --open_panels="dungeon.room_list,Room 105"
 
     # You can also hide startup chrome for automation runs
-    ./build/bin/yaze --rom_file zelda3.sfc --editor=Overworld \
+    ./scripts/yaze --rom_file zelda3.sfc --editor=Overworld \
       --open_panels="overworld.map_canvas" --startup_welcome=hide --startup_dashboard=hide
     ```
     
     **Quick Examples**:
     ```bash
     # Fast dungeon room testing
-    ./build/bin/yaze --rom_file=zelda3.sfc --editor=Dungeon --open_panels="Room 0"
+    ./scripts/yaze --rom_file=zelda3.sfc --editor=Dungeon --open_panels="Room 0"
     
     # Compare multiple rooms side-by-side
-    ./build/bin/yaze --rom_file=zelda3.sfc --editor=Dungeon --open_panels="Room 0,Room 1,Room 105"
+    ./scripts/yaze --rom_file=zelda3.sfc --editor=Dungeon --open_panels="Room 0,Room 1,Room 105"
     
     # Full dungeon workspace with all tools
-    ./build/bin/yaze --rom_file=zelda3.sfc --editor=Dungeon \
+    ./scripts/yaze --rom_file=zelda3.sfc --editor=Dungeon \
       --open_panels="Rooms List,Room Matrix,Object Editor,Palette Editor"
     
     # Jump straight to overworld editing
-    ./build/bin/yaze --rom_file=zelda3.sfc --editor=Overworld
+    ./scripts/yaze --rom_file=zelda3.sfc --editor=Overworld
     ```
     
     For a complete reference, see [Startup Debugging Flags](debug-flags.md).
@@ -99,22 +99,22 @@ The `yaze_test` executable is used to run the project's suite of unit, integrati
 
 -   **Run All Tests**:
     ```bash
-    ./build/bin/yaze_test
+    ./scripts/yaze_test
     ```
 
 -   **Run Specific Categories**:
     ```bash
     # Run only fast, dependency-free unit tests
-    ./build/bin/yaze_test --unit
+    ./scripts/yaze_test --unit
 
     # Run tests that require a ROM file
-    ./build/bin/yaze_test --rom-dependent --rom-vanilla /path/to/alttp_vanilla.sfc
+    ./scripts/yaze_test --rom-dependent --rom-vanilla /path/to/alttp_vanilla.sfc
     ```
 
 -   **Run GUI-based E2E Tests**:
     ```bash
     # Run E2E tests and watch the GUI interactions
-    ./build/bin/yaze_test --e2e --show-gui
+    ./scripts/yaze_test --e2e --show-gui
     ```
 
 ### Inspecting ROMs with `z3ed`
@@ -150,7 +150,7 @@ The primary way for an AI agent to test its changes and interact with `yaze` is 
 The AI must first ensure the `yaze` GUI is running and ready for automation.
 
 ```bash
-./build/bin/yaze --rom_file zelda3.sfc --enable_test_harness --test_harness_port 50051
+./scripts/yaze --rom_file zelda3.sfc --enable_test_harness --test_harness_port 50051
 ```
 
 #### Step 2: Discover UI Elements
@@ -165,7 +165,7 @@ This will return a list of widget IDs (e.g., `Dungeon/Canvas/Map`) that can be u
 
 **Tip**: You can also launch `yaze` with the `--editor` flag to automatically open a specific editor:
 ```bash
-./build/bin/yaze --rom_file zelda3.sfc --enable_test_harness --editor=Dungeon --open_panels="Room 0"
+./scripts/yaze --rom_file zelda3.sfc --enable_test_harness --editor=Dungeon --open_panels="Room 0"
 ```
 
 #### Step 3: Record or Write a Test Script
@@ -189,7 +189,7 @@ An agent can either generate a test script from scratch or use a pre-recorded on
 -   **Or use startup flags to prepare the environment**:
     ```bash
     # Start yaze with the room already open
-    ./build/bin/yaze --rom_file zelda3.sfc --enable_test_harness \
+    ./scripts/yaze --rom_file zelda3.sfc --enable_test_harness \
       --editor=Dungeon --open_panels="Room 105"
     
     # Then your test script just needs to validate the state

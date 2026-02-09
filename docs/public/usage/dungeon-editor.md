@@ -46,7 +46,7 @@ Changes to tiles, palettes, or objects invalidate only the affected room's cache
 
 ### Opening Rooms
 
-1. Launch YAZE with a ROM: `./build/bin/yaze --rom_file=zelda3.sfc`
+1. Launch YAZE with a ROM: `./scripts/yaze zelda3.sfc`
 2. Select a room from **Room Matrix** or **Rooms List** panel
 3. Open multiple rooms in separate panels for comparison
 
@@ -100,13 +100,13 @@ Enable **Object Labels** from the toolbar to display layer-colored labels.
 
 ```bash
 # Open specific room for testing
-./yaze --rom_file=zelda3.sfc --editor=Dungeon --open_panels="Room 0"
+./scripts/yaze --rom_file=zelda3.sfc --editor=Dungeon --open_panels="Room 0"
 
 # Compare multiple rooms
-./yaze --rom_file=zelda3.sfc --editor=Dungeon --open_panels="Room 0,Room 1,Room 105"
+./scripts/yaze --rom_file=zelda3.sfc --editor=Dungeon --open_panels="Room 0,Room 1,Room 105"
 
 # Full workspace with all tools
-./yaze --rom_file=zelda3.sfc --editor=Dungeon \
+./scripts/yaze --rom_file=zelda3.sfc --editor=Dungeon \
   --open_panels="Rooms List,Room Matrix,Object Editor,Palette Editor"
 ```
 

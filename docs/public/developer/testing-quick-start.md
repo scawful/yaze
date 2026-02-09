@@ -7,48 +7,31 @@
 
 Before pushing changes to the repository, run these commands to catch issues early:
 
-### 1. Build Tests (30 seconds)
+### 1. Fast Loop (Recommended)
 
 ```bash
-# Build the test executable
-cmake --build build --target yaze_test
+# Fast, high-signal suites (configures/builds as needed)
+./scripts/test_fast.sh --quick
 ```
 
-### 2. Run Fast Tests (<2 minutes)
+### 2. Run Stable Suites (Optional)
 
 ```bash
-# Run unit tests only (fastest)
-./build/bin/yaze_test --unit
+# Unit tests only
+./scripts/yaze_test --unit
 
-# Or run all stable tests (unit + non-ROM integration)
-./build/bin/yaze_test
+# All stable tests (unit + non-ROM integration)
+./scripts/yaze_test
 ```
 
-### 3. Platform-Specific Quick Check
-
-**macOS**:
-```bash
-scripts/agents/smoke-build.sh mac-dbg yaze
-```
-
-**Linux**:
-```bash
-scripts/agents/smoke-build.sh lin-dbg yaze
-```
-
-**Windows (PowerShell)**:
-```powershell
-pwsh -File scripts/agents/windows-smoke-build.ps1 -Preset win-dbg -Target yaze
-```
-
-### 4. Check for Format Issues (optional but recommended)
+### 3. Check for Format Issues (Optional)
 
 ```bash
 # Check if code is formatted correctly
-cmake --build build --target format-check
+cmake --build build_ai --target format-check
 
 # Auto-fix formatting issues
-cmake --build build --target format
+cmake --build build_ai --target format
 ```
 
 ## When to Run Full Test Suite
@@ -64,35 +47,35 @@ Run the **complete test suite** before pushing if:
 
 ```bash
 # Run all tests (may take 5+ minutes)
-./build/bin/yaze_test
+./scripts/yaze_test
 
 # Include ROM-dependent tests (requires alttp_vanilla.sfc)
-./build/bin/yaze_test --rom-dependent --rom-vanilla /path/to/alttp_vanilla.sfc
+./scripts/yaze_test --rom-dependent --rom-vanilla /path/to/alttp_vanilla.sfc
 
 # Run E2E GUI tests (headless)
-./build/bin/yaze_test --e2e
+./scripts/yaze_test --e2e
 
 # Run E2E with visible GUI (for debugging)
-./build/bin/yaze_test --e2e --show-gui
+./scripts/yaze_test --e2e --show-gui
 ```
 
 ## Common Test Failures and Fixes
 
 ### 1. Compilation Errors
 
-**Symptom**: `cmake --build build --target yaze_test` fails
+**Symptom**: `cmake --build build_ai --target yaze_test` fails
 
 **Fix**:
 ```bash
 # Clean and reconfigure
-rm -rf build
-cmake --preset mac-dbg  # or lin-dbg, win-dbg
-cmake --build build --target yaze_test
+rm -rf build_ai
+cmake --preset mac-ai  # or lin-ai, win-ai
+cmake --build build_ai --target yaze_test
 ```
 
 ### 2. Unit Test Failures
 
-**Symptom**: `./build/bin/yaze_test --unit` shows failures
+**Symptom**: `./scripts/yaze_test --unit` shows failures
 
 **Fix**:
 - Read the error message carefully
@@ -110,7 +93,7 @@ cmake --build build --target yaze_test
 export YAZE_TEST_ROM_VANILLA=/path/to/alttp_vanilla.sfc
 
 # Or pass directly to test runner
-./build/bin/yaze_test --rom-vanilla /path/to/alttp_vanilla.sfc
+./scripts/yaze_test --rom-vanilla /path/to/alttp_vanilla.sfc
 ```
 
 ### 4. E2E/GUI Test Failures
@@ -148,15 +131,15 @@ export YAZE_TEST_ROM_VANILLA=/path/to/alttp_vanilla.sfc
 
 ```bash
 # Just build to verify no compile errors
-cmake --build build --target yaze
+cmake --build build_ai --target yaze
 ```
 
 ### For Code Changes (new features, bug fixes)
 
 ```bash
 # Build and run unit tests
-cmake --build build --target yaze_test
-./build/bin/yaze_test --unit
+cmake --build build_ai --target yaze_test
+./scripts/yaze_test --unit
 
 # If tests pass, push
 git push
@@ -166,8 +149,8 @@ git push
 
 ```bash
 # Run full test suite
-cmake --build build --target yaze_test
-./build/bin/yaze_test
+cmake --build build_ai --target yaze_test
+./scripts/yaze_test
 
 # If all tests pass, push
 git push
@@ -177,11 +160,11 @@ git push
 
 ```bash
 # Run everything including ROM tests and E2E
-./build/bin/yaze_test --rom-dependent --rom-vanilla roms/alttp_vanilla.sfc
-./build/bin/yaze_test --e2e
+./scripts/yaze_test --rom-dependent --rom-vanilla roms/alttp_vanilla.sfc
+./scripts/yaze_test --e2e
 
 # Check code formatting
-cmake --build build --target format-check
+cmake --build build_ai --target format-check
 
 # If all pass, create PR
 git push origin feature-branch
@@ -200,20 +183,20 @@ Add this to `.vscode/tasks.json`:
     {
       "label": "Build Tests",
       "type": "shell",
-      "command": "cmake --build build --target yaze_test",
+      "command": "cmake --build build_ai --target yaze_test",
       "group": "build"
     },
     {
       "label": "Run Unit Tests",
       "type": "shell",
-      "command": "./build/bin/yaze_test --unit",
+      "command": "./scripts/yaze_test --unit",
       "group": "test",
       "dependsOn": "Build Tests"
     },
     {
       "label": "Run All Tests",
       "type": "shell",
-      "command": "./build/bin/yaze_test",
+      "command": "./scripts/yaze_test",
       "group": "test",
       "dependsOn": "Build Tests"
     }
@@ -257,33 +240,33 @@ export YAZE_TEST_VERBOSE=1
 
 ```bash
 # Show all test output (even passing tests)
-./build/bin/yaze_test --gtest_output=verbose
+./scripts/yaze_test --gtest_output=verbose
 
 # Show only failed test output
-./build/bin/yaze_test --gtest_output=on_failure
+./scripts/yaze_test --gtest_output=on_failure
 ```
 
 ### Specific Test Patterns
 
 ```bash
 # Run only tests matching pattern
-./build/bin/yaze_test --gtest_filter="*AsarWrapper*"
+./scripts/yaze_test --gtest_filter="*AsarWrapper*"
 
 # Run tests in specific suite
-./build/bin/yaze_test --gtest_filter="RomTest.*"
+./scripts/yaze_test --gtest_filter="RomTest.*"
 
 # Exclude specific tests
-./build/bin/yaze_test --gtest_filter="-*SlowTest*"
+./scripts/yaze_test --gtest_filter="-*SlowTest*"
 ```
 
 ### Repeat Tests for Flakiness
 
 ```bash
 # Run tests 10 times to catch flakiness
-./build/bin/yaze_test --gtest_repeat=10
+./scripts/yaze_test --gtest_repeat=10
 
 # Stop on first failure
-./build/bin/yaze_test --gtest_repeat=10 --gtest_break_on_failure
+./scripts/yaze_test --gtest_repeat=10 --gtest_break_on_failure
 ```
 
 ## CI/CD Testing
@@ -308,27 +291,28 @@ See [GH Actions Remote Guide](../../internal/agents/archive/utility-tools/gh-act
 ### Running Tests with CTest
 
 ```bash
-# Run all stable tests via ctest
-ctest --preset dev
+# Fast local loop (configures/builds as needed)
+./scripts/test_fast.sh --quick
 
-# Run specific test suite
-ctest -L unit
+# Stable suites (label filtered)
+ctest --test-dir build_ai -C Debug -L unit
+ctest --test-dir build_ai -C Debug -L integration
 
 # Run with verbose output
-ctest --preset dev --output-on-failure
+ctest --test-dir build_ai -C Debug -L unit --output-on-failure
 
 # Run tests in parallel
-ctest --preset dev -j8
+ctest --test-dir build_ai -C Debug -L unit -j8
 ```
 
 ### Debugging Failed Tests
 
 ```bash
 # Run test under debugger (macOS/Linux)
-lldb ./build/bin/yaze_test -- --gtest_filter="*FailingTest*"
+lldb build_ai/bin/Debug/yaze_test -- --gtest_filter="*FailingTest*"
 
 # Run test under debugger (Windows)
-devenv /debugexe ./build/bin/yaze_test.exe --gtest_filter="*FailingTest*"
+devenv /debugexe build_ai/bin/Debug/yaze_test.exe --gtest_filter="*FailingTest*"
 ```
 
 ### Writing New Tests
