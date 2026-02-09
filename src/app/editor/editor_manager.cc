@@ -135,6 +135,47 @@ std::string GetEditorName(EditorType type) {
   return kEditorNames[static_cast<int>(type)];
 }
 
+void RegisterDefaultEditorFactories(EditorRegistry* registry) {
+  if (!registry) {
+    return;
+  }
+
+  // Core editor set (used by RomSession/EditorSet construction).
+  registry->RegisterFactory(EditorType::kAssembly, [](Rom* rom) {
+    return std::make_unique<AssemblyEditor>(rom);
+  });
+  registry->RegisterFactory(EditorType::kDungeon, [](Rom* rom) {
+    return std::make_unique<DungeonEditorV2>(rom);
+  });
+  registry->RegisterFactory(EditorType::kGraphics, [](Rom* rom) {
+    return std::make_unique<GraphicsEditor>(rom);
+  });
+  registry->RegisterFactory(EditorType::kMusic, [](Rom* rom) {
+    return std::make_unique<MusicEditor>(rom);
+  });
+  registry->RegisterFactory(EditorType::kOverworld, [](Rom* rom) {
+    return std::make_unique<OverworldEditor>(rom);
+  });
+  registry->RegisterFactory(EditorType::kPalette, [](Rom* rom) {
+    return std::make_unique<PaletteEditor>(rom);
+  });
+  registry->RegisterFactory(EditorType::kScreen, [](Rom* rom) {
+    return std::make_unique<ScreenEditor>(rom);
+  });
+  registry->RegisterFactory(EditorType::kSprite, [](Rom* rom) {
+    return std::make_unique<SpriteEditor>(rom);
+  });
+  registry->RegisterFactory(EditorType::kMessage, [](Rom* rom) {
+    return std::make_unique<MessageEditor>(rom);
+  });
+  registry->RegisterFactory(EditorType::kHex, [](Rom* rom) {
+    return std::make_unique<MemoryEditor>(rom);
+  });
+  registry->RegisterFactory(EditorType::kSettings, [](Rom*) {
+    return std::make_unique<SettingsPanel>();
+  });
+}
+
 std::string NormalizeHash(std::string value) {
   absl::AsciiStrToLower(&value);
   if (absl::StartsWith(value, "0x")) {
@@ -364,6 +405,7 @@ void EditorManager::InitializeSubsystems() {
   // STEP 2: Initialize SessionCoordinator (independent of popups)
   session_coordinator_ = std::make_unique<SessionCoordinator>(
       &panel_manager_, &toast_manager_, &user_settings_);
+  session_coordinator_->SetEditorRegistry(&editor_registry_);
 
   // STEP 3: Initialize MenuOrchestrator (depends on popup_manager_,
   // session_coordinator_)
@@ -843,6 +885,7 @@ void EditorManager::InitializeTestSuites() {
 void EditorManager::Initialize(gfx::IRenderer* renderer,
                                const std::string& filename) {
   renderer_ = renderer;
+  RegisterDefaultEditorFactories(&editor_registry_);
 
   // Inject card_registry into emulator and workspace_manager
   emulator_.set_panel_manager(&panel_manager_);

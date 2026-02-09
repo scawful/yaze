@@ -106,7 +106,8 @@ struct RomSession {
 
   RomSession() = default;
   explicit RomSession(Rom&& r, UserSettings* user_settings = nullptr,
-                      size_t session_id = 0);
+                      size_t session_id = 0,
+                      EditorRegistry* editor_registry = nullptr);
 
   // Get display name (custom name or ROM title)
   std::string GetDisplayName() const;

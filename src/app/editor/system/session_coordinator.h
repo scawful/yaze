@@ -19,6 +19,7 @@ namespace yaze {
 class Rom;
 namespace editor {
 class EditorManager;
+class EditorRegistry;
 class EditorSet;
 class PanelManager;
 }  // namespace editor
@@ -93,6 +94,9 @@ class SessionCoordinator {
   ~SessionCoordinator() = default;
 
   void SetEditorManager(EditorManager* manager) { editor_manager_ = manager; }
+  void SetEditorRegistry(EditorRegistry* registry) {
+    editor_registry_ = registry;
+  }
 
   /// Set the EventBus for publishing session lifecycle events.
   /// When set, session events will be published alongside observer notifications.
@@ -219,6 +223,7 @@ class SessionCoordinator {
 
   // Core dependencies
   EditorManager* editor_manager_ = nullptr;
+  EditorRegistry* editor_registry_ = nullptr;
   EventBus* event_bus_ = nullptr;  // For publishing session lifecycle events
   std::vector<std::unique_ptr<RomSession>> sessions_;
   std::vector<SessionObserver*> observers_;

@@ -155,10 +155,11 @@ MemoryEditor* EditorSet::GetMemoryEditor() const {
   return GetEditorAs<MemoryEditor>(EditorType::kHex);
 }
 
-RomSession::RomSession(Rom&& r, UserSettings* user_settings, size_t session_id)
+RomSession::RomSession(Rom&& r, UserSettings* user_settings, size_t session_id,
+                       EditorRegistry* editor_registry)
     : rom(std::move(r)),
       game_data(&rom),
-      editors(&rom, &game_data, user_settings, session_id) {
+      editors(&rom, &game_data, user_settings, session_id, editor_registry) {
   filepath = rom.filename();
   feature_flags = core::FeatureFlags::Flags{};
 }

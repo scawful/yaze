@@ -798,7 +798,7 @@ absl::StatusOr<RomSession*> SessionCoordinator::CreateSessionFromRom(
     Rom&& rom, const std::string& filepath) {
   size_t new_session_id = sessions_.size();
   sessions_.push_back(std::make_unique<RomSession>(
-      std::move(rom), user_settings_, new_session_id));
+      std::move(rom), user_settings_, new_session_id, editor_registry_));
   auto& session = sessions_.back();
   session->filepath = filepath;
 
