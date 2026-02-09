@@ -64,12 +64,16 @@ yaze::ios::IOSHost g_ios_host;
 
 @interface AppViewController ()
 @property(nonatomic, strong) UIViewController *overlayController;
+- (void)queueOpenURL:(NSURL *)url;
 @end
 
 @implementation AppViewController {
   yaze::AppConfig app_config_;
   bool host_initialized_;
   UITouch *primary_touch_;
+  NSURL *pending_open_url_;
+  NSURL *security_scoped_url_;
+  BOOL security_scope_granted_;
 }
 
 - (instancetype)initWithNibName:(nullable NSString *)nibNameOrNil
@@ -206,6 +210,14 @@ yaze::ios::IOSHost g_ios_host;
   }
 
   [self attachSwiftUIOverlayIfNeeded];
+
+  // If the app was launched by opening a document (Files app), we may have been
+  // handed a URL before the host/controller existed. Open it now that the host
+  // is initialized.
+  if (pending_open_url_) {
+    [self queueOpenURL:pending_open_url_];
+    pending_open_url_ = nil;
+  }
 }
 
 #if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
@@ -471,6 +483,139 @@ yaze::ios::IOSHost g_ios_host;
   self.overlayController = overlay;
 }
 
+// ----------------------------------------------------------------------------
+// Open-In-Place (.yazeproj) document handling
+// ----------------------------------------------------------------------------
+
+- (NSURL *)yazeSettingsFileURL {
+  NSArray<NSURL *> *urls =
+      [[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory
+                                             inDomains:NSUserDomainMask];
+  NSURL *documents = urls.firstObject;
+  if (!documents) {
+    return nil;
+  }
+
+  NSURL *root = [documents URLByAppendingPathComponent:@"Yaze" isDirectory:YES];
+  [[NSFileManager defaultManager] createDirectoryAtURL:root
+                           withIntermediateDirectories:YES
+                                            attributes:nil
+                                                 error:nil];
+  return [root URLByAppendingPathComponent:@"settings.json"];
+}
+
+- (void)updateSettingsLastProjectPath:(NSString *)projectPath
+                              romPath:(NSString *)romPath {
+  NSURL *settingsURL = [self yazeSettingsFileURL];
+  if (!settingsURL) {
+    return;
+  }
+
+  NSFileManager *fm = [NSFileManager defaultManager];
+  NSMutableDictionary *root = [NSMutableDictionary dictionary];
+  if ([fm fileExistsAtPath:settingsURL.path]) {
+    NSData *data = [NSData dataWithContentsOfURL:settingsURL];
+    if (data.length > 0) {
+      id obj = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+      if ([obj isKindOfClass:[NSDictionary class]]) {
+        root = [obj mutableCopy];
+      }
+    }
+  }
+
+  NSMutableDictionary *general = nil;
+  id existing_general = root[@"general"];
+  if ([existing_general isKindOfClass:[NSDictionary class]]) {
+    general = [existing_general mutableCopy];
+  } else {
+    general = [NSMutableDictionary dictionary];
+  }
+
+  if (projectPath.length > 0) {
+    general[@"last_project_path"] = projectPath;
+  }
+  if (romPath.length > 0) {
+    general[@"last_rom_path"] = romPath;
+  }
+  root[@"general"] = general;
+  if (!root[@"version"]) {
+    root[@"version"] = @(1);
+  }
+
+  NSJSONWritingOptions options = 0;
+  if (@available(iOS 11.0, *)) {
+    options = NSJSONWritingPrettyPrinted | NSJSONWritingSortedKeys;
+  } else {
+    options = NSJSONWritingPrettyPrinted;
+  }
+
+  NSData *out = [NSJSONSerialization dataWithJSONObject:root options:options error:nil];
+  if (!out) {
+    return;
+  }
+  [out writeToURL:settingsURL atomically:YES];
+
+  // Ask the live settings store (Swift) to reload, so the overlay updates
+  // immediately when the app is already running.
+  [[NSNotificationCenter defaultCenter]
+      postNotificationName:@"yaze.settings.reload"
+                    object:nil];
+}
+
+- (void)beginSecurityScopeForURL:(NSURL *)url {
+  if (security_scoped_url_ && security_scope_granted_) {
+    [security_scoped_url_ stopAccessingSecurityScopedResource];
+  }
+  security_scoped_url_ = url;
+  security_scope_granted_ = NO;
+  if (!url) {
+    return;
+  }
+  security_scope_granted_ = [url startAccessingSecurityScopedResource];
+}
+
+- (void)openURLNow:(NSURL *)url {
+  if (!url) {
+    return;
+  }
+
+  // iCloud Drive items may be lazily downloaded. Request a download if needed.
+  [[NSFileManager defaultManager] startDownloadingUbiquitousItemAtURL:url error:nil];
+
+  NSString *path = url.path;
+  if (!path || path.length == 0) {
+    return;
+  }
+
+  // Update settings for UX (overlay status + "restore last session").
+  if ([[url.pathExtension lowercaseString] isEqualToString:@"yazeproj"]) {
+    NSString *romPath = [[url URLByAppendingPathComponent:@"rom"] path];
+    [self updateSettingsLastProjectPath:path romPath:romPath ?: @""];
+  }
+
+  if (!self.controller || !self.controller->editor_manager()) {
+    return;
+  }
+  std::string cpp_path([path UTF8String]);
+  (void)self.controller->editor_manager()->OpenRomOrProject(cpp_path);
+}
+
+- (void)queueOpenURL:(NSURL *)url {
+  if (!url) {
+    return;
+  }
+
+  // Keep security-scoped access alive for the duration of the opened project.
+  [self beginSecurityScopeForURL:url];
+
+  if (!host_initialized_) {
+    pending_open_url_ = url;
+    return;
+  }
+
+  [self openURLNow:url];
+}
+
 - (void)mtkView:(MTKView *)view drawableSizeWillChange:(CGSize)size {
 }
 
@@ -656,10 +801,35 @@ yaze::ios::IOSHost g_ios_host;
     return;
   }
   UIWindowScene *windowScene = (UIWindowScene *)scene;
-  UIViewController *rootViewController = [[AppViewController alloc] init];
+  AppViewController *rootViewController = [[AppViewController alloc] init];
   self.window = [[UIWindow alloc] initWithWindowScene:windowScene];
   self.window.rootViewController = rootViewController;
   [self.window makeKeyAndVisible];
+
+  // Handle "tap to open" from Files app at launch.
+  if (@available(iOS 13.0, *)) {
+    for (UIOpenURLContext *context in connectionOptions.URLContexts) {
+      if (context.URL) {
+        [rootViewController queueOpenURL:context.URL];
+        break;
+      }
+    }
+  }
+}
+
+- (void)scene:(UIScene *)scene openURLContexts:(NSSet<UIOpenURLContext *> *)URLContexts {
+  (void)scene;
+  AppViewController *root =
+      (AppViewController *)self.window.rootViewController;
+  if (![root isKindOfClass:[AppViewController class]]) {
+    return;
+  }
+  for (UIOpenURLContext *context in URLContexts) {
+    if (context.URL) {
+      [root queueOpenURL:context.URL];
+      break;
+    }
+  }
 }
 
 @end
@@ -735,6 +905,24 @@ yaze::ios::IOSHost g_ios_host;
     return configuration;
   }
   return nil;
+}
+
+- (BOOL)application:(UIApplication *)application
+            openURL:(NSURL *)url
+            options:(NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options {
+  (void)application;
+  (void)options;
+
+  if (!url) {
+    return NO;
+  }
+
+  UIViewController *rootViewController = [self RootViewControllerForPresenting];
+  if ([rootViewController isKindOfClass:[AppViewController class]]) {
+    [(AppViewController *)rootViewController queueOpenURL:url];
+    return YES;
+  }
+  return NO;
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application {
