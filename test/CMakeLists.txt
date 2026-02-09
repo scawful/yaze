@@ -297,6 +297,7 @@ if(YAZE_BUILD_TESTS)
     unit/rom/rom_diff_test.cc
     unit/editor/editor_registry_test.cc
     unit/editor/editor_manager_test.cc
+    unit/editor/editor_manager_write_conflict_test.cc
     unit/editor/editor_set_test.cc
     unit/zelda3/resource_labels_test.cc
     unit/zelda3/dungeon/water_fill_zone_test.cc
