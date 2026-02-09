@@ -291,16 +291,19 @@ if(YAZE_BUILD_TESTS)
   # --- Quick Test Suites (Fast Iteration) ---
   # These suites are intentionally NOT labeled "stable" to avoid duplicate runs
   # when running `ctest -L stable`. Use `ctest -L quick` for fast feedback.
-  set(QUICK_UNIT_TEST_SOURCES
+  set(QUICK_UNIT_CORE_TEST_SOURCES
     unit/core/asar_wrapper_test.cc
     unit/core/hack_manifest_test.cc
     unit/core/oracle_progression_test.cc
     unit/core/oracle_progression_loader_test.cc
     unit/core/story_event_graph_test.cc
-    unit/editor/dungeon_editor_v2_rom_safety_test.cc
     unit/core/project_bundle_test.cc
     unit/core/project_paths_test.cc
     unit/rom/rom_diff_test.cc
+    unit/zelda3/resource_labels_test.cc
+  )
+  set(QUICK_UNIT_EDITOR_TEST_SOURCES
+    unit/editor/dungeon_editor_v2_rom_safety_test.cc
     unit/editor/assembly_editor_symbol_jump_test.cc
     unit/editor/editor_registry_test.cc
     unit/editor/editor_manager_test.cc
@@ -308,13 +311,13 @@ if(YAZE_BUILD_TESTS)
     unit/editor/editor_manager_write_conflict_test.cc
     unit/editor/editor_manager_oracle_rom_safety_test.cc
     unit/editor/editor_set_test.cc
-    unit/zelda3/resource_labels_test.cc
     unit/zelda3/dungeon/water_fill_zone_test.cc
   )
   set(QUICK_INTEGRATION_TEST_SOURCES
     integration/zelda3/dungeon_save_region_test.cc
   )
-  yaze_add_test_suite(yaze_test_quick_unit "quick;fast_unit" OFF ${QUICK_UNIT_TEST_SOURCES})
+  yaze_add_test_suite(yaze_test_quick_unit_core "quick;fast_unit;fast_unit_core" OFF ${QUICK_UNIT_CORE_TEST_SOURCES})
+  yaze_add_test_suite(yaze_test_quick_unit_editor "quick;fast_unit;fast_unit_editor" OFF ${QUICK_UNIT_EDITOR_TEST_SOURCES})
   yaze_add_test_suite(yaze_test_quick_integration "quick;fast_integration" OFF ${QUICK_INTEGRATION_TEST_SOURCES})
 
   # --- ROM Dependent Test Suite ---
