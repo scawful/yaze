@@ -39,22 +39,16 @@
 // Project headers
 #include "app/application.h"
 #include "app/editor/code/assembly_editor.h"
-#include "app/editor/code/memory_editor.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/editor.h"
-#include "app/editor/graphics/graphics_editor.h"
-#include "app/editor/graphics/screen_editor.h"
 #include "app/editor/layout/layout_manager.h"
 #include "app/editor/layout/layout_presets.h"
 #include "app/editor/menu/activity_bar.h"
 #include "app/editor/menu/menu_orchestrator.h"
 #include "app/editor/message/message_data.h"
-#include "app/editor/message/message_editor.h"
-#include "app/editor/music/music_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
-#include "app/editor/palette/palette_editor.h"
 #include "app/editor/session_types.h"
-#include "app/editor/sprite/sprite_editor.h"
+#include "app/editor/system/default_editor_factories.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/panel_manager.h"
 #include "app/editor/system/shortcut_configurator.h"
@@ -133,47 +127,6 @@ namespace {
 // TODO: Move to EditorRegistry
 std::string GetEditorName(EditorType type) {
   return kEditorNames[static_cast<int>(type)];
-}
-
-void RegisterDefaultEditorFactories(EditorRegistry* registry) {
-  if (!registry) {
-    return;
-  }
-
-  // Core editor set (used by RomSession/EditorSet construction).
-  registry->RegisterFactory(EditorType::kAssembly, [](Rom* rom) {
-    return std::make_unique<AssemblyEditor>(rom);
-  });
-  registry->RegisterFactory(EditorType::kDungeon, [](Rom* rom) {
-    return std::make_unique<DungeonEditorV2>(rom);
-  });
-  registry->RegisterFactory(EditorType::kGraphics, [](Rom* rom) {
-    return std::make_unique<GraphicsEditor>(rom);
-  });
-  registry->RegisterFactory(EditorType::kMusic, [](Rom* rom) {
-    return std::make_unique<MusicEditor>(rom);
-  });
-  registry->RegisterFactory(EditorType::kOverworld, [](Rom* rom) {
-    return std::make_unique<OverworldEditor>(rom);
-  });
-  registry->RegisterFactory(EditorType::kPalette, [](Rom* rom) {
-    return std::make_unique<PaletteEditor>(rom);
-  });
-  registry->RegisterFactory(EditorType::kScreen, [](Rom* rom) {
-    return std::make_unique<ScreenEditor>(rom);
-  });
-  registry->RegisterFactory(EditorType::kSprite, [](Rom* rom) {
-    return std::make_unique<SpriteEditor>(rom);
-  });
-  registry->RegisterFactory(EditorType::kMessage, [](Rom* rom) {
-    return std::make_unique<MessageEditor>(rom);
-  });
-  registry->RegisterFactory(EditorType::kHex, [](Rom* rom) {
-    return std::make_unique<MemoryEditor>(rom);
-  });
-  registry->RegisterFactory(EditorType::kSettings, [](Rom*) {
-    return std::make_unique<SettingsPanel>();
-  });
 }
 
 std::string NormalizeHash(std::string value) {
@@ -2060,12 +2013,13 @@ void EditorManager::DrawSecondaryWindows() {
     bool* hex_visibility =
         panel_manager_.GetVisibilityFlag("memory.hex_editor");
     if (hex_visibility) {
-      auto* editor = editor_set->GetMemoryEditor();
-      // Keep the legacy panel visibility flag in sync with the window close
-      // button (ImGui::Begin will toggle Editor::active_).
-      editor->set_active(*hex_visibility);
-      editor->Update();
-      *hex_visibility = *editor->active();
+      if (auto* editor = editor_set->GetEditor(EditorType::kHex)) {
+        // Keep the legacy panel visibility flag in sync with the window close
+        // button (ImGui::Begin will toggle Editor::active_).
+        editor->set_active(*hex_visibility);
+        editor->Update();
+        *hex_visibility = *editor->active();
+      }
     }
 
     if (ui_coordinator_ && ui_coordinator_->IsAsmEditorVisible()) {
