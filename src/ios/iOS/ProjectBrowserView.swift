@@ -130,16 +130,11 @@ struct ProjectBrowserView: View {
       documentManager.downloadDocument(at: doc.url)
       return
     }
-    // Open via bridge: pass the bundle root so the core can resolve
-    // `project.yaze` + `rom` consistently across desktop/iOS.
-    let bundlePath = doc.url.path
-    let romPath = doc.url.appendingPathComponent("rom").path
-
-    settingsStore.updateCurrentProjectPath(bundlePath)
-    if FileManager.default.fileExists(atPath: romPath) {
-      settingsStore.updateCurrentRomPath(romPath)
+    do {
+      try YazeProjectOpenService.openBundle(at: doc.url, settingsStore: settingsStore)
+    } catch {
+      settingsStore.statusMessage = "Open failed: \(error.localizedDescription)"
     }
-    YazeIOSBridge.openProject(atPath: bundlePath)
   }
 
   private func createProject() {

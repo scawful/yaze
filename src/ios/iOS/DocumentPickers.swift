@@ -3,10 +3,17 @@ import UniformTypeIdentifiers
 
 struct DocumentPicker: UIViewControllerRepresentable {
   let contentTypes: [UTType]
+  /// When true, the picker will import (copy) the selected document into the
+  /// app sandbox. When false, it will open the document in place (preferred for
+  /// iCloud Drive workflows, including `.yazeproj` bundles).
+  var asCopy: Bool = true
   let onPick: (URL) -> Void
 
   func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
-    let controller = UIDocumentPickerViewController(forOpeningContentTypes: contentTypes)
+    let controller = UIDocumentPickerViewController(
+      forOpeningContentTypes: contentTypes,
+      asCopy: asCopy
+    )
     controller.allowsMultipleSelection = false
     controller.delegate = context.coordinator
     return controller

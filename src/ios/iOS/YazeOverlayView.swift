@@ -157,8 +157,23 @@ struct YazeOverlayView: View {
       }
     }
     .sheet(isPresented: $showProjectPicker) {
-      DocumentPicker(contentTypes: [UTType.folder]) { url in
-        settingsStore.updateCurrentProjectPath(url.path)
+      DocumentPicker(
+        contentTypes: [
+          UTType(filenameExtension: "yazeproj") ?? .data,
+          .folder,
+        ],
+        asCopy: false
+      ) { url in
+        if url.pathExtension.lowercased() == "yazeproj" {
+          do {
+            try YazeProjectOpenService.openBundle(at: url, settingsStore: settingsStore)
+          } catch {
+            settingsStore.statusMessage = "Open failed: \(error.localizedDescription)"
+          }
+        } else {
+          // Fallback: allow selecting a project root folder (legacy workflow).
+          settingsStore.updateCurrentProjectPath(url.path)
+        }
       }
     }
     .sheet(isPresented: $showExportPicker) {
@@ -759,7 +774,7 @@ struct FilesystemSettingsView: View {
           Button("Open ROM") { showRomPicker = true }
           Button("Open Project") { showProjectPicker = true }
           Button("Export Project Bundle") { exportBundle() }
-          Button("Import Project Bundle") { showBundleImporter = true }
+          Button("Open Project Bundle (Files/iCloud)") { showBundleImporter = true }
         }
       }
       .navigationTitle("Files")
@@ -781,17 +796,14 @@ struct FilesystemSettingsView: View {
         }
       }
       .sheet(isPresented: $showBundleImporter) {
-        DocumentPicker(contentTypes: [UTType(filenameExtension: "yazeproj") ?? .data]) { url in
-          if let imported = YazeProjectBundleService.importBundle(from: url, settingsStore: settingsStore) {
-            settingsStore.statusMessage = "Imported \(imported.lastPathComponent)"
-            if !settingsStore.settings.general.lastProjectPath.isEmpty {
-              YazeIOSBridge.openProject(atPath: settingsStore.settings.general.lastProjectPath)
-            } else if !settingsStore.settings.general.lastRomPath.isEmpty {
-              // Fallback for older imports without a project bundle root.
-              YazeIOSBridge.loadRom(atPath: settingsStore.settings.general.lastRomPath)
-            }
-          } else {
-            settingsStore.statusMessage = "Import failed"
+        DocumentPicker(
+          contentTypes: [UTType(filenameExtension: "yazeproj") ?? .data],
+          asCopy: false
+        ) { url in
+          do {
+            try YazeProjectOpenService.openBundle(at: url, settingsStore: settingsStore)
+          } catch {
+            settingsStore.statusMessage = "Open failed: \(error.localizedDescription)"
           }
         }
       }
