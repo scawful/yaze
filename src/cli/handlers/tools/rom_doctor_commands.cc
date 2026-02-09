@@ -12,6 +12,7 @@
 #include "cli/handlers/tools/diagnostic_types.h"
 #include "rom/hm_support.h"
 #include "rom/rom.h"
+#include "zelda3/dungeon/water_fill_zone.h"
 
 namespace yaze::cli {
 
@@ -509,6 +510,32 @@ absl::Status RomDoctorCommandHandler::Execute(
 
   // 5. Validate expanded tables
   ValidateExpandedTables(rom, report);
+
+  // 6. Oracle of Secrets: validate WaterFill reserved region integrity.
+  //
+  // This is a ROM safety check for editor-authored water fill zones which
+  // reserve a tail region inside the expanded custom collision bank. If custom
+  // collision data overlaps that reserved tail, the ROM layout is incompatible
+  // with the WaterFill table format and yaze must not attempt to use it.
+  {
+    auto zones_or = yaze::zelda3::LoadWaterFillTable(rom);
+    if (!zones_or.ok()) {
+      DiagnosticFinding finding;
+      finding.id = "water_fill_table_invalid";
+      finding.severity = DiagnosticSeverity::kWarning;
+      finding.message = absl::StrFormat("WaterFill table parse failed: %s",
+                                        zones_or.status().message());
+      finding.location = "Custom collision bank ($13:xxxx)";
+      finding.suggested_action =
+          "Restore from a known-good ROM or fix custom collision layout. "
+          "This must be resolved before using WaterFill authoring.";
+      finding.fixable = false;
+      report.AddFinding(finding);
+    } else if (verbose) {
+      formatter.AddField("water_fill_zone_count",
+                         static_cast<int>(zones_or.value().size()));
+    }
+  }
 
   // Output findings
   formatter.BeginArray("findings");
