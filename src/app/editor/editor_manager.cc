@@ -483,7 +483,10 @@ void EditorManager::InitializeSubsystems() {
             current_project_.code_folder = folder_path;
             // Update assembly editor path
             if (auto* editor_set = GetCurrentEditorSet()) {
+// iOS: avoid blocking folder enumeration on the UI thread.
+#if !(defined(__APPLE__) && TARGET_OS_IOS == 1)
               editor_set->OpenAssemblyFolder(folder_path);
+#endif
               panel_manager_.SetFileBrowserPath("Assembly", folder_path);
             }
           } else if (type == "assets") {
@@ -2762,10 +2765,14 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
 
     if (auto* editor_set = GetCurrentEditorSet();
         editor_set && !current_project_.code_folder.empty()) {
+      // iOS: avoid blocking the main thread during project open / scene updates.
+      // Large iCloud-backed projects can trigger watchdog termination if we
+      // eagerly enumerate folders here.
+#if !(defined(__APPLE__) && TARGET_OS_IOS == 1)
       editor_set->OpenAssemblyFolder(current_project_.code_folder);
-      // Also set the sidebar file browser path
-      panel_manager_.SetFileBrowserPath("Assembly",
-                                        current_project_.code_folder);
+#endif
+      // Also set the sidebar file browser path (refresh happens during UI draw).
+      panel_manager_.SetFileBrowserPath("Assembly", current_project_.code_folder);
     }
 
 #ifdef __EMSCRIPTEN__
@@ -3030,8 +3037,11 @@ absl::Status EditorManager::LoadProjectWithRom() {
 
   if (auto* editor_set = GetCurrentEditorSet();
       editor_set && !current_project_.code_folder.empty()) {
+    // iOS: avoid blocking the main thread during project open / scene updates.
+#if !(defined(__APPLE__) && TARGET_OS_IOS == 1)
     editor_set->OpenAssemblyFolder(current_project_.code_folder);
-    // Also set the sidebar file browser path
+#endif
+    // Also set the sidebar file browser path (refresh happens during UI draw).
     panel_manager_.SetFileBrowserPath("Assembly", current_project_.code_folder);
   }
 

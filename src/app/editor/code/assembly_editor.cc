@@ -4,6 +4,10 @@
 #include <string>
 #include <vector>
 
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
+
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "app/editor/code/panels/assembly_editor_panels.h"
@@ -121,8 +125,9 @@ std::vector<std::string> RemoveIgnoredFiles(
 
 FolderItem LoadFolder(const std::string& folder) {
   // Check if .gitignore exists in the folder
-  std::ifstream gitignore(folder + "/.gitignore");
   std::vector<std::string> ignored_files;
+#if !(defined(__APPLE__) && TARGET_OS_IOS == 1)
+  std::ifstream gitignore(folder + "/.gitignore");
   if (gitignore.good()) {
     std::string line;
     while (std::getline(gitignore, line)) {
@@ -136,6 +141,7 @@ FolderItem LoadFolder(const std::string& folder) {
       ignored_files.push_back(line);
     }
   }
+#endif
 
   FolderItem current_folder;
   current_folder.name = folder;

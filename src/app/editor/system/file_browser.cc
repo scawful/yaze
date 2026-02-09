@@ -4,6 +4,10 @@
 #include <fstream>
 #include <regex>
 
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
+
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_split.h"
 #include "app/gui/core/icons.h"
@@ -174,9 +178,15 @@ void FileBrowser::SetRootPath(const std::string& path) {
 
     // Load .gitignore from root
     fs::path gitignore = resolved_path / ".gitignore";
+#if !(defined(__APPLE__) && TARGET_OS_IOS == 1)
     if (fs::exists(gitignore, ec)) {
       gitignore_parser_.LoadFromFile(gitignore.string());
     }
+#else
+    // iOS: avoid synchronous reads from iCloud Drive during project open.
+    // File provider backed reads can block and trigger watchdog termination.
+    (void)gitignore;
+#endif
 
     // Also add common default ignores
     gitignore_parser_.AddPattern("node_modules/");

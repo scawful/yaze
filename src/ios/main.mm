@@ -574,13 +574,65 @@ yaze::ios::IOSHost g_ios_host;
   security_scope_granted_ = [url startAccessingSecurityScopedResource];
 }
 
+// If the system hands us a URL inside a `.yazeproj` package (common with file
+// provider/iCloud workflows), walk up to the bundle root so subsequent file
+// access (rom, project snapshot) succeeds under a single security scope.
+- (NSURL *)resolveYazeProjectBundleRootForURL:(NSURL *)url {
+  if (!url) {
+    return nil;
+  }
+
+  NSString *ext = [[url pathExtension] lowercaseString];
+  if ([ext isEqualToString:@"yazeproj"]) {
+    return url;
+  }
+
+  NSURL *current = url;
+  for (int i = 0; i < 10; i++) {
+    NSURL *parent = [current URLByDeletingLastPathComponent];
+    if (!parent || [parent.path isEqualToString:current.path]) {
+      break;
+    }
+    NSString *parent_ext = [[parent pathExtension] lowercaseString];
+    if ([parent_ext isEqualToString:@"yazeproj"]) {
+      return parent;
+    }
+    current = parent;
+  }
+
+  // Heuristic fallback: directory containing expected bundle markers.
+  BOOL is_dir = NO;
+  if ([[NSFileManager defaultManager] fileExistsAtPath:url.path
+                                           isDirectory:&is_dir] &&
+      is_dir) {
+    NSURL *project_file = [url URLByAppendingPathComponent:@"project.yaze"];
+    NSURL *rom_file = [url URLByAppendingPathComponent:@"rom"];
+    if ([[NSFileManager defaultManager] fileExistsAtPath:project_file.path] &&
+        [[NSFileManager defaultManager] fileExistsAtPath:rom_file.path]) {
+      return url;
+    }
+  }
+
+  return url;
+}
+
 - (void)openURLNow:(NSURL *)url {
   if (!url) {
     return;
   }
 
+  url = [self resolveYazeProjectBundleRootForURL:url] ?: url;
+
   // iCloud Drive items may be lazily downloaded. Request a download if needed.
   [[NSFileManager defaultManager] startDownloadingUbiquitousItemAtURL:url error:nil];
+  if ([[[url pathExtension] lowercaseString] isEqualToString:@"yazeproj"]) {
+    [[NSFileManager defaultManager]
+        startDownloadingUbiquitousItemAtURL:[url URLByAppendingPathComponent:@"project.yaze"]
+                                     error:nil];
+    [[NSFileManager defaultManager]
+        startDownloadingUbiquitousItemAtURL:[url URLByAppendingPathComponent:@"rom"]
+                                     error:nil];
+  }
 
   NSString *path = url.path;
   if (!path || path.length == 0) {
@@ -605,15 +657,27 @@ yaze::ios::IOSHost g_ios_host;
     return;
   }
 
+  NSURL *resolved = [self resolveYazeProjectBundleRootForURL:url] ?: url;
+
   // Keep security-scoped access alive for the duration of the opened project.
-  [self beginSecurityScopeForURL:url];
+  // Prefer the bundle root so child reads succeed.
+  [self beginSecurityScopeForURL:resolved];
+  if (!security_scope_granted_ && resolved != url) {
+    // Fallback: keep access to the picked URL if root access wasn't granted.
+    [self beginSecurityScopeForURL:url];
+    resolved = url;
+  }
 
   if (!host_initialized_) {
-    pending_open_url_ = url;
+    pending_open_url_ = resolved;
     return;
   }
 
-  [self openURLNow:url];
+  // Avoid scene-update watchdog termination: return quickly from the UIKit
+  // callback, then perform project loading on the next run loop tick.
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [self openURLNow:resolved];
+  });
 }
 
 - (void)mtkView:(MTKView *)view drawableSizeWillChange:(CGSize)size {
