@@ -76,6 +76,8 @@
 #include "editor/system/shortcut_manager.h"
 #include "editor/ui/rom_load_options_dialog.h"
 #include "rom/rom.h"
+#include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/water_fill_zone.h"
 #include "startup_flags.h"
 #include "util/file_util.h"
 #include "util/log.h"
@@ -2482,6 +2484,58 @@ absl::Status EditorManager::CheckRomWritePolicy() {
   return absl::OkStatus();
 }
 
+absl::Status EditorManager::CheckOracleRomSafetyPreSave(Rom* rom) {
+  if (!rom || !rom->is_loaded()) {
+    return absl::InvalidArgumentError("ROM not loaded");
+  }
+
+  // Only apply Oracle-specific guardrails for projects that have loaded a hack
+  // manifest + project registry (a strong signal we're working in the Oracle of
+  // Secrets context). Avoids false positives for vanilla/other hacks.
+  if (!current_project_.project_opened() ||
+      !current_project_.hack_manifest.loaded() ||
+      !current_project_.hack_manifest.HasProjectRegistry()) {
+    return absl::OkStatus();
+  }
+
+  const auto& data = rom->vector();
+  if (zelda3::kWaterFillTableEnd > static_cast<int>(data.size())) {
+    toast_manager_.Show(
+        "Oracle ROM safety: missing WaterFill reserved region (use an expanded-collision ROM)",
+        ToastType::kError);
+    return absl::FailedPreconditionError(
+        "Oracle ROM safety: WaterFill reserved region not present");
+  }
+
+  // Oracle runtime currently uses 8 bits in $7EF411. If the header contains an
+  // out-of-range zone count, treat as corruption and block saving.
+  const uint8_t zone_count =
+      data[static_cast<size_t>(zelda3::kWaterFillTableStart)];
+  if (zone_count > 8) {
+    toast_manager_.Show(
+        absl::StrFormat(
+            "Oracle ROM safety: WaterFill table header corrupted (zone_count=%u)",
+            zone_count),
+        ToastType::kError);
+    return absl::FailedPreconditionError(
+        "Oracle ROM safety: WaterFill table header corrupted");
+  }
+
+  // Run the loader as a validation pass. This checks:
+  // - Custom collision pointers/data don't overlap the WaterFill reserved region
+  // - Table header/data offsets are consistent and in-bounds
+  auto zones = zelda3::LoadWaterFillTable(rom);
+  if (!zones.ok()) {
+    toast_manager_.Show(
+        absl::StrFormat("Oracle ROM safety check failed: %s",
+                        std::string(zones.status().message()).c_str()),
+        ToastType::kError);
+    return zones.status();
+  }
+
+  return absl::OkStatus();
+}
+
 absl::Status EditorManager::SaveRom() {
   auto* current_rom = GetCurrentRom();
   auto* current_editor_set = GetCurrentEditorSet();
@@ -2588,6 +2642,9 @@ absl::Status EditorManager::SaveRom() {
   if (core::FeatureFlags::get().kSaveGraphicsSheet)
     RETURN_IF_ERROR(zelda3::SaveAllGraphicsData(
         *current_rom, gfx::Arena::Get().gfx_sheets()));
+
+  // Oracle guardrails: refuse to write obviously corrupted ROM layouts.
+  RETURN_IF_ERROR(CheckOracleRomSafetyPreSave(current_rom));
 
   // Write conflict check: analyze actual byte diffs against the on-disk ROM and
   // warn if we touch ASM-owned/hook-patched regions (asar will overwrite).

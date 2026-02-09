@@ -506,6 +506,7 @@ class EditorManager {
   void PersistInputConfig(const emu::input::InputConfig& config);
   void UpdateCurrentRomHash();
   absl::Status CheckRomWritePolicy();
+  absl::Status CheckOracleRomSafetyPreSave(Rom* rom);
 
   float autosave_timer_ = 0.0f;
   bool settings_dirty_ = false;
