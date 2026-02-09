@@ -111,11 +111,21 @@ if(YAZE_BUILD_TESTS)
     endif()
 
     include(GoogleTest)
-    # gtest_discover_tests expects PROPERTIES to be key/value pairs. For LABELS,
-    # we want to support multiple labels (e.g. "stable;unit"), but must pass the
-    # label list as a *single* value. Escaping semicolons preserves it as one
-    # argument so the generated CTest file sets all labels correctly.
-    string(REPLACE ";" "\\;" _suite_labels "${label}")
+    # gtest_discover_tests forwards PROPERTIES through a post-build discovery
+    # script as a semicolon-delimited list of tokens (prop/value pairs). If the
+    # LABELS value contains semicolons (multiple labels), it must be escaped so
+    # it stays a single token when forwarded, otherwise it turns into two extra
+    # tokens and breaks the prop/value pairing (and ctest won't be able to
+    # filter by the missing labels).
+    #
+    # NOTE: GoogleTestAddTests.cmake forwards TEST_PROPERTIES through another
+    # helper function call without quoting. That forwarding step will split on
+    # literal ';' again, so we must *double escape* label separators here. This
+    # ensures the discovery script ultimately emits:
+    #   LABELS "stable;unit"
+    # rather than the broken:
+    #   LABELS stable unit
+    string(REPLACE ";" "\\\\;" _suite_labels "${label}")
     # Avoid duplicate CTest names across multiple suites that compile the same
     # gtest sources (e.g. quick vs stable). Only the quick suites need a prefix.
     set(_test_prefix "")
@@ -181,6 +191,8 @@ if(YAZE_BUILD_TESTS)
     unit/editor/panel_system_test.cc
     unit/editor/panel_manager_policy_test.cc
     unit/editor/editor_manager_test.cc
+    unit/editor/editor_set_test.cc
+    unit/editor/editor_registry_test.cc
     unit/editor/shortcut_manager_test.cc
     unit/editor/dungeon_editor_v2_rom_safety_test.cc
     unit/core/asar_compiler_test.cc
@@ -283,6 +295,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/project_bundle_test.cc
     unit/core/project_paths_test.cc
     unit/rom/rom_diff_test.cc
+    unit/editor/editor_registry_test.cc
     unit/zelda3/resource_labels_test.cc
     unit/zelda3/dungeon/water_fill_zone_test.cc
   )
