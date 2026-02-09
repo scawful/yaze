@@ -61,6 +61,8 @@ targets:
       - path: iOS/KeychainStore.swift
       - path: iOS/YazeFileImport.swift
       - path: iOS/YazeProjectBundle.swift
+      - path: iOS/YazeSecurityScope.swift
+      - path: iOS/YazeProjectOpenService.swift
       - path: iOS/YazeProjectDocument.swift
       - path: iOS/YazeDocumentManager.swift
       - path: iOS/YazeConflictResolverView.swift
