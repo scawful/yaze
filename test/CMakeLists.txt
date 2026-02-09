@@ -195,6 +195,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/panel_manager_policy_test.cc
     unit/editor/editor_manager_test.cc
     unit/editor/editor_manager_rom_write_policy_test.cc
+    unit/editor/editor_manager_oracle_rom_safety_test.cc
     unit/editor/editor_set_test.cc
     unit/editor/editor_registry_test.cc
     unit/editor/shortcut_manager_test.cc
@@ -303,6 +304,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/editor_manager_test.cc
     unit/editor/editor_manager_rom_write_policy_test.cc
     unit/editor/editor_manager_write_conflict_test.cc
+    unit/editor/editor_manager_oracle_rom_safety_test.cc
     unit/editor/editor_set_test.cc
     unit/zelda3/resource_labels_test.cc
     unit/zelda3/dungeon/water_fill_zone_test.cc
