@@ -29,6 +29,7 @@ set(
   app/editor/dungeon/panels/room_tag_editor_panel.cc
   app/editor/editor_manager.cc
   app/editor/session_types.cc
+  app/editor/system/default_editor_factories.cc
   app/editor/graphics/gfx_group_editor.cc
   app/editor/graphics/graphics_editor.cc
   app/editor/graphics/link_sprite_panel.cc
