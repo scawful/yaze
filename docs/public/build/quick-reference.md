@@ -80,11 +80,18 @@ Requires `xcodegen` (`brew install xcodegen`) and the iOS SDK from Xcode.
 | Build Type | Default Directory |
 |------------|-------------------|
 | Native (desktop/CLI) | `build/` |
+| Native (AI presets) | `build_ai/` |
 | WASM | `build-wasm/` |
 
-macOS and Windows presets use multi-config generators, so binaries live under `build/bin/Debug` or `build/bin/Release`. Linux uses single-config builds in `build/bin`.
+macOS and Windows presets use multi-config generators, so binaries live under
+`build_ai/bin/Debug` or `build_ai/bin/Release` (AI presets) and `build/bin/...`
+(non-AI presets). Linux uses single-config builds in `build/bin` or
+`build_ai/bin` depending on preset.
 
-If you need per-user or per-agent isolation, create a local `CMakeUserPresets.json` that points `binaryDir` to a custom path outside the repo. Avoid creating additional `build_*` folders in the repo to keep the checkout small.
+If you need per-user or per-agent isolation, create a local
+`CMakeUserPresets.json` that points `binaryDir` to a custom path outside the
+repo. Avoid creating additional `build_*` folders beyond `build/` and
+`build_ai/` to keep the checkout small.
 
 Example:
 ```bash
@@ -177,6 +184,9 @@ You can also set these in `CMakeUserPresets.json` (see `CMakeUserPresets.json.ex
 ---
 
 ## 4. Common Build Commands
+
+**Tip:** Prefer `./scripts/yaze` and `./scripts/z3ed` to run the newest local
+binary (the wrappers prefer `build_ai/` outputs when available).
 
 ### Standard Debug Build
 

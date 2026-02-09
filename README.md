@@ -56,12 +56,12 @@ for cross-app status, persistence notes, and test coverage.
 git clone --recursive https://github.com/scawful/yaze.git
 cd yaze
 
-# Build (macOS)
-cmake --preset mac-dbg
-cmake --build build -j8
+# Build (macOS, AI-enabled editor + CLI)
+cmake --preset mac-ai
+cmake --build build_ai --target yaze z3ed --parallel 8
 
 # Run
-./build/bin/Debug/yaze zelda3.sfc
+./scripts/yaze zelda3.sfc
 ```
 
 **Presets:** `mac-dbg`, `mac-rel`, `lin-dbg`, `lin-rel`, `win-dbg`, `win-rel`
@@ -75,16 +75,16 @@ See [`docs/public/build/quick-reference.md`](docs/public/build/quick-reference.m
 
 ```bash
 # GUI editor
-./build/bin/Debug/yaze zelda3.sfc
+./scripts/yaze zelda3.sfc
 
 # CLI - ROM info
-./build/bin/Debug/z3ed rom-info --rom=zelda3.sfc
+./scripts/z3ed rom-info --rom=zelda3.sfc
 
 # CLI - List dungeon sprites
-./build/bin/Debug/z3ed dungeon-list-sprites --room=1 --rom=zelda3.sfc
+./scripts/z3ed dungeon-list-sprites --room=1 --rom=zelda3.sfc
 
 # CLI - Interactive TUI
-./build/bin/Debug/z3ed --tui
+./scripts/z3ed --tui
 
 # Web version (experimental)
 # https://scawful.github.io/yaze/
@@ -93,9 +93,15 @@ See [`docs/public/build/quick-reference.md`](docs/public/build/quick-reference.m
 ## Testing
 
 ```bash
-ctest --test-dir build -L unit          # Unit tests
-ctest --test-dir build -L integration   # Integration tests
-ctest --preset dev                      # CI test set
+# Fast local loop (quick labeled suites)
+./scripts/test_fast.sh --quick
+
+# Stable suites (label-filtered)
+ctest --test-dir build_ai -C Debug -L unit
+ctest --test-dir build_ai -C Debug -L integration
+
+# Preset-based runs (see CMakePresets.json testPresets)
+ctest --preset mac-ai-unit
 ```
 
 Some tests require a ROM. Set `YAZE_TEST_ROM_VANILLA` or
