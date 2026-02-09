@@ -57,6 +57,10 @@ class MessageEditor : public Editor {
   void DrawMessagePreview();
   void UpdateCurrentMessageFromText(const std::string& text);
 
+  // Jump/navigation helper used by panels (e.g. Story Event Graph).
+  // Accepts vanilla IDs (0..N) and expanded IDs (expanded_base_id..).
+  bool OpenMessageById(int display_id);
+
   absl::Status Save() override;
   absl::Status SaveExpandedMessages();
   absl::Status LoadExpandedMessagesFromRom();
