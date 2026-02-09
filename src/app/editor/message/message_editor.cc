@@ -125,12 +125,38 @@ void MessageEditor::Initialize() {
 
 bool MessageEditor::OpenMessageById(int display_id) {
   const int vanilla_count = static_cast<int>(list_of_texts_.size());
-  const int expanded_count = static_cast<int>(expanded_messages_.size());
   const int expanded_base_id = expanded_message_base_id_;
 
-  const auto resolved =
+  int expanded_count = static_cast<int>(expanded_messages_.size());
+  auto resolved =
       ResolveMessageDisplayId(display_id, vanilla_count, expanded_base_id,
                               expanded_count);
+
+  // Convenience: if an expanded ID is requested but we haven't loaded expanded
+  // messages yet, try loading from ROM once.
+  if (!resolved.has_value() && expanded_count == 0 &&
+      display_id >= expanded_base_id && rom_ && rom_->is_loaded()) {
+    const int start = GetExpandedTextDataStart();
+    const int end = GetExpandedTextDataEnd();
+    const size_t rom_size = rom_->size();
+    if (start >= 0 && end >= start &&
+        static_cast<size_t>(end) < rom_size) {
+      const auto status = LoadExpandedMessagesFromRom();
+      if (!status.ok()) {
+        LOG_DEBUG("MessageEditor",
+                  "OpenMessageById: expanded load skipped/failed: %s",
+                  std::string(status.message()).c_str());
+      }
+      expanded_count = static_cast<int>(expanded_messages_.size());
+      resolved = ResolveMessageDisplayId(display_id, vanilla_count,
+                                         expanded_base_id, expanded_count);
+    } else {
+      LOG_DEBUG("MessageEditor",
+                "OpenMessageById: expanded region out of bounds (0x%X-0x%X, rom=0x%zX)",
+                start, end, rom_size);
+    }
+  }
+
   if (!resolved.has_value()) {
     return false;
   }
