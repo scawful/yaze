@@ -30,6 +30,7 @@ TEST_F(UnitTest_EditorSet, GenericContainerOperations) {
   // Verify type-safe access
   EXPECT_NE(editor_set.GetEditorAs<AssemblyEditor>(EditorType::kAssembly),
             nullptr);
+  EXPECT_NE(editor_set.GetAsarWrapper(), nullptr);
 
   // Verify unknown type returns nullptr
   EXPECT_EQ(editor_set.GetEditor(EditorType::kUnknown), nullptr);

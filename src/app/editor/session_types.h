@@ -1,14 +1,21 @@
 #ifndef YAZE_APP_EDITOR_SESSION_TYPES_H_
 #define YAZE_APP_EDITOR_SESSION_TYPES_H_
 
+#include <array>
 #include <memory>
+#include <string>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
 
 #include "app/editor/editor.h"
+#include "core/features.h"
 #include "rom/rom.h"
 #include "zelda3/game_data.h"
-#include "core/features.h"
+
+namespace yaze::core {
+class AsarWrapper;
+}
 
 namespace yaze::editor {
 
@@ -54,6 +61,13 @@ class EditorSet {
   T* GetEditorAs(EditorType type) const {
     return static_cast<T*>(GetEditor(type));
   }
+
+  // Convenience helpers that avoid requiring concrete editor headers.
+  // Prefer these from higher-level systems (EditorManager, UI) to keep compile
+  // dependencies minimal.
+  void OpenAssemblyFolder(const std::string& folder_path) const;
+  void ChangeActiveAssemblyFile(std::string_view path) const;
+  core::AsarWrapper* GetAsarWrapper() const;
 
   // Deprecated named accessors (legacy compatibility)
   [[deprecated("Use GetEditorAs<AssemblyEditor>(EditorType::kAssembly)")]]
