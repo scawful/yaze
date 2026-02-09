@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
+#include "absl/container/flat_hash_set.h"
 #include "app/editor/editor.h"
 #include "app/gui/app/editor_layout.h"
 #include "app/gui/core/style.h"
@@ -20,6 +21,12 @@ struct FolderItem {
   std::string name;
   std::vector<FolderItem> subfolders;
   std::vector<std::string> files;
+};
+
+struct AsmSymbolLocation {
+  std::string file;
+  int line = 0;    // 0-based
+  int column = 0;  // 0-based
 };
 
 /**
@@ -101,6 +108,8 @@ class AssemblyEditor : public Editor {
   void DrawToolset();
   void DrawSymbolPanel();
 
+  void ClearSymbolJumpCache();
+
   bool file_is_loaded_ = false;
   int current_file_id_ = 0;
   int active_file_id_ = -1;
@@ -122,6 +131,12 @@ class AssemblyEditor : public Editor {
   std::map<std::string, core::AsarSymbol> symbols_;
   std::vector<std::string> last_errors_;
   std::vector<std::string> last_warnings_;
+
+  // Symbol jump cache (used by story graph navigation; avoids scanning the
+  // entire code folder on repeated lookups).
+  std::string symbol_jump_root_;
+  absl::flat_hash_map<std::string, AsmSymbolLocation> symbol_jump_cache_;
+  absl::flat_hash_set<std::string> symbol_jump_negative_cache_;
 };
 
 }  // namespace editor
