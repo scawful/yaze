@@ -38,7 +38,6 @@
 
 // Project headers
 #include "app/application.h"
-#include "app/editor/code/assembly_editor.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/editor.h"
 #include "app/editor/layout/layout_manager.h"
@@ -486,7 +485,7 @@ void EditorManager::InitializeSubsystems() {
             current_project_.code_folder = folder_path;
             // Update assembly editor path
             if (auto* editor_set = GetCurrentEditorSet()) {
-              editor_set->GetAssemblyEditor()->OpenFolder(folder_path);
+              editor_set->OpenAssemblyFolder(folder_path);
               panel_manager_.SetFileBrowserPath("Assembly", folder_path);
             }
           } else if (type == "assets") {
@@ -1264,7 +1263,7 @@ void EditorManager::SetupSidebarCallbacks() {
       [this](const std::string& category, const std::string& path) {
         if (category == "Assembly") {
           if (auto* editor_set = GetCurrentEditorSet()) {
-            editor_set->GetAssemblyEditor()->ChangeActiveFile(path);
+            editor_set->ChangeActiveAssemblyFile(path);
             SwitchToEditor(EditorType::kAssembly, true);
           }
         }
@@ -1771,7 +1770,7 @@ void EditorManager::UpdateEditorState() {
     agent_ui_.SetProjectContext(&current_project_);
     if (auto* editor_set = GetCurrentEditorSet()) {
       agent_ui_.SetAsarWrapperContext(
-          editor_set->GetAssemblyEditor()->asar_wrapper());
+          editor_set->GetAsarWrapper());
     }
   }
 
@@ -2021,11 +2020,13 @@ void EditorManager::DrawSecondaryWindows() {
     }
 
     if (ui_coordinator_ && ui_coordinator_->IsAsmEditorVisible()) {
-      auto* editor = editor_set->GetAssemblyEditor();
-      editor->set_active(true);
-      editor->Update();
-      if (!*editor->active())
-        ui_coordinator_->SetAsmEditorVisible(false);
+      if (auto* editor = editor_set->GetEditor(EditorType::kAssembly)) {
+        editor->set_active(true);
+        editor->Update();
+        if (!*editor->active()) {
+          ui_coordinator_->SetAsmEditorVisible(false);
+        }
+      }
     }
   }
 
@@ -2771,7 +2772,7 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
 
     if (auto* editor_set = GetCurrentEditorSet();
         editor_set && !current_project_.code_folder.empty()) {
-      editor_set->GetAssemblyEditor()->OpenFolder(current_project_.code_folder);
+      editor_set->OpenAssemblyFolder(current_project_.code_folder);
       // Also set the sidebar file browser path
       panel_manager_.SetFileBrowserPath("Assembly",
                                         current_project_.code_folder);
@@ -3039,7 +3040,7 @@ absl::Status EditorManager::LoadProjectWithRom() {
 
   if (auto* editor_set = GetCurrentEditorSet();
       editor_set && !current_project_.code_folder.empty()) {
-    editor_set->GetAssemblyEditor()->OpenFolder(current_project_.code_folder);
+    editor_set->OpenAssemblyFolder(current_project_.code_folder);
     // Also set the sidebar file browser path
     panel_manager_.SetFileBrowserPath("Assembly", current_project_.code_folder);
   }

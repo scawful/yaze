@@ -101,6 +101,25 @@ Editor* EditorSet::GetEditor(EditorType type) const {
   return nullptr;
 }
 
+void EditorSet::OpenAssemblyFolder(const std::string& folder_path) const {
+  if (auto* editor = GetAssemblyEditor()) {
+    editor->OpenFolder(folder_path);
+  }
+}
+
+void EditorSet::ChangeActiveAssemblyFile(std::string_view path) const {
+  if (auto* editor = GetAssemblyEditor()) {
+    editor->ChangeActiveFile(path);
+  }
+}
+
+core::AsarWrapper* EditorSet::GetAsarWrapper() const {
+  if (auto* editor = GetAssemblyEditor()) {
+    return editor->asar_wrapper();
+  }
+  return nullptr;
+}
+
 // Deprecated named accessors
 AssemblyEditor* EditorSet::GetAssemblyEditor() const {
   return GetEditorAs<AssemblyEditor>(EditorType::kAssembly);
