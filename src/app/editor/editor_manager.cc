@@ -56,7 +56,6 @@
 #include "app/editor/ui/popup_manager.h"
 #include "app/editor/ui/project_management_panel.h"
 #include "rom/rom_diff.h"
-#include "app/editor/ui/settings_panel.h"
 #include "app/editor/ui/toast_manager.h"
 #include "util/rom_hash.h"
 #include "app/editor/ui/ui_coordinator.h"
@@ -175,12 +174,16 @@ std::vector<std::string> ValidateRomAddressOverrides(
 
   if (HasAnyOverride(overrides, {core::RomAddressKey::kExpandedMessageStart,
                                  core::RomAddressKey::kExpandedMessageEnd})) {
+    // Defaults match the Oracle expanded message bank ($2F8000-$2FFFFF).
+    // Kept local to avoid pulling message editor constants into core validation.
+    constexpr uint32_t kExpandedMessageStartDefault = 0x178000;
+    constexpr uint32_t kExpandedMessageEndDefault = 0x17FFFF;
     const uint32_t start =
         overrides.GetAddress(core::RomAddressKey::kExpandedMessageStart)
-            .value_or(kExpandedTextDataDefault);
+            .value_or(kExpandedMessageStartDefault);
     const uint32_t end =
         overrides.GetAddress(core::RomAddressKey::kExpandedMessageEnd)
-            .value_or(kExpandedTextDataEndDefault);
+            .value_or(kExpandedMessageEndDefault);
     if (start >= rom_size || end >= rom_size) {
       warn(absl::StrFormat("Expanded message range out of ROM bounds: 0x%X-0x%X",
                            start, end));
@@ -637,10 +640,6 @@ void EditorManager::HandleSessionSwitched(size_t new_index,
   // Update RightPanelManager with the new session's settings editor
   if (right_panel_manager_ && session) {
     right_panel_manager_->SetSettingsPanel(session->editors.GetSettingsPanel());
-    // Set up StatusBar reference for live toggling
-    if (auto* settings = session->editors.GetSettingsPanel()) {
-      settings->SetStatusBar(&status_bar_);
-    }
   }
 
   // Update properties panel with new ROM
@@ -2346,15 +2345,6 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
   if (right_panel_manager_) {
     auto* settings = current_editor_set->GetSettingsPanel();
     right_panel_manager_->SetSettingsPanel(settings);
-    // Also update project context for settings panel
-    if (settings) {
-      settings->SetProject(&current_project_);
-    }
-  }
-
-  // Set up StatusBar reference on settings panel for live toggling
-  if (auto* settings = current_editor_set->GetSettingsPanel()) {
-    settings->SetStatusBar(&status_bar_);
   }
 
   // Apply user preferences to status bar
@@ -2423,12 +2413,6 @@ absl::Status EditorManager::LoadAssetsLazy(uint64_t passed_handle) {
   if (right_panel_manager_) {
     auto* settings = current_editor_set->GetSettingsPanel();
     right_panel_manager_->SetSettingsPanel(settings);
-    if (settings) {
-      settings->SetProject(&current_project_);
-    }
-  }
-  if (auto* settings = current_editor_set->GetSettingsPanel()) {
-    settings->SetStatusBar(&status_bar_);
   }
 
   // Apply user preferences to status bar
