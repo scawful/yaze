@@ -11,18 +11,18 @@ The HTTP API is exposed by both `z3ed` (CLI) and the desktop app when enabled.
 Build with HTTP API support:
 
 ```bash
-cmake -B build -DYAZE_ENABLE_HTTP_API=ON
-cmake --build build --target z3ed
+cmake --preset mac-ai -DYAZE_ENABLE_HTTP_API=ON   # or lin-ai / win-ai
+cmake --build build_ai --target z3ed yaze
 ```
 
 Start the server:
 
 ```bash
 # z3ed
-./build/bin/z3ed --http-port=8080
+./scripts/z3ed --http-port=8080
 
 # yaze desktop app
-./build/bin/yaze --enable_api --api_port=8080
+./scripts/yaze --enable_api --api_port=8080
 ```
 
 Notes:
@@ -91,7 +91,7 @@ They are available only in builds with gRPC enabled (`YAZE_ENABLE_GRPC` / `YAZE_
 ### Enable and Run
 
 ```bash
-./build/bin/yaze --enable_test_harness --test_harness_port=50052
+./scripts/yaze --enable_test_harness --test_harness_port=50052
 ```
 
 `--server` also enables automation in headless/service mode.

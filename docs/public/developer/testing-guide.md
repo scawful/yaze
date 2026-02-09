@@ -69,39 +69,44 @@ Performance measurement for critical paths. Run manually or in specialized CI jo
 
 ```bash
 # Build
-cmake --build build --target yaze_test
+cmake --build build_ai --target yaze_test
 
 # Run all tests
-./build/bin/yaze_test
+./scripts/yaze_test
 
 # Run by category
-./build/bin/yaze_test --unit
-./build/bin/yaze_test --integration
-./build/bin/yaze_test --e2e --show-gui
+./scripts/yaze_test --unit
+./scripts/yaze_test --integration
+./scripts/yaze_test --e2e --show-gui
 
 # Run ROM-dependent tests
-./build/bin/yaze_test --rom-dependent --rom-vanilla /path/to/alttp_vanilla.sfc
+./scripts/yaze_test --rom-dependent --rom-vanilla /path/to/alttp_vanilla.sfc
 
 # Run by pattern
-./build/bin/yaze_test "*Asar*"
+./scripts/yaze_test "*Asar*"
 
 # Show all options
-./build/bin/yaze_test --help
+./scripts/yaze_test --help
 ```
 
 ### Using CTest
 
 ```bash
-# Configure with ROM tests
-cmake --preset mac-dev -DYAZE_TEST_ROM_VANILLA_PATH=/path/to/alttp_vanilla.sfc
+# Fast local loop (preferred)
+./scripts/test_fast.sh --quick
 
-# Build
-cmake --build --preset mac-dev --target yaze_test
+# Stable suites (label filtered)
+ctest --test-dir build_ai -C Debug -L unit
+ctest --test-dir build_ai -C Debug -L integration
 
-# Run tests
-ctest --preset dev          # Stable tests
-ctest --preset all          # All tests
+# Preset-based runs (see CMakePresets.json testPresets)
+ctest --preset mac-ai-unit
+ctest --preset mac-ai-integration
+ctest --preset mac-ai-quick-unit
+ctest --preset mac-ai-quick-integration
 ```
+
+On Linux (single-config builds), omit `-C Debug`.
 
 ROM-dependent CTest suites are local-only and will be skipped when ROMs are not configured.
 
@@ -137,10 +142,10 @@ The E2E framework uses ImGui Test Engine for UI automation.
 
 ```bash
 # Run all E2E tests with visible GUI
-./build/bin/yaze_test --e2e --show-gui
+./scripts/yaze_test --e2e --show-gui
 
 # Run specific test
-./build/bin/yaze_test --show-gui --gtest_filter="*DungeonEditorSmokeTest"
+./scripts/yaze_test --show-gui --gtest_filter="*DungeonEditorSmokeTest"
 ```
 
 ### AI Integration
