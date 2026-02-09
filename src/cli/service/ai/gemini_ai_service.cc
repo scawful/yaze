@@ -3,6 +3,7 @@
 #include <atomic>
 #include <cstdlib>
 #include <iostream>
+#include <map>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -15,6 +16,15 @@
 #include "absl/time/time.h"
 #include "cli/service/agent/conversational_agent_service.h"
 #include "util/platform_paths.h"
+
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
+
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+#include "cli/service/ai/ios_urlsession_http_client.h"
+#define YAZE_AI_IOS_URLSESSION 1
+#endif
 
 #ifdef YAZE_WITH_JSON
 #include <filesystem>
@@ -220,17 +230,30 @@ absl::StatusOr<std::vector<ModelInfo>> GeminiAIService::ListAvailableModels() {
   }
 
   try {
-    // Use curl to list models from the API
     std::string endpoint =
         "https://generativelanguage.googleapis.com/v1beta/models?key=" +
         config_.api_key;
-    std::string curl_cmd = "curl -s -X GET '" + endpoint + "' 2>&1";
 
     if (config_.verbose) {
       std::cerr << "[DEBUG] Listing models: "
-                << curl_cmd.substr(0, curl_cmd.find("key=")) << "...'"
+                << endpoint.substr(0, endpoint.find("key=")) << "...'"
                 << std::endl;
     }
+
+    std::string response_str;
+#if defined(YAZE_AI_IOS_URLSESSION)
+    auto resp_or = ios::UrlSessionHttpRequest("GET", endpoint, {}, "", 8000);
+    if (!resp_or.ok()) {
+      if (config_.verbose) {
+        std::cerr << "[DEBUG] Gemini models request failed: "
+                  << resp_or.status().message() << std::endl;
+      }
+      return absl::InternalError("Failed to list Gemini models");
+    }
+    response_str = resp_or->body;
+#else
+    // Use curl to list models from the API
+    std::string curl_cmd = "curl -s -X GET '" + endpoint + "' 2>&1";
 
 #ifdef _WIN32
     FILE* pipe = _popen(curl_cmd.c_str(), "r");
@@ -241,7 +264,6 @@ absl::StatusOr<std::vector<ModelInfo>> GeminiAIService::ListAvailableModels() {
       return absl::InternalError("Failed to execute curl command");
     }
 
-    std::string response_str;
     char buffer[4096];
     while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
       response_str += buffer;
@@ -252,6 +274,7 @@ absl::StatusOr<std::vector<ModelInfo>> GeminiAIService::ListAvailableModels() {
 #else
     pclose(pipe);
 #endif
+#endif  // YAZE_AI_IOS_URLSESSION
 
     auto models_json = nlohmann::json::parse(response_str, nullptr, false);
     if (models_json.is_discarded()) {
@@ -508,6 +531,26 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
       }
     }
 
+    std::string endpoint =
+        "https://generativelanguage.googleapis.com/v1beta/models/" +
+        config_.model + ":generateContent";
+    std::string response_str;
+#if defined(YAZE_AI_IOS_URLSESSION)
+    std::map<std::string, std::string> headers;
+    headers.emplace("Content-Type", "application/json");
+    headers.emplace("x-goog-api-key", config_.api_key);
+    auto resp_or = ios::UrlSessionHttpRequest(
+        "POST", endpoint, headers, request_body.dump(), 60000);
+    if (!resp_or.ok()) {
+      return resp_or.status();
+    }
+    if (resp_or->status_code != 200) {
+      return absl::InternalError(
+          absl::StrCat("Gemini API error: ", resp_or->status_code, "\n",
+                       resp_or->body));
+    }
+    response_str = resp_or->body;
+#else
     // Write request body to temp file
     std::string temp_file = "/tmp/gemini_request.json";
     std::ofstream out(temp_file);
@@ -515,9 +558,6 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
     out.close();
 
     // Use curl to make the request (avoiding httplib SSL issues)
-    std::string endpoint =
-        "https://generativelanguage.googleapis.com/v1beta/models/" +
-        config_.model + ":generateContent";
     std::string curl_cmd = "curl -s -X POST '" + endpoint +
                            "' "
                            "-H 'Content-Type: application/json' "
@@ -540,7 +580,6 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
       return absl::InternalError("Failed to execute curl command");
     }
 
-    std::string response_str;
     char buffer[4096];
     while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
       response_str += buffer;
@@ -557,6 +596,7 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
       return absl::InternalError(
           absl::StrCat("Curl failed with status ", status));
     }
+#endif  // YAZE_AI_IOS_URLSESSION
 
     if (response_str.empty()) {
       return absl::InternalError("Empty response from Gemini API");
@@ -886,6 +926,26 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateMultimodalResponse(
          {{"temperature", config_.temperature},
           {"maxOutputTokens", config_.max_output_tokens}}}};
 
+    std::string endpoint =
+        "https://generativelanguage.googleapis.com/v1beta/models/" +
+        config_.model + ":generateContent";
+    std::string response_str;
+#if defined(YAZE_AI_IOS_URLSESSION)
+    std::map<std::string, std::string> headers;
+    headers.emplace("Content-Type", "application/json");
+    headers.emplace("x-goog-api-key", config_.api_key);
+    auto resp_or = ios::UrlSessionHttpRequest(
+        "POST", endpoint, headers, request_body.dump(), 60000);
+    if (!resp_or.ok()) {
+      return resp_or.status();
+    }
+    if (resp_or->status_code != 200) {
+      return absl::InternalError(
+          absl::StrCat("Gemini API error: ", resp_or->status_code, "\n",
+                       resp_or->body));
+    }
+    response_str = resp_or->body;
+#else
     // Write request body to temp file
     std::string temp_file = "/tmp/gemini_multimodal_request.json";
     std::ofstream out(temp_file);
@@ -893,9 +953,6 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateMultimodalResponse(
     out.close();
 
     // Use curl to make the request
-    std::string endpoint =
-        "https://generativelanguage.googleapis.com/v1beta/models/" +
-        config_.model + ":generateContent";
     std::string curl_cmd = "curl -s -X POST '" + endpoint +
                            "' "
                            "-H 'Content-Type: application/json' "
@@ -918,7 +975,6 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateMultimodalResponse(
       return absl::InternalError("Failed to execute curl command");
     }
 
-    std::string response_str;
     char buffer[4096];
     while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
       response_str += buffer;
@@ -935,6 +991,7 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateMultimodalResponse(
       return absl::InternalError(
           absl::StrCat("Curl failed with status ", status));
     }
+#endif  // YAZE_AI_IOS_URLSESSION
 
     if (response_str.empty()) {
       return absl::InternalError("Empty response from Gemini API");

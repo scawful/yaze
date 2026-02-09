@@ -12,15 +12,18 @@
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
 
+#if defined(YAZE_WITH_LIBPNG)
 extern "C" {
 #include <png.h>
 }
+#endif
 
 namespace yaze {
 namespace editor {
 
 namespace {
 
+#if defined(YAZE_WITH_LIBPNG)
 // Minimal in-memory PNG read context for libpng callbacks.
 struct PngMemoryReader {
   const uint8_t* data;
@@ -37,6 +40,7 @@ void PngReadFromMemory(png_structp png_ptr, png_bytep out, png_size_t count) {
   std::memcpy(out, reader->data + reader->offset, count);
   reader->offset += count;
 }
+#endif  // YAZE_WITH_LIBPNG
 
 }  // namespace
 
@@ -94,6 +98,13 @@ std::vector<uint8_t> MesenScreenshotPanel::DecodeBase64(
 bool MesenScreenshotPanel::DecodePngToRgba(const std::vector<uint8_t>& png_data,
                                            std::vector<uint8_t>& rgba_out,
                                            int& width_out, int& height_out) {
+#if !defined(YAZE_WITH_LIBPNG)
+  (void)png_data;
+  rgba_out.clear();
+  width_out = 0;
+  height_out = 0;
+  return false;
+#else
   if (png_data.size() < 8) return false;
 
   // Verify PNG signature
@@ -157,6 +168,7 @@ bool MesenScreenshotPanel::DecodePngToRgba(const std::vector<uint8_t>& png_data,
   png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
 
   return true;
+#endif  // YAZE_WITH_LIBPNG
 }
 
 // ---------------------------------------------------------------------------

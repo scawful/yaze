@@ -3,7 +3,7 @@
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/util/scad_format.h"
 #include "cli/cli.h"
-#ifndef __EMSCRIPTEN__
+#if !defined(__EMSCRIPTEN__) && !defined(YAZE_IOS)
 #include "cli/tui/palette_editor.h"
 #endif
 #include "zelda3/game_data.h"
@@ -39,7 +39,7 @@ absl::Status HandlePaletteLegacy(const std::vector<std::string>& arg_vec) {
   return absl::InvalidArgumentError("Invalid action for palette command.");
 }
 
-#ifndef __EMSCRIPTEN__
+#if !defined(__EMSCRIPTEN__) && !defined(YAZE_IOS)
 // Legacy Palette TUI removed - using new CommandHandler system
 void HandlePaletteTUI(ftxui::ScreenInteractive& screen) {
   // TODO: Implement palette editor TUI

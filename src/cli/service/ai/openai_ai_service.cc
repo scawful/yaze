@@ -3,6 +3,7 @@
 #include <atomic>
 #include <cstdlib>
 #include <iostream>
+#include <map>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -16,6 +17,15 @@
 #include "absl/time/time.h"
 #include "cli/service/agent/conversational_agent_service.h"
 #include "util/platform_paths.h"
+
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
+
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+#include "cli/service/ai/ios_urlsession_http_client.h"
+#define YAZE_AI_IOS_URLSESSION 1
+#endif
 
 #ifdef YAZE_WITH_JSON
 #include <filesystem>
@@ -194,6 +204,51 @@ absl::StatusOr<std::vector<ModelInfo>> OpenAIAIService::ListAvailableModels() {
   }
 
   try {
+    if (config_.verbose) {
+      std::cerr << "[DEBUG] Listing OpenAI models..." << std::endl;
+    }
+
+    std::string response_str;
+#if defined(YAZE_AI_IOS_URLSESSION)
+    std::map<std::string, std::string> headers;
+    if (!config_.api_key.empty()) {
+      headers.emplace("Authorization", "Bearer " + config_.api_key);
+    }
+    auto resp_or = ios::UrlSessionHttpRequest(
+        "GET", config_.base_url + "/v1/models", headers, "", 8000);
+    if (!resp_or.ok()) {
+      if (config_.verbose) {
+        std::cerr << "[DEBUG] OpenAI /v1/models failed: "
+                  << resp_or.status().message() << std::endl;
+      }
+      // Return defaults on failure so the UI remains usable.
+      std::vector<ModelInfo> defaults = {
+          {.name = "gpt-4o-mini",
+           .display_name = "GPT-4o Mini",
+           .provider = "openai"},
+          {.name = "gpt-4o", .display_name = "GPT-4o", .provider = "openai"},
+          {.name = "gpt-3.5-turbo",
+           .display_name = "GPT-3.5 Turbo",
+           .provider = "openai"}};
+      return defaults;
+    }
+    if (resp_or->status_code != 200) {
+      if (config_.verbose) {
+        std::cerr << "[DEBUG] OpenAI /v1/models HTTP " << resp_or->status_code
+                  << std::endl;
+      }
+      std::vector<ModelInfo> defaults = {
+          {.name = "gpt-4o-mini",
+           .display_name = "GPT-4o Mini",
+           .provider = "openai"},
+          {.name = "gpt-4o", .display_name = "GPT-4o", .provider = "openai"},
+          {.name = "gpt-3.5-turbo",
+           .display_name = "GPT-3.5 Turbo",
+           .provider = "openai"}};
+      return defaults;
+    }
+    response_str = resp_or->body;
+#else
     // Use curl to list models from the API
     std::string auth_header = config_.api_key.empty()
         ? ""
@@ -201,10 +256,6 @@ absl::StatusOr<std::vector<ModelInfo>> OpenAIAIService::ListAvailableModels() {
     std::string curl_cmd =
         "curl -s -X GET '" + config_.base_url + "/v1/models' " +
         auth_header + "2>&1";
-
-    if (config_.verbose) {
-      std::cerr << "[DEBUG] Listing OpenAI models..." << std::endl;
-    }
 
 #ifdef _WIN32
     FILE* pipe = _popen(curl_cmd.c_str(), "r");
@@ -215,7 +266,6 @@ absl::StatusOr<std::vector<ModelInfo>> OpenAIAIService::ListAvailableModels() {
       return absl::InternalError("Failed to execute curl command");
     }
 
-    std::string response_str;
     char buffer[4096];
     while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
       response_str += buffer;
@@ -226,6 +276,7 @@ absl::StatusOr<std::vector<ModelInfo>> OpenAIAIService::ListAvailableModels() {
 #else
     pclose(pipe);
 #endif
+#endif  // YAZE_AI_IOS_URLSESSION
 
     auto models_json = nlohmann::json::parse(response_str, nullptr, false);
     if (models_json.is_discarded()) {
@@ -306,6 +357,29 @@ absl::Status OpenAIAIService::CheckAvailability() {
     }
 
     // Test API connectivity with a simple request
+#if defined(YAZE_AI_IOS_URLSESSION)
+    std::map<std::string, std::string> headers;
+    if (!config_.api_key.empty()) {
+      headers.emplace("Authorization", "Bearer " + config_.api_key);
+    }
+    auto resp_or = ios::UrlSessionHttpRequest(
+        "GET", config_.base_url + "/v1/models", headers, "", 8000);
+    if (!resp_or.ok()) {
+      return absl::UnavailableError(
+          absl::StrCat("❌ Cannot reach OpenAI API\n   ",
+                       resp_or.status().message()));
+    }
+    if (resp_or->status_code == 401) {
+      return absl::PermissionDeniedError(
+          "❌ Invalid OpenAI API key\n"
+          "   Verify your key at: https://platform.openai.com/api-keys");
+    }
+    if (resp_or->status_code != 200) {
+      return absl::InternalError(absl::StrCat(
+          "❌ OpenAI API error: ", resp_or->status_code, "\n   ",
+          resp_or->body));
+    }
+#else
     httplib::Client cli(config_.base_url);
     cli.set_connection_timeout(5, 0);
 
@@ -332,6 +406,7 @@ absl::Status OpenAIAIService::CheckAvailability() {
       return absl::InternalError(absl::StrCat(
           "❌ OpenAI API error: ", res->status, "\n   ", res->body));
     }
+#endif
 
     return absl::OkStatus();
   } catch (const std::exception& e) {
@@ -358,7 +433,9 @@ absl::StatusOr<AgentResponse> OpenAIAIService::GenerateResponse(
     return absl::InvalidArgumentError("History cannot be empty.");
   }
 
-  if (config_.api_key.empty()) {
+  const bool is_openai_cloud =
+      absl::StrContains(config_.base_url, "api.openai.com");
+  if (config_.api_key.empty() && is_openai_cloud) {
     return absl::FailedPreconditionError("OpenAI API key not configured");
   }
 
@@ -425,6 +502,31 @@ absl::StatusOr<AgentResponse> OpenAIAIService::GenerateResponse(
                 << " messages to OpenAI" << std::endl;
     }
 
+    std::string response_str;
+#if defined(YAZE_AI_IOS_URLSESSION)
+    std::map<std::string, std::string> headers;
+    headers.emplace("Content-Type", "application/json");
+    if (!config_.api_key.empty()) {
+      headers.emplace("Authorization", "Bearer " + config_.api_key);
+    }
+    auto resp_or = ios::UrlSessionHttpRequest(
+        "POST", config_.base_url + "/v1/chat/completions", headers,
+        request_body.dump(), 60000);
+    if (!resp_or.ok()) {
+      return resp_or.status();
+    }
+    if (resp_or->status_code == 401) {
+      return absl::PermissionDeniedError(
+          "❌ Invalid OpenAI API key\n"
+          "   Verify your key at: https://platform.openai.com/api-keys");
+    }
+    if (resp_or->status_code != 200) {
+      return absl::InternalError(absl::StrCat(
+          "❌ OpenAI API error: ", resp_or->status_code, "\n   ",
+          resp_or->body));
+    }
+    response_str = resp_or->body;
+#else
     // Write request body to temp file
     std::string temp_file = "/tmp/openai_request.json";
     std::ofstream out(temp_file);
@@ -455,7 +557,6 @@ absl::StatusOr<AgentResponse> OpenAIAIService::GenerateResponse(
       return absl::InternalError("Failed to execute curl command");
     }
 
-    std::string response_str;
     char buffer[4096];
     while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
       response_str += buffer;
@@ -472,6 +573,7 @@ absl::StatusOr<AgentResponse> OpenAIAIService::GenerateResponse(
       return absl::InternalError(
           absl::StrCat("Curl failed with status ", status));
     }
+#endif  // YAZE_AI_IOS_URLSESSION
 
     if (response_str.empty()) {
       return absl::InternalError("Empty response from OpenAI API");

@@ -103,12 +103,18 @@ include(app/gui/gui_library.cmake)
 # Define core application library early (needed by agent)
 include(app/app_core.cmake)
 
-if(YAZE_BUILD_GUI OR YAZE_BUILD_Z3ED OR YAZE_BUILD_TESTS OR YAZE_BUILD_CLI)
+# CLI core (command registry + handlers).
+#
+# Even on iOS we need this when Agent UI panels are enabled because the agent tool
+# registry wires many tools to existing CLI CommandHandlers.
+if(YAZE_BUILD_GUI OR YAZE_BUILD_Z3ED OR YAZE_BUILD_TESTS OR YAZE_BUILD_CLI OR YAZE_BUILD_AGENT_UI OR YAZE_ENABLE_AGENT_CLI)
   include(cli/cli_core.cmake)
 endif()
 
 # Include agent before test support (test support depends on agent)
-if(YAZE_BUILD_GUI OR YAZE_BUILD_Z3ED OR YAZE_BUILD_TESTS)
+# Note: iOS builds may not build the desktop GUI, but still need yaze_agent when
+# the in-editor Agent UI panels are enabled.
+if(YAZE_BUILD_GUI OR YAZE_BUILD_Z3ED OR YAZE_BUILD_TESTS OR YAZE_BUILD_AGENT_UI OR YAZE_ENABLE_AGENT_CLI)
   include(cli/agent.cmake)
 endif()
 
@@ -175,13 +181,15 @@ if(YAZE_PLATFORM_IOS)
     set(YAZE_IOS_SDK "iphoneos" CACHE STRING "iOS SDK name for xcrun/libtool")
   endif()
 
-  set(YAZE_IOS_BUNDLE_OUTPUT "${CMAKE_BINARY_DIR}/ios/libyaze_ios_bundle.a")
-  set(YAZE_IOS_BUNDLE_TARGETS
-    yaze_app_core_lib
-    yaze_editor
-    yaze_editor_system_panels
-    yaze_editor_system_session
-    yaze_editor_system_shortcuts
+	  set(YAZE_IOS_BUNDLE_OUTPUT "${CMAKE_BINARY_DIR}/ios/libyaze_ios_bundle.a")
+	  set(YAZE_IOS_BUNDLE_TARGETS
+	    yaze_app_core_lib
+	    yaze_agent
+	    yaze_cli_core
+	    yaze_editor
+	    yaze_editor_system_panels
+	    yaze_editor_system_session
+	    yaze_editor_system_shortcuts
     yaze_emulator
     yaze_emulator_ui
     yaze_gui_core
@@ -214,6 +222,14 @@ if(YAZE_PLATFORM_IOS)
 
   if(TARGET asar-static)
     list(APPEND YAZE_IOS_BUNDLE_TARGETS asar-static)
+  endif()
+
+  # AI runtime uses yaml-cpp (PromptBuilder, routing rules). Since we bundle
+  # static libs manually via libtool, include yaml-cpp explicitly.
+  if(TARGET yaml-cpp)
+    list(APPEND YAZE_IOS_BUNDLE_TARGETS yaml-cpp)
+  elseif(TARGET yaml-cpp::yaml-cpp)
+    list(APPEND YAZE_IOS_BUNDLE_TARGETS yaml-cpp::yaml-cpp)
   endif()
 
   if(TARGET SDL2-static)
