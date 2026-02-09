@@ -38,7 +38,6 @@
 
 // Project headers
 #include "app/application.h"
-#include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/editor.h"
 #include "app/editor/layout/layout_manager.h"
 #include "app/editor/layout/layout_presets.h"
@@ -1356,7 +1355,8 @@ void EditorManager::OpenEditorAndPanelsFromFlags(
       if (auto* editor_set = GetCurrentEditorSet()) {
         try {
           int room_id = std::stoi(panel_name.substr(5));
-          editor_set->GetDungeonEditor()->add_room(room_id);
+          event_bus_.Publish(
+              JumpToRoomRequestEvent::Create(room_id, session_id));
         } catch (const std::exception& e) {
           LOG_WARN("EditorManager", "Invalid room ID format: %s",
                    panel_name.c_str());
@@ -1578,12 +1578,6 @@ absl::Status EditorManager::InitializeEditorForType(EditorType type,
                                                     Rom* rom) {
   if (!editor_set) {
     return absl::FailedPreconditionError("No editor set available");
-  }
-
-  if (type == EditorType::kDungeon) {
-    auto* editor = editor_set->GetDungeonEditor();
-    editor->Initialize();
-    return absl::OkStatus();
   }
 
   auto* editor = GetEditorByType(type, editor_set);
@@ -2499,13 +2493,12 @@ absl::Status EditorManager::SaveRom() {
     return absl::CancelledError("Save pending confirmation");
   }
 
-  auto* dungeon_editor = current_editor_set->GetDungeonEditor();
   const bool pot_items_enabled =
       core::FeatureFlags::get().dungeon.kSavePotItems;
   if (!bypass_pot_item_confirm_once_ && !suppress_pot_item_save_once_ &&
-      pot_items_enabled && dungeon_editor) {
-    const int loaded_rooms = dungeon_editor->LoadedRoomCount();
-    const int total_rooms = dungeon_editor->TotalRoomCount();
+      pot_items_enabled) {
+    const int loaded_rooms = current_editor_set->LoadedDungeonRoomCount();
+    const int total_rooms = current_editor_set->TotalDungeonRoomCount();
     if (loaded_rooms < total_rooms) {
       pending_pot_item_save_confirm_ = true;
       pending_pot_item_unloaded_rooms_ = total_rooms - loaded_rooms;
@@ -2627,9 +2620,7 @@ absl::Status EditorManager::SaveRom() {
 
       // Fallback: best-effort editor-provided ranges (may be incomplete).
       if (write_ranges.empty() && !diff_computed) {
-        if (auto* dungeon_editor = current_editor_set->GetDungeonEditor()) {
-          write_ranges = dungeon_editor->CollectWriteRanges();
-        }
+        write_ranges = current_editor_set->CollectDungeonWriteRanges();
       }
 
       if (!write_ranges.empty()) {

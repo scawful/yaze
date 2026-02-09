@@ -2,10 +2,12 @@
 #define YAZE_APP_EDITOR_SESSION_TYPES_H_
 
 #include <array>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "app/editor/editor.h"
@@ -68,6 +70,9 @@ class EditorSet {
   void OpenAssemblyFolder(const std::string& folder_path) const;
   void ChangeActiveAssemblyFile(std::string_view path) const;
   core::AsarWrapper* GetAsarWrapper() const;
+  int LoadedDungeonRoomCount() const;
+  int TotalDungeonRoomCount() const;
+  std::vector<std::pair<uint32_t, uint32_t>> CollectDungeonWriteRanges() const;
 
   // Deprecated named accessors (legacy compatibility)
   [[deprecated("Use GetEditorAs<AssemblyEditor>(EditorType::kAssembly)")]]
