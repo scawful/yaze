@@ -380,6 +380,10 @@ class StoryEventGraphPanel : public EditorPanel {
         ImGui::PushID(static_cast<int>(i));
         ImGui::BulletText("%s", script.c_str());
         ImGui::SameLine();
+        if (ImGui::SmallButton("Open")) {
+          PublishJumpToAssemblySymbol(script);
+        }
+        ImGui::SameLine();
         if (ImGui::SmallButton("Copy")) {
           ImGui::SetClipboardText(script.c_str());
         }
@@ -427,6 +431,12 @@ class StoryEventGraphPanel : public EditorPanel {
   void PublishJumpToMessage(int message_id) const {
     if (auto* bus = ContentRegistry::Context::event_bus()) {
       bus->Publish(JumpToMessageRequestEvent::Create(message_id));
+    }
+  }
+
+  void PublishJumpToAssemblySymbol(const std::string& symbol) const {
+    if (auto* bus = ContentRegistry::Context::event_bus()) {
+      bus->Publish(JumpToAssemblySymbolRequestEvent::Create(symbol));
     }
   }
 

@@ -1,6 +1,8 @@
 #include "assembly_editor.h"
 
+#include <filesystem>
 #include <fstream>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -182,6 +184,97 @@ FolderItem LoadFolder(const std::string& folder) {
   return current_folder;
 }
 
+struct SymbolLocation {
+  std::string file;
+  int line = 0;    // 0-based
+  int column = 0;  // 0-based
+};
+
+std::optional<SymbolLocation> FindLabelInFile(
+    const std::filesystem::path& path, const std::string& label) {
+  std::ifstream file(path);
+  if (!file.is_open()) {
+    return std::nullopt;
+  }
+
+  std::string line;
+  int line_index = 0;
+  while (std::getline(file, line)) {
+    const size_t start = line.find_first_not_of(" \t");
+    if (start == std::string::npos) {
+      ++line_index;
+      continue;
+    }
+
+    if (line.compare(start, label.size(), label) != 0) {
+      ++line_index;
+      continue;
+    }
+
+    size_t pos = start + label.size();
+    while (pos < line.size() && (line[pos] == ' ' || line[pos] == '\t')) {
+      ++pos;
+    }
+
+    if (pos < line.size() && line[pos] == ':') {
+      SymbolLocation loc;
+      loc.file = path.string();
+      loc.line = line_index;
+      loc.column = static_cast<int>(start);
+      return loc;
+    }
+
+    ++line_index;
+  }
+
+  return std::nullopt;
+}
+
+bool IsAssemblyLikeFile(const std::filesystem::path& path) {
+  const auto ext = path.extension().string();
+  return ext == ".asm" || ext == ".inc" || ext == ".s";
+}
+
+std::optional<SymbolLocation> FindLabelInFolder(
+    const std::filesystem::path& root, const std::string& label) {
+  std::error_code ec;
+  if (!std::filesystem::exists(root, ec)) {
+    return std::nullopt;
+  }
+
+  std::filesystem::recursive_directory_iterator it(
+      root, std::filesystem::directory_options::skip_permission_denied, ec);
+  const std::filesystem::recursive_directory_iterator end;
+  for (; it != end && !ec; it.increment(ec)) {
+    const auto& entry = *it;
+    if (entry.is_directory()) {
+      const auto name = entry.path().filename().string();
+      if (!name.empty() && name.front() == '.') {
+        it.disable_recursion_pending();
+      } else if (name == "build" || name == "build_ai" || name == "build-ios" ||
+                 name == "build-ios-sim" || name == "build-wasm" ||
+                 name == "node_modules") {
+        it.disable_recursion_pending();
+      }
+      continue;
+    }
+
+    if (!entry.is_regular_file()) {
+      continue;
+    }
+
+    if (!IsAssemblyLikeFile(entry.path())) {
+      continue;
+    }
+
+    if (auto loc = FindLabelInFile(entry.path(), label); loc.has_value()) {
+      return loc;
+    }
+  }
+
+  return std::nullopt;
+}
+
 }  // namespace
 
 void AssemblyEditor::Initialize() {
@@ -216,6 +309,61 @@ void AssemblyEditor::Initialize() {
 absl::Status AssemblyEditor::Load() {
   // Assembly editor doesn't require ROM data - files are loaded independently
   return absl::OkStatus();
+}
+
+absl::Status AssemblyEditor::JumpToSymbolDefinition(const std::string& symbol) {
+  if (symbol.empty()) {
+    return absl::InvalidArgumentError("Symbol is empty");
+  }
+
+  std::filesystem::path root;
+  if (dependencies_.project && !dependencies_.project->code_folder.empty()) {
+    root =
+        dependencies_.project->GetAbsolutePath(dependencies_.project->code_folder);
+  } else if (!current_folder_.name.empty()) {
+    root = current_folder_.name;
+  } else {
+    return absl::FailedPreconditionError(
+        "No code folder loaded (open a folder or set project code_folder)");
+  }
+
+  if (current_folder_.name.empty()) {
+    OpenFolder(root.string());
+  }
+
+  const auto loc = FindLabelInFolder(root, symbol);
+  if (!loc.has_value()) {
+    return absl::NotFoundError("Symbol not found: " + symbol);
+  }
+
+  ChangeActiveFile(loc->file);
+  if (!HasActiveFile()) {
+    return absl::InternalError("Failed to open file for symbol: " + symbol);
+  }
+
+  auto* editor = GetActiveEditor();
+  if (!editor) {
+    return absl::InternalError("No active text editor");
+  }
+
+  editor->SetCursorPosition(TextEditor::Coordinates(loc->line, loc->column));
+  editor->SelectWordUnderCursor();
+  return absl::OkStatus();
+}
+
+std::string AssemblyEditor::active_file_path() const {
+  if (!HasActiveFile()) {
+    return "";
+  }
+  return files_[active_file_id_];
+}
+
+TextEditor::Coordinates AssemblyEditor::active_cursor_position() const {
+  if (!HasActiveFile() ||
+      active_file_id_ >= static_cast<int>(open_files_.size())) {
+    return TextEditor::Coordinates::Invalid();
+  }
+  return open_files_[active_file_id_].GetCursorPosition();
 }
 
 TextEditor* AssemblyEditor::GetActiveEditor() {

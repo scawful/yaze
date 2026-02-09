@@ -193,6 +193,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/rom_file_manager_test.cc
     unit/editor/panel_system_test.cc
     unit/editor/panel_manager_policy_test.cc
+    unit/editor/assembly_editor_symbol_jump_test.cc
     unit/editor/editor_manager_test.cc
     unit/editor/editor_manager_rom_write_policy_test.cc
     unit/editor/editor_manager_oracle_rom_safety_test.cc
@@ -300,6 +301,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/project_bundle_test.cc
     unit/core/project_paths_test.cc
     unit/rom/rom_diff_test.cc
+    unit/editor/assembly_editor_symbol_jump_test.cc
     unit/editor/editor_registry_test.cc
     unit/editor/editor_manager_test.cc
     unit/editor/editor_manager_rom_write_policy_test.cc

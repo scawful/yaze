@@ -82,6 +82,12 @@ class EditorActivator {
    */
   void JumpToMessage(int message_id);
 
+  /**
+   * @brief Jump to an assembly symbol definition in the Assembly editor.
+   * @param symbol Label/routine name (e.g., "HouseTag_TelepathicPlea").
+   */
+  void JumpToAssemblySymbol(const std::string& symbol);
+
  private:
   void ActivatePanelBasedEditor(EditorType type, Editor* editor);
   void DeactivatePanelBasedEditor(EditorType type, Editor* editor,
