@@ -379,7 +379,7 @@
       "configurePreset": "mac-ai",
       "filter": {
         "include": {
-          "label": "stable"
+          "label": "^stable$"
         }
       },
       "output": {
@@ -397,7 +397,7 @@
       "configurePreset": "mac-ai",
       "filter": {
         "include": {
-          "label": "unit"
+          "label": "^unit$"
         }
       },
       "output": {
@@ -415,7 +415,7 @@
       "configurePreset": "mac-ai",
       "filter": {
         "include": {
-          "label": "integration"
+          "label": "^integration$"
         }
       },
       "output": {
@@ -433,7 +433,7 @@
       "configurePreset": "mac-ai",
       "filter": {
         "include": {
-          "label": "quick"
+          "label": "^quick$"
         }
       },
       "output": {
@@ -451,7 +451,7 @@
       "configurePreset": "mac-ai",
       "filter": {
         "include": {
-          "label": "fast_unit"
+          "label": "^fast_unit$"
         }
       },
       "output": {
@@ -464,12 +464,48 @@
       "description": "Run quick unit suite against the mac-ai build"
     },
     {
+      "displayName": "Quick Core Unit Tests (macOS)",
+      "name": "mac-ai-quick-core",
+      "configurePreset": "mac-ai",
+      "filter": {
+        "include": {
+          "label": "^fast_unit_core$"
+        }
+      },
+      "output": {
+        "outputOnFailure": true,
+        "shortProgress": true
+      },
+      "execution": {
+        "jobs": 8
+      },
+      "description": "Run quick core unit suite against the mac-ai build"
+    },
+    {
+      "displayName": "Quick Editor Unit Tests (macOS)",
+      "name": "mac-ai-quick-editor",
+      "configurePreset": "mac-ai",
+      "filter": {
+        "include": {
+          "label": "^fast_unit_editor$"
+        }
+      },
+      "output": {
+        "outputOnFailure": true,
+        "shortProgress": true
+      },
+      "execution": {
+        "jobs": 8
+      },
+      "description": "Run quick editor unit suite against the mac-ai build"
+    },
+    {
       "displayName": "Quick Integration Tests (macOS)",
       "name": "mac-ai-quick-integration",
       "configurePreset": "mac-ai",
       "filter": {
         "include": {
-          "label": "fast_integration"
+          "label": "^fast_integration$"
         }
       },
       "output": {
@@ -484,7 +520,7 @@
     {
       "filter": {
         "include": {
-          "label": "stable"
+          "label": "^stable$"
         }
       },
       "displayName": "Stable Tests",
@@ -495,7 +531,7 @@
     {
       "filter": {
         "include": {
-          "label": "unit"
+          "label": "^unit$"
         }
       },
       "displayName": "Unit Tests",
@@ -506,7 +542,7 @@
     {
       "filter": {
         "include": {
-          "label": "integration"
+          "label": "^integration$"
         }
       },
       "displayName": "Integration Tests",
@@ -520,7 +556,7 @@
       "configurePreset": "mac-test",
       "filter": {
         "include": {
-          "label": "stable"
+          "label": "^stable$"
         }
       },
       "output": {
@@ -538,7 +574,7 @@
       "configurePreset": "win-test",
       "filter": {
         "include": {
-          "label": "stable"
+          "label": "^stable$"
         }
       },
       "output": {
@@ -556,7 +592,7 @@
       "configurePreset": "lin-test",
       "filter": {
         "include": {
-          "label": "stable"
+          "label": "^stable$"
         }
       },
       "output": {
@@ -571,7 +607,7 @@
     {
       "filter": {
         "include": {
-          "label": "stable"
+          "label": "^stable$"
         }
       },
       "displayName": "Stable Tests (Agent Stack)",
@@ -582,7 +618,7 @@
     {
       "filter": {
         "include": {
-          "label": "unit"
+          "label": "^unit$"
         }
       },
       "displayName": "Unit Tests (Agent Stack)",
@@ -593,7 +629,7 @@
     {
       "filter": {
         "include": {
-          "label": "integration"
+          "label": "^integration$"
         }
       },
       "displayName": "Integration Tests (Agent Stack)",
