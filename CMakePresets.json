@@ -428,6 +428,60 @@
       "description": "Run stable integration tests against the mac-ai build"
     },
     {
+      "displayName": "Quick Tests (macOS)",
+      "name": "mac-ai-quick",
+      "configurePreset": "mac-ai",
+      "filter": {
+        "include": {
+          "label": "quick"
+        }
+      },
+      "output": {
+        "outputOnFailure": true,
+        "shortProgress": true
+      },
+      "execution": {
+        "jobs": 8
+      },
+      "description": "Run quick labeled suites against the mac-ai build"
+    },
+    {
+      "displayName": "Quick Unit Tests (macOS)",
+      "name": "mac-ai-quick-unit",
+      "configurePreset": "mac-ai",
+      "filter": {
+        "include": {
+          "label": "fast_unit"
+        }
+      },
+      "output": {
+        "outputOnFailure": true,
+        "shortProgress": true
+      },
+      "execution": {
+        "jobs": 8
+      },
+      "description": "Run quick unit suite against the mac-ai build"
+    },
+    {
+      "displayName": "Quick Integration Tests (macOS)",
+      "name": "mac-ai-quick-integration",
+      "configurePreset": "mac-ai",
+      "filter": {
+        "include": {
+          "label": "fast_integration"
+        }
+      },
+      "output": {
+        "outputOnFailure": true,
+        "shortProgress": true
+      },
+      "execution": {
+        "jobs": 8
+      },
+      "description": "Run quick integration suite against the mac-ai build"
+    },
+    {
       "filter": {
         "include": {
           "label": "stable"
