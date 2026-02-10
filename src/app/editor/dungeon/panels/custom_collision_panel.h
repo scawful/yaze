@@ -9,6 +9,8 @@
 #include "app/gui/core/icons.h"
 #include "absl/strings/str_format.h"
 
+#include <algorithm>
+
 namespace yaze::editor {
 
 class CustomCollisionPanel : public EditorPanel {
@@ -80,6 +82,14 @@ class CustomCollisionPanel : public EditorPanel {
             
             auto& state = interaction_->mode_manager().GetModeState();
             int current_val = state.paint_collision_value;
+
+            int brush_radius = std::clamp(state.paint_brush_radius, 0, 8);
+            if (ImGui::SliderInt("Brush Radius", &brush_radius, 0, 8)) {
+              state.paint_brush_radius = brush_radius;
+            }
+            ImGui::SameLine();
+            ImGui::TextDisabled("%dx%d", (brush_radius * 2) + 1,
+                                (brush_radius * 2) + 1);
             
             const auto& tile_types = zelda3::Zelda3Labels::GetTileTypeNames();
             
