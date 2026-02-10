@@ -29,7 +29,9 @@
 #include "imgui/imgui.h"
 
 // Project headers
+#include "app/editor/core/undo_manager.h"
 #include "app/editor/overworld/debug_window_card.h"
+#include "app/editor/overworld/overworld_undo_actions.h"
 #include "app/editor/overworld/entity.h"
 #include "app/editor/overworld/entity_operations.h"
 #include "app/editor/overworld/map_properties.h"
@@ -154,6 +156,9 @@ absl::Status OverworldEditor::Load() {
   undo_stack_.clear();
   redo_stack_.clear();
   current_paint_operation_.reset();
+  if (dependencies_.undo_manager) {
+    dependencies_.undo_manager->Clear();
+  }
 
   RETURN_IF_ERROR(LoadGraphics());
   RETURN_IF_ERROR(
@@ -1959,7 +1964,27 @@ void OverworldEditor::FinalizePaintOperation() {
     return;
   }
 
-  // Clear redo stack when new action is performed
+  // Also push to the UndoManager if available (new framework path).
+  // Build the action before we move current_paint_operation_ into the
+  // legacy stack, because we need to read the tile changes.
+  if (dependencies_.undo_manager) {
+    auto& world_tiles = GetWorldTiles(current_paint_operation_->world);
+    std::vector<OverworldTileChange> changes;
+    changes.reserve(current_paint_operation_->tile_changes.size());
+    for (const auto& [coords, old_tile_id] :
+         current_paint_operation_->tile_changes) {
+      auto [x, y] = coords;
+      int new_tile_id = world_tiles[x][y];
+      changes.push_back({x, y, old_tile_id, new_tile_id});
+    }
+    auto action = std::make_unique<OverworldTilePaintAction>(
+        current_paint_operation_->map_id, current_paint_operation_->world,
+        std::move(changes), &overworld_,
+        [this]() { RefreshOverworldMap(); });
+    dependencies_.undo_manager->Push(std::move(action));
+  }
+
+  // Legacy undo stack path (always maintained for fallback)
   redo_stack_.clear();
 
   // Add to undo stack
@@ -1989,6 +2014,12 @@ absl::Status OverworldEditor::Undo() {
   // Finalize any pending paint operation first
   FinalizePaintOperation();
 
+  // Delegate to UndoManager if available (new framework path)
+  if (dependencies_.undo_manager) {
+    return dependencies_.undo_manager->Undo();
+  }
+
+  // Legacy fallback: use local undo_stack_
   if (undo_stack_.empty()) {
     return absl::FailedPreconditionError("Nothing to undo");
   }
@@ -2025,6 +2056,12 @@ absl::Status OverworldEditor::Undo() {
 }
 
 absl::Status OverworldEditor::Redo() {
+  // Delegate to UndoManager if available (new framework path)
+  if (dependencies_.undo_manager) {
+    return dependencies_.undo_manager->Redo();
+  }
+
+  // Legacy fallback: use local redo_stack_
   if (redo_stack_.empty()) {
     return absl::FailedPreconditionError("Nothing to redo");
   }
