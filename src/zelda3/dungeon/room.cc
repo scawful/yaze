@@ -245,7 +245,11 @@ Room LoadRoomHeaderFromRom(Rom* rom, int room_id) {
     room.SetBg2(background2::DarkRoom);
   }
 
-  room.SetPalette(((rom->data()[header_location + 1] & 0x3F)));
+  // USDASM grounding (bank_01.asm LoadRoomHeader, e.g. $01:B61B):
+  // The room header stores an 8-bit "palette set ID" (0-71 in vanilla), which
+  // is later multiplied by 4 to index UnderworldPaletteSets. Do NOT truncate to
+  // 6 bits: IDs 0x40-0x47 are valid and were previously corrupted by & 0x3F.
+  room.SetPalette(rom->data()[header_location + 1]);
   room.SetBlockset((rom->data()[header_location + 2]));
   room.SetSpriteset((rom->data()[header_location + 3]));
   room.SetEffect((EffectKey)((rom->data()[header_location + 4])));
@@ -1666,7 +1670,8 @@ absl::Status Room::SaveRoomHeader() {
   uint8_t byte0 = (static_cast<uint8_t>(bg2()) << 5) |
                   (static_cast<uint8_t>(collision()) << 2) |
                   (IsLight() ? 1 : 0);
-  uint8_t byte1 = palette & 0x3F;
+  // Preserve the full palette set ID byte (USDASM LoadRoomHeader uses 8-bit).
+  uint8_t byte1 = palette;
   uint8_t byte7 = (staircase_plane(0) << 2) | (staircase_plane(1) << 4) |
                   (staircase_plane(2) << 6);
 
