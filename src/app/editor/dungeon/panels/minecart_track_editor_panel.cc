@@ -480,18 +480,19 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
       ImGui::TableNextColumn();
       ImGui::PushID(track.id);
       bool is_picking_this = picking_mode_ && picking_track_index_ == track.id;
-      if (is_picking_this) {
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8f, 0.6f, 0.0f, 1.0f));
-      }
-      if (ImGui::SmallButton(ICON_MD_MY_LOCATION)) {
+      {
+        std::optional<gui::StyleColorGuard> pick_guard;
         if (is_picking_this) {
-          CancelCoordinatePicking();
-        } else {
-          StartCoordinatePicking(track.id);
+          pick_guard.emplace(ImGuiCol_Button,
+                             ImVec4(0.8f, 0.6f, 0.0f, 1.0f));
         }
-      }
-      if (is_picking_this) {
-        ImGui::PopStyleColor();
+        if (ImGui::SmallButton(ICON_MD_MY_LOCATION)) {
+          if (is_picking_this) {
+            CancelCoordinatePicking();
+          } else {
+            StartCoordinatePicking(track.id);
+          }
+        }
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip(is_picking_this ? "Cancel picking"

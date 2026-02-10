@@ -152,28 +152,30 @@ class SpriteEditorPanel : public EditorPanel {
         button_color.z = std::min(1.0f, button_color.z + 0.2f);
       }
 
-      ImGui::PushStyleColor(ImGuiCol_Button, button_color);
-      ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-          ImVec4(std::min(1.0f, button_color.x + 0.1f),
-                 std::min(1.0f, button_color.y + 0.1f),
-                 std::min(1.0f, button_color.z + 0.1f), 1.0f));
-      ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-          ImVec4(std::min(1.0f, button_color.x + 0.2f),
-                 std::min(1.0f, button_color.y + 0.2f),
-                 std::min(1.0f, button_color.z + 0.2f), 1.0f));
+      {
+        gui::StyleColorGuard sprite_btn_guard(
+            {{ImGuiCol_Button, button_color},
+             {ImGuiCol_ButtonHovered,
+              ImVec4(std::min(1.0f, button_color.x + 0.1f),
+                     std::min(1.0f, button_color.y + 0.1f),
+                     std::min(1.0f, button_color.z + 0.1f), 1.0f)},
+             {ImGuiCol_ButtonActive,
+              ImVec4(std::min(1.0f, button_color.x + 0.2f),
+                     std::min(1.0f, button_color.y + 0.2f),
+                     std::min(1.0f, button_color.z + 0.2f), 1.0f)}});
 
-      // Get category icon based on sprite type
-      const char* icon = GetSpriteTypeIcon(i);
-      std::string label = absl::StrFormat("%s\n%02X", icon, i);
-      if (ImGui::Button(label.c_str(), ImVec2(sprite_size, sprite_size))) {
-        selected_sprite_id_ = i;
-        placement_mode_ = true;
-        if (canvas_viewer_) {
-          canvas_viewer_->object_interaction().SetSpritePlacementMode(true, i);
+        // Get category icon based on sprite type
+        const char* icon = GetSpriteTypeIcon(i);
+        std::string label = absl::StrFormat("%s\n%02X", icon, i);
+        if (ImGui::Button(label.c_str(), ImVec2(sprite_size, sprite_size))) {
+          selected_sprite_id_ = i;
+          placement_mode_ = true;
+          if (canvas_viewer_) {
+            canvas_viewer_->object_interaction().SetSpritePlacementMode(
+                true, i);
+          }
         }
       }
-
-      ImGui::PopStyleColor(3);
 
       if (ImGui::IsItemHovered()) {
         const char* category = GetSpriteCategoryName(i);
@@ -365,12 +367,13 @@ class SpriteEditorPanel : public EditorPanel {
 
     // Delete button
     ImGui::Spacing();
-    ImGui::PushStyleColor(ImGuiCol_Button, theme.status_error);
-    if (ImGui::Button(ICON_MD_DELETE " Delete Sprite")) {
-      sprites.erase(sprites.begin() + selected_sprite_list_index_);
-      selected_sprite_list_index_ = -1;
+    {
+      gui::StyleColorGuard del_guard(ImGuiCol_Button, theme.status_error);
+      if (ImGui::Button(ICON_MD_DELETE " Delete Sprite")) {
+        sprites.erase(sprites.begin() + selected_sprite_list_index_);
+        selected_sprite_list_index_ = -1;
+      }
     }
-    ImGui::PopStyleColor();
     
     ImGui::SameLine();
     if (ImGui::Button(ICON_MD_CONTENT_COPY " Duplicate")) {
