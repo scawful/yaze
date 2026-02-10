@@ -13,6 +13,7 @@
 #include "app/platform/sdl_compat.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
+#include "rom/write_fence.h"
 #include "util/log.h"
 #include "zelda3/dungeon/editor_dungeon_state.h"
 #include "zelda3/dungeon/object_drawer.h"
@@ -2208,8 +2209,13 @@ absl::Status SaveAllCollision(Rom* rom, absl::Span<Room> rooms) {
   // expanded collision bank.
   const auto& rom_data = rom->vector();
   const int ptrs_size = kNumberOfRooms * 3;
-  if (kCustomCollisionRoomPointers + ptrs_size >
-      static_cast<int>(rom_data.size())) {
+  const bool has_ptr_table =
+      (kCustomCollisionRoomPointers + ptrs_size <= static_cast<int>(rom_data.size()));
+  const bool has_data_region =
+      (kCustomCollisionDataPosition < static_cast<int>(rom_data.size())) &&
+      (kCustomCollisionDataSoftEnd <= static_cast<int>(rom_data.size()));
+
+  if (!has_ptr_table) {
     for (auto& room : rooms) {
       if (room.IsLoaded() && room.custom_collision_dirty()) {
         return absl::FailedPreconditionError(
@@ -2218,6 +2224,28 @@ absl::Status SaveAllCollision(Rom* rom, absl::Span<Room> rooms) {
     }
     return absl::OkStatus();
   }
+
+  if (!has_data_region) {
+    for (auto& room : rooms) {
+      if (room.IsLoaded() && room.custom_collision_dirty()) {
+        return absl::FailedPreconditionError(
+            "Custom collision data region not present in this ROM");
+      }
+    }
+    return absl::OkStatus();
+  }
+
+  // Save-time guardrails: custom collision writes must never clobber the
+  // reserved WaterFill tail region (Oracle of Secrets).
+  yaze::rom::WriteFence fence;
+  RETURN_IF_ERROR(
+      fence.Allow(static_cast<uint32_t>(kCustomCollisionRoomPointers),
+                  static_cast<uint32_t>(kCustomCollisionRoomPointers + ptrs_size),
+                  "CustomCollisionPointers"));
+  RETURN_IF_ERROR(fence.Allow(static_cast<uint32_t>(kCustomCollisionDataPosition),
+                              static_cast<uint32_t>(kCustomCollisionDataSoftEnd),
+                              "CustomCollisionData"));
+  yaze::rom::ScopedWriteFence scope(rom, &fence);
 
   for (auto& room : rooms) {
     if (!room.IsLoaded()) {

@@ -20,6 +20,7 @@
 #include "absl/strings/str_format.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
+#include "rom/write_fence.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 
@@ -375,6 +376,14 @@ absl::Status WriteWaterFillTable(Rom* rom,
   std::vector<uint8_t> region(static_cast<size_t>(kWaterFillTableReservedSize),
                               0);
   std::copy(bytes.begin(), bytes.end(), region.begin());
+
+  // Save-time guardrails: this writer must only touch the reserved WaterFill
+  // region, never other ROM content.
+  yaze::rom::WriteFence fence;
+  RETURN_IF_ERROR(
+      fence.Allow(static_cast<uint32_t>(kWaterFillTableStart),
+                  static_cast<uint32_t>(kWaterFillTableEnd), "WaterFillTable"));
+  yaze::rom::ScopedWriteFence scope(rom, &fence);
   return rom->WriteVector(kWaterFillTableStart, std::move(region));
 }
 
