@@ -268,9 +268,11 @@ void PaletteControlsPanel::DrawPaletteDisplay() {
       // Highlight current sub-palette row
       bool in_sub_palette =
           (row == static_cast<int>(state_->sub_palette_index));
+      std::optional<gui::StyleVarGuard> pal_border_var;
+      std::optional<gui::StyleColorGuard> pal_border_color;
       if (in_sub_palette) {
-        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2.0f);
-        ImGui::PushStyleColor(ImGuiCol_Border, gui::GetWarningColor());
+        pal_border_var.emplace(ImGuiStyleVar_FrameBorderSize, 2.0f);
+        pal_border_color.emplace(ImGuiCol_Border, gui::GetWarningColor());
       }
 
       std::string id = absl::StrFormat("##PalColor%d", idx);
@@ -281,10 +283,8 @@ void PaletteControlsPanel::DrawPaletteDisplay() {
         state_->refresh_graphics = true;
       }
 
-      if (in_sub_palette) {
-        ImGui::PopStyleColor();
-        ImGui::PopStyleVar();
-      }
+      pal_border_color.reset();
+      pal_border_var.reset();
 
       if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
@@ -304,15 +304,15 @@ void PaletteControlsPanel::DrawPaletteDisplay() {
     if (i > 0)
       ImGui::SameLine();
     bool selected = (state_->sub_palette_index == static_cast<uint64_t>(i));
-    if (selected) {
-      ImGui::PushStyleColor(ImGuiCol_Button, gui::GetSelectedColor());
-    }
-    if (ImGui::SmallButton(absl::StrFormat("%d", i).c_str())) {
-      state_->sub_palette_index = static_cast<uint64_t>(i);
-      state_->refresh_graphics = true;
-    }
-    if (selected) {
-      ImGui::PopStyleColor();
+    {
+      std::optional<gui::StyleColorGuard> sel_guard;
+      if (selected) {
+        sel_guard.emplace(ImGuiCol_Button, gui::GetSelectedColor());
+      }
+      if (ImGui::SmallButton(absl::StrFormat("%d", i).c_str())) {
+        state_->sub_palette_index = static_cast<uint64_t>(i);
+        state_->refresh_graphics = true;
+      }
     }
   }
 }
