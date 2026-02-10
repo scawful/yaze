@@ -447,7 +447,8 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .id = DrawRoutineIds::kRightwards2x2_1to15or32,
       .name = "Rightwards2x2_1to15or32",
       .function = DrawRightwards2x2_1to15or32,
-      .draws_to_both_bgs = false,
+      // Structural layout routine: writes to both BG1 and BG2 in the engine.
+      .draws_to_both_bgs = true,
       .base_width = 2,
       .base_height = 2,
       .category = DrawRoutineInfo::Category::Rightwards,
@@ -457,7 +458,8 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .id = DrawRoutineIds::kRightwards2x4_1to15or26,
       .name = "Rightwards2x4_1to15or26",
       .function = DrawRightwards2x4_1to15or26,
-      .draws_to_both_bgs = false,
+      // Structural layout routine: writes to both BG1 and BG2 in the engine.
+      .draws_to_both_bgs = true,
       .base_width = 2,
       .base_height = 4,
       .category = DrawRoutineInfo::Category::Rightwards,
