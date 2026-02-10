@@ -565,7 +565,8 @@ void ObjectEditorPanel::DrawStaticObjectEditor() {
       ImGuiTreeNodeFlags_DefaultOpen);
 
   if (header_open) {
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 6));
+    gui::StyleVarGuard frame_pad_guard(ImGuiStyleVar_FramePadding,
+                                       ImVec2(8, 6));
 
     // Two-column layout: Info | Preview
     if (ImGui::BeginTable("StaticEditorLayout", 2,
@@ -680,8 +681,6 @@ void ObjectEditorPanel::DrawStaticObjectEditor() {
 
       ImGui::EndTable();
     }
-
-    ImGui::PopStyleVar();
   }
 }
 
