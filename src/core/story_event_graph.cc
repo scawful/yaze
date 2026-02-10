@@ -86,6 +86,46 @@ static int ParseIntFlexible(const json& obj, const char* key, int def) {
   return def;
 }
 
+static std::vector<std::string> ParseScriptArray(const json& arr) {
+  std::vector<std::string> result;
+  if (!arr.is_array()) return result;
+
+  for (const auto& item : arr) {
+    if (item.is_string()) {
+      result.push_back(item.get<std::string>());
+      continue;
+    }
+    if (!item.is_object()) {
+      continue;
+    }
+
+    // Allow the generator to embed a fully composed reference.
+    if (item.contains("ref") && item["ref"].is_string()) {
+      result.push_back(item["ref"].get<std::string>());
+      continue;
+    }
+
+    const std::string file = item.value("file", "");
+    const std::string symbol = item.value("symbol", "");
+    if (!symbol.empty()) {
+      if (!file.empty()) {
+        result.push_back(file + ":" + symbol);
+      } else {
+        result.push_back(symbol);
+      }
+      continue;
+    }
+
+    // Legacy / fallback: file + line number (fragile, but supported).
+    const int line = ParseIntFlexible(item, "line", -1);
+    if (line > 0 && !file.empty()) {
+      result.push_back(file + ":" + std::to_string(line));
+    }
+  }
+
+  return result;
+}
+
 static uint32_t ParseUintFlexible(const json& obj, const char* key,
                                   uint32_t def) {
   if (!obj.is_object() || !obj.contains(key)) {
@@ -169,7 +209,7 @@ absl::Status StoryEventGraph::LoadFromString(const std::string& json_content) {
       node.name = item.value("name", "");
       node.flags = ParseFlags(item.value("flags", json::array()));
       node.locations = ParseLocations(item.value("locations", json::array()));
-      node.scripts = ParseStringArray(item.value("scripts", json::array()));
+      node.scripts = ParseScriptArray(item.value("scripts", json::array()));
       node.text_ids = ParseStringArray(item.value("text_ids", json::array()));
       node.completed_when =
           ParsePredicates(item.value("completed_when", json::array()));
