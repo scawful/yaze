@@ -46,13 +46,15 @@ bool DrawInlineColorEdit(const char* label, gfx::SnesColor* color,
 
   // Draw jump button
   ImGui::SameLine();
-  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-  if (ImGui::SmallButton(ICON_MD_OPEN_IN_NEW)) {
-    if (editor) {
-      editor->JumpToPalette(group_name, palette_index);
+  {
+    gui::StyleColorGuard btn_guard(ImGuiCol_Button,
+                                   ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+    if (ImGui::SmallButton(ICON_MD_OPEN_IN_NEW)) {
+      if (editor) {
+        editor->JumpToPalette(group_name, palette_index);
+      }
     }
   }
-  ImGui::PopStyleColor();
 
   if (ImGui::IsItemHovered()) {
     ImGui::BeginTooltip();

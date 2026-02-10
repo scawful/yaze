@@ -1348,17 +1348,18 @@ void PaletteEditor::DrawCategorizedPaletteList() {
           std::string label = GetGroupDisplayName(group_name);
 
           // Show modified indicator
-          if (gfx::PaletteManager::Get().IsGroupModified(group_name)) {
+          bool is_modified =
+              gfx::PaletteManager::Get().IsGroupModified(group_name);
+          if (is_modified) {
             label += " *";
-            ImGui::PushStyleColor(ImGuiCol_Text,
-                                  ImVec4(1.0f, 0.6f, 0.0f, 1.0f));
+          }
+          std::optional<gui::StyleColorGuard> mod_guard;
+          if (is_modified) {
+            mod_guard.emplace(ImGuiCol_Text, ImVec4(1.0f, 0.6f, 0.0f, 1.0f));
           }
 
           ImGui::Checkbox(label.c_str(), show_flag);
-
-          if (gfx::PaletteManager::Get().IsGroupModified(group_name)) {
-            ImGui::PopStyleColor();
-          }
+          mod_guard.reset();
         }
       }
       ImGui::Unindent(10.0f);
