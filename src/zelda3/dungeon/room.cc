@@ -435,6 +435,27 @@ void Room::CopyRoomGraphicsToBuffer() {
   // Clear destination buffer
   std::fill(current_gfx16_.begin(), current_gfx16_.end(), 0);
 
+  // USDASM grounding (bank_00.asm LoadBackgroundGraphics):
+  // The engine expands 3BPP graphics to 4BPP in two modes:
+  // - Left palette: plane3 = 0 (pixel values 0-7).
+  // - Right palette: plane3 = OR(planes0..2), so non-zero pixels get bit3=1
+  //   (pixel values 1-7 become 9-15; 0 remains 0/transparent).
+  //
+  // For background graphics sets, the game selects Left/Right based on the
+  // "graphics group" ($0AA1, our Room::blockset) and the slot index ($0F).
+  // For UW groups (< $20), slots 4-7 use Right; for OW groups (>= $20), the
+  // Right slots are {2,3,4,7}. We mirror this by shifting non-zero pixels by
+  // +8 when copying those background blocks into current_gfx16_.
+  auto is_right_palette_background_slot = [&](int slot) -> bool {
+    if (slot < 0 || slot >= 8) {
+      return false;
+    }
+    if (blockset < 0x20) {
+      return slot >= 4;
+    }
+    return (slot == 2 || slot == 3 || slot == 4 || slot == 7);
+  };
+
   // Process each of the 16 graphics blocks
   for (int block = 0; block < 16; block++) {
     int sheet_id = blocks_[block];
@@ -459,8 +480,24 @@ void Room::CopyRoomGraphicsToBuffer() {
     // Copy 4096 bytes for the 8BPP sheet
     int dest_index_base = block * 4096;
     if (dest_index_base + 4096 <= current_gfx16_.size()) {
-      memcpy(current_gfx16_.data() + dest_index_base,
-             gfx_buffer_data->data() + src_sheet_offset, 4096);
+      const uint8_t* src = gfx_buffer_data->data() + src_sheet_offset;
+      uint8_t* dst = current_gfx16_.data() + dest_index_base;
+
+      // Only background blocks (0-7) participate in Left/Right palette
+      // expansion. Sprite sheets are handled separately by the game.
+      const bool right_pal = is_right_palette_background_slot(block);
+      if (!right_pal) {
+        memcpy(dst, src, 4096);
+      } else {
+        // Right palette expansion: set bit3 for non-zero pixels (1-7 -> 9-15).
+        for (int i = 0; i < 4096; ++i) {
+          uint8_t p = src[i];
+          if (p != 0 && p < 8) {
+            p |= 0x08;
+          }
+          dst[i] = p;
+        }
+      }
     }
   }
 
