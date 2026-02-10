@@ -6,6 +6,9 @@
 ### 2026-02-08 imgui-frontend-engineer – Dungeon Interaction + Shortcuts
 - COMPLETE 2026-02-08 (imgui-frontend-engineer): tile-object drag + marquee selection delegated to `TileObjectHandler` (snapped live drag; Shift axis lock; Alt duplicate; single undo snapshot) with unit/integration tests; drag/release continues even if cursor leaves canvas; updated interaction handoff docs; installed nightly `v0.5.6-g084c2409` (`/Users/scawful/Applications/Yaze Nightly.app`).
 
+### 2026-02-10 CODEX – Oracle Water Fill Authoring + BG Layer Guardrails
+- COMPLETE 2026-02-10 (CODEX): improved Water Fill authoring (brush radius + zone overview + reserved-region guard + room navigation), migrated more UI to `style_guard` RAII, corrected BothBG draw routine metadata to match usdasm and updated tests; ran `./scripts/test_fast.sh --quick`.
+
 ### 2026-02-07 ai-infra-architect – HackManifest Guardrails
 - Update 2026-02-07 (ai-infra-architect): fixed HTTP API disabled build link (`YAZE_HTTP_API_ENABLED` gating in `src/app/main.cc`), added HackManifest PC write-range analysis + mirror normalization, added save conflict guardrails (respect `rom_metadata.write_policy`) + manifest-backed room tag labels; ran `ctest --test-dir build_agent -C RelWithDebInfo -R "HackManifestTest|ResourceLabelsTest"` (8 passed).
 
