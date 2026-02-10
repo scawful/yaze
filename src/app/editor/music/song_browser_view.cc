@@ -5,6 +5,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
 
@@ -69,13 +70,14 @@ void SongBrowserView::Draw(MusicBank& bank) {
       ImGui::SameLine(100);
 
       // Progress bar
-      ImGui::PushStyleColor(ImGuiCol_PlotHistogram, bar_color);
-      float fraction = space.usage_percent / 100.0f;
-      std::string overlay =
-          absl::StrFormat("%d / %d bytes (%.1f%%)", space.used_bytes,
-                          space.total_bytes, space.usage_percent);
-      ImGui::ProgressBar(fraction, ImVec2(-1, 0), overlay.c_str());
-      ImGui::PopStyleColor();
+      {
+        gui::StyleColorGuard bar_guard(ImGuiCol_PlotHistogram, bar_color);
+        float fraction = space.usage_percent / 100.0f;
+        std::string overlay =
+            absl::StrFormat("%d / %d bytes (%.1f%%)", space.used_bytes,
+                            space.total_bytes, space.usage_percent);
+        ImGui::ProgressBar(fraction, ImVec2(-1, 0), overlay.c_str());
+      }
 
       // Warning/critical messages
       if (space.is_critical) {
@@ -219,7 +221,7 @@ void SongBrowserView::Draw(MusicBank& bank) {
               ICON_MD_AUDIOTRACK " %s##custom%d", display_name, i);
           bool is_selected = (selected_song_index_ == i);
 
-          ImGui::PushStyleColor(ImGuiCol_Text, GetSuccessColor());
+          gui::StyleColorGuard text_guard(ImGuiCol_Text, GetSuccessColor());
           ImGui::PushID(i);
           if (ImGui::Selectable(label.c_str(), is_selected)) {
             selected_song_index_ = i;
@@ -227,7 +229,6 @@ void SongBrowserView::Draw(MusicBank& bank) {
               on_song_selected_(selected_song_index_);
             }
           }
-          ImGui::PopStyleColor();
 
           // Double-click opens tracker
           if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {

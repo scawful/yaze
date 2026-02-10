@@ -2,8 +2,9 @@
 
 #include "absl/strings/str_format.h"
 #include "app/gui/core/icons.h"
-#include "app/gui/core/style.h"
 #include "app/gui/core/layout_helpers.h"
+#include "app/gui/core/style.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
 

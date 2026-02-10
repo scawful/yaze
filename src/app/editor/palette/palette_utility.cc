@@ -4,6 +4,7 @@
 #include "app/editor/palette/palette_editor.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/style_guard.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
 

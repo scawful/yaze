@@ -13,6 +13,7 @@
 #include <regex>
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
+#include "app/gui/core/style_guard.h"
 #include "util/log.h"
 #include "zelda3/dungeon/custom_collision.h"
 #include "zelda3/dungeon/track_collision_generator.h"

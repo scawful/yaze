@@ -3,6 +3,7 @@
 #include "app/editor/overworld/map_properties.h"
 #include "app/editor/system/panel_manager.h"
 #include "app/gui/core/layout_helpers.h"
+#include "app/gui/core/style_guard.h"
 #include "zelda3/overworld/overworld_version_helper.h"
 
 namespace yaze::editor {
@@ -96,31 +97,34 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
 
     TableNextColumn();
     // Mode Controls
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 0));
-    if (gui::ToggleButton(ICON_MD_MOUSE, current_mode == EditingMode::MOUSE,
-                          ImVec2(kIconButtonWidth, 0))) {
-      current_mode = EditingMode::MOUSE;
-    }
-    HOVER_HINT("Mouse Mode (1)\nNavigate, pan, and manage entities");
+    {
+      gui::StyleVarGuard spacing_guard(ImGuiStyleVar_ItemSpacing,
+                                       ImVec2(2, 0));
+      if (gui::ToggleButton(ICON_MD_MOUSE, current_mode == EditingMode::MOUSE,
+                            ImVec2(kIconButtonWidth, 0))) {
+        current_mode = EditingMode::MOUSE;
+      }
+      HOVER_HINT("Mouse Mode (1)\nNavigate, pan, and manage entities");
 
-    ImGui::SameLine();
-    if (gui::ToggleButton(ICON_MD_DRAW, current_mode == EditingMode::DRAW_TILE,
-                          ImVec2(kIconButtonWidth, 0))) {
-      current_mode = EditingMode::DRAW_TILE;
-    }
-    HOVER_HINT("Brush Mode (2/B)\nDraw tiles on the map");
+      ImGui::SameLine();
+      if (gui::ToggleButton(ICON_MD_DRAW,
+                            current_mode == EditingMode::DRAW_TILE,
+                            ImVec2(kIconButtonWidth, 0))) {
+        current_mode = EditingMode::DRAW_TILE;
+      }
+      HOVER_HINT("Brush Mode (2/B)\nDraw tiles on the map");
 
-    ImGui::SameLine();
-    if (gui::ToggleButton(ICON_MD_FORMAT_COLOR_FILL,
-                          current_mode == EditingMode::FILL_TILE,
-                          ImVec2(kIconButtonWidth, 0))) {
-      current_mode = EditingMode::FILL_TILE;
+      ImGui::SameLine();
+      if (gui::ToggleButton(ICON_MD_FORMAT_COLOR_FILL,
+                            current_mode == EditingMode::FILL_TILE,
+                            ImVec2(kIconButtonWidth, 0))) {
+        current_mode = EditingMode::FILL_TILE;
+      }
+      HOVER_HINT(
+          "Fill Screen Mode (F)\n"
+          "Fill the 32x32 screen under the cursor with the selected tile\n"
+          "or a repeating selection pattern");
     }
-    HOVER_HINT(
-        "Fill Screen Mode (F)\n"
-        "Fill the 32x32 screen under the cursor with the selected tile\n"
-        "or a repeating selection pattern");
-    ImGui::PopStyleVar();
 
     TableNextColumn();
     // Entity Status or Version Badge
@@ -192,11 +196,13 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
 
       if (show_upgrade && on_upgrade_rom_version) {
         ImGui::SameLine();
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.5f, 0.8f, 1.0f));
-        if (ImGui::SmallButton(ICON_MD_UPGRADE " Upgrade")) {
-          on_upgrade_rom_version(3);  // Upgrade to v3
+        {
+          gui::StyleColorGuard upgrade_guard(ImGuiCol_Button,
+                                             ImVec4(0.2f, 0.5f, 0.8f, 1.0f));
+          if (ImGui::SmallButton(ICON_MD_UPGRADE " Upgrade")) {
+            on_upgrade_rom_version(3);  // Upgrade to v3
+          }
         }
-        ImGui::PopStyleColor();
         HOVER_HINT("Upgrade ROM to ZSCustomOverworld v3\n"
                    "Enables all advanced features");
       }
@@ -204,7 +210,8 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
 
     TableNextColumn();
     // Panel Toggle Controls - using PanelManager for visibility
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 0));
+    gui::StyleVarGuard panel_spacing_guard(ImGuiStyleVar_ItemSpacing,
+                                           ImVec2(4, 0));
 
     // Tile16 Editor toggle (Ctrl+T)
     bool tile16_editor_visible =
@@ -280,8 +287,6 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
       panel_manager->TogglePanel(0, OverworldPanelIds::kScratchSpace);
     }
     HOVER_HINT("Scratch Workspace");
-
-    ImGui::PopStyleVar();
 
     TableNextColumn();
     // Sidebar Toggle (Map Properties)

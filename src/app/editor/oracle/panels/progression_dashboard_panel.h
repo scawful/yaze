@@ -9,6 +9,7 @@
 #include "app/editor/core/content_registry.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/style_guard.h"
 #include "core/hack_manifest.h"
 #include "core/oracle_progression.h"
 #include "core/oracle_progression_loader.h"

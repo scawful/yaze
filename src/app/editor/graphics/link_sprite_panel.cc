@@ -4,6 +4,7 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
+#include "app/gui/core/style_guard.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
 #include "util/file_util.h"

@@ -11,6 +11,7 @@
 #endif
 
 #include "app/gui/core/style.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
 
@@ -104,10 +105,11 @@ class ToastManager {
           ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoNav |
           ImGuiWindowFlags_NoFocusOnAppearing;
 
-      ImGui::PushStyleColor(ImGuiCol_WindowBg, bg);
-      ImGui::PushStyleColor(ImGuiCol_Text, text_color);
-      ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 6.0f);
-      ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12.0f, 8.0f));
+      gui::StyleColorGuard color_guard(
+          {{ImGuiCol_WindowBg, bg}, {ImGuiCol_Text, text_color}});
+      gui::StyleVarGuard var_guard(
+          {{ImGuiStyleVar_WindowRounding, 6.0f},
+           {ImGuiStyleVar_WindowPadding, ImVec2(12.0f, 8.0f)}});
 
       // Use unique window name per toast to allow multiple
       char window_name[32];
@@ -117,9 +119,6 @@ class ToastManager {
         ImGui::TextUnformatted(t.message.c_str());
       }
       ImGui::End();
-
-      ImGui::PopStyleVar(2);
-      ImGui::PopStyleColor(2);
 
       // Decrease TTL
       t.ttl_seconds -= io.DeltaTime;

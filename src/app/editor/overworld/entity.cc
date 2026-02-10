@@ -4,6 +4,7 @@
 #include "app/gui/core/input.h"
 #include "app/gui/core/popup_id.h"
 #include "app/gui/core/style.h"
+#include "app/gui/core/style_guard.h"
 #include "imgui.h"
 #include "util/hex.h"
 #include "zelda3/common.h"
@@ -609,11 +610,12 @@ bool DrawDiggableTilesEditorPopup(
           tiles16[tile_id], all_tiles_types);
 
       // Color coding: green if auto-detected, yellow if manually set
+      std::optional<gui::StyleColorGuard> dig_color;
       if (is_diggable) {
         if (would_be_diggable) {
-          ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.2f, 0.8f, 0.2f, 1.0f));
+          dig_color.emplace(ImGuiCol_Text, ImVec4(0.2f, 0.8f, 0.2f, 1.0f));
         } else {
-          ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.8f, 0.8f, 0.2f, 1.0f));
+          dig_color.emplace(ImGuiCol_Text, ImVec4(0.8f, 0.8f, 0.2f, 1.0f));
         }
       }
 
@@ -621,9 +623,7 @@ bool DrawDiggableTilesEditorPopup(
         diggable_tiles->SetDiggable(tile_id, is_diggable);
       }
 
-      if (is_diggable) {
-        ImGui::PopStyleColor();
-      }
+      dig_color.reset();
 
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Tile $%03X - %s",

@@ -11,6 +11,7 @@
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/style_guard.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/sprite/sprite.h"
