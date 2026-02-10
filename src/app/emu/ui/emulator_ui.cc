@@ -742,8 +742,9 @@ void RenderVirtualController(Emulator* emu) {
   auto& theme_manager = ThemeManager::Get();
   const auto& theme = theme_manager.GetCurrentTheme();
 
-  ImGui::PushStyleColor(ImGuiCol_ChildBg, ConvertColorToImVec4(theme.child_bg));
-  ImGui::BeginChild("##VirtualController", ImVec2(0, 0), true);
+  gui::StyledChild controller_child(
+      "##VirtualController", ImVec2(0, 0),
+      {.bg = ConvertColorToImVec4(theme.child_bg)}, true);
 
   ImGui::TextColored(ConvertColorToImVec4(theme.accent),
                      ICON_MD_SPORTS_ESPORTS " Virtual Controller");
@@ -768,8 +769,9 @@ void RenderVirtualController(Emulator* emu) {
     bool was_pressed = (virtual_buttons_pressed & button_mask) != 0;
 
     // Style the button if it's currently pressed
+    std::optional<gui::StyleColorGuard> pressed_color;
     if (was_pressed) {
-      ImGui::PushStyleColor(ImGuiCol_Button,
+      pressed_color.emplace(ImGuiCol_Button,
                             ConvertColorToImVec4(theme.accent));
     }
 
@@ -787,10 +789,6 @@ void RenderVirtualController(Emulator* emu) {
       // Only release if we were the ones who pressed it
       virtual_buttons_pressed &= ~button_mask;
       input_mgr.ReleaseButton(button);
-    }
-
-    if (was_pressed) {
-      ImGui::PopStyleColor();
     }
 
     ImGui::PopID();
@@ -931,8 +929,6 @@ void RenderVirtualController(Emulator* emu) {
     ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), ">>> EDGE DETECTED <<<");
   }
 
-  ImGui::EndChild();
-  ImGui::PopStyleColor();
 }
 
 }  // namespace ui
