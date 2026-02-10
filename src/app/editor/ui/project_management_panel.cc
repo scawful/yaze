@@ -3,7 +3,9 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
+#include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
 #include "util/platform_paths.h"
@@ -35,9 +37,7 @@ void ProjectManagementPanel::Draw() {
 
 void ProjectManagementPanel::DrawProjectOverview() {
   // Section header
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
-  ImGui::Text("%s Project", ICON_MD_FOLDER_SPECIAL);
-  ImGui::PopStyleColor();
+  gui::ColoredTextF(gui::GetPrimaryVec4(), "%s Project", ICON_MD_FOLDER_SPECIAL);
   ImGui::Spacing();
 
   ImGui::TextColored(gui::GetTextSecondaryVec4(), "Project Format:");
@@ -128,9 +128,7 @@ void ProjectManagementPanel::DrawProjectOverview() {
 }
 
 void ProjectManagementPanel::DrawStorageLocations() {
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
-  ImGui::Text("%s Storage", ICON_MD_STORAGE);
-  ImGui::PopStyleColor();
+  gui::ColoredTextF(gui::GetPrimaryVec4(), "%s Storage", ICON_MD_STORAGE);
   ImGui::Spacing();
 
   ImGui::TextWrapped(
@@ -192,9 +190,7 @@ void ProjectManagementPanel::DrawStorageLocations() {
 }
 
 void ProjectManagementPanel::DrawRomManagement() {
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
-  ImGui::Text("%s ROM File", ICON_MD_MEMORY);
-  ImGui::PopStyleColor();
+  gui::ColoredTextF(gui::GetPrimaryVec4(), "%s ROM File", ICON_MD_MEMORY);
   ImGui::Spacing();
 
   // Current ROM
@@ -262,9 +258,8 @@ void ProjectManagementPanel::DrawRomManagement() {
 }
 
 void ProjectManagementPanel::DrawVersionControl() {
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
-  ImGui::Text("%s Version Control", ICON_MD_HISTORY);
-  ImGui::PopStyleColor();
+  gui::ColoredTextF(gui::GetPrimaryVec4(), "%s Version Control",
+                    ICON_MD_HISTORY);
   ImGui::Spacing();
 
   if (!version_manager_) {
@@ -370,9 +365,7 @@ void ProjectManagementPanel::DrawSnapshotHistory() {
         std::string message =
             space_pos != std::string::npos ? entry.substr(space_pos + 1) : "";
 
-        ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-        ImGui::Text("%s", hash.c_str());
-        ImGui::PopStyleColor();
+        gui::ColoredText(hash.c_str(), gui::GetTextSecondaryVec4());
         ImGui::SameLine();
         ImGui::TextWrapped("%s", message.c_str());
       }
@@ -381,9 +374,7 @@ void ProjectManagementPanel::DrawSnapshotHistory() {
 }
 
 void ProjectManagementPanel::DrawQuickActions() {
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
-  ImGui::Text("%s Quick Actions", ICON_MD_BOLT);
-  ImGui::PopStyleColor();
+  gui::ColoredTextF(gui::GetPrimaryVec4(), "%s Quick Actions", ICON_MD_BOLT);
   ImGui::Spacing();
 
   float button_width = ImGui::GetContentRegionAvail().x;

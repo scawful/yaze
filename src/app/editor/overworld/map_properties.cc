@@ -1701,8 +1701,9 @@ void MapPropertiesSystem::DrawViewPopup() {
     // Use theme-aware spacing instead of hardcoded constants
     float spacing = gui::LayoutHelpers::GetStandardSpacing();
     float padding = gui::LayoutHelpers::GetButtonPadding();
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(spacing, spacing));
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(padding, padding));
+    gui::StyleVarGuard popup_style_guard(
+        {{ImGuiStyleVar_ItemSpacing, ImVec2(spacing, spacing)},
+         {ImGuiStyleVar_FramePadding, ImVec2(padding, padding)}});
 
     ImGui::Text("View Controls");
     ImGui::Separator();
@@ -1727,7 +1728,6 @@ void MapPropertiesSystem::DrawViewPopup() {
     }
     HOVER_HINT("Reset zoom to 100%");
 
-    ImGui::PopStyleVar(2);  // Pop the 2 style variables we pushed
     ImGui::PopID();         // Pop ViewPopup ID scope
     ImGui::EndPopup();
   }
@@ -1742,8 +1742,9 @@ void MapPropertiesSystem::DrawQuickAccessPopup() {
     // Use theme-aware spacing instead of hardcoded constants
     float spacing = gui::LayoutHelpers::GetStandardSpacing();
     float padding = gui::LayoutHelpers::GetButtonPadding();
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(spacing, spacing));
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(padding, padding));
+    gui::StyleVarGuard popup_style_guard(
+        {{ImGuiStyleVar_ItemSpacing, ImVec2(spacing, spacing)},
+         {ImGuiStyleVar_FramePadding, ImVec2(padding, padding)}});
 
     ImGui::Text("Quick Access");
     ImGui::Separator();
@@ -1769,7 +1770,6 @@ void MapPropertiesSystem::DrawQuickAccessPopup() {
     }
     HOVER_HINT("Lock/unlock current map (Ctrl+L)");
 
-    ImGui::PopStyleVar(2);  // Pop the 2 style variables we pushed
     ImGui::PopID();         // Pop QuickPopup ID scope
     ImGui::EndPopup();
   }

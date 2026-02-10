@@ -12,6 +12,8 @@
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/style_guard.h"
+#include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
 
@@ -103,11 +105,11 @@ void AgentProposalsPanel::Draw(float available_height) {
           : ImGui::GetContentRegionAvail().y - detail_height;
 
   // Proposal list
-  ImGui::PushStyleColor(ImGuiCol_ChildBg, theme.panel_bg_darker);
-  ImGui::BeginChild("ProposalList", ImVec2(0, list_height), false);
-  DrawProposalList();
-  ImGui::EndChild();
-  ImGui::PopStyleColor();
+  {
+    gui::StyledChild proposal_list("ProposalList", ImVec2(0, list_height),
+                                   {.bg = theme.panel_bg_darker});
+    DrawProposalList();
+  }
 
   // Detail view (only in non-compact mode)
   if (selected_proposal_ && !compact_mode_) {
@@ -169,16 +171,14 @@ void AgentProposalsPanel::DrawStatusFilter() {
       if (i > 0)
         ImGui::SameLine();
       bool selected = (current_filter == i);
+      std::optional<gui::StyleColorGuard> filter_guard;
       if (selected) {
-        ImGui::PushStyleColor(ImGuiCol_Button,
-                              ImGui::GetStyle().Colors[ImGuiCol_ButtonActive]);
+        filter_guard.emplace(ImGuiCol_Button,
+                             ImGui::GetStyle().Colors[ImGuiCol_ButtonActive]);
       }
       if (ImGui::SmallButton(filter_labels[i])) {
         proposal_state.filter_mode = static_cast<ProposalState::FilterMode>(i);
         needs_refresh_ = true;
-      }
-      if (selected) {
-        ImGui::PopStyleColor();
       }
     }
   }
@@ -284,27 +284,29 @@ void AgentProposalsPanel::DrawQuickActions(
     const cli::ProposalRegistry::ProposalMetadata& proposal) {
   const auto& theme = AgentUI::GetTheme();
 
-  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+  gui::StyleColorGuard transparent_guard(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 
   if (compact_mode_) {
     // Just accept/reject icons
-    ImGui::PushStyleColor(ImGuiCol_Text, theme.status_success);
-    if (ImGui::SmallButton(ICON_MD_CHECK)) {
-      confirm_action_ = "accept";
-      confirm_proposal_id_ = proposal.id;
-      show_confirm_dialog_ = true;
+    {
+      gui::StyleColorGuard accept_guard(ImGuiCol_Text, theme.status_success);
+      if (ImGui::SmallButton(ICON_MD_CHECK)) {
+        confirm_action_ = "accept";
+        confirm_proposal_id_ = proposal.id;
+        show_confirm_dialog_ = true;
+      }
     }
-    ImGui::PopStyleColor();
 
     ImGui::SameLine();
 
-    ImGui::PushStyleColor(ImGuiCol_Text, theme.status_error);
-    if (ImGui::SmallButton(ICON_MD_CLOSE)) {
-      confirm_action_ = "reject";
-      confirm_proposal_id_ = proposal.id;
-      show_confirm_dialog_ = true;
+    {
+      gui::StyleColorGuard reject_guard(ImGuiCol_Text, theme.status_error);
+      if (ImGui::SmallButton(ICON_MD_CLOSE)) {
+        confirm_action_ = "reject";
+        confirm_proposal_id_ = proposal.id;
+        show_confirm_dialog_ = true;
+      }
     }
-    ImGui::PopStyleColor();
   } else {
     // Full buttons
     if (AgentUI::StyledButton(ICON_MD_CHECK " Accept", theme.status_success,
@@ -321,8 +323,6 @@ void AgentProposalsPanel::DrawQuickActions(
       show_confirm_dialog_ = true;
     }
   }
-
-  ImGui::PopStyleColor();
 }
 
 void AgentProposalsPanel::DrawProposalDetail() {
@@ -376,9 +376,9 @@ void AgentProposalsPanel::DrawDiffView() {
     return;
   }
 
-  ImGui::PushStyleColor(ImGuiCol_ChildBg, theme.code_bg_color);
-  ImGui::BeginChild("DiffContent", ImVec2(0, 0), false,
-                    ImGuiWindowFlags_HorizontalScrollbar);
+  gui::StyledChild diff_child("DiffContent", ImVec2(0, 0),
+                              {.bg = theme.code_bg_color}, false,
+                              ImGuiWindowFlags_HorizontalScrollbar);
 
   // Simple diff rendering with color highlighting
   std::istringstream stream(diff_content_);
@@ -388,21 +388,18 @@ void AgentProposalsPanel::DrawDiffView() {
       ImGui::NewLine();
       continue;
     }
+    ImVec4 line_color;
     if (line[0] == '+') {
-      ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4f, 0.8f, 0.4f, 1.0f));
+      line_color = ImVec4(0.4f, 0.8f, 0.4f, 1.0f);
     } else if (line[0] == '-') {
-      ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.8f, 0.4f, 0.4f, 1.0f));
+      line_color = ImVec4(0.8f, 0.4f, 0.4f, 1.0f);
     } else if (line[0] == '@') {
-      ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4f, 0.6f, 0.8f, 1.0f));
+      line_color = ImVec4(0.4f, 0.6f, 0.8f, 1.0f);
     } else {
-      ImGui::PushStyleColor(ImGuiCol_Text, theme.text_secondary_color);
+      line_color = theme.text_secondary_color;
     }
-    ImGui::TextUnformatted(line.c_str());
-    ImGui::PopStyleColor();
+    gui::ColoredText(line.c_str(), line_color);
   }
-
-  ImGui::EndChild();
-  ImGui::PopStyleColor();
 }
 
 void AgentProposalsPanel::DrawLogView() {
@@ -417,12 +414,12 @@ void AgentProposalsPanel::DrawLogView() {
     return;
   }
 
-  ImGui::PushStyleColor(ImGuiCol_ChildBg, theme.code_bg_color);
-  ImGui::BeginChild("LogContent", ImVec2(0, 0), false,
-                    ImGuiWindowFlags_HorizontalScrollbar);
-  ImGui::TextUnformatted(log_content_.c_str());
-  ImGui::EndChild();
-  ImGui::PopStyleColor();
+  gui::StyledChild log_child("LogContent", ImVec2(0, 0),
+                             {.bg = theme.code_bg_color}, false,
+                             ImGuiWindowFlags_HorizontalScrollbar);
+  if (log_child) {
+    ImGui::TextUnformatted(log_content_.c_str());
+  }
 }
 
 void AgentProposalsPanel::FocusProposal(const std::string& proposal_id) {

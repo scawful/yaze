@@ -18,7 +18,9 @@
 #include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
+#include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "util/log.h"
@@ -275,7 +277,7 @@ void AgentChat::Draw(float available_height) {
   RefreshConversationList(false);
 
   // Chat container
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6, 6));
+  gui::StyleVarGuard spacing_guard(ImGuiStyleVar_ItemSpacing, ImVec2(6, 6));
 
   const float content_width = ImGui::GetContentRegionAvail().x;
   const bool wide_layout = content_width >= 680.0f;
@@ -320,20 +322,19 @@ void AgentChat::Draw(float available_height) {
     RenderInputBox(input_height);
   }
   ImGui::EndChild();
-
-  ImGui::PopStyleVar();
 }
 
 void AgentChat::RenderToolbar(bool compact) {
   const auto& theme = AgentUI::GetTheme();
 
-  ImGui::PushStyleColor(ImGuiCol_Button, theme.status_success);
-  if (ImGui::Button(ICON_MD_ADD_COMMENT " New Chat")) {
-    ClearHistory();
-    active_history_path_ = ResolveAgentChatHistoryPath();
-    RefreshConversationList(true);
+  {
+    gui::StyleColorGuard btn_guard(ImGuiCol_Button, theme.status_success);
+    if (ImGui::Button(ICON_MD_ADD_COMMENT " New Chat")) {
+      ClearHistory();
+      active_history_path_ = ResolveAgentChatHistoryPath();
+      RefreshConversationList(true);
+    }
   }
-  ImGui::PopStyleColor();
   ImGui::SameLine();
 
   if (ImGui::Button(ICON_MD_DELETE_FOREVER " Clear")) {
@@ -474,16 +475,15 @@ void AgentChat::RenderConversationSidebar(float height) {
         }
 
         ImGui::PushID(index++);
-        ImGui::PushStyleColor(ImGuiCol_Header,
-                              entry.is_active ? theme.status_active
-                                              : theme.panel_bg_darker);
-        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, theme.panel_bg_color);
-        ImGui::PushStyleColor(ImGuiCol_HeaderActive, theme.status_active);
+        gui::StyleColorGuard selectable_guard({
+            {ImGuiCol_Header,
+             entry.is_active ? theme.status_active : theme.panel_bg_darker},
+            {ImGuiCol_HeaderHovered, theme.panel_bg_color},
+            {ImGuiCol_HeaderActive, theme.status_active}});
         if (ImGui::Selectable(entry.title.c_str(), entry.is_active,
                               ImGuiSelectableFlags_SpanAllColumns)) {
           SelectConversation(entry.path);
         }
-        ImGui::PopStyleColor(3);
 
         ImGui::TextDisabled("%d msg%s", entry.message_count,
                             entry.message_count == 1 ? "" : "s");
@@ -556,43 +556,42 @@ void AgentChat::RenderMessage(const cli::agent::ChatMessage& msg, int index) {
   // Message Bubble
   ImVec4 bg_col = is_user ? ImVec4(0.2f, 0.2f, 0.25f, 1.0f)
                           : ImVec4(0.25f, 0.25f, 0.25f, 1.0f);
-  ImGui::PushStyleColor(ImGuiCol_ChildBg, bg_col);
-  ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 8.0f);
+  {
+    gui::StyleColorGuard bg_guard(ImGuiCol_ChildBg, bg_col);
+    gui::StyleVarGuard rounding_guard(ImGuiStyleVar_ChildRounding, 8.0f);
 
-  std::string content_id = "msg_content_" + std::to_string(index);
-  if (ImGui::BeginChild(content_id.c_str(), ImVec2(wrap_width, 0), true,
-                        ImGuiWindowFlags_AlwaysUseWindowPadding)) {
-    // Check if we have table data to render
-    if (!is_user && msg.table_data.has_value()) {
-      RenderTableData(msg.table_data.value());
-    } else if (!is_user && msg.json_pretty.has_value()) {
-      ImGui::TextWrapped("%s", msg.json_pretty.value().c_str());
-    } else {
-      // Parse message for code blocks
-      auto blocks = ParseMessageContent(msg.message);
-      for (const auto& block : blocks) {
-        if (block.type == ContentBlock::Type::kCode) {
-          RenderCodeBlock(block.content, block.language, index);
-        } else {
-          ImGui::TextWrapped("%s", block.content.c_str());
+    std::string content_id = "msg_content_" + std::to_string(index);
+    if (ImGui::BeginChild(content_id.c_str(), ImVec2(wrap_width, 0), true,
+                          ImGuiWindowFlags_AlwaysUseWindowPadding)) {
+      // Check if we have table data to render
+      if (!is_user && msg.table_data.has_value()) {
+        RenderTableData(msg.table_data.value());
+      } else if (!is_user && msg.json_pretty.has_value()) {
+        ImGui::TextWrapped("%s", msg.json_pretty.value().c_str());
+      } else {
+        // Parse message for code blocks
+        auto blocks = ParseMessageContent(msg.message);
+        for (const auto& block : blocks) {
+          if (block.type == ContentBlock::Type::kCode) {
+            RenderCodeBlock(block.content, block.language, index);
+          } else {
+            ImGui::TextWrapped("%s", block.content.c_str());
+          }
         }
       }
-    }
 
-    // Render proposals if any (detect from message or metadata)
-    if (!is_user) {
-      RenderProposalQuickActions(msg, index);
-    }
+      // Render proposals if any (detect from message or metadata)
+      if (!is_user) {
+        RenderProposalQuickActions(msg, index);
+      }
 
-    // Render tool execution timeline if metadata is available
-    if (!is_user) {
-      RenderToolTimeline(msg);
+      // Render tool execution timeline if metadata is available
+      if (!is_user) {
+        RenderToolTimeline(msg);
+      }
     }
+    ImGui::EndChild();
   }
-  ImGui::EndChild();
-
-  ImGui::PopStyleVar();
-  ImGui::PopStyleColor();
   ImGui::EndGroup();
 
   ImGui::Spacing();
@@ -643,9 +642,10 @@ void AgentChat::RenderInputBox(float height) {
         ImVec2(0, input_height), flags);
 
     bool clicked_send = false;
-    ImGui::PushStyleColor(ImGuiCol_Button, theme.accent_color);
-    clicked_send = ImGui::Button(ICON_MD_SEND " Send", ImVec2(90, 0));
-    ImGui::PopStyleColor();
+    {
+      gui::StyleColorGuard send_guard(ImGuiCol_Button, theme.accent_color);
+      clicked_send = ImGui::Button(ICON_MD_SEND " Send", ImVec2(90, 0));
+    }
     ImGui::SameLine();
     if (ImGui::Button(ICON_MD_DELETE_FOREVER " Clear")) {
       input_buffer_[0] = '\0';
@@ -687,9 +687,11 @@ void AgentChat::RenderProposalQuickActions(const cli::agent::ChatMessage& msg,
 
 void AgentChat::RenderCodeBlock(const std::string& code,
                                 const std::string& language, int msg_index) {
-  ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
-  if (ImGui::BeginChild(absl::StrCat("code_", msg_index).c_str(), ImVec2(0, 0),
-                        true, ImGuiWindowFlags_AlwaysAutoResize)) {
+  gui::StyledChild code_child(
+      absl::StrCat("code_", msg_index).c_str(), ImVec2(0, 0),
+      {.bg = ImVec4(0.1f, 0.1f, 0.1f, 1.0f)}, true,
+      ImGuiWindowFlags_AlwaysAutoResize);
+  if (code_child) {
     if (!language.empty()) {
       ImGui::TextDisabled("%s", language.c_str());
       ImGui::SameLine();
@@ -702,8 +704,6 @@ void AgentChat::RenderCodeBlock(const std::string& code,
     ImGui::Separator();
     ImGui::TextUnformatted(code.c_str());
   }
-  ImGui::EndChild();
-  ImGui::PopStyleColor();
 }
 
 void AgentChat::UpdateHarnessTelemetry(const AutomationTelemetry& telemetry) {
@@ -812,9 +812,9 @@ void AgentChat::RenderToolTimeline(const cli::agent::ChatMessage& msg) {
   ImGui::Spacing();
 
   // Tool timeline header - collapsible
-  ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.15f, 0.15f, 0.18f, 1.0f));
-  ImGui::PushStyleColor(ImGuiCol_HeaderHovered,
-                        ImVec4(0.2f, 0.2f, 0.25f, 1.0f));
+  gui::StyleColorGuard timeline_guard(
+      {{ImGuiCol_Header, ImVec4(0.15f, 0.15f, 0.18f, 1.0f)},
+       {ImGuiCol_HeaderHovered, ImVec4(0.2f, 0.2f, 0.25f, 1.0f)}});
 
   std::string header =
       absl::StrFormat("%s Tools (%d calls, %.2fs)", ICON_MD_BUILD_CIRCLE,
@@ -838,8 +838,6 @@ void AgentChat::RenderToolTimeline(const cli::agent::ChatMessage& msg) {
 
     ImGui::TreePop();
   }
-
-  ImGui::PopStyleColor(2);
 }
 
 absl::Status AgentChat::LoadHistory(const std::string& filepath) {

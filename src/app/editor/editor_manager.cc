@@ -60,6 +60,7 @@
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/platform/timing.h"
 #include "app/platform/ios/ios_platform_state.h"
@@ -1945,27 +1946,23 @@ void EditorManager::DrawInterface() {
 void EditorManager::DrawMainMenuBar() {
   if (ImGui::BeginMenuBar()) {
     // Consistent button styling for sidebar toggle
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                          gui::GetSurfaceContainerHighVec4());
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                          gui::GetSurfaceContainerHighestVec4());
+    {
+      gui::StyleColorGuard sidebar_btn_guard(
+          {{ImGuiCol_Button, ImVec4(0, 0, 0, 0)},
+           {ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4()},
+           {ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4()},
+           {ImGuiCol_Text, panel_manager_.IsSidebarVisible()
+                               ? gui::GetPrimaryVec4()
+                               : gui::GetTextSecondaryVec4()}});
 
-    if (panel_manager_.IsSidebarVisible()) {
-      ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
-    } else {
-      ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
+      const char* icon =
+          (ui_coordinator_ && ui_coordinator_->IsPanelSidebarVisible())
+              ? ICON_MD_MENU_OPEN
+              : ICON_MD_MENU;
+      if (ImGui::SmallButton(icon)) {
+        panel_manager_.ToggleSidebarVisibility();
+      }
     }
-
-    const char* icon =
-        (ui_coordinator_ && ui_coordinator_->IsPanelSidebarVisible())
-            ? ICON_MD_MENU_OPEN
-            : ICON_MD_MENU;
-    if (ImGui::SmallButton(icon)) {
-      panel_manager_.ToggleSidebarVisibility();
-    }
-
-    ImGui::PopStyleColor(4);
 
     if (ImGui::IsItemHovered()) {
       const char* tooltip = panel_manager_.IsSidebarVisible()
