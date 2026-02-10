@@ -16,6 +16,22 @@ namespace gui {
 // Theme and Semantic Colors
 // ============================================================================
 
+// Semantic color enum for type-safe theme color access.
+enum class SemanticColor {
+  Primary,
+  Secondary,
+  Disabled,
+  Error,
+  Warning,
+  Success,
+  Info,
+  OnSurface,
+  OnSurfaceVariant
+};
+
+// Resolve a SemanticColor to an ImVec4 from the current theme.
+ImVec4 ResolveSemanticColor(SemanticColor color);
+
 // Gets a color from the current theme
 ImVec4 GetThemeColor(ImGuiCol idx);
 
@@ -38,6 +54,47 @@ ImVec4 GetLockedColor();
 ImVec4 GetVanillaRomColor();
 ImVec4 GetCustomRomColor();
 ImVec4 GetModifiedColor();
+
+// ============================================================================
+// Colored Text Shortcuts
+// ============================================================================
+// Replace PushStyleColor(ImGuiCol_Text, c); Text(...); PopStyleColor();
+
+// Render text with an explicit ImVec4 color.
+void ColoredText(const char* text, const ImVec4& color);
+
+// Render formatted text with an explicit ImVec4 color.
+void ColoredTextF(const ImVec4& color, const char* fmt, ...)
+    IM_FMTARGS(2);
+
+// Render text with a SemanticColor from the current theme.
+void ThemedText(const char* text, SemanticColor color);
+
+// Render formatted text with a SemanticColor from the current theme.
+void ThemedTextF(SemanticColor color, const char* fmt, ...)
+    IM_FMTARGS(2);
+
+// ============================================================================
+// Button Color Sets
+// ============================================================================
+
+// Pre-computed 3-color set for styled buttons (button, hovered, active).
+struct ButtonColorSet {
+  ImVec4 button;
+  ImVec4 hovered;
+  ImVec4 active;
+};
+
+ButtonColorSet GetPrimaryButtonColors();
+ButtonColorSet GetDangerButtonColors();
+ButtonColorSet GetSuccessButtonColors();
+
+// ============================================================================
+// Themed Separator
+// ============================================================================
+
+// Draw a separator using the theme's separator/border color.
+void ThemedSeparator();
 
 // ============================================================================
 // Layout Helpers

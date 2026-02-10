@@ -374,6 +374,11 @@ bool DangerButton(const char* label, const ImVec2& size, const char* panel_id,
   return clicked;
 }
 
+bool ToolbarIconButton(const char* icon, const char* tooltip,
+                       bool is_active) {
+  return ThemedIconButton(icon, tooltip, IconSize::Toolbar(), is_active);
+}
+
 void SectionHeader(const char* label) {
   const auto& theme = ThemeManager::Get().GetCurrentTheme();
   ImGui::PushStyleColor(ImGuiCol_Text, ConvertColorToImVec4(theme.primary));

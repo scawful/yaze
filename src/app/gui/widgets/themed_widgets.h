@@ -10,6 +10,18 @@ namespace gui {
 // Standardized themed widgets that automatically respect the current theme.
 // These abstract away the repetitive PushStyleColor/PopStyleColor calls.
 
+// ============================================================================
+// Icon Size Presets
+// ============================================================================
+
+namespace IconSize {
+inline ImVec2 Small() { return {24, 24}; }
+inline ImVec2 Medium() { return {32, 32}; }
+inline ImVec2 Large() { return {48, 48}; }
+inline ImVec2 Toolbar() { return {28, 28}; }
+inline ImVec2 ActivityBar() { return {48, 40}; }
+}  // namespace IconSize
+
 /**
  * @brief Draw a button with animated click ripple effect.
  *
@@ -112,6 +124,19 @@ bool PrimaryButton(const char* label, const ImVec2& size = ImVec2(0, 0),
 bool DangerButton(const char* label, const ImVec2& size = ImVec2(0, 0),
                   const char* panel_id = nullptr,
                   const char* anim_id = nullptr);
+
+/**
+ * @brief Convenience wrapper for toolbar-sized icon buttons.
+ *
+ * Wraps ThemedIconButton with IconSize::Toolbar() preset.
+ *
+ * @param icon The icon string (e.g., ICON_MD_SETTINGS)
+ * @param tooltip Optional tooltip text
+ * @param is_active Whether the button is in an active/toggled state
+ * @return true if clicked
+ */
+bool ToolbarIconButton(const char* icon, const char* tooltip = nullptr,
+                       bool is_active = false);
 
 /**
  * @brief Draw a section header.

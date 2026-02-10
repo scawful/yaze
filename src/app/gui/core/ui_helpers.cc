@@ -1,5 +1,7 @@
 #include "app/gui/core/ui_helpers.h"
 
+#include <cstdarg>
+
 #include "absl/strings/str_format.h"
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
@@ -13,6 +15,31 @@ namespace gui {
 // ============================================================================
 // Theme and Semantic Colors
 // ============================================================================
+
+ImVec4 ResolveSemanticColor(SemanticColor color) {
+  const auto& theme = ThemeManager::Get().GetCurrentTheme();
+  switch (color) {
+    case SemanticColor::Primary:
+      return ConvertColorToImVec4(theme.primary);
+    case SemanticColor::Secondary:
+      return ConvertColorToImVec4(theme.secondary);
+    case SemanticColor::Disabled:
+      return ConvertColorToImVec4(theme.text_disabled);
+    case SemanticColor::Error:
+      return ConvertColorToImVec4(theme.error);
+    case SemanticColor::Warning:
+      return ConvertColorToImVec4(theme.warning);
+    case SemanticColor::Success:
+      return ConvertColorToImVec4(theme.success);
+    case SemanticColor::Info:
+      return ConvertColorToImVec4(theme.info);
+    case SemanticColor::OnSurface:
+      return ConvertColorToImVec4(theme.text_primary);
+    case SemanticColor::OnSurfaceVariant:
+      return ConvertColorToImVec4(theme.text_secondary);
+  }
+  return ConvertColorToImVec4(theme.text_primary);
+}
 
 ImVec4 GetThemeColor(ImGuiCol idx) {
   return ImGui::GetStyle().Colors[idx];
@@ -85,6 +112,83 @@ ImVec4 GetCustomRomColor() {
 ImVec4 GetModifiedColor() {
   const auto& theme = ThemeManager::Get().GetCurrentTheme();
   return ConvertColorToImVec4(theme.accent);
+}
+
+// ============================================================================
+// Colored Text Shortcuts
+// ============================================================================
+
+void ColoredText(const char* text, const ImVec4& color) {
+  ImGui::PushStyleColor(ImGuiCol_Text, color);
+  ImGui::TextUnformatted(text);
+  ImGui::PopStyleColor();
+}
+
+void ColoredTextF(const ImVec4& color, const char* fmt, ...) {
+  ImGui::PushStyleColor(ImGuiCol_Text, color);
+  va_list args;
+  va_start(args, fmt);
+  ImGui::TextV(fmt, args);
+  va_end(args);
+  ImGui::PopStyleColor();
+}
+
+void ThemedText(const char* text, SemanticColor color) {
+  ColoredText(text, ResolveSemanticColor(color));
+}
+
+void ThemedTextF(SemanticColor color, const char* fmt, ...) {
+  ImGui::PushStyleColor(ImGuiCol_Text, ResolveSemanticColor(color));
+  va_list args;
+  va_start(args, fmt);
+  ImGui::TextV(fmt, args);
+  va_end(args);
+  ImGui::PopStyleColor();
+}
+
+// ============================================================================
+// Button Color Sets
+// ============================================================================
+
+ButtonColorSet GetPrimaryButtonColors() {
+  const auto& theme = ThemeManager::Get().GetCurrentTheme();
+  ImVec4 base = ConvertColorToImVec4(theme.primary);
+  return {
+      base,
+      ImVec4(base.x * 1.2f, base.y * 1.2f, base.z * 1.2f, base.w),
+      ImVec4(base.x * 0.8f, base.y * 0.8f, base.z * 0.8f, base.w),
+  };
+}
+
+ButtonColorSet GetDangerButtonColors() {
+  const auto& theme = ThemeManager::Get().GetCurrentTheme();
+  ImVec4 base = ConvertColorToImVec4(theme.error);
+  return {
+      base,
+      ImVec4(base.x * 1.2f, base.y * 1.2f, base.z * 1.2f, base.w),
+      ImVec4(base.x * 0.8f, base.y * 0.8f, base.z * 0.8f, base.w),
+  };
+}
+
+ButtonColorSet GetSuccessButtonColors() {
+  const auto& theme = ThemeManager::Get().GetCurrentTheme();
+  ImVec4 base = ConvertColorToImVec4(theme.success);
+  return {
+      base,
+      ImVec4(base.x * 1.2f, base.y * 1.2f, base.z * 1.2f, base.w),
+      ImVec4(base.x * 0.8f, base.y * 0.8f, base.z * 0.8f, base.w),
+  };
+}
+
+// ============================================================================
+// Themed Separator
+// ============================================================================
+
+void ThemedSeparator() {
+  const auto& theme = ThemeManager::Get().GetCurrentTheme();
+  ImGui::PushStyleColor(ImGuiCol_Separator, ConvertColorToImVec4(theme.border));
+  ImGui::Separator();
+  ImGui::PopStyleColor();
 }
 
 // ============================================================================
