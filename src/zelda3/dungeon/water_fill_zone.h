@@ -38,7 +38,24 @@ absl::Status WriteWaterFillTable(Rom* rom,
 absl::StatusOr<std::vector<WaterFillZoneEntry>> LoadLegacyWaterGateZones(
     Rom* rom, const std::string& symbol_path);
 
+// JSON import/export helpers for authoring workflows.
+//
+// Format (v1):
+// {
+//   "version": 1,
+//   "zones": [
+//     { "room_id": "0x25", "mask": "0x02", "offsets": [ 0, 1, 2 ] }
+//   ]
+// }
+//
+// `mask` may be 0x00 ("Auto") or a single bit (0x01..0x80). Room IDs and masks
+// may also be provided as integers.
+absl::StatusOr<std::string> DumpWaterFillZonesToJsonString(
+    const std::vector<WaterFillZoneEntry>& zones);
+
+absl::StatusOr<std::vector<WaterFillZoneEntry>> LoadWaterFillZonesFromJsonString(
+    const std::string& json_content);
+
 }  // namespace yaze::zelda3
 
 #endif  // YAZE_APP_ZELDA3_DUNGEON_WATER_FILL_ZONE_H
-

@@ -4,12 +4,17 @@
 #include <cstddef>
 #include <cstdint>
 #include <fstream>
+#include <limits>
 #include <optional>
 #include <regex>
 #include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
+
+#if defined(YAZE_WITH_JSON)
+#include "nlohmann/json.hpp"
+#endif
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
@@ -463,6 +468,185 @@ absl::StatusOr<std::vector<WaterFillZoneEntry>> LoadLegacyWaterGateZones(
 
   zones = DedupAndSort(std::move(zones));
   return zones;
+}
+
+absl::StatusOr<std::string> DumpWaterFillZonesToJsonString(
+    const std::vector<WaterFillZoneEntry>& zones) {
+#if !defined(YAZE_WITH_JSON)
+  return absl::UnimplementedError(
+      "JSON support not enabled. Build with -DYAZE_WITH_JSON=ON");
+#else
+  using json = nlohmann::json;
+
+  std::vector<WaterFillZoneEntry> sorted = zones;
+  std::sort(sorted.begin(), sorted.end(),
+            [](const WaterFillZoneEntry& a, const WaterFillZoneEntry& b) {
+              return a.room_id < b.room_id;
+            });
+  for (auto& z : sorted) {
+    std::sort(z.fill_offsets.begin(), z.fill_offsets.end());
+    z.fill_offsets.erase(
+        std::unique(z.fill_offsets.begin(), z.fill_offsets.end()),
+        z.fill_offsets.end());
+  }
+
+  json root;
+  root["version"] = 1;
+  json arr = json::array();
+  for (const auto& z : sorted) {
+    json item;
+    item["room_id"] = absl::StrFormat("0x%02X", z.room_id);
+    item["mask"] = absl::StrFormat("0x%02X", z.sram_bit_mask);
+    item["offsets"] = z.fill_offsets;
+    arr.push_back(std::move(item));
+  }
+  root["zones"] = std::move(arr);
+  return root.dump(/*indent=*/2);
+#endif
+}
+
+absl::StatusOr<std::vector<WaterFillZoneEntry>> LoadWaterFillZonesFromJsonString(
+    const std::string& json_content) {
+#if !defined(YAZE_WITH_JSON)
+  return absl::UnimplementedError(
+      "JSON support not enabled. Build with -DYAZE_WITH_JSON=ON");
+#else
+  using json = nlohmann::json;
+
+  json root;
+  try {
+    root = json::parse(json_content);
+  } catch (const json::parse_error& e) {
+    return absl::InvalidArgumentError(
+        std::string("JSON parse error: ") + e.what());
+  }
+
+  const int version = root.value("version", 1);
+  if (version != 1) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Unsupported water fill JSON version: %d", version));
+  }
+  if (!root.contains("zones") || !root["zones"].is_array()) {
+    return absl::InvalidArgumentError("Missing or invalid 'zones' array");
+  }
+
+  auto parse_int = [](const json& v) -> std::optional<int> {
+    if (v.is_number_integer()) {
+      return v.get<int>();
+    }
+    if (v.is_number_unsigned()) {
+      const auto u = v.get<unsigned int>();
+      if (u > static_cast<unsigned int>(std::numeric_limits<int>::max())) {
+        return std::nullopt;
+      }
+      return static_cast<int>(u);
+    }
+    if (v.is_string()) {
+      try {
+        size_t idx = 0;
+        const std::string s = v.get<std::string>();
+        const int parsed = std::stoi(s, &idx, 0);
+        if (idx == s.size()) {
+          return parsed;
+        }
+      } catch (...) {
+      }
+    }
+    return std::nullopt;
+  };
+
+  std::vector<WaterFillZoneEntry> zones;
+  zones.reserve(root["zones"].size());
+
+  std::unordered_map<int, bool> seen_rooms;
+  for (const auto& item : root["zones"]) {
+    if (!item.is_object()) {
+      continue;
+    }
+
+    const json& room_v =
+        item.contains("room_id") ? item["room_id"]
+        : item.contains("room")  ? item["room"]
+                                 : json();
+    const auto room_id_opt = parse_int(room_v);
+    if (!room_id_opt.has_value() || *room_id_opt < 0 ||
+        *room_id_opt >= kNumberOfRooms) {
+      return absl::InvalidArgumentError("Invalid room_id in water fill JSON");
+    }
+    const int room_id = *room_id_opt;
+
+    if (seen_rooms.contains(room_id)) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Duplicate room_id in water fill JSON: 0x%02X",
+                          room_id));
+    }
+    seen_rooms[room_id] = true;
+
+    const json& mask_v =
+        item.contains("mask")          ? item["mask"]
+        : item.contains("sram_mask")   ? item["sram_mask"]
+        : item.contains("sram_bit_mask") ? item["sram_bit_mask"]
+                                         : json();
+    uint8_t mask = 0;
+    if (!mask_v.is_null()) {
+      const auto m_opt = parse_int(mask_v);
+      if (!m_opt.has_value() || *m_opt < 0 || *m_opt > 0xFF) {
+        return absl::InvalidArgumentError(
+            absl::StrFormat("Invalid mask for room 0x%02X", room_id));
+      }
+      mask = static_cast<uint8_t>(*m_opt);
+    }
+
+    // Allow 0 (Auto) or a single-bit mask.
+    if (mask != 0 && !IsSingleBitMask(mask)) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Invalid mask 0x%02X for room 0x%02X", mask,
+                          room_id));
+    }
+
+    const json& offsets_v =
+        item.contains("offsets")      ? item["offsets"]
+        : item.contains("fill_offsets") ? item["fill_offsets"]
+                                        : json::array();
+    if (!offsets_v.is_array()) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Invalid offsets array for room 0x%02X", room_id));
+    }
+
+    WaterFillZoneEntry z;
+    z.room_id = room_id;
+    z.sram_bit_mask = mask;
+    z.fill_offsets.reserve(offsets_v.size());
+    for (const auto& off_v : offsets_v) {
+      const auto o_opt = parse_int(off_v);
+      if (!o_opt.has_value() || *o_opt < 0 || *o_opt >= kGridTiles) {
+        return absl::InvalidArgumentError(
+            absl::StrFormat("Invalid offset for room 0x%02X", room_id));
+      }
+      z.fill_offsets.push_back(static_cast<uint16_t>(*o_opt));
+      if (z.fill_offsets.size() > 255) {
+        return absl::InvalidArgumentError(absl::StrFormat(
+            "WaterFill offsets exceed 255 tiles for room 0x%02X", room_id));
+      }
+    }
+
+    std::sort(z.fill_offsets.begin(), z.fill_offsets.end());
+    z.fill_offsets.erase(
+        std::unique(z.fill_offsets.begin(), z.fill_offsets.end()),
+        z.fill_offsets.end());
+
+    zones.push_back(std::move(z));
+  }
+
+  if (zones.size() > 8) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Too many water fill zones in JSON: %zu (max 8)",
+                        zones.size()));
+  }
+
+  zones = DedupAndSort(std::move(zones));
+  return zones;
+#endif
 }
 
 }  // namespace yaze::zelda3
