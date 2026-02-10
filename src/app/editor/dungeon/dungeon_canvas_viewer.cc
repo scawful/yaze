@@ -44,148 +44,9 @@ constexpr int kRoomPropertyColumns = 2;
 
 enum class TrackDir : uint8_t { North, East, South, West };
 
-constexpr uint8_t kTrackDirNorth = 1 << 0;
-constexpr uint8_t kTrackDirEast = 1 << 1;
-constexpr uint8_t kTrackDirSouth = 1 << 2;
-constexpr uint8_t kTrackDirWest = 1 << 3;
 
-struct TrackDirectionMasks {
-  uint8_t primary = 0;
-  uint8_t secondary = 0;
-};
 
-TrackDirectionMasks GetTrackDirectionMasksForTrackIndex(size_t index) {
-  switch (index) {
-    case 0:
-      return TrackDirectionMasks{kTrackDirEast | kTrackDirWest, 0};
-    case 1:
-      return TrackDirectionMasks{kTrackDirNorth | kTrackDirSouth, 0};
-    case 2:
-      return TrackDirectionMasks{kTrackDirNorth | kTrackDirEast, 0};
-    case 3:
-      return TrackDirectionMasks{kTrackDirSouth | kTrackDirEast, 0};
-    case 4:
-      return TrackDirectionMasks{kTrackDirNorth | kTrackDirWest, 0};
-    case 5:
-      return TrackDirectionMasks{kTrackDirSouth | kTrackDirWest, 0};
-    case 6:
-      return TrackDirectionMasks{
-          kTrackDirNorth | kTrackDirEast | kTrackDirSouth | kTrackDirWest, 0};
-    case 7:
-      return TrackDirectionMasks{kTrackDirSouth, 0};
-    case 8:
-      return TrackDirectionMasks{kTrackDirNorth, 0};
-    case 9:
-      return TrackDirectionMasks{kTrackDirEast, 0};
-    case 10:
-      return TrackDirectionMasks{kTrackDirWest, 0};
-    case 11:
-      return TrackDirectionMasks{kTrackDirNorth | kTrackDirEast | kTrackDirWest,
-                                 0};
-    case 12:
-      return TrackDirectionMasks{kTrackDirSouth | kTrackDirEast | kTrackDirWest,
-                                 0};
-    case 13:
-      return TrackDirectionMasks{
-          kTrackDirNorth | kTrackDirSouth | kTrackDirEast, 0};
-    case 14:
-      return TrackDirectionMasks{
-          kTrackDirNorth | kTrackDirSouth | kTrackDirWest, 0};
-    default:
-      return {};
-  }
-}
-
-TrackDirectionMasks GetTrackDirectionMasksForSwitchIndex(size_t index) {
-  switch (index) {
-    case 0:
-      return TrackDirectionMasks{kTrackDirNorth | kTrackDirEast,
-                                 kTrackDirNorth | kTrackDirWest};
-    case 1:
-      return TrackDirectionMasks{kTrackDirSouth | kTrackDirEast,
-                                 kTrackDirNorth | kTrackDirEast};
-    case 2:
-      return TrackDirectionMasks{kTrackDirNorth | kTrackDirWest,
-                                 kTrackDirSouth | kTrackDirWest};
-    case 3:
-      return TrackDirectionMasks{kTrackDirSouth | kTrackDirWest,
-                                 kTrackDirSouth | kTrackDirEast};
-    default:
-      return {};
-  }
-}
-
-TrackDirectionMasks GetTrackDirectionMasksFromConfig(
-    uint8_t tile, const std::vector<uint16_t>& track_tiles,
-    const std::vector<uint16_t>& switch_tiles) {
-  auto track_it = std::find(track_tiles.begin(), track_tiles.end(), tile);
-  if (track_it != track_tiles.end()) {
-    return GetTrackDirectionMasksForTrackIndex(
-        static_cast<size_t>(track_it - track_tiles.begin()));
-  }
-
-  auto switch_it = std::find(switch_tiles.begin(), switch_tiles.end(), tile);
-  if (switch_it != switch_tiles.end()) {
-    return GetTrackDirectionMasksForSwitchIndex(
-        static_cast<size_t>(switch_it - switch_tiles.begin()));
-  }
-
-  return {};
-}
-
-void DrawTrackArrowHead(ImDrawList* draw_list, const ImVec2& tip, TrackDir dir,
-                        float size, ImU32 color) {
-  ImVec2 a, b;
-  switch (dir) {
-    case TrackDir::North:
-      a = ImVec2(tip.x - size, tip.y + size);
-      b = ImVec2(tip.x + size, tip.y + size);
-      break;
-    case TrackDir::East:
-      a = ImVec2(tip.x - size, tip.y - size);
-      b = ImVec2(tip.x - size, tip.y + size);
-      break;
-    case TrackDir::South:
-      a = ImVec2(tip.x - size, tip.y - size);
-      b = ImVec2(tip.x + size, tip.y - size);
-      break;
-    case TrackDir::West:
-      a = ImVec2(tip.x + size, tip.y - size);
-      b = ImVec2(tip.x + size, tip.y + size);
-      break;
-  }
-  draw_list->AddTriangleFilled(tip, a, b, color);
-}
-
-void DrawTrackDirectionMask(ImDrawList* draw_list, const ImVec2& min,
-                            float tile_size, uint8_t mask, ImU32 color) {
-  if (!mask) {
-    return;
-  }
-  const ImVec2 center(min.x + tile_size * 0.5f, min.y + tile_size * 0.5f);
-  const float line_len = tile_size * 0.32f;
-  const float head_size = std::max(2.0f, tile_size * 0.18f);
-  const float thickness = std::max(1.0f, tile_size * 0.08f);
-
-  auto draw_dir = [&](TrackDir dir, float dx, float dy) {
-    ImVec2 tip(center.x + dx * line_len, center.y + dy * line_len);
-    draw_list->AddLine(center, tip, color, thickness);
-    DrawTrackArrowHead(draw_list, tip, dir, head_size, color);
-  };
-
-  if (mask & kTrackDirNorth) {
-    draw_dir(TrackDir::North, 0.0f, -1.0f);
-  }
-  if (mask & kTrackDirEast) {
-    draw_dir(TrackDir::East, 1.0f, 0.0f);
-  }
-  if (mask & kTrackDirSouth) {
-    draw_dir(TrackDir::South, 0.0f, 1.0f);
-  }
-  if (mask & kTrackDirWest) {
-    draw_dir(TrackDir::West, -1.0f, 0.0f);
-  }
-}
+using TrackDirectionMasks = yaze::editor::TrackDirectionMasks;
 
 }  // namespace
 
@@ -203,7 +64,7 @@ void DungeonCanvasViewer::ApplyTrackCollisionConfig() {
                        const std::vector<uint16_t>& values) {
     dest.fill(false);
     for (uint16_t value : values) {
-      if (value < dest.size()) {
+      if (value < 256) {
         dest[value] = true;
       }
     }
@@ -252,7 +113,7 @@ void DungeonCanvasViewer::ApplyTrackCollisionConfig() {
       (switch_tile_order_.size() == default_switch_tile_list.size()) &&
       ids_valid(track_tile_order_) && ids_valid(switch_tile_order_);
 
-  minecart_sprite_ids_.fill(false);
+  minecart_sprite_ids_.reset();
   std::vector<uint16_t> minecart_ids = {0xA3};
   if (project_ && !project_->dungeon_overlay.minecart_sprite_ids.empty()) {
     minecart_ids = project_->dungeon_overlay.minecart_sprite_ids;
@@ -1306,31 +1167,48 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
 
     // Track collision overlay (custom collision tiles)
     if (show_track_collision_overlay_) {
-      DrawTrackCollisionOverlay(canvas_rt, room);
+      DungeonRenderingHelpers::DrawTrackCollisionOverlay(
+          ImGui::GetWindowDrawList(), canvas_.zero_point(),
+          canvas_.global_scale(), GetCollisionOverlayCache(room.id()),
+          track_collision_config_, track_direction_map_enabled_,
+          track_tile_order_, switch_tile_order_, show_track_collision_legend_);
     }
 
     if (show_custom_collision_overlay_) {
-      DrawCustomCollisionOverlay(canvas_rt, room);
+      DungeonRenderingHelpers::DrawCustomCollisionOverlay(
+          ImGui::GetWindowDrawList(), canvas_.zero_point(),
+          canvas_.global_scale(), room);
     }
 
     if (show_water_fill_overlay_) {
-      DrawWaterFillOverlay(canvas_rt, room);
+      DungeonRenderingHelpers::DrawWaterFillOverlay(
+          ImGui::GetWindowDrawList(), canvas_.zero_point(),
+          canvas_.global_scale(), room);
     }
 
     if (show_camera_quadrant_overlay_) {
-      DrawCameraQuadrantOverlay(canvas_rt, room);
+      DungeonRenderingHelpers::DrawCameraQuadrantOverlay(
+          ImGui::GetWindowDrawList(), canvas_.zero_point(),
+          canvas_.global_scale(), room);
     }
 
     if (show_minecart_sprite_overlay_) {
-      DrawMinecartSpriteOverlay(canvas_rt, room);
+      DungeonRenderingHelpers::DrawMinecartSpriteOverlay(
+          ImGui::GetWindowDrawList(), canvas_.zero_point(),
+          canvas_.global_scale(), room, minecart_sprite_ids_,
+          track_collision_config_);
     }
 
     if (show_track_gap_overlay_) {
-      DrawTrackGapOverlay(canvas_rt, room);
+      DungeonRenderingHelpers::DrawTrackGapOverlay(
+          ImGui::GetWindowDrawList(), canvas_.zero_point(),
+          canvas_.global_scale(), room, GetCollisionOverlayCache(room.id()));
     }
 
     if (show_track_route_overlay_) {
-      DrawTrackRouteOverlay(canvas_rt, room);
+      DungeonRenderingHelpers::DrawTrackRouteOverlay(
+          ImGui::GetWindowDrawList(), canvas_.zero_point(),
+          canvas_.global_scale(), GetCollisionOverlayCache(room.id()));
     }
 
     if (minecart_track_panel_) {
@@ -1382,22 +1260,15 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
 
   // Draw coordinate overlay when hovering over canvas
   if (show_coordinate_overlay_ && canvas_.IsMouseHovering()) {
-    ImVec2 mouse_pos = ImGui::GetMousePos();
-    ImVec2 canvas_pos = canvas_.zero_point();
-    float scale = canvas_.global_scale();
-    if (scale <= 0.0f)
-      scale = 1.0f;
-
-    // Calculate canvas-relative position
-    int canvas_x = static_cast<int>((mouse_pos.x - canvas_pos.x) / scale);
-    int canvas_y = static_cast<int>((mouse_pos.y - canvas_pos.y) / scale);
+    auto [tile_x, tile_y] = DungeonRenderingHelpers::ScreenToRoomCoordinates(
+        ImGui::GetMousePos(), canvas_.zero_point(), canvas_.global_scale());
 
     // Only show if within bounds
-    if (canvas_x >= 0 && canvas_x < kRoomPixelWidth && canvas_y >= 0 &&
-        canvas_y < kRoomPixelHeight) {
-      // Calculate tile coordinates
-      int tile_x = canvas_x / kDungeonTileSize;
-      int tile_y = canvas_y / kDungeonTileSize;
+    if (tile_x >= 0 && tile_x < 64 && tile_y >= 0 && tile_y < 64) {
+
+      // Calculate logical pixel coordinates
+      int canvas_x = tile_x * 8;
+      int canvas_y = tile_y * 8;
 
       // Calculate camera/world coordinates (for minecart tracks, sprites, etc.)
       auto [camera_x, camera_y] =
@@ -1408,6 +1279,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       int sprite_y = canvas_y / dungeon_coords::kSpriteTileSize;
 
       // Draw coordinate info box at mouse position
+      ImVec2 mouse_pos = ImGui::GetMousePos();
       ImVec2 overlay_pos = ImVec2(mouse_pos.x + 15, mouse_pos.y + 15);
 
       // Build coordinate text
@@ -1474,7 +1346,8 @@ void DungeonCanvasViewer::RenderSprites(const gui::CanvasRuntime& rt,
     int canvas_x = sprite.x() * 16;
     int canvas_y = sprite.y() * 16;
 
-    if (IsWithinCanvasBounds(canvas_x, canvas_y, 16)) {
+    if (canvas_x >= -16 && canvas_y >= -16 && canvas_x < 512 + 16 &&
+        canvas_y < 512 + 16) {
       // Draw 16x16 square for sprite (like overworld entities)
       ImVec4 sprite_color;
 
@@ -1563,9 +1436,10 @@ void DungeonCanvasViewer::RenderPotItems(const gui::CanvasRuntime& rt,
     // Convert to canvas coordinates (already in pixels, just need offset)
     // Note: pot item coords are already in full room pixel space
     auto [canvas_x, canvas_y] =
-        RoomToCanvasCoordinates(pixel_x / 8, pixel_y / 8);
+        DungeonRenderingHelpers::RoomToCanvasCoordinates(pixel_x / 8, pixel_y / 8);
 
-    if (IsWithinCanvasBounds(canvas_x, canvas_y, 16)) {
+    if (canvas_x >= -16 && canvas_y >= -16 && canvas_x < 512 + 16 &&
+        canvas_y < 512 + 16) {
       // Draw colored square
       ImVec4 pot_item_color;
       if (pot_item.item == 0) {
@@ -1599,46 +1473,8 @@ void DungeonCanvasViewer::RenderEntityOverlay(const gui::CanvasRuntime& rt,
   RenderPotItems(rt, room);
 }
 
-// Coordinate conversion helper functions
-std::pair<int, int> DungeonCanvasViewer::RoomToCanvasCoordinates(
-    int room_x, int room_y) const {
-  // Convert room coordinates (tile units) to UNSCALED canvas pixel coordinates
-  // Dungeon tiles are 8x8 pixels (not 16x16!)
-  // IMPORTANT: Return UNSCALED coordinates - Canvas drawing functions apply
-  // scale internally Do NOT multiply by scale here or we get double-scaling!
 
-  // Simple conversion: tile units → pixel units (no scale, no offset)
-  return {room_x * 8, room_y * 8};
-}
-
-std::pair<int, int> DungeonCanvasViewer::CanvasToRoomCoordinates(
-    int canvas_x, int canvas_y) const {
-  // Convert canvas screen coordinates (pixels) to room coordinates (tile units)
-  // Input: Screen-space coordinates (affected by zoom/scale)
-  // Output: Logical tile coordinates (0-63 for each axis)
-
-  // IMPORTANT: Mouse coordinates are in screen space, must undo scale first
-  float scale = canvas_.global_scale();
-  if (scale <= 0.0f)
-    scale = 1.0f;  // Prevent division by zero
-
-  // Step 1: Convert screen space → logical pixel space
-  int logical_x = static_cast<int>(canvas_x / scale);
-  int logical_y = static_cast<int>(canvas_y / scale);
-
-  // Step 2: Convert logical pixels → tile units (8 pixels per tile)
-  return {logical_x / 8, logical_y / 8};
-}
-
-bool DungeonCanvasViewer::IsWithinCanvasBounds(int canvas_x, int canvas_y,
-                                               int margin) const {
-  // Check if coordinates are within canvas bounds with optional margin
-  auto canvas_width = canvas_.width();
-  auto canvas_height = canvas_.height();
-  return (canvas_x >= -margin && canvas_y >= -margin &&
-          canvas_x <= canvas_width + margin &&
-          canvas_y <= canvas_height + margin);
-}
+// Room layout visualization
 // Room layout visualization
 
 // Object visualization methods
@@ -1688,7 +1524,8 @@ void DungeonCanvasViewer::DrawObjectPositionOutlines(
 
     // Convert object position (tile coordinates) to canvas pixel coordinates
     // (UNSCALED)
-    auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(obj.x(), obj.y());
+    auto [canvas_x, canvas_y] = DungeonRenderingHelpers::RoomToCanvasCoordinates(
+        obj.x(), obj.y());
 
     // Calculate object dimensions via DimensionService
     auto [width, height] =
@@ -1731,14 +1568,14 @@ void DungeonCanvasViewer::DrawObjectPositionOutlines(
   }
 }
 
-const DungeonCanvasViewer::CollisionOverlayCache&
+const DungeonRenderingHelpers::CollisionOverlayCache&
 DungeonCanvasViewer::GetCollisionOverlayCache(int room_id) {
   auto it = collision_overlay_cache_.find(room_id);
   if (it != collision_overlay_cache_.end()) {
     return it->second;
   }
 
-  CollisionOverlayCache cache;
+  DungeonRenderingHelpers::CollisionOverlayCache cache;
   cache.entries.clear();
 
   if (!rom_ || !rom_->is_loaded()) {
@@ -1761,7 +1598,7 @@ DungeonCanvasViewer::GetCollisionOverlayCache(int room_id) {
         if (tile < 256 && (track_collision_config_.track_tiles[tile] ||
                            track_collision_config_.stop_tiles[tile] ||
                            track_collision_config_.switch_tiles[tile])) {
-          cache.entries.push_back(CollisionOverlayEntry{
+          cache.entries.push_back(DungeonRenderingHelpers::CollisionOverlayEntry{
               static_cast<uint8_t>(x), static_cast<uint8_t>(y), tile});
         }
       }
@@ -1770,461 +1607,6 @@ DungeonCanvasViewer::GetCollisionOverlayCache(int room_id) {
 
   collision_overlay_cache_.emplace(room_id, std::move(cache));
   return collision_overlay_cache_.at(room_id);
-}
-
-void DungeonCanvasViewer::DrawTrackCollisionOverlay(
-    const gui::CanvasRuntime& rt, const zelda3::Room& room) {
-  if (!show_track_collision_overlay_) {
-    return;
-  }
-  if (!rom_ || !rom_->is_loaded()) {
-    return;
-  }
-
-  const auto& cache = GetCollisionOverlayCache(room.id());
-  if (!cache.has_data || cache.entries.empty()) {
-    return;
-  }
-
-  ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  ImVec2 canvas_pos = canvas_.zero_point();
-  float scale = canvas_.global_scale();
-
-  const ImU32 track_color = ImGui::GetColorU32(ImVec4(0.2f, 0.8f, 0.4f, 0.35f));
-  const ImU32 stop_color = ImGui::GetColorU32(ImVec4(0.9f, 0.3f, 0.2f, 0.45f));
-  const ImU32 switch_color =
-      ImGui::GetColorU32(ImVec4(0.95f, 0.8f, 0.2f, 0.45f));
-  const ImU32 outline_color = ImGui::GetColorU32(ImVec4(0, 0, 0, 0.4f));
-  const ImU32 arrow_color =
-      ImGui::GetColorU32(ImVec4(0.05f, 0.05f, 0.05f, 0.75f));
-  const ImU32 arrow_color_dim =
-      ImGui::GetColorU32(ImVec4(0.05f, 0.05f, 0.05f, 0.4f));
-
-  for (const auto& entry : cache.entries) {
-    const float px = static_cast<float>(entry.x * 8) * scale;
-    const float py = static_cast<float>(entry.y * 8) * scale;
-    ImVec2 min(canvas_pos.x + px, canvas_pos.y + py);
-    const float tile_size = 8.0f * scale;
-    ImVec2 max(min.x + tile_size, min.y + tile_size);
-
-    ImU32 color = track_color;
-    if (track_collision_config_.stop_tiles[entry.tile]) {
-      color = stop_color;
-    } else if (track_collision_config_.switch_tiles[entry.tile]) {
-      color = switch_color;
-    }
-
-    draw_list->AddRectFilled(min, max, color);
-    draw_list->AddRect(min, max, outline_color);
-
-    // Draw direction letter for stop tiles ($B7=U, $B8=D, $B9=L, $BA=R)
-    if (track_collision_config_.stop_tiles[entry.tile]) {
-      const char* dir_label = nullptr;
-      if (entry.tile == 0xB7) dir_label = "U";
-      else if (entry.tile == 0xB8) dir_label = "D";
-      else if (entry.tile == 0xB9) dir_label = "L";
-      else if (entry.tile == 0xBA) dir_label = "R";
-      if (dir_label) {
-        const ImU32 label_color =
-            ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 0.9f));
-        ImVec2 text_size = ImGui::CalcTextSize(dir_label);
-        ImVec2 text_pos(min.x + (tile_size - text_size.x) * 0.5f,
-                        min.y + (tile_size - text_size.y) * 0.5f);
-        draw_list->AddText(text_pos, label_color, dir_label);
-      }
-    }
-
-    if (track_direction_map_enabled_) {
-      const auto masks = GetTrackDirectionMasksFromConfig(
-          entry.tile, track_tile_order_, switch_tile_order_);
-      if (masks.primary != 0) {
-        DrawTrackDirectionMask(draw_list, min, tile_size, masks.primary,
-                               arrow_color);
-        if (masks.secondary != 0) {
-          DrawTrackDirectionMask(draw_list, min, tile_size, masks.secondary,
-                                 arrow_color_dim);
-        }
-      }
-    }
-  }
-
-  if (show_track_collision_legend_) {
-    ImVec2 legend_pos(canvas_pos.x + 8.0f, canvas_pos.y + 8.0f);
-    ImDrawList* legend = draw_list;
-    const float swatch = 10.0f;
-    const float pad = 6.0f;
-    const ImU32 text_color = ImGui::GetColorU32(ImVec4(1, 1, 1, 0.85f));
-
-    struct LegendItem {
-      const char* label;
-      ImU32 color;
-    };
-    const LegendItem items[] = {
-        {"Track", track_color},
-        {"Stop", stop_color},
-        {"Switch", switch_color},
-    };
-
-    float y = legend_pos.y;
-    for (const auto& item : items) {
-      ImVec2 swatch_min(legend_pos.x, y);
-      ImVec2 swatch_max(legend_pos.x + swatch, y + swatch);
-      legend->AddRectFilled(swatch_min, swatch_max, item.color);
-      legend->AddRect(swatch_min, swatch_max, outline_color);
-      legend->AddText(ImVec2(legend_pos.x + swatch + pad, y - 1.0f), text_color,
-                      item.label);
-      y += swatch + 4.0f;
-    }
-    const char* arrow_label =
-        track_direction_map_enabled_
-            ? "Arrows: track directions"
-            : "Arrows: disabled (need 15 track + 4 switch IDs)";
-    legend->AddText(ImVec2(legend_pos.x, y + 2.0f), text_color, arrow_label);
-  }
-}
-
-void DungeonCanvasViewer::DrawCustomCollisionOverlay(
-    const gui::CanvasRuntime& rt, const zelda3::Room& room) {
-  if (!show_custom_collision_overlay_) {
-    return;
-  }
-
-  const auto& theme = AgentUI::GetTheme();
-  const auto& custom = room.custom_collision();
-  if (!custom.has_data) {
-    return;
-  }
-
-  ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  ImVec2 canvas_pos = canvas_.zero_point();
-  float scale = canvas_.global_scale();
-  const float tile_size = 8.0f * scale;
-
-  auto apply_alpha = [](ImVec4 c, float a) -> ImVec4 {
-    c.w = a;
-    return c;
-  };
-
-  for (int y = 0; y < 64; ++y) {
-    for (int x = 0; x < 64; ++x) {
-      uint8_t tile = custom.tiles[static_cast<size_t>(y * 64 + x)];
-      if (tile == 0) continue; // Skip default floor for clarity
-
-      const float px = static_cast<float>(x * 8) * scale;
-      const float py = static_cast<float>(y * 8) * scale;
-      ImVec2 min(canvas_pos.x + px, canvas_pos.y + py);
-      ImVec2 max(min.x + tile_size, min.y + tile_size);
-
-      ImVec4 fill = apply_alpha(theme.panel_border_color, 0.25f);
-      // Color coding based on common Zelda 3 physics types (semantic colors).
-      switch (tile) {
-        case 0x08:
-          fill = apply_alpha(theme.text_info, 0.35f);  // Deep water
-          break;
-        case 0x09:
-          fill = apply_alpha(theme.text_info, 0.25f);  // Shallow water
-          break;
-        case 0x1B:
-          fill = apply_alpha(theme.box_bg_dark, 0.50f);  // Pit
-          break;
-        case 0x0E:
-        case 0x3C:
-          fill = apply_alpha(theme.status_error, 0.30f);  // Spikes
-          break;
-        case 0x1C:
-          fill = apply_alpha(theme.status_warning, 0.30f);  // Stairs
-          break;
-        case 0x21:
-        case 0x22:
-        case 0x23:
-          fill = apply_alpha(theme.accent_color, 0.30f);  // Switch-like tiles
-          break;
-      }
-
-      const ImU32 fill_u32 = ImGui::ColorConvertFloat4ToU32(fill);
-      ImVec4 border = apply_alpha(theme.text_primary, 0.10f);
-      const ImU32 border_u32 = ImGui::ColorConvertFloat4ToU32(border);
-
-      draw_list->AddRectFilled(min, max, fill_u32);
-      draw_list->AddRect(min, max, border_u32);
-      
-      // Only draw text if zoomed in enough
-      if (scale >= 4.0f) {
-        char buf[4];
-        snprintf(buf, sizeof(buf), "%02X", tile);
-        ImVec2 text_size = ImGui::CalcTextSize(buf);
-        if (text_size.x < tile_size * 0.9f) {
-          ImVec2 text_pos(min.x + (tile_size - text_size.x) * 0.5f,
-                          min.y + (tile_size - text_size.y) * 0.5f);
-          ImVec4 text = apply_alpha(theme.text_primary, 0.85f);
-          draw_list->AddText(text_pos, ImGui::ColorConvertFloat4ToU32(text),
-                             buf);
-        }
-      }
-    }
-  }
-}
-
-void DungeonCanvasViewer::DrawWaterFillOverlay(const gui::CanvasRuntime& rt,
-                                               const zelda3::Room& room) {
-  (void)rt;
-  if (!show_water_fill_overlay_) {
-    return;
-  }
-
-  const auto& theme = AgentUI::GetTheme();
-  const auto& zone = room.water_fill_zone();
-  if (!zone.has_data) {
-    return;
-  }
-
-  ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  ImVec2 canvas_pos = canvas_.zero_point();
-  float scale = canvas_.global_scale();
-  const float tile_size = 8.0f * scale;
-
-  auto apply_alpha = [](ImVec4 c, float a) -> ImVec4 {
-    c.w = a;
-    return c;
-  };
-
-  const ImU32 fill_u32 =
-      ImGui::ColorConvertFloat4ToU32(apply_alpha(theme.text_info, 0.30f));
-  const ImU32 border_u32 =
-      ImGui::ColorConvertFloat4ToU32(apply_alpha(theme.text_primary, 0.08f));
-
-  for (int y = 0; y < 64; ++y) {
-    for (int x = 0; x < 64; ++x) {
-      if (zone.tiles[static_cast<size_t>(y * 64 + x)] == 0) {
-        continue;
-      }
-
-      const float px = static_cast<float>(x * 8) * scale;
-      const float py = static_cast<float>(y * 8) * scale;
-      ImVec2 min(canvas_pos.x + px, canvas_pos.y + py);
-      ImVec2 max(min.x + tile_size, min.y + tile_size);
-
-      draw_list->AddRectFilled(min, max, fill_u32);
-      draw_list->AddRect(min, max, border_u32);
-    }
-  }
-}
-
-void DungeonCanvasViewer::DrawCameraQuadrantOverlay(
-    const gui::CanvasRuntime& rt, const zelda3::Room& room) {
-  (void)rt;
-  if (!show_camera_quadrant_overlay_) {
-    return;
-  }
-
-  ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  ImVec2 canvas_pos = canvas_.zero_point();
-  float scale = canvas_.global_scale();
-
-  const float room_size_px = 512.0f * scale;
-  const float mid_px = 256.0f * scale;
-  const float thickness = std::max(1.0f, 1.0f * scale);
-  const ImU32 line_color = ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 0.35f));
-
-  ImVec2 v_start(canvas_pos.x + mid_px, canvas_pos.y);
-  ImVec2 v_end(canvas_pos.x + mid_px, canvas_pos.y + room_size_px);
-  ImVec2 h_start(canvas_pos.x, canvas_pos.y + mid_px);
-  ImVec2 h_end(canvas_pos.x + room_size_px, canvas_pos.y + mid_px);
-  draw_list->AddLine(v_start, v_end, line_color, thickness);
-  draw_list->AddLine(h_start, h_end, line_color, thickness);
-
-  // Optional label with layout id for quick context.
-  const ImU32 text_color = ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 0.6f));
-  std::string label = absl::StrFormat("Layout %d", room.layout);
-  draw_list->AddText(ImVec2(canvas_pos.x + 6.0f, canvas_pos.y + 6.0f),
-                     text_color, label.c_str());
-}
-
-void DungeonCanvasViewer::DrawMinecartSpriteOverlay(
-    const gui::CanvasRuntime& rt, const zelda3::Room& room) {
-  (void)rt;
-  if (!show_minecart_sprite_overlay_) {
-    return;
-  }
-  if (!rom_ || !rom_->is_loaded()) {
-    return;
-  }
-
-  auto map_or = zelda3::LoadCustomCollisionMap(rom_, room.id());
-  const bool has_collision = map_or.ok() && map_or.value().has_data;
-
-  ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  ImVec2 canvas_pos = canvas_.zero_point();
-  float scale = canvas_.global_scale();
-
-  const ImU32 ok_color = ImGui::GetColorU32(ImVec4(0.2f, 0.9f, 0.4f, 0.9f));
-  const ImU32 warn_color = ImGui::GetColorU32(ImVec4(0.95f, 0.5f, 0.2f, 0.95f));
-  const ImU32 unknown_color =
-      ImGui::GetColorU32(ImVec4(0.7f, 0.7f, 0.7f, 0.8f));
-
-  for (const auto& sprite : room.GetSprites()) {
-    if (sprite.id() >= minecart_sprite_ids_.size() ||
-        !minecart_sprite_ids_[sprite.id()]) {
-      continue;
-    }
-
-    bool on_stop_tile = false;
-    bool has_tile = false;
-    if (has_collision) {
-      int tile_x = sprite.x() * 2;
-      int tile_y = sprite.y() * 2;
-      if (tile_x >= 0 && tile_x < 64 && tile_y >= 0 && tile_y < 64) {
-        uint8_t tile =
-            map_or.value().tiles[static_cast<size_t>(tile_y * 64 + tile_x)];
-        has_tile = true;
-        on_stop_tile = track_collision_config_.stop_tiles[tile];
-      }
-    }
-
-    ImU32 color = unknown_color;
-    if (has_tile) {
-      color = on_stop_tile ? ok_color : warn_color;
-    }
-
-    const float px = static_cast<float>(sprite.x() * 16) * scale;
-    const float py = static_cast<float>(sprite.y() * 16) * scale;
-    ImVec2 min(canvas_pos.x + px, canvas_pos.y + py);
-    ImVec2 max(min.x + (16.0f * scale), min.y + (16.0f * scale));
-    draw_list->AddRect(min, max, color, 0.0f, 0, 2.0f);
-  }
-}
-
-void DungeonCanvasViewer::DrawTrackGapOverlay(const gui::CanvasRuntime& rt,
-                                              const zelda3::Room& room) {
-  (void)rt;
-  if (!show_track_gap_overlay_) {
-    return;
-  }
-  if (!rom_ || !rom_->is_loaded()) {
-    return;
-  }
-
-  // Build a 64x64 occupancy grid from rail objects (Object 0x31).
-  // Object coordinates are in tile units (8px each), 64 tiles per room axis.
-  std::array<bool, 64 * 64> object_grid{};
-  const auto& objects = room.GetTileObjects();
-  for (const auto& obj : objects) {
-    if (obj.id_ != 0x31) {
-      continue;
-    }
-    // Object extents via DimensionService
-    auto dim_result = zelda3::DimensionService::Get().GetDimensions(obj);
-    int w_tiles = dim_result.width_tiles;
-    int h_tiles = dim_result.height_tiles;
-    // Convert from 16px tile coords to 8px collision coords (multiply by 2)
-    int base_x = obj.x() * 2;
-    int base_y = obj.y() * 2;
-    for (int dy = 0; dy < h_tiles && (base_y + dy) < 64; ++dy) {
-      for (int dx = 0; dx < w_tiles && (base_x + dx) < 64; ++dx) {
-        int gx = base_x + dx;
-        int gy = base_y + dy;
-        if (gx >= 0 && gx < 64 && gy >= 0 && gy < 64) {
-          object_grid[static_cast<size_t>(gy * 64 + gx)] = true;
-        }
-      }
-    }
-  }
-
-  // Build a 64x64 collision grid from track/stop/switch tiles.
-  std::array<bool, 64 * 64> collision_grid{};
-  const auto& cache = GetCollisionOverlayCache(room.id());
-  if (cache.has_data) {
-    for (const auto& entry : cache.entries) {
-      collision_grid[static_cast<size_t>(entry.y * 64 + entry.x)] = true;
-    }
-  }
-
-  ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  ImVec2 canvas_pos = canvas_.zero_point();
-  float scale = canvas_.global_scale();
-
-  // Orange: object present but no collision tile
-  const ImU32 gap_color =
-      ImGui::GetColorU32(ImVec4(1.0f, 0.6f, 0.0f, 0.30f));
-  // Gray: collision present but no rail object
-  const ImU32 orphan_color =
-      ImGui::GetColorU32(ImVec4(0.5f, 0.5f, 0.5f, 0.25f));
-
-  const float tile_size = 8.0f * scale;
-
-  for (int y = 0; y < 64; ++y) {
-    for (int x = 0; x < 64; ++x) {
-      size_t idx = static_cast<size_t>(y * 64 + x);
-      bool has_obj = object_grid[idx];
-      bool has_coll = collision_grid[idx];
-
-      if (has_obj == has_coll) {
-        continue;  // Both present or both absent - no gap
-      }
-
-      const float px = static_cast<float>(x * 8) * scale;
-      const float py = static_cast<float>(y * 8) * scale;
-      ImVec2 min_pt(canvas_pos.x + px, canvas_pos.y + py);
-      ImVec2 max_pt(min_pt.x + tile_size, min_pt.y + tile_size);
-
-      ImU32 color = has_obj ? gap_color : orphan_color;
-      draw_list->AddRectFilled(min_pt, max_pt, color);
-    }
-  }
-}
-
-void DungeonCanvasViewer::DrawTrackRouteOverlay(const gui::CanvasRuntime& rt,
-                                                const zelda3::Room& room) {
-  (void)rt;
-  if (!show_track_route_overlay_) {
-    return;
-  }
-  if (!rom_ || !rom_->is_loaded()) {
-    return;
-  }
-
-  const auto& cache = GetCollisionOverlayCache(room.id());
-  if (!cache.has_data || cache.entries.empty()) {
-    return;
-  }
-
-  // Build an occupancy grid so we can check adjacency efficiently.
-  std::array<bool, 64 * 64> occupied{};
-  for (const auto& entry : cache.entries) {
-    occupied[static_cast<size_t>(entry.y * 64 + entry.x)] = true;
-  }
-
-  ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  ImVec2 canvas_pos = canvas_.zero_point();
-  float scale = canvas_.global_scale();
-  const float tile_size = 8.0f * scale;
-  const float half_tile = tile_size * 0.5f;
-
-  const ImU32 route_color =
-      ImGui::GetColorU32(ImVec4(0.0f, 0.9f, 1.0f, 0.30f));
-  const float thickness = std::max(1.0f, 1.5f * scale);
-
-  // For each occupied tile, draw lines to its right and bottom neighbors
-  // (avoids drawing each edge twice).
-  for (const auto& entry : cache.entries) {
-    int x = entry.x;
-    int y = entry.y;
-    float cx = canvas_pos.x + static_cast<float>(x * 8) * scale + half_tile;
-    float cy = canvas_pos.y + static_cast<float>(y * 8) * scale + half_tile;
-
-    // Right neighbor
-    if (x + 1 < 64 && occupied[static_cast<size_t>(y * 64 + (x + 1))]) {
-      float nx = cx + tile_size;
-      draw_list->AddLine(ImVec2(cx, cy), ImVec2(nx, cy), route_color,
-                         thickness);
-    }
-    // Bottom neighbor
-    if (y + 1 < 64 && occupied[static_cast<size_t>((y + 1) * 64 + x)]) {
-      float ny = cy + tile_size;
-      draw_list->AddLine(ImVec2(cx, cy), ImVec2(cx, ny), route_color,
-                         thickness);
-    }
-  }
 }
 
 // Room graphics management methods
@@ -2341,7 +1723,8 @@ void DungeonCanvasViewer::DrawMaskHighlights(const gui::CanvasRuntime& rt,
     }
 
     // Convert object position to canvas coordinates
-    auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(obj.x(), obj.y());
+    auto [canvas_x, canvas_y] = DungeonRenderingHelpers::RoomToCanvasCoordinates(
+        obj.x(), obj.y());
 
     // Calculate object dimensions via DimensionService
     auto [width, height] =

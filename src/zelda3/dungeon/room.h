@@ -649,6 +649,7 @@ class Room {
 
   auto blocks() const { return blocks_; }
   auto& mutable_blocks() { return blocks_; }
+  auto rom() const { return rom_; }
   auto rom() { return rom_; }
   auto mutable_rom() { return rom_; }
   void SetRom(Rom* rom) { rom_ = rom; }
