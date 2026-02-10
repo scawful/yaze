@@ -154,19 +154,19 @@ class ProgressionDashboardPanel : public EditorPanel {
           complete ? ImVec4(0.2f, 0.8f, 0.3f, 1.0f)   // green
                    : ImVec4(0.3f, 0.3f, 0.3f, 0.6f);  // gray
 
-      ImGui::PushStyleColor(ImGuiCol_Button, color);
-      ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                            ImVec4(color.x + 0.1f, color.y + 0.1f,
-                                   color.z + 0.1f, 1.0f));
+      {
+        gui::StyleColorGuard crystal_guard(
+            {{ImGuiCol_Button, color},
+             {ImGuiCol_ButtonHovered,
+              ImVec4(color.x + 0.1f, color.y + 0.1f, color.z + 0.1f, 1.0f)}});
 
-      char label[8];
-      snprintf(label, sizeof(label), "D%d", d);
-      if (ImGui::Button(label, ImVec2(item_width, 36.0f))) {
-        // Toggle crystal bit for testing
-        state_.crystal_bitfield ^= mask;
+        char label[8];
+        snprintf(label, sizeof(label), "D%d", d);
+        if (ImGui::Button(label, ImVec2(item_width, 36.0f))) {
+          // Toggle crystal bit for testing
+          state_.crystal_bitfield ^= mask;
+        }
       }
-
-      ImGui::PopStyleColor(2);
 
       if (d < 7) ImGui::SameLine();
     }
@@ -237,10 +237,11 @@ class ProgressionDashboardPanel : public EditorPanel {
           complete ? ImVec4(0.1f, 0.6f, 0.2f, 1.0f)   // green
                    : ImVec4(0.25f, 0.25f, 0.25f, 1.0f);  // dark
 
-      ImGui::PushStyleColor(ImGuiCol_Header, color);
-      ImGui::Selectable(dungeon.label, complete,
-                        ImGuiSelectableFlags_Disabled);
-      ImGui::PopStyleColor();
+      {
+        gui::StyleColorGuard header_guard(ImGuiCol_Header, color);
+        ImGui::Selectable(dungeon.label, complete,
+                          ImGuiSelectableFlags_Disabled);
+      }
       ImGui::NextColumn();
     }
     ImGui::Columns(1);
@@ -277,9 +278,10 @@ class ProgressionDashboardPanel : public EditorPanel {
       char buf[64];
       snprintf(buf, sizeof(buf), "%s##%s_%d", labels[bit], id_prefix, bit);
 
-      ImGui::PushStyleColor(ImGuiCol_Button, color);
-      ImGui::SmallButton(buf);
-      ImGui::PopStyleColor();
+      {
+        gui::StyleColorGuard bit_guard(ImGuiCol_Button, color);
+        ImGui::SmallButton(buf);
+      }
       if (bit < 7) ImGui::SameLine();
     }
   }
