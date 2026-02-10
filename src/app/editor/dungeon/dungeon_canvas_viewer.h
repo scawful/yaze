@@ -92,6 +92,25 @@ class DungeonCanvasViewer {
   void SetRoomSwapCallback(std::function<void(int, int)> callback) {
     room_swap_callback_ = std::move(callback);
   }
+
+  bool CanNavigateRooms() const {
+    return room_swap_callback_ != nullptr || room_navigation_callback_ != nullptr;
+  }
+
+  // Navigate to another dungeon room using the same semantics as the header
+  // arrow buttons:
+  // - If a swap callback exists (workbench mode), swap in-place.
+  // - Otherwise, use the navigation callback (opens/switches room view).
+  void NavigateToRoom(int target_room) {
+    if (target_room < 0 || target_room >= zelda3::NumberOfRooms) {
+      return;
+    }
+    if (room_swap_callback_) {
+      room_swap_callback_(current_room_id_, target_room);
+    } else if (room_navigation_callback_) {
+      room_navigation_callback_(target_room);
+    }
+  }
   void SetShowObjectPanelCallback(std::function<void()> callback) {
     show_object_panel_callback_ = std::move(callback);
   }
