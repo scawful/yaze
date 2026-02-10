@@ -10,6 +10,7 @@
 #include "app/gui/core/input.h"
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/popup_id.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
 #include "zelda3/overworld/overworld_map.h"
@@ -113,22 +114,24 @@ void MapPropertiesSystem::DrawCanvasToolbar(
 
     TableNextColumn();
     // Mode Controls
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-    if (gui::ToggleButton(ICON_MD_MOUSE, current_mode == EditingMode::MOUSE,
-                          ImVec2(30, 0))) {
-      current_mode = EditingMode::MOUSE;
-      canvas_->SetUsageMode(gui::CanvasUsage::kEntityManipulation);
-    }
-    HOVER_HINT("Mouse Mode (1)\nNavigate, pan, and manage entities");
+    {
+      gui::StyleVarGuard spacing_guard(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+      if (gui::ToggleButton(ICON_MD_MOUSE, current_mode == EditingMode::MOUSE,
+                            ImVec2(30, 0))) {
+        current_mode = EditingMode::MOUSE;
+        canvas_->SetUsageMode(gui::CanvasUsage::kEntityManipulation);
+      }
+      HOVER_HINT("Mouse Mode (1)\nNavigate, pan, and manage entities");
 
-    ImGui::SameLine();
-    if (gui::ToggleButton(ICON_MD_DRAW, current_mode == EditingMode::DRAW_TILE,
-                          ImVec2(30, 0))) {
-      current_mode = EditingMode::DRAW_TILE;
-      canvas_->SetUsageMode(gui::CanvasUsage::kTilePainting);
+      ImGui::SameLine();
+      if (gui::ToggleButton(ICON_MD_DRAW,
+                            current_mode == EditingMode::DRAW_TILE,
+                            ImVec2(30, 0))) {
+        current_mode = EditingMode::DRAW_TILE;
+        canvas_->SetUsageMode(gui::CanvasUsage::kTilePainting);
+      }
+      HOVER_HINT("Tile Paint Mode (2)\nDraw tiles on the map");
     }
-    HOVER_HINT("Tile Paint Mode (2)\nDraw tiles on the map");
-    ImGui::PopStyleVar();
 
     TableNextColumn();
     // Entity Status
