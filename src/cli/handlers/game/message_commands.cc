@@ -604,7 +604,7 @@ absl::Status MessageImportBundleCommandHandler::Execute(
 
       if (!has_errors) {
         auto status = editor::WriteExpandedTextData(
-            rom->mutable_data(), editor::GetExpandedTextDataStart(),
+            rom, editor::GetExpandedTextDataStart(),
             editor::GetExpandedTextDataEnd(), expanded_texts);
         if (!status.ok()) {
           formatter.AddField("status", "error");
@@ -612,7 +612,6 @@ absl::Status MessageImportBundleCommandHandler::Execute(
           formatter.EndObject();
           return absl::OkStatus();
         }
-        rom->set_dirty(true);
       }
     }
 
@@ -683,8 +682,7 @@ absl::Status MessageWriteCommandHandler::Execute(
 
   // Write back
   auto status = editor::WriteExpandedTextData(
-      const_cast<uint8_t*>(rom->mutable_data()),
-      editor::GetExpandedTextDataStart(), editor::GetExpandedTextDataEnd(),
+      rom, editor::GetExpandedTextDataStart(), editor::GetExpandedTextDataEnd(),
       all_texts);
   if (!status.ok()) return status;
 

@@ -571,6 +571,15 @@ std::vector<MessageData> ReadExpandedTextData(uint8_t* rom, int pos);
 // Each message text is encoded via ParseMessageToData, terminated with 0x7F.
 // The region is terminated with 0xFF.
 // Returns error if total size exceeds (end - start + 1).
+//
+// Prefer the Rom* overload when possible:
+// - updates Rom dirty state
+// - is write-fence aware (ROM safety guardrails)
+absl::Status WriteExpandedTextData(Rom* rom, int start, int end,
+                                   const std::vector<std::string>& messages);
+
+// Legacy buffer overload. This bypasses Rom write fences and does not mark the
+// ROM dirty. Prefer WriteExpandedTextData(Rom*, ...) for new code.
 absl::Status WriteExpandedTextData(uint8_t* rom, int start, int end,
                                    const std::vector<std::string>& messages);
 

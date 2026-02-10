@@ -154,7 +154,10 @@ absl::Status RomVersionManager::RestoreSnapshot(
   }
 
   // Restore ROM data
-  std::memcpy(rom_->mutable_data(), rom_data.data(), rom_data.size());
+  auto restore_status = rom_->WriteVector(0, std::move(rom_data));
+  if (!restore_status.ok()) {
+    return restore_status;
+  }
 
   last_known_hash_ = snapshot.rom_hash;
 

@@ -215,7 +215,13 @@ grpc::Status RomServiceImpl::WriteBytes(
   }
 
   // Perform the write
-  std::memcpy(rom->mutable_data() + offset, data.data(), data.size());
+  std::vector<uint8_t> bytes(data.begin(), data.end());
+  auto write_status =
+      rom->WriteVector(static_cast<int>(offset), std::move(bytes));
+  if (!write_status.ok()) {
+    return grpc::Status(grpc::StatusCode::INTERNAL,
+                        std::string(write_status.message()));
+  }
   response->set_success(true);
 
   return grpc::Status::OK;
