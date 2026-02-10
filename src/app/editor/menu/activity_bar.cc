@@ -12,8 +12,10 @@
 #include "app/editor/system/panel_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/layout_helpers.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_config.h"
+#include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "core/color.h"
 #include "imgui/imgui.h"
@@ -53,32 +55,26 @@ void ActivityBar::DrawActivityBarStrip(
       std::max(0.0f, viewport->WorkSize.y - top_inset);
   const float bar_width = gui::UIConfig::kActivityBarWidth;
 
-  // Position on left edge, full height
-  ImGui::SetNextWindowPos(
-      ImVec2(viewport->WorkPos.x, viewport->WorkPos.y + top_inset));
-  ImGui::SetNextWindowSize(ImVec2(bar_width, viewport_height));
+  constexpr ImGuiWindowFlags kExtraFlags =
+      ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoFocusOnAppearing |
+      ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBringToFrontOnFocus;
 
-  ImVec4 bar_bg = gui::ConvertColorToImVec4(theme.surface);
-  ImVec4 bar_border = gui::ConvertColorToImVec4(theme.text_disabled);
+  gui::FixedPanel bar(
+      "##ActivityBar",
+      ImVec2(viewport->WorkPos.x, viewport->WorkPos.y + top_inset),
+      ImVec2(bar_width, viewport_height),
+      {.bg = gui::ConvertColorToImVec4(theme.surface),
+       .border = gui::ConvertColorToImVec4(theme.text_disabled),
+       .padding = {0.0f, 8.0f},
+       .spacing = {0.0f, 8.0f},
+       .border_size = 1.0f},
+      kExtraFlags);
 
-  ImGuiWindowFlags flags =
-      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
-      ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoScrollbar |
-      ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNavFocus |
-      ImGuiWindowFlags_NoBringToFrontOnFocus;
-
-  ImGui::PushStyleColor(ImGuiCol_WindowBg, bar_bg);
-  ImGui::PushStyleColor(ImGuiCol_Border, bar_border);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 8.0f));
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,
-                      ImVec2(0.0f, 8.0f));  // Increased spacing
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
-
-  if (ImGui::Begin("##ActivityBar", nullptr, flags)) {
+  if (bar) {
 
     // Global Search / Command Palette at top
-    if (gui::TransparentIconButton(ICON_MD_SEARCH, ImVec2(48.0f, 40.0f),
+    if (gui::TransparentIconButton(ICON_MD_SEARCH,
+                                   gui::IconSize::ActivityBar(),
                                    "Global Search (Ctrl+Shift+F)", false,
                                    ImVec4(0, 0, 0, 0), "activity_bar",
                                    "search")) {
@@ -88,7 +84,8 @@ void ActivityBar::DrawActivityBarStrip(
     // Separator
     ImGui::Spacing();
     ImVec2 sep_p1 = ImGui::GetCursorScreenPos();
-    ImVec2 sep_p2 = ImVec2(sep_p1.x + 48.0f, sep_p1.y);
+    ImVec2 sep_p2 = ImVec2(sep_p1.x + gui::UIConfig::kActivityBarWidth,
+                           sep_p1.y);
     ImGui::GetWindowDrawList()->AddLine(
         sep_p1, sep_p2,
         ImGui::ColorConvertFloat4ToU32(gui::ConvertColorToImVec4(theme.border)),
@@ -160,7 +157,7 @@ void ActivityBar::DrawActivityBarStrip(
       if (!category_enabled) {
         ImGui::BeginDisabled();
       }
-      if (gui::TransparentIconButton(icon.c_str(), ImVec2(48.0f, 40.0f),
+      if (gui::TransparentIconButton(icon.c_str(), gui::IconSize::ActivityBar(),
                                      nullptr, is_selected, icon_color,
                                      "activity_bar", cat.c_str())) {
         if (category_enabled) {
@@ -183,17 +180,14 @@ void ActivityBar::DrawActivityBarStrip(
         ImGui::BeginTooltip();
         ImGui::Text("%s %s", icon.c_str(), cat.c_str());
         if (!category_enabled) {
-          ImGui::TextColored(gui::ConvertColorToImVec4(theme.warning),
-                             "Open ROM required");
+          gui::ColoredText("Open ROM required",
+                           gui::ConvertColorToImVec4(theme.warning));
         } else if (has_active_editor) {
-          ImGui::PushStyleColor(ImGuiCol_Text,
-                                gui::ConvertColorToImVec4(theme.success));
-          ImGui::TextUnformatted("Editor open");
-          ImGui::PopStyleColor();
+          gui::ColoredText("Editor open",
+                           gui::ConvertColorToImVec4(theme.success));
         } else {
-          ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-          ImGui::TextUnformatted("Click to view panels");
-          ImGui::PopStyleColor();
+          gui::ColoredText("Click to view panels",
+                           gui::GetTextSecondaryVec4());
         }
         ImGui::EndTooltip();
       }
@@ -203,9 +197,9 @@ void ActivityBar::DrawActivityBarStrip(
   // Draw "More Actions" button at the bottom
   ImGui::SetCursorPosY(viewport_height - 48.0f);
 
-  if (gui::TransparentIconButton(ICON_MD_MORE_HORIZ, ImVec2(48.0f, 48.0f),
-                                 nullptr, false, ImVec4(0, 0, 0, 0),
-                                 "activity_bar", "more_actions")) {
+  if (gui::TransparentIconButton(
+          ICON_MD_MORE_HORIZ, gui::IconSize::Large(), nullptr, false,
+          ImVec4(0, 0, 0, 0), "activity_bar", "more_actions")) {
     ImGui::OpenPopup("ActivityBarMoreMenu");
   }
 
@@ -229,11 +223,7 @@ void ActivityBar::DrawActivityBarStrip(
     }
     ImGui::EndPopup();
   }
-
-  ImGui::End();
-
-  ImGui::PopStyleVar(3);
-  ImGui::PopStyleColor(2);
+  // FixedPanel destructor handles End() + PopStyleVar/PopStyleColor
 }
 
 void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
@@ -249,24 +239,18 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
   const float panel_height =
       std::max(0.0f, viewport->WorkSize.y - top_inset);
 
-  ImGui::SetNextWindowPos(ImVec2(viewport->WorkPos.x + bar_width,
-                                 viewport->WorkPos.y + top_inset));
-  ImGui::SetNextWindowSize(ImVec2(panel_width, panel_height));
+  gui::FixedPanel panel(
+      "##SidePanel",
+      ImVec2(viewport->WorkPos.x + bar_width,
+             viewport->WorkPos.y + top_inset),
+      ImVec2(panel_width, panel_height),
+      {.bg = gui::ConvertColorToImVec4(theme.surface),
+       .padding = {12.0f, 12.0f},
+       .border_size = 1.0f,
+       .rounding = 0.0f},
+      ImGuiWindowFlags_NoFocusOnAppearing);
 
-  ImVec4 panel_bg = gui::ConvertColorToImVec4(theme.surface);
-
-  ImGuiWindowFlags flags =
-      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
-      ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoFocusOnAppearing;
-
-  ImGui::PushStyleColor(ImGuiCol_WindowBg, panel_bg);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);  // Right border
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,
-                      ImVec2(12.0f, 12.0f));  // Consistent padding
-
-  if (ImGui::Begin("##SidePanel", nullptr, flags)) {
+  if (panel) {
     // Header
     ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);  // Use default font
     ImGui::Text("%s", category.c_str());
@@ -410,14 +394,15 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
                 card->visibility_flag ? *card->visibility_flag : false;
 
             // Unpin button
-            ImGui::PushStyleColor(ImGuiCol_Text,
-                                  gui::ConvertColorToImVec4(theme.primary));
-            if (ImGui::SmallButton(
-                    (std::string(ICON_MD_PUSH_PIN "##pin_") + card->card_id)
-                        .c_str())) {
-              panel_manager_.SetPanelPinned(card->card_id, false);
+            {
+              gui::StyleColorGuard pin_color(
+                  ImGuiCol_Text, gui::ConvertColorToImVec4(theme.primary));
+              if (ImGui::SmallButton(
+                      (std::string(ICON_MD_PUSH_PIN "##pin_") + card->card_id)
+                          .c_str())) {
+                panel_manager_.SetPanelPinned(card->card_id, false);
+              }
             }
-            ImGui::PopStyleColor();
             if (ImGui::IsItemHovered()) {
               ImGui::SetTooltip("Unpin panel");
             }
@@ -429,20 +414,22 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
                                                 card->display_name.c_str());
             ImGui::PushID(
                 (std::string("pinned_select_") + card->card_id).c_str());
-            ImGui::PushStyleColor(ImGuiCol_Text, panel_text_color(visible));
-            ImVec2 item_size(ImGui::GetContentRegionAvail().x, 0.0f);
-            if (ImGui::Selectable(label.c_str(), visible,
-                                  ImGuiSelectableFlags_None, item_size)) {
-              panel_manager_.TogglePanel(session_id, card->card_id);
+            {
+              gui::StyleColorGuard text_color(ImGuiCol_Text,
+                                              panel_text_color(visible));
+              ImVec2 item_size(ImGui::GetContentRegionAvail().x, 0.0f);
+              if (ImGui::Selectable(label.c_str(), visible,
+                                    ImGuiSelectableFlags_None, item_size)) {
+                panel_manager_.TogglePanel(session_id, card->card_id);
 
-              bool new_visible =
-                  card->visibility_flag ? *card->visibility_flag : false;
-              if (new_visible) {
-                panel_manager_.TriggerPanelClicked(card->category);
-                ImGui::SetWindowFocus(card->GetWindowTitle().c_str());
+                bool new_visible =
+                    card->visibility_flag ? *card->visibility_flag : false;
+                if (new_visible) {
+                  panel_manager_.TriggerPanelClicked(card->category);
+                  ImGui::SetWindowFocus(card->GetWindowTitle().c_str());
+                }
               }
             }
-            ImGui::PopStyleColor();
             ImGui::PopID();
           }
           ImGui::Spacing();
@@ -479,20 +466,14 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
             // Pin Toggle Button
             bool is_pinned = panel_manager_.IsPanelPinned(card->card_id);
             ImGui::PushID((std::string("recent_") + card->card_id).c_str());
-            if (is_pinned) {
-              ImGui::PushStyleColor(ImGuiCol_Text,
-                                    gui::ConvertColorToImVec4(theme.primary));
+            {
+              ImVec4 pin_col =
+                  is_pinned ? gui::ConvertColorToImVec4(theme.primary)
+                            : gui::ConvertColorToImVec4(theme.text_disabled);
+              gui::StyleColorGuard pin_color(ImGuiCol_Text, pin_col);
               if (ImGui::SmallButton(ICON_MD_PUSH_PIN)) {
-                panel_manager_.SetPanelPinned(card->card_id, false);
+                panel_manager_.SetPanelPinned(card->card_id, !is_pinned);
               }
-              ImGui::PopStyleColor();
-            } else {
-              ImGui::PushStyleColor(ImGuiCol_Text, gui::ConvertColorToImVec4(
-                                                       theme.text_disabled));
-              if (ImGui::SmallButton(ICON_MD_PUSH_PIN)) {
-                panel_manager_.SetPanelPinned(card->card_id, true);
-              }
-              ImGui::PopStyleColor();
             }
             ImGui::PopID();
             ImGui::SameLine();
@@ -502,21 +483,23 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
                                                 card->display_name.c_str());
             ImGui::PushID(
                 (std::string("recent_select_") + card->card_id).c_str());
-            ImGui::PushStyleColor(ImGuiCol_Text, panel_text_color(visible));
-            ImVec2 item_size(ImGui::GetContentRegionAvail().x, 0.0f);
-            if (ImGui::Selectable(label.c_str(), visible,
-                                  ImGuiSelectableFlags_None, item_size)) {
-              panel_manager_.TogglePanel(session_id, card->card_id);
+            {
+              gui::StyleColorGuard text_color(ImGuiCol_Text,
+                                              panel_text_color(visible));
+              ImVec2 item_size(ImGui::GetContentRegionAvail().x, 0.0f);
+              if (ImGui::Selectable(label.c_str(), visible,
+                                    ImGuiSelectableFlags_None, item_size)) {
+                panel_manager_.TogglePanel(session_id, card->card_id);
 
-              bool new_visible =
-                  card->visibility_flag ? *card->visibility_flag : false;
-              if (new_visible) {
-                panel_manager_.AddToRecent(card->card_id);  // Move to top
-                panel_manager_.TriggerPanelClicked(card->category);
-                ImGui::SetWindowFocus(card->GetWindowTitle().c_str());
+                bool new_visible =
+                    card->visibility_flag ? *card->visibility_flag : false;
+                if (new_visible) {
+                  panel_manager_.AddToRecent(card->card_id);  // Move to top
+                  panel_manager_.TriggerPanelClicked(card->category);
+                  ImGui::SetWindowFocus(card->GetWindowTitle().c_str());
+                }
               }
             }
-            ImGui::PopStyleColor();
             ImGui::PopID();
           }
           ImGui::Spacing();
@@ -555,30 +538,22 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
 
       bool visible = card.visibility_flag ? *card.visibility_flag : false;
 
-      // Pin Toggle Button (replaces favorites - more useful for panel management)
-      // Use active session to avoid potential session ID issues
+      // Pin Toggle Button
       bool is_pinned = panel_manager_.IsPanelPinned(card.card_id);
       ImGui::PushID(card.card_id.c_str());
-      if (is_pinned) {
-        ImGui::PushStyleColor(ImGuiCol_Text,
-                              gui::ConvertColorToImVec4(theme.primary));
+      {
+        ImVec4 pin_col =
+            is_pinned ? gui::ConvertColorToImVec4(theme.primary)
+                      : gui::ConvertColorToImVec4(theme.text_disabled);
+        gui::StyleColorGuard pin_color(ImGuiCol_Text, pin_col);
         if (ImGui::SmallButton(ICON_MD_PUSH_PIN)) {
-          panel_manager_.SetPanelPinned(card.card_id, false);
+          panel_manager_.SetPanelPinned(card.card_id, !is_pinned);
         }
-        ImGui::PopStyleColor();
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Unpin - panel will hide when switching editors");
-        }
-      } else {
-        ImGui::PushStyleColor(ImGuiCol_Text,
-                              gui::ConvertColorToImVec4(theme.text_disabled));
-        if (ImGui::SmallButton(ICON_MD_PUSH_PIN)) {
-          panel_manager_.SetPanelPinned(card.card_id, true);
-        }
-        ImGui::PopStyleColor();
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Pin - keep visible across all editors");
-        }
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(is_pinned
+                              ? "Unpin - panel will hide when switching editors"
+                              : "Pin - keep visible across all editors");
       }
       ImGui::PopID();
       ImGui::SameLine();
@@ -587,28 +562,23 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
       std::string label = absl::StrFormat("%s  %s", card.icon.c_str(),
                                           card.display_name.c_str());
       ImGui::PushID((std::string("panel_select_") + card.card_id).c_str());
-      ImGui::PushStyleColor(ImGuiCol_Text, panel_text_color(visible));
-      ImVec2 item_size(ImGui::GetContentRegionAvail().x, 0.0f);
-      if (ImGui::Selectable(label.c_str(), visible,
-                            ImGuiSelectableFlags_None, item_size)) {
-        // Toggle visibility
-        panel_manager_.TogglePanel(session_id, card.card_id);
+      {
+        gui::StyleColorGuard text_color(ImGuiCol_Text,
+                                        panel_text_color(visible));
+        ImVec2 item_size(ImGui::GetContentRegionAvail().x, 0.0f);
+        if (ImGui::Selectable(label.c_str(), visible,
+                              ImGuiSelectableFlags_None, item_size)) {
+          panel_manager_.TogglePanel(session_id, card.card_id);
 
-        // Get the new visibility state after toggle
-        bool new_visible = card.visibility_flag ? *card.visibility_flag : false;
-
-        if (new_visible) {
-          panel_manager_.AddToRecent(card.card_id);  // Track recent
-
-          // Panel was just shown - activate the associated editor
-          panel_manager_.TriggerPanelClicked(card.category);
-
-          // Focus the card window so it comes to front
-          std::string window_title = card.GetWindowTitle();
-          ImGui::SetWindowFocus(window_title.c_str());
+          bool new_visible =
+              card.visibility_flag ? *card.visibility_flag : false;
+          if (new_visible) {
+            panel_manager_.AddToRecent(card.card_id);
+            panel_manager_.TriggerPanelClicked(card.category);
+            ImGui::SetWindowFocus(card.GetWindowTitle().c_str());
+          }
         }
       }
-      ImGui::PopStyleColor();
       ImGui::PopID();
 
       // Shortcut hint on hover
@@ -624,13 +594,12 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
       ImGui::Separator();
 
       // Collapsible header for file browser
-      ImGui::PushStyleColor(ImGuiCol_Header,
-                            gui::GetSurfaceContainerHighVec4());
-      ImGui::PushStyleColor(ImGuiCol_HeaderHovered,
-                            gui::GetSurfaceContainerHighestVec4());
+      gui::StyleColorGuard header_colors({
+          {ImGuiCol_Header, gui::GetSurfaceContainerHighVec4()},
+          {ImGuiCol_HeaderHovered, gui::GetSurfaceContainerHighestVec4()},
+      });
       bool files_expanded = ImGui::CollapsingHeader(
           ICON_MD_FOLDER " Files", ImGuiTreeNodeFlags_DefaultOpen);
-      ImGui::PopStyleColor(2);
 
       if (files_expanded) {
         ImGui::BeginChild("##FileBrowser", ImVec2(0, file_browser_height),
@@ -647,10 +616,7 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
       ImGui::EndDisabled();
     }
   }
-  ImGui::End();
-
-  ImGui::PopStyleVar(3);
-  ImGui::PopStyleColor(1);
+  // FixedPanel destructor handles End() + PopStyleVar/PopStyleColor
 }
 
 void ActivityBar::DrawPanelBrowser(size_t session_id, bool* p_open) {

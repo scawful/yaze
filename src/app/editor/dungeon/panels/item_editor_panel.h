@@ -11,6 +11,7 @@
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/style_guard.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/room.h"
 
@@ -171,29 +172,32 @@ class ItemEditorPanel : public EditorPanel {
         button_color.z = std::min(1.0f, button_color.z + 0.2f);
       }
 
-      ImGui::PushStyleColor(ImGuiCol_Button, button_color);
-      ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-          ImVec4(std::min(1.0f, button_color.x + 0.1f),
-                 std::min(1.0f, button_color.y + 0.1f),
-                 std::min(1.0f, button_color.z + 0.1f), 1.0f));
-      ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-          ImVec4(std::min(1.0f, button_color.x + 0.2f),
-                 std::min(1.0f, button_color.y + 0.2f),
-                 std::min(1.0f, button_color.z + 0.2f), 1.0f));
+      {
+        gui::StyleColorGuard btn_colors({
+            {ImGuiCol_Button, button_color},
+            {ImGuiCol_ButtonHovered,
+             ImVec4(std::min(1.0f, button_color.x + 0.1f),
+                    std::min(1.0f, button_color.y + 0.1f),
+                    std::min(1.0f, button_color.z + 0.1f), 1.0f)},
+            {ImGuiCol_ButtonActive,
+             ImVec4(std::min(1.0f, button_color.x + 0.2f),
+                    std::min(1.0f, button_color.y + 0.2f),
+                    std::min(1.0f, button_color.z + 0.2f), 1.0f)},
+        });
 
-      // Get icon and short name for item
-      const char* icon = GetItemTypeIcon(static_cast<int>(i));
-      std::string label = absl::StrFormat("%s\n%02X", icon, static_cast<int>(i));
-      if (ImGui::Button(label.c_str(), ImVec2(item_size, item_size))) {
-        selected_item_id_ = static_cast<int>(i);
-        placement_mode_ = true;
-        if (canvas_viewer_) {
-          canvas_viewer_->object_interaction().SetItemPlacementMode(true, 
-              static_cast<uint8_t>(i));
+        // Get icon and short name for item
+        const char* icon = GetItemTypeIcon(static_cast<int>(i));
+        std::string label =
+            absl::StrFormat("%s\n%02X", icon, static_cast<int>(i));
+        if (ImGui::Button(label.c_str(), ImVec2(item_size, item_size))) {
+          selected_item_id_ = static_cast<int>(i);
+          placement_mode_ = true;
+          if (canvas_viewer_) {
+            canvas_viewer_->object_interaction().SetItemPlacementMode(
+                true, static_cast<uint8_t>(i));
+          }
         }
       }
-      
-      ImGui::PopStyleColor(3);
       
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("%s (0x%02X)\nClick to select for placement",
