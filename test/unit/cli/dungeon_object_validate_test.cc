@@ -88,5 +88,17 @@ TEST(DungeonObjectValidateTest, ClipSelectionBoundsToRoomHandlesZeroBaseHeight) 
   table.Reset();
 }
 
+TEST(DungeonObjectValidateTest, NonRoomModeAvoidsFalseMismatchesFromNegativeOffsets) {
+  DungeonObjectValidateCommandHandler handler;
+
+  std::string output;
+  auto status = handler.Run({"--mock-rom", "--object=0x009", "--size=0",
+                             "--format=json"},
+                            nullptr, &output);
+
+  ASSERT_TRUE(status.ok());
+  EXPECT_THAT(output, ::testing::HasSubstr("\"mismatch_count\": 0"));
+}
+
 }  // namespace
 }  // namespace yaze::cli
