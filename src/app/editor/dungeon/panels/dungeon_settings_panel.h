@@ -50,6 +50,7 @@ class DungeonSettingsPanel : public EditorPanel {
         ImGui::Checkbox("Pot Items", &flags.kSavePotItems);
         ImGui::Checkbox("Palettes", &flags.kSavePalettes);
         ImGui::Checkbox("Collision Maps", &flags.kSaveCollision);
+        ImGui::Checkbox("Water Fill Zones (Oracle)", &flags.kSaveWaterFillZones);
         ImGui::Checkbox("Blocks (Pushable/etc)", &flags.kSaveBlocks);
         ImGui::Checkbox("Torches", &flags.kSaveTorches);
         ImGui::Checkbox("Pits", &flags.kSavePits);
@@ -91,7 +92,10 @@ class DungeonSettingsPanel : public EditorPanel {
             
             val = viewer_->show_custom_collision_overlay();
             if (ImGui::Checkbox("Custom Collision Map", &val)) viewer_->set_show_custom_collision_overlay(val);
-            
+
+            val = viewer_->show_water_fill_overlay();
+            if (ImGui::Checkbox("Water Fill Zones (Oracle)", &val)) viewer_->set_show_water_fill_overlay(val);
+
             val = viewer_->show_grid();
             if (ImGui::Checkbox("Show Grid (8x8)", &val)) viewer_->set_show_grid(val);
 
@@ -118,6 +122,7 @@ class DungeonSettingsPanel : public EditorPanel {
       flags.kSavePotItems = value;
       flags.kSavePalettes = value;
       flags.kSaveCollision = value;
+      flags.kSaveWaterFillZones = value;
       flags.kSaveBlocks = value;
       flags.kSaveTorches = value;
       flags.kSavePits = value;

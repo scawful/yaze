@@ -56,6 +56,7 @@
 #include "util/log.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/custom_object.h"
+#include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/dungeon_validator.h"
 #include "zelda3/dungeon/object_dimensions.h"
@@ -883,8 +884,10 @@ absl::Status DungeonEditorV2::Save() {
                 status.message().data());
       return status;
     }
+  }
 
-    status = SaveWaterFillZones(rom_, rooms_);
+  if (flags.kSaveWaterFillZones) {
+    auto status = SaveWaterFillZones(rom_, rooms_);
     if (!status.ok()) {
       LOG_ERROR("DungeonEditorV2", "Failed to save water fill zones: %s",
                 status.message().data());
@@ -923,6 +926,21 @@ DungeonEditorV2::CollectWriteRanges() const {
 
   const auto& flags = core::FeatureFlags::get().dungeon;
   const auto& rom_data = rom_->vector();
+
+  // Oracle of Secrets: the water fill table lives in a reserved tail region.
+  // Include it in write-range reporting whenever we have dirty water fill data,
+  // even if no rooms are currently loaded (SaveWaterFillZones() is room-indexed
+  // and independent of room loading state).
+  if (flags.kSaveWaterFillZones &&
+      zelda3::kWaterFillTableEnd <= static_cast<int>(rom_data.size())) {
+    for (const auto& room : rooms_) {
+      if (room.water_fill_dirty()) {
+        ranges.emplace_back(zelda3::kWaterFillTableStart,
+                            zelda3::kWaterFillTableEnd);
+        break;
+      }
+    }
+  }
 
   for (const auto& room : rooms_) {
     if (!room.IsLoaded()) {
@@ -1008,6 +1026,8 @@ absl::Status DungeonEditorV2::SaveRoom(int room_id) {
   }
   if (flags.kSaveCollision) {
     RETURN_IF_ERROR(zelda3::SaveAllCollision(rom_, absl::MakeSpan(rooms_)));
+  }
+  if (flags.kSaveWaterFillZones) {
     RETURN_IF_ERROR(SaveWaterFillZones(rom_, rooms_));
   }
   if (flags.kSaveChests) {

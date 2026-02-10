@@ -40,6 +40,10 @@ class FeatureFlags {
       bool kSavePits = true;
       bool kSaveBlocks = true;
       bool kSaveCollision = true;
+      // Oracle of Secrets: save the water fill zone table (reserved region).
+      // Independent of collision map saving; only writes if water fill data is
+      // dirty.
+      bool kSaveWaterFillZones = true;
       bool kSaveChests = true;
       bool kSavePotItems = true;
       bool kSavePalettes = true;
@@ -141,6 +145,8 @@ class FeatureFlags {
               std::to_string(get().dungeon.kSaveBlocks) + "\n";
     result += "kSaveDungeonCollision: " +
               std::to_string(get().dungeon.kSaveCollision) + "\n";
+    result += "kSaveDungeonWaterFillZones: " +
+              std::to_string(get().dungeon.kSaveWaterFillZones) + "\n";
     result += "kSaveDungeonChests: " +
               std::to_string(get().dungeon.kSaveChests) + "\n";
     result += "kSaveDungeonPotItems: " +
