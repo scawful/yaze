@@ -129,6 +129,11 @@ TEST_F(RomTest, WriteByteOk) {
   }
 }
 
+TEST_F(RomTest, WriteByteNegativeAddressRejected) {
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
+  EXPECT_THAT(rom_.WriteByte(-1, 0xFF), StatusIs(absl::StatusCode::kOutOfRange));
+}
+
 TEST_F(RomTest, WriteWordOk) {
   EXPECT_OK(rom_.LoadFromData(kMockRomData));
 
@@ -140,15 +145,26 @@ TEST_F(RomTest, WriteWordOk) {
   }
 }
 
+TEST_F(RomTest, WriteWordNegativeAddressRejected) {
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
+  EXPECT_THAT(rom_.WriteWord(-1, 0xFFFF), StatusIs(absl::StatusCode::kOutOfRange));
+}
+
 TEST_F(RomTest, WriteLongOk) {
   EXPECT_OK(rom_.LoadFromData(kMockRomData));
 
   for (size_t i = 0; i < kMockRomData.size(); i += 4) {
-    EXPECT_OK(rom_.WriteLong(i, 0xFFFFFF));
-    uint32_t word;
-    ASSERT_OK_AND_ASSIGN(word, rom_.ReadLong(i));
-    EXPECT_EQ(word, 0xFFFFFF);
+  EXPECT_OK(rom_.WriteLong(i, 0xFFFFFF));
+  uint32_t word;
+  ASSERT_OK_AND_ASSIGN(word, rom_.ReadLong(i));
+  EXPECT_EQ(word, 0xFFFFFF);
   }
+}
+
+TEST_F(RomTest, WriteVectorNegativeAddressRejected) {
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
+  EXPECT_THAT(rom_.WriteVector(-1, std::vector<uint8_t>{0x01}),
+              StatusIs(absl::StatusCode::kOutOfRange));
 }
 
 TEST_F(RomTest, WriteTransactionSuccess) {
