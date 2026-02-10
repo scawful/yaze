@@ -5,6 +5,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/palette/palette_category.h"
 #include "app/editor/system/panel_manager.h"
+#include "app/editor/ui/toast_manager.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/util/palette_manager.h"
@@ -491,6 +492,19 @@ absl::Status PaletteEditor::Load() {
     equipment_panel_ = equipment.get();
     panel_manager->RegisterEditorPanel(std::move(equipment));
 
+    // Wire toast manager to all palette group panels
+    auto* toast = dependencies_.toast_manager;
+    if (toast) {
+      ow_main_panel_->SetToastManager(toast);
+      ow_anim_panel_->SetToastManager(toast);
+      dungeon_main_panel_->SetToastManager(toast);
+      sprite_global_panel_->SetToastManager(toast);
+      sprite_aux1_panel_->SetToastManager(toast);
+      sprite_aux2_panel_->SetToastManager(toast);
+      sprite_aux3_panel_->SetToastManager(toast);
+      equipment_panel_->SetToastManager(toast);
+    }
+
     // Register utility panels with callbacks
     panel_manager->RegisterEditorPanel(std::make_unique<PaletteControlPanel>(
         [this]() { DrawControlPanel(); }));
@@ -945,10 +959,12 @@ void PaletteEditor::DrawControlPanel() {
                     ImVec2(-1, 0))) {
     auto status = gfx::PaletteManager::Get().SaveAllToRom();
     if (!status.ok()) {
-      // TODO: Show error toast/notification
-      ImGui::OpenPopup(gui::MakePopupId(gui::EditorNames::kPalette,
-                                        gui::PopupNames::kSaveError)
-                           .c_str());
+      if (dependencies_.toast_manager) {
+        dependencies_.toast_manager->Show(
+            absl::StrFormat("Failed to save palettes: %s",
+                            status.message()),
+            ToastType::kError);
+      }
     }
   }
   ImGui::EndDisabled();

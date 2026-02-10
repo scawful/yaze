@@ -20,6 +20,9 @@
 namespace yaze {
 namespace editor {
 
+// Forward declaration
+class ToastManager;
+
 /**
  * @brief Represents a single color change for undo/redo
  */
@@ -108,6 +111,10 @@ class PaletteGroupPanel : public EditorPanel {
   void Hide() { show_ = false; }
   bool IsVisible() const { return show_; }
   bool* visibility_flag() { return &show_; }
+
+  void SetToastManager(ToastManager* toast_manager) {
+    toast_manager_ = toast_manager;
+  }
 
   // ========== Palette Operations ==========
 
@@ -278,6 +285,8 @@ class PaletteGroupPanel : public EditorPanel {
   bool auto_save_enabled_ = false;  // Auto-save to ROM on every change
   bool show_snes_format_ = true;    // Show SNES $xxxx format in info
   bool show_hex_format_ = true;     // Show #xxxxxx hex in info
+
+  ToastManager* toast_manager_ = nullptr;
 };
 
 // ============================================================================

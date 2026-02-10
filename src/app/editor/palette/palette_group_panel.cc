@@ -10,6 +10,7 @@
 #include "absl/strings/str_split.h"
 #include "absl/strings/strip.h"
 #include "app/gfx/types/snes_palette.h"
+#include "app/editor/ui/toast_manager.h"
 #include "app/gfx/util/palette_manager.h"
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
@@ -201,7 +202,12 @@ void PaletteGroupPanel::DrawToolbar() {
   if (PrimaryButton(absl::StrFormat("%s Save to ROM", ICON_MD_SAVE).c_str())) {
     auto status = SaveToRom();
     if (!status.ok()) {
-      // TODO: Show error toast
+      if (toast_manager_) {
+        toast_manager_->Show(
+            absl::StrFormat("Failed to save %s: %s", display_name_,
+                            status.message()),
+            ToastType::kError);
+      }
     }
   }
   ImGui::EndDisabled();
@@ -538,7 +544,11 @@ void PaletteGroupPanel::SetColor(int palette_index, int color_index,
   auto status = gfx::PaletteManager::Get().SetColor(group_name_, palette_index,
                                                     color_index, new_color);
   if (!status.ok()) {
-    // TODO: Show error notification
+    if (toast_manager_) {
+      toast_manager_->Show(
+          absl::StrFormat("Failed to set color: %s", status.message()),
+          ToastType::kError);
+    }
     return;
   }
 
