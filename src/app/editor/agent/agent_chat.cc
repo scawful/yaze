@@ -539,23 +539,23 @@ void AgentChat::RenderMessage(const cli::agent::ChatMessage& msg, int index) {
   if (show_timestamps_) {
     std::string timestamp =
         absl::FormatTime("%H:%M:%S", msg.timestamp, absl::LocalTimeZone());
-    ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "[%s]",
+    ImGui::TextColored(gui::GetDisabledColor(), "[%s]",
                        timestamp.c_str());
     ImGui::SameLine();
   }
 
   // Name/Icon
   if (is_user) {
-    ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "%s You",
+    ImGui::TextColored(gui::GetInfoColor(), "%s You",
                        ICON_MD_PERSON);
   } else {
-    ImGui::TextColored(ImVec4(0.6f, 1.0f, 0.6f, 1.0f), "%s Agent",
+    ImGui::TextColored(gui::GetSuccessColor(), "%s Agent",
                        ICON_MD_SMART_TOY);
   }
 
   // Message Bubble
-  ImVec4 bg_col = is_user ? ImVec4(0.2f, 0.2f, 0.25f, 1.0f)
-                          : ImVec4(0.25f, 0.25f, 0.25f, 1.0f);
+  const auto& theme = AgentUI::GetTheme();
+  ImVec4 bg_col = is_user ? theme.panel_bg_darker : theme.panel_bg_color;
   {
     gui::StyleColorGuard bg_guard(ImGuiCol_ChildBg, bg_col);
     gui::StyleVarGuard rounding_guard(ImGuiStyleVar_ChildRounding, 8.0f);
@@ -687,9 +687,10 @@ void AgentChat::RenderProposalQuickActions(const cli::agent::ChatMessage& msg,
 
 void AgentChat::RenderCodeBlock(const std::string& code,
                                 const std::string& language, int msg_index) {
+  const auto& theme = AgentUI::GetTheme();
   gui::StyledChild code_child(
       absl::StrCat("code_", msg_index).c_str(), ImVec2(0, 0),
-      {.bg = ImVec4(0.1f, 0.1f, 0.1f, 1.0f)}, true,
+      {.bg = theme.code_bg_color}, true,
       ImGuiWindowFlags_AlwaysAutoResize);
   if (code_child) {
     if (!language.empty()) {
@@ -812,9 +813,10 @@ void AgentChat::RenderToolTimeline(const cli::agent::ChatMessage& msg) {
   ImGui::Spacing();
 
   // Tool timeline header - collapsible
+  const auto& timeline_theme = AgentUI::GetTheme();
   gui::StyleColorGuard timeline_guard(
-      {{ImGuiCol_Header, ImVec4(0.15f, 0.15f, 0.18f, 1.0f)},
-       {ImGuiCol_HeaderHovered, ImVec4(0.2f, 0.2f, 0.25f, 1.0f)}});
+      {{ImGuiCol_Header, timeline_theme.panel_bg_darker},
+       {ImGuiCol_HeaderHovered, timeline_theme.panel_bg_color}});
 
   std::string header =
       absl::StrFormat("%s Tools (%d calls, %.2fs)", ICON_MD_BUILD_CIRCLE,

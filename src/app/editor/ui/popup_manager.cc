@@ -1355,10 +1355,10 @@ void PopupManager::DrawDataIntegrityPopup() {
   // In a full implementation, this would show test results
   Text("ROM Data Integrity:");
   Separator();
-  TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "✓ ROM header valid");
-  TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "✓ Checksum valid");
-  TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "✓ Graphics data intact");
-  TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "✓ Map data intact");
+  TextColored(gui::GetSuccessColor(), "✓ ROM header valid");
+  TextColored(gui::GetSuccessColor(), "✓ Checksum valid");
+  TextColored(gui::GetSuccessColor(), "✓ Graphics data intact");
+  TextColored(gui::GetSuccessColor(), "✓ Map data intact");
 
   Spacing();
   Text("No issues detected.");
@@ -1482,7 +1482,7 @@ void PopupManager::DrawWriteConflictWarningPopup() {
 
   const auto& conflicts = editor_manager_->pending_write_conflicts();
 
-  TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "%s Write Conflict Warning",
+  TextColored(gui::GetWarningColor(), "%s Write Conflict Warning",
               ICON_MD_WARNING);
   Separator();
   TextWrapped(
