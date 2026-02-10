@@ -34,6 +34,8 @@
 #include "app/editor/system/user_settings.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/style_guard.h"
+#include "app/gui/core/ui_helpers.h"
 #include "app/platform/asset_loader.h"
 #include "app/service/screenshot_utils.h"
 #include "app/test/test_manager.h"
@@ -1744,20 +1746,21 @@ void AgentEditor::DrawBotProfilesPanel() {
       }
 
       ImGui::SameLine();
-      ImGui::PushStyleColor(ImGuiCol_Button, theme.status_warning);
-      if (ImGui::SmallButton(ICON_MD_DELETE)) {
-        if (auto status = DeleteBotProfile(profile.name); status.ok()) {
-          if (toast_manager_) {
-            toast_manager_->Show(
-                absl::StrFormat("Deleted profile: %s", profile.name),
-                ToastType::kInfo);
+      {
+        gui::StyleColorGuard del_guard(ImGuiCol_Button, theme.status_warning);
+        if (ImGui::SmallButton(ICON_MD_DELETE)) {
+          if (auto status = DeleteBotProfile(profile.name); status.ok()) {
+            if (toast_manager_) {
+              toast_manager_->Show(
+                  absl::StrFormat("Deleted profile: %s", profile.name),
+                  ToastType::kInfo);
+            }
+          } else if (toast_manager_) {
+            toast_manager_->Show(std::string(status.message()),
+                                 ToastType::kError);
           }
-        } else if (toast_manager_) {
-          toast_manager_->Show(std::string(status.message()),
-                               ToastType::kError);
         }
       }
-      ImGui::PopStyleColor();
 
       ImGui::TextDisabled("  %s | %s", profile.provider.c_str(),
                           profile.description.empty()
@@ -1804,9 +1807,7 @@ void AgentEditor::DrawChatHistoryViewer() {
       ImVec4 color =
           from_user ? theme.user_message_color : theme.agent_message_color;
 
-      ImGui::PushStyleColor(ImGuiCol_Text, color);
-      ImGui::Text("%s:", from_user ? "User" : "Agent");
-      ImGui::PopStyleColor();
+      gui::ColoredTextF(color, "%s:", from_user ? "User" : "Agent");
 
       ImGui::SameLine();
       ImGui::TextDisabled("%s", absl::FormatTime("%H:%M:%S", msg.timestamp,
@@ -1994,25 +1995,26 @@ void AgentEditor::DrawNewPromptCreator() {
   ImGui::Spacing();
   ImGui::Separator();
 
-  ImGui::PushStyleColor(ImGuiCol_Button, theme.status_success);
-  if (ImGui::Button(ICON_MD_SAVE " Save New Prompt", ImVec2(-1, 40))) {
-    if (std::strlen(new_prompt_name_) > 0 && prompt_editor_) {
-      std::string filename = new_prompt_name_;
-      if (!absl::EndsWith(filename, ".txt")) {
-        filename += ".txt";
+  {
+    gui::StyleColorGuard save_guard(ImGuiCol_Button, theme.status_success);
+    if (ImGui::Button(ICON_MD_SAVE " Save New Prompt", ImVec2(-1, 40))) {
+      if (std::strlen(new_prompt_name_) > 0 && prompt_editor_) {
+        std::string filename = new_prompt_name_;
+        if (!absl::EndsWith(filename, ".txt")) {
+          filename += ".txt";
+        }
+        if (toast_manager_) {
+          toast_manager_->Show(
+              absl::StrFormat(ICON_MD_SAVE " Prompt saved as %s", filename),
+              ToastType::kSuccess, 3.0f);
+        }
+        std::memset(new_prompt_name_, 0, sizeof(new_prompt_name_));
+      } else if (toast_manager_) {
+        toast_manager_->Show(ICON_MD_WARNING " Enter a name for the prompt",
+                             ToastType::kWarning, 2.0f);
       }
-      if (toast_manager_) {
-        toast_manager_->Show(
-            absl::StrFormat(ICON_MD_SAVE " Prompt saved as %s", filename),
-            ToastType::kSuccess, 3.0f);
-      }
-      std::memset(new_prompt_name_, 0, sizeof(new_prompt_name_));
-    } else if (toast_manager_) {
-      toast_manager_->Show(ICON_MD_WARNING " Enter a name for the prompt",
-                           ToastType::kWarning, 2.0f);
     }
   }
-  ImGui::PopStyleColor();
 
   ImGui::Spacing();
   ImGui::TextWrapped(
@@ -2196,7 +2198,7 @@ void AgentEditor::DrawAgentBuilderPanel() {
   ImGui::BulletText("E2E readiness gates automation handoff");
 
   ImGui::Spacing();
-  ImGui::PushStyleColor(ImGuiCol_Button, theme.accent_color);
+  gui::StyleColorGuard apply_guard(ImGuiCol_Button, theme.accent_color);
   if (ImGui::Button(ICON_MD_LINK " Apply to Chat", ImVec2(-1, 0))) {
     auto* service = agent_chat_->GetAgentService();
     if (service) {
@@ -2229,7 +2231,6 @@ void AgentEditor::DrawAgentBuilderPanel() {
                            ToastType::kSuccess, 2.0f);
     }
   }
-  ImGui::PopStyleColor();
 
   ImGui::Spacing();
   ImGui::InputTextWithHint("##blueprint_path",
