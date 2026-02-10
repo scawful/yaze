@@ -59,44 +59,46 @@ absl::Status MemoryEditor::Update() {
 
 void MemoryEditor::DrawToolbar() {
   // Modern compact toolbar with icon-only buttons
-  const float pad = gui::LayoutHelpers::GetButtonPadding();
-  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(pad, pad * 0.67f));
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(pad * 0.67f, pad * 0.67f));
+  {
+    const float pad = gui::LayoutHelpers::GetButtonPadding();
+    gui::StyleVarGuard toolbar_vars(
+        {{ImGuiStyleVar_FramePadding, ImVec2(pad, pad * 0.67f)},
+         {ImGuiStyleVar_ItemSpacing, ImVec2(pad * 0.67f, pad * 0.67f)}});
 
-  if (ImGui::Button(ICON_MD_LOCATION_SEARCHING " Jump")) {
-    ImGui::OpenPopup("JumpToAddress");
-  }
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Jump to specific address");
+    if (ImGui::Button(ICON_MD_LOCATION_SEARCHING " Jump")) {
+      ImGui::OpenPopup("JumpToAddress");
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Jump to specific address");
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_SEARCH " Search")) {
+      ImGui::OpenPopup("SearchPattern");
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Search for hex pattern");
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_BOOKMARK " Bookmarks")) {
+      ImGui::OpenPopup("Bookmarks");
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Manage address bookmarks");
+    }
+
+    ImGui::SameLine();
+    ImGui::Text(ICON_MD_MORE_VERT);
+    ImGui::SameLine();
+
+    // Show current address
+    if (current_address_ != 0) {
+      ImGui::TextColored(gui::GetInfoColor(),
+                         ICON_MD_LOCATION_ON " 0x%06X", current_address_);
+    }
   }
 
-  ImGui::SameLine();
-  if (ImGui::Button(ICON_MD_SEARCH " Search")) {
-    ImGui::OpenPopup("SearchPattern");
-  }
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Search for hex pattern");
-  }
-
-  ImGui::SameLine();
-  if (ImGui::Button(ICON_MD_BOOKMARK " Bookmarks")) {
-    ImGui::OpenPopup("Bookmarks");
-  }
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Manage address bookmarks");
-  }
-
-  ImGui::SameLine();
-  ImGui::Text(ICON_MD_MORE_VERT);
-  ImGui::SameLine();
-
-  // Show current address
-  if (current_address_ != 0) {
-    ImGui::TextColored(gui::GetInfoColor(),
-                       ICON_MD_LOCATION_ON " 0x%06X", current_address_);
-  }
-
-  ImGui::PopStyleVar(2);
   ImGui::Separator();
 
   DrawJumpToAddressPopup();
