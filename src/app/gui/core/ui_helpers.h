@@ -89,6 +89,7 @@ struct ButtonColorSet {
 ButtonColorSet GetPrimaryButtonColors();
 ButtonColorSet GetDangerButtonColors();
 ButtonColorSet GetSuccessButtonColors();
+ButtonColorSet GetWarningButtonColors();
 
 // ============================================================================
 // Themed Separator

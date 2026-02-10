@@ -184,6 +184,16 @@ ButtonColorSet GetSuccessButtonColors() {
   };
 }
 
+ButtonColorSet GetWarningButtonColors() {
+  const auto& theme = ThemeManager::Get().GetCurrentTheme();
+  ImVec4 base = ConvertColorToImVec4(theme.warning);
+  return {
+      base,
+      ImVec4(base.x * 1.2f, base.y * 1.2f, base.z * 1.2f, base.w),
+      ImVec4(base.x * 0.8f, base.y * 0.8f, base.z * 0.8f, base.w),
+  };
+}
+
 // ============================================================================
 // Themed Separator
 // ============================================================================

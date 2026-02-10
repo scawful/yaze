@@ -841,16 +841,18 @@ void MusicEditor::DrawSongTrackerWindow(int song_index) {
 
   // Play/Pause button with status indication
   if (is_playing_this_song && !is_paused_this_song) {
+    auto sc = gui::GetSuccessButtonColors();
     gui::StyleColorGuard btn_guard(
-        {{ImGuiCol_Button, ImVec4(0.2f, 0.5f, 0.2f, 1.0f)},
-         {ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.6f, 0.3f, 1.0f)}});
+        {{ImGuiCol_Button, sc.button},
+         {ImGuiCol_ButtonHovered, sc.hovered}});
     if (ImGui::Button(ICON_MD_PAUSE " Pause")) {
       music_player_->Pause();
     }
   } else if (is_paused_this_song) {
+    auto wc = gui::GetWarningButtonColors();
     gui::StyleColorGuard btn_guard(
-        {{ImGuiCol_Button, ImVec4(0.5f, 0.5f, 0.2f, 1.0f)},
-         {ImGuiCol_ButtonHovered, ImVec4(0.6f, 0.6f, 0.3f, 1.0f)}});
+        {{ImGuiCol_Button, wc.button},
+         {ImGuiCol_ButtonHovered, wc.hovered}});
     if (ImGui::Button(ICON_MD_PLAY_ARROW " Resume")) {
       music_player_->Resume();
     }
@@ -897,11 +899,11 @@ void MusicEditor::DrawSongTrackerWindow(int song_index) {
   // Status indicator
   ImGui::SameLine();
   if (is_playing_this_song && !is_paused_this_song) {
-    ImGui::TextColored(ImVec4(0.3f, 0.9f, 0.3f, 1.0f), ICON_MD_GRAPHIC_EQ);
+    ImGui::TextColored(gui::GetSuccessColor(), ICON_MD_GRAPHIC_EQ);
     if (ImGui::IsItemHovered())
       ImGui::SetTooltip("Playing");
   } else if (is_paused_this_song) {
-    ImGui::TextColored(ImVec4(0.9f, 0.9f, 0.3f, 1.0f), ICON_MD_PAUSE_CIRCLE);
+    ImGui::TextColored(gui::GetWarningColor(), ICON_MD_PAUSE_CIRCLE);
     if (ImGui::IsItemHovered())
       ImGui::SetTooltip("Paused");
   }
@@ -952,21 +954,21 @@ void MusicEditor::DrawSongTrackerWindow(int song_index) {
       bank_name = "Unknown";
       break;
   }
-  ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "[%02X]", song_index + 1);
+  ImGui::TextColored(gui::GetDisabledColor(), "[%02X]", song_index + 1);
   ImGui::SameLine();
   ImGui::Text("%s", song->name.c_str());
   ImGui::SameLine();
-  ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.7f, 1.0f), "(%s)", bank_name);
+  ImGui::TextColored(gui::GetInfoColor(), "(%s)", bank_name);
 
   if (song->modified) {
     ImGui::SameLine();
-    ImGui::TextColored(ImVec4(1.0f, 0.7f, 0.2f, 1.0f),
+    ImGui::TextColored(gui::GetWarningColor(),
                        ICON_MD_EDIT " Modified");
   }
 
   // Segment count
   ImGui::SameLine(right_offset);
-  ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "%zu segments",
+  ImGui::TextColored(gui::GetDisabledColor(), "%zu segments",
                      song->segments.size());
 
   ImGui::Separator();
@@ -1001,7 +1003,7 @@ void MusicEditor::DrawPlaybackControl() {
   if (song) {
     ImGui::Text("Selected Song:");
     ImGui::SameLine();
-    ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "[%02X] %s",
+    ImGui::TextColored(gui::GetInfoColor(), "[%02X] %s",
                        current_song_index_ + 1, song->name.c_str());
 
     // Song details
@@ -1009,7 +1011,7 @@ void MusicEditor::DrawPlaybackControl() {
     ImGui::TextDisabled("| %zu segments", song->segments.size());
     if (song->modified) {
       ImGui::SameLine();
-      ImGui::TextColored(ImVec4(1.0f, 0.7f, 0.2f, 1.0f),
+      ImGui::TextColored(gui::GetWarningColor(),
                          ICON_MD_EDIT " Modified");
     }
   }
@@ -1157,18 +1159,18 @@ void MusicEditor::DrawToolset() {
     ImGui::BeginDisabled();
 
   // Transport: Play/Pause with visual state indication
-  const ImVec4 paused_color(0.9f, 0.7f, 0.2f, 1.0f);
+  const ImVec4 paused_color = gui::GetWarningColor();
 
   if (state.is_playing && !state.is_paused) {
     gui::StyleColorGuard btn_guard(ImGuiCol_Button,
-                                   ImVec4(0.2f, 0.5f, 0.2f, 1.0f));
+                                   gui::GetSuccessButtonColors().button);
     if (ImGui::Button(ICON_MD_PAUSE "##Pause"))
       music_player_->Pause();
     if (ImGui::IsItemHovered())
       ImGui::SetTooltip("Pause (Space)");
   } else if (state.is_paused) {
     gui::StyleColorGuard btn_guard(ImGuiCol_Button,
-                                   ImVec4(0.5f, 0.4f, 0.1f, 1.0f));
+                                   gui::GetWarningButtonColors().button);
     if (ImGui::Button(ICON_MD_PLAY_ARROW "##Resume"))
       music_player_->Resume();
     if (ImGui::IsItemHovered())
