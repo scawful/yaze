@@ -4,6 +4,8 @@
 
 #include "app/application.h"
 #include "app/controller.h"
+#include "app/editor/dungeon/dungeon_editor_v2.h"
+#include "app/editor/editor.h"
 #include "app/editor/editor_manager.h"
 #include "app/platform/ios/ios_platform_state.h"
 #include "core/hack_manifest.h"
@@ -84,6 +86,39 @@
     return;
   }
   controller->editor_manager()->panel_manager().TriggerShowCommandPalette();
+}
+
+// ─── Editor Status ──────────────────────────────
+
++ (nullable NSString *)currentEditorType {
+  auto *controller = yaze::Application::Instance().GetController();
+  if (!controller || !controller->editor_manager()) {
+    return nil;
+  }
+  auto *editor = controller->editor_manager()->GetCurrentEditor();
+  if (!editor) {
+    return nil;
+  }
+  auto index = yaze::editor::EditorTypeIndex(editor->type());
+  if (index < yaze::editor::kEditorNames.size()) {
+    return [NSString stringWithUTF8String:yaze::editor::kEditorNames[index]];
+  }
+  return @"Unknown";
+}
+
++ (nullable NSString *)currentRoomStatus {
+  auto *controller = yaze::Application::Instance().GetController();
+  if (!controller || !controller->editor_manager()) {
+    return nil;
+  }
+  auto *editor = controller->editor_manager()->GetCurrentEditor();
+  if (!editor || editor->type() != yaze::editor::EditorType::kDungeon) {
+    return nil;
+  }
+  auto *dungeon_editor =
+      static_cast<yaze::editor::DungeonEditorV2 *>(editor);
+  int room_id = dungeon_editor->current_room_id();
+  return [NSString stringWithFormat:@"Room 0x%03X", room_id];
 }
 
 // ─── Oracle Integration ──────────────────────────

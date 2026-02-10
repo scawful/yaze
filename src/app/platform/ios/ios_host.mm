@@ -26,8 +26,9 @@ absl::Status IOSHost::Initialize(const IOSHostConfig& config) {
   }
 
   Application::Instance().Initialize(config_.app_config);
+
   initialized_ = true;
-  LOG_INFO("IOSHost", "Initialized iOS host (stub)");
+  LOG_INFO("IOSHost", "Initialized iOS host");
   return absl::OkStatus();
 #else
   return absl::FailedPreconditionError("IOSHost only available on iOS");
