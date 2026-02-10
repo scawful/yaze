@@ -2135,6 +2135,9 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
         if (flags.contains("kSaveDungeonCollision"))
           feature_flags.dungeon.kSaveCollision =
               flags["kSaveDungeonCollision"].get<bool>();
+        if (flags.contains("kSaveDungeonWaterFillZones"))
+          feature_flags.dungeon.kSaveWaterFillZones =
+              flags["kSaveDungeonWaterFillZones"].get<bool>();
         if (flags.contains("kSaveDungeonChests"))
           feature_flags.dungeon.kSaveChests =
               flags["kSaveDungeonChests"].get<bool>();
@@ -2369,6 +2372,8 @@ absl::Status YazeProject::SaveToJsonFormat() {
       feature_flags.dungeon.kSaveBlocks;
   proj["feature_flags"]["kSaveDungeonCollision"] =
       feature_flags.dungeon.kSaveCollision;
+  proj["feature_flags"]["kSaveDungeonWaterFillZones"] =
+      feature_flags.dungeon.kSaveWaterFillZones;
   proj["feature_flags"]["kSaveDungeonChests"] =
       feature_flags.dungeon.kSaveChests;
   proj["feature_flags"]["kSaveDungeonPotItems"] =
