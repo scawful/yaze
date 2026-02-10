@@ -4,6 +4,7 @@
 #include <fstream>
 #include <limits>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -68,6 +69,39 @@ TraceBounds ComputeBounds(const std::vector<zelda3::ObjectDrawer::TileTrace>& tr
   bounds.width = max_x - min_x + 1;
   bounds.height = max_y - min_y + 1;
   return bounds;
+}
+
+// Choose an object origin (x,y) such that the expected selection bounds rectangle
+// (origin + expected.offset + expected.size) fits inside the 64x64 validation
+// canvas. This avoids false mismatches from traces being clipped at y<0/x<0.
+std::pair<int, int> ChooseOriginForExpectedBounds(
+    const zelda3::ObjectDimensionTable::SelectionBounds& expected_bounds) {
+  constexpr int kRoomMaxX = zelda3::DrawContext::kMaxTilesX - 1;
+  constexpr int kRoomMaxY = zelda3::DrawContext::kMaxTilesY - 1;
+
+  const int min_x = expected_bounds.offset_x;
+  const int min_y = expected_bounds.offset_y;
+  const int max_x = expected_bounds.offset_x + expected_bounds.width - 1;
+  const int max_y = expected_bounds.offset_y + expected_bounds.height - 1;
+
+  const int low_x = std::max(0, -min_x);
+  const int low_y = std::max(0, -min_y);
+  const int high_x = std::min(kRoomMaxX, kRoomMaxX - max_x);
+  const int high_y = std::min(kRoomMaxY, kRoomMaxY - max_y);
+
+  auto choose_axis = [](int low, int high, int room_max) -> int {
+    if (low <= high) {
+      // Prefer origin at 0 when it fits; otherwise pick the nearest in-range.
+      if (0 < low) return low;
+      if (0 > high) return high;
+      return 0;
+    }
+    // No feasible origin; clamp as a best-effort so we still produce output.
+    return std::max(0, std::min(low, room_max));
+  };
+
+  return {choose_axis(low_x, high_x, kRoomMaxX),
+          choose_axis(low_y, high_y, kRoomMaxY)};
 }
 
 }  // namespace
@@ -215,11 +249,11 @@ struct ValidationResult {
           expected_offset_y);
     }
     return absl::StrFormat(
-        "obj 0x%03X size %d: %s trace=%dx%d offset=(%d,%d) expected=%dx%d "
-        "expected_offset=(%d,%d)",
+        "obj 0x%03X size %d: %s trace=%dx%d min=(%d,%d) offset=(%d,%d) "
+        "expected=%dx%d expected_offset=(%d,%d)",
         object_id, size, status, trace_width, trace_height, trace_min_x,
-        trace_min_y, expected_width, expected_height, expected_offset_x,
-        expected_offset_y);
+        trace_min_y, trace_offset_x, trace_offset_y, expected_width,
+        expected_height, expected_offset_x, expected_offset_y);
   }
 
   std::string FormatJson(bool include_room_fields) const {
@@ -241,11 +275,13 @@ struct ValidationResult {
     return absl::StrFormat(
         R"({"object_id":"0x%03X","size":%d,"has_tiles":%s,)"
         R"("trace_width":%d,"trace_height":%d,"trace_min_x":%d,"trace_min_y":%d,)"
+        R"("trace_offset_x":%d,"trace_offset_y":%d,)"
         R"("expected_width":%d,"expected_height":%d,"expected_offset_x":%d,"expected_offset_y":%d,)"
         R"("size_mismatch":%s,"offset_mismatch":%s})",
         object_id, size, has_tiles ? "true" : "false", trace_width,
-        trace_height, trace_min_x, trace_min_y, expected_width, expected_height,
-        expected_offset_x, expected_offset_y, size_mismatch ? "true" : "false",
+        trace_height, trace_min_x, trace_min_y, trace_offset_x, trace_offset_y,
+        expected_width, expected_height, expected_offset_x, expected_offset_y,
+        size_mismatch ? "true" : "false",
         offset_mismatch ? "true" : "false");
   }
 };
@@ -610,7 +646,7 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
           (result.trace_offset_x != expected_bounds.offset_x ||
            result.trace_offset_y != expected_bounds.offset_y);
 
-      if (result.offset_mismatch) {
+      if (expected_bounds.offset_x < 0 || expected_bounds.offset_y < 0) {
         negative_offset_count++;
       }
 
@@ -630,16 +666,28 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
         total_tests++;
         trace.clear();
 
-        zelda3::RoomObject obj(object_id, 0, 0, static_cast<uint8_t>(size), 0);
+        auto expected_bounds =
+            dimension_table.GetSelectionBounds(object_id, size);
+        const auto [origin_x, origin_y] =
+            ChooseOriginForExpectedBounds(expected_bounds);
+
+        zelda3::RoomObject obj(object_id, origin_x, origin_y,
+                               static_cast<uint8_t>(size), 0);
         obj.layer_ = zelda3::RoomObject::LayerType::BG1;
+
+        // Apply the same clipping logic used in room-mode so the selection
+        // bounds contract matches what can actually be traced inside a room.
+        expected_bounds = detail::ClipSelectionBoundsToRoom(
+            dimension_table, object_id, size, expected_bounds, obj.x_, obj.y_);
+
+        if (expected_bounds.offset_x < 0 || expected_bounds.offset_y < 0) {
+          negative_offset_count++;
+        }
 
         auto draw_status = drawer.DrawObject(obj, bg1, bg2, palette_group);
         if (!draw_status.ok()) {
           return draw_status;
         }
-
-        auto expected_bounds =
-            dimension_table.GetSelectionBounds(object_id, size);
 
         TraceBounds bounds = ComputeBounds(trace);
         if (write_trace_dump) {
@@ -681,6 +729,8 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
         result.trace_height = bounds.height;
         result.trace_min_x = bounds.min_x;
         result.trace_min_y = bounds.min_y;
+        result.trace_offset_x = bounds.min_x - obj.x_;
+        result.trace_offset_y = bounds.min_y - obj.y_;
         result.expected_width = expected_bounds.width;
         result.expected_height = expected_bounds.height;
         result.expected_offset_x = expected_bounds.offset_x;
@@ -689,12 +739,8 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
             (bounds.width != expected_bounds.width ||
              bounds.height != expected_bounds.height);
         result.offset_mismatch =
-            (bounds.min_x != expected_bounds.offset_x ||
-             bounds.min_y != expected_bounds.offset_y);
-
-        if (result.offset_mismatch) {
-          negative_offset_count++;
-        }
+            (result.trace_offset_x != expected_bounds.offset_x ||
+             result.trace_offset_y != expected_bounds.offset_y);
 
         if (result.size_mismatch || result.offset_mismatch) {
           mismatch_count++;
