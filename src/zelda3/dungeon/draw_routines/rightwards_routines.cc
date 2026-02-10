@@ -120,9 +120,54 @@ void DrawRightwards2x4_1to16(const DrawContext& ctx) {
 }
 
 void DrawRightwards2x4_1to16_BothBG(const DrawContext& ctx) {
-  // Pattern: Same as DrawRightwards2x4_1to16 but draws to both BG1 and BG2 (objects 0x05-0x06)
-  DrawRightwards2x4_1to16(ctx);
-  // Note: BothBG would require access to both buffers - simplified for now
+  // USDASM: RoomDraw_Rightwards2x4spaced4_1to16_BothBG ($01:8C37)
+  //
+  // Despite the "_BothBG" suffix in usdasm, this routine does NOT explicitly
+  // write to both tilemaps; it uses the current tilemap pointers and is thus
+  // single-layer.
+  //
+  // Behavior: draw a 2x4 block, then advance by an additional 4 tiles before
+  // drawing the next block (net step = 2 tile width + 4 tile gap = 6 tiles).
+  int size = ctx.object.size_ & 0x0F;
+  int count = size + 1;
+
+  constexpr int kStepTiles = 6;
+
+  for (int s = 0; s < count; s++) {
+    const int base_x = ctx.object.x_ + (s * kStepTiles);
+
+    if (ctx.tiles.size() >= 8) {
+      // Column 0 (tiles 0-3)
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 0, ctx.object.y_,
+                                   ctx.tiles[0]);  // col 0, row 0
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 0,
+                                   ctx.object.y_ + 1, ctx.tiles[1]);  // col 0, row 1
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 0,
+                                   ctx.object.y_ + 2, ctx.tiles[2]);  // col 0, row 2
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 0,
+                                   ctx.object.y_ + 3, ctx.tiles[3]);  // col 0, row 3
+
+      // Column 1 (tiles 4-7)
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, ctx.object.y_,
+                                   ctx.tiles[4]);  // col 1, row 0
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1,
+                                   ctx.object.y_ + 1, ctx.tiles[5]);  // col 1, row 1
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1,
+                                   ctx.object.y_ + 2, ctx.tiles[6]);  // col 1, row 2
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1,
+                                   ctx.object.y_ + 3, ctx.tiles[7]);  // col 1, row 3
+    } else if (ctx.tiles.size() >= 4) {
+      // Fallback: with 4 tiles we can only draw 1 column (1x4 pattern)
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 0, ctx.object.y_,
+                                   ctx.tiles[0]);
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 0,
+                                   ctx.object.y_ + 1, ctx.tiles[1]);
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 0,
+                                   ctx.object.y_ + 2, ctx.tiles[2]);
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 0,
+                                   ctx.object.y_ + 3, ctx.tiles[3]);
+    }
+  }
 }
 
 void DrawRightwards2x2_1to16(const DrawContext& ctx) {
@@ -447,8 +492,10 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .id = DrawRoutineIds::kRightwards2x2_1to15or32,
       .name = "Rightwards2x2_1to15or32",
       .function = DrawRightwards2x2_1to15or32,
-      // Structural layout routine: writes to both BG1 and BG2 in the engine.
-      .draws_to_both_bgs = true,
+      // USDASM: RoomDraw_Rightwards2x2_1to15or32 ($01:8B89) calls
+      // RoomDraw_Rightwards2x2 ($01:9895), which writes through the current
+      // tilemap pointer set (single-layer).
+      .draws_to_both_bgs = false,
       .base_width = 2,
       .base_height = 2,
       .category = DrawRoutineInfo::Category::Rightwards,
@@ -458,8 +505,9 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .id = DrawRoutineIds::kRightwards2x4_1to15or26,
       .name = "Rightwards2x4_1to15or26",
       .function = DrawRightwards2x4_1to15or26,
-      // Structural layout routine: writes to both BG1 and BG2 in the engine.
-      .draws_to_both_bgs = true,
+      // USDASM: RoomDraw_Rightwards2x4_1to15or26 ($01:8A92) uses RoomDraw_Nx4
+      // ($01:97F0) via pointers; single-layer.
+      .draws_to_both_bgs = false,
       .base_width = 2,
       .base_height = 4,
       .category = DrawRoutineInfo::Category::Rightwards,
@@ -469,7 +517,9 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .id = DrawRoutineIds::kRightwards2x4_1to16,
       .name = "Rightwards2x4_1to16",
       .function = DrawRightwards2x4_1to16,
-      .draws_to_both_bgs = false,
+      // USDASM: RoomDraw_Rightwards2x4spaced4_1to16 ($01:8B0D) explicitly
+      // writes to both tilemaps ($7E2000 and $7E4000).
+      .draws_to_both_bgs = true,
       .base_width = 2,  // Adjacent spacing (s * 2)
       .base_height = 4,
       .category = DrawRoutineInfo::Category::Rightwards,
@@ -479,8 +529,10 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .id = DrawRoutineIds::kRightwards2x4_1to16_BothBG,
       .name = "Rightwards2x4_1to16_BothBG",
       .function = DrawRightwards2x4_1to16_BothBG,
-      .draws_to_both_bgs = true,
-      .base_width = 2,  // Adjacent spacing (s * 2)
+      // USDASM: RoomDraw_Rightwards2x4spaced4_1to16_BothBG ($01:8C37) uses
+      // RoomDraw_Nx4 through the current tilemap pointers (single-layer).
+      .draws_to_both_bgs = false,
+      .base_width = 2,  // 2x4 blocks; repeat step is 6 tiles (2 wide + 4 gap)
       .base_height = 4,
       .category = DrawRoutineInfo::Category::Rightwards,
   });

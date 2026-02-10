@@ -243,8 +243,10 @@ void RegisterDownwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .id = 8,  // RoomDraw_Downwards4x2_1to15or26
       .name = "Downwards4x2_1to15or26",
       .function = DrawDownwards4x2_1to15or26,
-      // Structural layout routine: writes to both BG1 and BG2 in the engine.
-      .draws_to_both_bgs = true,
+      // USDASM: RoomDraw_Downwards4x2_1to15or26 ($01:8A89) jumps to
+      // RoomDraw_Downwards4x2VariableSpacing ($01:B220) which writes through
+      // the current tilemap pointers (single-layer).
+      .draws_to_both_bgs = false,
       .base_width = 4,
       .base_height = 2,
       .category = Category::Downwards});

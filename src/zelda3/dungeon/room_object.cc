@@ -41,7 +41,7 @@ bool IsAllBgsObjectId(int object_id) {
   // Keep this list in sync with DecodeObjectFromBytes behavior and any
   // special-cased BothBG handling in ObjectDrawer.
   const int id = object_id;
-  if ((id >= 0x03 && id <= 0x04) ||  // Routine 3 objects
+  if ((id >= 0x03 && id <= 0x04) ||  // USDASM: Rightwards2x4spaced4_1to16 writes to both tilemaps
       (id >= 0x63 && id <= 0x64) ||  // Routine 9 objects
       // Routine 17 (Acute Diagonals)
       id == 0x0C || id == 0x0D || id == 0x10 || id == 0x11 || id == 0x14 ||
