@@ -343,8 +343,8 @@ void TileObjectHandler::UpdateObjectsId(int room_id, const std::vector<size_t>& 
   auto& objects = room->GetTileObjects();
   for (size_t index : indices) {
     if (index < objects.size()) {
-      objects[index].id_ = new_id;
-      objects[index].tiles_loaded_ = false;
+      // Use the setter so derived flags + tile caches stay coherent.
+      objects[index].set_id(new_id);
     }
   }
   NotifyChange(room);

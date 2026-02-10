@@ -212,6 +212,7 @@ TEST_F(InteractionDelegationTest, UpdateObjectIdInvalidatesCache) {
   auto& objects = CurrentRoom().GetTileObjects();
   EXPECT_EQ(objects[0].id_, 0x42);
   EXPECT_FALSE(objects[0].tiles_loaded_);  // Cache should be invalidated
+  EXPECT_FALSE(objects[0].all_bgs_) << "Derived flags should refresh on ID change";
 }
 
 TEST_F(InteractionDelegationTest, UpdateObjectSizeInvalidatesCache) {
