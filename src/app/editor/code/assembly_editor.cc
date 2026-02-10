@@ -558,15 +558,15 @@ void AssemblyEditor::DrawBuildOutput() {
   if (ImGui::BeginChild("##build_log", ImVec2(0, 0), true)) {
     // Show errors in red
     for (const auto& error : last_errors_) {
-      ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.4f, 0.4f, 1.0f));
+      gui::StyleColorGuard err_guard(ImGuiCol_Text,
+                                     ImVec4(1.0f, 0.4f, 0.4f, 1.0f));
       ImGui::TextWrapped("%s %s", ICON_MD_ERROR, error.c_str());
-      ImGui::PopStyleColor();
     }
     // Show warnings in yellow
     for (const auto& warning : last_warnings_) {
-      ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.8f, 0.2f, 1.0f));
+      gui::StyleColorGuard warn_guard(ImGuiCol_Text,
+                                      ImVec4(1.0f, 0.8f, 0.2f, 1.0f));
       ImGui::TextWrapped("%s %s", ICON_MD_WARNING, warning.c_str());
-      ImGui::PopStyleColor();
     }
     if (last_errors_.empty() && last_warnings_.empty()) {
       ImGui::TextDisabled("No build output");
