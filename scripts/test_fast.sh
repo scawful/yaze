@@ -41,6 +41,7 @@ DO_CONFIGURE=1
 DO_BUILD=1
 MODE="fast" # fast (regex subset), quick (labeled suite), or full (stable label)
 LIST_ONLY=0
+CTEST_REGEX=""
 
 mktemp_file() {
   mktemp "${TMPDIR:-/tmp}/yaze-fasttest.XXXXXX"
@@ -73,7 +74,7 @@ Fast loop (default):
   - runs a curated subset via ctest name regex (-R)
 
 Options:
-  --quick                 Run the `quick` labeled suites (fastest; builds smaller targets).
+  --quick                 Run the quick labeled suites (fastest; builds smaller targets).
   --full                  Run full stable suite via ctest (-L stable).
   --list                  List matching tests and exit (ctest -N).
   --unit-only              Only run the unit subset.
@@ -84,6 +85,8 @@ Options:
   --build-dir <path>       Build directory (default: build_ai).
   --config <cfg>           Multi-config build config (Debug/RelWithDebInfo/Release). Default: Debug.
   --jobs <n>               Parallel build/test jobs (default: 8).
+  --filter <regex>         Extra ctest -R filter. In fast mode, overrides the
+                           unit/integration regex subsets.
   --unit-regex <regex>     Unit test-name regex passed to ctest -R.
   --integration-regex <regex> Integration test-name regex passed to ctest -R.
   --unit-filter <regex>    Alias for --unit-regex.
@@ -97,6 +100,7 @@ Environment overrides:
 Examples:
   $0
   $0 --quick
+  $0 --quick --filter 'DungeonEditorV2RomSafetyTest'
   $0 --unit-only
   $0 --full
   $0 --unit-regex '^WaterFillZoneTest\\.'
@@ -154,6 +158,10 @@ while [[ $# -gt 0 ]]; do
       JOBS="$2"
       shift 2
       ;;
+    --filter|--ctest-regex|--regex)
+      CTEST_REGEX="$2"
+      shift 2
+      ;;
     --unit-regex|--unit-filter)
       UNIT_REGEX="$2"
       shift 2
@@ -183,6 +191,12 @@ echo "build dir: $BUILD_DIR"
 echo "config:    $CONFIG"
 echo "jobs:      $JOBS"
 echo ""
+
+if [[ -n "$CTEST_REGEX" ]]; then
+  # For fast mode, keep behavior simple: the filter is the subset.
+  UNIT_REGEX="$CTEST_REGEX"
+  INTEGRATION_REGEX="$CTEST_REGEX"
+fi
 
 if [[ "$DO_CONFIGURE" == "0" && ! -f "$BUILD_DIR/CMakeCache.txt" ]]; then
   echo -e "${RED}Build directory not configured:${NC} $BUILD_DIR" >&2
@@ -224,13 +238,18 @@ if is_multi_config; then
   ctest_common+=(-C "$CONFIG")
 fi
 
+ctest_filter_args=()
+if [[ -n "$CTEST_REGEX" ]]; then
+  ctest_filter_args+=(-R "$CTEST_REGEX")
+fi
+
 if [[ "$MODE" == "full" ]]; then
   if [[ "$LIST_ONLY" == "1" ]]; then
     echo -e "${YELLOW}→${NC} Listing stable tests (ctest -N -L stable)..."
-    ctest "${ctest_common[@]}" -N -L stable
+    ctest "${ctest_common[@]}" -N -L stable "${ctest_filter_args[@]}"
   else
     echo -e "${YELLOW}→${NC} Running full stable suite via ctest (-L stable)..."
-    ctest "${ctest_common[@]}" -L stable
+    ctest "${ctest_common[@]}" -L stable "${ctest_filter_args[@]}"
   fi
   exit 0
 fi
@@ -245,10 +264,10 @@ if [[ "$MODE" == "quick" ]]; then
 
   if [[ "$LIST_ONLY" == "1" ]]; then
     echo -e "${YELLOW}→${NC} Listing quick tests (ctest -N -L ${label})..."
-    ctest "${ctest_common[@]}" -N -L "${label}"
+    ctest "${ctest_common[@]}" -N -L "${label}" "${ctest_filter_args[@]}"
   else
     echo -e "${YELLOW}→${NC} Running quick suites via ctest (-L ${label})..."
-    ctest "${ctest_common[@]}" -L "${label}"
+    ctest "${ctest_common[@]}" -L "${label}" "${ctest_filter_args[@]}"
   fi
   exit 0
 fi
