@@ -17,7 +17,9 @@
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
+#include "app/gui/widgets/themed_widgets.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/door_types.h"
 #include "zelda3/dungeon/dungeon_object_editor.h"
@@ -268,26 +270,28 @@ void ObjectEditorPanel::DrawDoorSection() {
       button_color.z += 0.2f;
     }
 
-    ImGui::PushStyleColor(ImGuiCol_Button, button_color);
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                          ImVec4(button_color.x + 0.1f, button_color.y + 0.1f,
-                                 button_color.z + 0.1f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                          ImVec4(button_color.x + 0.2f, button_color.y + 0.2f,
-                                 button_color.z + 0.2f, 1.0f));
+    {
+      gui::StyleColorGuard btn_colors({
+          {ImGuiCol_Button, button_color},
+          {ImGuiCol_ButtonHovered,
+           ImVec4(button_color.x + 0.1f, button_color.y + 0.1f,
+                  button_color.z + 0.1f, 1.0f)},
+          {ImGuiCol_ButtonActive,
+           ImVec4(button_color.x + 0.2f, button_color.y + 0.2f,
+                  button_color.z + 0.2f, 1.0f)},
+      });
 
-    // Draw button with door type abbreviation
-    std::string label = absl::StrFormat("%02X", type_val);
-    if (ImGui::Button(label.c_str(), ImVec2(kPreviewSize, kPreviewSize))) {
-      selected_door_type_ = door_type;
-      door_placement_mode_ = true;
-      if (canvas_viewer_) {
-        canvas_viewer_->object_interaction().SetDoorPlacementMode(
-            true, selected_door_type_);
+      // Draw button with door type abbreviation
+      std::string label = absl::StrFormat("%02X", type_val);
+      if (ImGui::Button(label.c_str(), ImVec2(kPreviewSize, kPreviewSize))) {
+        selected_door_type_ = door_type;
+        door_placement_mode_ = true;
+        if (canvas_viewer_) {
+          canvas_viewer_->object_interaction().SetDoorPlacementMode(
+              true, selected_door_type_);
+        }
       }
     }
-
-    ImGui::PopStyleColor(3);
 
     // Tooltip with full name
     if (ImGui::IsItemHovered()) {
@@ -548,10 +552,10 @@ void ObjectEditorPanel::CloseStaticObjectEditor() {
 void ObjectEditorPanel::DrawStaticObjectEditor() {
   const auto& theme = AgentUI::GetTheme();
 
-  ImGui::PushStyleColor(
-      ImGuiCol_Header, ImVec4(0.15f, 0.25f, 0.35f, 1.0f));  // Slate blue header
-  ImGui::PushStyleColor(ImGuiCol_HeaderHovered,
-                        ImVec4(0.20f, 0.30f, 0.40f, 1.0f));
+  gui::StyleColorGuard header_colors({
+      {ImGuiCol_Header, ImVec4(0.15f, 0.25f, 0.35f, 1.0f)},
+      {ImGuiCol_HeaderHovered, ImVec4(0.20f, 0.30f, 0.40f, 1.0f)},
+  });
 
   bool header_open = ImGui::CollapsingHeader(
       absl::StrFormat(ICON_MD_CONSTRUCTION " Object 0x%02X - %s",
@@ -559,8 +563,6 @@ void ObjectEditorPanel::DrawStaticObjectEditor() {
                       static_editor_draw_info_.routine_name.c_str())
           .c_str(),
       ImGuiTreeNodeFlags_DefaultOpen);
-
-  ImGui::PopStyleColor(2);
 
   if (header_open) {
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 6));
@@ -629,13 +631,9 @@ void ObjectEditorPanel::DrawStaticObjectEditor() {
         ImGui::Spacing();
 
         // Close button at bottom
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.5f, 0.2f, 0.2f, 1.0f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                              ImVec4(0.6f, 0.3f, 0.3f, 1.0f));
-        if (ImGui::Button(ICON_MD_CLOSE " Close", ImVec2(-1, 0))) {
+        if (gui::DangerButton(ICON_MD_CLOSE " Close", ImVec2(-1, 0))) {
           CloseStaticObjectEditor();
         }
-        ImGui::PopStyleColor(2);
       }
 
       // Right column: Preview canvas
