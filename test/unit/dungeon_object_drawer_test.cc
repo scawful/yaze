@@ -149,6 +149,112 @@ TEST_F(ObjectDrawerTest, Single4x4DrawsColumnMajorTiles) {
   }
 }
 
+class RoomDrawObjectDataTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    rom_ = std::make_unique<Rom>();
+    std::vector<uint8_t> dummy_data(0x40000, 0);
+    rom_->LoadFromData(dummy_data);
+  }
+
+  void WriteWord(int pc, uint16_t value) {
+    ASSERT_GE(pc, 0);
+    ASSERT_LT(pc + 1, static_cast<int>(rom_->mutable_data().size()));
+    rom_->mutable_data()[pc] = static_cast<uint8_t>(value & 0xFF);
+    rom_->mutable_data()[pc + 1] = static_cast<uint8_t>((value >> 8) & 0xFF);
+  }
+
+  std::unique_ptr<Rom> rom_;
+};
+
+TEST_F(RoomDrawObjectDataTest, DrawRoomDrawObjectData2x2_ColumnMajorOrder) {
+  // USDASM bank_00.asm:
+  //  #obj0E52: dw $0922, $0932, $0923, $0933
+  const int base = kRoomObjectTileAddress + 0x0E52;
+  WriteWord(base + 0, 0x0922);
+  WriteWord(base + 2, 0x0932);
+  WriteWord(base + 4, 0x0923);
+  WriteWord(base + 6, 0x0933);
+
+  ObjectDrawer drawer(rom_.get(), 0, nullptr);
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+
+  std::vector<ObjectDrawer::TileTrace> trace;
+  drawer.SetTraceCollector(&trace, true);
+
+  auto status = drawer.DrawRoomDrawObjectData2x2(
+      0xBEEF, 10, 20, RoomObject::LayerType::BG2, 0x0E52, bg1, bg2);
+  EXPECT_TRUE(status.ok()) << status.message();
+
+  ASSERT_EQ(trace.size(), 4u);
+  EXPECT_EQ(trace[0].x_tile, 10);
+  EXPECT_EQ(trace[0].y_tile, 20);
+  EXPECT_EQ(trace[1].x_tile, 10);
+  EXPECT_EQ(trace[1].y_tile, 21);
+  EXPECT_EQ(trace[2].x_tile, 11);
+  EXPECT_EQ(trace[2].y_tile, 20);
+  EXPECT_EQ(trace[3].x_tile, 11);
+  EXPECT_EQ(trace[3].y_tile, 21);
+
+  EXPECT_EQ(trace[0].tile_id, gfx::WordToTileInfo(0x0922).id_);
+  EXPECT_EQ(trace[1].tile_id, gfx::WordToTileInfo(0x0932).id_);
+  EXPECT_EQ(trace[2].tile_id, gfx::WordToTileInfo(0x0923).id_);
+  EXPECT_EQ(trace[3].tile_id, gfx::WordToTileInfo(0x0933).id_);
+
+  // Trace context should reflect the requested layer and id.
+  for (const auto& t : trace) {
+    EXPECT_EQ(t.object_id, 0xBEEF);
+    EXPECT_EQ(t.layer, static_cast<uint8_t>(RoomObject::LayerType::BG2));
+  }
+}
+
+TEST_F(RoomDrawObjectDataTest, DrawRoomDrawObjectData2x2_TorchLitVsUnlitOffsets) {
+  // USDASM bank_00.asm:
+  //  #obj0EC2: dw $0DE0, $0DF0, $4DE0, $4DF0 (unlit)
+  //  #obj0ECA: dw $0DC0, $0DC1, $4DC0, $4DC1 (lit)
+  const int base_unlit = kRoomObjectTileAddress + 0x0EC2;
+  WriteWord(base_unlit + 0, 0x0DE0);
+  WriteWord(base_unlit + 2, 0x0DF0);
+  WriteWord(base_unlit + 4, 0x4DE0);
+  WriteWord(base_unlit + 6, 0x4DF0);
+
+  const int base_lit = kRoomObjectTileAddress + 0x0ECA;
+  WriteWord(base_lit + 0, 0x0DC0);
+  WriteWord(base_lit + 2, 0x0DC1);
+  WriteWord(base_lit + 4, 0x4DC0);
+  WriteWord(base_lit + 6, 0x4DC1);
+
+  ObjectDrawer drawer(rom_.get(), 0, nullptr);
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+
+  std::vector<ObjectDrawer::TileTrace> trace_unlit;
+  drawer.SetTraceCollector(&trace_unlit, true);
+  ASSERT_TRUE(drawer
+                  .DrawRoomDrawObjectData2x2(0x0150, 1, 1,
+                                              RoomObject::LayerType::BG1,
+                                              0x0EC2, bg1, bg2)
+                  .ok());
+
+  drawer.ClearTraceCollector();
+
+  std::vector<ObjectDrawer::TileTrace> trace_lit;
+  drawer.SetTraceCollector(&trace_lit, true);
+  ASSERT_TRUE(drawer
+                  .DrawRoomDrawObjectData2x2(0x0150, 1, 1,
+                                              RoomObject::LayerType::BG1,
+                                              0x0ECA, bg1, bg2)
+                  .ok());
+
+  ASSERT_EQ(trace_unlit.size(), 4u);
+  ASSERT_EQ(trace_lit.size(), 4u);
+
+  EXPECT_EQ(trace_unlit[0].tile_id, gfx::WordToTileInfo(0x0DE0).id_);
+  EXPECT_EQ(trace_lit[0].tile_id, gfx::WordToTileInfo(0x0DC0).id_);
+  EXPECT_NE(trace_unlit[0].tile_id, trace_lit[0].tile_id);
+}
+
 }  // namespace
 }  // namespace zelda3
 }  // namespace yaze
