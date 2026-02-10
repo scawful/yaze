@@ -113,7 +113,8 @@ void RegisterCornerRoutines(std::vector<DrawRoutineInfo>& registry) {
       .id = 19,  // DrawCorner4x4
       .name = "Corner4x4",
       .function = DrawCorner4x4,
-      .draws_to_both_bgs = false,
+      // Structural layout routine: writes to both BG1 and BG2 in the engine.
+      .draws_to_both_bgs = true,
       .base_width = 4,
       .base_height = 4,
       .category = DrawRoutineInfo::Category::Corner,

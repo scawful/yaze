@@ -243,7 +243,8 @@ void RegisterDownwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .id = 8,  // RoomDraw_Downwards4x2_1to15or26
       .name = "Downwards4x2_1to15or26",
       .function = DrawDownwards4x2_1to15or26,
-      .draws_to_both_bgs = false,
+      // Structural layout routine: writes to both BG1 and BG2 in the engine.
+      .draws_to_both_bgs = true,
       .base_width = 4,
       .base_height = 2,
       .category = Category::Downwards});

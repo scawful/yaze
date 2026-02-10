@@ -314,39 +314,8 @@ absl::Status ObjectDrawer::DrawObjectList(
 // ============================================================================
 
 bool ObjectDrawer::RoutineDrawsToBothBGs(int routine_id) {
-  // Use the unified DrawRoutineRegistry for BothBG metadata.
-  // This ensures consistency between ObjectDrawer and ObjectGeometry.
-  //
-  // Fallback to hardcoded list for routines not yet in the registry,
-  // particularly layout structural objects that MUST draw to both BG layers.
-
-  // First check the unified registry
-  if (DrawRoutineRegistry::Get().RoutineDrawsToBothBGs(routine_id)) {
-    return true;
-  }
-
-  // Fallback: Layout structural objects that must draw to both BG layers
-  // even if not explicitly marked in registry metadata.
-  // These form the room structure (walls, corners, ceilings).
-  static constexpr int kBothBGRoutines[] = {
-      DrawRoutineIds::kRightwards2x2_1to15or32,     // 0: ceiling
-      DrawRoutineIds::kRightwards2x4_1to15or26,     // 1: layout walls
-      DrawRoutineIds::kDownwards4x2_1to15or26,      // 8: layout walls
-      DrawRoutineIds::kCorner4x4,                   // 19: layout corners
-      DrawRoutineIds::kRightwards2x4_1to16_BothBG,  // 3: diagonal walls
-      DrawRoutineIds::kDownwards4x2_1to16_BothBG,   // 9: diagonal walls
-      DrawRoutineIds::kDiagonalAcute_1to16_BothBG,  // 17: upper-left diagonal
-      DrawRoutineIds::kDiagonalGrave_1to16_BothBG,  // 18: upper-right diagonal
-      DrawRoutineIds::kCorner4x4_BothBG,            // 35: 4x4 corners
-      DrawRoutineIds::kWeirdCornerBottom_BothBG,    // 36: weird corners
-      DrawRoutineIds::kWeirdCornerTop_BothBG,       // 37: weird corners
-  };
-
-  for (int id : kBothBGRoutines) {
-    if (routine_id == id)
-      return true;
-  }
-  return false;
+  // Use DrawRoutineRegistry as the single source of truth for BothBG metadata.
+  return DrawRoutineRegistry::Get().RoutineDrawsToBothBGs(routine_id);
 }
 
 // ============================================================================
