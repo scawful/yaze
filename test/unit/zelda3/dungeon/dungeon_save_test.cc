@@ -177,8 +177,9 @@ TEST_F(DungeonSaveTest, EncodeObjects_SkipsTorchesAndBlocks) {
   auto encoded = room.EncodeObjects();
 
   // Expect only the normal object to be encoded:
-  // 3 bytes object + 3 layer terminators (FF FF) + door marker (F0 FF).
-  EXPECT_EQ(encoded.size(), 11u);
+  // 3 bytes object + 3 layer terminators (FF FF) + door marker (F0 FF) +
+  // door terminator (FF FF).
+  EXPECT_EQ(encoded.size(), 13u);
 
   const auto nb = normal.EncodeObjectToBytes();
   EXPECT_EQ(encoded[0], nb.b1);
@@ -194,6 +195,8 @@ TEST_F(DungeonSaveTest, EncodeObjects_SkipsTorchesAndBlocks) {
 
   EXPECT_EQ(encoded[9], 0xF0);
   EXPECT_EQ(encoded[10], 0xFF);
+  EXPECT_EQ(encoded[11], 0xFF);
+  EXPECT_EQ(encoded[12], 0xFF);
 }
 
 TEST_F(DungeonSaveTest, SaveAllTorches_WritesLitBit) {

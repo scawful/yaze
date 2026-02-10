@@ -961,7 +961,22 @@ void Room::RenderObjectsToBackground() {
   // BG2 = Overlay (Layer 1)
   // Pass bg1_buffer_ for BG2 object masking - this creates "holes" in the floor
   // so BG2 overlay content (platforms, statues) shows through BG1 floor tiles
-  auto status = drawer.DrawObjectList(tile_objects_, object_bg1_buffer_,
+  std::vector<RoomObject> objects_to_draw;
+  objects_to_draw.reserve(tile_objects_.size());
+  for (const auto& obj : tile_objects_) {
+    // Torches and pushable blocks are NOT part of the room object stream.
+    // They come from the global tables and are drawn after the stream in
+    // USDASM (LoadAndBuildRoom $01:873A). Draw them in a dedicated pass.
+    if ((obj.options() & ObjectOption::Torch) != ObjectOption::Nothing) {
+      continue;
+    }
+    if ((obj.options() & ObjectOption::Block) != ObjectOption::Nothing) {
+      continue;
+    }
+    objects_to_draw.push_back(obj);
+  }
+
+  auto status = drawer.DrawObjectList(objects_to_draw, object_bg1_buffer_,
                                       object_bg2_buffer_, palette_group,
                                       dungeon_state_.get(), &bg1_buffer_);
 
@@ -1007,6 +1022,31 @@ void Room::RenderObjectsToBackground() {
       // For now, let's use DrawPotItem with ID 0xFD (Small Key) or 0xFE (Big Key)
       uint8_t key_item = (sprite.key_drop() == 1) ? 0xFD : 0xFE;
       drawer.DrawPotItem(key_item, sprite.x(), sprite.y(), object_bg1_buffer_);
+    }
+  }
+
+  // Special tables pass (USDASM-aligned):
+  // - Pushable blocks: bank_01.asm RoomDraw_PushableBlock uses RoomDrawObjectData
+  //   offset $0E52 (bank_00.asm #obj0E52).
+  // - Lightable torches: bank_01.asm RoomDraw_LightableTorch chooses between
+  //   offsets $0EC2 (unlit) and $0ECA (lit) (bank_00.asm #obj0EC2/#obj0ECA).
+  constexpr uint16_t kRoomDrawObj_PushableBlock = 0x0E52;
+  constexpr uint16_t kRoomDrawObj_TorchUnlit = 0x0EC2;
+  constexpr uint16_t kRoomDrawObj_TorchLit = 0x0ECA;
+  for (const auto& obj : tile_objects_) {
+    if ((obj.options() & ObjectOption::Block) != ObjectOption::Nothing) {
+      (void)drawer.DrawRoomDrawObjectData2x2(
+          static_cast<uint16_t>(obj.id_), obj.x_, obj.y_, obj.layer_,
+          kRoomDrawObj_PushableBlock, object_bg1_buffer_, object_bg2_buffer_);
+      continue;
+    }
+    if ((obj.options() & ObjectOption::Torch) != ObjectOption::Nothing) {
+      const uint16_t off = obj.lit_ ? kRoomDrawObj_TorchLit
+                                    : kRoomDrawObj_TorchUnlit;
+      (void)drawer.DrawRoomDrawObjectData2x2(
+          static_cast<uint16_t>(obj.id_), obj.x_, obj.y_, obj.layer_, off,
+          object_bg1_buffer_, object_bg2_buffer_);
+      continue;
     }
   }
 
@@ -1363,6 +1403,11 @@ std::vector<uint8_t> Room::EncodeObjects() const {
     bytes.push_back(b1);
     bytes.push_back(b2);
   }
+  // Door list terminator (word $FFFF). In USDASM, RoomDraw_DrawAllObjects
+  // enters door mode on word $FFF0 (bytes F0 FF) and stops when it reads
+  // word $FFFF (bytes FF FF).
+  bytes.push_back(0xFF);
+  bytes.push_back(0xFF);
 
   return bytes;
 }
@@ -1452,7 +1497,7 @@ absl::Status Room::SaveObjects() {
 
   // Write door pointer: first byte after 0xF0 0xFF (per ZScreamDungeon Save.cs)
   const int door_list_offset = static_cast<int>(encoded_bytes.size()) -
-                               static_cast<int>(doors_.size()) * 2;
+                               static_cast<int>(doors_.size()) * 2 - 2;
   const int door_pointer_pc = write_pos + door_list_offset;
   RETURN_IF_ERROR(
       rom_->WriteLong(doorPointers + (room_id_ * 3),
