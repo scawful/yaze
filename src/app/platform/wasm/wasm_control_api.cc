@@ -1668,7 +1668,6 @@ std::string WasmControlApi::GetRoomObjects(int room_id) {
 
   // Load room from ROM
   zelda3::Room room = zelda3::LoadRoomFromRom(rom, room_id);
-  room.LoadObjects();
 
   // Get tile objects from the room
   const auto& tile_objects = room.GetTileObjects();
