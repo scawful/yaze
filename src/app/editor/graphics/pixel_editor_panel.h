@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_GRAPHICS_PIXEL_EDITOR_PANEL_H
 
 #include "absl/status/status.h"
+#include "app/editor/core/undo_manager.h"
 #include "app/editor/graphics/graphics_editor_state.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gfx/core/bitmap.h"
@@ -20,8 +21,9 @@ namespace editor {
  */
 class PixelEditorPanel : public EditorPanel {
  public:
-  explicit PixelEditorPanel(GraphicsEditorState* state, Rom* rom)
-      : state_(state), rom_(rom) {}
+  explicit PixelEditorPanel(GraphicsEditorState* state, Rom* rom,
+                            UndoManager* undo_manager = nullptr)
+      : state_(state), rom_(rom), undo_manager_(undo_manager) {}
 
   // ==========================================================================
   // EditorPanel Identity
@@ -160,9 +162,15 @@ class PixelEditorPanel : public EditorPanel {
   void FlipSelectionVertical();
 
   /**
-   * @brief Save current state for undo
+   * @brief Save current state for undo (captures before-snapshot)
    */
   void SaveUndoState();
+
+  /**
+   * @brief Finalize the current undo action by capturing the after-snapshot
+   *        and pushing a GraphicsPixelEditAction to the UndoManager.
+   */
+  void FinalizeUndoAction();
 
   /**
    * @brief Convert screen coordinates to pixel coordinates
@@ -205,8 +213,15 @@ class PixelEditorPanel : public EditorPanel {
 
   GraphicsEditorState* state_;
   Rom* rom_;
+  UndoManager* undo_manager_ = nullptr;
   gui::Canvas canvas_{"PixelEditorCanvas", ImVec2(128, 32),
                       gui::CanvasGridSize::k8x8};
+
+  // Pending before-snapshot for UndoManager integration.
+  // Captured at the start of an edit stroke and consumed when finalized.
+  bool has_pending_undo_ = false;
+  uint16_t pending_undo_sheet_id_ = 0;
+  std::vector<uint8_t> pending_undo_before_data_;
 
   // Mouse tracking for tools
   bool is_drawing_ = false;
