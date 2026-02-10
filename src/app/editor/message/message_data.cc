@@ -10,6 +10,7 @@
 #include "absl/strings/str_split.h"
 #include "core/rom_settings.h"
 #include "rom/snes.h"
+#include "rom/write_fence.h"
 #include "util/hex.h"
 #include "util/log.h"
 #include "util/macro.h"
@@ -1002,6 +1003,67 @@ std::string ExportToOrgFormat(
 std::vector<MessageData> ReadExpandedTextData(uint8_t* rom, int pos) {
   // Reuse ReadAllTextData — it already handles 0x7F terminators and 0xFF end
   return ReadAllTextData(rom, pos);
+}
+
+absl::Status WriteExpandedTextData(Rom* rom, int start, int end,
+                                   const std::vector<std::string>& messages) {
+  if (rom == nullptr || !rom->is_loaded()) {
+    return absl::InvalidArgumentError("ROM not loaded");
+  }
+  if (start < 0 || end < start) {
+    return absl::InvalidArgumentError("Invalid expanded message region");
+  }
+
+  const int capacity = end - start + 1;
+  if (capacity <= 0) {
+    return absl::InvalidArgumentError("Expanded message region has no capacity");
+  }
+
+  const auto& data = rom->vector();
+  if (end >= static_cast<int>(data.size())) {
+    return absl::OutOfRangeError("Expanded message region out of ROM range");
+  }
+
+  // Serialize into a contiguous buffer, then do a single ROM write for safety
+  // and determinism (and to honor write fences).
+  std::vector<uint8_t> blob;
+  blob.reserve(static_cast<size_t>(capacity));
+
+  int used = 0;
+  for (size_t i = 0; i < messages.size(); ++i) {
+    auto bytes = ParseMessageToData(messages[i]);
+    const int needed = static_cast<int>(bytes.size()) + 1;  // +0x7F
+
+    // Always reserve space for the final 0xFF.
+    if (used + needed + 1 > capacity) {
+      return absl::ResourceExhaustedError(absl::StrFormat(
+          "Expanded message data exceeds bank boundary "
+          "(at message %d, used=%d, needed=%d, capacity=%d, end=0x%06X)",
+          static_cast<int>(i), used, needed, capacity, end));
+    }
+
+    blob.insert(blob.end(), bytes.begin(), bytes.end());
+    blob.push_back(kMessageTerminator);
+    used += needed;
+  }
+
+  if (used + 1 > capacity) {
+    return absl::ResourceExhaustedError(
+        "No space for end-of-region marker (0xFF)");
+  }
+  blob.push_back(0xFF);
+
+  // ROM safety: this writer must only touch the expanded message region.
+  // NOTE: `end` is inclusive; convert to half-open for the fence.
+  yaze::rom::WriteFence fence;
+  const uint32_t fence_start = static_cast<uint32_t>(start);
+  const uint32_t fence_end =
+      static_cast<uint32_t>(static_cast<uint64_t>(end) + 1ULL);
+  RETURN_IF_ERROR(
+      fence.Allow(fence_start, fence_end, "ExpandedMessageBank"));
+  yaze::rom::ScopedWriteFence scope(rom, &fence);
+
+  return rom->WriteVector(start, std::move(blob));
 }
 
 absl::Status WriteExpandedTextData(uint8_t* rom, int start, int end,
