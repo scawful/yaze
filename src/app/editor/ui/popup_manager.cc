@@ -15,6 +15,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/style.h"
+#include "app/gui/core/ui_helpers.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
@@ -1019,7 +1020,7 @@ void PopupManager::DrawWorkspaceHelpPopup() {
 }
 
 void PopupManager::DrawSessionLimitWarningPopup() {
-  TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "%s Warning", ICON_MD_WARNING);
+  TextColored(gui::GetWarningColor(), "%s Warning", ICON_MD_WARNING);
   TextWrapped("You have reached the recommended session limit.");
   TextWrapped("Having too many sessions open may impact performance.");
   Spacing();
@@ -1036,7 +1037,7 @@ void PopupManager::DrawSessionLimitWarningPopup() {
 }
 
 void PopupManager::DrawLayoutResetConfirmPopup() {
-  TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "%s Confirm Reset",
+  TextColored(gui::GetWarningColor(), "%s Confirm Reset",
               ICON_MD_WARNING);
   TextWrapped("This will reset your current workspace layout to default.");
   TextWrapped("Any custom window arrangements will be lost.");
@@ -1054,7 +1055,7 @@ void PopupManager::DrawLayoutResetConfirmPopup() {
 }
 
 void PopupManager::DrawLayoutPresetsPopup() {
-  TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "%s Layout Presets",
+  TextColored(gui::GetInfoColor(), "%s Layout Presets",
               ICON_MD_DASHBOARD);
   Separator();
   Spacing();
@@ -1171,7 +1172,7 @@ void PopupManager::DrawLayoutPresetsPopup() {
 }
 
 void PopupManager::DrawSessionManagerPopup() {
-  TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "%s Session Manager",
+  TextColored(gui::GetInfoColor(), "%s Session Manager",
               ICON_MD_TAB);
   Separator();
   Spacing();
@@ -1214,7 +1215,7 @@ void PopupManager::DrawSessionManagerPopup() {
       // Status indicator
       TableSetColumnIndex(2);
       if (i == active_session) {
-        TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "%s Active",
+        TextColored(gui::GetSuccessColor(), "%s Active",
                     ICON_MD_CHECK_CIRCLE);
       } else {
         TextDisabled("Inactive");
