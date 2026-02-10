@@ -357,9 +357,8 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
       ImGui::BeginDisabled();
     }
 
-    // Get pinned and recent panels
+    // Get pinned panels
     const auto pinned_cards = panel_manager_.GetPinnedPanels();
-    const auto recent_cards = panel_manager_.GetRecentPanels();
     const ImVec4 disabled_text =
         ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled);
     auto panel_text_color = [&](bool visible) -> ImVec4 {
@@ -439,78 +438,8 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
       }
     }
 
-    // --- Recent Section ---
-    if (sidebar_search[0] == '\0' && !recent_cards.empty()) {
-      bool has_recents_in_category = false;
-      for (const auto& card_id : recent_cards) {
-        const auto* card =
-            panel_manager_.GetPanelDescriptor(session_id, card_id);
-        if (card && card->category == category) {
-          has_recents_in_category = true;
-          break;
-        }
-      }
-
-      if (has_recents_in_category) {
-        if (ImGui::CollapsingHeader(ICON_MD_HISTORY " Recent",
-                                    ImGuiTreeNodeFlags_DefaultOpen)) {
-          for (const auto& card_id : recent_cards) {
-            const auto* card =
-                panel_manager_.GetPanelDescriptor(session_id, card_id);
-            if (!card || card->category != category)
-              continue;
-
-            bool visible =
-                card->visibility_flag ? *card->visibility_flag : false;
-
-            // Pin Toggle Button
-            bool is_pinned = panel_manager_.IsPanelPinned(card->card_id);
-            ImGui::PushID((std::string("recent_") + card->card_id).c_str());
-            {
-              ImVec4 pin_col =
-                  is_pinned ? gui::ConvertColorToImVec4(theme.primary)
-                            : gui::ConvertColorToImVec4(theme.text_disabled);
-              gui::StyleColorGuard pin_color(ImGuiCol_Text, pin_col);
-              if (ImGui::SmallButton(ICON_MD_PUSH_PIN)) {
-                panel_manager_.SetPanelPinned(card->card_id, !is_pinned);
-              }
-            }
-            ImGui::PopID();
-            ImGui::SameLine();
-
-            // Panel Item
-            std::string label = absl::StrFormat("%s  %s", card->icon.c_str(),
-                                                card->display_name.c_str());
-            ImGui::PushID(
-                (std::string("recent_select_") + card->card_id).c_str());
-            {
-              gui::StyleColorGuard text_color(ImGuiCol_Text,
-                                              panel_text_color(visible));
-              ImVec2 item_size(ImGui::GetContentRegionAvail().x, 0.0f);
-              if (ImGui::Selectable(label.c_str(), visible,
-                                    ImGuiSelectableFlags_None, item_size)) {
-                panel_manager_.TogglePanel(session_id, card->card_id);
-
-                bool new_visible =
-                    card->visibility_flag ? *card->visibility_flag : false;
-                if (new_visible) {
-                  panel_manager_.AddToRecent(card->card_id);  // Move to top
-                  panel_manager_.TriggerPanelClicked(card->category);
-                  ImGui::SetWindowFocus(card->GetWindowTitle().c_str());
-                }
-              }
-            }
-            ImGui::PopID();
-          }
-          ImGui::Spacing();
-          ImGui::Separator();
-          ImGui::Spacing();
-        }
-      }
-    }
-
-    // Content - Reusing GetPanelsInCategory logic
-    auto cards = panel_manager_.GetPanelsInCategory(session_id, category);
+    // Content - panels sorted by MRU (pinned first, then most recently used)
+    auto cards = panel_manager_.GetPanelsSortedByMRU(session_id, category);
 
     // Calculate available height for cards vs file browser
     float available_height = ImGui::GetContentRegionAvail().y;
@@ -573,7 +502,7 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
           bool new_visible =
               card.visibility_flag ? *card.visibility_flag : false;
           if (new_visible) {
-            panel_manager_.AddToRecent(card.card_id);
+            panel_manager_.MarkPanelRecentlyUsed(card.card_id);
             panel_manager_.TriggerPanelClicked(card.category);
             ImGui::SetWindowFocus(card.GetWindowTitle().c_str());
           }

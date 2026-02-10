@@ -1,6 +1,7 @@
 #ifndef APP_EDITOR_SYSTEM_PANEL_MANAGER_H_
 #define APP_EDITOR_SYSTEM_PANEL_MANAGER_H_
 
+#include <cstdint>
 #include <functional>
 #include <list>
 #include <memory>
@@ -676,14 +677,23 @@ class PanelManager {
   }
 
   // ============================================================================
-  // Favorites and Recent
+  // Favorites (delegates to Pinned) and Recent
   // ============================================================================
 
-  void ToggleFavorite(const std::string& card_id);
-  bool IsFavorite(const std::string& card_id) const;
-  void AddToRecent(const std::string& card_id);
-  const std::vector<std::string>& GetRecentPanels() const { return recent_cards_; }
-  const std::unordered_set<std::string>& GetFavoritePanels() const { return favorite_cards_; }
+  // Favorites are now aliases for pinned panels
+  void ToggleFavorite(const std::string& card_id) {
+    SetPanelPinned(card_id, !IsPanelPinned(card_id));
+  }
+  bool IsFavorite(const std::string& card_id) const {
+    return IsPanelPinned(card_id);
+  }
+
+  /// Record that a panel was used (for MRU ordering in sidebar)
+  void MarkPanelRecentlyUsed(const std::string& card_id);
+
+  /// Get panels in category sorted by: pinned first, then MRU
+  std::vector<PanelDescriptor> GetPanelsSortedByMRU(
+      size_t session_id, const std::string& category) const;
 
   // ============================================================================
   // Pinning (Phase 3 scaffold)
@@ -747,10 +757,9 @@ class PanelManager {
   std::unordered_set<std::string> registry_panel_ids_;
   std::unordered_set<std::string> global_panel_ids_;
 
-  // Favorites and Recent tracking
-  std::unordered_set<std::string> favorite_cards_;
-  std::vector<std::string> recent_cards_;
-  static constexpr size_t kMaxRecentPanels = 10;
+  // MRU timestamp tracking (panel_id -> monotonic counter)
+  std::unordered_map<std::string, uint64_t> last_used_at_;
+  uint64_t mru_counter_ = 0;
 
   // Centralized visibility flags for cards without external flags
   std::unordered_map<std::string, bool> centralized_visibility_;
