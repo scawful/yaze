@@ -239,6 +239,11 @@ struct AsmFileLineRef {
   int column_one_based = 1;
 };
 
+struct AsmFileSymbolRef {
+  std::string file_ref;
+  std::string symbol;
+};
+
 std::optional<int> ParsePositiveInt(const std::string& s) {
   if (s.empty()) {
     return std::nullopt;
@@ -331,6 +336,49 @@ std::optional<AsmFileLineRef> ParseAsmFileLineRef(
     return AsmFileLineRef{file, *line, /*column_one_based=*/1};
   }
   return std::nullopt;
+}
+
+std::optional<AsmFileSymbolRef> ParseAsmFileSymbolRef(
+    const std::string& reference) {
+  const std::string trimmed =
+      std::string(absl::StripAsciiWhitespace(reference));
+  if (trimmed.empty()) {
+    return std::nullopt;
+  }
+
+  // Format: "file.asm#Label"
+  if (const size_t pos = trimmed.rfind('#'); pos != std::string::npos) {
+    const std::string file =
+        std::string(absl::StripAsciiWhitespace(trimmed.substr(0, pos)));
+    const std::string sym = std::string(
+        absl::StripAsciiWhitespace(trimmed.substr(pos + 1)));
+    if (!LooksLikeAssemblyPathRef(file) || sym.empty()) {
+      return std::nullopt;
+    }
+    return AsmFileSymbolRef{file, sym};
+  }
+
+  // Format: "file.asm:Label"
+  const size_t last_colon = trimmed.rfind(':');
+  if (last_colon == std::string::npos) {
+    return std::nullopt;
+  }
+
+  const std::string file = std::string(
+      absl::StripAsciiWhitespace(trimmed.substr(0, last_colon)));
+  const std::string sym = std::string(
+      absl::StripAsciiWhitespace(trimmed.substr(last_colon + 1)));
+  if (!LooksLikeAssemblyPathRef(file) || sym.empty()) {
+    return std::nullopt;
+  }
+
+  // Avoid interpreting file:line refs as file:symbol (line parser should run
+  // first, but keep this extra guard anyway).
+  if (ParsePositiveInt(sym).has_value()) {
+    return std::nullopt;
+  }
+
+  return AsmFileSymbolRef{file, sym};
 }
 
 std::optional<std::filesystem::path> FindAsmFileInFolder(
@@ -586,6 +634,48 @@ absl::Status AssemblyEditor::JumpToReference(const std::string& reference) {
       return absl::InternalError("No active text editor");
     }
     editor->SetCursorPosition(TextEditor::Coordinates(line0, col0));
+    editor->SelectWordUnderCursor();
+    return absl::OkStatus();
+  }
+
+  if (auto file_ref = ParseAsmFileSymbolRef(reference); file_ref.has_value()) {
+    std::filesystem::path root;
+    if (dependencies_.project && !dependencies_.project->code_folder.empty()) {
+      root = dependencies_.project->GetAbsolutePath(
+          dependencies_.project->code_folder);
+    } else if (!current_folder_.name.empty()) {
+      root = current_folder_.name;
+    } else {
+      return absl::FailedPreconditionError(
+          "No code folder loaded (open a folder or set project code_folder)");
+    }
+
+    if (current_folder_.name.empty()) {
+      OpenFolder(root.string());
+    }
+
+    auto path_or = FindAsmFileInFolder(root, file_ref->file_ref);
+    if (!path_or.has_value()) {
+      return absl::NotFoundError("File not found: " + file_ref->file_ref);
+    }
+
+    auto loc = FindLabelInFile(*path_or, file_ref->symbol);
+    if (!loc.has_value()) {
+      return absl::NotFoundError(
+          absl::StrCat("Symbol not found in ", file_ref->file_ref, ": ",
+                       file_ref->symbol));
+    }
+
+    ChangeActiveFile(loc->file);
+    if (!HasActiveFile()) {
+      return absl::InternalError("Failed to open file: " + loc->file);
+    }
+
+    auto* editor = GetActiveEditor();
+    if (!editor) {
+      return absl::InternalError("No active text editor");
+    }
+    editor->SetCursorPosition(TextEditor::Coordinates(loc->line, loc->column));
     editor->SelectWordUnderCursor();
     return absl::OkStatus();
   }

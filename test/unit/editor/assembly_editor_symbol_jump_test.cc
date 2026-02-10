@@ -132,6 +132,50 @@ TEST(AssemblyEditorSymbolJumpTest, JumpToReferenceParsesFileLineAndMovesCursor) 
   EXPECT_EQ(editor.active_cursor_position().mColumn, 0);
 }
 
+TEST(AssemblyEditorSymbolJumpTest,
+     JumpToReferenceParsesFileSymbolAndMovesCursor) {
+  ScopedImGuiContext imgui;
+
+  const std::filesystem::path code_dir = MakeTempDir("yaze_asm_ref_sym");
+  ScopedDirCleanup cleanup{code_dir};
+  std::filesystem::create_directories(code_dir);
+
+  const std::filesystem::path asm_file = code_dir / "main.asm";
+  {
+    std::ofstream out(asm_file, std::ios::binary | std::ios::trunc);
+    ASSERT_TRUE(out.is_open());
+    out << "; line 1\n";
+    out << "; line 2\n";
+    out << "SomeLabel:\n";
+    out << "  RTS\n";
+    ASSERT_TRUE(out.good());
+  }
+
+  project::YazeProject project;
+  project.code_folder = code_dir.string();
+  project.filepath = (code_dir / "project.yaze").string();
+
+  EditorDependencies deps;
+  deps.project = &project;
+
+  AssemblyEditor editor(nullptr);
+  editor.SetDependencies(deps);
+
+  // Jump via file:symbol.
+  auto status = editor.JumpToReference("main.asm:SomeLabel");
+  EXPECT_TRUE(status.ok()) << status;
+  EXPECT_EQ(editor.active_file_path(), asm_file.string());
+  EXPECT_EQ(editor.active_cursor_position().mLine, 2);
+  EXPECT_EQ(editor.active_cursor_position().mColumn, 0);
+
+  // Alternate format: file#symbol.
+  status = editor.JumpToReference("main.asm#SomeLabel");
+  EXPECT_TRUE(status.ok()) << status;
+  EXPECT_EQ(editor.active_file_path(), asm_file.string());
+  EXPECT_EQ(editor.active_cursor_position().mLine, 2);
+  EXPECT_EQ(editor.active_cursor_position().mColumn, 0);
+}
+
 TEST(AssemblyEditorSymbolJumpTest, JumpToSymbolDefinitionReturnsNotFoundForUnknown) {
   ScopedImGuiContext imgui;
 
