@@ -181,9 +181,9 @@ struct YazeOverlayView: View {
   }
 
   private func topBar() -> some View {
-    let useLargeControls = settingsStore.settings.mobile.largeTouchTargets
-    let controlSize: CGFloat = useLargeControls ? 36 : 30
-    let iconSize: CGFloat = useLargeControls ? 20 : 18
+    // Apple HIG: 44pt minimum touch target
+    let controlSize: CGFloat = max(44, settingsStore.settings.mobile.largeTouchTargets ? 48 : 44)
+    let iconSize: CGFloat = 22
 
     return HStack {
       Spacer()
@@ -214,15 +214,23 @@ struct YazeOverlayView: View {
   }
 
   private var collapsedHandle: some View {
-    HStack {
+    let romTitle = YazeIOSBridge.currentRomTitle()
+    let displayLabel = romTitle.isEmpty ? "Yaze" : romTitle
+
+    return HStack {
       Spacer()
       Button {
         overlayCollapsed = false
       } label: {
-        Image(systemName: "line.3.horizontal")
-          .font(.headline)
-          .padding(.vertical, 6)
-          .padding(.horizontal, 12)
+        HStack(spacing: 6) {
+          Image(systemName: "line.3.horizontal")
+            .font(.system(size: 14, weight: .semibold))
+          Text(displayLabel)
+            .font(.caption2)
+            .lineLimit(1)
+        }
+        .padding(.vertical, 8)
+        .padding(.horizontal, 14)
       }
       .buttonStyle(.borderedProminent)
       .shadow(radius: 6)
@@ -619,7 +627,7 @@ struct AiHostEditorView: View {
       .onAppear {
         if !host.credentialId.isEmpty,
            let value = try? KeychainStore.load(key: host.credentialId) {
-          apiKey = value ?? ""
+          apiKey = value
         }
       }
     }

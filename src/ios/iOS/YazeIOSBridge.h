@@ -32,6 +32,10 @@ typedef struct {
 + (void)showPanelBrowser NS_SWIFT_NAME(showPanelBrowser());
 + (void)showCommandPalette NS_SWIFT_NAME(showCommandPalette());
 
+// ─── Editor Status ──────────────────────────────
++ (nullable NSString *)currentEditorType NS_SWIFT_NAME(currentEditorType());
++ (nullable NSString *)currentRoomStatus NS_SWIFT_NAME(currentRoomStatus());
+
 // ─── Oracle Integration ──────────────────────────
 /// Returns the current Oracle progression state, or zeros if unavailable.
 + (OracleProgressionData)getProgressionState NS_SWIFT_NAME(getProgressionState());
