@@ -10,7 +10,9 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
+#include "app/gui/core/ui_helpers.h"
 #include "app/platform/timing.h"
 #include "core/project.h"
 #include "imgui/imgui.h"
@@ -258,7 +260,8 @@ bool WelcomeScreen::Show(bool* p_open) {
       ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus |
       ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings;
 
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20, 20));
+  gui::StyleVarGuard window_padding_guard(ImGuiStyleVar_WindowPadding,
+                                          ImVec2(20, 20));
 
   if (ImGui::Begin("##WelcomeScreen", p_open, window_flags)) {
     ImDrawList* bg_draw_list = ImGui::GetWindowDrawList();
@@ -550,8 +553,6 @@ bool WelcomeScreen::Show(bool* p_open) {
   }
   ImGui::End();
 
-  ImGui::PopStyleVar();
-
   return action_taken;
 }
 
@@ -726,7 +727,7 @@ void WelcomeScreen::DrawQuickActions() {
     return;  // Don't draw yet
   }
 
-  ImGui::PushStyleVar(ImGuiStyleVar_Alpha, actions_alpha);
+  gui::StyleVarGuard alpha_guard(ImGuiStyleVar_Alpha, actions_alpha);
 
   // Apply horizontal offset for slide effect
   float indent = std::max(0.0f, -actions_offset_x);
@@ -736,10 +737,11 @@ void WelcomeScreen::DrawQuickActions() {
 
   ImGui::TextColored(kSpiritOrange, ICON_MD_BOLT " Quick Actions");
   const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
-  ImGui::PushStyleColor(ImGuiCol_Text, text_secondary);
-  ImGui::TextWrapped(
-      "Open a ROM or project, or start a new project from a template.");
-  ImGui::PopStyleColor();
+  {
+    gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
+    ImGui::TextWrapped(
+        "Open a ROM or project, or start a new project from a template.");
+  }
   ImGui::Spacing();
 
   const float scale = ImGui::GetFontSize() / 16.0f;
@@ -754,14 +756,14 @@ void WelcomeScreen::DrawQuickActions() {
   auto draw_action_button = [&](const char* icon, const char* text,
                                 const ImVec4& color, bool enabled,
                                 std::function<void()> callback) {
-    ImGui::PushStyleColor(
-        ImGuiCol_Button,
-        ImVec4(color.x * 0.6f, color.y * 0.6f, color.z * 0.6f, 0.8f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                          ImVec4(color.x, color.y, color.z, 1.0f));
-    ImGui::PushStyleColor(
-        ImGuiCol_ButtonActive,
-        ImVec4(color.x * 1.2f, color.y * 1.2f, color.z * 1.2f, 1.0f));
+    gui::StyleColorGuard button_colors({
+        {ImGuiCol_Button,
+         ImVec4(color.x * 0.6f, color.y * 0.6f, color.z * 0.6f, 0.8f)},
+        {ImGuiCol_ButtonHovered,
+         ImVec4(color.x, color.y, color.z, 1.0f)},
+        {ImGuiCol_ButtonActive,
+         ImVec4(color.x * 1.2f, color.y * 1.2f, color.z * 1.2f, 1.0f)},
+    });
 
     if (!enabled)
       ImGui::BeginDisabled();
@@ -771,8 +773,6 @@ void WelcomeScreen::DrawQuickActions() {
 
     if (!enabled)
       ImGui::EndDisabled();
-
-    ImGui::PopStyleColor(3);
 
     if (clicked && enabled && callback) {
       callback();
@@ -846,9 +846,10 @@ void WelcomeScreen::DrawQuickActions() {
 
   // Project tools row
   ImGui::TextColored(kMasterSwordBlue, ICON_MD_TUNE " Project Tools");
-  ImGui::PushStyleColor(ImGuiCol_Text, text_secondary);
-  ImGui::TextWrapped("Manage snapshots and metadata for the active project.");
-  ImGui::PopStyleColor();
+  {
+    gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
+    ImGui::TextWrapped("Manage snapshots and metadata for the active project.");
+  }
   ImGui::Spacing();
 
   float tool_spacing = ImGui::GetStyle().ItemSpacing.x;
@@ -889,7 +890,6 @@ void WelcomeScreen::DrawQuickActions() {
   if (indent > 0.0f) {
     ImGui::Unindent(indent);
   }
-  ImGui::PopStyleVar();  // Alpha
 }
 
 void WelcomeScreen::DrawRecentProjects() {
@@ -901,7 +901,7 @@ void WelcomeScreen::DrawRecentProjects() {
     return;  // Don't draw yet
   }
 
-  ImGui::PushStyleVar(ImGuiStyleVar_Alpha, recent_progress);
+  gui::StyleVarGuard alpha_guard(ImGuiStyleVar_Alpha, recent_progress);
 
   ImGui::TextColored(kMasterSwordBlue, ICON_MD_HISTORY " Recent Projects");
 
@@ -947,7 +947,7 @@ void WelcomeScreen::DrawRecentProjects() {
   if (recent_projects_.empty()) {
     // Simple empty state
     const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
-    ImGui::PushStyleColor(ImGuiCol_Text, text_secondary);
+    gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
 
     ImVec2 cursor = ImGui::GetCursorPos();
     ImGui::SetCursorPosX(cursor.x + ImGui::GetContentRegionAvail().x * 0.3f);
@@ -959,8 +959,6 @@ void WelcomeScreen::DrawRecentProjects() {
     ImGui::TextWrapped(
         "No recent projects yet.\nOpen a ROM or start a new project to begin "
         "your adventure!");
-    ImGui::PopStyleColor();
-    ImGui::PopStyleVar();  // Alpha (entry animation)
     return;
   }
 
@@ -1004,8 +1002,6 @@ void WelcomeScreen::DrawRecentProjects() {
   if (column != 0) {
     ImGui::NewLine();
   }
-
-  ImGui::PopStyleVar();  // Alpha (entry animation)
 }
 
 void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
@@ -1118,9 +1114,7 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
   ImVec2 icon_size = ImGui::CalcTextSize(ICON_MD_VIDEOGAME_ASSET);
   ImGui::SetCursorScreenPos(
       ImVec2(icon_center.x - icon_size.x / 2, icon_center.y - icon_size.y / 2));
-  ImGui::PushStyleColor(ImGuiCol_Text, text_primary);
-  ImGui::Text(ICON_MD_VIDEOGAME_ASSET);
-  ImGui::PopStyleColor();
+  gui::ColoredText(ICON_MD_VIDEOGAME_ASSET, text_primary);
 
   // Project name (compact, shorten if too long)
   ImGui::SetCursorScreenPos(
@@ -1143,25 +1137,26 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
   // ROM title (compact)
   ImGui::SetCursorScreenPos(
       ImVec2(content_pos.x + padding * 0.5f, content_pos.y + rom_offset_y));
-  ImGui::PushStyleColor(ImGuiCol_Text, text_secondary);
-  ImGui::Text(ICON_MD_GAMEPAD " %s", project.rom_title.c_str());
-  ImGui::PopStyleColor();
+  gui::ColoredTextF(text_secondary, ICON_MD_GAMEPAD " %s",
+                    project.rom_title.c_str());
 
   // Path in card (compact)
   ImGui::SetCursorScreenPos(
       ImVec2(content_pos.x + padding * 0.5f, content_pos.y + path_offset_y));
-  ImGui::PushStyleColor(ImGuiCol_Text, text_disabled);
-  std::string short_path = project.filepath;
-  const float path_max_width =
-      std::max(120.0f, resolved_card_size.x - padding * 2.0f);
-  size_t max_path_chars = static_cast<size_t>(
-      std::max(18.0f, path_max_width / std::max(approx_char_width, 1.0f)));
-  if (short_path.length() > max_path_chars) {
-    short_path =
-        "..." + short_path.substr(short_path.length() - (max_path_chars - 3));
+  {
+    gui::StyleColorGuard text_guard(ImGuiCol_Text, text_disabled);
+    std::string short_path = project.filepath;
+    const float path_max_width =
+        std::max(120.0f, resolved_card_size.x - padding * 2.0f);
+    size_t max_path_chars = static_cast<size_t>(
+        std::max(18.0f, path_max_width / std::max(approx_char_width, 1.0f)));
+    if (short_path.length() > max_path_chars) {
+      short_path =
+          "..." +
+          short_path.substr(short_path.length() - (max_path_chars - 3));
+    }
+    ImGui::Text(ICON_MD_FOLDER " %s", short_path.c_str());
   }
-  ImGui::Text(ICON_MD_FOLDER " %s", short_path.c_str());
-  ImGui::PopStyleColor();
 
   // Tooltip
   if (is_hovered) {
@@ -1194,7 +1189,7 @@ void WelcomeScreen::DrawTemplatesSection() {
     return;  // Don't draw yet
   }
 
-  ImGui::PushStyleVar(ImGuiStyleVar_Alpha, templates_progress);
+  gui::StyleVarGuard alpha_guard(ImGuiStyleVar_Alpha, templates_progress);
 
   // Header with visual settings button
   float content_width = ImGui::GetContentRegionAvail().x;
@@ -1212,10 +1207,11 @@ void WelcomeScreen::DrawTemplatesSection() {
 
   // Visual effects settings panel (when opened)
   if (show_triforce_settings_) {
-    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.18f, 0.15f, 0.22f, 0.4f));
-    ImGui::BeginChild("VisualSettingsCompact", ImVec2(0, 115), true,
-                      ImGuiWindowFlags_NoScrollbar);
     {
+      gui::StyledChild visual_settings(
+          "VisualSettingsCompact", ImVec2(0, 115),
+          {.bg = ImVec4(0.18f, 0.15f, 0.22f, 0.4f)}, true,
+          ImGuiWindowFlags_NoScrollbar);
       ImGui::TextColored(kGanonPurple, ICON_MD_AUTO_AWESOME " Visual Effects");
       ImGui::Spacing();
 
@@ -1243,8 +1239,6 @@ void WelcomeScreen::DrawTemplatesSection() {
         particle_spawn_rate_ = 2.0f;
       }
     }
-    ImGui::EndChild();
-    ImGui::PopStyleColor();
     ImGui::Spacing();
   }
 
@@ -1311,27 +1305,25 @@ void WelcomeScreen::DrawTemplatesSection() {
     for (int i = 0; i < template_count; ++i) {
       bool is_selected = (selected_template_ == i);
 
+      std::optional<gui::StyleColorGuard> header_guard;
       if (is_selected) {
-        ImGui::PushStyleColor(
-            ImGuiCol_Header,
-            ImVec4(templates[i].color.x * 0.6f, templates[i].color.y * 0.6f,
-                   templates[i].color.z * 0.6f, 0.6f));
+        header_guard.emplace(std::initializer_list<gui::StyleColorGuard::Entry>{
+            {ImGuiCol_Header,
+             ImVec4(templates[i].color.x * 0.6f, templates[i].color.y * 0.6f,
+                    templates[i].color.z * 0.6f, 0.6f)}});
       }
 
       ImGui::PushID(i);
-      ImGui::PushStyleColor(ImGuiCol_Text, templates[i].color);
-      if (ImGui::Selectable(
-              absl::StrFormat("%s %s", templates[i].icon, templates[i].name)
-                  .c_str(),
-              is_selected)) {
-        selected_template_ = i;
+      {
+        gui::StyleColorGuard text_guard(ImGuiCol_Text, templates[i].color);
+        if (ImGui::Selectable(
+                absl::StrFormat("%s %s", templates[i].icon, templates[i].name)
+                    .c_str(),
+                is_selected)) {
+          selected_template_ = i;
+        }
       }
-      ImGui::PopStyleColor();
       ImGui::PopID();
-
-      if (is_selected) {
-        ImGui::PopStyleColor();
-      }
 
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("%s %s\n%s", ICON_MD_INFO, templates[i].name,
@@ -1344,9 +1336,10 @@ void WelcomeScreen::DrawTemplatesSection() {
     const Template& active = templates[selected_template_];
     ImGui::TextColored(active.color, "%s %s", active.icon, active.name);
     ImGui::Spacing();
-    ImGui::PushStyleColor(ImGuiCol_Text, text_secondary);
-    ImGui::TextWrapped("%s", active.description);
-    ImGui::PopStyleColor();
+    {
+      gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
+      ImGui::TextWrapped("%s", active.description);
+    }
     ImGui::Spacing();
     ImGui::TextColored(kTriforceGold, ICON_MD_CHECK_CIRCLE " Includes");
     for (int i = 0; i < active.detail_count; ++i) {
@@ -1394,28 +1387,30 @@ void WelcomeScreen::DrawTemplatesSection() {
   ImGui::Spacing();
 
   // Use Template button - enabled and functional
-  ImGui::PushStyleColor(ImGuiCol_Button,
-                        ImVec4(kSpiritOrange.x * 0.6f, kSpiritOrange.y * 0.6f,
-                               kSpiritOrange.z * 0.6f, 0.8f));
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, kSpiritOrange);
-  ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                        ImVec4(kSpiritOrange.x * 1.2f, kSpiritOrange.y * 1.2f,
-                               kSpiritOrange.z * 1.2f, 1.0f));
+  {
+    gui::StyleColorGuard button_colors({
+        {ImGuiCol_Button,
+         ImVec4(kSpiritOrange.x * 0.6f, kSpiritOrange.y * 0.6f,
+                kSpiritOrange.z * 0.6f, 0.8f)},
+        {ImGuiCol_ButtonHovered, kSpiritOrange},
+        {ImGuiCol_ButtonActive,
+         ImVec4(kSpiritOrange.x * 1.2f, kSpiritOrange.y * 1.2f,
+                kSpiritOrange.z * 1.2f, 1.0f)},
+    });
 
-  if (ImGui::Button(
-          absl::StrFormat("%s Use Template", ICON_MD_ROCKET_LAUNCH).c_str(),
-          ImVec2(-1, 30))) {
-    // Trigger template-based project creation
-    if (new_project_with_template_callback_) {
-      new_project_with_template_callback_(
-          templates[selected_template_].template_id);
-    } else if (new_project_callback_) {
-      // Fallback to regular new project if template callback not set
-      new_project_callback_();
+    if (ImGui::Button(
+            absl::StrFormat("%s Use Template", ICON_MD_ROCKET_LAUNCH).c_str(),
+            ImVec2(-1, 30))) {
+      // Trigger template-based project creation
+      if (new_project_with_template_callback_) {
+        new_project_with_template_callback_(
+            templates[selected_template_].template_id);
+      } else if (new_project_callback_) {
+        // Fallback to regular new project if template callback not set
+        new_project_callback_();
+      }
     }
   }
-
-  ImGui::PopStyleColor(3);
 
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
@@ -1423,8 +1418,6 @@ void WelcomeScreen::DrawTemplatesSection() {
         "open a ROM and apply the template settings.",
         ICON_MD_INFO, templates[selected_template_].name);
   }
-
-  ImGui::PopStyleVar();  // Alpha (entry animation)
 }
 
 void WelcomeScreen::DrawTipsSection() {
@@ -1436,7 +1429,7 @@ void WelcomeScreen::DrawTipsSection() {
     return;  // Don't draw yet
   }
 
-  ImGui::PushStyleVar(ImGuiStyleVar_Alpha, tips_progress);
+  gui::StyleVarGuard alpha_guard(ImGuiStyleVar_Alpha, tips_progress);
 
   // Static tip (or could rotate based on session start time rather than
   // animation)
@@ -1457,14 +1450,14 @@ void WelcomeScreen::DrawTipsSection() {
   ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.8f, 1.0f), "%s", tips[tip_index]);
 
   ImGui::SameLine(ImGui::GetWindowWidth() - 220);
-  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.3f, 0.3f, 0.5f));
-  if (ImGui::SmallButton(
-          absl::StrFormat("%s Don't show again", ICON_MD_CLOSE).c_str())) {
-    manually_closed_ = true;
+  {
+    gui::StyleColorGuard button_guard(ImGuiCol_Button,
+                                      ImVec4(0.3f, 0.3f, 0.3f, 0.5f));
+    if (ImGui::SmallButton(
+            absl::StrFormat("%s Don't show again", ICON_MD_CLOSE).c_str())) {
+      manually_closed_ = true;
+    }
   }
-  ImGui::PopStyleColor();
-
-  ImGui::PopStyleVar();  // Alpha (entry animation)
 }
 
 void WelcomeScreen::DrawWhatsNew() {
@@ -1476,7 +1469,7 @@ void WelcomeScreen::DrawWhatsNew() {
     return;  // Don't draw yet
   }
 
-  ImGui::PushStyleVar(ImGuiStyleVar_Alpha, whatsnew_progress);
+  gui::StyleVarGuard alpha_guard(ImGuiStyleVar_Alpha, whatsnew_progress);
 
   ImGui::TextColored(kHeartRed, ICON_MD_NEW_RELEASES " Release History");
   ImGui::Spacing();
@@ -1568,20 +1561,20 @@ void WelcomeScreen::DrawWhatsNew() {
   }
 
   ImGui::Spacing();
-  ImGui::PushStyleColor(
-      ImGuiCol_Button,
-      ImVec4(kMasterSwordBlue.x * 0.6f, kMasterSwordBlue.y * 0.6f,
-             kMasterSwordBlue.z * 0.6f, 0.8f));
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, kMasterSwordBlue);
-  if (ImGui::Button(
-          absl::StrFormat("%s View Full Changelog", ICON_MD_OPEN_IN_NEW)
-              .c_str(),
-          ImVec2(-1, 0))) {
-    // Open changelog or GitHub releases
+  {
+    gui::StyleColorGuard button_colors({
+        {ImGuiCol_Button,
+         ImVec4(kMasterSwordBlue.x * 0.6f, kMasterSwordBlue.y * 0.6f,
+                kMasterSwordBlue.z * 0.6f, 0.8f)},
+        {ImGuiCol_ButtonHovered, kMasterSwordBlue},
+    });
+    if (ImGui::Button(
+            absl::StrFormat("%s View Full Changelog", ICON_MD_OPEN_IN_NEW)
+                .c_str(),
+            ImVec2(-1, 0))) {
+      // Open changelog or GitHub releases
+    }
   }
-  ImGui::PopStyleColor(2);
-
-  ImGui::PopStyleVar();  // Alpha (entry animation)
 }
 
 }  // namespace editor
