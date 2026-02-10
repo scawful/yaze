@@ -137,6 +137,26 @@ class ObjectDrawer {
                         int pixel_x, int pixel_y, const uint8_t* tiledata);
 
   /**
+   * @brief Draw a fixed 2x2 (16x16) tile pattern from RoomDrawObjectData
+   *
+   * USDASM uses hardcoded offsets into RoomDrawObjectData for certain special
+   * objects that are NOT part of the room object stream (e.g. pushable blocks
+   * and lightable torches). See bank_01.asm: RoomDraw_PushableBlock and
+   * RoomDraw_LightableTorch.
+   *
+   * @param object_id Identifier used only for tracing/debugging (not used for routine lookup)
+   * @param tile_x Top-left X position in tiles
+   * @param tile_y Top-left Y position in tiles
+   * @param layer Target layer (BG1/BG2)
+   * @param room_draw_object_data_offset Offset from RoomDrawObjectData base (not an absolute PC address)
+   */
+  absl::Status DrawRoomDrawObjectData2x2(uint16_t object_id, int tile_x,
+                                        int tile_y, RoomObject::LayerType layer,
+                                        uint16_t room_draw_object_data_offset,
+                                        gfx::BackgroundBuffer& bg1,
+                                        gfx::BackgroundBuffer& bg2);
+
+  /**
    * @brief Calculate the dimensions (width, height) of an object in pixels
    * @param object The object to calculate dimensions for
    * @return Pair of (width, height) in pixels
