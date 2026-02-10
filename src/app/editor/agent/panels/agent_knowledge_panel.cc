@@ -2,6 +2,7 @@
 
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/style_guard.h"
 #include "cli/service/agent/learned_knowledge_service.h"
 #include "imgui/imgui.h"
 
@@ -74,11 +75,13 @@ void AgentKnowledgePanel::Draw(
 
   ImGui::SameLine();
 
-  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.2f, 0.2f, 1.0f));
-  if (ImGui::Button(ICON_MD_DELETE_FOREVER " Clear All")) {
-    ImGui::OpenPopup("Confirm Clear");
+  {
+    gui::StyleColorGuard clear_guard(ImGuiCol_Button,
+                                     ImVec4(0.6f, 0.2f, 0.2f, 1.0f));
+    if (ImGui::Button(ICON_MD_DELETE_FOREVER " Clear All")) {
+      ImGui::OpenPopup("Confirm Clear");
+    }
   }
-  ImGui::PopStyleColor();
 
   // Confirm clear popup
   if (ImGui::BeginPopupModal("Confirm Clear", nullptr,
@@ -107,8 +110,8 @@ void AgentKnowledgePanel::RenderStatsSection(
 
   auto& theme = AgentUI::GetTheme();
 
-  ImGui::PushStyleColor(ImGuiCol_ChildBg, theme.panel_bg_color);
-  ImGui::BeginChild("##StatsSection", ImVec2(0, 60), true);
+  gui::StyledChild stats_child("##StatsSection", ImVec2(0, 60),
+                               {.bg = theme.panel_bg_color}, true);
 
   // Stats row
   float column_width = ImGui::GetContentRegionAvail().x / 4;
@@ -136,9 +139,6 @@ void AgentKnowledgePanel::RenderStatsSection(
   ImGui::NextColumn();
 
   ImGui::Columns(1);
-
-  ImGui::EndChild();
-  ImGui::PopStyleColor();
 }
 
 void AgentKnowledgePanel::RenderPreferencesTab(
