@@ -1239,36 +1239,36 @@ void PanelManager::HandleSidebarKeyboardNav(
 }
 
 // ============================================================================
-// Favorites and Recent
+// MRU Tracking
 // ============================================================================
 
-void PanelManager::ToggleFavorite(const std::string& card_id) {
-  if (favorite_cards_.find(card_id) != favorite_cards_.end()) {
-    favorite_cards_.erase(card_id);
-  } else {
-    favorite_cards_.insert(card_id);
-  }
-  // TODO: Persist favorites to user settings
+void PanelManager::MarkPanelRecentlyUsed(const std::string& card_id) {
+  last_used_at_[card_id] = ++mru_counter_;
 }
 
-bool PanelManager::IsFavorite(const std::string& card_id) const {
-  return favorite_cards_.find(card_id) != favorite_cards_.end();
-}
+std::vector<PanelDescriptor> PanelManager::GetPanelsSortedByMRU(
+    size_t session_id, const std::string& category) const {
+  auto panels = GetPanelsInCategory(session_id, category);
 
-void PanelManager::AddToRecent(const std::string& card_id) {
-  // Remove if already exists (to move to front)
-  auto it = std::find(recent_cards_.begin(), recent_cards_.end(), card_id);
-  if (it != recent_cards_.end()) {
-    recent_cards_.erase(it);
-  }
+  // Sort: pinned first, then by MRU (higher counter = more recent = first)
+  std::sort(panels.begin(), panels.end(),
+            [this, session_id](const PanelDescriptor& a,
+                               const PanelDescriptor& b) {
+              bool a_pinned = IsPanelPinned(session_id, a.card_id);
+              bool b_pinned = IsPanelPinned(session_id, b.card_id);
+              if (a_pinned != b_pinned) return a_pinned > b_pinned;
 
-  // Add to front
-  recent_cards_.insert(recent_cards_.begin(), card_id);
+              auto a_it = last_used_at_.find(a.card_id);
+              auto b_it = last_used_at_.find(b.card_id);
+              uint64_t a_time = (a_it != last_used_at_.end()) ? a_it->second : 0;
+              uint64_t b_time = (b_it != last_used_at_.end()) ? b_it->second : 0;
+              if (a_time != b_time) return a_time > b_time;
 
-  // Trim if needed
-  if (recent_cards_.size() > kMaxRecentPanels) {
-    recent_cards_.resize(kMaxRecentPanels);
-  }
+              // Fall back to priority for panels never used
+              return a.priority < b.priority;
+            });
+
+  return panels;
 }
 
 // ============================================================================
