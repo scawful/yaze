@@ -200,7 +200,9 @@ if [[ "$DO_BUILD" == "1" ]]; then
   echo -e "${YELLOW}→${NC} Building test targets..."
   build_targets=()
   if [[ "$MODE" == "quick" ]]; then
-    [[ "$RUN_UNIT" == "1" ]] && build_targets+=(yaze_test_quick_unit)
+    if [[ "$RUN_UNIT" == "1" ]]; then
+      build_targets+=(yaze_test_quick_unit_core yaze_test_quick_unit_editor)
+    fi
     [[ "$RUN_INTEGRATION" == "1" ]] && build_targets+=(yaze_test_quick_integration)
   else
     [[ "$RUN_UNIT" == "1" ]] && build_targets+=(yaze_test_unit)
