@@ -80,10 +80,10 @@ bool IconToggleButton(const char* id, const char* icon_on, const char* icon_off,
   const ImVec4 col_active = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
 
   ImGui::PushID(id);
-  ImGui::PushStyleColor(ImGuiCol_Button, active ? col_active : col_btn);
+  gui::StyleColorGuard btn_guard(ImGuiCol_Button,
+                                 active ? col_active : col_btn);
   const bool pressed =
       ImGui::Button(active ? icon_on : icon_off, ImVec2(btn_w, btn));
-  ImGui::PopStyleColor();
 
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("%s", active ? tooltip_on : tooltip_off);
