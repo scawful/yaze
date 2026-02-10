@@ -494,6 +494,13 @@ std::vector<MessageData> ReadAllTextData(uint8_t* rom, int pos, int max_pos) {
   std::vector<MessageData> list_of_texts;
   int message_id = 0;
 
+  if (!rom) {
+    return list_of_texts;
+  }
+  if (max_pos > 0 && (pos < 0 || pos >= max_pos)) {
+    return list_of_texts;
+  }
+
   std::vector<uint8_t> raw_message;
   std::vector<uint8_t> parsed_message;
   std::string current_raw_message;
@@ -502,7 +509,7 @@ std::vector<MessageData> ReadAllTextData(uint8_t* rom, int pos, int max_pos) {
   bool did_bank_switch = false;
   uint8_t current_byte = 0;
   while (current_byte != 0xFF) {
-    if (max_pos > 0 && pos >= max_pos) break;
+    if (max_pos > 0 && (pos < 0 || pos >= max_pos)) break;
     current_byte = rom[pos++];
     if (current_byte == kMessageTerminator) {
       list_of_texts.push_back(
@@ -523,6 +530,7 @@ std::vector<MessageData> ReadAllTextData(uint8_t* rom, int pos, int max_pos) {
     if (text_element != std::nullopt) {
       parsed_message.push_back(current_byte);
       if (text_element->HasArgument) {
+        if (max_pos > 0 && (pos < 0 || pos >= max_pos)) break;
         current_byte = rom[pos++];
         raw_message.push_back(current_byte);
         parsed_message.push_back(current_byte);
@@ -555,12 +563,31 @@ std::vector<MessageData> ReadAllTextData(uint8_t* rom, int pos, int max_pos) {
           "[%s:%s]", DICTIONARYTOKEN,
           util::HexByte(static_cast<unsigned char>(dictionary))));
 
+      // Safety: bounds-check dictionary pointer reads and dictionary expansion.
+      // This parser is used by tooling (RomDoctor) that may run on dummy or
+      // partially-initialized ROM buffers.
+      const int ptr_a = kPointersDictionaries + (dictionary * 2);
+      const int ptr_b = kPointersDictionaries + ((dictionary + 1) * 2);
+      if (max_pos > 0) {
+        if (ptr_a < 0 || ptr_a + 1 >= max_pos || ptr_b < 0 || ptr_b + 1 >= max_pos) {
+          continue;
+        }
+      }
+
       uint32_t address =
           Get24LocalFromPC(rom, kPointersDictionaries + (dictionary * 2));
       uint32_t address_end =
           Get24LocalFromPC(rom, kPointersDictionaries + ((dictionary + 1) * 2));
 
+      if (max_pos > 0) {
+        const uint32_t max_u = static_cast<uint32_t>(max_pos);
+        if (address >= max_u || address_end > max_u || address_end < address) {
+          continue;
+        }
+      }
+
       for (uint32_t i = address; i < address_end; i++) {
+        if (max_pos > 0 && i >= static_cast<uint32_t>(max_pos)) break;
         parsed_message.push_back(rom[i]);
         current_parsed_message.append(ParseTextDataByte(rom[i]));
       }
