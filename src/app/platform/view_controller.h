@@ -16,7 +16,7 @@
 @property(nonatomic) yaze::Controller *controller;
 @property(nonatomic) UIHoverGestureRecognizer *hoverGestureRecognizer;
 @property(nonatomic) UIPinchGestureRecognizer *pinchRecognizer;
-@property(nonatomic) UISwipeGestureRecognizer *swipeRecognizer;
+@property(nonatomic) UIPanGestureRecognizer *twoFingerPanRecognizer;
 @property(nonatomic) UILongPressGestureRecognizer *longPressRecognizer;
 @end
 #endif

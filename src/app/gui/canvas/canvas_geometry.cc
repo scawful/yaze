@@ -68,5 +68,28 @@ void ApplyScrollDelta(CanvasGeometry& geometry, ImVec2 delta) {
   geometry.scrolling.y += delta.y;
 }
 
+ImVec2 ComputeScrollForZoomAtScreenPos(const CanvasGeometry& geometry,
+                                       float old_scale, float new_scale,
+                                       ImVec2 mouse_screen_pos) {
+  if (old_scale <= 0.0f || new_scale <= 0.0f) {
+    return geometry.scrolling;
+  }
+
+  const ImVec2 origin = GetCanvasOrigin(geometry);
+
+  // Compute the canvas-space coordinate under the mouse (before zoom).
+  const ImVec2 mouse_in_canvas((mouse_screen_pos.x - origin.x) / old_scale,
+                               (mouse_screen_pos.y - origin.y) / old_scale);
+
+  // Compute the origin required to keep that same canvas-space coordinate
+  // locked under the mouse after the zoom is applied.
+  const ImVec2 new_origin(mouse_screen_pos.x - (mouse_in_canvas.x * new_scale),
+                          mouse_screen_pos.y - (mouse_in_canvas.y * new_scale));
+
+  // Convert back to scroll offset.
+  return ImVec2(new_origin.x - geometry.canvas_p0.x,
+                new_origin.y - geometry.canvas_p0.y);
+}
+
 }  // namespace gui
 }  // namespace yaze
