@@ -17,6 +17,10 @@
 
 namespace yaze {
 
+namespace rom {
+class WriteFence;
+}  // namespace rom
+
 /**
  * @brief The Rom class is used to load, save, and modify Rom data.
  * This is a generic SNES ROM container and does not contain game-specific logic.
@@ -147,6 +151,15 @@ class Rom {
     return &resource_label_manager_;
   }
 
+  // ROM write fence stack.
+  //
+  // When one or more fences are active, Rom::Write* calls must be allowed by
+  // every fence (logical AND). This is used for strict save-time guardrails so
+  // feature writers can't clobber reserved regions.
+  void PushWriteFence(rom::WriteFence* fence);
+  void PopWriteFence(rom::WriteFence* fence);
+  size_t write_fence_depth() const { return write_fence_stack_.size(); }
+
  private:
   // Size of the ROM data.
   unsigned long size_ = 0;
@@ -168,6 +181,9 @@ class Rom {
 
   // True if there are unsaved changes
   bool dirty_ = false;
+
+  // Active write fences (not owned).
+  std::vector<rom::WriteFence*> write_fence_stack_;
 };
 
 }  // namespace yaze

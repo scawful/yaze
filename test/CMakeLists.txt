@@ -177,6 +177,7 @@ if(YAZE_BUILD_TESTS)
     unit/cli/dungeon_object_validate_test.cc
     unit/rom/rom_diff_test.cc
     unit/rom/rom_test.cc
+    unit/rom/write_fence_test.cc
     unit/emu/input_backend_test.cc
     unit/gfx/snes_tile_test.cc
     unit/gfx/compression_test.cc
@@ -236,6 +237,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/object_drawing_comprehensive_test.cc
     unit/zelda3/dungeon/room_graphics_palette_test.cc
     unit/zelda3/dungeon/room_header_palette_test.cc
+    unit/zelda3/dungeon/object_drawer_registry_replay_test.cc
     unit/dungeon_object_drawer_test.cc
     unit/object_selection_test.cc
     unit/editor/tile_object_handler_test.cc
@@ -313,6 +315,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/project_bundle_test.cc
     unit/core/project_paths_test.cc
     unit/rom/rom_diff_test.cc
+    unit/rom/write_fence_test.cc
     unit/zelda3/resource_labels_test.cc
   )
   set(QUICK_UNIT_EDITOR_TEST_SOURCES

@@ -20,6 +20,7 @@
 #include "absl/strings/string_view.h"
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_tile.h"
+#include "rom/write_fence.h"
 #include "util/hex.h"
 #include "util/log.h"
 #include "util/macro.h"
@@ -358,6 +359,34 @@ absl::Status Rom::SaveToFile(const SaveSettings& settings) {
   return absl::OkStatus();
 }
 
+void Rom::PushWriteFence(rom::WriteFence* fence) {
+  if (fence == nullptr) {
+    return;
+  }
+  write_fence_stack_.push_back(fence);
+}
+
+void Rom::PopWriteFence(rom::WriteFence* fence) {
+  if (fence == nullptr) {
+    return;
+  }
+  if (!write_fence_stack_.empty() && write_fence_stack_.back() == fence) {
+    write_fence_stack_.pop_back();
+    return;
+  }
+
+  // Defensive: avoid leaving a stale fence active if call sites mismatch.
+  for (auto it = write_fence_stack_.rbegin(); it != write_fence_stack_.rend();
+       ++it) {
+    if (*it == fence) {
+      write_fence_stack_.erase(std::next(it).base());
+      LOG_WARN("Rom", "Popped non-top write fence (mismatched scope)");
+      return;
+    }
+  }
+  LOG_WARN("Rom", "PopWriteFence called for unknown fence");
+}
+
 absl::StatusOr<uint8_t> Rom::ReadByte(int offset) const {
   if (offset < 0 || offset >= static_cast<int>(rom_data_.size())) {
     return absl::OutOfRangeError(absl::StrFormat(
@@ -427,8 +456,11 @@ absl::Status Rom::WriteTile16(int tile16_id, uint32_t tile16_ptr,
 }
 
 absl::Status Rom::WriteByte(int addr, uint8_t value) {
-  if (addr >= static_cast<int>(rom_data_.size())) {
+  if (addr < 0 || addr >= static_cast<int>(rom_data_.size())) {
     return absl::OutOfRangeError("Address out of range");
+  }
+  for (auto* fence : write_fence_stack_) {
+    RETURN_IF_ERROR(fence->Check(static_cast<uint32_t>(addr), 1, "WriteByte"));
   }
   const uint8_t old_val = rom_data_[addr];
   rom_data_[addr] = value;
@@ -436,12 +468,18 @@ absl::Status Rom::WriteByte(int addr, uint8_t value) {
 #ifdef __EMSCRIPTEN__
   MaybeBroadcastChange(addr, {old_val}, {value});
 #endif
+  for (auto* fence : write_fence_stack_) {
+    fence->RecordWrite(static_cast<uint32_t>(addr), 1);
+  }
   return absl::OkStatus();
 }
 
 absl::Status Rom::WriteWord(int addr, uint16_t value) {
-  if (addr + 1 >= static_cast<int>(rom_data_.size())) {
+  if (addr < 0 || addr + 1 >= static_cast<int>(rom_data_.size())) {
     return absl::OutOfRangeError("Address out of range");
+  }
+  for (auto* fence : write_fence_stack_) {
+    RETURN_IF_ERROR(fence->Check(static_cast<uint32_t>(addr), 2, "WriteWord"));
   }
   const uint8_t old0 = rom_data_[addr];
   const uint8_t old1 = rom_data_[addr + 1];
@@ -453,6 +491,9 @@ absl::Status Rom::WriteWord(int addr, uint16_t value) {
                        {static_cast<uint8_t>(value & 0xFF),
                         static_cast<uint8_t>((value >> 8) & 0xFF)});
 #endif
+  for (auto* fence : write_fence_stack_) {
+    fence->RecordWrite(static_cast<uint32_t>(addr), 2);
+  }
   return absl::OkStatus();
 }
 
@@ -463,6 +504,9 @@ absl::Status Rom::WriteShort(int addr, uint16_t value) {
 absl::Status Rom::WriteLong(uint32_t addr, uint32_t value) {
   if (addr + 2 >= static_cast<uint32_t>(rom_data_.size())) {
     return absl::OutOfRangeError("Address out of range");
+  }
+  for (auto* fence : write_fence_stack_) {
+    RETURN_IF_ERROR(fence->Check(addr, 3, "WriteLong"));
   }
   const uint8_t old0 = rom_data_[addr];
   const uint8_t old1 = rom_data_[addr + 1];
@@ -477,13 +521,24 @@ absl::Status Rom::WriteLong(uint32_t addr, uint32_t value) {
                         static_cast<uint8_t>((value >> 8) & 0xFF),
                         static_cast<uint8_t>((value >> 16) & 0xFF)});
 #endif
+  for (auto* fence : write_fence_stack_) {
+    fence->RecordWrite(addr, 3);
+  }
   return absl::OkStatus();
 }
 
 absl::Status Rom::WriteVector(int addr, std::vector<uint8_t> data) {
+  if (addr < 0) {
+    return absl::OutOfRangeError("Address out of range");
+  }
   if (addr + static_cast<int>(data.size()) >
       static_cast<int>(rom_data_.size())) {
     return absl::OutOfRangeError("Address out of range");
+  }
+  for (auto* fence : write_fence_stack_) {
+    RETURN_IF_ERROR(fence->Check(static_cast<uint32_t>(addr),
+                                 static_cast<uint32_t>(data.size()),
+                                 "WriteVector"));
   }
   std::vector<uint8_t> old_data;
   old_data.reserve(data.size());
@@ -495,6 +550,10 @@ absl::Status Rom::WriteVector(int addr, std::vector<uint8_t> data) {
 #ifdef __EMSCRIPTEN__
   MaybeBroadcastChange(addr, old_data, data);
 #endif
+  for (auto* fence : write_fence_stack_) {
+    fence->RecordWrite(static_cast<uint32_t>(addr),
+                       static_cast<uint32_t>(data.size()));
+  }
   return absl::OkStatus();
 }
 
