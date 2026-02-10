@@ -8,6 +8,7 @@
 #include "app/platform/iwindow.h"
 #include "app/platform/sdl_compat.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/style_guard.h"
 #include "lab/layout_designer/layout_designer_window.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
@@ -239,11 +240,11 @@ void DrawDockspace() {
                                   ImGuiWindowFlags_NoNavFocus |
                                   ImGuiWindowFlags_NoBackground;
 
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+  yaze::gui::StyleVarGuard dockspace_vars(
+      {{ImGuiStyleVar_WindowRounding, 0.0f},
+       {ImGuiStyleVar_WindowBorderSize, 0.0f},
+       {ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f)}});
   ImGui::Begin("LabDockspace", nullptr, window_flags);
-  ImGui::PopStyleVar(3);
 
   ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
   ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f),

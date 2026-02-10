@@ -10,6 +10,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/style_guard.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include "lab/layout_designer/layout_serialization.h"
@@ -350,7 +351,8 @@ void LayoutDesignerWindow::DrawMenuBar() {
 }
 
 void LayoutDesignerWindow::DrawToolbar() {
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 4));
+  gui::StyleVarGuard toolbar_spacing(ImGuiStyleVar_ItemSpacing,
+                                     ImVec2(4, 4));
 
   // Mode switcher
   bool is_panel_mode = (design_mode_ == DesignMode::PanelLayout);
@@ -426,7 +428,6 @@ void LayoutDesignerWindow::DrawToolbar() {
     }
   }
 
-  ImGui::PopStyleVar();
   ImGui::Separator();
 }
 
@@ -502,18 +503,14 @@ void LayoutDesignerWindow::DrawPalette() {
         ImGui::PushID(panel.id.c_str());
 
         // Panel card with icon and name
-        ImVec4 bg_color = ImVec4(0.2f, 0.2f, 0.25f, 1.0f);
-        ImGui::PushStyleColor(ImGuiCol_Header, bg_color);
-        ImGui::PushStyleColor(ImGuiCol_HeaderHovered,
-                              ImVec4(0.25f, 0.25f, 0.35f, 1.0f));
-        ImGui::PushStyleColor(ImGuiCol_HeaderActive,
-                              ImVec4(0.3f, 0.3f, 0.4f, 1.0f));
+        gui::StyleColorGuard card_colors(
+            {{ImGuiCol_Header, ImVec4(0.2f, 0.2f, 0.25f, 1.0f)},
+             {ImGuiCol_HeaderHovered, ImVec4(0.25f, 0.25f, 0.35f, 1.0f)},
+             {ImGuiCol_HeaderActive, ImVec4(0.3f, 0.3f, 0.4f, 1.0f)}});
 
         bool clicked = ImGui::Selectable(
             absl::StrFormat("%s %s", panel.icon, panel.name).c_str(), false, 0,
             ImVec2(0, 32));
-
-        ImGui::PopStyleColor(3);
 
         if (clicked) {
           LOG_INFO("LayoutDesigner", "Selected panel: %s", panel.name.c_str());

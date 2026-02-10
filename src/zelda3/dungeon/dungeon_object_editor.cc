@@ -9,6 +9,7 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/platform/window.h"
 #include "imgui/imgui.h"
@@ -1653,16 +1654,15 @@ void DungeonObjectEditor::DrawPropertyUI() {
       // ========== Actions Section ==========
       float button_width = (ImGui::GetContentRegionAvail().x - 8) / 2;
 
-      ImGui::PushStyleColor(
-          ImGuiCol_Button,
-          ImVec4(theme.status_error.x * 0.7f, theme.status_error.y * 0.7f,
-                 theme.status_error.z * 0.7f, 1.0f));
-      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, theme.status_error);
+      gui::StyleColorGuard delete_btn_guard(
+          {{ImGuiCol_Button,
+            ImVec4(theme.status_error.x * 0.7f, theme.status_error.y * 0.7f,
+                   theme.status_error.z * 0.7f, 1.0f)},
+           {ImGuiCol_ButtonHovered, theme.status_error}});
       if (ImGui::Button(ICON_MD_DELETE " Delete", ImVec2(button_width, 0))) {
         auto status = DeleteObject(obj_idx);
         (void)status;
       }
-      ImGui::PopStyleColor(2);
 
       ImGui::SameLine();
 
@@ -1754,17 +1754,16 @@ void DungeonObjectEditor::DrawPropertyUI() {
     // ========== Actions ==========
     float button_width = (ImGui::GetContentRegionAvail().x - 8) / 2;
 
-    ImGui::PushStyleColor(
-        ImGuiCol_Button,
-        ImVec4(theme.status_error.x * 0.7f, theme.status_error.y * 0.7f,
-               theme.status_error.z * 0.7f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, theme.status_error);
+    gui::StyleColorGuard delete_all_btn_guard(
+        {{ImGuiCol_Button,
+          ImVec4(theme.status_error.x * 0.7f, theme.status_error.y * 0.7f,
+                 theme.status_error.z * 0.7f, 1.0f)},
+         {ImGuiCol_ButtonHovered, theme.status_error}});
     if (ImGui::Button(ICON_MD_DELETE_SWEEP " Delete All",
                       ImVec2(button_width, 0))) {
       auto status = DeleteSelectedObjects();
       (void)status;
     }
-    ImGui::PopStyleColor(2);
 
     ImGui::SameLine();
 
