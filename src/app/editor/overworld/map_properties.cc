@@ -553,8 +553,9 @@ void MapPropertiesSystem::DrawGraphicsPopup(int current_map, int game_state) {
     // Use theme-aware spacing instead of hardcoded constants
     float spacing = gui::LayoutHelpers::GetStandardSpacing();
     float padding = gui::LayoutHelpers::GetButtonPadding();
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(spacing, spacing));
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(padding, padding));
+    gui::StyleVarGuard popup_style_guard(
+        {{ImGuiStyleVar_ItemSpacing, ImVec2(spacing, spacing)},
+         {ImGuiStyleVar_FramePadding, ImVec2(padding, padding)}});
 
     ImGui::Text("Graphics Settings");
     ImGui::Separator();
@@ -647,8 +648,6 @@ void MapPropertiesSystem::DrawGraphicsPopup(int current_map, int game_state) {
           "Custom tile graphics require ZSCustomOverworld v1+.\n"
           "Upgrade your ROM to access 8 customizable graphics sheets.");
     }
-
-    ImGui::PopStyleVar(2);  // Pop the 2 style variables we pushed
     ImGui::PopID();         // Pop GraphicsPopup ID scope
     ImGui::EndPopup();
   }
@@ -664,8 +663,9 @@ void MapPropertiesSystem::DrawPalettesPopup(int current_map, int game_state,
     // Use theme-aware spacing instead of hardcoded constants
     float spacing = gui::LayoutHelpers::GetStandardSpacing();
     float padding = gui::LayoutHelpers::GetButtonPadding();
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(spacing, spacing));
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(padding, padding));
+    gui::StyleVarGuard popup_style_guard(
+        {{ImGuiStyleVar_ItemSpacing, ImVec2(spacing, spacing)},
+         {ImGuiStyleVar_FramePadding, ImVec2(padding, padding)}});
 
     ImGui::Text("Palette Settings");
     ImGui::Separator();
@@ -714,8 +714,6 @@ void MapPropertiesSystem::DrawPalettesPopup(int current_map, int game_state,
       show_custom_bg_color_editor = !show_custom_bg_color_editor;
     }
     HOVER_HINT("Open custom background color editor (v2+)");
-
-    ImGui::PopStyleVar(2);  // Pop the 2 style variables we pushed
     ImGui::PopID();         // Pop PalettesPopup ID scope
     ImGui::EndPopup();
   }
@@ -733,8 +731,9 @@ void MapPropertiesSystem::DrawPropertiesPopup(int current_map,
     // Use theme-aware spacing instead of hardcoded constants
     float spacing = gui::LayoutHelpers::GetStandardSpacing();
     float padding = gui::LayoutHelpers::GetButtonPadding();
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(spacing, spacing));
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(padding, padding));
+    gui::StyleVarGuard popup_style_guard(
+        {{ImGuiStyleVar_ItemSpacing, ImVec2(spacing, spacing)},
+         {ImGuiStyleVar_FramePadding, ImVec2(padding, padding)}});
 
     ImGui::Text(ICON_MD_TUNE " Area Configuration");
     ImGui::Separator();
@@ -834,7 +833,6 @@ void MapPropertiesSystem::DrawPropertiesPopup(int current_map,
     }
     HOVER_HINT("Open detailed area configuration with all settings tabs");
 
-    ImGui::PopStyleVar(2);  // Pop the 2 style variables we pushed
     ImGui::PopID();         // Pop ConfigPopup ID scope
     ImGui::EndPopup();
   }
