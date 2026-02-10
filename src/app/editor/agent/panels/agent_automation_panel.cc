@@ -60,13 +60,15 @@ void AgentAutomationPanel::Draw(AgentUIContext* context,
     if (connected) {
       // Pulsing green for connected
       float green_pulse = 0.7f + 0.3f * std::sin(state.pulse_animation * 0.5f);
-      status_color = ImVec4(0.1f, green_pulse, 0.3f, 1.0f);
+      auto success = gui::GetSuccessColor();
+      status_color = ImVec4(success.x, success.y * green_pulse, success.z, 1.0f);
       status_text = "ONLINE";
       status_icon = ICON_MD_CHECK_CIRCLE;
     } else {
       // Pulsing red for disconnected
       float red_pulse = 0.6f + 0.4f * std::sin(state.pulse_animation * 1.5f);
-      status_color = ImVec4(red_pulse, 0.2f, 0.2f, 1.0f);
+      auto error = gui::GetErrorColor();
+      status_color = ImVec4(error.x * red_pulse, error.y, error.z, 1.0f);
       status_text = "OFFLINE";
       status_icon = ICON_MD_ERROR;
     }
@@ -86,7 +88,9 @@ void AgentAutomationPanel::Draw(AgentUIContext* context,
     {
       std::optional<gui::StyleColorGuard> pulse_guard;
       if (auto_ref_pulse) {
-        pulse_guard.emplace(ImGuiCol_Button, ImVec4(0.2f, 0.5f, 0.7f, 0.8f));
+        auto info = gui::GetInfoColor();
+        pulse_guard.emplace(ImGuiCol_Button,
+                            ImVec4(info.x, info.y, info.z, 0.8f));
       }
 
       if (ImGui::SmallButton(ICON_MD_REFRESH " Refresh")) {
@@ -154,7 +158,7 @@ void AgentAutomationPanel::Draw(AgentUIContext* context,
     ImGui::Separator();
 
     // Header with retro styling
-    ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "%s RECENT ACTIONS",
+    ImGui::TextColored(gui::GetInfoColor(), "%s RECENT ACTIONS",
                        ICON_MD_LIST);
     ImGui::SameLine();
     ImGui::TextDisabled("[%zu]", state.recent_tests.size());
@@ -228,13 +232,13 @@ void AgentAutomationPanel::Draw(AgentUIContext* context,
           ImGui::SameLine();
           auto elapsed = absl::Now() - test.updated_at;
           if (elapsed < absl::Seconds(60)) {
-            ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "[%ds]",
+            ImGui::TextColored(gui::GetDisabledColor(), "[%ds]",
                                static_cast<int>(absl::ToInt64Seconds(elapsed)));
           } else if (elapsed < absl::Minutes(60)) {
-            ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "[%dm]",
+            ImGui::TextColored(gui::GetDisabledColor(), "[%dm]",
                                static_cast<int>(absl::ToInt64Minutes(elapsed)));
           } else {
-            ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "[%dh]",
+            ImGui::TextColored(gui::GetDisabledColor(), "[%dh]",
                                static_cast<int>(absl::ToInt64Hours(elapsed)));
           }
         }
@@ -244,7 +248,7 @@ void AgentAutomationPanel::Draw(AgentUIContext* context,
           ImGui::Indent(20.0f);
           {
             gui::StyleColorGuard msg_color(ImGuiCol_Text,
-                                           ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
+                                           gui::GetDisabledColor());
             ImGui::TextWrapped("  %s %s", ICON_MD_MESSAGE,
                                test.message.c_str());
           }
