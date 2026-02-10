@@ -150,8 +150,9 @@ void LinkSpritePanel::DrawSheetThumbnail(int sheet_index) {
   bool is_selected = (selected_sheet_ == sheet_index);
 
   // Selection highlight
+  std::optional<gui::StyleColorGuard> sel_bg_guard;
   if (is_selected) {
-    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.3f, 0.5f, 0.8f, 0.4f));
+    sel_bg_guard.emplace(ImGuiCol_ChildBg, ImVec4(0.3f, 0.5f, 0.8f, 0.4f));
   }
 
   ImGui::BeginChild(absl::StrFormat("##LinkSheet%d", sheet_index).c_str(),
@@ -196,9 +197,7 @@ void LinkSpritePanel::DrawSheetThumbnail(int sheet_index) {
 
   ImGui::EndChild();
 
-  if (is_selected) {
-    ImGui::PopStyleColor();
-  }
+  sel_bg_guard.reset();
 
   // Tooltip
   if (ImGui::IsItemHovered()) {

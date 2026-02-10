@@ -145,14 +145,15 @@ void SheetBrowserPanel::DrawSheetThumbnail(int sheet_id, gfx::Bitmap& bitmap) {
       state_->modified_sheets.count(static_cast<uint16_t>(sheet_id)) > 0;
 
   // Selection highlight
+  std::optional<gui::StyleColorGuard> sel_bg_guard;
   if (is_selected) {
     ImVec4 sel_bg = gui::GetSelectedColor();
     sel_bg.w = 0.3f;
-    ImGui::PushStyleColor(ImGuiCol_ChildBg, sel_bg);
+    sel_bg_guard.emplace(ImGuiCol_ChildBg, sel_bg);
   } else if (is_multi_selected) {
     ImVec4 multi_bg = gui::GetModifiedColor();
     multi_bg.w = 0.3f;
-    ImGui::PushStyleColor(ImGuiCol_ChildBg, multi_bg);
+    sel_bg_guard.emplace(ImGuiCol_ChildBg, multi_bg);
   }
 
   ImGui::BeginChild(absl::StrFormat("##Sheet%02X", sheet_id).c_str(),
@@ -221,9 +222,7 @@ void SheetBrowserPanel::DrawSheetThumbnail(int sheet_id, gfx::Bitmap& bitmap) {
 
   ImGui::EndChild();
 
-  if (is_selected || is_multi_selected) {
-    ImGui::PopStyleColor();
-  }
+  sel_bg_guard.reset();
 
   // Tooltip with sheet info
   if (ImGui::IsItemHovered()) {
