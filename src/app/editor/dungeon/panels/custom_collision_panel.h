@@ -8,6 +8,7 @@
 #include "zelda3/zelda3_labels.h"
 #include "app/gui/core/icons.h"
 #include "absl/strings/str_format.h"
+#include "zelda3/dungeon/dungeon_rom_addresses.h"
 
 #include <algorithm>
 
@@ -38,6 +39,21 @@ class CustomCollisionPanel : public EditorPanel {
       return;
     }
 
+    const int ptr_table_end =
+        zelda3::kCustomCollisionRoomPointers + (zelda3::kNumberOfRooms * 3);
+    const bool collision_table_present =
+        (ptr_table_end <= static_cast<int>(viewer_->rom()->vector().size()));
+    if (!collision_table_present) {
+      ImGui::TextColored(
+          theme.status_error,
+          ICON_MD_ERROR
+          " Custom collision table missing (use an expanded-collision Oracle ROM)");
+      ImGui::TextDisabled(
+          "Expected ROM >= 0x%X bytes (custom collision pointer table end). Current ROM is %zu bytes.",
+          ptr_table_end, viewer_->rom()->vector().size());
+      ImGui::Separator();
+    }
+
     auto* rooms = viewer_->rooms();
     int room_id = viewer_->current_room_id();
     if (room_id < 0 || room_id >= 296) {
@@ -48,14 +64,24 @@ class CustomCollisionPanel : public EditorPanel {
     auto& room = (*rooms)[room_id];
     bool has_collision = room.has_custom_collision();
 
-    if (ImGui::Button(has_collision ? "Disable Custom Collision" : "Enable Custom Collision")) {
+    ImGui::BeginDisabled(!collision_table_present);
+    if (ImGui::Button(has_collision ? "Disable Custom Collision"
+                                    : "Enable Custom Collision")) {
         room.set_has_custom_collision(!has_collision);
         viewer_->set_show_custom_collision_overlay(room.has_custom_collision());
     }
+    ImGui::EndDisabled();
 
     ImGui::Separator();
 
     if (has_collision) {
+        if (!collision_table_present) {
+          ImGui::TextColored(
+              theme.text_warning_yellow,
+              ICON_MD_WARNING
+              " This ROM cannot save custom collision edits (expanded collision table missing).");
+        }
+
         bool show_overlay = viewer_->show_custom_collision_overlay();
         if (ImGui::Checkbox("Show Collision Overlay", &show_overlay)) {
             viewer_->set_show_custom_collision_overlay(show_overlay);
@@ -68,6 +94,7 @@ class CustomCollisionPanel : public EditorPanel {
 
         bool is_painting = (interaction_->mode_manager().GetMode() ==
                             InteractionMode::PaintCollision);
+        ImGui::BeginDisabled(!collision_table_present);
         if (ImGui::Checkbox("Paint Mode", &is_painting)) {
             if (is_painting) {
                 interaction_->mode_manager().SetMode(InteractionMode::PaintCollision);
@@ -75,6 +102,7 @@ class CustomCollisionPanel : public EditorPanel {
                 interaction_->mode_manager().SetMode(InteractionMode::Select);
             }
         }
+        ImGui::EndDisabled();
 
         if (is_painting) {
             ImGui::TextColored(theme.text_warning_yellow,
@@ -119,12 +147,14 @@ class CustomCollisionPanel : public EditorPanel {
         }
         
         ImGui::Separator();
+        ImGui::BeginDisabled(!collision_table_present);
         if (ImGui::Button("Clear All Custom Collision")) {
             room.custom_collision().tiles.fill(0);
             // Clearing should remove the override (room falls back to vanilla).
             room.custom_collision().has_data = false;
             room.MarkCustomCollisionDirty();
         }
+        ImGui::EndDisabled();
     } else {
         ImGui::TextWrapped("Custom collision allows you to override the physics of individual 8x8 tiles in the room. This is useful for creating water, pits, or other effects that don't match the background tiles.");
     }
