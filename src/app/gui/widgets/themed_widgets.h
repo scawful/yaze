@@ -126,6 +126,18 @@ bool DangerButton(const char* label, const ImVec2& size = ImVec2(0, 0),
                   const char* anim_id = nullptr);
 
 /**
+ * @brief Draw a success action button (green color).
+ *
+ * @param label The button label text
+ * @param size The size of the button (default: 0,0 = auto)
+ * @param panel_id Optional animation scope key (panel ID)
+ * @param anim_id Optional animation key (defaults to ImGui ID)
+ */
+bool SuccessButton(const char* label, const ImVec2& size = ImVec2(0, 0),
+                   const char* panel_id = nullptr,
+                   const char* anim_id = nullptr);
+
+/**
  * @brief Convenience wrapper for toolbar-sized icon buttons.
  *
  * Wraps ThemedIconButton with IconSize::Toolbar() preset.
