@@ -159,7 +159,7 @@ class RoomDrawObjectDataTest : public ::testing::Test {
 
   void WriteWord(int pc, uint16_t value) {
     ASSERT_GE(pc, 0);
-    ASSERT_LT(pc + 1, static_cast<int>(rom_->mutable_data().size()));
+    ASSERT_LT(pc + 1, static_cast<int>(rom_->size()));
     rom_->mutable_data()[pc] = static_cast<uint8_t>(value & 0xFF);
     rom_->mutable_data()[pc + 1] = static_cast<uint8_t>((value >> 8) & 0xFF);
   }
