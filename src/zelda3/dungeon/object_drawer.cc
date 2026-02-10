@@ -172,12 +172,10 @@ absl::Status ObjectDrawer::DrawObject(
     trace_hook_active = true;
   }
 
-  // Check if this should draw to both BG layers
-  // IMPORTANT: BothBG only applies to Layer 0 (main) objects - structural elements.
-  // Layer 1 (BG2 overlay) objects should ONLY draw to BG2 so they appear BEHIND
-  // Layer 0 content. Layer 2 (priority) objects should ONLY draw to BG1 (on top).
-  bool is_both_bg = (object.layer_ == RoomObject::LayerType::BG1) &&
-                    (object.all_bgs_ || RoutineDrawsToBothBGs(routine_id));
+  // Check if this should draw to both BG layers.
+  // In the original engine, BothBG routines explicitly write to both tilemaps
+  // regardless of which object list or pass they are executed from.
+  bool is_both_bg = (object.all_bgs_ || RoutineDrawsToBothBGs(routine_id));
 
   if (is_both_bg) {
     // Draw to both background layers
@@ -246,10 +244,8 @@ absl::Status ObjectDrawer::DrawObjectList(
   for (const auto& object : objects) {
     // Track buffer routing for summary
     bool use_bg2 = (object.layer_ == RoomObject::LayerType::BG2);
-    bool is_layer0 = (object.layer_ == RoomObject::LayerType::BG1);
     int routine_id = GetDrawRoutineId(object.id_);
-    bool is_both_bg =
-        is_layer0 && (object.all_bgs_ || RoutineDrawsToBothBGs(routine_id));
+    bool is_both_bg = (object.all_bgs_ || RoutineDrawsToBothBGs(routine_id));
 
     if (is_both_bg) {
       both_bgs++;
@@ -5247,7 +5243,9 @@ void yaze::zelda3::ObjectDrawer::DrawPotItem(uint8_t item_id, int x, int y,
     case 6:           // Heart
     case 11:          // Heart
     case 13:          // Heart variant
-      color_idx = 0;  // Should be reddish in dungeon palette
+      // NOTE: Avoid palette indices 0/16/32/.. which are transparent in SNES
+      // CGRAM rows. Using 5 gives a consistently visible indicator.
+      color_idx = 5;
       break;
 
     // Keys (yellow/gold)
@@ -5302,6 +5300,13 @@ void yaze::zelda3::ObjectDrawer::DrawPotItem(uint8_t item_id, int x, int y,
     default:
       color_idx = 50;  // Default/random indicator
       break;
+  }
+
+  // Safety: never use CGRAM transparent slots (0,16,32,...) for the indicator.
+  // In the editor these would appear invisible or "missing" depending on
+  // compositing.
+  if (color_idx != 255 && (color_idx % 16) == 0) {
+    color_idx++;
   }
 
   // Draw a 4x4 colored square as item indicator

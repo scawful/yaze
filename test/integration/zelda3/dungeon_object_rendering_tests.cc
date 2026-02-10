@@ -136,6 +136,107 @@ TEST_F(DungeonObjectRenderingTests, MultiLayerRendering) {
   EXPECT_TRUE(bg2_->bitmap().is_active());
 }
 
+TEST_F(DungeonObjectRenderingTests, PotItemHeartUsesNonTransparentPaletteIndex) {
+  gfx::BackgroundBuffer bg(64, 64);
+  bg.EnsureBitmapInitialized();
+  bg.bitmap().Fill(255);
+
+  // Heart item id (ZELDA3 spec): 6.
+  drawer_->DrawPotItem(/*item_id=*/6, /*x=*/5, /*y=*/5, bg);
+
+  const auto& bmp = bg.bitmap();
+  const int w = bmp.width();
+  const int px = (5 * 8) + 2;
+  const int py = (5 * 8) + 2;
+
+  const auto& data = bmp.vector();
+  const uint8_t color = data[(py * w) + px];
+
+  // Should not be the transparent key used for object buffers.
+  EXPECT_NE(color, 255);
+  // Should not use the transparent slot of any 16-color CGRAM row.
+  EXPECT_NE(color % 16, 0);
+
+  // All 4x4 pixels should use the same color.
+  for (int dy = 0; dy < 4; dy++) {
+    for (int dx = 0; dx < 4; dx++) {
+      EXPECT_EQ(data[((py + dy) * w) + (px + dx)], color);
+    }
+  }
+}
+
+TEST_F(DungeonObjectRenderingTests,
+       BothBGRoutinesDrawToBothBuffersEvenWhenObjectLayerIsBG2) {
+  gfx::BackgroundBuffer bg1(64, 64);
+  gfx::BackgroundBuffer bg2(64, 64);
+  bg1.EnsureBitmapInitialized();
+  bg2.EnsureBitmapInitialized();
+  bg1.bitmap().Fill(255);
+  bg2.bitmap().Fill(255);
+
+  // 0x15 maps to DiagonalAcute_BothBG.
+  std::vector<zelda3::RoomObject> objects;
+  objects.push_back(CreateTestObject(/*id=*/0x15, /*x=*/2, /*y=*/2,
+                                     /*size=*/0x12, /*layer=*/1));
+
+  auto status = drawer_->DrawObjectList(objects, bg1, bg2, palette_group_);
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  const auto& data_bg1 = bg1.bitmap().vector();
+  const auto& data_bg2 = bg2.bitmap().vector();
+
+  size_t bg1_written = 0;
+  size_t bg2_written = 0;
+  for (size_t i = 0; i < data_bg1.size(); i++) {
+    if (data_bg1[i] != 255) {
+      bg1_written++;
+    }
+    if (data_bg2[i] != 255) {
+      bg2_written++;
+    }
+  }
+
+  EXPECT_GT(bg1_written, 0u);
+  EXPECT_GT(bg2_written, 0u);
+}
+
+TEST_F(DungeonObjectRenderingTests, AllBgsFlagForcesDrawToBothBuffers) {
+  gfx::BackgroundBuffer bg1(64, 64);
+  gfx::BackgroundBuffer bg2(64, 64);
+  bg1.EnsureBitmapInitialized();
+  bg2.EnsureBitmapInitialized();
+  bg1.bitmap().Fill(255);
+  bg2.bitmap().Fill(255);
+
+  // Use a normal (non-BothBG) object, but force all_bgs_. Place it in BG2.
+  zelda3::RoomObject obj = CreateTestObject(/*id=*/0x10, /*x=*/2, /*y=*/2,
+                                            /*size=*/0x12, /*layer=*/1);
+  obj.all_bgs_ = true;
+
+  std::vector<zelda3::RoomObject> objects;
+  objects.push_back(obj);
+
+  auto status = drawer_->DrawObjectList(objects, bg1, bg2, palette_group_);
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  const auto& data_bg1 = bg1.bitmap().vector();
+  const auto& data_bg2 = bg2.bitmap().vector();
+
+  size_t bg1_written = 0;
+  size_t bg2_written = 0;
+  for (size_t i = 0; i < data_bg1.size(); i++) {
+    if (data_bg1[i] != 255) {
+      bg1_written++;
+    }
+    if (data_bg2[i] != 255) {
+      bg2_written++;
+    }
+  }
+
+  EXPECT_GT(bg1_written, 0u);
+  EXPECT_GT(bg2_written, 0u);
+}
+
 // Test that a compact buffer (preview-sized) receives pixels
 TEST_F(DungeonObjectRenderingTests, PreviewBufferRendersContent) {
   std::vector<zelda3::RoomObject> objects;
