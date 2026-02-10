@@ -8,6 +8,7 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"

@@ -13,6 +13,7 @@
 #include "app/editor/system/editor_panel.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
 #include "zelda3/music/music_bank.h"
@@ -96,14 +97,14 @@ class MusicPlaybackControlPanel : public EditorPanel {
 
     // Transport controls
     if (state.is_playing && !state.is_paused) {
-      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.5f, 0.2f, 1.0f));
+      gui::StyleColorGuard pause_guard(ImGuiCol_Button,
+                                       ImVec4(0.2f, 0.5f, 0.2f, 1.0f));
       if (ImGui::Button(ICON_MD_PAUSE "##Pause")) music_player_->Pause();
-      ImGui::PopStyleColor();
       if (ImGui::IsItemHovered()) ImGui::SetTooltip("Pause (Space)");
     } else if (state.is_paused) {
-      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.5f, 0.4f, 0.1f, 1.0f));
+      gui::StyleColorGuard resume_guard(ImGuiCol_Button,
+                                        ImVec4(0.5f, 0.4f, 0.1f, 1.0f));
       if (ImGui::Button(ICON_MD_PLAY_ARROW "##Resume")) music_player_->Resume();
-      ImGui::PopStyleColor();
       if (ImGui::IsItemHovered()) ImGui::SetTooltip("Resume (Space)");
     } else {
       if (ImGui::Button(ICON_MD_PLAY_ARROW "##Play"))
@@ -425,9 +426,10 @@ class MusicPlaybackControlPanel : public EditorPanel {
       ImVec4 queue_color = (queue_level < 0.2f)
                                ? ImVec4(1.0f, 0.3f, 0.3f, 1.0f)
                                : ImVec4(0.3f, 0.8f, 0.3f, 1.0f);
-      ImGui::PushStyleColor(ImGuiCol_PlotHistogram, queue_color);
-      ImGui::ProgressBar(queue_level, ImVec2(-1, 0), "Queue Level");
-      ImGui::PopStyleColor();
+      {
+        gui::StyleColorGuard queue_guard(ImGuiCol_PlotHistogram, queue_color);
+        ImGui::ProgressBar(queue_level, ImVec2(-1, 0), "Queue Level");
+      }
 
       ImGui::TreePop();
     }

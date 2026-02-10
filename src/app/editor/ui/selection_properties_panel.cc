@@ -5,7 +5,9 @@
 #include "absl/strings/str_format.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
+#include "app/gui/core/ui_helpers.h"
 #include "rom/rom.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/room.h"
@@ -116,9 +118,8 @@ void SelectionPropertiesPanel::Draw() {
 void SelectionPropertiesPanel::DrawNoSelection() {
   const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
 
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextDisabledVec4());
-  ImGui::Text(ICON_MD_TOUCH_APP " Select an Item");
-  ImGui::PopStyleColor();
+  gui::ColoredText(ICON_MD_TOUCH_APP " Select an Item",
+                   gui::GetTextDisabledVec4());
 
   ImGui::Spacing();
   ImGui::TextWrapped(
@@ -137,9 +138,7 @@ void SelectionPropertiesPanel::DrawNoSelection() {
 
 void SelectionPropertiesPanel::DrawPropertyHeader(const char* icon,
                                                    const char* title) {
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
-  ImGui::Text("%s", icon);
-  ImGui::PopStyleColor();
+  gui::ColoredText(icon, gui::GetPrimaryVec4());
   ImGui::SameLine();
   ImGui::Text("%s", title);
 
@@ -158,9 +157,7 @@ void SelectionPropertiesPanel::DrawPropertyHeader(const char* icon,
 }
 
 void SelectionPropertiesPanel::DrawSelectionSummary() {
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
-  ImGui::Text("%s Selection", ICON_MD_INFO);
-  ImGui::PopStyleColor();
+  gui::ColoredTextF(gui::GetPrimaryVec4(), "%s Selection", ICON_MD_INFO);
   ImGui::Separator();
 
   ImGui::Text("Type: %s", GetSelectionTypeName(selection_.type));

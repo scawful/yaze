@@ -7,6 +7,7 @@
 #include "app/editor/events/core_events.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/layout_helpers.h"
+#include "app/gui/core/style_guard.h"
 #include "imgui/imgui.h"
 #include "util/hex.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"

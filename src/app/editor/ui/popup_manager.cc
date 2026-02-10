@@ -15,6 +15,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/style.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "util/file_util.h"
@@ -1120,22 +1121,24 @@ void PopupManager::DrawLayoutPresetsPopup() {
     if (i % 2 != 0)
       SameLine();
 
-    PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.0f, 0.5f));
-    if (Button(
-            absl::StrFormat("%s %s", presets[i].icon, presets[i].name).c_str(),
-            ImVec2(button_width, button_height))) {
-      // Apply the preset
-      auto preset = presets[i].getter();
-      auto& panel_manager = editor_manager_->panel_manager();
-      // Hide all panels first
-      panel_manager.HideAll();
-      // Show preset panels
-      for (const auto& panel_id : preset.default_visible_panels) {
-        panel_manager.ShowPanel(panel_id);
+    {
+      gui::StyleVarGuard align_guard(ImGuiStyleVar_ButtonTextAlign,
+                                     ImVec2(0.0f, 0.5f));
+      if (Button(
+              absl::StrFormat("%s %s", presets[i].icon, presets[i].name).c_str(),
+              ImVec2(button_width, button_height))) {
+        // Apply the preset
+        auto preset = presets[i].getter();
+        auto& panel_manager = editor_manager_->panel_manager();
+        // Hide all panels first
+        panel_manager.HideAll();
+        // Show preset panels
+        for (const auto& panel_id : preset.default_visible_panels) {
+          panel_manager.ShowPanel(panel_id);
+        }
+        Hide(PopupID::kLayoutPresets);
       }
-      Hide(PopupID::kLayoutPresets);
     }
-    PopStyleVar();
 
     if (IsItemHovered()) {
       BeginTooltip();

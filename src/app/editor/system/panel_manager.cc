@@ -16,6 +16,7 @@
 #include "app/gui/app/editor_layout.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/layout_helpers.h"
+#include "app/gui/core/style_guard.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"  // For ImGuiWindow and FindWindowByName
 #include "util/json.h"

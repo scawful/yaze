@@ -16,6 +16,7 @@
 // Project headers
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/widgets/asset_browser.h"
 #include "app/platform/window.h"
 #include "zelda3/dungeon/dimension_service.h"

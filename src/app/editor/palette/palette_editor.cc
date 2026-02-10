@@ -13,6 +13,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/popup_id.h"
 #include "app/gui/core/search.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
 

@@ -12,6 +12,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/layout_helpers.h"
+#include "app/gui/core/style_guard.h"
 #include "imgui/imgui.h"
 #include "zelda3/resource_labels.h"
 

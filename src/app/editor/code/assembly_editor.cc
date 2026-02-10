@@ -16,6 +16,7 @@
 #include "app/editor/system/panel_manager.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/text_editor.h"
 #include "core/project.h"

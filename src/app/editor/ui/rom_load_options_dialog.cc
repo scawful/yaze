@@ -2,6 +2,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "core/features.h"
 #include "imgui/imgui.h"
@@ -348,35 +349,36 @@ void RomLoadOptionsDialog::DrawActionButtons() {
   const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
   ImVec4 accent = gui::ConvertColorToImVec4(theme.accent);
 
-  ImGui::PushStyleColor(ImGuiCol_Button, accent);
-  ImGui::PushStyleColor(
-      ImGuiCol_ButtonHovered,
-      ImVec4(accent.x * 1.1f, accent.y * 1.1f, accent.z * 1.1f, accent.w));
-  ImGui::PushStyleColor(
-      ImGuiCol_ButtonActive,
-      ImVec4(accent.x * 0.9f, accent.y * 0.9f, accent.z * 0.9f, accent.w));
+  {
+    gui::StyleColorGuard btn_guard(
+        {{ImGuiCol_Button, accent},
+         {ImGuiCol_ButtonHovered,
+          ImVec4(accent.x * 1.1f, accent.y * 1.1f, accent.z * 1.1f,
+                 accent.w)},
+         {ImGuiCol_ButtonActive,
+          ImVec4(accent.x * 0.9f, accent.y * 0.9f, accent.z * 0.9f,
+                 accent.w)}});
 
-  if (ImGui::Button(absl::StrFormat("%s Continue", ICON_MD_CHECK).c_str(),
-                    ImVec2(button_width, 0))) {
-    // Apply options
-    ApplyOptionsToFeatureFlags();
-    options_.selected_preset = kPresetNames[selected_preset_index_];
+    if (ImGui::Button(absl::StrFormat("%s Continue", ICON_MD_CHECK).c_str(),
+                      ImVec2(button_width, 0))) {
+      // Apply options
+      ApplyOptionsToFeatureFlags();
+      options_.selected_preset = kPresetNames[selected_preset_index_];
 
-    confirmed_ = true;
-    is_open_ = false;
+      confirmed_ = true;
+      is_open_ = false;
 
-    // Call upgrade callback if needed
-    if (options_.upgrade_to_zscustom && upgrade_callback_) {
-      upgrade_callback_(options_.target_zso_version);
-    }
+      // Call upgrade callback if needed
+      if (options_.upgrade_to_zscustom && upgrade_callback_) {
+        upgrade_callback_(options_.target_zso_version);
+      }
 
-    // Call confirm callback
-    if (confirm_callback_) {
-      confirm_callback_(options_);
+      // Call confirm callback
+      if (confirm_callback_) {
+        confirm_callback_(options_);
+      }
     }
   }
-
-  ImGui::PopStyleColor(3);
 }
 
 void RomLoadOptionsDialog::ApplyPreset(const std::string& preset_name) {

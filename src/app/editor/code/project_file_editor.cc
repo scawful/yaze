@@ -9,6 +9,7 @@
 #include "absl/strings/str_split.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/style_guard.h"
 #include "core/project.h"
 #include "imgui/imgui.h"
 #include "util/file_util.h"
