@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "absl/status/status.h"
+#include "absl/strings/str_format.h"
 #include "rom/snes.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room.h"
@@ -33,6 +34,17 @@ absl::StatusOr<CustomCollisionMap> LoadCustomCollisionMap(Rom* rom,
     return absl::OutOfRangeError("Collision pointer table out of range");
   }
 
+  // Oracle of Secrets: reserve a tail region for the WaterFill table.
+  // If the reserved region exists in this ROM, refuse to load collision blobs
+  // that overlap it (corrupted pointer table / missing terminator).
+  const bool has_water_fill_reserved_region =
+      (kWaterFillTableEnd <= static_cast<int>(data.size()));
+  const size_t collision_safe_end =
+      has_water_fill_reserved_region
+          ? std::min(static_cast<size_t>(data.size()),
+                     static_cast<size_t>(kCustomCollisionDataSoftEnd))
+          : static_cast<size_t>(data.size());
+
   uint32_t snes_ptr = data[pointer_offset] | (data[pointer_offset + 1] << 8) |
                       (data[pointer_offset + 2] << 16);
 
@@ -48,15 +60,22 @@ absl::StatusOr<CustomCollisionMap> LoadCustomCollisionMap(Rom* rom,
   if (pc_ptr < 0 || pc_ptr >= static_cast<int>(data.size())) {
     return absl::OutOfRangeError("Collision data pointer out of range");
   }
+  if (static_cast<size_t>(pc_ptr) >= collision_safe_end) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Collision data for room 0x%02X overlaps WaterFill reserved region (pc=0x%06X)",
+        room_id, pc_ptr));
+  }
 
   size_t cursor = static_cast<size_t>(pc_ptr);
   bool single_tiles_mode = false;
+  bool found_end_marker = false;
 
-  while (cursor + 1 < data.size()) {
+  while (cursor + 1 < collision_safe_end) {
     uint16_t offset = data[cursor] | (data[cursor + 1] << 8);
     cursor += 2;
 
     if (offset == kCollisionEndMarker) {
+      found_end_marker = true;
       break;
     }
 
@@ -66,7 +85,7 @@ absl::StatusOr<CustomCollisionMap> LoadCustomCollisionMap(Rom* rom,
     }
 
     if (!single_tiles_mode) {
-      if (cursor + 1 >= data.size()) {
+      if (cursor + 1 >= collision_safe_end) {
         return absl::OutOfRangeError("Collision rectangle header out of range");
       }
       uint8_t width = data[cursor];
@@ -80,7 +99,7 @@ absl::StatusOr<CustomCollisionMap> LoadCustomCollisionMap(Rom* rom,
       for (uint8_t row = 0; row < height; ++row) {
         int row_offset = static_cast<int>(offset) + (row * kCollisionMapWidth);
         for (uint8_t col = 0; col < width; ++col) {
-          if (cursor >= data.size()) {
+          if (cursor >= collision_safe_end) {
             return absl::OutOfRangeError(
                 "Collision rectangle data out of range");
           }
@@ -92,7 +111,7 @@ absl::StatusOr<CustomCollisionMap> LoadCustomCollisionMap(Rom* rom,
         }
       }
     } else {
-      if (cursor >= data.size()) {
+      if (cursor >= collision_safe_end) {
         return absl::OutOfRangeError("Collision single tile out of range");
       }
       uint8_t tile = data[cursor++];
@@ -101,6 +120,12 @@ absl::StatusOr<CustomCollisionMap> LoadCustomCollisionMap(Rom* rom,
         result.tiles[static_cast<size_t>(idx)] = tile;
       }
     }
+  }
+
+  if (has_water_fill_reserved_region && !found_end_marker) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Collision data for room 0x%02X is unterminated before WaterFill reserved region",
+        room_id));
   }
 
   return result;
