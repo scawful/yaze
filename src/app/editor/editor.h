@@ -45,6 +45,7 @@ namespace editor {
 // Forward declarations
 class PanelManager;
 class ToastManager;
+class UndoManager;
 class UserSettings;
 class StatusBar;
 
@@ -128,6 +129,7 @@ struct EditorDependencies {
   zelda3::GameData* game_data = nullptr;  // Zelda3-specific game state
   PanelManager* panel_manager = nullptr;
   ToastManager* toast_manager = nullptr;
+  UndoManager* undo_manager = nullptr;
   PopupManager* popup_manager = nullptr;
   ShortcutManager* shortcut_manager = nullptr;
   SharedClipboard* shared_clipboard = nullptr;
