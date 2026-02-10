@@ -28,7 +28,9 @@
 #include "app/gui/core/input.h"
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
+#include "app/gui/core/ui_helpers.h"
 #include "core/project.h"
 #include "imgui/imgui.h"
 #include "util/file_util.h"
@@ -317,36 +319,38 @@ void UICoordinator::DrawMobileNavigation() {
       ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoFocusOnAppearing |
       ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoSavedSettings;
 
-  ImGui::PushStyleColor(ImGuiCol_WindowBg, gui::GetSurfaceContainerHighVec4());
-  ImGui::PushStyleColor(ImGuiCol_Border, gui::GetSurfaceContainerHighestVec4());
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, container_size * 0.25f);
-  if (ImGui::Begin("##MobileNavButton", nullptr, flags)) {
-    ImGui::SetCursorPos(ImVec2((container_size - button_size) * 0.5f,
-                               (container_size - button_size) * 0.5f));
-    ImGui::PushStyleColor(ImGuiCol_Button, button_color);
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, button_hovered);
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, button_active);
-    ImGui::PushStyleColor(ImGuiCol_Text, button_text);
+  {
+    gui::StyledWindow nav_win(
+        "##MobileNavButton",
+        {.bg = gui::GetSurfaceContainerHighVec4(),
+         .border = gui::GetSurfaceContainerHighestVec4(),
+         .padding = {0.0f, 0.0f},
+         .border_size = 1.0f,
+         .rounding = container_size * 0.25f},
+        nullptr, flags);
+    if (nav_win) {
+      ImGui::SetCursorPos(ImVec2((container_size - button_size) * 0.5f,
+                                 (container_size - button_size) * 0.5f));
+      gui::StyleColorGuard btn_guard(
+          {{ImGuiCol_Button, button_color},
+           {ImGuiCol_ButtonHovered, button_hovered},
+           {ImGuiCol_ButtonActive, button_active},
+           {ImGuiCol_Text, button_text}});
 
-    if (ImGui::Button(ICON_MD_APPS, ImVec2(button_size, button_size))) {
-      ImGui::OpenPopup("##MobileNavPopup");
+      if (ImGui::Button(ICON_MD_APPS, ImVec2(button_size, button_size))) {
+        ImGui::OpenPopup("##MobileNavPopup");
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Navigation");
+      }
     }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Navigation");
-    }
-
-    ImGui::PopStyleColor(4);
   }
-  ImGui::End();
-  ImGui::PopStyleVar(3);
-  ImGui::PopStyleColor(2);
 
-  ImGui::PushStyleColor(ImGuiCol_PopupBg,
-                        gui::ConvertColorToImVec4(theme.surface));
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12.0f, 10.0f));
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8.0f, 6.0f));
+  gui::StyleColorGuard popup_color(ImGuiCol_PopupBg,
+                                   gui::ConvertColorToImVec4(theme.surface));
+  gui::StyleVarGuard popup_vars(
+      {{ImGuiStyleVar_WindowPadding, ImVec2(12.0f, 10.0f)},
+       {ImGuiStyleVar_ItemSpacing, ImVec2(8.0f, 6.0f)}});
 
   if (ImGui::BeginPopup("##MobileNavPopup")) {
     bool has_rom = false;
@@ -404,9 +408,6 @@ void UICoordinator::DrawMobileNavigation() {
 
     ImGui::EndPopup();
   }
-
-  ImGui::PopStyleVar(2);
-  ImGui::PopStyleColor();
 }
 
 // =============================================================================
@@ -415,23 +416,15 @@ void UICoordinator::DrawMobileNavigation() {
 
 bool UICoordinator::DrawMenuBarIconButton(const char* icon, const char* tooltip,
                                           bool is_active) {
-  // Push consistent button styling
-  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                        gui::GetSurfaceContainerHighVec4());
-  ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                        gui::GetSurfaceContainerHighestVec4());
-
-  // Active state uses primary color, inactive uses secondary text
-  if (is_active) {
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
-  } else {
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-  }
+  // Consistent button styling: transparent background, themed text
+  gui::StyleColorGuard btn_guard(
+      {{ImGuiCol_Button, ImVec4(0, 0, 0, 0)},
+       {ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4()},
+       {ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4()},
+       {ImGuiCol_Text,
+        is_active ? gui::GetPrimaryVec4() : gui::GetTextSecondaryVec4()}});
 
   bool clicked = ImGui::SmallButton(icon);
-
-  ImGui::PopStyleColor(4);
 
   if (tooltip && ImGui::IsItemHovered()) {
     ImGui::SetTooltip("%s", tooltip);
@@ -569,23 +562,20 @@ void UICoordinator::DrawMenuBarExtras() {
   // DRAW STATUS CLUSTER (shifts with dockspace)
   // =========================================================================
   ImGui::SameLine(start_pos);
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(item_spacing, 0.0f));
+  gui::StyleVarGuard item_spacing_guard(ImGuiStyleVar_ItemSpacing,
+                                        ImVec2(item_spacing, 0.0f));
 
   // 1. Version - subdued gray text
   if (show_version) {
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextDisabledVec4());
-    ImGui::Text("%s", full_version.c_str());
-    ImGui::PopStyleColor();
+    gui::ColoredText(full_version.c_str(), gui::GetTextDisabledVec4());
     ImGui::SameLine();
   }
 
   // 2. Dirty badge - warning color dot
   if (show_dirty) {
     const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
-    ImGui::PushStyleColor(ImGuiCol_Text,
-                          gui::ConvertColorToImVec4(theme.warning));
-    ImGui::Text(ICON_MD_FIBER_MANUAL_RECORD);
-    ImGui::PopStyleColor();
+    gui::ColoredText(ICON_MD_FIBER_MANUAL_RECORD,
+                     gui::ConvertColorToImVec4(theme.warning));
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Unsaved changes: %s",
                         current_rom->short_name().c_str());
@@ -626,7 +616,6 @@ void UICoordinator::DrawMenuBarExtras() {
   }
 #endif
 
-  ImGui::PopStyleVar();  // ItemSpacing
 }
 
 void UICoordinator::DrawMenuBarRestoreButton() {
@@ -646,18 +635,15 @@ void UICoordinator::DrawMenuBarRestoreButton() {
   ImGui::SetNextWindowBgAlpha(0.7f);
 
   if (ImGui::Begin("##MenuBarRestore", nullptr, flags)) {
-    ImGui::PushStyleColor(ImGuiCol_Button, gui::GetSurfaceContainerVec4());
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                          gui::GetSurfaceContainerHighVec4());
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                          gui::GetSurfaceContainerHighestVec4());
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
+    gui::StyleColorGuard btn_guard(
+        {{ImGuiCol_Button, gui::GetSurfaceContainerVec4()},
+         {ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4()},
+         {ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4()},
+         {ImGuiCol_Text, gui::GetPrimaryVec4()}});
 
     if (ImGui::Button(ICON_MD_FULLSCREEN_EXIT, ImVec2(32, 32))) {
       show_menu_bar_ = true;
     }
-
-    ImGui::PopStyleColor(4);
 
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Show menu bar (Alt)");
@@ -685,21 +671,14 @@ void UICoordinator::DrawNotificationBell(bool show_dirty, bool has_dirty_rom,
       right_panel->IsPanelActive(RightPanelManager::PanelType::kNotifications);
 
   // Bell icon with accent color when there are unread notifications or panel is active
-  if (unread > 0 || is_active) {
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                          gui::GetSurfaceContainerHighVec4());
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                          gui::GetSurfaceContainerHighestVec4());
-  } else {
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                          gui::GetSurfaceContainerHighVec4());
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                          gui::GetSurfaceContainerHighestVec4());
-  }
+  ImVec4 bell_text_color = (unread > 0 || is_active)
+                               ? gui::GetPrimaryVec4()
+                               : gui::GetTextSecondaryVec4();
+  gui::StyleColorGuard bell_guard(
+      {{ImGuiCol_Text, bell_text_color},
+       {ImGuiCol_Button, ImVec4(0, 0, 0, 0)},
+       {ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4()},
+       {ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4()}});
 
   // Bell button - opens notifications panel in right sidebar
   if (ImGui::SmallButton(ICON_MD_NOTIFICATIONS)) {
@@ -709,22 +688,18 @@ void UICoordinator::DrawNotificationBell(bool show_dirty, bool has_dirty_rom,
     }
   }
 
-  ImGui::PopStyleColor(4);
-
   // Enhanced tooltip showing notifications + hidden status items
   if (ImGui::IsItemHovered()) {
     ImGui::BeginTooltip();
 
     // Notifications
     if (unread > 0) {
-      ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
-      ImGui::Text("%s %zu new notification%s", ICON_MD_NOTIFICATIONS, unread,
-                  unread == 1 ? "" : "s");
-      ImGui::PopStyleColor();
+      gui::ColoredTextF(gui::GetPrimaryVec4(), "%s %zu new notification%s",
+                        ICON_MD_NOTIFICATIONS, unread,
+                        unread == 1 ? "" : "s");
     } else {
-      ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-      ImGui::Text(ICON_MD_NOTIFICATIONS " No new notifications");
-      ImGui::PopStyleColor();
+      gui::ColoredText(ICON_MD_NOTIFICATIONS " No new notifications",
+                       gui::GetTextSecondaryVec4());
     }
 
     ImGui::TextDisabled("Click to open Notifications panel");
@@ -732,13 +707,11 @@ void UICoordinator::DrawNotificationBell(bool show_dirty, bool has_dirty_rom,
     // Show hidden status items if any
     if (!show_dirty && has_dirty_rom) {
       ImGui::Separator();
-      ImGui::PushStyleColor(
-          ImGuiCol_Text,
+      gui::ColoredTextF(
           gui::ConvertColorToImVec4(
-              gui::ThemeManager::Get().GetCurrentTheme().warning));
-      ImGui::Text(ICON_MD_FIBER_MANUAL_RECORD " Unsaved changes: %s",
-                  current_rom->short_name().c_str());
-      ImGui::PopStyleColor();
+              gui::ThemeManager::Get().GetCurrentTheme().warning),
+          ICON_MD_FIBER_MANUAL_RECORD " Unsaved changes: %s",
+          current_rom->short_name().c_str());
     }
 
     if (!show_session && has_multiple_sessions) {
@@ -747,10 +720,9 @@ void UICoordinator::DrawNotificationBell(bool show_dirty, bool has_dirty_rom,
       } else {
         ImGui::Separator();
       }
-      ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-      ImGui::Text(ICON_MD_LAYERS " %zu sessions active",
-                  session_coordinator_.GetActiveSessionCount());
-      ImGui::PopStyleColor();
+      gui::ColoredTextF(gui::GetTextSecondaryVec4(),
+                        ICON_MD_LAYERS " %zu sessions active",
+                        session_coordinator_.GetActiveSessionCount());
     }
 
     ImGui::EndTooltip();
@@ -761,12 +733,11 @@ void UICoordinator::DrawSessionButton() {
   auto* current_rom = editor_manager_->GetCurrentRom();
 
   // Consistent button styling with other menubar buttons
-  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                        gui::GetSurfaceContainerHighVec4());
-  ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                        gui::GetSurfaceContainerHighestVec4());
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
+  gui::StyleColorGuard session_btn_guard(
+      {{ImGuiCol_Button, ImVec4(0, 0, 0, 0)},
+       {ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4()},
+       {ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4()},
+       {ImGuiCol_Text, gui::GetTextSecondaryVec4()}});
 
   // Store button position for popup anchoring
   ImVec2 button_min = ImGui::GetCursorScreenPos();
@@ -776,8 +747,6 @@ void UICoordinator::DrawSessionButton() {
   }
 
   ImVec2 button_max = ImGui::GetItemRectMax();
-
-  ImGui::PopStyleColor(4);
 
   if (ImGui::IsItemHovered()) {
     std::string tooltip = current_rom && current_rom->is_loaded()
@@ -814,8 +783,9 @@ void UICoordinator::DrawSessionButton() {
       ImGui::PushID(static_cast<int>(i));
 
       bool is_current = (rom == current_rom);
+      std::optional<gui::StyleColorGuard> current_guard;
       if (is_current) {
-        ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
+        current_guard.emplace(ImGuiCol_Text, gui::GetPrimaryVec4());
       }
 
       std::string label =
@@ -826,10 +796,6 @@ void UICoordinator::DrawSessionButton() {
 
       if (ImGui::Selectable(label.c_str(), is_current)) {
         editor_manager_->SwitchToSession(i);
-      }
-
-      if (is_current) {
-        ImGui::PopStyleColor();
       }
 
       ImGui::PopID();
@@ -1091,10 +1057,11 @@ void UICoordinator::DrawMaterialButton(const std::string& text,
                                        const ImVec4& color,
                                        std::function<void()> callback,
                                        bool enabled) {
+  std::optional<gui::StyleColorGuard> disabled_guard;
   if (!enabled) {
-    ImGui::PushStyleColor(ImGuiCol_Button,
-                          gui::GetSurfaceContainerHighestVec4());
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetOnSurfaceVariantVec4());
+    disabled_guard.emplace(std::initializer_list<gui::StyleColorGuard::Entry>{
+        {ImGuiCol_Button, gui::GetSurfaceContainerHighestVec4()},
+        {ImGuiCol_Text, gui::GetOnSurfaceVariantVec4()}});
   }
 
   std::string button_text =
@@ -1103,10 +1070,6 @@ void UICoordinator::DrawMaterialButton(const std::string& text,
     if (enabled && callback) {
       callback();
     }
-  }
-
-  if (!enabled) {
-    ImGui::PopStyleColor(2);
   }
 }
 
@@ -1278,22 +1241,16 @@ void UICoordinator::DrawCommandPalette() {
             PopID();
 
             TableNextColumn();
-            PushStyleColor(ImGuiCol_Text,
-                           gui::ConvertColorToImVec4(theme.text_secondary));
-            Text("%s", cmd.category.c_str());
-            PopStyleColor();
+            gui::ColoredText(cmd.category.c_str(),
+                             gui::ConvertColorToImVec4(theme.text_secondary));
 
             TableNextColumn();
-            PushStyleColor(ImGuiCol_Text,
-                           gui::ConvertColorToImVec4(theme.text_secondary));
-            Text("%s", cmd.shortcut.c_str());
-            PopStyleColor();
+            gui::ColoredText(cmd.shortcut.c_str(),
+                             gui::ConvertColorToImVec4(theme.text_secondary));
 
             TableNextColumn();
-            PushStyleColor(ImGuiCol_Text,
-                           gui::ConvertColorToImVec4(theme.text_disabled));
-            Text("%d", cmd.score);
-            PopStyleColor();
+            gui::ColoredTextF(gui::ConvertColorToImVec4(theme.text_disabled),
+                              "%d", cmd.score);
           }
 
           gui::LayoutHelpers::EndTableWithTheming();
@@ -1347,10 +1304,8 @@ void UICoordinator::DrawCommandPalette() {
     Text("%s %zu commands | Score: fuzzy match", ICON_MD_INFO,
          scored_commands.size());
     SameLine();
-    PushStyleColor(ImGuiCol_Text,
-                   gui::ConvertColorToImVec4(theme.text_disabled));
-    Text("| ↑↓=Navigate | Enter=Execute | Esc=Close");
-    PopStyleColor();
+    gui::ColoredText("| ↑↓=Navigate | Enter=Execute | Esc=Close",
+                     gui::ConvertColorToImVec4(theme.text_disabled));
   }
   End();
 
@@ -1575,8 +1530,9 @@ void UICoordinator::DrawGlobalSearch() {
 
             bool is_current =
                 (i == session_coordinator_.GetActiveSessionIndex());
+            std::optional<gui::StyleColorGuard> current_guard;
             if (is_current) {
-              ImGui::PushStyleColor(ImGuiCol_Text,
+              current_guard.emplace(ImGuiCol_Text,
                                     ImVec4(0.2f, 0.8f, 0.2f, 1.0f));
             }
 
@@ -1588,10 +1544,6 @@ void UICoordinator::DrawGlobalSearch() {
                 editor_manager_->SwitchToSession(i);
                 SetGlobalSearchVisible(false);
               }
-            }
-
-            if (is_current) {
-              ImGui::PopStyleColor();
             }
           }
           ImGui::EndTabItem();
