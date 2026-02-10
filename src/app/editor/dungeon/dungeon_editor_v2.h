@@ -230,6 +230,7 @@ class DungeonEditorV2 : public Editor {
 
   // Room selection callback
   void OnRoomSelected(int room_id, bool request_focus = true);
+  void OnRoomSelected(int room_id, RoomSelectionIntent intent);
   void OnEntranceSelected(int entrance_id);
 
   // Swap room in current panel (for arrow navigation)

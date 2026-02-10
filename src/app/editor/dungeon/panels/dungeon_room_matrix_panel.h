@@ -9,6 +9,7 @@
 #include <unordered_map>
 
 #include "app/editor/agent/agent_ui_theme.h"
+#include "app/editor/dungeon/dungeon_room_selector.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
@@ -60,6 +61,11 @@ class DungeonRoomMatrixPanel : public EditorPanel {
   std::string GetIcon() const override { return ICON_MD_GRID_VIEW; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
   int GetPriority() const override { return 30; }
+
+  void SetRoomIntentCallback(
+      std::function<void(int, RoomSelectionIntent)> callback) {
+    on_room_intent_ = std::move(callback);
+  }
 
   // ==========================================================================
   // EditorPanel Drawing
@@ -157,8 +163,18 @@ class DungeonRoomMatrixPanel : public EditorPanel {
           snprintf(btn_id, sizeof(btn_id), "##room%d", room_id);
           ImGui::InvisibleButton(btn_id, ImVec2(cell_size, cell_size));
 
-          if (ImGui::IsItemClicked() && on_room_selected_) {
-            on_room_selected_(room_id);
+          if (ImGui::IsItemClicked()) {
+            if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+              // Double-click: open as standalone panel
+              if (on_room_intent_) {
+                on_room_intent_(room_id,
+                                RoomSelectionIntent::kOpenStandalone);
+              } else if (on_room_selected_) {
+                on_room_selected_(room_id);
+              }
+            } else if (on_room_selected_) {
+              on_room_selected_(room_id);
+            }
           }
 
           if (ImGui::BeginPopupContextItem()) {
@@ -167,9 +183,21 @@ class DungeonRoomMatrixPanel : public EditorPanel {
                 *current_room_id_ >= 0 && *current_room_id_ < kTotalRooms &&
                 *current_room_id_ != room_id;
 
-            std::string open_label = is_open ? "Focus Room" : "Open Room";
+            std::string open_label = is_open ? "Focus Room" : "Open in Workbench";
             if (ImGui::MenuItem(open_label.c_str())) {
-              if (on_room_selected_) {
+              if (on_room_intent_) {
+                on_room_intent_(room_id,
+                                RoomSelectionIntent::kFocusInWorkbench);
+              } else if (on_room_selected_) {
+                on_room_selected_(room_id);
+              }
+            }
+
+            if (ImGui::MenuItem("Open as Panel")) {
+              if (on_room_intent_) {
+                on_room_intent_(room_id,
+                                RoomSelectionIntent::kOpenStandalone);
+              } else if (on_room_selected_) {
                 on_room_selected_(room_id);
               }
             }
@@ -312,6 +340,7 @@ class DungeonRoomMatrixPanel : public EditorPanel {
   std::array<zelda3::Room, 0x128>* rooms_ = nullptr;
   std::function<void(int)> on_room_selected_;
   std::function<void(int, int)> on_room_swap_;
+  std::function<void(int, RoomSelectionIntent)> on_room_intent_;
 };
 
 }  // namespace editor
