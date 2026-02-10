@@ -4,7 +4,9 @@
 #include "app/editor/events/core_events.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
+#include "app/gui/core/ui_helpers.h"
 #include "rom/rom.h"
 #include "imgui/imgui.h"
 
@@ -139,7 +141,6 @@ void StatusBar::Draw() {
     return;
   }
 
-  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
   const ImGuiViewport* viewport = ImGui::GetMainViewport();
 
   // Position at very bottom of viewport, outside the dockspace
@@ -147,28 +148,27 @@ void StatusBar::Draw() {
   const float bar_height = kStatusBarHeight;
   const float bar_y = viewport->WorkPos.y + viewport->WorkSize.y - bar_height;
 
-  // Use full viewport width (status bar spans under sidebars for visual continuity)
-  ImGui::SetNextWindowPos(ImVec2(viewport->WorkPos.x, bar_y));
-  ImGui::SetNextWindowSize(ImVec2(viewport->WorkSize.x, bar_height));
-
-  ImGuiWindowFlags flags =
-      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
-      ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoScrollbar |
-      ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoFocusOnAppearing |
-      ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBringToFrontOnFocus;
-
   // Status bar background - slightly elevated surface
   ImVec4 bar_bg = gui::GetSurfaceContainerVec4();
   ImVec4 bar_border = gui::GetOutlineVec4();
 
-  ImGui::PushStyleColor(ImGuiCol_WindowBg, bar_bg);
-  ImGui::PushStyleColor(ImGuiCol_Border, bar_border);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 4.0f));
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8.0f, 0.0f));
+  ImGuiWindowFlags extra_flags =
+      ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse |
+      ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNavFocus |
+      ImGuiWindowFlags_NoBringToFrontOnFocus;
 
-  if (ImGui::Begin("##StatusBar", nullptr, flags)) {
+  gui::FixedPanel bar(
+      "##StatusBar",
+      ImVec2(viewport->WorkPos.x, bar_y),
+      ImVec2(viewport->WorkSize.x, bar_height),
+      {.bg = bar_bg,
+       .border = bar_border,
+       .padding = {8.0f, 4.0f},
+       .spacing = {8.0f, 0.0f},
+       .border_size = 1.0f},
+      extra_flags);
+
+  if (bar) {
     // Left section: ROM info, Session, Dirty status
     DrawRomSegment();
 
@@ -240,14 +240,9 @@ void StatusBar::Draw() {
       }
     }
   }
-  ImGui::End();
-
-  ImGui::PopStyleVar(3);
-  ImGui::PopStyleColor(2);
 }
 
 void StatusBar::DrawAgentSegment() {
-  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
   std::string label = agent_model_.empty() ? agent_provider_ : agent_model_;
   if (label.empty()) {
     label = "Agent";
@@ -260,16 +255,16 @@ void StatusBar::DrawAgentSegment() {
 
   ImVec4 text_color = agent_active_ ? gui::GetPrimaryVec4()
                                     : gui::GetTextSecondaryVec4();
-  ImGui::PushStyleColor(ImGuiCol_Text, text_color);
-  ImGui::PushStyleColor(ImGuiCol_Button, gui::GetSurfaceContainerHighVec4());
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                        gui::GetSurfaceContainerHighestVec4());
+  gui::StyleColorGuard agent_colors({
+      {ImGuiCol_Text, text_color},
+      {ImGuiCol_Button, gui::GetSurfaceContainerHighVec4()},
+      {ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighestVec4()},
+  });
   if (ImGui::SmallButton(button_label.c_str())) {
     if (agent_toggle_callback_) {
       agent_toggle_callback_();
     }
   }
-  ImGui::PopStyleColor(3);
 
   if (ImGui::IsItemHovered()) {
     ImGui::BeginTooltip();
@@ -290,32 +285,30 @@ void StatusBar::DrawRomSegment() {
 
   if (rom_ && rom_->is_loaded()) {
     // ROM name
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_Text));
-    ImGui::Text("%s %s", ICON_MD_DESCRIPTION, rom_->short_name().c_str());
-    ImGui::PopStyleColor();
+    gui::ColoredTextF(ImGui::GetStyleColorVec4(ImGuiCol_Text),
+                      "%s %s", ICON_MD_DESCRIPTION,
+                      rom_->short_name().c_str());
 
     // Dirty indicator
     if (rom_->dirty()) {
       ImGui::SameLine();
-      ImGui::PushStyleColor(ImGuiCol_Text, gui::ConvertColorToImVec4(theme.warning));
-      ImGui::Text(ICON_MD_FIBER_MANUAL_RECORD);
-      ImGui::PopStyleColor();
+      gui::ColoredText(ICON_MD_FIBER_MANUAL_RECORD,
+                       gui::ConvertColorToImVec4(theme.warning));
 
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Unsaved changes");
       }
     }
   } else {
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-    ImGui::Text("%s No ROM loaded", ICON_MD_DESCRIPTION);
-    ImGui::PopStyleColor();
+    gui::ColoredTextF(gui::GetTextSecondaryVec4(),
+                      "%s No ROM loaded", ICON_MD_DESCRIPTION);
   }
 }
 
 void StatusBar::DrawSessionSegment() {
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-  ImGui::Text("%s S%zu/%zu", ICON_MD_LAYERS, session_id_ + 1, total_sessions_);
-  ImGui::PopStyleColor();
+  gui::ColoredTextF(gui::GetTextSecondaryVec4(),
+                    "%s S%zu/%zu", ICON_MD_LAYERS,
+                    session_id_ + 1, total_sessions_);
 
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Session %zu of %zu", session_id_ + 1, total_sessions_);
@@ -323,13 +316,13 @@ void StatusBar::DrawSessionSegment() {
 }
 
 void StatusBar::DrawCursorSegment() {
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-  ImGui::Text("%s: %d, %d", cursor_label_.c_str(), cursor_x_, cursor_y_);
-  ImGui::PopStyleColor();
+  gui::ColoredTextF(gui::GetTextSecondaryVec4(),
+                    "%s: %d, %d", cursor_label_.c_str(), cursor_x_, cursor_y_);
 }
 
 void StatusBar::DrawSelectionSegment() {
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
+  gui::StyleColorGuard selection_color(ImGuiCol_Text,
+                                       gui::GetTextSecondaryVec4());
 
   if (selection_width_ > 0 && selection_height_ > 0) {
     ImGui::Text("%s %d (%dx%d)", ICON_MD_SELECT_ALL, selection_count_,
@@ -337,17 +330,12 @@ void StatusBar::DrawSelectionSegment() {
   } else if (selection_count_ > 0) {
     ImGui::Text("%s %d selected", ICON_MD_SELECT_ALL, selection_count_);
   }
-
-  ImGui::PopStyleColor();
 }
 
 void StatusBar::DrawZoomSegment() {
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-
   int zoom_percent = static_cast<int>(zoom_level_ * 100.0f);
-  ImGui::Text("%s %d%%", ICON_MD_ZOOM_IN, zoom_percent);
-
-  ImGui::PopStyleColor();
+  gui::ColoredTextF(gui::GetTextSecondaryVec4(),
+                    "%s %d%%", ICON_MD_ZOOM_IN, zoom_percent);
 
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Zoom: %d%%", zoom_percent);
@@ -355,25 +343,20 @@ void StatusBar::DrawZoomSegment() {
 }
 
 void StatusBar::DrawModeSegment() {
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-  ImGui::Text("%s", editor_mode_.c_str());
-  ImGui::PopStyleColor();
+  gui::ColoredTextF(gui::GetTextSecondaryVec4(), "%s", editor_mode_.c_str());
 }
 
 void StatusBar::DrawCustomSegments() {
   for (const auto& [key, value] : custom_segments_) {
     DrawSeparator();
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-    ImGui::Text("%s: %s", key.c_str(), value.c_str());
-    ImGui::PopStyleColor();
+    gui::ColoredTextF(gui::GetTextSecondaryVec4(),
+                      "%s: %s", key.c_str(), value.c_str());
   }
 }
 
 void StatusBar::DrawSeparator() {
   ImGui::SameLine();
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetOutlineVec4());
-  ImGui::Text("|");
-  ImGui::PopStyleColor();
+  gui::ColoredText("|", gui::GetOutlineVec4());
   ImGui::SameLine();
 }
 

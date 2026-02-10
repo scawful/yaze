@@ -8,6 +8,7 @@
 
 #include "app/gui/core/color.h"
 #include "app/gui/core/platform_keys.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
 
@@ -249,16 +250,10 @@ void KeyboardShortcuts::ToggleOverlay() {
 void KeyboardShortcuts::DrawOverlay() {
   if (!show_overlay_) return;
 
-  const auto& theme = ThemeManager::Get().GetCurrentTheme();
-
   // Semi-transparent fullscreen background
   ImGuiIO& io = ImGui::GetIO();
   ImGui::SetNextWindowPos(ImVec2(0, 0));
   ImGui::SetNextWindowSize(io.DisplaySize);
-  ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.7f));
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-
   ImGuiWindowFlags overlay_flags = ImGuiWindowFlags_NoTitleBar |
                                    ImGuiWindowFlags_NoResize |
                                    ImGuiWindowFlags_NoMove |
@@ -266,23 +261,28 @@ void KeyboardShortcuts::DrawOverlay() {
                                    ImGuiWindowFlags_NoSavedSettings |
                                    ImGuiWindowFlags_NoBringToFrontOnFocus;
 
-  if (ImGui::Begin("##ShortcutOverlayBg", nullptr, overlay_flags)) {
-    // Close on click outside modal
-    if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(0)) {
-      ImVec2 mouse = ImGui::GetMousePos();
-      ImVec2 modal_pos =
-          ImVec2((io.DisplaySize.x - 600) * 0.5f, (io.DisplaySize.y - 500) * 0.5f);
-      ImVec2 modal_size = ImVec2(600, 500);
+  {
+    StyledWindow overlay_bg(
+        "##ShortcutOverlayBg",
+        {.bg = ImVec4(0.0f, 0.0f, 0.0f, 0.7f),
+         .padding = ImVec2(0, 0),
+         .border_size = 0.0f},
+        nullptr, overlay_flags);
+    if (overlay_bg) {
+      // Close on click outside modal
+      if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(0)) {
+        ImVec2 mouse = ImGui::GetMousePos();
+        ImVec2 modal_pos = ImVec2((io.DisplaySize.x - 600) * 0.5f,
+                                  (io.DisplaySize.y - 500) * 0.5f);
+        ImVec2 modal_size = ImVec2(600, 500);
 
-      if (mouse.x < modal_pos.x || mouse.x > modal_pos.x + modal_size.x ||
-          mouse.y < modal_pos.y || mouse.y > modal_pos.y + modal_size.y) {
-        HideOverlay();
+        if (mouse.x < modal_pos.x || mouse.x > modal_pos.x + modal_size.x ||
+            mouse.y < modal_pos.y || mouse.y > modal_pos.y + modal_size.y) {
+          HideOverlay();
+        }
       }
     }
   }
-  ImGui::End();
-  ImGui::PopStyleVar(2);
-  ImGui::PopStyleColor();
 
   // Draw the centered modal window
   DrawOverlayContent();
@@ -302,19 +302,22 @@ void KeyboardShortcuts::DrawOverlayContent() {
   ImGui::SetNextWindowSize(ImVec2(modal_width, modal_height));
 
   // Style the modal window
-  ImGui::PushStyleColor(ImGuiCol_WindowBg, ConvertColorToImVec4(theme.popup_bg));
-  ImGui::PushStyleColor(ImGuiCol_Border, ConvertColorToImVec4(theme.border));
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20, 16));
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
-
   ImGuiWindowFlags modal_flags = ImGuiWindowFlags_NoTitleBar |
                                  ImGuiWindowFlags_NoResize |
                                  ImGuiWindowFlags_NoMove |
                                  ImGuiWindowFlags_NoCollapse |
                                  ImGuiWindowFlags_NoSavedSettings;
 
-  if (ImGui::Begin("##ShortcutOverlay", nullptr, modal_flags)) {
+  StyledWindow modal(
+      "##ShortcutOverlay",
+      {.bg = ConvertColorToImVec4(theme.popup_bg),
+       .border = ConvertColorToImVec4(theme.border),
+       .padding = ImVec2(20, 16),
+       .border_size = 1.0f,
+       .rounding = 8.0f},
+      nullptr, modal_flags);
+
+  if (modal) {
     // Header
     ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);  // Use default font
     ImGui::TextColored(ConvertColorToImVec4(theme.accent), "Keyboard Shortcuts");
@@ -333,10 +336,11 @@ void KeyboardShortcuts::DrawOverlayContent() {
 
     // Search filter
     ImGui::SetNextItemWidth(modal_width - 40);
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
-    ImGui::InputTextWithHint("##ShortcutSearch", "Search shortcuts...",
-                             search_filter_, sizeof(search_filter_));
-    ImGui::PopStyleVar();
+    {
+      StyleVarGuard frame_rounding(ImGuiStyleVar_FrameRounding, 4.0f);
+      ImGui::InputTextWithHint("##ShortcutSearch", "Search shortcuts...",
+                               search_filter_, sizeof(search_filter_));
+    }
 
     // Context indicator
     ImGui::SameLine();
@@ -411,10 +415,6 @@ void KeyboardShortcuts::DrawOverlayContent() {
     ImGui::Separator();
     ImGui::TextDisabled("Press ? to toggle | Escape to close");
   }
-  ImGui::End();
-
-  ImGui::PopStyleVar(3);
-  ImGui::PopStyleColor(2);
 }
 
 void KeyboardShortcuts::DrawCategorySection(
@@ -424,16 +424,15 @@ void KeyboardShortcuts::DrawCategorySection(
   auto header_bg = ConvertColorToImVec4(theme.header);
 
   // Category header with collapsible behavior
-  ImGui::PushStyleColor(ImGuiCol_Header, header_bg);
-  ImGui::PushStyleColor(ImGuiCol_HeaderHovered,
-                        ImVec4(header_bg.x + 0.05f,
-                               header_bg.y + 0.05f,
-                               header_bg.z + 0.05f, 1.0f));
+  StyleColorGuard header_colors({
+      {ImGuiCol_Header, header_bg},
+      {ImGuiCol_HeaderHovered,
+       ImVec4(header_bg.x + 0.05f, header_bg.y + 0.05f,
+              header_bg.z + 0.05f, 1.0f)},
+  });
 
   bool is_open = ImGui::CollapsingHeader(
       category.c_str(), ImGuiTreeNodeFlags_DefaultOpen);
-
-  ImGui::PopStyleColor(2);
 
   if (is_open) {
     ImGui::Indent(10.0f);
@@ -468,20 +467,19 @@ void KeyboardShortcuts::DrawShortcutRow(const Shortcut& shortcut) {
   bool is_active = IsShortcutActiveInContext(shortcut);
 
   // Draw keyboard shortcut badge
-  ImGui::PushStyleColor(ImGuiCol_Button,
-                        is_active ? ImVec4(0.2f, 0.3f, 0.4f, 0.8f)
-                                  : ImVec4(0.15f, 0.15f, 0.15f, 0.6f));
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                        is_active ? ImVec4(0.25f, 0.35f, 0.45f, 0.9f)
-                                  : ImVec4(0.2f, 0.2f, 0.2f, 0.7f));
-  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
-  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 2));
+  StyleColorGuard badge_colors({
+      {ImGuiCol_Button, is_active ? ImVec4(0.2f, 0.3f, 0.4f, 0.8f)
+                                  : ImVec4(0.15f, 0.15f, 0.15f, 0.6f)},
+      {ImGuiCol_ButtonHovered, is_active ? ImVec4(0.25f, 0.35f, 0.45f, 0.9f)
+                                         : ImVec4(0.2f, 0.2f, 0.2f, 0.7f)},
+  });
+  StyleVarGuard badge_vars({
+      {ImGuiStyleVar_FrameRounding, 4.0f},
+      {ImGuiStyleVar_FramePadding, ImVec2(6, 2)},
+  });
 
   std::string display = shortcut.GetDisplayString();
   ImGui::SmallButton(display.c_str());
-
-  ImGui::PopStyleVar(2);
-  ImGui::PopStyleColor(2);
 
   // Description
   ImGui::TableNextColumn();

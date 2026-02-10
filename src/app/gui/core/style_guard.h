@@ -223,6 +223,75 @@ class FixedPanel {
   std::optional<StyledWindow> window_;
 };
 
+// ============================================================================
+// StyledChild — RAII for BeginChild/EndChild with optional styling
+// ============================================================================
+
+/**
+ * @brief Configuration for styled child windows.
+ *
+ * Uses C++20 designated initializers:
+ *   StyledChildConfig{.bg = color, .border = border_color, .rounding = 4.0f}
+ */
+struct StyledChildConfig {
+  std::optional<ImVec4> bg;       // ImGuiCol_ChildBg
+  std::optional<ImVec4> border;   // ImGuiCol_Border
+  float rounding = -1.0f;        // ImGuiStyleVar_ChildRounding
+  float border_size = -1.0f;     // ImGuiStyleVar_ChildBorderSize
+};
+
+/**
+ * @brief RAII guard for ImGui child windows with optional styling.
+ *
+ * Replaces the common pattern of PushStyleColor(ChildBg) + BeginChild +
+ * EndChild + PopStyleColor.
+ *
+ * Usage:
+ *   StyledChild child("##list", {0, 200}, {.bg = dark_bg}, true);
+ *   if (child) { // draw contents }
+ */
+class StyledChild {
+ public:
+  StyledChild(const char* id, const ImVec2& size,
+              const StyledChildConfig& config,
+              bool has_border = false, ImGuiWindowFlags flags = 0)
+      : color_count_(0), var_count_(0) {
+    if (config.bg.has_value()) {
+      ImGui::PushStyleColor(ImGuiCol_ChildBg, *config.bg);
+      ++color_count_;
+    }
+    if (config.border.has_value()) {
+      ImGui::PushStyleColor(ImGuiCol_Border, *config.border);
+      ++color_count_;
+    }
+    if (config.rounding >= 0.0f) {
+      ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, config.rounding);
+      ++var_count_;
+    }
+    if (config.border_size >= 0.0f) {
+      ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, config.border_size);
+      ++var_count_;
+    }
+    is_open_ = ImGui::BeginChild(id, size, has_border, flags);
+  }
+
+  ~StyledChild() {
+    ImGui::EndChild();
+    if (var_count_ > 0) ImGui::PopStyleVar(var_count_);
+    if (color_count_ > 0) ImGui::PopStyleColor(color_count_);
+  }
+
+  explicit operator bool() const { return is_open_; }
+
+  StyledChild(const StyledChild&) = delete;
+  StyledChild& operator=(const StyledChild&) = delete;
+
+ private:
+  int color_count_;
+  int var_count_;
+  bool is_open_;
+};
+
 }  // namespace gui
 }  // namespace yaze
 

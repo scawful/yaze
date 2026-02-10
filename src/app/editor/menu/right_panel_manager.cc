@@ -18,8 +18,11 @@
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/platform_keys.h"
 #include "app/gui/core/style.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
+#include "app/gui/core/ui_helpers.h"
 #include "app/gui/core/ui_config.h"
+#include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
 #include "util/platform_paths.h"
 
@@ -317,18 +320,21 @@ void RightPanelManager::Draw() {
       ImVec2(panel_x, viewport->WorkPos.y + top_inset));
   ImGui::SetNextWindowSize(ImVec2(full_width, viewport_height));
 
-  ImGui::PushStyleColor(ImGuiCol_WindowBg, panel_bg);
-  ImGui::PushStyleColor(ImGuiCol_Border, panel_border);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
-
-  if (ImGui::Begin("##RightPanel", nullptr, panel_flags)) {
+  gui::StyledWindow panel(
+      "##RightPanel",
+      {.bg = panel_bg,
+       .border = panel_border,
+       .padding = ImVec2(0.0f, 0.0f),
+       .border_size = 1.0f},
+      nullptr, panel_flags);
+  if (panel) {
     // Draw enhanced panel header
     DrawPanelHeader(GetPanelTypeName(draw_panel),
                     GetPanelTypeIcon(draw_panel));
 
     // Content area with padding
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12.0f, 8.0f));
+    gui::StyleVarGuard content_padding(ImGuiStyleVar_WindowPadding,
+                                       ImVec2(12.0f, 8.0f));
     ImGui::BeginChild("##PanelContent", ImVec2(0, 0), false,
                       ImGuiWindowFlags_AlwaysUseWindowPadding);
 
@@ -360,12 +366,7 @@ void RightPanelManager::Draw() {
     }
 
     ImGui::EndChild();
-    ImGui::PopStyleVar();  // WindowPadding for content
   }
-  ImGui::End();
-
-  ImGui::PopStyleVar(2);
-  ImGui::PopStyleColor(2);
 }
 
 void RightPanelManager::DrawPanelHeader(const char* title, const char* icon) {
@@ -394,16 +395,12 @@ void RightPanelManager::DrawPanelHeader(const char* title, const char* icon) {
                        (header_height - ImGui::GetTextLineHeight()) * 0.5f);
 
   // Panel icon with primary color
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
-  ImGui::Text("%s", icon);
-  ImGui::PopStyleColor();
+  gui::ColoredText(icon, gui::GetPrimaryVec4());
 
   ImGui::SameLine();
 
   // Panel title (use current style text color)
-  ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_Text));
-  ImGui::Text("%s", title);
-  ImGui::PopStyleColor();
+  gui::ColoredText(title, ImGui::GetStyleColorVec4(ImGuiCol_Text));
 
   // Right-aligned buttons
   const float button_size = gui::LayoutHelpers::GetStandardWidgetHeight();
@@ -413,15 +410,15 @@ void RightPanelManager::DrawPanelHeader(const char* title, const char* icon) {
   ImGui::SameLine(current_x);
   ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 4.0f);  // Center vertically
 
-  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                        gui::GetSurfaceContainerHighestVec4());
-  ImGui::PushStyleColor(
-      ImGuiCol_ButtonActive,
-      ImVec4(gui::GetPrimaryVec4().x * 0.3f, gui::GetPrimaryVec4().y * 0.3f,
-             gui::GetPrimaryVec4().z * 0.3f, 0.4f));
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
+  gui::StyleColorGuard button_colors({
+      {ImGuiCol_Button, ImVec4(0, 0, 0, 0)},
+      {ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighestVec4()},
+      {ImGuiCol_ButtonActive,
+       ImVec4(gui::GetPrimaryVec4().x * 0.3f, gui::GetPrimaryVec4().y * 0.3f,
+              gui::GetPrimaryVec4().z * 0.3f, 0.4f)},
+      {ImGuiCol_Text, gui::GetTextSecondaryVec4()},
+  });
+  gui::StyleVarGuard button_rounding(ImGuiStyleVar_FrameRounding, 4.0f);
 
   if (ImGui::Button(ICON_MD_CLOSE, ImVec2(button_size, button_size))) {
     ClosePanel();
@@ -437,23 +434,19 @@ void RightPanelManager::DrawPanelHeader(const char* title, const char* icon) {
 
     ImVec4 lock_color = properties_locked_ ? gui::GetPrimaryVec4()
                                            : gui::GetTextSecondaryVec4();
-    ImGui::PushStyleColor(ImGuiCol_Text, lock_color);
+    gui::StyleColorGuard lock_text(ImGuiCol_Text, lock_color);
 
     if (ImGui::Button(
             properties_locked_ ? ICON_MD_LOCK : ICON_MD_LOCK_OPEN,
             ImVec2(button_size, button_size))) {
       properties_locked_ = !properties_locked_;
     }
-    ImGui::PopStyleColor();
 
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(properties_locked_ ? "Unlock Selection"
                                            : "Lock Selection");
     }
   }
-
-  ImGui::PopStyleVar();
-  ImGui::PopStyleColor(4);
 
   // Move cursor past the header
   ImGui::SetCursorPosY(header_height + 8.0f);
@@ -465,13 +458,15 @@ void RightPanelManager::DrawPanelHeader(const char* title, const char* icon) {
 
 bool RightPanelManager::BeginPanelSection(const char* label, const char* icon,
                                           bool default_open) {
-  ImGui::PushStyleColor(ImGuiCol_Header, gui::GetSurfaceContainerHighVec4());
-  ImGui::PushStyleColor(ImGuiCol_HeaderHovered,
-                        gui::GetSurfaceContainerHighestVec4());
-  ImGui::PushStyleColor(ImGuiCol_HeaderActive,
-                        gui::GetSurfaceContainerHighestVec4());
-  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8.0f, 6.0f));
-  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
+  gui::StyleColorGuard section_colors({
+      {ImGuiCol_Header, gui::GetSurfaceContainerHighVec4()},
+      {ImGuiCol_HeaderHovered, gui::GetSurfaceContainerHighestVec4()},
+      {ImGuiCol_HeaderActive, gui::GetSurfaceContainerHighestVec4()},
+  });
+  gui::StyleVarGuard section_vars({
+      {ImGuiStyleVar_FramePadding, ImVec2(8.0f, 6.0f)},
+      {ImGuiStyleVar_FrameRounding, 4.0f},
+  });
 
   // Build header text with icon if provided
   std::string header_text;
@@ -490,9 +485,6 @@ bool RightPanelManager::BeginPanelSection(const char* label, const char* icon,
 
   bool is_open = ImGui::TreeNodeEx(header_text.c_str(), flags);
 
-  ImGui::PopStyleVar(2);
-  ImGui::PopStyleColor(3);
-
   if (is_open) {
     ImGui::Spacing();
     ImGui::Indent(4.0f);
@@ -509,32 +501,28 @@ void RightPanelManager::EndPanelSection() {
 
 void RightPanelManager::DrawPanelDivider() {
   ImGui::Spacing();
-  ImGui::PushStyleColor(ImGuiCol_Separator, gui::GetOutlineVec4());
-  ImGui::Separator();
-  ImGui::PopStyleColor();
+  {
+    gui::StyleColorGuard sep_color(ImGuiCol_Separator, gui::GetOutlineVec4());
+    ImGui::Separator();
+  }
   ImGui::Spacing();
 }
 
 void RightPanelManager::DrawPanelLabel(const char* label) {
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-  ImGui::TextUnformatted(label);
-  ImGui::PopStyleColor();
+  gui::ColoredText(label, gui::GetTextSecondaryVec4());
 }
 
 void RightPanelManager::DrawPanelValue(const char* label, const char* value) {
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-  ImGui::Text("%s:", label);
-  ImGui::PopStyleColor();
+  gui::ColoredTextF(gui::GetTextSecondaryVec4(), "%s:", label);
   ImGui::SameLine();
   ImGui::TextUnformatted(value);
 }
 
 void RightPanelManager::DrawPanelDescription(const char* text) {
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextDisabledVec4());
+  gui::StyleColorGuard desc_color(ImGuiCol_Text, gui::GetTextDisabledVec4());
   ImGui::PushTextWrapPos(ImGui::GetContentRegionAvail().x);
   ImGui::TextWrapped("%s", text);
   ImGui::PopTextWrapPos();
-  ImGui::PopStyleColor();
 }
 
 std::string RightPanelManager::GetShortcutLabel(
@@ -572,9 +560,8 @@ void RightPanelManager::DrawAgentChatPanel() {
   const ImVec4 accent = gui::GetPrimaryVec4();
 
   if (!agent_chat_) {
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-    ImGui::Text(ICON_MD_SMART_TOY " AI Agent Not Available");
-    ImGui::PopStyleColor();
+    gui::ColoredText(ICON_MD_SMART_TOY " AI Agent Not Available",
+                     gui::GetTextSecondaryVec4());
     ImGui::Spacing();
     DrawPanelDescription(
         "The AI Agent is not initialized. "
@@ -584,24 +571,20 @@ void RightPanelManager::DrawAgentChatPanel() {
 
   bool chat_active = *agent_chat_->active();
 
-  ImGui::PushStyleColor(ImGuiCol_ChildBg, header_bg);
-  ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 8.0f);
-  if (ImGui::BeginChild("AgentHero", ImVec2(0, 110), true)) {
-    ImGui::PushStyleColor(ImGuiCol_Text, hero_text);
-    ImGui::TextColored(accent, "%s AI Agent", ICON_MD_SMART_TOY);
-    ImGui::PopStyleColor();
-    ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-    ImGui::Text("Right Sidebar");
-    ImGui::PopStyleColor();
+  {
+    gui::StyledChild hero_child("AgentHero", ImVec2(0, 110),
+                                {.bg = header_bg, .rounding = 8.0f}, true);
+    if (hero_child) {
+      // TextColored sets its own color, no Push/Pop needed
+      ImGui::TextColored(accent, "%s AI Agent", ICON_MD_SMART_TOY);
+      ImGui::SameLine();
+      gui::ColoredText("Right Sidebar", gui::GetTextSecondaryVec4());
 
-    ImGui::Spacing();
-    DrawPanelValue("Status", chat_active ? "Active" : "Inactive");
-    DrawPanelValue("Provider", "Configured via Agent Editor");
+      ImGui::Spacing();
+      DrawPanelValue("Status", chat_active ? "Active" : "Inactive");
+      DrawPanelValue("Provider", "Configured via Agent Editor");
+    }
   }
-  ImGui::EndChild();
-  ImGui::PopStyleVar();
-  ImGui::PopStyleColor();
 
   ImGui::Spacing();
   agent_chat_->set_active(true);
@@ -662,35 +645,38 @@ void RightPanelManager::DrawAgentChatPanel() {
   }
 
   // Footer actions (always visible, not clipped)
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6, 6));
-  ImGui::PushStyleColor(ImGuiCol_Button, gui::GetPrimaryVec4());
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, gui::GetPrimaryHoverVec4());
-  ImGui::PushStyleColor(ImGuiCol_ButtonActive, gui::GetPrimaryActiveVec4());
-  if (ImGui::Button(ICON_MD_OPEN_IN_NEW " Focus Agent Chat", ImVec2(-1, 0))) {
-    agent_chat_->set_active(true);
-    agent_chat_->ScrollToBottom();
+  gui::StyleVarGuard footer_spacing(ImGuiStyleVar_ItemSpacing, ImVec2(6, 6));
+  {
+    gui::StyleColorGuard focus_btn_colors({
+        {ImGuiCol_Button, gui::GetPrimaryVec4()},
+        {ImGuiCol_ButtonHovered, gui::GetPrimaryHoverVec4()},
+        {ImGuiCol_ButtonActive, gui::GetPrimaryActiveVec4()},
+    });
+    if (ImGui::Button(ICON_MD_OPEN_IN_NEW " Focus Agent Chat",
+                      ImVec2(-1, 0))) {
+      agent_chat_->set_active(true);
+      agent_chat_->ScrollToBottom();
+    }
   }
-  ImGui::PopStyleColor(3);
 
   ImVec2 half_width(ImGui::GetContentRegionAvail().x / 2 - 4, 0);
-  ImGui::PushStyleColor(ImGuiCol_Button, gui::GetSurfaceContainerVec4());
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                        gui::GetSurfaceContainerHighVec4());
-  ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                        gui::GetSurfaceContainerHighestVec4());
-  if (ImGui::Button(ICON_MD_DELETE_FOREVER " Clear", half_width)) {
-    agent_chat_->ClearHistory();
+  {
+    gui::StyleColorGuard secondary_btn_colors({
+        {ImGuiCol_Button, gui::GetSurfaceContainerVec4()},
+        {ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4()},
+        {ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4()},
+    });
+    if (ImGui::Button(ICON_MD_DELETE_FOREVER " Clear", half_width)) {
+      agent_chat_->ClearHistory();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_FILE_DOWNLOAD " Save", half_width)) {
+      agent_chat_->SaveHistory(ResolveAgentChatHistoryPath());
+    }
   }
-  ImGui::SameLine();
-  if (ImGui::Button(ICON_MD_FILE_DOWNLOAD " Save", half_width)) {
-    agent_chat_->SaveHistory(ResolveAgentChatHistoryPath());
-  }
-  ImGui::PopStyleColor(3);
-  ImGui::PopStyleVar();
 #else
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-  ImGui::Text(ICON_MD_SMART_TOY " AI Agent Not Available");
-  ImGui::PopStyleColor();
+  gui::ColoredText(ICON_MD_SMART_TOY " AI Agent Not Available",
+                   gui::GetTextSecondaryVec4());
 
   ImGui::Spacing();
   DrawPanelDescription(
@@ -803,9 +789,8 @@ bool RightPanelManager::DrawAgentQuickActions() {
   }
 
   ImGui::TextColored(accent, "%s Editor Actions", ICON_MD_BOLT);
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-  ImGui::Text("Send a context-aware prompt to the agent.");
-  ImGui::PopStyleColor();
+  gui::ColoredText("Send a context-aware prompt to the agent.",
+                   gui::GetTextSecondaryVec4());
 
   int columns = ImGui::GetContentRegionAvail().x > 420.0f ? 2 : 1;
   if (ImGui::BeginTable("AgentQuickActionsTable", columns,
@@ -832,9 +817,8 @@ void RightPanelManager::DrawProposalsPanel() {
     }
     proposal_drawer_->DrawContent();
   } else {
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-    ImGui::Text(ICON_MD_DESCRIPTION " Proposals Not Available");
-    ImGui::PopStyleColor();
+    gui::ColoredText(ICON_MD_DESCRIPTION " Proposals Not Available",
+                     gui::GetTextSecondaryVec4());
 
     ImGui::Spacing();
     DrawPanelDescription(
@@ -848,9 +832,8 @@ void RightPanelManager::DrawSettingsPanel() {
     // Draw settings inline (no card windows)
     settings_panel_->Draw();
   } else {
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-    ImGui::Text(ICON_MD_SETTINGS " Settings Not Available");
-    ImGui::PopStyleColor();
+    gui::ColoredText(ICON_MD_SETTINGS " Settings Not Available",
+                     gui::GetTextSecondaryVec4());
 
     ImGui::Spacing();
     DrawPanelDescription(
@@ -935,9 +918,8 @@ void RightPanelManager::DrawEditorContextHeader() {
   }
 
   // Draw context header with editor info
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
-  ImGui::Text("%s %s Help", editor_icon, editor_name);
-  ImGui::PopStyleColor();
+  gui::ColoredTextF(gui::GetPrimaryVec4(), "%s %s Help", editor_icon,
+                    editor_name);
 
   DrawPanelDivider();
 }
@@ -1045,9 +1027,11 @@ void RightPanelManager::DrawEditorSpecificShortcuts() {
     default:
       DrawPanelLabel("Editor Shortcuts");
       ImGui::Indent(8.0f);
-      ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-      ImGui::TextWrapped("Select an editor to see specific shortcuts.");
-      ImGui::PopStyleColor();
+      {
+        gui::StyleColorGuard text_color(ImGuiCol_Text,
+                                        gui::GetTextSecondaryVec4());
+        ImGui::TextWrapped("Select an editor to see specific shortcuts.");
+      }
       ImGui::Unindent(8.0f);
       break;
   }
@@ -1055,9 +1039,9 @@ void RightPanelManager::DrawEditorSpecificShortcuts() {
 
 void RightPanelManager::DrawEditorSpecificHelp() {
   switch (active_editor_type_) {
-    case EditorType::kOverworld:
-      ImGui::PushStyleColor(ImGuiCol_Text,
-                            ImGui::GetStyleColorVec4(ImGuiCol_Text));
+    case EditorType::kOverworld: {
+      gui::StyleColorGuard text_color(
+          ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_Text));
       ImGui::Bullet();
       ImGui::TextWrapped("Paint tiles by selecting from Tile16 Selector");
       ImGui::Bullet();
@@ -1068,12 +1052,11 @@ void RightPanelManager::DrawEditorSpecificHelp() {
           "Use Entity Mode to place entrances, exits, items, and sprites");
       ImGui::Bullet();
       ImGui::TextWrapped("Right-click on the map to pick a tile for painting");
-      ImGui::PopStyleColor();
-      break;
+    } break;
 
-    case EditorType::kDungeon:
-      ImGui::PushStyleColor(ImGuiCol_Text,
-                            ImGui::GetStyleColorVec4(ImGuiCol_Text));
+    case EditorType::kDungeon: {
+      gui::StyleColorGuard text_color(
+          ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_Text));
       ImGui::Bullet();
       ImGui::TextWrapped("Select rooms from the Room Selector or Room Matrix");
       ImGui::Bullet();
@@ -1083,12 +1066,11 @@ void RightPanelManager::DrawEditorSpecificHelp() {
           "Edit room headers for palette, GFX, and floor settings");
       ImGui::Bullet();
       ImGui::TextWrapped("Multiple rooms can be opened in separate tabs");
-      ImGui::PopStyleColor();
-      break;
+    } break;
 
-    case EditorType::kGraphics:
-      ImGui::PushStyleColor(ImGuiCol_Text,
-                            ImGui::GetStyleColorVec4(ImGuiCol_Text));
+    case EditorType::kGraphics: {
+      gui::StyleColorGuard text_color(
+          ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_Text));
       ImGui::Bullet();
       ImGui::TextWrapped("Browse graphics sheets using the Sheet Browser");
       ImGui::Bullet();
@@ -1097,44 +1079,40 @@ void RightPanelManager::DrawEditorSpecificHelp() {
       ImGui::TextWrapped("Choose palettes from Palette Controls");
       ImGui::Bullet();
       ImGui::TextWrapped("View 3D objects like rupees and crystals");
-      ImGui::PopStyleColor();
-      break;
+    } break;
 
-    case EditorType::kPalette:
-      ImGui::PushStyleColor(ImGuiCol_Text,
-                            ImGui::GetStyleColorVec4(ImGuiCol_Text));
+    case EditorType::kPalette: {
+      gui::StyleColorGuard text_color(
+          ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_Text));
       ImGui::Bullet();
       ImGui::TextWrapped("Edit overworld, dungeon, and sprite palettes");
       ImGui::Bullet();
       ImGui::TextWrapped("Use Quick Access for color harmony tools");
       ImGui::Bullet();
       ImGui::TextWrapped("Changes update in real-time across all editors");
-      ImGui::PopStyleColor();
-      break;
+    } break;
 
-    case EditorType::kMusic:
-      ImGui::PushStyleColor(ImGuiCol_Text,
-                            ImGui::GetStyleColorVec4(ImGuiCol_Text));
+    case EditorType::kMusic: {
+      gui::StyleColorGuard text_color(
+          ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_Text));
       ImGui::Bullet();
       ImGui::TextWrapped("Browse songs in the Song Browser");
       ImGui::Bullet();
       ImGui::TextWrapped("Use the tracker for playback control");
       ImGui::Bullet();
       ImGui::TextWrapped("Edit instruments and BRR samples");
-      ImGui::PopStyleColor();
-      break;
+    } break;
 
-    case EditorType::kMessage:
-      ImGui::PushStyleColor(ImGuiCol_Text,
-                            ImGui::GetStyleColorVec4(ImGuiCol_Text));
+    case EditorType::kMessage: {
+      gui::StyleColorGuard text_color(
+          ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_Text));
       ImGui::Bullet();
       ImGui::TextWrapped("Edit all in-game dialog messages");
       ImGui::Bullet();
       ImGui::TextWrapped("Preview text rendering with the font atlas");
       ImGui::Bullet();
       ImGui::TextWrapped("Manage the compression dictionary");
-      ImGui::PopStyleColor();
-      break;
+    } break;
 
     default:
       ImGui::Bullet();
@@ -1152,49 +1130,54 @@ void RightPanelManager::DrawEditorSpecificHelp() {
 void RightPanelManager::DrawQuickActionButtons() {
   const float button_width = ImGui::GetContentRegionAvail().x;
 
-  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8.0f, 6.0f));
-  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
+  gui::StyleVarGuard button_vars({
+      {ImGuiStyleVar_FramePadding, ImVec2(8.0f, 6.0f)},
+      {ImGuiStyleVar_FrameRounding, 4.0f},
+  });
 
   // Documentation button
-  ImGui::PushStyleColor(ImGuiCol_Button, gui::GetSurfaceContainerHighVec4());
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                        gui::GetSurfaceContainerHighestVec4());
-  if (ImGui::Button(ICON_MD_DESCRIPTION " Open Documentation",
-                    ImVec2(button_width, 0))) {
-    gui::OpenUrl("https://github.com/scawful/yaze/wiki");
+  {
+    gui::StyleColorGuard btn_colors({
+        {ImGuiCol_Button, gui::GetSurfaceContainerHighVec4()},
+        {ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighestVec4()},
+    });
+    if (ImGui::Button(ICON_MD_DESCRIPTION " Open Documentation",
+                      ImVec2(button_width, 0))) {
+      gui::OpenUrl("https://github.com/scawful/yaze/wiki");
+    }
   }
-  ImGui::PopStyleColor(2);
 
   ImGui::Spacing();
 
   // GitHub Issues button
-  ImGui::PushStyleColor(ImGuiCol_Button, gui::GetSurfaceContainerHighVec4());
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                        gui::GetSurfaceContainerHighestVec4());
-  if (ImGui::Button(ICON_MD_BUG_REPORT " Report Issue",
-                    ImVec2(button_width, 0))) {
-    gui::OpenUrl("https://github.com/scawful/yaze/issues/new");
+  {
+    gui::StyleColorGuard btn_colors({
+        {ImGuiCol_Button, gui::GetSurfaceContainerHighVec4()},
+        {ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighestVec4()},
+    });
+    if (ImGui::Button(ICON_MD_BUG_REPORT " Report Issue",
+                      ImVec2(button_width, 0))) {
+      gui::OpenUrl("https://github.com/scawful/yaze/issues/new");
+    }
   }
-  ImGui::PopStyleColor(2);
 
   ImGui::Spacing();
 
   // Discord button
-  ImGui::PushStyleColor(ImGuiCol_Button, gui::GetSurfaceContainerHighVec4());
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                        gui::GetSurfaceContainerHighestVec4());
-  if (ImGui::Button(ICON_MD_FORUM " Join Discord", ImVec2(button_width, 0))) {
-    gui::OpenUrl("https://discord.gg/zU5qDm8MZg");
+  {
+    gui::StyleColorGuard btn_colors({
+        {ImGuiCol_Button, gui::GetSurfaceContainerHighVec4()},
+        {ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighestVec4()},
+    });
+    if (ImGui::Button(ICON_MD_FORUM " Join Discord",
+                      ImVec2(button_width, 0))) {
+      gui::OpenUrl("https://discord.gg/zU5qDm8MZg");
+    }
   }
-  ImGui::PopStyleColor(2);
-
-  ImGui::PopStyleVar(2);
 }
 
 void RightPanelManager::DrawAboutSection() {
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
-  ImGui::Text("YAZE - Yet Another Zelda3 Editor");
-  ImGui::PopStyleColor();
+  gui::ColoredText("YAZE - Yet Another Zelda3 Editor", gui::GetPrimaryVec4());
 
   ImGui::Spacing();
   DrawPanelDescription(
@@ -1212,39 +1195,37 @@ void RightPanelManager::DrawAboutSection() {
 
   DrawPanelLabel("Links");
   ImGui::Spacing();
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-  ImGui::Text(ICON_MD_LINK " github.com/scawful/yaze");
-  ImGui::PopStyleColor();
+  gui::ColoredText(ICON_MD_LINK " github.com/scawful/yaze",
+                   gui::GetTextSecondaryVec4());
 }
 
 void RightPanelManager::DrawNotificationsPanel() {
   if (!toast_manager_) {
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-    ImGui::Text(ICON_MD_NOTIFICATIONS_OFF " Notifications Unavailable");
-    ImGui::PopStyleColor();
+    gui::ColoredText(ICON_MD_NOTIFICATIONS_OFF " Notifications Unavailable",
+                     gui::GetTextSecondaryVec4());
     return;
   }
 
   // Header actions
-  float button_width = 100.0f;
   float avail = ImGui::GetContentRegionAvail().x;
 
-  // Mark all read button
-  ImGui::PushStyleColor(ImGuiCol_Button, gui::GetSurfaceContainerHighVec4());
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                        gui::GetSurfaceContainerHighestVec4());
+  // Mark all read / Clear all buttons
+  {
+    gui::StyleColorGuard btn_colors({
+        {ImGuiCol_Button, gui::GetSurfaceContainerHighVec4()},
+        {ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighestVec4()},
+    });
 
-  if (ImGui::Button(ICON_MD_DONE_ALL " Mark All Read",
-                    ImVec2(avail * 0.5f - 4.0f, 0))) {
-    toast_manager_->MarkAllRead();
+    if (ImGui::Button(ICON_MD_DONE_ALL " Mark All Read",
+                      ImVec2(avail * 0.5f - 4.0f, 0))) {
+      toast_manager_->MarkAllRead();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_DELETE_SWEEP " Clear All",
+                      ImVec2(avail * 0.5f - 4.0f, 0))) {
+      toast_manager_->ClearHistory();
+    }
   }
-  ImGui::SameLine();
-  if (ImGui::Button(ICON_MD_DELETE_SWEEP " Clear All",
-                    ImVec2(avail * 0.5f - 4.0f, 0))) {
-    toast_manager_->ClearHistory();
-  }
-
-  ImGui::PopStyleColor(2);
 
   DrawPanelDivider();
 
@@ -1253,9 +1234,8 @@ void RightPanelManager::DrawNotificationsPanel() {
 
   if (history.empty()) {
     ImGui::Spacing();
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-    ImGui::Text(ICON_MD_INBOX " No notifications");
-    ImGui::PopStyleColor();
+    gui::ColoredText(ICON_MD_INBOX " No notifications",
+                     gui::GetTextSecondaryVec4());
     ImGui::Spacing();
     DrawPanelDescription(
         "Notifications will appear here when actions complete.");
@@ -1265,13 +1245,9 @@ void RightPanelManager::DrawNotificationsPanel() {
   // Stats
   size_t unread_count = toast_manager_->GetUnreadCount();
   if (unread_count > 0) {
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
-    ImGui::Text("%zu unread", unread_count);
-    ImGui::PopStyleColor();
+    gui::ColoredTextF(gui::GetPrimaryVec4(), "%zu unread", unread_count);
   } else {
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-    ImGui::Text("All caught up");
-    ImGui::PopStyleColor();
+    gui::ColoredText("All caught up", gui::GetTextSecondaryVec4());
   }
 
   ImGui::Spacing();
@@ -1334,16 +1310,12 @@ void RightPanelManager::DrawNotificationsPanel() {
 
     // Unread indicator
     if (!entry.read) {
-      ImGui::PushStyleColor(ImGuiCol_Text, gui::GetPrimaryVec4());
-      ImGui::Text(ICON_MD_FIBER_MANUAL_RECORD);
-      ImGui::PopStyleColor();
+      gui::ColoredText(ICON_MD_FIBER_MANUAL_RECORD, gui::GetPrimaryVec4());
       ImGui::SameLine();
     }
 
     // Icon
-    ImGui::PushStyleColor(ImGuiCol_Text, color);
-    ImGui::Text("%s", icon);
-    ImGui::PopStyleColor();
+    gui::ColoredTextF(color, "%s", icon);
     ImGui::SameLine();
 
     // Message
@@ -1364,9 +1336,7 @@ void RightPanelManager::DrawNotificationsPanel() {
       time_str = absl::StrFormat("%dd ago", diff_sec / 86400);
     }
 
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextDisabledVec4());
-    ImGui::Text("  %s", time_str.c_str());
-    ImGui::PopStyleColor();
+    gui::ColoredTextF(gui::GetTextDisabledVec4(), "  %s", time_str.c_str());
 
     ImGui::PopID();
     ImGui::Spacing();
@@ -1380,9 +1350,8 @@ void RightPanelManager::DrawPropertiesPanel() {
     properties_panel_->Draw();
   } else {
     // Placeholder when no properties panel is set
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-    ImGui::Text(ICON_MD_SELECT_ALL " No Selection");
-    ImGui::PopStyleColor();
+    gui::ColoredText(ICON_MD_SELECT_ALL " No Selection",
+                     gui::GetTextSecondaryVec4());
 
     ImGui::Spacing();
     DrawPanelDescription(
@@ -1419,9 +1388,8 @@ void RightPanelManager::DrawProjectPanel() {
   if (project_panel_) {
     project_panel_->Draw();
   } else {
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-    ImGui::Text(ICON_MD_FOLDER_SPECIAL " No Project Loaded");
-    ImGui::PopStyleColor();
+    gui::ColoredText(ICON_MD_FOLDER_SPECIAL " No Project Loaded",
+                     gui::GetTextSecondaryVec4());
 
     ImGui::Spacing();
     DrawPanelDescription(
@@ -1464,22 +1432,19 @@ bool RightPanelManager::DrawPanelToggleButtons() {
     bool is_active = IsPanelActive(type);
 
     // Consistent button styling - transparent background with hover states
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                          gui::GetSurfaceContainerHighVec4());
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                          gui::GetSurfaceContainerHighestVec4());
-    // Active = primary color, inactive = secondary text color
-    ImGui::PushStyleColor(ImGuiCol_Text, is_active
-                                             ? gui::GetPrimaryVec4()
-                                             : gui::GetTextSecondaryVec4());
+    gui::StyleColorGuard btn_colors({
+        {ImGuiCol_Button, ImVec4(0, 0, 0, 0)},
+        {ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4()},
+        {ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4()},
+        // Active = primary color, inactive = secondary text color
+        {ImGuiCol_Text, is_active ? gui::GetPrimaryVec4()
+                                  : gui::GetTextSecondaryVec4()},
+    });
 
     if (ImGui::SmallButton(icon)) {
       TogglePanel(type);
       clicked = true;
     }
-
-    ImGui::PopStyleColor(4);
 
     if (ImGui::IsItemHovered()) {
       std::string shortcut = GetShortcutLabel(shortcut_action, "");

@@ -374,6 +374,40 @@ bool DangerButton(const char* label, const ImVec2& size, const char* panel_id,
   return clicked;
 }
 
+bool SuccessButton(const char* label, const ImVec2& size, const char* panel_id,
+                   const char* anim_id) {
+  const auto& theme = ThemeManager::Get().GetCurrentTheme();
+
+  ImGui::PushStyleColor(ImGuiCol_Button, ConvertColorToImVec4(theme.success));
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                        ConvertColorToImVec4(theme.button_hovered));
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                        ConvertColorToImVec4(theme.button_active));
+  ImGui::PushStyleColor(ImGuiCol_Text,
+                        ConvertColorToImVec4(theme.text_primary));
+
+  bool clicked = ImGui::Button(label, size);
+
+  const bool hovered = ImGui::IsItemHovered();
+  const char* panel_key = panel_id ? panel_id : "global";
+  std::string anim_key = anim_id ? anim_id : std::to_string(ImGui::GetItemID());
+  float hover_t = GetAnimator().Animate(panel_key, anim_key,
+                                        hovered ? 1.0f : 0.0f, 8.0f);
+
+  if (hover_t > 0.001f) {
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    ImVec2 rect_min = ImGui::GetItemRectMin();
+    ImVec2 rect_max = ImGui::GetItemRectMax();
+    ImVec4 overlay = ImVec4(1.0f, 1.0f, 1.0f, hover_t * 0.15f);
+    draw_list->AddRectFilled(rect_min, rect_max,
+                             ImGui::GetColorU32(overlay),
+                             ImGui::GetStyle().FrameRounding);
+  }
+
+  ImGui::PopStyleColor(4);
+  return clicked;
+}
+
 bool ToolbarIconButton(const char* icon, const char* tooltip,
                        bool is_active) {
   return ThemedIconButton(icon, tooltip, IconSize::Toolbar(), is_active);
