@@ -8,6 +8,7 @@
 #include "app/emu/input/input_backend.h"
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/plots/implot_support.h"
 #include "app/platform/sdl_compat.h"
@@ -64,11 +65,11 @@ void RenderNavBar(Emulator* emu) {
   }
 
   // Navbar with theme colors
-  ImGui::PushStyleColor(ImGuiCol_Button, ConvertColorToImVec4(theme.button));
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                        ConvertColorToImVec4(theme.button_hovered));
-  ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                        ConvertColorToImVec4(theme.button_active));
+  gui::StyleColorGuard navbar_colors({
+      {ImGuiCol_Button, ConvertColorToImVec4(theme.button)},
+      {ImGuiCol_ButtonHovered, ConvertColorToImVec4(theme.button_hovered)},
+      {ImGuiCol_ButtonActive, ConvertColorToImVec4(theme.button_active)},
+  });
 
   // Play/Pause button with icon
   bool is_running = emu->running();
@@ -312,7 +313,6 @@ void RenderNavBar(Emulator* emu) {
         "Enable this if Tab isn't working for turbo mode.");
   }
 
-  ImGui::PopStyleColor(3);
 }
 
 void RenderSnesPpu(Emulator* emu) {
@@ -322,10 +322,9 @@ void RenderSnesPpu(Emulator* emu) {
   auto& theme_manager = ThemeManager::Get();
   const auto& theme = theme_manager.GetCurrentTheme();
 
-  ImGui::PushStyleColor(ImGuiCol_ChildBg,
-                        ConvertColorToImVec4(theme.editor_background));
-  ImGui::BeginChild(
-      "##SNES_PPU", ImVec2(0, 0), true,
+  gui::StyledChild ppu_child(
+      "##SNES_PPU", ImVec2(0, 0),
+      {.bg = ConvertColorToImVec4(theme.editor_background)}, true,
       ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
   ImVec2 canvas_size = ImGui::GetContentRegionAvail();
@@ -381,8 +380,6 @@ void RenderSnesPpu(Emulator* emu) {
                        "512x480 SNES output");
   }
 
-  ImGui::EndChild();
-  ImGui::PopStyleColor();
 }
 
 void RenderPerformanceMonitor(Emulator* emu) {
@@ -392,8 +389,9 @@ void RenderPerformanceMonitor(Emulator* emu) {
   auto& theme_manager = ThemeManager::Get();
   const auto& theme = theme_manager.GetCurrentTheme();
 
-  ImGui::PushStyleColor(ImGuiCol_ChildBg, ConvertColorToImVec4(theme.child_bg));
-  ImGui::BeginChild("##Performance", ImVec2(0, 0), true);
+  gui::StyledChild perf_child("##Performance", ImVec2(0, 0),
+                              {.bg = ConvertColorToImVec4(theme.child_bg)},
+                              true);
 
   ImGui::TextColored(ConvertColorToImVec4(theme.accent),
                      ICON_MD_SPEED " Performance Monitor");
@@ -597,8 +595,6 @@ void RenderPerformanceMonitor(Emulator* emu) {
     }
   }
 
-  ImGui::EndChild();
-  ImGui::PopStyleColor();
 }
 
 void RenderKeyboardShortcuts(bool* show) {
