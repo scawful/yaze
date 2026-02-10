@@ -55,6 +55,7 @@ Default builds now share `build/` (native) and `build-wasm/` (WASM). If you need
 *   **Build**: `./scripts/agent_build.sh [target]` (Default target: `yaze`)
 *   **Test**: `./scripts/agent_build.sh yaze_test && ./build/bin/yaze_test`
 *   **Directory**: `build/` by default (override via `YAZE_BUILD_DIR`).
+*   **ROM safety**: `docs/internal/agents/rom-safety-guardrails.md` (preflight: `scripts/rom_safety_preflight.sh`)
 
 ## Archive
 
