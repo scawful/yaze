@@ -88,5 +88,34 @@ TEST(StoryEventGraphTest, EvaluatesMaskPredicates) {
   EXPECT_EQ(graph.GetNode("C")->status, StoryNodeStatus::kCompleted);
 }
 
-}  // namespace yaze::core
+TEST(StoryEventGraphTest, ParsesScriptRefsFromObjects) {
+  constexpr const char* kJson = R"json(
+{
+  "events": [
+    {
+      "id": "A",
+      "name": "Scripts",
+      "scripts": [
+        "followers.asm:123",
+        { "file": "followers.asm", "symbol": "ZoraBaby_PostSwitch" },
+        { "symbol": "GlobalHook" },
+        { "file": "followers.asm", "line": 456 }
+      ]
+    }
+  ],
+  "edges": []
+}
+)json";
 
+  StoryEventGraph graph;
+  ASSERT_TRUE(graph.LoadFromString(kJson).ok());
+  const auto* node = graph.GetNode("A");
+  ASSERT_NE(node, nullptr);
+  ASSERT_EQ(node->scripts.size(), 4u);
+  EXPECT_EQ(node->scripts[0], "followers.asm:123");
+  EXPECT_EQ(node->scripts[1], "followers.asm:ZoraBaby_PostSwitch");
+  EXPECT_EQ(node->scripts[2], "GlobalHook");
+  EXPECT_EQ(node->scripts[3], "followers.asm:456");
+}
+
+}  // namespace yaze::core
