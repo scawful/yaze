@@ -6,6 +6,7 @@
 #include "absl/strings/str_join.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/style_guard.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -20,8 +21,9 @@ void AgentZ3EDCommandPanel::Draw(AgentUIContext* context,
   ImVec4 command_color = ImVec4(1.0f, 0.647f, 0.0f, 1.0f);
 
   // Dense header (no collapsing)
-  ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.14f, 0.12f, 0.18f, 0.95f));
-  ImGui::BeginChild("Z3ED_CommandsChild", ImVec2(0, 100), true);
+  gui::StyledChild cmd_child(
+      "Z3ED_CommandsChild", ImVec2(0, 100),
+      {.bg = ImVec4(0.14f, 0.12f, 0.18f, 0.95f)}, true);
 
   ImGui::TextColored(command_color, ICON_MD_TERMINAL " Commands");
   ImGui::Separator();
@@ -92,9 +94,6 @@ void AgentZ3EDCommandPanel::Draw(AgentUIContext* context,
     ImGui::TextDisabled(
         "%s", state.command_output.substr(0, 100).c_str());
   }
-
-  ImGui::EndChild();
-  ImGui::PopStyleColor();
 
   ImGui::PopID();
 }
