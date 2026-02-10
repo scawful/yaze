@@ -9,6 +9,8 @@
 #include "absl/time/time.h"
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/style_guard.h"
+#include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -41,9 +43,8 @@ void AgentAutomationPanel::Draw(AgentUIContext* context,
                                 theme.provider_ollama.y + 0.2f * pulse,
                                 theme.provider_ollama.z + 0.4f * pulse, 1.0f);
 
-    ImGui::PushStyleColor(ImGuiCol_Text, header_glow);
-    ImGui::TextWrapped("%s %s", ICON_MD_SMART_TOY, "GUI AUTOMATION");
-    ImGui::PopStyleColor();
+    gui::ColoredTextF(header_glow, "%s %s", ICON_MD_SMART_TOY,
+                       "GUI AUTOMATION");
 
     ImGui::SameLine();
     ImGui::TextDisabled("[v0.5.x]");
@@ -80,21 +81,20 @@ void AgentAutomationPanel::Draw(AgentUIContext* context,
     bool auto_ref_pulse =
         state.auto_refresh_enabled &&
         (static_cast<int>(state.pulse_animation * 2.0f) % 2 == 0);
-    if (auto_ref_pulse) {
-      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.5f, 0.7f, 0.8f));
-    }
-
-    if (ImGui::SmallButton(ICON_MD_REFRESH " Refresh")) {
-      if (callbacks.poll_status) {
-        callbacks.poll_status();
+    {
+      std::optional<gui::StyleColorGuard> pulse_guard;
+      if (auto_ref_pulse) {
+        pulse_guard.emplace(ImGuiCol_Button, ImVec4(0.2f, 0.5f, 0.7f, 0.8f));
       }
-      if (callbacks.show_active_tests) {
-        callbacks.show_active_tests();
-      }
-    }
 
-    if (auto_ref_pulse) {
-      ImGui::PopStyleColor();
+      if (ImGui::SmallButton(ICON_MD_REFRESH " Refresh")) {
+        if (callbacks.poll_status) {
+          callbacks.poll_status();
+        }
+        if (callbacks.show_active_tests) {
+          callbacks.show_active_tests();
+        }
+      }
     }
 
     if (ImGui::IsItemHovered()) {
@@ -240,9 +240,12 @@ void AgentAutomationPanel::Draw(AgentUIContext* context,
         // Message (if any) with indentation
         if (!test.message.empty()) {
           ImGui::Indent(20.0f);
-          ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
-          ImGui::TextWrapped("  %s %s", ICON_MD_MESSAGE, test.message.c_str());
-          ImGui::PopStyleColor();
+          {
+            gui::StyleColorGuard msg_color(ImGuiCol_Text,
+                                           ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
+            ImGui::TextWrapped("  %s %s", ICON_MD_MESSAGE,
+                               test.message.c_str());
+          }
           ImGui::Unindent(20.0f);
         }
 
