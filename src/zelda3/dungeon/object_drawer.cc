@@ -3798,6 +3798,57 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap,
   }
 }
 
+absl::Status ObjectDrawer::DrawRoomDrawObjectData2x2(
+    uint16_t object_id, int tile_x, int tile_y, RoomObject::LayerType layer,
+    uint16_t room_draw_object_data_offset, gfx::BackgroundBuffer& bg1,
+    gfx::BackgroundBuffer& bg2) {
+  if (!rom_ || !rom_->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+
+  const auto& rom_data = rom_->vector();
+  const int base =
+      kRoomObjectTileAddress + static_cast<int>(room_draw_object_data_offset);
+  if (base < 0 || base + 7 >= static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError(
+        absl::StrFormat("RoomDrawObjectData 2x2 out of range: base=0x%X",
+                        base));
+  }
+
+  auto read_word = [&](int off) -> uint16_t {
+    return static_cast<uint16_t>(rom_data[off]) |
+           (static_cast<uint16_t>(rom_data[off + 1]) << 8);
+  };
+
+  const uint16_t w0 = read_word(base + 0);
+  const uint16_t w1 = read_word(base + 2);
+  const uint16_t w2 = read_word(base + 4);
+  const uint16_t w3 = read_word(base + 6);
+
+  const gfx::TileInfo t0 = gfx::WordToTileInfo(w0);
+  const gfx::TileInfo t1 = gfx::WordToTileInfo(w1);
+  const gfx::TileInfo t2 = gfx::WordToTileInfo(w2);
+  const gfx::TileInfo t3 = gfx::WordToTileInfo(w3);
+
+  // Set trace context once; WriteTile8 will emit per-tile traces.
+  RoomObject trace_obj(static_cast<int16_t>(object_id),
+                       static_cast<uint8_t>(tile_x),
+                       static_cast<uint8_t>(tile_y), 0,
+                       static_cast<uint8_t>(layer));
+  SetTraceContext(trace_obj, layer);
+
+  gfx::BackgroundBuffer& target_bg =
+      (layer == RoomObject::LayerType::BG2) ? bg2 : bg1;
+
+  // Column-major order (matches USDASM $BF/$CB/$C2/$CE writes).
+  WriteTile8(target_bg, tile_x + 0, tile_y + 0, t0);  // top-left
+  WriteTile8(target_bg, tile_x + 0, tile_y + 1, t1);  // bottom-left
+  WriteTile8(target_bg, tile_x + 1, tile_y + 0, t2);  // top-right
+  WriteTile8(target_bg, tile_x + 1, tile_y + 1, t3);  // bottom-right
+
+  return absl::OkStatus();
+}
+
 // ============================================================================
 // Type 3 / Special Routine Implementations
 // ============================================================================
