@@ -297,6 +297,88 @@ TEST(WaterFillZoneTest, LoadLegacyWaterGateZonesParsesSym) {
   EXPECT_EQ(zones[1].fill_offsets, (std::vector<uint16_t>{42}));
 }
 
+#if defined(YAZE_WITH_JSON)
+
+TEST(WaterFillZoneTest, JsonDumpThenLoadRoundTripNormalizes) {
+  std::vector<WaterFillZoneEntry> zones;
+  {
+    WaterFillZoneEntry z;
+    z.room_id = 0x27;
+    z.sram_bit_mask = 0x00;  // Auto allowed in JSON
+    z.fill_offsets = {4095, 10, 10, 0};
+    zones.push_back(std::move(z));
+  }
+  {
+    WaterFillZoneEntry z;
+    z.room_id = 0x25;
+    z.sram_bit_mask = 0x02;
+    z.fill_offsets = {1234, 2, 3};
+    zones.push_back(std::move(z));
+  }
+
+  auto json_or = DumpWaterFillZonesToJsonString(zones);
+  ASSERT_TRUE(json_or.ok()) << json_or.status().message();
+
+  auto loaded_or = LoadWaterFillZonesFromJsonString(*json_or);
+  ASSERT_TRUE(loaded_or.ok()) << loaded_or.status().message();
+  auto loaded = std::move(loaded_or.value());
+  ASSERT_EQ(loaded.size(), 2u);
+
+  EXPECT_EQ(loaded[0].room_id, 0x25);
+  EXPECT_EQ(loaded[0].sram_bit_mask, 0x02);
+  EXPECT_EQ(loaded[0].fill_offsets, (std::vector<uint16_t>{2, 3, 1234}));
+
+  EXPECT_EQ(loaded[1].room_id, 0x27);
+  EXPECT_EQ(loaded[1].sram_bit_mask, 0x00);
+  EXPECT_EQ(loaded[1].fill_offsets, (std::vector<uint16_t>{0, 10, 4095}));
+}
+
+TEST(WaterFillZoneTest, JsonLoadRejectsDuplicateRoom) {
+  constexpr const char* kJson = R"json(
+{
+  "version": 1,
+  "zones": [
+    { "room_id": "0x25", "mask": "0x01", "offsets": [ 0 ] },
+    { "room_id": "0x25", "mask": "0x02", "offsets": [ 1 ] }
+  ]
+}
+)json";
+
+  auto zones_or = LoadWaterFillZonesFromJsonString(kJson);
+  EXPECT_FALSE(zones_or.ok());
+}
+
+TEST(WaterFillZoneTest, JsonLoadRejectsOutOfRangeOffset) {
+  constexpr const char* kJson = R"json(
+{
+  "version": 1,
+  "zones": [
+    { "room_id": 37, "mask": 1, "offsets": [ 4096 ] }
+  ]
+}
+)json";
+
+  auto zones_or = LoadWaterFillZonesFromJsonString(kJson);
+  EXPECT_FALSE(zones_or.ok());
+}
+
+#else
+
+TEST(WaterFillZoneTest, JsonHelpersReturnUnimplementedWhenJsonDisabled) {
+  WaterFillZoneEntry z;
+  z.room_id = 0x25;
+  z.sram_bit_mask = 0x01;
+  z.fill_offsets = {0};
+
+  auto dump_or = DumpWaterFillZonesToJsonString({z});
+  EXPECT_EQ(dump_or.status().code(), absl::StatusCode::kUnimplemented);
+
+  auto load_or = LoadWaterFillZonesFromJsonString("{}");
+  EXPECT_EQ(load_or.status().code(), absl::StatusCode::kUnimplemented);
+}
+
+#endif  // YAZE_WITH_JSON
+
 }  // namespace test
 }  // namespace zelda3
 }  // namespace yaze
