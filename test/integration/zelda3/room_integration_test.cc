@@ -21,6 +21,69 @@ namespace yaze {
 namespace zelda3 {
 namespace test {
 
+namespace {
+
+// Compute the byte length of the room's object blob (2-byte header + encoded
+// object stream) by scanning the byte stream for layer terminators and the door
+// marker. This mirrors Room::ParseObjectsFromLocation enough to find the end
+// of the encoded stream without relying on brittle heuristics.
+size_t ComputeRoomObjectBlobLength(const std::vector<uint8_t>& rom_data,
+                                   int objects_location,
+                                   size_t max_scan_bytes = 2000) {
+  const int rom_size = static_cast<int>(rom_data.size());
+  if (objects_location < 0 || objects_location + 2 >= rom_size) {
+    return 0;
+  }
+
+  // Object stream begins after the 2-byte room header.
+  int pos = objects_location + 2;
+  int layer = 0;
+  bool door = false;
+
+  const int scan_end =
+      std::min(rom_size, objects_location + static_cast<int>(max_scan_bytes));
+
+  while (pos + 1 < scan_end) {
+    const uint8_t b1 = rom_data[pos];
+    const uint8_t b2 = rom_data[pos + 1];
+
+    // Layer terminator ($FFFF)
+    if (b1 == 0xFF && b2 == 0xFF) {
+      pos += 2;
+      layer++;
+      door = false;
+      if (layer == 3) {
+        break;
+      }
+      continue;
+    }
+
+    // Door marker ($FFF0) (byte order: F0 FF)
+    if (b1 == 0xF0 && b2 == 0xFF) {
+      pos += 2;
+      door = true;
+      continue;
+    }
+
+    if (door) {
+      // Doors are 2-byte entries.
+      pos += 2;
+    } else {
+      // Objects are 3-byte entries.
+      if (pos + 2 >= scan_end) {
+        break;
+      }
+      pos += 3;
+    }
+  }
+
+  // Include the 2-byte header preceding the object stream.
+  const int bytes = pos - objects_location;
+  return bytes > 0 ? static_cast<size_t>(bytes) : 0;
+}
+
+}  // namespace
+
 class RoomIntegrationTest : public ::testing::Test {
  protected:
   void SetUp() override {
@@ -272,37 +335,25 @@ TEST_F(RoomIntegrationTest, BinaryDataExactMatch) {
                      (rom_data[room_address + 1] << 8) + rom_data[room_address];
   int objects_location = SnesToPc(tile_address);
 
-  // Read original bytes (up to 500 bytes should cover most rooms)
-  std::vector<uint8_t> original_bytes;
-  for (int i = 0; i < 500 && objects_location + i < (int)rom_data.size(); i++) {
-    original_bytes.push_back(rom_data[objects_location + i]);
-    // Stop at final terminator
-    if (i > 0 && original_bytes[i] == 0xFF && original_bytes[i - 1] == 0xFF) {
-      // Check if this is the final terminator (3rd layer end)
-      bool might_be_final = true;
-      for (int j = i - 10; j < i - 1; j += 2) {
-        if (j >= 0 && original_bytes[j] == 0xFF &&
-            original_bytes[j + 1] == 0xFF) {
-          // Found another FF FF marker, keep going
-          break;
-        }
-      }
-      if (might_be_final)
-        break;
-    }
-  }
+  const size_t blob_len =
+      ComputeRoomObjectBlobLength(rom_data, objects_location);
+  ASSERT_GT(blob_len, 2u) << "Unexpected object blob length";
+  ASSERT_LE(objects_location + static_cast<int>(blob_len),
+            static_cast<int>(rom_data.size()))
+      << "Object blob length extends past ROM size";
+
+  std::vector<uint8_t> original_bytes(
+      rom_data.begin() + objects_location,
+      rom_data.begin() + objects_location + blob_len);
 
   // Save objects (should write identical data)
   ASSERT_TRUE(room.SaveObjects().ok());
 
   // Read bytes after save
   rom_data = rom_->vector();
-  std::vector<uint8_t> saved_bytes;
-  for (size_t i = 0;
-       i < original_bytes.size() && objects_location + i < rom_data.size();
-       i++) {
-    saved_bytes.push_back(rom_data[objects_location + i]);
-  }
+  std::vector<uint8_t> saved_bytes(
+      rom_data.begin() + objects_location,
+      rom_data.begin() + objects_location + blob_len);
 
   // Verify binary match
   ASSERT_EQ(saved_bytes.size(), original_bytes.size());
