@@ -43,8 +43,10 @@ void AgentAutomationPanel::Draw(AgentUIContext* context,
                                 theme.provider_ollama.y + 0.2f * pulse,
                                 theme.provider_ollama.z + 0.4f * pulse, 1.0f);
 
-    gui::ColoredTextF(header_glow, "%s %s", ICON_MD_SMART_TOY,
-                       "GUI AUTOMATION");
+    {
+      gui::StyleColorGuard glow_guard(ImGuiCol_Text, header_glow);
+      ImGui::TextWrapped("%s %s", ICON_MD_SMART_TOY, "GUI AUTOMATION");
+    }
 
     ImGui::SameLine();
     ImGui::TextDisabled("[v0.5.x]");
