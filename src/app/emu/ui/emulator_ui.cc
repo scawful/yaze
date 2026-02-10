@@ -609,9 +609,10 @@ void RenderKeyboardShortcuts(bool* show) {
   ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
   ImGui::SetNextWindowSize(ImVec2(550, 600), ImGuiCond_Appearing);
 
-  ImGui::PushStyleColor(ImGuiCol_TitleBg, ConvertColorToImVec4(theme.accent));
-  ImGui::PushStyleColor(ImGuiCol_TitleBgActive,
-                        ConvertColorToImVec4(theme.accent));
+  gui::StyleColorGuard title_colors({
+      {ImGuiCol_TitleBg, ConvertColorToImVec4(theme.accent)},
+      {ImGuiCol_TitleBgActive, ConvertColorToImVec4(theme.accent)},
+  });
 
   if (ImGui::Begin(ICON_MD_KEYBOARD " Keyboard Shortcuts", show,
                    ImGuiWindowFlags_NoCollapse)) {
@@ -699,8 +700,6 @@ void RenderKeyboardShortcuts(bool* show) {
     }
   }
   ImGui::End();
-
-  ImGui::PopStyleColor(2);
 }
 
 void RenderEmulatorInterface(Emulator* emu) {
@@ -711,8 +710,8 @@ void RenderEmulatorInterface(Emulator* emu) {
   const auto& theme = theme_manager.GetCurrentTheme();
 
   // Main layout
-  ImGui::PushStyleColor(ImGuiCol_ChildBg,
-                        ConvertColorToImVec4(theme.window_bg));
+  gui::StyleColorGuard main_bg(ImGuiCol_ChildBg,
+                               ConvertColorToImVec4(theme.window_bg));
 
   RenderNavBar(emu);
 
@@ -734,8 +733,6 @@ void RenderEmulatorInterface(Emulator* emu) {
   platform::KeyboardState keyboard_state = SDL_GetKeyboardState(nullptr);
   bool tab_pressed = platform::IsKeyPressed(keyboard_state, SDL_SCANCODE_TAB);
   emu->set_turbo_mode(tab_pressed);
-
-  ImGui::PopStyleColor();
 }
 
 void RenderVirtualController(Emulator* emu) {
