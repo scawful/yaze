@@ -470,6 +470,67 @@ absl::StatusOr<std::vector<WaterFillZoneEntry>> LoadLegacyWaterGateZones(
   return zones;
 }
 
+absl::Status NormalizeWaterFillZoneMasks(std::vector<WaterFillZoneEntry>* zones) {
+  if (zones == nullptr) {
+    return absl::InvalidArgumentError("zones is null");
+  }
+  if (zones->size() > 8) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Too many water fill zones: %zu (max 8 fits in $7EF411 bitfield)",
+        zones->size()));
+  }
+
+  // Ensure stable room ordering + deterministic offset layout.
+  *zones = DedupAndSort(std::move(*zones));
+
+  std::unordered_map<int, bool> seen_rooms;
+  uint8_t used_masks = 0;
+  std::vector<WaterFillZoneEntry*> unassigned;
+  unassigned.reserve(zones->size());
+
+  for (auto& z : *zones) {
+    if (z.room_id < 0 || z.room_id >= kRoomCount) {
+      return absl::OutOfRangeError(
+          absl::StrFormat("WaterFill room_id out of range: %d", z.room_id));
+    }
+    if (seen_rooms.contains(z.room_id)) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Duplicate water fill zone for room 0x%02X", z.room_id));
+    }
+    seen_rooms[z.room_id] = true;
+
+    const uint8_t mask = z.sram_bit_mask;
+    const bool valid =
+        (mask != 0) && IsSingleBitMask(mask) && ((used_masks & mask) == 0);
+    if (valid) {
+      used_masks |= mask;
+    } else {
+      z.sram_bit_mask = 0;
+      unassigned.push_back(&z);
+    }
+  }
+
+  constexpr uint8_t kBits[8] = {0x01, 0x02, 0x04, 0x08,
+                                0x10, 0x20, 0x40, 0x80};
+  for (auto* z : unassigned) {
+    uint8_t assigned = 0;
+    for (uint8_t bit : kBits) {
+      if ((used_masks & bit) == 0) {
+        assigned = bit;
+        break;
+      }
+    }
+    if (assigned == 0) {
+      return absl::ResourceExhaustedError(
+          "No free SRAM bits left in $7EF411 for water fill zones");
+    }
+    z->sram_bit_mask = assigned;
+    used_masks |= assigned;
+  }
+
+  return absl::OkStatus();
+}
+
 absl::StatusOr<std::string> DumpWaterFillZonesToJsonString(
     const std::vector<WaterFillZoneEntry>& zones) {
 #if !defined(YAZE_WITH_JSON)
