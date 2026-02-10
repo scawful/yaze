@@ -65,6 +65,25 @@ bool IsPointInCanvasBounds(const CanvasGeometry& geometry, ImVec2 point);
 void ApplyScrollDelta(CanvasGeometry& geometry, ImVec2 delta);
 
 /**
+ * @brief Compute new scroll offset to keep a canvas point locked under the mouse
+ *
+ * Given a zoom change, compute the scroll offset required to keep the canvas
+ * coordinate currently under the mouse cursor in the same screen position.
+ *
+ * This is used for touch pinch zoom (and Ctrl+wheel zoom) to avoid "jumping"
+ * the content towards the origin when the scale changes.
+ *
+ * @param geometry Current frame canvas geometry
+ * @param old_scale Previous scale value (must be > 0)
+ * @param new_scale Desired new scale value (must be > 0)
+ * @param mouse_screen_pos Mouse position in screen space
+ * @return New scroll offset to apply (in screen-space pixels)
+ */
+ImVec2 ComputeScrollForZoomAtScreenPos(const CanvasGeometry& geometry,
+                                       float old_scale, float new_scale,
+                                       ImVec2 mouse_screen_pos);
+
+/**
  * @brief Get origin point (canvas top-left + scroll offset)
  *
  * Computes the "locked scrolled origin" used throughout canvas rendering.

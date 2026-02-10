@@ -186,6 +186,8 @@ if(YAZE_BUILD_TESTS)
     unit/snes_color_test.cc
     unit/gui/tile_selector_widget_test.cc
     unit/gui/canvas_automation_api_test.cc
+    unit/gui/canvas_coordinate_sync_test.cc
+    unit/gui/canvas_zoom_anchor_test.cc
     unit/gui/window_clamp_test.cc
     unit/gui/panel_window_test.cc
     unit/editor/message/message_data_test.cc

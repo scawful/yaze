@@ -1,5 +1,6 @@
 #include "canvas.h"
 
+#include <algorithm>
 #include <cmath>
 #include <string>
 
@@ -12,6 +13,7 @@
 #include "app/gui/canvas/canvas_automation_api.h"
 #include "app/gui/canvas/canvas_extensions.h"
 #include "app/gui/canvas/canvas_utils.h"
+#include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style.h"
 #include "imgui/imgui.h"
 
@@ -621,6 +623,45 @@ void Canvas::DrawBackground(ImVec2 canvas_size) {
   } else {
     state_.is_hovered = false;
     is_hovered_ = false;
+  }
+
+  // iOS/tablet gestures currently synthesize ImGui wheel deltas (see src/ios/main.mm).
+  // Consume them here to pan/zoom the canvas without triggering ImGui window scrolling.
+  if (LayoutHelpers::IsTouchDevice() && IsItemHovered()) {
+    ImGuiIO& io = GetIO();
+    const float wheel_x = io.MouseWheelH;
+    const float wheel_y = io.MouseWheel;
+
+    if (wheel_x != 0.0f || wheel_y != 0.0f) {
+      // Prevent parent windows/child regions from scrolling on touch gestures.
+      io.MouseWheelH = 0.0f;
+      io.MouseWheel = 0.0f;
+
+      if (io.KeyCtrl && wheel_y != 0.0f) {
+        // Ctrl+wheel: zoom (pinch on iOS).
+        constexpr float kMinScale = 0.25f;
+        constexpr float kMaxScale = 8.0f;
+        const float unclamped = global_scale_ * (1.0f + wheel_y);
+        const float new_scale = std::clamp(unclamped, kMinScale, kMaxScale);
+
+        if (new_scale != global_scale_) {
+          const ImVec2 new_scroll = ComputeScrollForZoomAtScreenPos(
+              state_.geometry, global_scale_, new_scale, io.MousePos);
+          set_global_scale(new_scale);
+          state_.geometry.scrolling = new_scroll;
+          scrolling_ = state_.geometry.scrolling;
+          config_.scrolling = scrolling_;
+        }
+      } else {
+        // Plain wheel: pan (two-finger pan on iOS).
+        constexpr float kTouchWheelToPixels = 10.0f;
+        ApplyScrollDelta(
+            state_.geometry,
+            ImVec2(wheel_x * kTouchWheelToPixels, wheel_y * kTouchWheelToPixels));
+        scrolling_ = state_.geometry.scrolling;  // Sync legacy field
+        config_.scrolling = scrolling_;          // Sync config
+      }
+    }
   }
 
   // Pan handling (Phase 1: Use geometry helper)
@@ -2504,4 +2545,3 @@ CanvasFrame& CanvasFrame::operator=(CanvasFrame&& other) noexcept {
 }
 
 }  // namespace yaze::gui
-

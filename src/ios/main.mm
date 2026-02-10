@@ -74,6 +74,7 @@ yaze::ios::IOSHost g_ios_host;
   NSURL *pending_open_url_;
   NSURL *security_scoped_url_;
   BOOL security_scope_granted_;
+  float previous_pinch_scale_;
 }
 
 - (instancetype)initWithNibName:(nullable NSString *)nibNameOrNil
@@ -133,6 +134,7 @@ yaze::ios::IOSHost g_ios_host;
   config.rom_file = rom_filename;
   app_config_ = config;
   host_initialized_ = false;
+  previous_pinch_scale_ = 1.0f;
 
   // Setup gesture recognizers
   _hoverGestureRecognizer =
@@ -153,19 +155,20 @@ yaze::ios::IOSHost g_ios_host;
   _longPressRecognizer.delegate = self;
   [self.view addGestureRecognizer:_longPressRecognizer];
 
-  _swipeRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self
-                                                               action:@selector(HandleSwipe:)];
-  _swipeRecognizer.direction =
-      UISwipeGestureRecognizerDirectionRight | UISwipeGestureRecognizerDirectionLeft;
-  _swipeRecognizer.cancelsTouchesInView = NO;
-  _swipeRecognizer.delegate = self;
-  [self.view addGestureRecognizer:_swipeRecognizer];
+  _twoFingerPanRecognizer =
+      [[UIPanGestureRecognizer alloc] initWithTarget:self
+                                              action:@selector(HandleTwoFingerPan:)];
+  _twoFingerPanRecognizer.minimumNumberOfTouches = 2;
+  _twoFingerPanRecognizer.maximumNumberOfTouches = 2;
+  _twoFingerPanRecognizer.cancelsTouchesInView = NO;
+  _twoFingerPanRecognizer.delegate = self;
+  [self.view addGestureRecognizer:_twoFingerPanRecognizer];
 
   if (@available(iOS 9.0, *)) {
     NSArray<NSNumber *> *directTouches = @[ @(UITouchTypeDirect) ];
     _pinchRecognizer.allowedTouchTypes = directTouches;
     _longPressRecognizer.allowedTouchTypes = directTouches;
-    _swipeRecognizer.allowedTouchTypes = directTouches;
+    _twoFingerPanRecognizer.allowedTouchTypes = directTouches;
   }
   
   return self;
@@ -817,23 +820,42 @@ yaze::ios::IOSHost g_ios_host;
 - (void)HandlePinch:(UIPinchGestureRecognizer *)gesture {
   ImGuiIO &io = ImGui::GetIO();
   io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
-  io.AddMouseWheelEvent(0.0f, gesture.scale);
+
   UIGestureRecognizer *gestureRecognizer = (UIGestureRecognizer *)gesture;
   io.AddMousePosEvent([gestureRecognizer locationInView:self.view].x,
                       [gestureRecognizer locationInView:self.view].y);
+
+  if (gesture.state == UIGestureRecognizerStateBegan) {
+    previous_pinch_scale_ = gesture.scale;
+    io.AddKeyEvent(ImGuiKey_ModCtrl, true);
+  } else if (gesture.state == UIGestureRecognizerStateChanged) {
+    io.AddKeyEvent(ImGuiKey_ModCtrl, true);
+    float delta = gesture.scale - previous_pinch_scale_;
+    io.AddMouseWheelEvent(0.0f, delta);
+    previous_pinch_scale_ = gesture.scale;
+  } else if (gesture.state == UIGestureRecognizerStateEnded ||
+             gesture.state == UIGestureRecognizerStateCancelled) {
+    io.AddKeyEvent(ImGuiKey_ModCtrl, false);
+    previous_pinch_scale_ = 1.0f;
+  }
 }
 
-- (void)HandleSwipe:(UISwipeGestureRecognizer *)gesture {
+- (void)HandleTwoFingerPan:(UIPanGestureRecognizer *)gesture {
   ImGuiIO &io = ImGui::GetIO();
   io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
-  if (gesture.direction == UISwipeGestureRecognizerDirectionRight) {
-    io.AddMouseWheelEvent(1.0f, 0.0f);  // Swipe Right
-  } else if (gesture.direction == UISwipeGestureRecognizerDirectionLeft) {
-    io.AddMouseWheelEvent(-1.0f, 0.0f);  // Swipe Left
-  }
-  UIGestureRecognizer *gestureRecognizer = (UIGestureRecognizer *)gesture;
-  io.AddMousePosEvent([gestureRecognizer locationInView:self.view].x,
-                      [gestureRecognizer locationInView:self.view].y);
+
+  CGPoint translation = [gesture translationInView:self.view];
+  // Send as mouse wheel events so Canvas pan responds
+  // Scale down to get reasonable scroll speed
+  float dx = static_cast<float>(translation.x) * 0.05f;
+  float dy = static_cast<float>(translation.y) * 0.05f;
+  io.AddMouseWheelEvent(dx, dy);
+
+  // Reset translation so we get deltas each callback
+  [gesture setTranslation:CGPointZero inView:self.view];
+
+  CGPoint location = [gesture locationInView:self.view];
+  io.AddMousePosEvent(location.x, location.y);
 }
 
 - (void)handleLongPress:(UILongPressGestureRecognizer *)gesture {
