@@ -7,6 +7,7 @@
 #include "app/editor/dungeon/dungeon_coordinates.h"
 #include "app/gfx/resource/arena.h"
 #include "zelda3/dungeon/dimension_service.h"
+#include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "app/editor/dungeon/object_selection.h"
 
@@ -374,6 +375,11 @@ void TileObjectHandler::UpdateObjectsLayer(int room_id, const std::vector<size_t
   auto layer = static_cast<zelda3::RoomObject::LayerType>(new_layer);
   for (size_t index : indices) {
     if (index < objects.size()) {
+      // Structural objects that draw to both BGs (e.g., walls/corners) must not
+      // be moved between BG layers; their draw routines write to both buffers.
+      if (zelda3::GetObjectLayerSemantics(objects[index]).draws_to_both_bgs) {
+        continue;
+      }
       objects[index].layer_ = layer;
     }
   }
