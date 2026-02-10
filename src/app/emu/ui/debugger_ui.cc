@@ -631,8 +631,6 @@ void RenderAIAgentPanel(Emulator* emu) {
     }
   }
 
-  ImGui::EndChild();
-  ImGui::PopStyleColor();
 }
 
 }  // namespace ui
