@@ -36,6 +36,9 @@ void InteractionModeManager::SetMode(InteractionMode mode) {
     case InteractionMode::PaintWaterFill:
       // Leaving paint modes - clear paint state
       mode_state_.is_painting = false;
+      mode_state_.paint_mutation_started = false;
+      mode_state_.paint_last_tile_x = -1;
+      mode_state_.paint_last_tile_y = -1;
       break;
 
     case InteractionMode::Select:

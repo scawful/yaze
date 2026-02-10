@@ -12,6 +12,7 @@
 // Project headers
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_coordinates.h"
+#include "app/editor/dungeon/interaction/paint_util.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
 #include "zelda3/dungeon/dimension_service.h"
@@ -111,11 +112,48 @@ void DungeonObjectInteraction::UpdateCollisionPainting(const ImVec2& canvas_mous
     
     // Only set for valid interior tiles (0-63)
     if (room_x >= 0 && room_x < 64 && room_y >= 0 && room_y < 64) {
-      if (room.GetCollisionTile(room_x, room_y) != state.paint_collision_value) {
-        room.SetCollisionTile(room_x, room_y, state.paint_collision_value);
-        interaction_context_.NotifyMutation();
+      // Start a paint stroke (single undo snapshot per stroke).
+      if (!state.is_painting) {
+        state.is_painting = true;
+        state.paint_mutation_started = false;
+        state.paint_last_tile_x = room_x;
+        state.paint_last_tile_y = room_y;
+      }
+
+      const int x0 =
+          (state.paint_last_tile_x >= 0) ? state.paint_last_tile_x : room_x;
+      const int y0 =
+          (state.paint_last_tile_y >= 0) ? state.paint_last_tile_y : room_y;
+
+      bool changed = false;
+      auto ensure_mutation = [&]() {
+        if (!state.paint_mutation_started) {
+          interaction_context_.NotifyMutation();
+          state.paint_mutation_started = true;
+        }
+      };
+
+      paint_util::ForEachPointOnLine(x0, y0, room_x, room_y,
+                                    [&](int lx, int ly) {
+        paint_util::ForEachPointInSquareBrush(
+            lx, ly, state.paint_brush_radius,
+            /*min_x=*/0, /*min_y=*/0, /*max_x=*/63, /*max_y=*/63,
+            [&](int bx, int by) {
+              if (room.GetCollisionTile(bx, by) == state.paint_collision_value) {
+                return;
+              }
+              ensure_mutation();
+              room.SetCollisionTile(bx, by, state.paint_collision_value);
+              changed = true;
+            });
+      });
+
+      if (changed) {
         interaction_context_.NotifyInvalidateCache();
       }
+
+      state.paint_last_tile_x = room_x;
+      state.paint_last_tile_y = room_y;
     }
   }
 }
@@ -130,15 +168,53 @@ void DungeonObjectInteraction::UpdateWaterFillPainting(
       static_cast<int>(canvas_mouse_pos.y));
   if (rooms_ && current_room_id_ >= 0 && current_room_id_ < 296) {
     auto& room = (*rooms_)[current_room_id_];
+    auto& state = mode_manager_.GetModeState();
 
     // Only set for valid interior tiles (0-63)
     if (room_x >= 0 && room_x < 64 && room_y >= 0 && room_y < 64) {
       const bool new_val = !erase;
-      if (room.GetWaterFillTile(room_x, room_y) != new_val) {
-        room.SetWaterFillTile(room_x, room_y, new_val);
-        interaction_context_.NotifyMutation();
+      // Start a paint stroke (single undo snapshot per stroke).
+      if (!state.is_painting) {
+        state.is_painting = true;
+        state.paint_mutation_started = false;
+        state.paint_last_tile_x = room_x;
+        state.paint_last_tile_y = room_y;
+      }
+
+      const int x0 =
+          (state.paint_last_tile_x >= 0) ? state.paint_last_tile_x : room_x;
+      const int y0 =
+          (state.paint_last_tile_y >= 0) ? state.paint_last_tile_y : room_y;
+
+      bool changed = false;
+      auto ensure_mutation = [&]() {
+        if (!state.paint_mutation_started) {
+          interaction_context_.NotifyMutation();
+          state.paint_mutation_started = true;
+        }
+      };
+
+      paint_util::ForEachPointOnLine(x0, y0, room_x, room_y,
+                                    [&](int lx, int ly) {
+        paint_util::ForEachPointInSquareBrush(
+            lx, ly, state.paint_brush_radius,
+            /*min_x=*/0, /*min_y=*/0, /*max_x=*/63, /*max_y=*/63,
+            [&](int bx, int by) {
+              if (room.GetWaterFillTile(bx, by) == new_val) {
+                return;
+              }
+              ensure_mutation();
+              room.SetWaterFillTile(bx, by, new_val);
+              changed = true;
+            });
+      });
+
+      if (changed) {
         interaction_context_.NotifyInvalidateCache();
       }
+
+      state.paint_last_tile_x = room_x;
+      state.paint_last_tile_y = room_y;
     }
   }
 }
@@ -170,6 +246,20 @@ void DungeonObjectInteraction::HandleEmptySpaceClick(const ImVec2& canvas_mouse_
 
 
 void DungeonObjectInteraction::HandleMouseRelease() {
+  {
+    // End paint strokes on mouse release so a new left-drag creates a new undo
+    // snapshot. Keep the paint mode active (tool stays selected).
+    const auto mode = mode_manager_.GetMode();
+    if (mode == InteractionMode::PaintCollision ||
+        mode == InteractionMode::PaintWaterFill) {
+      auto& state = mode_manager_.GetModeState();
+      state.is_painting = false;
+      state.paint_mutation_started = false;
+      state.paint_last_tile_x = -1;
+      state.paint_last_tile_y = -1;
+    }
+  }
+
   if (mode_manager_.GetMode() == InteractionMode::DraggingObjects) {
     mode_manager_.SetMode(InteractionMode::Select);
   }

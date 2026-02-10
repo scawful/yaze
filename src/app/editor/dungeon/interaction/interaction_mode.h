@@ -75,9 +75,13 @@ struct ModeState {
   ImVec2 entity_drag_start = ImVec2(0, 0);
   ImVec2 entity_drag_current = ImVec2(0, 0);
 
-  // Collision paint state
+  // Paint state (collision + water fill)
+  int paint_brush_radius = 0;  // 0 = 1x1, 1 = 3x3, etc.
+  int paint_last_tile_x = -1;
+  int paint_last_tile_y = -1;
   uint8_t paint_collision_value = 0;
   bool is_painting = false;
+  bool paint_mutation_started = false;
 
   /**
    * @brief Clear all mode state
@@ -102,8 +106,12 @@ struct ModeState {
     rect_end_y = 0;
     entity_drag_start = ImVec2(0, 0);
     entity_drag_current = ImVec2(0, 0);
+    paint_brush_radius = 0;
+    paint_last_tile_x = -1;
+    paint_last_tile_y = -1;
     paint_collision_value = 0;
     is_painting = false;
+    paint_mutation_started = false;
   }
 
   /**
