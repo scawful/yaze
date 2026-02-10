@@ -7,6 +7,7 @@
 #include "absl/time/time.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/style_guard.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -18,7 +19,8 @@ void AgentRomSyncPanel::Draw(AgentUIContext* context,
   auto& state = context->rom_sync_state();
   auto& collab_state = context->collaboration_state();
 
-  ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.18f, 0.14f, 0.12f, 1.0f));
+  gui::StyleColorGuard rom_bg(ImGuiCol_ChildBg,
+                              ImVec4(0.18f, 0.14f, 0.12f, 1.0f));
   ImGui::BeginChild("RomSync", ImVec2(0, 130), true);
 
   ImGui::Text(ICON_MD_STORAGE " ROM State");
@@ -108,7 +110,6 @@ void AgentRomSyncPanel::Draw(AgentUIContext* context,
   }
 
   ImGui::EndChild();
-  ImGui::PopStyleColor();
 }
 
 }  // namespace editor
