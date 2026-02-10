@@ -27,8 +27,8 @@ std::string AgentPretraining::GetRomStructureKnowledge(Rom* rom) {
 - 0x10000-0x1FFFF: Overworld maps
 - 0x1C800-0x1D7FF: Overworld tile16 data
 - 0x20000-0x2FFFF: Dungeon rooms (296 rooms)
-- 0xDE6C8-0xDEDC7: Overworld palettes
-- 0xDD308-0xDD3C7: Dungeon palettes
+- 0xDE604-0xDEBB3: Overworld palettes (ow_animated + ow_main + ow_aux)
+- 0xDD734-0xDE543: Dungeon main palettes (dungeon_main, 20 sets x 180 bytes)
 
 ## Overworld Structure
 - 64 maps (0x00-0x3F): Light world + Dark world
@@ -44,8 +44,14 @@ std::string AgentPretraining::GetRomStructureKnowledge(Rom* rom) {
 - Object encoding: Layer/Size/X/Y format
 
 ## Palette System
-- 8 groups, 8 palettes per group
-- 16 colors per palette (SNES 555 format)
+- Multiple palette groups with different shapes/sizes:
+  - Overworld main: 6 sets x 35 colors
+  - Overworld aux: 20 sets x 21 colors
+  - Overworld animated: 14 sets x 7 colors
+  - Dungeon main: 20 sets x 90 colors (6 banks x 15, transparent implicit)
+  - Global sprites: 2 sets x 60 colors (4 banks x 15, transparent implicit)
+- SNES CGRAM is organized as 16-color banks (BGR555). Color 0 of each bank is the transparent/backdrop slot.
+- Many ROM palette tables store 15 colors per bank and skip the implicit transparent slot.
 - $0000-$7FFF range (5 bits per R/G/B channel)
 - Conversion: RGB8 = (SNES_val & 0x1F) << 3
 
