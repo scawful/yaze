@@ -201,6 +201,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/editor_manager_rom_write_policy_test.cc
     unit/editor/editor_manager_oracle_rom_safety_test.cc
     unit/editor/editor_set_test.cc
+    unit/editor/paint_util_test.cc
     unit/editor/editor_registry_test.cc
     unit/editor/shortcut_manager_test.cc
     unit/editor/dungeon_editor_v2_rom_safety_test.cc
@@ -322,6 +323,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/editor_manager_write_conflict_test.cc
     unit/editor/editor_manager_oracle_rom_safety_test.cc
     unit/editor/editor_set_test.cc
+    unit/editor/paint_util_test.cc
     unit/zelda3/dungeon/water_fill_zone_test.cc
     unit/zelda3/dungeon/custom_collision_reserved_region_test.cc
     unit/zelda3/dungeon/save_all_collision_rom_presence_test.cc
