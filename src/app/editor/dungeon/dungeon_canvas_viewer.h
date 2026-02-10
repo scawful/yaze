@@ -19,6 +19,8 @@
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_layer_manager.h"
 #include "zelda3/game_data.h"
+#include "dungeon_rendering_helpers.h"
+
 
 namespace yaze {
 namespace editor {
@@ -370,42 +372,12 @@ class DungeonCanvasViewer {
   void RenderEntityOverlay(const gui::CanvasRuntime& rt,
                            const zelda3::Room& room);
 
-  // Coordinate conversion helpers
-  std::pair<int, int> RoomToCanvasCoordinates(int room_x, int room_y) const;
-  std::pair<int, int> CanvasToRoomCoordinates(int canvas_x, int canvas_y) const;
-  bool IsWithinCanvasBounds(int canvas_x, int canvas_y, int margin = 32) const;
-
-  // Collision overlay types (needed before method declarations)
-  struct CollisionOverlayEntry {
-    uint8_t x = 0;
-    uint8_t y = 0;
-    uint8_t tile = 0;
-  };
-
-  struct CollisionOverlayCache {
-    bool has_data = false;
-    std::vector<CollisionOverlayEntry> entries;
-  };
 
   // Visualization
   void DrawObjectPositionOutlines(const gui::CanvasRuntime& rt,
                                   const zelda3::Room& room);
   void ApplyTrackCollisionConfig();
-  void DrawTrackCollisionOverlay(const gui::CanvasRuntime& rt,
-                                 const zelda3::Room& room);
-  void DrawCustomCollisionOverlay(const gui::CanvasRuntime& rt,
-                                  const zelda3::Room& room);
-  void DrawWaterFillOverlay(const gui::CanvasRuntime& rt,
-                            const zelda3::Room& room);
-  void DrawCameraQuadrantOverlay(const gui::CanvasRuntime& rt,
-                                 const zelda3::Room& room);
-  void DrawMinecartSpriteOverlay(const gui::CanvasRuntime& rt,
-                                 const zelda3::Room& room);
-  void DrawTrackGapOverlay(const gui::CanvasRuntime& rt,
-                           const zelda3::Room& room);
-  void DrawTrackRouteOverlay(const gui::CanvasRuntime& rt,
-                             const zelda3::Room& room);
-  const CollisionOverlayCache& GetCollisionOverlayCache(int room_id);
+  const DungeonRenderingHelpers::CollisionOverlayCache& GetCollisionOverlayCache(int room_id);
 
   // Draw semi-transparent overlay on BG2/Layer 1 objects when mask mode is active
   void DrawMaskHighlights(const gui::CanvasRuntime& rt,
@@ -461,27 +433,6 @@ class DungeonCanvasViewer {
   std::function<void(bool)> pin_callback_;
   const project::YazeProject* project_ = nullptr;
 
-  struct TrackCollisionConfig {
-    std::array<bool, 256> track_tiles{};
-    std::array<bool, 256> stop_tiles{};
-    std::array<bool, 256> switch_tiles{};
-    bool IsEmpty() const {
-      for (bool v : track_tiles) {
-        if (v)
-          return false;
-      }
-      for (bool v : stop_tiles) {
-        if (v)
-          return false;
-      }
-      for (bool v : switch_tiles) {
-        if (v)
-          return false;
-      }
-      return true;
-    }
-  };
-
   bool show_track_collision_overlay_ = false;
   bool show_track_collision_legend_ = true;
   bool show_camera_quadrant_overlay_ = false;
@@ -494,12 +445,13 @@ class DungeonCanvasViewer {
   bool compact_header_mode_ = false;
   bool header_read_only_ = false;
   bool header_visible_ = true;
+
   bool track_direction_map_enabled_ = true;
   std::vector<uint16_t> track_tile_order_;
   std::vector<uint16_t> switch_tile_order_;
-  TrackCollisionConfig track_collision_config_;
-  std::unordered_map<int, CollisionOverlayCache> collision_overlay_cache_;
-  std::array<bool, 256> minecart_sprite_ids_{};
+  DungeonRenderingHelpers::TrackCollisionConfig track_collision_config_;
+  std::unordered_map<int, DungeonRenderingHelpers::CollisionOverlayCache> collision_overlay_cache_;
+  std::bitset<256> minecart_sprite_ids_{};
 
   // Object rendering cache
   struct ObjectRenderCache {
