@@ -42,6 +42,17 @@ class AssemblyEditor : public Editor {
   }
   void ChangeActiveFile(const std::string_view& filename);
   absl::Status JumpToSymbolDefinition(const std::string& symbol);
+  // Jump to a best-effort assembly reference.
+  //
+  // Supported formats:
+  // - "MyLabel"                    (symbol)
+  // - "path/to/file.asm:123"       (file + 1-based line)
+  // - "path/to/file.asm:123:10"    (file + 1-based line + 1-based column)
+  // - "path/to/file.asm#L123"      (file + 1-based line)
+  //
+  // This keeps story graph navigation resilient even when a planning JSON
+  // still contains file:line references; stable symbols are still preferred.
+  absl::Status JumpToReference(const std::string& reference);
 
   [[nodiscard]] std::string active_file_path() const;
   [[nodiscard]] TextEditor::Coordinates active_cursor_position() const;
