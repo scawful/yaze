@@ -438,9 +438,7 @@ void FileBrowser::Draw() {
   }
 
   // Header with folder name and refresh button
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextSecondaryVec4());
-  ImGui::Text("%s", ICON_MD_FOLDER_OPEN);
-  ImGui::PopStyleColor();
+  gui::ColoredText(ICON_MD_FOLDER_OPEN, gui::GetTextSecondaryVec4());
   ImGui::SameLine();
   ImGui::Text("%s", root_entry_.name.c_str());
   ImGui::SameLine(ImGui::GetContentRegionAvail().x - 24.0f);
@@ -454,9 +452,8 @@ void FileBrowser::Draw() {
   ImGui::Separator();
 
   // File count
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetTextDisabledVec4());
-  ImGui::Text("%zu files, %zu folders", file_count_, directory_count_);
-  ImGui::PopStyleColor();
+  gui::ColoredTextF(gui::GetTextDisabledVec4(), "%zu files, %zu folders",
+                    file_count_, directory_count_);
 
   ImGui::Spacing();
 
