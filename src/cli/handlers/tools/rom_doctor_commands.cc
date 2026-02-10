@@ -311,7 +311,11 @@ void CheckParallelWorldsHeuristics(Rom* rom, DiagnosticReport& report) {
   // 1. Search for "PARALLEL WORLDS" string in decoded messages
   try {
     std::vector<uint8_t> rom_data_copy = rom->vector();  // Copy for safety
-    auto messages = yaze::editor::ReadAllTextData(rom_data_copy.data());
+    // Safety: dummy/invalid ROMs may not contain proper message terminators.
+    // Bound parsing to the ROM size to avoid out-of-bounds reads (signals).
+    auto messages = yaze::editor::ReadAllTextData(
+        rom_data_copy.data(), yaze::editor::kTextData,
+        static_cast<int>(rom_data_copy.size()));
 
     bool pw_string_found = false;
     for (const auto& msg : messages) {
