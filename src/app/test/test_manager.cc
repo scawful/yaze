@@ -25,6 +25,7 @@
 #else
 #include "imgui.h"
 #endif
+#include "app/gui/core/style_guard.h"
 #include "util/log.h"
 
 // Forward declaration to avoid circular dependency
@@ -606,22 +607,25 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
 
   // Enhanced test execution status
   if (is_running_) {
-    ImGui::PushStyleColor(ImGuiCol_Text,
-                          GetTestStatusColor(TestStatus::kRunning));
-    ImGui::Text("%s Running: %s", ICON_MD_PLAY_CIRCLE_FILLED,
-                current_test_name_.c_str());
-    ImGui::PopStyleColor();
+    {
+      gui::StyleColorGuard running_guard(
+          ImGuiCol_Text, GetTestStatusColor(TestStatus::kRunning));
+      ImGui::Text("%s Running: %s", ICON_MD_PLAY_CIRCLE_FILLED,
+                  current_test_name_.c_str());
+    }
     ImGui::ProgressBar(progress_, ImVec2(-1, 0),
                        absl::StrFormat("%.0f%%", progress_ * 100.0f).c_str());
   } else {
     // Enhanced control buttons
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.7f, 0.2f, 1.0f));
-    if (ImGui::Button(
-            absl::StrCat(ICON_MD_PLAY_ARROW, " Run All Tests").c_str(),
-            ImVec2(140, 0))) {
-      [[maybe_unused]] auto status = RunAllTests();
+    {
+      gui::StyleColorGuard run_btn_guard(ImGuiCol_Button,
+                                         ImVec4(0.2f, 0.7f, 0.2f, 1.0f));
+      if (ImGui::Button(
+              absl::StrCat(ICON_MD_PLAY_ARROW, " Run All Tests").c_str(),
+              ImVec2(140, 0))) {
+        [[maybe_unused]] auto status = RunAllTests();
+      }
     }
-    ImGui::PopStyleColor();
 
     ImGui::SameLine();
     if (ImGui::Button(absl::StrCat(ICON_MD_SPEED, " Quick Test").c_str(),
@@ -631,18 +635,18 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
 
     ImGui::SameLine();
     bool has_rom = current_rom_ && current_rom_->is_loaded();
-    if (has_rom) {
-      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.5f, 0.8f, 1.0f));
-    }
-    if (ImGui::Button(absl::StrCat(ICON_MD_STORAGE, " ROM Tests").c_str(),
-                      ImVec2(100, 0))) {
+    {
+      std::optional<gui::StyleColorGuard> rom_btn_guard;
       if (has_rom) {
-        [[maybe_unused]] auto status =
-            RunTestsByCategory(TestCategory::kIntegration);
+        rom_btn_guard.emplace(ImGuiCol_Button, ImVec4(0.2f, 0.5f, 0.8f, 1.0f));
       }
-    }
-    if (has_rom) {
-      ImGui::PopStyleColor();
+      if (ImGui::Button(absl::StrCat(ICON_MD_STORAGE, " ROM Tests").c_str(),
+                        ImVec2(100, 0))) {
+        if (has_rom) {
+          [[maybe_unused]] auto status =
+              RunTestsByCategory(TestCategory::kIntegration);
+        }
+      }
     }
     if (ImGui::IsItemHovered()) {
       if (has_rom) {
@@ -680,11 +684,12 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
                                 ? ImVec4(1.0f, 1.0f, 0.0f, 1.0f)
                                 : ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
 
-    ImGui::PushStyleColor(ImGuiCol_PlotHistogram, progress_color);
-    ImGui::ProgressBar(
-        pass_rate, ImVec2(-1, 0),
-        absl::StrFormat("Pass Rate: %.1f%%", pass_rate * 100.0f).c_str());
-    ImGui::PopStyleColor();
+    {
+      gui::StyleColorGuard hist_guard(ImGuiCol_PlotHistogram, progress_color);
+      ImGui::ProgressBar(
+          pass_rate, ImVec2(-1, 0),
+          absl::StrFormat("Pass Rate: %.1f%%", pass_rate * 100.0f).c_str());
+    }
 
     // Test counts with icons
     ImGui::Text("%s Total: %zu", ICON_MD_ANALYTICS, last_results_.total_tests);
@@ -829,11 +834,12 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
             if (result.status == TestStatus::kFailed &&
                 !result.error_message.empty()) {
               ImGui::Indent();
-              ImGui::PushStyleColor(ImGuiCol_Text,
-                                    ImVec4(1.0f, 0.8f, 0.8f, 1.0f));
-              ImGui::TextWrapped("%s %s", ICON_MD_ERROR_OUTLINE,
-                                 result.error_message.c_str());
-              ImGui::PopStyleColor();
+              {
+                gui::StyleColorGuard err_guard(
+                    ImGuiCol_Text, ImVec4(1.0f, 0.8f, 0.8f, 1.0f));
+                ImGui::TextWrapped("%s %s", ICON_MD_ERROR_OUTLINE,
+                                   result.error_message.c_str());
+              }
               ImGui::Unindent();
             }
 
@@ -841,11 +847,12 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
             if (result.status == TestStatus::kPassed &&
                 !result.error_message.empty()) {
               ImGui::Indent();
-              ImGui::PushStyleColor(ImGuiCol_Text,
-                                    ImVec4(0.8f, 1.0f, 0.8f, 1.0f));
-              ImGui::TextWrapped("%s %s", ICON_MD_INFO,
-                                 result.error_message.c_str());
-              ImGui::PopStyleColor();
+              {
+                gui::StyleColorGuard info_guard(
+                    ImGuiCol_Text, ImVec4(0.8f, 1.0f, 0.8f, 1.0f));
+                ImGui::TextWrapped("%s %s", ICON_MD_INFO,
+                                   result.error_message.c_str());
+              }
               ImGui::Unindent();
             }
 
