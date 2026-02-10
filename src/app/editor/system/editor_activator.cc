@@ -333,11 +333,11 @@ void EditorActivator::JumpToAssemblySymbol(const std::string& symbol) {
   SwitchToEditor(EditorType::kAssembly, /*force_visible=*/true);
 
   if (auto* asm_editor = editor_set->GetAssemblyEditor()) {
-    const auto status = asm_editor->JumpToSymbolDefinition(symbol);
+    const auto status = asm_editor->JumpToReference(symbol);
     if (!status.ok()) {
       if (deps_.toast_manager) {
         deps_.toast_manager->Show(
-            "Symbol jump failed: " + std::string(status.message()),
+            "Assembly jump failed: " + std::string(status.message()),
             ToastType::kWarning);
       }
       return;

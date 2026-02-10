@@ -10,6 +10,9 @@
 #include <TargetConditionals.h>
 #endif
 
+#include <cctype>
+
+#include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "app/editor/code/panels/assembly_editor_panels.h"
@@ -230,6 +233,172 @@ bool IsAssemblyLikeFile(const std::filesystem::path& path) {
   return ext == ".asm" || ext == ".inc" || ext == ".s";
 }
 
+struct AsmFileLineRef {
+  std::string file_ref;
+  int line_one_based = 0;
+  int column_one_based = 1;
+};
+
+std::optional<int> ParsePositiveInt(const std::string& s) {
+  if (s.empty()) {
+    return std::nullopt;
+  }
+  for (char c : s) {
+    if (!std::isdigit(static_cast<unsigned char>(c))) {
+      return std::nullopt;
+    }
+  }
+  try {
+    const int v = std::stoi(s);
+    return v > 0 ? std::optional<int>(v) : std::nullopt;
+  } catch (...) {
+    return std::nullopt;
+  }
+}
+
+bool LooksLikeAssemblyPathRef(const std::string& file_ref) {
+  if (file_ref.empty()) {
+    return false;
+  }
+  const std::filesystem::path p(file_ref);
+  return IsAssemblyLikeFile(p);
+}
+
+std::optional<AsmFileLineRef> ParseAsmFileLineRef(
+    const std::string& reference) {
+  const std::string trimmed =
+      std::string(absl::StripAsciiWhitespace(reference));
+  if (trimmed.empty()) {
+    return std::nullopt;
+  }
+
+  // Format: "file.asm#L123"
+  if (const size_t pos = trimmed.find("#L"); pos != std::string::npos) {
+    const std::string file =
+        std::string(absl::StripAsciiWhitespace(trimmed.substr(0, pos)));
+    const std::string line_str = std::string(
+        absl::StripAsciiWhitespace(trimmed.substr(pos + 2)));
+    if (!LooksLikeAssemblyPathRef(file)) {
+      return std::nullopt;
+    }
+    if (auto line = ParsePositiveInt(line_str); line.has_value()) {
+      return AsmFileLineRef{file, *line, /*column_one_based=*/1};
+    }
+    return std::nullopt;
+  }
+
+  // Formats:
+  // - "file.asm:123"
+  // - "file.asm:123:10"
+  const size_t last_colon = trimmed.rfind(':');
+  if (last_colon == std::string::npos) {
+    return std::nullopt;
+  }
+
+  const std::string tail = std::string(
+      absl::StripAsciiWhitespace(trimmed.substr(last_colon + 1)));
+  if (tail.empty()) {
+    return std::nullopt;
+  }
+
+  const size_t second_last_colon =
+      (last_colon == 0) ? std::string::npos : trimmed.rfind(':', last_colon - 1);
+
+  if (second_last_colon != std::string::npos) {
+    const std::string file = std::string(
+        absl::StripAsciiWhitespace(trimmed.substr(0, second_last_colon)));
+    const std::string line_str = std::string(absl::StripAsciiWhitespace(
+        trimmed.substr(second_last_colon + 1,
+                       last_colon - second_last_colon - 1)));
+    const std::string col_str = tail;
+    if (!LooksLikeAssemblyPathRef(file)) {
+      return std::nullopt;
+    }
+    auto line = ParsePositiveInt(line_str);
+    auto col = ParsePositiveInt(col_str);
+    if (!line.has_value() || !col.has_value()) {
+      return std::nullopt;
+    }
+    return AsmFileLineRef{file, *line, *col};
+  }
+
+  const std::string file = std::string(
+      absl::StripAsciiWhitespace(trimmed.substr(0, last_colon)));
+  if (!LooksLikeAssemblyPathRef(file)) {
+    return std::nullopt;
+  }
+  if (auto line = ParsePositiveInt(tail); line.has_value()) {
+    return AsmFileLineRef{file, *line, /*column_one_based=*/1};
+  }
+  return std::nullopt;
+}
+
+std::optional<std::filesystem::path> FindAsmFileInFolder(
+    const std::filesystem::path& root, const std::string& file_ref) {
+  std::filesystem::path p(file_ref);
+  if (p.is_absolute()) {
+    std::error_code ec;
+    if (std::filesystem::exists(p, ec) && std::filesystem::is_regular_file(p, ec)) {
+      return p;
+    }
+    return std::nullopt;
+  }
+
+  // Try relative to root first (supports "dir/file.asm" paths).
+  {
+    const std::filesystem::path candidate = root / p;
+    std::error_code ec;
+    if (std::filesystem::exists(candidate, ec) &&
+        std::filesystem::is_regular_file(candidate, ec)) {
+      return candidate;
+    }
+  }
+
+  // Fallback: recursive search by suffix match.
+  const std::string want_suffix = p.generic_string();
+  const std::string want_name = p.filename().string();
+
+  std::error_code ec;
+  if (!std::filesystem::exists(root, ec)) {
+    return std::nullopt;
+  }
+
+  std::filesystem::recursive_directory_iterator it(
+      root, std::filesystem::directory_options::skip_permission_denied, ec);
+  const std::filesystem::recursive_directory_iterator end;
+  for (; it != end && !ec; it.increment(ec)) {
+    const auto& entry = *it;
+    if (entry.is_directory()) {
+      const auto name = entry.path().filename().string();
+      if (!name.empty() && name.front() == '.') {
+        it.disable_recursion_pending();
+      } else if (name == "build" || name == "build_ai" || name == "build-ios" ||
+                 name == "build-ios-sim" || name == "build-wasm" ||
+                 name == "node_modules") {
+        it.disable_recursion_pending();
+      }
+      continue;
+    }
+
+    if (!entry.is_regular_file()) {
+      continue;
+    }
+    if (!IsAssemblyLikeFile(entry.path())) {
+      continue;
+    }
+
+    const std::string cand = entry.path().generic_string();
+    if (!want_suffix.empty() && absl::EndsWith(cand, want_suffix)) {
+      return entry.path();
+    }
+    if (!want_name.empty() && entry.path().filename() == want_name) {
+      return entry.path();
+    }
+  }
+
+  return std::nullopt;
+}
+
 std::optional<AsmSymbolLocation> FindLabelInFolder(
     const std::filesystem::path& root, const std::string& label) {
   std::error_code ec;
@@ -377,6 +546,51 @@ absl::Status AssemblyEditor::JumpToSymbolDefinition(const std::string& symbol) {
   editor->SetCursorPosition(TextEditor::Coordinates(loc->line, loc->column));
   editor->SelectWordUnderCursor();
   return absl::OkStatus();
+}
+
+absl::Status AssemblyEditor::JumpToReference(const std::string& reference) {
+  if (reference.empty()) {
+    return absl::InvalidArgumentError("Reference is empty");
+  }
+
+  if (auto file_ref = ParseAsmFileLineRef(reference); file_ref.has_value()) {
+    std::filesystem::path root;
+    if (dependencies_.project && !dependencies_.project->code_folder.empty()) {
+      root = dependencies_.project->GetAbsolutePath(
+          dependencies_.project->code_folder);
+    } else if (!current_folder_.name.empty()) {
+      root = current_folder_.name;
+    } else {
+      return absl::FailedPreconditionError(
+          "No code folder loaded (open a folder or set project code_folder)");
+    }
+
+    if (current_folder_.name.empty()) {
+      OpenFolder(root.string());
+    }
+
+    auto path_or = FindAsmFileInFolder(root, file_ref->file_ref);
+    if (!path_or.has_value()) {
+      return absl::NotFoundError("File not found: " + file_ref->file_ref);
+    }
+
+    ChangeActiveFile(path_or->string());
+    if (!HasActiveFile()) {
+      return absl::InternalError("Failed to open file: " + path_or->string());
+    }
+
+    const int line0 = std::max(0, file_ref->line_one_based - 1);
+    const int col0 = std::max(0, file_ref->column_one_based - 1);
+    auto* editor = GetActiveEditor();
+    if (!editor) {
+      return absl::InternalError("No active text editor");
+    }
+    editor->SetCursorPosition(TextEditor::Coordinates(line0, col0));
+    editor->SelectWordUnderCursor();
+    return absl::OkStatus();
+  }
+
+  return JumpToSymbolDefinition(reference);
 }
 
 std::string AssemblyEditor::active_file_path() const {
