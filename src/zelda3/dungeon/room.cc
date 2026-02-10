@@ -2197,11 +2197,20 @@ absl::Status SaveAllCollision(Rom* rom, absl::Span<Room> rooms) {
     return absl::InvalidArgumentError("ROM not loaded");
   }
 
-  // If the custom collision region doesn't exist (vanilla ROM), treat as noop.
+  // If the custom collision region doesn't exist (vanilla ROM), treat as a noop
+  // only when there are no pending custom collision edits. This avoids silently
+  // dropping user-authored collision changes on ROMs that don't support the
+  // expanded collision bank.
   const auto& rom_data = rom->vector();
   const int ptrs_size = kNumberOfRooms * 3;
   if (kCustomCollisionRoomPointers + ptrs_size >
       static_cast<int>(rom_data.size())) {
+    for (auto& room : rooms) {
+      if (room.IsLoaded() && room.custom_collision_dirty()) {
+        return absl::FailedPreconditionError(
+            "Custom collision region not present in this ROM");
+      }
+    }
     return absl::OkStatus();
   }
 

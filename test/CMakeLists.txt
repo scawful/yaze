@@ -228,6 +228,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/room_layer_manager_test.cc
     unit/zelda3/dungeon/water_fill_zone_test.cc
     unit/zelda3/dungeon/custom_collision_reserved_region_test.cc
+    unit/zelda3/dungeon/save_all_collision_rom_presence_test.cc
     unit/zelda3/dungeon/room_water_fill_state_test.cc
     unit/zelda3/dungeon/draw_routine_mapping_test.cc
     unit/zelda3/dungeon/draw_routine_bothbg_metadata_test.cc
@@ -323,6 +324,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/editor_set_test.cc
     unit/zelda3/dungeon/water_fill_zone_test.cc
     unit/zelda3/dungeon/custom_collision_reserved_region_test.cc
+    unit/zelda3/dungeon/save_all_collision_rom_presence_test.cc
     unit/zelda3/dungeon/room_water_fill_state_test.cc
     unit/zelda3/dungeon/room_object_set_id_test.cc
     unit/zelda3/dungeon/object_layer_semantics_test.cc
