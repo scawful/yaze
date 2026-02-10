@@ -22,6 +22,7 @@
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_helpers.h"
 #include "core/project.h"
@@ -840,21 +841,19 @@ void MusicEditor::DrawSongTrackerWindow(int song_index) {
 
   // Play/Pause button with status indication
   if (is_playing_this_song && !is_paused_this_song) {
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.5f, 0.2f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                          ImVec4(0.3f, 0.6f, 0.3f, 1.0f));
+    gui::StyleColorGuard btn_guard(
+        {{ImGuiCol_Button, ImVec4(0.2f, 0.5f, 0.2f, 1.0f)},
+         {ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.6f, 0.3f, 1.0f)}});
     if (ImGui::Button(ICON_MD_PAUSE " Pause")) {
       music_player_->Pause();
     }
-    ImGui::PopStyleColor(2);
   } else if (is_paused_this_song) {
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.5f, 0.5f, 0.2f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                          ImVec4(0.6f, 0.6f, 0.3f, 1.0f));
+    gui::StyleColorGuard btn_guard(
+        {{ImGuiCol_Button, ImVec4(0.5f, 0.5f, 0.2f, 1.0f)},
+         {ImGuiCol_ButtonHovered, ImVec4(0.6f, 0.6f, 0.3f, 1.0f)}});
     if (ImGui::Button(ICON_MD_PLAY_ARROW " Resume")) {
       music_player_->Resume();
     }
-    ImGui::PopStyleColor(2);
   } else {
     if (ImGui::Button(ICON_MD_PLAY_ARROW " Play")) {
       music_player_->PlaySong(song_index);
@@ -1161,17 +1160,17 @@ void MusicEditor::DrawToolset() {
   const ImVec4 paused_color(0.9f, 0.7f, 0.2f, 1.0f);
 
   if (state.is_playing && !state.is_paused) {
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.5f, 0.2f, 1.0f));
+    gui::StyleColorGuard btn_guard(ImGuiCol_Button,
+                                   ImVec4(0.2f, 0.5f, 0.2f, 1.0f));
     if (ImGui::Button(ICON_MD_PAUSE "##Pause"))
       music_player_->Pause();
-    ImGui::PopStyleColor();
     if (ImGui::IsItemHovered())
       ImGui::SetTooltip("Pause (Space)");
   } else if (state.is_paused) {
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.5f, 0.4f, 0.1f, 1.0f));
+    gui::StyleColorGuard btn_guard(ImGuiCol_Button,
+                                   ImVec4(0.5f, 0.4f, 0.1f, 1.0f));
     if (ImGui::Button(ICON_MD_PLAY_ARROW "##Resume"))
       music_player_->Resume();
-    ImGui::PopStyleColor();
     if (ImGui::IsItemHovered())
       ImGui::SetTooltip("Resume (Space)");
   } else {
@@ -1337,42 +1336,44 @@ void MusicEditor::DrawToolset() {
         bool is_solo = channel_soloed_[i];
         const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
 
-        if (is_muted) {
-          ImGui::PushStyleColor(ImGuiCol_Button,
-                                gui::ConvertColorToImVec4(theme.error));
+        {
+          std::optional<gui::StyleColorGuard> mute_guard;
+          if (is_muted) {
+            mute_guard.emplace(ImGuiCol_Button,
+                               gui::ConvertColorToImVec4(theme.error));
+          }
+          if (ImGui::Button(absl::StrFormat("M##%d", i).c_str(),
+                            ImVec2(25, 20))) {
+            dsp.SetChannelMute(i, !is_muted);
+          }
         }
-        if (ImGui::Button(absl::StrFormat("M##%d", i).c_str(),
-                          ImVec2(25, 20))) {
-          dsp.SetChannelMute(i, !is_muted);
-        }
-        if (is_muted)
-          ImGui::PopStyleColor();
 
         ImGui::SameLine();
 
-        if (is_solo) {
-          ImGui::PushStyleColor(ImGuiCol_Button,
-                                gui::ConvertColorToImVec4(theme.warning));
-        }
-        if (ImGui::Button(absl::StrFormat("S##%d", i).c_str(),
-                          ImVec2(25, 20))) {
-          channel_soloed_[i] = !channel_soloed_[i];
+        {
+          std::optional<gui::StyleColorGuard> solo_guard;
+          if (is_solo) {
+            solo_guard.emplace(ImGuiCol_Button,
+                               gui::ConvertColorToImVec4(theme.warning));
+          }
+          if (ImGui::Button(absl::StrFormat("S##%d", i).c_str(),
+                            ImVec2(25, 20))) {
+            channel_soloed_[i] = !channel_soloed_[i];
 
-          bool any_solo = false;
-          for (int j = 0; j < 8; j++)
-            if (channel_soloed_[j])
-              any_solo = true;
+            bool any_solo = false;
+            for (int j = 0; j < 8; j++)
+              if (channel_soloed_[j])
+                any_solo = true;
 
-          for (int j = 0; j < 8; j++) {
-            if (any_solo) {
-              dsp.SetChannelMute(j, !channel_soloed_[j]);
-            } else {
-              dsp.SetChannelMute(j, false);
+            for (int j = 0; j < 8; j++) {
+              if (any_solo) {
+                dsp.SetChannelMute(j, !channel_soloed_[j]);
+              } else {
+                dsp.SetChannelMute(j, false);
+              }
             }
           }
         }
-        if (is_solo)
-          ImGui::PopStyleColor();
 
         // VU Meter
         float level = std::abs(ch.sampleOut) / 32768.0f;
@@ -1684,9 +1685,9 @@ void MusicEditor::DrawAsmPopups() {
                               ImGuiInputTextFlags_AllowTabInput);
 
     if (!asm_import_error_.empty()) {
-      ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.3f, 0.3f, 1.0f));
+      gui::StyleColorGuard error_text_guard(ImGuiCol_Text,
+                                            ImVec4(0.9f, 0.3f, 0.3f, 1.0f));
       ImGui::TextWrapped("%s", asm_import_error_.c_str());
-      ImGui::PopStyleColor();
     }
 
     bool can_import = asm_import_target_index_ >= 0 && !asm_buffer_.empty();

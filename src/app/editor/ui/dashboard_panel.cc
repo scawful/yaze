@@ -12,6 +12,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/platform_keys.h"
 #include "app/gui/core/style.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
@@ -270,7 +271,7 @@ void DashboardPanel::DrawRecentEditors() {
       ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoPadOuterX;
   const ImVec2 cell_padding(row_layout.spacing * 0.5f,
                             style.ItemSpacing.y * 0.4f);
-  ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, cell_padding);
+  gui::StyleVarGuard cell_var_guard(ImGuiStyleVar_CellPadding, cell_padding);
   if (ImGui::BeginTable("DashboardRecentGrid", row_layout.columns,
                         table_flags)) {
     for (EditorType type : recent_editors_) {
@@ -288,12 +289,11 @@ void DashboardPanel::DrawRecentEditors() {
       const bool enabled = has_rom_ || !it->requires_rom;
       const float alpha = enabled ? 1.0f : 0.35f;
       const ImVec4 base_color = GetEditorAccentColor(it->type, theme);
-      ImGui::PushStyleColor(ImGuiCol_Button,
-                            ScaleColor(base_color, 0.5f, 0.7f * alpha));
-      ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                            ScaleColor(base_color, 0.7f, 0.9f * alpha));
-      ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                            WithAlpha(base_color, 1.0f * alpha));
+      gui::StyleColorGuard btn_guard(
+          {{ImGuiCol_Button, ScaleColor(base_color, 0.5f, 0.7f * alpha)},
+           {ImGuiCol_ButtonHovered,
+            ScaleColor(base_color, 0.7f, 0.9f * alpha)},
+           {ImGuiCol_ButtonActive, WithAlpha(base_color, 1.0f * alpha)}});
 
       ImVec2 button_size(
           stack_items ? avail_width : row_layout.item_width,
@@ -314,8 +314,6 @@ void DashboardPanel::DrawRecentEditors() {
         ImGui::EndDisabled();
       }
 
-      ImGui::PopStyleColor(3);
-
       if (ImGui::IsItemHovered()) {
         if (!enabled) {
           ImGui::SetTooltip("Load a ROM to open %s", it->name.c_str());
@@ -326,7 +324,6 @@ void DashboardPanel::DrawRecentEditors() {
     }
     ImGui::EndTable();
   }
-  ImGui::PopStyleVar();
 }
 
 void DashboardPanel::DrawEditorGrid() {
@@ -361,7 +358,7 @@ void DashboardPanel::DrawEditorGrid() {
   ImGuiTableFlags table_flags =
       ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoPadOuterX;
   const ImVec2 cell_padding(layout.spacing * 0.5f, style.ItemSpacing.y * 0.5f);
-  ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, cell_padding);
+  gui::StyleVarGuard grid_var_guard(ImGuiStyleVar_CellPadding, cell_padding);
   if (ImGui::BeginTable("DashboardEditorGrid", layout.columns, table_flags)) {
     for (size_t i = 0; i < editors_.size(); ++i) {
       ImGui::TableNextColumn();
@@ -371,7 +368,6 @@ void DashboardPanel::DrawEditorGrid() {
     }
     ImGui::EndTable();
   }
-  ImGui::PopStyleVar();
 }
 
 void DashboardPanel::DrawEditorPanel(const EditorInfo& info, int index,
@@ -467,13 +463,12 @@ void DashboardPanel::DrawEditorPanel(const EditorInfo& info, int index,
   // Make button transparent (we draw our own background)
   ImVec4 button_bg = ImGui::GetStyleColorVec4(ImGuiCol_Button);
   button_bg.w = 0.0f;
-  ImGui::PushStyleColor(ImGuiCol_Button, button_bg);
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                        ScaleColor(base_color, 0.3f,
-                                   enabled ? 0.5f : 0.2f));
-  ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                        ScaleColor(base_color, 0.5f,
-                                   enabled ? 0.7f : 0.2f));
+  gui::StyleColorGuard card_btn_guard(
+      {{ImGuiCol_Button, button_bg},
+       {ImGuiCol_ButtonHovered,
+        ScaleColor(base_color, 0.3f, enabled ? 0.5f : 0.2f)},
+       {ImGuiCol_ButtonActive,
+        ScaleColor(base_color, 0.5f, enabled ? 0.7f : 0.2f)}});
 
   if (!enabled) {
     ImGui::BeginDisabled();
@@ -484,8 +479,6 @@ void DashboardPanel::DrawEditorPanel(const EditorInfo& info, int index,
     ImGui::EndDisabled();
   }
   bool is_hovered = ImGui::IsItemHovered();
-
-  ImGui::PopStyleColor(3);
 
   // Draw icon with colored background circle
   ImU32 icon_bg =

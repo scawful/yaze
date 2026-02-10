@@ -32,9 +32,11 @@ std::string PanelWindow::duplicate_panel_name_;
 
 void Toolset::Begin() {
   // Ultra-compact toolbar with minimal padding
-  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 2));
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(3, 3));
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(6, 4));
+  toolbar_var_guard_.emplace(
+      std::initializer_list<StyleVarGuard::Entry>{
+          {ImGuiStyleVar_FramePadding, ImVec2(4, 2)},
+          {ImGuiStyleVar_ItemSpacing, ImVec2(3, 3)},
+          {ImGuiStyleVar_WindowPadding, ImVec2(6, 4)}});
 
   // Don't use BeginGroup - it causes stretching. Just use direct layout.
   in_toolbar_ = true;
@@ -46,7 +48,7 @@ void Toolset::End() {
   // End the current line
   ImGui::NewLine();
 
-  ImGui::PopStyleVar(3);
+  toolbar_var_guard_.reset();
   ImGui::Separator();
   in_toolbar_ = false;
   current_line_width_ = 0.0f;
@@ -55,7 +57,8 @@ void Toolset::End() {
 void Toolset::BeginModeGroup() {
   // Compact inline mode buttons without child window to avoid scroll issues
   // Just use a simple colored background rect
-  ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.15f, 0.15f, 0.17f, 0.5f));
+  mode_group_color_guard_.emplace(ImGuiCol_ChildBg,
+                                  ImVec4(0.15f, 0.15f, 0.17f, 0.5f));
 
   // Use a frameless child with exact button height to avoid scrolling
   const float button_size = 28.0f;  // Smaller buttons to match toolbar height
@@ -75,17 +78,14 @@ void Toolset::BeginModeGroup() {
 }
 
 bool Toolset::ModeButton(const char* icon, bool selected, const char* tooltip) {
+  std::optional<StyleColorGuard> sel_guard;
   if (selected) {
-    ImGui::PushStyleColor(ImGuiCol_Button, GetAccentColor());
+    sel_guard.emplace(ImGuiCol_Button, GetAccentColor());
   }
 
   // Use smaller buttons that fit the toolbar height
   float size = mode_group_button_size_ > 0 ? mode_group_button_size_ : 28.0f;
   bool clicked = ImGui::Button(icon, ImVec2(size, size));
-
-  if (selected) {
-    ImGui::PopStyleColor();
-  }
 
   if (tooltip && ImGui::IsItemHovered()) {
     ImGui::SetTooltip("%s", tooltip);
@@ -99,7 +99,7 @@ bool Toolset::ModeButton(const char* icon, bool selected, const char* tooltip) {
 
 void Toolset::EndModeGroup() {
   ImGui::EndChild();
-  ImGui::PopStyleColor();
+  mode_group_color_guard_.reset();
   ImGui::SameLine();
   AddSeparator();
 }
@@ -398,10 +398,14 @@ bool PanelWindow::Begin(bool* p_open) {
   }
 
   // Modern panel styling
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10, 10));
-  ImGui::PushStyleColor(ImGuiCol_TitleBg, GetThemeColor(ImGuiCol_TitleBg));
-  ImGui::PushStyleColor(ImGuiCol_TitleBgActive, GetAccentColor());
+  panel_var_guard_.emplace(
+      std::initializer_list<StyleVarGuard::Entry>{
+          {ImGuiStyleVar_WindowRounding, 8.0f},
+          {ImGuiStyleVar_WindowPadding, ImVec2(10, 10)}});
+  panel_color_guard_.emplace(
+      std::initializer_list<StyleColorGuard::Entry>{
+          {ImGuiCol_TitleBg, GetThemeColor(ImGuiCol_TitleBg)},
+          {ImGuiCol_TitleBgActive, GetAccentColor()}});
 
   // Use p_open parameter if provided, otherwise use stored p_open_
   bool* actual_p_open = p_open ? p_open : p_open_;
@@ -455,8 +459,8 @@ void PanelWindow::End() {
     focused_ = ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows);
 
     ImGui::End();
-    ImGui::PopStyleColor(2);
-    ImGui::PopStyleVar(2);
+    panel_color_guard_.reset();
+    panel_var_guard_.reset();
     imgui_begun_ = false;
   }
 }

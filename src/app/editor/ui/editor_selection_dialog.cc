@@ -11,6 +11,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/platform_keys.h"
 #include "app/gui/core/style.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
 #include "util/file_util.h"
@@ -356,18 +357,15 @@ void EditorSelectionDialog::DrawQuickAccessButtons() {
       }
 
       const ImVec4 base_color = GetEditorAccentColor(it->type, theme);
-      ImGui::PushStyleColor(ImGuiCol_Button,
-                            ScaleColor(base_color, 0.5f, 0.7f));
-      ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                            ScaleColor(base_color, 0.7f, 0.9f));
-      ImGui::PushStyleColor(ImGuiCol_ButtonActive, WithAlpha(base_color, 1.0f));
+      gui::StyleColorGuard btn_guard(
+          {{ImGuiCol_Button, ScaleColor(base_color, 0.5f, 0.7f)},
+           {ImGuiCol_ButtonHovered, ScaleColor(base_color, 0.7f, 0.9f)},
+           {ImGuiCol_ButtonActive, WithAlpha(base_color, 1.0f)}});
 
       if (ImGui::Button(absl::StrCat(it->icon, " ", it->name).c_str(),
                         ImVec2(layout.item_width, layout.item_height))) {
         selected_editor_ = type;
       }
-
-      ImGui::PopStyleColor(3);
 
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("%s", it->description);
@@ -474,17 +472,14 @@ void EditorSelectionDialog::DrawEditorPanel(const EditorInfo& info, int index,
   // Make button transparent (we draw our own background)
   ImVec4 button_bg = ImGui::GetStyleColorVec4(ImGuiCol_Button);
   button_bg.w = 0.0f;
-  ImGui::PushStyleColor(ImGuiCol_Button, button_bg);
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                        ScaleColor(base_color, 0.3f, 0.5f));
-  ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                        ScaleColor(base_color, 0.5f, 0.7f));
+  gui::StyleColorGuard card_btn_guard(
+      {{ImGuiCol_Button, button_bg},
+       {ImGuiCol_ButtonHovered, ScaleColor(base_color, 0.3f, 0.5f)},
+       {ImGuiCol_ButtonActive, ScaleColor(base_color, 0.5f, 0.7f)}});
 
   bool clicked =
       ImGui::Button(absl::StrCat("##", info.name).c_str(), card_size);
   bool is_hovered = ImGui::IsItemHovered();
-
-  ImGui::PopStyleColor(3);
 
   // Draw icon with colored background circle
   ImU32 icon_bg = ImGui::GetColorU32(base_color);

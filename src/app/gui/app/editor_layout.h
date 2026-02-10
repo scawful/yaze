@@ -2,9 +2,11 @@
 #define YAZE_APP_GUI_EDITOR_LAYOUT_H
 
 #include <functional>
+#include <optional>
 #include <string>
 #include <vector>
 
+#include "app/gui/core/style_guard.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -80,6 +82,8 @@ class Toolset {
   int button_count_ = 0;
   float current_line_width_ = 0.0f;
   float mode_group_button_size_ = 0.0f;
+  std::optional<StyleVarGuard> toolbar_var_guard_;
+  std::optional<StyleColorGuard> mode_group_color_guard_;
 };
 
 /**
@@ -226,6 +230,9 @@ class PanelWindow {
   void DrawFloatingIconButton();
   void DrawHeaderButtons();
   void UpdateWindowName();
+
+  std::optional<StyleVarGuard> panel_var_guard_;
+  std::optional<StyleColorGuard> panel_color_guard_;
 };
 
 /**

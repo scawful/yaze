@@ -7,6 +7,7 @@
 #include "absl/strings/str_format.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
 #include "zelda3/music/song_data.h"
@@ -105,15 +106,18 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
       active_segment_index_, 0, static_cast<int>(song->segments.size()) - 1);
   active_channel_index_ = std::clamp(active_channel_index_, 0, 7);
 
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 4));
-  if (ImGui::BeginChild(
-          "##PianoRollToolbar", ImVec2(0, kToolbarHeight),
-          ImGuiChildFlags_AlwaysUseWindowPadding,
-          ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
-    DrawToolbar(song, bank);
+  {
+    gui::StyleVarGuard toolbar_padding(ImGuiStyleVar_WindowPadding,
+                                       ImVec2(8, 4));
+    if (ImGui::BeginChild(
+            "##PianoRollToolbar", ImVec2(0, kToolbarHeight),
+            ImGuiChildFlags_AlwaysUseWindowPadding,
+            ImGuiWindowFlags_NoScrollbar |
+                ImGuiWindowFlags_NoScrollWithMouse)) {
+      DrawToolbar(song, bank);
+    }
+    ImGui::EndChild();
   }
-  ImGui::EndChild();
-  ImGui::PopStyleVar();
 
   ImGui::Separator();
 
@@ -126,8 +130,9 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
           "PianoRollMain", ImVec2(0, main_height), ImGuiChildFlags_None,
           ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
     // === MAIN CONTENT ===
-    ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0, 0));
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+    gui::StyleVarGuard content_style_guard(
+        {{ImGuiStyleVar_CellPadding, ImVec2(0, 0)},
+         {ImGuiStyleVar_FramePadding, ImVec2(0, 0)}});
     const float layout_height = ImGui::GetContentRegionAvail().y;
     const ImGuiTableFlags table_flags =
         ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInnerV |
@@ -174,7 +179,6 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
 
       ImGui::EndTable();
     }
-    ImGui::PopStyleVar(2);
   }
   ImGui::EndChild();
 
@@ -679,15 +683,15 @@ void PianoRollView::DrawToolbar(const MusicSong* song, const MusicBank* bank) {
   ImGui::SameLine();
 
   bool snap_active = snap_enabled_;
-  if (snap_active) {
-    ImGui::PushStyleColor(ImGuiCol_Button,
-                          ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
-  }
-  if (ImGui::Button("Snap")) {
-    snap_enabled_ = !snap_enabled_;
-  }
-  if (snap_active) {
-    ImGui::PopStyleColor();
+  {
+    std::optional<gui::StyleColorGuard> snap_guard;
+    if (snap_active) {
+      snap_guard.emplace(ImGuiCol_Button,
+                         ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
+    }
+    if (ImGui::Button("Snap")) {
+      snap_enabled_ = !snap_enabled_;
+    }
   }
 
   ImGui::SameLine();
@@ -710,8 +714,9 @@ void PianoRollView::DrawToolbar(const MusicSong* song, const MusicBank* bank) {
 
 void PianoRollView::DrawChannelList(const MusicSong* song) {
   const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 4));
-  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 4));
+  gui::StyleVarGuard channel_style_guard(
+      {{ImGuiStyleVar_ItemSpacing, ImVec2(4, 4)},
+       {ImGuiStyleVar_FramePadding, ImVec2(6, 4)}});
 
   ImGui::TextDisabled(ICON_MD_PIANO " Channels");
   ImGui::Separator();
@@ -769,17 +774,17 @@ void PianoRollView::DrawChannelList(const MusicSong* song) {
     base_hover.w = std::min(1.0f, base_bg.w + 0.15f);
     ImVec4 active_hover = mute_active;
     active_hover.w = std::min(1.0f, mute_active.w + 0.15f);
-    ImGui::PushStyleColor(ImGuiCol_Button, muted ? mute_active : base_bg);
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                          muted ? active_hover : base_hover);
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                          muted ? active_hover : base_hover);
-    const char* mute_label =
-        muted ? ICON_MD_VOLUME_OFF "##Mute" : ICON_MD_VOLUME_UP "##Mute";
-    if (ImGui::Button(mute_label, button_size)) {
-      channel_muted_[i] = !channel_muted_[i];
+    {
+      gui::StyleColorGuard mute_guard(
+          {{ImGuiCol_Button, muted ? mute_active : base_bg},
+           {ImGuiCol_ButtonHovered, muted ? active_hover : base_hover},
+           {ImGuiCol_ButtonActive, muted ? active_hover : base_hover}});
+      const char* mute_label =
+          muted ? ICON_MD_VOLUME_OFF "##Mute" : ICON_MD_VOLUME_UP "##Mute";
+      if (ImGui::Button(mute_label, button_size)) {
+        channel_muted_[i] = !channel_muted_[i];
+      }
     }
-    ImGui::PopStyleColor(3);
     if (ImGui::IsItemHovered())
       ImGui::SetTooltip("Mute");
 
@@ -793,16 +798,16 @@ void PianoRollView::DrawChannelList(const MusicSong* song) {
     solo_hover.w = std::min(1.0f, solo_col.w + 0.15f);
     ImVec4 base_hover_solo = base_bg;
     base_hover_solo.w = std::min(1.0f, base_bg.w + 0.15f);
-    ImGui::PushStyleColor(ImGuiCol_Button, solo ? solo_col : base_bg);
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                          solo ? solo_hover : base_hover_solo);
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                          solo ? solo_hover : base_hover_solo);
-    const char* solo_label = ICON_MD_HEARING "##Solo";
-    if (ImGui::Button(solo_label, button_size)) {
-      channel_solo_[i] = !channel_solo_[i];
+    {
+      gui::StyleColorGuard solo_guard(
+          {{ImGuiCol_Button, solo ? solo_col : base_bg},
+           {ImGuiCol_ButtonHovered, solo ? solo_hover : base_hover_solo},
+           {ImGuiCol_ButtonActive, solo ? solo_hover : base_hover_solo}});
+      const char* solo_label = ICON_MD_HEARING "##Solo";
+      if (ImGui::Button(solo_label, button_size)) {
+        channel_solo_[i] = !channel_solo_[i];
+      }
     }
-    ImGui::PopStyleColor(3);
     if (ImGui::IsItemHovered())
       ImGui::SetTooltip("Solo");
 
@@ -813,11 +818,10 @@ void PianoRollView::DrawChannelList(const MusicSong* song) {
 
     ImGui::PopID();
   }
-  ImGui::PopStyleVar(2);
 }
 
 void PianoRollView::DrawStatusBar(const MusicSong* /*song*/) {
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 4));
+  gui::StyleVarGuard status_padding(ImGuiStyleVar_WindowPadding, ImVec2(8, 4));
   if (ImGui::BeginChild(
           "##PianoRollStatusBar", ImVec2(0, kStatusBarHeight),
           ImGuiChildFlags_AlwaysUseWindowPadding,
@@ -838,7 +842,6 @@ void PianoRollView::DrawStatusBar(const MusicSong* /*song*/) {
         "Click: Add | Drag: Move | Ctrl+Wheel: Zoom X | Shift+Wheel: Zoom Y");
   }
   ImGui::EndChild();
-  ImGui::PopStyleVar();
 }
 
 void PianoRollView::HandleMouseInput(MusicSong* song, int active_channel,
