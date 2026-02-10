@@ -253,8 +253,8 @@ void DungeonWorkbenchPanel::DrawRecentRoomTabs() {
   // increasing Y padding here keeps the trailing toggle readable without
   // affecting global theme metrics.
   const ImVec2 frame_pad = ImGui::GetStyle().FramePadding;
-  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,
-                      ImVec2(frame_pad.x, frame_pad.y + 1.0f));
+  gui::StyleVarGuard pad_guard(ImGuiStyleVar_FramePadding,
+                               ImVec2(frame_pad.x, frame_pad.y + 1.0f));
 
   if (ImGui::BeginTabBar("##DungeonRecentRooms", kFlags)) {
     for (int room_id : recent_ids) {
@@ -299,8 +299,6 @@ void DungeonWorkbenchPanel::DrawRecentRoomTabs() {
 
     ImGui::EndTabBar();
   }
-
-  ImGui::PopStyleVar();
 
   if (!to_forget.empty() && forget_recent_room_) {
     for (int rid : to_forget) {

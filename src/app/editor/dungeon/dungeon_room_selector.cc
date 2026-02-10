@@ -74,11 +74,12 @@ void DungeonRoomSelector::DrawRoomSelector() {
 
   // Increase row height on touch devices for easier tapping
   const bool is_touch = gui::LayoutHelpers::IsTouchDevice();
+  std::optional<gui::StyleVarGuard> touch_pad_guard;
   if (is_touch) {
     float touch_pad = std::max(6.0f,
         (gui::LayoutHelpers::GetMinTouchTarget() - ImGui::GetFontSize()) * 0.5f);
-    ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,
-                        ImVec2(ImGui::GetStyle().CellPadding.x, touch_pad));
+    touch_pad_guard.emplace(ImGuiStyleVar_CellPadding,
+                            ImVec2(ImGui::GetStyle().CellPadding.x, touch_pad));
   }
 
   if (ImGui::BeginTable("RoomList", 2,
@@ -168,10 +169,6 @@ void DungeonRoomSelector::DrawRoomSelector() {
     }
 
     ImGui::EndTable();
-  }
-
-  if (is_touch) {
-    ImGui::PopStyleVar();
   }
 }
 

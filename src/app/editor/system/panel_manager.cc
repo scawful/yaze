@@ -699,8 +699,9 @@ void PanelManager::DrawAllVisiblePanels() {
         [this, panel_id](bool pinned) { SetPanelPinned(panel_id, pinned); });
 
     // Apply fade alpha for smooth transitions
+    std::optional<gui::StyleVarGuard> alpha_guard;
     if (current_alpha < 1.0f) {
-      ImGui::PushStyleVar(ImGuiStyleVar_Alpha, current_alpha);
+      alpha_guard.emplace(ImGuiStyleVar_Alpha, current_alpha);
     }
 
     if (window.Begin(visibility_flag)) {
@@ -708,9 +709,7 @@ void PanelManager::DrawAllVisiblePanels() {
     }
     window.End();
 
-    if (current_alpha < 1.0f) {
-      ImGui::PopStyleVar();
-    }
+    alpha_guard.reset();
 
     // Handle visibility change (window closed via X button)
     if (visibility_flag && !*visibility_flag) {
