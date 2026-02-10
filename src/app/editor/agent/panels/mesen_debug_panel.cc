@@ -9,6 +9,7 @@
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/emu/mesen/mesen_client_registry.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/style_guard.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -312,18 +313,21 @@ void MesenDebugPanel::DrawLinkState() {
     // Draw hearts
     int full_hearts = items.current_health / 8;
     int max_hearts = items.max_health / 8;
-    ImGui::PushStyleColor(ImGuiCol_Text, health_color);
-    for (int i = 0; i < full_hearts; ++i) {
-      ImGui::SameLine(0, 0);
-      ImGui::Text("%s", ICON_MD_FAVORITE);
+    {
+      gui::StyleColorGuard full_heart_guard(ImGuiCol_Text, health_color);
+      for (int i = 0; i < full_hearts; ++i) {
+        ImGui::SameLine(0, 0);
+        ImGui::Text("%s", ICON_MD_FAVORITE);
+      }
     }
-    ImGui::PopStyleColor();
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.3f, 0.3f, 0.3f, 1.0f));
-    for (int i = full_hearts; i < max_hearts; ++i) {
-      ImGui::SameLine(0, 0);
-      ImGui::Text("%s", ICON_MD_FAVORITE_BORDER);
+    {
+      gui::StyleColorGuard empty_heart_guard(ImGuiCol_Text,
+                                             ImVec4(0.3f, 0.3f, 0.3f, 1.0f));
+      for (int i = full_hearts; i < max_hearts; ++i) {
+        ImGui::SameLine(0, 0);
+        ImGui::Text("%s", ICON_MD_FAVORITE_BORDER);
+      }
     }
-    ImGui::PopStyleColor();
 
     ImGui::SameLine();
     ImGui::TextColored(theme.text_secondary_color, " (%d/%d)",
