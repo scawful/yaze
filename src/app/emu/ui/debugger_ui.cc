@@ -328,8 +328,9 @@ void RenderCpuInstructionLog(Emulator* emu, uint32_t log_size) {
   auto& theme_manager = ThemeManager::Get();
   const auto& theme = theme_manager.GetCurrentTheme();
 
-  ImGui::PushStyleColor(ImGuiCol_ChildBg, ConvertColorToImVec4(theme.child_bg));
-  ImGui::BeginChild("##InstructionLog", ImVec2(0, 0), true);
+  gui::StyledChild log_child("##InstructionLog", ImVec2(0, 0),
+                             {.bg = ConvertColorToImVec4(theme.child_bg)},
+                             true);
 
   ImGui::TextColored(ConvertColorToImVec4(theme.warning),
                      ICON_MD_WARNING " Legacy Instruction Log");
@@ -352,8 +353,6 @@ void RenderCpuInstructionLog(Emulator* emu, uint32_t log_size) {
     // TODO: Open disassembly viewer window
   }
 
-  ImGui::EndChild();
-  ImGui::PopStyleColor();
 }
 
 void RenderApuDebugger(Emulator* emu) {
@@ -363,8 +362,9 @@ void RenderApuDebugger(Emulator* emu) {
   auto& theme_manager = ThemeManager::Get();
   const auto& theme = theme_manager.GetCurrentTheme();
 
-  ImGui::PushStyleColor(ImGuiCol_ChildBg, ConvertColorToImVec4(theme.child_bg));
-  ImGui::BeginChild("##ApuDebugger", ImVec2(0, 0), true);
+  gui::StyledChild apu_child("##ApuDebugger", ImVec2(0, 0),
+                             {.bg = ConvertColorToImVec4(theme.child_bg)},
+                             true);
 
   // Title
   ImGui::TextColored(ConvertColorToImVec4(theme.accent),
@@ -578,8 +578,6 @@ void RenderApuDebugger(Emulator* emu) {
         static_cast<InterpolationType>(current_item);
   }
 
-  ImGui::EndChild();
-  ImGui::PopStyleColor();
 }
 
 void RenderAIAgentPanel(Emulator* emu) {
@@ -589,8 +587,8 @@ void RenderAIAgentPanel(Emulator* emu) {
   auto& theme_manager = ThemeManager::Get();
   const auto& theme = theme_manager.GetCurrentTheme();
 
-  ImGui::PushStyleColor(ImGuiCol_ChildBg, ConvertColorToImVec4(theme.child_bg));
-  ImGui::BeginChild("##AIAgent", ImVec2(0, 0), true);
+  gui::StyledChild ai_child("##AIAgent", ImVec2(0, 0),
+                            {.bg = ConvertColorToImVec4(theme.child_bg)}, true);
 
   ImGui::TextColored(ConvertColorToImVec4(theme.accent),
                      ICON_MD_SMART_TOY " AI Agent Integration");
