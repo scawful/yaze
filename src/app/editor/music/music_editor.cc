@@ -1198,7 +1198,9 @@ void MusicEditor::DrawToolset() {
       // Animated playing indicator
       float t = static_cast<float>(ImGui::GetTime() * 3.0);
       float alpha = 0.5f + 0.5f * std::sin(t);
-      ImGui::TextColored(ImVec4(0.4f, 0.9f, 0.4f, alpha), ICON_MD_GRAPHIC_EQ);
+      auto success_c = gui::GetSuccessColor();
+      ImGui::TextColored(ImVec4(success_c.x, success_c.y, success_c.z, alpha),
+                         ICON_MD_GRAPHIC_EQ);
       ImGui::SameLine();
     } else if (state.is_paused) {
       ImGui::TextColored(paused_color, ICON_MD_PAUSE_CIRCLE);
@@ -1207,7 +1209,7 @@ void MusicEditor::DrawToolset() {
     ImGui::Text("%s", song->name.c_str());
     if (song->modified) {
       ImGui::SameLine();
-      ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), ICON_MD_EDIT);
+      ImGui::TextColored(gui::GetWarningColor(), ICON_MD_EDIT);
     }
   } else {
     ImGui::TextDisabled("No song selected");
@@ -1221,7 +1223,7 @@ void MusicEditor::DrawToolset() {
                         : 0.0f;
     int mins = static_cast<int>(seconds) / 60;
     int secs = static_cast<int>(seconds) % 60;
-    ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.8f, 1.0f), " %d:%02d", mins, secs);
+    ImGui::TextColored(gui::GetInfoColor(), " %d:%02d", mins, secs);
   }
 
   // Right-aligned controls
@@ -1418,15 +1420,15 @@ void MusicEditor::DrawToolset() {
 
         // Resampling indicator with warning if disabled
         if (resampling) {
-          ImGui::TextColored(ImVec4(0.3f, 0.9f, 0.3f, 1.0f),
+          ImGui::TextColored(gui::GetSuccessColor(),
                              "Resampling: 32040 -> %d Hz", config.sample_rate);
         } else {
-          ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), ICON_MD_WARNING
+          ImGui::TextColored(gui::GetErrorColor(), ICON_MD_WARNING
                              " Resampling DISABLED - 1.5x speed bug!");
         }
 
         if (status.has_underrun) {
-          ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f),
+          ImGui::TextColored(gui::GetWarningColor(),
                              ICON_MD_WARNING " Buffer underrun");
         }
 
@@ -1480,7 +1482,7 @@ void MusicEditor::DrawChannelOverview() {
 
       // Visual indicator for Key On
       if (state.key_on) {
-        ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "ON");
+        ImGui::TextColored(gui::GetSuccessColor(), "ON");
       } else {
         ImGui::TextDisabled("OFF");
       }
@@ -1688,7 +1690,7 @@ void MusicEditor::DrawAsmPopups() {
 
     if (!asm_import_error_.empty()) {
       gui::StyleColorGuard error_text_guard(ImGuiCol_Text,
-                                            ImVec4(0.9f, 0.3f, 0.3f, 1.0f));
+                                            gui::GetErrorColor());
       ImGui::TextWrapped("%s", asm_import_error_.c_str());
     }
 
