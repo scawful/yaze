@@ -556,18 +556,18 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
     // Iterate through all object ranges
     for (const auto& range : ranges) {
       // Section header for each type
-      ImGui::PushStyleColor(ImGuiCol_Header, range.header_color);
-      ImGui::PushStyleColor(
-          ImGuiCol_HeaderHovered,
-          IM_COL32((range.header_color & 0xFF) + 30,
-                   ((range.header_color >> 8) & 0xFF) + 30,
-                   ((range.header_color >> 16) & 0xFF) + 30, 255));
+      gui::StyleColorGuard section_guard(
+          {{ImGuiCol_Header, ImGui::ColorConvertU32ToFloat4(range.header_color)},
+           {ImGuiCol_HeaderHovered,
+            ImGui::ColorConvertU32ToFloat4(
+                IM_COL32((range.header_color & 0xFF) + 30,
+                         ((range.header_color >> 8) & 0xFF) + 30,
+                         ((range.header_color >> 16) & 0xFF) + 30, 255))}});
       bool section_open = ImGui::CollapsingHeader(
           absl::StrFormat("%s (0x%03X-0x%03X)", range.label, range.start,
                           range.end)
               .c_str(),
           ImGuiTreeNodeFlags_DefaultOpen);
-      ImGui::PopStyleColor(2);
 
       if (!section_open)
         continue;
@@ -737,11 +737,13 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
     EnsureCustomObjectsInitialized();
 
     // Custom Objects Section
-    ImGui::PushStyleColor(ImGuiCol_Header, IM_COL32(100, 180, 120, 255));
-    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, IM_COL32(130, 210, 150, 255));
+    gui::StyleColorGuard custom_hdr_guard(
+        {{ImGuiCol_Header,
+          ImGui::ColorConvertU32ToFloat4(IM_COL32(100, 180, 120, 255))},
+         {ImGuiCol_HeaderHovered,
+          ImGui::ColorConvertU32ToFloat4(IM_COL32(130, 210, 150, 255))}});
     bool custom_open = ImGui::CollapsingHeader("Custom Objects",
                                                ImGuiTreeNodeFlags_DefaultOpen);
-    ImGui::PopStyleColor(2);
 
     if (custom_open) {
       int custom_col = 0;
@@ -1016,8 +1018,10 @@ void DungeonObjectSelector::DrawCompactDoorEditor() {
     ImGui::Text("Room Doors: %zu", doors.size());
 
     if (!doors.empty()) {
-      ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.1f, 0.1f, 0.15f, 0.5f));
-      if (ImGui::BeginChild("##DoorList", ImVec2(-1, 120), true)) {
+      gui::StyledChild door_list(
+          "##DoorList", ImVec2(-1, 120),
+          {.bg = ImVec4(0.1f, 0.1f, 0.15f, 0.5f)}, true);
+      if (door_list) {
         for (size_t i = 0; i < doors.size(); ++i) {
           const auto& door = doors[i];
           auto [tile_x, tile_y] = door.GetTileCoords();
@@ -1041,8 +1045,6 @@ void DungeonObjectSelector::DrawCompactDoorEditor() {
           ImGui::PopID();
         }
       }
-      ImGui::EndChild();
-      ImGui::PopStyleColor();
     }
 
     // Door type selector
