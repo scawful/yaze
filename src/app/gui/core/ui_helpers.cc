@@ -70,6 +70,10 @@ ImVec4 GetAccentColor() {
   return ConvertColorToImVec4(theme.accent);
 }
 
+ImVec4 GetDisabledColor() {
+  return ResolveSemanticColor(SemanticColor::Disabled);
+}
+
 // Entity/Map marker colors (vibrant with good visibility)
 ImVec4 GetEntranceColor() {
   // Bright yellow with strong visibility

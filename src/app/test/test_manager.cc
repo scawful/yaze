@@ -16,6 +16,7 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gui/automation/widget_state_capture.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/ui_helpers.h"
 #include "app/service/screenshot_utils.h"
 #include "core/features.h"
 #include "util/file_util.h"
@@ -95,15 +96,15 @@ const char* TestCategoryToString(TestCategory category) {
 ImVec4 GetTestStatusColor(TestStatus status) {
   switch (status) {
     case TestStatus::kNotRun:
-      return ImVec4(0.6f, 0.6f, 0.6f, 1.0f);  // Gray
+      return gui::GetDisabledColor();
     case TestStatus::kRunning:
-      return ImVec4(1.0f, 1.0f, 0.0f, 1.0f);  // Yellow
+      return gui::GetWarningColor();
     case TestStatus::kPassed:
-      return ImVec4(0.0f, 1.0f, 0.0f, 1.0f);  // Green
+      return gui::GetSuccessColor();
     case TestStatus::kFailed:
-      return ImVec4(1.0f, 0.0f, 0.0f, 1.0f);  // Red
+      return gui::GetErrorColor();
     case TestStatus::kSkipped:
-      return ImVec4(1.0f, 0.5f, 0.0f, 1.0f);  // Orange
+      return gui::GetWarningColor();
   }
   return ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 }
@@ -417,7 +418,7 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
     ImGui::Text("ROM Status:");
     ImGui::TableNextColumn();
     if (has_rom) {
-      ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%s Loaded",
+      ImGui::TextColored(gui::GetSuccessColor(), "%s Loaded",
                          ICON_MD_CHECK_CIRCLE);
 
       ImGui::TableNextRow();
@@ -444,10 +445,10 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
       ImGui::Text("Modified:");
       ImGui::TableNextColumn();
       if (current_rom_->dirty()) {
-        ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "%s Yes",
+        ImGui::TextColored(gui::GetWarningColor(), "%s Yes",
                            ICON_MD_EDIT);
       } else {
-        ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%s No",
+        ImGui::TextColored(gui::GetSuccessColor(), "%s No",
                            ICON_MD_CHECK);
       }
 
@@ -466,7 +467,7 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
       }
 
     } else {
-      ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "%s Not Loaded",
+      ImGui::TextColored(gui::GetWarningColor(), "%s Not Loaded",
                          ICON_MD_WARNING);
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
@@ -601,7 +602,7 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
               total_count);
   if (enabled_count < total_count) {
     ImGui::SameLine();
-    ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f),
+    ImGui::TextColored(gui::GetWarningColor(),
                        "(Some tests disabled - check Configuration)");
   }
 
@@ -619,7 +620,7 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
     // Enhanced control buttons
     {
       gui::StyleColorGuard run_btn_guard(ImGuiCol_Button,
-                                         ImVec4(0.2f, 0.7f, 0.2f, 1.0f));
+                                         gui::GetSuccessButtonColors().button);
       if (ImGui::Button(
               absl::StrCat(ICON_MD_PLAY_ARROW, " Run All Tests").c_str(),
               ImVec2(140, 0))) {
@@ -638,7 +639,7 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
     {
       std::optional<gui::StyleColorGuard> rom_btn_guard;
       if (has_rom) {
-        rom_btn_guard.emplace(ImGuiCol_Button, ImVec4(0.2f, 0.5f, 0.8f, 1.0f));
+        rom_btn_guard.emplace(ImGuiCol_Button, gui::GetInfoColor());
       }
       if (ImGui::Button(absl::StrCat(ICON_MD_STORAGE, " ROM Tests").c_str(),
                         ImVec2(100, 0))) {
@@ -679,10 +680,10 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
 
     // Progress bar showing pass rate
     float pass_rate = last_results_.GetPassRate();
-    ImVec4 progress_color = pass_rate >= 0.9f ? ImVec4(0.0f, 1.0f, 0.0f, 1.0f)
+    ImVec4 progress_color = pass_rate >= 0.9f ? gui::GetSuccessColor()
                             : pass_rate >= 0.7f
-                                ? ImVec4(1.0f, 1.0f, 0.0f, 1.0f)
-                                : ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
+                                ? gui::GetWarningColor()
+                                : gui::GetErrorColor();
 
     {
       gui::StyleColorGuard hist_guard(ImGuiCol_PlotHistogram, progress_color);
@@ -781,7 +782,7 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
     if (ImGui::BeginTabItem("Test Results")) {
       if (ImGui::BeginChild("TestResults", ImVec2(0, 0), true)) {
         if (last_results_.individual_results.empty()) {
-          ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f),
+          ImGui::TextColored(gui::GetDisabledColor(),
                              "No test results to display. Run some tests to "
                              "see results here.");
         } else {
@@ -826,7 +827,7 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
             // Show duration and timestamp on same line if space allows
             if (ImGui::GetContentRegionAvail().x > 200) {
               ImGui::SameLine();
-              ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "(%lld ms)",
+              ImGui::TextColored(gui::GetDisabledColor(), "(%lld ms)",
                                  result.duration.count());
             }
 
@@ -836,7 +837,7 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
               ImGui::Indent();
               {
                 gui::StyleColorGuard err_guard(
-                    ImGuiCol_Text, ImVec4(1.0f, 0.8f, 0.8f, 1.0f));
+                    ImGuiCol_Text, gui::GetErrorColor());
                 ImGui::TextWrapped("%s %s", ICON_MD_ERROR_OUTLINE,
                                    result.error_message.c_str());
               }
@@ -849,7 +850,7 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
               ImGui::Indent();
               {
                 gui::StyleColorGuard info_guard(
-                    ImGuiCol_Text, ImVec4(0.8f, 1.0f, 0.8f, 1.0f));
+                    ImGuiCol_Text, gui::GetSuccessColor());
                 ImGui::TextWrapped("%s %s", ICON_MD_INFO,
                                    result.error_message.c_str());
               }
@@ -873,7 +874,7 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
 
         if (summaries.empty()) {
           ImGui::TextColored(
-              ImVec4(0.6f, 0.6f, 0.6f, 1.0f),
+              gui::GetDisabledColor(),
               "No GUI automation test results yet.\n\n"
               "These tests are run via the ImGuiTestHarness gRPC service.\n"
               "Results will appear here after running GUI automation tests.");
@@ -914,32 +915,32 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
 
               switch (exec.status) {
                 case HarnessTestStatus::kPassed:
-                  status_color = ImVec4(0.0f, 1.0f, 0.0f, 1.0f);
+                  status_color = gui::GetSuccessColor();
                   status_icon = ICON_MD_CHECK_CIRCLE;
                   status_text = "Passed";
                   break;
                 case HarnessTestStatus::kFailed:
-                  status_color = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
+                  status_color = gui::GetErrorColor();
                   status_icon = ICON_MD_ERROR;
                   status_text = "Failed";
                   break;
                 case HarnessTestStatus::kTimeout:
-                  status_color = ImVec4(1.0f, 0.5f, 0.0f, 1.0f);
+                  status_color = gui::GetWarningColor();
                   status_icon = ICON_MD_TIMER_OFF;
                   status_text = "Timeout";
                   break;
                 case HarnessTestStatus::kRunning:
-                  status_color = ImVec4(1.0f, 1.0f, 0.0f, 1.0f);
+                  status_color = gui::GetWarningColor();
                   status_icon = ICON_MD_PLAY_CIRCLE_FILLED;
                   status_text = "Running";
                   break;
                 case HarnessTestStatus::kQueued:
-                  status_color = ImVec4(0.6f, 0.6f, 0.6f, 1.0f);
+                  status_color = gui::GetDisabledColor();
                   status_icon = ICON_MD_SCHEDULE;
                   status_text = "Queued";
                   break;
                 default:
-                  status_color = ImVec4(0.6f, 0.6f, 0.6f, 1.0f);
+                  status_color = gui::GetDisabledColor();
                   status_icon = ICON_MD_HELP;
                   status_text = "Unknown";
                   break;
@@ -955,7 +956,7 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
               if (exec.status == HarnessTestStatus::kFailed &&
                   !exec.error_message.empty()) {
                 ImGui::SameLine();
-                ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.5f, 1.0f), "(%s)",
+                ImGui::TextColored(gui::GetErrorColor(), "(%s)",
                                    exec.error_message.c_str());
               }
 
@@ -970,9 +971,9 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
                 float pass_rate =
                     static_cast<float>(summary.pass_count) / summary.total_runs;
                 ImVec4 rate_color =
-                    pass_rate >= 0.9f   ? ImVec4(0.0f, 1.0f, 0.0f, 1.0f)
-                    : pass_rate >= 0.7f ? ImVec4(1.0f, 1.0f, 0.0f, 1.0f)
-                                        : ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
+                    pass_rate >= 0.9f   ? gui::GetSuccessColor()
+                    : pass_rate >= 0.7f ? gui::GetWarningColor()
+                                        : gui::GetErrorColor();
                 ImGui::TextColored(rate_color, "%.0f%%", pass_rate * 100.0f);
               } else {
                 ImGui::Text("-");
@@ -1004,7 +1005,7 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
 
                 if (!exec.assertion_failures.empty()) {
                   ImGui::Separator();
-                  ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f),
+                  ImGui::TextColored(gui::GetErrorColor(),
                                      "%s Assertion Failures:", ICON_MD_ERROR);
                   for (const auto& failure : exec.assertion_failures) {
                     ImGui::BulletText("%s", failure.c_str());
@@ -1099,7 +1100,7 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
       ImGui::BulletText("Integration Tests");
       ImGui::BulletText("Performance Tests");
 #else
-      ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f),
+      ImGui::TextColored(gui::GetWarningColor(),
                          "%s Google Test framework not available",
                          ICON_MD_WARNING);
       ImGui::Text("Enable YAZE_ENABLE_GTEST to use Google Test integration");
@@ -1158,7 +1159,7 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
         }
 
       } else {
-        ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f),
+        ImGui::TextColored(gui::GetWarningColor(),
                            "%s No ROM loaded for analysis", ICON_MD_WARNING);
       }
     }
@@ -1225,7 +1226,7 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
             "Current Mode: %s",
             core::FeatureFlags::get().kUseNativeFileDialog ? "NFD" : "Bespoke");
         ImGui::TextColored(
-            ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
+            gui::GetWarningColor(),
             "Note: This setting affects ALL file dialogs in the application");
 
         if (ImGui::Button("Test Current File Dialog")) {
@@ -1324,22 +1325,22 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
             ImGui::TableNextColumn();
             // Color-code the risk level
             if (description.find("DANGEROUS") != std::string::npos) {
-              ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "%s",
+              ImGui::TextColored(gui::GetErrorColor(), "%s",
                                  description.c_str());
             } else if (description.find("Moderate") != std::string::npos) {
-              ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), "%s",
+              ImGui::TextColored(gui::GetWarningColor(), "%s",
                                  description.c_str());
             } else {
-              ImGui::TextColored(ImVec4(0.0f, 0.8f, 0.0f, 1.0f), "%s",
+              ImGui::TextColored(gui::GetSuccessColor(), "%s",
                                  description.c_str());
             }
 
             ImGui::TableNextColumn();
             if (enabled) {
-              ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%s ON",
+              ImGui::TextColored(gui::GetSuccessColor(), "%s ON",
                                  ICON_MD_CHECK);
             } else {
-              ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "%s OFF",
+              ImGui::TextColored(gui::GetWarningColor(), "%s OFF",
                                  ICON_MD_BLOCK);
             }
 
@@ -1394,9 +1395,10 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
         }
 
         ImGui::Separator();
-        ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f),
-                           "⚠️  Recommendation: Use 'Enable Safe Tests Only' "
-                           "to avoid crashes");
+        ImGui::TextColored(
+            gui::GetWarningColor(),
+            ICON_MD_WARNING
+            " Recommendation: Use 'Enable Safe Tests Only' to avoid crashes");
       }
 
       // Platform-specific settings
@@ -1423,7 +1425,7 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
         }
 
         ImGui::Separator();
-        ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f),
+        ImGui::TextColored(gui::GetDisabledColor(),
                            "Note: These tests don't change the global setting");
       }
     }
@@ -1474,9 +1476,9 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
 
       ImGui::Separator();
       ImGui::TextColored(
-          ImVec4(0.7f, 0.7f, 0.7f, 1.0f),
+          gui::GetDisabledColor(),
           "Note: Test ROM contains your modifications and can be");
-      ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f),
+      ImGui::TextColored(gui::GetDisabledColor(),
                          "opened later using File → Open");
     }
     ImGui::End();

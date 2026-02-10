@@ -15,6 +15,7 @@
 #include "app/gui/core/input.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
+#include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
 #include "zelda3/music/music_bank.h"
 
@@ -98,12 +99,12 @@ class MusicPlaybackControlPanel : public EditorPanel {
     // Transport controls
     if (state.is_playing && !state.is_paused) {
       gui::StyleColorGuard pause_guard(ImGuiCol_Button,
-                                       ImVec4(0.2f, 0.5f, 0.2f, 1.0f));
+                                       gui::GetSuccessButtonColors().button);
       if (ImGui::Button(ICON_MD_PAUSE "##Pause")) music_player_->Pause();
       if (ImGui::IsItemHovered()) ImGui::SetTooltip("Pause (Space)");
     } else if (state.is_paused) {
       gui::StyleColorGuard resume_guard(ImGuiCol_Button,
-                                        ImVec4(0.5f, 0.4f, 0.1f, 1.0f));
+                                        gui::GetWarningColor());
       if (ImGui::Button(ICON_MD_PLAY_ARROW "##Resume")) music_player_->Resume();
       if (ImGui::IsItemHovered()) ImGui::SetTooltip("Resume (Space)");
     } else {
@@ -124,17 +125,18 @@ class MusicPlaybackControlPanel : public EditorPanel {
       if (state.is_playing && !state.is_paused) {
         float t = static_cast<float>(ImGui::GetTime() * 3.0);
         float alpha = 0.5f + 0.5f * std::sin(t);
-        ImGui::TextColored(ImVec4(0.4f, 0.9f, 0.4f, alpha), ICON_MD_GRAPHIC_EQ);
+        auto c = gui::GetSuccessColor();
+        ImGui::TextColored(ImVec4(c.x, c.y, c.z, alpha), ICON_MD_GRAPHIC_EQ);
         ImGui::SameLine();
       } else if (state.is_paused) {
-        ImGui::TextColored(ImVec4(0.9f, 0.7f, 0.2f, 1.0f),
+        ImGui::TextColored(gui::GetWarningColor(),
                            ICON_MD_PAUSE_CIRCLE);
         ImGui::SameLine();
       }
       ImGui::Text("%s", song->name.c_str());
       if (song->modified) {
         ImGui::SameLine();
-        ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), ICON_MD_EDIT);
+        ImGui::TextColored(gui::GetWarningColor(), ICON_MD_EDIT);
       }
     } else {
       ImGui::TextDisabled("No song selected");
@@ -148,7 +150,7 @@ class MusicPlaybackControlPanel : public EditorPanel {
                           : 0.0f;
       int mins = static_cast<int>(seconds) / 60;
       int secs = static_cast<int>(seconds) % 60;
-      ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.8f, 1.0f), " %d:%02d", mins,
+      ImGui::TextColored(gui::GetInfoColor(), " %d:%02d", mins,
                          secs);
     }
 
@@ -184,14 +186,14 @@ class MusicPlaybackControlPanel : public EditorPanel {
     if (song) {
       ImGui::Text("Selected Song:");
       ImGui::SameLine();
-      ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "[%02X] %s",
+      ImGui::TextColored(gui::GetInfoColor(), "[%02X] %s",
                          *current_song_index_ + 1, song->name.c_str());
 
       ImGui::SameLine();
       ImGui::TextDisabled("| %zu segments", song->segments.size());
       if (song->modified) {
         ImGui::SameLine();
-        ImGui::TextColored(ImVec4(1.0f, 0.7f, 0.2f, 1.0f),
+        ImGui::TextColored(gui::GetWarningColor(),
                            ICON_MD_EDIT " Modified");
       }
     }
@@ -322,8 +324,8 @@ class MusicPlaybackControlPanel : public EditorPanel {
     // === Quick Summary (always visible) ===
     ImGui::Separator();
     ImVec4 status_color = cached_audio_.is_playing
-                              ? ImVec4(0.3f, 0.9f, 0.3f, 1.0f)
-                              : ImVec4(0.6f, 0.6f, 0.6f, 1.0f);
+                              ? gui::GetSuccessColor()
+                              : gui::GetDisabledColor();
     ImGui::TextColored(status_color, cached_audio_.is_playing ? "PLAYING" : "STOPPED");
     ImGui::SameLine();
     ImGui::Text("| Queue: %u frames", cached_audio_.queued_frames);
@@ -333,13 +335,13 @@ class MusicPlaybackControlPanel : public EditorPanel {
     // Queue trend indicator
     ImGui::SameLine();
     if (avg_queue_delta_ > 50) {
-      ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f),
+      ImGui::TextColored(gui::GetErrorColor(),
                          ICON_MD_TRENDING_UP " GROWING (too fast!)");
     } else if (avg_queue_delta_ < -50) {
-      ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.0f, 1.0f),
+      ImGui::TextColored(gui::GetWarningColor(),
                          ICON_MD_TRENDING_DOWN " DRAINING");
     } else {
-      ImGui::TextColored(ImVec4(0.5f, 0.8f, 0.5f, 1.0f),
+      ImGui::TextColored(gui::GetSuccessColor(),
                          ICON_MD_TRENDING_FLAT " STABLE");
     }
 
@@ -349,7 +351,7 @@ class MusicPlaybackControlPanel : public EditorPanel {
       ImGui::Text("APU Rate: %.2fx expected", rate_ratio);
       if (rate_ratio > 1.1f) {
         ImGui::SameLine();
-        ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f),
+        ImGui::TextColored(gui::GetErrorColor(),
                            "(APU running too fast!)");
       }
     }
@@ -373,23 +375,23 @@ class MusicPlaybackControlPanel : public EditorPanel {
       int32_t drift = static_cast<int32_t>(dsp.sample_offset) -
                       static_cast<int32_t>(dsp.frame_boundary);
       ImVec4 drift_color = (std::abs(drift) > 100)
-                               ? ImVec4(1.0f, 0.3f, 0.3f, 1.0f)
-                               : ImVec4(0.5f, 0.8f, 0.5f, 1.0f);
+                               ? gui::GetErrorColor()
+                               : gui::GetSuccessColor();
       ImGui::TextColored(drift_color, "Drift: %+d samples", drift);
 
       ImGui::Text("Master Vol: L=%d R=%d", dsp.master_vol_l, dsp.master_vol_r);
 
       // Status flags
       if (dsp.mute) {
-        ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), ICON_MD_VOLUME_OFF " MUTED");
+        ImGui::TextColored(gui::GetWarningColor(), ICON_MD_VOLUME_OFF " MUTED");
         ImGui::SameLine();
       }
       if (dsp.reset) {
-        ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), ICON_MD_RESTART_ALT " RESET");
+        ImGui::TextColored(gui::GetErrorColor(), ICON_MD_RESTART_ALT " RESET");
         ImGui::SameLine();
       }
       if (dsp.echo_enabled) {
-        ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f),
+        ImGui::TextColored(gui::GetInfoColor(),
                            ICON_MD_SURROUND_SOUND " Echo (delay=%u)", dsp.echo_delay);
       }
 
@@ -402,10 +404,10 @@ class MusicPlaybackControlPanel : public EditorPanel {
 
       // Status indicator
       if (audio.is_playing) {
-        ImGui::TextColored(ImVec4(0.3f, 0.9f, 0.3f, 1.0f),
+        ImGui::TextColored(gui::GetSuccessColor(),
                            ICON_MD_PLAY_CIRCLE " Playing");
       } else {
-        ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f),
+        ImGui::TextColored(gui::GetDisabledColor(),
                            ICON_MD_STOP_CIRCLE " Stopped");
       }
 
@@ -416,7 +418,7 @@ class MusicPlaybackControlPanel : public EditorPanel {
 
       // Underrun warning
       if (audio.has_underrun) {
-        ImGui::TextColored(ImVec4(1.0f, 0.2f, 0.2f, 1.0f),
+        ImGui::TextColored(gui::GetErrorColor(),
                            ICON_MD_WARNING " UNDERRUN DETECTED");
       }
 
@@ -424,8 +426,8 @@ class MusicPlaybackControlPanel : public EditorPanel {
       float queue_level = audio.queued_frames / 6000.0f;  // ~100ms worth
       queue_level = std::clamp(queue_level, 0.0f, 1.0f);
       ImVec4 queue_color = (queue_level < 0.2f)
-                               ? ImVec4(1.0f, 0.3f, 0.3f, 1.0f)
-                               : ImVec4(0.3f, 0.8f, 0.3f, 1.0f);
+                               ? gui::GetErrorColor()
+                               : gui::GetSuccessColor();
       {
         gui::StyleColorGuard queue_guard(ImGuiCol_PlotHistogram, queue_color);
         ImGui::ProgressBar(queue_level, ImVec2(-1, 0), "Queue Level");
@@ -452,8 +454,8 @@ class MusicPlaybackControlPanel : public EditorPanel {
         ImGui::TableNextRow();
         ImGui::TableNextColumn(); ImGui::Text("T0");
         ImGui::TableNextColumn();
-        ImGui::TextColored(apu.timer0_enabled ? ImVec4(0.3f, 0.9f, 0.3f, 1.0f)
-                                               : ImVec4(0.5f, 0.5f, 0.5f, 1.0f),
+        ImGui::TextColored(apu.timer0_enabled ? gui::GetSuccessColor()
+                                               : gui::GetDisabledColor(),
                            apu.timer0_enabled ? "ON" : "off");
         ImGui::TableNextColumn(); ImGui::Text("%u", apu.timer0_counter);
         ImGui::TableNextColumn(); ImGui::Text("%u", apu.timer0_target);
@@ -462,8 +464,8 @@ class MusicPlaybackControlPanel : public EditorPanel {
         ImGui::TableNextRow();
         ImGui::TableNextColumn(); ImGui::Text("T1");
         ImGui::TableNextColumn();
-        ImGui::TextColored(apu.timer1_enabled ? ImVec4(0.3f, 0.9f, 0.3f, 1.0f)
-                                               : ImVec4(0.5f, 0.5f, 0.5f, 1.0f),
+        ImGui::TextColored(apu.timer1_enabled ? gui::GetSuccessColor()
+                                               : gui::GetDisabledColor(),
                            apu.timer1_enabled ? "ON" : "off");
         ImGui::TableNextColumn(); ImGui::Text("%u", apu.timer1_counter);
         ImGui::TableNextColumn(); ImGui::Text("%u", apu.timer1_target);
@@ -472,8 +474,8 @@ class MusicPlaybackControlPanel : public EditorPanel {
         ImGui::TableNextRow();
         ImGui::TableNextColumn(); ImGui::Text("T2");
         ImGui::TableNextColumn();
-        ImGui::TextColored(apu.timer2_enabled ? ImVec4(0.3f, 0.9f, 0.3f, 1.0f)
-                                               : ImVec4(0.5f, 0.5f, 0.5f, 1.0f),
+        ImGui::TextColored(apu.timer2_enabled ? gui::GetSuccessColor()
+                                               : gui::GetDisabledColor(),
                            apu.timer2_enabled ? "ON" : "off");
         ImGui::TableNextColumn(); ImGui::Text("%u", apu.timer2_counter);
         ImGui::TableNextColumn(); ImGui::Text("%u", apu.timer2_target);
@@ -496,8 +498,8 @@ class MusicPlaybackControlPanel : public EditorPanel {
       ImGui::SameLine();
       for (int i = 0; i < 8; i++) {
         ImVec4 color = channels[i].key_on
-                           ? ImVec4(0.2f, 0.9f, 0.2f, 1.0f)
-                           : ImVec4(0.4f, 0.4f, 0.4f, 1.0f);
+                           ? gui::GetSuccessColor()
+                           : gui::GetDisabledColor();
         ImGui::TextColored(color, "%d", i);
         if (i < 7) ImGui::SameLine();
       }
@@ -518,8 +520,8 @@ class MusicPlaybackControlPanel : public EditorPanel {
           ImGui::TableNextRow();
           ImGui::TableNextColumn(); ImGui::Text("%d", i);
           ImGui::TableNextColumn();
-          ImGui::TextColored(channels[i].key_on ? ImVec4(0.2f, 0.9f, 0.2f, 1.0f)
-                                                 : ImVec4(0.5f, 0.5f, 0.5f, 1.0f),
+          ImGui::TextColored(channels[i].key_on ? gui::GetSuccessColor()
+                                                 : gui::GetDisabledColor(),
                              channels[i].key_on ? "ON" : "--");
           ImGui::TableNextColumn(); ImGui::Text("%02X", channels[i].sample_index);
           ImGui::TableNextColumn(); ImGui::Text("%04X", channels[i].pitch);

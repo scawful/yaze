@@ -264,30 +264,36 @@ void ScreenEditor::DrawInventoryToolset() {
     if (ImGui::Button(ICON_MD_UNDO)) {
       // status_ = inventory_.Undo();
     }
+    HOVER_HINT("Undo");
     ImGui::TableNextColumn();
     if (ImGui::Button(ICON_MD_REDO)) {
       // status_ = inventory_.Redo();
     }
+    HOVER_HINT("Redo");
     ImGui::TableNextColumn();
     ImGui::Text(ICON_MD_MORE_VERT);
     ImGui::TableNextColumn();
     if (ImGui::Button(ICON_MD_ZOOM_OUT)) {
       screen_canvas_.ZoomOut();
     }
+    HOVER_HINT("Zoom Out");
     ImGui::TableNextColumn();
     if (ImGui::Button(ICON_MD_ZOOM_IN)) {
       screen_canvas_.ZoomIn();
     }
+    HOVER_HINT("Zoom In");
     ImGui::TableNextColumn();
     ImGui::Text(ICON_MD_MORE_VERT);
     ImGui::TableNextColumn();
     if (ImGui::Button(ICON_MD_DRAW)) {
       current_mode_ = EditingMode::DRAW;
     }
+    HOVER_HINT("Draw Mode");
     ImGui::TableNextColumn();
     if (ImGui::Button(ICON_MD_BUILD)) {
       // current_mode_ = EditingMode::BUILD;
     }
+    HOVER_HINT("Build Mode");
 
     ImGui::EndTable();
   }

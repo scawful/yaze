@@ -7,6 +7,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/time/time.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/ui_helpers.h"
 #ifdef Z3ED_AI
 #include "cli/service/rom/rom_sandbox_manager.h"
 #endif
@@ -145,13 +146,13 @@ void ProposalDrawer::Draw() {
 
   if (ImGui::BeginPopupModal("Override Policy", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
+    ImGui::TextColored(gui::GetWarningColor(),
                        ICON_MD_WARNING " Policy Override Required");
     ImGui::Separator();
     ImGui::TextWrapped("This proposal has policy warnings.");
     ImGui::TextWrapped("Do you want to override and accept anyway?");
     ImGui::Spacing();
-    ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f),
+    ImGui::TextColored(gui::GetWarningColor(),
                        "Note: This action will be logged.");
     ImGui::Separator();
 
@@ -201,13 +202,13 @@ void ProposalDrawer::DrawProposalList() {
       ImGui::TableSetColumnIndex(1);
       switch (proposal.status) {
         case cli::ProposalRegistry::ProposalStatus::kPending:
-          ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), "Pending");
+          ImGui::TextColored(gui::GetWarningColor(), ICON_MD_HOURGLASS_TOP " Pending");
           break;
         case cli::ProposalRegistry::ProposalStatus::kAccepted:
-          ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Accepted");
+          ImGui::TextColored(gui::GetSuccessColor(), ICON_MD_CHECK_CIRCLE " Accepted");
           break;
         case cli::ProposalRegistry::ProposalStatus::kRejected:
-          ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Rejected");
+          ImGui::TextColored(gui::GetErrorColor(), ICON_MD_CANCEL " Rejected");
           break;
       }
 
@@ -334,7 +335,7 @@ void ProposalDrawer::DrawPolicyStatus() {
     auto& policy_eval = cli::PolicyEvaluator::GetInstance();
 
     if (!policy_eval.IsEnabled()) {
-      ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f),
+      ImGui::TextColored(gui::GetDisabledColor(),
                          ICON_MD_INFO " No policies configured");
       ImGui::TextWrapped(
           "Create .yaze/policies/agent.yaml to enable policy evaluation");
@@ -345,7 +346,7 @@ void ProposalDrawer::DrawPolicyStatus() {
     auto policy_result = policy_eval.EvaluateProposal(p.id);
 
     if (!policy_result.ok()) {
-      ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f),
+      ImGui::TextColored(gui::GetErrorColor(),
                          ICON_MD_ERROR " Policy evaluation failed");
       ImGui::TextWrapped("%s", policy_result.status().message().data());
       return;
@@ -355,13 +356,13 @@ void ProposalDrawer::DrawPolicyStatus() {
 
     // Overall status
     if (result.is_clean()) {
-      ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f),
-                         ICON_MD_CHECK_CIRCLE " All policies passed");
+      ImGui::TextColored(gui::GetSuccessColor(),
+                         ICON_MD_VERIFIED " All policies passed");
     } else if (result.passed) {
-      ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
+      ImGui::TextColored(gui::GetWarningColor(),
                          ICON_MD_WARNING " Passed with warnings");
     } else {
-      ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f),
+      ImGui::TextColored(gui::GetErrorColor(),
                          ICON_MD_CANCEL " Critical violations found");
     }
 
@@ -369,7 +370,7 @@ void ProposalDrawer::DrawPolicyStatus() {
 
     // Show critical violations
     if (!result.critical_violations.empty()) {
-      ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f),
+      ImGui::TextColored(gui::GetErrorColor(),
                          ICON_MD_BLOCK " Critical Violations:");
       for (const auto& violation : result.critical_violations) {
         ImGui::Bullet();
@@ -377,7 +378,7 @@ void ProposalDrawer::DrawPolicyStatus() {
                            violation.message.c_str());
         if (!violation.details.empty()) {
           ImGui::Indent();
-          ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "%s",
+          ImGui::TextColored(gui::GetDisabledColor(), "%s",
                              violation.details.c_str());
           ImGui::Unindent();
         }
@@ -387,7 +388,7 @@ void ProposalDrawer::DrawPolicyStatus() {
 
     // Show warnings
     if (!result.warnings.empty()) {
-      ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
+      ImGui::TextColored(gui::GetWarningColor(),
                          ICON_MD_WARNING " Warnings:");
       for (const auto& violation : result.warnings) {
         ImGui::Bullet();
@@ -395,7 +396,7 @@ void ProposalDrawer::DrawPolicyStatus() {
                            violation.message.c_str());
         if (!violation.details.empty()) {
           ImGui::Indent();
-          ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "%s",
+          ImGui::TextColored(gui::GetDisabledColor(), "%s",
                              violation.details.c_str());
           ImGui::Unindent();
         }
@@ -405,7 +406,7 @@ void ProposalDrawer::DrawPolicyStatus() {
 
     // Show info messages
     if (!result.info.empty()) {
-      ImGui::TextColored(ImVec4(0.5f, 0.5f, 1.0f, 1.0f),
+      ImGui::TextColored(gui::GetInfoColor(),
                          ICON_MD_INFO " Information:");
       for (const auto& violation : result.info) {
         ImGui::Bullet();
@@ -464,7 +465,7 @@ void ProposalDrawer::DrawActionButtons() {
     if (!can_accept) {
       ImGui::EndDisabled();
       ImGui::SameLine();
-      ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "(Blocked by policy)");
+      ImGui::TextColored(gui::GetErrorColor(), "(Blocked by policy)");
     }
 
     // Reject button (only for pending proposals)

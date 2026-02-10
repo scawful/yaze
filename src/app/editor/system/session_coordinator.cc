@@ -21,6 +21,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
+#include "app/gui/core/ui_helpers.h"
 #include "core/color.h"
 #include "editor/editor.h"
 #include "editor/system/user_settings.h"
@@ -403,7 +404,7 @@ void SessionCoordinator::DrawSessionManager() {
       // Session name
       ImGui::TableNextColumn();
       if (is_active) {
-        ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%s %s",
+        ImGui::TextColored(gui::GetSuccessColor(), "%s %s",
                            ICON_MD_RADIO_BUTTON_CHECKED,
                            GetSessionDisplayName(i).c_str());
       } else {
@@ -422,9 +423,9 @@ void SessionCoordinator::DrawSessionManager() {
       // Status
       ImGui::TableNextColumn();
       if (session->rom.is_loaded()) {
-        ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Loaded");
+        ImGui::TextColored(gui::GetSuccessColor(), "Loaded");
       } else {
-        ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Empty");
+        ImGui::TextColored(gui::GetWarningColor(), "Empty");
       }
 
       // Actions
