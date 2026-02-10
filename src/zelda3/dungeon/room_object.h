@@ -63,13 +63,16 @@ class RoomObject {
         oy_(y),
         width_(16),
         height_(16),
-        rom_(nullptr) {}
+        rom_(nullptr) {
+    RefreshDerivedFlagsFromId();
+  }
 
   void SetRom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }
   auto mutable_rom() { return rom_; }
 
   // Position setters and getters
+  void set_id(int16_t id);
   void set_x(uint8_t x) { x_ = x; }
   void set_y(uint8_t y) { y_ = y; }
   void set_size(uint8_t size) { size_ = size; }
@@ -172,6 +175,10 @@ class RoomObject {
   ObjectOption options_ = ObjectOption::Nothing;
 
   Rom* rom_;
+
+ private:
+  void RefreshDerivedFlagsFromId();
+  void InvalidateTileCache();
 };
 
 // NOTE: Legacy Subtype1, Subtype2, Subtype3 classes removed.

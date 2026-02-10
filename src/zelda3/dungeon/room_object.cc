@@ -33,6 +33,27 @@ SubtypeTableInfo GetSubtypeTable(int object_id) {
     return SubtypeTableInfo(kRoomObjectSubtype1, 0xFF, 0);
   }
 }
+
+bool IsAllBgsObjectId(int object_id) {
+  // Objects that should be treated as drawing to both BG1 and BG2.
+  //
+  // NOTE: This is editor/runtime metadata for our renderer, not a ROM field.
+  // Keep this list in sync with DecodeObjectFromBytes behavior and any
+  // special-cased BothBG handling in ObjectDrawer.
+  const int id = object_id;
+  if ((id >= 0x03 && id <= 0x04) ||  // Routine 3 objects
+      (id >= 0x63 && id <= 0x64) ||  // Routine 9 objects
+      // Routine 17 (Acute Diagonals)
+      id == 0x0C || id == 0x0D || id == 0x10 || id == 0x11 || id == 0x14 ||
+      id == 0x15 || id == 0x18 || id == 0x19 || id == 0x1C || id == 0x1D ||
+      id == 0x20 ||
+      // Routine 18 (Grave Diagonals)
+      id == 0x0E || id == 0x0F || id == 0x12 || id == 0x13 || id == 0x16 ||
+      id == 0x17 || id == 0x1A || id == 0x1B || id == 0x1E || id == 0x1F) {
+    return true;
+  }
+  return false;
+}
 }  // namespace
 
 ObjectOption operator|(ObjectOption lhs, ObjectOption rhs) {
@@ -140,6 +161,26 @@ void RoomObject::EnsureTilesLoaded() {
   tiles_.push_back(gfx::WordToTileInfo(w3));
   tile_count_ = 1;
   tiles_loaded_ = true;
+}
+
+void RoomObject::InvalidateTileCache() {
+  tiles_.clear();
+  tiles_loaded_ = false;
+  tile_count_ = 0;
+  tile_data_ptr_ = -1;
+}
+
+void RoomObject::RefreshDerivedFlagsFromId() {
+  all_bgs_ = IsAllBgsObjectId(id_);
+}
+
+void RoomObject::set_id(int16_t id) {
+  if (id_ == id) {
+    return;
+  }
+  id_ = id;
+  RefreshDerivedFlagsFromId();
+  InvalidateTileCache();
 }
 
 absl::Status RoomObject::LoadTilesWithParser() {
@@ -262,20 +303,7 @@ RoomObject RoomObject::DecodeObjectFromBytes(uint8_t b1, uint8_t b2, uint8_t b3,
   }
 
   auto obj = RoomObject(static_cast<int16_t>(id), x, y, size, layer);
-
-  // Set all_bgs flag for objects that draw to both BG1 and BG2
-  // Based on ZScream/ObjectDrawer logic
-  if ((id >= 0x03 && id <= 0x04) ||  // Routine 3
-      (id >= 0x63 && id <= 0x64) ||  // Routine 9
-      // Routine 17 (Acute Diagonals)
-      id == 0x0C || id == 0x0D || id == 0x10 || id == 0x11 || id == 0x14 ||
-      id == 0x15 || id == 0x18 || id == 0x19 || id == 0x1C || id == 0x1D ||
-      id == 0x20 ||
-      // Routine 18 (Grave Diagonals)
-      id == 0x0E || id == 0x0F || id == 0x12 || id == 0x13 || id == 0x16 ||
-      id == 0x17 || id == 0x1A || id == 0x1B || id == 0x1E || id == 0x1F) {
-    obj.all_bgs_ = true;
-  }
+  obj.RefreshDerivedFlagsFromId();
 
   return obj;
 }

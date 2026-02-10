@@ -612,7 +612,7 @@ absl::Status DungeonObjectEditor::ChangeObjectType(size_t object_index,
   }
 
   auto& object = current_room_->GetTileObject(object_index);
-  object.id_ = new_type;
+  object.set_id(static_cast<int16_t>(new_type));
 
   if (object_changed_callback_) {
     object_changed_callback_(object_index, object);
@@ -1581,7 +1581,7 @@ void DungeonObjectEditor::DrawPropertyUI() {
         if (ImGui::InputInt("##ID", &id, 1, 16,
                             ImGuiInputTextFlags_CharsHexadecimal)) {
           if (id >= 0 && id <= 0xFFF) {
-            obj.id_ = id;
+            obj.set_id(static_cast<int16_t>(id));
             if (object_changed_callback_) {
               object_changed_callback_(obj_idx, obj);
             }
