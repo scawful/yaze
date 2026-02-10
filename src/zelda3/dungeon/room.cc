@@ -178,23 +178,14 @@ Room LoadRoomFromRom(Rom* rom, int room_id) {
   // ASM: JSR Underworld_LoadHeader ($01873A)
   Room room = LoadRoomHeaderFromRom(rom, room_id);
 
-  // Load room objects
-  // ASM: RoomData_ObjectDataPointers ($018742 - reads pointer table)
-  int object_pointer = SnesToPc(room_object_pointer);
-  int room_address = object_pointer + (room_id * 3);
-  int objects_location = SnesToPc(room_address);
-
-  // Load sprites
-  // ASM: Bank 09 logic (referenced via long pointers in Bank 01)
-  int spr_ptr = 0x040000 | rooms_sprite_pointer;
-  int sprite_address = SnesToPc(dungeon_spr_ptrs | spr_ptr + (room_id * 2));
-
   // Load additional room features
+  //
+  // USDASM ground truth: LoadAndBuildRoom ($01:873A) draws the variable-length
+  // room object stream first (RoomDraw_DrawAllObjects), then draws pushable
+  // blocks ($7EF940) and torches ($7EFB40). These "special" objects are not
+  // part of the room object stream and must not be saved into it.
   room.LoadObjects();
-  room.LoadDoors();
   room.LoadPotItems();
-  room.LoadTorches();
-  room.LoadTorches();
   room.LoadTorches();
   room.LoadBlocks();
   room.LoadPits();
@@ -1308,7 +1299,17 @@ std::vector<uint8_t> Room::EncodeObjects() const {
   std::vector<RoomObject> layer1_objects;
   std::vector<RoomObject> layer2_objects;
 
+  // IMPORTANT: Torches and pushable blocks are stored in global per-dungeon
+  // tables (see USDASM: LoadAndBuildRoom $01:873A). They are drawn after the
+  // room object stream passes, so they must never be encoded into the room
+  // object stream.
   for (const auto& obj : tile_objects_) {
+    if ((obj.options() & ObjectOption::Torch) != ObjectOption::Nothing) {
+      continue;
+    }
+    if ((obj.options() & ObjectOption::Block) != ObjectOption::Nothing) {
+      continue;
+    }
     switch (obj.GetLayerValue()) {
       case 0:
         layer0_objects.push_back(obj);
@@ -1819,6 +1820,15 @@ void Room::LoadTorches() {
   LOG_DEBUG("Room", "LoadTorches: room_id=%d, bytes_count=%d", room_id_,
             bytes_count);
 
+  // Avoid duplication if LoadTorches is called multiple times.
+  tile_objects_.erase(
+      std::remove_if(tile_objects_.begin(), tile_objects_.end(),
+                     [](const RoomObject& obj) {
+                       return (obj.options() & ObjectOption::Torch) !=
+                              ObjectOption::Nothing;
+                     }),
+      tile_objects_.end());
+
   // Iterate through torch data to find torches for this room
   for (int i = 0; i < bytes_count; i += 2) {
     if (i + 1 >= bytes_count)
@@ -1860,7 +1870,7 @@ void Room::LoadTorches() {
         RoomObject torch_obj(0x150, px, py, 0, layer);
         torch_obj.SetRom(rom_);
         torch_obj.set_options(ObjectOption::Torch);
-        // Store lit state if needed (may require adding a field to RoomObject)
+        torch_obj.lit_ = lit;
 
         tile_objects_.push_back(torch_obj);
 
@@ -1985,6 +1995,9 @@ absl::Status SaveAllTorches(Rom* rom, absl::Span<const Room> rooms) {
         int word = address << 1;
         uint8_t b1 = word & 0xFF;
         uint8_t b2 = ((word >> 8) & 0x1F) | ((obj.GetLayerValue() & 1) << 5);
+        if (obj.lit_) {
+          b2 |= 0x80;
+        }
         bytes.push_back(b1);
         bytes.push_back(b2);
       }
@@ -2001,6 +2014,19 @@ absl::Status SaveAllTorches(Rom* rom, absl::Span<const Room> rooms) {
     return absl::ResourceExhaustedError(
         absl::StrFormat("Torch data too large: %d bytes (max %d)", bytes.size(),
                         kTorchesMaxSize));
+  }
+
+  // Avoid unnecessary writes: if the generated torch blob matches the ROM
+  // exactly, keep the ROM clean. This prevents "save with no changes" from
+  // dirtying the ROM and makes diffs stable.
+  const uint16_t current_len =
+      static_cast<uint16_t>(rom_data[kTorchesLengthPointer]) |
+      (static_cast<uint16_t>(rom_data[kTorchesLengthPointer + 1]) << 8);
+  if (current_len == bytes.size() &&
+      kTorchData + static_cast<int>(bytes.size()) <=
+          static_cast<int>(rom_data.size()) &&
+      std::equal(bytes.begin(), bytes.end(), rom_data.begin() + kTorchData)) {
+    return absl::OkStatus();
   }
 
   RETURN_IF_ERROR(rom->WriteWord(kTorchesLengthPointer,
@@ -2319,6 +2345,15 @@ void Room::LoadBlocks() {
 
   LOG_DEBUG("Room", "LoadBlocks: room_id=%d, blocks_count=%d", room_id_,
             blocks_count);
+
+  // Avoid duplication if LoadBlocks is called multiple times.
+  tile_objects_.erase(
+      std::remove_if(tile_objects_.begin(), tile_objects_.end(),
+                     [](const RoomObject& obj) {
+                       return (obj.options() & ObjectOption::Block) !=
+                              ObjectOption::Nothing;
+                     }),
+      tile_objects_.end());
 
   // Load block data from multiple pointers
   std::vector<uint8_t> blocks_data(blocks_count);

@@ -27,7 +27,6 @@ absl::Status DungeonRoomLoader::LoadRoom(int room_id, zelda3::Room& room) {
 
   room = zelda3::LoadRoomFromRom(rom_, room_id);
   room.SetGameData(game_data_);  // Ensure room has access to GameData
-  room.LoadObjects();
 
   return absl::OkStatus();
 }

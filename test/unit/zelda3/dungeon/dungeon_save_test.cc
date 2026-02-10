@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <array>
 #include <vector>
 #include <memory>
 
@@ -156,6 +157,96 @@ TEST_F(DungeonSaveTest, SaveSprites_TooLarge) {
   auto status = room_->SaveSprites();
   EXPECT_FALSE(status.ok());
   EXPECT_EQ(status.code(), absl::StatusCode::kOutOfRange);
+}
+
+TEST_F(DungeonSaveTest, EncodeObjects_SkipsTorchesAndBlocks) {
+  Room room(0, rom_.get());
+  room.ClearTileObjects();
+
+  // One normal room object plus two "special table" objects.
+  RoomObject normal(0x10, 1, 1, 0, 0);
+  RoomObject torch(0x150, 2, 2, 0, 0);
+  torch.set_options(ObjectOption::Torch);
+  RoomObject block(0x0E00, 3, 3, 0, 0);
+  block.set_options(ObjectOption::Block);
+
+  room.AddTileObject(normal);
+  room.AddTileObject(torch);
+  room.AddTileObject(block);
+
+  auto encoded = room.EncodeObjects();
+
+  // Expect only the normal object to be encoded:
+  // 3 bytes object + 3 layer terminators (FF FF) + door marker (F0 FF).
+  EXPECT_EQ(encoded.size(), 11u);
+
+  const auto nb = normal.EncodeObjectToBytes();
+  EXPECT_EQ(encoded[0], nb.b1);
+  EXPECT_EQ(encoded[1], nb.b2);
+  EXPECT_EQ(encoded[2], nb.b3);
+
+  EXPECT_EQ(encoded[3], 0xFF);
+  EXPECT_EQ(encoded[4], 0xFF);
+  EXPECT_EQ(encoded[5], 0xFF);
+  EXPECT_EQ(encoded[6], 0xFF);
+  EXPECT_EQ(encoded[7], 0xFF);
+  EXPECT_EQ(encoded[8], 0xFF);
+
+  EXPECT_EQ(encoded[9], 0xF0);
+  EXPECT_EQ(encoded[10], 0xFF);
+}
+
+TEST_F(DungeonSaveTest, SaveAllTorches_WritesLitBit) {
+  std::array<Room, kNumberOfRooms> rooms;
+
+  RoomObject torch(0x150, 10, 20, 0, 1);
+  torch.set_options(ObjectOption::Torch);
+  torch.lit_ = true;
+  rooms[1].AddTileObject(torch);
+
+  auto status = SaveAllTorches(rom_.get(), rooms);
+  EXPECT_TRUE(status.ok()) << status.message();
+
+  const auto& rom_data = rom_->vector();
+  const uint16_t torch_len =
+      static_cast<uint16_t>(rom_data[kTorchesLengthPointer]) |
+      (static_cast<uint16_t>(rom_data[kTorchesLengthPointer + 1]) << 8);
+  EXPECT_EQ(torch_len, 6u);
+
+  EXPECT_EQ(rom_data[kTorchData + 0], 0x01);
+  EXPECT_EQ(rom_data[kTorchData + 1], 0x00);
+
+  // word = ((x + y*64) << 1) with layer in bit 13 and lit in bit 15.
+  EXPECT_EQ(rom_data[kTorchData + 2], 0x14);  // low byte
+  EXPECT_EQ(rom_data[kTorchData + 3], 0xAA);  // high byte: layer + lit + address bits
+
+  EXPECT_EQ(rom_data[kTorchData + 4], 0xFF);
+  EXPECT_EQ(rom_data[kTorchData + 5], 0xFF);
+}
+
+TEST_F(DungeonSaveTest, SaveAllTorches_NoOpWhenUnchanged) {
+  // Seed ROM with a torch blob identical to what SaveAllTorches would emit.
+  // This should be a no-op (no writes) and keep the ROM clean.
+  std::vector<uint8_t> blob = {
+      0x01, 0x00,  // room_id = 1
+      0x14, 0xAA,  // torch word (x=10,y=20,layer=1,lit=1)
+      0xFF, 0xFF,  // terminator
+  };
+  ASSERT_TRUE(rom_->WriteWord(kTorchesLengthPointer,
+                              static_cast<uint16_t>(blob.size()))
+                  .ok());
+  ASSERT_TRUE(rom_->WriteVector(kTorchData, blob).ok());
+  rom_->ClearDirty();
+
+  std::array<Room, kNumberOfRooms> rooms;
+  RoomObject torch(0x150, 10, 20, 0, 1);
+  torch.set_options(ObjectOption::Torch);
+  torch.lit_ = true;
+  rooms[1].AddTileObject(torch);
+
+  auto status = SaveAllTorches(rom_.get(), rooms);
+  EXPECT_TRUE(status.ok()) << status.message();
+  EXPECT_FALSE(rom_->dirty());
 }
 
 }  // namespace test

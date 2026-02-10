@@ -17,7 +17,6 @@ using namespace yaze::zelda3;
 TEST_F(DungeonEditorIntegrationTest, LoadRoomFromRealRom) {
   auto room = zelda3::LoadRoomFromRom(rom_.get(), kTestRoomId);
   EXPECT_NE(room.rom(), nullptr);
-  room.LoadObjects();
   EXPECT_FALSE(room.GetTileObjects().empty());
 }
 
@@ -27,7 +26,6 @@ TEST_F(DungeonEditorIntegrationTest, LoadMultipleRooms) {
     auto room = zelda3::LoadRoomFromRom(rom_.get(), room_id);
     EXPECT_NE(room.rom(), nullptr)
         << "Failed to load room " << std::hex << room_id;
-    room.LoadObjects();
     // Some rooms may be empty, but loading should not fail
   }
 }
@@ -47,7 +45,6 @@ TEST_F(DungeonEditorIntegrationTest, DungeonEditorInitialization) {
 
 TEST_F(DungeonEditorIntegrationTest, ObjectEncodingRoundTrip) {
   auto room = zelda3::LoadRoomFromRom(rom_.get(), kTestRoomId);
-  room.LoadObjects();
 
   auto encoded = room.EncodeObjects();
   EXPECT_FALSE(encoded.empty());
@@ -97,7 +94,6 @@ TEST_F(DungeonEditorIntegrationTest, EncodeType3Object) {
 
 TEST_F(DungeonEditorIntegrationTest, AddObjectToRoom) {
   auto room = zelda3::LoadRoomFromRom(rom_.get(), kTestRoomId);
-  room.LoadObjects();
 
   size_t initial_count = room.GetTileObjects().size();
 
@@ -112,7 +108,6 @@ TEST_F(DungeonEditorIntegrationTest, AddObjectToRoom) {
 
 TEST_F(DungeonEditorIntegrationTest, RemoveObjectFromRoom) {
   auto room = zelda3::LoadRoomFromRom(rom_.get(), kTestRoomId);
-  room.LoadObjects();
 
   size_t initial_count = room.GetTileObjects().size();
   ASSERT_GT(initial_count, 0) << "Room should have at least one object";
@@ -126,7 +121,6 @@ TEST_F(DungeonEditorIntegrationTest, RemoveObjectFromRoom) {
 
 TEST_F(DungeonEditorIntegrationTest, UpdateObjectInRoom) {
   auto room = zelda3::LoadRoomFromRom(rom_.get(), kTestRoomId);
-  room.LoadObjects();
 
   ASSERT_FALSE(room.GetTileObjects().empty());
 
@@ -173,7 +167,6 @@ TEST_F(DungeonEditorIntegrationTest, ValidateObjectBounds) {
 
 TEST_F(DungeonEditorIntegrationTest, SaveAndReloadRoom) {
   auto room = zelda3::LoadRoomFromRom(rom_.get(), kTestRoomId);
-  room.LoadObjects();
 
   size_t original_count = room.GetTileObjects().size();
 
@@ -183,7 +176,6 @@ TEST_F(DungeonEditorIntegrationTest, SaveAndReloadRoom) {
 
   // Create a new room and decode
   auto room2 = zelda3::LoadRoomFromRom(rom_.get(), kTestRoomId);
-  room2.LoadObjects();
 
   // Verify object count matches
   EXPECT_EQ(room2.GetTileObjects().size(), original_count);
@@ -195,7 +187,6 @@ TEST_F(DungeonEditorIntegrationTest, SaveAndReloadRoom) {
 
 TEST_F(DungeonEditorIntegrationTest, RenderObjectWithTiles) {
   auto room = zelda3::LoadRoomFromRom(rom_.get(), kTestRoomId);
-  room.LoadObjects();
 
   ASSERT_FALSE(room.GetTileObjects().empty());
 
