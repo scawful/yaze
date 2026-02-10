@@ -54,30 +54,24 @@ class DungeonSaveTest : public ::testing::Test {
     rom_->mutable_data()[table_loc + 4] = 0x81;
     rom_->mutable_data()[table_loc + 5] = 0x20;
 
-    // 4. Setup Room 0 Object Data Header at 0x100000
-    // The code reads tile_address from room_address (which is 0x100000)
-    // int tile_address = (rom_data[room_address + 2] << 16) + ...
-    // We want tile_address to be 0x100005 (just after this pointer)
-    // 0x100005 is 20:8005
-    int room_data_loc = 0x100000;
-    rom_->mutable_data()[room_data_loc] = 0x05;
-    rom_->mutable_data()[room_data_loc + 1] = 0x80;
-    rom_->mutable_data()[room_data_loc + 2] = 0x20;
+    // 4. Seed Room 0 object data at 0x100000.
+    //
+    // Room::LoadObjects expects the room pointer table to point directly at the
+    // 2-byte room header (floor gfx/layout). The object stream begins at +2.
+    const int room_data_loc = 0x100000;
+    rom_->mutable_data()[room_data_loc + 0] = 0x00;  // floor gfx nibble data
+    rom_->mutable_data()[room_data_loc + 1] = 0x00;  // layout/flags
 
-    // 5. Setup actual object data at 0x100005
-    // Header (2 bytes) + Objects
-    // 0x100005: Floor/Layout info (2 bytes)
-    rom_->mutable_data()[0x100005] = 0x00;
-    rom_->mutable_data()[0x100006] = 0x00;
-    // 0x100007: Start of objects
-    // Empty object list: FF FF (Layer 1) FF FF (Layer 2) FF FF (Layer 3) FF FF (End)
-    // Total 8 bytes.
-    // Available space is 0x100 - 5 = 0xFB bytes (approx)
-    // Actually CalculateRoomSize uses the Room Pointers (0xF8000).
-    // Room 0 Size = 0x100100 - 0x100000 = 0x100 (256 bytes).
-    // Used by header/pointers: 5 bytes? No, CalculateRoomSize returns raw size between room starts.
-    // So available is 256 bytes.
-    // SaveObjects subtracts 2 for header. So 254 bytes for objects.
+    // 5. Provide a valid empty object stream so LoadObjects doesn't scan zeros.
+    // Format: layer0 terminator, layer1 terminator, door marker, door terminator.
+    const int objects_start = room_data_loc + 2;
+    std::vector<uint8_t> empty = {
+        0xFF, 0xFF,  // end layer0
+        0xFF, 0xFF,  // end layer1
+        0xF0, 0xFF,  // door marker ($FFF0)
+        0xFF, 0xFF,  // door terminator ($FFFF) (also end layer2)
+    };
+    ASSERT_TRUE(rom_->WriteVector(objects_start, empty).ok());
   }
 
   void SetupSpritePointers() {
@@ -177,9 +171,12 @@ TEST_F(DungeonSaveTest, EncodeObjects_SkipsTorchesAndBlocks) {
   auto encoded = room.EncodeObjects();
 
   // Expect only the normal object to be encoded:
-  // 3 bytes object + 3 layer terminators (FF FF) + door marker (F0 FF) +
-  // door terminator (FF FF).
-  EXPECT_EQ(encoded.size(), 13u);
+  // - 3 bytes object
+  // - layer0 terminator (FF FF)
+  // - layer1 terminator (FF FF)
+  // - door marker (F0 FF) (in layer2 stream)
+  // - door terminator (FF FF) (also layer2 terminator)
+  EXPECT_EQ(encoded.size(), 11u);
 
   const auto nb = normal.EncodeObjectToBytes();
   EXPECT_EQ(encoded[0], nb.b1);
@@ -190,13 +187,48 @@ TEST_F(DungeonSaveTest, EncodeObjects_SkipsTorchesAndBlocks) {
   EXPECT_EQ(encoded[4], 0xFF);
   EXPECT_EQ(encoded[5], 0xFF);
   EXPECT_EQ(encoded[6], 0xFF);
-  EXPECT_EQ(encoded[7], 0xFF);
-  EXPECT_EQ(encoded[8], 0xFF);
 
-  EXPECT_EQ(encoded[9], 0xF0);
+  EXPECT_EQ(encoded[7], 0xF0);
+  EXPECT_EQ(encoded[8], 0xFF);
+  EXPECT_EQ(encoded[9], 0xFF);
   EXPECT_EQ(encoded[10], 0xFF);
-  EXPECT_EQ(encoded[11], 0xFF);
-  EXPECT_EQ(encoded[12], 0xFF);
+}
+
+TEST_F(DungeonSaveTest, SaveObjects_RoundTripsDoorsInLayer2Stream) {
+  // Seed the room's object stream with a valid empty encoding:
+  // layer0 terminator, layer1 terminator, door marker, door terminator.
+  const int objects_start_pc = 0x100000 + 2;  // 2-byte header at 0x100000
+  std::vector<uint8_t> empty = {
+      0xFF, 0xFF,  // end layer0
+      0xFF, 0xFF,  // end layer1
+      0xF0, 0xFF,  // door marker ($FFF0)
+      0xFF, 0xFF,  // door terminator ($FFFF) (also end layer2)
+  };
+  ASSERT_TRUE(rom_->WriteVector(objects_start_pc, empty).ok());
+
+  Room room(0, rom_.get());
+  room.LoadObjects();
+  EXPECT_EQ(room.GetDoors().size(), 0u);
+
+  // Add one door and save.
+  Room::Door door;
+  door.position = 3;
+  door.direction = DoorDirection::North;
+  door.type = DoorType::NormalDoor;
+  room.AddDoor(door);
+
+  auto save_status = room.SaveObjects();
+  ASSERT_TRUE(save_status.ok()) << save_status.message();
+
+  // Reload and verify the door is still present.
+  Room room2(0, rom_.get());
+  room2.LoadObjects();
+  ASSERT_EQ(room2.GetDoors().size(), 1u);
+
+  const auto [b1_expected, b2_expected] = door.EncodeBytes();
+  const auto [b1_actual, b2_actual] = room2.GetDoors()[0].EncodeBytes();
+  EXPECT_EQ(b1_actual, b1_expected);
+  EXPECT_EQ(b2_actual, b2_expected);
 }
 
 TEST_F(DungeonSaveTest, SaveAllTorches_WritesLitBit) {

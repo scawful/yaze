@@ -1400,7 +1400,17 @@ std::vector<uint8_t> Room::EncodeObjects() const {
     }
   }
 
-  // Encode Layer 1 (BG2)
+  // Object stream format (USDASM bank_01.asm LoadAndBuildRoom / RoomDraw_DrawAllObjects):
+  // - Layer 0 object list (terminated by $FFFF)
+  // - Layer 1 object list (terminated by $FFFF)
+  // - Layer 2 object list ends with door marker $FFF0 (bytes F0 FF), then
+  //   2-byte door entries, and finally $FFFF which terminates both the door
+  //   list and the Layer 2 list.
+  //
+  // NOTE: We always emit the door marker and a terminator, even if there are
+  // zero doors, because vanilla room data does so as well.
+
+  // Encode Layer 0
   for (const auto& obj : layer0_objects) {
     auto encoded = obj.EncodeObjectToBytes();
     bytes.push_back(encoded.b1);
@@ -1410,7 +1420,7 @@ std::vector<uint8_t> Room::EncodeObjects() const {
   bytes.push_back(0xFF);
   bytes.push_back(0xFF);
 
-  // Encode Layer 2 (BG1)
+  // Encode Layer 1
   for (const auto& obj : layer1_objects) {
     auto encoded = obj.EncodeObjectToBytes();
     bytes.push_back(encoded.b1);
@@ -1420,7 +1430,7 @@ std::vector<uint8_t> Room::EncodeObjects() const {
   bytes.push_back(0xFF);
   bytes.push_back(0xFF);
 
-  // Encode Layer 3
+  // Encode Layer 2 objects.
   for (const auto& obj : layer2_objects) {
     auto encoded = obj.EncodeObjectToBytes();
     bytes.push_back(encoded.b1);
@@ -1428,11 +1438,8 @@ std::vector<uint8_t> Room::EncodeObjects() const {
     bytes.push_back(encoded.b3);
   }
 
-  // Final terminator
-  bytes.push_back(0xFF);
-  bytes.push_back(0xFF);
-
-  // ASM marker 0xF0 0xFF - start of door list (per ZScreamDungeon / RoomDraw_DoorObject)
+  // ASM marker 0xF0 0xFF - start of door list (RoomDraw_DrawAllObjects checks
+  // for word $FFF0).
   bytes.push_back(0xF0);
   bytes.push_back(0xFF);
   for (const auto& door : doors_) {
@@ -1440,9 +1447,8 @@ std::vector<uint8_t> Room::EncodeObjects() const {
     bytes.push_back(b1);
     bytes.push_back(b2);
   }
-  // Door list terminator (word $FFFF). In USDASM, RoomDraw_DrawAllObjects
-  // enters door mode on word $FFF0 (bytes F0 FF) and stops when it reads
-  // word $FFFF (bytes FF FF).
+
+  // Door list terminator (word $FFFF). This is also the Layer 2 terminator.
   bytes.push_back(0xFF);
   bytes.push_back(0xFF);
 

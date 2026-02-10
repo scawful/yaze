@@ -48,11 +48,28 @@ TEST_F(DungeonEditorIntegrationTest, ObjectEncodingRoundTrip) {
 
   auto encoded = room.EncodeObjects();
   EXPECT_FALSE(encoded.empty());
-  // Expect door marker (0xF0, 0xFF) after final object terminator (0xFF, 0xFF)
-  const std::vector<uint8_t> marker{0xFF, 0xFF, 0xF0, 0xFF};
-  auto it =
-      std::search(encoded.begin(), encoded.end(), marker.begin(), marker.end());
-  EXPECT_NE(it, encoded.end()) << "Missing object terminator/door marker";
+  // USDASM-grounded expectation:
+  // - Layer0 list ends with $FFFF
+  // - Layer1 list ends with $FFFF
+  // - Layer2 list contains door marker $FFF0 (bytes F0 FF), then door entries,
+  //   then $FFFF terminator.
+  //
+  // We expect to find the door marker after at least two $FFFF terminators.
+  const std::vector<uint8_t> door_marker{0xF0, 0xFF};
+  auto it = std::search(encoded.begin(), encoded.end(), door_marker.begin(),
+                        door_marker.end());
+  ASSERT_NE(it, encoded.end()) << "Missing door marker (F0 FF)";
+
+  const size_t door_off = static_cast<size_t>(it - encoded.begin());
+  int terminators_before_door = 0;
+  for (size_t i = 0; i + 1 < door_off; i++) {
+    if (encoded[i] == 0xFF && encoded[i + 1] == 0xFF) {
+      terminators_before_door++;
+      i++;  // skip overlapping
+    }
+  }
+  EXPECT_GE(terminators_before_door, 2)
+      << "Expected door marker to occur after at least two layer terminators";
 }
 
 TEST_F(DungeonEditorIntegrationTest, EncodeType1Object) {
