@@ -41,6 +41,7 @@ ImVec4 GetWarningColor();
 ImVec4 GetErrorColor();
 ImVec4 GetInfoColor();
 ImVec4 GetAccentColor();
+ImVec4 GetDisabledColor();
 
 // Entity/Map marker colors (for overworld, dungeon)
 ImVec4 GetEntranceColor();

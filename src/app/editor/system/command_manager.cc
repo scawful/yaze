@@ -3,6 +3,7 @@
 #include <fstream>
 
 #include "app/gui/core/input.h"
+#include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -115,11 +116,11 @@ void CommandManager::ShowWhichKeyHierarchical() {
 
     // Show breadcrumb navigation
     if (!current_prefix_.empty()) {
-      ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f), "Space > %s",
+      ImGui::TextColored(gui::GetInfoColor(), "Space > %s",
                          current_prefix_.c_str());
       ImGui::Separator();
     } else {
-      ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f), "Space > ...");
+      ImGui::TextColored(gui::GetInfoColor(), "Space > ...");
       ImGui::Separator();
     }
 

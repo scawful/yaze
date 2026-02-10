@@ -15,6 +15,7 @@
 #include "app/gui/core/input.h"
 #include "app/gui/core/ui_helpers.h"
 #include "util/file_util.h"
+#include "util/macro.h"
 #include "util/hex.h"
 #include "zelda3/sprite/sprite.h"
 
@@ -690,12 +691,14 @@ void SpriteEditor::DrawAnimationPanel() {
       current_frame_--;
     preview_needs_update_ = true;
   }
+  HOVER_HINT("Previous Frame");
   ImGui::SameLine();
   if (ImGui::Button(ICON_MD_SKIP_NEXT)) {
     if (current_frame_ < (int)sprite.editor.Frames.size() - 1)
       current_frame_++;
     preview_needs_update_ = true;
   }
+  HOVER_HINT("Next Frame");
   ImGui::SameLine();
   Text("Frame: %d / %d", current_frame_, (int)sprite.editor.Frames.size() - 1);
 
@@ -709,6 +712,7 @@ void SpriteEditor::DrawAnimationPanel() {
                                    "New Animation");
     zsm_dirty_ = true;
   }
+  HOVER_HINT("Add a new animation sequence");
 
   if (ImGui::BeginChild("AnimList", ImVec2(0, 120), true)) {
     for (size_t i = 0; i < sprite.animations.size(); i++) {
@@ -764,6 +768,7 @@ void SpriteEditor::DrawAnimationPanel() {
           std::min(current_animation_index_, (int)sprite.animations.size() - 1);
       zsm_dirty_ = true;
     }
+    HOVER_HINT("Delete the selected animation");
   }
 
   Separator();
@@ -778,6 +783,7 @@ void SpriteEditor::DrawFrameEditor() {
     sprite.editor.Frames.emplace_back();
     zsm_dirty_ = true;
   }
+  HOVER_HINT("Add a new animation frame");
   ImGui::SameLine();
   if (ImGui::Button(ICON_MD_DELETE " Delete Frame") &&
       sprite.editor.Frames.size() > 1 && current_frame_ >= 0) {
@@ -787,6 +793,7 @@ void SpriteEditor::DrawFrameEditor() {
     zsm_dirty_ = true;
     preview_needs_update_ = true;
   }
+  HOVER_HINT("Delete the current frame");
 
   // Frame selector
   if (ImGui::BeginChild("FrameList", ImVec2(0, 80), true,
@@ -818,6 +825,7 @@ void SpriteEditor::DrawFrameEditor() {
       zsm_dirty_ = true;
       preview_needs_update_ = true;
     }
+    HOVER_HINT("Add a new tile to this frame");
 
     if (ImGui::BeginChild("TileList", ImVec2(0, 100), true)) {
       for (size_t i = 0; i < frame.Tiles.size(); i++) {
@@ -882,6 +890,7 @@ void SpriteEditor::DrawFrameEditor() {
         zsm_dirty_ = true;
         preview_needs_update_ = true;
       }
+      HOVER_HINT("Delete the selected tile");
     }
   }
 }
@@ -924,6 +933,7 @@ void SpriteEditor::DrawUserRoutinesPanel() {
     sprite.userRoutines.emplace_back("New Routine", "; ASM code here\n");
     zsm_dirty_ = true;
   }
+  HOVER_HINT("Add a new ASM routine");
 
   // Routine list
   if (ImGui::BeginChild("RoutineList", ImVec2(0, 100), true)) {
@@ -967,6 +977,7 @@ void SpriteEditor::DrawUserRoutinesPanel() {
       selected_routine_index_ = -1;
       zsm_dirty_ = true;
     }
+    HOVER_HINT("Delete the selected routine");
   }
 }
 

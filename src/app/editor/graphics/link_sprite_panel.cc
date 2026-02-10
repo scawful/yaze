@@ -5,6 +5,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/style_guard.h"
+#include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
 #include "util/file_util.h"
@@ -27,7 +28,7 @@ void LinkSpritePanel::Draw(bool* p_open) {
   if (!sheets_loaded_ && rom_ && rom_->is_loaded()) {
     auto status = LoadLinkSheets();
     if (!status.ok()) {
-      ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f),
+      ImGui::TextColored(gui::GetErrorColor(),
                          "Failed to load Link sheets: %s",
                          status.message().data());
       return;
@@ -63,7 +64,7 @@ absl::Status LinkSpritePanel::Update() {
   if (!sheets_loaded_ && rom_ && rom_->is_loaded()) {
     auto status = LoadLinkSheets();
     if (!status.ok()) {
-      ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f),
+      ImGui::TextColored(gui::GetErrorColor(),
                          "Failed to load Link sheets: %s",
                          status.message().data());
       return status;
@@ -111,14 +112,16 @@ void LinkSpritePanel::DrawToolbar() {
   // Show loaded ZSPR info
   if (loaded_zspr_.has_value()) {
     ImGui::SameLine();
-    ImGui::TextColored(ImVec4(0.5f, 1.0f, 0.5f, 1.0f), "Loaded: %s",
+    ImGui::TextColored(gui::GetSuccessColor(),
+                       ICON_MD_CHECK_CIRCLE " Loaded: %s",
                        loaded_zspr_->metadata.display_name.c_str());
   }
 
   // Unsaved changes indicator
   if (has_unsaved_changes_) {
     ImGui::SameLine();
-    ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.2f, 1.0f), "[Unsaved]");
+    ImGui::TextColored(gui::GetWarningColor(),
+                       ICON_MD_EDIT " [Unsaved]");
   }
 }
 
