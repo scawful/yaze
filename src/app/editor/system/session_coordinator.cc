@@ -525,9 +525,10 @@ void SessionCoordinator::DrawSessionIndicator() {
   const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
   ImVec4 accent_color = ConvertColorToImVec4(theme.accent);
 
-  ImGui::PushStyleColor(ImGuiCol_Text, accent_color);
-  ImGui::Text("%s Session %zu", ICON_MD_TAB, active_session_index_);
-  ImGui::PopStyleColor();
+  {
+    gui::StyleColorGuard accent_guard(ImGuiCol_Text, accent_color);
+    ImGui::Text("%s Session %zu", ICON_MD_TAB, active_session_index_);
+  }
 
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Active Session: %s\nClick to open session switcher",
@@ -948,7 +949,7 @@ void SessionCoordinator::DrawSessionTab(size_t index, bool is_active) {
   const auto& session = sessions_[index];
 
   ImVec4 color = GetSessionColor(index);
-  ImGui::PushStyleColor(ImGuiCol_Text, color);
+  gui::StyleColorGuard tab_color_guard(ImGuiCol_Text, color);
 
   std::string tab_name = GetSessionDisplayName(index);
   if (session->rom.is_loaded()) {
@@ -962,8 +963,6 @@ void SessionCoordinator::DrawSessionTab(size_t index, bool is_active) {
     }
     ImGui::EndTabItem();
   }
-
-  ImGui::PopStyleColor();
 }
 
 void SessionCoordinator::DrawSessionContextMenu(size_t index) {
@@ -1001,15 +1000,13 @@ void SessionCoordinator::DrawSessionBadge(size_t index) {
   const auto& session = sessions_[index];
   ImVec4 color = GetSessionColor(index);
 
-  ImGui::PushStyleColor(ImGuiCol_Text, color);
+  gui::StyleColorGuard badge_guard(ImGuiCol_Text, color);
 
   if (session->rom.is_loaded()) {
     ImGui::Text("%s", ICON_MD_CHECK_CIRCLE);
   } else {
     ImGui::Text("%s", ICON_MD_RADIO_BUTTON_UNCHECKED);
   }
-
-  ImGui::PopStyleColor();
 }
 
 ImVec4 SessionCoordinator::GetSessionColor(size_t index) const {

@@ -140,16 +140,16 @@ void ProjectFileEditor::Draw() {
 
   // Validation errors panel
   if (show_validation_ && !validation_errors_.empty()) {
-    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.3f, 0.2f, 0.2f, 0.5f));
-    if (ImGui::BeginChild("ValidationErrors", ImVec2(0, 100), true)) {
+    gui::StyledChild errors_child(
+        "ValidationErrors", ImVec2(0, 100),
+        {.bg = ImVec4(0.3f, 0.2f, 0.2f, 0.5f)}, true);
+    if (errors_child) {
       ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f),
                          "%s Validation Errors:", ICON_MD_ERROR);
       for (const auto& error : validation_errors_) {
         ImGui::BulletText("%s", error.c_str());
       }
     }
-    ImGui::EndChild();
-    ImGui::PopStyleColor();
   }
 
   // Main editor
