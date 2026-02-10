@@ -56,6 +56,18 @@ absl::StatusOr<std::string> DumpWaterFillZonesToJsonString(
 absl::StatusOr<std::vector<WaterFillZoneEntry>> LoadWaterFillZonesFromJsonString(
     const std::string& json_content);
 
+// Assigns deterministic, unique SRAM bit masks (0x01..0x80) to all zones.
+//
+// Any zone with a mask of 0x00, an invalid (non-single-bit) mask, or a mask
+// duplicated by an earlier room will be treated as "unassigned" and receive
+// the next available free bit. Zones are processed in ascending room_id order
+// to keep results stable.
+//
+// Returns InvalidArgument if there are more than 8 zones. Returns
+// ResourceExhausted if no free bits are available.
+absl::Status NormalizeWaterFillZoneMasks(
+    std::vector<WaterFillZoneEntry>* zones);
+
 }  // namespace yaze::zelda3
 
 #endif  // YAZE_APP_ZELDA3_DUNGEON_WATER_FILL_ZONE_H

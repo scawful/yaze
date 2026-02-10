@@ -297,6 +297,67 @@ TEST(WaterFillZoneTest, LoadLegacyWaterGateZonesParsesSym) {
   EXPECT_EQ(zones[1].fill_offsets, (std::vector<uint16_t>{42}));
 }
 
+TEST(WaterFillZoneTest, NormalizeMasksAssignsAutoAndFixesDuplicates) {
+  std::vector<WaterFillZoneEntry> zones;
+  {
+    WaterFillZoneEntry z;
+    z.room_id = 0x27;
+    z.sram_bit_mask = 0x01;
+    z.fill_offsets = {0};
+    zones.push_back(std::move(z));
+  }
+  {
+    WaterFillZoneEntry z;
+    z.room_id = 0x25;
+    z.sram_bit_mask = 0x01;  // Duplicate with 0x27, should be kept for 0x25.
+    z.fill_offsets = {1};
+    zones.push_back(std::move(z));
+  }
+  {
+    WaterFillZoneEntry z;
+    z.room_id = 0x37;
+    z.sram_bit_mask = 0x00;  // Auto
+    z.fill_offsets = {2};
+    zones.push_back(std::move(z));
+  }
+  {
+    WaterFillZoneEntry z;
+    z.room_id = 0x38;
+    z.sram_bit_mask = 0x03;  // Invalid (not single bit)
+    z.fill_offsets = {3};
+    zones.push_back(std::move(z));
+  }
+
+  auto st = NormalizeWaterFillZoneMasks(&zones);
+  ASSERT_TRUE(st.ok()) << st.message();
+  ASSERT_EQ(zones.size(), 4u);
+
+  // Normalization sorts by room_id for stable output.
+  EXPECT_EQ(zones[0].room_id, 0x25);
+  EXPECT_EQ(zones[0].sram_bit_mask, 0x01);
+  EXPECT_EQ(zones[1].room_id, 0x27);
+  EXPECT_EQ(zones[1].sram_bit_mask, 0x02);
+  EXPECT_EQ(zones[2].room_id, 0x37);
+  EXPECT_EQ(zones[2].sram_bit_mask, 0x04);
+  EXPECT_EQ(zones[3].room_id, 0x38);
+  EXPECT_EQ(zones[3].sram_bit_mask, 0x08);
+}
+
+TEST(WaterFillZoneTest, NormalizeMasksRejectsTooManyZones) {
+  std::vector<WaterFillZoneEntry> zones;
+  zones.reserve(9);
+  for (int i = 0; i < 9; ++i) {
+    WaterFillZoneEntry z;
+    z.room_id = i;
+    z.sram_bit_mask = 0;
+    z.fill_offsets = {0};
+    zones.push_back(std::move(z));
+  }
+
+  auto st = NormalizeWaterFillZoneMasks(&zones);
+  EXPECT_EQ(st.code(), absl::StatusCode::kInvalidArgument);
+}
+
 #if defined(YAZE_WITH_JSON)
 
 TEST(WaterFillZoneTest, JsonDumpThenLoadRoundTripNormalizes) {
