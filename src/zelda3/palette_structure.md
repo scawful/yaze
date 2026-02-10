@@ -20,37 +20,42 @@ Row 2: Colors 32-47  (Color 32 = transparent)
 ### Background Palettes (BG)
 
 #### Overworld Main (35 colors per set)
-- **Structure**: 2 full rows + 3 colors
-  - Row 0: Colors 0-15 (transparent + 15 colors)
-  - Row 1: Colors 16-31 (transparent + 15 colors)
-  - Row 2: Colors 32-34 (3 colors)
-- **ROM**: 0xDE6C8
-- **Sets**: 60 (20 LW, 20 DW, 20 Special)
+- **ROM**: 0xDE6C8 (`PaletteData_owmain_00` / `#_1BE6C8` in usdasm `bank_1B.asm`)
+- **Sets**: 6
+- **Bytes per Set**: 70 (35 colors × 2 bytes)
+- **Stored Layout**: 5 sub-palettes × 7 colors (transparent slots are implicit, not stored)
+- **Runtime Load** (`PaletteLoad_OWBGMain`):
+  - Destination: CGRAM byte offset `0x0042` (color index `0x21`, row 2 col 1)
+  - Loads: 5 palettes × 7 colors (35 total)
+  - Placement: CGRAM rows 2-6, cols 1-7
 
 #### Overworld Auxiliary (21 colors per set)
-- **Structure**: 1 full row + 5 colors
-  - Row 0: Colors 0-15 (transparent + 15 colors)
-  - Row 1: Colors 16-20 (5 colors)
-- **ROM**: 0xDE86C
+- **ROM**: 0xDE86C (`PaletteData_owaux_00` / `#_1BE86C`)
 - **Sets**: 20
+- **Bytes per Set**: 42 (21 colors × 2 bytes)
+- **Stored Layout**: 3 sub-palettes × 7 colors
+- **Runtime Load**:
+  - `PaletteLoad_OWBG1`: destination `0x0052` (color index `0x29`, row 2 col 9), loads 3×7
+  - `PaletteLoad_OWBG2`: destination `0x00B2` (color index `0x59`, row 5 col 9), loads 3×7
 
 #### Overworld Animated (7 colors per set)
-- **Structure**: Half-row without transparent
-  - Colors 0-6 (7 colors, no transparent marker as these overlay existing)
-- **ROM**: 0xDE604
+- **ROM**: 0xDE604 (`PaletteData_owanim_00` / `#_1BE604`)
 - **Sets**: 14
+- **Bytes per Set**: 14 (7 colors × 2 bytes)
+- **Stored Layout**: 7 colors (transparent slot is implicit)
+- **Runtime Load** (`PaletteLoad_OWBG3`):
+  - Destination: `0x00E2` (color index `0x71`, row 7 col 1)
+  - Loads: 7 colors (row 7, cols 1-7)
 
 #### Dungeon Main (90 colors per set)
-- **Structure**: 5 full rows + 10 colors
-  - Row 0: Colors 0-15 (transparent + 15 colors)
-  - Row 1: Colors 16-31 (transparent + 15 colors)
-  - Row 2: Colors 32-47 (transparent + 15 colors)
-  - Row 3: Colors 48-63 (transparent + 15 colors)
-  - Row 4: Colors 64-79 (transparent + 15 colors)
-  - Row 5: Colors 80-89 (10 colors)
-- **ROM**: 0xDD734
+- **ROM**: 0xDD734 (`PaletteData_dungeon_00` / `#_1BD734`)
 - **Sets**: 20 (indices 0-19)
 - **Bytes per Set**: 180 (90 colors × 2 bytes)
+- **Stored Layout**: 6 CGRAM banks × 15 colors (transparent slot per bank is implicit, not stored)
+- **Runtime Load** (`PaletteLoad_UnderworldSet`):
+  - Destination: `0x0042` (color index `0x21`, row 2 col 1)
+  - Loads: 6 palettes × 15 colors (90 total)
+  - Placement: CGRAM rows 2-7, cols 1-15
 
 ##### Palette Lookup System
 
@@ -73,19 +78,18 @@ Example: Room palette = 16
 Sprite palettes use rows 8-15 (colors 128-255).
 
 #### Global Sprites (60 colors total)
-- **Structure**: 4 rows (each with 15 actual colors + transparent)
-  - Row 8: Colors 128-143 (Sprite Palette 0: transparent + 15 colors)
-  - Row 9: Colors 144-159 (Sprite Palette 1: transparent + 15 colors)
-  - Row 10: Colors 160-175 (Sprite Palette 2: transparent + 15 colors)
-  - Row 11: Colors 176-191 (Sprite Palette 3: transparent + 15 colors)
 - **ROM LW**: 0xDD218
 - **ROM DW**: 0xDD290
 - **Total**: 2 sets (LW and DW)
+- **Stored Layout**: 4 banks × 15 colors (transparent slot per bank is implicit, not stored)
+- **CGRAM Placement (Yaze compositor)**:
+  - Row 8: used by sprite aux half-palettes (cols 1-7 and 9-15)
+  - Rows 9-12: global sprite banks 0-3 (cols 1-15)
 
 #### Sprites Auxiliary 1 (7 colors per palette)
 - **Structure**: 12 palettes, each occupying half a row
-  - Palette 0: 7 colors (indices 1-7 of first half-row)
-  - Palette 1: 7 colors (indices 9-15 of second half-row)
+  - Palette 0: 7 colors (CGRAM row 8, cols 1-7)
+  - Palette 1: 7 colors (CGRAM row 8, cols 9-15)
   - ...and so on
 - **ROM**: 0xDD39E
 - **Palettes**: 12
@@ -156,4 +160,3 @@ When loading palettes, we must:
 1. Mark color index 0 of each 16-color row as transparent
 2. For palettes < 16 colors, understand if they're standalone (need transparent) or overlays (don't need transparent)
 3. Display palettes in UI with proper row alignment for clarity
-

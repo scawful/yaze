@@ -896,42 +896,21 @@ PaletteGroupMetadata OverworldMainPalettePanel::InitializeMetadata() {
   PaletteGroupMetadata metadata;
   metadata.group_name = "ow_main";
   metadata.display_name = "Overworld Main Palettes";
-  metadata.colors_per_palette = 8;
-  metadata.colors_per_row = 8;
+  metadata.colors_per_palette = 35;
+  metadata.colors_per_row = 7;
 
-  // Light World palettes (0-19)
-  for (int i = 0; i < 20; i++) {
+  // ALTTP OW main palettes are 35 colors per set (5 sub-palettes x 7 colors),
+  // stored contiguously in ROM and loaded into CGRAM starting at $0042.
+  // See usdasm: bank_1B.asm -> PaletteLoad_OWBGMain / PaletteData_owmain_00.
+  for (int i = 0; i < 6; i++) {
     PaletteMetadata pal;
     pal.palette_id = i;
-    pal.name = absl::StrFormat("Light World %d", i);
-    pal.description = "Used for Light World overworld graphics";
-    pal.rom_address = 0xDE6C8 + (i * 16);  // Base address + offset
+    pal.name = absl::StrFormat("Overworld Main %02d", i);
+    pal.description = "BG main palette set (35 colors = 5x7, transparent slots are implicit)";
+    pal.rom_address = gfx::kOverworldPaletteMain + (i * (35 * 2));
     pal.vram_address = 0;
-    pal.usage_notes = "Modifying these colors affects Light World appearance";
-    metadata.palettes.push_back(pal);
-  }
-
-  // Dark World palettes (20-39)
-  for (int i = 20; i < 40; i++) {
-    PaletteMetadata pal;
-    pal.palette_id = i;
-    pal.name = absl::StrFormat("Dark World %d", i - 20);
-    pal.description = "Used for Dark World overworld graphics";
-    pal.rom_address = 0xDE6C8 + (i * 16);
-    pal.vram_address = 0;
-    pal.usage_notes = "Modifying these colors affects Dark World appearance";
-    metadata.palettes.push_back(pal);
-  }
-
-  // Special World palettes (40-59)
-  for (int i = 40; i < 60; i++) {
-    PaletteMetadata pal;
-    pal.palette_id = i;
-    pal.name = absl::StrFormat("Special %d", i - 40);
-    pal.description = "Used for Special World and triforce room";
-    pal.rom_address = 0xDE6C8 + (i * 16);
-    pal.vram_address = 0;
-    pal.usage_notes = "Modifying these colors affects Special World areas";
+    pal.usage_notes =
+        "Loaded by PaletteLoad_OWBGMain to CGRAM $0042 (rows 2-6, cols 1-7).";
     metadata.palettes.push_back(pal);
   }
 
@@ -995,21 +974,20 @@ PaletteGroupMetadata OverworldAnimatedPalettePanel::InitializeMetadata() {
   PaletteGroupMetadata metadata;
   metadata.group_name = "ow_animated";
   metadata.display_name = "Overworld Animated Palettes";
-  metadata.colors_per_palette = 8;
-  metadata.colors_per_row = 8;
+  metadata.colors_per_palette = 7;
+  metadata.colors_per_row = 7;
 
-  // Animated palettes
-  const char* anim_names[] = {"Water", "Lava", "Poison Water", "Ice"};
-  for (int i = 0; i < 4; i++) {
+  // ALTTP OW animated palettes are 7 colors each, stored at kOverworldPaletteAnimated.
+  // See usdasm: bank_1B.asm -> PaletteLoad_OWBG3 / PaletteData_owanim_00.
+  for (int i = 0; i < 14; i++) {
     PaletteMetadata pal;
     pal.palette_id = i;
-    pal.name = anim_names[i];
-    pal.description =
-        absl::StrFormat("%s animated palette cycle", anim_names[i]);
-    pal.rom_address = 0xDE86C + (i * 16);
+    pal.name = absl::StrFormat("OW Anim %02d", i);
+    pal.description = "Animated overlay palette (7 colors, transparent slot is implicit)";
+    pal.rom_address = gfx::kOverworldPaletteAnimated + (i * (7 * 2));
     pal.vram_address = 0;
     pal.usage_notes =
-        "These palettes cycle through multiple frames for animation";
+        "Loaded by PaletteLoad_OWBG3 to CGRAM $00E2 (row 7, cols 1-7).";
     metadata.palettes.push_back(pal);
   }
 
@@ -1073,8 +1051,8 @@ PaletteGroupMetadata DungeonMainPalettePanel::InitializeMetadata() {
   PaletteGroupMetadata metadata;
   metadata.group_name = "dungeon_main";
   metadata.display_name = "Dungeon Main Palettes";
-  metadata.colors_per_palette = 16;
-  metadata.colors_per_row = 16;
+  metadata.colors_per_palette = 90;
+  metadata.colors_per_row = 15;
 
   // Dungeon palettes (0-19)
   const char* dungeon_names[] = {
@@ -1089,9 +1067,10 @@ PaletteGroupMetadata DungeonMainPalettePanel::InitializeMetadata() {
     pal.palette_id = i;
     pal.name = dungeon_names[i];
     pal.description = absl::StrFormat("Dungeon palette %d", i);
-    pal.rom_address = 0xDE604 + (i * 32);
+    pal.rom_address = gfx::kDungeonMainPalettes + (i * (90 * 2));
     pal.vram_address = 0;
-    pal.usage_notes = "16 colors per dungeon palette";
+    pal.usage_notes =
+        "90 colors = 6 CGRAM banks x 15 colors (transparent slot per bank is implicit).";
     metadata.palettes.push_back(pal);
   }
 
@@ -1152,9 +1131,8 @@ PaletteGroupMetadata SpritePalettePanel::InitializeMetadata() {
   PaletteGroupMetadata metadata;
   metadata.group_name = "global_sprites";
   metadata.display_name = "Global Sprite Palettes";
-  metadata.colors_per_palette =
-      60;  // 60 colors: 4 rows of 16 colors (with transparent at 0, 16, 32, 48)
-  metadata.colors_per_row = 16;  // Display in 16-color rows
+  metadata.colors_per_palette = 60;  // 4 sprite banks x 15 colors (transparent is implicit)
+  metadata.colors_per_row = 15;      // Display as 4 rows of 15 to match ROM layout
 
   // 2 palette sets: Light World and Dark World
   const char* sprite_names[] = {"Global Sprites (Light World)",
@@ -1165,13 +1143,12 @@ PaletteGroupMetadata SpritePalettePanel::InitializeMetadata() {
     pal.palette_id = i;
     pal.name = sprite_names[i];
     pal.description =
-        "60 colors = 4 sprite sub-palettes (rows) with transparent at 0, 16, "
-        "32, 48";
-    pal.rom_address = (i == 0) ? 0xDD218 : 0xDD290;  // LW or DW address
-    pal.vram_address = 0;                            // Loaded dynamically
+        "60 colors = 4 sprite banks x 15 colors (transparent slots are implicit)";
+    pal.rom_address =
+        (i == 0) ? gfx::kGlobalSpritesLW : gfx::kGlobalSpritePalettesDW;
+    pal.vram_address = 0;  // Palettes reside in PPU CGRAM (not VRAM)
     pal.usage_notes =
-        "4 sprite sub-palettes of 15 colors + transparent each. "
-        "Row 0: colors 0-15, Row 1: 16-31, Row 2: 32-47, Row 3: 48-59";
+        "Loaded into CGRAM rows 9-12, cols 1-15 (row col0 is transparent).";
     metadata.palettes.push_back(pal);
   }
 
@@ -1205,35 +1182,11 @@ void SpritePalettePanel::DrawPaletteGrid() {
 
     ImGui::PushID(i);
 
-    // Draw transparent color indicator at start of each 16-color row (0, 16,
-    // 32, 48, ...)
-    bool is_transparent_slot = (i % 16 == 0);
-    if (is_transparent_slot) {
-      ImGui::BeginGroup();
-      if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
-                                        (*palette)[i], is_selected, is_modified,
-                                        ImVec2(button_size, button_size))) {
-        selected_color_ = i;
-        editing_color_ = (*palette)[i];
-      }
-      // Draw "T" for transparent
-      ImVec2 pos = ImGui::GetItemRectMin();
-      ImGui::GetWindowDrawList()->AddText(
-          ImVec2(pos.x + button_size / 2 - 4, pos.y + button_size / 2 - 8),
-          IM_COL32(255, 255, 255, 200), "T");
-      ImGui::EndGroup();
-
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Transparent color slot for sprite sub-palette %d",
-                          i / 16);
-      }
-    } else {
-      if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
-                                        (*palette)[i], is_selected, is_modified,
-                                        ImVec2(button_size, button_size))) {
-        selected_color_ = i;
-        editing_color_ = (*palette)[i];
-      }
+    if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
+                                      (*palette)[i], is_selected, is_modified,
+                                      ImVec2(button_size, button_size))) {
+      selected_color_ = i;
+      editing_color_ = (*palette)[i];
     }
 
     ImGui::PopID();
@@ -1245,18 +1198,11 @@ void SpritePalettePanel::DrawPaletteGrid() {
 }
 
 void SpritePalettePanel::DrawCustomPanels() {
-  // Show VRAM info panel
-  SectionHeader("VRAM Information");
-
-  const auto& metadata = GetMetadata();
-  if (selected_palette_ < metadata.palettes.size()) {
-    const auto& pal_meta = metadata.palettes[selected_palette_];
-
-    ImGui::TextWrapped("This sprite palette is loaded to VRAM address $%04X",
-                       pal_meta.vram_address);
-    ImGui::TextDisabled(
-        "VRAM palettes are used by the SNES PPU for sprite rendering");
-  }
+  SectionHeader("CGRAM Placement");
+  ImGui::TextWrapped(
+      "Global sprite palettes are stored in ROM as 4 banks of 15 colors "
+      "(transparent is implicit) and loaded to PPU CGRAM rows 9-12, cols 1-15.");
+  ImGui::TextDisabled("Note: Palettes live in CGRAM, not VRAM.");
 }
 
 // ========== Equipment Palette Panel ==========
@@ -1272,19 +1218,21 @@ PaletteGroupMetadata EquipmentPalettePanel::InitializeMetadata() {
   PaletteGroupMetadata metadata;
   metadata.group_name = "armors";
   metadata.display_name = "Equipment Palettes";
-  metadata.colors_per_palette = 8;
-  metadata.colors_per_row = 8;
+  metadata.colors_per_palette = 15;
+  metadata.colors_per_row = 15;
 
-  const char* armor_names[] = {"Green Mail", "Blue Mail", "Red Mail"};
+  const char* armor_names[] = {"Green Mail", "Blue Mail", "Red Mail", "Bunny",
+                               "Electrocuted"};
 
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < 5; i++) {
     PaletteMetadata pal;
     pal.palette_id = i;
     pal.name = armor_names[i];
-    pal.description = absl::StrFormat("Link's %s colors", armor_names[i]);
-    pal.rom_address = 0xDD308 + (i * 16);
+    pal.description = absl::StrFormat("Link appearance: %s", armor_names[i]);
+    pal.rom_address = gfx::kArmorPalettes + (i * (15 * 2));
     pal.vram_address = 0;
-    pal.usage_notes = "Changes Link's tunic appearance";
+    pal.usage_notes =
+        "15 colors per set (transparent slot is implicit when loaded into CGRAM).";
     metadata.palettes.push_back(pal);
   }
 
@@ -1346,17 +1294,18 @@ PaletteGroupMetadata SpritesAux1PalettePanel::InitializeMetadata() {
   PaletteGroupMetadata metadata;
   metadata.group_name = "sprites_aux1";
   metadata.display_name = "Sprites Aux 1";
-  metadata.colors_per_palette = 8;  // 7 colors + transparent
-  metadata.colors_per_row = 8;
+  metadata.colors_per_palette = 7;
+  metadata.colors_per_row = 7;
 
   for (int i = 0; i < 12; i++) {
     PaletteMetadata pal;
     pal.palette_id = i;
     pal.name = absl::StrFormat("Sprites Aux1 %02d", i);
-    pal.description = "Auxiliary sprite palette (7 colors + transparent)";
+    pal.description = "Auxiliary sprite palette (7 colors, transparent is implicit)";
     pal.rom_address = 0xDD39E + (i * 14);  // 7 colors * 2 bytes
     pal.vram_address = 0;
-    pal.usage_notes = "Used by specific sprites. Color 0 is transparent.";
+    pal.usage_notes =
+        "Loaded into CGRAM with an implicit transparent slot at index 0 of the bank.";
     metadata.palettes.push_back(pal);
   }
 
@@ -1418,17 +1367,18 @@ PaletteGroupMetadata SpritesAux2PalettePanel::InitializeMetadata() {
   PaletteGroupMetadata metadata;
   metadata.group_name = "sprites_aux2";
   metadata.display_name = "Sprites Aux 2";
-  metadata.colors_per_palette = 8;  // 7 colors + transparent
-  metadata.colors_per_row = 8;
+  metadata.colors_per_palette = 7;
+  metadata.colors_per_row = 7;
 
   for (int i = 0; i < 11; i++) {
     PaletteMetadata pal;
     pal.palette_id = i;
     pal.name = absl::StrFormat("Sprites Aux2 %02d", i);
-    pal.description = "Auxiliary sprite palette (7 colors + transparent)";
+    pal.description = "Auxiliary sprite palette (7 colors, transparent is implicit)";
     pal.rom_address = 0xDD446 + (i * 14);  // 7 colors * 2 bytes
     pal.vram_address = 0;
-    pal.usage_notes = "Used by specific sprites. Color 0 is transparent.";
+    pal.usage_notes =
+        "Loaded into CGRAM with an implicit transparent slot at index 0 of the bank.";
     metadata.palettes.push_back(pal);
   }
 
@@ -1462,28 +1412,11 @@ void SpritesAux2PalettePanel::DrawPaletteGrid() {
 
     ImGui::PushID(i);
 
-    // Draw transparent color indicator for index 0
-    if (i == 0) {
-      ImGui::BeginGroup();
-      if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
-                                        (*palette)[i], is_selected, is_modified,
-                                        ImVec2(button_size, button_size))) {
-        selected_color_ = i;
-        editing_color_ = (*palette)[i];
-      }
-      // Draw "T" for transparent
-      ImVec2 pos = ImGui::GetItemRectMin();
-      ImGui::GetWindowDrawList()->AddText(
-          ImVec2(pos.x + button_size / 2 - 4, pos.y + button_size / 2 - 8),
-          IM_COL32(255, 255, 255, 200), "T");
-      ImGui::EndGroup();
-    } else {
-      if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
-                                        (*palette)[i], is_selected, is_modified,
-                                        ImVec2(button_size, button_size))) {
-        selected_color_ = i;
-        editing_color_ = (*palette)[i];
-      }
+    if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
+                                      (*palette)[i], is_selected, is_modified,
+                                      ImVec2(button_size, button_size))) {
+      selected_color_ = i;
+      editing_color_ = (*palette)[i];
     }
 
     ImGui::PopID();
@@ -1507,17 +1440,18 @@ PaletteGroupMetadata SpritesAux3PalettePanel::InitializeMetadata() {
   PaletteGroupMetadata metadata;
   metadata.group_name = "sprites_aux3";
   metadata.display_name = "Sprites Aux 3";
-  metadata.colors_per_palette = 8;  // 7 colors + transparent
-  metadata.colors_per_row = 8;
+  metadata.colors_per_palette = 7;
+  metadata.colors_per_row = 7;
 
   for (int i = 0; i < 24; i++) {
     PaletteMetadata pal;
     pal.palette_id = i;
     pal.name = absl::StrFormat("Sprites Aux3 %02d", i);
-    pal.description = "Auxiliary sprite palette (7 colors + transparent)";
+    pal.description = "Auxiliary sprite palette (7 colors, transparent is implicit)";
     pal.rom_address = 0xDD4E0 + (i * 14);  // 7 colors * 2 bytes
     pal.vram_address = 0;
-    pal.usage_notes = "Used by specific sprites. Color 0 is transparent.";
+    pal.usage_notes =
+        "Loaded into CGRAM with an implicit transparent slot at index 0 of the bank.";
     metadata.palettes.push_back(pal);
   }
 

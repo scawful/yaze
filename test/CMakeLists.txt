@@ -181,6 +181,7 @@ if(YAZE_BUILD_TESTS)
     unit/gfx/snes_tile_test.cc
     unit/gfx/compression_test.cc
     unit/gfx/snes_palette_test.cc
+    unit/gfx/usdasm_palette_loading_test.cc
     unit/gfx/bpp_conversion_test.cc
     unit/palette_json_test.cc
     unit/snes_color_test.cc

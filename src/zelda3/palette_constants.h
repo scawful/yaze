@@ -17,7 +17,7 @@ constexpr const char* kOverworldAux = "ow_aux";
 constexpr const char* kOverworldAnimated = "ow_animated";
 constexpr const char* kHud = "hud";
 constexpr const char* kGlobalSprites = "global_sprites";
-constexpr const char* kArmor = "armor";
+constexpr const char* kArmor = "armors";
 constexpr const char* kSwords = "swords";
 constexpr const char* kShields = "shields";
 constexpr const char* kSpritesAux1 = "sprites_aux1";
@@ -63,10 +63,10 @@ constexpr uint32_t kCrystal = 0xF4CD3;
 
 namespace PaletteCount {
 constexpr int kHud = 2;
-constexpr int kOverworldMain = 60;  // 20 LW, 20 DW, 20 Special
+constexpr int kOverworldMain = 6;
 constexpr int kOverworldAux = 20;
 constexpr int kOverworldAnimated = 14;
-constexpr int kGlobalSprites = 6;
+constexpr int kGlobalSprites = 2;
 constexpr int kArmor = 5;
 constexpr int kSwords = 4;
 constexpr int kSpritesAux1 = 12;
@@ -105,12 +105,11 @@ constexpr PaletteGroupMetadata kOverworldMain = {
     .category = "Overworld",
     .base_address = PaletteAddress::kOverworldMain,
     .palette_count = PaletteCount::kOverworldMain,
-    .colors_per_palette =
-        35,  // 35 colors: 2 full rows (0-15, 16-31) + 3 colors (32-34)
-    .colors_per_row = 7,  // Display in 16-color rows for proper SNES alignment
+    .colors_per_palette = 35,  // 5 sub-palettes x 7 colors (transparent slots are implicit)
+    .colors_per_row = 7,
     .bits_per_pixel = 4,
     .description =
-        "Main overworld palettes: 35 colors per set (2 full rows + 3 colors)",
+        "Main overworld BG palettes: 35 colors per set (5 sub-palettes x 7 colors)",
     .has_animations = false};
 
 constexpr PaletteGroupMetadata kOverworldAnimated = {
@@ -120,7 +119,7 @@ constexpr PaletteGroupMetadata kOverworldAnimated = {
     .base_address = PaletteAddress::kOverworldAnimated,
     .palette_count = PaletteCount::kOverworldAnimated,
     .colors_per_palette = 7,  // 7 colors (overlay palette, no transparent)
-    .colors_per_row = 8,      // Display in 8-color groups
+    .colors_per_row = 7,
     .bits_per_pixel = 4,
     .description =
         "Animated overlay palettes: 7 colors per set (water, lava, etc.)",
@@ -132,13 +131,11 @@ constexpr PaletteGroupMetadata kDungeonMain = {
     .category = "Dungeon",
     .base_address = PaletteAddress::kDungeonMain,
     .palette_count = PaletteCount::kDungeonMain,
-    .colors_per_palette = 90,  // 90 colors: 5 full rows (0-15, 16-31, 32-47,
-                               // 48-63, 64-79) + 10 colors (80-89)
-    .colors_per_row = 16,  // Display in 16-color rows for proper SNES alignment
+    .colors_per_palette = 90,  // 6 banks x 15 colors (transparent slots are implicit)
+    .colors_per_row = 15,
     .bits_per_pixel = 4,
     .description =
-        "Dungeon-specific palettes: 90 colors per set (5 full rows + 10 "
-        "colors)",
+        "Dungeon-specific palettes: 90 colors per set (6 banks x 15 colors)",
     .has_animations = false};
 
 constexpr PaletteGroupMetadata kGlobalSprites = {
@@ -146,14 +143,12 @@ constexpr PaletteGroupMetadata kGlobalSprites = {
     .display_name = "Global Sprites",
     .category = "Sprites",
     .base_address = PaletteAddress::kGlobalSpritesLW,
-    .palette_count = 2,        // 2 sets (LW and DW), each with 60 colors
-    .colors_per_palette = 60,  // 60 colors: 4 rows (0-15, 16-31, 32-47, 48-59)
-                               // with transparent at 0, 16, 32, 48
-    .colors_per_row = 16,  // Display in 16-color rows for proper SNES alignment
+    .palette_count = 2,        // LW and DW
+    .colors_per_palette = 60,  // 4 banks x 15 colors (transparent slots are implicit)
+    .colors_per_row = 15,
     .bits_per_pixel = 4,
     .description =
-        "Global sprite palettes: 60 colors per set (4 sprite sub-palettes of "
-        "15+transparent each)",
+        "Global sprite palettes: 60 colors per set (4 banks x 15 colors)",
     .has_animations = false};
 
 constexpr PaletteGroupMetadata kSpritesAux1 = {
@@ -164,7 +159,7 @@ constexpr PaletteGroupMetadata kSpritesAux1 = {
     .palette_count = PaletteCount::kSpritesAux1,
     .colors_per_palette =
         7,  // 7 colors (ROM stores 7, transparent added in memory)
-    .colors_per_row = 8,  // Display as 8-color sub-palettes (with transparent)
+    .colors_per_row = 7,
     .bits_per_pixel = 4,
     .description =
         "Auxiliary sprite palettes 1: 7 colors per palette (transparent added "
@@ -179,7 +174,7 @@ constexpr PaletteGroupMetadata kSpritesAux2 = {
     .palette_count = PaletteCount::kSpritesAux2,
     .colors_per_palette =
         7,  // 7 colors (ROM stores 7, transparent added in memory)
-    .colors_per_row = 8,  // Display as 8-color sub-palettes (with transparent)
+    .colors_per_row = 7,
     .bits_per_pixel = 4,
     .description =
         "Auxiliary sprite palettes 2: 7 colors per palette (transparent added "
@@ -194,7 +189,7 @@ constexpr PaletteGroupMetadata kSpritesAux3 = {
     .palette_count = PaletteCount::kSpritesAux3,
     .colors_per_palette =
         7,  // 7 colors (ROM stores 7, transparent added in memory)
-    .colors_per_row = 8,  // Display as 8-color sub-palettes (with transparent)
+    .colors_per_row = 7,
     .bits_per_pixel = 4,
     .description =
         "Auxiliary sprite palettes 3: 7 colors per palette (transparent added "
@@ -209,8 +204,7 @@ constexpr PaletteGroupMetadata kArmor = {
     .palette_count = PaletteCount::kArmor,
     .colors_per_palette = 15,  // 15 colors (ROM stores 15, transparent added in
                                // memory for full row)
-    .colors_per_row =
-        16,  // Display as full 16-color rows (with transparent at index 0)
+    .colors_per_row = 15,
     .bits_per_pixel = 4,
     .description =
         "Link's tunic colors: 15 colors per palette (Green, Blue, Red, Bunny, "
@@ -263,13 +257,11 @@ constexpr PaletteGroupMetadata kOverworldAux = {
     .category = "Overworld",
     .base_address = PaletteAddress::kOverworldAux,
     .palette_count = PaletteCount::kOverworldAux,
-    .colors_per_palette =
-        21,                // 21 colors: 1 full row (0-15) + 5 colors (16-20)
-    .colors_per_row = 16,  // Display in 16-color rows
+    .colors_per_palette = 21,  // 3 sub-palettes x 7 colors
+    .colors_per_row = 7,
     .bits_per_pixel = 4,
     .description =
-        "Overworld auxiliary palettes: 21 colors per set (1 full row + 5 "
-        "colors)",
+        "Overworld auxiliary palettes: 21 colors per set (3 sub-palettes x 7 colors)",
     .has_animations = false};
 
 constexpr PaletteGroupMetadata kGrass = {
