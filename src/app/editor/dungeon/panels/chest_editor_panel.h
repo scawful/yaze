@@ -259,15 +259,16 @@ class ChestEditorPanel : public EditorPanel {
 
     // Delete button
     ImGui::Spacing();
-    ImGui::PushStyleColor(ImGuiCol_Button, theme.status_error);
-    if (ImGui::Button(ICON_MD_DELETE " Delete Chest")) {
-      chests.erase(chests.begin() + selected_chest_index_);
-      selected_chest_index_ = -1;
-      if (chest_modified_callback_) {
-        chest_modified_callback_(*current_room_id_, -1);
+    {
+      gui::StyleColorGuard del_guard(ImGuiCol_Button, theme.status_error);
+      if (ImGui::Button(ICON_MD_DELETE " Delete Chest")) {
+        chests.erase(chests.begin() + selected_chest_index_);
+        selected_chest_index_ = -1;
+        if (chest_modified_callback_) {
+          chest_modified_callback_(*current_room_id_, -1);
+        }
       }
     }
-    ImGui::PopStyleColor();
   }
 
   int* current_room_id_ = nullptr;
