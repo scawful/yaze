@@ -1,9 +1,12 @@
 #include "dungeon_room_selector.h"
 
+#include <algorithm>
+
 #include "absl/strings/str_format.h"
 #include "app/editor/core/content_registry.h"
 #include "app/editor/events/core_events.h"
 #include "app/gui/core/input.h"
+#include "app/gui/core/layout_helpers.h"
 #include "imgui/imgui.h"
 #include "util/hex.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
@@ -68,6 +71,15 @@ void DungeonRoomSelector::DrawRoomSelector() {
     RebuildRoomFilterCache();
   }
 
+  // Increase row height on touch devices for easier tapping
+  const bool is_touch = gui::LayoutHelpers::IsTouchDevice();
+  if (is_touch) {
+    float touch_pad = std::max(6.0f,
+        (gui::LayoutHelpers::GetMinTouchTarget() - ImGui::GetFontSize()) * 0.5f);
+    ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,
+                        ImVec2(ImGui::GetStyle().CellPadding.x, touch_pad));
+  }
+
   if (ImGui::BeginTable("RoomList", 2,
                         ImGuiTableFlags_ScrollY | ImGuiTableFlags_Borders |
                             ImGuiTableFlags_RowBg |
@@ -91,18 +103,62 @@ void DungeonRoomSelector::DrawRoomSelector() {
         char label[32];
         snprintf(label, sizeof(label), "%03X", room_id);
         if (ImGui::Selectable(label, current_room_id_ == room_id,
-                              ImGuiSelectableFlags_SpanAllColumns)) {
+                              ImGuiSelectableFlags_SpanAllColumns |
+                                  ImGuiSelectableFlags_AllowDoubleClick)) {
           current_room_id_ = room_id;
 
           // Publish selection changed event
           if (auto* bus = ContentRegistry::Context::event_bus()) {
-            bus->Publish(SelectionChangedEvent::CreateSingle("dungeon_room", room_id));
+            bus->Publish(
+                SelectionChangedEvent::CreateSingle("dungeon_room", room_id));
           }
 
-          // Legacy callback support
-          if (room_selected_callback_) {
-            room_selected_callback_(room_id);
+          if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+            // Double-click: open as standalone panel
+            if (room_intent_callback_) {
+              room_intent_callback_(room_id,
+                                    RoomSelectionIntent::kOpenStandalone);
+            } else if (room_selected_callback_) {
+              room_selected_callback_(room_id);
+            }
+          } else {
+            // Single-click: focus in workbench (default)
+            if (room_intent_callback_) {
+              room_intent_callback_(room_id,
+                                    RoomSelectionIntent::kFocusInWorkbench);
+            } else if (room_selected_callback_) {
+              room_selected_callback_(room_id);
+            }
           }
+        }
+
+        // Context menu (right-click on desktop, long-press on touch)
+        if (ImGui::BeginPopupContextItem()) {
+          if (ImGui::MenuItem("Open in Workbench")) {
+            current_room_id_ = room_id;
+            if (room_intent_callback_) {
+              room_intent_callback_(room_id,
+                                    RoomSelectionIntent::kFocusInWorkbench);
+            } else if (room_selected_callback_) {
+              room_selected_callback_(room_id);
+            }
+          }
+          if (ImGui::MenuItem("Open as Panel")) {
+            current_room_id_ = room_id;
+            if (room_intent_callback_) {
+              room_intent_callback_(room_id,
+                                    RoomSelectionIntent::kOpenStandalone);
+            } else if (room_selected_callback_) {
+              room_selected_callback_(room_id);
+            }
+          }
+          ImGui::Separator();
+          char id_buf[16];
+          snprintf(id_buf, sizeof(id_buf), "0x%03X", room_id);
+          if (ImGui::MenuItem("Copy Room ID")) {
+            ImGui::SetClipboardText(id_buf);
+          }
+          ImGui::EndPopup();
         }
 
         ImGui::TableNextColumn();
@@ -111,6 +167,10 @@ void DungeonRoomSelector::DrawRoomSelector() {
     }
 
     ImGui::EndTable();
+  }
+
+  if (is_touch) {
+    ImGui::PopStyleVar();
   }
 }
 

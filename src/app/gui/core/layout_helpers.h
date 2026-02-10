@@ -91,6 +91,10 @@ class LayoutHelpers {
   static float GetTopInset();
   static bool IsTouchDevice();
 
+  // Touch-aware sizing (Apple HIG 44pt minimum)
+  static float GetMinTouchTarget();
+  static float GetTouchSafeWidgetHeight();
+
   // Clamp a window position so at least min_visible pixels remain within rect.
   static WindowClampResult ClampWindowToRect(const ImVec2& pos,
                                              const ImVec2& size,

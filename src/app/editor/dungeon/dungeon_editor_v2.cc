@@ -375,6 +375,12 @@ void DungeonEditorV2::Initialize() {
     panel_manager->ShowPanel(kRoomMatrixId);
   }
 
+  // Wire intent-aware callback for double-click / context menu
+  room_selector_.SetRoomSelectedWithIntentCallback(
+      [this](int room_id, RoomSelectionIntent intent) {
+        OnRoomSelected(room_id, intent);
+      });
+
   // Register EditorPanel instances
   panel_manager->RegisterEditorPanel(std::make_unique<DungeonRoomSelectorPanel>(
       &room_selector_, [this](int room_id) { OnRoomSelected(room_id); }));
@@ -383,18 +389,29 @@ void DungeonEditorV2::Initialize() {
       &room_selector_,
       [this](int entrance_id) { OnEntranceSelected(entrance_id); }));
 
-  panel_manager->RegisterEditorPanel(std::make_unique<DungeonRoomMatrixPanel>(
-      &current_room_id_, &active_rooms_,
-      [this](int room_id) { OnRoomSelected(room_id); },
-      [this](int old_room, int new_room) {
-        SwapRoomInPanel(old_room, new_room);
-      },
-      &rooms_));
+  {
+    auto matrix_panel = std::make_unique<DungeonRoomMatrixPanel>(
+        &current_room_id_, &active_rooms_,
+        [this](int room_id) { OnRoomSelected(room_id); },
+        [this](int old_room, int new_room) {
+          SwapRoomInPanel(old_room, new_room);
+        },
+        &rooms_);
+    matrix_panel->SetRoomIntentCallback(
+        [this](int room_id, RoomSelectionIntent intent) {
+          OnRoomSelected(room_id, intent);
+        });
+    panel_manager->RegisterEditorPanel(std::move(matrix_panel));
+  }
 
   {
     auto dungeon_map = std::make_unique<DungeonMapPanel>(
         &current_room_id_, &active_rooms_,
         [this](int room_id) { OnRoomSelected(room_id); }, &rooms_);
+    dungeon_map->SetRoomIntentCallback(
+        [this](int room_id, RoomSelectionIntent intent) {
+          OnRoomSelected(room_id, intent);
+        });
     if (dependencies_.project) {
       dungeon_map->SetHackManifest(&dependencies_.project->hack_manifest);
     }
@@ -466,6 +483,10 @@ absl::Status DungeonEditorV2::Load() {
   room_selector_.set_active_rooms(active_rooms_);
   room_selector_.SetRoomSelectedCallback(
       [this](int room_id) { OnRoomSelected(room_id); });
+  room_selector_.SetRoomSelectedWithIntentCallback(
+      [this](int room_id, RoomSelectionIntent intent) {
+        OnRoomSelected(room_id, intent);
+      });
 
   // Canvas viewers are lazily created in GetViewerForRoom
 
@@ -1393,6 +1414,44 @@ void DungeonEditorV2::DrawRoomTab(int room_id) {
   // Use per-room viewer
   if (auto* viewer = GetViewerForRoom(room_id)) {
     viewer->DrawDungeonCanvas(room_id);
+  }
+}
+
+void DungeonEditorV2::OnRoomSelected(int room_id, RoomSelectionIntent intent) {
+  switch (intent) {
+    case RoomSelectionIntent::kFocusInWorkbench:
+      OnRoomSelected(room_id, /*request_focus=*/true);
+      break;
+    case RoomSelectionIntent::kOpenStandalone: {
+      // Force standalone panel even in workbench mode:
+      // Run the common state update, then skip the workbench early-return
+      // by going directly to the per-room panel path.
+      if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
+        return;
+      }
+      // Update shared state (same as OnRoomSelected with request_focus=true)
+      OnRoomSelected(room_id, /*request_focus=*/false);
+      // Now force-open a standalone panel for this room
+      if (dependencies_.panel_manager) {
+        std::string room_name = absl::StrFormat(
+            "[%03X] %s", room_id, zelda3::GetRoomLabel(room_id).c_str());
+        std::string card_id = absl::StrFormat("dungeon.room_%d", room_id);
+        dependencies_.panel_manager->RegisterPanel(
+            {.card_id = card_id,
+             .display_name = room_name,
+             .window_title = ICON_MD_GRID_ON " " + room_name,
+             .icon = ICON_MD_GRID_ON,
+             .category = "Dungeon",
+             .shortcut_hint = "",
+             .visibility_flag = nullptr,
+             .priority = 200 + room_id});
+        dependencies_.panel_manager->ShowPanel(card_id);
+      }
+      break;
+    }
+    case RoomSelectionIntent::kPreview:
+      OnRoomSelected(room_id, /*request_focus=*/false);
+      break;
   }
 }
 

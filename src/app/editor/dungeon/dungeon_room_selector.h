@@ -16,6 +16,15 @@ namespace yaze {
 namespace editor {
 
 /**
+ * @brief Intent for room selection in the dungeon editor.
+ */
+enum class RoomSelectionIntent {
+  kFocusInWorkbench,  // Default: navigate workbench to this room
+  kOpenStandalone,    // Open as separate panel (even in workbench mode)
+  kPreview,           // Update state only, don't show/focus panels
+};
+
+/**
  * @brief Handles room and entrance selection UI
  */
 class DungeonRoomSelector {
@@ -59,13 +68,19 @@ class DungeonRoomSelector {
     entrances_ = entrances;
   }
 
-  // Callback for room selection events
+  // Callback for room selection events (single-click / default)
   void SetRoomSelectedCallback(std::function<void(int)> callback) {
     room_selected_callback_ = std::move(callback);
   }
   [[deprecated("Use SetRoomSelectedCallback() instead")]]
   void set_room_selected_callback(std::function<void(int)> callback) {
     SetRoomSelectedCallback(std::move(callback));
+  }
+
+  // Intent-aware room selection callback (double-click, context menu)
+  void SetRoomSelectedWithIntentCallback(
+      std::function<void(int, RoomSelectionIntent)> callback) {
+    room_intent_callback_ = std::move(callback);
   }
 
   // Callback for entrance selection events (triggers room opening)
@@ -87,9 +102,12 @@ class DungeonRoomSelector {
   std::array<zelda3::Room, 0x128>* rooms_ = nullptr;
   std::array<zelda3::RoomEntrance, 0x8C>* entrances_ = nullptr;
 
-  // Callback for room selection events
+  // Callback for room selection events (single-click / default)
   std::function<void(int)> room_selected_callback_;
-  
+
+  // Intent-aware room selection callback (double-click, context menu)
+  std::function<void(int, RoomSelectionIntent)> room_intent_callback_;
+
   // Callback for entrance selection events
   std::function<void(int)> entrance_selected_callback_;
 

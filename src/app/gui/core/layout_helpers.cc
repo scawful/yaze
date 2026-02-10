@@ -101,6 +101,14 @@ bool LayoutHelpers::IsTouchDevice() {
   return (io.ConfigFlags & ImGuiConfigFlags_IsTouchScreen) != 0;
 }
 
+float LayoutHelpers::GetMinTouchTarget() {
+  return IsTouchDevice() ? 44.0f : 0.0f;
+}
+
+float LayoutHelpers::GetTouchSafeWidgetHeight() {
+  return std::max(GetStandardWidgetHeight(), GetMinTouchTarget());
+}
+
 LayoutHelpers::WindowClampResult LayoutHelpers::ClampWindowToRect(
     const ImVec2& pos, const ImVec2& size, const ImVec2& rect_pos,
     const ImVec2& rect_size, float min_visible) {

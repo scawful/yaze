@@ -100,8 +100,9 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
     return;
   }
 
-  const float btn = gui::LayoutHelpers::GetStandardWidgetHeight();
-  const float rail_w = std::max(26.0f, btn + 4.0f);
+  const float btn = gui::LayoutHelpers::GetTouchSafeWidgetHeight();
+  const float rail_w = std::max({26.0f, btn + 4.0f,
+                                 gui::LayoutHelpers::GetMinTouchTarget()});
 
   const bool show_left =
       layout_state_ ? layout_state_->show_left_sidebar : true;
@@ -145,9 +146,10 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
     ImGui::BeginChild("##DungeonWorkbenchSidebarCollapsed", ImVec2(0, 0), true);
     const float avail = ImGui::GetContentRegionAvail().x;
     const float expand_btn_w =
-        std::max(btn, std::ceil(ImGui::CalcTextSize(ICON_MD_CHEVRON_RIGHT).x +
-                                (ImGui::GetStyle().FramePadding.x * 2.0f) +
-                                std::max(2.0f, ImGui::GetStyle().FramePadding.x)));
+        std::max({btn, gui::LayoutHelpers::GetMinTouchTarget(),
+                  std::ceil(ImGui::CalcTextSize(ICON_MD_CHEVRON_RIGHT).x +
+                            (ImGui::GetStyle().FramePadding.x * 2.0f) +
+                            std::max(2.0f, ImGui::GetStyle().FramePadding.x))});
     ImGui::SetCursorPosX(std::max(0.0f, (avail - expand_btn_w) * 0.5f));
     ImGui::SetCursorPosY(6.0f);
     if (ImGui::Button(ICON_MD_CHEVRON_RIGHT "##ExpandRooms",
@@ -195,9 +197,10 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
                       true);
     const float avail = ImGui::GetContentRegionAvail().x;
     const float expand_btn_w =
-        std::max(btn, std::ceil(ImGui::CalcTextSize(ICON_MD_CHEVRON_LEFT).x +
-                                (ImGui::GetStyle().FramePadding.x * 2.0f) +
-                                std::max(2.0f, ImGui::GetStyle().FramePadding.x)));
+        std::max({btn, gui::LayoutHelpers::GetMinTouchTarget(),
+                  std::ceil(ImGui::CalcTextSize(ICON_MD_CHEVRON_LEFT).x +
+                            (ImGui::GetStyle().FramePadding.x * 2.0f) +
+                            std::max(2.0f, ImGui::GetStyle().FramePadding.x))});
     ImGui::SetCursorPosX(std::max(0.0f, (avail - expand_btn_w) * 0.5f));
     ImGui::SetCursorPosY(6.0f);
     if (ImGui::Button(ICON_MD_CHEVRON_LEFT "##ExpandInspector",
