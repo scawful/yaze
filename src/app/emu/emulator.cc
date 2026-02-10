@@ -20,6 +20,7 @@ extern bool g_window_is_resizing;
 #include "app/gui/app/editor_layout.h"
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
 
@@ -1096,143 +1097,145 @@ void Emulator::RenderModernCpuDebugger() {
     ImGui::Separator();
 
     ImGui::TextColored(ConvertColorToImVec4(theme.accent), "CPU Status");
-    ImGui::PushStyleColor(ImGuiCol_ChildBg,
-                          ConvertColorToImVec4(theme.child_bg));
-    ImGui::BeginChild("##CpuStatus", ImVec2(0, 180), true);
+    {
+      gui::StyledChild cpu_status_child(
+          "##CpuStatus", ImVec2(0, 180),
+          {.bg = ConvertColorToImVec4(theme.child_bg)}, true);
 
-    // Compact register display in a table
-    if (ImGui::BeginTable(
-            "Registers", 4,
-            ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit)) {
-      ImGui::TableSetupColumn("Register", ImGuiTableColumnFlags_WidthFixed, 60);
-      ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthFixed, 80);
-      ImGui::TableSetupColumn("Register", ImGuiTableColumnFlags_WidthFixed, 60);
-      ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthFixed, 80);
-      ImGui::TableHeadersRow();
+      // Compact register display in a table
+      if (ImGui::BeginTable(
+              "Registers", 4,
+              ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit)) {
+        ImGui::TableSetupColumn("Register", ImGuiTableColumnFlags_WidthFixed,
+                                60);
+        ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthFixed, 80);
+        ImGui::TableSetupColumn("Register", ImGuiTableColumnFlags_WidthFixed,
+                                60);
+        ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthFixed, 80);
+        ImGui::TableHeadersRow();
 
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::Text("A");
-      ImGui::TableNextColumn();
-      ImGui::TextColored(ConvertColorToImVec4(theme.accent), "0x%04X",
-                         snes_.cpu().A);
-      ImGui::TableNextColumn();
-      ImGui::Text("D");
-      ImGui::TableNextColumn();
-      ImGui::TextColored(ConvertColorToImVec4(theme.accent), "0x%04X",
-                         snes_.cpu().D);
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("A");
+        ImGui::TableNextColumn();
+        ImGui::TextColored(ConvertColorToImVec4(theme.accent), "0x%04X",
+                           snes_.cpu().A);
+        ImGui::TableNextColumn();
+        ImGui::Text("D");
+        ImGui::TableNextColumn();
+        ImGui::TextColored(ConvertColorToImVec4(theme.accent), "0x%04X",
+                           snes_.cpu().D);
 
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::Text("X");
-      ImGui::TableNextColumn();
-      ImGui::TextColored(ConvertColorToImVec4(theme.accent), "0x%04X",
-                         snes_.cpu().X);
-      ImGui::TableNextColumn();
-      ImGui::Text("DB");
-      ImGui::TableNextColumn();
-      ImGui::TextColored(ConvertColorToImVec4(theme.accent), "0x%02X",
-                         snes_.cpu().DB);
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("X");
+        ImGui::TableNextColumn();
+        ImGui::TextColored(ConvertColorToImVec4(theme.accent), "0x%04X",
+                           snes_.cpu().X);
+        ImGui::TableNextColumn();
+        ImGui::Text("DB");
+        ImGui::TableNextColumn();
+        ImGui::TextColored(ConvertColorToImVec4(theme.accent), "0x%02X",
+                           snes_.cpu().DB);
 
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::Text("Y");
-      ImGui::TableNextColumn();
-      ImGui::TextColored(ConvertColorToImVec4(theme.accent), "0x%04X",
-                         snes_.cpu().Y);
-      ImGui::TableNextColumn();
-      ImGui::Text("PB");
-      ImGui::TableNextColumn();
-      ImGui::TextColored(ConvertColorToImVec4(theme.accent), "0x%02X",
-                         snes_.cpu().PB);
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Y");
+        ImGui::TableNextColumn();
+        ImGui::TextColored(ConvertColorToImVec4(theme.accent), "0x%04X",
+                           snes_.cpu().Y);
+        ImGui::TableNextColumn();
+        ImGui::Text("PB");
+        ImGui::TableNextColumn();
+        ImGui::TextColored(ConvertColorToImVec4(theme.accent), "0x%02X",
+                           snes_.cpu().PB);
 
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::Text("PC");
-      ImGui::TableNextColumn();
-      ImGui::TextColored(ConvertColorToImVec4(theme.success), "0x%04X",
-                         snes_.cpu().PC);
-      ImGui::TableNextColumn();
-      ImGui::Text("SP");
-      ImGui::TableNextColumn();
-      ImGui::TextColored(ConvertColorToImVec4(theme.accent), "0x%02X",
-                         snes_.memory().mutable_sp());
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("PC");
+        ImGui::TableNextColumn();
+        ImGui::TextColored(ConvertColorToImVec4(theme.success), "0x%04X",
+                           snes_.cpu().PC);
+        ImGui::TableNextColumn();
+        ImGui::Text("SP");
+        ImGui::TableNextColumn();
+        ImGui::TextColored(ConvertColorToImVec4(theme.accent), "0x%02X",
+                           snes_.memory().mutable_sp());
 
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::Text("PS");
-      ImGui::TableNextColumn();
-      ImGui::TextColored(ConvertColorToImVec4(theme.warning), "0x%02X",
-                         snes_.cpu().status);
-      ImGui::TableNextColumn();
-      ImGui::Text("Cycle");
-      ImGui::TableNextColumn();
-      ImGui::TextColored(ConvertColorToImVec4(theme.info), "%llu",
-                         snes_.mutable_cycles());
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("PS");
+        ImGui::TableNextColumn();
+        ImGui::TextColored(ConvertColorToImVec4(theme.warning), "0x%02X",
+                           snes_.cpu().status);
+        ImGui::TableNextColumn();
+        ImGui::Text("Cycle");
+        ImGui::TableNextColumn();
+        ImGui::TextColored(ConvertColorToImVec4(theme.info), "%llu",
+                           snes_.mutable_cycles());
 
-      ImGui::EndTable();
+        ImGui::EndTable();
+      }
     }
-
-    ImGui::EndChild();
-    ImGui::PopStyleColor();
 
     // SPC700 Status Panel
     ImGui::TextColored(ConvertColorToImVec4(theme.accent), "SPC700 Status");
-    ImGui::PushStyleColor(ImGuiCol_ChildBg,
-                          ConvertColorToImVec4(theme.child_bg));
-    ImGui::BeginChild("##SpcStatus", ImVec2(0, 150), true);
+    {
+      gui::StyledChild spc_status_child(
+          "##SpcStatus", ImVec2(0, 150),
+          {.bg = ConvertColorToImVec4(theme.child_bg)}, true);
 
-    if (ImGui::BeginTable(
-            "SPCRegisters", 4,
-            ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit)) {
-      ImGui::TableSetupColumn("Register", ImGuiTableColumnFlags_WidthFixed, 50);
-      ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthFixed, 60);
-      ImGui::TableSetupColumn("Register", ImGuiTableColumnFlags_WidthFixed, 50);
-      ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthFixed, 60);
-      ImGui::TableHeadersRow();
+      if (ImGui::BeginTable(
+              "SPCRegisters", 4,
+              ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit)) {
+        ImGui::TableSetupColumn("Register", ImGuiTableColumnFlags_WidthFixed,
+                                50);
+        ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthFixed, 60);
+        ImGui::TableSetupColumn("Register", ImGuiTableColumnFlags_WidthFixed,
+                                50);
+        ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthFixed, 60);
+        ImGui::TableHeadersRow();
 
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::Text("A");
-      ImGui::TableNextColumn();
-      ImGui::TextColored(ConvertColorToImVec4(theme.accent), "0x%02X",
-                         snes_.apu().spc700().A);
-      ImGui::TableNextColumn();
-      ImGui::Text("PC");
-      ImGui::TableNextColumn();
-      ImGui::TextColored(ConvertColorToImVec4(theme.success), "0x%04X",
-                         snes_.apu().spc700().PC);
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("A");
+        ImGui::TableNextColumn();
+        ImGui::TextColored(ConvertColorToImVec4(theme.accent), "0x%02X",
+                           snes_.apu().spc700().A);
+        ImGui::TableNextColumn();
+        ImGui::Text("PC");
+        ImGui::TableNextColumn();
+        ImGui::TextColored(ConvertColorToImVec4(theme.success), "0x%04X",
+                           snes_.apu().spc700().PC);
 
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::Text("X");
-      ImGui::TableNextColumn();
-      ImGui::TextColored(ConvertColorToImVec4(theme.accent), "0x%02X",
-                         snes_.apu().spc700().X);
-      ImGui::TableNextColumn();
-      ImGui::Text("SP");
-      ImGui::TableNextColumn();
-      ImGui::TextColored(ConvertColorToImVec4(theme.accent), "0x%02X",
-                         snes_.apu().spc700().SP);
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("X");
+        ImGui::TableNextColumn();
+        ImGui::TextColored(ConvertColorToImVec4(theme.accent), "0x%02X",
+                           snes_.apu().spc700().X);
+        ImGui::TableNextColumn();
+        ImGui::Text("SP");
+        ImGui::TableNextColumn();
+        ImGui::TextColored(ConvertColorToImVec4(theme.accent), "0x%02X",
+                           snes_.apu().spc700().SP);
 
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::Text("Y");
-      ImGui::TableNextColumn();
-      ImGui::TextColored(ConvertColorToImVec4(theme.accent), "0x%02X",
-                         snes_.apu().spc700().Y);
-      ImGui::TableNextColumn();
-      ImGui::Text("PSW");
-      ImGui::TableNextColumn();
-      ImGui::TextColored(
-          ConvertColorToImVec4(theme.warning), "0x%02X",
-          snes_.apu().spc700().FlagsToByte(snes_.apu().spc700().PSW));
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Y");
+        ImGui::TableNextColumn();
+        ImGui::TextColored(ConvertColorToImVec4(theme.accent), "0x%02X",
+                           snes_.apu().spc700().Y);
+        ImGui::TableNextColumn();
+        ImGui::Text("PSW");
+        ImGui::TableNextColumn();
+        ImGui::TextColored(
+            ConvertColorToImVec4(theme.warning), "0x%02X",
+            snes_.apu().spc700().FlagsToByte(snes_.apu().spc700().PSW));
 
-      ImGui::EndTable();
+        ImGui::EndTable();
+      }
     }
-
-    ImGui::EndChild();
-    ImGui::PopStyleColor();
 
     // New Disassembly Viewer
     if (ImGui::CollapsingHeader("Disassembly Viewer",
@@ -1248,12 +1251,7 @@ void Emulator::RenderModernCpuDebugger() {
       }
     }
   } catch (const std::exception& e) {
-    // Ensure any pushed styles are popped on error
-    try {
-      ImGui::PopStyleColor();
-    } catch (...) {
-      // Ignore PopStyleColor errors
-    }
+    // RAII guards handle style cleanup automatically
     ImGui::Text("CPU Debugger Error: %s", e.what());
   }
 }
