@@ -12,6 +12,8 @@
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/style.h"
+#include "app/gui/core/style_guard.h"
+#include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
 #include "util/hex.h"
@@ -201,9 +203,7 @@ absl::Status Tile16Editor::Update() {
     Separator();
 
     // Save & Continue button (green)
-    PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.6f, 0.2f, 1.0f));
-    PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.7f, 0.3f, 1.0f));
-    if (Button("Save & Continue", ImVec2(120, 0))) {
+    if (gui::SuccessButton("Save & Continue", ImVec2(120, 0))) {
       // Commit just the current tile change
       if (auto* tile_data = GetCurrentTile16Data()) {
         auto status =
@@ -224,14 +224,11 @@ absl::Status Tile16Editor::Update() {
       show_unsaved_changes_dialog_ = false;
       CloseCurrentPopup();
     }
-    PopStyleColor(2);
 
     SameLine();
 
     // Discard & Continue button (red)
-    PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.2f, 0.2f, 1.0f));
-    PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.7f, 0.3f, 0.3f, 1.0f));
-    if (Button("Discard & Continue", ImVec2(130, 0))) {
+    if (gui::DangerButton("Discard & Continue", ImVec2(130, 0))) {
       // Remove pending changes for current tile
       pending_tile16_changes_.erase(current_tile16_);
       pending_tile16_bitmaps_.erase(current_tile16_);
@@ -243,7 +240,6 @@ absl::Status Tile16Editor::Update() {
       show_unsaved_changes_dialog_ = false;
       CloseCurrentPopup();
     }
-    PopStyleColor(2);
 
     SameLine();
 
@@ -381,9 +377,7 @@ absl::Status Tile16Editor::UpdateAsPanel() {
     Text("What would you like to do?");
     Separator();
 
-    PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.6f, 0.2f, 1.0f));
-    PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.7f, 0.3f, 1.0f));
-    if (Button("Save & Continue", ImVec2(120, 0))) {
+    if (gui::SuccessButton("Save & Continue", ImVec2(120, 0))) {
       if (auto* tile_data = GetCurrentTile16Data()) {
         auto status =
             rom_->WriteTile16(current_tile16_, zelda3::kTile16Ptr, *tile_data);
@@ -400,13 +394,10 @@ absl::Status Tile16Editor::UpdateAsPanel() {
       show_unsaved_changes_dialog_ = false;
       CloseCurrentPopup();
     }
-    PopStyleColor(2);
 
     SameLine();
 
-    PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.2f, 0.2f, 1.0f));
-    PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.7f, 0.3f, 0.3f, 1.0f));
-    if (Button("Discard & Continue", ImVec2(130, 0))) {
+    if (gui::DangerButton("Discard & Continue", ImVec2(130, 0))) {
       pending_tile16_changes_.erase(current_tile16_);
       pending_tile16_bitmaps_.erase(current_tile16_);
       if (pending_tile_switch_target_ >= 0) {
@@ -416,7 +407,6 @@ absl::Status Tile16Editor::UpdateAsPanel() {
       show_unsaved_changes_dialog_ = false;
       CloseCurrentPopup();
     }
-    PopStyleColor(2);
 
     SameLine();
 
@@ -974,8 +964,9 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
   static bool show_debug_info = false;
 
   // Modern header with improved styling
-  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 4));
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8, 4));
+  gui::StyleVarGuard header_var_guard(
+      {{ImGuiStyleVar_FramePadding, ImVec2(8, 4)},
+       {ImGuiStyleVar_ItemSpacing, ImVec2(8, 4)}});
 
   // Header section with better visual hierarchy
   ImGui::BeginGroup();
@@ -1006,29 +997,21 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
   // Apply/Discard buttons (only shown when there are pending changes)
   if (has_pending_changes()) {
     ImGui::SameLine(ImGui::GetContentRegionAvail().x - 340);
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.6f, 0.2f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                          ImVec4(0.3f, 0.7f, 0.3f, 1.0f));
-    if (ImGui::Button("Apply All", ImVec2(70, 0))) {
+    if (gui::SuccessButton("Apply All", ImVec2(70, 0))) {
       auto status = CommitAllChanges();
       if (!status.ok()) {
         util::logf("Failed to commit changes: %s", status.message().data());
       }
     }
-    ImGui::PopStyleColor(2);
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Commit all %d pending changes to ROM",
                         pending_changes_count());
     }
 
     ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.2f, 0.2f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                          ImVec4(0.7f, 0.3f, 0.3f, 1.0f));
-    if (ImGui::Button("Discard All", ImVec2(70, 0))) {
+    if (gui::DangerButton("Discard All", ImVec2(70, 0))) {
       DiscardAllChanges();
     }
-    ImGui::PopStyleColor(2);
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Discard all %d pending changes",
                         pending_changes_count());
@@ -1046,8 +1029,6 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
   if (ImGui::Button("Advanced", ImVec2(80, 0))) {
     show_advanced_controls = !show_advanced_controls;
   }
-
-  ImGui::PopStyleVar(2);
 
   ImGui::Separator();
 
@@ -1082,7 +1063,9 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     ImGui::TextDisabled("(%d / %d)", current_tile16_, total_tiles);
 
     // Navigation controls row
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 4));
+    {
+    gui::StyleVarGuard nav_spacing_guard(ImGuiStyleVar_ItemSpacing,
+                                         ImVec2(4, 4));
 
     // Jump to Tile ID input - live navigation as user types
     ImGui::SetNextItemWidth(80);
@@ -1201,7 +1184,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
       }
     }
 
-    ImGui::PopStyleVar();
+    }  // nav_spacing_guard scope
 
     // Blockset canvas with scrolling
     if (BeginChild("##BlocksetScrollable",
@@ -1581,27 +1564,21 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
         // Modern button styling with better visual hierarchy
         ImGui::PushID(i);
 
-        if (is_current) {
-          ImGui::PushStyleColor(ImGuiCol_Button,
-                                ImVec4(0.2f, 0.7f, 0.3f, 1.0f));
-          ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                                ImVec4(0.3f, 0.8f, 0.4f, 1.0f));
-          ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                                ImVec4(0.1f, 0.6f, 0.2f, 1.0f));
-        } else {
-          ImGui::PushStyleColor(ImGuiCol_Button,
-                                ImVec4(0.3f, 0.3f, 0.35f, 1.0f));
-          ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                                ImVec4(0.4f, 0.4f, 0.45f, 1.0f));
-          ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                                ImVec4(0.25f, 0.25f, 0.3f, 1.0f));
-        }
-
-        // Add border for better definition
-        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
-        ImGui::PushStyleColor(ImGuiCol_Border,
-                              is_current ? ImVec4(0.4f, 0.9f, 0.5f, 1.0f)
-                                         : ImVec4(0.5f, 0.5f, 0.5f, 0.3f));
+        gui::StyleColorGuard palette_btn_colors(
+            {{ImGuiCol_Button,
+              is_current ? ImVec4(0.2f, 0.7f, 0.3f, 1.0f)
+                         : ImVec4(0.3f, 0.3f, 0.35f, 1.0f)},
+             {ImGuiCol_ButtonHovered,
+              is_current ? ImVec4(0.3f, 0.8f, 0.4f, 1.0f)
+                         : ImVec4(0.4f, 0.4f, 0.45f, 1.0f)},
+             {ImGuiCol_ButtonActive,
+              is_current ? ImVec4(0.1f, 0.6f, 0.2f, 1.0f)
+                         : ImVec4(0.25f, 0.25f, 0.3f, 1.0f)},
+             {ImGuiCol_Border,
+              is_current ? ImVec4(0.4f, 0.9f, 0.5f, 1.0f)
+                         : ImVec4(0.5f, 0.5f, 0.5f, 0.3f)}});
+        gui::StyleVarGuard palette_btn_border(
+            ImGuiStyleVar_FrameBorderSize, 1.0f);
 
         if (ImGui::Button(absl::StrFormat("%d", i).c_str(),
                           ImVec2(button_size, button_size))) {
@@ -1618,8 +1595,6 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
           }
         }
 
-        ImGui::PopStyleColor(4);  // 3 button colors + 1 border color
-        ImGui::PopStyleVar(1);    // border size
         ImGui::PopID();
 
         // Simplified tooltip
