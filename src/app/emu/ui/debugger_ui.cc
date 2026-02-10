@@ -6,6 +6,7 @@
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
 #include "app/gui/imgui_memory_editor.h"
@@ -42,8 +43,9 @@ void RenderModernCpuDebugger(Emulator* emu) {
   auto& theme_manager = ThemeManager::Get();
   const auto& theme = theme_manager.GetCurrentTheme();
 
-  ImGui::PushStyleColor(ImGuiCol_ChildBg, ConvertColorToImVec4(theme.child_bg));
-  ImGui::BeginChild("##CPUDebugger", ImVec2(0, 0), true);
+  gui::StyledChild cpu_child("##CPUDebugger", ImVec2(0, 0),
+                             {.bg = ConvertColorToImVec4(theme.child_bg)},
+                             true);
 
   // Title with icon
   ImGui::TextColored(ConvertColorToImVec4(theme.accent),
@@ -55,7 +57,7 @@ void RenderModernCpuDebugger(Emulator* emu) {
   // Debugger Controls
   if (ImGui::CollapsingHeader(ICON_MD_SETTINGS " Controls",
                               ImGuiTreeNodeFlags_DefaultOpen)) {
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 6));
+    gui::StyleVarGuard frame_padding(ImGuiStyleVar_FramePadding, ImVec2(8, 6));
 
     if (ImGui::Button(ICON_MD_SKIP_NEXT " Step", ImVec2(100, kButtonHeight))) {
       cpu.RunOpcode();
@@ -73,8 +75,6 @@ void RenderModernCpuDebugger(Emulator* emu) {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Run until next breakpoint (F5)");
     }
-
-    ImGui::PopStyleVar();
   }
 
   AddSpacing();
@@ -226,8 +226,6 @@ void RenderModernCpuDebugger(Emulator* emu) {
     }
   }
 
-  ImGui::EndChild();
-  ImGui::PopStyleColor();
 }
 
 void RenderBreakpointList(Emulator* emu) {
@@ -237,8 +235,8 @@ void RenderBreakpointList(Emulator* emu) {
   auto& theme_manager = ThemeManager::Get();
   const auto& theme = theme_manager.GetCurrentTheme();
 
-  ImGui::PushStyleColor(ImGuiCol_ChildBg, ConvertColorToImVec4(theme.child_bg));
-  ImGui::BeginChild("##BreakpointList", ImVec2(0, 0), true);
+  gui::StyledChild bp_child("##BreakpointList", ImVec2(0, 0),
+                            {.bg = ConvertColorToImVec4(theme.child_bg)}, true);
 
   ImGui::TextColored(ConvertColorToImVec4(theme.accent),
                      ICON_MD_STOP_CIRCLE " Breakpoint Manager");
@@ -283,8 +281,6 @@ void RenderBreakpointList(Emulator* emu) {
                        ICON_MD_INFO " No breakpoints set");
   }
 
-  ImGui::EndChild();
-  ImGui::PopStyleColor();
 }
 
 void RenderMemoryViewer(Emulator* emu) {
@@ -296,8 +292,9 @@ void RenderMemoryViewer(Emulator* emu) {
 
   static yaze::gui::MemoryEditorWidget mem_edit;
 
-  ImGui::PushStyleColor(ImGuiCol_ChildBg, ConvertColorToImVec4(theme.child_bg));
-  ImGui::BeginChild("##MemoryViewer", ImVec2(0, 0), true);
+  gui::StyledChild mem_child("##MemoryViewer", ImVec2(0, 0),
+                             {.bg = ConvertColorToImVec4(theme.child_bg)},
+                             true);
 
   ImGui::TextColored(ConvertColorToImVec4(theme.accent),
                      ICON_MD_STORAGE " Memory Viewer");
@@ -322,8 +319,6 @@ void RenderMemoryViewer(Emulator* emu) {
 
   mem_edit.DrawContents(memory_base, memory_size, 0x0000);
 
-  ImGui::EndChild();
-  ImGui::PopStyleColor();
 }
 
 void RenderCpuInstructionLog(Emulator* emu, uint32_t log_size) {
