@@ -23,6 +23,7 @@
 #include "rom/rom.h"
 #include "zelda3/dungeon/door_types.h"
 #include "zelda3/dungeon/dungeon_object_editor.h"
+#include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/object_parser.h"
 #include "zelda3/dungeon/room_object.h"
@@ -394,13 +395,16 @@ void ObjectEditorPanel::DrawSelectedObjectInfo() {
           const auto& objects = object_editor_->GetObjects();
           if (selected[0] < objects.size()) {
             const auto& obj = objects[selected[0]];
+            const auto semantics = zelda3::GetObjectLayerSemantics(obj);
             ImGui::Text("Object #%zu (ID: 0x%02X)", selected[0], obj.id_);
             ImGui::TextColored(theme.text_secondary_gray,
-                               "  Position: (%d, %d)  Size: 0x%02X  Layer: %s",
+                               "  Position: (%d, %d)  Size: 0x%02X  Layer: %s  Draws: %s",
                                obj.x_, obj.y_, obj.size_,
                                obj.layer_ == zelda3::RoomObject::BG1   ? "BG1"
                                : obj.layer_ == zelda3::RoomObject::BG2 ? "BG2"
-                                                                       : "BG3");
+                                                                       : "BG3",
+                               zelda3::EffectiveBgLayerLabel(
+                                   semantics.effective_bg_layer));
           }
         } else {
           ImGui::Text("1 object");
@@ -421,12 +425,14 @@ void ObjectEditorPanel::DrawSelectedObjectInfo() {
 
   if (has_preview_object_) {
     ImGui::SameLine();
+    const auto semantics = zelda3::GetObjectLayerSemantics(preview_object_);
     ImGui::Text("ID: 0x%02X", preview_object_.id_);
     ImGui::SameLine();
-    ImGui::Text("Layer: %s",
+    ImGui::Text("Layer: %s  Draws: %s",
                 preview_object_.layer_ == zelda3::RoomObject::BG1   ? "BG1"
                 : preview_object_.layer_ == zelda3::RoomObject::BG2 ? "BG2"
-                                                                    : "BG3");
+                                                                    : "BG3",
+                zelda3::EffectiveBgLayerLabel(semantics.effective_bg_layer));
   }
 
   ImGui::EndGroup();

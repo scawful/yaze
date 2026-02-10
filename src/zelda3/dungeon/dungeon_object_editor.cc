@@ -12,6 +12,7 @@
 #include "app/gui/core/ui_helpers.h"
 #include "app/platform/window.h"
 #include "imgui/imgui.h"
+#include "zelda3/dungeon/object_layer_semantics.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -447,6 +448,10 @@ absl::Status DungeonObjectEditor::BatchChangeObjectLayer(
       continue;
 
     auto& object = current_room_->GetTileObject(index);
+    if (GetObjectLayerSemantics(object).draws_to_both_bgs) {
+      // BothBG objects are rendered to BG1+BG2 regardless of their stored layer.
+      continue;
+    }
     object.layer_ = static_cast<RoomObject::LayerType>(new_layer);
 
     if (object_changed_callback_) {
@@ -834,6 +839,10 @@ absl::Status DungeonObjectEditor::ChangeObjectLayer(size_t object_index,
   }
 
   auto& object = current_room_->GetTileObject(object_index);
+  if (GetObjectLayerSemantics(object).draws_to_both_bgs) {
+    // BothBG objects are rendered to BG1+BG2 regardless of their stored layer.
+    return absl::OkStatus();
+  }
   object.layer_ = static_cast<RoomObject::LayerType>(new_layer);
 
   if (object_changed_callback_) {
@@ -1596,18 +1605,42 @@ void DungeonObjectEditor::DrawPropertyUI() {
       // ========== Layer Section ==========
       gui::SectionHeader(ICON_MD_LAYERS, "Layer", theme.text_info);
       if (gui::BeginPropertyTable("##LayerProps")) {
+        const auto semantics = GetObjectLayerSemantics(obj);
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Draws To");
+        ImGui::TableNextColumn();
+        if (semantics.draws_to_both_bgs) {
+          ImGui::TextColored(theme.text_warning_yellow, "Both (BG1 + BG2)");
+        } else {
+          ImGui::Text("%s", EffectiveBgLayerLabel(semantics.effective_bg_layer));
+        }
+
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::Text("Layer");
         ImGui::TableNextColumn();
         int layer = obj.GetLayerValue();
         ImGui::SetNextItemWidth(-1);
+        if (semantics.draws_to_both_bgs) {
+          ImGui::BeginDisabled();
+        }
         if (ImGui::Combo("##Layer", &layer,
                          "BG1 (Floor)\0BG2 (Objects)\0BG3 (Overlay)\0")) {
-          obj.layer_ = static_cast<RoomObject::LayerType>(layer);
-          if (object_changed_callback_) {
-            object_changed_callback_(obj_idx, obj);
+          if (!semantics.draws_to_both_bgs) {
+            obj.layer_ = static_cast<RoomObject::LayerType>(layer);
+            if (object_changed_callback_) {
+              object_changed_callback_(obj_idx, obj);
+            }
           }
+        }
+        if (semantics.draws_to_both_bgs) {
+          ImGui::EndDisabled();
+          ImGui::SameLine();
+          gui::HelpMarker(
+              "This object draws to both BG1 and BG2 in the engine. The stored "
+              "layer selection does not affect rendering.");
         }
 
         gui::EndPropertyTable();
@@ -1651,11 +1684,35 @@ void DungeonObjectEditor::DrawPropertyUI() {
 
     // ========== Batch Layer ==========
     gui::SectionHeader(ICON_MD_LAYERS, "Batch Layer", theme.text_info);
+    size_t both_bg_count = 0;
+    for (size_t idx : selection_state_.selected_objects) {
+      if (idx >= current_room_->GetTileObjectCount()) continue;
+      const auto& obj = current_room_->GetTileObject(idx);
+      if (GetObjectLayerSemantics(obj).draws_to_both_bgs) {
+        ++both_bg_count;
+      }
+    }
+    if (both_bg_count > 0) {
+      ImGui::TextColored(theme.text_warning_yellow,
+                         ICON_MD_INFO " %zu object%s draw%s to Both BGs and "
+                                      "won't be affected by layer changes",
+                         both_bg_count, both_bg_count == 1 ? "" : "s",
+                         both_bg_count == 1 ? "s" : "");
+      ImGui::Spacing();
+    }
     static int batch_layer = 0;
     ImGui::SetNextItemWidth(-1);
+    const bool all_both_bg =
+        (both_bg_count == selection_state_.selected_objects.size());
+    if (all_both_bg) {
+      ImGui::BeginDisabled();
+    }
     if (ImGui::Combo("##BatchLayer", &batch_layer,
                      "BG1 (Floor)\0BG2 (Objects)\0BG3 (Overlay)\0")) {
       BatchChangeObjectLayer(selection_state_.selected_objects, batch_layer);
+    }
+    if (all_both_bg) {
+      ImGui::EndDisabled();
     }
 
     ImGui::Spacing();
