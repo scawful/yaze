@@ -2,9 +2,11 @@
 
 #include <algorithm>
 #include <cmath>
+#include <memory>
 #include <queue>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/graphics/graphics_undo_actions.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
@@ -112,15 +114,20 @@ void PixelEditorPanel::DrawToolbar() {
   ImGui::Text("|");
   ImGui::SameLine();
 
-  ImGui::BeginDisabled(!state_->CanUndo());
+  bool can_undo = undo_manager_ ? undo_manager_->CanUndo()
+                                : state_->CanUndo();
+  ImGui::BeginDisabled(!can_undo);
   if (ImGui::Button(ICON_MD_UNDO)) {
-    PixelEditorSnapshot snapshot;
-    if (state_->PopUndoState(snapshot)) {
-      // Apply undo state
-      auto& sheet =
-          gfx::Arena::Get().mutable_gfx_sheets()->at(snapshot.sheet_id);
-      sheet.set_data(snapshot.pixel_data);
-      gfx::Arena::Get().NotifySheetModified(snapshot.sheet_id);
+    if (undo_manager_) {
+      undo_manager_->Undo().IgnoreError();
+    } else {
+      PixelEditorSnapshot snapshot;
+      if (state_->PopUndoState(snapshot)) {
+        auto& sheet =
+            gfx::Arena::Get().mutable_gfx_sheets()->at(snapshot.sheet_id);
+        sheet.set_data(snapshot.pixel_data);
+        gfx::Arena::Get().NotifySheetModified(snapshot.sheet_id);
+      }
     }
   }
   ImGui::EndDisabled();
@@ -128,15 +135,20 @@ void PixelEditorPanel::DrawToolbar() {
 
   ImGui::SameLine();
 
-  ImGui::BeginDisabled(!state_->CanRedo());
+  bool can_redo = undo_manager_ ? undo_manager_->CanRedo()
+                                : state_->CanRedo();
+  ImGui::BeginDisabled(!can_redo);
   if (ImGui::Button(ICON_MD_REDO)) {
-    PixelEditorSnapshot snapshot;
-    if (state_->PopRedoState(snapshot)) {
-      // Apply redo state
-      auto& sheet =
-          gfx::Arena::Get().mutable_gfx_sheets()->at(snapshot.sheet_id);
-      sheet.set_data(snapshot.pixel_data);
-      gfx::Arena::Get().NotifySheetModified(snapshot.sheet_id);
+    if (undo_manager_) {
+      undo_manager_->Redo().IgnoreError();
+    } else {
+      PixelEditorSnapshot snapshot;
+      if (state_->PopRedoState(snapshot)) {
+        auto& sheet =
+            gfx::Arena::Get().mutable_gfx_sheets()->at(snapshot.sheet_id);
+        sheet.set_data(snapshot.pixel_data);
+        gfx::Arena::Get().NotifySheetModified(snapshot.sheet_id);
+      }
     }
   }
   ImGui::EndDisabled();
@@ -710,6 +722,9 @@ void PixelEditorPanel::HandleCanvasInput() {
         break;
     }
 
+    // Finalize undo action after the edit stroke completes
+    FinalizeUndoAction();
+
     show_tool_preview_ = false;
   }
 }
@@ -1015,8 +1030,39 @@ void PixelEditorPanel::FlipSelectionVertical() {
 
 void PixelEditorPanel::SaveUndoState() {
   auto& sheet = gfx::Arena::Get().gfx_sheets()[state_->current_sheet_id];
+
+  // Always push to the legacy undo stack for backward compatibility
   state_->PushUndoState(state_->current_sheet_id, sheet.vector(),
                         sheet.palette());
+
+  // If UndoManager is available, capture the before-snapshot for the new path
+  if (undo_manager_) {
+    pending_undo_sheet_id_ = state_->current_sheet_id;
+    pending_undo_before_data_ = sheet.vector();
+    has_pending_undo_ = true;
+  }
+}
+
+void PixelEditorPanel::FinalizeUndoAction() {
+  if (!undo_manager_ || !has_pending_undo_) {
+    has_pending_undo_ = false;
+    return;
+  }
+
+  auto& sheet = gfx::Arena::Get().gfx_sheets()[pending_undo_sheet_id_];
+  auto after_data = sheet.vector();
+
+  // Only push if the data actually changed
+  if (after_data != pending_undo_before_data_) {
+    auto description =
+        absl::StrFormat("Edit pixels on sheet %02X", pending_undo_sheet_id_);
+    undo_manager_->Push(std::make_unique<GraphicsPixelEditAction>(
+        pending_undo_sheet_id_, std::move(pending_undo_before_data_),
+        std::move(after_data), std::move(description)));
+  }
+
+  has_pending_undo_ = false;
+  pending_undo_before_data_.clear();
 }
 
 ImVec2 PixelEditorPanel::ScreenToPixel(ImVec2 screen_pos) {
