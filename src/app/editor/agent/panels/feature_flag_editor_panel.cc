@@ -9,6 +9,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/style_guard.h"
 #include "core/project.h"
 #include "imgui/imgui.h"
 
@@ -103,29 +104,29 @@ void FeatureFlagEditorPanel::Draw() {
     if (flag.dirty) dirty_count++;
   }
 
-  if (dirty_count > 0) {
-    ImGui::PushStyleColor(ImGuiCol_Button, kColorDirty);
-  }
-  if (ImGui::Button(
-          absl::StrFormat(ICON_MD_SAVE " Save%s",
-                          dirty_count > 0
-                              ? absl::StrFormat(" (%d)", dirty_count)
-                              : "")
-              .c_str())) {
-    if (SaveToFile()) {
-      status_message_ = "Saved feature flags successfully.";
-      status_is_error_ = false;
-      // Mark all as clean
-      for (auto& flag : flags_) {
-        flag.dirty = false;
-      }
-    } else {
-      status_is_error_ = true;
-      // status_message_ already set by SaveToFile()
+  {
+    std::optional<gui::StyleColorGuard> dirty_guard;
+    if (dirty_count > 0) {
+      dirty_guard.emplace(ImGuiCol_Button, kColorDirty);
     }
-  }
-  if (dirty_count > 0) {
-    ImGui::PopStyleColor();
+    if (ImGui::Button(
+            absl::StrFormat(ICON_MD_SAVE " Save%s",
+                            dirty_count > 0
+                                ? absl::StrFormat(" (%d)", dirty_count)
+                                : "")
+                .c_str())) {
+      if (SaveToFile()) {
+        status_message_ = "Saved feature flags successfully.";
+        status_is_error_ = false;
+        // Mark all as clean
+        for (auto& flag : flags_) {
+          flag.dirty = false;
+        }
+      } else {
+        status_is_error_ = true;
+        // status_message_ already set by SaveToFile()
+      }
+    }
   }
 
   ImGui::SameLine();

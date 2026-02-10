@@ -227,7 +227,6 @@ void AgentProposalsPanel::DrawProposalList() {
 
 void AgentProposalsPanel::DrawProposalRow(
     const cli::ProposalRegistry::ProposalMetadata& proposal) {
-  const auto& theme = AgentUI::GetTheme();
   bool is_selected = (proposal.id == selected_proposal_id_);
 
   ImGui::PushID(proposal.id.c_str());
