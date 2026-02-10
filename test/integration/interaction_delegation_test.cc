@@ -28,7 +28,7 @@ class InteractionDelegationTest : public ::testing::Test {
   void SetUp() override {
     // Initialize room with test objects
     auto& room = rooms_[0];
-    room.AddTileObject(zelda3::RoomObject{0x01, 10, 10, 0x00, 0});  // Object at (10,10)
+    room.AddTileObject(zelda3::RoomObject{0x55, 10, 10, 0x00, 0});  // Object at (10,10)
     room.AddTileObject(zelda3::RoomObject{0x02, 20, 20, 0x02, 0});  // Object at (20,20)
     room.AddTileObject(zelda3::RoomObject{0x03, 15, 15, 0x01, 0});  // Object at (15,15)
 
@@ -150,7 +150,7 @@ TEST_F(InteractionDelegationTest, DeleteObjectsUpdatesSelection) {
   EXPECT_EQ(objects.size(), 2);  // Was 3, now 2
   
   // After deletion, original object 2 is now at index 1
-  EXPECT_EQ(objects[0].id_, 0x01);  // Object 0 unchanged
+  EXPECT_EQ(objects[0].id_, 0x55);  // Object 0 unchanged
   EXPECT_EQ(objects[1].id_, 0x03);  // Original object 2 now at index 1
 }
 
@@ -167,7 +167,7 @@ TEST_F(InteractionDelegationTest, DuplicateObjectsReturnsNewIndices) {
   
   // New object should be at the returned index
   size_t new_idx = new_indices[0];
-  EXPECT_EQ(objects[new_idx].id_, 0x01);  // Same ID as source
+  EXPECT_EQ(objects[new_idx].id_, 0x55);  // Same ID as source
   EXPECT_EQ(objects[new_idx].x_, 12);      // Original was at 10, offset by 2
   EXPECT_EQ(objects[new_idx].y_, 12);      // Original was at 10, offset by 2
 }
@@ -232,6 +232,21 @@ TEST_F(InteractionDelegationTest, UpdateObjectLayerChangesLayer) {
   
   auto& objects = CurrentRoom().GetTileObjects();
   EXPECT_EQ(objects[0].layer_, zelda3::RoomObject::LayerType::BG2);
+}
+
+TEST_F(InteractionDelegationTest, UpdateObjectLayerSkipsBothBgObjects) {
+  auto& tile_handler = interaction_.entity_coordinator().tile_handler();
+
+  auto& objects = CurrentRoom().GetTileObjects();
+  ASSERT_GE(objects.size(), 3u);
+
+  // Fixture index 2 is id=0x03, which is treated as a structural BothBG object.
+  const auto original_layer = objects[2].layer_;
+  ASSERT_EQ(original_layer, zelda3::RoomObject::LayerType::BG1);
+  ASSERT_TRUE(objects[2].all_bgs_);
+
+  tile_handler.UpdateObjectsLayer(0, {2}, 1);
+  EXPECT_EQ(objects[2].layer_, original_layer);
 }
 
 // =============================================================================
