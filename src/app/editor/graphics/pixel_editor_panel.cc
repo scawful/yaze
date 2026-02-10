@@ -68,15 +68,14 @@ void PixelEditorPanel::DrawToolbar() {
   auto tool_button = [this](PixelTool tool, const char* icon,
                             const char* tooltip) {
     bool is_selected = state_->current_tool == tool;
+    std::optional<gui::StyleColorGuard> sel_guard;
     if (is_selected) {
-      ImGui::PushStyleColor(ImGuiCol_Button, gui::GetPrimaryVec4());
+      sel_guard.emplace(ImGuiCol_Button, gui::GetPrimaryVec4());
     }
     if (ImGui::Button(icon)) {
       state_->SetTool(tool);
     }
-    if (is_selected) {
-      ImGui::PopStyleColor();
-    }
+    sel_guard.reset();
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("%s", tooltip);
     }
@@ -491,9 +490,11 @@ void PixelEditorPanel::DrawColorPicker() {
                  palette[i].rgb().z / 255.0f, 1.0f);
 
     bool is_selected = state_->current_color_index == i;
+    std::optional<gui::StyleVarGuard> border_var;
+    std::optional<gui::StyleColorGuard> border_color;
     if (is_selected) {
-      ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2.0f);
-      ImGui::PushStyleColor(ImGuiCol_Border, gui::GetWarningColor());
+      border_var.emplace(ImGuiStyleVar_FrameBorderSize, 2.0f);
+      border_color.emplace(ImGuiCol_Border, gui::GetWarningColor());
     }
 
     std::string id = absl::StrFormat("##Color%d", i);
@@ -506,8 +507,8 @@ void PixelEditorPanel::DrawColorPicker() {
     }
 
     if (is_selected) {
-      ImGui::PopStyleColor();
-      ImGui::PopStyleVar();
+      border_color.reset();
+      border_var.reset();
     }
 
     if (ImGui::IsItemHovered()) {
