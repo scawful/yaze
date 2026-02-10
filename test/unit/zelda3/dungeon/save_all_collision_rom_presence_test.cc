@@ -6,6 +6,7 @@
 
 #include "absl/status/status.h"
 #include "rom/rom.h"
+#include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room.h"
 
 namespace yaze::zelda3 {
@@ -51,5 +52,24 @@ TEST(SaveAllCollisionRomPresenceTest, RejectsWhenRegionMissingAndDirtyCollision)
   EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
 }
 
-}  // namespace yaze::zelda3
+TEST(SaveAllCollisionRomPresenceTest,
+     RejectsWhenPointerTablePresentButDataRegionMissingAndDirtyCollision) {
+  // Big enough for the pointer table, too small for the collision data region.
+  const size_t ptr_table_end =
+      static_cast<size_t>(kCustomCollisionRoomPointers + (kNumberOfRooms * 3));
+  auto rom = MakeDummyRom(ptr_table_end);
 
+  std::vector<Room> rooms;
+  rooms.reserve(1);
+  rooms.emplace_back(/*room_id=*/0, rom.get());
+  rooms[0].SetLoaded(true);
+
+  rooms[0].SetCollisionTile(/*x=*/0, /*y=*/0, /*tile=*/0x08);
+  ASSERT_TRUE(rooms[0].custom_collision_dirty());
+
+  auto status = SaveAllCollision(rom.get(), absl::MakeSpan(rooms));
+  EXPECT_FALSE(status.ok());
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+}
+
+}  // namespace yaze::zelda3

@@ -10,6 +10,8 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "rom/snes.h"
+#include "rom/write_fence.h"
+#include "util/macro.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room_object.h"
 
@@ -222,10 +224,36 @@ absl::Status WriteTrackCollision(Rom* rom, int room_id,
     return absl::OutOfRangeError("Room ID out of range");
   }
 
-  auto& data = rom->mutable_vector();
+  const auto& data = rom->vector();
   if (data.empty()) {
     return absl::FailedPreconditionError("ROM vector is empty");
   }
+
+  const int ptrs_size = kNumberOfRooms * 3;
+  if (kCustomCollisionRoomPointers + ptrs_size > static_cast<int>(data.size())) {
+    return absl::FailedPreconditionError(
+        "Custom collision pointer table not present in this ROM");
+  }
+  if (kCustomCollisionDataPosition >= static_cast<int>(data.size())) {
+    return absl::FailedPreconditionError(
+        "Custom collision data region not present in this ROM");
+  }
+  if (kCustomCollisionDataSoftEnd > static_cast<int>(data.size())) {
+    return absl::FailedPreconditionError(
+        "Custom collision data region truncated (ROM too small)");
+  }
+
+  // Save-time guardrails: only allow writes to the collision pointer table and
+  // collision data bank (excluding the reserved WaterFill tail region).
+  yaze::rom::WriteFence fence;
+  RETURN_IF_ERROR(fence.Allow(static_cast<uint32_t>(kCustomCollisionRoomPointers),
+                              static_cast<uint32_t>(kCustomCollisionRoomPointers +
+                                                    ptrs_size),
+                              "CustomCollisionPointers"));
+  RETURN_IF_ERROR(fence.Allow(static_cast<uint32_t>(kCustomCollisionDataPosition),
+                              static_cast<uint32_t>(kCustomCollisionDataSoftEnd),
+                              "CustomCollisionData"));
+  yaze::rom::ScopedWriteFence scope(rom, &fence);
 
   // Encode collision data in single-tile format.
   // Format: [F0 F0] [offset_lo offset_hi tile] ... [FF FF]
@@ -248,7 +276,10 @@ absl::Status WriteTrackCollision(Rom* rom, int room_id,
 
   // Find the end of existing collision data by scanning all room pointers
   // to determine the highest used offset.
-  uint32_t max_used_pc = kCustomCollisionDataPosition;
+  const size_t safe_end =
+      std::min(static_cast<size_t>(data.size()),
+               static_cast<size_t>(kCustomCollisionDataSoftEnd));
+  uint32_t max_used_pc = static_cast<uint32_t>(kCustomCollisionDataPosition);
   for (int r = 0; r < kNumberOfRooms; ++r) {
     int ptr_offset = kCustomCollisionRoomPointers + (r * 3);
     if (ptr_offset + 2 >= static_cast<int>(data.size())) continue;
@@ -258,20 +289,37 @@ absl::Status WriteTrackCollision(Rom* rom, int room_id,
     if (snes_ptr == 0) continue;
 
     uint32_t pc = SnesToPc(snes_ptr);
+    if (pc < static_cast<uint32_t>(kCustomCollisionDataPosition)) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Custom collision pointer for room 0x%02X points before data region (pc=0x%06X)",
+          r, pc));
+    }
+    if (pc >= static_cast<uint32_t>(kCustomCollisionDataSoftEnd)) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Custom collision pointer for room 0x%02X overlaps WaterFill reserved region (pc=0x%06X)",
+          r, pc));
+    }
+    if (pc >= data.size()) {
+      return absl::OutOfRangeError("Custom collision pointer out of ROM range");
+    }
     // Walk past this room's data to find its end
     size_t cursor = pc;
     bool single_mode = false;
-    while (cursor + 1 < data.size()) {
+    bool found_end_marker = false;
+    while (cursor + 1 < safe_end) {
       uint16_t val = data[cursor] | (data[cursor + 1] << 8);
       cursor += 2;
-      if (val == kCollisionEndMarker) break;
+      if (val == kCollisionEndMarker) {
+        found_end_marker = true;
+        break;
+      }
       if (val == kCollisionSingleTileMarker) {
         single_mode = true;
         continue;
       }
       if (!single_mode) {
         // Rectangle mode: skip width, height, then width*height bytes
-        if (cursor + 1 >= data.size()) break;
+        if (cursor + 1 >= safe_end) break;
         uint8_t w = data[cursor];
         uint8_t h = data[cursor + 1];
         cursor += 2;
@@ -280,6 +328,12 @@ absl::Status WriteTrackCollision(Rom* rom, int room_id,
         // Single tile mode: skip 1 byte (tile value)
         cursor += 1;
       }
+    }
+    // If we hit the reserved region without an end marker, treat as corruption.
+    if (!found_end_marker && cursor + 1 >= safe_end) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Custom collision data for room 0x%02X is unterminated before WaterFill reserved region",
+          r));
     }
     if (cursor > max_used_pc) {
       max_used_pc = static_cast<uint32_t>(cursor);
@@ -295,22 +349,20 @@ absl::Status WriteTrackCollision(Rom* rom, int room_id,
         encoded.size(), write_pos, kCustomCollisionDataSoftEnd));
   }
 
-  // Ensure ROM vector is large enough
   if (write_pos + encoded.size() > data.size()) {
-    data.resize(write_pos + encoded.size(), 0);
+    return absl::OutOfRangeError(absl::StrFormat(
+        "ROM too small for custom collision write (need end=0x%06X, size=0x%06X)",
+        write_pos + encoded.size(), data.size()));
   }
-
-  // Write encoded data
-  for (size_t i = 0; i < encoded.size(); ++i) {
-    data[write_pos + i] = encoded[i];
-  }
+  RETURN_IF_ERROR(
+      rom->WriteVector(static_cast<int>(write_pos), std::move(encoded)));
 
   // Update pointer table: 3-byte SNES address
   uint32_t snes_addr = PcToSnes(write_pos);
   int ptr_offset = kCustomCollisionRoomPointers + (room_id * 3);
-  data[ptr_offset] = snes_addr & 0xFF;
-  data[ptr_offset + 1] = (snes_addr >> 8) & 0xFF;
-  data[ptr_offset + 2] = (snes_addr >> 16) & 0xFF;
+  RETURN_IF_ERROR(rom->WriteByte(ptr_offset, snes_addr & 0xFF));
+  RETURN_IF_ERROR(rom->WriteByte(ptr_offset + 1, (snes_addr >> 8) & 0xFF));
+  RETURN_IF_ERROR(rom->WriteByte(ptr_offset + 2, (snes_addr >> 16) & 0xFF));
 
   return absl::OkStatus();
 }
