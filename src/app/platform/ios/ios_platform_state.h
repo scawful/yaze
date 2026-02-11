@@ -27,6 +27,25 @@ float GetTouchScale();
 // Commands map to OverlayCommand in `src/ios/iOS/YazeOverlayView.swift`.
 void PostOverlayCommand(const char* command);
 
+// Haptic feedback (iOS only, no-op on other platforms).
+enum class HapticStyle {
+  kLight,
+  kMedium,
+  kHeavy,
+  kSelection,        // Subtle tick for selection changes
+  kSuccess,          // Notification: success
+  kWarning,          // Notification: warning
+  kError,            // Notification: error
+};
+void TriggerHaptic(HapticStyle style);
+
+// Post an undo/redo request to the application layer.
+void PostUndoCommand();
+void PostRedoCommand();
+
+// Post a sidebar toggle request.
+void PostToggleSidebar();
+
 }  // namespace ios
 }  // namespace platform
 }  // namespace yaze

@@ -40,6 +40,7 @@
 #include "app/platform/app_delegate.h"
 #include "app/platform/font_loader.h"
 #include "app/platform/ios/ios_host.h"
+#include "app/platform/ios/ios_platform_state.h"
 #include "app/platform/window.h"
 #include "rom/rom.h"
 
@@ -75,6 +76,7 @@ yaze::ios::IOSHost g_ios_host;
   NSURL *security_scoped_url_;
   BOOL security_scope_granted_;
   float previous_pinch_scale_;
+  float pinch_velocity_;       // Smoothed pinch velocity for zoom
 }
 
 - (instancetype)initWithNibName:(nullable NSString *)nibNameOrNil
@@ -170,7 +172,37 @@ yaze::ios::IOSHost g_ios_host;
     _longPressRecognizer.allowedTouchTypes = directTouches;
     _twoFingerPanRecognizer.allowedTouchTypes = directTouches;
   }
-  
+
+  // Three-finger swipe left → Undo (iOS 13+ convention)
+  UISwipeGestureRecognizer *threeFingerSwipeLeft =
+      [[UISwipeGestureRecognizer alloc] initWithTarget:self
+                                                action:@selector(handleThreeFingerSwipeLeft:)];
+  threeFingerSwipeLeft.numberOfTouchesRequired = 3;
+  threeFingerSwipeLeft.direction = UISwipeGestureRecognizerDirectionLeft;
+  threeFingerSwipeLeft.cancelsTouchesInView = NO;
+  threeFingerSwipeLeft.delegate = self;
+  [self.view addGestureRecognizer:threeFingerSwipeLeft];
+
+  // Three-finger swipe right → Redo
+  UISwipeGestureRecognizer *threeFingerSwipeRight =
+      [[UISwipeGestureRecognizer alloc] initWithTarget:self
+                                                action:@selector(handleThreeFingerSwipeRight:)];
+  threeFingerSwipeRight.numberOfTouchesRequired = 3;
+  threeFingerSwipeRight.direction = UISwipeGestureRecognizerDirectionRight;
+  threeFingerSwipeRight.cancelsTouchesInView = NO;
+  threeFingerSwipeRight.delegate = self;
+  [self.view addGestureRecognizer:threeFingerSwipeRight];
+
+  // Left-edge swipe → Toggle panel sidebar
+  UIScreenEdgePanGestureRecognizer *edgeSwipe =
+      [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self
+                                                        action:@selector(handleEdgeSwipe:)];
+  edgeSwipe.edges = UIRectEdgeLeft;
+  edgeSwipe.delegate = self;
+  [self.view addGestureRecognizer:edgeSwipe];
+
+  pinch_velocity_ = 0.0f;
+
   return self;
 }
 
@@ -821,22 +853,30 @@ yaze::ios::IOSHost g_ios_host;
   ImGuiIO &io = ImGui::GetIO();
   io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
 
-  UIGestureRecognizer *gestureRecognizer = (UIGestureRecognizer *)gesture;
-  io.AddMousePosEvent([gestureRecognizer locationInView:self.view].x,
-                      [gestureRecognizer locationInView:self.view].y);
+  // Update cursor position to pinch midpoint for zoom-toward-center behavior
+  CGPoint location = [gesture locationInView:self.view];
+  io.AddMousePosEvent(location.x, location.y);
 
   if (gesture.state == UIGestureRecognizerStateBegan) {
     previous_pinch_scale_ = gesture.scale;
+    pinch_velocity_ = 0.0f;
     io.AddKeyEvent(ImGuiKey_ModCtrl, true);
   } else if (gesture.state == UIGestureRecognizerStateChanged) {
     io.AddKeyEvent(ImGuiKey_ModCtrl, true);
-    float delta = gesture.scale - previous_pinch_scale_;
-    io.AddMouseWheelEvent(0.0f, delta);
+    float raw_delta = gesture.scale - previous_pinch_scale_;
+
+    // Exponential moving average for smoother zoom
+    constexpr float kSmoothingFactor = 0.3f;
+    pinch_velocity_ = pinch_velocity_ * (1.0f - kSmoothingFactor) +
+                      raw_delta * kSmoothingFactor;
+
+    io.AddMouseWheelEvent(0.0f, pinch_velocity_);
     previous_pinch_scale_ = gesture.scale;
   } else if (gesture.state == UIGestureRecognizerStateEnded ||
              gesture.state == UIGestureRecognizerStateCancelled) {
     io.AddKeyEvent(ImGuiKey_ModCtrl, false);
     previous_pinch_scale_ = 1.0f;
+    pinch_velocity_ = 0.0f;
   }
 }
 
@@ -865,6 +905,38 @@ yaze::ios::IOSHost g_ios_host;
   UIGestureRecognizer *gestureRecognizer = (UIGestureRecognizer *)gesture;
   io.AddMousePosEvent([gestureRecognizer locationInView:self.view].x,
                       [gestureRecognizer locationInView:self.view].y);
+  if (gesture.state == UIGestureRecognizerStateBegan) {
+    yaze::platform::ios::TriggerHaptic(yaze::platform::ios::HapticStyle::kMedium);
+  }
+}
+
+- (void)handleThreeFingerSwipeLeft:(UISwipeGestureRecognizer *)gesture {
+  // Three-finger swipe left = Undo (iOS convention)
+  ImGuiIO &io = ImGui::GetIO();
+  io.AddKeyEvent(ImGuiMod_Super, true);
+  io.AddKeyEvent(ImGuiKey_Z, true);
+  io.AddKeyEvent(ImGuiKey_Z, false);
+  io.AddKeyEvent(ImGuiMod_Super, false);
+  yaze::platform::ios::TriggerHaptic(yaze::platform::ios::HapticStyle::kLight);
+}
+
+- (void)handleThreeFingerSwipeRight:(UISwipeGestureRecognizer *)gesture {
+  // Three-finger swipe right = Redo (iOS convention)
+  ImGuiIO &io = ImGui::GetIO();
+  io.AddKeyEvent(ImGuiMod_Super, true);
+  io.AddKeyEvent(ImGuiMod_Shift, true);
+  io.AddKeyEvent(ImGuiKey_Z, true);
+  io.AddKeyEvent(ImGuiKey_Z, false);
+  io.AddKeyEvent(ImGuiMod_Shift, false);
+  io.AddKeyEvent(ImGuiMod_Super, false);
+  yaze::platform::ios::TriggerHaptic(yaze::platform::ios::HapticStyle::kLight);
+}
+
+- (void)handleEdgeSwipe:(UIScreenEdgePanGestureRecognizer *)gesture {
+  if (gesture.state == UIGestureRecognizerStateBegan) {
+    yaze::platform::ios::PostToggleSidebar();
+    yaze::platform::ios::TriggerHaptic(yaze::platform::ios::HapticStyle::kMedium);
+  }
 }
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer

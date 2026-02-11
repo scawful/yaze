@@ -13,7 +13,7 @@ fi
 usage() {
   cat <<'EOF'
 Usage:
-  scripts/xcodebuild-ios.sh [PRESET] [ACTION]
+  scripts/xcodebuild-ios.sh [PRESET] [ACTION] [DEVICE]
 
 PRESET:
   ios-debug        (default) device Debug
@@ -24,6 +24,7 @@ ACTION:
   build            (default) build the app
   archive                     create an .xcarchive (device presets only)
   ipa                         archive + export a development .ipa (device presets only)
+  deploy                      build + install to a paired device (device presets only)
 
 Signing notes (device builds):
   If your Xcode Accounts are broken/unavailable, you can still let xcodebuild
@@ -43,14 +44,19 @@ Identifier overrides (optional):
     export YAZE_IOS_TEAM_ID=YOUR_TEAM_ID
     export YAZE_IOS_BUNDLE_ID=com.yourcompany.yaze-ios
     export YAZE_ICLOUD_CONTAINER_ID="iCloud.${YAZE_IOS_BUNDLE_ID}"
+
+Deploy defaults:
+  DEVICE defaults to $YAZE_IOS_DEVICE, then "Baby Pad".
+  Set YAZE_IOS_LAUNCH_AFTER_DEPLOY=0 to skip auto-launch after install.
 EOF
 }
 
 PRESET="${1:-ios-debug}"
 ACTION="${2:-build}"
+DEVICE="${3:-${YAZE_IOS_DEVICE:-Baby Pad}}"
 
 case "${ACTION}" in
-  build|archive|ipa) ;;
+  build|archive|ipa|deploy) ;;
   -h|--help|help) usage; exit 0 ;;
   *) echo "Unknown ACTION: ${ACTION}" >&2; usage; exit 2 ;;
 esac
@@ -128,6 +134,9 @@ PROVISIONING_ARGS=(
   "${AUTH_ARGS[@]}"
 )
 
+IOS_BUNDLE_ID="${YAZE_IOS_BUNDLE_ID:-org.halext.yaze-ios}"
+DEVICE_APP_PATH="${DERIVED_DATA}/Build/Products/${CONFIG}-iphoneos/${XCODE_SCHEME}.app"
+
 case "${ACTION}" in
   build)
     xcodebuild \
@@ -137,6 +146,36 @@ case "${ACTION}" in
       "${PROVISIONING_ARGS[@]}" \
       "${SETTING_OVERRIDES[@]}" \
       build
+    ;;
+  deploy)
+    xcodebuild \
+      "${COMMON_ARGS[@]}" \
+      -sdk iphoneos \
+      -destination "generic/platform=iOS" \
+      "${PROVISIONING_ARGS[@]}" \
+      "${SETTING_OVERRIDES[@]}" \
+      build
+
+    if [[ ! -d "${DEVICE_APP_PATH}" ]]; then
+      echo "Expected app bundle missing: ${DEVICE_APP_PATH}" >&2
+      exit 1
+    fi
+
+    if ! xcrun -f devicectl >/dev/null 2>&1; then
+      echo "xcrun devicectl not found; install/update Xcode command line tools." >&2
+      exit 1
+    fi
+
+    echo "Installing ${DEVICE_APP_PATH} to device: ${DEVICE}"
+    xcrun devicectl device install app --device "${DEVICE}" "${DEVICE_APP_PATH}"
+
+    if [[ "${YAZE_IOS_LAUNCH_AFTER_DEPLOY:-1}" != "0" ]]; then
+      echo "Launching ${IOS_BUNDLE_ID} on device: ${DEVICE}"
+      xcrun devicectl device process launch \
+        --device "${DEVICE}" \
+        --terminate-existing \
+        "${IOS_BUNDLE_ID}" || true
+    fi
     ;;
   archive|ipa)
     ARCHIVE_DIR="${ROOT_DIR}/build/xcode/archives"

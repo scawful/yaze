@@ -15,11 +15,13 @@
 #include <string>
 
 #include "app/gfx/backend/metal_renderer.h"
+#include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style.h"
 #include "app/platform/font_loader.h"
 #include "app/platform/ios/ios_platform_state.h"
 #include "imgui/backends/imgui_impl_metal.h"
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 #include "util/log.h"
 #include "util/platform_paths.h"
 
@@ -93,6 +95,16 @@ void ApplyTouchStyle(MTKView* view) {
     style.ItemSpacing.y = std::max(baseline.item_spacing.y * scale,
                                    font_size * 0.35f * scale);
   }
+
+  // Window chrome sizing for touch-friendly interaction
+  style.WindowRounding = 8.0f * scale;
+  style.PopupRounding = 6.0f * scale;
+  style.TabRounding = 4.0f * scale;
+  style.ScrollbarRounding = 6.0f * scale;
+  style.TabMinWidthForCloseButton = 44.0f * scale;
+
+  // Prevent tiny windows on iPad — minimum 200x150 ensures usability
+  style.WindowMinSize = ImVec2(200.0f * scale, 150.0f * scale);
 
   const UIEdgeInsets insets = GetSafeAreaInsets(view);
   const float safe_x = std::max(insets.left, insets.right);
@@ -375,6 +387,34 @@ void IOSWindowBackend::RenderImGui(gfx::IRenderer* renderer) {
   if (!imgui_initialized_) {
     return;
   }
+
+  // Clamp all floating windows within safe area to prevent off-screen drift.
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+  {
+    ImGuiContext* ctx = ImGui::GetCurrentContext();
+    const ImGuiViewport* vp = ImGui::GetMainViewport();
+    if (ctx && vp) {
+      const ImGuiStyle& style = ImGui::GetStyle();
+      const ImVec2 safe = style.DisplaySafeAreaPadding;
+      const ImVec2 rect_pos(vp->WorkPos.x + safe.x, vp->WorkPos.y + safe.y);
+      const ImVec2 rect_size(vp->WorkSize.x - safe.x * 2.0f,
+                             vp->WorkSize.y - safe.y - safe.x);
+
+      for (ImGuiWindow* win : ctx->Windows) {
+        if (!win || win->Hidden || win->IsFallbackWindow) continue;
+        if (win->DockIsActive || win->DockNodeAsHost) continue;
+        if (win->Flags & ImGuiWindowFlags_NoMove) continue;
+        if (win->Flags & ImGuiWindowFlags_ChildWindow) continue;
+
+        auto result = gui::LayoutHelpers::ClampWindowToRect(
+            win->Pos, win->Size, rect_pos, rect_size, 48.0f);
+        if (result.clamped) {
+          ImGui::SetWindowPos(win, result.pos, ImGuiCond_Always);
+        }
+      }
+    }
+  }
+#endif
 
   ImGui::Render();
 

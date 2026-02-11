@@ -84,6 +84,10 @@ scripts/xcodebuild-ios.sh ios-debug build
 
 # Device archive + export development .ipa
 scripts/xcodebuild-ios.sh ios-debug ipa
+
+# Build + install directly to paired device (defaults to "Baby Pad")
+scripts/xcodebuild-ios.sh ios-debug deploy
+scripts/xcodebuild-ios.sh ios-debug deploy "Baby Pad"
 ```
 
 If you see `No Accounts` or provisioning errors when building on a headless/CI
@@ -111,6 +115,12 @@ capability enabled and the referenced iCloud container exists under your team.
 
 Tip: put your exports in `scripts/signing.env` (gitignored). `scripts/xcodebuild-ios.sh`
 will auto-source it.
+
+Deploy notes:
+
+- `deploy` installs with `xcrun devicectl device install app`.
+- Device resolution order: `DEVICE` arg -> `$YAZE_IOS_DEVICE` -> `"Baby Pad"`.
+- Set `YAZE_IOS_LAUNCH_AFTER_DEPLOY=0` to skip automatic app launch.
 
 ## build_cleaner.py
 
