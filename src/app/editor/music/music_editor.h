@@ -161,6 +161,7 @@ class MusicEditor : public Editor {
   
   // Undo/Redo (delegates to undo_manager_ from Editor base class)
   void PushUndoState();
+  void PushUndoState(int song_index);
   void FinalizePendingUndo();
   std::optional<zelda3::music::MusicSong> pending_undo_before_;
   int pending_undo_song_index_ = -1;
