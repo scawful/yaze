@@ -9,6 +9,10 @@
 #include "app/gui/core/background_renderer.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
+
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
 #include "util/json.h"
 #include "util/log.h"
 #include "util/platform_paths.h"
@@ -335,8 +339,24 @@ void LayoutManager::BuildLayoutFromPreset(EditorType type, ImGuiID dockspace_id)
   const size_t session_id =
       panel_manager_ ? panel_manager_->GetActiveSessionId() : 0;
 
-  DockSplitNeeds needs = ComputeSplitNeeds(preset);
-  DockSplitConfig cfg = DockSplitConfig::ForEditor(type);
+  // On compact/touch layouts (iOS), collapse all panels into center tabs
+  // instead of splitting into left/right/bottom regions. This gives each
+  // panel full screen width and makes tab-switching more natural on touch.
+  const bool is_compact =
+#if defined(__APPLE__) && TARGET_OS_IOS == 1
+      true;
+#else
+      (ImGui::GetMainViewport() &&
+       ImGui::GetMainViewport()->WorkSize.x < 900.0f);
+#endif
+
+  DockSplitNeeds needs{};
+  DockSplitConfig cfg{};
+  if (!is_compact) {
+    needs = ComputeSplitNeeds(preset);
+    cfg = DockSplitConfig::ForEditor(type);
+  }
+  // When compact, needs is all-false → BuildDockTree produces center-only.
   DockNodeIds ids = BuildDockTree(dockspace_id, needs, cfg);
 
   auto get_dock_id = [&](DockPosition pos) -> ImGuiID {
