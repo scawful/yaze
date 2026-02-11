@@ -33,6 +33,7 @@
 #include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/game_data.h"
+#include "dungeon_undo_actions.h"
 
 namespace yaze {
 namespace editor {
@@ -233,8 +234,11 @@ class DungeonEditorV2 : public Editor {
   void OnRoomSelected(int room_id, RoomSelectionIntent intent);
   void OnEntranceSelected(int entrance_id);
 
-  // Swap room in current panel (for arrow navigation)
-  void SwapRoomInPanel(int old_room_id, int new_room_id);
+  // Sync all sub-panels to the current room configuration
+  void SyncPanelsToRoom(int room_id);
+
+  // Show or create a standalone room panel
+  void ShowRoomPanel(int room_id);
 
   // Convenience action for Settings panel.
   void SaveAllRooms();
@@ -325,11 +329,14 @@ class DungeonEditorV2 : public Editor {
   int next_room_panel_slot_id_ = 1;
   std::unordered_map<int, int> room_panel_slot_ids_;
 
-  // Undo/Redo history: store snapshots of room objects
-  std::unordered_map<int, std::vector<std::vector<zelda3::RoomObject>>>
-      undo_history_;
-  std::unordered_map<int, std::vector<std::vector<zelda3::RoomObject>>>
-      redo_history_;
+  // Pending undo snapshot: captured on mutation callback (before edit),
+  // finalized on cache invalidation callback (after edit) by pushing a
+  // DungeonObjectsAction to the inherited undo_manager_.
+  struct PendingUndo {
+    int room_id = -1;
+    std::vector<zelda3::RoomObject> before_objects;
+  };
+  PendingUndo pending_undo_;
 
   // Pending room swap (deferred until after draw phase completes)
   struct PendingSwap {
@@ -339,10 +346,13 @@ class DungeonEditorV2 : public Editor {
   };
   PendingSwap pending_swap_;
 
-  void PushUndoSnapshot(int room_id);
-  absl::Status RestoreFromSnapshot(int room_id,
-                                   std::vector<zelda3::RoomObject> snapshot);
-  void ClearRedo(int room_id);
+  // Two-phase undo capture: BeginUndoSnapshot saves state before mutation,
+  // FinalizeUndoAction captures state after mutation and pushes the action.
+  void BeginUndoSnapshot(int room_id);
+  void FinalizeUndoAction(int room_id);
+  void RestoreRoomObjects(int room_id,
+                          const std::vector<zelda3::RoomObject>& objects);
+  void SwapRoomInPanel(int old_room_id, int new_room_id);
   void ProcessPendingSwap();  // Process deferred swap after draw
 
   // Room panel slot IDs provide stable ImGui window IDs across "swap room in

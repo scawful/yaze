@@ -369,11 +369,12 @@ void TrackerView::DrawEventCell(MusicTrack& track, int event_index,
 
   // If empty and double-clicked, insert a default note
   if (!has_event && double_clicked) {
+    if (on_edit_) {
+      on_edit_();
+    }
     TrackEvent evt = TrackEvent::MakeNote(
         tick, static_cast<uint8_t>(kNoteMinPitch + 36), kDurationSixteenth);
     track.InsertEvent(evt);
-    if (on_edit_)
-      on_edit_();
     return;
   }
 
@@ -427,10 +428,11 @@ void TrackerView::DrawEventCell(MusicTrack& track, int event_index,
       }
 
       if (ImGui::Button("Apply")) {
+        if (on_edit_) {
+          on_edit_();
+        }
         event.note.pitch = static_cast<uint8_t>(edit_pitch);
         event.note.duration = static_cast<uint8_t>(edit_duration);
-        if (on_edit_)
-          on_edit_();
         ImGui::CloseCurrentPopup();
       }
     } else if (event.type == TrackEvent::Type::Command) {
@@ -491,12 +493,13 @@ void TrackerView::DrawEventCell(MusicTrack& track, int event_index,
                       ImGuiInputTextFlags_CharsHexadecimal);
 
       if (ImGui::Button("Apply")) {
+        if (on_edit_) {
+          on_edit_();
+        }
         event.command.opcode = opcode;
         event.command.params[0] = static_cast<uint8_t>(p0 & 0xFF);
         event.command.params[1] = static_cast<uint8_t>(p1 & 0xFF);
         event.command.params[2] = static_cast<uint8_t>(p2 & 0xFF);
-        if (on_edit_)
-          on_edit_();
         ImGui::CloseCurrentPopup();
       }
       ImGui::SameLine();

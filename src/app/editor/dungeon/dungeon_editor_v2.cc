@@ -1253,37 +1253,21 @@ void DungeonEditorV2::DrawRoomPanels() {
       continue;
     }
 
-    bool open = true;
-
-    // Use unified ResourceLabelProvider for room names
-    std::string base_name = absl::StrFormat(
-        "[%03X] %s", room_id, zelda3::GetRoomLabel(room_id).c_str());
-
-    const int slot_id = GetOrCreateRoomPanelSlotId(room_id);
-    std::string card_name_str = absl::StrFormat(
-        "%s###RoomPanelSlot%d", MakePanelTitle(base_name).c_str(), slot_id);
-
+    // Ensure room card exists (should have been created by ShowRoomPanel/ShowPanel)
     if (room_cards_.find(room_id) == room_cards_.end()) {
-      room_cards_[room_id] = std::make_shared<gui::PanelWindow>(
-          card_name_str.c_str(), ICON_MD_GRID_ON, &open);
-      room_cards_[room_id]->SetDefaultSize(620, 700);
-      // Note: Room panels use default save settings to preserve docking state
+        ShowRoomPanel(room_id);
     }
 
     auto& room_card = room_cards_[room_id];
+    bool open = true;
 
     ImGui::SetNextWindowClass(&room_window_class_);
-
-    // Auto-dock room panels together using a shared dock ID
-    // This ensures all room windows tab together in the same dock node
     if (room_dock_id_ == 0) {
-      // Create a stable dock ID on first use
       room_dock_id_ = ImGui::GetID("DungeonRoomDock");
     }
     ImGui::SetNextWindowDockID(room_dock_id_, ImGuiCond_FirstUseEver);
 
     if (room_card->Begin(&open)) {
-      // Ensure focused room updates selection context
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) {
         OnRoomSelected(room_id, /*request_focus=*/false);
       }
@@ -1452,21 +1436,8 @@ void DungeonEditorV2::OnRoomSelected(int room_id, RoomSelectionIntent intent) {
       // Update shared state (same as OnRoomSelected with request_focus=true)
       OnRoomSelected(room_id, /*request_focus=*/false);
       // Now force-open a standalone panel for this room
-      if (dependencies_.panel_manager) {
-        std::string room_name = absl::StrFormat(
-            "[%03X] %s", room_id, zelda3::GetRoomLabel(room_id).c_str());
-        std::string card_id = absl::StrFormat("dungeon.room_%d", room_id);
-        dependencies_.panel_manager->RegisterPanel(
-            {.card_id = card_id,
-             .display_name = room_name,
-             .window_title = ICON_MD_GRID_ON " " + room_name,
-             .icon = ICON_MD_GRID_ON,
-             .category = "Dungeon",
-             .shortcut_hint = "",
-             .visibility_flag = nullptr,
-             .priority = 200 + room_id});
-        dependencies_.panel_manager->ShowPanel(card_id);
-      }
+      ShowRoomPanel(room_id);
+      break;
       break;
     }
     case RoomSelectionIntent::kPreview:
@@ -1499,43 +1470,10 @@ void DungeonEditorV2::OnRoomSelected(int room_id, bool request_focus) {
     dungeon_editor_system_->SetExternalRoom(&rooms_[room_id]);
   }
 
-  // Update object editor card with current viewer
-  if (object_editor_panel_) {
-    object_editor_panel_->SetCurrentRoom(room_id);
-    // IMPORTANT: Update the viewer reference!
-    object_editor_panel_->SetCanvasViewer(GetViewerForRoom(room_id));
-  }
+  // Update all sub-panels (Object Editor, Sprite Editor, etc.)
+  SyncPanelsToRoom(room_id);
 
-  // Update sprite and item editor panels with current viewer
-  if (sprite_editor_panel_) {
-    sprite_editor_panel_->SetCanvasViewer(GetViewerForRoom(room_id));
-  }
-  if (item_editor_panel_) {
-    item_editor_panel_->SetCanvasViewer(GetViewerForRoom(room_id));
-  }
-  if (custom_collision_panel_) {
-    auto* viewer = GetViewerForRoom(room_id);
-    custom_collision_panel_->SetCanvasViewer(viewer);
-    if (viewer) {
-      custom_collision_panel_->SetInteraction(&viewer->object_interaction());
-    }
-  }
-  if (water_fill_panel_) {
-    auto* viewer = GetViewerForRoom(room_id);
-    water_fill_panel_->SetCanvasViewer(viewer);
-    if (viewer) {
-      water_fill_panel_->SetInteraction(&viewer->object_interaction());
-    }
-  }
-
-  if (dungeon_settings_panel_) {
-    dungeon_settings_panel_->SetCanvasViewer(GetViewerForRoom(room_id));
-  }
-
-  // Update room tag editor panel with current room
-  if (room_tag_editor_panel_) {
-    room_tag_editor_panel_->SetCurrentRoomId(room_id);
-  }
+  // Sync palette with current room (must happen before early return for focus changes)
 
   // Sync palette with current room (must happen before early return for focus changes)
   if (room_id >= 0 && room_id < (int)rooms_.size()) {
@@ -1581,8 +1519,12 @@ void DungeonEditorV2::OnRoomSelected(int room_id, bool request_focus) {
   // Workbench mode uses a single stable window and does not spawn per-room
   // panels. Keep selection + panels in sync and return.
   if (core::FeatureFlags::get().dungeon.kUseWorkbench) {
-    if (dependencies_.panel_manager) {
-      dependencies_.panel_manager->ShowPanel("dungeon.workbench");
+    if (dependencies_.panel_manager && request_focus) {
+      // Only force-show if it's already visible or if it's the first initialization
+      // This avoids obtrusive behavior when the user explicitly closed it.
+      if (dependencies_.panel_manager->IsPanelVisible("dungeon.workbench")) {
+        dependencies_.panel_manager->ShowPanel("dungeon.workbench");
+      }
     }
     return;
   }
@@ -1887,7 +1829,7 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
     viewer->object_interaction().SetMutationHook([this, viewer_ptr]() {
       const int rid = viewer_ptr ? viewer_ptr->current_room_id() : -1;
       if (rid >= 0 && rid < static_cast<int>(rooms_.size())) {
-        PushUndoSnapshot(rid);
+        BeginUndoSnapshot(rid);
       }
     });
 
@@ -1897,6 +1839,7 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
           if (rid >= 0 && rid < static_cast<int>(rooms_.size())) {
             rooms_[rid].MarkObjectsDirty();
             rooms_[rid].RenderRoomGraphics();
+            FinalizeUndoAction(rid);
           }
         });
 
@@ -2008,7 +1951,7 @@ DungeonCanvasViewer* DungeonEditorV2::GetWorkbenchViewer() {
     viewer->object_interaction().SetMutationHook([this, viewer]() {
       const int rid = viewer ? viewer->current_room_id() : -1;
       if (rid >= 0 && rid < static_cast<int>(rooms_.size())) {
-        PushUndoSnapshot(rid);
+        BeginUndoSnapshot(rid);
       }
     });
     viewer->object_interaction().SetCacheInvalidationCallback([this, viewer]() {
@@ -2016,6 +1959,7 @@ DungeonCanvasViewer* DungeonEditorV2::GetWorkbenchViewer() {
       if (rid >= 0 && rid < static_cast<int>(rooms_.size())) {
         rooms_[rid].MarkObjectsDirty();
         rooms_[rid].RenderRoomGraphics();
+        FinalizeUndoAction(rid);
       }
     });
 
@@ -2108,17 +2052,19 @@ DungeonCanvasViewer* DungeonEditorV2::GetWorkbenchCompareViewer() {
 }
 
 absl::Status DungeonEditorV2::Undo() {
-  if (dungeon_editor_system_) {
-    return dungeon_editor_system_->Undo();
+  // Finalize any in-progress edit before undoing.
+  if (pending_undo_.room_id >= 0) {
+    FinalizeUndoAction(pending_undo_.room_id);
   }
-  return absl::UnimplementedError("Undo not available");
+  return undo_manager_.Undo();
 }
 
 absl::Status DungeonEditorV2::Redo() {
-  if (dungeon_editor_system_) {
-    return dungeon_editor_system_->Redo();
+  // Finalize any in-progress edit before redoing.
+  if (pending_undo_.room_id >= 0) {
+    FinalizeUndoAction(pending_undo_.room_id);
   }
-  return absl::UnimplementedError("Redo not available");
+  return undo_manager_.Redo();
 }
 
 absl::Status DungeonEditorV2::Cut() {
@@ -2143,28 +2089,128 @@ absl::Status DungeonEditorV2::Paste() {
   return absl::OkStatus();
 }
 
-void DungeonEditorV2::PushUndoSnapshot(int room_id) {
+void DungeonEditorV2::BeginUndoSnapshot(int room_id) {
   if (room_id < 0 || room_id >= static_cast<int>(rooms_.size()))
     return;
 
-  undo_history_[room_id].push_back(rooms_[room_id].GetTileObjects());
-  ClearRedo(room_id);
-}
-
-absl::Status DungeonEditorV2::RestoreFromSnapshot(
-    int room_id, std::vector<zelda3::RoomObject> snapshot) {
-  if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
-    return absl::InvalidArgumentError("Invalid room ID");
+  // If there's already a pending snapshot, finalize it first. This handles:
+  // 1. Drag operations where NotifyMutation fires once at drag start but
+  //    NotifyInvalidateCache doesn't fire until later (or the next mutation).
+  // 2. The rare case where two mutations fire for different rooms.
+  if (pending_undo_.room_id >= 0) {
+    FinalizeUndoAction(pending_undo_.room_id);
   }
 
-  auto& room = rooms_[room_id];
-  room.GetTileObjects() = std::move(snapshot);
-  room.RenderRoomGraphics();
-  return absl::OkStatus();
+  pending_undo_.room_id = room_id;
+  pending_undo_.before_objects = rooms_[room_id].GetTileObjects();
 }
 
-void DungeonEditorV2::ClearRedo(int room_id) {
-  redo_history_[room_id].clear();
+void DungeonEditorV2::FinalizeUndoAction(int room_id) {
+  if (pending_undo_.room_id < 0 || pending_undo_.room_id != room_id)
+    return;
+  if (room_id < 0 || room_id >= static_cast<int>(rooms_.size()))
+    return;
+
+  auto after_objects = rooms_[room_id].GetTileObjects();
+
+  auto action = std::make_unique<DungeonObjectsAction>(
+      room_id, std::move(pending_undo_.before_objects),
+      std::move(after_objects),
+      [this](int rid, const std::vector<zelda3::RoomObject>& objects) {
+        RestoreRoomObjects(rid, objects);
+      });
+  undo_manager_.Push(std::move(action));
+
+  pending_undo_.room_id = -1;
+  pending_undo_.before_objects.clear();
+}
+
+void DungeonEditorV2::SyncPanelsToRoom(int room_id) {
+  // Update object editor card with current viewer
+  if (object_editor_panel_) {
+    object_editor_panel_->SetCurrentRoom(room_id);
+    object_editor_panel_->SetCanvasViewer(GetViewerForRoom(room_id));
+  }
+
+  // Update sprite and item editor panels with current viewer
+  if (sprite_editor_panel_) {
+    sprite_editor_panel_->SetCanvasViewer(GetViewerForRoom(room_id));
+  }
+  if (item_editor_panel_) {
+    item_editor_panel_->SetCanvasViewer(GetViewerForRoom(room_id));
+  }
+  if (custom_collision_panel_) {
+    auto* viewer = GetViewerForRoom(room_id);
+    custom_collision_panel_->SetCanvasViewer(viewer);
+    if (viewer) {
+      custom_collision_panel_->SetInteraction(&viewer->object_interaction());
+    }
+  }
+  if (water_fill_panel_) {
+    auto* viewer = GetViewerForRoom(room_id);
+    water_fill_panel_->SetCanvasViewer(viewer);
+    if (viewer) {
+      water_fill_panel_->SetInteraction(&viewer->object_interaction());
+    }
+  }
+
+  if (dungeon_settings_panel_) {
+    dungeon_settings_panel_->SetCanvasViewer(GetViewerForRoom(room_id));
+  }
+
+  if (room_tag_editor_panel_) {
+    room_tag_editor_panel_->SetCurrentRoomId(room_id);
+  }
+}
+
+void DungeonEditorV2::ShowRoomPanel(int room_id) {
+  if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
+    return;
+  }
+
+  std::string card_id = absl::StrFormat("dungeon.room_%d", room_id);
+  
+  if (dependencies_.panel_manager) {
+    if (!dependencies_.panel_manager->GetPanelDescriptor(
+            dependencies_.panel_manager->GetActiveSessionId(), card_id)) {
+      std::string room_name = absl::StrFormat(
+          "[%03X] %s", room_id, zelda3::GetRoomLabel(room_id).c_str());
+      dependencies_.panel_manager->RegisterPanel(
+          {.card_id = card_id,
+           .display_name = room_name,
+           .window_title = ICON_MD_GRID_ON " " + room_name,
+           .icon = ICON_MD_GRID_ON,
+           .category = "Dungeon",
+           .shortcut_hint = "",
+           .visibility_flag = nullptr,
+           .priority = 200 + room_id});
+    }
+    dependencies_.panel_manager->ShowPanel(card_id);
+  }
+
+  // Create or update the PanelWindow for this room
+  if (room_cards_.find(room_id) == room_cards_.end()) {
+    std::string base_name = absl::StrFormat(
+        "[%03X] %s", room_id, zelda3::GetRoomLabel(room_id).c_str());
+    const int slot_id = GetOrCreateRoomPanelSlotId(room_id);
+    std::string card_name_str = absl::StrFormat(
+        "%s###RoomPanelSlot%d", MakePanelTitle(base_name).c_str(), slot_id);
+    
+    auto card = std::make_shared<gui::PanelWindow>(
+        card_name_str.c_str(), ICON_MD_GRID_ON);
+    card->SetDefaultSize(620, 700);
+    room_cards_[room_id] = card;
+  }
+}
+
+void DungeonEditorV2::RestoreRoomObjects(
+    int room_id, const std::vector<zelda3::RoomObject>& objects) {
+  if (room_id < 0 || room_id >= static_cast<int>(rooms_.size()))
+    return;
+
+  auto& room = rooms_[room_id];
+  room.GetTileObjects() = objects;
+  room.RenderRoomGraphics();
 }
 
 }  // namespace yaze::editor

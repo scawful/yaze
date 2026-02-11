@@ -434,7 +434,6 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   void CreateUndoPoint(int map_id, int world, int x, int y, int old_tile_id);
   void FinalizePaintOperation();
-  void ApplyUndoPoint(const OverworldUndoPoint& point);
   auto& GetWorldTiles(int world);
 
   // ===========================================================================
@@ -618,11 +617,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // Undo/Redo State
   // ===========================================================================
 
-  std::vector<OverworldUndoPoint> undo_stack_;
-  std::vector<OverworldUndoPoint> redo_stack_;
   std::optional<OverworldUndoPoint> current_paint_operation_;
   std::chrono::steady_clock::time_point last_paint_time_;
-  static constexpr size_t kMaxUndoHistory = 50;
   static constexpr auto kPaintBatchTimeout = std::chrono::milliseconds(500);
 
   // ===========================================================================
