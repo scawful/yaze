@@ -256,14 +256,10 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
     ImGui::Text("%s", category.c_str());
     ImGui::PopFont();
 
-    // Header Buttons (Right Aligned)
+    // Collapse button (right-aligned)
     float avail_width = ImGui::GetContentRegionAvail().x;
     float button_size = 28.0f;
-    float spacing = 4.0f;
-    float current_x = ImGui::GetCursorPosX() + avail_width - button_size;
-
-    // Collapse Button (rightmost)
-    ImGui::SameLine(current_x);
+    ImGui::SameLine(ImGui::GetCursorPosX() + avail_width - button_size);
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 4.0f);
     if (ImGui::Button(ICON_MD_KEYBOARD_DOUBLE_ARROW_LEFT,
                       ImVec2(button_size, button_size))) {
@@ -273,28 +269,6 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
       ImGui::SetTooltip("Collapse Panel");
     }
 
-    // Close All Panels Button
-    current_x -= (button_size + spacing);
-    ImGui::SameLine(current_x);
-    if (ImGui::Button(ICON_MD_CLOSE_FULLSCREEN,
-                      ImVec2(button_size, button_size))) {
-      panel_manager_.HideAllPanelsInCategory(session_id, category);
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Close All Panels");
-    }
-
-    // Expand All Panels Button
-    current_x -= (button_size + spacing);
-    ImGui::SameLine(current_x);
-    if (ImGui::Button(ICON_MD_OPEN_IN_FULL, ImVec2(button_size, button_size))) {
-      panel_manager_.ShowAllPanelsInCategory(session_id, category);
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Show All Panels");
-    }
-
-    ImGui::Spacing();
     ImGui::Separator();
     ImGui::Spacing();
 
@@ -441,15 +415,8 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
     // Content - panels sorted by MRU (pinned first, then most recently used)
     auto cards = panel_manager_.GetPanelsSortedByMRU(session_id, category);
 
-    // Calculate available height for cards vs file browser
-    float available_height = ImGui::GetContentRegionAvail().y;
-    bool has_file_browser = panel_manager_.HasFileBrowser(category);
-    float cards_height =
-        has_file_browser ? available_height * 0.4f : available_height;
-    float file_browser_height = available_height - cards_height - 30.0f;
-
-    // Panels section
-    ImGui::BeginChild("##PanelContent", ImVec2(0, cards_height), false,
+    // Panels section (uses all available height)
+    ImGui::BeginChild("##PanelContent", ImVec2(0, 0), false,
                       ImGuiWindowFlags_None);
     for (const auto& card : cards) {
       // Apply search filter
@@ -516,30 +483,6 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
       }
     }
     ImGui::EndChild();
-
-    // File browser section (if enabled for this category)
-    if (has_file_browser) {
-      ImGui::Spacing();
-      ImGui::Separator();
-
-      // Collapsible header for file browser
-      gui::StyleColorGuard header_colors({
-          {ImGuiCol_Header, gui::GetSurfaceContainerHighVec4()},
-          {ImGuiCol_HeaderHovered, gui::GetSurfaceContainerHighestVec4()},
-      });
-      bool files_expanded = ImGui::CollapsingHeader(
-          ICON_MD_FOLDER " Files", ImGuiTreeNodeFlags_DefaultOpen);
-
-      if (files_expanded) {
-        ImGui::BeginChild("##FileBrowser", ImVec2(0, file_browser_height),
-                          false, ImGuiWindowFlags_None);
-        auto* browser = panel_manager_.GetFileBrowser(category);
-        if (browser) {
-          browser->DrawCompact();
-        }
-        ImGui::EndChild();
-      }
-    }
 
     if (disable_cards) {
       ImGui::EndDisabled();

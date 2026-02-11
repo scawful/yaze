@@ -80,6 +80,7 @@ class UICoordinator {
 
   // Core UI components (actual ImGui rendering moved from EditorManager)
   void DrawCommandPalette();
+  void DrawPanelFinder();
   void DrawGlobalSearch();
   void DrawWorkspacePresetDialogs();
 
@@ -113,6 +114,7 @@ class UICoordinator {
   void TogglePanelSidebar();
   void ShowGlobalSearch() { show_global_search_ = true; }
   void ShowCommandPalette() { show_command_palette_ = true; }
+  void ShowPanelFinder() { show_panel_finder_ = true; }
   void ShowPanelBrowser() { show_panel_browser_ = true; }
 
   /**
@@ -243,6 +245,7 @@ class UICoordinator {
   bool show_imgui_metrics_ = false;
   bool show_test_dashboard_ = false;
   bool show_panel_browser_ = false;
+  bool show_panel_finder_ = false;
   bool show_command_palette_ = false;
   // show_emulator_ removed - now managed by PanelManager
   // show_panel_sidebar_ removed - now managed by PanelManager
@@ -267,6 +270,10 @@ class UICoordinator {
   bool command_palette_initialized_ = false;
   char command_palette_query_[256] = {};
   int command_palette_selected_idx_ = 0;
+
+  // Panel Finder state
+  char panel_finder_query_[256] = {};
+  int panel_finder_selected_idx_ = 0;
 
   // Global Search state
   char global_search_query_[256] = {};
