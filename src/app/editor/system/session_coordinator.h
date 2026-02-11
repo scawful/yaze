@@ -33,49 +33,6 @@ class EditorSet;
 class ToastManager;
 
 /**
- * @class SessionObserver
- * @brief Observer interface for session state changes
- *
- * @deprecated Use EventBus subscriptions instead. Subscribe to:
- * - SessionSwitchedEvent for session changes
- * - SessionCreatedEvent for new sessions
- * - SessionClosedEvent for closed sessions
- * - RomLoadedEvent for ROM loads
- *
- * Example migration:
- * @code
- * // Old pattern:
- * class MyClass : public SessionObserver {
- *   void OnSessionSwitched(size_t idx, RomSession* s) override { ... }
- * };
- *
- * // New pattern:
- * event_bus->Subscribe<SessionSwitchedEvent>([](const auto& e) {
- *   // Handle session switch using e.new_index, e.session
- * });
- * @endcode
- *
- * This interface will be removed in a future release.
- */
-class [[deprecated("Use EventBus subscriptions instead - see class documentation")]]
-SessionObserver {
- public:
-  virtual ~SessionObserver() = default;
-
-  /// Called when the active session changes
-  virtual void OnSessionSwitched(size_t new_index, RomSession* session) = 0;
-
-  /// Called when a new session is created
-  virtual void OnSessionCreated(size_t index, RomSession* session) = 0;
-
-  /// Called when a session is closed
-  virtual void OnSessionClosed(size_t index) = 0;
-
-  /// Called when a ROM is loaded into a session
-  virtual void OnSessionRomLoaded(size_t index, RomSession* session) {}
-};
-
-/**
  * @class SessionCoordinator
  * @brief High-level orchestrator for multi-session UI
  *
@@ -101,10 +58,6 @@ class SessionCoordinator {
   /// Set the EventBus for publishing session lifecycle events.
   /// When set, session events will be published alongside observer notifications.
   void SetEventBus(EventBus* bus) { event_bus_ = bus; }
-
-  // Observer management
-  void AddObserver(SessionObserver* observer);
-  void RemoveObserver(SessionObserver* observer);
 
   // Session lifecycle management
   void CreateNewSession();
@@ -215,7 +168,6 @@ class SessionCoordinator {
   bool IsSessionModified(size_t index) const;
 
  private:
-  // Observer notification helpers
   void NotifySessionSwitched(size_t index, RomSession* session);
   void NotifySessionCreated(size_t index, RomSession* session);
   void NotifySessionClosed(size_t index);
@@ -226,7 +178,6 @@ class SessionCoordinator {
   EditorRegistry* editor_registry_ = nullptr;
   EventBus* event_bus_ = nullptr;  // For publishing session lifecycle events
   std::vector<std::unique_ptr<RomSession>> sessions_;
-  std::vector<SessionObserver*> observers_;
   PanelManager* panel_manager_;
   ToastManager* toast_manager_;
   UserSettings* user_settings_;

@@ -389,75 +389,55 @@ class PanelManager {
   void TriggerShowEmulator() {
     if (event_bus_) {
       event_bus_->Publish(UIActionRequestEvent::ShowEmulator());
-    } else if (on_show_emulator_) {
-      on_show_emulator_();
     }
   }
   void TriggerShowSettings() {
     if (event_bus_) {
       event_bus_->Publish(UIActionRequestEvent::ShowSettings());
-    } else if (on_show_settings_) {
-      on_show_settings_();
     }
   }
   void TriggerShowPanelBrowser() {
     if (event_bus_) {
       event_bus_->Publish(UIActionRequestEvent::Create(
           UIActionRequestEvent::Action::kShowPanelBrowser));
-    } else if (on_show_panel_browser_) {
-      on_show_panel_browser_();
     }
   }
   void TriggerSaveRom() {
     if (event_bus_) {
       event_bus_->Publish(UIActionRequestEvent::SaveRom());
-    } else if (on_save_rom_) {
-      on_save_rom_();
     }
   }
   void TriggerUndo() {
     if (event_bus_) {
       event_bus_->Publish(UIActionRequestEvent::Undo());
-    } else if (on_undo_) {
-      on_undo_();
     }
   }
   void TriggerRedo() {
     if (event_bus_) {
       event_bus_->Publish(UIActionRequestEvent::Redo());
-    } else if (on_redo_) {
-      on_redo_();
     }
   }
   void TriggerShowSearch() {
     if (event_bus_) {
       event_bus_->Publish(UIActionRequestEvent::Create(
           UIActionRequestEvent::Action::kShowSearch));
-    } else if (on_show_search_) {
-      on_show_search_();
     }
   }
   void TriggerShowShortcuts() {
     if (event_bus_) {
       event_bus_->Publish(UIActionRequestEvent::Create(
           UIActionRequestEvent::Action::kShowShortcuts));
-    } else if (on_show_shortcuts_) {
-      on_show_shortcuts_();
     }
   }
   void TriggerShowCommandPalette() {
     if (event_bus_) {
       event_bus_->Publish(UIActionRequestEvent::ShowCommandPalette());
-    } else if (on_show_command_palette_) {
-      on_show_command_palette_();
     }
   }
   void TriggerShowHelp() {
     if (event_bus_) {
       event_bus_->Publish(UIActionRequestEvent::Create(
           UIActionRequestEvent::Action::kShowHelp));
-    } else if (on_show_help_) {
-      on_show_help_();
     }
   }
   void TriggerResetLayout() {
@@ -469,8 +449,6 @@ class PanelManager {
   void TriggerOpenRom() {
     if (event_bus_) {
       event_bus_->Publish(UIActionRequestEvent::OpenRom());
-    } else if (on_open_rom_) {
-      on_open_rom_();
     }
   }
   void TriggerPanelClicked(const std::string& category) {
@@ -484,50 +462,6 @@ class PanelManager {
   // Utility Icon Callbacks (DEPRECATED: subscribe to UIActionRequestEvent instead)
   // ============================================================================
 
-  [[deprecated("Subscribe to UIActionRequestEvent::kShowEmulator via EventBus")]]
-  void SetShowEmulatorCallback(std::function<void()> cb) {
-    on_show_emulator_ = std::move(cb);
-  }
-  [[deprecated("Subscribe to UIActionRequestEvent::kShowSettings via EventBus")]]
-  void SetShowSettingsCallback(std::function<void()> cb) {
-    on_show_settings_ = std::move(cb);
-  }
-  [[deprecated("Subscribe to UIActionRequestEvent::kShowPanelBrowser via EventBus")]]
-  void SetShowPanelBrowserCallback(std::function<void()> cb) {
-    on_show_panel_browser_ = std::move(cb);
-  }
-  [[deprecated("Subscribe to UIActionRequestEvent::kSaveRom via EventBus")]]
-  void SetSaveRomCallback(std::function<void()> cb) {
-    on_save_rom_ = std::move(cb);
-  }
-  [[deprecated("Subscribe to UIActionRequestEvent::kUndo via EventBus")]]
-  void SetUndoCallback(std::function<void()> cb) {
-    on_undo_ = std::move(cb);
-  }
-  [[deprecated("Subscribe to UIActionRequestEvent::kRedo via EventBus")]]
-  void SetRedoCallback(std::function<void()> cb) {
-    on_redo_ = std::move(cb);
-  }
-  [[deprecated("Subscribe to UIActionRequestEvent::kShowSearch via EventBus")]]
-  void SetShowSearchCallback(std::function<void()> cb) {
-    on_show_search_ = std::move(cb);
-  }
-  [[deprecated("Subscribe to UIActionRequestEvent::kShowShortcuts via EventBus")]]
-  void SetShowShortcutsCallback(std::function<void()> cb) {
-    on_show_shortcuts_ = std::move(cb);
-  }
-  [[deprecated("Subscribe to UIActionRequestEvent::kShowCommandPalette via EventBus")]]
-  void SetShowCommandPaletteCallback(std::function<void()> cb) {
-    on_show_command_palette_ = std::move(cb);
-  }
-  [[deprecated("Subscribe to UIActionRequestEvent::kShowHelp via EventBus")]]
-  void SetShowHelpCallback(std::function<void()> cb) {
-    on_show_help_ = std::move(cb);
-  }
-  [[deprecated("Subscribe to UIActionRequestEvent::kOpenRom via EventBus")]]
-  void SetOpenRomCallback(std::function<void()> cb) {
-    on_open_rom_ = std::move(cb);
-  }
   void SetSidebarStateChangedCallback(
       std::function<void(bool, bool)> cb) {
     on_sidebar_state_changed_ = std::move(cb);
@@ -808,19 +742,6 @@ class PanelManager {
 
   // EventBus for action events (preferred over callbacks)
   EventBus* event_bus_ = nullptr;
-
-  // Utility icon callbacks (DEPRECATED: use EventBus subscriptions instead)
-  std::function<void()> on_show_emulator_;
-  std::function<void()> on_show_settings_;
-  std::function<void()> on_show_panel_browser_;
-  std::function<void()> on_save_rom_;
-  std::function<void()> on_undo_;
-  std::function<void()> on_redo_;
-  std::function<void()> on_show_search_;
-  std::function<void()> on_show_shortcuts_;
-  std::function<void()> on_show_command_palette_;
-  std::function<void()> on_show_help_;
-  std::function<void()> on_open_rom_;
 
   // State change callbacks
   std::function<void(bool visible, bool expanded)> on_sidebar_state_changed_;

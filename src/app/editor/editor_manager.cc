@@ -287,16 +287,6 @@ bool EditorManager::IsPanelBasedEditor(EditorType type) {
   return EditorRegistry::IsPanelBasedEditor(type);
 }
 
-void EditorManager::HideCurrentEditorPanels() {
-  if (!current_editor_) {
-    return;
-  }
-
-  // Using PanelManager directly
-  std::string category =
-      editor_registry_.GetEditorCategory(current_editor_->type());
-  panel_manager_.HideAllPanelsInCategory(GetCurrentSessionId(), category);
-}
 
 void EditorManager::ResetWorkspaceLayout() {
   layout_coordinator_.ResetWorkspaceLayout();
@@ -539,18 +529,6 @@ void EditorManager::InitializeSubsystems() {
   // STEP 4.7: Initialize ActivityBar
   activity_bar_ = std::make_unique<ActivityBar>(panel_manager_);
 
-  // Wire up PanelManager callbacks for ActivityBar buttons
-  panel_manager_.SetShowHelpCallback([this]() {
-    if (right_panel_manager_) {
-      right_panel_manager_->TogglePanel(RightPanelManager::PanelType::kHelp);
-    }
-  });
-  panel_manager_.SetShowSettingsCallback([this]() {
-    if (right_panel_manager_) {
-      right_panel_manager_->TogglePanel(
-          RightPanelManager::PanelType::kSettings);
-    }
-  });
 
   // Wire up EventBus to PanelManager for action event publishing
   panel_manager_.SetEventBus(&event_bus_);
@@ -729,7 +707,13 @@ void EditorManager::HandleUIActionRequest(UIActionRequestEvent::Action action) {
       break;
 
     case Action::kShowSettings:
-      SwitchToEditor(EditorType::kSettings);
+      // Toggle Settings panel in sidebar
+      if (right_panel_manager_) {
+        right_panel_manager_->TogglePanel(
+            RightPanelManager::PanelType::kSettings);
+      } else {
+        SwitchToEditor(EditorType::kSettings);
+      }
       break;
 
     case Action::kShowPanelBrowser:
@@ -756,7 +740,11 @@ void EditorManager::HandleUIActionRequest(UIActionRequestEvent::Action action) {
       break;
 
     case Action::kShowHelp:
-      if (popup_manager_) {
+      if (right_panel_manager_) {
+        // Toggle Help panel in sidebar
+        right_panel_manager_->TogglePanel(RightPanelManager::PanelType::kHelp);
+      } else if (popup_manager_) {
+        // Fallback to "About" dialog if sidebar not available
         popup_manager_->Show(PopupID::kAbout);
       }
       break;
@@ -1113,76 +1101,7 @@ void EditorManager::SetupWelcomeScreenCallbacks() {
 }
 
 void EditorManager::SetupSidebarCallbacks() {
-  // Set up sidebar utility icon callbacks
-  panel_manager_.SetShowEmulatorCallback(
-      [this]() { SwitchToEditor(EditorType::kEmulator, true); });
-  panel_manager_.SetShowSettingsCallback(
-      [this]() { SwitchToEditor(EditorType::kSettings); });
-  panel_manager_.SetShowPanelBrowserCallback([this]() {
-    if (ui_coordinator_) {
-      ui_coordinator_->ShowPanelBrowser();
-    }
-  });
-
-  // Set up sidebar action button callbacks
-  panel_manager_.SetSaveRomCallback([this]() {
-    if (GetCurrentRom() && GetCurrentRom()->is_loaded()) {
-      auto status = SaveRom();
-      if (status.ok()) {
-        toast_manager_.Show("ROM saved successfully", ToastType::kSuccess);
-      } else if (!absl::IsCancelled(status)) {
-        toast_manager_.Show(
-            absl::StrFormat("Failed to save ROM: %s", status.message()),
-            ToastType::kError);
-      }
-    }
-  });
-
-  panel_manager_.SetUndoCallback([this]() {
-    if (auto* current_editor = GetCurrentEditor()) {
-      auto status = current_editor->Undo();
-      if (!status.ok()) {
-        toast_manager_.Show(
-            absl::StrFormat("Undo failed: %s", status.message()),
-            ToastType::kError);
-      }
-    }
-  });
-
-  panel_manager_.SetRedoCallback([this]() {
-    if (auto* current_editor = GetCurrentEditor()) {
-      auto status = current_editor->Redo();
-      if (!status.ok()) {
-        toast_manager_.Show(
-            absl::StrFormat("Redo failed: %s", status.message()),
-            ToastType::kError);
-      }
-    }
-  });
-
-  panel_manager_.SetShowSearchCallback([this]() {
-    if (ui_coordinator_) {
-      ui_coordinator_->ShowGlobalSearch();
-    }
-  });
-
-  panel_manager_.SetShowShortcutsCallback([this]() {
-    if (ui_coordinator_) {
-      SwitchToEditor(EditorType::kSettings);
-    }
-  });
-
-  panel_manager_.SetShowCommandPaletteCallback([this]() {
-    if (ui_coordinator_) {
-      ui_coordinator_->ShowCommandPalette();
-    }
-  });
-
-  panel_manager_.SetShowHelpCallback([this]() {
-    if (popup_manager_) {
-      popup_manager_->Show(PopupID::kAbout);
-    }
-  });
+  // Utility callbacks removed - now handled via EventBus
 
   panel_manager_.SetSidebarStateChangedCallback(
       [this](bool visible, bool expanded) {
@@ -1473,10 +1392,12 @@ void EditorManager::ProcessStartupActions(const AppConfig& config) {
 
   // Handle jump targets
   if (config.jump_to_room >= 0) {
-    JumpToDungeonRoom(config.jump_to_room);
+    event_bus_.Publish(JumpToRoomRequestEvent::Create(config.jump_to_room,
+                                                      GetCurrentSessionId()));
   }
   if (config.jump_to_map >= 0) {
-    JumpToOverworldMap(config.jump_to_map);
+    event_bus_.Publish(JumpToMapRequestEvent::Create(config.jump_to_map,
+                                                     GetCurrentSessionId()));
   }
 }
 
@@ -3419,30 +3340,6 @@ std::string EditorManager::GenerateUniqueEditorTitle(
                               : std::string(base_name);
 }
 
-// ============================================================================
-// Jump-to Functionality for Cross-Editor Navigation
-// ============================================================================
-
-void EditorManager::JumpToDungeonRoom(int room_id) {
-  auto status = EnsureEditorAssetsLoaded(EditorType::kDungeon);
-  if (!status.ok()) {
-    toast_manager_.Show(absl::StrFormat("Failed to prepare Dungeon editor: %s",
-                                        status.message()),
-                        ToastType::kError);
-  }
-  editor_activator_.JumpToDungeonRoom(room_id);
-}
-
-void EditorManager::JumpToOverworldMap(int map_id) {
-  auto status = EnsureEditorAssetsLoaded(EditorType::kOverworld);
-  if (!status.ok()) {
-    toast_manager_.Show(
-        absl::StrFormat("Failed to prepare Overworld editor: %s",
-                        status.message()),
-        ToastType::kError);
-  }
-  editor_activator_.JumpToOverworldMap(map_id);
-}
 
 void EditorManager::SwitchToEditor(EditorType editor_type, bool force_visible,
                                    bool from_dialog) {
