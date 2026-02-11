@@ -3,6 +3,11 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
+### 2026-02-11 CODEX – iOS Deploy Guardrail Fixes
+- COMPLETE 2026-02-11 (CODEX): fixed iOS follow-up regressions after `2aa18f22` by importing UIKit feedback symbols in `ios_platform_state.mm` and updating ImGui field rename in `ios_window_backend.mm` (`TabCloseButtonMinWidthUnselected`).
+- Hardened `scripts/xcodebuild-ios.sh deploy` to resolve the produced `.app` bundle dynamically instead of assuming `${scheme}.app`.
+- Validation: `./scripts/xcodebuild-ios.sh ios-debug deploy "Baby Pad"` built, codesigned, installed, and launched `org.halext.yaze-ios` successfully.
+
 ### 2026-02-11 CODEX – Oracle Live Progression Sync
 - COMPLETE 2026-02-11 (CODEX): `ProgressionDashboardPanel` now supports shared Mesen live SRAM sync (manual + event-driven auto mode) via `MesenClientRegistry`; reads Oracle progression bytes from WRAM and updates manifest-backed dashboard state without timer polling.
 - Added safe listener lifecycle (attach/detach) and subscription retry/throttle logic to avoid callback stomping when multiple panels/tools use Mesen.
