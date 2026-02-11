@@ -333,9 +333,10 @@ void LayoutHelpers::BeginToolbar(const char* label) {
                       ImVec2(GetButtonPadding(), GetButtonPadding()));
 
   // Ensure the toolbar is tall enough to fit standard widgets without clipping,
-  // especially at higher DPI or with larger icon glyphs.
+  // especially at higher DPI or with larger icon glyphs. Use touch-safe height
+  // so iOS toolbars meet the 44px Apple HIG minimum.
   const float min_height =
-      GetStandardWidgetHeight() + (GetButtonPadding() * 2.0f) + 1.0f;
+      GetTouchSafeWidgetHeight() + (GetButtonPadding() * 2.0f) + 1.0f;
   const float height = std::max(GetToolbarHeight(), min_height);
 
   ImGui::BeginChild(
@@ -360,10 +361,15 @@ void LayoutHelpers::ToolbarSeparator() {
 }
 
 bool LayoutHelpers::ToolbarButton(const char* label, const ImVec2& size) {
-  const auto& theme = GetTheme();
+  const float min_touch = GetMinTouchTarget();
+  ImVec2 effective_size = size;
+  if (min_touch > 0.0f) {
+    effective_size.x = std::max(effective_size.x, min_touch);
+    effective_size.y = std::max(effective_size.y, min_touch);
+  }
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,
                       ImVec2(GetButtonPadding(), GetButtonPadding()));
-  bool result = ImGui::Button(label, size);
+  bool result = ImGui::Button(label, effective_size);
   ImGui::PopStyleVar(1);
   return result;
 }

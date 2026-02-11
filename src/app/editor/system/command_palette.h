@@ -122,10 +122,10 @@ class CommandPalette {
    */
   void LoadHistory(const std::string& filepath);
 
+  static int FuzzyScore(const std::string& text, const std::string& query);
+
  private:
   std::unordered_map<std::string, CommandEntry> commands_;
-
-  int FuzzyScore(const std::string& text, const std::string& query);
 };
 
 }  // namespace editor

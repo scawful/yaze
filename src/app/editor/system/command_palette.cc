@@ -44,8 +44,8 @@ void CommandPalette::RecordUsage(const std::string& name) {
   }
 }
 
-int CommandPalette::FuzzyScore(const std::string& text,
-                               const std::string& query) {
+/*static*/ int CommandPalette::FuzzyScore(const std::string& text,
+                                         const std::string& query) {
   if (query.empty())
     return 0;
 
