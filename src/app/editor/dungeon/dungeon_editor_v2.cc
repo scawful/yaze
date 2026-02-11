@@ -1850,7 +1850,7 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
     // keeping the same viewer instance (to preserve canvas pan/zoom + UI
     // state). Use the viewer's best-effort current room context instead of
     // capturing room_id at creation time.
-    viewer->object_interaction().SetMutationHook([this, viewer_ptr]() {
+    viewer->object_interaction().SetMutationCallback([this, viewer_ptr]() {
       const int rid = viewer_ptr ? viewer_ptr->current_room_id() : -1;
       if (rid >= 0 && rid < static_cast<int>(rooms_.size())) {
         const auto domain =
@@ -2008,7 +2008,7 @@ DungeonCanvasViewer* DungeonEditorV2::GetWorkbenchViewer() {
 
     // Workbench uses a single viewer; these hooks use the viewer's current room
     // context (set at DrawDungeonCanvas start) so room switching stays correct.
-    viewer->object_interaction().SetMutationHook([this, viewer]() {
+    viewer->object_interaction().SetMutationCallback([this, viewer]() {
       const int rid = viewer ? viewer->current_room_id() : -1;
       if (rid >= 0 && rid < static_cast<int>(rooms_.size())) {
         const auto domain = viewer->object_interaction().last_mutation_domain();
