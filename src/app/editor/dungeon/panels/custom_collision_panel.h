@@ -46,10 +46,15 @@ class CustomCollisionPanel : public EditorPanel {
       return;
     }
 
+    const size_t rom_size = viewer_->rom()->vector().size();
     const int ptr_table_end =
         zelda3::kCustomCollisionRoomPointers + (zelda3::kNumberOfRooms * 3);
     const bool collision_table_present =
-        (ptr_table_end <= static_cast<int>(viewer_->rom()->vector().size()));
+        zelda3::HasCustomCollisionPointerTable(rom_size);
+    const bool collision_data_region_present =
+        zelda3::HasCustomCollisionDataRegion(rom_size);
+    const bool collision_save_supported =
+        zelda3::HasCustomCollisionWriteSupport(rom_size);
     if (!collision_table_present) {
       ImGui::TextColored(
           theme.status_error,
@@ -57,7 +62,16 @@ class CustomCollisionPanel : public EditorPanel {
           " Custom collision table missing (use an expanded-collision Oracle ROM)");
       ImGui::TextDisabled(
           "Expected ROM >= 0x%X bytes (custom collision pointer table end). Current ROM is %zu bytes.",
-          ptr_table_end, viewer_->rom()->vector().size());
+          ptr_table_end, rom_size);
+      ImGui::Separator();
+    } else if (!collision_data_region_present) {
+      ImGui::TextColored(
+          theme.status_error,
+          ICON_MD_ERROR
+          " Custom collision data region missing/truncated");
+      ImGui::TextDisabled(
+          "Expected ROM >= 0x%X bytes (custom collision data soft end). Current ROM is %zu bytes.",
+          zelda3::kCustomCollisionDataSoftEnd, rom_size);
       ImGui::Separator();
     }
 
@@ -71,7 +85,7 @@ class CustomCollisionPanel : public EditorPanel {
     auto& room = (*rooms)[room_id];
     bool has_collision = room.has_custom_collision();
 
-    ImGui::BeginDisabled(!collision_table_present);
+    ImGui::BeginDisabled(!collision_save_supported);
     if (ImGui::Button(has_collision ? "Disable Custom Collision"
                                     : "Enable Custom Collision")) {
         room.set_has_custom_collision(!has_collision);
@@ -87,7 +101,7 @@ class CustomCollisionPanel : public EditorPanel {
     json_options.filters.push_back({"Custom Collision", "json"});
     json_options.filters.push_back({"All Files", "*"});
 
-    ImGui::BeginDisabled(!collision_table_present);
+    ImGui::BeginDisabled(!collision_save_supported);
     if (ImGui::Button(ICON_MD_UPLOAD " Import Collision...")) {
       std::string path =
           util::FileDialogWrapper::ShowOpenFileDialog(json_options);
@@ -159,11 +173,11 @@ class CustomCollisionPanel : public EditorPanel {
     ImGui::Separator();
 
     if (has_collision) {
-        if (!collision_table_present) {
+        if (!collision_save_supported) {
           ImGui::TextColored(
               theme.text_warning_yellow,
               ICON_MD_WARNING
-              " This ROM cannot save custom collision edits (expanded collision table missing).");
+              " This ROM cannot save custom collision edits (expanded collision region missing).");
         }
 
         bool show_overlay = viewer_->show_custom_collision_overlay();
@@ -178,7 +192,7 @@ class CustomCollisionPanel : public EditorPanel {
 
         bool is_painting = (interaction_->mode_manager().GetMode() ==
                             InteractionMode::PaintCollision);
-        ImGui::BeginDisabled(!collision_table_present);
+        ImGui::BeginDisabled(!collision_save_supported);
         if (ImGui::Checkbox("Paint Mode", &is_painting)) {
             if (is_painting) {
                 interaction_->mode_manager().SetMode(InteractionMode::PaintCollision);
@@ -231,7 +245,7 @@ class CustomCollisionPanel : public EditorPanel {
         }
         
         ImGui::Separator();
-        ImGui::BeginDisabled(!collision_table_present);
+        ImGui::BeginDisabled(!collision_save_supported);
         if (ImGui::Button("Clear All Custom Collision")) {
             room.custom_collision().tiles.fill(0);
             // Clearing should remove the override (room falls back to vanilla).

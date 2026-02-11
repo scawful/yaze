@@ -2417,7 +2417,7 @@ absl::Status EditorManager::CheckOracleRomSafetyPreSave(Rom* rom) {
   }
 
   const auto& data = rom->vector();
-  if (zelda3::kWaterFillTableEnd > static_cast<int>(data.size())) {
+  if (!zelda3::HasWaterFillReservedRegion(data.size())) {
     toast_manager_.Show(
         "Oracle ROM safety: missing WaterFill reserved region (use an expanded-collision ROM)",
         ToastType::kError);

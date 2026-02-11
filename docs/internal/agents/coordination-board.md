@@ -3,11 +3,20 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
+### 2026-02-11 CODEX – Ceiling/Pit Transparency Follow-up
+- COMPLETE 2026-02-11 (CODEX): fixed `ObjectDrawer::DrawTileToBitmap` to apply full-tile overwrite semantics (source pixel `0` now clears destination to transparent key `255`), and cleared per-pixel priority (`0xFF`) for transparent writes in `WriteTile8`.
+- Added `ObjectDrawerRegistryReplayTest.TransparentTileClearsExistingPixelsAndMarksCoverage` to lock behavior (coverage + priority clear assertions).
+- Verification: `ctest --preset unit -R ObjectDrawerRegistryReplayTest` (5/5), `ctest --preset unit -R 'ObjectDrawer|DungeonObject|RoomDrawObjectData|DimensionCrossValidation'` (38/38). Full unit still has 4 unrelated `StoryEventGraphTest` failures from concurrent refactor files.
+- Deployed fresh `yaze.app` build to `/Applications/yaze.app` for manual validation on ceiling/pit objects.
+
 ### 2026-02-11 CODEX – WaterFill Save Mask Guardrail
 - COMPLETE 2026-02-11 (CODEX): normalized dungeon save-time WaterFill SRAM mask handling via shared `NormalizeWaterFillZoneMasks` (duplicate/invalid masks no longer hard-fail save; deterministic reassignment applied to room state + ROM table), added `DungeonEditorV2RomSafetyTest` coverage for duplicate and invalid mask normalization, and verified with `./scripts/test_fast.sh --quick --no-configure` (130/130 pass).
 
 ### 2026-02-11 CODEX – Story Graph Stable ID Guardrail
 - COMPLETE 2026-02-11 (CODEX): story graph loader now prefers `stable_id` (with legacy `id`/`key` aliasing), canonicalizes dependency/unlock/edge references to stable IDs, and fails closed on unknown references or duplicate canonical IDs; script refs now accept stable `script_id`. Added/updated `StoryEventGraphTest` coverage and verified with `./scripts/test_fast.sh --quick --no-configure` (133/133 pass).
+
+### 2026-02-11 CODEX – Shared ROM Region Safety Helpers
+- COMPLETE 2026-02-11 (CODEX): added shared `dungeon_rom_addresses` guardrail helpers (`HasCustomCollision*`, `HasWaterFillReservedRegion`) and switched editor/panel checks to use them, tightening custom-collision UI fail-closed behavior when pointer/data regions are missing. Added `DungeonRomAddressesGuardrailTest` boundary coverage and verified with `./scripts/test_fast.sh --quick --no-configure` (137/137 pass).
 
 ### 2026-02-10 Claude Code – UI Semantic Color Migration
 - COMPLETE 2026-02-10 (Claude Code): replaced ~130+ hardcoded `ImVec4()` color literals with semantic theme functions (`gui::GetSuccessColor()`, `GetWarningColor()`, `GetErrorColor()`, `GetInfoColor()`, `GetDisabledColor()`) across 14 editor files; added `GetDisabledColor()` and `GetWarningButtonColors()` infrastructure to `ui_helpers`; added 20+ tooltips (HOVER_HINT) to icon-only buttons in screen_editor, sprite_editor, link_sprite_panel; added accessibility icons to status indicators in proposal_drawer and link_sprite_panel; verified 916/916 tests pass. Domain-specific colors (entity markers, SNES palette data, welcome screen branding, command palette categories) intentionally preserved.
