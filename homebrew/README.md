@@ -27,7 +27,7 @@ brew install z3ed
 
 ```bash
 # Get SHA256 for a release tarball
-curl -sL https://github.com/scawful/yaze/archive/refs/tags/v0.5.6.tar.gz | shasum -a 256
+curl -sL https://github.com/scawful/yaze/archive/refs/tags/v0.6.0.tar.gz | shasum -a 256
 ```
 
 ### Manual Install (without tap)

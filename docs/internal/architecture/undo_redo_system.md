@@ -1,58 +1,80 @@
 # Undo/Redo System Architecture
 
-**Status**: Draft
-**Last Updated**: 2025-11-21
-**Related Code**: `src/zelda3/dungeon/dungeon_object_editor.h`, `src/zelda3/dungeon/dungeon_editor_system.h`
-
-This document outlines the Undo/Redo architecture used in the Dungeon Editor.
+**Status**: Active
+**Last Updated**: 2026-02-10
+**Related Code**: `src/app/editor/undo/`, `src/app/editor/editor.h`
 
 ## Overview
 
-The system employs a command pattern approach where the state of the editor is snapshotted before destructive operations. Currently, there are two distinct undo stacks:
+The undo/redo system uses a unified `UndoManager` embedded in the `Editor` base class. Each editor inherits automatic undo/redo support through `Editor::Undo()` and `Editor::Redo()`, which delegate to the manager. Editors push `UndoAction` subclasses onto the stack to capture reversible operations.
 
-1.  **DungeonObjectEditor Stack**: Handles granular operations within the Object Editor (insert, move, delete, resize).
-2.  **DungeonEditorSystem Stack**: (Planned/Partial) Intended for high-level operations and other modes (sprites, items), but currently delegates to the Object Editor for object operations.
+## Core Components
 
-## DungeonObjectEditor Implementation
+### UndoManager (`src/app/editor/undo/undo_manager.h`)
 
-The `DungeonObjectEditor` maintains its own local history of `UndoPoint`s.
+Owns two stacks: `undo_stack_` and `redo_stack_`. Each entry is a `std::unique_ptr<UndoAction>`.
 
-### Data Structures
+Key operations:
+- `Push(action)` — adds an action to the undo stack, clears redo stack.
+- `Undo()` — pops from undo, calls `action->Undo()`, pushes to redo.
+- `Redo()` — pops from redo, calls `action->Redo()`, pushes to undo.
+- `CanUndo()` / `CanRedo()` — stack emptiness checks.
+
+### UndoAction (abstract base)
 
 ```cpp
-struct UndoPoint {
-  std::vector<RoomObject> objects;  // Snapshot of all objects in the room
-  SelectionState selection;         // Snapshot of selection (indices, drag state)
-  EditingState editing;             // Snapshot of editing mode/settings
-  std::chrono::steady_clock::time_point timestamp;
+class UndoAction {
+ public:
+  virtual ~UndoAction() = default;
+  virtual void Undo() = 0;
+  virtual void Redo() = 0;
+  virtual std::string GetDescription() const = 0;
 };
 ```
 
-### Workflow
+### Editor Integration
 
-1.  **Snapshot Creation**: Before any operation that modifies the room (Insert, Delete, Move, Resize), `CreateUndoPoint()` is called.
-2.  **Snapshot Storage**: The current state (objects list, selection, mode) is copied into an `UndoPoint` and pushed to `undo_history_`.
-3.  **Limit**: The history size is capped (currently 50) to limit memory usage.
-4.  **Undo**:
-    *   The current state is moved to `redo_history_`.
-    *   The last `UndoPoint` is popped from `undo_history_`.
-    *   `ApplyUndoPoint()` restores the `objects` vector and selection state to the room.
-5.  **Redo**:
-    *   Similar to Undo, but moves from `redo_history_` back to active state and `undo_history_`.
+`Editor` base class (`src/app/editor/editor.h`) owns an `UndoManager`. Virtual methods `Undo()` and `Redo()` delegate to it. The menu system dispatches Ctrl+Z/Y through `Editor::Undo()/Redo()` and `MenuOrchestrator::OnUndo()/OnRedo()` (which shows toasts on failure).
 
-### Batch Operations
+## Per-Editor Actions
 
-For batch operations (e.g., `BatchMoveObjects`, `PasteObjects`), a single `UndoPoint` is created before the loop that processes all items. This ensures that one "Undo" command reverts the entire batch operation.
+| Editor | Action Classes | What Gets Snapshotted |
+|--------|---------------|----------------------|
+| Overworld | Paint actions via `PushUndoState()` | Tile map state |
+| Dungeon | `DungeonCustomCollisionAction`, `DungeonWaterFillAction`, object move/insert/delete | Collision grid, water fill zones, object list |
+| Graphics | `GraphicsEditorState` snapshot stack | Pixel data per sheet |
+| Music | `PushUndoState(song_index)` | Song data at explicit index |
+| Message | History via UndoManager | Message text buffer |
 
-## DungeonEditorSystem Role
+### Dungeon Mutation Domains
 
-The `DungeonEditorSystem` acts as a high-level coordinator.
+Dungeon editor uses `MutationDomain` to tag which subsystem changed:
+- `kTileObjects` — room objects
+- `kCustomCollision` — collision grid painting
+- `kWaterFill` — water fill zone painting
 
-*   **Delegation**: When `Undo()`/`Redo()` is called on the system while in `kObjects` mode, it forwards the call to `DungeonObjectEditor`.
-*   **Future Expansion**: It has its own `undo_history_` structure intended to capture broader state (sprites, chests, entrances), but this is currently a TODO.
+This allows domain-specific snapshot/finalize pairs:
+- `BeginCollisionUndoSnapshot()` / `FinalizeCollisionUndoAction()`
+- `BeginWaterFillUndoSnapshot()` / `FinalizeWaterFillUndoAction()`
 
-## Best Practices for Contributors
+### Graphics Editor
 
-*   **Always call `CreateUndoPoint()`** before modifying the object list.
-*   **Snapshot effectively**: The current implementation snapshots the *entire* object list. For very large rooms (which are rare in ALttP), this might be optimized in the future, but it's sufficient for now.
-*   **State Consistency**: Ensure `UndoPoint` captures enough state to fully restore the context (e.g., selection). If you add new state variables that affect editing, add them to `UndoPoint`.
+`GraphicsEditorState` maintains its own snapshot-based stack internally. The top-level `GraphicsEditor::Undo()/Redo()` delegates to `PixelEditorPanel` which handles it with buttons and keyboard shortcuts.
+
+## Dispatch Flow
+
+```
+User presses Ctrl+Z
+  → MenuOrchestrator::OnUndo()
+    → active_editor->Undo()
+      → undo_manager_.Undo()
+        → action->Undo()  (restores state)
+    → if failed: ToastManager shows error
+```
+
+## Adding Undo to a New Editor
+
+1. Create an `UndoAction` subclass that captures before/after state.
+2. Call `undo_manager().Push(std::make_unique<MyAction>(...))` before the destructive operation.
+3. Implement `Undo()` to restore the before-state, `Redo()` to reapply the after-state.
+4. The base class `Editor::Undo()/Redo()` handles the rest.

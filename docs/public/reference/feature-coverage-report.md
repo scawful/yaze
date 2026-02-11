@@ -1,10 +1,10 @@
-# Feature & Test Coverage Report (v0.5.4)
+# Feature & Test Coverage Report (v0.6.0)
 
 This report summarizes feature status and persistence behavior across the
 desktop app (yaze), z3ed CLI, and the web/WASM preview, and maps those features
 to current automated test coverage. Status levels follow the desktop rubric:
-Stable = reliable core workflows, Beta = usable but incomplete, Experimental = WIP.
-As of v0.5.4, app data is consolidated under `~/.yaze` on desktop/CLI and
+Stable = reliable core workflows, Beta = usable but incomplete, WIP = core operations missing.
+As of v0.6.0, app data is consolidated under `~/.yaze` on desktop/CLI and
 `/.yaze` in the web build (IDBFS), with legacy migrations from AppData/Library/XDG.
 
 ## Desktop App (yaze)
@@ -16,14 +16,14 @@ As of v0.5.4, app data is consolidated under `~/.yaze` on desktop/CLI and
 | Overworld Editor | Stable | Overworld edits persist to ROM; version-gated for vanilla/v2/v3. |
 | Dungeon Editor | Stable | Room objects/tiles/palettes persist to ROM; shared undo/redo. |
 | Palette Editor | Stable | Palette changes persist to ROM; JSON import/export is TODO. |
-| Graphics Editor | Beta | Tile/sheet edits persist to ROM; screen tooling is WIP. |
-| Sprite Editor | Stable | Sprite edits persist to ROM. |
+| Graphics Editor | Stable | Tile/sheet edits persist to ROM; undo/redo via UndoManager. |
+| Sprite Editor | Beta | Sprite viewing works; editing and test coverage are limited. |
 | Message Editor | Stable | Text edits persist to ROM. |
-| Screen Editor | Experimental | WIP; persistence may be incomplete. |
-| Hex Editor | Beta | Direct ROM byte edits persist; search UX is incomplete. |
+| Screen Editor | WIP | Undo/Redo/Cut/Copy/Paste all unimplemented. |
+| Memory Editor | WIP | Hex viewing works; search unimplemented. |
 | Assembly/Asar | Beta | Patches apply to ROM; project file editor is incomplete. |
 | Emulator | Beta | Runtime-only; save-state format exists but UI is not fully wired. |
-| Music Editor | Experimental | Serialization incomplete; some edits may not save. |
+| Music Editor | Beta | Playback and editing work; clipboard operations unimplemented. |
 | Agent UI | Experimental | Chat history, profiles, and sessions stored under `~/.yaze/agent`. |
 | Settings/Shortcuts | Beta | Settings + shortcuts UI wired; persistence stored in `~/.yaze` layouts/workspaces. |
 | Panel Layouts/Workspaces | Beta | Layout presets stored under `~/.yaze/layouts` and `~/.yaze/workspaces`. |
@@ -90,7 +90,7 @@ As of v0.5.4, app data is consolidated under `~/.yaze` on desktop/CLI and
 - `.yaze` migration and path normalization lack targeted regression coverage.
 - Web build has automated debug API smoke; broader browser CI still light.
 
-### Newly Identified (v0.5.4 Scan)
+### Identified Gaps
 
 - **Palette serialization**: JSON import/export not implemented (`palette_group_panel.cc:529,534`)
 - **Music bank persistence**: SaveInstruments/SaveSamples return UnimplementedError (`music_bank.cc:925,996`)
@@ -100,7 +100,7 @@ As of v0.5.4, app data is consolidated under `~/.yaze` on desktop/CLI and
 - **Room object types**: 12+ unknown object types in `room_object.h` need verification
 - **CRC32 calculation**: Stubbed with 0 in ASAR wrapper (`asar_wrapper.cc:330,501`)
 
-## Coverage Plan (v0.5.x)
+## Coverage Plan (v0.6.x)
 
 1) [DONE] Add GUI smoke tests for Graphics, Sprite, Message, and Music editors.
 2) [DONE] Add emulator save-state UI smoke coverage (workflow tests pending).
@@ -111,7 +111,7 @@ As of v0.5.4, app data is consolidated under `~/.yaze` on desktop/CLI and
 7) [TODO] Add ROM-dependent tests for version-gated overworld saves and dungeon persistence.
 8) [TODO] Add web storage regression checks (IDBFS sync + file manager flows).
 
-### v0.5.4 Test Additions
+### Pending Test Additions
 
 9) [TODO] Add palette JSON round-trip tests (`test/unit/palette_json_test.cc`)
 10) [TODO] Add workspace layout serialization tests (`test/integration/workspace_test.cc`)

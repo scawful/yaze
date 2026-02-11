@@ -47,19 +47,19 @@ uint16_t BackgroundBuffer::GetTileAt(int x_pos, int y_pos) const {
 }
 
 void BackgroundBuffer::ClearBuffer() {
-  std::ranges::fill(buffer_, 0);
+  std::fill(buffer_.begin(), buffer_.end(), 0);
   ClearPriorityBuffer();
   ClearCoverageBuffer();
 }
 
 void BackgroundBuffer::ClearPriorityBuffer() {
   // 0xFF indicates no priority set (transparent/empty pixel)
-  std::ranges::fill(priority_buffer_, 0xFF);
+  std::fill(priority_buffer_.begin(), priority_buffer_.end(), 0xFF);
 }
 
 void BackgroundBuffer::ClearCoverageBuffer() {
   // 0 indicates the layer never wrote here; 1 indicates it did.
-  std::ranges::fill(coverage_buffer_, 0);
+  std::fill(coverage_buffer_.begin(), coverage_buffer_.end(), 0);
 }
 
 uint8_t BackgroundBuffer::GetPriorityAt(int x, int y) const {

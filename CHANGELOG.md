@@ -3,6 +3,18 @@
 High-level release summary. For detailed notes, see
 `docs/public/reference/changelog.md`.
 
+## 0.6.0 (February 10, 2026)
+- Unified UndoManager with per-editor undo/redo (overworld, dungeon, graphics, music, message).
+- SNES priority compositing in dungeon renderer with coverage masks.
+- Custom collision editor with JSON import/export.
+- Water fill zone authoring with brush support.
+- Entity drag-drop and selection inspector in dungeon editor.
+- Semantic color system replacing hardcoded ImGui style pushes.
+- EventBus migration replacing legacy callback navigation patterns.
+- ROM write fences and backup safety infrastructure.
+- Viewport-relative sizing helpers for responsive dialogs.
+- Dead code cleanup: SessionObserver, PanelManager callbacks, deprecated navigation APIs.
+
 ## 0.5.6 (February 5, 2026)
 - Dungeon editor minecart overlays: collision tiles, track directions, sprite/stop validation.
 - Minecart Track Editor audit: 32 slots, filler detection, missing-start warnings.
