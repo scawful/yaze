@@ -114,42 +114,18 @@ void PixelEditorPanel::DrawToolbar() {
   ImGui::Text("|");
   ImGui::SameLine();
 
-  bool can_undo = undo_manager_ ? undo_manager_->CanUndo()
-                                : state_->CanUndo();
-  ImGui::BeginDisabled(!can_undo);
-  if (ImGui::Button(ICON_MD_UNDO)) {
-    if (undo_manager_) {
-      undo_manager_->Undo().IgnoreError();
-    } else {
-      PixelEditorSnapshot snapshot;
-      if (state_->PopUndoState(snapshot)) {
-        auto& sheet =
-            gfx::Arena::Get().mutable_gfx_sheets()->at(snapshot.sheet_id);
-        sheet.set_data(snapshot.pixel_data);
-        gfx::Arena::Get().NotifySheetModified(snapshot.sheet_id);
-      }
-    }
+  ImGui::BeginDisabled(!undo_manager_ || !undo_manager_->CanUndo());
+  if (ImGui::Button(ICON_MD_UNDO) && undo_manager_) {
+    undo_manager_->Undo().IgnoreError();
   }
   ImGui::EndDisabled();
   HOVER_HINT("Undo (Ctrl+Z)");
 
   ImGui::SameLine();
 
-  bool can_redo = undo_manager_ ? undo_manager_->CanRedo()
-                                : state_->CanRedo();
-  ImGui::BeginDisabled(!can_redo);
-  if (ImGui::Button(ICON_MD_REDO)) {
-    if (undo_manager_) {
-      undo_manager_->Redo().IgnoreError();
-    } else {
-      PixelEditorSnapshot snapshot;
-      if (state_->PopRedoState(snapshot)) {
-        auto& sheet =
-            gfx::Arena::Get().mutable_gfx_sheets()->at(snapshot.sheet_id);
-        sheet.set_data(snapshot.pixel_data);
-        gfx::Arena::Get().NotifySheetModified(snapshot.sheet_id);
-      }
-    }
+  ImGui::BeginDisabled(!undo_manager_ || !undo_manager_->CanRedo());
+  if (ImGui::Button(ICON_MD_REDO) && undo_manager_) {
+    undo_manager_->Redo().IgnoreError();
   }
   ImGui::EndDisabled();
   HOVER_HINT("Redo (Ctrl+Y)");
@@ -994,6 +970,7 @@ void PixelEditorPanel::PasteSelection(int x, int y) {
 
   state_->MarkSheetModified(state_->current_sheet_id);
   gfx::Arena::Get().NotifySheetModified(state_->current_sheet_id);
+  FinalizeUndoAction();
 }
 
 void PixelEditorPanel::FlipSelectionHorizontal() {
@@ -1029,18 +1006,11 @@ void PixelEditorPanel::FlipSelectionVertical() {
 }
 
 void PixelEditorPanel::SaveUndoState() {
+  if (!undo_manager_) return;
   auto& sheet = gfx::Arena::Get().gfx_sheets()[state_->current_sheet_id];
-
-  // Always push to the legacy undo stack for backward compatibility
-  state_->PushUndoState(state_->current_sheet_id, sheet.vector(),
-                        sheet.palette());
-
-  // If UndoManager is available, capture the before-snapshot for the new path
-  if (undo_manager_) {
-    pending_undo_sheet_id_ = state_->current_sheet_id;
-    pending_undo_before_data_ = sheet.vector();
-    has_pending_undo_ = true;
-  }
+  pending_undo_sheet_id_ = state_->current_sheet_id;
+  pending_undo_before_data_ = sheet.vector();
+  has_pending_undo_ = true;
 }
 
 void PixelEditorPanel::FinalizeUndoAction() {
