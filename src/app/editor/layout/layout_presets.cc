@@ -20,13 +20,13 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       preset.panel_positions = {
           {Panels::kOverworldCanvas, DockPosition::Center},
           {Panels::kOverworldTile16Editor, DockPosition::Right},
-          {Panels::kOverworldTile16Selector, DockPosition::Right},
-          {Panels::kOverworldTile8Selector, DockPosition::Right},
-          {Panels::kOverworldAreaGraphics, DockPosition::Right},
+          {Panels::kOverworldTile16Selector, DockPosition::RightTop},
+          {Panels::kOverworldTile8Selector, DockPosition::RightTop},
+          {Panels::kOverworldAreaGraphics, DockPosition::RightBottom},
           {Panels::kOverworldScratch, DockPosition::Right},
-          {Panels::kOverworldGfxGroups, DockPosition::Right},
+          {Panels::kOverworldGfxGroups, DockPosition::RightBottom},
           {Panels::kOverworldUsageStats, DockPosition::Right},
-          {Panels::kOverworldV3Settings, DockPosition::Right},
+          {Panels::kOverworldV3Settings, DockPosition::RightBottom},
       };
       preset.optional_panels = {
           Panels::kOverworldTile16Selector,
@@ -52,11 +52,11 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
         // if/when the user opens them.
         preset.panel_positions = {
             {Panels::kDungeonWorkbench, DockPosition::Center},
-            {Panels::kDungeonRoomSelector, DockPosition::Left},
+            {Panels::kDungeonRoomSelector, DockPosition::LeftTop},
             {Panels::kDungeonRoomMatrix, DockPosition::LeftBottom},
             {Panels::kDungeonRoomGraphics, DockPosition::RightTop},
             {Panels::kDungeonEntrances, DockPosition::RightBottom},
-            {Panels::kDungeonObjectEditor, DockPosition::Right},
+            {Panels::kDungeonObjectEditor, DockPosition::RightTop},
             {Panels::kDungeonPaletteEditor, DockPosition::Bottom},
         };
 
@@ -75,10 +75,10 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
         };
         preset.panel_positions = {
             {Panels::kDungeonRoomMatrix, DockPosition::Center},
-            {Panels::kDungeonRoomSelector, DockPosition::Left},
+            {Panels::kDungeonRoomSelector, DockPosition::LeftTop},
             {Panels::kDungeonRoomGraphics, DockPosition::RightTop},
             {Panels::kDungeonEntrances, DockPosition::RightBottom},
-            {Panels::kDungeonObjectEditor, DockPosition::Right},
+            {Panels::kDungeonObjectEditor, DockPosition::RightTop},
             {Panels::kDungeonPaletteEditor, DockPosition::Bottom},
         };
         preset.optional_panels = {
@@ -122,8 +122,9 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       };
       preset.panel_positions = {
           {Panels::kPaletteOwMain, DockPosition::Center},
-          {Panels::kPaletteControlPanel, DockPosition::Left},
-          {Panels::kPaletteQuickAccess, DockPosition::Right},
+          {Panels::kPaletteControlPanel, DockPosition::LeftTop},
+          {Panels::kPaletteQuickAccess, DockPosition::RightTop},
+          {Panels::kPaletteOwAnimated, DockPosition::Bottom},
       };
       preset.optional_panels = {
           Panels::kPaletteQuickAccess,
@@ -182,10 +183,10 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
           Panels::kMusicPianoRoll,
       };
       preset.panel_positions = {
-          {Panels::kMusicSongBrowser, DockPosition::Left},
+          {Panels::kMusicSongBrowser, DockPosition::LeftTop},
           {Panels::kMusicPlaybackControl, DockPosition::Top},
           {Panels::kMusicPianoRoll, DockPosition::Center},
-          {Panels::kMusicInstrumentEditor, DockPosition::Right},
+          {Panels::kMusicInstrumentEditor, DockPosition::RightTop},
           {Panels::kMusicSampleEditor, DockPosition::RightBottom},
           {Panels::kMusicAssembly, DockPosition::Bottom},
       };
@@ -205,7 +206,7 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       };
       preset.panel_positions = {
           {Panels::kMessageEditor, DockPosition::Center},
-          {Panels::kMessageList, DockPosition::Left},
+          {Panels::kMessageList, DockPosition::LeftTop},
           {Panels::kMessageFontAtlas, DockPosition::RightTop},
           {Panels::kMessageDictionary, DockPosition::RightBottom},
       };
@@ -222,8 +223,8 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
           Panels::kAssemblyEditor,
       };
       preset.panel_positions = {
-          {Panels::kAssemblyEditor, DockPosition::Left},
-          {Panels::kAssemblyFileBrowser, DockPosition::RightBottom},
+          {Panels::kAssemblyEditor, DockPosition::Center},
+          {Panels::kAssemblyFileBrowser, DockPosition::LeftTop},
       };
       preset.optional_panels = {
           Panels::kAssemblyFileBrowser,
@@ -238,10 +239,13 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       };
       preset.panel_positions = {
           {Panels::kEmulatorPpuViewer, DockPosition::Center},
-          {Panels::kEmulatorCpuDebugger, DockPosition::Right},
+          {Panels::kEmulatorCpuDebugger, DockPosition::RightTop},
           {Panels::kEmulatorMemoryViewer, DockPosition::Bottom},
           {Panels::kEmulatorAiAgent, DockPosition::RightBottom},
           {Panels::kEmulatorVirtualController, DockPosition::LeftBottom},
+          {Panels::kEmulatorBreakpoints, DockPosition::RightBottom},
+          {Panels::kEmulatorAudioMixer, DockPosition::RightTop},
+          {Panels::kEmulatorApuDebugger, DockPosition::RightBottom},
       };
       preset.optional_panels = {
           Panels::kEmulatorCpuDebugger,
@@ -470,10 +474,23 @@ PanelLayoutPreset LayoutPresets::GetOverworldExpertPreset() {
       Panels::kPaletteOwMain,
       Panels::kPaletteOwAnimated,
       // Graphics for tile editing
-      Panels::kGraphicsSheetBrowser,
       Panels::kGraphicsSheetEditor,
   };
-  return preset;
+  preset.panel_positions = {
+          {Panels::kOverworldCanvas, DockPosition::Center},
+          {Panels::kOverworldTile16Editor, DockPosition::Right},
+          {Panels::kOverworldTile16Selector, DockPosition::RightTop},
+          {Panels::kOverworldTile8Selector, DockPosition::RightTop},
+          {Panels::kOverworldAreaGraphics, DockPosition::RightBottom},
+          {Panels::kOverworldScratch, DockPosition::Right},
+          {Panels::kOverworldGfxGroups, DockPosition::RightBottom},
+          {Panels::kOverworldUsageStats, DockPosition::Right},
+          {Panels::kOverworldV3Settings, DockPosition::RightBottom},
+          {Panels::kPaletteControlPanel, DockPosition::LeftTop},
+          {Panels::kPaletteOwMain, DockPosition::Bottom},
+          {Panels::kGraphicsSheetBrowser, DockPosition::LeftBottom},
+      };
+      return preset;
 }
 
 PanelLayoutPreset LayoutPresets::GetDungeonExpertPreset() {
@@ -495,10 +512,22 @@ PanelLayoutPreset LayoutPresets::GetDungeonExpertPreset() {
       // Graphics for room editing
       Panels::kGraphicsSheetBrowser,
       Panels::kGraphicsSheetEditor,
-      // Screen maps for dungeon navigation
       Panels::kScreenDungeonMaps,
   };
-  return preset;
+  preset.panel_positions = {
+          {Panels::kDungeonRoomSelector, DockPosition::LeftTop},
+          {Panels::kDungeonRoomMatrix, DockPosition::LeftBottom},
+          {Panels::kDungeonEntrances, DockPosition::RightBottom},
+          {Panels::kDungeonRoomGraphics, DockPosition::RightTop},
+          {Panels::kDungeonObjectEditor, DockPosition::RightTop},
+          {Panels::kDungeonPaletteEditor, DockPosition::Bottom},
+          {Panels::kPaletteControlPanel, DockPosition::LeftTop},
+          {Panels::kPaletteDungeonMain, DockPosition::Bottom},
+          {Panels::kGraphicsSheetBrowser, DockPosition::RightBottom},
+          {Panels::kGraphicsSheetEditor, DockPosition::Center},
+          {Panels::kScreenDungeonMaps, DockPosition::Center},
+      };
+      return preset;
 }
 
 PanelLayoutPreset LayoutPresets::GetTestingPreset() {
@@ -545,10 +574,10 @@ PanelLayoutPreset LayoutPresets::GetAudioPreset() {
       Panels::kAssemblyFileBrowser,
   };
   preset.panel_positions = {
-      {Panels::kMusicSongBrowser, DockPosition::Left},
+      {Panels::kMusicSongBrowser, DockPosition::LeftTop},
       {Panels::kMusicPlaybackControl, DockPosition::Top},
       {Panels::kMusicPianoRoll, DockPosition::Center},
-      {Panels::kMusicInstrumentEditor, DockPosition::Right},
+      {Panels::kMusicInstrumentEditor, DockPosition::RightTop},
       {Panels::kMusicSampleEditor, DockPosition::RightBottom},
       {Panels::kMusicAssembly, DockPosition::Bottom},
       {Panels::kEmulatorApuDebugger, DockPosition::LeftBottom},
