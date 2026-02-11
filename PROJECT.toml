@@ -1,7 +1,7 @@
 name = "yaze"
 description = "Zelda editor and tooling"
 tags = ["game-dev", "romhacking", "tools", "active"]
-platforms = ["mac", "linux"]
+platforms = ["mac", "linux", "windows", "ios"]
 
 stage = "beta"
 is_product = false
