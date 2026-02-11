@@ -9,6 +9,12 @@
 - `MesenSocketClient` now supports multi-listener dispatch (`AddEventListener` / `RemoveEventListener`) while preserving `SetEventCallback` compatibility.
 - Verification: `./scripts/test_fast.sh --filter "MesenSocketClientTest|StoryEventGraphTest|OracleProgression"` and `./scripts/test_fast.sh --quick --no-configure` (148/148 pass).
 
+### 2026-02-11 CODEX – Story Graph Live Mesen Sync
+- COMPLETE 2026-02-11 (CODEX): wired `StoryEventGraphPanel` to shared Mesen live SRAM sync (manual `Sync Mesen` + `Live` auto mode) via `MesenClientRegistry`, updating manifest progression state and graph node status/filter cache from WRAM.
+- Added listener lifecycle/subscription parity with progression dashboard (`RefreshLiveClientBinding`/`EnsureLiveSubscription`/`ProcessPendingLiveRefresh` + destructor detach).
+- Added surfaced live-sync error indicator in Story Graph controls (`Live sync error` tooltip) for operator feedback parity with dashboard.
+- Verification: `./scripts/test_fast.sh --filter "MesenSocketClientTest|StoryEventGraphTest|OracleProgression"` (22/22 pass in current concurrent workspace).
+
 ### 2026-02-11 CODEX – Mesen Event Subscription Runtime
 - COMPLETE 2026-02-11 (CODEX): implemented real event subscription flow in `MesenSocketClient` using a dedicated subscription socket + background event loop (callback dispatch for newline-delimited event payloads).
 - Added pre-buffer handling so events arriving in the same packet as subscribe ACK are not dropped; thread-safe callback set/get; clean unsubscribe/disconnect shutdown semantics.
