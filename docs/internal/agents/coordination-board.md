@@ -3,6 +3,12 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
+### 2026-02-11 CODEX – Mesen Event Subscription Runtime
+- COMPLETE 2026-02-11 (CODEX): implemented real event subscription flow in `MesenSocketClient` using a dedicated subscription socket + background event loop (callback dispatch for newline-delimited event payloads).
+- Added pre-buffer handling so events arriving in the same packet as subscribe ACK are not dropped; thread-safe callback set/get; clean unsubscribe/disconnect shutdown semantics.
+- Added `MesenSocketClientTest.SubscribeDispatchesFrameEvents` with a fake Unix socket server (`test/unit/emu/mesen_socket_client_test.cc`) and wired test into stable+quick CMake lists.
+- Verification: `./scripts/test_fast.sh --filter "MesenSocketClientTest"` and `./scripts/test_fast.sh --quick --no-configure` (148/148 pass).
+
 ### 2026-02-11 CODEX – Ceiling/Pit Transparency Follow-up
 - IN_PROGRESS 2026-02-11 (CODEX): `ObjectDrawer::DrawTileToBitmap` now applies full-tile overwrite semantics (source pixel `0` clears destination to transparent key `255`), and `WriteTile8` clears per-pixel priority (`0xFF`) for transparent writes.
 - Added `ObjectDrawerRegistryReplayTest.TransparentTileClearsExistingPixelsAndMarksCoverage` to lock overwrite + coverage + priority-clear behavior.

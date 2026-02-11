@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <thread>
 #include <vector>
@@ -364,18 +365,29 @@ class MesenSocketClient {
   absl::StatusOr<std::string> ParseResponse(const std::string& response);
 
   /**
+   * @brief Send a command using a specific socket descriptor
+   */
+  absl::StatusOr<std::string> SendCommandOnSocket(int fd,
+                                                  const std::string& json,
+                                                  bool update_connection_state);
+
+  /**
    * @brief Event listening thread function
    */
   void EventLoop();
 
   int socket_fd_ = -1;
+  int event_socket_fd_ = -1;
   std::string socket_path_;
   std::atomic<bool> connected_{false};
+  std::mutex command_mutex_;
+  std::mutex event_callback_mutex_;
 
   // Event handling
   EventCallback event_callback_;
   std::thread event_thread_;
   std::atomic<bool> event_thread_running_{false};
+  std::string pending_event_payload_;
 };
 
 }  // namespace mesen

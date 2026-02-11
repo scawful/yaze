@@ -191,6 +191,46 @@ std::string BuildJsonCommand(
   return ss.str();
 }
 
+constexpr size_t kMaxResponseSize = 4 * 1024 * 1024;
+
+absl::Status ConnectSocketToPath(const std::string& socket_path,
+                                 int* socket_fd) {
+  if (socket_fd == nullptr) {
+    return absl::InvalidArgumentError("socket_fd output pointer is null");
+  }
+
+  int fd = socket(AF_UNIX, SOCK_STREAM, 0);
+  if (fd < 0) {
+    return absl::InternalError(
+        absl::StrCat("Failed to create socket: ", strerror(errno)));
+  }
+
+  struct sockaddr_un addr;
+  memset(&addr, 0, sizeof(addr));
+  addr.sun_family = AF_UNIX;
+  strncpy(addr.sun_path, socket_path.c_str(), sizeof(addr.sun_path) - 1);
+
+  if (connect(fd, reinterpret_cast<struct sockaddr*>(&addr), sizeof(addr)) < 0) {
+    close(fd);
+    return absl::UnavailableError(absl::StrCat(
+        "Failed to connect to ", socket_path, ": ", strerror(errno)));
+  }
+
+  *socket_fd = fd;
+  return absl::OkStatus();
+}
+
+void ShutdownSocketFd(int fd) {
+  if (fd < 0) {
+    return;
+  }
+#ifdef _WIN32
+  shutdown(fd, SD_BOTH);
+#else
+  shutdown(fd, SHUT_RDWR);
+#endif
+}
+
 }  // namespace
 
 MesenSocketClient::MesenSocketClient() = default;
@@ -213,24 +253,13 @@ absl::Status MesenSocketClient::Connect(const std::string& socket_path) {
     Disconnect();
   }
 
-  socket_fd_ = socket(AF_UNIX, SOCK_STREAM, 0);
-  if (socket_fd_ < 0) {
-    return absl::InternalError(
-        absl::StrCat("Failed to create socket: ", strerror(errno)));
+  int fd = -1;
+  auto connect_status = ConnectSocketToPath(socket_path, &fd);
+  if (!connect_status.ok()) {
+    return connect_status;
   }
 
-  struct sockaddr_un addr;
-  memset(&addr, 0, sizeof(addr));
-  addr.sun_family = AF_UNIX;
-  strncpy(addr.sun_path, socket_path.c_str(), sizeof(addr.sun_path) - 1);
-
-  if (connect(socket_fd_, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
-    close(socket_fd_);
-    socket_fd_ = -1;
-    return absl::UnavailableError(absl::StrCat(
-        "Failed to connect to ", socket_path, ": ", strerror(errno)));
-  }
-
+  socket_fd_ = fd;
   socket_path_ = socket_path;
   connected_ = true;
 
@@ -245,10 +274,8 @@ absl::Status MesenSocketClient::Connect(const std::string& socket_path) {
 }
 
 void MesenSocketClient::Disconnect() {
-  event_thread_running_ = false;
-  if (event_thread_.joinable()) {
-    event_thread_.join();
-  }
+  // Best-effort: stop event stream first so background thread exits cleanly.
+  (void)Unsubscribe();
 
   if (socket_fd_ >= 0) {
     close(socket_fd_);
@@ -314,16 +341,18 @@ std::vector<std::string> MesenSocketClient::ListAvailableSockets() {
   return FindSocketPaths();
 }
 
-absl::StatusOr<std::string> MesenSocketClient::SendCommand(
-    const std::string& json) {
-  if (!IsConnected()) {
-    return absl::FailedPreconditionError("Not connected to Mesen2");
+absl::StatusOr<std::string> MesenSocketClient::SendCommandOnSocket(
+    int fd, const std::string& json, bool update_connection_state) {
+  if (fd < 0) {
+    return absl::FailedPreconditionError("Socket is not connected");
   }
 
   // Send command
-  ssize_t sent = send(socket_fd_, json.c_str(), json.length(), 0);
+  ssize_t sent = send(fd, json.c_str(), json.length(), 0);
   if (sent < 0) {
-    connected_ = false;
+    if (update_connection_state) {
+      connected_ = false;
+    }
     return absl::InternalError(
         absl::StrCat("Failed to send command: ", strerror(errno)));
   }
@@ -332,13 +361,13 @@ absl::StatusOr<std::string> MesenSocketClient::SendCommand(
   struct timeval tv;
   tv.tv_sec = 5;
   tv.tv_usec = 0;
-  setsockopt(socket_fd_, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv));
+  setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&tv),
+             sizeof(tv));
 
   std::string response;
   char buffer[4096];
-  constexpr size_t kMaxResponseSize = 4 * 1024 * 1024;
   while (true) {
-    ssize_t received = recv(socket_fd_, buffer, sizeof(buffer), 0);
+    ssize_t received = recv(fd, buffer, sizeof(buffer), 0);
     if (received < 0) {
 #ifdef _WIN32
       int err = WSAGetLastError();
@@ -351,7 +380,9 @@ absl::StatusOr<std::string> MesenSocketClient::SendCommand(
         }
         break;
       }
-      connected_ = false;
+      if (update_connection_state) {
+        connected_ = false;
+      }
       return absl::InternalError(
           absl::StrCat("Failed to receive response: ", strerror(errno)));
     }
@@ -375,6 +406,16 @@ absl::StatusOr<std::string> MesenSocketClient::SendCommand(
   }
 
   return ParseResponse(response);
+}
+
+absl::StatusOr<std::string> MesenSocketClient::SendCommand(
+    const std::string& json) {
+  if (!IsConnected()) {
+    return absl::FailedPreconditionError("Not connected to Mesen2");
+  }
+
+  std::lock_guard<std::mutex> lock(command_mutex_);
+  return SendCommandOnSocket(socket_fd_, json, /*update_connection_state=*/true);
 }
 
 absl::StatusOr<std::string> MesenSocketClient::ParseResponse(
@@ -745,31 +786,183 @@ absl::StatusOr<std::string> MesenSocketClient::Screenshot() {
 
 absl::Status MesenSocketClient::Subscribe(
     const std::vector<std::string>& events) {
+  if (!IsConnected()) {
+    return absl::FailedPreconditionError("Not connected to Mesen2");
+  }
+  if (events.empty()) {
+    return absl::InvalidArgumentError("At least one event must be requested");
+  }
+
+  // Ensure we don't leak a previous subscription socket/thread.
+  (void)Unsubscribe();
+
   std::stringstream ss;
   for (size_t i = 0; i < events.size(); ++i) {
     if (i > 0)
       ss << ",";
     ss << events[i];
   }
-  auto result =
-      SendCommand(BuildJsonCommand("SUBSCRIBE", {{"events", ss.str()}}));
-  return result.status();
+
+  int event_fd = -1;
+  auto connect_status = ConnectSocketToPath(socket_path_, &event_fd);
+  if (!connect_status.ok()) {
+    return connect_status;
+  }
+
+  const std::string subscribe_command =
+      BuildJsonCommand("SUBSCRIBE", {{"events", ss.str()}});
+  const ssize_t sent =
+      send(event_fd, subscribe_command.c_str(), subscribe_command.length(), 0);
+  if (sent < 0) {
+    close(event_fd);
+    return absl::InternalError(
+        absl::StrCat("Failed to send command: ", strerror(errno)));
+  }
+
+  struct timeval tv;
+  tv.tv_sec = 5;
+  tv.tv_usec = 0;
+  setsockopt(event_fd, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&tv),
+             sizeof(tv));
+
+  std::string response;
+  char buffer[4096];
+  while (true) {
+    const ssize_t received = recv(event_fd, buffer, sizeof(buffer), 0);
+    if (received < 0) {
+#ifdef _WIN32
+      int err = WSAGetLastError();
+      if (err == WSAEWOULDBLOCK || err == WSAETIMEDOUT) {
+#else
+      if (errno == EAGAIN || errno == EWOULDBLOCK) {
+#endif
+        close(event_fd);
+        return absl::DeadlineExceededError(
+            "Timeout waiting for subscribe response");
+      }
+      close(event_fd);
+      return absl::InternalError(
+          absl::StrCat("Failed to receive response: ", strerror(errno)));
+    }
+    if (received == 0) {
+      break;
+    }
+    response.append(buffer, static_cast<size_t>(received));
+    if (response.size() > kMaxResponseSize) {
+      close(event_fd);
+      return absl::ResourceExhaustedError("Mesen2 response too large");
+    }
+    if (response.find('\n') != std::string::npos) {
+      break;
+    }
+  }
+
+  const size_t newline_pos = response.find('\n');
+  if (newline_pos == std::string::npos) {
+    close(event_fd);
+    return absl::DeadlineExceededError("Malformed subscribe response");
+  }
+
+  auto parse_status = ParseResponse(response.substr(0, newline_pos));
+  if (!parse_status.ok()) {
+    close(event_fd);
+    return parse_status.status();
+  }
+
+  pending_event_payload_ = response.substr(newline_pos + 1);
+  event_socket_fd_ = event_fd;
+  event_thread_running_ = true;
+  event_thread_ = std::thread(&MesenSocketClient::EventLoop, this);
+  return absl::OkStatus();
 }
 
 absl::Status MesenSocketClient::Unsubscribe() {
-  auto result =
-      SendCommand(BuildJsonCommand("SUBSCRIBE", {{"action", "unsubscribe"}}));
-  return result.status();
+  event_thread_running_ = false;
+  ShutdownSocketFd(event_socket_fd_);
+  if (event_thread_.joinable()) {
+    event_thread_.join();
+  }
+
+  if (event_socket_fd_ >= 0) {
+    close(event_socket_fd_);
+    event_socket_fd_ = -1;
+  }
+  pending_event_payload_.clear();
+
+  return absl::OkStatus();
 }
 
 void MesenSocketClient::SetEventCallback(EventCallback callback) {
+  std::lock_guard<std::mutex> lock(event_callback_mutex_);
   event_callback_ = std::move(callback);
 }
 
 void MesenSocketClient::EventLoop() {
-  // Note: Full event loop implementation would require non-blocking I/O
-  // and careful handling of mixed command/event responses.
-  // This is a placeholder for future implementation.
+  const int event_fd = event_socket_fd_;
+  if (event_fd < 0) {
+    return;
+  }
+
+  std::string pending = pending_event_payload_;
+  pending_event_payload_.clear();
+  char buffer[4096];
+
+  auto dispatch_pending_lines = [&]() {
+    size_t newline_pos = pending.find('\n');
+    while (newline_pos != std::string::npos) {
+      std::string line = pending.substr(0, newline_pos);
+      pending.erase(0, newline_pos + 1);
+
+      if (!line.empty() && line.find("\"success\"") == std::string::npos) {
+        MesenEvent event;
+        event.raw_json = line;
+        event.type = ExtractJsonString(line, "event");
+        if (event.type.empty()) {
+          event.type = ExtractJsonString(line, "type");
+        }
+        event.address = static_cast<uint32_t>(
+            ExtractJsonInt(line, "address", ExtractJsonInt(line, "addr", 0)));
+        event.frame = static_cast<uint64_t>(ExtractJsonInt(line, "frame", 0));
+
+        EventCallback callback;
+        {
+          std::lock_guard<std::mutex> lock(event_callback_mutex_);
+          callback = event_callback_;
+        }
+        if (callback && !event.type.empty()) {
+          callback(event);
+        }
+      }
+
+      newline_pos = pending.find('\n');
+    }
+  };
+
+  while (event_thread_running_) {
+    dispatch_pending_lines();
+
+    const ssize_t received = recv(event_fd, buffer, sizeof(buffer), 0);
+    if (received < 0) {
+#ifdef _WIN32
+      const int err = WSAGetLastError();
+      if (err == WSAEINTR || err == WSAEWOULDBLOCK) {
+        continue;
+      }
+#else
+      if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) {
+        continue;
+      }
+#endif
+      break;
+    }
+
+    if (received == 0) {
+      break;
+    }
+
+    pending.append(buffer, static_cast<size_t>(received));
+    dispatch_pending_lines();
+  }
 }
 
 }  // namespace mesen
