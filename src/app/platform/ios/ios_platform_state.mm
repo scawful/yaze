@@ -79,6 +79,85 @@ void PostOverlayCommand(const char* command) {
 #endif
 }
 
+void TriggerHaptic(HapticStyle style) {
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+  dispatch_async(dispatch_get_main_queue(), ^{
+    switch (style) {
+      case HapticStyle::kLight: {
+        auto* gen = [[UIImpactFeedbackGenerator alloc]
+            initWithStyle:UIImpactFeedbackStyleLight];
+        [gen impactOccurred];
+        break;
+      }
+      case HapticStyle::kMedium: {
+        auto* gen = [[UIImpactFeedbackGenerator alloc]
+            initWithStyle:UIImpactFeedbackStyleMedium];
+        [gen impactOccurred];
+        break;
+      }
+      case HapticStyle::kHeavy: {
+        auto* gen = [[UIImpactFeedbackGenerator alloc]
+            initWithStyle:UIImpactFeedbackStyleHeavy];
+        [gen impactOccurred];
+        break;
+      }
+      case HapticStyle::kSelection: {
+        auto* gen = [[UISelectionFeedbackGenerator alloc] init];
+        [gen selectionChanged];
+        break;
+      }
+      case HapticStyle::kSuccess: {
+        auto* gen = [[UINotificationFeedbackGenerator alloc] init];
+        [gen notificationOccurred:UINotificationFeedbackTypeSuccess];
+        break;
+      }
+      case HapticStyle::kWarning: {
+        auto* gen = [[UINotificationFeedbackGenerator alloc] init];
+        [gen notificationOccurred:UINotificationFeedbackTypeWarning];
+        break;
+      }
+      case HapticStyle::kError: {
+        auto* gen = [[UINotificationFeedbackGenerator alloc] init];
+        [gen notificationOccurred:UINotificationFeedbackTypeError];
+        break;
+      }
+    }
+  });
+#else
+  (void)style;
+#endif
+}
+
+void PostUndoCommand() {
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [[NSNotificationCenter defaultCenter]
+        postNotificationName:@"yaze.input.undo"
+                      object:nil];
+  });
+#endif
+}
+
+void PostRedoCommand() {
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [[NSNotificationCenter defaultCenter]
+        postNotificationName:@"yaze.input.redo"
+                      object:nil];
+  });
+#endif
+}
+
+void PostToggleSidebar() {
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [[NSNotificationCenter defaultCenter]
+        postNotificationName:@"yaze.input.toggle_sidebar"
+                      object:nil];
+  });
+#endif
+}
+
 }  // namespace ios
 }  // namespace platform
 }  // namespace yaze
