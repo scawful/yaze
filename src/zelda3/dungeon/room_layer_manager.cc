@@ -32,10 +32,10 @@ void ApplySDLPaletteToBitmap(SDL_Surface* src_surface, gfx::Bitmap& dst_bitmap) 
     colors[i] = {0, 0, 0, 0};
   }
 
-  // IMPORTANT: Do NOT force palette[0] to transparent!
-  // In the dungeon system, pixel value 0 is never drawn (skipped in IsTransparent),
-  // but palette[0] contains the FIRST actual color. Pixel value 1 maps to palette[0].
-  // Only index 255 needs to be transparent (fill color for empty areas).
+  // Dungeon rendering uses palette index 255 as the "undrawn/transparent" fill.
+  // Palette index 0 is not written by our tile renderer (pixel value 0 is skipped),
+  // so we reserve it as an opaque backdrop color for the composited output.
+  colors[0] = {0, 0, 0, 255};
   colors[255] = {0, 0, 0, 0};
 
   // Apply palette to destination bitmap using the reliable method
@@ -72,10 +72,11 @@ void RoomLayerManager::CompositeToOutput(Room& room,
   // Ensure output bitmap is properly sized
   if (output.width() != kWidth || output.height() != kHeight) {
     output.Create(kWidth, kHeight, 8,
-                  std::vector<uint8_t>(kPixelCount, 255));
+                  std::vector<uint8_t>(kPixelCount, 0));
   } else {
-    // Clear to transparent (255)
-    output.Fill(255);
+    // Clear to backdrop (0). Transparent pixels (255) from layers will reveal
+    // this backdrop, matching SNES behavior when all layers are transparent.
+    output.Fill(0);
   }
 
   // Track if we've copied the palette yet
