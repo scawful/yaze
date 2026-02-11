@@ -153,6 +153,8 @@ void RoomLayerManager::CompositeToOutput(Room& room,
     const auto& bg1_obj_pri = bg1_objects.priority_data();
     const auto& bg2_layout_pri = bg2_layout.priority_data();
     const auto& bg2_obj_pri = bg2_objects.priority_data();
+    const auto& bg1_obj_cov = bg1_objects.coverage_data();
+    const auto& bg2_obj_cov = bg2_objects.coverage_data();
 
     const bool bg1_layout_on = layer_enabled(LayerType::BG1_Layout, bg1_layout);
     const bool bg1_obj_on = layer_enabled(LayerType::BG1_Objects, bg1_objects);
@@ -163,7 +165,11 @@ void RoomLayerManager::CompositeToOutput(Room& room,
     for (int idx = 0; idx < kPixelCount; ++idx) {
       uint8_t bg1_pixel = 255;
       uint8_t bg1_pri = 0;
-      if (bg1_obj_on && !IsTransparent(bg1_obj_px[idx])) {
+      const bool bg1_obj_wrote =
+          bg1_obj_on &&
+          ((idx < static_cast<int>(bg1_obj_cov.size()) && bg1_obj_cov[idx] != 0) ||
+           !IsTransparent(bg1_obj_px[idx]));
+      if (bg1_obj_wrote) {
         bg1_pixel = bg1_obj_px[idx];
         bg1_pri = bg1_obj_pri[idx];
       } else if (bg1_layout_on && !IsTransparent(bg1_layout_px[idx])) {
@@ -173,7 +179,11 @@ void RoomLayerManager::CompositeToOutput(Room& room,
 
       uint8_t bg2_pixel = 255;
       uint8_t bg2_pri = 0;
-      if (bg2_obj_on && !IsTransparent(bg2_obj_px[idx])) {
+      const bool bg2_obj_wrote =
+          bg2_obj_on &&
+          ((idx < static_cast<int>(bg2_obj_cov.size()) && bg2_obj_cov[idx] != 0) ||
+           !IsTransparent(bg2_obj_px[idx]));
+      if (bg2_obj_wrote) {
         bg2_pixel = bg2_obj_px[idx];
         bg2_pri = bg2_obj_pri[idx];
       } else if (bg2_layout_on && !IsTransparent(bg2_layout_px[idx])) {

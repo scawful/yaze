@@ -488,8 +488,9 @@ class ObjectDrawer {
                           int pixel_width, int pixel_height);
 
   // Door indicator fallback when graphics unavailable
-  void DrawDoorIndicator(gfx::Bitmap& bitmap, int tile_x, int tile_y,
-                         int width, int height, DoorType type, DoorDirection direction);
+  void DrawDoorIndicator(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
+                         int width, int height, DoorType type,
+                         DoorDirection direction);
 
   // Draw routine function array (indexed by routine ID from DrawRoutineRegistry)
   std::vector<DrawRoutine> draw_routines_;

@@ -18,6 +18,9 @@ BackgroundBuffer::BackgroundBuffer(int width, int height)
   // Initialize priority buffer for per-pixel priority tracking
   // Uses 0xFF as "no priority set" (transparent/empty pixel)
   priority_buffer_.resize(width * height, 0xFF);
+  // Coverage buffer tracks whether this layer wrote a given pixel.
+  // (0 = not written, 1 = written)
+  coverage_buffer_.resize(width * height, 0);
   // Note: bitmap_ is NOT initialized here to avoid circular dependency
   // with Arena::Get(). Call EnsureBitmapInitialized() before accessing bitmap().
 }
@@ -46,11 +49,17 @@ uint16_t BackgroundBuffer::GetTileAt(int x_pos, int y_pos) const {
 void BackgroundBuffer::ClearBuffer() {
   std::ranges::fill(buffer_, 0);
   ClearPriorityBuffer();
+  ClearCoverageBuffer();
 }
 
 void BackgroundBuffer::ClearPriorityBuffer() {
   // 0xFF indicates no priority set (transparent/empty pixel)
   std::ranges::fill(priority_buffer_, 0xFF);
+}
+
+void BackgroundBuffer::ClearCoverageBuffer() {
+  // 0 indicates the layer never wrote here; 1 indicates it did.
+  std::ranges::fill(coverage_buffer_, 0);
 }
 
 uint8_t BackgroundBuffer::GetPriorityAt(int x, int y) const {
@@ -95,6 +104,11 @@ void BackgroundBuffer::EnsureBitmapInitialized() {
   // Ensure priority buffer is properly sized
   if (priority_buffer_.size() != static_cast<size_t>(width_ * height_)) {
     priority_buffer_.resize(width_ * height_, 0xFF);
+  }
+
+  // Ensure coverage buffer is properly sized
+  if (coverage_buffer_.size() != static_cast<size_t>(width_ * height_)) {
+    coverage_buffer_.resize(width_ * height_, 0);
   }
 }
 
