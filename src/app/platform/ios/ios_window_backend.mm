@@ -101,7 +101,7 @@ void ApplyTouchStyle(MTKView* view) {
   style.PopupRounding = 6.0f * scale;
   style.TabRounding = 4.0f * scale;
   style.ScrollbarRounding = 6.0f * scale;
-  style.TabMinWidthForCloseButton = 44.0f * scale;
+  style.TabCloseButtonMinWidthUnselected = 44.0f * scale;
 
   // Prevent tiny windows on iPad — minimum 200x150 ensures usability
   style.WindowMinSize = ImVec2(200.0f * scale, 150.0f * scale);
