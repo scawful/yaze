@@ -4,10 +4,10 @@
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
 ### 2026-02-11 CODEX – Ceiling/Pit Transparency Follow-up
-- COMPLETE 2026-02-11 (CODEX): fixed `ObjectDrawer::DrawTileToBitmap` to apply full-tile overwrite semantics (source pixel `0` now clears destination to transparent key `255`), and cleared per-pixel priority (`0xFF`) for transparent writes in `WriteTile8`.
-- Added `ObjectDrawerRegistryReplayTest.TransparentTileClearsExistingPixelsAndMarksCoverage` to lock behavior (coverage + priority clear assertions).
-- Verification: `ctest --preset unit -R ObjectDrawerRegistryReplayTest` (5/5), `ctest --preset unit -R 'ObjectDrawer|DungeonObject|RoomDrawObjectData|DimensionCrossValidation'` (38/38). Full unit still has 4 unrelated `StoryEventGraphTest` failures from concurrent refactor files.
-- Deployed fresh `yaze.app` build to `/Applications/yaze.app` for manual validation on ceiling/pit objects.
+- IN_PROGRESS 2026-02-11 (CODEX): `ObjectDrawer::DrawTileToBitmap` now applies full-tile overwrite semantics (source pixel `0` clears destination to transparent key `255`), and `WriteTile8` clears per-pixel priority (`0xFF`) for transparent writes.
+- Added `ObjectDrawerRegistryReplayTest.TransparentTileClearsExistingPixelsAndMarksCoverage` to lock overwrite + coverage + priority-clear behavior.
+- Verification: `ctest --preset unit -R ObjectDrawerRegistryReplayTest` (5/5), `ctest --preset unit -R 'ObjectDrawer|DungeonObject|RoomDrawObjectData|DimensionCrossValidation'` (38/38). Full unit has 4 unrelated `StoryEventGraphTest` failures from concurrent refactor files.
+- User validation reports ceiling/pit visibility still incorrect; handoff note added at `docs/internal/hand-off/HANDOFF_CEILING_PIT_VISIBILITY_2026-02-11.md`.
 
 ### 2026-02-11 CODEX – WaterFill Save Mask Guardrail
 - COMPLETE 2026-02-11 (CODEX): normalized dungeon save-time WaterFill SRAM mask handling via shared `NormalizeWaterFillZoneMasks` (duplicate/invalid masks no longer hard-fail save; deterministic reassignment applied to room state + ROM table), added `DungeonEditorV2RomSafetyTest` coverage for duplicate and invalid mask normalization, and verified with `./scripts/test_fast.sh --quick --no-configure` (130/130 pass).

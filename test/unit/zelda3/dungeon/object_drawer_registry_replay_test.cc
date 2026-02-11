@@ -93,6 +93,60 @@ TEST(ObjectDrawerRegistryReplayTest, SuperSquareRendersToBitmap) {
   EXPECT_NE(bg1.bitmap().data()[idx], 255);
 }
 
+TEST(ObjectDrawerRegistryReplayTest,
+     TransparentTileClearsExistingPixelsAndMarksCoverage) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  rom.LoadFromData(dummy_rom);
+
+  // Fully transparent tile graphics.
+  std::array<uint8_t, 0x10000> gfx{};
+  gfx.fill(0);
+
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  bg1.EnsureBitmapInitialized();
+  bg2.EnsureBitmapInitialized();
+
+  // Seed destination with non-transparent data to ensure transparent source
+  // pixels actively clear.
+  bg1.bitmap().Fill(42);
+  bg1.ClearCoverageBuffer();
+
+  ObjectDrawer drawer(&rom, /*room_id=*/0, gfx.data());
+
+  RoomObject obj(0x00C0, /*x=*/2, /*y=*/2, /*size=*/0, /*layer=*/0);
+  obj.tiles_loaded_ = true;
+  obj.tiles_.clear();
+  obj.tiles_.push_back(gfx::TileInfo(/*id=*/0, /*pal=*/7, false, false, true));
+
+  gfx::PaletteGroup palette_group;
+  ASSERT_TRUE(drawer.DrawObject(obj, bg1, bg2, palette_group).ok());
+
+  const int x = obj.x_ * 8;
+  const int y = obj.y_ * 8;
+  const int idx = y * bg1.bitmap().width() + x;
+  ASSERT_GE(idx, 0);
+  ASSERT_LT(idx, static_cast<int>(bg1.bitmap().size()));
+
+  // Transparent tile writes must clear the destination footprint.
+  EXPECT_EQ(bg1.bitmap().data()[idx], 255);
+
+  // Coverage must mark the write so compositor can distinguish "clear" from
+  // "no write".
+  ASSERT_LT(idx, static_cast<int>(bg1.coverage_data().size()));
+  EXPECT_EQ(bg1.coverage_data()[idx], 1);
+
+  // Priority for transparent pixels should be cleared.
+  ASSERT_LT(idx, static_cast<int>(bg1.priority_data().size()));
+  EXPECT_EQ(bg1.priority_data()[idx], 0xFF);
+
+  // Outside the written tile footprint should remain untouched.
+  EXPECT_EQ(bg1.bitmap().data()[0], 42);
+}
+
 TEST(ObjectDrawerRegistryReplayTest, SuperSquare4x4FloorUsesColumnMajorTiles) {
   ScopedCustomObjectsFlag disable_custom(false);
 

@@ -3712,11 +3712,13 @@ void ObjectDrawer::WriteTile8(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
         coverage_buffer[dest_index] = 1;
       }
 
-      // Only set priority for non-transparent pixels
-      // Check if this pixel was actually drawn (not transparent)
+      // Store priority only for opaque pixels; transparent writes clear stale
+      // priority at this location.
       if (dest_index < static_cast<int>(bitmap_data.size()) &&
           bitmap_data[dest_index] != 255) {
         priority_buffer[dest_index] = priority;
+      } else {
+        priority_buffer[dest_index] = 0xFF;
       }
     }
   }
@@ -3792,8 +3794,13 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap,
     palette_offset = 0;
   }
 
-  // Draw 8x8 pixels
-  bool any_pixels_written = false;
+  // Draw 8x8 pixels with overwrite semantics.
+  //
+  // Important SNES behavior: writing a tilemap entry replaces the previous
+  // contents for the full 8x8 footprint. Source pixel 0 is transparent, but it
+  // still clears what was there before. We model that by writing 255
+  // (transparent key) for zero pixels.
+  bool any_pixels_changed = false;
 
   for (int py = 0; py < 8; py++) {
     // Source row with vertical mirroring
@@ -3807,29 +3814,34 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap,
       // Stride is 128 bytes (sheet width)
       int src_index = (src_row * 128) + src_col + tile_base_x + tile_base_y;
       uint8_t pixel = tiledata[src_index];
-
+      uint8_t out_pixel = 255;  // transparent/clear
       if (pixel != 0) {
-        // Pixel 0 is transparent (not written). Pixels 1-15 map to bank indices 1-15.
-        // With 16-color bank chunking: final_color = pixel + (bank * 16)
-        uint8_t final_color = pixel + palette_offset;
-        int dest_x = pixel_x + px;
-        int dest_y = pixel_y + py;
+        // Pixels 1-15 map into a 16-color bank chunk.
+        out_pixel = static_cast<uint8_t>(pixel + palette_offset);
+      }
 
-        if (dest_x >= 0 && dest_x < bitmap.width() && dest_y >= 0 &&
-            dest_y < bitmap.height()) {
-          int dest_index = dest_y * bitmap.width() + dest_x;
-          if (dest_index >= 0 &&
-              dest_index < static_cast<int>(bitmap.mutable_data().size())) {
-            bitmap.mutable_data()[dest_index] = final_color;
-            any_pixels_written = true;
-          }
-        }
+      int dest_x = pixel_x + px;
+      int dest_y = pixel_y + py;
+      if (dest_x < 0 || dest_x >= bitmap.width() || dest_y < 0 ||
+          dest_y >= bitmap.height()) {
+        continue;
+      }
+
+      int dest_index = dest_y * bitmap.width() + dest_x;
+      if (dest_index < 0 ||
+          dest_index >= static_cast<int>(bitmap.mutable_data().size())) {
+        continue;
+      }
+
+      auto& dst = bitmap.mutable_data()[dest_index];
+      if (dst != out_pixel) {
+        dst = out_pixel;
+        any_pixels_changed = true;
       }
     }
   }
 
-  // Mark bitmap as modified if we wrote any pixels
-  if (any_pixels_written) {
+  if (any_pixels_changed) {
     bitmap.set_modified(true);
   }
 }
