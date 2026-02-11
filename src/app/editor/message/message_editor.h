@@ -2,13 +2,14 @@
 #define YAZE_APP_EDITOR_MESSAGE_EDITOR_H
 
 #include <array>
-#include <deque>
+#include <optional>
 #include <string>
 #include <vector>
 
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
 #include "app/editor/message/message_data.h"
+#include "app/editor/message/message_undo_actions.h"
 #include "app/editor/message/panels/message_editor_panels.h"
 #include "app/editor/message/message_preview.h"
 #include "app/gfx/core/bitmap.h"
@@ -106,17 +107,10 @@ class MessageEditor : public Editor {
   int current_message_index_ = 0;
   bool current_message_is_expanded_ = false;
 
-  // Undo/Redo - snapshot-based history
-  struct MessageSnapshot {
-    MessageData message;
-    std::string parsed_text;
-    int message_index;
-    bool is_expanded;
-  };
-  static constexpr size_t kMaxUndoHistory = 50;
-  std::deque<MessageSnapshot> undo_stack_;
-  std::deque<MessageSnapshot> redo_stack_;
+  // Undo/Redo - delegates to UndoManager (inherited from Editor)
+  std::optional<MessageSnapshot> pending_undo_before_;
   void PushUndoSnapshot();
+  void FinalizePendingUndo();
   void ApplySnapshot(const MessageSnapshot& snapshot);
 
   // Panel visibility states
