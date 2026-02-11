@@ -1,6 +1,11 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_PANELS_CUSTOM_COLLISION_PANEL_H
 #define YAZE_APP_EDITOR_DUNGEON_PANELS_CUSTOM_COLLISION_PANEL_H
 
+#include <exception>
+#include <fstream>
+#include <string>
+#include <vector>
+
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_object_interaction.h"
@@ -8,6 +13,8 @@
 #include "zelda3/zelda3_labels.h"
 #include "app/gui/core/icons.h"
 #include "absl/strings/str_format.h"
+#include "util/file_util.h"
+#include "zelda3/dungeon/custom_collision.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 
 #include <algorithm>
@@ -71,6 +78,83 @@ class CustomCollisionPanel : public EditorPanel {
         viewer_->set_show_custom_collision_overlay(room.has_custom_collision());
     }
     ImGui::EndDisabled();
+
+    ImGui::Separator();
+
+    ImGui::TextUnformatted("Authoring");
+
+    util::FileDialogOptions json_options;
+    json_options.filters.push_back({"Custom Collision", "json"});
+    json_options.filters.push_back({"All Files", "*"});
+
+    ImGui::BeginDisabled(!collision_table_present);
+    if (ImGui::Button(ICON_MD_UPLOAD " Import Collision...")) {
+      std::string path =
+          util::FileDialogWrapper::ShowOpenFileDialog(json_options);
+      if (!path.empty()) {
+        try {
+          std::string contents = util::LoadFile(path);
+          auto rooms_or =
+              zelda3::LoadCustomCollisionRoomsFromJsonString(contents);
+          if (!rooms_or.ok()) {
+            last_io_error_ = rooms_or.status().message();
+            last_io_status_.clear();
+          } else {
+            const auto imported = std::move(rooms_or.value());
+            for (const auto& entry : imported) {
+              if (entry.room_id < 0 ||
+                  entry.room_id >= static_cast<int>(rooms->size())) {
+                continue;
+              }
+              ApplyRoomEntry(entry, &(*rooms)[entry.room_id]);
+            }
+            viewer_->set_show_custom_collision_overlay(true);
+            last_io_status_ =
+                absl::StrFormat("Imported %zu room(s) from %s", imported.size(),
+                                path.c_str());
+            last_io_error_.clear();
+          }
+        } catch (const std::exception& e) {
+          last_io_error_ = e.what();
+          last_io_status_.clear();
+        }
+      }
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_DOWNLOAD " Export Collision...")) {
+      auto exported = CollectRoomEntries(*rooms);
+      auto json_or = zelda3::DumpCustomCollisionRoomsToJsonString(exported);
+      if (!json_or.ok()) {
+        last_io_error_ = json_or.status().message();
+        last_io_status_.clear();
+      } else {
+        std::string path = util::FileDialogWrapper::ShowSaveFileDialog(
+            "custom_collision.json", "json");
+        if (!path.empty()) {
+          std::ofstream file(path);
+          if (!file.is_open()) {
+            last_io_error_ =
+                absl::StrFormat("Cannot write file: %s", path.c_str());
+            last_io_status_.clear();
+          } else {
+            file << *json_or;
+            file.close();
+            last_io_status_ = absl::StrFormat("Exported %zu room(s) to %s",
+                                              exported.size(), path.c_str());
+            last_io_error_.clear();
+          }
+        }
+      }
+    }
+    ImGui::EndDisabled();
+
+    if (!last_io_error_.empty()) {
+      ImGui::TextColored(theme.status_error, ICON_MD_ERROR " %s",
+                         last_io_error_.c_str());
+    } else if (!last_io_status_.empty()) {
+      ImGui::TextColored(theme.status_success, ICON_MD_CHECK_CIRCLE " %s",
+                         last_io_status_.c_str());
+    }
 
     ImGui::Separator();
 
@@ -153,6 +237,7 @@ class CustomCollisionPanel : public EditorPanel {
             // Clearing should remove the override (room falls back to vanilla).
             room.custom_collision().has_data = false;
             room.MarkCustomCollisionDirty();
+            viewer_->set_show_custom_collision_overlay(false);
         }
         ImGui::EndDisabled();
     } else {
@@ -161,8 +246,60 @@ class CustomCollisionPanel : public EditorPanel {
   }
 
  private:
+  static std::vector<zelda3::CustomCollisionRoomEntry> CollectRoomEntries(
+      const std::array<zelda3::Room, 0x128>& rooms) {
+    std::vector<zelda3::CustomCollisionRoomEntry> out;
+    out.reserve(16);
+    for (int rid = 0; rid < static_cast<int>(rooms.size()); ++rid) {
+      const auto& room = rooms[rid];
+
+      // Export only rooms with any non-zero override tiles.
+      bool any = false;
+      zelda3::CustomCollisionRoomEntry entry;
+      entry.room_id = rid;
+      const auto& map = room.custom_collision().tiles;
+      for (size_t off = 0; off < map.size(); ++off) {
+        const uint8_t val = map[off];
+        if (val == 0) {
+          continue;
+        }
+        any = true;
+        entry.tiles.push_back(zelda3::CustomCollisionTileEntry{
+            static_cast<uint16_t>(off), val});
+      }
+      if (!any) {
+        continue;
+      }
+      out.push_back(std::move(entry));
+    }
+    return out;
+  }
+
+  static void ApplyRoomEntry(const zelda3::CustomCollisionRoomEntry& entry,
+                             zelda3::Room* room) {
+    if (room == nullptr) {
+      return;
+    }
+    room->custom_collision().tiles.fill(0);
+    bool any = false;
+    for (const auto& t : entry.tiles) {
+      if (t.offset >= room->custom_collision().tiles.size()) {
+        continue;
+      }
+      room->custom_collision().tiles[t.offset] = t.value;
+      if (t.value != 0) {
+        any = true;
+      }
+    }
+    room->custom_collision().has_data = any;
+    room->MarkCustomCollisionDirty();
+  }
+
   DungeonCanvasViewer* viewer_;
   DungeonObjectInteraction* interaction_;
+
+  std::string last_io_status_;
+  std::string last_io_error_;
 };
 
 } // namespace yaze::editor
