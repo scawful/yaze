@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_DUNGEON_UNDO_ACTIONS_H_
 
 #include <functional>
+#include <cstdint>
 #include <string>
 #include <utility>
 #include <vector>
@@ -9,6 +10,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/core/undo_action.h"
+#include "zelda3/dungeon/custom_collision.h"
 #include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
@@ -72,6 +74,106 @@ class DungeonObjectsAction : public UndoAction {
   int room_id_;
   std::vector<zelda3::RoomObject> before_;
   std::vector<zelda3::RoomObject> after_;
+  RestoreFn restore_;
+};
+
+struct WaterFillSnapshot {
+  uint8_t sram_bit_mask = 0;  // Bit in $7EF411 (0x00 = Auto/unspecified)
+  std::vector<uint16_t> offsets;  // Each offset = Y*64 + X (0..4095)
+};
+
+class DungeonCustomCollisionAction : public UndoAction {
+ public:
+  using RestoreFn =
+      std::function<void(int room_id, const zelda3::CustomCollisionMap&)>;
+
+  DungeonCustomCollisionAction(int room_id, zelda3::CustomCollisionMap before,
+                               zelda3::CustomCollisionMap after,
+                               RestoreFn restore)
+      : room_id_(room_id),
+        before_(std::move(before)),
+        after_(std::move(after)),
+        restore_(std::move(restore)) {}
+
+  absl::Status Undo() override {
+    if (!restore_) {
+      return absl::InternalError(
+          "DungeonCustomCollisionAction: no restore callback");
+    }
+    restore_(room_id_, before_);
+    return absl::OkStatus();
+  }
+
+  absl::Status Redo() override {
+    if (!restore_) {
+      return absl::InternalError(
+          "DungeonCustomCollisionAction: no restore callback");
+    }
+    restore_(room_id_, after_);
+    return absl::OkStatus();
+  }
+
+  std::string Description() const override {
+    return absl::StrFormat("Edit room %03X custom collision", room_id_);
+  }
+
+  size_t MemoryUsage() const override {
+    return sizeof(before_) + sizeof(after_);
+  }
+
+  bool CanMergeWith(const UndoAction& /*prev*/) const override { return false; }
+
+ private:
+  int room_id_;
+  zelda3::CustomCollisionMap before_;
+  zelda3::CustomCollisionMap after_;
+  RestoreFn restore_;
+};
+
+class DungeonWaterFillAction : public UndoAction {
+ public:
+  using RestoreFn =
+      std::function<void(int room_id, const WaterFillSnapshot&)>;
+
+  DungeonWaterFillAction(int room_id, WaterFillSnapshot before,
+                         WaterFillSnapshot after, RestoreFn restore)
+      : room_id_(room_id),
+        before_(std::move(before)),
+        after_(std::move(after)),
+        restore_(std::move(restore)) {}
+
+  absl::Status Undo() override {
+    if (!restore_) {
+      return absl::InternalError("DungeonWaterFillAction: no restore callback");
+    }
+    restore_(room_id_, before_);
+    return absl::OkStatus();
+  }
+
+  absl::Status Redo() override {
+    if (!restore_) {
+      return absl::InternalError("DungeonWaterFillAction: no restore callback");
+    }
+    restore_(room_id_, after_);
+    return absl::OkStatus();
+  }
+
+  std::string Description() const override {
+    return absl::StrFormat("Edit room %03X water fill", room_id_);
+  }
+
+  size_t MemoryUsage() const override {
+    return before_.offsets.size() * sizeof(uint16_t) +
+           after_.offsets.size() * sizeof(uint16_t) + sizeof(before_) +
+           sizeof(after_);
+  }
+
+  bool CanMergeWith(const UndoAction& /*prev*/) const override { return false; }
+
+ private:
+  int room_id_;
+  WaterFillSnapshot before_;
+  WaterFillSnapshot after_;
   RestoreFn restore_;
 };
 
