@@ -18,6 +18,11 @@
 ### 2026-02-11 CODEX – Shared ROM Region Safety Helpers
 - COMPLETE 2026-02-11 (CODEX): added shared `dungeon_rom_addresses` guardrail helpers (`HasCustomCollision*`, `HasWaterFillReservedRegion`) and switched editor/panel checks to use them, tightening custom-collision UI fail-closed behavior when pointer/data regions are missing. Added `DungeonRomAddressesGuardrailTest` boundary coverage and verified with `./scripts/test_fast.sh --quick --no-configure` (137/137 pass).
 
+### 2026-02-11 CODEX – JSON CLI + Layer Guardrails
+- COMPLETE 2026-02-11 (CODEX): added ROM-safe, fail-closed dungeon JSON CLI commands for custom-collision and water-fill import/export (`dungeon-{import,export}-{custom-collision,water-fill}-json`), wired command/agent registrations, and added `DungeonCollisionJsonCommandsTest` coverage.
+- COMPLETE 2026-02-11 (CODEX): added background-layer guardrails in `TileObjectHandler::UpdateObjectsLayer` (invalid target rejection, batch cap, BG3 overflow cap, BothBG skip) plus save-time validator checks for unsafe BG3/BothBG states; added `TileObjectHandlerTest` + `DungeonValidatorTest` coverage.
+- Verification: `./scripts/test_fast.sh --filter "DungeonCollisionJsonCommandsTest|TileObjectHandlerTest|DungeonValidatorTest|DungeonObjectLayerGuardrailsTest|ObjectLayerSemanticsTest"` and `./scripts/test_fast.sh --quick --no-configure` (143/143 pass).
+
 ### 2026-02-10 Claude Code – UI Semantic Color Migration
 - COMPLETE 2026-02-10 (Claude Code): replaced ~130+ hardcoded `ImVec4()` color literals with semantic theme functions (`gui::GetSuccessColor()`, `GetWarningColor()`, `GetErrorColor()`, `GetInfoColor()`, `GetDisabledColor()`) across 14 editor files; added `GetDisabledColor()` and `GetWarningButtonColors()` infrastructure to `ui_helpers`; added 20+ tooltips (HOVER_HINT) to icon-only buttons in screen_editor, sprite_editor, link_sprite_panel; added accessibility icons to status indicators in proposal_drawer and link_sprite_panel; verified 916/916 tests pass. Domain-specific colors (entity markers, SNES palette data, welcome screen branding, command palette categories) intentionally preserved.
 

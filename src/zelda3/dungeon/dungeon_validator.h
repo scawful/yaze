@@ -26,6 +26,7 @@ class DungeonValidator {
   static constexpr int kMaxChests = 6;         // Limit for item collection flags (per room)
   static constexpr int kMaxDoors = 16;         // Practical limit for door objects
   static constexpr int kMaxObjects = 400;      // Limit before processing lag might occur
+  static constexpr int kMaxBg3Objects = 128;   // Guardrail for unstable BG3-heavy rooms
 };
 
 }  // namespace zelda3
