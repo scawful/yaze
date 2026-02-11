@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+#include "app/gui/core/drag_drop.h"
+
 namespace yaze::gui {
 
 TileSelectorWidget::TileSelectorWidget(std::string widget_id)
@@ -121,6 +123,12 @@ TileSelectorWidget::RenderResult TileSelectorWidget::HandleInteraction(
       }
       result.selected_tile = selected_tile_id_;
     }
+  }
+
+  // Emit drag source for the selected tile when dragging is enabled
+  if (config_.enable_drag && IsValidTileId(selected_tile_id_)) {
+    result.tile_dragging = BeginTileDragSource(selected_tile_id_,
+                                               config_.drag_source_map_id);
   }
 
   return result;
