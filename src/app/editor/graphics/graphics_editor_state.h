@@ -4,7 +4,6 @@
 #include <cstdint>
 #include <functional>
 #include <set>
-#include <stack>
 #include <string>
 #include <vector>
 
@@ -70,18 +69,6 @@ struct TileHighlight {
   }
 };
 
-/**
- * @brief Snapshot for undo/redo operations
- */
-struct PixelEditorSnapshot {
-  uint16_t sheet_id;
-  std::vector<uint8_t> pixel_data;
-  gfx::SnesPalette palette;
-
-  bool operator==(const PixelEditorSnapshot& other) const {
-    return sheet_id == other.sheet_id && pixel_data == other.pixel_data;
-  }
-};
 
 /**
  * @brief Shared state between GraphicsEditor panel components
@@ -129,11 +116,6 @@ class GraphicsEditorState {
   bool is_selecting = false;        // Currently drawing selection
   TileHighlight tile_highlight;     // Active tile focus hint
 
-  // --- Undo/Redo ---
-  std::vector<PixelEditorSnapshot> undo_stack;
-  std::vector<PixelEditorSnapshot> redo_stack;
-  static constexpr size_t kMaxUndoHistory = 50;
-
   // --- Modified Sheets Tracking ---
   std::set<uint16_t> modified_sheets;
 
@@ -173,48 +155,6 @@ class GraphicsEditorState {
    * @brief Check if any sheets have unsaved changes
    */
   bool HasUnsavedChanges() const { return !modified_sheets.empty(); }
-
-  /**
-   * @brief Push current state to undo stack before modification
-   */
-  void PushUndoState(uint16_t sheet_id, const std::vector<uint8_t>& pixel_data,
-                     const gfx::SnesPalette& palette) {
-    // Clear redo stack on new action
-    redo_stack.clear();
-
-    // Add to undo stack
-    undo_stack.push_back({sheet_id, pixel_data, palette});
-
-    // Limit stack size
-    if (undo_stack.size() > kMaxUndoHistory) {
-      undo_stack.erase(undo_stack.begin());
-    }
-  }
-
-  /**
-   * @brief Pop and return the last undo state
-   */
-  bool PopUndoState(PixelEditorSnapshot& out) {
-    if (undo_stack.empty()) return false;
-    out = undo_stack.back();
-    redo_stack.push_back(out);
-    undo_stack.pop_back();
-    return true;
-  }
-
-  /**
-   * @brief Pop and return the last redo state
-   */
-  bool PopRedoState(PixelEditorSnapshot& out) {
-    if (redo_stack.empty()) return false;
-    out = redo_stack.back();
-    undo_stack.push_back(out);
-    redo_stack.pop_back();
-    return true;
-  }
-
-  bool CanUndo() const { return !undo_stack.empty(); }
-  bool CanRedo() const { return !redo_stack.empty(); }
 
   /**
    * @brief Select a sheet for editing
