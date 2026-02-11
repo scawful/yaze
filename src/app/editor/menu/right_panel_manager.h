@@ -153,6 +153,20 @@ class RightPanelManager {
    */
   void SetPanelWidth(PanelType type, float width);
 
+  /**
+   * @brief Reset all panel widths to their defaults
+   */
+  void ResetPanelWidths();
+
+  /**
+   * @brief Get the default width for a specific panel type
+   * @param type The panel type
+   * @param editor The optional editor type for context-aware sizing
+   * @return Default width in logical pixels
+   */
+  static float GetDefaultPanelWidth(PanelType type, EditorType editor = EditorType::kUnknown);
+
+
   // ============================================================================
   // Rendering
   // ============================================================================
@@ -221,13 +235,13 @@ class RightPanelManager {
   EditorType active_editor_type_ = EditorType::kUnknown;
 
   // Panel widths (customizable per panel type) - consistent sizing
-  float agent_chat_width_ = gui::UIConfig::kPanelWidthWide;
-  float proposals_width_ = gui::UIConfig::kPanelWidthWide;
-  float settings_width_ = gui::UIConfig::kPanelWidthWide;
-  float help_width_ = gui::UIConfig::kPanelWidthMedium;
-  float notifications_width_ = gui::UIConfig::kPanelWidthWide;
-  float properties_width_ = gui::UIConfig::kPanelWidthNarrow;
-  float project_width_ = gui::UIConfig::kPanelWidthMedium;
+  float agent_chat_width_ = gui::UIConfig::kPanelWidthAgentChat;
+  float proposals_width_ = gui::UIConfig::kPanelWidthProposals;
+  float settings_width_ = gui::UIConfig::kPanelWidthSettings;
+  float help_width_ = gui::UIConfig::kPanelWidthHelp;
+  float notifications_width_ = gui::UIConfig::kPanelWidthNotifications;
+  float properties_width_ = gui::UIConfig::kPanelWidthProperties;
+  float project_width_ = gui::UIConfig::kPanelWidthProject;
 
   // Component references (not owned)
   AgentChat* agent_chat_ = nullptr;

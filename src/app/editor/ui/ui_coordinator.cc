@@ -227,6 +227,7 @@ void UICoordinator::DrawAllUI() {
   // Session dialogs are drawn by SessionCoordinator separately to avoid
   // duplication
   DrawCommandPalette();          // Ctrl+Shift+P
+  DrawPanelFinder();             // Ctrl+P
   DrawGlobalSearch();            // Ctrl+Shift+K
   DrawWorkspacePresetDialogs();  // Save/Load workspace dialogs
   DrawLayoutPresets();           // Layout preset dialogs
@@ -1318,6 +1319,138 @@ void UICoordinator::DrawCommandPalette() {
       std::filesystem::path history_file = *config_dir / "command_history.json";
       command_palette_.SaveHistory(history_file.string());
     }
+  }
+}
+
+void UICoordinator::DrawPanelFinder() {
+  if (!show_panel_finder_) return;
+
+  using namespace ImGui;
+
+  // Center the popup
+  SetNextWindowPos(GetMainViewport()->GetCenter(), ImGuiCond_Appearing,
+                   ImVec2(0.5f, 0.3f));
+  SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
+
+  bool show = true;
+  if (Begin(ICON_MD_DASHBOARD " Panel Finder", &show,
+            ImGuiWindowFlags_NoCollapse)) {
+    // Auto-focus search on open
+    if (IsWindowAppearing()) {
+      SetKeyboardFocusHere();
+      panel_finder_selected_idx_ = 0;
+    }
+
+    SetNextItemWidth(-1);
+    bool input_changed = InputTextWithHint(
+        "##panel_finder_query", ICON_MD_SEARCH " Find panel...",
+        panel_finder_query_, IM_ARRAYSIZE(panel_finder_query_));
+
+    if (input_changed) {
+      panel_finder_selected_idx_ = 0;
+    }
+
+    Separator();
+
+    // Build filtered list
+    struct PanelEntry {
+      std::string card_id;
+      std::string display_name;
+      std::string icon;
+      std::string category;
+      bool visible;
+      bool pinned;
+    };
+    std::vector<PanelEntry> entries;
+
+    std::string query_lower = panel_finder_query_;
+    std::transform(query_lower.begin(), query_lower.end(), query_lower.begin(),
+                   ::tolower);
+
+    // Session 0 is the default
+    for (const auto& [card_id, desc] : panel_manager_.GetAllPanelDescriptors()) {
+      std::string name_lower = desc.display_name;
+      std::transform(name_lower.begin(), name_lower.end(), name_lower.begin(),
+                     ::tolower);
+      std::string cat_lower = desc.category;
+      std::transform(cat_lower.begin(), cat_lower.end(), cat_lower.begin(),
+                     ::tolower);
+
+      if (!query_lower.empty() &&
+          name_lower.find(query_lower) == std::string::npos &&
+          cat_lower.find(query_lower) == std::string::npos) {
+        continue;
+      }
+
+      bool vis = desc.visibility_flag ? *desc.visibility_flag : false;
+      bool pin = panel_manager_.IsPanelPinned(card_id);
+      entries.push_back({card_id, desc.display_name, desc.icon, desc.category,
+                         vis, pin});
+    }
+
+    // Sort: pinned first, then alphabetical
+    std::sort(entries.begin(), entries.end(),
+              [](const PanelEntry& a, const PanelEntry& b) {
+                if (a.pinned != b.pinned) return a.pinned > b.pinned;
+                return a.display_name < b.display_name;
+              });
+
+    // Keyboard navigation
+    if (IsKeyPressed(ImGuiKey_DownArrow) &&
+        panel_finder_selected_idx_ < static_cast<int>(entries.size()) - 1) {
+      panel_finder_selected_idx_++;
+    }
+    if (IsKeyPressed(ImGuiKey_UpArrow) && panel_finder_selected_idx_ > 0) {
+      panel_finder_selected_idx_--;
+    }
+    bool enter_pressed = IsKeyPressed(ImGuiKey_Enter);
+
+    // Draw panel list
+    BeginChild("##PanelFinderList");
+    for (int i = 0; i < static_cast<int>(entries.size()); ++i) {
+      const auto& entry = entries[i];
+      bool is_selected = (i == panel_finder_selected_idx_);
+
+      std::string label =
+          absl::StrFormat("%s  %s", entry.icon.c_str(),
+                          entry.display_name.c_str());
+
+      PushID(entry.card_id.c_str());
+      if (Selectable(label.c_str(), is_selected)) {
+        panel_manager_.ShowPanel(0, entry.card_id);
+        panel_manager_.MarkPanelRecentlyUsed(entry.card_id);
+        show_panel_finder_ = false;
+      }
+      // Show category badge on the same line
+      SameLine(GetContentRegionAvail().x - 80);
+      TextDisabled("%s", entry.category.c_str());
+      if (entry.pinned) {
+        SameLine();
+        TextDisabled(ICON_MD_PUSH_PIN);
+      }
+      PopID();
+
+      // Enter to activate selected
+      if (is_selected && enter_pressed) {
+        panel_manager_.ShowPanel(0, entry.card_id);
+        panel_manager_.MarkPanelRecentlyUsed(entry.card_id);
+        show_panel_finder_ = false;
+      }
+
+      // Scroll selected into view
+      if (is_selected && (IsKeyPressed(ImGuiKey_DownArrow) ||
+                          IsKeyPressed(ImGuiKey_UpArrow))) {
+        SetScrollHereY();
+      }
+    }
+    EndChild();
+  }
+  End();
+
+  // Escape or close button
+  if (!show || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+    show_panel_finder_ = false;
+    panel_finder_query_[0] = '\0';
   }
 }
 

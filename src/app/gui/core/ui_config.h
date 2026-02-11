@@ -17,9 +17,18 @@ struct UIConfig {
   static constexpr float kStatusBarHeight = 24.0f;
 
   // Right panel defaults
-  static constexpr float kPanelWidthNarrow = 320.0f;
-  static constexpr float kPanelWidthMedium = 380.0f;
-  static constexpr float kPanelWidthWide = 420.0f;
+  static constexpr float kPanelWidthNarrow = 300.0f;
+  static constexpr float kPanelWidthMedium = 360.0f;
+  static constexpr float kPanelWidthWide = 400.0f;
+
+  // Specific panel defaults
+  static constexpr float kPanelWidthAgentChat = kPanelWidthWide;
+  static constexpr float kPanelWidthProposals = kPanelWidthWide;
+  static constexpr float kPanelWidthSettings = kPanelWidthMedium;
+  static constexpr float kPanelWidthHelp = 340.0f;
+  static constexpr float kPanelWidthNotifications = kPanelWidthMedium;
+  static constexpr float kPanelWidthProperties = 340.0f;
+  static constexpr float kPanelWidthProject = kPanelWidthMedium;
 
   // Panel layout
   static constexpr float kPanelHeaderHeight = 44.0f;

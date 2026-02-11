@@ -249,6 +249,41 @@ void RightPanelManager::SetPanelWidth(PanelType type, float width) {
   }
 }
 
+void RightPanelManager::ResetPanelWidths() {
+  agent_chat_width_ = GetDefaultPanelWidth(PanelType::kAgentChat, active_editor_type_);
+  proposals_width_ = GetDefaultPanelWidth(PanelType::kProposals, active_editor_type_);
+  settings_width_ = GetDefaultPanelWidth(PanelType::kSettings, active_editor_type_);
+  help_width_ = GetDefaultPanelWidth(PanelType::kHelp, active_editor_type_);
+  notifications_width_ = GetDefaultPanelWidth(PanelType::kNotifications, active_editor_type_);
+  properties_width_ = GetDefaultPanelWidth(PanelType::kProperties, active_editor_type_);
+  project_width_ = GetDefaultPanelWidth(PanelType::kProject, active_editor_type_);
+}
+
+float RightPanelManager::GetDefaultPanelWidth(PanelType type, EditorType editor) {
+  switch (type) {
+    case PanelType::kAgentChat:
+      return gui::UIConfig::kPanelWidthAgentChat;
+    case PanelType::kProposals:
+      return gui::UIConfig::kPanelWidthProposals;
+    case PanelType::kSettings:
+      return gui::UIConfig::kPanelWidthSettings;
+    case PanelType::kHelp:
+      return gui::UIConfig::kPanelWidthHelp;
+    case PanelType::kNotifications:
+      return gui::UIConfig::kPanelWidthNotifications;
+    case PanelType::kProperties:
+      // Property panel can be wider in certain editors
+      if (editor == EditorType::kDungeon) {
+        return 380.0f; // More space for complex object properties
+      }
+      return gui::UIConfig::kPanelWidthProperties;
+    case PanelType::kProject:
+      return gui::UIConfig::kPanelWidthProject;
+    default:
+      return gui::UIConfig::kPanelWidthMedium;
+  }
+}
+
 void RightPanelManager::Draw() {
   // Nothing to draw if no panel is active and no close animation running
   if (active_panel_ == PanelType::kNone && !closing_) {

@@ -167,10 +167,10 @@ void LayoutManager::RebuildLayout(EditorType type, ImGuiID dockspace_id) {
 namespace {
 
 struct DockSplitConfig {
-  float left = 0.22f;
-  float right = 0.25f;
-  float bottom = 0.25f;
-  float top = 0.18f;
+  float left = 0.16f;
+  float right = 0.20f;
+  float bottom = 0.20f;
+  float top = 0.12f;
   float vertical_split = 0.50f;
 
   // Per-editor type configuration
@@ -179,15 +179,33 @@ struct DockSplitConfig {
     switch (type) {
       case EditorType::kDungeon:
         // Dungeon: narrower left panel for room list, right for object editor
-        cfg.left = 0.16f;        // Room selector panel (narrower)
-        cfg.right = 0.22f;       // Object editor panel
-        cfg.bottom = 0.20f;      // Palette editor (shorter)
+        cfg.left = 0.12f;        // Room selector panel (narrower)
+        cfg.right = 0.18f;       // Object editor panel
+        cfg.bottom = 0.16f;      // Palette editor (shorter)
         cfg.vertical_split = 0.45f;  // Room matrix / Entrances split
         break;
       case EditorType::kOverworld:
-        cfg.left = 0.20f;
-        cfg.right = 0.22f;
-        cfg.bottom = 0.25f;
+        cfg.left = 0.15f;
+        cfg.right = 0.18f;
+        cfg.bottom = 0.20f;
+        break;
+      case EditorType::kGraphics:
+        cfg.left = 0.14f;
+        cfg.right = 0.18f;
+        cfg.bottom = 0.18f;
+        break;
+      case EditorType::kPalette:
+        cfg.left = 0.12f;
+        cfg.right = 0.16f;
+        break;
+      case EditorType::kSprite:
+        cfg.left = 0.14f;
+        cfg.right = 0.18f;
+        cfg.bottom = 0.18f;
+        break;
+      case EditorType::kScreen:
+        cfg.left = 0.12f;
+        cfg.right = 0.16f;
         break;
       default:
         // Use defaults
