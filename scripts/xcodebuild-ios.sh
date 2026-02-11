@@ -107,6 +107,38 @@ timestamp() {
   date "+%Y%m%d-%H%M%S"
 }
 
+resolve_device_app_path() {
+  local products_dir="$1"
+  local preferred_path="${products_dir}/${XCODE_SCHEME}.app"
+  if [[ -d "${preferred_path}" ]]; then
+    printf '%s\n' "${preferred_path}"
+    return 0
+  fi
+
+  mapfile -t app_bundles < <(find "${products_dir}" -maxdepth 1 -type d -name "*.app" | sort)
+
+  if [[ ${#app_bundles[@]} -eq 0 ]]; then
+    echo "No app bundle found in ${products_dir}" >&2
+    return 1
+  fi
+
+  for app in "${app_bundles[@]}"; do
+    if [[ "$(basename "${app}")" == "yaze.app" ]]; then
+      printf '%s\n' "${app}"
+      return 0
+    fi
+  done
+
+  if [[ ${#app_bundles[@]} -eq 1 ]]; then
+    printf '%s\n' "${app_bundles[0]}"
+    return 0
+  fi
+
+  echo "Multiple app bundles found; specify scheme-specific resolution." >&2
+  printf '  %s\n' "${app_bundles[@]}" >&2
+  return 1
+}
+
 if [[ "${PRESET}" == ios-sim-* ]]; then
   if [[ "${ACTION}" != "build" ]]; then
     echo "ACTION '${ACTION}' is only supported for device presets." >&2
@@ -135,7 +167,7 @@ PROVISIONING_ARGS=(
 )
 
 IOS_BUNDLE_ID="${YAZE_IOS_BUNDLE_ID:-org.halext.yaze-ios}"
-DEVICE_APP_PATH="${DERIVED_DATA}/Build/Products/${CONFIG}-iphoneos/${XCODE_SCHEME}.app"
+IOS_PRODUCTS_DIR="${DERIVED_DATA}/Build/Products/${CONFIG}-iphoneos"
 
 case "${ACTION}" in
   build)
@@ -156,8 +188,7 @@ case "${ACTION}" in
       "${SETTING_OVERRIDES[@]}" \
       build
 
-    if [[ ! -d "${DEVICE_APP_PATH}" ]]; then
-      echo "Expected app bundle missing: ${DEVICE_APP_PATH}" >&2
+    if ! DEVICE_APP_PATH="$(resolve_device_app_path "${IOS_PRODUCTS_DIR}")"; then
       exit 1
     fi
 

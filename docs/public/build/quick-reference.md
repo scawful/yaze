@@ -73,6 +73,17 @@ This generates `src/ios/yaze_ios.xcodeproj` and a bundled static library at
 `build-ios/ios/libyaze_ios_bundle.a`. Open the Xcode project and run on device.
 Requires `xcodegen` (`brew install xcodegen`) and the iOS SDK from Xcode.
 
+For CLI-driven device deploys (build + install + optional launch):
+
+```bash
+scripts/xcodebuild-ios.sh ios-debug deploy
+scripts/xcodebuild-ios.sh ios-debug deploy "Baby Pad"
+```
+
+`deploy` resolves the app bundle from DerivedData and installs via
+`xcrun devicectl`. Device selection order is `DEVICE` arg,
+`$YAZE_IOS_DEVICE`, then `"Baby Pad"`.
+
 ---
 
 ## 3. Build Directory Policy
