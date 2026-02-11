@@ -196,6 +196,84 @@ TEST_F(TileObjectHandlerTest, UpdateObjectLayer) {
   EXPECT_EQ(objects[0].layer_, zelda3::RoomObject::LayerType::BG2);
 }
 
+TEST_F(TileObjectHandlerTest, UpdateObjectLayerRejectsInvalidTargetLayer) {
+  AddTestObjects({CreateTestObject(5, 5, 0x00, 0x21)});
+
+  const int initial_mutation_count = mutation_count_;
+  const int initial_invalidate_count = invalidate_count_;
+  handler_.UpdateObjectsLayer(0, {0}, 5);
+
+  const auto& objects = rooms_[0].GetTileObjects();
+  ASSERT_EQ(objects.size(), 1);
+  EXPECT_EQ(objects[0].layer_, zelda3::RoomObject::LayerType::BG1);
+  EXPECT_EQ(mutation_count_, initial_mutation_count);
+  EXPECT_EQ(invalidate_count_, initial_invalidate_count);
+}
+
+TEST_F(TileObjectHandlerTest, UpdateObjectLayerSkipsBothBgObjectsForNonBg1) {
+  AddTestObjects({CreateTestObject(5, 5, 0x00, 0x03)});  // all_bgs_ object
+
+  const int initial_mutation_count = mutation_count_;
+  const int initial_invalidate_count = invalidate_count_;
+  handler_.UpdateObjectsLayer(0, {0}, 1);
+
+  const auto& objects = rooms_[0].GetTileObjects();
+  ASSERT_EQ(objects.size(), 1);
+  EXPECT_EQ(objects[0].layer_, zelda3::RoomObject::LayerType::BG1);
+  EXPECT_EQ(mutation_count_, initial_mutation_count);
+  EXPECT_EQ(invalidate_count_, initial_invalidate_count);
+}
+
+TEST_F(TileObjectHandlerTest, UpdateObjectLayerRejectsOversizedBatch) {
+  std::vector<zelda3::RoomObject> objects;
+  objects.reserve(129);
+  for (int i = 0; i < 129; ++i) {
+    objects.push_back(CreateTestObject(i % 64, (i / 64) % 64, 0x00, 0x21));
+  }
+  AddTestObjects(objects);
+
+  std::vector<size_t> indices;
+  indices.reserve(129);
+  for (size_t i = 0; i < 129; ++i) {
+    indices.push_back(i);
+  }
+
+  const int initial_mutation_count = mutation_count_;
+  const int initial_invalidate_count = invalidate_count_;
+  handler_.UpdateObjectsLayer(0, indices, 1);
+
+  for (const auto& obj : rooms_[0].GetTileObjects()) {
+    EXPECT_EQ(obj.layer_, zelda3::RoomObject::LayerType::BG1);
+  }
+  EXPECT_EQ(mutation_count_, initial_mutation_count);
+  EXPECT_EQ(invalidate_count_, initial_invalidate_count);
+}
+
+TEST_F(TileObjectHandlerTest, UpdateObjectLayerRejectsBg3Overflow) {
+  std::vector<zelda3::RoomObject> objects;
+  objects.reserve(129);
+  for (int i = 0; i < 129; ++i) {
+    objects.push_back(CreateTestObject(i % 64, (i / 64) % 64, 0x00, 0x21));
+  }
+  AddTestObjects(objects);
+
+  std::vector<size_t> indices;
+  indices.reserve(129);
+  for (size_t i = 0; i < 129; ++i) {
+    indices.push_back(i);
+  }
+
+  const int initial_mutation_count = mutation_count_;
+  const int initial_invalidate_count = invalidate_count_;
+  handler_.UpdateObjectsLayer(0, indices, 2);
+
+  for (const auto& obj : rooms_[0].GetTileObjects()) {
+    EXPECT_EQ(obj.layer_, zelda3::RoomObject::LayerType::BG1);
+  }
+  EXPECT_EQ(mutation_count_, initial_mutation_count);
+  EXPECT_EQ(invalidate_count_, initial_invalidate_count);
+}
+
 // ============================================================================
 // Deletion Tests
 // ============================================================================

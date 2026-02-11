@@ -1,11 +1,13 @@
 #include "tile_object_handler.h"
 #include <algorithm>
 #include <cmath>
+#include <unordered_set>
 #include "absl/strings/str_format.h"
 #include "imgui/imgui.h"
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_coordinates.h"
 #include "app/gfx/resource/arena.h"
+#include "util/log.h"
 #include "zelda3/dungeon/dimension_service.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/object_drawer.h"
@@ -14,6 +16,11 @@
 #include "app/editor/dungeon/dungeon_snapping.h"
 
 namespace yaze::editor {
+
+namespace {
+constexpr size_t kMaxLayerBatchMutation = 128;
+constexpr int kMaxBg3ObjectsAfterBatchMutation = 128;
+}  // namespace
 
 zelda3::Room* TileObjectHandler::GetRoom(int room_id) {
   if (!ctx_ || !ctx_->rooms || room_id < 0 || room_id >= 296) return nullptr;
@@ -377,20 +384,89 @@ void TileObjectHandler::UpdateObjectsSize(int room_id, const std::vector<size_t>
 void TileObjectHandler::UpdateObjectsLayer(int room_id, const std::vector<size_t>& indices, int new_layer) {
   auto* room = GetRoom(room_id);
   if (!room || indices.empty()) return;
-  if (ctx_) ctx_->NotifyMutation(MutationDomain::kTileObjects);
-
+  if (new_layer < 0 || new_layer > 2) {
+    LOG_WARN("TileObjectHandler",
+             "Rejected layer update with invalid target layer: %d", new_layer);
+    return;
+  }
   auto& objects = room->GetTileObjects();
-  auto layer = static_cast<zelda3::RoomObject::LayerType>(new_layer);
+  std::vector<size_t> deduped_indices;
+  deduped_indices.reserve(indices.size());
+  std::unordered_set<size_t> seen_indices;
   for (size_t index : indices) {
-    if (index < objects.size()) {
-      // Structural objects that draw to both BGs (e.g., walls/corners) must not
-      // be moved between BG layers; their draw routines write to both buffers.
-      if (zelda3::GetObjectLayerSemantics(objects[index]).draws_to_both_bgs) {
-        continue;
-      }
-      objects[index].layer_ = layer;
+    if (index >= objects.size()) {
+      continue;
+    }
+    if (seen_indices.insert(index).second) {
+      deduped_indices.push_back(index);
     }
   }
+  if (deduped_indices.empty()) {
+    return;
+  }
+
+  if (deduped_indices.size() > kMaxLayerBatchMutation) {
+    LOG_WARN("TileObjectHandler",
+             "Rejected layer batch mutation of %zu objects (max %zu)",
+             deduped_indices.size(), kMaxLayerBatchMutation);
+    return;
+  }
+
+  int current_bg3_count = 0;
+  for (const auto& object : objects) {
+    if (object.GetLayerValue() == 2) {
+      ++current_bg3_count;
+    }
+  }
+
+  int moving_to_bg3 = 0;
+  int moving_from_bg3 = 0;
+  auto target_layer = static_cast<zelda3::RoomObject::LayerType>(new_layer);
+  for (size_t index : deduped_indices) {
+    const auto& object = objects[index];
+    const auto semantics = zelda3::GetObjectLayerSemantics(object);
+    if (semantics.draws_to_both_bgs &&
+        target_layer != zelda3::RoomObject::LayerType::BG1) {
+      continue;
+    }
+    if (object.layer_ == target_layer) {
+      continue;
+    }
+    if (object.GetLayerValue() == 2) {
+      ++moving_from_bg3;
+    }
+    if (new_layer == 2) {
+      ++moving_to_bg3;
+    }
+  }
+  const int projected_bg3_count =
+      current_bg3_count - moving_from_bg3 + moving_to_bg3;
+  if (projected_bg3_count > kMaxBg3ObjectsAfterBatchMutation) {
+    LOG_WARN("TileObjectHandler",
+             "Rejected layer mutation: projected BG3 count %d exceeds max %d",
+             projected_bg3_count, kMaxBg3ObjectsAfterBatchMutation);
+    return;
+  }
+
+  bool changed = false;
+  for (size_t index : deduped_indices) {
+    auto& object = objects[index];
+    const auto semantics = zelda3::GetObjectLayerSemantics(object);
+    if (semantics.draws_to_both_bgs &&
+        target_layer != zelda3::RoomObject::LayerType::BG1) {
+      continue;
+    }
+    if (object.layer_ == target_layer) {
+      continue;
+    }
+    object.layer_ = target_layer;
+    changed = true;
+  }
+  if (!changed) {
+    return;
+  }
+
+  if (ctx_) ctx_->NotifyMutation(MutationDomain::kTileObjects);
   NotifyChange(room);
 }
 

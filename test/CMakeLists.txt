@@ -220,6 +220,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/sprite_builder_test.cc
     unit/zelda3/music_parser_test.cc
     unit/zelda3/dungeon_component_unit_test.cc
+    unit/zelda3/dungeon/dungeon_validator_test.cc
     unit/zelda3/dungeon/room_object_encoding_test.cc
     unit/zelda3/dungeon/room_object_set_id_test.cc
     unit/zelda3/custom_object_test.cc
@@ -346,6 +347,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/room_water_fill_state_test.cc
     unit/zelda3/dungeon/dungeon_rom_addresses_guardrail_test.cc
     unit/zelda3/dungeon/room_object_set_id_test.cc
+    unit/zelda3/dungeon/dungeon_validator_test.cc
     unit/zelda3/dungeon/object_layer_semantics_test.cc
     unit/zelda3/dungeon/draw_routine_bothbg_metadata_test.cc
     unit/zelda3/dungeon/room_graphics_palette_test.cc
