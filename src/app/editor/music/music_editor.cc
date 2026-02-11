@@ -424,7 +424,7 @@ absl::Status MusicEditor::Update() {
       song_trackers_[song_index] =
           std::make_unique<editor::music::TrackerView>();
       song_trackers_[song_index]->SetOnEditCallback(
-          [this]() { PushUndoState(); });
+          [this, song_index]() { PushUndoState(song_index); });
     }
 
     auto& song_card = song_cards_[song_index];
@@ -502,7 +502,8 @@ absl::Status MusicEditor::Update() {
     ImGui::SetNextWindowClass(&song_window_class_);
 
     if (window.card->Begin(&open)) {
-      window.view->SetOnEditCallback([this]() { PushUndoState(); });
+      window.view->SetOnEditCallback(
+          [this, song_index]() { PushUndoState(song_index); });
       window.view->SetOnNotePreview(
           [this, song_index](const zelda3::music::TrackEvent& evt,
                              int segment_idx, int channel_idx) {
@@ -645,15 +646,27 @@ absl::Status MusicEditor::Paste() {
 
 absl::Status MusicEditor::Undo() {
   FinalizePendingUndo();
-  return undo_manager_.Undo();
+  auto st = undo_manager_.Undo();
+  if (st.ok()) {
+    MarkMusicDirty();
+  }
+  return st;
 }
 
 absl::Status MusicEditor::Redo() {
-  return undo_manager_.Redo();
+  auto st = undo_manager_.Redo();
+  if (st.ok()) {
+    MarkMusicDirty();
+  }
+  return st;
 }
 
 void MusicEditor::PushUndoState() {
-  auto* song = music_bank_.GetSong(current_song_index_);
+  PushUndoState(current_song_index_);
+}
+
+void MusicEditor::PushUndoState(int song_index) {
+  auto* song = music_bank_.GetSong(song_index);
   if (!song)
     return;
 
@@ -662,7 +675,7 @@ void MusicEditor::PushUndoState() {
 
   // Start a new pending undo - capture "before" state
   pending_undo_before_ = *song;
-  pending_undo_song_index_ = current_song_index_;
+  pending_undo_song_index_ = song_index;
   MarkMusicDirty();
 }
 
@@ -692,8 +705,11 @@ void MusicEditor::DrawSongBrowser() {
   song_browser_view_.SetSelectedSongIndex(current_song_index_);
   song_browser_view_.Draw(music_bank_);
   // Update current song if selection changed
-  if (song_browser_view_.GetSelectedSongIndex() != current_song_index_) {
-    current_song_index_ = song_browser_view_.GetSelectedSongIndex();
+  const int selected = song_browser_view_.GetSelectedSongIndex();
+  if (selected != current_song_index_) {
+    // Commit any pending edits before switching the active song selection.
+    FinalizePendingUndo();
+    current_song_index_ = selected;
   }
 }
 
@@ -1606,6 +1622,9 @@ bool MusicEditor::ImportAsmBufferToSong(int song_index) {
     LOG_WARN("MusicEditor", "ASM import warning: %s", warning.c_str());
   }
 
+  // Capture undo snapshot before mutating the song.
+  PushUndoState(song_index);
+
   // Copy parsed song data to target song
   // Keep original name if import didn't provide one
   std::string original_name = song->name;
@@ -1618,8 +1637,6 @@ bool MusicEditor::ImportAsmBufferToSong(int song_index) {
   LOG_INFO("MusicEditor", "Imported ASM to song '%s' (%d lines, %d bytes)",
            song->name.c_str(), result->lines_parsed, result->bytes_generated);
 
-  // Notify that edits occurred
-  PushUndoState();
   asm_import_error_.clear();
   return true;
 }
