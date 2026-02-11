@@ -14,21 +14,22 @@ namespace {
 // These objects create transparency holes in BG1 to show BG2 content through.
 // Based on ALTTP object IDs and draw routine analysis.
 bool IsPitOrMaskObject(int16_t id) {
-  // BigHole4x4 (0xA4)
+  // Pit and layer-2 masks that rely on BG1 transparency to reveal BG2.
+  //
+  // Source of truth for names: RoomObjectNames in room_object.h.
+  // USDASM: These are "layer 2 mask" objects that operate by clearing BG1.
   if (id == 0xA4)
-    return true;
-
-  // Pit edge objects (0x9B - 0xA6 range)
-  if (id >= 0x9B && id <= 0xA6)
-    return true;
-
-  // Type 3 pit objects (0xFE6)
+    return true;  // Pit
+  if (id >= 0xA5 && id <= 0xAC)
+    return true;  // Diagonal layer 2 masks
+  if (id == 0xC2 || id == 0xC3)
+    return true;  // Layer 2 pit masks (large/medium)
+  if (id == 0xC6 || id == 0xD7 || id == 0xD9)
+    return true;  // Layer 2 masks (large/medium/swim)
   if (id == 0xFE6)
-    return true;
-
-  // Layer 2 pit mask objects (Type 3: 0xFBE, 0xFBF)
-  if (id == 0xFBE || id == 0xFBF)
-    return true;
+    return true;  // Type 3 pit
+  if (id == 0xFF3)
+    return true;  // Type 3 layer 2 mask (full)
 
   return false;
 }
