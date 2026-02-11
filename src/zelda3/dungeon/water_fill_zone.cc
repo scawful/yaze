@@ -221,6 +221,7 @@ absl::StatusOr<std::vector<WaterFillZoneEntry>> LoadWaterFillTable(Rom* rom) {
   entries.reserve(zone_count);
 
   std::unordered_map<int, size_t> room_to_index;
+  std::unordered_map<uint8_t, int> mask_to_room;
   for (size_t i = 0; i < zone_count; ++i) {
     size_t off = static_cast<size_t>(kWaterFillTableStart) + 1u + (i * 4u);
     int room_id = data[off];
@@ -240,6 +241,12 @@ absl::StatusOr<std::vector<WaterFillZoneEntry>> LoadWaterFillTable(Rom* rom) {
           absl::StrFormat("Duplicate WaterFill entry for room 0x%02X", room_id));
     }
     room_to_index[room_id] = entries.size();
+    if (mask_to_room.contains(mask)) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Duplicate WaterFill mask 0x%02X for rooms 0x%02X and 0x%02X", mask,
+          mask_to_room[mask], room_id));
+    }
+    mask_to_room[mask] = room_id;
 
     // data_off is relative to table start.
     if (data_off >= kWaterFillTableReservedSize) {

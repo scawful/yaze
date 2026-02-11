@@ -21,6 +21,7 @@
 #include "util/macro.h"
 #include "zelda3/dungeon/custom_collision.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/oracle_rom_safety_preflight.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/water_fill_zone.h"
 
@@ -232,6 +233,24 @@ absl::Status FinalizeWithReport(const resources::ArgumentParser& parser,
   return status;
 }
 
+json BuildPreflightJson(const zelda3::OracleRomSafetyPreflightResult& preflight) {
+  json out;
+  out["ok"] = preflight.ok();
+  json errors = json::array();
+  for (const auto& err : preflight.errors) {
+    json e;
+    e["code"] = err.code;
+    e["message"] = err.message;
+    e["status_code"] = StatusCodeName(err.status_code);
+    if (err.room_id >= 0) {
+      e["room_id"] = absl::StrFormat("0x%02X", err.room_id);
+    }
+    errors.push_back(std::move(e));
+  }
+  out["errors"] = std::move(errors);
+  return out;
+}
+
 }  // namespace
 
 absl::Status DungeonListCustomCollisionCommandHandler::Execute(
@@ -387,6 +406,18 @@ absl::Status DungeonImportCustomCollisionJsonCommandHandler::Execute(
           "Custom collision write support not present in this ROM");
     }
 
+    zelda3::OracleRomSafetyPreflightOptions preflight_options;
+    preflight_options.require_water_fill_reserved_region = true;
+    preflight_options.require_custom_collision_write_support = true;
+    preflight_options.validate_water_fill_table = true;
+    preflight_options.validate_custom_collision_maps = true;
+    const auto preflight =
+        zelda3::RunOracleRomSafetyPreflight(rom, preflight_options);
+    report["preflight"] = BuildPreflightJson(preflight);
+    if (!preflight.ok()) {
+      return preflight.ToStatus();
+    }
+
     if (replace_all && !dry_run && !force) {
       return absl::FailedPreconditionError(
           "--replace-all requires --force (run with --dry-run first)");
@@ -531,6 +562,18 @@ absl::Status DungeonImportWaterFillJsonCommandHandler::Execute(
     if (!zelda3::HasWaterFillReservedRegion(rom->vector().size())) {
       return absl::FailedPreconditionError(
           "WaterFill reserved region missing in this ROM");
+    }
+
+    zelda3::OracleRomSafetyPreflightOptions preflight_options;
+    preflight_options.require_water_fill_reserved_region = true;
+    preflight_options.require_custom_collision_write_support = false;
+    preflight_options.validate_water_fill_table = true;
+    preflight_options.validate_custom_collision_maps = true;
+    const auto preflight =
+        zelda3::RunOracleRomSafetyPreflight(rom, preflight_options);
+    report["preflight"] = BuildPreflightJson(preflight);
+    if (!preflight.ok()) {
+      return preflight.ToStatus();
     }
 
     ASSIGN_OR_RETURN(const std::string json_content, ReadTextFile(in_path));
