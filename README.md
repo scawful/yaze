@@ -37,12 +37,12 @@ v0.6.0 is the current release. See [`CHANGELOG.md`](CHANGELOG.md) for details.
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| Overworld Editor | Stable | 160 maps, undo/redo, copy/paste |
-| Dungeon Editor | Stable | 296 rooms, entity drag-drop, ROM safety |
-| Graphics Editor | Stable | Sheet editing, undo/redo |
-| Palette Editor | Stable | Live preview, JSON export |
+| Overworld Editor | Beta | 160 maps, undo/redo, copy/paste; tile16 palette issues, sprite workflow incomplete |
+| Dungeon Editor | Beta | 296 rooms, entity drag-drop, ROM safety; 12+ unknown object types, visual discrepancies |
+| Graphics Editor | Beta | Sheet editing, undo/redo |
+| Palette Editor | Beta | Live preview; JSON import/export not implemented |
 | Message Editor | Stable | Text editing, bundle import/export |
-| Assembly Editor | Stable | Symbol navigation, Asar integration |
+| Assembly Editor | Beta | Symbol navigation, Asar integration; project file editor incomplete |
 | Sprite Editor | Beta | Viewing works, editing limited |
 | Music Editor | Beta | Playback and editing, no clipboard ops |
 | Screen Editor | WIP | Core operations unimplemented |

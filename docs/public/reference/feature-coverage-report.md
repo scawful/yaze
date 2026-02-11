@@ -13,10 +13,10 @@ As of v0.6.0, app data is consolidated under `~/.yaze` on desktop/CLI and
 | --- | --- | --- |
 | Project files (.yaze) | Stable | Project metadata stored in the .yaze file; recent project list persisted. |
 | ROM load/save | Stable | ROM loaded from disk; save writes ROM; timestamped backups when enabled. |
-| Overworld Editor | Stable | Overworld edits persist to ROM; version-gated for vanilla/v2/v3. |
-| Dungeon Editor | Stable | Room objects/tiles/palettes persist to ROM; shared undo/redo. |
-| Palette Editor | Stable | Palette changes persist to ROM; JSON import/export is TODO. |
-| Graphics Editor | Stable | Tile/sheet edits persist to ROM; undo/redo via UndoManager. |
+| Overworld Editor | Beta | Overworld edits persist to ROM; version-gated for vanilla/v2/v3. Tile16 palette inconsistencies, paste not tracked in undo, sprite workflow incomplete. |
+| Dungeon Editor | Beta | Room objects/tiles/palettes persist to ROM; shared undo/redo. 12+ unknown object types, visual discrepancies in specific objects, object preview stubbed. |
+| Palette Editor | Beta | Palette changes persist to ROM; JSON import/export not implemented. |
+| Graphics Editor | Beta | Tile/sheet edits persist to ROM; undo/redo via UndoManager. |
 | Sprite Editor | Beta | Sprite viewing works; editing and test coverage are limited. |
 | Message Editor | Stable | Text edits persist to ROM. |
 | Screen Editor | WIP | Undo/Redo/Cut/Copy/Paste all unimplemented. |
