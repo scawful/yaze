@@ -18,9 +18,8 @@ namespace editor {
  *
  * Extracted from EditorManager to provide focused editor management:
  * - Editor type classification and categorization
- * - Editor activation and switching
- * - Editor-specific navigation (jump to room/map)
- * - Editor card management
+ * - Editor registration + factories (EditorSet/session creation)
+ * - Lightweight editor state queries (active/visible)
  */
 class EditorRegistry {
  public:
@@ -37,31 +36,8 @@ class EditorRegistry {
   /**
    * @brief Get all editor categories in display order for sidebar
    * @return Vector of category names in preferred display order
-   */
+  */
   static std::vector<std::string> GetAllEditorCategories();
-
-  // Editor navigation
-  // DEPRECATED: Use EventBus with JumpToRoomRequestEvent/JumpToMapRequestEvent instead
-  [[deprecated("Use EventBus::Publish(JumpToRoomRequestEvent::Create(room_id))")]]
-  void JumpToDungeonRoom(int room_id);
-  [[deprecated("Use EventBus::Publish(JumpToMapRequestEvent::Create(map_id))")]]
-  void JumpToOverworldMap(int map_id);
-  void SwitchToEditor(EditorType editor_type);
-
-  // DEPRECATED: Navigation callbacks replaced by EventBus subscriptions
-  [[deprecated("EditorActivator now subscribes to JumpToRoomRequestEvent")]]
-  void SetJumpToDungeonRoomCallback(std::function<void(int)> callback) {
-    jump_to_room_callback_ = std::move(callback);
-  }
-  [[deprecated("EditorActivator now subscribes to JumpToMapRequestEvent")]]
-  void SetJumpToOverworldMapCallback(std::function<void(int)> callback) {
-    jump_to_map_callback_ = std::move(callback);
-  }
-
-  // Editor card management
-  void HideCurrentEditorPanels();
-  void ShowEditorPanels(EditorType editor_type);
-  void ToggleEditorPanels(EditorType editor_type);
 
   // Editor information
   std::vector<EditorType> GetEditorsInCategory(
@@ -97,9 +73,6 @@ class EditorRegistry {
   // Editor factories (for EditorSet/session creation).
   std::unordered_map<EditorType, EditorFactory> editor_factories_;
 
-  // Navigation callbacks
-  std::function<void(int)> jump_to_room_callback_;
-  std::function<void(int)> jump_to_map_callback_;
 
   // Helper methods
   bool IsValidEditorType(EditorType type) const;
