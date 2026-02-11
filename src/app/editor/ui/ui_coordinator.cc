@@ -389,6 +389,12 @@ void UICoordinator::DrawMobileNavigation() {
       }
     }
 
+    if (ImGui::MenuItem(ICON_MD_SEARCH " Find Panel...")) {
+      show_panel_finder_ = true;
+      memset(panel_finder_query_, 0, sizeof(panel_finder_query_));
+      panel_finder_selected_idx_ = 0;
+    }
+
     const bool sidebar_visible = panel_manager_.IsSidebarVisible();
     if (ImGui::MenuItem(ICON_MD_VIEW_SIDEBAR " Toggle Sidebar", nullptr,
                         sidebar_visible)) {
@@ -1311,15 +1317,33 @@ void UICoordinator::DrawPanelFinder() {
   if (!show_panel_finder_) return;
 
   using namespace ImGui;
+  const size_t session_id = panel_manager_.GetActiveSessionId();
 
-  // Center the popup
-  SetNextWindowPos(GetMainViewport()->GetCenter(), ImGuiCond_Appearing,
+  // B6: Responsive modal sizing with dim overlay
+  const ImGuiViewport* viewport = GetMainViewport();
+  ImDrawList* bg_list = GetBackgroundDrawList();
+  bg_list->AddRectFilled(viewport->WorkPos,
+                         ImVec2(viewport->WorkPos.x + viewport->WorkSize.x,
+                                viewport->WorkPos.y + viewport->WorkSize.y),
+                         IM_COL32(0, 0, 0, 100));
+
+  SetNextWindowPos(viewport->GetCenter(), ImGuiCond_Appearing,
                    ImVec2(0.5f, 0.3f));
-  SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
+  if (IsCompactLayout()) {
+    SetNextWindowSize(
+        ImVec2(viewport->WorkSize.x * 0.95f, viewport->WorkSize.y * 0.70f),
+        ImGuiCond_Appearing);
+  } else {
+    SetNextWindowSize(ImVec2(600, 420), ImGuiCond_Appearing);
+  }
+
+  const ImGuiWindowFlags finder_flags =
+      ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove |
+      ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoDocking |
+      ImGuiWindowFlags_NoSavedSettings;
 
   bool show = true;
-  if (Begin(ICON_MD_DASHBOARD " Panel Finder", &show,
-            ImGuiWindowFlags_NoCollapse)) {
+  if (Begin(ICON_MD_DASHBOARD " Panel Finder", &show, finder_flags)) {
     // Auto-focus search on open
     if (IsWindowAppearing()) {
       SetKeyboardFocusHere();
@@ -1337,7 +1361,7 @@ void UICoordinator::DrawPanelFinder() {
 
     Separator();
 
-    // Build filtered list
+    // Build filtered + scored list
     struct PanelEntry {
       std::string card_id;
       std::string display_name;
@@ -1345,40 +1369,48 @@ void UICoordinator::DrawPanelFinder() {
       std::string category;
       bool visible;
       bool pinned;
+      int score;
     };
     std::vector<PanelEntry> entries;
 
-    std::string query_lower = panel_finder_query_;
-    std::transform(query_lower.begin(), query_lower.end(), query_lower.begin(),
-                   ::tolower);
+    std::string query(panel_finder_query_);
 
-    // Session 0 is the default
-    for (const auto& [card_id, desc] : panel_manager_.GetAllPanelDescriptors()) {
-      std::string name_lower = desc.display_name;
-      std::transform(name_lower.begin(), name_lower.end(), name_lower.begin(),
-                     ::tolower);
-      std::string cat_lower = desc.category;
-      std::transform(cat_lower.begin(), cat_lower.end(), cat_lower.begin(),
-                     ::tolower);
-
-      if (!query_lower.empty() &&
-          name_lower.find(query_lower) == std::string::npos &&
-          cat_lower.find(query_lower) == std::string::npos) {
-        continue;
+    // B2: Fuzzy scoring via CommandPalette::FuzzyScore
+    for (const auto& [card_id, desc] :
+         panel_manager_.GetAllPanelDescriptors()) {
+      int score = 0;
+      if (!query.empty()) {
+        score = CommandPalette::FuzzyScore(desc.display_name, query) +
+                CommandPalette::FuzzyScore(desc.category, query) / 2;
+        if (score <= 0) continue;
       }
 
       bool vis = desc.visibility_flag ? *desc.visibility_flag : false;
       bool pin = panel_manager_.IsPanelPinned(card_id);
       entries.push_back({card_id, desc.display_name, desc.icon, desc.category,
-                         vis, pin});
+                         vis, pin, score});
     }
 
-    // Sort: pinned first, then alphabetical
-    std::sort(entries.begin(), entries.end(),
-              [](const PanelEntry& a, const PanelEntry& b) {
-                if (a.pinned != b.pinned) return a.pinned > b.pinned;
-                return a.display_name < b.display_name;
-              });
+    // B3: MRU + fuzzy sort
+    if (query.empty()) {
+      // Empty query: pinned first, then MRU order (higher time = more recent)
+      std::sort(entries.begin(), entries.end(),
+                [this](const PanelEntry& lhs, const PanelEntry& rhs) {
+                  if (lhs.pinned != rhs.pinned) return lhs.pinned > rhs.pinned;
+                  uint64_t lhs_t = panel_manager_.GetPanelMRUTime(lhs.card_id);
+                  uint64_t rhs_t = panel_manager_.GetPanelMRUTime(rhs.card_id);
+                  if (lhs_t != rhs_t) return lhs_t > rhs_t;
+                  return lhs.display_name < rhs.display_name;
+                });
+    } else {
+      // With query: sort by score descending, pinned tiebreaker
+      std::sort(entries.begin(), entries.end(),
+                [](const PanelEntry& lhs, const PanelEntry& rhs) {
+                  if (lhs.score != rhs.score) return lhs.score > rhs.score;
+                  if (lhs.pinned != rhs.pinned) return lhs.pinned > rhs.pinned;
+                  return lhs.display_name < rhs.display_name;
+                });
+    }
 
     // Keyboard navigation
     if (IsKeyPressed(ImGuiKey_DownArrow) &&
@@ -1390,19 +1422,43 @@ void UICoordinator::DrawPanelFinder() {
     }
     bool enter_pressed = IsKeyPressed(ImGuiKey_Enter);
 
+    // B5: Touch-aware item sizing
+    const bool is_touch = gui::LayoutHelpers::IsTouchDevice();
+    if (is_touch) {
+      PushStyleVar(ImGuiStyleVar_ItemSpacing,
+                   ImVec2(GetStyle().ItemSpacing.x, 10.0f));
+    }
+
     // Draw panel list
     BeginChild("##PanelFinderList");
     for (int i = 0; i < static_cast<int>(entries.size()); ++i) {
       const auto& entry = entries[i];
       bool is_selected = (i == panel_finder_selected_idx_);
 
-      std::string label =
-          absl::StrFormat("%s  %s", entry.icon.c_str(),
-                          entry.display_name.c_str());
+      // B4: Visibility indicator icon
+      const char* vis_icon =
+          entry.visible ? ICON_MD_VISIBILITY : ICON_MD_VISIBILITY_OFF;
+
+      // Dim hidden panels
+      std::optional<gui::StyleColorGuard> dim_guard;
+      if (!entry.visible) {
+        ImVec4 dimmed = GetStyleColorVec4(ImGuiCol_Text);
+        dimmed.w *= 0.5f;
+        dim_guard.emplace(ImGuiCol_Text, dimmed);
+      }
+
+      std::string label = absl::StrFormat(
+          "%s %s  %s", vis_icon, entry.icon.c_str(),
+          entry.display_name.c_str());
+
+      // Touch: ensure selectable meets 44px minimum height
+      float item_h = is_touch ? std::max(GetTextLineHeightWithSpacing(), 44.0f)
+                              : 0.0f;
 
       PushID(entry.card_id.c_str());
-      if (Selectable(label.c_str(), is_selected)) {
-        panel_manager_.ShowPanel(0, entry.card_id);
+      if (Selectable(label.c_str(), is_selected,
+                     ImGuiSelectableFlags_None, ImVec2(0, item_h))) {
+        panel_manager_.ShowPanel(session_id, entry.card_id);
         panel_manager_.MarkPanelRecentlyUsed(entry.card_id);
         show_panel_finder_ = false;
       }
@@ -1417,7 +1473,7 @@ void UICoordinator::DrawPanelFinder() {
 
       // Enter to activate selected
       if (is_selected && enter_pressed) {
-        panel_manager_.ShowPanel(0, entry.card_id);
+        panel_manager_.ShowPanel(session_id, entry.card_id);
         panel_manager_.MarkPanelRecentlyUsed(entry.card_id);
         show_panel_finder_ = false;
       }
@@ -1429,6 +1485,10 @@ void UICoordinator::DrawPanelFinder() {
       }
     }
     EndChild();
+
+    if (is_touch) {
+      PopStyleVar();
+    }
   }
   End();
 

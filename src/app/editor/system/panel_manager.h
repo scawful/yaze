@@ -629,6 +629,12 @@ class PanelManager {
   std::vector<PanelDescriptor> GetPanelsSortedByMRU(
       size_t session_id, const std::string& category) const;
 
+  /// Get MRU timestamp for a panel (0 if never used)
+  uint64_t GetPanelMRUTime(const std::string& card_id) const {
+    auto iter = last_used_at_.find(card_id);
+    return (iter != last_used_at_.end()) ? iter->second : 0;
+  }
+
   // ============================================================================
   // Pinning (Phase 3 scaffold)
   // ============================================================================
