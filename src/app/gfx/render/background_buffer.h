@@ -40,6 +40,18 @@ class BackgroundBuffer {
   const std::vector<uint8_t>& priority_data() const { return priority_buffer_; }
   std::vector<uint8_t>& mutable_priority_data() { return priority_buffer_; }
 
+  // Coverage buffer methods for per-pixel "this layer wrote here" tracking.
+  //
+  // This is critical for accurate dungeon compositing: a tilemap entry can
+  // legally be fully transparent (all pixels == 0), and it still overwrites
+  // whatever was previously on that BG. With separate Layout/Object buffers,
+  // we need an explicit coverage mask to distinguish:
+  // - "object layer didn't write here" (fall back to layout), vs
+  // - "object layer wrote transparent here" (clear layout; reveal BG2/backdrop).
+  void ClearCoverageBuffer();
+  const std::vector<uint8_t>& coverage_data() const { return coverage_buffer_; }
+  std::vector<uint8_t>& mutable_coverage_data() { return coverage_buffer_; }
+
   // Accessors
   auto buffer() { return buffer_; }
   auto& bitmap() { return bitmap_; }
@@ -48,6 +60,7 @@ class BackgroundBuffer {
  private:
   std::vector<uint16_t> buffer_;
   std::vector<uint8_t> priority_buffer_;  // Per-pixel priority (0 or 1)
+  std::vector<uint8_t> coverage_buffer_;  // Per-pixel coverage (0=unset,1=set)
   gfx::Bitmap bitmap_;
   int width_;
   int height_;

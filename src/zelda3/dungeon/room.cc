@@ -978,6 +978,12 @@ void Room::RenderObjectsToBackground() {
   object_bg1_buffer_.ClearPriorityBuffer();
   object_bg2_buffer_.ClearPriorityBuffer();
 
+  // IMPORTANT: Clear coverage buffers when clearing object buffers.
+  // Coverage distinguishes "no draw" vs "drew transparent", so stale values
+  // can cause objects to incorrectly clear the layout.
+  object_bg1_buffer_.ClearCoverageBuffer();
+  object_bg2_buffer_.ClearCoverageBuffer();
+
   // Log layer distribution for this room
   int layer0_count = 0, layer1_count = 0, layer2_count = 0;
   for (const auto& obj : tile_objects_) {

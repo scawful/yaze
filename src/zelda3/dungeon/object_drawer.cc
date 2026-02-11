@@ -1476,7 +1476,7 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
   // Read offset from table (each entry is 2 bytes)
   int table_entry_addr = offset_table_addr + (type_index * 2);
   if (table_entry_addr + 1 >= static_cast<int>(rom_->size())) {
-    DrawDoorIndicator(bitmap, tile_x, tile_y, door_width, door_height,
+    DrawDoorIndicator(bg1, tile_x, tile_y, door_width, door_height,
                       door.type, door.direction);
     return;
   }
@@ -1501,7 +1501,7 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
       tile_data_addr + data_size > static_cast<int>(rom_->size())) {
     LOG_DEBUG("ObjectDrawer",
               "DrawDoor: INVALID ADDRESS - falling back to indicator");
-    DrawDoorIndicator(bitmap, tile_x, tile_y, door_width, door_height,
+    DrawDoorIndicator(bg1, tile_x, tile_y, door_width, door_height,
                       door.type, door.direction);
     return;
   }
@@ -1513,6 +1513,7 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
             tiles_per_door, tile_data_addr);
   int tile_idx = 0;
   auto& priority_buffer = bg1.mutable_priority_data();
+  auto& coverage_buffer = bg1.mutable_coverage_data();
   int bitmap_width = bitmap.width();
 
   for (int dx = 0; dx < door_width; dx++) {
@@ -1545,6 +1546,10 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
           if (dest_x < 0 || dest_x >= bitmap_width)
             continue;
           int dest_index = dest_y * bitmap_width + dest_x;
+          if (dest_index >= 0 &&
+              dest_index < static_cast<int>(coverage_buffer.size())) {
+            coverage_buffer[dest_index] = 1;
+          }
           if (dest_index < static_cast<int>(bitmap_data.size()) &&
               bitmap_data[dest_index] != 255) {
             priority_buffer[dest_index] = priority;
@@ -1565,11 +1570,14 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
             offset_table_addr, tile_offset, tile_data_addr);
 }
 
-void ObjectDrawer::DrawDoorIndicator(gfx::Bitmap& bitmap, int tile_x,
+void ObjectDrawer::DrawDoorIndicator(gfx::BackgroundBuffer& bg, int tile_x,
                                      int tile_y, int width, int height,
                                      DoorType type, DoorDirection direction) {
   // Draw a simple colored rectangle as door indicator when graphics unavailable
   // Different colors for different door types using DoorType enum
+
+  auto& bitmap = bg.bitmap();
+  auto& coverage_buffer = bg.mutable_coverage_data();
 
   uint8_t color_idx;
   switch (type) {
@@ -1657,6 +1665,11 @@ void ObjectDrawer::DrawDoorIndicator(gfx::Bitmap& bitmap, int tile_x,
 
         int offset = (dest_y * bitmap_width) + dest_x;
         bitmap.WriteToPixel(offset, final_color);
+
+        if (offset >= 0 &&
+            offset < static_cast<int>(coverage_buffer.size())) {
+          coverage_buffer[offset] = 1;
+        }
       }
     }
   }
@@ -3664,8 +3677,15 @@ void ObjectDrawer::WriteTile8(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
   // Draw single 8x8 tile directly to bitmap
   DrawTileToBitmap(bitmap, tile_info, tile_x * 8, tile_y * 8, gfx_data);
 
-  // Also update priority buffer with tile's priority bit
-  // Priority (over_) affects Z-ordering in SNES Mode 1 compositing
+  // Mark coverage for the full 8x8 tile region (even if pixels are transparent).
+  //
+  // This distinguishes "tilemap entry written but transparent" from "no write",
+  // which is required to emulate SNES behavior where a transparent tile still
+  // overwrites the previous tilemap entry (clearing BG1 and revealing BG2/backdrop).
+  auto& coverage_buffer = bg.mutable_coverage_data();
+
+  // Also update priority buffer with tile's priority bit.
+  // Priority (over_) affects Z-ordering in SNES Mode 1 compositing.
   uint8_t priority = tile_info.over_ ? 1 : 0;
   int pixel_x = tile_x * 8;
   int pixel_y = tile_y * 8;
@@ -3685,6 +3705,13 @@ void ObjectDrawer::WriteTile8(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
         continue;
 
       int dest_index = dest_y * width + dest_x;
+
+      // Coverage is set for all pixels in the tile footprint.
+      if (dest_index >= 0 &&
+          dest_index < static_cast<int>(coverage_buffer.size())) {
+        coverage_buffer[dest_index] = 1;
+      }
+
       // Only set priority for non-transparent pixels
       // Check if this pixel was actually drawn (not transparent)
       if (dest_index < static_cast<int>(bitmap_data.size()) &&
@@ -5281,6 +5308,7 @@ void yaze::zelda3::ObjectDrawer::DrawPotItem(uint8_t item_id, int x, int y,
     return;  // Nothing - skip
 
   auto& bitmap = bg.bitmap();
+  auto& coverage_buffer = bg.mutable_coverage_data();
   if (!bitmap.is_active() || bitmap.width() == 0)
     return;
 
@@ -5384,6 +5412,10 @@ void yaze::zelda3::ObjectDrawer::DrawPotItem(uint8_t item_id, int x, int y,
           dest_y < bitmap_height) {
         int offset = (dest_y * bitmap_width) + dest_x;
         bitmap.WriteToPixel(offset, color_idx);
+        if (offset >= 0 &&
+            offset < static_cast<int>(coverage_buffer.size())) {
+          coverage_buffer[offset] = 1;
+        }
       }
     }
   }

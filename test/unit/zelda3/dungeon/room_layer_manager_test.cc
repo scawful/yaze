@@ -250,5 +250,41 @@ TEST_F(RoomLayerManagerTest, PriorityCompositing_BG1Priority0OverBG2Priority0) {
   EXPECT_EQ(output.data()[0], 11);
 }
 
+TEST_F(RoomLayerManagerTest, Coverage_ObjectTransparentWriteClearsLayout) {
+  manager_.SetPriorityCompositing(true);
+
+  Room room(/*room_id=*/0, /*rom=*/nullptr);
+  room.bg1_buffer().EnsureBitmapInitialized();
+  room.bg2_buffer().EnsureBitmapInitialized();
+  room.object_bg1_buffer().EnsureBitmapInitialized();
+  room.object_bg2_buffer().EnsureBitmapInitialized();
+
+  room.bg1_buffer().bitmap().Fill(255);
+  room.bg2_buffer().bitmap().Fill(255);
+  room.object_bg1_buffer().bitmap().Fill(255);
+  room.object_bg2_buffer().bitmap().Fill(255);
+
+  room.bg1_buffer().ClearPriorityBuffer();
+  room.bg2_buffer().ClearPriorityBuffer();
+  room.object_bg1_buffer().ClearPriorityBuffer();
+  room.object_bg2_buffer().ClearPriorityBuffer();
+  room.object_bg1_buffer().ClearCoverageBuffer();
+  room.object_bg2_buffer().ClearCoverageBuffer();
+
+  // BG1 layout is opaque, BG2 layout is a different opaque pixel.
+  room.bg1_buffer().bitmap().mutable_data()[0] = 11;
+  room.bg2_buffer().bitmap().mutable_data()[0] = 22;
+
+  // Object layer writes a transparent pixel at this location. With coverage,
+  // it must override the BG1 layout and reveal BG2 (hole/clear semantics).
+  room.object_bg1_buffer().bitmap().mutable_data()[0] = 255;
+  room.object_bg1_buffer().mutable_coverage_data()[0] = 1;
+
+  gfx::Bitmap output;
+  manager_.CompositeToOutput(room, output);
+  ASSERT_TRUE(output.is_active());
+  EXPECT_EQ(output.data()[0], 22);
+}
+
 }  // namespace zelda3
 }  // namespace yaze
