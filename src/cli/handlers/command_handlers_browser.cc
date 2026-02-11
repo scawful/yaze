@@ -39,6 +39,12 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<DungeonExportRoomCommandHandler>());
   handlers.push_back(std::make_unique<DungeonListObjectsCommandHandler>());
   handlers.push_back(std::make_unique<DungeonListCustomCollisionCommandHandler>());
+  handlers.push_back(
+      std::make_unique<DungeonExportCustomCollisionJsonCommandHandler>());
+  handlers.push_back(
+      std::make_unique<DungeonImportCustomCollisionJsonCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonExportWaterFillJsonCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonImportWaterFillJsonCommandHandler>());
   handlers.push_back(std::make_unique<DungeonGetRoomTilesCommandHandler>());
   handlers.push_back(std::make_unique<DungeonSetRoomPropertyCommandHandler>());
   handlers.push_back(std::make_unique<DungeonMinecartAuditCommandHandler>());

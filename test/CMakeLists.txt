@@ -175,6 +175,7 @@ if(YAZE_BUILD_TESTS)
     unit/cli/command_registry_test.cc
     unit/cli/rom_doctor_water_fill_test.cc
     unit/cli/dungeon_object_validate_test.cc
+    unit/cli/dungeon_collision_json_commands_test.cc
     unit/rom/rom_diff_test.cc
     unit/rom/rom_test.cc
     unit/rom/write_fence_test.cc
@@ -337,6 +338,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/editor_set_test.cc
     unit/editor/paint_util_test.cc
     unit/cli/dungeon_object_validate_test.cc
+    unit/cli/dungeon_collision_json_commands_test.cc
     unit/zelda3/dungeon/water_fill_zone_test.cc
     unit/zelda3/dungeon/custom_collision_reserved_region_test.cc
     unit/zelda3/dungeon/custom_collision_json_test.cc
