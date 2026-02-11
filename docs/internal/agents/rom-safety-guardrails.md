@@ -38,6 +38,27 @@ RETURN_IF_ERROR(rom->WriteVector(start_pc, bytes));
 - Water fill table writers are fenced to:
   - `kWaterFillTableStart .. kWaterFillTableEnd`
 
+## Shared Oracle Preflight Gate
+
+Oracle save/import writes now share a single preflight validator:
+
+- API: `src/zelda3/dungeon/oracle_rom_safety_preflight.h`
+- Implementation: `src/zelda3/dungeon/oracle_rom_safety_preflight.cc`
+- Current call sites:
+  - `EditorManager::CheckOracleRomSafetyPreSave` (GUI save)
+  - `dungeon-import-custom-collision-json`
+  - `dungeon-import-water-fill-json`
+
+Fail-closed checks include:
+
+- Missing reserved regions (`ORACLE_WATER_FILL_REGION_MISSING`)
+- Corrupted water-fill header (`ORACLE_WATER_FILL_HEADER_CORRUPT`)
+- Invalid/overlapping collision pointers (`ORACLE_COLLISION_POINTER_INVALID`)
+- Invalid water-fill table state (`ORACLE_WATER_FILL_TABLE_INVALID`)
+
+For CLI imports, preflight details are included in `--report` output under
+`preflight` (`ok` + structured `errors[]`).
+
 ## When Adding a New ROM-Writing Feature
 
 Keep this checklist short and non-negotiable:

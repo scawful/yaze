@@ -78,6 +78,7 @@
 #include "editor/ui/rom_load_options_dialog.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/oracle_rom_safety_preflight.h"
 #include "zelda3/dungeon/water_fill_zone.h"
 #include "startup_flags.h"
 #include "util/file_util.h"
@@ -2416,42 +2417,24 @@ absl::Status EditorManager::CheckOracleRomSafetyPreSave(Rom* rom) {
     return absl::OkStatus();
   }
 
-  const auto& data = rom->vector();
-  if (!zelda3::HasWaterFillReservedRegion(data.size())) {
-    toast_manager_.Show(
-        "Oracle ROM safety: missing WaterFill reserved region (use an expanded-collision ROM)",
-        ToastType::kError);
-    return absl::FailedPreconditionError(
-        "Oracle ROM safety: WaterFill reserved region not present");
+  zelda3::OracleRomSafetyPreflightOptions options;
+  options.require_water_fill_reserved_region = true;
+  options.require_custom_collision_write_support = false;
+  options.validate_water_fill_table = true;
+  options.validate_custom_collision_maps = true;
+  options.max_collision_errors = 6;
+
+  const auto preflight = zelda3::RunOracleRomSafetyPreflight(rom, options);
+  if (preflight.ok()) {
+    return absl::OkStatus();
   }
 
-  // Oracle runtime currently uses 8 bits in $7EF411. If the header contains an
-  // out-of-range zone count, treat as corruption and block saving.
-  const uint8_t zone_count =
-      data[static_cast<size_t>(zelda3::kWaterFillTableStart)];
-  if (zone_count > 8) {
-    toast_manager_.Show(
-        absl::StrFormat(
-            "Oracle ROM safety: WaterFill table header corrupted (zone_count=%u)",
-            zone_count),
-        ToastType::kError);
-    return absl::FailedPreconditionError(
-        "Oracle ROM safety: WaterFill table header corrupted");
-  }
-
-  // Run the loader as a validation pass. This checks:
-  // - Custom collision pointers/data don't overlap the WaterFill reserved region
-  // - Table header/data offsets are consistent and in-bounds
-  auto zones = zelda3::LoadWaterFillTable(rom);
-  if (!zones.ok()) {
-    toast_manager_.Show(
-        absl::StrFormat("Oracle ROM safety check failed: %s",
-                        std::string(zones.status().message()).c_str()),
-        ToastType::kError);
-    return zones.status();
-  }
-
-  return absl::OkStatus();
+  const auto& first = preflight.errors.front();
+  toast_manager_.Show(
+      absl::StrFormat("Oracle ROM safety [%s]: %s", first.code,
+                      first.message.c_str()),
+      ToastType::kError);
+  return preflight.ToStatus();
 }
 
 absl::Status EditorManager::SaveRom() {

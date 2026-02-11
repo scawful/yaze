@@ -15,6 +15,12 @@
 - Added surfaced live-sync error indicator in Story Graph controls (`Live sync error` tooltip) for operator feedback parity with dashboard.
 - Verification: `./scripts/test_fast.sh --filter "MesenSocketClientTest|StoryEventGraphTest|OracleProgression"` (22/22 pass in current concurrent workspace).
 
+### 2026-02-11 CODEX – Shared Oracle ROM Preflight Gate
+- COMPLETE 2026-02-11 (CODEX): added `oracle_rom_safety_preflight` (shared fail-closed checks + structured issues) and wired it into `EditorManager::CheckOracleRomSafetyPreSave` plus CLI import write paths (`dungeon-import-custom-collision-json`, `dungeon-import-water-fill-json`).
+- Added WaterFill loader guardrail for duplicate SRAM masks and exposed preflight diagnostics in JSON reports under `preflight` (`ok` + `errors[]` with code/status/message/room).
+- Added tests: `OracleRomSafetyPreflightTest` + CLI regression for duplicate existing mask preflight failure.
+- Verification: `./scripts/test_fast.sh --filter "OracleRomSafetyPreflightTest|DungeonCollisionJsonCommandsTest|EditorManagerOracleRomSafetyTest|WaterFillZoneTest"` (56/56 pass in unit+integration subsets).
+
 ### 2026-02-11 CODEX – Mesen Event Subscription Runtime
 - COMPLETE 2026-02-11 (CODEX): implemented real event subscription flow in `MesenSocketClient` using a dedicated subscription socket + background event loop (callback dispatch for newline-delimited event payloads).
 - Added pre-buffer handling so events arriving in the same packet as subscribe ACK are not dropped; thread-safe callback set/get; clean unsubscribe/disconnect shutdown semantics.

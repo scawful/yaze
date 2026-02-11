@@ -12,6 +12,7 @@
 #include "nlohmann/json.hpp"
 #include "rom/rom.h"
 #include "zelda3/dungeon/custom_collision.h"
+#include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/water_fill_zone.h"
 
 namespace yaze::cli {
@@ -288,6 +289,64 @@ TEST(DungeonCollisionJsonCommandsTest,
   EXPECT_EQ(report.value("normalized_masks", 0), 1);
   EXPECT_TRUE(report.value("strict_masks", false));
   EXPECT_EQ(report["error"].value("code", ""), "FAILED_PRECONDITION");
+
+  std::filesystem::remove(in_path);
+  std::filesystem::remove(report_path);
+}
+
+TEST(DungeonCollisionJsonCommandsTest,
+     WaterFillImportFailsPreflightOnDuplicateExistingMasks) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+
+  std::vector<uint8_t> region(
+      static_cast<size_t>(zelda3::kWaterFillTableReservedSize), 0x00);
+  region[0] = 2;      // zone_count
+  region[1] = 0x25;   // room 0
+  region[2] = 0x01;   // mask 0 (duplicate)
+  region[3] = 0x09;   // data_off lo
+  region[4] = 0x00;   // data_off hi
+  region[5] = 0x27;   // room 1
+  region[6] = 0x01;   // mask 1 (duplicate)
+  region[7] = 0x0C;   // data_off lo
+  region[8] = 0x00;   // data_off hi
+  region[9] = 0x01;   // count
+  region[10] = 0x64;  // offset lo
+  region[11] = 0x00;  // offset hi
+  region[12] = 0x01;  // count
+  region[13] = 0xC8;  // offset lo
+  region[14] = 0x00;  // offset hi
+  ASSERT_TRUE(rom.WriteVector(zelda3::kWaterFillTableStart, region).ok());
+
+  const auto in_path =
+      std::filesystem::temp_directory_path() / "yaze_water_fill_preflight.json";
+  const auto report_path = std::filesystem::temp_directory_path() /
+                           "yaze_water_fill_preflight.report.json";
+  WriteFile(in_path,
+            "{\n"
+            "  \"version\": 1,\n"
+            "  \"zones\": [\n"
+            "    { \"room_id\": \"0x25\", \"mask\": \"0x01\", \"offsets\": [32] }\n"
+            "  ]\n"
+            "}\n");
+
+  handlers::DungeonImportWaterFillJsonCommandHandler handler;
+  std::string output;
+  const auto status =
+      handler.Run({"--in", in_path.string(), "--dry-run",
+                   "--report", report_path.string(), "--format=json"},
+                  &rom, &output);
+  EXPECT_FALSE(status.ok());
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+
+  const auto report = nlohmann::json::parse(ReadFile(report_path));
+  EXPECT_EQ(report.value("status", ""), "error");
+  ASSERT_TRUE(report.contains("preflight"));
+  EXPECT_FALSE(report["preflight"].value("ok", true));
+  ASSERT_TRUE(report["preflight"].contains("errors"));
+  ASSERT_FALSE(report["preflight"]["errors"].empty());
+  EXPECT_EQ(report["preflight"]["errors"][0].value("code", ""),
+            "ORACLE_WATER_FILL_TABLE_INVALID");
 
   std::filesystem::remove(in_path);
   std::filesystem::remove(report_path);
