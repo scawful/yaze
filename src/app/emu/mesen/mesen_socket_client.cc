@@ -897,6 +897,24 @@ void MesenSocketClient::SetEventCallback(EventCallback callback) {
   event_callback_ = std::move(callback);
 }
 
+EventListenerId MesenSocketClient::AddEventListener(EventCallback callback) {
+  if (!callback) {
+    return 0;
+  }
+  std::lock_guard<std::mutex> lock(event_callback_mutex_);
+  const EventListenerId id = next_event_listener_id_++;
+  event_listeners_[id] = std::move(callback);
+  return id;
+}
+
+void MesenSocketClient::RemoveEventListener(EventListenerId id) {
+  if (id == 0) {
+    return;
+  }
+  std::lock_guard<std::mutex> lock(event_callback_mutex_);
+  event_listeners_.erase(id);
+}
+
 void MesenSocketClient::EventLoop() {
   const int event_fd = event_socket_fd_;
   if (event_fd < 0) {
@@ -925,12 +943,24 @@ void MesenSocketClient::EventLoop() {
         event.frame = static_cast<uint64_t>(ExtractJsonInt(line, "frame", 0));
 
         EventCallback callback;
+        std::vector<EventCallback> listeners;
         {
           std::lock_guard<std::mutex> lock(event_callback_mutex_);
           callback = event_callback_;
+          listeners.reserve(event_listeners_.size());
+          for (const auto& [id, listener] : event_listeners_) {
+            if (listener) {
+              listeners.push_back(listener);
+            }
+          }
         }
         if (callback && !event.type.empty()) {
           callback(event);
+        }
+        if (!event.type.empty()) {
+          for (const auto& listener : listeners) {
+            listener(event);
+          }
         }
       }
 

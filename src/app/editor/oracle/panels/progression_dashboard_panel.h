@@ -1,13 +1,16 @@
 #ifndef YAZE_APP_EDITOR_ORACLE_PANELS_PROGRESSION_DASHBOARD_PANEL_H
 #define YAZE_APP_EDITOR_ORACLE_PANELS_PROGRESSION_DASHBOARD_PANEL_H
 
+#include <atomic>
 #include <cstdio>
 #include <filesystem>
+#include <memory>
 #include <string>
 #include <vector>
 
 #include "app/editor/core/content_registry.h"
 #include "app/editor/system/editor_panel.h"
+#include "app/emu/mesen/mesen_client_registry.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "core/hack_manifest.h"
@@ -29,6 +32,8 @@ namespace yaze::editor {
  */
 class ProgressionDashboardPanel : public EditorPanel {
  public:
+  ~ProgressionDashboardPanel() override { DetachLiveListener(); }
+
   std::string GetId() const override { return "oracle.progression_dashboard"; }
   std::string GetDisplayName() const override {
     return "Progression Dashboard";
@@ -42,6 +47,10 @@ class ProgressionDashboardPanel : public EditorPanel {
 
   void Draw(bool* p_open) override {
     (void)p_open;
+
+    RefreshLiveClientBinding();
+    EnsureLiveSubscription();
+    ProcessPendingLiveRefresh();
 
     // Lazily resolve the manifest from the project context.
     if (!manifest_) {
@@ -125,6 +134,43 @@ class ProgressionDashboardPanel : public EditorPanel {
     if (!last_srm_error_.empty()) {
       ImGui::TextColored(ImVec4(1.0f, 0.35f, 0.35f, 1.0f), "Error: %s",
                          last_srm_error_.c_str());
+    }
+
+    DrawLiveSyncControls();
+  }
+
+  void DrawLiveSyncControls() {
+    const bool connected = live_client_ && live_client_->IsConnected();
+
+    ImGui::Spacing();
+    ImGui::Text("Live SRAM (Mesen2)");
+    ImGui::SameLine();
+    if (connected) {
+      ImGui::TextColored(ImVec4(0.25f, 0.85f, 0.35f, 1.0f), "Connected");
+    } else {
+      ImGui::TextDisabled("Disconnected");
+    }
+
+    if (ImGui::SmallButton("Sync from Mesen")) {
+      live_refresh_pending_.store(false);
+      RefreshStateFromLiveSram();
+    }
+    ImGui::SameLine();
+    ImGui::Checkbox("Auto (event-driven)", &live_sync_enabled_);
+    if (live_sync_enabled_) {
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(70.0f);
+      ImGui::SliderFloat("##LiveRefreshInterval", &live_refresh_interval_seconds_,
+                         0.05f, 0.5f, "%.2fs");
+    }
+
+    if (!connected) {
+      ImGui::TextDisabled("Use a Mesen panel to connect (shared client).");
+    }
+
+    if (!live_sync_error_.empty()) {
+      ImGui::TextColored(ImVec4(1.0f, 0.55f, 0.35f, 1.0f), "Live sync: %s",
+                         live_sync_error_.c_str());
     }
   }
 
@@ -313,12 +359,144 @@ class ProgressionDashboardPanel : public EditorPanel {
     ImGui::TreePop();
   }
 
+  void RefreshLiveClientBinding() {
+    auto client = emu::mesen::MesenClientRegistry::GetClient();
+    if (client == live_client_) {
+      return;
+    }
+
+    DetachLiveListener();
+    live_client_ = std::move(client);
+    live_subscription_active_ = false;
+    live_sync_error_.clear();
+
+    if (live_client_ && live_client_->IsConnected()) {
+      live_refresh_pending_.store(true);
+    }
+  }
+
+  void EnsureLiveSubscription() {
+    if (!live_sync_enabled_) {
+      return;
+    }
+    if (!live_client_ || !live_client_->IsConnected()) {
+      live_subscription_active_ = false;
+      return;
+    }
+
+    if (live_listener_id_ == 0) {
+      live_listener_id_ =
+          live_client_->AddEventListener([this](const emu::mesen::MesenEvent& event) {
+            if (event.type == "frame_complete" ||
+                event.type == "breakpoint_hit" || event.type == "all") {
+              live_refresh_pending_.store(true);
+            }
+          });
+    }
+
+    if (live_subscription_active_) {
+      return;
+    }
+
+    const double now = ImGui::GetTime();
+    if ((now - last_subscribe_attempt_time_) < 1.0) {
+      return;
+    }
+    last_subscribe_attempt_time_ = now;
+
+    auto status = live_client_->Subscribe({"frame_complete", "breakpoint_hit"});
+    if (!status.ok()) {
+      live_sync_error_ = std::string(status.message());
+      return;
+    }
+
+    live_subscription_active_ = true;
+    live_sync_error_.clear();
+    live_refresh_pending_.store(true);
+  }
+
+  void ProcessPendingLiveRefresh() {
+    if (!live_sync_enabled_) {
+      return;
+    }
+    if (!live_refresh_pending_.load()) {
+      return;
+    }
+    const double now = ImGui::GetTime();
+    if ((now - last_live_refresh_time_) < live_refresh_interval_seconds_) {
+      return;
+    }
+    if (RefreshStateFromLiveSram()) {
+      last_live_refresh_time_ = now;
+    }
+    live_refresh_pending_.store(false);
+  }
+
+  bool RefreshStateFromLiveSram() {
+    if (!live_client_ || !live_client_->IsConnected()) {
+      live_sync_error_ = "Mesen client is not connected";
+      return false;
+    }
+
+    constexpr uint32_t kBaseAddress = 0x7EF000;
+    constexpr uint16_t kStartOffset = core::OracleProgressionState::kPendantOffset;
+    constexpr uint16_t kEndOffset = core::OracleProgressionState::kSideQuestOffset;
+    constexpr size_t kReadLength = kEndOffset - kStartOffset + 1;
+    constexpr uint32_t kReadAddress = kBaseAddress + kStartOffset;
+
+    auto bytes_or = live_client_->ReadBlock(kReadAddress, kReadLength);
+    if (!bytes_or.ok()) {
+      live_sync_error_ = std::string(bytes_or.status().message());
+      return false;
+    }
+    if (bytes_or->size() < kReadLength) {
+      live_sync_error_ = "SRAM read returned truncated data";
+      return false;
+    }
+
+    const auto read_byte = [&](uint16_t offset) -> uint8_t {
+      return (*bytes_or)[offset - kStartOffset];
+    };
+
+    state_.pendants = read_byte(core::OracleProgressionState::kPendantOffset);
+    state_.crystal_bitfield =
+        read_byte(core::OracleProgressionState::kCrystalOffset);
+    state_.game_state = read_byte(core::OracleProgressionState::kGameStateOffset);
+    state_.oosprog2 = read_byte(core::OracleProgressionState::kOosProg2Offset);
+    state_.oosprog = read_byte(core::OracleProgressionState::kOosProgOffset);
+    state_.side_quest = read_byte(core::OracleProgressionState::kSideQuestOffset);
+    game_state_slider_ = static_cast<int>(state_.game_state);
+
+    loaded_srm_path_ = "Mesen2 Live";
+    last_srm_error_.clear();
+    live_sync_error_.clear();
+    return true;
+  }
+
+  void DetachLiveListener() {
+    if (live_client_ && live_listener_id_ != 0) {
+      live_client_->RemoveEventListener(live_listener_id_);
+    }
+    live_listener_id_ = 0;
+    live_subscription_active_ = false;
+  }
+
   core::OracleProgressionState state_;
   int game_state_slider_ = 0;
 
   core::HackManifest* manifest_ = nullptr;
   std::string loaded_srm_path_;
   std::string last_srm_error_;
+
+  std::shared_ptr<emu::mesen::MesenSocketClient> live_client_;
+  emu::mesen::EventListenerId live_listener_id_ = 0;
+  bool live_sync_enabled_ = true;
+  bool live_subscription_active_ = false;
+  std::atomic<bool> live_refresh_pending_{false};
+  float live_refresh_interval_seconds_ = 0.10f;
+  double last_live_refresh_time_ = 0.0;
+  double last_subscribe_attempt_time_ = 0.0;
+  std::string live_sync_error_;
 
   // Bit labels for flag grids
   static constexpr const char* oosprog_labels_[8] = {

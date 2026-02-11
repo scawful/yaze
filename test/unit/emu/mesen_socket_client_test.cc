@@ -218,13 +218,20 @@ TEST(MesenSocketClientTest, SubscribeDispatchesFrameEvents) {
   std::condition_variable callback_cv;
   bool got_event = false;
   MesenEvent captured_event;
+  std::atomic<int> legacy_callback_count{0};
 
   client.SetEventCallback([&](const MesenEvent& event) {
+    legacy_callback_count.fetch_add(1);
+    (void)event;
+  });
+
+  const auto listener_id = client.AddEventListener([&](const MesenEvent& event) {
     std::lock_guard<std::mutex> lock(callback_mutex);
     captured_event = event;
     got_event = true;
     callback_cv.notify_one();
   });
+  ASSERT_NE(listener_id, 0u);
 
   ASSERT_TRUE(client.Subscribe({"frame_complete"}).ok());
 
@@ -237,7 +244,9 @@ TEST(MesenSocketClientTest, SubscribeDispatchesFrameEvents) {
   EXPECT_EQ(captured_event.type, "frame_complete");
   EXPECT_EQ(captured_event.frame, 42u);
   EXPECT_EQ(captured_event.address, 0x008000u);
+  EXPECT_EQ(legacy_callback_count.load(), 1);
 
+  client.RemoveEventListener(listener_id);
   EXPECT_TRUE(client.Unsubscribe().ok());
   client.Disconnect();
   server.Stop();

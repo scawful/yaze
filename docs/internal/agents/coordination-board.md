@@ -3,6 +3,12 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
+### 2026-02-11 CODEX – Oracle Live Progression Sync
+- COMPLETE 2026-02-11 (CODEX): `ProgressionDashboardPanel` now supports shared Mesen live SRAM sync (manual + event-driven auto mode) via `MesenClientRegistry`; reads Oracle progression bytes from WRAM and updates manifest-backed dashboard state without timer polling.
+- Added safe listener lifecycle (attach/detach) and subscription retry/throttle logic to avoid callback stomping when multiple panels/tools use Mesen.
+- `MesenSocketClient` now supports multi-listener dispatch (`AddEventListener` / `RemoveEventListener`) while preserving `SetEventCallback` compatibility.
+- Verification: `./scripts/test_fast.sh --filter "MesenSocketClientTest|StoryEventGraphTest|OracleProgression"` and `./scripts/test_fast.sh --quick --no-configure` (148/148 pass).
+
 ### 2026-02-11 CODEX – Mesen Event Subscription Runtime
 - COMPLETE 2026-02-11 (CODEX): implemented real event subscription flow in `MesenSocketClient` using a dedicated subscription socket + background event loop (callback dispatch for newline-delimited event payloads).
 - Added pre-buffer handling so events arriving in the same packet as subscribe ACK are not dropped; thread-safe callback set/get; clean unsubscribe/disconnect shutdown semantics.
