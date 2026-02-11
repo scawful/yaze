@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 #include "zelda3/dungeon/room_layer_manager.h"
+#include "zelda3/dungeon/room.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -162,6 +163,32 @@ TEST_F(RoomLayerManagerTest, GetBlendModeNameReturnsCorrectStrings) {
   EXPECT_STREQ(RoomLayerManager::GetBlendModeName(LayerBlendMode::Normal), "Normal");
   EXPECT_STREQ(RoomLayerManager::GetBlendModeName(LayerBlendMode::Translucent), "Translucent");
   EXPECT_STREQ(RoomLayerManager::GetBlendModeName(LayerBlendMode::Off), "Off");
+}
+
+TEST_F(RoomLayerManagerTest, CompositeToOutputUsesBackdropWhenLayersAreEmpty) {
+  Room room(/*room_id=*/0, /*rom=*/nullptr);
+
+  // Ensure all layer buffers are initialized and empty (255 == transparent fill).
+  room.bg1_buffer().EnsureBitmapInitialized();
+  room.bg2_buffer().EnsureBitmapInitialized();
+  room.object_bg1_buffer().EnsureBitmapInitialized();
+  room.object_bg2_buffer().EnsureBitmapInitialized();
+  room.bg1_buffer().bitmap().Fill(255);
+  room.bg2_buffer().bitmap().Fill(255);
+  room.object_bg1_buffer().bitmap().Fill(255);
+  room.object_bg2_buffer().bitmap().Fill(255);
+
+  gfx::Bitmap output;
+  manager_.CompositeToOutput(room, output);
+
+  ASSERT_TRUE(output.is_active());
+  ASSERT_EQ(output.width(), 512);
+  ASSERT_EQ(output.height(), 512);
+  ASSERT_GT(output.size(), 0u);
+
+  // With no visible pixels in any layer, the composite should remain at the
+  // backdrop value (0), not the transparent fill (255).
+  EXPECT_EQ(output.data()[0], 0);
 }
 
 }  // namespace zelda3
