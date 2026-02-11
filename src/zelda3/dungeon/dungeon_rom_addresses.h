@@ -2,6 +2,7 @@
 #define YAZE_APP_ZELDA3_DUNGEON_ROM_ADDRESSES_H
 
 #include <array>  // Added for std::array
+#include <cstddef>
 #include <cstdint>
 
 namespace yaze {
@@ -98,6 +99,30 @@ constexpr int kNumberOfRooms = 296;  // Total dungeon rooms (0x00-0x127)
 
 // Stair objects (special handling)
 constexpr uint16_t kStairsObjects[] = {0x139, 0x138, 0x13B, 0x12E, 0x12D};
+
+// === ROM Region Guardrail Helpers ===
+// These helpers centralize "does this ROM support feature X?" checks so the
+// UI and save pipeline enforce the same boundaries.
+
+constexpr bool HasCustomCollisionPointerTable(std::size_t rom_size) {
+  return static_cast<std::size_t>(kCustomCollisionRoomPointers) +
+             static_cast<std::size_t>(kNumberOfRooms * 3) <=
+         rom_size;
+}
+
+constexpr bool HasCustomCollisionDataRegion(std::size_t rom_size) {
+  return static_cast<std::size_t>(kCustomCollisionDataPosition) < rom_size &&
+         static_cast<std::size_t>(kCustomCollisionDataSoftEnd) <= rom_size;
+}
+
+constexpr bool HasCustomCollisionWriteSupport(std::size_t rom_size) {
+  return HasCustomCollisionPointerTable(rom_size) &&
+         HasCustomCollisionDataRegion(rom_size);
+}
+
+constexpr bool HasWaterFillReservedRegion(std::size_t rom_size) {
+  return static_cast<std::size_t>(kWaterFillTableEnd) <= rom_size;
+}
 
 // === Layout Pointers (referenced in comments) ===
 // Layout00 ptr: 0x47EF04

@@ -52,9 +52,9 @@ class WaterFillPanel : public EditorPanel {
     const bool room_id_valid =
         (room_id >= 0 && room_id < static_cast<int>(rooms->size()));
 
+    const size_t rom_size = viewer_->rom()->vector().size();
     const bool reserved_region_present =
-        (zelda3::kWaterFillTableEnd <=
-         static_cast<int>(viewer_->rom()->vector().size()));
+        zelda3::HasWaterFillReservedRegion(rom_size);
     if (!reserved_region_present) {
       ImGui::TextColored(
           theme.status_error,
@@ -62,7 +62,7 @@ class WaterFillPanel : public EditorPanel {
           " WaterFill reserved region missing (use an expanded-collision Oracle ROM)");
       ImGui::TextDisabled(
           "Expected ROM >= 0x%X bytes (WaterFill end). Current ROM is %zu bytes.",
-          zelda3::kWaterFillTableEnd, viewer_->rom()->vector().size());
+          zelda3::kWaterFillTableEnd, rom_size);
       ImGui::Separator();
     }
 

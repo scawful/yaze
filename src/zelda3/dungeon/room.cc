@@ -2215,11 +2215,8 @@ absl::Status SaveAllCollision(Rom* rom, absl::Span<Room> rooms) {
   // expanded collision bank.
   const auto& rom_data = rom->vector();
   const int ptrs_size = kNumberOfRooms * 3;
-  const bool has_ptr_table =
-      (kCustomCollisionRoomPointers + ptrs_size <= static_cast<int>(rom_data.size()));
-  const bool has_data_region =
-      (kCustomCollisionDataPosition < static_cast<int>(rom_data.size())) &&
-      (kCustomCollisionDataSoftEnd <= static_cast<int>(rom_data.size()));
+  const bool has_ptr_table = HasCustomCollisionPointerTable(rom_data.size());
+  const bool has_data_region = HasCustomCollisionDataRegion(rom_data.size());
 
   if (!has_ptr_table) {
     for (auto& room : rooms) {
