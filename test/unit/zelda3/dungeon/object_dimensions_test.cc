@@ -251,5 +251,23 @@ TEST_F(ObjectDimensionsTest, CalculatesDimensionsForSomariaLine) {
   EXPECT_EQ(dims.second, 8);
 }
 
+TEST_F(ObjectDimensionsTest, CalculatesDimensionsForSuperSquareObjectsUse2BitSizes) {
+  ObjectDrawer drawer(rom_.get(), 0);
+
+  // SuperSquare objects (e.g. 0xC2) use 2-bit X/Y sizes packed as:
+  // size = (x_size << 2) | y_size, where each component is 0..3 (meaning 1..4).
+  //
+  // This test ensures CalculateObjectDimensions matches that encoding.
+  RoomObject obj_c2_x1_y2(0xC2, 0, 0, /*size=*/(0 << 2) | 1, /*layer=*/1);
+  auto dims = drawer.CalculateObjectDimensions(obj_c2_x1_y2);
+  EXPECT_EQ(dims.first, 32);   // 1 super square * 32px
+  EXPECT_EQ(dims.second, 64);  // 2 super squares * 32px
+
+  RoomObject obj_c2_x4_y3(0xC2, 0, 0, /*size=*/(3 << 2) | 2, /*layer=*/1);
+  dims = drawer.CalculateObjectDimensions(obj_c2_x4_y3);
+  EXPECT_EQ(dims.first, 128);  // 4 super squares * 32px
+  EXPECT_EQ(dims.second, 96);  // 3 super squares * 32px
+}
+
 }  // namespace zelda3
 }  // namespace yaze

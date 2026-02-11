@@ -231,6 +231,61 @@ TEST(ObjectDrawerRegistryReplayTest, RegistryRoutinesUseObjectDrawerRoomIdForSta
   EXPECT_EQ(trace[0].tile_id, lock.tiles_[4].id_);
 }
 
+TEST(ObjectDrawerMaskPropagationTest, Layer2PitMaskMarksBG1Transparent) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  rom.LoadFromData(dummy_rom);
+
+  // Provide non-zero gfx so any draw calls can write pixels if needed.
+  std::array<uint8_t, 0x10000> gfx{};
+  gfx.fill(1);
+
+  gfx::BackgroundBuffer obj_bg1(512, 512);
+  gfx::BackgroundBuffer obj_bg2(512, 512);
+  gfx::BackgroundBuffer layout_bg1(512, 512);
+  obj_bg1.EnsureBitmapInitialized();
+  obj_bg2.EnsureBitmapInitialized();
+  layout_bg1.EnsureBitmapInitialized();
+
+  // Fill BG1 buffers with a non-transparent value so we can observe the mask.
+  obj_bg1.bitmap().Fill(10);
+  layout_bg1.bitmap().Fill(11);
+  obj_bg2.bitmap().Fill(255);
+  obj_bg1.ClearPriorityBuffer();
+  obj_bg2.ClearPriorityBuffer();
+  layout_bg1.ClearPriorityBuffer();
+
+  ObjectDrawer drawer(&rom, /*room_id=*/0, gfx.data());
+
+  // 0xC2 is "Layer 2 pit mask (large)" and should clear BG1 to transparent
+  // in the object's covered area when drawn on BG2.
+  RoomObject obj(0x00C2, /*x=*/2, /*y=*/3, /*size=*/0, /*layer=*/1);
+  obj.tiles_loaded_ = true;
+  obj.tiles_.clear();
+  obj.tiles_.push_back(gfx::TileInfo(/*id=*/0, /*pal=*/2, false, false, false));
+
+  gfx::PaletteGroup palette_group;
+
+  const int px = obj.x_ * 8;
+  const int py = obj.y_ * 8;
+  const int idx = py * obj_bg1.bitmap().width() + px;
+  ASSERT_GE(idx, 0);
+  ASSERT_LT(idx, static_cast<int>(obj_bg1.bitmap().size()));
+  ASSERT_NE(obj_bg1.bitmap().data()[idx], 255);
+  ASSERT_NE(layout_bg1.bitmap().data()[idx], 255);
+
+  ASSERT_TRUE(drawer
+                  .DrawObject(obj, obj_bg1, obj_bg2, palette_group,
+                              /*state=*/nullptr, /*layout_bg1=*/&layout_bg1)
+                  .ok());
+
+  // Both the object BG1 buffer and the layout BG1 buffer should be masked.
+  EXPECT_EQ(obj_bg1.bitmap().data()[idx], 255);
+  EXPECT_EQ(layout_bg1.bitmap().data()[idx], 255);
+}
+
 TEST(ObjectDrawerRegistryReplayTest, PrisonCellDrawsToBothBuffersWhenMarkedBothBG) {
   ScopedCustomObjectsFlag disable_custom(false);
 

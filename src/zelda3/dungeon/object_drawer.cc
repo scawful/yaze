@@ -251,18 +251,25 @@ absl::Status ObjectDrawer::DrawObject(
     DrawRoutineUtils::ClearTraceHook();
   }
 
-  // BG2 Mask Propagation: ONLY pit/mask objects should mark BG1 as transparent.
-  // Regular Layer 1 objects (walls, statues, stairs) should just draw to BG2
-  // and let normal compositing handle the layering (BG1 draws on top of BG2).
+  // BG2 Mask Propagation: ONLY layer-2 mask/pit objects should mark BG1 as
+  // transparent.
+  //
+  // Regular BG2 objects (walls, statues, ceilings, platforms) rely on priority
+  // bits for correct Z-order and should NOT automatically clear BG1.
   //
   // FIX: Previously this marked ALL Layer 1 objects as creating BG1 transparency,
   // which caused walls/statues to incorrectly show "above" the layout.
-  // Now we only call MarkBG1Transparent for actual pit/mask objects.
+  // Now we only call MarkBG1Transparent for known mask objects.
   bool is_pit_or_mask =
-      (object.id_ == 0xA4) ||                        // BigHole4x4
-      (object.id_ >= 0x9B && object.id_ <= 0xA6) ||  // Pit edges
-      (object.id_ == 0xFE6) ||                       // Type 3 pit
-      (object.id_ == 0xFBE || object.id_ == 0xFBF);  // Layer 2 pit masks
+      (object.id_ == 0xA4) ||                         // Pit
+      (object.id_ >= 0xA5 && object.id_ <= 0xAC) ||   // Diagonal layer 2 masks
+      (object.id_ == 0xC2) ||                         // Layer 2 pit mask (large)
+      (object.id_ == 0xC3) ||                         // Layer 2 pit mask (medium)
+      (object.id_ == 0xC6) ||                         // Layer 2 mask (large)
+      (object.id_ == 0xD7) ||                         // Layer 2 mask (medium)
+      (object.id_ == 0xD9) ||                         // Layer 2 swim mask
+      (object.id_ == 0xFE6) ||                        // Type 3 pit
+      (object.id_ == 0xFF3);                          // Type 3 layer 2 mask (full)
 
   if (!trace_only_ && is_pit_or_mask &&
       object.layer_ == RoomObject::LayerType::BG2 && !is_both_bg) {
@@ -4934,8 +4941,9 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
     }
 
     // Routines 56-64: SuperSquare patterns
-    // ASM: These routines use size_x = (size & 0x0F) + 1, size_y = ((size >> 4) & 0x0F) + 1
-    // Each super square unit is 4 tiles (32 pixels) in each dimension
+    // ASM: Type1/Type3 objects pack 2-bit X/Y sizes into a 4-bit size:
+    //   size = (x_size << 2) | y_size, where x_size/y_size are 0..3 (meaning 1..4).
+    // Each super square unit is 4 tiles (32 pixels) in each dimension.
     case 56:  // 4x4BlocksIn4x4SuperSquare
     case 57:  // 3x3FloorIn4x4SuperSquare
     case 58:  // 4x4FloorIn4x4SuperSquare
@@ -4943,8 +4951,8 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
     case 60:  // 4x4FloorTwoIn4x4SuperSquare
     case 62:  // Spike2x2In4x4SuperSquare
     {
-      int size_x = (size & 0x0F) + 1;
-      int size_y = ((size >> 4) & 0x0F) + 1;
+      int size_x = ((size >> 2) & 0x03) + 1;
+      int size_y = (size & 0x03) + 1;
       width = size_x * 32;   // 4 tiles per super square
       height = size_y * 32;  // 4 tiles per super square
       break;

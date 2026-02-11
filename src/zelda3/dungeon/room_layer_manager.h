@@ -428,8 +428,8 @@ class RoomLayerManager {
    *
    * | Layer | Priority | Effective Order |
    * |-------|----------|-----------------|
-   * | BG1   | 0        | 0 (back)        |
-   * | BG2   | 0        | 1               |
+   * | BG2   | 0        | 0 (back)        |
+   * | BG1   | 0        | 1               |
    * | BG2   | 1        | 2               |
    * | BG1   | 1        | 3 (front)       |
    *
@@ -483,12 +483,9 @@ class RoomLayerManager {
   bool layers_merged_ = false;
   uint8_t current_merge_type_id_ = 0;
   
-  // DEPRECATED: Priority compositing is no longer used.
-  // The correct SNES behavior uses simple back-to-front layer ordering:
-  // BG2 (background) first, then BG1 (foreground) on top.
-  // Per-tile priority is encoded in the tile data itself.
-  // Kept for API compatibility.
-  bool use_priority_compositing_ = false;
+  // When enabled, CompositeToOutput uses per-pixel priority buffers to emulate
+  // SNES Mode 1 ordering (BG2 pri=1 can appear above BG1 pri=0).
+  bool use_priority_compositing_ = true;
 };
 
 }  // namespace zelda3

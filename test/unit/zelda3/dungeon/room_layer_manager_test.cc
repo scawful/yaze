@@ -191,5 +191,64 @@ TEST_F(RoomLayerManagerTest, CompositeToOutputUsesBackdropWhenLayersAreEmpty) {
   EXPECT_EQ(output.data()[0], 0);
 }
 
+TEST_F(RoomLayerManagerTest, PriorityCompositing_BG2Priority1OverBG1Priority0) {
+  // This matches SNES Mode 1 behavior: BG2 tiles with priority=1 can appear
+  // above BG1 tiles with priority=0.
+  manager_.SetPriorityCompositing(true);
+
+  Room room(/*room_id=*/0, /*rom=*/nullptr);
+  room.bg1_buffer().EnsureBitmapInitialized();
+  room.bg2_buffer().EnsureBitmapInitialized();
+  room.object_bg1_buffer().EnsureBitmapInitialized();
+  room.object_bg2_buffer().EnsureBitmapInitialized();
+  room.bg1_buffer().bitmap().Fill(255);
+  room.bg2_buffer().bitmap().Fill(255);
+  room.object_bg1_buffer().bitmap().Fill(255);
+  room.object_bg2_buffer().bitmap().Fill(255);
+  room.bg1_buffer().ClearPriorityBuffer();
+  room.bg2_buffer().ClearPriorityBuffer();
+  room.object_bg1_buffer().ClearPriorityBuffer();
+  room.object_bg2_buffer().ClearPriorityBuffer();
+
+  // Put an opaque pixel in BG1 (priority 0) and a competing pixel in BG2
+  // (priority 1) at the same location.
+  room.bg1_buffer().bitmap().mutable_data()[0] = 10;
+  room.bg1_buffer().mutable_priority_data()[0] = 0;
+  room.bg2_buffer().bitmap().mutable_data()[0] = 20;
+  room.bg2_buffer().mutable_priority_data()[0] = 1;
+
+  gfx::Bitmap output;
+  manager_.CompositeToOutput(room, output);
+  ASSERT_TRUE(output.is_active());
+  EXPECT_EQ(output.data()[0], 20);
+}
+
+TEST_F(RoomLayerManagerTest, PriorityCompositing_BG1Priority0OverBG2Priority0) {
+  // BG1 with priority=0 should still be above BG2 with priority=0.
+  manager_.SetPriorityCompositing(true);
+
+  Room room(/*room_id=*/0, /*rom=*/nullptr);
+  room.bg1_buffer().EnsureBitmapInitialized();
+  room.bg2_buffer().EnsureBitmapInitialized();
+  room.object_bg1_buffer().EnsureBitmapInitialized();
+  room.object_bg2_buffer().EnsureBitmapInitialized();
+  room.bg1_buffer().bitmap().Fill(255);
+  room.bg2_buffer().bitmap().Fill(255);
+  room.object_bg1_buffer().bitmap().Fill(255);
+  room.object_bg2_buffer().bitmap().Fill(255);
+  room.bg1_buffer().ClearPriorityBuffer();
+  room.bg2_buffer().ClearPriorityBuffer();
+
+  room.bg1_buffer().bitmap().mutable_data()[0] = 11;
+  room.bg1_buffer().mutable_priority_data()[0] = 0;
+  room.bg2_buffer().bitmap().mutable_data()[0] = 22;
+  room.bg2_buffer().mutable_priority_data()[0] = 0;
+
+  gfx::Bitmap output;
+  manager_.CompositeToOutput(room, output);
+  ASSERT_TRUE(output.is_active());
+  EXPECT_EQ(output.data()[0], 11);
+}
+
 }  // namespace zelda3
 }  // namespace yaze
