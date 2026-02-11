@@ -1,42 +1,39 @@
 # Roadmap
 
-**Last Updated: February 5, 2026**
+**Last Updated: February 10, 2026**
 
 This roadmap tracks upcoming releases and major ongoing initiatives.
 
-## Current Focus (v0.5.6)
+## Current Focus (v0.6.x)
 
-### Priority 0: AI Registry & Model Context
-- **AI Registry (Phase 1)**: unify provider/model discovery across UI + CLI; surface model metadata, display names, and refresh controls.
-- **Model Context Settings**: per-profile context presets (system prompts, tool scopes, cache TTLs) with safe defaults for local vs hosted providers.
-- **Provider Parity**: align OpenAI/Anthropic/Gemini/Ollama/LM Studio base URL handling and configuration UX.
-- **In Progress**: ModelRegistry foundation (caching + HTTP API refresh) landing in CLI/API.
+### Priority 0: UI Polish & Responsiveness
+- **Viewport-relative sizing**: Migrate 30+ hardcoded `ImVec2` dialog sizes to use `DialogSize()`/`ConstrainToViewport()`
+- **Context menu unification**: Consolidate legacy `CanvasContextMenu` with Phase 4 declarative system
+- **Panel simplification**: Reduce PanelManager visibility concepts (merge Favorites into Pinned)
+- **Icon/button alignment**: Fix misaligned toolbar icons and fixed-size table columns
 
-### Priority 1: Editor Feature Completion
-- **Palette JSON Import/Export**: Complete `palette_group_panel.cc:529,534` for palette file exchange
-- **Palette Clipboard Import**: Implement `palette_group_panel.cc:559` for copy/paste workflows
-- **Graphics Screen Editor**: Implement edit operations (Undo/Redo/Cut/Copy/Paste) in `screen_editor.h:46-52`
-- **Link Sprite Reset to Vanilla**: `link_sprite_panel.cc:339` - preserve vanilla backup
+### Priority 1: WIP Editor Completion
+- **Screen Editor**: Implement Undo/Redo/Cut/Copy/Paste (`screen_editor.h:46-52`)
+- **Memory Editor**: Implement search functionality
+- **Sprite Editor**: Expand editing capability and test coverage
+- **Music Editor**: Implement clipboard operations (Copy/Paste)
 
 ### Priority 2: Music Editor Serialization
 - **SaveInstruments**: `music_bank.cc:925` - instrument data persistence
 - **SaveSamples (BRR encoding)**: `music_bank.cc:996` - sample data with BRR compression
-- **WAV/BRR Integration**: `music_bank.cc:400` - proper loading and encoding
 
 ### Priority 3: Workspace & Layout
-- **Layout Serialization**: `workspace_manager.cc:18,26,34` - ImGui docking layout save/load/reset
-- **Preset Layouts**: Developer, Designer, Modder presets in `workspace_manager.cc:129,136,143`
-- **Window Cycling**: Forward/backward navigation in `workspace_manager.cc:242,246`
+- **Layout Serialization**: ImGui docking layout save/load/reset
+- **Preset Layouts**: Developer, Designer, Modder presets
 
 ### Priority 4: Platform & Performance
-- **Shutdown Performance**: Fix slow shutdown in `window.cc:168` (graphics arena ordering)
-- **CRC32 Calculation**: Complete ASAR checksums in `asar_wrapper.cc:330,501`
-- **ZScream Format**: Parse ZScream project format when spec available
+- **Shutdown Performance**: Fix slow shutdown (graphics arena ordering)
+- **CRC32 Calculation**: Complete ASAR checksums
 
-### Deferred to v0.5.7+
+### Deferred
 - Room object type verification (12+ dungeon object unknowns)
+- ZScream project format parsing
 - WASM proposal system completion
-- AI Vision Verifier PNG/base64 encoding
 
 ## v0.5.3 (Released)
 
@@ -171,39 +168,12 @@ This roadmap tracks upcoming releases and major ongoing initiatives.
 
 ---
 
-## 0.5.0 - SDL3 Migration & Feature Expansion
+## Future (v0.7.x+)
 
-**Status:** Planning
-**Type:** Major Breaking Release
-
-### SDL3 Core Migration (Postponed from 0.4.0)
-- Switch to SDL3 with GPU-based rendering
-- Port editors to new backend
-- Implement SDL3 audio/input backends
-- Benchmark and tune performance
-
-### Feature Expansion
+- **SDL3 Migration**: Switch to SDL3 with GPU-based rendering (SDL3 backend infrastructure exists, needs editor porting)
 - **Plugin Architecture**: Initial framework for community extensions
-- **Advanced Graphics Editing**: Edit and re-import full graphics sheets
-- **`z3ed` AI Agent Enhancements**:
-  - Collaborative sessions with shared AI proposals
-  - Multi-modal input with screenshot context for Gemini
-  - Visual Analysis Tool (Phase 5 ready for implementation)
-
-### Breaking Changes (Planned)
-- SDL2 → SDL3 (requires recompilation)
-- API changes in graphics backend (for extensions)
-
----
-
-## 0.6.X - Content & Integration
-
-- **Advanced Content Editors**:
-  - Enhanced Hex Editor with search and data interpretation
-  - Advanced message editor with font preview
-- **Documentation Overhaul**:
-  - Auto-generated C++ API documentation
-  - Comprehensive user guide for ROM hackers
+- **Enhanced Hex Editor**: Search, data interpretation, disassembly view
+- **Documentation Overhaul**: Auto-generated C++ API docs, user guide for ROM hackers
 
 ---
 

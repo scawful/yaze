@@ -33,18 +33,21 @@ Built in C++23 with ImGui, includes a built-in SNES emulator, the Asar 65816 ass
 
 ## Project Status
 
-v0.5.6 is the current release. See [`docs/public/release-notes.md`](docs/public/release-notes.md) for details.
+v0.6.0 is the current release. See [`CHANGELOG.md`](CHANGELOG.md) for details.
 
-| Editor | Status |
-|--------|--------|
-| Overworld | Stable |
-| Dungeon | Stable |
-| Palette | Stable |
-| Message | Stable |
-| Graphics | Beta |
-| Sprite | Stable |
-| Music | Experimental |
-| Emulator | Beta |
+| Component | Status | Notes |
+|-----------|--------|-------|
+| Overworld Editor | Stable | 160 maps, undo/redo, copy/paste |
+| Dungeon Editor | Stable | 296 rooms, entity drag-drop, ROM safety |
+| Graphics Editor | Stable | Sheet editing, undo/redo |
+| Palette Editor | Stable | Live preview, JSON export |
+| Message Editor | Stable | Text editing, bundle import/export |
+| Assembly Editor | Stable | Symbol navigation, Asar integration |
+| Sprite Editor | Beta | Viewing works, editing limited |
+| Music Editor | Beta | Playback and editing, no clipboard ops |
+| Screen Editor | WIP | Core operations unimplemented |
+| Memory Editor | WIP | Hex viewing only, search unimplemented |
+| Emulator | Beta | Functional, save-state UI incomplete |
 
 See [`docs/public/reference/feature-coverage-report.md`](docs/public/reference/feature-coverage-report.md)
 for cross-app status, persistence notes, and test coverage.

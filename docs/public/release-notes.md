@@ -1,5 +1,39 @@
 # Release Notes
 
+## v0.6.0 (February 2026)
+
+**Type:** Undo System + Dungeon Compositing + UI Overhaul
+**Date:** 2026-02-10
+
+### Undo/Redo
+- Unified `UndoManager` embedded in `Editor` base class.
+- Per-editor undo/redo: overworld, dungeon, graphics, music, message.
+- Custom collision and water fill undo actions.
+
+### Dungeon Editor
+- SNES priority compositing with coverage masks.
+- Entity drag-drop with selection inspector.
+- Custom collision editor with JSON import/export.
+- Water fill zone authoring with brush radius.
+- Mutation tagging by domain (tile objects, collision, water fill).
+
+### UI
+- Semantic color system replacing hardcoded style pushes.
+- EventBus migration replacing legacy callback navigation.
+- Right panel manager and sidebar simplification.
+- Viewport-relative sizing helpers for responsive dialogs.
+
+### ROM Safety
+- Write fence stack rejecting out-of-bounds writes.
+- Dirty custom collision save without full room reload.
+
+### Cleanup
+- Removed `SessionObserver`, `PanelManager` callbacks, legacy navigation APIs.
+- Removed deprecated `SetMutationHook` alias.
+- Archived 20 stale internal docs.
+
+---
+
 ## v0.5.6 (February 2026)
 
 **Type:** Dungeon Editor UX + Minecart Tooling

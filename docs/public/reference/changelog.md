@@ -1,5 +1,40 @@
 # Changelog
 
+## 0.6.0 (February 2026)
+
+### Undo/Redo
+- Unified `UndoManager` embedded in `Editor` base class.
+- Per-editor migrations: overworld, dungeon, graphics, music, message.
+- Custom collision and water fill undo actions in dungeon editor.
+
+### Dungeon Editor
+- SNES priority compositing with coverage masks for transparent overwrites.
+- Entity drag-drop with rich selection inspector.
+- Mutation tagging by domain (tile objects, custom collision, water fill).
+- Custom collision editor with JSON import/export.
+- Water fill zone authoring with brush radius support.
+
+### UI
+- Semantic color system replacing hardcoded ImGui style pushes.
+- EventBus migration replacing legacy callback-based navigation.
+- Right panel manager and sidebar simplification.
+- Viewport-relative sizing helpers (`DialogSize`, `ConstrainToViewport`, `ScaledSize`).
+- Warning button colors and status color standardization.
+
+### ROM Safety
+- Write fence stack rejecting negative/out-of-bounds writes.
+- Dirty custom collision save without full room reload.
+- Expanded message and service writes are fence-aware.
+
+### Cleanup
+- Removed `SessionObserver` and observer pattern from `SessionCoordinator`.
+- Removed deprecated `PanelManager` callback setters (~79 lines).
+- Removed legacy editor navigation APIs (`JumpTo*`, `HideCurrentEditorPanels`).
+- Removed deprecated `SetMutationHook` alias.
+- Migrated sidebar/session actions to EventBus.
+
+---
+
 ## 0.5.6 (February 2026)
 
 ### Dungeon & Minecart Tooling
