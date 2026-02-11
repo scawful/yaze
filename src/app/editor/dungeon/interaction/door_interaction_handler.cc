@@ -72,7 +72,7 @@ void DoorInteractionHandler::HandleRelease() {
         drag_x, drag_y, direction);
 
     if (zelda3::DoorPositionManager::IsValidPosition(position, direction)) {
-      ctx_->NotifyMutation();
+      ctx_->NotifyMutation(MutationDomain::kDoors);
 
       auto& doors = room->GetDoors();
       if (*selected_door_index_ < doors.size()) {
@@ -85,7 +85,7 @@ void DoorInteractionHandler::HandleRelease() {
         doors[*selected_door_index_].byte2 = b2;
 
         room->MarkObjectsDirty();
-        ctx_->NotifyInvalidateCache();
+        ctx_->NotifyInvalidateCache(MutationDomain::kDoors);
       }
     }
   }
@@ -270,10 +270,10 @@ void DoorInteractionHandler::DeleteSelected() {
   auto& doors = room->GetDoors();
   if (*selected_door_index_ >= doors.size()) return;
 
-  ctx_->NotifyMutation();
+  ctx_->NotifyMutation(MutationDomain::kDoors);
   doors.erase(doors.begin() + static_cast<ptrdiff_t>(*selected_door_index_));
   room->MarkObjectsDirty();
-  ctx_->NotifyInvalidateCache();
+  ctx_->NotifyInvalidateCache(MutationDomain::kDoors);
   ClearSelection();
 }
 
@@ -300,7 +300,7 @@ void DoorInteractionHandler::PlaceDoorAtSnappedPosition(int canvas_x,
     return;
   }
 
-  ctx_->NotifyMutation();
+  ctx_->NotifyMutation(MutationDomain::kDoors);
 
   // Create the door
   zelda3::Room::Door new_door;
@@ -316,7 +316,7 @@ void DoorInteractionHandler::PlaceDoorAtSnappedPosition(int canvas_x,
   // Add door to room
   room->AddDoor(new_door);
 
-  ctx_->NotifyInvalidateCache();
+  ctx_->NotifyInvalidateCache(MutationDomain::kDoors);
 }
 
 bool DoorInteractionHandler::UpdateSnappedPosition(int canvas_x, int canvas_y) {

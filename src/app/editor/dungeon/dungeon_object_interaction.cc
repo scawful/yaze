@@ -128,7 +128,7 @@ void DungeonObjectInteraction::UpdateCollisionPainting(const ImVec2& canvas_mous
       bool changed = false;
       auto ensure_mutation = [&]() {
         if (!state.paint_mutation_started) {
-          interaction_context_.NotifyMutation();
+          interaction_context_.NotifyMutation(MutationDomain::kCustomCollision);
           state.paint_mutation_started = true;
         }
       };
@@ -149,7 +149,7 @@ void DungeonObjectInteraction::UpdateCollisionPainting(const ImVec2& canvas_mous
       });
 
       if (changed) {
-        interaction_context_.NotifyInvalidateCache();
+        interaction_context_.NotifyInvalidateCache(MutationDomain::kCustomCollision);
       }
 
       state.paint_last_tile_x = room_x;
@@ -189,7 +189,7 @@ void DungeonObjectInteraction::UpdateWaterFillPainting(
       bool changed = false;
       auto ensure_mutation = [&]() {
         if (!state.paint_mutation_started) {
-          interaction_context_.NotifyMutation();
+          interaction_context_.NotifyMutation(MutationDomain::kWaterFill);
           state.paint_mutation_started = true;
         }
       };
@@ -210,7 +210,7 @@ void DungeonObjectInteraction::UpdateWaterFillPainting(
       });
 
       if (changed) {
-        interaction_context_.NotifyInvalidateCache();
+        interaction_context_.NotifyInvalidateCache(MutationDomain::kWaterFill);
       }
 
       state.paint_last_tile_x = room_x;
@@ -438,7 +438,7 @@ void DungeonObjectInteraction::PlaceObjectAtPosition(int room_x, int room_y) {
     object_placed_callback_(preview_object_);
   }
 
-  interaction_context_.NotifyInvalidateCache();
+  interaction_context_.NotifyInvalidateCache(MutationDomain::kTileObjects);
   CancelPlacement();
 }
 

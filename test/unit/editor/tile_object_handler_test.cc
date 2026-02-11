@@ -32,8 +32,14 @@ class TileObjectHandlerTest : public ::testing::Test {
     ctx_.rooms = &rooms_;
     ctx_.current_room_id = 0;
     ctx_.selection = &selection_;
-    ctx_.on_mutation = [this]() { mutation_count_++; };
-    ctx_.on_invalidate_cache = [this]() { invalidate_count_++; };
+    ctx_.on_mutation = [this]() {
+      mutation_count_++;
+      last_mutation_domain_ = ctx_.last_mutation_domain;
+    };
+    ctx_.on_invalidate_cache = [this]() {
+      invalidate_count_++;
+      last_invalidation_domain_ = ctx_.last_invalidation_domain;
+    };
 
     handler_.SetContext(&ctx_);
   }
@@ -57,6 +63,8 @@ class TileObjectHandlerTest : public ::testing::Test {
   TileObjectHandler handler_;
   int mutation_count_ = 0;
   int invalidate_count_ = 0;
+  MutationDomain last_mutation_domain_ = MutationDomain::kUnknown;
+  MutationDomain last_invalidation_domain_ = MutationDomain::kUnknown;
 };
 
 // ============================================================================
@@ -74,6 +82,8 @@ TEST_F(TileObjectHandlerTest, PlaceObjectAtValidPosition) {
   EXPECT_EQ(objects[0].y_, 15);
   EXPECT_EQ(objects[0].id_, 0x01);
   EXPECT_GT(mutation_count_, 0);
+  EXPECT_EQ(last_mutation_domain_, MutationDomain::kTileObjects);
+  EXPECT_EQ(last_invalidation_domain_, MutationDomain::kTileObjects);
 }
 
 TEST_F(TileObjectHandlerTest, PlaceObjectClampsToRoomBounds) {
@@ -276,6 +286,7 @@ TEST_F(TileObjectHandlerTest, DragMovesSelectedObjectsSnapped) {
   // Tile (10,10) = pixel (80,80). Move to (96,96) = +2 tiles.
   handler_.InitDrag(ImVec2(80.0f, 80.0f));
   handler_.HandleDrag(ImVec2(96.0f, 96.0f), ImVec2(16.0f, 16.0f));
+  const int invalidations_before_release = invalidate_count_;
   handler_.HandleRelease();
 
   const auto& objects = rooms_[0].GetTileObjects();
@@ -283,6 +294,18 @@ TEST_F(TileObjectHandlerTest, DragMovesSelectedObjectsSnapped) {
   EXPECT_EQ(objects[0].x_, 12);
   EXPECT_EQ(objects[0].y_, 12);
   EXPECT_EQ(mutation_count_, initial_mutations + 1);
+  EXPECT_EQ(invalidate_count_, invalidations_before_release + 1);
+  EXPECT_EQ(last_invalidation_domain_, MutationDomain::kTileObjects);
+}
+
+TEST_F(TileObjectHandlerTest, DragReleaseWithoutMovementDoesNotInvalidate) {
+  AddTestObjects({CreateTestObject(10, 10, 0x00, 0x01)});
+  selection_.SelectObject(0);
+
+  const int initial_invalidations = invalidate_count_;
+  handler_.InitDrag(ImVec2(80.0f, 80.0f));
+  handler_.HandleRelease();
+  EXPECT_EQ(invalidate_count_, initial_invalidations);
 }
 
 TEST_F(TileObjectHandlerTest, AltDragDuplicatesOnceThenMovesClones) {

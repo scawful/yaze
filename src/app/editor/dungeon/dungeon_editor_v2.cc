@@ -1829,7 +1829,10 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
     viewer->object_interaction().SetMutationHook([this, viewer_ptr]() {
       const int rid = viewer_ptr ? viewer_ptr->current_room_id() : -1;
       if (rid >= 0 && rid < static_cast<int>(rooms_.size())) {
-        BeginUndoSnapshot(rid);
+        if (viewer_ptr->object_interaction().last_mutation_domain() ==
+            MutationDomain::kTileObjects) {
+          BeginUndoSnapshot(rid);
+        }
       }
     });
 
@@ -1837,9 +1840,18 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
         [this, viewer_ptr]() {
           const int rid = viewer_ptr ? viewer_ptr->current_room_id() : -1;
           if (rid >= 0 && rid < static_cast<int>(rooms_.size())) {
-            rooms_[rid].MarkObjectsDirty();
-            rooms_[rid].RenderRoomGraphics();
-            FinalizeUndoAction(rid);
+            const auto domain =
+                viewer_ptr->object_interaction().last_invalidation_domain();
+            if (domain == MutationDomain::kTileObjects) {
+              rooms_[rid].MarkObjectsDirty();
+              rooms_[rid].RenderRoomGraphics();
+              // Drag edits invalidate incrementally; finalize once the drag ends
+              // (TileObjectHandler emits an extra invalidation on release).
+              const auto mode = viewer_ptr->object_interaction().mode_manager().GetMode();
+              if (mode != InteractionMode::DraggingObjects) {
+                FinalizeUndoAction(rid);
+              }
+            }
           }
         });
 
@@ -1951,15 +1963,25 @@ DungeonCanvasViewer* DungeonEditorV2::GetWorkbenchViewer() {
     viewer->object_interaction().SetMutationHook([this, viewer]() {
       const int rid = viewer ? viewer->current_room_id() : -1;
       if (rid >= 0 && rid < static_cast<int>(rooms_.size())) {
-        BeginUndoSnapshot(rid);
+        if (viewer->object_interaction().last_mutation_domain() ==
+            MutationDomain::kTileObjects) {
+          BeginUndoSnapshot(rid);
+        }
       }
     });
     viewer->object_interaction().SetCacheInvalidationCallback([this, viewer]() {
       const int rid = viewer ? viewer->current_room_id() : -1;
       if (rid >= 0 && rid < static_cast<int>(rooms_.size())) {
-        rooms_[rid].MarkObjectsDirty();
-        rooms_[rid].RenderRoomGraphics();
-        FinalizeUndoAction(rid);
+        const auto domain =
+            viewer->object_interaction().last_invalidation_domain();
+        if (domain == MutationDomain::kTileObjects) {
+          rooms_[rid].MarkObjectsDirty();
+          rooms_[rid].RenderRoomGraphics();
+          const auto mode = viewer->object_interaction().mode_manager().GetMode();
+          if (mode != InteractionMode::DraggingObjects) {
+            FinalizeUndoAction(rid);
+          }
+        }
       }
     });
 

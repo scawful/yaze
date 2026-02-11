@@ -71,7 +71,7 @@ void SpriteInteractionHandler::HandleRelease() {
 
   auto& sprites = room->GetSprites();
   if (*selected_sprite_index_ < sprites.size()) {
-    ctx_->NotifyMutation();
+    ctx_->NotifyMutation(MutationDomain::kSprites);
 
     sprites[*selected_sprite_index_].set_x(tile_x);
     sprites[*selected_sprite_index_].set_y(tile_y);
@@ -237,10 +237,10 @@ void SpriteInteractionHandler::DeleteSelected() {
   if (*selected_sprite_index_ >= sprites.size())
     return;
 
-  ctx_->NotifyMutation();
+  ctx_->NotifyMutation(MutationDomain::kSprites);
   sprites.erase(sprites.begin() +
                 static_cast<ptrdiff_t>(*selected_sprite_index_));
-  ctx_->NotifyInvalidateCache();
+  ctx_->NotifyInvalidateCache(MutationDomain::kSprites);
   ClearSelection();
 }
 
@@ -259,7 +259,7 @@ void SpriteInteractionHandler::PlaceSpriteAtPosition(int canvas_x,
   sprite_x = std::clamp(sprite_x, 0, dungeon_coords::kSpriteGridMax);
   sprite_y = std::clamp(sprite_y, 0, dungeon_coords::kSpriteGridMax);
 
-  ctx_->NotifyMutation();
+  ctx_->NotifyMutation(MutationDomain::kSprites);
 
   // Create the sprite
   zelda3::Sprite new_sprite(preview_sprite_id_, static_cast<uint8_t>(sprite_x),
@@ -268,7 +268,7 @@ void SpriteInteractionHandler::PlaceSpriteAtPosition(int canvas_x,
   // Add sprite to room
   room->GetSprites().push_back(new_sprite);
 
-  ctx_->NotifyInvalidateCache();
+  ctx_->NotifyInvalidateCache(MutationDomain::kSprites);
 }
 
 std::pair<int, int> SpriteInteractionHandler::CanvasToSpriteCoords(

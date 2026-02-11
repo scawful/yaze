@@ -1186,11 +1186,15 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       auto [tile_x, tile_y] = DungeonRenderingHelpers::ScreenToRoomCoordinates(
           ImGui::GetMousePos(), canvas_.zero_point(), canvas_.global_scale());
       if (tile_x >= 0 && tile_x < 64 && tile_y >= 0 && tile_y < 64) {
-        // Add object at drop position
         zelda3::RoomObject new_obj(static_cast<int16_t>(obj_drop.object_id),
                                    static_cast<uint8_t>(tile_x),
                                    static_cast<uint8_t>(tile_y), 0, 0);
-        room.GetTileObjects().push_back(new_obj);
+        const size_t before = room.GetTileObjects().size();
+        object_interaction_.entity_coordinator().tile_handler().PlaceObjectAt(
+            room_id, new_obj, tile_x, tile_y);
+        if (room.GetTileObjects().size() > before) {
+          object_interaction_.SetSelectedObjects({before});
+        }
       }
     }
 
@@ -1209,7 +1213,15 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
             static_cast<uint8_t>(sprite_drop.sprite_id),
             static_cast<uint8_t>(sprite_x),
             static_cast<uint8_t>(sprite_y), 0, 0);
+        if (auto* ctx =
+                object_interaction_.entity_coordinator().sprite_handler().context()) {
+          ctx->NotifyMutation(MutationDomain::kSprites);
+        }
         room.GetSprites().push_back(new_sprite);
+        if (auto* ctx =
+                object_interaction_.entity_coordinator().sprite_handler().context()) {
+          ctx->NotifyInvalidateCache(MutationDomain::kSprites);
+        }
       }
     }
   }
