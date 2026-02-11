@@ -29,6 +29,93 @@ class DungeonListCustomCollisionCommandHandler
                        resources::OutputFormatter& formatter) override;
 };
 
+class DungeonExportCustomCollisionJsonCommandHandler
+    : public resources::CommandHandler {
+ public:
+  std::string GetName() const override {
+    return "dungeon-export-custom-collision-json";
+  }
+  std::string GetDescription() const {
+    return "Export dungeon custom collision maps to JSON";
+  }
+  std::string GetUsage() const override {
+    return "dungeon-export-custom-collision-json --out <path> "
+           "[--room <room_id> | --rooms <hex,hex,...> | --all] "
+           "[--format <json|text>]";
+  }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"out"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+class DungeonImportCustomCollisionJsonCommandHandler
+    : public resources::CommandHandler {
+ public:
+  std::string GetName() const override {
+    return "dungeon-import-custom-collision-json";
+  }
+  std::string GetDescription() const {
+    return "Import dungeon custom collision maps from JSON";
+  }
+  std::string GetUsage() const override {
+    return "dungeon-import-custom-collision-json --in <path> [--replace-all] "
+           "[--format <json|text>]";
+  }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"in"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+class DungeonExportWaterFillJsonCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override {
+    return "dungeon-export-water-fill-json";
+  }
+  std::string GetDescription() const {
+    return "Export dungeon water fill zones to JSON";
+  }
+  std::string GetUsage() const override {
+    return "dungeon-export-water-fill-json --out <path> "
+           "[--room <room_id> | --rooms <hex,hex,...> | --all] "
+           "[--format <json|text>]";
+  }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"out"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+class DungeonImportWaterFillJsonCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override {
+    return "dungeon-import-water-fill-json";
+  }
+  std::string GetDescription() const {
+    return "Import dungeon water fill zones from JSON";
+  }
+  std::string GetUsage() const override {
+    return "dungeon-import-water-fill-json --in <path> [--format <json|text>]";
+  }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"in"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
 }  // namespace handlers
 }  // namespace cli
 }  // namespace yaze

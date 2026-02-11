@@ -414,6 +414,115 @@ class ToolSchemaRegistry {
          .related_tools = {"dungeon-map", "dungeon-minecart-audit"}});
 
     Register(
+        {.name = "dungeon-export-custom-collision-json",
+         .category = "dungeon",
+         .description = "Export custom collision maps to JSON",
+         .detailed_help =
+             "Exports per-room custom collision tiles (64x64 map) to a JSON "
+             "authoring format. Supports filtering by --room/--rooms/--all.",
+         .arguments =
+             {{.name = "out",
+               .type = "string",
+               .description = "Output JSON path",
+               .required = true},
+              {.name = "room",
+               .type = "number",
+               .description = "Single room ID (hex)",
+               .required = false},
+              {.name = "rooms",
+               .type = "string",
+               .description = "Comma-separated room IDs (hex)",
+               .required = false},
+              {.name = "all",
+               .type = "boolean",
+               .description = "Export all dungeon rooms (0-319)",
+               .required = false}},
+         .examples = {
+             "z3ed dungeon-export-custom-collision-json --all "
+             "--out=custom_collision.json",
+             "z3ed dungeon-export-custom-collision-json --rooms=0x25,0x27 "
+             "--out=water_rooms_collision.json"},
+         .related_tools = {"dungeon-import-custom-collision-json",
+                           "dungeon-list-custom-collision",
+                           "dungeon-map"}});
+
+    Register(
+        {.name = "dungeon-import-custom-collision-json",
+         .category = "dungeon",
+         .description = "Import custom collision maps from JSON",
+         .detailed_help =
+             "Imports custom collision room entries from JSON. Writes are "
+             "ROM-safe/fail-closed and reject ROMs without expanded collision "
+             "write support. Use --replace-all to clear rooms not listed.",
+         .arguments = {
+             {.name = "in",
+              .type = "string",
+              .description = "Input JSON path",
+              .required = true},
+             {.name = "replace-all",
+              .type = "boolean",
+              .description =
+                  "Clear custom collision for rooms not in the JSON file",
+              .required = false}},
+         .examples = {
+             "z3ed dungeon-import-custom-collision-json "
+             "--in=custom_collision.json",
+             "z3ed dungeon-import-custom-collision-json "
+             "--in=custom_collision.json --replace-all"},
+         .related_tools = {"dungeon-export-custom-collision-json",
+                           "dungeon-list-custom-collision",
+                           "dungeon-minecart-audit"}});
+
+    Register(
+        {.name = "dungeon-export-water-fill-json",
+         .category = "dungeon",
+         .description = "Export water fill zones to JSON",
+         .detailed_help =
+             "Exports WaterFill zone data from the reserved ROM table to JSON. "
+             "Supports filtering by --room/--rooms/--all.",
+         .arguments =
+             {{.name = "out",
+               .type = "string",
+               .description = "Output JSON path",
+               .required = true},
+              {.name = "room",
+               .type = "number",
+               .description = "Single room ID (hex)",
+               .required = false},
+              {.name = "rooms",
+               .type = "string",
+               .description = "Comma-separated room IDs (hex)",
+               .required = false},
+              {.name = "all",
+               .type = "boolean",
+               .description = "Export all dungeon rooms (0-319)",
+               .required = false}},
+         .examples = {
+             "z3ed dungeon-export-water-fill-json --all "
+             "--out=water_fill_zones.json",
+             "z3ed dungeon-export-water-fill-json --rooms=0x25,0x27 "
+             "--out=d4_water_fill.json"},
+         .related_tools = {"dungeon-import-water-fill-json",
+                           "rom-doctor"}});
+
+    Register(
+        {.name = "dungeon-import-water-fill-json",
+         .category = "dungeon",
+         .description = "Import water fill zones from JSON",
+         .detailed_help =
+             "Imports WaterFill zones from JSON, normalizes SRAM bit masks, "
+             "and writes to the reserved WaterFill ROM table. Fails closed "
+             "when the reserved region is missing.",
+         .arguments = {
+             {.name = "in",
+              .type = "string",
+              .description = "Input JSON path",
+              .required = true}},
+         .examples = {"z3ed dungeon-import-water-fill-json "
+                      "--in=water_fill_zones.json"},
+         .related_tools = {"dungeon-export-water-fill-json", "rom-doctor"}});
+
+    Register(
         {.name = "dungeon-minecart-audit",
          .category = "dungeon",
          .description = "Audit minecart-related room data",

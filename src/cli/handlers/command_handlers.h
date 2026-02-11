@@ -48,6 +48,10 @@ class DungeonListObjectsCommandHandler;
 class DungeonGetRoomTilesCommandHandler;
 class DungeonSetRoomPropertyCommandHandler;
 class DungeonListCustomCollisionCommandHandler;
+class DungeonExportCustomCollisionJsonCommandHandler;
+class DungeonImportCustomCollisionJsonCommandHandler;
+class DungeonExportWaterFillJsonCommandHandler;
+class DungeonImportWaterFillJsonCommandHandler;
 class DungeonMinecartAuditCommandHandler;
 
 class OverworldFindTileCommandHandler;
