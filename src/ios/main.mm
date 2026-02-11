@@ -265,6 +265,30 @@ yaze::ios::IOSHost g_ios_host;
   return YES;
 }
 
+// UIKeyInput protocol — bridges the iOS software keyboard to ImGui.
+- (BOOL)hasText {
+  return YES;
+}
+
+- (void)insertText:(NSString *)text {
+  ImGuiIO &io = ImGui::GetIO();
+  const char *utf8 = [text UTF8String];
+  if (utf8) {
+    io.AddInputCharactersUTF8(utf8);
+  }
+}
+
+- (void)deleteBackward {
+  ImGuiIO &io = ImGui::GetIO();
+  io.AddKeyEvent(ImGuiKey_Backspace, true);
+  io.AddKeyEvent(ImGuiKey_Backspace, false);
+}
+
+- (UITextInputMode *)textInputMode {
+  // Use default input mode (full keyboard)
+  return [UITextInputMode currentInputMode];
+}
+
 - (void)postOverlayCommand:(NSString *)command {
   if (!command || command.length == 0) {
     return;
@@ -485,6 +509,13 @@ yaze::ios::IOSHost g_ios_host;
   io.DisplayFramebufferScale = ImVec2(scale_x, scale_y);
 
   g_ios_host.Tick();
+
+  // Show/hide iOS software keyboard based on ImGui text input focus.
+  if (io.WantTextInput && ![self isFirstResponder]) {
+    [self becomeFirstResponder];
+  } else if (!io.WantTextInput && [self isFirstResponder]) {
+    [self resignFirstResponder];
+  }
 }
 
 - (void)viewDidLayoutSubviews {
@@ -912,29 +943,36 @@ yaze::ios::IOSHost g_ios_host;
 
 - (void)handleThreeFingerSwipeLeft:(UISwipeGestureRecognizer *)gesture {
   // Three-finger swipe left = Undo (iOS convention)
+  // Inject Ctrl+Z — the shortcut system treats Ctrl/Super as equivalent on macOS.
   ImGuiIO &io = ImGui::GetIO();
-  io.AddKeyEvent(ImGuiMod_Super, true);
+  io.AddKeyEvent(ImGuiMod_Ctrl, true);
   io.AddKeyEvent(ImGuiKey_Z, true);
   io.AddKeyEvent(ImGuiKey_Z, false);
-  io.AddKeyEvent(ImGuiMod_Super, false);
+  io.AddKeyEvent(ImGuiMod_Ctrl, false);
   yaze::platform::ios::TriggerHaptic(yaze::platform::ios::HapticStyle::kLight);
 }
 
 - (void)handleThreeFingerSwipeRight:(UISwipeGestureRecognizer *)gesture {
   // Three-finger swipe right = Redo (iOS convention)
+  // Inject Ctrl+Shift+Z — mapped to redo in the shortcut configurator.
   ImGuiIO &io = ImGui::GetIO();
-  io.AddKeyEvent(ImGuiMod_Super, true);
+  io.AddKeyEvent(ImGuiMod_Ctrl, true);
   io.AddKeyEvent(ImGuiMod_Shift, true);
   io.AddKeyEvent(ImGuiKey_Z, true);
   io.AddKeyEvent(ImGuiKey_Z, false);
   io.AddKeyEvent(ImGuiMod_Shift, false);
-  io.AddKeyEvent(ImGuiMod_Super, false);
+  io.AddKeyEvent(ImGuiMod_Ctrl, false);
   yaze::platform::ios::TriggerHaptic(yaze::platform::ios::HapticStyle::kLight);
 }
 
 - (void)handleEdgeSwipe:(UIScreenEdgePanGestureRecognizer *)gesture {
   if (gesture.state == UIGestureRecognizerStateBegan) {
-    yaze::platform::ios::PostToggleSidebar();
+    // Inject Ctrl+B — the shortcut for view.toggle_activity_bar.
+    ImGuiIO &io = ImGui::GetIO();
+    io.AddKeyEvent(ImGuiMod_Ctrl, true);
+    io.AddKeyEvent(ImGuiKey_B, true);
+    io.AddKeyEvent(ImGuiKey_B, false);
+    io.AddKeyEvent(ImGuiMod_Ctrl, false);
     yaze::platform::ios::TriggerHaptic(yaze::platform::ios::HapticStyle::kMedium);
   }
 }

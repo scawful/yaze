@@ -6,6 +6,7 @@
 
 #if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 #import <dispatch/dispatch.h>
 #endif
 
