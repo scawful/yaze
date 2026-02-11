@@ -96,14 +96,12 @@ class MenuOrchestrator {
   void OnShowEditorSelection();
   void OnShowDisplaySettings();  // Display settings popup
   void OnShowHexEditor();
-  void OnShowEmulator();
   void OnShowPanelBrowser();
   void OnShowPanelFinder();
   void OnShowWelcomeScreen();
 
 #ifdef YAZE_BUILD_AGENT_UI
   void OnShowAIAgent();
-  void OnShowChatHistory();
   void OnShowProposalDrawer();
 #endif
 
@@ -111,7 +109,6 @@ class MenuOrchestrator {
   void OnCreateNewSession();
   void OnDuplicateCurrentSession();
   void OnCloseCurrentSession();
-  void OnSwitchToSession(size_t session_index);
   void OnShowSessionSwitcher();
   void OnShowSessionManager();
 
@@ -170,10 +167,7 @@ class MenuOrchestrator {
 
   // Help menu actions
   void OnShowAbout();
-  void OnShowKeyboardShortcuts();
-  void OnShowUserGuide();
   void OnShowGettingStarted();
-  void OnShowAsarIntegration();
   void OnShowBuildInstructions();
   void OnShowCLIUsage();
   void OnShowTroubleshooting();
@@ -208,8 +202,18 @@ class MenuOrchestrator {
   void AddFileMenuItems();
   void AddEditMenuItems();
   void AddViewMenuItems();
+  void AddAppearanceMenuItems();
+  void AddLayoutMenuItems();
   void AddPanelsMenuItems();  // Top-level panels menu items
   void AddToolsMenuItems();   // Also contains former Debug menu items
+  void AddSearchMenuItems();
+  void AddRomAnalysisMenuItems();
+  void AddAsarIntegrationMenuItems();
+  void AddDevelopmentMenuItems();
+  void AddTestingMenuItems();
+#ifdef YAZE_WITH_GRPC
+  void AddCollaborationMenuItems();
+#endif
   void AddWindowMenuItems();
   void AddHelpMenuItems();
 
