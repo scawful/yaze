@@ -109,7 +109,6 @@ class UICoordinator {
   void ShowLoadWorkspacePresetDialog() { show_load_workspace_preset_ = true; }
   // Session switcher is now managed by SessionCoordinator
   void ShowSessionSwitcher();
-  void HideCurrentEditorPanels();
   // Sidebar visibility delegates to PanelManager (single source of truth)
   void TogglePanelSidebar();
   void ShowGlobalSearch() { show_global_search_ = true; }

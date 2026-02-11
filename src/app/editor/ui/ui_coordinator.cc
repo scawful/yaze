@@ -1012,21 +1012,6 @@ void UICoordinator::ShowDisplaySettings() {
   popup_manager_.Show(PopupID::kDisplaySettings);
 }
 
-void UICoordinator::HideCurrentEditorPanels() {
-  if (!editor_manager_)
-    return;
-
-  auto* current_editor = editor_manager_->GetCurrentEditor();
-  if (!current_editor)
-    return;
-
-  std::string category =
-      editor_registry_.GetEditorCategory(current_editor->type());
-  size_t session_id = session_coordinator_.GetActiveSessionIndex();
-  panel_manager_.HideAllPanelsInCategory(session_id, category);
-
-  LOG_INFO("UICoordinator", "Hid all panels in category: %s", category.c_str());
-}
 
 // ============================================================================
 // Sidebar Visibility (delegates to PanelManager)
@@ -1463,8 +1448,8 @@ void UICoordinator::InitializeCommandPalette(size_t session_id) {
   // Register editor switch commands
   command_palette_.RegisterEditorCommands([this](const std::string& category) {
     auto type = EditorRegistry::GetEditorTypeFromCategory(category);
-    if (type != EditorType::kSettings) {  // kSettings is used as "unknown"
-      editor_registry_.SwitchToEditor(type);
+    if (type != EditorType::kSettings && editor_manager_) {
+      editor_manager_->SwitchToEditor(type);
     }
   });
 

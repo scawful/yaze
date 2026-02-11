@@ -230,8 +230,6 @@ class EditorManager {
   }
 
   // Jump-to functionality for cross-editor navigation
-  void JumpToDungeonRoom(int room_id);
-  void JumpToOverworldMap(int map_id);
   void SwitchToEditor(EditorType editor_type, bool force_visible = false,
                       bool from_dialog = false);
   void DismissEditorSelection();
@@ -247,8 +245,6 @@ class EditorManager {
     }
   }
 
-  // Clean up cards when switching editors
-  void HideCurrentEditorPanels();
 
   // Lazy asset loading helpers
   absl::Status EnsureEditorAssetsLoaded(EditorType type);

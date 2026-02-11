@@ -55,20 +55,6 @@ TEST_F(UnitTest_EditorRegistry, ActiveStateReflectsEditor) {
   EXPECT_FALSE(registry_.IsEditorActive(EditorType::kDungeon));
 }
 
-TEST_F(UnitTest_EditorRegistry, SwitchToEditorDeactivatesOtherEditors) {
-  FakeEditor overworld(EditorType::kOverworld);
-  FakeEditor dungeon(EditorType::kDungeon);
-  registry_.RegisterEditor(EditorType::kOverworld, &overworld);
-  registry_.RegisterEditor(EditorType::kDungeon, &dungeon);
-
-  overworld.set_active(true);
-  dungeon.set_active(true);
-
-  registry_.SwitchToEditor(EditorType::kDungeon);
-  EXPECT_TRUE(*dungeon.active());
-  EXPECT_FALSE(*overworld.active());
-}
-
 TEST_F(UnitTest_EditorRegistry, InvalidTypesThrow) {
   FakeEditor unknown(EditorType::kUnknown);
 
@@ -76,8 +62,6 @@ TEST_F(UnitTest_EditorRegistry, InvalidTypesThrow) {
                std::invalid_argument);
   EXPECT_THROW(registry_.GetEditor(EditorType::kUnknown), std::invalid_argument);
   EXPECT_THROW(registry_.IsEditorActive(EditorType::kUnknown),
-               std::invalid_argument);
-  EXPECT_THROW(registry_.SwitchToEditor(EditorType::kUnknown),
                std::invalid_argument);
 }
 
