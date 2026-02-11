@@ -2217,7 +2217,7 @@ absl::Status SaveAllCollision(Rom* rom, absl::Span<Room> rooms) {
 
   if (!has_ptr_table) {
     for (auto& room : rooms) {
-      if (room.IsLoaded() && room.custom_collision_dirty()) {
+      if (room.custom_collision_dirty()) {
         return absl::FailedPreconditionError(
             "Custom collision region not present in this ROM");
       }
@@ -2227,7 +2227,7 @@ absl::Status SaveAllCollision(Rom* rom, absl::Span<Room> rooms) {
 
   if (!has_data_region) {
     for (auto& room : rooms) {
-      if (room.IsLoaded() && room.custom_collision_dirty()) {
+      if (room.custom_collision_dirty()) {
         return absl::FailedPreconditionError(
             "Custom collision data region not present in this ROM");
       }
@@ -2248,9 +2248,6 @@ absl::Status SaveAllCollision(Rom* rom, absl::Span<Room> rooms) {
   yaze::rom::ScopedWriteFence scope(rom, &fence);
 
   for (auto& room : rooms) {
-    if (!room.IsLoaded()) {
-      continue;
-    }
     if (!room.custom_collision_dirty()) {
       continue;
     }
