@@ -283,6 +283,7 @@ DockNodeIds BuildDockTree(ImGuiID dockspace_id, const DockSplitNeeds& needs,
   DockNodeIds ids{};
   ids.center = dockspace_id;
 
+  // Split major regions
   if (needs.left) {
     ids.left = ImGui::DockBuilderSplitNode(ids.center, ImGuiDir_Left, cfg.left,
                                            nullptr, &ids.center);
@@ -300,11 +301,17 @@ DockNodeIds BuildDockTree(ImGuiID dockspace_id, const DockSplitNeeds& needs,
                                           nullptr, &ids.center);
   }
 
+  // Sub-split Left region
   if (ids.left && (needs.left_top || needs.left_bottom)) {
+    // If we only need one, the split still happens but we use the result accordingly
     ids.left_bottom = ImGui::DockBuilderSplitNode(
         ids.left, ImGuiDir_Down, cfg.vertical_split, nullptr, &ids.left_top);
+    
+    // If one isn't needed, we technically don't have to split, but for a stable tree,
+    // we do it and get_dock_id will map to the leaf.
   }
 
+  // Sub-split Right region
   if (ids.right && (needs.right_top || needs.right_bottom)) {
     ids.right_bottom = ImGui::DockBuilderSplitNode(
         ids.right, ImGuiDir_Down, cfg.vertical_split, nullptr, &ids.right_top);
@@ -335,8 +342,15 @@ void LayoutManager::BuildLayoutFromPreset(EditorType type, ImGuiID dockspace_id)
   auto get_dock_id = [&](DockPosition pos) -> ImGuiID {
     switch (pos) {
       case DockPosition::Left:
+        if (ids.left_top || ids.left_bottom) {
+          // If sub-nodes exist, default "Left" to Top to avoid stacking in parent
+          return ids.left_top ? ids.left_top : ids.left_bottom;
+        }
         return ids.left ? ids.left : ids.center;
       case DockPosition::Right:
+        if (ids.right_top || ids.right_bottom) {
+          return ids.right_top ? ids.right_top : ids.right_bottom;
+        }
         return ids.right ? ids.right : ids.center;
       case DockPosition::Bottom:
         return ids.bottom ? ids.bottom : ids.center;
