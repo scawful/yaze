@@ -179,6 +179,7 @@ if(YAZE_BUILD_TESTS)
     unit/rom/rom_diff_test.cc
     unit/rom/rom_test.cc
     unit/rom/write_fence_test.cc
+    unit/emu/mesen_socket_client_test.cc
     unit/emu/input_backend_test.cc
     unit/gfx/snes_tile_test.cc
     unit/gfx/compression_test.cc
@@ -323,6 +324,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/project_paths_test.cc
     unit/rom/rom_diff_test.cc
     unit/rom/write_fence_test.cc
+    unit/emu/mesen_socket_client_test.cc
     unit/zelda3/resource_labels_test.cc
   )
   set(QUICK_UNIT_EDITOR_TEST_SOURCES
