@@ -259,12 +259,6 @@ class DungeonObjectInteraction {
     interaction_context_.on_mutation = std::move(callback);
     entity_coordinator_.SetContext(&interaction_context_);
   }
-  // Backward compatibility alias
-  [[deprecated("Use SetMutationCallback() instead")]]
-  void SetMutationHook(std::function<void()> callback) {
-    SetMutationCallback(std::move(callback));
-  }
-
   void SetEditorSystem(zelda3::DungeonEditorSystem* system) {
     editor_system_ = system;
   }
