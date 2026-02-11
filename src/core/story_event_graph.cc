@@ -9,7 +9,9 @@
 #include <string_view>
 
 #include "absl/status/status.h"
+#include "absl/strings/str_format.h"
 #include "nlohmann/json.hpp"
+#include "util/macro.h"
 
 namespace yaze::core {
 
@@ -102,6 +104,15 @@ static std::vector<std::string> ParseScriptArray(const json& arr) {
     // Allow the generator to embed a fully composed reference.
     if (item.contains("ref") && item["ref"].is_string()) {
       result.push_back(item["ref"].get<std::string>());
+      continue;
+    }
+    // Prefer stable script identifiers when present.
+    if (item.contains("script_id") && item["script_id"].is_string()) {
+      result.push_back(item["script_id"].get<std::string>());
+      continue;
+    }
+    if (item.contains("id") && item["id"].is_string()) {
+      result.push_back(item["id"].get<std::string>());
       continue;
     }
 
@@ -200,12 +211,42 @@ absl::Status StoryEventGraph::LoadFromString(const std::string& json_content) {
   nodes_.clear();
   edges_.clear();
   node_index_.clear();
+  std::unordered_map<std::string, std::string> id_aliases;
+
+  auto add_alias = [&](const std::string& alias, const std::string& canonical,
+                       const char* field_name) -> absl::Status {
+    if (alias.empty()) {
+      return absl::OkStatus();
+    }
+    auto [it, inserted] = id_aliases.emplace(alias, canonical);
+    if (!inserted && it->second != canonical) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Conflicting story event %s alias '%s' maps to both '%s' and '%s'",
+          field_name, alias, it->second, canonical));
+    }
+    return absl::OkStatus();
+  };
 
   // Parse events
   if (root.contains("events") && root["events"].is_array()) {
+    size_t event_index = 0;
     for (const auto& item : root["events"]) {
       StoryEventNode node;
-      node.id = item.value("id", "");
+      const std::string legacy_id = item.value("id", "");
+      const std::string stable_id = item.value("stable_id", "");
+      const std::string key_id = item.value("key", "");
+      node.id = !stable_id.empty()
+                    ? stable_id
+                    : (!legacy_id.empty() ? legacy_id : key_id);
+      if (node.id.empty()) {
+        return absl::InvalidArgumentError(absl::StrFormat(
+            "Story event at index %zu is missing required id (set stable_id or id)",
+            event_index));
+      }
+      if (node_index_.contains(node.id)) {
+        return absl::InvalidArgumentError(
+            absl::StrFormat("Duplicate story event id: %s", node.id));
+      }
       node.name = item.value("name", "");
       node.flags = ParseFlags(item.value("flags", json::array()));
       node.locations = ParseLocations(item.value("locations", json::array()));
@@ -220,8 +261,14 @@ absl::Status StoryEventGraph::LoadFromString(const std::string& json_content) {
       node.last_verified = item.value("last_verified", "");
       node.notes = item.value("notes", "");
 
+      RETURN_IF_ERROR(add_alias(node.id, node.id, "canonical"));
+      RETURN_IF_ERROR(add_alias(legacy_id, node.id, "id"));
+      RETURN_IF_ERROR(add_alias(stable_id, node.id, "stable_id"));
+      RETURN_IF_ERROR(add_alias(key_id, node.id, "key"));
+
       node_index_[node.id] = nodes_.size();
       nodes_.push_back(std::move(node));
+      ++event_index;
     }
   }
 
@@ -233,6 +280,51 @@ absl::Status StoryEventGraph::LoadFromString(const std::string& json_content) {
       edge.to = item.value("to", "");
       edge.type = item.value("type", "dependency");
       edges_.push_back(std::move(edge));
+    }
+  }
+
+  auto canonicalize_id = [&](const std::string& raw) -> std::string {
+    auto it = id_aliases.find(raw);
+    return it != id_aliases.end() ? it->second : raw;
+  };
+
+  // Normalize all references to canonical IDs.
+  for (auto& node : nodes_) {
+    for (auto& dep : node.dependencies) {
+      dep = canonicalize_id(dep);
+    }
+    for (auto& unlock : node.unlocks) {
+      unlock = canonicalize_id(unlock);
+    }
+  }
+  for (auto& edge : edges_) {
+    edge.from = canonicalize_id(edge.from);
+    edge.to = canonicalize_id(edge.to);
+  }
+
+  // Validate references so malformed graphs fail closed.
+  for (const auto& node : nodes_) {
+    for (const auto& dep : node.dependencies) {
+      if (!dep.empty() && !node_index_.contains(dep)) {
+        return absl::InvalidArgumentError(absl::StrFormat(
+            "Story event '%s' has unknown dependency '%s'", node.id, dep));
+      }
+    }
+    for (const auto& unlock : node.unlocks) {
+      if (!unlock.empty() && !node_index_.contains(unlock)) {
+        return absl::InvalidArgumentError(absl::StrFormat(
+            "Story event '%s' has unknown unlock '%s'", node.id, unlock));
+      }
+    }
+  }
+  for (const auto& edge : edges_) {
+    if (!edge.from.empty() && !node_index_.contains(edge.from)) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Story edge has unknown from node '%s'", edge.from));
+    }
+    if (!edge.to.empty() && !node_index_.contains(edge.to)) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Story edge has unknown to node '%s'", edge.to));
     }
   }
 
