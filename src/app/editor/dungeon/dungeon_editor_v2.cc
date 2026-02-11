@@ -68,33 +68,6 @@ namespace yaze::editor {
 
 namespace {
 
-bool IsSingleBitMask(uint8_t mask) {
-  return mask != 0 && (mask & (mask - 1)) == 0;
-}
-
-int MaskIndex(uint8_t mask) {
-  switch (mask) {
-    case 0x01:
-      return 0;
-    case 0x02:
-      return 1;
-    case 0x04:
-      return 2;
-    case 0x08:
-      return 3;
-    case 0x10:
-      return 4;
-    case 0x20:
-      return 5;
-    case 0x40:
-      return 6;
-    case 0x80:
-      return 7;
-    default:
-      return -1;
-  }
-}
-
 absl::Status SaveWaterFillZones(Rom* rom, std::array<zelda3::Room, 0x128>& rooms) {
   if (!rom || !rom->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
@@ -149,51 +122,13 @@ absl::Status SaveWaterFillZones(Rom* rom, std::array<zelda3::Room, 0x128>& rooms
         zones.size()));
   }
 
-  uint8_t used_masks = 0;
-  int room_for_bit[8] = {-1, -1, -1, -1, -1, -1, -1, -1};
-  std::vector<zelda3::WaterFillZoneEntry*> unassigned;
-  for (auto& z : zones) {
-    if (z.sram_bit_mask == 0) {
-      unassigned.push_back(&z);
-      continue;
+  // Canonicalize SRAM mask assignment using the shared normalizer so editor
+  // save behavior matches JSON import/export workflows.
+  RETURN_IF_ERROR(zelda3::NormalizeWaterFillZoneMasks(&zones));
+  for (const auto& z : zones) {
+    if (z.room_id >= 0 && z.room_id < static_cast<int>(rooms.size())) {
+      rooms[z.room_id].set_water_fill_sram_bit_mask(z.sram_bit_mask);
     }
-    if (!IsSingleBitMask(z.sram_bit_mask) || MaskIndex(z.sram_bit_mask) < 0) {
-      return absl::InvalidArgumentError(absl::StrFormat(
-          "Invalid SRAM bit mask 0x%02X for room 0x%02X (must be one of 0x01..0x80)",
-          z.sram_bit_mask, z.room_id));
-    }
-    const int bit = MaskIndex(z.sram_bit_mask);
-    if ((used_masks & z.sram_bit_mask) != 0) {
-      return absl::InvalidArgumentError(absl::StrFormat(
-          "Duplicate SRAM bit mask 0x%02X used by rooms 0x%02X and 0x%02X",
-          z.sram_bit_mask, room_for_bit[bit], z.room_id));
-    }
-    used_masks |= z.sram_bit_mask;
-    room_for_bit[bit] = z.room_id;
-  }
-
-  std::sort(unassigned.begin(), unassigned.end(),
-            [](const zelda3::WaterFillZoneEntry* a,
-               const zelda3::WaterFillZoneEntry* b) {
-              return a->room_id < b->room_id;
-            });
-
-  constexpr uint8_t kBits[8] = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80};
-  for (auto* z : unassigned) {
-    uint8_t assigned = 0;
-    for (uint8_t bit : kBits) {
-      if ((used_masks & bit) == 0) {
-        assigned = bit;
-        break;
-      }
-    }
-    if (assigned == 0) {
-      return absl::ResourceExhaustedError(
-          "No free SRAM bits left in $7EF411 for water fill zones");
-    }
-    z->sram_bit_mask = assigned;
-    used_masks |= assigned;
-    rooms[z->room_id].set_water_fill_sram_bit_mask(assigned);
   }
 
   RETURN_IF_ERROR(zelda3::WriteWaterFillTable(rom, zones));
