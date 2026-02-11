@@ -449,6 +449,7 @@ void MessageEditor::DrawMessageList() {
             TableNextColumn();
             PushID(message.ID);
             if (Button(util::HexWord(message.ID).c_str())) {
+              FinalizePendingUndo();
               current_message_ = message;
               current_message_index_ = message.ID;
               current_message_is_expanded_ = false;
@@ -479,6 +480,7 @@ void MessageEditor::DrawMessageList() {
             TableNextColumn();
             PushID(display_id);
             if (Button(util::HexWord(display_id).c_str())) {
+              FinalizePendingUndo();
               current_message_ = expanded_message;
               current_message_index_ = expanded_message.ID;
               current_message_is_expanded_ = true;
@@ -510,6 +512,9 @@ void MessageEditor::DrawCurrentMessage() {
   if (InputTextMultiline("##MessageEditor", &message_text_box_.text,
                          ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
     UpdateCurrentMessageFromText(message_text_box_.text);
+  }
+  if (ImGui::IsItemDeactivatedAfterEdit()) {
+    FinalizePendingUndo();
   }
   auto line_warnings = ValidateMessageLineWidths(message_text_box_.text);
   if (!line_warnings.empty()) {
@@ -1158,8 +1163,17 @@ absl::Status MessageEditor::Copy() {
 }
 
 void MessageEditor::PushUndoSnapshot() {
-  redo_stack_.clear();
+  if (pending_undo_before_.has_value()) {
+    // If we're still editing the same message, keep the existing "before"
+    // snapshot so the entire edit session becomes a single undo step.
+    if (pending_undo_before_->message_index == current_message_index_ &&
+        pending_undo_before_->is_expanded == current_message_is_expanded_) {
+      return;
+    }
+    FinalizePendingUndo();
+  }
 
+  // Capture current state as "before"
   int parsed_index = current_message_index_;
   if (current_message_is_expanded_) {
     parsed_index = expanded_message_base_id_ + current_message_index_;
@@ -1169,13 +1183,52 @@ void MessageEditor::PushUndoSnapshot() {
       parsed_index < static_cast<int>(parsed_messages_.size())) {
     text = parsed_messages_[parsed_index];
   }
+  pending_undo_before_ = MessageSnapshot{current_message_, text,
+                                         current_message_index_,
+                                         current_message_is_expanded_};
+}
 
-  undo_stack_.push_back({current_message_, text, current_message_index_,
-                         current_message_is_expanded_});
+void MessageEditor::FinalizePendingUndo() {
+  if (!pending_undo_before_.has_value()) return;
 
-  if (undo_stack_.size() > kMaxUndoHistory) {
-    undo_stack_.pop_front();
+  // The "after" snapshot must correspond to the same message as the pending
+  // "before", even if the user navigated to a different message in the UI.
+  const int message_index = pending_undo_before_->message_index;
+  const bool is_expanded = pending_undo_before_->is_expanded;
+
+  MessageData after_message;
+  if (is_expanded) {
+    if (message_index < 0 ||
+        message_index >= static_cast<int>(expanded_messages_.size())) {
+      pending_undo_before_.reset();
+      return;
+    }
+    after_message = expanded_messages_[message_index];
+  } else {
+    if (message_index < 0 ||
+        message_index >= static_cast<int>(list_of_texts_.size())) {
+      pending_undo_before_.reset();
+      return;
+    }
+    after_message = list_of_texts_[message_index];
   }
+
+  int parsed_index = message_index;
+  if (is_expanded) {
+    parsed_index = expanded_message_base_id_ + message_index;
+  }
+  std::string text;
+  if (parsed_index >= 0 &&
+      parsed_index < static_cast<int>(parsed_messages_.size())) {
+    text = parsed_messages_[parsed_index];
+  }
+  MessageSnapshot after{std::move(after_message), std::move(text), message_index,
+                        is_expanded};
+
+  undo_manager_.Push(std::make_unique<MessageEditAction>(
+      std::move(*pending_undo_before_), std::move(after),
+      [this](const MessageSnapshot& s) { ApplySnapshot(s); }));
+  pending_undo_before_.reset();
 }
 
 void MessageEditor::ApplySnapshot(const MessageSnapshot& snapshot) {
@@ -1210,49 +1263,12 @@ void MessageEditor::ApplySnapshot(const MessageSnapshot& snapshot) {
 }
 
 absl::Status MessageEditor::Undo() {
-  if (undo_stack_.empty()) {
-    return absl::OkStatus();
-  }
-
-  // Save current state to redo stack before undoing
-  int parsed_index = current_message_index_;
-  if (current_message_is_expanded_) {
-    parsed_index = expanded_message_base_id_ + current_message_index_;
-  }
-  std::string current_text;
-  if (parsed_index >= 0 &&
-      parsed_index < static_cast<int>(parsed_messages_.size())) {
-    current_text = parsed_messages_[parsed_index];
-  }
-  redo_stack_.push_back({current_message_, current_text,
-                         current_message_index_, current_message_is_expanded_});
-
-  ApplySnapshot(undo_stack_.back());
-  undo_stack_.pop_back();
-  return absl::OkStatus();
+  FinalizePendingUndo();
+  return undo_manager_.Undo();
 }
 
 absl::Status MessageEditor::Redo() {
-  if (redo_stack_.empty()) {
-    return absl::OkStatus();
-  }
-
-  // Save current state to undo stack before redoing
-  int parsed_index = current_message_index_;
-  if (current_message_is_expanded_) {
-    parsed_index = expanded_message_base_id_ + current_message_index_;
-  }
-  std::string current_text;
-  if (parsed_index >= 0 &&
-      parsed_index < static_cast<int>(parsed_messages_.size())) {
-    current_text = parsed_messages_[parsed_index];
-  }
-  undo_stack_.push_back({current_message_, current_text,
-                         current_message_index_, current_message_is_expanded_});
-
-  ApplySnapshot(redo_stack_.back());
-  redo_stack_.pop_back();
-  return absl::OkStatus();
+  return undo_manager_.Redo();
 }
 
 void MessageEditor::Delete() {
