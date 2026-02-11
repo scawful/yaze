@@ -8,6 +8,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <unordered_map>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -123,6 +124,7 @@ struct MesenEvent {
 };
 
 using EventCallback = std::function<void(const MesenEvent&)>;
+using EventListenerId = uint64_t;
 
 /**
  * @brief Unix socket client for Mesen2-OoS fork
@@ -344,6 +346,17 @@ class MesenSocketClient {
    */
   void SetEventCallback(EventCallback callback);
 
+  /**
+   * @brief Add an event listener without replacing existing listeners.
+   * @return Listener ID used for removal.
+   */
+  EventListenerId AddEventListener(EventCallback callback);
+
+  /**
+   * @brief Remove a previously added event listener.
+   */
+  void RemoveEventListener(EventListenerId id);
+
   // ──────────────────────────────────────────────────────────────────────────
   // Low-Level Commands
   // ──────────────────────────────────────────────────────────────────────────
@@ -385,6 +398,8 @@ class MesenSocketClient {
 
   // Event handling
   EventCallback event_callback_;
+  std::unordered_map<EventListenerId, EventCallback> event_listeners_;
+  EventListenerId next_event_listener_id_ = 1;
   std::thread event_thread_;
   std::atomic<bool> event_thread_running_{false};
   std::string pending_event_payload_;
