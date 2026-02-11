@@ -57,3 +57,25 @@ Keep this checklist short and non-negotiable:
   - `./scripts/test_fast.sh --quick --filter WriteFenceTest`
   - `./scripts/test_fast.sh --quick --filter SaveAllCollisionRomPresenceTest`
 
+## CLI Guardrails For Collision/Water JSON
+
+When importing dungeon collision or water-fill JSON, use a two-step flow:
+
+1. Preview only (no ROM writes):
+   - `z3ed dungeon-import-custom-collision-json --in data.json --dry-run --report import.report.json`
+   - `z3ed dungeon-import-water-fill-json --in water.json --dry-run --report water.report.json`
+2. Apply after review:
+   - `z3ed dungeon-import-custom-collision-json --in data.json`
+   - `z3ed dungeon-import-water-fill-json --in water.json`
+
+Safety semantics:
+
+- `--dry-run` performs full parsing/validation and emits impact counts without writing.
+- `--report <path>` writes machine-readable JSON with `status`, `mode`, and structured error code/message.
+- `dungeon-import-custom-collision-json --replace-all` is destructive and requires `--force` in write mode.
+- `dungeon-import-water-fill-json --strict-masks` fails closed if SRAM mask normalization would be needed.
+
+Agent instruction (mandatory):
+
+- For automated workflows, always run a `--dry-run --report` preflight before any write-mode import.
+- If report `status=error`, stop and fix inputs; do not retry in write mode automatically.

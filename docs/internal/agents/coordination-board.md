@@ -23,6 +23,11 @@
 - COMPLETE 2026-02-11 (CODEX): added background-layer guardrails in `TileObjectHandler::UpdateObjectsLayer` (invalid target rejection, batch cap, BG3 overflow cap, BothBG skip) plus save-time validator checks for unsafe BG3/BothBG states; added `TileObjectHandlerTest` + `DungeonValidatorTest` coverage.
 - Verification: `./scripts/test_fast.sh --filter "DungeonCollisionJsonCommandsTest|TileObjectHandlerTest|DungeonValidatorTest|DungeonObjectLayerGuardrailsTest|ObjectLayerSemanticsTest"` and `./scripts/test_fast.sh --quick --no-configure` (143/143 pass).
 
+### 2026-02-11 CODEX – JSON Import Workflow Safety
+- COMPLETE 2026-02-11 (CODEX): added guardrail flags to dungeon JSON imports (`--dry-run`, `--report`, `--force` for destructive `--replace-all`, plus water `--strict-masks`) and structured report output with error code/message for agent automation.
+- Updated agent tool schemas/registration usage and `docs/internal/agents/rom-safety-guardrails.md` with mandatory two-phase import workflow (`--dry-run --report` preflight before write mode).
+- Verification: `./scripts/test_fast.sh --filter "DungeonCollisionJsonCommandsTest"` and `./scripts/test_fast.sh --quick --no-configure` (147/147 pass).
+
 ### 2026-02-10 Claude Code – UI Semantic Color Migration
 - COMPLETE 2026-02-10 (Claude Code): replaced ~130+ hardcoded `ImVec4()` color literals with semantic theme functions (`gui::GetSuccessColor()`, `GetWarningColor()`, `GetErrorColor()`, `GetInfoColor()`, `GetDisabledColor()`) across 14 editor files; added `GetDisabledColor()` and `GetWarningButtonColors()` infrastructure to `ui_helpers`; added 20+ tooltips (HOVER_HINT) to icon-only buttons in screen_editor, sprite_editor, link_sprite_panel; added accessibility icons to status indicators in proposal_drawer and link_sprite_panel; verified 916/916 tests pass. Domain-specific colors (entity markers, SNES palette data, welcome screen branding, command palette categories) intentionally preserved.
 
