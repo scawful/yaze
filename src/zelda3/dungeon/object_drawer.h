@@ -457,6 +457,13 @@ class ObjectDrawer {
                         std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
 
   // Utility methods
+  // Execute a DrawRoutineRegistry routine (pure DrawContext function) but render
+  // via ObjectDrawer::WriteTile8 so output hits the bitmap-backed buffers used
+  // by RoomLayerManager compositing.
+  void DrawUsingRegistryRoutine(int routine_id, const RoomObject& obj,
+                                gfx::BackgroundBuffer& bg,
+                                std::span<const gfx::TileInfo> tiles,
+                                const DungeonState* state);
   void WriteTile8(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
                   const gfx::TileInfo& tile_info);
   bool IsValidTilePosition(int tile_x, int tile_y) const;

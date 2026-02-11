@@ -940,6 +940,100 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .category = DrawRoutineInfo::Category::Special,
   });
 
+  // ============================================================================
+  // SuperSquare Routines (Phase 4) - IDs 56-64
+  // ============================================================================
+
+  registry.push_back(DrawRoutineInfo{
+      .id = 56,  // Draw4x4BlocksIn4x4SuperSquare
+      .name = "4x4BlocksIn4x4SuperSquare",
+      .function = Draw4x4BlocksIn4x4SuperSquare,
+      .draws_to_both_bgs = false,
+      .base_width = 0,   // Variable: width = (((size >> 2) & 3) + 1) * 4
+      .base_height = 0,  // Variable: height = ((size & 3) + 1) * 4
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = 57,  // Draw3x3FloorIn4x4SuperSquare
+      .name = "3x3FloorIn4x4SuperSquare",
+      .function = Draw3x3FloorIn4x4SuperSquare,
+      .draws_to_both_bgs = false,
+      .base_width = 0,   // Variable
+      .base_height = 0,  // Variable
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = 58,  // Draw4x4FloorIn4x4SuperSquare
+      .name = "4x4FloorIn4x4SuperSquare",
+      .function = Draw4x4FloorIn4x4SuperSquare,
+      .draws_to_both_bgs = false,
+      .base_width = 0,   // Variable
+      .base_height = 0,  // Variable
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = 59,  // Draw4x4FloorOneIn4x4SuperSquare
+      .name = "4x4FloorOneIn4x4SuperSquare",
+      .function = Draw4x4FloorOneIn4x4SuperSquare,
+      .draws_to_both_bgs = false,
+      .base_width = 0,   // Variable
+      .base_height = 0,  // Variable
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = 60,  // Draw4x4FloorTwoIn4x4SuperSquare
+      .name = "4x4FloorTwoIn4x4SuperSquare",
+      .function = Draw4x4FloorTwoIn4x4SuperSquare,
+      .draws_to_both_bgs = false,
+      .base_width = 0,   // Variable
+      .base_height = 0,  // Variable
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = 61,  // DrawBigHole4x4_1to16
+      .name = "BigHole4x4_1to16",
+      .function = DrawBigHole4x4_1to16,
+      .draws_to_both_bgs = false,
+      .base_width = 0,   // Variable
+      .base_height = 0,  // Variable
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = 62,  // DrawSpike2x2In4x4SuperSquare
+      .name = "Spike2x2In4x4SuperSquare",
+      .function = DrawSpike2x2In4x4SuperSquare,
+      .draws_to_both_bgs = false,
+      .base_width = 0,   // Variable
+      .base_height = 0,  // Variable
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = 63,  // DrawTableRock4x4_1to16
+      .name = "TableRock4x4_1to16",
+      .function = DrawTableRock4x4_1to16,
+      .draws_to_both_bgs = false,
+      .base_width = 0,   // Variable
+      .base_height = 0,  // Variable
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = 64,  // DrawWaterOverlay8x8_1to16
+      .name = "WaterOverlay8x8_1to16",
+      .function = DrawWaterOverlay8x8_1to16,
+      .draws_to_both_bgs = false,
+      .base_width = 0,   // Variable
+      .base_height = 0,  // Variable
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
   // Stair routines (IDs 83-88)
   registry.push_back(DrawRoutineInfo{
       .id = 83,  // DrawInterRoomFatStairsUp
@@ -1085,6 +1179,17 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 2,
       .base_height = 2,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  // Prison cell (Type 3 objects 0x20D, 0x217) draws to both BG layers.
+  registry.push_back(DrawRoutineInfo{
+      .id = 97,  // DrawPrisonCell
+      .name = "PrisonCell",
+      .function = DrawPrisonCell,
+      .draws_to_both_bgs = true,
+      .base_width = 10,  // Columns x..x+9
+      .base_height = 4,
       .category = DrawRoutineInfo::Category::Special,
   });
 
