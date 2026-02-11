@@ -5,6 +5,7 @@
 
 #include "app/gfx/core/bitmap.h"
 #include "app/gui/canvas/canvas.h"
+#include "app/gui/core/drag_drop.h"
 #include "imgui/imgui.h"
 
 namespace yaze::gui {
@@ -23,6 +24,8 @@ class TileSelectorWidget {
     int total_tiles = 512;
     ImVec2 draw_offset = {2.0f, 0.0f};
     bool show_tile_ids = false;
+    bool enable_drag = false;
+    int drag_source_map_id = -1;
     ImVec4 highlight_color = {1.0f, 0.85f, 0.35f, 1.0f};
   };
 
@@ -30,6 +33,7 @@ class TileSelectorWidget {
     bool tile_clicked = false;
     bool tile_double_clicked = false;
     bool selection_changed = false;
+    bool tile_dragging = false;
     int selected_tile = -1;
   };
 

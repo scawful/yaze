@@ -14,6 +14,7 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas_menu.h"
+#include "app/gui/core/drag_drop.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "dungeon_canvas_viewer.h"
@@ -1150,6 +1151,66 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
           .DrawEntitySelectionHighlights();  // Draw door/sprite/item selection
       object_interaction_.DrawGhostPreview();  // Draw placement preview
       // Context menu is handled by BeginCanvas via frame_opts.draw_context_menu
+
+      // --- DRAG SOURCES for selected objects/entities ---
+      // Emit drag source for the primary selected tile object
+      const auto selected = object_interaction_.GetSelectedObjectIndices();
+      if (selected.size() == 1) {
+        const auto& objects = room.GetTileObjects();
+        size_t idx = selected.front();
+        if (idx < objects.size()) {
+          const auto& obj = objects[idx];
+          gui::BeginRoomObjectDragSource(
+              static_cast<uint16_t>(obj.id_), room_id, obj.x_, obj.y_);
+        }
+      }
+
+      // Emit drag source for selected sprite entity
+      if (object_interaction_.HasEntitySelection()) {
+        const auto sel = object_interaction_.GetSelectedEntity();
+        if (sel.type == EntityType::Sprite) {
+          const auto& sprites = room.GetSprites();
+          if (sel.index < sprites.size()) {
+            const auto& sprite = sprites[sel.index];
+            gui::BeginSpriteDragSource(sprite.id(), room_id);
+          }
+        }
+      }
+    }
+
+    // --- DROP TARGETS on canvas ---
+    // Accept room object drops (reposition from another room or palette)
+    gui::RoomObjectDragPayload obj_drop;
+    if (gui::AcceptRoomObjectDrop(&obj_drop)) {
+      // Convert canvas mouse position to room tile coordinates
+      auto [tile_x, tile_y] = DungeonRenderingHelpers::ScreenToRoomCoordinates(
+          ImGui::GetMousePos(), canvas_.zero_point(), canvas_.global_scale());
+      if (tile_x >= 0 && tile_x < 64 && tile_y >= 0 && tile_y < 64) {
+        // Add object at drop position
+        zelda3::RoomObject new_obj(static_cast<int16_t>(obj_drop.object_id),
+                                   static_cast<uint8_t>(tile_x),
+                                   static_cast<uint8_t>(tile_y), 0, 0);
+        room.GetTileObjects().push_back(new_obj);
+      }
+    }
+
+    // Accept sprite drops (reposition from another room or sprite list)
+    gui::SpriteDragPayload sprite_drop;
+    if (gui::AcceptSpriteDrop(&sprite_drop)) {
+      auto [tile_x, tile_y] = DungeonRenderingHelpers::ScreenToRoomCoordinates(
+          ImGui::GetMousePos(), canvas_.zero_point(), canvas_.global_scale());
+      // Sprites use 16-pixel units, tiles are 8-pixel
+      int sprite_x = (tile_x * 8) / 16;
+      int sprite_y = (tile_y * 8) / 16;
+      if (sprite_x >= 0 && sprite_x < 32 && sprite_y >= 0 &&
+          sprite_y < 32) {
+        // Use 5-arg constructor: (id, x, y, subtype, layer)
+        zelda3::Sprite new_sprite(
+            static_cast<uint8_t>(sprite_drop.sprite_id),
+            static_cast<uint8_t>(sprite_x),
+            static_cast<uint8_t>(sprite_y), 0, 0);
+        room.GetSprites().push_back(new_sprite);
+      }
     }
   }
 
