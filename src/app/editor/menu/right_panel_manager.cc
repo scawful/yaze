@@ -329,8 +329,9 @@ void RightPanelManager::Draw() {
   const ImGuiViewport* viewport = ImGui::GetMainViewport();
   const float viewport_width = viewport->WorkSize.x;
   const float top_inset = gui::LayoutHelpers::GetTopInset();
+  const float bottom_safe = gui::LayoutHelpers::GetSafeAreaInsets().bottom;
   const float viewport_height =
-      std::max(0.0f, viewport->WorkSize.y - top_inset);
+      std::max(0.0f, viewport->WorkSize.y - top_inset - bottom_safe);
 
   // GetPanelWidth() already factors in panel_animation_ for docking space.
   // For the window itself, use the full (unanimated) width and slide position.

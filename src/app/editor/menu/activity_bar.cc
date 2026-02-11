@@ -51,8 +51,9 @@ void ActivityBar::DrawActivityBarStrip(
   const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
   const ImGuiViewport* viewport = ImGui::GetMainViewport();
   const float top_inset = gui::LayoutHelpers::GetTopInset();
+  const auto safe_area = gui::LayoutHelpers::GetSafeAreaInsets();
   const float viewport_height =
-      std::max(0.0f, viewport->WorkSize.y - top_inset);
+      std::max(0.0f, viewport->WorkSize.y - top_inset - safe_area.bottom);
   const float bar_width = gui::UIConfig::kActivityBarWidth;
 
   constexpr ImGuiWindowFlags kExtraFlags =
@@ -236,8 +237,9 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
       PanelManager::GetSidePanelWidthForViewport(viewport->WorkSize.x);
 
   const float top_inset = gui::LayoutHelpers::GetTopInset();
+  const auto safe_area = gui::LayoutHelpers::GetSafeAreaInsets();
   const float panel_height =
-      std::max(0.0f, viewport->WorkSize.y - top_inset);
+      std::max(0.0f, viewport->WorkSize.y - top_inset - safe_area.bottom);
 
   gui::FixedPanel panel(
       "##SidePanel",

@@ -1,8 +1,11 @@
 #include "app/editor/menu/status_bar.h"
 
+#include <algorithm>
+
 #include "absl/strings/str_format.h"
 #include "app/editor/events/core_events.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
@@ -12,6 +15,16 @@
 
 namespace yaze {
 namespace editor {
+
+float StatusBar::GetHeight() const {
+  if (!enabled_) {
+    return 0.0f;
+  }
+  if (gui::LayoutHelpers::IsTouchDevice()) {
+    return std::max(kStatusBarHeight, kStatusBarTouchHeight);
+  }
+  return kStatusBarHeight;
+}
 
 void StatusBar::Initialize(GlobalEditorContext* context) {
   context_ = context;
@@ -143,10 +156,17 @@ void StatusBar::Draw() {
 
   const ImGuiViewport* viewport = ImGui::GetMainViewport();
 
-  // Position at very bottom of viewport, outside the dockspace
-  // The dockspace is already reduced by GetBottomLayoutOffset() in controller.cc
-  const float bar_height = kStatusBarHeight;
-  const float bar_y = viewport->WorkPos.y + viewport->WorkSize.y - bar_height;
+  // Position at very bottom of viewport, above the safe area (home indicator).
+  // The dockspace is already reduced by GetBottomLayoutOffset() in controller.cc.
+  const float bar_height = GetHeight();
+  const float bottom_safe = gui::LayoutHelpers::GetSafeAreaInsets().bottom;
+  const float bar_y =
+      viewport->WorkPos.y + viewport->WorkSize.y - bar_height - bottom_safe;
+  const bool touch_mode = gui::LayoutHelpers::IsTouchDevice();
+  const ImVec2 panel_padding = touch_mode ? ImVec2(12.0f, 6.0f)
+                                          : ImVec2(8.0f, 4.0f);
+  const ImVec2 panel_spacing = touch_mode ? ImVec2(10.0f, 0.0f)
+                                          : ImVec2(8.0f, 0.0f);
 
   // Status bar background - slightly elevated surface
   ImVec4 bar_bg = gui::GetSurfaceContainerVec4();
@@ -163,8 +183,8 @@ void StatusBar::Draw() {
       ImVec2(viewport->WorkSize.x, bar_height),
       {.bg = bar_bg,
        .border = bar_border,
-       .padding = {8.0f, 4.0f},
-       .spacing = {8.0f, 0.0f},
+       .padding = panel_padding,
+       .spacing = panel_spacing,
        .border_size = 1.0f},
       extra_flags);
 

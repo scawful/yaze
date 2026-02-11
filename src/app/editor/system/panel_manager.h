@@ -1,6 +1,7 @@
 #ifndef APP_EDITOR_SYSTEM_PANEL_MANAGER_H_
 #define APP_EDITOR_SYSTEM_PANEL_MANAGER_H_
 
+#include <algorithm>
 #include <cstdint>
 #include <functional>
 #include <list>
@@ -309,9 +310,29 @@ class PanelManager {
   static constexpr float GetSidebarWidth() { return 48.0f; }
   static constexpr float GetSidePanelWidth() { return 250.0f; }
   static float GetSidePanelWidthForViewport(float viewport_width) {
+    if (viewport_width <= 0.0f) {
+      return GetSidePanelWidth();
+    }
+
+    // Keep side panel useful on compact/touch widths while preserving
+    // desktop density on large displays.
+    if (viewport_width < 900.0f) {
+      const float preferred = viewport_width * 0.58f;
+      const float min_width = std::max(200.0f, viewport_width * 0.46f);
+      const float max_width = std::max(min_width, viewport_width * 0.72f);
+      return std::clamp(preferred, min_width, max_width);
+    }
+
+    if (viewport_width < 1200.0f) {
+      const float preferred = viewport_width * 0.32f;
+      const float min_width = 280.0f;
+      const float max_width = viewport_width * 0.40f;
+      return std::clamp(preferred, min_width, max_width);
+    }
+
     float width = GetSidePanelWidth();
     const float max_width = viewport_width * 0.28f;
-    if (viewport_width > 0.0f && max_width > 0.0f && width > max_width) {
+    if (max_width > 0.0f && width > max_width) {
       width = max_width;
     }
     return width;
