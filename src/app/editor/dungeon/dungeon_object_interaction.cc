@@ -253,10 +253,19 @@ void DungeonObjectInteraction::HandleMouseRelease() {
     if (mode == InteractionMode::PaintCollision ||
         mode == InteractionMode::PaintWaterFill) {
       auto& state = mode_manager_.GetModeState();
+      const bool had_mutation = state.paint_mutation_started;
       state.is_painting = false;
       state.paint_mutation_started = false;
       state.paint_last_tile_x = -1;
       state.paint_last_tile_y = -1;
+      // Emit a final invalidation after the stroke ends so domain-specific undo
+      // capture can finalize the action once we're no longer "painting".
+      if (had_mutation) {
+        interaction_context_.NotifyInvalidateCache(
+            (mode == InteractionMode::PaintCollision)
+                ? MutationDomain::kCustomCollision
+                : MutationDomain::kWaterFill);
+      }
     }
   }
 

@@ -330,13 +330,25 @@ class DungeonEditorV2 : public Editor {
   std::unordered_map<int, int> room_panel_slot_ids_;
 
   // Pending undo snapshot: captured on mutation callback (before edit),
-  // finalized on cache invalidation callback (after edit) by pushing a
-  // DungeonObjectsAction to the inherited undo_manager_.
+  // finalized on cache invalidation callback (after edit) by pushing an undo
+  // action to the inherited undo_manager_.
   struct PendingUndo {
     int room_id = -1;
     std::vector<zelda3::RoomObject> before_objects;
   };
   PendingUndo pending_undo_;
+
+  struct PendingCollisionUndo {
+    int room_id = -1;
+    zelda3::CustomCollisionMap before;
+  };
+  PendingCollisionUndo pending_collision_undo_;
+
+  struct PendingWaterFillUndo {
+    int room_id = -1;
+    WaterFillSnapshot before;
+  };
+  PendingWaterFillUndo pending_water_fill_undo_;
 
   // Pending room swap (deferred until after draw phase completes)
   struct PendingSwap {
@@ -352,6 +364,15 @@ class DungeonEditorV2 : public Editor {
   void FinalizeUndoAction(int room_id);
   void RestoreRoomObjects(int room_id,
                           const std::vector<zelda3::RoomObject>& objects);
+
+  void BeginCollisionUndoSnapshot(int room_id);
+  void FinalizeCollisionUndoAction(int room_id);
+  void RestoreRoomCustomCollision(int room_id,
+                                  const zelda3::CustomCollisionMap& map);
+
+  void BeginWaterFillUndoSnapshot(int room_id);
+  void FinalizeWaterFillUndoAction(int room_id);
+  void RestoreRoomWaterFill(int room_id, const WaterFillSnapshot& snap);
   void SwapRoomInPanel(int old_room_id, int new_room_id);
   void ProcessPendingSwap();  // Process deferred swap after draw
 
