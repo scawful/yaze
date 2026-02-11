@@ -47,6 +47,72 @@ mktemp_file() {
   mktemp "${TMPDIR:-/tmp}/yaze-fasttest.XXXXXX"
 }
 
+ctest_has_matching_tests() {
+  local json_path="$1"
+
+  if command -v python3 >/dev/null 2>&1; then
+    python3 - "$json_path" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], "r", encoding="utf-8") as f:
+  data = json.load(f)
+tests = data.get("tests", [])
+sys.exit(0 if tests else 1)
+PY
+    return $?
+  fi
+
+  if command -v python >/dev/null 2>&1; then
+    python - "$json_path" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], "r") as f:
+  data = json.load(f)
+tests = data.get("tests", [])
+sys.exit(0 if tests else 1)
+PY
+    return $?
+  fi
+
+  # Fallback: heuristic check for the empty list in ctest JSON output.
+  if grep -Eq '"tests"[[:space:]]*:[[:space:]]*\\[[[:space:]]*\\]' "$json_path"; then
+    return 1
+  fi
+  return 0
+}
+
+ensure_ctest_nonempty_or_die() {
+  local label="$1"
+  shift
+
+  local tmp
+  tmp="$(mktemp_file)"
+
+  if ! ctest "${ctest_common[@]}" --show-only=json-v1 "$@" >"$tmp" 2>&1; then
+    echo -e "${RED}✗${NC} ${label}: failed to query ctest selection. Output:" >&2
+    cat "$tmp" >&2
+    rm -f "$tmp"
+    exit 1
+  fi
+
+  if ! ctest_has_matching_tests "$tmp"; then
+    echo -e "${RED}✗${NC} ${label}: no tests matched selection." >&2
+    echo "" >&2
+    echo "Tip: list matching tests with:" >&2
+    echo "  $0 --list ${*}" >&2
+    echo "" >&2
+    echo "Common causes:" >&2
+    echo "  - In --quick mode, the test may not have the 'quick' label." >&2
+    echo "  - Regex typo (ctest -R uses a regex, not a substring match)." >&2
+    rm -f "$tmp"
+    exit 2
+  fi
+
+  rm -f "$tmp"
+}
+
 run_quiet_or_die() {
   local label="$1"
   shift
@@ -249,6 +315,7 @@ if [[ "$MODE" == "full" ]]; then
     ctest "${ctest_common[@]}" -N -L stable "${ctest_filter_args[@]}"
   else
     echo -e "${YELLOW}→${NC} Running full stable suite via ctest (-L stable)..."
+    ensure_ctest_nonempty_or_die "Full stable suite" -L stable "${ctest_filter_args[@]}"
     ctest "${ctest_common[@]}" -L stable "${ctest_filter_args[@]}"
   fi
   exit 0
@@ -267,6 +334,7 @@ if [[ "$MODE" == "quick" ]]; then
     ctest "${ctest_common[@]}" -N -L "${label}" "${ctest_filter_args[@]}"
   else
     echo -e "${YELLOW}→${NC} Running quick suites via ctest (-L ${label})..."
+    ensure_ctest_nonempty_or_die "Quick suite (-L ${label})" -L "${label}" "${ctest_filter_args[@]}"
     ctest "${ctest_common[@]}" -L "${label}" "${ctest_filter_args[@]}"
   fi
   exit 0
@@ -278,6 +346,7 @@ if [[ "$RUN_UNIT" == "1" ]]; then
   if [[ "$LIST_ONLY" == "1" ]]; then
     ctest "${ctest_common[@]}" -N -R "$UNIT_REGEX"
   else
+    ensure_ctest_nonempty_or_die "Unit subset" -R "$UNIT_REGEX"
     ctest "${ctest_common[@]}" -R "$UNIT_REGEX"
     echo -e "${GREEN}✓${NC} Unit subset ok"
   fi
@@ -290,6 +359,7 @@ if [[ "$RUN_INTEGRATION" == "1" ]]; then
   if [[ "$LIST_ONLY" == "1" ]]; then
     ctest "${ctest_common[@]}" -N -R "$INTEGRATION_REGEX"
   else
+    ensure_ctest_nonempty_or_die "Integration subset" -R "$INTEGRATION_REGEX"
     ctest "${ctest_common[@]}" -R "$INTEGRATION_REGEX"
     echo -e "${GREEN}✓${NC} Integration subset ok"
   fi
