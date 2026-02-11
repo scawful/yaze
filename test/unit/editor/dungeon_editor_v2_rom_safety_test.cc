@@ -112,6 +112,68 @@ TEST(DungeonEditorV2RomSafetyTest,
 }
 
 TEST(DungeonEditorV2RomSafetyTest,
+     SaveNormalizesDuplicateWaterFillMasksInsteadOfFailing) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  DungeonEditorV2 editor(&rom);
+  editor.rooms()[0].SetWaterFillTile(/*x=*/1, /*y=*/1, /*filled=*/true);
+  editor.rooms()[0].set_water_fill_sram_bit_mask(0x01);
+  editor.rooms()[1].SetWaterFillTile(/*x=*/2, /*y=*/2, /*filled=*/true);
+  editor.rooms()[1].set_water_fill_sram_bit_mask(0x01);  // Duplicate on purpose.
+
+  DungeonSaveFlagsGuard guard;
+  ConfigureMinimalDungeonSave();
+  auto& d = core::FeatureFlags::get().dungeon;
+  d.kSaveObjects = false;
+  d.kSaveCollision = false;
+  d.kSaveWaterFillZones = true;
+
+  auto status = editor.Save();
+  EXPECT_TRUE(status.ok()) << status.message();
+
+  EXPECT_EQ(editor.rooms()[0].water_fill_sram_bit_mask(), 0x01);
+  EXPECT_EQ(editor.rooms()[1].water_fill_sram_bit_mask(), 0x02);
+
+  auto zones_or = zelda3::LoadWaterFillTable(&rom);
+  ASSERT_TRUE(zones_or.ok()) << zones_or.status().message();
+  const auto& zones = *zones_or;
+  ASSERT_EQ(zones.size(), 2u);
+  EXPECT_EQ(zones[0].room_id, 0);
+  EXPECT_EQ(zones[0].sram_bit_mask, 0x01);
+  EXPECT_EQ(zones[1].room_id, 1);
+  EXPECT_EQ(zones[1].sram_bit_mask, 0x02);
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
+     SaveNormalizesInvalidWaterFillMaskInsteadOfFailing) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  DungeonEditorV2 editor(&rom);
+  editor.rooms()[0].SetWaterFillTile(/*x=*/4, /*y=*/4, /*filled=*/true);
+  editor.rooms()[0].set_water_fill_sram_bit_mask(0x03);  // Invalid (not single-bit).
+
+  DungeonSaveFlagsGuard guard;
+  ConfigureMinimalDungeonSave();
+  auto& d = core::FeatureFlags::get().dungeon;
+  d.kSaveObjects = false;
+  d.kSaveCollision = false;
+  d.kSaveWaterFillZones = true;
+
+  auto status = editor.Save();
+  EXPECT_TRUE(status.ok()) << status.message();
+  EXPECT_EQ(editor.rooms()[0].water_fill_sram_bit_mask(), 0x01);
+
+  auto zones_or = zelda3::LoadWaterFillTable(&rom);
+  ASSERT_TRUE(zones_or.ok()) << zones_or.status().message();
+  const auto& zones = *zones_or;
+  ASSERT_EQ(zones.size(), 1u);
+  EXPECT_EQ(zones[0].room_id, 0);
+  EXPECT_EQ(zones[0].sram_bit_mask, 0x01);
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
      CollectWriteRangesIncludesWaterFillRegionWhenDirtyAndEnabled) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
