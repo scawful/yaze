@@ -135,4 +135,33 @@ TEST(DungeonEditorV2RomSafetyTest,
             static_cast<uint32_t>(zelda3::kWaterFillTableEnd));
 }
 
+TEST(DungeonEditorV2RomSafetyTest,
+     CollectWriteRangesIncludesCustomCollisionRegionsWhenDirtyAndEnabled) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  DungeonEditorV2 editor(&rom);
+
+  DungeonSaveFlagsGuard guard;
+  ConfigureMinimalDungeonSave();
+  auto& d = core::FeatureFlags::get().dungeon;
+  d.kSaveObjects = false;
+  d.kSaveCollision = true;
+
+  EXPECT_TRUE(editor.CollectWriteRanges().empty());
+
+  editor.rooms()[0].SetCollisionTile(/*x=*/0, /*y=*/0, /*tile=*/0x08);
+  auto ranges = editor.CollectWriteRanges();
+  ASSERT_EQ(ranges.size(), 2u);
+  EXPECT_EQ(ranges[0].first,
+            static_cast<uint32_t>(zelda3::kCustomCollisionRoomPointers));
+  EXPECT_EQ(ranges[0].second,
+            static_cast<uint32_t>(zelda3::kCustomCollisionRoomPointers +
+                                  (zelda3::kNumberOfRooms * 3)));
+  EXPECT_EQ(ranges[1].first,
+            static_cast<uint32_t>(zelda3::kCustomCollisionDataPosition));
+  EXPECT_EQ(ranges[1].second,
+            static_cast<uint32_t>(zelda3::kCustomCollisionDataSoftEnd));
+}
+
 }  // namespace yaze::editor

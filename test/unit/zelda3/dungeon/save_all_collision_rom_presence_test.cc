@@ -29,7 +29,6 @@ TEST(SaveAllCollisionRomPresenceTest, NoOpWhenRegionMissingAndNoDirtyCollision) 
   std::vector<Room> rooms;
   rooms.reserve(1);
   rooms.emplace_back(/*room_id=*/0, rom.get());
-  rooms[0].SetLoaded(true);
 
   auto status = SaveAllCollision(rom.get(), absl::MakeSpan(rooms));
   EXPECT_TRUE(status.ok()) << status;
@@ -41,7 +40,6 @@ TEST(SaveAllCollisionRomPresenceTest, RejectsWhenRegionMissingAndDirtyCollision)
   std::vector<Room> rooms;
   rooms.reserve(1);
   rooms.emplace_back(/*room_id=*/0, rom.get());
-  rooms[0].SetLoaded(true);
 
   // Simulate user-authored collision edits.
   rooms[0].SetCollisionTile(/*x=*/0, /*y=*/0, /*tile=*/0x08);
@@ -62,7 +60,6 @@ TEST(SaveAllCollisionRomPresenceTest,
   std::vector<Room> rooms;
   rooms.reserve(1);
   rooms.emplace_back(/*room_id=*/0, rom.get());
-  rooms[0].SetLoaded(true);
 
   rooms[0].SetCollisionTile(/*x=*/0, /*y=*/0, /*tile=*/0x08);
   ASSERT_TRUE(rooms[0].custom_collision_dirty());

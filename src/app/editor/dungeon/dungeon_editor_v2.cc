@@ -942,6 +942,30 @@ DungeonEditorV2::CollectWriteRanges() const {
     }
   }
 
+  // Custom collision writes update the pointer table and append blobs into the
+  // expanded collision region. SaveAllCollision() is room-indexed, so include
+  // these ranges whenever any room has dirty custom collision data.
+  if (flags.kSaveCollision) {
+    const int ptrs_size = zelda3::kNumberOfRooms * 3;
+    const bool has_ptr_table =
+        (zelda3::kCustomCollisionRoomPointers + ptrs_size <=
+         static_cast<int>(rom_data.size()));
+    const bool has_data_region =
+        (zelda3::kCustomCollisionDataSoftEnd <=
+         static_cast<int>(rom_data.size()));
+    if (has_ptr_table && has_data_region) {
+      for (const auto& room : rooms_) {
+        if (room.custom_collision_dirty()) {
+          ranges.emplace_back(zelda3::kCustomCollisionRoomPointers,
+                              zelda3::kCustomCollisionRoomPointers + ptrs_size);
+          ranges.emplace_back(zelda3::kCustomCollisionDataPosition,
+                              zelda3::kCustomCollisionDataSoftEnd);
+          break;
+        }
+      }
+    }
+  }
+
   for (const auto& room : rooms_) {
     if (!room.IsLoaded()) {
       continue;
