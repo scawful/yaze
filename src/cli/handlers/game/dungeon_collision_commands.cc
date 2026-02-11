@@ -10,11 +10,13 @@
 #include <unordered_set>
 #include <vector>
 
+#include "absl/status/status.h"
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
 #include "absl/types/span.h"
 #include "cli/util/hex_util.h"
+#include "nlohmann/json.hpp"
 #include "rom/rom.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/custom_collision.h"
@@ -31,6 +33,7 @@ using util::ParseHexString;
 namespace {
 
 constexpr int kCollisionGridSize = 64;
+using json = nlohmann::json;
 
 absl::StatusOr<std::unordered_set<int>> ParseTileFilter(
     const resources::ArgumentParser& parser) {
@@ -148,6 +151,87 @@ absl::Status WriteTextFile(const std::string& path,
   return absl::OkStatus();
 }
 
+std::string StatusCodeName(absl::StatusCode code) {
+  switch (code) {
+    case absl::StatusCode::kOk:
+      return "OK";
+    case absl::StatusCode::kCancelled:
+      return "CANCELLED";
+    case absl::StatusCode::kUnknown:
+      return "UNKNOWN";
+    case absl::StatusCode::kInvalidArgument:
+      return "INVALID_ARGUMENT";
+    case absl::StatusCode::kDeadlineExceeded:
+      return "DEADLINE_EXCEEDED";
+    case absl::StatusCode::kNotFound:
+      return "NOT_FOUND";
+    case absl::StatusCode::kAlreadyExists:
+      return "ALREADY_EXISTS";
+    case absl::StatusCode::kPermissionDenied:
+      return "PERMISSION_DENIED";
+    case absl::StatusCode::kResourceExhausted:
+      return "RESOURCE_EXHAUSTED";
+    case absl::StatusCode::kFailedPrecondition:
+      return "FAILED_PRECONDITION";
+    case absl::StatusCode::kAborted:
+      return "ABORTED";
+    case absl::StatusCode::kOutOfRange:
+      return "OUT_OF_RANGE";
+    case absl::StatusCode::kUnimplemented:
+      return "UNIMPLEMENTED";
+    case absl::StatusCode::kInternal:
+      return "INTERNAL";
+    case absl::StatusCode::kUnavailable:
+      return "UNAVAILABLE";
+    case absl::StatusCode::kDataLoss:
+      return "DATA_LOSS";
+    case absl::StatusCode::kUnauthenticated:
+      return "UNAUTHENTICATED";
+  }
+  return "UNKNOWN";
+}
+
+json BuildBaseReport(absl::string_view command_name, bool dry_run) {
+  return json{
+      {"command", std::string(command_name)},
+      {"status", "success"},
+      {"dry_run", dry_run},
+      {"mode", dry_run ? "dry-run" : "write"},
+  };
+}
+
+absl::Status WriteReportIfRequested(const resources::ArgumentParser& parser,
+                                    const json& report) {
+  auto report_path = parser.GetString("report");
+  if (!report_path.has_value()) {
+    return absl::OkStatus();
+  }
+  return WriteTextFile(*report_path, report.dump(2) + "\n");
+}
+
+absl::Status FinalizeWithReport(const resources::ArgumentParser& parser,
+                                json report, const absl::Status& status) {
+  if (!status.ok()) {
+    report["status"] = "error";
+    report["error"] = json{
+        {"code", StatusCodeName(status.code())},
+        {"message", std::string(status.message())},
+    };
+  }
+
+  const auto report_status = WriteReportIfRequested(parser, report);
+  if (!report_status.ok()) {
+    if (status.ok()) {
+      return report_status;
+    }
+    return absl::InternalError(absl::StrFormat(
+        "Command failed (%s) and report write failed (%s)", status.message(),
+        report_status.message()));
+  }
+
+  return status;
+}
+
 }  // namespace
 
 absl::Status DungeonListCustomCollisionCommandHandler::Execute(
@@ -235,200 +319,266 @@ absl::Status DungeonListCustomCollisionCommandHandler::Execute(
 absl::Status DungeonExportCustomCollisionJsonCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  ASSIGN_OR_RETURN(const auto room_ids, ParseRoomSelection(parser));
-  const std::string out_path = parser.GetString("out").value();
+  json report = BuildBaseReport(GetName(), /*dry_run=*/false);
+  const absl::Status status = [&]() -> absl::Status {
+    ASSIGN_OR_RETURN(const auto room_ids, ParseRoomSelection(parser));
+    const std::string out_path = parser.GetString("out").value();
+    report["out_path"] = out_path;
+    report["requested_rooms"] = static_cast<int>(room_ids.size());
 
-  std::vector<zelda3::CustomCollisionRoomEntry> export_rooms;
-  export_rooms.reserve(room_ids.size());
+    std::vector<zelda3::CustomCollisionRoomEntry> export_rooms;
+    export_rooms.reserve(room_ids.size());
 
-  for (int room_id : room_ids) {
-    ASSIGN_OR_RETURN(auto map, zelda3::LoadCustomCollisionMap(rom, room_id));
-    if (!map.has_data) {
-      continue;
-    }
-
-    zelda3::CustomCollisionRoomEntry entry;
-    entry.room_id = room_id;
-    for (int offset = 0; offset < kCollisionGridSize * kCollisionGridSize;
-         ++offset) {
-      const uint8_t tile = map.tiles[static_cast<size_t>(offset)];
-      if (tile == 0) {
+    for (int room_id : room_ids) {
+      ASSIGN_OR_RETURN(auto map, zelda3::LoadCustomCollisionMap(rom, room_id));
+      if (!map.has_data) {
         continue;
       }
-      entry.tiles.push_back(
-          zelda3::CustomCollisionTileEntry{static_cast<uint16_t>(offset), tile});
-    }
-    if (!entry.tiles.empty()) {
-      export_rooms.push_back(std::move(entry));
-    }
-  }
 
-  ASSIGN_OR_RETURN(const std::string json,
-                   zelda3::DumpCustomCollisionRoomsToJsonString(export_rooms));
-  RETURN_IF_ERROR(WriteTextFile(out_path, json));
+      zelda3::CustomCollisionRoomEntry entry;
+      entry.room_id = room_id;
+      for (int offset = 0; offset < kCollisionGridSize * kCollisionGridSize;
+           ++offset) {
+        const uint8_t tile = map.tiles[static_cast<size_t>(offset)];
+        if (tile == 0) {
+          continue;
+        }
+        entry.tiles.push_back(zelda3::CustomCollisionTileEntry{
+            static_cast<uint16_t>(offset), tile});
+      }
+      if (!entry.tiles.empty()) {
+        export_rooms.push_back(std::move(entry));
+      }
+    }
 
-  formatter.BeginObject("Custom Collision Export");
-  formatter.AddField("out_path", out_path);
-  formatter.AddField("requested_rooms", static_cast<int>(room_ids.size()));
-  formatter.AddField("exported_rooms", static_cast<int>(export_rooms.size()));
-  formatter.AddField("status", "success");
-  formatter.EndObject();
-  return absl::OkStatus();
+    ASSIGN_OR_RETURN(
+        const std::string exported_json,
+        zelda3::DumpCustomCollisionRoomsToJsonString(export_rooms));
+    RETURN_IF_ERROR(WriteTextFile(out_path, exported_json));
+    report["exported_rooms"] = static_cast<int>(export_rooms.size());
+
+    formatter.BeginObject("Custom Collision Export");
+    formatter.AddField("out_path", out_path);
+    formatter.AddField("requested_rooms", static_cast<int>(room_ids.size()));
+    formatter.AddField("exported_rooms", static_cast<int>(export_rooms.size()));
+    formatter.AddField("status", "success");
+    formatter.EndObject();
+    return absl::OkStatus();
+  }();
+
+  return FinalizeWithReport(parser, std::move(report), status);
 }
 
 absl::Status DungeonImportCustomCollisionJsonCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  const std::string in_path = parser.GetString("in").value();
-  const bool replace_all = parser.HasFlag("replace-all");
+  const bool dry_run = parser.HasFlag("dry-run");
+  json report = BuildBaseReport(GetName(), dry_run);
+  const absl::Status status = [&]() -> absl::Status {
+    const std::string in_path = parser.GetString("in").value();
+    const bool replace_all = parser.HasFlag("replace-all");
+    const bool force = parser.HasFlag("force");
+    report["in_path"] = in_path;
+    report["replace_all"] = replace_all;
+    report["force"] = force;
 
-  if (!zelda3::HasCustomCollisionWriteSupport(rom->vector().size())) {
-    return absl::FailedPreconditionError(
-        "Custom collision write support not present in this ROM");
-  }
-
-  ASSIGN_OR_RETURN(const std::string json_content, ReadTextFile(in_path));
-  ASSIGN_OR_RETURN(auto imported_rooms,
-                   zelda3::LoadCustomCollisionRoomsFromJsonString(
-                       json_content));
-
-  std::array<zelda3::Room, zelda3::kNumberOfRooms> rooms;
-  for (int room_id = 0; room_id < zelda3::kNumberOfRooms; ++room_id) {
-    rooms[room_id] = zelda3::Room(room_id, rom, nullptr);
-  }
-
-  int populated_rooms = 0;
-  int cleared_rooms = 0;
-  std::unordered_set<int> touched_rooms;
-  for (const auto& imported : imported_rooms) {
-    touched_rooms.insert(imported.room_id);
-    auto& room = rooms[imported.room_id];
-    room.custom_collision().tiles.fill(0);
-    room.custom_collision().has_data = false;
-    room.MarkCustomCollisionDirty();
-
-    bool has_nonzero = false;
-    for (const auto& tile : imported.tiles) {
-      const int offset = static_cast<int>(tile.offset);
-      if (offset < 0 || offset >= kCollisionGridSize * kCollisionGridSize) {
-        continue;
-      }
-      if (tile.value == 0) {
-        continue;
-      }
-      room.SetCollisionTile(offset % kCollisionGridSize,
-                            offset / kCollisionGridSize, tile.value);
-      has_nonzero = true;
+    if (!zelda3::HasCustomCollisionWriteSupport(rom->vector().size())) {
+      return absl::FailedPreconditionError(
+          "Custom collision write support not present in this ROM");
     }
 
-    if (has_nonzero) {
-      ++populated_rooms;
-    } else {
-      ++cleared_rooms;
+    if (replace_all && !dry_run && !force) {
+      return absl::FailedPreconditionError(
+          "--replace-all requires --force (run with --dry-run first)");
     }
-  }
 
-  if (replace_all) {
+    ASSIGN_OR_RETURN(const std::string json_content, ReadTextFile(in_path));
+    ASSIGN_OR_RETURN(
+        auto imported_rooms,
+        zelda3::LoadCustomCollisionRoomsFromJsonString(json_content));
+    report["imported_room_entries"] = static_cast<int>(imported_rooms.size());
+
+    std::array<zelda3::Room, zelda3::kNumberOfRooms> rooms;
     for (int room_id = 0; room_id < zelda3::kNumberOfRooms; ++room_id) {
-      if (touched_rooms.contains(room_id)) {
-        continue;
-      }
-      auto& room = rooms[room_id];
+      rooms[room_id] = zelda3::Room(room_id, rom, nullptr);
+    }
+
+    int populated_rooms = 0;
+    int cleared_rooms = 0;
+    std::unordered_set<int> touched_rooms;
+    for (const auto& imported : imported_rooms) {
+      touched_rooms.insert(imported.room_id);
+      auto& room = rooms[imported.room_id];
       room.custom_collision().tiles.fill(0);
       room.custom_collision().has_data = false;
       room.MarkCustomCollisionDirty();
-      ++cleared_rooms;
+
+      bool has_nonzero = false;
+      for (const auto& tile : imported.tiles) {
+        const int offset = static_cast<int>(tile.offset);
+        if (offset < 0 || offset >= kCollisionGridSize * kCollisionGridSize) {
+          continue;
+        }
+        if (tile.value == 0) {
+          continue;
+        }
+        room.SetCollisionTile(offset % kCollisionGridSize,
+                              offset / kCollisionGridSize, tile.value);
+        has_nonzero = true;
+      }
+
+      if (has_nonzero) {
+        ++populated_rooms;
+      } else {
+        ++cleared_rooms;
+      }
     }
-  }
 
-  RETURN_IF_ERROR(zelda3::SaveAllCollision(rom, absl::MakeSpan(rooms)));
+    int replace_all_clears = 0;
+    if (replace_all) {
+      for (int room_id = 0; room_id < zelda3::kNumberOfRooms; ++room_id) {
+        if (touched_rooms.contains(room_id)) {
+          continue;
+        }
+        auto& room = rooms[room_id];
+        room.custom_collision().tiles.fill(0);
+        room.custom_collision().has_data = false;
+        room.MarkCustomCollisionDirty();
+        ++cleared_rooms;
+        ++replace_all_clears;
+      }
+    }
+    report["replace_all_clears"] = replace_all_clears;
 
-  formatter.BeginObject("Custom Collision Import");
-  formatter.AddField("in_path", in_path);
-  formatter.AddField("replace_all", replace_all);
-  formatter.AddField("imported_room_entries",
-                     static_cast<int>(imported_rooms.size()));
-  formatter.AddField("populated_rooms", populated_rooms);
-  formatter.AddField("cleared_rooms", cleared_rooms);
-  formatter.AddField("status", "success");
-  formatter.EndObject();
-  return absl::OkStatus();
+    if (!dry_run) {
+      RETURN_IF_ERROR(zelda3::SaveAllCollision(rom, absl::MakeSpan(rooms)));
+    }
+
+    report["populated_rooms"] = populated_rooms;
+    report["cleared_rooms"] = cleared_rooms;
+
+    formatter.BeginObject("Custom Collision Import");
+    formatter.AddField("in_path", in_path);
+    formatter.AddField("replace_all", replace_all);
+    formatter.AddField("force", force);
+    formatter.AddField("mode", dry_run ? "dry-run" : "write");
+    formatter.AddField("imported_room_entries",
+                       static_cast<int>(imported_rooms.size()));
+    formatter.AddField("populated_rooms", populated_rooms);
+    formatter.AddField("cleared_rooms", cleared_rooms);
+    formatter.AddField("status", "success");
+    formatter.EndObject();
+    return absl::OkStatus();
+  }();
+
+  return FinalizeWithReport(parser, std::move(report), status);
 }
 
 absl::Status DungeonExportWaterFillJsonCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  const std::string out_path = parser.GetString("out").value();
-  ASSIGN_OR_RETURN(const auto room_ids, ParseRoomSelection(parser));
+  json report = BuildBaseReport(GetName(), /*dry_run=*/false);
+  const absl::Status status = [&]() -> absl::Status {
+    const std::string out_path = parser.GetString("out").value();
+    ASSIGN_OR_RETURN(const auto room_ids, ParseRoomSelection(parser));
+    report["out_path"] = out_path;
+    report["requested_rooms"] = static_cast<int>(room_ids.size());
 
-  if (!zelda3::HasWaterFillReservedRegion(rom->vector().size())) {
-    return absl::FailedPreconditionError(
-        "WaterFill reserved region missing in this ROM");
-  }
-
-  ASSIGN_OR_RETURN(auto zones, zelda3::LoadWaterFillTable(rom));
-  std::unordered_set<int> room_filter(room_ids.begin(), room_ids.end());
-  std::vector<zelda3::WaterFillZoneEntry> filtered;
-  filtered.reserve(zones.size());
-  for (const auto& zone : zones) {
-    if (!room_filter.contains(zone.room_id)) {
-      continue;
+    if (!zelda3::HasWaterFillReservedRegion(rom->vector().size())) {
+      return absl::FailedPreconditionError(
+          "WaterFill reserved region missing in this ROM");
     }
-    filtered.push_back(zone);
-  }
 
-  ASSIGN_OR_RETURN(const std::string json,
-                   zelda3::DumpWaterFillZonesToJsonString(filtered));
-  RETURN_IF_ERROR(WriteTextFile(out_path, json));
+    ASSIGN_OR_RETURN(auto zones, zelda3::LoadWaterFillTable(rom));
+    std::unordered_set<int> room_filter(room_ids.begin(), room_ids.end());
+    std::vector<zelda3::WaterFillZoneEntry> filtered;
+    filtered.reserve(zones.size());
+    for (const auto& zone : zones) {
+      if (!room_filter.contains(zone.room_id)) {
+        continue;
+      }
+      filtered.push_back(zone);
+    }
 
-  formatter.BeginObject("Water Fill Export");
-  formatter.AddField("out_path", out_path);
-  formatter.AddField("requested_rooms", static_cast<int>(room_ids.size()));
-  formatter.AddField("exported_zones", static_cast<int>(filtered.size()));
-  formatter.AddField("status", "success");
-  formatter.EndObject();
-  return absl::OkStatus();
+    ASSIGN_OR_RETURN(const std::string exported_json,
+                     zelda3::DumpWaterFillZonesToJsonString(filtered));
+    RETURN_IF_ERROR(WriteTextFile(out_path, exported_json));
+    report["exported_zones"] = static_cast<int>(filtered.size());
+
+    formatter.BeginObject("Water Fill Export");
+    formatter.AddField("out_path", out_path);
+    formatter.AddField("requested_rooms", static_cast<int>(room_ids.size()));
+    formatter.AddField("exported_zones", static_cast<int>(filtered.size()));
+    formatter.AddField("status", "success");
+    formatter.EndObject();
+    return absl::OkStatus();
+  }();
+
+  return FinalizeWithReport(parser, std::move(report), status);
 }
 
 absl::Status DungeonImportWaterFillJsonCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  const std::string in_path = parser.GetString("in").value();
+  const bool dry_run = parser.HasFlag("dry-run");
+  const bool strict_masks = parser.HasFlag("strict-masks");
+  json report = BuildBaseReport(GetName(), dry_run);
+  const absl::Status status = [&]() -> absl::Status {
+    const std::string in_path = parser.GetString("in").value();
+    report["in_path"] = in_path;
+    report["strict_masks"] = strict_masks;
 
-  if (!zelda3::HasWaterFillReservedRegion(rom->vector().size())) {
-    return absl::FailedPreconditionError(
-        "WaterFill reserved region missing in this ROM");
-  }
-
-  ASSIGN_OR_RETURN(const std::string json_content, ReadTextFile(in_path));
-  ASSIGN_OR_RETURN(auto zones,
-                   zelda3::LoadWaterFillZonesFromJsonString(json_content));
-
-  auto original_zones = zones;
-  RETURN_IF_ERROR(zelda3::NormalizeWaterFillZoneMasks(&zones));
-
-  int normalized_masks = 0;
-  std::unordered_map<int, uint8_t> before_masks;
-  before_masks.reserve(original_zones.size());
-  for (const auto& z : original_zones) {
-    before_masks[z.room_id] = z.sram_bit_mask;
-  }
-  for (const auto& z : zones) {
-    auto it = before_masks.find(z.room_id);
-    if (it == before_masks.end() || it->second != z.sram_bit_mask) {
-      ++normalized_masks;
+    if (!zelda3::HasWaterFillReservedRegion(rom->vector().size())) {
+      return absl::FailedPreconditionError(
+          "WaterFill reserved region missing in this ROM");
     }
-  }
 
-  RETURN_IF_ERROR(zelda3::WriteWaterFillTable(rom, zones));
+    ASSIGN_OR_RETURN(const std::string json_content, ReadTextFile(in_path));
+    ASSIGN_OR_RETURN(auto zones,
+                     zelda3::LoadWaterFillZonesFromJsonString(json_content));
 
-  formatter.BeginObject("Water Fill Import");
-  formatter.AddField("in_path", in_path);
-  formatter.AddField("zone_count", static_cast<int>(zones.size()));
-  formatter.AddField("normalized_masks", normalized_masks);
-  formatter.AddField("status", "success");
-  formatter.EndObject();
-  return absl::OkStatus();
+    auto original_zones = zones;
+    RETURN_IF_ERROR(zelda3::NormalizeWaterFillZoneMasks(&zones));
+
+    int normalized_masks = 0;
+    std::unordered_map<int, uint8_t> before_masks;
+    before_masks.reserve(original_zones.size());
+    for (const auto& z : original_zones) {
+      before_masks[z.room_id] = z.sram_bit_mask;
+    }
+    for (const auto& z : zones) {
+      auto it = before_masks.find(z.room_id);
+      if (it == before_masks.end() || it->second != z.sram_bit_mask) {
+        ++normalized_masks;
+      }
+    }
+
+    report["zone_count"] = static_cast<int>(zones.size());
+    report["normalized_masks"] = normalized_masks;
+
+    if (strict_masks && normalized_masks > 0) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "WaterFill masks require normalization (%d changed); rerun without "
+          "--strict-masks to apply normalized masks",
+          normalized_masks));
+    }
+
+    if (!dry_run) {
+      RETURN_IF_ERROR(zelda3::WriteWaterFillTable(rom, zones));
+    }
+
+    formatter.BeginObject("Water Fill Import");
+    formatter.AddField("in_path", in_path);
+    formatter.AddField("mode", dry_run ? "dry-run" : "write");
+    formatter.AddField("strict_masks", strict_masks);
+    formatter.AddField("zone_count", static_cast<int>(zones.size()));
+    formatter.AddField("normalized_masks", normalized_masks);
+    formatter.AddField("status", "success");
+    formatter.EndObject();
+    return absl::OkStatus();
+  }();
+
+  return FinalizeWithReport(parser, std::move(report), status);
 }
 
 }  // namespace handlers

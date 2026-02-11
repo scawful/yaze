@@ -9,6 +9,7 @@
 #include <gtest/gtest.h>
 
 #include "absl/status/status.h"
+#include "nlohmann/json.hpp"
 #include "rom/rom.h"
 #include "zelda3/dungeon/custom_collision.h"
 #include "zelda3/dungeon/water_fill_zone.h"
@@ -159,6 +160,137 @@ TEST(DungeonCollisionJsonCommandsTest, WaterFillExportRespectsRoomFilter) {
   EXPECT_EQ((*exported_or)[0].sram_bit_mask, 0x02);
 
   std::filesystem::remove(out_path);
+}
+
+TEST(DungeonCollisionJsonCommandsTest, CustomCollisionImportDryRunDoesNotWrite) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+
+  const auto in_path = std::filesystem::temp_directory_path() /
+                       "yaze_custom_collision_import_dry_run.json";
+  WriteFile(in_path,
+            "{\n"
+            "  \"version\": 1,\n"
+            "  \"rooms\": [\n"
+            "    { \"room_id\": \"0x25\", \"tiles\": [ [65, \"0xB7\"] ] }\n"
+            "  ]\n"
+            "}\n");
+
+  handlers::DungeonImportCustomCollisionJsonCommandHandler handler;
+  std::string output;
+  const auto status = handler.Run(
+      {"--in", in_path.string(), "--dry-run", "--format=json"}, &rom, &output);
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_THAT(output, testing::HasSubstr("\"mode\": \"dry-run\""));
+
+  auto map_or = zelda3::LoadCustomCollisionMap(&rom, 0x25);
+  ASSERT_TRUE(map_or.ok()) << map_or.status().message();
+  EXPECT_FALSE(map_or->has_data);
+
+  std::filesystem::remove(in_path);
+}
+
+TEST(DungeonCollisionJsonCommandsTest, CustomCollisionReplaceAllRequiresForce) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+
+  const auto in_path = std::filesystem::temp_directory_path() /
+                       "yaze_custom_collision_replace_all_requires_force.json";
+  const auto report_path =
+      std::filesystem::temp_directory_path() /
+      "yaze_custom_collision_replace_all_requires_force.report.json";
+  WriteFile(in_path,
+            "{\n"
+            "  \"version\": 1,\n"
+            "  \"rooms\": [\n"
+            "    { \"room_id\": \"0x25\", \"tiles\": [ [65, \"0xB7\"] ] }\n"
+            "  ]\n"
+            "}\n");
+
+  handlers::DungeonImportCustomCollisionJsonCommandHandler handler;
+  std::string output;
+  const auto status =
+      handler.Run({"--in", in_path.string(), "--replace-all",
+                   "--report", report_path.string(), "--format=json"},
+                  &rom, &output);
+  EXPECT_FALSE(status.ok());
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+
+  const auto report = nlohmann::json::parse(ReadFile(report_path));
+  EXPECT_EQ(report.value("command", ""), "dungeon-import-custom-collision-json");
+  EXPECT_EQ(report.value("status", ""), "error");
+  EXPECT_TRUE(report.value("replace_all", false));
+  EXPECT_FALSE(report.value("force", true));
+  EXPECT_EQ(report["error"].value("code", ""), "FAILED_PRECONDITION");
+
+  std::filesystem::remove(in_path);
+  std::filesystem::remove(report_path);
+}
+
+TEST(DungeonCollisionJsonCommandsTest, WaterFillImportDryRunDoesNotWrite) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+
+  const auto in_path =
+      std::filesystem::temp_directory_path() / "yaze_water_fill_dry_run.json";
+  WriteFile(in_path,
+            "{\n"
+            "  \"version\": 1,\n"
+            "  \"zones\": [\n"
+            "    { \"room_id\": \"0x27\", \"mask\": \"0x01\", \"offsets\": [100] }\n"
+            "  ]\n"
+            "}\n");
+
+  handlers::DungeonImportWaterFillJsonCommandHandler handler;
+  std::string output;
+  const auto status = handler.Run(
+      {"--in", in_path.string(), "--dry-run", "--format=json"}, &rom, &output);
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_THAT(output, testing::HasSubstr("\"mode\": \"dry-run\""));
+
+  auto zones_or = zelda3::LoadWaterFillTable(&rom);
+  ASSERT_TRUE(zones_or.ok()) << zones_or.status().message();
+  EXPECT_TRUE(zones_or->empty());
+
+  std::filesystem::remove(in_path);
+}
+
+TEST(DungeonCollisionJsonCommandsTest,
+     WaterFillImportStrictMasksFailsAndWritesReport) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+
+  const auto in_path =
+      std::filesystem::temp_directory_path() / "yaze_water_fill_strict.json";
+  const auto report_path =
+      std::filesystem::temp_directory_path() / "yaze_water_fill_strict.report.json";
+  WriteFile(in_path,
+            "{\n"
+            "  \"version\": 1,\n"
+            "  \"zones\": [\n"
+            "    { \"room_id\": \"0x25\", \"mask\": \"0x01\", \"offsets\": [10] },\n"
+            "    { \"room_id\": \"0x27\", \"mask\": \"0x01\", \"offsets\": [20] }\n"
+            "  ]\n"
+            "}\n");
+
+  handlers::DungeonImportWaterFillJsonCommandHandler handler;
+  std::string output;
+  const auto status =
+      handler.Run({"--in", in_path.string(), "--strict-masks",
+                   "--report", report_path.string(), "--format=json"},
+                  &rom, &output);
+  EXPECT_FALSE(status.ok());
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+
+  const auto report = nlohmann::json::parse(ReadFile(report_path));
+  EXPECT_EQ(report.value("command", ""), "dungeon-import-water-fill-json");
+  EXPECT_EQ(report.value("status", ""), "error");
+  EXPECT_EQ(report.value("normalized_masks", 0), 1);
+  EXPECT_TRUE(report.value("strict_masks", false));
+  EXPECT_EQ(report["error"].value("code", ""), "FAILED_PRECONDITION");
+
+  std::filesystem::remove(in_path);
+  std::filesystem::remove(report_path);
 }
 
 }  // namespace

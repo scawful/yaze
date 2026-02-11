@@ -41,6 +41,7 @@ class DungeonExportCustomCollisionJsonCommandHandler
   std::string GetUsage() const override {
     return "dungeon-export-custom-collision-json --out <path> "
            "[--room <room_id> | --rooms <hex,hex,...> | --all] "
+           "[--report <path>] "
            "[--format <json|text>]";
   }
 
@@ -63,7 +64,7 @@ class DungeonImportCustomCollisionJsonCommandHandler
   }
   std::string GetUsage() const override {
     return "dungeon-import-custom-collision-json --in <path> [--replace-all] "
-           "[--format <json|text>]";
+           "[--force] [--dry-run] [--report <path>] [--format <json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
@@ -85,6 +86,7 @@ class DungeonExportWaterFillJsonCommandHandler : public resources::CommandHandle
   std::string GetUsage() const override {
     return "dungeon-export-water-fill-json --out <path> "
            "[--room <room_id> | --rooms <hex,hex,...> | --all] "
+           "[--report <path>] "
            "[--format <json|text>]";
   }
 
@@ -105,7 +107,8 @@ class DungeonImportWaterFillJsonCommandHandler : public resources::CommandHandle
     return "Import dungeon water fill zones from JSON";
   }
   std::string GetUsage() const override {
-    return "dungeon-import-water-fill-json --in <path> [--format <json|text>]";
+    return "dungeon-import-water-fill-json --in <path> [--dry-run] "
+           "[--strict-masks] [--report <path>] [--format <json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {

@@ -419,7 +419,8 @@ class ToolSchemaRegistry {
          .description = "Export custom collision maps to JSON",
          .detailed_help =
              "Exports per-room custom collision tiles (64x64 map) to a JSON "
-             "authoring format. Supports filtering by --room/--rooms/--all.",
+             "authoring format. Supports filtering by --room/--rooms/--all. "
+             "Use --report to emit machine-readable diagnostics to disk.",
          .arguments =
              {{.name = "out",
                .type = "string",
@@ -430,12 +431,16 @@ class ToolSchemaRegistry {
                .description = "Single room ID (hex)",
                .required = false},
               {.name = "rooms",
-               .type = "string",
-               .description = "Comma-separated room IDs (hex)",
-               .required = false},
+              .type = "string",
+              .description = "Comma-separated room IDs (hex)",
+              .required = false},
               {.name = "all",
                .type = "boolean",
                .description = "Export all dungeon rooms (0-319)",
+               .required = false},
+              {.name = "report",
+               .type = "string",
+               .description = "Optional JSON report path for automation",
                .required = false}},
          .examples = {
              "z3ed dungeon-export-custom-collision-json --all "
@@ -453,7 +458,9 @@ class ToolSchemaRegistry {
          .detailed_help =
              "Imports custom collision room entries from JSON. Writes are "
              "ROM-safe/fail-closed and reject ROMs without expanded collision "
-             "write support. Use --replace-all to clear rooms not listed.",
+             "write support. Use --dry-run for validation-only and --report "
+             "for machine-readable diagnostics. --replace-all requires "
+             "--force unless running --dry-run.",
          .arguments = {
              {.name = "in",
               .type = "string",
@@ -463,12 +470,26 @@ class ToolSchemaRegistry {
               .type = "boolean",
               .description =
                   "Clear custom collision for rooms not in the JSON file",
+              .required = false},
+             {.name = "force",
+              .type = "boolean",
+              .description =
+                  "Required with --replace-all in write mode (safety gate)",
+              .required = false},
+             {.name = "dry-run",
+              .type = "boolean",
+              .description = "Validate and summarize without writing ROM data",
+              .required = false},
+             {.name = "report",
+              .type = "string",
+              .description = "Optional JSON report path for automation",
               .required = false}},
          .examples = {
              "z3ed dungeon-import-custom-collision-json "
-             "--in=custom_collision.json",
+             "--in=custom_collision.json --dry-run "
+             "--report=custom_collision.report.json",
              "z3ed dungeon-import-custom-collision-json "
-             "--in=custom_collision.json --replace-all"},
+             "--in=custom_collision.json --replace-all --force"},
          .related_tools = {"dungeon-export-custom-collision-json",
                            "dungeon-list-custom-collision",
                            "dungeon-minecart-audit"}});
@@ -479,7 +500,8 @@ class ToolSchemaRegistry {
          .description = "Export water fill zones to JSON",
          .detailed_help =
              "Exports WaterFill zone data from the reserved ROM table to JSON. "
-             "Supports filtering by --room/--rooms/--all.",
+             "Supports filtering by --room/--rooms/--all. Use --report to "
+             "emit machine-readable diagnostics to disk.",
          .arguments =
              {{.name = "out",
                .type = "string",
@@ -490,12 +512,16 @@ class ToolSchemaRegistry {
                .description = "Single room ID (hex)",
                .required = false},
               {.name = "rooms",
-               .type = "string",
-               .description = "Comma-separated room IDs (hex)",
-               .required = false},
+              .type = "string",
+              .description = "Comma-separated room IDs (hex)",
+              .required = false},
               {.name = "all",
                .type = "boolean",
                .description = "Export all dungeon rooms (0-319)",
+               .required = false},
+              {.name = "report",
+               .type = "string",
+               .description = "Optional JSON report path for automation",
                .required = false}},
          .examples = {
              "z3ed dungeon-export-water-fill-json --all "
@@ -512,14 +538,32 @@ class ToolSchemaRegistry {
          .detailed_help =
              "Imports WaterFill zones from JSON, normalizes SRAM bit masks, "
              "and writes to the reserved WaterFill ROM table. Fails closed "
-             "when the reserved region is missing.",
+             "when the reserved region is missing. Use --dry-run for "
+             "validation-only and --strict-masks to fail when normalization "
+             "would be required.",
          .arguments = {
              {.name = "in",
               .type = "string",
               .description = "Input JSON path",
-              .required = true}},
-         .examples = {"z3ed dungeon-import-water-fill-json "
-                      "--in=water_fill_zones.json"},
+              .required = true},
+             {.name = "dry-run",
+              .type = "boolean",
+              .description = "Validate and summarize without writing ROM data",
+              .required = false},
+             {.name = "strict-masks",
+              .type = "boolean",
+              .description =
+                  "Fail if SRAM masks require normalization (fail-closed mode)",
+              .required = false},
+             {.name = "report",
+              .type = "string",
+              .description = "Optional JSON report path for automation",
+              .required = false}},
+         .examples = {
+             "z3ed dungeon-import-water-fill-json --in=water_fill_zones.json "
+             "--dry-run --report=water_fill.report.json",
+             "z3ed dungeon-import-water-fill-json --in=water_fill_zones.json "
+             "--strict-masks"},
          .related_tools = {"dungeon-export-water-fill-json", "rom-doctor"}});
 
     Register(
