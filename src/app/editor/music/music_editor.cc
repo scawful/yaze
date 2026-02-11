@@ -1,5 +1,7 @@
 #include "music_editor.h"
 
+#include "app/editor/music/music_undo_actions.h"
+
 #include <algorithm>
 #include <cmath>
 #include <ctime>
@@ -642,37 +644,12 @@ absl::Status MusicEditor::Paste() {
 }
 
 absl::Status MusicEditor::Undo() {
-  if (undo_stack_.empty())
-    return absl::FailedPreconditionError("Nothing to undo");
-
-  // Save current state to redo stack
-  UndoState current_state;
-  if (auto* song = music_bank_.GetSong(current_song_index_)) {
-    current_state.song_snapshot = *song;
-    current_state.song_index = current_song_index_;
-    redo_stack_.push_back(current_state);
-  }
-
-  RestoreState(undo_stack_.back());
-  undo_stack_.pop_back();
-  return absl::OkStatus();
+  FinalizePendingUndo();
+  return undo_manager_.Undo();
 }
 
 absl::Status MusicEditor::Redo() {
-  if (redo_stack_.empty())
-    return absl::FailedPreconditionError("Nothing to redo");
-
-  // Save current state to undo stack
-  UndoState current_state;
-  if (auto* song = music_bank_.GetSong(current_song_index_)) {
-    current_state.song_snapshot = *song;
-    current_state.song_index = current_song_index_;
-    undo_stack_.push_back(current_state);
-  }
-
-  RestoreState(redo_stack_.back());
-  redo_stack_.pop_back();
-  return absl::OkStatus();
+  return undo_manager_.Redo();
 }
 
 void MusicEditor::PushUndoState() {
@@ -680,31 +657,35 @@ void MusicEditor::PushUndoState() {
   if (!song)
     return;
 
-  UndoState state;
-  state.song_snapshot = *song;
-  state.song_index = current_song_index_;
-  undo_stack_.push_back(state);
+  // Finalize any pending undo action with current state as "after"
+  FinalizePendingUndo();
+
+  // Start a new pending undo - capture "before" state
+  pending_undo_before_ = *song;
+  pending_undo_song_index_ = current_song_index_;
   MarkMusicDirty();
-
-  // Limit undo stack size to prevent unbounded memory growth
-  constexpr size_t kMaxUndoStates = 50;
-  while (undo_stack_.size() > kMaxUndoStates) {
-    undo_stack_.erase(undo_stack_.begin());
-  }
-
-  // Clear redo stack on new action
-  redo_stack_.clear();
 }
 
-void MusicEditor::RestoreState(const UndoState& state) {
-  // Ensure we are on the correct song
-  if (state.song_index >= 0 &&
-      state.song_index < static_cast<int>(music_bank_.GetSongCount())) {
-    current_song_index_ = state.song_index;
-    // This is a heavy copy, but safe for now
-    *music_bank_.GetSong(current_song_index_) = state.song_snapshot;
-    MarkMusicDirty();
+void MusicEditor::FinalizePendingUndo() {
+  if (!pending_undo_before_.has_value())
+    return;
+
+  auto* song = music_bank_.GetSong(pending_undo_song_index_);
+  if (!song) {
+    pending_undo_before_.reset();
+    pending_undo_song_index_ = -1;
+    return;
   }
+
+  // Push the action with before/after snapshots
+  undo_manager_.Push(std::make_unique<MusicSongEditAction>(
+      pending_undo_song_index_,
+      std::move(*pending_undo_before_),
+      *song,  // "after" = current state
+      &music_bank_));
+
+  pending_undo_before_.reset();
+  pending_undo_song_index_ = -1;
 }
 
 void MusicEditor::DrawSongBrowser() {

@@ -327,6 +327,9 @@ void MenuOrchestrator::AddToolsMenuItems() {
       .Item(
           "Command Palette", ICON_MD_SEARCH,
           [this]() { OnShowCommandPalette(); }, SHORTCUT_CTRL_SHIFT(P))
+      .Item(
+          "Panel Finder", ICON_MD_DASHBOARD,
+          [this]() { OnShowPanelFinder(); }, SHORTCUT_CTRL(P))
       .Item("Resource Label Manager", ICON_MD_LABEL,
             [this]() { OnShowResourceLabelManager(); })
       .Separator();
@@ -679,8 +682,15 @@ void MenuOrchestrator::OnUndo() {
   if (editor_manager_) {
     auto* current_editor = editor_manager_->GetCurrentEditor();
     if (current_editor) {
+      // Capture description before undo moves the action to the redo stack
+      std::string desc = current_editor->GetUndoDescription();
       auto status = current_editor->Undo();
-      if (!status.ok()) {
+      if (status.ok()) {
+        if (!desc.empty()) {
+          toast_manager_.Show(absl::StrFormat("Undid: %s", desc),
+                              ToastType::kInfo, 2.0f);
+        }
+      } else {
         toast_manager_.Show(
             absl::StrFormat("Undo failed: %s", status.message()),
             ToastType::kError);
@@ -693,8 +703,15 @@ void MenuOrchestrator::OnRedo() {
   if (editor_manager_) {
     auto* current_editor = editor_manager_->GetCurrentEditor();
     if (current_editor) {
+      // Capture description before redo moves the action to the undo stack
+      std::string desc = current_editor->GetRedoDescription();
       auto status = current_editor->Redo();
-      if (!status.ok()) {
+      if (status.ok()) {
+        if (!desc.empty()) {
+          toast_manager_.Show(absl::StrFormat("Redid: %s", desc),
+                              ToastType::kInfo, 2.0f);
+        }
+      } else {
         toast_manager_.Show(
             absl::StrFormat("Redo failed: %s", status.message()),
             ToastType::kError);
@@ -799,6 +816,14 @@ void MenuOrchestrator::OnShowPanelBrowser() {
   if (editor_manager_) {
     if (auto* ui = editor_manager_->ui_coordinator()) {
       ui->SetPanelBrowserVisible(true);
+    }
+  }
+}
+
+void MenuOrchestrator::OnShowPanelFinder() {
+  if (editor_manager_) {
+    if (auto* ui = editor_manager_->ui_coordinator()) {
+      ui->ShowPanelFinder();
     }
   }
 }

@@ -3,6 +3,7 @@
 
 #include <chrono>
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 
@@ -158,16 +159,11 @@ class MusicEditor : public Editor {
   editor::music::SampleEditorView sample_editor_view_;
   editor::music::SongBrowserView song_browser_view_;
   
-  // Undo/Redo
-  struct UndoState {
-    zelda3::music::MusicSong song_snapshot;
-    int song_index;
-  };
-  std::vector<UndoState> undo_stack_;
-  std::vector<UndoState> redo_stack_;
-  
+  // Undo/Redo (delegates to undo_manager_ from Editor base class)
   void PushUndoState();
-  void RestoreState(const UndoState& state);
+  void FinalizePendingUndo();
+  std::optional<zelda3::music::MusicSong> pending_undo_before_;
+  int pending_undo_song_index_ = -1;
 
   // Note: APU requires ROM memory, will be initialized when needed
 

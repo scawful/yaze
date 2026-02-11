@@ -1,6 +1,7 @@
 #include "tile16_editor.h"
 
 #include <array>
+#include <memory>
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
@@ -1648,7 +1649,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
 
     Separator();
 
-    bool can_undo = !undo_stack_.empty();
+    bool can_undo = undo_manager_.CanUndo();
     if (!can_undo)
       BeginDisabled();
     if (Button("Undo", ImVec2(-1, 0))) {
@@ -1871,6 +1872,10 @@ absl::Status Tile16Editor::SetCurrentTile(int tile_id) {
   if (!tile16_blockset_) {
     return absl::FailedPreconditionError("Tile16 blockset not initialized");
   }
+
+  // Commit any in-progress edits before switching the current tile selection so
+  // undo/redo captures the correct "after" state.
+  FinalizePendingUndo();
 
   current_tile16_ = tile_id;
   jump_to_tile_id_ = tile_id;  // Sync input field with current tile
@@ -2331,88 +2336,75 @@ absl::Status Tile16Editor::PreviewPaletteChange(uint8_t palette_id) {
   return absl::OkStatus();
 }
 
-// Undo/Redo system
+// Undo/Redo system (unified UndoManager framework)
+
+void Tile16Editor::RestoreFromSnapshot(const Tile16Snapshot& snapshot) {
+  current_tile16_ = snapshot.tile_id;
+  current_tile16_bmp_.Create(16, 16, 8, snapshot.bitmap_data);
+  current_tile16_bmp_.SetPalette(snapshot.bitmap_palette);
+  current_palette_ = snapshot.palette;
+  x_flip = snapshot.x_flip;
+  y_flip = snapshot.y_flip;
+  priority_tile = snapshot.priority;
+  gfx::Arena::Get().QueueTextureCommand(
+      gfx::Arena::TextureCommandType::UPDATE, &current_tile16_bmp_);
+}
+
+void Tile16Editor::FinalizePendingUndo() {
+  if (!pending_undo_before_.has_value()) return;
+  if (!current_tile16_bmp_.is_active()) {
+    pending_undo_before_.reset();
+    return;
+  }
+
+  // Capture the current (post-edit) state as the "after" snapshot
+  Tile16Snapshot after;
+  after.tile_id = current_tile16_;
+  after.bitmap_data = current_tile16_bmp_.vector();
+  after.bitmap_palette = current_tile16_bmp_.palette();
+  after.palette = current_palette_;
+  after.x_flip = x_flip;
+  after.y_flip = y_flip;
+  after.priority = priority_tile;
+
+  // Build the restore callback that captures `this`
+  auto restore_fn = [this](const Tile16Snapshot& snap) {
+    RestoreFromSnapshot(snap);
+  };
+
+  undo_manager_.Push(std::make_unique<Tile16EditAction>(
+      std::move(*pending_undo_before_), std::move(after), restore_fn));
+
+  pending_undo_before_.reset();
+}
+
 void Tile16Editor::SaveUndoState() {
   if (!current_tile16_bmp_.is_active()) {
     return;
   }
 
-  UndoState state;
-  state.tile_id = current_tile16_;
-  state.tile_bitmap.Create(16, 16, 8, current_tile16_bmp_.vector());
-  state.tile_bitmap.SetPalette(current_tile16_bmp_.palette());
-  state.palette = current_palette_;
-  state.x_flip = x_flip;
-  state.y_flip = y_flip;
-  state.priority = priority_tile;
+  // Finalize any previously pending snapshot before starting a new one
+  FinalizePendingUndo();
 
-  undo_stack_.push_back(std::move(state));
+  Tile16Snapshot before;
+  before.tile_id = current_tile16_;
+  before.bitmap_data = current_tile16_bmp_.vector();
+  before.bitmap_palette = current_tile16_bmp_.palette();
+  before.palette = current_palette_;
+  before.x_flip = x_flip;
+  before.y_flip = y_flip;
+  before.priority = priority_tile;
 
-  // Limit undo stack size
-  if (undo_stack_.size() > kMaxUndoStates_) {
-    undo_stack_.erase(undo_stack_.begin());
-  }
-
-  // Clear redo stack when new action is performed
-  redo_stack_.clear();
+  pending_undo_before_ = std::move(before);
 }
 
 absl::Status Tile16Editor::Undo() {
-  if (undo_stack_.empty()) {
-    return absl::FailedPreconditionError("Nothing to undo");
-  }
-
-  // Save current state to redo stack
-  UndoState current_state;
-  current_state.tile_id = current_tile16_;
-  current_state.tile_bitmap.Create(16, 16, 8, current_tile16_bmp_.vector());
-  current_state.tile_bitmap.SetPalette(current_tile16_bmp_.palette());
-  current_state.palette = current_palette_;
-  current_state.x_flip = x_flip;
-  current_state.y_flip = y_flip;
-  current_state.priority = priority_tile;
-  redo_stack_.push_back(std::move(current_state));
-
-  // Restore previous state
-  const UndoState& previous_state = undo_stack_.back();
-  current_tile16_ = previous_state.tile_id;
-  current_tile16_bmp_ = previous_state.tile_bitmap;
-  current_palette_ = previous_state.palette;
-  x_flip = previous_state.x_flip;
-  y_flip = previous_state.y_flip;
-  priority_tile = previous_state.priority;
-
-  // Queue texture update via Arena's deferred system
-  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::UPDATE,
-                                        &current_tile16_bmp_);
-  undo_stack_.pop_back();
-
-  return absl::OkStatus();
+  FinalizePendingUndo();
+  return undo_manager_.Undo();
 }
 
 absl::Status Tile16Editor::Redo() {
-  if (redo_stack_.empty()) {
-    return absl::FailedPreconditionError("Nothing to redo");
-  }
-
-  // Save current state to undo stack
-  SaveUndoState();
-
-  // Restore next state
-  const UndoState& next_state = redo_stack_.back();
-  current_tile16_ = next_state.tile_id;
-  current_tile16_bmp_ = next_state.tile_bitmap;
-  current_palette_ = next_state.palette;
-  x_flip = next_state.x_flip;
-  y_flip = next_state.y_flip;
-  priority_tile = next_state.priority;
-
-  // Queue texture update via Arena's deferred system
-  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::UPDATE,
-                                        &current_tile16_bmp_);
-  redo_stack_.pop_back();
-
-  return absl::OkStatus();
+  return undo_manager_.Redo();
 }
 
 absl::Status Tile16Editor::ValidateTile16Data() {

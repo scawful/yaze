@@ -55,6 +55,7 @@
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/canvas/canvas_automation_api.h"
 #include "app/gui/canvas/canvas_usage_tracker.h"
+#include "app/gui/core/drag_drop.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/popup_id.h"
 #include "app/gui/core/style.h"
@@ -153,12 +154,8 @@ absl::Status OverworldEditor::Load() {
   }
 
   // Clear undo/redo state when loading new ROM data
-  undo_stack_.clear();
-  redo_stack_.clear();
   current_paint_operation_.reset();
-  if (dependencies_.undo_manager) {
-    dependencies_.undo_manager->Clear();
-  }
+  undo_manager_.Clear();
 
   RETURN_IF_ERROR(LoadGraphics());
   RETURN_IF_ERROR(
@@ -1624,6 +1621,17 @@ void OverworldEditor::DrawOverworldCanvas() {
       }
     }
     // --- END ENTITY DRAG/DROP LOGIC ---
+
+    // --- TILE DROP TARGET ---
+    // Accept tile drops from the blockset selector onto the map canvas.
+    gui::TileDragPayload tile_drop;
+    if (gui::AcceptTileDrop(&tile_drop)) {
+      current_tile16_ = tile_drop.tile_id;
+      if (current_mode != EditingMode::DRAW_TILE) {
+        current_mode = EditingMode::DRAW_TILE;
+        ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kTilePainting);
+      }
+    }
   }
 
   // End canvas frame - draws grid/overlay based on frame_opts
@@ -1645,6 +1653,8 @@ absl::Status OverworldEditor::DrawTile16Selector() {
     selector_config.total_tiles = zelda3::kNumTile16Individual;
     selector_config.draw_offset = ImVec2(2.0f, 0.0f);
     selector_config.highlight_color = ImVec4(0.95f, 0.75f, 0.3f, 1.0f);
+
+    selector_config.enable_drag = true;
 
     blockset_selector_ = std::make_unique<gui::TileSelectorWidget>(
         "OwBlocksetSelector", selector_config);
@@ -1964,137 +1974,34 @@ void OverworldEditor::FinalizePaintOperation() {
     return;
   }
 
-  // Also push to the UndoManager if available (new framework path).
-  // Build the action before we move current_paint_operation_ into the
-  // legacy stack, because we need to read the tile changes.
-  if (dependencies_.undo_manager) {
-    auto& world_tiles = GetWorldTiles(current_paint_operation_->world);
-    std::vector<OverworldTileChange> changes;
-    changes.reserve(current_paint_operation_->tile_changes.size());
-    for (const auto& [coords, old_tile_id] :
-         current_paint_operation_->tile_changes) {
-      auto [x, y] = coords;
-      int new_tile_id = world_tiles[x][y];
-      changes.push_back({x, y, old_tile_id, new_tile_id});
-    }
-    auto action = std::make_unique<OverworldTilePaintAction>(
-        current_paint_operation_->map_id, current_paint_operation_->world,
-        std::move(changes), &overworld_,
-        [this]() { RefreshOverworldMap(); });
-    dependencies_.undo_manager->Push(std::move(action));
-  }
-
-  // Legacy undo stack path (always maintained for fallback)
-  redo_stack_.clear();
-
-  // Add to undo stack
-  undo_stack_.push_back(std::move(*current_paint_operation_));
-  current_paint_operation_.reset();
-
-  // Limit stack size
-  while (undo_stack_.size() > kMaxUndoHistory) {
-    undo_stack_.erase(undo_stack_.begin());
-  }
-}
-
-void OverworldEditor::ApplyUndoPoint(const OverworldUndoPoint& point) {
-  auto& world_tiles = GetWorldTiles(point.world);
-
-  // Apply all tile changes
-  for (const auto& [coords, tile_id] : point.tile_changes) {
+  // Push to the UndoManager (new framework path).
+  auto& world_tiles = GetWorldTiles(current_paint_operation_->world);
+  std::vector<OverworldTileChange> changes;
+  changes.reserve(current_paint_operation_->tile_changes.size());
+  for (const auto& [coords, old_tile_id] :
+       current_paint_operation_->tile_changes) {
     auto [x, y] = coords;
-    world_tiles[x][y] = tile_id;
+    int new_tile_id = world_tiles[x][y];
+    changes.push_back({x, y, old_tile_id, new_tile_id});
   }
+  auto action = std::make_unique<OverworldTilePaintAction>(
+      current_paint_operation_->map_id, current_paint_operation_->world,
+      std::move(changes), &overworld_,
+      [this]() { RefreshOverworldMap(); });
+  undo_manager_.Push(std::move(action));
 
-  // Refresh the map visuals
-  RefreshOverworldMap();
+  current_paint_operation_.reset();
 }
+
 
 absl::Status OverworldEditor::Undo() {
   // Finalize any pending paint operation first
   FinalizePaintOperation();
-
-  // Delegate to UndoManager if available (new framework path)
-  if (dependencies_.undo_manager) {
-    return dependencies_.undo_manager->Undo();
-  }
-
-  // Legacy fallback: use local undo_stack_
-  if (undo_stack_.empty()) {
-    return absl::FailedPreconditionError("Nothing to undo");
-  }
-
-  OverworldUndoPoint point = std::move(undo_stack_.back());
-  undo_stack_.pop_back();
-
-  // Create redo point with current tile values before restoring
-  OverworldUndoPoint redo_point{.map_id = point.map_id,
-                                .world = point.world,
-                                .tile_changes = {},
-                                .timestamp = std::chrono::steady_clock::now()};
-
-  auto& world_tiles = GetWorldTiles(point.world);
-
-  // Swap tiles and record for redo
-  for (const auto& [coords, old_tile_id] : point.tile_changes) {
-    auto [x, y] = coords;
-    int current_tile_id = world_tiles[x][y];
-
-    // Record current value for redo
-    redo_point.tile_changes.emplace_back(coords, current_tile_id);
-
-    // Restore old value
-    world_tiles[x][y] = old_tile_id;
-  }
-
-  redo_stack_.push_back(std::move(redo_point));
-
-  // Refresh the map visuals
-  RefreshOverworldMap();
-
-  return absl::OkStatus();
+  return undo_manager_.Undo();
 }
 
 absl::Status OverworldEditor::Redo() {
-  // Delegate to UndoManager if available (new framework path)
-  if (dependencies_.undo_manager) {
-    return dependencies_.undo_manager->Redo();
-  }
-
-  // Legacy fallback: use local redo_stack_
-  if (redo_stack_.empty()) {
-    return absl::FailedPreconditionError("Nothing to redo");
-  }
-
-  OverworldUndoPoint point = std::move(redo_stack_.back());
-  redo_stack_.pop_back();
-
-  // Create undo point with current tile values
-  OverworldUndoPoint undo_point{.map_id = point.map_id,
-                                .world = point.world,
-                                .tile_changes = {},
-                                .timestamp = std::chrono::steady_clock::now()};
-
-  auto& world_tiles = GetWorldTiles(point.world);
-
-  // Swap tiles and record for undo
-  for (const auto& [coords, tile_id] : point.tile_changes) {
-    auto [x, y] = coords;
-    int current_tile_id = world_tiles[x][y];
-
-    // Record current value for undo
-    undo_point.tile_changes.emplace_back(coords, current_tile_id);
-
-    // Apply redo value
-    world_tiles[x][y] = tile_id;
-  }
-
-  undo_stack_.push_back(std::move(undo_point));
-
-  // Refresh the map visuals
-  RefreshOverworldMap();
-
-  return absl::OkStatus();
+  return undo_manager_.Redo();
 }
 
 // ============================================================================

@@ -55,7 +55,7 @@ void GraphicsEditor::Initialize() {
   // Initialize panel components
   sheet_browser_panel_ = std::make_unique<SheetBrowserPanel>(&state_);
   pixel_editor_panel_ = std::make_unique<PixelEditorPanel>(
-      &state_, rom_, dependencies_.undo_manager);
+      &state_, rom_, &undo_manager_);
   palette_controls_panel_ = std::make_unique<PaletteControlsPanel>(&state_, rom_);
   link_sprite_panel_ = std::make_unique<LinkSpritePanel>(&state_, rom_);
   gfx_group_panel_ = std::make_unique<GfxGroupEditor>();
@@ -324,37 +324,11 @@ absl::Status GraphicsEditor::Update() {
 }
 
 absl::Status GraphicsEditor::Undo() {
-  // Prefer UndoManager when available (new framework)
-  if (dependencies_.undo_manager) {
-    return dependencies_.undo_manager->Undo();
-  }
-
-  // Fallback to legacy snapshot-based undo
-  PixelEditorSnapshot snapshot;
-  if (state_.PopUndoState(snapshot)) {
-    auto& sheet =
-        gfx::Arena::Get().mutable_gfx_sheets()->at(snapshot.sheet_id);
-    sheet.set_data(snapshot.pixel_data);
-    gfx::Arena::Get().NotifySheetModified(snapshot.sheet_id);
-  }
-  return absl::OkStatus();
+  return undo_manager_.Undo();
 }
 
 absl::Status GraphicsEditor::Redo() {
-  // Prefer UndoManager when available (new framework)
-  if (dependencies_.undo_manager) {
-    return dependencies_.undo_manager->Redo();
-  }
-
-  // Fallback to legacy snapshot-based redo
-  PixelEditorSnapshot snapshot;
-  if (state_.PopRedoState(snapshot)) {
-    auto& sheet =
-        gfx::Arena::Get().mutable_gfx_sheets()->at(snapshot.sheet_id);
-    sheet.set_data(snapshot.pixel_data);
-    gfx::Arena::Get().NotifySheetModified(snapshot.sheet_id);
-  }
-  return absl::OkStatus();
+  return undo_manager_.Redo();
 }
 
 void GraphicsEditor::HandleEditorShortcuts() {

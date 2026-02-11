@@ -207,9 +207,10 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
           int velocity = evt.note.velocity;
           ImGui::SetNextItemWidth(120);
           if (ImGui::SliderInt("##velocity", &velocity, 0, 127)) {
-            evt.note.velocity = static_cast<uint8_t>(velocity);
-            if (on_edit_)
+            if (on_edit_) {
               on_edit_();
+            }
+            evt.note.velocity = static_cast<uint8_t>(velocity);
           }
           if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip("Articulation/velocity (0 = default)");
@@ -221,9 +222,10 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
           int duration = evt.note.duration;
           ImGui::SetNextItemWidth(120);
           if (ImGui::SliderInt("##duration", &duration, 1, 192)) {
-            evt.note.duration = static_cast<uint8_t>(duration);
-            if (on_edit_)
+            if (on_edit_) {
               on_edit_();
+            }
+            evt.note.duration = static_cast<uint8_t>(duration);
           }
           if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip("Duration in ticks (quarter = 72)");
@@ -232,48 +234,56 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
           ImGui::Separator();
           ImGui::Text("Quick Duration:");
           if (ImGui::MenuItem("Whole (288)")) {
-            evt.note.duration = 0xFE;  // Max duration
-            if (on_edit_)
+            if (on_edit_) {
               on_edit_();
+            }
+            evt.note.duration = 0xFE;  // Max duration
           }
           if (ImGui::MenuItem("Half (144)")) {
-            evt.note.duration = 144;
-            if (on_edit_)
+            if (on_edit_) {
               on_edit_();
+            }
+            evt.note.duration = 144;
           }
           if (ImGui::MenuItem("Quarter (72)")) {
-            evt.note.duration = kDurationQuarter;
-            if (on_edit_)
+            if (on_edit_) {
               on_edit_();
+            }
+            evt.note.duration = kDurationQuarter;
           }
           if (ImGui::MenuItem("Eighth (36)")) {
-            evt.note.duration = kDurationEighth;
-            if (on_edit_)
+            if (on_edit_) {
               on_edit_();
+            }
+            evt.note.duration = kDurationEighth;
           }
           if (ImGui::MenuItem("Sixteenth (18)")) {
-            evt.note.duration = kDurationSixteenth;
-            if (on_edit_)
+            if (on_edit_) {
               on_edit_();
+            }
+            evt.note.duration = kDurationSixteenth;
           }
           if (ImGui::MenuItem("32nd (9)")) {
-            evt.note.duration = kDurationThirtySecond;
-            if (on_edit_)
+            if (on_edit_) {
               on_edit_();
+            }
+            evt.note.duration = kDurationThirtySecond;
           }
 
           ImGui::Separator();
           if (ImGui::MenuItem(ICON_MD_CONTENT_COPY " Duplicate")) {
+            if (on_edit_) {
+              on_edit_();
+            }
             TrackEvent copy = evt;
             copy.tick += evt.note.duration;
             track.InsertEvent(copy);
-            if (on_edit_)
-              on_edit_();
           }
           if (ImGui::MenuItem(ICON_MD_DELETE " Delete", "Del")) {
-            track.RemoveEvent(context_target_.event_index);
-            if (on_edit_)
+            if (on_edit_) {
               on_edit_();
+            }
+            track.RemoveEvent(context_target_.event_index);
           }
         }
       }
@@ -293,9 +303,10 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
                       .tracks[empty_context_.channel];
         TrackEvent evt = TrackEvent::MakeNote(
             empty_context_.tick, empty_context_.pitch, kDurationQuarter);
-        t.InsertEvent(evt);
-        if (on_edit_)
+        if (on_edit_) {
           on_edit_();
+        }
+        t.InsertEvent(evt);
         if (on_note_preview_)
           on_note_preview_(evt, empty_context_.segment, empty_context_.channel);
       }
@@ -304,9 +315,10 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
                       .tracks[empty_context_.channel];
         TrackEvent evt = TrackEvent::MakeNote(
             empty_context_.tick, empty_context_.pitch, kDurationEighth);
-        t.InsertEvent(evt);
-        if (on_edit_)
+        if (on_edit_) {
           on_edit_();
+        }
+        t.InsertEvent(evt);
         if (on_note_preview_)
           on_note_preview_(evt, empty_context_.segment, empty_context_.channel);
       }
@@ -315,9 +327,10 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
                       .tracks[empty_context_.channel];
         TrackEvent evt = TrackEvent::MakeNote(
             empty_context_.tick, empty_context_.pitch, kDurationSixteenth);
-        t.InsertEvent(evt);
-        if (on_edit_)
+        if (on_edit_) {
           on_edit_();
+        }
+        t.InsertEvent(evt);
         if (on_note_preview_)
           on_note_preview_(evt, empty_context_.segment, empty_context_.channel);
       }
@@ -890,10 +903,7 @@ void PianoRollView::HandleMouseInput(MusicSong* song, int active_channel,
   // Drag release
   if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) &&
       dragging_event_index_ != -1) {
-    if (drag_moved_ && on_edit_) {
-      on_edit_();
-      drag_moved_ = false;
-    }
+    drag_moved_ = false;
     dragging_event_index_ = -1;
     drag_mode_ = 0;
   }
@@ -932,6 +942,18 @@ void PianoRollView::HandleMouseInput(MusicSong* song, int active_channel,
     } else if (drag_mode_ == 3) {  // Resize right
       int new_duration = drag_original_event_.note.duration + delta_ticks;
       updated.note.duration = std::max(1, new_duration);
+    }
+
+    const bool changed = (updated.tick != drag_original_event_.tick) ||
+                         (updated.note.pitch != drag_original_event_.note.pitch) ||
+                         (updated.note.duration != drag_original_event_.note.duration);
+    if (!changed) {
+      return;
+    }
+
+    if (!drag_moved_ && on_edit_) {
+      // Capture undo snapshot before the first mutation in this drag session.
+      on_edit_();
     }
 
     drag_track.RemoveEvent(dragging_event_index_);
@@ -990,9 +1012,10 @@ void PianoRollView::HandleMouseInput(MusicSong* song, int active_channel,
     int snapped_tick = snap_enabled_ ? snap_tick(tick) : tick;
     TrackEvent new_note = TrackEvent::MakeNote(
         snapped_tick, pitch, snap_enabled_ ? snap_ticks_ : kDurationQuarter);
-    track.InsertEvent(new_note);
-    if (on_edit_)
+    if (on_edit_) {
       on_edit_();
+    }
+    track.InsertEvent(new_note);
     if (on_note_preview_) {
       on_note_preview_(new_note, active_segment, active_channel);
     }

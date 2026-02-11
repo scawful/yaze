@@ -6,9 +6,12 @@
 #include <chrono>
 #include <functional>
 #include <map>
+#include <optional>
 #include <vector>
 
 #include "absl/status/status.h"
+#include "app/editor/core/undo_manager.h"
+#include "app/editor/overworld/tile16_undo_actions.h"
 #include "app/editor/palette/palette_editor.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_palette.h"
@@ -417,17 +420,16 @@ class Tile16Editor : public gfx::GfxContext {
   };
   std::array<LayoutScratch, 4> layout_scratch_;
 
-  // Undo/Redo system
-  struct UndoState {
-    int tile_id;
-    gfx::Bitmap tile_bitmap;
-    gfx::Tile16 tile_data;
-    uint8_t palette;
-    bool x_flip, y_flip, priority;
-  };
-  std::vector<UndoState> undo_stack_;
-  std::vector<UndoState> redo_stack_;
-  static constexpr size_t kMaxUndoStates_ = 50;
+  // Undo/Redo system (unified UndoManager framework)
+  UndoManager undo_manager_;
+  std::optional<Tile16Snapshot> pending_undo_before_;
+
+  /// @brief Finalize any pending undo snapshot by capturing current state
+  /// as "after" and pushing a Tile16EditAction to undo_manager_.
+  void FinalizePendingUndo();
+
+  /// @brief Restore editor state from a Tile16Snapshot (used by undo actions).
+  void RestoreFromSnapshot(const Tile16Snapshot& snapshot);
 
   // Live preview system
   bool live_preview_enabled_ = true;

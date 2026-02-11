@@ -98,6 +98,7 @@ class MenuOrchestrator {
   void OnShowHexEditor();
   void OnShowEmulator();
   void OnShowPanelBrowser();
+  void OnShowPanelFinder();
   void OnShowWelcomeScreen();
 
 #ifdef YAZE_BUILD_AGENT_UI
