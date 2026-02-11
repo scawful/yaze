@@ -23,7 +23,7 @@ zelda3::Room* TileObjectHandler::GetRoom(int room_id) {
 void TileObjectHandler::NotifyChange(zelda3::Room* room) {
   if (!room || !ctx_) return;
   room->MarkObjectsDirty();
-  ctx_->NotifyInvalidateCache();
+  ctx_->NotifyInvalidateCache(MutationDomain::kTileObjects);
 }
 
 // ========================================================================
@@ -157,7 +157,7 @@ void TileObjectHandler::HandleDrag(ImVec2 current_pos, ImVec2 delta) {
   // Option-drag (Alt) duplicates once
   if (alt_down && !drag_has_duplicated_) {
     if (!drag_mutation_started_) {
-      ctx_->NotifyMutation();
+      ctx_->NotifyMutation(MutationDomain::kTileObjects);
       drag_mutation_started_ = true;
     }
     
@@ -181,7 +181,7 @@ void TileObjectHandler::HandleDrag(ImVec2 current_pos, ImVec2 delta) {
 
   if (inc_dx != 0 || inc_dy != 0) {
     if (!drag_mutation_started_) {
-      ctx_->NotifyMutation();
+      ctx_->NotifyMutation(MutationDomain::kTileObjects);
       drag_mutation_started_ = true;
     }
     
@@ -196,9 +196,17 @@ void TileObjectHandler::HandleDrag(ImVec2 current_pos, ImVec2 delta) {
 
 void TileObjectHandler::HandleRelease() {
   if (is_dragging_) {
+    const bool had_mutation = drag_mutation_started_;
     is_dragging_ = false;
     drag_mutation_started_ = false;
     drag_has_duplicated_ = false;
+    // Drag operations mutate incrementally while the mouse is held down. The
+    // editor's undo capture wants to finalize after the drag ends (once the
+    // interaction mode has returned to Select), so emit one more invalidation
+    // on release if anything changed.
+    if (had_mutation && ctx_) {
+      ctx_->NotifyInvalidateCache(MutationDomain::kTileObjects);
+    }
   }
 }
 
@@ -323,7 +331,7 @@ void TileObjectHandler::MoveObjects(int room_id,
                                     bool notify_mutation) {
   auto* room = GetRoom(room_id);
   if (!room || indices.empty()) return;
-  if (notify_mutation && ctx_) ctx_->NotifyMutation();
+  if (notify_mutation && ctx_) ctx_->NotifyMutation(MutationDomain::kTileObjects);
 
   auto& objects = room->GetTileObjects();
   for (size_t index : indices) {
@@ -339,7 +347,7 @@ void TileObjectHandler::MoveObjects(int room_id,
 void TileObjectHandler::UpdateObjectsId(int room_id, const std::vector<size_t>& indices, int16_t new_id) {
   auto* room = GetRoom(room_id);
   if (!room || indices.empty()) return;
-  if (ctx_) ctx_->NotifyMutation();
+  if (ctx_) ctx_->NotifyMutation(MutationDomain::kTileObjects);
 
   auto& objects = room->GetTileObjects();
   for (size_t index : indices) {
@@ -354,7 +362,7 @@ void TileObjectHandler::UpdateObjectsId(int room_id, const std::vector<size_t>& 
 void TileObjectHandler::UpdateObjectsSize(int room_id, const std::vector<size_t>& indices, uint8_t new_size) {
   auto* room = GetRoom(room_id);
   if (!room || indices.empty()) return;
-  if (ctx_) ctx_->NotifyMutation();
+  if (ctx_) ctx_->NotifyMutation(MutationDomain::kTileObjects);
 
   auto& objects = room->GetTileObjects();
   for (size_t index : indices) {
@@ -369,7 +377,7 @@ void TileObjectHandler::UpdateObjectsSize(int room_id, const std::vector<size_t>
 void TileObjectHandler::UpdateObjectsLayer(int room_id, const std::vector<size_t>& indices, int new_layer) {
   auto* room = GetRoom(room_id);
   if (!room || indices.empty()) return;
-  if (ctx_) ctx_->NotifyMutation();
+  if (ctx_) ctx_->NotifyMutation(MutationDomain::kTileObjects);
 
   auto& objects = room->GetTileObjects();
   auto layer = static_cast<zelda3::RoomObject::LayerType>(new_layer);
@@ -391,7 +399,7 @@ std::vector<size_t> TileObjectHandler::DuplicateObjects(
     bool notify_mutation) {
   auto* room = GetRoom(room_id);
   if (!room || indices.empty()) return {};
-  if (notify_mutation && ctx_) ctx_->NotifyMutation();
+  if (notify_mutation && ctx_) ctx_->NotifyMutation(MutationDomain::kTileObjects);
 
   auto& objects = room->GetTileObjects();
   std::vector<size_t> new_indices;
@@ -414,7 +422,7 @@ std::vector<size_t> TileObjectHandler::DuplicateObjects(
 void TileObjectHandler::DeleteObjects(int room_id, std::vector<size_t> indices) {
   auto* room = GetRoom(room_id);
   if (!room || indices.empty()) return;
-  if (ctx_) ctx_->NotifyMutation();
+  if (ctx_) ctx_->NotifyMutation(MutationDomain::kTileObjects);
 
   std::sort(indices.rbegin(), indices.rend());
   for (size_t index : indices) {
@@ -427,7 +435,7 @@ void TileObjectHandler::DeleteObjects(int room_id, std::vector<size_t> indices) 
 void TileObjectHandler::DeleteAllObjects(int room_id) {
   auto* room = GetRoom(room_id);
   if (!room) return;
-  if (ctx_) ctx_->NotifyMutation();
+  if (ctx_) ctx_->NotifyMutation(MutationDomain::kTileObjects);
   room->ClearTileObjects();
   NotifyChange(room);
 }
@@ -435,7 +443,7 @@ void TileObjectHandler::DeleteAllObjects(int room_id) {
 void TileObjectHandler::SendToFront(int room_id, const std::vector<size_t>& indices) {
   auto* room = GetRoom(room_id);
   if (!room || indices.empty()) return;
-  if (ctx_) ctx_->NotifyMutation();
+  if (ctx_) ctx_->NotifyMutation(MutationDomain::kTileObjects);
 
   auto& objects = room->GetTileObjects();
   std::vector<zelda3::RoomObject> selected, other;
@@ -455,7 +463,7 @@ void TileObjectHandler::SendToFront(int room_id, const std::vector<size_t>& indi
 void TileObjectHandler::SendToBack(int room_id, const std::vector<size_t>& indices) {
   auto* room = GetRoom(room_id);
   if (!room || indices.empty()) return;
-  if (ctx_) ctx_->NotifyMutation();
+  if (ctx_) ctx_->NotifyMutation(MutationDomain::kTileObjects);
 
   auto& objects = room->GetTileObjects();
   std::vector<zelda3::RoomObject> selected, other;
@@ -475,7 +483,7 @@ void TileObjectHandler::SendToBack(int room_id, const std::vector<size_t>& indic
 void TileObjectHandler::MoveForward(int room_id, const std::vector<size_t>& indices) {
   auto* room = GetRoom(room_id);
   if (!room || indices.empty()) return;
-  if (ctx_) ctx_->NotifyMutation();
+  if (ctx_) ctx_->NotifyMutation(MutationDomain::kTileObjects);
 
   auto& objects = room->GetTileObjects();
   auto sorted_indices = indices;
@@ -492,7 +500,7 @@ void TileObjectHandler::MoveForward(int room_id, const std::vector<size_t>& indi
 void TileObjectHandler::MoveBackward(int room_id, const std::vector<size_t>& indices) {
   auto* room = GetRoom(room_id);
   if (!room || indices.empty()) return;
-  if (ctx_) ctx_->NotifyMutation();
+  if (ctx_) ctx_->NotifyMutation(MutationDomain::kTileObjects);
 
   auto& objects = room->GetTileObjects();
   auto sorted_indices = indices;
@@ -509,7 +517,7 @@ void TileObjectHandler::MoveBackward(int room_id, const std::vector<size_t>& ind
 void TileObjectHandler::ResizeObjects(int room_id, const std::vector<size_t>& indices, int delta) {
   auto* room = GetRoom(room_id);
   if (!room || indices.empty()) return;
-  if (ctx_) ctx_->NotifyMutation();
+  if (ctx_) ctx_->NotifyMutation(MutationDomain::kTileObjects);
   auto& objects = room->GetTileObjects();
   for (size_t index : indices) {
     if (index < objects.size()) {
@@ -524,7 +532,7 @@ void TileObjectHandler::ResizeObjects(int room_id, const std::vector<size_t>& in
 void TileObjectHandler::PlaceObjectAt(int room_id, const zelda3::RoomObject& object, int x, int y) {
   auto* room = GetRoom(room_id);
   if (!room) return;
-  if (ctx_) ctx_->NotifyMutation();
+  if (ctx_) ctx_->NotifyMutation(MutationDomain::kTileObjects);
   auto new_obj = object;
   new_obj.x_ = std::clamp(x, 0, 63);
   new_obj.y_ = std::clamp(y, 0, 63);
@@ -598,7 +606,7 @@ std::vector<size_t> TileObjectHandler::PasteFromClipboard(
     int room_id, int offset_x, int offset_y) {
   auto* room = GetRoom(room_id);
   if (!room || clipboard_.empty()) return {};
-  if (ctx_) ctx_->NotifyMutation();
+  if (ctx_) ctx_->NotifyMutation(MutationDomain::kTileObjects);
 
   std::vector<size_t> new_indices;
   size_t base_index = room->GetTileObjects().size();

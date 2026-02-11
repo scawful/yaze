@@ -77,7 +77,7 @@ void ItemInteractionHandler::HandleRelease() {
 
   auto& pot_items = room->GetPotItems();
   if (*selected_item_index_ < pot_items.size()) {
-    ctx_->NotifyMutation();
+    ctx_->NotifyMutation(MutationDomain::kItems);
 
     pot_items[*selected_item_index_].position =
         static_cast<uint16_t>((encoded_y << 8) | encoded_x);
@@ -235,10 +235,10 @@ void ItemInteractionHandler::DeleteSelected() {
   if (*selected_item_index_ >= pot_items.size())
     return;
 
-  ctx_->NotifyMutation();
+  ctx_->NotifyMutation(MutationDomain::kItems);
   pot_items.erase(pot_items.begin() +
                   static_cast<ptrdiff_t>(*selected_item_index_));
-  ctx_->NotifyInvalidateCache();
+  ctx_->NotifyInvalidateCache(MutationDomain::kItems);
   ClearSelection();
 }
 
@@ -265,7 +265,7 @@ void ItemInteractionHandler::PlaceItemAtPosition(int canvas_x, int canvas_y) {
   encoded_x = std::clamp(encoded_x, 0, 255);
   encoded_y = std::clamp(encoded_y, 0, 255);
 
-  ctx_->NotifyMutation();
+  ctx_->NotifyMutation(MutationDomain::kItems);
 
   // Create the pot item
   zelda3::PotItem new_item;
@@ -275,7 +275,7 @@ void ItemInteractionHandler::PlaceItemAtPosition(int canvas_x, int canvas_y) {
   // Add item to room
   room->GetPotItems().push_back(new_item);
 
-  ctx_->NotifyInvalidateCache();
+  ctx_->NotifyInvalidateCache(MutationDomain::kItems);
 }
 
 }  // namespace yaze::editor

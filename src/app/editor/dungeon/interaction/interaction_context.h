@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_DUNGEON_INTERACTION_INTERACTION_CONTEXT_H_
 
 #include <array>
+#include <cstdint>
 #include <functional>
 
 #include "app/editor/dungeon/dungeon_coordinates.h"
@@ -24,6 +25,23 @@ enum class EntityType {
   Door,     // Door entities
   Sprite,   // Enemy/NPC sprites
   Item      // Pot items
+};
+
+/**
+ * @brief Domain/type of mutation for undo + invalidation routing.
+ *
+ * Dungeon editing spans multiple independent data planes (tile objects,
+ * doors/sprites/items, custom collision, water fill zones, etc.). The editor
+ * can selectively capture undo/redo for some planes without polluting others.
+ */
+enum class MutationDomain : uint8_t {
+  kUnknown = 0,
+  kTileObjects,
+  kDoors,
+  kSprites,
+  kItems,
+  kCustomCollision,
+  kWaterFill,
 };
 
 /**
@@ -78,6 +96,11 @@ struct InteractionContext {
   // Called when entity (door/sprite/item) changes
   std::function<void()> on_entity_changed;
 
+  // Last mutation/invalidation domain (best-effort). Set by Notify* helpers so
+  // the editor can route undo capture and expensive rerenders appropriately.
+  mutable MutationDomain last_mutation_domain = MutationDomain::kUnknown;
+  mutable MutationDomain last_invalidation_domain = MutationDomain::kUnknown;
+
   /**
    * @brief Check if context has required dependencies
    */
@@ -111,7 +134,8 @@ struct InteractionContext {
    * Call this before making any changes to room data.
    * This allows the editor to capture undo snapshots.
    */
-  void NotifyMutation() const {
+  void NotifyMutation(MutationDomain domain = MutationDomain::kUnknown) const {
+    last_mutation_domain = domain;
     if (on_mutation) on_mutation();
   }
 
@@ -120,7 +144,9 @@ struct InteractionContext {
    *
    * Call this after changes that require re-rendering.
    */
-  void NotifyInvalidateCache() const {
+  void NotifyInvalidateCache(
+      MutationDomain domain = MutationDomain::kUnknown) const {
+    last_invalidation_domain = domain;
     if (on_invalidate_cache) on_invalidate_cache();
   }
 

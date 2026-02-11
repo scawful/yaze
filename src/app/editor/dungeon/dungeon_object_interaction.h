@@ -76,6 +76,15 @@ class DungeonObjectInteraction {
     return entity_coordinator_;
   }
 
+  // Last mutation/invalidation domain (best-effort). Used by editors to route
+  // undo capture and avoid expensive rerenders for overlay-only edits.
+  MutationDomain last_mutation_domain() const {
+    return interaction_context_.last_mutation_domain;
+  }
+  MutationDomain last_invalidation_domain() const {
+    return interaction_context_.last_invalidation_domain;
+  }
+
   // Legacy setter - kept for backwards compatibility
   void SetRom(Rom* rom) {
     interaction_context_.rom = rom;
