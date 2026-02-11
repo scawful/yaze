@@ -2,6 +2,8 @@
 
 #include <array>
 #include <cstdint>
+#include <set>
+#include <unordered_map>
 #include <vector>
 
 #include "core/features.h"
@@ -89,6 +91,109 @@ TEST(ObjectDrawerRegistryReplayTest, SuperSquareRendersToBitmap) {
   // If the routine wrote only to the tile buffer (SetTileAt) and not to the
   // bitmap-backed buffers, this would remain 255.
   EXPECT_NE(bg1.bitmap().data()[idx], 255);
+}
+
+TEST(ObjectDrawerRegistryReplayTest, SuperSquare4x4FloorUsesColumnMajorTiles) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  rom.LoadFromData(dummy_rom);
+
+  ObjectDrawer drawer(&rom, /*room_id=*/0, /*room_gfx_buffer=*/nullptr);
+
+  // Object 0xD9 maps to routine 58 (Draw4x4FloorIn4x4SuperSquare).
+  RoomObject obj(0x00D9, /*x=*/10, /*y=*/20, /*size=*/0, /*layer=*/0);
+  obj.tiles_loaded_ = true;
+  obj.tiles_.clear();
+  for (int i = 0; i < 8; ++i) {
+    obj.tiles_.push_back(
+        gfx::TileInfo(static_cast<uint16_t>(i), /*pal=*/2, false, false, false));
+  }
+
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  gfx::PaletteGroup palette_group;
+
+  std::vector<ObjectDrawer::TileTrace> trace;
+  drawer.SetTraceCollector(&trace, /*trace_only=*/true);
+
+  ASSERT_TRUE(drawer.DrawObject(obj, bg1, bg2, palette_group).ok());
+  ASSERT_EQ(trace.size(), 16u);
+
+  auto key = [](int x, int y) { return (y << 8) | x; };
+  std::unordered_map<int, uint16_t> by_pos;
+  by_pos.reserve(trace.size());
+
+  for (const auto& t : trace) {
+    by_pos[key(t.x_tile, t.y_tile)] = t.tile_id;
+  }
+  ASSERT_EQ(by_pos.size(), 16u);
+
+  // Tiles are column-major 4x2, and rows 2/3 repeat rows 0/1.
+  EXPECT_EQ(by_pos[key(10, 20)], 0);
+  EXPECT_EQ(by_pos[key(10, 21)], 1);
+  EXPECT_EQ(by_pos[key(10, 22)], 0);
+  EXPECT_EQ(by_pos[key(10, 23)], 1);
+
+  EXPECT_EQ(by_pos[key(11, 20)], 2);
+  EXPECT_EQ(by_pos[key(11, 21)], 3);
+  EXPECT_EQ(by_pos[key(11, 22)], 2);
+  EXPECT_EQ(by_pos[key(11, 23)], 3);
+
+  EXPECT_EQ(by_pos[key(12, 20)], 4);
+  EXPECT_EQ(by_pos[key(12, 21)], 5);
+  EXPECT_EQ(by_pos[key(12, 22)], 4);
+  EXPECT_EQ(by_pos[key(12, 23)], 5);
+
+  EXPECT_EQ(by_pos[key(13, 20)], 6);
+  EXPECT_EQ(by_pos[key(13, 21)], 7);
+  EXPECT_EQ(by_pos[key(13, 22)], 6);
+  EXPECT_EQ(by_pos[key(13, 23)], 7);
+}
+
+TEST(ObjectDrawerPillarStrideTest, RightwardsPillar2x4Spaced4Uses6TileStride) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  rom.LoadFromData(dummy_rom);
+
+  ObjectDrawer drawer(&rom, /*room_id=*/0, /*room_gfx_buffer=*/nullptr);
+
+  // Object 0x3D maps to RoomDraw_RightwardsPillar2x4spaced4_1to16.
+  // With size=1 => count=2 pillars. Each pillar is 2x4 (8 writes).
+  RoomObject obj(0x003D, /*x=*/10, /*y=*/20, /*size=*/1, /*layer=*/0);
+  obj.tiles_loaded_ = true;
+  obj.tiles_.clear();
+  for (int i = 0; i < 8; ++i) {
+    obj.tiles_.push_back(
+        gfx::TileInfo(static_cast<uint16_t>(i), /*pal=*/2, false, false, false));
+  }
+
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  gfx::PaletteGroup palette_group;
+
+  std::vector<ObjectDrawer::TileTrace> trace;
+  drawer.SetTraceCollector(&trace, /*trace_only=*/true);
+
+  ASSERT_TRUE(drawer.DrawObject(obj, bg1, bg2, palette_group).ok());
+  ASSERT_EQ(trace.size(), 16u);
+
+  std::set<int> xs;
+  for (const auto& t : trace) {
+    xs.insert(t.x_tile);
+  }
+
+  // Stride is 6 tiles: columns at x=10,11 and x=16,17 (not x=14,15).
+  EXPECT_EQ(xs.size(), 4u);
+  EXPECT_NE(xs.count(10), 0u);
+  EXPECT_NE(xs.count(11), 0u);
+  EXPECT_NE(xs.count(16), 0u);
+  EXPECT_NE(xs.count(17), 0u);
+  EXPECT_EQ(xs.count(14), 0u);
+  EXPECT_EQ(xs.count(15), 0u);
 }
 
 TEST(ObjectDrawerRegistryReplayTest, RegistryRoutinesUseObjectDrawerRoomIdForStateQueries) {

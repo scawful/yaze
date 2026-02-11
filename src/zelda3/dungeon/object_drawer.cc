@@ -2325,8 +2325,9 @@ void ObjectDrawer::DrawRightwardsPillar2x4spaced4_1to16(
     [[maybe_unused]] const DungeonState* state) {
   // Pattern: 2x4 pillar with spacing (objects 0x39, 0x3D)
   // 2 columns × 4 rows = 8 tiles in COLUMN-MAJOR order
-  // ASM: ADC #$0008 = 8 bytes = 4 tiles spacing between starts
-  // Object is 2 tiles wide, so gap is 2 tiles
+  // ASM: calls RoomDraw_Nx4(A=2) which advances X by 2 tiles, then adds
+  // ADC #$0008 (4 tiles). Total start-to-start stride is 6 tiles, i.e. 4 tiles
+  // of empty space between 2-tile-wide pillars.
   int size = obj.size_ & 0x0F;
 
   // Assembly: GetSize_1to16, so count = size + 1
@@ -2335,10 +2336,9 @@ void ObjectDrawer::DrawRightwardsPillar2x4spaced4_1to16(
   for (int s = 0; s < count; s++) {
     if (tiles.size() >= 8) {
       // Draw 2x4 pattern in COLUMN-MAJOR order (matching assembly)
-      // Spacing: 4 tiles between starts (object width 2 + gap 2) per ASM ADC #$0008
       for (int x = 0; x < 2; ++x) {
         for (int y = 0; y < 4; ++y) {
-          WriteTile8(bg, obj.x_ + (s * 4) + x, obj.y_ + y, tiles[x * 4 + y]);
+          WriteTile8(bg, obj.x_ + (s * 6) + x, obj.y_ + y, tiles[x * 4 + y]);
         }
       }
     }

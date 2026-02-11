@@ -96,6 +96,12 @@ class DungeonSettingsPanel : public EditorPanel {
             val = viewer_->show_water_fill_overlay();
             if (ImGui::Checkbox("Water Fill Zones (Oracle)", &val)) viewer_->set_show_water_fill_overlay(val);
 
+            val = viewer_->show_track_gap_overlay();
+            if (ImGui::Checkbox("Track Gaps", &val)) viewer_->set_show_track_gap_overlay(val);
+
+            val = viewer_->show_track_route_overlay();
+            if (ImGui::Checkbox("Track Routes", &val)) viewer_->set_show_track_route_overlay(val);
+
             val = viewer_->show_grid();
             if (ImGui::Checkbox("Show Grid (8x8)", &val)) viewer_->set_show_grid(val);
 
