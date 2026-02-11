@@ -9,6 +9,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
+#include "app/editor/core/undo_manager.h"
 #include "app/editor/ui/popup_manager.h"
 #include "app/editor/system/shortcut_manager.h"
 
@@ -45,7 +46,6 @@ namespace editor {
 // Forward declarations
 class PanelManager;
 class ToastManager;
-class UndoManager;
 class UserSettings;
 class StatusBar;
 
@@ -220,6 +220,14 @@ class Editor {
   virtual absl::Status Undo() = 0;
   virtual absl::Status Redo() = 0;
 
+  // Undo description for toast feedback (queries editor's UndoManager)
+  virtual std::string GetUndoDescription() const {
+    return undo_manager_.GetUndoDescription();
+  }
+  virtual std::string GetRedoDescription() const {
+    return undo_manager_.GetRedoDescription();
+  }
+
   virtual absl::Status Find() = 0;
 
   virtual absl::Status Clear() { return absl::OkStatus(); }
@@ -248,6 +256,7 @@ class Editor {
   bool active_ = false;
   EditorType type_;
   EditorDependencies dependencies_;
+  UndoManager undo_manager_;
 
   // Helper method to create session-aware card titles for multi-session support
   std::string MakePanelTitle(const std::string& base_title) const {
