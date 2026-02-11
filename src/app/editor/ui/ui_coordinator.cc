@@ -320,6 +320,7 @@ void UICoordinator::DrawMobileNavigation() {
       ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoFocusOnAppearing |
       ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoSavedSettings;
 
+  bool open_mobile_nav_popup = false;
   {
     gui::StyledWindow nav_win(
         "##MobileNavButton",
@@ -339,12 +340,16 @@ void UICoordinator::DrawMobileNavigation() {
            {ImGuiCol_Text, button_text}});
 
       if (ImGui::Button(ICON_MD_APPS, ImVec2(button_size, button_size))) {
-        ImGui::OpenPopup("##MobileNavPopup");
+        open_mobile_nav_popup = true;
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Navigation");
       }
     }
+  }
+  if (open_mobile_nav_popup) {
+    // Open the popup from the outer ID scope so BeginPopup resolves correctly.
+    ImGui::OpenPopup("MobileNavPopup");
   }
 
   gui::StyleColorGuard popup_color(ImGuiCol_PopupBg,
@@ -353,7 +358,7 @@ void UICoordinator::DrawMobileNavigation() {
       {{ImGuiStyleVar_WindowPadding, ImVec2(12.0f, 10.0f)},
        {ImGuiStyleVar_ItemSpacing, ImVec2(8.0f, 6.0f)}});
 
-  if (ImGui::BeginPopup("##MobileNavPopup")) {
+  if (ImGui::BeginPopup("MobileNavPopup")) {
     bool has_rom = false;
     if (editor_manager_) {
       auto* current_rom = editor_manager_->GetCurrentRom();

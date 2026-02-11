@@ -147,13 +147,17 @@ absl::Status Controller::OnLoad() {
   // Calculate layout offsets for sidebars and status bar
   const float left_offset = editor_manager_.GetLeftLayoutOffset();
   const float right_offset = editor_manager_.GetRightLayoutOffset();
-  const float bottom_offset = editor_manager_.GetBottomLayoutOffset();
+  float bottom_offset = editor_manager_.GetBottomLayoutOffset();
 
   float top_offset = 0.0f;
 #if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
-  // Overlay inset is already applied via DisplaySafeAreaPadding in iOS backend.
-  // Avoid double-counting here so the dockspace matches the visible area.
-  top_offset = 0.0f;
+  // On iOS, inset the dockspace by the safe area so content doesn't render
+  // behind the notch/Dynamic Island (top) or home indicator (bottom).
+  {
+    const auto safe = platform::ios::GetSafeAreaInsets();
+    top_offset = std::max(safe.top, platform::ios::GetOverlayTopInset());
+    bottom_offset += safe.bottom;
+  }
 #endif
 
   // Adjust dockspace position and size for sidebars and status bar

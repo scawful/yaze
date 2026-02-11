@@ -40,9 +40,16 @@ UIEdgeInsets GetSafeAreaInsets(MTKView* view) {
   return UIEdgeInsetsZero;
 }
 
+// Apply touch-friendly ImGui style. Widget sizing is computed once and only
+// updated when the touch scale changes. Safe area padding is updated per-frame
+// but only when the values actually change, preventing layout oscillation.
 void ApplyTouchStyle(MTKView* view) {
-  struct TouchStyleBaseline {
+  struct TouchStyleState {
     bool initialized = false;
+    float last_scale = 0.0f;
+    float last_safe_x = -1.0f;
+    float last_safe_y = -1.0f;
+    // Baselines captured from the original ImGui style
     ImVec2 touch_extra = ImVec2(0.0f, 0.0f);
     ImVec2 frame_padding = ImVec2(0.0f, 0.0f);
     ImVec2 item_spacing = ImVec2(0.0f, 0.0f);
@@ -50,68 +57,79 @@ void ApplyTouchStyle(MTKView* view) {
     float grab_min_size = 0.0f;
   };
 
-  static TouchStyleBaseline baseline;
+  static TouchStyleState state;
 
   ImGuiStyle& style = ImGui::GetStyle();
   ImGuiIO& io = ImGui::GetIO();
   io.ConfigWindowsMoveFromTitleBarOnly = true;
   io.ConfigWindowsResizeFromEdges = false;
-  if (!baseline.initialized) {
-    baseline.touch_extra = style.TouchExtraPadding;
-    baseline.frame_padding = style.FramePadding;
-    baseline.item_spacing = style.ItemSpacing;
-    baseline.scrollbar_size = style.ScrollbarSize;
-    baseline.grab_min_size = style.GrabMinSize;
-    baseline.initialized = true;
+
+  if (!state.initialized) {
+    state.touch_extra = style.TouchExtraPadding;
+    state.frame_padding = style.FramePadding;
+    state.item_spacing = style.ItemSpacing;
+    state.scrollbar_size = style.ScrollbarSize;
+    state.grab_min_size = style.GrabMinSize;
+    state.initialized = true;
   }
 
-  float scale = ios::GetTouchScale();
-  if (scale < 0.75f) {
-    scale = 0.75f;
-  } else if (scale > 1.6f) {
-    scale = 1.6f;
+  float scale = std::clamp(ios::GetTouchScale(), 0.75f, 1.6f);
+
+  // Only recompute widget sizing when the touch scale actually changes.
+  if (scale != state.last_scale) {
+    state.last_scale = scale;
+
+    const float frame_height = ImGui::GetFrameHeight();
+    const float target_height = std::max(44.0f * scale, frame_height);
+    const float touch_extra =
+        std::clamp((target_height - frame_height) * 0.5f, 0.0f, 16.0f * scale);
+    style.TouchExtraPadding =
+        ImVec2(std::max(state.touch_extra.x * scale, touch_extra),
+               std::max(state.touch_extra.y * scale, touch_extra));
+
+    const float font_size = ImGui::GetFontSize();
+    if (font_size > 0.0f) {
+      style.ScrollbarSize = std::max(state.scrollbar_size * scale,
+                                     font_size * 1.1f * scale);
+      style.GrabMinSize =
+          std::max(state.grab_min_size * scale, font_size * 0.9f * scale);
+      style.FramePadding.x = std::max(state.frame_padding.x * scale,
+                                      font_size * 0.55f * scale);
+      style.FramePadding.y = std::max(state.frame_padding.y * scale,
+                                      font_size * 0.35f * scale);
+      style.ItemSpacing.x = std::max(state.item_spacing.x * scale,
+                                     font_size * 0.45f * scale);
+      style.ItemSpacing.y = std::max(state.item_spacing.y * scale,
+                                     font_size * 0.35f * scale);
+    }
+
+    // Window chrome sizing for touch-friendly interaction
+    style.WindowRounding = 8.0f * scale;
+    style.PopupRounding = 6.0f * scale;
+    style.TabRounding = 4.0f * scale;
+    style.ScrollbarRounding = 6.0f * scale;
+    style.TabCloseButtonMinWidthUnselected = 44.0f * scale;
+    style.WindowMinSize = ImVec2(200.0f * scale, 150.0f * scale);
   }
 
-  const float frame_height = ImGui::GetFrameHeight();
-  const float target_height = std::max(44.0f * scale, frame_height);
-  const float touch_extra =
-      std::clamp((target_height - frame_height) * 0.5f, 0.0f, 16.0f * scale);
-  style.TouchExtraPadding =
-      ImVec2(std::max(baseline.touch_extra.x * scale, touch_extra),
-             std::max(baseline.touch_extra.y * scale, touch_extra));
-
-  const float font_size = ImGui::GetFontSize();
-  if (font_size > 0.0f) {
-    style.ScrollbarSize = std::max(baseline.scrollbar_size * scale,
-                                   font_size * 1.1f * scale);
-    style.GrabMinSize =
-        std::max(baseline.grab_min_size * scale, font_size * 0.9f * scale);
-    style.FramePadding.x = std::max(baseline.frame_padding.x * scale,
-                                    font_size * 0.55f * scale);
-    style.FramePadding.y = std::max(baseline.frame_padding.y * scale,
-                                    font_size * 0.35f * scale);
-    style.ItemSpacing.x = std::max(baseline.item_spacing.x * scale,
-                                   font_size * 0.45f * scale);
-    style.ItemSpacing.y = std::max(baseline.item_spacing.y * scale,
-                                   font_size * 0.35f * scale);
-  }
-
-  // Window chrome sizing for touch-friendly interaction
-  style.WindowRounding = 8.0f * scale;
-  style.PopupRounding = 6.0f * scale;
-  style.TabRounding = 4.0f * scale;
-  style.ScrollbarRounding = 6.0f * scale;
-  style.TabCloseButtonMinWidthUnselected = 44.0f * scale;
-
-  // Prevent tiny windows on iPad — minimum 200x150 ensures usability
-  style.WindowMinSize = ImVec2(200.0f * scale, 150.0f * scale);
-
+  // Update safe area padding only when values actually change, to prevent
+  // frame-by-frame layout oscillation that causes dashboard flickering.
   const UIEdgeInsets insets = GetSafeAreaInsets(view);
-  const float safe_x = std::max(insets.left, insets.right);
-  const float safe_y = std::max(insets.top, insets.bottom);
+  const float safe_x = std::max((float)insets.left, (float)insets.right);
+  const float safe_y = std::max((float)insets.top, (float)insets.bottom);
   const float overlay_top = ios::GetOverlayTopInset();
   const float padded_top = std::max(safe_y, overlay_top);
-  style.DisplaySafeAreaPadding = ImVec2(safe_x, padded_top);
+
+  // Truncate to integer pixels to avoid sub-pixel oscillation.
+  const float stable_x = std::floor(safe_x);
+  const float stable_y = std::floor(padded_top);
+
+  if (stable_x != state.last_safe_x || stable_y != state.last_safe_y) {
+    state.last_safe_x = stable_x;
+    state.last_safe_y = stable_y;
+    style.DisplaySafeAreaPadding = ImVec2(stable_x, stable_y);
+  }
+
   ios::SetSafeAreaInsets(insets.left, insets.right, insets.top,
                          insets.bottom);
 }
@@ -397,8 +415,8 @@ void IOSWindowBackend::RenderImGui(gfx::IRenderer* renderer) {
       const ImGuiStyle& style = ImGui::GetStyle();
       const ImVec2 safe = style.DisplaySafeAreaPadding;
       const ImVec2 rect_pos(vp->WorkPos.x + safe.x, vp->WorkPos.y + safe.y);
-      const ImVec2 rect_size(vp->WorkSize.x - safe.x * 2.0f,
-                             vp->WorkSize.y - safe.y - safe.x);
+      const ImVec2 rect_size(std::max(1.0f, vp->WorkSize.x - safe.x * 2.0f),
+                             std::max(1.0f, vp->WorkSize.y - safe.y * 2.0f));
 
       for (ImGuiWindow* win : ctx->Windows) {
         if (!win || win->Hidden || win->IsFallbackWindow) continue;

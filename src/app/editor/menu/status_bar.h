@@ -161,9 +161,10 @@ class StatusBar {
    * @brief Get the height of the status bar
    * @return Height in pixels (0 if disabled)
    */
-  float GetHeight() const { return enabled_ ? kStatusBarHeight : 0.0f; }
+  float GetHeight() const;
 
   static constexpr float kStatusBarHeight = 24.0f;
+  static constexpr float kStatusBarTouchHeight = 34.0f;
 
  private:
   void HandleStatusUpdate(const StatusUpdateEvent& event);
