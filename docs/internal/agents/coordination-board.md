@@ -3,6 +3,11 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
+### 2026-02-14 backend-infra-engineer – 0.6.0 CI Stabilization (Linux/Windows/Quality)
+- IN_PROGRESS 2026-02-14 (backend-infra-engineer): triaging post-release CI failures from runs `22009740796` and `22009744893` (format check + Linux/Windows build/test + z3ed agent jobs).
+- Scope: identify failing targets/log signatures, apply minimal cross-platform fixes, and re-run fast validation locally before re-triggering CI.
+- Validation plan: targeted build/tests for failing components plus `format-check`; post run IDs and outcome summary here.
+
 ### 2026-02-14 imgui-frontend-engineer – Dungeon Workflow UX + Sidebar Tightening
 - COMPLETE 2026-02-14 (imgui-frontend-engineer): disambiguated dungeon workflows by adding explicit Workbench/Panel mode control in both `DungeonWorkbenchPanel` and `ActivityBar` Dungeon sidebar (`Workflow` section).
 - Workbench mode now suppresses overlapping standalone room windows; panel mode restores `room_selector` + `room_matrix` and room panel focus paths (runtime mode checks replace static flag-only behavior).

@@ -277,7 +277,7 @@ absl::StatusOr<MessageBank> MessageBankFromString(std::string_view value) {
     return MessageBank::kExpanded;
   }
   return absl::InvalidArgumentError(
-      absl::StrFormat("Unknown message bank: %s", value));
+      absl::StrFormat("Unknown message bank: %s", std::string(value)));
 }
 
 std::vector<DictionaryEntry> BuildDictionaryEntries(Rom* rom) {
@@ -510,7 +510,8 @@ std::vector<MessageData> ReadAllTextData(uint8_t* rom, int pos, int max_pos) {
   bool did_bank_switch = false;
   uint8_t current_byte = 0;
   while (current_byte != 0xFF) {
-    if (max_pos > 0 && (pos < 0 || pos >= max_pos)) break;
+    if (max_pos > 0 && (pos < 0 || pos >= max_pos))
+      break;
     current_byte = rom[pos++];
     if (current_byte == kMessageTerminator) {
       list_of_texts.push_back(
@@ -531,7 +532,8 @@ std::vector<MessageData> ReadAllTextData(uint8_t* rom, int pos, int max_pos) {
     if (text_element != std::nullopt) {
       parsed_message.push_back(current_byte);
       if (text_element->HasArgument) {
-        if (max_pos > 0 && (pos < 0 || pos >= max_pos)) break;
+        if (max_pos > 0 && (pos < 0 || pos >= max_pos))
+          break;
         current_byte = rom[pos++];
         raw_message.push_back(current_byte);
         parsed_message.push_back(current_byte);
@@ -570,7 +572,8 @@ std::vector<MessageData> ReadAllTextData(uint8_t* rom, int pos, int max_pos) {
       const int ptr_a = kPointersDictionaries + (dictionary * 2);
       const int ptr_b = kPointersDictionaries + ((dictionary + 1) * 2);
       if (max_pos > 0) {
-        if (ptr_a < 0 || ptr_a + 1 >= max_pos || ptr_b < 0 || ptr_b + 1 >= max_pos) {
+        if (ptr_a < 0 || ptr_a + 1 >= max_pos || ptr_b < 0 ||
+            ptr_b + 1 >= max_pos) {
           continue;
         }
       }
@@ -588,7 +591,8 @@ std::vector<MessageData> ReadAllTextData(uint8_t* rom, int pos, int max_pos) {
       }
 
       for (uint32_t i = address; i < address_end; i++) {
-        if (max_pos > 0 && i >= static_cast<uint32_t>(max_pos)) break;
+        if (max_pos > 0 && i >= static_cast<uint32_t>(max_pos))
+          break;
         parsed_message.push_back(rom[i]);
         current_parsed_message.append(ParseTextDataByte(rom[i]));
       }
@@ -656,8 +660,9 @@ absl::Status ExportMessagesToJson(const std::string& path,
   }
 }
 
-nlohmann::json SerializeMessageBundle(const std::vector<MessageData>& vanilla,
-                                      const std::vector<MessageData>& expanded) {
+nlohmann::json SerializeMessageBundle(
+    const std::vector<MessageData>& vanilla,
+    const std::vector<MessageData>& expanded) {
   nlohmann::json j;
   j["format"] = "yaze-message-bundle";
   j["version"] = kMessageBundleVersion;
@@ -776,8 +781,7 @@ absl::StatusOr<std::vector<MessageBundleEntry>> ParseMessageBundleJson(
 
   if (json.is_array()) {
     for (const auto& entry : json) {
-      auto parsed_or =
-          ParseMessageBundleEntry(entry, MessageBank::kVanilla);
+      auto parsed_or = ParseMessageBundleEntry(entry, MessageBank::kVanilla);
       if (!parsed_or.ok()) {
         return parsed_or.status();
       }
@@ -803,8 +807,7 @@ absl::StatusOr<std::vector<MessageBundleEntry>> ParseMessageBundleJson(
   }
 
   for (const auto& entry : json["messages"]) {
-    auto parsed_or =
-        ParseMessageBundleEntry(entry, MessageBank::kVanilla);
+    auto parsed_or = ParseMessageBundleEntry(entry, MessageBank::kVanilla);
     if (!parsed_or.ok()) {
       return parsed_or.status();
     }
@@ -837,8 +840,7 @@ absl::StatusOr<std::vector<MessageBundleEntry>> LoadMessageBundleFromJson(
 // Line Width Validation
 // ===========================================================================
 
-std::vector<std::string> ValidateMessageLineWidths(
-    const std::string& message) {
+std::vector<std::string> ValidateMessageLineWidths(const std::string& message) {
   std::vector<std::string> warnings;
 
   // Split message into lines on line-break tokens: [1], [2], [3], [V], [K]
@@ -852,7 +854,8 @@ std::vector<std::string> ValidateMessageLineWidths(
     if (message[pos] == '[') {
       // Find the closing bracket
       size_t close = message.find(']', pos);
-      if (close == std::string::npos) break;
+      if (close == std::string::npos)
+        break;
 
       std::string token = message.substr(pos, close - pos + 1);
       pos = close + 1;
@@ -881,7 +884,8 @@ std::vector<std::string> ValidateMessageLineWidths(
     }
 
     // Regular visible character
-    if (message[pos] != ' ') all_spaces_this_line = false;
+    if (message[pos] != ' ')
+      all_spaces_this_line = false;
     visible_chars++;
     pos++;
   }
@@ -957,7 +961,8 @@ std::vector<std::pair<int, std::string>> ParseOrgContent(
     }
 
     // Skip top-level org headers (single *)
-    if (!line.empty() && line[0] == '*' && (line.size() < 2 || line[1] != '*')) {
+    if (!line.empty() && line[0] == '*' &&
+        (line.size() < 2 || line[1] != '*')) {
       continue;
     }
 
@@ -989,8 +994,9 @@ std::string ExportToOrgFormat(
 
   for (size_t i = 0; i < messages.size(); ++i) {
     const auto& [msg_id, body] = messages[i];
-    std::string label =
-        (i < labels.size()) ? labels[i] : absl::StrFormat("Message %02X", msg_id);
+    std::string label = (i < labels.size())
+                            ? labels[i]
+                            : absl::StrFormat("Message %02X", msg_id);
 
     output += absl::StrFormat("** %02X - %s\n", msg_id, label);
     output += body;
@@ -1020,7 +1026,8 @@ absl::Status WriteExpandedTextData(Rom* rom, int start, int end,
 
   const int capacity = end - start + 1;
   if (capacity <= 0) {
-    return absl::InvalidArgumentError("Expanded message region has no capacity");
+    return absl::InvalidArgumentError(
+        "Expanded message region has no capacity");
   }
 
   const auto& data = rom->vector();
@@ -1063,8 +1070,7 @@ absl::Status WriteExpandedTextData(Rom* rom, int start, int end,
   const uint32_t fence_start = static_cast<uint32_t>(start);
   const uint32_t fence_end =
       static_cast<uint32_t>(static_cast<uint64_t>(end) + 1ULL);
-  RETURN_IF_ERROR(
-      fence.Allow(fence_start, fence_end, "ExpandedMessageBank"));
+  RETURN_IF_ERROR(fence.Allow(fence_start, fence_end, "ExpandedMessageBank"));
   yaze::rom::ScopedWriteFence scope(rom, &fence);
 
   return rom->WriteVector(start, std::move(blob));
@@ -1085,10 +1091,10 @@ absl::Status WriteExpandedTextData(uint8_t* rom, int start, int end,
     }
 
     if (pos + needed - start > capacity) {
-      return absl::ResourceExhaustedError(absl::StrFormat(
-          "Expanded message data exceeds bank boundary "
-          "(at message %d, pos 0x%06X, end 0x%06X)",
-          static_cast<int>(i), pos, end));
+      return absl::ResourceExhaustedError(
+          absl::StrFormat("Expanded message data exceeds bank boundary "
+                          "(at message %d, pos 0x%06X, end 0x%06X)",
+                          static_cast<int>(i), pos, end));
     }
 
     // Write encoded bytes
