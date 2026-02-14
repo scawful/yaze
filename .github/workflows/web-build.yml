@@ -212,7 +212,7 @@ jobs:
           cd scripts/agents
           npm ci
           npx playwright install --with-deps chromium
-          python3 -m http.server 8000 --directory ../../build-wasm/dist &
+          python3 serve_static_with_coi.py --port 8000 --directory ../../build-wasm/dist &
           server_pid=$!
           trap "kill ${server_pid}" EXIT
           sleep 3
