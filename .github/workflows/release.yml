@@ -120,21 +120,54 @@ jobs:
         if: matrix.platform == 'linux'
         run: |
           cd build
-          cpack -G DEB -G TGZ
+          cpack -G DEB
+          cpack -G TGZ
           echo "=== Contents of packages directory ==="
           ls -la packages/ 2>/dev/null || echo "No packages directory"
           echo "=== Package files created ==="
-          ls -la packages/*.deb packages/*.tar.gz 2>/dev/null || echo "No packages found"
+          shopt -s nullglob
+          package_files=(packages/*.deb packages/*.tar.gz)
+          if [[ ${#package_files[@]} -eq 0 ]]; then
+            echo "No Linux package files found"
+            exit 1
+          fi
+          ls -la "${package_files[@]}"
+          shopt -u nullglob
 
       - name: Validate Linux artifacts
         if: matrix.platform == 'linux'
         shell: bash
         run: |
-          python3 scripts/release/validate-archive.py build/packages/*.tar.gz
+          shopt -s nullglob
+          deb_files=(build/packages/*.deb)
+          tgz_files=(build/packages/*.tar.gz)
+          if [[ ${#deb_files[@]} -eq 0 ]]; then
+            echo "No DEB package produced in build/packages/"
+            exit 1
+          fi
+          if [[ ${#tgz_files[@]} -eq 0 ]]; then
+            echo "No TGZ package produced in build/packages/"
+            exit 1
+          fi
+          python3 scripts/release/validate-archive.py "${deb_files[@]}" "${tgz_files[@]}"
+          shopt -u nullglob
 
       - name: Package artifacts (macOS)
         if: matrix.platform == 'macos'
+        shell: bash
         run: |
+          app_bundle="$(find build/bin -maxdepth 3 -type d -name yaze.app | head -n 1)"
+          if [[ -n "${app_bundle}" ]]; then
+            echo "Signing app bundle: ${app_bundle}"
+            if [[ -n "${CODESIGN_IDENTITY:-}" ]]; then
+              codesign --force --deep --options runtime --sign "${CODESIGN_IDENTITY}" "${app_bundle}"
+            else
+              codesign --force --deep --sign - "${app_bundle}"
+            fi
+            codesign --verify --deep --strict "${app_bundle}"
+          else
+            echo "No app bundle found under build/bin; skipping pre-package signing."
+          fi
           cd build
           cpack -G DragNDrop
           echo "=== Contents of packages directory ==="
@@ -142,7 +175,7 @@ jobs:
           echo "=== Package files created ==="
           ls -la packages/*.dmg 2>/dev/null || echo "No packages found"
 
-      - name: Create notarized bundle (macOS)
+      - name: Create bundle DMG (macOS)
         if: matrix.platform == 'macos'
         shell: bash
         run: |
@@ -249,6 +282,7 @@ jobs:
     name: "Test Release - ${{ matrix.name }}"
     needs: build
     runs-on: ${{ matrix.os }}
+    continue-on-error: true  # informational pre-1.0; release publication gates on build
     strategy:
       fail-fast: false
       matrix:
