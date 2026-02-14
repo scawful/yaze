@@ -263,6 +263,17 @@ TEST_F(SpriteRelocationTest, RelocateSpriteData_EmptyRoom) {
   EXPECT_EQ(rom_->data()[relocated_pc + 1], 0xFF);
 }
 
+TEST_F(SpriteRelocationTest, RelocateSpriteData_RejectsMalformedPayload) {
+  SetRoomPointer(0, kSpritesData);
+  SetRoomPointer(1, kSpritesData + 0x20);
+  WriteSpriteStream(kSpritesData, 0x00, EncodeSpritePayload(0));
+  WriteSpriteStream(kSpritesData + 0x20, 0x00, EncodeSpritePayload(0));
+
+  std::vector<uint8_t> malformed = {0x10, 0xFF};  // Not N*3 + terminator.
+  auto status = RelocateSpriteData(rom_.get(), 0, malformed);
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+}
+
 TEST_F(SpriteRelocationTest, FindMaxUsedSpriteAddress_LastRoom) {
   SetRoomPointer(kNumberOfRooms - 1, kSpritesData + 0x60);
   WriteSpriteStream(kSpritesData + 0x60, 0x00, EncodeSpritePayload(3));
