@@ -26,11 +26,13 @@ usage() {
 Usage:
   scripts/dev/ios-ipad-workflow.sh list
   scripts/dev/ios-ipad-workflow.sh deploy [options]
+  scripts/dev/ios-ipad-workflow.sh instant [options]
   scripts/dev/ios-ipad-workflow.sh redeploy [options]
 
 Commands:
   list      Show currently paired+available iPad device names.
   deploy    Build once, then install/launch on one or more iPads.
+  instant   Build only when iOS sources changed, then install/launch.
   redeploy  Skip build, install/launch last built .app.
 
 Options:
@@ -38,6 +40,7 @@ Options:
   --devices "<a,b,c>"     Comma-separated device names
   --all                   Target all paired+available iPads
   --skip-build            Skip build and deploy existing app bundle
+  --force-build           Force build in instant mode (ignore cache)
   --retries <n>           Install retries per device (default: 2)
   --no-launch             Install only; do not auto-launch app
   --bundle-id <id>        Bundle identifier for launch
@@ -53,6 +56,7 @@ Selection priority:
 Examples:
   scripts/dev/ios-ipad-workflow.sh list
   scripts/dev/ios-ipad-workflow.sh deploy --all
+  scripts/dev/ios-ipad-workflow.sh instant --all
   scripts/dev/ios-ipad-workflow.sh deploy --devices "Baby Pad,iPadothée Chalamet"
   scripts/dev/ios-ipad-workflow.sh redeploy --devices "Baby Pad"
 EOF
@@ -116,6 +120,60 @@ resolve_device_app_path() {
   fi
 
   return 1
+}
+
+hash_text() {
+  if command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 | awk '{print $1}'
+    return 0
+  fi
+  if command -v openssl >/dev/null 2>&1; then
+    openssl dgst -sha256 | awk '{print $NF}'
+    return 0
+  fi
+  return 1
+}
+
+compute_ios_build_fingerprint() {
+  if ! command -v git >/dev/null 2>&1; then
+    return 1
+  fi
+  if ! git -C "${ROOT_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    return 1
+  fi
+
+  (
+    cd "${ROOT_DIR}"
+    {
+      git rev-parse HEAD 2>/dev/null || true
+      git status --porcelain --untracked-files=all -- \
+        CMakeLists.txt \
+        cmake \
+        src \
+        scripts/build-ios.sh \
+        scripts/xcodebuild-ios.sh \
+        scripts/dev/ios-ipad-workflow.sh || true
+    } | hash_text
+  )
+}
+
+fingerprint_file_for_preset() {
+  local preset="$1"
+  echo "${ROOT_DIR}/build/xcode/derived/yaze_ios-${preset}/.ios-ipad-build-fingerprint"
+}
+
+read_cached_fingerprint() {
+  local file="$1"
+  if [[ -f "${file}" ]]; then
+    tr -d '[:space:]' < "${file}"
+  fi
+}
+
+write_cached_fingerprint() {
+  local file="$1"
+  local fingerprint="$2"
+  mkdir -p "$(dirname "${file}")"
+  printf '%s\n' "${fingerprint}" > "${file}"
 }
 
 split_csv() {
@@ -228,9 +286,16 @@ main() {
     local devices_csv=""
     local all_devices=false
     local skip_build=false
+    local force_build=false
+    local instant_mode=false
     local retries="${YAZE_IOS_DEPLOY_RETRIES:-2}"
     local launch_after=true
     local bundle_id="${YAZE_IOS_BUNDLE_ID:-org.halext.yaze-ios}"
+
+  if [[ "${command}" == "instant" ]]; then
+    instant_mode=true
+    command="deploy"
+  fi
 
   if [[ "${command}" == "redeploy" ]]; then
     skip_build=true
@@ -257,6 +322,8 @@ main() {
         all_devices=true; shift ;;
       --skip-build)
         skip_build=true; shift ;;
+      --force-build)
+        force_build=true; shift ;;
       --retries)
         retries="$2"; shift 2 ;;
       --no-launch)
@@ -290,11 +357,44 @@ main() {
   local app_products_dir
   app_products_dir="$(resolve_products_dir "${preset}")"
 
+  local build_fingerprint=""
+  local fingerprint_file=""
+  if [[ "${instant_mode}" == "true" ]]; then
+    fingerprint_file="$(fingerprint_file_for_preset "${preset}")"
+    if [[ "${force_build}" == "true" ]]; then
+      log_info "Instant mode: force-build enabled."
+    elif [[ "${skip_build}" == "false" ]]; then
+      build_fingerprint="$(compute_ios_build_fingerprint || true)"
+      if [[ -z "${build_fingerprint}" ]]; then
+        log_warn "Instant mode: fingerprint unavailable; running build."
+      else
+        local cached_fingerprint=""
+        cached_fingerprint="$(read_cached_fingerprint "${fingerprint_file}")"
+        if [[ -n "${cached_fingerprint}" && \
+              "${cached_fingerprint}" == "${build_fingerprint}" ]] && \
+              resolve_device_app_path "${app_products_dir}" >/dev/null 2>&1; then
+          skip_build=true
+          log_info "Instant mode: cache hit, reusing existing app bundle."
+        else
+          log_info "Instant mode: cache miss, building app."
+        fi
+      fi
+    fi
+  fi
+
   if [[ "${skip_build}" == "false" ]]; then
     log_info "Building once with preset '${preset}'"
     "${ROOT_DIR}/scripts/xcodebuild-ios.sh" "${preset}" build
+    if [[ "${instant_mode}" == "true" ]]; then
+      if [[ -z "${build_fingerprint}" ]]; then
+        build_fingerprint="$(compute_ios_build_fingerprint || true)"
+      fi
+      if [[ -n "${build_fingerprint}" ]]; then
+        write_cached_fingerprint "${fingerprint_file}" "${build_fingerprint}"
+      fi
+    fi
   else
-    log_info "Skipping build (redeploy mode)"
+    log_info "Skipping build (existing app bundle)"
   fi
 
   local app_path
