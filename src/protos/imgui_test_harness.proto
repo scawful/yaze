@@ -58,6 +58,7 @@ message PingResponse {
 message ClickRequest {
   string target = 1;     // Target element (e.g., "button:Open ROM")
   ClickType type = 2;    // Type of click
+  string widget_key = 3; // Stable widget selector key (v2 additive)
   
   enum ClickType {
     CLICK_TYPE_UNSPECIFIED = 0;  // Default/unspecified click type
@@ -73,6 +74,8 @@ message ClickResponse {
   string message = 2;            // Human-readable result message
   int32 execution_time_ms = 3;   // Time taken to execute (for debugging)
   string test_id = 4;            // Unique test identifier for introspection
+  string resolved_widget_key = 5; // Resolved widget key (if selector-v2 used)
+  string resolved_path = 6;       // Resolved legacy path/label source
 }
 
 // ============================================================================
@@ -83,6 +86,7 @@ message TypeRequest {
   string target = 1;     // Target input field (e.g., "textbox:File Path")
   string text = 2;       // Text to type
   bool clear_first = 3;  // Clear existing text before typing
+  string widget_key = 4; // Stable widget selector key (v2 additive)
 }
 
 message TypeResponse {
@@ -90,6 +94,8 @@ message TypeResponse {
   string message = 2;
   int32 execution_time_ms = 3;
   string test_id = 4;
+  string resolved_widget_key = 5;
+  string resolved_path = 6;
 }
 
 // ============================================================================
@@ -100,6 +106,7 @@ message WaitRequest {
   string condition = 1;   // Condition to wait for (e.g., "window:Overworld")
   int32 timeout_ms = 2;   // Maximum time to wait (default 5000ms)
   int32 poll_interval_ms = 3;  // How often to check (default 100ms)
+  string widget_key = 4;  // Stable widget selector key (v2 additive)
 }
 
 message WaitResponse {
@@ -107,6 +114,8 @@ message WaitResponse {
   string message = 2;
   int32 elapsed_ms = 3;   // Time taken before condition met (or timeout)
   string test_id = 4;     // Unique test identifier for introspection
+  string resolved_widget_key = 5;
+  string resolved_path = 6;
 }
 
 // ============================================================================
@@ -116,6 +125,7 @@ message WaitResponse {
 message AssertRequest {
   string condition = 1;   // Condition to assert (e.g., "visible:button:Save")
   string failure_message = 2;  // Custom message if assertion fails
+  string widget_key = 3;  // Stable widget selector key (v2 additive)
 }
 
 message AssertResponse {
@@ -124,6 +134,8 @@ message AssertResponse {
   string actual_value = 3;     // Actual value found (for debugging)
   string expected_value = 4;   // Expected value (for debugging)
   string test_id = 5;          // Unique test identifier for introspection
+  string resolved_widget_key = 6;
+  string resolved_path = 7;
 }
 
 // ============================================================================
@@ -294,6 +306,9 @@ message DiscoveredWidget {
   int64 last_seen_frame = 10;   // Frame number when widget was last observed
   int64 last_seen_at_ms = 11;   // Wall-clock timestamp of last observation
   bool stale = 12;              // True if widget not seen in the current frame
+  string widget_key = 13;       // Stable widget selector key (v2 additive)
+  string legacy_path = 14;      // Legacy target path for migration visibility
+  string alias_of = 15;         // Optional key alias source (future use)
 }
 
 message DiscoveredWindow {

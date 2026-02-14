@@ -39,13 +39,11 @@ class GuiClickCommandHandler : public resources::CommandHandler {
     return "Click on a GUI element using automation";
   }
   std::string GetUsage() const {
-    return "gui-click --target <target> [--click-type <left|right|middle>] "
-           "[--format <json|text>]";
+    return "gui-click (--target <target> | --widget-key <key>) [--click-type "
+           "<left|right|middle|double>] [--format <json|text>]";
   }
 
-  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
-    return parser.RequireArgs({"target"});
-  }
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
 
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
                        resources::OutputFormatter& formatter) override;

@@ -147,6 +147,7 @@ absl::StatusOr<TestRecorder::StopRecordingSummary> TestRecorder::StopLocked(
       TestScriptStep script_step;
       script_step.action = ActionTypeToString(step.type);
       script_step.target = step.target;
+      script_step.widget_key = step.widget_key;
       script_step.click_type = absl::AsciiStrToLower(step.click_type);
       script_step.text = step.text;
       script_step.clear_first = step.clear_first;

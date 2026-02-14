@@ -18,6 +18,17 @@ namespace handlers {
 
 using util::ParseHexString;
 
+absl::Status GuiClickCommandHandler::ValidateArgs(
+    const resources::ArgumentParser& parser) {
+  const bool has_target = parser.GetString("target").has_value();
+  const bool has_widget_key = parser.GetString("widget-key").has_value();
+  if (has_target == has_widget_key) {
+    return absl::InvalidArgumentError(
+        "Provide exactly one of --target or --widget-key");
+  }
+  return absl::OkStatus();
+}
+
 absl::Status GuiPlaceTileCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
@@ -26,8 +37,7 @@ absl::Status GuiPlaceTileCommandHandler::Execute(
   auto y_str = parser.GetString("y").value();
 
   int tile_id, x, y;
-  if (!ParseHexString(tile_id_str, &tile_id) ||
-      !absl::SimpleAtoi(x_str, &x) ||
+  if (!ParseHexString(tile_id_str, &tile_id) || !absl::SimpleAtoi(x_str, &x) ||
       !absl::SimpleAtoi(y_str, &y)) {
     return absl::InvalidArgumentError("Invalid tile ID or coordinate format.");
   }
@@ -61,12 +71,15 @@ absl::Status GuiPlaceTileCommandHandler::Execute(
 absl::Status GuiClickCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  auto target = parser.GetString("target").value();
+  auto target = parser.GetString("target").value_or("");
+  auto widget_key = parser.GetString("widget-key").value_or("");
   auto click_type_str = parser.GetString("click-type").value_or("left");
 
   ClickType click_type = ClickType::kLeft;
   if (click_type_str == "right")
     click_type = ClickType::kRight;
+  else if (click_type_str == "middle")
+    click_type = ClickType::kMiddle;
   else if (click_type_str == "double")
     click_type = ClickType::kDouble;
 
@@ -77,14 +90,21 @@ absl::Status GuiClickCommandHandler::Execute(
                                   std::string(status.message()));
   }
 
-  auto result = client.Click(target, click_type);
+  auto result = client.Click(target, click_type, widget_key);
 
   formatter.BeginObject("GUI Click Action");
   formatter.AddField("target", target);
+  formatter.AddField("widget_key", widget_key);
   formatter.AddField("click_type", click_type_str);
 
   if (result.ok()) {
     formatter.AddField("status", result->success ? "Success" : "Failed");
+    if (!result->resolved_widget_key.empty()) {
+      formatter.AddField("resolved_widget_key", result->resolved_widget_key);
+    }
+    if (!result->resolved_path.empty()) {
+      formatter.AddField("resolved_path", result->resolved_path);
+    }
     if (!result->success) {
       formatter.AddField("error", result->message);
     }

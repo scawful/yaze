@@ -38,6 +38,7 @@ class TestRecorder {
   struct RecordedStep {
     ActionType type = ActionType::kUnknown;
     std::string target;
+    std::string widget_key;
     std::string text;
     std::string condition;
     std::string click_type;
